@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="6db28558323afd194c878b822e10147ed489d4d7" name="ReaTeam Scripts">
+<index version="1" commit="77c41e7e0992c92ed24264d1908670ca686915cd" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -18397,13 +18397,13 @@ uc_note_min_seconds = 1\par}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 Color tool with a color gradient palette and a customizable user palette. Use it to set new tracks/objects/takes colors.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Color tool with a color gradient palette and a customizable user palette. Use it to set new tracks/objects/takes/markers/regions colors.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Requirement :\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab ReaImGui: ReaScript binding for Dear ImGui\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab js_ReaScriptAPI: API functions for ReaScripts\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab SWS Extension\sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Features :\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Click on color to set in selected tracks/objects/takes (depends on focus)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Click on color to set in selected tracks/objects/takes/markers/regions (depends on focus and first button)\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Can also set color in all tracks whose name begins with a given value\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Set children tracks color option\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Drag and drop colors to user palette\par}
@@ -18428,6 +18428,10 @@ uc_note_min_seconds = 1\par}
       <version name="1.3" author="Rodilab" time="2021-04-18T09:49:02Z">
         <changelog><![CDATA[Update : Dock mode, Vertical mode, Any modifier-click on "Item" button switch to "Track Name" mode and viceversa, Ctrl-click set color in children tracks (Ctrl+Alt in Windows), Background color like Default_6.0 theme, Save last window position, Bug fixed when drag and drop and right click.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6db28558323afd194c878b822e10147ed489d4d7/Various/rodilab_Color%20palette.lua</source>
+      </version>
+      <version name="1.4" author="Rodilab" time="2021-04-19T20:48:23Z">
+        <changelog><![CDATA[New Marker mode (set marker and region color by time selection or else cursor position), Right-click on "Item" button to set Take/Marker/Track by Name mode, Right-click on "Default" button to set "Random All / Random Each" mode, Set preferred palette to random mode in Settings, Browse dialog bug fixed in Linux.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/77c41e7e0992c92ed24264d1908670ca686915cd/Various/rodilab_Color%20palette.lua</source>
       </version>
     </reapack>
     <reapack name="rodilab_Smart remove.lua" type="script" desc="Smart remove">
