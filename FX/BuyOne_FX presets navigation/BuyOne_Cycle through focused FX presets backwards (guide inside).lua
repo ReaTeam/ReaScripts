@@ -148,11 +148,11 @@ local ret, pres_cnt = table.unpack(t)
 	r.Undo_BeginBlock()
 	--r.TrackFX_SetPresetByIndex(tr, fx_num, 3)
 		if retval == 1 or mon_fx then
-		r.TrackFX_NavigatePresets(tr, fx_num, -1)
+		r.TrackFX_NavigatePresets(tr, fx_num, -1) -- -1 = backwards
 		 _, fx_name = r.TrackFX_GetFXName(tr, fx_num, '') -- for undo caption
 		_, pres_name = r.TrackFX_GetPreset(tr, fx_num, '') -- for undo caption
 		elseif retval == 2 then
-		r.TakeFX_NavigatePresets(take, fx_num, -1)
+		r.TakeFX_NavigatePresets(take, fx_num, -1) -- -1 = backwards
 		_, take_name = r.GetSetMediaItemTakeInfo_String(take, 'P_NAME', '', false)
 		_, fx_name = r.TakeFX_GetFXName(take, fx_num, '') -- for undo caption
 		_, pres_name = r.TakeFX_GetPreset(take, fx_num, '') -- for undo caption
