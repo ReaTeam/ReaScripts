@@ -108,8 +108,6 @@ ACTION = [[1]]
 -------------------------- END OF USER SETTINGS -----------------------------
 -----------------------------------------------------------------------------
 
--- https://forum.cockos.com/showthread.php?t=177151
-
 function Msg(param)
 reaper.ShowConsoleMsg(tostring(param)..'\n')
 end
@@ -126,7 +124,6 @@ local ACTION = ACTION:gsub('[%s]','') ~= ''
 	if TAG == '' then r.MB('  The TAG has not been set\n\nin the script USER SETTINGS.','ERROR',0) r.defer(function() end) return end
 
 	if r.CSurf_NumTracks(true) + r.CountMediaItems(0) == 0 then r.MB('No tracks or items in the project.','ERROR',0) r.defer(function() end) return end
-
 
 
 function EvaluateTAG(fx_name,TAG)
@@ -146,8 +143,7 @@ local play_state = r.GetPlayState()
 	local play_pos = r.GetPlayPosition()
 	local mrk_idx, reg_idx = reaper.GetLastMarkerAndCurRegion(0, play_pos)
 	local retval, isrgn, mrk_pos, rgnend, mrk_name, mrk_num = reaper.EnumProjectMarkers(mrk_idx)
---Msg('MRK NAME = '..cmd_ID)
-	local preset = mrk_name:match('!.*%s(.*)$') -- mrk_name:match(cmd_ID..'%s(.*)$')
+	local preset = mrk_name:match('!.*%s(.*)$')
 	return type(tonumber(preset)) == 'number' and tonumber(preset) or preset -- either index or name
 	end
 
@@ -171,7 +167,6 @@ function NavigateTrackFXPresets(tr, fx_type, fx_cnt, TAG, preset)
 				local pres = (preset and type(preset) == 'number' and preset <= preset_cnt) and r.TrackFX_SetPresetByIndex(tr, fx_num, preset-1) -- if index, -1 since count starts from zero
 				or (preset and r.TrackFX_SetPreset(tr, fx_num, preset) -- if name
 				or r.TrackFX_NavigatePresets(tr, fx_num, 1)) -- 1 = forward
-			--	r.TrackFX_NavigatePresets(tr, fx_num, 1) -- 1 = forward
 				_, pres_name = r.TrackFX_GetPreset(tr, fx_num, '') -- for undo caption
 				end
 			return tag, tr_name, fx_name, fx_num, pres_name end -- except the tag the values are meant for undo caption, fx_num for being able to distingush between main and input/mon fx
@@ -199,7 +194,6 @@ function NavigateTakeFXPresets(TAG, preset)
 							local pres = (preset and type(preset) == 'number' and preset <= preset_cnt) and r.TakeFX_SetPresetByIndex(take, j, preset-1) -- if index, -1 since count starts from zero
 							or (preset and r.TakeFX_SetPreset(take, j, preset) -- if name
 							or r.TakeFX_NavigatePresets(take, j, 1)) -- 1 = forward
-						--	r.TakeFX_NavigatePresets(take, j, 1) -- 1 = forward
 							_, pres_name = r.TakeFX_GetPreset(take, j, '') -- for undo caption
 							end
 						return tag, take_name, fx_name, take_cnt, i, pres_name end -- except the tag the values are meant for undo caption, 'i' = take_num
@@ -234,14 +228,7 @@ Msg(preset)
 	tag, take_name, fx_name, take_cnt, take_num, pres_name = NavigateTakeFXPresets(TAG, preset)
 	end
 
-
-Msg('TAG = '..tostring(tag))
-Msg('TAKE NUM = '..tostring(take_num))
---Msg('FX NAME = '..fx_name)
-Msg('TAKE CNT = '..tostring(take_cnt))
-
 	if not tag then r.MB('Either there\'s no FX tagged with 【'..TAG..'】\n\n      or there\'re no FX in the project.', 'ERROR', 0) r.defer(function() end) return end
-
 
 	-- Concatenate undo caption
 	local src_name = (fx_num and fx_num >= 16777216 and tr_name == 'MASTER') and 'in Monitor FX chain' or (take_cnt and take_cnt > 1 and 'in take '..tostring(take_num+1)..' of item \''..take_name..'\'' or (take_cnt and take_cnt == 1 and 'in item \''..take_name..'\'' or ((tr_name and tr_name == 'MASTER') and 'on Master track' or (tr_name and 'on '..tr_name))))
