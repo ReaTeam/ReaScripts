@@ -2,7 +2,7 @@
 
 --[[
 
-* ReaScript name: BuyOne_Dedicated FX presets backwards switcher (TAG dependent)(guide inside).lua
+* ReaScript name: BuyOne_Dedicated FX presets backwards switcher (TAG dependent) (guide inside).lua
 * Author: BuyOne
 * Author URL: https://forum.cockos.com/member.php?u=134058
 * Licence: WTFPL
