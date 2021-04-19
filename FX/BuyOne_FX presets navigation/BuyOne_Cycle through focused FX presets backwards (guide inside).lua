@@ -56,8 +56,6 @@ SWITCH_BY_OBJ_SEL = ""
 -------------------------- END OF USER SETTINGS -----------------------------
 -----------------------------------------------------------------------------
 
--- https://forum.cockos.com/showthread.php?t=177151
-
 function Msg(param)
 reaper.ShowConsoleMsg(tostring(param)..'\n')
 end
@@ -102,7 +100,6 @@ Msg(item and r.IsMediaItemSelected(item))
 	elseif state == '' or state ~= table.concat({r.GetFocusedFX()},';')..';'..tostring(src_mon_fx_idx)
 	and not no_focused_fx -- update ext state if return values change, ignoring state when no fx chain is in focus to keep the last saved values and cycle through presets with last focused fx closed
 	and ((SWITCH_BY_OBJ_SEL and ((retval == 1 or mon_fx) and r.IsTrackSelected(tr)) or (retval == 2 and r.IsMediaItemSelected(item))) or not SWITCH_BY_OBJ_SEL)
---	and ((SWITCH_BY_OBJ_SEL and retval == 2 and r.IsMediaItemSelected(item)) or not SWITCH_BY_OBJ_SEL) -- TEST
 	then
 	r.SetExtState(scr_name, cmd_ID, retval..';'..track_num..';'..item_num..';'..fx_num..';'..src_mon_fx_idx, false)
 	end
@@ -116,10 +113,7 @@ local array = {r.GetExtState(scr_name, cmd_ID):match('(.-);(.-);(.-);(.-);(.-)$'
 local retval, track_num, item_num, fx_num, src_mon_fx_idx = table.unpack(array)
 
 
---Msg(type(fx_num))
-
 local tr = r.GetTrack(0,track_num-1) or r.GetMasterTrack()
---local take = retval == 2 and r.GetActiveTake(r.GetTrackMediaItem(tr, item_num)) -- incorrect, takes other than 1 aren't taken into account
 local take_num = retval == 2 and fx_num>>16 -- for undo point
 local take = retval == 2 and r.GetMediaItemTake(r.GetTrackMediaItem(tr, item_num), take_num)
 local take_cnt = retval == 2 and r.CountTakes(r.GetTrackMediaItem(tr, item_num)) -- for undo point
@@ -127,26 +121,16 @@ local fx_num = (retval == 2 and fx_num >= 65536) and fx_num & 0xFFFF or fx_num -
 local mon_fx = retval == 0 and src_mon_fx_idx >= 0
 local fx_num = mon_fx and src_mon_fx_idx + 0x1000000 or fx_num -- mon fx index
 
--- 131072 = binary 0100000000000000000, hex 20000, 65536*2, 0xFFFF*2
--- 0xFFFF = binary 0001111111111111111, decimal 65536
-
-
---Msg('FX NUM = '..tostring(fx_num))
-
---	if retval == 2 then fx_num = nil end
-
 local t = (retval == 1 or mon_fx) and {r.TrackFX_GetPresetIndex(tr, fx_num)} or (retval == 2 and {r.TakeFX_GetPresetIndex(take, fx_num)} or {})
 -- unpack doesn't work directly inside the ternary expression
 local ret, pres_cnt = table.unpack(t)
 
---Msg('PRES CNT = '..tostring(pres_cnt))
 
 	if pres_cnt == 0 then r.MB('No presets in the last focused FX.','ERROR',0) r.defer(function() end) return end
 
 	if pres_cnt > 0 then
 
 	r.Undo_BeginBlock()
-	--r.TrackFX_SetPresetByIndex(tr, fx_num, 3)
 		if retval == 1 or mon_fx then
 		r.TrackFX_NavigatePresets(tr, fx_num, -1) -- -1 = backwards
 		 _, fx_name = r.TrackFX_GetFXName(tr, fx_num, '') -- for undo caption
@@ -158,18 +142,14 @@ local ret, pres_cnt = table.unpack(t)
 		_, pres_name = r.TakeFX_GetPreset(take, fx_num, '') -- for undo caption
 		end
 
-	--local x, y = r.GetMousePosition()
-	--r.TrackCtl_SetToolTip(string.format('FX: %s PRESET: %s SOURCE: %s', fx_name, pres_name, src_name), x+50, y, true)
-
 	local _, tr_name = r.GetTrackName(tr)
---Msg(mon_fx)
 	local src_name = mon_fx and 'in Monitor FX chain' or ((take and take_cnt > 1) and 'in take '..tostring(take_num+1)..' of item \''..take_name..'\'' or ((take and take_cnt == 1) and 'in item \''..take_name..'\'' or (tr_name == 'MASTER' and 'on Master track' or 'on '..tr_name))) -- for undo caption
 	local fx_name = fx_name:match(':%s(.*)%s.-%(') or fx_name -- strip out plugin type prefix and dev name in parentheses in any
 
 	r.Undo_EndBlock('Set '..fx_name..' preset to: \''..pres_name..'\' '..src_name,-1) -- Track/TakeFX_NavigatePresets() function creates an undo point by design which can't be avoided, for Monitor FX no undo point can be created
 
-	--local navigate = (retval == 1 or mon_fx) and r.TrackFX_NavigatePresets(tr, fx_num, 1) or (retval == 2 and r.TakeFX_NavigatePresets(take, fx_num, 1))
 	end
+
 
 
 
