@@ -26,7 +26,7 @@ beginning of the FX name (e.g. 'TAG My plugin'), preceded by space at the end of
 the name (e.g. 'My plugin TAG') or bordered by spaces in the middle of the name
 (e.g. 'My TAG plugin').
 
-Since that moment the script can be used exclusively to switch presets in this FX
+After that the script can be used exclusively to switch presets in this FX
 only, regardless of the FX focus status.
 
 To unlink the script from an FX simply remove the TAG from the FX name.
