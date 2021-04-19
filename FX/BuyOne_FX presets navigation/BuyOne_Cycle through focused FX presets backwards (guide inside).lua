@@ -93,7 +93,6 @@ local item = r.GetTrackMediaItem(tr, item_num)
 local mon_fx = retval == 0 and src_mon_fx_idx >= 0
 local no_focused_fx = retval == 0 and src_mon_fx_idx < 0
 
-Msg(item and r.IsMediaItemSelected(item))
 
 	if state == '' and no_focused_fx then
 	r.MB('     No FX is in focus.','ERROR',0) r.defer(function() end) return
