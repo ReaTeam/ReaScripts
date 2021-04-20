@@ -1,17 +1,20 @@
 -- @description Low latency monitoring
 -- @author ak5k
--- @version 1.3
+-- @version 1.4
+-- @changelog
+--   Automation write enabled  tracks (touch, latch, write) are treated as low latency monitored inputs.
+--   In Global automation override modes (touch, latch, write, bypass) all tracks are treated as low latency monitored inputs.
 -- @link Forum thread, more detailed information https://forum.cockos.com/showthread.php?t=245445
 -- @about
---   # Low Latency Monitoring
+--   # Low latency monitoring
 --
---   Provides REAPER a function also known as Low Latency Monitoring, Low Latency Mode, Native Low Latency Monitoring, Constrain Delay Compenstation, Reduce Latency when Monitoring etc. It resembles the one from Cubase.
+--   Provides REAPER a function also known as 'Low Latency Monitoring', 'Low Latency Mode', 'Native Low Latency Monitoring', 'Constrain Delay Compenstation' or 'Reduce Latency when Monitoring' in other DAWs. It resembles the one from Cubase.
 --
---   While enabled, it takes offline/bypasses latency inducing plugins (VSTs etc) from project and rec armed and/or input monitored signal chains, to provide lowest possible latency and CPU usage when monitoring through software.
+--   While enabled, it bypasses (or takes offline) latency inducing plugins (VSTs etc) from rec armed, input monitored and automation write enabled signal chains, to provide lowest possible latency and CPU usage when monitoring through software.
 --
---   Plugins contributing PDC latency to monitored signal chain will be bypassed, once the set limit is exceeded per signal chain. Useful when recording e.g. software synths or guitars through amp sims into a REAPER project already filled with plugins.
+--   Plugins contributing PDC latency to active signal chain will be bypassed, once the set limit is exceeded per signal chain. Useful when recording e.g. software synths or guitars through amp sims, or writing automation, into a REAPER project already filled with plugins.
 --
---   Can be setup as a toolbar toggle on/off button, and this is recommended. Parameters can be configured. Tested with REAPER 6.27.
+--   Can be setup as a toolbar toggle on/off button, and this is recommended. Settings can be configured. REAPER 6.21 or later required. Visit [website](https://forum.cockos.com/showthread.php?t=245445) for detailed information or reporting bugs.
 
 --Get settings from user:
 local user_settings = true
@@ -110,8 +113,8 @@ local proj_trackfx = {}
 local proj_trackfx0 = {}
 local proj_size = -1
 local proj_size0 = -1
-local proj_state = -1
-local proj_state0 = nil
+--local proj_state = -1
+--local proj_state0 = nil
 local proj_tracks = {}
 local total_latency = -1
 local total_limit = -1
@@ -139,6 +142,8 @@ local pdc_tsc_cache = {}
 local sends_to_hw = {}
 local sends_to_hw0 = {}
 local pdc_graph = {}
+
+reaper.gmem_attach("ak5k")
 
 local function msg(string)
   --ClearConsole()
@@ -667,12 +672,15 @@ end
 
 local function set_monitored_input_tracks()
   monitored_input_tracks = {}
+  
   local n = 1
   for _, track in ipairs(proj_tracks) do
   
   local bool, flags = GetTrackState(track)
   
-  if bool and
+  if glob_autom_over[1] > 1 or 
+    reaper.GetTrackAutomationMode(track) > 1 or
+    bool and
     (flags & 64) ~= 0 and
     (flags & 128) ~= 0 or
     (flags & 256) ~= 0 then
@@ -681,6 +689,7 @@ local function set_monitored_input_tracks()
     n = n + 1
     
   end
+  
   end
 end
 
@@ -1047,6 +1056,8 @@ end
 
 local function set_pdc_manager(state)
   if pdc_manager ~= true or version < 6.21 then return nil end
+  --reaper.gmem_write(1, 1)
+  reaper.SetGlobalAutomationOverride(0)
   --set pdc off for monitored signal chain
   pdc_tsc_cache = {}
   if diff(path_stack, path_stack0) then
@@ -1230,6 +1241,7 @@ local function set_pdc_manager(state)
       end
     end
   end
+  reaper.SetGlobalAutomationOverride(glob_autom_over[1])
   PreventUIRefresh(-1)
   
   write_state(extkey_time_delayers)
@@ -1290,8 +1302,11 @@ local function sync_state()
 end
 
 local function process_trackfx(shutdown)
+  --reaper.gmem_write(1, 1)
+  reaper.SetGlobalAutomationOverride(0)
 
   for fxguid, t in pairs(proj_trackfx) do
+  
   local tr = t[1]
   local fx = t[2]
   
@@ -1321,7 +1336,10 @@ local function process_trackfx(shutdown)
         TrackFX_SetEnabled(tr, fx, true)
     end
   end
+  
   end
+  
+  reaper.SetGlobalAutomationOverride(glob_autom_over[1])
 
   write_state(extkey_hard)
   write_state(extkey_trackfx)
@@ -1344,13 +1362,21 @@ end
 --agb_max = 0
 --atime_max = 0
 
+proj_state = {}
+glob_autom_over = {}
+
 local function main()
   --atime0 = time_precise()
+  --if reaper.gmem_read(0) ~= 0 then reaper.gmem_write(0, 0) end
   
-  proj_state0 = proj_state
+  glob_autom_over[0] = glob_autom_over[1]
+  glob_autom_over[1] = reaper.GetGlobalAutomationOverride()
   
-  proj_state = GetProjectStateChangeCount()
-  if proj_state ~= proj_state0 then
+  proj_state[0] = proj_state[1]
+  proj_state[1] = GetProjectStateChangeCount()
+  
+  if proj_state[0] ~= proj_state[1] or 
+    glob_autom_over[0] ~= glob_autom_over[1] then
   
   sync_state()
   
@@ -1373,13 +1399,16 @@ local function main()
     diff(hard_stack0, hard_stack) or
     diff(trackfx_stack, trackfx_stack0) then 
   
+  PreventUIRefresh(1)
   Undo_BeginBlock()
+  
+  --reaper.gmem_write(0, 1)
   
   process_trackfx()
   set_pdc_manager(pdc_manager)
   
   Undo_EndBlock(message_name, 2)
-
+  PreventUIRefresh(-1)
   end
   
   
@@ -1394,10 +1423,22 @@ local function main()
   --if gb > agb_max then agb_max = gb end
   
   if enable_report then draw_report() end
+  is_new_value, filename, sectionID, cmdID, mode, resolution, val = reaper.get_action_context()
+  
+  if is_new_value then
+    return
+  end
+  
   defer(main)
 end
 
 set_version()
+
+if version < 6.21 then
+  reaper.ShowConsoleMsg("ak5k_Low latency monitoring\n")
+  reaper.ShowConsoleMsg("REAPER 6.21 or later required\n")
+  return
+end
 
 local function get_user_settings()
   local title = message_name
