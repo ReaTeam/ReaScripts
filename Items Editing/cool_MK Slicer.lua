@@ -1,12 +1,11 @@
 -- @description MK Slicer
 -- @author cool
--- @version 2.11
+-- @version 2.12
 -- @changelog
---   + Restored the ability to edit the position and velocity of markers (it was broken in the previous version, sorry).
---   + Now toggling the Grid buttons does not reset the Swing amount.
---   + Now the Swing slider does not show -0 when the value is 0.
---   + Quick Q is now available when switching Slice / Markers modes and after changing Grid / Swing. Just press Q to get the result right away. After changing the parameters, pressing Q again will also work.
---   + Fixed a bug. Now, when you change the parameters of the sliders using the mouse wheel, the changes will be immediately noticeable when the buttons are pressed.
+--   + Fixed highlighting of the Grid buttons if the script was launched while the triplet mode was active.
+--   + The ruler is now more visible.
+--   + Removed extensive Guides By Grid menu, now the grid is selected with the Grid buttons and is synchronous with the project (experimentally, can be removed).
+--   + Fixed: the script does not give an error at high sample rates.
 -- @link Forum Thread https://forum.cockos.com/showthread.php?t=232672
 -- @screenshot MKSlicer2.0 https://i.imgur.com/QFWHt9a.png
 -- @donation
@@ -64,7 +63,7 @@
 --   Sometimes a script applies glue to items. For example, when several items are selected and when a MIDI is created in a sampler mode.
 
 --[[
-MK Slicer v2.11 by Maxim Kokarev 
+MK Slicer v2.12 by Maxim Kokarev 
 https://forum.cockos.com/member.php?u=121750
 
 Co-Author of the compilation - MyDaw
@@ -1153,10 +1152,16 @@ function Element:draw_rect()
   gfx.rect(x, y, w, h, true)            -- frame1      
 end
 
+function Element:draw_rect_ruler()
+  local x,y,w,h  = self.x,self.y,self.w,self.h
+  gfx.set(0.122,0.122,0.122,0.3) -- цвет фона окна waveform
+  gfx.rect(x, y, w, h, true)            -- frame1      
+end
+
 ----------------------------------------------------------------------------------------------------
 ---   Create Element Child Classes(Button,Slider,Knob)   -------------------------------------------
 ----------------------------------------------------------------------------------------------------
-  local Button, Button_small, Button_top, Button_Settings, Slider, Slider_small, Slider_simple, Slider_complex, Slider_Fine, Slider_Swing, Slider_fgain, Rng_Slider, Knob, CheckBox, CheckBox_simple, CheckBox_Show, Frame, Colored_Rect, Colored_Rect_top, Frame_filled, ErrMsg, Txt, Txt2, Line, Line_colored, Line2 = {},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}
+  local Button, Button_small, Button_top, Button_Settings, Slider, Slider_small, Slider_simple, Slider_complex, Slider_Fine, Slider_Swing, Slider_fgain, Rng_Slider, Knob, CheckBox, CheckBox_simple, CheckBox_Show, Frame, Colored_Rect, Colored_Rect_top, Frame_filled, ErrMsg, Txt, Txt2, Line, Line_colored, Line2, Ruler = {},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}
   extended(Button,     Element)
   extended(Button_small,     Element)
   extended(Button_top,     Element)
@@ -1175,6 +1180,7 @@ end
   extended(Line,     Element)
   extended(Line_colored,     Element)
   extended(Line2,     Element)
+  extended(Ruler,     Element)
     -- Create Slider Child Classes --
   local H_Slider, V_Slider, T_Slider, HP_Slider, LP_Slider, G_Slider, S_Slider, Rtg_Slider, Loop_Slider, Rdc_Slider, O_Slider, Sw_Slider, Q_Slider, X_Slider, X_SliderOff = {},{},{},{},{},{},{},{},{},{},{},{},{},{},{}
     extended(H_Slider, Slider_small)
@@ -1411,6 +1417,13 @@ function Line2:draw()
    local r,g,b,a  = self.r,self.g,self.b,self.a
    gfx.set(r,g,b,a)   -- set frame color -- цвет рамок
    self:draw_frame_filled()  -- draw frame
+end
+
+function Ruler:draw()
+  if not Z_w or not Z_h then return end -- return if zoom not defined
+  self.x, self.w = (self.def_xywh[1]* Z_w) , (self.def_xywh[3]* Z_w) -- upd x,w
+  self.y, self.h = (self.def_xywh[2]* Z_h) , (self.def_xywh[4]* Z_h) -- upd y,h
+  self:draw_rect_ruler()
 end
 
 --------------------------------------------------------------------------------
@@ -3019,6 +3032,7 @@ end
 
    if srate then
       if srate < 44100 then srate = 44100 end
+      if srate > 48000 then srate = 48000 end
     else
       srate = 44100
    end
@@ -3091,7 +3105,7 @@ leds_table[18] = Colored_Rect:new(647,436,9,2,  0.2,0.5,1,1 ) --  Rand_Button_Co
 leds_table[19] = Colored_Rect:new(637,436,9,2,  0.8,0.1,0.8,1 ) --  Rand_Button_Color6
 leds_table[20] = Colored_Rect:new(657,436,8,2,  0.1,0.7,0.6,1 ) --  Rand_Button_Color7
 
-local others_table = {Triangle, RandText, Q_Rnd_Linked, Q_Rnd_Linked2, Line, Line2, Loop_Dis}
+local others_table = {Triangle, RandText, Q_Rnd_Linked, Q_Rnd_Linked2, Line, Line2, Loop_Dis, Ruler}
 
 others_table[1] = Txt2:new(642,415+corrY2,55,18, 0.4,0.4,0.4,1, ">","Arial",20) --Triangle
 others_table[2] = Txt2:new(749,374+corrY2,55,18, 0.4,0.4,0.4,1, "Intensity","Arial",10) --RandText
@@ -3102,6 +3116,8 @@ others_table[4] = Line2:new(480,380+corrY,156,18,  0.177,0.177,0.177,1)--| Q_Rnd
 others_table[5] = Line:new(774,404+corrY,82,6) --Line (Preset/Velocity Bracket)
 others_table[6] = Line2:new(774,407+corrY,82,4,  0.177,0.177,0.177,1)--Line2 (Preset/Velocity Bracket fill)
 others_table[7] = Colored_Rect_top:new(10,28,1024,15,  0.23,0.23,0.23,0.5)--Loop_Dis (Loop Disable fill)
+others_table[8] = Ruler:new(10,42,1024,13,  0,0,0,0)--Loop_Dis (Loop Disable fill)
+
 
 local Frame_Sync_TB = {leds_table[5]}
 local Frame_Sync_TB2 = {leds_table[6]}
@@ -3142,6 +3158,7 @@ local Rand_Button_Color7_TB = {leds_table[20]}
 
 local Triangle_TB = {others_table[1]}
 local RandText_TB = {others_table[2]}
+local Ruler_TB = {others_table[8]}
 
 local Midi_Sampler = CheckBox_simple:new(670,410+corrY,98,18, 0.28,0.4,0.7,0.8, "","Arial",16,  MIDI_Mode,
                               {"Sampler","Trigger"} )
@@ -3720,6 +3737,7 @@ function()
              Swing_on = 0
     r.GetSetProjectGrid(0, true, division, 0)
         end
+DrawGridGuides()
    end 
 end 
 
@@ -3741,6 +3759,7 @@ function()
     local _, division, _, _ = r.GetSetProjectGrid(0,false)
     r.GetSetProjectGrid(0, true, division+division/2, swing_mode, swingamt)
         end
+DrawGridGuides()
    end 
 end 
 
@@ -3748,7 +3767,13 @@ end
 local Grid1_Btn = Button_top:new(50,5,40,19, 0.3,0.3,0.3,1, "1",    "Arial",16 )
 Grid1_Btn.onClick = 
 function()
+
    if Wave.State then 
+       if GridT_on == 1 then
+          Guides = 0
+          else
+          Guides = 1
+       end
     local _, division, _, _ = r.GetSetProjectGrid(0,false)
         if Grid1_on == 0 then 
              Grid1_on = 1
@@ -3762,6 +3787,7 @@ function()
                else
              Grid1_on = 0
         end
+DrawGridGuides()
    end 
 end 
 
@@ -3770,6 +3796,11 @@ local Grid2_Btn = Button_top:new(92,5,40,19, 0.3,0.3,0.3,1, "1/2",    "Arial",16
 Grid2_Btn.onClick = 
 function()
    if Wave.State then 
+       if GridT_on == 1 then
+          Guides = 2
+          else
+          Guides = 3
+       end
     local _, division, _, _ = r.GetSetProjectGrid(0,false)
         if Grid2_on == 0 then 
              Grid1_on = 0
@@ -3783,6 +3814,7 @@ function()
                else
              Grid2_on = 0
         end
+DrawGridGuides()
    end 
 end 
 
@@ -3791,6 +3823,11 @@ local Grid4_Btn = Button_top:new(134,5,40,19, 0.3,0.3,0.3,1, "1/4",    "Arial",1
 Grid4_Btn.onClick = 
 function()
    if Wave.State then 
+       if GridT_on == 1 then
+          Guides = 4
+          else
+          Guides = 5
+       end
     local _, division, _, _ = r.GetSetProjectGrid(0,false)
         if Grid4_on == 0 then 
              Grid1_on = 0
@@ -3804,6 +3841,7 @@ function()
                else
              Grid4_on = 0
         end
+DrawGridGuides()
    end 
 end 
 
@@ -3812,6 +3850,11 @@ local Grid8_Btn = Button_top:new(176,5,40,19, 0.3,0.3,0.3,1, "1/8",    "Arial",1
 Grid8_Btn.onClick = 
 function()
    if Wave.State then 
+       if GridT_on == 1 then
+          Guides = 6
+          else
+          Guides = 7
+       end
     local _, division, _, _ = r.GetSetProjectGrid(0,false)
         if Grid8_on == 0 then 
              Grid1_on = 0
@@ -3825,6 +3868,7 @@ function()
                else
              Grid8_on = 0
         end
+DrawGridGuides()
    end 
 end 
 
@@ -3833,6 +3877,11 @@ local Grid16_Btn = Button_top:new(218,5,40,19, 0.3,0.3,0.3,1, "1/16",    "Arial"
 Grid16_Btn.onClick = 
 function()
    if Wave.State then 
+       if GridT_on == 1 then
+          Guides = 8
+          else
+          Guides = 9
+       end
     local _, division, _, _ = r.GetSetProjectGrid(0,false)
         if Grid16_on == 0 then 
              Grid1_on = 0
@@ -3846,6 +3895,7 @@ function()
                else
              Grid16_on = 0
         end
+DrawGridGuides()
    end 
 end 
 
@@ -3854,6 +3904,11 @@ local Grid32_Btn = Button_top:new(260,5,40,19, 0.3,0.3,0.3,1, "1/32",    "Arial"
 Grid32_Btn.onClick = 
 function()
    if Wave.State then 
+       if GridT_on == 1 then
+          Guides = 10
+          else
+          Guides = 11
+       end
     local _, division, _, _ = r.GetSetProjectGrid(0,false)
         if Grid32_on == 0 then 
              Grid1_on = 0
@@ -3867,6 +3922,7 @@ function()
                else
              Grid32_on = 0
         end
+DrawGridGuides()
    end 
 end 
 
@@ -3875,6 +3931,11 @@ local Grid64_Btn = Button_top:new(302,5,40,19, 0.3,0.3,0.3,1, "1/64",    "Arial"
 Grid64_Btn.onClick = 
 function()
    if Wave.State then 
+       if GridT_on == 1 then
+          Guides = 12
+          else
+          Guides = 12
+       end
     local _, division, _, _ = r.GetSetProjectGrid(0,false)
         if Grid64_on == 0 then 
              Grid1_on = 0
@@ -3888,6 +3949,7 @@ function()
                else
              Grid64_on = 0
         end
+DrawGridGuides()
    end 
 end 
 
@@ -5191,7 +5253,7 @@ local Random_Setup_TB2 = {elm_table[6], elm_table[7], Random_OrderB, Random_VolB
 -------------------------------------------------------------------------------------
 
 local Guides  = CheckBox:new(400,410+corrY,193,18, 0.28,0.4,0.7,0.8, "","Arial",16,  Guides_mode,
-                              {"Guides By Transients","Guides By 1/2","Guides By 1/2t","Guides By 1/4","Guides By 1/4t","Guides By 1/8","Guides By 1/8t","Guides By 1/16","Guides By 1/16t","Guides By 1/32","Guides By 1/32t","Guides By 1/64"} )
+                              {"Guides By Transients","Guides By Grid"} )
 
 Guides.onClick = 
 function() 
@@ -5383,22 +5445,28 @@ local lastitem = r.GetExtState('_Slicer_', 'ItemToSlice')
      local item =  r.BR_GetMediaItemByGUID( 0, lastitem )
                 if item then 
 -------------------------------SAVE GRID-----------------------------
-local _, division, swingmode, swingamt = r.GetSetProjectGrid(0, 0)
+--local _, division, swingmode, swingamt = r.GetSetProjectGrid(0, 0)
 
-local ext_sec, ext_key = 'savegrid', 'grid'
-r.SetExtState(ext_sec, ext_key, division..','..swingmode..','..swingamt, 0)
+--local ext_sec, ext_key = 'savegrid', 'grid'
+--r.SetExtState(ext_sec, ext_key, division..','..swingmode..','..swingamt, 0)
 ---------------------------SET NEWGRID-------------------------------------
-if  Guides.norm_val == 2 then  r.Main_OnCommand(40780, 0)
-elseif Guides.norm_val == 3 then r.Main_OnCommand(42000, 0)
-elseif Guides.norm_val == 4 then r.Main_OnCommand(40779, 0)
-elseif Guides.norm_val == 5 then r.Main_OnCommand(41214, 0)  
-elseif Guides.norm_val == 6 then r.Main_OnCommand(40778, 0)  
-elseif Guides.norm_val == 7 then r.Main_OnCommand(40777, 0)
-elseif Guides.norm_val == 8 then r.Main_OnCommand(40776, 0)
-elseif Guides.norm_val == 9 then r.Main_OnCommand(41213, 0)
-elseif Guides.norm_val == 10 then r.Main_OnCommand(40775, 0)
-elseif Guides.norm_val == 11 then r.Main_OnCommand(41212, 0)
-elseif Guides.norm_val == 12 then r.Main_OnCommand(40774, 0)
+if  Guides.norm_val == 2 then  
+--[[
+     if Guides == 0 then r.Main_OnCommand(40781, 0) --1
+          elseif Guides == 1 then r.Main_OnCommand(42007, 0)
+          elseif Guides == 2 then r.Main_OnCommand(40780, 0) --2
+          elseif Guides == 3 then r.Main_OnCommand(42000, 0)
+          elseif Guides == 4 then r.Main_OnCommand(40779, 0) -- 4
+          elseif Guides == 5 then r.Main_OnCommand(41214, 0)  
+          elseif Guides == 6 then r.Main_OnCommand(40778, 0) --8 
+          elseif Guides == 7 then r.Main_OnCommand(40777, 0)
+          elseif Guides == 8 then r.Main_OnCommand(40776, 0) --16
+          elseif Guides == 9 then r.Main_OnCommand(41213, 0)
+          elseif Guides == 10 then r.Main_OnCommand(40775, 0)-- 32
+          elseif Guides == 11 then r.Main_OnCommand(41212, 0)
+          elseif Guides == 12 then r.Main_OnCommand(40774, 0) -- 64
+     end
+]]--
 end
  Grid_Points_r ={}
  Grid_Points = {}
@@ -5423,14 +5491,14 @@ blueline = beatc(blueline)
    end 
  end 
 ------------------------------------RESTORE GRID----------------------------
- local ext_sec, ext_key = 'savegrid', 'grid'
- local str = r.GetExtState(ext_sec, ext_key)
- if not str or str == '' then return end
+-- local ext_sec, ext_key = 'savegrid', 'grid'
+ --local str = r.GetExtState(ext_sec, ext_key)
+ --if not str or str == '' then return end
  
- local division, swingmode, swingamt = str:match'(.*),(.*),(.*)'
- if not (division and swingmode and swingamt) then return end
+ --local division, swingmode, swingamt = str:match'(.*),(.*),(.*)'
+ --if not (division and swingmode and swingamt) then return end
  
- r.GetSetProjectGrid(0, 1, division, swingmode, swingamt)
+ --r.GetSetProjectGrid(0, 1, division, swingmode, swingamt)
 end
 
 -------------------------------------------------------------------------------
@@ -5482,7 +5550,7 @@ function Gate_Gl:draw_Lines()
     self.Yop = Wave.y + Wave.h - offset        -- y start wave coord for velo points
     self.Ysc = Wave.h * self.scale             -- y scale for velo points 
     --------------------------------------------------------
-  
+ 
  if (Guides.norm_val == 1) then 
    
     -- Draw, capture trig lines ----------------------------
@@ -5491,8 +5559,8 @@ function Gate_Gl:draw_Lines()
     ----------------------------
    
     for i=1, #self.Res_Points, 2 do
-        local line_x   = Wave.x + (self.Res_Points[i] - self.start_smpl) * self.Xsc  -- line x coord
-        local velo_y   = self.Yop -  self.Res_Points[i+1][mode] * self.Ysc           -- velo y coord    
+        local line_x = Wave.x + (self.Res_Points[i] - self.start_smpl) * self.Xsc  -- line x coord
+        local velo_y = self.Yop -  self.Res_Points[i+1][mode] * self.Ysc           -- velo y coord    
    
     ------------------------
         -- draw line, velo -----
@@ -5512,9 +5580,7 @@ function Gate_Gl:draw_Lines()
                if Wave:mouseDown() or Wave:mouseR_Down() then self.cap_ln = i end
             end
         end
-
 ------------------------------------------------------------------------------------------------------------
-
 
  else       
 
@@ -5551,23 +5617,44 @@ local lnt_corr = (loop_length/tempo_corr)/8
           end
       end  
 end   
+    --------------------------------------------------------
+    -- Operations with captured lines(if exist) ------------
+    --------------------------------------------------------
+    Gate_Gl:manual_Correction()
+    -- Update captured state if mouse released -------------
+    if self.cap_ln and Wave:mouseUp() then self.cap_ln = false  
+    end     
+end
+----------------------------------------------------------------------------------------------------------------------
 
-
+function Gate_Gl:draw_Ruler()
+  --if not self.Res_Points or #self.Res_Points==0 then return end -- return if no lines
+  if not self.Res_Points then return end -- return if no lines
+    --------------------------------------------------------
+    -- Set values ------------------------------------------
+    --------------------------------------------------------
+    -- Pos, X, Y scale in gfx  ---------
+    self.start_smpl = Wave.Pos/Wave.X_scale    -- Стартовая позиция отрисовки в семплах!
+    self.Xsc = Wave.X_scale * Wave.Zoom * Z_w  -- x scale(regard zoom) for trigg lines
+    --------------------------------------------------------
+  
     -- Draw Project Grid lines ("Ruler") ----------------------------
 -------------------------------------------------------------------------------------------------------------
-gfx.set(0, 0.8, 0, 1) -- gate line, point color -- цвет линий сетки проекта
 
 local Grid_Points_Ruler = Grid_Points_Ruler or {};     
 local _, division, swingmode, swingamt = r.GetSetProjectGrid(0, 0)
 local tempo_corr = 1/(r.Master_GetTempo()/120)
 local lnt_corr = (loop_length/tempo_corr)/8
+
+gfx.set(0, 0, 0, 0.8) -- gate line, point color background
+
  for i=1, #Grid_Points_Ruler  do
 
          sw_shift = swingamt*(1-abs(division-1))
          if IsEven(i) == false and swingmode == 1 then 
-         sw_shift = (sw_shift*128*Wave.Zoom*Z_w)/lnt_corr
-         else
-         sw_shift = 0
+           sw_shift = (sw_shift*128*Wave.Zoom*Z_w)/lnt_corr
+             else
+           sw_shift = 0
          end
 
          local line_x  = Wave.x+sw_shift + (Grid_Points_Ruler[i] - self.start_smpl) * self.Xsc  -- line x coord
@@ -5575,22 +5662,32 @@ local lnt_corr = (loop_length/tempo_corr)/8
          -- draw line -----
          ----------------------      
          if line_x>=Wave.x and line_x<=Wave.x+Wave.w then -- Verify line range
-          gfx.line(line_x, (Wave.y*1.15), line_x, Wave.y-1+(Wave.h/300))  -- Draw Trig Line
+          gfx.line(line_x-1, (Wave.y*1.17), line_x-1, Wave.y-2+(Wave.h/300))  -- Draw Trig Line Left
+          gfx.line(line_x, (Wave.y*1.18), line_x, Wave.y-2+(Wave.h/300))  -- Draw Trig Line Center
+          gfx.line(line_x+1, (Wave.y*1.17), line_x+1, Wave.y-2+(Wave.h/300))  -- Draw Trig Line Right
          end
-
 end  
 
-    --------------------------------------------------------
-    -- Operations with captured lines(if exist) ------------
-    --------------------------------------------------------
-    Gate_Gl:manual_Correction()
-    -- Update captured state if mouse released -------------
-    if self.cap_ln and Wave:mouseUp() then self.cap_ln = false  
-    end
-        
+gfx.set(0.1, 1, 0.1, 1) -- gate line, point color -- цвет линий сетки проекта
+
+ for i=1, #Grid_Points_Ruler  do
+
+         sw_shift = swingamt*(1-abs(division-1))
+         if IsEven(i) == false and swingmode == 1 then 
+            sw_shift = (sw_shift*128*Wave.Zoom*Z_w)/lnt_corr
+              else
+            sw_shift = 0
+         end
+
+         local line_x  = Wave.x+sw_shift + (Grid_Points_Ruler[i] - self.start_smpl) * self.Xsc  -- line x coord
+         --------------------
+         -- draw line -----
+         ----------------------      
+         if line_x>=Wave.x and line_x<=Wave.x+Wave.w then -- Verify line range
+            gfx.line(line_x, (Wave.y*1.17), line_x, Wave.y-1+(Wave.h/300))  -- Draw Trig Line
+         end
+   end  
 end
-
-
 
 --------------------------------------------------------------------------------
 -- Gate -  manual_Correction ---------------------------------------------------
@@ -7039,20 +7136,6 @@ function Wave:Create_Peaks(mode) -- mode = 1 for original, mode = 2 for filtered
     ----------------------------
 end
 
-
-------------------------------------------------------------------------------------------------------------------------
--- WAVE - (Get samples(in_buf) > filtering > to out-buf > Create in, out peaks ) ---------------------------------------
-------------------------------------------------------------------------------------------------------------------------
--------
-function Wave:table_plus(mode, size, tmp_buf)
-  local buf
-  if mode==1 then buf=self.in_buf else buf=self.out_buf end
-  local j = 1
-  for i = size+1, size + #tmp_buf, 1 do  
-      buf[i] = tmp_buf[j]
-      j=j+1 
-  end
-end
 --------------------------------------------------------------------------------
 -- Wave:Set_Values() - set main values, cordinates etc -------------------------
 --------------------------------------------------------------------------------
@@ -7123,7 +7206,7 @@ function Wave:Processing()
             local tmp_buf = r.new_array(size)
             r.GetAudioAccessorSamples(self.AA, srate, 1, buf_start, size, tmp_buf) -- orig samples to in_buf for drawing
             --------
-            if i==1 then self.in_buf = tmp_buf.table() else self:table_plus(1, (i-1)*self.full_buf_sz, tmp_buf.table() ) end
+            if i==1 then self.in_buf = tmp_buf.table() end
             --------
             buf_start = buf_start + self.full_buf_sz/srate -- to next
             ------------------------
@@ -7153,7 +7236,7 @@ function Wave:Processing()
            block_start = block_start + self.Xblock/srate   -- next block start_time
        end
        ---------------------------------------------------------
-       if i==1 then self.out_buf = tmp_buf.table() else self:table_plus(2, (i-1)*self.full_buf_sz, tmp_buf.table() ) end
+       if i==1 then self.out_buf = tmp_buf.table() end
        --------
        buf_start = buf_start + (self.full_buf_sz/srate) -- to next
        ------------------------
@@ -7263,6 +7346,7 @@ end
 self_Zoom = self.Zoom --refresh loop by mw
       -------------------
       Wave:Redraw() -- redraw after horizontal zoom
+DrawGridGuides()
     end
     -----------------------------------------
     --- Wave Zoom(Vertical) -----------------
@@ -7413,6 +7497,7 @@ function Wave:from_gfxBuffer()
   -- draw Wave frame, axis -------------
   self:draw_rect()
 
+
    -- Insert Wave from gfx buffer1 ------
   gfx.a = 1 -- gfx.a for blit
   local srcw, srch = Wave.def_xywh[3], Wave.def_xywh[4] -- its always def values 
@@ -7475,6 +7560,10 @@ function MAIN()
     if Wave.State then      
           Wave:from_gfxBuffer() -- Wave from gfx buffer
           Gate_Gl:draw_Lines()  -- Draw Gate trig-lines
+      --       for key,btn    in pairs(Ruler_TB)   do btn:draw()    end   -- Draw Ruler Background
+          Gate_Gl:draw_Ruler() -- Draw Ruler lines
+
+
 
         local _, division, swing, _ = r.GetSetProjectGrid(0,false)
 -----------------------------Grid Buttons Leds-------------------------------------------------------
@@ -7796,7 +7885,7 @@ function Init()
     -- Some gfx Wnd Default Values ---------------
     local R,G,B = 45,45,45              -- 0...255 format -- цвет основного окна
     local Wnd_bgd = R + G*256 + B*65536 -- red+green*256+blue*65536  
-    local Wnd_Title = "MK Slicer v2.11"
+    local Wnd_Title = "MK Slicer v2.12"
     local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
  --   Wnd_W,Wnd_H = 1044,490 -- global values(used for define zoom level)
 
@@ -8104,7 +8193,7 @@ gfx.quit()
      dock_pos = dock_pos or 1025
      xpos = 400
      ypos = 320
-     local Wnd_Title = "MK Slicer v2.11"
+     local Wnd_Title = "MK Slicer v2.12"
      local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
      gfx.init( Wnd_Title, Wnd_W,Wnd_H, Wnd_Dock, Wnd_X,Wnd_Y )
 
@@ -8116,7 +8205,7 @@ gfx.quit()
     dock_pos = 0
     xpos = r.GetExtState("cool_MK Slicer.lua", "window_x") or 400
     ypos = r.GetExtState("cool_MK Slicer.lua", "window_y") or 320
-    local Wnd_Title = "MK Slicer v2.11"
+    local Wnd_Title = "MK Slicer v2.12"
     local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
     gfx.init( Wnd_Title, Wnd_W,Wnd_H, Wnd_Dock, Wnd_X,Wnd_Y )
  
