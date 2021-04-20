@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="77c41e7e0992c92ed24264d1908670ca686915cd" name="ReaTeam Scripts">
+<index version="1" commit="42908a7b49f0805f4beed34f716cf63649a0dc1c" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -4845,6 +4845,13 @@ Override Reaper option "Toggle enable/disable default fadein/fadeout" (on/off)]]
 + Quick Q is now available when switching Slice / Markers modes and after changing Grid / Swing. Just press Q to get the result right away. After changing the parameters, pressing Q again will also work.
 + Fixed a bug. Now, when you change the parameters of the sliders using the mouse wheel, the changes will be immediately noticeable when the buttons are pressed.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ce1393d830b01122a8c883a0625eba35a4240fe5/Items%20Editing/cool_MK%20Slicer.lua</source>
+      </version>
+      <version name="2.12" author="cool" time="2021-04-20T12:17:25Z">
+        <changelog><![CDATA[+ Fixed highlighting of the Grid buttons if the script was launched while the triplet mode was active.
++ The ruler is now more visible.
++ Removed extensive Guides By Grid menu, now the grid is selected with the Grid buttons and is synchronous with the project (experimentally, can be removed).
++ Fixed: the script does not give an error at high sample rates.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/42908a7b49f0805f4beed34f716cf63649a0dc1c/Items%20Editing/cool_MK%20Slicer.lua</source>
       </version>
     </reapack>
     <reapack name="ED_Select items with take FX in active take.lua" type="script" desc="Select items with take FX in active take">
