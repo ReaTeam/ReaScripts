@@ -1,8 +1,8 @@
 --[[
 ReaScript name: js_Mouse editing - Multi Tool.lua
-Version: 6.45
+Version: 6.50
 Changelog:
-  + FIXED: Pause when terminating.
+  + NEW: Because the script recently got a proper Move function, right-clicking while Stretching now toggles symmetrical Stretching instead of Stretch vs Move.
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Donation: https://www.paypal.me/juliansader
@@ -113,8 +113,8 @@ About:
       * Scale values from top / Flip values relative
       * Scale value from bottom / Flip values relative
       * Warp left/right or up/down (depending on initial mouse movement) / Reset and evenly space events
-      * Stretch or move from left / Reverse positions
-      * Stretch or move from right / Reverse positions
+      * Stretch from left / Reverse positions
+      * Stretch from right / Reverse positions
       * Tilt left side / Snap to chased values on left
       * Tilt right side / Snap to chased values on right
       * Move up/down and left/right / Flip values absolute
@@ -557,10 +557,11 @@ end
    
 local prevStretchFactor = 1
 local prevMouseTimePos = nil
-local stretchMOVE = false
+local stretchSYMMETRIC = false
+local stretchRIGHT
 --###########################
 -----------------------------
-function Defer_Stretch_Left()
+function Defer_Stretch()
   
     -- Setup stuff when this function 
     if not (continueStep == "CONTINUE") then
@@ -583,7 +584,8 @@ function Defer_Stretch_Left()
                 end
             end
         end
-        mustCalculate = true -- Always start step with re-calculation        
+        mustCalculate = true -- Always start step with re-calculation
+        stretchRIGHT = (mouseX > (tPixelFromTime[old.globalLeftmostTime]+tPixelFromTime[old.globalRightmostTime])/2)
     end
     
     local mouseTime = SnapTime(tTimeFromPixel[mouseX]) 
@@ -598,10 +600,10 @@ function Defer_Stretch_Left()
     -- RIGHT CLICK: Right click changes script mode
     peekOK, pass, time = reaper.JS_WindowMessage_Peek(windowUnderMouse, "WM_RBUTTONDOWN")
     if peekOK and time > prevDeferTime then
-        stretchMOVE = not stretchMOVE
+        stretchSYMMETRIC = not stretchSYMMETRIC
         prevMouseInputTime = time
         mustCalculate = true
-        Tooltip(stretchMOVE and "Move" or "Stretch")
+        --Tooltip(stretchSYMMETRIC and "Move" or "Stretch")
     end   
     
     if mustCalculate then
@@ -609,48 +611,33 @@ function Defer_Stretch_Left()
         local oldLeftTick = tTickFromTime[activeTake][old.globalLeftmostTime]
         local oldRightTick = tTickFromTime[activeTake][old.globalNoteOffTime]
         local mouseTick = tTickFromTime[activeTake][mouseTime]
+        local anchor = stretchSYMMETRIC and (oldLeftTick+oldRightTick)/2 or (stretchRIGHT and oldLeftTick or oldRightTick)
+
+        local stretchFactor = (mouseTick - anchor) / ((stretchRIGHT and oldRightTick or oldLeftTick) - anchor)
+        if stretchFactor ~= stretchFactor or stretchFactor == 0 then stretchFactor = prevStretchFactor or 1 end -- Avoid zero-length notes or CCs on top of each other in same channel
+        prevStretchFactor = stretchFactor
+        local noteFactor = (stretchFactor > 0) and stretchFactor or -stretchFactor        
         
-        if stretchMOVE then
-            local moveTicks = mouseTick - oldLeftTick
-            for take, tID in pairs(new.tGroups) do
-                for id, t in pairs(tID) do
-                    local nT, oT =  t.tT, old.tGroups[take][id].tT
-                    for i = 1, #oT do
-                        nT[i] = oT[i]+moveTicks
+        for take, tID in pairs(new.tGroups) do
+            local anchor = stretchSYMMETRIC and (tTickFromTime[take][old.globalNoteOffTime]+tTickFromTime[take][old.globalLeftmostTime])/2 
+                        or (stretchRIGHT and tTickFromTime[take][old.globalLeftmostTime] 
+                                          or tTickFromTime[take][old.globalNoteOffTime])
+            for id, t in pairs(tID) do
+                local nT, oT = t.tT, old.tGroups[take][id].tT
+                for i = 1, #oT do
+                    nT[i] = anchor + stretchFactor*(oT[i] - anchor)
+                end
+                if id == "notes" then
+                    local nO, oO = t.tOff, old.tGroups[take][id].tOff
+                    for i = 1, #oO do
+                        nO[i] = anchor + stretchFactor*(oO[i] - anchor)
                     end
-                    if id == "notes" then
-                        local nO, oO = t.tOff, old.tGroups[take][id].tOff
-                        for i = 1, #oO do
-                            nO[i] = oO[i]+moveTicks
-                        end
-                    end
+                    if stretchFactor < 0 then t.tT, t.tOff = t.tOff, t.tT end
                 end
             end
-        else
-            local stretchFactor = (oldRightTick - mouseTick) / (oldRightTick - oldLeftTick)
-            if stretchFactor == 0 then stretchFactor = prevStretchFactor or 1 end -- Avoid zero-length notes or CCs on top of each other in same channel
-            prevStretchFactor = stretchFactor
-            local noteFactor = (stretchFactor > 0) and stretchFactor or -stretchFactor        
-            
-            for take, tID in pairs(new.tGroups) do
-                oldNoteOffTick = tTickFromTime[take][old.globalNoteOffTime]
-                for id, t in pairs(tID) do
-                    local nT, oT = t.tT, old.tGroups[take][id].tT
-                    for i = 1, #oT do
-                        nT[i] = oldNoteOffTick - stretchFactor*(oldNoteOffTick - oT[i])
-                    end
-                    if id == "notes" then
-                        local nO, oO = t.tOff, old.tGroups[take][id].tOff
-                        for i = 1, #oO do
-                            nO[i] = oldNoteOffTick - stretchFactor*(oldNoteOffTick - oO[i])
-                        end
-                        if stretchFactor < 0 then t.tT, t.tOff = t.tOff, t.tT end
-                    end
-                end
-            end
-            reaper.JS_LICE_Clear(bitmap, 0)
-            Tooltip(string.format("Stretch: x%.4f", stretchFactor):gsub("%.*0*$", ""))
         end
+        reaper.JS_LICE_Clear(bitmap, 0)
+        Tooltip(string.format("Stretch: x%.4f", stretchFactor):gsub("%.*0*$", ""))
         
         CONSTRUCT_AND_UPLOAD()
     end
@@ -664,122 +651,6 @@ function Defer_Stretch_Left()
     end
 end
 
-
---############################
-------------------------------
-function Defer_Stretch_Right()
-  
-    -- Setup stuff when this function 
-    if not (continueStep == "CONTINUE") then
-        stepStartTime = thisDeferTime
-        mouseStateAtStepDragTime = mouseState
-        prevStretchFactor = 1
-        -- Construct new tStep by copying previous - except those tables/values that will be newly contructed
-        tSteps[#tSteps+1] = {tGroups = {}, isChangingPositions = true}
-        local old = tSteps[#tSteps-1]
-        local new = tSteps[#tSteps]
-        for key, entry in pairs(old) do
-            if not new[key] then new[key] = entry end
-        end
-        for take, tID in pairs(old.tGroups) do
-            new.tGroups[take] = {}
-            for id, t in pairs(tID) do
-                new.tGroups[take][id] = (id == "notes") and {tT = {}, tOff = {}} or {tT = {}}
-                for a, b in pairs(t) do
-                    if not new.tGroups[take][id][a] then new.tGroups[take][id][a] = b end
-                end
-            end
-        end
-        mustCalculate = true -- Always start step with re-calculation        
-    end
-    
-    -- RIGHT CLICK: Right click changes script mode
-    peekOK, pass, time = reaper.JS_WindowMessage_Peek(windowUnderMouse, "WM_RBUTTONDOWN")
-    if peekOK and time > prevDeferTime then
-        stretchMOVE = not stretchMOVE
-        prevMouseInputTime = time
-        mustCalculate = true
-        Tooltip(stretchMOVE and "Move" or "Stretch")
-    end
-    
-    local mouseTime = SnapTime(tTimeFromPixel[mouseX]) 
-    if mouseTime < globalLeftmostItemStartTimePos then mouseTime = globalLeftmostItemStartTimePos -- Prevent stretching out of item bounds
-    elseif mouseTime > globalRightmostItemEndTimePos then mouseTime = globalRightmostItemEndTimePos -- Prevent stretching out of item bounds
-    end
-    if mouseTime ~= prevMouseTimePos then
-        prevMouseTimePos = mouseTime
-        mustCalculate = true
-    end    
-    
-    if mustCalculate then
-        local new, old    = tSteps[#tSteps], tSteps[#tSteps-1]
-        local oldLeftTick = tTickFromTime[activeTake][old.globalLeftmostTime]
-        local oldRightTick = tTickFromTime[activeTake][old.globalNoteOffTime]
-        local mouseTick = tTickFromTime[activeTake][mouseTime]
-        
-        if stretchMOVE then
-            local moveTicks = mouseTick - oldRightTick
-            for take, tID in pairs(new.tGroups) do
-                for id, t in pairs(tID) do
-                    local nT, oT =  t.tT, old.tGroups[take][id].tT
-                    for i = 1, #oT do
-                        nT[i] = oT[i]+moveTicks
-                    end
-                    if id == "notes" then
-                        local nO, oO = t.tOff, old.tGroups[take][id].tOff
-                        for i = 1, #oO do
-                            nO[i] = oO[i]+moveTicks
-                        end
-                    end
-                end
-            end
-        else
-            local stretchFactor = (mouseTick - oldLeftTick) / (oldRightTick - oldLeftTick)
-            if stretchFactor == 0 then stretchFactor = prevStretchFactor or 1 end -- Avoid zero-length notes or CCs on top of each other in same channel
-            prevStretchFactor = stretchFactor
-            local noteFactor = (stretchFactor > 0) and stretchFactor or -stretchFactor        
-            
-            for take, tID in pairs(new.tGroups) do
-                oldLeftTick = tTickFromTime[take][old.globalLeftmostTime]
-                for id, t in pairs(tID) do
-                    local nT, nL, oT, oL = t.tT, t.tOff, old.tGroups[take][id].tT, old.tGroups[take][id].tOff
-                    for i = 1, #oT do
-                        nT[i] = oldLeftTick + stretchFactor*(oT[i]-oldLeftTick)
-                    end
-                    if id == "notes" then
-                        local nO, oO = t.tOff, old.tGroups[take][id].tOff
-                        for i = 1, #oO do
-                            nO[i] = oldLeftTick + stretchFactor*(oO[i]-oldLeftTick)
-                        end
-                        if stretchFactor < 0 then t.tT, t.tOff = t.tOff, t.tT end
-                    end
-                end
-            end
-            reaper.JS_LICE_Clear(bitmap, 0)
-            Tooltip(string.format("Stretch: x%.4f", stretchFactor):gsub("%.*0*$", ""))
-        end
-        
-        CONSTRUCT_AND_UPLOAD()
-    end
-    
-    -- GO TO NEXT STEP?
-    if Check_MouseLeftButtonSinceLastDefer() then 
-        GetAllEdgeValues(tSteps[#tSteps])
-        --[[
-        if stretchFactor < 0 then
-            GetAllEdgeValues(tSteps[#tSteps])
-        else
-            local new, old = tSteps[#tSteps], tSteps[#tSteps-1]
-            new.globalLeftmostTick    = old.globalLeftmostTick
-            new.globalRightmostTick   = old.globalLeftmostTick + stretchFactor*(old.globalRightmostTick - old.globalLeftmostTick)
-            new.globalNoteOffTick = old.globalLeftmostTick + stretchFactor*(old.globalNoteOffTick - old.globalLeftmostTick)
-        end
-        ]]
-        return "NEXT"
-    else
-        return "CONTINUE"
-    end
-end
 
 
 local moveLEFTRIGHT, moveUPDOWN, move2SIDED, mouseStartTick = false, false, false, nil
@@ -2931,12 +2802,12 @@ function DisplayZones()
         --if rightStretchPixel - leftStretchPixel < 0 then leftStretchPixel, rightStretchPixel = (leftStretchPixel+rightStretchPixel)//2, (leftStretchPixel+rightStretchPixel)//2+1 end
         local stretchTopPixel     = maxValuePixel+zoneWidth --(maxValuePixel > ME_TargetTopPixel+zoneWidth+1) and maxValuePixel or (maxValuePixel+zoneWidth+1)
         local stretchBottomPixel  = minValuePixel-zoneWidth --(minValuePixel < ME_TargetBottomPixel-zoneWidth-1) and minValuePixel or (minValuePixel-zoneWidth-1)
-        tZones[#tZones+1] = {func = Defer_Stretch_Left,   wheel = Edit_Reverse,               tooltip = "Stretch left",   cursor = tCursors.HandLeft,    color = "stretch", 
+        tZones[#tZones+1] = {func = Defer_Stretch,   wheel = Edit_Reverse,               tooltip = "Stretch left",   cursor = tCursors.HandLeft,    color = "stretch", 
                              left = GUI_LeftPixel+zoneWidth,       right = GUI_LeftPixel+zoneWidth*2-1, 
                              top  = stretchTopPixel, bottom = stretchBottomPixel,
                              --activeTop = ME_TargetTopPixel, activeBottom = ME_TargetBottomPixel, 
                              activeLeft = -1/0}
-        tZones[#tZones+1] = {func = Defer_Stretch_Right,  wheel = Edit_Reverse,               tooltip = "Stretch right",  cursor = tCursors.HandRight,   color = "stretch", 
+        tZones[#tZones+1] = {func = Defer_Stretch,  wheel = Edit_Reverse,               tooltip = "Stretch right",  cursor = tCursors.HandRight,   color = "stretch", 
                              left = GUI_RightPixel-zoneWidth*2+1,    right = GUI_RightPixel-zoneWidth,                        
                              top  = stretchTopPixel, bottom = stretchBottomPixel,
                              --activeTop = ME_TargetTopPixel, activeBottom = ME_TargetBottomPixel, 
@@ -2984,10 +2855,10 @@ function DisplayZones()
         tZones[#tZones+1] = {func = Defer_Redo,         wheel = Defer_Redo,       tooltip = "Redo",   cursor = tCursors.Redo,    color = (#tRedo > 0) and "redo" or "black", 
                               left = undoLeft+zoneWidth+1, right = undoLeft+2*zoneWidth+1,  top = undoTop, bottom = undoBottom}                  
         -- Stretch
-        tZones[#tZones+1] = {func = Defer_Stretch_Left,   wheel = Edit_Reverse,   tooltip = "Stretch left",   cursor = tCursors.HandLeft,    color = "stretch", 
+        tZones[#tZones+1] = {func = Defer_Stretch,   wheel = Edit_Reverse,   tooltip = "Stretch left",   cursor = tCursors.HandLeft,    color = "stretch", 
                               left = GUI_LeftPixel+zoneWidth, right = GUI_LeftPixel+zoneWidth*2-1,   top = top, bottom = bottom,
                               activeLeft = -1/0}
-        tZones[#tZones+1] = {func = Defer_Stretch_Right,  wheel = Edit_Reverse,   tooltip = "Stretch right",  cursor = tCursors.HandRight,   color = "stretch", 
+        tZones[#tZones+1] = {func = Defer_Stretch,  wheel = Edit_Reverse,   tooltip = "Stretch right",  cursor = tCursors.HandRight,   color = "stretch", 
                               left = GUI_RightPixel-zoneWidth*2+1,    right = GUI_RightPixel-zoneWidth,   top = top, bottom = bottom,
                               activeRight = 1/0}
         -- Move
