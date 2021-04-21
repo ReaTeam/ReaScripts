@@ -24,7 +24,7 @@ the script.
 
 The message will inform you that the link has been created.
 
-!!! IMPORTANT !!! The TAG must be be followed by a space if it's appeneded to the
+!!! IMPORTANT !!! The TAG must be followed by space if it's appeneded to the
 beginning of the FX name (e.g. 'TAG My plugin'), preceded by space at the end of
 the name (e.g. 'My plugin TAG') or bordered by spaces in the middle of the name
 (e.g. 'My TAG plugin').
