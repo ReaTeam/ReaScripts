@@ -3,7 +3,7 @@
 -- @website https://forum.cockos.com/member.php?u=134058
 -- @version 1.1
 -- @changelog
-    #Added proper takes support
+--  #Added proper takes support
 -- @metapackage
 -- @provides
 --   [main] BuyOne_Lock FX and FX chains/BuyOne_Lock FX and FX chains (guide inside).lua
