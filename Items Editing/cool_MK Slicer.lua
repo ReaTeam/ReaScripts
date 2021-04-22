@@ -1,11 +1,7 @@
 -- @description MK Slicer
 -- @author cool
--- @version 2.12
--- @changelog
---   + Fixed highlighting of the Grid buttons if the script was launched while the triplet mode was active.
---   + The ruler is now more visible.
---   + Removed extensive Guides By Grid menu, now the grid is selected with the Grid buttons and is synchronous with the project (experimentally, can be removed).
---   + Fixed: the script does not give an error at high sample rates.
+-- @version 2.13
+-- @changelog + Emergency Bugfix: Revert some changes to the previous version, restore the script to work on long items.
 -- @link Forum Thread https://forum.cockos.com/showthread.php?t=232672
 -- @screenshot MKSlicer2.0 https://i.imgur.com/QFWHt9a.png
 -- @donation
@@ -63,7 +59,7 @@
 --   Sometimes a script applies glue to items. For example, when several items are selected and when a MIDI is created in a sampler mode.
 
 --[[
-MK Slicer v2.12 by Maxim Kokarev 
+MK Slicer v2.13 by Maxim Kokarev 
 https://forum.cockos.com/member.php?u=121750
 
 Co-Author of the compilation - MyDaw
@@ -7020,24 +7016,6 @@ end
 ---------------------------------------------------------------------------------------------------
 ---  Wave(Processing, drawing etc)  ----------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------
------------------------------------------------------------
--- Filter_FFT ----------------------------------------------
------------------------------------------------------------
-function Wave:Filter_FFT(lowband, hiband)
-  local buf = self.buffer
-    ----------------------------------------
-    -- Filter(use fft_real) ----------------
-    ----------------------------------------
-    buf.fft_real(block_size,true)       -- FFT
-      -----------------------------
-      -- Clear lowband bins --
-      buf.clear(0, 1, lowband)                  -- clear low bins
-      -- Clear hiband bins  --
-      buf.clear(0, hiband+1, block_size-hiband) -- clear hi bins
-      -----------------------------  
-    buf.ifft_real(block_size,true)      -- iFFT
-    ----------------------------------------
-end  
 
 --------------------------------------------------------------------------------------------
 --- DRAW -----------------------------------------------------------------------------------
@@ -7136,6 +7114,20 @@ function Wave:Create_Peaks(mode) -- mode = 1 for original, mode = 2 for filtered
     ----------------------------
 end
 
+
+------------------------------------------------------------------------------------------------------------------------
+-- WAVE - (Get samples(in_buf) > filtering > to out-buf > Create in, out peaks ) ---------------------------------------
+------------------------------------------------------------------------------------------------------------------------
+-------
+function Wave:table_plus(mode, size, tmp_buf)
+  local buf
+  if mode==1 then buf=self.in_buf else buf=self.out_buf end
+  local j = 1
+  for i = size+1, size + #tmp_buf, 1 do  
+      buf[i] = tmp_buf[j]
+      j=j+1 
+  end
+end
 --------------------------------------------------------------------------------
 -- Wave:Set_Values() - set main values, cordinates etc -------------------------
 --------------------------------------------------------------------------------
@@ -7199,16 +7191,14 @@ function Wave:Processing()
         if not self:Set_Values() then return end -- set main values, coordinates etc   
         ------------------------------------------------------ 
         local size
-        local buf_start = self.sel_start
+        local buf_start = self.sel_start + self.full_buf_sz/srate -- to next
         for i=1,  self.n_Full_Bufs+1 do 
             if i>self.n_Full_Bufs then size = self.rest_buf_sz else size = self.full_buf_sz end  
 
             local tmp_buf = r.new_array(size)
             r.GetAudioAccessorSamples(self.AA, srate, 1, buf_start, size, tmp_buf) -- orig samples to in_buf for drawing
             --------
-            if i==1 then self.in_buf = tmp_buf.table() end
-            --------
-            buf_start = buf_start + self.full_buf_sz/srate -- to next
+            if i==1 then self.in_buf = tmp_buf.table() else self:table_plus(1, (i-1)*self.full_buf_sz, tmp_buf.table() ) end
             ------------------------
         end
         self:Create_Peaks(1)  -- Create_Peaks input(Original) wave peaks
@@ -7219,26 +7209,41 @@ function Wave:Processing()
     -- Filtering >> samples to out_buf >> to table >> create peaks ----------
     -------------------------------------------------------------------------
     local size, n_XBlocks
-    local buf_start = self.sel_start
+    local  buf_start = self.sel_start + (block_size/srate) -- to next
     for i=1, self.n_Full_Bufs+1 do
        if i>self.n_Full_Bufs then size, n_XBlocks = self.rest_buf_sz, self.n_XBlocks_RB 
                              else size, n_XBlocks = self.full_buf_sz, self.n_XBlocks_FB
        end
        ------
+
        local tmp_buf = r.new_array(size)
        ---------------------------------------------------------
        local block_start = buf_start - (self.crsx/srate)   -- first block in current buf start(regard crsx)   
-       for block=1, n_XBlocks do r.GetAudioAccessorSamples(self.AA, srate, 1, block_start, block_size, self.buffer)
-           --------------------
-           self:Filter_FFT(lowband, hiband)                -- Filter(note: don't use out of range freq!)
+       for block=1, n_XBlocks do 
+           r.GetAudioAccessorSamples(self.AA, srate, 1, block_start, block_size, self.buffer)
+              -----------------------------------------------------------
+              -- Filter_FFT ----(note: don't use out of range freq!)
+              -----------------------------------------------------------           
+              local buf = self.buffer
+                ----------------------------------------
+                -- Filter(use fft_real) ----------------
+                ----------------------------------------
+                buf.fft_real(block_size,true)       -- FFT
+                  -----------------------------
+                  -- Clear lowband bins --
+                  buf.clear(0, 1, lowband)                  -- clear low bins
+                  -- Clear hiband bins  --
+                  buf.clear(0, hiband+1, block_size-hiband) -- clear hi bins
+                  -----------------------------  
+                buf.ifft_real(block_size,true)      -- iFFT
+              ----------------------------------------
+              -----------------------------------------------------------   
            tmp_buf.copy(self.buffer, self.crsx+1, self.Xblock, (block-1)* self.Xblock + 1 ) -- copy block to out_buf with offset
            --------------------
            block_start = block_start + self.Xblock/srate   -- next block start_time
        end
        ---------------------------------------------------------
-       if i==1 then self.out_buf = tmp_buf.table() end
-       --------
-       buf_start = buf_start + (self.full_buf_sz/srate) -- to next
+       if i==1 then self.out_buf = tmp_buf.table() else self:table_plus(2, (i-1)*self.full_buf_sz, tmp_buf.table() ) end
        ------------------------
     end
     -------------------------------------------------------------------------
@@ -7885,7 +7890,7 @@ function Init()
     -- Some gfx Wnd Default Values ---------------
     local R,G,B = 45,45,45              -- 0...255 format -- цвет основного окна
     local Wnd_bgd = R + G*256 + B*65536 -- red+green*256+blue*65536  
-    local Wnd_Title = "MK Slicer v2.12"
+    local Wnd_Title = "MK Slicer v2.13"
     local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
  --   Wnd_W,Wnd_H = 1044,490 -- global values(used for define zoom level)
 
@@ -8193,7 +8198,7 @@ gfx.quit()
      dock_pos = dock_pos or 1025
      xpos = 400
      ypos = 320
-     local Wnd_Title = "MK Slicer v2.12"
+     local Wnd_Title = "MK Slicer v2.13"
      local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
      gfx.init( Wnd_Title, Wnd_W,Wnd_H, Wnd_Dock, Wnd_X,Wnd_Y )
 
@@ -8205,7 +8210,7 @@ gfx.quit()
     dock_pos = 0
     xpos = r.GetExtState("cool_MK Slicer.lua", "window_x") or 400
     ypos = r.GetExtState("cool_MK Slicer.lua", "window_y") or 320
-    local Wnd_Title = "MK Slicer v2.12"
+    local Wnd_Title = "MK Slicer v2.13"
     local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
     gfx.init( Wnd_Title, Wnd_W,Wnd_H, Wnd_Dock, Wnd_X,Wnd_Y )
  
