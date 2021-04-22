@@ -10,12 +10,12 @@
 * Licence: WTFPL
 * Forum Thread:
 * Demo:
-* Version: 1.0
+* Version: 1.1
 * REAPER: at least v5.962
 * Extensions:
 * Changelog:
 	+ v1.0 	Initial release
-
+	+ v1.1  Added proper takes support
 ]]
 
 --[[
@@ -139,8 +139,10 @@ local function Restore_Chunk(retval, obj, fx_num, ref_chunk)
 
 	local ret, cur_chunk = GetObjChunk(retval, obj)
 	if retval == 2 then -- TAKE FX
-	ref_fx_chunk = ref_chunk:match('(<TAKEFX.*>)\n<ITEM') or ref_chunk:match('(<TAKEFX.*>)\n>')
-	cur_fx_chunk = cur_chunk:match('(<TAKEFX.*>)\n<ITEM') or cur_chunk:match('(<TAKEFX.*>)\n>')
+	local retval, take_GUID = r.GetSetMediaItemTakeInfo_String(r.GetTake(obj,fx_num>>16), 'GUID', '', false)
+	local take_GUID = r.guidToString(take_GUID, ''):gsub('[%-]', '%%%0')
+	ref_fx_chunk = ref_chunk:match(take_GUID..'.-(<TAKEFX.*>)\nTAKE') or ref_chunk:match(take_GUID..'.-(<TAKEFX.*>)\n<ITEM') or ref_chunk:match(take_GUID..'.-(<TAKEFX.*>)\n>')
+	cur_fx_chunk = cur_chunk:match(take_GUID..'.-(<TAKEFX.*>)\nTAKE') or cur_chunk:match(take_GUID..'.-(<TAKEFX.*>)\n<ITEM') or cur_chunk:match(take_GUID..'.-(<TAKEFX.*>)\n>')
 	last_sel_fx = tonumber(cur_fx_chunk:match('LASTSEL%s(%d*)')) -- extract last sel fx to reopen its UI after fx order is restored
 	elseif retval == 1 and r.TrackFX_GetRecChainVisible(r.GetMasterTrack(0)) >= 0 then -- MONITOR FX (retval 1 stems from the argument passed in Restore_FX_Chain() function)
 		cur_fx_chunk = cur_chunk:match('(<TRACK.*MAINSEND.-)\n>') -- temporary track chunk
@@ -173,7 +175,7 @@ local TAG = TAG:gsub('[%(%)%+%-%[%]%.%^%$%*%?%%]','%%%0')..' ' -- escapes in cas
 local name_changed
 
 	if retval == 2 then -- take FX chain
-	local take = r.GetActiveTake(item)
+	local take = r.GetTake(item, fx_num>>16)
 	fx_cnt = r.TakeFX_GetCount(take)
 		for i = 0, fx_cnt-1 do -- find if there're any tagged FX in the chain
 		local retval, name = r.TakeFX_GetFXName(take, i, '')
@@ -213,7 +215,7 @@ function Store_FX_Chain(retval, track_num, item, fx_num)
 
 		-- Take FX chain
 		if retval == 2 then -- starting with item because track_num is also returned when take fx is in focus
-		local take = r.GetActiveTake(item)
+		local take = r.GetTake(item, fx_num>>16)
 			for i = 0, r.TakeFX_GetCount(take)-1 do -- find if there're any tagged FX in the chain
 			local retval, name = r.TakeFX_GetFXName(take, i, '')
 			if name:match('^'..TAG) then tagged = true break end
@@ -275,7 +277,8 @@ local mon_fx_upd
 
 	-- Take FX chain
 	if retval == 2 then
-	local take = r.GetActiveTake(item)
+	local take = r.GetTake(item, fx_num>>16)
+	local act_take = r.GetActiveTake(item) -- get active take to restore later
 	local fx_cnt = r.TakeFX_GetCount(take)
 		for i = 0, fx_cnt-1 do
 		local fx_GUID = r.TakeFX_GetFXGUID(take, i)
@@ -283,10 +286,11 @@ local mon_fx_upd
 				if i ~= k-1 and fx_GUID == v then -- explanation of the double method see in the Track FX chain routine below
 					if tagged then
 					r.TakeFX_CopyToTake(take, i, take, k-1, true)
-					r.TakeFX_SetOpen(take, fx_num, true)
+					r.TakeFX_SetOpen(take, fx_num&0xffff, true)
 					else
 					local last_sel_fx = Restore_Chunk(retval, item, fx_num, ref_chunk)
 					r.TakeFX_SetOpen(take, last_sel_fx, true) -- reopen UI of fx which was open last before reordering
+					r.SetActiveTake(act_take) -- restore active take
 					end
 				end
 			end
