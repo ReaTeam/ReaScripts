@@ -53,7 +53,7 @@ About:
   
   REAPER does not provide scripts with a list of items that are editable in a MIDI editor, so most scripts can only edit the active item.  
   Only in special circumstances, for example when editability follows item selection, can scripts deduce which items are editable.
-  Please bump the Feature Request thread: t=168563.
+  Please bump the Feature Request thread: t=168563. 
   
   
   EDITABLE ITEMS:
