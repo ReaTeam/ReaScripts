@@ -1,13 +1,12 @@
 -- @description Color palette
 -- @author Rodilab
--- @version 1.5
+-- @version 1.51
 -- @changelog
---   - Auto detect last valid context
---   - New "In Order" in the Action button
---   - "Highlight matching colors" match with all selected tagets
---   - "Random Each" now generates a random order of the palette that repeats in a loop to avoid color redundancy
---   - "Track Manager" and "Region/Marker Manager" works on Window
---   -  Auto set 1st user color to all default tracks option
+--   - Track Manager and Region/Marker Manager work on all OS
+--   - Ctrl+Alt-click (Ctrl-click on Mac) with 'Takes' target set color to all takes (active, and non actives)
+--   - Highlight border is black if color is very light
+--   - Improved "Set 1st user to default tracks" option
+--   - Improved "Track Manager and Region / Marker Manager" detection
 -- @about
 --   # Color tool with customizable color gradient palette and a user palette.
 --
@@ -15,12 +14,14 @@
 --
 --   [Thread in Cockos forum](https://forum.cockos.com/showthread.php?t=252219)
 --
---   ![Image](https://www.rodrigodiaz.fr/prive/color_palette/Color_palette_v1_5.gif)
+--   ---
 --
---   >Requirement :
---   >- ReaImGui: ReaScript binding for Dear ImGui
---   >- js_ReaScriptAPI: API functions for ReaScripts
---   >- SWS Extension
+--   Requirement :
+--   - ReaImGui: ReaScript binding for Dear ImGui
+--   - js_ReaScriptAPI: API functions for ReaScripts
+--   - SWS Extension
+--
+--   ---
 --
 --   Features :
 --   - Click on any color to set in selected Tracks/Items/Takes/Markers/Take Markers/Regions
@@ -47,11 +48,16 @@
 
 r = reaper
 script_name = "Color palette"
+OS_Win = string.match(reaper.GetOS(),"Win")
+OS_Mac = string.match(reaper.GetOS(),"OSX")
+r_version = r.GetAppVersion()
+r_version = tonumber(r_version:match[[(%d+.%d+)]])
 
 -- Extensions check
 if r.APIExists('CF_GetClipboard') == true then
   if r.APIExists('ImGui_CreateContext') == true then
     if r.APIExists('JS_Dialog_BrowseForOpenFiles') == true then
+      if OS_Win or not r_version or r_version >= 6.28 then
 
 -- Colors
 rounding = 4.0
@@ -59,7 +65,10 @@ background_color = r.ImGui_ColorConvertHSVtoRGB(1,0,0.2,1)
 background_popup_color = r.ImGui_ColorConvertHSVtoRGB(1,0,0.15,1)
 framegb_color = r.ImGui_ColorConvertHSVtoRGB(0,0,0.15,1)
 default_usercolor = r.ImGui_ColorConvertHSVtoRGB(0,0,0.27)
-col_border = r.ImGui_ColorConvertHSVtoRGB(0,0,1,1)
+
+col_border_1 = r.ImGui_ColorConvertHSVtoRGB(0,0,1,1)
+col_border_2 = r.ImGui_ColorConvertHSVtoRGB(0,0,0,1)
+
 button_back = r.ImGui_ColorConvertHSVtoRGB(0,0,0.27,1)
 button_hover = r.ImGui_ColorConvertHSVtoRGB(0,0,0.32,1)
 button_active = r.ImGui_ColorConvertHSVtoRGB(0,0,0.4,1)
@@ -92,12 +101,11 @@ last_track_state = 2
 last_item_state = 3
 last_marker_state = 8
 seltracks_colors = {}
-local hwnd_regions, hwnd_tracks
 manager_focus = 0
+trackmanager_title = reaper.JS_Localize('Track Manager', "common")
+regionmanager_title = reaper.JS_Localize('Region/Marker Manager', "common")
 
 -- User color file
-OS_Win = string.match(reaper.GetOS(),"Win")
-OS_Mac = string.match(reaper.GetOS(),"OSX")
 info = debug.getinfo(1,'S')
 script_path = info.source:match[[^@?(.*[\/])[^\/]-$]]
 separ = package.config:sub(1,1)
@@ -261,9 +269,14 @@ function HEXtoINT(hex)
 end
 
 function NATIVEtoINT(native)
-  local r, g, b = r.ColorFromNative(native)
+  local r, g, b = reaper.ColorFromNative(native)
   local int = b + g*16^2 + r*16^4
   return int
+end
+
+function INTtoNATIVE(int)
+  local r, g, b = intRGBtoRGB(int)
+  return reaper.ColorToNative(r,g,b)
 end
 
 ---------------------------------------------------------------------------------
@@ -398,16 +411,6 @@ function compare_sel_colors(color_int)
   return false
 end
 
-function remove_user_color(i)
-  for j,color in ipairs(usercolors) do
-    if j >= i and j < #usercolors then
-      usercolors[j] =  usercolors[j+1]
-    elseif j == #usercolors then
-      usercolors[j] = nil
-    end
-  end
-end
-
 function insert_new_user(position,new_value)
   local size = #usercolors
   if position > size then
@@ -442,26 +445,12 @@ end
 --- Managers --------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 
-function GetManager(name)
-  local title = reaper.JS_Localize(name, "common")
-  local arr = reaper.new_array({}, 1024)
-  reaper.JS_Window_ArrayFind(title, true, arr)
-  local adr = arr.table()
-  for j = 1, #adr do
-    local hwnd = reaper.JS_Window_HandleFromAddress(adr[j])
-    -- verify window by checking if it also has a specific child.
-    if reaper.JS_Window_FindChildByID(hwnd, 1056) then -- 1045:ID of clear button
-      return hwnd
-    end
-  end
-end
-
 function get_HWND_selitems_list(hWnd)
   if hWnd == nil then
     return
   end
-  local container = reaper.JS_Window_FindChildByID(hWnd, 1071)
-  local sel_count, sel_indexes = reaper.JS_ListView_ListAllSelItems(container)
+  local container = r.JS_Window_FindChildByID(hWnd, 1071)
+  local sel_count, sel_indexes = r.JS_ListView_ListAllSelItems(container)
   if sel_count == 0 then
     return
   end
@@ -469,7 +458,7 @@ function get_HWND_selitems_list(hWnd)
   local i = 0
   for index in string.gmatch(sel_indexes,'[^,]+') do
     i = i + 1
-    local name = reaper.JS_ListView_GetItemText(container,tonumber(index),1)
+    local name = r.JS_ListView_GetItemText(container,tonumber(index),1)
     if name and name ~= '' then
       table.insert(names,name)
     end
@@ -478,12 +467,14 @@ function get_HWND_selitems_list(hWnd)
 end
 
 function get_managers_list(category, what)
+  if hwnd_regions and r.JS_Window_IsWindow(hwnd_regions) == false then hwnd_regions = nil end
+  if hwnd_tracks and r.JS_Window_IsWindow(hwnd_tracks) == false then hwnd_tracks = nil end
   if (manager_focus == 1 and not hwnd_regions) or (manager_focus == 2 and not hwnd_tracks) then
     manager_focus = 0
     return nil, nil
-  elseif category == 3 and hwnd_regions and manager_focus == 1 then
+  elseif manager_focus == 1 and category == 3 then
     return get_HWND_selitems_list(hwnd_regions), nil
-  elseif what == 'Tracks' and hwnd_tracks and manager_focus == 2 then
+  elseif manager_focus == 2 and what == 'Tracks' then
     return nil, get_HWND_selitems_list(hwnd_tracks)
   end
 end
@@ -500,8 +491,7 @@ function set_firstuser_defaulttracks()
         local track =  reaper.GetTrack(0,i)
         local trackcolor = reaper.GetTrackColor(track)
         if trackcolor == 0 then
-          local r,g,b = intRGBtoRGB(usercolors[1])
-          local color = reaper.ColorToNative(r,g,b)
+          local color = INTtoNATIVE(usercolors[1])
           reaper.SetTrackColor(track,color|0x1000000)
         end
       end
@@ -518,9 +508,8 @@ function random_color()
   end
   if #list > 0 then
     local random = math.random(#list)
-    local color = list[random]
-    local r,g,b = intRGBtoRGB(color)
-    return reaper.ColorToNative(r,g,b)
+    local color = INTtoNATIVE(list[random])
+    return color
   else
     return nil
   end
@@ -539,12 +528,13 @@ function random_color_list(number)
     end
   end
   if #source_list > 0 then
-    if number > #source_list then number = #source_list end
+    if not number or number > #source_list then
+      number = #source_list
+    end
     for i=1, number do
       local random = math.random(#source_list)
-      local color = source_list[random]
-      local r,g,b = intRGBtoRGB(color)
-      table.insert(random_list,reaper.ColorToNative(r,g,b))
+      local color = INTtoNATIVE(source_list[random])
+      table.insert(random_list,color)
       table.remove(source_list,random)
     end
     return random_list
@@ -558,7 +548,6 @@ function get_target_infos()
   local category = target_category_list[target_button]
   local what = target_button_list[target_button]
   local count
-
   -- Get count
   if what == 'Tracks' then
     count = reaper.CountSelectedTracks(0)
@@ -579,7 +568,6 @@ end
 
 function is_marker_selected(i,what,list)
   local rv, isrgn, pos, rgnend, name, markrgnindexnumber, tmp_color = reaper.EnumProjectMarkers3(0,i)
-
   if what == 'Mk & Rg' or (isrgn == true and what == 'Regions') or (isrgn == false and what == 'Markers') then
     if list then
       local MName  = ''
@@ -623,16 +611,13 @@ end
 
 function get_sel_target_colors_list()
   seltracks_colors = {}
-
   -- Get Target
   local category, what, count, cursor, time_sel_start, time_sel_end = get_target_infos()
-
   -- List manager
   local manager_regions_list, manager_tracks_list = get_managers_list(category, what)
   if manager_tracks_list then
     count = #manager_tracks_list
   end
-
   -- For each target
   for i=0, count-1 do
     local color = nil
@@ -680,16 +665,13 @@ function get_sel_target_colors_list()
 end
 
 function get_first_sel_target_color()
-
   -- Get Target
   local category, what, count, cursor, time_sel_start, time_sel_end = get_target_infos()
-
   -- List manager
   local manager_regions_list, manager_tracks_list = get_managers_list(category, what)
   if manager_tracks_list then
     count = #manager_tracks_list
   end
-
   -- For each target
   for i=0, count-1 do
     local color = nil
@@ -738,28 +720,28 @@ end
 function SetColor(color_int)
   reaper.Undo_BeginBlock()
   reaper.PreventUIRefresh(1)
-
   -- Get Target
   local category, what, count, cursor, time_sel_start, time_sel_end = get_target_infos()
-
   -- List manager
   local manager_regions_list, manager_tracks_list = get_managers_list(category, what)
   if manager_tracks_list then
     count = #manager_tracks_list
   end
-
   -- Get color
   local color
   local color_list
   if type(color_int) == 'number' then
-    local r,g,b = intRGBtoRGB(color_int)
-    color = reaper.ColorToNative(r,g,b)|0x1000000
+    color = INTtoNATIVE(color_int)|0x1000000
   elseif color_int == 'Default' then
     color = 0
   elseif color_int == 'Rnd All' then
     color = random_color()|0x1000000
   elseif color_int == 'Rnd Each' then
-    color_list = random_color_list(count)
+    if what == 'Takes' and (mods == 5 or mods == 8) then
+      color_list = random_color_list(nil)
+    else
+      color_list = random_color_list(count)
+    end
   elseif color_int == 'In order' then
     if conf.randfrom == 1 then
       if #button_color > 0 then
@@ -779,7 +761,6 @@ function SetColor(color_int)
       end
     end
   end
-
   local j = 0
   -- For each target
   for i=0, count-1 do
@@ -790,9 +771,7 @@ function SetColor(color_int)
       if color_int == 'Rnd Each' then
         color = color|0x1000000
       elseif color_int == 'In order' then
-        local r,g,b = intRGBtoRGB(color)
-        color = reaper.ColorToNative(r,g,b)|0x1000000
-        color = color|0x1000000
+        color = INTtoNATIVE(color)|0x1000000
       end
     end
     if not color then
@@ -838,8 +817,20 @@ function SetColor(color_int)
       else
         local take = reaper.GetActiveTake(item)
         if what == 'Takes' then
-          reaper.SetMediaItemTakeInfo_Value(take,"I_CUSTOMCOLOR",color)
-          j = j + 1
+          if mods == 5 or mods == 8 then
+            for k = 0, reaper.CountTakes(item)-1 do
+              if color_int == 'Rnd Each' or color_int == 'In order' then
+                j = (j%(#color_list))
+                color = color_list[j+1]|0x1000000
+              end
+              local take = reaper.GetMediaItemTake(item,k)
+              reaper.SetMediaItemTakeInfo_Value(take,"I_CUSTOMCOLOR",color)
+              j = j + 1
+            end
+          else
+            reaper.SetMediaItemTakeInfo_Value(take,"I_CUSTOMCOLOR",color)
+            j = j + 1
+          end
         elseif what == 'T Marks' then
           local zoom = (1/reaper.GetHZoomLevel())*2
           local item_pos = reaper.GetMediaItemInfo_Value(item,"D_POSITION")
@@ -867,12 +858,10 @@ function SetColor(color_int)
       end
     end
   end
-
   -- Children tracks color
   if (category == 1 or what == 'tracks_names') and command_colchildren ~= 0 and (conf.setcolor_childs == true or mods == 5 or mods == 8) then
     reaper.Main_OnCommand(command_colchildren,0)
   end
-
   if conf.auto_close == true then
     close = true
   end
@@ -900,14 +889,6 @@ function get_last_context()
     open_context = nil
   else
     if (left_click == 1 and last_left_click ~= 1) or (right_click == 2 and last_right_click ~= 2) then
-      -- Check if manager still open
-      if hwnd_regions and r.JS_Window_IsWindow(hwnd_regions) == false then
-        hwnd_regions = nil
-      end
-      if hwnd_tracks and r.JS_Window_IsWindow(hwnd_tracks) == false then
-        hwnd_tracks = nil
-      end
-
       local window, segment, details = r.BR_GetMouseCursorContext()
       if window ~= 'unknown' then
         manager_focus = 0
@@ -927,31 +908,18 @@ function get_last_context()
           end
         end
       else
-        -- Check if last focus windows is Color palette
-        local hwnd_focus = r.JS_Window_GetForeground()
-        if hwnd_focus ~= hwnd then
-          -- Check if last focus windows is Track Manager
-          if OS_Win then
-            if not hwnd_tracks and hwnd_focus == GetManager("Track Manager") then
-              hwnd_tracks = hwnd_focus
-              manager_focus, target_button, last_track_state = 2,2,2
-            elseif hwnd_regions and hwnd_focus == hwnd_regions then
-              manager_focus, target_button, last_track_state = 2,2,2
-            end
-          end
-          -- Check if last focus windows is Region Manager
-          if not hwnd_regions and hwnd_focus == GetManager("Region/Marker Manager") then
-            hwnd_regions = hwnd_focus
-            if OS_Win then
-              manager_focus, target_button, last_marker_state = 1,8,8
-            else
-              target_button = last_marker_state
-            end
-          elseif hwnd_regions and hwnd_focus == hwnd_regions then
-            if OS_Win then
-              manager_focus, target_button, last_marker_state = 1,8,8
-            else
-              target_button = last_marker_state
+        -- If unknown, get focus hwnd and parent
+        local hwnd_focus = r.JS_Window_GetFocus()
+        if hwnd_focus and hwnd_focus ~= hwnd then
+          local hwnd_focus_parent = r.JS_Window_GetParent(hwnd_focus)
+          if hwnd_focus_parent and hwnd_focus_parent ~= hwnd then
+            local hwnd_focus_parent_title = r.JS_Window_GetTitle(hwnd_focus_parent)
+            if hwnd_focus_parent_title == trackmanager_title then
+              hwnd_tracks = hwnd_focus_parent
+              manager_focus, target_button = 2,2
+            elseif hwnd_focus_parent_title == regionmanager_title then
+              hwnd_regions = hwnd_focus_parent
+              manager_focus, target_button = 1,8
             end
           end
         end
@@ -962,11 +930,42 @@ function get_last_context()
   last_right_click = right_click
 end
 
+function highlight_sel(color)
+  col_border = nil
+  if compare_sel_colors(color) == true then
+    local border_size
+    local Br,Bg,Bb = intRGBtoRGB(color)
+    if math.max(Br,Bg,Bb) > 220 then
+      col_border = col_border_2
+      border_size = 1
+    else
+      col_border = col_border_1
+      border_size = 1
+    end
+    r.ImGui_PushStyleColor(ctx,r.ImGui_Col_Border(),col_border)
+    r.ImGui_PushStyleVar(ctx,r.ImGui_StyleVar_FrameBorderSize(),border_size)
+  end
+end
+
 function loop()
   get_last_context()
 
+  -- Set 1st user color to default tracks option
   if conf.remplace_default == true then
-    set_firstuser_defaulttracks()
+    if count_tracks then
+      local new_count_tracks = reaper.CountTracks(0)
+      if new_count_tracks > count_tracks then
+        count_tracks = new_count_tracks
+        set_firstuser_defaulttracks()
+      elseif new_count_tracks < count_tracks then
+        count_tracks = new_count_tracks
+      end
+    else
+      count_tracks = reaper.CountTracks(0)
+      set_firstuser_defaulttracks()
+    end
+  elseif conf.remplace_default == false and count_tracks then
+    count_tracks = nil
   end
 
   -- Get selected tracks color
@@ -1211,6 +1210,13 @@ function loop()
     mods_help = nil
   end
 
+  --[[
+  -- Undo
+  if mods == 1 and r.ImGui_IsKeyPressed(ctx,13,false) == true then
+    r.Undo_DoUndo2(0)
+  end
+  ]]--
+
   -- Top buttons
   r.ImGui_PushStyleColor(ctx,r.ImGui_Col_Button(),button_back)
   r.ImGui_PushStyleColor(ctx,r.ImGui_Col_ButtonHovered(),button_hover)
@@ -1363,7 +1369,6 @@ function loop()
   ----------------------------------------------------------------
 
   r.ImGui_PushStyleVar(ctx,r.ImGui_StyleVar_FrameBorderSize(),1)
-  r.ImGui_PushStyleColor(ctx,r.ImGui_Col_Border(),col_border)
   r.ImGui_PushStyleVar(ctx,r.ImGui_StyleVar_FrameRounding(),0)
   r.ImGui_PushStyleVar(ctx,r.ImGui_StyleVar_ItemSpacing(),conf.spacing,conf.spacing)
   -- Palette Colors
@@ -1378,12 +1383,18 @@ function loop()
     local button_flags =  r.ImGui_ColorEditFlags_NoAlpha()
                         | r.ImGui_ColorEditFlags_NoTooltip()
                         | r.ImGui_ColorEditFlags_NoDragDrop()
-    if compare_sel_colors(button_color[i]) == false then
+    highlight_sel(button_color[i])
+    if not col_border then
       button_flags = button_flags | r.ImGui_ColorEditFlags_NoBorder()
     end
 
     if r.ImGui_ColorButton(ctx,'##'..i,button_color[i],button_flags,conf.size,conf.size) then
       SetColor(button_color[i])
+    end
+
+    if col_border then
+      r.ImGui_PopStyleColor(ctx)
+      r.ImGui_PopStyleVar(ctx)
     end
 
     -- Drag and Drop source
@@ -1428,7 +1439,8 @@ function loop()
     local button_flags =  r.ImGui_ColorEditFlags_NoAlpha()
                         | r.ImGui_ColorEditFlags_NoTooltip()
                         | r.ImGui_ColorEditFlags_NoDragDrop()
-    if compare_sel_colors(button_user_color) == false then
+    highlight_sel(usercolors[i])
+    if not col_border then
       button_flags = button_flags | r.ImGui_ColorEditFlags_NoBorder()
     end
 
@@ -1436,7 +1448,7 @@ function loop()
     if r.ImGui_ColorButton(ctx,'##User'..i,button_user_color,button_flags,conf.size,conf.size) then
       if mods == 4 then
         if button_empty == false then
-          remove_user_color(i)
+          table.remove(usercolors,i)
         end
       elseif mods == 1 then
         local past_color = get_clipboard_color()
@@ -1447,7 +1459,7 @@ function loop()
             usercolors[#usercolors+1] = past_color
           end
         end
-      elseif  mods == 2 then
+      elseif mods == 2 then
         local first_sel_target_color = get_first_sel_target_color()
         if first_sel_target_color and first_sel_target_color ~= 0 then
           first_sel_target_color = NATIVEtoINT(first_sel_target_color)
@@ -1462,6 +1474,11 @@ function loop()
           SetColor(button_user_color)
         end
       end
+    end
+
+    if col_border then
+      r.ImGui_PopStyleColor(ctx)
+      r.ImGui_PopStyleVar(ctx)
     end
 
     -- Drag and drop source
@@ -1480,7 +1497,7 @@ function loop()
       local rv,payload = r.ImGui_AcceptDragDropPayload(ctx,'DnD_Color')
       if rv == true then
         if dragdrop_source_id then
-          remove_user_color(dragdrop_source_id)
+          table.remove(usercolors,dragdrop_source_id)
           dragdrop_source_id = nil
         end
         insert_new_user(i,tonumber(payload))
@@ -1503,7 +1520,7 @@ function loop()
   end
 
   -- Global pop
-  r.ImGui_PopStyleColor(ctx,2)
+  r.ImGui_PopStyleColor(ctx,1)
   r.ImGui_PopStyleVar(ctx,4)
 
   -- End loop
@@ -1522,6 +1539,9 @@ set_window()
 r.defer(loop)
 
 -- Extentions check end
+      else
+        r.ShowMessageBox('Please install Reaper 6.28 or later',script_name,0)
+      end
     else
       r.ShowMessageBox("Please install \"js_ReaScriptAPI: API functions for ReaScripts\" with ReaPack and restart Reaper",script_name,0)
       local ReaPack_exist = r.APIExists('ReaPack_BrowsePackages')
