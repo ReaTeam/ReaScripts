@@ -21,7 +21,7 @@ to the script.
 To create a link append the TAG defined in the USER SETTINGS below to the name of
 such focused FX in the FX chain and run the script.
 
-!!! IMPORTANT !!! The TAG must be followed by space if it's appeneded to the
+!!! IMPORTANT !!! The TAG must be be followed by a space if it's appeneded to the
 beginning of the FX name (e.g. 'TAG My plugin'), preceded by space at the end of
 the name (e.g. 'My plugin TAG') or bordered by spaces in the middle of the name
 (e.g. 'My TAG plugin').
@@ -31,26 +31,23 @@ only, regardless of the FX focus status.
 
 To unlink the script from an FX simply remove the TAG from the FX name.
 
-	## VIDEO PROCESSOR PLUGIN
-
-Video prosessor is supposed to be supported since REAPER build 6.26 in which its preset
-navigation via API was introduced.
-
-To add the TAG to the Video processor name, insert it in the very first line of its
-preset code (the first commented out line), e.g. '//PC De-interlace track/item' where
-PC is the TAG and hit Ctrl(Command)+S. Be aware that after that the TAG will be burnt
-into the code and will be displayed in the Video processor instance name each time the
-preset is loaded. You can however delete it and again save the preset.
-
-The link between the script and the FX is based on the FX ID therefore it won't be
-broken up if the FX position is changed within the FX chain or if it's moved to another
-object with Alt(Option)+Left drag.
 
 !!! WARNING !!! Preset change creates an undo point unless it's a Monitor FX
 
 If after closing the FX UI you happen to forget which FX it was, you can look up
 its details in the undo point its preset change creates in the REAPER Undo log
 accessible from the main menu panel or via action 'View: Show undo history window'.
+
+
+	## VIDEO PROCESSOR PLUGIN
+
+Video prosessor is supported since REAPER build 6.26 in which its preset navigation via 
+API was introduced.
+
+HOWEVER Video processor instances in the FX chain are named after the selected preset.
+When the TAG is applied the name is effectively replaced with the custom one and no longer 
+updated to reflect the currently selected preset.
+
 
 	## MULTIPLE INSTANCES
 
