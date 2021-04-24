@@ -2,7 +2,6 @@
 -- @author cool
 -- @version 2.14
 -- @changelog
---   v2.14
 --   + Small optimization of the audio engine (thanks, amagalma!), fixing gross errors of previous versions 2.12 - 2.13.
 --   + Play Marker is now visible on the Loop Line (useful when working with long items).
 -- @link Forum Thread https://forum.cockos.com/showthread.php?t=232672
