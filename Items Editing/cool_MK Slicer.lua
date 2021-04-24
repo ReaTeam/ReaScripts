@@ -1,7 +1,10 @@
 -- @description MK Slicer
 -- @author cool
--- @version 2.13
--- @changelog + Emergency Bugfix: Revert some changes to the previous version, restore the script to work on long items.
+-- @version 2.14
+-- @changelog
+--   v2.14
+--   + Small optimization of the audio engine (thanks, amagalma!), fixing gross errors of previous versions 2.12 - 2.13.
+--   + Play Marker is now visible on the Loop Line (useful when working with long items).
 -- @link Forum Thread https://forum.cockos.com/showthread.php?t=232672
 -- @screenshot MKSlicer2.0 https://i.imgur.com/QFWHt9a.png
 -- @donation
@@ -59,7 +62,7 @@
 --   Sometimes a script applies glue to items. For example, when several items are selected and when a MIDI is created in a sampler mode.
 
 --[[
-MK Slicer v2.13 by Maxim Kokarev 
+MK Slicer v2.14 by Maxim Kokarev 
 https://forum.cockos.com/member.php?u=121750
 
 Co-Author of the compilation - MyDaw
@@ -7190,15 +7193,19 @@ function Wave:Processing()
     if not self.State then
         if not self:Set_Values() then return end -- set main values, coordinates etc   
         ------------------------------------------------------ 
-        local size
-        local buf_start = self.sel_start + self.full_buf_sz/srate -- to next
-        for i=1,  self.n_Full_Bufs+1 do 
-            if i>self.n_Full_Bufs then size = self.rest_buf_sz else size = self.full_buf_sz end  
-
-            local tmp_buf = r.new_array(size)
+        local size = self.full_buf_sz
+        local buf_start = self.sel_start
+				local max = self.n_Full_Bufs+1
+				local tmp_buf = r.new_array(size)
+				local len = self.full_buf_sz/srate
+        for i=1, max do 
+            if i == max then size = self.rest_buf_sz end  
+						tmp_buf.clear()
             r.GetAudioAccessorSamples(self.AA, srate, 1, buf_start, size, tmp_buf) -- orig samples to in_buf for drawing
             --------
-            if i==1 then self.in_buf = tmp_buf.table() else self:table_plus(1, (i-1)*self.full_buf_sz, tmp_buf.table() ) end
+            if i==1 then self.in_buf = tmp_buf.table(1,size) else self:table_plus(1, (i-1)*self.full_buf_sz, tmp_buf.table(1,size) ) end
+            --------
+            buf_start = buf_start + len -- to next
             ------------------------
         end
         self:Create_Peaks(1)  -- Create_Peaks input(Original) wave peaks
@@ -7208,42 +7215,42 @@ function Wave:Processing()
     -------------------------------------------------------------------------
     -- Filtering >> samples to out_buf >> to table >> create peaks ----------
     -------------------------------------------------------------------------
-    local size, n_XBlocks
-    local  buf_start = self.sel_start + (block_size/srate) -- to next
-    for i=1, self.n_Full_Bufs+1 do
-       if i>self.n_Full_Bufs then size, n_XBlocks = self.rest_buf_sz, self.n_XBlocks_RB 
-                             else size, n_XBlocks = self.full_buf_sz, self.n_XBlocks_FB
-       end
+    local size, n_XBlocks = self.full_buf_sz, self.n_XBlocks_FB
+    local buf_start = self.sel_start
+    local max = self.n_Full_Bufs+1
+		local tmp_buf = r.new_array(size)
+		local len = self.full_buf_sz/srate
+		for i=1, max do
+       if i == max then size, n_XBlocks = self.rest_buf_sz, self.n_XBlocks_RB end
        ------
-
-       local tmp_buf = r.new_array(size)
        ---------------------------------------------------------
        local block_start = buf_start - (self.crsx/srate)   -- first block in current buf start(regard crsx)   
-       for block=1, n_XBlocks do 
-           r.GetAudioAccessorSamples(self.AA, srate, 1, block_start, block_size, self.buffer)
-              -----------------------------------------------------------
-              -- Filter_FFT ----(note: don't use out of range freq!)
-              -----------------------------------------------------------           
-              local buf = self.buffer
-                ----------------------------------------
-                -- Filter(use fft_real) ----------------
-                ----------------------------------------
-                buf.fft_real(block_size,true)       -- FFT
-                  -----------------------------
-                  -- Clear lowband bins --
-                  buf.clear(0, 1, lowband)                  -- clear low bins
-                  -- Clear hiband bins  --
-                  buf.clear(0, hiband+1, block_size-hiband) -- clear hi bins
-                  -----------------------------  
-                buf.ifft_real(block_size,true)      -- iFFT
-              ----------------------------------------
-              -----------------------------------------------------------   
+       for block=1, n_XBlocks do r.GetAudioAccessorSamples(self.AA, srate, 1, block_start, block_size, self.buffer)
+               -----------------------------------------------------------
+               -- Filter_FFT ----(note: don't use out of range freq!)
+               -----------------------------------------------------------           
+                      local buf = self.buffer
+                        ----------------------------------------
+                        -- Filter(use fft_real) --------------
+                        ----------------------------------------
+                        buf.fft_real(block_size,true)       -- FFT
+                          -----------------------------
+                          -- Clear lowband bins --
+                          buf.clear(0, 1, lowband)                  -- clear low bins
+                          -- Clear hiband bins  --
+                          buf.clear(0, hiband+1, block_size-hiband) -- clear hi bins
+                          -----------------------------  
+                        buf.ifft_real(block_size,true)      -- iFFT
+               -----------------------------------------------------------
+               -----------------------------------------------------------   
            tmp_buf.copy(self.buffer, self.crsx+1, self.Xblock, (block-1)* self.Xblock + 1 ) -- copy block to out_buf with offset
            --------------------
            block_start = block_start + self.Xblock/srate   -- next block start_time
        end
        ---------------------------------------------------------
-       if i==1 then self.out_buf = tmp_buf.table() else self:table_plus(2, (i-1)*self.full_buf_sz, tmp_buf.table() ) end
+       if i==1 then self.out_buf = tmp_buf.table(1,size) else self:table_plus(2, (i-1)*self.full_buf_sz, tmp_buf.table(1,size) ) end
+       --------
+       buf_start = buf_start + len -- to next
        ------------------------
     end
     -------------------------------------------------------------------------
@@ -7263,8 +7270,11 @@ function Wave:Get_Cursor()
   --- edit cursor ---
   local insrc_Ecx = (E_Curs - self.sel_start) * srate * self.X_scale    -- cursor in source!
      self.Ecx = (insrc_Ecx - self.Pos) * self.Zoom*Z_w                  -- Edit cursor
-     if self.Ecx >= 0 and self.Ecx <= self.w then gfx.set(0.7,0.8,0.9,1) -- edit cursor color -- цвет едит курсора
+     if self.Ecx >= 0 and self.Ecx <= self.w then gfx.set(0.7,0.8,0.9,1) -- main edit cursor color
         gfx.line(self.x + self.Ecx, self.y, self.x + self.Ecx, self.y+self.h -1 )
+     end
+     if self.Ecx >= 0 and self.Ecx <= self.w then gfx.set(0.9,0.9,0.9,1) -- loop edit cursor color 
+        gfx.line(self.x + self.Ecx, self.y/1.5, self.x + self.Ecx, (self.y+self.h)/9.3 )
      end
   --- play cursor ---
   if r.GetPlayState()&1 == 1 then local P_Curs = r.GetPlayPosition()
@@ -7317,14 +7327,14 @@ end
 ----------------------------------------------------------------------------------------------------
 function Wave:Get_Mouse()
     -----------------------------
-local true_position = (gfx.mouse_x-self.x)/Z_w  -- корректировка для захвата краёв waveform
+local true_position = (gfx.mouse_x-self.x)/Z_w  --  waveform borders correction
 local pos_margin = gfx.mouse_x-self.x
 if true_position < 24 then pos_margin = 0 end
 if true_position > 1000 then pos_margin = gfx.mouse_x end
 self.insrc_mx_zoom = self.Pos + (pos_margin)/(self.Zoom*Z_w) -- its current mouse position in source!
 
 if SnapToStart == 1 then
-local true_position = (gfx.mouse_x-self.x)/Z_w  -- корректировка для cursor snap
+local true_position = (gfx.mouse_x-self.x)/Z_w  --  cursor snap correction
 local pos_margin = gfx.mouse_x-self.x
    if true_position < 12 then pos_margin = 0 end
     self.insrc_mx = self.Pos + (pos_margin)/(self.Zoom*Z_w) 
@@ -7890,7 +7900,7 @@ function Init()
     -- Some gfx Wnd Default Values ---------------
     local R,G,B = 45,45,45              -- 0...255 format -- цвет основного окна
     local Wnd_bgd = R + G*256 + B*65536 -- red+green*256+blue*65536  
-    local Wnd_Title = "MK Slicer v2.13"
+    local Wnd_Title = "MK Slicer v2.14"
     local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
  --   Wnd_W,Wnd_H = 1044,490 -- global values(used for define zoom level)
 
@@ -8198,7 +8208,7 @@ gfx.quit()
      dock_pos = dock_pos or 1025
      xpos = 400
      ypos = 320
-     local Wnd_Title = "MK Slicer v2.13"
+     local Wnd_Title = "MK Slicer v2.14"
      local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
      gfx.init( Wnd_Title, Wnd_W,Wnd_H, Wnd_Dock, Wnd_X,Wnd_Y )
 
@@ -8210,7 +8220,7 @@ gfx.quit()
     dock_pos = 0
     xpos = r.GetExtState("cool_MK Slicer.lua", "window_x") or 400
     ypos = r.GetExtState("cool_MK Slicer.lua", "window_y") or 320
-    local Wnd_Title = "MK Slicer v2.13"
+    local Wnd_Title = "MK Slicer v2.14"
     local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
     gfx.init( Wnd_Title, Wnd_W,Wnd_H, Wnd_Dock, Wnd_X,Wnd_Y )
  
