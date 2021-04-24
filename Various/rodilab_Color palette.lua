@@ -1,6 +1,6 @@
 -- @description Color palette
 -- @author Rodilab
--- @version 1.51
+-- @version 1.5.1
 -- @changelog
 --   - Track Manager and Region/Marker Manager work on all OS
 --   - Ctrl+Alt-click (Ctrl-click on Mac) with 'Takes' target set color to all takes (active, and non actives)
