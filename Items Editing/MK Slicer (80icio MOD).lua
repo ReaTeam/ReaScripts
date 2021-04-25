@@ -1,9 +1,11 @@
 -- @description MK Slicer (80icio MOD)
 -- @author 80icio
--- @version 1
+-- @version 1.01
+-- @changelog - Minimum distance from grid disabled
+-- @link Forum Thread https://forum.cockos.com/showthread.php?p=2436358#post2436358
 -- @about
---   --   This is a lua script based on MK SLICER 2 by @Cool for quick slicing, quantizing by grid, re-quantizing, triggering or sampling audio.
---   -- This is an editing monster machine.
+--   This is a lua script based on MK SLICER 2 by @Cool for quick slicing, quantizing by grid, re-quantizing, triggering or sampling audio.
+--   This is an editing monster machine.
 --
 --   80icio MODS
 --
@@ -184,7 +186,7 @@ while(true) do;
   local track = r.GetSelectedTrack(0,j-1);
   if track then;
   local start, ending = r.GetSet_LoopTimeRange( 0, 0, 0, 0, 0 )
-      local i=0;
+      local i=0; 
       while(true) do;
         i=i+1;
         local item = r.GetSelectedMediaItem(0,i-1);
@@ -4885,7 +4887,7 @@ Grid_blocks_Ruler[0] = 0
 self.grid_Points = {} 
 self.grid_Points_temp = {}
 
-local mindist = srate*0.05 -------  minimum distance from grid 50 ms
+--local mindist = srate*0.05 -------  minimum distance from grid 50 ms
 
 
  function getLowest(tbl)
@@ -4909,10 +4911,10 @@ local mindist = srate*0.05 -------  minimum distance from grid 50 ms
             if self.State_Points[c] < Grid_blocks_Ruler[i] and self.State_Points[c] > (Grid_blocks_Ruler[i-2] or 0) then
                local diff = abs(self.State_Points[c] - Grid_blocks_Ruler[i-1])
                
-               if diff <= mindist then
+               --if diff <= mindist then
                self.grid_Points_temp[#self.grid_Points_temp+1] = diff
                idtotal[#idtotal+1] = c
-               end
+              -- end
             end
           end
           
