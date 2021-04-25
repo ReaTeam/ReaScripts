@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="897b18b9726747d67d3872e9354b8e99ebccf256" name="ReaTeam Scripts">
+<index version="1" commit="9cdd0a6e77e166da469383e9d22f6598d84dd65e" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -3059,6 +3059,27 @@ Improve "under mouse cursor" variants to work over any envelope]]></changelog>
       </metadata>
       <version name="1.0" author="amagalma" time="2018-10-14T16:16:22Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/1ce6539a2bd15baebc2fed4b1095fbf6f3758afe/FX/amagalma_Toggle%20wet%200-100%25%20(or%20current%20value)%20for%20focused%20FX.lua</source>
+      </version>
+    </reapack>
+    <reapack name="BuyOne_FX presets navigation.lua" type="script" desc="FX presets navigation (7 scripts)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 {\b 6 scripts to navigate FX presets / automate FX presets change + 1 auxiliary script.} {\b All complete with instructions.} BuyOne_Cycle through focused FX presets forward (guide inside).lua BuyOne_Cycle through focused FX presets backwards (guide inside).lua BuyOne_Dedicated FX presets forward switcher (FX ID dependent) (guide inside).lua BuyOne_Dedicated FX presets backwards switcher (FX ID dependent) (guide inside).lua BuyOne_Dedicated FX presets forward switcher (TAG dependent) (guide inside).lua BuyOne_Dedicated FX presets backwards switcher (TAG dependent) (guide inside).lua BuyOne_Extract focused FX preset count, active preset number and name.lua\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/member.php?u=134058</link>
+      </metadata>
+      <version name="1.0" author="BuyOne" time="2021-04-25T00:53:47Z">
+        <source main="main" file="BuyOne_FX presets navigation/BuyOne_Cycle through focused FX presets forward (guide inside).lua">https://github.com/ReaTeam/ReaScripts/raw/9cdd0a6e77e166da469383e9d22f6598d84dd65e/FX/BuyOne_FX%20presets%20navigation/BuyOne_Cycle%20through%20focused%20FX%20presets%20forward%20(guide%20inside).lua</source>
+        <source main="main" file="BuyOne_FX presets navigation/BuyOne_Cycle through focused FX presets backwards (guide inside).lua">https://github.com/ReaTeam/ReaScripts/raw/9cdd0a6e77e166da469383e9d22f6598d84dd65e/FX/BuyOne_FX%20presets%20navigation/BuyOne_Cycle%20through%20focused%20FX%20presets%20backwards%20(guide%20inside).lua</source>
+        <source main="main" file="BuyOne_FX presets navigation/BuyOne_Dedicated FX presets forward switcher (FX ID dependent) (guide inside).lua">https://github.com/ReaTeam/ReaScripts/raw/9cdd0a6e77e166da469383e9d22f6598d84dd65e/FX/BuyOne_FX%20presets%20navigation/BuyOne_Dedicated%20FX%20presets%20forward%20switcher%20(FX%20ID%20dependent)%20(guide%20inside).lua</source>
+        <source main="main" file="BuyOne_FX presets navigation/BuyOne_Dedicated FX presets backwards switcher (FX ID dependent) (guide inside).lua">https://github.com/ReaTeam/ReaScripts/raw/9cdd0a6e77e166da469383e9d22f6598d84dd65e/FX/BuyOne_FX%20presets%20navigation/BuyOne_Dedicated%20FX%20presets%20backwards%20switcher%20(FX%20ID%20dependent)%20(guide%20inside).lua</source>
+        <source main="main" file="BuyOne_FX presets navigation/BuyOne_Dedicated FX presets forward switcher (TAG dependent) (guide inside).lua">https://github.com/ReaTeam/ReaScripts/raw/9cdd0a6e77e166da469383e9d22f6598d84dd65e/FX/BuyOne_FX%20presets%20navigation/BuyOne_Dedicated%20FX%20presets%20forward%20switcher%20(TAG%20dependent)%20(guide%20inside).lua</source>
+        <source main="main" file="BuyOne_FX presets navigation/BuyOne_Dedicated FX presets backwards switcher (TAG dependent) (guide inside).lua">https://github.com/ReaTeam/ReaScripts/raw/9cdd0a6e77e166da469383e9d22f6598d84dd65e/FX/BuyOne_FX%20presets%20navigation/BuyOne_Dedicated%20FX%20presets%20backwards%20switcher%20(TAG%20dependent)%20(guide%20inside).lua</source>
+        <source main="main" file="BuyOne_FX presets navigation/BuyOne_Extract focused FX preset count, active preset number and name.lua">https://github.com/ReaTeam/ReaScripts/raw/9cdd0a6e77e166da469383e9d22f6598d84dd65e/FX/BuyOne_FX%20presets%20navigation/BuyOne_Extract%20focused%20FX%20preset%20count,%20active%20preset%20number%20and%20name.lua</source>
       </version>
     </reapack>
     <reapack name="BuyOne_Insert selected FX in OR copy focused FX to selected objects.lua" type="script" desc="Insert selected FX in OR copy focused FX to selected objects">
