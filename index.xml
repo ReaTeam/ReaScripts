@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="1d48a5684d2719e4d4348a3aaefa4f8c6c0cd3b7" name="ReaTeam Scripts">
+<index version="1" commit="c5cf820f4126f46ee9cc9debf29b5b5e3729544c" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -14801,6 +14801,25 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6a5a07df4dc42ad3948d0c223cf1329241471911/Various/amagalma_Toggle%20enclose%20focused%20FX%20chain%20with%20AB_LM%20Level%20Matching%20VST%20or%20JSFX.lua</source>
       </version>
     </reapack>
+    <reapack name="amagalma_Toggle enclose focused FX chain with ABLM2 Level Matching VST.lua" type="script" desc="Toggle enclose focused FX chain with ABLM2 Level Matching VST">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Inserts or Removes TBProAudio's ABLM2 Level Matching VST enclosing the focused FX chain\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Ability to rename the send and receive instances with custom names (inside the script)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Smart undo point creation\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Requires JS_ReaScriptAPI\sa180\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=215215</link>
+        <link rel="donation">https://www.paypal.me/amagalma</link>
+      </metadata>
+      <version name="1.00" author="amagalma" time="2021-04-25T10:24:40Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c5cf820f4126f46ee9cc9debf29b5b5e3729544c/Various/amagalma_Toggle%20enclose%20focused%20FX%20chain%20with%20ABLM2%20Level%20Matching%20VST.lua</source>
+      </version>
+    </reapack>
     <reapack name="amagalma_Toggle enclose selected or focused FX in visible chain with AB_LM Level Matching VST or JSFX.lua" type="script" desc="Toggle enclose selected or focused FX in visible chain with AB_LM Level Matching VST/JSFX">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
@@ -14830,6 +14849,25 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
       <version name="1.36" author="amagalma" time="2020-10-31T06:06:50Z">
         <changelog><![CDATA[- small improvement]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/80d8a2f8c1771225a6c3d86839dc2a63405e8ff9/Various/amagalma_Toggle%20enclose%20selected%20or%20focused%20FX%20in%20visible%20chain%20with%20AB_LM%20Level%20Matching%20VST%20or%20JSFX.lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Toggle enclose selected or focused FX in visible chain with ABLM2 Level Matching VST.lua" type="script" desc="Toggle enclose selected or focused FX in visible chain with ABLM2 Level Matching VST">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Inserts or Removes TBProAudio's ABLM2 Level Matching VST enclosing the selected FXs or the focused FX (if not any selected)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Ability to rename the send and receive instances with custom names (inside the script)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Smart undo point creation\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Requires JS_ReaScriptAPI\sa180\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=215215</link>
+        <link rel="donation">https://www.paypal.me/amagalma</link>
+      </metadata>
+      <version name="1.00" author="amagalma" time="2021-04-25T10:24:40Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c5cf820f4126f46ee9cc9debf29b5b5e3729544c/Various/amagalma_Toggle%20enclose%20selected%20or%20focused%20FX%20in%20visible%20chain%20with%20ABLM2%20Level%20Matching%20VST.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Toggle Select all tracks, items or envelope points under mouse (smart select all).eel" type="script" desc="amagalma_Toggle Select all tracks, items or envelope points under mouse (smart select all)">
