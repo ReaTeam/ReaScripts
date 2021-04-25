@@ -1,21 +1,23 @@
 -- @description Insert selected FX in OR copy focused FX to selected objects
 -- @author BuyOne
 -- @website https://forum.cockos.com/member.php?u=134058
--- @version 1.0
--- @changelog Initial release
--- @about Allows inserting miltiple FX from FX browser or copying FX focused in an FX chain or in a floating window to selected objects. Detailed description is available inside the script.
+-- @version 1.1
+-- @changelog
+--    Proper takes support
+--    Slightly updated guide
+-- @about Allows inserting multiple FX from FX browser or copying FX focused in an FX chain or in a floating window to selected objects. Detailed description is available inside the script.
 
 --[[
 * Licence: WTFPL
 * REAPER: at least v5.962
 
-—— To insert FX in multiple objects at once open the FX Browser, select FX, as many as needed,
-select the destination objects and run the script.
+—— To insert FX in multiple objects (tracks and/or items) at once open the FX Browser, select FX,
+as many as needed, select the destination objects and run the script.
 
-—— To copy FX to multiple objects at once select an FX in an open and focused FX chain or focus 
-its floating window, select the destination objects and run the script.
+—— To copy FX to multiple objects at once select an FX in an open and focused FX chain or focus
+its floating window, select the destination objects and run the script
 
-—— Inserting FX in / copying to Monitor FX chain cannot be undone because the data gets written by 
+—— Inserting FX in / copying to Monitor FX chain cannot be undone because the data gets written by
 the program to an external file and stored there.
 
 —— In the USER SETTINGS you can disable objects which you don't want FX to be inserted in or
@@ -23,6 +25,9 @@ copied to.
 This is useful for avoiding accidental adding FX to objects which were unintentionally selected.
 You can create a copy of the script with a slightly different name and dedicate each copy to
 inserting FX in / copying FX to objects of specific kind determined by the USER SETTINGS.
+If default settings are kept it may be useful to run actions 'Item: Unselect all items' or
+'Track: Unselect all tracks' after destination object has been selected, to exclude objects of
+an unwanted type.
 
 —— Track main and input FX chains are treated by the script independently. So each one can be
 disabled without another being affected. It's only when they both are turned off in the USER
@@ -79,7 +84,8 @@ local TAKE_FX = TAKE_FX:gsub('[%s]','') ~= ''
 	local retval, src_trk_num, src_item_num, src_fx_num = r.GetFocusedFX() -- if take fx, item number is index of the item within the track (not within the project) while track number is the track this item belongs to, if not take fx src_item_num is -1, if retval is 0 the rest return values are 0 as well
 	local src_trk = r.GetTrack(0, src_trk_num-1) or r.GetMasterTrack(0)
 	local src_item = src_trk_num ~= 0 and r.GetTrackMediaItem(src_trk, src_item_num)
-	local src_take = retval == 2 and r.GetActiveTake(src_item) -- retval to avoid error when src_item_num = -1 due to track fx chain
+	local src_take = retval == 2 and r.GetMediaItemTake(src_item, src_fx_num>>16) -- retval to avoid error when src_item_num = -1 due to track fx chain
+	local same_take = r.GetMediaItemTakeInfo_Value(src_take, 'IP_TAKENUMBER') == r.GetMediaItemTakeInfo_Value(r.GetActiveTake(src_item), 'IP_TAKENUMBER') -- evaluation if focused fx chain belongs to the active take to avoid copying to the source, but allow copying to other takes, for error message below
 	local src_mon_fx_idx = GetMonFXProps() -- get Monitor FX
 	local sel_trk_cnt = r.CountSelectedTracks2(0,true) -- incl. Master
 	local sel_itms_cnt = r.CountSelectedMediaItems(0)
@@ -124,7 +130,7 @@ local TAKE_FX = TAKE_FX:gsub('[%s]','') ~= ''
 		r.PreventUIRefresh(-1)
 		end
 
-	local src_fx_num = (src_mon_fx_idx >= 0 and src_fx_num == 0) and src_mon_fx_idx+0x1000000 or src_fx_num -- account for Mon fx chain fx
+	local src_fx_num = (src_mon_fx_idx >= 0 and src_fx_num == 0) and src_mon_fx_idx+0x1000000 or ((retval == 2 and src_fx_num >= 65536) and src_fx_num & 0xFFFF or src_fx_num) -- account for Mon fx chain fx and multiple takes
 
 	local fx_name = (retval == 1 or src_mon_fx_idx >= 0) and select(2,r.TrackFX_GetFXName(src_trk, src_fx_num, '')) or (retval == 2 and select(2,r.TakeFX_GetFXName(src_take, src_fx_num, '')) or fx_list)
 	local fx_name = (fx_name and fx_chain) and 'Copying '..fx_name..'\n\n' or (fx_brws == 1 and 'Inserting...\n'..fx_list..'\n\n')
@@ -165,15 +171,13 @@ r.Undo_BeginBlock()
 			if sel_itms_cnt > 0 then
 				for i = 0, sel_itms_cnt-1 do
 				local dest_item = r.GetSelectedMediaItem(0,i)
-					if dest_item ~= src_item then
-					local dest_take = r.GetActiveTake(r.GetSelectedMediaItem(0,i))
-					local pos = pos == -1 and r.TakeFX_GetCount(dest_take) or 0
-					local insert = (retval <= 1 and TAKE_FX) and r.TrackFX_CopyToTake(src_trk, src_fx_num, dest_take, pos, false) or ((retval == 2 and TAKE_FX) and r.TakeFX_CopyToTake(src_take, src_fx_num, dest_take, pos, false))
-					end
+				local dest_take = r.GetActiveTake(r.GetSelectedMediaItem(0,i))
+				local pos = pos == -1 and r.TakeFX_GetCount(dest_take) or 0
+				local insert = (retval <= 1 and TAKE_FX) and r.TrackFX_CopyToTake(src_trk, src_fx_num, dest_take, pos, false) or ((retval == 2 and TAKE_FX) and r.TakeFX_CopyToTake(src_take, src_fx_num, dest_take, pos, false))
 				end
 			end
 		end
-		
+
 
 -- Concatenate undo point caption
 	local insert = 'Insert selected FX '
@@ -182,4 +186,5 @@ r.Undo_BeginBlock()
 	local copy = (fx_chain and sel_trk_cnt > 0 and sel_itms_cnt > 0) and copy..'to selected objects' or ((fx_chain and sel_trk_cnt > 0) and copy..'to selected tracks' or ((fx_chain and sel_itms_cnt > 0) and copy..'to selected items'))
 
 r.Undo_EndBlock(insert or copy,-1)
+
 
