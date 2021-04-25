@@ -4,13 +4,7 @@
  * Licence: GPL v3
  * REAPER: 5.0
  * Extensions: None
- * Version: 1.0
---]]
- 
---[[
- * Changelog:
- * v1.0 (2016-04-27)
-	+ Initial Release
+ * Version: 1.0.1
 --]]
 
 
