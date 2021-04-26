@@ -1,5 +1,4 @@
 --[[
-
 ReaScript name: Set sends;receives in selected tracks to the same mode and cycle through the modes
 Author: BuyOne
 Website: https://forum.cockos.com/member.php?u=134058
@@ -16,7 +15,6 @@ About:
 	
 Licence: WTFPL
 REAPER: at least v5.962
-
 ]]
 
 -----------------------------------------------------------------------------
