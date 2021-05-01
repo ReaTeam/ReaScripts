@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="dbd2288d4415986bb3673f2571e88d67ebd70703" name="ReaTeam Scripts">
+<index version="1" commit="2bb4ea12fdccf77f7a8e8698018103eac39aa1a6" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -6601,6 +6601,29 @@ Renumber markers and regions when pasting]]></changelog>
       <version name="1.0" author="Daxliniere, Heda, Eugen2777, spk77" time="2016-05-24T09:23:18Z">
         <changelog><![CDATA[+ Initial Release]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b0b2b0387ec43b2ca14220347678c695ffc85b41/Markers/daxliniere_Live%20recording%20take%20commenter.lua</source>
+      </version>
+    </reapack>
+    <reapack name="js_Stretch tempo markers to edit cursor.lua" type="script" desc="js_Stretch tempo markers to edit cursor.lua">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 DESCRIPTION\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This script helps with aligning tempo markers to hitpoints in media.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 If the tempo is constant, REAPER's native action "Create measure from time selection (new time signature)" works fine to align measures with hitpoints.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 However, if the tempo is variable -- for example if the tempo curve was drawn freehand -- REAPER does not have a suitable native action for preserving the tempo curves while aligning with hitpoints.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This script modifies the bpm of selected markers so that the rightmost selected marker falls exactly on the edit cursor position. (The leftmost selected marker stays in position.)\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Gradual tempo changes can be stretched, with one limitation: the marker immediately preceding the selected ones as well as the second-to-last selected marker must be square.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 NB: Before running the script, the use must set the timebases for items and markers as required.\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=193258</link>
+        <link rel="donation">https://www.paypal.me/juliansader</link>
+      </metadata>
+      <version name="0.90" author="juliansader" time="2021-05-01T02:43:30Z">
+        <changelog><![CDATA[+ BETA release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/2bb4ea12fdccf77f7a8e8698018103eac39aa1a6/Markers/js_Stretch%20tempo%20markers%20to%20edit%20cursor.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Fill time selection with markers.lua" type="script" desc="Fill time selection with markers">
