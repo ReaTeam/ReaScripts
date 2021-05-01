@@ -6,17 +6,17 @@
 --   **6 scripts to navigate FX presets / automate FX presets change + 1 auxiliary script.**
 --   **All complete with instructions.**
 --   BuyOne_Cycle through focused FX presets forward (guide inside).lua
-
+--
 --   BuyOne_Cycle through focused FX presets backwards (guide inside).lua
-
+--
 --   BuyOne_Dedicated FX presets forward switcher (FX ID dependent) (guide inside).lua
-
+--
 --   BuyOne_Dedicated FX presets backwards switcher (FX ID dependent) (guide inside).lua
-
+--
 --   BuyOne_Dedicated FX presets forward switcher (TAG dependent) (guide inside).lua
-
+--
 --   BuyOne_Dedicated FX presets backwards switcher (TAG dependent) (guide inside).lua
-
+--
 --   BuyOne_Extract focused FX preset count, active preset number and name.lua
 -- @metapackage
 -- @provides
