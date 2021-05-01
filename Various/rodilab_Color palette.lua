@@ -1,12 +1,16 @@
 -- @description Color palette
 -- @author Rodilab
--- @version 1.5.1
+-- @version 1.6
 -- @changelog
---   - Track Manager and Region/Marker Manager work on all OS
---   - Ctrl+Alt-click (Ctrl-click on Mac) with 'Takes' target set color to all takes (active, and non actives)
---   - Highlight border is black if color is very light
---   - Improved "Set 1st user to default tracks" option
---   - Improved "Track Manager and Region / Marker Manager" detection
+--   - Compatible with ReaImGui v0.3
+--   - New popup menu to the user colors
+--   - New key shortcuts, and customizable modifiers (read Settings/Shortcuts menu)
+--   - New actions: Insert new target and Insert new named target
+--   - New action: Select all targets that have the clicked color
+--   - New action: Copy hex value in clipboard
+--   - "Random and In Order from" in Settings can be set to "Check list"
+--   - Drag and drop system has been modified
+--   - Dock mode improved for Linux
 -- @about
 --   # Color tool with customizable color gradient palette and a user palette.
 --
@@ -56,26 +60,28 @@ r_version = tonumber(r_version:match[[(%d+.%d+)]])
 -- Extensions check
 if r.APIExists('CF_GetClipboard') == true then
   if r.APIExists('ImGui_CreateContext') == true then
-    if r.APIExists('JS_Dialog_BrowseForOpenFiles') == true then
-      if OS_Win or not r_version or r_version >= 6.28 then
-
+    local imgui_version, reaimgui_version = r.ImGui_GetVersion()
+    reaimgui_version = tonumber(reaimgui_version:match[[(%d+.%d+)]])
+    if not reaimgui_version or reaimgui_version >= 0.3 then
+      if r.APIExists('JS_Dialog_BrowseForOpenFiles') == true then
+        if OS_Win or not r_version or r_version >= 6.28 then
+FLT_MIN, FLT_MAX = 1.17549e-38, 3.40282e+38
 -- Colors
 rounding = 4.0
 background_color = r.ImGui_ColorConvertHSVtoRGB(1,0,0.2,1)
 background_popup_color = r.ImGui_ColorConvertHSVtoRGB(1,0,0.15,1)
 framegb_color = r.ImGui_ColorConvertHSVtoRGB(0,0,0.15,1)
 default_usercolor = r.ImGui_ColorConvertHSVtoRGB(0,0,0.27)
-
-col_border_1 = r.ImGui_ColorConvertHSVtoRGB(0,0,1,1)
-col_border_2 = r.ImGui_ColorConvertHSVtoRGB(0,0,0,1)
-
+col_border = r.ImGui_ColorConvertHSVtoRGB(0,0,1,1)
 button_back = r.ImGui_ColorConvertHSVtoRGB(0,0,0.27,1)
 button_hover = r.ImGui_ColorConvertHSVtoRGB(0,0,0.32,1)
 button_active = r.ImGui_ColorConvertHSVtoRGB(0,0,0.4,1)
+circle_col = r.ImGui_ColorConvertHSVtoRGB(0,0,1,1)
+circle_border_col = r.ImGui_ColorConvertHSVtoRGB(0,0,0,0.7)
 
 -- Flags
 windows_flag = r.ImGui_WindowFlags_NoDecoration()
-popup_flags = r.ImGui_WindowFlags_NoMove()
+popup_flags = r.ImGui_WindowFlags_NoMove() | r.ImGui_WindowFlags_NoResize()
 picker_flags = r.ImGui_ColorEditFlags_NoAlpha()
              | r.ImGui_ColorEditFlags_NoSidePreview()
              | r.ImGui_ColorEditFlags_PickerHueWheel()
@@ -102,8 +108,121 @@ last_item_state = 3
 last_marker_state = 8
 seltracks_colors = {}
 manager_focus = 0
-trackmanager_title = reaper.JS_Localize('Track Manager', "common")
-regionmanager_title = reaper.JS_Localize('Region/Marker Manager', "common")
+trackmanager_title = r.JS_Localize('Track Manager',"common")
+regionmanager_title = r.JS_Localize('Region/Marker Manager',"common")
+
+-- Shortcut
+keycode =
+  {esc=27, enter=13, backspace=8, delete=46, space=32,
+  left=37, right=39, down=40, up=38,
+  num0=96, num1=97, num2=98, num3=99, num4=100, num5=101, num6=102, num7=103, num8=104, num9=105,
+  k1=string.byte('1'), k2=string.byte('2'), k3=string.byte('3'), k4=string.byte('4'), k5=string.byte('5'), k6=string.byte('6'), k7=string.byte('7'), k8=string.byte('8'), k9=string.byte('9'), k0=string.byte('0'),
+  z=string.byte('Z'), w=string.byte('W'), c=string.byte('C'), v=string.byte('V'), r=string.byte('R'), e=string.byte('E'), o=string.byte('O'), p=string.byte('P')
+  }
+
+if OS_Mac then
+  mods_names = {'Left-click',--1
+                'Cmd',--2
+                'Shift',--3
+                'Shift+Cmd',--4
+                'Opt',--5
+                'Cmd+Alt',--6
+                'Shift+Opt',--7
+                'Shift+Cmd+Opt',--8
+                'Ctrl',--9
+                'Cmd+Ctrl',--10
+                'Shift+Ctrl',--11
+                'Shift+Cmd+Ctrl',--12
+                'Opt+Ctrl',--13
+                'Cmd+Opt+Ctrl',--14
+                'Shift+Opt+Ctrl',--15
+                'Shift+Cmd+Opt+Ctrl'}--16
+else
+  mods_names = {'Left-click',--1
+                'Ctrl',--2
+                'Shift',--3
+                'Shift+Ctrl',--4
+                'Alt',--5
+                'Ctrl+Alt',--6
+                'Shift+Alt',--7
+                'Shift+Ctrl+Alt',--8
+                'Win',--9
+                'Win+Ctrl',--10
+                'Shift+Win',--11
+                'Shift+Win+Ctrl',--12
+                'Alt+Win',--13
+                'Win+Alt+Ctrl',--14
+                'Shift+Alt+Win',--15
+                'Shift+Win+Alt+Ctrl'}--16
+end
+click_actions = {long={' ',--1
+                       'Set selected targets to color',--2
+                       'Set also children tracks / all takes to color',--3
+                       'Insert new target',--4
+                       'Insert new named target',--5
+                       'Select all targets with this color',--6
+                       'Check/Uncheck color for Random/In Order',--7
+                       'User color: Add/Edit',--7
+                       'User color: Get first selected target color',--8
+                       'User color: Paste the hex color from the clipboard',--9
+                       'User color: Remove',--10
+                       'User color: Clear all'--11
+                       },
+                 short={' ',--1
+                       'Set',--2
+                       'Children / All Takes',--3
+                       'Insert ',--4
+                       'Insert named ',--5
+                       'Select',--6
+                       'Check/Uncheck',--7
+                       'Edit',--7
+                       'Get sel',--8
+                       'Paste',--9
+                       'Remove',--10
+                       'Clear all'--11
+                       }
+                }
+popup_menu_usercolor_list = {8,9,10,11,12}
+popup_menu_empty_list = {8,9,10,12}
+shortcuts_actions = {
+            'Quit Color palette',
+            'Undo (on Reaper)',
+            'Redo (on Reaper)',
+            'Run current button action',
+            'Run user color button by index',
+            'Run default color',
+            'Run Random All',
+            'Run Random Each',
+            'Run In Order',
+            'Navigation: Next/Previous target',
+            'Edit/Add user color with Picker',
+            'Copy hex color under mouse cursor',
+            'Paste hex color under mouse cursor',
+            'Check/Uncheck color under mouse cursor'
+            }
+          shortcuts_keys = {
+            'Esc',
+            mods_names[2]..'+Z',
+            mods_names[4]..'+Z',
+            'Enter',
+            '1-9',
+            '0',
+            'R',
+            'E',
+            'O',
+            'Arrows',
+            'P',
+            mods_names[2]..'+C',
+            mods_names[2]..'+V',
+            'Spacebar'
+            }
+
+
+click_actions_combostring = ''
+for i,action in ipairs(click_actions.long) do
+  click_actions_combostring = click_actions_combostring..action..'\31'
+end
+mods_left = {}
 
 -- User color file
 info = debug.getinfo(1,'S')
@@ -118,6 +237,59 @@ end
 ---------------------------------------------------------------------------------
 --- Ext State -------------------------------------------------------------------
 ---------------------------------------------------------------------------------
+
+function CommastringToList(string)
+  local list = {}
+  local i = 0
+  for value in string.gmatch(string,'[^,]+') do
+    i = i+1
+    value = tonumber(value)
+    if not value or value < 1 or value > #click_actions.long then
+      value = 1
+    end
+    table.insert(list,value)
+  end
+  return list
+end
+
+function BoolListToNumber(list)
+  local string = '1'
+  for i, value in ipairs(list) do
+    if type(value) == 'boolean' and value == true then
+      string = string..1
+    else
+      string = string..0
+    end
+  end
+  local num = tonumber(string,2)
+  return num
+end
+
+function TableResize(list,size,value)
+  if #list > size then
+    for i=1, #list-size do
+      table.remove(list)
+    end
+  elseif #list < size then
+    for i=1, size-#list do
+      table.insert(list,value)
+    end
+  end
+  return list
+end
+
+function NumberToBoolList(num)
+  local list={}
+  while num>0 do
+    local rest=num%2
+    local bool = false
+    if rest == 1 then bool = true end
+    table.insert(list,1,bool)
+    num=(num-rest)/2
+  end
+  table.remove(list,1)
+  return list
+end
 
 conf = {}
 
@@ -146,8 +318,15 @@ function ExtState_Load()
     remplace_default = false,
     highlight = true,
     x = -1,
-    y = -1
+    y = -1,
+    checklist_palette = 7,
+    checklist_usercolors = 7
     }
+  if OS_Mac then
+    def.mods_left = '2,4,6,1,7,5,1,1,3,1,1,1,1,1,1,1'
+  else
+    def.mods_left = '2,4,6,7,3,5,1,1,1,1,1,1,1,1,1,1'
+  end
   for key in pairs(def) do
     if r.HasExtState(extstate_id,key) then
       local state = r.GetExtState(extstate_id,key)
@@ -167,7 +346,9 @@ function ExtState_Load()
                                        or key=='randfrom'
                                        or key=='action_button'
                                        or key=='x'
-                                       or key=='y'))
+                                       or key=='y'
+                                       or key=='checklist_palette'
+                                       or key=='checklist_usercolors'))
       or (type(conf[key]) ~= 'boolean'and (key=='color_grey'
                                        or key=='vertical'
                                        or key=='setcolor_childs'
@@ -175,16 +356,41 @@ function ExtState_Load()
                                        or key=='auto_close'
                                        or key=='dock'
                                        or key=='highlight'
-                                       or key=='remplace_default')) then
+                                       or key=='remplace_default'))
+      or (type(conf[key]) ~= 'string' and (key=='mods_left')) then
         conf[key] = def[key]
       end
     else
       conf[key] = def[key]
     end
   end
+  -- Get Mods actions list
+  mods_left = CommastringToList(conf.mods_left)
+  if #mods_left < #mods_names then
+    local def_list = CommastringToList(def.mods_left)
+    for i=(#mods_left+1), #mods_names do
+      table.insert(mods_left,def_list[i])
+    end
+  end
+  -- Get Check list
+  checklist_palette = NumberToBoolList(conf.checklist_palette)
+  checklist_usercolors = NumberToBoolList(conf.checklist_usercolors)
 end
 
 function ExtState_Save()
+  -- Get Mods actions string list
+  local extstate_mods_left = ''
+  for i,action in ipairs(mods_left) do
+    extstate_mods_left = extstate_mods_left..action
+    if i < #mods_left then
+      extstate_mods_left = extstate_mods_left..','
+    end
+  end
+  -- Get Check list
+  conf.checklist_palette = BoolListToNumber(checklist_palette)
+  conf.checklist_usercolors = BoolListToNumber(checklist_usercolors)
+  -- Save
+  conf.mods_left = extstate_mods_left
   for key in pairs(conf) do
     r.SetExtState(extstate_id, key, tostring(conf[key]), true)
   end
@@ -247,13 +453,6 @@ end
 --- Convert Colors --------------------------------------------------------------
 ---------------------------------------------------------------------------------
 
-function intRGBtoRGB(rgb)
-  local r = rgb >> 16 & 0xFF
-  local g = rgb >>  8 & 0xFF
-  local b = rgb       & 0xFF
-  return r,g,b
-end
-
 function INTtoHEX(int)
   local hex = string.format('%02x',int)
   hex = string.upper(hex)
@@ -274,11 +473,6 @@ function NATIVEtoINT(native)
   return int
 end
 
-function INTtoNATIVE(int)
-  local r, g, b = intRGBtoRGB(int)
-  return reaper.ColorToNative(r,g,b)
-end
-
 ---------------------------------------------------------------------------------
 --- Others ----------------------------------------------------------------------
 ---------------------------------------------------------------------------------
@@ -289,14 +483,11 @@ function set_window()
   else
     separator_spacing = 3
   end
-
   local width = (conf.number_x*conf.size)+((conf.number_x-1)*conf.spacing)
   local heigth = ((conf.palette_y + conf.user_y)*conf.size)+((conf.palette_y+conf.user_y-1)*conf.spacing)
-
   if conf.palette_y > 0 and conf.user_y > 0 then
     heigth = heigth+(separator_spacing+3)
   end
-
   if conf.vertical == true then
     local tmp_width = width
     local tmp_heigth = heigth
@@ -306,7 +497,6 @@ function set_window()
     width = width + 15
     heigth = heigth + 39
   end
-
   local width_min
   if conf.vertical == true then
     width_min = 80
@@ -317,23 +507,17 @@ function set_window()
   if width < width_min then
     width = width_min
   end
-
-  if type(conf.x) ~= 'number' then conf.x = -1 end
-  if type(conf.y) ~= 'number' then conf.x = -1 end
-
   if restart == false and (conf.mouse_pos == true or conf.x < 0 or conf.y < 0) then
-    conf.x, conf.y = r.GetMousePosition()
-    conf.x = math.floor(conf.x - (width/2))
-    conf.y = math.floor(conf.y + (heigth/2))
+    mouse = {r.GetMousePosition()}
+    conf.x = math.floor(mouse[1] - (width/2))
+    conf.y = mouse[2]
   end
-
   button_color = calc_colors()
-  ctx = r.ImGui_CreateContext(script_name,width,heigth,conf.x,conf.y)
+  local dock_mode = conf.dock and 1 or 0
+  ctx = r.ImGui_CreateContext(script_name,width,heigth,conf.x,conf.y,dock_mode)
   hwnd = r.ImGui_GetNativeHwnd(ctx)
-  if conf.dock == true then
-    r.DockWindowAddEx(hwnd,script_name,script_name,true)
-  end
 end
+
 
 function align_groups(i)
   local modulo = (i-1) % conf.number_x
@@ -364,7 +548,7 @@ end
 
 function get_tmp_values()
   for key, value in pairs(conf) do
-    if key == 'number_x' or key == 'palette_y' or key == 'size' or key == 'spacing' or key == 'vertical' then
+    if key == 'number_x' or key == 'palette_y' or key == 'user_y' or key == 'size' or key == 'spacing' or key == 'vertical' then
       tmp[key] = conf[key]
     end
   end
@@ -402,42 +586,16 @@ function calc_colors()
   return color_table
 end
 
-function compare_sel_colors(color_int)
-  for i,sel_colors in ipairs(seltracks_colors) do
-    if sel_colors == color_int then
-      return true
-    end
-  end
-  return false
-end
-
-function insert_new_user(position,new_value)
-  local size = #usercolors
-  if position > size then
-    table.insert(usercolors,new_value)
-  else
-    for i=0, size-1 do
-      j = size-i
-      if j > position then
-        usercolors[j+1] = usercolors[j]
-      elseif j == position then
-        usercolors[j+1] = usercolors[j]
-        usercolors[j] = new_value
-      end
-    end
-  end
-end
-
 function get_clipboard_color()
   local clipboard = r.CF_GetClipboard()
   local color_int = HEXtoINT(clipboard)
   return color_int
 end
 
-function centered_button()
+function centered_button(windth)
   if conf.vertical == true then
     r.ImGui_NewLine(ctx)
-    r.ImGui_SameLine(ctx,(display_w-button_size)/2)
+    r.ImGui_SameLine(ctx,(windth-button_size)/2)
   end
 end
 
@@ -491,7 +649,7 @@ function set_firstuser_defaulttracks()
         local track =  reaper.GetTrack(0,i)
         local trackcolor = reaper.GetTrackColor(track)
         if trackcolor == 0 then
-          local color = INTtoNATIVE(usercolors[1])
+          local color = r.ImGui_ColorConvertNative(usercolors[1])
           reaper.SetTrackColor(track,color|0x1000000)
         end
       end
@@ -499,16 +657,48 @@ function set_firstuser_defaulttracks()
   end
 end
 
-function random_color()
-  local list
-  if #button_color > 0 and (conf.randfrom == 1 or (conf.randfrom == 2 and #usercolors == 0)) then
-    list = button_color
-  elseif #usercolors > 0 and (conf.randfrom == 2 or (conf.randfrom == 1 and #button_color == 0)) then
-    list = usercolors
+function get_random_source_list()
+  local list = {}
+  if conf.randfrom == 1 or (conf.randfrom == 2 and #usercolors == 0) then
+    for i, value in ipairs(button_color) do
+      table.insert(list,value)
+    end
+  elseif conf.randfrom == 2 or (conf.randfrom == 1 and #button_color == 0) then
+    for i, value in ipairs(usercolors) do
+      table.insert(list,value)
+    end
+  elseif conf.randfrom == 3 then
+    for i, bool in ipairs(checklist_palette) do
+      if bool == true then
+        table.insert(list,button_color[i])
+      end
+    end
+    for i, bool in ipairs(checklist_usercolors) do
+      if bool == true then
+        table.insert(list,usercolors[i])
+      end
+    end
+    if #list == 0 then
+      for i, value in ipairs(button_color) do
+        table.insert(list,value)
+      end
+      for i, value in ipairs(usercolors) do
+        table.insert(list,value)
+      end
+    end
   end
   if #list > 0 then
+    return list
+  else
+    return nil
+  end
+end
+
+function random_color()
+  local list = get_random_source_list()
+  if #list > 0 then
     local random = math.random(#list)
-    local color = INTtoNATIVE(list[random])
+    local color = r.ImGui_ColorConvertNative(list[random])
     return color
   else
     return nil
@@ -516,24 +706,15 @@ function random_color()
 end
 
 function random_color_list(number)
-  local source_list = {}
   local random_list = {}
-  if #button_color > 0 and (conf.randfrom == 1 or (conf.randfrom == 2 and #usercolors == 0)) then
-    for i, value in ipairs(button_color) do
-      table.insert(source_list,value)
-    end
-  elseif #usercolors > 0 and (conf.randfrom == 2 or (conf.randfrom == 1 and #button_color == 0)) then
-    for i, value in ipairs(usercolors) do
-      table.insert(source_list,value)
-    end
-  end
+  local source_list = get_random_source_list()
   if #source_list > 0 then
     if not number or number > #source_list then
       number = #source_list
     end
     for i=1, number do
       local random = math.random(#source_list)
-      local color = INTtoNATIVE(source_list[random])
+      local color = r.ImGui_ColorConvertNative(source_list[random])
       table.insert(random_list,color)
       table.remove(source_list,random)
     end
@@ -645,7 +826,8 @@ function get_sel_target_colors_list()
           for j=0, reaper.GetNumTakeMarkers(take)-1 do
             local rv, name, tmark_color = reaper.GetTakeMarker(take,j)
             if tmark_color then
-              table.insert(seltracks_colors,NATIVEtoINT(tmark_color))
+              --table.insert(seltracks_colors,NATIVEtoINT(tmark_color))
+              seltracks_colors[NATIVEtoINT(tmark_color)]=true
             end
           end
         end
@@ -659,7 +841,8 @@ function get_sel_target_colors_list()
       end
     end
     if color then
-      table.insert(seltracks_colors,NATIVEtoINT(color))
+      --table.insert(seltracks_colors,NATIVEtoINT(color))
+      seltracks_colors[NATIVEtoINT(color)]=true
     end
   end
 end
@@ -717,9 +900,8 @@ end
 --- Main ------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 
-function SetColor(color_int)
-  reaper.Undo_BeginBlock()
-  reaper.PreventUIRefresh(1)
+function SetColor(color_int,children)
+  if not color_int then return end
   -- Get Target
   local category, what, count, cursor, time_sel_start, time_sel_end = get_target_infos()
   -- List manager
@@ -731,36 +913,22 @@ function SetColor(color_int)
   local color
   local color_list
   if type(color_int) == 'number' then
-    color = INTtoNATIVE(color_int)|0x1000000
+    color = r.ImGui_ColorConvertNative(color_int)|0x1000000
   elseif color_int == 'Default' then
     color = 0
   elseif color_int == 'Rnd All' then
     color = random_color()|0x1000000
   elseif color_int == 'Rnd Each' then
-    if what == 'Takes' and (mods == 5 or mods == 8) then
+    if (what == 'Takes' and children == true) or what == 'T Marks' then
       color_list = random_color_list(nil)
     else
       color_list = random_color_list(count)
     end
   elseif color_int == 'In order' then
-    if conf.randfrom == 1 then
-      if #button_color > 0 then
-        color_list = button_color
-      elseif #usercolors > 0 then
-        color_list = usercolors
-      else
-        return
-      end
-    else
-      if #usercolors > 0 then
-        color_list = usercolors
-      elseif #button_color > 0 then
-        color_list = button_color
-      else
-        return
-      end
-    end
+    color_list = get_random_source_list()
   end
+  reaper.Undo_BeginBlock()
+  reaper.PreventUIRefresh(1)
   local j = 0
   -- For each target
   for i=0, count-1 do
@@ -771,7 +939,7 @@ function SetColor(color_int)
       if color_int == 'Rnd Each' then
         color = color|0x1000000
       elseif color_int == 'In order' then
-        color = INTtoNATIVE(color)|0x1000000
+        color = r.ImGui_ColorConvertNative(color)|0x1000000
       end
     end
     if not color then
@@ -787,7 +955,7 @@ function SetColor(color_int)
         else
           track = reaper.GetSelectedTrack(0,i)
           local parent = reaper.GetParentTrack(track)
-          if parent and (conf.setcolor_childs == true or mods == 5 or mods == 8) and reaper.IsTrackSelected(parent) == true then
+          if parent and (conf.setcolor_childs == true or children == true) and reaper.IsTrackSelected(parent) == true then
             set = false
           else
             set = true
@@ -817,7 +985,7 @@ function SetColor(color_int)
       else
         local take = reaper.GetActiveTake(item)
         if what == 'Takes' then
-          if mods == 5 or mods == 8 then
+          if children == true then
             for k = 0, reaper.CountTakes(item)-1 do
               if color_int == 'Rnd Each' or color_int == 'In order' then
                 j = (j%(#color_list))
@@ -836,15 +1004,15 @@ function SetColor(color_int)
           local item_pos = reaper.GetMediaItemInfo_Value(item,"D_POSITION")
           local startoffs = reaper.GetMediaItemTakeInfo_Value(take,"D_STARTOFFS")
           local playrate = reaper.GetMediaItemTakeInfo_Value(take,"D_PLAYRATE")
-          for j=0, reaper.GetNumTakeMarkers(take)-1 do
-            local rv, name = reaper.GetTakeMarker(take,j)
+          for k=0, reaper.GetNumTakeMarkers(take)-1 do
+            local rv, name = reaper.GetTakeMarker(take,k)
             local pos = item_pos+(rv-startoffs)*(1/playrate)
             if (pos > cursor-zoom and pos < cursor+zoom) or (pos > time_sel_start and pos < time_sel_end) then
               if color_int == 'Rnd Each' or color_int == 'In order' then
                 j = (j%(#color_list))
                 color = color_list[j+1]|0x1000000
               end
-              reaper.SetTakeMarker(take,j,name,rv,color)
+              reaper.SetTakeMarker(take,k,name,rv,color)
               j = j + 1
             end
           end
@@ -859,15 +1027,337 @@ function SetColor(color_int)
     end
   end
   -- Children tracks color
-  if (category == 1 or what == 'tracks_names') and command_colchildren ~= 0 and (conf.setcolor_childs == true or mods == 5 or mods == 8) then
+  if (category == 1 or what == 'tracks_names') and command_colchildren ~= 0 and (conf.setcolor_childs == true or children == true) then
     reaper.Main_OnCommand(command_colchildren,0)
   end
-  if conf.auto_close == true then
-    close = true
-  end
+  close = conf.auto_close
   reaper.Undo_EndBlock(script_name,-1)
   reaper.PreventUIRefresh(-1)
   reaper.UpdateArrange()
+end
+
+function insert_new_target(color_int,name)
+  if not color_int then return end
+  -- Get Target
+  local category, what, count, cursor, time_sel_start, time_sel_end = get_target_infos()
+  -- Get Name
+  if not name then
+    name = ''
+  end
+  -- Get color
+  local color
+  local color_list
+  if type(color_int) == 'number' then
+    color = r.ImGui_ColorConvertNative(color_int)|0x1000000
+  elseif color_int == 'Default' then
+    color = 0
+  elseif color_int == 'Rnd All' or color_int == 'Rnd Each' then
+    color = random_color()|0x1000000
+  elseif color_int == 'In order' then
+    if conf.randfrom == 1 then
+      if #button_color > 0 then
+        color = button_color[1]|0x1000000
+      elseif #usercolors > 0 then
+        color = usercolors[1]|0x1000000
+      else
+        return
+      end
+    else
+      if #usercolors > 0 then
+        color = usercolors[1]|0x1000000
+      elseif #button_color > 0 then
+        color = button_color[1]|0x1000000
+      else
+        return
+      end
+    end
+  end
+  reaper.Undo_BeginBlock()
+  reaper.PreventUIRefresh(1)
+  local real_target = ''
+  if category == 1 then
+    reaper.Main_OnCommand(40001,0)
+    local track = reaper.GetSelectedTrack(0,0)
+    reaper.SetMediaTrackInfo_Value(track,'I_CUSTOMCOLOR',color)
+    reaper.GetSetMediaTrackInfo_String(track,'P_NAME',name,true)
+    real_target = 'track'
+  elseif what == 'Items' or what == 'Takes' then
+    reaper.Main_OnCommand(40214,0)
+    local item =  reaper.GetSelectedMediaItem(0,0)
+    local take = reaper.GetActiveTake(item)
+    reaper.SetMediaItemInfo_Value(item,'I_CUSTOMCOLOR',color)
+    reaper.GetSetMediaItemTakeInfo_String(take,'P_NAME',name,true)
+    real_target = 'midi item'
+  elseif what == 'T Marks' then
+    if count > 0 then
+      for i=0, count-1 do
+        local item = reaper.GetSelectedMediaItem(0,i)
+        local position = reaper.GetMediaItemInfo_Value(item,'D_POSITION')
+        local length = reaper.GetMediaItemInfo_Value(item,'D_LENGTH')
+        if cursor >= position and cursor <= position+length then
+          local take = reaper.GetActiveTake(item)
+          local startoffs = reaper.GetMediaItemTakeInfo_Value(take,'D_STARTOFFS')
+          local playrate = reaper.GetMediaItemTakeInfo_Value(take,'D_PLAYRATE')
+          local srcposIn = (cursor-position+startoffs)*playrate
+          reaper.SetTakeMarker(take,-1,name,srcposIn,color)
+        end
+      end
+    end
+    real_target = 'take marker'
+  elseif what == 'Markers' or (what == 'Mk & Rg' and time_sel_start == time_sel_end) then
+    reaper.AddProjectMarker2(0,false,cursor,0,name,-1,color)
+    real_target = 'marker'
+  elseif (what == 'Regions' or what == 'Mk & Rg') and time_sel_start ~= time_sel_end then
+    reaper.AddProjectMarker2(0,true,time_sel_start,time_sel_end,name,-1,color)
+    real_target = 'region'
+  end
+  close = conf.auto_close
+  reaper.Undo_EndBlock(script_name..' - Insert new '..real_target,-1)
+  reaper.PreventUIRefresh(-1)
+  reaper.UpdateArrange()
+end
+
+function navigation(direction)
+  reaper.Undo_BeginBlock()
+  reaper.PreventUIRefresh(1)
+  -- Get Target
+  local what = target_button_list[target_button]
+  if what == 'Tracks' then
+    if direction == 'down' or direction == 'right' then
+      -- Go to next track
+      reaper.Main_OnCommand(40285,0)
+    else
+      -- Go to previous track
+      reaper.Main_OnCommand(40286,0)
+    end
+  elseif what == 'Items' or what == 'Takes' then
+    if direction == 'left' then
+      -- Item navigation: Select and move to previous item
+      reaper.Main_OnCommand(40416,0)
+    elseif direction == 'right' then
+      -- Item navigation: Select and move to next item
+      reaper.Main_OnCommand(40417,0)
+    elseif direction == 'up' then
+      -- Item navigation: Select and move to item in previous track
+      reaper.Main_OnCommand(40418,0)
+    elseif direction == 'down' then
+      -- Item navigation: Select and move to item in next track
+      reaper.Main_OnCommand(40419,0)
+    end
+  elseif what == 'T Marks' then
+    reaper.Main_OnCommand(40020,0)
+    if direction == 'left' then
+      -- 42393
+      reaper.Main_OnCommand(42393,0)
+    elseif direction == 'right' then
+      -- Item: Set cursor to next take marker in selected items
+      reaper.Main_OnCommand(42394,0)
+    elseif direction == 'up' then
+      -- Item navigation: Select and move to item in previous track
+      reaper.Main_OnCommand(40418,0)
+    elseif direction == 'down' then
+      -- Item navigation: Select and move to item in next track
+      reaper.Main_OnCommand(40419,0)
+    end
+  elseif what == 'Markers' then
+    reaper.Main_OnCommand(40020,0)
+    local cursor = reaper.GetCursorPosition()
+    local rv, num_markers, num_regions = reaper.CountProjectMarkers(0)
+    local count = num_markers + num_regions
+    if count > 0 then
+      if direction == 'left' then
+        for i=0, count-1 do
+          local rv, isrgn, pos, rgnend, name, markrgnindexnumber = reaper.EnumProjectMarkers(count-1-i)
+          if isrgn == false and pos < cursor then
+            reaper.SetEditCurPos(pos,false,false)
+            break
+          end
+        end
+      elseif direction == 'right' then
+        for i=0, count-1 do
+          local rv, isrgn, pos, rgnend, name, markrgnindexnumber = reaper.EnumProjectMarkers(i)
+          if isrgn == false and pos > cursor then
+            reaper.SetEditCurPos(pos,false,false)
+            break
+          end
+        end
+      end
+    end
+  elseif what == 'Regions' then
+    if direction == 'left' then
+      -- SWS: Select previous region
+      reaper.Main_OnCommand(reaper.NamedCommandLookup('_SWS_SELPREVREG'),0)
+    elseif direction == 'right' then
+      -- SWS: Select next region
+      reaper.Main_OnCommand(reaper.NamedCommandLookup('_SWS_SELNEXTREG'),0)
+    end
+  elseif what == 'Mk & Rg' then
+    if direction == 'left' then
+      -- SWS: Goto/select previous marker/region
+      reaper.Main_OnCommand(reaper.NamedCommandLookup('_SWS_SELPREVMORR'),0)
+    elseif direction == 'right' then
+      -- SWS: Goto/select next marker/region
+      reaper.Main_OnCommand(reaper.NamedCommandLookup('_SWS_SELNEXTMORR'),0)
+    end
+  end
+  reaper.Undo_EndBlock(script_name..' - Navigation '..direction,-1)
+  reaper.PreventUIRefresh(-1)
+  reaper.UpdateArrange()
+end
+
+function select_target(color_int)
+  if not color_int then return end
+  -- Get Target
+  local what = target_button_list[target_button]
+  local category = target_category_list[target_button]
+  local cursor = reaper.GetCursorPosition(0)
+  -- Get color
+  local color
+  local color_list
+  if type(color_int) == 'number' then
+    color = color_int
+  elseif color_int == 'Default' then
+    color = 0
+  else
+    return
+  end
+  reaper.Undo_BeginBlock()
+  reaper.PreventUIRefresh(1)
+  if category == 1 then
+    local count = reaper.CountTracks(0)
+    if count > 0 then
+      reaper.Main_OnCommand(40297,0) -- Unselect all tracks
+      for i=0, count-1 do
+        local track = reaper.GetTrack(0,i)
+        local track_color = reaper.GetTrackColor(track)
+        if track_color > 0 then track_color = NATIVEtoINT(track_color) end
+        if track_color == color then
+          reaper.SetTrackSelected(track,true)
+        end
+      end
+    end
+  elseif what == 'Items' or what == 'Takes' then
+    local count = reaper.CountMediaItems(0)
+    if count > 0 then
+      reaper.Main_OnCommand(40289,0) -- Unselect all items
+      for i=0, count-1 do
+        local item = reaper.GetMediaItem(0,i)
+        local take = reaper.GetActiveTake(item)
+        local item_color = reaper.GetDisplayedMediaItemColor2(item,take)
+        if item_color > 0 then item_color = NATIVEtoINT(item_color) end
+        if item_color == color then
+          reaper.SetMediaItemSelected(item,true)
+        end
+      end
+    end
+  elseif what == 'T Marks' then
+    local count = reaper.CountMediaItems(0)
+    if count > 0 then
+      local pos_list = {}
+      for i=0, count-1 do
+        local item = reaper.GetMediaItem(0,i)
+        local take = reaper.GetActiveTake(item)
+        local num = reaper.GetNumTakeMarkers(take)
+        if num > 0 then
+          local position = reaper.GetMediaItemInfo_Value(item,'D_POSITION')
+          local length = reaper.GetMediaItemInfo_Value(item,'D_LENGTH')
+          local startoffs = reaper.GetMediaItemTakeInfo_Value(take,'D_STARTOFFS')
+          local playrate = reaper.GetMediaItemTakeInfo_Value(take,'D_PLAYRATE')
+          for j=0, num-1 do
+            local source_pos, name, mark_color = reaper.GetTakeMarker(take,j)
+            if mark_color > 0 then mark_color = NATIVEtoINT(mark_color) end
+            if mark_color == color then
+              local pos = (position+(startoffs+source_pos)/playrate)
+              table.insert(pos_list,pos)
+            end
+          end
+        end
+      end
+      if #pos_list > 0 then
+        reaper.Main_OnCommand(40635,0) -- Time selection: Remove time selection
+        table.sort(pos_list)
+        for i,pos in ipairs(pos_list) do
+          if pos > cursor then
+            reaper.SetEditCurPos(pos,false,false)
+            break
+          elseif i == #pos_list then
+            reaper.SetEditCurPos(pos_list[1],false,false)
+          end
+        end
+      end
+    end
+  elseif category == 3 then
+    local rv, num_markers, num_regions = reaper.CountProjectMarkers(0)
+    local count = num_markers + num_regions
+    if count > 0 then
+      local find, first_pos, first_rgnend, first_isrgn
+      for i=0, count-1 do
+        local rv, isrgn, pos, rgnend, name, markrgnindexnumber, mark_color = reaper.EnumProjectMarkers3(0,i)
+        if what == 'Mk & Rg' or (what == 'Markers' and isrgn == false) or (what == 'Regions' and isrgn == true) then
+          if mark_color > 0 then mark_color = NATIVEtoINT(mark_color) end
+          if mark_color == color then
+            if not first_pos and pos < cursor then
+              first_pos = pos
+              first_rgnend = rgnend
+              first_isrgn = isrgn
+            end
+            if pos > cursor then
+              find = true
+              reaper.SetEditCurPos(pos,false,false)
+              if isrgn == true then
+                reaper.GetSet_LoopTimeRange(true,false,pos,rgnend,false)
+              else
+                reaper.Main_OnCommand(40635,0) -- Time selection: Remove time selection
+              end
+              break
+            end
+          end
+        end
+      end
+      if not find and first_pos then
+        reaper.SetEditCurPos(first_pos,false,false)
+        if first_isrgn == true then
+          reaper.GetSet_LoopTimeRange(true,false,first_pos,first_rgnend,false)
+        else
+          reaper.Main_OnCommand(40635,0) -- Time selection: Remove time selection
+        end
+      end
+    end
+  end
+  reaper.Undo_EndBlock(script_name..' - Select '..what,-1)
+  reaper.PreventUIRefresh(-1)
+  reaper.UpdateArrange()
+end
+
+---------------------------------------------------------------------------------
+--- User colors actions ---------------------------------------------------------
+---------------------------------------------------------------------------------
+
+function usercolor_get(i)
+  local first_sel_target_color = get_first_sel_target_color()
+  if first_sel_target_color and first_sel_target_color ~= 0 then
+    first_sel_target_color = NATIVEtoINT(first_sel_target_color)
+    if i > #usercolors then
+      i = #usercolors+1
+    end
+    usercolors[i] = first_sel_target_color
+  end
+end
+
+function usercolor_paste(i)
+  local paste_color = get_clipboard_color()
+  if paste_color then
+    if i > #usercolors then
+      i = #usercolors+1
+    end
+    usercolors[i] = paste_color
+  end
+end
+
+function usercolor_remove(i)
+  if i <= #usercolors then
+    table.remove(usercolors,i)
+  end
 end
 
 ---------------------------------------------------------------------------------
@@ -930,25 +1420,32 @@ function get_last_context()
   last_right_click = right_click
 end
 
-function highlight_sel(color)
-  col_border = nil
-  if compare_sel_colors(color) == true then
-    local border_size
-    local Br,Bg,Bb = intRGBtoRGB(color)
-    if math.max(Br,Bg,Bb) > 220 then
-      col_border = col_border_2
-      border_size = 1
-    else
-      col_border = col_border_1
-      border_size = 1
+function main_action(color,palette,id)
+  if not color then return end
+  if mods_left[mods] == 2 then
+    SetColor(color,false)
+  elseif mods_left[mods] == 3 then
+    SetColor(color,true)
+  elseif mods_left[mods] == 4 then
+    insert_new_target(color)
+  elseif mods_left[mods] == 5 then
+    last_color = color
+    r.ImGui_OpenPopup(ctx,'Name Input')
+  elseif mods_left[mods] == 6 then
+    select_target(color)
+  elseif mods_left[mods] == 7 then
+    if palette and id then
+      if palette == 'palette' then
+        checklist_palette[id] = not checklist_palette[id]
+      elseif palette == 'usercolors' then
+        checklist_usercolors[id] = not checklist_usercolors[id]
+      end
     end
-    r.ImGui_PushStyleColor(ctx,r.ImGui_Col_Border(),col_border)
-    r.ImGui_PushStyleVar(ctx,r.ImGui_StyleVar_FrameBorderSize(),border_size)
   end
 end
 
 function loop()
-  get_last_context()
+ get_last_context()
 
   -- Set 1st user color to default tracks option
   if conf.remplace_default == true then
@@ -1006,7 +1503,7 @@ function loop()
   end
 
   -- Close Window ?
-  if r.ImGui_IsCloseRequested(ctx) or r.ImGui_IsKeyDown(ctx,53) or close == true then
+  if r.ImGui_IsCloseRequested(ctx) or (not modal_focus and r.ImGui_IsKeyDown(ctx,keycode.esc) and r.ImGui_GetKeyDownDuration(ctx,keycode.esc) == 0) or close == true then
     if settings == 2 then
       r.ImGui_DestroyContext(ctx2)
     end
@@ -1034,6 +1531,14 @@ function loop()
     restart = false
   end
 
+  -- Dock
+  if change_dock then
+    local dock_mode = conf.dock and 1 or 0
+    local dock = r.ImGui_GetDock(ctx)
+    r.ImGui_SetDock(ctx,dock_mode)
+    change_dock = false
+  end
+
   local rv
   display_w, display_h = r.ImGui_GetDisplaySize(ctx)
 
@@ -1043,8 +1548,8 @@ function loop()
 
   if settings > 0 then
     if settings == 1 then
-      local settings_width = 270
-      local settings_heigth = 250
+      local settings_width = 320
+      local settings_heigth = 270
       local x,y
       if conf.dock == true then
         x = nil
@@ -1096,28 +1601,30 @@ function loop()
         rv,conf.highlight = r.ImGui_Checkbox(ctx2,'Highlight matching colors',conf.highlight)
         r.ImGui_Spacing(ctx2)r.ImGui_Separator(ctx2)r.ImGui_Spacing(ctx2)
         r.ImGui_Text(ctx2,'Random and In Order from :')
-        rv,conf.randfrom = r.ImGui_RadioButtonEx(ctx2,'Palette colors',conf.randfrom,1)
-        rv,conf.randfrom = r.ImGui_RadioButtonEx(ctx2,'User colors',conf.randfrom,2)
+        rv,conf.randfrom = r.ImGui_Combo(ctx2,'##randfrom',conf.randfrom-1,'Palette colors\31User colors\31Check List\31')
+        conf.randfrom = conf.randfrom+1
         r.ImGui_Spacing(ctx2)r.ImGui_Separator(ctx2)r.ImGui_Spacing(ctx2)
         rv,conf.mouse_pos = r.ImGui_Checkbox(ctx2,'Open window on mouse position',conf.mouse_pos)
         rv,conf.auto_close = r.ImGui_Checkbox(ctx2,'Quit after apply color',conf.auto_close)
         rv,conf.dock = r.ImGui_Checkbox(ctx2,'Dock window',conf.dock)
         if r.ImGui_IsItemClicked(ctx2,0) then
-          if conf.dock == true then conf.dock = false
-          else conf.dock = true end
-          restart = true
+          conf.dock = not conf.dock
+          change_dock = true
         end
         r.ImGui_EndTabItem(ctx2)
       end
       if r.ImGui_BeginTabItem(ctx2,'Colors') then
         button_color = calc_colors()
-        r.ImGui_PushItemWidth(ctx2,-1)
+        r.ImGui_PushItemWidth(ctx2,-FLT_MIN)
         rv,conf.color_hue = r.ImGui_SliderDouble(ctx2,'##Hue',conf.color_hue,0.0,1.0,'Initial Hue %.2f')
+        r.ImGui_PopItemWidth(ctx2)
         r.ImGui_PushItemWidth(ctx2,150)
         rv,conf.color_saturation_min,conf.color_saturation_max = r.ImGui_DragFloatRange2(ctx2,'Saturation',conf.color_saturation_min,conf.color_saturation_max,0.01,0.0,1.0,'Min %.2f',"Max %.2f",r.ImGui_SliderFlags_AlwaysClamp())
         rv,conf.color_lightness_min,conf.color_lightness_max = r.ImGui_DragFloatRange2(ctx2,'Lightness',conf.color_lightness_min,conf.color_lightness_max,0.01,0.0,1.0,'Min %.2f',"Max %.2f",r.ImGui_SliderFlags_AlwaysClamp())
-        r.ImGui_PushItemWidth(ctx2,-1)
+        r.ImGui_PopItemWidth(ctx2)
+        r.ImGui_PushItemWidth(ctx2,-FLT_MIN)
         rv,conf.color_grey = r.ImGui_Checkbox(ctx2,'First col is grey',conf.color_grey)
+        r.ImGui_PopItemWidth(ctx2)
         if r.ImGui_Button(ctx2,'Restore') then
           restore_default_colors()
           button_color = calc_colors()
@@ -1151,30 +1658,64 @@ function loop()
         end
         r.ImGui_EndTabItem(ctx2)
       end
-      if r.ImGui_BeginTabItem(ctx2,'Help') then
-        local msg_list = {'Drag and drop to insert color in user palette',
-                          'Right-click to edit user color',
-                          'Alt-click to remove user color',
-                          'Cmd-click to past HEX value',
-                          'Ctrl-click set color in children tracks',
-                          'Shift-click to get first selected target color in user',
-                          'Click on Target button to fast switch target in each category (any modifier-click for Tracks by Name text input)',
-                          'Right-click on Target button to manually change the next target',
-                          'Right-click on Action button to set Default/Random All/Random Each/In Order mode',
-                          'Right-click on Settings button to dock/undock window'}
-        if not OS_Mac then
-          msg_list[4] = string.gsub(msg_list[4],'Cmd','Ctrl')
-          msg_list[5] = string.gsub(msg_list[5],'Ctrl','Ctrl+Alt')
+
+      if r.ImGui_BeginTabItem(ctx2,'Shortcuts') then
+        local TEXT_BASE_WIDTH  = r.ImGui_CalcTextSize(ctx2,'A')
+        local combo_width = display_w-r.ImGui_CalcTextSize(ctx2,'Shift+Cmd+Opt+Ctrl')-50
+        if r.ImGui_Button(ctx2,'Restore##modifiers') then
+          mods_left = CommastringToList(def.mods_left)
         end
-        for i,msg in ipairs(msg_list) do
-          r.ImGui_Bullet(ctx2)
-          r.ImGui_TextWrapped(ctx2,msg)
-          r.ImGui_Spacing(ctx2)
+        if r.ImGui_BeginTable(ctx2,'Mouse Modifiers',2,r.ImGui_TableFlags_Borders()) then
+          r.ImGui_TableSetupColumn(ctx2,'Modifier')
+          r.ImGui_TableSetupColumn(ctx2,'Action')
+          r.ImGui_TableHeadersRow(ctx2)
+          for mod, name in ipairs(mods_names) do
+            if not OS_Win or (OS_Win and name ~= 'Win') then
+              r.ImGui_TableNextRow(ctx2)
+              if mod == 1 then
+                r.ImGui_TableSetColumnIndex(ctx2,0)
+                --r.ImGui_PushItemWidth(ctx2,TEXT_BASE_WIDTH*3.0) -- Small
+                r.ImGui_TableSetColumnIndex(ctx2,1)
+                --r.ImGui_PushItemWidth(ctx2,-FLT_MIN) -- Right-aligned
+              end
+              r.ImGui_PushID(ctx2,'Mouse Modifiers'..mod)
+              r.ImGui_TableSetColumnIndex(ctx2,0)
+              r.ImGui_Text(ctx2,name)
+              r.ImGui_TableSetColumnIndex(ctx2,1)
+              r.ImGui_PushItemWidth(ctx2,combo_width)
+              rv,mods_left[mod] = r.ImGui_Combo(ctx2,'##combo'..name,mods_left[mod]-1,click_actions_combostring)
+              r.ImGui_PopItemWidth(ctx2)
+              mods_left[mod] = mods_left[mod]+1
+              r.ImGui_PopID(ctx2)
+            end
+          end
+          r.ImGui_EndTable(ctx2)
+        end
+
+        if r.ImGui_BeginTable(ctx2,'Shortcuts List',2,r.ImGui_TableFlags_Borders()) then
+          r.ImGui_TableSetupColumn(ctx2,'Key')
+          r.ImGui_TableSetupColumn(ctx2,'Action')
+          r.ImGui_TableHeadersRow(ctx2)
+          for row, action in ipairs(shortcuts_actions) do
+            r.ImGui_TableNextRow(ctx2)
+            if row == 1 then
+              r.ImGui_TableSetColumnIndex(ctx2,0)
+              r.ImGui_TableSetColumnIndex(ctx2,1)
+            end
+            r.ImGui_PushID(ctx2,'Shortcuts'..row)
+            r.ImGui_TableSetColumnIndex(ctx2,0)
+            r.ImGui_Text(ctx2,shortcuts_keys[row])
+            r.ImGui_TableSetColumnIndex(ctx2,1)
+            r.ImGui_Text(ctx2,action)
+            r.ImGui_PopID(ctx2)
+          end
+          r.ImGui_EndTable(ctx2)
         end
         r.ImGui_EndTabItem(ctx2)
       end
       r.ImGui_EndTabBar(ctx2)
     end
+
     r.ImGui_PopStyleVar(ctx2)
     r.ImGui_End(ctx2)
     if r.ImGui_IsCloseRequested(ctx2) or restart == true then
@@ -1194,28 +1735,6 @@ function loop()
   r.ImGui_PopStyleColor(ctx)
 
   r.ImGui_PushStyleVar(ctx,r.ImGui_StyleVar_FrameRounding(),rounding)
-  r.ImGui_PushStyleColor(ctx,r.ImGui_Col_PopupBg(),background_popup_color)
-
-  -- Get modifiers key
-  mods = r.ImGui_GetKeyMods(ctx)
-  if mods == 1 then
-    mods_help = 'Past'
-  elseif mods == 2 then
-    mods_help = 'Get color'
-  elseif mods == 4 then
-    mods_help = 'Remove'
-  elseif  mods == 5 or mods == 8 then
-    mods_help = 'Childs'
-  else
-    mods_help = nil
-  end
-
-  --[[
-  -- Undo
-  if mods == 1 and r.ImGui_IsKeyPressed(ctx,13,false) == true then
-    r.Undo_DoUndo2(0)
-  end
-  ]]--
 
   -- Top buttons
   r.ImGui_PushStyleColor(ctx,r.ImGui_Col_Button(),button_back)
@@ -1228,15 +1747,86 @@ function loop()
   r.ImGui_PushStyleColor(ctx,r.ImGui_Col_HeaderHovered(),button_hover)
   r.ImGui_PushStyleColor(ctx,r.ImGui_Col_HeaderHovered(),button_active)
 
+  ----------------------------------------------------------------
+  -- Get shurtcuts and modifiers
+  ----------------------------------------------------------------
+
+  -- Get modifiers
+  mods = r.ImGui_GetKeyMods(ctx)+1
+  if mods > 1 then
+    mods_help = click_actions.short[mods_left[mods]]
+    if mods_left[mods] == 4 or mods_left[mods] == 5 then
+      local category = target_category_list[target_button]
+      if category == 1 then
+        mods_help = mods_help..'track'
+      elseif category == 2 then
+        mods_help = mods_help..'midi item'
+      elseif target_button == 6 then
+        mods_help = mods_help..'marker'
+      elseif target_button == 7 then
+        mods_help = mods_help..'region'
+      elseif target_button == 8 then
+        mods_help = mods_help..'mk/rg'
+      end
+    end
+  else
+    mods_help = nil
+  end
+
+  -- Get shortcuts
+  if not tracksbyname_focus and not modal_focus then
+    if (r.ImGui_IsKeyPressed(ctx,keycode.z,false) or (OS_Mac and r.ImGui_IsKeyPressed(ctx,keycode.w,false))) then
+      if mods == 2 then
+        r.Undo_DoUndo2(0)
+      elseif mods == 4 or mods == 6 then
+        r.Undo_DoRedo2(0)
+      end
+    elseif r.ImGui_IsKeyPressed(ctx,keycode.enter,false) then
+      main_action(action_button_list[conf.action_button])
+    elseif r.ImGui_IsKeyPressed(ctx,keycode.up,false) then
+      navigation('up')
+    elseif r.ImGui_IsKeyPressed(ctx,keycode.down,false) then
+      navigation('down')
+    elseif r.ImGui_IsKeyPressed(ctx,keycode.left,false) then
+      navigation('left')
+    elseif r.ImGui_IsKeyPressed(ctx,keycode.right,false) then
+      navigation('right')
+    elseif r.ImGui_IsKeyPressed(ctx,keycode.r,false) then
+      main_action('Rnd All')
+    elseif r.ImGui_IsKeyPressed(ctx,keycode.e,false) then
+      main_action('Rnd Each')
+    elseif r.ImGui_IsKeyPressed(ctx,keycode.o,false) then
+      main_action('In order')
+    else
+      for i=0, 9 do
+        local numpad = keycode['num'..i]
+        local numbers = keycode['k'..i]
+        if r.ImGui_IsKeyPressed(ctx,numpad,false) or r.ImGui_IsKeyPressed(ctx,numbers,false) then
+          if i > 0 then
+            main_action(usercolors[i])
+          else
+            main_action('Default')
+          end
+          break
+        end
+      end
+    end
+  end
+
+  ----------------------------------------------------------------
+  -- Header buttons
+  ----------------------------------------------------------------
+
   if conf.vertical == true then
     button_size = 65
   else
     button_size = nil
   end
 
-  centered_button()
+  centered_button(display_w)
   -- Target utton
   if target_button > 1 then
+    tracksbyname_focus = nil
     if not button_size then button_size_item = 56 else button_size_item = button_size end
     if r.ImGui_Button(ctx,target_button_list[target_button],button_size_item) then
       if target_button >= 3 and target_button <= 5 then
@@ -1258,50 +1848,52 @@ function loop()
       r.ImGui_PushItemWidth(ctx,56)
     end
     rv,conf.namestart_char = r.ImGui_InputTextWithHint(ctx,'##NameStart Input','name ?',conf.namestart_char)
-    if r.ImGui_IsItemClicked(ctx) and mods > 0 then
+    r.ImGui_PopItemWidth(ctx)
+    if r.ImGui_IsItemClicked(ctx) and mods > 1 then
       target_button = 2
       last_track_state = target_button
     end
+    if r.ImGui_IsItemFocused(ctx) then
+      tracksbyname_focus = true
+    else
+      tracksbyname_focus = nil
+    end
     r.ImGui_PopStyleColor(ctx)
   end
-  r.ImGui_OpenPopupOnItemClick(ctx,'target_combo',1)
+  r.ImGui_OpenPopupOnItemClick(ctx,'Popup Menu Target',1)
 
   if conf.vertical == false then r.ImGui_SameLine(ctx) end
-  centered_button()
+  centered_button(display_w)
 
   -- Action button
   if not button_size then button_size_default = 64 else button_size_default = button_size end
   if r.ImGui_Button(ctx,action_button_list[conf.action_button],button_size_default) then
-    SetColor(action_button_list[conf.action_button])
+    main_action(action_button_list[conf.action_button])
   end
-  r.ImGui_OpenPopupOnItemClick(ctx,'action_combo',1)
+  r.ImGui_OpenPopupOnItemClick(ctx,'Popup Menu Action',1)
 
   if conf.vertical == false then r.ImGui_SameLine(ctx) end
-  centered_button()
+  centered_button(display_w)
 
   -- Settings button
   if r.ImGui_Button(ctx,'Settings',button_size) then
     settings = 1
   end
-  r.ImGui_OpenPopupOnItemClick(ctx,'Dock Popup',1)
-  if mods_help then
-    if conf.vertical == false then r.ImGui_SameLine(ctx) end
-    r.ImGui_TextDisabled(ctx,mods_help)
-  else
-    if conf.vertical == true then
-      r.ImGui_PushStyleVar(ctx,r.ImGui_StyleVar_ItemSpacing(),0,r.ImGui_GetFontSize(ctx)+4)
-      r.ImGui_Spacing(ctx)
-      r.ImGui_PopStyleVar(ctx)
-    end
-  end
-  r.ImGui_PopStyleColor(ctx,9)
+  r.ImGui_OpenPopupOnItemClick(ctx,'Popup Menu Settings',1)
+
+  if conf.vertical == false then r.ImGui_SameLine(ctx) end
+
+  -- Mods help text
+  r.ImGui_TextDisabled(ctx,mods_help)
 
   ----------------------------------------------------------------
   -- Popups
   ----------------------------------------------------------------
 
+  r.ImGui_PushStyleColor(ctx,r.ImGui_Col_PopupBg(),background_color)
   -- Popup Color Picker
   if r.ImGui_BeginPopup(ctx,'Color Editor',popup_flags) then
+    open_edit_popup = nil
     if display_w > display_h then
       picker_width = display_h
     else
@@ -1311,24 +1903,22 @@ function loop()
     if picker_width < 70 then picker_width = 70 end
     r.ImGui_PushItemWidth(ctx,picker_width)
     rv, usercolors[selected_button] = r.ImGui_ColorPicker4(ctx,'##ColorPicker',usercolors[selected_button],picker_flags)
+    r.ImGui_PopItemWidth(ctx)
     r.ImGui_EndPopup(ctx)
   end
   -- Popup Settings Dock/Undock
-  if r.ImGui_BeginPopup(ctx,'Dock Popup',popup_flags) then
+  if r.ImGui_BeginPopup(ctx,'Popup Menu Settings',popup_flags) then
     local text
-    if conf.dock == true then text = 'Undock'
-    else text = 'Dock' end
-    r.ImGui_Text(ctx,text)
-    if r.ImGui_IsItemClicked(ctx) then
-      restart = true
-      if conf.dock == true then conf.dock = false
-      else conf.dock = true end
-      r.ImGui_CloseCurrentPopup(ctx)
+    if not conf.dock then text = 'Dock'
+    else text = 'Undock' end
+    if r.ImGui_Selectable(ctx,text) then
+      conf.dock = not conf.dock
+      change_dock = true
     end
     r.ImGui_EndPopup(ctx)
   end
   -- Popup Target combo lists
-  if r.ImGui_BeginPopup(ctx,'target_combo',popup_flags) then
+  if r.ImGui_BeginPopup(ctx,'Popup Menu Target',popup_flags) then
     for i,key in ipairs(target_button_list) do
       if i ~= target_button then
         if r.ImGui_Selectable(ctx,key) then
@@ -1344,7 +1934,7 @@ function loop()
     r.ImGui_EndPopup(ctx)
   end
   -- Popup Action combo lists
-  if r.ImGui_BeginPopup(ctx,'action_combo',popup_flags) then
+  if r.ImGui_BeginPopup(ctx,'Popup Menu Action',popup_flags) then
     for i,key in ipairs(action_button_list) do
       if i ~= conf.action_button then
         if r.ImGui_Selectable(ctx,key) then
@@ -1364,12 +1954,109 @@ function loop()
     r.ImGui_EndPopup(ctx)
   end
 
+  -- Popup User color combo lists
+  if r.ImGui_BeginPopup(ctx,'Popup Menu User Color',popup_flags) then
+    for i=8, 12 do
+      if selected_button > #usercolors and i == 11 then
+
+      else
+        local name
+        if selected_button > #usercolors and i == 8 then name = 'Add'
+        else name = click_actions.short[i] end
+        if r.ImGui_Selectable(ctx,name) then
+          if i == 8 then
+            open_edit_popup = true
+          elseif i == 9 then
+            usercolor_get(selected_button)
+          elseif i == 10 then
+            usercolor_paste(selected_button)
+          elseif i == 11 then
+            usercolor_remove(selected_button)
+          elseif i == 12 then
+            open_cleanall_popup = true
+          end
+        end
+      end
+    end
+    r.ImGui_EndPopup(ctx)
+  end
+  if open_edit_popup then
+    r.ImGui_OpenPopup(ctx,'Color Editor')
+  elseif open_cleanall_popup then
+    r.ImGui_OpenPopup(ctx,'Clear all')
+  end
+
+  -- Popup Name input
+  local modal_width = display_w*0.9
+  if conf.vertical == true then
+    button_size = 48
+    r.ImGui_SetNextWindowSize(ctx,modal_width,-1,nil)
+  else
+    button_size = nil
+  end
+  r.ImGui_PushStyleColor(ctx,r.ImGui_Col_TitleBgActive(),button_hover)
+  -- Popup are you sure ?
+  if r.ImGui_BeginPopupModal(ctx,'Clear all',nil,popup_flags) then
+    local modal_width = r.ImGui_GetWindowSize(ctx)
+    modal_focus = true
+    open_cleanall_popup = nil
+    centered_button(modal_width)
+    if r.ImGui_Button(ctx,'Cancel##Clear all',button_size) or r.ImGui_IsKeyDown(ctx,keycode.esc) then
+      modal_focus = nil
+      r.ImGui_CloseCurrentPopup(ctx)
+    end
+    if conf.vertical == false then r.ImGui_SameLine(ctx) end
+    centered_button(modal_width)
+    if r.ImGui_Button(ctx,'Ok##Clear all',button_size) or r.ImGui_IsKeyDown(ctx,keycode.enter) then
+      usercolors = {}
+      modal_focus = nil
+      r.ImGui_CloseCurrentPopup(ctx)
+    end
+    r.ImGui_EndPopup(ctx)
+  end
+  if not last_color then modal_bg = 0
+  else modal_bg = (last_color*256)+150
+  end
+  r.ImGui_PushStyleColor(ctx,r.ImGui_Col_ModalWindowDimBg(),modal_bg)
+  r.ImGui_SetNextWindowSize(ctx,modal_width,-1,nil)
+  if r.ImGui_BeginPopupModal(ctx,'Name Input',nil,popup_flags) then
+    r.ImGui_PushItemWidth(ctx,-FLT_MIN)
+    if not modal_focus then r.ImGui_SetKeyboardFocusHere(ctx) end
+    rv, insert_name = r.ImGui_InputText(ctx,'##Name',insert_name,r.ImGui_InputTextFlags_AutoSelectAll())
+    modal_focus = true
+    r.ImGui_PopItemWidth(ctx)
+    centered_button(modal_width)
+    if r.ImGui_Button(ctx,'Cancel##Name Input',button_size) or r.ImGui_IsKeyDown(ctx,keycode.esc) then
+      last_color = nil
+      modal_focus = nil
+      r.ImGui_CloseCurrentPopup(ctx)
+    end
+    if conf.vertical == false then r.ImGui_SameLine(ctx) end
+    centered_button(modal_width)
+    if r.ImGui_Button(ctx,'Ok##Name Input',button_size) or r.ImGui_IsKeyDown(ctx,keycode.enter) then
+      insert_new_target(last_color,insert_name)
+      last_color = nil
+      modal_focus = nil
+      r.ImGui_CloseCurrentPopup(ctx)
+    end
+    if conf.vertical == false then r.ImGui_SameLine(ctx) end
+    centered_button(modal_width)
+    if r.ImGui_Button(ctx,'+##Name Input',button_size) then
+      insert_new_target(last_color,insert_name)
+    end
+    r.ImGui_EndPopup(ctx)
+  end
+  r.ImGui_PopStyleColor(ctx,3) -- Popup modal colors
+  r.ImGui_PopStyleColor(ctx,9) -- Butons colors
+  r.ImGui_PopStyleVar(ctx) -- Rounding
+
   ----------------------------------------------------------------
   -- Bouton Colors
   ----------------------------------------------------------------
+  checklist_palette = TableResize(checklist_palette,conf.number_x*conf.palette_y,false)
+  checklist_usercolors = TableResize(checklist_usercolors,#usercolors,false)
+  local radius = conf.size/6
 
-  r.ImGui_PushStyleVar(ctx,r.ImGui_StyleVar_FrameBorderSize(),1)
-  r.ImGui_PushStyleVar(ctx,r.ImGui_StyleVar_FrameRounding(),0)
   r.ImGui_PushStyleVar(ctx,r.ImGui_StyleVar_ItemSpacing(),conf.spacing,conf.spacing)
   -- Palette Colors
   for i=1, conf.number_x*conf.palette_y do
@@ -1383,16 +2070,40 @@ function loop()
     local button_flags =  r.ImGui_ColorEditFlags_NoAlpha()
                         | r.ImGui_ColorEditFlags_NoTooltip()
                         | r.ImGui_ColorEditFlags_NoDragDrop()
-    highlight_sel(button_color[i])
-    if not col_border then
+    local highlight = false
+    if seltracks_colors[button_color[i]] then
+      r.ImGui_PushStyleColor(ctx,r.ImGui_Col_Border(),col_border)
+      r.ImGui_PushStyleVar(ctx,r.ImGui_StyleVar_FrameBorderSize(),1)
+      highlight = true
+    else
       button_flags = button_flags | r.ImGui_ColorEditFlags_NoBorder()
     end
 
-    if r.ImGui_ColorButton(ctx,'##'..i,button_color[i],button_flags,conf.size,conf.size) then
-      SetColor(button_color[i])
+    local pos,center,draw_list,draw
+    if conf.randfrom == 3 and checklist_palette[i] then
+      pos = {r.ImGui_GetCursorScreenPos(ctx)}
+      center = {pos[1]+(conf.size/2), pos[2]+(conf.size/2)}
+      draw_list = r.ImGui_GetWindowDrawList(ctx)
+      draw = true
     end
 
-    if col_border then
+    if r.ImGui_ColorButton(ctx,'##'..i,button_color[i],button_flags,conf.size,conf.size) then
+      main_action(button_color[i],'palette',i)
+    end
+    if r.ImGui_IsItemHovered(ctx) then
+      if mods == 2 and r.ImGui_IsKeyPressed(ctx,keycode.c,false) then
+        r.CF_SetClipboard(INTtoHEX(button_color[i]))
+      elseif conf.randfrom == 3 and mods == 1 and r.ImGui_IsKeyPressed(ctx,keycode.space,false) then
+        checklist_palette[i] = not checklist_palette[i]
+      end
+    end
+
+    if draw == true then
+      r.ImGui_DrawList_AddCircleFilled(draw_list,center[1],center[2],radius,circle_col)
+            r.ImGui_DrawList_AddCircle(draw_list,center[1],center[2],radius,circle_border_col)
+    end
+
+    if highlight == true then
       r.ImGui_PopStyleColor(ctx)
       r.ImGui_PopStyleVar(ctx)
     end
@@ -1422,6 +2133,9 @@ function loop()
     r.ImGui_SameLine(ctx,nil,separator_spacing*2+1)
   end
 
+  if not r.ImGui_IsAnyItemActive(ctx) then
+    dragdrop_color = nil
+  end
   -- User colors
   for i=1, conf.number_x*conf.user_y do
     align_groups(i)
@@ -1439,89 +2153,122 @@ function loop()
     local button_flags =  r.ImGui_ColorEditFlags_NoAlpha()
                         | r.ImGui_ColorEditFlags_NoTooltip()
                         | r.ImGui_ColorEditFlags_NoDragDrop()
-    highlight_sel(usercolors[i])
-    if not col_border then
+    local highlight = false
+
+    if seltracks_colors[usercolors[i]] then
+      r.ImGui_PushStyleColor(ctx,r.ImGui_Col_Border(),col_border)
+      r.ImGui_PushStyleVar(ctx,r.ImGui_StyleVar_FrameBorderSize(),1)
+      highlight = true
+    else
       button_flags = button_flags | r.ImGui_ColorEditFlags_NoBorder()
+    end
+
+    local pos,center,draw_list,draw
+    if conf.randfrom == 3 and checklist_usercolors[i] then
+      pos = {r.ImGui_GetCursorScreenPos(ctx)}
+      center = {pos[1]+(conf.size/2), pos[2]+(conf.size/2)}
+      draw_list = r.ImGui_GetWindowDrawList(ctx)
+      draw = true
     end
 
     -- Main Button
     if r.ImGui_ColorButton(ctx,'##User'..i,button_user_color,button_flags,conf.size,conf.size) then
-      if mods == 4 then
-        if button_empty == false then
-          table.remove(usercolors,i)
+      if mods_left[mods] == 8 then
+        if not button_empty then
+          selected_button = i
+        else
+          selected_button = #usercolors+1
         end
-      elseif mods == 1 then
-        local past_color = get_clipboard_color()
-        if past_color then
-          if button_empty == false then
-            usercolors[i] = past_color
-          else
-            usercolors[#usercolors+1] = past_color
-          end
-        end
-      elseif mods == 2 then
-        local first_sel_target_color = get_first_sel_target_color()
-        if first_sel_target_color and first_sel_target_color ~= 0 then
-          first_sel_target_color = NATIVEtoINT(first_sel_target_color)
-          if button_empty == false then
-            usercolors[i] = first_sel_target_color
-          else
-            usercolors[#usercolors+1] = first_sel_target_color
-          end
-        end
+        r.ImGui_OpenPopup(ctx,'Color Editor')
+      elseif mods_left[mods] == 9 then
+        usercolor_get(i)
+      elseif mods_left[mods] == 10 then
+        usercolor_paste(i)
+      elseif mods_left[mods] == 11 then
+        usercolor_remove(i)
+      elseif mods_left[mods] == 12 then
+        r.ImGui_OpenPopup(ctx,'Clear all')
       else
-        if button_empty == false then
-          SetColor(button_user_color)
+        if not button_empty then
+          main_action(button_user_color,'usercolors',i)
+        else
+          selected_button = #usercolors+1
+          r.ImGui_OpenPopup(ctx,'Color Editor')
         end
       end
     end
+    if r.ImGui_IsItemHovered(ctx) then
+      if not button_empty and mods == 2 and r.ImGui_IsKeyPressed(ctx,keycode.c,false) then
+        r.CF_SetClipboard(INTtoHEX(button_color[i]))
+      elseif conf.randfrom == 3 and not button_empty and mods == 1 and r.ImGui_IsKeyPressed(ctx,keycode.space,false) then
+        checklist_usercolors[i] = not checklist_usercolors[i]
+      elseif mods == 2 and r.ImGui_IsKeyPressed(ctx,keycode.v,false) then
+        usercolor_paste(i)
+      elseif mods == 1 and r.ImGui_IsKeyPressed(ctx,keycode.p,false) then
+        if not button_empty then
+          selected_button = i
+        else
+          selected_button = #usercolors+1
+        end
+        r.ImGui_OpenPopup(ctx,'Color Editor')
+      elseif not button_empty and (r.ImGui_IsKeyPressed(ctx,keycode.backspace,false) or r.ImGui_IsKeyPressed(ctx,keycode.delete,false)) then
+        usercolor_remove(i)
+      end
+    end
 
-    if col_border then
+    if draw == true then
+      r.ImGui_DrawList_AddCircleFilled(draw_list,center[1],center[2],radius,circle_col)
+      r.ImGui_DrawList_AddCircle(draw_list,center[1],center[2],radius,circle_border_col)
+    end
+
+    if highlight == true then
       r.ImGui_PopStyleColor(ctx)
       r.ImGui_PopStyleVar(ctx)
     end
 
     -- Drag and drop source
-    if button_empty == false then
-      if r.ImGui_BeginDragDropSource(ctx) then
-        r.ImGui_SetDragDropPayload(ctx,'DnD_Color',usercolors[i])
-        if not dragdrop_source_id then
-          dragdrop_source_id = i
-        end
-        r.ImGui_ColorButton(ctx,'DnD_Preview',usercolors[i],r.ImGui_ColorEditFlags_NoAlpha())
-        r.ImGui_EndDragDropSource(ctx)
+    if r.ImGui_IsItemActive(ctx) and
+        r.ImGui_IsMouseDragging(ctx, r.ImGui_MouseButton_Left()) and
+        r.ImGui_BeginDragDropSource(ctx, r.ImGui_DragDropFlags_SourceExtern()) then
+      r.ImGui_SetDragDropPayload(ctx,'DnD_Color','user')
+      if not dragdrop_color then
+        dragdrop_color = usercolors[i]
+        table.remove(usercolors,i)
       end
+      r.ImGui_ColorButton(ctx,'DnD_Preview',dragdrop_color,r.ImGui_ColorEditFlags_NoAlpha())
+      r.ImGui_EndDragDropSource(ctx)
     end
     -- Drag and drop target
     if r.ImGui_BeginDragDropTarget(ctx) then
       local rv,payload = r.ImGui_AcceptDragDropPayload(ctx,'DnD_Color')
       if rv == true then
-        if dragdrop_source_id then
-          table.remove(usercolors,dragdrop_source_id)
-          dragdrop_source_id = nil
+        if payload == 'user' then payload = dragdrop_color end
+        if i > #usercolors then
+          table.insert(usercolors,tonumber(payload))
+        else
+          table.insert(usercolors,i,tonumber(payload))
         end
-        insert_new_user(i,tonumber(payload))
+        dragdrop_color = nil
       end
       r.ImGui_EndDragDropTarget(ctx)
     end
 
     -- Right Click open Color Pick Popup
     if r.ImGui_IsItemClicked(ctx,r.ImGui_MouseButton_Right()) then
-      if button_empty == false then
+      if not button_empty then
         selected_button = i
-      elseif button_empty == true then
+      else
         selected_button = #usercolors+1
       end
-      r.ImGui_OpenPopup(ctx,'Color Editor')
+      r.ImGui_OpenPopup(ctx,'Popup Menu User Color')
     end
   end
   if conf.user_y > 0 then
     r.ImGui_EndGroup(ctx)
   end
 
-  -- Global pop
-  r.ImGui_PopStyleColor(ctx,1)
-  r.ImGui_PopStyleVar(ctx,4)
+  -- Color buttons pop
+  r.ImGui_PopStyleVar(ctx) -- Spacing
 
   -- End loop
   r.ImGui_End(ctx)
@@ -1538,12 +2285,19 @@ get_tmp_values()
 set_window()
 r.defer(loop)
 
--- Extentions check end
+  -- Extentions check end
+        else
+          r.ShowMessageBox('Please install Reaper 6.28 or later',script_name,0)
+        end
       else
-        r.ShowMessageBox('Please install Reaper 6.28 or later',script_name,0)
+        r.ShowMessageBox("Please install \"js_ReaScriptAPI: API functions for ReaScripts\" with ReaPack and restart Reaper",script_name,0)
+        local ReaPack_exist = r.APIExists('ReaPack_BrowsePackages')
+        if ReaPack_exist == true then
+          r.ReaPack_BrowsePackages('js_ReaScriptAPI: API functions for ReaScripts')
+        end
       end
     else
-      r.ShowMessageBox("Please install \"js_ReaScriptAPI: API functions for ReaScripts\" with ReaPack and restart Reaper",script_name,0)
+      r.ShowMessageBox("Please update v0.3 or later of \"js_ReaScriptAPI: API functions for ReaScripts\" with ReaPack and restart Reaper",script_name,0)
       local ReaPack_exist = r.APIExists('ReaPack_BrowsePackages')
       if ReaPack_exist == true then
         r.ReaPack_BrowsePackages('js_ReaScriptAPI: API functions for ReaScripts')
