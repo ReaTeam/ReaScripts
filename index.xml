@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="2bb4ea12fdccf77f7a8e8698018103eac39aa1a6" name="ReaTeam Scripts">
+<index version="1" commit="ba751bf988c0633bd7034119161915c5fdddc40a" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -18112,6 +18112,18 @@ Thread in Cockos forum
 - Improved "Set 1st user to default tracks" option
 - Improved "Track Manager and Region / Marker Manager" detection]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/897b18b9726747d67d3872e9354b8e99ebccf256/Various/rodilab_Color%20palette.lua</source>
+      </version>
+      <version name="1.6" author="Rodilab" time="2021-05-01T08:47:46Z">
+        <changelog><![CDATA[- Compatible with ReaImGui v0.3
+- New popup menu to the user colors
+- New key shortcuts, and customizable modifiers (read Settings/Shortcuts menu)
+- New actions: Insert new target and Insert new named target
+- New action: Select all targets that have the clicked color
+- New action: Copy hex value in clipboard
+- "Random and In Order from" in Settings can be set to "Check list"
+- Drag and drop system has been modified
+- Dock mode improved for Linux]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ba751bf988c0633bd7034119161915c5fdddc40a/Various/rodilab_Color%20palette.lua</source>
       </version>
     </reapack>
     <reapack name="rodilab_Smart remove.lua" type="script" desc="Smart remove">
