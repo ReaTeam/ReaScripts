@@ -1,16 +1,16 @@
 -- @description Color palette
 -- @author Rodilab
--- @version 1.6
+-- @version 1.7
 -- @changelog
---   - Compatible with ReaImGui v0.3
---   - New popup menu to the user colors
---   - New key shortcuts, and customizable modifiers (read Settings/Shortcuts menu)
---   - New actions: Insert new target and Insert new named target
---   - New action: Select all targets that have the clicked color
---   - New action: Copy hex value in clipboard
---   - "Random and In Order from" in Settings can be set to "Check list"
---   - Drag and drop system has been modified
---   - Dock mode improved for Linux
+--   - [Ctrl+S] / [Cmd+S] Save as
+--   - [Ctrl+O] / [Cmd+O] Load
+--   - [I] remplace [O] for "Run In Order action"
+--   - Default color now works with Markers/Regions
+--   - Fix broken dock mode
+--   - Browse dialog dont restart the context anymore on non-Mac OS
+--   - Over screen position fixed on Windows
+--   - Fix Marker/Region name when selecting in Manager
+--   - Some minor code improvements
 -- @about
 --   # Color tool with customizable color gradient palette and a user palette.
 --
@@ -30,21 +30,16 @@
 --   Features :
 --   - Click on any color to set in selected Tracks/Items/Takes/Markers/Take Markers/Regions
 --   - Target button automatically switch according to the last valid context
---   - Click on target button to fast switch inside each category :
---   - Tracks -> Tracks by Name
---         - Items -> Takes -> Take Markers
---         - Markers -> Regions
+--   - Click on target button to fast switch inside each category
 --   - Right-click on Target button manually choose to any target
---   - Click on Action button to start the displayed action
---   - Right-click on Action button to choose another action (last action is stored for next open) : Default / Random All / Random Each / In Order
+--   - Click on Action button to start the displayed action (Default / Random All / Random Each / In Order)
+--   - Right-click on Action button to choose another action (last action is stored for next open) :
 --   - Right-click on "Settings" button to dock/undock (there is also a checkbox in the settings)
 --   - Drag any palette color and drop it in user color
---   - Drag and drop any user color to move it
---   - Right-click to edit/add user color with color picker popup
---   - Alt-click to remove user color
---   - Shit-click to get first selected target color in user color
---   - Cmd-click (Ctrl in Windows) to past clipboard (HEX color value)
---   - Ctrl-click (Ctrl+Alt in Windows) to set color to children tracks
+--   - Drag and drop any user color to move it (or drop away to remove)
+--   - Right-click on user color to open popup menu (Edit / Get first selected target color / Paste hex / Remove / Clear All)
+--   - Customize all mouse modifiers in Settings/Shortcuts menu
+--   - Keyboard shortcuts (see Settings/Shortcuts menu)
 --   - Save as and Load user colors list
 --   - Many settings... read the "Help" tab in Settings window
 --
@@ -54,9 +49,7 @@ r = reaper
 script_name = "Color palette"
 OS_Win = string.match(reaper.GetOS(),"Win")
 OS_Mac = string.match(reaper.GetOS(),"OSX")
-r_version = r.GetAppVersion()
-r_version = tonumber(r_version:match[[(%d+.%d+)]])
-
+r_version = tonumber(r.GetAppVersion():match[[(%d+.%d+)]])
 -- Extensions check
 if r.APIExists('CF_GetClipboard') == true then
   if r.APIExists('ImGui_CreateContext') == true then
@@ -64,8 +57,7 @@ if r.APIExists('CF_GetClipboard') == true then
     reaimgui_version = tonumber(reaimgui_version:match[[(%d+.%d+)]])
     if not reaimgui_version or reaimgui_version >= 0.3 then
       if r.APIExists('JS_Dialog_BrowseForOpenFiles') == true then
-        if OS_Win or not r_version or r_version >= 6.28 then
-FLT_MIN, FLT_MAX = 1.17549e-38, 3.40282e+38
+        if not OS_Mac or not r_version or r_version >= 6.28 then
 -- Colors
 rounding = 4.0
 background_color = r.ImGui_ColorConvertHSVtoRGB(1,0,0.2,1)
@@ -88,15 +80,10 @@ picker_flags = r.ImGui_ColorEditFlags_NoAlpha()
              | r.ImGui_ColorEditFlags_NoInputs()
 settings_window_flag = r.ImGui_WindowFlags_AlwaysAutoResize()
                      | r.ImGui_WindowFlags_NoTitleBar()
-
 -- Don't change
-command_colchildren = r.NamedCommandLookup('_SWS_COLCHILDREN')
+FLT_MIN = 1.17549e-38
 recalc_colors = true
-restart = false
-set_tmp_values = false
-set_default_sizes = false
 settings = 0
-file_dialog = 0
 open_context = r.GetCursorContext2(true)
 extension_list = "Text file (.txt)\0*.txt\0\0"
 target_category_list = {1,1,2,2,2,3,3,3}
@@ -110,16 +97,14 @@ seltracks_colors = {}
 manager_focus = 0
 trackmanager_title = r.JS_Localize('Track Manager',"common")
 regionmanager_title = r.JS_Localize('Region/Marker Manager',"common")
-
 -- Shortcut
 keycode =
   {esc=27, enter=13, backspace=8, delete=46, space=32,
   left=37, right=39, down=40, up=38,
   num0=96, num1=97, num2=98, num3=99, num4=100, num5=101, num6=102, num7=103, num8=104, num9=105,
   k1=string.byte('1'), k2=string.byte('2'), k3=string.byte('3'), k4=string.byte('4'), k5=string.byte('5'), k6=string.byte('6'), k7=string.byte('7'), k8=string.byte('8'), k9=string.byte('9'), k0=string.byte('0'),
-  z=string.byte('Z'), w=string.byte('W'), c=string.byte('C'), v=string.byte('V'), r=string.byte('R'), e=string.byte('E'), o=string.byte('O'), p=string.byte('P')
+  z=string.byte('Z'), w=string.byte('W'), c=string.byte('C'), v=string.byte('V'), r=string.byte('R'), e=string.byte('E'), i=string.byte('I'), o=string.byte('O'), p=string.byte('P'), s=string.byte('S')
   }
-
 if OS_Mac then
   mods_names = {'Left-click',--1
                 'Cmd',--2
@@ -162,11 +147,11 @@ click_actions = {long={' ',--1
                        'Insert new named target',--5
                        'Select all targets with this color',--6
                        'Check/Uncheck color for Random/In Order',--7
-                       'User color: Add/Edit',--7
-                       'User color: Get first selected target color',--8
-                       'User color: Paste the hex color from the clipboard',--9
-                       'User color: Remove',--10
-                       'User color: Clear all'--11
+                       'User color: Add/Edit',--8
+                       'User color: Get first selected target color',--9
+                       'User color: Paste the hex color from the clipboard',--10
+                       'User color: Remove',--11
+                       'User color: Clear all'--12
                        },
                  short={' ',--1
                        'Set',--2
@@ -188,6 +173,8 @@ shortcuts_actions = {
             'Quit Color palette',
             'Undo (on Reaper)',
             'Redo (on Reaper)',
+            'Save user colors list as',
+            'Load user color list file',
             'Run current button action',
             'Run user color button by index',
             'Run default color',
@@ -204,26 +191,25 @@ shortcuts_actions = {
             'Esc',
             mods_names[2]..'+Z',
             mods_names[4]..'+Z',
+            mods_names[2]..'+S',
+            mods_names[2]..'+O',
             'Enter',
             '1-9',
             '0',
             'R',
             'E',
-            'O',
+            'I',
             'Arrows',
             'P',
             mods_names[2]..'+C',
             mods_names[2]..'+V',
             'Spacebar'
             }
-
-
 click_actions_combostring = ''
 for i,action in ipairs(click_actions.long) do
   click_actions_combostring = click_actions_combostring..action..'\31'
 end
 mods_left = {}
-
 -- User color file
 info = debug.getinfo(1,'S')
 script_path = info.source:match[[^@?(.*[\/])[^\/]-$]]
@@ -314,7 +300,7 @@ function ExtState_Load()
     randfrom = 1,
     namestart_char = '',
     action_button = 1,
-    dock = false,
+    dock = 0,
     remplace_default = false,
     highlight = true,
     x = -1,
@@ -345,6 +331,7 @@ function ExtState_Load()
                                        or key=='spacing'
                                        or key=='randfrom'
                                        or key=='action_button'
+                                       or key=='dock'
                                        or key=='x'
                                        or key=='y'
                                        or key=='checklist_palette'
@@ -354,7 +341,6 @@ function ExtState_Load()
                                        or key=='setcolor_childs'
                                        or key=='mouse_pos'
                                        or key=='auto_close'
-                                       or key=='dock'
                                        or key=='highlight'
                                        or key=='remplace_default'))
       or (type(conf[key]) ~= 'string' and (key=='mods_left')) then
@@ -463,14 +449,13 @@ function INTtoHEX(int)
 end
 
 function HEXtoINT(hex)
-  int = tonumber(hex,16)
-  return int
-end
-
-function NATIVEtoINT(native)
-  local r, g, b = reaper.ColorFromNative(native)
-  local int = b + g*16^2 + r*16^4
-  return int
+  hex = tostring(hex):upper():match('%x%x%x%x%x%x')
+  if hex then
+    int = tonumber(hex,16)
+    return int
+  else
+    return nil
+  end
 end
 
 ---------------------------------------------------------------------------------
@@ -478,11 +463,7 @@ end
 ---------------------------------------------------------------------------------
 
 function set_window()
-  if conf.spacing > 3 then
-    separator_spacing = conf.spacing
-  else
-    separator_spacing = 3
-  end
+  separator_spacing = math.max(conf.spacing,3)
   local width = (conf.number_x*conf.size)+((conf.number_x-1)*conf.spacing)
   local heigth = ((conf.palette_y + conf.user_y)*conf.size)+((conf.palette_y+conf.user_y-1)*conf.spacing)
   if conf.palette_y > 0 and conf.user_y > 0 then
@@ -493,28 +474,26 @@ function set_window()
     local tmp_heigth = heigth
     width = tmp_heigth + 15
     heigth = tmp_width + 101
+    width = math.max(width,80)
   else
     width = width + 15
     heigth = heigth + 39
+    width = math.max(width,215)
   end
-  local width_min
-  if conf.vertical == true then
-    width_min = 80
-  else
-    width_min = 215
-  end
-
-  if width < width_min then
-    width = width_min
-  end
-  if restart == false and (conf.mouse_pos == true or conf.x < 0 or conf.y < 0) then
+  if not restart and (conf.mouse_pos == true or conf.x < 0 or conf.y < 0) then
     mouse = {r.GetMousePosition()}
     conf.x = math.floor(mouse[1] - (width/2))
     conf.y = mouse[2]
   end
+  if OS_Win then
+    conf.y = math.max(conf.y,30)
+  else
+    conf.y = math.max(conf.y,0)
+  end
+  conf.x = math.max(conf.x,0)
+
   button_color = calc_colors()
-  local dock_mode = conf.dock and 1 or 0
-  ctx = r.ImGui_CreateContext(script_name,width,heigth,conf.x,conf.y,dock_mode)
+  ctx = r.ImGui_CreateContext(script_name,width,heigth,conf.x,conf.y,conf.dock)
   hwnd = r.ImGui_GetNativeHwnd(ctx)
 end
 
@@ -587,7 +566,7 @@ function calc_colors()
 end
 
 function get_clipboard_color()
-  local clipboard = r.CF_GetClipboard()
+  local clipboard = r.ImGui_GetClipboardText(ctx)
   local color_int = HEXtoINT(clipboard)
   return color_int
 end
@@ -755,8 +734,8 @@ function is_marker_selected(i,what,list)
       if isrgn == true then MName = 'R'..markrgnindexnumber
       else MName = 'M'..markrgnindexnumber end
 
-      for i,name in ipairs(list) do
-        if MName == name then
+      for i,manager_name in ipairs(list) do
+        if MName == manager_name then
           return true, rv, isrgn, pos, rgnend, name, markrgnindexnumber, tmp_color
         end
       end
@@ -826,8 +805,7 @@ function get_sel_target_colors_list()
           for j=0, reaper.GetNumTakeMarkers(take)-1 do
             local rv, name, tmark_color = reaper.GetTakeMarker(take,j)
             if tmark_color then
-              --table.insert(seltracks_colors,NATIVEtoINT(tmark_color))
-              seltracks_colors[NATIVEtoINT(tmark_color)]=true
+              seltracks_colors[r.ImGui_ColorConvertNative(tmark_color) & 0xffffff]=true
             end
           end
         end
@@ -841,8 +819,7 @@ function get_sel_target_colors_list()
       end
     end
     if color then
-      --table.insert(seltracks_colors,NATIVEtoINT(color))
-      seltracks_colors[NATIVEtoINT(color)]=true
+      seltracks_colors[r.ImGui_ColorConvertNative(color) & 0xffffff]=true
     end
   end
 end
@@ -1021,14 +998,19 @@ function SetColor(color_int,children)
     elseif category == 3 then
       local is_selected, rv, isrgn, pos, rgnend, name, markrgnindexnumber, tmp_color = is_marker_selected(i,what,manager_regions_list)
       if is_selected == true then
-        reaper.SetProjectMarker3(0,markrgnindexnumber,isrgn,pos,rgnend,name,color)
+        if color ~= 0 then
+          reaper.SetProjectMarker3(0,markrgnindexnumber,isrgn,pos,rgnend,name,color)
+        else
+          reaper.DeleteProjectMarkerByIndex(0,i)
+          reaper.AddProjectMarker(0,isrgn,pos,rgnend,name,math.max(i,1))
+        end
         j = j + 1
       end
     end
   end
   -- Children tracks color
-  if (category == 1 or what == 'tracks_names') and command_colchildren ~= 0 and (conf.setcolor_childs == true or children == true) then
-    reaper.Main_OnCommand(command_colchildren,0)
+  if (category == 1 or what == 'tracks_names') and (conf.setcolor_childs == true or children == true) then
+    reaper.Main_OnCommand(r.NamedCommandLookup('_SWS_COLCHILDREN'),0)
   end
   close = conf.auto_close
   reaper.Undo_EndBlock(script_name,-1)
@@ -1122,6 +1104,7 @@ function navigation(direction)
   reaper.PreventUIRefresh(1)
   -- Get Target
   local what = target_button_list[target_button]
+  local category = target_category_list[target_button]
   if what == 'Tracks' then
     if direction == 'down' or direction == 'right' then
       -- Go to next track
@@ -1159,45 +1142,27 @@ function navigation(direction)
       -- Item navigation: Select and move to item in next track
       reaper.Main_OnCommand(40419,0)
     end
-  elseif what == 'Markers' then
-    reaper.Main_OnCommand(40020,0)
-    local cursor = reaper.GetCursorPosition()
+  elseif category == 3 then
+    local cursor = reaper.GetCursorPosition() 
     local rv, num_markers, num_regions = reaper.CountProjectMarkers(0)
     local count = num_markers + num_regions
     if count > 0 then
-      if direction == 'left' then
-        for i=0, count-1 do
-          local rv, isrgn, pos, rgnend, name, markrgnindexnumber = reaper.EnumProjectMarkers(count-1-i)
-          if isrgn == false and pos < cursor then
-            reaper.SetEditCurPos(pos,false,false)
-            break
-          end
+      for i=0, count-1 do
+        if direction == 'left' then
+          i = count-1-i
         end
-      elseif direction == 'right' then
-        for i=0, count-1 do
-          local rv, isrgn, pos, rgnend, name, markrgnindexnumber = reaper.EnumProjectMarkers(i)
-          if isrgn == false and pos > cursor then
-            reaper.SetEditCurPos(pos,false,false)
-            break
+        local rv, isrgn, pos, rgnend, name, markrgnindexnumber = reaper.EnumProjectMarkers(i)
+        if (what=='Mk & Rg' or (not isrgn and what=='Markers') or (isrgn and what=='Regions'))
+        and ((direction=='left' and pos<cursor) or (direction=='right' and pos>cursor)) then
+          reaper.SetEditCurPos(pos,false,false)
+          if isrgn then
+            reaper.GetSet_LoopTimeRange(true,false,pos,rgnend,false)
+          else
+            reaper.Main_OnCommand(40020,0)
           end
+          break
         end
       end
-    end
-  elseif what == 'Regions' then
-    if direction == 'left' then
-      -- SWS: Select previous region
-      reaper.Main_OnCommand(reaper.NamedCommandLookup('_SWS_SELPREVREG'),0)
-    elseif direction == 'right' then
-      -- SWS: Select next region
-      reaper.Main_OnCommand(reaper.NamedCommandLookup('_SWS_SELNEXTREG'),0)
-    end
-  elseif what == 'Mk & Rg' then
-    if direction == 'left' then
-      -- SWS: Goto/select previous marker/region
-      reaper.Main_OnCommand(reaper.NamedCommandLookup('_SWS_SELPREVMORR'),0)
-    elseif direction == 'right' then
-      -- SWS: Goto/select next marker/region
-      reaper.Main_OnCommand(reaper.NamedCommandLookup('_SWS_SELNEXTMORR'),0)
     end
   end
   reaper.Undo_EndBlock(script_name..' - Navigation '..direction,-1)
@@ -1230,7 +1195,7 @@ function select_target(color_int)
       for i=0, count-1 do
         local track = reaper.GetTrack(0,i)
         local track_color = reaper.GetTrackColor(track)
-        if track_color > 0 then track_color = NATIVEtoINT(track_color) end
+        if track_color > 0 then track_color = r.ImGui_ColorConvertNative(track_color) & 0xffffff end
         if track_color == color then
           reaper.SetTrackSelected(track,true)
         end
@@ -1244,7 +1209,7 @@ function select_target(color_int)
         local item = reaper.GetMediaItem(0,i)
         local take = reaper.GetActiveTake(item)
         local item_color = reaper.GetDisplayedMediaItemColor2(item,take)
-        if item_color > 0 then item_color = NATIVEtoINT(item_color) end
+        if item_color > 0 then item_color = r.ImGui_ColorConvertNative(item_color) & 0xffffff end
         if item_color == color then
           reaper.SetMediaItemSelected(item,true)
         end
@@ -1265,7 +1230,7 @@ function select_target(color_int)
           local playrate = reaper.GetMediaItemTakeInfo_Value(take,'D_PLAYRATE')
           for j=0, num-1 do
             local source_pos, name, mark_color = reaper.GetTakeMarker(take,j)
-            if mark_color > 0 then mark_color = NATIVEtoINT(mark_color) end
+            if mark_color > 0 then mark_color = r.ImGui_ColorConvertNative(mark_color) & 0xffffff end
             if mark_color == color then
               local pos = (position+(startoffs+source_pos)/playrate)
               table.insert(pos_list,pos)
@@ -1294,7 +1259,7 @@ function select_target(color_int)
       for i=0, count-1 do
         local rv, isrgn, pos, rgnend, name, markrgnindexnumber, mark_color = reaper.EnumProjectMarkers3(0,i)
         if what == 'Mk & Rg' or (what == 'Markers' and isrgn == false) or (what == 'Regions' and isrgn == true) then
-          if mark_color > 0 then mark_color = NATIVEtoINT(mark_color) end
+          if mark_color > 0 then mark_color = r.ImGui_ColorConvertNative(mark_color) & 0xffffff end
           if mark_color == color then
             if not first_pos and pos < cursor then
               first_pos = pos
@@ -1336,10 +1301,8 @@ end
 function usercolor_get(i)
   local first_sel_target_color = get_first_sel_target_color()
   if first_sel_target_color and first_sel_target_color ~= 0 then
-    first_sel_target_color = NATIVEtoINT(first_sel_target_color)
-    if i > #usercolors then
-      i = #usercolors+1
-    end
+    first_sel_target_color = r.ImGui_ColorConvertNative(first_sel_target_color) & 0xffffff
+    i = math.min(i,#usercolors+1)
     usercolors[i] = first_sel_target_color
   end
 end
@@ -1347,9 +1310,7 @@ end
 function usercolor_paste(i)
   local paste_color = get_clipboard_color()
   if paste_color then
-    if i > #usercolors then
-      i = #usercolors+1
-    end
+    i = math.min(i,#usercolors+1)
     usercolors[i] = paste_color
   end
 end
@@ -1445,7 +1406,35 @@ function main_action(color,palette,id)
 end
 
 function loop()
- get_last_context()
+  conf.dock = r.ImGui_GetDock(ctx)
+  get_last_context()
+
+  -- Save/Load Dialog (reset script)
+  if file_dialog then
+    -- Save Dialog
+    if file_dialog == 1 then
+      r.ImGui_Freeze(ctx)
+      rv, fileName = r.JS_Dialog_BrowseForSaveFile('Save user palette',UserPalettes_path,'',extension_list)
+      if not r.ImGui_ValidatePtr(ctx,'ImGui_Context*') then return end
+      if rv == 1 or rv == true then
+        if fileName:sub(string.len(fileName)-3,string.len(fileName)) ~= '.txt' then
+          fileName = fileName..'.txt'
+        end
+        SaveColorFile(fileName)
+      end
+    end
+    -- Load Dialog
+    if file_dialog == 2 then
+      r.ImGui_Freeze(ctx)
+      local rv, fileName = r.JS_Dialog_BrowseForOpenFiles('Open user palette',UserPalettes_path,'',extension_list,false)
+      if not r.ImGui_ValidatePtr(ctx,'ImGui_Context*') then return end
+      if rv == 1 then
+        usercolors = LoadColorFile(fileName)
+      end
+    end
+    file_dialog = nil
+    settings = 0
+  end
 
   -- Set 1st user color to default tracks option
   if conf.remplace_default == true then
@@ -1472,36 +1461,6 @@ function loop()
     seltracks_colors = {}
   end
 
-  -- Save/Load Dialog (reset script)
-  if file_dialog > 0 then
-    if not OS_Mac then
-      r.ImGui_DestroyContext(ctx2)
-      r.ImGui_DestroyContext(ctx)
-    end
-    -- Save Dialog
-    if file_dialog == 1 then
-      rv, fileName = r.JS_Dialog_BrowseForSaveFile('Save user palette',UserPalettes_path,'',extension_list)
-      if rv == 1 or rv == true then
-        if fileName:sub(string.len(fileName)-3,string.len(fileName)) ~= '.txt' then
-          fileName = fileName..'.txt'
-        end
-        SaveColorFile(fileName)
-      end
-    end
-    -- Load Dialog
-    if file_dialog == 2 then
-      local rv, fileName = r.JS_Dialog_BrowseForOpenFiles('Open user palette',UserPalettes_path,'',extension_list,false)
-      if rv == 1 then
-        usercolors = LoadColorFile(fileName)
-      end
-    end
-    file_dialog = 0
-    settings = 0
-    if not OS_Mac then
-      set_window()
-    end
-  end
-
   -- Close Window ?
   if r.ImGui_IsCloseRequested(ctx) or (not modal_focus and r.ImGui_IsKeyDown(ctx,keycode.esc) and r.ImGui_GetKeyDownDuration(ctx,keycode.esc) == 0) or close == true then
     if settings == 2 then
@@ -1513,14 +1472,15 @@ function loop()
   end
 
   -- Restart
-  if restart == true then
-    if set_tmp_values == true then
+  if restart then
+    if set_tmp_values then
       set_tmp_values = false
       for key,value in pairs(tmp) do
         conf[key] = tmp[key]
       end
     end
-    if set_default_sizes == true then
+    if set_default_sizes then
+      set_default_sizes = false
       restore_default_sizes()
     end
     get_tmp_values()
@@ -1529,14 +1489,6 @@ function loop()
     r.ImGui_DestroyContext(ctx)
     set_window()
     restart = false
-  end
-
-  -- Dock
-  if change_dock then
-    local dock_mode = conf.dock and 1 or 0
-    local dock = r.ImGui_GetDock(ctx)
-    r.ImGui_SetDock(ctx,dock_mode)
-    change_dock = false
   end
 
   local rv
@@ -1551,7 +1503,7 @@ function loop()
       local settings_width = 320
       local settings_heigth = 270
       local x,y
-      if conf.dock == true then
+      if conf.dock%2 ~= 0 then
         x = nil
         y = nil
       else
@@ -1559,9 +1511,9 @@ function loop()
         x = conf.x
         if x < 0 then x = 0 end
         if OS_Win then
-          y = conf.y - settings_heigth - 65
+          y = conf.y - settings_heigth - 45
           if y < settings_heigth then
-            y = ctx_bottom + 65
+            y = ctx_bottom + 45
           end
         else
           y = ctx_bottom - 35
@@ -1589,7 +1541,7 @@ function loop()
         r.ImGui_Text(ctx2,'User file :')
         r.ImGui_SameLine(ctx2)
         if r.ImGui_Button(ctx2,'Save as') then
-          file_dialog = 1
+         file_dialog = 1
         end
         r.ImGui_SameLine(ctx2)
         if r.ImGui_Button(ctx2,'Load') then
@@ -1606,10 +1558,9 @@ function loop()
         r.ImGui_Spacing(ctx2)r.ImGui_Separator(ctx2)r.ImGui_Spacing(ctx2)
         rv,conf.mouse_pos = r.ImGui_Checkbox(ctx2,'Open window on mouse position',conf.mouse_pos)
         rv,conf.auto_close = r.ImGui_Checkbox(ctx2,'Quit after apply color',conf.auto_close)
-        rv,conf.dock = r.ImGui_Checkbox(ctx2,'Dock window',conf.dock)
-        if r.ImGui_IsItemClicked(ctx2,0) then
-          conf.dock = not conf.dock
-          change_dock = true
+        rv,conf.dock = r.ImGui_CheckboxFlags(ctx2,'Dock window',conf.dock,1)
+        if rv then
+          r.ImGui_SetDock(ctx,conf.dock)
         end
         r.ImGui_EndTabItem(ctx2)
       end
@@ -1718,7 +1669,7 @@ function loop()
 
     r.ImGui_PopStyleVar(ctx2)
     r.ImGui_End(ctx2)
-    if r.ImGui_IsCloseRequested(ctx2) or restart == true then
+    if r.ImGui_IsCloseRequested(ctx2) or restart or file_dialog then
       r.ImGui_DestroyContext(ctx2)
       settings = 0
     end
@@ -1775,11 +1726,28 @@ function loop()
 
   -- Get shortcuts
   if not tracksbyname_focus and not modal_focus then
-    if (r.ImGui_IsKeyPressed(ctx,keycode.z,false) or (OS_Mac and r.ImGui_IsKeyPressed(ctx,keycode.w,false))) then
+    if r.ImGui_IsKeyPressed(ctx,keycode.z,false) then
       if mods == 2 then
         r.Undo_DoUndo2(0)
       elseif mods == 4 or mods == 6 then
         r.Undo_DoRedo2(0)
+      end
+    elseif mods == 2 and r.ImGui_IsKeyPressed(ctx,keycode.s,false) then
+      r.ImGui_Freeze(ctx)
+      rv, fileName = r.JS_Dialog_BrowseForSaveFile('Save user palette',UserPalettes_path,'',extension_list)
+      if not r.ImGui_ValidatePtr(ctx,'ImGui_Context*') then return end
+      if rv == 1 or rv == true then
+        if fileName:sub(string.len(fileName)-3,string.len(fileName)) ~= '.txt' then
+          fileName = fileName..'.txt'
+        end
+        SaveColorFile(fileName)
+      end
+    elseif mods == 2 and r.ImGui_IsKeyPressed(ctx,keycode.o,false) then
+      r.ImGui_Freeze(ctx)
+      local rv, fileName = r.JS_Dialog_BrowseForOpenFiles('Open user palette',UserPalettes_path,'',extension_list,false)
+      if not r.ImGui_ValidatePtr(ctx,'ImGui_Context*') then return end
+      if rv == 1 then
+        usercolors = LoadColorFile(fileName)
       end
     elseif r.ImGui_IsKeyPressed(ctx,keycode.enter,false) then
       main_action(action_button_list[conf.action_button])
@@ -1795,7 +1763,7 @@ function loop()
       main_action('Rnd All')
     elseif r.ImGui_IsKeyPressed(ctx,keycode.e,false) then
       main_action('Rnd Each')
-    elseif r.ImGui_IsKeyPressed(ctx,keycode.o,false) then
+    elseif r.ImGui_IsKeyPressed(ctx,keycode.i,false) then
       main_action('In order')
     else
       for i=0, 9 do
@@ -1909,11 +1877,11 @@ function loop()
   -- Popup Settings Dock/Undock
   if r.ImGui_BeginPopup(ctx,'Popup Menu Settings',popup_flags) then
     local text
-    if not conf.dock then text = 'Dock'
+    if conf.dock%2 == 0 then text = 'Dock'
     else text = 'Undock' end
     if r.ImGui_Selectable(ctx,text) then
-      conf.dock = not conf.dock
-      change_dock = true
+      conf.dock = conf.dock ~ 1
+      r.ImGui_SetDock(ctx,conf.dock)
     end
     r.ImGui_EndPopup(ctx)
   end
@@ -2092,7 +2060,7 @@ function loop()
     end
     if r.ImGui_IsItemHovered(ctx) then
       if mods == 2 and r.ImGui_IsKeyPressed(ctx,keycode.c,false) then
-        r.CF_SetClipboard(INTtoHEX(button_color[i]))
+        r.ImGui_SetClipboardText(ctx,INTtoHEX(button_color[i]))
       elseif conf.randfrom == 3 and mods == 1 and r.ImGui_IsKeyPressed(ctx,keycode.space,false) then
         checklist_palette[i] = not checklist_palette[i]
       end
@@ -2199,7 +2167,7 @@ function loop()
     end
     if r.ImGui_IsItemHovered(ctx) then
       if not button_empty and mods == 2 and r.ImGui_IsKeyPressed(ctx,keycode.c,false) then
-        r.CF_SetClipboard(INTtoHEX(button_color[i]))
+        r.ImGui_SetClipboardText(ctx,INTtoHEX(button_color[i]))
       elseif conf.randfrom == 3 and not button_empty and mods == 1 and r.ImGui_IsKeyPressed(ctx,keycode.space,false) then
         checklist_usercolors[i] = not checklist_usercolors[i]
       elseif mods == 2 and r.ImGui_IsKeyPressed(ctx,keycode.v,false) then
