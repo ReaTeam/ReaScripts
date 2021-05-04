@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="ba751bf988c0633bd7034119161915c5fdddc40a" name="ReaTeam Scripts">
+<index version="1" commit="4d04ac28e401847fec58ab38ef7ef01909002ac9" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -18058,20 +18058,37 @@ Thread in Cockos forum
 {\pard \ql \f0 \sa180 \li0 \fi0 Features :\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Click on any color to set in selected Tracks/Items/Takes/Markers/Take Markers/Regions\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Target button automatically switch according to the last valid context\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Click on target button to fast switch inside each category :\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Tracks -> Tracks by Name - Items -> Takes -> Take Markers - Markers -> Regions\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Click on target button to fast switch inside each category\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Right-click on Target button manually choose to any target\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Click on Action button to start the displayed action\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Right-click on Action button to choose another action (last action is stored for next open) : Default / Random All / Random Each / In Order\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Right-click on Action button to choose another action (Default / Random All / Random Each / In Order) :\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Right-click on "Settings" button to dock/undock (there is also a checkbox in the settings)\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Drag any palette color and drop it in user color\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Drag and drop any user color to move it\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Right-click to edit/add user color with color picker popup\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Alt-click to remove user color\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Shit-click to get first selected target color in user color\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Cmd-click (Ctrl in Windows) to past clipboard (HEX color value)\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Ctrl-click (Ctrl+Alt in Windows) to set color to children tracks\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Save as and Load user colors list\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Drag and drop any user color to move it (or drop away to remove)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Right-click on user color to open popup menu (Edit / Get first selected target color / Paste Hex value / Remove / Clear all)\sa180\par}
+{\pard \qc \f0 \sa180 \li0 \fi0 \emdash\emdash\emdash\emdash\emdash\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Mouse modifiers :\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Customize all mouse modifiers in Settings/Shortcuts menu\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab [Ctrl]/[Cmd] Insert new target with clicked color\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab [Ctrl+Alt]/[Cmd+Opt] Insert new named target with clicked color\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab [Shift+Ctrl]/[Opt] Check/Uncheck color\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab [Alt]/[Ctrl] Set color to children tracks too / to all takes (non active too)\sa180\par}
+{\pard \qc \f0 \sa180 \li0 \fi0 \emdash\emdash\emdash\emdash\emdash\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Shortcuts :\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Keyboard shortcuts (see Settings/Shortcuts menu)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Arrows : Navigation - Go to next/previous element, depends on target\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab 1-9 numbers : Set user color by ID (works with modifiers also)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab 0 : Set default color (works with modifiers also)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Enter : Run action button (works with modifiers also)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab R : Run Random All (works with modifiers also)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab E : Run Random Each (works with modifiers also)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab I : Run In Order (works with modifiers also)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Backspace / Delete : Remove user color under mouse cursor\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Ctrl+C : Copy hex color under mouse cursor in clipboard\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Ctrl+V : Paste hex color from clipboard under mouse cursor\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Spacebar : Check/Uncheck color under mouse cursor, only on "Check list" mode for Random / In Order\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab [Ctrl+S] / [Cmd+S] : Save as user colors\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab [Ctrl+O] / [Cmd+O] : Load user colors file\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Many settings... read the "Help" tab in Settings window\sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 by Rodrigo Diaz (aka Rodilab)\par}
 }
@@ -18124,6 +18141,21 @@ Thread in Cockos forum
 - Drag and drop system has been modified
 - Dock mode improved for Linux]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ba751bf988c0633bd7034119161915c5fdddc40a/Various/rodilab_Color%20palette.lua</source>
+      </version>
+      <version name="1.7" author="Rodilab" time="2021-05-04T12:08:21Z">
+        <changelog><![CDATA[[Ctrl+S] / [Cmd+S] Save as
+[Ctrl+O] / [Cmd+O] Load
+[I] remplace [O] for "Run In Order action"
+Default color now works with Markers/Regions
+New 'Copied' tooltip when using [Ctrl+C] shortcut
+New 'About' tab in Settings
+Fix broken dock mode position
+Browse dialog don't need restart the context anymore on non-Mac OS
+Off screen position fixed on Windows
+Fix Marker/Region name when selecting in Manager
+Fix 'Copy hex' user colors bug
+Fix SWS Startup / Lokasenna Radial Menu bug]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4d04ac28e401847fec58ab38ef7ef01909002ac9/Various/rodilab_Color%20palette.lua</source>
       </version>
     </reapack>
     <reapack name="rodilab_Smart remove.lua" type="script" desc="Smart remove">
