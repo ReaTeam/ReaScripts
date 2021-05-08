@@ -52,7 +52,7 @@ local t = {
 '%m.%d.%y - %H:%M:%S', -- 6
 '%m.%d.%Y - %I:%M:%S', -- 7
 '%m.%d.%y - %I:%M:%S', -- 8
-'%x - %X'			         -- 9
+'%x - %X'	       -- 9
 }
 
 os.setlocale('', 'time')
