@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="9a03350b5fac0522c842ca1f0e72ba92bfe42b53" name="ReaTeam Scripts">
+<index version="1" commit="c70f5f3978d76026ca0e3ec265f89131e781beb4" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -15338,15 +15338,18 @@ SILENCE   |                                      |-  Empty Media Item (length 2s
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 3 scripts to convert custom actions to Lua scripts or to dump their Lua code as txt files: BuyOne_Convert custom action to Lua ReaScript.lua BuyOne_Convert custom actions in batch to Lua ReaScripts or dump as Lua code.lua BuyOne_Convert filtered custom actions to Lua ReaScripts or dump as Lua code.lua\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 3 scripts to convert custom actions to Lua scripts or to dump their Lua code as txt files:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 BuyOne_Convert custom action to Lua ReaScript.lua\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 BuyOne_Convert custom actions in batch to Lua ReaScripts or dump as Lua code.lua\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 BuyOne_Convert filtered custom actions to Lua ReaScripts or dump as Lua code.lua\par}
 }
 ]]></description>
         <link rel="website">https://forum.cockos.com/member.php?u=134058</link>
       </metadata>
       <version name="1.2" author="BuyOne" time="2021-01-06T09:42:38Z">
-        <source main="main" file="buyone_Convert custom actions to Lua ReaScript/BuyOne_Convert custom action to Lua ReaScript.lua">https://github.com/ReaTeam/ReaScripts/raw/c130939598f68e503902c19bbf4a326a58c47f8e/Various/buyone_Convert%20custom%20actions%20to%20Lua%20ReaScript/BuyOne_Convert%20custom%20action%20to%20Lua%20ReaScript.lua</source>
-        <source main="main" file="buyone_Convert custom actions to Lua ReaScript/BuyOne_Convert custom actions in batch to Lua ReaScripts or dump as Lua code.lua">https://github.com/ReaTeam/ReaScripts/raw/c130939598f68e503902c19bbf4a326a58c47f8e/Various/buyone_Convert%20custom%20actions%20to%20Lua%20ReaScript/BuyOne_Convert%20custom%20actions%20in%20batch%20to%20Lua%20ReaScripts%20or%20dump%20as%20Lua%20code.lua</source>
-        <source main="main" file="buyone_Convert custom actions to Lua ReaScript/BuyOne_Convert filtered custom actions to Lua ReaScripts or dump as Lua code.lua">https://github.com/ReaTeam/ReaScripts/raw/c130939598f68e503902c19bbf4a326a58c47f8e/Various/buyone_Convert%20custom%20actions%20to%20Lua%20ReaScript/BuyOne_Convert%20filtered%20custom%20actions%20to%20Lua%20ReaScripts%20or%20dump%20as%20Lua%20code.lua</source>
+        <source main="main" file="buyone_Convert custom actions to Lua ReaScript/BuyOne_Convert custom action to Lua ReaScript.lua">https://github.com/ReaTeam/ReaScripts/raw/464d7cb5a6bfb517c7b9e12a23e176283ba0d688/Various/buyone_Convert%20custom%20actions%20to%20Lua%20ReaScript/BuyOne_Convert%20custom%20action%20to%20Lua%20ReaScript.lua</source>
+        <source main="main" file="buyone_Convert custom actions to Lua ReaScript/BuyOne_Convert custom actions in batch to Lua ReaScripts or dump as Lua code.lua">https://github.com/ReaTeam/ReaScripts/raw/464d7cb5a6bfb517c7b9e12a23e176283ba0d688/Various/buyone_Convert%20custom%20actions%20to%20Lua%20ReaScript/BuyOne_Convert%20custom%20actions%20in%20batch%20to%20Lua%20ReaScripts%20or%20dump%20as%20Lua%20code.lua</source>
+        <source main="main" file="buyone_Convert custom actions to Lua ReaScript/BuyOne_Convert filtered custom actions to Lua ReaScripts or dump as Lua code.lua">https://github.com/ReaTeam/ReaScripts/raw/464d7cb5a6bfb517c7b9e12a23e176283ba0d688/Various/buyone_Convert%20custom%20actions%20to%20Lua%20ReaScript/BuyOne_Convert%20filtered%20custom%20actions%20to%20Lua%20ReaScripts%20or%20dump%20as%20Lua%20code.lua</source>
       </version>
     </reapack>
     <reapack name="BuyOne_Cursor toggleable toolbars.lua" type="script" desc="Cursor toggleable docked toolbars (5 scripts)">
@@ -15355,17 +15358,22 @@ SILENCE   |                                      |-  Empty Media Item (length 2s
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 5 scripts to toggle docked toolbars on mouse hover, meant to free up screen real estate when toolbars are not in active use: BuyOne_Cursor toggleable sidebars (settings inside).lua BuyOne_Cursor toggleable Toolbar Docker (settings inside).lua BuyOne_Cursor toggleable Toolbar Docker simpler (settings inside).lua BuyOne_Cursor toggleable Toolbar Docker simplest.lua BuyOne_Cursor toggleable toolbar at top of main window.lua\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 5 scripts to toggle docked toolbars on mouse hover, meant to free up screen real estate when toolbars are not in active use:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 BuyOne_Cursor toggleable sidebars (settings inside).lua\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 BuyOne_Cursor toggleable Toolbar Docker (settings inside).lua\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 BuyOne_Cursor toggleable Toolbar Docker simpler (settings inside).lua\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 BuyOne_Cursor toggleable Toolbar Docker simplest.lua\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 BuyOne_Cursor toggleable toolbar at top of main window.lua\par}
 }
 ]]></description>
         <link rel="website">https://forum.cockos.com/member.php?u=134058</link>
       </metadata>
       <version name="1.0" author="BuyOne" time="2021-01-21T02:24:35Z">
-        <source main="main" file="BuyOne_Cursor toggleable docked toolbars/BuyOne_Cursor toggleable sidebars (settings inside).lua">https://github.com/ReaTeam/ReaScripts/raw/c130939598f68e503902c19bbf4a326a58c47f8e/Various/BuyOne_Cursor%20toggleable%20docked%20toolbars/BuyOne_Cursor%20toggleable%20sidebars%20(settings%20inside).lua</source>
-        <source main="main" file="BuyOne_Cursor toggleable docked toolbars/BuyOne_Cursor toggleable Toolbar Docker (settings inside).lua">https://github.com/ReaTeam/ReaScripts/raw/c130939598f68e503902c19bbf4a326a58c47f8e/Various/BuyOne_Cursor%20toggleable%20docked%20toolbars/BuyOne_Cursor%20toggleable%20Toolbar%20Docker%20(settings%20inside).lua</source>
-        <source main="main" file="BuyOne_Cursor toggleable docked toolbars/BuyOne_Cursor toggleable Toolbar Docker simpler (settings inside).lua">https://github.com/ReaTeam/ReaScripts/raw/c130939598f68e503902c19bbf4a326a58c47f8e/Various/BuyOne_Cursor%20toggleable%20docked%20toolbars/BuyOne_Cursor%20toggleable%20Toolbar%20Docker%20simpler%20(settings%20inside).lua</source>
-        <source main="main" file="BuyOne_Cursor toggleable docked toolbars/BuyOne_Cursor toggleable Toolbar Docker simplest.lua">https://github.com/ReaTeam/ReaScripts/raw/c130939598f68e503902c19bbf4a326a58c47f8e/Various/BuyOne_Cursor%20toggleable%20docked%20toolbars/BuyOne_Cursor%20toggleable%20Toolbar%20Docker%20simplest.lua</source>
-        <source main="main" file="BuyOne_Cursor toggleable docked toolbars/BuyOne_Cursor toggleable toolbar at top of main window.lua">https://github.com/ReaTeam/ReaScripts/raw/c130939598f68e503902c19bbf4a326a58c47f8e/Various/BuyOne_Cursor%20toggleable%20docked%20toolbars/BuyOne_Cursor%20toggleable%20toolbar%20at%20top%20of%20main%20window.lua</source>
+        <source main="main" file="BuyOne_Cursor toggleable docked toolbars/BuyOne_Cursor toggleable sidebars (settings inside).lua">https://github.com/ReaTeam/ReaScripts/raw/c70f5f3978d76026ca0e3ec265f89131e781beb4/Various/BuyOne_Cursor%20toggleable%20docked%20toolbars/BuyOne_Cursor%20toggleable%20sidebars%20(settings%20inside).lua</source>
+        <source main="main" file="BuyOne_Cursor toggleable docked toolbars/BuyOne_Cursor toggleable Toolbar Docker (settings inside).lua">https://github.com/ReaTeam/ReaScripts/raw/c70f5f3978d76026ca0e3ec265f89131e781beb4/Various/BuyOne_Cursor%20toggleable%20docked%20toolbars/BuyOne_Cursor%20toggleable%20Toolbar%20Docker%20(settings%20inside).lua</source>
+        <source main="main" file="BuyOne_Cursor toggleable docked toolbars/BuyOne_Cursor toggleable Toolbar Docker simpler (settings inside).lua">https://github.com/ReaTeam/ReaScripts/raw/c70f5f3978d76026ca0e3ec265f89131e781beb4/Various/BuyOne_Cursor%20toggleable%20docked%20toolbars/BuyOne_Cursor%20toggleable%20Toolbar%20Docker%20simpler%20(settings%20inside).lua</source>
+        <source main="main" file="BuyOne_Cursor toggleable docked toolbars/BuyOne_Cursor toggleable Toolbar Docker simplest.lua">https://github.com/ReaTeam/ReaScripts/raw/c70f5f3978d76026ca0e3ec265f89131e781beb4/Various/BuyOne_Cursor%20toggleable%20docked%20toolbars/BuyOne_Cursor%20toggleable%20Toolbar%20Docker%20simplest.lua</source>
+        <source main="main" file="BuyOne_Cursor toggleable docked toolbars/BuyOne_Cursor toggleable toolbar at top of main window.lua">https://github.com/ReaTeam/ReaScripts/raw/c70f5f3978d76026ca0e3ec265f89131e781beb4/Various/BuyOne_Cursor%20toggleable%20docked%20toolbars/BuyOne_Cursor%20toggleable%20toolbar%20at%20top%20of%20main%20window.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Big Repeat Button.lua" type="script" desc="Big Repeat Button">
