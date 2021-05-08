@@ -1,4 +1,4 @@
--- @description pomodoro
+-- @description Pomodoro
 -- @author vo
 -- @version 1.0
 -- @link GitHub https://github.com/evgazloy/reaper-pomodoro
