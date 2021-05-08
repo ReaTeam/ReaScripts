@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="8962e708eefb419bb2d83ce9e7b1f7bd0887904e" name="ReaTeam Scripts">
+<index version="1" commit="9a3a6faaa008b76c06849bf56c1c691e0a76908d" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -3067,19 +3067,25 @@ Improve "under mouse cursor" variants to work over any envelope]]></changelog>
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 {\b 6 scripts to navigate FX presets / automate FX presets change + 1 auxiliary script.} {\b All complete with instructions.} BuyOne_Cycle through focused FX presets forward (guide inside).lua BuyOne_Cycle through focused FX presets backwards (guide inside).lua BuyOne_Dedicated FX presets forward switcher (FX ID dependent) (guide inside).lua BuyOne_Dedicated FX presets backwards switcher (FX ID dependent) (guide inside).lua BuyOne_Dedicated FX presets forward switcher (TAG dependent) (guide inside).lua BuyOne_Dedicated FX presets backwards switcher (TAG dependent) (guide inside).lua BuyOne_Extract focused FX preset count, active preset number and name.lua\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 {\b 6 scripts to navigate FX presets / automate FX presets change + 1 auxiliary script.} {\b All complete with instructions.} BuyOne_Cycle through focused FX presets forward (guide inside).lua\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 BuyOne_Cycle through focused FX presets backwards (guide inside).lua\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 BuyOne_Dedicated FX presets forward switcher (FX ID dependent) (guide inside).lua\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 BuyOne_Dedicated FX presets backwards switcher (FX ID dependent) (guide inside).lua\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 BuyOne_Dedicated FX presets forward switcher (TAG dependent) (guide inside).lua\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 BuyOne_Dedicated FX presets backwards switcher (TAG dependent) (guide inside).lua\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 BuyOne_Extract focused FX preset count, active preset number and name.lua\par}
 }
 ]]></description>
         <link rel="website">https://forum.cockos.com/member.php?u=134058</link>
       </metadata>
       <version name="1.0" author="BuyOne" time="2021-04-25T00:53:47Z">
-        <source main="main" file="BuyOne_FX presets navigation/BuyOne_Cycle through focused FX presets forward (guide inside).lua">https://github.com/ReaTeam/ReaScripts/raw/9cdd0a6e77e166da469383e9d22f6598d84dd65e/FX/BuyOne_FX%20presets%20navigation/BuyOne_Cycle%20through%20focused%20FX%20presets%20forward%20(guide%20inside).lua</source>
-        <source main="main" file="BuyOne_FX presets navigation/BuyOne_Cycle through focused FX presets backwards (guide inside).lua">https://github.com/ReaTeam/ReaScripts/raw/9cdd0a6e77e166da469383e9d22f6598d84dd65e/FX/BuyOne_FX%20presets%20navigation/BuyOne_Cycle%20through%20focused%20FX%20presets%20backwards%20(guide%20inside).lua</source>
-        <source main="main" file="BuyOne_FX presets navigation/BuyOne_Dedicated FX presets forward switcher (FX ID dependent) (guide inside).lua">https://github.com/ReaTeam/ReaScripts/raw/9cdd0a6e77e166da469383e9d22f6598d84dd65e/FX/BuyOne_FX%20presets%20navigation/BuyOne_Dedicated%20FX%20presets%20forward%20switcher%20(FX%20ID%20dependent)%20(guide%20inside).lua</source>
-        <source main="main" file="BuyOne_FX presets navigation/BuyOne_Dedicated FX presets backwards switcher (FX ID dependent) (guide inside).lua">https://github.com/ReaTeam/ReaScripts/raw/9cdd0a6e77e166da469383e9d22f6598d84dd65e/FX/BuyOne_FX%20presets%20navigation/BuyOne_Dedicated%20FX%20presets%20backwards%20switcher%20(FX%20ID%20dependent)%20(guide%20inside).lua</source>
-        <source main="main" file="BuyOne_FX presets navigation/BuyOne_Dedicated FX presets forward switcher (TAG dependent) (guide inside).lua">https://github.com/ReaTeam/ReaScripts/raw/9cdd0a6e77e166da469383e9d22f6598d84dd65e/FX/BuyOne_FX%20presets%20navigation/BuyOne_Dedicated%20FX%20presets%20forward%20switcher%20(TAG%20dependent)%20(guide%20inside).lua</source>
-        <source main="main" file="BuyOne_FX presets navigation/BuyOne_Dedicated FX presets backwards switcher (TAG dependent) (guide inside).lua">https://github.com/ReaTeam/ReaScripts/raw/9cdd0a6e77e166da469383e9d22f6598d84dd65e/FX/BuyOne_FX%20presets%20navigation/BuyOne_Dedicated%20FX%20presets%20backwards%20switcher%20(TAG%20dependent)%20(guide%20inside).lua</source>
-        <source main="main" file="BuyOne_FX presets navigation/BuyOne_Extract focused FX preset count, active preset number and name.lua">https://github.com/ReaTeam/ReaScripts/raw/9cdd0a6e77e166da469383e9d22f6598d84dd65e/FX/BuyOne_FX%20presets%20navigation/BuyOne_Extract%20focused%20FX%20preset%20count,%20active%20preset%20number%20and%20name.lua</source>
+        <source main="main" file="BuyOne_FX presets navigation/BuyOne_Cycle through focused FX presets forward (guide inside).lua">https://github.com/ReaTeam/ReaScripts/raw/75d124600d5a0509f3aa976ef4659d2ed7a0c33c/FX/BuyOne_FX%20presets%20navigation/BuyOne_Cycle%20through%20focused%20FX%20presets%20forward%20(guide%20inside).lua</source>
+        <source main="main" file="BuyOne_FX presets navigation/BuyOne_Cycle through focused FX presets backwards (guide inside).lua">https://github.com/ReaTeam/ReaScripts/raw/75d124600d5a0509f3aa976ef4659d2ed7a0c33c/FX/BuyOne_FX%20presets%20navigation/BuyOne_Cycle%20through%20focused%20FX%20presets%20backwards%20(guide%20inside).lua</source>
+        <source main="main" file="BuyOne_FX presets navigation/BuyOne_Dedicated FX presets forward switcher (FX ID dependent) (guide inside).lua">https://github.com/ReaTeam/ReaScripts/raw/75d124600d5a0509f3aa976ef4659d2ed7a0c33c/FX/BuyOne_FX%20presets%20navigation/BuyOne_Dedicated%20FX%20presets%20forward%20switcher%20(FX%20ID%20dependent)%20(guide%20inside).lua</source>
+        <source main="main" file="BuyOne_FX presets navigation/BuyOne_Dedicated FX presets backwards switcher (FX ID dependent) (guide inside).lua">https://github.com/ReaTeam/ReaScripts/raw/75d124600d5a0509f3aa976ef4659d2ed7a0c33c/FX/BuyOne_FX%20presets%20navigation/BuyOne_Dedicated%20FX%20presets%20backwards%20switcher%20(FX%20ID%20dependent)%20(guide%20inside).lua</source>
+        <source main="main" file="BuyOne_FX presets navigation/BuyOne_Dedicated FX presets forward switcher (TAG dependent) (guide inside).lua">https://github.com/ReaTeam/ReaScripts/raw/75d124600d5a0509f3aa976ef4659d2ed7a0c33c/FX/BuyOne_FX%20presets%20navigation/BuyOne_Dedicated%20FX%20presets%20forward%20switcher%20(TAG%20dependent)%20(guide%20inside).lua</source>
+        <source main="main" file="BuyOne_FX presets navigation/BuyOne_Dedicated FX presets backwards switcher (TAG dependent) (guide inside).lua">https://github.com/ReaTeam/ReaScripts/raw/75d124600d5a0509f3aa976ef4659d2ed7a0c33c/FX/BuyOne_FX%20presets%20navigation/BuyOne_Dedicated%20FX%20presets%20backwards%20switcher%20(TAG%20dependent)%20(guide%20inside).lua</source>
+        <source main="main" file="BuyOne_FX presets navigation/BuyOne_Extract focused FX preset count, active preset number and name.lua">https://github.com/ReaTeam/ReaScripts/raw/75d124600d5a0509f3aa976ef4659d2ed7a0c33c/FX/BuyOne_FX%20presets%20navigation/BuyOne_Extract%20focused%20FX%20preset%20count,%20active%20preset%20number%20and%20name.lua</source>
       </version>
     </reapack>
     <reapack name="BuyOne_Insert selected FX in OR copy focused FX to selected objects.lua" type="script" desc="Insert selected FX in OR copy focused FX to selected objects">
@@ -5382,14 +5388,21 @@ Fix: Expand error message when the library is missing]]></changelog>
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 This is a lua script based on MK SLICER 2 by @Cool for quick slicing, quantizing by grid, re-quantizing, triggering or sampling audio. This is an editing monster machine.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This is a lua script based on MK SLICER 2 by @Cool for quick slicing, quantizing by grid, re-quantizing, triggering or sampling audio.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The original script has been modified to make it work with multitrack selection, especially useful for drum editing.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 No more "dummy" exports needed for multitrack editing, the script will sum the multi selection automatically, create peaks and find transients.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 No more selecting grouped items before slicing and quantizing, the script will do it for you with SLICEMODE options.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Faster editing with Grid related functions, the script only seeks transients related to the grid division you set.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 All awesome MK Slicer 2 features like single track midi triggering and sampling and randomize funtions are still in.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 80icio MODS\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Multitrack selection, editing, filtering\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Reduce Hit Points by Grid division\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Leading PAD\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Reduce trig lines by Grid division\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab multitrack editing\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab multitrack filtering\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Added Mac Osx swipe gestures\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Improved GUI\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Slicemode\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Added Mac Osx trackpad swipe gestures\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Improved GUI with better Trig lines and better Grid lines\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Grid Tolerance for light editing on large grid division settings\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Better FFT filtering with smaller buffer for better transient precision\sa180\par}
 }
 ]]></description>
         <link rel="website" href="https://forum.cockos.com/showthread.php?p=2436358#post2436358">Forum Thread</link>
@@ -5400,6 +5413,10 @@ Fix: Expand error message when the library is missing]]></changelog>
       <version name="1.01" author="80icio" time="2021-04-25T15:24:50Z">
         <changelog><![CDATA[- Minimum distance from grid disabled]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/dbd2288d4415986bb3673f2571e88d67ebd70703/Items%20Editing/MK%20Slicer%20(80icio%20MOD).lua</source>
+      </version>
+      <version name="1.02" author="80icio" time="2021-05-08T09:01:56Z">
+        <changelog><![CDATA[- New Grid Tolerance parameters]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/8487e82fc1eeded443c25cb566381039de43d4e0/Items%20Editing/MK%20Slicer%20(80icio%20MOD).lua</source>
       </version>
     </reapack>
     <reapack name="mordi_Align grouped items to selected items respectively.lua" type="script" desc="Align grouped items to selected items respectively">
@@ -11920,12 +11937,16 @@ Don't report an error if no render presets were created yet]]></changelog>
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 Automatically inserts =START and =END to each side of time selection. Rendering Subprojects obey these two markers.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Automatically inserts =START and =END markers to each side of time selection. Rendering Subprojects obey these two markers.\par}
 }
 ]]></description>
       </metadata>
       <version name="1.0" author="Ugurcan Orcun" time="2021-04-05T21:59:36Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/afc6f45dca45a294449416472669c7f8d6e7e0f2/Rendering/uorcun_Insert%20start%20and%20end%20markers%20to%20time%20selection%20for%20subprojects.lua</source>
+      </version>
+      <version name="1.1" author="Ugurcan Orcun" time="2021-05-08T09:02:29Z">
+        <changelog><![CDATA[Script now first removes existing =START and =END markers to avoid confusion]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4f4716f4bac1708aee2fc427d3826897d087c8e5/Rendering/uorcun_Insert%20start%20and%20end%20markers%20to%20time%20selection%20for%20subprojects.lua</source>
       </version>
     </reapack>
   </category>
@@ -13583,6 +13604,9 @@ uc_track_name_abbreviations = \{"O-Out", "O-MID"\}\par}
       <version name="1.0" author="SPK77, SeXan" time="2016-04-27T18:53:05Z">
         <changelog><![CDATA[+ Initial Release]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/bf20af427620f6362c8ed47276cf7a2e73c8ffb7/Tracks%20Properties/spk77_Sexan_Folder%20Record%20and%20Monitor%20Arm%20To%20Children.lua</source>
+      </version>
+      <version name="1.0.1" author="SPK77, SeXan" time="2021-05-08T09:03:27Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/9a3a6faaa008b76c06849bf56c1c691e0a76908d/Tracks%20Properties/spk77_Sexan_Folder%20Record%20and%20Monitor%20Arm%20To%20Children.lua</source>
       </version>
     </reapack>
     <reapack name="tm_Set hardware outputs of selected tracks to post-fader.lua" type="script" desc="Set hardware outputs of selected tracks to post-fader">
