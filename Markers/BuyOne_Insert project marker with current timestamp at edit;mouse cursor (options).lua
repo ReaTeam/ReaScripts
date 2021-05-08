@@ -74,9 +74,9 @@ function hex2rgb(HEX_COLOR)
     return tonumber('0x'..hex:sub(1,2)), tonumber('0x'..hex:sub(3,4)), tonumber('0x'..hex:sub(5,6))
 end
 
-local HEX_COLOR = HEX_COLOR:gsub('%s','') -- remove empty spaces just in case
+local HEX_COLOR = type(HEX_COLOR) == 'string' and HEX_COLOR:gsub('%s','') -- remove empty spaces just in case
 -- default to black if color is improperly formatted
-local HEX_COLOR = (#HEX_COLOR < 4 or #HEX_COLOR > 7 or type(HEX_COLOR) ~= 'string' or HEX_COLOR == '') and '#000' or HEX_COLOR
+local HEX_COLOR = (not HEX_COLOR or type(HEX_COLOR) ~= 'string' or HEX_COLOR == '' or #HEX_COLOR < 4 or #HEX_COLOR > 7) and '#000' or HEX_COLOR
 -- extend shortened (3 digit) hex color code, duplicate each digit
 local HEX_COLOR = #HEX_COLOR == 4 and HEX_COLOR:gsub('%w','%0%0') or HEX_COLOR
 local R,G,B = hex2rgb(HEX_COLOR) -- R because r is already taken by reaper, the rest is for consistency
