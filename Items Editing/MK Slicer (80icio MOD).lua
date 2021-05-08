@@ -1,20 +1,33 @@
 -- @description MK Slicer (80icio MOD)
 -- @author 80icio
--- @version 1.01
--- @changelog - Minimum distance from grid disabled
+-- @version 1.02
+-- @changelog - New Grid Tolerance parameters
 -- @link Forum Thread https://forum.cockos.com/showthread.php?p=2436358#post2436358
 -- @about
 --   This is a lua script based on MK SLICER 2 by @Cool for quick slicing, quantizing by grid, re-quantizing, triggering or sampling audio.
---   This is an editing monster machine.
+--
+--   The original script has been modified to make it work with multitrack selection, especially useful for drum editing.
+--
+--   No more "dummy" exports needed for multitrack editing, the script will sum the multi selection automatically, create peaks and find transients.
+--
+--   No more selecting grouped items before slicing and quantizing, the script will do it for you with SLICEMODE options.
+--
+--   Faster editing with Grid related functions, the script only seeks transients related to the grid division you set.
+--
+--   All awesome MK Slicer 2 features like single track midi triggering and sampling and randomize funtions are still in.
+--
+--
 --
 --   80icio MODS
 --
+--   - Multitrack selection, editing, filtering
+--   - Reduce Hit Points by Grid division
 --   - Leading PAD
---   - Reduce trig lines by Grid division
---   - multitrack editing
---   - multitrack filtering
---   - Added Mac Osx swipe gestures
---   - Improved GUI
+--   - Slicemode
+--   - Added Mac Osx trackpad swipe gestures
+--   - Improved GUI with better Trig lines and better Grid lines
+--   - Grid Tolerance for light editing on large grid division settings 
+--   - Better FFT filtering with smaller buffer for better transient precision
 
 --[[
 
@@ -3212,7 +3225,7 @@ function()
 end
 -----------------Swing Slider------------------------ icio
 
-local Swing_Sld = O_Slider:new(577,5,130,20, 0.28,0.4,0.7,0.8, "","Arial",16, (Swing_Slider+1)/2 )
+local Swing_Sld = O_Slider:new(590,5,130,20, 0.28,0.4,0.7,0.8, "","Arial",16, (Swing_Slider+1)/2 )
 function Swing_Sld:draw_val()
 
   self.form_val  =  floor((((self.norm_val * 100)-50)*2)+0.5)   -- form_val
@@ -3268,6 +3281,8 @@ XFade_Sld.onUp =
 function() 
 
 end
+
+
 
 
 
@@ -3482,7 +3497,7 @@ local Velocity = Txt:new(788,384+corrY,55,18, 0.8,0.8,0.8,0.8, "Velocity","Arial
 ----------------------------------------
 
 local Slider_TB = {HP_Freq,LP_Freq,Fltr_Gain, 
-                   Gate_Thresh,Gate_Sensitivity,Gate_Retrig,Gate_ReducePoints,Offset_Sld,QStrength_Sld,LPad_Sld,Project}
+                   Gate_Thresh,Gate_Sensitivity,Gate_Retrig,Gate_ReducePoints,Offset_Sld,QStrength_Sld,LPad_Sld,Project}--
 
 local Slider_TB_Trigger = {Gate_VeloScale, VeloMode,OutNote, Velocity}
 
@@ -4634,7 +4649,7 @@ end
 
 
    
-local ChangeGrid  = CheckBox_Show:new(450,5,60,20, 0.28,0.4,0.7,0.8, "Grid: ","Arial",16, Grid_mode ,
+local ChangeGrid  = CheckBox_Show:new(450,5,60,20, 0.28,0.4,0.7,0.8, "Grid:","Arial",16, Grid_mode ,
                               {"1/1","1/2","1/3","1/4","1/6","1/8","1/12","1/16","1/24","1/32","1/48","1/64"} )
 ChangeGrid.onClick = 
 function()  
@@ -4653,7 +4668,23 @@ function()
     if ChangeGrid.norm_val == 12 then r.GetSetProjectGrid(0, true, 1/64, swing_mode, swingamt) end
   end
 end
+-------------------------------------------------
+-- Maximum distance from grid Slider ------------
+-------------------------------------------------
+grid_dist = srate*0.1
 
+local MDFG = CheckBox_Show:new(325,5,70,20, 0.28,0.4,0.7,0.8, "Grid Tolerance:","Arial",16, 2,{ "tight", "Moderate", "Large", "Disabled" } )
+MDFG.onClick = 
+function()  
+ 
+    if MDFG.norm_val == 1 then  grid_dist = srate*0.05 end
+    if MDFG.norm_val == 2 then  grid_dist = srate*0.1 end
+    if MDFG.norm_val == 3 then  grid_dist = srate*0.2 end
+    if MDFG.norm_val == 4 then  grid_dist = huge end
+    
+    Gate_Gl:Apply_toFiltered()
+
+end
 
 
 --------------------------------------------------
@@ -4676,7 +4707,7 @@ end
 -----------------------------------
 --- CheckBox_TB -------------------
 -----------------------------------
-CheckBox_TB = { Guides, EditMode, ChangeGrid }--{ViewMode, Guides, EditMode }
+CheckBox_TB = { Guides, EditMode, ChangeGrid, MDFG }--{ViewMode, Guides, EditMode }
 
 -----------------------------
 
@@ -4887,11 +4918,11 @@ Grid_blocks_Ruler[0] = 0
 self.grid_Points = {} 
 self.grid_Points_temp = {}
 
---local mindist = srate*0.05 -------  minimum distance from grid 50 ms
+--local grid_dist = srate*0.1 -------  minimum distance from grid 50 ms
 
 
  function getLowest(tbl)
- local low = math.huge
+ local low = huge
  local index
  for i, v in pairs(tbl) do
  if v < low then
@@ -4911,10 +4942,10 @@ self.grid_Points_temp = {}
             if self.State_Points[c] < Grid_blocks_Ruler[i] and self.State_Points[c] > (Grid_blocks_Ruler[i-2] or 0) then
                local diff = abs(self.State_Points[c] - Grid_blocks_Ruler[i-1])
                
-               --if diff <= mindist then
+               if diff <= grid_dist then
                self.grid_Points_temp[#self.grid_Points_temp+1] = diff
                idtotal[#idtotal+1] = c
-              -- end
+               end
             end
           end
           
@@ -7700,7 +7731,7 @@ function Init()
     -- Some gfx Wnd Default Values ---------------
     local R,G,B = 45,45,45              -- 0...255 format -- цвет основного окна
     local Wnd_bgd = R + G*256 + B*65536 -- red+green*256+blue*65536  
-    local Wnd_Title = "MK Slicer (80icio MOD) v1.0"
+    local Wnd_Title = "MK Slicer (80icio MOD)"
     local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
  --   Wnd_W,Wnd_H = 1044,490 -- global values(used for define zoom level)
 
