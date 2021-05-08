@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="9a3a6faaa008b76c06849bf56c1c691e0a76908d" name="ReaTeam Scripts">
+<index version="1" commit="9a03350b5fac0522c842ca1f0e72ba92bfe42b53" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -18622,6 +18622,30 @@ Added flashing green when clicking on ms or Hz label]]></changelog>
         <changelog><![CDATA[Added UpdateTimeline to make Time Signature show right bpm after session on Windows
 Added a check for time selection]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/275bb961de47173381394f3333640905ffaabb8b/Various/tompad_Practice%20coach.lua</source>
+      </version>
+    </reapack>
+    <reapack name="vo_Pomodoro.lua" type="script" desc="Pomodoro">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 {\field{\*\fldinst{HYPERLINK "https://en.wikipedia.org/wiki/Pomodoro_Technique"}}{\fldrslt{\ul
+Read about the Pomodoro technique
+}}}
+\line {\field{\*\fldinst{HYPERLINK "https://github.com/evgazloy/reaper-pomodoro"}}{\fldrslt{\ul
+Instruction
+}}}
+\par}
+}
+]]></description>
+        <link rel="website" href="https://github.com/evgazloy/reaper-pomodoro">GitHub</link>
+        <link rel="screenshot" href="https://i.ibb.co/PDvpWBh/main-full.png">Fullscreen</link>
+        <link rel="screenshot" href="https://i.ibb.co/Z8Cr1tF/main.png">Main</link>
+        <link rel="donation" href="https://paypal.me/evgazloy">Donate via PayPal</link>
+      </metadata>
+      <version name="1.0" author="vo" time="2021-05-08T09:11:01Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/9a03350b5fac0522c842ca1f0e72ba92bfe42b53/Various/vo_Pomodoro.lua</source>
       </version>
     </reapack>
   </category>
