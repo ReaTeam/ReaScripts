@@ -24,8 +24,8 @@ REAPER: at least v5.962
 -- 9 = current system locale
 
 TIME_FORMAT = 1       -- number of timestamp format from the above list
-HEX_COLOR = "#000" 		-- in HEX format, 6 or 3 digits, defaults to black if format is incorrect
-POS_POINTER = 1 		  -- 1 - Edit cursor, any other number - Mouse cursor
+HEX_COLOR = "#000"    -- in HEX format, 6 or 3 digits, defaults to black if format is incorrect
+POS_POINTER = 1       -- 1 - Edit cursor, any other number - Mouse cursor
 
 -----------------------------------------------------------------------------
 -------------------------- END OF USER SETTINGS -----------------------------
@@ -78,6 +78,7 @@ function hex2rgb(HEX_COLOR)
     return tonumber('0x'..hex:sub(1,2)), tonumber('0x'..hex:sub(3,4)), tonumber('0x'..hex:sub(5,6))
 end
 
+local HEX_COLOR = HEX_COLOR:gsub('%s','') -- remove empty spaces just in case
 -- default to black if color is improperly formatted
 local HEX_COLOR = (#HEX_COLOR < 4 or #HEX_COLOR > 7 or type(HEX_COLOR) ~= 'string' or HEX_COLOR == '') and '#000' or HEX_COLOR
 -- extend shortened (3 digit) hex color code, duplicate each digit
