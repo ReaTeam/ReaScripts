@@ -12,6 +12,8 @@ About:
   Sort takes of selected items by LUFS.
 ]]
 
+if not reaper.NF_AnalyzeTakeLoudness_IntegratedOnly then reaper.MB("This script requires the SWS/S&M extension.", "ERROR", 0) return end
+
 reaper.Undo_BeginBlock2(0)
 
 tItems = {}
