@@ -23,7 +23,7 @@ else
   get_item = reaper.GetMediaItem
 end
 
-items, winner = {}
+local items, winner = {}
 for i = 0, item_count - 1 do
   local item = get_item(nil, i)
   local take = reaper.GetActiveTake(item)
