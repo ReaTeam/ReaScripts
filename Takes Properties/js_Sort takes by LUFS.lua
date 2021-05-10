@@ -40,8 +40,8 @@ for item, tTakes in pairs(tItems) do
     reaper.Main_OnCommand(40289, 0) -- Item: Unselect all items
     reaper.SetMediaItemSelected(item, true)
     -- First sort inside table, then apply to item
-    -- This sorts loudest take on top. To sort loudest take at bottom, simply change < to >.
-    table.sort(tTakes, function(a, b) return (a.lufs < b.lufs) end) 
+    -- This sorts loudest take on top. To sort loudest take at bottom, simply change > to <.
+    table.sort(tTakes, function(a, b) return (a.lufs > b.lufs) end) 
     for t = #tTakes, 1, -1 do
         reaper.SetActiveTake(tTakes[t].take)
         reaper.Main_OnCommand(41380, 0) -- Item: Move active takes to top
