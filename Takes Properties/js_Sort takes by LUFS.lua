@@ -1,8 +1,9 @@
 --[[
 ReaScript name: js_Sort takes by LUFS.lua
-Version: 1.00
+Version: 1.01
 Changelog:
-  + Initial release.
+  + Check for SWS extension.
+  + Sort loudest at top.
 Author: juliansader
 Website: https://forum.cockos.com/showthread.php?t=253025
 Donation: https://www.paypal.me/juliansader
