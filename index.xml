@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="eb91acbda0b4e62b345a2f0e456bb8e81e045d91" name="ReaTeam Scripts">
+<index version="1" commit="3b642e3705c08c0ecddefd281c41aae93cff5759" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -12135,6 +12135,11 @@ Don't report an error if no render presets were created yet]]></changelog>
       <version name="1.00" author="juliansader" time="2021-05-10T10:37:29Z">
         <changelog><![CDATA[+ Initial release.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/eb91acbda0b4e62b345a2f0e456bb8e81e045d91/Takes%20Properties/js_Sort%20takes%20by%20LUFS.lua</source>
+      </version>
+      <version name="1.01" author="juliansader" time="2021-05-10T10:52:46Z">
+        <changelog><![CDATA[+ Check for SWS extension.
++ Sort loudest at top.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3b642e3705c08c0ecddefd281c41aae93cff5759/Takes%20Properties/js_Sort%20takes%20by%20LUFS.lua</source>
       </version>
     </reapack>
     <reapack name="Mordi_Add count of same-named takes to selected takes names (starting from 1).lua" type="script" desc="Add count of same-named takes to selected takes names (starting from 1)">
