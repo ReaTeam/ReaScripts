@@ -23,9 +23,9 @@ REAPER: at least v5.962
 -- 8 = mm.dd.yy - H:mm:ss AM/PM
 -- 9 = current system locale
 
-TIME_FORMAT = 1       -- number of timestamp format from the above list
-HEX_COLOR = "#000"    -- in HEX format, 6 or 3 digits, defaults to black if format is incorrect
-POS_POINTER = 1       -- 1 - Edit cursor, any other number - Mouse cursor
+local TIME_FORMAT = 1		-- number of timestamp format from the above list
+local HEX_COLOR = "#000"	-- in HEX format, 6 or 3 digits, defaults to black if format is incorrect
+local POS_POINTER = 1 		-- 1 - Edit cursor, any other number - Mouse cursor
 
 -----------------------------------------------------------------------------
 -------------------------- END OF USER SETTINGS -----------------------------
@@ -37,8 +37,8 @@ end
 
 local r = reaper
 
-local err1 = (type(TIME_FORMAT) ~= 'number' or TIME_FORMAT < 1 or TIME_FORMAT > 9) and 'Incorrect time format selection.\n\n     Must be between 1 and 9.'
-local err2 = type(POS_POINTER) ~= 'number' and 'Incorrect position pointer format.\n\n\tMust be a number.'
+local err1 = (not TIME_FORMAT or type(TIME_FORMAT) ~= 'number' or TIME_FORMAT < 1 or TIME_FORMAT > 9) and '       Incorrect timestamp format.\n\nMust be a number between 1 and 9.'
+local err2 = not POS_POINTER or type(POS_POINTER) ~= 'number' and 'Incorrect position pointer format.\n\n\tMust be a number.'
 local err = err1 or err2
 
 	if err then r.MB(err,'USER SETTINGS error',0) r.defer(function() end) return end
