@@ -1,4 +1,4 @@
--- @description Insert selected FX or FX chain preset in OR copy focused FX to selected objects
+-- @description Insert selected FX or FX chain presets in OR copy focused FX to selected objects
 -- @author BuyOne
 -- @website https://forum.cockos.com/member.php?u=134058
 -- @version 1.2
