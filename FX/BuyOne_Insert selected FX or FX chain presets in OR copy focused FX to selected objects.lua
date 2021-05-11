@@ -7,7 +7,7 @@
 --    Updated title to reflect capabilities
 --    Updated guide to reflect capabilities
 --    Updated undo caption to reflect name
--- @about Allows inserting multiple FX from FX browser or copying FX focused in an FX chain or in a floating window to selected objects. Detailed description is available inside the script.
+-- @about Allows inserting multiple FX or FX chain presets from FX browser or copying FX focused in an FX chain or in a floating window to selected objects. Detailed description is available inside the script.
 
 --[[
 * Licence: WTFPL
