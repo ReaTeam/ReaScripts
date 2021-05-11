@@ -185,7 +185,7 @@ r.Undo_BeginBlock()
 
 
 -- Concatenate undo point caption
-	local insert = 'Insert selected FX / FX chain preset'
+	local insert = 'Insert selected FX / FX chain preset '
 	local insert = (fx_brws == 1 and sel_trk_cnt > 0 and sel_itms_cnt > 0) and insert..'in selected objects' or ((fx_brws == 1 and sel_trk_cnt > 0) and insert..'on selected tracks' or ((fx_brws == 1 and sel_itms_cnt > 0) and insert..'in selected items'))
 	local copy = 'Copy focused FX '
 	local copy = (fx_chain and sel_trk_cnt > 0 and sel_itms_cnt > 0) and copy..'to selected objects' or ((fx_chain and sel_trk_cnt > 0) and copy..'to selected tracks' or ((fx_chain and sel_itms_cnt > 0) and copy..'to selected items'))
