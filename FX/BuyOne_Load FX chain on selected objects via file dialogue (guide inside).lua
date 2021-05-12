@@ -1,5 +1,5 @@
 --[[ 
-ReaScript name: Load FX chain on selected objects (guide inside)
+ReaScript name: Load FX chain on selected objects via file dialogue (guide inside)
 Author: BuyOne
 Website: https://forum.cockos.com/member.php?u=134058
 Version: 1.0
