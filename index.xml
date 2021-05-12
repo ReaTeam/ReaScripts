@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="cf6cf85f42f89faff71313d740681f0837a0e379" name="ReaTeam Scripts">
+<index version="1" commit="fe12b9c59cda53e294fa567b6bcf71dc28adcf8f" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -3088,28 +3088,26 @@ Improve "under mouse cursor" variants to work over any envelope]]></changelog>
         <source main="main" file="BuyOne_FX presets navigation/BuyOne_Extract focused FX preset count, active preset number and name.lua">https://github.com/ReaTeam/ReaScripts/raw/75d124600d5a0509f3aa976ef4659d2ed7a0c33c/FX/BuyOne_FX%20presets%20navigation/BuyOne_Extract%20focused%20FX%20preset%20count,%20active%20preset%20number%20and%20name.lua</source>
       </version>
     </reapack>
-    <reapack name="BuyOne_Insert selected FX in OR copy focused FX to selected objects.lua" type="script" desc="Insert selected FX in OR copy focused FX to selected objects">
+    <reapack name="BuyOne_Insert selected FX or FX chain presets in OR copy focused FX to selected objects.lua" type="script" desc="Insert selected FX or FX chain presets in OR copy focused FX to selected objects">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 Allows inserting multiple FX from FX browser or copying FX focused in an FX chain or in a floating window to selected objects. Detailed description is available inside the script.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Allows inserting multiple FX or FX chain presets from FX browser or copying FX focused in an FX chain or in a floating window to selected objects. Detailed description is available inside the script.\par}
 }
 ]]></description>
         <link rel="website">https://forum.cockos.com/member.php?u=134058</link>
       </metadata>
-      <version name="1.0" author="BuyOne" time="2021-04-04T01:08:02Z">
-        <changelog><![CDATA[Initial release]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/37e23ef9cc408699439728646fd321bac093573e/FX/BuyOne_Insert%20selected%20FX%20in%20OR%20copy%20focused%20FX%20to%20selected%20objects.lua</source>
-      </version>
-      <version name="1.1" author="BuyOne" time="2021-04-25T01:00:11Z">
-        <changelog><![CDATA[Proper takes support
-Slightly updated guide]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/1d48a5684d2719e4d4348a3aaefa4f8c6c0cd3b7/FX/BuyOne_Insert%20selected%20FX%20in%20OR%20copy%20focused%20FX%20to%20selected%20objects.lua</source>
+      <version name="1.2" author="BuyOne" time="2021-05-12T08:19:35Z">
+        <changelog><![CDATA[Minor error proofing
+Updated title to reflect capabilities
+Updated guide to reflect capabilities
+Updated undo caption to reflect name]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/7221d716269ec2ebcc1ea27dacf7498827451486/FX/BuyOne_Insert%20selected%20FX%20or%20FX%20chain%20presets%20in%20OR%20copy%20focused%20FX%20to%20selected%20objects.lua</source>
       </version>
     </reapack>
-    <reapack name="BuyOne_Load FX chain on selected objects (guide inside).lua" type="script" desc="Load FX chain on selected objects (guide inside)">
+    <reapack name="BuyOne_Load FX chain on selected objects via file dialogue (guide inside).lua" type="script" desc="Load FX chain on selected objects via file dialogue (guide inside)">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
@@ -3127,9 +3125,9 @@ Slightly updated guide]]></changelog>
 ]]></description>
         <link rel="website">https://forum.cockos.com/member.php?u=134058</link>
       </metadata>
-      <version name="1.0" author="BuyOne" time="2021-04-09T20:35:41Z">
+      <version name="1.0" author="BuyOne" time="2021-05-12T08:18:24Z">
         <changelog><![CDATA[Initial release]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a649f104b121590a762159a1a77e720aeb540fc5/FX/BuyOne_Load%20FX%20chain%20on%20selected%20objects%20(guide%20inside).lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4551e51f75cf24b3910865fd20df767cd3f14087/FX/BuyOne_Load%20FX%20chain%20on%20selected%20objects%20via%20file%20dialogue%20(guide%20inside).lua</source>
       </version>
     </reapack>
     <reapack name="BuyOne_Lock FX and FX chains.lua" type="script" desc="Lock FX and FX chains + Append or remove lock tag">
@@ -11676,6 +11674,32 @@ Replace GetLastWord func with quicker solution (Thanks: Mespotine[t=233393]).]]>
       <version name="0.1" author="Hector Corcin (HeDa)" time="2016-08-19T22:41:58Z">
         <changelog><![CDATA[+ init beta release]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b86db8f792ee8d5e7099ec3567468faadd9f65e8/Regions/HeDa_RegionMatrixAutoTrack.lua</source>
+      </version>
+    </reapack>
+    <reapack name="micheldejoode_Mute - unmute tracks per region by Region Render Matrix.lua" type="script" desc="Mute - unmute tracks per region by Region Render Matrix">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 #Mute - unmute tracks per region by Region Render Matrix\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Regions are a very powerful tool in Reaper, especially when used with the SWS Region Playlist.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This script extends this functionality by letting you mute / unmute tracks per region by using the Region Render Matrix. The script runs in the background and will watch for region changes. You can terminate the script at the Actions menu.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 With this script you can easily create buildups by copying some regions and then mute / unmute tracks in the Region Render Matrix.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Instructions:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 1.\tx360\tab create some tracks\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 2.\tx360\tab create some regions\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 3.\tx360\tab start the script (could be at every step)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 4.\tx360\tab Optional but recommended: start the Region Playlist (add your regions and set the loop counts, and press play)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 5.\tx360\tab use the Region Render Matrix to mute / unmute tracks per region\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Tip: it works best by disabling this setting in Options --> Audio --> Mute/Solo "Do not process muted tracks". If not, you can hear some distortion on switching regions while playing.\par}
+}
+]]></description>
+        <link rel="website" href="https://github.com/micheldejoode/reaper-scripts/tree/main/Mute_unmute_tracks">Github</link>
+      </metadata>
+      <version name="1.0" author="Michel de Joode" time="2021-05-12T08:20:11Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/fe12b9c59cda53e294fa567b6bcf71dc28adcf8f/Regions/micheldejoode_Mute%20-%20unmute%20tracks%20per%20region%20by%20Region%20Render%20Matrix.lua</source>
       </version>
     </reapack>
     <reapack name="Mordi_Create single region from selected items (get name and color from folder track).lua" type="script" desc="Create single region from selected items (get name and color from folder track)">
