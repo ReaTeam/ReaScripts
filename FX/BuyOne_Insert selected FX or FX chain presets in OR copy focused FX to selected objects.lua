@@ -1,30 +1,35 @@
--- @description Insert selected FX in OR copy focused FX to selected objects
+-- @description Insert selected FX or FX chain presets in OR copy focused FX to selected objects
 -- @author BuyOne
 -- @website https://forum.cockos.com/member.php?u=134058
--- @version 1.1
+-- @version 1.2
 -- @changelog
---    Proper takes support
---    Slightly updated guide
--- @about Allows inserting multiple FX from FX browser or copying FX focused in an FX chain or in a floating window to selected objects. Detailed description is available inside the script.
+--    Minor error proofing
+--    Updated title to reflect capabilities
+--    Updated guide to reflect capabilities
+--    Updated undo caption to reflect name
+-- @about Allows inserting multiple FX or FX chain presets from FX browser or copying FX focused in an FX chain or in a floating window to selected objects. Detailed description is available inside the script.
 
 --[[
 * Licence: WTFPL
 * REAPER: at least v5.962
 
-—— To insert FX in multiple objects (tracks and/or items) at once open the FX Browser, select FX,
-as many as needed, select the destination objects and run the script.
+—— To insert FX or FX chain preset in multiple objects (tracks and/or items) at once open the FX 
+Browser, select FX or FX chain preset, as many as needed, select the destination objects and run 
+the script.
 
 —— To copy FX to multiple objects at once select an FX in an open and focused FX chain or focus
 its floating window, select the destination objects and run the script
 
-—— Inserting FX in / copying to Monitor FX chain cannot be undone because the data gets written by
-the program to an external file and stored there.
+—— Inserting FX or FX chain preset in / copying FX to Monitor FX chain cannot be undone because 
+the data gets written by the program to an external file and stored there.
 
-—— In the USER SETTINGS you can disable objects which you don't want FX to be inserted in or
-copied to.
-This is useful for avoiding accidental adding FX to objects which were unintentionally selected.
+—— In the USER SETTINGS you can disable objects which you don't want FX or FX chain preset to be 
+inserted in or FX copied to.
+This is useful for avoiding accidental adding FX or FX chain presets to objects which were 
+unintentionally selected.
 You can create a copy of the script with a slightly different name and dedicate each copy to
-inserting FX in / copying FX to objects of specific kind determined by the USER SETTINGS.
+inserting FX or FX chain preset in / copying FX to objects of specific kind determined by the 
+USER SETTINGS.
 If default settings are kept it may be useful to run actions 'Item: Unselect all items' or
 'Track: Unselect all tracks' after destination object has been selected, to exclude objects of
 an unwanted type.
@@ -85,7 +90,7 @@ local TAKE_FX = TAKE_FX:gsub('[%s]','') ~= ''
 	local src_trk = r.GetTrack(0, src_trk_num-1) or r.GetMasterTrack(0)
 	local src_item = src_trk_num ~= 0 and r.GetTrackMediaItem(src_trk, src_item_num)
 	local src_take = retval == 2 and r.GetMediaItemTake(src_item, src_fx_num>>16) -- retval to avoid error when src_item_num = -1 due to track fx chain
-	local same_take = r.GetMediaItemTakeInfo_Value(src_take, 'IP_TAKENUMBER') == r.GetMediaItemTakeInfo_Value(r.GetActiveTake(src_item), 'IP_TAKENUMBER') -- evaluation if focused fx chain belongs to the active take to avoid copying to the source, but allow copying to other takes, for error message below
+	local same_take = src_take and r.GetMediaItemTakeInfo_Value(src_take, 'IP_TAKENUMBER') == r.GetMediaItemTakeInfo_Value(r.GetActiveTake(src_item), 'IP_TAKENUMBER') -- evaluation if focused fx chain belongs to the active take to avoid copying to the source, but allow copying to other takes, for error message below
 	local src_mon_fx_idx = GetMonFXProps() -- get Monitor FX
 	local sel_trk_cnt = r.CountSelectedTracks2(0,true) -- incl. Master
 	local sel_itms_cnt = r.CountSelectedMediaItems(0)
@@ -180,7 +185,7 @@ r.Undo_BeginBlock()
 
 
 -- Concatenate undo point caption
-	local insert = 'Insert selected FX '
+	local insert = 'Insert selected FX / FX chain preset '
 	local insert = (fx_brws == 1 and sel_trk_cnt > 0 and sel_itms_cnt > 0) and insert..'in selected objects' or ((fx_brws == 1 and sel_trk_cnt > 0) and insert..'on selected tracks' or ((fx_brws == 1 and sel_itms_cnt > 0) and insert..'in selected items'))
 	local copy = 'Copy focused FX '
 	local copy = (fx_chain and sel_trk_cnt > 0 and sel_itms_cnt > 0) and copy..'to selected objects' or ((fx_chain and sel_trk_cnt > 0) and copy..'to selected tracks' or ((fx_chain and sel_itms_cnt > 0) and copy..'to selected items'))
