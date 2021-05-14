@@ -1,6 +1,7 @@
 -- @description Select the item with highest or lowest pitch
 -- @author cfillion
--- @version 1.0
+-- @version 1.0.1
+-- @changelog Don't crash when there are no items in the current project
 -- @metapackage
 -- @provides
 --   [main] . > cfillion_Select the item with highest pitch.lua
@@ -36,13 +37,15 @@ end
 
 reaper.Undo_BeginBlock()
 
-for _, item in ipairs(items) do
-  if item ~= winner.item then
-    reaper.SetMediaItemSelected(item, false)
+if winner then
+  for _, item in ipairs(items) do
+    if item ~= winner.item then
+      reaper.SetMediaItemSelected(item, false)
+    end
   end
-end
 
-reaper.SetMediaItemSelected(winner.item, true)
+  reaper.SetMediaItemSelected(winner.item, true)
+end
 
 reaper.UpdateArrange()
 reaper.Undo_EndBlock(script_name, 0)
