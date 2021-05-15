@@ -1,7 +1,9 @@
 -- @description Match criteria (match with BWF and iXML metadata)
 -- @author Rodilab
 -- @version 1.2
--- @changelog Fix bug on Windows
+-- @changelog
+--   Now works with ReaImGui API extension
+--   Fix bug on Windows
 -- @screenshot Match Criteria GUI https://www.rodrigodiaz.fr/prive/Match_Criteria.png
 -- @about
 --   Search for matches to audio files in a folder, according to the matching criteria in the BWF and iXML metadata.
