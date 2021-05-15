@@ -1,8 +1,44 @@
--- @noindex
+-- @description Live keys scripts
+-- @author Larry Seyer
+-- @version 1.0
+-- @provides
+--   [nomain] .
+--   [main] larryseyer_Live keys scripts/action.lua > larryseyer_Live keys scripts - Track 1.lua
+--   [main] larryseyer_Live keys scripts/action.lua > larryseyer_Live keys scripts - Track 2.lua
+--   [main] larryseyer_Live keys scripts/action.lua > larryseyer_Live keys scripts - Track 3.lua
+--   [main] larryseyer_Live keys scripts/action.lua > larryseyer_Live keys scripts - Track 4.lua
+--   [main] larryseyer_Live keys scripts/action.lua > larryseyer_Live keys scripts - Track 5.lua
+--   [main] larryseyer_Live keys scripts/action.lua > larryseyer_Live keys scripts - Track 6.lua
+--   [main] larryseyer_Live keys scripts/action.lua > larryseyer_Live keys scripts - Track 7.lua
+--   [main] larryseyer_Live keys scripts/action.lua > larryseyer_Live keys scripts - Track 8.lua
+--   [main] larryseyer_Live keys scripts/action.lua > larryseyer_Live keys scripts - Track 9.lua
+--   [main] larryseyer_Live keys scripts/action.lua > larryseyer_Live keys scripts - Track 10.lua
+--   [main] larryseyer_Live keys scripts/action.lua > larryseyer_Live keys scripts - Track 11.lua
+--   [main] larryseyer_Live keys scripts/action.lua > larryseyer_Live keys scripts - Track 12.lua
+--   [main] larryseyer_Live keys scripts/action.lua > larryseyer_Live keys scripts - Track 13.lua
+--   [main] larryseyer_Live keys scripts/action.lua > larryseyer_Live keys scripts - Track 14.lua
+--   [main] larryseyer_Live keys scripts/action.lua > larryseyer_Live keys scripts - Track 15.lua
+--   [main] larryseyer_Live keys scripts/action.lua > larryseyer_Live keys scripts - Track 16.lua
+--   [main] larryseyer_Live keys scripts/action.lua > larryseyer_Live keys scripts - Reset.lua
+-- @link
+--   How-To Install Video https://www.youtube.com/watch?v=g506QrJ19-4
+--   Author Website https://larryseyer.com/
+--   Donation Page https://larryseyer.com/donate/
+-- @about
+--   Live Keys Scripts (NOW WORKS WITH MAC AND WINDOWS)
+--
+--   These scripts are designed for those who want to use Reaper for live performance such as a replacement for MainStage.
+--
+--   Using these scripts saves computing power by turning off ALL tracks and FX (up to 16 tracks) except the desired track allowing for more stable operation for a live performance using Reaper. Tracks that are disabled take no processing power.
+--
+--   This script differs from other scripts in that it allows for instantaneous switching from one track to another without cutting notes or effects off. In other words, delays, reverbs, and long string patches continue to sound when selecting new tracks.
+--
+--   In addition, bypassed tracks and FX are hidden out of view and only the selected track is visible (up to 16 tracks). This is done in order to allow for the automatic large track size increase when a track is selected this script performs.
 
 --
 -- Live_Inst (c) 2021 Larry Seyer All rights reserved
 -- http://LarrySeyer.com
+--
 
 -- function msg(value)
 --      reaper.ShowConsoleMsg(tostring(value) .. "\n")
@@ -10,13 +46,6 @@
 
 max_live_tracks = 16 -- one based
 current_track_height_override = 765
-
-function get_script_path()
-  if reaper.GetOS() == "Win32" or reaper.GetOS() == "Win64" then
-    return debug.getinfo(1,'S').source:match("(.*".."\\"..")"):sub(2) .. "\\" -- remove "@"
-  end
-    return debug.getinfo(1,'S').source:match("(.*".."/"..")"):sub(2) .. "/"
-end
 
 -- SAVE/RESTORE DATA
 function setValue(key, value)
@@ -113,7 +142,3 @@ function Live_Inst_Main_Logic(this_live_track)
     reaper.UpdateArrange()
     reaper.PreventUIRefresh(-1)
 end
-
-
-
-
