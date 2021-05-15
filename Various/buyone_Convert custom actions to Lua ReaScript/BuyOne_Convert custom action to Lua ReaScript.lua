@@ -43,7 +43,7 @@ Limitations:
 
 2. Doesn't export or parse SWS cycle actions only saving command IDs of those which are happen to be included in custom actions. This is also true for ReaScripts included in custom actions.
 
-The exported script will malfunction if such nested custom or SWS cycle actions or ReaScripts become anavilable.
+The exported script will malfunction if such nested custom or SWS cycle actions or ReaScripts become unavilable.
 
 3. Inline MIDI Editor custom actions are not supported.
 
