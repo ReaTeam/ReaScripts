@@ -1,19 +1,10 @@
 -- @description Color palette
 -- @author Rodilab
--- @version 1.7
+-- @version 1.8
 -- @changelog
---   [Ctrl+S] / [Cmd+S] Save as
---   [Ctrl+O] / [Cmd+O] Load
---   [I] remplace [O] for "Run In Order action"
---   Default color now works with Markers/Regions
---   New 'Copied' tooltip when using [Ctrl+C] shortcut
---   New 'About' tab in Settings
---   Fix broken dock mode position
---   Browse dialog don't need restart the context anymore on non-Mac OS
---   Off screen position fixed on Windows
---   Fix Marker/Region name when selecting in Manager
---   Fix 'Copy hex' user colors bug
---   Fix SWS Startup / Lokasenna Radial Menu bug
+--   - Fix Y position bug on Mac
+--   - Click on url opens the link in Settings / About
+--   - Some minors code improvement
 -- @about
 --   # Color tool with customizable color gradient palette and a user palette.
 --
@@ -59,9 +50,9 @@
 --   - Ctrl+C : Copy hex color under mouse cursor in clipboard
 --   - Ctrl+V : Paste hex color from clipboard under mouse cursor
 --   - Spacebar : Check/Uncheck color under mouse cursor, only on "Check list" mode for Random / In Order
---   - [Ctrl+S] / [Cmd+S] : Save as user colors 
+--   - [Ctrl+S] / [Cmd+S] : Save as user colors
 --   - [Ctrl+O] / [Cmd+O] : Load user colors file
---   - Many settings... read the "Help" tab in Settings window
+--   - Many settings...
 --
 --   by Rodrigo Diaz (aka Rodilab)
 
@@ -87,7 +78,7 @@ end
 if r.APIExists('CF_GetClipboard') == true then
   if r.APIExists('ImGui_CreateContext') == true then
     local imgui_version, reaimgui_version = r.ImGui_GetVersion()
-    if TestVersion(reaimgui_version,{0,3,1}) then
+    if TestVersion(reaimgui_version,{0,3,2}) then
       if r.APIExists('JS_Dialog_BrowseForOpenFiles') == true then
         if not OS_Mac or not r_version or r_version >= 6.28 then
 -- Colors
@@ -100,9 +91,11 @@ col_border = r.ImGui_ColorConvertHSVtoRGB(0,0,1,1)
 button_back = r.ImGui_ColorConvertHSVtoRGB(0,0,0.27,1)
 button_hover = r.ImGui_ColorConvertHSVtoRGB(0,0,0.32,1)
 button_active = r.ImGui_ColorConvertHSVtoRGB(0,0,0.4,1)
+arm_button_col = r.ImGui_ColorConvertHSVtoRGB(0,0.6,0.4,1)
+arm_hover_col = r.ImGui_ColorConvertHSVtoRGB(0,0.6,0.5,1)
+arm_active_col = r.ImGui_ColorConvertHSVtoRGB(0,0.6,0.6,1)
 circle_col = r.ImGui_ColorConvertHSVtoRGB(0,0,1,1)
 circle_border_col = r.ImGui_ColorConvertHSVtoRGB(0,0,0,0.7)
-
 -- Flags
 windows_flag = r.ImGui_WindowFlags_NoDecoration()
 popup_flags = r.ImGui_WindowFlags_NoMove() | r.ImGui_WindowFlags_NoResize()
@@ -117,6 +110,11 @@ FLT_MIN = 1.17549e-38
 recalc_colors = true
 settings = 0
 open_context = r.GetCursorContext2(true)
+if open_context and open_context > 0 then
+  target_button = open_context + 2
+else
+  target_button = 2
+end
 extension_list = "Text file (.txt)\0*.txt\0\0"
 target_category_list = {1,1,2,2,2,3,3,3}
 target_button_list = {'Tracks by Name','Tracks','Items','Takes','T Marks','Markers','Regions','Mk & Rg'}
@@ -129,6 +127,8 @@ seltracks_colors = {}
 manager_focus = 0
 trackmanager_title = r.JS_Localize('Track Manager',"common")
 regionmanager_title = r.JS_Localize('Region/Marker Manager',"common")
+last_left_click = 0
+last_right_click = 0
 -- Shortcut
 keycode =
   {esc=27, enter=13, backspace=8, delete=46, space=32,
@@ -255,6 +255,11 @@ end
 ---------------------------------------------------------------------------------
 --- Ext State -------------------------------------------------------------------
 ---------------------------------------------------------------------------------
+
+reaper.atexit(function()
+  ExtState_Save()
+  SaveColorFile(last_palette_on_exit)
+end)
 
 function CommastringToList(string)
   local list = {}
@@ -568,10 +573,9 @@ function align_groups(i)
 end
 
 function get_window_pos()
-  rv, conf.x, conf.y,ctx_right,ctx_bottom = r.JS_Window_GetClientRect(hwnd)
-  if not OS_Win then
-    conf.y = conf.y - 10
-  end
+  local rv, left, top, right, bottom = r.JS_Window_GetClientRect(hwnd)
+  conf.x, conf.y = left, OS_Mac and bottom or top
+  ctx_bottom = OS_Mac and top or bottom
 end
 
 function get_tmp_values()
@@ -668,6 +672,30 @@ end
 ---------------------------------------------------------------------------------
 --- Actions ---------------------------------------------------------------------
 ---------------------------------------------------------------------------------
+
+function main_action(color,palette,id)
+  if not color then return end
+  if mods_left[mods] == 2 then
+    SetColor(color,false)
+  elseif mods_left[mods] == 3 then
+    SetColor(color,true)
+  elseif mods_left[mods] == 4 then
+    insert_new_target(color)
+  elseif mods_left[mods] == 5 then
+    last_color = color
+    r.ImGui_OpenPopup(ctx,'Name Input')
+  elseif mods_left[mods] == 6 then
+    select_target(color)
+  elseif mods_left[mods] == 7 then
+    if palette and id then
+      if palette == 'palette' then
+        checklist_palette[id] = not checklist_palette[id]
+      elseif palette == 'usercolors' then
+        checklist_usercolors[id] = not checklist_usercolors[id]
+      end
+    end
+  end
+end
 
 function set_firstuser_defaulttracks()
   if usercolors[1] then
@@ -767,6 +795,8 @@ function get_target_infos()
   elseif category == 3 then
     local rv, num_markers, num_regions = reaper.CountProjectMarkers(0)
     count = num_markers + num_regions
+  else
+    count = 0
   end
   if category == 3 or what == 'T Marks' then
     time_sel_start, time_sel_end = reaper.GetSet_LoopTimeRange(false,false,0,0,false)
@@ -827,47 +857,49 @@ function get_sel_target_colors_list()
     count = #manager_tracks_list
   end
   -- For each target
-  for i=0, count-1 do
-    local color = nil
-    if category == 1 then
-      local track
-      if manager_tracks_list then
-        track = reaper.GetTrack(0,manager_tracks_list[i+1]-1)
-      else
-        track = reaper.GetSelectedTrack(0,i)
-      end
-      if track then
-        color = reaper.GetMediaTrackInfo_Value(track,"I_CUSTOMCOLOR")
-      else
-        break
-      end
-    elseif category == 2 then
-      local item = reaper.GetSelectedMediaItem(0,i)
-      if what == 'Items' then
-        color = reaper.GetMediaItemInfo_Value(item,"I_CUSTOMCOLOR")
-      else
-        local take = reaper.GetActiveTake(item)
-        if what == 'Takes' then
-          color = reaper.GetMediaItemTakeInfo_Value(take,"I_CUSTOMCOLOR")
-        elseif what == 'T Marks' then
-          for j=0, reaper.GetNumTakeMarkers(take)-1 do
-            local rv, name, tmark_color = reaper.GetTakeMarker(take,j)
-            if tmark_color then
-              seltracks_colors[r.ImGui_ColorConvertNative(tmark_color) & 0xffffff]=true
+  if count > 0 then
+    for i=0, count-1 do
+      local color = nil
+      if category == 1 then
+        local track
+        if manager_tracks_list then
+          track = reaper.GetTrack(0,manager_tracks_list[i+1]-1)
+        else
+          track = reaper.GetSelectedTrack(0,i)
+        end
+        if track then
+          color = reaper.GetMediaTrackInfo_Value(track,"I_CUSTOMCOLOR")
+        else
+          break
+        end
+      elseif category == 2 then
+        local item = reaper.GetSelectedMediaItem(0,i)
+        if what == 'Items' then
+          color = reaper.GetMediaItemInfo_Value(item,"I_CUSTOMCOLOR")
+        else
+          local take = reaper.GetActiveTake(item)
+          if what == 'Takes' then
+            color = reaper.GetMediaItemTakeInfo_Value(take,"I_CUSTOMCOLOR")
+          elseif what == 'T Marks' then
+            for j=0, reaper.GetNumTakeMarkers(take)-1 do
+              local rv, name, tmark_color = reaper.GetTakeMarker(take,j)
+              if tmark_color then
+                seltracks_colors[r.ImGui_ColorConvertNative(tmark_color) & 0xffffff]=true
+              end
             end
           end
         end
+      elseif category == 3 then
+        local is_selected, rv, isrgn, pos, rgnend, name, markrgnindexnumber, tmp_color = is_marker_selected(i,what,manager_regions_list)
+        if is_selected == true then
+          color = tmp_color
+        else
+          color = nil
+        end
       end
-    elseif category == 3 then
-      local is_selected, rv, isrgn, pos, rgnend, name, markrgnindexnumber, tmp_color = is_marker_selected(i,what,manager_regions_list)
-      if is_selected == true then
-        color = tmp_color
-      else
-        color = nil
+      if color then
+        seltracks_colors[r.ImGui_ColorConvertNative(color) & 0xffffff]=true
       end
-    end
-    if color then
-      seltracks_colors[r.ImGui_ColorConvertNative(color) & 0xffffff]=true
     end
   end
 end
@@ -1370,13 +1402,6 @@ end
 --- ImGui -----------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 
-reaper.atexit(function()
-  ExtState_Save()
-  SaveColorFile(last_palette_on_exit)
-end)
-
-last_left_click = 0
-last_right_click = 0
 function get_last_context()
   local left_click = r.JS_Mouse_GetState(1)
   local right_click = r.JS_Mouse_GetState(2)
@@ -1426,27 +1451,13 @@ function get_last_context()
   last_right_click = right_click
 end
 
-function main_action(color,palette,id)
-  if not color then return end
-  if mods_left[mods] == 2 then
-    SetColor(color,false)
-  elseif mods_left[mods] == 3 then
-    SetColor(color,true)
-  elseif mods_left[mods] == 4 then
-    insert_new_target(color)
-  elseif mods_left[mods] == 5 then
-    last_color = color
-    r.ImGui_OpenPopup(ctx,'Name Input')
-  elseif mods_left[mods] == 6 then
-    select_target(color)
-  elseif mods_left[mods] == 7 then
-    if palette and id then
-      if palette == 'palette' then
-        checklist_palette[id] = not checklist_palette[id]
-      elseif palette == 'usercolors' then
-        checklist_usercolors[id] = not checklist_usercolors[id]
-      end
-    end
+function urlOpen(url)
+  if OS_Win then
+    reaper.ExecProcess('cmd.exe /C start "" "' .. url .. '"', 0)
+  elseif OS_Mac then
+    reaper.ExecProcess("/usr/bin/open " .. url, 0)
+  else
+    reaper.ExecProcess('xdg-open "' .. url .. '"', 0)
   end
 end
 
@@ -1526,18 +1537,10 @@ function loop()
         y = nil
       else
         get_window_pos()
-        x = conf.x
-        if x < 0 then x = 0 end
-        if OS_Win then
-          y = conf.y - settings_heigth - 45
-          if y < settings_heigth then
-            y = ctx_bottom + 45
-          end
-        else
-          y = ctx_bottom - 35
-          if y < settings_heigth then
-            y = conf.y + settings_heigth + 30
-          end
+        x = math.max(conf.x,0)
+        y = conf.y - settings_heigth - 40
+        if y < settings_heigth then
+          y = ctx_bottom + 40
         end
       end
       ctx2 = r.ImGui_CreateContext(script_name.." - Settings",settings_width,settings_heigth,x,y)
@@ -1680,26 +1683,17 @@ function loop()
         r.ImGui_EndTabItem(ctx2)
       end
       if r.ImGui_BeginTabItem(ctx2,'About') then
-        r.ImGui_TextDisabled(ctx2,'Click to copy url link')
+        r.ImGui_TextDisabled(ctx2,'Click to open url')
         r.ImGui_Spacing(ctx2)
         r.ImGui_Bullet(ctx2)
         if r.ImGui_Selectable(ctx2,'Discuss in REAPER forum thread') then
-          r.ImGui_SetClipboardText(ctx2,'https://forum.cockos.com/showthread.php?t=252219')
-          Tooltip = 0
+          urlOpen("https://forum.cockos.com/showthread.php?t=252219")
         end
         r.ImGui_Bullet(ctx2)
         if r.ImGui_Selectable(ctx2,'Support with a Paypal donation') then
-          r.ImGui_SetClipboardText(ctx2,'https://www.paypal.com/donate?hosted_button_id=N5DUAELFWX4DC')
-          Tooltip = 0
+          urlOpen("https://www.paypal.com/donate?hosted_button_id=N5DUAELFWX4DC")
         end
         r.ImGui_EndTabItem(ctx2)
-        if Tooltip then
-          Tooltip = Tooltip + 1
-          r.ImGui_BeginTooltip(ctx2)
-          r.ImGui_Text(ctx2,'Copied')
-          r.ImGui_EndTooltip(ctx2)
-          if Tooltip > 20 then Tooltip = nil end
-        end
       end
       r.ImGui_EndTabBar(ctx2)
     end
@@ -2299,7 +2293,7 @@ r.defer(loop)
         end
       end
     else
-      r.ShowMessageBox("Please update v0.3.1 or later of \"js_ReaScriptAPI: API functions for ReaScripts\" with ReaPack and restart Reaper",script_name,0)
+      r.ShowMessageBox("Please update v0.3.2 or later of \"js_ReaScriptAPI: API functions for ReaScripts\" with ReaPack and restart Reaper",script_name,0)
       local ReaPack_exist = r.APIExists('ReaPack_BrowsePackages')
       if ReaPack_exist == true then
         r.ReaPack_BrowsePackages('js_ReaScriptAPI: API functions for ReaScripts')
