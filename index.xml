@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="f9125b102255d8da04772bd514e860c78b352fd4" name="ReaTeam Scripts">
+<index version="1" commit="10f4cdd489ec112557241b87eaa9946bb2cbecd8" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -18273,7 +18273,7 @@ Thread in Cockos forum
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Spacebar : Check/Uncheck color under mouse cursor, only on "Check list" mode for Random / In Order\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab [Ctrl+S] / [Cmd+S] : Save as user colors\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab [Ctrl+O] / [Cmd+O] : Load user colors file\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Many settings... read the "Help" tab in Settings window\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Many settings...\sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 by Rodrigo Diaz (aka Rodilab)\par}
 }
 ]]></description>
@@ -18340,6 +18340,12 @@ Fix Marker/Region name when selecting in Manager
 Fix 'Copy hex' user colors bug
 Fix SWS Startup / Lokasenna Radial Menu bug]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4d04ac28e401847fec58ab38ef7ef01909002ac9/Various/rodilab_Color%20palette.lua</source>
+      </version>
+      <version name="1.8" author="Rodilab" time="2021-05-17T09:50:08Z">
+        <changelog><![CDATA[- Fix Y position bug on Mac
+- Click on url opens the link in Settings / About
+- Some minors code improvement]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/10f4cdd489ec112557241b87eaa9946bb2cbecd8/Various/rodilab_Color%20palette.lua</source>
       </version>
     </reapack>
     <reapack name="rodilab_Smart remove.lua" type="script" desc="Smart remove">
