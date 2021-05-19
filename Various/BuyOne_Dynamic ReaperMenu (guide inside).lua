@@ -57,8 +57,8 @@ the USER SETTINGS.
 The sections *Main* and *Main (alt recording)* share the same content, therefore
 the script added to the *Main* section in the *Main (alt recording)* section will have
 the same menu.  
-If this script has been installed via ReaPack application it has been added to both
-*Main* and *MIDI Event List Editor* sections of the Action list.  
+If this script has been installed via ReaPack application it has been automaticaly 
+added to both *Main* and *MIDI Event List Editor* sections of the Action list.  
 Besides that, multiple instances of the script can be created under slightly different
 names, loaded into any or all 3.5 mentioned sections of the Action list and used with
 different .ReaperMenu files in parallel.  
