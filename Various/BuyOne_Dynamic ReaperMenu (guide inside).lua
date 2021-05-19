@@ -1,4 +1,3 @@
-
 --[[
 ReaScript name: Dynamic ReaperMenu
 Provides: [main=main,midi_editor] .
