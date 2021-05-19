@@ -122,7 +122,7 @@ local file = file:match('%s*(.*)%s*') -- trim leading and trailing spaces just i
 -- evaluate path
 local file_exists = r.file_exists(file)
 local file_tmp = io.open(file, 'r')
-local menu_code = file_tmp and file_tmp:read('*a') -- to prevent error when file is invalids
+local menu_code = file_tmp and file_tmp:read('*a') -- to prevent error when file is invalid
 local f_close = file_tmp and file_tmp:close() -- to prevent error when file is invalid
 local empty = menu_code and menu_code == '' and 'is empty'
 local invalid = menu_code and not menu_code:match('item_%d*=') and 'is invalid' -- no menu tags
