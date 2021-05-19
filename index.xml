@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="30814a927a1b28c7baf14c8bea8a5e3f9d2871ae" name="ReaTeam Scripts">
+<index version="1" commit="a3db981944b666777be6abd02c073ee0da4730ba" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -18357,6 +18357,10 @@ Fix SWS Startup / Lokasenna Radial Menu bug]]></changelog>
 - Click on url opens the link in Settings / About
 - Some minors code improvement]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/10f4cdd489ec112557241b87eaa9946bb2cbecd8/Various/rodilab_Color%20palette.lua</source>
+      </version>
+      <version name="1.8.1" author="Rodilab" time="2021-05-19T23:55:16Z">
+        <changelog><![CDATA[Updated due to the new version of ReaImGui v0.4.0]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a3db981944b666777be6abd02c073ee0da4730ba/Various/rodilab_Color%20palette.lua</source>
       </version>
     </reapack>
     <reapack name="rodilab_Smart remove.lua" type="script" desc="Smart remove">
