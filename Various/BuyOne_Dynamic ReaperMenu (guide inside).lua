@@ -1,10 +1,10 @@
 --[[
 ReaScript name: Dynamic ReaperMenu
-Provides: [main=main,midi_editor] .
 Author: BuyOne
 Website: https://forum.cockos.com/member.php?u=134058
 Version: 1.0
 Changelog: Initial release
+Provides: [main=main,midi_editor] .
 About:
 
 #### GUIDE
