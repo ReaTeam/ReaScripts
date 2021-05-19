@@ -1,19 +1,16 @@
 -- @description Show all saved nudge settings
--- @version 2.1
--- @changelog
---   add actions for nudging left/right by last selected settings [p=1893932]
---   disable Nudge left/right buttons when in Set mode [p=1893932]
---   don't override the Last settings when the edit it cancelled into a slot
---   remember the previously selected slot
---   show "Saved!" message for 2 seconds after saving settings into a slot
 -- @author cfillion
--- @link cfillion.ca https://cfillion.ca
--- @donation https://www.paypal.me/cfillion
--- @screenshot https://i.imgur.com/5o3OIyf.png
+-- @version 3.0
+-- @changelog
+--   Add a dock option in the right click context menu
+--   Rewrite the script's user interface using ReaImGui
 -- @provides
---   [main] .
+--   .
 --   [main] . > cfillion_Nudge left by selected saved nudge dialog settings.lua
 --   [main] . > cfillion_Nudge right by selected saved nudge dialog settings.lua
+-- @link cfillion.ca https://cfillion.ca
+-- @screenshot https://i.imgur.com/5o3OIyf.png
+-- @donation https://www.paypal.me/cfillion
 -- @about
 --   # Show all saved nudge settings
 --
@@ -50,6 +47,8 @@
 --   in the native nudge dialog. The script displays "N/A" in this case and the
 --   nudge left/right actions are unavailable.
 
+local r = reaper
+
 local WHAT_MAP = {'position', 'left trim', 'left edge', 'right trim', 'contents',
   'duplicate', 'edit cursor', 'end position'}
 
@@ -65,55 +64,46 @@ local SAVE_ACTIONS    = {last=0,     bank1=41271, bank2=41283}
 local LNUDGE_ACTIONS  = {last=41250, bank1=41279, bank2=41291}
 local RNUDGE_ACTIONS  = {last=41249, bank1=41275, bank2=41287}
 
-local WIN_PADDING = 10
-local BOX_PADDING = 7
-
 local KEY_ESCAPE = 0x1b
-local KEY_LEFT   = 0x6c656674
-local KEY_RIGHT  = 0x72676874
-local KEY_F1     = 0x6631
+local KEY_LEFT   = 0x25
+local KEY_RIGHT  = 0x27
+local KEY_F1     = 0x70
 
-local EXT_SECTION      = 'cfillion_show_nudge_settings'
-local EXT_WINDOW_STATE = 'window_state'
-local EXT_LAST_SLOT    = 'last_slot'
+local FLT_MIN, FLT_MAX = r.ImGui_NumericLimits_Float()
+local RO        = r.ImGui_InputTextFlags_ReadOnly()
+local WND_FLAGS = r.ImGui_WindowFlags_NoDecoration() |
+                  r.ImGui_WindowFlags_NoScrollWithMouse()
 
-local exit       = false
-local mouseDown  = false
-local mouseClick = false
-local key        = nil
+local EXT_SECTION, EXT_LAST_SLOT = 'cfillion_show_nudge_settings', 'last_slot'
+
 local isEditing  = false
 local saved      = 0
 local setting    = {}
 
-local scriptName = ({reaper.get_action_context()})[2]:match("([^/\\_]+).lua$")
-local iniFile    = reaper.get_ini_file()
+local scriptName = ({r.get_action_context()})[2]:match("([^/\\_]+).lua$")
+local iniFile    = r.get_ini_file()
 
 function iniRead(key, n)
   if n > 0 then
     key = string.format('%s_%d', key, n)
   end
 
-  return tonumber(({reaper.BR_Win32_GetPrivateProfileString(
+  return tonumber(({r.BR_Win32_GetPrivateProfileString(
     'REAPER', key, '0', iniFile)})[2])
 end
 
 function boolValue(val, off, on)
   if not off then off = 'OFF' end
   if not on then on = 'ON' end
-
-  if val == 0 then
-    return off
-  else
-    return on
-  end
+  return val == 0 and off or on
 end
 
 function mapValue(val, strings)
   return strings[val] or string.format('%d (Unknown)', val)
 end
 
-function isAny(val, array)
-  for _,n in ipairs(array) do
+function isAny(val, ...)
+  for _,n in ipairs{...} do
     if val == n then
       return true
     end
@@ -123,7 +113,7 @@ function isAny(val, array)
 end
 
 function snapTo(unit)
-  if isAny(unit, {3, 21, 22}) then
+  if isAny(unit, 3, 21, 22) then
     return 'grid'
   elseif unit == 17 then -- measures.beats
     return 'bar'
@@ -136,7 +126,7 @@ function loadSetting(n, reload)
   if setting.n == n and not reload then return end
 
   setting = {n=n}
-  reaper.SetExtState(EXT_SECTION, EXT_LAST_SLOT, n, true)
+  r.SetExtState(EXT_SECTION, EXT_LAST_SLOT, n, true)
 
   local nudge  = iniRead('nudge', n)
   setting.mode = nudge & 1
@@ -175,23 +165,23 @@ end
 
 function nudge(actions)
   if setting.mode ~= 1 then
-    reaper.Main_OnCommand(action(actions), 0)
+    r.Main_OnCommand(action(actions), 0)
   end
 end
 
 function setAsLast()
-  local selection, count = {}, reaper.CountSelectedMediaItems(0)
+  local selection, count = {}, r.CountSelectedMediaItems(0)
 
   for i=0,count - 1 do
-    local item = reaper.GetSelectedMediaItem(0, 0)
+    local item = r.GetSelectedMediaItem(0, 0)
     table.insert(selection, item)
-    reaper.SetMediaItemSelected(item, false)
+    r.SetMediaItemSelected(item, false)
   end
 
   nudge(RNUDGE_ACTIONS)
 
   for _,item in ipairs(selection) do
-    reaper.SetMediaItemSelected(item, true)
+    r.SetMediaItemSelected(item, true)
   end
 end
 
@@ -199,19 +189,19 @@ function editCurrent()
   if isEditing then
     -- prevent saveCurrent() from being called when the nudge dialog is manually closed
     isEditing = false
-    reaper.Main_OnCommand(NUDGEDLG_ACTION, 0)
+    r.Main_OnCommand(NUDGEDLG_ACTION, 0)
     loadSetting(setting.n, true)
     return
   elseif setting.n > 0 then
     setAsLast()
   end
 
-  reaper.Main_OnCommand(NUDGEDLG_ACTION, 0)
+  r.Main_OnCommand(NUDGEDLG_ACTION, 0)
 end
 
 function saveCurrent()
   if setting.n > 0 then
-    reaper.Main_OnCommand(action(SAVE_ACTIONS), 0)
+    r.Main_OnCommand(action(SAVE_ACTIONS), 0)
     saved = os.time()
   end
 
@@ -219,174 +209,26 @@ function saveCurrent()
 end
 
 function help()
-  if not reaper.ReaPack_GetOwner then
-    reaper.MB('This feature requires ReaPack v1.2 or newer.', scriptName, 0)
+  if not r.ReaPack_GetOwner then
+    r.MB('This feature requires ReaPack v1.2 or newer.', scriptName, 0)
     return
   end
 
-  local owner = reaper.ReaPack_GetOwner(({reaper.get_action_context()})[2])
+  local owner = r.ReaPack_GetOwner(({r.get_action_context()})[2])
 
   if not owner then
-    reaper.MB(string.format(
+    r.MB(string.format(
       'This feature is unavailable because "%s" was not installed using ReaPack.',
       scriptName), scriptName, 0)
     return
   end
 
-  reaper.ReaPack_AboutInstalledPackage(owner)
-  reaper.ReaPack_FreeEntry(owner)
-end
-
-function boxRect(box)
-  local x, y = gfx.x, gfx.y
-  local w, h = gfx.measurestr(box.text)
-
-  w = w + (BOX_PADDING * 2)
-  h = h + BOX_PADDING
-
-  if box.w then w = box.w end
-  if box.h then h = box.h end
-
-  return {x=x, y=y, w=w, h=h}
-end
-
-function drawBox(box)
-  if not box.color then box.color = {255, 255, 255} end
-
-  setColor(box.color)
-  gfx.rect(box.rect.x + 1, box.rect.y + 1, box.rect.w - 2, box.rect.h - 2, true)
-
-  gfx.x = box.rect.x
-  setColor({42, 42, 42})
-  if not box.noborder then
-    gfx.rect(box.rect.x, box.rect.y, box.rect.w, box.rect.h, false)
-  end
-
-  gfx.x = box.rect.x + BOX_PADDING
-  gfx.drawstr(box.text, 4, gfx.x + box.rect.w - (BOX_PADDING * 2), gfx.y + box.rect.h + 2)
-
-  gfx.x = box.rect.x + box.rect.w + BOX_PADDING
-end
-
-function box(box)
-  if not box.rect then box.rect = boxRect(box) end
-  if box.callback then button(box) end
-  drawBox(box)
-end
-
-function button(box)
-  local underMouse =
-    gfx.mouse_x >= box.rect.x and
-    gfx.mouse_x < box.rect.x + box.rect.w and
-    gfx.mouse_y >= box.rect.y and
-    gfx.mouse_y < box.rect.y + box.rect.h
-
-  local kbTrigger = key == box.shortcut
-
-  if (mouseClick and underMouse) or kbTrigger then
-    box.callback()
-
-    if box.active ~= nil then
-      box.active = true
-    end
-  end
-
-  if box.active then
-    box.color = {150, 175, 225}
-  elseif (underMouse and mouseDown) or kbTrigger then
-    box.color = {120, 120, 120}
-  else
-    box.color = {220, 220, 220}
-  end
-
-  drawBox(box)
-end
-
-function rtlToolbar(x, btns)
-  local leftmost = gfx.x
-  gfx.x = gfx.w - x
-
-  for i=#btns,1,-1 do
-    local btn = btns[i]
-    btn.rect = boxRect(btn)
-    gfx.x = btn.rect.x - btn.rect.w - BOX_PADDING
-  end
-
-  gfx.x = math.max(leftmost, gfx.x + BOX_PADDING)
-
-  for _,btn in ipairs(btns) do
-    btn.rect.x = gfx.x
-    box(btn)
-  end
-end
-
-function draw()
-  gfx.x, gfx.y = WIN_PADDING, WIN_PADDING
-  box({text='Last', active=setting.n == 0, shortcut=string.byte('0'),
-    callback=function() loadSetting(0) end})
-  for i=1,8 do
-    box({text=i, active=setting.n == i, shortcut=string.byte(i),
-      callback=function() loadSetting(i) end})
-  end
-
-  local topToolbar = {
-    {text='Edit', active=isEditing, shortcut=string.byte('n'), callback=editCurrent},
-    {text='?', shortcut=KEY_F1, callback=help},
-  }
-  if saved > os.time() - 2 then
-    table.insert(topToolbar, 1, {text='Saved!', noborder=true})
-  end
-  rtlToolbar(WIN_PADDING, topToolbar)
-
-  gfx.x, gfx.y = WIN_PADDING, 38
-  box({w=70, text=boolValue(setting.mode, 'Nudge', 'Set')})
-  box({w=100, text=mapValue(setting.what, WHAT_MAP)})
-  box({noborder=true, text=boolValue(setting.mode, 'by:', 'to:')})
-  box({w=70, text=setting.amount})
-  if setting.note then
-    box({w=50, text=mapValue(setting.note, NOTE_MAP)})
-  end
-  box({w=gfx.w - gfx.x - WIN_PADDING, text=mapValue(setting.unit, UNIT_MAP)})
-
-  gfx.x, gfx.y = WIN_PADDING - BOX_PADDING, 66
-  box({text=string.format('Snap to %s: %s', snapTo(setting.unit),
-    boolValue(setting.snap)), noborder=true})
-
-  gfx.x = 110
-  if setting.mode == 1 and isAny(setting.what, {1, 6, 8}) then
-    box({text=string.format('Relative set: %s', boolValue(setting.rel)), noborder=true})
-  elseif setting.what == 6 then
-    box({text=string.format('Copies: %s', setting.copies), noborder=true})
-  end
-
-  if setting.mode == 0 then
-    rtlToolbar(WIN_PADDING, {
-      {text='< Nudge left', shortcut=KEY_LEFT, callback=function() nudge(LNUDGE_ACTIONS) end},
-      {text='Nudge right >', shortcut=KEY_RIGHT, callback=function() nudge(RNUDGE_ACTIONS) end},
-    })
-  else
-    rtlToolbar(WIN_PADDING, {{text='(Nudge unavailable in Set mode)'}});
-  end
-end
-
-function setColor(color)
-  gfx.r = color[1] / 255.0
-  gfx.g = color[2] / 255.0
-  gfx.b = color[3] / 255.0
-end
-
-function keyboardInput()
-  key = gfx.getchar()
-
-  if key < 0 then
-    exit = true
-  elseif key == KEY_ESCAPE then
-    gfx.quit()
-  end
+  r.ReaPack_AboutInstalledPackage(owner)
+  r.ReaPack_FreeEntry(owner)
 end
 
 function detectEdit()
-  local state = reaper.GetToggleCommandState(NUDGEDLG_ACTION) == 1
+  local state = r.GetToggleCommandState(NUDGEDLG_ACTION) == 1
 
   if isEditing and not state then
     saveCurrent()
@@ -395,55 +237,164 @@ function detectEdit()
   isEditing = state
 end
 
-function mouseInput()
-  if mouseClick then
-    mouseClick = false
-  elseif gfx.mouse_cap == 1 then
-    mouseDown = true
-  elseif mouseDown then
-    mouseClick = true
-    mouseDown = false
-  elseif mouseClick then
-    mouseClick = false
+function calcItemWidth(text, hasFrame)
+  local framePadding = hasFrame and r.ImGui_GetStyleVar(ctx, r.ImGui_StyleVar_FramePadding()) or 0
+  return r.ImGui_CalcTextSize(ctx, text) + (framePadding * 2)
+end
+
+function rtlPos(...)
+  local args = {...}
+  local spacing = r.ImGui_GetStyleVar(ctx, r.ImGui_StyleVar_ItemSpacing())
+  local width = 3
+  for _, itemWidth in ipairs(args) do
+    width = width + itemWidth
   end
+  width = width + (spacing * #args)
+  return r.ImGui_GetWindowWidth(ctx) - width
+end
+
+function button(label, shortcut, active)
+  if active then
+    local color = 0x96afe1ff
+    r.ImGui_PushStyleColor(ctx, r.ImGui_Col_Button(), color)
+    r.ImGui_PushStyleColor(ctx, r.ImGui_Col_ButtonHovered(), color)
+  end
+  local rv = r.ImGui_Button(ctx, label) or
+    r.ImGui_IsKeyPressed(ctx, shortcut)
+  if active then
+    r.ImGui_PopStyleColor(ctx, 2)
+  end
+  return rv
+end
+
+function draw()
+  for n = 0, 8 do
+    if button(n == 0 and 'Last' or n, string.byte(n), setting.n == n) then
+      loadSetting(n)
+    end
+    r.ImGui_SameLine(ctx)
+  end
+
+  local editWidth, helpWidth, savedWidth =
+    calcItemWidth('Edit', true), calcItemWidth('?', true), calcItemWidth('Saved!')
+
+  if saved > os.time() - 2 then
+    r.ImGui_SameLine(ctx, rtlPos(savedWidth, editWidth, helpWidth))
+    r.ImGui_Text(ctx, 'Saved!')
+    r.ImGui_SameLine(ctx)
+  end
+  r.ImGui_SameLine(ctx, rtlPos(editWidth, helpWidth))
+  if button('Edit', string.byte('N'), isEditing) then editCurrent() end
+  r.ImGui_SameLine(ctx, rtlPos(helpWidth))
+  if button('?', KEY_F1) then help() end
+
+  r.ImGui_SetNextItemWidth(ctx, 70)
+  r.ImGui_InputText(ctx, '##mode', boolValue(setting.mode, 'Nudge', 'Set'), RO)
+  r.ImGui_SameLine(ctx)
+
+  r.ImGui_SetNextItemWidth(ctx, 100)
+  r.ImGui_InputText(ctx, '##what', mapValue(setting.what, WHAT_MAP), RO)
+  r.ImGui_SameLine(ctx)
+
+  r.ImGui_Text(ctx, boolValue(setting.mode, 'by:', 'to:'))
+  r.ImGui_SameLine(ctx)
+
+  r.ImGui_SetNextItemWidth(ctx, 70)
+  r.ImGui_InputText(ctx, '##amount', setting.amount, RO)
+  r.ImGui_SameLine(ctx)
+
+  if setting.note then
+    r.ImGui_SetNextItemWidth(ctx, 50)
+    r.ImGui_InputText(ctx, '##note', mapValue(setting.note, NOTE_MAP), RO)
+    r.ImGui_SameLine(ctx)
+  end
+
+  r.ImGui_SetNextItemWidth(ctx, -FLT_MIN)
+  r.ImGui_InputText(ctx, '##unit', mapValue(setting.unit, UNIT_MAP), RO)
+
+  r.ImGui_AlignTextToFramePadding(ctx)
+  r.ImGui_Text(ctx,
+    ('Snap to %s: %s'):format(snapTo(setting.unit), boolValue(setting.snap)))
+  r.ImGui_SameLine(ctx, nil, 20)
+
+  if setting.mode == 1 and isAny(setting.what, 1, 6, 8) then
+    r.ImGui_Text(ctx, ('Relative set: %s'):format(boolValue(setting.rel)))
+  elseif setting.what == 6 then
+    r.ImGui_Text(ctx, ('Copies: %s'):format(setting.copies))
+  end
+
+  if setting.mode == 0 then
+    local leftText, rightText = '< Nudge left', 'Nudge right >'
+    local leftWidth, rightWidth =
+      calcItemWidth(leftText, true), calcItemWidth(rightText, true)
+    r.ImGui_SameLine(ctx, rtlPos(leftWidth, rightWidth))
+    if button(leftText,  KEY_LEFT)  then nudge(LNUDGE_ACTIONS) end
+    r.ImGui_SameLine(ctx, rtlPos(rightWidth))
+    if button(rightText, KEY_RIGHT) then nudge(RNUDGE_ACTIONS) end
+  else
+    local text = '(Nudge unavailable in Set mode)'
+    r.ImGui_SameLine(ctx, rtlPos(calcItemWidth(text)))
+    r.ImGui_TextDisabled(ctx, text)
+  end
+end
+
+function contextMenu()
+  if not reaper.ImGui_BeginPopupContextWindow(ctx) then return end
+  local dock = r.ImGui_GetDock(ctx)
+  if r.ImGui_MenuItem(ctx, 'Dock window', nil, dock & 1) then
+    r.ImGui_SetDock(ctx, dock ~ 1)
+  end
+  r.ImGui_Separator(ctx)
+  if r.ImGui_MenuItem(ctx, 'About/help', 'F1', false, r.ReaPack_GetOwner ~= nil) then
+    help()
+  end
+  if r.ImGui_MenuItem(ctx, 'Close', 'Escape') then
+    exit = true
+  end
+  r.ImGui_EndPopup(ctx)
 end
 
 function loop()
+  if r.ImGui_IsCloseRequested(ctx) or
+      r.ImGui_IsKeyPressed(ctx, KEY_ESCAPE) or exit then
+    r.ImGui_DestroyContext(ctx)
+    return
+  end
+
   detectEdit()
-  keyboardInput()
-  mouseInput()
 
-  if exit then return end
+  r.ImGui_PushFont(ctx, font)
+  r.ImGui_PushStyleColor(ctx, r.ImGui_Col_Border(),        0x2a2a2aff)
+  r.ImGui_PushStyleColor(ctx, r.ImGui_Col_Button(),        0xdcdcdcff)
+  r.ImGui_PushStyleColor(ctx, r.ImGui_Col_ButtonActive(),  0x787878ff)
+  r.ImGui_PushStyleColor(ctx, r.ImGui_Col_ButtonHovered(), 0xdcdcdcff)
+  r.ImGui_PushStyleColor(ctx, r.ImGui_Col_FrameBg(),       0xffffffff)
+  r.ImGui_PushStyleColor(ctx, r.ImGui_Col_HeaderHovered(), 0x96afe1ff)
+  r.ImGui_PushStyleColor(ctx, r.ImGui_Col_PopupBg(),       0xffffffff)
+  r.ImGui_PushStyleColor(ctx, r.ImGui_Col_Text(),          0x2a2a2aff)
+  r.ImGui_PushStyleColor(ctx, r.ImGui_Col_WindowBg(),      0xffffffff)
+  r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_FrameBorderSize(),  1)
+  r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_FramePadding(),     7, 4)
+  r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_ItemSpacing(),      7, 7)
+  r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_WindowBorderSize(), 0)
+  r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_WindowPadding(),   10, 10)
 
-  gfx.clear = 16777215
+  r.ImGui_SetNextWindowPos(ctx, r.ImGui_Viewport_GetPos(viewport))
+  r.ImGui_SetNextWindowSize(ctx, r.ImGui_Viewport_GetSize(viewport))
+  r.ImGui_Begin(ctx, '##', nil, WND_FLAGS)
+  contextMenu()
   draw()
-  gfx.update()
+  r.ImGui_End(ctx)
 
-  if not exit then
-    reaper.defer(loop)
-  else
-    gfx.quit()
-  end
-end
+  r.ImGui_PopStyleVar(ctx, 5)
+  r.ImGui_PopStyleColor(ctx, 9)
+  r.ImGui_PopFont(ctx)
 
-function previousWindowState()
-  local state = tostring(reaper.GetExtState(EXT_SECTION, EXT_WINDOW_STATE))
-  return state:match("^(%d+) (%d+) (%d+) (-?%d+) (-?%d+)$")
-end
-
-function saveWindowState()
-  local dockState, xpos, ypos = gfx.dock(-1, 0, 0, 0, 0)
-  local w, h = gfx.w, gfx.h
-  if dockState > 0 then
-    w, h = previousWindowState()
-  end
-
-  reaper.SetExtState(EXT_SECTION, EXT_WINDOW_STATE,
-    string.format("%d %d %d %d %d", w, h, dockState, xpos, ypos), true)
+  r.defer(loop)
 end
 
 function previousSlot()
-  local slot = tonumber(reaper.GetExtState(EXT_SECTION, EXT_LAST_SLOT))
+  local slot = tonumber(r.GetExtState(EXT_SECTION, EXT_LAST_SLOT))
 
   if slot and slot >= 0 and slot <= 8 then
     return slot
@@ -455,24 +406,23 @@ end
 loadSetting(previousSlot())
 
 if scriptName:match('Nudge.+by selected') then
-  reaper.defer(function() end) -- disable automatic undo point
+  r.defer(function() end) -- disable automatic undo point
   nudge(scriptName:match('left') and LNUDGE_ACTIONS or RNUDGE_ACTIONS)
   return
 end
 
-local w, h, dockState, x, y = previousWindowState()
-
-if w then
-  gfx.init(scriptName, w, h, dockState, x, y)
-else
-  gfx.init(scriptName, 475, 97)
+if not r.ImGui_CreateContext then
+  r.MB('This script requires ReaImGui. Install it from ReaPack > Browse packages.', scriptName, 0)
+  return
 end
 
-if reaper.GetAppVersion():match('OSX') then
-  gfx.setfont(1, 'sans-serif', 12)
-else
-  gfx.setfont(1, 'sans-serif', 15)
-end
+r.defer(function()
+  ctx = r.ImGui_CreateContext(scriptName, 475, 97)
+  viewport = r.ImGui_GetMainViewport(ctx)
 
-reaper.atexit(saveWindowState)
-loop()
+  local size = reaper.GetAppVersion():match('OSX') and 12 or 14
+  font = r.ImGui_CreateFont('sans-serif', size)
+  r.ImGui_AttachFont(ctx, font)
+
+  loop()
+end)
