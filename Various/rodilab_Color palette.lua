@@ -1,10 +1,7 @@
 -- @description Color palette
 -- @author Rodilab
--- @version 1.8
--- @changelog
---   - Fix Y position bug on Mac
---   - Click on url opens the link in Settings / About
---   - Some minors code improvement
+-- @version 1.8.1
+-- @changelog Updated due to the new version of ReaImGui v0.4.0
 -- @about
 --   # Color tool with customizable color gradient palette and a user palette.
 --
@@ -66,7 +63,9 @@ function TestVersion(version,version_min)
   local i = 0
   for num in string.gmatch(tostring(version),'%d+') do
     i = i + 1
-    if version_min[i] and tonumber(num) < version_min[i] then
+    if version_min[i] and tonumber(num) > version_min[i] then
+      return true
+    elseif version_min[i] and tonumber(num) < version_min[i] then
       return false
     end
   end
@@ -78,7 +77,7 @@ end
 if r.APIExists('CF_GetClipboard') == true then
   if r.APIExists('ImGui_CreateContext') == true then
     local imgui_version, reaimgui_version = r.ImGui_GetVersion()
-    if TestVersion(reaimgui_version,{0,3,2}) then
+    if TestVersion(reaimgui_version,{0,4,0}) then
       if r.APIExists('JS_Dialog_BrowseForOpenFiles') == true then
         if not OS_Mac or not r_version or r_version >= 6.28 then
 -- Colors
@@ -548,7 +547,7 @@ function set_window()
   end
   conf.x = math.max(conf.x,0)
   button_color = calc_colors()
-  ctx = r.ImGui_CreateContext(script_name,width,heigth,conf.x,conf.y,conf.dock)
+  ctx = r.ImGui_CreateContext(script_name,width,heigth,conf.x,conf.y,conf.dock,reaper.ImGui_ConfigFlags_NoSavedSettings())
   hwnd = r.ImGui_GetNativeHwnd(ctx)
 end
 
@@ -573,9 +572,7 @@ function align_groups(i)
 end
 
 function get_window_pos()
-  local rv, left, top, right, bottom = r.JS_Window_GetClientRect(hwnd)
-  conf.x, conf.y = left, OS_Mac and bottom or top
-  ctx_bottom = OS_Mac and top or bottom
+  rv, conf.x, conf.y, ctx_right, ctx_bottom = r.JS_Window_GetClientRect(hwnd)
 end
 
 function get_tmp_values()
@@ -1538,12 +1535,19 @@ function loop()
       else
         get_window_pos()
         x = math.max(conf.x,0)
-        y = conf.y - settings_heigth - 40
-        if y < settings_heigth then
-          y = ctx_bottom + 40
+        if OS_Mac then
+          y = ctx_bottom - 40
+          if y < settings_heigth then
+            y = conf.y + settings_heigth + 40
+          end
+        else
+          y = conf.y - settings_heigth - 40
+          if y < settings_heigth then
+            y = ctx_bottom + 40
+          end
         end
       end
-      ctx2 = r.ImGui_CreateContext(script_name.." - Settings",settings_width,settings_heigth,x,y)
+      ctx2 = r.ImGui_CreateContext(script_name.." - Settings",settings_width,settings_heigth,x,y,nil,r.ImGui_ConfigFlags_NoSavedSettings())
       settings = 2
     end
     local display_w, display_h = r.ImGui_GetDisplaySize(ctx2)
@@ -2293,10 +2297,10 @@ r.defer(loop)
         end
       end
     else
-      r.ShowMessageBox("Please update v0.3.2 or later of \"js_ReaScriptAPI: API functions for ReaScripts\" with ReaPack and restart Reaper",script_name,0)
+      r.ShowMessageBox("Please update v0.3.1 or later of  \"ReaImGui: ReaScript binding for Dear ImGui\" with ReaPack and restart Reaper",script_name,0)
       local ReaPack_exist = r.APIExists('ReaPack_BrowsePackages')
       if ReaPack_exist == true then
-        r.ReaPack_BrowsePackages('js_ReaScriptAPI: API functions for ReaScripts')
+        r.ReaPack_BrowsePackages('ReaImGui: ReaScript binding for Dear ImGui')
       end
     end
   else
