@@ -138,8 +138,8 @@ local err = file ~= '' and not file_exists and 'wasn\'t found' or empty or inval
 		else r.defer(function() end) return end
 	end
 
-	-- load file at a saved path
-	if file == '' then file = r.GetExtState(scr_name..'_'..sect_ID_t[sect_ID][1], 'menu_file_path') end -- load saved file path
+	-- load file from the saved path
+	if file == '' then file = r.GetExtState(scr_name..'_'..sect_ID_t[sect_ID][1], 'menu_file_path') end
 
 local err = file == '' and 'saved ReaperMenu path' or not r.file_exists(file) and 'used ReaperMenu file'
 	if err and resp ~= 1 then resp = r.MB('The last '..err..' wasn\'t found.\n\n         Click "OK" to load a new menu file.','ERROR',1) -- ~=1 cond stems from user defined file prompt dialogue above
