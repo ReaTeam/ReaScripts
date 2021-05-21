@@ -69,11 +69,12 @@ option proper for the section of the Action list the script is going to be run f
 script and using it from *MIDI Inline Editor* section is impractical therefore it has
 been made incompatible with them.
 
-- You can run MIDI Editor menus from Arrange even if the MIDI Editor is closed.
+- You can run MIDI Editor menus from Arrange even if the MIDI Editor is closed.  
 If you do so while working with the MIDI Inline Editor be aware that the grid and snap
 settings which will be used by the menu actions (such as Split and the like) are those
-of the main MIDI Editor.  
-If MIDI Editor is closed toggle state indicators (if any) won't appear next to the menu
+of the main MIDI Editor unless option *Use the same griv division in arrange view and
+MIDI editor* is enabled in the Snap/Grid settings.   
+If MIDI Editor is closed toggle state indicators (if any) won't appear next to the menu 
 items.
 
 - Likewise Arrange menus can be run from inside the MIDI Editor.
