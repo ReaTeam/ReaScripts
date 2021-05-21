@@ -7,77 +7,77 @@ Changelog: Initial release
 Provides: [main=main,midi_editor] .
 About:
 
-#### GUIDE
+	#### GUIDE
 
-- The script is designed to allow using REAPER menus independently of REAPER
-menu system by loading .ReaperMenu files on demand, which essentially allows
-potentially having and using many more menus and toolbars than the REAPER
-native menu system provides.
+	- The script is designed to allow using REAPER menus independently of REAPER
+	menu system by loading .ReaperMenu files on demand, which essentially allows
+	potentially having and using many more menus and toolbars than the REAPER
+	native menu system provides.
 
-- The dynamic part implies that a currently loaded menu can at any moment be
-replaced with another one.
+	- The dynamic part implies that a currently loaded menu can at any moment be
+	replaced with another one.
 
-- .ReaperMenu files are menu and toolbar dumps which can be created with
-*Export -> Export current menu/toolbar to ReaperMenu file...* option in the
-*Customize menus/toolbars* section accessible from the main *Options* menu
-in the default REAPER installation.
+	- .ReaperMenu files are menu and toolbar dumps which can be created with
+	*Export -> Export current menu/toolbar to ReaperMenu file...* option in the
+	*Customize menus/toolbars* section accessible from the main *Options* menu
+	in the default REAPER installation.
 
-- So when you need another menu/toolbar but have used up all menus/toolbars
-available in REAPER natively, you can create a backup copy of one of the current
-menus/toolbars, put together a new one in its place, export the newly created
-menu/toolbar to a .ReaperMenu file, then restore the previous one and use such
-exported menu/toolbar via this script.
+	- So when you need another menu/toolbar but have used up all menus/toolbars
+	available in REAPER natively, you can create a backup copy of one of the current
+	menus/toolbars, put together a new one in its place, export the newly created
+	menu/toolbar to a .ReaperMenu file, then restore the previous one and use such
+	exported menu/toolbar via this script.
 
-- Toolbars loaded with this script are formatted as regular menus.
+	- Toolbars loaded with this script are formatted as regular menus.
 
-- In the USER SETTINGS below the script provides options to specify the full
-path to the .ReaperMenu file per supported section of the Action list.  
-If such path isn't specified the script will offer loading a file and then will
-store its full path so it can be loaded automatically on next runs until another
-menu file is loaded.
+	- In the USER SETTINGS below the script provides options to specify the full
+	path to the .ReaperMenu file per supported section of the Action list.  
+	If such path isn't specified the script will offer loading a file and then will
+	store its full path so it can be loaded automatically on next runs until another
+	menu file is loaded.
 
-- A menu item titled 'LOAD REAPER MENU FILE' is found at the very bottom of any menu
-loaded via the dialogue. So if your menu is long you may need to scroll all the way
-down to access it. Scrolling can be done with the up/down arrow keys on the keyboard
-while the mouse cursor is placed over the menu.
+	- A menu item titled 'LOAD REAPER MENU FILE' is found at the very bottom of any menu
+	loaded via the dialogue. So if your menu is long you may need to scroll all the way
+	down to access it. Scrolling can be done with the up/down arrow keys on the keyboard
+	while the mouse cursor is placed over the menu.
 
-- The default directory which the load dialogue is pointed to is \MenuSets in the
-REAPER resource directory, the one to which REAPER offers to save its .ReaperMenu
-files by default. But the file can be browsed to and loaded from elsewhere.  
-The file path specified in the USER SETTINGS may point to a .ReaperMenu file located
-anywhere on the hard drive.
+	- The default directory which the load dialogue is pointed to is \MenuSets in the
+	REAPER resource directory, the one to which REAPER offers to save its .ReaperMenu
+	files by default. But the file can be browsed to and loaded from elsewhere.  
+	The file path specified in the USER SETTINGS may point to a .ReaperMenu file located
+	anywhere on the hard drive.
 
-- When the full path to the .ReaperMenu file is specified in the USER SETTINGS below,
-the load dialogue menu item is inactive because if you load another file, on the
-next run the script will still default to the file located at the path specified in
-the USER SETTINGS.
+	- When the full path to the .ReaperMenu file is specified in the USER SETTINGS below,
+	the load dialogue menu item is inactive because if you load another file, on the
+	next run the script will still default to the file located at the path specified in
+	the USER SETTINGS.
 
-- The same script can be added to and run from 3 sections of the Action list:
-*Main*, *MIDI Editor* and *MIDI Event List Editor* and maintain different menus.  
-The sections *Main* and *Main (alt recording)* share the same content, therefore
-the script added to the *Main* section in the *Main (alt recording)* section will have
-the same menu.  
-If this script has been installed via ReaPack application it has been automaticaly 
-added to both *Main* and *MIDI Event List Editor* sections of the Action list.  
-Besides that, multiple instances of the script can be created under slightly different
-names, loaded into any or all 3.5 mentioned sections of the Action list and used with
-different .ReaperMenu files in parallel.  
-If you prefer specifying the path to the menu file in the USER SETTINGS below use the
-option proper for the section of the Action list the script is going to be run from.
+	- The same script can be added to and run from 3 sections of the Action list:
+	*Main*, *MIDI Editor* and *MIDI Event List Editor* and maintain different menus.  
+	The sections *Main* and *Main (alt recording)* share the same content, therefore
+	the script added to the *Main* section in the *Main (alt recording)* section will have
+	the same menu.  
+	If this script has been installed via ReaPack application it has been automaticaly 
+	added to both *Main* and *MIDI Event List Editor* sections of the Action list.  
+	Besides that, multiple instances of the script can be created under slightly different
+	names, loaded into any or all 3.5 mentioned sections of the Action list and used with
+	different .ReaperMenu files in parallel.  
+	If you prefer specifying the path to the menu file in the USER SETTINGS below use the
+	option proper for the section of the Action list the script is going to be run from.
 
-- Actions in *Media Explorer* section of the Action list cannot be launched with this
-script and using it from *MIDI Inline Editor* section is impractical therefore it has
-been made incompatible with them.
+	- Actions in *Media Explorer* section of the Action list cannot be launched with this
+	script and using it from *MIDI Inline Editor* section is impractical therefore it has
+	been made incompatible with them.
 
-- You can run MIDI Editor menus from Arrange even if the MIDI Editor is closed.  
-If you do so while working with the MIDI Inline Editor be aware that the grid and snap
-settings which will be used by the menu actions (such as Split and the like) are those
-of the main MIDI Editor unless option *Use the same griv division in arrange view and
-MIDI editor* is enabled in the Snap/Grid settings.   
-If MIDI Editor is closed toggle state indicators (if any) won't appear next to the menu 
-items.
+	- You can run MIDI Editor menus from Arrange even if the MIDI Editor is closed.  
+	If you do so while working with the MIDI Inline Editor be aware that the grid and snap
+	settings which will be used by the menu actions (such as Split and the like) are those
+	of the main MIDI Editor unless option *Use the same griv division in arrange view and
+	MIDI editor* is enabled in the Snap/Grid settings.   
+	If MIDI Editor is closed toggle state indicators (if any) won't appear next to the menu 
+	items.
 
-- Likewise Arrange menus can be run from inside the MIDI Editor.
+	- Likewise Arrange menus can be run from inside the MIDI Editor.
 
 ]]
 ---------------------------------------------------------------------------------------
