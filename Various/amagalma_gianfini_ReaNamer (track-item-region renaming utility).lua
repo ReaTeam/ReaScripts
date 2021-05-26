@@ -1,8 +1,8 @@
 -- @description ReaNamer (track-item-region renaming utility)
 -- @author amagalma & gianfini
--- @version 1.23
+-- @version 1.24
 -- @changelog
---   - fix: region renaming when less than all regions are selected
+--   - gianfini fix single track modify
 -- @provides amagalma_ReaNamer Replace Help.lua
 -- @link
 --   http://forum.cockos.com/showthread.php?t=190534
@@ -1161,7 +1161,7 @@ end
 
 local function modify_single_line(line_num)
   local line_object = ""
-  local obj_name, track_num = get_line_name(line_num - 1)
+  local obj_name, track_num = get_line_name(indexed_track + line_num - 2)  -- gianfini fix single track modify
   if not obj_name or not track_num then return end
   if what == "tracks" then
     line_object = string.format("track %i",track_num)
@@ -1177,7 +1177,7 @@ local function modify_single_line(line_num)
     undo_stack = undo_stack + 1
     mod_stack_name [undo_stack] = "single_line_edit"
     mod_stack_parm1 [undo_stack] = text
-    mod_stack_parm2 [undo_stack] = tostring(line_num)
+    mod_stack_parm2 [undo_stack] = tostring(line_num + indexed_track - 1)  -- gianfini fix single track modify
     WriteCurrentModifier()
   end
 end
