@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="479925455f80764f7b2bd1e6f4a83f499643cae6" name="ReaTeam Scripts">
+<index version="1" commit="f39ce8b271bf3c59be33ac829052b63a842cbb20" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -3765,6 +3765,21 @@ Better error-checking in general]]></changelog>
       </metadata>
       <version name="1.00" author="amagalma" time="2020-03-17T15:31:42Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b3777c28bd077ea0990913cc216fcca9ea9d10ba/Items%20Editing/amagalma_Apply%20track-take%20FX%20to%20items%20(stereo%20output)%20and%20place%20in%20new%20track.lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Close gaps (remove space) between all items of selected tracks.lua" type="script" desc="Close gaps (remove space) between all items of selected tracks">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Removes the space between consecutive items of all the items on the selected tracks. Leaves the first item of each track at its original position.\sa180\par}
+}
+]]></description>
+        <link rel="donation">https://www.paypal.me/amagalma</link>
+      </metadata>
+      <version name="1.00" author="amagalma" time="2021-05-27T13:55:45Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f39ce8b271bf3c59be33ac829052b63a842cbb20/Items%20Editing/amagalma_Close%20gaps%20(remove%20space)%20between%20all%20items%20of%20selected%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Crossfade any overlapping items (even on different tracks).lua" type="script" desc="Crossfade any overlapping items (even on different tracks)">
