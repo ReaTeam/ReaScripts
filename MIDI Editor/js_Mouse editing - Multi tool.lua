@@ -1,8 +1,8 @@
 --[[
 ReaScript name: js_Mouse editing - Multi Tool.lua
-Version: 6.50
+Version: 6.51
 Changelog:
-  + NEW: Because the script recently got a proper Move function, right-clicking while Stretching now toggles symmetrical Stretching instead of Stretch vs Move.
+  + CHANGED: In MIDI editor, editing of all editable takes only require editability to be linked to item selection, not visibility.
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Donation: https://www.paypal.me/juliansader
@@ -3853,7 +3853,7 @@ function Setup_EditableTakes()
         if midiSettingOK and tonumber(midiSetting)&3 == 1
         --and reaper.GetToggleCommandStateEx(32060, 40874) == 1 -- Options: Draw and edit CC events on all tracks
         -- Note: don't use sectionID, because script might have been called from Main context.
-        and reaper.GetToggleCommandStateEx(32060, 40892) == 1 -- Options: MIDI track list/media item lane selection is linked to visibility
+        --and reaper.GetToggleCommandStateEx(32060, 40892) == 1 -- Options: MIDI track list/media item lane selection is linked to visibility
         and reaper.GetToggleCommandStateEx(32060, 40891) == 1 -- Options: MIDI track list/media item lane selection is linked to editability
         then
             local allTracks = (reaper.GetToggleCommandStateEx(32060, 40901) == 0) -- Options: Avoid automatically setting MIDI items from other tracks editable
