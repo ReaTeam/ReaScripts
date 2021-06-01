@@ -1,9 +1,6 @@
 -- @description Match criteria (match with BWF and iXML metadata)
 -- @author Rodilab
--- @version 1.2
--- @changelog
---   Now works with ReaImGui API extension
---   Fix bug on Windows
+-- @version 1.3
 -- @screenshot Match Criteria GUI https://www.rodrigodiaz.fr/prive/Match_Criteria.png
 -- @about
 --   Search for matches to audio files in a folder, according to the matching criteria in the BWF and iXML metadata.
@@ -15,13 +12,14 @@ r = reaper
 script_name = "Match criteria (match with BWF and iXML metadata)"
 OS_Win = string.match(reaper.GetOS(),"Win")
 OS_Mac = string.match(reaper.GetOS(),"OSX")
-r_version = tonumber(r.GetAppVersion():match[[(%d+.%d+)]])
 
 function TestVersion(version,version_min)
   local i = 0
   for num in string.gmatch(tostring(version),'%d+') do
     i = i + 1
-    if version_min[i] and tonumber(num) < version_min[i] then
+    if version_min[i] and tonumber(num) > version_min[i] then
+      return true
+    elseif version_min[i] and tonumber(num) < version_min[i] then
       return false
     end
   end
@@ -32,7 +30,7 @@ end
 -- Extensions check
 if r.APIExists('ImGui_CreateContext') == true then
   local imgui_version, reaimgui_version = r.ImGui_GetVersion()
-  if TestVersion(reaimgui_version,{0,3,2}) then
+  if TestVersion(reaimgui_version,{0,4,0}) then
     if r.APIExists('JS_Dialog_BrowseForOpenFiles') == true then
 
 popup_flags = r.ImGui_WindowFlags_NoResize() | r.ImGui_WindowFlags_NoMove()
@@ -41,7 +39,7 @@ window_flag = r.ImGui_WindowFlags_AlwaysAutoResize()
 window_flags = r.ImGui_WindowFlags_None() | r.ImGui_WindowFlags_NoScrollWithMouse() | r.ImGui_WindowFlags_MenuBar()
 background_color = r.ImGui_ColorConvertHSVtoRGB(1,0,0.2,1)
 menubar_color = r.ImGui_ColorConvertHSVtoRGB(0.59,0.65,0.5,1)
-child_heigth = 200
+child_heigth = 185
 button_width = 100
 separ = package.config:sub(1,1)
 searching = 0
@@ -74,7 +72,7 @@ function ExtState_Load()
     mouse_pos = true,
     folder = false,
     width = 430,
-    heigth = 330,
+    heigth = 315,
     x = -1,
     y = -1
     }
@@ -116,8 +114,7 @@ function ExtState_Save()
 end
 
 function get_window_pos()
-  local rv, left, top, right, bottom = r.JS_Window_GetClientRect(hwnd)
-  conf.x, conf.y = left, OS_Mac and bottom or top
+  rv, conf.x, conf.y = r.JS_Window_GetClientRect(hwnd)
 end
 
 r.atexit(function()
@@ -327,8 +324,10 @@ function StartContext()
   if conf.folder == false then
     conf.folder = r.GetProjectPath("")
   end
-  ctx = r.ImGui_CreateContext(script_name,conf.width,conf.heigth,conf.x,conf.y)
+  ctx = r.ImGui_CreateContext(script_name,conf.width,conf.heigth,conf.x,conf.y,0,r.ImGui_ConfigFlags_NoSavedSettings())
   hwnd = r.ImGui_GetNativeHwnd(ctx)
+  font = r.ImGui_CreateFont('Arial',12)
+  r.ImGui_AttachFont(ctx,font)
   get_window_pos()
 end
 
@@ -348,7 +347,7 @@ function loop()
   r.ImGui_PushStyleColor(ctx,r.ImGui_Col_WindowBg(),background_color)
   r.ImGui_Begin(ctx,'wnd',nil,window_flag)
   r.ImGui_PopStyleColor(ctx)
-
+  r.ImGui_PushFont(ctx,font)
   r.ImGui_PushStyleVar(ctx,r.ImGui_StyleVar_FrameRounding(),4.0)
 
   if r.ImGui_BeginPopupModal(ctx,'Searching',nil,popup_flags) then
@@ -449,6 +448,7 @@ function loop()
   end
 
   r.ImGui_PopStyleVar(ctx,1)
+  r.ImGui_PopFont(ctx)
 
   -- End loop
   r.ImGui_End(ctx)
@@ -475,10 +475,10 @@ end
       end
     end
   else
-    r.ShowMessageBox("Please update v0.3.2 or later of \"js_ReaScriptAPI: API functions for ReaScripts\" with ReaPack and restart Reaper",script_name,0)
+    r.ShowMessageBox("Please update v0.4.0 or later of  \"ReaImGui: ReaScript binding for Dear ImGui\" with ReaPack and restart Reaper",script_name,0)
     local ReaPack_exist = r.APIExists('ReaPack_BrowsePackages')
     if ReaPack_exist == true then
-      r.ReaPack_BrowsePackages('js_ReaScriptAPI: API functions for ReaScripts')
+      r.ReaPack_BrowsePackages('ReaImGui: ReaScript binding for Dear ImGui')
     end
   end
 else
