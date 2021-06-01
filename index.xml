@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="5ceb6661fe3dc2aa647bea8d6ab3e5fcdb10ad89" name="ReaTeam Scripts">
+<index version="1" commit="b4d4b5bd92a9f277413d026c34b74c2b559b9e6c" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -5737,6 +5737,9 @@ here
         <changelog><![CDATA[Now works with ReaImGui API extension
 Fix bug on Windows]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/819f7fc85c934e44bd0f67047e0b4d1adca8e990/Items%20Editing/rodilab_Match%20criteria%20(match%20with%20BWF%20and%20iXML%20metadata).lua</source>
+      </version>
+      <version name="1.3" author="Rodilab" time="2021-06-01T16:30:38Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b4d4b5bd92a9f277413d026c34b74c2b559b9e6c/Items%20Editing/rodilab_Match%20criteria%20(match%20with%20BWF%20and%20iXML%20metadata).lua</source>
       </version>
     </reapack>
     <reapack name="rodilab_Move items to synchronize with the TimeRef of the first selected item (BWF metadata).lua" type="script" desc="Move items to synchronize with the TimeRef of the first selected item (BWF metadata)">
