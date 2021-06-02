@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="58eba22d0e1c8a1e9c626469918449ac782e093d" name="ReaTeam Scripts">
+<index version="1" commit="3cddc2fa7f12184f3bf343db80e71011f0eeb742" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -2211,6 +2211,29 @@ Refactored/reorganized the code for readability]]></changelog>
         <changelog><![CDATA[Fix value scaling in fader scaling mode
 Remember the window position, size and dock state]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/308179f68be72716088a0a04d34a2f5cc5b624e6/Envelopes/cfillion_Linear%20ramp%20selected%20envelope%20points.lua</source>
+      </version>
+    </reapack>
+    <reapack name="cool_MK ShaperStutter.lua" type="script" desc="MK Shaper/Stutter">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 MK Shaper/Stutter is a script for quick envelope operations based on transients or rhythm grid.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 -The script is based on the time-tested MK Slicer. -Completely non-destructive audio processing based on envelopes manipulations. Realtime envelope operations. -Basic operations: Transient or Grid shaping (Ableton Sampler like), emphasizing or suppressing attacks, shortening the tails of sounds, gating percussion, steady rhythmic pulsation (stutter), sidechain pulsation based on transients or grid. Working with the grid also includes triplets and swing. -Ability to work with multitracks. Ability to work with many items. Ability to work with MIDI items (only in Grid mode). -The Attack parameter depends on the Velocity of the transients. Several modes are available.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Instructions for use:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 1.\tx360\tab Select one track and select the area with the item. Or: just select the item(s) on the same track without selecting an area. The script will not start, several tracks are selected.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 2.\tx360\tab Run the script.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 3.\tx360\tab Done! You can work. To form envelopes click "Shape". To cancel an actions, use "Reset" button. Reset sliders to default: Ctrl + Click. Fine tune: Shift + Drag(or MouseWheel). Exit the script: Esc, Space - Play. Also, after running the script, you can select the track on which you want to form an envelope and click "Shape".\sa180\par}
+}
+]]></description>
+        <link rel="website" href="https://forum.cockos.com/showthread.php?t=254081">Forum Thread</link>
+        <link rel="screenshot" href="https://i.imgur.com/DAe0EY7.jpg">Main View</link>
+        <link rel="donation" href="https://www.paypal.me/MKokarev">Donate via Paypal</link>
+      </metadata>
+      <version name="1.0" author="cool" time="2021-06-02T16:46:43Z">
+        <changelog><![CDATA[Initial Release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3cddc2fa7f12184f3bf343db80e71011f0eeb742/Envelopes/cool_MK%20ShaperStutter.lua</source>
       </version>
     </reapack>
     <reapack name="edgemeal_Toggle active envelopes inlane for selected track.lua" type="script" desc="Toggle active envelopes inlane for selected track">
