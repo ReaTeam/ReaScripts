@@ -1,7 +1,7 @@
 -- @description Apply render preset
 -- @author cfillion
--- @version 1.0.10
--- @changelog Add support for the "Use project sample rate for mixing and FX/synth processing" option
+-- @version 1.1
+-- @changelog Add support for REAPER's new render normalization feature
 -- @provides
 --   .
 --   [main] . > cfillion_Apply render preset (create action).lua
@@ -105,6 +105,8 @@ function parseDefault(presets, line)
     return parseFormatPreset2(presets, tokens)
   elseif tokens[1] == 'RENDERPRESET_OUTPUT' then
     return parseOutputPreset(presets, tokens)
+  elseif tokens[1] == 'RENDERPRESET_EXT' then
+    return parseNormalizePreset(presets, tokens)
   end
 
   return nil, string.format(
@@ -134,7 +136,7 @@ function parseFormatPreset(presets, tokens)
   preset.RENDER_SRATE           = tonumber(tokens[3])
   preset.RENDER_CHANNELS        = tonumber(tokens[4])
   preset.projrenderlimit        = tonumber(tokens[5]) -- render speed
-  preset.projrenderrateinternal = tonumber(tokens[6])
+  preset.projrenderrateinternal = tonumber(tokens[6]) -- use proj splrate
   preset.projrenderresample     = tonumber(tokens[7])
   preset.RENDER_DITHER          = tonumber(tokens[8])
   preset.RENDER_FORMAT2         = '' -- reset when no <RENDERPRESET2 node exists
@@ -176,6 +178,17 @@ function parseOutputPreset(presets, tokens)
   return parseDefault
 end
 
+function parseNormalizePreset(presets, tokens)
+  local ok, err = checkTokenCount(tokens, 3)
+  if not ok then return nil, err end
+
+  local preset = insertPreset(presets, tokens[2])
+  preset.projrendernorm    = tonumber(tokens[3])
+  preset.projrendernormtgt = tonumber(tokens[4])
+
+  return parseDefault
+end
+
 local function getRenderPresets()
   local presets = {}
   local parser = parseDefault
@@ -204,7 +217,11 @@ local function applyRenderPreset(project, preset)
     elseif type(value) == 'string' then
       reaper.GetSetProjectInfo_String(project, key, value, true)
     elseif key:match('^[a-z]') then -- lowercase
-      reaper.SNM_SetIntConfigVar(key, value)
+      if math.type(value) == 'integer' then
+        reaper.SNM_SetIntConfigVar(key, value)
+      else
+        reaper.SNM_SetDoubleConfigVar(key, value)
+      end
     else
       reaper.GetSetProjectInfo(project, key, value, true)
     end
