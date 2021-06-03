@@ -1,6 +1,6 @@
 -- @description Apply render preset
 -- @author cfillion
--- @version 1.1
+-- @version 1.1.1
 -- @changelog Immediately apply render normalization settings when the render dialog is open (requires v6.29+dev0603 or newer)
 -- @provides
 --   .
