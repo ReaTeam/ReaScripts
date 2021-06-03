@@ -36,6 +36,7 @@
 --   - Render speed
 --   - Resample mode
 --   - Use project sample rate for mixing and FX/synth processing
+--   - Render normalization
 
 local function insertPreset(presets, name)
   local preset = presets[name]
