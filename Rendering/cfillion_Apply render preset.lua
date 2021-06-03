@@ -1,7 +1,7 @@
 -- @description Apply render preset
 -- @author cfillion
--- @version 1.1
--- @changelog Add support for REAPER's new render normalization feature
+-- @version 1.1.1
+-- @changelog Immediately apply render normalization settings when the render dialog is open (requires v6.29+dev0603 or newer)
 -- @provides
 --   .
 --   [main] . > cfillion_Apply render preset (create action).lua
@@ -36,7 +36,6 @@
 --   - Render speed
 --   - Resample mode
 --   - Use project sample rate for mixing and FX/synth processing
---   - Render normalization
 
 local function insertPreset(presets, name)
   local preset = presets[name]
@@ -184,8 +183,8 @@ function parseNormalizePreset(presets, tokens)
   if not ok then return nil, err end
 
   local preset = insertPreset(presets, tokens[2])
-  preset.projrendernorm    = tonumber(tokens[3])
-  preset.projrendernormtgt = tonumber(tokens[4])
+  preset.RENDER_NORMALIZE        = tonumber(tokens[3])
+  preset.RENDER_NORMALIZE_TARGET = tonumber(tokens[4])
 
   return parseDefault
 end
@@ -218,11 +217,7 @@ local function applyRenderPreset(project, preset)
     elseif type(value) == 'string' then
       reaper.GetSetProjectInfo_String(project, key, value, true)
     elseif key:match('^[a-z]') then -- lowercase
-      if math.type(value) == 'integer' then
-        reaper.SNM_SetIntConfigVar(key, value)
-      else
-        reaper.SNM_SetDoubleConfigVar(key, value)
-      end
+      reaper.SNM_SetIntConfigVar(key, value)
     else
       reaper.GetSetProjectInfo(project, key, value, true)
     end
