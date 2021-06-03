@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="93ab8bc6979677ee000d50eea1144edb02d8ba91" name="ReaTeam Scripts">
+<index version="1" commit="707ad2fe215aff6c8ee0d06c390669a093c94393" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -11928,8 +11928,7 @@ Replace GetLastWord func with quicker solution (Thanks: Mespotine[t=233393]).]]>
 {\pard \ql \f0 \sa180 \li0 \fi0 These settings are applied but not visible immediately in the render dialog (if opened):\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Render speed\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Resample mode\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Use project sample rate for mixing and FX/synth processing\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Render normalization\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Use project sample rate for mixing and FX/synth processing\sa180\par}
 }
 ]]></description>
         <link rel="website">https://cfillion.ca</link>
@@ -11997,6 +11996,11 @@ Don't report an error if no render presets were created yet]]></changelog>
         <changelog><![CDATA[Add support for REAPER's new render normalization feature]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/93ab8bc6979677ee000d50eea1144edb02d8ba91/Rendering/cfillion_Apply%20render%20preset.lua</source>
         <source main="main" file="cfillion_Apply render preset (create action).lua">https://github.com/ReaTeam/ReaScripts/raw/93ab8bc6979677ee000d50eea1144edb02d8ba91/Rendering/cfillion_Apply%20render%20preset.lua</source>
+      </version>
+      <version name="1.1.1" author="cfillion" time="2021-06-03T20:23:28Z">
+        <changelog><![CDATA[Immediately apply render normalization settings when the render dialog is open (requires v6.29+dev0603 or newer)]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/707ad2fe215aff6c8ee0d06c390669a093c94393/Rendering/cfillion_Apply%20render%20preset.lua</source>
+        <source main="main" file="cfillion_Apply render preset (create action).lua">https://github.com/ReaTeam/ReaScripts/raw/707ad2fe215aff6c8ee0d06c390669a093c94393/Rendering/cfillion_Apply%20render%20preset.lua</source>
       </version>
     </reapack>
     <reapack name="DSG_Render time selection to new track.lua" type="script" desc="Render time selection to new track">
