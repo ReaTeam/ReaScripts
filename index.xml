@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="707ad2fe215aff6c8ee0d06c390669a093c94393" name="ReaTeam Scripts">
+<index version="1" commit="124834656a86bd043ccc101acbe2641531420404" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -14334,6 +14334,26 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
         <source main="main" file="Toggle Edit Group 6 (Edit Group Management Utility _ amagalma).lua">https://github.com/ReaTeam/ReaScripts/raw/e55f6e8aaaff27653b831924d0543f0204f7a87e/Various/amagalma_Toggle%20Edit%20Group%20(Edit%20Group%20Management%20Utility).lua</source>
         <source main="main" file="Toggle Edit Group 7 (Edit Group Management Utility _ amagalma).lua">https://github.com/ReaTeam/ReaScripts/raw/e55f6e8aaaff27653b831924d0543f0204f7a87e/Various/amagalma_Toggle%20Edit%20Group%20(Edit%20Group%20Management%20Utility).lua</source>
         <source main="main" file="Toggle Edit Group 8 (Edit Group Management Utility _ amagalma).lua">https://github.com/ReaTeam/ReaScripts/raw/e55f6e8aaaff27653b831924d0543f0204f7a87e/Various/amagalma_Toggle%20Edit%20Group%20(Edit%20Group%20Management%20Utility).lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Enclose selected or focused FX in visible chain with ABLM2 Level Matching VST.lua" type="script" desc="Enclose selected or focused FX in visible chain with ABLM2 Level Matching VST">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Inserts TBProAudio's ABLM2 Level Matching VST enclosing the selected FXs or the focused FX (if not any selected)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Ability to rename the send and receive instances with custom names (inside the script)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Supports multiple instances per FX chain, automatically numbered\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Smart undo point creation\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Requires JS_ReaScriptAPI\sa180\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=215215</link>
+        <link rel="donation">https://www.paypal.me/amagalma</link>
+      </metadata>
+      <version name="1.00" author="amagalma" time="2021-06-05T09:46:59Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/124834656a86bd043ccc101acbe2641531420404/Various/amagalma_Enclose%20selected%20or%20focused%20FX%20in%20visible%20chain%20with%20ABLM2%20Level%20Matching%20VST.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_gianfini_ReaNamer (track-item-region renaming utility).lua" type="script" desc="ReaNamer (track-item-region renaming utility)">
