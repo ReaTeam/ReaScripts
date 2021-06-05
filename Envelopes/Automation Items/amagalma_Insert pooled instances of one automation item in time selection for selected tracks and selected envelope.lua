@@ -1,8 +1,7 @@
 -- @description Insert pooled instances of one automation item in time selection for selected tracks and selected envelope
 -- @author amagalma
 -- @version 1.14
--- @changelog
--- - improved undo creation
+-- @changelog - improved undo creation
 -- - updated script info
 -- @donation https://www.paypal.me/amagalma
 -- @about
