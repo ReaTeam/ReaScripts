@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="124834656a86bd043ccc101acbe2641531420404" name="ReaTeam Scripts">
+<index version="1" commit="9a7b5e42f272b77288159be84d32e65dcc406f87" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -2513,7 +2513,24 @@ added support for all track envelopes]]></changelog>
     </reapack>
   </category>
   <category name="Envelopes/Automation Items">
-    <reapack name="amagalma_Insert pooled instances of one automation item in time selection for selected tracks and selected envelope.lua" type="script" desc="amagalma_Insert pooled instances of one automation item in time selection for selected tracks and selected envelope">
+    <reapack name="amagalma_Insert pooled instances of one automation item in all Razor Edit areas.lua" type="script" desc="Insert pooled instances of one automation item in all Razor Edit areas">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Inserts pooled instances of one automation item in every Razor Edit area\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab It does not differentiate between envelopes. It will fill all the envelopes that have a RE area with the same pooled AI.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Option inside the script to keep or remove the RE areas (default: remove)\sa180\par}
+}
+]]></description>
+        <link rel="donation">https://www.paypal.me/amagalma</link>
+      </metadata>
+      <version name="1.00" author="amagalma" time="2021-06-05T13:04:27Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/9a7b5e42f272b77288159be84d32e65dcc406f87/Envelopes/Automation%20Items/amagalma_Insert%20pooled%20instances%20of%20one%20automation%20item%20in%20all%20Razor%20Edit%20areas.lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Insert pooled instances of one automation item in time selection for selected tracks and selected envelope.lua" type="script" desc="Insert pooled instances of one automation item in time selection for selected tracks and selected envelope">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
@@ -2522,9 +2539,11 @@ added support for all track envelopes]]></changelog>
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Inserts automation items in time selection for the selected tracks and selected envelope\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab There must be a selected envelope and a time selection set for the script to work\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab If no other tracks are selected, it inserts an AI in the time selection of the selected envelope\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Works with the built-in envelopes only\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Smart undo point creation\sa180\par}
 }
 ]]></description>
+        <link rel="donation">https://www.paypal.me/amagalma</link>
       </metadata>
       <version name="1.0" author="amagalma" time="2017-10-03T00:46:44Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/93043ae9c9ca6b894b8afb46184372541b926502/Envelopes/Automation%20Items/amagalma_Insert%20pooled%20instances%20of%20one%20automation%20item%20in%20time%20selection%20for%20selected%20tracks%20and%20selected%20envelope.lua</source>
@@ -2547,6 +2566,10 @@ added support for all track envelopes]]></changelog>
         <changelog><![CDATA[+ removed the work-around for a previous Reaper bug (this version requires Reaper v5.60+)
 + re-introduced smart undo point creation, which was removed because of previous Reaper bug work-around]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/44daed201b401fe30313121b868d97e528db8388/Envelopes/Automation%20Items/amagalma_Insert%20pooled%20instances%20of%20one%20automation%20item%20in%20time%20selection%20for%20selected%20tracks%20and%20selected%20envelope.lua</source>
+      </version>
+      <version name="1.14" author="amagalma" time="2021-06-05T13:03:33Z">
+        <changelog><![CDATA[- improved undo creation]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b384a4634611f7b73a3a0e2f17a6dd6d90319059/Envelopes/Automation%20Items/amagalma_Insert%20pooled%20instances%20of%20one%20automation%20item%20in%20time%20selection%20for%20selected%20tracks%20and%20selected%20envelope.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Select all visible pooled instances of selected automation items in project.lua" type="script" desc="amagalma_Select all visible pooled instances of selected automation items in project">
