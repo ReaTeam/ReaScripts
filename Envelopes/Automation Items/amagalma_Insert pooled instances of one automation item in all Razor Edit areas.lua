@@ -4,14 +4,11 @@
 -- @donation https://www.paypal.me/amagalma
 -- @about
 --   # Inserts pooled instances of one automation item in  every Razor Edit area
---
 --   - It does not differentiate between envelopes. It will fill all the envelopes that have a RE area with the same pooled AI.
 --   - Option inside the script to keep or remove the RE areas (default: remove)
 
 ----------------------------- USER SETTINGS -----------------------------------------------
-
 local removeRE = 1 -- set to 0 to keep Razor Edit areas, or to 1 to remove them
-
 -------------------------------------------------------------------------------------------
 
 local track_cnt = reaper.CountTracks(0)
