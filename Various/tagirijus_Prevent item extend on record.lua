@@ -1,7 +1,7 @@
 -- @description Prevent item extend on record
 -- @author Tagirijus
--- @version 1.3
--- @changelog I reverted the last fix, found another issue and now I re-reverted the other fix, since it seems to fix a new issue I totally do not understand ...
+-- @version 1.4
+-- @changelog I added a compensation for the playback time offset. So now e.g. for a string library it is possible to have some negative time offset so that for quantized notes the strings will be in time, even if they have a slightly slower attack or so. My recording script now understand this playback time offset and compensates recorded MIDI data (which probably will be in sync with the beat during record but not after that anymore, if the time offset exists for the track!).
 -- @about
 --   # Description
 --
@@ -23,7 +23,7 @@
  * Licence: MIT
  * REAPER: 6.20
  * Extensions: None
- * Version: 1.3
+ * Version: 1.4
 --]]
 
 
@@ -140,9 +140,23 @@ function SelectNewestMediaItems()
 
         if not keyExists(existingItems, uid) then
             reaper.SetMediaItemSelected(item, 1)
+            CompensatePlaybackTimeOffset(item)
         end
     end
     reaper.UpdateArrange()
+end
+
+function CompensatePlaybackTimeOffset(item)
+    local itemsTrack = reaper.GetMediaItemInfo_Value(item, 'P_TRACK')
+    local itemPosition = reaper.GetMediaItemInfo_Value(item, 'D_POSITION')
+
+    if reaper.GetMediaTrackInfo_Value(itemsTrack, 'I_PLAY_OFFSET_FLAG') == 0.0 then
+        newPosition = itemPosition - reaper.GetMediaTrackInfo_Value(itemsTrack, 'D_PLAY_OFFSET')
+    else
+        newPosition = itemPosition
+    end
+
+    reaper.SetMediaItemInfo_Value(item, 'D_POSITION', newPosition)
 end
 
 function TrimTheNewItems()
