@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="10b387b6d057cf959018a0687b5299a8610b74f4" name="ReaTeam Scripts">
+<index version="1" commit="d6b6181b156d26251f5f155d466621eb2c740ba8" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -3474,6 +3474,44 @@ Alternative FX browser fixes]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a22bb49688a60e84c8c29f6f951e06342f517650/FX/kawa_TrackFXs_Routing_Matrix_DS_KW.lua</source>
       </version>
     </reapack>
+    <reapack name="larryseyer_Live keys scripts.lua" type="script" desc="Live keys scripts">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Live Keys Scripts (NOW WORKS WITH MAC AND WINDOWS)\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 These scripts are designed for those who want to use Reaper for live performance such as a replacement for MainStage.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Using these scripts saves computing power by turning off ALL tracks and FX (up to 16 tracks) except the desired track allowing for more stable operation for a live performance using Reaper. Tracks that are disabled take no processing power.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This script differs from other scripts in that it allows for instantaneous switching from one track to another without cutting notes or effects off. In other words, delays, reverbs, and long string patches continue to sound when selecting new tracks.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 In addition, bypassed tracks and FX are hidden out of view and only the selected track is visible (up to 16 tracks). This is done in order to allow for the automatic large track size increase when a track is selected this script performs.\par}
+}
+]]></description>
+        <link rel="website" href="https://www.youtube.com/watch?v=g506QrJ19-4">How-To Install Video</link>
+        <link rel="website" href="https://larryseyer.com/">Author Website</link>
+        <link rel="website" href="https://larryseyer.com/donate/">Donation Page</link>
+      </metadata>
+      <version name="1.0" author="Larry Seyer" time="2021-06-08T17:07:41Z">
+        <source>https://github.com/ReaTeam/ReaScripts/raw/b32b077543c9505f0ed8aa59c7c6a9eb39a1c290/FX/larryseyer_Live%20keys%20scripts.lua</source>
+        <source main="main" file="larryseyer_Live keys scripts - Track 1.lua">https://github.com/ReaTeam/ReaScripts/raw/b32b077543c9505f0ed8aa59c7c6a9eb39a1c290/FX/larryseyer_Live%20keys%20scripts/action.lua</source>
+        <source main="main" file="larryseyer_Live keys scripts - Track 2.lua">https://github.com/ReaTeam/ReaScripts/raw/b32b077543c9505f0ed8aa59c7c6a9eb39a1c290/FX/larryseyer_Live%20keys%20scripts/action.lua</source>
+        <source main="main" file="larryseyer_Live keys scripts - Track 3.lua">https://github.com/ReaTeam/ReaScripts/raw/b32b077543c9505f0ed8aa59c7c6a9eb39a1c290/FX/larryseyer_Live%20keys%20scripts/action.lua</source>
+        <source main="main" file="larryseyer_Live keys scripts - Track 4.lua">https://github.com/ReaTeam/ReaScripts/raw/b32b077543c9505f0ed8aa59c7c6a9eb39a1c290/FX/larryseyer_Live%20keys%20scripts/action.lua</source>
+        <source main="main" file="larryseyer_Live keys scripts - Track 5.lua">https://github.com/ReaTeam/ReaScripts/raw/b32b077543c9505f0ed8aa59c7c6a9eb39a1c290/FX/larryseyer_Live%20keys%20scripts/action.lua</source>
+        <source main="main" file="larryseyer_Live keys scripts - Track 6.lua">https://github.com/ReaTeam/ReaScripts/raw/b32b077543c9505f0ed8aa59c7c6a9eb39a1c290/FX/larryseyer_Live%20keys%20scripts/action.lua</source>
+        <source main="main" file="larryseyer_Live keys scripts - Track 7.lua">https://github.com/ReaTeam/ReaScripts/raw/b32b077543c9505f0ed8aa59c7c6a9eb39a1c290/FX/larryseyer_Live%20keys%20scripts/action.lua</source>
+        <source main="main" file="larryseyer_Live keys scripts - Track 8.lua">https://github.com/ReaTeam/ReaScripts/raw/b32b077543c9505f0ed8aa59c7c6a9eb39a1c290/FX/larryseyer_Live%20keys%20scripts/action.lua</source>
+        <source main="main" file="larryseyer_Live keys scripts - Track 9.lua">https://github.com/ReaTeam/ReaScripts/raw/b32b077543c9505f0ed8aa59c7c6a9eb39a1c290/FX/larryseyer_Live%20keys%20scripts/action.lua</source>
+        <source main="main" file="larryseyer_Live keys scripts - Track 10.lua">https://github.com/ReaTeam/ReaScripts/raw/b32b077543c9505f0ed8aa59c7c6a9eb39a1c290/FX/larryseyer_Live%20keys%20scripts/action.lua</source>
+        <source main="main" file="larryseyer_Live keys scripts - Track 11.lua">https://github.com/ReaTeam/ReaScripts/raw/b32b077543c9505f0ed8aa59c7c6a9eb39a1c290/FX/larryseyer_Live%20keys%20scripts/action.lua</source>
+        <source main="main" file="larryseyer_Live keys scripts - Track 12.lua">https://github.com/ReaTeam/ReaScripts/raw/b32b077543c9505f0ed8aa59c7c6a9eb39a1c290/FX/larryseyer_Live%20keys%20scripts/action.lua</source>
+        <source main="main" file="larryseyer_Live keys scripts - Track 13.lua">https://github.com/ReaTeam/ReaScripts/raw/b32b077543c9505f0ed8aa59c7c6a9eb39a1c290/FX/larryseyer_Live%20keys%20scripts/action.lua</source>
+        <source main="main" file="larryseyer_Live keys scripts - Track 14.lua">https://github.com/ReaTeam/ReaScripts/raw/b32b077543c9505f0ed8aa59c7c6a9eb39a1c290/FX/larryseyer_Live%20keys%20scripts/action.lua</source>
+        <source main="main" file="larryseyer_Live keys scripts - Track 15.lua">https://github.com/ReaTeam/ReaScripts/raw/b32b077543c9505f0ed8aa59c7c6a9eb39a1c290/FX/larryseyer_Live%20keys%20scripts/action.lua</source>
+        <source main="main" file="larryseyer_Live keys scripts - Track 16.lua">https://github.com/ReaTeam/ReaScripts/raw/b32b077543c9505f0ed8aa59c7c6a9eb39a1c290/FX/larryseyer_Live%20keys%20scripts/action.lua</source>
+        <source main="main" file="larryseyer_Live keys scripts - Reset.lua">https://github.com/ReaTeam/ReaScripts/raw/b32b077543c9505f0ed8aa59c7c6a9eb39a1c290/FX/larryseyer_Live%20keys%20scripts/action.lua</source>
+      </version>
+    </reapack>
     <reapack name="Lokasenna_Adjust ReaSamplomatic 5000 Pitch Offset.lua" type="script" desc="Adjust ReaSamplomatic 5000 pitch offset">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
@@ -3761,6 +3799,41 @@ Better error-checking in general]]></changelog>
       </metadata>
       <version name="1.0" author="amagalma" time="2018-11-29T03:22:58Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Items%20Editing/Add%20project%20markers%20as%20cue%20points%20to%20selected%20items%20and%20replace%20source%20files.lua</source>
+      </version>
+    </reapack>
+    <reapack name="ak5k_Drums to MIDI.lua" type="script" desc="Drums to MIDI">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Creates General MIDI drum notes from transients based on tone in selected items or Razor Edit area. See {\field{\*\fldinst{HYPERLINK "https://forum.cockos.com/showthread.php?t=252626"}}{\fldrslt{\ul
+website
+}}}
+ for more information.\par}
+}
+]]></description>
+        <link rel="website" href="https://forum.cockos.com/showthread.php?t=252626">Forum thread</link>
+      </metadata>
+      <version name="0.1.0" author="ak5k" time="2021-06-08T17:09:32Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/0e6a3803db0d286f0435754d14cadc3ed7b0759e/Items%20Editing/ak5k_Drums%20to%20MIDI.lua</source>
+      </version>
+    </reapack>
+    <reapack name="ak5k_Toms tool.lua" type="script" desc="Toms tool">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Isolates transients from selected items or Razor Edit ares, and adds filter and volume fades to resulting items (i.e. 'manual gating of toms'). See {\field{\*\fldinst{HYPERLINK "https://forum.cockos.com/showthread.php?t=252563"}}{\fldrslt{\ul
+website
+}}}
+ for more information.\par}
+}
+]]></description>
+      </metadata>
+      <version name="0.1.0" author="ak5k" time="2021-06-08T17:10:01Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d6b6181b156d26251f5f155d466621eb2c740ba8/Items%20Editing/ak5k_Toms%20tool.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Add all completely visible items in arrange viewport to selection (for all completely visible tracks).lua" type="script" desc="Add all completely visible items in arrange viewport to selection (for all completely visible tracks)">
@@ -18861,6 +18934,10 @@ Fix SWS Startup / Lokasenna Radial Menu bug]]></changelog>
       <version name="1.3" author="Tagirijus" time="2021-01-25T21:50:48Z">
         <changelog><![CDATA[I reverted the last fix, found another issue and now I re-reverted the other fix, since it seems to fix a new issue I totally do not understand ...]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a492b2fac4b2c4dbf865118fcffec0a52ba90c4e/Various/tagirijus_Prevent%20item%20extend%20on%20record.lua</source>
+      </version>
+      <version name="1.4" author="Tagirijus" time="2021-06-08T17:08:19Z">
+        <changelog><![CDATA[I added a compensation for the playback time offset. So now e.g. for a string library it is possible to have some negative time offset so that for quantized notes the strings will be in time, even if they have a slightly slower attack or so. My recording script now understand this playback time offset and compensates recorded MIDI data (which probably will be in sync with the beat during record but not after that anymore, if the time offset exists for the track!).]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/758a48bbcb25579f6ace621eedbe59e5f159017d/Various/tagirijus_Prevent%20item%20extend%20on%20record.lua</source>
       </version>
     </reapack>
     <reapack name="tompad_MusicMath.lua" type="script" desc="MusicMath - bpm/pitch to ms/Hz converter">
