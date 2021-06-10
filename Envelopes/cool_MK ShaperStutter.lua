@@ -1,7 +1,11 @@
 -- @description MK Shaper/Stutter
 -- @author cool
--- @version 1.0
--- @changelog Initial Release
+-- @version 1.01
+-- @changelog
+--   + Fixed: now Shift works correctly if the tempo is different from 120.
+--   + Now the combination Ctrl+S works when the script window is active.
+--   + os.execute replaced with CF_ShellExecute for better performance and Linux compatibility.
+--   + Added a hidden option to force Sync to be enabled every time the script is run.
 -- @link Forum Thread https://forum.cockos.com/showthread.php?t=254081
 -- @screenshot Main View https://i.imgur.com/DAe0EY7.jpg
 -- @donation Donate via Paypal https://www.paypal.me/MKokarev
@@ -23,7 +27,7 @@
 --   Also, after running the script, you can select the track on which you want to form an envelope and click "Shape".
 
 --[[
-MK Shaper/Stutter v1.0 by Maxim Kokarev 
+MK Shaper/Stutter v1.01 by Maxim Kokarev 
 https://forum.cockos.com/member.php?u=121750
 
 Thanks to Anton (MyDaw)
@@ -94,6 +98,7 @@ WFiltering = 0 -- (Waveform Visual Filtering while Window Scaling. 1 - On, 0 - O
 ShowRuler = 1 -- (Show Project Grid Green Markers. 1 - On, 0 - Off)
 ShowInfoLine = 0 -- (Show Project Info Line. 1 - On, 0 - Off)
 Markers_Btns = 0  -- (Show MK_Slicer's Markers Operation Controls. 1 - On, 0 - Off)
+ForceSync = 0 -- (force Sync On on the script starts: 1 - On (Always On), 0 - Off (Default, Save Previous State))
 
 ------------------------End of Advanced Settings----------------------------------------
 
@@ -108,6 +113,13 @@ Sampler_preset_state = tonumber(r.GetExtState('cool_MK_Shaper/Stutter.lua','Samp
 AutoScroll = tonumber(r.GetExtState('cool_MK_Shaper/Stutter.lua','AutoScroll'))or 0;
 PlayMode = tonumber(r.GetExtState('cool_MK_Shaper/Stutter.lua','PlayMode'))or 0;
 Loop_on = tonumber(r.GetExtState('cool_MK_Shaper/Stutter.lua','Loop_on'))or 1;
+
+   if ForceSync == 1 then
+       Sync_on = 1
+         else
+       Sync_on = tonumber(r.GetExtState('cool_MK Slicer.lua','Sync_on'))or 0;
+   end
+
 Sync_on = tonumber(r.GetExtState('cool_MK_Shaper/Stutter.lua','Sync_on'))or 0;
 TrackEnv = tonumber(r.GetExtState('cool_MK_Shaper/Stutter.lua','TrackEnv'))or 1;
 VolPreFX = tonumber(r.GetExtState('cool_MK_Shaper/Stutter.lua','VolPreFX'))or 1;
@@ -3091,16 +3103,6 @@ local Grid_Fill_TB = {elm_table[18]}
 ---------------------------------------------------------------
 ---  Create Menu Settings   -----------------------------
 ---------------------------------------------------------------
-
-function OpenURL(url)
-  local OS = r.GetOS()
-  if OS == "OSX32" or OS == "OSX64" then
-    os.execute('open "" "' .. url .. '"')
-  else
-    os.execute('start "" "' .. url .. '"')
-  end
-end
-
 ---------------
 -- Menu class --
 ---------------
@@ -4502,7 +4504,7 @@ local b = 0
 
 if OffBeatP.norm_val == 1 then
    local _, offbeat_division, _, _ = r.GetSetProjectGrid(0,false)
-  offbeat = offbeat_division
+  offbeat = offbeat_division*tempo_corr
     else
   offbeat = 0
 end
@@ -6425,7 +6427,7 @@ function Init()
     -- Some gfx Wnd Default Values ---------------
     local R,G,B = 45,45,45              -- 0...255 format -- цвет основного окна
     local Wnd_bgd = R + G*256 + B*65536 -- red+green*256+blue*65536  
-    local Wnd_Title = "MK Shaper/Stutter v1.0"
+    local Wnd_Title = "MK Shaper/Stutter v1.01"
     local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
  --   Wnd_W,Wnd_H = 1044,490 -- global values(used for define zoom level)
 
@@ -6586,6 +6588,10 @@ end
          MarkersQ_Status = 1
      end ---undo
    
+     if char==19 then 
+         r.Main_OnCommand(40026, 0)  
+     end ---save (ctrl+s)
+
      if EscToExit == 1 then
            if char == 27 then gfx.quit() end   -- escape 
      end
@@ -6700,12 +6706,12 @@ item1 = context_menu:add_item({label = "Links|", active = false})
 
 item2 = context_menu:add_item({label = "Donate (PayPal)", toggleable = false})
 item2.command = function()
-                     OpenURL('https://paypal.me/MKokarev')
+                     r.CF_ShellExecute('https://paypal.me/MKokarev')
 end
 
 item3 = context_menu:add_item({label = "User Manual and Support (Forum Thread)|", toggleable = false})
 item3.command = function()
-                     OpenURL('https://forum.cockos.com/showthread.php?t=254081')
+                     r.CF_ShellExecute('https://forum.cockos.com/showthread.php?t=254081')
 end
 
 item4 = context_menu:add_item({label = "Options|", active = false})
@@ -6733,7 +6739,7 @@ gfx.quit()
      dock_pos = dock_pos or 1025
      xpos = 400
      ypos = 320
-     local Wnd_Title = "MK Shaper/Stutter v1.0"
+     local Wnd_Title = "MK Shaper/Stutter v1.01"
      local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
      gfx.init( Wnd_Title, Wnd_W,Wnd_H, Wnd_Dock, Wnd_X,Wnd_Y )
 
@@ -6745,7 +6751,7 @@ gfx.quit()
     dock_pos = 0
     xpos = r.GetExtState("cool_MK_Shaper/Stutter.lua", "window_x") or 400
     ypos = r.GetExtState("cool_MK_Shaper/Stutter.lua", "window_y") or 320
-    local Wnd_Title = "MK Shaper/Stutter v1.0"
+    local Wnd_Title = "MK Shaper/Stutter v1.01"
     local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
     gfx.init( Wnd_Title, Wnd_W,Wnd_H, Wnd_Dock, Wnd_X,Wnd_Y )
  
