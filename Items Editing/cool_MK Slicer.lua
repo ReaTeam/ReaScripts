@@ -1,9 +1,10 @@
 -- @description MK Slicer
 -- @author cool
--- @version 2.14
+-- @version 2.15
 -- @changelog
---   + Small optimization of the audio engine (thanks, amagalma!), fixing gross errors of previous versions 2.12 - 2.13.
---   + Play Marker is now visible on the Loop Line (useful when working with long items).
+--   + Now the combination Ctrl+S works when the script window is active.
+--   + os.execute replaced with CF_ShellExecute for better performance and Linux compatibility.
+--   + Added a hidden option to force Sync to be enabled every time the script is run.
 -- @link Forum Thread https://forum.cockos.com/showthread.php?t=232672
 -- @screenshot MKSlicer2.0 https://i.imgur.com/QFWHt9a.png
 -- @donation
@@ -61,7 +62,7 @@
 --   Sometimes a script applies glue to items. For example, when several items are selected and when a MIDI is created in a sampler mode.
 
 --[[
-MK Slicer v2.14 by Maxim Kokarev 
+MK Slicer v2.15 by Maxim Kokarev 
 https://forum.cockos.com/member.php?u=121750
 
 Co-Author of the compilation - MyDaw
@@ -143,6 +144,7 @@ ShowInfoLine = 0 -- (Show Project Info Line. 1 - On, 0 - Off)
 SnapToStart = 1 --(Snap Play Cursor to Waveform Start. 1 - On, 0 - Off)
 ZeroCrossingType = 1 -- (1 - Snap to Nearest (working fine), 0 - Snap to previous (not recommend, for testing only!))
 SnapToSemi = 1 -- (Random pitch steps by semitones 2 - On(Intervals), 1 - On(chromatic), 0 - Off(cents))
+ForceSync = 0 -- (force Sync On on the script starts: 1 - On (Force On), 0 - Off (Save Previous State))
 
 ------------------------End of Advanced Settings----------------------------------------
 
@@ -157,7 +159,13 @@ Sampler_preset_state = tonumber(r.GetExtState('cool_MK Slicer.lua','Sampler_pres
 AutoScroll = tonumber(r.GetExtState('cool_MK Slicer.lua','AutoScroll'))or 0;
 PlayMode = tonumber(r.GetExtState('cool_MK Slicer.lua','PlayMode'))or 0;
 Loop_on = tonumber(r.GetExtState('cool_MK Slicer.lua','Loop_on'))or 1;
-Sync_on = tonumber(r.GetExtState('cool_MK Slicer.lua','Sync_on'))or 0;
+
+   if ForceSync == 1 then
+       Sync_on = 1
+         else
+       Sync_on = tonumber(r.GetExtState('cool_MK Slicer.lua','Sync_on'))or 0;
+   end
+
 ZeroCrossings = tonumber(r.GetExtState('cool_MK Slicer.lua','ZeroCrossings'))or 0;
 ItemFadesOverride = tonumber(r.GetExtState('cool_MK Slicer.lua','ItemFadesOverride'))or 1;
 ObeyingTheSelection = tonumber(r.GetExtState('cool_MK Slicer.lua','ObeyingTheSelection'))or 1;
@@ -3167,16 +3175,6 @@ local Sampler_preset = CheckBox_simple:new(770,410+corrY,90,18, 0.28,0.4,0.7,0.8
 ---------------------------------------------------------------
 ---  Create Menu Settings   ------------------------------------
 ---------------------------------------------------------------
-
-function OpenURL(url)
-  local OS = r.GetOS()
-  if OS == "OSX32" or OS == "OSX64" then
-    os.execute('open "" "' .. url .. '"')
-  else
-    os.execute('start "" "' .. url .. '"')
-  end
-end
-
 ---------------
 -- Menu class --
 ---------------
@@ -7899,7 +7897,7 @@ function Init()
     -- Some gfx Wnd Default Values ---------------
     local R,G,B = 45,45,45              -- 0...255 format -- цвет основного окна
     local Wnd_bgd = R + G*256 + B*65536 -- red+green*256+blue*65536  
-    local Wnd_Title = "MK Slicer v2.14"
+    local Wnd_Title = "MK Slicer v2.15"
     local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
  --   Wnd_W,Wnd_H = 1044,490 -- global values(used for define zoom level)
 
@@ -8059,6 +8057,10 @@ end
          Slice_Status = 1
          MarkersQ_Status = 1
      end ---undo
+
+     if char==19 then 
+         r.Main_OnCommand(40026, 0)  
+     end ---save (ctrl+s)
    
      if EscToExit == 1 then
            if char == 27 then gfx.quit() end   -- escape 
@@ -8174,12 +8176,12 @@ item1 = context_menu:add_item({label = "Links|", active = false})
 
 item2 = context_menu:add_item({label = "Donate (PayPal)", toggleable = false})
 item2.command = function()
-                     OpenURL('https://paypal.me/MKokarev')
+                     r.CF_ShellExecute('https://paypal.me/MKokarev')
 end
 
 item3 = context_menu:add_item({label = "User Manual and Support (Forum Thread)|", toggleable = false})
 item3.command = function()
-                     OpenURL('https://forum.cockos.com/showthread.php?p=2255547')
+                     r.CF_ShellExecute('https://forum.cockos.com/showthread.php?p=2255547')
 end
 
 item4 = context_menu:add_item({label = "Options|", active = false})
@@ -8207,7 +8209,7 @@ gfx.quit()
      dock_pos = dock_pos or 1025
      xpos = 400
      ypos = 320
-     local Wnd_Title = "MK Slicer v2.14"
+     local Wnd_Title = "MK Slicer v2.15"
      local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
      gfx.init( Wnd_Title, Wnd_W,Wnd_H, Wnd_Dock, Wnd_X,Wnd_Y )
 
@@ -8219,7 +8221,7 @@ gfx.quit()
     dock_pos = 0
     xpos = r.GetExtState("cool_MK Slicer.lua", "window_x") or 400
     ypos = r.GetExtState("cool_MK Slicer.lua", "window_y") or 320
-    local Wnd_Title = "MK Slicer v2.14"
+    local Wnd_Title = "MK Slicer v2.15"
     local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
     gfx.init( Wnd_Title, Wnd_W,Wnd_H, Wnd_Dock, Wnd_X,Wnd_Y )
  
