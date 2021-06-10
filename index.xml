@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="d6b6181b156d26251f5f155d466621eb2c740ba8" name="ReaTeam Scripts">
+<index version="1" commit="84036c48e0f1e9961ad0e936f62362de4b2150e1" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -2234,6 +2234,13 @@ Remember the window position, size and dock state]]></changelog>
       <version name="1.0" author="cool" time="2021-06-02T16:46:43Z">
         <changelog><![CDATA[Initial Release]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3cddc2fa7f12184f3bf343db80e71011f0eeb742/Envelopes/cool_MK%20ShaperStutter.lua</source>
+      </version>
+      <version name="1.01" author="cool" time="2021-06-10T17:14:12Z">
+        <changelog><![CDATA[+ Fixed: now Shift works correctly if the tempo is different from 120.
++ Now the combination Ctrl+S works when the script window is active.
++ os.execute replaced with CF_ShellExecute for better performance and Linux compatibility.
++ Added a hidden option to force Sync to be enabled every time the script is run.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/84036c48e0f1e9961ad0e936f62362de4b2150e1/Envelopes/cool_MK%20ShaperStutter.lua</source>
       </version>
     </reapack>
     <reapack name="edgemeal_Toggle active envelopes inlane for selected track.lua" type="script" desc="Toggle active envelopes inlane for selected track">
@@ -5068,6 +5075,12 @@ Override Reaper option "Toggle enable/disable default fadein/fadeout" (on/off)]]
         <changelog><![CDATA[+ Small optimization of the audio engine (thanks, amagalma!), fixing gross errors of previous versions 2.12 - 2.13.
 + Play Marker is now visible on the Loop Line (useful when working with long items).]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/bfba17272b2b2e6c17d610c6ca8ba0a1fd8772f5/Items%20Editing/cool_MK%20Slicer.lua</source>
+      </version>
+      <version name="2.15" author="cool" time="2021-06-10T17:13:49Z">
+        <changelog><![CDATA[+ Now the combination Ctrl+S works when the script window is active.
++ os.execute replaced with CF_ShellExecute for better performance and Linux compatibility.
++ Added a hidden option to force Sync to be enabled every time the script is run.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/8f36285cd10fd07252418f59b88aaf6ee1369120/Items%20Editing/cool_MK%20Slicer.lua</source>
       </version>
     </reapack>
     <reapack name="ED_Select items with take FX in active take.lua" type="script" desc="Select items with take FX in active take">
