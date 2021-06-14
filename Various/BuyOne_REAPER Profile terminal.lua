@@ -1,4 +1,3 @@
-
 --[[
 ReaScript name: REAPER Profile terminal
 Version: 1.0
