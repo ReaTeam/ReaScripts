@@ -159,19 +159,19 @@ local profile_sett_t = {
 '', -- Everything
 'reaper', -- Global and last session settings
 'reaper-pinstates', -- Window pin states -----|
-											--| these could be combined if another slot needed
+					    --| these could be combined if another slot needed
 'REAPER-wndpos', -- Modal window positions ---|
 'reaper-menu', -- Menus
 'reaper-kb', -- Action and script shortcuts
 'reaper-mouse', -- Mouse modifiers
 'reaper-screensets', -- Screensets
 {'reaper-fxfolders', 'reaper-fxoptions'}, -- FX folders and shortcuts --|
-																	----| these could be combined
-'reaper-defpresets', -- Default FX presets 	----------------------------|
+								    ----| these could be combined
+'reaper-defpresets', -- Default FX presets  ----------------------------|
 'reaper-hwoutfx', -- Monitor FX chain
 'reaper-render', -- Render settings & presets
 'reaper-extstate', -- Script extended settings
-'S&M', -- SWS Ext. global				 -----|
+'S&M', -- SWS Ext. global		 -----|
 'sws-autocoloricon', -- SWS Ext. autocolor  --| these could be combined
 'S&M_Cyclactions' -- SWS Ext. cycle actions --|
 	}
