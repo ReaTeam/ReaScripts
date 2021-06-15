@@ -1,6 +1,7 @@
 -- @description Live keys scripts
 -- @author Larry Seyer
--- @version 1.0
+-- @version 1.0.0-1
+-- @changelog Fix broken include path due to packaging changes
 -- @provides
 --   [nomain] .
 --   [main] larryseyer_Live keys scripts/action.lua > larryseyer_Live keys scripts - Track 1.lua
