@@ -1,3 +1,4 @@
+-- @noindex
 --[[
 ReaScript name: REAPER Profile terminal (autosave all) (guide insie)
 Version: 1.0
