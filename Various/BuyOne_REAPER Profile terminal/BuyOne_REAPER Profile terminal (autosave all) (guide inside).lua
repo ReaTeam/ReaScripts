@@ -358,7 +358,6 @@ function exit() -- save settings and reset states at exit
 -- only change toggle and button states when the same script instance is stopped keeping them ON if another script instance from another Action list section is launched which will stop other instances automatically as set in the save_settings() function
 	if r.GetExtState(scr_name, 'Active profile') == input..tostring(sect_ID) then
 	set_toggle_state_and_refresh_toolbars(sect_ID, cmd_ID, 0)
-	--r.DeleteExtState(scr_name, key, 1)
 	end
 
 end
