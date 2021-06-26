@@ -15,7 +15,9 @@ The script was designed to facilitate sharing one REAPER installation between se
 
 Technically it's achieved by copying files which store REAPER settings from REAPER resource directory to a separate folder homonymous with the profile and which is located under \ProfileTerminalData directory in REAPER resource directory, and then copying them back to the REAPER resource directory when profile is being loaded.
 
-This script is a simplified version of BuyOne_REAPER Profile terminal.lua with minimum functions.
+It was inspired by a user feature request from https://forum.cockos.com/showthread.php?t=254201
+
+This script is a simplified version of BuyOne_REAPER Profile terminal (guide inside).lua with minimum functions.
 
 If it was installed via ReaPack it was added to both Main and MIDI Editor sections of the Action list.
 
