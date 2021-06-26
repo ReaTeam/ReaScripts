@@ -1,4 +1,4 @@
-
+-- @noindex
 --[[
 ReaScript name: REAPER Profile terminal (guide inside)
 Version: 1.0
