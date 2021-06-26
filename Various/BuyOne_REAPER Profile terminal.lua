@@ -4,8 +4,8 @@
 -- @version 1.0
 -- @metapackage
 -- @provides
---   [main=main,midi_editor] BuyOne_REAPER Profile terminal (guide inside).lua
---   [main=main,midi_editor] BuyOne_REAPER Profile terminal (autosave all) (guide inside).lua
+--   [main=main,midi_editor] BuyOne_REAPER Profile terminal/BuyOne_REAPER Profile terminal (guide inside).lua
+--   [main=main,midi_editor] BuyOne_REAPER Profile terminal/BuyOne_REAPER Profile terminal (autosave all) (guide inside).lua
 -- @about
 --   2 independent scripts designed to facilitate sharing one REAPER installation between several users.
 --
