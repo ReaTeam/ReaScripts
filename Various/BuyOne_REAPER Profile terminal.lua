@@ -1,0 +1,16 @@
+-- @description REAPER Profile terminal
+-- @author BuyOne
+-- @website https://forum.cockos.com/member.php?u=134058
+-- @version 1.0
+-- @metapackage
+-- @provides
+--   [main=main,midi_editor] BuyOne_REAPER Profile terminal (guide inside).lua
+--   [main=main,midi_editor] BuyOne_REAPER Profile terminal (autosave all) (guide inside).lua
+-- @about
+--   2 independent scripts designed to facilitate sharing one REAPER installation between several users.
+--
+--   However the concept can be applied to using the same REAPER installation for different purposes which would likely entail different workflows and thus different setup requirements.
+--
+--   Technically it's achieved by copying files storing REAPER settings from REAPER resource directory to a separate folder homonymous with the profile and which is located under *\ProfileTerminalData* directory in REAPER resource directory, and then copying them back to the REAPER resource directory when profile is being loaded.
+--
+-- @licence: WTFPL
