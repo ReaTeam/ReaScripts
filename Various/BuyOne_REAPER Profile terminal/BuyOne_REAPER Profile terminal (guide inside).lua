@@ -1,6 +1,6 @@
 -- @noindex
 --[[
-ReaScript name: REAPER Profile terminal (guide inside)
+ReaScript name: BuyOne_REAPER Profile terminal (guide inside)
 Version: 1.0
 Author: BuyOne
 Website: https://forum.cockos.com/member.php?u=134058
