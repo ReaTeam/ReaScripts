@@ -1,6 +1,6 @@
 -- @noindex
 --[[
-ReaScript name: REAPER Profile terminal (autosave all) (guide insie)
+ReaScript name: BuyOne_REAPER Profile terminal (autosave all) (guide insie)
 Version: 1.0
 Author: BuyOne
 Website: https://forum.cockos.com/member.php?u=134058
