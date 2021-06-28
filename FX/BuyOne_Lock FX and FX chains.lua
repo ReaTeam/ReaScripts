@@ -1,9 +1,9 @@
 -- @description Lock FX and FX chains + Append or remove lock tag
 -- @author BuyOne
 -- @website https://forum.cockos.com/member.php?u=134058
--- @version 1.1
+-- @version 1.2
 -- @changelog
---  #Added proper takes support
+--  #A minor efficiency update
 -- @metapackage
 -- @provides
 --   [main] BuyOne_Lock FX and FX chains/BuyOne_Lock FX and FX chains (guide inside).lua
