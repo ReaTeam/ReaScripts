@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="6383c150c376ded305b3a47a63a2d9359a1db7a4" name="ReaTeam Scripts">
+<index version="1" commit="9ff25d09f78d29f47ea103e41aed7a8d9d9e870b" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -4826,6 +4826,12 @@ Rewrite the script's user interface using ReaImGui]]></changelog>
         <source main="main" file="cfillion_Nudge left by selected saved nudge dialog settings.lua">https://github.com/ReaTeam/ReaScripts/raw/23afd2cd084d3acd0be7fad9e9f007339a233623/Items%20Editing/cfillion_Show%20all%20saved%20nudge%20settings.lua</source>
         <source main="main" file="cfillion_Nudge right by selected saved nudge dialog settings.lua">https://github.com/ReaTeam/ReaScripts/raw/23afd2cd084d3acd0be7fad9e9f007339a233623/Items%20Editing/cfillion_Show%20all%20saved%20nudge%20settings.lua</source>
       </version>
+      <version name="3.0.1" author="cfillion" time="2021-06-29T05:13:11Z">
+        <changelog><![CDATA[Update the user interface to ReaImGui v0.5]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/1d7d062327c4863f898a84394302399f78af81f7/Items%20Editing/cfillion_Show%20all%20saved%20nudge%20settings.lua</source>
+        <source main="main" file="cfillion_Nudge left by selected saved nudge dialog settings.lua">https://github.com/ReaTeam/ReaScripts/raw/1d7d062327c4863f898a84394302399f78af81f7/Items%20Editing/cfillion_Show%20all%20saved%20nudge%20settings.lua</source>
+        <source main="main" file="cfillion_Nudge right by selected saved nudge dialog settings.lua">https://github.com/ReaTeam/ReaScripts/raw/1d7d062327c4863f898a84394302399f78af81f7/Items%20Editing/cfillion_Show%20all%20saved%20nudge%20settings.lua</source>
+      </version>
     </reapack>
     <reapack name="cfillion_Split selected non-locked items at edit cursor.lua" type="script" desc="Split selected non-locked items at edit cursor">
       <metadata>
@@ -5897,7 +5903,9 @@ here
 {\pard \ql \f0 \sa180 \li0 \fi0 Requires "ReaImGui: ReaScript binding for Dear ImGui" extesion. Please install it first with ReaPack, and restart Reaper.\par}
 }
 ]]></description>
-        <link rel="screenshot" href="https://www.rodrigodiaz.fr/prive/Match_Criteria.png">Match Criteria GUI</link>
+        <link rel="website" href="https://forum.cockos.com/showthread.php?t=251640">Forum thread</link>
+        <link rel="screenshot" href="https://www.rodrigodiaz.fr/prive/Match_criteria_v1_4.jpg">Screenshot</link>
+        <link rel="donation" href="https://www.paypal.com/donate?hosted_button_id=N5DUAELFWX4DC">Donate via PayPay</link>
       </metadata>
       <version name="1.0" author="Rodilab" time="2021-03-31T20:12:37Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ebe4d55ed20878b9b754f0c85f0942e6684dc87d/Items%20Editing/rodilab_Match%20criteria%20(match%20with%20BWF%20and%20iXML%20metadata).lua</source>
@@ -5909,6 +5917,10 @@ Fix bug on Windows]]></changelog>
       </version>
       <version name="1.3" author="Rodilab" time="2021-06-01T16:30:38Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b4d4b5bd92a9f277413d026c34b74c2b559b9e6c/Items%20Editing/rodilab_Match%20criteria%20(match%20with%20BWF%20and%20iXML%20metadata).lua</source>
+      </version>
+      <version name="1.4" author="Rodilab" time="2021-06-29T05:13:37Z">
+        <changelog><![CDATA[New ReaImGui v0.5 interface]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/9ff25d09f78d29f47ea103e41aed7a8d9d9e870b/Items%20Editing/rodilab_Match%20criteria%20(match%20with%20BWF%20and%20iXML%20metadata).lua</source>
       </version>
     </reapack>
     <reapack name="rodilab_Move items to synchronize with the TimeRef of the first selected item (BWF metadata).lua" type="script" desc="Move items to synchronize with the TimeRef of the first selected item (BWF metadata)">
@@ -15995,6 +16007,10 @@ Fix Editing Behavior > MIDI Editor]]></changelog>
         <changelog><![CDATA[Rewrite the script's user interface using ReaImGui]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/30814a927a1b28c7baf14c8bea8a5e3f9d2871ae/Various/cfillion_Project%20underrun%20monitor%20(xrun).lua</source>
       </version>
+      <version name="2.0.1" author="cfillion" time="2021-06-29T05:13:03Z">
+        <changelog><![CDATA[Update the user interface to ReaImGui v0.5]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/78b68691fdbda2e963b5a24364aae873bb9f4fd5/Various/cfillion_Project%20underrun%20monitor%20(xrun).lua</source>
+      </version>
     </reapack>
     <reapack name="cfillion_Song switcher.lua" type="script" desc="Song switcher (for live use)">
       <metadata>
@@ -18539,7 +18555,10 @@ Thread in Cockos forum
 {\pard \ql \f0 \sa180 \li0 \fi0 Requirement :\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab ReaImGui: ReaScript binding for Dear ImGui\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab js_ReaScriptAPI: API functions for ReaScripts\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab SWS Extension\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://www.sws-extension.org"}}{\fldrslt{\ul
+SWS Extension
+}}}
+\sa180\par}
 {\pard \qc \f0 \sa180 \li0 \fi0 \emdash\emdash\emdash\emdash\emdash\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Features :\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Click on any color to set in selected Tracks/Items/Takes/Markers/Take Markers/Regions\par}
@@ -18575,10 +18594,14 @@ Thread in Cockos forum
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Spacebar : Check/Uncheck color under mouse cursor, only on "Check list" mode for Random / In Order\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab [Ctrl+S] / [Cmd+S] : Save as user colors\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab [Ctrl+O] / [Cmd+O] : Load user colors file\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab [A] : Switch to Arm mode\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Many settings...\sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 by Rodrigo Diaz (aka Rodilab)\par}
 }
 ]]></description>
+        <link rel="website" href="https://forum.cockos.com/showthread.php?t=252219">Forum thread</link>
+        <link rel="screenshot" href="https://www.rodrigodiaz.fr/prive/color_palette/Color_Palette_v2.jpg">Screenshot</link>
+        <link rel="donation" href="https://www.paypal.com/donate?hosted_button_id=N5DUAELFWX4DC">Donate via PayPal</link>
       </metadata>
       <version name="1.0" author="Rodilab" time="2021-04-13T21:15:11Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/22a44ea038c542d09d795da461b4da7f642ed7b5/Various/rodilab_Color%20palette.lua</source>
@@ -18652,6 +18675,18 @@ Fix SWS Startup / Lokasenna Radial Menu bug]]></changelog>
       <version name="1.8.1" author="Rodilab" time="2021-05-19T23:55:16Z">
         <changelog><![CDATA[Updated due to the new version of ReaImGui v0.4.0]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a3db981944b666777be6abd02c073ee0da4730ba/Various/rodilab_Color%20palette.lua</source>
+      </version>
+      <version name="2.0" author="Rodilab" time="2021-06-29T05:13:29Z">
+        <changelog><![CDATA[- New "Arm" mode
+- New ReaImGui v0.5 window
+- Auto-resize cells
+- Arial font
+- Background color matches Reaper background color (can be disabled)
+- New widget for non-linear brightness/saturation
+- New button "Settings" with icon]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/8fcad9f944fd9e4257585d7a629bf66290850cd8/Various/rodilab_Color%20palette.lua</source>
+        <source type="data" file="rodilab_Color palette/color_palette_arm.cur">https://github.com/ReaTeam/ReaScripts/raw/8fcad9f944fd9e4257585d7a629bf66290850cd8/Various/rodilab_Color%20palette/color_palette_arm.cur</source>
+        <source type="data" file="rodilab_Color palette/color_palette_arm_insert.cur">https://github.com/ReaTeam/ReaScripts/raw/8fcad9f944fd9e4257585d7a629bf66290850cd8/Various/rodilab_Color%20palette/color_palette_arm_insert.cur</source>
       </version>
     </reapack>
     <reapack name="rodilab_Smart remove.lua" type="script" desc="Smart remove">
