@@ -1,7 +1,10 @@
 -- @description Match criteria (match with BWF and iXML metadata)
 -- @author Rodilab
--- @version 1.3
--- @screenshot Match Criteria GUI https://www.rodrigodiaz.fr/prive/Match_Criteria.png
+-- @version 1.4
+-- @changelog New ReaImGui v0.5 interface
+-- @link Forum thread https://forum.cockos.com/showthread.php?t=251640
+-- @screenshot Screenshot https://www.rodrigodiaz.fr/prive/Match_criteria_v1_4.jpg
+-- @donation Donate via PayPay https://www.paypal.com/donate?hosted_button_id=N5DUAELFWX4DC
 -- @about
 --   Search for matches to audio files in a folder, according to the matching criteria in the BWF and iXML metadata.
 --   Then imports the matching files into new takes or tracks.
@@ -30,14 +33,9 @@ end
 -- Extensions check
 if r.APIExists('ImGui_CreateContext') == true then
   local imgui_version, reaimgui_version = r.ImGui_GetVersion()
-  if TestVersion(reaimgui_version,{0,4,0}) then
+  if TestVersion(reaimgui_version,{0,5,0}) then
     if r.APIExists('JS_Dialog_BrowseForOpenFiles') == true then
 
-popup_flags = r.ImGui_WindowFlags_NoResize() | r.ImGui_WindowFlags_NoMove()
-window_flag = r.ImGui_WindowFlags_AlwaysAutoResize()
-                    | r.ImGui_WindowFlags_NoTitleBar()
-window_flags = r.ImGui_WindowFlags_None() | r.ImGui_WindowFlags_NoScrollWithMouse() | r.ImGui_WindowFlags_MenuBar()
-background_color = r.ImGui_ColorConvertHSVtoRGB(1,0,0.2,1)
 menubar_color = r.ImGui_ColorConvertHSVtoRGB(0.59,0.65,0.5,1)
 child_heigth = 185
 button_width = 100
@@ -70,11 +68,7 @@ function ExtState_Load()
     check_scene = true,
     check_take = true,
     mouse_pos = true,
-    folder = false,
-    width = 430,
-    heigth = 315,
-    x = -1,
-    y = -1
+    folder = false
     }
   for key in pairs(def) do
     if r.HasExtState(extstate_id,key) then
@@ -83,11 +77,7 @@ function ExtState_Load()
       elseif es_str == 'false' then es_str = false end
       conf[key] = tonumber(es_str) or es_str
       if (type(conf[key]) ~= 'number' and (key=='txtbox_characters'
-                                       or key=='radio_import'
-                                       or key=='width'
-                                       or key=='heigth'
-                                       or key=='x'
-                                       or key=='y'))
+                                       or key=='radio_import'))
       or (type(conf[key]) ~= 'boolean'and (key=='check_tc'
                                        or key=='check_date'
                                        or key=='check_project'
@@ -98,6 +88,13 @@ function ExtState_Load()
       end
     else
       conf[key] = def[key]
+    end
+  end
+  -- Erase old keys
+  local old_keys = {'x','y','width','heigth'}
+  for i, key in ipairs(old_keys) do
+    if r.HasExtState(extstate_id,key) then
+      r.DeleteExtState(extstate_id,key,true)
     end
   end
 end
@@ -111,10 +108,6 @@ function ExtState_Save()
     else persist = true end
     r.SetExtState(extstate_id,key,value,persist)
   end
-end
-
-function get_window_pos()
-  rv, conf.x, conf.y = r.JS_Window_GetClientRect(hwnd)
 end
 
 r.atexit(function()
@@ -308,46 +301,15 @@ end
 ---------------------------------------------------------------------------------
 
 function StartContext()
-  conf.width = math.max(conf.width,100)
-  conf.heigth = math.max(conf.heigth,100)
-  if conf.mouse_pos or conf.x < 0 or conf.y < 0 then
-    conf.x, conf.y = r.GetMousePosition()
-    conf.x = math.floor(conf.x - (conf.width/2))
-    conf.y = math.floor(conf.y + (conf.heigth/2))
-  end
-  if OS_Win then
-    conf.y = math.max(conf.y,30)
-  else
-    conf.y = math.max(conf.y,0)
-  end
-  conf.x = math.max(conf.x,0)
-  if conf.folder == false then
-    conf.folder = r.GetProjectPath("")
-  end
-  ctx = r.ImGui_CreateContext(script_name,conf.width,conf.heigth,conf.x,conf.y,0,r.ImGui_ConfigFlags_NoSavedSettings())
-  hwnd = r.ImGui_GetNativeHwnd(ctx)
+  ctx = r.ImGui_CreateContext(script_name)
   font = r.ImGui_CreateFont('Arial',12)
   r.ImGui_AttachFont(ctx,font)
-  get_window_pos()
 end
 
-function loop()
+function ImGuiBody()
   local rv
-  conf.width, conf.heigth = r.ImGui_GetDisplaySize(ctx)
-  -- Close Window ?
-  if r.ImGui_IsCloseRequested(ctx) or r.ImGui_IsKeyDown(ctx,27) or close then
-    get_window_pos()
-    r.ImGui_DestroyContext(ctx)
-    return
-  end
-
-  -- Window
-  r.ImGui_SetNextWindowPos(ctx,0,0)
-  r.ImGui_SetNextWindowSize(ctx,conf.width,conf.heigth)
-  r.ImGui_PushStyleColor(ctx,r.ImGui_Col_WindowBg(),background_color)
-  r.ImGui_Begin(ctx,'wnd',nil,window_flag)
-  r.ImGui_PopStyleColor(ctx)
-  r.ImGui_PushFont(ctx,font)
+  local WindowSize = {r.ImGui_GetWindowSize(ctx)}
+  local popup_flags = r.ImGui_WindowFlags_NoResize() | r.ImGui_WindowFlags_NoMove()
   r.ImGui_PushStyleVar(ctx,r.ImGui_StyleVar_FrameRounding(),4.0)
 
   if r.ImGui_BeginPopupModal(ctx,'Searching',nil,popup_flags) then
@@ -385,31 +347,35 @@ function loop()
   r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_ChildRounding(),5.0)
   r.ImGui_PushStyleColor(ctx, r.ImGui_Col_MenuBarBg(),menubar_color)
 
-  r.ImGui_BeginChild(ctx,'ChildL',r.ImGui_GetWindowContentRegionWidth(ctx)*0.6,child_heigth,true,window_flags)
-  if r.ImGui_BeginMenuBar(ctx) then
-    r.ImGui_Text(ctx,'Criteria')
+  if r.ImGui_BeginChild(ctx, 'ChildL', WindowSize[1]*0.6, child_heigth, true, r.ImGui_WindowFlags_MenuBar()) then
+    if r.ImGui_BeginMenuBar(ctx) then
+      r.ImGui_Text(ctx,'Criteria')
+      r.ImGui_EndMenuBar(ctx)
+    end
+
+    rv,conf.check_tc =      r.ImGui_Checkbox(ctx,'TC Start',conf.check_tc)
+    rv,conf.check_date =    r.ImGui_Checkbox(ctx,'Date',conf.check_date)
+    rv,conf.check_project = r.ImGui_Checkbox(ctx,'Project Name',conf.check_project)
+    rv,conf.check_tape =    r.ImGui_Checkbox(ctx,'Tape',conf.check_tape)
+    rv,conf.check_scene =   r.ImGui_Checkbox(ctx,'Scene',conf.check_scene)
+    rv,conf.check_take =    r.ImGui_Checkbox(ctx,'Take',conf.check_take)
+    r.ImGui_PushItemWidth(ctx,65)
+    rv,conf.txtbox_characters = r.ImGui_InputInt(ctx,'First Characters',conf.txtbox_characters,1,1)
+    r.ImGui_EndChild(ctx)
   end
-  r.ImGui_EndMenuBar(ctx)
-  rv,conf.check_tc =      r.ImGui_Checkbox(ctx,'TC Start',conf.check_tc)
-  rv,conf.check_date =    r.ImGui_Checkbox(ctx,'Date',conf.check_date)
-  rv,conf.check_project = r.ImGui_Checkbox(ctx,'Project Name',conf.check_project)
-  rv,conf.check_tape =    r.ImGui_Checkbox(ctx,'Tape',conf.check_tape)
-  rv,conf.check_scene =   r.ImGui_Checkbox(ctx,'Scene',conf.check_scene)
-  rv,conf.check_take =    r.ImGui_Checkbox(ctx,'Take',conf.check_take)
-  r.ImGui_PushItemWidth(ctx,65)
-  rv,conf.txtbox_characters = r.ImGui_InputInt(ctx,'First Characters',conf.txtbox_characters,1,1)
-  r.ImGui_EndChild(ctx)
 
   r.ImGui_SameLine(ctx)
 
-  r.ImGui_BeginChild(ctx,'ChildR',0,child_heigth,true,window_flags)
-  if r.ImGui_BeginMenuBar(ctx) then
-    r.ImGui_Text(ctx,'Import files in')
+  if r.ImGui_BeginChild(ctx, 'ChildR', 0, child_heigth, true, r.ImGui_WindowFlags_MenuBar()) then
+    if r.ImGui_BeginMenuBar(ctx) then
+      r.ImGui_Text(ctx,'Import files in')
+      r.ImGui_EndMenuBar(ctx)
+    end
+
+    rv,conf.radio_import = r.ImGui_RadioButtonEx(ctx, 'New Takes', conf.radio_import,1)
+    rv,conf.radio_import = r.ImGui_RadioButtonEx(ctx, 'New Tracks', conf.radio_import,2)
+    r.ImGui_EndChild(ctx)
   end
-  r.ImGui_EndMenuBar(ctx)
-  rv,conf.radio_import = r.ImGui_RadioButtonEx(ctx, 'New Takes', conf.radio_import,1)
-  rv,conf.radio_import = r.ImGui_RadioButtonEx(ctx, 'New Tracks', conf.radio_import,2)
-  r.ImGui_EndChild(ctx)
   r.ImGui_PopStyleColor(ctx)
   r.ImGui_PopStyleVar(ctx)
 
@@ -420,10 +386,9 @@ function loop()
   r.ImGui_Spacing(ctx)
   r.ImGui_PopStyleVar(ctx)
 
-  conf.width, conf.heigth = r.ImGui_GetDisplaySize(ctx)
   -- Match buttons
   r.ImGui_NewLine(ctx)
-  r.ImGui_SameLine(ctx,(conf.width/2)-button_width-10)
+  r.ImGui_SameLine(ctx,(WindowSize[1]/2)-button_width-10)
   if match_button then
     if match_button > 1 then
       match_button = false
@@ -442,17 +407,47 @@ function loop()
       popup_message = "At least one criterion must be checked."
     end
   end
-  r.ImGui_SameLine(ctx,(conf.width/2)+10)
+  r.ImGui_SameLine(ctx,(WindowSize[1]/2)+10)
   if r.ImGui_Button(ctx,'Cancel',button_width,30) then
     close = true
   end
 
   r.ImGui_PopStyleVar(ctx,1)
+end
+
+function loop()
+  r.ImGui_PushFont(ctx,font)
+  r.ImGui_PushStyleColor(ctx,r.ImGui_Col_WindowBg(),0x333333ff)
+  r.ImGui_PushStyleVar(ctx,r.ImGui_StyleVar_WindowTitleAlign(),0.5,0.5)
+  r.ImGui_SetNextWindowSize(ctx, 430, 315, r.ImGui_Cond_FirstUseEver())
+
+  if conf.mouse_pos then
+    local cur_x, cur_y = r.GetMousePosition()
+    if OS_Mac then
+      local primary_monitor_height = ({r.BR_Win32_GetMonitorRectFromRect(false, 0, 0, 0, 0)})[4]
+      cur_y = primary_monitor_height - cur_y
+    end
+    r.ImGui_SetNextWindowPos(ctx, cur_x, cur_y, r.ImGui_Cond_Once(), 0.5)
+  end
+
+  local window_flag = r.ImGui_WindowFlags_NoCollapse()
+                    | r.ImGui_WindowFlags_NoDocking()
+  local visible, open = r.ImGui_Begin(ctx, script_name, true, window_flag)
+  r.ImGui_PopStyleColor(ctx)
+
+  if visible then
+    ImGuiBody()
+    r.ImGui_End(ctx)
+  end
+
+  r.ImGui_PopStyleVar(ctx)
   r.ImGui_PopFont(ctx)
 
-  -- End loop
-  r.ImGui_End(ctx)
-  r.defer(loop)
+  if not open or r.ImGui_IsKeyDown(ctx,27) or close then
+    r.ImGui_DestroyContext(ctx)
+  else
+    r.defer(loop)
+  end
 end
 
 ---------------------------------------------------------------------------------
@@ -462,6 +457,9 @@ end
 count_sel_items = r.CountSelectedMediaItems(0)
 if count_sel_items > 0 then
   ExtState_Load()
+  if conf.folder == false then
+    conf.folder = r.GetProjectPath("")
+  end
   StartContext()
   r.defer(loop)
 end
@@ -475,7 +473,7 @@ end
       end
     end
   else
-    r.ShowMessageBox("Please update v0.4.0 or later of  \"ReaImGui: ReaScript binding for Dear ImGui\" with ReaPack and restart Reaper",script_name,0)
+    r.ShowMessageBox("Please update v0.5.0 or later of  \"ReaImGui: ReaScript binding for Dear ImGui\" with ReaPack and restart Reaper",script_name,0)
     local ReaPack_exist = r.APIExists('ReaPack_BrowsePackages')
     if ReaPack_exist == true then
       r.ReaPack_BrowsePackages('ReaImGui: ReaScript binding for Dear ImGui')
