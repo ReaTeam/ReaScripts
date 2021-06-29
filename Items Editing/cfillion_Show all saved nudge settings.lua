@@ -1,9 +1,7 @@
 -- @description Show all saved nudge settings
 -- @author cfillion
--- @version 3.0
--- @changelog
---   Add a dock option in the right click context menu
---   Rewrite the script's user interface using ReaImGui
+-- @version 3.0.1
+-- @changelog Update the user interface to ReaImGui v0.5
 -- @provides
 --   .
 --   [main] . > cfillion_Nudge left by selected saved nudge dialog settings.lua
@@ -71,7 +69,7 @@ local KEY_F1     = 0x70
 
 local FLT_MIN, FLT_MAX = r.ImGui_NumericLimits_Float()
 local RO        = r.ImGui_InputTextFlags_ReadOnly()
-local WND_FLAGS = r.ImGui_WindowFlags_NoDecoration() |
+local WND_FLAGS = r.ImGui_WindowFlags_NoScrollbar() |
                   r.ImGui_WindowFlags_NoScrollWithMouse()
 
 local EXT_SECTION, EXT_LAST_SLOT = 'cfillion_show_nudge_settings', 'last_slot'
@@ -339,10 +337,18 @@ function draw()
 end
 
 function contextMenu()
+  local dock_id = r.ImGui_GetWindowDockID(ctx)
   if not reaper.ImGui_BeginPopupContextWindow(ctx) then return end
-  local dock = r.ImGui_GetDock(ctx)
-  if r.ImGui_MenuItem(ctx, 'Dock window', nil, dock & 1) then
-    r.ImGui_SetDock(ctx, dock ~ 1)
+  if r.ImGui_BeginMenu(ctx, 'Dock window') then
+    if r.ImGui_MenuItem(ctx, 'Floating', nil, dock_id == 0) then
+      set_dock_id = 0
+    end
+    for i = 0, 15 do
+      if r.ImGui_MenuItem(ctx, ('Docker %d'):format(i + 1), nil, dock_id == ~i) then
+        set_dock_id = ~i
+      end
+    end
+    r.ImGui_EndMenu(ctx)
   end
   r.ImGui_Separator(ctx)
   if r.ImGui_MenuItem(ctx, 'About/help', 'F1', false, r.ReaPack_GetOwner ~= nil) then
@@ -355,42 +361,54 @@ function contextMenu()
 end
 
 function loop()
-  if r.ImGui_IsCloseRequested(ctx) or
-      r.ImGui_IsKeyPressed(ctx, KEY_ESCAPE) or exit then
-    r.ImGui_DestroyContext(ctx)
-    return
-  end
-
   detectEdit()
 
   r.ImGui_PushFont(ctx, font)
-  r.ImGui_PushStyleColor(ctx, r.ImGui_Col_Border(),        0x2a2a2aff)
-  r.ImGui_PushStyleColor(ctx, r.ImGui_Col_Button(),        0xdcdcdcff)
-  r.ImGui_PushStyleColor(ctx, r.ImGui_Col_ButtonActive(),  0x787878ff)
-  r.ImGui_PushStyleColor(ctx, r.ImGui_Col_ButtonHovered(), 0xdcdcdcff)
-  r.ImGui_PushStyleColor(ctx, r.ImGui_Col_FrameBg(),       0xffffffff)
-  r.ImGui_PushStyleColor(ctx, r.ImGui_Col_HeaderHovered(), 0x96afe1ff)
-  r.ImGui_PushStyleColor(ctx, r.ImGui_Col_PopupBg(),       0xffffffff)
-  r.ImGui_PushStyleColor(ctx, r.ImGui_Col_Text(),          0x2a2a2aff)
-  r.ImGui_PushStyleColor(ctx, r.ImGui_Col_WindowBg(),      0xffffffff)
-  r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_FrameBorderSize(),  1)
-  r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_FramePadding(),     7, 4)
-  r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_ItemSpacing(),      7, 7)
-  r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_WindowBorderSize(), 0)
-  r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_WindowPadding(),   10, 10)
+  r.ImGui_PushStyleColor(ctx, r.ImGui_Col_ChildBg(),  0xffffffff)
+  r.ImGui_PushStyleColor(ctx, r.ImGui_Col_WindowBg(), 0xffffffff)
 
-  r.ImGui_SetNextWindowPos(ctx, r.ImGui_Viewport_GetPos(viewport))
-  r.ImGui_SetNextWindowSize(ctx, r.ImGui_Viewport_GetSize(viewport))
-  r.ImGui_Begin(ctx, '##', nil, WND_FLAGS)
-  contextMenu()
-  draw()
-  r.ImGui_End(ctx)
+  r.ImGui_SetNextWindowSize(ctx, 475, 117, r.ImGui_Cond_FirstUseEver())
+  r.ImGui_SetNextWindowSizeConstraints(ctx, 400, 112, FLT_MAX, FLT_MAX)
+  if set_dock_id then
+    r.ImGui_SetNextWindowDockID(ctx, set_dock_id)
+    set_dock_id = nil
+  end
+  local visible, open = r.ImGui_Begin(ctx, scriptName, true, WND_FLAGS)
+  if visible then
+    r.ImGui_PushStyleColor(ctx, r.ImGui_Col_Border(),        0x2a2a2aff)
+    r.ImGui_PushStyleColor(ctx, r.ImGui_Col_Button(),        0xdcdcdcff)
+    r.ImGui_PushStyleColor(ctx, r.ImGui_Col_ButtonActive(),  0x787878ff)
+    r.ImGui_PushStyleColor(ctx, r.ImGui_Col_ButtonHovered(), 0xdcdcdcff)
+    r.ImGui_PushStyleColor(ctx, r.ImGui_Col_FrameBg(),       0xffffffff)
+    r.ImGui_PushStyleColor(ctx, r.ImGui_Col_HeaderHovered(), 0x96afe1ff)
+    r.ImGui_PushStyleColor(ctx, r.ImGui_Col_PopupBg(),       0xffffffff)
+    r.ImGui_PushStyleColor(ctx, r.ImGui_Col_Text(),          0x2a2a2aff)
+    r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_FrameBorderSize(),  1)
+    r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_FramePadding(),     7, 4)
+    r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_ItemSpacing(),      7, 7)
+    r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_WindowPadding(),   10, 10)
 
-  r.ImGui_PopStyleVar(ctx, 5)
-  r.ImGui_PopStyleColor(ctx, 9)
+    contextMenu()
+    draw()
+
+    r.ImGui_PopStyleVar(ctx, 4)
+    r.ImGui_PopStyleColor(ctx, 8)
+
+    r.ImGui_End(ctx)
+  end
+
+  r.ImGui_PopStyleColor(ctx, 2)
   r.ImGui_PopFont(ctx)
 
-  r.defer(loop)
+  if exit or r.ImGui_IsKeyPressed(ctx, KEY_ESCAPE) then
+    open = false
+  end
+
+  if open then
+    r.defer(loop)
+  else
+    r.ImGui_DestroyContext(ctx)
+  end
 end
 
 function previousSlot()
@@ -416,13 +434,10 @@ if not r.ImGui_CreateContext then
   return
 end
 
-r.defer(function()
-  ctx = r.ImGui_CreateContext(scriptName, 475, 97)
-  viewport = r.ImGui_GetMainViewport(ctx)
+ctx = r.ImGui_CreateContext(scriptName, r.ImGui_ConfigFlags_DockingEnable())
 
-  local size = reaper.GetAppVersion():match('OSX') and 12 or 14
-  font = r.ImGui_CreateFont('sans-serif', size)
-  r.ImGui_AttachFont(ctx, font)
+local size = r.GetAppVersion():match('OSX') and 12 or 14
+font = r.ImGui_CreateFont('sans-serif', size)
+r.ImGui_AttachFont(ctx, font)
 
-  loop()
-end)
+r.defer(loop)
