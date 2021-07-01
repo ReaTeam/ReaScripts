@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="9ff25d09f78d29f47ea103e41aed7a8d9d9e870b" name="ReaTeam Scripts">
+<index version="1" commit="c8c2edaf6167ce0aef601e78564f932766e1efe5" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -6740,7 +6740,7 @@ Added replacement with /clear; erases entire name of matching markers/regions.]]
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3eb378deebfb9a8e4bb5663de4995a6415c8f57d/Markers/amagalma_Rename%20region%20at%20edit%20cursor%20after%20the%20first%20selected%20track.lua</source>
       </version>
     </reapack>
-    <reapack name="amagalma_Write project markers as media cues to selected items active takes source files.lua" type="script" desc="amagalma_Write project markers as media cues to selected items' active takes' source files (WAV only)">
+    <reapack name="amagalma_Write project markers as media cues to selected items active takes source files.lua" type="script" desc="Write project markers as media cues to selected items' active takes' source files (WAV only)">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
@@ -6752,6 +6752,8 @@ Added replacement with /clear; erases entire name of matching markers/regions.]]
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab To erase an existing media cue, place an unnamed project marker at the position of the cue\sa180\par}
 }
 ]]></description>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=214609</link>
+        <link rel="donation">https://www.paypal.me/amagalma</link>
       </metadata>
       <version name="1.0" author="amagalma" time="2018-12-10T02:02:32Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e5c9c351820f765b3a702c29f896068632b895bf/Markers/amagalma_Write%20project%20markers%20as%20media%20cues%20to%20selected%20items%20active%20takes%20source%20files.lua</source>
@@ -6763,6 +6765,11 @@ Added replacement with /clear; erases entire name of matching markers/regions.]]
       <version name="1.02" author="amagalma" time="2019-08-20T14:12:33Z">
         <changelog><![CDATA[# Supports negative project start times]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/8c0c86cf0127d6c08887c31058147ba8b5c22516/Markers/amagalma_Write%20project%20markers%20as%20media%20cues%20to%20selected%20items%20active%20takes%20source%20files.lua</source>
+      </version>
+      <version name="1.03" author="amagalma" time="2021-07-01T13:49:48Z">
+        <changelog><![CDATA[- Fix not writting Markers if Regions are present before them in the project
+- Updated Reapack info]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c8c2edaf6167ce0aef601e78564f932766e1efe5/Markers/amagalma_Write%20project%20markers%20as%20media%20cues%20to%20selected%20items%20active%20takes%20source%20files.lua</source>
       </version>
     </reapack>
     <reapack name="beaunus_Add markers for lyrics in selected items.lua" type="script" desc="Add markers for lyrics in selected items">
