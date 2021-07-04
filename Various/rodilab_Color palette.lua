@@ -545,7 +545,7 @@ function set_window()
   r.ImGui_AttachFont(ctx,font)
   if conf.mouse_pos then
     cur_x, cur_y = r.GetMousePosition()
-    cur_x, cur_y = r.ImGui_PointConvertNative(ctx, cur_x, cur_y, true)
+    cur_x, cur_y = r.ImGui_PointConvertNative(ctx, cur_x, cur_y)
   end
 end
 
