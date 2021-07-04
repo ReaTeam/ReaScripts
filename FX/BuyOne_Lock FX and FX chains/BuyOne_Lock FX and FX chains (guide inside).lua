@@ -141,20 +141,20 @@ local function Restore_Chunk(retval, obj, fx_num, ref_chunk)
 	if retval == 2 then -- TAKE FX
 	local retval, take_GUID = r.GetSetMediaItemTakeInfo_String(r.GetTake(obj,fx_num>>16), 'GUID', '', false)
 	local take_GUID = r.guidToString(take_GUID, ''):gsub('[%-]', '%%%0')
-	ref_fx_chunk = ref_chunk:match(take_GUID..'.-(<TAKEFX.*>)\nTAKE') or ref_chunk:match(take_GUID..'.-(<TAKEFX.*>)\n<ITEM') or ref_chunk:match(take_GUID..'.-(<TAKEFX.*>)\n>')
-	cur_fx_chunk = cur_chunk:match(take_GUID..'.-(<TAKEFX.*>)\nTAKE') or cur_chunk:match(take_GUID..'.-(<TAKEFX.*>)\n<ITEM') or cur_chunk:match(take_GUID..'.-(<TAKEFX.*>)\n>')
+	ref_fx_chunk = ref_chunk:match(take_GUID..'.-(<TAKEFX.->)\nTAKE') or ref_chunk:match(take_GUID..'.-(<TAKEFX.->)\n<ITEM') or ref_chunk:match(take_GUID..'.-(<TAKEFX.*>)\n>')
+	cur_fx_chunk = cur_chunk:match(take_GUID..'.-(<TAKEFX.->)\nTAKE') or cur_chunk:match(take_GUID..'.-(<TAKEFX.->)\n<ITEM') or cur_chunk:match(take_GUID..'.-(<TAKEFX.*>)\n>')
 	last_sel_fx = tonumber(cur_fx_chunk:match('LASTSEL%s(%d*)')) -- extract last sel fx to reopen its UI after fx order is restored
 	elseif retval == 1 and r.TrackFX_GetRecChainVisible(r.GetMasterTrack(0)) >= 0 then -- MONITOR FX (retval 1 stems from the argument passed in Restore_FX_Chain() function)
 		cur_fx_chunk = cur_chunk:match('(<TRACK.*MAINSEND.-)\n>') -- temporary track chunk
 		ref_fx_chunk = cur_fx_chunk..'\n<FXCHAIN\n'..ref_chunk..'\n>'
 	elseif retval == 1 then -- TRACK FX
 		if fx_num < 16777216 then -- regular track fx, including master
-		ref_fx_chunk = ref_chunk:match('(<MASTERFXCHAIN.*>)\n<TRACK') or ref_chunk:match('(<FXCHAIN.*>)\n<FXCHAIN_REC') or ref_chunk:match('(<FXCHAIN.*>)\n<ITEM') or ref_chunk:match('(<FXCHAIN.*WAK.*>)\n>')
-		cur_fx_chunk = cur_chunk:match('(<MASTERFXCHAIN.*>)\n<TRACK') or cur_chunk:match('(<FXCHAIN.*>)\n<FXCHAIN_REC') or cur_chunk:match('(<FXCHAIN.*>)\n<ITEM') or cur_chunk:match('(<FXCHAIN.*WAK.*>)\n>')
+		ref_fx_chunk = ref_chunk:match('(<MASTERFXCHAIN.*>)\n<TRACK') or ref_chunk:match('(<FXCHAIN.*>)\n<FXCHAIN_REC') or ref_chunk:match('(<FXCHAIN.->)\n<ITEM') or ref_chunk:match('(<FXCHAIN.*WAK.*>)\n>')
+		cur_fx_chunk = cur_chunk:match('(<MASTERFXCHAIN.*>)\n<TRACK') or cur_chunk:match('(<FXCHAIN.*>)\n<FXCHAIN_REC') or cur_chunk:match('(<FXCHAIN.->)\n<ITEM') or cur_chunk:match('(<FXCHAIN.*WAK.*>)\n>')
 		last_sel_fx = tonumber(cur_fx_chunk:match('LASTSEL%s(%d*)')) -- extract last sel fx to reopen its UI after fx order is restored
 		else -- input fx
-		ref_fx_chunk = ref_chunk:match('(<FXCHAIN_REC.*>)\n<ITEM') or ref_chunk:match('(<FXCHAIN_REC.*>)\n>')
-		cur_fx_chunk = cur_chunk:match('(<FXCHAIN_REC.*>)\n<ITEM') or cur_chunk:match('(<FXCHAIN_REC.*>)\n>')
+		ref_fx_chunk = ref_chunk:match('(<FXCHAIN_REC.->)\n<ITEM') or ref_chunk:match('(<FXCHAIN_REC.*>)\n>')
+		cur_fx_chunk = cur_chunk:match('(<FXCHAIN_REC.->)\n<ITEM') or cur_chunk:match('(<FXCHAIN_REC.*>)\n>')
 		last_sel_fx = tonumber(cur_fx_chunk:match('LASTSEL%s(%d*)')) + 0x1000000-- extract last sel fx to reopen its UI after fx order is restored
 		end
 	end
