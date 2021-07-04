@@ -1,14 +1,9 @@
 -- @description Color palette
 -- @author Rodilab
--- @version 2.0
+-- @version 2.10
 -- @changelog
---   - New "Arm" mode
---   - New ReaImGui v0.5 window
---   - Auto-resize cells
---   - Arial font
---   - Background color matches Reaper background color (can be disabled)
---   - New widget for non-linear brightness/saturation
---   - New button "Settings" with icon
+--   - Minor code improvement
+--   - Fix popup window position
 -- @provides
 --   [data] rodilab_Color palette/color_palette_arm.cur
 --   [data] rodilab_Color palette/color_palette_arm_insert.cur
@@ -89,7 +84,7 @@ end
 -- Extensions check
 if r.APIExists('CF_GetClipboard') == true then
   if r.APIExists('ImGui_CreateContext') == true then
-    if TestVersion(({r.ImGui_GetVersion()})[2],{0,5,0}) then
+    if TestVersion(({r.ImGui_GetVersion()})[2],{0,5,1}) then
       if r.APIExists('JS_Dialog_BrowseForOpenFiles') == true then
         if TestVersion(r.GetAppVersion(),{6,28}) then
 
@@ -350,7 +345,7 @@ function ExtState_Load()
   else
     def.mods_left = '2,4,6,7,3,5,1,1,1,1,1,1,1,1,1,1'
   end
-  
+
   for key in pairs(def) do
     if r.HasExtState(extstate_id,key) then
       local state = r.GetExtState(extstate_id,key)
@@ -548,6 +543,10 @@ function set_window()
   ctx = r.ImGui_CreateContext(script_name, r.ImGui_ConfigFlags_DockingEnable())
   font = r.ImGui_CreateFont('Arial',12)
   r.ImGui_AttachFont(ctx,font)
+  if conf.mouse_pos then
+    cur_x, cur_y = r.GetMousePosition()
+    cur_x, cur_y = r.ImGui_PointConvertNative(ctx, cur_x, cur_y)
+  end
 end
 
 function GetCellSize(width, heigth)
@@ -2067,9 +2066,9 @@ function ImGuiContent_Main()
   -- Popups
   ----------------------------------------------------------------
   local popup_flags = r.ImGui_WindowFlags_NoMove() | r.ImGui_WindowFlags_NoResize()
-  r.ImGui_PushStyleColor(ctx,r.ImGui_Col_PopupBg(),background_color)
+  r.ImGui_PushStyleColor(ctx,r.ImGui_Col_PopupBg(), background_color)
   -- Popup Color Picker
-  if r.ImGui_BeginPopup(ctx,'Color Editor',popup_flags) then
+  if r.ImGui_BeginPopup(ctx, 'Color Editor', popup_flags) then
     open_edit_popup = nil
     if display_w > display_h then
       picker_width = display_h
@@ -2088,7 +2087,7 @@ function ImGuiContent_Main()
     r.ImGui_EndPopup(ctx)
   end
   -- Popup Settings Dock/Undock
-  if r.ImGui_BeginPopup(ctx,'Popup Menu Settings',popup_flags) then
+  if r.ImGui_BeginPopup(ctx, 'Popup Menu Settings', popup_flags) then
     local text = isdock and 'Undock' or 'Dock'
     if r.ImGui_Selectable(ctx,text) then
       change_dock = true
@@ -2096,7 +2095,7 @@ function ImGuiContent_Main()
     r.ImGui_EndPopup(ctx)
   end
   -- Popup Target combo lists
-  if r.ImGui_BeginPopup(ctx,'Popup Menu Target',popup_flags) then
+  if r.ImGui_BeginPopup(ctx, 'Popup Menu Target', popup_flags) then
     for i,key in ipairs(target_button_list) do
       if i ~= target_button then
         if i == 9 then
@@ -2119,7 +2118,7 @@ function ImGuiContent_Main()
     r.ImGui_EndPopup(ctx)
   end
   -- Popup Action combo lists
-  if r.ImGui_BeginPopup(ctx,'Popup Menu Action',popup_flags) then
+  if r.ImGui_BeginPopup(ctx, 'Popup Menu Action', popup_flags) then
     for i,key in ipairs(action_button_list) do
       if i ~= conf.action_button then
         if r.ImGui_Selectable(ctx,key) then
@@ -2130,7 +2129,7 @@ function ImGuiContent_Main()
     r.ImGui_EndPopup(ctx)
   end
   -- Popup User color combo lists
-  if r.ImGui_BeginPopup(ctx,'Popup Menu User Color',popup_flags) then
+  if r.ImGui_BeginPopup(ctx, 'Popup Menu User Color', popup_flags) then
     for i=8, 12 do
       if selected_button > #usercolors and i == 11 then
 
@@ -2161,34 +2160,28 @@ function ImGuiContent_Main()
     r.ImGui_OpenPopup(ctx,'Clear all')
   end
   -- Popup palette combo list
-  if r.ImGui_BeginPopup(ctx,'Popup Menu Palette Color',popup_flags) then
+  if r.ImGui_BeginPopup(ctx, 'Popup Menu Palette Color', popup_flags) then
     if r.ImGui_Selectable(ctx,'Copy') then
       r.ImGui_SetClipboardText(ctx,INTtoHEX(button_color[selected_button]))
       selected_button = nil
     end
     r.ImGui_EndPopup(ctx)
   end
-  -- Popup Name input
-  local modal_width = display_w*0.9
-  if conf.vertical == true then
-    button_size = 48
-    r.ImGui_SetNextWindowSize(ctx,modal_width,-1,nil)
-  else
-    button_size = nil
-  end
+
+  -- Popup Modal
+  local screen_center = {r.ImGui_Viewport_GetCenter(r.ImGui_GetMainViewport(ctx))}
+  r.ImGui_SetNextWindowPos(ctx,screen_center[1],screen_center[2], r.ImGui_Cond_Appearing(), 0.5, 0.5)
   r.ImGui_PushStyleColor(ctx,r.ImGui_Col_TitleBgActive(),button_hover)
+
   -- Popup are you sure ?
-  if r.ImGui_BeginPopupModal(ctx,'Clear all',nil,popup_flags) then
-    local modal_width = r.ImGui_GetWindowSize(ctx)
+  if r.ImGui_BeginPopupModal(ctx, 'Clear all', nil, popup_flags) then
     modal_focus = true
     open_cleanall_popup = nil
-    centered_button(modal_width)
     if r.ImGui_Button(ctx,'Cancel##Clear all',button_size) or r.ImGui_IsKeyDown(ctx,keycode.esc) then
       modal_focus = nil
       r.ImGui_CloseCurrentPopup(ctx)
     end
-    if conf.vertical == false then r.ImGui_SameLine(ctx) end
-    centered_button(modal_width)
+    r.ImGui_SameLine(ctx)
     if r.ImGui_Button(ctx,'Ok##Clear all',button_size) or r.ImGui_IsKeyDown(ctx,keycode.enter) then
       usercolors = {}
       modal_focus = nil
@@ -2196,39 +2189,32 @@ function ImGuiContent_Main()
     end
     r.ImGui_EndPopup(ctx)
   end
-  if not last_color then modal_bg = 0
-  else modal_bg = (last_color*256)+150
-  end
-  r.ImGui_PushStyleColor(ctx,r.ImGui_Col_ModalWindowDimBg(),modal_bg)
-  r.ImGui_SetNextWindowSize(ctx,modal_width,-1,nil)
-  if r.ImGui_BeginPopupModal(ctx,'Name Input',nil,popup_flags) then
+
+  if r.ImGui_BeginPopupModal(ctx, 'Name Input', nil, popup_flags) then
     r.ImGui_PushItemWidth(ctx,-FLT_MIN)
     if not modal_focus then r.ImGui_SetKeyboardFocusHere(ctx) end
     rv, insert_name = r.ImGui_InputText(ctx,'##Name',insert_name,r.ImGui_InputTextFlags_AutoSelectAll())
     modal_focus = true
     r.ImGui_PopItemWidth(ctx)
-    centered_button(modal_width)
     if r.ImGui_Button(ctx,'Cancel##Name Input',button_size) or r.ImGui_IsKeyDown(ctx,keycode.esc) then
       last_color = nil
       modal_focus = nil
       r.ImGui_CloseCurrentPopup(ctx)
     end
-    if conf.vertical == false then r.ImGui_SameLine(ctx) end
-    centered_button(modal_width)
+    r.ImGui_SameLine(ctx)
     if r.ImGui_Button(ctx,'Ok##Name Input',button_size) or r.ImGui_IsKeyDown(ctx,keycode.enter) then
       insert_new_target(last_color,insert_name)
       last_color = nil
       modal_focus = nil
       r.ImGui_CloseCurrentPopup(ctx)
     end
-    if conf.vertical == false then r.ImGui_SameLine(ctx) end
-    centered_button(modal_width)
+    r.ImGui_SameLine(ctx)
     if r.ImGui_Button(ctx,'+##Name Input',button_size) then
       insert_new_target(last_color,insert_name)
     end
     r.ImGui_EndPopup(ctx)
   end
-  r.ImGui_PopStyleColor(ctx,3) -- Popup modal colors
+  r.ImGui_PopStyleColor(ctx,2) -- Popup modal colors
   r.ImGui_PopStyleColor(ctx,9) -- Butons colors
   r.ImGui_PopStyleVar(ctx) -- Rounding
   ----------------------------------------------------------------
@@ -2573,15 +2559,8 @@ function loop()
   end
   r.ImGui_SetNextWindowSizeConstraints(ctx, conf.vertical and 70 or 170, conf.vertical and 100 or 50, FLT_MAX, FLT_MAX)
 
-  if conf.mouse_pos then
-    local cur_x, cur_y = r.GetMousePosition()
-    if OS_Mac then
-      local primary_monitor_height = ({r.BR_Win32_GetMonitorRectFromRect(false, 0, 0, 0, 0)})[4]
-      cur_y = primary_monitor_height - cur_y
-    end
-    if not dock and conf.dock >= 0 then
-      r.ImGui_SetNextWindowPos(ctx, cur_x, cur_y, r.ImGui_Cond_Once(), 0.5)
-    end
+  if cur_x and dock and not isdock then
+    r.ImGui_SetNextWindowPos(ctx, cur_x, cur_y, r.ImGui_Cond_Once(), 0.5)
   end
 
   r.ImGui_PushStyleColor(ctx,r.ImGui_Col_WindowBg()     ,background_color)
@@ -2633,7 +2612,7 @@ r.defer(loop)
         end
       end
     else
-      r.ShowMessageBox("Please update v0.5.0 or later of  \"ReaImGui: ReaScript binding for Dear ImGui\" with ReaPack and restart Reaper",script_name,0)
+      r.ShowMessageBox("Please update v0.5.1 or later of  \"ReaImGui: ReaScript binding for Dear ImGui\" with ReaPack and restart Reaper",script_name,0)
       local ReaPack_exist = r.APIExists('ReaPack_BrowsePackages')
       if ReaPack_exist == true then
         r.ReaPack_BrowsePackages('ReaImGui: ReaScript binding for Dear ImGui')
