@@ -7,7 +7,7 @@ Changelog: Initial release
 Provides: [main] .
 About:
 
-#### G U I D E
+	#### G U I D E
 
 	- The script displays FX preset menu of the object (track or item/active take) either currently found under the mouse cursor or the last selected if LAST_SEL_OBJ option is enabled in the USER SETTINGS below.
 
