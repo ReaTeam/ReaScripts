@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="7fcb8096323c6c1554ac9b041e19f74ffb9f12f0" name="ReaTeam Scripts">
+<index version="1" commit="6678009e4b1c16a1434d459b94686a34aee1ce3e" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -13943,15 +13943,26 @@ uc_track_name_abbreviations = \{"O-Out", "O-MID"\}\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 This track utility allows to select, show/hide, mute or solo a group of tracks by track name. All tracks whose name starts with the entered name, and its children, are recognized by the script. The name list are saved in each project.\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Click on buttons to [B]exclusive[/B] select, show/hide, mute or solo\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab [Any-modifier + left-click] to keep and add selection, show/hide, mute or solo\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab [Right-click] on name buttons to remove or edit\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab [Right-click] on name buttons to edit, insert new track, remove or clear all\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Click on bottom crosses to show / unmute / unsolo all tracks\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Drag and drop name buttons to move tracks\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Buttons are automatically reordered according to the order of the tracks in the session\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Buttons take the color of first track found\sa180\par}
 }
 ]]></description>
+        <link rel="website" href="https://forum.cockos.com/showthread.php?t=255223">Forum thread</link>
+        <link rel="donation" href="https://www.paypal.com/donate?hosted_button_id=N5DUAELFWX4DC">Donate via PayPal</link>
       </metadata>
       <version name="1.0" author="Rodilab" time="2021-07-04T11:10:08Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/8ac9489f8d5a9dccdaa91cf1d0f4c566d02e49d3/Tracks%20Properties/rodilab_Track%20name%20groups.lua</source>
+      </version>
+      <version name="1.10" author="Rodilab" time="2021-07-05T21:18:42Z">
+        <changelog><![CDATA[- Drag and drop name buttons to move tracks
+- New "Insert new track" on right click menu
+- New "Clear all" on right click menu
+- New text input no-popup widget when add or edit names
+- Displays the default track color of the Reaper theme]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6678009e4b1c16a1434d459b94686a34aee1ce3e/Tracks%20Properties/rodilab_Track%20name%20groups.lua</source>
       </version>
     </reapack>
     <reapack name="spk77_Adjust all receive volumes on selected track by x dB.eel" type="script" desc="Adjust all receive volumes on selected track by x dB">
