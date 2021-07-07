@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="6678009e4b1c16a1434d459b94686a34aee1ce3e" name="ReaTeam Scripts">
+<index version="1" commit="e0fc742f74739fd22c38fca88591b20d6ade696f" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -13941,7 +13941,7 @@ uc_track_name_abbreviations = \{"O-Out", "O-MID"\}\par}
 \widowctrl\hyphauto
 
 {\pard \ql \f0 \sa180 \li0 \fi0 This track utility allows to select, show/hide, mute or solo a group of tracks by track name. All tracks whose name starts with the entered name, and its children, are recognized by the script. The name list are saved in each project.\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Click on buttons to [B]exclusive[/B] select, show/hide, mute or solo\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Click on buttons to [B]exclusive[/B] select, show/hide, mute or solo (click and drag to fast multiple selection)\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab [Any-modifier + left-click] to keep and add selection, show/hide, mute or solo\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab [Right-click] on name buttons to edit, insert new track, remove or clear all\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Click on bottom crosses to show / unmute / unsolo all tracks\par}
@@ -13963,6 +13963,14 @@ uc_track_name_abbreviations = \{"O-Out", "O-MID"\}\par}
 - New text input no-popup widget when add or edit names
 - Displays the default track color of the Reaper theme]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6678009e4b1c16a1434d459b94686a34aee1ce3e/Tracks%20Properties/rodilab_Track%20name%20groups.lua</source>
+      </version>
+      <version name="1.20" author="Rodilab" time="2021-07-07T22:20:29Z">
+        <changelog><![CDATA[- Drag to multiple select hide/mute/solo button
+- Option in settings to undisplay show, mute and solo buttons
+- Fix reorder tracks by drag and drop bug with child tracks
+- Improves the behavior of the show, solo and mute buttons
+- Click on select button doesn’t lost the window focus anymore]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e0fc742f74739fd22c38fca88591b20d6ade696f/Tracks%20Properties/rodilab_Track%20name%20groups.lua</source>
       </version>
     </reapack>
     <reapack name="spk77_Adjust all receive volumes on selected track by x dB.eel" type="script" desc="Adjust all receive volumes on selected track by x dB">
