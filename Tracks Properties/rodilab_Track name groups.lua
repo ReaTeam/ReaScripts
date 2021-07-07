@@ -1,12 +1,12 @@
 -- @description Track name groups
 -- @author Rodilab
--- @version 1.10
+-- @version 1.20
 -- @changelog
---   - Drag and drop name buttons to move tracks
---   - New "Insert new track" on right click menu
---   - New "Clear all" on right click menu
---   - New text input no-popup widget when add or edit names
---   - Displays the default track color of the Reaper theme
+--   - Drag to multiple select hide/mute/solo button
+--   - Option in settings to undisplay show, mute and solo buttons
+--   - Fix reorder tracks by drag and drop bug with child tracks
+--   - Improves the behavior of the show, solo and mute buttons
+--   - Click on select button doesn’t lost the window focus anymore
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=255223
 -- @donation Donate via PayPal https://www.paypal.com/donate?hosted_button_id=N5DUAELFWX4DC
 -- @about
@@ -14,7 +14,7 @@
 --   All tracks whose name starts with the entered name, and its children, are recognized by the script.
 --   The name list are saved in each project.
 --
---   - Click on buttons to [B]exclusive[/B] select, show/hide, mute or solo
+--   - Click on buttons to [B]exclusive[/B] select, show/hide, mute or solo (click and drag to fast multiple selection)
 --   - [Any-modifier + left-click] to keep and add selection, show/hide, mute or solo
 --   - [Right-click] on name buttons to edit, insert new track, remove or clear all
 --   - Click on bottom crosses to show / unmute / unsolo all tracks
@@ -40,8 +40,9 @@ function TestVersion(version,version_min)
 end
 
 -- Extensions check
-if r.APIExists('ImGui_CreateContext') == true then
-  if TestVersion(({r.ImGui_GetVersion()})[2],{0,5,1}) then
+if r.APIExists('CF_GetSWSVersion') == true then
+  if r.APIExists('ImGui_CreateContext') == true then
+    if TestVersion(({r.ImGui_GetVersion()})[2],{0,5,1}) then
 
 FLT_MIN, FLT_MAX = r.ImGui_NumericLimits_Float()
 
@@ -61,7 +62,10 @@ function ExtState_Load()
   def = {
     dock = -3,
     mousepos = false,
-    background = true
+    background = true,
+    visible = true,
+    mute = true,
+    solo = true
   }
   for key in pairs(def) do
     if r.HasExtState(extstate_id,key) then
@@ -106,7 +110,7 @@ function AddNewGroup(name)
   end
 end
 
-function SelectGroup(name)
+function SelectGroup(name, mods)
   r.PreventUIRefresh(1)
   if mods == 0 then
     r.Main_OnCommand(40297,0) -- Unselect all tracks
@@ -114,41 +118,57 @@ function SelectGroup(name)
   for i, track in ipairs(list_tracks[name]) do
     r.SetTrackSelected(track, true)
   end
-  r.SetCursorContext(0, nil)
   r.PreventUIRefresh(-1)
   r.UpdateArrange()
 end
 
-function VisibleGroup(i, name, bool)
+function VisibleGroup(name, bool, mods)
   r.PreventUIRefresh(1)
-  local all_visible = true
-  for i, visible in ipairs(list_visible) do
-    if not visible then
-      all_visible = false
-      break
+  local all
+  if not bool then
+    local k = 0
+    for i, mute in ipairs(list_visible) do
+      if mute then k = k + 1 end
+      if k > 1 then
+        all = true
+        break
+      end
     end
   end
-
   if mods == 0 then
-    if all_visible then bool = not bool end
+    if all then bool = not bool end
     local count = r.CountTracks(0)
     for i=0, count-1 do
       local track = r.GetTrack(0, i)
-      r.SetMediaTrackInfo_Value(track, 'B_SHOWINTCP', 0)
+      r.SetMediaTrackInfo_Value(track, 'B_SHOWINTCP'  , 0)
+      r.SetMediaTrackInfo_Value(track, 'B_SHOWINMIXER', 0)
     end
   end
   for i, track in ipairs(list_tracks[name]) do
-    r.SetMediaTrackInfo_Value(track, 'B_SHOWINTCP', bool and 1 or 0)
+    r.SetMediaTrackInfo_Value(track, 'B_SHOWINTCP'  , bool and 1 or 0)
+    r.SetMediaTrackInfo_Value(track, 'B_SHOWINMIXER', bool and 1 or 0)
   end
-
   r.TrackList_AdjustWindows(false)
   r.PreventUIRefresh(-1)
   r.UpdateArrange()
+  return bool
 end
 
-function MuteGroup(name, bool)
+function MuteGroup(name, bool, mods)
   r.PreventUIRefresh(1)
+  local all
+  if not bool then
+    local k = 0
+    for i, mute in ipairs(list_mute) do
+      if mute then k = k + 1 end
+      if k > 1 then
+        all = true
+        break
+      end
+    end
+  end
   if mods == 0 then
+    if all then bool = not bool end
     r.Main_OnCommand(40339,0) -- Unmute all tracks
   end
   for i, track in ipairs(list_tracks[name]) do
@@ -156,11 +176,24 @@ function MuteGroup(name, bool)
   end
   r.PreventUIRefresh(-1)
   r.UpdateArrange()
+  return bool
 end
 
-function SoloGroup(name, bool)
+function SoloGroup(name, bool, mods)
   r.PreventUIRefresh(1)
+  local all
+  if not bool then
+    local k = 0
+    for i, mute in ipairs(list_visible) do
+      if mute then k = k + 1 end
+      if k > 1 then
+        all = true
+        break
+      end
+    end
+  end
   if mods == 0 then
+    if all then bool = not bool end
     r.Main_OnCommand(40340,0) -- Unsolo all tracks
   end
   for i, track in ipairs(list_tracks[name]) do
@@ -168,6 +201,7 @@ function SoloGroup(name, bool)
   end
   r.PreventUIRefresh(-1)
   r.UpdateArrange()
+  return bool
 end
 
 function IsInTheList(parent_track)
@@ -232,39 +266,29 @@ function MoveTracks(o_source, o_target)
   if o_source < o_target then
     o_target = o_target + 1
   end
-  local source = group_list_order[o_source]
-  local target = group_list_order[o_target]
-  local source_name = group_list[source]
-  local target_name = group_list[target]
+  local source_name = group_list[group_list_order[o_source]]
+  local target_name = group_list[group_list_order[o_target]]
   local new_id, after
-  local count = r.CountTracks(0)
   if not group_list_exist[target_name] then
     after = true
-    target = group_list_order[o_target - 1]
-    target_name = group_list[target]
+    target_name = group_list[group_list_order[o_target - 1]]
   end
-  if count > 0 and target_name then
-    for i = 0, count-1 do
-      if after then i = count - 1 - i end
-      local track = r.GetTrack(0, i)
-      local rv, trackname = r.GetTrackName(track)
-      if rv and string.sub(trackname, 1, #target_name) == target_name then
-        new_id = i
-        if after then new_id = new_id + 1 end
-        break
-      end
-    end
+  r.PreventUIRefresh(1)
+  r.Main_OnCommand(40297,0) -- Unselect all tracks
+  for i, track in ipairs(list_tracks[target_name]) do
+    r.SetTrackSelected(track, true)
   end
-  if type(new_id) == 'number' then
-    r.PreventUIRefresh(1)
-    r.Main_OnCommand(40297,0) -- Unselect all tracks
-    for i, track in ipairs(list_tracks[source_name]) do
-      r.SetTrackSelected(track, true)
-    end
-    r.ReorderSelectedTracks(new_id, 0)
-    r.PreventUIRefresh(-1)
-    r.UpdateArrange()
+  r.Main_OnCommand(r.NamedCommandLookup('_SWS_SELCHILDREN2'), 0)
+  local new_id = r.GetMediaTrackInfo_Value(r.GetSelectedTrack(0, after and (r.CountSelectedTracks(0) - 1) or 0), 'IP_TRACKNUMBER')
+  if not after then new_id = new_id - 1 end
+  r.Main_OnCommand(40297,0) -- Unselect all tracks
+  for i, track in ipairs(list_tracks[source_name]) do
+    r.SetTrackSelected(track, true)
   end
+  r.Main_OnCommand(r.NamedCommandLookup('_SWS_SELCHILDREN2'), 0)
+  r.ReorderSelectedTracks(new_id, 0)
+  r.PreventUIRefresh(-1)
+  r.UpdateArrange()
 end
 
 ---------------------------------------------------------------------------------
@@ -383,7 +407,18 @@ end
 function ImGuiBody()
   local rv
   local WindowSize = {r.ImGui_GetWindowSize(ctx)}
-  mods = r.ImGui_GetKeyMods( ctx )
+  local MouseDown  =  r.ImGui_IsMouseDown  (ctx, 0)
+  if not MouseDown then button_clicked = nil end
+  local MousePos = {r.ImGui_GetMousePos(ctx)}
+  if not r.ImGui_IsMousePosValid(ctx, MousePos[1], MousePos[2]) then
+    MousePos = nil
+  else
+    local WindowPos = {r.ImGui_GetWindowPos (ctx)}
+    MousePos[1] = MousePos[1] - WindowPos[1]
+    MousePos[2] = MousePos[2] - WindowPos[2]
+  end
+
+  local mods = r.ImGui_GetKeyMods(ctx)
   r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_FrameRounding(), 4.0)
 
   ----------------------------------------------------------------
@@ -413,8 +448,13 @@ function ImGuiBody()
   end
 
   if r.ImGui_BeginPopup(ctx, 'Settings') then
+    rv, conf.visible =    r.ImGui_Checkbox(ctx, 'Show/Hide button', conf.visible)
+    rv, conf.mute =       r.ImGui_Checkbox(ctx, 'Mute button', conf.mute)
+    rv, conf.solo =       r.ImGui_Checkbox(ctx, 'Solo button', conf.solo)
+    r.ImGui_Separator(ctx)
     rv, conf.mousepos =   r.ImGui_Checkbox(ctx, 'Open on mouse position', conf.mousepos)
     rv, conf.background = r.ImGui_Checkbox(ctx, 'Use Reaper theme background color', conf.background)
+    r.ImGui_Separator(ctx)
     r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_ItemSpacing(), 0, 4)
     TextURL(ctx, 'Discuss in REAPER forum thread', 'https://forum.cockos.com/showthread.php?t=255223')
     TextURL(ctx, 'Support with a Paypal donation', 'https://www.paypal.com/donate?hosted_button_id=N5DUAELFWX4DC')
@@ -423,7 +463,7 @@ function ImGuiBody()
   end
 
   ----------------------------------------------------------------
-  -- Main button
+  -- Main buttons
   ----------------------------------------------------------------
   group_list_order = {}
   group_list_exist = {}
@@ -492,13 +532,22 @@ function ImGuiBody()
     button_size = math.max(button_size, text_size)
   end
   button_size = button_size + 16
-
   local color_visible = r.ImGui_ColorConvertHSVtoRGB(0,0,0.8,1)
   local color_mute =    r.ImGui_ColorConvertHSVtoRGB(0,0.6,0.8,1)
   local color_solo =    r.ImGui_ColorConvertHSVtoRGB(0.15,0.6,0.8,1)
-
   for j, i in ipairs(group_list_order) do
     local name = group_list[i]
+    -- Drag active multiple buttons
+    local PosY = r.ImGui_GetCursorPosY(ctx)
+    if button_clicked and MouseDown and MousePos and button_clicked[2] ~= i and MousePos[2] >= PosY and MousePos[2] <= (PosY + 18) then
+      if button_clicked[1] == 1 and not list_visible[i] then
+        VisibleGroup(name, not list_visible[i], 1)
+      elseif button_clicked[1] == 2 and not list_mute[i] then
+        MuteGroup(name, not list_mute[i], 1)
+      elseif button_clicked[1] == 3 and not list_solo[i] then
+        SoloGroup(name, not list_solo[i], 1)
+      end
+    end
     if list_color[i] then
       local color
       if list_color[i] == 0 then
@@ -539,7 +588,7 @@ function ImGuiBody()
       r.ImGui_PushStyleColor(ctx, r.ImGui_Col_ButtonActive(),  color_button_active)
       r.ImGui_PushStyleColor(ctx, r.ImGui_Col_ButtonHovered(), color_button_hov)
       if r.ImGui_Button(ctx, name, button_size) then
-        SelectGroup(name)
+        SelectGroup(name, mods)
       end
       r.ImGui_PopStyleColor(ctx, 3)
       if group_list_exist[name] then
@@ -561,19 +610,33 @@ function ImGuiBody()
       name_focused = i
       r.ImGui_OpenPopup(ctx,'Menu Name')
     end
-    if group_list_exist[name] then
+    if group_list_exist[name] and (conf.visible or conf.mute or conf.solo)then
       r.ImGui_SameLine(ctx)
-      if DrawCheckButton(ctx, 'V##'..name, 18, color_visible, list_visible[i]) then
-        VisibleGroup(i, name, not list_visible[i])
-      end
+      r.ImGui_Dummy(ctx, 0, 0)
       r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_ItemSpacing(), 0, 4)
-      r.ImGui_SameLine(ctx)
-      if DrawCheckButton(ctx, 'M##'..name, 18, color_mute, list_mute[i]) then
-        MuteGroup(name, not list_mute[i])
+      if conf.visible then
+        r.ImGui_SameLine(ctx)
+        if DrawCheckButton(ctx, 'V##'..name, 18, color_visible, list_visible[i]) then
+          if VisibleGroup(name, not list_visible[i], mods) then
+            button_clicked = {1, i}
+          end
+        end
       end
-      r.ImGui_SameLine(ctx)
-      if DrawCheckButton(ctx, 'S##'..name, 18, color_solo, list_solo[i]) then
-        SoloGroup(name, not list_solo[i])
+      if conf.mute then
+        r.ImGui_SameLine(ctx)
+        if DrawCheckButton(ctx, 'M##'..name, 18, color_mute, list_mute[i]) then
+          if MuteGroup(name, not list_mute[i], mods) then
+            button_clicked = {2, i}
+          end
+        end
+      end
+      if conf.solo then
+        r.ImGui_SameLine(ctx)
+        if DrawCheckButton(ctx, 'S##'..name, 18, color_solo, list_solo[i]) then
+          if SoloGroup(name, not list_solo[i], mods) then
+            button_clicked = {3, i}
+          end
+        end
       end
       r.ImGui_PopStyleVar(ctx)
     end
@@ -607,26 +670,37 @@ function ImGuiBody()
     end
     r.ImGui_PopStyleColor(ctx, 3)
   end
-  r.ImGui_SameLine(ctx)
-  if DrawCrossButton(ctx, 'V##All', 18, color_visible) then
-    local count = r.CountTracks(0)
-    for i=0, count-1 do
-      local track = r.GetTrack(0, i)
-      r.SetMediaTrackInfo_Value(track, 'B_SHOWINTCP', 1)
+  if conf.visible or conf.mute or conf.solo then
+    r.ImGui_SameLine(ctx)
+    r.ImGui_Dummy(ctx, 0, 0)
+    r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_ItemSpacing(), 0, 4)
+    if conf.visible then
+      r.ImGui_SameLine(ctx)
+      if DrawCrossButton(ctx, 'V##All', 18, color_visible) then
+        local count = r.CountTracks(0)
+        for i=0, count-1 do
+          local track = r.GetTrack(0, i)
+          r.SetMediaTrackInfo_Value(track, 'B_SHOWINTCP'  , 1)
+          r.SetMediaTrackInfo_Value(track, 'B_SHOWINMIXER', 1)
+        end
+        r.TrackList_AdjustWindows(false)
+      end
     end
-    r.TrackList_AdjustWindows(false)
-  end
-  r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_ItemSpacing(), 0, 4)
-  r.ImGui_SameLine(ctx)
-  if DrawCrossButton(ctx, 'M##All', 18, color_mute) then
-    r.Main_OnCommand(40339,0)
-  end
-  r.ImGui_SameLine(ctx)
-  if DrawCrossButton(ctx, 'S##All', 18, color_solo) then
-    r.Main_OnCommand(40340,0)
+    if conf.mute then
+      r.ImGui_SameLine(ctx)
+      if DrawCrossButton(ctx, 'M##All', 18, color_mute) then
+        r.Main_OnCommand(40339,0)
+      end
+    end
+    if conf.solo then
+      r.ImGui_SameLine(ctx)
+      if DrawCrossButton(ctx, 'S##All', 18, color_solo) then
+        r.Main_OnCommand(40340,0)
+      end
+    end
+    r.ImGui_PopStyleVar(ctx)
   end
 
-  r.ImGui_PopStyleVar(ctx)
   r.ImGui_PopStyleVar(ctx)
 
   r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_ItemSpacing(), 10, 10)
@@ -651,7 +725,7 @@ function loop()
   r.ImGui_PushStyleColor(ctx,r.ImGui_Col_ChildBg()  , background_color)
   r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_WindowTitleAlign(), 0.5, 0.5)
 
-  r.ImGui_SetNextWindowSizeConstraints(ctx, 100, 50, FLT_MAX, FLT_MAX)
+  r.ImGui_SetNextWindowSizeConstraints(ctx, 60, 50, FLT_MAX, FLT_MAX)
   local window_flag = r.ImGui_WindowFlags_NoCollapse()
                     | r.ImGui_WindowFlags_AlwaysAutoResize()
 
@@ -697,17 +771,20 @@ StartContext()
 r.defer(loop)
 
 -- Extensions check end
+    else
+      r.ShowMessageBox("Please update v0.5.1 or later of  \"ReaImGui: ReaScript binding for Dear ImGui\" with ReaPack and restart Reaper", script_name, 0)
+      local ReaPack_exist = r.APIExists('ReaPack_BrowsePackages')
+      if ReaPack_exist == true then
+        r.ReaPack_BrowsePackages('ReaImGui: ReaScript binding for Dear ImGui')
+      end
+    end
   else
-    r.ShowMessageBox("Please update v0.5.1 or later of  \"ReaImGui: ReaScript binding for Dear ImGui\" with ReaPack and restart Reaper",script_name,0)
+    r.ShowMessageBox("Please install \"ReaImGui: ReaScript binding for Dear ImGui\" with ReaPack and restart Reaper", script_name, 0)
     local ReaPack_exist = r.APIExists('ReaPack_BrowsePackages')
     if ReaPack_exist == true then
       r.ReaPack_BrowsePackages('ReaImGui: ReaScript binding for Dear ImGui')
     end
   end
 else
-  r.ShowMessageBox("Please install \"ReaImGui: ReaScript binding for Dear ImGui\" with ReaPack and restart Reaper",script_name,0)
-  local ReaPack_exist = r.APIExists('ReaPack_BrowsePackages')
-  if ReaPack_exist == true then
-    r.ReaPack_BrowsePackages('ReaImGui: ReaScript binding for Dear ImGui')
-  end
+  r.ShowMessageBox("Please install \"SWS extension\" : https://www.sws-extension.org", script_name, 0)
 end
