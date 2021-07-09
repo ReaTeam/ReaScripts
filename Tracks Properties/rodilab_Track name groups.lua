@@ -2,6 +2,7 @@
 -- @author Rodilab
 -- @version 1.30
 -- @changelog
+--   - Double click on tag button to vertical zoom on tracks
 --   - New "Track name [Start with / Contains] name" option in settings
 --   - New insert multiple tracks feature
 --   - "Insert new tracks" can be done on tags that do not exist yet
