@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="e0fc742f74739fd22c38fca88591b20d6ade696f" name="ReaTeam Scripts">
+<index version="1" commit="6ffffc19f52bc1a724d0f832e3a27e7c496541c3" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -13943,7 +13943,7 @@ uc_track_name_abbreviations = \{"O-Out", "O-MID"\}\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 This track utility allows to select, show/hide, mute or solo a group of tracks by track name. All tracks whose name starts with the entered name, and its children, are recognized by the script. The name list are saved in each project.\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Click on buttons to [B]exclusive[/B] select, show/hide, mute or solo (click and drag to fast multiple selection)\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab [Any-modifier + left-click] to keep and add selection, show/hide, mute or solo\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab [Right-click] on name buttons to edit, insert new track, remove or clear all\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab [Right-click] on name buttons to edit, insert new tracks, remove or clear all\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Click on bottom crosses to show / unmute / unsolo all tracks\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Drag and drop name buttons to move tracks\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Buttons are automatically reordered according to the order of the tracks in the session\par}
@@ -13971,6 +13971,16 @@ uc_track_name_abbreviations = \{"O-Out", "O-MID"\}\par}
 - Improves the behavior of the show, solo and mute buttons
 - Click on select button doesn’t lost the window focus anymore]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e0fc742f74739fd22c38fca88591b20d6ade696f/Tracks%20Properties/rodilab_Track%20name%20groups.lua</source>
+      </version>
+      <version name="1.30" author="Rodilab" time="2021-07-09T22:20:03Z">
+        <changelog><![CDATA[- Double click on tag button to vertical zoom on tracks
+- New "Track name [Start with / Contains] name" option in settings
+- New insert multiple tracks feature
+- "Insert new tracks" can be done on tags that do not exist yet
+- Remplace "Solo (ignore routing)" with "Solo in place"
+- Fix solo button behavior
+- Fix undo block bug]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6ffffc19f52bc1a724d0f832e3a27e7c496541c3/Tracks%20Properties/rodilab_Track%20name%20groups.lua</source>
       </version>
     </reapack>
     <reapack name="spk77_Adjust all receive volumes on selected track by x dB.eel" type="script" desc="Adjust all receive volumes on selected track by x dB">
