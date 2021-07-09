@@ -1,12 +1,13 @@
 -- @description Track name groups
 -- @author Rodilab
--- @version 1.20
+-- @version 1.30
 -- @changelog
---   - Drag to multiple select hide/mute/solo button
---   - Option in settings to undisplay show, mute and solo buttons
---   - Fix reorder tracks by drag and drop bug with child tracks
---   - Improves the behavior of the show, solo and mute buttons
---   - Click on select button doesn’t lost the window focus anymore
+--   - New "Track name [Start with / Contains] name" option in settings
+--   - New insert multiple tracks feature
+--   - "Insert new tracks" can be done on tags that do not exist yet
+--   - Remplace "Solo (ignore routing)" with "Solo in place"
+--   - Fix solo button behavior
+--   - Fix undo block bug
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=255223
 -- @donation Donate via PayPal https://www.paypal.com/donate?hosted_button_id=N5DUAELFWX4DC
 -- @about
@@ -16,7 +17,7 @@
 --
 --   - Click on buttons to [B]exclusive[/B] select, show/hide, mute or solo (click and drag to fast multiple selection)
 --   - [Any-modifier + left-click] to keep and add selection, show/hide, mute or solo
---   - [Right-click] on name buttons to edit, insert new track, remove or clear all
+--   - [Right-click] on name buttons to edit, insert new tracks, remove or clear all
 --   - Click on bottom crosses to show / unmute / unsolo all tracks
 --   - Drag and drop name buttons to move tracks
 --   - Buttons are automatically reordered according to the order of the tracks in the session
@@ -65,7 +66,9 @@ function ExtState_Load()
     background = true,
     visible = true,
     mute = true,
-    solo = true
+    solo = true,
+    format = 0,
+    insert_tracks = 1
   }
   for key in pairs(def) do
     if r.HasExtState(extstate_id,key) then
@@ -105,6 +108,7 @@ end
 ---------------------------------------------------------------------------------
 
 function AddNewGroup(name)
+  r.Undo_BeginBlock()
   if #name > 0 then
     table.insert(group_list, name)
   end
@@ -120,9 +124,11 @@ function SelectGroup(name, mods)
   end
   r.PreventUIRefresh(-1)
   r.UpdateArrange()
+  r.Undo_EndBlock(script_name,-1)
 end
 
 function VisibleGroup(name, bool, mods)
+  r.Undo_BeginBlock()
   r.PreventUIRefresh(1)
   local all
   if not bool then
@@ -151,10 +157,12 @@ function VisibleGroup(name, bool, mods)
   r.TrackList_AdjustWindows(false)
   r.PreventUIRefresh(-1)
   r.UpdateArrange()
+  r.Undo_EndBlock(script_name,-1)
   return bool
 end
 
 function MuteGroup(name, bool, mods)
+  r.Undo_BeginBlock()
   r.PreventUIRefresh(1)
   local all
   if not bool then
@@ -176,15 +184,17 @@ function MuteGroup(name, bool, mods)
   end
   r.PreventUIRefresh(-1)
   r.UpdateArrange()
+  r.Undo_EndBlock(script_name,-1)
   return bool
 end
 
 function SoloGroup(name, bool, mods)
+  r.Undo_BeginBlock()
   r.PreventUIRefresh(1)
   local all
   if not bool then
     local k = 0
-    for i, mute in ipairs(list_visible) do
+    for i, mute in ipairs(list_solo) do
       if mute then k = k + 1 end
       if k > 1 then
         all = true
@@ -197,10 +207,11 @@ function SoloGroup(name, bool, mods)
     r.Main_OnCommand(40340,0) -- Unsolo all tracks
   end
   for i, track in ipairs(list_tracks[name]) do
-    r.SetMediaTrackInfo_Value(track, 'I_SOLO', bool and 1 or 0)
+    r.SetMediaTrackInfo_Value(track, 'I_SOLO', bool and 2 or 0)
   end
   r.PreventUIRefresh(-1)
   r.UpdateArrange()
+  r.Undo_EndBlock(script_name,-1)
   return bool
 end
 
@@ -234,30 +245,42 @@ function IncPrefix(trackname)
   return trackname
 end
 
-function InsertNewTrack(i)
+
+function InsertNewTrack(i, multiple)
+  r.Undo_BeginBlock()
   r.PreventUIRefresh(1)
   local name = group_list[i]
-  local count = r.CountTracks(0)
-  if count > 0 then
-    for i = 0, count-1 do
-      i = count-1-i
-      local track = r.GetTrack(0, i)
-      local rv, trackname = r.GetTrackName(track)
-      if rv and string.sub(trackname, 0, #name) == name then
-        r.InsertTrackAtIndex(i+1, true)
-        local new_track = r.GetTrack(0, i+1)
-        r.GetSetMediaTrackInfo_String(new_track, 'P_NAME', IncPrefix(trackname), true)
-        r.SetMediaTrackInfo_Value(new_track, 'I_CUSTOMCOLOR', r.GetMediaTrackInfo_Value(track, 'I_CUSTOMCOLOR'))
-        if r.GetMediaTrackInfo_Value(track, 'I_FOLDERDEPTH') == -1 then
-          r.SetMediaTrackInfo_Value(new_track, 'I_FOLDERDEPTH', -1)
-          r.SetMediaTrackInfo_Value(track,     'I_FOLDERDEPTH', 0 )
-        end
-        break
+  if group_list_exist[name] then
+    local list = list_tracks[name]
+    local track = list[#list]
+    local i = r.GetMediaTrackInfo_Value(track, 'IP_TRACKNUMBER')
+    local rv, trackname = r.GetTrackName(track)
+    for j=1, multiple do
+      r.InsertTrackAtIndex(i, true)
+      local new_track = r.GetTrack(0, i)
+      trackname = IncPrefix(trackname)
+      r.GetSetMediaTrackInfo_String(new_track, 'P_NAME', trackname, true)
+      r.SetMediaTrackInfo_Value(new_track, 'I_CUSTOMCOLOR', r.GetMediaTrackInfo_Value(track, 'I_CUSTOMCOLOR'))
+      if r.GetMediaTrackInfo_Value(track, 'I_FOLDERDEPTH') == -1 then
+        r.SetMediaTrackInfo_Value(new_track, 'I_FOLDERDEPTH', -1)
+        r.SetMediaTrackInfo_Value(track,     'I_FOLDERDEPTH', 0 )
       end
+      track = new_track
+      i = i + 1
+    end
+  else
+    local i = r.CountTracks(0)
+    for j=1, multiple do
+      r.InsertTrackAtIndex(i, true)
+      local new_track = r.GetTrack(0, i)
+      if j < 10 then j = '0'..j end
+      r.GetSetMediaTrackInfo_String(new_track, 'P_NAME', name..'-'..j, true)
+      i = i + 1
     end
   end
   r.PreventUIRefresh(-1)
   r.UpdateArrange()
+  r.Undo_EndBlock(script_name,-1)
 end
 
 function MoveTracks(o_source, o_target)
@@ -273,6 +296,7 @@ function MoveTracks(o_source, o_target)
     after = true
     target_name = group_list[group_list_order[o_target - 1]]
   end
+  r.Undo_BeginBlock()
   r.PreventUIRefresh(1)
   r.Main_OnCommand(40297,0) -- Unselect all tracks
   for i, track in ipairs(list_tracks[target_name]) do
@@ -289,6 +313,7 @@ function MoveTracks(o_source, o_target)
   r.ReorderSelectedTracks(new_id, 0)
   r.PreventUIRefresh(-1)
   r.UpdateArrange()
+  r.Undo_EndBlock(script_name,-1)
 end
 
 ---------------------------------------------------------------------------------
@@ -418,6 +443,7 @@ function ImGuiBody()
     MousePos[2] = MousePos[2] - WindowPos[2]
   end
 
+  local double_click = r.ImGui_IsMouseDoubleClicked(ctx, 0)
   local mods = r.ImGui_GetKeyMods(ctx)
   r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_FrameRounding(), 4.0)
 
@@ -430,13 +456,17 @@ function ImGuiBody()
   end
 
   if r.ImGui_BeginPopup(ctx, 'Menu Name', r.ImGui_WindowFlags_NoMove() | r.ImGui_WindowFlags_NoResize()) then
+      local insert_track = false
+      if r.ImGui_Selectable(ctx,'Insert new tracks') then
+        InsertNewTrack(name_focused, conf.insert_tracks)
+      end
+      r.ImGui_PushItemWidth(ctx, 70)
+      rv, conf.insert_tracks = r.ImGui_InputInt(ctx, '##Input Insert multiple', conf.insert_tracks, 1, 5 )
+      conf.insert_tracks = math.max(1, conf.insert_tracks)
+      r.ImGui_PopItemWidth(ctx)
+      r.ImGui_Separator(ctx)
     if r.ImGui_Selectable(ctx,'Edit') then
       edit = name_focused
-    end
-    if group_list_exist[group_list[name_focused]] then
-      if r.ImGui_Selectable(ctx,'Insert new track') then
-        InsertNewTrack(name_focused)
-      end
     end
     if r.ImGui_Selectable(ctx,'Remove') then
       table.remove(group_list,name_focused)
@@ -448,6 +478,15 @@ function ImGuiBody()
   end
 
   if r.ImGui_BeginPopup(ctx, 'Settings') then
+    r.ImGui_AlignTextToFramePadding(ctx)
+    r.ImGui_Text(ctx, 'Track name')
+    r.ImGui_SameLine(ctx)
+    r.ImGui_PushItemWidth(ctx, 80)
+    rv, conf.format =     r.ImGui_Combo   (ctx, '##Format', conf.format, 'Starts with\31Contains\31')
+    r.ImGui_PopItemWidth(ctx)
+    r.ImGui_SameLine(ctx)
+    r.ImGui_Text(ctx, 'the tag')
+    r.ImGui_Separator(ctx)
     rv, conf.visible =    r.ImGui_Checkbox(ctx, 'Show/Hide button', conf.visible)
     rv, conf.mute =       r.ImGui_Checkbox(ctx, 'Mute button', conf.mute)
     rv, conf.solo =       r.ImGui_Checkbox(ctx, 'Solo button', conf.solo)
@@ -491,7 +530,13 @@ function ImGuiBody()
         has_parent, parent_name = IsInTheList(parent)
       end
       for i, name in ipairs(group_list) do
-        if (has_parent and parent_name == name) or string.sub(trackname, 0, #name) == name then
+        local SameName
+        if     conf.format == 0 then
+          SameName = string.sub(trackname, 0, #name) == name and true or false
+        elseif conf.format == 1 then
+          SameName = string.match(trackname, name) and true or false
+        end
+        if (has_parent and parent_name == name) or SameName then
           table.insert(list_tracks[name], track)
           if not group_list_exist[name] then
             table.insert(group_list_order, i)
@@ -587,8 +632,14 @@ function ImGuiBody()
       r.ImGui_PushStyleColor(ctx, r.ImGui_Col_Button(),        color_button)
       r.ImGui_PushStyleColor(ctx, r.ImGui_Col_ButtonActive(),  color_button_active)
       r.ImGui_PushStyleColor(ctx, r.ImGui_Col_ButtonHovered(), color_button_hov)
-      if r.ImGui_Button(ctx, name, button_size) then
-        SelectGroup(name, mods)
+
+      r.ImGui_Button(ctx, name, button_size)
+      if r.ImGui_IsItemClicked(ctx) then
+        if double_click then
+          r.Main_OnCommand(r.NamedCommandLookup('_SWS_VZOOMFITMIN'), 0)
+        else
+          SelectGroup(name, mods)
+        end
       end
       r.ImGui_PopStyleColor(ctx, 3)
       if group_list_exist[name] then
