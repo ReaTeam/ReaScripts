@@ -1,14 +1,7 @@
 -- @description Track name groups
 -- @author Rodilab
--- @version 1.30
--- @changelog
---   - Double click on tag button to vertical zoom on tracks
---   - New "Track name [Start with / Contains] name" option in settings
---   - New insert multiple tracks feature
---   - "Insert new tracks" can be done on tags that do not exist yet
---   - Remplace "Solo (ignore routing)" with "Solo in place"
---   - Fix solo button behavior
---   - Fix undo block bug
+-- @version 1.31
+-- @changelog - Fix save tag list if quit Reaper before quit script
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=255223
 -- @donation Donate via PayPal https://www.paypal.com/donate?hosted_button_id=N5DUAELFWX4DC
 -- @about
@@ -53,6 +46,7 @@ FLT_MIN, FLT_MAX = r.ImGui_NumericLimits_Float()
 ---------------------------------------------------------------------------------
 
 r.atexit(function()
+  ProjExtState_Save()
   ExtState_Save()
 end)
 
@@ -95,7 +89,9 @@ function ExtState_Save()
   for key in pairs(conf) do
     r.SetExtState(extstate_id, key, tostring(conf[key]), true)
   end
+end
 
+function ProjExtState_Save()
   local string = ''
   for i, name in ipairs(group_list) do
     if i > 1 then string = string..';' end
@@ -471,9 +467,11 @@ function ImGuiBody()
     end
     if r.ImGui_Selectable(ctx,'Remove') then
       table.remove(group_list,name_focused)
+      ProjExtState_Save()
     end
     if r.ImGui_Selectable(ctx,'Clear all') then
       group_list = {}
+      ProjExtState_Save()
     end
     r.ImGui_EndPopup(ctx)
   end
@@ -623,6 +621,7 @@ function ImGuiBody()
           group_list[i] = input_text
         end
         edit, input_text, first_frame = nil, nil, nil
+        ProjExtState_Save()
       end
       if first_frame and not r.ImGui_IsItemFocused(ctx) then
         edit, input_text, first_frame = nil, nil, nil
@@ -707,6 +706,7 @@ function ImGuiBody()
         table.insert(group_list, input_text)
       end
       edit, input_text, first_frame = nil, nil, nil
+      ProjExtState_Save()
     end
     if first_frame and not r.ImGui_IsItemFocused(ctx) then
       edit, input_text, first_frame = nil, nil, nil
@@ -798,7 +798,7 @@ function loop()
   local visible, open = r.ImGui_Begin(ctx, script_name, true, window_flag)
   dockID = r.ImGui_GetWindowDockID(ctx)
   isdock = r.ImGui_IsWindowDocked(ctx)
-  if dockID < 0 then
+  if isdock and conf.dock ~= dockID then
     conf.dock = dockID
   end
   r.ImGui_PopStyleColor(ctx, 2)
