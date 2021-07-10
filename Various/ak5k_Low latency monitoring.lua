@@ -1,5 +1,23 @@
 -- @description Low latency monitoring
 -- @author ak5k
+-- @version 1.5
+-- @changelog
+--   Automation write enabled  tracks (touch, latch, write) are treated as low latency monitored inputs.
+--   In Global automation override modes (touch, latch, write, bypass) all tracks are treated as low latency monitored inputs.
+-- @link Forum thread, more detailed information https://forum.cockos.com/showthread.php?t=245445
+-- @about
+--   # Low latency monitoring
+--
+--   Provides REAPER a function also known as 'Low Latency Monitoring', 'Low Latency Mode', 'Native Low Latency Monitoring', 'Constrain Delay Compenstation' or 'Reduce Latency when Monitoring' in other DAWs. It resembles the one from Cubase.
+--
+--   While enabled, it bypasses (or takes offline) latency inducing plugins (VSTs etc) from rec armed, input monitored and automation write enabled signal chains, to provide lowest possible latency and CPU usage when monitoring through software.
+--
+--   Plugins contributing PDC latency to active signal chain will be bypassed, once the set limit is exceeded per signal chain. Useful when recording e.g. software synths or guitars through amp sims, or writing automation, into a REAPER project already filled with plugins.
+--
+--   Can be setup as a toolbar toggle on/off button, and this is recommended. Settings can be configured. REAPER 6.21 or later required. Visit [website](https://forum.cockos.com/showthread.php?t=245445) for detailed information or reporting bugs.
+
+-- @description Low latency monitoring
+-- @author ak5k
 -- @version 1.4
 -- @changelog
 --   Automation write enabled  tracks (touch, latch, write) are treated as low latency monitored inputs.
@@ -666,6 +684,24 @@ local function set_path_stack()
     path_stack[path_table[i][j][k]] = true
   
   end
+  end
+  end
+  
+  for node, _ in pairs(path_stack) do
+    for j = 0, GetTrackNumSends(node, 1) -1 do
+      local mute_state = GetTrackSendInfo_Value(node, 1, j, "B_MUTE")
+      if mute_state ~= 1 then
+        sends_to_hw[node] = true
+      end
+    end
+  end
+  
+  for i = #path_table,1,-1 do
+  
+  for j = #path_table[i],1,-1 do
+    if not sends_to_hw[path_table[i][j][#path_table[i][j]]] then
+      table.remove(path_table[i],j)
+    end
   end
   end
 end
@@ -1442,7 +1478,7 @@ end
 
 local function get_user_settings()
   local title = message_name
-  local num_inputs = 8
+  local num_inputs = 7
   local captions_csv = 
   "Latency limit: (in ms)," ..
   "Safe tagging: (1=yes, 0=no)," ..
@@ -1450,8 +1486,8 @@ local function get_user_settings()
   "Plugin limit: (in ms)," ..
   "Include master: (1=yes, 0=no)," ..
   "Enable report: (1=yes, 0=no)," ..
-  "Hard limit: (1=yes, 0=no)," ..
-  "PDC manager: (1=yes, 0=no),"
+  "Hard limit: (1=yes, 0=no)," --..
+  --"PDC manager: (1=yes, 0=no),"
   
   --reaper.SetExtState(section, key, "", true)
 
@@ -1465,8 +1501,8 @@ local function get_user_settings()
     "0.0," ..
     "1," ..
     "1," ..
-    "0," ..
-    "0,"
+    "0," --..
+    --"0,"
   end
 
   local retval, retvals_csv = reaper.GetUserInputs(title, num_inputs, captions_csv, retvals_csv)
