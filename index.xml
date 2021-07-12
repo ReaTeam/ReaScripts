@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="dc832c3e209c16e3cd5cbb4b1d84aed6efe5553e" name="ReaTeam Scripts">
+<index version="1" commit="5a88611683de92c11ba7850778fbe3ca45b15161" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -13985,6 +13985,17 @@ uc_track_name_abbreviations = \{"O-Out", "O-MID"\}\par}
       <version name="1.31" author="Rodilab" time="2021-07-10T20:10:30Z">
         <changelog><![CDATA[- Fix save tag list if quit Reaper before quit script]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/dc832c3e209c16e3cd5cbb4b1d84aed6efe5553e/Tracks%20Properties/rodilab_Track%20name%20groups.lua</source>
+      </version>
+      <version name="1.40" author="Rodilab" time="2021-07-12T22:30:58Z">
+        <changelog><![CDATA[- Auto add folder names option
+- Propose the name of the first selected track when adding a new tag
+- Second double click minimize all tracks
+- Darker color
+- Custom index format in settings
+- Vertical scroll to track when click on tag button
+- Fix duplicate tags
+- Fix vertical zoom bug with track heigth locked]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/5a88611683de92c11ba7850778fbe3ca45b15161/Tracks%20Properties/rodilab_Track%20name%20groups.lua</source>
       </version>
     </reapack>
     <reapack name="spk77_Adjust all receive volumes on selected track by x dB.eel" type="script" desc="Adjust all receive volumes on selected track by x dB">
