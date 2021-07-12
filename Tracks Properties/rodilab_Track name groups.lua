@@ -1,7 +1,15 @@
 -- @description Track name groups
 -- @author Rodilab
--- @version 1.31
--- @changelog - Fix save tag list if quit Reaper before quit script
+-- @version 1.40
+-- @changelog
+--   - Auto add folder names option
+--   - Propose the name of the first selected track when adding a new tag
+--   - Second double click minimize all tracks
+--   - Darker color
+--   - Custom index format in settings
+--   - Vertical scroll to track when click on tag button
+--   - Fix duplicate tags
+--   - Fix vertical zoom bug with track heigth locked
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=255223
 -- @donation Donate via PayPal https://www.paypal.com/donate?hosted_button_id=N5DUAELFWX4DC
 -- @about
@@ -38,6 +46,7 @@ end
 if r.APIExists('CF_GetSWSVersion') == true then
   if r.APIExists('ImGui_CreateContext') == true then
     if TestVersion(({r.ImGui_GetVersion()})[2],{0,5,1}) then
+      if r.APIExists('JS_ReaScriptAPI_Version') == true then
 
 FLT_MIN, FLT_MAX = r.ImGui_NumericLimits_Float()
 
@@ -63,7 +72,10 @@ function ExtState_Load()
     mute = true,
     solo = true,
     format = 0,
-    insert_tracks = 1
+    insert_tracks = 1,
+    index_pos = 2,
+    index_separator = '-',
+    auto = true
   }
   for key in pairs(def) do
     if r.HasExtState(extstate_id,key) then
@@ -71,6 +83,19 @@ function ExtState_Load()
       if state == "true" then state = true
       elseif state == "false" then state = false end
       conf[key] = tonumber(state) or state
+      if (type(conf[key]) ~= 'number' and (key=='dock'
+                                       or key=='format'
+                                       or key=='insert_tracks'
+                                       or key=='index_pos'))
+      or (type(conf[key]) ~= 'boolean'and (key=='mousepos'
+                                       or key=='background'
+                                       or key=='visible'
+                                       or key=='mute'
+                                       or key=='solo'
+                                       or key=='auto'))
+      or (type(conf[key]) ~= 'string' and (key=='index_separator')) then
+        conf[key] = def[key]
+      end
     else
       conf[key] = def[key]
     end
@@ -242,36 +267,82 @@ function IncPrefix(trackname)
   return trackname
 end
 
+function GetNewName(name, i)
+  if conf.index_pos > 0 then
+    string.format("%02d", i)
+    if conf.index_pos == 1 then
+      name = i..conf.index_separator..name
+    elseif conf.index_pos == 2 then
+      name = name..conf.index_separator..i
+    end
+  end
+  return name
+end
+
+function GetLastIndex(name)
+  if conf.index_pos > 0 then
+    local list = list_tracks[name]
+    if conf.index_pos == 1 then
+      name = conf.index_separator..name
+    elseif conf.index_pos == 2 then
+      name = name..conf.index_separator
+    end
+    for i=0, #list-1 do
+      i = #list - i
+      local track = list[i]
+      local rv, trackname = r.GetTrackName(track)
+      if name == string.sub(trackname, 1, #name) then
+        local index = tonumber((string.sub(trackname, #name+1)))
+        if index then
+          return index
+        end
+      end
+    end
+    return 0
+  else
+    return nil
+  end
+end
 
 function InsertNewTrack(i, multiple)
   r.Undo_BeginBlock()
   r.PreventUIRefresh(1)
   local name = group_list[i]
   if group_list_exist[name] then
-    local list = list_tracks[name]
-    local track = list[#list]
+    local track = list_tracks[name][#list_tracks[name]]
     local i = r.GetMediaTrackInfo_Value(track, 'IP_TRACKNUMBER')
-    local rv, trackname = r.GetTrackName(track)
+    local last_index
+    if conf.index_pos > 0 then
+      last_index = GetLastIndex(name)
+    end
     for j=1, multiple do
-      r.InsertTrackAtIndex(i, true)
-      local new_track = r.GetTrack(0, i)
-      trackname = IncPrefix(trackname)
-      r.GetSetMediaTrackInfo_String(new_track, 'P_NAME', trackname, true)
+      local new_name
+      if conf.index_pos > 0 then
+        local new_index = string.format("%02d", last_index + j)
+        if conf.index_pos == 1 then
+          new_name = new_index..conf.index_separator..name
+        elseif conf.index_pos == 2 then
+          new_name = name..conf.index_separator..new_index
+        end
+      else
+        new_name = name
+      end
+      r.InsertTrackAtIndex(i+j-1, true)
+      local new_track = r.GetTrack(0, i+j-1)
+      r.GetSetMediaTrackInfo_String(new_track, 'P_NAME', new_name, true)
       r.SetMediaTrackInfo_Value(new_track, 'I_CUSTOMCOLOR', r.GetMediaTrackInfo_Value(track, 'I_CUSTOMCOLOR'))
       if r.GetMediaTrackInfo_Value(track, 'I_FOLDERDEPTH') == -1 then
         r.SetMediaTrackInfo_Value(new_track, 'I_FOLDERDEPTH', -1)
         r.SetMediaTrackInfo_Value(track,     'I_FOLDERDEPTH', 0 )
       end
       track = new_track
-      i = i + 1
     end
   else
     local i = r.CountTracks(0)
     for j=1, multiple do
       r.InsertTrackAtIndex(i, true)
       local new_track = r.GetTrack(0, i)
-      if j < 10 then j = '0'..j end
-      r.GetSetMediaTrackInfo_String(new_track, 'P_NAME', name..'-'..j, true)
+      r.GetSetMediaTrackInfo_String(new_track, 'P_NAME', GetNewName(name, j), true)
       i = i + 1
     end
   end
@@ -311,6 +382,89 @@ function MoveTracks(o_source, o_target)
   r.PreventUIRefresh(-1)
   r.UpdateArrange()
   r.Undo_EndBlock(script_name,-1)
+end
+
+function AlreadySet(new_name)
+  for i, name in ipairs(group_list) do
+    if name == new_name then
+      return true
+    end
+  end
+  return false
+end
+
+function AddAllFolders()
+  r.Main_OnCommand(r.NamedCommandLookup('_SWS_SELFOLDSTARTS'), 0)
+  local count = r.CountSelectedTracks(0)
+  if count > 0 then
+    for i=0, count-1 do
+      local track = r.GetSelectedTrack(0, i)
+      local rv, trackname = r.GetSetMediaTrackInfo_String(track, 'P_NAME', '', false)
+      trackname = trackname:gsub(';','')
+      if rv and not AlreadySet(trackname) then
+        table.insert(group_list, trackname)
+      end
+    end
+  end
+end
+
+function SameTracksHeight()
+  local count = r.CountTracks(0)
+  if last_zoom_state and count == #last_zoom_state then
+    for i=0, count-1 do
+      local track = r.GetTrack(0, i)
+      local height = r.GetMediaTrackInfo_Value(track, 'I_TCPH')
+      if height ~= last_zoom_state[i+1] then
+        return false
+      end
+    end
+    return true
+  end
+  return false
+end
+
+function VerticalZoomSelTracks()
+  last_zoom_state = {}
+  local count_sel = r.CountSelectedTracks(0)
+  if count_sel > 0 then
+    local seltracks_locked_height = {}
+    for i=0, count_sel-1 do
+      local track = r.GetSelectedTrack(0, i)
+      if r.GetMediaTrackInfo_Value(track, 'B_HEIGHTLOCK') == 1 then
+        table.insert(seltracks_locked_height, r.GetMediaTrackInfo_Value(track, 'I_TCPH'))
+      end
+    end
+    local _, left, top, right, bottom = r.JS_Window_GetClientRect(r.JS_Window_FindChildByID(r.GetMainHwnd(), 1000))
+    local new_height = math.max(top, bottom) - math.min(top, bottom)
+    for i, lock_height in ipairs(seltracks_locked_height) do
+      new_height = new_height - lock_height
+    end
+    new_height = math.floor(new_height / (count_sel - #seltracks_locked_height))
+    r.PreventUIRefresh(1)
+    local count = r.CountTracks(0)
+    if count > 0 then
+      for i=0, count-1 do
+        local track = r.GetTrack(0, i)
+        local lock = r.GetMediaTrackInfo_Value(track, 'B_HEIGHTLOCK')
+        if lock == 0 then
+          local sel = r.IsTrackSelected(track)
+          if sel then
+            r.SetMediaTrackInfo_Value(track, 'I_HEIGHTOVERRIDE', new_height)
+            table.insert(last_zoom_state, new_height)
+          else
+            r.SetMediaTrackInfo_Value(track, 'I_HEIGHTOVERRIDE', 25)
+            table.insert(last_zoom_state, 25)
+          end
+        else
+          table.insert(last_zoom_state, r.GetMediaTrackInfo_Value(track, 'I_TCPH'))
+        end
+      end
+    end
+    r.PreventUIRefresh(-1)
+    r.TrackList_AdjustWindows(true)
+    r.UpdateArrange()
+    r.Main_OnCommand(40913, 0) -- Scroll
+  end
 end
 
 ---------------------------------------------------------------------------------
@@ -486,6 +640,30 @@ function ImGuiBody()
     r.ImGui_SameLine(ctx)
     r.ImGui_Text(ctx, 'the tag')
     r.ImGui_Separator(ctx)
+    r.ImGui_AlignTextToFramePadding(ctx)
+    r.ImGui_Text(ctx, 'Index position')
+    r.ImGui_SameLine(ctx, 100)
+    r.ImGui_PushItemWidth(ctx, 90)
+    rv, conf.index_pos =     r.ImGui_Combo   (ctx, '##Index position', conf.index_pos, 'None\31Before name\31After name\31')
+    r.ImGui_PopItemWidth(ctx)
+    r.ImGui_AlignTextToFramePadding(ctx)
+    r.ImGui_Text(ctx, 'Index separator')
+    r.ImGui_SameLine(ctx, 100)
+    r.ImGui_PushItemWidth(ctx, 30)
+    rv, conf.index_separator = r.ImGui_InputText(ctx, '##Index separator', conf.index_separator)
+    r.ImGui_PopItemWidth(ctx)
+    local exemple = 'Drums'
+    if conf.index_pos == 1 then
+      exemple = '01'..conf.index_separator..exemple
+    elseif conf.index_pos == 2 then
+      exemple = exemple..conf.index_separator..'01'
+    end
+    r.ImGui_Text(ctx, 'Exemple: ')
+    r.ImGui_SameLine(ctx, 100)
+    r.ImGui_Text(ctx, exemple)
+    r.ImGui_Separator(ctx)
+    rv, conf.auto = r.ImGui_Checkbox(ctx, 'Auto add folder names', conf.auto)
+    r.ImGui_Separator(ctx)
     rv, conf.visible =    r.ImGui_Checkbox(ctx, 'Show/Hide button', conf.visible)
     rv, conf.mute =       r.ImGui_Checkbox(ctx, 'Mute button', conf.mute)
     rv, conf.solo =       r.ImGui_Checkbox(ctx, 'Solo button', conf.solo)
@@ -517,11 +695,19 @@ function ImGuiBody()
   local all_visible = true
   for t=0, count-1 do
     local track = r.GetTrack(0, t)
+    local rv, trackname = r.GetSetMediaTrackInfo_String(track, 'P_NAME', '', false)
+    trackname = trackname:gsub(';','')
+    if conf.auto then
+      if r.GetMediaTrackInfo_Value(track, 'I_FOLDERDEPTH') == 1 and #trackname > 0 and not AlreadySet(trackname) then
+        table.insert(group_list, trackname)
+        list_tracks[trackname] = {}
+        ProjExtState_Save()
+      end
+    end
     local SHOWINTCP = r.GetMediaTrackInfo_Value(track, 'B_SHOWINTCP')
     if all_visible and SHOWINTCP == 0 then
       all_visible = false
     end
-    local rv, trackname = r.GetTrackName(track)
     if rv then
       local parent = r.GetParentTrack(track)
       local has_parent, parent_i, parent_name
@@ -599,10 +785,10 @@ function ImGuiBody()
       else
         color = list_color[i]
       end
-      color = color * 16^2 + 255
-      color_button = color + 255
-      color_button_hov = color + 190
-      color_button_active = color_button
+      color = color * 16^2 + 200
+      color_button = color + 200
+      color_button_hov = color + 240
+      color_button_active = color + 255
     else
       color_button =        0x454545ff
       color_button_hov =    0x525252ff
@@ -617,8 +803,10 @@ function ImGuiBody()
       rv, input_text = r.ImGui_InputTextWithHint(ctx, '##Edit'..i, 'name', input_text, r.ImGui_InputTextFlags_EnterReturnsTrue() | r.ImGui_InputTextFlags_AutoSelectAll())
       if rv then
         input_text = input_text:gsub(';','')
-        if #input_text > 0 then
+        if #input_text > 0 and not AlreadySet(input_text) then
           group_list[i] = input_text
+        else
+          table.remove(group_list, i)
         end
         edit, input_text, first_frame = nil, nil, nil
         ProjExtState_Save()
@@ -632,13 +820,20 @@ function ImGuiBody()
       r.ImGui_PushStyleColor(ctx, r.ImGui_Col_Button(),        color_button)
       r.ImGui_PushStyleColor(ctx, r.ImGui_Col_ButtonActive(),  color_button_active)
       r.ImGui_PushStyleColor(ctx, r.ImGui_Col_ButtonHovered(), color_button_hov)
-
       r.ImGui_Button(ctx, name, button_size)
       if r.ImGui_IsItemClicked(ctx) then
         if double_click then
-          r.Main_OnCommand(r.NamedCommandLookup('_SWS_VZOOMFITMIN'), 0)
+          if last_zoom and last_zoom == i and SameTracksHeight() then
+            r.Main_OnCommand(40727, 0) -- Minimize
+            r.Main_OnCommand(40913, 0) -- Scroll
+            last_zoom = nil
+          else
+            VerticalZoomSelTracks()
+            last_zoom = i
+          end
         else
           SelectGroup(name, mods)
+          r.Main_OnCommand(40913, 0)
         end
       end
       r.ImGui_PopStyleColor(ctx, 3)
@@ -696,17 +891,27 @@ function ImGuiBody()
   if edit == 0 then
     r.ImGui_PushItemWidth(ctx, button_size)
     if not  input_text then
+      if r.CountSelectedTracks(0) > 0 then
+        local track = r.GetSelectedTrack(0, 0)
+        local rv, buf = r.GetSetMediaTrackInfo_String( track, 'P_NAME', '', false )
+        if rv then
+          input_text = buf
+        else
+          input_text = ''
+        end
+      else
+        input_text = ''
+      end
       r.ImGui_SetKeyboardFocusHere(ctx)
-      input_text = ''
     end
     rv, input_text = r.ImGui_InputTextWithHint(ctx, '##Add new', 'name', input_text,  r.ImGui_InputTextFlags_EnterReturnsTrue())
     if rv then
       input_text = input_text:gsub(';','')
-      if #input_text > 0 then
+      if #input_text > 0 and not AlreadySet(input_text) then
         table.insert(group_list, input_text)
+        ProjExtState_Save()
       end
       edit, input_text, first_frame = nil, nil, nil
-      ProjExtState_Save()
     end
     if first_frame and not r.ImGui_IsItemFocused(ctx) then
       edit, input_text, first_frame = nil, nil, nil
@@ -770,7 +975,6 @@ function ImGuiBody()
 end
 
 function loop()
-
   r.ImGui_PushFont(ctx, font)
   background_color = conf.background and r.ImGui_ColorConvertNative(r.GetThemeColor('col_main_bg2',0)) * 16^2 + 255 or 0x333333ff
   r.ImGui_PushStyleColor(ctx, r.ImGui_Col_WindowBg(), background_color)
@@ -780,7 +984,6 @@ function loop()
   r.ImGui_SetNextWindowSizeConstraints(ctx, 60, 50, FLT_MAX, FLT_MAX)
   local window_flag = r.ImGui_WindowFlags_NoCollapse()
                     | r.ImGui_WindowFlags_AlwaysAutoResize()
-
   if dock then
     if dock < 0 then
       dock = 0
@@ -790,11 +993,9 @@ function loop()
     r.ImGui_SetNextWindowDockID(ctx, dock)
     dock = nil
   end
-
   if cur_x and dockID and not isdock then
     r.ImGui_SetNextWindowPos(ctx, cur_x, cur_y, r.ImGui_Cond_Once(), 0.5)
   end
-
   local visible, open = r.ImGui_Begin(ctx, script_name, true, window_flag)
   dockID = r.ImGui_GetWindowDockID(ctx)
   isdock = r.ImGui_IsWindowDocked(ctx)
@@ -802,15 +1003,12 @@ function loop()
     conf.dock = dockID
   end
   r.ImGui_PopStyleColor(ctx, 2)
-
   if visible then
     ImGuiBody()
     r.ImGui_End(ctx)
   end
-
   r.ImGui_PopStyleVar(ctx)
   r.ImGui_PopFont(ctx)
-
   if not open or r.ImGui_IsKeyDown(ctx, 27) or close then
     r.ImGui_DestroyContext(ctx)
   else
@@ -823,6 +1021,13 @@ StartContext()
 r.defer(loop)
 
 -- Extensions check end
+      else
+        r.ShowMessageBox("Please install \"js_ReaScriptAPI: API functions for ReaScripts\" with ReaPack and restart Reaper",script_name,0)
+        local ReaPack_exist = r.APIExists('ReaPack_BrowsePackages')
+        if ReaPack_exist == true then
+          r.ReaPack_BrowsePackages('js_ReaScriptAPI: API functions for ReaScripts')
+        end
+      end
     else
       r.ShowMessageBox("Please update v0.5.1 or later of  \"ReaImGui: ReaScript binding for Dear ImGui\" with ReaPack and restart Reaper", script_name, 0)
       local ReaPack_exist = r.APIExists('ReaPack_BrowsePackages')
