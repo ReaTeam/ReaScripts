@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="5a88611683de92c11ba7850778fbe3ca45b15161" name="ReaTeam Scripts">
+<index version="1" commit="a73bc3e771935a13bcfc5e3a859f31e710fa9b03" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -6546,13 +6546,13 @@ selection.]]></changelog>
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 For BWF selected items : Set custom name with $wildcards for rename active take and set new notes. First text-box for Take Name, second text-box for Item Notes (if empty, then don't change). Look "User Config Area" on the top of script to :\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Add, remove or edit $wildcards (and metadata fields identifiers)\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Enable/Disable popup message box (if disable, set last default)\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 For BWF selected items : Set custom name with $wildcards for rename active take and set new notes. First text-box for Take Name, second text-box for Item Notes (if empty, then don't change).\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 $bitdepth, $chnl, $circled, $date, $falsestart, $fileindex, $filename, $filetyp, $nogood, $note, $originator, $originatorref, $project, $reaname, $reaproject, $reatrack, $samplerate, $scene, $speed, $startoffsset, $tag, $take, $taketyp, $tape, $tcstart, $time, $timeref, $totalfiles, $trackcount, $trackname, $ubits, $wildtrack\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 by Rodrigo Diaz (aka Rodilab)\par}
 }
 ]]></description>
+        <link rel="website" href="https://forum.cockos.com/showthread.php?t=250505">Forum thread</link>
+        <link rel="donation" href="https://www.paypal.com/donate?hosted_button_id=N5DUAELFWX4DC">Donate via PayPal</link>
       </metadata>
       <version name="1.0" author="Rodilab" time="2021-03-08T12:57:45Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/21d9dc003423dd981ae902d9437301ce7efdfb0d/Items%20Properties/rodilab_Rename%20takes%20and%20item%20notes%20with%20BWF%20and%20iXML%20metadata.lua</source>
@@ -6563,6 +6563,10 @@ selection.]]></changelog>
       <version name="1.2" author="Rodilab" time="2021-03-31T19:37:29Z">
         <changelog><![CDATA[Update : Read the iXML Track List metadata]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/32feb10341383ba73e51a0a353a6f8b24d99fda3/Items%20Properties/rodilab_Rename%20takes%20and%20item%20notes%20with%20BWF%20and%20iXML%20metadata.lua</source>
+      </version>
+      <version name="2.0" author="Rodilab" time="2021-07-13T09:50:01Z">
+        <changelog><![CDATA[New ReaImGui interface]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a73bc3e771935a13bcfc5e3a859f31e710fa9b03/Items%20Properties/rodilab_Rename%20takes%20and%20item%20notes%20with%20BWF%20and%20iXML%20metadata.lua</source>
       </version>
     </reapack>
     <reapack name="spk77_Breeder_PL9_Copy paste item properties (incl BWF).eel" type="script" desc="Copy paste item properties (incl BWF)">
