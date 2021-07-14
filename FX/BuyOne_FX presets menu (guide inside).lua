@@ -2,8 +2,10 @@
 ReaScript name: FX presets menu
 Author: BuyOne
 Website: https://forum.cockos.com/member.php?u=134058
-Version: 1.0
-Changelog: Initial release
+Version: 1.1
+Changelog: 
+	#Added support for displaying FX presets menu when FX chain is focused
+	#Updated GUIDE
 Provides: [main] .
 About:
 
@@ -30,6 +32,8 @@ About:
 	Be aware that when LAST_SEL_OBJ option is enabled and the script is run via a keyboard shortcut, the menu will be called even when the cursor is outside of the TCP/MCP or Arrange, like over the ruler, TCP buttom, empty Mixer area or any focused window, in which case it will display a list of the last selected object FX presets.
 
 	- To close the menu after it's been called, without selecting any preset, either click elsewhere in REAPER or pres Esc keyboard key.
+
+	- Video processor preset menu is supported from REAPER build 6.26 onwards.
 	
 
 Licence: WTFPL
@@ -318,23 +322,42 @@ function Get_Object()
 -- GetCursorContext() is unreliable in getting TCP since the track context is true along the entire timeline as long as it's not another context
 -- using edit cursor to find TCP/MCP context instead since when mouse cursor is over the TCP/MCP edit cursor doesn't respond to action 'View: Move edit cursor to mouse cursor'
 
-r.PreventUIRefresh(1)
+	function GetMonFXProps() -- get mon fx accounting for floating window, GetFocusedFX() doesn't detect mon fx in builds prior to 6.20
 
-local curs_pos = r.GetCursorPosition() -- store current edit curs pos
-r.Main_OnCommand(40043,0) -- Transport: Go to end of project // to secure against a vanishing probablility of overlap between edit and mouse cursor positions in which case edit cursor won't move just like it won't if mouse cursor is over the TCP
-local end_proj_pos = r.GetCursorPosition() -- get new edit cursor pos at the project end
-r.Main_OnCommand(40514,0) -- View: Move edit cursor to mouse cursor (no snapping) // more seinsitive than with snapping
-	if r.GetCursorPosition() == end_proj_pos then -- the edit cursor stayed put since the mouse cursor is over the TCP
-	r.Main_OnCommand(41110,0) -- Track: Select track under mouse
-	obj, obj_type = r.GetSelectedTrack2(0,0, true), 0
-	else
-	r.Main_OnCommand(40289,0) -- Item: Unselect all items;  -- when LAST_SEL_OBJ option in the USER SETTINGS is OFF to prevent getting any selected item when mouse cursor is outside of Arrange proper any selected item when mouse cursor is outside of Arrange proper (e.g. at the Mixer or Ruler or a focused Window), forcing its recognition only if the item is under mouse cursor, that's because when cursor is within Arrange and there's no item under it the action 40528 (below) itself deselects all items (until their selection is restored at script exit) and GetSelectedMediaItem() returns nil so there's nothing to fetch the data from, but when the cursor is outside of the Arrange proper (e.g. at the Mixer or Ruler) this action does nothing, the current item selection stays intact and so GetSelectedMediaItem() does return first selected item identificator
-	r.Main_OnCommand(40528,0) -- Item: Select item under mouse cursor
-	obj, obj_type = r.GetSelectedMediaItem(0,0), 1
+		local master_tr = r.GetMasterTrack(0)
+		local src_mon_fx_idx = r.TrackFX_GetRecChainVisible(master_tr)
+		local is_mon_fx_float = false -- only relevant if there's need to reopen the fx in floating window
+			if src_mon_fx_idx < 0 then -- fx chain closed or no focused fx -- if this condition is removed floated fx gets priority
+				for i = 0, r.TrackFX_GetRecCount(master_tr) do
+					if r.TrackFX_GetFloatingWindow(master_tr, 0x1000000+i) then
+					src_mon_fx_idx = i; is_mon_fx_float = true break end
+				end
+			end
+		return src_mon_fx_idx, is_mon_fx_float
 	end
 
-r.Main_OnCommand(40043,0) -- Transport: Go to end of project // makes it easier to restore since the difference will always be negative
-r.MoveEditCursor(curs_pos - end_proj_pos, false) -- restore orig. edit curs pos, greater subtracted from the lesser to get negative value meaning to move closer to zero (project start); false = don't create time sel
+r.PreventUIRefresh(1)
+
+local retval, tr, item = r.GetFocusedFX() -- account for focused FX chains and Mon FX chain in builds prior to 6.20
+
+	if retval > 0 or GetMonFXProps() >= 0 then -- FX chain
+	obj, obj_type = table.unpack(retval == 2 and tr > 0 and {r.GetTrackMediaItem(r.GetTrack(0,tr-1), item), 1} or retval == 1 and tr > 0 and {r.GetTrack(0,tr-1), 0} or {r.GetMasterTrack(0), 0})
+	else -- not FX chain
+	local curs_pos = r.GetCursorPosition() -- store current edit curs pos
+	r.Main_OnCommand(40043,0) -- Transport: Go to end of project // to secure against a vanishing probablility of overlap between edit and mouse cursor positions in which case edit cursor won't move just like it won't if mouse cursor is over the TCP
+	local end_proj_pos = r.GetCursorPosition() -- get new edit cursor pos at the project end
+	r.Main_OnCommand(40514,0) -- View: Move edit cursor to mouse cursor (no snapping) // more seinsitive than with snapping
+		if r.GetCursorPosition() == end_proj_pos then -- the edit cursor stayed put since the mouse cursor is over the TCP
+		r.Main_OnCommand(41110,0) -- Track: Select track under mouse
+		obj, obj_type = r.GetSelectedTrack2(0,0, true), 0
+		else
+		r.Main_OnCommand(40289,0) -- Item: Unselect all items;  -- when LAST_SEL_OBJ option in the USER SETTINGS is OFF to prevent getting any selected item when mouse cursor is outside of Arrange proper any selected item when mouse cursor is outside of Arrange proper (e.g. at the Mixer or Ruler or a focused Window), forcing its recognition only if the item is under mouse cursor, that's because when cursor is within Arrange and there's no item under it the action 40528 (below) itself deselects all items (until their selection is restored at script exit) and GetSelectedMediaItem() returns nil so there's nothing to fetch the data from, but when the cursor is outside of the Arrange proper (e.g. at the Mixer or Ruler) this action does nothing, the current item selection stays intact and so GetSelectedMediaItem() does return first selected item identificator
+		r.Main_OnCommand(40528,0) -- Item: Select item under mouse cursor
+		obj, obj_type = r.GetSelectedMediaItem(0,0), 1
+		end
+	r.Main_OnCommand(40043,0) -- Transport: Go to end of project // makes it easier to restore since the difference will always be negative
+	r.MoveEditCursor(curs_pos - end_proj_pos, false) -- restore orig. edit curs pos, greater subtracted from the lesser to get negative value meaning to move closer to zero (project start); false = don't create time sel
+	end
 
 r.PreventUIRefresh(-1)
 
