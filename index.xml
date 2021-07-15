@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="6d088892d7acead15fb5e8b25b798621d49bc1d3" name="ReaTeam Scripts">
+<index version="1" commit="c40e00da1714f41c2691969c249a9c57e115c97a" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -14775,6 +14775,11 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
         <changelog><![CDATA[- basic utf8 support for Titlecase (accented characters cannot be uppercased for the time being)]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6d088892d7acead15fb5e8b25b798621d49bc1d3/Various/amagalma_gianfini_ReaNamer%20(track-item-region%20renaming%20utility).lua</source>
         <source file="amagalma_ReaNamer Replace Help.lua">https://github.com/ReaTeam/ReaScripts/raw/6d088892d7acead15fb5e8b25b798621d49bc1d3/Various/amagalma_ReaNamer%20Replace%20Help.lua</source>
+      </version>
+      <version name="1.28" author="amagalma &amp; gianfini" time="2021-07-15T23:10:50Z">
+        <changelog><![CDATA[- UTF-8 Latin-1 Supplement support for all case-changing functions]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c40e00da1714f41c2691969c249a9c57e115c97a/Various/amagalma_gianfini_ReaNamer%20(track-item-region%20renaming%20utility).lua</source>
+        <source file="amagalma_ReaNamer Replace Help.lua">https://github.com/ReaTeam/ReaScripts/raw/c40e00da1714f41c2691969c249a9c57e115c97a/Various/amagalma_ReaNamer%20Replace%20Help.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Go to track (mousewheel only) reverse.eel" type="script" desc="amagalma_Go to track (mousewheel only) reverse">
