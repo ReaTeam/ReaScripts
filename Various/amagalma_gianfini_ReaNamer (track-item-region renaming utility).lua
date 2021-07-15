@@ -1,8 +1,8 @@
 -- @description ReaNamer (track-item-region renaming utility)
 -- @author amagalma & gianfini
--- @version 1.25
+-- @version 1.28
 -- @changelog
---   - basic utf8 support for Titlecase (accented characters cannot be uppercased for the time being)
+--   - UTF-8 Latin-1 Supplement support for all case-changing functions
 -- @provides amagalma_ReaNamer Replace Help.lua
 -- @link
 --   http://forum.cockos.com/showthread.php?t=190534
@@ -43,7 +43,7 @@
 
 -----------------------------------------------------------------------------------------------
 
-local version = "1.25"
+local version = "1.28"
 
 if not reaper.APIExists( "BR_Win32_FindWindowEx" ) then
   reaper.MB( "SWS / S&M extension is required for this script to work", "SWS / S&M extension is not installed!", 0 )
@@ -439,6 +439,13 @@ end
 -- Modified by : gianfini & amagalma
 --------------------------------------------------------------------------------------------
 
+-- UTF8 Latin-1 Supplement support
+local lower = { ["ß"] = "ẞ", ["à"] = "À", ["á"] = "Á", ["â"] = "Â", ["ã"] = "Ã", ["ä"] = "Ä", ["å"] = "Å", ["æ"] = "Æ", ["ç"] = "Ç", ["è"] = "È", ["é"] = "É", ["ê"] = "Ê", ["ë"] = "Ë", ["ì"] = "Ì", ["í"] = "Í", ["î"] = "Î", ["ï"] = "Ï", ["ð"] = "Ð", ["ñ"] = "Ñ", ["ò"] = "Ò", ["ó"] = "Ó", ["ô"] = "Ô", ["õ"] = "Õ", ["ö"] = "Ö", ["ø"] = "Ø", ["ù"] = "Ù", ["ú"] = "Ú", ["û"] = "Û", ["ü"] = "Ü", ["ý"] = "Ý", ["þ"] = "Þ", ["ÿ"] = "Ÿ" }
+local upper = {}
+for a,b in pairs(lower) do
+  upper[b] = a
+end
+
 
 -- Global variables
 local has_changed, what, trackCount, indexed_track, scroll_line_selected, itemCount, indexed_item
@@ -452,6 +459,7 @@ gfx.setfont(1, "Arial", 19)
 local strw, strh = gfx.measurestr("Strip leading & trailing whitespaces")
 local NAME = "ReaNamer  v"..version.."    -    Track/Item/Region Renaming Utility"
 local script_hwnd
+local utf8_char = "[%z\1-\127\194-\244][\128-\191]*"
 
 -- last_mouse_state & mouse_state_time must be globals
 
@@ -501,12 +509,19 @@ end
 
 
 local function swapcase(str)
-  local t={}
-  str:gsub(".",function(c) table.insert(t,c) end)
-  for i=1, #t do
-    if t[i] == t[i]:match("%l") then t[i] = t[i]:upper()
-    elseif t[i] == t[i]:match("%u") then t[i] = t[i]:lower()
+  local t, n = {}, 0
+  for letter in str:gmatch(utf8_char) do
+    if upper[letter] then
+      letter = upper[letter]
+    elseif lower[letter] then
+      letter = lower[letter]
+    elseif letter:match("%l") then
+      letter = letter:upper()
+    elseif letter:match("%u") then
+      letter = letter:lower()
     end
+    n = n + 1
+    t[n] = letter
   end
   return table.concat(t)
 end
@@ -916,6 +931,14 @@ function UpdateRedoHelp()
   end
 end
 
+local function to_capital(letter)
+  if lower[letter] then
+    return lower[letter]
+  else
+    return letter:upper()
+  end
+end
+
 
 function ApplyModifier(prevName, modifier, parm1, parm2, seq_number) -- apply one modifier to a track-item name
   if IsTable(prevName) then prevName = table.concat(prevName) end
@@ -959,18 +982,46 @@ function ApplyModifier(prevName, modifier, parm1, parm2, seq_number) -- apply on
       end
     end
   elseif modifier == "upper" then
-    newName = string.upper(newName)
+    local t, n = {}, 0
+    for letter in newName:gmatch(utf8_char) do
+      if lower[letter] then
+        letter = lower[letter]
+      else
+        letter = letter:upper()
+      end
+      n = n + 1
+      t[n] = letter
+    end
+    newName = table.concat(t)
   elseif modifier == "lower" then
-    newName = string.lower(newName)
+    local t, n = {}, 0
+    for letter in newName:gmatch(utf8_char) do
+      if upper[letter] then
+        letter = upper[letter]
+      else
+        letter = letter:lower()
+      end
+      n = n + 1
+      t[n] = letter
+    end
+    newName = table.concat(t)
   elseif modifier == "swap" then
     newName = swapcase(newName)
   elseif modifier == "capitalize" then
-    newName = (newName:gsub("^%l", string.upper))
+    local t, n = {}, 0
+    for letter in newName:gmatch(utf8_char) do
+      if n == 0 then
+        letter = to_capital(letter)
+      end
+      n = n + 1
+      t[n] = letter
+    end
+    newName = table.concat(t)
   elseif modifier == "title" then
     local t, n = {}, 0
-    for letter in newName:gmatch("[%z\1-\127\194-\244][\128-\191]*") do
+    for letter in newName:gmatch(utf8_char) do
       if not t[n] or (t[n] and (t[n]):match("%s")) then
-        letter = letter:upper()
+        letter = to_capital(letter)
       end
       n = n + 1
       t[n] = letter
