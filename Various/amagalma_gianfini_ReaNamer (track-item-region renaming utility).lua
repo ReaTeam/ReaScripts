@@ -1,8 +1,8 @@
 -- @description ReaNamer (track-item-region renaming utility)
 -- @author amagalma & gianfini
--- @version 1.24
+-- @version 1.25
 -- @changelog
---   - gianfini fix single track modify
+--   - basic utf8 support for Titlecase (accented characters cannot be uppercased for the time being)
 -- @provides amagalma_ReaNamer Replace Help.lua
 -- @link
 --   http://forum.cockos.com/showthread.php?t=190534
@@ -43,7 +43,7 @@
 
 -----------------------------------------------------------------------------------------------
 
-local version = "1.23"
+local version = "1.25"
 
 if not reaper.APIExists( "BR_Win32_FindWindowEx" ) then
   reaper.MB( "SWS / S&M extension is required for this script to work", "SWS / S&M extension is not installed!", 0 )
@@ -967,7 +967,15 @@ function ApplyModifier(prevName, modifier, parm1, parm2, seq_number) -- apply on
   elseif modifier == "capitalize" then
     newName = (newName:gsub("^%l", string.upper))
   elseif modifier == "title" then
-   newName = string.gsub(" "..newName, "%W%l", string.upper):sub(2)
+    local t, n = {}, 0
+    for letter in newName:gmatch("[%z\1-\127\194-\244][\128-\191]*") do
+      if not t[n] or (t[n] and (t[n]):match("%s")) then
+        letter = letter:upper()
+      end
+      n = n + 1
+      t[n] = letter
+    end
+    newName = table.concat(t)
   elseif modifier == "strip" then
     newName = newName:match("^%s*(.-)%s*$")
   elseif modifier == "single_line_edit" then
