@@ -11,7 +11,7 @@ About:
 
 	#### G U I D E
 
-	- The script displays FX preset menu of the object (track or item/active take) either currently found under the mouse cursor or the last selected if LAST_SEL_OBJ option is enabled in the USER SETTINGS below.
+	- The script displays FX preset menu of the object (track or item/active take) either currently found under the mouse cursor or the last selected if LAST_SEL_OBJ option is enabled in the USER SETTINGS below, or of the currently or last focused FX chain window.
 
 	- It's only able to list presets available in REAPER plugin wrapper drop-down list.
 
@@ -22,17 +22,17 @@ About:
 	- If there's active preset and plugin controls configuration matches the preset settings the preset name in the menu is checkmarked.
 
 	- The script can be called in the following ways:  
-	1) by placing the mouse cursor over the object and calling the script with a shortcut assigned to it;  
+	1) by placing the mouse cursor over the object or its FX chain window and calling the script with a shortcut assigned to it;  
 	2) by assigning it to a Track AND an Item mouse modifiers under *Preferences -> Mouse modifiers* and actually clicking the object to call it;  
 	If LAST_SEL_OBJ option is enabled in the USER SETTINGS below:  
 	3) from an object right click context menu; main menus are not reliable;  
 	4) from a toolbar; the toolbar must either float over the Arrange or be docked in the top or bottom dockers; Main toolbar or other docker positions are not reliable;  
 	5) from the Action list (which is much less practicable).  
 	All four can work in parallel.  
-	Be aware that when LAST_SEL_OBJ option is enabled and the script is run via a keyboard shortcut, the menu will be called even when the cursor is outside of the TCP/MCP or Arrange, like over the ruler, TCP buttom, empty Mixer area or any focused window, in which case it will display a list of the last selected object FX presets.
+	Be aware that when LAST_SEL_OBJ option is enabled and the script is run via a keyboard shortcut, the menu will be called even when the cursor is outside of the TCP/MCP or Arrange and not over an FX chain window, like over the ruler, TCP buttom, empty Mixer area or any other focused window, in which case it will display a list of the last selected object FX presets.
 
 	- To close the menu after it's been called, without selecting any preset, either click elsewhere in REAPER or pres Esc keyboard key.
-
+	
 	- Video processor preset menu is supported from REAPER build 6.26 onwards.
 	
 
