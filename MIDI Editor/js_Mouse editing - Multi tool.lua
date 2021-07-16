@@ -1,8 +1,10 @@
 --[[
 ReaScript name: js_Mouse editing - Multi Tool.lua
-Version: 6.51
+Version: 6.52
 Changelog:
-  + CHANGED: In MIDI editor, editing of all editable takes only require editability to be linked to item selection, not visibility.
+  + Compress function do not change event values at first click.
+  + Fixed graphical glitches in Compress guidelines.
+  + Slightly smoother mousewheel control of edit curves.
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Donation: https://www.paypal.me/juliansader
@@ -585,7 +587,21 @@ function Defer_Stretch()
             end
         end
         mustCalculate = true -- Always start step with re-calculation
-        stretchRIGHT = (mouseX > (tPixelFromTime[old.globalLeftmostTime]+tPixelFromTime[old.globalRightmostTime])/2)
+        
+        -- Stretch from left or right?
+        -- Ideally, CCs should not be affected unless user acually moves the mouse.  The following code helps with this by moving mouse to precise pixel of leftmost or rightmost event.
+        -- Unfortunately, this code only works if the border event actually falls on a precise pixel.  Future versions may improve this.
+        -- Ah well, if user doesn't want events to move, ae should not click on zone!
+        local lP = tPixelFromTime[old.globalLeftmostTime]
+        local rP = tPixelFromTime[old.globalNoteOffTime]
+        if mouseX < (lP+rP)/2 then
+            stretchLEFT, stretchRIGHT = true, false
+            mouseX = lP
+        else
+            stretchLEFT, stretchRIGHT = false, true
+            mouseX = rP
+        end
+        reaper.JS_Mouse_SetPosition(reaper.JS_Window_ClientToScreen(windowUnderMouse, mouseX//1, mouseY//1))
     end
     
     local mouseTime = SnapTime(tTimeFromPixel[mouseX]) 
@@ -1256,7 +1272,7 @@ function Defer_Warp()
 end -- Defer_Warp
 
 
-local scaleTOP, scaleBOTTOM, scaleSYMMETRIC = nil, nil, false
+local scaleTOP, scaleBOTTOM, scaleSYMMETRIC, scaleStartMouseY = nil, nil, false, 0
 --####################
 ----------------------
 function Defer_Scale()
@@ -1266,19 +1282,22 @@ function Defer_Scale()
         stepStartTime = thisDeferTime
         mouseStateAtStepDragTime = mouseState
         
-        -- If mouse is close to CC height, move mouse to precisely CC height
-        local pixelY
+        -- Scale from top or bottom?
+        -- Ideally, CCs should not be affected unless user acually moves the mouse.  The following code helps with this by moving mouse to precise pixel of topmost or bottommost event.
+        -- Unfortunately, this code only works if the event value actually falls on a precise pixel.  Future versions may improve this.
+        -- Ah well, if user doesn't want events to move, ae should not click on zone!
         if zone.cursor == tCursors.HandTop then
             scaleTOP, scaleBOTTOM = true, false
-            pixelY = (ME_TargetBottomPixel - (ME_TargetBottomPixel-ME_TargetTopPixel)*(tSteps[#tSteps].globalMaxValue-laneMinValue)/(laneMaxValue-laneMinValue))//1      
+            scaleStartMouseY = (ME_TargetBottomPixel - (ME_TargetBottomPixel-ME_TargetTopPixel)*(tSteps[#tSteps].globalMaxValue-laneMinValue)/(laneMaxValue-laneMinValue))//1      
         else
             scaleTOP, scaleBOTTOM = false, true
-            pixelY = (ME_TargetBottomPixel - (ME_TargetBottomPixel-ME_TargetTopPixel)*(tSteps[#tSteps].globalMinValue-laneMinValue)/(laneMaxValue-laneMinValue))//1
+            scaleStartMouseY = (ME_TargetBottomPixel - (ME_TargetBottomPixel-ME_TargetTopPixel)*(tSteps[#tSteps].globalMinValue-laneMinValue)/(laneMaxValue-laneMinValue))//1
         end
-        if -zoneWidth < (pixelY-mouseY) and (pixelY-mouseY) < zoneWidth then
-            mouseY = pixelY
+        -- Should mouse only move if click position is close to the CC position?  If CC range is small, zone may be distant from CC position, and perhaps user will find it weird if mouse jumps too far?
+        --if -zoneWidth < (pixelY-mouseY) and (pixelY-mouseY) < zoneWidth then 
+            mouseY = scaleStartMouseY
             reaper.JS_Mouse_SetPosition(reaper.JS_Window_ClientToScreen(windowUnderMouse, mouseX, mouseY))
-        end
+        --end
 
         -- Construct new tStep by copying previous - except those tables/values that will be newly contructed
         local old = tSteps[#tSteps]
@@ -1891,7 +1910,7 @@ function Edit_FlipValuesRelative()
 end
 
 
-local tiltWheel, tiltShape, tiltHeight, tiltRIGHT, tiltLEFT
+local tiltWheel, tiltShape, tiltHeight, tiltRIGHT, tiltLEFT, tiltFactor
 --#####################################
 ---------------------------------------
 function Defer_Tilt()
@@ -1919,6 +1938,8 @@ function Defer_Tilt()
         Setup_GuidelineTables() -- Can only get left/right pixels and set up tables *after* constructing new step's table
         tiltWheel = tiltWheel or 1 -- If not first time tilting, remember previous wheel and shape
         tiltShape = tiltShape or "linear"
+        prevDelta = 0
+        tiltFactor = 1.04
         if mouseX < (Guides_LeftPixel+Guides_RightPixel)/2 then tiltLEFT, tiltRIGHT = true, false else tiltLEFT, tiltRIGHT = false, true end
         mustCalculate = true
     end
@@ -1929,27 +1950,33 @@ function Defer_Tilt()
         peekOK, pass, time, keys, delta = reaper.JS_WindowMessage_Peek(windowUnderMouse, "WM_MOUSEHWHEEL")
     end 
     if peekOK then
-        if time <= prevMouseInputTime then
-            if reaper.time_precise() - time > 0.5 then --<= prevMouseInputTime then 
-                prevDelta = 0
-            end
-        else --if time > prevMouseInputTime then
-            --if keys&12 ~= 0 then return false end -- Any modifier keys (may be sent from mouse) terminate script.
+        if thisDeferTime - time > 0.5 then -- If no wheel for a while, reset prevDelta
+            prevDelta = 0
+        end
+        
+        if time > prevDeferTime then --prevMouseInputTime + 0.1 then -- The time limit is intended to prevent mousepads from sending multiple messages in a single little swipe.  Does it work on all systems?    
             -- Standardize delta values so that can compare with previous
-            if tiltHeight and tiltHeight > 0 then delta = -delta end
-            if macOS then delta = -delta end -- macOS mousewheel events use opposite sign
-            local sameDirection = (delta*prevDelta > 0)
             --delta = ((delta > 0) and 1) or ((delta < 0) and -1) or 0
+            if macOS then delta = -delta end -- macOS scrolls up/down with opposite mousewheel than Windows/Linux
+            if tiltHeight and tiltHeight > 0 then delta = -delta end -- Ensure that up(down)-wheel always adjusts curve upwards(downwards)
+            local sameDirection = (prevDelta < 0 and delta < 0) or (prevDelta > 0 and delta > 0) -- Not "equal or" because delta=0 counts as no movement
             -- Meradium's suggestion: If mousewheel is turned rapidly, make larger changes to the curve per defer cycle
-            --local factor = ((delta == prevDelta) and (time-prevMouseInputTime < 1)) and 0.04/((time-prevMouseInputTime)) or 0.04
+            --local tiltFactor = ((delta == prevDelta) and (time-prevMouseInputTime < 1)) and 0.04/((time-prevMouseInputTime)) or 0.04
+            -- What does this if statement do?
+            --    When a straight line (tiltWheel==1) is reached, pause 1 second befre crossing.  This allows user to quickly reset to straight position with a single long swipe. 
+            --    
             if not (tiltWheel == 1 and sameDirection and time < prevMouseInputTime + 1) then
-                factor = sameDirection and factor*1.4 or 1.04
-                local prevTiltWheel = tiltWheel
-                tiltWheel = ((delta > 0) and tiltWheel*factor) or ((delta < 0) and tiltWheel/factor) or tiltWheel
-                if (prevTiltWheel < 1 and tiltWheel >= 1) or (prevTiltWheel > 1 and tiltWheel <= 1) then tiltWheel = 1; factor = 1.04 -- Prevent scrolling through 1, and round to 1
-                elseif tiltWheel < 0.025 then tiltWheel = 0.025 
-                elseif tiltWheel > 40 then tiltWheel = 40
-                --elseif 0.962 < tiltWheel and tiltWheel < 1.04 then tiltWheel = 1 -- Round to 1 if comes close
+                tiltFactor = (tiltFactor and sameDirection) and tiltFactor*1.2 or 1.04
+                -- The following is just a hack to get smooth, equal changes across the whole range of compressWheel. Movements near 1 *look* much more obvious onscreen.
+                if tiltWheel < 1 then tiltFactor = tiltFactor + (1 - tiltWheel)/20
+                elseif tiltWheel > 1 then tiltFactor = tiltFactor + (tiltWheel-1)/150
+                end
+                local prevTiltWheel = tiltWheel or 1
+              
+                tiltWheel = ((delta > 0) and tiltWheel*tiltFactor) or ((delta < 0) and tiltWheel/tiltFactor) or tiltWheel
+                if (prevTiltWheel < 1 and tiltWheel >= 1) or (prevTiltWheel > 1 and tiltWheel <= 1) then tiltWheel = 1; tiltFactor = 1.04 -- Prevent scrolling through 1, and round to 1
+                elseif tiltWheel < 0.025 then tiltWheel = 0.025 -- Minimum tilt
+                elseif tiltWheel > 40 then tiltWheel = 40 -- Maximum tilt
                 end
                 prevMouseInputTime = time 
                 mustCalculate = true
@@ -1962,7 +1989,7 @@ function Defer_Tilt()
     peekOK, pass, time = reaper.JS_WindowMessage_Peek(windowUnderMouse, "WM_MBUTTONDOWN")
     if peekOK and time > prevMouseInputTime then 
         tiltShape = (tiltShape == "linear") and "sine" or "linear"
-        Tooltip("Curve: "..tiltShape)
+        --Tooltip("Curve: "..tiltShape)
         prevMouseInputTime = time
         mustCalculate = true
     end
@@ -2155,7 +2182,7 @@ function Defer_Tilt()
         
         -- Tooltip
         mouseNewCCValueStr = isMIDI and (string.format("Value: %.f", mouseNewCCValue)) or (string.format("Value: %.4f", mouseNewCCValue):gsub("%.*0*$", ""))
-        tiltWheelStr = string.format("%.2f", tiltWheel):gsub("%.*0*$", "")
+        tiltWheelStr = (tiltWheel < 1) and string.format("%.3f", tiltWheel):gsub("%.*0*$", "") or string.format("%.2f", tiltWheel):gsub("%.*0*$", "")
         Tooltip(mouseNewCCValueStr .. " / Curve: " ..tiltWheelStr )
 
         CONSTRUCT_AND_UPLOAD()
@@ -2175,7 +2202,7 @@ end -- Defer_Tilt()
 
 
 local tRel = {} -- Compress formula uses relative values, not absolute.  For fast repeated access, pre-calculate and store relative values here.
-local compressWheel, compressTOP, compressBOTTOM, compressSYMMETRIC, compressShape = 0, nil, nil, false, "linear"
+local compressWheel, compressTOP, compressBOTTOM, compressSYMMETRIC, compressShape, compressFactor = 0, nil, nil, false, "linear", 1
 --#######################
 -------------------------
 function Defer_Compress()
@@ -2184,9 +2211,18 @@ function Defer_Compress()
     if not (continueStep == "CONTINUE") then
         stepStartTime = thisDeferTime
         mouseStateAtStepDragTime = mouseState
-        compressTOP = mouseY and (mouseY < (ME_TargetBottomPixel+ME_TargetTopPixel)/2)
-        compressBOTTOM = not compressTOP
-
+        
+        -- Compress from bottom or top?
+        -- Ideally, CCs should not be affected unless user acually moves the mouse.  The following code helps with this by moving mouse to precise pixel of lane border.
+        if mouseY < (ME_TargetBottomPixel+ME_TargetTopPixel)/2 then
+            compressTOP, compressBOTTOM = true, false
+            mouseY = ME_TargetTopPixel
+        else
+            compressTOP, compressBOTTOM = false, true
+            mouseY = ME_TargetBottomPixel
+        end
+        reaper.JS_Mouse_SetPosition(reaper.JS_Window_ClientToScreen(windowUnderMouse, mouseX, mouseY))
+        
         tRel = {}
         -- Construct new tStep by copying previous - except those tables/values that will be newly contructed
         local old = tSteps[#tSteps]
@@ -2215,88 +2251,66 @@ function Defer_Compress()
         end
         Setup_GuidelineTables() -- Can only get left/right pixels and set up tables *after* constructing new step's table
         mustCalculate = true -- Always calculate when script starts
+        prevDelta = 0
+        compressFactor = 1.04
     end  
-    
-    --[==[ MOUSEWHEEL
-    local peekOK, pass, time, keys, delta = reaper.JS_WindowMessage_Peek(windowUnderMouse, "WM_MOUSEWHEEL")
-    if not (peekOK and time > prevMouseInputTime) then 
-        peekOK, pass, time, keys, delta = reaper.JS_WindowMessage_Peek(windowUnderMouse, "WM_MOUSEHWHEEL")
-    end 
-    if peekOK and time > prevMouseInputTime + 0.1 then 
-        prevMouseInputTime = time
-        mustCalculate = true
-        --if keys&12 ~= 0 then return false end
-        -- Standardize delta values
-        delta = ((delta > 0) and 1) or ((delta < 0) and -1) or 0
-        if macOS then delta = -delta end -- macOS scrolls up/down with opposite mousewheel than Windows/Linux
-        if (compressTOP and mouseY < ME_TargetTopPixel) or (compressBOTTOM and mouseY < ME_TargetBottomPixel) then delta = -delta end
-        --[[ Pause a little if flat line has been reached
-        if mousewheel <= 0 then
-            if delta ~= prevDelta then
-                mousewheel = (delta == 1) and 0.025 or 40
-            end
-        else]]
-            
-        -- Meradium's suggestion: If mousewheel is turned rapidly, make larger changes to the curve per defer cycle
-        if compressWheel == 0 then if delta == 1 then compressWheel = 0.025 else compressWheel = 40 end end
-        --else
-            local factor = (delta == prevDelta and time-prevMouseInputTime < 1) and 0.04/((time-prevMouseInputTime)^2) or 0.04
-            compressWheel = (delta == 1) and (compressWheel*(1+factor)) or (compressWheel/(1+factor))
-            --if mousewheel <= 0 then mousewheel = (delta == 1) and 0.025 or 40 end
-            -- Snap to flat line (standard compression shape) if either direction goes extreme
-            if compressWheel < 0.025 or 40 < compressWheel then 
-                compressWheel = 0
-                --prevMouseInputTime = prevMouseInputTime + 1
-            -- Round to 1 if comes close
-            elseif 0.962 < compressWheel and compressWheel < 1.04 then
-                compressWheel = 1
-                --prevMouseInputTime = prevMouseInputTime + 1
-            end
-        --end]]
-        if compressWheel == 0 or compressWheel == 1 then prevMouseInputTime = prevMouseInputTime + 1 end
-        prevDelta = delta
-    end]==]
     
     -- MOUSEWHEEL
     local peekOK, pass, time, keys, delta = reaper.JS_WindowMessage_Peek(windowUnderMouse, "WM_MOUSEWHEEL")
     if not (peekOK and time > prevMouseInputTime) then 
         peekOK, pass, time, keys, delta = reaper.JS_WindowMessage_Peek(windowUnderMouse, "WM_MOUSEHWHEEL")
     end 
-    if peekOK and time > prevMouseInputTime + 0.1 then 
-        --if keys&12 ~= 0 then return false end
-        -- Standardize delta values
-        delta = ((delta > 0) and 1) or ((delta < 0) and -1) or 0
-        if macOS then delta = -delta end -- macOS scrolls up/down with opposite mousewheel than Windows/Linux
-        if (compressTOP and mouseY < ME_TargetTopPixel) or (compressBOTTOM and mouseY < ME_TargetBottomPixel) then delta = -delta end
-        -- Pause a little if flat line has been reached
-        if compressWheel == 0 then
-            if time > prevMouseInputTime+1 or (delta ~= prevDelta and delta ~= 0 and prevDelta ~= 0) then --or delta ~= prevDelta then
-                compressWheel = (delta == 1) and 0.025 or 40
-                prevMouseInputTime = time
-                mustCalculate = true
-            end
-        elseif compressWheel == 1 then
-            if time > prevMouseInputTime+1 or (delta ~= prevDelta and delta ~= 0 and prevDelta ~= 0) then
-                compressWheel = (delta == 1) and 1.04 or 0.962
-                prevMouseInputTime = time
-                mustCalculate = true
-            end
-        else
-            -- Meradium's suggestion: If mousewheel is turned rapidly, make larger changes to the curve per defer cycle
-            local factor = (delta == prevDelta and time-prevMouseInputTime < 1) and 0.04/((time-prevMouseInputTime)^2) or 0.04
-            local prevCompressWheel = compressWheel or 1
-            compressWheel = (delta == 1) and (compressWheel*(1+factor)) or (compressWheel/(1+factor))
-            -- Snap to flat line (standard compression shape) if either direction goes extreme
-            if compressWheel < 0.025 or 40 < compressWheel then 
-                compressWheel = 0
-            -- Round to 1 if comes close
-            elseif (compressWheel < 1 and 1 < prevCompressWheel) or (prevCompressWheel < 1 and 1 < compressWheel) then
-                compressWheel = 1
-            end
-            prevMouseInputTime = time
-            mustCalculate = true
+    
+    if peekOK then
+        if thisDeferTime - time > 0.5 then -- If no wheel for a while, reset prevDelta
+            prevDelta = 0
         end
-        prevDelta = delta
+        
+        if time > prevDeferTime then --prevMouseInputTime + 0.1 then -- The time limit is intended to prevent mousepads from sending multiple messages in a single little swipe.  Does it work on all systems?    
+            -- Standardize delta values
+            delta = ((delta > 0) and 1) or ((delta < 0) and -1) or 0
+            if macOS then delta = -delta end -- macOS scrolls up/down with opposite mousewheel than Windows/Linux
+            if (compressTOP and mouseY < ME_TargetTopPixel) or (compressBOTTOM and mouseY < ME_TargetBottomPixel) then delta = -delta end -- Ensure that up(down)-wheel always adjusts curve upwards(downwards)
+            local sameDirection = (prevDelta < 0 and delta < 0) or (prevDelta > 0 and delta > 0) -- Not "equal or" because delta=0 counts as no movement
+            -- Pause a little if straight line is reached. This allows user to quickly reset to straight position by one large swipe of mouse.
+            -- (Only pause when crossing. If immediately moves in opposite direction, don't need to pause.)
+            if compressWheel == 0 then -- Flat horizontal line
+                if time > prevMouseInputTime+1 or (delta ~= prevDelta and delta ~= 0 and prevDelta ~= 0) then
+                    compressWheel = (delta == 1) and 0.025 or 40
+                    compressFactor = 1.04
+                    prevMouseInputTime = time
+                    mustCalculate = true
+                end
+            elseif compressWheel == 1 then -- Straight (angled) line
+                if time > prevMouseInputTime+1 or (delta ~= prevDelta and delta ~= 0 and prevDelta ~= 0) then
+                    compressWheel = (delta == 1) and 1.04 or 0.962
+                    compressFactor = 1.04
+                    prevMouseInputTime = time
+                    mustCalculate = true
+                end
+            else
+                -- Meradium's suggestion: If mousewheel is turned rapidly, make larger changes to the curve per defer cycle
+                --local compressFactor = (delta == prevDelta and time-prevMouseInputTime < 1) and 0.04/((time-prevMouseInputTime)^2) or 0.04
+                compressFactor = sameDirection and compressFactor*1.2 or 1.04
+                -- The following is just a hack to get smooth, equal changes across the whole range of compressWheel. Movements near 1 *look* much more obvious onscreen.
+                if compressWheel < 1 then compressFactor = compressFactor + (1-compressWheel)/20
+                elseif compressWheel > 1 then compressFactor = compressFactor + (compressWheel-1)/150
+                end
+                local prevCompressWheel = compressWheel or 0
+                --compressWheel = (delta == 1) and (compressWheel*(1+compressFactor)) or (compressWheel/(1+compressFactor))
+                compressWheel = ((delta > 0) and compressWheel*compressFactor) or ((delta < 0) and compressWheel/compressFactor) or compressWheel
+                -- Snap to flat horizontal line (standard compression shape) if either direction goes extreme
+                if compressWheel < 0.025 or 40 < compressWheel then 
+                    compressWheel = 0
+                -- Snap to straight line when crossing
+                elseif (compressWheel < 1 and 1 < prevCompressWheel) or (prevCompressWheel < 1 and 1 < compressWheel) then
+                    compressWheel = 1
+                end
+                prevMouseInputTime = time
+                mustCalculate = true
+            end
+            prevDelta = delta
+        end
     end
     mouseGreaterThanOne = (compressWheel >= 1)
     inversewheel = 1/compressWheel -- Can be infinity
@@ -2305,7 +2319,7 @@ function Defer_Compress()
     peekOK, pass, time = reaper.JS_WindowMessage_Peek(windowUnderMouse, "WM_MBUTTONDOWN")
     if peekOK and time > prevDeferTime then 
         compressShape = (compressShape == "linear") and "sine" or "linear"
-        Tooltip("Curve: "..compressShape)
+        --Tooltip("Curve: "..compressShape)
         prevMouseInputTime = time
         mustCalculate = true
     end
@@ -2400,28 +2414,29 @@ function Defer_Compress()
         
         local globalLeftmostTick = tTickFromTime[activeTake][s.globalLeftmostTime]
         local globalRightmostTick = tTickFromTime[activeTake][s.globalRightmostTime]
-        local mouseTick = tTickFromTime[activeTake][mouseNewTime]
-        local leftPPQrange = mouseTick - globalLeftmostTick
-        local rightPPQrange = globalRightmostTick - mouseTick
+        local mouseTick = tTickFromTime[activeTake][mouseNewTime] -- Remember that this function limits mouseTime to range of event times,
+        local leftPPQrange = mouseTick - globalLeftmostTick -- ... so if mouse cursor is outside event range, one of these PPQranges will be 0,
+        local rightPPQrange = globalRightmostTick - mouseTick -- ... so WARNING beware of divide-by-zero!
         
         for i, ticks in ipairs(tGuides_Ticks) do
-            if compressWheel == 0 then --or (mouseNewPPQPos-5 < ticks and ticks < mouseNewPPQPos+5) then 
+            if compressWheel == 0 or ticks == mouseTick then
                 fraction = 1
             else
                 if mouseGreaterThanOne then
                     if ticks < mouseTick then
-                        fraction = ((ticks - globalLeftmostTick)/leftPPQrange)^compressWheel
+                        fraction = ((ticks - globalLeftmostTick)/leftPPQrange)^compressWheel -- compressWheel may be 0
                     else
                         fraction = ((globalRightmostTick - ticks)/rightPPQrange)^compressWheel
                     end
                 else
                     if ticks < mouseTick then
-                        fraction = 1 - ((mouseTick - ticks)/leftPPQrange)^inversewheel
+                        fraction = 1 - ((mouseTick - ticks)/leftPPQrange)^inversewheel -- inverseWheel may be infinite
                     else
                         fraction = 1 - ((ticks - mouseTick)/rightPPQrange)^inversewheel
                     end
                 end
             end
+            if fraction ~= fraction then fraction = 0 elseif fraction > 1 then fraction = 1 elseif fraction < 0 then fraction = 0 end -- Ugly hack to avoid checking PPQranges and inverseWheel for 0 and infinity
             if compressShape == "sine" then fraction = 0.5*(1-m_cos(m_pi*fraction)) end
         
             if compressTOP then
@@ -2498,6 +2513,10 @@ function Defer_Compress()
             else
                 Tooltip(string.format("Lane: %.3f", tempLaneMin):gsub("%.*0*$", "") .. " - " .. string.format("%.3f", tempLaneMax):gsub("%.*0*$", ""))
             end
+        else
+            --compressWheelStr = string.format("%.2f", compressWheel):gsub("%.*0*$", "")
+            --Tooltip("Curve: " .. compressWheelStr)
+            Tooltip(string.format("Wheel: %.4f, Curve: %.4f", compressWheel, compressFactor))
         end
         CONSTRUCT_AND_UPLOAD()
         
@@ -4932,6 +4951,7 @@ end -- ArmToolbarButton()
 local tooltipTime = 0
 local tooltipText = nil
 local tooltipX, tooltipY, tooltipWidth
+local tooltipVisible = false
 --local tooltipHWND = nil
 --[[function Tooltip(text)
     pcall(Tooltip_pcall, text)
@@ -4940,6 +4960,7 @@ end]]
 function Tooltip(text)
     if text then
         if showTooltips then -- New tooltip text, so new tooltip
+            tooltipVisible = true
             tooltipTime = thisDeferTime or reaper.time_precise()
             tooltipText = text
             tooltipCaller = selectedEditFunction
@@ -4965,10 +4986,11 @@ function Tooltip(text)
     elseif pcallOK and continueStep == "CONTINUE" and tooltipCaller == selectedEditFunction and reaper.time_precise() < tooltipTime+2 then
         reaper.defer(Tooltip)
     ]]
-    elseif tooltipTime and thisDeferTime and tooltipTime < thisDeferTime-1.8 -- Remove tooltip
+    elseif tooltipVisible and tooltipTime and thisDeferTime and tooltipTime < thisDeferTime-1.8 -- Remove tooltip
         and tooltipCaller == selectedEditFunction and tooltipX and tooltipY and tooltipWidth then
         reaper.JS_LICE_Blit(bitmap, tooltipX, tooltipY, tooltipBitmap, 0, 0, tooltipWidth+5, 31, 1, "COPY")
         reaper.JS_Window_InvalidateRect(windowUnderMouse, tooltipX, tooltipY, tooltipX+tooltipWidth+5, tooltipY+30, true)
+        tooltipVisible = false -- To prevent re-wiping every cycle
     end
     --[[
     elseif pcallOK and continueScript and reaper.time_precise() < tooltipTime+2 then -- if not (pcallOK and pcallRetval), then script is quitting, so don't defer
