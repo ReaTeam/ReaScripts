@@ -1,9 +1,10 @@
 -- @description ReaNamer (track-item-region renaming utility)
 -- @author amagalma & gianfini
--- @version 1.28
--- @changelog
---   - UTF-8 Latin-1 Supplement support for all case-changing functions
--- @provides amagalma_ReaNamer Replace Help.lua
+-- @version 1.30
+-- @changelog - Full UTF-8 support for all case-changing functions
+-- @provides
+--   amagalma_ReaNamer Replace Help.lua
+--   amagalma_ReaNamer utf8data.lua
 -- @link
 --   http://forum.cockos.com/showthread.php?t=190534
 --   http://forum.cockos.com/showthread.php?t=194414
@@ -14,6 +15,7 @@
 --   - Manipulate track/item/region names (prefix/suffix, trim start/end, keep, clear, uppercase/lowercase, swap case/capitalize/titlecase, replace, strip leading & trailing whitespaces).
 --   - Mode (tracks or items) is automatically chosen when the script starts. Then to change mode click on appropriate button.
 --   - When satisfied with the modifications (which can be previewed in the list), COMMIT button writes the values to tracks/items/regions and creates an Undo point in Reaper's Undo History
+--   - UTF-8 support for case-changing functions
 --   - SWS / S&M extension is required
 --
 --   Key Shortcuts:
@@ -43,7 +45,7 @@
 
 -----------------------------------------------------------------------------------------------
 
-local version = "1.28"
+local version = "1.30"
 
 if not reaper.APIExists( "BR_Win32_FindWindowEx" ) then
   reaper.MB( "SWS / S&M extension is required for this script to work", "SWS / S&M extension is not installed!", 0 )
@@ -77,7 +79,7 @@ function class(base, init)
    setmetatable(obj,c)
    if init then
       init(obj,...)
-   else 
+   else
       -- make sure that any stuff from the base class is initialized!
       if base and base.init then
       base.init(obj, ...)
@@ -439,12 +441,11 @@ end
 -- Modified by : gianfini & amagalma
 --------------------------------------------------------------------------------------------
 
--- UTF8 Latin-1 Supplement support
-local lower = { ["ß"] = "ẞ", ["à"] = "À", ["á"] = "Á", ["â"] = "Â", ["ã"] = "Ã", ["ä"] = "Ä", ["å"] = "Å", ["æ"] = "Æ", ["ç"] = "Ç", ["è"] = "È", ["é"] = "É", ["ê"] = "Ê", ["ë"] = "Ë", ["ì"] = "Ì", ["í"] = "Í", ["î"] = "Î", ["ï"] = "Ï", ["ð"] = "Ð", ["ñ"] = "Ñ", ["ò"] = "Ò", ["ó"] = "Ó", ["ô"] = "Ô", ["õ"] = "Õ", ["ö"] = "Ö", ["ø"] = "Ø", ["ù"] = "Ù", ["ú"] = "Ú", ["û"] = "Û", ["ü"] = "Ü", ["ý"] = "Ý", ["þ"] = "Þ", ["ÿ"] = "Ÿ" }
-local upper = {}
-for a,b in pairs(lower) do
-  upper[b] = a
-end
+-- UTF8 support
+dofile((debug.getinfo(1,'S')).source:match[[^@?(.*[\/])[^\/]-$]] .. "amagalma_ReaNamer utf8data.lua")
+local lower = utf8_lc_uc
+local upper = utf8_uc_lc
+utf8_lc_uc, utf8_uc_lc = nil, nil
 
 
 -- Global variables
@@ -566,10 +567,10 @@ end
 local function Check()
   if what == "tracks" then return CheckTracks()
   elseif what == "items" then return CheckItems()
-  elseif what == "regions" then 
+  elseif what == "regions" then
     if regionCount > 0 then
-      return true 
-    else 
+      return true
+    else
       reaper.MB("Please select at least one region", "No regions selected!", 0)
       GiveBackFocus()
       return false
@@ -851,7 +852,7 @@ function UpdateUndoHelp()
     elseif last_modifier == "trimend" then
       modifier_name = "TRIM END " .. parm1
     elseif last_modifier == "keep" then
-      modifier_name = "KEEP '" .. parm1 .. "'" 
+      modifier_name = "KEEP '" .. parm1 .. "'"
     elseif last_modifier == "replace" then
       if parm2 ~= "" then
         modifier_name = "REPLACE '" .. parm1 .. "'\nWITH '" .. parm2 .. "'"
@@ -1415,10 +1416,10 @@ local function main() -- MAIN FUNCTION -----------------------------------------
   end
 
   -- KEY SHORTCUTS -------------
-  
+
   -- Alt
   if mousecap == 16 then
-  
+
     swap_btn.underline = 3
     clear_btn.underline = 1
     trimend_btn.underline = 6
@@ -1433,67 +1434,67 @@ local function main() -- MAIN FUNCTION -----------------------------------------
     strip_btn.underline = 26
     suffix_btn.underline = 6
     capitalize_btn.underline = 9
-    
+
     -- Alt+A --> swAp case
     if getchar == 321 then
      swap_btn.onClick()
-    
+
     -- Alt+C --> Clear
     elseif getchar == 323 then
      clear_btn.onClick()
-    
+
     -- Alt+E --> trim End
     elseif getchar == 325 then
      trimend_btn.onClick()
-    
+
     -- Alt+K --> Keep
     elseif getchar == 331 then
      keep_btn.onClick()
-    
+
     -- Alt+L --> Lowercase
     elseif getchar == 332 then
      lower_btn.onClick()
-     
+
     -- Alt+N --> Number
     elseif getchar == 334 then
      number_btn.onClick()
-    
+
     -- Alt+P --> Prefix
     elseif getchar == 336 then
      prefix_btn.onClick()
-    
+
     -- Alt+R --> Replace
     elseif getchar == 338 then
      replace_btn.onClick()
-    
+
     -- Alt+S --> trim Start
     elseif getchar == 339 then
      trimstart_btn.onClick()
-    
+
     -- Alt+T --> Titlecase
     elseif getchar == 340 then
      title_btn.onClick()
-    
+
     -- Alt+U --> Uppercase
     elseif getchar == 341 then
      upper_btn.onClick()
-    
+
     -- Alt+W --> strip Whitespaces
     elseif getchar == 343 then
      strip_btn.onClick()
-    
+
     -- Alt+X --> suffiX
     elseif getchar == 344 then
      suffix_btn.onClick()
-    
-    -- Alt+Z --> capitaliZe 
+
+    -- Alt+Z --> capitaliZe
     elseif getchar == 346 then
      capitalize_btn.onClick()
-    
+
     end
-    
+
   else
-  
+
     swap_btn.underline = nil
     clear_btn.underline = nil
     trimend_btn.underline = nil
@@ -1508,43 +1509,43 @@ local function main() -- MAIN FUNCTION -----------------------------------------
     strip_btn.underline = nil
     suffix_btn.underline = nil
     capitalize_btn.underline = nil
-    
+
   end
-  
+
   -- Ctrl
   if mousecap == 4 then
-  
+
     -- Ctrl+Enter to Commit
     if getchar == 13 then
       commit_btn.onClick()
-      
+
     -- Ctrl+T for Tracks
     elseif getchar == 20 then
       Tracks_btn.onClick()
-      
+
     -- Ctrl+R for Regions
     elseif getchar == 18 then
       Regions_btn.onClick()
-      
+
     -- Ctrl+I for Items
     elseif getchar == 9 then
       Items_btn.onClick()
-      
-    -- Ctrl+Z Undo 
+
+    -- Ctrl+Z Undo
     elseif getchar == 26 then
       undo_btn.onClick()
     end
-    
+
     -- Ctrl+Shift+Z Redo
   elseif mousecap == 12 and getchar == 26 then
     redo_btn.onClick()
-  
+
   end
 
   -- KEY SHORTCUTS -------------
-  
+
   gfx.update()
-  if getchar < 0 or getchar == 27 then 
+  if getchar < 0 or getchar == 27 then
     local _, x, y, _, _ = gfx.dock(-1, 0, 0, 0, 0)
     reaper.SetExtState("Track-Item Name Manipulation", "x position", x, 1)
     reaper.SetExtState("Track-Item Name Manipulation", "y position", y, 1)
