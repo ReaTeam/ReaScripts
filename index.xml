@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="fa5364646506ffd4cdb7828e94f507544786dfb3" name="ReaTeam Scripts">
+<index version="1" commit="689f531fbe84cf6240e10a4e3196bf39778891a7" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -14686,6 +14686,7 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Manipulate track/item/region names (prefix/suffix, trim start/end, keep, clear, uppercase/lowercase, swap case/capitalize/titlecase, replace, strip leading & trailing whitespaces).\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Mode (tracks or items) is automatically chosen when the script starts. Then to change mode click on appropriate button.\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab When satisfied with the modifications (which can be previewed in the list), COMMIT button writes the values to tracks/items/regions and creates an Undo point in Reaper's Undo History\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab UTF-8 support for case-changing functions\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab SWS / S&M extension is required\sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Key Shortcuts: Esc to close script Ctrl+Enter to Commit Ctrl+T for Tracks mode Ctrl+R for Regions mode Ctrl+I for Items mode Ctrl+Z for Undo Ctrl+Shift+Z for Redo Alt+A for swAp case Alt+C for Clear Alt+E for trim End Alt+K for Keep Alt+L for Lowercase Alt+N for Number Alt+P for Prefix Alt+R for Replace Alt+S for trim Start Alt+T for Titlecase Alt+U for Uppercase Alt+W for strip Whitespaces Alt+X for suffiX Alt+Z for capitaliZe\par}
 }
@@ -14791,6 +14792,12 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
         <changelog><![CDATA[- UTF-8 Latin-1 Supplement support for all case-changing functions]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c40e00da1714f41c2691969c249a9c57e115c97a/Various/amagalma_gianfini_ReaNamer%20(track-item-region%20renaming%20utility).lua</source>
         <source file="amagalma_ReaNamer Replace Help.lua">https://github.com/ReaTeam/ReaScripts/raw/c40e00da1714f41c2691969c249a9c57e115c97a/Various/amagalma_ReaNamer%20Replace%20Help.lua</source>
+      </version>
+      <version name="1.30" author="amagalma &amp; gianfini" time="2021-07-16T08:31:13Z">
+        <changelog><![CDATA[- Full UTF-8 support for all case-changing functions]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/689f531fbe84cf6240e10a4e3196bf39778891a7/Various/amagalma_gianfini_ReaNamer%20(track-item-region%20renaming%20utility).lua</source>
+        <source file="amagalma_ReaNamer Replace Help.lua">https://github.com/ReaTeam/ReaScripts/raw/689f531fbe84cf6240e10a4e3196bf39778891a7/Various/amagalma_ReaNamer%20Replace%20Help.lua</source>
+        <source file="amagalma_ReaNamer utf8data.lua">https://github.com/ReaTeam/ReaScripts/raw/689f531fbe84cf6240e10a4e3196bf39778891a7/Various/amagalma_ReaNamer%20utf8data.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Go to track (mousewheel only) reverse.eel" type="script" desc="amagalma_Go to track (mousewheel only) reverse">
