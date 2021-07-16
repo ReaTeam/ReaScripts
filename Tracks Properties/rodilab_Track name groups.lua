@@ -1,15 +1,12 @@
 -- @description Track name groups
 -- @author Rodilab
--- @version 1.40
+-- @version 1.41
 -- @changelog
---   - Auto add folder names option
---   - Propose the name of the first selected track when adding a new tag
---   - Second double click minimize all tracks
---   - Darker color
---   - Custom index format in settings
---   - Vertical scroll to track when click on tag button
---   - Fix duplicate tags
---   - Fix vertical zoom bug with track heigth locked
+--   - "Auto-remove empty tags" option
+--   - Fix multiple project tabs bug
+--   - New key modifiers (right-click on buttons to more info)
+--   - First right click give window focus
+--   - Add "Track name ends with the tag" option
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=255223
 -- @donation Donate via PayPal https://www.paypal.com/donate?hosted_button_id=N5DUAELFWX4DC
 -- @about
@@ -27,6 +24,7 @@
 
 r = reaper
 script_name = 'Track name groups'
+OS_Mac = string.match(r.GetOS(),"OSX")
 
 function TestVersion(version,version_min)
   local i = 0
@@ -45,7 +43,7 @@ end
 -- Extensions check
 if r.APIExists('CF_GetSWSVersion') == true then
   if r.APIExists('ImGui_CreateContext') == true then
-    if TestVersion(({r.ImGui_GetVersion()})[2],{0,5,1}) then
+    if TestVersion(({r.ImGui_GetVersion()})[2],{0,5,3}) then
       if r.APIExists('JS_ReaScriptAPI_Version') == true then
 
 FLT_MIN, FLT_MAX = r.ImGui_NumericLimits_Float()
@@ -75,7 +73,8 @@ function ExtState_Load()
     insert_tracks = 1,
     index_pos = 2,
     index_separator = '-',
-    auto = true
+    auto = true,
+    auto_remove = false
   }
   for key in pairs(def) do
     if r.HasExtState(extstate_id,key) then
@@ -101,7 +100,9 @@ function ExtState_Load()
     end
   end
   conf.dock = math.min(conf.dock, -1)
+end
 
+function ProjExtState_Load()
   local rv, string = r.GetProjExtState(0, extstate_id, 'group_list')
   local i = 0
   for name in string.gmatch(string, '[^;]+') do
@@ -129,16 +130,9 @@ end
 --- Actions ---------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 
-function AddNewGroup(name)
-  r.Undo_BeginBlock()
-  if #name > 0 then
-    table.insert(group_list, name)
-  end
-end
-
 function SelectGroup(name, mods)
   r.PreventUIRefresh(1)
-  if mods == 0 then
+  if mods ~= 2 then
     r.Main_OnCommand(40297,0) -- Unselect all tracks
   end
   for i, track in ipairs(list_tracks[name]) do
@@ -146,7 +140,8 @@ function SelectGroup(name, mods)
   end
   r.PreventUIRefresh(-1)
   r.UpdateArrange()
-  r.Undo_EndBlock(script_name,-1)
+  r.Main_OnCommand(40913, 0) -- Scroll on sel tracks
+  r.Undo_EndBlock(script_name..' - Select', -1)
 end
 
 function VisibleGroup(name, bool, mods)
@@ -163,23 +158,21 @@ function VisibleGroup(name, bool, mods)
       end
     end
   end
-  if mods == 0 then
+  if mods ~= 2 then
     if all then bool = not bool end
-    local count = r.CountTracks(0)
-    for i=0, count-1 do
-      local track = r.GetTrack(0, i)
-      r.SetMediaTrackInfo_Value(track, 'B_SHOWINTCP'  , 0)
-      r.SetMediaTrackInfo_Value(track, 'B_SHOWINMIXER', 0)
-    end
+    ShowAll(false)
   end
   for i, track in ipairs(list_tracks[name]) do
     r.SetMediaTrackInfo_Value(track, 'B_SHOWINTCP'  , bool and 1 or 0)
     r.SetMediaTrackInfo_Value(track, 'B_SHOWINMIXER', bool and 1 or 0)
   end
   r.TrackList_AdjustWindows(false)
+  r.SetOnlyTrackSelected(r.GetTrack(0,0)) -- Select first track
+  r.Main_OnCommand(40913, 0) -- Scroll to selectd track
+  r.Main_OnCommand(40297, 0) -- Unselect all tracks
   r.PreventUIRefresh(-1)
   r.UpdateArrange()
-  r.Undo_EndBlock(script_name,-1)
+  r.Undo_EndBlock(script_name..' - Show', -1)
   return bool
 end
 
@@ -197,7 +190,7 @@ function MuteGroup(name, bool, mods)
       end
     end
   end
-  if mods == 0 then
+  if mods ~= 2 then
     if all then bool = not bool end
     r.Main_OnCommand(40339,0) -- Unmute all tracks
   end
@@ -206,11 +199,11 @@ function MuteGroup(name, bool, mods)
   end
   r.PreventUIRefresh(-1)
   r.UpdateArrange()
-  r.Undo_EndBlock(script_name,-1)
+  r.Undo_EndBlock(script_name..' - Mute', -1)
   return bool
 end
 
-function SoloGroup(name, bool, mods)
+function SoloGroup(name, bool, mods, ignore_routing)
   r.Undo_BeginBlock()
   r.PreventUIRefresh(1)
   local all
@@ -224,16 +217,16 @@ function SoloGroup(name, bool, mods)
       end
     end
   end
-  if mods == 0 then
+  if mods ~= 2 then
     if all then bool = not bool end
     r.Main_OnCommand(40340,0) -- Unsolo all tracks
   end
   for i, track in ipairs(list_tracks[name]) do
-    r.SetMediaTrackInfo_Value(track, 'I_SOLO', bool and 2 or 0)
+    r.SetMediaTrackInfo_Value(track, 'I_SOLO', bool and (ignore_routing and 1 or 2) or 0)
   end
   r.PreventUIRefresh(-1)
   r.UpdateArrange()
-  r.Undo_EndBlock(script_name,-1)
+  r.Undo_EndBlock(script_name..' - Solo', -1)
   return bool
 end
 
@@ -246,25 +239,6 @@ function IsInTheList(parent_track)
     end
   end
   return false
-end
-
-function IncPrefix(trackname)
-  for i=0, #trackname-1 do
-    local pos = #trackname-i
-    local num = tonumber(string.sub(trackname, #trackname-i, #trackname-i))
-    if not num and i > 0 then
-      local prefix = string.sub(trackname, pos+1)
-      local new_prefix = tonumber(prefix)
-      if new_prefix then
-        new_prefix = tostring(tonumber(prefix) + 1)
-        for i=1, math.max(0, #prefix - #new_prefix) do
-          new_prefix = '0'..new_prefix
-        end
-        return string.sub(trackname,1,pos)..new_prefix
-      end
-    end
-  end
-  return trackname
 end
 
 function GetNewName(name, i)
@@ -342,13 +316,13 @@ function InsertNewTrack(i, multiple)
     for j=1, multiple do
       r.InsertTrackAtIndex(i, true)
       local new_track = r.GetTrack(0, i)
-      r.GetSetMediaTrackInfo_String(new_track, 'P_NAME', GetNewName(name, j), true)
+      r.GetSetMediaTrackInfo_String(new_track, 'P_NAME', GetNewName(name, string.format("%02d", j)), true)
       i = i + 1
     end
   end
   r.PreventUIRefresh(-1)
   r.UpdateArrange()
-  r.Undo_EndBlock(script_name,-1)
+  r.Undo_EndBlock(script_name..' - Insert new tracks', -1)
 end
 
 function MoveTracks(o_source, o_target)
@@ -381,7 +355,7 @@ function MoveTracks(o_source, o_target)
   r.ReorderSelectedTracks(new_id, 0)
   r.PreventUIRefresh(-1)
   r.UpdateArrange()
-  r.Undo_EndBlock(script_name,-1)
+  r.Undo_EndBlock(script_name..' - Move tracks', -1)
 end
 
 function AlreadySet(new_name)
@@ -401,10 +375,11 @@ function AddAllFolders()
       local track = r.GetSelectedTrack(0, i)
       local rv, trackname = r.GetSetMediaTrackInfo_String(track, 'P_NAME', '', false)
       trackname = trackname:gsub(';','')
-      if rv and not AlreadySet(trackname) then
+      if rv and #trackname > 0 and not AlreadySet(trackname) then
         table.insert(group_list, trackname)
       end
     end
+    ProjExtState_Save()
   end
 end
 
@@ -439,7 +414,8 @@ function VerticalZoomSelTracks()
     for i, lock_height in ipairs(seltracks_locked_height) do
       new_height = new_height - lock_height
     end
-    new_height = math.floor(new_height / (count_sel - #seltracks_locked_height))
+    new_height = math.max(25, math.floor(new_height / (count_sel - #seltracks_locked_height)))
+    r.Undo_BeginBlock()
     r.PreventUIRefresh(1)
     local count = r.CountTracks(0)
     if count > 0 then
@@ -460,11 +436,28 @@ function VerticalZoomSelTracks()
         end
       end
     end
-    r.PreventUIRefresh(-1)
     r.TrackList_AdjustWindows(true)
     r.UpdateArrange()
+    r.PreventUIRefresh(-1)
     r.Main_OnCommand(40913, 0) -- Scroll
+    r.Undo_EndBlock(script_name..' - Zoom', -1)
   end
+end
+
+function ShowAll(bool)
+  bool = bool and 1 or 0
+  r.Undo_BeginBlock()
+  r.PreventUIRefresh(1)
+  local count = r.CountTracks(0)
+  for i=0, count-1 do
+    local track = r.GetTrack(0, i)
+    r.SetMediaTrackInfo_Value(track, 'B_SHOWINTCP'  , bool)
+    r.SetMediaTrackInfo_Value(track, 'B_SHOWINMIXER', bool)
+  end
+  r.TrackList_AdjustWindows(false)
+  r.PreventUIRefresh(-1)
+  r.UpdateArrange()
+  r.Undo_EndBlock(script_name..' - Show all', -1)
 end
 
 ---------------------------------------------------------------------------------
@@ -599,86 +592,6 @@ function ImGuiBody()
   r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_FrameRounding(), 4.0)
 
   ----------------------------------------------------------------
-  -- Popups
-  ----------------------------------------------------------------
-
-  if not r.ImGui_IsPopupOpen( ctx, 'Menu Name') then
-    name_focused = nil
-  end
-
-  if r.ImGui_BeginPopup(ctx, 'Menu Name', r.ImGui_WindowFlags_NoMove() | r.ImGui_WindowFlags_NoResize()) then
-      local insert_track = false
-      if r.ImGui_Selectable(ctx,'Insert new tracks') then
-        InsertNewTrack(name_focused, conf.insert_tracks)
-      end
-      r.ImGui_PushItemWidth(ctx, 70)
-      rv, conf.insert_tracks = r.ImGui_InputInt(ctx, '##Input Insert multiple', conf.insert_tracks, 1, 5 )
-      conf.insert_tracks = math.max(1, conf.insert_tracks)
-      r.ImGui_PopItemWidth(ctx)
-      r.ImGui_Separator(ctx)
-    if r.ImGui_Selectable(ctx,'Edit') then
-      edit = name_focused
-    end
-    if r.ImGui_Selectable(ctx,'Remove') then
-      table.remove(group_list,name_focused)
-      ProjExtState_Save()
-    end
-    if r.ImGui_Selectable(ctx,'Clear all') then
-      group_list = {}
-      ProjExtState_Save()
-    end
-    r.ImGui_EndPopup(ctx)
-  end
-
-  if r.ImGui_BeginPopup(ctx, 'Settings') then
-    r.ImGui_AlignTextToFramePadding(ctx)
-    r.ImGui_Text(ctx, 'Track name')
-    r.ImGui_SameLine(ctx)
-    r.ImGui_PushItemWidth(ctx, 80)
-    rv, conf.format =     r.ImGui_Combo   (ctx, '##Format', conf.format, 'Starts with\31Contains\31')
-    r.ImGui_PopItemWidth(ctx)
-    r.ImGui_SameLine(ctx)
-    r.ImGui_Text(ctx, 'the tag')
-    r.ImGui_Separator(ctx)
-    r.ImGui_AlignTextToFramePadding(ctx)
-    r.ImGui_Text(ctx, 'Index position')
-    r.ImGui_SameLine(ctx, 100)
-    r.ImGui_PushItemWidth(ctx, 90)
-    rv, conf.index_pos =     r.ImGui_Combo   (ctx, '##Index position', conf.index_pos, 'None\31Before name\31After name\31')
-    r.ImGui_PopItemWidth(ctx)
-    r.ImGui_AlignTextToFramePadding(ctx)
-    r.ImGui_Text(ctx, 'Index separator')
-    r.ImGui_SameLine(ctx, 100)
-    r.ImGui_PushItemWidth(ctx, 30)
-    rv, conf.index_separator = r.ImGui_InputText(ctx, '##Index separator', conf.index_separator)
-    r.ImGui_PopItemWidth(ctx)
-    local exemple = 'Drums'
-    if conf.index_pos == 1 then
-      exemple = '01'..conf.index_separator..exemple
-    elseif conf.index_pos == 2 then
-      exemple = exemple..conf.index_separator..'01'
-    end
-    r.ImGui_Text(ctx, 'Exemple: ')
-    r.ImGui_SameLine(ctx, 100)
-    r.ImGui_Text(ctx, exemple)
-    r.ImGui_Separator(ctx)
-    rv, conf.auto = r.ImGui_Checkbox(ctx, 'Auto add folder names', conf.auto)
-    r.ImGui_Separator(ctx)
-    rv, conf.visible =    r.ImGui_Checkbox(ctx, 'Show/Hide button', conf.visible)
-    rv, conf.mute =       r.ImGui_Checkbox(ctx, 'Mute button', conf.mute)
-    rv, conf.solo =       r.ImGui_Checkbox(ctx, 'Solo button', conf.solo)
-    r.ImGui_Separator(ctx)
-    rv, conf.mousepos =   r.ImGui_Checkbox(ctx, 'Open on mouse position', conf.mousepos)
-    rv, conf.background = r.ImGui_Checkbox(ctx, 'Use Reaper theme background color', conf.background)
-    r.ImGui_Separator(ctx)
-    r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_ItemSpacing(), 0, 4)
-    TextURL(ctx, 'Discuss in REAPER forum thread', 'https://forum.cockos.com/showthread.php?t=255223')
-    TextURL(ctx, 'Support with a Paypal donation', 'https://www.paypal.com/donate?hosted_button_id=N5DUAELFWX4DC')
-    r.ImGui_PopStyleVar(ctx)
-    r.ImGui_EndPopup(ctx)
-  end
-
-  ----------------------------------------------------------------
   -- Main buttons
   ----------------------------------------------------------------
   group_list_order = {}
@@ -720,6 +633,8 @@ function ImGuiBody()
           SameName = string.sub(trackname, 0, #name) == name and true or false
         elseif conf.format == 1 then
           SameName = string.match(trackname, name) and true or false
+        elseif conf.format == 2 then
+          SameName = string.sub(trackname, #trackname - #name +1) == name and true or false
         end
         if (has_parent and parent_name == name) or SameName then
           table.insert(list_tracks[name], track)
@@ -752,7 +667,11 @@ function ImGuiBody()
 
   for i, name in ipairs(group_list) do
     if not group_list_exist[name] then
-      table.insert(group_list_order, i)
+      if conf.auto_remove then
+        table.remove(group_list, i)
+      else
+        table.insert(group_list_order, i)
+      end
     end
   end
 
@@ -771,11 +690,11 @@ function ImGuiBody()
     local PosY = r.ImGui_GetCursorPosY(ctx)
     if button_clicked and MouseDown and MousePos and button_clicked[2] ~= i and MousePos[2] >= PosY and MousePos[2] <= (PosY + 18) then
       if button_clicked[1] == 1 and not list_visible[i] then
-        VisibleGroup(name, not list_visible[i], 1)
+        VisibleGroup(name, not list_visible[i], 2)
       elseif button_clicked[1] == 2 and not list_mute[i] then
-        MuteGroup(name, not list_mute[i], 1)
+        MuteGroup(name, not list_mute[i], 2)
       elseif button_clicked[1] == 3 and not list_solo[i] then
-        SoloGroup(name, not list_solo[i], 1)
+        SoloGroup(name, not list_solo[i], 2)
       end
     end
     if list_color[i] then
@@ -822,18 +741,22 @@ function ImGuiBody()
       r.ImGui_PushStyleColor(ctx, r.ImGui_Col_ButtonHovered(), color_button_hov)
       r.ImGui_Button(ctx, name, button_size)
       if r.ImGui_IsItemClicked(ctx) then
-        if double_click then
-          if last_zoom and last_zoom == i and SameTracksHeight() then
-            r.Main_OnCommand(40727, 0) -- Minimize
-            r.Main_OnCommand(40913, 0) -- Scroll
-            last_zoom = nil
+        if mods ~= 4 then
+          if double_click then
+            if last_zoom and last_zoom == i and SameTracksHeight() then
+              r.Main_OnCommand(40727, 0) -- Minimize
+              r.Main_OnCommand(40913, 0) -- Scroll
+              last_zoom = nil
+            else
+              VerticalZoomSelTracks()
+              last_zoom = i
+            end
           else
-            VerticalZoomSelTracks()
-            last_zoom = i
+            SelectGroup(name, mods)
           end
         else
-          SelectGroup(name, mods)
-          r.Main_OnCommand(40913, 0)
+          table.remove(group_list, i)
+          ProjExtState_Save()
         end
       end
       r.ImGui_PopStyleColor(ctx, 3)
@@ -863,25 +786,63 @@ function ImGuiBody()
       if conf.visible then
         r.ImGui_SameLine(ctx)
         if DrawCheckButton(ctx, 'V##'..name, 18, color_visible, list_visible[i]) then
-          if VisibleGroup(name, not list_visible[i], mods) then
-            button_clicked = {1, i}
+          if mods == 1 then
+            ShowAll(true)
+          else
+            if mods == 4 then
+              ShowAll(true)
+              mods = 2
+              list_visible[i] = true
+            end
+            if VisibleGroup(name, not list_visible[i], mods) then
+              button_clicked = {1, i}
+            end
           end
+        end
+        if r.ImGui_IsItemClicked(ctx, r.ImGui_MouseButton_Right()) then
+          name_focused = i
+          r.ImGui_OpenPopup(ctx,'Menu Visible')
         end
       end
       if conf.mute then
         r.ImGui_SameLine(ctx)
         if DrawCheckButton(ctx, 'M##'..name, 18, color_mute, list_mute[i]) then
-          if MuteGroup(name, not list_mute[i], mods) then
-            button_clicked = {2, i}
+          if mods == 1 then
+            r.Main_OnCommand(40339,0)
+          else
+            if mods == 4 then
+              r.Main_OnCommand(40341, 0) -- Mute all tracks
+              mods = 2
+              list_mute[i] = true
+            end
+            if MuteGroup(name, not list_mute[i], mods) then
+              button_clicked = {2, i}
+            end
           end
+        end
+        if r.ImGui_IsItemClicked(ctx, r.ImGui_MouseButton_Right()) then
+          name_focused = i
+          r.ImGui_OpenPopup(ctx,'Menu Mute')
         end
       end
       if conf.solo then
         r.ImGui_SameLine(ctx)
         if DrawCheckButton(ctx, 'S##'..name, 18, color_solo, list_solo[i]) then
-          if SoloGroup(name, not list_solo[i], mods) then
-            button_clicked = {3, i}
+          if mods == 1 then
+            r.Main_OnCommand(40340,0)
+          else
+            local ignore_routing = false
+            if mods == 4 then
+              ignore_routing = true
+            end
+            if SoloGroup(name, not list_solo[i], mods, ignore_routing) then
+              button_clicked = {3, i}
+            end
           end
+        end
+        if r.ImGui_IsItemClicked(ctx, r.ImGui_MouseButton_Right()) then
+          name_focused = i
+          r.ImGui_OpenPopup(ctx,'Menu Solo')
         end
       end
       r.ImGui_PopStyleVar(ctx)
@@ -893,7 +854,7 @@ function ImGuiBody()
     if not  input_text then
       if r.CountSelectedTracks(0) > 0 then
         local track = r.GetSelectedTrack(0, 0)
-        local rv, buf = r.GetSetMediaTrackInfo_String( track, 'P_NAME', '', false )
+        local rv, buf = r.GetSetMediaTrackInfo_String(track, 'P_NAME', '', false )
         if rv then
           input_text = buf
         else
@@ -934,13 +895,7 @@ function ImGuiBody()
     if conf.visible then
       r.ImGui_SameLine(ctx)
       if DrawCrossButton(ctx, 'V##All', 18, color_visible) then
-        local count = r.CountTracks(0)
-        for i=0, count-1 do
-          local track = r.GetTrack(0, i)
-          r.SetMediaTrackInfo_Value(track, 'B_SHOWINTCP'  , 1)
-          r.SetMediaTrackInfo_Value(track, 'B_SHOWINMIXER', 1)
-        end
-        r.TrackList_AdjustWindows(false)
+        ShowAll(true)
       end
     end
     if conf.mute then
@@ -972,9 +927,180 @@ function ImGuiBody()
     dock = dockID
   end
   r.ImGui_PopStyleVar(ctx)
+
+  ----------------------------------------------------------------
+  -- Popups
+  ----------------------------------------------------------------
+
+  if r.ImGui_BeginPopup(ctx, 'Menu Name', r.ImGui_WindowFlags_NoMove() | r.ImGui_WindowFlags_NoResize()) then
+      local insert_track = false
+      if r.ImGui_Selectable(ctx,'Insert new tracks') then
+        InsertNewTrack(name_focused, conf.insert_tracks)
+      end
+      r.ImGui_PushItemWidth(ctx, 70)
+      rv, conf.insert_tracks = r.ImGui_InputInt(ctx, '##Input Insert multiple', conf.insert_tracks, 1, 5 )
+      conf.insert_tracks = math.max(1, conf.insert_tracks)
+      r.ImGui_PopItemWidth(ctx)
+      r.ImGui_Separator(ctx)
+    if r.ImGui_Selectable(ctx,'Edit') then
+      edit = name_focused
+    end
+    if r.ImGui_Selectable(ctx,'Remove') then
+      table.remove(group_list,name_focused)
+      ProjExtState_Save()
+    end
+    if r.ImGui_IsItemHovered(ctx) and conf.auto and group_list_exist[group_list[name_focused]] then
+      r.ImGui_BeginTooltip( ctx )
+        r.ImGui_TextColored(ctx, 0xffa0a0ff,  "Auto add folder names is enable")
+      r.ImGui_EndTooltip(ctx)
+    end
+    r.ImGui_SameLine(ctx)
+    r.ImGui_TextDisabled(ctx, OS_Mac and '[Opt]' or '[Alt]')
+    if r.ImGui_Selectable(ctx, 'Clear all') then
+      group_list = {}
+      ProjExtState_Save()
+    end
+    r.ImGui_EndPopup(ctx)
+  end
+
+  if r.ImGui_BeginPopup(ctx, 'Menu Visible', r.ImGui_WindowFlags_NoMove() | r.ImGui_WindowFlags_NoResize()) then
+    r.ImGui_BeginGroup( ctx )
+      if r.ImGui_Selectable(ctx,'Exclusive show') then
+        VisibleGroup(group_list[name_focused], not list_visible[name_focused], 0)
+      end
+      if r.ImGui_Selectable(ctx,'Show') then
+        VisibleGroup(group_list[name_focused], not list_visible[name_focused], 2)
+      end
+      if r.ImGui_Selectable(ctx,'Show all') then
+        ShowAll(true)
+      end
+      if r.ImGui_Selectable(ctx,'Show all others') then
+        ShowAll(true)
+        VisibleGroup(group_list[name_focused], false, 2)
+      end
+    r.ImGui_EndGroup(ctx)
+    r.ImGui_SameLine(ctx)
+    r.ImGui_BeginGroup(ctx)
+      r.ImGui_TextDisabled(ctx, ' ')
+      r.ImGui_TextDisabled(ctx, '[Shift]')
+      r.ImGui_TextDisabled(ctx, OS_Mac and '[Cmd]' or '[Ctrl]')
+      r.ImGui_TextDisabled(ctx, OS_Mac and '[Opt]' or '[Alt]')
+    r.ImGui_EndGroup(ctx)
+    r.ImGui_EndPopup(ctx)
+  end
+
+  if r.ImGui_BeginPopup(ctx, 'Menu Mute', r.ImGui_WindowFlags_NoMove() | r.ImGui_WindowFlags_NoResize()) then
+    r.ImGui_BeginGroup(ctx)
+      if r.ImGui_Selectable(ctx,'Exclusive mute') then
+        MuteGroup(group_list[name_focused], not list_mute[name_focused], 0)
+      end
+      if r.ImGui_Selectable(ctx,'Mute') then
+        MuteGroup(group_list[name_focused], not list_mute[name_focused], 2)
+      end
+      if r.ImGui_Selectable(ctx,'Unmute all') then
+        r.Main_OnCommand(40339, 0) -- Unmute all tracks
+      end
+      if r.ImGui_Selectable(ctx,'Mute all others') then
+        r.Main_OnCommand(40341, 0) -- Mute all tracks
+        MuteGroup(group_list[name_focused], false, 2)
+      end
+    r.ImGui_EndGroup(ctx)
+    r.ImGui_SameLine(ctx)
+    r.ImGui_BeginGroup(ctx)
+      r.ImGui_TextDisabled(ctx, ' ')
+      r.ImGui_TextDisabled(ctx, '[Shift]')
+      r.ImGui_TextDisabled(ctx, OS_Mac and '[Cmd]' or '[Ctrl]')
+      r.ImGui_TextDisabled(ctx, OS_Mac and '[Opt]' or '[Alt]')
+    r.ImGui_EndGroup(ctx)
+    r.ImGui_EndPopup(ctx)
+  end
+
+  if r.ImGui_BeginPopup(ctx, 'Menu Solo', r.ImGui_WindowFlags_NoMove() | r.ImGui_WindowFlags_NoResize()) then
+    r.ImGui_BeginGroup(ctx)
+      if r.ImGui_Selectable(ctx,'Exclusive solo') then
+        SoloGroup(group_list[name_focused], not list_solo[name_focused], 0, false)
+      end
+      if r.ImGui_Selectable(ctx,'Solo (ignore routing)') then
+        SoloGroup(group_list[name_focused], not list_solo[name_focused], 0, true)
+      end
+      if r.ImGui_Selectable(ctx,'Solo') then
+        SoloGroup(group_list[name_focused], not list_solo[name_focused], 2, false)
+      end
+      if r.ImGui_Selectable(ctx,'Unsolo all') then
+        r.Main_OnCommand(40340, 0) -- Unsolo all tracks
+      end
+    r.ImGui_EndGroup(ctx)
+    r.ImGui_SameLine(ctx)
+    r.ImGui_BeginGroup(ctx)
+      r.ImGui_TextDisabled(ctx, ' ')
+      r.ImGui_TextDisabled(ctx, OS_Mac and '[Opt]' or '[Alt]')
+      r.ImGui_TextDisabled(ctx, '[Shift]')
+      r.ImGui_TextDisabled(ctx, OS_Mac and '[Cmd]' or '[Ctrl]')
+    r.ImGui_EndGroup(ctx)
+    r.ImGui_EndPopup(ctx)
+  end
+
+  if r.ImGui_BeginPopup(ctx, 'Settings') then
+    r.ImGui_AlignTextToFramePadding(ctx)
+    r.ImGui_Text(ctx, 'Track name')
+    r.ImGui_SameLine(ctx)
+    r.ImGui_PushItemWidth(ctx, 80)
+    rv, conf.format = r.ImGui_Combo(ctx, '##Format', conf.format, 'Starts with\31Contains\31Ends with\31')
+    r.ImGui_PopItemWidth(ctx)
+    r.ImGui_SameLine(ctx)
+    r.ImGui_Text(ctx, 'the tag')
+    r.ImGui_Separator(ctx)
+    r.ImGui_AlignTextToFramePadding(ctx)
+    r.ImGui_Text(ctx, 'Index position')
+    r.ImGui_SameLine(ctx, 100)
+    r.ImGui_PushItemWidth(ctx, 90)
+    rv, conf.index_pos = r.ImGui_Combo(ctx, '##Index position', conf.index_pos, 'None\31Before name\31After name\31')
+    r.ImGui_PopItemWidth(ctx)
+    r.ImGui_AlignTextToFramePadding(ctx)
+    r.ImGui_Text(ctx, 'Index separator')
+    r.ImGui_SameLine(ctx, 100)
+    r.ImGui_PushItemWidth(ctx, 30)
+    rv, conf.index_separator = r.ImGui_InputText(ctx, '##Index separator', conf.index_separator)
+    conf.index_separator = conf.index_separator:gsub(';','')
+    r.ImGui_PopItemWidth(ctx)
+    local exemple = 'Drums'
+    if conf.index_pos == 1 then
+      exemple = '01'..conf.index_separator..exemple
+    elseif conf.index_pos == 2 then
+      exemple = exemple..conf.index_separator..'01'
+    end
+    r.ImGui_Text(ctx, 'Exemple: ')
+    r.ImGui_SameLine(ctx, 100)
+    r.ImGui_Text(ctx, exemple)
+    r.ImGui_Separator(ctx)
+    rv, conf.auto = r.ImGui_Checkbox(ctx, 'Auto add folder names', conf.auto)
+    rv, conf.auto_remove = r.ImGui_Checkbox(ctx, 'Auto remove empty tags', conf.auto_remove)
+    r.ImGui_Separator(ctx)
+    rv, conf.visible =    r.ImGui_Checkbox(ctx, 'Show/Hide button', conf.visible)
+    rv, conf.mute =       r.ImGui_Checkbox(ctx, 'Mute button', conf.mute)
+    rv, conf.solo =       r.ImGui_Checkbox(ctx, 'Solo button', conf.solo)
+    r.ImGui_Separator(ctx)
+    rv, conf.mousepos =   r.ImGui_Checkbox(ctx, 'Open on mouse position', conf.mousepos)
+    rv, conf.background = r.ImGui_Checkbox(ctx, 'Use Reaper theme background color', conf.background)
+    r.ImGui_Separator(ctx)
+    r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_ItemSpacing(), 0, 4)
+    TextURL(ctx, 'Discuss in REAPER forum thread', 'https://forum.cockos.com/showthread.php?t=255223')
+    TextURL(ctx, 'Support with a Paypal donation', 'https://www.paypal.com/donate?hosted_button_id=N5DUAELFWX4DC')
+    r.ImGui_PopStyleVar(ctx)
+    r.ImGui_EndPopup(ctx)
+  end
+
 end
 
 function loop()
+  -- Clear states if project change
+  if not project_id or project_id ~= r.EnumProjects(-1, '') then
+    group_list = {}
+    last_zoom_state = {}
+    ProjExtState_Load()
+    project_id, project_filename = r.EnumProjects(-1, '')
+  end
+
   r.ImGui_PushFont(ctx, font)
   background_color = conf.background and r.ImGui_ColorConvertNative(r.GetThemeColor('col_main_bg2',0)) * 16^2 + 255 or 0x333333ff
   r.ImGui_PushStyleColor(ctx, r.ImGui_Col_WindowBg(), background_color)
@@ -1029,7 +1155,7 @@ r.defer(loop)
         end
       end
     else
-      r.ShowMessageBox("Please update v0.5.1 or later of  \"ReaImGui: ReaScript binding for Dear ImGui\" with ReaPack and restart Reaper", script_name, 0)
+      r.ShowMessageBox("Please update v0.5.3 or later of  \"ReaImGui: ReaScript binding for Dear ImGui\" with ReaPack and restart Reaper", script_name, 0)
       local ReaPack_exist = r.APIExists('ReaPack_BrowsePackages')
       if ReaPack_exist == true then
         r.ReaPack_BrowsePackages('ReaImGui: ReaScript binding for Dear ImGui')
