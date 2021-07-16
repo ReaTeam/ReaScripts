@@ -1,10 +1,8 @@
 --[[
 ReaScript name: js_Mouse editing - Multi Tool.lua
-Version: 6.52
+Version: 6.53
 Changelog:
-  + Compress function do not change event values at first click.
-  + Fixed graphical glitches in Compress guidelines.
-  + Slightly smoother mousewheel control of edit curves.
+  + Restore previous Stretch behavior (cursor doesn't move to event posision on click).
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Donation: https://www.paypal.me/juliansader
@@ -592,6 +590,7 @@ function Defer_Stretch()
         -- Ideally, CCs should not be affected unless user acually moves the mouse.  The following code helps with this by moving mouse to precise pixel of leftmost or rightmost event.
         -- Unfortunately, this code only works if the border event actually falls on a precise pixel.  Future versions may improve this.
         -- Ah well, if user doesn't want events to move, ae should not click on zone!
+        --[[ -- EDIT: User requested that this behavior only be implemented ofr Compress, not Stretch
         local lP = tPixelFromTime[old.globalLeftmostTime]
         local rP = tPixelFromTime[old.globalNoteOffTime]
         if mouseX < (lP+rP)/2 then
@@ -602,6 +601,8 @@ function Defer_Stretch()
             mouseX = rP
         end
         reaper.JS_Mouse_SetPosition(reaper.JS_Window_ClientToScreen(windowUnderMouse, mouseX//1, mouseY//1))
+        ]]
+        if cursor == tCursors.HandLeft then stretchLEFT, stretchRIGHT = true, false else stretchLEFT, stretchRIGHT = false, true end
     end
     
     local mouseTime = SnapTime(tTimeFromPixel[mouseX]) 
