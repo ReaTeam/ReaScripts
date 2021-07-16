@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="689f531fbe84cf6240e10a4e3196bf39778891a7" name="ReaTeam Scripts">
+<index version="1" commit="5315e4806b14808eaaf30576e2750051fbe318ff" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -14017,6 +14017,14 @@ uc_track_name_abbreviations = \{"O-Out", "O-MID"\}\par}
 - Fix duplicate tags
 - Fix vertical zoom bug with track heigth locked]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/5a88611683de92c11ba7850778fbe3ca45b15161/Tracks%20Properties/rodilab_Track%20name%20groups.lua</source>
+      </version>
+      <version name="1.41" author="Rodilab" time="2021-07-16T12:48:45Z">
+        <changelog><![CDATA[- "Auto-remove empty tags" option
+- Fix multiple project tabs bug
+- New key modifiers (right-click on buttons to more info)
+- First right click give window focus
+- Add "Track name ends with the tag" option]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/5315e4806b14808eaaf30576e2750051fbe318ff/Tracks%20Properties/rodilab_Track%20name%20groups.lua</source>
       </version>
     </reapack>
     <reapack name="spk77_Adjust all receive volumes on selected track by x dB.eel" type="script" desc="Adjust all receive volumes on selected track by x dB">
