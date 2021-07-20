@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="2b047dd606a7f504130d2857dbb959bfc22c123a" name="ReaTeam Scripts">
+<index version="1" commit="92a101d59a958b08ef6b8b61cf89f0743bd2ad98" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -14957,6 +14957,29 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/26c5655a28a28bfb40908fa7fdbd5873438d1366/Various/amagalma_Insert%20or%20remove%20space%20at%20project%20start%20(moving%20everything%20and%20optionally%20keep%20same%20arrange%20view%20position).lua</source>
       </version>
     </reapack>
+    <reapack name="amagalma_Keep x number of most recent timestamped backups of current project file (deletes older ones - no undo!).lua" type="script" desc="Keep x number of most recent timestamped backups of current project file (deletes older ones - no undo!)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Scans the current project directory (and all its sub-directories) for backups (.rpp-bak) of the current project. Keeps the set number of backups and deletes all older ones. Action cannot be undone.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Number of backups to keep is set inside the script (default=5)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Keeps one backup per different date no matter what\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Works with timestamped backups only\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Can be combined with Save action (40026) into a custom action, so that it tides things up each time you save.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Requires JS_ReaScriptAPI\sa180\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=138199</link>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=180661</link>
+        <link rel="donation">https://www.paypal.me/amagalma</link>
+      </metadata>
+      <version name="1.01" author="amagalma" time="2021-07-20T14:31:37Z">
+        <changelog><![CDATA[- Added ability to tide up the backup folder where unsaved projects are saved.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/92a101d59a958b08ef6b8b61cf89f0743bd2ad98/Various/amagalma_Keep%20x%20number%20of%20most%20recent%20timestamped%20backups%20of%20current%20project%20file%20(deletes%20older%20ones%20-%20no%20undo!).lua</source>
+      </version>
+    </reapack>
     <reapack name="amagalma_mespotine_Create MIDI Morse Message Item at edit cursor position, grid length duration, first selectedlast touched or first track.lua" type="script" desc="Create MIDI Morse Message Item at edit cursor position, grid length duration, first selected/last touched/ or first track">
       <metadata>
         <link rel="website">https://forum.cockos.com/showthread.php?t=245504</link>
@@ -16632,28 +16655,6 @@ Web Interface: restore the previous locked state on load]]></changelog>
       <version name="0.90" author="juliansader" time="2020-06-05T20:07:28Z">
         <changelog><![CDATA[+ Initial beta release: Hotstrings (i.e. sequences of keys) to replace modifiers+single key shortcuts.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/bb041d5a94e0d81fd74463b2c7f26bd24e3c1c4c/Various/js_Hotstrings.lua</source>
-      </version>
-    </reapack>
-    <reapack name="Keep x number of most recent timestamped backups of current project file (deletes older ones - no undo!).lua" type="script" desc="Keep x number of most recent timestamped backups of current project file (deletes older ones - no undo!)">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 Scans the current project directory (and all its sub-directories) for backups (.rpp-bak) of the current project. Keeps the set number of backups and deletes all older ones. Action cannot be undone.\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Number of backups to keep is set inside the script (default=5)\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Keeps one backup per different date no matter what\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Works with timestamped backups only\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Can be combined with Save action (40026) into a custom action, so that it tides things up each time you save.\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Requires JS_ReaScriptAPI\sa180\par}
-}
-]]></description>
-        <link rel="website">https://forum.cockos.com/showthread.php?t=138199</link>
-        <link rel="website">https://forum.cockos.com/showthread.php?t=180661</link>
-        <link rel="donation">https://www.paypal.me/amagalma</link>
-      </metadata>
-      <version name="1.0" author="amagalma" time="2021-07-20T09:48:27Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/2b047dd606a7f504130d2857dbb959bfc22c123a/Various/Keep%20x%20number%20of%20most%20recent%20timestamped%20backups%20of%20current%20project%20file%20(deletes%20older%20ones%20-%20no%20undo!).lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Add real-life timestamps.lua" type="script" desc="Add real-life timestamps">
