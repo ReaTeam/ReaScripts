@@ -1,7 +1,7 @@
 -- @description Keep x number of most recent timestamped backups of current project file (deletes older ones - no undo!)
 -- @author amagalma
--- @version 1.01
--- @changelog - Added ability to tide up the backup folder where unsaved projects are saved.
+-- @version 1.02
+-- @changelog - Accept timestamp formats with either a space or an underscore between date and time
 -- @link
 --   https://forum.cockos.com/showthread.php?t=138199
 --   https://forum.cockos.com/showthread.php?t=180661
@@ -65,7 +65,7 @@ local function GetRPPBackups(dir, files)
     if file then
       i = i + 1
       -- What to look for
-      if file:match("^" .. filename .. "%-%d+%-%d+%-%d+_%d+%.[rR][pP]+%-[bB][aA][kK]$") then
+      if file:match("^" .. filename .. "%-%d+%-%d+%-%d+[%_%s]%d+%.[rR][pP]+%-[bB][aA][kK]$") then
         local t,c = {}, 1
         t[1] = dir .. sep .. file
         local _, _, _, modifiedTime = reaper.JS_File_Stat( t[1] )
