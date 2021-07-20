@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="9cfeda425565555a87863d5bf328cf7f5792a007" name="ReaTeam Scripts">
+<index version="1" commit="2b047dd606a7f504130d2857dbb959bfc22c123a" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -16632,6 +16632,28 @@ Web Interface: restore the previous locked state on load]]></changelog>
       <version name="0.90" author="juliansader" time="2020-06-05T20:07:28Z">
         <changelog><![CDATA[+ Initial beta release: Hotstrings (i.e. sequences of keys) to replace modifiers+single key shortcuts.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/bb041d5a94e0d81fd74463b2c7f26bd24e3c1c4c/Various/js_Hotstrings.lua</source>
+      </version>
+    </reapack>
+    <reapack name="Keep x number of most recent timestamped backups of current project file (deletes older ones - no undo!).lua" type="script" desc="Keep x number of most recent timestamped backups of current project file (deletes older ones - no undo!)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Scans the current project directory (and all its sub-directories) for backups (.rpp-bak) of the current project. Keeps the set number of backups and deletes all older ones. Action cannot be undone.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Number of backups to keep is set inside the script (default=5)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Keeps one backup per different date no matter what\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Works with timestamped backups only\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Can be combined with Save action (40026) into a custom action, so that it tides things up each time you save.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Requires JS_ReaScriptAPI\sa180\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=138199</link>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=180661</link>
+        <link rel="donation">https://www.paypal.me/amagalma</link>
+      </metadata>
+      <version name="1.0" author="amagalma" time="2021-07-20T09:48:27Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/2b047dd606a7f504130d2857dbb959bfc22c123a/Various/Keep%20x%20number%20of%20most%20recent%20timestamped%20backups%20of%20current%20project%20file%20(deletes%20older%20ones%20-%20no%20undo!).lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Add real-life timestamps.lua" type="script" desc="Add real-life timestamps">
