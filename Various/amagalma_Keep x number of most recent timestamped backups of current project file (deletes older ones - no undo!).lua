@@ -1,6 +1,7 @@
 -- @description Keep x number of most recent timestamped backups of current project file (deletes older ones - no undo!)
 -- @author amagalma
--- @version 1.0
+-- @version 1.01
+-- @changelog - Added ability to tide up the backup folder where unsaved projects are saved.
 -- @link
 --   https://forum.cockos.com/showthread.php?t=138199
 --   https://forum.cockos.com/showthread.php?t=180661
@@ -24,12 +25,20 @@ if not files_to_keep or not tonumber(files_to_keep) or files_to_keep < 0 then
 end
 
 
-local proj, fullpath = reaper.EnumProjects( -1 )
-if fullpath == "" then return end
-
-
-local projpath, filename = fullpath:match("(.+[\\/])(.+)%.[rR][pP]+")
 local sep = package.config:sub(1,1)
+local proj, fullpath = reaper.EnumProjects( -1 )
+local projpath, filename
+if fullpath == "" then -- project is unsaved
+  filename = "untitled"
+  local backupdir = ({reaper.BR_Win32_GetPrivateProfileString( "reaper", "autosavedir", "", reaper.get_ini_file() )})[2]
+  if backupdir ~= "" and backupdir:match(sep) then
+    projpath = backupdir
+  else
+    projpath = reaper.GetProjectPath("") .. sep .. backupdir
+  end
+else -- project is saved
+  projpath, filename = fullpath:match("(.+[\\/])(.+)%.[rR][pP]+")
+end
 
 
 local function GetRPPBackups(dir, files)
@@ -74,10 +83,10 @@ end
 
 
 -- Get all backup files of current project in project path (search all directories)
- files = GetRPPBackups(projpath)
+local files = GetRPPBackups(projpath)
 
 
--- Sort them by creation time
+-- Sort them by modification time
 table.sort(files, function(a,b)
   for i = 2, 7 do
     if a[i] ~= b[i] then
@@ -85,6 +94,7 @@ table.sort(files, function(a,b)
     end
   end
 end)
+
 
 -- Delete older backups if necessary
 local backup_cnt = #files
@@ -104,7 +114,7 @@ if backup_cnt > files_to_keep then
       os.remove( files[i][1] )
     end
   end
-end--]]
+end
 
 
 reaper.defer(function() end)
