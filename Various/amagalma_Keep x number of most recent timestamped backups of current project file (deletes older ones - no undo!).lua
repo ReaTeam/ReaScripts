@@ -1,7 +1,8 @@
 -- @description Keep x number of most recent timestamped backups of current project file (deletes older ones - no undo!)
 -- @author amagalma
--- @version 1.02
--- @changelog - Accept timestamp formats with either a space or an underscore between date and time
+-- @version 1.03
+-- @changelog - Bug fix: invalid path of backup files residing directly in project folder (rather than inside a subdirectory)
+--   - Revert to getting backup file date from creation date rather than from last modified date
 -- @link
 --   https://forum.cockos.com/showthread.php?t=138199
 --   https://forum.cockos.com/showthread.php?t=180661
@@ -26,7 +27,7 @@ end
 
 
 local sep = package.config:sub(1,1)
-local proj, fullpath = reaper.EnumProjects( -1 )
+local _, fullpath = reaper.EnumProjects( -1 )
 local projpath, filename
 if fullpath == "" then -- project is unsaved
   filename = "untitled"
@@ -37,7 +38,7 @@ if fullpath == "" then -- project is unsaved
     projpath = reaper.GetProjectPath("") .. sep .. backupdir
   end
 else -- project is saved
-  projpath, filename = fullpath:match("(.+[\\/])(.+)%.[rR][pP]+")
+  projpath, filename = fullpath:match("(.+)[\\/](.+)%.[rR][pP]+")
 end
 
 
@@ -51,7 +52,7 @@ local function GetRPPBackups(dir, files)
     local sub_dir = reaper.EnumerateSubdirectories(dir, sub_dirs_cnt)
     if sub_dir then
       sub_dirs_cnt = sub_dirs_cnt + 1
-      sub_dirs[sub_dirs_cnt] = dir .. sub_dir
+      sub_dirs[sub_dirs_cnt] = dir .. sep .. sub_dir
     end
   until not sub_dir
   for dir = 1, sub_dirs_cnt do
@@ -68,8 +69,8 @@ local function GetRPPBackups(dir, files)
       if file:match("^" .. filename .. "%-%d+%-%d+%-%d+[%_%s]%d+%.[rR][pP]+%-[bB][aA][kK]$") then
         local t,c = {}, 1
         t[1] = dir .. sep .. file
-        local _, _, _, modifiedTime = reaper.JS_File_Stat( t[1] )
-        for att in modifiedTime:gmatch("[^%.%s%:]+") do
+        local _, _, _, _, cTime = reaper.JS_File_Stat( t[1] )
+        for att in cTime:gmatch("[^%.%s%:]+") do
           c = c + 1
           t[c] = tonumber(att)
         end
@@ -86,7 +87,7 @@ end
 local files = GetRPPBackups(projpath)
 
 
--- Sort them by modification time
+-- Sort them by creation time
 table.sort(files, function(a,b)
   for i = 2, 7 do
     if a[i] ~= b[i] then
@@ -111,6 +112,7 @@ if backup_cnt > files_to_keep then
       end
     end
     if delete then
+      --reaper.ShowConsoleMsg(files[i][1].."\n")
       os.remove( files[i][1] )
     end
   end
