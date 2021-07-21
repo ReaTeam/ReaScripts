@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="c49bc67eff3907bfda40161cd744c6d2ffd35d13" name="ReaTeam Scripts">
+<index version="1" commit="8dc55228a34f9278177b64d6c46bc64a072a03fc" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -14982,6 +14982,11 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
       <version name="1.02" author="amagalma" time="2021-07-20T19:04:50Z">
         <changelog><![CDATA[- Accept timestamp formats with either a space or an underscore between date and time]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c49bc67eff3907bfda40161cd744c6d2ffd35d13/Various/amagalma_Keep%20x%20number%20of%20most%20recent%20timestamped%20backups%20of%20current%20project%20file%20(deletes%20older%20ones%20-%20no%20undo!).lua</source>
+      </version>
+      <version name="1.03" author="amagalma" time="2021-07-21T06:41:07Z">
+        <changelog><![CDATA[- Bug fix: invalid path of backup files residing directly in project folder (rather than inside a subdirectory)
+- Revert to getting backup file date from creation date rather than from last modified date]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/8dc55228a34f9278177b64d6c46bc64a072a03fc/Various/amagalma_Keep%20x%20number%20of%20most%20recent%20timestamped%20backups%20of%20current%20project%20file%20(deletes%20older%20ones%20-%20no%20undo!).lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_mespotine_Create MIDI Morse Message Item at edit cursor position, grid length duration, first selectedlast touched or first track.lua" type="script" desc="Create MIDI Morse Message Item at edit cursor position, grid length duration, first selected/last touched/ or first track">
