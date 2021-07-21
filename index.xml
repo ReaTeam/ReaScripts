@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="8dc55228a34f9278177b64d6c46bc64a072a03fc" name="ReaTeam Scripts">
+<index version="1" commit="5158ae6b4454adea6935f6df653571563a0583a2" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -12156,6 +12156,56 @@ Replace GetLastWord func with quicker solution (Thanks: Mespotine[t=233393]).]]>
     </reapack>
   </category>
   <category name="Rendering">
+    <reapack name="BuyOne_Render each item in place separately (guide inside).lua" type="script" desc="Render each item in place separately">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs24 G U I D E\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The script functions in 2 modes enabled with TRACKS_OR_ITEMS option in the USER SETTINGS below:\line A) rendering each item separately B) rendering track stems\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \u9619? \u9642? When TRACKS_OR_ITEMS option is set to 'items'\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Selected items are rendered when there's:\line A) 1 selected item and no selected tracks\line B) 1 selected track and more than 1 selected item, in which case only items are considered\line C) more than 1 selected item and more than 1 selected track, a hybrid selection\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 All items on selected tracks are rendered when there's:\line A) 1 selected track and no selected items\line B) 1 selected item and more than 1 selected tracks, in which case only tracks are considered\line C) more than 1 selected track and more than 1 selected item, a hybrid selection\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 If all selected items sit on selected tracks even if they don't comprise all items on such tracks, the selected tracks will be considered and not the selected items hence all items on such tracks will be rendered.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 If there's exactly 1 selected track and 1 selected item a prompt appears.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The setup prevents rendering 1 item along with several tracks as well as 1 track along with several items to safeguard against accidental rendering since normally at least 1 item and 1 track are always selected.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 In order to still be able to render exactly 1 item along with several tracks (i.e. all items on several tracks), add to item selection another item on any such track thereby making the selection hybrid which is supported. Such other selected item on selected track won't affect the result since as mentioned above as long as track is selected all its items will be rendered regardless of whether any of them is selected or not.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Conversely, to render exactly 1 track (i.e. all items on such track) along with a bunch of selected items elsewhere, add all items on such track to selection.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Selected tracks with no items are ignored. Folders are rendered provided their parent track has selected empty items which encompass part of the folder contents.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 UNITE option in the USER SETTINGS below allows rendering cross-faded/overlapping or contiguous items as one item. For this to work all items which are meant to be rendered as one must be selected.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Rendered item inherits the name of the source item to which 'PRE/POST' indication is appended; united item inherits name of the first of the several source items out of which it's comprised. If the source item doesn't have a name the rendered item is named 'RENDERED PRE/POST'.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Render track inherits color of the source track and name of the source track (if any) to which 'RENDERED pre/post' indication is appended.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \u9619? \u9642? When TRACKS_OR_ITEMS option is set to 'tracks'\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 A track is rendered to a solid stem regardless of whether the track or its items are selected.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Selected tracks with no items are ignored unless the're folder parents. Thus folders are rendered to full stems regardless of whether their parent track has any empty items. Folder parent track itself obviously must not have media items on it.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Rendered item is named with the source track name (if any), to which 'RENDERED PRE/POST' indication is appended.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Render track inherits color of the source track and name of the source track (if any) to which 'RENDERED pre/post' indication is appended (same as in 'items' mode).\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 ####!!! DISCLAIMER: Full track stems REAPER renders natively much more efficiently with the actions:\line {\i Track: Render tracks to mono/stereo/multichannel [post-fader] stem tracks (and mute originals)}\line so this setting, although fully functional, is of little use, has been kept for completeness.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \u9619? GLOBAL OPTIONS (affecting objects in both abovelisted modes)\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \u9642?\u9642? TAIL\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 TAIL is designed to allow rendering tail of track time domain effects (reverb/delay).\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 If TAIL value isn't set or the setting is malformed it is ignored and instead the setting {\i 'Default tail length: .. ms render tails when: Rendering stems for time selection via action'} at {\i 'Preferences -> Audio -> Rendering'} will have effect if enabled.\line If it's set and properly formatted and the said setting in REAPER Preferences is enabled as well their time values will be combined.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 In TRACKS_OR_ITEMS 'items' mode in order to render long tail of the very last item on the track, set the target value in seconds in the TAIL option. If gaps between other items happen to be shorter, their tails will only extend up to the next item. If there's no gap between items, tail isn't rendered.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Take FX tail length setting at\line {\i 'Preferences -> Media -> Tail length when using Apply FX to items/Take FX tail length'} isn't relevant for rendering with this script. To preserve tail, TAIL option in the USER SETTINGS or {\i 'Default tail length: .. ms render tails when: Rendering stems for time selection via action'} setting at {\i 'Preferences -> Audio -> Rendering'} must be used.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \u9642?\u9642? MANAGE_SRC_TRACK\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 MANAGE_SRC_TRACK option allows hiding from both TCP and MCP or deleting the source track after rendering.\line Its setting only applies to a source track when either all of its individual items were rendered or the entire track was rendered to a single stem.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \u9619? SOME USEFUL INFO\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Whether time domain take FX of one item are cut off by the next item depends on REAPER settings.\line The behavior can be set to 'Items always mix' in 'Item mix behavior' menu EITHER in the next media item {\i 'Media Item Properties'} dialogue (default shortcut F2) OR globally for project at {\i 'Project settings -> Advanced tab'}.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 If time domain effects used in FX chains of items overlap it's pereferable to render full track stems instead of separate items.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Rendering file format is defined at {\i 'Project settings -> Media tab -> Format for Apply, Glue, Freeze etc'}.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 As already mentioned, REAPER rendering settings can be found at {\i 'Preferences -> Audio -> Rendering'}.\line If {\i 'Limit Apply FX/render stems to real time'} setting is ON and all items on the track are being rendered, soloing the source track mutes playback of all items on the track bar the very first one while rendering which may be helpful.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Something to be aware of is that when rendering is aborted with 'Cancel' button in the render dialogue the files whose rendering has been completed by that point aren't deleted and are kept in the folder at the render path even though they may not appear as items in REAPER.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Licence: WTFPL REAPER: at least v5.962\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/member.php?u=134058</link>
+      </metadata>
+      <version name="1.0" author="BuyOne" time="2021-07-21T22:08:53Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/5158ae6b4454adea6935f6df653571563a0583a2/Rendering/BuyOne_Render%20each%20item%20in%20place%20separately%20(guide%20inside).lua</source>
+      </version>
+    </reapack>
     <reapack name="cfillion_Apply render preset.lua" type="script" desc="Apply render preset">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
