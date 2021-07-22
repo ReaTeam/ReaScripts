@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="5158ae6b4454adea6935f6df653571563a0583a2" name="ReaTeam Scripts">
+<index version="1" commit="792cd108d50eaee8a190b72e7602b099127718ec" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -15015,10 +15015,9 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
 
 {\pard \ql \f0 \sa180 \li0 \fi0 Scans the current project directory (and all its sub-directories) for backups (.rpp-bak) of the current project. Keeps the set number of backups and deletes all older ones. Action cannot be undone.\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Number of backups to keep is set inside the script (default=5)\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Keeps one backup per different date no matter what\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Option, inside script, to additionally keep the latest backup file per different date (default=true)\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Works with timestamped backups only\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Can be combined with Save action (40026) into a custom action, so that it tides things up each time you save.\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Requires JS_ReaScriptAPI\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Can be combined with Save action (40026) into a custom action, so that it tides things up each time you save.\sa180\par}
 }
 ]]></description>
         <link rel="website">https://forum.cockos.com/showthread.php?t=138199</link>
@@ -15037,6 +15036,11 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
         <changelog><![CDATA[- Bug fix: invalid path of backup files residing directly in project folder (rather than inside a subdirectory)
 - Revert to getting backup file date from creation date rather than from last modified date]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/8dc55228a34f9278177b64d6c46bc64a072a03fc/Various/amagalma_Keep%20x%20number%20of%20most%20recent%20timestamped%20backups%20of%20current%20project%20file%20(deletes%20older%20ones%20-%20no%20undo!).lua</source>
+      </version>
+      <version name="1.05" author="amagalma" time="2021-07-22T19:43:50Z">
+        <changelog><![CDATA[- Get backup file date directly from filename rather than from creation date (JS_ReaScriptAPI not required any more)
+- Add option inside script to to additionally keep the latest backup file per different date (default=true)]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/792cd108d50eaee8a190b72e7602b099127718ec/Various/amagalma_Keep%20x%20number%20of%20most%20recent%20timestamped%20backups%20of%20current%20project%20file%20(deletes%20older%20ones%20-%20no%20undo!).lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_mespotine_Create MIDI Morse Message Item at edit cursor position, grid length duration, first selectedlast touched or first track.lua" type="script" desc="Create MIDI Morse Message Item at edit cursor position, grid length duration, first selected/last touched/ or first track">
