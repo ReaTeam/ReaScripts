@@ -1,8 +1,7 @@
 -- @description Keep x number of most recent timestamped backups of current project file (deletes older ones - no undo!)
 -- @author amagalma
--- @version 1.05
--- @changelog - Get backup file date directly from filename rather than from creation date (JS_ReaScriptAPI not required any more)
---   - Add option inside script to to additionally keep the latest backup file per different date (default=true)
+-- @version 1.06
+-- @changelog - Take into account files with timestamps that contain seconds
 -- @link
 --   https://forum.cockos.com/showthread.php?t=138199
 --   https://forum.cockos.com/showthread.php?t=180661
@@ -75,10 +74,10 @@ local function GetRPPBackups(dir, files)
     if file then
       i = i + 1
       -- What to look for
-      local y,m,d,h,min = match(file, "^" .. filename .. "%-(%d+)%-(%d+)%-(%d+)%_(%d%d)(%d%d)%.[rR][pP]+%-[bB][aA][kK]$") 
+      local y,m,d,h,min,s = match(file, "^" .. filename .. "%-(%d+)%-(%d+)%-(%d+)%_(%d%d)(%d%d)(%d?%d?)%.[rR][pP]+%-[bB][aA][kK]$") 
       if y then
         file_cnt = file_cnt + 1
-        files[file_cnt] = {dir .. sep .. file, num(y), num(m), num(d), num(h), num(min) }
+        files[file_cnt] = {dir .. sep .. file, num(y), num(m), num(d), num(h), num(min), num(s) or 0 }
       end
     end
   until not file
@@ -92,7 +91,7 @@ local files = GetRPPBackups(projpath)
 
 -- Sort them by creation time
 table.sort(files, function(a,b)
-  for i = 2, 6 do
+  for i = 2, 7 do
     if a[i] ~= b[i] then
       return a[i] > b[i]
     end
