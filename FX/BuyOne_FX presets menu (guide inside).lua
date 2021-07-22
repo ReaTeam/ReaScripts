@@ -40,7 +40,7 @@ About:
 	or bottom dockers; Main toolbar or other docker positions are not reliable;  
 	5) from the Action list (which is much less practicable)  
 	In cases 3)-5) the object must be selected.  
-	All four methods can work in parallel.  
+	All five methods can work in parallel.  
 	Be aware that when LAST_SEL_OBJ option is enabled and the script is run via a keyboard shortcut,
 	the menu will be called even when the cursor is outside of the TCP or Arrange and not over 
 	an FX chain window, like over the ruler, TCP bottom, empty Mixer area or any other focused window,
