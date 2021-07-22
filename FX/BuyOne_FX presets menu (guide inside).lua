@@ -2,36 +2,56 @@
 ReaScript name: FX presets menu
 Author: BuyOne
 Website: https://forum.cockos.com/member.php?u=134058
-Version: 1.1
-Changelog: 
-	#Added support for displaying FX presets menu when FX chain is focused
-	#Updated GUIDE
+Version: 1.2
+Changelog:  # Preset menu of FX in a focused take FX chain is now displayed reragdless of the take being active
+	    # Added new option to lock FX chain focus
+	    # Updated guide
 Provides: [main] .
 About:
 
 	#### G U I D E
 
-	- The script displays FX preset menu of the object (track or item/active take) either currently found under the mouse cursor or the last selected if LAST_SEL_OBJ option is enabled in the USER SETTINGS below, or of the currently or last focused FX chain window.
+	- The script displays FX preset menu of the object (track or item/active take)
+	either currently found under the mouse cursor or the last selected if LAST_SEL_OBJ
+	option is enabled in the USER SETTINGS below, or of the currently or last focused
+	FX chain window. With regard to track FX currently only TCP is supported.
 
 	- It's only able to list presets available in REAPER plugin wrapper drop-down list.
 
-	- Since in multi-take items the menu only lists active take FX presets, if you need FX presets from a take other then the active simply click on it to have it activated.
+	- Since in multi-take items the menu only lists active take FX presets, if you need
+	FX presets from a take other then the active simply click on it to have it activated.
 
-	- Track preset menu is divided into two sections, main FX menu (upper) and input FX menu (lower) if both types of FX are present. In the Master track FX preset menu instead of the preset menu for input FX a menu for Monitor FX is displayed.
+	- Track preset menu is divided into two sections, main FX menu (upper) and 
+	input FX menu (lower) if both types of FX are present.   
+	In the Master track FX preset menu instead of the preset menu for input FX a menu 
+	for Monitor FX is displayed.
 
-	- If there's active preset and plugin controls configuration matches the preset settings the preset name in the menu is checkmarked.
+	- If there's active preset and plugin controls configuration matches the preset settings
+	the preset name in the menu is checkmarked.
 
 	- The script can be called in the following ways:  
-	1) by placing the mouse cursor over the object or its FX chain window and calling the script with a shortcut assigned to it;  
-	2) by assigning it to a Track AND an Item mouse modifiers under *Preferences -> Mouse modifiers* and actually clicking the object to call it;  
+	1) by placing the mouse cursor over the object or its FX chain window and calling
+	the script with a shortcut assigned to it;  
+	2) by assigning it to a Track AND an Item mouse modifiers under *Preferences -> Mouse modifiers*
+	and actually clicking the object to call it;  
 	If LAST_SEL_OBJ option is enabled in the USER SETTINGS below:  
 	3) from an object right click context menu; main menus are not reliable;  
-	4) from a toolbar; the toolbar must either float over the Arrange or be docked in the top or bottom dockers; Main toolbar or other docker positions are not reliable;  
-	5) from the Action list (which is much less practicable).  
-	All four can work in parallel.  
-	Be aware that when LAST_SEL_OBJ option is enabled and the script is run via a keyboard shortcut, the menu will be called even when the cursor is outside of the TCP/MCP or Arrange and not over an FX chain window, like over the ruler, TCP buttom, empty Mixer area or any other focused window, in which case it will display a list of the last selected object FX presets.
+	4) from a toolbar; the toolbar must either float over the Arrange or be docked in the top
+	or bottom dockers; Main toolbar or other docker positions are not reliable;  
+	5) from the Action list (which is much less practicable)  
+	In cases 3)-5) the object must be selected.  
+	All four methods can work in parallel.  
+	Be aware that when LAST_SEL_OBJ option is enabled and the script is run via a keyboard shortcut,
+	the menu will be called even when the cursor is outside of the TCP or Arrange and not over 
+	an FX chain window, like over the ruler, TCP bottom, empty Mixer area or any other focused window,
+	in which case it will display a list of the last selected object FX presets.
+	
+	- LOCK_FX_CHAIN_FOCUS option in the USER SETTINGS allows displaying presets menu for FX of the last 
+	focused open FX chain even when mouse cursor is outside of the FX chain window and it itself isn't 
+	in focus and regardless of the last selected object in case LAST_SEL_OBJ option is enabled.
 
-	- To close the menu after it's been called, without selecting any preset, either click elsewhere in REAPER or pres Esc keyboard key.
+	- To close the menu after it's been called, without selecting any preset, either click elsewhere
+	in REAPER or pres Esc keyboard key.
 	
 	- Video processor preset menu is supported from REAPER build 6.26 onwards.
 	
@@ -44,20 +64,20 @@ REAPER: at least v5.962
 -----------------------------------------------------------------------------
 ------------------------------ USER SETTINGS --------------------------------
 -----------------------------------------------------------------------------
--- Call FX preset menu with a toolbar button or from a context menu
 -- To enable the option place any alphanumeric character between the quotation marks.
 -- Try to not leave empty spaces.
--- If enabled to call the menu the object must first be selected
 
-local LAST_SEL_OBJ = ""
+local LAST_SEL_OBJ = "1" -- if mouse cursor is outside of Arrange/TCP, e.g. toolbar button click
+local LOCK_FX_CHAIN_FOCUS = "" -- if FX chain window is open and was last focused
 
 -----------------------------------------------------------------------------
 -------------------------- END OF USER SETTINGS -----------------------------
 -----------------------------------------------------------------------------
 
 
-function Msg(param)
-reaper.ShowConsoleMsg(tostring(param)..'\n')
+function Msg(param, cap) -- caption second or none
+local cap = cap and type(cap) == 'string' and #cap > 0 and cap..' = ' or ''
+reaper.ShowConsoleMsg(cap..tostring(param)..'\n')
 end
 
 local r = reaper
@@ -258,6 +278,7 @@ end
 
 
 function Collect_VST3_Instances(fx_chunk) -- replicates Collect_VideoProc_Instances()
+
 -- required to get hold of .vstpreset file names stored in the plugin dedicated folder and list those in the menu
 
 local vst3_t = {} -- collect indices of vst3 plugins instances, because detection by fx name is unreliable as it can be changed by user in the FX browser
@@ -281,6 +302,7 @@ end
 
 
 function Collect_VST3_Preset_Names(obj, fx_idx, take_GUID, pres_cnt) -- replicates Collect_VideoProc_Preset_Names()
+
 -- getting all preset names incuding .vstpreset file names in a roundabout way by travesring them in an instance on a temp track
 
 r.PreventUIRefresh(1)
@@ -317,10 +339,12 @@ function Esc(str)
 return str:gsub('[%(%)%+%-%[%]%.%^%$%*%?%%]','%%%0')
 end
 
+function Get_Object(LOCK_FX_CHAIN_FOCUS)
 
-function Get_Object()
 -- GetCursorContext() is unreliable in getting TCP since the track context is true along the entire timeline as long as it's not another context
--- using edit cursor to find TCP/MCP context instead since when mouse cursor is over the TCP/MCP edit cursor doesn't respond to action 'View: Move edit cursor to mouse cursor'
+-- using edit cursor to find TCP context instead since when mouse cursor is over the TCP edit cursor doesn't respond to action 'View: Move edit cursor to mouse cursor'
+-- no MCP support; when mouse is over the Mixer on the Arrange side the trick to detect track panel doesn't work, because with 'View: Move edit cursor to mouse cursor' the edit cursor does move to the mouse cursor
+
 
 	function GetMonFXProps() -- get mon fx accounting for floating window, GetFocusedFX() doesn't detect mon fx in builds prior to 6.20
 
@@ -339,8 +363,9 @@ function Get_Object()
 r.PreventUIRefresh(1)
 
 local retval, tr, item = r.GetFocusedFX() -- account for focused FX chains and Mon FX chain in builds prior to 6.20
+local fx_chain_focus = LOCK_FX_CHAIN_FOCUS or r.GetCursorContext() == -1
 
-	if retval > 0 or GetMonFXProps() >= 0 then -- FX chain
+	if (retval > 0 or GetMonFXProps() >= 0) and fx_chain_focus then -- (last) focused FX chain
 	obj, obj_type = table.unpack(retval == 2 and tr > 0 and {r.GetTrackMediaItem(r.GetTrack(0,tr-1), item), 1} or retval == 1 and tr > 0 and {r.GetTrack(0,tr-1), 0} or {r.GetMasterTrack(0), 0})
 	else -- not FX chain
 	local curs_pos = r.GetCursorPosition() -- store current edit curs pos
@@ -416,7 +441,7 @@ local sep = r.GetOS():match('Win') and '\\' or '/'
 local path = r.GetResourcePath()
 local LAST_SEL_OBJ = LAST_SEL_OBJ:gsub(' ','') ~= ''
 
-local obj, obj_type = Get_Object()
+local obj, obj_type = Get_Object(LOCK_FX_CHAIN_FOCUS)
 
 
 	if not obj and LAST_SEL_OBJ then -- if called via menu or from a toolbar after explicitly selecting the object e.g. by clicking it first
@@ -441,7 +466,12 @@ local obj, obj_type = Get_Object()
 
 	if not obj then RestoreSavedSelectedObjects(itm_sel_t, trk_sel_t) return r.atexit() end -- prevent error when no item and when no track (empty area at bottom of the TCP, in MCP or the ruler or focused window) and prevent undo point creation
 
-	if obj_type == 1 then take = r.GetActiveTake(obj) end
+	if obj_type == 1 then
+	local fx_chain_focus = LOCK_FX_CHAIN_FOCUS or r.GetCursorContext() == -1
+		if r.GetFocusedFX() == 2 and fx_chain_focus then -- (last) focused take FX chain
+		take = r.GetTake(obj,(select(4,r.GetFocusedFX()))>>16) -- make presets menu of focused take FX chain independent of the take being active
+		else take = r.GetActiveTake(obj) end
+	end
 
 local fx_cnt = obj_type == 0 and r.TrackFX_GetCount(obj) or obj_type == 1 and r.TakeFX_GetCount(take)
 
