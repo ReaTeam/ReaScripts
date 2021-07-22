@@ -67,7 +67,7 @@ REAPER: at least v5.962
 -- To enable the option place any alphanumeric character between the quotation marks.
 -- Try to not leave empty spaces.
 
-local LAST_SEL_OBJ = "1" -- if mouse cursor is outside of Arrange/TCP, e.g. toolbar button click
+local LAST_SEL_OBJ = "" -- if mouse cursor is outside of Arrange/TCP, e.g. toolbar button click
 local LOCK_FX_CHAIN_FOCUS = "" -- if FX chain window is open and was last focused
 
 -----------------------------------------------------------------------------
