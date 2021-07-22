@@ -1,8 +1,8 @@
 -- @description Keep x number of most recent timestamped backups of current project file (deletes older ones - no undo!)
 -- @author amagalma
--- @version 1.03
--- @changelog - Bug fix: invalid path of backup files residing directly in project folder (rather than inside a subdirectory)
---   - Revert to getting backup file date from creation date rather than from last modified date
+-- @version 1.05
+-- @changelog - Get backup file date directly from filename rather than from creation date (JS_ReaScriptAPI not required any more)
+--   - Add option inside script to to additionally keep the latest backup file per different date (default=true)
 -- @link
 --   https://forum.cockos.com/showthread.php?t=138199
 --   https://forum.cockos.com/showthread.php?t=180661
@@ -11,14 +11,15 @@
 --   Scans the current project directory (and all its sub-directories) for backups (.rpp-bak) of the current project. Keeps the set number of backups and deletes all older ones. Action cannot be undone.
 --
 --   - Number of backups to keep is set inside the script (default=5)
---   - Keeps one backup per different date no matter what
+--   - Option, inside script, to additionally keep the latest backup file per different date (default=true)
 --   - Works with timestamped backups only
 --   - Can be combined with Save action (40026) into a custom action, so that it tides things up each time you save.
---   - Requires JS_ReaScriptAPI
 
--- USER SETTINGS ---------
+
+-- USER SETTINGS ----------------------------------------------------------------
 local files_to_keep = 5
---------------------------
+local additionaly_keep_latest_file_per_different_date = true -- (true or false)
+---------------------------------------------------------------------------------
 
 
 if not files_to_keep or not tonumber(files_to_keep) or files_to_keep < 0 then
@@ -40,6 +41,14 @@ if fullpath == "" then -- project is unsaved
 else -- project is saved
   projpath, filename = fullpath:match("(.+)[\\/](.+)%.[rR][pP]+")
 end
+
+
+local function num(str)
+  return tonumber(str)
+end
+
+
+local match = string.match
 
 
 local function GetRPPBackups(dir, files)
@@ -66,16 +75,10 @@ local function GetRPPBackups(dir, files)
     if file then
       i = i + 1
       -- What to look for
-      if file:match("^" .. filename .. "%-%d+%-%d+%-%d+[%_%s]%d+%.[rR][pP]+%-[bB][aA][kK]$") then
-        local t,c = {}, 1
-        t[1] = dir .. sep .. file
-        local _, _, _, _, cTime = reaper.JS_File_Stat( t[1] )
-        for att in cTime:gmatch("[^%.%s%:]+") do
-          c = c + 1
-          t[c] = tonumber(att)
-        end
+      local y,m,d,h,min = match(file, "^" .. filename .. "%-(%d+)%-(%d+)%-(%d+)%_(%d%d)(%d%d)%.[rR][pP]+%-[bB][aA][kK]$") 
+      if y then
         file_cnt = file_cnt + 1
-        files[file_cnt] = t
+        files[file_cnt] = {dir .. sep .. file, num(y), num(m), num(d), num(h), num(min) }
       end
     end
   until not file
@@ -89,7 +92,7 @@ local files = GetRPPBackups(projpath)
 
 -- Sort them by creation time
 table.sort(files, function(a,b)
-  for i = 2, 7 do
+  for i = 2, 6 do
     if a[i] ~= b[i] then
       return a[i] > b[i]
     end
@@ -100,18 +103,25 @@ end)
 -- Delete older backups if necessary
 local backup_cnt = #files
 if backup_cnt > files_to_keep then
-  local delete
-  local keepdate = {files[files_to_keep][2], files[files_to_keep][3], files[files_to_keep][4] }
-  for i = files_to_keep + 1, backup_cnt do
-    delete = true
-    for j = 2, 4 do
-      if files[i][j] ~= files[i-1][j] then
-        keepdate = {files[i][2], files[i][3], files[i][4] }
-        delete = false
-        break
+  if additionaly_keep_latest_file_per_different_date then
+    local delete
+    local keepdate = {files[files_to_keep][2], files[files_to_keep][3], files[files_to_keep][4] }
+    for i = files_to_keep + 1, backup_cnt do
+      delete = true
+      for j = 2, 4 do
+        if files[i][j] ~= files[i-1][j] then
+          keepdate = {files[i][2], files[i][3], files[i][4] }
+          delete = false
+          break
+        end
+      end
+      if delete then
+        --reaper.ShowConsoleMsg(files[i][1].."\n")
+        os.remove( files[i][1] )
       end
     end
-    if delete then
+  else
+    for i = files_to_keep + 1, backup_cnt do
       --reaper.ShowConsoleMsg(files[i][1].."\n")
       os.remove( files[i][1] )
     end
