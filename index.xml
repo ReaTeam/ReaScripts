@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="c21a5c88fa6b6ff64e1681206983523b76259d4a" name="ReaTeam Scripts">
+<index version="1" commit="4fa8d2d1bfcc7f64fc0bf645b3690e47aa7844bc" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -3137,17 +3137,18 @@ Improve "under mouse cursor" variants to work over any envelope]]></changelog>
 \widowctrl\hyphauto
 
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs24 G U I D E\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The script displays FX preset menu of the object (track or item/active take) either currently found under the mouse cursor or the last selected if LAST_SEL_OBJ option is enabled in the USER SETTINGS below, or of the currently or last focused FX chain window.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The script displays FX preset menu of the object (track or item/active take) either currently found under the mouse cursor or the last selected if LAST_SEL_OBJ option is enabled in the USER SETTINGS below, or of the currently or last focused FX chain window. With regard to track FX currently only TCP is supported.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab It's only able to list presets available in REAPER plugin wrapper drop-down list.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Since in multi-take items the menu only lists active take FX presets, if you need FX presets from a take other then the active simply click on it to have it activated.\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Track preset menu is divided into two sections, main FX menu (upper) and input FX menu (lower) if both types of FX are present. In the Master track FX preset menu instead of the preset menu for input FX a menu for Monitor FX is displayed.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Track preset menu is divided into two sections, main FX menu (upper) and input FX menu (lower) if both types of FX are present.\line In the Master track FX preset menu instead of the preset menu for input FX a menu for Monitor FX is displayed.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab If there's active preset and plugin controls configuration matches the preset settings the preset name in the menu is checkmarked.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The script can be called in the following ways:\sa180\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 1)\tx360\tab by placing the mouse cursor over the object or its FX chain window and calling the script with a shortcut assigned to it;\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 2)\tx360\tab by assigning it to a Track AND an Item mouse modifiers under {\i Preferences -> Mouse modifiers} and actually clicking the object to call it;\line If LAST_SEL_OBJ option is enabled in the USER SETTINGS below:\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 3)\tx360\tab from an object right click context menu; main menus are not reliable;\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 4)\tx360\tab from a toolbar; the toolbar must either float over the Arrange or be docked in the top or bottom dockers; Main toolbar or other docker positions are not reliable;\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 5)\tx360\tab from the Action list (which is much less practicable).\line All four can work in parallel.\line Be aware that when LAST_SEL_OBJ option is enabled and the script is run via a keyboard shortcut, the menu will be called even when the cursor is outside of the TCP/MCP or Arrange and not over an FX chain window, like over the ruler, TCP buttom, empty Mixer area or any other focused window, in which case it will display a list of the last selected object FX presets.\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 5)\tx360\tab from the Action list (which is much less practicable)\line In cases 3)-5) the object must be selected.\line All five methods can work in parallel.\line Be aware that when LAST_SEL_OBJ option is enabled and the script is run via a keyboard shortcut, the menu will be called even when the cursor is outside of the TCP or Arrange and not over an FX chain window, like over the ruler, TCP bottom, empty Mixer area or any other focused window, in which case it will display a list of the last selected object FX presets.\sa180\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab LOCK_FX_CHAIN_FOCUS option in the USER SETTINGS allows displaying presets menu for FX of the last focused open FX chain even when mouse cursor is outside of the FX chain window and it itself isn't in focus and regardless of the last selected object in case LAST_SEL_OBJ option is enabled.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab To close the menu after it's been called, without selecting any preset, either click elsewhere in REAPER or pres Esc keyboard key.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Video processor preset menu is supported from REAPER build 6.26 onwards.\sa180\par}
 }
@@ -3162,6 +3163,12 @@ Improve "under mouse cursor" variants to work over any envelope]]></changelog>
         <changelog><![CDATA[#Added support for displaying FX presets menu when FX chain is focused
 #Updated GUIDE]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d5bbd5d305c3a9ab29c84538e854cfab6843e107/FX/BuyOne_FX%20presets%20menu%20(guide%20inside).lua</source>
+      </version>
+      <version name="1.2" author="BuyOne" time="2021-07-22T22:57:44Z">
+        <changelog><![CDATA[# Preset menu of FX in a focused take FX chain is now displayed reragdless of the take being active
+# Added new option to lock FX chain focus
+# Updated guide]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4fa8d2d1bfcc7f64fc0bf645b3690e47aa7844bc/FX/BuyOne_FX%20presets%20menu%20(guide%20inside).lua</source>
       </version>
     </reapack>
     <reapack name="BuyOne_FX presets navigation.lua" type="script" desc="FX presets navigation (7 scripts)">
