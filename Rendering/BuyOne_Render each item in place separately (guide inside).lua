@@ -49,6 +49,8 @@ About:
 	UNITE option in the USER SETTINGS below allows rendering cross-faded/overlapping or contiguous items
 	as one item. For this to work all items which are meant to be rendered as one must be selected.
 
+	After rendering source items are muted. If all items on a track were rendered, then source track is muted.
+
 	Rendered item inherits the name of the source item to which 'PRE/POST' indication is appended; united
 	item inherits name of the first of the several source items out of which it's comprised. If the source
 	item doesn't have a name the rendered item is named 'RENDERED PRE/POST'.
@@ -65,13 +67,15 @@ About:
 	stems regardless of whether their parent track has any empty items. Folder parent track itself obviously
 	must not have media items on it.
 
+	After rendering the source track is muted.
+
 	Rendered item is named with the source track name (if any), to which 'RENDERED PRE/POST' indication
 	is appended.
 
 	Render track inherits color of the source track and name of the source track (if any) to which
 	'RENDERED pre/post' indication is appended (same as in 'items' mode).
 
-	####!!! DISCLAIMER: Full track stems REAPER renders natively much more efficiently with the actions:  
+	!!! DISCLAIMER: Full track stems REAPER renders natively much more efficiently with the actions:  
 	*Track: Render tracks to mono/stereo/multichannel [post-fader] stem tracks (and mute originals)*  
 	so this setting, although fully functional, is of little use, has been kept for completeness.
 
