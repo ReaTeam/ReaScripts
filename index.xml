@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="fba6aa738ea20ad873a93a2fb1a2cdd63e99db50" name="ReaTeam Scripts">
+<index version="1" commit="d4a4fed7c8006ee6b7b042136bd7b577c6de1b9d" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -14466,6 +14466,36 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
       </metadata>
       <version name="1.0" author="amagalma" time="2021-07-25T20:27:03Z">
         <source main="main" file="amagalma_Backup Limit/amagalma_Backup Limit Manual - Keep x number of most recent timestamped backups of current project file.lua">https://github.com/ReaTeam/ReaScripts/raw/fba6aa738ea20ad873a93a2fb1a2cdd63e99db50/Various/amagalma_Backup%20Limit%20Manual%20-%20Keep%20x%20number%20of%20most%20recent%20timestamped%20backups%20of%20current%20project%20file.lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Backup Limit Settings - Keep x number of most recent timestamped backups of current project file.lua" type="script" desc="Backup Limit Settings - Keep x number of most recent timestamped backups of current project file">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 The pack consists of three scripts (all have "- Keep x number of most recent timestamped backups of current project file" as a suffix):\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab amagalma_Backup Limit Manual\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab amagalma_Backup Limit Automatic\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Backup Limit Settings\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The Manual version of the script (1) performs a manual cleanup according to the settings. It has the following features:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Automatically takes care of backup files created in the current project directory and in the additional directory if set (both with absolute or relative path)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Works for both saved or unsaved ("untitled") projects\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Supports all timestamp formats (both with seconds precision or not)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Has two different modes, according to the settings (keep_one_file_per_date or not)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Can be combined with the Save action (40026) into a custom action, so that it tides things up each time you save\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The Automatic version (2) is a "set and forget" version of the manual version of the script.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab A few moments after a backup file is created, it runs automatically the manual version.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab It is as light on CPU as it can be!\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Can be set on a toolbar if you like, or you can set it as a startup action.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 With the Settings script (3) you can set how many backup files you want to keep (default backup limit = 5) and choose if you want the keep_one_file_per_date mode enabled (default = no). keep_one_file_per_date mode, if enabled, is useful if you do not want to delete all backups earlier than the backup limit that you have set, so that you can return to the state that your project had in a past date.\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=255909</link>
+        <link rel="donation">https://www.paypal.me/amagalma</link>
+      </metadata>
+      <version name="1.0" author="amagalma" time="2021-07-25T20:29:46Z">
+        <source main="main" file="amagalma_Backup Limit/amagalma_Backup Limit Settings - Keep x number of most recent timestamped backups of current project file.lua">https://github.com/ReaTeam/ReaScripts/raw/d4a4fed7c8006ee6b7b042136bd7b577c6de1b9d/Various/amagalma_Backup%20Limit%20Settings%20-%20Keep%20x%20number%20of%20most%20recent%20timestamped%20backups%20of%20current%20project%20file.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Calculate difference in LUFS when take and track FX are applied to selected item via dry run.lua" type="script" desc="Calculate difference in LUFS when take and track FX are applied to selected item via dry run">
