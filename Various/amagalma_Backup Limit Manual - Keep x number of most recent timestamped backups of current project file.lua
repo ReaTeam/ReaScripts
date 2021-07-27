@@ -1,6 +1,7 @@
 -- @description Backup Limit Manual - Keep x number of most recent timestamped backups of current project file
 -- @author amagalma
--- @version 1.0
+-- @version 1.01
+-- @changelog - Fix relative/absolute path recognition for OSX/Linux
 -- @provides . > amagalma_Backup Limit/amagalma_Backup Limit Manual - Keep x number of most recent timestamped backups of current project file.lua
 -- @link https://forum.cockos.com/showthread.php?t=255909
 -- @donation https://www.paypal.me/amagalma
@@ -46,8 +47,15 @@ local ini = reaper.get_ini_file()
 local function GetAdditionalDir(projpath)
   local autosavedir = ({reaper.BR_Win32_GetPrivateProfileString( "reaper", "autosavedir", "", ini )})[2]
   if autosavedir ~= "" then
-    if autosavedir:match("%:") then -- path is absolute
-    else
+    local absolute
+    if match(reaper.GetOS(), "Win") then
+      if autosavedir:match("^%a:\\") or autosavedir:match("^\\\\") then
+        absolute = true
+      end
+    else -- unix
+      absolute = autosavedir:match("^/")
+    end
+    if not absolute then
       if projpath then
         autosavedir = projpath .. sep .. autosavedir
       else
