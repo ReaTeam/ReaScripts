@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="623f16f6c47c8824708d4b157b4ebc0b67bfb3f9" name="ReaTeam Scripts">
+<index version="1" commit="2da5bf427cfda295dfff14fd3781104aadb575a2" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -14496,6 +14496,10 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
       </metadata>
       <version name="1.0" author="amagalma" time="2021-07-25T20:27:03Z">
         <source main="main" file="amagalma_Backup Limit/amagalma_Backup Limit Manual - Keep x number of most recent timestamped backups of current project file.lua">https://github.com/ReaTeam/ReaScripts/raw/fba6aa738ea20ad873a93a2fb1a2cdd63e99db50/Various/amagalma_Backup%20Limit%20Manual%20-%20Keep%20x%20number%20of%20most%20recent%20timestamped%20backups%20of%20current%20project%20file.lua</source>
+      </version>
+      <version name="1.01" author="amagalma" time="2021-07-27T13:41:52Z">
+        <changelog><![CDATA[- Fix relative/absolute path recognition for OSX/Linux]]></changelog>
+        <source main="main" file="amagalma_Backup Limit/amagalma_Backup Limit Manual - Keep x number of most recent timestamped backups of current project file.lua">https://github.com/ReaTeam/ReaScripts/raw/2da5bf427cfda295dfff14fd3781104aadb575a2/Various/amagalma_Backup%20Limit%20Manual%20-%20Keep%20x%20number%20of%20most%20recent%20timestamped%20backups%20of%20current%20project%20file.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Backup Limit Settings - Keep x number of most recent timestamped backups of current project file.lua" type="script" desc="Backup Limit Settings - Keep x number of most recent timestamped backups of current project file">
