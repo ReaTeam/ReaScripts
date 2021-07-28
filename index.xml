@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="2da5bf427cfda295dfff14fd3781104aadb575a2" name="ReaTeam Scripts">
+<index version="1" commit="9cdacd6ab2a71586e4581c786b3041bc25b5b61f" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -12181,14 +12181,16 @@ Replace GetLastWord func with quicker solution (Thanks: Mespotine[t=233393]).]]>
 {\pard \ql \f0 \sa180 \li0 \fi0 Conversely, to render exactly 1 track (i.e. all items on such track) along with a bunch of selected items elsewhere, add all items on such track to selection.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Selected tracks with no items are ignored. Folders are rendered provided their parent track has selected empty items which encompass part of the folder contents.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 UNITE option in the USER SETTINGS below allows rendering cross-faded/overlapping or contiguous items as one item. For this to work all items which are meant to be rendered as one must be selected.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 After rendering source items are muted. If all items on a track were rendered, then source track is muted.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Rendered item inherits the name of the source item to which 'PRE/POST' indication is appended; united item inherits name of the first of the several source items out of which it's comprised. If the source item doesn't have a name the rendered item is named 'RENDERED PRE/POST'.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Render track inherits color of the source track and name of the source track (if any) to which 'RENDERED pre/post' indication is appended.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \u9619? \u9642? When TRACKS_OR_ITEMS option is set to 'tracks'\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 A track is rendered to a solid stem regardless of whether the track or its items are selected.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Selected tracks with no items are ignored unless the're folder parents. Thus folders are rendered to full stems regardless of whether their parent track has any empty items. Folder parent track itself obviously must not have media items on it.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 After rendering the source track is muted.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Rendered item is named with the source track name (if any), to which 'RENDERED PRE/POST' indication is appended.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Render track inherits color of the source track and name of the source track (if any) to which 'RENDERED pre/post' indication is appended (same as in 'items' mode).\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 ####!!! DISCLAIMER: Full track stems REAPER renders natively much more efficiently with the actions:\line {\i Track: Render tracks to mono/stereo/multichannel [post-fader] stem tracks (and mute originals)}\line so this setting, although fully functional, is of little use, has been kept for completeness.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 !!! DISCLAIMER: Full track stems REAPER renders natively much more efficiently with the actions:\line {\i Track: Render tracks to mono/stereo/multichannel [post-fader] stem tracks (and mute originals)}\line so this setting, although fully functional, is of little use, has been kept for completeness.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \u9619? GLOBAL OPTIONS (affecting objects in both abovelisted modes)\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \u9642?\u9642? TAIL\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 TAIL is designed to allow rendering tail of track time domain effects (reverb/delay).\par}
@@ -12210,7 +12212,7 @@ Replace GetLastWord func with quicker solution (Thanks: Mespotine[t=233393]).]]>
       </metadata>
       <version name="1.0" author="BuyOne" time="2021-07-21T22:08:53Z">
         <changelog><![CDATA[Initial release]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/5158ae6b4454adea6935f6df653571563a0583a2/Rendering/BuyOne_Render%20each%20item%20in%20place%20separately%20(guide%20inside).lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/9cdacd6ab2a71586e4581c786b3041bc25b5b61f/Rendering/BuyOne_Render%20each%20item%20in%20place%20separately%20(guide%20inside).lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Apply render preset.lua" type="script" desc="Apply render preset">
