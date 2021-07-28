@@ -1,214 +1,88 @@
 --[[
-ReaScript name: Render each item in place separately
+ReaScript name: FX presets menu
 Author: BuyOne
 Website: https://forum.cockos.com/member.php?u=134058
-Version: 1.0
-Changelog: Initial release
+Version: 1.2
+Changelog:  # Preset menu of FX in a focused take FX chain is now displayed reragdless of the take being active
+	    # Added new option to lock FX chain focus
+	    # Updated guide
 Provides: [main] .
 About:
 
 	#### G U I D E
 
-	The script functions in 2 modes enabled with TRACKS_OR_ITEMS option in the USER SETTINGS below:  
-	A) rendering each item separately B) rendering track stems
+	- The script displays FX preset menu of the object (track or item/active take)
+	either currently found under the mouse cursor or the last selected if LAST_SEL_OBJ
+	option is enabled in the USER SETTINGS below, or of the currently or last focused
+	FX chain window. With regard to track FX currently only TCP is supported.
 
-	▓ ▪ When TRACKS_OR_ITEMS option is set to 'items'
+	- It's only able to list presets available in REAPER plugin wrapper drop-down list.
 
-	Selected items are rendered when there's:  
-	A) 1 selected item and no selected tracks  
-	B) 1 selected track and more than 1 selected item, in which case only items are considered  
-	C) more than 1 selected item and more than 1 selected track, a hybrid selection
+	- Since in multi-take items the menu only lists active take FX presets, if you need
+	FX presets from a take other then the active simply click on it to have it activated.
 
-	All items on selected tracks are rendered when there's:  
-	A) 1 selected track and no selected items  
-	B) 1 selected item and more than 1 selected tracks, in which case only tracks are considered  
-	C) more than 1 selected track and more than 1 selected item, a hybrid selection
+	- Track preset menu is divided into two sections, main FX menu (upper) and 
+	input FX menu (lower) if both types of FX are present.   
+	In the Master track FX preset menu instead of the preset menu for input FX a menu 
+	for Monitor FX is displayed.
 
-	If all selected items sit on selected tracks even if they don't comprise all items on such tracks,
-	the selected tracks will be considered and not the selected items hence all items on such tracks
-	will be rendered.
+	- If there's active preset and plugin controls configuration matches the preset settings
+	the preset name in the menu is checkmarked.
 
-	If there's exactly 1 selected track and 1 selected item a prompt appears.
+	- The script can be called in the following ways:  
+	1) by placing the mouse cursor over the object or its FX chain window and calling
+	the script with a shortcut assigned to it;  
+	2) by assigning it to a Track AND an Item mouse modifiers under *Preferences -> Mouse modifiers*
+	and actually clicking the object to call it;  
+	If LAST_SEL_OBJ option is enabled in the USER SETTINGS below:  
+	3) from an object right click context menu; main menus are not reliable;  
+	4) from a toolbar; the toolbar must either float over the Arrange or be docked in the top
+	or bottom dockers; Main toolbar or other docker positions are not reliable;  
+	5) from the Action list (which is much less practicable)  
+	In cases 3)-5) the object must be selected.  
+	All five methods can work in parallel.  
+	Be aware that when LAST_SEL_OBJ option is enabled and the script is run via a keyboard shortcut,
+	the menu will be called even when the cursor is outside of the TCP or Arrange and not over 
+	an FX chain window, like over the ruler, TCP bottom, empty Mixer area or any other focused window,
+	in which case it will display a list of the last selected object FX presets.
+	
+	- LOCK_FX_CHAIN_FOCUS option in the USER SETTINGS allows displaying presets menu for FX of the last 
+	focused open FX chain even when mouse cursor is outside of the FX chain window and it itself isn't 
+	in focus and regardless of the last selected object in case LAST_SEL_OBJ option is enabled.
 
-	The setup prevents rendering 1 item along with several tracks as well as 1 track along with several
-	items to safeguard against accidental rendering since normally at least 1 item and 1 track are always
-	selected.
+	- To close the menu after it's been called, without selecting any preset, either click elsewhere
+	in REAPER or pres Esc keyboard key.
+	
+	- Video processor preset menu is supported from REAPER build 6.26 onwards.
+	
 
-	In order to still be able to render exactly 1 item along with several tracks (i.e. all items on
-	several tracks), add to item selection another item on any such track thereby making the selection
-	hybrid which is supported. Such other selected item on selected track won't affect the result since
-	as mentioned above as long as track is selected all its items will be rendered regardless of whether
-	any of them is selected or not.
-
-	Conversely, to render exactly 1 track (i.e. all items on such track) along with a bunch of selected
-	items elsewhere, add all items on such track to selection.
-
-	Selected tracks with no items are ignored. Folders are rendered provided their parent track has selected
-	empty items which encompass part of the folder contents.
-
-	UNITE option in the USER SETTINGS below allows rendering cross-faded/overlapping or contiguous items
-	as one item. For this to work all items which are meant to be rendered as one must be selected.
-
-	After rendering source items are muted. If all items on a track were rendered, then source track is muted.
-
-	Rendered item inherits the name of the source item to which 'PRE/POST' indication is appended; united
-	item inherits name of the first of the several source items out of which it's comprised. If the source
-	item doesn't have a name the rendered item is named 'RENDERED PRE/POST'.
-
-	Render track inherits color of the source track and name of the source track (if any) to which
-	'RENDERED pre/post' indication is appended.
-
-
-	▓ ▪ When TRACKS_OR_ITEMS option is set to 'tracks'
-
-	A track is rendered to a solid stem regardless of whether the track or its items are selected.
-
-	Selected tracks with no items are ignored unless the're folder parents. Thus folders are rendered to full
-	stems regardless of whether their parent track has any empty items. Folder parent track itself obviously
-	must not have media items on it.
-
-	After rendering the source track is muted.
-
-	Rendered item is named with the source track name (if any), to which 'RENDERED PRE/POST' indication
-	is appended.
-
-	Render track inherits color of the source track and name of the source track (if any) to which
-	'RENDERED pre/post' indication is appended (same as in 'items' mode).
-
-	!!! DISCLAIMER: Full track stems REAPER renders natively much more efficiently with the actions:  
-	*Track: Render tracks to mono/stereo/multichannel [post-fader] stem tracks (and mute originals)*  
-	so this setting, although fully functional, is of little use, has been kept for completeness.
-
-
-	▓ GLOBAL OPTIONS (affecting objects in both abovelisted modes)
-
-	▪▪ TAIL
-
-	TAIL is designed to allow rendering tail of track time domain effects (reverb/delay).
-
-	If TAIL value isn't set or the setting is malformed it is ignored and instead the setting
-	*'Default tail length: .. ms render tails when: Rendering stems for time selection via action'*
-	at *'Preferences -> Audio -> Rendering'* will have effect if enabled.  
-	If it's set and properly formatted and the said setting in REAPER Preferences is enabled as well
-	their time values will be combined.
-
-	In TRACKS_OR_ITEMS 'items' mode in order to render long tail of the very last item on the track,
-	set the target value in seconds in the TAIL option. If gaps between other items happen to be shorter,
-	their tails will only extend up to the next item. If there's no gap between items, tail isn't rendered.
-
-	Take FX tail length setting at  
-	*'Preferences -> Media -> Tail length when using Apply FX to items/Take FX tail length'*
-	isn't relevant for rendering with this script. To preserve tail, TAIL option in the USER SETTINGS
-	or *'Default tail length: .. ms render tails when: Rendering stems for time selection via action'*
-	setting at *'Preferences -> Audio -> Rendering'* must be used.
-
-	▪▪ MANAGE_SRC_TRACK
-
-	MANAGE_SRC_TRACK option allows hiding from both TCP and MCP or deleting the source track after rendering.  
-	Its setting only applies to a source track when either all of its individual items were rendered or the
-	entire track was rendered to a single stem.
-
-
-	▓ SOME USEFUL INFO
-
-	Whether time domain take FX of one item are cut off by the next item depends on REAPER settings.  
-	The behavior can be set to 'Items always mix' in 'Item mix behavior' menu EITHER in the next media item
-	*'Media Item Properties'* dialogue (default shortcut F2) OR globally for project at
-	*'Project settings -> Advanced tab'*.
-
-	If time domain effects used in FX chains of items overlap it's pereferable to render full track stems
-	instead of separate items.
-
-	Rendering file format is defined at *'Project settings -> Media tab -> Format for Apply, Glue, Freeze etc'*.
-
-	As already mentioned, REAPER rendering settings can be found at *'Preferences -> Audio -> Rendering'*.   
-	If *'Limit Apply FX/render stems to real time'* setting is ON and all items on the track are being rendered,
-	soloing the source track mutes playback of all items on the track bar the very first one while rendering
-	which may be helpful.
-
-	Something to be aware of is that when rendering is aborted with 'Cancel' button in the render dialogue
-	the files whose rendering has been completed by that point aren't deleted and are kept in the folder
-	at the render path even though they may not appear as items in REAPER.
-
-
-	Licence: WTFPL
-	REAPER: at least v5.962
+Licence: WTFPL
+REAPER: at least v5.962
 
 ]]
 
 -----------------------------------------------------------------------------
 ------------------------------ USER SETTINGS --------------------------------
 -----------------------------------------------------------------------------
--- Pre-fader prints take properties, track FX and their automation, track
---   playback offset, pre-FX volume, pan, width and volume trim automation,
---   doesn't print track TCP volume, pan, width, mute settings and
---   their automation
--- Post-fader prints all of the above
--- FX returns aren't printed, instead sends and receives are retained in
---   the render track
--- Insert appropriate setting between the quotation marks.
+-- To enable the option place any alphanumeric character between the quotation marks.
 -- Try to not leave empty spaces.
--- Fall-back settings in case the entry is malformed or not set:
--- TRACKS_OR_ITEMS - items; FADER - post; CHAN - stereo; MANAGE - no action
 
-local TRACKS_OR_ITEMS = "items" -- tracks or items // empty = items
-local FADER = "post" -- pre or post // empty = post
-local CHAN = "stereo" -- mono, stereo or multi // empty = stereo
-local TAIL = "" -- include delay|reverb tail // number in seconds (fractionals are supported) or leave empty
-local UNITE = "1" -- render cross-faded|overlapping or contiguous items as one // any alphanumeric character or leave empty
-local MANAGE_SRC_TRACK = "" -- hide, del or leave empty // only if all items on track were rendered
+local LAST_SEL_OBJ = "" -- if mouse cursor is outside of Arrange/TCP, e.g. docked toolbar button click
+local LOCK_FX_CHAIN_FOCUS = "" -- if FX chain window is open and was last focused
 
 -----------------------------------------------------------------------------
 -------------------------- END OF USER SETTINGS -----------------------------
 -----------------------------------------------------------------------------
 
-function Msg(param, cap)
+
+function Msg(param, cap) -- caption second or none
 local cap = cap and type(cap) == 'string' and #cap > 0 and cap..' = ' or ''
 reaper.ShowConsoleMsg(cap..tostring(param)..'\n')
 end
 
 local r = reaper
 
-local function no_undo() end
-
-
-local function ACT(comm_ID) -- both string and integer work
-r.Main_OnCommand(r.NamedCommandLookup(comm_ID),0)
-end
-
-local sett = {
-		pre = {
-		mono = 41721, -- Track: Render selected area of tracks to mono stem tracks (and mute originals)
-		stereo = 41719, -- Track: Render selected area of tracks to stereo stem tracks (and mute originals)
-		multi = 41720 -- Track: Render selected area of tracks to multichannel stem tracks (and mute originals)
-		},
-		post = {
-		mono = 41718, -- Track: Render selected area of tracks to mono post-fader stem tracks (and mute originals)
-		stereo = 41716, -- Track: Render selected area of tracks to stereo post-fader stem tracks (and mute originals)
-		multi = 41717 -- Track: Render selected area of tracks to multichannel post-fader stem tracks (and mute originals)
-		},
-		{'', -- no action
-		hide = 41593, -- Track: Hide tracks in TCP and mixer
-		del = 40005 -- Track: Remove tracks
-		}
-	}
-
-
-local TAIL = tonumber(TAIL)
-local TAIL = TAIL and TAIL < 0 and TAIL*-1 or TAIL -- avoid negative values
-local UNITE = UNITE:gsub(' ', '') ~= ''
--- get rid of empty spaces if any
-local FADER = FADER:gsub(' ','')
-local CHAN = CHAN:gsub(' ','')
-local MANAGE_SRC_TRACK = MANAGE_SRC_TRACK:gsub(' ','')
--- define fallback settings in case user entry is incorrect
-local FADER = (not (FADER == 'pre' or FADER == 'post') or #FADER == 0) and 'post' or FADER -- fallback is post
-local CHAN = (not (CHAN == 'mono' or CHAN == 'stereo' or CHAN == 'multi') or #CHAN == 0) and 'stereo' or CHAN -- fallback is stereo
-local MANAGE_SRC_TRACK = (not (MANAGE_SRC_TRACK == 'hide' or MANAGE_SRC_TRACK == 'del') or #MANAGE_SRC_TRACK == 0) and 1 or MANAGE_SRC_TRACK -- fallback is no action
-local TRACKS_OR_ITEMS = (not (TRACKS_OR_ITEMS == 'items' or TRACKS_OR_ITEMS == 'tracks') or #TRACKS_OR_ITEMS == 0) and 'items' or TRACKS_OR_ITEMS
-
-
-local function StoreSelectedObjects()
+function StoreSelectedObjects()
 
 -- Store selected items
 local sel_itms_cnt = r.CountSelectedMediaItems(0)
@@ -235,11 +109,10 @@ return itm_sel_t, trk_sel_t
 end
 
 
-local function RestoreSavedSelectedObjects(itm_sel_t, trk_sel_t)
--- selection state is restored if objects both were and weren't selected
+function RestoreSavedSelectedObjects(itm_sel_t, trk_sel_t)
 
-r.Main_OnCommand(40289,0) -- Item: Unselect all items
 	if #itm_sel_t > 0 then
+	r.Main_OnCommand(40289,0) -- Item: Unselect all items
 	local i = 0
 		while i < #itm_sel_t do
 		r.SetMediaItemSelected(itm_sel_t[i+1],1)
@@ -247,9 +120,9 @@ r.Main_OnCommand(40289,0) -- Item: Unselect all items
 		end
 	end
 
-r.Main_OnCommand(40297,0) -- Track: Unselect all tracks
-r.SetTrackSelected(r.GetMasterTrack(0),0) -- unselect Master
-	if #trk_sel_t > 0 then
+	if #trk_sel_t > 0 then -- not needed if Master track is being gotten without its selection
+	r.Main_OnCommand(40297,0) -- Track: Unselect all tracks
+	r.SetTrackSelected(r.GetMasterTrack(0),0) -- unselect Master
 		for _,v in next, trk_sel_t do
 		r.SetTrackSelected(v,1)
 		end
@@ -260,296 +133,425 @@ r.TrackList_AdjustWindows(0)
 end
 
 
-local function count_track_sel_items(tr, tr_itm_cnt)
-local counter = 0
-	for i = 0, tr_itm_cnt-1 do
-	local item = r.GetTrackMediaItem(tr, i)
-		if r.IsMediaItemSelected(item) then counter = counter+1 end
-	end
-	return counter
+local function GetObjChunk(obj, obj_type)
+-- https://forum.cockos.com/showthread.php?t=193686
+-- https://raw.githubusercontent.com/EUGEN27771/ReaScripts_Test/master/Functions/FXChain
+-- https://github.com/EUGEN27771/ReaScripts/blob/master/Various/FXRack/Modules/FXChain.lua
+		if not obj then return end
+  -- Try standard function -----
+	local t = obj_type == 0 and {r.GetTrackStateChunk(obj, '', false)} or {r.GetItemStateChunk(obj, '', false)} -- isundo = false
+	local ret, obj_chunk = table.unpack(t)
+		if ret and obj_chunk and #obj_chunk > 4194303 and not r.APIExists('SNM_CreateFastString') then return 'err_mess'
+		elseif ret and obj_chunk and #obj_chunk < 4194303 then return ret, obj_chunk -- 4194303 bytes = (4096 kb * 1024 bytes) - 1 byte
+		end
+-- If chunk_size >= max_size, use wdl fast string --
+	local fast_str = r.SNM_CreateFastString('')
+		if r.SNM_GetSetObjectState(obj, fast_str, false, false) then
+		obj_chunk = r.SNM_GetFastString(fast_str)
+		end
+	r.SNM_DeleteFastString(fast_str)
+		if obj_chunk then return true, obj_chunk end
 end
 
 
-local sel_trk_cnt = r.CountSelectedTracks(0)
-local sel_itm_cnt = r.CountSelectedMediaItems(0)
+function Err_mess() -- if chunk size limit is exceeded and SWS extension isn't installed
 
-	if sel_itm_cnt + sel_trk_cnt == 0 then err = 'No selected objects.'
-	elseif sel_trk_cnt > 0 and sel_itm_cnt == 0 then -- count items on selected tracks
-	local itm_cnt = 0
-	local fldr_cnt = 0
-		for i = 0, r.CountSelectedTracks(0)-1 do
-		local tr = r.GetSelectedTrack(0,i)
-		itm_cnt = itm_cnt + r.CountTrackMediaItems(tr)
-		fldr_cnt = ({r.GetTrackState(tr)})[2]&1 == 1 and fldr_cnt + 1 or fldr_cnt
-		end
-		if itm_cnt == 0 and TRACKS_OR_ITEMS ~= 'tracks' then err = 'No items on selected tracks.'
-		elseif itm_cnt + fldr_cnt == 0 and TRACKS_OR_ITEMS == 'tracks' then err = '    No items on selected tracks\n\nand no selected track is a folder.'
-		end
-	end
-	if err then r.MB(err,'ERROR',0) return r.defer(no_undo) end
+	local sws_ext_err_mess = "              The size of data requires\n\n     the SWS/S&M extension to handle it.\n\nIf it's installed then it needs to be updated.\n\n         After clicking \"OK\" a link to the\n\n SWS extension website will be provided\n\n\tThe script will now quit."
+	local sws_ext_link = 'Get the SWS/S&M extension at\nhttps://www.sws-extension.org/\n\n'
 
-	if sel_itm_cnt == 1 and sel_trk_cnt == 1 and TRACKS_OR_ITEMS ~= 'tracks' then
-	resp = r.MB('  Exactly one item and one track are selected.\n\n "YES\" - to render item   \"NO\" - to render track.\n\n    If you wish to render both, click  \"CANCEL\"\n\n         and select all items on selected track.','PROMPT',3)
-		if resp == 2 then return r.defer(no_undo) end
-	end
-
-
-local items, tracks = StoreSelectedObjects()
-
-
-local only_itms = sel_trk_cnt < 2 and sel_itm_cnt > 1 or sel_trk_cnt == 0 and sel_itm_cnt >= 1
-local only_trks = sel_itm_cnt < 2 and sel_trk_cnt > 1 or sel_itm_cnt == 0 and sel_trk_cnt >= 1
-local hybrid_sel = sel_itm_cnt >= 2 and sel_trk_cnt >= 2
-local items_cond = only_itms or hybrid_sel or resp == 6 or TRACKS_OR_ITEMS == 'tracks'
-local tracks_cond = only_trks or hybrid_sel or resp == 7 or TRACKS_OR_ITEMS == 'tracks'
-
-
-local function Get_Folder_Rightmost_Item_RightEdge(tr)
-
-local is_folder = ({r.GetTrackState(tr)})[2]&1 == 1
-local par_tr_depth = r.GetTrackDepth(tr)
-local idx = r.CSurf_TrackToID(tr, false)
-local rightmost_itm_r_edge = 0
-	if is_folder then
-		for i = idx, r.CountTracks(0)-1 do
-		local tr = r.GetTrack(0,i) -- next track after folder parent/1st child track
-		local tr_depth = r.GetTrackDepth(tr)
-			if tr_depth <= par_tr_depth or tr_depth == 0 then break end -- either the same or higher nested level within higher level folder or a regular track (outside of the folder)
-		local tr_item_cnt = r.CountTrackMediaItems(tr)
-			if tr_item_cnt > 0 then
-			local tr_last_itm = r.GetTrackMediaItem(tr, r.CountTrackMediaItems(tr)-1)
-			local tr_last_itm_r_edge = r.GetMediaItemInfo_Value(tr_last_itm, 'D_POSITION') + r.GetMediaItemInfo_Value(tr_last_itm, 'D_LENGTH')
-			rightmost_itm_r_edge = tr_last_itm_r_edge > rightmost_itm_r_edge and tr_last_itm_r_edge or rightmost_itm_r_edge
-			end
-		end
-	end
-
-return rightmost_itm_r_edge
-
+	local resp = r.MB(sws_ext_err_mess,'ERROR',0)
+		if resp == 1 then r.ShowConsoleMsg(sws_ext_link, r.ClearConsole()) return end
 end
 
-local t = {}
 
-	for i = 0, r.CSurf_NumTracks(false)-1 do -- mcpView is false
-	local tr = r.GetTrack(0,i)
-	local track_sel = r.IsTrackSelected(tr)
-	local is_folder = ({r.GetTrackState(tr)})[2]&1 == 1
-	local tr_itm_cnt = r.CountTrackMediaItems(tr)
-	local tr_sel_itm_cnt = count_track_sel_items(tr, tr_itm_cnt)
-		if track_sel and (tr_itm_cnt > 0 or is_folder) and tracks_cond -- to avoid creating an empty track nested table skip selected track with no selected items unless either other tracks are selected or no items are selected or dialogue response equals 7 (render track), i.e. only consider selected track if there're either other tracks selected or no items selected (covered by only_trks and hybrid_sel conditions) or dialogue response equals 7 (render track); do not store tracks with no items unless they're folders which is relevant for when TRACKS_OR_ITEMS is set to 'tracks'
-		or tr_sel_itm_cnt > 0 and items_cond -- same rationale, only allow creating nested table when either besides track selected items other items are selected or no tracks are selected or dialogue response equals 6 or TRACKS_OR_ITEMS is set to 'tracks'
-		then
-		t[tr] = {} -- save tracks as pointers since their index will change as render tracks are created
-		t[tr].tr_mute = false
-			if tr_itm_cnt == tr_sel_itm_cnt or only_trks or resp == 7 or hybrid_sel and track_sel then
-			t[tr].tr_mute = true -- to evaluate later for muting track if all or none of its items are selected
-			end
-			for j = 0, tr_itm_cnt-1 do
-			local item = r.GetTrackMediaItem(tr, j)
-			local item_sel = r.IsMediaItemSelected(item)
-				if track_sel and tracks_cond then -- collect all track items if track is selected under the listed conditions
-				t[tr][#t[tr]+1] = j -- could be a dummy value as index suffices
-				elseif item_sel and items_cond then -- collect all selected items on track if it itself is not selected under the listed conditions
-				t[tr][#t[tr]+1] = j -- same
+function FX_Chain_Chunk(chunk, path, sep, type, take_GUID) -- isolate object fx chain, for tracks exclude items, for items exclude takes other than the active one; type arg is set within the routine
+
+	if chunk and #chunk > 0 then
+		if take_GUID then -- take fx chain
+		fx_chunk = chunk:match(take_GUID..'.-(<TAKEFX.->)\nTAKE') or chunk:match(take_GUID..'.-(<TAKEFX.->)\n<ITEM') or chunk:match(take_GUID..'.-(<TAKEFX.*>)\n>')
+		else
+			if type == 0 then -- track main fx chain
+		fx_chunk = chunk:match('(<FXCHAIN.*>)\n<FXCHAIN_REC') or chunk:match('(<FXCHAIN.->)\n<ITEM') or chunk:match('(<FXCHAIN.*WAK.*>)\n>')
+			elseif type == 1 then -- track input fx chain
+				if chunk:match('<FXCHAIN_REC') then -- regular track input fx
+				fx_chunk = chunk:match('(<FXCHAIN_REC.->)\n<ITEM') or chunk:match('(<FXCHAIN_REC.*WAK.*>)\n>')
+				else -- monitor fx of the master track, extract fx chunk from reaper-hwoutfx.ini
+				local f = io.open(path..sep..'reaper-hwoutfx.ini', 'r')
+				fx_chunk = f:read('*a')
+				f:close()
 				end
 			end
 		end
 	end
 
-
-	
-
------- MAIN ROUTINE START ------
+	return fx_chunk
+end
 
 
-r.PreventUIRefresh(1)
-r.Undo_BeginBlock()
+function Collect_VideoProc_Instances(fx_chunk)
 
-local rend_trks_t = {}
+local video_proc_t = {} -- collect indices of video processor instances, because detection by fx name is unreliable as not all its preset names contain 'video processor' phrase due to length
+local counter = 0 -- to store indices of video processor instances
 
-	for k, v in pairs(t) do -- traverse tracks
-	local counter = 0 -- to conditon deletion of redundant render tracks within items render loop below
-	ACT(40297) -- Track: Unselect all tracks // not really necessary
-	r.SetOnlyTrackSelected(k)
-	local _, tr_name = r.GetTrackName(k)
-	local tr_itm_cnt = r.CountTrackMediaItems(k)
-	local is_folder = ({r.GetTrackState(k)})[2]&1 == 1
-	local tr_name = tr_name:match('Track %d*') and '' or tr_name..' - ' -- if generic name because the track isn't named, discard
-	local color = r.GetMediaTrackInfo_Value(k, 'I_CUSTOMCOLOR')
-		-- RENDER FULL TRACK STEMS --
-		if TRACKS_OR_ITEMS == 'tracks' then
-		r.SetOnlyTrackSelected(k)
-		local tr_itm_cnt = r.CountTrackMediaItems(k)
-		-- use the same actions and only extend time selection if TAIL
-		ACT(40289) -- Item: Unselect all items
-		ACT(40421) -- Item: Select all items in track
-		ACT(40290) -- Time selection: Set time selection to items
-		local start, fin = r.GetSet_LoopTimeRange(false, false, 0, 0, false) -- GET // isSet, isLoop, start, end, allowautoseek
-		local fin = is_folder and Get_Folder_Rightmost_Item_RightEdge(k) or fin -- if folder, extent time selection to the right edge of the last item therein
-		local start, fin = r.GetSet_LoopTimeRange(true, false, 0, fin, false) -- SET
-			if TAIL then
-			r.GetSet_LoopTimeRange(true, false, start, fin + TAIL, false) -- extend time selection by TAIL value
-			end
-		ACT(sett[FADER][CHAN])
-		------------ Abort when aborted by the user --------------
-		if r.IsTrackSelected(k) then -- when render is aborted by the user via render dialogue the source track stays selected which is used as condition to stop the script, otherwise when rendering runs its course completely render track ends up being selected
-		ACT(40635) -- Time selection: Remove time selection
-		RestoreSavedSelectedObjects(items, tracks)
-		return r.defer(no_undo) end
-		----------------------------------------------------------
-		-- store render track irrespective of its selection
-		rend_tr = r.CSurf_TrackToID(r.GetSelectedTrack(0,0), false) -- global to be used below in item naming routine
-		rend_tr = r.GetTrack(0, rend_tr-1)
-		r.GetSetMediaItemTakeInfo_String(r.GetActiveTake(r.GetTrackMediaItem(rend_tr,0)), 'P_NAME', tr_name..'RENDERED '..FADER:upper(), 1) -- rename rendered item
-		else -- TRACKS_OR_ITEMS is set to 'items' or empty
-		local take_name_t = {}
-			-- RENDER ITEMS --
-			for key, it_idx in ipairs(v) do -- traverse track items
-			local unite
-				if key ~= 'tr_mute'	then
-				ACT(40289) -- Item: Unselect all items
-				local item = r.GetTrackMediaItem(k, it_idx)
-				local take = r.GetActiveTake(item)
-				local take_name = take and select(2,r.GetSetMediaItemTakeInfo_String(take, 'P_NAME', '', 0)) or 'RENDERED' -- GET
-				take_name_t[#take_name_t+1] = take_name
-				r.SetMediaItemSelected(item, true)
-				ACT(40290) -- Time selection: Set time selection to items
-				-------------------------------------------------------------------
-					if UNITE then -- render cross-faded/overlapping or contiguous selected items together
-					local item = r.GetTrackMediaItem(k, it_idx)
-					local next_itm = v[key+1] and r.GetTrackMediaItem(k, v[key+1]) -- safeguard against error in cases where only single item is selected and UNITE is ON in which case the table will only contain a single item entry
-					local r_edge = r.GetMediaItemInfo_Value(item, 'D_POSITION') + r.GetMediaItemInfo_Value(item, 'D_LENGTH')
-					local pos_next = next_itm and r.GetMediaItemInfo_Value(next_itm, 'D_POSITION') or r_edge + 1 -- the 'or' alternative is there to prevent next 'if' conditions being true in case next item is not contiguous/cross-faded/overlapping with the first one
-						if r_edge == pos_next or r_edge > pos_next then -- if contiguous or cross-faded/overlapping
-						r.SetMediaItemSelected(next_itm, true) -- select the 2nd of items to be rendered together
-						ACT(40290) -- Time selection: Set time selection to items
-						unite = 1 -- set true for evaluation below
-						end
-					end
-				-------------------------------------------------------------------
-					if TAIL then -- extend time selection rightwards to the nearest item
-					local next_itm = unite and r.GetTrackMediaItem(k, it_idx+2) or not unite and r.GetTrackMediaItem(k, it_idx+1) -- if unite skip to 1 item ahead else go to the next
-					local pos_next = next_itm and r.GetMediaItemInfo_Value(next_itm, 'D_POSITION') -- get pos of the next item
-					local start, fin = r.GetSet_LoopTimeRange(false, false, 0, 0, false) -- isSet, isLoop, start, end, allowautoseek // item time selection params
-					local fin_new = pos_next and fin + TAIL >= pos_next and pos_next or fin + TAIL -- if last item extend time sel by 8 sec
-					r.GetSet_LoopTimeRange(true, false, start, fin_new, false)
-					end
-				ACT(sett[FADER][CHAN]) -- Track: Render selected area of tracks to [depends on user settings] stem tracks (and mute originals) // item selection sticks, track selection changes to the one with rendered item placed above the original
-					------------ Abort when aborted by the user --------------
-					if r.IsTrackSelected(k) then -- when render is aborted by the user via render dialogue the source track stays selected which is used as condition to stop the script, otherwise when rendering runs its course completely render track ends up being selected
-					ACT(40635) -- Time selection: Remove time selection
-					RestoreSavedSelectedObjects(items, tracks)
-					return r.defer(no_undo) end
-					----------------------------------------------------------
-					if counter == 0 then -- name render track after the source track, only the 1st one which becomes the only one as all subsequent are deleted
-					-- store render track irrespective of its selection
-					rend_tr = r.CSurf_TrackToID(r.GetSelectedTrack(0,0), false) -- global to be used below in item naming routine
-					rend_tr = r.GetTrack(0, rend_tr-1)
-					local tr_name = tr_name:match('Track %d*') and '' or tr_name..' - ' -- if generic name because the track isn't named, discard
-					end
-					if not t[k].tr_mute then
-					r.SetMediaItemInfo_Value(item, 'B_MUTE', 1) -- mute individual source item instead of the source track if not all track items are rendered
-					local mute = unite and r.SetMediaItemInfo_Value(r.GetTrackMediaItem(k, v[key+1]), 'B_MUTE', 1) -- mute adjacent item rendered along with the previous
-					end
-					if counter > 0 then -- move each rendered item after the 1st to the same render track and delete secondary render track
-					ACT(40289) -- Item: Unselect all items
-					ACT(40718) -- Item: Select all items on selected tracks in current time selection
-					ACT(40117) -- Item edit: Move items/envelope points up one track/a bit
-					ACT(40005) -- Track: Remove tracks
-					end
-				r.SetOnlyTrackSelected(k) -- re-select source track
-				ACT(40731) -- Track: Unmute tracks // to coninue rendering other items
-				counter = counter + 1
-				local rem = unite and v[key+1] and table.remove(v, key+1) -- remove from the table an adjacent item rendered along with the previous
-				local rem = unite and take_name_t[key+1] and table.remove(take_name_t, key+1) -- mirror the removal in the item names table
-				end -- key ~= 'tr_mute' cond end
-			-- name rendered items after the originals
-				for i = 0, r.CountTrackMediaItems(rend_tr)-1 do
-				local item = r.GetTrackMediaItem(rend_tr, i)
-				local take = r.GetActiveTake(item)
-				local set = take_name_t[i+1] and r.GetSetMediaItemTakeInfo_String(take, 'P_NAME', take_name_t[i+1]..' '..FADER:upper(), 1) -- rename rendered item
+	if fx_chunk and #fx_chunk > 0 then
+		for line in fx_chunk:gmatch('[^\n\r]*') do -- all fx must be taken into account for video proc indices to be accurate
+		local plug = line:match('<VST') or line:match('<AU') or line:match('<JS') or line:match('<DX') or line:match('<VIDEO_EFFECT')
+			if plug then
+				if plug == '<VIDEO_EFFECT' then
+				video_proc_t[counter] = '' -- dummy value as we only need indices
 				end
-
-			end -- render item loop end
-
-		end -- TRACKS OR ITEMS cond end
-
-	-- name and color render track
-	r.GetSetMediaTrackInfo_String(rend_tr, 'P_NAME', tr_name..'RENDERED '..FADER, 1) -- name render track
-	r.SetMediaTrackInfo_Value(rend_tr, 'I_CUSTOMCOLOR', color) -- inherit color from the source track
-
-	rend_trks_t[#rend_trks_t+1] = rend_tr -- store pointers of render tracks
-
-		if TRACKS_OR_ITEMS ~= 'tracks' and t[k].tr_mute and not is_folder -- last cond is to ignore muting selected source track when TRACKS_OR_ITEMS is set to items and the track is a folder, because in this case it's not rendered
-		or TRACKS_OR_ITEMS == 'tracks' then
-		r.SetMediaTrackInfo_Value(k, 'B_MUTE', 1)
-		r.SetOnlyTrackSelected(k)
-		ACT(sett[1][MANAGE_SRC_TRACK]) -- hide or delete track or leave as is
+			counter = counter + 1
+			end
 		end
 	end
 
-ACT(40635) -- Time selection: Remove time selection
+	return video_proc_t
 
--- get render path
-local rend_itm = r.GetTrackMediaItem(rend_trks_t[1], 0)
-local rend_path = r.GetMediaSourceFileName(r.GetMediaItemTake_Source(r.GetActiveTake(rend_itm)), ''):match('^(.+[\\/])')
+end
 
-local proj_name = r.GetProjectName(0, ''):match('^(.+)%.%w+$') -- get rid of .RPP extension in the name
 
--- get index (the greatest) of the last rendered file whose name pattern follows the one set in this script (track name (if any)_rendered-index.extension)
-local index = 0
+function Collect_FX_Preset_Names(path, sep, pres_fn)
+
+local pres_dir = path..sep..'presets'..sep
+
+r.EnumerateFiles(path, -1) -- reset cache
+
+-- verify if preset file returned with TrackFX_GetUserPresetFilename() does exist, because it also returns files which don't exist
 local i = 0
 	repeat
-	local f = r.EnumerateFiles(rend_path, i)
-	local f_idx = f and f:match('.*rendered%-(%d*)%.%w+$')
-	local f_idx = tonumber(f_idx)
-		if f_idx and f_idx > index then index = f_idx end
+	pres_file = r.EnumerateFiles(pres_dir, i)
+		if pres_file == pres_fn then break end
 	i = i + 1
-	until not f or f == ''
+	until not pres_file or pres_file == ''
 
-local index = index + 1 -- increment
+	if pres_file then
+	local cntr = 0
+	local preset_name_t = {}
 
-	-- rename rendered media files // REAPER ONLY MAINTAINS NUMBERING OF RENDERED ITEM FILES IF THEY FOLLOW SPECIFIC PATTERN (project name_stems_track name (if any)-00X.extension), IF THE FILES ARE RENAMED THE NUMBERING RESETS AND YOU END UP OVEWRITING EARLIER RENAMED FILES BEARING THE SAME NUMBERS AS NEW RENDERED FILES // within the main rendering loop this routine glitches sometimes producing items with extended section as the one which happens after extending item with loop source turned off and no active section, therefore had to be made extraneous
-	for _, v in ipairs(rend_trks_t) do
-	local _, tr_name = r.GetTrackName(v)
-	local tr_name = tr_name:match('^(.-)[%-%s]*RENDERED')
-		for i = 0, r.CountTrackMediaItems(v)-1 do
-		local item = r.GetTrackMediaItem(v, i)
-		-- seems that placing this sequence here insetead of immediately before os.rename()
-		-- helps avoiding renaming glitch where due to failure items are left empty without sources
-		-- while the rendered files which weren't renamed are locked as if opened in REAPER
-		-- if the ussue re-emerges it's worth trying to set items off- and back online in separate loops
-		ACT(40289) -- Item: Unselect all items
-		r.SetMediaItemSelected(item, true)
-		ACT(40440) -- Item: Set selected media temporarily offline
-		------------------------------------------------------
-		local take = r.GetActiveTake(item)
-		local old_fn = r.GetMediaSourceFileName(r.GetMediaItemTake_Source(take), '')
-		local f_path, f_name = old_fn:match('^(.+[\\/])([^\\/]+)$') -- isolate file path and name
-		local tr_name = #tr_name > 0 and tr_name..'_' or ''
-		local f_idx = tostring(index)
-		local f_idx = #f_idx == 1 and '-00'..f_idx or #f_idx == 2 and '-0'..f_idx or '-'..f_idx  -- add leading zeros
-		local new_fn = f_path..tr_name..'rendered'..f_idx..f_name:match('%.%w+$') -- last is extension
-		local ok, message = os.rename(old_fn, new_fn)
-		local new_src = r.PCM_Source_CreateFromFile(new_fn)
-		r.SetMediaItemTake_Source(take, new_src) -- assign the renamed file as a source
-		ACT(40439) -- Item: Set selected media online
-		index = index + 1
-		local ok, message = os.remove(f_path..f_name..'.reapeaks') -- remove lingering peak files with old file names; may leave lone non-deleted peak files if placed in the middle of the routine, could be because the source file is valid until renamed
+		for line in io.lines(pres_dir..pres_file) do
+			if line:match('%[Preset%d+%]') then
+			pres_idx = tonumber(line:match('Preset(%d+)'))+1 end -- to make 1 the lowest table key index, since the preset count is 0 based
+			if pres_idx and line:match('Name=') then
+			preset_name_t[pres_idx] = line:match('Name=(.*)')..'|'
+			end
+		end
+
+table.insert(preset_name_t, #preset_name_t, '<') -- close submenu
+
+	return preset_name_t
+	end
+
+end
+
+
+function Collect_VideoProc_Preset_Names(pres_cnt)
+-- builtin_video_processor.ini file only stores user added presets to the exclusion of the stock ones
+-- getting all preset names in a roundabout way by travesring them in an instance on a temp track
+
+r.PreventUIRefresh(1)
+r.InsertTrackAtIndex(r.GetNumTracks(), false) -- insert new track at end of track list and hide it; action 40702 creates undo point
+local temp_track = r.GetTrack(0,r.CountTracks(0)-1)
+r.SetMediaTrackInfo_Value(temp_track, 'B_SHOWINMIXER', 0) -- hide in Mixer
+r.SetMediaTrackInfo_Value(temp_track, 'B_SHOWINTCP', 0) -- hide in Arrange
+r.TrackFX_AddByName(temp_track, 'Video processor', 0, -1) -- insert video processor; this plugin name is unlikely to be changed by a user so can be relied upon
+r.TrackFX_SetPresetByIndex(temp_track, 0, pres_cnt-1) -- start from the last preset in case user has a default preset enabled and advance forward in the loop below
+local _, pres_cnt = r.TrackFX_GetPresetIndex(temp_track, 0)
+
+local preset_name_t = {}
+
+	for i = 1, pres_cnt do
+	r.TrackFX_NavigatePresets(temp_track, 0, 1) -- forward
+	local _, pres_name = r.TrackFX_GetPreset(temp_track, 0, '')
+	preset_name_t[i] = pres_name..'|'
+	end
+
+r.DeleteTrack(temp_track)
+
+r.PreventUIRefresh(-1)
+
+table.insert(preset_name_t, #preset_name_t, '<') -- close submenu
+
+	if #preset_name_t > 0 and #preset_name_t-1 == pres_cnt  -- one extra entry '<'
+	then return preset_name_t end
+
+end
+
+
+function Collect_VST3_Instances(fx_chunk) -- replicates Collect_VideoProc_Instances()
+
+-- required to get hold of .vstpreset file names stored in the plugin dedicated folder and list those in the menu
+
+local vst3_t = {} -- collect indices of vst3 plugins instances, because detection by fx name is unreliable as it can be changed by user in the FX browser
+local counter = 0 -- to store indices of vst3 plugin instances
+
+	if fx_chunk and #fx_chunk > 0 then
+		for line in fx_chunk:gmatch('[^\n\r]*') do -- all fx must be taken into account for vst3 plugin indices to be accurate
+		local plug = line:match('<VST') or line:match('<AU') or line:match('<JS') or line:match('<DX') or line:match('<VIDEO_EFFECT')
+			if plug then
+				if line:match('VST3') then
+				vst3_t[counter] = '' -- dummy value as we only need indices
+				end
+			counter = counter + 1
+			end
 		end
 	end
 
+	return vst3_t
 
--- concatenate undo point name
-local undo = 'Render selected '
-local undo = (only_itms and TRACKS_OR_ITEMS ~= 'tracks') and undo..'items' or (hybrid_sel and TRACKS_OR_ITEMS ~= 'tracks') and undo..'items and tracks' or undo..'tracks'
+end
 
 
-r.Undo_EndBlock(undo, -1)
+function Collect_VST3_Preset_Names(obj, fx_idx, take_GUID, pres_cnt) -- replicates Collect_VideoProc_Preset_Names()
+
+-- getting all preset names incuding .vstpreset file names in a roundabout way by travesring them in an instance on a temp track
+
+r.PreventUIRefresh(1)
+r.InsertTrackAtIndex(r.GetNumTracks(), false) -- insert new track at end of track list and hide it; action 40702 creates undo point
+local temp_track = r.GetTrack(0,r.CountTracks(0)-1)
+r.SetMediaTrackInfo_Value(temp_track, 'B_SHOWINMIXER', 0) -- hide in Mixer
+r.SetMediaTrackInfo_Value(temp_track, 'B_SHOWINTCP', 0) -- hide in Arrange
+local copy = take_GUID and r.TakeFX_CopyToTrack(obj, fx_idx, temp_track, 0, false) or not take_GUID and r.TrackFX_CopyToTrack(obj, fx_idx, temp_track, 0, false) -- difficult to work with r.TrackFX_AddByName() using plugin names as they can be renamed which will only be reflected in reaper-vstrenames(64).ini, not in the chunk; 'not take_GUID' cond is needed to avoid error when object is take which doesn't fit TrackFX_CopyToTrack() function
+r.TrackFX_SetPresetByIndex(temp_track, 0, pres_cnt-1) -- start from the last preset in case user has a default preset enabled and advance forward in the loop below
+local _, pres_cnt = r.TrackFX_GetPresetIndex(temp_track, 0)
+
+local preset_name_t = {}
+
+	for i = 1, pres_cnt do
+	r.TrackFX_NavigatePresets(temp_track, 0, 1) -- forward
+	local _, pres_name = r.TrackFX_GetPreset(temp_track, 0, '')
+	local pres_name = pres_name:match('.+[\\/](.+)%.vstpreset$') or pres_name
+	preset_name_t[i] = pres_name..'|'
+	end
+
+r.DeleteTrack(temp_track)
+
 r.PreventUIRefresh(-1)
 
+table.insert(preset_name_t, #preset_name_t, '<') -- close submenu
+
+	if #preset_name_t > 0 and #preset_name_t-1 == pres_cnt  -- one extra entry '<'
+	then return preset_name_t end
+
+end
+
+
+function Esc(str)
+return str:gsub('[%(%)%+%-%[%]%.%^%$%*%?%%]','%%%0')
+end
+
+function Get_Object(LOCK_FX_CHAIN_FOCUS)
+
+-- GetCursorContext() is unreliable in getting TCP since the track context is true along the entire timeline as long as it's not another context
+-- using edit cursor to find TCP context instead since when mouse cursor is over the TCP edit cursor doesn't respond to action 'View: Move edit cursor to mouse cursor'
+-- no MCP support; when mouse is over the Mixer on the Arrange side the trick to detect track panel doesn't work, because with 'View: Move edit cursor to mouse cursor' the edit cursor does move to the mouse cursor
+
+
+	function GetMonFXProps() -- get mon fx accounting for floating window, GetFocusedFX() doesn't detect mon fx in builds prior to 6.20
+
+		local master_tr = r.GetMasterTrack(0)
+		local src_mon_fx_idx = r.TrackFX_GetRecChainVisible(master_tr)
+		local is_mon_fx_float = false -- only relevant if there's need to reopen the fx in floating window
+			if src_mon_fx_idx < 0 then -- fx chain closed or no focused fx -- if this condition is removed floated fx gets priority
+				for i = 0, r.TrackFX_GetRecCount(master_tr) do
+					if r.TrackFX_GetFloatingWindow(master_tr, 0x1000000+i) then
+					src_mon_fx_idx = i; is_mon_fx_float = true break end
+				end
+			end
+		return src_mon_fx_idx, is_mon_fx_float
+	end
+
+r.PreventUIRefresh(1)
+
+local retval, tr, item = r.GetFocusedFX() -- account for focused FX chains and Mon FX chain in builds prior to 6.20
+local fx_chain_focus = LOCK_FX_CHAIN_FOCUS or r.GetCursorContext() == -1
+
+	if (retval > 0 or GetMonFXProps() >= 0) and fx_chain_focus then -- (last) focused FX chain
+	obj, obj_type = table.unpack(retval == 2 and tr > 0 and {r.GetTrackMediaItem(r.GetTrack(0,tr-1), item), 1} or retval == 1 and tr > 0 and {r.GetTrack(0,tr-1), 0} or {r.GetMasterTrack(0), 0})
+	else -- not FX chain
+	local curs_pos = r.GetCursorPosition() -- store current edit curs pos
+	r.Main_OnCommand(40043,0) -- Transport: Go to end of project // to secure against a vanishing probablility of overlap between edit and mouse cursor positions in which case edit cursor won't move just like it won't if mouse cursor is over the TCP
+	local end_proj_pos = r.GetCursorPosition() -- get new edit cursor pos at the project end
+	r.Main_OnCommand(40514,0) -- View: Move edit cursor to mouse cursor (no snapping) // more seinsitive than with snapping
+		if r.GetCursorPosition() == end_proj_pos then -- the edit cursor stayed put since the mouse cursor is over the TCP
+		r.Main_OnCommand(41110,0) -- Track: Select track under mouse
+		obj, obj_type = r.GetSelectedTrack2(0,0, true), 0
+		else
+		r.Main_OnCommand(40289,0) -- Item: Unselect all items;  -- when LAST_SEL_OBJ option in the USER SETTINGS is OFF to prevent getting any selected item when mouse cursor is outside of Arrange proper any selected item when mouse cursor is outside of Arrange proper (e.g. at the Mixer or Ruler or a focused Window), forcing its recognition only if the item is under mouse cursor, that's because when cursor is within Arrange and there's no item under it the action 40528 (below) itself deselects all items (until their selection is restored at script exit) and GetSelectedMediaItem() returns nil so there's nothing to fetch the data from, but when the cursor is outside of the Arrange proper (e.g. at the Mixer or Ruler) this action does nothing, the current item selection stays intact and so GetSelectedMediaItem() does return first selected item identificator
+		r.Main_OnCommand(40528,0) -- Item: Select item under mouse cursor
+		obj, obj_type = r.GetSelectedMediaItem(0,0), 1
+		end
+	r.Main_OnCommand(40043,0) -- Transport: Go to end of project // makes it easier to restore since the difference will always be negative
+	r.MoveEditCursor(curs_pos - end_proj_pos, false) -- restore orig. edit curs pos, greater subtracted from the lesser to get negative value meaning to move closer to zero (project start); false = don't create time sel
+	end
+
+r.PreventUIRefresh(-1)
+
+	return obj, obj_type
+
+end
+
+
+function MAIN(menu_t, action_t, FX_Chain_Chunk, Collect_VideoProc_Instances, Collect_VideoProc_Preset_Names, Collect_FX_Preset_Names, Esc, path, sep, obj, obj_chunk, fx_cnt, type, take_GUID) -- type 0 (track main fx) or 1 (track input fx), take fx are detected by evaluating take_GUID, either nil or an actual value
+
+	local fx_chunk = FX_Chain_Chunk(obj_chunk, path, sep, type, take_GUID) -- needed for video processor and VST3 plugin instances detection with Collect_VideoProc_Instances() and Collect_VST3_Instances functions, detection video proc by fx name is unreliable as not all its preset names which are also instanse names contain 'video processor' phrase due to length, neither it's reliable for VST3 plugins for the sake of getting .vstpreset file names as it can be changed by user in the FX browser
+	local video_proc_t = Collect_VideoProc_Instances(fx_chunk, fx_cnt)
+	local vst3_t = Collect_VST3_Instances(fx_chunk, fx_cnt)
+		for i = 0, fx_cnt-1 do
+		local fx_idx = (take_GUID or type == 0) and i or i+0x1000000 -- either take or track main fx or track input/monitor fx
+		local pres_cnt = take_GUID and select(2,r.TakeFX_GetPresetIndex(obj, fx_idx)) or select(2,r.TrackFX_GetPresetIndex(obj, fx_idx))
+		local pres_fn = take_GUID and r.TakeFX_GetUserPresetFilename(obj, fx_idx, '') or r.TrackFX_GetUserPresetFilename(obj, fx_idx, '')
+		local pres_fn = pres_fn:match('[^\\/]+$') -- isolate preset file name
+		local fx_name = take_GUID and select(2,r.TakeFX_GetFXName(obj, fx_idx, '')) or select(2,r.TrackFX_GetFXName(obj, fx_idx, ''))
+		local act, act_pres_name = table.unpack(take_GUID and {r.TakeFX_GetPreset(obj, fx_idx, '')} or {r.TrackFX_GetPreset(obj, fx_idx, '')})
+		local div = #menu_t > 0 and i == 0 and '|||' or '' -- divider between main fx and input fx lists only if there're main fx and so menu_t table is already populated
+			if pres_cnt == 0 then
+			menu_t[#menu_t+1] = div..'#'..fx_name..' (n o  p r e s e t s)|'
+			-- take the grayed out entry into account in the action_t as a disabled grayed out entry still counts against the total number of the menu entries
+			action_t[1][#action_t[1]+1] = '' -- dummy value
+			action_t[2][#action_t[2]+1] = '' -- same
+			elseif pres_cnt > 0 then -- only plugins with presets
+			local preset_name_t = video_proc_t[i] and Collect_VideoProc_Preset_Names(pres_cnt) or vst3_t[i] and Collect_VST3_Preset_Names(obj, fx_idx, take_GUID, pres_cnt) or Collect_FX_Preset_Names(path, sep, pres_fn)
+			local preset_name_list = preset_name_t and table.concat(preset_name_t)
+				if preset_name_list then -- add active preset checkmark
+					if act and act_pres_name ~= '' then -- if active preset matches the plug actual settings and not 'No preset'
+					local act_pres_name = act_pres_name:match('.+%.vstpreset') and act_pres_name:match('([^\\/]+)%.%w+$') or act_pres_name
+					local act_pres_name_esc = Esc(act_pres_name) -- escape special chars just in case
+					preset_name_list = preset_name_list:gsub(act_pres_name_esc, '!'..act_pres_name) -- add checkmark to indicate active preset in the menu
+					end
+				menu_t[#menu_t+1] = div..'>'..fx_name..'|'..preset_name_list
+					for j = 0, pres_cnt-1 do
+					action_t[1][#action_t[1]+1] = fx_idx -- fx indices, repeated as many times as there're fx presets per fx to be triggered by the input form the menu
+					action_t[2][#action_t[2]+1] = j -- preset indices, repeated as many times as there're fx presets, starts from 0 with every new fx index
+					end
+				end
+			end
+		end
+
+return menu_t, action_t
+
+end
 
 
 
+------- START MAIN ROUTINE ------------
+
+local itm_sel_t, trk_sel_t = StoreSelectedObjects()
+
+local sep = r.GetOS():match('Win') and '\\' or '/'
+local path = r.GetResourcePath()
+local LAST_SEL_OBJ = LAST_SEL_OBJ:gsub(' ','') ~= ''
+
+local obj, obj_type = Get_Object(LOCK_FX_CHAIN_FOCUS)
+
+
+	if not obj and LAST_SEL_OBJ then -- if called via menu or from a toolbar after explicitly selecting the object e.g. by clicking it first
+	RestoreSavedSelectedObjects(itm_sel_t, trk_sel_t) -- since they were deselected by Get_Object() function
+	local cur_ctx = r.GetCursorContext2(true) -- true is last context; unlike r.GetCursorContext() this function stores last context if current one is invalid; object must be clicked to change context
+	local space = [[               ]]
+		if cur_ctx == 0 then -- track
+		local trk_cnt = r.CountSelectedTracks2(0, true) -- incl. Master
+		mess = trk_cnt == 0 and '\n  NO SELECTED TRACKS  \n'..space or trk_cnt > 1 and '\n   MULTIPLE TRACK SELECTION  \n'..space
+		obj, obj_type = r.GetSelectedTrack2(0,0, true), 0 -- incl. Master
+		elseif cur_ctx == 1 then -- item
+		local itm_cnt = r.CountSelectedMediaItems(0)
+		mess = itm_cnt == 0 and '\n  NO SELECTED ITEMS  \n'..space or itm_cnt > 1 and '\n   MULTIPLE ITEM SELECTION  \n'..space
+		obj, obj_type = r.GetSelectedMediaItem(0,0), 1
+		end
+	end
+
+	if mess then
+	local x, y = r.GetMousePosition(); r.TrackCtl_SetToolTip(mess:gsub('.', '%0 '), x, y-20, 1)
+	RestoreSavedSelectedObjects(itm_sel_t, trk_sel_t)
+	return r.atexit() end -- prevent undo point creation
+
+	if not obj then RestoreSavedSelectedObjects(itm_sel_t, trk_sel_t) return r.atexit() end -- prevent error when no item and when no track (empty area at bottom of the TCP, in MCP or the ruler or focused window) and prevent undo point creation
+
+	if obj_type == 1 then
+	local fx_chain_focus = LOCK_FX_CHAIN_FOCUS or r.GetCursorContext() == -1
+		if r.GetFocusedFX() == 2 and fx_chain_focus then -- (last) focused take FX chain
+		take = r.GetTake(obj,(select(4,r.GetFocusedFX()))>>16) -- make presets menu of focused take FX chain independent of the take being active
+		else take = r.GetActiveTake(obj) end
+	end
+
+local fx_cnt = obj_type == 0 and r.TrackFX_GetCount(obj) or obj_type == 1 and r.TakeFX_GetCount(take)
+
+	if obj_type == 0 then rec_fx_cnt = r.TrackFX_GetRecCount(obj) end -- count input fx
+	local space = [[               ]]
+	if rec_fx_cnt then
+		if fx_cnt + rec_fx_cnt == 0 then mess = '\n  NO FX IN THE TRACK FX CHAINS  \n'..space
+		else
+			if fx_cnt > 0 then -- find out if plugins contain any presets
+			main_fx_pres = 0
+				for i = 0, fx_cnt-1 do
+				local retval, pres_cnt = r.TrackFX_GetPresetIndex(obj, i)
+				main_fx_pres = main_fx_pres + pres_cnt
+				end
+			end
+			if rec_fx_cnt and rec_fx_cnt > 0 then -- find out if plugins contain any presets
+			rec_fx_pres = 0
+				for i = 0, rec_fx_cnt-1 do
+				local retval, pres_cnt = r.TrackFX_GetPresetIndex(obj, i+0x1000000)
+				rec_fx_pres = rec_fx_pres + pres_cnt
+				end
+			end
+		end
+	else take_fx_cnt = r.TakeFX_GetCount(take)
+		if take_fx_cnt == 0 then mess = '\n  NO FX IN THE TAKE FX CHAIN  \n'..space
+		elseif take_fx_cnt > 0 then -- find out if plugins contain any ptresets
+		take_fx_pres = 0
+			for i = 0, take_fx_cnt-1 do
+			local retval, pres_cnt = r.TakeFX_GetPresetIndex(take, i)
+			take_fx_pres = take_fx_pres + pres_cnt
+			end
+		end
+	end
+
+	if not mess then -- additional conditions
+	mess = ((fx_cnt > 0 and rec_fx_cnt and rec_fx_cnt > 0 and main_fx_pres + rec_fx_pres ==  0) or (fx_cnt > 0 and main_fx_pres == 0) or (rec_fx_cnt and rec_fx_cnt > 0 and rec_fx_pres == 0) or (take_fx_cnt and take_fx_cnt > 0 and take_fx_pres == 0)) and '\n  EITHER NO PRESETS OR NO PRESETS  \n\tACCESSIBLE TO THE SCRIPT\n'..space or nil
+	end
+
+	if mess then
+	local x, y = r.GetMousePosition(); r.TrackCtl_SetToolTip(mess:gsub('.', '%0 '), x, y-20, 1) -- y-20 raise tooltip above mouse cursor by that many px
+	RestoreSavedSelectedObjects(itm_sel_t, trk_sel_t)
+	return r.atexit() end
+
+
+local ret, obj_chunk = GetObjChunk(obj, obj_type) -- needed for video processor and VST3 plugin instances detection with Collect_VideoProc_Instances() and Collect_VST3_Instances() functions
+
+	if ret == 'err_mess' then Err_mess() return r.atexit() end -- chunk size is over the limit and no SWS extention is installed to fall back on
+
+
+local action_t = {{},{}} -- stores fx and preset indices as values for each key matching a preset index
+local menu_t = {}
+
+
+	if fx_cnt > 0 then
+		if take then take_GUID = Esc(select(2,r.GetSetMediaItemTakeInfo_String(take, 'GUID', '', 0))) -- escape to use with string.match inside FX_Chain_Chunk()
+		obj = r.GetActiveTake(obj)
+		end
+	menu_t, action_t = MAIN(menu_t, action_t, FX_Chain_Chunk, Collect_VideoProc_Instances, Collect_VideoProc_Preset_Names, Collect_FX_Preset_Names, Esc, path, sep, obj, obj_chunk, fx_cnt, 0, take_GUID) -- 0 is type, track main fx
+	end
+
+	if rec_fx_cnt and rec_fx_cnt > 0 then
+	menu_t, action_t = MAIN(menu_t, action_t, FX_Chain_Chunk, Collect_VideoProc_Instances, Collect_VideoProc_Preset_Names, Collect_FX_Preset_Names, Esc, path, sep, obj, obj_chunk, rec_fx_cnt, 1, take_GUID) -- 1 is type, track input fx
+	end
+
+
+gfx.init('FX Menu', 0, 0)
+-- open menu at the mouse cursor
+gfx.x = gfx.mouse_x
+gfx.y = gfx.mouse_y
+
+local input = gfx.showmenu(table.concat(menu_t))
+
+	if input > 0 then
+	local select_pres = obj_type == 0 and r.TrackFX_SetPresetByIndex(obj, action_t[1][input], action_t[2][input]) or obj_type == 1 and r.TakeFX_SetPresetByIndex(take, action_t[1][input], action_t[2][input])
+	end
+
+
+RestoreSavedSelectedObjects(itm_sel_t, trk_sel_t)
+
+
+-- Undo is unnesessary as it's created automatically on preset change
 
 
