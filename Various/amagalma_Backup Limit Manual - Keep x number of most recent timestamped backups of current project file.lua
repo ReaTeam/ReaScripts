@@ -1,7 +1,7 @@
 -- @description Backup Limit Manual - Keep x number of most recent timestamped backups of current project file
 -- @author amagalma
--- @version 1.01
--- @changelog - Fix relative/absolute path recognition for OSX/Linux
+-- @version 1.02
+-- @changelog - Fix keep_one_per_date setting
 -- @provides . > amagalma_Backup Limit/amagalma_Backup Limit Manual - Keep x number of most recent timestamped backups of current project file.lua
 -- @link https://forum.cockos.com/showthread.php?t=255909
 -- @donation https://www.paypal.me/amagalma
@@ -36,7 +36,7 @@ files_to_keep = reaper.GetExtState( "amagalma_backup_limit", "files_to_keep" )
 keep_one_per_date = reaper.GetExtState( "amagalma_backup_limit", "keep_one_per_date" )
 
 files_to_keep = files_to_keep ~= "" and num(files_to_keep) or 5
-keep_one_per_date = keep_one_per_date == 1
+keep_one_per_date = keep_one_per_date == "1"
 
 
 local match = string.match
