@@ -1,8 +1,8 @@
 -- @description Create Impulse Response (IR) of the FX Chain of the selected Track
 -- @author amagalma
--- @version 2.03
+-- @version 2.05
 -- @changelog
---   - Support custom ReaVerb name
+--   - Correctly capture Linear Phase processes
 -- @donation https://www.paypal.me/amagalma
 -- @link https://forum.cockos.com/showthread.php?t=234517
 -- @about
@@ -19,7 +19,7 @@
 
 -- Thanks to EUGEN27771, spk77, X-Raym, Lokasenna
 
-local version = "2.03"
+local version = "2.05"
 --------------------------------------------------------------------------------------------
 
 
@@ -55,8 +55,9 @@ local IR_Path = proj_path
 local IR_name = "IR"
 local IR_FullPath = IR_Path .. IR_name
 local IR_len, peak_normalize = Max_IR_Lenght, Normalize_Peak
-local trim, channels = Trim_Silence_Below, Mono_Or_Stereo
-
+local trim, channels = Trim_Silence_Below, Mono_Or_Stereolo
+local max_pre_ringing_samples_val = 4096 -- samples
+local pre_ringing_threshold = -90 -- db
 
 --------------------------------------------------------------------------------------------
 
@@ -151,21 +152,16 @@ end
 local function dBFromVal(val) return 20*log(val, 10) end
 local function ValFromdB(dB_val) return 10^(dB_val/20) end
 
-function Create_Dirac(FilePath, channels, item_len) -- based on EUGEN27771's Wave Generator
+local function Create_Dirac(FilePath, channels, item_len) -- based on EUGEN27771's Wave Generator
   local val_out
-  local len = item_len
-  local numSamples = floor(samplerate * item_len * channels + 0.5)
+  local pre_ringing = max_pre_ringing_samples_val * channels -- give 4096 samples for linear phase pre-ringing if it exists
+  local numSamples = floor(samplerate * item_len * channels + 0.5) + pre_ringing
   local buf = {}
-  buf[1] = 1
-  if channels == 1 then
-    for i = 2, numSamples do
-      buf[i] = 0
-    end
-  else
-    buf[2] = 1
-    for i = 3, numSamples do
-      buf[i] = 0
-    end
+  for i = 1, numSamples do
+    buf[i] = 0
+  end
+  for i = pre_ringing + 1, pre_ringing + channels do
+    buf[i] = 1
   end
   local data_ChunkDataSize = numSamples * channels * 32/8
   -- RIFF_Chunk =  RIFF_ChunkID, RIFF_chunkSize, RIFF_Type
@@ -227,18 +223,21 @@ function Create_Dirac(FilePath, channels, item_len) -- based on EUGEN27771's Wav
 end
 
 -- based on spk77's "get_average_rms" function 
-function trim_silence_below_threshold(item, threshold) -- threshold in dB
-  if not item then return end
+local function trim_silence_below_threshold(item, threshold) -- threshold in dB
+-- if threshold then trims from end at the threshold, else trims start
   local take = reaper.GetActiveTake( item )
   local item_pos = reaper.GetMediaItemInfo_Value(item, "D_POSITION")
   local item_len = reaper.GetMediaItemInfo_Value(item, "D_LENGTH")
   local item_end = item_pos + item_len
   local position = false
-  local threshold = ValFromdB(threshold)
-  -- Calculate corrections for take/item volume
-  --local adjust_vol = reaper.GetMediaItemTakeInfo_Value(take, "D_VOL") * reaper.GetMediaItemInfo_Value(item, "D_VOL")
+  local trim_end = threshold
+  local rms_subset_samples = threshold and 5 or 1
+  local threshold = threshold and ValFromdB(threshold) or 
+                    ValFromdB(trim and min(trim, pre_ringing_threshold) or pre_ringing_threshold)
   -- Reverse take to get samples from end to start
-  reaper.Main_OnCommand(41051, 0) -- Item properties: Toggle take reverse
+  if trim_end then
+    reaper.Main_OnCommand(41051, 0) -- Item properties: Toggle take reverse
+  end
   -- Get media source of media item take
   local take_pcm_source = reaper.GetMediaItemTake_Source(take)
   -- Create take audio accessor
@@ -274,8 +273,8 @@ function trim_silence_below_threshold(item, threshold) -- threshold in dB
   local buffer = reaper.new_array(samples_per_channel*take_source_num_channels)
   local audio_end_reached = false
   local offs = aa_start
-  function sumsq(a, ...) return a and a^2 + sumsq(...) or 0 end
-  function rms(t) return (sumsq(table.unpack(t)) / #t)^.5 end
+  local function sumsq(a, ...) return a and a^2 + sumsq(...) or 0 end
+  local function rms(t) return (sumsq(table.unpack(t)) / #t)^.5 end
   local samples_cnt = 0
   -- Loop through samples
   local buff_cnt = 1
@@ -283,12 +282,6 @@ function trim_silence_below_threshold(item, threshold) -- threshold in dB
     if audio_end_reached then
       break
     end
-    --[[ Fix for last buffer
-    if total_samples - samples_cnt < samples_per_channel then
-      samples_per_channel = total_samples - samples_cnt
-      buffer.clear()
-      buffer.resize(samples_per_channel*take_source_num_channels)
-    end--]]
     -- Get a block of samples. Samples are returned interleaved
     local aa_ret = 
     reaper.GetAudioAccessorSamples(
@@ -311,29 +304,36 @@ function trim_silence_below_threshold(item, threshold) -- threshold in dB
       for j = i, #buffer-take_source_num_channels+i, take_source_num_channels do
         s = s + 1
         chan[i][s] = buffer[j]
+        if not trim_end then
+          if chan[i][s] >= threshold or s > max_pre_ringing_samples_val then
+            position = offs + (s-1)/take_source_sample_rate
+            break
+          end
+        end
       end
-      local subset = {}
-      -- make subset of x samples to calculate rms for them
-      local x = 5 --floor(take_source_sample_rate/1000)-1
-      s = 0
-      for k = 1, #chan[i]-x+1, x+1 do
-        s = s + 1
-        local f = 1
-        subset[s] = {}
-        for l = k, k+x do
-          subset[s][f] = chan[i][l]
-          f = f + 1
+      if trim_end then
+        -- calculate rms for subset
+        local subset = {}
+        s = 0
+        for k = 1, #chan[i]-rms_subset_samples+1, rms_subset_samples+1 do
+          s = s + 1
+          local f = 1
+          subset[s] = {}
+          for l = k, k+rms_subset_samples do
+            subset[s][f] = chan[i][l]
+            f = f + 1
+          end
+          --Msg(string.format("buf %i chan %i sub %i rms %.1f\n", buff_cnt,i,s,dBFromVal(rms(subset[s]))))
+          -- if rms of subset is above threshold then stop and store the position in buffer for that channel
+          if rms(subset[s]) >= threshold then
+            pos_in_samples[#pos_in_samples+1] = floor(k + (rms_subset_samples/2)) -- the middle of the subset
+            break
+          end
         end
-        --Msg(string.format("buf %i chan %i sub %i rms %.1f\n", buff_cnt,i,s,dBFromVal(rms(subset[s]))))
-        -- if rms of subset is above threshold then stop and store the position in buffer for that channel
-        if rms(subset[s]) >= threshold then
-          pos_in_samples[#pos_in_samples+1] = floor(k + (x/2)) -- the middle of the subset
-          break
-        end
-      end 
+      end
     end
     -- get the first occurrence of rms above threshold if found in this buffer
-    if #pos_in_samples ~= 0 then
+    if trim_end and #pos_in_samples ~= 0 then
       local pos_in_samples_val = min(table.unpack(pos_in_samples))
       position = offs + pos_in_samples_val/take_source_sample_rate
     end
@@ -355,18 +355,26 @@ function trim_silence_below_threshold(item, threshold) -- threshold in dB
   end
   reaper.DestroyAudioAccessor(aa)
   -- Bring take back to normal
-  reaper.Main_OnCommand(41051, 0) -- Item properties: Toggle take reverse
+  if trim_end then
+    reaper.Main_OnCommand(41051, 0) -- Item properties: Toggle take reverse
+  end
   -- If a suitable position has been found, trim there (ignore if trim is less than 5ms)
-  if position and position > 0.005 then
-    -- do not let impulse smaller than 20ms
-    if item_len-position < 0.02 then
-      position = item_len - 0.02
-      --Msg("new position : " .. position)
+  if position then
+    if trim_end then
+      if position > 0.005 then
+        -- do not let impulse smaller than 20ms
+        if item_len-position < 0.02 then
+          position = item_len - 0.02
+          --Msg("new position : " .. position)
+        end
+          reaper.BR_SetItemEdges( item, item_pos, item_end - position )
+        return true
+      else
+        return false
+      end
+    else -- trim start
+      reaper.BR_SetItemEdges( item, item_pos + position, item_end )
     end
-    --reaper.SetEditCurPos( item_pos, true, false )
-    local new_item = reaper.SplitMediaItem( item, item_end - position )
-    reaper.DeleteTrackMediaItem( reaper.GetMediaItem_Track( new_item ), new_item )
-    return true
   else
     return false
   end
@@ -485,6 +493,15 @@ function CreateIR()
       problems = problems+1
       Msg(problems .. ") Trim Silence failed")
     end
+  end
+  
+  -- Trim silence at start
+  local ok_trim = trim_silence_below_threshold(item)
+  if ok_trim then
+    Msg("Trim Silence at start succeeded")
+  else
+    problems = problems+1
+    Msg(problems .. ") Trim Silence at start failed")
   end
   
   -- Glue changes
