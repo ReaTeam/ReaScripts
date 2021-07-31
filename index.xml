@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="301a9771db84c9d550e54a12d33206dbdc795c2a" name="ReaTeam Scripts">
+<index version="1" commit="6e3305a3da98b5fc4350b12d2c32f955c19d814e" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -15415,6 +15415,7 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Record path\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Secondary Record path\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Render path\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab First selected script's path in the Actions List\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Requires JS_ReaScriptAPI and SWS extensions\sa180\par}
 }
 ]]></description>
@@ -15424,6 +15425,10 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
       </metadata>
       <version name="1.00" author="amagalma" time="2020-11-09T09:33:20Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ca6c10a7cff9288a7663167c21ad8489b8071697/Various/amagalma_Show%20path%20from%20list%20menu%20(Resource,%20Selected%20Item,%20Project%20File,%20Record,%20Secondary%20Record,%20Render).lua</source>
+      </version>
+      <version name="1.1" author="amagalma" time="2021-07-31T17:05:42Z">
+        <changelog><![CDATA[- Added "First selected script's path in the Actions List"]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6e3305a3da98b5fc4350b12d2c32f955c19d814e/Various/amagalma_Show%20path%20from%20list%20menu%20(Resource,%20Selected%20Item,%20Project%20File,%20Record,%20Secondary%20Record,%20Render).lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Simulate tempo with playrate.lua" type="script" desc="amagalma_Simulate tempo with playrate">
