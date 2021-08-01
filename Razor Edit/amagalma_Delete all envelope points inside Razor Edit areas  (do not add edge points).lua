@@ -1,4 +1,4 @@
--- @description Delete all envelope points inside Razor Edit areas
+-- @description Delete all envelope points inside Razor Edit areas (do not add edge points)
 -- @author amagalma
 -- @version 1.00
 -- @link https://forum.cockos.com/showthread.php?t=250759
