@@ -21,7 +21,9 @@ About:
 	- Admittedely to a region time selection can be set with the default shortcut
 	of Ctrl/Cmd + click on the ruler under the region bar or by dragging, provided 
 	snapping of selecton to markers is active in Snap settings, which is also true 
-	for setting time selection to project markers, but not really to other marked ranges.
+	for setting time selection between two project markers by dragging or clicking 
+	if enabled in *Preferences -> Mouse modifiers -> Ruler -> double click*, but not 
+	really to other marked ranges.
 
 	- To create a time selection between two marked points of the same kind hold
 	mouse cursor next to the first (start) point on its right side and call
