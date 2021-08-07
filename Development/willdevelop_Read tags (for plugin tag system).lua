@@ -1,21 +1,17 @@
 -- @description Read tags (for plugin tag system)
 -- @author Will Develop
--- @version 1.0
--- @link
---   Forum https://forum.cockos.com/showthread.php?p=2300953#post2300953
---   Blog Article https://will-records.tk/site/website_will_records/php/project_article_my_plugin_tag_system_in_reaper.php
+-- @version 2.0
+-- @link Forum https://forum.cockos.com/showthread.php?p=2300953#post2300953
 
 --[[
   INFO:
     - ReaScript Name: Read Tags
     - Author: Will Develop 
-    - Website: https://www.will-records.tk
-    - REAPER: 6.11
-    - Version: 1.0
+    - REAPER: 6.33
+    - Version: 2.0
   
   LINKS:
     YOUTUBE-TUTORIAL: https://youtu.be/V65LA_Q6EaU
-    BLOG-ARTICLE: https://will-records.tk/site/website_will_records/php/project_article_my_plugin_tag_system_in_reaper.php
 	FORUM: https://forum.cockos.com/showthread.php?p=2300953#post2300953
 	GITHUB: https://github.com/Will-Develop/plugin_tag_system_in_reaper
 
@@ -127,8 +123,10 @@ reaper.ShowConsoleMsg("\n".."CREATE FOLDER FOR:" .. "\n".."\n")
 table.sort(allcompare)
 for _,v in ipairs(allcompare) do
    if (not hash[v]) then
+	if(not v:match("!!!VSTi"))then
       reaper.ShowConsoleMsg(v .. "\n")    -- res[#res+1] = v -- you could print here instead of saving to result table if you wanted
        hash[v] = true
+       end
    end
 
 end
