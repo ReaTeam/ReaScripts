@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="84d3a3063d61e1d107daf79b178883afd1224aa0" name="ReaTeam Scripts">
+<index version="1" commit="453d2f9c6382e42de392d8718451f52b8509d140" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -3280,6 +3280,47 @@ Updated undo caption to reflect name]]></changelog>
         <changelog><![CDATA[#A minor efficiency update]]></changelog>
         <source main="main" file="BuyOne_Lock FX and FX chains/BuyOne_Lock FX and FX chains (guide inside).lua">https://github.com/ReaTeam/ReaScripts/raw/e15f5093eb54f80769fe3e919ad1ff1a7b244321/FX/BuyOne_Lock%20FX%20and%20FX%20chains/BuyOne_Lock%20FX%20and%20FX%20chains%20(guide%20inside).lua</source>
         <source main="main" file="BuyOne_Lock FX and FX chains/BuyOne_Lock FX and FX chains - append or remove lock tag (guide inside).lua">https://github.com/ReaTeam/ReaScripts/raw/e15f5093eb54f80769fe3e919ad1ff1a7b244321/FX/BuyOne_Lock%20FX%20and%20FX%20chains/BuyOne_Lock%20FX%20and%20FX%20chains%20-%20append%20or%20remove%20lock%20tag%20(guide%20inside).lua</source>
+      </version>
+    </reapack>
+    <reapack name="BuyOne_Toggle bypass;offline state of all FX in a focused;selected item;take + visual indication (guide inside).lua" type="script" desc="Toggle bypass;offline state of all FX in a focused;selected item;take + visual indication">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 ####GUIDE\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \u9619? \u9830? Some background (can be skipped)\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \u8212- The track FX button has an option of bypassing the entire FX chain in which case the button changes its color to indicate the FX chain state. However not the take FX button.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Natively bypass of all FX in a take FX chain can be toggled by manually selecting all FX in the chain and running Ctrl/Cmd + B or with SWS extension actions: SWS/S&M: Bypass all take FX for selected items\line SWS/S&M: Unbypass all take FX for selected items\line SWS/S&M: Toggle all take FX bypass for selected items\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Toggling all take FX off- and online can be performed with the native actions:\line Items: Set all take FX offline for selected media items\line Items: Set all take FX online for selected media items\line or, again, with SWS extension actions:\line SWS/S&M: Set all take FX offline for selected items\line SWS/S&M: Set all take FX online for selected items\line SWS/S&M: Toggle all take FX online/offline for selected items\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 But none does both automatic and selective, on take level, toggling with visual feedback of the toggle state. So this script was meant to fill this gap.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \u9619? \u9830? THE NITTY GRITTY\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \u8212- To indicate that FX are bypassed or set offline a take marker with descriptive comment is being placed at the very beginning of the item/take.\line Since the indicator marker is placed at the very beginning of the item/take it will end up being hidden if the item is trimmed from the start or being shifted further from the beginning if previously trimmed item was extended (not stretched) leftwards. After the state is toggled twice the marker will be re-added at the new item/take start.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \u8212- The script can be called in the following ways:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 1)\tx360\tab by placing the mouse cursor over the item or its FX chain window and calling the script with a shortcut assigned to it;\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 2)\tx360\tab by assigning it to Item mouse modifiers under {\i Preferences -> Mouse modifiers} and actually clicking the item to call it;\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 =\u9658? SELECTED\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 If {\b SELECTED} option is enabled in the USER SETTINGS below script can be called:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 3)\tx360\tab from a menu;\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 4)\tx360\tab from a toolbar;\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 5)\tx360\tab from the Action list (which is much less practicable)\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 that is when there's no item under mouse cursor.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 All five methods can work in parallel.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Be aware that mouse cursor takes precedence over selection therefore when {\b SELECTED} option is enabled and the script is run via a keyboard shortcut, if you wish to toggle FX on selected item(s) make sure there's no item under mouse cursor otherwise FX in the item/take currently under mouse cursor will be targeted.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 When take FX chain is open the script targets its FX even if the FX chain window is not in focus as long as there's no item under mouse cursor. In order to be able to shift the focus of the script from the open take FX chain window to selected items to target them when {\b SELECTED} option is ON, click anywhere within the Arrange canvas and use the technique described above. To return the focus to the open FX chain window, click it.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 =\u9658? ALL_TAKES\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 When enabled while {\b SELECTED} option is active the state of FX in all takes of selected items is toggled. Otherwise it's only toggled in the active takes.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 =\u9658? OFF_ON_LINE\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 By default the script toggles FX bypass. This option switches it to toggling FX offline and back online.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 =\u9658? HEX_COLOR\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Allows setting custom color for indicator take marker. If not set or malformed REAPER default take marker color is used.\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/member.php?u=134058</link>
+      </metadata>
+      <version name="1.0" author="BuyOne" time="2021-08-10T17:58:54Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/453d2f9c6382e42de392d8718451f52b8509d140/FX/BuyOne_Toggle%20bypass;offline%20state%20of%20all%20FX%20in%20a%20focused;selected%20item;take%20+%20visual%20indication%20(guide%20inside).lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Monitoring FX bypass bundle.lua" type="script" desc="Monitoring FX bypass bundle (bypass, unbypass or toggle)">
@@ -12699,6 +12740,32 @@ Don't report an error if no render presets were created yet]]></changelog>
     </reapack>
   </category>
   <category name="Time Selection">
+    <reapack name="BuyOne_Create time selection between two marked points from the closest to cursor on the left (guide inside).lua" type="script" desc="Create time selection between two marked points from the closest to cursor on the left">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 ####GUIDE\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The script allows creating time selection between two marked points starting from the closest to the mouse/edit cursor on the left.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Marked points are positions on the timeline which in Arrange are marked with project/tempo markers, region/loop start/end points and in items are marked with take/stretch markers, transient guides and media cues. Loop points are only relevant when the option {\i Link loop points to time selection} is disabled at {\i Preferences -> Editing behavior}.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Admittedely to a region time selection can be set with the default shortcut of Ctrl/Cmd + click on the ruler under the region bar or by dragging, provided snapping of selecton to markers is active in Snap settings, which is also true for setting time selection between two project markers by dragging or clicking if enabled in {\i Preferences -> Mouse modifiers -> Ruler -> double click}, but not really to other marked ranges.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab To create a time selection between two marked points of the same kind hold mouse cursor next to the first (start) point on its right side and call the script.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab If you have multiple marked points next to each other, time selection will be created starting from the closest to the mouse cursor on the left.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab If marked point start positions overlap time selection will be created between start and end points of the same kind which make the shortest range.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab When mouse cursor is over a selected item, the marked points considered are those specific to the item. In items with multiple takes only active item take is considered.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Enabled {\b IGNORE_SELECTED} option in the USER SETTINGS below will instruct the script to ignore selected item under mouse cursor and only consider marked points specific to the Arrange.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab In order to allow running the script from a menu or a toolbar button or generally in situations where mouse cursor is taken by another process and/or not hovering immediately over the Arrange, {\b EDIT_CURSOR} option is provided in the USER SETTINGS below.\line When enabled, edit cursor position instead of mouse cursor's will determine the closest marked point.\line With mouse cursor the script may still work if run from a floating toolbar button but the toolbar must float directly over the marked out range and be close enough to the intended start point.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Creating time selection between marked points of different kinds isn't supported.\sa180\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/member.php?u=134058</link>
+      </metadata>
+      <version name="1.0" author="BuyOne" time="2021-08-10T17:58:36Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f122efe9b7d1e78452a610d0cadbffe6911f87b1/Time%20Selection/BuyOne_Create%20time%20selection%20between%20two%20marked%20points%20from%20the%20closest%20to%20cursor%20on%20the%20left%20(guide%20inside).lua</source>
+      </version>
+    </reapack>
     <reapack name="cfillion_Extend time selection to cover selected items.lua" type="script" desc="Extend time selection to cover selected items">
       <metadata>
         <link rel="website" href="https://cfillion.ca">cfillion.ca</link>
