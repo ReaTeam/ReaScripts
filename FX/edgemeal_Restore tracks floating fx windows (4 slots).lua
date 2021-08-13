@@ -2,8 +2,8 @@
 -- @author Edgemeal
 -- @version 1.01
 -- @changelog When restoring a slot and the floating fx window is already open then it is closed to act like a toggle.
+-- @metapackage
 -- @provides
---   .
 --   [main] . > edgemeal_Restore tracks floating fx windows from slot 1.lua
 --   [main] . > edgemeal_Restore tracks floating fx windows from slot 2.lua
 --   [main] . > edgemeal_Restore tracks floating fx windows from slot 3.lua
