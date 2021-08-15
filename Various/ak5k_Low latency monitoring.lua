@@ -1,9 +1,7 @@
 -- @description Low latency monitoring
 -- @author ak5k
--- @version 1.5
--- @changelog
---   Monitored signal chains without hardware output are left untouched.
---   PDC Manager is no longer a GUI option. It can still be enabled by setting script variable pdc_manager = true or false.
+-- @version 1.6
+-- @changelog Report window now shows monitored input tracks.
 -- @link Forum thread, more detailed information https://forum.cockos.com/showthread.php?t=245445
 -- @about
 --   # Low latency monitoring
@@ -16,11 +14,10 @@
 --
 --   Can be setup as a toolbar toggle on/off button, and this is recommended. Settings can be configured. REAPER 6.21 or later required. Visit [website](https://forum.cockos.com/showthread.php?t=245445) for detailed information or reporting bugs.
 
-
 --Get settings from user:
 local user_settings = true
 
-local total_pdc_limit = 6 -- in ms
+local total_pdc_limit = 10 -- in ms
 local enable_safe_tag = true -- or false
 local safe_tag = "-LL"
 local trackfx_pdc_limit = 0 -- in ms
@@ -369,6 +366,11 @@ local function set_report()
     str = trname .. " " .. str .. " ms"
     str = str .. " " .. tostring(tot) .. " spls"
     print_results[tr][0] = str
+  end
+  local n = 0
+  for i, tr in ipairs(monitored_input_tracks) do
+    print_results[i] = {}
+    _, print_results[i][0] = GetTrackName(tr)
   end
 end
 
