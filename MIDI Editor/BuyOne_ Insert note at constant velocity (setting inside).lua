@@ -52,7 +52,7 @@ local r = reaper
 
 
 function ACT(ID, ME)
-	if ID then --ID = tostring(ID)
+	if ID then
 	local ID = r.NamedCommandLookup(ID)
 		if not ME then r.Main_OnCommand(ID, 0)
 		else
