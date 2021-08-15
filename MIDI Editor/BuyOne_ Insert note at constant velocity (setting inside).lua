@@ -12,7 +12,8 @@ About:
 	velocity to which each new note will be set.
 	
 	If assigned to 'double click' context at Preferences -> MIDI Editor piano roll, 
-	make sure that in the parallel slot or one with at least one same modifier 
+	and you don't want the cursor to move when a note is inserted (default behavior) 
+	then make sure that in the parallel slot or one with at least one same modifier 
 	under the 'left click' context there's no action (behavior) which moves the 
 	edit cursor, otherwise the first click out of the two will change the edit 
 	cursor position.  
