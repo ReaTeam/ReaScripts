@@ -12,9 +12,10 @@ About:
 	velocity to which each new note will be set.
 	
 	If assigned to 'double click' context at Preferences -> MIDI Editor piano roll, 
-	make sure that in the parallel slot under the 'left click' context there's no 
-	action (behavior) which moves the edit cursor, otherwise the first click out 
-	of the two will change the edit cursor position.  
+	make sure that in the parallel slot or one with at least one same modifier 
+	under the 'left click' context there's no action (behavior) which moves the 
+	edit cursor, otherwise the first click out of the two will change the edit 
+	cursor position.  
 	If this can't be ensured, then run it independently of the mouse click, that 
 	is via a shortcut assigned to the sctript in the Action list.
 	
