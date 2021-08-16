@@ -1,17 +1,16 @@
 -- @description Insert selected FX or FX chain presets in OR copy focused FX to selected objects
 -- @author BuyOne
 -- @website https://forum.cockos.com/member.php?u=134058
--- @version 1.2
+-- @version 1.3
 -- @changelog
---    Minor error proofing
---    Updated title to reflect capabilities
---    Updated guide to reflect capabilities
---    Updated undo caption to reflect name
+--    Following ReaPack issue report 776:
+--    Added version compatibility check
+--    Update version compatibility tag
 -- @about Allows inserting multiple FX or FX chain presets from FX browser or copying FX focused in an FX chain or in a floating window to selected objects. Detailed description is available inside the script.
 
 --[[
 * Licence: WTFPL
-* REAPER: at least v5.962
+* REAPER: at least v6.12c
 
 —— To insert FX or FX chain preset in multiple objects (tracks and/or items) at once open the FX 
 Browser, select FX or FX chain preset, as many as needed, select the destination objects and run 
@@ -95,10 +94,13 @@ local TAKE_FX = TAKE_FX:gsub('[%s]','') ~= ''
 	local sel_trk_cnt = r.CountSelectedTracks2(0,true) -- incl. Master
 	local sel_itms_cnt = r.CountSelectedMediaItems(0)
 	local fx_chain = retval > 0 or src_mon_fx_idx >= 0
-	local fx_brws = r.GetToggleCommandStateEx(0, 40271) -- View: Show FX browser window
+	local app_ver = tonumber(r.GetAppVersion():match('(.+)/')) > 6.11
+	local fx_brws = app_ver and r.GetToggleCommandStateEx(0, 40271) -- View: Show FX browser window
+	or 0 -- disable FX browser routine in builds prior to 6.12c where the API doesn't support it
 
 	-- Generate error messages
-	local err1 = (retval == 0 and src_mon_fx_idx < 0 and fx_brws == 0) and '            No focused FX to insert.\n\nSelect FX in FX chain or in FX browser.' or ((sel_trk_cnt + sel_itms_cnt == 0) and 'No selected objects.')
+	local compat_note = not app_ver and '\n\n           Inserting from FX browser\n\n    is only supported since build 6.12c.' or ''
+	local err1 = (retval == 0 and src_mon_fx_idx < 0 and fx_brws == 0) and '            No focused FX to insert.\n\nSelect FX in FX chain or in FX browser.'..compat_note or ((sel_trk_cnt + sel_itms_cnt == 0) and 'No selected objects.')
 	local err2 = (sel_trk_cnt == 0 and sel_itms_cnt > 0 and not TAKE_FX) and 'Inserting FX in items is disabled\n\n       in the USER SETTINGS.' or ((sel_trk_cnt > 0 and sel_itms_cnt == 0 and not (TRACK_MAIN_FX and TRACK_INPUT_MON_FX)) and 'Inserting FX on tracks is disabled\n\n         in the USER SETTINGS.')
 	local err = err1 or err2
 		if err then r.MB(err,'ERROR',0) r.defer(function() end) return end
