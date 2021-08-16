@@ -56,9 +56,9 @@ function ACT(ID, ME)
 	local ID = r.NamedCommandLookup(ID)
 		if not ME then r.Main_OnCommand(ID, 0)
 		else
-		r.MIDIEditor_LastFocused_OnCommand(ID, false) -- islistviewcommand is false	
+		r.MIDIEditor_LastFocused_OnCommand(ID, false) -- islistviewcommand is false
 		end
-	end	
+	end
 end
 
 
