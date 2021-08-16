@@ -3,6 +3,7 @@
 -- @website https://forum.cockos.com/member.php?u=134058
 -- @version 1.3
 -- @changelog
+--    Following ReaPack issue report 776:
 --    Added version compatibility check
 --    Update version compatibility tag
 -- @about Allows inserting multiple FX or FX chain presets from FX browser or copying FX focused in an FX chain or in a floating window to selected objects. Detailed description is available inside the script.
