@@ -1,12 +1,10 @@
 -- @description Insert selected FX or FX chain presets in OR copy focused FX to selected objects
 -- @author BuyOne
 -- @website https://forum.cockos.com/member.php?u=134058
--- @version 1.2
+-- @version 1.3
 -- @changelog
---    Minor error proofing
---    Updated title to reflect capabilities
---    Updated guide to reflect capabilities
---    Updated undo caption to reflect name
+--    Added version compatibility check
+--    Update version compatibility tag
 -- @about Allows inserting multiple FX or FX chain presets from FX browser or copying FX focused in an FX chain or in a floating window to selected objects. Detailed description is available inside the script.
 
 --[[
