@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="62c2623b7635088c48f31c09d409e4c2794c31b8" name="ReaTeam Scripts">
+<index version="1" commit="9a9a554b322ab9cb310eecf2b56ac6724a5b766d" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -14412,6 +14412,10 @@ In Global automation override modes (touch, latch, write, bypass) all tracks are
         <changelog><![CDATA[Monitored signal chains without hardware output are left untouched.
 PDC Manager is no longer a GUI option. It can still be enabled by setting script variable pdc_manager = true or false.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/95dc6b64abb2afde827478afa820a9691a18a535/Various/ak5k_Low%20latency%20monitoring.lua</source>
+      </version>
+      <version name="1.6" author="ak5k" time="2021-08-16T12:13:26Z">
+        <changelog><![CDATA[Report window now shows monitored input tracks.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/9a9a554b322ab9cb310eecf2b56ac6724a5b766d/Various/ak5k_Low%20latency%20monitoring.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Adjust theme colors.lua" type="script" desc="Adjust theme colors">
