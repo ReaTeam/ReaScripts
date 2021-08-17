@@ -11,7 +11,9 @@ About:
 	at the velocity of the last selected note with no way to define a constant 
 	velocity to which each new note will be set.
 	
-	If assigned to 'double click' context at Preferences -> MIDI Editor piano roll, 
+	The note is inserted at mouse cursor. So stricly speaking clicking isn't necessary.
+
+	However if assigned to 'double click' context at Preferences -> MIDI Editor piano roll, 
 	and you don't want the cursor to move when a note is inserted (default behavior) 
 	then make sure that in the parallel slot or one with at least one same modifier 
 	under the 'left click' context there's no action (behavior) which moves the 
