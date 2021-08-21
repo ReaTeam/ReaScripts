@@ -2,11 +2,9 @@
 ReaScript name: Insert note at constant velocity set via a dialogue
 Author: BuyOne
 Website: https://forum.cockos.com/member.php?u=134058
-Version: 1.1
-Changelog: # Added dialogue to set new default velocity
-	   # Added option to set selected notes to the new default velocity
-	   # Updated Guide accordingly
-	   # Changed the script name to reflect functionality
+Version: 1.2
+Changelog: 	# Added minor functionality improvement			
+			# Updated guide accordingly
 Provides: [main=midi_editor] .
 Screenshot: https://git.io/J0pdP
 Licence: WTFPL
@@ -71,6 +69,22 @@ About:
 	Until then the script won't run if called with a shortcut.
 
 	The script isn't designed to work with MIDI Inline editor.
+	
+	
+	▓ ▪ IGNORE_MARGINS
+	
+	This setting prevents REAPER action 'Edit: Insert note at mouse cursor', which
+	is used in this script, from inserting a note when the mouse cursor is outside
+	of the active Piano roll area on the left (excluding the graphic keyboard) or right 
+	(essentially outside of the item bounds) because it may trigger the dialogue 
+	when it's uncalled for.  
+	This comes at a small price of the edit cursor slightly jolting every time a note 
+	is inserted in the active Piano roll area and inability to extend the item by 
+	inserting a note outside of its bounds while 'Loop item source' option is OFF.
+	
+	If you find edit cursor jerks annoying you can disable this setting but then
+	try to avoid running the script when the mouse cursor is outside of the active 
+	Paino roll area on the left (excluding the graphic keyboard) or right.
 
 ]]
 
@@ -81,6 +95,9 @@ About:
 
 INIT_VELOCITY = 100
 
+-- To enable insert any alphanumeric character between the quotation marks.
+
+IGNORE_MARGINS = "1"
 -----------------------------------------------------------------------------
 -------------------------- END OF USER SETTINGS -----------------------------
 -----------------------------------------------------------------------------
@@ -98,8 +115,9 @@ local scr_name = scr_name:match('([^\\/]+)%.%w+')
 
 
 function ACT(ID, ME)
+-- ID - string or integer
 	if ID then
-	local ID = r.NamedCommandLookup(ID)
+	local ID = r.NamedCommandLookup(ID) -- works with srings and integers
 		if not ME then r.Main_OnCommand(ID, 0)
 		else
 		r.MIDIEditor_LastFocused_OnCommand(ID, false) -- islistviewcommand is false
@@ -111,6 +129,27 @@ end
 
 local ME = r.MIDIEditor_GetActive()
 local take = r.MIDIEditor_GetTake(ME)
+
+
+	if #IGNORE_MARGINS:gsub(' ','') > 0 then
+
+	-- Prevent note insert if mouse cursor is outside of the active Paino roll area (outside of item bounds) when 'Loop item source' option is ON for the active MIDI item; the reason is that it's inserted by 'Edit: Insert note at mouse cursor' action used in the script apparently treating the outside area as the looped iteration of the item; if 'Loop item source' option is OFF this action inserts the new note outside of the current item bounds having extended the item to accommodate the note; the downside of this routine will be inability to extend the MIDI item by inserting a note outside of its bounds when 'Loop item source' option is OFF
+
+	r.PreventUIRefresh(1)
+	local stored_edit_cur_pos = r.GetCursorPosition()
+	local item = r.GetMediaItemTake_Item(take)
+	ACT(40443, ME) -- View: Move edit cursor to mouse cursor
+	local edit_cur_pos = r.GetCursorPosition()
+	ACT(40037, ME) -- View: Go to end of file
+	local item_end = r.GetCursorPosition()
+	ACT(40036, ME) -- View: Go to start of file
+	local item_start = r.GetCursorPosition()
+	r.SetEditCurPos(stored_edit_cur_pos, 0, 0) -- restore edit cursor pos; moveview is 0, seekplay is 0
+		if edit_cur_pos >= item_end or edit_cur_pos <= item_start
+		then return r.defer(function() end) end -- prevent generic undo point creation
+	r.PreventUIRefresh(-1)
+
+end
 
 
 local retval, notecnt, ccevtcnt, textsyxevtcnt = r.MIDI_CountEvts(take)
@@ -183,6 +222,10 @@ r.SetMediaItemSelected(item, true)
 
 r.Undo_EndBlock(undo, -1)
 r.PreventUIRefresh(-1)
+
+
+
+
 
 
 
