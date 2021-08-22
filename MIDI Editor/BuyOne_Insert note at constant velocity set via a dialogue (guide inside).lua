@@ -4,7 +4,7 @@ Author: BuyOne
 Website: https://forum.cockos.com/member.php?u=134058
 Version: 1.2
 Changelog: 	# Added minor functionality improvement			
-			# Updated guide accordingly
+		# Updated guide accordingly
 Provides: [main=midi_editor] .
 Screenshot: https://git.io/J0pdP
 Licence: WTFPL
@@ -92,6 +92,7 @@ About:
 ------------------------------ USER SETTINGS --------------------------------
 -----------------------------------------------------------------------------
 -- INIT_VELOCITY must have a value, otherwise the script will throw an error
+-- Values outside of 1-127 range will be clamped to the closest valid value
 
 INIT_VELOCITY = 100
 
@@ -146,15 +147,15 @@ local take = r.MIDIEditor_GetTake(ME)
 	local item_start = r.GetCursorPosition()
 	r.SetEditCurPos(stored_edit_cur_pos, 0, 0) -- restore edit cursor pos; moveview is 0, seekplay is 0
 		if edit_cur_pos >= item_end or edit_cur_pos <= item_start
-		then return r.defer(function() end) end -- prevent generic undo point creation
+		then return r.defer(function() end) end -- prevent generic undo point creation; instead of aborting the script velocity 0 could be declared which would make MIDI_SetNote() function delete the note just inserted
 	r.PreventUIRefresh(-1)
 
-end
+	end
 
 
 local retval, notecnt, ccevtcnt, textsyxevtcnt = r.MIDI_CountEvts(take)
 
-r.SetExtState(cmd_ID..scr_name, 'note count', notecnt, false) -- update note count before the main routine rather than after it to account for notes deleted and added by means other than this script in which case their count isn't be updated in the extended state here, whereas if the extended state were set after the main routine it would cause the 'dialogue' routine to be skipped (due to the real world and stored counts inequality) without any note available for feeding to the function in the 'set velocity' routine because no note was inserted and is selected and ultimately causing the MIDI_SetNote() function to throw an error
+r.SetExtState(cmd_ID..scr_name, 'note count', notecnt, false) -- update note count before the main routine rather than after it to account for notes deleted and added by means other than this script in which case their count isn't updated in the extended state here, whereas if the extended state were set after the main routine it would cause the 'dialogue' routine to be skipped (due to the real world and stored counts inequality) without any note available for feeding to the function in the 'set velocity' routine because no note was inserted and is selected and ultimately causing the MIDI_SetNote() function to throw an error
 
 local sel_note_t = {}
 
@@ -174,6 +175,9 @@ local retval, notecnt, ccevtcnt, textsyxevtcnt = r.MIDI_CountEvts(take) -- count
 
 local old_notecnt = r.GetExtState(cmd_ID..scr_name, 'note count') -- note count before calling the note 'insert' action
 local retval, velocity = r.GetProjExtState(0, cmd_ID..scr_name, 'velocity')
+
+
+local INIT_VELOCITY = INIT_VELOCITY < 1 and 1 or INIT_VELOCITY > 127 and 127 -- clamp values to the standard range
 
 
 	if notecnt == 0 or notecnt == tonumber(old_notecnt) then -- call the dialogue to set new default velocity if note count is no different from the last count stored as extended state, meaning the cursor isn't over the piano roll when the script is called and so no new note has been added hence no change in the count
