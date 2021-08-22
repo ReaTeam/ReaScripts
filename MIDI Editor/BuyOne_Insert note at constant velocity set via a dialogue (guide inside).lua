@@ -177,7 +177,7 @@ local old_notecnt = r.GetExtState(cmd_ID..scr_name, 'note count') -- note count 
 local retval, velocity = r.GetProjExtState(0, cmd_ID..scr_name, 'velocity')
 
 
-local INIT_VELOCITY = INIT_VELOCITY < 1 and 1 or INIT_VELOCITY > 127 and 127 -- clamp values to the standard range
+local INIT_VELOCITY = INIT_VELOCITY < 1 and 1 or INIT_VELOCITY > 127 and 127 or INIT_VELOCITY -- clamp values to the standard range
 
 
 	if notecnt == 0 or notecnt == tonumber(old_notecnt) then -- call the dialogue to set new default velocity if note count is no different from the last count stored as extended state, meaning the cursor isn't over the piano roll when the script is called and so no new note has been added hence no change in the count
