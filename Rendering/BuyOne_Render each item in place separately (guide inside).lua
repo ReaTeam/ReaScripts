@@ -535,7 +535,7 @@ local index = index + 1 -- increment
 		r.SetMediaItemTake_Source(take, new_src) -- assign the renamed file as a source
 		ACT(40439) -- Item: Set selected media online
 		index = index + 1
-		local ok, message = os.remove(f_path..f_name..'.reapeaks') -- remove lingering peak files with old file names; may leave lone non-deleted peak files if placed in the middle of the routine, could be because the source file is valid until renamed
+		local ok, message = #r.GetPeakFileName(f_path..f_name, '') > 0 and os.remove(r.GetPeakFileName(f_path..f_name, '')) -- remove lingering peak files with old file names; may leave lone non-deleted peak files if placed in the middle of the routine, could be because the source file is valid until renamed
 		end
 	end
 
