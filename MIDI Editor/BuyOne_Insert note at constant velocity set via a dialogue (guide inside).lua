@@ -147,7 +147,7 @@ local take = r.MIDIEditor_GetTake(ME)
 	local item_start = r.GetCursorPosition()
 	r.SetEditCurPos(stored_edit_cur_pos, 0, 0) -- restore edit cursor pos; moveview is 0, seekplay is 0
 		if edit_cur_pos >= item_end or edit_cur_pos <= item_start
-		then return r.defer(function() end) end -- prevent generic undo point creation; instead of aborting the script velocity 0 could be declared which would make MIDI_SetNote() function delete the note just inserted
+		then return r.defer(function() end) end -- prevent generic undo point creation
 	r.PreventUIRefresh(-1)
 
 	end
