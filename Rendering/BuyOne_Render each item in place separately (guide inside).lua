@@ -385,7 +385,7 @@ local rend_trks_t = {}
 		ACT(40421) -- Item: Select all items in track
 		ACT(40290) -- Time selection: Set time selection to items
 		local start, fin = r.GetSet_LoopTimeRange(false, false, 0, 0, false) -- GET // isSet, isLoop, start, end, allowautoseek
-		local fin = is_folder and Get_Folder_Rightmost_Item_RightEdge(k) or fin -- if folder, extent time selection to the right edge of the last item therein
+		local fin = is_folder and Get_Folder_Rightmost_Item_RightEdge(k) or fin -- if folder, extend time selection to the right edge of the last item therein
 		local start, fin = r.GetSet_LoopTimeRange(true, false, 0, fin, false) -- SET
 			if TAIL then
 			r.GetSet_LoopTimeRange(true, false, start, fin + TAIL, false) -- extend time selection by TAIL value
