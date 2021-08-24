@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="333f7308ab341dcd2c5030a48bb34e6dc45e19fd" name="ReaTeam Scripts">
+<index version="1" commit="d695ecd02299822d816ae5fabdb95123267542a6" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -2003,8 +2003,8 @@ Refactored/reorganized the code for readability]]></changelog>
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 Displays a list with all the media files that are referenced in all the rpp and rpp-bak files that reside in the same user chosen folder.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Displays the number of projects found, the number of media files found, the number of total references for each media file and the number of projects that this media file is referenced in.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Displays a list with all the media files that are referenced in all the rpp and rpp-bak files that reside in the same user chosen folder (searches ALL sub-folders of folder).\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Displays the number of projects found, the number of media files found, the number of total references for each media file and a list of the projects that each media file is referenced in. Files/paths that are no more available are denoted with double asterisks (**).\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Requires JS_ReaScriptAPI and RPP-Parser\sa180\par}
 }
 ]]></description>
@@ -2013,6 +2013,13 @@ Refactored/reorganized the code for readability]]></changelog>
       </metadata>
       <version name="1.00" author="amagalma" time="2021-02-23T13:57:27Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/bffd32c9333d4b0f2e847cd13db27d0c34ae92ed/Development/RPP-Parser/amagalma_Display%20all%20referenced%20media%20files%20in%20all%20projects%20residing%20in%20a%20folder%20path.lua</source>
+      </version>
+      <version name="1.1" author="amagalma" time="2021-08-24T10:29:16Z">
+        <changelog><![CDATA[- Fix for OSX/Linux
+- Searches in all sub-folders of the set folder
+- Better report (displays all projects that each media file is referenced in)
+- Files/paths that are no more available are denoted with double asterisks (**)]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d695ecd02299822d816ae5fabdb95123267542a6/Development/RPP-Parser/amagalma_Display%20all%20referenced%20media%20files%20in%20all%20projects%20residing%20in%20a%20folder%20path.lua</source>
       </version>
     </reapack>
     <reapack name="Reateam_RPP-Parser.lua" type="script" desc="RPP Parser">
