@@ -2,14 +2,7 @@
 -- @author MPL
 -- @version 1.0
 -- @changelog + init
--- @about This script supposed to contain basic info provided with API Help page comes with REAPER, but allow to extend info and snippets database from users.
-
--- @description APIHelp
--- @version 1.0
--- @author MPL
--- @about API help
--- @changelog
---    + init
+-- @about This script supposed to contain basic info provided with API Help page comes with REAPER, but allow to extend info and snippets database from users.G
   
   version = 1.0
   ---------------------------------------------------
