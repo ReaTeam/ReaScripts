@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="d695ecd02299822d816ae5fabdb95123267542a6" name="ReaTeam Scripts">
+<index version="1" commit="9c9da5c04e5b7515cfa95e01f0f2b8bd479a5e09" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -12340,7 +12340,7 @@ Replace GetLastWord func with quicker solution (Thanks: Mespotine[t=233393]).]]>
       </metadata>
       <version name="1.0" author="BuyOne" time="2021-07-21T22:08:53Z">
         <changelog><![CDATA[Initial release]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/9cdacd6ab2a71586e4581c786b3041bc25b5b61f/Rendering/BuyOne_Render%20each%20item%20in%20place%20separately%20(guide%20inside).lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/9c9da5c04e5b7515cfa95e01f0f2b8bd479a5e09/Rendering/BuyOne_Render%20each%20item%20in%20place%20separately%20(guide%20inside).lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Apply render preset.lua" type="script" desc="Apply render preset">
