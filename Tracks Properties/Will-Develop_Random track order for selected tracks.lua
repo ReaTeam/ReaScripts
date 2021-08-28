@@ -21,28 +21,6 @@
 --   1. Select the tracks.
 --   2. Run the Script
 
---[[
-  INFO:
-    - ReaScript Name: random track order for selected tracks
-    - Author: Will Develop 
-    - Forum: https://forum.cockos.com/showthread.php?p=2237863#post2237863
-    - REAPER: 6.02
-    - Version: 1.0
-  
-  DESCRIPTION:
-    This script randomized the order for the selected tracks. Useful for Blind-Tests
-
-    
-    INTRODUCTION:
-      
-      1.Select the tracks.
-      2.Run the Script
-      
---]]
-
-
-
-
  --Lua Shuffle-Function
 function shuffle(array)
   for i = #array, 2, -1 do
