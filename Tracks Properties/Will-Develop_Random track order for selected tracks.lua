@@ -1,9 +1,7 @@
 -- @description Random track order for selected tracks
 -- @author Will Develop
 -- @version 1.0
--- @link
---   Forum thread https://forum.cockos.com/showthread.php?p=2237863
---   My Website https://will-records.tk/site/php/home.php
+-- @link Forum thread https://forum.cockos.com/showthread.php?p=2237863
 -- @about
 --   # Random track order for selected tracks by Will Develop
 --
@@ -13,13 +11,13 @@
 --   - Author: Will Develop 
 --   - Website: https://www.will-records.tk
 --   - REAPER: 6.02
---  
+--
 --   ## DESCRIPTION:
 --
 --   This script randomized the order for the selected tracks. Useful for Blind-Tests
---    
+--
 --   ## INTRODUCTION:
---      
+--
 --   1. Select the tracks.
 --   2. Run the Script
 
