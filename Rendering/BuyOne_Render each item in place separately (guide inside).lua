@@ -385,7 +385,7 @@ local rend_trks_t = {}
 		ACT(40421) -- Item: Select all items in track
 		ACT(40290) -- Time selection: Set time selection to items
 		local start, fin = r.GetSet_LoopTimeRange(false, false, 0, 0, false) -- GET // isSet, isLoop, start, end, allowautoseek
-		local fin = is_folder and Get_Folder_Rightmost_Item_RightEdge(k) or fin -- if folder, extent time selection to the right edge of the last item therein
+		local fin = is_folder and Get_Folder_Rightmost_Item_RightEdge(k) or fin -- if folder, extend time selection to the right edge of the last item therein
 		local start, fin = r.GetSet_LoopTimeRange(true, false, 0, fin, false) -- SET
 			if TAIL then
 			r.GetSet_LoopTimeRange(true, false, start, fin + TAIL, false) -- extend time selection by TAIL value
@@ -535,7 +535,7 @@ local index = index + 1 -- increment
 		r.SetMediaItemTake_Source(take, new_src) -- assign the renamed file as a source
 		ACT(40439) -- Item: Set selected media online
 		index = index + 1
-		local ok, message = os.remove(f_path..f_name..'.reapeaks') -- remove lingering peak files with old file names; may leave lone non-deleted peak files if placed in the middle of the routine, could be because the source file is valid until renamed
+		local ok, message = #r.GetPeakFileName(f_path..f_name, '') > 0 and os.remove(r.GetPeakFileName(f_path..f_name, '')) -- remove lingering peak files with old file names; may leave lone non-deleted peak files if placed in the middle of the routine, could be because the source file is valid until renamed
 		end
 	end
 
