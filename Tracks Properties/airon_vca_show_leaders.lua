@@ -2,6 +2,7 @@
 -- @author Airon
 -- @version 1.0
 -- @changelog Initial Release
+-- @website https://forum.cockos.com/showthread.php?t=255631
 -- @about
 --   Show VCA Leaders and hide all other tracks.
 --
@@ -15,32 +16,11 @@
 --   - Show only selected tracks and hide all others
 
 --[[
-* ReaScript Name: vca_show_leaders
-* Author: Airon
 * Licence: GPL v3
-* REAPER: 5.0
-* Extensions: None
-* Description: Show VCA Leaders and hide all other tracks
-* Website: https://forum.cockos.com/showthread.php?t=255631
 * FULL AUTHOR LIST:
     Airon, NoFish
-* Purpose:
-    Mixers require fast access across dozens or even hundreds of tracks
-    with the least amount of work. With VCA groups, this is possible,
-    even through several Leader/Follower layers.
-    This script works for track visibility on the arrangement, mixer
-    and on control surfaces.
-
-How it works:
-- Unselect all tracks
-- Check each track if it is a vca leader
-- Select those tracks
-- Show only selected tracks and hide all others
-
-* Changelog:
-* v1.0 (2021-08-23)
- + initial release
 --]]
+
 -- reset variables
 local ctr = reaper.CountTracks(0)
 local i=0
