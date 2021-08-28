@@ -1,10 +1,10 @@
 -- @description API help
--- @author MPL
--- @version 1.0
--- @changelog + init
+-- @author MPL, nofish
+-- @version 1.01
+-- @changelog + Undo_EndBlock(): add link to extra flags description (post from schwa)
 -- @about This script supposed to contain basic info provided with API Help page comes with REAPER, but allow to extend info and snippets database from users.
   
-  version = 1.0
+  version = 1.01
   ---------------------------------------------------
   function ExtState_Def()  
     local t= {
@@ -2253,7 +2253,7 @@ DESC654 nonzero if success
 FUNC655 integer reaper.Undo_DoUndo2(ReaProject proj)
 DESC655 nonzero if success
 FUNC656 reaper.Undo_EndBlock(string descchange, integer extraflags)
-DESC656 call to end the block,with extra flags if any,and a description
+DESC656 call to end the block,with extra flags if any,and a description. ReaTeam: For extra flags description see https://forum.cockos.com/showpost.php?p=2090533&postcount=27
 FUNC657 reaper.Undo_EndBlock2(ReaProject proj, string descchange, integer extraflags)
 DESC657 call to end the block,with extra flags if any,and a description
 FUNC658 reaper.Undo_OnStateChange(string descchange)
