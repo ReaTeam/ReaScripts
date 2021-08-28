@@ -2,7 +2,7 @@
 -- @author Airon
 -- @version 1.0
 -- @changelog Initial release
--- @provides . > airon_vca_show_followers_of_selected_vca_leader.lua
+-- @website https://forum.cockos.com/showthread.php?t=255631
 -- @about
 --   Checks if the selected track is a VCA Leader, shows all tracks that are a VCA Follower to it and hides all other tracks.
 --
@@ -14,31 +14,10 @@
 --   - Show only selected tracks and hide all others
 
 --[[
-* ReaScript Name: Show VCA Followers of selected VCA Leader
-* Instructions: Select a track that is a VCA Leader and run this script.
-* Author: Airon
 * Licence: GPL v3
-* REAPER: 5.0
-* Website: https://forum.cockos.com/showthread.php?t=255631
-* Extensions: None
-*   FULL AUTHOR LIST:
+* FULL AUTHOR LIST:
 *   Airon, NoFish
-*
-* Description: Checks if the selected track is a VCA Leader, shows all tracks that are a VCA Follower to it and hides all other tracks.
-- Check if the selected track is a vca leader
-- Get the group association bitfield for the VCA Leader
-  which gets you a 32-bit integer. Each bit represents one of the 32 possible groups.
-  A secondary function checks the next 32 groups.
-- Unselected all tracks
-- Compare the bitfield of VOLUME_VCA_LEAD of the leader to VOLUME_VCA_FOLLOW
-- Select the tracks where those bitfields match
-- Show only selected tracks and hide all others
-
-* Changelog:
-* v1.0 (2021-08-23)
-  + Initial Release
---]]    
-
+--]]
 
 -- reset variables
 local groups = {}
