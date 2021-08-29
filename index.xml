@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="9dc8f998f41a3198e2306b0a70aae023948bfd14" name="ReaTeam Scripts">
+<index version="1" commit="3dbb25748d2919d19dc13bc5732e782f5e5dab7d" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -1974,6 +1974,10 @@ Refactored/reorganized the code for readability]]></changelog>
       <version name="1.0" author="MPL" time="2021-08-28T19:29:05Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/9dc8f998f41a3198e2306b0a70aae023948bfd14/Development/mpl_API%20help.lua</source>
+      </version>
+      <version name="1.01" author="MPL, nofish" time="2021-08-29T20:59:05Z">
+        <changelog><![CDATA[+ Undo_EndBlock(): add link to extra flags description (post from schwa)]]></changelog>
+        <source main="main">https://github.com/nofishonfriday/ReaScripts_ReaTeam_Fork/raw/3dbb25748d2919d19dc13bc5732e782f5e5dab7d/Development/mpl_API%20help.lua</source>
       </version>
     </reapack>
     <reapack name="pandabot_Convert image to Lua function.lua" type="script" desc="Convert image to Lua function">
