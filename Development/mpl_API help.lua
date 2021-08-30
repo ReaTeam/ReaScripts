@@ -1,17 +1,29 @@
 -- @description API help
--- @author MPL
--- @version 1.0
--- @changelog + init
+-- @author MPL, nofish
+-- @version 1.02
+-- @changelog
+--   + Turn down text brighness for buttons, when snippet code not available
+--   + Add link to cockos forum thread
+--   + Add scroll for functions list
+--   + Parse multiline description enclosed with DESCN_START...DESCN_END
+--   - Remove all MPL mentions from menu, add ReaTeam author to the reaPack metadata
+--   # fix open url function
+--   # fix error when trying to run non-existed code snippet
 -- @about This script supposed to contain basic info provided with API Help page comes with REAPER, but allow to extend info and snippets database from users.
+
+
+
+  version = 1.02
   
-  version = 1.0
+  
+  
   ---------------------------------------------------
   function ExtState_Def()  
     local t= {
     
             -- globals
             mb_title = 'API help',
-            ES_key = 'MPL_APIhelp',
+            ES_key = 'APIhelp',
             wind_x =  50,
             wind_y =  50,
             wind_w =  600,
@@ -30,6 +42,7 @@
     if not str then return end
     local id
     local snip = ''
+    local desc_open,desc
     for line in str:gmatch('[^\r\n]+') do
       if line:match('FUNC(%d+)') and not line:match('%-%-') then
         id = tonumber(line:match('FUNC(%d+)'))
@@ -42,9 +55,24 @@
                 }
       end
       
-      if line:match('DESC(%d+)') and id then
+      if line:match('DESC(%d+)%s') and id then
         local desc = line:match('DESC[%d]+ (.*)')
         t[id].desc = desc
+      end
+      
+      if line:match('DESC(%d+)_START') and id then
+        --t[id].desc = desc_str
+        desc_open=true
+        desc_str=''
+      end
+      
+      if desc_open == true and not line:match('DESC(%d+)_')then
+        desc_str=desc_str..line..'\n'
+      end
+      
+      if line:match('DESC(%d+)_END') and id then
+        t[id].desc = desc_str
+        desc_open=false
       end
       
       if line:match('SNIP(%d+)_START') and id then
@@ -75,6 +103,7 @@
   ---------------------------------------------------------------------
   function VF_run_initVars_overwrite()
     --DATA.conf.cur_func = 0
+    DATA.GUIvars.scroll = 0
   end
   ---------------------------------------------------------------------
   function VF_MatchMultiWord(txt1,txt2) -- txt1:match(txt2)
@@ -102,7 +131,27 @@
   end
   ---------------------------------------------------------------------
   function OBJ_Buttons_Update(MOUSE,OBJ,DATA)
+    local scroll_area = gfx.h-DATA.GUIvars.menu_h
+    local min_h = OBJ.scroll_man.w
+    OBJ.scroll_man.y = DATA.GUIvars.menu_h + (scroll_area-min_h)*DATA.GUIvars.scroll
+    OBJ.scroll_man.h = min_h
     
+    
+    -- 2nd pass
+    local y_offs0 = DATA.GUIvars.menu_h + DATA.GUIvars.custom.offs
+    local y_offs = y_offs0
+    for i = 1, #DATA.custom.functions do
+      if DATA.custom.functions[i] and DATA.custom.functions[i].match == true then   
+        y_scrolled = OBJ['function'..i].y0 - DATA.GUIvars.scroll*(DATA.GUIvars.funch_com-(gfx.h-DATA.GUIvars.menu_h))
+        if y_scrolled > DATA.GUIvars.menu_h then 
+          OBJ['function'..i].y = y_scrolled
+         else
+          OBJ['function'..i].y = -OBJ['function'..i].h*10
+        end
+      end
+      y_offs = y_offs + DATA.GUIvars.custom.funch
+    end
+        
   end
   ---------------------------------------------------
   function msg(s) 
@@ -161,13 +210,8 @@
   ---------------------------------------------------------------------
   function OBJ_Buttons_InitMenuTop(MOUSE,OBJ,DATA, options_t)
      t = {     { str = '#'..DATA.conf.mb_title..' '..DATA.conf.vrs..'|'},
-                    { str = '>MPL contacts'},
-                    { str = 'Cockos forum centralized thread',
-                      func = function() Open_URL('https://forum.cockos.com/showthread.php?t=188335') end  } , 
-                    { str = 'VK page',
-                      func = function() Open_URL('http://vk.com/mpl57') end  } ,     
-                    { str = 'SoundCloud page|<',
-                      func = function() Open_URL('http://soundcloud.com/mpl57') end  }, 
+                    { str = 'Cockos forum thread',
+                      func = function() VF_Open_URL('https://forum.cockos.com/showthread.php?t=256796') end  } ,  
               }
     if options_t then for i =1, #options_t do t[#t+1] = options_t[i] end end
     
@@ -204,12 +248,15 @@
     
     for i = 1, 500 do  OBJ['snip'..i] = nil end -- clear
     
+    
+    
     DATA.GUIvars.custom = {}
-    DATA.GUIvars.custom.funcw = 300.
+    DATA.GUIvars.custom.funcw = math.floor(gfx.w*0.35)
     DATA.GUIvars.custom.funch = 20
     DATA.GUIvars.custom.offs = 5 
     DATA.GUIvars.custom.snip_fontsz = 17
     DATA.GUIvars.custom.linksw = DATA.GUIvars.custom.snip_fontsz
+    DATA.GUIvars.custom.scrollw = 25
     if DATA.conf.loadfilteronstart == 1 then OBJ_Buttons_Init_Filter(MOUSE,OBJ,DATA) end
     OBJ_Buttons_Init_LeftPage(MOUSE,OBJ,DATA)
     OBJ_Buttons_ShowFunction(MOUSE,OBJ,DATA,DATA.conf.cur_func)
@@ -240,14 +287,15 @@
                   }
                   
     
-    local y_offs = DATA.GUIvars.menu_h + DATA.GUIvars.custom.offs
-    
+    local y_offs0 = DATA.GUIvars.menu_h + DATA.GUIvars.custom.offs
+    local y_offs = y_offs0
     for i = 1, #DATA.custom.functions do
       if DATA.custom.functions[i] and DATA.custom.functions[i].match == true then
         OBJ['function'..i] = { is_button = true,
-                  x = 0,
+                  x = DATA.GUIvars.custom.scrollw,
                   y = y_offs,
-                  w = DATA.GUIvars.custom.funcw,
+                  y0 = y_offs,
+                  w = DATA.GUIvars.custom.funcw-DATA.GUIvars.custom.scrollw,
                   h = DATA.GUIvars.custom.funch,
                   txt= DATA.custom.functions[i].shname:sub(0,50),
                   drawstr_flags = 1|4,
@@ -258,6 +306,36 @@
         y_offs = y_offs + DATA.GUIvars.custom.funch
       end
     end
+    
+    
+    DATA.GUIvars.funch_com = y_offs -y_offs0 
+    
+    OBJ.scroll_man = { is_button = true,
+                x = 0,
+                y = DATA.GUIvars.menu_h,
+                w = DATA.GUIvars.custom.scrollw,
+                h = gfx.h-DATA.GUIvars.menu_h,
+                selection_a = 0.2,
+                selected = true,
+                func_Ltrig =  function() 
+                                DATA.GUIvars.scroll0 = DATA.GUIvars.scroll 
+                              end,
+                func_Ldrag =  function() 
+                                if DATA.GUIvars.scroll0 then 
+                                  DATA.GUIvars.scroll = VF_lim(DATA.GUIvars.scroll0+ (MOUSE.dy/gfx.h)) 
+                                  DATA.refresh.GUI = DATA.refresh.GUI|4
+                                  --DATA.refresh.data = DATA.refresh.data|2
+                                  --msg(DATA.GUIvars.scroll)
+                                end
+                              end,
+                func_onptrrelease = function() DATA.GUIvars.scroll0 = DATA.GUIvars.scroll  end
+                  }
+                  
+  end
+  ------------------------------------------------------------------------------------------------------
+  function VF_lim(val, min,max) --local min,max 
+    if not min or not max then min, max = 0,1 end 
+    return math.max(min,  math.min(val, max) ) 
   end
   ---------------------------------------------------------------------
   function OBJ_Buttons_ShowFunction(MOUSE,OBJ,DATA,i)
@@ -304,6 +382,9 @@
                 fontsz = DATA.GUIvars.custom.snip_fontsz,
                 func_Ltrig =  function()  end }  
     local snipw = (gfx.w- DATA.GUIvars.custom.funcw-DATA.GUIvars.custom.offs*2)/2
+    
+    local txt_a = 1
+    if not sniptxt then txt_a = 0.4 end
     OBJ.functionsniprun = { is_button = true,
                 x = DATA.GUIvars.custom.funcw+DATA.GUIvars.custom.offs+DATA.GUIvars.custom.linksw,
                 y = OBJ.functionsnip.y+OBJ.functionsnip.h +DATA.GUIvars.custom.offs ,
@@ -311,6 +392,7 @@
                 h = DATA.GUIvars.menu_h,
                 txt= 'Run code',
                 drawstr_flags = 1|4,
+                txt_a=txt_a,
                 fontsz = DATA.GUIvars.custom.snip_fontsz,
                 func_Ltrig =  function() 
                                 local cur_func = DATA.custom.cur_func
@@ -324,9 +406,10 @@
                 w = snipw,
                 h = DATA.GUIvars.menu_h,
                 txt= 'Copy code',
+                txt_a=txt_a,
                 drawstr_flags = 1|4,
                 fontsz = DATA.GUIvars.custom.snip_fontsz,
-                func_Ltrig =  function() GetUserInputs( '', 1, ',extrawidth=600', sniptxt ) end }       
+                func_Ltrig =  function() if sniptxt then GetUserInputs( '', 1, ',extrawidth=600', sniptxt ) end end }       
                               
       -- snippet links                         
       for i = 1, 500 do  OBJ['snip'..i] = nil end -- clear
@@ -510,7 +593,7 @@ end
      if OBJ[MOUSEt.last_pointer] and OBJ[MOUSEt.last_pointer].func_onptrfree then OBJ[MOUSEt.last_pointer].func_onptrfree() end -- release after navigate
    end 
     
-    local dragcond = MOUSEt.latch_key and (MOUSEt.latch_key == MOUSEt.pointer or MOUSEt.pointer == '') and MOUSEt.is_moving 
+    local dragcond = MOUSEt.latch_key and  MOUSEt.is_moving --(MOUSEt.latch_key == MOUSEt.pointer or MOUSEt.pointer == '') and
    if dragcond and MOUSEt.LMB_state and OBJ[MOUSEt.latch_key].func_Ldrag then OBJ[MOUSEt.latch_key].func_Ldrag() end
    if dragcond and MOUSEt.RMB_state and OBJ[MOUSEt.latch_key].func_Rdrag then OBJ[MOUSEt.latch_key].func_Rdrag() end
    if dragcond and MOUSEt.MMB_state and OBJ[MOUSEt.latch_key].func_Mdrag then OBJ[MOUSEt.latch_key].func_Mdrag() end
@@ -908,6 +991,8 @@ end
       if MOUSEt.char >= 0 and MOUSEt.char ~= 27 then defer(VF_run) else   atexit(gfx.quit) end
      
   end     
+  ------------------------------------------------------------------------------------------------------   
+  function VF_Open_URL(url) if GetOS():match("OSX") then os.execute('open "" '.. url) else os.execute('start "" '.. url)  end  end 
   ---------------------------------------------------------------------
   function VF_run_initVars_SetColors(MOUSEt,OBJ,DATA) -- https://htmlcolorcodes.com/colors/
     return {        backgr = '#3f484d',
@@ -918,6 +1003,10 @@ end
   
 mainstr=[[
 FUNC10 reaper.APITest()
+DESC1_START
+Test message box in the console.
+Test API 'HelloWorld' output.
+DESC1_END
 SNIP10_START
 reaper.ShowConsoleMsg('Hello world') LINK523
 reaper.APITest()
@@ -1353,6 +1442,7 @@ FUNC215 string typebuf = reaper.GetMediaSourceType(PCM_source source, string typ
 DESC215 copies the media source type ("WAV", "MIDI", etc) to typebuf
 FUNC216 number reaper.GetMediaTrackInfo_Value(MediaTrack tr, string parmname)
 DESC216 Get track numerical-value attributes.B_MUTE : bool * : mutedB_PHASE : bool * : track phase invertedB_RECMON_IN_EFFECT : bool * : record monitoring in effect (current audio-thread playback state, read-only)IP_TRACKNUMBER : int : track number 1-based, 0=not found, -1=master track (read-only, returns the int directly)I_SOLO : int * : soloed, 0=not soloed, 1=soloed, 2=soloed in place, 5=safe soloed, 6=safe soloed in placeI_FXEN : int * : fx enabled, 0=bypassed, !0=fx activeI_RECARM : int * : record armed, 0=not record armed, 1=record armedI_RECINPUT : int * : record input, <0=no input. if 4096 set, input is MIDI and low 5 bits represent channel (0=all, 1-16=only chan), next 6 bits represent physical input (63=all, 62=VKB). If 4096 is not set, low 10 bits (0..1023) are input start channel (ReaRoute/Loopback start at 512). If 2048 is set, input is multichannel input (using track channel count), or if 1024 is set, input is stereo input, otherwise input is mono.I_RECMODE : int * : record mode, 0=input, 1=stereo out, 2=none, 3=stereo out w/latency compensation, 4=midi output, 5=mono out, 6=mono out w/ latency compensation, 7=midi overdub, 8=midi replaceI_RECMON : int * : record monitoring, 0=off, 1=normal, 2=not when playing (tape style)I_RECMONITEMS : int * : monitor items while recording, 0=off, 1=onI_AUTOMODE : int * : track automation mode, 0=trim/off, 1=read, 2=touch, 3=write, 4=latchI_NCHAN : int * : number of track channels, 2-64, even numbers onlyI_SELECTED : int * : track selected, 0=unselected, 1=selectedI_WNDH : int * : current TCP window height in pixels including envelopes (read-only)I_TCPH : int * : current TCP window height in pixels not including envelopes (read-only)I_TCPY : int * : current TCP window Y-position in pixels relative to top of arrange view (read-only)I_MCPX : int * : current MCP X-position in pixels relative to mixer containerI_MCPY : int * : current MCP Y-position in pixels relative to mixer containerI_MCPW : int * : current MCP width in pixelsI_MCPH : int * : current MCP height in pixelsI_FOLDERDEPTH : int * : folder depth change, 0=normal, 1=track is a folder parent, -1=track is the last in the innermost folder, -2=track is the last in the innermost and next-innermost folders, etcI_FOLDERCOMPACT : int * : folder compacted state (only valid on folders), 0=normal, 1=small, 2=tiny childrenI_MIDIHWOUT : int * : track midi hardware output index, <0=disabled, low 5 bits are which channels (0=all, 1-16), next 5 bits are output device index (0-31)I_PERFFLAGS : int * : track performance flags, &1=no media buffering, &2=no anticipative FXI_CUSTOMCOLOR : int * : custom color, OS dependent color|0x100000 (i.e. ColorToNative(r,g,b)|0x100000). If you do not |0x100000, then it will not be used, but will store the colorI_HEIGHTOVERRIDE : int * : custom height override for TCP window, 0 for none, otherwise size in pixelsB_HEIGHTLOCK : bool * : track height lock (must set I_HEIGHTOVERRIDE before locking)D_VOL : double * : trim volume of track, 0=-inf, 0.5=-6dB, 1=+0dB, 2=+6dB, etcD_PAN : double * : trim pan of track, -1..1D_WIDTH : double * : width of track, -1..1D_DUALPANL : double * : dualpan position 1, -1..1, only if I_PANMODE==6D_DUALPANR : double * : dualpan position 2, -1..1, only if I_PANMODE==6I_PANMODE : int * : pan mode, 0=classic 3.x, 3=new balance, 5=stereo pan, 6=dual panD_PANLAW : double * : pan law of track, <0=project default, 1=+0dB, etcP_ENV:<envchunkname or P_ENV:{GUID... : TrackEnvelope*, read only. chunkname can be <VOLENV, <PANENV, etc; GUID is the stringified envelope GUID.B_SHOWINMIXER : bool * : track control panel visible in mixer (do not use on master track)B_SHOWINTCP : bool * : track control panel visible in arrange view (do not use on master track)B_MAINSEND : bool * : track sends audio to parentC_MAINSEND_OFFS : char * : channel offset of track send to parentB_FREEMODE : bool * : track free item positioning enabled (call UpdateTimeline() after changing)C_BEATATTACHMODE : char * : track timebase, -1=project default, 0=time, 1=beats (position, length, rate), 2=beats (position
+
 
 
  only)F_MCP_FXSEND_SCALE : float * : scale of fx+send area in MCP (0=minimum allowed, 1=maximum allowed)F_MCP_FXPARM_SCALE : float * : scale of fx parameter area in MCP (0=minimum allowed, 1=maximum allowed)F_MCP_SENDRGN_SCALE : float * : scale of send area as proportion of the fx+send total area (0=minimum allowed, 1=maximum allowed)F_TCP_FXPARM_SCALE : float * : scale of TCP parameter area when TCP FX are embedded (0=min allowed, default, 1=max allowed)I_PLAY_OFFSET_FLAG : int * : track playback offset state, &1=bypassed, &2=offset value is measured in samples (otherwise measured in seconds)D_PLAY_OFFSET : double * : track playback offset, units depend on I_PLAY_OFFSET_FLAGP_PARTRACK : MediaTrack * : parent track (read-only)P_PROJECT : ReaProject * : parent project (read-only)
@@ -1910,6 +2000,7 @@ FUNC492 boolean reaper.SetMediaTrackInfo_Value(MediaTrack tr, string parmname, n
 DESC492 Set track numerical-value attributes.B_MUTE : bool * : mutedB_PHASE : bool * : track phase invertedB_RECMON_IN_EFFECT : bool * : record monitoring in effect (current audio-thread playback state, read-only)IP_TRACKNUMBER : int : track number 1-based, 0=not found, -1=master track (read-only, returns the int directly)I_SOLO : int * : soloed, 0=not soloed, 1=soloed, 2=soloed in place, 5=safe soloed, 6=safe soloed in placeI_FXEN : int * : fx enabled, 0=bypassed, !0=fx activeI_RECARM : int * : record armed, 0=not record armed, 1=record armedI_RECINPUT : int * : record input, <0=no input. if 4096 set, input is MIDI and low 5 bits represent channel (0=all, 1-16=only chan), next 6 bits represent physical input (63=all, 62=VKB). If 4096 is not set, low 10 bits (0..1023) are input start channel (ReaRoute/Loopback start at 512). If 2048 is set, input is multichannel input (using track channel count), or if 1024 is set, input is stereo input, otherwise input is mono.I_RECMODE : int * : record mode, 0=input, 1=stereo out, 2=none, 3=stereo out w/latency compensation, 4=midi output, 5=mono out, 6=mono out w/ latency compensation, 7=midi overdub, 8=midi replaceI_RECMON : int * : record monitoring, 0=off, 1=normal, 2=not when playing (tape style)I_RECMONITEMS : int * : monitor items while recording, 0=off, 1=onI_AUTOMODE : int * : track automation mode, 0=trim/off, 1=read, 2=touch, 3=write, 4=latchI_NCHAN : int * : number of track channels, 2-64, even numbers onlyI_SELECTED : int * : track selected, 0=unselected, 1=selectedI_WNDH : int * : current TCP window height in pixels including envelopes (read-only)I_TCPH : int * : current TCP window height in pixels not including envelopes (read-only)I_TCPY : int * : current TCP window Y-position in pixels relative to top of arrange view (read-only)I_MCPX : int * : current MCP X-position in pixels relative to mixer containerI_MCPY : int * : current MCP Y-position in pixels relative to mixer containerI_MCPW : int * : current MCP width in pixelsI_MCPH : int * : current MCP height in pixelsI_FOLDERDEPTH : int * : folder depth change, 0=normal, 1=track is a folder parent, -1=track is the last in the innermost folder, -2=track is the last in the innermost and next-innermost folders, etcI_FOLDERCOMPACT : int * : folder compacted state (only valid on folders), 0=normal, 1=small, 2=tiny childrenI_MIDIHWOUT : int * : track midi hardware output index, <0=disabled, low 5 bits are which channels (0=all, 1-16), next 5 bits are output device index (0-31)I_PERFFLAGS : int * : track performance flags, &1=no media buffering, &2=no anticipative FXI_CUSTOMCOLOR : int * : custom color, OS dependent color|0x100000 (i.e. ColorToNative(r,g,b)|0x100000). If you do not |0x100000, then it will not be used, but will store the colorI_HEIGHTOVERRIDE : int * : custom height override for TCP window, 0 for none, otherwise size in pixelsB_HEIGHTLOCK : bool * : track height lock (must set I_HEIGHTOVERRIDE before locking)D_VOL : double * : trim volume of track, 0=-inf, 0.5=-6dB, 1=+0dB, 2=+6dB, etcD_PAN : double * : trim pan of track, -1..1D_WIDTH : double * : width of track, -1..1D_DUALPANL : double * : dualpan position 1, -1..1, only if I_PANMODE==6D_DUALPANR : double * : dualpan position 2, -1..1, only if I_PANMODE==6I_PANMODE : int * : pan mode, 0=classic 3.x, 3=new balance, 5=stereo pan, 6=dual panD_PANLAW : double * : pan law of track, <0=project default, 1=+0dB, etcP_ENV:<envchunkname or P_ENV:{GUID... : TrackEnvelope*, read only. chunkname can be <VOLENV, <PANENV, etc; GUID is the stringified envelope GUID.B_SHOWINMIXER : bool * : track control panel visible in mixer (do not use on master track)B_SHOWINTCP : bool * : track control panel visible in arrange view (do not use on master track)B_MAINSEND : bool * : track sends audio to parentC_MAINSEND_OFFS : char * : channel offset of track send to parentB_FREEMODE : bool * : track free item positioning enabled (call UpdateTimeline() after changing)C_BEATATTACHMODE : char * : track timebase, -1=project default, 0=time, 1=beats (position, length, rate), 2=beats (position
 
 
+
  only)F_MCP_FXSEND_SCALE : float * : scale of fx+send area in MCP (0=minimum allowed, 1=maximum allowed)F_MCP_FXPARM_SCALE : float * : scale of fx parameter area in MCP (0=minimum allowed, 1=maximum allowed)F_MCP_SENDRGN_SCALE : float * : scale of send area as proportion of the fx+send total area (0=minimum allowed, 1=maximum allowed)F_TCP_FXPARM_SCALE : float * : scale of TCP parameter area when TCP FX are embedded (0=min allowed, default, 1=max allowed)I_PLAY_OFFSET_FLAG : int * : track playback offset state, &1=bypassed, &2=offset value is measured in samples (otherwise measured in seconds)D_PLAY_OFFSET : double * : track playback offset, units depend on I_PLAY_OFFSET_FLAG
 FUNC493 reaper.SetMIDIEditorGrid(ReaProject project, number division)
 DESC493 Set the MIDI editor grid division. 0.25=quarter note, 1.0/3.0=half note tripet, etc.
@@ -1949,16 +2040,21 @@ FUNC510 integer reaper.SetThemeColor(string ini_key, integer color, integer flag
 DESC510 Temporarily updates the theme color to the color specified (or the theme default color if -1 is specified). Returns -1 on failure, otherwise returns the color (or transformed-color). Note that the UI is not updated by this, the caller should call UpdateArrange() etc as necessary. If the low bit of flags is set, any color transformations are bypassed. To read a value see GetThemeColor.Currently valid ini_keys:col_main_bg2 : Main window/transport background -- current RGB: 51,51,51col_main_text2 : Main window/transport text -- current RGB: 170,170,170col_main_textshadow : Main window text shadow (ignored if too close to text color) -- current RGB: 18,26,29col_main_3dhl : Main window 3D highlight -- current RGB: 51,51,51col_main_3dsh : Main window 3D shadow -- current RGB: 51,51,51col_main_resize2 : Main window pane resize mouseover -- current RGB: 51,51,51col_main_text : Window text -- current RGB: 64,64,64col_main_bg : Window background -- current RGB: 186,192,192col_main_editbk : Window edit background -- current RGB: 207,211,211col_transport_editbk : Transport edit background -- current RGB: 51,51,51col_toolbar_text : Toolbar button text -- current RGB: 159,159,159col_toolbar_text_on : Toolbar button enabled text -- current RGB: 191,251,192col_toolbar_frame : Toolbar frame when floating or docked -- current RGB: 71,78,78toolbararmed_color : Toolbar button armed color -- current RGB: 255,128,0toolbararmed_drawmode : Toolbar button armed fill mode -- blendmode 00028001io_text : I/O window text -- current RGB: 63,74,75io_3dhl : I/O window 3D highlight -- current RGB: 126,137,137io_3dsh : I/O window 3D shadow -- current RGB: 201,207,207genlist_bg : Window list background -- current RGB: 255,255,255genlist_fg : Window list text -- current RGB: 0,0,0genlist_grid : Window list grid lines -- current RGB: 224,224,224genlist_selbg : Window list selected row -- current RGB: 51,153,255genlist_selfg : Window list selected text -- current RGB: 255,255,255genlist_seliabg : Window list selected row (inactive) -- current RGB: 240,240,240genlist_seliafg : Window list selected text (inactive) -- current RGB: 0,0,0genlist_hilite : Window list highlighted text -- current RGB: 0,0,224genlist_hilite_sel : Window list highlighted selected text -- current RGB: 192,192,255col_buttonbg : Button background -- current RGB: 0,0,0col_tcp_text : Track panel text -- current RGB: 18,26,29col_tcp_textsel : Track panel (selected) text -- current RGB: 18,26,29col_seltrack : Selected track control panel background -- current RGB: 210,210,210col_seltrack2 : Unselected track control panel background (enabled with a checkbox above) -- current RGB: 197,197,197tcplocked_color : Locked track control panel overlay color -- current RGB: 51,51,51tcplocked_drawmode : Locked track control panel fill mode -- blendmode 0002c000col_tracklistbg : Empty track list area -- current RGB: 51,51,51col_mixerbg : Empty mixer list area -- current RGB: 51,51,51col_arrangebg : Empty arrange view area -- current RGB: 190,192,192arrange_vgrid : Empty arrange view area vertical grid shading -- current RGB: 190,192,192col_fadearm : Fader background when automation recording -- current RGB: 255,125,125col_fadearm2 : Fader background when automation playing -- current RGB: 125,255,125col_fadearm3 : Fader background when in inactive touch/latch -- current RGB: 255,255,98col_tl_fg : Timeline foreground -- current RGB: 169,171,171col_tl_fg2 : Timeline foreground (secondary markings) -- current RGB: 121,122,122col_tl_bg : Timeline background -- current RGB: 73,73,73col_tl_bgsel : Time selection color -- current RGB: 255,255,255timesel_drawmode : Time selection fill mode -- blendmode 00021901col_tl_bgsel2 : Timeline background (in loop points) -- current RGB: 255,255,255col_trans_bg : Transport status background -- current RGB: 73,73,73col_trans_fg : Transport status text -- current RGB: 169,171,171playrate_edited : Project play rate control when not 1.0 -- current RGB: 127,63,0col_mi_label : Media item label -- current RGB: 35,35,35col_mi_label_sel : Media item label (selected) -- cu
 
 
+
 rrent RGB: 235,235,235col_mi_label_float : Floating media item label -- current RGB: 35,35,35col_mi_label_float_sel : Floating media item label (selected) -- current RGB: 8,8,8col_mi_bg : Media item background (odd tracks) -- current RGB: 175,182,182col_mi_bg2 : Media item background (even tracks) -- current RGB: 178,178,178col_tr1_itembgsel : Media item background selected (odd tracks) -- current RGB: 59,59,59col_tr2_itembgsel : Media item background selected (even tracks) -- current RGB: 59,59,59itembg_drawmode : Media item background fill mode -- blendmode 00030000col_tr1_peaks : Media item peaks (odd tracks) -- current RGB: 89,94,98col_tr2_peaks : Media item peaks (even tracks) -- current RGB: 89,94,98col_tr1_ps2 : Media item peaks when selected (odd tracks) -- current RGB: 200,202,204col_tr2_ps2 : Media item peaks when selected (even tracks) -- current RGB: 200,202,204col_peaksedge : Media item peaks edge highlight (odd tracks) -- current RGB: 49,54,57col_peaksedge2 : Media item peaks edge highlight (even tracks) -- current RGB: 49,54,57col_peaksedgesel : Media item peaks edge highlight when selected (odd tracks) -- current RGB: 230,231,232col_peaksedgesel2 : Media item peaks edge highlight when selected (even tracks) -- current RGB: 230,231,232cc_chase_drawmode : Media item MIDI CC peaks fill mode -- blendmode 00024000col_peaksfade : Media item peaks when active in crossfade editor (fade-out) -- current RGB: 0,255,0col_peaksfade2 : Media item peaks when active in crossfade editor (fade-in) -- current RGB: 255,0,0col_mi_fades : Media item fade/volume controls -- current RGB: 215,215,215fadezone_color : Media item fade quiet zone fill color -- current RGB: 215,215,215fadezone_drawmode : Media item fade quiet zone fill mode -- blendmode 00022600fadearea_color : Media item fade full area fill color -- current RGB: 0,0,96fadearea_drawmode : Media item fade full area fill mode -- blendmode 00020000col_mi_fade2 : Media item edges of controls -- current RGB: 194,204,204col_mi_fade2_drawmode : Media item edges of controls blend mode -- blendmode 00025901item_grouphl : Media item edge when selected via grouping -- current RGB: 51,184,48col_offlinetext : Media item "offline" text -- current RGB: 48,66,71col_stretchmarker : Media item stretch marker line -- current RGB: 84,124,124col_stretchmarker_h0 : Media item stretch marker handle (1x) -- current RGB: 120,135,135col_stretchmarker_h1 : Media item stretch marker handle (>1x) -- current RGB: 40,141,196col_stretchmarker_h2 : Media item stretch marker handle (<1x) -- current RGB: 159,64,64col_stretchmarker_b : Media item stretch marker handle edge -- current RGB: 192,192,192col_stretchmarkerm : Media item stretch marker blend mode -- blendmode 00030000col_stretchmarker_text : Media item stretch marker text -- current RGB: 126,153,154col_stretchmarker_tm : Media item transient guide handle -- current RGB: 0,234,0take_marker : Media item take marker -- current RGB: 255,255,0selitem_tag : Selected media item bar color -- current RGB: 0,0,0activetake_tag : Active media item take bar color -- current RGB: 0,0,0col_tr1_bg : Track background (odd tracks) -- current RGB: 196,198,198col_tr2_bg : Track background (even tracks) -- current RGB: 190,192,192selcol_tr1_bg : Selected track background (odd tracks) -- current RGB: 196,198,198selcol_tr2_bg : Selected track background (even tracks) -- current RGB: 190,192,192col_tr1_divline : Track divider line (odd tracks) -- current RGB: 196,198,198col_tr2_divline : Track divider line (even tracks) -- current RGB: 190,192,192col_envlane1_divline : Envelope lane divider line (odd tracks) -- current RGB: 255,255,255col_envlane2_divline : Envelope lane divider line (even tracks) -- current RGB: 255,255,255marquee_fill : Marquee fill -- current RGB: 128,128,110marquee_drawmode : Marquee fill mode -- blendmode 000299ffmarquee_outline : Marquee outline -- current RGB: 255,255,255marqueezoom_fill : Marquee zoom fill -- current RGB: 255,255,255marqueezoom_drawmode : Marquee zoom fill mode -- blendmode 00024002marqueezoom_outline : Marquee zoom outline 
+
 
 
 -- current RGB: 0,255,0areasel_fill : Razor edit area fill -- current RGB: 31,233,192areasel_drawmode : Razor edit area fill mode -- blendmode 00021c01areasel_outline : Razor edit area outline -- current RGB: 0,251,201areasel_outlinemode : Razor edit area outline mode -- blendmode 0002c000col_cursor : Edit cursor -- current RGB: 235,235,235col_cursor2 : Edit cursor (alternate) -- current RGB: 235,235,235playcursor_color : Play cursor -- current RGB: 0,0,0playcursor_drawmode : Play cursor fill mode -- blendmode 00028003col_gridlines2 : Grid lines (start of measure) -- current RGB: 159,159,159col_gridlines2dm : Grid lines (start of measure) - draw mode -- blendmode 00030000col_gridlines3 : Grid lines (start of beats) -- current RGB: 167,167,167col_gridlines3dm : Grid lines (start of beats) - draw mode -- blendmode 00030000col_gridlines : Grid lines (in between beats) -- current RGB: 182,182,182col_gridlines1dm : Grid lines (in between beats) - draw mode -- blendmode 00030000guideline_color : Editing guide line color -- current RGB: 95,169,167guideline_drawmode : Editing guide fill mode -- blendmode 00024c01region : Regions -- current RGB: 128,138,138region_lane_bg : Region lane background -- current RGB: 51,51,51region_lane_text : Region lane text -- current RGB: 31,39,37marker : Markers -- current RGB: 0,82,121marker_lane_bg : Marker lane background -- current RGB: 73,73,73marker_lane_text : Marker lane text -- current RGB: 165,165,165col_tsigmark : Time signature change marker -- current RGB: 31,39,37ts_lane_bg : Time signature lane background -- current RGB: 51,51,51ts_lane_text : Time signature lane text -- current RGB: 165,165,165timesig_sel_bg : Time signature marker selected background -- current RGB: 0,82,121col_routinghl1 : Routing matrix row highlight -- current RGB: 255,255,192col_routinghl2 : Routing matrix column highlight -- current RGB: 128,128,255col_vudoint : Theme has interlaced VU meters -- bool 00000000col_vuclip : VU meter clip indicator -- current RGB: 255,0,0col_vutop : VU meter top -- current RGB: 0,254,149col_vumid : VU meter middle -- current RGB: 0,218,173col_vubot : VU meter bottom -- current RGB: 0,191,191col_vuintcol : VU meter interlace/edge color -- current RGB: 32,32,32col_vumidi : VU meter midi activity -- current RGB: 255,0,0col_vuind1 : VU (indicator) - no signal -- current RGB: 32,32,32col_vuind2 : VU (indicator) - low signal -- current RGB: 0,40,0col_vuind3 : VU (indicator) - med signal -- current RGB: 32,255,0col_vuind4 : VU (indicator) - hot signal -- current RGB: 255,255,0mcp_sends_normal : Sends text: normal -- current RGB: 163,163,163mcp_sends_muted : Sends text: muted -- current RGB: 152,134,99mcp_send_midihw : Sends text: MIDI hardware -- current RGB: 40,40,40mcp_sends_levels : Sends level -- current RGB: 48,66,71mcp_fx_normal : FX insert text: normal -- current RGB: 164,164,164mcp_fx_bypassed : FX insert text: bypassed -- current RGB: 152,134,99mcp_fx_offlined : FX insert text: offline -- current RGB: 152,99,99mcp_fxparm_normal : FX parameter text: normal -- current RGB: 163,163,163mcp_fxparm_bypassed : FX parameter text: bypassed -- current RGB: 152,134,99mcp_fxparm_offlined : FX parameter text: offline -- current RGB: 152,99,99tcp_list_scrollbar : List scrollbar (track panel) -- current RGB: 50,50,50tcp_list_scrollbar_mode : List scrollbar (track panel) - draw mode -- blendmode 00028000tcp_list_scrollbar_mouseover : List scrollbar mouseover (track panel) -- current RGB: 30,30,30tcp_list_scrollbar_mouseover_mode : List scrollbar mouseover (track panel) - draw mode -- blendmode 00028000mcp_list_scrollbar : List scrollbar (mixer panel) -- current RGB: 140,140,140mcp_list_scrollbar_mode : List scrollbar (mixer panel) - draw mode -- blendmode 00028000mcp_list_scrollbar_mouseover : List scrollbar mouseover (mixer panel) -- current RGB: 64,191,159mcp_list_scrollbar_mouseover_mode : List scrollbar mouseover (mixer panel) - draw mode -- blendmode 00028000midi_rulerbg : MIDI editor ruler background -- current RGB: 186,192,192midi_rulerfg : MIDI editor ruler text -- current RGB: 55,55,
 
 
+
 55midi_grid2 : MIDI editor grid line (start of measure) -- current RGB: 112,112,112midi_griddm2 : MIDI editor grid line (start of measure) - draw mode -- blendmode 00030000midi_grid3 : MIDI editor grid line (start of beats) -- current RGB: 129,129,129midi_griddm3 : MIDI editor grid line (start of beats) - draw mode -- blendmode 00030000midi_grid1 : MIDI editor grid line (between beats) -- current RGB: 185,185,185midi_griddm1 : MIDI editor grid line (between beats) - draw mode -- blendmode 00030000midi_trackbg1 : MIDI editor background color (naturals) -- current RGB: 234,234,234midi_trackbg2 : MIDI editor background color (sharps/flats) -- current RGB: 225,225,225midi_trackbg_outer1 : MIDI editor background color, out of bounds (naturals) -- current RGB: 216,216,216midi_trackbg_outer2 : MIDI editor background color, out of bounds (sharps/flats) -- current RGB: 200,200,200midi_selpitch1 : MIDI editor background color, selected pitch (naturals) -- current RGB: 225,209,209midi_selpitch2 : MIDI editor background color, selected pitch (sharps/flats) -- current RGB: 217,201,201midi_selbg : MIDI editor time selection color -- current RGB: 255,255,255midi_selbg_drawmode : MIDI editor time selection fill mode -- blendmode 00021001midi_gridhc : MIDI editor CC horizontal center line -- current RGB: 129,129,129midi_gridhcdm : MIDI editor CC horizontal center line - draw mode -- blendmode 00030000midi_gridh : MIDI editor CC horizontal line -- current RGB: 129,129,129midi_gridhdm : MIDI editor CC horizontal line - draw mode -- blendmode 00028000midi_ccbut : MIDI editor CC lane add/remove buttons -- current RGB: 55,55,55midi_ccbut_text : MIDI editor CC lane button text -- current RGB: 55,55,55midi_ccbut_arrow : MIDI editor CC lane button arrow -- current RGB: 55,55,55midioct : MIDI editor octave line color -- current RGB: 185,185,185midi_inline_trackbg1 : MIDI inline background color (naturals) -- current RGB: 197,197,197midi_inline_trackbg2 : MIDI inline background color (sharps/flats) -- current RGB: 181,181,181midioct_inline : MIDI inline octave line color -- current RGB: 144,144,144midi_endpt : MIDI editor end marker -- current RGB: 58,58,58midi_notebg : MIDI editor note, unselected (midi_note_colormap overrides) -- current RGB: 91,123,108midi_notefg : MIDI editor note, selected (midi_note_colormap overrides) -- current RGB: 49,49,49midi_notemute : MIDI editor note, muted, unselected (midi_note_colormap overrides) -- current RGB: 53,53,53midi_notemute_sel : MIDI editor note, muted, selected (midi_note_colormap overrides) -- current RGB: 24,24,24midi_itemctl : MIDI editor note controls -- current RGB: 197,197,197midi_ofsn : MIDI editor note (offscreen) -- current RGB: 59,59,59midi_ofsnsel : MIDI editor note (offscreen, selected) -- current RGB: 59,59,59midi_editcurs : MIDI editor cursor -- current RGB: 162,36,36midi_pkey1 : MIDI piano key color (naturals background, sharps/flats text) -- current RGB: 255,255,255midi_pkey2 : MIDI piano key color (sharps/flats background, naturals text) -- current RGB: 0,0,0midi_pkey3 : MIDI piano key color (selected) -- current RGB: 93,93,93midi_noteon_flash : MIDI piano key note-on flash -- current RGB: 64,0,0midi_leftbg : MIDI piano pane background -- current RGB: 186,192,192midifont_col_light_unsel : MIDI editor note text and control color, unselected (light) -- current RGB: 224,224,224midifont_col_dark_unsel : MIDI editor note text and control color, unselected (dark) -- current RGB: 32,32,32midifont_mode_unsel : MIDI editor note text and control mode, unselected -- blendmode 0002c000midifont_col_light : MIDI editor note text and control color (light) -- current RGB: 192,192,192midifont_col_dark : MIDI editor note text and control color (dark) -- current RGB: 64,64,64midifont_mode : MIDI editor note text and control mode -- blendmode 00030000score_bg : MIDI notation editor background -- current RGB: 255,255,255score_fg : MIDI notation editor staff/notation/text -- current RGB: 0,0,0score_sel : MIDI notation editor selected staff/notation/text -- current RGB: 0,0,255score_timesel : MIDI notation 
 
 
+
 editor time selection -- current RGB: 255,255,224score_loop : MIDI notation editor loop points, selected pitch -- current RGB: 255,192,0midieditorlist_bg : MIDI list editor background -- current RGB: 255,255,255midieditorlist_fg : MIDI list editor text -- current RGB: 0,0,0midieditorlist_grid : MIDI list editor grid lines -- current RGB: 224,224,224midieditorlist_selbg : MIDI list editor selected row -- current RGB: 51,153,255midieditorlist_selfg : MIDI list editor selected text -- current RGB: 255,255,255midieditorlist_seliabg : MIDI list editor selected row (inactive) -- current RGB: 240,240,240midieditorlist_seliafg : MIDI list editor selected text (inactive) -- current RGB: 0,0,0midieditorlist_bg2 : MIDI list editor background (secondary) -- current RGB: 210,210,225midieditorlist_fg2 : MIDI list editor text (secondary) -- current RGB: 0,0,0midieditorlist_selbg2 : MIDI list editor selected row (secondary) -- current RGB: 35,135,240midieditorlist_selfg2 : MIDI list editor selected text (secondary) -- current RGB: 255,255,255col_explorer_sel : Media explorer selection -- current RGB: 255,255,255col_explorer_seldm : Media explorer selection mode -- blendmode 00021901col_explorer_seledge : Media explorer selection edge -- current RGB: 255,255,255docker_shadow : Tab control shadow -- current RGB: 18,26,29docker_selface : Tab control selected tab -- current RGB: 71,78,78docker_unselface : Tab control unselected tab -- current RGB: 51,51,51docker_text : Tab control text -- current RGB: 51,51,51docker_text_sel : Tab control text selected tab -- current RGB: 51,51,51docker_bg : Tab control background -- current RGB: 73,73,73windowtab_bg : Tab control background in windows -- current RGB: 73,73,73auto_item_unsel : Envelope: Unselected automation item -- current RGB: 96,96,96col_env1 : Envelope: Volume (pre-FX) -- current RGB: 0,220,128col_env2 : Envelope: Volume -- current RGB: 64,128,64env_trim_vol : Envelope: Trim Volume -- current RGB: 0,0,0col_env3 : Envelope: Pan (pre-FX) -- current RGB: 255,0,0col_env4 : Envelope: Pan -- current RGB: 255,150,0env_track_mute : Envelope: Mute -- current RGB: 192,0,0col_env5 : Envelope: Master playrate -- current RGB: 0,0,0col_env6 : Envelope: Master tempo -- current RGB: 0,255,255col_env7 : Envelope: Send volume -- current RGB: 128,0,0col_env8 : Envelope: Send pan -- current RGB: 0,128,128col_env9 : Envelope: Send volume 2 -- current RGB: 0,128,192col_env10 : Envelope: Send pan 2 -- current RGB: 0,64,0env_sends_mute : Envelope: Send mute -- current RGB: 192,192,0col_env11 : Envelope: Audio hardware output volume -- current RGB: 0,255,255col_env12 : Envelope: Audio hardware output pan -- current RGB: 255,255,0col_env13 : Envelope: FX parameter 1 -- current RGB: 128,0,255col_env14 : Envelope: FX parameter 2 -- current RGB: 64,128,128col_env15 : Envelope: FX parameter 3 -- current RGB: 0,0,255col_env16 : Envelope: FX parameter 4 -- current RGB: 255,0,128env_item_vol : Envelope: Item take volume -- current RGB: 128,0,0env_item_pan : Envelope: Item take pan -- current RGB: 0,128,128env_item_mute : Envelope: Item take mute -- current RGB: 192,192,0env_item_pitch : Envelope: Item take pitch -- current RGB: 0,255,255wiring_grid2 : Wiring: Background -- current RGB: 46,46,46wiring_grid : Wiring: Background grid lines -- current RGB: 51,51,51wiring_border : Wiring: Box border -- current RGB: 153,153,153wiring_tbg : Wiring: Box background -- current RGB: 38,38,38wiring_ticon : Wiring: Box foreground -- current RGB: 204,204,204wiring_recbg : Wiring: Record section background -- current RGB: 101,77,77wiring_recitem : Wiring: Record section foreground -- current RGB: 63,33,33wiring_media : Wiring: Media -- current RGB: 32,64,32wiring_recv : Wiring: Receives -- current RGB: 92,92,92wiring_send : Wiring: Sends -- current RGB: 92,92,92wiring_fader : Wiring: Fader -- current RGB: 128,128,192wiring_parent : Wiring: Master/Parent -- current RGB: 64,128,128wiring_parentwire_border : Wiring: Master/Parent wire border -- current RGB: 100,100,100wiring_parentwire_master : Wiring: Master/Parent to master wire -- c
+
 
 
 urrent RGB: 192,192,192wiring_parentwire_folder : Wiring: Master/Parent to parent folder wire -- current RGB: 128,128,128wiring_pin_normal : Wiring: Pins normal -- current RGB: 192,192,192wiring_pin_connected : Wiring: Pins connected -- current RGB: 96,144,96wiring_pin_disconnected : Wiring: Pins disconnected -- current RGB: 64,32,32wiring_horz_col : Wiring: Horizontal pin connections -- current RGB: 72,72,72wiring_sendwire : Wiring: Send hanging wire -- current RGB: 128,128,128wiring_hwoutwire : Wiring: Hardware output wire -- current RGB: 128,128,128wiring_recinputwire : Wiring: Record input wire -- current RGB: 255,128,128wiring_hwout : Wiring: System hardware outputs -- current RGB: 64,64,64wiring_recinput : Wiring: System record inputs -- current RGB: 128,64,64group_0 : Group #1 -- current RGB: 255,0,0group_1 : Group #2 -- current RGB: 0,255,0group_2 : Group #3 -- current RGB: 0,0,255group_3 : Group #4 -- current RGB: 255,255,0group_4 : Group #5 -- current RGB: 255,0,255group_5 : Group #6 -- current RGB: 0,255,255group_6 : Group #7 -- current RGB: 192,0,0group_7 : Group #8 -- current RGB: 0,192,0group_8 : Group #9 -- current RGB: 0,0,192group_9 : Group #10 -- current RGB: 192,192,0group_10 : Group #11 -- current RGB: 192,0,192group_11 : Group #12 -- current RGB: 0,192,192group_12 : Group #13 -- current RGB: 128,0,0group_13 : Group #14 -- current RGB: 0,128,0group_14 : Group #15 -- current RGB: 0,0,128group_15 : Group #16 -- current RGB: 128,128,0group_16 : Group #17 -- current RGB: 128,0,128group_17 : Group #18 -- current RGB: 0,128,128group_18 : Group #19 -- current RGB: 192,128,0group_19 : Group #20 -- current RGB: 0,192,128group_20 : Group #21 -- current RGB: 0,128,192group_21 : Group #22 -- current RGB: 192,128,0group_22 : Group #23 -- current RGB: 128,0,192group_23 : Group #24 -- current RGB: 128,192,0group_24 : Group #25 -- current RGB: 64,0,0group_25 : Group #26 -- current RGB: 0,64,0group_26 : Group #27 -- current RGB: 0,0,64group_27 : Group #28 -- current RGB: 64,64,0group_28 : Group #29 -- current RGB: 64,0,64group_29 : Group #30 -- current RGB: 0,64,64group_30 : Group #31 -- current RGB: 64,0,64group_31 : Group #32 -- current RGB: 0,64,64group_32 : Group #33 -- current RGB: 128,255,255group_33 : Group #34 -- current RGB: 128,0,128group_34 : Group #35 -- current RGB: 1,255,128group_35 : Group #36 -- current RGB: 128,0,255group_36 : Group #37 -- current RGB: 1,255,255group_37 : Group #38 -- current RGB: 1,0,128group_38 : Group #39 -- current RGB: 128,255,224group_39 : Group #40 -- current RGB: 128,63,128group_40 : Group #41 -- current RGB: 32,255,128group_41 : Group #42 -- current RGB: 128,63,224group_42 : Group #43 -- current RGB: 32,255,224group_43 : Group #44 -- current RGB: 32,63,128group_44 : Group #45 -- current RGB: 128,255,192group_45 : Group #46 -- current RGB: 128,127,128group_46 : Group #47 -- current RGB: 64,255,128group_47 : Group #48 -- current RGB: 128,127,192group_48 : Group #49 -- current RGB: 64,255,192group_49 : Group #50 -- current RGB: 64,127,128group_50 : Group #51 -- current RGB: 128,127,224group_51 : Group #52 -- current RGB: 64,63,128group_52 : Group #53 -- current RGB: 32,127,128group_53 : Group #54 -- current RGB: 128,127,224group_54 : Group #55 -- current RGB: 32,255,192group_55 : Group #56 -- current RGB: 128,63,192group_56 : Group #57 -- current RGB: 128,255,160group_57 : Group #58 -- current RGB: 128,191,128group_58 : Group #59 -- current RGB: 96,255,128group_59 : Group #60 -- current RGB: 128,191,160group_60 : Group #61 -- current RGB: 96,255,160group_61 : Group #62 -- current RGB: 96,191,128group_62 : Group #63 -- current RGB: 96,255,160group_63 : Group #64 -- current RGB: 96,191,128
@@ -2253,7 +2349,7 @@ DESC654 nonzero if success
 FUNC655 integer reaper.Undo_DoUndo2(ReaProject proj)
 DESC655 nonzero if success
 FUNC656 reaper.Undo_EndBlock(string descchange, integer extraflags)
-DESC656 call to end the block,with extra flags if any,and a description
+DESC656 call to end the block,with extra flags if any,and a description. For extra flags description see https://forum.cockos.com/showpost.php?p=2090533&postcount=27
 FUNC657 reaper.Undo_EndBlock2(ReaProject proj, string descchange, integer extraflags)
 DESC657 call to end the block,with extra flags if any,and a description
 FUNC658 reaper.Undo_OnStateChange(string descchange)
@@ -4412,7 +4508,9 @@ FUNC1734 is_new_value,filename,sectionID,cmdID,mode,resolution,val = reaper.get_
 DESC1734 Returns contextual information about the script, typically MIDI/OSC input values.val will be set to a relative or absolute value depending on mode (=0: absolute mode, >0: relative modes). resolution=127 for 7-bit resolution, =16383 for 14-bit resolution.Notes: sectionID, and cmdID will be set to -1 if the script is not part of the action list. mode, resolution and val will be set to -1 if the script was not triggered via MIDI/OSC.Lua: gfx VARIABLESThe following global variables are special and will be used by the graphics system:gfx.r - current red component (0..1) used by drawing operations.gfx.g - current green component (0..1) used by drawing operations.gfx.b - current blue component (0..1) used by drawing operations.gfx.a2 - current alpha component (0..1) used by drawing operations when writing solid colors (normally ignored but useful when creating transparent images).gfx.a - alpha for drawing (1=normal).gfx.mode - blend mode for drawing. Set mode to 0 for default options. Add 1.0 for additive blend mode (if you wish to do subtractive, set gfx.a to negative and use gfx.mode as additive). Add 2.0 to disable source alpha for gfx.blit(). Add 4.0 to disable filtering for gfx.blit().gfx.w - width of the UI framebuffer.gfx.h - height of the UI framebuffer.gfx.x - current graphics position X. Some drawing functions use as start position and update.gfx.y - current graphics position Y. Some drawing functions use as start position and update.gfx.clear - if greater than -1.0, framebuffer will be cleared to that color. the color for this one is packed RGB (0..255), i.e. red+green*256+blue*65536. The default is 0 (black).gfx.dest - destination for drawing operations, -1 is main framebuffer, set to 0..1024-1 to have drawing operations go to an offscreen buffer (or loaded image).gfx.texth - the (READ-ONLY) height of a line of text in the current font. Do not modify this variable.gfx.ext_retina - to support hidpi/retina, callers should set to 1.0 on initialization, will be updated to 2.0 if high resolution display is supported, and if so gfx.w/gfx.h/etc will be doubled.gfx.mouse_x - current X coordinate of the mouse relative to the graphics window.gfx.mouse_y - current Y coordinate of the mouse relative to the graphics window.gfx.mouse_wheel - wheel position, will change typically by 120 or a multiple thereof, the caller should clear the state to 0 after reading it.gfx.mouse_hwheel - horizontal wheel positions, will change typically by 120 or a multiple thereof, the caller should clear the state to 0 after reading it.gfx.mouse_cap - a bitfield of mouse and keyboard modifier state:1: left mouse button2: right mouse button4: Control key8: Shift key16: Alt key32: Windows key64: middle mouse buttonLua: gfx.arc(x,y,r,ang1,ang2[,antialias])Draws an arc of the circle centered at x,y, with ang1/ang2 being specified in radians.Lua: gfx.blit(source, scale, rotation[, srcx, srcy, srcw, srch, destx, desty, destw, desth, rotxoffs, rotyoffs])srcx/srcy/srcw/srch specify the source rectangle (if omitted srcw/srch default to image size), destx/desty/destw/desth specify dest rectangle (if not specified, these will default to reasonable defaults -- destw/desth default to srcw/srch * scale).Lua: gfx.blit(source,scale,rotation)If three parameters are specified, copies the entirity of the source bitmap to gfx.x,gfx.y using current opacity and copy mode (set with gfx.a, gfx.mode). You can specify scale (1.0 is unscaled) and rotation (0.0 is not rotated, angles are in radians).For the "source" parameter specify -1 to use the main framebuffer as source, or an image index (see gfx.loadimg()).Lua: gfx.blitext(source,coordinatelist,rotation)Deprecated, use gfx.blit instead.Lua: gfx.blurto(x,y)Blurs the region of the screen between gfx.x,gfx.y and x,y, and updates gfx.x,gfx.y to x,y.Lua: gfx.circle(x,y,r[,fill,antialias])Draws a circle, optionally filling/antialiasing.Lua: gfx.clienttoscreen(x,y)Converts the coordinates x,y to screen coordinates, returns those values.Lua: gfx.deltablit(srcimg,srcs,srct,srcw,srch,destx,desty,destw,desth,dsdx,dtdx,dsdy
 
 
+
 ,dtdy,dsdxdy,dtdxdy[,usecliprect=1])Blits from srcimg(srcx,srcy,srcw,srch) to destination (destx,desty,destw,desth). Source texture coordinates are s/t, dsdx represents the change in s coordinate for each x pixel, dtdy represents the change in t coordinate for each y pixel, etc. dsdxdy represents the change in dsdx for each line. If usecliprect is specified and 0, then srcw/srch are ignored.Lua: gfx.dock(v[,wx,wy,ww,wh])Call with v=-1 to query docked state, otherwise v>=0 to set docked state. State is &1 if docked, second byte is docker index (or last docker index if undocked). If wx-wh specified, additional values will be returned with the undocked window position/sizeLua: gfx.drawchar(char)Draws the character (can be a numeric ASCII code as well), to gfx.x, gfx.y, and moves gfx.x over by the size of the character.Lua: gfx.drawnumber(n,ndigits)Draws the number n with ndigits of precision to gfx.x, gfx.y, and updates gfx.x to the right side of the drawing. The text height is gfx.texth.Lua: gfx.drawstr("str"[,flags,right,bottom])Draws a string at gfx.x, gfx.y, and updates gfx.x/gfx.y so that subsequent draws will occur in a similar place.If flags, right ,bottom passed in:flags&1: center horizontallyflags&2: right justifyflags&4: center verticallyflags&8: bottom justifyflags&256: ignore right/bottom, otherwise text is clipped to (gfx.x, gfx.y, right, bottom)Lua: gfx.getchar([char])If char is 0 or omitted, returns a character from the keyboard queue, or 0 if no character is available, or -1 if the graphics window is not open. If char is specified and nonzero, that character's status will be checked, and the function will return greater than 0 if it is pressed.Common values are standard ASCII, such as 'a', 'A', '=' and '1', but for many keys multi-byte values are used, including 'home', 'up', 'down', 'left', 'rght', 'f1'.. 'f12', 'pgup', 'pgdn', 'ins', and 'del'.Modified and special keys can also be returned, including:Ctrl/Cmd+A..Ctrl+Z as 1..26Ctrl/Cmd+Alt+A..Z as 257..282Alt+A..Z as 'A'+256..'Z'+25627 for ESC13 for Enter' ' for space65536 for query of special flags, returns: &1 (supported), &2=window has focus, &4=window is visibleLua: gfx.getdropfile(idx)Returns success,string for dropped file index idx. call gfx.dropfile(-1) to clear the list when finished.Lua: gfx.getfont()Returns current font index, and the actual font face used by this font (if available).Lua: gfx.getimgdim(handle)Retreives the dimensions of an image specified by handle, returns w, h pair.Lua: gfx.getpixel()Returns r,g,b values [0..1] of the pixel at (gfx.x,gfx.y)Lua: gfx.gradrect(x,y,w,h, r,g,b,a[, drdx, dgdx, dbdx, dadx, drdy, dgdy, dbdy, dady])Fills a gradient rectangle with the color and alpha specified. drdx-dadx reflect the adjustment (per-pixel) applied for each pixel moved to the right, drdy-dady are the adjustment applied for each pixel moved toward the bottom. Normally drdx=adjustamount/w, drdy=adjustamount/h, etc.Lua: gfx.init("name"[,width,height,dockstate,xpos,ypos])Initializes the graphics window with title name. Suggested width and height can be specified.Once the graphics window is open, gfx.update() should be called periodically.Lua: gfx.line(x,y,x2,y2[,aa])Draws a line from x,y to x2,y2, and if aa is not specified or 0.5 or greater, it will be antialiased.Lua: gfx.lineto(x,y[,aa])Draws a line from gfx.x,gfx.y to x,y. If aa is 0.5 or greater, then antialiasing is used. Updates gfx.x and gfx.y to x,y.Lua: gfx.loadimg(image,"filename")Load image from filename into slot 0..1024-1 specified by image. Returns the image index if success, otherwise -1 if failure. The image will be resized to the dimensions of the image file.Lua: gfx.measurechar(char)Measures the drawing dimensions of a character with the current font (as set by gfx.setfont). Returns width and height of character.Lua: gfx.measurestr("str")Measures the drawing dimensions of a string with the current font (as set by gfx.setfont). Returns width and height of string.Lua: gfx.muladdrect(x,y,w,h,mul_r,mul_g,mul_b[,mul_a,add_r,add_g,add_b,add_a])Multiplies each pixel by mul_* and 
+
 
 
 adds add_*, and updates in-place. Useful for changing brightness/contrast, or other effects.Lua: gfx.printf("format"[, ...])Formats and draws a string at gfx.x, gfx.y, and updates gfx.x/gfx.y accordingly (the latter only if the formatted string contains newline). For more information on format strings, see sprintf()Lua: gfx.quit()Closes the graphics window.Lua: gfx.rect(x,y,w,h[,filled])Fills a rectangle at x,y, w,h pixels in dimension, filled by default.Lua: gfx.rectto(x,y)Fills a rectangle from gfx.x,gfx.y to x,y. Updates gfx.x,gfx.y to x,y.Lua: gfx.roundrect(x,y,w,h,radius[,antialias])Draws a rectangle with rounded corners.Lua: gfx.screentoclient(x,y)Converts the screen coordinates x,y to client coordinates, returns those values.Lua: gfx.set(r[,g,b,a,mode,dest,a2])Sets gfx.r/gfx.g/gfx.b/gfx.a/gfx.mode/gfx.a2, sets gfx.dest if final parameter specifiedLua: gfx.setcursor(resource_id,custom_cursor_name)Sets the mouse cursor. resource_id is a value like 32512 (for an arrow cursor), custom_cursor_name is a string like "arrow" (for the REAPER custom arrow cursor). resource_id must be nonzero, but custom_cursor_name is optional.Lua: gfx.setfont(idx[,"fontface", sz, flags])Can select a font and optionally configure it. idx=0 for default bitmapped font, no configuration is possible for this font. idx=1..16 for a configurable font, specify fontface such as "Arial", sz of 8-100, and optionally specify flags, which is a multibyte character, which can include 'i' for italics, 'u' for underline, or 'b' for bold. These flags may or may not be supported depending on the font and OS. After calling gfx.setfont(), gfx.texth may be updated to reflect the new average line height.Lua: gfx.setimgdim(image,w,h)Resize image referenced by index 0..1024-1, width and height must be 0-8192. The contents of the image will be undefined after the resize.Lua: gfx.setpixel(r,g,b)Writes a pixel of r,g,b to gfx.x,gfx.y.Lua: gfx.showmenu("str")Shows a popup menu at gfx.x,gfx.y. str is a list of fields separated by | characters. Each field represents a menu item.Fields can start with special characters:# : grayed out! : checked> : this menu item shows a submenu< : last item in the current submenuAn empty field will appear as a separator in the menu. gfx.showmenu returns 0 if the user selected nothing from the menu, 1 if the first field is selected, etc.Example:gfx.showmenu("first item, followed by separator||!second item, checked|>third item which spawns a submenu|#first item in submenu, grayed out|<second and last item in submenu|fourth item in top menu")Lua: gfx.transformblit(srcimg,destx,desty,destw,desth,div_w,div_h,table)
