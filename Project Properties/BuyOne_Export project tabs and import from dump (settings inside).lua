@@ -83,7 +83,7 @@ local content = ''
 
 local extra_content = 'TO BE USED IN REAPER WITH THE SCRIPT:\n'..scr_name..'\n\n'..'Entries can be deleted if not all saved projects have to be loaded. Gaps in numbering and empty lines are OK.\nInstead of being deleted they can be commented out with semicolon at the very beginning, e.g. ;projX=project file path.\nTo change loading order the keys can be renumbered.\n\n'..string.rep('***',40)
 
-local f = io.open(dump_fn,'w') -- or r.GetExePath()..(r.GetOS():match('Win') and '\\' or '/')
+local f = io.open(dump_fn,'w')
 local write = f:write(extra_content..'\n\n\n'..content)
 f:close()
 
