@@ -158,7 +158,7 @@ local resp = r.MB('\"YES\" — to export project tabs.\n\nWill overwrite existin
 r.PreventUIRefresh(-1)
 
 	-- taken outside of function and after 'prevent refresh' to prevent undo point creation and to display the message after the last project has loaded
-	if mess then r.MB(mess,'ERROR',0) return r.defer(function() end) end -- return is only relevant when no project was loaded to prevent any undo point in the open project
+	if mess then r.MB(mess,'ERROR',0) return r.defer(function() end) end
 
 
 
