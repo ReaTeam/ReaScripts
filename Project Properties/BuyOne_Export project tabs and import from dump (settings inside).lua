@@ -11,7 +11,10 @@ About:
 	Exports a list of open project tabs which then can be imported.  
 	After the script had been written a realization came that the SWS extension
 	already has this facility. Its advantage is that it has file browser which
-	allows selecting location on the disk manually for file saving.
+	allows selecting location on the disk manually for file saving.  
+	The advantage of the script is that it doesn't open blank tabs for invalid
+	project entries plus allows temporarily preventing certain projects from
+	loading. Well, i had to come up with something to justify the effort. 
 ]]
 -----------------------------------------------------------------------------
 ------------------------------ USER SETTINGS --------------------------------
