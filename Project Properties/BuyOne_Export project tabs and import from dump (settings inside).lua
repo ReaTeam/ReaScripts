@@ -19,6 +19,7 @@ About:
 -----------------------------------------------------------------------------
 ------------------------------ USER SETTINGS --------------------------------
 -----------------------------------------------------------------------------
+-- The exported file name is 'REAPER Project tabs dump.txt'.
 -- Projects without project files aren't exported. To be exported they need
 -- to be saved first.
 -- Entries can be deleted from the dump file if not all saved projects have
