@@ -3,6 +3,9 @@
 -- @version 1.00
 -- @link Forum https://forum.cockos.com/showthread.php?t=243019
 -- @donation Donate https://www.paypal.me/Edgemeal
+-- @about
+--   Note: This script is not needed, REAPER now has an action to do this!
+--   See action, Track: Bypass track playback offset
 
 reaper.Undo_BeginBlock()
 local trackcount = reaper.CountSelectedTracks()
