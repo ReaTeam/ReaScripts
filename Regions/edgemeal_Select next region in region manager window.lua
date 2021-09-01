@@ -3,6 +3,7 @@
 -- @version 1.00
 -- @link Forum Thread https://forum.cockos.com/showthread.php?t=256856
 -- @donation Donate https://www.paypal.me/Edgemeal
+-- @about Requires js_ReaScriptAPI extension version v1.217 or later.
 
 function GetRegions(lv, cnt)
   local t = {}
