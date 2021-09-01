@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="69dd051f64c2914fda2df56761670ffd2e31accb" name="ReaTeam Scripts">
+<index version="1" commit="59db96ecbf20b29a6e4eb8eedff2143a2a520ddd" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -13771,6 +13771,14 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
       </metadata>
       <version name="1.00" author="Edgemeal" time="2020-10-04T13:49:03Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/7979865ec661d820f16b28975c9c14da7406bdae/Tracks%20Properties/edgemeal_Enable%20playback%20offset%20for%20selected%20tracks.lua</source>
+      </version>
+    </reapack>
+    <reapack name="edgemeal_Enable track playback offset for selected tracks (Samples).lua" type="script" desc="Enable track playback offset for selected tracks (Samples)">
+      <metadata>
+        <link rel="donation" href="https://www.paypal.me/Edgemeal">Donate</link>
+      </metadata>
+      <version name="1.00" author="Edgemeal" time="2021-09-01T01:34:28Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/59db96ecbf20b29a6e4eb8eedff2143a2a520ddd/Tracks%20Properties/edgemeal_Enable%20track%20playback%20offset%20for%20selected%20tracks%20(Samples).lua</source>
       </version>
     </reapack>
     <reapack name="edgemeal_Remove muted track sends from selected tracks.lua" type="script" desc="Remove muted track sends from selected tracks">
