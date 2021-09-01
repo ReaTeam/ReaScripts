@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="4d1a78147ba513ddbfda4054c613be98319ed836" name="ReaTeam Scripts">
+<index version="1" commit="69dd051f64c2914fda2df56761670ffd2e31accb" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -13750,11 +13750,18 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
     </reapack>
     <reapack name="edgemeal_Disable playback offset for selected tracks.lua" type="script" desc="Disable track playback offset for selected tracks">
       <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Note: This script is not needed, REAPER now has an action to do this! See action, Track: Bypass track playback offset\par}
+}
+]]></description>
         <link rel="website" href="https://forum.cockos.com/showthread.php?t=243019">Forum</link>
         <link rel="donation" href="https://www.paypal.me/Edgemeal">Donate</link>
       </metadata>
       <version name="1.00" author="Edgemeal" time="2020-10-04T13:48:43Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/34792dc0608f50ff5da65071e75aad9e3bded679/Tracks%20Properties/edgemeal_Disable%20playback%20offset%20for%20selected%20tracks.lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/69dd051f64c2914fda2df56761670ffd2e31accb/Tracks%20Properties/edgemeal_Disable%20playback%20offset%20for%20selected%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="edgemeal_Enable playback offset for selected tracks.lua" type="script" desc="Enable track playback offset for selected tracks">
