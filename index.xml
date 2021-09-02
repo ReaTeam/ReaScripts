@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="605707a9e0f8a9717f58908ca64bd1e237cb6920" name="ReaTeam Scripts">
+<index version="1" commit="f7010a233e10709e6a04d61b51c7e6c9459c0455" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -5989,6 +5989,21 @@ here
     <reapack name="pandabot_Select every N tracks within selection.eel" type="script" desc="Select every N tracks within selection">
       <version name="1.0" author="pandabot" time="2020-09-03T07:37:36Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/facf61b7745a660e14b973b07ecf2974a094e772/Items%20Editing/pandabot_Select%20every%20N%20tracks%20within%20selection.eel</source>
+      </version>
+    </reapack>
+    <reapack name="Reaperblog_Smarter Duplicate.eel" type="script" desc="Smarter Duplicate">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 better context sensitive duplicate. Duplicate selected item, area of item, envelope points in time selection, handles item grouping as new group instead of attached to original item\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Multiple tracks duplicate after last selected\par}
+}
+]]></description>
+      </metadata>
+      <version name="1" author="Reaperblog" time="2021-09-02T17:37:13Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f7010a233e10709e6a04d61b51c7e6c9459c0455/Items%20Editing/Reaperblog_Smarter%20Duplicate.eel</source>
       </version>
     </reapack>
     <reapack name="rodilab_Duplicate items or tracks (depending on focus and time selection).lua" type="script" desc="Duplicate items or tracks (depending on focus and time selection)">
