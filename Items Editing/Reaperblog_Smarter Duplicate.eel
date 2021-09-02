@@ -1,0 +1,37 @@
+// @description Smarter Duplicate
+// @author Reaperblog
+// @version 1
+// @about
+//   better context sensitive duplicate. Duplicate selected item, area of item, envelope points in time selection,
+//   handles item grouping as new group instead of attached to original item
+//
+//   Multiple tracks duplicate after last selected
+
+
+function duplicate()
+(
+  Undo_BeginBlock2(0);
+  GetCursorContext() === 0 ? (
+ Main_OnCommand(40210,0); // Track: Copy tracks
+      Main_OnCommand(NamedCommandLookup("_XENAKIOS_SELLASTOFSELTRAX"),0); //SWS: Select last of selected tracks
+      Main_OnCommand(40058,0); // Item: Paste items/tracks (old-style handling of hidden tracks)
+    Undo_EndBlock2(0, "Duplicate Tracks workaround", -1);
+  ) : (
+        start = 0;
+        end = 0;
+        GetSet_LoopTimeRange2(0, 0, 0, start, end, 0);
+        start === end ? (
+          Main_OnCommand(40698,0); //Edit: Copy items
+          Main_OnCommand(41174,0); //Item navigation: Move cursor to end of items
+          Main_OnCommand(42398,0); //Item: Paste items/tracks
+          Undo_EndBlock2(0, "Duplicate Items Workaround", -1);
+        ) : (
+          Main_OnCommand(41383,0); //Edit: Copy items/tracks/envelope points (depending on focus) within time selection, if any (smart copy)
+          Main_OnCommand(40038,0); //Time selection: Shift right (by time selection length) 
+          Main_OnCommand(42398,0); //Item: Paste items/tracks
+          Undo_EndBlock2(0, "Duplicate Selected Area of Items Workaround", -1);
+        );
+      );
+);
+
+duplicate();
