@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="42dd21ce3e1855a39bb6b38fde17027496d00d35" name="ReaTeam Scripts">
+<index version="1" commit="605707a9e0f8a9717f58908ca64bd1e237cb6920" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -12161,7 +12161,7 @@ Replace GetLastWord func with quicker solution (Thanks: Mespotine[t=233393]).]]>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/555980fce3a01348fdfddea71aca73687cb1f1c2/Regions/cfillion_Nudge%20start%20or%20end%20of%20regions%20in%20time%20selection.lua</source>
       </version>
     </reapack>
-    <reapack name="edgemeal_Select next region in region manager window (NextPrevious).lua" type="script" desc="Select next region in region manager window (Next/Previous)">
+    <reapack name="edgemeal_Select region in region manager window.lua" type="script" desc="Select region in region manager window (Next/Previous)">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
@@ -12173,9 +12173,9 @@ Replace GetLastWord func with quicker solution (Thanks: Mespotine[t=233393]).]]>
         <link rel="website" href="https://forum.cockos.com/showthread.php?t=256856">Forum</link>
         <link rel="donation" href="https://www.paypal.me/Edgemeal">Donate</link>
       </metadata>
-      <version name="1.00" author="Edgemeal" time="2021-09-02T15:10:37Z">
-        <source main="main" file="edgemeal_Select next region in region manager window (NextPrevious)/edgemeal_Select next region in region manager window.lua">https://github.com/ReaTeam/ReaScripts/raw/42dd21ce3e1855a39bb6b38fde17027496d00d35/Regions/edgemeal_Select%20next%20region%20in%20region%20manager%20window%20(NextPrevious)/edgemeal_Select%20next%20region%20in%20region%20manager%20window.lua</source>
-        <source main="main" file="edgemeal_Select next region in region manager window (NextPrevious)/edgemeal_Select previous region in region manager window.lua">https://github.com/ReaTeam/ReaScripts/raw/42dd21ce3e1855a39bb6b38fde17027496d00d35/Regions/edgemeal_Select%20next%20region%20in%20region%20manager%20window%20(NextPrevious)/edgemeal_Select%20previous%20region%20in%20region%20manager%20window.lua</source>
+      <version name="1.00" author="Edgemeal" time="2021-09-02T15:12:58Z">
+        <source main="main" file="edgemeal_Select region in region manager window/edgemeal_Select next region in region manager window.lua">https://github.com/ReaTeam/ReaScripts/raw/605707a9e0f8a9717f58908ca64bd1e237cb6920/Regions/edgemeal_Select%20region%20in%20region%20manager%20window/edgemeal_Select%20next%20region%20in%20region%20manager%20window.lua</source>
+        <source main="main" file="edgemeal_Select region in region manager window/edgemeal_Select previous region in region manager window.lua">https://github.com/ReaTeam/ReaScripts/raw/605707a9e0f8a9717f58908ca64bd1e237cb6920/Regions/edgemeal_Select%20region%20in%20region%20manager%20window/edgemeal_Select%20previous%20region%20in%20region%20manager%20window.lua</source>
       </version>
     </reapack>
     <reapack name="epacheco_Create a single region with name and tail length from selected items.lua" type="script" desc="Create single region with tail length from selected items">
