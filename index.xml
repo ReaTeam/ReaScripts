@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="12498e722aace1757e9b5e3ea988d0b42731958d" name="ReaTeam Scripts">
+<index version="1" commit="9afa3e934aca21bb1331403e749a17550a8d4222" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -11655,6 +11655,22 @@ enter or a = Exit and apply changes\par}
       </metadata>
       <version name="1.00" author="amagalma" time="2020-10-16T09:24:38Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f60ef5bd1e515491387265c1eb6eeff6096b0f70/Project%20Properties/amagalma_Toggle%20Project%20Bay%20option%20Automatically%20retain%20items%20when%20removed%20from%20project.lua</source>
+      </version>
+    </reapack>
+    <reapack name="BuyOne_Export project tabs and import from dump (settings inside).lua" type="script" desc="Export project tabs and import from dump">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Exports a list of open project tabs which then can be imported.\line After the script had been written a realization came that the SWS extension already has this facility. Its advantage is that it has file browser which allows selecting location on the disk manually for file saving.\line The advantage of the script is that it doesn't open blank tabs for invalid project entries plus allows temporarily preventing certain projects from loading. Well, i had to come up with something to justify the effort.\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/member.php?u=134058</link>
+      </metadata>
+      <version name="1.0" author="BuyOne" time="2021-09-02T01:27:23Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/9afa3e934aca21bb1331403e749a17550a8d4222/Project%20Properties/BuyOne_Export%20project%20tabs%20and%20import%20from%20dump%20(settings%20inside).lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Normalize peaks display gain.lua" type="script" desc="Normalize peaks display gain">
