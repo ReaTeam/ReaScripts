@@ -2,8 +2,9 @@
 ReaScript name: Export project tabs and import from dump
 Author: BuyOne
 Website: https://forum.cockos.com/member.php?u=134058
-Version: 1.0
-Changelog: Initial release
+Version: 1.1
+Changelog: # Made exported tabs count reflect actual number
+	   # Some other cosmetic changes
 Provides: [main] .
 Licence: WTFPL
 REAPER: at least v5.962
@@ -19,9 +20,10 @@ About:
 -----------------------------------------------------------------------------
 ------------------------------ USER SETTINGS --------------------------------
 -----------------------------------------------------------------------------
--- The exported file name is 'REAPER Project tabs dump.txt'.
 -- Projects without project files aren't exported. To be exported they need
 -- to be saved first.
+-- Imported project tabs are opened after the last open tab.
+-- The exported file name is 'REAPER Project tabs dump.txt'.
 -- Entries can be deleted from the dump file if not all saved projects have
 -- to be loaded. Gaps in numbering and empty lines are OK. Instead of being
 -- deleted they can be commented out with semicolon e.g.
@@ -74,12 +76,13 @@ local dump_fn = DUMP_PATH and Dir_Exists(DUMP_PATH) == 1 and DUMP_PATH..name or 
 
 local i = 0
 local content = ''
+local valid_tabs_cnt = 0
 	repeat
 	local retval, projfn = r.EnumProjects(i)
-	content = retval and #projfn > 0 and content..'proj'..i..'='..projfn..'\n' or content -- line break after the line, if before then the first entry won't be captured by string.match() in the 'import' loop below
+	content = retval and #projfn > 0 and content..'proj'..i..'='..projfn..'\n' or content -- line break after the line, if before then the first entry won't be captured by string.match() in the 'import' loop below; only projects with file names are exported, that is to the exclusion of open but never saved ones
+	valid_tabs_cnt = retval and #projfn > 0 and valid_tabs_cnt + 1 or valid_tabs_cnt
 	i = i+1
 	until not retval
-
 	if #content == 0 then r.MB('No saved projects to export.','ERROR',0) return end
 
 local extra_content = 'TO BE USED IN REAPER WITH THE SCRIPT:\n'..scr_name..'\n\n'..'Entries can be deleted if not all saved projects have to be loaded. Gaps in numbering and empty lines are OK.\nInstead of being deleted they can be commented out with semicolon at the very beginning, e.g. ;projX=project file path.\nTo change loading order the keys can be renumbered.\n\n'..string.rep('***',40)
@@ -89,9 +92,8 @@ local write = f:write(extra_content..'\n\n\n'..content)
 f:close()
 
 local fallback_on_default_path = DUMP_PATH ~= sep and DUMP_PATH ~= dump_fn:sub(1,-#name-1)
-local tabs_cnt = i-1 -- before the loop is exited the iterator is increased by 1, hence the subtraction
 
-return (r.file_exists(dump_fn) and '    A dump of '..tabs_cnt..' project tabs\n\n    was created successfully'..(fallback_on_default_path and '\n\n    at REAPER resource path.' or '.')..'\n\nOnly projects with project files\n\n'..string.rep(' ',13)..'were exported.' or 'Dump creation failed.') -- to display message outside of function thereby preventing creation of a generic undo point
+return (r.file_exists(dump_fn) and '    A dump of '..valid_tabs_cnt..' project tabs\n\n    was created successfully'..(fallback_on_default_path and '\n\n    at REAPER resource path.' or '.')..'\n\nOnly projects with project files\n\n'..string.rep(' ',13)..'were exported.' or 'Dump creation failed.') -- to display message outside of function thereby preventing creation of a generic undo point
 
 end
 
@@ -151,7 +153,7 @@ end
 
 r.PreventUIRefresh(1)
 
-local resp = r.MB('\"YES\" — to export project tabs.\n\nWill overwrite existing dump file if any.\nTo keep it, click \"NO\", access it and create\na backup copy named differently or rename it.\n\n"NO\" — to import project tabs.\n\n','CHOOSE ACTION', 3)
+local resp = r.MB('\"YES\" — to export project tabs.\n\nWill overwrite existing dump file if any.\nTo keep it, click \"NO\", access it and create\na backup copy named differently or rename it.\nThen run again and click \"YES\".\n\n"NO\" — to import project tabs.\n\n','CHOOSE ACTION', 3)
 	if resp == 6 then mess = EXPORT(DUMP_PATH)
 	elseif resp == 7 then mess = IMPORT(DUMP_PATH)
 	end
@@ -160,7 +162,6 @@ r.PreventUIRefresh(-1)
 
 	-- taken outside of function and after 'prevent refresh' to prevent undo point creation and to display the message after the last project has loaded
 	if mess then r.MB(mess,'ERROR',0) return r.defer(function() end) end
-
 
 
 
