@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="f7010a233e10709e6a04d61b51c7e6c9459c0455" name="ReaTeam Scripts">
+<index version="1" commit="178ca6857a2cd540c91630d27934354887dd188c" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -11686,6 +11686,11 @@ enter or a = Exit and apply changes\par}
       <version name="1.0" author="BuyOne" time="2021-09-02T01:27:23Z">
         <changelog><![CDATA[Initial release]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/9afa3e934aca21bb1331403e749a17550a8d4222/Project%20Properties/BuyOne_Export%20project%20tabs%20and%20import%20from%20dump%20(settings%20inside).lua</source>
+      </version>
+      <version name="1.1" author="BuyOne" time="2021-09-03T15:15:29Z">
+        <changelog><![CDATA[# Made exported tabs count reflect actual number
+# Some other cosmetic changes]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/178ca6857a2cd540c91630d27934354887dd188c/Project%20Properties/BuyOne_Export%20project%20tabs%20and%20import%20from%20dump%20(settings%20inside).lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Normalize peaks display gain.lua" type="script" desc="Normalize peaks display gain">
