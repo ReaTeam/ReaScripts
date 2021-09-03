@@ -1,8 +1,8 @@
 -- @description Toggle show editing guide line on item under mouse cursor in Main Window or in MIDI Editor
 -- @author amagalma
--- @version 1.85
+-- @version 1.86
 -- @changelog
---    - M1 Apple Macs support
+--    - removed checks for JS_ReaScriptAPI
 -- @donation https://www.paypal.me/amagalma
 -- @about
 --   # Displays a guide line on the item under the mouse cursor for easier editing in the Main Window, or a tall line in the focused MIDI Editor
@@ -42,34 +42,15 @@ local red2, green2, blue2 = 165, 165, 135
 -------------------------------------------------------------------
 
 -- Check JS_ReaScriptAPI availability
-local required_version, ok  = "1.002", false
-local js_api = { "reaper_js_ReaScriptAPI32.dll", "reaper_js_ReaScriptAPI32.dylib", "reaper_js_ReaScriptAPI64.dll", "reaper_js_ReaScriptAPI64.dylib", "reaper_js_ReaScriptAPI64ARM.dylib", "reaper_js_ReaScriptAPI64.so" }
-local sep = reaper.GetOS():find("Win") and "\\" or "/"
-local ext_path = reaper.GetResourcePath() .. sep .. "UserPlugins" .. sep
-for i = 1, 5 do
-  if reaper.file_exists( ext_path .. js_api[i] ) then
-    js_api = ext_path .. js_api[i]
-    break
+if reaper.APIExists( "JS_ReaScriptAPI_Version") then
+  local version = reaper.JS_ReaScriptAPI_Version()
+  if version < 1.002 then
+    reaper.MB( "Installed JS_ReaScriptAPI version is v" .. version .. "\n\nPlease, update, restart Reaper and run the script again. Thanks!", "Required version: >=1.002", 0 )
+    return reaper.defer(function() end)
   end
-end
-if type(js_api) ~= "table" then
-  local entry = reaper.ReaPack_GetOwner( js_api )
-  js_api = ({reaper.ReaPack_GetEntryInfo( entry )})[7]
-  reaper.ReaPack_FreeEntry( entry )
-  ok = reaper.ReaPack_CompareVersions( js_api, required_version ) >= 0
-  if not ok then
-    reaper.MB( "Your installed version is v" .. js_api .. ".\n\nPlease, right-click and install the latest version of 'js_ReaScriptAPI: API functions for ReaScripts'. Then restart Reaper and run the script again. Thanks!", "JS_ReaScriptAPI v" .. required_version .. " is required", 0 )
-  end
-else
-  reaper.MB( "Please, right-click and install 'js_ReaScriptAPI: API functions for ReaScripts'. Then restart Reaper and run the script again. Thanks!", "You need to install the JS_ReaScriptAPI", 0 )
-end
-if not ok then
-  local ok, err = reaper.ReaPack_AddSetRepository( "ReaTeam Extensions", "https://github.com/ReaTeam/Extensions/raw/master/index.xml", true, 1 )
-  if ok then reaper.ReaPack_BrowsePackages( "js_ReaScriptAPI" )
-  else reaper.MB( err, "Something went wrong...", 0) end
+else  
+  reaper.MB( "Please, install JS_ReaScriptAPI for this script to function. Thanks!", "JS_ReaScriptAPI is not installed", 0 )
   return reaper.defer(function() end)
-else
-  required_version, ok, js_api, sep, ext_path, entry = nil, nil, nil, nil, nil, nil
 end
 
 local function RGB(r,g,b)
