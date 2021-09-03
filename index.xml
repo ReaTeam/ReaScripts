@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="178ca6857a2cd540c91630d27934354887dd188c" name="ReaTeam Scripts">
+<index version="1" commit="a4e9025277da5e308429311afed65b7b1c402bb2" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -4693,6 +4693,10 @@ website
       <version name="1.85" author="amagalma" time="2021-04-05T09:22:40Z">
         <changelog><![CDATA[- M1 Apple Macs support]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/0ab11746631d23c63ea07f7be49c414190432345/Items%20Editing/amagalma_Toggle%20show%20editing%20guide%20line%20on%20item%20under%20mouse%20cursor%20in%20Main%20Window%20or%20in%20MIDI%20Editor.lua</source>
+      </version>
+      <version name="1.86" author="amagalma" time="2021-09-03T18:30:38Z">
+        <changelog><![CDATA[- removed checks for JS_ReaScriptAPI]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a4e9025277da5e308429311afed65b7b1c402bb2/Items%20Editing/amagalma_Toggle%20show%20editing%20guide%20line%20on%20item%20under%20mouse%20cursor%20in%20Main%20Window%20or%20in%20MIDI%20Editor.lua</source>
       </version>
     </reapack>
     <reapack name="Argitoth_Select items with color of selected items.eel" type="script" desc="Select items with color of selected items">
