@@ -1,7 +1,7 @@
 -- @description FX list menu
 -- @author Tagirijus
--- @version 1.1
--- @changelog Changed the name of the author and the script to be more coherent with my other scripts.
+-- @version 1.2
+-- @changelog Selection now first changes focus of already open FX windows and only closes the in-focus FX window on selection.
 -- @about
 --   # Description
 --
@@ -9,6 +9,7 @@
 
 local FXINDEX = 0
 local TRACK = -1
+local FOCUSED_WINDOW = nil
 
 
 function debugMsg(msg)
@@ -17,6 +18,14 @@ end
 
 
 function OpenFXMenu()
+	-- Since I create a GUI just for the popup menu,
+	-- which would get the actual focus, I "store" the
+	-- FX window, which had focus before that into
+	-- a variable to be able to know later in the
+	-- script which FX window had focus in the first
+	-- place.
+	FOCUSED_WINDOW = reaper.JS_Window_GetForeground()
+
 	TRACK = reaper.GetSelectedTrack(0, 0)
 	if TRACK == nil then
 		return nil
@@ -29,7 +38,10 @@ function OpenFXMenu()
 end
 
 function showPopup(content)
-	local title = "Hidden gfx window for showing the markers showmenu"
+	-- Here I create a GUI window, which I will place
+	-- (and thus "hide") outside the screen, just
+	-- to be able to show a popup menu
+	local title = "Hidden gfx window for FX List menu"
 	gfx.init(title, 0, 0, 0, 0, 0)
 	local hwnd = reaper.JS_Window_Find(title, true)
 	local out = 0
@@ -67,10 +79,28 @@ function modifyFXNameForEnabled(track, fxid, FXName)
 end
 
 function modifyFXNameForShowStatus(track, fxid, FXName)
-	if reaper.TrackFX_GetFloatingWindow(track, fxid) then
-		FXName = ' >>> ' .. FXName
+	hwnd = reaper.TrackFX_GetFloatingWindow(track, fxid)
+	title = reaper.JS_Window_GetTitle(reaper.TrackFX_GetFloatingWindow(track, fxid))
+	if hwnd then
+		if fxHasFocus(hwnd) then
+			FXName = ' >>> ' .. FXName
+		else
+			FXName = ' > ' .. FXName
+		end
 	end
 	return FXName
+end
+
+function fxHasFocus(hwnd)
+	focus_title = reaper.JS_Window_GetTitle(FOCUSED_WINDOW)
+	hwnd_title = reaper.JS_Window_GetTitle(hwnd)
+	-- debugMsg(focus_title)
+	-- debugMsg(hwnd_title)
+	if focus_title == hwnd_title then
+		return true
+	else
+		return false
+	end
 end
 
 
@@ -117,17 +147,15 @@ function trim(s)
 end
 
 
-function ShowOrHide(track, fxIndex)
+function ShowOrHideOrFocus(track, fxIndex)
 	local visibility = reaper.TrackFX_GetFloatingWindow(track, fxIndex)
 	if visibility == nil then
 		reaper.TrackFX_Show(track, fxIndex, 3)
-		if BypassWhenHidden == 1 then
-			reaper.TrackFX_SetEnabled(track, fxIndex, true)
-		end
 	else
-		reaper.TrackFX_Show(track, fxIndex, 2)
-		if BypassWhenHidden == 1 then
-			reaper.TrackFX_SetEnabled(track, fxIndex, false)
+		if fxHasFocus(visibility) then
+			reaper.TrackFX_Show(track, fxIndex, 2)
+		else
+			reaper.JS_Window_SetForeground(visibility)
 		end
 	end
 end
@@ -141,7 +169,7 @@ function main()
 
 	-- Interprete the selection
 	if FXINDEX > 0 then
-		ShowOrHide(TRACK, FXINDEX - 1)
+		ShowOrHideOrFocus(TRACK, FXINDEX - 1)
 	end
 
 	reaper.Undo_EndBlock("Tagirijus: FX list menu", -1)
