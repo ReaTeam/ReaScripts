@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="a4e9025277da5e308429311afed65b7b1c402bb2" name="ReaTeam Scripts">
+<index version="1" commit="dac604f105a39d5313e6939bf5196ca8119a0d42" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -3966,6 +3966,10 @@ Better error-checking in general]]></changelog>
       <version name="1.1" author="Tagirijus" time="2021-03-17T20:29:01Z">
         <changelog><![CDATA[Changed the name of the author and the script to be more coherent with my other scripts.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/14b21c2689b33fb4e8b48d2c054b69cf68a5a168/FX/tagirijus_FX%20list%20menu.lua</source>
+      </version>
+      <version name="1.2" author="Tagirijus" time="2021-09-04T17:10:58Z">
+        <changelog><![CDATA[Selection now first changes focus of already open FX windows and only closes the in-focus FX window on selection.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/7fac566bc3d7d971e40fa0d905769d53c9d14758/FX/tagirijus_FX%20list%20menu.lua</source>
       </version>
     </reapack>
   </category>
@@ -12700,6 +12704,26 @@ Don't report an error if no render presets were created yet]]></changelog>
     </reapack>
   </category>
   <category name="Takes Properties">
+    <reapack name="amagalma_Draw Spectral Edits Tool.lua" type="script" desc="Draw Spectral Edits Tool">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Draw Spectral Edits Tool\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 What it is: A tool for easy drawing spectral edits directly on items.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Supports: a) items with more than one takes, b) multi-channel items, c) display modes with \u8220"freq log\u8221" different than zero (thanks Justin for the help!).\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Use: Just run the script and draw edits as needed (drawn spectral edits will have the default settings*). When finished, run the script again to disable drawing mode. A tooltip is shown near the mouse cursor to remind you that you are in drawing mode.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab For drawing with settings saved in presets and for maximum speed, functionality and user experience, it is recommended to use the \u8220"Draw Spectral Edits Tool \u8211- Preset System\u8221" companion script, which is offered separately with a small fee.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Requirements: JS_ReaScriptAPI, SWS Extension\par}
+}
+]]></description>
+        <link rel="donation">https://www.paypal.me/amagalma</link>
+      </metadata>
+      <version name="1.0" author="amagalma" time="2021-09-04T17:11:12Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/dac604f105a39d5313e6939bf5196ca8119a0d42/Takes%20Properties/amagalma_Draw%20Spectral%20Edits%20Tool.lua</source>
+      </version>
+    </reapack>
     <reapack name="amagalma_Set all take markers' color for selected items in time selection.lua" type="script" desc="Set all take markers' color for selected items in time selection">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
