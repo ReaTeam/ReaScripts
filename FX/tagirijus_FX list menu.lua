@@ -7,15 +7,6 @@
 --
 --   This plugin will open a quick drop down menu on the mouse cursor listing all the FX for the selected track. A click on any FX will open its window floating.
 
---[[
- * ReaScript Name: tagirijus_FX list menu.lua
- * Author: Manuel Senfft (Tagirijus)
- * Licence: MIT
- * REAPER: 6.23
- * Extensions: None
- * Version: 1.2
---]]
-
 local FXINDEX = 0
 local TRACK = -1
 local FOCUSED_WINDOW = nil
