@@ -57,10 +57,10 @@ local PROJECT_NAMES_ONLY = type(PROJECT_NAMES_ONLY) == 'string' and #PROJECT_NAM
 local recent_proj_t = {}
 local menu_t = {}
 	for i = #t,1,-1 do
-	recent_proj_t[#recent_proj_t+1] = t[i] == projfn and '!'..t[i] or t[i] -- adding checkmark to the path of the currently open project
+	recent_proj_t[#recent_proj_t+1] = t[i] == projfn and '!'..t[i] or t[i] -- adding checkmark to the menu item of the currently open project
 		if PROJECT_NAMES_ONLY then
 		local name = t[i]:match('.+[\\/](.-)%.[RrPp]+') -- strip away path and extension
-		menu_t[#menu_t+1] = t[i] == projfn and '!'..name or name -- adding checkmark to the name of the currently open project
+		menu_t[#menu_t+1] = t[i] == projfn and '!'..name or name -- adding checkmark to the menu item of the currently open project
 		end
 	end
 
