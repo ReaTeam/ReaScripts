@@ -41,7 +41,6 @@ local r = reaper
 
 -- collect recent project paths
 local t = {}
-local found
 	for line in io.lines(r.get_ini_file()) do
 		if line == '[Recent]' then found = true 
 		elseif -- next section
