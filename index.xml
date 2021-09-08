@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="ac37ed378f427cd7ce4774dd282a89e3efb4237a" name="ReaTeam Scripts">
+<index version="1" commit="fe55c121155dd9bbec743183fe22402d04ab6503" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -3970,6 +3970,10 @@ Better error-checking in general]]></changelog>
       <version name="1.2" author="Tagirijus" time="2021-09-04T17:10:58Z">
         <changelog><![CDATA[Selection now first changes focus of already open FX windows and only closes the in-focus FX window on selection.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/7fac566bc3d7d971e40fa0d905769d53c9d14758/FX/tagirijus_FX%20list%20menu.lua</source>
+      </version>
+      <version name="1.3" author="Tagirijus" time="2021-09-08T14:21:33Z">
+        <changelog><![CDATA[When shift+clicking TrackFXs bypass state is now being toggled and with ctrl+clicking a TrackXF gets removed.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/fe55c121155dd9bbec743183fe22402d04ab6503/FX/tagirijus_FX%20list%20menu.lua</source>
       </version>
     </reapack>
   </category>
