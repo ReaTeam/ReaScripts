@@ -1,7 +1,7 @@
 -- @description FX list menu
 -- @author Tagirijus
--- @version 1.2
--- @changelog Selection now first changes focus of already open FX windows and only closes the in-focus FX window on selection.
+-- @version 1.3
+-- @changelog When shift+clicking TrackFXs bypass state is now being toggled and with ctrl+clicking a TrackXF gets removed.
 -- @about
 --   # Description
 --
@@ -161,6 +161,12 @@ function ShowOrHideOrFocus(track, fxIndex)
 end
 
 
+function toggleBypass(track, fxid)
+	local bypass_state = reaper.TrackFX_GetEnabled(track, fxid)
+	reaper.TrackFX_SetEnabled(track, fxid, not bypass_state)
+end
+
+
 function main()
 	reaper.Undo_BeginBlock()
 
@@ -169,7 +175,27 @@ function main()
 
 	-- Interprete the selection
 	if FXINDEX > 0 then
-		ShowOrHideOrFocus(TRACK, FXINDEX - 1)
+		ctrl = reaper.JS_Mouse_GetState(4)
+		shift = reaper.JS_Mouse_GetState(8)
+
+		if ctrl == 4 and shift == 0 then
+			-- Only Ctrl is being held down during click
+			-- DELETE FX
+			-- Since Alt closes the popup, I am using Ctrl to delete FX
+			-- (by default in Reaper it is by Alt+Clicking though!)
+			reaper.TrackFX_Delete(TRACK, FXINDEX - 1)
+		elseif ctrl == 0 and shift == 8 then
+			-- Only Shift is being held down during click
+			-- BYPASS TOGGLE
+			toggleBypass(TRACK, FXINDEX - 1)
+		elseif ctrl == 4 and shift == 8 then
+			-- Ctrl AND Shift are being held down during click
+			-- For future stuff ...
+			debugMsg('Ctrl+Shift is reserved for future stuff. (-;')
+		else
+			-- no Ctrl or Shift is held down during click
+			ShowOrHideOrFocus(TRACK, FXINDEX - 1)
+		end
 	end
 
 	reaper.Undo_EndBlock("Tagirijus: FX list menu", -1)
