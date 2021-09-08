@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Notation - Set display length of selected notes to double and add staccato articulation.lua
-Version: 1.2
+Version: 1.3
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=172782&page=25
 About:
@@ -31,6 +31,8 @@ Changelog:
     + Improved accuracy of length calculation.
   * v1.2 (2016-08-15)
     + Bug fix for compatibility with takes that do not start at 0.
+  * v1.3 (2021-09-08)
+    + Script works on notes with existing notation (workaround for bug in MIDI_SetTextSysexEvt).
 ]]
 
 
@@ -102,7 +104,7 @@ if editor ~= nil then
                 notationIndex, msg = getTextIndexForNote(take, noteStartPPQ, channel, pitch)
                 if notationIndex == -1 then
                     -- If note does not yet have notation info, create new event
-                    reaper.MIDI_InsertTextSysexEvt(take, true, false, noteStartPPQ, 15, "NOTE "
+                    reaper.MIDI_InsertTextSysexEvt(take, false, false, noteStartPPQ, 15, "NOTE "
                                                                                         ..tostring(channel)
                                                                                         .." "
                                                                                         ..tostring(pitch)
@@ -114,7 +116,7 @@ if editor ~= nil then
                     msg = msg:gsub(" articulation [%a]+", "")
                     msg = msg:gsub(" disp_len [%-]*[%d]+.[%d]+", "")
                     msg = msg .." articulation staccato disp_len "..textForField
-                    reaper.MIDI_SetTextSysexEvt(take, notationIndex, nil, nil, nil, nil, msg, false)
+                    reaper.MIDI_SetTextSysexEvt(take, notationIndex, nil, nil, nil, 15, msg, true)
                 end
             end
         until i == -1

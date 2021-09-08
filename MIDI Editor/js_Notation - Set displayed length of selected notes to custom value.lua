@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Notation - Set displayed length of selected notes to custom value.lua
-Version: 1.21
+Version: 1.3
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=172782&page=25
 About:
@@ -22,6 +22,8 @@ Changelog:
     + Bug fix for compatibility with takes that do not start at 0.
   * v1.21 (2016-09-02)
     + Allow more complex note values such as "0.75" or "3/8".
+  * v1.3 (2021-09-08)
+    + Script works on notes with existing notation (workaround for bug in MIDI_SetTextSysexEvt).
 ]]
 
 ---------------------------------------------------------------
@@ -118,18 +120,19 @@ if editor ~= nil then
                 if notationIndex == -1 and difference ~= 0 then
                     -- If note does not yet have notation info, create new event.
                     -- If display length is equal to MIDI length, don't need to do anything.
-                    reaper.MIDI_InsertTextSysexEvt(take, true, false, noteStartPPQ, 15, "NOTE "
+                    reaper.MIDI_InsertTextSysexEvt(take, false, false, noteStartPPQ, 15, "NOTE "
                                                                                         ..tostring(channel)
                                                                                         .." "
                                                                                         ..tostring(pitch)
                                                                                         ..textForField)
                 else
                     -- Remove existing length tweaks and add own
+                    mmm = msg
                     msg = msg:gsub(" disp_len [%-]*[%d]+.[%d]+", "")
                     if difference ~= 0 then
                         msg = msg .. textForField
                     end
-                    reaper.MIDI_SetTextSysexEvt(take, notationIndex, nil, nil, nil, nil, msg, false)
+                    reaper.MIDI_SetTextSysexEvt(take, notationIndex, nil, nil, nil, 15, msg, true)
                 end
             end
         until i == -1
