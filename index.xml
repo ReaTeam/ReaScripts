@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="61d5e55ff14c11d8ed3d82274e94e800ae9b0239" name="ReaTeam Scripts">
+<index version="1" commit="f94c4307a1974294a1d482c51455d7a8726c06f5" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -12760,6 +12760,10 @@ Don't report an error if no render presets were created yet]]></changelog>
       <version name="1.01" author="amagalma" time="2021-09-08T14:19:14Z">
         <changelog><![CDATA[- correctly restore "Pass through to item drag context" for Media item bottom half left drag mouse context]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ac37ed378f427cd7ce4774dd282a89e3efb4237a/Takes%20Properties/amagalma_Draw%20Spectral%20Edits%20Tool.lua</source>
+      </version>
+      <version name="1.02" author="amagalma" time="2021-09-08T17:02:57Z">
+        <changelog><![CDATA[- fix: script works even if the "freq log" slider in "View: Show peaks display settings" has not ever been used]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f94c4307a1974294a1d482c51455d7a8726c06f5/Takes%20Properties/amagalma_Draw%20Spectral%20Edits%20Tool.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Set all take markers' color for selected items in time selection.lua" type="script" desc="Set all take markers' color for selected items in time selection">
