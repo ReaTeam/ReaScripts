@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="fe55c121155dd9bbec743183fe22402d04ab6503" name="ReaTeam Scripts">
+<index version="1" commit="61d5e55ff14c11d8ed3d82274e94e800ae9b0239" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -11715,6 +11715,22 @@ enter or a = Exit and apply changes\par}
         <changelog><![CDATA[# Made exported tabs count reflect actual number
 # Some other cosmetic changes]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/178ca6857a2cd540c91630d27934354887dd188c/Project%20Properties/BuyOne_Export%20project%20tabs%20and%20import%20from%20dump%20(settings%20inside).lua</source>
+      </version>
+    </reapack>
+    <reapack name="BuyOne_Open recent projects in new tab (settings inside).lua" type="script" desc="Open recent projects in new tab">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 An alternative to REAPER's native 'Recent projects menu' capable of opening recent projects in a new tab, which in my opinion should be a native feature and has been requested a couple of times: https://forum.cockos.com/showthread.php?t=113259 (2012) https://forum.cockos.com/showthread.php?t=249615 (2021)\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/member.php?u=134058</link>
+      </metadata>
+      <version name="1.0" author="BuyOne" time="2021-09-08T14:23:51Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/61d5e55ff14c11d8ed3d82274e94e800ae9b0239/Project%20Properties/BuyOne_Open%20recent%20projects%20in%20new%20tab%20(settings%20inside).lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Normalize peaks display gain.lua" type="script" desc="Normalize peaks display gain">
