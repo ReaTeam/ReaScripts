@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Notation - Set displayed length of selected notes to custom value.lua
-Version: 2.1
+Version: 2.2
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=172782&page=25
 Donation: https://www.paypal.me/juliansader
@@ -8,6 +8,9 @@ About:
   # Description
   Sets the displayed length of selected notes (in the MIDI editor's notation view) 
   to a value that the user can specify in a popup window.
+  
+  The script can also be used to restore note display lengths to their true MIDI lengths, 
+  by simply leaving the input field empty.
   
   # Forum thread 
   http://forum.cockos.com/showthread.php?t=172782&page=25
@@ -29,6 +32,8 @@ Changelog:
     + Works on all editable takes.
   * v2.1 (2021-09-10)
     + Empty input resets existing display length edits.
+  * v2.2 (2021-09-10)
+    + Added a bit of help text.
 ]]
 
 ---------------------------------------------------------------
@@ -101,7 +106,7 @@ if not next(tT) then return end
 repeat
     OKorCancel, inputStr = reaper.GetUserInputs("Set displayed note length", 
                                               1,
-                                              "Note length (1/8 =Eighth note)",
+                                              "Note length (1/8 = Eighth note)",
                                               "1/8") 
     if OKorCancel == false then 
         return
