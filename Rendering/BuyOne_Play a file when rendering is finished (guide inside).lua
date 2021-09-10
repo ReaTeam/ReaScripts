@@ -28,7 +28,7 @@ About: 	When launched before rendering starts, plays a file of your choice
 	tick 'Remember my answer for this script' checkbox and click 'Terminate all instances'.
 -- 	If you assign the script to a toolbar button it will be lit as long
 	as the script is running.
-	!!!!! I M P O R T A N T !!!!!!
+	!!!!! I M P O R T A N T !!!!!
 --	For the script to work the setting 
 	'Automatically close render window when render has finished'
 	must be enabled at Preferences -> Rendering.
