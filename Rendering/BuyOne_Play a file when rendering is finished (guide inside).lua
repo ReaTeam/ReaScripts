@@ -23,7 +23,7 @@ About: 	When launched before rendering starts, plays a file of your choice
 	loads a file of your choice and plays it for 10 minutes at the longest.
 -- 	Once you stop the transport the track is auto-deleted.
 -- 	The file to play may be the one you're going to render if you know what
-	it's path will be.
+	its path will be.
 -- 	To stop the script launch it again, in the 'ReaScript task control' dialogue
 	tick 'Remember my answer for this script' checkbox and click 'Terminate all instances'.
 -- 	If you assign the script to a toolbar button it will be lit as long
