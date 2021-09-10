@@ -41,7 +41,7 @@ About: 	When launched before rendering starts, plays a file of your choice
 -- T H E  S E T T I N G S
 -- In the FILE setting insert a full path to your file between 
 -- the double square brackets, e.g. [[C:\My folder\My file.wav]]
--- If the file is invalid, nothing happens.
+-- If the file is invalid or the path is empty, nothing happens.
 -- In the TRACK_VOL_in_dB setting between the double square brackets
 -- specify volume which the track playing the file will be set to. 
 -- If empty the default volume will be used.
