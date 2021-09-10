@@ -69,7 +69,7 @@ local rendering
 
 function render_monitor()
 
-r.PreventUIRefresh(1) -- only works if applied to the entire deferred function
+r.PreventUIRefresh(1) -- meant to obscure TCP height decrease // only works if applied to the entire deferred function
 
 local i = 0
 	repeat
@@ -102,7 +102,7 @@ local i = 0
 	play = nil -- reset
 	end
 
-r.PreventUIRefresh(-1) -- only works if applied to the entire deferred function
+r.PreventUIRefresh(-1) -- meant to obscure TCP height decrease // only works if applied to the entire deferred function
 
 r.defer(render_monitor)
 
