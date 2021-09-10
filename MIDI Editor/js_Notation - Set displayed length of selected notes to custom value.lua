@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Notation - Set displayed length of selected notes to custom value.lua
-Version: 2.0
+Version: 2.1
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=172782&page=25
 Donation: https://www.paypal.me/juliansader
@@ -27,6 +27,8 @@ Changelog:
     + Script works on notes with existing notation (workaround for bug in MIDI_SetTextSysexEvt).
   * v2.0 (2021-09-09)
     + Works on all editable takes.
+  * v2.1 (2021-09-10)
+    + Empty input resets existing display length edits.
 ]]
 
 ---------------------------------------------------------------
@@ -103,6 +105,8 @@ repeat
                                               "1/8") 
     if OKorCancel == false then 
         return
+    elseif inputStr == "" or inputStr == "-" or inputStr == " " or inputStr == [[/]] then
+        input = 0
     elseif type(tonumber(inputStr)) == "number" and tonumber(inputStr) > 0 then -- numbers such as 1 or 0.5, without "/"
         input = tonumber(inputStr)
     else -- Otherwise, check if note is in format of "1/8"
@@ -137,7 +141,7 @@ for take in next, tT do
             local noteOK, _, _, noteStartPPQ, noteEndPPQ, channel, pitch, _ = reaper.MIDI_GetNote(take, i)
             -- Based on experimentation, it seems that the value of the "disp_len" field (in the notation
             --    editor's text events) represents (change in length)/(quarter note).
-            difference = userLength - (noteEndPPQ - noteStartPPQ)
+            difference = (input == 0) and 0 or (userLength - (noteEndPPQ - noteStartPPQ))
             textForField = " disp_len " .. string.format("%.3f", tostring(difference/PPQ))
             
             notationIndex, msg = getTextIndexForNote(take, noteStartPPQ, channel, pitch)
@@ -165,4 +169,5 @@ for take in next, tT do
     reaper.MarkTrackItemsDirty(reaper.GetMediaItemTake_Track(take), tT[take].item)
 end
 
-reaper.Undo_EndBlock2(0, "Notation - Set display length to "..inputStr, -1)
+undoText = (input == 0) and "Notation - Reset display length" or ("Notation - Set display length to "..inputStr)
+reaper.Undo_EndBlock2(0, undoText, -1)
