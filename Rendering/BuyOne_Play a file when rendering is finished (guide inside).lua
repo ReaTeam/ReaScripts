@@ -10,7 +10,7 @@ REAPER: at least v5.962
 About: 	When launched before rendering starts, plays a file of your choice
 		(including the one you just rendered) once rendering is finished.  
 		Meant primarily to signal that rendering is over.  
-		Inspired by a user request https://forum.cockos.com/showthread.php?t=257349  
+		Inspired by a feature request https://forum.cockos.com/showthread.php?t=257349  
 		See details inside the script.
 ]]
 -----------------------------------------------------------------------------
