@@ -22,8 +22,8 @@ About: 	When launched before rendering starts, plays a file of your choice
 -- 	When rendering is finished it creates a new track, soloes it,
 	loads a file of your choice and plays it for 10 minutes at the longest.
 -- 	Once you stop the transport the track is auto-deleted.
--- 	The file to play may be the one you're going to render if you know what
-	its path will be.
+-- 	The file to play may be the one you're going to render if you know in advance 
+	what its path will be.
 -- 	To stop the script launch it again, in the 'ReaScript task control' dialogue
 	tick 'Remember my answer for this script' checkbox and click 'Terminate all instances'.
 -- 	If you assign the script to a toolbar button it will be lit as long
@@ -98,7 +98,8 @@ local i = 0
 	play = true
 	rendering = nil -- reset
 	elseif not retval and play and r.GetPlayState() == 0 -- stopped
-	then r.DeleteTrack(tr) -- works even if the track has been deselected
+	then -- delete track; works even if the track has been deselected
+	local del = r.ValidatePtr(tr, 'MediaTrack*') and r.DeleteTrack(tr) -- a safeguard from error in case track had been manually deleted before transport was stopped
 	play = nil -- reset
 	end
 
