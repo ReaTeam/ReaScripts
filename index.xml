@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="b1bb7fb98c13cf00ab20d1842a454a2d5c2908d3" name="ReaTeam Scripts">
+<index version="1" commit="a1a5e9cb2f9a382d925dcde6882fdb2ad0dd0b1c" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -11926,26 +11926,30 @@ Replace GetLastWord func with quicker solution (Thanks: Mespotine[t=233393]).]]>
 \widowctrl\hyphauto
 
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 ReaLauncher\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 A custom version of the startup prompt window for loading (recent) projects, project/track templates and more with additional features.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 A custom version of the startup prompt window for loading (recent) projects, project/track templates and more. With a bunch of additional features.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Uses 'Lokasenna's GUI library v2 for Lua' as base: https://forum.cockos.com/showthread.php?t=177772. Big thanks to Lokasenna for his work!!\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Main features\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Separate tabs for [Recent Projects], (.rpp) [Project Templates], (.rtracktemplate) [Track Templates], (.rpp) Projects, (.rpl) [Project Lists], (.rpp-bak) [Backups] and (.pdf) [Docs]\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Option to set additional folder paths for [Project Templates] and [Track Templates] (which are used in addition to the default template folders)\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Option to set custom folder paths for [Projects], [Project Lists], [Backups] and [Docs] tabs\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Separate tabs for [Recent Projects], (.rpp) [Project Templates], (.rtracktemplate) [Track Templates], (.rpp) [Projects], (.rpl) [Project Lists], (.rpp-bak) [Backups] and (.pdf) [Docs]\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Option to set custom folder paths for [Project Templates] and [Track Templates] - which are scanned in addition to the default template folder locations\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Option to set custom folder paths for the [Projects], [Project Lists], [Backups] and [Docs] tabs\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab List filter in each tab that supports the use of multiple search words separated by a 'space' character\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Global section with [New Tab], [New Project] and [Open Project] buttons\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab File paths can be shown/hidden and also displayed optionally in the status bar\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Sort options\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab [Favorites] tab to list and manage bookmarked favorites of each tab\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab [Follow Actions] tab to set Actions that are triggered after certain operations (New Tab, Load Project, etc.)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Global main panel (or main context menu if panel is hidden) for [Locate in Explorer/Finder], [Open Project], [New Project], [New Tab], [Load in Tab], [Load] and [Insert] functions\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Selection and loading of multiple entries at once (multi-select via mouse is already part of Lokasenna's GUI library)\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab File paths can be shown/hidden\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab 'Keep open' checkbox to switch the automatic closing behavior of the window\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Scalable and resizeable window\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab 'Keep open' checkbox to toggle the automatic window closing behavior after Load/New/Insert operations\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Scalable and resizeable window\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Customizable colors\sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Features that require SWS Extensions (2.9.8 or higher):\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab [Docs] tab for listing .pdf files\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab [Recent Projects] tab for listing and managing the recent projects (with functions to remove selected entries and clearing the entire list)\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab [Show in Explorer/Finder] button to search for the location of a selected file\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab [Recent Projects] tab for listing and managing recent project entries (with functions to remove selected entries and to clear the entire list)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab [Locate in Explorer/Finder] button to navigate to the location(s) of selected files in Explorer or Finder\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Setup of predefined Reaper Theme Slots and the possibility to switch between them (uses SWS Resources)\sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Features that require js_ReaScriptAPI (0.991 or higher):\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Function to preview attached 'demo' audio files (supported file extensions: .wav, .flac, .mp3 and .ogg)\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Option for adding folder paths in the [Options] tab via a 'Browse' dialog (besides manual copy & paste)\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Option for adding folder paths in the [Options] tab via a 'Browse' dialog (besides copy & pasting paths manually)\sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Discussion thread\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 https://forum.cockos.com/showthread.php?t=208697\par}
 }
@@ -12114,6 +12118,35 @@ Replace GetLastWord func with quicker solution (Thanks: Mespotine[t=233393]).]]>
 + Project Lists: Duplicate entries are now only listed once
 + Recent Projects: Fix for preventing a 'not responding' bug if no [Recent] entry section exists in the reaper.ini yet]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e5196917add0b4fce3cece104a77328e22ce4d68/Project%20Properties/solger_ReaLauncher.lua</source>
+      </version>
+      <version name="2.4" author="solger" time="2021-09-12T16:44:31Z">
+        <changelog><![CDATA[+ Favorites: First implementation of [Favorites] tab
++ Filter: Jumping back from the filter textbox to the list is now also possible by pressing the 'TAB' key again (in addition to the 'RETURN' key)
++ Follow Actions: Added new [Follow Actions] tab to set Command IDs of (Custom) Actions that are triggered after certain operations (New Tab, Load Project, etc.)
++ General: First implementation of file caching functions
++ General: Added sort options
++ General: Added js_ReaScriptAPI check for macOS ARM version
++ General: Bugfix for a possible error caused by an invalid stored path when trying to load Lokasenna's GUI library v2
++ General: Bugfix for closing the window by pressing 'ESC' only once
++ General: Renamed [Show in Explorer/Finder] button to [Locate in Explorer/Finder] and changed shortcut to 'L'
++ General: The toggle state is now reflected in Toolbar Buttons and the 'State' column of the Action List
++ Options: Added 'Open properties on new project' checkbox to open the project settings window on new projects/tabs
++ Options: Added 'Show paths in status bar' setting to display the path of the selected list entry in the status bar (and its tooltip)
++ Options: First implementation of a window toggle key function to close the window again with a predefined shortcut
++ Recent Projects: Removing entries is now also possible in filtered lists
++ Scan Settings: Added new tab with options to exclude folders with certain names from file scanning and options to limit the depth level and range of folders to scan
++ Subpanel: Fixed a bug in subfolder scan/filter logic
++ Subpanel: The last selection in the subfolder/sublist panel is now remembered
++ Track Templates: Added 'Insert in Tab' option to insert the selected Track Template(s) directly in a new tab
++ UI: General layout overhaul
++ UI: [Options] and [Paths] settings are now in dedicated tabs
++ UI: Added new [Layout / Colors] tab and options for color customization
++ UI: Visibility of the Main (button) Panel on the right can now be toggled on/off in [Layout / Colors]. If hidden, these functions are accessible via menu (Middle Click or 'M' shortcut).
++ UI: Subpanels on the left side can now be shown/hidden independently per tab (previously it was a single global setting)
++ UI: Added 'HiDPi mode' options (Auto, Default, Retina) in [Layout / Colors] to set the gfx.ext_retina flag automatically/manually 
++ UI: Added buttons to adjust the window scaling size (besides using the already available key shortcuts)
++ UI: Added option to scale the listbox font size (via key shortcuts and UI buttons)]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a1a5e9cb2f9a382d925dcde6882fdb2ad0dd0b1c/Project%20Properties/solger_ReaLauncher.lua</source>
       </version>
     </reapack>
   </category>
