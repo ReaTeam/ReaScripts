@@ -61,6 +61,24 @@ local cap = cap and type(cap) == 'string' and #cap > 0 and cap..' = ' or ''
 reaper.ShowConsoleMsg(cap..tostring(param)..'\n')
 end
 
+function Check_reaper_ini(key,value)
+local f = io.open(r.get_ini_file(),'r')
+local cont = f:read('a*')
+f:close()
+local val = cont:match(key..'=(%d+)') == value -- change to the target value being evaluated
+return val
+end
+
+function space(n) -- number of repeats
+return string.rep(' ',n)
+end
+
+-- renderclosewhendone -- 9 ON, 8 OFF
+	if not Check_reaper_ini('renderclosewhendone','9') then resp = r.MB(space(13)..'The setting "Automatically close render\n'..space(19)..'window when render is finished"\n\n'..space(7)..'is  OFF at Preferences -> Audio -> Rendering.\n\n  Make sure to enable it for the script to work properly.\n\n'..space(5)..'It can also be enabled in the "Rendering to file..."\n\n'..space(19)..'window of the render progress.\n\n'..space(20)..'Click "OK" to launch the script.', 'REMINDER', 1)
+		if resp == 2 then return r.defer(function() end) end
+	end	
+
+
 local TRACK_VOL_in_dB = tonumber(TRACK_VOL_in_dB)
 
 local tr
