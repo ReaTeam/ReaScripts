@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="a1a5e9cb2f9a382d925dcde6882fdb2ad0dd0b1c" name="ReaTeam Scripts">
+<index version="1" commit="9a9629fb898a2b435172da20c3a0e4fc3f93e0a4" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -393,6 +393,28 @@
       <version name="2.0" author="amagalma" time="2019-04-08T01:09:10Z">
         <changelog><![CDATA[# Uses new CF_GetCommandText function. No need to write action list into txt file any more.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b415a837980dd40f8dcd5d9f6a5eb64f04b1f038/Development/amagalma_Find%20action%20or%20script%20name%20by%20its%20Command%20ID.lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_ReaImGui Color Theme Creator.lua" type="script" desc="ReaImGui Color Theme Creator">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Easily create color themes for ReaImGui development\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Click on a colored rectangle to set color\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Alt-Click text to reset to original color\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Click text to select multiple colors\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Drag colors to copy from one rectangle to the other\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Buttons are self-explanatory\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Size of GUI/font can be set inside the script\sa180\par}
+}
+]]></description>
+        <link rel="screenshot">https://i.ibb.co/tHDCPrp/Rea-Im-Gui-Color-Theme-Creator.gif</link>
+        <link rel="donation">https://www.paypal.me/amagalma</link>
+      </metadata>
+      <version name="1.0" author="amagalma" time="2021-09-17T18:05:42Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/9a9629fb898a2b435172da20c3a0e4fc3f93e0a4/Development/amagalma_ReaImGui%20Color%20Theme%20Creator.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Theme variable descriptions.lua" type="script" desc="Theme variable descriptions">
