@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="9a9629fb898a2b435172da20c3a0e4fc3f93e0a4" name="ReaTeam Scripts">
+<index version="1" commit="b556134e6a8ca921c321fe0ea3bf33df9db27178" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -415,6 +415,11 @@
       </metadata>
       <version name="1.0" author="amagalma" time="2021-09-17T18:05:42Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/9a9629fb898a2b435172da20c3a0e4fc3f93e0a4/Development/amagalma_ReaImGui%20Color%20Theme%20Creator.lua</source>
+      </version>
+      <version name="1.01" author="amagalma" time="2021-09-18T20:54:33Z">
+        <changelog><![CDATA[- Color of variable names follows text color
+- Selected variables are shown with a rectangle (instead of other color)]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b556134e6a8ca921c321fe0ea3bf33df9db27178/Development/amagalma_ReaImGui%20Color%20Theme%20Creator.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Theme variable descriptions.lua" type="script" desc="Theme variable descriptions">
