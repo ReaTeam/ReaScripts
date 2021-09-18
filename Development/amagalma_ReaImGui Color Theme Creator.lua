@@ -1,6 +1,9 @@
 -- @description ReaImGui Color Theme Creator
 -- @author amagalma
--- @version 1.0
+-- @version 1.01
+-- @changelog
+--   - Color of variable names follows text color
+--   - Selected variables are shown with a rectangle (instead of other color)
 -- @screenshot https://i.ibb.co/tHDCPrp/Rea-Im-Gui-Color-Theme-Creator.gif
 -- @donation https://www.paypal.me/amagalma
 -- @about
@@ -28,8 +31,8 @@ reaper.ImGui_PushFont(ctx, font)
 local space = reaper.ImGui_CalcTextSize( ctx, "NavWindowingHighlight" ) + 3*font_sz
 local window_w = 5*space - (space - reaper.ImGui_CalcTextSize( ctx, "ModalWindowDimBg") - 2*font_sz) + 8
 export.pos = window_w - reaper.ImGui_CalcTextSize( ctx, export.name ) - 16
-reaper.ImGui_PopFont( ctx )
 reaper.ImGui_SetNextWindowSize( ctx, window_w, 0 )
+local rect_size
 local picker_color, previous_picker_color
 local palette_button_flags = reaper.ImGui_ColorEditFlags_NoAlpha()  |
                              reaper.ImGui_ColorEditFlags_NoPicker() |
@@ -39,17 +42,21 @@ local palette_button_flags = reaper.ImGui_ColorEditFlags_NoAlpha()  |
 local palette = {}
 for n = 0, 31 do
   local color = reaper.ImGui_ColorConvertHSVtoRGB(n / 31, 0.82, 0.78)
-  table.insert(palette, color)
+  palette[n+1] = color
 end
 
 local colors = {}
 local original = {}
 local selected = {}
+local stylevar = {}
 for i = 1, reaper.ImGui_Col_ModalWindowDimBg()+1 do
   colors[i] = reaper.ImGui_GetColor(ctx, i-1)
   original[i] = colors[i]
   selected[i] = false
+  local name = reaper.ImGui_GetStyleColorName(i-1)
+  stylevar[i] = { name = name, size = reaper.ImGui_CalcTextSize( ctx, name ) }
 end
+reaper.ImGui_PopFont( ctx )
 
 
 local function ImGuiColorNoAlpha( rgba_color ) -- (0-255)
@@ -65,15 +72,17 @@ local function loop()
     reaper.ImGui_PushStyleColor(ctx, i-1, colors[i])
   end
   reaper.ImGui_PushFont(ctx, font)
+  local draw_list = reaper.ImGui_GetWindowDrawList( ctx )
 
   local visible, open = reaper.ImGui_Begin(ctx, 'amagalma ReaImGui Color Theme Creator v1.0###ReaImGui Color Theme Creator', true, reaper.ImGui_WindowFlags_NoResize() | reaper.ImGui_WindowFlags_NoCollapse())
   if visible then
     local rv
     for i = 1, 55 do
-      local name = reaper.ImGui_GetStyleColorName(i-1)
-      rv, colors[i] = reaper.ImGui_ColorEdit4(ctx, '###' .. name, colors[i], reaper.ImGui_ColorEditFlags_NoInputs())
+      rv, colors[i] = reaper.ImGui_ColorEdit4(ctx, '###' .. stylevar[i].name, colors[i], reaper.ImGui_ColorEditFlags_NoInputs())
+      if not rect_size then rect_size = reaper.ImGui_GetItemRectSize( ctx ) end
       reaper.ImGui_SameLine( ctx )
-      reaper.ImGui_TextColored( ctx, selected[i] and 0xFFFF00FF or 0xFFFFFFFF, name )
+      local x, y = reaper.ImGui_GetCursorScreenPos( ctx )
+      reaper.ImGui_Text( ctx, stylevar[i].name )
       if reaper.ImGui_IsItemHovered( ctx ) then
         if reaper.ImGui_IsMouseClicked( ctx, reaper.ImGui_MouseButton_Left() ) then
           if reaper.ImGui_GetKeyMods( ctx ) == reaper.ImGui_KeyModFlags_Alt() then
@@ -82,6 +91,9 @@ local function loop()
             selected[i] = not selected[i]
           end
         end
+      end
+      if selected[i] then
+        reaper.ImGui_DrawList_AddRect( draw_list, x-3, y, x + stylevar[i].size+3, y + rect_size, colors[1] )
       end
       local m = i % 5
       if m ~= 0 then
