@@ -1,9 +1,8 @@
 -- @description ReaImGui Color Theme Creator
 -- @author amagalma
--- @version 1.01
+-- @version 1.02
 -- @changelog
---   - Color of variable names follows text color
---   - Selected variables are shown with a rectangle (instead of other color)
+--   - "Unselect All" button can be used to toggle select all
 -- @screenshot https://i.ibb.co/tHDCPrp/Rea-Im-Gui-Color-Theme-Creator.gif
 -- @donation https://www.paypal.me/amagalma
 -- @about
@@ -48,6 +47,7 @@ end
 local colors = {}
 local original = {}
 local selected = {}
+local select_all = false
 local stylevar = {}
 for i = 1, reaper.ImGui_Col_ModalWindowDimBg()+1 do
   colors[i] = reaper.ImGui_GetColor(ctx, i-1)
@@ -89,6 +89,7 @@ local function loop()
             colors[i] = original[i]
           else
             selected[i] = not selected[i]
+            if selected[i] and not select_all then select_all = true end
           end
         end
       end
@@ -105,7 +106,8 @@ local function loop()
     reaper.ImGui_Spacing( ctx ) ; reaper.ImGui_Spacing( ctx )
 
     if reaper.ImGui_Button( ctx, "  Unselect All  ", nil, btn_h ) then
-      for i = 1, 55 do selected[i] = false end
+      select_all = not select_all
+      for i = 1, 55 do selected[i] = select_all end
     end
 
     reaper.ImGui_SameLine( ctx )
