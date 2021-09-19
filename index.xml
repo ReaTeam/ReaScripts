@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="bc11b7a6fab11152fbd28ae3654c285e70f714d6" name="ReaTeam Scripts">
+<index version="1" commit="4649ae8cf9fab6da5c7e44daf9f549ec0399609a" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -12515,6 +12515,22 @@ Replace GetLastWord func with quicker solution (Thanks: Mespotine[t=233393]).]]>
     </reapack>
   </category>
   <category name="Rendering">
+    <reapack name="BuyOne_Play a file when rendering is finished (guide inside).lua" type="script" desc="Play a file when rendering is finished">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 When launched before rendering starts, plays a file of your choice (including the one you just rendered) once rendering is finished.\line Meant primarily to signal that rendering is over.\line Inspired by a feature request https://forum.cockos.com/showthread.php?t=257349\line See details inside the script.\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/member.php?u=134058</link>
+      </metadata>
+      <version name="1.0" author="BuyOne" time="2021-09-19T22:04:29Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4649ae8cf9fab6da5c7e44daf9f549ec0399609a/Rendering/BuyOne_Play%20a%20file%20when%20rendering%20is%20finished%20(guide%20inside).lua</source>
+      </version>
+    </reapack>
     <reapack name="BuyOne_Render each item in place separately (guide inside).lua" type="script" desc="Render each item in place separately">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
