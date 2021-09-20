@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="4649ae8cf9fab6da5c7e44daf9f549ec0399609a" name="ReaTeam Scripts">
+<index version="1" commit="9c9266dceb914c1280259ed5eca0be3998d15e78" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -12178,6 +12178,12 @@ Replace GetLastWord func with quicker solution (Thanks: Mespotine[t=233393]).]]>
 + UI: Added buttons to adjust the window scaling size (besides using the already available key shortcuts)
 + UI: Added option to scale the listbox font size (via key shortcuts and UI buttons)]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a1a5e9cb2f9a382d925dcde6882fdb2ad0dd0b1c/Project%20Properties/solger_ReaLauncher.lua</source>
+      </version>
+      <version name="2.4.1" author="solger" time="2021-09-20T15:16:26Z">
+        <changelog><![CDATA[+ Bugfix: Added check for empty lists in the Favorites tab to prevent a possible crash
++ Bugfix: The script was not terminated properly on exit
++ UI: The Main (button) Panel on the right wasn't visible by default (visibility of this panel can be toggled on/off in the [Layout / Colors] tab)]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/9c9266dceb914c1280259ed5eca0be3998d15e78/Project%20Properties/solger_ReaLauncher.lua</source>
       </version>
     </reapack>
   </category>
