@@ -1,33 +1,10 @@
 -- @description ReaLauncher
 -- @author solger
--- @version 2.4
+-- @version 2.4.1
 -- @changelog
---   + Favorites: First implementation of [Favorites] tab
---   + Filter: Jumping back from the filter textbox to the list is now also possible by pressing the 'TAB' key again (in addition to the 'RETURN' key)
---   + Follow Actions: Added new [Follow Actions] tab to set Command IDs of (Custom) Actions that are triggered after certain operations (New Tab, Load Project, etc.)
---   + General: First implementation of file caching functions
---   + General: Added sort options
---   + General: Added js_ReaScriptAPI check for macOS ARM version
---   + General: Bugfix for a possible error caused by an invalid stored path when trying to load Lokasenna's GUI library v2
---   + General: Bugfix for closing the window by pressing 'ESC' only once
---   + General: Renamed [Show in Explorer/Finder] button to [Locate in Explorer/Finder] and changed shortcut to 'L'
---   + General: The toggle state is now reflected in Toolbar Buttons and the 'State' column of the Action List
---   + Options: Added 'Open properties on new project' checkbox to open the project settings window on new projects/tabs
---   + Options: Added 'Show paths in status bar' setting to display the path of the selected list entry in the status bar (and its tooltip)
---   + Options: First implementation of a window toggle key function to close the window again with a predefined shortcut
---   + Recent Projects: Removing entries is now also possible in filtered lists
---   + Scan Settings: Added new tab with options to exclude folders with certain names from file scanning and options to limit the depth level and range of folders to scan
---   + Subpanel: Fixed a bug in subfolder scan/filter logic
---   + Subpanel: The last selection in the subfolder/sublist panel is now remembered
---   + Track Templates: Added 'Insert in Tab' option to insert the selected Track Template(s) directly in a new tab
---   + UI: General layout overhaul
---   + UI: [Options] and [Paths] settings are now in dedicated tabs
---   + UI: Added new [Layout / Colors] tab and options for color customization
---   + UI: Visibility of the Main (button) Panel on the right can now be toggled on/off in [Layout / Colors]. If hidden, these functions are accessible via menu (Middle Click or 'M' shortcut).
---   + UI: Subpanels on the left side can now be shown/hidden independently per tab (previously it was a single global setting)
---   + UI: Added 'HiDPi mode' options (Auto, Default, Retina) in [Layout / Colors] to set the gfx.ext_retina flag automatically/manually 
---   + UI: Added buttons to adjust the window scaling size (besides using the already available key shortcuts)
---   + UI: Added option to scale the listbox font size (via key shortcuts and UI buttons)
+--   + Bugfix: Added check for empty lists in the Favorites tab to prevent a possible crash
+--   + Bugfix: The script was not terminated properly on exit
+--   + UI: The Main (button) Panel on the right wasn't visible by default (visibility of this panel can be toggled on/off in the [Layout / Colors] tab)
 -- @screenshot https://forum.cockos.com/showthread.php?t=208697
 -- @about
 --   # ReaLauncher
@@ -2666,7 +2643,7 @@ RL = {
   scaleMin = 1.0,
   scaleMax = 5.0,
   scaleStepSize = 0.2,
-  showButtonPanel = (reaper.GetExtState(appname, "window_showbuttonpanel") == "true" and true or false),
+  showButtonPanel = true, 
   showFullPaths = false,
   showSubFolderPaths = false,
   skipOperationOnResize = false,
@@ -2674,6 +2651,11 @@ RL = {
   subfolderIndent = "   ",
   windowToggleShortcut = nil
 }
+
+if reaper.GetExtState(appname, "window_showmainbuttonpanel") ~= "" then
+  RL.showButtonPanel = (reaper.GetExtState(appname, "window_showmainbuttonpanel") == "true" and true or false)
+end
+
 if RL.showButtonPanel then RL.minWidth, RL.minHeight = 535, 349 else RL.minWidth, RL.minHeight = 420, 228 end
 
 -- SWS block begin
@@ -2840,7 +2822,7 @@ GUI.Draw_Version = function()
   GUI.color("txt")
 
   if not GUI.version then return 0 end
-  str = "RL 2.4 | Lokasenna_GUI " .. GUI.version
+  str = "RL 2.4.1 | Lokasenna_GUI " .. GUI.version
   str_w, str_h = gfx.measurestr(str)
   gfx.x = gfx.w - str_w - 6
   gfx.y = gfx.h - str_h - 4
@@ -4344,30 +4326,32 @@ local function RefreshFavorites()
 end
 
 function Load_Favorites_Base(tabmode)
-  local category = TabParentSelectionIndex[TabID.Favorites]
-  local selectedEntry
-  local vals = GetSelectionTable(GUI.Val("tab_favorites_listbox"))
-  for p = 1, #vals do
-    if FilterActive.Favorites then selectedEntry = RemoveWhiteSpaces(Favorites.filteredItems[vals[p]].path)
-    else selectedEntry = RemoveWhiteSpaces(Favorites.items[vals[p]].path) end
-    if selectedEntry ~= nil then
-      if category == TabID.TrackTemplates then
-        if tabmode then reaper.Main_OnCommand(40859, 0) end -- New project tab
-        reaper.Main_openProject(selectedEntry)
-      elseif category == TabID.ProjectTemplates then
-        if tabmode then
-          reaper.Main_OnCommand(40859, 0) -- New project tab
-          Global_ProjectTemplateLoadBase(selectedEntry)
-        else
-          Global_ProjectTemplateLoad(selectedEntry, p)
+  if GetMainListSize() > 0 then
+    local category = TabParentSelectionIndex[TabID.Favorites]
+    local selectedEntry
+    local vals = GetSelectionTable(GUI.Val("tab_favorites_listbox"))
+    for p = 1, #vals do
+      if FilterActive.Favorites then selectedEntry = RemoveWhiteSpaces(Favorites.filteredItems[vals[p]].path)
+      else selectedEntry = RemoveWhiteSpaces(Favorites.items[vals[p]].path) end
+      if selectedEntry ~= nil then
+        if category == TabID.TrackTemplates then
+          if tabmode then reaper.Main_OnCommand(40859, 0) end -- New project tab
+          reaper.Main_openProject(selectedEntry)
+        elseif category == TabID.ProjectTemplates then
+          if tabmode then
+            reaper.Main_OnCommand(40859, 0) -- New project tab
+            Global_ProjectTemplateLoadBase(selectedEntry)
+          else
+            Global_ProjectTemplateLoad(selectedEntry, p)
+          end
+        elseif category == TabID.Docs then reaper.CF_ShellExecute(selectedEntry)
+        elseif category == TabID.RecentProjects or category == TabID.CustomProjects or category == TabID.ProjectLists or category == TabID.Backups then
+          Global_Load(tabmode, selectedEntry, p)
         end
-      elseif category == TabID.Docs then reaper.CF_ShellExecute(selectedEntry)
-      elseif category == TabID.RecentProjects or category == TabID.CustomProjects or category == TabID.ProjectLists or category == TabID.Backups then
-        Global_Load(tabmode, selectedEntry, p)
       end
-    end
-  end 
-  Global_CheckWindowPinState()
+    end 
+    Global_CheckWindowPinState()
+  end
 end
 
 function LoadInTab_FavoritesFile()
@@ -4829,7 +4813,7 @@ local function RL_Draw_TabLayout()
   GUI.New("layout_frame_right2", "Frame", LayerIndex.Layout, 40 * pad_left, 3.6 * 36 * RL.scaleFactor, GUI.w, RL.scaleFactor, false, true)
   
   GUI.New("layout_checklistShowButtonPanel", "Checklist", LayerIndex.Layout, 44 * pad_left, 34 * RL.scaleFactor, 15 * RL.scaleFactor, 15 * RL.scaleFactor, "", "", "h", 0)
-  GUI.New("layout_lblShowButtonPanel", "Label", LayerIndex.Layout, 50 * pad_left, 34 * RL.scaleFactor, "Show (right) Main Panel", false, 3)
+  GUI.New("layout_lblShowButtonPanel", "Label", LayerIndex.Layout, 50 * pad_left, 34 * RL.scaleFactor, "Show (right) Main Button Panel", false, 3)
   GUI.elms.layout_checklistShowButtonPanel.opt_size = 15 * RL.scaleFactor
   GUI.elms.layout_checklistShowButtonPanel:init()
 
@@ -6293,7 +6277,10 @@ local function RL_ExtStates_Load()
   if tonumber(ConfigFlags.setfirstTabToLoad) and tonumber(ConfigFlags.setfirstTabToLoad) > 0 and tonumber(ConfigFlags.setfirstTabToLoad) < #TabID then RL_SetFocusedTab(ConfigFlags.setfirstTabToLoad)
   else RL_SetFocusedTab(tonumber(reaper.GetExtState(appname, "window_tabfocus"))) end
   
-  GUI.Val("layout_checklistShowButtonPanel", {(reaper.GetExtState(appname, "window_showbuttonpanel") == "true" and true or false)})
+  local isButtonPanelVisible = reaper.GetExtState(appname, "window_showmainbuttonpanel")
+  if isButtonPanelVisible == "" then isButtonPanelVisible = true
+  else isButtonPanelVisible = (reaper.GetExtState(appname, "window_showmainbuttonpanel") == "true" and true or false) end
+  GUI.Val("layout_checklistShowButtonPanel", {isButtonPanelVisible})
   
   local mouseDoubleClick = reaper.GetExtState(appname, "mouse_doubleclick")
   if mouseDoubleClick == "" then mouseDoubleClick = 1 end
@@ -6497,7 +6484,7 @@ function RL_ExtStates_Save()
   reaper.SetExtState(appname, "window_subselection", table.concat(TabParentSelectionIndex, ","), 1)
   reaper.SetExtState(appname, "window_showpaths", tostring(GUI.Val("main_checklistPaths")), 1)
   reaper.SetExtState(appname, "window_showpathsinstatusbar", tostring(GUI.Val("options_checklistShowPathsInStatusbar")), 1)
-  reaper.SetExtState(appname, "window_showbuttonpanel", tostring(GUI.Val("layout_checklistShowButtonPanel")), 1)
+  reaper.SetExtState(appname, "window_showmainbuttonpanel", tostring(GUI.Val("layout_checklistShowButtonPanel")), 1)
   reaper.SetExtState(appname, "window_togglemode", tostring(GUI.Val("options_checklistWindowToggle")), 1)
   reaper.SetExtState(appname, "project_showproperties", tostring(GUI.Val("options_checklistOpenPropertiesOnNewProject")), 1)
 
@@ -6952,11 +6939,11 @@ local function RL_Keys_CheckInput()
       -- if inputChar > 0 then MsgDebug("modifier: " .. modifier .. " | key: " .. inputChar) end
       -- close the window when toggle key is pressed
       if GUI.Val("options_checklistWindowToggle") and RL.windowToggleShortcut ~= nil and (inputChar == RL.windowToggleShortcut or inputChar == (RL.windowToggleShortcut + 32)) then
-        SetToggleState(0) gfx.quit()
+        SetToggleState(0) gfx.quit() return 0
       -- close the window when ESC key is pressed or close function is called
-      elseif inputChar == GUI.chars.ESC or inputChar == -1 or GUI.quit then SetToggleState(0) gfx.quit()
+      elseif inputChar == GUI.chars.ESC or inputChar == -1 or GUI.quit then SetToggleState(0) gfx.quit() return 0
       -- select previous tab
-      elseif inputChar == GUI.chars.LEFT then 
+      elseif inputChar == GUI.chars.LEFT then
           if GUI.elms.main_tabs.state > 1 then RL_SetFocusedTab(GUI.elms.main_tabs.state - 1) end
       -- select next tab
       elseif inputChar == GUI.chars.RIGHT then
