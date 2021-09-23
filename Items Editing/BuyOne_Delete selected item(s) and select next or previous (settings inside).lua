@@ -8,9 +8,9 @@ Provides: [main] .
 Licence: WTFPL
 REAPER: at least v5.962
 About:	When selected item is deleted, if there's next on the same track,
-		    next item is selected, else if there's previous, previous item is selected.  
-		    Or vice versa if enabled in the USER SETTINGS section.  
-		    Multiple item selection is supported.
+	next item is selected, else if there's previous, previous item is selected.  
+	Or vice versa if enabled in the USER SETTINGS section.  
+	Multiple item selection is supported.
 ]]
 -----------------------------------------------------------------------------
 ------------------------------ USER SETTINGS --------------------------------
