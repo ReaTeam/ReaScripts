@@ -1,7 +1,6 @@
-@description JRT_Extend selection to start of session
+@description Extend selection to start of session
 @author JRTaylorMusic
 @version 1.0
-@provides . > JRT_Extend selection to start of session
 @about Like Shift+Return in ProTools, this action sets the time selection start to the beginning of the project, then selects all items on selected tracks within the new time selection.
 
 reaper.Undo_BeginBlock()
