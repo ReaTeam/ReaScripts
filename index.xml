@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="a7b04d09b0cfe478471df30d9cb5178fcdfefa00" name="ReaTeam Scripts">
+<index version="1" commit="e4a1f5d765bd85928ad1814137e7ef76358fc0a1" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -5433,7 +5433,7 @@ Override Reaper option "Toggle enable/disable default fadein/fadeout" (on/off)]]
     </reapack>
     <reapack name="JRT_Split all items at time selection or edit cursor.lua" type="script" desc="Split all items at time selection or edit cursor">
       <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
@@ -5442,7 +5442,7 @@ Override Reaper option "Toggle enable/disable default fadein/fadeout" (on/off)]]
 ]]></description>
       </metadata>
       <version name="1.0" author="JRTaylorMusic" time="2021-09-24T20:38:07Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a7b04d09b0cfe478471df30d9cb5178fcdfefa00/Items%20Editing/JRT_Split%20all%20items%20at%20time%20selection%20or%20edit%20cursor.lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e4a1f5d765bd85928ad1814137e7ef76358fc0a1/Items%20Editing/JRT_Split%20all%20items%20at%20time%20selection%20or%20edit%20cursor.lua</source>
       </version>
     </reapack>
     <reapack name="js_Comp items - Unmute item under mouse and mute overlapping items.lua" type="script" desc="js_Comp items - Unmute item under mouse and mute overlapping items.lua">
@@ -13204,7 +13204,7 @@ Don't report an error if no render presets were created yet]]></changelog>
     </reapack>
     <reapack name="JRT_Extend selection to start of session.lua" type="script" desc="Extend selection to start of session">
       <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
@@ -13213,7 +13213,7 @@ Don't report an error if no render presets were created yet]]></changelog>
 ]]></description>
       </metadata>
       <version name="1.0" author="JRTaylorMusic" time="2021-09-24T20:37:40Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/9a57f71f2fd2ddd8fd5367a3a1f994ba51b3e5ef/Time%20Selection/JRT_Extend%20selection%20to%20start%20of%20session.lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e4a1f5d765bd85928ad1814137e7ef76358fc0a1/Time%20Selection/JRT_Extend%20selection%20to%20start%20of%20session.lua</source>
       </version>
     </reapack>
     <reapack name="js_Time selection - Insert empty beats at time selection (moving later items).lua" type="script" desc="js_Time selection - Insert empty beats at time selection (moving later items).lua">
@@ -20161,17 +20161,17 @@ Streamable link
     </reapack>
   </category>
   <metadata>
-    <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+    <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 ReaTeam Scripts Repository\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel0 \b \fs36 ReaTeam Scripts Repository\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 {\cf1 [image: https://github.com/ReaTeam/ReaScripts/workflows/check/badge.svg]\cf0}\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Community-maintained collection of scripts for REAPER.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Installation\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel1 \b \fs32 Installation\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Copy and paste this URL in Extensions > ReaPack > Import a repository:\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \f1 https://github.com/ReaTeam/ReaScripts/raw/master/index.xml\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Contributing\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel1 \b \fs32 Contributing\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Use {\field{\*\fldinst{HYPERLINK "https://reapack.com/upload/reascript"}}{\fldrslt{\ul
 https://reapack.com/upload/reascript
 }}}
