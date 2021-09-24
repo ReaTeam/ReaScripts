@@ -1,13 +1,15 @@
--- @description Create single region from selected items (get name and color from folder track) and mark it in region render matrix via master
--- @author Mordi
--- @version 1.0
--- @changelog
--- @provides [main] .
--- @screenshot Creating regions from items https://i.imgur.com/xUg7bSU.gif
--- @about
---   # Create single region from selected items (get name and color from folder track) and mark it in region render matrix via master
---
---   Made for exporting sound effects. Select all the items that make up your sound effect, and run this script. A region will be created which encompasses all the items and inherits its name and color from the parent track of the topmost item.
+--[[
+
+ReaScript name: Create single region from selected items (get name and color from folder track) and mark it in region render matrix via master
+Author: Mordi
+Version: 1.0
+Changelog:  # Initial release
+Provides: main .
+About:
+# Create single region from selected items (get name and color from folder track) and mark it in region render matrix via master
+Made for exporting sound effects. Select all the items that make up your sound effect, and run this script. A region will be created which encompasses all the items and inherits its name and color from the parent track of the topmost item.
+
+]]--
 
 SCRIPT_NAME = "Create single region from selected items (get name and color from folder track) and mark it in region render matrix via master"
 
