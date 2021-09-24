@@ -1,7 +1,6 @@
-@description JRT_Mute and Hide Selected Tracks
-@author JRTaylorMusic
-@version 1.0
-@provides . > JRT_Mute and Hide Selected Tracks
+-- @description Mute and hide selected tracks
+-- @author JRTaylorMusic
+-- @version 1.0
 
 function Main()
   count_sel_tracks = reaper.CountSelectedTracks(0)
