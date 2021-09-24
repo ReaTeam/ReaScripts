@@ -1,7 +1,7 @@
-@description Extend selection to start of session
-@author JRTaylorMusic
-@version 1.0
-@about Like Shift+Return in ProTools, this action sets the time selection start to the beginning of the project, then selects all items on selected tracks within the new time selection.
+-- @description Extend selection to start of session
+-- @author JRTaylorMusic
+-- @version 1.0
+-- @about Like Shift+Return in ProTools, this action sets the time selection start to the beginning of the project, then selects all items on selected tracks within the new time selection.
 
 reaper.Undo_BeginBlock()
 reaper.PreventUIRefresh(1)

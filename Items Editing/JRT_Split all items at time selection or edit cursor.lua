@@ -1,7 +1,7 @@
-@description Split all items at time selection or edit cursor
-@author JRTaylorMusic
-@version 1.0
-@about Another ProTools inspired action, this script (intended for Shift+B) will split all items either at the edit cursor, or at the time selection boundaries.
+-- @description Split all items at time selection or edit cursor
+-- @author JRTaylorMusic
+-- @version 1.0
+-- @about Another ProTools inspired action, this script (intended for Shift+B) will split all items either at the edit cursor, or at the time selection boundaries.
 
 -- SAVE INITIAL SELECTED ITEMS
 init_sel_items = {}
