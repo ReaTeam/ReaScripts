@@ -1,15 +1,14 @@
---[[
-
-ReaScript name: Create single region from selected items (get name and color from folder track) and mark it in region render matrix via master
-Author: Mordi
-Version: 1.0
-Changelog:  # Initial release
-Provides: main .
-About:
-# Create single region from selected items (get name and color from folder track) and mark it in region render matrix via master
-Made for exporting sound effects. Select all the items that make up your sound effect, and run this script. A region will be created which encompasses all the items and inherits its name and color from the parent track of the topmost item.
-
-]]--
+-- @author Mordi
+-- @provides [main] .
+-- @version 1.0
+-- @changelog
+--  Initial release
+-- @about
+--  Made for exporting game audio SFX.
+--  #How to use
+--  * Select all the items that make up your sound effect, and run this script.
+--  * The region encompasses all the items and inherits its name and color from the topmost parent track of the topmost item.
+--  * In the region render matrix, the region is marked for export via the master track.
 
 SCRIPT_NAME = "Create single region from selected items (get name and color from folder track) and mark it in region render matrix via master"
 
