@@ -2,6 +2,7 @@
 -- @author Mordi
 -- @version 1.0
 -- @changelog
+-- @provides [main] .
 -- @screenshot Creating regions from items https://i.imgur.com/xUg7bSU.gif
 -- @about
 --   # Create single region from selected items (get name and color from folder track) and mark it in region render matrix
