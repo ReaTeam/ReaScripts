@@ -1,12 +1,11 @@
--- @description Create single region from selected items (get name and color from folder track) and mark it in region render matrix
 -- @author Mordi
 -- @provides [main] .
 -- @version 1.0
 -- @changelog
 --  Initial release
 -- @about
--- # Create single region from selected items (get name and color from folder track) and mark it in region render matrix
--- Made for exporting sound effects. Select all the items that make up your sound effect, and run this script. A region will be created which encompasses all the items and inherits its name and color from the parent track of the topmost item.
+--  Made for exporting game audio SFX. Select all the items that make up your sound effect, and run this script.
+--  The region encompasses all the items and inherits its name and color from the topmost parent track of the topmost item.
 
 SCRIPT_NAME = "Create single region from selected items (get name and color from folder track) and mark it in region render matrix"
 
