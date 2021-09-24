@@ -52,8 +52,9 @@ local REVERSE = #REVERSE_SELECTION_TARGET:gsub(' ','') > 0
 				local next = r.GetTrackMediaItem(tr, i+1)
 				local prev = r.GetTrackMediaItem(tr, i-1)
 					if not REVERSE then
-					local sel_next_or_prev = next and r.SetMediaItemSelected(next, true) or not next and prev and r.SetMediaItemSelected(prev, true)
-					else sel_prev_or_next = prev and r.SetMediaItemSelected(prev, true) or not prev and next and r.SetMediaItemSelected(next, true)
+					sel_next_or_prev = next and r.SetMediaItemSelected(next, true) or not next and prev and r.SetMediaItemSelected(prev, true)
+					else 
+					sel_prev_or_next = prev and r.SetMediaItemSelected(prev, true) or not prev and next and r.SetMediaItemSelected(next, true)
 					end
 				r.DeleteTrackMediaItem(r.GetMediaItemTrack(sel_itm), sel_itm)
 				end
