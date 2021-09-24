@@ -17,7 +17,7 @@ About:	When selected item is deleted, if there's next on the same track,
 -----------------------------------------------------------------------------
 -- Default primary selection target is next item.
 -- This setting makes it previous item and only if absent, next item is selected.
--- To enable place any alphanumetic characted between the quotation marks.
+-- To enable place any alphanumetic character between the quotation marks.
 
 local REVERSE_SELECTION_TARGET = ""
 
