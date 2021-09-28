@@ -118,11 +118,7 @@ locked_groups_t = LOCK_GROUP and not locked_groups_t and group_t and index_group
 
 r.UpdateArrange() -- to update items
 
-	if AUTO then
-	r.defer(RUN)
-	r.SetToggleCommandState(sect_ID, cmd_ID, 1)
-	r.RefreshToolbar(cmd_ID)
-	end
+local run = AUTO and r.defer(RUN)
 
 end
 
@@ -137,7 +133,12 @@ local locked_groups_t
 
 r.Undo_BeginBlock()
 
-	if AUTO and LOCK_GROUP then r.SelectAllMediaItems(0, false) end -- unselect all so items whose group is to be locked could be selected explicitly
+	if AUTO then
+		if LOCK_GROUP then r.SelectAllMediaItems(0, false) end -- unselect all so items whose group is to be locked could be selected explicitly
+	r.SetToggleCommandState(sect_ID, cmd_ID, 1)
+	r.RefreshToolbar(cmd_ID)
+	end
+	
 
 RUN()
 
@@ -145,10 +146,5 @@ r.Undo_EndBlock('Exclusively '..(EXCLUSIVE == 1 and 'solo' or 'mute')..' selecte
 
 
 	if AUTO then r.atexit(function() r.SetToggleCommandState(sect_ID, cmd_ID, 0); r.RefreshToolbar(cmd_ID) end) end
-
-
-
-
-
 
 
