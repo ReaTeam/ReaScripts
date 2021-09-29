@@ -29,12 +29,12 @@ About:
 		
 		For the script to work Item grouping option 
 		doesn't have to be enabled.  
-		Non-grouped items are ignored.	
+		Non-grouped items are ignored.
 
-		The functionaity can be replicated with custom actions  
+		The functionaity can be replicated with custom actions   
 		ACT 3 0 "ce55dc682200c84c93782dbdb16abd10" "Custom: Exclusively solo selected grouped items (1st deselect all items to avoid soloing random items)" _SWS_SAVEALLSELITEMS1 40034 40719 40289 _SWS_RESTALLSELITEMS1 40720   
 		ACT 3 0 "2934c6ad6fe12f4989f10e75b2ae6010" "Custom: Exclusively mute selected grouped items (1st deselect all items to avoid muting random items)" _SWS_SAVEALLSELITEMS1 40034 40720 40289 _SWS_RESTALLSELITEMS1 40719   
-		The bonus of the script is the AUTO mode and group lock.		
+		The bonus of the script is the AUTO mode and group lock.	
 
 ]]
 
