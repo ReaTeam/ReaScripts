@@ -1,0 +1,8 @@
+-- @description Scroll view OR move notes up or down
+-- @author JRTaylorMusic
+-- @version 1.0
+-- @metapackage
+-- @provides
+--   [main] JRT_Scroll view OR move notes up or down/JRT_Navigate-Scroll view OR move notes up.lua
+--   [main] JRT_Scroll view OR move notes up or down/JRT_Navigate-Scroll view OR move notes down.lua
+-- @about Midi Editor Navigation; If note(s) selected, move up/down; If no notes selected, scroll view up/down
