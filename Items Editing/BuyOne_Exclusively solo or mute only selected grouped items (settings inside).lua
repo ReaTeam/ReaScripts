@@ -51,7 +51,7 @@ About:
 -- until the script is stopped if it runs in AUTO mode or until groups stored
 -- in non-AUTO mode are excplicitly deleted by selecting any track, running
 -- the script and confirming the prompt which pops up.
--- If not deleted, groups stored in non-AUTO mode will be available for the
+-- Unless deleted, groups stored in non-AUTO mode will be available for the
 -- duration of REAPER session and won't intefere with groups stored in AUTO mode
 -- but also won't be available in AUTO mode otherwise.
 -- To enable AUTO and LOCK_GROUP settings insert any alphanumeric character
