@@ -1,9 +1,8 @@
--- @description JRT_Navigate-Zoom Vertically OR Move Notes Up or Down Ignoring Key
+-- @description JRT_Navigate-Zoom vertically OR move notes up or down ignoring key
 -- @author JRTaylorMusic
 -- @version 1.0
 -- @metapackage
 -- @provides
---   [main] JRT_Navigate-Zoom Vertically OR Move Notes Up or Down Ignoring Key/New file 1.lua > JRT_Navigate-Zoom Vertically OR Move Notes Up or Down Ignoring Key/JRT_Navigate-Zoom In Vertically OR Move Notes Up Ignoring Key.lua
---   [main] JRT_Navigate-Zoom Vertically OR Move Notes Up or Down Ignoring Key/New file 2.lua > JRT_Navigate-Zoom Vertically OR Move Notes Up or Down Ignoring Key/JRT_Navigate-Zoom Out Vertically OR Move Notes Down Ignoring Key.lua
+--   [main] JRT_Navigate-Zoom vertically OR move notes up or down ignoring key/JRT_Navigate-Zoom in vertically OR move notes up ignoring key.lua
+--   [main] JRT_Navigate-Zoom vertically OR move notes up or down ignoring key/JRT_Navigate-Zoom out vertically OR move notes down ignoring key.lua
 -- @about Midi Editor navigation; if note(s) selected, move up or down, ignoring key; if no notes selected, Zoom Vertically In or Out.
-
