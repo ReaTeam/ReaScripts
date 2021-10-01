@@ -346,8 +346,6 @@ elseif reaper.ImGui_CreateContext then
   local font = reaper.ImGui_CreateFont('sans-serif', size)
   reaper.ImGui_AttachFont(ctx, font)
 
-  local FLT_MIN, FLT_MAX = reaper.ImGui_NumericLimits_Float()
-
   local selected = false
   local menu = {}
   for name, preset in pairs(presets) do
