@@ -1,7 +1,9 @@
 -- @description Apply render preset
 -- @author cfillion
--- @version 1.1.1
--- @changelog Immediately apply render normalization settings when the render dialog is open (requires v6.29+dev0603 or newer)
+-- @version 1.3
+-- @changelog
+--   Fix crash when running an action created for a deleted preset
+--   Use ReaImGui for displaying the preset selection menu (if installed)
 -- @provides
 --   .
 --   [main] . > cfillion_Apply render preset (create action).lua
@@ -319,18 +321,85 @@ assert(reaper.GetSetProjectInfo,   'REAPER v5.975 or newer is required')
 assert(reaper.SNM_SetIntConfigVar, 'The SWS extension is not installed')
 
 local scriptInfo = getScriptInfo()
+local isCreateAction = scriptInfo.name:match('%(create action%)$')
 local presets = getRenderPresets()
-local presetName = ApplyPresetByName or gfxdo(function()
-  return selectRenderPreset(presets)
-end)
 
-if presetName then
-  if scriptInfo.name:match('%(create action%)$') then
+local function main(presetName)
+  if isCreateAction then
     createAction(presetName, scriptInfo)
-  else
+  elseif presets[presetName] then
     applyRenderPreset(0, presets[presetName])
+  else
+    reaper.ShowMessageBox(
+      string.format("Unable to find a render preset named '%s'.", presetName),
+      scriptInfo.name, 0)
   end
-elseif ApplyPresetByName then
-  reaper.ShowMessageBox(string.format(
-    "Unable to find a render preset named '%s'.", scriptInfo.name, 0))
+end
+
+if ApplyPresetByName then
+  main(ApplyPresetByName)
+elseif reaper.ImGui_CreateContext then
+  local ctx = reaper.ImGui_CreateContext(scriptInfo.name,
+    reaper.ImGui_ConfigFlags_NoSavedSettings())
+
+  local size = reaper.GetAppVersion():match('OSX') and 12 or 14
+  local font = reaper.ImGui_CreateFont('sans-serif', size)
+  reaper.ImGui_AttachFont(ctx, font)
+
+  local selected = false
+  local menu = {}
+  for name, preset in pairs(presets) do
+    table.insert(menu, name)
+  end
+  table.sort(menu)
+
+  local function loop()
+    reaper.ImGui_PushFont(ctx, font)
+
+    if reaper.ImGui_IsWindowAppearing(ctx) then
+      reaper.ImGui_SetNextWindowPos(ctx,
+        reaper.ImGui_PointConvertNative(ctx, reaper.GetMousePosition()))
+    end
+
+    if reaper.ImGui_Begin(ctx, scriptInfo.name, false,
+        reaper.ImGui_WindowFlags_AlwaysAutoResize() |
+        reaper.ImGui_WindowFlags_NoDecoration() |
+        reaper.ImGui_WindowFlags_TopMost()) then
+      if #menu == 0 then
+        reaper.ImGui_DisabledText(ctx, 'No render presets found.')
+      else
+        if isCreateAction then
+          reaper.ImGui_Text(ctx, 'Select a render preset for the new action:')
+        else
+          reaper.ImGui_Text(ctx, 'Select the render preset to apply:')
+        end
+        if reaper.ImGui_BeginListBox(ctx, '##list', 250) then
+          for i, name in ipairs(menu) do
+            if reaper.ImGui_Selectable(ctx, name) then
+              main(name)
+              selected = true
+            end
+          end
+          reaper.ImGui_EndListBox(ctx)
+        end
+      end
+      reaper.ImGui_End(ctx)
+    end
+
+    reaper.ImGui_PopFont(ctx)
+
+    if not selected and
+        reaper.ImGui_IsWindowFocused(ctx, reaper.ImGui_FocusedFlags_AnyWindow()) then
+      reaper.defer(loop)
+    else
+      reaper.ImGui_DestroyContext(ctx)
+    end
+  end
+
+  reaper.defer(loop)
+else
+  local presetName = gfxdo(function() return selectRenderPreset(presets) end)
+  if presetName then
+    main(presetName)
+  end
 end
