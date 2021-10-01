@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="882b19fae0b18d4e3db1c6f78e1378250d2e64b3" name="ReaTeam Scripts">
+<index version="1" commit="ada4ab8955ffbe48cd26533b7b672e9e7e337f7d" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -16943,6 +16943,48 @@ Fix Editing Behavior > MIDI Editor]]></changelog>
         <source main="main" file="cfillion_Open preferences page - Plug-ins - ReaMote.lua">https://github.com/ReaTeam/ReaScripts/raw/9d74a061697e71059406663fedb9a4876595d6d1/Various/cfillion_Open%20preferences%20page.lua</source>
         <source main="main" file="cfillion_Open preferences page - Control, OSC, web.lua">https://github.com/ReaTeam/ReaScripts/raw/9d74a061697e71059406663fedb9a4876595d6d1/Various/cfillion_Open%20preferences%20page.lua</source>
         <source main="main" file="cfillion_Open preferences page - External Editors.lua">https://github.com/ReaTeam/ReaScripts/raw/9d74a061697e71059406663fedb9a4876595d6d1/Various/cfillion_Open%20preferences%20page.lua</source>
+      </version>
+      <version name="1.0.2" author="cfillion" time="2021-10-01T21:49:32Z">
+        <changelog><![CDATA[Add Plug-ins > LV2]]></changelog>
+        <source main="main" file="cfillion_Open preferences page - General.lua">https://github.com/ReaTeam/ReaScripts/raw/ada4ab8955ffbe48cd26533b7b672e9e7e337f7d/Various/cfillion_Open%20preferences%20page.lua</source>
+        <source main="main" file="cfillion_Open preferences page - General - Paths.lua">https://github.com/ReaTeam/ReaScripts/raw/ada4ab8955ffbe48cd26533b7b672e9e7e337f7d/Various/cfillion_Open%20preferences%20page.lua</source>
+        <source main="main" file="cfillion_Open preferences page - General - Keyboard, Multitouch.lua">https://github.com/ReaTeam/ReaScripts/raw/ada4ab8955ffbe48cd26533b7b672e9e7e337f7d/Various/cfillion_Open%20preferences%20page.lua</source>
+        <source main="main" file="cfillion_Open preferences page - Project.lua">https://github.com/ReaTeam/ReaScripts/raw/ada4ab8955ffbe48cd26533b7b672e9e7e337f7d/Various/cfillion_Open%20preferences%20page.lua</source>
+        <source main="main" file="cfillion_Open preferences page - Project - Track, Send Defaults.lua">https://github.com/ReaTeam/ReaScripts/raw/ada4ab8955ffbe48cd26533b7b672e9e7e337f7d/Various/cfillion_Open%20preferences%20page.lua</source>
+        <source main="main" file="cfillion_Open preferences page - Project - Media Item Defaults.lua">https://github.com/ReaTeam/ReaScripts/raw/ada4ab8955ffbe48cd26533b7b672e9e7e337f7d/Various/cfillion_Open%20preferences%20page.lua</source>
+        <source main="main" file="cfillion_Open preferences page - Audio.lua">https://github.com/ReaTeam/ReaScripts/raw/ada4ab8955ffbe48cd26533b7b672e9e7e337f7d/Various/cfillion_Open%20preferences%20page.lua</source>
+        <source main="main" file="cfillion_Open preferences page - Audio - Device.lua">https://github.com/ReaTeam/ReaScripts/raw/ada4ab8955ffbe48cd26533b7b672e9e7e337f7d/Various/cfillion_Open%20preferences%20page.lua</source>
+        <source main="main" file="cfillion_Open preferences page - Audio - MIDI Devices.lua">https://github.com/ReaTeam/ReaScripts/raw/ada4ab8955ffbe48cd26533b7b672e9e7e337f7d/Various/cfillion_Open%20preferences%20page.lua</source>
+        <source main="main" file="cfillion_Open preferences page - Audio - Buffering.lua">https://github.com/ReaTeam/ReaScripts/raw/ada4ab8955ffbe48cd26533b7b672e9e7e337f7d/Various/cfillion_Open%20preferences%20page.lua</source>
+        <source main="main" file="cfillion_Open preferences page - Audio - Mute, Solo.lua">https://github.com/ReaTeam/ReaScripts/raw/ada4ab8955ffbe48cd26533b7b672e9e7e337f7d/Various/cfillion_Open%20preferences%20page.lua</source>
+        <source main="main" file="cfillion_Open preferences page - Audio - Playback.lua">https://github.com/ReaTeam/ReaScripts/raw/ada4ab8955ffbe48cd26533b7b672e9e7e337f7d/Various/cfillion_Open%20preferences%20page.lua</source>
+        <source main="main" file="cfillion_Open preferences page - Audio - Seeking.lua">https://github.com/ReaTeam/ReaScripts/raw/ada4ab8955ffbe48cd26533b7b672e9e7e337f7d/Various/cfillion_Open%20preferences%20page.lua</source>
+        <source main="main" file="cfillion_Open preferences page - Audio - Recording.lua">https://github.com/ReaTeam/ReaScripts/raw/ada4ab8955ffbe48cd26533b7b672e9e7e337f7d/Various/cfillion_Open%20preferences%20page.lua</source>
+        <source main="main" file="cfillion_Open preferences page - Audio - Loop Recording.lua">https://github.com/ReaTeam/ReaScripts/raw/ada4ab8955ffbe48cd26533b7b672e9e7e337f7d/Various/cfillion_Open%20preferences%20page.lua</source>
+        <source main="main" file="cfillion_Open preferences page - Audio - Rendering.lua">https://github.com/ReaTeam/ReaScripts/raw/ada4ab8955ffbe48cd26533b7b672e9e7e337f7d/Various/cfillion_Open%20preferences%20page.lua</source>
+        <source main="main" file="cfillion_Open preferences page - Appearance.lua">https://github.com/ReaTeam/ReaScripts/raw/ada4ab8955ffbe48cd26533b7b672e9e7e337f7d/Various/cfillion_Open%20preferences%20page.lua</source>
+        <source main="main" file="cfillion_Open preferences page - Appearance - Media.lua">https://github.com/ReaTeam/ReaScripts/raw/ada4ab8955ffbe48cd26533b7b672e9e7e337f7d/Various/cfillion_Open%20preferences%20page.lua</source>
+        <source main="main" file="cfillion_Open preferences page - Appearance - Peaks, Waveforms.lua">https://github.com/ReaTeam/ReaScripts/raw/ada4ab8955ffbe48cd26533b7b672e9e7e337f7d/Various/cfillion_Open%20preferences%20page.lua</source>
+        <source main="main" file="cfillion_Open preferences page - Appearance - Fades, Crossfades.lua">https://github.com/ReaTeam/ReaScripts/raw/ada4ab8955ffbe48cd26533b7b672e9e7e337f7d/Various/cfillion_Open%20preferences%20page.lua</source>
+        <source main="main" file="cfillion_Open preferences page - Appearance - Track Control Panels.lua">https://github.com/ReaTeam/ReaScripts/raw/ada4ab8955ffbe48cd26533b7b672e9e7e337f7d/Various/cfillion_Open%20preferences%20page.lua</source>
+        <source main="main" file="cfillion_Open preferences page - Editing Behavior.lua">https://github.com/ReaTeam/ReaScripts/raw/ada4ab8955ffbe48cd26533b7b672e9e7e337f7d/Various/cfillion_Open%20preferences%20page.lua</source>
+        <source main="main" file="cfillion_Open preferences page - Editing Behavior - Envelope Display.lua">https://github.com/ReaTeam/ReaScripts/raw/ada4ab8955ffbe48cd26533b7b672e9e7e337f7d/Various/cfillion_Open%20preferences%20page.lua</source>
+        <source main="main" file="cfillion_Open preferences page - Editing Behavior - Automation.lua">https://github.com/ReaTeam/ReaScripts/raw/ada4ab8955ffbe48cd26533b7b672e9e7e337f7d/Various/cfillion_Open%20preferences%20page.lua</source>
+        <source main="main" file="cfillion_Open preferences page - Editing Behavior - Mouse.lua">https://github.com/ReaTeam/ReaScripts/raw/ada4ab8955ffbe48cd26533b7b672e9e7e337f7d/Various/cfillion_Open%20preferences%20page.lua</source>
+        <source main="main" file="cfillion_Open preferences page - Editing Behavior - Mouse Modifiers.lua">https://github.com/ReaTeam/ReaScripts/raw/ada4ab8955ffbe48cd26533b7b672e9e7e337f7d/Various/cfillion_Open%20preferences%20page.lua</source>
+        <source main="main" file="cfillion_Open preferences page - Editing Behavior - MIDI Editor.lua">https://github.com/ReaTeam/ReaScripts/raw/ada4ab8955ffbe48cd26533b7b672e9e7e337f7d/Various/cfillion_Open%20preferences%20page.lua</source>
+        <source main="main" file="cfillion_Open preferences page - Media.lua">https://github.com/ReaTeam/ReaScripts/raw/ada4ab8955ffbe48cd26533b7b672e9e7e337f7d/Various/cfillion_Open%20preferences%20page.lua</source>
+        <source main="main" file="cfillion_Open preferences page - Media - MIDI.lua">https://github.com/ReaTeam/ReaScripts/raw/ada4ab8955ffbe48cd26533b7b672e9e7e337f7d/Various/cfillion_Open%20preferences%20page.lua</source>
+        <source main="main" file="cfillion_Open preferences page - Media - Video, REX, Misc.lua">https://github.com/ReaTeam/ReaScripts/raw/ada4ab8955ffbe48cd26533b7b672e9e7e337f7d/Various/cfillion_Open%20preferences%20page.lua</source>
+        <source main="main" file="cfillion_Open preferences page - Plug-ins.lua">https://github.com/ReaTeam/ReaScripts/raw/ada4ab8955ffbe48cd26533b7b672e9e7e337f7d/Various/cfillion_Open%20preferences%20page.lua</source>
+        <source main="main" file="cfillion_Open preferences page - Plug-ins - Compatibility.lua">https://github.com/ReaTeam/ReaScripts/raw/ada4ab8955ffbe48cd26533b7b672e9e7e337f7d/Various/cfillion_Open%20preferences%20page.lua</source>
+        <source main="main" file="cfillion_Open preferences page - Plug-ins - VST.lua">https://github.com/ReaTeam/ReaScripts/raw/ada4ab8955ffbe48cd26533b7b672e9e7e337f7d/Various/cfillion_Open%20preferences%20page.lua</source>
+        <source main="main" file="cfillion_Open preferences page - Plug-ins - ReWire.lua">https://github.com/ReaTeam/ReaScripts/raw/ada4ab8955ffbe48cd26533b7b672e9e7e337f7d/Various/cfillion_Open%20preferences%20page.lua</source>
+        <source main="main" file="cfillion_Open preferences page - Plug-ins - ReaScript.lua">https://github.com/ReaTeam/ReaScripts/raw/ada4ab8955ffbe48cd26533b7b672e9e7e337f7d/Various/cfillion_Open%20preferences%20page.lua</source>
+        <source main="main" file="cfillion_Open preferences page - Plug-ins - ReaMote.lua">https://github.com/ReaTeam/ReaScripts/raw/ada4ab8955ffbe48cd26533b7b672e9e7e337f7d/Various/cfillion_Open%20preferences%20page.lua</source>
+        <source main="main" file="cfillion_Open preferences page - Control, OSC, web.lua">https://github.com/ReaTeam/ReaScripts/raw/ada4ab8955ffbe48cd26533b7b672e9e7e337f7d/Various/cfillion_Open%20preferences%20page.lua</source>
+        <source main="main" file="cfillion_Open preferences page - External Editors.lua">https://github.com/ReaTeam/ReaScripts/raw/ada4ab8955ffbe48cd26533b7b672e9e7e337f7d/Various/cfillion_Open%20preferences%20page.lua</source>
+        <source main="main" file="cfillion_Open preferences page - Plug-ins - LV2.lua">https://github.com/ReaTeam/ReaScripts/raw/ada4ab8955ffbe48cd26533b7b672e9e7e337f7d/Various/cfillion_Open%20preferences%20page.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Project underrun monitor (xrun).lua" type="script" desc="Project underrun monitor (xrun)">
