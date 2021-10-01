@@ -1,9 +1,7 @@
 -- @description Open preferences page
 -- @author cfillion
--- @version 1.0.1
--- @changelog
---   Add missing action name prefix
---   Fix Editing Behavior > MIDI Editor
+-- @version 1.0.2
+-- @changelog Add Plug-ins > LV2
 -- @metapackage
 -- @provides
 --   [main] . > cfillion_Open preferences page - General.lua
@@ -44,6 +42,7 @@
 --   [main] . > cfillion_Open preferences page - Plug-ins - ReaMote.lua
 --   [main] . > cfillion_Open preferences page - Control, OSC, web.lua
 --   [main] . > cfillion_Open preferences page - External Editors.lua
+--   [main] . > cfillion_Open preferences page - Plug-ins - LV2.lua
 -- @donation Donate via PayPal https://paypal.me/cfillion
 -- @about
 --   # Open preferences page
@@ -53,6 +52,7 @@
 --   Running the script opens the Preferences window with the corresponding page
 --   selected.
 
+-- prefpage_lastpage
 local pages = {
   ['General'                 ] = { 0x08b  ,
   [  'Paths'                 ] =   0x1da  ,
@@ -87,6 +87,7 @@ local pages = {
   ['Plug-ins'                ] = { 0x09a  ,
   [  'Compatibility'         ] =   0x1f9  ,
   [  'VST'                   ] =   0x0d2  ,
+  [  'LV2'                   ] =   0x251  ,
   [  'ReWire'                ] =   0x0d1  ,
   [  'ReaScript'             ] =   0x203  ,
   [  'ReaMote'               ] =   0x0e3 },
