@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="e8525fac35e98182834279212849d24c742ca959" name="ReaTeam Scripts">
+<index version="1" commit="882b19fae0b18d4e3db1c6f78e1378250d2e64b3" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -4902,7 +4902,7 @@ website
 {\pard \ql \f0 \sa180 \li0 \fi0 Select any grouped item and run the script.\line May need to start by deselecting all items before first running the script so that the state of wrong selected items doesn't change.\line This will allow selecting items explicitly before applying exclusive solo or mute.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 In AUTO mode there's no need to run the script to change item state, its applied automatically to any selected grouped item.\line When the script starts in AUTO mode while LOCK_GROUP setting is enabled, all items get deselected, so you can explicitly select those whose group you wish the script to lock to.\line When the script runs in AUTO mode and is assigned to a toolbar button the button is lit until the script is stopped.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 For the script to work Item grouping option doesn't have to be enabled.\line Non-grouped items are ignored.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 The functionaity can be replicated with custom actions\line ACT 3 0 "ce55dc682200c84c93782dbdb16abd10" "Custom: Exclusively solo selected grouped items" _SWS_SAVEALLSELITEMS1 40289 _SWS_RESTALLSELITEMS1 40034 40719 40289 _SWS_RESTALLSELITEMS1 40720\line ACT 3 0 "2934c6ad6fe12f4989f10e75b2ae6010" "Custom: Exclusively mute selected grouped items" _SWS_SAVEALLSELITEMS1 40289 _SWS_RESTALLSELITEMS1 40034 40720 40289 _SWS_RESTALLSELITEMS1 40719\line The bonus of the script is the AUTO mode.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The functionaity can be replicated with custom actions\line ACT 3 0 "ce55dc682200c84c93782dbdb16abd10" "Custom: Exclusively solo selected grouped items (1st deselect all items to avoid soloing random items)" _SWS_SAVEALLSELITEMS1 40034 40719 40289 _SWS_RESTALLSELITEMS1 40720\line ACT 3 0 "2934c6ad6fe12f4989f10e75b2ae6010" "Custom: Exclusively mute selected grouped items (1st deselect all items to avoid muting random items)" _SWS_SAVEALLSELITEMS1 40034 40720 40289 _SWS_RESTALLSELITEMS1 40719\line The bonus of the script is the AUTO mode and group lock.\par}
 }
 ]]></description>
         <link rel="website">https://forum.cockos.com/member.php?u=134058</link>
@@ -4910,6 +4910,10 @@ website
       <version name="1.0" author="BuyOne" time="2021-09-29T03:07:54Z">
         <changelog><![CDATA[Initial release]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/9f6f57965685b7a53c57fb3d4baefca868d89361/Items%20Editing/BuyOne_Exclusively%20solo%20or%20mute%20only%20selected%20grouped%20items%20(settings%20inside).lua</source>
+      </version>
+      <version name="1.1" author="BuyOne" time="2021-10-01T19:46:12Z">
+        <changelog><![CDATA[#Added group locking in non-AUTO mode]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/882b19fae0b18d4e3db1c6f78e1378250d2e64b3/Items%20Editing/BuyOne_Exclusively%20solo%20or%20mute%20only%20selected%20grouped%20items%20(settings%20inside).lua</source>
       </version>
     </reapack>
     <reapack name="BuyOne_Split selected MIDI item by notes.lua" type="script" desc="Split selected MIDI item by notes">
