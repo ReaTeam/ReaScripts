@@ -4,7 +4,7 @@
 -- @changelog Register the script in the main section too
 -- @provides [main=main,midi_editor] .
 -- @link
---   https://cfillion.tk
+--   https://cfillion.ca
 --   Forum Thread http://forum.cockos.com/showthread.php?t=169896
 -- @donation https://www.paypal.me/cfillion
 
