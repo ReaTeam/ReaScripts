@@ -1,9 +1,7 @@
 -- @description Apply render preset
 -- @author cfillion
--- @version 1.3
--- @changelog
---   Fix crash when running an action created for a deleted preset
---   Use ReaImGui for displaying the preset selection menu (if installed)
+-- @version 1.3.1
+-- @changelog Enable keyboard navigation in the new ReaImGui menu
 -- @provides
 --   .
 --   [main] . > cfillion_Apply render preset (create action).lua
@@ -340,6 +338,7 @@ if ApplyPresetByName then
   main(ApplyPresetByName)
 elseif reaper.ImGui_CreateContext then
   local ctx = reaper.ImGui_CreateContext(scriptInfo.name,
+    reaper.ImGui_ConfigFlags_NavEnableKeyboard() |
     reaper.ImGui_ConfigFlags_NoSavedSettings())
 
   local size = reaper.GetAppVersion():match('OSX') and 12 or 14
@@ -371,7 +370,7 @@ elseif reaper.ImGui_CreateContext then
         if isCreateAction then
           reaper.ImGui_Text(ctx, 'Select a render preset for the new action:')
         else
-          reaper.ImGui_Text(ctx, 'Select the render preset to apply:')
+          reaper.ImGui_Text(ctx, 'Select a render preset to apply:')
         end
         if reaper.ImGui_BeginListBox(ctx, '##list', 250) then
           for i, name in ipairs(menu) do
@@ -388,7 +387,8 @@ elseif reaper.ImGui_CreateContext then
 
     reaper.ImGui_PopFont(ctx)
 
-    if not selected and
+    local KEY_ESCAPE = 0x1B
+    if not selected and not reaper.ImGui_IsKeyPressed(ctx, KEY_ESCAPE) and
         reaper.ImGui_IsWindowFocused(ctx, reaper.ImGui_FocusedFlags_AnyWindow()) then
       reaper.defer(loop)
     else
