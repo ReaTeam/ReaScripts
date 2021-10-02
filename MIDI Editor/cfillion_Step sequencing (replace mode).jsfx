@@ -5,6 +5,8 @@ desc:Step sequencing (replace mode) by cfillion
 options:gmem=cfillion_stepRecordReplace
 options:no_meter
 
+slider1:-1<-1,2147483647,1>-Last cursor position
+
 /* Memory structure:
 
 // private
