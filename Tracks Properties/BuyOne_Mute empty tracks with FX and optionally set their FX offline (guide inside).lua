@@ -64,12 +64,12 @@ To enable a setting insert any alphanumeric character between quotation marks.
 ]]
 
 SET_FX_OFFLINE = ""
-UNMUTE = "1"
+UNMUTE = ""
 AUTO_RUN = ""
 
 -- Only in AUTO_RUN mode:
 
-MUTE_PERSIST = "1"
+MUTE_PERSIST = ""
 SET_FX_OFFLINE_PERSIST = "" -- only when SET_FX_OFFLINE is enabled
 
 -----------------------------------------------------------------------------
