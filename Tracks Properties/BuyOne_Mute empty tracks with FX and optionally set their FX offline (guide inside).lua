@@ -28,7 +28,7 @@ when another track with FX becomes empty or receives items or track total
 count changes. When UNMUTE setting is enabled the mute will be also reinstated
 when another track becomes armed, folder parent or gets receives.
 If a track is no longer empty or no longer has FX its mute won't be reinstated.
-In AUTO_RUN mode the mute can be presistent if MUTE_PERSIST setting
+In AUTO_RUN mode the mute can be persistent if MUTE_PERSIST setting
 is enabled (see par. 4 below).
 
 1. Enable SET_FX_OFFLINE setting to set FX of empty tracks offline in
