@@ -52,7 +52,7 @@ online regardless of whether they were originally set offline with this script
 or manually or by other means.
 
 3. When AUTO_RUN setting is enabled the script does its thing automatically,
-otherwise to change the mute state of tracks with fx an no items the script
+otherwise to change the mute state of tracks with FX an no items the script
 needs to be run manually.
 When the script works in AUO_RUN mode and is assigned to a toolbar button
 the button is lit.
