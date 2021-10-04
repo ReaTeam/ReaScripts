@@ -179,6 +179,7 @@ function MUTE()
 
 
 	if update then
+	local undo	
 	r.Undo_BeginBlock()
 	local change_cnt = r.GetProjectStateChangeCount(0)
 		for i = 0, r.CountTracks(0)-1 do
@@ -208,7 +209,6 @@ function MUTE()
 	r.Undo_EndBlock(undo,-1)
 	stored = (AUTO_RUN and update or not AUTO_RUN) and store_empty_tracks() or stored -- update the table when update is true otherwise maintain it
 	update = false -- reset initial value so it can be set to true when conditions are met; must be global
-	undo = false -- reset
 	end
 
 local run = AUTO_RUN and r.defer(MUTE)
