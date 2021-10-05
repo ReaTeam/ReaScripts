@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="30a989c0c55239e7ee0dc745fc6e6d5130397fa2" name="ReaTeam Scripts">
+<index version="1" commit="bc59fcfa135fbbd100c0563f0bb496b7b5a60bd3" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -7474,6 +7474,12 @@ Use ReaImGui for displaying the options menu (if installed)]]></changelog>
         <source main="midi_editor" file="cfillion_Step sequencing (options).lua">https://github.com/ReaTeam/ReaScripts/raw/f4c0d5e6f5d57f19c2098b1cf2856ddf91b43461/MIDI%20Editor/cfillion_Step%20sequencing%20(replace%20mode).lua</source>
         <source type="effect" file="cfillion_Step sequencing (replace mode).jsfx">https://github.com/ReaTeam/ReaScripts/raw/f4c0d5e6f5d57f19c2098b1cf2856ddf91b43461/MIDI%20Editor/cfillion_Step%20sequencing%20(replace%20mode).jsfx</source>
       </version>
+      <version name="1.1.1" author="cfillion" time="2021-10-05T03:48:16Z">
+        <changelog><![CDATA[Clamp the new options menu to monitor boundaries]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/8c64dff3b116aaacdc50d5edef51be493bd6b62b/MIDI%20Editor/cfillion_Step%20sequencing%20(replace%20mode).lua</source>
+        <source main="midi_editor" file="cfillion_Step sequencing (options).lua">https://github.com/ReaTeam/ReaScripts/raw/8c64dff3b116aaacdc50d5edef51be493bd6b62b/MIDI%20Editor/cfillion_Step%20sequencing%20(replace%20mode).lua</source>
+        <source type="effect" file="cfillion_Step sequencing (replace mode).jsfx">https://github.com/ReaTeam/ReaScripts/raw/8c64dff3b116aaacdc50d5edef51be493bd6b62b/MIDI%20Editor/cfillion_Step%20sequencing%20(replace%20mode).jsfx</source>
+      </version>
     </reapack>
     <reapack name="cfillion_Toggle MIDI preview on transport change.lua" type="script" desc="Toggle MIDI preview on transport change">
       <metadata>
@@ -12716,6 +12722,7 @@ Replace GetLastWord func with quicker solution (Thanks: Mespotine[t=233393]).]]>
 ]]></description>
         <link rel="website">https://cfillion.ca</link>
         <link rel="screenshot">https://i.imgur.com/Xy44ZlR.gif</link>
+        <link rel="screenshot" href="https://i.imgur.com/vKa8oc9.gif">Interface customization</link>
         <link rel="donation">https://paypal.me/cfillion</link>
       </metadata>
       <version name="1.0" author="cfillion" time="2019-08-27T01:39:07Z">
@@ -12795,6 +12802,15 @@ Use ReaImGui for displaying the preset selection menu (if installed)]]></changel
         <changelog><![CDATA[Enable keyboard navigation in the new ReaImGui menu]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/30a989c0c55239e7ee0dc745fc6e6d5130397fa2/Rendering/cfillion_Apply%20render%20preset.lua</source>
         <source main="main" file="cfillion_Apply render preset (create action).lua">https://github.com/ReaTeam/ReaScripts/raw/30a989c0c55239e7ee0dc745fc6e6d5130397fa2/Rendering/cfillion_Apply%20render%20preset.lua</source>
+      </version>
+      <version name="2.0" author="cfillion" time="2021-10-05T03:48:02Z">
+        <changelog><![CDATA[Add support for brickwall limit level (REAPER v6.37+)
+Clamp the new menu to monitor boundaries (ReaImGui v0.5.7+) [p=2485297]
+Display preset contents in the selection menu
+Fix applying format-only presets overriding output source
+Fix the new menu crashing if there are new saved render presets]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4feeb3f5016178d4fce1dc349b77fef9f2e1f017/Rendering/cfillion_Apply%20render%20preset.lua</source>
+        <source main="main" file="cfillion_Apply render preset (create action).lua">https://github.com/ReaTeam/ReaScripts/raw/4feeb3f5016178d4fce1dc349b77fef9f2e1f017/Rendering/cfillion_Apply%20render%20preset.lua</source>
       </version>
     </reapack>
     <reapack name="DSG_Render time selection to new track.lua" type="script" desc="Render time selection to new track">
@@ -13735,6 +13751,22 @@ is off-screen. Reaper issue, should be fixed soon.]]></changelog>
     <reapack name="Argitoth_Set number of channels for selected tracks.eel" type="script" desc="Set number of channels for selected tracks">
       <version name="1.0" author="Elan Hickler (Argitoth)" time="2015-12-03T07:38:56Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Tracks%20Properties/Argitoth_Set%20number%20of%20channels%20for%20selected%20tracks.eel</source>
+      </version>
+    </reapack>
+    <reapack name="BuyOne_Mute empty tracks with FX and optionally set their FX offline (guide inside).lua" type="script" desc="Mute empty tracks with FX and optionally set their FX offline">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Mutes tracks with FX and no items, optionally sets their FX offline and optionally unmutes and brings FX back online. Ignores empty tracks which are record armed, folder parent and have receives. Can work in manual and in auto modes.\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/member.php?u=134058</link>
+      </metadata>
+      <version name="1.0" author="BuyOne" time="2021-10-05T03:48:54Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/bc59fcfa135fbbd100c0563f0bb496b7b5a60bd3/Tracks%20Properties/BuyOne_Mute%20empty%20tracks%20with%20FX%20and%20optionally%20set%20their%20FX%20offline%20(guide%20inside).lua</source>
       </version>
     </reapack>
     <reapack name="BuyOne_Set sends;receives in selected tracks to the next mode (relative to the current).lua" type="script" desc="Set sends;receives in selected tracks to the next mode (relative to the current)">
