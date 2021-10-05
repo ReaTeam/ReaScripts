@@ -1,9 +1,7 @@
 -- @description Step sequencing (replace mode)
 -- @author cfillion
--- @version 1.1
--- @changelog
---   Add undo support (by jtackaberry, thank you!)
---   Use ReaImGui for displaying the options menu (if installed)
+-- @version 1.1.1
+-- @changelog Clamp the new options menu to monitor boundaries
 -- @provides
 --   .
 --   [main] . > cfillion_Step sequencing (options).lua
@@ -36,8 +34,6 @@ local MODE_SEL   = 1<<3
 
 local UNDO_STATE_FX    = 1<<1
 local UNDO_STATE_ITEMS = 1<<2
-
-local KEY_ESCAPE = 0x1B
 
 local jsfx
 local jsfxName = 'ReaTeam Scripts/MIDI Editor/cfillion_Step sequencing (replace mode).jsfx'
@@ -393,17 +389,15 @@ local function optionsMenu(mode, items)
   reaper.ImGui_AttachFont(ctx, font)
 
   local function loop()
-    reaper.ImGui_PushFont(ctx, font)
-
     if reaper.ImGui_IsWindowAppearing(ctx) then
       reaper.ImGui_SetNextWindowPos(ctx,
         reaper.ImGui_PointConvertNative(ctx, reaper.GetMousePosition()))
+      reaper.ImGui_OpenPopup(ctx, scriptName)
     end
 
-    if reaper.ImGui_Begin(ctx, scriptName, false,
-        reaper.ImGui_WindowFlags_AlwaysAutoResize() |
-        reaper.ImGui_WindowFlags_NoDecoration() |
-        reaper.ImGui_WindowFlags_TopMost()) then
+    if reaper.ImGui_BeginPopup(ctx, scriptName, reaper.ImGui_WindowFlags_TopMost()) then
+      reaper.ImGui_PushFont(ctx, font)
+
       for id, item in ipairs(items) do
         if type(item) == 'table' then
           if reaper.ImGui_MenuItem(ctx, item[2], nil, mode & item[1]) then
@@ -414,13 +408,8 @@ local function optionsMenu(mode, items)
           reaper.ImGui_Separator(ctx)
         end
       end
-      reaper.ImGui_End(ctx)
-    end
-
-    reaper.ImGui_PopFont(ctx)
-
-    if not reaper.ImGui_IsKeyPressed(ctx, KEY_ESCAPE) and
-        reaper.ImGui_IsWindowFocused(ctx, reaper.ImGui_FocusedFlags_AnyWindow()) then
+      reaper.ImGui_PopFont(ctx)
+      reaper.ImGui_EndPopup(ctx)
       reaper.defer(loop)
     else
       reaper.ImGui_DestroyContext(ctx)
