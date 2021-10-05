@@ -4,6 +4,7 @@
 -- @changelog
 --   Add support for brickwall limit level (REAPER v6.37+)
 --   Clamp the new menu to monitor boundaries (ReaImGui v0.5.7+) [p=2485297]
+--   Display preset contents in the selection menu
 --   Fix applying format-only presets overriding output source
 --   Fix the new menu crashing if there are new saved render presets
 -- @provides
