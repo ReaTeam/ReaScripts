@@ -80,7 +80,7 @@ end
 
 function MOVE_TO_SINGLE_NEW_TRACK(t, resp)
 
-local dispos = r.MB('"YES"  —  to keep items relative positions\n\n"NO"  —  to butt items together', 'PROMPT', 3)
+local dispos = r.MB('"YES"  —  to keep items relative positions\n\n"NO"  —  to butt items together', 'PROMPT 2', 3)
 	if dispos == 2 then r.defer(function() end) return end
 
 	if t and #t > 0 then
@@ -124,7 +124,7 @@ or itm_cnt == 0 and tr_cnt == 1 and r.GetTrackNumMediaItems(r.GetSelectedTrack(0
 -- prompts
 or itm_cnt == 0 and tr_cnt == 1 and {'All track '..explode, prompt, 3}
 or itm_cnt > 1 and same_tr and {'Selected '..explode, prompt, 3}
-or itm_cnt > 1 and not same_tr and {'All items will be moved to a new track.\n\n"YES"  —  to a track just above the 1st item\n\twithout shifting this item\'s position\n\n"NO"  —  to a track at the top of the track list\n\tshifting items to project start', prompt, 3}
+or itm_cnt > 1 and not same_tr and {'All items will be moved to a new track.\n\n"YES"  —  to a track just above the 1st item\n\twithout shifting this item\'s position\n\n"NO"  —  to a track at the top of the track list\n\tshifting items to project start', 'PROMPT 1', 3}
 
 	if mess then resp = r.MB(mess[1], mess[2], mess[3])
 		if resp == 1 or resp == 2 then return r.defer(function() end)
