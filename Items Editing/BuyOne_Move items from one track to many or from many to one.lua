@@ -117,7 +117,7 @@ local same_tr = is_same_track()
 local explode = 'items will be moved to separate tracks.\n\n"YES"  —  move items to existing tracks creating new as needed\n\n"NO"  —  move items to new tracks'
 local mess =
 -- errors
-itm_cnt == 1 and {'Applying script to a single item\n\n        isn\'t of much use IMO.', err, 0}
+(itm_cnt == 1 or itm_cnt == 0 and tr_cnt == 1 and r.GetTrackNumMediaItems(r.GetSelectedTrack(0,0)) == 1) and {'Applying script to a single item\n\n        isn\'t of much use IMO.', err, 0}
 or itm_cnt + tr_cnt == 0 and {'No selected tracks or items.', err, 0}
 or itm_cnt == 0 and tr_cnt > 1 and {'   Since there\'re no selected items\n\nonly one track needs to be selected.', err, 0}
 or itm_cnt == 0 and tr_cnt == 1 and r.GetTrackNumMediaItems(r.GetSelectedTrack(0,0)) == 0 and {'   No selected items and\n\nno items on selected track.', err, 0}
