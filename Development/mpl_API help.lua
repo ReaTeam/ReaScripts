@@ -1,14 +1,7 @@
 -- @description API help
 -- @author MPL, nofish
--- @version 1.02
--- @changelog
---   + Turn down text brighness for buttons, when snippet code not available
---   + Add link to cockos forum thread
---   + Add scroll for functions list
---   + Parse multiline description enclosed with DESCN_START...DESCN_END
---   - Remove all MPL mentions from menu, add ReaTeam author to the reaPack metadata
---   # fix open url function
---   # fix error when trying to run non-existed code snippet
+-- @version 1.03
+-- @changelog # fix ignore commas when clicking on function code
 -- @about This script supposed to contain basic info provided with API Help page comes with REAPER, but allow to extend info and snippets database from users.
 
 
@@ -355,7 +348,7 @@
                 txt= DATA.custom.functions[i].name,
                 drawstr_flags = 1|4,
                 fontsz = 17,
-                func_Ltrig =  function() GetUserInputs( '', 1, ',extrawidth=600', DATA.custom.functions[i].name ) end }
+                func_Ltrig =  function() GetUserInputs( '', 1, ',extrawidth=600,separator=|', DATA.custom.functions[i].name ) end }
     
     OBJ.functiondesc = { is_button = true,
                 x = DATA.GUIvars.custom.funcw+DATA.GUIvars.custom.offs,
