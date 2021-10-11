@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="bc59fcfa135fbbd100c0563f0bb496b7b5a60bd3" name="ReaTeam Scripts">
+<index version="1" commit="d91b9a9969903e63ee0ce89d7fa90ada9bb890d2" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -2015,6 +2015,10 @@ Refactored/reorganized the code for readability]]></changelog>
 # fix open url function
 # fix error when trying to run non-existed code snippet]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4d1a78147ba513ddbfda4054c613be98319ed836/Development/mpl_API%20help.lua</source>
+      </version>
+      <version name="1.03" author="MPL, nofish" time="2021-10-11T02:07:41Z">
+        <changelog><![CDATA[# fix ignore commas when clicking on function code]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d91b9a9969903e63ee0ce89d7fa90ada9bb890d2/Development/mpl_API%20help.lua</source>
       </version>
     </reapack>
     <reapack name="pandabot_Convert image to Lua function.lua" type="script" desc="Convert image to Lua function">
