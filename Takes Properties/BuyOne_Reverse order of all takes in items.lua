@@ -6,7 +6,7 @@ Version: 1.0
 Changelog: Initial release
 Licence: WTFPL
 REAPER: at least v5.962
-About:	Reverses order of takes in selected items 
+About:	Reverses order of all takes in selected items 
 		or in all items in the project if none is selected.
 ]]
 
