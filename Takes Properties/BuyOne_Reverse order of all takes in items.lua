@@ -90,7 +90,7 @@ r.SelectAllMediaItems(0, false) -- deselect all media items
 		if item and r.NamedCommandLookup('_S&M_MOVETAKE4') ~= 0 then -- if SWS extension is installed
 		r.SetMediaItemSelected(item, true) -- select item so SWS action can affect it
 		local cur_take_num = r.GetMediaItemInfo_Value(item, 'I_CURTAKE')
-			for k = r.CountTakes(item)-1, 0, -1 do
+			for k = r.CountTakes(item)-1, 0, -1 do -- done in reverse becaue SWS action 'SWS/S&M: Takes - Move active down (cycling) in selected item' is used so each next take moves 1 position less than the previous and the 1st moves as many positions as the number of takes less 1 because it itself isn't counted; if counting were done in ascending order SWS function 'SWS/S&M: Takes - Move active up (cycling) in selected item' would have to be used and the last take set active
 			r.SetActiveTake(r.GetTake(item, 0)) -- set 1st take as active so it can be moved down with the SWS action
 			local it = 0
 				while it ~= k do -- last take isn't moved (when k is 0) since it ends up at its intended position
