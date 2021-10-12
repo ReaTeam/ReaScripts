@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="d91b9a9969903e63ee0ce89d7fa90ada9bb890d2" name="ReaTeam Scripts">
+<index version="1" commit="e10d14efcfd2751718f5856d42a0fb3af9574b86" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -4918,6 +4918,25 @@ website
       <version name="1.1" author="BuyOne" time="2021-10-01T19:46:12Z">
         <changelog><![CDATA[#Added group locking in non-AUTO mode]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/882b19fae0b18d4e3db1c6f78e1378250d2e64b3/Items%20Editing/BuyOne_Exclusively%20solo%20or%20mute%20only%20selected%20grouped%20items%20(settings%20inside).lua</source>
+      </version>
+    </reapack>
+    <reapack name="BuyOne_Move items from one track to many or from many to one.lua" type="script" desc="Move items from one track to many or from many to one">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 When one track is selected or all selected items belong to the same track - moves respectively all or only selected items to separate tracks.\line Only works with one track at a time.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 When at least two of selected items belong to different tracks - moves all selected items to a single track inserted right above the 1st selected item or at the top of the track list, depending on user's choice, retaining their relative positons or lining them up back to back without gaps and overlaps starting from the 1st selected item or from the project start depending on user's choice.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 In essense does what 'Xenakios/SWS: Explode selected items to new tracks (keeping positions)' action does (without creating a folder) and what 'Item: Implode items across tracks into items on one track' does followed by 'Xenakios/SWS: Reposition selected items...' with the settings being 'Item end' and '0' when removeing gaps betnween and overlaps in items.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Also check out mordi_Move selected items to new individual tracks.lua\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/member.php?u=134058</link>
+      </metadata>
+      <version name="1.0" author="BuyOne" time="2021-10-12T19:42:18Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e10d14efcfd2751718f5856d42a0fb3af9574b86/Items%20Editing/BuyOne_Move%20items%20from%20one%20track%20to%20many%20or%20from%20many%20to%20one.lua</source>
       </version>
     </reapack>
     <reapack name="BuyOne_Split selected MIDI item by notes.lua" type="script" desc="Split selected MIDI item by notes">
