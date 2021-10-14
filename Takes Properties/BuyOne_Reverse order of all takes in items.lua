@@ -114,9 +114,10 @@ end
 
 
 local sel_itm_cnt = r.CountSelectedMediaItems(0)
+local mess = r.CountMediaItems(0) == 0 and {'No items in the project.', 'ERROR', 0} or sel_itm_cnt == 0 and {'         Since no items are selected\n\ntake order will be reversed in all items.', 'PROMPT', 1}
 
-	if sel_itm_cnt == 0 then resp = r.MB('         Since no items are selected\n\ntake order will be reversed in all items.', 'PROMPT', 1)
-		if resp == 2 then return r.defer(function() end) end
+	if mess then resp = r.MB(mess[1], mess[2], mess[3])
+		if mess[3] == 0 or resp == 2 then return r.defer(function() end) end
 	end
 
 r.Undo_BeginBlock()
