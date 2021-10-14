@@ -68,7 +68,7 @@ function rand_take_idx(take_cnt, cur_take_idx)
 	cur_take_new_idx = math.random(take_cnt)
 	until ALLOW_REPEATS and cur_take_new_idx or cur_take_new_idx-1 ~= cur_take_idx
 
-return cur_take_new_idx-1 -- -1 since math.random's range begins with 1
+return cur_take_new_idx-1 -- -1 since math.random's range begins with 1 while take count is 0 based
 
 end
 
