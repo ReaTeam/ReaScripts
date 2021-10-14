@@ -125,7 +125,7 @@ r.PreventUIRefresh(1)
 REVERSE_TAKES(sel_itm_cnt)
 
 r.PreventUIRefresh(-1)
-r.Undo_EndBlock(({r.get_action_context()})[2]:match('([^\\/_]+)%.%w+'), -1)
+r.Undo_EndBlock('Reverse order of all takes in '..(sel_itm_cnt > 0 and 'selected' or 'all')..' items', -1)
 
 
 
