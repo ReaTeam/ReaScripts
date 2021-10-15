@@ -2,12 +2,6 @@
 // @author AZ
 // @version 1.0
 
-/**
- * ReaScript Name: Toggle exclusive solo for track under mouse
- * Author: AZ
- * Web:
-
- */
  
 function solo() (
   Main_OnCommandEx(41110, 0, 0 ); //select track under mouse
