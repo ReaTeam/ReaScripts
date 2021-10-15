@@ -38,7 +38,8 @@ PROMPT = ""
 
 -- every script run will create an undo point; with many runs undo history
 -- may get inundated with the script undo points pushing more meaningful
--- undo points away from immediate reach
+-- undo points away from immediate reach; on the other hand this will allow
+-- revisiting previous randomization results
 CREATE_UNDO_POINT = ""
 
 -----------------------------------------------------------------------------
