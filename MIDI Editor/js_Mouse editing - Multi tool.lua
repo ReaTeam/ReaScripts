@@ -1,8 +1,8 @@
 --[[
 ReaScript name: js_Mouse editing - Multi Tool.lua
-Version: 6.53
+Version: 6.55
 Changelog:
-  + Restore previous Stretch behavior (cursor doesn't move to event posision on click).
+  + On REAPER v6.36 and higher, edit all editable takes in MIDI editor, even when multiple editors per project.
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Donation: https://www.paypal.me/juliansader
@@ -220,7 +220,7 @@ About:
 -- CONSTANTS AND VARIABLES (that modders may find useful)
 
 -- The raw MIDI data string will be divided into substrings in tMIDI, which can be concatenated into a new edited MIDI string in each cycle.
-local tTakeInfo = {}
+ tTakeInfo = {}
 local tMIDI = {} -- Each take or envelope or AI gets its own subtable: tMIDI[take] = {}
 
 --[[ CCs in different takes, lanes and channels must each be handled separately.  
@@ -3869,22 +3869,35 @@ function Setup_EditableTakes()
     tTakeInfo[activeTake] = {item = activeItem, track = activeTrack}
 
     if not isInline then
-        local midiSettingOK, midiSetting = reaper.get_config_var_string("midieditor") -- One MIDI editor per project?
-        if midiSettingOK and tonumber(midiSetting)&3 == 1
-        --and reaper.GetToggleCommandStateEx(32060, 40874) == 1 -- Options: Draw and edit CC events on all tracks
-        -- Note: don't use sectionID, because script might have been called from Main context.
-        --and reaper.GetToggleCommandStateEx(32060, 40892) == 1 -- Options: MIDI track list/media item lane selection is linked to visibility
-        and reaper.GetToggleCommandStateEx(32060, 40891) == 1 -- Options: MIDI track list/media item lane selection is linked to editability
-        then
-            local allTracks = (reaper.GetToggleCommandStateEx(32060, 40901) == 0) -- Options: Avoid automatically setting MIDI items from other tracks editable
-            for i = 0, reaper.CountSelectedMediaItems(0)-1 do
-                local item = reaper.GetSelectedMediaItem(0, i)
-                if item and item ~= activeItem and reaper.ValidatePtr2(0, item, "MediaItem*") then -- Active take has already been saved
-                    local track = reaper.GetMediaItem_Track(item)
-                    if allTracks or track == activeTrack then
-                        local take = reaper.GetActiveTake(item)
-                        if take and reaper.ValidatePtr2(0, take, "MediaItem_Take*") and reaper.TakeIsMIDI(take) then                  
-                            tTakeInfo[take] = {item = item, track = track} --, source = source, ppq = ppq, sourceLenTicks = sourceLenTicks, loopStartTick = loopStartTick}
+        if reaper.GetToggleCommandStateEx(32060, 40874) == 1 -- Options: Draw and edit CC events on all tracks
+        or reaper.GetToggleCommandStateEx(32060, 40878) == 1 -- Options: Edit CC events on all tracks
+        then 
+            if reaper.MIDIEditor_EnumTakes then -- New function in v6.36
+                for i = 0, math.huge do
+                    local editTake = reaper.MIDIEditor_EnumTakes(editor, i, true)
+                    if not editTake then break end
+                    if reaper.ValidatePtr(editTake, "MediaItem_Take*") and not (editTake == ectiveTake) then
+                        tTakeInfo[editTake] = {item = reaper.GetMediaItemTake_Item(editTake), track = reaper.GetMediaItemTake_Track(editTake)}
+                    end
+                end 
+            else
+                local midiSettingOK, midiSetting = reaper.get_config_var_string("midieditor") -- One MIDI editor per project?
+                if midiSettingOK and tonumber(midiSetting)&3 == 1
+                -- Note: don't use sectionID, because script might have been called from Main context.
+                --and reaper.GetToggleCommandStateEx(32060, 40892) == 1 -- Options: MIDI track list/media item lane selection is linked to visibility
+                and reaper.GetToggleCommandStateEx(32060, 40891) == 1 -- Options: MIDI track list/media item lane selection is linked to editability
+                then
+                    local allTracks = (reaper.GetToggleCommandStateEx(32060, 40901) == 0) -- Options: Avoid automatically setting MIDI items from other tracks editable
+                    for i = 0, reaper.CountSelectedMediaItems(0)-1 do
+                        local item = reaper.GetSelectedMediaItem(0, i)
+                        if item and item ~= activeItem and reaper.ValidatePtr2(0, item, "MediaItem*") then -- Active take has already been saved
+                            local track = reaper.GetMediaItem_Track(item)
+                            if allTracks or track == activeTrack then
+                                local take = reaper.GetActiveTake(item)
+                                if take and reaper.ValidatePtr2(0, take, "MediaItem_Take*") and reaper.TakeIsMIDI(take) then                  
+                                    tTakeInfo[take] = {item = item, track = track} --, source = source, ppq = ppq, sourceLenTicks = sourceLenTicks, loopStartTick = loopStartTick}
+                                end
+                            end
                         end
                     end
                 end

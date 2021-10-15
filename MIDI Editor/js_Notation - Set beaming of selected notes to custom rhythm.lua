@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Notation - Set beaming of selected notes to custom rhythm (using grid as margin).lua
-Version: 2.0
+Version: 2.1
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=172782&page=25
 Donation: https://www.paypal.me/juliansader
@@ -36,6 +36,8 @@ About:
     + Margin can be set in dialog box.
   * v2.0 (2021-09-09)
     + Works on all editable takes, even if multiple editors per project.
+  * v2.1 (2021-10-15)
+    + Faster determination of editable takes.
 ]]
 
 -- USER AREA
@@ -110,20 +112,33 @@ end -- If multiple takes
 ]]
 -- Find all editable takes with selected notes
 tTakeNotes = {} -- Takes to edit
-for i = 0, reaper.CountMediaItems(0)-1 do
-    local item = reaper.GetMediaItem(0, i)
-    local take = reaper.GetActiveTake(item)
-    if reaper.ValidatePtr2(0, take, "MediaItem_Take*") and reaper.TakeIsMIDI(take) and reaper.MIDI_EnumSelNotes(take, -1) ~= -1 then
-        tTakeNotes[take] = {}
+if reaper.MIDIEditor_EnumTakes then -- New function in v6.36
+    if editor then
+        for i = 0, math.huge do
+            local editTake = reaper.MIDIEditor_EnumTakes(editor, i, true)
+            if not editTake then 
+                break
+            elseif reaper.ValidatePtr(editTake, "MediaItem_Take*") and reaper.TakeIsMIDI(editTake) then -- Bug in EnumTakes and GetTake that sometimes returns invalid take should be fixed, but make doubly sure
+                tTakeNotes[editTake] = {}
+            end
+        end 
     end
+else
+    for i = 0, reaper.CountMediaItems(0)-1 do
+        local item = reaper.GetMediaItem(0, i)
+        local take = reaper.GetActiveTake(item)
+        if reaper.ValidatePtr2(0, take, "MediaItem_Take*") and reaper.TakeIsMIDI(take) and reaper.MIDI_EnumSelNotes(take, -1) ~= -1 then
+            tTakeNotes[take] = {}
+        end
+    end
+    reaper.Undo_BeginBlock2(0)
+    reaper.MIDIEditor_OnCommand(editor, 40214, false)
+    reaper.Undo_EndBlock2(0, "qwerty", 0)
+    for take in next, tTakeNotes do
+        if reaper.MIDI_EnumSelNotes(take, -1) ~= -1 then tTakeNotes[take] = nil end
+    end
+    if reaper.Undo_CanUndo2(0) == "qwerty" then reaper.Undo_DoUndo2(0) else return end
 end
-reaper.Undo_BeginBlock2(0)
-reaper.MIDIEditor_OnCommand(editor, 40214, false)
-reaper.Undo_EndBlock2(0, "qwerty", 0)
-for take in next, tTakeNotes do
-    if reaper.MIDI_EnumSelNotes(take, -1) ~= -1 then tTakeNotes[take] = nil end
-end
-if reaper.Undo_CanUndo2(0) == "qwerty" then reaper.Undo_DoUndo2(0) else return end
 if not next(tTakeNotes) then return end
 
 

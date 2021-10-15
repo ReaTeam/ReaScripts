@@ -1,6 +1,6 @@
 --[[
 Reascript name: js_Notation - Select all notes that have customized display lengths or positions.lua
-Version: 3.00
+Version: 3.10
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Donation: https://www.paypal.me/juliansader
@@ -19,6 +19,8 @@ Changelog:
     + Updated for REAPER v5.32's new notation specifications
   * v3.00 (2021-09-11)
     + Apply (only) to all editable takes in active MIDI editor.
+  * v3.10 (2021-10-15)
+    + Faster execution in multiple editable takes (requires REAPER v6.37)
 ]]
 
 local s_unpack = string.unpack
@@ -29,25 +31,37 @@ reaper.Undo_BeginBlock2(0)
 -----------------------------------------------
 -- Find all editable takes (that contain notes)
 tT = {}
-timeLeft, timeRight = reaper.GetSet_LoopTimeRange2(0, false, false, 0, 0, false)
-reaper.GetSet_LoopTimeRange2(0, true, false, 0, 1000000, false) -- Is 1000000s enough?
-reaper.MIDIEditor_LastFocused_OnCommand(40877, false) -- Select all notes in time selection
-
-for i = 0, reaper.CountMediaItems(0)-1 do
-    local item = reaper.GetMediaItem(0, i)
-    local take = reaper.GetActiveTake(item)
-    if reaper.ValidatePtr2(0, take, "MediaItem_Take*") and reaper.TakeIsMIDI(take) and reaper.MIDI_EnumSelNotes(take, -1) == 0 then -- Get potential takes that contain notes. NB == 0 
-        tT[take] = true
+if reaper.MIDIEditor_EnumTakes then -- REAPER v6.37 has new function, MIDIEditor_EnumTakes
+    local editor = reaper.MIDIEditor_GetActive()
+    for i = 0, math.huge do
+        local take = reaper.MIDIEditor_EnumTakes(editor, i, true)
+        if take and reaper.ValidatePtr2(0, take, "MediaItem_Take*") then 
+            tT[take] = true
+        else
+            break
+        end
     end
+else -- Use workaround trick.  Run actions that affect all editable takes, and check which ones were affected.
+    timeLeft, timeRight = reaper.GetSet_LoopTimeRange2(0, false, false, 0, 0, false)
+    reaper.GetSet_LoopTimeRange2(0, true, false, -math.huge, math.huge, false)
+    reaper.MIDIEditor_LastFocused_OnCommand(40877, false) -- Select all notes in time selection
+    
+    for i = 0, reaper.CountMediaItems(0)-1 do
+        local item = reaper.GetMediaItem(0, i)
+        local take = reaper.GetActiveTake(item)
+        if reaper.ValidatePtr2(0, take, "MediaItem_Take*") and reaper.TakeIsMIDI(take) and reaper.MIDI_EnumSelNotes(take, -1) == 0 then -- Get potential takes that contain notes. NB == 0 
+            tT[take] = true
+        end
+    end
+    
+    reaper.MIDIEditor_LastFocused_OnCommand(40214, false) -- Deselect all
+    
+    for take in next, tT do
+        if reaper.MIDI_EnumSelNotes(take, -1) ~= -1 then tT[take] = nil end -- Remove takes that were not affected by deselection
+    end
+    
+    reaper.GetSet_LoopTimeRange2(0, true, false, timeLeft, timeRight, false)
 end
-
-reaper.MIDIEditor_LastFocused_OnCommand(40214, false) -- Deselect all
-
-for take in next, tT do
-    if reaper.MIDI_EnumSelNotes(take, -1) ~= -1 then tT[take] = nil end -- Remoce takes that were not affected by deselection
-end
-
-reaper.GetSet_LoopTimeRange2(0, true, false, timeLeft, timeRight, false)
 
 --reaper.Undo_EndBlock2(0, "qwerty", 0) -- Other scripts that use this hack must undo.  However, since this script will in any case deselect and re-select, no need to undo
 --if reaper.Undo_CanUndo2(0) == "qwerty" then reaper.Undo_DoUndo2(0) end

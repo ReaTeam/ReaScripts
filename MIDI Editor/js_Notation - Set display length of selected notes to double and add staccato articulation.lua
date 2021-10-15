@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Notation - Set display length of selected notes to double and add staccato articulation.lua
-Version: 2.0
+Version: 2.1
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=172782&page=25
 Donation: https://www.paypal.me/juliansader
@@ -36,6 +36,8 @@ Changelog:
     + Script works on notes with existing notation (workaround for bug in MIDI_SetTextSysexEvt).
   * v2.0 (2021-09-09)
     + Works on all editable takes.
+  * v2.1 (2021-10-15)
+    + Faster determination of editable takes. 
 ]]
 
 
@@ -87,24 +89,36 @@ if not editor then return end
 
 -- Find all editable takes with selected notes
 tT = {} -- Takes to edit
-for i = 0, reaper.CountMediaItems(0)-1 do
-    local item = reaper.GetMediaItem(0, i)
-    local take = reaper.GetActiveTake(item)
-    if reaper.ValidatePtr2(0, take, "MediaItem_Take*") and reaper.TakeIsMIDI(take) and reaper.MIDI_EnumSelNotes(take, -1) ~= -1 then
-        tT[take] = {item = item}
+if reaper.MIDIEditor_EnumTakes then -- New function in v6.36
+    for i = 0, math.huge do
+        local editTake = reaper.MIDIEditor_EnumTakes(editor, i, true)
+        if not editTake then 
+            break
+        elseif reaper.ValidatePtr(editTake, "MediaItem_Take*") and reaper.TakeIsMIDI(editTake) then -- Bug in EnumTakes and GetTake that sometimes returns invalid take should be fixed, but make doubly sure
+            tT[editTake] = {item = reaper.GetMediaItemTake_Item(editTake)}
+        end
     end
+else
+    for i = 0, reaper.CountMediaItems(0)-1 do
+        local item = reaper.GetMediaItem(0, i)
+        local take = reaper.GetActiveTake(item)
+        if reaper.ValidatePtr2(0, take, "MediaItem_Take*") and reaper.TakeIsMIDI(take) and reaper.MIDI_EnumSelNotes(take, -1) ~= -1 then
+            tT[take] = {item = item}
+        end
+    end
+    reaper.Undo_BeginBlock2(0)
+    reaper.MIDIEditor_OnCommand(editor, 40214, false)
+    reaper.Undo_EndBlock2(0, "qwerty", 0)
+    for take in next, tT do
+        if reaper.MIDI_EnumSelNotes(take, -1) ~= -1 then tT[take] = nil end
+    end
+    if reaper.Undo_CanUndo2(0) == "qwerty" then reaper.Undo_DoUndo2(0) end
 end
-reaper.Undo_BeginBlock2(0)
-reaper.MIDIEditor_OnCommand(editor, 40214, false)
-reaper.Undo_EndBlock2(0, "qwerty", 0)
-for take in next, tT do
-    if reaper.MIDI_EnumSelNotes(take, -1) ~= -1 then tT[take] = nil end
-end
-if reaper.Undo_CanUndo2(0) == "qwerty" then reaper.Undo_DoUndo2(0) end
+
 if not next(tT) then return end
                         
 reaper.Undo_BeginBlock2(0)
-
+    
 for take in next, tT do 
 
     reaper.MIDI_Sort(take) -- For binary search, MIDI must be sorted
