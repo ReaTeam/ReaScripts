@@ -1,0 +1,34 @@
+// @description Toggle exclusive solo for track under mouse
+// @author AZ
+// @version 1.0
+
+/**
+ * ReaScript Name: Toggle exclusive solo for track under mouse
+ * Author: AZ
+ * Web:
+
+ */
+ 
+function solo() (
+  Main_OnCommandEx(41110, 0, 0 ); //select track under mouse
+  x=GetMediaTrackInfo_Value ( GetSelectedTrack(0, 0), "I_SOLO");
+  x==2 ? ( //if solo in place
+  SetMediaTrackInfo_Value(GetSelectedTrack(0, 0), "I_SOLO", 0);
+  );
+          
+  x==1 ? (
+  SetMediaTrackInfo_Value(GetSelectedTrack(0, 0), "I_SOLO", 0);
+  );
+                    
+  x==0 ? (
+  Main_OnCommandEx(40340, 1, 0 ); //unsolo all tracks
+  SetMediaTrackInfo_Value(GetSelectedTrack(0, 0), "I_SOLO", 2);
+  );
+);
+
+
+Undo_BeginBlock();
+PreventUIRefresh(1);
+solo();
+PreventUIRefresh(-1);
+Undo_EndBlock("Solo exclusive tracks under mouse", -1);
