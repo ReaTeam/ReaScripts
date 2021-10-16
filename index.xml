@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="5533e4df8de0d16f1bffbec67bc27f9d6ccd71cb" name="ReaTeam Scripts">
+<index version="1" commit="086f5af344dd2105ea1337626ee268f46851eef0" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -3210,9 +3210,14 @@ Improve "under mouse cursor" variants to work over any envelope]]></changelog>
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Toggles wet from 0% to current value (or 100%) for the FX in focus\par}
 }
 ]]></description>
+        <link rel="donation">https://www.paypal.me/amagalma</link>
       </metadata>
       <version name="1.0" author="amagalma" time="2018-10-14T16:16:22Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/1ce6539a2bd15baebc2fed4b1095fbf6f3758afe/FX/amagalma_Toggle%20wet%200-100%25%20(or%20current%20value)%20for%20focused%20FX.lua</source>
+      </version>
+      <version name="1.01" author="amagalma" time="2021-10-16T12:27:17Z">
+        <changelog><![CDATA[Update to work with v6.37+]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/086f5af344dd2105ea1337626ee268f46851eef0/FX/amagalma_Toggle%20wet%200-100%25%20(or%20current%20value)%20for%20focused%20FX.lua</source>
       </version>
     </reapack>
     <reapack name="BuyOne_FX presets menu (guide inside).lua" type="script" desc="FX presets menu">
