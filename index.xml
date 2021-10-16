@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="d682318957353f45520b8ebfe681f9596dd13995" name="ReaTeam Scripts">
+<index version="1" commit="5533e4df8de0d16f1bffbec67bc27f9d6ccd71cb" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -15678,6 +15678,12 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/689f531fbe84cf6240e10a4e3196bf39778891a7/Various/amagalma_gianfini_ReaNamer%20(track-item-region%20renaming%20utility).lua</source>
         <source file="amagalma_ReaNamer Replace Help.lua">https://github.com/ReaTeam/ReaScripts/raw/689f531fbe84cf6240e10a4e3196bf39778891a7/Various/amagalma_ReaNamer%20Replace%20Help.lua</source>
         <source file="amagalma_ReaNamer utf8data.lua">https://github.com/ReaTeam/ReaScripts/raw/689f531fbe84cf6240e10a4e3196bf39778891a7/Various/amagalma_ReaNamer%20utf8data.lua</source>
+      </version>
+      <version name="1.31" author="amagalma &amp; gianfini" time="2021-10-16T11:57:57Z">
+        <changelog><![CDATA[- gianfini: fix crash when renaming single item in list in "Items" or "Region" mode]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/5533e4df8de0d16f1bffbec67bc27f9d6ccd71cb/Various/amagalma_gianfini_ReaNamer%20(track-item-region%20renaming%20utility).lua</source>
+        <source file="amagalma_ReaNamer Replace Help.lua">https://github.com/ReaTeam/ReaScripts/raw/5533e4df8de0d16f1bffbec67bc27f9d6ccd71cb/Various/amagalma_ReaNamer%20Replace%20Help.lua</source>
+        <source file="amagalma_ReaNamer utf8data.lua">https://github.com/ReaTeam/ReaScripts/raw/5533e4df8de0d16f1bffbec67bc27f9d6ccd71cb/Various/amagalma_ReaNamer%20utf8data.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Go to track (mousewheel only) reverse.eel" type="script" desc="amagalma_Go to track (mousewheel only) reverse">
