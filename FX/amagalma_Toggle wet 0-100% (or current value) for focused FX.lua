@@ -1,19 +1,22 @@
 -- @description amagalma_Toggle wet 0-100% (or current value) for focused FX
 -- @author amagalma
--- @version 1.0
+-- @version 1.01
+-- @changelog Update to work with v6.37+
+-- @donation https://www.paypal.me/amagalma
 -- @about
 --   # Toggles wet from 0% to current value (or 100%) for the FX in focus
 
-local reaper, math = reaper, math
+local floor, ceil = math.floor, math.ceil
 
 local focus, track, item, fx = reaper.GetFocusedFX()
 
 function round(num, numDecimalPlaces)
     local mult = 10^(numDecimalPlaces or 0)
-    if num >= 0 then return math.floor(num * mult + 0.5) / mult
-    else return math.ceil(num * mult - 0.5) / mult end
+    if num >= 0 then return floor(num * mult + 0.5) / mult
+    else return ceil(num * mult - 0.5) / mult end
 end
 
+local six_thirtyseven = reaper.APIExists( "TakeFX_GetParamFromIdent" )
 
 if focus == 1 then --------------- TRACK FX ---------------
 
@@ -28,14 +31,15 @@ if focus == 1 then --------------- TRACK FX ---------------
   local chain_vis = reaper.TrackFX_GetChainVisible( track )
   if hwnd or chain_vis > -1 then
     
-    local parm_cnt = reaper.TrackFX_GetNumParams( track, fx )
-    local val = reaper.TrackFX_GetParam( track, fx, parm_cnt-1 )
+    local wetparam = six_thirtyseven and reaper.TrackFX_GetParamFromIdent( track, fx, ":wet" ) or
+                     reaper.TrackFX_GetNumParams( take, fx ) - 1
+    local val = reaper.TrackFX_GetParam( track, fx, wetparam )
     local fxguid = reaper.TrackFX_GetFXGUID( track, fx )
     local _, name = reaper.TrackFX_GetFXName( track, fx, "" )
     
     if val > 0 then -- store value and set wet to 0%
       reaper.SetExtState( "ToggleWet", fxguid, val, false )
-      reaper.TrackFX_SetParam( track, fx, parm_cnt-1, 0 )
+      reaper.TrackFX_SetParam( track, fx, wetparam, 0 )
       reaper.Undo_OnStateChangeEx( "Set " .. name .. " to 0% wet", 2, -1 )
     else -- set to previous value if exists or 100%
       if reaper.HasExtState( "ToggleWet" , fxguid ) then
@@ -43,7 +47,7 @@ if focus == 1 then --------------- TRACK FX ---------------
       else
         val = 1
       end
-      reaper.TrackFX_SetParam( track, fx, parm_cnt-1, val )
+      reaper.TrackFX_SetParam( track, fx, wetparam, val )
       reaper.DeleteExtState( "ToggleWet", fxguid, false )
       val = round (val * 100)
       reaper.Undo_OnStateChangeEx( "Set " .. name .. " to " .. val .. "% wet", 2, -1 )
@@ -65,14 +69,15 @@ elseif focus == 2 then --------------- TAKE FX ---------------
   local chain_vis = reaper.TakeFX_GetChainVisible( take )
   if hwnd or chain_vis > -1 then
   
-    local parm_cnt = reaper.TakeFX_GetNumParams( take, fx )
-    local val = reaper.TakeFX_GetParam( take, fx, parm_cnt-1 )
+    local wetparam = six_thirtyseven and reaper.TakeFX_GetParamFromIdent( take, fx, ":wet" ) or
+                     reaper.TakeFX_GetNumParams( take, fx ) - 1
+    local val = reaper.TakeFX_GetParam( take, fx, wetparam )
     local fxguid = reaper.TakeFX_GetFXGUID( take, fx )
     local _, name = reaper.TakeFX_GetFXName( take, fx, "" )
     
     if val > 0 then -- store value and set wet to 0%
       reaper.SetExtState( "ToggleWet", fxguid, val, false )
-      reaper.TakeFX_SetParam( take, fx, parm_cnt-1, 0 )
+      reaper.TakeFX_SetParam( take, fx, wetparam, 0 )
       reaper.Undo_OnStateChangeEx( "Set " .. name .. " to 0% wet", 4, -1 )
     else -- set to previous value if exists or 100%
       if reaper.HasExtState( "ToggleWet" , fxguid ) then
@@ -80,7 +85,7 @@ elseif focus == 2 then --------------- TAKE FX ---------------
       else
         val = 1
       end
-      reaper.TakeFX_SetParam( take, fx, parm_cnt-1, val )
+      reaper.TakeFX_SetParam( take, fx, wetparam, val )
       reaper.DeleteExtState( "ToggleWet", fxguid, false )
       val = round (val * 100)
       reaper.Undo_OnStateChangeEx( "Set " .. name .. " to " .. val .. "% wet", 4, -1 )
