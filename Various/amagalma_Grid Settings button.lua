@@ -1,7 +1,7 @@
 -- @description Grid Settings button
 -- @author amagalma
--- @version 1.02
--- @changelog Improvement: keep position when changing size
+-- @version 1.03
+-- @changelog Display correctly dotted and triplet when changing grid via actions
 -- @provides
 --   . > amagalma_Grid Settings button/amagalma_Grid Settings button.lua
 --   amagalma_Grid Settings button/amagalma_triplet.png
@@ -79,11 +79,12 @@ local m = {
 }
 
 
-local dotted, triplet, grid, measure
+local dotted, triplet, grid, measure, division
 local function get_grid()
   measure = reaper.GetToggleCommandState( 40725 )
   if measure == 0 then
     grid = ({reaper.GetSetProjectGrid( 0, false, 0, 0, 0 )})[2]
+    division = grid
     if not notes[grid] then
       dotted = reaper.GetToggleCommandState( reaper.NamedCommandLookup( "_SWS_AWTOGGLEDOTTED" ) ) == 1
       triplet = reaper.GetToggleCommandState( reaper.NamedCommandLookup( "_SWS_AWTOGGLETRIPLET" ) ) == 1
@@ -98,7 +99,7 @@ local function get_grid()
 end
 
 get_grid()
-local old_grid = grid
+local old_division = division
 
 local function Str2Num(str, def)
   if str == "" then
@@ -206,97 +207,94 @@ reaper.atexit(Exit)
 
 local time = reaper.time_precise()
 function main()
-  if gfx.mouse_x > 0 and gfx.mouse_x < gfx.w and
-  gfx.mouse_y > 0 and gfx.mouse_y < gfx.h then
-    if gfx.mouse_cap & 1 == 1 then
-      -- amagalma_Set project grid (via dropdown menu) equivalent code
-      local division = ({reaper.GetSetProjectGrid( 0, 0, 0, 0, 0 )})[2]
-      local mode = reaper.GetToggleCommandState( 42010 ) == 0 and "arrange" or "project"
-      local menu = "#Set " .. mode .. " grid to :||"
-      for i = 1, #m do
-        local togglestate = ""
-        if i == 1 and measure == 1 then
-          togglestate = "!"
-        elseif measure == 0 and i > 1 then
-          if m[i][1] < 0 then
-            local d = -m[i][1]
-            if d * 1.5 == division or division == d * (2/3) or d == division then
-              togglestate = "!"
-            end
-          else
-            togglestate = m[i][1] == division and "!" or ""
+  if gfx.mouse_cap & 1 == 1 then
+    -- amagalma_Set project grid (via dropdown menu) equivalent code
+    local division = ({reaper.GetSetProjectGrid( 0, 0, 0, 0, 0 )})[2]
+    local mode = reaper.GetToggleCommandState( 42010 ) == 0 and "arrange" or "project"
+    local menu = "#Set " .. mode .. " grid to :||"
+    for i = 1, #m do
+      local togglestate = ""
+      if i == 1 and measure == 1 then
+        togglestate = "!"
+      elseif measure == 0 and i > 1 then
+        if m[i][1] < 0 then
+          local d = -m[i][1]
+          if d * 1.5 == division or division == d * (2/3) or d == division then
+            togglestate = "!"
           end
-        end
-        menu = menu .. togglestate .. m[i][2] .. "|"
-      end
-      gfx.x, gfx.y = gfx.mouse_x-40, gfx.mouse_y-40
-      local selection = gfx.showmenu(menu)
-      if selection > 0 then
-        if selection < 3 and measure == 0 then
-          reaper.Main_OnCommand(40923, 0) -- Set measure grid
         else
-          if measure == 1 then
-            reaper.Main_OnCommand(40725, 0) -- Toggle measure grid
-          end
-          if selection == 3 then
-            selection = 2
-          else
-            selection = selection + math.floor((selection-4)/3)
-          end
-          reaper.SetProjectGrid( 0, m[selection][1] )
+          togglestate = m[i][1] == division and "!" or ""
         end
-        get_grid()
-        draw_grid()
-        old_grid = grid
       end
-    elseif gfx.mouse_cap & 2 == 2 then
-      dock = gfx.dock(-1)
-      local want_dock = gfx.showmenu((dock & 1 == 1 and "#Undock script?" or "#Dock script?") .. "||Yes|Cancel")
-      if want_dock == 2 then
-        dock = gfx.dock(dock ~ 1,show_x,show_y,size_w,size)
-        get_grid()
-        draw_grid()
-        old_grid = grid
-      end
+      menu = menu .. togglestate .. m[i][2] .. "|"
     end
-    if gfx.mouse_wheel ~= 0 then
-      local _, division, swingmode, swingamt = reaper.GetSetProjectGrid( 0, 0, 0, 0, 0 )
-      local change
-      if grid == -1 then
-        reaper.GetSetProjectGrid( 0, 1, 0.25, swingmode, swingamt )
-        get_grid()
-        draw_grid()
-        old_grid = grid
-      elseif grid == 1 and gfx.mouse_wheel > 0 then
+    gfx.x, gfx.y = gfx.mouse_x-40, gfx.mouse_y-40
+    local selection = gfx.showmenu(menu)
+    if selection > 0 then
+      if selection < 3 and measure == 0 then
         reaper.Main_OnCommand(40923, 0) -- Set measure grid
-        get_grid()
-        draw_grid()
-        old_grid = grid
       else
-        if grid == 0 then
-          if gfx.mouse_wheel < 0 then
-            change = 1
-          end
-        elseif grid < 1 and gfx.mouse_wheel > 0 then
-          change = division >= 1 and 1 or division * 2
-        elseif grid > 1/64 and gfx.mouse_wheel < 0 then
-          change = division <= 1/64 and 1/64 or division / 2
+        if measure == 1 then
+          reaper.Main_OnCommand(40725, 0) -- Toggle measure grid
         end
-        if change then
-          if measure == 1 then
-            reaper.Main_OnCommand(40725, 0) -- Toggle measure grid
-          end
-          reaper.GetSetProjectGrid( 0, 1, change, swingmode, swingamt )
-          get_grid()
-          draw_grid()
-          old_grid = grid
+        if selection == 3 then
+          selection = 2
+        else
+          selection = selection + math.floor((selection-4)/3)
         end
+        reaper.SetProjectGrid( 0, m[selection][1] )
       end
-      gfx.mouse_wheel = 0
+      get_grid()
+      draw_grid()
+      old_division = division
+    end
+  elseif gfx.mouse_cap & 2 == 2 then
+    dock = gfx.dock(-1)
+    local want_dock = gfx.showmenu((dock & 1 == 1 and "#Undock script?" or "#Dock script?") .. "||Yes|Cancel")
+    if want_dock == 2 then
+      dock = gfx.dock(dock ~ 1,show_x,show_y,size_w,size)
+      get_grid()
+      draw_grid()
+      old_division = division
     end
   end
+  if gfx.mouse_wheel ~= 0 then
+    local _, division, swingmode, swingamt = reaper.GetSetProjectGrid( 0, 0, 0, 0, 0 )
+    local change
+    if grid == -1 then
+      reaper.GetSetProjectGrid( 0, 1, 0.25, swingmode, swingamt )
+      get_grid()
+      draw_grid()
+      old_division = division
+    elseif grid == 1 and gfx.mouse_wheel > 0 then
+      reaper.Main_OnCommand(40923, 0) -- Set measure grid
+      get_grid()
+      draw_grid()
+      old_division = division
+    else
+      if grid == 0 then
+        if gfx.mouse_wheel < 0 then
+          change = 1
+        end
+      elseif grid < 1 and gfx.mouse_wheel > 0 then
+        change = division >= 1 and 1 or division * 2
+      elseif grid > 1/64 and gfx.mouse_wheel < 0 then
+        change = division <= 1/64 and 1/64 or division / 2
+      end
+      if change then
+        if measure == 1 then
+          reaper.Main_OnCommand(40725, 0) -- Toggle measure grid
+        end
+        reaper.GetSetProjectGrid( 0, 1, change, swingmode, swingamt )
+        get_grid()
+        draw_grid()
+        old_division = division
+      end
+    end
+    gfx.mouse_wheel = 0
+  end
   local now = reaper.time_precise()
-  if now - time > 0.5 then
+  if now - time > 0.4 then
     time = now
     get_grid()
     dock, cx, cy = gfx.dock(-1, 0, 0, 0, 0 )
@@ -309,9 +307,9 @@ function main()
       draw_grid()
       oldw, oldh = gfx.w, gfx.h
     end
-    if grid ~= old_grid then
+    if division ~= old_division then
       draw_grid()
-      old_grid = grid
+      old_division = division
     end
   end
   reaper.defer(main)
