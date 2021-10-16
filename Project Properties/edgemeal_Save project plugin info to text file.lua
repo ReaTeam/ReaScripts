@@ -1,11 +1,7 @@
 -- @description Save project plugin info to text file
 -- @author Edgemeal
--- @version 1.05
--- @changelog
---   Minor text format changes.
---   Tweak reading line from project file.
---   Check for SWS extension before calling CF_ShellExecute.
---   Replace GetLastWord func with quicker solution (Thanks: Mespotine[t=233393]).
+-- @version 1.06
+-- @changelog Fix crash if project contains empty items.
 -- @link Forum https://forum.cockos.com/showthread.php?t=225219
 -- @donation Donate https://www.paypal.me/Edgemeal
 
@@ -58,10 +54,12 @@ function AddItemFX(track,track_name)
     for j = 0, itemcount-1 do
       local item = reaper.GetTrackMediaItem(track, j)
       local take = reaper.GetActiveTake(item)
-      local fx_count = reaper.TakeFX_GetCount(take)
-      for fx = 0, fx_count-1 do
-        local _, fx_name = reaper.TakeFX_GetFXName(take, fx, "")
-        Add_TakeFX(fx_used,fx_name)
+      if take then
+        local fx_count = reaper.TakeFX_GetCount(take)
+        for fx = 0, fx_count-1 do
+          local _, fx_name = reaper.TakeFX_GetFXName(take, fx, "")
+          Add_TakeFX(fx_used,fx_name)
+        end
       end
     end
     if #fx_used > 0 then
