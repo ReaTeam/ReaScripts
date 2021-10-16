@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="cb4fbdfbeca9887b57af0307af95d7094404842e" name="ReaTeam Scripts">
+<index version="1" commit="d682318957353f45520b8ebfe681f9596dd13995" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -15754,6 +15754,20 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
         <source file="amagalma_Grid Settings button/amagalma_eighth_note.png">https://github.com/ReaTeam/ReaScripts/raw/b8951f61da03bccdb5525c57d94896bd5c5acf8b/Various/amagalma_Grid%20Settings%20button/amagalma_eighth_note.png</source>
         <source file="amagalma_Grid Settings button/amagalma_quarter_note.png">https://github.com/ReaTeam/ReaScripts/raw/b8951f61da03bccdb5525c57d94896bd5c5acf8b/Various/amagalma_Grid%20Settings%20button/amagalma_quarter_note.png</source>
         <source file="amagalma_Grid Settings button/amagalma_grid_button.png">https://github.com/ReaTeam/ReaScripts/raw/b8951f61da03bccdb5525c57d94896bd5c5acf8b/Various/amagalma_Grid%20Settings%20button/amagalma_grid_button.png</source>
+      </version>
+      <version name="1.03" author="amagalma" time="2021-10-16T11:52:31Z">
+        <changelog><![CDATA[Display correctly dotted and triplet when changing grid via actions]]></changelog>
+        <source main="main" file="amagalma_Grid Settings button/amagalma_Grid Settings button.lua">https://github.com/ReaTeam/ReaScripts/raw/d682318957353f45520b8ebfe681f9596dd13995/Various/amagalma_Grid%20Settings%20button.lua</source>
+        <source file="amagalma_Grid Settings button/amagalma_triplet.png">https://github.com/ReaTeam/ReaScripts/raw/d682318957353f45520b8ebfe681f9596dd13995/Various/amagalma_Grid%20Settings%20button/amagalma_triplet.png</source>
+        <source file="amagalma_Grid Settings button/amagalma_sixtyfourth_note.png">https://github.com/ReaTeam/ReaScripts/raw/d682318957353f45520b8ebfe681f9596dd13995/Various/amagalma_Grid%20Settings%20button/amagalma_sixtyfourth_note.png</source>
+        <source file="amagalma_Grid Settings button/amagalma_thirtysecond_note.png">https://github.com/ReaTeam/ReaScripts/raw/d682318957353f45520b8ebfe681f9596dd13995/Various/amagalma_Grid%20Settings%20button/amagalma_thirtysecond_note.png</source>
+        <source file="amagalma_Grid Settings button/amagalma_sixteenth_note.png">https://github.com/ReaTeam/ReaScripts/raw/d682318957353f45520b8ebfe681f9596dd13995/Various/amagalma_Grid%20Settings%20button/amagalma_sixteenth_note.png</source>
+        <source file="amagalma_Grid Settings button/amagalma_dot.png">https://github.com/ReaTeam/ReaScripts/raw/d682318957353f45520b8ebfe681f9596dd13995/Various/amagalma_Grid%20Settings%20button/amagalma_dot.png</source>
+        <source file="amagalma_Grid Settings button/amagalma_half_note.png">https://github.com/ReaTeam/ReaScripts/raw/d682318957353f45520b8ebfe681f9596dd13995/Various/amagalma_Grid%20Settings%20button/amagalma_half_note.png</source>
+        <source file="amagalma_Grid Settings button/amagalma_whole_note.png">https://github.com/ReaTeam/ReaScripts/raw/d682318957353f45520b8ebfe681f9596dd13995/Various/amagalma_Grid%20Settings%20button/amagalma_whole_note.png</source>
+        <source file="amagalma_Grid Settings button/amagalma_eighth_note.png">https://github.com/ReaTeam/ReaScripts/raw/d682318957353f45520b8ebfe681f9596dd13995/Various/amagalma_Grid%20Settings%20button/amagalma_eighth_note.png</source>
+        <source file="amagalma_Grid Settings button/amagalma_quarter_note.png">https://github.com/ReaTeam/ReaScripts/raw/d682318957353f45520b8ebfe681f9596dd13995/Various/amagalma_Grid%20Settings%20button/amagalma_quarter_note.png</source>
+        <source file="amagalma_Grid Settings button/amagalma_grid_button.png">https://github.com/ReaTeam/ReaScripts/raw/d682318957353f45520b8ebfe681f9596dd13995/Various/amagalma_Grid%20Settings%20button/amagalma_grid_button.png</source>
       </version>
     </reapack>
     <reapack name="amagalma_Horizontal Zoom preset bundle.lua" type="script" desc="Horizontal Zoom preset bundle">
