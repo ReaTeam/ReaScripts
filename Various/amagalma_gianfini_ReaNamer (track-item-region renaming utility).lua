@@ -1,7 +1,7 @@
 -- @description ReaNamer (track-item-region renaming utility)
 -- @author amagalma & gianfini
--- @version 1.30
--- @changelog - Full UTF-8 support for all case-changing functions
+-- @version 1.31
+-- @changelog - gianfini: fix crash when renaming single item in list in "Items" or "Region" mode
 -- @provides
 --   amagalma_ReaNamer Replace Help.lua
 --   amagalma_ReaNamer utf8data.lua
@@ -1221,7 +1221,16 @@ end
 
 local function modify_single_line(line_num)
   local line_object = ""
-  local obj_name, track_num = get_line_name(indexed_track + line_num - 2)  -- gianfini fix single track modify
+  local indexed_obj = 1  -- gianfini newnew
+  -- local obj_name, track_num = 1  -- gianfini fix single track modify
+  if what == "tracks" then  -- gianfini newnew
+    indexed_obj = indexed_track
+  elseif what == "regions" then
+    indexed_obj = indexed_region
+  else
+    indexed_obj = indexed_item
+  end
+  local obj_name, track_num = get_line_name(indexed_obj + line_num - 2)  -- gianfini newnew
   if not obj_name or not track_num then return end
   if what == "tracks" then
     line_object = string.format("track %i",track_num)
@@ -1237,7 +1246,7 @@ local function modify_single_line(line_num)
     undo_stack = undo_stack + 1
     mod_stack_name [undo_stack] = "single_line_edit"
     mod_stack_parm1 [undo_stack] = text
-    mod_stack_parm2 [undo_stack] = tostring(line_num + indexed_track - 1)  -- gianfini fix single track modify
+    mod_stack_parm2 [undo_stack] = tostring(line_num + indexed_obj - 1)  -- gianfini fix single track modify
     WriteCurrentModifier()
   end
 end
