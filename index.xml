@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="086f5af344dd2105ea1337626ee268f46851eef0" name="ReaTeam Scripts">
+<index version="1" commit="fad95fef85522c084708bebeae42bc0049578ff8" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -12090,6 +12090,10 @@ Check for SWS extension before calling CF_ShellExecute.
 Replace GetLastWord func with quicker solution (Thanks: Mespotine[t=233393]).]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/0b7ab37ef73e52c97854ebee73238c018953b8b4/Project%20Properties/edgemeal_Save%20project%20plugin%20info%20to%20text%20file.lua</source>
       </version>
+      <version name="1.06" author="Edgemeal" time="2021-10-17T19:10:18Z">
+        <changelog><![CDATA[Fix crash if project contains empty items.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ccbf66a896a95a5e12ff1bf4d575e8aab6547c32/Project%20Properties/edgemeal_Save%20project%20plugin%20info%20to%20text%20file.lua</source>
+      </version>
     </reapack>
     <reapack name="JerContact_Open project based on file in clipboard.lua" type="script" desc="Open project based on file in clipboard">
       <metadata>
@@ -13106,6 +13110,22 @@ Fix the new menu crashing if there are new saved render presets]]></changelog>
     <reapack name="Argitoth_Convert all takes rate to pitch.eel" type="script" desc="Convert all takes rate to pitch">
       <version name="1.0" author="Elan Hickler (Argitoth)" time="2015-12-03T07:38:56Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Takes%20Properties/Argitoth_Convert%20all%20takes%20rate%20to%20pitch.eel</source>
+      </version>
+    </reapack>
+    <reapack name="BuyOne_Reverse order of all takes in items.lua" type="script" desc="Reverse order of all takes in items">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Reverses order of all takes in selected items or in all items in the project if none is selected.\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/member.php?u=134058</link>
+      </metadata>
+      <version name="1.0" author="BuyOne" time="2021-10-17T19:10:57Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/fad95fef85522c084708bebeae42bc0049578ff8/Takes%20Properties/BuyOne_Reverse%20order%20of%20all%20takes%20in%20items.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Select the item with highest or lowest pitch.lua" type="script" desc="Select the item with highest or lowest pitch">
