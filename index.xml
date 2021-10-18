@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="fad95fef85522c084708bebeae42bc0049578ff8" name="ReaTeam Scripts">
+<index version="1" commit="bb877692613d156e9288d8f52abcf518754035cf" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -13110,6 +13110,24 @@ Fix the new menu crashing if there are new saved render presets]]></changelog>
     <reapack name="Argitoth_Convert all takes rate to pitch.eel" type="script" desc="Convert all takes rate to pitch">
       <version name="1.0" author="Elan Hickler (Argitoth)" time="2015-12-03T07:38:56Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Takes%20Properties/Argitoth_Convert%20all%20takes%20rate%20to%20pitch.eel</source>
+      </version>
+    </reapack>
+    <reapack name="BuyOne_Randomize active take in items (settings inside).lua" type="script" desc="Randomize active take in items">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Randomizes active take in selected items or in all items in the project if none is selected.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Thanks to the fact that only active take in an item can be played back, randomization can be used as a creative tool to try different combinations of performance variations reprsented as takes combined into items at will.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 An even greater degree of randomization can be achieved by using this script within a custom action with the actions:\line SWS/S&M: Takes - Move active down (cycling) in selected items AND/OR\line SWS/S&M: Takes - Move active up (cycling) in selected items\line having a single or several instances of each or both.\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/member.php?u=134058</link>
+      </metadata>
+      <version name="1.0" author="BuyOne" time="2021-10-18T21:17:07Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/bb877692613d156e9288d8f52abcf518754035cf/Takes%20Properties/BuyOne_Randomize%20active%20take%20in%20items%20(settings%20inside).lua</source>
       </version>
     </reapack>
     <reapack name="BuyOne_Reverse order of all takes in items.lua" type="script" desc="Reverse order of all takes in items">
