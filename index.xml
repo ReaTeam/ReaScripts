@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="bb877692613d156e9288d8f52abcf518754035cf" name="ReaTeam Scripts">
+<index version="1" commit="3a155fadf53ee8ad9503c468a18841fc13fc57ff" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -4755,6 +4755,21 @@ website
     <reapack name="AtmanActive_Apply track-take FX to selected items and propagate new files to other items with same source.eel" type="script" desc="Apply track-take FX to selected items and propagate new files to other items with same source">
       <version name="1.0" author="AtmanActive" time="2018-11-28T23:26:53Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Items%20Editing/AtmanActive_Apply%20track-take%20FX%20to%20selected%20items%20and%20propagate%20new%20files%20to%20other%20items%20with%20same%20source.eel</source>
+      </version>
+    </reapack>
+    <reapack name="az_Smart split items by mouse cursor.lua" type="script" desc="Smart split items by mouse cursor">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Split items respect grouping, depend on context of mouse cursor, split at time selection if exist, split at mouse or edit cursor otherwise.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Date: october 2021\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="AZ" time="2021-10-19T20:22:27Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f321a57bd7901786e9cb74335c3a10e3484a6fdf/Items%20Editing/az_Smart%20split%20items%20by%20mouse%20cursor.lua</source>
       </version>
     </reapack>
     <reapack name="beaunus_Name item takes by last marker to cut item.lua" type="script" desc="Name item takes by last marker to cut item">
@@ -13846,6 +13861,11 @@ is off-screen. Reaper issue, should be fixed soon.]]></changelog>
     <reapack name="Argitoth_Set number of channels for selected tracks.eel" type="script" desc="Set number of channels for selected tracks">
       <version name="1.0" author="Elan Hickler (Argitoth)" time="2015-12-03T07:38:56Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Tracks%20Properties/Argitoth_Set%20number%20of%20channels%20for%20selected%20tracks.eel</source>
+      </version>
+    </reapack>
+    <reapack name="AZ_Toggle exclusive solo for track under mouse.eel" type="script" desc="Toggle exclusive solo for track under mouse">
+      <version name="1.0" author="AZ" time="2021-10-19T20:23:50Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3a155fadf53ee8ad9503c468a18841fc13fc57ff/Tracks%20Properties/AZ_Toggle%20exclusive%20solo%20for%20track%20under%20mouse.eel</source>
       </version>
     </reapack>
     <reapack name="BuyOne_Mute empty tracks with FX and optionally set their FX offline (guide inside).lua" type="script" desc="Mute empty tracks with FX and optionally set their FX offline">
