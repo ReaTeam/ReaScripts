@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="3a155fadf53ee8ad9503c468a18841fc13fc57ff" name="ReaTeam Scripts">
+<index version="1" commit="848745e4092bfad4def5668c258a65eb2ee1012f" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -5956,6 +5956,23 @@ Fix: Expand error message when the library is missing]]></changelog>
       <version name="1.0" author="Mordi" time="2021-05-07T23:58:06Z">
         <changelog><![CDATA[Initial version.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/8962e708eefb419bb2d83ce9e7b1f7bd0887904e/Items%20Editing/mordi_Glue%20items,%20add%20take%20markers%20and%20name%20after%20first%20item.lua</source>
+      </version>
+    </reapack>
+    <reapack name="Mordi_Move selected items content to previous cue (align with snap offset).lua" type="script" desc="Move selected items content to previous or next cue (align with snap offset)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Move selected items content to previous/next cue (align with snap offset)\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Two scripts. I've got these mapped to Alt + Left and Alt + Right.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Useful for creating variations of sound effects. Make sure to set the snap offset to line up the cues.\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="Mordi" time="2021-10-21T20:28:04Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/598c5ed8449359ca6d722cb5d304a3a6189859a5/Items%20Editing/Mordi_Move%20selected%20items%20content%20to%20previous%20cue%20(align%20with%20snap%20offset).lua</source>
+        <source file="Mordi_Move selected items content to previous cue (align with snap offset)/Mordi_Move selected items content to next cue (align with snap offset).lua">https://github.com/ReaTeam/ReaScripts/raw/598c5ed8449359ca6d722cb5d304a3a6189859a5/Items%20Editing/Mordi_Move%20selected%20items%20content%20to%20previous%20cue%20(align%20with%20snap%20offset)/Mordi_Move%20selected%20items%20content%20to%20next%20cue%20(align%20with%20snap%20offset).lua</source>
       </version>
     </reapack>
     <reapack name="mordi_Move selected items to markers with the same name as the active take.lua" type="script" desc="Move selected items to markers with the same name as the active take">
@@ -12601,9 +12618,8 @@ Replace GetLastWord func with quicker solution (Thanks: Mespotine[t=233393]).]]>
 \widowctrl\hyphauto
 
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Create single region from selected items (get name and color from folder track)\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Made for exporting sound effects. Select all the items that make up your sound effect, and run this script. A region will be created which encompasses all the items and inherits its name and color from the parent track of the topmost item. See screenshot.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 This script works well with "Set render matrix by comparing track names and region names.lua".\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Tip: Name the parent track "#FX" to stop the script from traversing through it.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Made for exporting sound effects for games. Select all the items that make up your sound effect, and run this script. A region will be created which encompasses all the items and inherits its name and color from the parent track of the topmost item.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Depending on which of the scripts you run, it will also tag the resulting region for rendering either via the track itself or via the master track.\par}
 }
 ]]></description>
         <link rel="screenshot" href="https://i.imgur.com/xUg7bSU.gif">Creating regions from items</link>
@@ -12614,6 +12630,12 @@ Replace GetLastWord func with quicker solution (Thanks: Mespotine[t=233393]).]]>
       <version name="1.1" author="Mordi" time="2019-10-30T09:34:37Z">
         <changelog><![CDATA[Not sure what I fixed, but I fixed something...]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/83d76c8df66979f382bf1be7d856df1556c1bc3f/Regions/Mordi_Create%20single%20region%20from%20selected%20items%20(get%20name%20and%20color%20from%20folder%20track).lua</source>
+      </version>
+      <version name="1.2" author="Mordi" time="2021-10-21T20:28:58Z">
+        <changelog><![CDATA[Added two new scripts that tag the region for rendering via the parent track itself or via master.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/848745e4092bfad4def5668c258a65eb2ee1012f/Regions/Mordi_Create%20single%20region%20from%20selected%20items%20(get%20name%20and%20color%20from%20folder%20track).lua</source>
+        <source file="Mordi_Create single region from selected items (get name and color from folder track)/Mordi_Create single region from selected items (get name and color from folder track) and mark it in region render matrix via master.lua">https://github.com/ReaTeam/ReaScripts/raw/848745e4092bfad4def5668c258a65eb2ee1012f/Regions/Mordi_Create%20single%20region%20from%20selected%20items%20(get%20name%20and%20color%20from%20folder%20track)/Mordi_Create%20single%20region%20from%20selected%20items%20(get%20name%20and%20color%20from%20folder%20track)%20and%20mark%20it%20in%20region%20render%20matrix%20via%20master.lua</source>
+        <source file="Mordi_Create single region from selected items (get name and color from folder track)/Mordi_Create single region from selected items (get name and color from folder track) and mark it in region render matrix.lua">https://github.com/ReaTeam/ReaScripts/raw/848745e4092bfad4def5668c258a65eb2ee1012f/Regions/Mordi_Create%20single%20region%20from%20selected%20items%20(get%20name%20and%20color%20from%20folder%20track)/Mordi_Create%20single%20region%20from%20selected%20items%20(get%20name%20and%20color%20from%20folder%20track)%20and%20mark%20it%20in%20region%20render%20matrix.lua</source>
       </version>
     </reapack>
     <reapack name="Mordi_Set render matrix by comparing track names and region names.lua" type="script" desc="Set render matrix by comparing track names and region names">
