@@ -1,19 +1,6 @@
--- @description Create single region from selected items (get name and color from folder track)
--- @author Mordi
--- @version 1.2
--- @changelog Added two new scripts that tag the region for rendering via the parent track itself or via master.
--- @provides
---   Mordi_Create single region from selected items (get name and color from folder track)/Mordi_Create single region from selected items (get name and color from folder track) and mark it in region render matrix via master.lua
---   Mordi_Create single region from selected items (get name and color from folder track)/Mordi_Create single region from selected items (get name and color from folder track) and mark it in region render matrix.lua
--- @screenshot Creating regions from items https://i.imgur.com/xUg7bSU.gif
--- @about
---   # Create single region from selected items (get name and color from folder track)
---
---   Made for exporting sound effects for games. Select all the items that make up your sound effect, and run this script. A region will be created which encompasses all the items and inherits its name and color from the parent track of the topmost item.
---
---   Depending on which of the scripts you run, it will also tag the resulting region for rendering either via the track itself or via the master track.
+-- @noindex
 
-SCRIPT_NAME = "Create single region from selected items (get name and color from folder track)"
+SCRIPT_NAME = "Create single region from selected items (get name and color from folder track) and mark it in region render matrix via master"
 
 reaper.ClearConsole()
 
@@ -108,8 +95,11 @@ color = reaper.GetTrackColor(parent)
 -- Get name of track
 retval, name = reaper.GetTrackName(parent, "")
 
--- Create region
-reaper.AddProjectMarker2(0, true, regionPos, regionEnd, name, -1, color)
+-- Create region and store index
+rgnIndex = reaper.AddProjectMarker2(0, true, regionPos, regionEnd, name, -1, color)
+
+-- Tick the "Master mix" checkbox in the region render matrix
+reaper.SetRegionRenderMatrix(0, rgnIndex, reaper.GetMasterTrack(0), 1)
 
 -- End undo-block
 reaper.Undo_EndBlock2(0,SCRIPT_NAME,-1)
