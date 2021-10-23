@@ -25,7 +25,7 @@ About:
 		When the Master track is visible in the Mixer the left- and the rightmost
 		positions mean to the right and to the left of the Master track respectively.
 		
-					U S A G E   W I T H   S C R E E N S E T S
+			U S A G E   W I T H   S C R E E N S E T S
 		
 		1. In the TRACK_NAME setting specify the name of the track
 		you want to be scrolled into view in the Mixer when a screenset
@@ -33,8 +33,8 @@ About:
 
 		2. Create a custom action with the native screenset action
 		and the script in it placed in the following order, e.g.:
-				Screenset: Load window set #1  
-				Scroll named track into view in the Mixer.lua
+			Screenset: Load window set #1  
+			Scroll named track into view in the Mixer.lua
 
 		3. Use such custom action to load the screenset.
 		
@@ -218,7 +218,7 @@ POSITION = (POSITION:match('[CR]') or #POSITION == 0) and POSITION or '' -- left
 		local sel_trks_t = re_store_sel_trks() -- store sel tracks and unselect all	// METHOD II-a (make target track last touched)
 
 			for i = 0, r.CountTracks(0)-1 do -- scroll view to the saved track
-			tr = r.GetTrack(0,i) -- will be used outside of the loop if target track
+			tr = r.GetTrack(0,i) -- will be used outside of the loop and in the deferred Set_Mixer_Scroll() function if target track
 			local name = tr and {r.GetTrackName(tr)} -- 2 return values
 				if name and TRACK_NAME and name[2] == TRACK_NAME then
 				tr = Scroll_Track_Into_View(tr, POSITION)
@@ -230,7 +230,6 @@ POSITION = (POSITION:match('[CR]') or #POSITION == 0) and POSITION or '' -- left
 			end
 
 		start = r.time_precise()
-
 		Set_Mixer_Scroll() -- deferred function
 
 		--[[-- METHOD I-b
