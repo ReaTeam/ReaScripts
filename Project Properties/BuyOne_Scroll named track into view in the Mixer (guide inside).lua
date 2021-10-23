@@ -88,7 +88,7 @@ About:
 -- 'Screenset: Load window set #...' action inside a custom action
 -- In the custom action the script must FOLLOW the native action
 
-TRACK_NAME = [[test]] -- preferably unique in your project/mix template to avoid confusion
+TRACK_NAME = [[]] -- preferably unique in your project/mix template to avoid confusion
 POSITION = "" -- C/c = center, R/r = rightmost, otherwise = leftmost
 SCREENSET = "" -- 1 through 10
 
