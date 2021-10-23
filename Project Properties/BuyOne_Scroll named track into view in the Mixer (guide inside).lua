@@ -218,10 +218,10 @@ POSITION = (POSITION:match('[CR]') or #POSITION == 0) and POSITION or '' -- left
 		local sel_trks_t = re_store_sel_trks() -- store sel tracks and unselect all	// METHOD II-a (make target track last touched)
 
 			for i = 0, r.CountTracks(0)-1 do -- scroll stored track into view
-			local tr = r.GetTrack(0,i)
+			tr = r.GetTrack(0,i) -- will be used outside of the loop and in the deferred Set_Mixer_Scroll() function if target track
 			local name = tr and {r.GetTrackName(tr)} -- 2 return values
 				if name and TRACK_NAME and name[2] == TRACK_NAME then
-				tr = Scroll_Track_Into_View(tr, POSITION) -- will be used outside of the loop and in the deferred Set_Mixer_Scroll() function if target track
+				tr = Scroll_Track_Into_View(tr, POSITION)
 				--------------- METHOD II-b --------------
 				r.SetOnlyTrackSelected(tr) -- OR r.SetTrackSelected(tr, 1) since all are deselected with the re_store_sel_trks() function
 				ACT(40914) -- Track: Set first selected track as last touched track // the only way to make sure target track is the last touched is to deselect all, select the track and set it as last touched
