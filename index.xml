@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="f5ca90df7867e8e5cb65638e943061c4883f1477" name="ReaTeam Scripts">
+<index version="1" commit="f5a4cd90ab70a794bb15785b8018da13757f137f" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -4323,6 +4323,25 @@ website
       </metadata>
       <version name="1.05" author="amagalma" time="2021-02-09T23:16:26Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/339479d91380e23118cc81febd3fc9c85ad68174/Items%20Editing/amagalma_Implode%20items%20across%20tracks%20into%20takes%20(keep%20splits).lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Move closest crossfade to mouse cursor.lua" type="script" desc="Move closest crossfade to mouse cursor">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Moves the closest cross-fade to the mouse position\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Only one undo point is created after key shortcut is released\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Requires JS_ReaScriptAPI\sa180\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=253026</link>
+        <link rel="screenshot">https://i.ibb.co/wL5Bj92/move-xfade.gif</link>
+        <link rel="donation">https://www.paypal.me/amagalma</link>
+      </metadata>
+      <version name="1.0" author="amagalma" time="2021-10-24T20:02:25Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f5a4cd90ab70a794bb15785b8018da13757f137f/Items%20Editing/amagalma_Move%20closest%20crossfade%20to%20mouse%20cursor.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Nudge to source preferred position (used by BWF) for selected items' active takes.lua" type="script" desc="amagalma_Take: Nudge to source preferred position (used by BWF) for selected items' active takes">
