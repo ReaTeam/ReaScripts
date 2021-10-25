@@ -1,7 +1,8 @@
 -- @description Move selected items content to previous or next cue (align with snap offset)
 -- @author Mordi
--- @version 1.0
--- @provides Mordi_Move selected items content to previous cue (align with snap offset)/Mordi_Move selected items content to next cue (align with snap offset).lua
+-- @version 1.1
+-- @changelog Fixed a script not appearing in action list.
+-- @provides [main] Mordi_Move selected items content to previous cue (align with snap offset)/Mordi_Move selected items content to next cue (align with snap offset).lua
 -- @about
 --   # Move selected items content to previous/next cue (align with snap offset)
 --
