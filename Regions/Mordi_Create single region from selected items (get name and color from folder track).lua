@@ -1,6 +1,6 @@
 -- @description Create single region from selected items (get name and color from folder track)
 -- @author Mordi
--- @version 1.2
+-- @version 1.2.1
 -- @changelog Set the dropdown to actually make the two new scripts appear in the action list (d'oh).
 -- @provides
 --   [main] Mordi_Create single region from selected items (get name and color from folder track)/Mordi_Create single region from selected items (get name and color from folder track) and mark it in region render matrix via master.lua
