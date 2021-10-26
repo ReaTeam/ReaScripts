@@ -1,10 +1,10 @@
 -- @description Create single region from selected items (get name and color from folder track)
 -- @author Mordi
 -- @version 1.2
--- @changelog Added two new scripts that tag the region for rendering via the parent track itself or via master.
+-- @changelog Set the dropdown to actually make the two new scripts appear in the action list (d'oh).
 -- @provides
---   Mordi_Create single region from selected items (get name and color from folder track)/Mordi_Create single region from selected items (get name and color from folder track) and mark it in region render matrix via master.lua
---   Mordi_Create single region from selected items (get name and color from folder track)/Mordi_Create single region from selected items (get name and color from folder track) and mark it in region render matrix.lua
+--   [main] Mordi_Create single region from selected items (get name and color from folder track)/Mordi_Create single region from selected items (get name and color from folder track) and mark it in region render matrix via master.lua
+--   [main] Mordi_Create single region from selected items (get name and color from folder track)/Mordi_Create single region from selected items (get name and color from folder track) and mark it in region render matrix.lua
 -- @screenshot Creating regions from items https://i.imgur.com/xUg7bSU.gif
 -- @about
 --   # Create single region from selected items (get name and color from folder track)
