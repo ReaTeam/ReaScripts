@@ -98,6 +98,11 @@ About:
 		Mind that as of build 6.38 the Mixer window is global for all projects 
 		open in tabs, just the contents differ. Therefore changing Mixer scroll 
 		position in one such project will affect it across all open projects.
+
+		* * *
+		Check out also BuyOne_Scroll named track into view in the Mixer (guide inside).lua
+		for a method of scrolling named track into view without hard linking it 
+		to a screenset number.
 		
 ]]
 
