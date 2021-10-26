@@ -1,6 +1,7 @@
 -- @description Drums to MIDI
 -- @author ak5k
--- @version 0.1.0
+-- @version 0.1.1
+-- @changelog bug fix related to items with no transients
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=252626
 -- @about Creates General MIDI drum notes from transients based on tone in selected items or Razor Edit area. See [website](https://forum.cockos.com/showthread.php?t=252626) for more information.
 
@@ -270,8 +271,9 @@ local function analyze(take, pos)
 end
 
 local function get_tm_positions(item, pos, end_pos)
-  local reaper = reaper
+  --local reaper = reaper
   if not item then return nil end
+  
   local item = item
   local n = 1
   local res = {}
@@ -310,13 +312,18 @@ local function get_tm_positions(item, pos, end_pos)
       end
   end
   
+  
+  if not res[1] then return {} end
+   
   local samplerate = res[1]
+  
   tms = res[2]
   
   n = 1
   for i, tm in ipairs(tms) do
     tms[i] = tm/samplerate + (tms[i-1] or 0)
   end
+  
   
   n = 1
   for i, tm in ipairs(tms) do
@@ -1098,6 +1105,7 @@ end
 
 -------------------------------------------------------------------------------
 
+
 local retval, desc = reaper.GetAudioDeviceInfo("MODE", "")
 
 if not retval then return end
@@ -1160,14 +1168,17 @@ if table_len(tracks) == 2 then
 end
 
 local function main()
+  
   reaper.Main_OnCommandEx(42029, 0, 0)
   compare_takes(takes)
   local tms = nil
   for i, item in ipairs(items) do
-    local pos = item[2]
-    local end_pos = item[3]
-    local item = item[1]
+  
+    pos = item[2]
+    end_pos = item[3]
+    item = item[1]
     tms = get_tm_positions(item, pos, end_pos)
+    
     if tms then
       tms = check_duplicates(tms)
       for i, tm in ipairs(tms) do
@@ -1175,9 +1186,12 @@ local function main()
         insert_midi_note(pos, freq, peak)
       end
     end
+    
   end
+
   delete_duplicates()
   clean_up(tms)
+
 end
 
 main()
