@@ -63,13 +63,14 @@ About:
 		track displayed name. By default without any tags in its name the track is 
 		scrolled to the leftmost position. To change that precede the track displayed 
 		name with a scroll tag in the following format: C/c> (center); R/r> (rightmost)
-		e.g "C> My track name"   
+		e.g. "C> My track name"   
 		The register of the characters doesn't matter hence both types are listed.
 		To have the track scroll into view at the start of the Mixer (leftmost position)
 		when its name is already tagged, it suffices to strip the scroll tag of the 
-		letter, leaving only the greater '>' sign intact.
+		letter, leaving only the greater '>' sign intact, e.g. "> My track name".
 		
-		To load the screenset scroll the stored track into view run the script.
+		To load the screenset and scroll into view a track whose name was stored,
+		run the script.
 		
 		After saving the screenset using this script, if the need arises to modify 
 		the screenset by changing Mixer dock state, window size, it can be done
