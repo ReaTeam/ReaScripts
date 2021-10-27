@@ -200,7 +200,7 @@ local i = r.CSurf_TrackToID(targ_tr, true)-2 -- start looping from the track imm
 	
 -- The loop exits with the X coordinate of the target track right edge being greater than the target scroll position; now correct it by bringing it back leftwards to the point immedialtely preceding the target scroll point, especially relevant for target position being rightmost in which case the track goes beyond the right edge of the window
 	
-	if tr and (loc == 'R' and abs(tr_x - targ_tr_x) + master_w - pos > 5 -- targ track right edge X coordinate is greater than the position by 5 px, 5 or less is acceptable since the MCP is mostly visible, and 5 is optimal for MCP strips which are quire narrow
+	if tr and (loc == 'R' and abs(tr_x - targ_tr_x) + master_w - pos > 5 -- targ track right edge X coordinate is greater than the position by 5 px, 5 or less is acceptable since the MCP is mostly visible, and 5 is optimal for MCP strips which are quite narrow
 	or abs(tr_x - targ_tr_x) + master_w - pos > pos - abs(r.GetMediaTrackInfo_Value(r.GetTrack(0,i+2), 'I_MCPX') - targ_tr_x) - master_w) -- only correct if the resulting targ track right X will be closer to the position than the targ track right X obtained after the loop; why +2 see below // works for pos 0
 	then return r.GetTrack(0,i+2) -- return the correcting track to bring the target track back to the left by one track // +2 because the shift is required by 1 track from the current after the loop, but before the loop exits i value gets reduced by 1 which corresponds to the one before the current and -2nd from the target track if position is 0
 	elseif tr then return r.GetTrack(0,i+1)
