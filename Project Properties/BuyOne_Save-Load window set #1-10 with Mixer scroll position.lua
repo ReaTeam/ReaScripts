@@ -24,9 +24,9 @@ About:
 		in situations where track position in the Mixer is important. Position means
 		the leftmost, center and the rightmost.   
 		The script does both:  
-		a) stores the track to be scrolled into view when the Mixer 
-		is opened with the screenset whose number is included in the script 
-		concurrently with the actual screenset saving; and    
+		a) concurrently with saving the actual screenset stores the track 
+		to be scrolled into view when the Mixer is opened with the screenset 
+		whose number is included in the script name; and      
 		b) loads the screenset scrolling the associated track into view.		
 		
 		To save a screenset with a track to be scrolled into view in the Mixer:  
@@ -37,22 +37,28 @@ About:
 		3) open 'Screensets/Layout' window (is used to signal to the script 
 		that saving needs to be performed, it's not stored in screensets);   
 		4) run the script ('Screensets/Layout' window will auto-close);   
-		5) 'Save Windows Screenset' dialogue will appear. Once you click save along
-		with the screenset the chosen track will be stored. If the dialogue
-		is cancelled no storage occurs.
+		5) 'Save Windows Screenset' dialogue will appear. 
+		On Windows once you click save in the 'Save Windows Screenset' dialogue, 
+		the chosen track name will be stored concurrenty with the screenset (re)saving. 
+		If the dialogue is cancelled no storage occurs.   
+		On MacOS and on Linux track name storage will have to be manually 
+		confirmed or declined via a dialogue which will appear once 'Save Windows Screenset' 
+		dialogue closes. That's because without access to MacOS or Linux i couldn't 
+		devise the same way of track name storage as on Windows.
+				
+		To change track name associated with a screenset, load the screenset 
+		and follow the abovelisted steps.  
+		On Windows track name is only stored if the screenset itself 
+		is re-saved even with no changes to it.   
+		On MacOS and on Linux they can be stored independently thanks to the 
+		additional dialogue, which turns out to be both the curse and the 
+		blessing so to speak.
 		
-		When saving, selected track gets preference, when no track is selected 
+		When storing, selected track gets preference, when no track is selected 
 		the script looks for the leftmost track in the Mixer.   
 		If 'Screensets/Layout' window isn't open while the Mixer is open, the script 
 		will work in screenset loading mode provided there's a stored track names.
-		
-		Unlike on Windows where track name is stored automatically only if the user 
-		confirmed screenset saving by clicking OK in the 'Save Windows Screenset' 
-		dialogue, on MacOS and on Linux track name storage will have to be manually 
-		confirmed or declined via a dialogue which will appear once 'Save Windows Screenset' 
-		dialogue closes. That's because without access to MacOS or Linux i couldn't 
-		devise the same way of track name storage as on Windows. Sorry about that.
-		
+				
 		To determine the position to scroll the track to, the script evaluates the 
 		track displayed name. By default without any tags in its name the track is 
 		scrolled to the leftmost position. To change that precede the track displayed 
@@ -98,13 +104,14 @@ About:
 		Mind that as of build 6.38 the Mixer window is global for all projects 
 		open in tabs, just the contents differ. Therefore changing Mixer scroll 
 		position in one such project will affect it across all open projects.
-
+		
 		* * *
 		Check out also BuyOne_Scroll named track into view in the Mixer (guide inside).lua
 		for a method of scrolling named track into view without hard linking it 
 		to a screenset number.
 		
 ]]
+
 
 
 function Msg(param, cap) -- caption second or none
