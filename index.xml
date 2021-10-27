@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="97036376814f3f2958257a680ee9125bd2499db1" name="ReaTeam Scripts">
+<index version="1" commit="ab764681aed9dc96da3f5209e913370f50549579" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -12089,6 +12089,8 @@ enter or a = Exit and apply changes\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 The Mixer will not scroll track into the position defined in the USER SETTINGS if there're too few tracks or their combined MCPs are too narrow to allow sufficient distance for scrolling.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 When the scroll position is the rightmost, one or more extra tracks (depending on their MCP width) may be revealed on the right side of the Mixer besides the target track, because the visible tracks may not necessarily fit exactly within the Mixer window. This is especially relevant for setups with mixed MCP layouts due to difference in their widths.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Mind that as of build 6.38 the Mixer window is global for all projects open in tabs, just the contents differ. Therefore changing Mixer scroll position in one such project will affect it across all open projects.\par}
+{\pard \qc \f0 \sa180 \li0 \fi0 \emdash\emdash\emdash\emdash\emdash\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Check out also Save-Load window set with Mixer scroll position (10 scripts) for a method of scrolling named track into view with hard linking between track name and screenset number.\par}
 }
 ]]></description>
         <link rel="website">https://forum.cockos.com/member.php?u=134058</link>
@@ -12096,6 +12098,10 @@ enter or a = Exit and apply changes\par}
       <version name="1.0" author="BuyOne" time="2021-10-27T04:06:55Z">
         <changelog><![CDATA[Initial release]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/97036376814f3f2958257a680ee9125bd2499db1/Project%20Properties/BuyOne_Scroll%20named%20track%20into%20view%20in%20the%20Mixer%20(guide%20inside).lua</source>
+      </version>
+      <version name="1.1" author="BuyOne" time="2021-10-27T18:30:11Z">
+        <changelog><![CDATA[# More efficient scroll]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ab764681aed9dc96da3f5209e913370f50549579/Project%20Properties/BuyOne_Scroll%20named%20track%20into%20view%20in%20the%20Mixer%20(guide%20inside).lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Normalize peaks display gain.lua" type="script" desc="Normalize peaks display gain">
