@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="1a7afff58d7c3225e6d84e5fa86aba73bb0e6a04" name="ReaTeam Scripts">
+<index version="1" commit="724354ca8f20d12849bc44d2520407db9d8ea81c" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -159,6 +159,33 @@
       <version name="1.01" author="amagalma" time="2021-03-04T09:22:27Z">
         <changelog><![CDATA[- improvement]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/2647a4969fc34390b1ef754df1ec0222aa98a4cf/Cursor/amagalma_Transport%20Play%20from%20start%20of%20arrange%20view%20-%20Stop%20at%20play%20cursor%20(editing).lua</source>
+      </version>
+    </reapack>
+    <reapack name="az_Go To Timecode.lua" type="script" desc="Go To Timecode">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Go To Timecode\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Fastest timecode jump ever\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab New large interface\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Special timecode mode without frames value\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Beat and ruler modes\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Offset option for timecode mode\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Use +/- for relative jump\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Thanks Claudiohbsantos for first version in code, which help me to figure out how to code it and how to improve.\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="AZ" time="2021-10-27T03:57:46Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/15ca940ea03757971290c774f1bc687962ef243e/Cursor/az_Go%20To%20Timecode.lua</source>
+        <source file="az_Go To Timecode/TimecodeInput_Module_AZ.lua">https://github.com/ReaTeam/ReaScripts/raw/15ca940ea03757971290c774f1bc687962ef243e/Cursor/az_Go%20To%20Timecode/TimecodeInput_Module_AZ.lua</source>
+      </version>
+    </reapack>
+    <reapack name="az_Play from mouse cursor with 2 sec shift (move edit cursor).lua" type="script" desc="Play from mouse cursor with 2 sec shift (move edit cursor)">
+      <version name="1.0" author="AZ" time="2021-10-27T03:58:35Z">
+        <source main="main midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/724354ca8f20d12849bc44d2520407db9d8ea81c/Cursor/az_Play%20from%20mouse%20cursor%20with%202%20sec%20shift%20(move%20edit%20cursor).lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
