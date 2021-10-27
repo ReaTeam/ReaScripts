@@ -2,8 +2,8 @@
 ReaScript name: Scroll named track into view in the Mixer
 Author: BuyOne
 Website: https://forum.cockos.com/member.php?u=134058
-Version: 1.0
-Changelog: Initial release
+Version: 1.1
+Changelog: # More efficient scroll
 Licence: WTFPL
 REAPER: at least v5.962
 Extensions: SWS/S&M for best performance
@@ -74,6 +74,11 @@ About:
 		Mind that as of build 6.38 the Mixer window is global for all projects open in tabs,
 		just the contents differ. Therefore changing Mixer scroll position in one such project
 		will affect it across all open projects.
+
+		* * *
+		Check out also Save-Load window set with Mixer scroll position (10 scripts)
+		for a method of scrolling named track into view with hard linking between 
+		track name and screenset number.
 
 ]]
 
@@ -149,29 +154,37 @@ local dimens = sws and {r.BR_Win32_GetWindowRect(mixer_hwnd)} or {r.my_getViewpo
 	if #dimens == 5 then table.remove(dimens, 1) end -- remove retval from BR's function
 
 local loc = sws and loc or '' -- clamp position to the leftmost if no SWS extension because two other positions won't work anyway in floating and resized Mixer window
-local targ_tr_w = r.GetMediaTrackInfo_Value(targ_tr, 'I_MCPW')
-local master_vis = r.GetToggleCommandState(41209) == 1 -- Mixer: Master track visible
-
 local pos = loc == 'C' and (dimens[3] - dimens[1])/2 or loc == 'R' and dimens[3] - dimens[1] or 0 -- center or right (accounting for reduced window size) or left
 
 -- Since track layouts may have different width plus some may stop flush at the right edge but others may not a mechanism is employed to shift the position back to the left which may reveal additional tracks on the right depending on MCP widths
 -- When target position is center or right but there're not enough tracks which come before the target track or their comdined width isn't enough to fill up the space between the left edge or the Master track and the target track, the target track will be placed only as far to the right as the conditions permit
 -- When there're too few tracks or their combined MCPs width is too narrow no scrolling will take place
 
-local master_w = master_vis and loc == 'R' and r.GetMediaTrackInfo_Value(r.GetMasterTrack(0), 'I_MCPW') or 0 -- account for the Master track when visible because it doesn't scroll; only when target scroll position is rightmost to avoid target track being partially visible at the program window right-hand edge or hide behind the Master when it's on the right side
+local master_rt = r.GetToggleCommandState(40389) == 1 -- Mixer: Toggle show master track on right side
+local master_vis = r.GetToggleCommandState(41209) == 1 -- Mixer: Master track visible
+local targ_tr_w = r.GetMediaTrackInfo_Value(targ_tr, 'I_MCPW')
+local master_w = (master_vis and not master_rt or master_vis and master_rt and loc == 'R') and r.GetMediaTrackInfo_Value(r.GetMasterTrack(0), 'I_MCPW') or 0 -- only account for the Master track when it's on the left side and when on the right side while loc is 'R' since in the latter case it doesn't affect leftmost and central positions
+
 r.SetMixerScroll(targ_tr) -- start out having placed the target track at the leftmost position, then move rightwards
+
 local i = r.CSurf_TrackToID(targ_tr, true)-2 -- start looping from the track immediately preceding the target track
-	while r.GetMediaTrackInfo_Value(targ_tr, 'I_MCPX') + targ_tr_w < pos - master_w do -- OR ... + master_w < pos -- loop until the right edge of the target track goes past the target scroll point defined with loc
-	tr = r.GetTrack(0,i) -- must stay global to be evaluated outside of the loop
+	while r.GetMediaTrackInfo_Value(targ_tr, 'I_MCPX') + targ_tr_w < pos - master_w do -- OR ... + master_w < pos -- loop until the right edge of the target track goes past the target scroll point defined with loc; 'I_MCPX' param must be constantly updated
+	tr = r.GetTrack(0,i) -- must stay global to be evaluated outside of the loop	
 		if not tr then break end -- when all tracks preceding the target track have been traversed before target position has been reached due to the tracks being either too few or their combined MCPs being too narrow
 	r.SetMixerScroll(tr)
 	i = i - 1
 	end
+
+local targ_tr_x = r.GetMediaTrackInfo_Value(targ_tr, 'I_MCPX') + targ_tr_w -- target track right edge X value after the loop
+	
 -- The loop exits with the X coordinate of the target track right edge being greater than the target scroll position; now correct it by bringing it back leftwards to the point immedialtely preceding the target scroll point, especially relevant for target position being rightmost in which case the track goes beyond the right edge of the window
-	if tr ~= targ_tr -- or pos == 0; ignore target track when pos is 0 due to being leftmost so as to not compare the track to itself when it's already at the correct pos
-	and r.GetMediaTrackInfo_Value(targ_tr, 'I_MCPX') + targ_tr_w + master_w - pos > 10 -- track right edge X coordinate is greater than the target scroll position by 10 px, 10 or less is acceptable since the MCP is mostly visible
-	then return r.GetTrack(0,i+2) -- return the correcting track to bring the target track back to the left by one track // +2 because the shift is required by 1 track from the current, but before the loop exits i value gets reduced by 1 which corresponds to the one before the current
-	else return r.GetTrack(0,i+1)
+	if tr and tr ~= targ_tr -- ignoring target track when it's the 1st track in the tracklist (tr = false), when pos is 0 (loc is leftmost) due to its already being leftmost after intitial scroll so as to not compare it to itself when it's already at the correct pos (tr = targ_tr), and when the target track is the last in the tracklist (tr = targ_tr)
+	and (loc == 'R' and targ_tr_x + master_w - pos > 5 -- track right edge X coordinate is greater than the target scroll position by 5 px, 5 or less is acceptable since the MCP is mostly visible, and 5 is optimal for MCP strips which are quite narrow
+	or targ_tr_x + master_w - pos > pos - math.abs(r.GetMediaTrackInfo_Value(r.GetTrack(0,i+2), 'I_MCPX') - targ_tr_x) - master_w) -- only correct if the resulting targ track right X will be closer to the position than the targ track right X obtained after the loop; why +2 see below
+	then
+	return r.GetTrack(0,i+2) -- return the correcting track // +2 because the shift is required by 1 track from the current (tr), but before the loop exits i value gets reduced by 1 which corresponds to the one before the current (tr)
+	elseif tr then	return r.GetTrack(0,i+1)
+	else return r.GetTrack(0,0) -- when there're too few tracks or their MCPs are too narrow to scroll to the central or the rightmost position, scroll to the very 1st track to shift the target track as far as possible
 	end
 
 end
