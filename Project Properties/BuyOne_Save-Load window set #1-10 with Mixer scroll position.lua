@@ -107,8 +107,8 @@ About:
 		
 		* * *
 		Check out also BuyOne_Scroll named track into view in the Mixer (guide inside).lua
-		for a method of scrolling named track into view without hard linking it 
-		to a screenset number.
+		for a method of scrolling named track into view without hard linking between
+		track name and screenset number.
 		
 ]]
 
