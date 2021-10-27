@@ -57,7 +57,7 @@ About:
 		When storing, selected track gets preference, when no track is selected 
 		the script looks for the leftmost track in the Mixer.   
 		If 'Screensets/Layout' window isn't open while the Mixer is open, the script 
-		will work in screenset loading mode provided there's a stored track names.
+		will work in screenset loading mode provided there's a stored track name.
 				
 		To determine the position to scroll the track to, the script evaluates the 
 		track displayed name. By default without any tags in its name the track is 
