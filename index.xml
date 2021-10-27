@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="724354ca8f20d12849bc44d2520407db9d8ea81c" name="ReaTeam Scripts">
+<index version="1" commit="97036376814f3f2958257a680ee9125bd2499db1" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -12066,6 +12066,36 @@ enter or a = Exit and apply changes\par}
       <version name="1.0" author="BuyOne" time="2021-09-08T14:23:51Z">
         <changelog><![CDATA[Initial release]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/61d5e55ff14c11d8ed3d82274e94e800ae9b0239/Project%20Properties/BuyOne_Open%20recent%20projects%20in%20new%20tab%20(settings%20inside).lua</source>
+      </version>
+    </reapack>
+    <reapack name="BuyOne_Scroll named track into view in the Mixer (guide inside).lua" type="script" desc="Scroll named track into view in the Mixer">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 As the name suggests, scrolls track with the name, specified in the USER SETTINGS into view in the Mixer.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Although can be used by itself, originally was meant to enhance Mixer screensets by including in a roundabout way position of certain tracks in the Mixer, because screensets don't store that data with them. And especially with mix templates to quickly access different groups of tracks by track name.\line SWS extension 'Find' tool can bring a track into view in the Mixer by name but it requires typing, exclusively selects the track, and the track is only placed in the leftmost position in the Mixer.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 With this script tracks can be scrolled to the leftmost, the rightmost and central positions in the Mixer according to the POSITION setting.\line When the Master track is visible in the Mixer the left- and the rightmost positions mean to the right and to the left of the Master track respectively.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \f1 U S A G E   W I T H   S C R E E N S E T S\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 1.\tx360\tab In the TRACK_NAME setting specify the name of the track you want to be scrolled into view in the Mixer when a screenset is loaded.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 2.\tx360\tab Create a custom action with the native screenset action and the script in it placed in the following order, e.g.: Screenset: Load window set #1\line Scroll named track into view in the Mixer.lua\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 3.\tx360\tab Use such custom action to load the screenset.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The screenset itself can be saved the regular way but loaded with such custom action whenever you need specific track to be visible at the preferred position when the Mixer is opened or when you need to bring the track back into view while the Mixer is already open.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The script can be duplicated for each track which needs to be scrolled into view and then each script instance be included in a separate custom action containing the same screenset action to be used for loading a Mixer screenset while having the Mixer scroll to different tracks. Which basically makes the screenset granular at a track position level in the Mixer.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 If needed the screenset can be loaded directly with the script when its number is specified in the SCREENSET setting. Possible disadvantage is that the script becomes hard linked with the screenset number.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 It's recommended to have the SWS/S&M extension installed so that all 3 track scroll positions are available regardless of the Mixer window size and of its being docked. If not installed, only the leftmost position will be available regardless of the actual POSITION setting.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 CAVEATS\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The Mixer will not scroll track into the position defined in the USER SETTINGS if there're too few tracks or their combined MCPs are too narrow to allow sufficient distance for scrolling.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 When the scroll position is the rightmost, one or more extra tracks (depending on their MCP width) may be revealed on the right side of the Mixer besides the target track, because the visible tracks may not necessarily fit exactly within the Mixer window. This is especially relevant for setups with mixed MCP layouts due to difference in their widths.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Mind that as of build 6.38 the Mixer window is global for all projects open in tabs, just the contents differ. Therefore changing Mixer scroll position in one such project will affect it across all open projects.\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/member.php?u=134058</link>
+      </metadata>
+      <version name="1.0" author="BuyOne" time="2021-10-27T04:06:55Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/97036376814f3f2958257a680ee9125bd2499db1/Project%20Properties/BuyOne_Scroll%20named%20track%20into%20view%20in%20the%20Mixer%20(guide%20inside).lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Normalize peaks display gain.lua" type="script" desc="Normalize peaks display gain">
