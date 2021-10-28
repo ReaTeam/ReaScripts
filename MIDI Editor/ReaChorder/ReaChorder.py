@@ -1,6 +1,6 @@
 # @description ReaChorder
 # @author Flaneurette
-# @version 2.1
+# @version 2.2
 # @changelog update
 # @provides
 #   [main=midi_editor,midi_inlineeditor windows] .
@@ -49,6 +49,7 @@ except ImportError:
     RPR_ShowConsoleMsg('Could not import tkinter.\n')
     pass
 try:
+    import rs_statemanager
     from rs_statemanager import RSStateManager
 except ImportError:
     RPR_ShowConsoleMsg('Could not import rs_statemanager.\n')
