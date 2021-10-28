@@ -1,3 +1,10 @@
+# @description ReaChorder
+# @author Flaneurette
+# @version 2.1
+# @changelog update
+# @provides
+#   [main=midi_editor,midi_inlineeditor windows] .
+#   [main=midi_editor,midi_inlineeditor linux] .
 try:
     from reaper_python import *
 except ImportError:
