@@ -2,32 +2,55 @@
 # @author Flaneurette
 # @version 2.0
 # @provides
-#   ReaChorder/ReaChorderBassSection.ini
-#   ReaChorder/ReaChorderChordSection.ini
-#   ReaChorder/ReaChorderDrumSection.ini
-#   ReaChorder/ReaChorderGuitarSection.ini
-#   ReaChorder/ReaChorderMain.ini
-#   ReaChorder/ReaChorderMelodySection.ini
-#   ReaChorder/drumpatterns.json
-#   ReaChorder/_getdirectory_.py
-#   ReaChorder/bass_section.py
-#   ReaChorder/chord_section.py
-#   ReaChorder/debug.py
-#   ReaChorder/drum_section.py
-#   ReaChorder/guitar_section.py
-#   ReaChorder/melody_section.py
-#   ReaChorder/reaper_track.py
-#   ReaChorder/rs_midi.py
-#   ReaChorder/rs_statemanager.py
-#   ReaChorder/scales.py
-#   ReaChorder/wizard_section.py
-#   ReaChorder/LICENSE.txt
-#   ReaChorder/screenshot.png
+#   [linux main] .
+#   [windows main] .
+#   [linux] Flaneurette_ReaChorder/ReaChorderBassSection.ini
+#   [windows] Flaneurette_ReaChorder/ReaChorderBassSection.ini
+#   [linux] Flaneurette_ReaChorder/ReaChorderChordSection.ini
+#   [windows] Flaneurette_ReaChorder/ReaChorderChordSection.ini
+#   [linux] Flaneurette_ReaChorder/ReaChorderDrumSection.ini
+#   [windows] Flaneurette_ReaChorder/ReaChorderDrumSection.ini
+#   [linux] Flaneurette_ReaChorder/ReaChorderGuitarSection.ini
+#   [windows] Flaneurette_ReaChorder/ReaChorderGuitarSection.ini
+#   [linux] Flaneurette_ReaChorder/ReaChorderMain.ini
+#   [windows] Flaneurette_ReaChorder/ReaChorderMain.ini
+#   [linux] Flaneurette_ReaChorder/ReaChorderMelodySection.ini
+#   [windows] Flaneurette_ReaChorder/ReaChorderMelodySection.ini
+#   [linux] Flaneurette_ReaChorder/drumpatterns.json
+#   [windows] Flaneurette_ReaChorder/drumpatterns.json
+#   [linux] Flaneurette_ReaChorder/_getdirectory_.py
+#   [windows] Flaneurette_ReaChorder/_getdirectory_.py
+#   [linux] Flaneurette_ReaChorder/bass_section.py
+#   [windows] Flaneurette_ReaChorder/bass_section.py
+#   [linux] Flaneurette_ReaChorder/chord_section.py
+#   [windows] Flaneurette_ReaChorder/chord_section.py
+#   [linux] Flaneurette_ReaChorder/debug.py
+#   [windows] Flaneurette_ReaChorder/debug.py
+#   [linux] Flaneurette_ReaChorder/drum_section.py
+#   [windows] Flaneurette_ReaChorder/drum_section.py
+#   [linux] Flaneurette_ReaChorder/guitar_section.py
+#   [windows] Flaneurette_ReaChorder/guitar_section.py
+#   [linux] Flaneurette_ReaChorder/melody_section.py
+#   [windows] Flaneurette_ReaChorder/melody_section.py
+#   [linux] Flaneurette_ReaChorder/reaper_track.py
+#   [windows] Flaneurette_ReaChorder/reaper_track.py
+#   [linux] Flaneurette_ReaChorder/rs_midi.py
+#   [windows] Flaneurette_ReaChorder/rs_midi.py
+#   [linux] Flaneurette_ReaChorder/rs_statemanager.py
+#   [windows] Flaneurette_ReaChorder/rs_statemanager.py
+#   [linux] Flaneurette_ReaChorder/scales.py
+#   [windows] Flaneurette_ReaChorder/scales.py
+#   [linux] Flaneurette_ReaChorder/wizard_section.py
+#   [windows] Flaneurette_ReaChorder/wizard_section.py
+#   [linux] Flaneurette_ReaChorder/LICENSE.txt
+#   [windows] Flaneurette_ReaChorder/LICENSE.txt
+#   [linux] Flaneurette_ReaChorder/screenshot.png
+#   [windows] Flaneurette_ReaChorder/screenshot.png
+#   [linux] Flaneurette_ReaChorder/reaChord_data.py
+#   [windows] Flaneurette_ReaChorder/reaChord_data.py
 # @link Reachorder Forum Thread: https://forum.cockos.com/showthread.php?t=200185
 # @donation Donate via PayPal: https://www.paypal.com/donate?hosted_button_id=4JKH8U43WYZL4
 # @about
-#   -- @noindex
-#
 #   ReaChorder is a Python extension/plugin that enables you to generate songs in MIDI format. It does this by applying music theory. You can choose song formula, the key and whether it needs to be Major or Minor. It then uses the circle of fifths to propose chord progression and randomly chooses and combines different chord inversions, melodies and bass lines. It also has a drum sequencer with many drum pattern presets.
 #
 #   Minimum required software
@@ -64,6 +87,7 @@ except ImportError:
     pass
 try:
     import sys
+    sys.path.append(sys.path[0] + '/Flaneurette_ReaChorder')
 except ImportError:
     RPR_ShowConsoleMsg('Could not import SYS.\n')
     pass
@@ -79,8 +103,8 @@ try:
         RPR_ShowConsoleMsg('Your SWS version does not allow versioning. Please visit: https://www.sws-extension.org/ and update SWS.')
     else:		
         (sws_version,build) = CF_GetSWSVersion('',5)
-        if sws_version != '2.12':
-            RPR_ShowConsoleMsg('Your SWS version (< 2.12) is not supported. Please visit: https://www.sws-extension.org/ and update SWS.')
+        if sws_version < '2.12':
+            RPR_ShowConsoleMsg('Your SWS version ('+sws_version+') is not supported. Please visit: https://www.sws-extension.org/ and update SWS.')
 except:
     RPR_ShowConsoleMsg('Your SWS version is (probably) not supported. Please visit: https://www.sws-extension.org/ and update SWS.')
 try:
