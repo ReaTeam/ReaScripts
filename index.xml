@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="ab764681aed9dc96da3f5209e913370f50549579" name="ReaTeam Scripts">
+<index version="1" commit="6004b5a3f041145e66e2c23ea66a32eaf049e221" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -7635,6 +7635,76 @@ Use ReaImGui for displaying the options menu (if installed)]]></changelog>
         <changelog><![CDATA[update]]></changelog>
         <source main="midi_inlineeditor midi_editor" platform="windows">https://github.com/ReaTeam/ReaScripts/raw/f5ca90df7867e8e5cb65638e943061c4883f1477/MIDI%20Editor/Flaneurette_GuitarChorder.py</source>
         <source main="midi_inlineeditor midi_editor" platform="linux">https://github.com/ReaTeam/ReaScripts/raw/f5ca90df7867e8e5cb65638e943061c4883f1477/MIDI%20Editor/Flaneurette_GuitarChorder.py</source>
+      </version>
+    </reapack>
+    <reapack name="Flaneurette_ReaChorder.py" type="script" desc="ReaChorder">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 ReaChorder is a Python extension/plugin that enables you to generate songs in MIDI format. It does this by applying music theory. You can choose song formula, the key and whether it needs to be Major or Minor. It then uses the circle of fifths to propose chord progression and randomly chooses and combines different chord inversions, melodies and bass lines. It also has a drum sequencer with many drum pattern presets.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Minimum required software\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Reaper 4.5.2+: http://reaper.fm/ Python: http://www.python.org/download/releases/3.3.0/ SWS extension: http://www.standingwaterstudios.com/\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 For more information and the READM me visit:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 https://github.com/flaneurette/ReaChorder#readme\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Discussion Visit the Reaper forum for discussion: https://forum.cockos.com/showthread.php?t=200185\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 ALL RIGHTS RESERVED (c) COPYRIGHT Alexandra van den Heetkamp.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 REACHORDER IS A PLUGIN FOR COCKOS REAPER, CREATED BY ALEXANDRA VAN DEN HEETKAMP. THIS SOFTWARE MAY NOT BE SOLD, DISTRIBUTED, EMBEDDED OR ALTERED WITHOUT EXPLICIT PERMISSION FROM THE COPYRIGHT HOLDER WITH THE EXCEPTION OF A GUI. THE AFOREMENTIONED COPYRIGHT HOLDER CANNOT BE HELD ACCOUNTABLE FOR ANY USE, MISUSE, LIABILITY, CLAIMS, THAT MAY ARISE FROM USING THIS SOFTWARE.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 NO SUPPORT IS GIVEN. NO WARRANTY IS GIVEN.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 LICENSE LAST REVISED: 24TH OF OCTOBER 2021, ARNHEM, THE NETHERLANDS. DUTCH LAW AND COPYRIGHT LAW APPLIES. ALL RIGHTS RESERVED.\par}
+}
+]]></description>
+        <link rel="website" href="https://forum.cockos.com/showthread.php?t=200185">Reachorder Forum Thread:</link>
+        <link rel="donation" href="https://www.paypal.com/donate?hosted_button_id=4JKH8U43WYZL4">Donate via PayPal:</link>
+      </metadata>
+      <version name="2.0" author="Flaneurette" time="2021-10-28T01:35:15Z">
+        <source main="midi_editor" platform="linux">https://github.com/ReaTeam/ReaScripts/raw/6004b5a3f041145e66e2c23ea66a32eaf049e221/MIDI%20Editor/Flaneurette_ReaChorder.py</source>
+        <source main="midi_editor" platform="windows">https://github.com/ReaTeam/ReaScripts/raw/6004b5a3f041145e66e2c23ea66a32eaf049e221/MIDI%20Editor/Flaneurette_ReaChorder.py</source>
+        <source platform="linux" file="Flaneurette_ReaChorder/ReaChorderBassSection.ini">https://github.com/ReaTeam/ReaScripts/raw/6004b5a3f041145e66e2c23ea66a32eaf049e221/MIDI%20Editor/Flaneurette_ReaChorder/ReaChorderBassSection.ini</source>
+        <source platform="windows" file="Flaneurette_ReaChorder/ReaChorderBassSection.ini">https://github.com/ReaTeam/ReaScripts/raw/6004b5a3f041145e66e2c23ea66a32eaf049e221/MIDI%20Editor/Flaneurette_ReaChorder/ReaChorderBassSection.ini</source>
+        <source platform="linux" file="Flaneurette_ReaChorder/ReaChorderChordSection.ini">https://github.com/ReaTeam/ReaScripts/raw/6004b5a3f041145e66e2c23ea66a32eaf049e221/MIDI%20Editor/Flaneurette_ReaChorder/ReaChorderChordSection.ini</source>
+        <source platform="windows" file="Flaneurette_ReaChorder/ReaChorderChordSection.ini">https://github.com/ReaTeam/ReaScripts/raw/6004b5a3f041145e66e2c23ea66a32eaf049e221/MIDI%20Editor/Flaneurette_ReaChorder/ReaChorderChordSection.ini</source>
+        <source platform="linux" file="Flaneurette_ReaChorder/ReaChorderDrumSection.ini">https://github.com/ReaTeam/ReaScripts/raw/6004b5a3f041145e66e2c23ea66a32eaf049e221/MIDI%20Editor/Flaneurette_ReaChorder/ReaChorderDrumSection.ini</source>
+        <source platform="windows" file="Flaneurette_ReaChorder/ReaChorderDrumSection.ini">https://github.com/ReaTeam/ReaScripts/raw/6004b5a3f041145e66e2c23ea66a32eaf049e221/MIDI%20Editor/Flaneurette_ReaChorder/ReaChorderDrumSection.ini</source>
+        <source platform="linux" file="Flaneurette_ReaChorder/ReaChorderGuitarSection.ini">https://github.com/ReaTeam/ReaScripts/raw/6004b5a3f041145e66e2c23ea66a32eaf049e221/MIDI%20Editor/Flaneurette_ReaChorder/ReaChorderGuitarSection.ini</source>
+        <source platform="windows" file="Flaneurette_ReaChorder/ReaChorderGuitarSection.ini">https://github.com/ReaTeam/ReaScripts/raw/6004b5a3f041145e66e2c23ea66a32eaf049e221/MIDI%20Editor/Flaneurette_ReaChorder/ReaChorderGuitarSection.ini</source>
+        <source platform="linux" file="Flaneurette_ReaChorder/ReaChorderMain.ini">https://github.com/ReaTeam/ReaScripts/raw/6004b5a3f041145e66e2c23ea66a32eaf049e221/MIDI%20Editor/Flaneurette_ReaChorder/ReaChorderMain.ini</source>
+        <source platform="windows" file="Flaneurette_ReaChorder/ReaChorderMain.ini">https://github.com/ReaTeam/ReaScripts/raw/6004b5a3f041145e66e2c23ea66a32eaf049e221/MIDI%20Editor/Flaneurette_ReaChorder/ReaChorderMain.ini</source>
+        <source platform="linux" file="Flaneurette_ReaChorder/ReaChorderMelodySection.ini">https://github.com/ReaTeam/ReaScripts/raw/6004b5a3f041145e66e2c23ea66a32eaf049e221/MIDI%20Editor/Flaneurette_ReaChorder/ReaChorderMelodySection.ini</source>
+        <source platform="windows" file="Flaneurette_ReaChorder/ReaChorderMelodySection.ini">https://github.com/ReaTeam/ReaScripts/raw/6004b5a3f041145e66e2c23ea66a32eaf049e221/MIDI%20Editor/Flaneurette_ReaChorder/ReaChorderMelodySection.ini</source>
+        <source platform="linux" file="Flaneurette_ReaChorder/drumpatterns.json">https://github.com/ReaTeam/ReaScripts/raw/6004b5a3f041145e66e2c23ea66a32eaf049e221/MIDI%20Editor/Flaneurette_ReaChorder/drumpatterns.json</source>
+        <source platform="windows" file="Flaneurette_ReaChorder/drumpatterns.json">https://github.com/ReaTeam/ReaScripts/raw/6004b5a3f041145e66e2c23ea66a32eaf049e221/MIDI%20Editor/Flaneurette_ReaChorder/drumpatterns.json</source>
+        <source platform="linux" file="Flaneurette_ReaChorder/_getdirectory_.py">https://github.com/ReaTeam/ReaScripts/raw/6004b5a3f041145e66e2c23ea66a32eaf049e221/MIDI%20Editor/Flaneurette_ReaChorder/_getdirectory_.py</source>
+        <source platform="windows" file="Flaneurette_ReaChorder/_getdirectory_.py">https://github.com/ReaTeam/ReaScripts/raw/6004b5a3f041145e66e2c23ea66a32eaf049e221/MIDI%20Editor/Flaneurette_ReaChorder/_getdirectory_.py</source>
+        <source platform="linux" file="Flaneurette_ReaChorder/bass_section.py">https://github.com/ReaTeam/ReaScripts/raw/6004b5a3f041145e66e2c23ea66a32eaf049e221/MIDI%20Editor/Flaneurette_ReaChorder/bass_section.py</source>
+        <source platform="windows" file="Flaneurette_ReaChorder/bass_section.py">https://github.com/ReaTeam/ReaScripts/raw/6004b5a3f041145e66e2c23ea66a32eaf049e221/MIDI%20Editor/Flaneurette_ReaChorder/bass_section.py</source>
+        <source platform="linux" file="Flaneurette_ReaChorder/chord_section.py">https://github.com/ReaTeam/ReaScripts/raw/6004b5a3f041145e66e2c23ea66a32eaf049e221/MIDI%20Editor/Flaneurette_ReaChorder/chord_section.py</source>
+        <source platform="windows" file="Flaneurette_ReaChorder/chord_section.py">https://github.com/ReaTeam/ReaScripts/raw/6004b5a3f041145e66e2c23ea66a32eaf049e221/MIDI%20Editor/Flaneurette_ReaChorder/chord_section.py</source>
+        <source platform="linux" file="Flaneurette_ReaChorder/debug.py">https://github.com/ReaTeam/ReaScripts/raw/6004b5a3f041145e66e2c23ea66a32eaf049e221/MIDI%20Editor/Flaneurette_ReaChorder/debug.py</source>
+        <source platform="windows" file="Flaneurette_ReaChorder/debug.py">https://github.com/ReaTeam/ReaScripts/raw/6004b5a3f041145e66e2c23ea66a32eaf049e221/MIDI%20Editor/Flaneurette_ReaChorder/debug.py</source>
+        <source platform="linux" file="Flaneurette_ReaChorder/drum_section.py">https://github.com/ReaTeam/ReaScripts/raw/6004b5a3f041145e66e2c23ea66a32eaf049e221/MIDI%20Editor/Flaneurette_ReaChorder/drum_section.py</source>
+        <source platform="windows" file="Flaneurette_ReaChorder/drum_section.py">https://github.com/ReaTeam/ReaScripts/raw/6004b5a3f041145e66e2c23ea66a32eaf049e221/MIDI%20Editor/Flaneurette_ReaChorder/drum_section.py</source>
+        <source platform="linux" file="Flaneurette_ReaChorder/guitar_section.py">https://github.com/ReaTeam/ReaScripts/raw/6004b5a3f041145e66e2c23ea66a32eaf049e221/MIDI%20Editor/Flaneurette_ReaChorder/guitar_section.py</source>
+        <source platform="windows" file="Flaneurette_ReaChorder/guitar_section.py">https://github.com/ReaTeam/ReaScripts/raw/6004b5a3f041145e66e2c23ea66a32eaf049e221/MIDI%20Editor/Flaneurette_ReaChorder/guitar_section.py</source>
+        <source platform="linux" file="Flaneurette_ReaChorder/melody_section.py">https://github.com/ReaTeam/ReaScripts/raw/6004b5a3f041145e66e2c23ea66a32eaf049e221/MIDI%20Editor/Flaneurette_ReaChorder/melody_section.py</source>
+        <source platform="windows" file="Flaneurette_ReaChorder/melody_section.py">https://github.com/ReaTeam/ReaScripts/raw/6004b5a3f041145e66e2c23ea66a32eaf049e221/MIDI%20Editor/Flaneurette_ReaChorder/melody_section.py</source>
+        <source platform="linux" file="Flaneurette_ReaChorder/reaper_track.py">https://github.com/ReaTeam/ReaScripts/raw/6004b5a3f041145e66e2c23ea66a32eaf049e221/MIDI%20Editor/Flaneurette_ReaChorder/reaper_track.py</source>
+        <source platform="windows" file="Flaneurette_ReaChorder/reaper_track.py">https://github.com/ReaTeam/ReaScripts/raw/6004b5a3f041145e66e2c23ea66a32eaf049e221/MIDI%20Editor/Flaneurette_ReaChorder/reaper_track.py</source>
+        <source platform="linux" file="Flaneurette_ReaChorder/rs_midi.py">https://github.com/ReaTeam/ReaScripts/raw/6004b5a3f041145e66e2c23ea66a32eaf049e221/MIDI%20Editor/Flaneurette_ReaChorder/rs_midi.py</source>
+        <source platform="windows" file="Flaneurette_ReaChorder/rs_midi.py">https://github.com/ReaTeam/ReaScripts/raw/6004b5a3f041145e66e2c23ea66a32eaf049e221/MIDI%20Editor/Flaneurette_ReaChorder/rs_midi.py</source>
+        <source platform="linux" file="Flaneurette_ReaChorder/rs_statemanager.py">https://github.com/ReaTeam/ReaScripts/raw/6004b5a3f041145e66e2c23ea66a32eaf049e221/MIDI%20Editor/Flaneurette_ReaChorder/rs_statemanager.py</source>
+        <source platform="windows" file="Flaneurette_ReaChorder/rs_statemanager.py">https://github.com/ReaTeam/ReaScripts/raw/6004b5a3f041145e66e2c23ea66a32eaf049e221/MIDI%20Editor/Flaneurette_ReaChorder/rs_statemanager.py</source>
+        <source platform="linux" file="Flaneurette_ReaChorder/scales.py">https://github.com/ReaTeam/ReaScripts/raw/6004b5a3f041145e66e2c23ea66a32eaf049e221/MIDI%20Editor/Flaneurette_ReaChorder/scales.py</source>
+        <source platform="windows" file="Flaneurette_ReaChorder/scales.py">https://github.com/ReaTeam/ReaScripts/raw/6004b5a3f041145e66e2c23ea66a32eaf049e221/MIDI%20Editor/Flaneurette_ReaChorder/scales.py</source>
+        <source platform="linux" file="Flaneurette_ReaChorder/wizard_section.py">https://github.com/ReaTeam/ReaScripts/raw/6004b5a3f041145e66e2c23ea66a32eaf049e221/MIDI%20Editor/Flaneurette_ReaChorder/wizard_section.py</source>
+        <source platform="windows" file="Flaneurette_ReaChorder/wizard_section.py">https://github.com/ReaTeam/ReaScripts/raw/6004b5a3f041145e66e2c23ea66a32eaf049e221/MIDI%20Editor/Flaneurette_ReaChorder/wizard_section.py</source>
+        <source platform="linux" file="Flaneurette_ReaChorder/LICENSE.txt">https://github.com/ReaTeam/ReaScripts/raw/6004b5a3f041145e66e2c23ea66a32eaf049e221/MIDI%20Editor/Flaneurette_ReaChorder/LICENSE.txt</source>
+        <source platform="windows" file="Flaneurette_ReaChorder/LICENSE.txt">https://github.com/ReaTeam/ReaScripts/raw/6004b5a3f041145e66e2c23ea66a32eaf049e221/MIDI%20Editor/Flaneurette_ReaChorder/LICENSE.txt</source>
+        <source platform="linux" file="Flaneurette_ReaChorder/screenshot.png">https://github.com/ReaTeam/ReaScripts/raw/6004b5a3f041145e66e2c23ea66a32eaf049e221/MIDI%20Editor/Flaneurette_ReaChorder/screenshot.png</source>
+        <source platform="windows" file="Flaneurette_ReaChorder/screenshot.png">https://github.com/ReaTeam/ReaScripts/raw/6004b5a3f041145e66e2c23ea66a32eaf049e221/MIDI%20Editor/Flaneurette_ReaChorder/screenshot.png</source>
+        <source platform="linux" file="Flaneurette_ReaChorder/reaChord_data.py">https://github.com/ReaTeam/ReaScripts/raw/6004b5a3f041145e66e2c23ea66a32eaf049e221/MIDI%20Editor/Flaneurette_ReaChorder/reaChord_data.py</source>
+        <source platform="windows" file="Flaneurette_ReaChorder/reaChord_data.py">https://github.com/ReaTeam/ReaScripts/raw/6004b5a3f041145e66e2c23ea66a32eaf049e221/MIDI%20Editor/Flaneurette_ReaChorder/reaChord_data.py</source>
       </version>
     </reapack>
     <reapack name="FnA_Join selected overlapping and consecutive notes with spacing below threshold - input and no input versions.lua" type="script" desc="Join selected overlapping and consecutive notes with spacing below threshold - input and no input versions">
