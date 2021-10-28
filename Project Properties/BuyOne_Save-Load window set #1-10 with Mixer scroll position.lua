@@ -9,17 +9,17 @@ REAPER: at least v5.962
 Extensions: SWS/S&M for best performance
 Metapackage: true
 Provides: 
-		[main] . > Save-Load window set #1-10 with Mixer scroll position/Save-Load window set #1 with Mixer scroll position (guide inside).lua
-		[main] . > Save-Load window set #1-10 with Mixer scroll position/Save-Load window set #2 with Mixer scroll position (guide inside).lua
-		[main] . > Save-Load window set #1-10 with Mixer scroll position/Save-Load window set #3 with Mixer scroll position (guide inside).lua
-		[main] . > Save-Load window set #1-10 with Mixer scroll position/Save-Load window set #4 with Mixer scroll position (guide inside).lua
-		[main] . > Save-Load window set #1-10 with Mixer scroll position/Save-Load window set #5 with Mixer scroll position (guide inside).lua
-		[main] . > Save-Load window set #1-10 with Mixer scroll position/Save-Load window set #6 with Mixer scroll position (guide inside).lua
-		[main] . > Save-Load window set #1-10 with Mixer scroll position/Save-Load window set #7 with Mixer scroll position (guide inside).lua
-		[main] . > Save-Load window set #1-10 with Mixer scroll position/Save-Load window set #8 with Mixer scroll position (guide inside).lua
-		[main] . > Save-Load window set #1-10 with Mixer scroll position/Save-Load window set #9 with Mixer scroll position (guide inside).lua
-		[main] . > Save-Load window set #1-10 with Mixer scroll position/Save-Load window set #10 with Mixer scroll position (guide inside).lua		
-About:	
+		[main] . > BuyOne_Save-Load window set #1 with Mixer scroll position (guide inside).lua
+		[main] . > BuyOne_Save-Load window set #2 with Mixer scroll position (guide inside).lua
+		[main] . > BuyOne_Save-Load window set #3 with Mixer scroll position (guide inside).lua
+		[main] . > BuyOne_Save-Load window set #4 with Mixer scroll position (guide inside).lua
+		[main] . > BuyOne_Save-Load window set #5 with Mixer scroll position (guide inside).lua
+		[main] . > BuyOne_Save-Load window set #6 with Mixer scroll position (guide inside).lua
+		[main] . > BuyOne_Save-Load window set #7 with Mixer scroll position (guide inside).lua
+		[main] . > BuyOne_Save-Load window set #8 with Mixer scroll position (guide inside).lua
+		[main] . > BuyOne_Save-Load window set #9 with Mixer scroll position (guide inside).lua
+		[main] . > BuyOne_Save-Load window set #10 with Mixer scroll position (guide inside).lua
+About:
 		To be used instead of native 'Screenset: Save/Load window set #[number]' actions
 		in situations where track position in the Mixer is important. Position means
 		the leftmost, center and the rightmost.   
