@@ -1,17 +1,208 @@
 -- @description Smart split items by mouse cursor
 -- @author AZ
--- @version 1.0
+-- @version 2.0
+-- @changelog Added split by razor area, added time selection switch options.
 -- @about
---   Split items respect grouping, depend on context of mouse cursor, split at time selection if exist, split at mouse or edit cursor otherwise.
+--   # Smart split items by mouse cursor
+--
+--   Split items respect grouping, depend on context of mouse cursor, split at razor edit or time selection if exist, split at mouse or edit cursor otherwise.
+--   There is an option in the user area of code to switch off time selection.
+--
+--   Thanks BirdBird for razor edit functions.
+--   https://forum.cockos.com/showthread.php?t=241604&highlight=razor+edit+scripts
 --
 --   Date: october 2021
 
 
+-----------------------------
+----------USER AREA----------
+use_TS_sel_Items = true -- Could selected items be splitted by TS or not.
+use_TS_all = true       -- Use Time selection or not in all cases.
+-----------------------------
+-----------------------------
+
+
 --FUNCTIONS--
+
+function RazorEditSelectionExists()
+
+    for i=0, reaper.CountTracks(0)-1 do
+
+        local retval, x = reaper.GetSetMediaTrackInfo_String(reaper.GetTrack(0,i), "P_RAZOREDITS", "string", false)
+
+        if x ~= "" then return true end
+
+    end--for
+    
+    return false
+
+end
+
+-----------------------
+
+function GetEnvelopePointsInRange(envelopeTrack, areaStart, areaEnd)
+    local envelopePoints = {}
+
+    for i = 1, reaper.CountEnvelopePoints(envelopeTrack) do
+        local retval, time, value, shape, tension, selected = reaper.GetEnvelopePoint(envelopeTrack, i - 1)
+
+        if time >= areaStart and time <= areaEnd then --point is in range
+            envelopePoints[#envelopePoints + 1] = {
+                id = i-1 ,
+                time = time,
+                value = value,
+                shape = shape,
+                tension = tension,
+                selected = selected
+            }
+        end
+    end
+
+    return envelopePoints
+end
+
+-----------------------
+
+function GetItemsInRange(track, areaStart, areaEnd)
+    local items = {}
+    local itemCount = reaper.CountTrackMediaItems(track)
+    for k = 0, itemCount - 1 do 
+        local item = reaper.GetTrackMediaItem(track, k)
+        local pos = reaper.GetMediaItemInfo_Value(item, "D_POSITION")
+        local length = reaper.GetMediaItemInfo_Value(item, "D_LENGTH")
+        local itemEndPos = pos+length
+
+        --check if item is in area bounds
+        if (itemEndPos > areaStart and itemEndPos <= areaEnd) or
+            (pos >= areaStart and pos < areaEnd) or
+            (pos <= areaStart and itemEndPos >= areaEnd) then
+                table.insert(items,item)
+        end
+    end
+
+    return items
+end
+
+-----------------------
+
+function GetRazorEdits()
+    local trackCount = reaper.CountTracks(0)
+    local areaMap = {}
+    for i = 0, trackCount - 1 do
+        local track = reaper.GetTrack(0, i)
+        local ret, area = reaper.GetSetMediaTrackInfo_String(track, 'P_RAZOREDITS', '', false)
+        if area ~= '' then
+            --PARSE STRING
+            local str = {}
+            for j in string.gmatch(area, "%S+") do
+                table.insert(str, j)
+            end
+        
+            --FILL AREA DATA
+            local j = 1
+            while j <= #str do
+                --area data
+                local areaStart = tonumber(str[j])
+                local areaEnd = tonumber(str[j+1])
+                local GUID = str[j+2]
+                local isEnvelope = GUID ~= '""'
+
+                --get item/envelope data
+                local items = {}
+                local envelopeName, envelope
+                local envelopePoints
+                
+                if not isEnvelope then
+                    items = GetItemsInRange(track, areaStart, areaEnd)
+                else
+                    envelope = reaper.GetTrackEnvelopeByChunkName(track, GUID:sub(2, -2))
+                    local ret, envName = reaper.GetEnvelopeName(envelope)
+
+                    envelopeName = envName
+                    envelopePoints = GetEnvelopePointsInRange(envelope, areaStart, areaEnd)
+                end
+
+                local areaData = {
+                    areaStart = areaStart,
+                    areaEnd = areaEnd,
+                    
+                    track = track,
+                    items = items,
+                    
+                    --envelope data
+                    isEnvelope = isEnvelope,
+                    envelope = envelope,
+                    envelopeName = envelopeName,
+                    envelopePoints = envelopePoints,
+                    GUID = GUID:sub(2, -2)
+                }
+
+                table.insert(areaMap, areaData)
+
+                j = j + 3
+            end
+        end
+    end
+
+    return areaMap
+end
+
+-----------------------
+
+function SplitRazorEdits(razorEdits)
+    local areaItems = {}
+    local tracks = {}
+    reaper.PreventUIRefresh(1)
+    for i = 1, #razorEdits do
+        local areaData = razorEdits[i]
+        if not areaData.isEnvelope then
+            local items = areaData.items
+            
+            --recalculate item data for tracks with previous splits
+            if tracks[areaData.track] ~= nil then 
+                items = GetItemsInRange(areaData.track, areaData.areaStart, areaData.areaEnd)
+            end
+            
+            for j = 1, #items do 
+                local item = items[j]
+                --split items 
+                local newItem = reaper.SplitMediaItem(item, areaData.areaStart)
+                if newItem == nil then
+                    reaper.SplitMediaItem(item, areaData.areaEnd)
+                    table.insert(areaItems, item)
+                else
+                    reaper.SplitMediaItem(newItem, areaData.areaEnd)
+                    table.insert(areaItems, newItem)
+                end
+            end
+
+            tracks[areaData.track] = 1
+        end
+    end
+    reaper.PreventUIRefresh(-1)
+    
+    return areaItems
+end
+
+-----------------------------------
+
+function split_byRE_andSel()
+  local selections = GetRazorEdits()
+  local items = SplitRazorEdits(selections)
+  for i = 1, #items do
+      local item = items[i]
+      reaper.SetMediaItemSelected(item, true)
+      reaper.Main_OnCommandEx(42406, 0, 0)
+  end
+end
+
+
+-----------------------------------
+-----------------------------------
 
 
 function is_item_crossTS ()
-if itemend < start_pos or itempos > end_pos then
+if itemend < start_pos or itempos > end_pos or use_TS_sel_Items == false then
 crossTS=0
 else
   if itemend == start_pos or itempos == end_pos then
@@ -85,12 +276,14 @@ else
     if crossTS==0 then
       reaper.Main_OnCommandEx( 40759, 0, 0 ) -- split items under edit cursor (select right)
     else
-     reaper.Undo_BeginBlock2( 0 )
-     reaper.PreventUIRefresh( 1 )
-     reaper.Main_OnCommandEx(  40061, 0, 0 ) -- split at TS
-     reaper.Main_OnCommandEx( 40635, 0, 0 )  -- Time selection: Remove time selection
-     reaper.PreventUIRefresh( -1 )
-     reaper.Undo_EndBlock2( 0, "Split items at time selection", -1 )
+      reaper.Undo_BeginBlock2( 0 )
+      reaper.PreventUIRefresh( 1 )
+      
+      reaper.Main_OnCommandEx(  40061, 0, 0 ) -- split at TS
+      reaper.Main_OnCommandEx( 40635, 0, 0 )  -- Time selection: Remove time selection
+      
+      reaper.PreventUIRefresh( -1 )
+      reaper.Undo_EndBlock2( 0, "Split items at time selection", -1 )
     end 
   end
 end
@@ -161,12 +354,20 @@ end
 
 --CONTEXT DEFINING CODE--
 
+if RazorEditSelectionExists()==true then
+  reaper.Undo_BeginBlock2( 0 )
+  reaper.PreventUIRefresh( 1 )
+  split_byRE_andSel()
+  reaper.PreventUIRefresh( -1 )
+  reaper.Undo_EndBlock2( 0, "Split at razor edit", -1 )
+else
+
 x, y = reaper.GetMousePosition()
 item = reaper.GetItemFromPoint( x, y, false ) --what is context item or not
 itemsNUMB =  reaper.CountSelectedMediaItems( 0 ) -1 -- -1 to accordance Get Sel Item
 start_pos, end_pos = reaper.GetSet_LoopTimeRange2( 0, false, false, 0, 0, 0 )
 
-if start_pos==0 and end_pos==0 then TSexist=0
+if start_pos==0 and end_pos==0 or use_TS_all == false then TSexist=0
 else
 TSexist=1
 end
@@ -174,20 +375,7 @@ end
 cur_pos=reaper.GetCursorPosition()
 
 window, segment, details = reaper.BR_GetMouseCursorContext()
---mouse_pos = reaper.BR_GetMouseCursorContext_Position()
 
---[[
-if window == "arrange" and segment == "envelope" then
-reaper.SetCursorContext( 2, 0 )
-context = reaper.GetCursorContext2( false )  --what is context global
---reaper.ShowConsoleMsg( tostring(context) )
-end
-
-
-context = reaper.GetCursorContext2( false )  --what is context global
-]]
-
---if context == 2 then
 if window == "arrange" and segment == "envelope" then
 reaper.Undo_BeginBlock2( 0 )
 reaper.PreventUIRefresh( 1 )
@@ -220,4 +408,6 @@ else
      
   end
   
+end
+
 end
