@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="6004b5a3f041145e66e2c23ea66a32eaf049e221" name="ReaTeam Scripts">
+<index version="1" commit="0f5636972154f370b0e4a4bb4c13b6cbefc8ebaf" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -4813,13 +4813,19 @@ website
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 Split items respect grouping, depend on context of mouse cursor, split at time selection if exist, split at mouse or edit cursor otherwise.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Smart split items by mouse cursor\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Split items respect grouping, depend on context of mouse cursor, split at razor edit or time selection if exist, split at mouse or edit cursor otherwise. There is an option in the user area of code to switch off time selection.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Thanks BirdBird for razor edit functions. https://forum.cockos.com/showthread.php?t=241604&highlight=razor+edit+scripts\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Date: october 2021\par}
 }
 ]]></description>
       </metadata>
       <version name="1.0" author="AZ" time="2021-10-19T20:22:27Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f321a57bd7901786e9cb74335c3a10e3484a6fdf/Items%20Editing/az_Smart%20split%20items%20by%20mouse%20cursor.lua</source>
+      </version>
+      <version name="2.0" author="AZ" time="2021-10-29T16:41:18Z">
+        <changelog><![CDATA[Added split by razor area, added time selection switch options.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/0f5636972154f370b0e4a4bb4c13b6cbefc8ebaf/Items%20Editing/az_Smart%20split%20items%20by%20mouse%20cursor.lua</source>
       </version>
     </reapack>
     <reapack name="beaunus_Name item takes by last marker to cut item.lua" type="script" desc="Name item takes by last marker to cut item">
