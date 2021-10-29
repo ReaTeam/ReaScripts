@@ -1,7 +1,7 @@
 -- @description Low latency monitoring
 -- @author ak5k
--- @version 1.6
--- @changelog Report window now shows monitored input tracks.
+-- @version 1.7
+-- @changelog Bug fix related to track validation, which could cause script to crash when changing projects or deleting tracks while script is enabled.
 -- @link Forum thread, more detailed information https://forum.cockos.com/showthread.php?t=245445
 -- @about
 --   # Low latency monitoring
@@ -695,7 +695,7 @@ local function set_monitored_input_tracks()
   monitored_input_tracks = {}
   
   local n = 1
-  for _, track in ipairs(proj_tracks) do
+  for _, track in get_proj_tracks() do
   
   local bool, flags = GetTrackState(track)
   
