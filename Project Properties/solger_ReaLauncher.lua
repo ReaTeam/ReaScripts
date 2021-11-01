@@ -1,10 +1,9 @@
 -- @description ReaLauncher
 -- @author solger
--- @version 2.4.1
+-- @version 2.4.2
 -- @changelog
---   + Bugfix: Added check for empty lists in the Favorites tab to prevent a possible crash
---   + Bugfix: The script was not terminated properly on exit
---   + UI: The Main (button) Panel on the right wasn't visible by default (visibility of this panel can be toggled on/off in the [Layout / Colors] tab)
+--   + Projects: Fixed typo in the code for adding favorites from a filtered list
+--   + Track Templates: The selected Double Click Behavior in [Options] is now also applied to this tab
 -- @screenshot https://forum.cockos.com/showthread.php?t=208697
 -- @about
 --   # ReaLauncher
@@ -2822,7 +2821,7 @@ GUI.Draw_Version = function()
   GUI.color("txt")
 
   if not GUI.version then return 0 end
-  str = "RL 2.4.1 | Lokasenna_GUI " .. GUI.version
+  str = "RL 2.4.2 | Lokasenna_GUI " .. GUI.version
   str_w, str_h = gfx.measurestr(str)
   gfx.x = gfx.w - str_w - 6
   gfx.y = gfx.h - str_h - 4
@@ -3884,7 +3883,7 @@ local function RL_Draw_TabTrackTemplates()
 
   function GUI.elms.tab_trackTemplates_listbox:ondoubleclick()
     GUI.Listbox.ondoubleclick(self)
-    Load_TrackTemplate()
+    RL_Mouse_DoubleClick(TabID.TrackTemplates)
   end
   
   function GUI.elms.tab_trackTemplates_txtFilter:ontype()
@@ -4597,7 +4596,7 @@ function Favorites_Add()
     if GetMainListSize() > 0 then
       local vals = GetSelectionTable(GUI.Val("tab_customProjects_listbox"))
       for p = 1, #vals do
-        if FilterActive.CustomProjects then selectedProject = ustomProjects.filteredPaths[vals[p]]
+        if FilterActive.CustomProjects then selectedProject = CustomProjects.filteredPaths[vals[p]]
         else selectedProject = CustomProjects.paths[vals[p]] end
         if selectedProject ~= nil then favEntries[#favEntries + 1] = selectedProject end
       end
