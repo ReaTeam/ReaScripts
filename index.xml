@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="c58b3cd29c79bab90afb5dd2558a3540df5b110b" name="ReaTeam Scripts">
+<index version="1" commit="9a400d3d50b7288c2921bf8ed0f8247b8659b14b" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -12159,6 +12159,50 @@ enter or a = Exit and apply changes\par}
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/61d5e55ff14c11d8ed3d82274e94e800ae9b0239/Project%20Properties/BuyOne_Open%20recent%20projects%20in%20new%20tab%20(settings%20inside).lua</source>
       </version>
     </reapack>
+    <reapack name="BuyOne_Save-Load window set #1-10 with Mixer scroll position.lua" type="script" desc="Save-Load window set #1-10 with Mixer scroll position (10 scripts)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 To be used instead of native 'Screenset: Save/Load window set #[number]' actions in situations where track position in the Mixer is important. Position means the leftmost, center and the rightmost.\line The script does both:\line a) concurrently with saving the actual screenset stores the track to be scrolled into view when the Mixer is opened with the screenset whose number is included in the script name; and\line b) loads the screenset scrolling the associated track into view.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 To save a screenset with a track to be scrolled into view in the Mixer:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 1)\tx360\tab make sure that the track which is supposed to be scrolled into view on opening has a name and it's unique to avoid confusion;\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 2)\tx360\tab open the Mixer and either select the target track or make it the leftmost;\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 3)\tx360\tab open 'Screensets/Layout' window (is used to signal to the script that saving needs to be performed, it's not stored in screensets);\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 4)\tx360\tab run the script ('Screensets/Layout' window will auto-close);\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 5)\tx360\tab 'Save Windows Screenset' dialogue will appear. On Windows once you click save in the 'Save Windows Screenset' dialogue, the chosen track name will be stored concurrenty with the screenset (re)saving. If the dialogue is cancelled no storage occurs.\line On MacOS and on Linux track name storage will have to be manually confirmed or declined via a dialogue which will appear once 'Save Windows Screenset' dialogue closes. That's because without access to MacOS or Linux i couldn't devise the same way of track name storage as on Windows.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 To change track name associated with a screenset, load the screenset and follow the abovelisted steps.\line On Windows track name is only stored if the screenset itself is re-saved even with no changes to it.\line On MacOS and on Linux they can be stored independently thanks to the additional dialogue, which turns out to be both the curse and the blessing so to speak.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 When storing, selected track gets preference, when no track is selected the script looks for the leftmost track in the Mixer.\line If 'Screensets/Layout' window isn't open while the Mixer is open, the script will work in screenset loading mode provided there's a stored track name.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 To determine the position to scroll the track to, the script evaluates the track displayed name. By default without any tags in its name the track is scrolled to the leftmost position. To change that precede the track displayed name with a scroll tag in the following format: C/c> (center); R/r> (rightmost) e.g. "C> My track name"\line The register of the characters doesn't matter hence both types are listed. To have the track scroll into view at the start of the Mixer (leftmost position) when its name is already tagged, it suffices to strip the scroll tag of the letter, leaving only the greater '>' sign intact, e.g. "> My track name".\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 To load the screenset and scroll into view a track whose name was stored, run the script.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 After saving the screenset using this script, if the need arises to modify the screenset by changing Mixer dock state, window size, it can be done the usual way via the corresponding action or 'Screensets/Layouts window', but loaded this screenset must still be with this script.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The script is linked to the track name, so if the stored name is applied to a different track, it will become the one to be scrolled into view in the Mixer when the screenset is loaded, provided the name isn't shared with any other track.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 It's recommended to have the SWS/S&M extension installed so that all 3 track scroll positions are available regardless of the Mixer window size and of its being docked. If not installed, only the leftmost position will be available regardless of the actual scroll tag in the track displayed name.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 CAVEATS\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 If there're too few tracks on either end of the tracklist or their combined MCPs are too narrow to allow sufficient distance for scrolling, the stored track will be placed only as close to the target position as conditions permit.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Generally the relative placement of a track at the center and on the right side of the Mixer is accurate. But it still depends on the stored track and adjacent tracks MCP width especially with a tracklist mixed in terms of MCP layouts. Therefore at times some track may appear slightly off center or slightly to the left of the right edge instead of being flush with it.\line However in determining track placement its visibility is given top priority. At the leftmost position the track is always flush with the left edge of the window or with the Master track simply because at this position REAPER doesn't allow partial display of MCP.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Mind that as of build 6.38 the Mixer window is global for all projects open in tabs, just the contents differ. Therefore changing Mixer scroll position in one such project will affect it across all open projects.\par}
+{\pard \qc \f0 \sa180 \li0 \fi0 \emdash\emdash\emdash\emdash\emdash\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Check out also BuyOne_Scroll named track into view in the Mixer (guide inside).lua for a method of scrolling named track into view without hard linking between track name and screenset number.\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/member.php?u=134058</link>
+      </metadata>
+      <version name="1.0" author="BuyOne" time="2021-11-02T18:26:37Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main" file="BuyOne_Save-Load window set #1-10 with Mixer scroll position/BuyOne_Save-Load window set #1 with Mixer scroll position (guide inside).lua">https://github.com/ReaTeam/ReaScripts/raw/9a400d3d50b7288c2921bf8ed0f8247b8659b14b/Project%20Properties/BuyOne_Save-Load%20window%20set%20%231-10%20with%20Mixer%20scroll%20position.lua</source>
+        <source main="main" file="BuyOne_Save-Load window set #1-10 with Mixer scroll position/BuyOne_Save-Load window set #2 with Mixer scroll position (guide inside).lua">https://github.com/ReaTeam/ReaScripts/raw/9a400d3d50b7288c2921bf8ed0f8247b8659b14b/Project%20Properties/BuyOne_Save-Load%20window%20set%20%231-10%20with%20Mixer%20scroll%20position.lua</source>
+        <source main="main" file="BuyOne_Save-Load window set #1-10 with Mixer scroll position/BuyOne_Save-Load window set #3 with Mixer scroll position (guide inside).lua">https://github.com/ReaTeam/ReaScripts/raw/9a400d3d50b7288c2921bf8ed0f8247b8659b14b/Project%20Properties/BuyOne_Save-Load%20window%20set%20%231-10%20with%20Mixer%20scroll%20position.lua</source>
+        <source main="main" file="BuyOne_Save-Load window set #1-10 with Mixer scroll position/BuyOne_Save-Load window set #4 with Mixer scroll position (guide inside).lua">https://github.com/ReaTeam/ReaScripts/raw/9a400d3d50b7288c2921bf8ed0f8247b8659b14b/Project%20Properties/BuyOne_Save-Load%20window%20set%20%231-10%20with%20Mixer%20scroll%20position.lua</source>
+        <source main="main" file="BuyOne_Save-Load window set #1-10 with Mixer scroll position/BuyOne_Save-Load window set #5 with Mixer scroll position (guide inside).lua">https://github.com/ReaTeam/ReaScripts/raw/9a400d3d50b7288c2921bf8ed0f8247b8659b14b/Project%20Properties/BuyOne_Save-Load%20window%20set%20%231-10%20with%20Mixer%20scroll%20position.lua</source>
+        <source main="main" file="BuyOne_Save-Load window set #1-10 with Mixer scroll position/BuyOne_Save-Load window set #6 with Mixer scroll position (guide inside).lua">https://github.com/ReaTeam/ReaScripts/raw/9a400d3d50b7288c2921bf8ed0f8247b8659b14b/Project%20Properties/BuyOne_Save-Load%20window%20set%20%231-10%20with%20Mixer%20scroll%20position.lua</source>
+        <source main="main" file="BuyOne_Save-Load window set #1-10 with Mixer scroll position/BuyOne_Save-Load window set #7 with Mixer scroll position (guide inside).lua">https://github.com/ReaTeam/ReaScripts/raw/9a400d3d50b7288c2921bf8ed0f8247b8659b14b/Project%20Properties/BuyOne_Save-Load%20window%20set%20%231-10%20with%20Mixer%20scroll%20position.lua</source>
+        <source main="main" file="BuyOne_Save-Load window set #1-10 with Mixer scroll position/BuyOne_Save-Load window set #8 with Mixer scroll position (guide inside).lua">https://github.com/ReaTeam/ReaScripts/raw/9a400d3d50b7288c2921bf8ed0f8247b8659b14b/Project%20Properties/BuyOne_Save-Load%20window%20set%20%231-10%20with%20Mixer%20scroll%20position.lua</source>
+        <source main="main" file="BuyOne_Save-Load window set #1-10 with Mixer scroll position/BuyOne_Save-Load window set #9 with Mixer scroll position (guide inside).lua">https://github.com/ReaTeam/ReaScripts/raw/9a400d3d50b7288c2921bf8ed0f8247b8659b14b/Project%20Properties/BuyOne_Save-Load%20window%20set%20%231-10%20with%20Mixer%20scroll%20position.lua</source>
+        <source main="main" file="BuyOne_Save-Load window set #1-10 with Mixer scroll position/BuyOne_Save-Load window set #10 with Mixer scroll position (guide inside).lua">https://github.com/ReaTeam/ReaScripts/raw/9a400d3d50b7288c2921bf8ed0f8247b8659b14b/Project%20Properties/BuyOne_Save-Load%20window%20set%20%231-10%20with%20Mixer%20scroll%20position.lua</source>
+      </version>
+    </reapack>
     <reapack name="BuyOne_Scroll named track into view in the Mixer (guide inside).lua" type="script" desc="Scroll named track into view in the Mixer">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
@@ -12578,6 +12622,11 @@ Replace GetLastWord func with quicker solution (Thanks: Mespotine[t=233393]).]]>
 + Bugfix: The script was not terminated properly on exit
 + UI: The Main (button) Panel on the right wasn't visible by default (visibility of this panel can be toggled on/off in the [Layout / Colors] tab)]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/9c9266dceb914c1280259ed5eca0be3998d15e78/Project%20Properties/solger_ReaLauncher.lua</source>
+      </version>
+      <version name="2.4.2" author="solger" time="2021-11-02T18:26:21Z">
+        <changelog><![CDATA[+ Projects: Fixed typo in the code for adding favorites from a filtered list
++ Track Templates: The selected Double Click Behavior in [Options] is now also applied to this tab]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/5fab4b1950835033decb53b30acb9969228a5d26/Project%20Properties/solger_ReaLauncher.lua</source>
       </version>
     </reapack>
   </category>
