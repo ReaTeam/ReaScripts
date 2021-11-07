@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="49fdff9d2a3cb0a341c025f5905b64f0c9067134" name="ReaTeam Scripts">
+<index version="1" commit="12c22a96b43828151b2bff30d5c5246352f78618" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -12630,6 +12630,10 @@ Replace GetLastWord func with quicker solution (Thanks: Mespotine[t=233393]).]]>
         <changelog><![CDATA[+ Projects: Fixed typo in the code for adding favorites from a filtered list
 + Track Templates: The selected Double Click Behavior in [Options] is now also applied to this tab]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/5fab4b1950835033decb53b30acb9969228a5d26/Project%20Properties/solger_ReaLauncher.lua</source>
+      </version>
+      <version name="2.4.3" author="solger" time="2021-11-07T16:11:14Z">
+        <changelog><![CDATA[+ Filter: Bugfix for handling certain special characters to avoid 'unfinished capture' Lua error]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/12c22a96b43828151b2bff30d5c5246352f78618/Project%20Properties/solger_ReaLauncher.lua</source>
       </version>
     </reapack>
   </category>
