@@ -1,9 +1,7 @@
 -- @description ReaLauncher
 -- @author solger
--- @version 2.4.2
--- @changelog
---   + Projects: Fixed typo in the code for adding favorites from a filtered list
---   + Track Templates: The selected Double Click Behavior in [Options] is now also applied to this tab
+-- @version 2.4.3
+-- @changelog + Filter: Bugfix for handling certain special characters to avoid 'unfinished capture' Lua error
 -- @screenshot https://forum.cockos.com/showthread.php?t=208697
 -- @about
 --   # ReaLauncher
@@ -49,6 +47,7 @@ local ConfigFlags = {
 ----------------------------------------------------------------------------------------------------
   enableAutoRefresh = true,           -- skips the automatic refresh in all tabs      (true | false)
   setfirstTabToLoad = 0,              -- the id of the tab that is focused at launch  (0 = last tab)
+  resetFiltersAtLaunch = false,       -- reset filter entries in all tabs at launch   (true | false)
 ----------------------------------------------------------------------------------------------------
   enableFileCaching = true,           -- enables/disables file caching                (true | false)
   enableSubfolderCaching = true,      -- enables/disables subfolder caching           (true | false)
@@ -1830,6 +1829,21 @@ FilterColor = {
   inactive = "txt"
 }
 
+local function escapeSpecialCharacters(x)
+  return (x:gsub('%%', '%%%%')
+           :gsub('^%^', '%%^')
+           :gsub('%$$', '%%$')
+           :gsub('%(', '%%(')
+           :gsub('%)', '%%)')
+           :gsub('%.', '%%.')
+           :gsub('%[', '%%[')
+           :gsub('%]', '%%]')
+           :gsub('%*', '%%*')
+           :gsub('%+', '%%+')
+           :gsub('%-', '%%-')
+           :gsub('%?', '%%?'))
+end
+
 local replaceMatchString = function (c)
   return "[" .. string.lower(c) .. string.upper(c) .. "]"
 end
@@ -1837,7 +1851,7 @@ end
 local function GetSearchTable(searchString)
   local searchTable = {}
   for match in string.gmatch(searchString, "[^%s]+") do -- space separator
-    searchTable[#searchTable + 1] = string.gsub(match, "%a", replaceMatchString)
+    searchTable[#searchTable + 1] = string.gsub(escapeSpecialCharacters(match), "%a", replaceMatchString)
   end
   return searchTable
 end
@@ -2821,7 +2835,7 @@ GUI.Draw_Version = function()
   GUI.color("txt")
 
   if not GUI.version then return 0 end
-  str = "RL 2.4.2 | Lokasenna_GUI " .. GUI.version
+  str = "RL 2.4.3 | Lokasenna_GUI " .. GUI.version
   str_w, str_h = gfx.measurestr(str)
   gfx.x = gfx.w - str_w - 6
   gfx.y = gfx.h - str_h - 4
@@ -6300,52 +6314,54 @@ local function RL_ExtStates_Load()
   GUI.Val("main_checklistPaths", {(reaper.GetExtState(appname, "window_showpaths") == "true" and true or false)})
   Global_UpdatePathDisplayMode()
 
-  GUI.Val("tab_recentProjects_txtFilter", reaper.GetExtState(appname, "filter_recentprojects"))
-  if IsNotNullOrEmpty(GUI.Val("tab_recentProjects_txtFilter")) then
-    FilterActive.RecentProjects = true
-    Filter_RecentProject_Apply()
-  else GUI.elms.tab_recentProjects_txtFilter.color = FilterColor.inactive end
+  if not ConfigFlags.resetFiltersAtLaunch then
+    GUI.Val("tab_recentProjects_txtFilter", reaper.GetExtState(appname, "filter_recentprojects"))
+    if IsNotNullOrEmpty(GUI.Val("tab_recentProjects_txtFilter")) then
+      FilterActive.RecentProjects = true
+      Filter_RecentProject_Apply()
+    else GUI.elms.tab_recentProjects_txtFilter.color = FilterColor.inactive end
+    
+    GUI.Val("tab_projectTemplates_txtFilter", reaper.GetExtState(appname, "filter_projecttemplates"))
+    if IsNotNullOrEmpty(GUI.Val("tab_projectTemplates_txtFilter")) then
+      FilterActive.ProjectTemplates = true
+      Filter_ProjectTemplate_Apply()
+    end
   
-  GUI.Val("tab_projectTemplates_txtFilter", reaper.GetExtState(appname, "filter_projecttemplates"))
-  if IsNotNullOrEmpty(GUI.Val("tab_projectTemplates_txtFilter")) then
-    FilterActive.ProjectTemplates = true
-    Filter_ProjectTemplate_Apply()
-  end
- 
-  GUI.Val("tab_trackTemplates_txtFilter", reaper.GetExtState(appname, "filter_tracktemplates"))
-  if IsNotNullOrEmpty(GUI.Val("tab_trackTemplates_txtFilter")) then
-    FilterActive.TrackTemplates = true
-    Filter_TrackTemplate_Apply()
-  end
-  
-  GUI.Val("tab_customProjects_txtFilter", reaper.GetExtState(appname, "filter_projects"))
-  if IsNotNullOrEmpty(GUI.Val("tab_customProjects_txtFilter")) then
-    FilterActive.CustomProjects = true
-    Filter_CustomProjects_Apply()
-  end
-  
-  GUI.Val("tab_projectLists_txtFilter", reaper.GetExtState(appname, "filter_projectlists"))
-  if IsNotNullOrEmpty(GUI.Val("tab_projectLists_txtFilter")) then
-    FilterActive.ProjectLists = true
-    Filter_ProjectLists_Apply()
-  end
-  
-  GUI.Val("tab_backups_txtFilter", reaper.GetExtState(appname, "filter_backups"))
-  if IsNotNullOrEmpty(GUI.Val("tab_backups_txtFilter")) then
-    FilterActive.Backups = true
-    Filter_Backups_Apply()
-  end
+    GUI.Val("tab_trackTemplates_txtFilter", reaper.GetExtState(appname, "filter_tracktemplates"))
+    if IsNotNullOrEmpty(GUI.Val("tab_trackTemplates_txtFilter")) then
+      FilterActive.TrackTemplates = true
+      Filter_TrackTemplate_Apply()
+    end
+    
+    GUI.Val("tab_customProjects_txtFilter", reaper.GetExtState(appname, "filter_projects"))
+    if IsNotNullOrEmpty(GUI.Val("tab_customProjects_txtFilter")) then
+      FilterActive.CustomProjects = true
+      Filter_CustomProjects_Apply()
+    end
+    
+    GUI.Val("tab_projectLists_txtFilter", reaper.GetExtState(appname, "filter_projectlists"))
+    if IsNotNullOrEmpty(GUI.Val("tab_projectLists_txtFilter")) then
+      FilterActive.ProjectLists = true
+      Filter_ProjectLists_Apply()
+    end
+    
+    GUI.Val("tab_backups_txtFilter", reaper.GetExtState(appname, "filter_backups"))
+    if IsNotNullOrEmpty(GUI.Val("tab_backups_txtFilter")) then
+      FilterActive.Backups = true
+      Filter_Backups_Apply()
+    end
 
-  GUI.Val("tab_docs_txtFilter", reaper.GetExtState(appname, "filter_docs"))
-  if IsNotNullOrEmpty(GUI.Val("tab_docs_txtFilter")) then
-    FilterActive.Docs = true
-    Filter_Docs_Apply()
-  end
+    GUI.Val("tab_docs_txtFilter", reaper.GetExtState(appname, "filter_docs"))
+    if IsNotNullOrEmpty(GUI.Val("tab_docs_txtFilter")) then
+      FilterActive.Docs = true
+      Filter_Docs_Apply()
+    end
 
-  GUI.Val("tab_favorites_txtFilter", reaper.GetExtState(appname, "filter_favorites"))
-  if IsNotNullOrEmpty(GUI.Val("tab_favorites_txtFilter")) then
-    FilterActive.Favorites = true
-    Filter_Favorites_Apply()
+    GUI.Val("tab_favorites_txtFilter", reaper.GetExtState(appname, "filter_favorites"))
+    if IsNotNullOrEmpty(GUI.Val("tab_favorites_txtFilter")) then
+      FilterActive.Favorites = true
+      Filter_Favorites_Apply()
+    end
   end
 
   if JSAPIinstalled then 
