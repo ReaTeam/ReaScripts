@@ -1,6 +1,7 @@
--- @description Split selected notes into new midi items
+-- @description Move selected notes to a new MIDI item
 -- @author Rodilab
 -- @version 1.0
+-- @provides [main=main,midi_editor] .
 -- @about
 --   Delete selected notes in selected MIDI items, and create new midi item with this notes
 --
