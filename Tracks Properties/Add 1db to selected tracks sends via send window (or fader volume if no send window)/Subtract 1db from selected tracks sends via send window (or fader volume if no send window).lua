@@ -4,17 +4,16 @@
 -- @metapackage
 -- @provides [main] Add 1db to selected tracks sends via send window (or fader volume if no send window)/Subtract 1db from selected tracks sends via send window (or fader volume if no send window).lua > Add 1db to selected tracks sends via send window (or fader volume if no send window)/Subtract 1db from selected tracks sends via send window (or fader volume if no send window)
 -- @donation Donate via PayPal https://www.paypal.me/outoftheboxsounds
--- @about
--- This script will adjust the relative level of all the selected tracks' sends named in an open REAPER send window.
+-- @about This script will adjust the relative level of all the selected tracks' sends named in an open REAPER send window.
 -- If no send window is open, the selected tracks fader volume will be adjusted.
 -- You can edit the db value that the script uses inside the script.
 -- It works on regular tracks as well as the master track and can target sends as well as hardware outs and will distinguish between mono and stereo sends.
 -- It requires js_ReaScriptAPI extension by juliansader
+-- Note: this script requires its key command scope set to "global + text fields"
 
 scriptName = "Subtract 1db from selected tracks sends via send window (or fader volume if no send window)"
 dbValue = -1 ------ you can edit this
 warning = true -- change this to false if you don't want a warning if a track send reaches max value
--- Note this script requires its key command scope set to "global + text fields"
 
 send_window = false
 hardware_output = false
