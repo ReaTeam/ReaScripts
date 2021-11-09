@@ -116,8 +116,9 @@ local sel_tr_idx = TRACK_RANGE and r.CountSelectedTracks() == 1 and r.CSurf_Trac
 	for i = 0, itm_cnt-1 do
 	local exit
 	local item = r.GetMediaItem(0,i)	
-	local tr_within_range = sel_tr_idx and math.abs(r.CSurf_TrackToID(r.GetMediaItem_Track(item), false) - sel_tr_idx) <= TRACK_RANGE -- mcpView false	
-	local item = tr_within_range and item or ON_SEL_TRACKS and r.IsTrackSelected(r.GetMediaItem_Track(item)) and item or not ON_SEL_TRACKS and not TRACK_RANGE and item
+	local itm_tr = r.GetMediaItem_Track(item)
+	local tr_within_range = sel_tr_idx and math.abs(r.CSurf_TrackToID(itm_tr, false) - sel_tr_idx) <= TRACK_RANGE -- mcpView false	
+	local item = tr_within_range and item or ON_SEL_TRACKS and r.IsTrackSelected(itm_tr) and item or not TRACK_RANGE and not ON_SEL_TRACKS and item
 		if item then
 		local item_start = r.GetMediaItemInfo_Value(item, 'D_POSITION')
 		local item_end = item_start + r.GetMediaItemInfo_Value(item, 'D_LENGTH')
