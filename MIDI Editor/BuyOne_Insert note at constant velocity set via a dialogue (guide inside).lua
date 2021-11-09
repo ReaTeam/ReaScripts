@@ -122,7 +122,7 @@ local scr_name = scr_name:match('([^\\/]+)%.%w+')
 
 function ACT(ID, ME)
 -- ID - string or integer
-	if ID then --ID = tostring(ID)
+	if ID then
 	local ID = r.NamedCommandLookup(ID) -- works with srings and integers
 		if not ME then r.Main_OnCommand(ID, 0)
 		else
