@@ -131,6 +131,7 @@ end
 
 function Get_Note_Under_Mouse(midi_take, hwnd) -- returns note index or nil if no note under mouse cursor
 r.PreventUIRefresh(1)
+r.Undo_BeginBlock() -- to prevent creation of undo point by 'Edit: Split notes at mouse cursor'
 local retval, notecntA, ccevtcnt, textsyxevtcnt = r.MIDI_CountEvts(midi_take)
 local props_t = {} 
 	for i = 0, notecntA-1 do -- collect current notes properties
@@ -156,6 +157,7 @@ local idx, fin, note
 		end
 	end
 r.PreventUIRefresh(-1)
+r.Undo_EndBlock('',-1) -- to prevent creation of undo point by 'Edit: Split notes at mouse cursor'
 end
 
 
