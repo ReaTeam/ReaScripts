@@ -165,7 +165,7 @@ local sel_note_t = {}
 
 	for i = 0, notecnt-1 do -- store selected notes to allow user to set them to the new velocity via the dialogue; must be done before the new note is inserted because immediately prior to that the rest of the notes are all deselected so the newly inserted one is the only one selected which allows getting hold of it for velocity setting
 	local retval, sel, mute, startpos, endpos, chan, pitch, vel = r.MIDI_GetNote(take, i)
-		if sel then sel_note_t[#sel_note_t+1] = {i, mute, startpos, pitch} end -- store mute setting to keep muted when restoring selection and setting velocities to multiple notes; startpos and pitch to restore note selection when inserting a note
+		if sel then sel_note_t[#sel_note_t+1] = {i, startpos, pitch} end -- store index for selection restoration and setting velocities to multiple notes; startpos and pitch to restore note selection when inserting a note
 	end
 
 
@@ -185,7 +185,7 @@ local INIT_VELOCITY = INIT_VELOCITY < 1 and 1 or INIT_VELOCITY > 127 and 127 or 
 
 	if notecnt == 0 or notecnt == tonumber(old_notecnt) then -- call the dialogue to set new default velocity if note count is no different from the last count stored as extended state, meaning the cursor isn't over the piano roll when the script is called and so no new note has been added hence no change in the count
 		for _, t in ipairs(sel_note_t) do -- reselect stored selected notes, if any, after they've been deselected above
-		r.MIDI_SetNote(take, t[1], true, t[2], -1, -1, -1, -1, -1, true) -- idx is t[1], selectedIn - true, mutedIn is t[2], startppqposIn, endppqposIn,, chanIn, velIn are -1, noSortIn true because multiple notes
+		r.MIDI_SetNote(take, t[1], true, x, x, x, x, x, x, true) -- idx is t[1], selectedIn - true, mutedIn, startppqposIn, endppqposIn,, chanIn, velIn are nil, noSortIn true because multi
 		end
 	r.MIDI_Sort(take)
 	::RETRY::
@@ -205,7 +205,7 @@ local INIT_VELOCITY = INIT_VELOCITY < 1 and 1 or INIT_VELOCITY > 127 and 127 or 
 			else
 			local vel = vel == '0' and INIT_VELOCITY or vel
 				for _, t in ipairs(sel_note_t) do -- apply user chosen velocity to selected notes
-				r.MIDI_SetNote(take, t[1], true, t[2], -1, -1, -1, -1, vel, true) -- set velocity; idx is t[1], selectedIn - true, mutedIn is t[2], startppqposIn, endppqposIn both, chanIn are -1, noSortIn true because multiple notes
+				r.MIDI_SetNote(take, t[1], true, x, x, x, x, x, vel, true) -- set velocity; idx is t[1], selectedIn - true, mutedIn, startppqposIn, endppqposIn both, chanIn are nil, noSortIn true because multiple notes
 				end
 			r.MIDI_Sort(take)
 			end -- sel_note_cnt cond end
@@ -218,7 +218,7 @@ local INIT_VELOCITY = INIT_VELOCITY < 1 and 1 or INIT_VELOCITY > 127 and 127 or 
 			if sel then idx = i break end
 		end
 	local vel = #velocity ~= 0 and velocity or INIT_VELOCITY -- if no default velocity as project extended state use the one from the USER SETTINGS
-	r.MIDI_SetNote(take, idx, true, false, -1, -1, -1, -1, vel, false) -- set velocity; selectedIn - true, mutedIn - false, startppqposIn, endppqposIn, chanIn are -1, noSortIn - false since only one note prams are set
+	r.MIDI_SetNote(take, idx, true, false, x, x, x, x, vel, false) -- set velocity; selectedIn - true, mutedIn - false, startppqposIn, endppqposIn, chanIn are nil, noSortIn - false since only one note prams are set
 	undo = 'Insert note at velocity '..vel
 		for i = 0, notecnt-1 do
 		local retval, sel, mute, startpos, endpos, chan, pitch, vel = r.MIDI_GetNote(take, i)
