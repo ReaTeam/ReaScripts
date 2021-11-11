@@ -27,6 +27,7 @@ About:
 -- Distance of the edit cursor from target in ms (1 ms = 0.001 sec)
 -- the greater the number the higher the sensitivity and vice versa
 -- 100 seems optimal but it's quite lax;
+-- noticeable change occurs when the setting is changed by 50s and 100s;
 -- If preceded by 'R' or 'r' e.g. "r100", sensitivity is relative
 -- to the zoom level; the specified numeric value is valid for zoom resolution
 -- of ~100 px per 1000 ms (or 1 sec); as the zoom resolution changes
