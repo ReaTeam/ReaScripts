@@ -6,6 +6,7 @@ Version: 1.3
 Changelog: 
 	#Fixed bug of muted notes getting unmuted when set to new velocity
 	#Corrected inconsistency of notes getting deselected when a note is inserted
+	#Added safeguard against creation of overlapped notes
 Provides: [main=midi_editor] .
 Screenshot: https://git.io/J0pdP
 Licence: WTFPL
@@ -86,11 +87,6 @@ About:
 	try to avoid running the script when the mouse cursor is outside of the active 
 	Paino roll area on the left (excluding the graphic keyboard) or right.
 	
-	▓ ▪ CAVEAT
-	
-	When inserting a note over another note (which is not something usually done) 
-	one of them may get stretched to the end of the MIDI item.	
-	
 ]]
 
 -----------------------------------------------------------------------------
@@ -133,8 +129,43 @@ function ACT(ID, ME)
 end
 
 
+function Get_Note_Under_Mouse(midi_take, hwnd) -- returns note index or nil if no note under mouse cursor
+r.PreventUIRefresh(1)
+local retval, notecntA, ccevtcnt, textsyxevtcnt = r.MIDI_CountEvts(midi_take)
+local props_t = {} 
+	for i = 0, notecntA-1 do -- collect current notes properties
+	local retval, sel, muted, startppq, endppq, chan, pitch, vel = r.MIDI_GetNote(midi_take, i)
+	props_t[#props_t+1] = {startppq, endppq, pitch}
+	end
+local snap = r.GetToggleCommandStateEx(32060, 1014) == 1 -- View: Toggle snap to grid
+local off = snap and r.MIDIEditor_OnCommand(hwnd, 1014) -- disable snap
+r.MIDIEditor_OnCommand(hwnd, 40052)	-- Edit: Split notes at mouse cursor
+local on = snap and r.MIDIEditor_OnCommand(hwnd, 1014) -- re-enable snap
+local retval, notecntB, ccevtcnt, textsyxevtcnt = r.MIDI_CountEvts(midi_take) -- re-count after split
+local idx, fin, note
+	if notecntB > notecntA then -- some note was split
+		for i = 0, notecntB-1  do
+		retval, sel, muted, startppq, endppq, chan, pitch, vel = r.MIDI_GetNote(midi_take, i)
+		local v = props_t[i+1] -- +1 since table index is 1-based while note count is 0-based; the 1st part of the note will keep the note original index after split and after restoration
+			if v and startppq == v[1] and endppq ~= v[2] and pitch == v[3] then 
+			idx, fin, note = i, endppq, pitch end
+			if idx and startppq == fin and pitch == note then -- locate the 2nd part of the split note
+			r.MIDI_DeleteNote(midi_take, i) -- delete the 2nd part
+			r.MIDI_SetNote(midi_take, idx, x, x, x, endppq, x, x, x, false) -- restore the note original length // selected, muted, startppq, chan, pitch, vel all nil, noSort false because only one note is affected
+			return idx end			
+		end
+	end
+r.PreventUIRefresh(-1)
+end
+
+
 local ME = r.MIDIEditor_GetActive()
 local take = r.MIDIEditor_GetTake(ME)
+
+
+	if Get_Note_Under_Mouse(take, ME) then return r.defer(function() end) end -- abort if note under mouse to prevent creation of overlapped notes because these get streched when set with MIDI_SetNote()
+	-- https://forum.cockos.com/showthread.php?t=159848
+	-- https://forum.cockos.com/showthread.php?t=195709 
 
 
 	if #IGNORE_MARGINS:gsub(' ','') > 0 then
@@ -223,7 +254,7 @@ local INIT_VELOCITY = INIT_VELOCITY < 1 and 1 or INIT_VELOCITY > 127 and 127 or 
 		for i = 0, notecnt-1 do
 		local retval, sel, mute, startpos, endpos, chan, pitch, vel = r.MIDI_GetNote(take, i)
 			for _, t in ipairs(sel_note_t) do
-				if startpos == t[3] and pitch == t[4] then r.MIDI_SetNote(take, i, true, mute, startpos, endpos, chan, pitch, vel, false) -- noSortIn - false since only one note prams are set
+				if startpos == t[2] and pitch == t[3] then r.MIDI_SetNote(take, i, true, mute, startpos, endpos, chan, pitch, vel, false) -- noSortIn - false since only one note prams are set
 				end
 			end
 		end
