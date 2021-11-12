@@ -1,6 +1,6 @@
 -- @description Save project plugin info to text file
 -- @author Edgemeal
--- @version 1.06
+-- @version 1.06-1
 -- @provides [main] edgemeal_Save project plugin info to text file/edgemeal_Save project plugin info to text file (Don't open notepad on Windows).lua
 -- @link Forum https://forum.cockos.com/showthread.php?t=225219
 -- @donation Donate https://www.paypal.me/Edgemeal
