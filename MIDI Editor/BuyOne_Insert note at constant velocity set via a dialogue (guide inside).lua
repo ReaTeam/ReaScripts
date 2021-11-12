@@ -2,9 +2,11 @@
 ReaScript name: Insert note at constant velocity set via a dialogue
 Author: BuyOne
 Website: https://forum.cockos.com/member.php?u=134058
-Version: 1.2
-Changelog: 	# Added minor functionality improvement			
-		# Updated guide accordingly
+Version: 1.3
+Changelog: 
+	#Fixed bug of muted notes getting unmuted when set to new velocity
+	#Corrected inconsistency of notes getting deselected when a note is inserted
+	#Added safeguard against creation of overlapped notes
 Provides: [main=midi_editor] .
 Screenshot: https://git.io/J0pdP
 Licence: WTFPL
@@ -25,15 +27,16 @@ About:
 	but with extra features.
 
 	Unlike with left drag, the length of inserted note is dictated by the setting
-	in the *'Notes:'* menu at the bottom of the Piano roll.
+	in the *'Notes:'* menu at the bottom of the Piano roll so it equals to the 
+	length of current grid division.
 
 	Since the note is inserted at mouse cursor strictly speaking clicking isn't required.
 
-	However if assigned to 'double click' context at *'Preferences -> Mouse modifiers ->
-	MIDI Editor piano roll'*, and you don't want the cursor to move when a note
-	is inserted (default behavior) then make sure that in the parallel slot
-	or one with at least one same modifier under the 'left click' context there's
-	no action (Behavior) which moves the edit cursor, otherwise the first click
+	However if assigned to 'double click' context at *'Preferences -> Mouse modifiers -> 
+	MIDI Editor piano roll'*, and you don't want the cursor to move when a note 
+	is inserted (default behavior) then make sure that in the parallel slot 
+	or one with at least one same modifier under the 'left click' context there's 
+	no action (Behavior) which moves the edit cursor, otherwise the first click 
 	out of the two will change the edit cursor position.  
 	If this can't be ensured, then run it independently of the mouse click,
 	that is via a shortcut assigned to the sctript in the Action list.
@@ -63,13 +66,11 @@ About:
 	by adding any alphabetic character after the velocity value. Select notes
 	before calling the dialogue as it blocks the UI.
 
-
 	If the dialogue is called from inside a floating MIDI Editor window, the window
 	will lose focus and will have to be put back into it with a mouse click.
 	Until then the script won't run if called with a shortcut.
-
-	The script isn't designed to work with MIDI Inline editor.
 	
+	The script isn't designed to work with MIDI Inline editor.
 	
 	▓ ▪ IGNORE_MARGINS
 	
@@ -85,7 +86,7 @@ About:
 	If you find edit cursor jerks annoying you can disable this setting but then
 	try to avoid running the script when the mouse cursor is outside of the active 
 	Paino roll area on the left (excluding the graphic keyboard) or right.
-
+	
 ]]
 
 -----------------------------------------------------------------------------
@@ -128,8 +129,45 @@ function ACT(ID, ME)
 end
 
 
+function Get_Note_Under_Mouse(midi_take, hwnd) -- returns note index or nil if no note under mouse cursor
+r.PreventUIRefresh(1)
+r.Undo_BeginBlock() -- to prevent creation of undo point by 'Edit: Split notes at mouse cursor'
+local retval, notecntA, ccevtcnt, textsyxevtcnt = r.MIDI_CountEvts(midi_take)
+local props_t = {} 
+	for i = 0, notecntA-1 do -- collect current notes properties
+	local retval, sel, muted, startppq, endppq, chan, pitch, vel = r.MIDI_GetNote(midi_take, i)
+	props_t[#props_t+1] = {startppq, endppq, pitch}
+	end
+local snap = r.GetToggleCommandStateEx(32060, 1014) == 1 -- View: Toggle snap to grid
+local off = snap and r.MIDIEditor_OnCommand(hwnd, 1014) -- disable snap
+r.MIDIEditor_OnCommand(hwnd, 40052)	-- Edit: Split notes at mouse cursor
+local on = snap and r.MIDIEditor_OnCommand(hwnd, 1014) -- re-enable snap
+local retval, notecntB, ccevtcnt, textsyxevtcnt = r.MIDI_CountEvts(midi_take) -- re-count after split
+local idx, fin, note
+	if notecntB > notecntA then -- some note was split
+		for i = 0, notecntB-1  do
+		retval, sel, muted, startppq, endppq, chan, pitch, vel = r.MIDI_GetNote(midi_take, i)
+		local v = props_t[i+1] -- +1 since table index is 1-based while note count is 0-based; the 1st part of the note will keep the note original index after split and after restoration
+			if v and startppq == v[1] and endppq ~= v[2] and pitch == v[3] then 
+			idx, fin, note = i, endppq, pitch end
+			if idx and startppq == fin and pitch == note then -- locate the 2nd part of the split note
+			r.MIDI_DeleteNote(midi_take, i) -- delete the 2nd part
+			r.MIDI_SetNote(midi_take, idx, x, x, x, endppq, x, x, x, false) -- restore the note original length // selected, muted, startppq, chan, pitch, vel all nil, noSort false because only one note is affected
+			return idx end			
+		end
+	end
+r.PreventUIRefresh(-1)
+r.Undo_EndBlock('',-1) -- to prevent creation of undo point by 'Edit: Split notes at mouse cursor'
+end
+
+
 local ME = r.MIDIEditor_GetActive()
 local take = r.MIDIEditor_GetTake(ME)
+
+
+	if Get_Note_Under_Mouse(take, ME) then return r.defer(function() end) end -- abort if note under mouse to prevent creation of overlapped notes because these get streched when set with MIDI_SetNote()
+	-- https://forum.cockos.com/showthread.php?t=159848
+	-- https://forum.cockos.com/showthread.php?t=195709 
 
 
 	if #IGNORE_MARGINS:gsub(' ','') > 0 then
@@ -146,22 +184,21 @@ local take = r.MIDIEditor_GetTake(ME)
 	ACT(40036, ME) -- View: Go to start of file
 	local item_start = r.GetCursorPosition()
 	r.SetEditCurPos(stored_edit_cur_pos, 0, 0) -- restore edit cursor pos; moveview is 0, seekplay is 0
-		if edit_cur_pos >= item_end or edit_cur_pos <= item_start
-		then return r.defer(function() end) end -- prevent generic undo point creation
+		if edit_cur_pos >= item_end or edit_cur_pos <= item_start then
+		return r.defer(function() end) end -- prevent generic undo point creation
 	r.PreventUIRefresh(-1)
-
 	end
 
 
 local retval, notecnt, ccevtcnt, textsyxevtcnt = r.MIDI_CountEvts(take)
 
-r.SetExtState(cmd_ID..scr_name, 'note count', notecnt, false) -- update note count before the main routine rather than after it to account for notes deleted and added by means other than this script in which case their count isn't updated in the extended state here, whereas if the extended state were set after the main routine it would cause the 'dialogue' routine to be skipped (due to the real world and stored counts inequality) without any note available for feeding to the function in the 'set velocity' routine because no note was inserted and is selected and ultimately causing the MIDI_SetNote() function to throw an error
+r.SetExtState(cmd_ID..scr_name, 'note count', notecnt, false) -- persist is false; update note count before the main routine rather than after it to account for notes deleted and added by means other than this script in which case their count isn't updated in the extended state here, whereas if the extended state were set after the main routine it would cause the 'dialogue' routine to be skipped (due to the real world and stored counts inequality) without any note available for feeding to the function in the 'set velocity' routine because no note was inserted and is selected and ultimately causing the MIDI_SetNote() function to throw an error
 
 local sel_note_t = {}
 
 	for i = 0, notecnt-1 do -- store selected notes to allow user to set them to the new velocity via the dialogue; must be done before the new note is inserted because immediately prior to that the rest of the notes are all deselected so the newly inserted one is the only one selected which allows getting hold of it for velocity setting
 	local retval, sel, mute, startpos, endpos, chan, pitch, vel = r.MIDI_GetNote(take, i)
-		if sel then sel_note_t[#sel_note_t+1] = i end
+		if sel then sel_note_t[#sel_note_t+1] = {i, startpos, pitch} end -- store index for selection restoration and setting velocities to multiple notes; startpos and pitch to restore note selection when inserting a note
 	end
 
 
@@ -176,14 +213,14 @@ local retval, notecnt, ccevtcnt, textsyxevtcnt = r.MIDI_CountEvts(take) -- count
 local old_notecnt = r.GetExtState(cmd_ID..scr_name, 'note count') -- note count before calling the note 'insert' action
 local retval, velocity = r.GetProjExtState(0, cmd_ID..scr_name, 'velocity')
 
-
 local INIT_VELOCITY = INIT_VELOCITY < 1 and 1 or INIT_VELOCITY > 127 and 127 or INIT_VELOCITY -- clamp values to the standard range
 
 
 	if notecnt == 0 or notecnt == tonumber(old_notecnt) then -- call the dialogue to set new default velocity if note count is no different from the last count stored as extended state, meaning the cursor isn't over the piano roll when the script is called and so no new note has been added hence no change in the count
-		for _, idx in ipairs(sel_note_t) do -- reselect stored selected notes, if any, after they've been deselected above
-		r.MIDI_SetNote(take, idx, true, false, -1, -1, 0, -1, -1, true) -- selectedIn - true, mutedIn - false, startppqposIn and endppqposIn both -1, chanIn - 0, velIn -1, noSortIn - true since only one note params are set
+		for _, t in ipairs(sel_note_t) do -- reselect stored selected notes, if any, after they've been deselected above
+		r.MIDI_SetNote(take, t[1], true, x, x, x, x, x, x, true) -- idx is t[1], selectedIn - true, mutedIn, startppqposIn, endppqposIn,, chanIn, velIn are nil, noSortIn true because multi
 		end
+	r.MIDI_Sort(take)
 	::RETRY::
 	local retval, output = r.GetUserInputs('Set default velocity (0 to reset)',1,'New default velocity (1 - 127):,extrawidth=20','')
 	local output = output:gsub(' ','')
@@ -199,10 +236,11 @@ local INIT_VELOCITY = INIT_VELOCITY < 1 and 1 or INIT_VELOCITY > 127 and 127 or 
 		if modifier then -- apply velocity to selected notes
 			if #sel_note_t == 0 then r.MB('       No selected notes.\n\nThe velocity has been set.', 'PROMPT',0) return
 			else
-			vel = vel == '0' and INIT_VELOCITY or vel
-				for _, idx in ipairs(sel_note_t) do -- apply user chosen velocity to selected notes
-				r.MIDI_SetNote(take, idx, true, false, -1, -1, 0, -1, vel, true) -- set velocity; selectedIn - true, mutedIn - false, startppqposIn and endppqposIn both -1, chanIn - 0, noSortIn - true since only one note params are set
+			local vel = vel == '0' and INIT_VELOCITY or vel
+				for _, t in ipairs(sel_note_t) do -- apply user chosen velocity to selected notes
+				r.MIDI_SetNote(take, t[1], true, x, x, x, x, x, vel, true) -- set velocity; idx is t[1], selectedIn - true, mutedIn, startppqposIn, endppqposIn both, chanIn are nil, noSortIn true because multiple notes
 				end
+			r.MIDI_Sort(take)
 			end -- sel_note_cnt cond end
 		undo = 'Set selected notes to velocity '..vel
 		else return
@@ -212,9 +250,17 @@ local INIT_VELOCITY = INIT_VELOCITY < 1 and 1 or INIT_VELOCITY > 127 and 127 or 
 		local retval, sel, mute, startpos, endpos, chan, pitch, vel = r.MIDI_GetNote(take, i)
 			if sel then idx = i break end
 		end
-	local vel = #velocity ~= 0 and velocity or INIT_VELOCITY -- if no default velocity as extended state use the one from the USER SETTINGS
-	r.MIDI_SetNote(take, idx, true, false, -1, -1, 0, -1, vel, true) -- set velocity; selectedIn - true, mutedIn - false, startppqposIn and endppqposIn both -1, chanIn - 0, noSortIn - true since only one note prams are set
+	local vel = #velocity ~= 0 and velocity or INIT_VELOCITY -- if no default velocity as project extended state use the one from the USER SETTINGS
+	r.MIDI_SetNote(take, idx, true, false, x, x, x, x, vel, false) -- set velocity; selectedIn - true, mutedIn - false, startppqposIn, endppqposIn, chanIn are nil, noSortIn - false since only one note prams are set
 	undo = 'Insert note at velocity '..vel
+		for i = 0, notecnt-1 do
+		local retval, sel, mute, startpos, endpos, chan, pitch, vel = r.MIDI_GetNote(take, i)
+			for _, t in ipairs(sel_note_t) do
+				if startpos == t[2] and pitch == t[3] then r.MIDI_SetNote(take, i, true, mute, startpos, endpos, chan, pitch, vel, false) -- noSortIn - false since only one note prams are set
+				end
+			end
+		end
+	r.MIDI_Sort(take)
 	end
 
 
@@ -226,7 +272,6 @@ r.SetMediaItemSelected(item, true)
 
 r.Undo_EndBlock(undo, -1)
 r.PreventUIRefresh(-1)
-
 
 
 
