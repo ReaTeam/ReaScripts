@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="41be6ebe477edb2ecc3717e53fd50c9e71f76462" name="ReaTeam Scripts">
+<index version="1" commit="96e78e374b1da53707e3704ac42341eb89c2cd64" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -12415,6 +12415,10 @@ Replace GetLastWord func with quicker solution (Thanks: Mespotine[t=233393]).]]>
       <version name="1.06" author="Edgemeal" time="2021-10-17T19:10:18Z">
         <changelog><![CDATA[Fix crash if project contains empty items.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ccbf66a896a95a5e12ff1bf4d575e8aab6547c32/Project%20Properties/edgemeal_Save%20project%20plugin%20info%20to%20text%20file.lua</source>
+      </version>
+      <version name="1.06-1" author="Edgemeal" time="2021-11-12T22:40:09Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/96e78e374b1da53707e3704ac42341eb89c2cd64/Project%20Properties/edgemeal_Save%20project%20plugin%20info%20to%20text%20file.lua</source>
+        <source main="main" file="edgemeal_Save project plugin info to text file/edgemeal_Save project plugin info to text file (Don't open notepad on Windows).lua">https://github.com/ReaTeam/ReaScripts/raw/96e78e374b1da53707e3704ac42341eb89c2cd64/Project%20Properties/edgemeal_Save%20project%20plugin%20info%20to%20text%20file/edgemeal_Save%20project%20plugin%20info%20to%20text%20file%20(Don't%20open%20notepad%20on%20Windows).lua</source>
       </version>
     </reapack>
     <reapack name="JerContact_Open project based on file in clipboard.lua" type="script" desc="Open project based on file in clipboard">
