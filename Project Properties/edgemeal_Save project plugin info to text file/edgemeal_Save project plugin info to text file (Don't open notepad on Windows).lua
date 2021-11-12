@@ -1,9 +1,4 @@
--- @description Save project plugin info to text file
--- @author Edgemeal
--- @version 1.06-1
--- @provides [main] edgemeal_Save project plugin info to text file/edgemeal_Save project plugin info to text file (Don't open notepad on Windows).lua
--- @link Forum https://forum.cockos.com/showthread.php?t=225219
--- @donation Donate https://www.paypal.me/Edgemeal
+-- @noindex
 
 function Add_TakeFX(fx_names, name)
   for i = 1, #fx_names do -- do not add duplicates
@@ -70,7 +65,7 @@ function AddItemFX(track,track_name)
     end
   end
 end
- 
+
 function AddFxMonitor()
   local track = reaper.GetMasterTrack()
   local cnt = reaper.TrackFX_GetRecCount(track) -- get fx count in 'fx monitoring' chain.
@@ -114,7 +109,7 @@ function Main()
   t[#t+1]= '* = Plugin disabled\n# = Plugin offline'
   if #date > 0 then t[#t+1] = string.rep('-', #date+1) end ---- seperator line.
   t[#t+1]= ""  -- empty line
-  
+
   -- FX Monitor
   AddFxMonitor()
 
@@ -127,7 +122,7 @@ function Main()
     AddFX(track,fx_count)
     t[#t+1]= ""  -- empty line
   end
-  
+
   -- Regular Tracks
   local track_count = reaper.CountTracks(0)
   for i = 0, track_count-1  do
@@ -139,29 +134,13 @@ function Main()
     t[#t+1]= ""  -- empty line
     AddItemFX(track, string.sub(tn,1,#tn-1)) -- show fx names used in items on this track.
   end
-  
+
   -- save project info to text file in project folder
   if projfn ~= "" then
     local fn = RemoveFileExt(projfn).." - Project Plugins.txt"
     local file = io.open(fn, "w")
     file:write(table.concat(t,"\n"))
     file:close()
-
-    -- Close instances with exact same title open via Windows notepad.
-    local os = reaper.GetOS()-- get OS
-    if (os == 'Win32') or (os == 'Win64') then
-      if reaper.APIExists('JS_Window_FindTop') then -- check if JS_API extension is installed
-        local np_title = RemoveFileExt(reaper.GetProjectName(proj, ""))..' - Project Plugins.txt - Notepad'
-        local hwnd = reaper.JS_Window_FindTop(np_title, true)
-        while hwnd do
-          reaper.JS_WindowMessage_Send(hwnd, "WM_CLOSE", 0,0,0,0)
-          hwnd = reaper.JS_Window_FindTop(np_title, true)
-        end
-      end
-    end
-    if reaper.APIExists('CF_ShellExecute') then -- check if SWS extension is installed
-      reaper.CF_ShellExecute(fn) -- open text file in OS default application
-    end
   else
     reaper.ClearConsole()
     reaper.ShowConsoleMsg(table.concat(t,"\n"))
