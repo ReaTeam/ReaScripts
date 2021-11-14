@@ -16,7 +16,7 @@ About:
 		This script makes this a bit simpler by allowing to update the window with object 
 		selection, which requires less precision than clicking the tiny FX buttons,
 		besides ensuring that the FX chain is readily accessible.  
-    Only selection with a mouse click is currently supported.  
+   		Only selection with a mouse click is currently supported.  
 		For best experience FX chain window should be docked, but the updating will work 
 		just as good with a floating FX chain window.   
 		To use it in a docker it's sufficient to dock any FX chain window, the rest will
