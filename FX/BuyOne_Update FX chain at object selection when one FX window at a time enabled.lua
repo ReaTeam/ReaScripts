@@ -41,10 +41,15 @@ About:
 ------------------------------ USER SETTINGS --------------------------------
 -----------------------------------------------------------------------------
 
--- 1 - track input FX chain (incl. Monitoring FX chain when Master track is selected)
+-- any alphanumetic value - track input FX chain 
+-- (incl. Monitoring FX chain when Master track is selected) 
 -- otherwise track main FX chain (incl. Master track FX chain) -- default
 
 TRACK_FX_CHAIN = ""
+
+-- any alphanumeric value to be able to load take FX chain on item selection
+
+TAKE_FX_CHAIN = ""
 
 -----------------------------------------------------------------------------
 -------------------------- END OF USER SETTINGS -----------------------------
@@ -75,7 +80,8 @@ end
 	if Check_reaper_ini('fxfloat_focus')&2 == 0 then r.MB(space(6)..'The script only makes sense when option\n\n"Only allow one FX chain window open at a time"\n\n'..space(9)..'is enabled at Preferences -> Plug-ins', 'ERROR',0)
   return r.defer(function() if not bla then  return end end) end
 
-main_ch = tonumber(TRACK_FX_CHAIN) ~= 1
+main_ch = #TRACK_FX_CHAIN:gsub(' ','') > 0
+take_ch = #TAKE_FX_CHAIN:gsub(' ','') > 0
 
 local init_tr
 local init_take
@@ -104,7 +110,7 @@ local curr_ctx = r.GetCursorContext()
 	init_tr = sel_tr
 	init_ctx = curr_ctx
 	end
-	if act_take and (act_take ~= init_take or curr_ctx ~= init_ctx) and r.TakeFX_GetCount(act_take) > 0 and curr_ctx == 1
+	if take_ch and act_take and (act_take ~= init_take or curr_ctx ~= init_ctx) and r.TakeFX_GetCount(act_take) > 0 and curr_ctx == 1
 	then
 	r.Main_OnCommand(40638,0) -- Item: Show FX chain for item take
 	init_take = act_take
