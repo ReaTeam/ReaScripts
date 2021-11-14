@@ -90,7 +90,7 @@ local item = r.GetSelectedMediaItem(0,0)
 local act_take = item and r.GetActiveTake(item)
 local cur_ctx = r.GetCursorContext()
 
-	if sel_tr and (sel_tr ~= init_tr or cur_ctx ~= init_ctx) and cur_ctx == 0	then
+	if sel_tr and (sel_tr ~= init_tr or cur_ctx ~= init_ctx) and cur_ctx == 0 then
 	-- curs context makes sure FX chain is only updated when the object is clicked,
 	-- unaffected by change in selection performed with actions and API; same for items below;
 	-- comparison with init_ctx makes sure that if object selection didn't change while FX chain window content
