@@ -44,7 +44,7 @@ About:
 -- 1 - track input FX chain (incl. Monitoring FX chain when Master track is selected)
 -- otherwise track main FX chain (incl. Master track FX chain) -- default
 
-FX_CHAIN = ""
+TRACK_FX_CHAIN = ""
 
 -----------------------------------------------------------------------------
 -------------------------- END OF USER SETTINGS -----------------------------
@@ -75,7 +75,7 @@ end
 	if Check_reaper_ini('fxfloat_focus')&2 == 0 then r.MB(space(6)..'The script only makes sense when option\n\n"Only allow one FX chain window open at a time"\n\n'..space(9)..'is enabled at Preferences -> Plug-ins', 'ERROR',0)
   return r.defer(function() if not bla then  return end end) end
 
-input_ch = tonumber(FX_CHAIN) == 1
+input_ch = tonumber(TRACK_FX_CHAIN) == 1
 main_ch = not input_ch
 
 local init_tr
