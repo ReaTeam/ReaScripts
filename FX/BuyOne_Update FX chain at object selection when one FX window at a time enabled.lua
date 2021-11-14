@@ -3,7 +3,7 @@ ReaScript name: Update FX chain at object selection when one FX window at a time
 Author: BuyOne
 Website: https://forum.cockos.com/member.php?u=134058
 Version: 1.0
-Changelog: 	Initial release
+Changelog: Initial release
 Licence: WTFPL
 REAPER: at least v5.962
 Screenshots: https://git.io/JXjO6
