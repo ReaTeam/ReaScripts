@@ -88,9 +88,9 @@ local sel_tr = (main_ch or input_ch) and r.GetSelectedTrack2(0,0, true) -- wantm
 local tr_name = sel_tr and {r.GetTrackName(sel_tr)} -- returns 2 values hence table
 local item = r.GetSelectedMediaItem(0,0)
 local act_take = item and r.GetActiveTake(item)
-local cur_ctx = r.GetCursorContext()
+local curr_ctx = r.GetCursorContext()
 
-	if sel_tr and (sel_tr ~= init_tr or cur_ctx ~= init_ctx) and cur_ctx == 0 then
+	if sel_tr and (sel_tr ~= init_tr or curr_ctx ~= init_ctx) and curr_ctx == 0 then
 	-- curs context makes sure FX chain is only updated when the object is clicked,
 	-- unaffected by change in selection performed with actions and API; same for items below;
 	-- comparison with init_ctx makes sure that if object selection didn't change while FX chain window content
@@ -103,13 +103,13 @@ local cur_ctx = r.GetCursorContext()
 		or r.Main_OnCommand(40844,0) -- Track: View input FX chain for current/last touched track
 		end
 	init_tr = sel_tr
-	init_ctx = cur_ctx
+	init_ctx = curr_ctx
 	end
-	if act_take and (act_take ~= init_take or cur_ctx ~= init_ctx) and r.TakeFX_GetCount(act_take) > 0 and cur_ctx == 1
+	if act_take and (act_take ~= init_take or curr_ctx ~= init_ctx) and r.TakeFX_GetCount(act_take) > 0 and curr_ctx == 1
 	then
 	r.Main_OnCommand(40638,0) -- Item: Show FX chain for item take
 	init_take = act_take
-	init_ctx = cur_ctx
+	init_ctx = curr_ctx
 	end
 
 r.defer(UPDATE_FX_CHAIN)
