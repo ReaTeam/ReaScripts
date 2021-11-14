@@ -80,7 +80,7 @@ end
 	if Check_reaper_ini('fxfloat_focus')&2 == 0 then r.MB(space(6)..'The script only makes sense when option\n\n"Only allow one FX chain window open at a time"\n\n'..space(9)..'is enabled at Preferences -> Plug-ins', 'ERROR',0)
   return r.defer(function() if not bla then  return end end) end
 
-main_ch = #TRACK_FX_CHAIN:gsub(' ','') > 0
+main_ch = #TRACK_FX_CHAIN:gsub(' ','') == 0
 take_ch = #TAKE_FX_CHAIN:gsub(' ','') > 0
 
 local init_tr
