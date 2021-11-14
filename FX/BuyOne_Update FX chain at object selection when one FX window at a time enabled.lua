@@ -75,8 +75,7 @@ end
 	if Check_reaper_ini('fxfloat_focus')&2 == 0 then r.MB(space(6)..'The script only makes sense when option\n\n"Only allow one FX chain window open at a time"\n\n'..space(9)..'is enabled at Preferences -> Plug-ins', 'ERROR',0)
   return r.defer(function() if not bla then  return end end) end
 
-input_ch = tonumber(TRACK_FX_CHAIN) == 1
-main_ch = not input_ch
+main_ch = tonumber(TRACK_FX_CHAIN) ~= 1
 
 local init_tr
 local init_take
@@ -84,7 +83,7 @@ local init_ctx
 
 function UPDATE_FX_CHAIN()
 
-local sel_tr = (main_ch or input_ch) and r.GetSelectedTrack2(0,0, true) -- wantmaster true
+local sel_tr = r.GetSelectedTrack2(0,0, true) -- wantmaster true
 local tr_name = sel_tr and {r.GetTrackName(sel_tr)} -- returns 2 values hence table
 local item = r.GetSelectedMediaItem(0,0)
 local act_take = item and r.GetActiveTake(item)
