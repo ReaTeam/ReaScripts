@@ -15,8 +15,7 @@ About:
 		clicked on the TCP or on the item.  
 		This script makes this a bit simpler by allowing to update the window with object 
 		selection, which requires less precision than clicking the tiny FX buttons,
-		besides ensuring that the FX chain is readily accessible.  
-   		Only selection with a mouse click is currently supported.  
+		besides ensuring that the FX chain is readily accessible.     		 
 		For best experience FX chain window should be docked, but the updating will work 
 		just as good with a floating FX chain window.   
 		To use it in a docker it's sufficient to dock any FX chain window, the rest will
@@ -40,16 +39,19 @@ About:
 -----------------------------------------------------------------------------
 ------------------------------ USER SETTINGS --------------------------------
 -----------------------------------------------------------------------------
+-- To enable settings insert any alphanumeric character between the quotes
 
--- any alphanumetic value - track input FX chain 
+-- If enabled - track input FX chain is loaded
 -- (incl. Monitoring FX chain when Master track is selected) 
 -- otherwise track main FX chain (incl. Master track FX chain) -- default
-
 TRACK_FX_CHAIN = ""
 
--- any alphanumeric value to be able to load take FX chain on item selection
+-- To be able to also load take FX chain on item selection
+TAKE_FX_CHAIN = "1"
 
-TAKE_FX_CHAIN = ""
+-- If enabled, FX chain window can be updated by change in selection performed
+-- by means other than mouse click
+CHANGE_IN_SELECTION_CHANGES_FOCUS = ""
 
 -----------------------------------------------------------------------------
 -------------------------- END OF USER SETTINGS -----------------------------
@@ -82,6 +84,7 @@ end
 
 main_ch = #TRACK_FX_CHAIN:gsub(' ','') == 0
 take_ch = #TAKE_FX_CHAIN:gsub(' ','') > 0
+change_focus = #CHANGE_IN_SELECTION_CHANGES_FOCUS:gsub(' ','') > 0
 
 local init_tr
 local init_take
@@ -94,6 +97,8 @@ local tr_name = sel_tr and {r.GetTrackName(sel_tr)} -- returns 2 values hence ta
 local item = r.GetSelectedMediaItem(0,0)
 local act_take = item and r.GetActiveTake(item)
 local curr_ctx = r.GetCursorContext()
+local curr_ctx = change_focus and sel_tr ~= init_tr and r.SetCursorContext(0) 
+or change_focus and act_take ~= init_take and r.SetCursorContext(1) or curr_ctx
 
 	if sel_tr and (sel_tr ~= init_tr or curr_ctx ~= init_ctx) and curr_ctx == 0 then
 	-- curs context makes sure FX chain is only updated when the object is clicked,
