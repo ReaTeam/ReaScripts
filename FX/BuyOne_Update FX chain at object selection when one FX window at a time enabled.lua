@@ -25,7 +25,9 @@ About:
 		be able to load track FX chain of the other type normally by clicking FX button 
 		of the corresponding track.  
 		With a click on FX button the currently open FX chain window can be temporarily
-		closed until another object is selected.   
+		closed until another object is selected.  
+		This is also a way to re-open a closed FX chain of the same selected object besides
+		having it deselected and selected again.  
 		Empty FX chains aren't loaded.
 
 		CAVEATS: FX chain window always becomes focused when updated, which means that if 
