@@ -221,7 +221,7 @@ local wnd_ident_t = { -- to be used in Get_Mixer_Wnd_Dock_State() function
 -- window 'dock=0' keys do not get updated if the window was undocked before a screenset where it's docked was (re)loaded which leads to false positives
 -- The following key names are keys used in [REAPERdockpref] section
 -- % escapes are included for use within string.match()
-actions = {'%[actions%]', 'wnd_vis', 'dock'}, -- Show action list ('Actions') // doesn't keep size
+actions = {'%[actions%]', 'wnd_vis', 'dock'}, -- Show action list ('Actions')
 --=============== 'Project Bay' // 8 actions // dosn't keep size ===============
 projbay_0 = {'%[projbay_0%]', 'wnd_vis', 'dock'}, -- View: Show project bay window
 projbay_1 = {'%[projbay_1%]', 'wnd_vis', 'dock'}, -- View: Show project bay window 2
@@ -234,21 +234,21 @@ projbay_7 = {'%[projbay_7%]', 'wnd_vis', 'dock'}, -- View: Show project bay wind
 --============================== Matrices ======================================
 routing = {'routingwnd_vis', 'routing_dock'}, -- View: Show track grouping matrix window ('Grouping Matrix'); View: Show routing matrix window ('Routing Matrix'); View: Show track wiring diagram ('Track Wiring Diagram')
 --===========================================================================
-regmgr = {'%[regmgr%]', 'wnd_vis', 'dock'}, -- View: Show region/marker manager window ('Region/Marker Manager') // doesn't keep size
-explorer = {'%[reaper_explorer%]', 'visible', 'docked'}, -- Media explorer: Show/hide media explorer ('Media Explorer') // doesn't keep size
-trackmgr = {'%[trackmgr%]', 'wnd_vis', 'dock'}, -- View: Show track manager window ('Track Manager')	// doesn't keep size
-bigclock = {'%[bigclock%]', 'wnd_vis', 'dock'}, -- View: Show big clock window ('Big Clock') // doesn't keep size
+regmgr = {'%[regmgr%]', 'wnd_vis', 'dock'}, -- View: Show region/marker manager window ('Region/Marker Manager')
+explorer = {'%[reaper_explorer%]', 'visible', 'docked'}, -- Media explorer: Show/hide media explorer ('Media Explorer')
+trackmgr = {'%[trackmgr%]', 'wnd_vis', 'dock'}, -- View: Show track manager window ('Track Manager')
+bigclock = {'%[bigclock%]', 'wnd_vis', 'dock'}, -- View: Show big clock window ('Big Clock')
 video = {'%[reaper_video%]', 'visible', 'docked'}, -- Video: Show/hide video window ('Video Window')
-perf = {'%[perf%]', 'wnd_vis', 'dock'}, -- View: Show performance meter window ('Performance Meter') // doesn't keep size
-navigator = {'%[navigator%]', 'wnd_vis', 'dock'}, -- View: Show navigator window ('Navigator') // doesn't keep size
-vkb = {'%[vkb%]', 'wnd_vis', 'dock'}, -- View: Show virtual MIDI keyboard ('Virtual MIDI Keyboard') // doesn't keep size
+perf = {'%[perf%]', 'wnd_vis', 'dock'}, -- View: Show performance meter window ('Performance Meter')
+navigator = {'%[navigator%]', 'wnd_vis', 'dock'}, -- View: Show navigator window ('Navigator')
+vkb = {'%[vkb%]', 'wnd_vis', 'dock'}, -- View: Show virtual MIDI keyboard ('Virtual MIDI Keyboard')
 fadeedit = {'%[fadeedit%]', 'wnd_vis', 'dock'}, -- View: Show crossfade editor window ('Crossfade Editor')
 undo = {'undownd_vis', 'undownd_dock'}, -- View: Show undo history window ('Undo History')
 fxbrowser = {40271, 'fxadd_dock'}, -- View: Show FX browser window ('Add FX to Track #' or 'Add FX to: Item' or 'Browse FX') // fxadd_vis value doesn't change hence action to check visibility
 itemprops = {'%[itemprops%]', 'wnd_vis', 'dock'}, -- Item properties: Toggle show media item/take properties ('Media Item Properties')
 midiedit = {'%[midiedit%]', 'dock'}, -- there's no key for MIDI Editor visibility
 --=========== TOOLBARS // don't keep size; the ident strings are provisional ==========
-toolbar = {'toolbar', 'wnd_vis', 'dock'} -- Toolbar: Open/close toolbar 1 ('Toolbar 1') // must be traversed from 0 until 26
+toolbar = {'toolbar', 'wnd_vis', 'dock'} -- Toolbar: Open/close toolbar X ('Toolbar X')
 }
 
 
