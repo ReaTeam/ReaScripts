@@ -129,7 +129,13 @@ r.defer(UPDATE_FX_CHAIN)
 end
 
 
-UPDATE_FX_CHAIN()
+local _, scr_name, sect_ID, cmd_ID, _,_,_ = r.get_action_context()
+r.SetToggleCommandState(sect_ID, cmd_ID, 1)
+r.RefreshToolbar(cmd_ID)
+    
+UPDATE_FX_CHAIN()   
+    
+r.atexit(function() r.SetToggleCommandState(sect_ID, cmd_ID, 0); r.RefreshToolbar(cmd_ID) end)
 
 
 
