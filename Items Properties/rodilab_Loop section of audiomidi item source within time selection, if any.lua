@@ -1,6 +1,7 @@
 -- @description Loop section of audio/midi item source within time selection, if any
 -- @author Rodilab
--- @version 1.0
+-- @version 1.1
+-- @changelog Remove console message
 -- @about
 --   Loop section of audio/midi item source within time selection, if any
 --   Trim/Fit items to time selection if any, padding with silence. Then, loop section of audio/midi item source.
@@ -76,7 +77,6 @@ if count > 0 then
       reaper.SetMediaItemInfo_Value(item, 'B_LOOPSRC', 1)
     else
       if time_sel then
-        reaper.ShowConsoleMsg('ok')
         reaper.Main_OnCommand(41385, 0) -- Item: Fit items to time selection, padding with silence if needed
       end
       reaper.SetMediaItemInfo_Value(item, 'B_LOOPSRC', 1)
