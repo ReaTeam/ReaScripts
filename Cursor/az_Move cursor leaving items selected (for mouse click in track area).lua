@@ -1,4 +1,4 @@
--- @description Move cursor leaving items selected (for mouse click in track area)
+-- @description Move cursor. Seeking allowed, leaving items selected. (for mouse click in track area)
 -- @author AZ
 -- @version 1.0
 
