@@ -36,8 +36,9 @@ About:
 		CAVEATS
 		
 		FX chain window always becomes focused when updated, which means that if 
-		it's docked in a tabbed docker and not active (hidden) it will become active, 
-		and if floating it will come in front of other windows.  
+		it's docked and open but not active (hidden) in a tabbed docker it will 
+		become active (visible), if it's docked in a closed docker the docker will
+		open, and if it's floating it will come in front of other windows.  
 		
 		When FX chain changes in a docker it flickers because one is closed and another
 		is opened. This is REAPER's behavior which can't be controlled with a script.
