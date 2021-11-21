@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="7f4521633fffee7bd55d41cc259d3a9f574401f9" name="ReaTeam Scripts">
+<index version="1" commit="9867b7c76d1ee6319e67496f115f0d71756130d1" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -16580,6 +16580,24 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
       </metadata>
       <version name="1.0" author="amagalma" time="2021-02-10T00:32:31Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a6a8d070a96f8c167d295ac7fbf4c585fe704509/Various/amagalma_Set%20size%20of%20Vertical%20Zoom%20presets.lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Show menu for dry run (calculate loudness) actions.lua" type="script" desc="Show menu for dry run (calculate loudness) actions">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Shows a menu with all the dry run actions at the mouse cursor\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Requires JS_ReaScriptAPI\sa180\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=239556</link>
+        <link rel="screenshot">https://i.ibb.co/9w5VJwZ/dry-run-menu.gif</link>
+        <link rel="donation">https://www.paypal.me/amagalma</link>
+      </metadata>
+      <version name="1.00" author="amagalma" time="2021-11-21T18:36:45Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/9867b7c76d1ee6319e67496f115f0d71756130d1/Various/amagalma_Show%20menu%20for%20dry%20run%20(calculate%20loudness)%20actions.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Show path from list menu (Resource, Selected Item, Project File, Record, Secondary Record, Render).lua" type="script" desc="Show path from list menu (Resource, Selected Item, Project File, Record, Secondary Record, Render)">
