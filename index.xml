@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="f47ee4174f907425f62387f040719407e43343a4" name="ReaTeam Scripts">
+<index version="1" commit="7f4521633fffee7bd55d41cc259d3a9f574401f9" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -4877,6 +4877,11 @@ website
       <version name="2.0" author="AZ" time="2021-10-29T16:41:18Z">
         <changelog><![CDATA[Added split by razor area, added time selection switch options.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/0f5636972154f370b0e4a4bb4c13b6cbefc8ebaf/Items%20Editing/az_Smart%20split%20items%20by%20mouse%20cursor.lua</source>
+      </version>
+      <version name="2.1" author="AZ" time="2021-11-21T16:22:18Z">
+        <changelog><![CDATA[Fixed item defining when mouse placed on a track area above the item.
+This area recognise now as out of item.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/7f4521633fffee7bd55d41cc259d3a9f574401f9/Items%20Editing/az_Smart%20split%20items%20by%20mouse%20cursor.lua</source>
       </version>
     </reapack>
     <reapack name="beaunus_Name item takes by last marker to cut item.lua" type="script" desc="Name item takes by last marker to cut item">
