@@ -1,7 +1,9 @@
 -- @description Smart split items by mouse cursor
 -- @author AZ
--- @version 2.0
--- @changelog Added split by razor area, added time selection switch options.
+-- @version 2.1
+-- @changelog
+--   Fixed item defining when mouse placed on a track area above the item.
+--   This area recognise now as out of item.
 -- @about
 --   # Smart split items by mouse cursor
 --
@@ -353,6 +355,7 @@ end
 
 
 --CONTEXT DEFINING CODE--
+window, segment, details = reaper.BR_GetMouseCursorContext()
 
 if RazorEditSelectionExists()==true then
   reaper.Undo_BeginBlock2( 0 )
@@ -362,19 +365,17 @@ if RazorEditSelectionExists()==true then
   reaper.Undo_EndBlock2( 0, "Split at razor edit", -1 )
 else
 
-x, y = reaper.GetMousePosition()
-item = reaper.GetItemFromPoint( x, y, false ) --what is context item or not
+item =  reaper.BR_GetMouseCursorContext_Item() --what is context item or not
 itemsNUMB =  reaper.CountSelectedMediaItems( 0 ) -1 -- -1 to accordance Get Sel Item
 start_pos, end_pos = reaper.GetSet_LoopTimeRange2( 0, false, false, 0, 0, 0 )
 
-if start_pos==0 and end_pos==0 or use_TS_all == false then TSexist=0
+if start_pos == end_pos or use_TS_all == false then TSexist=0
 else
 TSexist=1
 end
 
 cur_pos=reaper.GetCursorPosition()
 
-window, segment, details = reaper.BR_GetMouseCursorContext()
 
 if window == "arrange" and segment == "envelope" then
 reaper.Undo_BeginBlock2( 0 )
