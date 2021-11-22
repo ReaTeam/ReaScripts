@@ -1,12 +1,7 @@
 -- @description Apply render preset
 -- @author cfillion
--- @version 2.0
--- @changelog
---   Add support for brickwall limit level (REAPER v6.37+)
---   Clamp the new menu to monitor boundaries (ReaImGui v0.5.7+) [p=2485297]
---   Display preset contents in the selection menu
---   Fix applying format-only presets overriding output source
---   Fix the new menu crashing if there are new saved render presets
+-- @version 2.0.1
+-- @changelog Fix restoration of the tail checkbox
 -- @provides
 --   .
 --   [main] . > cfillion_Apply render preset (create action).lua
@@ -212,7 +207,7 @@ function parseOutputPreset(presets, tokens)
   addPresetSettings(preset, settingsMask, tonumber(tokens[6]))
   preset._unknown          = tokens[7]           -- what is this (always 0)?
   preset.RENDER_PATTERN    = tostring(tokens[8]) -- file name
-  preset.RENDER_TAILFLAG   = tonumber(tokens[9])
+  preset.RENDER_TAILFLAG   = tonumber(tokens[9]) << 1
 
   return parseDefault
 end
@@ -602,7 +597,7 @@ local function presetRow(ctx, name, preset)
     sourceCell,
     boundsCell,
     function()
-      if preset.RENDER_TAILFLAG then boolText(ctx, preset.RENDER_TAILFLAG ~= 0) end
+      if preset.RENDER_TAILFLAG then boolText(ctx, preset.RENDER_TAILFLAG & 2 ~= 0) end
     end,
     'RENDER_PATTERN', -- file name
     optionsCell,
