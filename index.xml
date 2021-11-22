@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="9867b7c76d1ee6319e67496f115f0d71756130d1" name="ReaTeam Scripts">
+<index version="1" commit="4599103eccb77a87b771e1dace65ad0b2b1b4d51" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -3469,8 +3469,11 @@ Update version compatibility tag]]></changelog>
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 Meant to be used only when the option "Only allow one FX chain window open at a time" is enabled at Preferences -> Plug-ins in a global FX chain kind of setup.\line Normally when option "Only allow one FX chain window open at a time" is enabled, to update currently open FX chain window with another FX chain, FX button must be clicked on the TCP or on the item.\line This script makes this a bit simpler by allowing to update the window with object selection, which requires less precision than clicking the tiny FX buttons, besides ensuring that the FX chain is readily accessible.\line For best experience FX chain window should be docked, but the updating will work just as good with a floating FX chain window.\line To use it in a docker it's sufficient to dock any FX chain window, the rest will stay docked automatically.\line Take FX chain is always loaded at item selection. The type of track FX chain to be loaded at track selection is determined by the USER SETTING below, but you'll still be able to load track FX chain of the other type normally by clicking FX button of the corresponding track.\line With a click on FX button the currently open FX chain window can be temporarily closed until another object is selected.\line This is also a way to re-open a closed FX chain of the same selected object besides having it deselected and selected again.\line Empty FX chains aren't loaded.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 CAVEATS: FX chain window always becomes focused when updated, which means that if it's docked in a tabbed docker and not active (hidden) it will become active, and if floating it will come in front of other windows.\line When FX chain changes in a docker it flickers because one is closed and another is opened. This is REAPER's behavior which can't be controlled with a script.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Meant to be used only when the option "Only allow one FX chain window open at a time" is enabled at Preferences -> Plug-ins in a global FX chain kind of setup.\line Normally when option "Only allow one FX chain window open at a time" is enabled, to update currently open FX chain window with another FX chain, FX button must be clicked on the TCP or on the item.\line This script makes this a bit simpler by allowing to update the window with object selection, which requires less precision than clicking the tiny FX buttons, besides ensuring that the FX chain is readily accessible.\line For best experience FX chain window should be docked, but the updating will work just as good with a floating FX chain window.\line To use it in a docker it's usually sufficient to dock any FX chain window, the rest will stay docked automatically, yet sometimes adjustment of a few individual FX windows may be required.\line Active take FX chain is always loaded at item selection. The type of track FX chain to be loaded at track selection is determined by the USER SETTING below, but you'll still be able to load track FX chain of the other type normally by clicking FX button of the corresponding track.\line The currently open FX chain window can be temporarily closed with a click on FX button or a by closing its tab in the docker, until another object is selected.\line Clicking FX button is also a way to re-open a closed FX chain of the same selected object besides having it deselected and selected again.\line Out of several selected objects only the first one is honored.\line Empty FX chains aren't loaded as well as track FX chain of the type disabled in the USER SETTINGS.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 CAVEATS\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 FX chain window always becomes focused when updated, which means that if it's docked and open but not active (hidden) in a tabbed docker it will become active (visible), if it's docked in a closed docker the docker will open, and if it's floating it will come in front of other windows.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 When FX chain changes in a docker it flickers because one is closed and another is opened. This is REAPER's behavior which can't be controlled with a script.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The FX chain of the last selected track which stays selected, can be re-opened with a click on the TCP after the FX chain was replaced with take FX chain, however not vice versa. In order to re-open take FX chain of the last selected item/active take after it was replaced with a track FX chain such item must be deselected and selected again.\par}
 }
 ]]></description>
         <link rel="website">https://forum.cockos.com/member.php?u=134058</link>
@@ -3479,6 +3482,10 @@ Update version compatibility tag]]></changelog>
       <version name="1.0" author="BuyOne" time="2021-11-18T19:05:57Z">
         <changelog><![CDATA[Initial release]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/cd552a1372baebf6e94ebe220bb2ee477742f02b/FX/BuyOne_Update%20FX%20chain%20at%20object%20selection%20when%20one%20FX%20window%20at%20a%20time%20enabled.lua</source>
+      </version>
+      <version name="1.1" author="BuyOne" time="2021-11-22T19:34:59Z">
+        <changelog><![CDATA[#More reliable switching between track and take FX chains]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4599103eccb77a87b771e1dace65ad0b2b1b4d51/FX/BuyOne_Update%20FX%20chain%20at%20object%20selection%20when%20one%20FX%20window%20at%20a%20time%20enabled.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Monitoring FX bypass bundle.lua" type="script" desc="Monitoring FX bypass bundle (bypass, unbypass or toggle)">
@@ -6311,6 +6318,27 @@ here
       </version>
       <version name="1.1" author="Rodilab" time="2021-03-20T12:30:09Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ab3c50c6fef40fc8910274fe406dc130cc6c8b0b/Items%20Editing/rodilab_Explode%20multichannel%20items%20to%20mono%20items%20in%20new%20tracks%20(without%20render).lua</source>
+      </version>
+    </reapack>
+    <reapack name="rodilab_Implode items on same track into takes (align with snap offset).lua" type="script" desc="Implode items on same track into takes (align with snap offset)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Make for sound design. Ideal to group sound variations in a same item. Then use "Take: Switch items to next/previous take" or "Xenakios/SWS: Select takes in selected items, shuffled random". Finish with "Item: Set item start/end to source media start/end" to fit.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This script :\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Disables item loop source option\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Set item source section\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Align items snap offset with first snap offset\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Implode selected items on same track into takes\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Increase item length to don't trim any take\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 by Rodrigo Diaz (aka Rodilab)\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="Rodilab" time="2021-11-22T19:34:41Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6066ba9dd4209c3bc3467eb9dca826ebcc482187/Items%20Editing/rodilab_Implode%20items%20on%20same%20track%20into%20takes%20(align%20with%20snap%20offset).lua</source>
       </version>
     </reapack>
     <reapack name="rodilab_Implode mono items into stereo item.lua" type="script" desc="Implode mono items into stereo item">
