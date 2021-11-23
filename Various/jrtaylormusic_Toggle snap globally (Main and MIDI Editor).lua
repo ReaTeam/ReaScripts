@@ -1,6 +1,6 @@
 -- @description Toggle snap globally (Main and MIDI Editor)
 -- @author JRTaylorMusic
--- @provides [main=main,action_list] .
+-- @provides [main=main,midi_editor] .
 -- @version 1.0
 
 reaper.PreventUIRefresh(1)
