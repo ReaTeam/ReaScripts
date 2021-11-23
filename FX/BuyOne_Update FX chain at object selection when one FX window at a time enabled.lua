@@ -2,8 +2,8 @@
 ReaScript name: Update FX chain at object selection when one FX window at a time enabled
 Author: BuyOne
 Website: https://forum.cockos.com/member.php?u=134058
-Version: 1.1
-Changelog: 	#More reliable switching between track and take FX chains
+Version: 1.2
+Changelog: 	#Added option to prevent updating a docked FX chain when the docker is closed
 Licence: WTFPL
 REAPER: at least v5.962
 Screenshots: https://git.io/JXjO6
@@ -38,7 +38,7 @@ About:
 		FX chain window always becomes focused when updated, which means that if 
 		it's docked and open but not active (hidden) in a tabbed docker it will 
 		become active (visible), if it's docked in a closed docker the docker will
-		open, and if it's floating it will come in front of other windows.  
+		open, and if it's floating it will come in front of other windows.
 		
 		When FX chain changes in a docker it flickers because one is closed and another
 		is opened. This is REAPER's behavior which can't be controlled with a script.
@@ -62,12 +62,19 @@ About:
 TRACK_FX_CHAIN = ""
 
 -- To be able to also load take FX chain on item selection,
--- onlt active take FX chain in a multi-take item can be loaded
+-- only active take FX chain in a multi-take item can be loaded
 TAKE_FX_CHAIN = "1"
 
 -- If enabled, FX chain window can be updated by change in selection performed
 -- by means other than mouse click
 CHANGE_IN_SELECTION_CHANGES_FOCUS = ""
+
+-- To only have FX chain updated when the docker is open,
+-- meant to prevent opening and updating a docked FX chain window
+-- when the docker is closed
+-- will affect floating FX chain window as well
+-- so only useful when one is docked
+ONLY_WHEN_DOCKER_OPEN = ""
 
 -----------------------------------------------------------------------------
 -------------------------- END OF USER SETTINGS -----------------------------
@@ -109,6 +116,9 @@ local init_ctx
 
 
 function UPDATE_FX_CHAIN()
+
+local DOCKER_STATE = #ONLY_WHEN_DOCKER_OPEN:gsub(' ','') > 0 and r.GetToggleCommandStateEx(0,40279) == 1 -- View: Show docker
+or #ONLY_WHEN_DOCKER_OPEN:gsub(' ','') == 0
 
 local sel_tr = r.GetSelectedTrack2(0,0, true) -- wantmaster true
 local tr_name = sel_tr and {r.GetTrackName(sel_tr)} -- returns 2 values hence table
