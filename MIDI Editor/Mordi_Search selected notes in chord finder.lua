@@ -12,10 +12,12 @@
 -- Function for opening a URL
 function OpenURL(url)
   local OS = reaper.GetOS()
-  if OS == "OSX32" or OS == "OSX64" then
+  if OS == "OSX32" or OS == "OSX64" or OS == "macOS-arm64" then
     os.execute('open "" "' .. url .. '"')
-  else
+  elseif OS == "Win32" or OS == "Win64" then
     os.execute('start "" "' .. url .. '"')
+  else
+    os.execute('xdg-open "' .. url .. '"')
   end
 end
 
