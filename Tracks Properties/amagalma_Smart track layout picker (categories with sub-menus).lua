@@ -1,7 +1,7 @@
 -- @description Smart track layout picker (categories with sub-menus)
 -- @author amagalma
--- @version 1.02
--- @changelog Fix menu placement for OSX
+-- @version 1.03
+-- @changelog Fix menu placement for OSX (again)
 -- @link https://forum.cockos.com/showthread.php?t=230114
 -- @donation https://www.paypal.me/amagalma
 -- @about
@@ -125,17 +125,13 @@ for i = 1, #n do
   end
 end
 
-
-local title = "Hidden gfx window for showing the showmenu"
+local title = "hidden " .. reaper.genGuid()
 gfx.init( title, 0, 0, 0, 0, 0 )
 local hwnd = reaper.JS_Window_Find( title, true )
-local out = 0
 if hwnd then
-  out = 7000
-  reaper.JS_Window_Move( hwnd, -out, -out )
+  reaper.JS_Window_Show( hwnd, "HIDE" )
 end
-out = reaper.GetOS():find("OSX") and 0 or out
-gfx.x, gfx.y = gfx.mouse_x-40+out, gfx.mouse_y-40+out
+gfx.x, gfx.y = gfx.mouse_x-40, gfx.mouse_y-40
 local selection = gfx.showmenu(menu)
 gfx.quit()
 
