@@ -1,6 +1,7 @@
 -- @description Show menu for dry run (calculate loudness) actions
 -- @author amagalma
--- @version 1.00
+-- @version 1.01
+-- @changelog Fix menu placement for OSX
 -- @link https://forum.cockos.com/showthread.php?t=239556
 -- @screenshot https://i.ibb.co/9w5VJwZ/dry-run-menu.gif
 -- @donation https://www.paypal.me/amagalma
@@ -35,17 +36,13 @@ local menu = ""
 for i = 1, #t do
   menu = menu .. t[i][1] .. "|"
 end
-
-local title = "Hidden gfx window for showing the paths showmenu"
+local title = "hidden " .. reaper.genGuid()
 gfx.init( title, 0, 0, 0, 0, 0 )
 local hwnd = reaper.JS_Window_Find( title, true )
-local out = 0
 if hwnd then
-  out = 7000
-  reaper.JS_Window_Move( hwnd, -out, -out )
+  reaper.JS_Window_Show( hwnd, "HIDE" )
 end
-out = reaper.GetOS():find("OSX") and 0 or out
-gfx.x, gfx.y = gfx.mouse_x-52+out, gfx.mouse_y-70+out
+gfx.x, gfx.y = gfx.mouse_x-52, gfx.mouse_y-70
 local selection = gfx.showmenu(menu)
 gfx.quit()
 
