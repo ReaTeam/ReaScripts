@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="906a32bd419d4104b249a39546d6d963241f8b31" name="ReaTeam Scripts">
+<index version="1" commit="e719c53815b40d0bc4afb7fd7c65b746d1cb1647" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -6728,6 +6728,10 @@ Fix bug on Windows]]></changelog>
         <changelog><![CDATA[Fix menu placement for OSX]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/40a0baac1192a65f31f41ce6cf65fbebce2d71ef/Items%20Properties/amagalma_Choose%20active%20take%20for%20item%20under%20mouse%20(show%20menu).lua</source>
       </version>
+      <version name="1.02" author="amagalma" time="2021-11-28T12:45:18Z">
+        <changelog><![CDATA[Fix menu placement for OSX (again)]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/051d19230450287dc792bbf907f3485d460fd4f8/Items%20Properties/amagalma_Choose%20active%20take%20for%20item%20under%20mouse%20(show%20menu).lua</source>
+      </version>
     </reapack>
     <reapack name="amagalma_Disable 'No autofades property for selected items.lua" type="script" desc="Disable 'No autofades&quot; property for selected items">
       <metadata>
@@ -7257,6 +7261,10 @@ Added replacement with /clear; erases entire name of matching markers/regions.]]
       <version name="1.02" author="amagalma" time="2020-08-04T19:34:24Z">
         <changelog><![CDATA[Fix menu placement for OSX]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/25ae655cd471d7d79ffe8ddc8ceabdb956e427f3/Markers/amagalma_Go%20to%20marker%20(choose%20from%20menu%20list).lua</source>
+      </version>
+      <version name="1.03" author="amagalma" time="2021-11-28T12:43:53Z">
+        <changelog><![CDATA[Fix menu placement for OSX (again)]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/eb6644c54ee35db3da43a0d952b35804ed741dfb/Markers/amagalma_Go%20to%20marker%20(choose%20from%20menu%20list).lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Rename region at edit cursor after the first selected item.lua" type="script" desc="Rename region at edit cursor after the first selected item">
@@ -12227,6 +12235,10 @@ enter or a = Exit and apply changes\par}
 - "Use the same grid division in arrange view and MIDI editor" setting is shown in menu header ("arrange" or "project")]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/98d760d3ff701654d8dfe5023ede28a49278ffef/Project%20Properties/amagalma_Set%20project%20grid%20(via%20dropdown%20menu).lua</source>
       </version>
+      <version name="1.04" author="amagalma" time="2021-11-28T12:47:02Z">
+        <changelog><![CDATA[- Fix menu placement for OSX]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6817dbf13b65d504f447d664f3c53c5cb7cecd61/Project%20Properties/amagalma_Set%20project%20grid%20(via%20dropdown%20menu).lua</source>
+      </version>
     </reapack>
     <reapack name="amagalma_Set project samplerate to that of the first selected item (if different).lua" type="script" desc="amagalma_Set project samplerate to that of the first selected item (if different)">
       <metadata>
@@ -12925,6 +12937,10 @@ Replace GetLastWord func with quicker solution (Thanks: Mespotine[t=233393]).]]>
       <version name="1.01" author="amagalma" time="2020-08-04T19:34:57Z">
         <changelog><![CDATA[Fix menu placement for OSX]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d117be2df8d30715ba0f78a934ee68af435bae22/Regions/amagalma_Go%20to%20region%20marker%20(choose%20from%20menu%20list).lua</source>
+      </version>
+      <version name="1.02" author="amagalma" time="2021-11-28T12:43:07Z">
+        <changelog><![CDATA[Fix menu placement for OSX (again)]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/131267ffae107aee0ef3f987e7a24e7102eb8e3e/Regions/amagalma_Go%20to%20region%20marker%20(choose%20from%20menu%20list).lua</source>
       </version>
     </reapack>
     <reapack name="ausbaxter_Save and Load region render matrix.lua" type="script" desc="Save and Load region render matrix (9 actions)">
@@ -14312,6 +14328,10 @@ is off-screen. Reaper issue, should be fixed soon.]]></changelog>
       <version name="1.02" author="amagalma" time="2020-08-04T19:40:47Z">
         <changelog><![CDATA[Fix menu placement for OSX]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/0cee14a9a7af04df667a598a22e7095e7a951d90/Tracks%20Properties/amagalma_Smart%20track%20layout%20picker%20(categories%20with%20sub-menus).lua</source>
+      </version>
+      <version name="1.03" author="amagalma" time="2021-11-28T12:41:30Z">
+        <changelog><![CDATA[Fix menu placement for OSX (again)]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a2c99b823cf752f2e006ec8297d0827a7758a0e4/Tracks%20Properties/amagalma_Smart%20track%20layout%20picker%20(categories%20with%20sub-menus).lua</source>
       </version>
     </reapack>
     <reapack name="Argitoth_Set number of channels for selected tracks.eel" type="script" desc="Set number of channels for selected tracks">
@@ -16674,6 +16694,10 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
       <version name="1.00" author="amagalma" time="2021-11-21T18:36:45Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/9867b7c76d1ee6319e67496f115f0d71756130d1/Various/amagalma_Show%20menu%20for%20dry%20run%20(calculate%20loudness)%20actions.lua</source>
       </version>
+      <version name="1.01" author="amagalma" time="2021-11-28T12:50:04Z">
+        <changelog><![CDATA[Fix menu placement for OSX]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e719c53815b40d0bc4afb7fd7c65b746d1cb1647/Various/amagalma_Show%20menu%20for%20dry%20run%20(calculate%20loudness)%20actions.lua</source>
+      </version>
     </reapack>
     <reapack name="amagalma_Show path from list menu (Resource, Selected Item, Project File, Record, Secondary Record, Render).lua" type="script" desc="Show path from list menu (Resource, Selected Item, Project File, Record, Secondary Record, Render)">
       <metadata>
@@ -16702,6 +16726,10 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
       <version name="1.1" author="amagalma" time="2021-07-31T17:05:42Z">
         <changelog><![CDATA[- Added "First selected script's path in the Actions List"]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6e3305a3da98b5fc4350b12d2c32f955c19d814e/Various/amagalma_Show%20path%20from%20list%20menu%20(Resource,%20Selected%20Item,%20Project%20File,%20Record,%20Secondary%20Record,%20Render).lua</source>
+      </version>
+      <version name="1.11" author="amagalma" time="2021-11-28T12:48:32Z">
+        <changelog><![CDATA[- Fix menu placement for OSX]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4f0942e25ec4e28b123b6383ee89dc5fd23d407f/Various/amagalma_Show%20path%20from%20list%20menu%20(Resource,%20Selected%20Item,%20Project%20File,%20Record,%20Secondary%20Record,%20Render).lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Simulate tempo with playrate.lua" type="script" desc="amagalma_Simulate tempo with playrate">
