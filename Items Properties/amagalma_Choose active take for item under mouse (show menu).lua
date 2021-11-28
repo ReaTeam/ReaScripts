@@ -1,7 +1,7 @@
 -- @description Choose active take for item under mouse (show menu)
 -- @author amagalma
--- @version 1.01
--- @changelog Fix menu placement for OSX
+-- @version 1.02
+-- @changelog Fix menu placement for OSX (again)
 -- @donation https://www.paypal.me/amagalma
 -- @about
 --   Displays a menu with all the takes (and their names) available for the item under the mouse cursor.
@@ -45,16 +45,13 @@ for tk = 1, #takes do
 end
 
 
-local title = "Hidden gfx window for showing the takes showmenu"
+local title = "hidden " .. reaper.genGuid()
 gfx.init( title, 0, 0, 0, 0, 0 )
 local hwnd = reaper.JS_Window_Find( title, true )
-local out = 0
 if hwnd then
-  out = 7000
-  reaper.JS_Window_Move( hwnd, -out, -out )
+  reaper.JS_Window_Show( hwnd, "HIDE" )
 end
-out = reaper.GetOS():find("OSX") and 0 or out
-gfx.x, gfx.y = gfx.mouse_x-52+out, gfx.mouse_y-70+out
+gfx.x, gfx.y = gfx.mouse_x-52, gfx.mouse_y-70
 local selection = gfx.showmenu(menu)
 gfx.quit()
 
