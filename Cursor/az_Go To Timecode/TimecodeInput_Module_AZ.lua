@@ -404,10 +404,24 @@ function Lokasenna_WindowAtCenter (w, h,windowName)
 local x = reaper.GetExtState(  "GoToTimecode_AZ", "x" )
 local y = reaper.GetExtState(  "GoToTimecode_AZ", "y" )
 
-if x==0 and y==0 then
- local l, t, r, b = 0, 0, w, h    
+if x == "" and y == "" then
+  local l, t, r, b = 0, 0, w, h    
   local __, __, screen_w, screen_h = reaper.my_getViewport(l, t, r, b, l, t, r, b, 1)
-  local x, y = (screen_w - w) / 2, (screen_h - h) / 2 
+  local xM,yM = reaper.GetMousePosition()
+  local screenX = 1
+  local screenY = 1
+  if xM < 0 then screenX = -1 end
+  if yM < 0 then screenY = -1 end
+   x, y = screenX*(screen_w - screenX*w) / 2, screenY*(screen_h - screenY*h) / 2 
+elseif tonumber(x) == 0 and tonumber(y) == 0 then
+  local l, t, r, b = 0, 0, w, h    
+  local __, __, screen_w, screen_h = reaper.my_getViewport(l, t, r, b, l, t, r, b, 1)
+  local xM,yM = reaper.GetMousePosition()
+  local screenX = 1
+  local screenY = 1
+  if xM < 0 then screenX = -1 end
+  if yM < 0 then screenY = -1 end
+   x, y = screenX*(screen_w - screenX*w) / 2, screenY*(screen_h - screenY*h) / 2 
 end
   gfx.init(windowName, w, h, 0, x, y)  
 
