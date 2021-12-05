@@ -1,6 +1,7 @@
 -- @description Go To Timecode
 -- @author AZ
--- @version 1.0
+-- @version 1.1
+-- @changelog minor fixes for initial placement defining
 -- @provides az_Go To Timecode/TimecodeInput_Module_AZ.lua
 -- @about
 --   # Go To Timecode
@@ -12,6 +13,7 @@
 --   - Beat and ruler modes
 --   - Offset option for timecode mode
 --   - Use +/- for relative jump
+--   - Use spase to reset captured value
 --
 --   Thanks Claudiohbsantos for first version in code, which help me to figure out how to code it and how to improve.
 
