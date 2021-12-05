@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="e719c53815b40d0bc4afb7fd7c65b746d1cb1647" name="ReaTeam Scripts">
+<index version="1" commit="83ab0e4d6228e16ec62b2c21cbfc412def2bf8bf" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -5087,6 +5087,24 @@ This area recognise now as out of item.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e10d14efcfd2751718f5856d42a0fb3af9574b86/Items%20Editing/BuyOne_Move%20items%20from%20one%20track%20to%20many%20or%20from%20many%20to%20one.lua</source>
       </version>
     </reapack>
+    <reapack name="BuyOne_Ripple edit per track when selected item length changes from the right.lua" type="script" desc="Ripple edit per track when selected item length changes from the right">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 An enhancement to 'Ripple edit per track' mode. As such only works when this mode is enabled. Makes all items following the one whose right edge is being extended/trimmed move just like regular Ripple edit does when selected items are moved.\line The item whose right edge is being extended/trimmed MUST BE SELECTED, otherwise no change occurs in items positioning.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 CAUTION:\line Do not drag the right edge fast because the data won't be processed as fast and item positions will end up being messed up.\line Avoid dragging item right edge over following items.\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/member.php?u=134058</link>
+        <link rel="screenshot">https://git.io/JME3D</link>
+      </metadata>
+      <version name="1.0" author="BuyOne" time="2021-12-05T23:46:57Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/7f18ed7d0ecb51ab066719fe1120b8efaff05788/Items%20Editing/BuyOne_Ripple%20edit%20per%20track%20when%20selected%20item%20length%20changes%20from%20the%20right.lua</source>
+      </version>
+    </reapack>
     <reapack name="BuyOne_Split selected MIDI item by notes.lua" type="script" desc="Split selected MIDI item by notes">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
@@ -6374,6 +6392,24 @@ here
       </version>
       <version name="1.2" author="Rodilab" time="2021-03-20T12:30:28Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/dafa132ec302c72882092530a99605db5b952a82/Items%20Editing/rodilab_Implode%20mono%20items%20into%20stereo%20item.lua</source>
+      </version>
+    </reapack>
+    <reapack name="rodilab_Limit items edges at source start and stop.lua" type="script" desc="Limit items edges at source start and stop">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 This is a togglable defer script. As long is activate : dragging the items edges can't expand audio items beyond source media start and end.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Requirement :\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab SWS Extension\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab js_ReaScriptAPI: API functions\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 by Rodrigo Diaz (aka Rodilab)\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="Rodilab" time="2021-12-05T23:46:32Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/cf182b60fd8f20b55e4e93450b3039204e090aea/Items%20Editing/rodilab_Limit%20items%20edges%20at%20source%20start%20and%20stop.lua</source>
       </version>
     </reapack>
     <reapack name="rodilab_Match criteria (match with BWF and iXML metadata).lua" type="script" desc="Match criteria (match with BWF and iXML metadata)">
@@ -15253,6 +15289,27 @@ uc_track_name_abbreviations = \{"O-Out", "O-MID"\}\par}
     <reapack name="reaperblog_-3dB trim send levels on selected track.eel" type="script" desc="-3dB trim send levels on selected track">
       <version name="1.0" author="spk77, modified by REAPER Blog" time="2018-04-27T16:11:51Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c61ce2edef59608547387f977006946a7c2b3288/Tracks%20Properties/reaperblog_-3dB%20trim%20send%20levels%20on%20selected%20track.eel</source>
+      </version>
+    </reapack>
+    <reapack name="rodilab_Toggle hide tracks with no items in current time selection.lua" type="script" desc="Toggle hide tracks with no items in current time selection">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Toggle on : Hide tracks with no items in current time selection\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Toggle off : Show all tracks (except for those that were already hidden)\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Some option on the top of code :\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Show/Hide in TCP (default: true)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Show/Hide in MCP (default: false)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Don't show tracks that are already hidden, even if they have items in time selection (default: true)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Show parents tracks too (default: true)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Show/Hide sends destination tracks too (default: true)\sa180\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="Rodilab" time="2021-12-05T23:47:12Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/83ab0e4d6228e16ec62b2c21cbfc412def2bf8bf/Tracks%20Properties/rodilab_Toggle%20hide%20tracks%20with%20no%20items%20in%20current%20time%20selection.lua</source>
       </version>
     </reapack>
     <reapack name="rodilab_Track name groups.lua" type="script" desc="Track name groups">
