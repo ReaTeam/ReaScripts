@@ -374,6 +374,9 @@ end
 
 
 --CONTEXT DEFINING CODE--
+version = reaper.GetExtState("SmartSplit_AZ", "version")
+if version ~= "2.2" then reaper.SetExtState("SmartSplit_AZ", "version", "2.2", true) end
+    
 window, segment, details = reaper.BR_GetMouseCursorContext()
 
 if RazorEditSelectionExists()==true then
