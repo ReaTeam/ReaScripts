@@ -1,9 +1,10 @@
 -- @description Smart split items by mouse cursor
 -- @author AZ
--- @version 2.1
+-- @version 2.2
 -- @changelog
---   Fixed item defining when mouse placed on a track area above the item.
---   This area recognise now as out of item.
+--   Removed dead zone where mouse placed on envelope and no automation item selected.
+--   For now it provides as empty arrange zone, and items should splitted at edit cursor or time selection.
+-- @link Forum thread https://forum.cockos.com/showthread.php?t=259751
 -- @about
 --   # Smart split items by mouse cursor
 --
@@ -331,22 +332,40 @@ end
 
 function split_automation_item()
 
-reaper.Main_OnCommandEx( 40513, 0, 0 ) -- View: Move edit cursor to mouse cursor
-reaper.Main_OnCommandEx( 42087, 0, 0 ) -- Envelope: Split automation items
-reaper.SetEditCurPos(cur_pos, false, false)
-
-Env_line =  reaper.GetSelectedEnvelope( 0 )
-  if Env_line then
-    AI_number = reaper.CountAutomationItems( Env_line ) -1
-
-    while AI_number > -1 do
-    reaper.GetSetAutomationItemInfo( Env_line, AI_number, "D_UISEL", 0, true )
-    AI_number = AI_number - 1
-    end
-  end
+if TSexist == 1 then
+  reaper.SetEditCurPos(start_pos, false, false)
+  reaper.Main_OnCommandEx( 42087, 0, 0 ) -- Envelope: Split automation items
+  --
+  reaper.SetEditCurPos(end_pos, false, false)
+  reaper.Main_OnCommandEx( 42087, 0, 0 ) -- Envelope: Split automation items
+  
+  reaper.SetEditCurPos(cur_pos, false, false)
+else
+  reaper.Main_OnCommandEx( 40513, 0, 0 ) -- View: Move edit cursor to mouse cursor
+  reaper.Main_OnCommandEx( 42087, 0, 0 ) -- Envelope: Split automation items
+  reaper.SetEditCurPos(cur_pos, false, false)
+end
 
 end
 
+
+
+-----------------------------------------
+--------------------------------------------
+
+
+
+function unsel_automation_Items()
+  for t=0, reaper.CountTracks(0)-1 do
+    local tr = reaper.GetTrack(0,t)
+    for e=0, reaper.CountTrackEnvelopes( tr ) -1 do
+      local env = reaper.GetTrackEnvelope( tr, e )
+      for AI=0, reaper.CountAutomationItems( env ) -1 do
+        reaper.GetSetAutomationItemInfo( env, AI, "D_UISEL", 0, true )
+      end
+    end
+  end
+end
 
 
 -----------------------------------------
@@ -376,15 +395,37 @@ end
 
 cur_pos=reaper.GetCursorPosition()
 
+autoI = "not"
 
 if window == "arrange" and segment == "envelope" then
-reaper.Undo_BeginBlock2( 0 )
-reaper.PreventUIRefresh( 1 )
-split_automation_item()
-reaper.PreventUIRefresh( -1 )
-reaper.Undo_EndBlock2( 0, "Split automation item by mouse", -1 )
+ Env_line, takeEnvelope = reaper.BR_GetMouseCursorContext_Envelope()
+ 
+ if Env_line and takeEnvelope == false then
+ 
+   AI_number = reaper.CountAutomationItems( Env_line ) -1
+   
+   while AI_number > -1 do
+     isAIsel = reaper.GetSetAutomationItemInfo( Env_line, AI_number, "D_UISEL", 0, false )
+     if isAIsel == 1 then autoI = "selected" end
+     AI_number = AI_number - 1
+   end
+ end
+ 
+end
+
+
+if autoI == "selected" then
+  reaper.Undo_BeginBlock2( 0 )
+  reaper.PreventUIRefresh( 1 )
+  split_automation_item()
+  reaper.PreventUIRefresh( -1 )
+  reaper.Undo_EndBlock2( 0, "Split automation item by mouse", -1 )
 else
-  
+
+  --If likely there is no intention to split AIs--
+  unsel_automation_Items()
+  -----------------------------
+
   if not item then  --if mouse cursor not on the item
   split_by_edit_cursor_or_TS()
   end
