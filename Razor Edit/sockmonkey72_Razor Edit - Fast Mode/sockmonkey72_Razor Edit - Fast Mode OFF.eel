@@ -1,0 +1,9 @@
+// @noindex
+
+SetMouseModifier("MM_CTX_TRACK", 0, "-1"); // Factory Default
+SetMouseModifier("MM_CTX_ITEM", 0, "-1"); // Factory Default
+SetMouseModifier("MM_CTX_ITEMLOWER", 0, "-1"); // Factory Default
+
+SetMouseModifier("MM_CTX_TRACK", 1, "-1"); // Factory Default
+SetMouseModifier("MM_CTX_ITEM", 1, "-1"); // Factory Default
+SetMouseModifier("MM_CTX_ITEMLOWER", 1, "-1"); // Factory Default
