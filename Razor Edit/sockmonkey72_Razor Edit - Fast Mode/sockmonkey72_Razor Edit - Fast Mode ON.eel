@@ -1,0 +1,9 @@
+// @noindex
+
+SetMouseModifier("MM_CTX_TRACK", 0, "25"); // Create Razor Edit Area
+SetMouseModifier("MM_CTX_ITEM", 0, "62"); // Create Razor Edit Area
+SetMouseModifier("MM_CTX_ITEMLOWER", 0, "64"); // Add to Razor Edit Area
+
+SetMouseModifier("MM_CTX_TRACK", 1, "26"); // Create Razor Edit Area (ignoring snap)
+SetMouseModifier("MM_CTX_ITEM", 1, "63"); // Create Razor Edit Area (ignoring snap)
+SetMouseModifier("MM_CTX_ITEMLOWER", 1, "65"); // Add to Razor Edit Area (ignoring snap)
