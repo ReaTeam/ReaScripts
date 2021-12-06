@@ -1,0 +1,33 @@
+// @description Razor Edit - Fast Mode
+// @author sockmonkey72
+// @version 1.1
+// @changelog simplify to a single Toggle Command script
+// @about
+//   Inspired by [Kenny Gioia's "Razor Edit - Fast Mode in REAPER"](https://youtu.be/HEVKLiWkRkk), this script makes the appropriate changes to the Mouse Modifier preferences to support fast Razor Editing. Improved over what Kenny can do using standard actions is that the shift-modified left-drag actions are incorporated with the "ignoring snap" action variants.
+//
+//   The workflow is also simpler, as it's just a single toggle script. It can be hooked up to a key command and/or a toolbar button.
+
+
+get_action_context(#filename,sectionID,cmdID,mode,resolution,val);
+
+state = GetToggleCommandStateEx(sectionID, cmdID);
+
+state > 0 ? (
+  SetMouseModifier("MM_CTX_TRACK", 0, "-1"); // Factory Default
+  SetMouseModifier("MM_CTX_ITEM", 0, "-1"); // Factory Default
+  SetMouseModifier("MM_CTX_ITEMLOWER", 0, "-1"); // Factory Default
+
+  SetMouseModifier("MM_CTX_TRACK", 1, "-1"); // Factory Default
+  SetMouseModifier("MM_CTX_ITEM", 1, "-1"); // Factory Default
+  SetMouseModifier("MM_CTX_ITEMLOWER", 1, "-1"); // Factory Default
+) : (
+  SetMouseModifier("MM_CTX_TRACK", 0, "25"); // Create Razor Edit Area
+  SetMouseModifier("MM_CTX_ITEM", 0, "62"); // Create Razor Edit Area
+  SetMouseModifier("MM_CTX_ITEMLOWER", 0, "64"); // Add to Razor Edit Area
+
+  SetMouseModifier("MM_CTX_TRACK", 1, "26"); // Create Razor Edit Area (ignoring snap)
+  SetMouseModifier("MM_CTX_ITEM", 1, "63"); // Create Razor Edit Area (ignoring snap)
+  SetMouseModifier("MM_CTX_ITEMLOWER", 1, "65"); // Add to Razor Edit Area (ignoring snap)
+);
+
+SetToggleCommandState(sectionID, cmdID, state > 0 ? 0 : 1);
