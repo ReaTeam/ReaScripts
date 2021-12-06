@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="bcefb9e7629a978993357e04de85577bc80b718c" name="ReaTeam Scripts">
+<index version="1" commit="b5f68d2a120453853bb8c9db74ead9b142830161" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -7114,12 +7114,15 @@ selection.]]></changelog>
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 This script requires "spk77_Get max peak val and pos from take_function", please install it first.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This script requires SWS extension.\par}
 }
 ]]></description>
       </metadata>
       <version name="1.1" author="Rodilab" time="2021-11-23T21:24:13Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ce59cbe1c81e76f8065a85023727ed2ad9c4b2b9/Items%20Properties/rodilab_Set%20items%20snap%20offset%20to%20max%20peak.lua</source>
+      </version>
+      <version name="1.2" author="Rodilab" time="2021-12-06T19:22:20Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b5f68d2a120453853bb8c9db74ead9b142830161/Items%20Properties/rodilab_Set%20items%20snap%20offset%20to%20max%20peak.lua</source>
       </version>
     </reapack>
     <reapack name="spk77_Breeder_PL9_Copy paste item properties (incl BWF).eel" type="script" desc="Copy paste item properties (incl BWF)">
