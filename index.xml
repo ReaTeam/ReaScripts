@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="b5f68d2a120453853bb8c9db74ead9b142830161" name="ReaTeam Scripts">
+<index version="1" commit="fadf4caabc4536fec8eab6ffd62e601d37094d52" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -6412,9 +6412,8 @@ here
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 This is a togglable defer script. As long is activate : dragging the items edges can't expand audio items beyond source media start and end.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This is a togglable defer script. As long is enable : dragging items edges can't expand audio items beyond source media start and end.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Requirement :\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab SWS Extension\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab js_ReaScriptAPI: API functions\sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 by Rodrigo Diaz (aka Rodilab)\par}
 }
@@ -6422,6 +6421,11 @@ here
       </metadata>
       <version name="1.0" author="Rodilab" time="2021-12-05T23:46:32Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/cf182b60fd8f20b55e4e93450b3039204e090aea/Items%20Editing/rodilab_Limit%20items%20edges%20at%20source%20start%20and%20stop.lua</source>
+      </version>
+      <version name="1.1" author="Rodilab" time="2021-12-10T19:44:03Z">
+        <changelog><![CDATA[This version works in a very different way.
+Now works with crossfades, double adjacent edges and "move item contents".]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/fadf4caabc4536fec8eab6ffd62e601d37094d52/Items%20Editing/rodilab_Limit%20items%20edges%20at%20source%20start%20and%20stop.lua</source>
       </version>
     </reapack>
     <reapack name="rodilab_Match criteria (match with BWF and iXML metadata).lua" type="script" desc="Match criteria (match with BWF and iXML metadata)">
