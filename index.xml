@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="e38d8cdc51a1bc675eca6bdf76d673acd56f070c" name="ReaTeam Scripts">
+<index version="1" commit="e762bc023974a47553ff3dd45242ae75f93f4320" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -7578,6 +7578,21 @@ Renumber markers and regions when pasting]]></changelog>
       </version>
       <version name="1.1" author="Mordi" time="2019-05-28T12:12:55Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a0dd9ddc005ebddedab4fcc6ce846ec8b2de50af/Markers/Mordi_Create%20tempo-map%20from%20markers.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mordi_Replace string in marker and region names.lua" type="script" desc="Replace string in marker and region names">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 After pressing "Ok", a dialog appears with a list of all affected markers/regions, which lets you cancel if need be.\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="Mordi" time="2021-12-19T21:42:31Z">
+        <changelog><![CDATA[Initial release.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e762bc023974a47553ff3dd45242ae75f93f4320/Markers/mordi_Replace%20string%20in%20marker%20and%20region%20names.lua</source>
       </version>
     </reapack>
     <reapack name="spk77_Duplicate previous marker.lua" type="script" desc="Duplicate previous marker">
