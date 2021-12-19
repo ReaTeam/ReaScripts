@@ -75,6 +75,12 @@ for i = 0, marker_count+rgn_count-1 do
   end
 end
 
+-- Check if any names matched
+if index == 0 then
+  reaper.ShowMessageBox("No matches for '" .. findStr .. "'", SCRIPT_NAME, 0)
+  return
+end
+
 -- Check if user wants to move forward with renaming
 retval = reaper.ShowMessageBox(index .. " markers and regions will be renamed. Okay?\n" .. listStr, SCRIPT_NAME, 4)
 
