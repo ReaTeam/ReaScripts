@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="e762bc023974a47553ff3dd45242ae75f93f4320" name="ReaTeam Scripts">
+<index version="1" commit="d8d134e65ddc9d2ccf45589a85de6a0404c8973d" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -16241,20 +16241,6 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
       </metadata>
       <version name="1.00" author="amagalma" time="2021-06-05T09:46:59Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/124834656a86bd043ccc101acbe2641531420404/Various/amagalma_Enclose%20selected%20or%20focused%20FX%20in%20visible%20chain%20with%20ABLM2%20Level%20Matching%20VST.lua</source>
-      </version>
-    </reapack>
-    <reapack name="amagalma_Get number of all actions in the Action List.lua" type="script" desc="Get number of all actions in the Action List">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Requires JS_ReaScriptAPI\sa180\par}
-}
-]]></description>
-      </metadata>
-      <version name="1.00" author="amagalma" time="2021-12-18T19:36:55Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e38d8cdc51a1bc675eca6bdf76d673acd56f070c/Various/amagalma_Get%20number%20of%20all%20actions%20in%20the%20Action%20List.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_gianfini_ReaNamer (track-item-region renaming utility).lua" type="script" desc="ReaNamer (track-item-region renaming utility)">
