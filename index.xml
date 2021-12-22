@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="8f48f7eb46979a0d07116b1b85d4fc720874041a" name="ReaTeam Scripts">
+<index version="1" commit="37331915d8a3fbf663f63977d746e0ed9b9cbcc3" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -16173,7 +16173,7 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
 ]]></description>
       </metadata>
       <version name="1.00" author="amagalma &amp; Edgemeal" time="2021-12-22T09:38:43Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/8f48f7eb46979a0d07116b1b85d4fc720874041a/Various/amagalma_Edgemeal_Get%20number%20of%20all%20actions%20in%20the%20Action%20List.lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/37331915d8a3fbf663f63977d746e0ed9b9cbcc3/Various/amagalma_Edgemeal_Get%20number%20of%20all%20actions%20in%20the%20Action%20List.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Edit Group Management Utility.lua" type="script" desc="Edit Group Management Utility_amagalma">
