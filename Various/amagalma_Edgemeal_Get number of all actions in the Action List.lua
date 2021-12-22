@@ -1,6 +1,7 @@
 -- @description Get number (count) of all actions in the Action List
 -- @author amagalma & Edgemeal
--- @version 1.00
+-- @version 1.01
+-- @changelog - Do not include Main (alt recording) actions in Total number 
 -- @about - Requires JS_ReaScriptAPI
 
 
