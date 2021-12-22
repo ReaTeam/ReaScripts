@@ -45,7 +45,7 @@ local function GetCount()
   for i = 0, count-1 do
     SetComboBoxIndex(cbobox, i)
     local num = reaper.JS_ListView_GetItemCount(lv)
-    total = total + num
+    if i ~=1 then total = total + num end
     reaper.ShowConsoleMsg(reaper.JS_Window_GetTitle(cbobox) .. " : " .. num .. " actions\n")
   end
   reaper.ShowConsoleMsg("\nTotal number of actions: " .. total .. "\n\n")
