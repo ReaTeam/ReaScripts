@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="d8d134e65ddc9d2ccf45589a85de6a0404c8973d" name="ReaTeam Scripts">
+<index version="1" commit="8f48f7eb46979a0d07116b1b85d4fc720874041a" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -16160,6 +16160,20 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
       <version name="1.31" author="amagalma" time="2020-05-22T15:50:30Z">
         <changelog><![CDATA[-  fixed not drawing when having hidden first track (thanks Jason Brian Merrill)]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3e5388bea08f88627c7e8392d2793f8001672552/Various/amagalma_Distinguish%20visually%20the%20ripple%20editing%20modes.lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Edgemeal_Get number of all actions in the Action List.lua" type="script" desc="Get number (count) of all actions in the Action List">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Requires JS_ReaScriptAPI\sa180\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.00" author="amagalma &amp; Edgemeal" time="2021-12-22T09:38:43Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/8f48f7eb46979a0d07116b1b85d4fc720874041a/Various/amagalma_Edgemeal_Get%20number%20of%20all%20actions%20in%20the%20Action%20List.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Edit Group Management Utility.lua" type="script" desc="Edit Group Management Utility_amagalma">
