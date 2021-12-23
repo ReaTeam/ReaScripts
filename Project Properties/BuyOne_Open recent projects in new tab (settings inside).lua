@@ -11,8 +11,9 @@ About:
 	An alternative to REAPER's native 'Recent projects menu' capable 
 	of opening recent projects in a new tab, desisgned before a
 	native option was added in build 6.43:   
-	+ Projects: hold shift to open recent project in new project tab   
-	Can still be used if holding shift isn't viable for some reason.
+	+ Projects: hold shift to open recent project in new project tab 
+
+	Can still be used in earlier releases or if holding shift isn't viable for some reason.
 ]]
 -----------------------------------------------------------------------------
 ------------------------------ USER SETTINGS --------------------------------
