@@ -6,7 +6,7 @@ Version: 1.0
 Changelog: Initial release
 Licence: WTFPL
 REAPER: at least v5.962
-Screenshots: https://git.io/Jy1nI
+Screenshots: https://git.io/JyD8d
 About:	Sorts by length region bars with the same start position in either ascending or descending order.
 ]]
 
