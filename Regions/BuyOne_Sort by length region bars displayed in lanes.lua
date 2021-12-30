@@ -1,5 +1,3 @@
--- https://old.reddit.com/r/Reaper/comments/rbnb8h/how_to_show_longer_regions_on_top/
-
 --[[
 ReaScript name: Sort by length region bars displayed in lanes
 Author: BuyOne
