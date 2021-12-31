@@ -99,6 +99,34 @@ function class(base, init)
    setmetatable(c, mt)
    return c
 end
+
+--/////////////////////////////////
+-- Helper for non-English string //
+--/////////////////////////////////
+local function strTable(s)
+    -- string to table array
+    local tb = {}
+        for utfChar in string.gmatch(s, "[%z\1-\127\194-\244][\128-\191]*") do
+            table.insert(tb, utfChar)
+        end
+    return tb
+end
+
+local function subalt(s, first, last)
+    -- string table array sub
+    tb = strTable(s)
+    if last == -1 then
+        last = #tb
+    end
+
+    local resultStr = ""
+    for i=1, #tb do
+        if i >= first and i <= last then
+            resultStr = resultStr .. tb[i]
+        end
+    end
+    return resultStr
+end
 ----------------------------------------------------------------------------------------
 
 local btn_DOWN_can_move, btn_height, win_border, win_double_vert_border, win_h, win_vert_border, win_w
@@ -952,17 +980,18 @@ function ApplyModifier(prevName, modifier, parm1, parm2, seq_number) -- apply on
   elseif modifier == "clear" then
     newName = ""
   elseif modifier == "trimstart" then
-    newName = newName:sub(parm1 + 1)
+    newName = subalt(newName, parm1 + 1, -1)
   elseif modifier == "trimend" then
-    local length = newName:len()
-    newName = newName:sub(1, length - parm1)
+    local length = #strTable(newName)
+    newName = subalt(newName, 1, length - parm1)
   elseif modifier == "keep" then
     local mode, number = parm1:match("([seSE])%s?(%d+)")
     number = tonumber(number)
     if mode:match("[sS]") then
-      newName = newName:sub(0, number)
+      newName = subalt(newName, 0, number)
     else
-      newName = newName:sub((-1)*number)
+      local length = #strTable(newName)
+      newName = subalt(newName, length - number + 1, -1)
     end
   elseif modifier == "replace" then
     if parm1 ~= "" then
