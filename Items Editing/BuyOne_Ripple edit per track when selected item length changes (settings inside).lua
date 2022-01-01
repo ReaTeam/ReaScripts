@@ -36,6 +36,10 @@ About:	An enhancement to 'Ripple edit per track' mode.
 		'View: Move cursor rigt/left to grid division' with 
 		'View: Move cursor right/left one/8 pixels'.
 
+		When the script is stopped the first time, in the 'ReaScript 
+		task control dialogue' tick 'Remember my answer for this script' 
+		checkbox and click 'Terminate instances'.
+
 		CAVEATS:
 
 		Do not drag the right edge fast because the data won't 
