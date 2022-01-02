@@ -1,6 +1,3 @@
--- https://old.reddit.com/r/Reaper/comments/r4izry/can_i_set_ripple_mode_to_work_slightly_more_like/
--- https://youtu.be/O_jZujPzxyI?t=161 Shuffle mode example in Pro Tools
-
 --[[
 ReaScript name: Ripple edit per track when selected item length changes
 Author: BuyOne
