@@ -37,8 +37,9 @@ About:	An enhancement to 'Ripple edit per track' mode.
 		'View: Move cursor right/left one/8 pixels'.
 		
 		While the script is running, only 1 media item can be selected
-		at a time. To be able to select multiple items either stop the 
-		script or disable 'Ripple edit per track'.
+		at a time. If several media items are selected, all but the 1st 
+		one are auto-deselected. To be able to select multiple items 
+		either stop the script or disable 'Ripple edit per track'.
 		
 		When the script is stopped the first time, in the 'ReaScript
 		task control dialogue' tick 'Remember my answer for this script'
