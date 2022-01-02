@@ -1,10 +1,13 @@
+-- https://old.reddit.com/r/Reaper/comments/r4izry/can_i_set_ripple_mode_to_work_slightly_more_like/
+-- https://youtu.be/O_jZujPzxyI?t=161 Shuffle mode example in Pro Tools
+
 --[[
 ReaScript name: Ripple edit per track when selected item length changes
 Author: BuyOne
 Website: https://forum.cockos.com/member.php?u=134058
 Version: 1.1
 Changelog: #Added support for ripple editing automation envelopes and automation items
-	   #Added new user settings	   
+	   #Added new user settings		   
 	   #Updated script name
 	   #Updated screenshot
 	   #Updated text under About tag
@@ -35,9 +38,13 @@ About:	An enhancement to 'Ripple edit per track' mode.
 		but it can be changed to pixels by replacing the actions 
 		'View: Move cursor rigt/left to grid division' with 
 		'View: Move cursor right/left one/8 pixels'.
-
-		When the script is stopped the first time, in the 'ReaScript 
-		task control dialogue' tick 'Remember my answer for this script' 
+		
+		While the script is running, only 1 media item can be selected
+		at a time. To be able to select multiple items either stop the 
+		script or disable 'Ripple edit per track'.
+		
+		When the script is stopped the first time, in the 'ReaScript
+		task control dialogue' tick 'Remember my answer for this script'
 		checkbox and click 'Terminate instances'.
 
 		CAVEATS:
@@ -358,7 +365,7 @@ function Store_Move_Automation(item, item_start, item_start_init, item_end, item
 				end
 			-- MOVE AUTOM ITEMS TO THE RIGHT OF THE EDITED ITEM
 			elseif t[k].auto then -- remnant of the prev version, same as 'if k == 3'
-				for env in pairs(t[3].auto) do				
+				for env in pairs(t[3].auto) do	
 					for i = #t[3].auto[env], 1, -1 do
 					local autoitem_idx = t[3].auto[env][i]
 					local pos = r.GetSetAutomationItemInfo(env, autoitem_idx, 'D_POSITION', -1, false)
@@ -538,6 +545,11 @@ function RUN()
 		if not r.GetSelectedMediaItem(0,0) then add = -10 end -- -10 is an arbitrary value which is sure to override the LAG value
 
 		if item then
+		
+			-- Make sure only 1 item is selected
+			if r.CountSelectedMediaItems(0) > 1 then r.SelectAllMediaItems(0,false) -- deselect all
+			r.SetMediaItemSelected(item, true) -- re-select the 1st item
+			end
 
 		local item_start = r.GetMediaItemInfo_Value(item, 'D_POSITION')
 		local item_len = r.GetMediaItemInfo_Value(item, 'D_LENGTH')
