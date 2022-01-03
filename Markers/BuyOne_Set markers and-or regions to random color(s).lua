@@ -33,7 +33,6 @@ About: Sets project markers and/or regions to random colors obeying time selecti
 ]]
 
 
-
 function Msg(param, cap) -- caption second or none
 local cap = cap and type(cap) == 'string' and #cap > 0 and cap..' = ' or ''
 reaper.ShowConsoleMsg(cap..tostring(param)..'\n')
