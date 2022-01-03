@@ -9,11 +9,11 @@ Licence: WTFPL
 REAPER: at least v5.962
 About: 
 	An alternative to REAPER's native 'Recent projects menu' capable 
-	of opening recent projects in a new tab, which in my opinion should 
-	be a native feature and has been requested a couple of times:
-	https://forum.cockos.com/showthread.php?t=113259 (2012)
-	https://forum.cockos.com/showthread.php?t=249615 (2021)
-	
+	of opening recent projects in a new tab, desisgned before a
+	native option was added in build 6.43:   
+	+ Projects: hold shift to open recent project in new project tab 
+
+	Can still be used in earlier releases or if holding shift isn't viable for some reason.
 ]]
 -----------------------------------------------------------------------------
 ------------------------------ USER SETTINGS --------------------------------
