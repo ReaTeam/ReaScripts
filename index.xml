@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="21f13c69d19eca9f672353173cfdff8f1f9cabe2" name="ReaTeam Scripts">
+<index version="1" commit="31f915d35f03d2b947430ebb00c0d8135c1e8b84" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -5099,22 +5099,41 @@ For now it provides as empty arrange zone, and items should splitted at edit cur
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e10d14efcfd2751718f5856d42a0fb3af9574b86/Items%20Editing/BuyOne_Move%20items%20from%20one%20track%20to%20many%20or%20from%20many%20to%20one.lua</source>
       </version>
     </reapack>
-    <reapack name="BuyOne_Ripple edit per track when selected item length changes from the right.lua" type="script" desc="Ripple edit per track when selected item length changes from the right">
+    <reapack name="BuyOne_Ripple edit per track when selected item length changes (settings inside).lua" type="script" desc="Ripple edit per track when selected item length changes">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 An enhancement to 'Ripple edit per track' mode. As such only works when this mode is enabled. Makes all items following the one whose right edge is being extended/trimmed move just like regular Ripple edit does when selected items are moved.\line The item whose right edge is being extended/trimmed MUST BE SELECTED, otherwise no change occurs in items positioning.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 CAUTION:\line Do not drag the right edge fast because the data won't be processed as fast and item positions will end up being messed up.\line Avoid dragging item right edge over following items.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 An enhancement to 'Ripple edit per track' mode. As such only works when this mode is enabled. Makes all items following the one whose length is being changed move just like what regular Ripple edit does when selected items are shifted. This functionality exists in ProTools' 'Shuffle' edit mode: https://youtu.be/O_jZujPzxyI?t=161\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The script demo: https://git.io/JSTkE\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The item whose length is being changed MUST BE SELECTED, otherwise no change occurs in items positioning unless RETROSPECTIVE_RIPPLE_EDIT option is enabled in the USER SETTINGS.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Envelopes and automation items are moved just as they are in regular Ripple edit mode as long as the option 'Move envelope points with media items and razor edits' is enabled in REAPER and MOVE_AUTOMATION setting is enabled in the USER SETTINGS below.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The behavior this scripts attempts to reproduce can also be achieved with custom actions the code of which is provided at the bottom of this file, with the only difference that the resolution of item length change is to the closest grid line, but it can be changed to pixels by replacing the actions 'View: Move cursor rigt/left to grid division' with 'View: Move cursor right/left one/8 pixels'.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 While the script is running, only 1 media item can be selected at a time. If several media items are selected, all but the 1st one are auto-deselected. To be able to select multiple items either stop the script or disable 'Ripple edit per track'.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 When the script is stopped the first time, in the 'ReaScript task control dialogue' tick 'Remember my answer for this script' checkbox and click 'Terminate instances'.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 CAVEATS:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Do not drag the right edge fast because the data won't be processed as fast and item positions will end up being messed up.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Avoid dragging item right edge over following items.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 It may be difficult to control the pace/amount of the media item length change done by dragging its left edge when grid is enabled. In the script a short lag is introduced to mitigate this behavior but it's not perfect, so the media item may end up somewhat overextended or overshortened.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 If the media item inadvertently becomes deselected while its length is being changed by dragging its left edge, ripple edit will only take effect after the item is re-selected and only if it's the first one to be selected provided RETROSPECTIVE_RIPPLE_EDIT option is enabled. If another item is selected instead, items positions won't update.\line Which is in line with the general functionality RETROSPECTIVE_RIPPLE_EDIT is designed to provide (for details see USER SETTINGS).\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Minimum length of an automation item within the edited media item boundaries is 101 ms. Shorter automation items are auto-deleted.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Automation item(s) and the media item(s) cannot be selected at the same time. To be able to select automation item(s) on the track de-select all media items.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 When undoing multiple undo points left by this script you may encounter overlapping automation items. This is an intermediary stage which gets saved in the undo history in between the action start and end points. Simply continue undoing.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Since by this script splitting a media item is treated as its length change resulting in shift of the automation and media items located downstream, in order to split without affecting objects pisitioning you may use a custom action in which the split action (there're quite a few) is wrapped between two Ripple edit actions like so:\line Set ripple editing off\line -- Split action --\line Set ripple editing per-track\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Alternatively manually turn off Ripple edit mode before splitting.\par}
 }
 ]]></description>
         <link rel="website">https://forum.cockos.com/member.php?u=134058</link>
-        <link rel="screenshot">https://git.io/JME3D</link>
+        <link rel="screenshot">https://git.io/JSTkE</link>
       </metadata>
-      <version name="1.0" author="BuyOne" time="2021-12-05T23:46:57Z">
-        <changelog><![CDATA[Initial release]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/7f18ed7d0ecb51ab066719fe1120b8efaff05788/Items%20Editing/BuyOne_Ripple%20edit%20per%20track%20when%20selected%20item%20length%20changes%20from%20the%20right.lua</source>
+      <version name="1.1" author="BuyOne" time="2022-01-03T23:29:50Z">
+        <changelog><![CDATA[#Added support for ripple editing automation envelopes and automation items
+#Added new user settings		   
+#Updated script name
+#Updated screenshot
+#Updated text under About tag]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a8dae37813e1894d8eea3d88ad97bd981a8b9a67/Items%20Editing/BuyOne_Ripple%20edit%20per%20track%20when%20selected%20item%20length%20changes%20(settings%20inside).lua</source>
       </version>
     </reapack>
     <reapack name="BuyOne_Split selected MIDI item by notes.lua" type="script" desc="Split selected MIDI item by notes">
@@ -7415,6 +7434,30 @@ Added replacement with /clear; erases entire name of matching markers/regions.]]
       <version name="1.0" author="BuyOne" time="2021-05-12T08:22:13Z">
         <changelog><![CDATA[Initial release]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/59697cdd922e9b49a42ee7c6bc0fbad36f743fa1/Markers/BuyOne_Insert%20take%20marker%20with%20current%20timestamp%20at%20edit;mouse%20cursor%20in%20selected%20items;takes%20(options).lua</source>
+      </version>
+    </reapack>
+    <reapack name="BuyOne_Set markers and-or regions to random color(s).lua" type="script" desc="Set markers and/or regions to random color(s) (7 scripts)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Sets project markers and/or regions to random colors obeying time selection, if any. The script comes in 7 instances, 1 includes all available options as a menu and the other 6 specialize in one type of operation only, being suitable to be included in custom actions.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 In the script 'BuyOne_Set markers and-or regions to random color(s) (all in one)' which contains all available options in a menu, a menu item can be run with a numeric keyboard shortcut corresponding to the number of such menu item.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Other available scripts with some or all functionalities of this one:\line X-Raym_Color current region or regions in time selection randomly with same color.lua\line X-Raym_Color current region or regions in time selection randomly.lua\line zaibuyidao_Random Marker Color.lua\line zaibuyidao_Random Marker Region Color.lua\line zaibuyidao_Random Region Color.lua\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/member.php?u=134058</link>
+      </metadata>
+      <version name="1.0" author="BuyOne" time="2022-01-03T23:31:34Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main" file="BuyOne_Set markers and-or regions to random color(s)/BuyOne_Set markers and-or regions to random color(s) (all in one).lua">https://github.com/ReaTeam/ReaScripts/raw/31f915d35f03d2b947430ebb00c0d8135c1e8b84/Markers/BuyOne_Set%20markers%20and-or%20regions%20to%20random%20color(s).lua</source>
+        <source main="main" file="BuyOne_Set markers and-or regions to random color(s)/BuyOne_Set markers to random colors (respecting time sel.).lua">https://github.com/ReaTeam/ReaScripts/raw/31f915d35f03d2b947430ebb00c0d8135c1e8b84/Markers/BuyOne_Set%20markers%20and-or%20regions%20to%20random%20color(s).lua</source>
+        <source main="main" file="BuyOne_Set markers and-or regions to random color(s)/BuyOne_Set markers to 1 random color (respecting time sel.).lua">https://github.com/ReaTeam/ReaScripts/raw/31f915d35f03d2b947430ebb00c0d8135c1e8b84/Markers/BuyOne_Set%20markers%20and-or%20regions%20to%20random%20color(s).lua</source>
+        <source main="main" file="BuyOne_Set markers and-or regions to random color(s)/BuyOne_Set regions to random colors (respecting time sel.).lua">https://github.com/ReaTeam/ReaScripts/raw/31f915d35f03d2b947430ebb00c0d8135c1e8b84/Markers/BuyOne_Set%20markers%20and-or%20regions%20to%20random%20color(s).lua</source>
+        <source main="main" file="BuyOne_Set markers and-or regions to random color(s)/BuyOne_Set regions to 1 random color (respecting time sel.).lua">https://github.com/ReaTeam/ReaScripts/raw/31f915d35f03d2b947430ebb00c0d8135c1e8b84/Markers/BuyOne_Set%20markers%20and-or%20regions%20to%20random%20color(s).lua</source>
+        <source main="main" file="BuyOne_Set markers and-or regions to random color(s)/BuyOne_Set markers + regions to random colors (respecting time sel.).lua">https://github.com/ReaTeam/ReaScripts/raw/31f915d35f03d2b947430ebb00c0d8135c1e8b84/Markers/BuyOne_Set%20markers%20and-or%20regions%20to%20random%20color(s).lua</source>
+        <source main="main" file="BuyOne_Set markers and-or regions to random color(s)/BuyOne_Set markers + regions to 1 random color (respecting time sel.).lua">https://github.com/ReaTeam/ReaScripts/raw/31f915d35f03d2b947430ebb00c0d8135c1e8b84/Markers/BuyOne_Set%20markers%20and-or%20regions%20to%20random%20color(s).lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Copy and paste project markers and regions.lua" type="script" desc="Copy/paste project markers and/or regions">
@@ -12383,14 +12426,16 @@ enter or a = Exit and apply changes\par}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 An alternative to REAPER's native 'Recent projects menu' capable of opening recent projects in a new tab, which in my opinion should be a native feature and has been requested a couple of times: https://forum.cockos.com/showthread.php?t=113259 (2012) https://forum.cockos.com/showthread.php?t=249615 (2021)\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 An alternative to REAPER's native 'Recent projects menu' capable of opening recent projects in a new tab, desisgned before a native option was added in build 6.43:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Projects: hold shift to open recent project in new project tab\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Can still be used in earlier releases or if holding shift isn't viable for some reason.\par}
 }
 ]]></description>
         <link rel="website">https://forum.cockos.com/member.php?u=134058</link>
       </metadata>
       <version name="1.0" author="BuyOne" time="2021-09-08T14:23:51Z">
         <changelog><![CDATA[Initial release]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/61d5e55ff14c11d8ed3d82274e94e800ae9b0239/Project%20Properties/BuyOne_Open%20recent%20projects%20in%20new%20tab%20(settings%20inside).lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/2b8c79939d74ae563d94d67f92ee86e8a9f9ecc5/Project%20Properties/BuyOne_Open%20recent%20projects%20in%20new%20tab%20(settings%20inside).lua</source>
       </version>
     </reapack>
     <reapack name="BuyOne_Save-Load window set #1-10 with Mixer scroll position.lua" type="script" desc="Save-Load window set #1-10 with Mixer scroll position (10 scripts)">
@@ -13068,6 +13113,23 @@ Kenny Gioia's "Razor Edit - Fast Mode in REAPER"
         <source main="main" file="ausbaxter_Save region render matrix (slot 2).lua">https://github.com/ReaTeam/ReaScripts/raw/af423a7b88decb7586131edda25e22e2ac908ec6/Regions/ausbaxter_Save%20and%20Load%20region%20render%20matrix.lua</source>
         <source main="main" file="ausbaxter_Save region render matrix (slot 3).lua">https://github.com/ReaTeam/ReaScripts/raw/af423a7b88decb7586131edda25e22e2ac908ec6/Regions/ausbaxter_Save%20and%20Load%20region%20render%20matrix.lua</source>
         <source main="main" file="ausbaxter_Save region render matrix (slot 4).lua">https://github.com/ReaTeam/ReaScripts/raw/af423a7b88decb7586131edda25e22e2ac908ec6/Regions/ausbaxter_Save%20and%20Load%20region%20render%20matrix.lua</source>
+      </version>
+    </reapack>
+    <reapack name="BuyOne_Sort by length region bars displayed in lanes.lua" type="script" desc="Sort by length region bars displayed in lanes">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Sorts by length region bars with the same start position in either ascending or descending order.\line If after sorting some region bars become overlaped, wiggle the Ruler bottom edge having grabbed the topmost track upper edge.\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/member.php?u=134058</link>
+        <link rel="screenshot">https://git.io/JyD8d</link>
+      </metadata>
+      <version name="1.0" author="BuyOne" time="2022-01-03T23:30:52Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b231f6c769c4d59c55860976ac397d58287af958/Regions/BuyOne_Sort%20by%20length%20region%20bars%20displayed%20in%20lanes.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Nudge start or end of regions in time selection.lua" type="script" desc="Nudge start or end of regions in time selection">
@@ -15278,6 +15340,39 @@ Fix: More descriptive error message if valid settings aren't found]]></changelog
       </metadata>
       <version name="1.0" author="Mordi" time="2019-05-03T18:10:45Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/af241d05f01be02d07d9f55e576556e38cb16dcd/Tracks%20Properties/Mordi_Insert%20new%20track%20(inherit%20color%20from%20parent).lua</source>
+      </version>
+    </reapack>
+    <reapack name="mordi_Paste text from clipboard to selected tracks names (separate by newline).lua" type="script" desc="Paste text from clipboard to selected tracks names (separate by newline)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Paste text from clipboard to selected tracks names (separate by newline)\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Made for copying an asset list from Google Docs into Reaper. Each line is copied to each selected track.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Should work in any OS, but only tested on Windows. There are differences in how an OS stores linebreaks in strings.\par}
+}
+]]></description>
+        <link rel="screenshot">https://i.imgur.com/SZqNCDZ.gif</link>
+      </metadata>
+      <version name="1.0" author="Mordi" time="2022-01-03T23:30:22Z">
+        <changelog><![CDATA[Initial release.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e77723921aacab88d7ec0d1673e459f452431f3a/Tracks%20Properties/mordi_Paste%20text%20from%20clipboard%20to%20selected%20tracks%20names%20(separate%20by%20newline).lua</source>
+      </version>
+    </reapack>
+    <reapack name="mordi_Sort selected tracks alphabetically.lua" type="script" desc="Sort selected tracks alphabetically">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Sort selected tracks alphabetically\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Sorts selected tracks based on track name. All tracks will be lumped together below the track immediately above the topmost selected track.\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="Mordi" time="2022-01-03T23:28:27Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/cf45a63272b429d7c41dc8035ecb92f1ca17a13d/Tracks%20Properties/mordi_Sort%20selected%20tracks%20alphabetically.lua</source>
       </version>
     </reapack>
     <reapack name="ook_Insert new track with two-way midiaudio send to selected track.lua" type="script" desc="Insert new track with two-way midi/audio send to selected track">
