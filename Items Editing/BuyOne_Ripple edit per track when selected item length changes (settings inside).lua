@@ -17,7 +17,10 @@ About:	An enhancement to 'Ripple edit per track' mode.
 		is being changed move just like what regular 
 		Ripple edit does when selected items are shifted. 
 		This functionality exists in ProTools' 'Shuffle' 
-		edit mode: https://youtu.be/O_jZujPzxyI?t=161    
+		edit mode: https://youtu.be/O_jZujPzxyI?t=161  
+
+		The script demo: https://git.io/JSTkE  
+		
 		The item whose length is being changed MUST BE SELECTED, 
 		otherwise no change occurs in items positioning unless 
 		RETROSPECTIVE_RIPPLE_EDIT option is enabled in the USER SETTINGS.
