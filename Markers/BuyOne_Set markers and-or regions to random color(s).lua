@@ -94,7 +94,8 @@ local time_sel = start ~= fin
 	local double_obj = scr_name:match('markers') and scr_name:match('regions')
 
 	local x, y = r.GetMousePosition()
-
+	
+	-- If objects tergeted by selected option don't exist in the project; presence in time selection is evaluated further below
 	local obj = both and double_obj and mrkr_cnt == 0 and 'MARKERS' or both and double_obj and rgn_cnt == 0 and 'REGIONS'
 		if obj then
 		local x, y = r.GetMousePosition()
