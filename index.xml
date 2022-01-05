@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="31f915d35f03d2b947430ebb00c0d8135c1e8b84" name="ReaTeam Scripts">
+<index version="1" commit="8a742b0c735ec3910ae46a53103a28f900c148de" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -4365,6 +4365,22 @@ website
       </metadata>
       <version name="1.00" author="amagalma" time="2020-03-18T13:42:23Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ea9eef55feedced5c2ea81b993cde5accfab3b88/Items%20Editing/amagalma_Explode%20takes%20of%20items%20across%20children%20tracks,%20optionally%20mute%20and%20lock%20original%20items.lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Explode takes of items across tracks (according to source files).lua" type="script" desc="Explode takes of items across tracks (according to source files)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Differs from native action, because it ensures that each track will contain only one source file (recording pass)\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=261306</link>
+        <link rel="donation">https://www.paypal.me/amagalma</link>
+      </metadata>
+      <version name="1.00" author="amagalma" time="2022-01-05T05:03:52Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/8a742b0c735ec3910ae46a53103a28f900c148de/Items%20Editing/amagalma_Explode%20takes%20of%20items%20across%20tracks%20(according%20to%20source%20files).lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Fill space between selected items with empty items.lua" type="script" desc="Fill space between selected items with empty items">
