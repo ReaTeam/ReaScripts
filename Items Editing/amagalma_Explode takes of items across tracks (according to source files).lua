@@ -1,6 +1,7 @@
--- @description Explode takes of items across tracks (according to source files)
+-- @description Explode takes of items across tracks (according to their source files)
 -- @author amagalma
--- @version 1.00
+-- @version 1.01
+-- @changelog Sort takes according to recpass number, if available
 -- @link https://forum.cockos.com/showthread.php?t=261306
 -- @donation https://www.paypal.me/amagalma
 -- @about Differs from native action, because it ensures that each track will contain only one source file (recording pass)
@@ -40,6 +41,7 @@ local cur_id = 0 -- first selected item id
 local Parent_Track_cnt = 0
 local Sources = {}
 local Sources_cnt = 0
+local Sources_to_sort = {}
 local Items = {}
 local first_track_id = false
 local src_filename
@@ -78,10 +80,11 @@ for i = cur_id, item_cnt-1 do
     end
     local item_chunk = ({reaper.GetItemStateChunk( item, "", false )})[2]
     local recpass = item_chunk:match(reaper.BR_GetMediaItemTakeGUID( take ):gsub("-", "%%-") .. "\nRECPASS (%d+)") or ""
-    src_filename = reaper.GetMediaSourceFileName( src ) .. recpass
+    src_filename = recpass .. "#" .. reaper.GetMediaSourceFileName( src )
     if not Sources[src_filename] then
       Sources_cnt = Sources_cnt + 1
       Sources[src_filename] = Sources_cnt - 1
+      Sources_to_sort[Sources_cnt] = src_filename
     end
   end
   -- Item and Source File association
@@ -90,6 +93,12 @@ for i = cur_id, item_cnt-1 do
   end
 end
 local last_track_id = reaper.GetMediaTrackInfo_Value( cur_track, "IP_TRACKNUMBER" )
+
+-- Sort sources according to filename/recpass
+table.sort(Sources_to_sort, function(a,b) return a<b end)
+for i = 1, Sources_cnt do
+  Sources[Sources_to_sort[i]] = i - 1
+end
 
 -- Add tracks for sources
 if Parent_Track_cnt ~= Sources_cnt then
