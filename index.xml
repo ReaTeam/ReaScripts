@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="618c6344c90eb0a8493043b8ca507b7071971b25" name="ReaTeam Scripts">
+<index version="1" commit="e74356c9b543b9d273141a65cf241718c1502ccf" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -4385,6 +4385,11 @@ website
       <version name="1.01" author="amagalma" time="2022-01-05T05:22:56Z">
         <changelog><![CDATA[Sort takes according to recpass number, if available]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/618c6344c90eb0a8493043b8ca507b7071971b25/Items%20Editing/amagalma_Explode%20takes%20of%20items%20across%20tracks%20(according%20to%20source%20files).lua</source>
+      </version>
+      <version name="1.02" author="amagalma" time="2022-01-05T05:57:16Z">
+        <changelog><![CDATA[- Heal splits of exported items
+- Fix possible crash with items with only one take]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e74356c9b543b9d273141a65cf241718c1502ccf/Items%20Editing/amagalma_Explode%20takes%20of%20items%20across%20tracks%20(according%20to%20source%20files).lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Fill space between selected items with empty items.lua" type="script" desc="Fill space between selected items with empty items">
