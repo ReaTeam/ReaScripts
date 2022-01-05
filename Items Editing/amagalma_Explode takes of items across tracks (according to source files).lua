@@ -1,7 +1,9 @@
 -- @description Explode takes of items across tracks (according to their source files)
 -- @author amagalma
--- @version 1.01
--- @changelog Sort takes according to recpass number, if available
+-- @version 1.02
+-- @changelog 
+--    - Heal splits of exported items
+--    - Fix possible crash with items with only one take
 -- @link https://forum.cockos.com/showthread.php?t=261306
 -- @donation https://www.paypal.me/amagalma
 -- @about Differs from native action, because it ensures that each track will contain only one source file (recording pass)
@@ -27,6 +29,7 @@ if item_cnt == 0 then
   for i = 1, #sel_items do
     reaper.SetMediaItemSelected( sel_items[i], true )
   end
+  item_cnt = #sel_items
 else
   for i = 1, #sel_items do
     reaper.SetMediaItemSelected( sel_items[i], false )
@@ -116,6 +119,8 @@ end
 if cur_id ~= item_cnt-1 then
   goto BEGIN
 end
+
+reaper.Main_OnCommand(40548, 0) -- Heal splits in items
 
 reaper.PreventUIRefresh( -1 )
 reaper.UpdateArrange()
