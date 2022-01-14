@@ -2,13 +2,21 @@
 ReaScript name: Sort by length region bars displayed in lanes
 Author: BuyOne
 Website: https://forum.cockos.com/member.php?u=134058
-Version: 1.0
-Changelog: Initial release
+Version: 1.1
+Changelog: #Added error message when there're no regions in project
+	   #Added time selection support
+	   #Added error message when there're no regions in time selection
+	   #Updated script name
+	   #Updated About tag text
 Licence: WTFPL
 REAPER: at least v5.962
 Screenshots: https://git.io/JyD8d
-About:	Sorts by length region bars with the same start position
-	in either ascending or descending order.  
+About:	Sorts by length region bars with the same start position 
+	in either ascending or descending order.
+			
+	Respects time selection as long as either the regions start 
+	position or all their end positions are included in it.
+		
 	If after sorting some region bars become overlaped, wiggle 
 	the Ruler bottom edge having grabbed the topmost track 
 	upper edge.
@@ -22,6 +30,28 @@ end
 
 local r = reaper
 
+local retval, mrk_cnt, rgn_cnt = r.CountProjectMarkers(0)
+
+	if rgn_cnt == 0 then r.MB('No regions in the project.', 'ERROR', 0) return r.defer(function() do return end end) end
+
+
+local start, fin = r.GetSet_LoopTimeRange(false, false, 0, 0, false) -- isSet, isLoop - false; start, end - 0, allowautoseek - false
+local time_sel = start ~= fin
+
+	if time_sel then
+	local within_time_sel_cnt = 0
+	local i = 0
+		repeat
+		local retval, isrgn, pos, rgnend, name, markID, color = r.EnumProjectMarkers3(0, i)
+			if time_sel and (pos >= start and pos <= fin or rgnend >= start and rgnend <= fin) then
+			within_time_sel_cnt = within_time_sel_cnt + 1 or within_time_sel_cnt
+			end
+		i = i + 1
+		until retval == 0 -- when no next marker/region
+
+		if time_sel and within_time_sel_cnt == 0 then r.MB('No regions within time selection.', 'ERROR', 0) return r.defer(function() do return end end) end
+	end
+
 
 local RESP = r.MB('Longer region bars are at the top — click "YES"\n\nLonger region bars are at the bottom — click "NO"', 'PROMPT', 3)
 	if RESP == 2 then return r.defer(function() do return end end) end
@@ -34,14 +64,16 @@ local same_pos
 local i = 0
 	repeat
 	local retval, isrgn, pos, rgnend, name, markID, color = r.EnumProjectMarkers3(0, i)
-		if isrgn and pos ~= same_pos then
-		t[#t+1] = {} -- region group table
-		local a = t[#t] -- for brevity
-		a[#a+1] = {pos, rgnend, name, color, markID, retval} -- single region table; must be indexed so sorting by pos works below
-		same_pos = pos
-		elseif isrgn and pos == same_pos then
-		local a = t[#t]
-		a[#a+1] = {pos, rgnend, name, color, markID, retval}
+		if not time_sel or time_sel and (pos >= start and pos <= fin or rgnend >= start and rgnend <= fin) then
+			if isrgn and pos ~= same_pos then
+			t[#t+1] = {} -- region group table
+			local a = t[#t] -- for brevity
+			a[#a+1] = {pos, rgnend, name, color, markID, retval} -- single region table; must be indexed so sorting by pos works below
+			same_pos = pos
+			elseif isrgn and pos == same_pos then
+			local a = t[#t]
+			a[#a+1] = {pos, rgnend, name, color, markID, retval}
+			end
 		end
 	i = i + 1
 	until retval == 0 -- when no next marker/region
