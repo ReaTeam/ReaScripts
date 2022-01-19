@@ -3,11 +3,11 @@ ReaScript name: Time selection: Set start/end point
 Author: REAPER community
 Version: 1.0
 About: Curiously the action is unavalable in the sections other than the Main.
-	     This is meant to make up for that so it can be used in custom actions
-	     in other contexts, mainly MIDI Editor.
+       This is meant to make up for that so it can be used in custom actions
+       in other contexts, mainly MIDI Editor.
 Metapackage: true
 Provides: [main=midi_editor,midi_inlineeditor] . > Time selection_Set start point.lua
-		      [main=midi_editor,midi_inlineeditor] . > Time selection_Set end point.lua
+	  [main=midi_editor,midi_inlineeditor] . > Time selection_Set end point.lua
 ]]
 
 
