@@ -16,7 +16,9 @@
 --
 --   - Use time selection with item selection. Such way you can crossfade items on different tracks.
 --
---   Also you can set both fades for item by selection it's middle.
+--   - Also you can set both fades for item by selection it's middle.
+--
+--   - There is option (ON by default) to move edit cursor with offset before first fade. That allows you to listen changes immediately.
 --
 --   Script warns if non-midi items have too short source for creating crossfade and offer to loop source.
 
