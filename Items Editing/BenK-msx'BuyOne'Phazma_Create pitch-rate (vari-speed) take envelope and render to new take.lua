@@ -7,73 +7,73 @@ Changelog: Initial release
 Licence: WTFPL
 REAPER: at least v5.962
 About:	This is a ported to ReaScript method of creating a take pitch envelope 
-		which affects take rate, originally suggested by user BenK-msx on the 
-		Cockos forum at  
-		https://forum.cockos.com/showthread.php?t=155233  
-		This allows creating such effects as tape stop or playback acceleration 
-		where pitch changes along with playrate.  
-		The solution which allows controlling pitch by exact semitones using 
-		ReaperBlog Macro controller JSFX plugin was borrowed from Phazma, who shared 
-		his method at  
-		https://forum.cockos.com/showthread.php?p=2394001
+	which affects take rate, originally suggested by user BenK-msx on the 
+	Cockos forum at  
+	https://forum.cockos.com/showthread.php?t=155233  
+	This allows creating such effects as tape stop or playback acceleration 
+	where pitch changes along with playrate.  
+	The solution which allows controlling pitch by exact semitones using 
+	ReaperBlog Macro controller JSFX plugin was borrowed from Phazma, who shared 
+	their method at  
+	https://forum.cockos.com/showthread.php?p=2394001
 		
-		HOW IT WORKS
+	HOW IT WORKS
 		
-		The script adds to selected item(s) a MIDI take whose FX chain contains 
-		'Macro controller' JS plugin (a modified version of the one by ReaperBlog 
-		available via ReaPack), ReaControlMIDI and ReaSamplomatic5000 or only 
-		Macro controller and ReaSamplmatic5000, depending on the USER SETTIGS below. 
-		In both cases pitch/rate is controlled by sliders of 'Macro controller' plugin
-		whose take FX parameter envelope is exposed in the MIDI take.
+	The script adds to selected item(s) a MIDI take whose FX chain contains 
+	'Macro controller' JS plugin (a modified version of the one by ReaperBlog 
+	available via ReaPack), ReaControlMIDI and ReaSamplomatic5000 or only 
+	Macro controller and ReaSamplmatic5000, depending on the USER SETTIGS below. 
+	In both cases pitch/rate is controlled by sliders of 'Macro controller' plugin
+	whose take FX parameter envelope is exposed in the MIDI take.
 		
-		In the first case pitch/rate is controlled by 'Macro controller' plugin 
-		'Pitch wheel' slider linked to ReaControlMIDI 'Pitch wheel' control via 
-		Parameter modulation, in the second it's controlled by 'Macro controller' 
-		plugin 'Pitch offest' slider linked to ReaSamplomatic5000 'Pitch offset' control. 
+	In the first case pitch/rate is controlled by 'Macro controller' plugin 
+	'Pitch wheel' slider linked to ReaControlMIDI 'Pitch wheel' control via 
+	Parameter modulation, in the second it's controlled by 'Macro controller' 
+	plugin 'Pitch offest' slider linked to ReaSamplomatic5000 'Pitch offset' control. 
+
+	In both cases ReaSamplomatic5000 will contain the media item source file which 
+	will be triggered from the MIDI take and affected by the automation drawn 
+	in the exposed 'Macro controller' parameter envelope.
 		
-		In both cases ReaSamplomatic5000 will contain the media item source file which 
-		will be triggered from the MIDI take and affected by the automation drawn 
-		in the exposed 'Macro controller' parameter envelope.
-		
-		When the pitch/rate is controlled with Macro controller 'Pitch wheel' slider 
-		envelope the pitch range can be managed manually with ReaSamplomatic5000 
-		'Pitch bend' parameter or pre-defined in the USER SETTINGS below.  
-		If the pitch/rate is controlled with Macro controller 'Pitch offset' slider the 
-		range can be pre-defined in the USER SETTINGS below. Doing it manually is too 
-		involved as it's not straightforward requires making calculations.
-		
-		The Macro controller plugin is meant to make pitch/rate envelope range and 
-		resolution more meainingful and allow snapping them to semitones.  
-		ReaControlMIDI 'Pitch wheel' control isn't based on semitones while 
-		ReaSamplomatic5000 'Pitch offset' control default range is -80 to 80 semitones.
-		
-		The 'Macro controller' plugin file will be placed in the \Effects\utility\ folder 
-		in the REAPER resource directory the first time the script is run, and then 
-		will be loaded from there unless deleted, in which case it will be subsequently 
-		recreated on the next script run.
-		
-		
-		HOW TO USE
-		
-		Hover mouse cursor over a single media item or select media item(s) (or their copies) 
-		which you'd like to process with the effect and run the script.  
-		A MIDI take containing an envelope will be added to the item.  
-		Draw automation in the envelope, select the item(s) and run the script again, 
-		this time a new media take will be added to the item with the effect the 
-		parameter automation creates printed.  
-		Run the script again and you'll be able to add another such take optionally 
-		replacing all previously rendered ones.
-		
-		When there's no MIDI take with the envelope the script will add it, and when there's
-		one, the script will render it to new take.
-		
-		Be aware that when pitch is increased with automation, the media file 
-		triggered from the MIDI take becomes shorter and, if not compensated by subsequent 
-		decrease in pitch (which is not required as it depends on the user objectives), 
-		its playback will stop earlier than that of the original media item.
-		
-		In take FX, parameter modulation only works during playback. Without playback, 
-		movements of a modulating control are not translated to the modulated control.
+	When the pitch/rate is controlled with Macro controller 'Pitch wheel' slider 
+	envelope the pitch range can be managed manually with ReaSamplomatic5000 
+	'Pitch bend' parameter or pre-defined in the USER SETTINGS below.  
+	If the pitch/rate is controlled with Macro controller 'Pitch offset' slider the 
+	range can be pre-defined in the USER SETTINGS below. Doing it manually is too 
+	involved as it's not straightforward requires making calculations.
+
+	The Macro controller plugin is meant to make pitch/rate envelope range and 
+	resolution more meainingful and allow snapping them to semitones.  
+	ReaControlMIDI 'Pitch wheel' control isn't based on semitones while 
+	ReaSamplomatic5000 'Pitch offset' control default range is -80 to 80 semitones.
+
+	The 'Macro controller' plugin file will be placed in the \Effects\utility\ folder 
+	in the REAPER resource directory the first time the script is run, and then 
+	will be loaded from there unless deleted, in which case it will be subsequently 
+	recreated on the next script run.
+
+
+	HOW TO USE
+
+	Hover mouse cursor over a single media item or select media item(s) (or their copies) 
+	which you'd like to process with the effect and run the script.  
+	A MIDI take containing an envelope will be added to the item.  
+	Draw automation in the envelope, select the item(s) and run the script again, 
+	this time a new media take will be added to the item with the effect the 
+	parameter automation creates printed.  
+	Run the script again and you'll be able to add another such take optionally 
+	replacing all previously rendered ones.
+
+	When there's no MIDI take with the envelope the script will add it, and when there's
+	one, the script will render it to new take.
+
+	Be aware that when pitch is increased with automation, the media file 
+	triggered from the MIDI take becomes shorter and, if not compensated by subsequent 
+	decrease in pitch (which is not required as it depends on the user objectives), 
+	its playback will stop earlier than that of the original media item.
+
+	In take FX, parameter modulation only works during playback. Without playback, 
+	movements of a modulating control are not translated to the modulated control.
 
 ]]
 
