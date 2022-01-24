@@ -1,6 +1,18 @@
 -- @description Search selected notes in chord finder
--- @version 1.1
 -- @author Mordi
+-- @version 1.2
+-- @changelog
+--   This script will take any selected notes and generate a URL
+--   that will show what chord the notes make, if any.
+--   It uses the wonderful site "www.scales-chords.com" to
+--   do this.
+--
+--   Made by Mordi, Jan 2016
+
+-- @description Search selected notes in chord finder
+-- @version 1.2
+-- @author Mordi
+-- @modified dottokuya
 -- @changelog
 --  This script will take any selected notes and generate a URL
 --  that will show what chord the notes make, if any.
@@ -12,10 +24,12 @@
 -- Function for opening a URL
 function OpenURL(url)
   local OS = reaper.GetOS()
-  if OS == "OSX32" or OS == "OSX64" then
+  if OS == "OSX32" or OS == "OSX64" or OS == "macOS-arm64" then
     os.execute('open "" "' .. url .. '"')
-  else
+  elseif OS == "Win32" or OS == "Win64" then
     os.execute('start "" "' .. url .. '"')
+  else
+    os.execute('xdg-open "' .. url .. '"')
   end
 end
 
