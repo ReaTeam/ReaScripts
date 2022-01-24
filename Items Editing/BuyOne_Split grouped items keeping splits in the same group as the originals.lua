@@ -12,7 +12,8 @@ About:	When items get split their grouping gets split as well.
         the items to the left and to the right of the split point (if any) 
         respectively.  
         The script allows splitting grouped items without losing grouping 
-        of their split parts. Multiple groups are supported.
+        of their split parts. Multiple groups are supported.  
+	If the item(s) being split is/are not grouped, the split will still work.
 ]]
 
 -----------------------------------------------------------------------
@@ -116,7 +117,7 @@ local sel_t = re_store_selected_items() -- store // all split parts which end up
 	re_group_items(group_id)
 	end
 
-re_store_selected_items(sel_t) -- restore selected splits
+re_store_selected_items(sel_t) -- restore selection of splits
 
 
 r.Undo_EndBlock('Split grouped items keeping splits in the same group', -1)
