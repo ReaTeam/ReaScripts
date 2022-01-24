@@ -5,13 +5,14 @@ Website: https://forum.cockos.com/member.php?u=134058
 Version: 1.0
 Changelog: Initial release
 Licence: WTFPL
+Screenshots: https://raw.githubusercontent.com/Buy-One/screenshots/main/Split%20grouped%20items%20keeping%20splits%20in%20the%20same%20group%20as%20the%20originals.gif
 REAPER: at least v5.962
 About:	When items get split their grouping gets split as well.  
-		    The left and right parts of the split end up being grouped with 
-		    the items to the left and to the right of the split point (if any) 
-		    repectively.  
-		    The script allows splitting grouped items without losing grouping 
-		    of their split parts. Multiple groups are supported.
+        The left and right parts of the split end up being grouped with 
+        the items to the left and to the right of the split point (if any) 
+        respectively.  
+        The script allows splitting grouped items without losing grouping 
+        of their split parts. Multiple groups are supported.
 ]]
 
 -----------------------------------------------------------------------
