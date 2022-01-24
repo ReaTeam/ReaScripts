@@ -1,7 +1,7 @@
 -- @description Show path from list menu (Resource, Selected Item, Project File, Record, Secondary Record, Render)
 -- @author amagalma
--- @version 1.1
--- @changelog - Added "First selected script's path in the Actions List"
+-- @version 1.11
+-- @changelog - Fix menu placement for OSX
 -- @link https://forum.cockos.com/showthread.php?t=239556
 -- @screenshot https://i.ibb.co/vhMDkZn/Show-path-from-list-menu.gif
 -- @donation https://www.paypal.me/amagalma
@@ -45,16 +45,13 @@ end
 
 local proj_file = ({reaper.EnumProjects( -1 )})[2]
 
-local title = "Hidden gfx window for showing the paths showmenu"
+local title = "hidden " .. reaper.genGuid()
 gfx.init( title, 0, 0, 0, 0, 0 )
 local hwnd = reaper.JS_Window_Find( title, true )
-local out = 0
 if hwnd then
-  out = 7000
-  reaper.JS_Window_Move( hwnd, -out, -out )
+  reaper.JS_Window_Show( hwnd, "HIDE" )
 end
-out = reaper.GetOS():find("OSX") and 0 or out
-gfx.x, gfx.y = gfx.mouse_x-52+out, gfx.mouse_y-70+out
+gfx.x, gfx.y = gfx.mouse_x-52, gfx.mouse_y-70
 local selection = gfx.showmenu(menu)
 gfx.quit()
 

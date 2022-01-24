@@ -1,8 +1,8 @@
 --[[
 ReaScript name: js_Mouse editing - Multi Tool.lua
-Version: 6.55
+Version: 6.56
 Changelog:
-  + On REAPER v6.36 and higher, edit all editable takes in MIDI editor, even when multiple editors per project.
+  + Remove minimum zone size limit.
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Donation: https://www.paypal.me/juliansader
@@ -1493,7 +1493,7 @@ function ChooseZoneSize()
     if iOK then 
         i = tonumber(i)
         if i then 
-            zoneWidth = ((i < 14) and 14) or ((i > 80) and 80) or i//1
+            zoneWidth = ((i < 1) and 1) or ((i > 80) and 80) or i//1
             ext = ext:gsub("%s?zoneWidth=%d+", "")
             ext = ext .. " zoneWidth=" .. tostring(zoneWidth)
             reaper.SetExtState("js_Multi Tool", "Settings", ext, true)

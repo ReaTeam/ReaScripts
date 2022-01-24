@@ -1,7 +1,7 @@
 -- @description Go to marker (choose from menu list)
 -- @author amagalma
--- @version 1.02
--- @changelog Fix menu placement for OSX
+-- @version 1.03
+-- @changelog Fix menu placement for OSX (again)
 -- @donation https://www.paypal.me/amagalma
 -- @about
 --   Displays a menu list at the mouse cursor with all markers in project in a timeline order. Navigates to the chosen marker.
@@ -50,17 +50,13 @@ for m = 1, #markers do
   menu = menu .. (markers[m].cur and "!" or "") .. markers[m].idx .. space .. (markers[m].name == "" and "(unnamed)" or markers[m].name) .."|"
 end
 
-
-local title = "Hidden gfx window for showing the markers showmenu"
+local title = "hidden " .. reaper.genGuid()
 gfx.init( title, 0, 0, 0, 0, 0 )
 local hwnd = reaper.JS_Window_Find( title, true )
-local out = 0
 if hwnd then
-  out = 7000
-  reaper.JS_Window_Move( hwnd, -out, -out )
+  reaper.JS_Window_Show( hwnd, "HIDE" )
 end
-out = reaper.GetOS():find("OSX") and 0 or out
-gfx.x, gfx.y = gfx.mouse_x-52+out, gfx.mouse_y-70+out
+gfx.x, gfx.y = gfx.mouse_x-52, gfx.mouse_y-70
 local selection = gfx.showmenu(menu)
 gfx.quit()
 

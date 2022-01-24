@@ -1,9 +1,8 @@
 -- @description Set project grid (via dropdown menu)
 -- @author amagalma
--- @version 1.03
+-- @version 1.04
 -- @changelog
---   - Changed menu order to a more practical one
---   - "Use the same grid division in arrange view and MIDI editor" setting is shown in menu header ("arrange" or "project")
+--   - Fix menu placement for OSX
 -- @link https://forum.cockos.com/showthread.php?t=239556
 -- @donation https://www.paypal.com/paypalme/amagalma
 -- @about
@@ -72,16 +71,13 @@ for i = 1, #m do
   menu = menu .. togglestate .. m[i][2] .. "|"
 end
 
-local title = "Hidden gfx window for showing the grid showmenu"
+local title = "hidden " .. reaper.genGuid()
 gfx.init( title, 0, 0, 0, 0, 0 )
 local hwnd = reaper.JS_Window_Find( title, true )
-local out = 0
 if hwnd then
-  out = 7000
-  reaper.JS_Window_Move( hwnd, -out, -out )
+  reaper.JS_Window_Show( hwnd, "HIDE" )
 end
-out = reaper.GetOS():find("OSX") and 0 or out
-gfx.x, gfx.y = gfx.mouse_x-40+out, gfx.mouse_y-40+out
+gfx.x, gfx.y = gfx.mouse_x-40, gfx.mouse_y-40
 local selection = gfx.showmenu(menu)
 gfx.quit()
 

@@ -1,8 +1,8 @@
 -- @description Create Impulse Response (IR) of the FX Chain of the selected Track
 -- @author amagalma
--- @version 2.05
+-- @version 2.06
 -- @changelog
---   - Correctly capture Linear Phase processes
+--   - Fix: load IR in ReaVerb for v6.37+
 -- @donation https://www.paypal.me/amagalma
 -- @link https://forum.cockos.com/showthread.php?t=234517
 -- @about
@@ -19,7 +19,7 @@
 
 -- Thanks to EUGEN27771, spk77, X-Raym, Lokasenna
 
-local version = "2.05"
+local version = "2.06"
 --------------------------------------------------------------------------------------------
 
 
@@ -58,6 +58,15 @@ local IR_len, peak_normalize = Max_IR_Lenght, Normalize_Peak
 local trim, channels = Trim_Silence_Below, Mono_Or_Stereolo
 local max_pre_ringing_samples_val = 4096 -- samples
 local pre_ringing_threshold = -90 -- db
+
+-- Check if Channel Tool exists in ReaVerb
+local pre637 = false
+do
+  local big, small = reaper.GetAppVersion():match("(%d+)%.(%d+)")
+  if tonumber(big) < 6 or tonumber(small) < 37 then
+    pre637 = true
+  end
+end
 
 --------------------------------------------------------------------------------------------
 
@@ -612,7 +621,7 @@ function CreateIR()
     for i = 0, fx_cnt-1 do
       reaper.TrackFX_SetEnabled( track, i, false )
     end
-    local pos = reaper.TrackFX_AddByName( track, "ReaVerb", false, -1 )
+    local pos = reaper.TrackFX_AddByName( track, "ReaVerb (Cockos)", false, -1 )
     reaper.TrackFX_Show( track, pos, 3 )
     local rv, window_name = reaper.TrackFX_GetFXName( track, pos, "" )
     local window_name = rv and window_name or "ReaVerb (Cockos)"
@@ -634,6 +643,9 @@ function CreateIR()
     -- two times down arrow
     reaper.JS_WindowMessage_Post(addbutton, "WM_KEYDOWN", 0x28, 0, 0, 0)
     reaper.JS_WindowMessage_Post(addbutton, "WM_KEYDOWN", 0x28, 0, 0, 0)
+    if not pre637 then
+      reaper.JS_WindowMessage_Post(addbutton, "WM_KEYDOWN", 0x28, 0, 0, 0)
+    end
     -- return
     reaper.JS_WindowMessage_Post(addbutton, "WM_KEYDOWN", 0x0D, 0, 0, 0)
     local start = reaper.time_precise()

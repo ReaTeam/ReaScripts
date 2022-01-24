@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="91ddec2378500d0405dfcac925e94f264f0406d5" name="ReaTeam Scripts">
+<index version="1" commit="01393fee8cad803280e2c3610422dd8f7791c386" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -173,7 +173,8 @@
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Special timecode mode without frames value\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Beat and ruler modes\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Offset option for timecode mode\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Use +/- for relative jump\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Use +/- for relative jump\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Use spase to reset captured value\sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Thanks Claudiohbsantos for first version in code, which help me to figure out how to code it and how to improve.\par}
 }
 ]]></description>
@@ -181,6 +182,11 @@
       <version name="1.0" author="AZ" time="2021-10-27T03:57:46Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/15ca940ea03757971290c774f1bc687962ef243e/Cursor/az_Go%20To%20Timecode.lua</source>
         <source file="az_Go To Timecode/TimecodeInput_Module_AZ.lua">https://github.com/ReaTeam/ReaScripts/raw/15ca940ea03757971290c774f1bc687962ef243e/Cursor/az_Go%20To%20Timecode/TimecodeInput_Module_AZ.lua</source>
+      </version>
+      <version name="1.1" author="AZ" time="2021-12-05T23:49:12Z">
+        <changelog><![CDATA[minor fixes for initial placement defining]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ab7c8d494e909eae882b95dff1c95de15c8cdde2/Cursor/az_Go%20To%20Timecode.lua</source>
+        <source file="az_Go To Timecode/TimecodeInput_Module_AZ.lua">https://github.com/ReaTeam/ReaScripts/raw/ab7c8d494e909eae882b95dff1c95de15c8cdde2/Cursor/az_Go%20To%20Timecode/TimecodeInput_Module_AZ.lua</source>
       </version>
     </reapack>
     <reapack name="az_Play from mouse cursor with 2 sec shift (move edit cursor).lua" type="script" desc="Play from mouse cursor with 2 sec shift (move edit cursor)">
@@ -3487,6 +3493,10 @@ Update version compatibility tag]]></changelog>
         <changelog><![CDATA[#More reliable switching between track and take FX chains]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4599103eccb77a87b771e1dace65ad0b2b1b4d51/FX/BuyOne_Update%20FX%20chain%20at%20object%20selection%20when%20one%20FX%20window%20at%20a%20time%20enabled.lua</source>
       </version>
+      <version name="1.2" author="BuyOne" time="2021-11-23T18:58:30Z">
+        <changelog><![CDATA[#Added option to prevent updating a docked FX chain when the docker is closed]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/89cf6559cb4e6fcaa17ba1ba38c6ae3b202cdccb/FX/BuyOne_Update%20FX%20chain%20at%20object%20selection%20when%20one%20FX%20window%20at%20a%20time%20enabled.lua</source>
+      </version>
     </reapack>
     <reapack name="cfillion_Monitoring FX bypass bundle.lua" type="script" desc="Monitoring FX bypass bundle (bypass, unbypass or toggle)">
       <metadata>
@@ -4357,6 +4367,31 @@ website
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ea9eef55feedced5c2ea81b993cde5accfab3b88/Items%20Editing/amagalma_Explode%20takes%20of%20items%20across%20children%20tracks,%20optionally%20mute%20and%20lock%20original%20items.lua</source>
       </version>
     </reapack>
+    <reapack name="amagalma_Explode takes of items across tracks (according to source files).lua" type="script" desc="Explode takes of items across tracks (according to their source files)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Differs from native action, because it ensures that each track will contain only one source file (recording pass)\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=261306</link>
+        <link rel="donation">https://www.paypal.me/amagalma</link>
+      </metadata>
+      <version name="1.00" author="amagalma" time="2022-01-05T05:03:52Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/8a742b0c735ec3910ae46a53103a28f900c148de/Items%20Editing/amagalma_Explode%20takes%20of%20items%20across%20tracks%20(according%20to%20source%20files).lua</source>
+      </version>
+      <version name="1.01" author="amagalma" time="2022-01-05T05:22:56Z">
+        <changelog><![CDATA[Sort takes according to recpass number, if available]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/618c6344c90eb0a8493043b8ca507b7071971b25/Items%20Editing/amagalma_Explode%20takes%20of%20items%20across%20tracks%20(according%20to%20source%20files).lua</source>
+      </version>
+      <version name="1.02" author="amagalma" time="2022-01-05T05:57:16Z">
+        <changelog><![CDATA[- Heal splits of exported items
+- Fix possible crash with items with only one take]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e74356c9b543b9d273141a65cf241718c1502ccf/Items%20Editing/amagalma_Explode%20takes%20of%20items%20across%20tracks%20(according%20to%20source%20files).lua</source>
+      </version>
+    </reapack>
     <reapack name="amagalma_Fill space between selected items with empty items.lua" type="script" desc="Fill space between selected items with empty items">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
@@ -4882,6 +4917,7 @@ website
 {\pard \ql \f0 \sa180 \li0 \fi0 Date: october 2021\par}
 }
 ]]></description>
+        <link rel="website" href="https://forum.cockos.com/showthread.php?t=259751">Forum thread</link>
       </metadata>
       <version name="1.0" author="AZ" time="2021-10-19T20:22:27Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f321a57bd7901786e9cb74335c3a10e3484a6fdf/Items%20Editing/az_Smart%20split%20items%20by%20mouse%20cursor.lua</source>
@@ -4894,6 +4930,11 @@ website
         <changelog><![CDATA[Fixed item defining when mouse placed on a track area above the item.
 This area recognise now as out of item.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/7f4521633fffee7bd55d41cc259d3a9f574401f9/Items%20Editing/az_Smart%20split%20items%20by%20mouse%20cursor.lua</source>
+      </version>
+      <version name="2.2" author="AZ" time="2021-12-05T23:50:45Z">
+        <changelog><![CDATA[Removed dead zone where mouse placed on envelope and no automation item selected.
+For now it provides as empty arrange zone, and items should splitted at edit cursor or time selection.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/16fc5c7bf92baa94556ae2e66765c497b1a88728/Items%20Editing/az_Smart%20split%20items%20by%20mouse%20cursor.lua</source>
       </version>
     </reapack>
     <reapack name="beaunus_Name item takes by last marker to cut item.lua" type="script" desc="Name item takes by last marker to cut item">
@@ -5081,6 +5122,43 @@ This area recognise now as out of item.]]></changelog>
       <version name="1.0" author="BuyOne" time="2021-10-12T19:42:18Z">
         <changelog><![CDATA[Initial release]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e10d14efcfd2751718f5856d42a0fb3af9574b86/Items%20Editing/BuyOne_Move%20items%20from%20one%20track%20to%20many%20or%20from%20many%20to%20one.lua</source>
+      </version>
+    </reapack>
+    <reapack name="BuyOne_Ripple edit per track when selected item length changes (settings inside).lua" type="script" desc="Ripple edit per track when selected item length changes">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 An enhancement to 'Ripple edit per track' mode. As such only works when this mode is enabled. Makes all items following the one whose length is being changed move just like what regular Ripple edit does when selected items are shifted. This functionality exists in ProTools' 'Shuffle' edit mode: https://youtu.be/O_jZujPzxyI?t=161\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The script demo: https://git.io/JSTkE\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The item whose length is being changed MUST BE SELECTED, otherwise no change occurs in items positioning unless RETROSPECTIVE_RIPPLE_EDIT option is enabled in the USER SETTINGS.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Envelopes and automation items are moved just as they are in regular Ripple edit mode as long as the option 'Move envelope points with media items and razor edits' is enabled in REAPER and MOVE_AUTOMATION setting is enabled in the USER SETTINGS below.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The behavior this scripts attempts to reproduce can also be achieved with custom actions the code of which is provided at the bottom of this file, with the only difference that the resolution of item length change is to the closest grid line, but it can be changed to pixels by replacing the actions 'View: Move cursor rigt/left to grid division' with 'View: Move cursor right/left one/8 pixels'.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 While the script is running, only 1 media item can be selected at a time. If several media items are selected, all but the 1st one are auto-deselected. To be able to select multiple items either stop the script or disable 'Ripple edit per track'.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 When the script is stopped the first time, in the 'ReaScript task control dialogue' tick 'Remember my answer for this script' checkbox and click 'Terminate instances'.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 CAVEATS:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Do not drag the right edge fast because the data won't be processed as fast and item positions will end up being messed up.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Avoid dragging item right edge over following items.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 It may be difficult to control the pace/amount of the media item length change done by dragging its left edge when grid is enabled. In the script a short lag is introduced to mitigate this behavior but it's not perfect, so the media item may end up somewhat overextended or overshortened.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 If the media item inadvertently becomes deselected while its length is being changed by dragging its left edge, ripple edit will only take effect after the item is re-selected and only if it's the first one to be selected provided RETROSPECTIVE_RIPPLE_EDIT option is enabled. If another item is selected instead, items positions won't update.\line Which is in line with the general functionality RETROSPECTIVE_RIPPLE_EDIT is designed to provide (for details see USER SETTINGS).\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Minimum length of an automation item within the edited media item boundaries is 101 ms. Shorter automation items are auto-deleted.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Automation item(s) and the media item(s) cannot be selected at the same time. To be able to select automation item(s) on the track de-select all media items.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 When undoing multiple undo points left by this script you may encounter overlapping automation items. This is an intermediary stage which gets saved in the undo history in between the action start and end points. Simply continue undoing.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Since by this script splitting a media item is treated as its length change resulting in shift of the automation and media items located downstream, in order to split without affecting objects pisitioning you may use a custom action in which the split action (there're quite a few) is wrapped between two Ripple edit actions like so:\line Set ripple editing off\line -- Split action --\line Set ripple editing per-track\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Alternatively manually turn off Ripple edit mode before splitting.\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/member.php?u=134058</link>
+        <link rel="screenshot">https://git.io/JSTkE</link>
+      </metadata>
+      <version name="1.1" author="BuyOne" time="2022-01-03T23:29:50Z">
+        <changelog><![CDATA[#Added support for ripple editing automation envelopes and automation items
+#Added new user settings		   
+#Updated script name
+#Updated screenshot
+#Updated text under About tag]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a8dae37813e1894d8eea3d88ad97bd981a8b9a67/Items%20Editing/BuyOne_Ripple%20edit%20per%20track%20when%20selected%20item%20length%20changes%20(settings%20inside).lua</source>
       </version>
     </reapack>
     <reapack name="BuyOne_Split selected MIDI item by notes.lua" type="script" desc="Split selected MIDI item by notes">
@@ -6372,6 +6450,28 @@ here
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/dafa132ec302c72882092530a99605db5b952a82/Items%20Editing/rodilab_Implode%20mono%20items%20into%20stereo%20item.lua</source>
       </version>
     </reapack>
+    <reapack name="rodilab_Limit items edges at source start and stop.lua" type="script" desc="Limit items edges at source start and stop">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 This is a togglable defer script. As long is enable : dragging items edges can't expand audio items beyond source media start and end.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Requirement :\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab js_ReaScriptAPI: API functions\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 by Rodrigo Diaz (aka Rodilab)\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="Rodilab" time="2021-12-05T23:46:32Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/cf182b60fd8f20b55e4e93450b3039204e090aea/Items%20Editing/rodilab_Limit%20items%20edges%20at%20source%20start%20and%20stop.lua</source>
+      </version>
+      <version name="1.1" author="Rodilab" time="2021-12-10T19:44:03Z">
+        <changelog><![CDATA[This version works in a very different way.
+Now works with crossfades, double adjacent edges and "move item contents".]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/fadf4caabc4536fec8eab6ffd62e601d37094d52/Items%20Editing/rodilab_Limit%20items%20edges%20at%20source%20start%20and%20stop.lua</source>
+      </version>
+    </reapack>
     <reapack name="rodilab_Match criteria (match with BWF and iXML metadata).lua" type="script" desc="Match criteria (match with BWF and iXML metadata)">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
@@ -6439,13 +6539,16 @@ Fix bug on Windows]]></changelog>
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 Delete selected notes in selected MIDI items, and create new midi item with this notes\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Move selected notes to a new MIDI item. This is apply to active MIDI Editor take, and all selected MIDI items.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 by Rodrigo Diaz (aka Rodilab)\par}
 }
 ]]></description>
       </metadata>
       <version name="1.0" author="Rodilab" time="2021-11-08T17:56:55Z">
         <source main="main midi_editor">https://github.com/ReaTeam/ReaScripts/raw/1b467606048a8918db204b9b09eef5c73a478d26/Items%20Editing/rodilab_Move%20selected%20notes%20to%20a%20new%20MIDI%20item.lua</source>
+      </version>
+      <version name="1.1" author="Rodilab" time="2021-11-24T16:41:56Z">
+        <source main="main midi_editor">https://github.com/ReaTeam/ReaScripts/raw/906a32bd419d4104b249a39546d6d963241f8b31/Items%20Editing/rodilab_Move%20selected%20notes%20to%20a%20new%20MIDI%20item.lua</source>
       </version>
     </reapack>
     <reapack name="rodilab_Reorganize vertically all items in selected tracks  according to track index metadata.lua" type="script" desc="Reorganize vertically all items in selected tracks according to track index metadata">
@@ -6721,6 +6824,10 @@ Fix bug on Windows]]></changelog>
         <changelog><![CDATA[Fix menu placement for OSX]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/40a0baac1192a65f31f41ce6cf65fbebce2d71ef/Items%20Properties/amagalma_Choose%20active%20take%20for%20item%20under%20mouse%20(show%20menu).lua</source>
       </version>
+      <version name="1.02" author="amagalma" time="2021-11-28T12:45:18Z">
+        <changelog><![CDATA[Fix menu placement for OSX (again)]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/051d19230450287dc792bbf907f3485d460fd4f8/Items%20Properties/amagalma_Choose%20active%20take%20for%20item%20under%20mouse%20(show%20menu).lua</source>
+      </version>
     </reapack>
     <reapack name="amagalma_Disable 'No autofades property for selected items.lua" type="script" desc="Disable 'No autofades&quot; property for selected items">
       <metadata>
@@ -6804,6 +6911,11 @@ Fix bug on Windows]]></changelog>
     <reapack name="amagalma_Lock all items in project to their active take (mouse click will not change active take).lua" type="script" desc="Lock all items in project to their active take (mouse click will not change active take)">
       <version name="1.00" author="amagalma" time="2021-02-08T22:42:42Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/aac6edf4527ec7a4939324a795a85fcccbb440f1/Items%20Properties/amagalma_Lock%20all%20items%20in%20project%20to%20their%20active%20take%20(mouse%20click%20will%20not%20change%20active%20take).lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Name selected items notes after the region they are in.lua" type="script" desc="Name selected items' notes after the region they are in">
+      <version name="1.00" author="amagalma" time="2021-12-22T11:01:58Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/21f13c69d19eca9f672353173cfdff8f1f9cabe2/Items%20Properties/amagalma_Name%20selected%20items%20notes%20after%20the%20region%20they%20are%20in.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Switch unlocked items only to previous or next take bundle.lua" type="script" desc="Switch unlocked items only to previous or next take bundle">
@@ -7049,6 +7161,23 @@ selection.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a73bc3e771935a13bcfc5e3a859f31e710fa9b03/Items%20Properties/rodilab_Rename%20takes%20and%20item%20notes%20with%20BWF%20and%20iXML%20metadata.lua</source>
       </version>
     </reapack>
+    <reapack name="rodilab_Set items snap offset to max peak.lua" type="script" desc="Set items snap offset to max peak">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 This script requires SWS extension.\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.1" author="Rodilab" time="2021-11-23T21:24:13Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ce59cbe1c81e76f8065a85023727ed2ad9c4b2b9/Items%20Properties/rodilab_Set%20items%20snap%20offset%20to%20max%20peak.lua</source>
+      </version>
+      <version name="1.2" author="Rodilab" time="2021-12-06T19:22:20Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b5f68d2a120453853bb8c9db74ead9b142830161/Items%20Properties/rodilab_Set%20items%20snap%20offset%20to%20max%20peak.lua</source>
+      </version>
+    </reapack>
     <reapack name="spk77_Breeder_PL9_Copy paste item properties (incl BWF).eel" type="script" desc="Copy paste item properties (incl BWF)">
       <version name="0.2015.7.5" time="2015-12-02T21:24:29Z">
         <changelog><![CDATA[(Bug fix) fade-in/fade-out curves weren't copied properly (5-July-15)]]></changelog>
@@ -7237,6 +7366,10 @@ Added replacement with /clear; erases entire name of matching markers/regions.]]
         <changelog><![CDATA[Fix menu placement for OSX]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/25ae655cd471d7d79ffe8ddc8ceabdb956e427f3/Markers/amagalma_Go%20to%20marker%20(choose%20from%20menu%20list).lua</source>
       </version>
+      <version name="1.03" author="amagalma" time="2021-11-28T12:43:53Z">
+        <changelog><![CDATA[Fix menu placement for OSX (again)]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/eb6644c54ee35db3da43a0d952b35804ed741dfb/Markers/amagalma_Go%20to%20marker%20(choose%20from%20menu%20list).lua</source>
+      </version>
     </reapack>
     <reapack name="amagalma_Rename region at edit cursor after the first selected item.lua" type="script" desc="Rename region at edit cursor after the first selected item">
       <metadata>
@@ -7328,6 +7461,30 @@ Added replacement with /clear; erases entire name of matching markers/regions.]]
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/59697cdd922e9b49a42ee7c6bc0fbad36f743fa1/Markers/BuyOne_Insert%20take%20marker%20with%20current%20timestamp%20at%20edit;mouse%20cursor%20in%20selected%20items;takes%20(options).lua</source>
       </version>
     </reapack>
+    <reapack name="BuyOne_Set markers and-or regions to random color(s).lua" type="script" desc="Set markers and/or regions to random color(s) (7 scripts)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Sets project markers and/or regions to random colors obeying time selection, if any. The script comes in 7 instances, 1 includes all available options as a menu and the other 6 specialize in one type of operation only, being suitable to be included in custom actions.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 In the script 'BuyOne_Set markers and-or regions to random color(s) (all in one)' which contains all available options in a menu, a menu item can be run with a numeric keyboard shortcut corresponding to the number of such menu item.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Other available scripts with some or all functionalities of this one:\line X-Raym_Color current region or regions in time selection randomly with same color.lua\line X-Raym_Color current region or regions in time selection randomly.lua\line zaibuyidao_Random Marker Color.lua\line zaibuyidao_Random Marker Region Color.lua\line zaibuyidao_Random Region Color.lua\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/member.php?u=134058</link>
+      </metadata>
+      <version name="1.0" author="BuyOne" time="2022-01-03T23:31:34Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main" file="BuyOne_Set markers and-or regions to random color(s)/BuyOne_Set markers and-or regions to random color(s) (all in one).lua">https://github.com/ReaTeam/ReaScripts/raw/31f915d35f03d2b947430ebb00c0d8135c1e8b84/Markers/BuyOne_Set%20markers%20and-or%20regions%20to%20random%20color(s).lua</source>
+        <source main="main" file="BuyOne_Set markers and-or regions to random color(s)/BuyOne_Set markers to random colors (respecting time sel.).lua">https://github.com/ReaTeam/ReaScripts/raw/31f915d35f03d2b947430ebb00c0d8135c1e8b84/Markers/BuyOne_Set%20markers%20and-or%20regions%20to%20random%20color(s).lua</source>
+        <source main="main" file="BuyOne_Set markers and-or regions to random color(s)/BuyOne_Set markers to 1 random color (respecting time sel.).lua">https://github.com/ReaTeam/ReaScripts/raw/31f915d35f03d2b947430ebb00c0d8135c1e8b84/Markers/BuyOne_Set%20markers%20and-or%20regions%20to%20random%20color(s).lua</source>
+        <source main="main" file="BuyOne_Set markers and-or regions to random color(s)/BuyOne_Set regions to random colors (respecting time sel.).lua">https://github.com/ReaTeam/ReaScripts/raw/31f915d35f03d2b947430ebb00c0d8135c1e8b84/Markers/BuyOne_Set%20markers%20and-or%20regions%20to%20random%20color(s).lua</source>
+        <source main="main" file="BuyOne_Set markers and-or regions to random color(s)/BuyOne_Set regions to 1 random color (respecting time sel.).lua">https://github.com/ReaTeam/ReaScripts/raw/31f915d35f03d2b947430ebb00c0d8135c1e8b84/Markers/BuyOne_Set%20markers%20and-or%20regions%20to%20random%20color(s).lua</source>
+        <source main="main" file="BuyOne_Set markers and-or regions to random color(s)/BuyOne_Set markers + regions to random colors (respecting time sel.).lua">https://github.com/ReaTeam/ReaScripts/raw/31f915d35f03d2b947430ebb00c0d8135c1e8b84/Markers/BuyOne_Set%20markers%20and-or%20regions%20to%20random%20color(s).lua</source>
+        <source main="main" file="BuyOne_Set markers and-or regions to random color(s)/BuyOne_Set markers + regions to 1 random color (respecting time sel.).lua">https://github.com/ReaTeam/ReaScripts/raw/31f915d35f03d2b947430ebb00c0d8135c1e8b84/Markers/BuyOne_Set%20markers%20and-or%20regions%20to%20random%20color(s).lua</source>
+      </version>
+    </reapack>
     <reapack name="cfillion_Copy and paste project markers and regions.lua" type="script" desc="Copy/paste project markers and/or regions">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
@@ -7370,6 +7527,14 @@ Renumber markers and regions when pasting]]></changelog>
         <source main="main" file="cfillion_Copy project regions in time selection.lua">https://github.com/ReaTeam/ReaScripts/raw/6fae20ca25f4ad9927d01934a62eaa4cea0727b2/Markers/cfillion_Copy%20and%20paste%20project%20markers%20and%20regions.lua</source>
         <source main="main" file="cfillion_Paste project markers and regions.lua">https://github.com/ReaTeam/ReaScripts/raw/6fae20ca25f4ad9927d01934a62eaa4cea0727b2/Markers/cfillion_Copy%20and%20paste%20project%20markers%20and%20regions.lua</source>
         <source main="main" file="cfillion_Paste project markers and regions at edit cursor.lua">https://github.com/ReaTeam/ReaScripts/raw/6fae20ca25f4ad9927d01934a62eaa4cea0727b2/Markers/cfillion_Copy%20and%20paste%20project%20markers%20and%20regions.lua</source>
+      </version>
+      <version name="1.1.2" author="cfillion" time="2022-01-14T12:51:08Z">
+        <changelog><![CDATA[Remove error message when pasting without any markers or regions in the clipboard]]></changelog>
+        <source main="main" file="cfillion_Copy project markers and regions in time selection.lua">https://github.com/ReaTeam/ReaScripts/raw/7e98a0dc018ec936c13139935dd5ed1c0471e8fd/Markers/cfillion_Copy%20and%20paste%20project%20markers%20and%20regions.lua</source>
+        <source main="main" file="cfillion_Copy project markers in time selection.lua">https://github.com/ReaTeam/ReaScripts/raw/7e98a0dc018ec936c13139935dd5ed1c0471e8fd/Markers/cfillion_Copy%20and%20paste%20project%20markers%20and%20regions.lua</source>
+        <source main="main" file="cfillion_Copy project regions in time selection.lua">https://github.com/ReaTeam/ReaScripts/raw/7e98a0dc018ec936c13139935dd5ed1c0471e8fd/Markers/cfillion_Copy%20and%20paste%20project%20markers%20and%20regions.lua</source>
+        <source main="main" file="cfillion_Paste project markers and regions.lua">https://github.com/ReaTeam/ReaScripts/raw/7e98a0dc018ec936c13139935dd5ed1c0471e8fd/Markers/cfillion_Copy%20and%20paste%20project%20markers%20and%20regions.lua</source>
+        <source main="main" file="cfillion_Paste project markers and regions at edit cursor.lua">https://github.com/ReaTeam/ReaScripts/raw/7e98a0dc018ec936c13139935dd5ed1c0471e8fd/Markers/cfillion_Copy%20and%20paste%20project%20markers%20and%20regions.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Delete last marker left of the play or edit cursor.lua" type="script" desc="Delete last marker left of the play or edit cursor">
@@ -7494,6 +7659,21 @@ Renumber markers and regions when pasting]]></changelog>
       </version>
       <version name="1.1" author="Mordi" time="2019-05-28T12:12:55Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a0dd9ddc005ebddedab4fcc6ce846ec8b2de50af/Markers/Mordi_Create%20tempo-map%20from%20markers.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mordi_Replace string in marker and region names.lua" type="script" desc="Replace string in marker and region names">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 After pressing "Ok", a dialog appears with a list of all affected markers/regions, which lets you cancel if need be.\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="Mordi" time="2021-12-19T21:42:31Z">
+        <changelog><![CDATA[Initial release.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e762bc023974a47553ff3dd45242ae75f93f4320/Markers/mordi_Replace%20string%20in%20marker%20and%20region%20names.lua</source>
       </version>
     </reapack>
     <reapack name="spk77_Duplicate previous marker.lua" type="script" desc="Duplicate previous marker">
@@ -9950,6 +10130,15 @@ ticks are not precisely aligned with the project beats.  (As discussed in t=1812
         <source file="js_Mouse editing - Undo.cur">https://github.com/ReaTeam/ReaScripts/raw/cb4fbdfbeca9887b57af0307af95d7094404842e/MIDI%20Editor/js_Mouse%20editing%20-%20Undo.cur</source>
         <source file="js_Mouse editing - Redo.cur">https://github.com/ReaTeam/ReaScripts/raw/cb4fbdfbeca9887b57af0307af95d7094404842e/MIDI%20Editor/js_Mouse%20editing%20-%20Redo.cur</source>
       </version>
+      <version name="6.56" author="juliansader" time="2021-12-16T23:48:10Z">
+        <changelog><![CDATA[+ Remove minimum zone size limit.]]></changelog>
+        <source main="main midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/78b09ab96c4c3f928d6357ee63bd56211977ccbd/MIDI%20Editor/js_Mouse%20editing%20-%20Multi%20tool.lua</source>
+        <source file="js_Mouse editing - Scale bottom.cur">https://github.com/ReaTeam/ReaScripts/raw/78b09ab96c4c3f928d6357ee63bd56211977ccbd/MIDI%20Editor/js_Mouse%20editing%20-%20Scale%20bottom.cur</source>
+        <source file="js_Mouse editing - Scale top.cur">https://github.com/ReaTeam/ReaScripts/raw/78b09ab96c4c3f928d6357ee63bd56211977ccbd/MIDI%20Editor/js_Mouse%20editing%20-%20Scale%20top.cur</source>
+        <source file="js_Mouse editing - Multi compress.cur">https://github.com/ReaTeam/ReaScripts/raw/78b09ab96c4c3f928d6357ee63bd56211977ccbd/MIDI%20Editor/js_Mouse%20editing%20-%20Multi%20compress.cur</source>
+        <source file="js_Mouse editing - Undo.cur">https://github.com/ReaTeam/ReaScripts/raw/78b09ab96c4c3f928d6357ee63bd56211977ccbd/MIDI%20Editor/js_Mouse%20editing%20-%20Undo.cur</source>
+        <source file="js_Mouse editing - Redo.cur">https://github.com/ReaTeam/ReaScripts/raw/78b09ab96c4c3f928d6357ee63bd56211977ccbd/MIDI%20Editor/js_Mouse%20editing%20-%20Redo.cur</source>
+      </version>
     </reapack>
     <reapack name="js_Mouse editing - Run script that is armed in toolbar.lua" type="script" desc="js_Mouse editing - Run script that is armed in toolbar.lua">
       <metadata>
@@ -12206,6 +12395,10 @@ enter or a = Exit and apply changes\par}
 - "Use the same grid division in arrange view and MIDI editor" setting is shown in menu header ("arrange" or "project")]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/98d760d3ff701654d8dfe5023ede28a49278ffef/Project%20Properties/amagalma_Set%20project%20grid%20(via%20dropdown%20menu).lua</source>
       </version>
+      <version name="1.04" author="amagalma" time="2021-11-28T12:47:02Z">
+        <changelog><![CDATA[- Fix menu placement for OSX]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6817dbf13b65d504f447d664f3c53c5cb7cecd61/Project%20Properties/amagalma_Set%20project%20grid%20(via%20dropdown%20menu).lua</source>
+      </version>
     </reapack>
     <reapack name="amagalma_Set project samplerate to that of the first selected item (if different).lua" type="script" desc="amagalma_Set project samplerate to that of the first selected item (if different)">
       <metadata>
@@ -12266,14 +12459,16 @@ enter or a = Exit and apply changes\par}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 An alternative to REAPER's native 'Recent projects menu' capable of opening recent projects in a new tab, which in my opinion should be a native feature and has been requested a couple of times: https://forum.cockos.com/showthread.php?t=113259 (2012) https://forum.cockos.com/showthread.php?t=249615 (2021)\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 An alternative to REAPER's native 'Recent projects menu' capable of opening recent projects in a new tab, desisgned before a native option was added in build 6.43:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Projects: hold shift to open recent project in new project tab\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Can still be used in earlier releases or if holding shift isn't viable for some reason.\par}
 }
 ]]></description>
         <link rel="website">https://forum.cockos.com/member.php?u=134058</link>
       </metadata>
       <version name="1.0" author="BuyOne" time="2021-09-08T14:23:51Z">
         <changelog><![CDATA[Initial release]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/61d5e55ff14c11d8ed3d82274e94e800ae9b0239/Project%20Properties/BuyOne_Open%20recent%20projects%20in%20new%20tab%20(settings%20inside).lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/2b8c79939d74ae563d94d67f92ee86e8a9f9ecc5/Project%20Properties/BuyOne_Open%20recent%20projects%20in%20new%20tab%20(settings%20inside).lua</source>
       </version>
     </reapack>
     <reapack name="BuyOne_Save-Load window set #1-10 with Mixer scroll position.lua" type="script" desc="Save-Load window set #1-10 with Mixer scroll position (10 scripts)">
@@ -12829,6 +13024,22 @@ Replace GetLastWord func with quicker solution (Thanks: Mespotine[t=233393]).]]>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/bc8226ef011808dfc804b9587633649c35284c45/Razor%20Edit/amagalma_Remove%20all%20item%20fades%20within%20Razor%20Edit%20areas.lua</source>
       </version>
     </reapack>
+    <reapack name="az_Exclude tracks or envelopes from razor area depending on mouse placement.lua" type="script" desc="Exclude tracks or envelopes from razor area depending on mouse placement">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Exclude tracks or envelopes from razor area depending on mouse placement\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab if mouse over track, envelopes will exclude\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab if mouse over envelope, tracks will exclude\sa180\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="AZ" time="2021-11-23T18:58:54Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/67f4eb9a3d49b920cc30efa21c8a6d173f83280f/Razor%20Edit/az_Exclude%20tracks%20or%20envelopes%20from%20razor%20area%20depending%20on%20mouse%20placement.lua</source>
+      </version>
+    </reapack>
     <reapack name="js_Razor edit - Apply LFO to razor areas by converting to temporary automation items.lua" type="script" desc="js_Razor edit - Apply LFO to razor areas by converting to temporary automation items.lua">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
@@ -12868,6 +13079,25 @@ Replace GetLastWord func with quicker solution (Thanks: Mespotine[t=233393]).]]>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b43c6eb84381be87ad037bde045018123ad72fc2/Razor%20Edit/js_Razor%20edit%20-%20Enclose%20selected%20media%20items%20and%20automation%20items%20in%20minimal%20razor%20areas.lua</source>
       </version>
     </reapack>
+    <reapack name="sockmonkey72_Razor Edit - Fast Mode.eel" type="script" desc="Razor Edit - Fast Mode">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Inspired by {\field{\*\fldinst{HYPERLINK "https://youtu.be/HEVKLiWkRkk"}}{\fldrslt{\ul
+Kenny Gioia's "Razor Edit - Fast Mode in REAPER"
+}}}
+, this script makes the appropriate changes to the Mouse Modifier preferences to support fast Razor Editing. Improved over what Kenny can do using standard actions is that the shift-modified left-drag actions are incorporated with the "ignoring snap" action variants.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The workflow is also simpler, as it's just a single toggle script. It can be hooked up to a key command and/or a toolbar button.\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.1" author="sockmonkey72" time="2021-12-06T08:52:40Z">
+        <changelog><![CDATA[simplify to a single Toggle Command script]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/bcefb9e7629a978993357e04de85577bc80b718c/Razor%20Edit/sockmonkey72_Razor%20Edit%20-%20Fast%20Mode.eel</source>
+      </version>
+    </reapack>
   </category>
   <category name="Regions">
     <reapack name="amagalma_Go to region marker (choose from menu list).lua" type="script" desc="Go to region marker (choose from menu list)">
@@ -12888,6 +13118,10 @@ Replace GetLastWord func with quicker solution (Thanks: Mespotine[t=233393]).]]>
       <version name="1.01" author="amagalma" time="2020-08-04T19:34:57Z">
         <changelog><![CDATA[Fix menu placement for OSX]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d117be2df8d30715ba0f78a934ee68af435bae22/Regions/amagalma_Go%20to%20region%20marker%20(choose%20from%20menu%20list).lua</source>
+      </version>
+      <version name="1.02" author="amagalma" time="2021-11-28T12:43:07Z">
+        <changelog><![CDATA[Fix menu placement for OSX (again)]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/131267ffae107aee0ef3f987e7a24e7102eb8e3e/Regions/amagalma_Go%20to%20region%20marker%20(choose%20from%20menu%20list).lua</source>
       </version>
     </reapack>
     <reapack name="ausbaxter_Save and Load region render matrix.lua" type="script" desc="Save and Load region render matrix (9 actions)">
@@ -12912,6 +13146,29 @@ Replace GetLastWord func with quicker solution (Thanks: Mespotine[t=233393]).]]>
         <source main="main" file="ausbaxter_Save region render matrix (slot 2).lua">https://github.com/ReaTeam/ReaScripts/raw/af423a7b88decb7586131edda25e22e2ac908ec6/Regions/ausbaxter_Save%20and%20Load%20region%20render%20matrix.lua</source>
         <source main="main" file="ausbaxter_Save region render matrix (slot 3).lua">https://github.com/ReaTeam/ReaScripts/raw/af423a7b88decb7586131edda25e22e2ac908ec6/Regions/ausbaxter_Save%20and%20Load%20region%20render%20matrix.lua</source>
         <source main="main" file="ausbaxter_Save region render matrix (slot 4).lua">https://github.com/ReaTeam/ReaScripts/raw/af423a7b88decb7586131edda25e22e2ac908ec6/Regions/ausbaxter_Save%20and%20Load%20region%20render%20matrix.lua</source>
+      </version>
+    </reapack>
+    <reapack name="BuyOne_Sort by length region bars displayed in lanes (respecting time sel.).lua" type="script" desc="Sort by length region bars displayed in lanes">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Sorts by length region bars with the same start position in either ascending or descending order.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Respects time selection as long as either the regions start position or all their end positions are included in it.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 If after sorting some region bars become overlaped, wiggle the Ruler bottom edge having grabbed the topmost track upper edge.\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/member.php?u=134058</link>
+        <link rel="screenshot">https://git.io/JyD8d</link>
+      </metadata>
+      <version name="1.1" author="BuyOne" time="2022-01-14T12:51:37Z">
+        <changelog><![CDATA[#Added error message when there're no regions in project
+#Added time selection support
+#Added error message when there're no regions in time selection
+#Updated script name
+#Updated About tag text]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/16b4afe8f63deec9afd3b6d6fd41eb2df1c4e78c/Regions/BuyOne_Sort%20by%20length%20region%20bars%20displayed%20in%20lanes%20(respecting%20time%20sel.).lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Nudge start or end of regions in time selection.lua" type="script" desc="Nudge start or end of regions in time selection">
@@ -12947,7 +13204,7 @@ Replace GetLastWord func with quicker solution (Thanks: Mespotine[t=233393]).]]>
 \widowctrl\hyphauto
 
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Create a single region with name and tail length from selected items\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab LUA script by Eddie Pacheco 23-January-2020\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab LUA script by Eddie Pacheco. Udpated 17-January-2022.\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Modification of LUA script by SPK77 "Create regions (with tail) from selected items" 13-Sept-2015: http://forum.cockos.com/member.php?u=49553\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab User is prompted to enter a valid non-negative numerical tail length in seconds\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab User is prompted to enter a name for the created region\sa180\par}
@@ -12960,6 +13217,10 @@ Replace GetLastWord func with quicker solution (Thanks: Mespotine[t=233393]).]]>
       <version name="1.1" author="Eddie Pacheco" time="2020-06-23T13:27:42Z">
         <changelog><![CDATA[Bug fix for region not accounting for first item not having lowest timeline value. Region created will now properly address item positions in selection.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/163cfa2028112ce0dc7a9d4cecd82f5d08ac3e81/Regions/epacheco_Create%20a%20single%20region%20with%20name%20and%20tail%20length%20from%20selected%20items.lua</source>
+      </version>
+      <version name="1.2" author="Eddie Pacheco" time="2022-01-19T19:05:43Z">
+        <changelog><![CDATA[Decoupled several methods from main function. Updated nomenclature.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/01393fee8cad803280e2c3610422dd8f7791c386/Regions/epacheco_Create%20a%20single%20region%20with%20name%20and%20tail%20length%20from%20selected%20items.lua</source>
       </version>
     </reapack>
     <reapack name="HeDa_RegionMatrixAutoTrack.lua" type="script" desc="Automatically assigns a track with a certain name to all Regions in the Region Render Matrix">
@@ -13306,6 +13567,11 @@ Fix the new menu crashing if there are new saved render presets]]></changelog>
         <changelog><![CDATA[Fix restoration of the tail checkbox]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a57ccb66e486d91c197a0a818a30b9a2c0c58b4b/Rendering/cfillion_Apply%20render%20preset.lua</source>
         <source main="main" file="cfillion_Apply render preset (create action).lua">https://github.com/ReaTeam/ReaScripts/raw/a57ccb66e486d91c197a0a818a30b9a2c0c58b4b/Rendering/cfillion_Apply%20render%20preset.lua</source>
+      </version>
+      <version name="2.0.2" author="cfillion" time="2021-12-05T23:51:03Z">
+        <changelog><![CDATA[Fix restoration of the tail checkbox]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/7cbb79dc2da90fa98a99d8f5f21f510435cd472b/Rendering/cfillion_Apply%20render%20preset.lua</source>
+        <source main="main" file="cfillion_Apply render preset (create action).lua">https://github.com/ReaTeam/ReaScripts/raw/7cbb79dc2da90fa98a99d8f5f21f510435cd472b/Rendering/cfillion_Apply%20render%20preset.lua</source>
       </version>
     </reapack>
     <reapack name="DSG_Render time selection to new track.lua" type="script" desc="Render time selection to new track">
@@ -14276,6 +14542,10 @@ is off-screen. Reaper issue, should be fixed soon.]]></changelog>
         <changelog><![CDATA[Fix menu placement for OSX]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/0cee14a9a7af04df667a598a22e7095e7a951d90/Tracks%20Properties/amagalma_Smart%20track%20layout%20picker%20(categories%20with%20sub-menus).lua</source>
       </version>
+      <version name="1.03" author="amagalma" time="2021-11-28T12:41:30Z">
+        <changelog><![CDATA[Fix menu placement for OSX (again)]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a2c99b823cf752f2e006ec8297d0827a7758a0e4/Tracks%20Properties/amagalma_Smart%20track%20layout%20picker%20(categories%20with%20sub-menus).lua</source>
+      </version>
     </reapack>
     <reapack name="Argitoth_Set number of channels for selected tracks.eel" type="script" desc="Set number of channels for selected tracks">
       <version name="1.0" author="Elan Hickler (Argitoth)" time="2015-12-03T07:38:56Z">
@@ -15115,6 +15385,39 @@ Fix: More descriptive error message if valid settings aren't found]]></changelog
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/af241d05f01be02d07d9f55e576556e38cb16dcd/Tracks%20Properties/Mordi_Insert%20new%20track%20(inherit%20color%20from%20parent).lua</source>
       </version>
     </reapack>
+    <reapack name="mordi_Paste text from clipboard to selected tracks names (separate by newline).lua" type="script" desc="Paste text from clipboard to selected tracks names (separate by newline)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Paste text from clipboard to selected tracks names (separate by newline)\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Made for copying an asset list from Google Docs into Reaper. Each line is copied to each selected track.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Should work in any OS, but only tested on Windows. There are differences in how an OS stores linebreaks in strings.\par}
+}
+]]></description>
+        <link rel="screenshot">https://i.imgur.com/SZqNCDZ.gif</link>
+      </metadata>
+      <version name="1.0" author="Mordi" time="2022-01-03T23:30:22Z">
+        <changelog><![CDATA[Initial release.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e77723921aacab88d7ec0d1673e459f452431f3a/Tracks%20Properties/mordi_Paste%20text%20from%20clipboard%20to%20selected%20tracks%20names%20(separate%20by%20newline).lua</source>
+      </version>
+    </reapack>
+    <reapack name="mordi_Sort selected tracks alphabetically.lua" type="script" desc="Sort selected tracks alphabetically">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Sort selected tracks alphabetically\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Sorts selected tracks based on track name. All tracks will be lumped together below the track immediately above the topmost selected track.\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="Mordi" time="2022-01-03T23:28:27Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/cf45a63272b429d7c41dc8035ecb92f1ca17a13d/Tracks%20Properties/mordi_Sort%20selected%20tracks%20alphabetically.lua</source>
+      </version>
+    </reapack>
     <reapack name="ook_Insert new track with two-way midiaudio send to selected track.lua" type="script" desc="Insert new track with two-way midi/audio send to selected track">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
@@ -15196,6 +15499,27 @@ uc_track_name_abbreviations = \{"O-Out", "O-MID"\}\par}
     <reapack name="reaperblog_-3dB trim send levels on selected track.eel" type="script" desc="-3dB trim send levels on selected track">
       <version name="1.0" author="spk77, modified by REAPER Blog" time="2018-04-27T16:11:51Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c61ce2edef59608547387f977006946a7c2b3288/Tracks%20Properties/reaperblog_-3dB%20trim%20send%20levels%20on%20selected%20track.eel</source>
+      </version>
+    </reapack>
+    <reapack name="rodilab_Toggle hide tracks with no items in current time selection.lua" type="script" desc="Toggle hide tracks with no items in current time selection">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Toggle on : Hide tracks with no items in current time selection\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Toggle off : Show all tracks (except for those that were already hidden)\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Some option on the top of code :\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Show/Hide in TCP (default: true)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Show/Hide in MCP (default: false)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Don't show tracks that are already hidden, even if they have items in time selection (default: true)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Show parents tracks too (default: true)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Show/Hide sends destination tracks too (default: true)\sa180\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="Rodilab" time="2021-12-05T23:47:12Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/83ab0e4d6228e16ec62b2c21cbfc412def2bf8bf/Tracks%20Properties/rodilab_Toggle%20hide%20tracks%20with%20no%20items%20in%20current%20time%20selection.lua</source>
       </version>
     </reapack>
     <reapack name="rodilab_Track name groups.lua" type="script" desc="Track name groups">
@@ -15705,6 +16029,10 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
         <changelog><![CDATA[- Fix keep_one_per_date setting]]></changelog>
         <source main="main" file="amagalma_Backup Limit/amagalma_Backup Limit Manual - Keep x number of most recent timestamped backups of current project file.lua">https://github.com/ReaTeam/ReaScripts/raw/2be8300b0ced7f5bbb2445be39e4968b5fbae5d7/Various/amagalma_Backup%20Limit%20Manual%20-%20Keep%20x%20number%20of%20most%20recent%20timestamped%20backups%20of%20current%20project%20file.lua</source>
       </version>
+      <version name="1.03" author="amagalma" time="2021-12-18T13:21:32Z">
+        <changelog><![CDATA[- Fix for paths starting with space (do not use BR_Win32_GetPrivateProfileString API)]]></changelog>
+        <source main="main" file="amagalma_Backup Limit/amagalma_Backup Limit Manual - Keep x number of most recent timestamped backups of current project file.lua">https://github.com/ReaTeam/ReaScripts/raw/5b96531ffe8c5c02f3aac65f23f1e1f148ba242f/Various/amagalma_Backup%20Limit%20Manual%20-%20Keep%20x%20number%20of%20most%20recent%20timestamped%20backups%20of%20current%20project%20file.lua</source>
+      </version>
     </reapack>
     <reapack name="amagalma_Backup Limit Settings - Keep x number of most recent timestamped backups of current project file.lua" type="script" desc="Backup Limit Settings - Keep x number of most recent timestamped backups of current project file">
       <metadata>
@@ -15925,6 +16253,10 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
         <changelog><![CDATA[- Correctly capture Linear Phase processes]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/301a9771db84c9d550e54a12d33206dbdc795c2a/Various/amagalma_Create%20Impulse%20Response%20(IR)%20of%20the%20FX%20chain%20of%20the%20selected%20track.lua</source>
       </version>
+      <version name="2.06" author="amagalma" time="2022-01-09T10:50:23Z">
+        <changelog><![CDATA[- Fix: load IR in ReaVerb for v6.37+]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/03467e562de8726657c0de5ff6676e3a4f71bad5/Various/amagalma_Create%20Impulse%20Response%20(IR)%20of%20the%20FX%20chain%20of%20the%20selected%20track.lua</source>
+      </version>
     </reapack>
     <reapack name="amagalma_Distinguish visually the ripple editing modes.lua" type="script" desc="Distinguish visually the ripple editing modes">
       <metadata>
@@ -15975,6 +16307,24 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
       <version name="1.31" author="amagalma" time="2020-05-22T15:50:30Z">
         <changelog><![CDATA[-  fixed not drawing when having hidden first track (thanks Jason Brian Merrill)]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3e5388bea08f88627c7e8392d2793f8001672552/Various/amagalma_Distinguish%20visually%20the%20ripple%20editing%20modes.lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Edgemeal_Get number of all actions in the Action List.lua" type="script" desc="Get number (count) of all actions in the Action List">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Requires JS_ReaScriptAPI\sa180\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.00" author="amagalma &amp; Edgemeal" time="2021-12-22T09:38:43Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/37331915d8a3fbf663f63977d746e0ed9b9cbcc3/Various/amagalma_Edgemeal_Get%20number%20of%20all%20actions%20in%20the%20Action%20List.lua</source>
+      </version>
+      <version name="1.01" author="amagalma &amp; Edgemeal" time="2021-12-22T09:48:11Z">
+        <changelog><![CDATA[- Do not include Main (alt recording) actions in Total number]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e1002e790878b8cc70830002d87a3fab4084c4b8/Various/amagalma_Edgemeal_Get%20number%20of%20all%20actions%20in%20the%20Action%20List.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Edit Group Management Utility.lua" type="script" desc="Edit Group Management Utility_amagalma">
@@ -16637,6 +16987,10 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
       <version name="1.00" author="amagalma" time="2021-11-21T18:36:45Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/9867b7c76d1ee6319e67496f115f0d71756130d1/Various/amagalma_Show%20menu%20for%20dry%20run%20(calculate%20loudness)%20actions.lua</source>
       </version>
+      <version name="1.01" author="amagalma" time="2021-11-28T12:50:04Z">
+        <changelog><![CDATA[Fix menu placement for OSX]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e719c53815b40d0bc4afb7fd7c65b746d1cb1647/Various/amagalma_Show%20menu%20for%20dry%20run%20(calculate%20loudness)%20actions.lua</source>
+      </version>
     </reapack>
     <reapack name="amagalma_Show path from list menu (Resource, Selected Item, Project File, Record, Secondary Record, Render).lua" type="script" desc="Show path from list menu (Resource, Selected Item, Project File, Record, Secondary Record, Render)">
       <metadata>
@@ -16665,6 +17019,10 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
       <version name="1.1" author="amagalma" time="2021-07-31T17:05:42Z">
         <changelog><![CDATA[- Added "First selected script's path in the Actions List"]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6e3305a3da98b5fc4350b12d2c32f955c19d814e/Various/amagalma_Show%20path%20from%20list%20menu%20(Resource,%20Selected%20Item,%20Project%20File,%20Record,%20Secondary%20Record,%20Render).lua</source>
+      </version>
+      <version name="1.11" author="amagalma" time="2021-11-28T12:48:32Z">
+        <changelog><![CDATA[- Fix menu placement for OSX]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4f0942e25ec4e28b123b6383ee89dc5fd23d407f/Various/amagalma_Show%20path%20from%20list%20menu%20(Resource,%20Selected%20Item,%20Project%20File,%20Record,%20Secondary%20Record,%20Render).lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Simulate tempo with playrate.lua" type="script" desc="amagalma_Simulate tempo with playrate">
@@ -18052,6 +18410,11 @@ Web Interface: restore the previous locked state on load]]></changelog>
     <reapack name="JamesHE_gfx and string functions.eel" type="script" desc="gfx and string library">
       <version name="1.0" author="James H Eure" time="2016-10-19T18:12:11Z">
         <source>https://github.com/ReaTeam/ReaScripts/raw/a3ebb21eddc7aa1b73f7c3e5dd07a30b194cf80c/Various/JamesHE_gfx%20and%20string%20functions.eel</source>
+      </version>
+    </reapack>
+    <reapack name="jrtaylormusic_Toggle snap globally (Main and MIDI Editor).lua" type="script" desc="Toggle snap globally (Main and MIDI Editor)">
+      <version name="1.0" author="JRTaylorMusic" time="2021-11-23T18:52:58Z">
+        <source main="main midi_editor">https://github.com/ReaTeam/ReaScripts/raw/1e4aea125577acae5e1caa61e26c28dcd1d254f8/Various/jrtaylormusic_Toggle%20snap%20globally%20(Main%20and%20MIDI%20Editor).lua</source>
       </version>
     </reapack>
     <reapack name="js_Hotstrings.lua" type="script" desc="js_Hotstrings">

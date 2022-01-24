@@ -1,7 +1,7 @@
 -- @description Backup Limit Manual - Keep x number of most recent timestamped backups of current project file
 -- @author amagalma
--- @version 1.02
--- @changelog - Fix keep_one_per_date setting
+-- @version 1.03
+-- @changelog - Fix for paths starting with space (do not use BR_Win32_GetPrivateProfileString API)
 -- @provides . > amagalma_Backup Limit/amagalma_Backup Limit Manual - Keep x number of most recent timestamped backups of current project file.lua
 -- @link https://forum.cockos.com/showthread.php?t=255909
 -- @donation https://www.paypal.me/amagalma
@@ -45,8 +45,15 @@ local ini = reaper.get_ini_file()
 
 
 local function GetAdditionalDir(projpath)
-  local autosavedir = ({reaper.BR_Win32_GetPrivateProfileString( "reaper", "autosavedir", "", ini )})[2]
-  if autosavedir ~= "" then
+  local autosavedir
+  local file = io.open(ini)
+  io.input(file)
+  for line in io.lines() do
+    autosavedir = line:match("autosavedir=([^\n\r]+)")
+    if autosavedir then break end
+  end
+  file:close()
+  if autosavedir then
     local absolute
     if match(reaper.GetOS(), "Win") then
       if autosavedir:match("^%a:\\") or autosavedir:match("^\\\\") then

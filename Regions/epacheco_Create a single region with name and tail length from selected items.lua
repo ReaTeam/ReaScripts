@@ -1,110 +1,95 @@
 -- @description Create single region with tail length from selected items
 -- @author Eddie Pacheco
--- @version 1.1
--- @changelog Bug fix for region not accounting for first item not having lowest timeline value. Region created will now properly address item positions in selection.
+-- @version 1.2
+-- @changelog Decoupled several methods from main function. Updated nomenclature.
 -- @about
 --   # Create a single region with name and tail length from selected items
 --
---   - LUA script by Eddie Pacheco 23-January-2020
+--   - LUA script by Eddie Pacheco. Udpated 17-January-2022.
 --   - Modification of LUA script by SPK77 "Create regions (with tail) from selected items" 13-Sept-2015: http://forum.cockos.com/member.php?u=49553
 --   - User is prompted to enter a valid non-negative numerical tail length in seconds
 --   - User is prompted to enter a name for the created region
 
+function region_data_prompt_box()
+  local time_entered, region_name_entered = "", ""
+  local b_valid_time_entered, entered_time_value = reaper.GetUserInputs( time_entered, 1, "Set region tail length in seconds:", "1.0" )
 
--- Create single region with tail length from selected items
--- LUA script by Eddie Pacheco 13-June-2020
--- Based on LUA script by SPK77 13-Sept-2015: http://forum.cockos.com/member.php?u=49553
--- Version 1.1
-
-
--- Prompt user to enter region tail length in seconds
-function tail_length_prompt_box( title )
-  local ret, retvals = reaper.GetUserInputs( title, 1, "Set tail length in seconds:", "1.0" )
-  if ret then
-    return retvals
+  if b_valid_time_entered then
+    local b_valid_name_entered, entered_name_value = reaper.GetUserInputs( region_name_entered, 1, "Enter region name:, extrawidth=250", "" )
+    if b_valid_name_entered then
+      return entered_time_value, entered_name_value
+    end
   end
-  return ret
+
+  return b_valid_time_entered, b_valid_name_entered
 end
 
--- Prompt user to enter name for created region
-function region_name_prompt_box( title )
-  local ret, retvals = reaper.GetUserInputs( title, 1, "Enter region name:, extrawidth=250", "" )
-  if ret then
-    return retvals
-  end
-  return ret
-end
+function set_region_start_end_points( region_start_pos, region_end_pos )
+  for i = 1, reaper.CountSelectedMediaItems( 0 ) do
+    local media_item = reaper.GetSelectedMediaItem( 0, i-1 )
+    if media_item ~= nil then
+      local media_item_start_pos = reaper.GetMediaItemInfo_Value( media_item, "D_POSITION" )
+      local media_item_length = reaper.GetMediaItemInfo_Value( media_item, "D_LENGTH" )
+      local media_item_end_pos = media_item_start_pos + media_item_length
 
---[[
-  * Validate tail length data submitted by user:
-  * It must be possible to convert the tail length string to a number.
-  * The number entered must be >= 0 in order to add tail length to the region.
-  ]]
-function verify_tail_length_data( tail_length )
-  local data_type = tonumber( tail_length )
-  if data_type ~= nil then
-    if tonumber( tail_length ) >= 0 then
-      return true
+      if region_start_pos >= media_item_start_pos then
+        region_start_pos = media_item_start_pos
       end
+
+      if region_end_pos < media_item_end_pos then
+        region_end_pos = media_item_end_pos
+      end
+    end
+  end
+
+  return region_start_pos, region_end_pos
+end
+
+function non_negative_number_check( tail_length_number )
+  if tail_length_number ~= nil then
+    if tail_length_number >= 0 then
+      return true
+    else
+      return false
+    end
   else
     return false
   end
 end
 
-function create_region( reg_start, reg_end, name )
-  local index = reaper.AddProjectMarker2( 0, true, reg_start, reg_end, name, -1, 0 )
+function create_region( region_start_point, region_end_point, region_name )
+  reaper.AddProjectMarker2( 0, true, region_start_point, region_end_point, region_name, -1, 0 )
 end
 
 function main()
-  local item_count = reaper.CountSelectedMediaItems( 0 )
-  local first_item = reaper.GetSelectedMediaItem( 0, 0 )
-  local region_start_pos = reaper.GetMediaItemInfo_Value( first_item, "D_POSITION" )
-  local region_end_pos = 0
-
-  if item_count == 0 then
+  local media_item_quantity = reaper.CountSelectedMediaItems( 0 )
+  if media_item_quantity == 0 then
+    reaper.ShowConsoleMsg( "Please select one or more media items before running script." )
     return
   end
 
-  local tail_len = tail_length_prompt_box( "Set tail length:" )
-  if not tail_len then
+  local first_media_item = reaper.GetSelectedMediaItem( 0, 0 )
+  local selected_media_start_pos = reaper.GetMediaItemInfo_Value( first_media_item, "D_POSITION" )
+  local selected_media_end_pos = 0
+  local b_tail_length_is_non_negative_number = false
+
+  local new_region_tail_length_string, new_region_name = region_data_prompt_box()
+  if new_region_tail_length_string == false then
     return
   end
 
-  local region_name = region_name_prompt_box( "Enter region name:" )
-  if not region_name then
-    return
-  end
+  local new_region_start_pos, new_region_end_pos = set_region_start_end_points( selected_media_start_pos, selected_media_end_pos )
 
-  for i = 1, reaper.CountSelectedMediaItems( 0 ) do
-    local item = reaper.GetSelectedMediaItem( 0, i-1 )
-    if item ~= nil then
-      local item_pos = reaper.GetMediaItemInfo_Value( item, "D_POSITION" )
-      local item_len = reaper.GetMediaItemInfo_Value( item, "D_LENGTH" )
-      local item_end = item_pos + item_len
+  local new_region_tail_length_number = tonumber( new_region_tail_length_string )
 
-      -- The start pos of the region is the start pos of the item closest up the timeline in the selection
-      if region_start_pos > item_pos then
-        region_start_pos = item_pos
-      end
-
-      -- The end pos of the region is the end pos of the item furthest down the timeline in the selection
-      if region_end_pos < item_end then
-        region_end_pos = item_end
-      end
-    end
-  end
-
-  -- Check to make sure we can convert the user input string to a number data type
-  local tail_length_is_number = verify_tail_length_data( tail_len )
-
-  if tail_length_is_number == true then
-    create_region( region_start_pos, region_end_pos + tail_len, region_name )
+  b_tail_length_is_non_negative_number = non_negative_number_check( new_region_tail_length_number )
+  if b_tail_length_is_non_negative_number then
+    create_region( new_region_start_pos, new_region_end_pos + new_region_tail_length_number, new_region_name )
   else
-    reaper.ShowConsoleMsg( "Please enter a non-negative number!" )
+    reaper.ShowConsoleMsg( "Please enter a non-negative number for the desired region tail length." )
   end
 
   reaper.Undo_OnStateChangeEx( "Create single region with tail length from selected items", -1, -1 )
-
 end
 
 reaper.defer( main )
