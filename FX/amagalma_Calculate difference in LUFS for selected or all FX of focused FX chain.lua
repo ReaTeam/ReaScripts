@@ -1,11 +1,14 @@
 -- @description Calculate difference in LUFS for selected or all FX of focused FX chain
 -- @author amagalma
--- @version 1.00
+-- @version 1.01
+-- @changelog
+--   - Fix for tracks FX chain
 -- @donation https://www.paypal.me/amagalma
 -- @about
 --   # Calculates the volume difference that the selected FX (or all FX, if none selected) will bring, using dry runs (no files are created). The opposite value of the level difference is copied to the clipboard.
 --
 --   - The correct dry run action will be smartly chosen
+--   - Time Selection is taken into account
 --   - An FX chain must be visible
 --   - Show detailed report
 --   - JS_ReaScriptAPI is required
@@ -125,7 +128,7 @@ local function GetStats( what, object, sel_FX )
   else
     DryAction = 42439 -- Calculate loudness of selected tracks within time selection
   end
-  local ok1, fx_stats = reaper.GetSetProjectInfo_String(0, "RENDER_STATS", tostring(DryAction), false)
+   ok1, fx_stats = reaper.GetSetProjectInfo_String(0, "RENDER_STATS", tostring(DryAction), false)
   if ok1 then
 
     -- Get stats without FX
@@ -186,13 +189,13 @@ local what, object, sel_FX = GetInfo()
 if not what or fx_cnt == 0 then
   return reaper.defer(function() end)
 elseif what == "take" then
+  reaper.PreventUIRefresh( 1 )
   local sel_items, it_cnt = {}, 0
   for i = reaper.CountSelectedMediaItems( 0 )-1, 0, -1 do
     it_cnt = it_cnt + 1
     sel_items[it_cnt] = reaper.GetSelectedMediaItem( 0, i )
     reaper.SetMediaItemSelected( sel_items[it_cnt], false )
   end
-  reaper.PreventUIRefresh( 1 )
   reaper.SetMediaItemSelected( object.item, true )
   reaper.PreventUIRefresh( -1 )
   reaper.UpdateArrange()
@@ -205,7 +208,24 @@ elseif what == "take" then
   reaper.PreventUIRefresh( -1 )
   reaper.UpdateArrange()
 else
+  reaper.PreventUIRefresh( 1 )
+  local sel_tracks, tr_cnt = {}, 0
+  for i = reaper.CountSelectedTracks( 0 )-1, 0, -1 do
+    tr_cnt = tr_cnt + 1
+    sel_tracks[tr_cnt] = reaper.GetSelectedTrack( 0, i )
+    reaper.SetTrackSelected( sel_tracks[tr_cnt], false )
+  end
+  reaper.SetTrackSelected( object, true )
+  reaper.PreventUIRefresh( -1 )
+  reaper.UpdateArrange()
   GetStats( what, object, sel_FX )
+  reaper.PreventUIRefresh( 1 )
+  reaper.SetTrackSelected( object, false )
+  for i = 1, #sel_tracks do
+    reaper.SetTrackSelected( sel_tracks[i], true )
+  end
+  reaper.PreventUIRefresh( -1 )
+  reaper.UpdateArrange()
 end
 
 reaper.defer(function() end)
