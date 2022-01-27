@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="72fa84ecc027fbd3e23d68fec4f85b02473553b8" name="ReaTeam Scripts">
+<index version="1" commit="df67225ceca955d18b7c8bf5782796a807cd41c5" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -15906,6 +15906,22 @@ PDC Manager is no longer a GUI option. It can still be enabled by setting script
       <version name="1.7" author="ak5k" time="2021-10-29T21:01:46Z">
         <changelog><![CDATA[Bug fix related to track validation, which could cause script to crash when changing projects or deleting tracks while script is enabled.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c58b3cd29c79bab90afb5dd2558a3540df5b110b/Various/ak5k_Low%20latency%20monitoring.lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Add smart metronome click track below the selected track.lua" type="script" desc="Add smart metronome click track below the selected track">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Adds a track below the selected track with a click source for at least 220secs or more if the project is bigger.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The click track has ReaGate loaded and its volume will depend on the volume of the audio coming to its sidechain on channels 3&4. So, the metronome will play louder if the sidechain is louder and softer if it is softer ( in order to avoid bleed from the click track into the recording)\par}
+}
+]]></description>
+        <link rel="donation">https://www.paypal.me/amagalma</link>
+      </metadata>
+      <version name="1.00" author="amagalma" time="2022-01-27T23:02:09Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/df67225ceca955d18b7c8bf5782796a807cd41c5/Various/amagalma_Add%20smart%20metronome%20click%20track%20below%20the%20selected%20track.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Adjust theme colors.lua" type="script" desc="Adjust theme colors">
