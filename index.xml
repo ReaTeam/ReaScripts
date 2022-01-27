@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="59c2d9f42b3c178d466f721665a711ea3d7413ac" name="ReaTeam Scripts">
+<index version="1" commit="93c7c53b1bb1c29b9065e9a7efa333edac412c52" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -13063,6 +13063,20 @@ Replace GetLastWord func with quicker solution (Thanks: Mespotine[t=233393]).]]>
       </metadata>
       <version name="1.00" author="amagalma" time="2021-04-02T21:02:01Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/bc8226ef011808dfc804b9587633649c35284c45/Razor%20Edit/amagalma_Remove%20all%20item%20fades%20within%20Razor%20Edit%20areas.lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Set time selection to razor edits' start and end.lua" type="script" desc="Set time selection to razor edits' start and end">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Sets the time selection to begin at the earliest razor edit start and to end at the latest razor edit end.\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.00" author="amagalma" time="2022-01-27T20:41:08Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/93c7c53b1bb1c29b9065e9a7efa333edac412c52/Razor%20Edit/amagalma_Set%20time%20selection%20to%20razor%20edits'%20start%20and%20end.lua</source>
       </version>
     </reapack>
     <reapack name="az_Exclude tracks or envelopes from razor area depending on mouse placement.lua" type="script" desc="Exclude tracks or envelopes from razor area depending on mouse placement">
