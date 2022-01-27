@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="f900756bee49f60b5d906f0e6412ff31fcf1ce8d" name="ReaTeam Scripts">
+<index version="1" commit="59c2d9f42b3c178d466f721665a711ea3d7413ac" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -7095,6 +7095,23 @@ selection.]]></changelog>
       <version name="1.1.2" author="Lokasenna" time="2019-12-13T03:05:02Z">
         <changelog><![CDATA[Fix: Setting the last touched track wasn't working]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e137de04789d701bcc2cb94a4eac49690dc50448/Items%20Properties/Lokasenna_Track%20selection%20follows%20item%20selection.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mordi_Rename take markers from 1 to X.lua" type="script" desc="Rename take markers from 1 to X">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Rename take markers from 1 to X\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Useful for variations in sound effects that are consolidated into a single file. The will be named 1, 2, 3, etc. Overwrites any existing names.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Note that it does not work on WAV cues, only on take markers.\par}
+}
+]]></description>
+        <link rel="screenshot" href="https://i.imgur.com/38IPjtG.gif">Example</link>
+      </metadata>
+      <version name="1.0" author="Mordi" time="2022-01-27T17:20:31Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/59c2d9f42b3c178d466f721665a711ea3d7413ac/Items%20Properties/mordi_Rename%20take%20markers%20from%201%20to%20X.lua</source>
       </version>
     </reapack>
     <reapack name="Nantho_item Auto Gain Staging - Peak vs. LUFS.lua" type="script" desc="Item Auto-Gain Staging - Peak vs. LUFS">
