@@ -27,19 +27,19 @@ Provides: . > Buy_One_(Un)Collapse envelope lanes/BuyOne_Collapse selected envel
 	  . > Buy_One_(Un)Collapse envelope lanes/BuyOne_Toggle collapse FX envelope lanes in selected tracks.lua
 	  . > Buy_One_(Un)Collapse envelope lanes/BuyOne_Toggle collapse all envelope lanes in selected tracks.lua
 About:	In these '(un)collapse envelope lane' scripts 
-		'track envelope' means envelope of TCP controls, those 
-		which are listed in the 'trim' (envelope) button context 
-		menu or under 'Track Envelopes' heading in the track 
-		envelope panel, including Send envelopes.  
-		'FX envelope' means envelope of a track FX control.  
-		With toggle scripts uncollapsed state gets priority, so
-		if at least one envelope lane in selected tracks is 
-		uncollapsed, it will be collapsed while collapsed lanes 
-		will stay as they are.  
-		Unidirectional scripts will always work according to their name,
-		If there're no lanes to collapse or uncollapse nothing will happen.  
-		The scripts don't support creation of undo point due 
-		to REAPER internal design.
+	'track envelope' means envelope of TCP controls, those 
+	which are listed in the 'trim' (envelope) button context 
+	menu or under 'Track Envelopes' heading in the track 
+	envelope panel, including Send envelopes.  
+	'FX envelope' means envelope of a track FX control.  
+	With toggle scripts uncollapsed state gets priority, so
+	if at least one envelope lane in selected tracks is 
+	uncollapsed, it will be collapsed while collapsed lanes 
+	will stay as they are.  
+	Unidirectional scripts will always work according to their name,
+	If there're no lanes to collapse or uncollapse nothing will happen.  
+	The scripts don't support creation of undo point due 
+	to REAPER internal design.
 ]]
 
 -----------------------------------------------------------------------------
