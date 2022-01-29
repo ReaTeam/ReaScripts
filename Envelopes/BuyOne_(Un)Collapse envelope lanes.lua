@@ -8,24 +8,24 @@ Licence: WTFPL
 Screenshots: 
 REAPER: at least v5.962  		
 Metapackage: true
-Provides: 	. > Buy_One_(Un)Collapse envelope lanes/BuyOne_Collapse selected envelope lane in track.lua
-			. > Buy_One_(Un)Collapse envelope lanes/BuyOne_Uncollapse selected envelope lane in track.lua
-			. > Buy_One_(Un)Collapse envelope lanes/BuyOne_Collapse selected envelope lane or all lanes in selected tracks.lua
-			. > Buy_One_(Un)Collapse envelope lanes/BuyOne_Uncollapse selected envelope lane or all lanes in selected tracks.lua
-			. > Buy_One_(Un)Collapse envelope lanes/BuyOne_Collapse selected envelope lane uncollapse others in track.lua
-			. > Buy_One_(Un)Collapse envelope lanes/BuyOne_Uncollapse selected envelope lane collapse others in track.lua
-			. > Buy_One_(Un)Collapse envelope lanes/BuyOne_Alternate collapsing selected envelope lane and other lanes in track.lua
-			. > Buy_One_(Un)Collapse envelope lanes/BuyOne_Collapse track envelope lanes in selected tracks.lua
-			. > Buy_One_(Un)Collapse envelope lanes/BuyOne_Uncollapse track envelope lanes in selected tracks.lua
-			. > Buy_One_(Un)Collapse envelope lanes/BuyOne_Collapse FX envelope lanes in selected tracks.lua
-			. > Buy_One_(Un)Collapse envelope lanes/BuyOne_Uncollapse FX envelope lanes in selected tracks.lua
-			. > Buy_One_(Un)Collapse envelope lanes/BuyOne_Collapse all envelope lanes in selected tracks.lua
-			. > Buy_One_(Un)Collapse envelope lanes/BuyOne_Uncollapse all envelope lanes in selected tracks.lua
-			. > Buy_One_(Un)Collapse envelope lanes/BuyOne_Toggle collapse selected envelope lane in track.lua
-			. > Buy_One_(Un)Collapse envelope lanes/BuyOne_Toggle collapse selected envelope lane or all lanes in selected tracks.lua
-			. > Buy_One_(Un)Collapse envelope lanes/BuyOne_Toggle collapse track envelope lanes in selected tracks.lua
-			. > Buy_One_(Un)Collapse envelope lanes/BuyOne_Toggle collapse FX envelope lanes in selected tracks.lua
-			. > Buy_One_(Un)Collapse envelope lanes/BuyOne_Toggle collapse all envelope lanes in selected tracks.lua
+Provides: . > Buy_One_(Un)Collapse envelope lanes/BuyOne_Collapse selected envelope lane in track.lua
+	  . > Buy_One_(Un)Collapse envelope lanes/BuyOne_Uncollapse selected envelope lane in track.lua
+	  . > Buy_One_(Un)Collapse envelope lanes/BuyOne_Collapse selected envelope lane or all lanes in selected tracks.lua
+	  . > Buy_One_(Un)Collapse envelope lanes/BuyOne_Uncollapse selected envelope lane or all lanes in selected tracks.lua
+	  . > Buy_One_(Un)Collapse envelope lanes/BuyOne_Collapse selected envelope lane uncollapse others in track.lua
+	  . > Buy_One_(Un)Collapse envelope lanes/BuyOne_Uncollapse selected envelope lane collapse others in track.lua
+	  . > Buy_One_(Un)Collapse envelope lanes/BuyOne_Alternate collapsing selected envelope lane and other lanes in track.lua
+	  . > Buy_One_(Un)Collapse envelope lanes/BuyOne_Collapse track envelope lanes in selected tracks.lua
+	  . > Buy_One_(Un)Collapse envelope lanes/BuyOne_Uncollapse track envelope lanes in selected tracks.lua
+	  . > Buy_One_(Un)Collapse envelope lanes/BuyOne_Collapse FX envelope lanes in selected tracks.lua
+	  . > Buy_One_(Un)Collapse envelope lanes/BuyOne_Uncollapse FX envelope lanes in selected tracks.lua
+	  . > Buy_One_(Un)Collapse envelope lanes/BuyOne_Collapse all envelope lanes in selected tracks.lua
+	  . > Buy_One_(Un)Collapse envelope lanes/BuyOne_Uncollapse all envelope lanes in selected tracks.lua
+	  . > Buy_One_(Un)Collapse envelope lanes/BuyOne_Toggle collapse selected envelope lane in track.lua
+	  . > Buy_One_(Un)Collapse envelope lanes/BuyOne_Toggle collapse selected envelope lane or all lanes in selected tracks.lua
+	  . > Buy_One_(Un)Collapse envelope lanes/BuyOne_Toggle collapse track envelope lanes in selected tracks.lua
+	  . > Buy_One_(Un)Collapse envelope lanes/BuyOne_Toggle collapse FX envelope lanes in selected tracks.lua
+	  . > Buy_One_(Un)Collapse envelope lanes/BuyOne_Toggle collapse all envelope lanes in selected tracks.lua
 About:	In these '(un)collapse envelope lane' scripts 
 		'track envelope' means envelope of TCP controls, those 
 		which are listed in the 'trim' (envelope) button context 
