@@ -2,8 +2,10 @@
 Description: ChordGun
 Author: pandabot
 License: MIT
-Version: 1.7
-Changelog: + added escape keyboard shortcut to close the script
+Version: 1.8
+Changelog: + now preserving existing note lengths if notes are selected
++ added ability to move midi editor cursor with left and right arrow buttons
++ added persistence for floating window position
 Screenshot: https://github.com/benjohnson2001/ChordGun/raw/release/ChordGun/src/images/chordGunInterface.png
 Donate: https://paypal.me/benjohnson2001
 Links:
