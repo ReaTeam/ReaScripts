@@ -1,7 +1,7 @@
 -- @description Show path from list menu (Resource, Selected Item, Project File, Record, Secondary Record, Render)
 -- @author amagalma
--- @version 1.11
--- @changelog - Fix menu placement for OSX
+-- @version 1.12
+-- @changelog - Fix for Render Path
 -- @link https://forum.cockos.com/showthread.php?t=239556
 -- @screenshot https://i.ibb.co/vhMDkZn/Show-path-from-list-menu.gif
 -- @donation https://www.paypal.me/amagalma
@@ -27,6 +27,47 @@ if not reaper.APIExists( "JS_Window_Find" ) then
   return reaper.defer(function() end)
 end
 
+local proj_file = ({reaper.EnumProjects( -1 )})[2]
+
+local function OpenRenderPath()
+  if proj_file ~= "" then
+    local match = string.match
+    local projpath = proj_file:match(".+[/\\]")
+    local render_path = ({reaper.GetSetProjectInfo_String( 0, "RENDER_FILE", "", false )})[2]
+    if render_path == "" then
+      local file = io.open(reaper.get_ini_file())
+      io.input(file)
+      for line in io.lines() do
+        local path = line:match("defrenderpath=([^\n\r]+)")
+        if path then
+          render_path = path
+          break
+        end
+      end
+      file:close()
+    end
+    if render_path ~= "" then
+      local absolute
+      if match(reaper.GetOS(), "Win") then
+        if render_path:match("^%a:\\") or render_path:match("^\\\\") then
+          absolute = true
+        end
+      else -- unix
+        absolute = render_path:match("^/")
+      end
+      render_path = absolute and render_path or projpath .. render_path
+      local ok = reaper.CF_ShellExecute( render_path )
+      if not ok then
+        reaper.MB(render_path .. "\n\nPath has not been created yet!", "Can't open path", 0 )
+      end
+    else
+      reaper.CF_ShellExecute( projpath )
+    end
+  else
+    reaper.MB("Project is not saved.", "No render path!", 0 )
+  end
+end
+
 local t = {
       {"#Show path in explorer/finder|"},
       {"Reaper Resources path", 40027},
@@ -34,7 +75,7 @@ local t = {
       {"Project File path", '_S&M_OPEN_PRJ_PATH'},
       {"Record path", 40024},
       {"Secondary Record path", 40028},
-      {"Render path", '_AUTORENDER_OPEN_RENDER_PATH'},
+      {"Render path", false},
       {"First selected script in Actions List", false}
 }
 
@@ -42,8 +83,6 @@ local menu = ""
 for i = 1, #t do
   menu = menu .. t[i][1] .. "|"
 end
-
-local proj_file = ({reaper.EnumProjects( -1 )})[2]
 
 local title = "hidden " .. reaper.genGuid()
 gfx.init( title, 0, 0, 0, 0, 0 )
@@ -59,6 +98,10 @@ if selection > 0 then
   if selection == 4 and proj_file ~= "" then --------------
   
     reaper.CF_LocateInExplorer( proj_file )
+    
+  elseif selection == 7 then --------------------
+  
+    OpenRenderPath()
     
   elseif selection == 8 then --------------------
   
