@@ -5,7 +5,7 @@ Version: 1.0
 Changelog: Initial release
 Author URL: https://forum.cockos.com/member.php?u=134058
 Licence: WTFPL
-Screenshots: 
+Screenshots: https://raw.githubusercontent.com/Buy-One/screenshots/main/(Un)Collapse%20envelope%20lanes.gif
 REAPER: at least v5.962  		
 Metapackage: true
 Provides: . > BuyOne_(Un)Collapse envelope lanes/BuyOne_Collapse selected envelope lane in track.lua
