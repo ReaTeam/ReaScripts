@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="e29bbcab7023abb44f168bb8ec7677a23c6ab1a1" name="ReaTeam Scripts">
+<index version="1" commit="d2612ce21752277c396fb7689081b5728438d69c" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -2300,6 +2300,38 @@ Refactored/reorganized the code for readability]]></changelog>
 - Fixed: working when there are other envelopes
 - Added: If mouse is not over Arrange or TCP then it works according to last context]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/bf3b39415aaaaa2a8ce96f99289772dc5da34a81/Envelopes/amagalma_Toggle%20volume%20envelope%20visibility%20for%20selected%20tracks%20or%20items%20depending%20on%20mouse%20position%20or%20last%20context.lua</source>
+      </version>
+    </reapack>
+    <reapack name="BuyOne_(Un)Collapse envelope lanes.lua" type="script" desc="(Un)Collapse envelope lanes (18 scripts)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 In these '(un)collapse envelope lane' scripts 'track envelope' means envelope of TCP controls, those which are listed in the 'trim' (envelope) button context menu or under 'Track Envelopes' heading in the track envelope panel, including Send envelopes.\line 'FX envelope' means envelope of a track FX control.\line With toggle scripts uncollapsed state gets priority, so if at least one envelope lane in selected tracks is uncollapsed, it will be collapsed while collapsed lanes will stay as they are.\line Unidirectional scripts will always work according to their name, If there're no lanes to collapse or uncollapse nothing will happen.\line The scripts don't support creation of undo point due to REAPER internal design.\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="BuyOne" time="2022-01-30T18:20:08Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source file="BuyOne_(Un)Collapse envelope lanes/BuyOne_Collapse selected envelope lane in track.lua">https://github.com/ReaTeam/ReaScripts/raw/14b0fa5b789d3fbafe2a5cf46374d0303d5e632a/Envelopes/BuyOne_(Un)Collapse%20envelope%20lanes.lua</source>
+        <source file="BuyOne_(Un)Collapse envelope lanes/BuyOne_Uncollapse selected envelope lane in track.lua">https://github.com/ReaTeam/ReaScripts/raw/14b0fa5b789d3fbafe2a5cf46374d0303d5e632a/Envelopes/BuyOne_(Un)Collapse%20envelope%20lanes.lua</source>
+        <source file="BuyOne_(Un)Collapse envelope lanes/BuyOne_Collapse selected envelope lane or all lanes in selected tracks.lua">https://github.com/ReaTeam/ReaScripts/raw/14b0fa5b789d3fbafe2a5cf46374d0303d5e632a/Envelopes/BuyOne_(Un)Collapse%20envelope%20lanes.lua</source>
+        <source file="BuyOne_(Un)Collapse envelope lanes/BuyOne_Uncollapse selected envelope lane or all lanes in selected tracks.lua">https://github.com/ReaTeam/ReaScripts/raw/14b0fa5b789d3fbafe2a5cf46374d0303d5e632a/Envelopes/BuyOne_(Un)Collapse%20envelope%20lanes.lua</source>
+        <source file="BuyOne_(Un)Collapse envelope lanes/BuyOne_Collapse selected envelope lane uncollapse others in track.lua">https://github.com/ReaTeam/ReaScripts/raw/14b0fa5b789d3fbafe2a5cf46374d0303d5e632a/Envelopes/BuyOne_(Un)Collapse%20envelope%20lanes.lua</source>
+        <source file="BuyOne_(Un)Collapse envelope lanes/BuyOne_Uncollapse selected envelope lane collapse others in track.lua">https://github.com/ReaTeam/ReaScripts/raw/14b0fa5b789d3fbafe2a5cf46374d0303d5e632a/Envelopes/BuyOne_(Un)Collapse%20envelope%20lanes.lua</source>
+        <source file="BuyOne_(Un)Collapse envelope lanes/BuyOne_Alternate collapsing selected envelope lane and other lanes in track.lua">https://github.com/ReaTeam/ReaScripts/raw/14b0fa5b789d3fbafe2a5cf46374d0303d5e632a/Envelopes/BuyOne_(Un)Collapse%20envelope%20lanes.lua</source>
+        <source file="BuyOne_(Un)Collapse envelope lanes/BuyOne_Collapse track envelope lanes in selected tracks.lua">https://github.com/ReaTeam/ReaScripts/raw/14b0fa5b789d3fbafe2a5cf46374d0303d5e632a/Envelopes/BuyOne_(Un)Collapse%20envelope%20lanes.lua</source>
+        <source file="BuyOne_(Un)Collapse envelope lanes/BuyOne_Uncollapse track envelope lanes in selected tracks.lua">https://github.com/ReaTeam/ReaScripts/raw/14b0fa5b789d3fbafe2a5cf46374d0303d5e632a/Envelopes/BuyOne_(Un)Collapse%20envelope%20lanes.lua</source>
+        <source file="BuyOne_(Un)Collapse envelope lanes/BuyOne_Collapse FX envelope lanes in selected tracks.lua">https://github.com/ReaTeam/ReaScripts/raw/14b0fa5b789d3fbafe2a5cf46374d0303d5e632a/Envelopes/BuyOne_(Un)Collapse%20envelope%20lanes.lua</source>
+        <source file="BuyOne_(Un)Collapse envelope lanes/BuyOne_Uncollapse FX envelope lanes in selected tracks.lua">https://github.com/ReaTeam/ReaScripts/raw/14b0fa5b789d3fbafe2a5cf46374d0303d5e632a/Envelopes/BuyOne_(Un)Collapse%20envelope%20lanes.lua</source>
+        <source file="BuyOne_(Un)Collapse envelope lanes/BuyOne_Collapse all envelope lanes in selected tracks.lua">https://github.com/ReaTeam/ReaScripts/raw/14b0fa5b789d3fbafe2a5cf46374d0303d5e632a/Envelopes/BuyOne_(Un)Collapse%20envelope%20lanes.lua</source>
+        <source file="BuyOne_(Un)Collapse envelope lanes/BuyOne_Uncollapse all envelope lanes in selected tracks.lua">https://github.com/ReaTeam/ReaScripts/raw/14b0fa5b789d3fbafe2a5cf46374d0303d5e632a/Envelopes/BuyOne_(Un)Collapse%20envelope%20lanes.lua</source>
+        <source file="BuyOne_(Un)Collapse envelope lanes/BuyOne_Toggle collapse selected envelope lane in track.lua">https://github.com/ReaTeam/ReaScripts/raw/14b0fa5b789d3fbafe2a5cf46374d0303d5e632a/Envelopes/BuyOne_(Un)Collapse%20envelope%20lanes.lua</source>
+        <source file="BuyOne_(Un)Collapse envelope lanes/BuyOne_Toggle collapse selected envelope lane or all lanes in selected tracks.lua">https://github.com/ReaTeam/ReaScripts/raw/14b0fa5b789d3fbafe2a5cf46374d0303d5e632a/Envelopes/BuyOne_(Un)Collapse%20envelope%20lanes.lua</source>
+        <source file="BuyOne_(Un)Collapse envelope lanes/BuyOne_Toggle collapse track envelope lanes in selected tracks.lua">https://github.com/ReaTeam/ReaScripts/raw/14b0fa5b789d3fbafe2a5cf46374d0303d5e632a/Envelopes/BuyOne_(Un)Collapse%20envelope%20lanes.lua</source>
+        <source file="BuyOne_(Un)Collapse envelope lanes/BuyOne_Toggle collapse FX envelope lanes in selected tracks.lua">https://github.com/ReaTeam/ReaScripts/raw/14b0fa5b789d3fbafe2a5cf46374d0303d5e632a/Envelopes/BuyOne_(Un)Collapse%20envelope%20lanes.lua</source>
+        <source file="BuyOne_(Un)Collapse envelope lanes/BuyOne_Toggle collapse all envelope lanes in selected tracks.lua">https://github.com/ReaTeam/ReaScripts/raw/14b0fa5b789d3fbafe2a5cf46374d0303d5e632a/Envelopes/BuyOne_(Un)Collapse%20envelope%20lanes.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Delete points before or after the edit cursor in selected envelope.lua" type="script" desc="Delete points before or after the edit cursor in selected envelope">
@@ -4929,6 +4961,30 @@ website
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Items%20Editing/AtmanActive_Apply%20track-take%20FX%20to%20selected%20items%20and%20propagate%20new%20files%20to%20other%20items%20with%20same%20source.eel</source>
       </version>
     </reapack>
+    <reapack name="az_Fade tool (work on context of mouse, razor or time selection).lua" type="script" desc="Fade tool (work on context of mouse, razor or time selection)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 #Fade tool\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Use top/bottom mouse placement on the item to define what fade you need, in or out.\par}
+{\pard \ql \f0 \sa180 \li360 \fi0 There is two ways that you can change in the User Area of the code.\par}
+{\pard \ql \f0 \sa180 \li360 \fi0 \f1   Default is top / bottom - fadein / fadeout\line
+\line
+  Another is top / bottom - close edge fade / far edge fade\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Use razor edit area for fades and crossfades a pair of items.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Use time selection with item selection. Such way you can crossfade items on different tracks.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Also you can set both fades for item by selection it's middle.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab There is option (ON by default) to move edit cursor with offset before first fade. That allows you to listen changes immediately.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Script warns if non-midi items have too short source for creating crossfade and offer to loop source.\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="AZ" time="2022-01-30T18:21:52Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d2612ce21752277c396fb7689081b5728438d69c/Items%20Editing/az_Fade%20tool%20(work%20on%20context%20of%20mouse,%20razor%20or%20time%20selection).lua</source>
+      </version>
+    </reapack>
     <reapack name="az_Smart split items by mouse cursor.lua" type="script" desc="Smart split items by mouse cursor">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
@@ -5183,6 +5239,23 @@ For now it provides as empty arrange zone, and items should splitted at edit cur
 #Updated screenshot
 #Updated text under About tag]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a8dae37813e1894d8eea3d88ad97bd981a8b9a67/Items%20Editing/BuyOne_Ripple%20edit%20per%20track%20when%20selected%20item%20length%20changes%20(settings%20inside).lua</source>
+      </version>
+    </reapack>
+    <reapack name="BuyOne_Split grouped items keeping splits in the same group as the originals.lua" type="script" desc="Split grouped items keeping splits in the same group as the originals">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 When items get split their grouping gets split as well. The left and right parts of the split end up being grouped with the items to the left and to the right of the split point (if any) respectively.\line The script allows splitting grouped items without losing grouping of their split parts. Multiple groups are supported.\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/member.php?u=134058</link>
+        <link rel="screenshot">https://raw.githubusercontent.com/Buy-One/screenshots/main/Split%20grouped%20items%20keeping%20splits%20in%20the%20same%20group%20as%20the%20originals.gif</link>
+      </metadata>
+      <version name="1.0" author="BuyOne" time="2022-01-30T18:19:26Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/5900e071a39413b09eed9b3000ae37a65701c5df/Items%20Editing/BuyOne_Split%20grouped%20items%20keeping%20splits%20in%20the%20same%20group%20as%20the%20originals.lua</source>
       </version>
     </reapack>
     <reapack name="BuyOne_Split selected MIDI item by notes.lua" type="script" desc="Split selected MIDI item by notes">
@@ -20554,6 +20627,51 @@ here
         <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun scale note 7.lua">https://github.com/ReaTeam/ReaScripts/raw/e3e44867dff0c07def9712f52541bf1da71add2f/Various/pandabot_ChordGun/pandabot_ChordGun%20scale%20note%207.lua</source>
         <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun stop all notes from playing.lua">https://github.com/ReaTeam/ReaScripts/raw/e3e44867dff0c07def9712f52541bf1da71add2f/Various/pandabot_ChordGun/pandabot_ChordGun%20stop%20all%20notes%20from%20playing.lua</source>
         <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun.lua">https://github.com/ReaTeam/ReaScripts/raw/e3e44867dff0c07def9712f52541bf1da71add2f/Various/pandabot_ChordGun/pandabot_ChordGun.lua</source>
+      </version>
+      <version name="1.8" author="pandabot" time="2022-01-30T18:21:15Z">
+        <changelog><![CDATA[+ now preserving existing note lengths if notes are selected]]></changelog>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun decrement chord inversion.lua">https://github.com/ReaTeam/ReaScripts/raw/dfcf6e0554d10d64974138fc8a5482ac00a36fff/Various/pandabot_ChordGun/pandabot_ChordGun%20decrement%20chord%20inversion.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun decrement chord type.lua">https://github.com/ReaTeam/ReaScripts/raw/dfcf6e0554d10d64974138fc8a5482ac00a36fff/Various/pandabot_ChordGun/pandabot_ChordGun%20decrement%20chord%20type.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun decrement octave.lua">https://github.com/ReaTeam/ReaScripts/raw/dfcf6e0554d10d64974138fc8a5482ac00a36fff/Various/pandabot_ChordGun/pandabot_ChordGun%20decrement%20octave.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun decrement scale tonic note.lua">https://github.com/ReaTeam/ReaScripts/raw/dfcf6e0554d10d64974138fc8a5482ac00a36fff/Various/pandabot_ChordGun/pandabot_ChordGun%20decrement%20scale%20tonic%20note.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun decrement scale type.lua">https://github.com/ReaTeam/ReaScripts/raw/dfcf6e0554d10d64974138fc8a5482ac00a36fff/Various/pandabot_ChordGun/pandabot_ChordGun%20decrement%20scale%20type.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun double grid size.lua">https://github.com/ReaTeam/ReaScripts/raw/dfcf6e0554d10d64974138fc8a5482ac00a36fff/Various/pandabot_ChordGun/pandabot_ChordGun%20double%20grid%20size.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun halve grid size.lua">https://github.com/ReaTeam/ReaScripts/raw/dfcf6e0554d10d64974138fc8a5482ac00a36fff/Various/pandabot_ChordGun/pandabot_ChordGun%20halve%20grid%20size.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun higher scale note 1.lua">https://github.com/ReaTeam/ReaScripts/raw/dfcf6e0554d10d64974138fc8a5482ac00a36fff/Various/pandabot_ChordGun/pandabot_ChordGun%20higher%20scale%20note%201.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun higher scale note 2.lua">https://github.com/ReaTeam/ReaScripts/raw/dfcf6e0554d10d64974138fc8a5482ac00a36fff/Various/pandabot_ChordGun/pandabot_ChordGun%20higher%20scale%20note%202.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun higher scale note 3.lua">https://github.com/ReaTeam/ReaScripts/raw/dfcf6e0554d10d64974138fc8a5482ac00a36fff/Various/pandabot_ChordGun/pandabot_ChordGun%20higher%20scale%20note%203.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun higher scale note 4.lua">https://github.com/ReaTeam/ReaScripts/raw/dfcf6e0554d10d64974138fc8a5482ac00a36fff/Various/pandabot_ChordGun/pandabot_ChordGun%20higher%20scale%20note%204.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun higher scale note 5.lua">https://github.com/ReaTeam/ReaScripts/raw/dfcf6e0554d10d64974138fc8a5482ac00a36fff/Various/pandabot_ChordGun/pandabot_ChordGun%20higher%20scale%20note%205.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun higher scale note 6.lua">https://github.com/ReaTeam/ReaScripts/raw/dfcf6e0554d10d64974138fc8a5482ac00a36fff/Various/pandabot_ChordGun/pandabot_ChordGun%20higher%20scale%20note%206.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun higher scale note 7.lua">https://github.com/ReaTeam/ReaScripts/raw/dfcf6e0554d10d64974138fc8a5482ac00a36fff/Various/pandabot_ChordGun/pandabot_ChordGun%20higher%20scale%20note%207.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun increment chord inversion.lua">https://github.com/ReaTeam/ReaScripts/raw/dfcf6e0554d10d64974138fc8a5482ac00a36fff/Various/pandabot_ChordGun/pandabot_ChordGun%20increment%20chord%20inversion.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun increment chord type.lua">https://github.com/ReaTeam/ReaScripts/raw/dfcf6e0554d10d64974138fc8a5482ac00a36fff/Various/pandabot_ChordGun/pandabot_ChordGun%20increment%20chord%20type.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun increment octave.lua">https://github.com/ReaTeam/ReaScripts/raw/dfcf6e0554d10d64974138fc8a5482ac00a36fff/Various/pandabot_ChordGun/pandabot_ChordGun%20increment%20octave.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun increment scale tonic note.lua">https://github.com/ReaTeam/ReaScripts/raw/dfcf6e0554d10d64974138fc8a5482ac00a36fff/Various/pandabot_ChordGun/pandabot_ChordGun%20increment%20scale%20tonic%20note.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun increment scale type.lua">https://github.com/ReaTeam/ReaScripts/raw/dfcf6e0554d10d64974138fc8a5482ac00a36fff/Various/pandabot_ChordGun/pandabot_ChordGun%20increment%20scale%20type.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun lower scale note 1.lua">https://github.com/ReaTeam/ReaScripts/raw/dfcf6e0554d10d64974138fc8a5482ac00a36fff/Various/pandabot_ChordGun/pandabot_ChordGun%20lower%20scale%20note%201.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun lower scale note 2.lua">https://github.com/ReaTeam/ReaScripts/raw/dfcf6e0554d10d64974138fc8a5482ac00a36fff/Various/pandabot_ChordGun/pandabot_ChordGun%20lower%20scale%20note%202.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun lower scale note 3.lua">https://github.com/ReaTeam/ReaScripts/raw/dfcf6e0554d10d64974138fc8a5482ac00a36fff/Various/pandabot_ChordGun/pandabot_ChordGun%20lower%20scale%20note%203.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun lower scale note 4.lua">https://github.com/ReaTeam/ReaScripts/raw/dfcf6e0554d10d64974138fc8a5482ac00a36fff/Various/pandabot_ChordGun/pandabot_ChordGun%20lower%20scale%20note%204.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun lower scale note 5.lua">https://github.com/ReaTeam/ReaScripts/raw/dfcf6e0554d10d64974138fc8a5482ac00a36fff/Various/pandabot_ChordGun/pandabot_ChordGun%20lower%20scale%20note%205.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun lower scale note 6.lua">https://github.com/ReaTeam/ReaScripts/raw/dfcf6e0554d10d64974138fc8a5482ac00a36fff/Various/pandabot_ChordGun/pandabot_ChordGun%20lower%20scale%20note%206.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun lower scale note 7.lua">https://github.com/ReaTeam/ReaScripts/raw/dfcf6e0554d10d64974138fc8a5482ac00a36fff/Various/pandabot_ChordGun/pandabot_ChordGun%20lower%20scale%20note%207.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun scale chord 1.lua">https://github.com/ReaTeam/ReaScripts/raw/dfcf6e0554d10d64974138fc8a5482ac00a36fff/Various/pandabot_ChordGun/pandabot_ChordGun%20scale%20chord%201.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun scale chord 2.lua">https://github.com/ReaTeam/ReaScripts/raw/dfcf6e0554d10d64974138fc8a5482ac00a36fff/Various/pandabot_ChordGun/pandabot_ChordGun%20scale%20chord%202.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun scale chord 3.lua">https://github.com/ReaTeam/ReaScripts/raw/dfcf6e0554d10d64974138fc8a5482ac00a36fff/Various/pandabot_ChordGun/pandabot_ChordGun%20scale%20chord%203.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun scale chord 4.lua">https://github.com/ReaTeam/ReaScripts/raw/dfcf6e0554d10d64974138fc8a5482ac00a36fff/Various/pandabot_ChordGun/pandabot_ChordGun%20scale%20chord%204.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun scale chord 5.lua">https://github.com/ReaTeam/ReaScripts/raw/dfcf6e0554d10d64974138fc8a5482ac00a36fff/Various/pandabot_ChordGun/pandabot_ChordGun%20scale%20chord%205.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun scale chord 6.lua">https://github.com/ReaTeam/ReaScripts/raw/dfcf6e0554d10d64974138fc8a5482ac00a36fff/Various/pandabot_ChordGun/pandabot_ChordGun%20scale%20chord%206.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun scale chord 7.lua">https://github.com/ReaTeam/ReaScripts/raw/dfcf6e0554d10d64974138fc8a5482ac00a36fff/Various/pandabot_ChordGun/pandabot_ChordGun%20scale%20chord%207.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun scale note 1.lua">https://github.com/ReaTeam/ReaScripts/raw/dfcf6e0554d10d64974138fc8a5482ac00a36fff/Various/pandabot_ChordGun/pandabot_ChordGun%20scale%20note%201.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun scale note 2.lua">https://github.com/ReaTeam/ReaScripts/raw/dfcf6e0554d10d64974138fc8a5482ac00a36fff/Various/pandabot_ChordGun/pandabot_ChordGun%20scale%20note%202.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun scale note 3.lua">https://github.com/ReaTeam/ReaScripts/raw/dfcf6e0554d10d64974138fc8a5482ac00a36fff/Various/pandabot_ChordGun/pandabot_ChordGun%20scale%20note%203.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun scale note 4.lua">https://github.com/ReaTeam/ReaScripts/raw/dfcf6e0554d10d64974138fc8a5482ac00a36fff/Various/pandabot_ChordGun/pandabot_ChordGun%20scale%20note%204.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun scale note 5.lua">https://github.com/ReaTeam/ReaScripts/raw/dfcf6e0554d10d64974138fc8a5482ac00a36fff/Various/pandabot_ChordGun/pandabot_ChordGun%20scale%20note%205.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun scale note 6.lua">https://github.com/ReaTeam/ReaScripts/raw/dfcf6e0554d10d64974138fc8a5482ac00a36fff/Various/pandabot_ChordGun/pandabot_ChordGun%20scale%20note%206.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun scale note 7.lua">https://github.com/ReaTeam/ReaScripts/raw/dfcf6e0554d10d64974138fc8a5482ac00a36fff/Various/pandabot_ChordGun/pandabot_ChordGun%20scale%20note%207.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun stop all notes from playing.lua">https://github.com/ReaTeam/ReaScripts/raw/dfcf6e0554d10d64974138fc8a5482ac00a36fff/Various/pandabot_ChordGun/pandabot_ChordGun%20stop%20all%20notes%20from%20playing.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun.lua">https://github.com/ReaTeam/ReaScripts/raw/dfcf6e0554d10d64974138fc8a5482ac00a36fff/Various/pandabot_ChordGun/pandabot_ChordGun.lua</source>
       </version>
     </reapack>
     <reapack name="patrickmartin_Split at transients and create regions named from pitches.lua" type="script" desc="Split at transients and create regions named from pitches">
