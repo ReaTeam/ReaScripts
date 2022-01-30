@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="df67225ceca955d18b7c8bf5782796a807cd41c5" name="ReaTeam Scripts">
+<index version="1" commit="e29bbcab7023abb44f168bb8ec7677a23c6ab1a1" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -17108,6 +17108,10 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
       <version name="1.11" author="amagalma" time="2021-11-28T12:48:32Z">
         <changelog><![CDATA[- Fix menu placement for OSX]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4f0942e25ec4e28b123b6383ee89dc5fd23d407f/Various/amagalma_Show%20path%20from%20list%20menu%20(Resource,%20Selected%20Item,%20Project%20File,%20Record,%20Secondary%20Record,%20Render).lua</source>
+      </version>
+      <version name="1.12" author="amagalma" time="2022-01-30T13:46:49Z">
+        <changelog><![CDATA[- Fix for Render Path]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e29bbcab7023abb44f168bb8ec7677a23c6ab1a1/Various/amagalma_Show%20path%20from%20list%20menu%20(Resource,%20Selected%20Item,%20Project%20File,%20Record,%20Secondary%20Record,%20Render).lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Simulate tempo with playrate.lua" type="script" desc="amagalma_Simulate tempo with playrate">
