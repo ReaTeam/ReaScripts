@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="d2612ce21752277c396fb7689081b5728438d69c" name="ReaTeam Scripts">
+<index version="1" commit="8b631c982b4bca7d97a9ccec1effb46bfcd7c036" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -15995,6 +15995,11 @@ PDC Manager is no longer a GUI option. It can still be enabled by setting script
       </metadata>
       <version name="1.00" author="amagalma" time="2022-01-27T23:02:09Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/df67225ceca955d18b7c8bf5782796a807cd41c5/Various/amagalma_Add%20smart%20metronome%20click%20track%20below%20the%20selected%20track.lua</source>
+      </version>
+      <version name="1.02" author="amagalma" time="2022-02-01T11:22:58Z">
+        <changelog><![CDATA[- If no track is selected then the click track is inserted as the first in the project
+- Show ReaGate's Threshold and Dry parameters on the TCP of the click track]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/8b631c982b4bca7d97a9ccec1effb46bfcd7c036/Various/amagalma_Add%20smart%20metronome%20click%20track%20below%20the%20selected%20track.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Adjust theme colors.lua" type="script" desc="Adjust theme colors">
