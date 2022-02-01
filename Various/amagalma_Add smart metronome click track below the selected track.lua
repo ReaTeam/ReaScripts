@@ -1,6 +1,9 @@
 -- @description Add smart metronome click track below the selected track
 -- @author amagalma
--- @version 1.00
+-- @version 1.02
+-- @changelog
+--   - If no track is selected then the click track is inserted as the first in the project
+--   - Show ReaGate's Threshold and Dry parameters on the TCP of the click track
 -- @donation https://www.paypal.me/amagalma
 -- @about
 --   Adds a track below the selected track with a click source for at least 220secs or more if the project is bigger.
@@ -8,17 +11,12 @@
 --   The click track has ReaGate loaded and its volume will depend on the volume of the audio coming to its sidechain on channels 3&4. So, the metronome will play louder if the sidechain is louder and softer if it is softer ( in order to avoid bleed from the click track into the recording)
 
 
-local track = reaper.GetSelectedTrack( 0, 0 )
-if not track then
-  reaper.MB("Please, select one track.", "Message", 0)
-  return reaper.defer(function() end)
-end
-
 reaper.Undo_BeginBlock()
 reaper.PreventUIRefresh( 1 )
 
 -- Add metronome track
-local track_id = reaper.GetMediaTrackInfo_Value( track, "IP_TRACKNUMBER" )
+local track = reaper.GetSelectedTrack( 0, 0 )
+local track_id = track and reaper.GetMediaTrackInfo_Value( track, "IP_TRACKNUMBER" ) or 0
 reaper.InsertTrackAtIndex( track_id, false )
 track = reaper.GetTrack( 0, track_id )
 reaper.GetSetMediaTrackInfo_String( track, "P_NAME", "Metronome", true )
@@ -34,6 +32,10 @@ local bpm, bpi = reaper.GetProjectTimeSignature2( 0 )
 reaper.TrackFX_SetParam( track, fxid, 2, (60/bpm*bpi/5)*0.5 ) -- 2 release to half measure
 reaper.TrackFX_SetParam( track, fxid, 7, 0.0018450184725225 )-- 7 signin Aux Inputs
 reaper.TrackFX_SetParam( track, fxid, 9, 0.063095733523369 )-- 9 dry -24dB
+reaper.SNM_AddTCPFXParm( track, fxid, 0 )
+reaper.SNM_AddTCPFXParm( track, fxid, 9 )
+reaper.SetMediaTrackInfo_Value( track, "I_HEIGHTOVERRIDE", 108 )
+
 
 -- Add click
 local cur_pos = reaper.GetCursorPosition()
