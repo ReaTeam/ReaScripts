@@ -2,10 +2,8 @@
 Description: ChordGun
 Author: pandabot
 License: MIT
-Version: 1.8
-Changelog: + now preserving existing note lengths if notes are selected
-+ added ability to move midi editor cursor with left and right arrow buttons
-+ added persistence for floating window position
+Version: 1.9
+Changelog: + now preserving existing note velocity, mute state and channel if notes are selected
 Screenshot: https://github.com/benjohnson2001/ChordGun/raw/release/ChordGun/src/images/chordGunInterface.png
 Donate: https://paypal.me/benjohnson2001
 Links:

@@ -896,11 +896,11 @@ local function loopIsActive()
   end
 end
 
-function moveCursor(keepNotesSelected, noteEndPosition)
+function moveCursor(keepNotesSelected, selectedChord)
 
   if keepNotesSelected then
 
-    local noteEndPositionInProjTime = reaper.MIDI_GetProjTimeFromPPQPos(activeTake(), noteEndPosition)
+    local noteEndPositionInProjTime = reaper.MIDI_GetProjTimeFromPPQPos(activeTake(), selectedChord.longestEndPosition)
     local noteLengthOfSelectedNote = noteEndPositionInProjTime-cursorPosition()
 
     if loopIsActive() and loopEndPosition() < mediaItemEndPosition() then
@@ -1106,14 +1106,14 @@ end
 
 --
 
-function deleteExistingNotesInNextInsertionTimePeriod(keepNotesSelected, noteEndPosition)
+function deleteExistingNotesInNextInsertionTimePeriod(keepNotesSelected, selectedChord)
 
   local insertionStartTime = cursorPosition()
 
   local insertionEndTime = nil
   
   if keepNotesSelected then
-    insertionEndTime = reaper.MIDI_GetProjTimeFromPPQPos(activeTake(), noteEndPosition)
+    insertionEndTime = reaper.MIDI_GetProjTimeFromPPQPos(activeTake(), selectedChord.longestEndPosition)
   else
     insertionEndTime = insertionStartTime + noteLength()
   end
@@ -1224,24 +1224,41 @@ function getChordNotesArray(root, chord, octave)
 end
 local workingDirectory = reaper.GetResourcePath() .. "/Scripts/ChordGun/src"
 
-function insertMidiNote(note, keepNotesSelected, noteEndPosition)
+function insertMidiNote(note, keepNotesSelected, selectedChord, noteIndex)
 
-	local noteIsMuted = false
 	local startPosition = getCursorPositionPPQ()
 
 	local endPosition = nil
+	local velocity = nil
+	local channel = nil
+	local muteState = nil
 	
 	if keepNotesSelected then
-		endPosition = noteEndPosition
+
+		local numberOfSelectedNotes = #selectedChord.selectedNotes
+
+		if noteIndex > numberOfSelectedNotes then
+			endPosition = selectedChord.selectedNotes[numberOfSelectedNotes].endPosition
+			velocity = selectedChord.selectedNotes[numberOfSelectedNotes].velocity
+			channel = selectedChord.selectedNotes[numberOfSelectedNotes].channel
+			muteState = selectedChord.selectedNotes[numberOfSelectedNotes].muteState
+		else
+			endPosition = selectedChord.selectedNotes[noteIndex].endPosition
+			velocity = selectedChord.selectedNotes[noteIndex].velocity
+			channel = selectedChord.selectedNotes[noteIndex].channel
+			muteState = selectedChord.selectedNotes[noteIndex].muteState
+		end
+		
 	else
 		endPosition = getMidiEndPositionPPQ()
+		velocity = getCurrentVelocity()
+		channel = getCurrentNoteChannel()
+		muteState = false
 	end
 
-	local channel = getCurrentNoteChannel()
-	local velocity = getCurrentVelocity()
 	local noSort = false
 
-	reaper.MIDI_InsertNote(activeTake(), keepNotesSelected, noteIsMuted, startPosition, endPosition, channel, note, velocity, noSort)
+	reaper.MIDI_InsertNote(activeTake(), keepNotesSelected, muteState, startPosition, endPosition, channel, note, velocity, noSort)
 end
 local workingDirectory = reaper.GetResourcePath() .. "/Scripts/ChordGun/src"
 
@@ -1249,8 +1266,8 @@ local function playScaleChord(chordNotesArray)
 
   stopNotesFromPlaying()
   
-  for note = 1, #chordNotesArray do
-    playMidiNote(chordNotesArray[note])
+  for noteIndex = 1, #chordNotesArray do
+    playMidiNote(chordNotesArray[noteIndex])
   end
 
   setNotesThatArePlaying(chordNotesArray) 
@@ -1270,15 +1287,15 @@ function previewScaleChord()
   updateChordText(root, chord, chordNotesArray)
 end
 
-function insertScaleChord(chordNotesArray, keepNotesSelected, noteEndPosition)
+function insertScaleChord(chordNotesArray, keepNotesSelected, selectedChord)
 
-  deleteExistingNotesInNextInsertionTimePeriod(keepNotesSelected, noteEndPosition)
+  deleteExistingNotesInNextInsertionTimePeriod(keepNotesSelected, selectedChord)
 
-  for note = 1, #chordNotesArray do
-    insertMidiNote(chordNotesArray[note], keepNotesSelected, noteEndPosition)
+  for noteIndex = 1, #chordNotesArray do
+    insertMidiNote(chordNotesArray[noteIndex], keepNotesSelected, selectedChord, noteIndex)
   end
 
-  moveCursor(keepNotesSelected, noteEndPosition)
+  moveCursor(keepNotesSelected, selectedChord)
 end
 
 function playOrInsertScaleChord(actionDescription)
@@ -1320,11 +1337,13 @@ local function playScaleNote(noteValue)
 end
 
 
-function insertScaleNote(noteValue, keepNotesSelected, noteEndPosition)
+function insertScaleNote(noteValue, keepNotesSelected, selectedChord)
 
-	deleteExistingNotesInNextInsertionTimePeriod(keepNotesSelected, noteEndPosition)
-	insertMidiNote(noteValue, keepNotesSelected, noteEndPosition)
-	moveCursor(keepNotesSelected, noteEndPosition)
+	deleteExistingNotesInNextInsertionTimePeriod(keepNotesSelected, selectedChord)
+
+	local noteIndex = 1
+	insertMidiNote(noteValue, keepNotesSelected, selectedChord, noteIndex)
+	moveCursor(keepNotesSelected, selectedChord)
 end
 
 function previewScaleNote(octaveAdjustment)
@@ -1363,24 +1382,45 @@ function playOrInsertScaleNote(octaveAdjustment, actionDescription)
 end
 local workingDirectory = reaper.GetResourcePath() .. "/Scripts/ChordGun/src"
 
-NotePosition = {}
-NotePosition.__index = NotePosition
+SelectedNote = {}
+SelectedNote.__index = SelectedNote
 
-function NotePosition:new(startPosition, endPosition)
+function SelectedNote:new(endPosition, velocity, channel, muteState, pitch)
   local self = {}
-  setmetatable(self, NotePosition)
+  setmetatable(self, SelectedNote)
 
-  self.startPosition = startPosition
   self.endPosition = endPosition
+  self.velocity = velocity
+  self.channel = channel
+  self.muteState = muteState
+  self.pitch = pitch
 
   return self
 end
 
-local function noteStartPositionDoesNotExist(notePositions, startPositionArg)
+SelectedChord = {}
+SelectedChord.__index = SelectedChord
 
-	for index, notePosition in pairs(notePositions) do
+function SelectedChord:new(startPosition, endPosition, velocity, channel, muteState, pitch)
+  local self = {}
+  setmetatable(self, SelectedChord)
 
-		if notePosition.startPosition == startPositionArg then
+  self.startPosition = startPosition
+  self.longestEndPosition = endPosition
+
+  self.selectedNotes = {}
+  table.insert(self.selectedNotes, SelectedNote:new(endPosition, velocity, channel, muteState, pitch))
+
+  return self
+end
+
+
+
+local function noteStartPositionDoesNotExist(selectedChords, startPositionArg)
+
+	for index, selectedChord in pairs(selectedChords) do
+
+		if selectedChord.startPosition == startPositionArg then
 			return false
 		end
 	end
@@ -1388,39 +1428,46 @@ local function noteStartPositionDoesNotExist(notePositions, startPositionArg)
 	return true
 end
 
-local function updateNoteEndPositionToBeTheLongerValue(notePositions, startPositionArg, endPositionArg)
+local function updateSelectedChord(selectedChords, startPositionArg, endPositionArg, velocityArg, channelArg, muteStateArg, pitchArg)
 
-	for index, notePosition in pairs(notePositions) do
+	for index, selectedChord in pairs(selectedChords) do
 
-		if notePosition.startPosition == startPositionArg then
+		if selectedChord.startPosition == startPositionArg then
 
-			if endPositionArg > notePosition.endPosition then
-				notePosition.endPosition = endPositionArg
+			table.insert(selectedChord.selectedNotes, SelectedNote:new(endPositionArg, velocityArg, channelArg, muteStateArg, pitchArg))
+
+			if endPositionArg > selectedChord.longestEndPosition then
+				selectedChord.longestEndPosition = endPositionArg
 			end
+
 		end
 	end
 end
 
-local function getNotePositions()
+local function getSelectedChords()
 
 	local numberOfNotes = getNumberOfNotes()
-	local notePositions = {}
+	local selectedChords = {}
 
 	for noteIndex = 0, numberOfNotes-1 do
 
-		local _, noteIsSelected, noteIsMuted, noteStartPositionPPQ, noteEndPositionPPQ = reaper.MIDI_GetNote(activeTake(), noteIndex)
-	
+		local _, noteIsSelected, muteState, noteStartPositionPPQ, noteEndPositionPPQ, channel, pitch, velocity = reaper.MIDI_GetNote(activeTake(), noteIndex)
+
 		if noteIsSelected then
 
-			if noteStartPositionDoesNotExist(notePositions, noteStartPositionPPQ) then
-				table.insert(notePositions, NotePosition:new(noteStartPositionPPQ, noteEndPositionPPQ))
+			if noteStartPositionDoesNotExist(selectedChords, noteStartPositionPPQ) then
+				table.insert(selectedChords, SelectedChord:new(noteStartPositionPPQ, noteEndPositionPPQ, velocity, channel, muteState, pitch))
 			else
-				updateNoteEndPositionToBeTheLongerValue(notePositions, noteStartPositionPPQ, noteEndPositionPPQ)
+				updateSelectedChord(selectedChords, noteStartPositionPPQ, noteEndPositionPPQ, velocity, channel, muteState, pitch)
 			end
 		end
 	end
 
-	return notePositions
+	for selectedChordIndex = 1, #selectedChords do
+		table.sort(selectedChords[selectedChordIndex].selectedNotes, function(a,b) return a.pitch < b.pitch end)
+	end
+
+	return selectedChords
 end
 
 local function deleteSelectedNotes()
@@ -1445,23 +1492,23 @@ end
 
 function changeSelectedNotesToScaleChords(chordNotesArray)
 
-	local notePositions = getNotePositions()
+	local selectedChords = getSelectedChords()
 	deleteSelectedNotes()
 	
-	for i = 1, #notePositions do
-		setEditCursorTo(notePositions[i].startPosition)
-		insertScaleChord(chordNotesArray, true, notePositions[i].endPosition)
+	for i = 1, #selectedChords do
+		setEditCursorTo(selectedChords[i].startPosition)
+		insertScaleChord(chordNotesArray, true, selectedChords[i])
 	end
 end
 
 function changeSelectedNotesToScaleNotes(noteValue)
 
-	local notePositions = getNotePositions()
+	local selectedChords = getSelectedChords()
 	deleteSelectedNotes()
 
-	for i = 1, #notePositions do
-		setEditCursorTo(notePositions[i].startPosition)
-		insertScaleNote(noteValue, true, notePositions[i].endPosition)
+	for i = 1, #selectedChords do
+		setEditCursorTo(selectedChords[i].startPosition)
+		insertScaleNote(noteValue, true, selectedChords[i])
 	end
 end
 local workingDirectory = reaper.GetResourcePath() .. "/Scripts/ChordGun/src"
@@ -1695,12 +1742,12 @@ local function transposeSelectedNotes(numberOfSemitones)
 
   for noteIndex = numberOfNotes-1, 0, -1 do
 
-    local _, noteIsSelected, noteIsMuted, noteStartPositionPPQ, noteEndPositionPPQ, channel, pitch, velocity = reaper.MIDI_GetNote(activeTake(), noteIndex)
+    local _, noteIsSelected, muteState, noteStartPositionPPQ, noteEndPositionPPQ, channel, pitch, velocity = reaper.MIDI_GetNote(activeTake(), noteIndex)
   
     if noteIsSelected then
       deleteNote(noteIndex)
       local noSort = false
-      reaper.MIDI_InsertNote(activeTake(), noteIsSelected, noteIsMuted, noteStartPositionPPQ, noteEndPositionPPQ, channel, pitch+numberOfSemitones, velocity, noSort)
+      reaper.MIDI_InsertNote(activeTake(), noteIsSelected, muteState, noteStartPositionPPQ, noteEndPositionPPQ, channel, pitch+numberOfSemitones, velocity, noSort)
     end
   end
 end
