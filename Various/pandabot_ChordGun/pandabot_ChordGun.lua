@@ -1779,7 +1779,12 @@ function decrementChordInversionAction()
 
 	local actionDescription = "decrement chord inversion"
 	decrementChordInversion()
-	playOrInsertScaleChord(actionDescription)
+
+	if thereAreNotesSelected() then
+		playOrInsertScaleChord(actionDescription)
+	else
+		previewScaleChord()
+	end
 end
 
 --
@@ -1803,7 +1808,12 @@ function incrementChordInversionAction()
 
 	local actionDescription = "increment chord inversion"
 	incrementChordInversion()
-	playOrInsertScaleChord(actionDescription)
+
+	if thereAreNotesSelected() then
+		playOrInsertScaleChord(actionDescription)
+	else
+		previewScaleChord()
+	end
 end
 
 --
@@ -1824,7 +1834,12 @@ function decrementChordTypeAction()
 
 	local actionDescription = "decrement chord type"
 	decrementChordType()
-	playOrInsertScaleChord(actionDescription)
+
+	if thereAreNotesSelected() then
+		playOrInsertScaleChord(actionDescription)
+	else
+		previewScaleChord()
+	end
 end
 
 --
@@ -1845,7 +1860,12 @@ function incrementChordTypeAction()
 
 	local actionDescription = "increment chord type"
 	incrementChordType()
-	playOrInsertScaleChord(actionDescription)
+
+	if thereAreNotesSelected() then
+		playOrInsertScaleChord(actionDescription)
+	else
+		previewScaleChord()
+	end
 end
 
 --
@@ -4318,6 +4338,8 @@ end
 
 function handleInput()
 
+	local operatingSystem = string.lower(reaper.GetOS())
+
 	inputCharacter = gfx.getchar()
 	
 	if inputCharacter == inputCharacters["ESC"] then
@@ -4583,11 +4605,11 @@ function handleInput()
 
 -----------------
 
---[[
+
 	local function shiftKeyIsHeldDown()
 		return gfx.mouse_cap & 8 == 8
 	end
-]]--
+
 	local function controlKeyIsHeldDown()
 		return gfx.mouse_cap & 32 == 32 
 	end
@@ -4602,11 +4624,9 @@ function handleInput()
 
 	--
 
---[[
 	local function shiftKeyIsNotHeldDown()
 		return gfx.mouse_cap & 8 ~= 8
 	end
-]]--
 
 	local function controlKeyIsNotHeldDown()
 		return gfx.mouse_cap & 32 ~= 32
@@ -4621,12 +4641,6 @@ function handleInput()
 	end
 
 	--
-
---[[
-	local function shiftModifierIsActive()
-		return shiftKeyIsHeldDown() and controlKeyIsNotHeldDown() and optionKeyIsNotHeldDown() and commandKeyIsNotHeldDown()
-	end
-]]--
 
 	local function controlModifierIsActive()
 		return controlKeyIsHeldDown() and optionKeyIsNotHeldDown() and commandKeyIsNotHeldDown()
@@ -4658,36 +4672,78 @@ function handleInput()
 		incrementScaleTypeAction()
 	end
 
-	if inputCharacter == inputCharacters[","] and optionModifierIsActive() then
-		halveGridSize()
-	end
 
-	if inputCharacter == inputCharacters["."] and optionModifierIsActive() then
-		doubleGridSize()
-	end
+	if operatingSystem == "win64" or operatingSystem == "win32" then
 
-	if inputCharacter == inputCharacters["<"] and optionModifierIsActive() then
-		decrementOctaveAction()
-	end
+		if inputCharacter == inputCharacters[","] and shiftKeyIsNotHeldDown() and optionModifierIsActive() then
+			halveGridSize()
+		end
 
-	if inputCharacter == inputCharacters[">"] and optionModifierIsActive() then
-		incrementOctaveAction()
-	end
+		if inputCharacter == inputCharacters["."] and shiftKeyIsNotHeldDown() and optionModifierIsActive() then
+			doubleGridSize()
+		end
 
-	if inputCharacter == inputCharacters[","] and commandModifierIsActive() then
-		decrementChordTypeAction()
-	end
+		if inputCharacter == inputCharacters[","] and shiftKeyIsHeldDown() and optionModifierIsActive() then
+			decrementOctaveAction()
+		end
 
-	if inputCharacter == inputCharacters["."] and commandModifierIsActive() then
-		incrementChordTypeAction()
-	end
+		if inputCharacter == inputCharacters["."] and shiftKeyIsHeldDown() and optionModifierIsActive() then
+			incrementOctaveAction()
+		end
 
-	if inputCharacter == inputCharacters["<"] and commandModifierIsActive() then
-		decrementChordInversionAction()
-	end
+		--
 
-	if inputCharacter == inputCharacters[">"] and commandModifierIsActive() then
-		incrementChordInversionAction()
+		if inputCharacter == inputCharacters[","] and shiftKeyIsNotHeldDown() and commandModifierIsActive() then
+			decrementChordTypeAction()
+		end
+
+		if inputCharacter == inputCharacters["."] and shiftKeyIsNotHeldDown() and commandModifierIsActive() then
+			incrementChordTypeAction()
+		end
+
+		if inputCharacter == inputCharacters[","] and shiftKeyIsHeldDown() and commandModifierIsActive() then
+			decrementChordInversionAction()
+		end
+
+		if inputCharacter == inputCharacters["."] and shiftKeyIsHeldDown() and commandModifierIsActive() then
+			incrementChordInversionAction()
+		end
+
+	else
+
+		if inputCharacter == inputCharacters[","] and optionModifierIsActive() then
+			halveGridSize()
+		end
+
+		if inputCharacter == inputCharacters["."] and optionModifierIsActive() then
+			doubleGridSize()
+		end
+
+		if inputCharacter == inputCharacters["<"] and optionModifierIsActive() then
+			decrementOctaveAction()
+		end
+
+		if inputCharacter == inputCharacters[">"] and optionModifierIsActive() then
+			incrementOctaveAction()
+		end
+
+		--
+
+		if inputCharacter == inputCharacters[","] and commandModifierIsActive() then
+			decrementChordTypeAction()
+		end
+
+		if inputCharacter == inputCharacters["."] and commandModifierIsActive() then
+			incrementChordTypeAction()
+		end
+
+		if inputCharacter == inputCharacters["<"] and commandModifierIsActive() then
+			decrementChordInversionAction()
+		end
+
+		if inputCharacter == inputCharacters[">"] and commandModifierIsActive() then
+			incrementChordInversionAction()
+		end
 	end
 end
 local workingDirectory = reaper.GetResourcePath() .. "/Scripts/ChordGun/src"

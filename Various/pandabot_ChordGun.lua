@@ -2,8 +2,8 @@
 Description: ChordGun
 Author: pandabot
 License: MIT
-Version: 1.9
-Changelog: + now preserving existing note velocity, mute state and channel if notes are selected
+Version: 1.10
+Changelog: + fixed bug where some keyboard shortcuts did not work on Windows machines
 Screenshot: https://github.com/benjohnson2001/ChordGun/raw/release/ChordGun/src/images/chordGunInterface.png
 Donate: https://paypal.me/benjohnson2001
 Links:
