@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="8b631c982b4bca7d97a9ccec1effb46bfcd7c036" name="ReaTeam Scripts">
+<index version="1" commit="6da6879ecd109ff6747fc0bcc94b9aacb2a9a53e" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -16225,6 +16225,28 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
       </metadata>
       <version name="1.0" author="amagalma" time="2021-07-25T20:29:46Z">
         <source main="main" file="amagalma_Backup Limit/amagalma_Backup Limit Settings - Keep x number of most recent timestamped backups of current project file.lua">https://github.com/ReaTeam/ReaScripts/raw/d4a4fed7c8006ee6b7b042136bd7b577c6de1b9d/Various/amagalma_Backup%20Limit%20Settings%20-%20Keep%20x%20number%20of%20most%20recent%20timestamped%20backups%20of%20current%20project%20file.lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Backup Limit Stand-Alone - Keep x number of most recent timestamped backups of the selected project(s) (browse to specify).lua" type="script" desc="Backup Limit Stand-Alone - Keep x number of most recent timestamped backups of the selected project(s) (browse to specify)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 This is a stand-alone version of the amagalma_Backup Limit Manual script. Instead of working with the current project, you can browse and specify one or more projects.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 It performs a manual cleanup according to the settings. It has the following features:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab You can specify any number of projects\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Automatically takes care of backup files created in the current project directory and in the additional directory if set (both with absolute or relative path)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Supports all timestamp formats (both with seconds precision or not)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab You can specify how many backups you want to keep (default backup limit = 5)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab "Keep one file per different date" setting, if enabled, will keep one backup per different date that is earier than the backup limit that you have set, so that you can return to the state that your project had in a past date (default = enabled).\sa180\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=255909</link>
+        <link rel="donation">https://www.paypal.me/amagalma</link>
+      </metadata>
+      <version name="1.00" author="amagalma" time="2022-02-02T11:17:43Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6da6879ecd109ff6747fc0bcc94b9aacb2a9a53e/Various/amagalma_Backup%20Limit%20Stand-Alone%20-%20Keep%20x%20number%20of%20most%20recent%20timestamped%20backups%20of%20the%20selected%20project(s)%20(browse%20to%20specify).lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Calculate difference in LUFS when take and track FX are applied to selected item via dry run.lua" type="script" desc="Calculate difference in LUFS when take and track FX are applied to selected item via dry run">
