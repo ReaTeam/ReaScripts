@@ -2,8 +2,8 @@
 Description: ChordGun
 Author: pandabot
 License: MIT
-Version: 1.12
-Changelog: + added mini version for small screen users
+Version: 1.13
+Changelog: + added code to make ChordGun window always on top but left it commented out, requires julian sader extension and only works on Windows
 Screenshot: https://github.com/benjohnson2001/ChordGun/raw/release/ChordGun/src/images/chordGunInterface.png
 Donate: https://paypal.me/benjohnson2001
 Links:

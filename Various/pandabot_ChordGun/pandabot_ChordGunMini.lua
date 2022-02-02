@@ -5140,3 +5140,8 @@ local function main()
 end
 
 main()
+
+-- if (reaper.JS_Window_Find) then
+-- 	local hwnd = reaper.JS_Window_Find("ChordGun", true)
+-- 	reaper.JS_Window_SetZOrder(hwnd, "TOPMOST", hwnd)
+-- end 
