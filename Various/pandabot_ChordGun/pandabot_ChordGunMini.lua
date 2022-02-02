@@ -5141,7 +5141,19 @@ end
 
 main()
 
--- if (reaper.JS_Window_Find) then
--- 	local hwnd = reaper.JS_Window_Find("ChordGun", true)
--- 	reaper.JS_Window_SetZOrder(hwnd, "TOPMOST", hwnd)
--- end 
+
+
+-- If you want the ChordGun window to always be on top then do the following things:
+--
+-- 1. install julian sader extension https://forum.cockos.com/showthread.php?t=212174
+--
+-- 2. uncomment the following code:
+--
+-- 		if (reaper.JS_Window_Find) then
+-- 			local hwnd = reaper.JS_Window_Find("ChordGun", true)
+-- 			reaper.JS_Window_SetZOrder(hwnd, "TOPMOST", hwnd)
+-- 		end
+--
+--
+--
+-- Note that this only works on Windows machines
