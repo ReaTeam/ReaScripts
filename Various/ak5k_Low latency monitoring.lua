@@ -1,6 +1,6 @@
 -- @description Low latency monitoring
 -- @author ak5k
--- @version 0.2.1
+-- @version 2.1
 -- @changelog
 --   New streamlined and strongly opinionated version.
 --
