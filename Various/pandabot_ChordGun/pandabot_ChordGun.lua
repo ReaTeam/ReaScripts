@@ -4354,7 +4354,12 @@ function handleInput()
 		moveEditCursorRightByGrid()
 	end
 
-	if inputCharacter == inputCharacters["0"] then
+
+	local function middleMouseButtonIsHeldDown()
+		return gfx.mouse_cap & 64 == 64
+	end
+
+	if inputCharacter == inputCharacters["0"] or middleMouseButtonIsHeldDown() then
 		stopAllNotesFromPlaying()
 	end
 
