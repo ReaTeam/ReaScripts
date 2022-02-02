@@ -96,9 +96,7 @@ local function UpdateState()
   local retval
   retval, bsize = reaper.GetAudioDeviceInfo("BSIZE")
   bsize = tonumber(bsize) or 0
-  if limit == 0 then
-    limit = bsize
-  end
+  limit = bsize
   local masterTrack = reaper.GetMasterTrack(0)
   local automation = reaper.GetGlobalAutomationOverride()
   for i = 0, reaper.GetNumTracks() do
