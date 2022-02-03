@@ -20693,7 +20693,9 @@ here
         <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun.lua">https://github.com/ReaTeam/ReaScripts/raw/e3e44867dff0c07def9712f52541bf1da71add2f/Various/pandabot_ChordGun/pandabot_ChordGun.lua</source>
       </version>
       <version name="1.8" author="pandabot" time="2022-01-30T18:21:15Z">
-        <changelog><![CDATA[+ now preserving existing note lengths if notes are selected]]></changelog>
+        <changelog><![CDATA[+ now preserving existing note lengths if notes are selected
++ added ability to move midi editor cursor with left and right arrow buttons
++ added persistence for floating window position]]></changelog>
         <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun decrement chord inversion.lua">https://github.com/ReaTeam/ReaScripts/raw/dfcf6e0554d10d64974138fc8a5482ac00a36fff/Various/pandabot_ChordGun/pandabot_ChordGun%20decrement%20chord%20inversion.lua</source>
         <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun decrement chord type.lua">https://github.com/ReaTeam/ReaScripts/raw/dfcf6e0554d10d64974138fc8a5482ac00a36fff/Various/pandabot_ChordGun/pandabot_ChordGun%20decrement%20chord%20type.lua</source>
         <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun decrement octave.lua">https://github.com/ReaTeam/ReaScripts/raw/dfcf6e0554d10d64974138fc8a5482ac00a36fff/Various/pandabot_ChordGun/pandabot_ChordGun%20decrement%20octave.lua</source>
