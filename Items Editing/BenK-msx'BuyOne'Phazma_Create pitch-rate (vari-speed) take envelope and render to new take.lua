@@ -1,6 +1,6 @@
 --[[
 ReaScript name: Create pitch-rate (vari-speed) take envelope and render to new take
-Author: BenK-msx'BuyOne'Phazma
+Author: BenK-msx, BuyOne, Phazma
 Website: https://forum.cockos.com/member.php?u=134058
 Version: 1.0
 Changelog: Initial release
