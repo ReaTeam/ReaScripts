@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="bcc0ec99f7d7d916f80e5adbcf5527e062ac3690" name="ReaTeam Scripts">
+<index version="1" commit="bea1409155987fc89c594ebabf029c9a828691de" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -2311,6 +2311,7 @@ Refactored/reorganized the code for readability]]></changelog>
 {\pard \ql \f0 \sa180 \li0 \fi0 In these '(un)collapse envelope lane' scripts 'track envelope' means envelope of TCP controls, those which are listed in the 'trim' (envelope) button context menu or under 'Track Envelopes' heading in the track envelope panel, including Send envelopes.\line 'FX envelope' means envelope of a track FX control.\line With toggle scripts uncollapsed state gets priority, so if at least one envelope lane in selected tracks is uncollapsed, it will be collapsed while collapsed lanes will stay as they are.\line Unidirectional scripts will always work according to their name, If there're no lanes to collapse or uncollapse nothing will happen.\line The scripts don't support creation of undo point due to REAPER internal design.\par}
 }
 ]]></description>
+        <link rel="screenshot">https://raw.githubusercontent.com/Buy-One/screenshots/main/(Un)Collapse%20envelope%20lanes.gif</link>
       </metadata>
       <version name="1.0" author="BuyOne" time="2022-01-30T18:20:08Z">
         <changelog><![CDATA[Initial release]]></changelog>
@@ -2332,6 +2333,28 @@ Refactored/reorganized the code for readability]]></changelog>
         <source file="BuyOne_(Un)Collapse envelope lanes/BuyOne_Toggle collapse track envelope lanes in selected tracks.lua">https://github.com/ReaTeam/ReaScripts/raw/14b0fa5b789d3fbafe2a5cf46374d0303d5e632a/Envelopes/BuyOne_(Un)Collapse%20envelope%20lanes.lua</source>
         <source file="BuyOne_(Un)Collapse envelope lanes/BuyOne_Toggle collapse FX envelope lanes in selected tracks.lua">https://github.com/ReaTeam/ReaScripts/raw/14b0fa5b789d3fbafe2a5cf46374d0303d5e632a/Envelopes/BuyOne_(Un)Collapse%20envelope%20lanes.lua</source>
         <source file="BuyOne_(Un)Collapse envelope lanes/BuyOne_Toggle collapse all envelope lanes in selected tracks.lua">https://github.com/ReaTeam/ReaScripts/raw/14b0fa5b789d3fbafe2a5cf46374d0303d5e632a/Envelopes/BuyOne_(Un)Collapse%20envelope%20lanes.lua</source>
+      </version>
+      <version name="1.1" author="BuyOne" time="2022-02-03T15:17:26Z">
+        <changelog><![CDATA[#Fixed bug of un-arming envelope
+#Added screenshot]]></changelog>
+        <source file="BuyOne_(Un)Collapse envelope lanes/BuyOne_Collapse selected envelope lane in track.lua">https://github.com/ReaTeam/ReaScripts/raw/bea1409155987fc89c594ebabf029c9a828691de/Envelopes/BuyOne_(Un)Collapse%20envelope%20lanes.lua</source>
+        <source file="BuyOne_(Un)Collapse envelope lanes/BuyOne_Uncollapse selected envelope lane in track.lua">https://github.com/ReaTeam/ReaScripts/raw/bea1409155987fc89c594ebabf029c9a828691de/Envelopes/BuyOne_(Un)Collapse%20envelope%20lanes.lua</source>
+        <source file="BuyOne_(Un)Collapse envelope lanes/BuyOne_Collapse selected envelope lane or all lanes in selected tracks.lua">https://github.com/ReaTeam/ReaScripts/raw/bea1409155987fc89c594ebabf029c9a828691de/Envelopes/BuyOne_(Un)Collapse%20envelope%20lanes.lua</source>
+        <source file="BuyOne_(Un)Collapse envelope lanes/BuyOne_Uncollapse selected envelope lane or all lanes in selected tracks.lua">https://github.com/ReaTeam/ReaScripts/raw/bea1409155987fc89c594ebabf029c9a828691de/Envelopes/BuyOne_(Un)Collapse%20envelope%20lanes.lua</source>
+        <source file="BuyOne_(Un)Collapse envelope lanes/BuyOne_Collapse selected envelope lane uncollapse others in track.lua">https://github.com/ReaTeam/ReaScripts/raw/bea1409155987fc89c594ebabf029c9a828691de/Envelopes/BuyOne_(Un)Collapse%20envelope%20lanes.lua</source>
+        <source file="BuyOne_(Un)Collapse envelope lanes/BuyOne_Uncollapse selected envelope lane collapse others in track.lua">https://github.com/ReaTeam/ReaScripts/raw/bea1409155987fc89c594ebabf029c9a828691de/Envelopes/BuyOne_(Un)Collapse%20envelope%20lanes.lua</source>
+        <source file="BuyOne_(Un)Collapse envelope lanes/BuyOne_Alternate collapsing selected envelope lane and other lanes in track.lua">https://github.com/ReaTeam/ReaScripts/raw/bea1409155987fc89c594ebabf029c9a828691de/Envelopes/BuyOne_(Un)Collapse%20envelope%20lanes.lua</source>
+        <source file="BuyOne_(Un)Collapse envelope lanes/BuyOne_Collapse track envelope lanes in selected tracks.lua">https://github.com/ReaTeam/ReaScripts/raw/bea1409155987fc89c594ebabf029c9a828691de/Envelopes/BuyOne_(Un)Collapse%20envelope%20lanes.lua</source>
+        <source file="BuyOne_(Un)Collapse envelope lanes/BuyOne_Uncollapse track envelope lanes in selected tracks.lua">https://github.com/ReaTeam/ReaScripts/raw/bea1409155987fc89c594ebabf029c9a828691de/Envelopes/BuyOne_(Un)Collapse%20envelope%20lanes.lua</source>
+        <source file="BuyOne_(Un)Collapse envelope lanes/BuyOne_Collapse FX envelope lanes in selected tracks.lua">https://github.com/ReaTeam/ReaScripts/raw/bea1409155987fc89c594ebabf029c9a828691de/Envelopes/BuyOne_(Un)Collapse%20envelope%20lanes.lua</source>
+        <source file="BuyOne_(Un)Collapse envelope lanes/BuyOne_Uncollapse FX envelope lanes in selected tracks.lua">https://github.com/ReaTeam/ReaScripts/raw/bea1409155987fc89c594ebabf029c9a828691de/Envelopes/BuyOne_(Un)Collapse%20envelope%20lanes.lua</source>
+        <source file="BuyOne_(Un)Collapse envelope lanes/BuyOne_Collapse all envelope lanes in selected tracks.lua">https://github.com/ReaTeam/ReaScripts/raw/bea1409155987fc89c594ebabf029c9a828691de/Envelopes/BuyOne_(Un)Collapse%20envelope%20lanes.lua</source>
+        <source file="BuyOne_(Un)Collapse envelope lanes/BuyOne_Uncollapse all envelope lanes in selected tracks.lua">https://github.com/ReaTeam/ReaScripts/raw/bea1409155987fc89c594ebabf029c9a828691de/Envelopes/BuyOne_(Un)Collapse%20envelope%20lanes.lua</source>
+        <source file="BuyOne_(Un)Collapse envelope lanes/BuyOne_Toggle collapse selected envelope lane in track.lua">https://github.com/ReaTeam/ReaScripts/raw/bea1409155987fc89c594ebabf029c9a828691de/Envelopes/BuyOne_(Un)Collapse%20envelope%20lanes.lua</source>
+        <source file="BuyOne_(Un)Collapse envelope lanes/BuyOne_Toggle collapse selected envelope lane or all lanes in selected tracks.lua">https://github.com/ReaTeam/ReaScripts/raw/bea1409155987fc89c594ebabf029c9a828691de/Envelopes/BuyOne_(Un)Collapse%20envelope%20lanes.lua</source>
+        <source file="BuyOne_(Un)Collapse envelope lanes/BuyOne_Toggle collapse track envelope lanes in selected tracks.lua">https://github.com/ReaTeam/ReaScripts/raw/bea1409155987fc89c594ebabf029c9a828691de/Envelopes/BuyOne_(Un)Collapse%20envelope%20lanes.lua</source>
+        <source file="BuyOne_(Un)Collapse envelope lanes/BuyOne_Toggle collapse FX envelope lanes in selected tracks.lua">https://github.com/ReaTeam/ReaScripts/raw/bea1409155987fc89c594ebabf029c9a828691de/Envelopes/BuyOne_(Un)Collapse%20envelope%20lanes.lua</source>
+        <source file="BuyOne_(Un)Collapse envelope lanes/BuyOne_Toggle collapse all envelope lanes in selected tracks.lua">https://github.com/ReaTeam/ReaScripts/raw/bea1409155987fc89c594ebabf029c9a828691de/Envelopes/BuyOne_(Un)Collapse%20envelope%20lanes.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Delete points before or after the edit cursor in selected envelope.lua" type="script" desc="Delete points before or after the edit cursor in selected envelope">
