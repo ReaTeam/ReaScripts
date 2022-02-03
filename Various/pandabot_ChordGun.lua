@@ -3,7 +3,14 @@ Description: ChordGun
 Author: pandabot
 License: MIT
 Version: 1.13
-Changelog: + added code to make ChordGun window always on top but left it commented out, requires julian sader extension and only works on Windows
+Changelog:
+  - now preserving existing note lengths, velocity, mute state and channel if notes are selected
+  - added ability to move midi editor cursor with left and right arrow buttons
+  - added persistence for floating window position
+  - fixed bug where some keyboard shortcuts did not work on Windows machines
+  - added ability to stop all notes from playing using middle mouse button
+  - added some optional code at bottom of the file to make ChordGun window be always on top (Windows only)
+  - added mini version for small screen users
 Screenshot: https://github.com/benjohnson2001/ChordGun/raw/release/ChordGun/src/images/chordGunInterface.png
 Donate: https://paypal.me/benjohnson2001
 Links:
