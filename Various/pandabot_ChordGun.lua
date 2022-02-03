@@ -2,11 +2,9 @@
 Description: ChordGun
 Author: pandabot
 License: MIT
-Version: 1.13
+Version: 1.9
 Changelog:
-  - now preserving existing note lengths, velocity, mute state and channel if notes are selected
-  - added ability to move midi editor cursor with left and right arrow buttons
-  - added persistence for floating window position
+  - now preserving existing velocity, mute state and channel if notes are selected
   - fixed bug where some keyboard shortcuts did not work on Windows machines
   - added ability to stop all notes from playing using middle mouse button
   - added some optional code at bottom of the file to make ChordGun window be always on top (Windows only)
