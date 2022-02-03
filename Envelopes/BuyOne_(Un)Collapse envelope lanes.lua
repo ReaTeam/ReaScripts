@@ -1,11 +1,12 @@
 --[[
 ReaScript Name: (Un)Collapse envelope lanes (18 scripts)
 Author: BuyOne
-Version: 1.0
-Changelog: Initial release
+Version: 1.1
+Changelog: #Fixed bug of un-arming envelope
+	   #Added screenshot
 Author URL: https://forum.cockos.com/member.php?u=134058
 Licence: WTFPL
-Screenshots: 
+Screenshots: https://raw.githubusercontent.com/Buy-One/screenshots/main/(Un)Collapse%20envelope%20lanes.gif
 REAPER: at least v5.962  		
 Metapackage: true
 Provides: . > BuyOne_(Un)Collapse envelope lanes/BuyOne_Collapse selected envelope lane in track.lua
@@ -67,6 +68,7 @@ local r = reaper
 
 
 function Get_Envcp_Min_Height(ext_state_sect, env, cond) -- required to condition toggle and storage of current env lane height
+
 local retval, env_chunk = r.GetEnvelopeStateChunk(env, '', false) -- isundo false
 local env_chunk_new = env_chunk:gsub('LANEHEIGHT %d+', 'LANEHEIGHT 1.0') -- passing 1 sets envcp to its minimum (collapsed) height
 r.SetEnvelopeStateChunk(env, env_chunk_new, false) -- isundo false
@@ -74,6 +76,7 @@ local min_height = r.GetEnvelopeInfo_Value(env, 'I_TCPH') -- chunk LANEHEIGHT va
 r.SetEnvelopeStateChunk(env, env_chunk, false) -- isundo false // restore chunk
 local store = cond and r.SetExtState(ext_state_sect, 'envcp_min_h', min_height, false) -- persist false // store
 return min_height
+
 end
 
 
@@ -116,18 +119,15 @@ local env_chunk_new
 local is_uncollapsed -- for alternating script instances
 
 	if toggle and not uncollapse_px or unidir_collapse then -- collapse
-	local LANEHEIGHT_new = LANEHEIGHT:gsub('LANEHEIGHT %d+', 'LANEHEIGHT  1.0') -- 1.0 ensures that envcp gets collapsed fully
-	env_chunk_new = env_chunk:gsub('LANEHEIGHT.-\n', LANEHEIGHT_new)
-	r.SetEnvelopeStateChunk(env, env_chunk_new, false) -- isundo false
+	env_chunk_new = env_chunk:gsub('LANEHEIGHT %d+', 'LANEHEIGHT 1.0') -- 1.0 ensures that envcp gets collapsed fully
 	elseif uncollapse_px and (toggle or unidir_uncollapse) -- uncollapse
 	then
 	local uncollapse_px = #uncollapse_px == 0 and DEFAULT_UNCOLLAPSED_HEIGHT or uncollapse_px -- if no previously stored data, use default/user setting
-	local LANEHEIGHT_new = LANEHEIGHT:gsub('LANEHEIGHT %d+', 'LANEHEIGHT '..uncollapse_px)
-	env_chunk_new = env_chunk:gsub('LANEHEIGHT.-\n', LANEHEIGHT_new)
+	env_chunk_new = env_chunk:gsub('LANEHEIGHT %d+', 'LANEHEIGHT '..uncollapse_px)
 	is_uncollapsed = 1 -- for alternating script instances
 	end
 
-local store = env_chunk_new and r.SetEnvelopeStateChunk(env, env_chunk_new, false) -- isundo false
+local update = env_chunk_new and r.SetEnvelopeStateChunk(env, env_chunk_new, false) -- isundo false
 
 return is_uncollapsed -- for alternating script instances
 
@@ -159,7 +159,7 @@ local theme_changed = theme_stored ~= theme_cur
 	end
 
 
--- local scr_name = '' -- TEST NAME
+--local scr_name = '' -- TEST NAME
 
 local scr_name = scr_name:lower()
 -- conditions to set unidirectional or toggle operation
@@ -263,9 +263,6 @@ local env = r.GetSelectedEnvelope(0)
 	end
 
 do return r.defer(function() do return end end) end -- TCP/EnvCP height changes cannot be undone even if they're registered in the undo history, native actions affecting TCP height don't even create undo points https://forums.cockos.com/showthread.php?t=262356 // must be placed outside of the block because at its end only the second condition is covered
-
-
-
 
 
 
