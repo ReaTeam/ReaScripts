@@ -171,7 +171,7 @@ function emptyFunctionToPreventAutomaticCreationOfUndoPoint()
 end
 
 
-local workingDirectory = reaper.GetResourcePath() .. "/Scripts/ChordGun/src"
+local workingDirectory = reaper.GetResourcePath() .. "/Scripts/ChordGun/ChordGunMini_src"
 
 defaultScaleTonicNoteValue = 1
 defaultScaleTypeValue = 1
@@ -197,8 +197,8 @@ defaultNotesThatArePlaying = {}
 defaultDockState = 0x0201
 defaultWindowShouldBeDocked = tostring(false)
 
-interfaceWidth = 775
-interfaceHeight = 620
+interfaceWidth = 470
+interfaceHeight = 490
 
 function defaultInterfaceXPosition()
 
@@ -211,7 +211,7 @@ function defaultInterfaceYPosition()
   local screenHeight = getScreenHeight()
   return screenHeight/2 - interfaceHeight/2
 end
-local workingDirectory = reaper.GetResourcePath() .. "/Scripts/ChordGun/src"
+local workingDirectory = reaper.GetResourcePath() .. "/Scripts/ChordGun/ChordGunMini_src"
 
 local activeProjectIndex = 0
 local sectionName = "com.pandabot.ChordGun"
@@ -546,7 +546,7 @@ end
 function Timer:timeHasNotElapsed()
 	return not self:timeHasElapsed()
 end
-local workingDirectory = reaper.GetResourcePath() .. "/Scripts/ChordGun/src"
+local workingDirectory = reaper.GetResourcePath() .. "/Scripts/ChordGun/ChordGunMini_src"
 
 mouseButtonIsNotPressedDown = true
 
@@ -559,9 +559,9 @@ guiShouldBeUpdated = false
 
 scales = {
   { name = "Major", pattern = "101011010101" },
-  { name = "Natural Minor", pattern = "101101011010" },
-  { name = "Harmonic Minor", pattern = "101101011001" },
-  { name = "Melodic Minor", pattern = "101101010101" },
+  { name = "Nat. Minor", pattern = "101101011010" },
+  { name = "Harm. Minor", pattern = "101101011001" },
+  { name = "Mel. Minor", pattern = "101101010101" },
   { name = "Pentatonic", pattern = "101010010100" },
   { name = "Ionian", pattern = "101011010101" },
   { name = "Aeolian", pattern = "101101011010" },
@@ -571,7 +571,7 @@ scales = {
   { name = "Lydian", pattern = "101010110101" },
   { name = "Locrian", pattern = "110101101010" }
 }
-local workingDirectory = reaper.GetResourcePath() .. "/Scripts/ChordGun/src"
+local workingDirectory = reaper.GetResourcePath() .. "/Scripts/ChordGun/ChordGunMini_src"
 
 notes = { 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B' };
 flatNotes = { 'C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B' };
@@ -731,7 +731,7 @@ function chordIsInModalMixtureScale(rootNote, chordIndex)
   
   return true
 end
-local workingDirectory = reaper.GetResourcePath() .. "/Scripts/ChordGun/src"
+local workingDirectory = reaper.GetResourcePath() .. "/Scripts/ChordGun/ChordGunMini_src"
 
 function updateScaleDegreeHeaders()
 
@@ -1130,7 +1130,7 @@ function deleteExistingNotesInNextInsertionTimePeriod(keepNotesSelected, selecte
     end
   end
 end
-local workingDirectory = reaper.GetResourcePath() .. "/Scripts/ChordGun/src"
+local workingDirectory = reaper.GetResourcePath() .. "/Scripts/ChordGun/ChordGunMini_src"
 
 function playMidiNote(midiNote)
 
@@ -1175,7 +1175,7 @@ function stopNotesFromPlaying()
 
   setNotesThatArePlaying({})
 end
-local workingDirectory = reaper.GetResourcePath() .. "/Scripts/ChordGun/src"
+local workingDirectory = reaper.GetResourcePath() .. "/Scripts/ChordGun/ChordGunMini_src"
 
 function applyInversion(chord)
   
@@ -1222,7 +1222,7 @@ function getChordNotesArray(root, chord, octave)
   
   return chordNotesArray
 end
-local workingDirectory = reaper.GetResourcePath() .. "/Scripts/ChordGun/src"
+local workingDirectory = reaper.GetResourcePath() .. "/Scripts/ChordGun/ChordGunMini_src"
 
 function insertMidiNote(note, keepNotesSelected, selectedChord, noteIndex)
 
@@ -1260,7 +1260,7 @@ function insertMidiNote(note, keepNotesSelected, selectedChord, noteIndex)
 
 	reaper.MIDI_InsertNote(activeTake(), keepNotesSelected, muteState, startPosition, endPosition, channel, note, velocity, noSort)
 end
-local workingDirectory = reaper.GetResourcePath() .. "/Scripts/ChordGun/src"
+local workingDirectory = reaper.GetResourcePath() .. "/Scripts/ChordGun/ChordGunMini_src"
 
 local function playScaleChord(chordNotesArray)
 
@@ -1325,7 +1325,7 @@ function playOrInsertScaleChord(actionDescription)
   playScaleChord(chordNotesArray)
   updateChordText(root, chord, chordNotesArray)
 end
-local workingDirectory = reaper.GetResourcePath() .. "/Scripts/ChordGun/src"
+local workingDirectory = reaper.GetResourcePath() .. "/Scripts/ChordGun/ChordGunMini_src"
 
 
 local function playScaleNote(noteValue)
@@ -1380,7 +1380,7 @@ function playOrInsertScaleNote(octaveAdjustment, actionDescription)
 
 	playScaleNote(noteValue)
 end
-local workingDirectory = reaper.GetResourcePath() .. "/Scripts/ChordGun/src"
+local workingDirectory = reaper.GetResourcePath() .. "/Scripts/ChordGun/ChordGunMini_src"
 
 SelectedNote = {}
 SelectedNote.__index = SelectedNote
@@ -1511,7 +1511,7 @@ function changeSelectedNotesToScaleNotes(noteValue)
 		insertScaleNote(noteValue, true, selectedChords[i])
 	end
 end
-local workingDirectory = reaper.GetResourcePath() .. "/Scripts/ChordGun/src"
+local workingDirectory = reaper.GetResourcePath() .. "/Scripts/ChordGun/ChordGunMini_src"
 
 scaleNotes = {}
 scaleChords = {}
@@ -1697,15 +1697,7 @@ function updateChordText(root, chord, chordNotesArray)
   local chordString = rootNoteName .. chord["display"]
   local notesString = getNotesString(chordNotesArray)
 
-  local chordTextValue = ''
-  if string.match(chordInversionOctaveIndicator, "-") then
-    chordTextValue = ("%s%12s%s%12s"):format(chordInversionOctaveIndicator, chordString, chordInversionText, notesString)
-  elseif string.match(chordInversionOctaveIndicator, "+") then
-    chordTextValue = ("%s%12s%s%12s%12s"):format('', chordString, chordInversionText, notesString, chordInversionOctaveIndicator)
-  else
-    chordTextValue = ("%s%12s%s%12s"):format('', chordString, chordInversionText, notesString)
-  end
-
+  local chordTextValue = ("%s%12s%s%12s"):format('', chordString, chordInversionText, notesString)
   setChordText(chordTextValue)
   
   showChordText()
@@ -1734,7 +1726,7 @@ function showScaleStatus()
   local scaleNotesText = getScaleNotesText()
   reaper.Help_Set(("%s %s: %s"):format(scaleTonicText, scaleTypeText, scaleNotesText), false)
 end
-local workingDirectory = reaper.GetResourcePath() .. "/Scripts/ChordGun/src"
+local workingDirectory = reaper.GetResourcePath() .. "/Scripts/ChordGun/ChordGunMini_src"
 
 local function transposeSelectedNotes(numberOfSemitones)
 
@@ -1759,7 +1751,7 @@ end
 function transposeSelectedNotesDownOneOctave()
   transposeSelectedNotes(-12)
 end
-local workingDirectory = reaper.GetResourcePath() .. "/Scripts/ChordGun/src"
+local workingDirectory = reaper.GetResourcePath() .. "/Scripts/ChordGun/ChordGunMini_src"
 
 local function decrementChordInversion()
 
@@ -3490,7 +3482,7 @@ function setDrawColorToSelectedButton()
 	gfx.set(table.unpack(backgroundColor))
 end
 ]]--
-local workingDirectory = reaper.GetResourcePath() .. "/Scripts/ChordGun/src"
+local workingDirectory = reaper.GetResourcePath() .. "/Scripts/ChordGun/ChordGunMini_src"
 
 Docker = {}
 Docker.__index = Docker
@@ -3570,7 +3562,7 @@ function HitArea:new(x, y, width, height)
 
   return self
 end
-local workingDirectory = reaper.GetResourcePath() .. "/Scripts/ChordGun/src"
+local workingDirectory = reaper.GetResourcePath() .. "/Scripts/ChordGun/ChordGunMini_src"
 
 OctaveValueBox = {}
 OctaveValueBox.__index = OctaveValueBox
@@ -3632,7 +3624,7 @@ function OctaveValueBox:drawText()
 
 	setDrawColorToValueBoxText()
 	local stringWidth, stringHeight = gfx.measurestr(octaveText)
-	gfx.x = self.x + ((self.width - stringWidth) / 2)
+	gfx.x = self.x + ((self.width - stringWidth) / 2) + 1
 	gfx.y = self.y + ((self.height - stringHeight) / 2)
 	gfx.drawstr(octaveText)
 end
@@ -3666,7 +3658,7 @@ function OctaveValueBox:update()
 
   self:drawText()
 end
-local workingDirectory = reaper.GetResourcePath() .. "/Scripts/ChordGun/src"
+local workingDirectory = reaper.GetResourcePath() .. "/Scripts/ChordGun/ChordGunMini_src"
 
 Label = {}
 Label.__index = Label
@@ -3705,7 +3697,7 @@ function Label:update()
   local text = self.getTextCallback()
   self:drawText(text)
 end
-local workingDirectory = reaper.GetResourcePath() .. "/Scripts/ChordGun/src"
+local workingDirectory = reaper.GetResourcePath() .. "/Scripts/ChordGun/ChordGunMini_src"
 
 Header = {}
 Header.__index = Header
@@ -3778,7 +3770,7 @@ function Header:update()
     local text = self.getTextCallback()
     self:drawText(text)
 end
-local workingDirectory = reaper.GetResourcePath() .. "/Scripts/ChordGun/src"
+local workingDirectory = reaper.GetResourcePath() .. "/Scripts/ChordGun/ChordGunMini_src"
 
 Frame = {}
 Frame.__index = Frame
@@ -3840,7 +3832,7 @@ function Frame:update()
 
     self:drawRectangles()
 end
-local workingDirectory = reaper.GetResourcePath() .. "/Scripts/ChordGun/src"
+local workingDirectory = reaper.GetResourcePath() .. "/Scripts/ChordGun/ChordGunMini_src"
 
 Dropdown = {}
 Dropdown.__index = Dropdown
@@ -3942,7 +3934,7 @@ function Dropdown:update()
 			self:openMenu()
 		end
 end
-local workingDirectory = reaper.GetResourcePath() .. "/Scripts/ChordGun/src"
+local workingDirectory = reaper.GetResourcePath() .. "/Scripts/ChordGun/ChordGunMini_src"
 
 ChordInversionValueBox = {}
 ChordInversionValueBox.__index = ChordInversionValueBox
@@ -4009,7 +4001,7 @@ function ChordInversionValueBox:drawText()
 
 	setDrawColorToValueBoxText()
 	local stringWidth, stringHeight = gfx.measurestr(chordInversionText)
-	gfx.x = self.x + ((self.width - stringWidth) / 2)
+	gfx.x = self.x + ((self.width - stringWidth) / 2) + 1
 	gfx.y = self.y + ((self.height - stringHeight) / 2)
 	gfx.drawstr(chordInversionText)
 end
@@ -4075,7 +4067,7 @@ function ChordInversionValueBox:update()
 
   self:drawText()
 end
-local workingDirectory = reaper.GetResourcePath() .. "/Scripts/ChordGun/src"
+local workingDirectory = reaper.GetResourcePath() .. "/Scripts/ChordGun/ChordGunMini_src"
 
 ChordButton = {}
 ChordButton.__index = ChordButton
@@ -4323,7 +4315,7 @@ inputCharacters["ESC"] = 27
 
 inputCharacters["LEFTARROW"] = 1818584692
 inputCharacters["RIGHTARROW"] = 1919379572
-local workingDirectory = reaper.GetResourcePath() .. "/Scripts/ChordGun/src"
+local workingDirectory = reaper.GetResourcePath() .. "/Scripts/ChordGun/ChordGunMini_src"
 
 
 local function moveEditCursorLeftByGrid()
@@ -4751,7 +4743,7 @@ function handleInput()
 		end
 	end
 end
-local workingDirectory = reaper.GetResourcePath() .. "/Scripts/ChordGun/src"
+local workingDirectory = reaper.GetResourcePath() .. "/Scripts/ChordGun/ChordGunMini_src"
 
 Interface = {}
 Interface.__index = Interface
@@ -4909,9 +4901,9 @@ function Interface:update()
 
 end
 
-local workingDirectory = reaper.GetResourcePath() .. "/Scripts/ChordGun/src"
+local workingDirectory = reaper.GetResourcePath() .. "/Scripts/ChordGun/ChordGunMini_src"
 
-local windowWidth = 775
+local windowWidth = 470
 
 scaleNames = {}
 for key, scale in ipairs(scales) do
@@ -4920,17 +4912,14 @@ end
 
 local xMargin = 8
 local yMargin = 8
-local xPadding = 16
+local xPadding = 8
 local yPadding = 5
 
 local scaleLabelWidth = nil
 local horizontalMargin = 8
 
 local scaleTonicNoteWidth = 50
-local scaleTypeWidth = 150
-
-local octaveLabelWidth = nil
-local octaveValueBoxWidth = 55
+local scaleTypeWidth = 116
 
 keySelectionFrameHeight = 25
 function Interface:addTopFrame()
@@ -4940,15 +4929,13 @@ function Interface:addTopFrame()
 	self:addScaleTonicNoteDropdown()
 	self:addScaleTypeDropdown()
 	self:addScaleNotesTextLabel()
-	self:addOctaveLabel()
-	self:addOctaveSelectorValueBox()
 end
 
 function Interface:addScaleLabel()
 
-	local labelText = "Scale:"
+	local labelText = "Key:"
 	scaleLabelWidth = gfx.measurestr(labelText)
-	local labelXpos = xMargin+xPadding
+	local labelXpos = xMargin+xPadding + 5
 	local labelYpos = yMargin+yPadding
 	local labelHeight = 16
 	self:addLabel(labelXpos+dockerXPadding, labelYpos, scaleLabelWidth, labelHeight, function() return labelText end)
@@ -4956,7 +4943,7 @@ end
 
 function Interface:addScaleTonicNoteDropdown()
 
-	local scaleTonicNoteXpos = xMargin+xPadding+scaleLabelWidth+horizontalMargin
+	local scaleTonicNoteXpos = xMargin+xPadding+scaleLabelWidth+horizontalMargin - 1
 	local scaleTonicNoteYpos = yMargin+yPadding+1
 	local scaleTonicNoteHeight = 15
 
@@ -4978,7 +4965,7 @@ end
 
 function Interface:addScaleTypeDropdown()
 
-	local scaleTypeXpos = xMargin+xPadding+scaleLabelWidth+scaleTonicNoteWidth+horizontalMargin*1.5
+	local scaleTypeXpos = xMargin+xPadding+scaleLabelWidth+scaleTonicNoteWidth+horizontalMargin*1.5 - 1
 	local scaleTypeYpos = yMargin+yPadding+1
 	local scaleTypeHeight = 15
 
@@ -5000,30 +4987,11 @@ end
 function Interface:addScaleNotesTextLabel()
 
 	local getScaleNotesTextCallback = function() return getScaleNotesText() end
-	local scaleNotesXpos = xMargin+xPadding+scaleLabelWidth+scaleTonicNoteWidth+scaleTypeWidth+horizontalMargin*2+4
+	local scaleNotesXpos = xMargin+xPadding+scaleLabelWidth+scaleTonicNoteWidth+scaleTypeWidth+horizontalMargin*2+4-64
 	local scaleNotesYpos = yMargin+yPadding+1
 	local scaleNotesWidth = 360
 	local scaleNotesHeight = 15
 	self:addLabel(scaleNotesXpos+dockerXPadding, scaleNotesYpos, scaleNotesWidth, scaleNotesHeight, getScaleNotesTextCallback)
-end
-
-function Interface:addOctaveLabel()
-
-	local labelText = "Octave:"
-	octaveLabelWidth = gfx.measurestr(labelText)	
-	local labelYpos = yMargin+yPadding+1
-	local labelHeight = 15
-	local labelXpos = windowWidth - 80 - octaveValueBoxWidth
-	self:addLabel(labelXpos+dockerXPadding, labelYpos, octaveLabelWidth, labelHeight, function() return labelText end)
-end
-
-function Interface:addOctaveSelectorValueBox()
-
-	local windowWidth = 775
-	local valueBoxXPos = windowWidth - octaveValueBoxWidth - xMargin - xPadding + 3
-	local valueBoxYPos = yMargin + 6
-	local valueBoxHeight = 15
-	self:addOctaveValueBox(valueBoxXPos+dockerXPadding, valueBoxYPos, octaveValueBoxWidth, valueBoxHeight)
 end
 local workingDirectory = reaper.GetResourcePath() .. "/Scripts/ChordGun/src"
 
@@ -5037,6 +5005,9 @@ local inversionLabelWidth = 80
 local inversionValueBoxWidth = 55
 local chordTextWidth = nil
 
+local octaveLabelWidth = 80
+local octaveValueBoxWidth = 55
+
 function Interface:addBottomFrame()
 
 	local chordButtonsFrameHeight = self.height - yMargin - 6
@@ -5045,6 +5016,8 @@ function Interface:addBottomFrame()
   self:addChordTextLabel()
   self:addInversionLabel()
   self:addInversionValueBox()
+  self:addOctaveLabel()
+  self:addOctaveSelectorValueBox()
   
   self:addHeaders()
 	self:addChordButtons()
@@ -5053,7 +5026,7 @@ end
 function Interface:addChordTextLabel()
 
   local getChordTextCallback = function() return getChordText() end
-  local chordTextXpos = xMargin + xPadding
+  local chordTextXpos = xMargin + xPadding - 72
   local chordTextYpos = yMargin + 4
   chordTextWidth = self.width - 4 * xMargin - inversionLabelWidth - inversionValueBoxWidth - 6
   local chordTextHeight = 24
@@ -5062,8 +5035,8 @@ end
 
 function Interface:addInversionLabel()
 
-  local inversionLabelText = "Inversion:"
-  local inversionLabelXPos = xMargin + xPadding + chordTextWidth
+  local inversionLabelText = "Inv:"
+  local inversionLabelXPos = xMargin + xPadding + chordTextWidth - 78
   local inversionLabelYPos = yMargin + 4
   local stringWidth, _ = gfx.measurestr(labelText)
   local inversionLabelTextHeight = 24
@@ -5073,17 +5046,34 @@ end
 
 function Interface:addInversionValueBox()
 
-  local inversionValueBoxXPos = xMargin + xPadding + chordTextWidth + inversionLabelWidth + 2
+  local inversionValueBoxXPos = xMargin + xPadding + chordTextWidth + inversionLabelWidth - 22 - 78
   local inversionValueBoxYPos = yMargin + 9
   local inversionValueBoxHeight = 15
   self:addChordInversionValueBox(inversionValueBoxXPos+dockerXPadding, inversionValueBoxYPos, inversionValueBoxWidth, inversionValueBoxHeight)
+end
+
+function Interface:addOctaveLabel()
+
+  local octaveLabelText = "Oct:"
+  local octaveLabelXpos = xMargin + xPadding + chordTextWidth + 24 + 4
+  local octaveLabelYpos = yMargin + 4
+  local octaveLabelHeight = 24
+  self:addLabel(octaveLabelXpos+dockerXPadding, octaveLabelYpos, octaveLabelWidth, octaveLabelHeight, function() return octaveLabelText end)
+end
+
+function Interface:addOctaveSelectorValueBox()
+
+  local octaveValueBoxXPos = xMargin + xPadding + chordTextWidth + inversionLabelWidth + 2 - 22 + 24 + 2
+  local octaveValueBoxYPos = yMargin + 9
+  local octaveValueBoxHeight = 15
+  self:addOctaveValueBox(octaveValueBoxXPos+dockerXPadding, octaveValueBoxYPos, octaveValueBoxWidth, octaveValueBoxHeight)
 end
 
 function Interface:addHeaders()
   
   for i = 1, #scaleNotes do
 
-    local headerWidth = 104
+    local headerWidth = 61
     local innerSpacing = 2
 
     local headerXpos = xMargin+xPadding-1 + headerWidth * (i-1) + innerSpacing * i
@@ -5103,8 +5093,8 @@ function Interface:addChordButtons()
 
       	local text = getScaleNoteName(scaleNoteIndex) .. chord['display']
 
-      	local buttonWidth = 104
-      	local buttonHeight = 38
+      	local buttonWidth = 61
+      	local buttonHeight = 28
 				local innerSpacing = 2
       	
       	local xPos = xMargin + xPadding + buttonWidth * (scaleNoteIndex-1) + innerSpacing * scaleNoteIndex + dockerXPadding
@@ -5125,7 +5115,7 @@ function Interface:addChordButtons()
     end
   end
 end
-local workingDirectory = reaper.GetResourcePath() .. "/Scripts/ChordGun/src"
+local workingDirectory = reaper.GetResourcePath() .. "/Scripts/ChordGun/ChordGunMini_src"
 
 
 --clearConsoleWindow()
@@ -5150,6 +5140,7 @@ local function main()
 end
 
 main()
+
 
 
 -- If you want the ChordGun window to always be on top then do the following things:
