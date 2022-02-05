@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="f448a3a159a67ad91830b52128a35663e90accf8" name="ReaTeam Scripts">
+<index version="1" commit="8f3f666221b5d7747a3b1843e75392e73e877b40" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -15974,13 +15974,14 @@ uc_track_name_abbreviations = \{"O-Out", "O-MID"\}\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Provides REAPER a function also known as 'Low Latency Monitoring', 'Low Latency Mode', 'Native Low Latency Monitoring', 'Constrain Delay Compenstation' or 'Reduce Latency when Monitoring' in other DAWs. It resembles the one from Cubase.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 While enabled, it bypasses (or takes offline) latency inducing plugins (VSTs etc) from rec armed, input monitored and automation write enabled signal chains, to provide lowest possible latency and CPU usage when monitoring through software.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Plugins contributing PDC latency to active signal chain will be bypassed, once the set limit is exceeded per signal chain. Useful when recording e.g. software synths or guitars through amp sims, or writing automation, into a REAPER project already filled with plugins.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Can be setup as a toolbar toggle on/off button, and this is recommended. Settings can be configured. REAPER 6.21 or later required. Visit {\field{\*\fldinst{HYPERLINK "https://forum.cockos.com/showthread.php?t=245445"}}{\fldrslt{\ul
+{\pard \ql \f0 \sa180 \li0 \fi0 Can be setup as a toolbar toggle on/off button, and this is recommended. REAPER 6.21 or later required. Visit {\field{\*\fldinst{HYPERLINK "https://forum.cockos.com/showthread.php?t=245445"}}{\fldrslt{\ul
 website
 }}}
  for detailed information or reporting bugs.\par}
 }
 ]]></description>
         <link rel="website" href="https://forum.cockos.com/showthread.php?t=245445">Forum thread, more detailed information</link>
+        <link rel="screenshot">https://i.imgur.com/iKHyQXb.gif</link>
       </metadata>
       <version name="1.3" author="ak5k" time="2021-04-14T20:39:02Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b4fb85184c708536981c910b17fc2cfa6c23b833/Various/ak5k_Low%20latency%20monitoring.lua</source>
@@ -16016,6 +16017,14 @@ Hard limit is no longer available.  No separate PDC or individual plugin limit s
 
 Simpler and, hopefully, more robust.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/bcc0ec99f7d7d916f80e5adbcf5527e062ac3690/Various/ak5k_Low%20latency%20monitoring.lua</source>
+      </version>
+      <version name="2.1.1" author="ak5k" time="2022-02-05T03:07:37Z">
+        <changelog><![CDATA[Fixed possible crash with feedback loop routing.
+
+Fixed possible crash when changing projects while script is running.
+
+Refactoring and performance optimization.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/8f3f666221b5d7747a3b1843e75392e73e877b40/Various/ak5k_Low%20latency%20monitoring.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Add smart metronome click track below the selected track.lua" type="script" desc="Add smart metronome click track below the selected track">
