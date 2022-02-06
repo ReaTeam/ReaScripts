@@ -1,7 +1,9 @@
 -- @description Explode takes of items across children tracks, optionally mute and lock original items
 -- @author amagalma
--- @version 1.05
--- @changelog - If selected items belong to a group, group exploded takes per child track
+-- @version 1.07
+-- @changelog 
+--     - Fix for items belonging to tracks nested in folders
+--     - Small optimization
 -- @donation https://www.paypal.me/amagalma
 -- @about
 --   # Explodes takes of selected items across tracks. Tracks of original items become parent folders and new tracks their children.
@@ -21,8 +23,10 @@ if sel_cnt == 0 then return reaper.defer(function() end) end
 
 -- store track properties
 local tracks = {}
+local folder_depth = {}
 local items = {}
 local item_groups = {}
+local has_groups = false
 local total_takes = 0
 for i = 0, sel_cnt-1 do
   local item = reaper.GetSelectedMediaItem( 0, i )
@@ -30,6 +34,7 @@ for i = 0, sel_cnt-1 do
   local group_id = reaper.GetMediaItemInfo_Value( item, "I_GROUPID" )
   if group_id ~= 0 then
     item_groups[item] = group_id
+    has_groups = true
   end
   local take_cnt = reaper.CountTakes( item )
   -- track maximum number of takes
@@ -42,6 +47,7 @@ for i = 0, sel_cnt-1 do
     end
   else
     tracks[track] = take_cnt
+    folder_depth[track] = reaper.GetMediaTrackInfo_Value( track, "I_FOLDERDEPTH" )
   end
 end
 
@@ -55,24 +61,28 @@ if total_takes < 2 then return reaper.defer(function() end) end
 reaper.Undo_BeginBlock()
 reaper.PreventUIRefresh( 1 )
 
--- Get Project Max Group ID
 local MaxGroupID = 0
-for i = 0, reaper.CountMediaItems(0) - 1 do
-  local item_group_id = reaper.GetMediaItemInfo_Value(reaper.GetMediaItem(0, i), "I_GROUPID")
-  if item_group_id > MaxGroupID then
-    MaxGroupID = item_group_id
+if has_groups then
+  -- Get Project Max Group ID
+  for i = 0, reaper.CountMediaItems(0) - 1 do
+    local item_group_id = reaper.GetMediaItemInfo_Value(reaper.GetMediaItem(0, i), "I_GROUPID")
+    if item_group_id > MaxGroupID then
+      MaxGroupID = item_group_id
+    end
   end
-end
-
--- Avoid grouping exploded takes
-for item, group_id in pairs(item_groups) do
-  reaper.SetMediaItemInfo_Value( item, "I_GROUPID", MaxGroupID + group_id )
+  
+  -- Avoid grouping exploded takes
+  for item, group_id in pairs(item_groups) do
+    reaper.SetMediaItemInfo_Value( item, "I_GROUPID", MaxGroupID + group_id )
+  end
 end
 
 reaper.Main_OnCommand(40224, 0) -- Take: Explode takes of items across tracks
 
-for item, group_id in pairs(item_groups) do
-  reaper.SetMediaItemInfo_Value( item, "I_GROUPID", group_id )
+if has_groups then
+  for item, group_id in pairs(item_groups) do
+    reaper.SetMediaItemInfo_Value( item, "I_GROUPID", group_id )
+  end
 end
 
 --- make the folders and name them
@@ -82,7 +92,7 @@ for track, cnt in pairs(tracks) do
   -- make parent folder
   reaper.SetMediaTrackInfo_Value( track, "I_FOLDERDEPTH", 1)
   -- make end of folder
-  reaper.SetMediaTrackInfo_Value( last_track, "I_FOLDERDEPTH", -1)
+  reaper.SetMediaTrackInfo_Value( last_track, "I_FOLDERDEPTH", folder_depth[track] - 1 )
   -- name tracks
   if NAME == 1 then
     local _, name = reaper.GetSetMediaTrackInfo_String( track, "P_NAME", "", false )
@@ -94,23 +104,25 @@ for track, cnt in pairs(tracks) do
 end
 
 -- group exploded takes per track, if needed
-local per_track = 0
-local cur_track, check_counter
-for i = 0, reaper.CountSelectedMediaItems(0)-1 do
-  local item = reaper.GetSelectedMediaItem( 0, i )
-  local group_id = reaper.GetMediaItemInfo_Value( item, "I_GROUPID" )
-  if group_id > MaxGroupID then
-    local track = reaper.GetMediaItemTrack( item )
-    if track ~= cur_track then
-      cur_track = track
-      per_track = per_track + 1
-      check_counter = true
-    end
-    reaper.SetMediaItemInfo_Value( item, "I_GROUPID", group_id + per_track - 1 )
-    if check_counter then
-      check_counter = false
-      if tracks[reaper.GetParentTrack( track )] == per_track then
-        per_track = 0
+if has_groups then
+  local per_track = 0
+  local cur_track, check_counter
+  for i = 0, reaper.CountSelectedMediaItems(0)-1 do
+    local item = reaper.GetSelectedMediaItem( 0, i )
+    local group_id = reaper.GetMediaItemInfo_Value( item, "I_GROUPID" )
+    if group_id > MaxGroupID then
+      local track = reaper.GetMediaItemTrack( item )
+      if track ~= cur_track then
+        cur_track = track
+        per_track = per_track + 1
+        check_counter = true
+      end
+      reaper.SetMediaItemInfo_Value( item, "I_GROUPID", group_id + per_track - 1 )
+      if check_counter then
+        check_counter = false
+        if tracks[reaper.GetParentTrack( track )] == per_track then
+          per_track = 0
+        end
       end
     end
   end
