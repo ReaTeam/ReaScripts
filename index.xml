@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="27ca44bf4981c3a98d97511f34223ee2f39801dd" name="ReaTeam Scripts">
+<index version="1" commit="4c36a9eec92f6a6c29f25ebfb684965dd99613e8" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -483,6 +483,22 @@
       </metadata>
       <version name="1.00" author="amagalma" time="2022-02-06T11:22:14Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/27ca44bf4981c3a98d97511f34223ee2f39801dd/Development/amagalma_Search%20for%20the%20selected%20action%20in%20the%20Action%20List,%20or%20the%20open%20script%20in%20the%20IDE,%20in%20ReaPack.lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Show the ReaPack ' about dialog ' of the given package entry, for the selected action in the Action List.lua" type="script" desc="Show the ReaPack ' about dialog ' of the given package entry, for the selected action in the Action List">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Shows the ReaPack " about dialog " of the given package entry, for the selected action in the Action List\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab JS_ReaScriptAPI is required\sa180\par}
+}
+]]></description>
+        <link rel="donation">https://www.paypal.me/amagalma</link>
+      </metadata>
+      <version name="1.00" author="amagalma" time="2022-02-06T11:53:43Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4c36a9eec92f6a6c29f25ebfb684965dd99613e8/Development/amagalma_Show%20the%20ReaPack%20'%20about%20dialog%20'%20of%20the%20given%20package%20entry,%20for%20the%20selected%20action%20in%20the%20Action%20List.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Theme variable descriptions.lua" type="script" desc="Theme variable descriptions">
