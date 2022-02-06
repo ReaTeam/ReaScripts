@@ -1,6 +1,8 @@
 -- @description Explode takes of items across children tracks, optionally mute and lock original items
 -- @author amagalma
--- @version 1.00
+-- @version 1.01
+-- @changelog - If selected items belong to a group, then avoid grouping exploded items to them
+-- @donation https://www.paypal.me/amagalma
 -- @about
 --   # Explodes takes of selected items across tracks. Tracks of original items become parent folders and new tracks their children.
 --     - Options inside the script to mute and lock the original items and to name the children tracks like their parents. (default: all ON)
@@ -14,17 +16,21 @@ local NAME = 1      --
 ----------------------
 
 
-local reaper = reaper
 local sel_cnt = reaper.CountSelectedMediaItems( 0 )
-if sel_cnt < 1 then return reaper.defer(function() end) end
+if sel_cnt == 0 then return reaper.defer(function() end) end
 
 -- store track properties
 local tracks = {}
 local items = {}
+local item_groups = {}
 local total_takes = 0
 for i = 0, sel_cnt-1 do
   local item = reaper.GetSelectedMediaItem( 0, i )
-  items[#items+1] = item
+  items[i+1] = item
+  local group_id = reaper.GetMediaItemInfo_Value( item, "I_GROUPID" )
+  if group_id ~= 0 then
+    item_groups[item] = group_id
+  end
   local take_cnt = reaper.CountTakes( item )
   -- track maximum number of takes
   if take_cnt > total_takes then total_takes = take_cnt end
@@ -43,10 +49,32 @@ end
 -- Do not continue if no takes to explode
 if total_takes < 2 then return reaper.defer(function() end) end
 
+
+-- MAIN ----------------
+
+
 reaper.Undo_BeginBlock()
 reaper.PreventUIRefresh( 1 )
 
+-- Get Project Max Group ID
+local MaxGroupID = 0
+for i = 0, reaper.CountMediaItems(0) - 1 do
+  local item_group_id = reaper.GetMediaItemInfo_Value(reaper.GetMediaItem(0, i), "I_GROUPID")
+  if item_group_id > MaxGroupID then
+    MaxGroupID = item_group_id
+  end
+end
+
+-- Avoid grouping exploded takes
+for item, group_id in pairs(item_groups) do
+  reaper.SetMediaItemInfo_Value( item, "I_GROUPID", MaxGroupID + group_id )
+end
+
 reaper.Main_OnCommand(40224, 0) -- Take: Explode takes of items across tracks
+
+for item, group_id in pairs(item_groups) do
+  reaper.SetMediaItemInfo_Value( item, "I_GROUPID", group_id )
+end
 
 --- make the folders and name them
 for guid, cnt in pairs(tracks) do
@@ -67,9 +95,8 @@ for guid, cnt in pairs(tracks) do
   end
 end
 
-
 -- mute original items and lock them
-for i = 1, #items do
+for i = 1, sel_cnt do
   if MUTE == 1 then
     reaper.SetMediaItemInfo_Value( items[i], "B_MUTE", 1 )
   end
