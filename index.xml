@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="4c36a9eec92f6a6c29f25ebfb684965dd99613e8" name="ReaTeam Scripts">
+<index version="1" commit="81a608fb3e16bc8c091e9dd6bbe1847d8abf2ba9" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -4473,6 +4473,10 @@ website
       <version name="1.01" author="amagalma" time="2022-02-06T10:42:58Z">
         <changelog><![CDATA[- If selected items belong to a group, then avoid grouping exploded items to them]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e53a5e4bd729944ee83ff7d7f9cfc5c037195006/Items%20Editing/amagalma_Explode%20takes%20of%20items%20across%20children%20tracks,%20optionally%20mute%20and%20lock%20original%20items.lua</source>
+      </version>
+      <version name="1.05" author="amagalma" time="2022-02-06T16:06:29Z">
+        <changelog><![CDATA[- If selected items belong to a group, group exploded takes per child track]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/81a608fb3e16bc8c091e9dd6bbe1847d8abf2ba9/Items%20Editing/amagalma_Explode%20takes%20of%20items%20across%20children%20tracks,%20optionally%20mute%20and%20lock%20original%20items.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Explode takes of items across tracks (according to source files).lua" type="script" desc="Explode takes of items across tracks (according to their source files)">
