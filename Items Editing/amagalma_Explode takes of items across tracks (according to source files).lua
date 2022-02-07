@@ -1,9 +1,8 @@
 -- @description Explode takes of items across tracks (according to their source files)
 -- @author amagalma
--- @version 1.02
+-- @version 1.10
 -- @changelog 
---    - Heal splits of exported items
---    - Fix possible crash with items with only one take
+--    - Don't create empty tracks when the selected items have empty take lanes
 -- @link https://forum.cockos.com/showthread.php?t=261306
 -- @donation https://www.paypal.me/amagalma
 -- @about Differs from native action, because it ensures that each track will contain only one source file (recording pass)
@@ -20,6 +19,14 @@ end
 
 reaper.Undo_BeginBlock()
 reaper.PreventUIRefresh( 1 )
+
+
+-- Get all tracks in project (needed for empty takes)
+local All_tracks = {}
+for tr = 0, reaper.CountTracks( 0 ) - 1 do
+  All_tracks[reaper.GetTrack( 0, tr )] = true
+end
+
 
 -- Explode takes of items across tracks
 reaper.Main_OnCommand(40224, 0)
@@ -121,6 +128,17 @@ if cur_id ~= item_cnt-1 then
 end
 
 reaper.Main_OnCommand(40548, 0) -- Heal splits in items
+
+-- Delete empty tracks (needed for empty takes)
+for tr = reaper.CountTracks( 0 )-1, 0, -1 do
+  local track = reaper.GetTrack( 0, tr )
+  if not All_tracks[track] then
+    local id = reaper.CSurf_TrackToID( track, false)
+    if reaper.GetTrackNumMediaItems( track ) == 0 then
+      reaper.DeleteTrack( track )
+    end
+  end
+end
 
 reaper.PreventUIRefresh( -1 )
 reaper.UpdateArrange()
