@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="cf0073295e5dc5d5d1b7998afe0a1cddfdc332e4" name="ReaTeam Scripts">
+<index version="1" commit="24bf26769cfc0618cfaf925546a890dd624aa0dd" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -4462,7 +4462,8 @@ website
 \widowctrl\hyphauto
 
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Explodes takes of selected items across tracks. Tracks of original items become parent folders and new tracks their children.\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Options inside the script to mute and lock the original items and to name the children tracks like their parents. (default: all ON)\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Options inside the script to mute and lock the original items and to name the children tracks like their parents. (default: all ON)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Items, that are grouped vertically, when exploded, are grouped per track (= per take) and not all together\sa180\par}
 }
 ]]></description>
         <link rel="donation">https://www.paypal.me/amagalma</link>
@@ -4482,6 +4483,10 @@ website
         <changelog><![CDATA[- Fix for items belonging to tracks nested in folders
 - Small optimization]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/392b7ce56b56270e9f51b74dc3f482d9f9de4c44/Items%20Editing/amagalma_Explode%20takes%20of%20items%20across%20children%20tracks,%20optionally%20mute%20and%20lock%20original%20items.lua</source>
+      </version>
+      <version name="1.20" author="amagalma" time="2022-02-08T23:42:04Z">
+        <changelog><![CDATA[- Overhaul handling of grouped items]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/24bf26769cfc0618cfaf925546a890dd624aa0dd/Items%20Editing/amagalma_Explode%20takes%20of%20items%20across%20children%20tracks,%20optionally%20mute%20and%20lock%20original%20items.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Explode takes of items across tracks (according to source files).lua" type="script" desc="Explode takes of items across tracks (according to their source files)">
