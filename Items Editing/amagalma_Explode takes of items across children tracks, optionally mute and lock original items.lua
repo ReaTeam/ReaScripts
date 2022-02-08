@@ -1,13 +1,13 @@
 -- @description Explode takes of items across children tracks, optionally mute and lock original items
 -- @author amagalma
--- @version 1.07
+-- @version 1.20
 -- @changelog 
---     - Fix for items belonging to tracks nested in folders
---     - Small optimization
+--     - Overhaul handling of grouped items
 -- @donation https://www.paypal.me/amagalma
 -- @about
 --   # Explodes takes of selected items across tracks. Tracks of original items become parent folders and new tracks their children.
 --     - Options inside the script to mute and lock the original items and to name the children tracks like their parents. (default: all ON)
+--     - Items, that are grouped vertically, when exploded, are grouped per track (= per take) and not all together
 
 ----------------------------------------------------------------------------------
 
@@ -26,13 +26,19 @@ local tracks = {}
 local folder_depth = {}
 local items = {}
 local item_groups = {}
+local groups = {}
 local has_groups = false
 local total_takes = 0
+local count_groups = 0
 for i = 0, sel_cnt-1 do
   local item = reaper.GetSelectedMediaItem( 0, i )
   items[i+1] = item
   local group_id = reaper.GetMediaItemInfo_Value( item, "I_GROUPID" )
   if group_id ~= 0 then
+    if not groups[group_id] then
+      count_groups = count_groups + 1
+      groups[group_id] = count_groups
+    end
     item_groups[item] = group_id
     has_groups = true
   end
@@ -71,9 +77,9 @@ if has_groups then
     end
   end
   
-  -- Avoid grouping exploded takes
+ -- Avoid grouping exploded takes
   for item, group_id in pairs(item_groups) do
-    reaper.SetMediaItemInfo_Value( item, "I_GROUPID", MaxGroupID + group_id )
+    reaper.SetMediaItemInfo_Value( item, "I_GROUPID", groups[group_id] + MaxGroupID )
   end
 end
 
@@ -105,8 +111,9 @@ end
 
 -- group exploded takes per track, if needed
 if has_groups then
-  local per_track = 0
-  local cur_track, check_counter
+  groups = {}
+  local last_group = MaxGroupID
+  local cur_parent, parent_id, cur_track, track_id
   for i = 0, reaper.CountSelectedMediaItems(0)-1 do
     local item = reaper.GetSelectedMediaItem( 0, i )
     local group_id = reaper.GetMediaItemInfo_Value( item, "I_GROUPID" )
@@ -114,16 +121,22 @@ if has_groups then
       local track = reaper.GetMediaItemTrack( item )
       if track ~= cur_track then
         cur_track = track
-        per_track = per_track + 1
-        check_counter = true
-      end
-      reaper.SetMediaItemInfo_Value( item, "I_GROUPID", group_id + per_track - 1 )
-      if check_counter then
-        check_counter = false
-        if tracks[reaper.GetParentTrack( track )] == per_track then
-          per_track = 0
+        track_id = reaper.GetMediaTrackInfo_Value( track, "IP_TRACKNUMBER" )
+        local parent = reaper.GetParentTrack( track )
+        if parent ~= cur_parent then
+          cur_parent = parent
+          parent_id = reaper.GetMediaTrackInfo_Value( parent, "IP_TRACKNUMBER" )
         end
       end
+      if not groups[group_id] then groups[group_id] = {} end
+      groups[group_id][#groups[group_id]+1] = { item, track_id - parent_id }
+    end
+  end
+  for group_id, items in pairs(groups) do
+    MaxGroupID = last_group
+    for i = 1, #items do
+      last_group = MaxGroupID + items[i][2]
+      reaper.SetMediaItemInfo_Value( items[i][1], "I_GROUPID", last_group)
     end
   end
 end
