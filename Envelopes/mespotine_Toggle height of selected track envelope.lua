@@ -1,7 +1,7 @@
--- @description Mespotine Toggle Height Of Selected Track Envelope
+-- @description Toggle height of selected track envelope
 -- @author Meo-Ada Mespotine
 -- @version 1.0
--- @changelog 1.0 - First version
+-- @changelog First version
 -- @donation Donation options https://mespotin.uber.space/Mespotine/mespotine-unterstuetzen/
 -- @about
 --   # Toggle height of selected envelope.
