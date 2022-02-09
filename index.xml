@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="c5e96289521dfe5be8b87e894953907d0210acf4" name="ReaTeam Scripts">
+<index version="1" commit="2da05c84dccdfbc9c6031692452aa171387991df" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -13184,6 +13184,22 @@ Replace GetLastWord func with quicker solution (Thanks: Mespotine[t=233393]).]]>
     </reapack>
   </category>
   <category name="Razor Edit">
+    <reapack name="amagalma_Create Razor Edit on selected tracks within Region bounds under mouse or edit cursor (clear other RE areas).lua" type="script" desc="Create Razor Edit on selected tracks within Region bounds under mouse or edit cursor (clear other RE areas)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Creates a Razor edits on the selected tracks within the Region that is under the mouse cursor or the edit cursor. Clears all other razor edits.\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=262254</link>
+        <link rel="donation">https://www.paypal.me/amagalma</link>
+      </metadata>
+      <version name="1.00" author="amagalma" time="2022-02-09T22:41:36Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/2da05c84dccdfbc9c6031692452aa171387991df/Razor%20Edit/amagalma_Create%20Razor%20Edit%20on%20selected%20tracks%20within%20Region%20bounds%20under%20mouse%20or%20edit%20cursor%20(clear%20other%20RE%20areas).lua</source>
+      </version>
+    </reapack>
     <reapack name="amagalma_Crossfade items in Razor Edit area.lua" type="script" desc="Crossfade items in Razor Edit area">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
