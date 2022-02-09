@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="24bf26769cfc0618cfaf925546a890dd624aa0dd" name="ReaTeam Scripts">
+<index version="1" commit="c5e96289521dfe5be8b87e894953907d0210acf4" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -2668,6 +2668,24 @@ Remember the window position, size and dock state]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/bbaa88e6ae080b0ba3342e0f7bf877ede608d83f/Envelopes/Lokasenna_Switch%20to%20next%20track%20envelope%20in%20selected%20tracks.lua</source>
       </version>
     </reapack>
+    <reapack name="mespotine_Toggle height of selected track envelope.lua" type="script" desc="Toggle height of selected track envelope">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Toggle height of selected envelope.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Meo-Ada Mespotine - 8. February 2022 - licensed under MIT-license\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Toggles between minimum height and the default-compactible-height of Reaper. Has no effect, if there's no envelope in the project.\par}
+}
+]]></description>
+        <link rel="donation" href="https://mespotin.uber.space/Mespotine/mespotine-unterstuetzen/">Donation options</link>
+      </metadata>
+      <version name="1.0" author="Meo-Ada Mespotine" time="2022-02-09T16:53:20Z">
+        <changelog><![CDATA[First version]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c5e96289521dfe5be8b87e894953907d0210acf4/Envelopes/mespotine_Toggle%20height%20of%20selected%20track%20envelope.lua</source>
+      </version>
+    </reapack>
     <reapack name="sockmonkey72_Add point for current value on visible armed envelopes of selected tracks at edit cursor.lua" type="script" desc="Add point for current value on visible armed envelopes of selected tracks at edit cursor">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
@@ -5045,14 +5063,22 @@ website
   Another is top / bottom - close edge fade / far edge fade\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Use razor edit area for fades and crossfades a pair of items.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Use time selection with item selection. Such way you can crossfade items on different tracks.\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Also you can set both fades for item by selection it's middle.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Also you can set both fades for item by selection it's middle part.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Create batch fades / crossfades if there are more than 2 items selected.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab There is option (ON by default) to move edit cursor with offset before first fade. That allows you to listen changes immediately.\sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Script warns if non-midi items have too short source for creating crossfade and offer to loop source.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 P.S. There is experimental support for fixed media lanes being in pre-release versions.\par}
 }
 ]]></description>
       </metadata>
       <version name="1.0" author="AZ" time="2022-01-30T18:21:52Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d2612ce21752277c396fb7689081b5728438d69c/Items%20Editing/az_Fade%20tool%20(work%20on%20context%20of%20mouse,%20razor%20or%20time%20selection).lua</source>
+      </version>
+      <version name="1.1" author="AZ" time="2022-02-09T16:52:24Z">
+        <changelog><![CDATA[-fixed some bugs
+-added butch fades/crossfades
+-added fixed lanes experimental support]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/16077e55692946da25962d9b1f0d5a93db829865/Items%20Editing/az_Fade%20tool%20(work%20on%20context%20of%20mouse,%20razor%20or%20time%20selection).lua</source>
       </version>
     </reapack>
     <reapack name="az_Smart split items by mouse cursor.lua" type="script" desc="Smart split items by mouse cursor">
