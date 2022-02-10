@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="dca60da5cc941f6bf27251f19f23b0641596c57e" name="ReaTeam Scripts">
+<index version="1" commit="6101bb30cec7ef94cc5b81cf3c164f2809657a7e" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -4861,6 +4861,10 @@ website
         <changelog><![CDATA[- add: now works with Razor edit areas too (2 items per track)
 - add: you can now specify a different shape instead of the one set in the Reaper Preferences]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ede2e9ea9b20bd94178c109e31148f6d30aac04c/Items%20Editing/amagalma_Smart%20Crossfade.lua</source>
+      </version>
+      <version name="1.61" author="amagalma" time="2022-02-10T12:40:46Z">
+        <changelog><![CDATA[- fix for adjacent items that belong to groups]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6101bb30cec7ef94cc5b81cf3c164f2809657a7e/Items%20Editing/amagalma_Smart%20Crossfade.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Snap MIDI item(s) edges to grid without changing content position.lua" type="script" desc="amagalma_Snap MIDI item(s) edges to grid without changing content position">
