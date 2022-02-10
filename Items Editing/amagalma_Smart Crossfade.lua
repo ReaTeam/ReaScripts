@@ -1,9 +1,8 @@
 -- @description Smart Crossfade
 -- @author amagalma
--- @version 1.60
+-- @version 1.61
 -- @changelog
---   - add: now works with Razor edit areas too (2 items per track)
---   - add: you can now specify a different shape instead of the one set in the Reaper Preferences
+--   - fix for adjacent items that belong to groups
 -- @link https://forum.cockos.com/showthread.php?t=195490
 -- @donation https://www.paypal.me/amagalma
 -- @about
@@ -40,8 +39,14 @@ local remove_RE_area = 1 -- Set to 1 if you want to remove the Razor Edit area (
 
 local debug = false
 if debug then reaper.ClearConsole() end
-local function Msg(str)
-  if debug then reaper.ShowConsoleMsg(tostring(str) .."\n") end
+local function Msg(...)
+  if debug then 
+    local args = {...}
+    for i = 1, #args do
+      args[i] = tostring(args[i])
+    end
+    reaper.ShowConsoleMsg(table.concat(args,"\t").."\n")
+  end
 end
 
 local xfadetime = tonumber(({reaper.get_config_var_string( "defsplitxfadelen" )})[2]) or 0.01
@@ -236,15 +241,30 @@ for i = 2, item_cnt do
       Msg("adjacent - gap: " .. second_start - first_end)
       if not CrossfadeOK(item, prev_item, second_start, first_end) then
         -- previous item (ensure it ends exactly at the start of the next item)
+        local groupid = reaper.GetMediaItemInfo_Value( prev_item, "I_GROUPID" )
+        if groupid ~= 0 then
+          reaper.SetMediaItemInfo_Value( prev_item, "I_GROUPID", 0 )
+        end
         reaper.SetMediaItemSelected(prev_item, true)
         reaper.ApplyNudge(0, 1, 3, 1, second_start, 0, 0)
         FadeOut(prev_item, xfadetime)
         reaper.SetMediaItemSelected(prev_item, false)
+        if groupid ~= 0 then
+          reaper.SetMediaItemInfo_Value( prev_item, "I_GROUPID", groupid )
+        end
         -- item
+        groupid = reaper.GetMediaItemInfo_Value( item, "I_GROUPID" )
+        if groupid ~= 0 then
+          reaper.SetMediaItemInfo_Value( item, "I_GROUPID", 0 )
+        end
         reaper.SetMediaItemSelected(item, true)
         reaper.ApplyNudge(0, 1, 1, 1, second_start - xfadetime, 0, 0)
+        Msg(xfadetime)
         FadeIn(item, xfadetime)
         reaper.SetMediaItemSelected(item, false)
+        if groupid ~= 0 then
+          reaper.SetMediaItemInfo_Value( item, "I_GROUPID", groupid )
+        end
         change = true
       end
     elseif first_end > second_start then -- items are overlapping
