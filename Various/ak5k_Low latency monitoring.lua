@@ -1,12 +1,10 @@
 -- @description Low latency monitoring
 -- @author ak5k
--- @version 2.1.1
+-- @version 2.2.0
 -- @changelog
---   Fixed possible crash with feedback loop routing.
+--   Improved path recursion.
 --
---   Fixed possible crash when changing projects while script is running.
---
---   Refactoring and performance optimization.
+--   Simple internalized table object memory management.
 -- @link Forum thread, more detailed information https://forum.cockos.com/showthread.php?t=245445
 -- @screenshot https://i.imgur.com/iKHyQXb.gif
 -- @about
@@ -30,81 +28,49 @@ local type = type
 local limit = 0 --spls, unused
 local bsize = 0
 
-local state = {
-  cache = {},
-  inputTracks = {},
-  network = {},
-  tracks = {},
-  trackFXs = {},
-  trackFXsToEnable = {},
-  trackFXsToDisable = {},
-  trackFXsDisabled = {},
-  trackFXsSafe = {},
-  route = {},
-  stack = {},
-  temp = {}
-}
+local stack = {}
+local inputTracks = nil
+local network = nil
+local route = nil
+local temp = nil
+local tracks = nil
+local trackFXs = nil
+local trackFXsToEnable = nil
+local trackFXsToDisable = nil
+local trackFXsDisabled = nil
+local trackFXsSafe = nil
 
-local function ClearTable(t)
-  for k in pairs(t) do
-    if type(t[k]) == "table" then
-      t[k] = ClearTable(t[k])
-    else
-      t[k] = nil
+local function NewTable()
+  local next = next
+  local setmetatable = setmetatable
+  local s = stack
+  local t
+  if next(s) then
+    t = s[#s]
+    s[#s] = nil
+  else
+    t = {}
+      setmetatable(
+        t, {
+          __gc = function(t)
+            local pairs = pairs
+            for k in pairs(t) do
+              t[k] = nil
+            end
+            s[#s+1] = t
+          end
+        }
+      )
     end
-  end
-  return t
-end
-
-local function ClearTableX(t)
-  local S = state.stack
-  if t == S then
-    local n = 0
-    for k in pairs(S) do
-      S[k] = nil
-    end
-    return t
-  end
-  
-  if t == state.trackFXs or t == state.cache then
-    for k in pairs(t) do
-      t[k][1], t[k][2] = nil, nil
-    end
-    return t
-  end
-  
-  S[#S+1] = t
-  while #S > 0 do
-    local f = #S
-    local t = S[#S]
-    for k in pairs(t) do
-      if type(t[k]) == "table" then
-        local w = t[k]
-        if not S[w] then
-          S[w] = true
-          S[#S+1] = w
-        end
-      else
-        t[k] = nil
-      end
-    end
-    if f == #S then
-      S[#S] = nil
-    end
-  end
-  
-  for k in pairs(S) do
-    S[k] = nil
-  end
-  
   return t
 end
 
 local function UpdateState()
-  local inputTracks = ClearTable(state.inputTracks) -- {}
-  local network = ClearTable(state.network) -- {}
-  local tracks = ClearTable(state.tracks)
-  local trackFXs = ClearTable(state.trackFXs) -- {}
+  inputTracks = NewTable()
+  network = NewTable() 
+  tracks = NewTable()
+  trackFXs = NewTable()
+  
   local retval
   retval, bsize = reaper.GetAudioDeviceInfo("BSIZE")
   bsize = tonumber(bsize) or 0
@@ -129,7 +95,7 @@ local function UpdateState()
   
   for i = 1, #inputTracks > 0 and #tracks or 0 do
     local node = tracks[i]
-    network[node] = network[node] or {}
+    network[node] = network[node] or NewTable()
     local neighbour = reaper.GetParentTrack(node)
     local link = reaper.GetMediaTrackInfo_Value(node, "B_MAINSEND")
     if link == 1 and not neighbour and node ~= masterTrack then
@@ -147,7 +113,7 @@ local function UpdateState()
       local node = 
         reaper.GetTrackSendInfo_Value(neighbour, -1, j, "P_SRCTRACK")
       if muteState ~= 1 then
-        network[node] = network[node] or {}
+        network[node] = network[node] or NewTable()
         network[node][neighbour] = true
       end
     end
@@ -168,7 +134,7 @@ local function GetSetState(isSet)
   if not isSet
     --and stateCount ~= stateCount0 
     then
-    local trackFXsDisabled = ClearTable(state.trackFXsDisabled)
+   trackFXsDisabled = NewTable() --ClearTable(state.trackFXsDisabled)
     retval, extState = reaper.GetProjExtState(0, extName, key)
     if extState:len() > 0 then
       for s in extState:gmatch("[^;]+") do
@@ -177,7 +143,7 @@ local function GetSetState(isSet)
       end
     end
     
-    local trackFXsSafe = ClearTable(state.trackFXsSafe)
+    trackFXsSafe = NewTable() --ClearTable(state.trackFXsSafe)
     retval, extState = reaper.GetProjExtState(0, extName, keySafe)
     if extState:len() > 0 then
       for s in extState:gmatch("[^;]+") do
@@ -188,9 +154,9 @@ local function GetSetState(isSet)
   
   if isSet then
     local concat = table.concat
-    local temp = ClearTable(state.temp)
+    local temp = NewTable() --ClearTable(state.temp)
     
-    for k, v in pairs(state.trackFXsDisabled) do
+    for k, v in pairs(trackFXsDisabled) do
       temp[#temp+1] = k
       temp[#temp+1] = ","
       temp[#temp+1] = v
@@ -198,8 +164,8 @@ local function GetSetState(isSet)
     end
     retval = reaper.SetProjExtState(0, extName, key, concat(temp))
     
-    temp = ClearTable(temp)
-    for k, _ in pairs(state.trackFXsSafe) do
+    temp = NewTable() --ClearTable(temp)
+    for k, _ in pairs(trackFXsSafe) do
       temp[#temp+1] = k
       temp[#temp+1] = ";"
     end
@@ -207,16 +173,16 @@ local function GetSetState(isSet)
     for i = #temp, 1, -1 do
       temp[i] = nil
     end
-    collectgarbage()
+    --collectgarbage()
   end
   
   return
 end
 
 local function GetLatency(node, currentLatency)
-  local trackFXsToDisable = state.trackFXsToDisable
-  local trackFXsDisabled = state.trackFXsDisabled
-  local trackFXsSafe = state.trackFXsSafe
+  trackFXsToDisable = trackFXsToDisable or NewTable()
+  trackFXsDisabled = trackFXsDisabled or NewTable()
+  trackFXsSafe = trackFXsSafe or NewTable()
   local track = node
   local currentLatency = currentLatency or 0
   local latency = 0
@@ -284,72 +250,36 @@ end
 
 --signalchain as directed network
 --recursive dft algoriddim with backtracking
-local function TraverseNetwork(node, currentLatency)
+local function TraverseNetwork(node, currentLatency, route)
   local node = node
-  local network = state.network
-  local currentLatency = currentLatency
-  
-  local route = state.route
-  if not currentLatency then
-    route = ClearTable(state.route)
-  end
-  
   local currentLatency = currentLatency or 0
+  local route = route or NewTable()
+  local network = network
   
   currentLatency = GetLatency(node, currentLatency)
-  
-  route[node] = true
   
   if not next(network[node]) then
     return
   else
     for neighbour in pairs(network[node]) do
       if not route[neighbour] then
-        TraverseNetwork(neighbour, currentLatency)
+        route[node] = true
+        TraverseNetwork(neighbour, currentLatency, route)
+        route[node] = nil
       end
     end
-    route[node] = nil
+    
     return
   end
 end
 
---local stack2 = {}
-local function TraverseNetworkX(node)
-  local G = state.network
-  local v = node
-  S = ClearTable(stack2)
-  
-  S[#S+1] = {
-    G[v],
-    nil,
-    GetLatency(v)
-  }
-  
-  while #S > 0 do
-    local w = next(S[#S][1], S[#S][2])
-    if w and not S[w] then
-      S[#S][2] = w
-      S[w] = true
-      S[#S+1] = {}
-      S[#S][1] = G[w]
-      S[#S][2] = nil
-      S[#S][3] = S[#S][3] or GetLatency(w, S[#S-1][3])
-    else
-      S[#S][1], S[#S][1], S[#S][1] = nil, nil, nil 
-      S[#S] = nil
-    end
-  end
-  
-  return
-end
-
 local function ProcessTrackFXs()
   local res = false
-  local trackFXsToEnable = ClearTable(state.trackFXsToEnable)
-  local trackFXs = state.trackFXs
-  local trackFXsToDisable = state.trackFXsToDisable
-  local trackFXsDisabled = state.trackFXsDisabled
-  local trackFXsSafe = state.trackFXsSafe
+  local trackFXsToEnable = NewTable()--ClearTable(state.trackFXsToEnable)
+  local trackFXs = trackFXs or NewTable()
+  local trackFXsToDisable = trackFXsToDisable or NewTable()
+  local trackFXsDisabled = trackFXsDisabled or NewTable()
+  local trackFXsSafe = trackFXsSafe or NewTable()
   
   for k in pairs(trackFXsDisabled) do
     if not trackFXsToDisable[k] then
@@ -360,7 +290,8 @@ local function ProcessTrackFXs()
     end
   end
   
-  if next(trackFXsToEnable) or next(trackFXsToDisable) then
+  if next(trackFXsToEnable) or 
+    next(trackFXsToDisable) then
     res = true
     local preventCount = 0
     for _ in pairs(trackFXsToEnable) do
@@ -414,32 +345,40 @@ end
 
 --count, count0, count_time = 0, 0, 0
 --time0, time1, time_max = 0, 0, 0
---collectgarbage("stop")
 
 local stateCount0, stateCount = 0, 0
+collectgarbage("stop")
 local function main(exit)
-  
-  --time0 = reaper.time_precise()
+  --[[
+  size = #stack
+  size_max = size_max or 0
+  if size > size_max then
+    size_max = size
+  end
+  time0 = reaper.time_precise()
+  ]]--
   
   stateCount0 = stateCount
   stateCount = 
     reaper.GetProjectStateChangeCount(0) +
     (reaper.GetGlobalAutomationOverride() + 1)
   
+  if stateCount ~= stateCount0 then
   
   UpdateState()
   GetSetState()
   
   if bsize > 0 then
-    local inputTracks = state.inputTracks
+    --local inputTracks = inputTracks
     for i = 1, #inputTracks do
       TraverseNetwork(inputTracks[i])
     end
   end
   
+  
   if exit then
-    local trackFXsToDisable = state.trackFXsToDisable
-    trackFXsToDisable = ClearTable(trackFXsToDisable)
+    --local trackFXsToDisable = state.trackFXsToDisable
+    trackFXsToDisable = NewTable() --ClearTable(trackFXsToDisable)
   end
   
   local isSet = ProcessTrackFXs()
@@ -448,13 +387,16 @@ local function main(exit)
     GetSetState(isSet)
   end
   
+  collectgarbage("collect")
+  end
+  
   --[[
   time1 = reaper.time_precise() - time0
   time_max = time_max or 0
-  if time1 > time_max then
+  if time1 > time_max and time1 < 0.005 then
     time_max = time1
   end
-  
+ 
   count0 = count
   count = collectgarbage("count") * 1024 // 1024
   
@@ -483,3 +425,5 @@ ToggleCommandState(1)
 reaper.defer(main)
 
 reaper.atexit(exit)
+
+
