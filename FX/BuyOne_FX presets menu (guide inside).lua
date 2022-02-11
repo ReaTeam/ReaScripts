@@ -139,7 +139,7 @@ local function GetObjChunk(obj, obj_type)
   -- Try standard function -----
 	local t = obj_type == 0 and {r.GetTrackStateChunk(obj, '', false)} or {r.GetItemStateChunk(obj, '', false)} -- isundo = false
 	local ret, obj_chunk = table.unpack(t)
-		if ret and obj_chunk and #obj_chunk > 4194303 and not r.APIExists('SNM_CreateFastString') then return 'err_mess'
+		if ret and obj_chunk and #obj_chunk >= 4194303 and not r.APIExists('SNM_CreateFastString') then return 'err_mess'
 		elseif ret and obj_chunk and #obj_chunk < 4194303 then return ret, obj_chunk -- 4194303 bytes = (4096 kb * 1024 bytes) - 1 byte
 		end
 -- If chunk_size >= max_size, use wdl fast string --
