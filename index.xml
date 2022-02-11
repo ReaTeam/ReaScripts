@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="11804a6b64b7eaa13630ea7024d022ad2230e179" name="ReaTeam Scripts">
+<index version="1" commit="d69eb28984e5ec3373d0975afe90d834c471b36b" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -3447,6 +3447,10 @@ Improve "under mouse cursor" variants to work over any envelope]]></changelog>
 # Updated guide]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4fa8d2d1bfcc7f64fc0bf645b3690e47aa7844bc/FX/BuyOne_FX%20presets%20menu%20(guide%20inside).lua</source>
       </version>
+      <version name="1.2.1" author="BuyOne" time="2022-02-11T22:18:40Z">
+        <changelog><![CDATA[# Minor fix of relational operator]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d69eb28984e5ec3373d0975afe90d834c471b36b/FX/BuyOne_FX%20presets%20menu%20(guide%20inside).lua</source>
+      </version>
     </reapack>
     <reapack name="BuyOne_FX presets navigation.lua" type="script" desc="FX presets navigation (7 scripts)">
       <metadata>
@@ -5243,6 +5247,34 @@ For now it provides as empty arrange zone, and items should splitted at edit cur
 + Save XY position (saved after click anywhere in the script)
 + Save checkbox states (http://github.com/ReaTeam/ReaScripts/issues/125)]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6663f27be58556e0ec15454604fd999b3a4f1865/Items%20Editing/Breeder_spk77_GlueTools.lua</source>
+      </version>
+    </reapack>
+    <reapack name="BuyOne_Create pitch-rate (vari-speed) take envelope and render to new take.lua" type="script" desc="Create pitch-rate (vari-speed) take envelope and render to new take">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 This is a ported to ReaScript method of creating a take pitch envelope which affects take rate, originally suggested by user BenK-msx on the Cockos forum at\line https://forum.cockos.com/showthread.php?t=155233\line This allows creating such effects as tape stop or playback acceleration where pitch changes along with playrate.\line The solution which allows controlling pitch by exact semitones using ReaperBlog Macro controller JSFX plugin was borrowed from Phazma, who shared their method at\line https://forum.cockos.com/showthread.php?p=2394001\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 HOW IT WORKS\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The script adds to selected item(s) a MIDI take whose FX chain contains 'Macro controller' JS plugin (a modified version of the one by ReaperBlog available via ReaPack), ReaControlMIDI and ReaSamplomatic5000 or only Macro controller and ReaSamplmatic5000, depending on the USER SETTIGS below. In both cases pitch/rate is controlled by sliders of 'Macro controller' plugin whose take FX parameter envelope is exposed in the MIDI take.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 In the first case pitch/rate is controlled by 'Macro controller' plugin 'Pitch wheel' slider linked to ReaControlMIDI 'Pitch wheel' control via Parameter modulation, in the second it's controlled by 'Macro controller' plugin 'Pitch offest' slider linked to ReaSamplomatic5000 'Pitch offset' control.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 In both cases ReaSamplomatic5000 will contain the media item source file which will be triggered from the MIDI take and affected by the automation drawn in the exposed 'Macro controller' parameter envelope.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 When the pitch/rate is controlled with Macro controller 'Pitch wheel' slider envelope the pitch range can be managed manually with ReaSamplomatic5000 'Pitch bend' parameter or pre-defined in the USER SETTINGS below.\line If the pitch/rate is controlled with Macro controller 'Pitch offset' slider the range can be pre-defined in the USER SETTINGS below. Doing it manually is too involved as it's not straightforward requires making calculations.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The Macro controller plugin is meant to make pitch/rate envelope range and resolution more meainingful and allow snapping them to semitones.\line ReaControlMIDI 'Pitch wheel' control isn't based on semitones while ReaSamplomatic5000 'Pitch offset' control default range is -80 to 80 semitones.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The 'Macro controller' plugin file will be placed in the \\Effects\\utility\\ folder in the REAPER resource directory the first time the script is run, and then will be loaded from there unless deleted, in which case it will be subsequently recreated on the next script run.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 HOW TO USE\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Hover mouse cursor over a single media item or select media item(s) (or their copies) which you'd like to process with the effect and run the script.\line A MIDI take containing an envelope will be added to the item.\line Draw automation in the envelope, select the item(s) and run the script again, this time a new media take will be added to the item with the effect the parameter automation creates printed.\line Run the script again and you'll be able to add another such take optionally replacing all previously rendered ones.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 When there's no MIDI take with the envelope the script will add it, and when there's one, the script will render it to new take.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Be aware that when pitch is increased with automation, the media file triggered from the MIDI take becomes shorter and, if not compensated by subsequent decrease in pitch (which is not required as it depends on the user objectives), its playback will stop earlier than that of the original media item.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 In take FX, parameter modulation only works during playback. Without playback, movements of a modulating control are not translated to the modulated control.\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/member.php?u=134058</link>
+      </metadata>
+      <version name="1.0" author="BenK-msx, BuyOne, Phazma" time="2022-02-11T22:18:21Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/aa66c32204ad0988b318532eed0f6b172b75e421/Items%20Editing/BuyOne_Create%20pitch-rate%20(vari-speed)%20take%20envelope%20and%20render%20to%20new%20take.lua</source>
       </version>
     </reapack>
     <reapack name="BuyOne_Delete selected item(s) and select next or previous (settings inside).lua" type="script" desc="Delete selected item(s) and select next or previous">
