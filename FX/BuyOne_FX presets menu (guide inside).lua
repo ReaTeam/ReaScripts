@@ -3,9 +3,7 @@ ReaScript name: FX presets menu
 Author: BuyOne
 Website: https://forum.cockos.com/member.php?u=134058
 Version: 1.2
-Changelog:  # Preset menu of FX in a focused take FX chain is now displayed reragdless of the take being active
-	    # Added new option to lock FX chain focus
-	    # Updated guide
+Changelog:  # Minor fix of relational operator
 Provides: [main] .
 About:
 
