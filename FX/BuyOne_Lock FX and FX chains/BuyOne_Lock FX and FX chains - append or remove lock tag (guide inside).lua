@@ -10,11 +10,12 @@
 * Licence: WTFPL
 * Forum Thread:
 * Demo:
-* Version: 1.0
+* Version: 1.1
 * REAPER: at least v5.962
 * Extensions: SWS/S&M (not obligatory but recommended)
 * Changelog:
 	+ v1.0 	Initial release
+	+ v1.1  Minor update of relational operator
 
 ]]
 
@@ -136,7 +137,7 @@ local function GetObjChunk(obj_type, obj)
   -- Try standard function -----
 	local t = obj_type == 1 and {r.GetTrackStateChunk(obj, '', false)} or {r.GetItemStateChunk(obj, '', false)} -- isundo = false
 	local ret, obj_chunk = table.unpack(t)
-		if ret and obj_chunk and #obj_chunk > 4194303 and not r.APIExists('SNM_CreateFastString') then return 'err_mess'
+		if ret and obj_chunk and #obj_chunk >= 4194303 and not r.APIExists('SNM_CreateFastString') then return 'err_mess'
 		elseif ret and obj_chunk and #obj_chunk < 4194303 then return ret, obj_chunk -- 4194303 bytes = (4096 kb * 1024 bytes) - 1 byte
 		end
 -- If chunk_size >= max_size, use wdl fast string --
