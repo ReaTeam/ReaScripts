@@ -2,7 +2,7 @@
 ReaScript name: FX presets menu
 Author: BuyOne
 Website: https://forum.cockos.com/member.php?u=134058
-Version: 1.2
+Version: 1.2.1
 Changelog:  # Minor fix of relational operator
 Provides: [main] .
 About:
