@@ -1,7 +1,7 @@
 -- @description Show menu for dry run (calculate loudness) actions
 -- @author amagalma
--- @version 1.01
--- @changelog Fix menu placement for OSX
+-- @version 1.02
+-- @changelog Added option to calculate for Selected Items
 -- @link https://forum.cockos.com/showthread.php?t=239556
 -- @screenshot https://i.ibb.co/9w5VJwZ/dry-run-menu.gif
 -- @donation https://www.paypal.me/amagalma
@@ -25,6 +25,7 @@ local t = {
   { "Master Mix", 42440 },
   { "Selected Tracks", 42438 },
   { "Selected Tracks (mono)", 42447 },
+  { "Selected Items", 42468 },
   { "Selected Items (including take/track FX and settings)|", 42437 },
   { ">Within Time Selection" },
   { "Master Mix", 42441 },
@@ -47,7 +48,7 @@ local selection = gfx.showmenu(menu)
 gfx.quit()
 
 if selection > 0 then
-  if selection > 5 then selection = selection + 1 end
+  if selection > 6 then selection = selection + 1 end
   if t[selection][2] then
     reaper.Main_OnCommand(t[selection][2], 0)
   end
