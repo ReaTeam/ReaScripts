@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="d69eb28984e5ec3373d0975afe90d834c471b36b" name="ReaTeam Scripts">
+<index version="1" commit="89fa0d0481e15bb211cfa66f369c7789a94f5d3b" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -17368,6 +17368,10 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
       <version name="1.01" author="amagalma" time="2021-11-28T12:50:04Z">
         <changelog><![CDATA[Fix menu placement for OSX]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e719c53815b40d0bc4afb7fd7c65b746d1cb1647/Various/amagalma_Show%20menu%20for%20dry%20run%20(calculate%20loudness)%20actions.lua</source>
+      </version>
+      <version name="1.02" author="amagalma" time="2022-02-11T23:00:23Z">
+        <changelog><![CDATA[Added option to calculate for Selected Items]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/89fa0d0481e15bb211cfa66f369c7789a94f5d3b/Various/amagalma_Show%20menu%20for%20dry%20run%20(calculate%20loudness)%20actions.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Show path from list menu (Resource, Selected Item, Project File, Record, Secondary Record, Render).lua" type="script" desc="Show path from list menu (Resource, Selected Item, Project File, Record, Secondary Record, Render)">
