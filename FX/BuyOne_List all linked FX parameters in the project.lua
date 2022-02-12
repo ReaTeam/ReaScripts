@@ -6,7 +6,7 @@ Changelog: Initial release
 Author URL: https://forum.cockos.com/member.php?u=134058
 Licence: WTFPL
 REAPER: at least v5.962
-About: 	Either displays in the ReaConsole the list of FX parameters 
+About: 		Either displays in the ReaConsole the list of FX parameters 
 		linked via parameter modulation or, if the list is too long
 		to fit within one console output, saves it to a dump file either
 		in the directory specified in the USER SETTINGS of in REAPER
