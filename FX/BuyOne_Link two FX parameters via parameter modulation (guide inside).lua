@@ -41,6 +41,9 @@ About:  The script automates the task of linking two FX parameters
 		in the prompt which will pop up.  
 		There're a few other options which you may ancounter using the script but 
 		these are less accessible.
+
+		You may also be interested in the script   
+		BuyOne_List all linked FX parameters in the project.lua
 ]]
 
 
