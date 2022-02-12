@@ -13,10 +13,7 @@
 * Version: 1.2
 * REAPER: at least v5.962
 * Extensions:
-* Changelog:
-	+ v1.0 	Initial release
-	+ v1.1  Added proper takes support
-	+ v1.2  Minor update of relational operator
+* Changelog: Minor update of relational operator
 ]]
 
 --[[
