@@ -6,7 +6,7 @@ Changelog: Initial release
 Author URL: https://forum.cockos.com/member.php?u=134058
 Licence: WTFPL
 REAPER: at least v5.962
-About: 		Either displays in the ReaConsole the list of FX parameters 
+About: 		Either displays in the ReaScript console the list of FX parameters 
 		linked via parameter modulation or, if the list is too long
 		to fit within one console output, saves it to a dump file either
 		in the directory specified in the USER SETTINGS of in REAPER
@@ -37,7 +37,7 @@ SEPARATE_TAKE_FX_LIST = "1" -- any alphanumeric character
 
 
 -- If the list exceeds 16,380 bytes it won't fit
--- entirely within REAPER Console due to character limit
+-- entirely within ReaScript console due to character limit
 -- and instead will be saved to a file named 'FX PARAMETER LINK LIST.TXT'
 -- in the directory the path to which is specified in this setting between
 -- the double square brackets;
