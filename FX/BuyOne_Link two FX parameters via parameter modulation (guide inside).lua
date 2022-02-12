@@ -6,7 +6,7 @@ Changelog: Initial release
 Author URL: https://forum.cockos.com/member.php?u=134058
 Licence: WTFPL
 REAPER: at least v5.962
-About:  The script automates the task of linking two FX parameters
+About:  	The script automates the task of linking two FX parameters
 		via parameter modulation properties.
 		
 		HOW TO USE
