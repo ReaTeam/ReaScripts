@@ -39,8 +39,8 @@ About:  	The script automates the task of linking two FX parameters
 		To reset the script after step 2 without creating a linkage even if you're
 		already at step 3, close the focused FX chain, perform step 4 and click 'YES'
 		in the prompt which will pop up.  
-		There're a few other options which you may ancounter using the script but 
-		these are less accessible.
+		There're a few other options which you may encounter using the script but 
+		those are less accessible.
 
 		You may also be interested in the script   
 		BuyOne_List all linked FX parameters in the project.lua
