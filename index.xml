@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="89fa0d0481e15bb211cfa66f369c7789a94f5d3b" name="ReaTeam Scripts">
+<index version="1" commit="18b3f334b246f6a9fa5c79fc4e9a51c6e7d386ee" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -3504,6 +3504,47 @@ Update version compatibility tag]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/8086dcd26ee950152b2fc3fe23c61f9996754660/FX/BuyOne_Insert%20selected%20FX%20or%20FX%20chain%20presets%20in%20OR%20copy%20focused%20FX%20to%20selected%20objects.lua</source>
       </version>
     </reapack>
+    <reapack name="BuyOne_Link two FX parameters via parameter modulation (guide inside).lua" type="script" desc="Link two FX parameters via parameter modulation">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 The script automates the task of linking two FX parameters via parameter modulation properties.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 HOW TO USE\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 1.\tx360\tab Click/touch control of FX parameter which should be the Master.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 2.\tx360\tab Run the script once.\line The parameter data will be stored to the clipboard, the script toggle state will be set to ON.\line If the script is linked to a toolar button the button will light up, if it's linked to a menu item, the latter will be checkmarked.\line In the main menu at the position of Undo History, the last one after Help, the name of the touched parameter will be displayed for reference. Still it may prove not really informative because in VST plugins these names of parameters may differ from their names displayed in the plugin UI.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 3.\tx360\tab Click/touch control of another FX parameter which should be the Slave, the one to be controlled by the Master parameter.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 4.\tx360\tab Run the script again.\line At this point the link will have been set up and the script will be reset.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 In case you forgot what has been linked to what, you can look up this info in the name of the script Undo point in the Undo History. But the reservation about the parameter naming made above still applies.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 If Parameter modulation settings window of the Slave parameter is open while the link is being created its UI won't be updated. In this case to see changes, close the window and re-open it.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 To reset the script after step 2 without creating a linkage even if you're already at step 3, close the focused FX chain, perform step 4 and click 'YES' in the prompt which will pop up.\line There're a few other options which you may encounter using the script but those are less accessible.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 You may also be interested in the script\line BuyOne_List all linked FX parameters in the project.lua\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="BuyOne" time="2022-02-14T19:28:46Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/18b3f334b246f6a9fa5c79fc4e9a51c6e7d386ee/FX/BuyOne_Link%20two%20FX%20parameters%20via%20parameter%20modulation%20(guide%20inside).lua</source>
+      </version>
+    </reapack>
+    <reapack name="BuyOne_List all linked FX parameters in the project.lua" type="script" desc="List all linked FX parameters in the project">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Either displays in the ReaScript console the list of FX parameters linked via parameter modulation or, if the list is too long to fit within one console output, saves it to a dump file either in the directory specified in the USER SETTINGS of in REAPER resource directory if custom one isn't provided, malformed or doesn't exist. Of this the user is notified with a dialogue.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The dump file will be overwritten every time the list is saved to it. So if you need to keep the last saved list for future reference, rename the file or remove it from the directory it's in.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The list may take a few seconds or longer to get compiled depending on the number of tracks and items with FX in the project as all are being analyzed for linked parameters. During that time REAPER will freeze. Unfortunately couldn't find a way to prevent that, if such exists.\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="BuyOne" time="2022-02-14T19:28:20Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3c94b862e014f3cf75e077ab1dcbfec4692d5c29/FX/BuyOne_List%20all%20linked%20FX%20parameters%20in%20the%20project.lua</source>
+      </version>
+    </reapack>
     <reapack name="BuyOne_Load FX chain on selected objects via file dialogue (guide inside).lua" type="script" desc="Load FX chain on selected objects via file dialogue (guide inside)">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
@@ -3551,6 +3592,11 @@ Update version compatibility tag]]></changelog>
         <changelog><![CDATA[#A minor efficiency update]]></changelog>
         <source main="main" file="BuyOne_Lock FX and FX chains/BuyOne_Lock FX and FX chains (guide inside).lua">https://github.com/ReaTeam/ReaScripts/raw/e15f5093eb54f80769fe3e919ad1ff1a7b244321/FX/BuyOne_Lock%20FX%20and%20FX%20chains/BuyOne_Lock%20FX%20and%20FX%20chains%20(guide%20inside).lua</source>
         <source main="main" file="BuyOne_Lock FX and FX chains/BuyOne_Lock FX and FX chains - append or remove lock tag (guide inside).lua">https://github.com/ReaTeam/ReaScripts/raw/e15f5093eb54f80769fe3e919ad1ff1a7b244321/FX/BuyOne_Lock%20FX%20and%20FX%20chains/BuyOne_Lock%20FX%20and%20FX%20chains%20-%20append%20or%20remove%20lock%20tag%20(guide%20inside).lua</source>
+      </version>
+      <version name="1.3" author="BuyOne" time="2022-02-14T19:27:04Z">
+        <changelog><![CDATA[# A minor update of relational operator]]></changelog>
+        <source main="main" file="BuyOne_Lock FX and FX chains/BuyOne_Lock FX and FX chains (guide inside).lua">https://github.com/ReaTeam/ReaScripts/raw/235ecc26f525086bdc3ff2b698ee767aa70de2ff/FX/BuyOne_Lock%20FX%20and%20FX%20chains/BuyOne_Lock%20FX%20and%20FX%20chains%20(guide%20inside).lua</source>
+        <source main="main" file="BuyOne_Lock FX and FX chains/BuyOne_Lock FX and FX chains - append or remove lock tag (guide inside).lua">https://github.com/ReaTeam/ReaScripts/raw/235ecc26f525086bdc3ff2b698ee767aa70de2ff/FX/BuyOne_Lock%20FX%20and%20FX%20chains/BuyOne_Lock%20FX%20and%20FX%20chains%20-%20append%20or%20remove%20lock%20tag%20(guide%20inside).lua</source>
       </version>
     </reapack>
     <reapack name="BuyOne_Toggle bypass;offline state of all FX in a focused;selected item;take + visual indication (guide inside).lua" type="script" desc="Toggle bypass;offline state of all FX in a focused;selected item;take + visual indication">
@@ -5371,6 +5417,10 @@ For now it provides as empty arrange zone, and items should splitted at edit cur
 #Updated screenshot
 #Updated text under About tag]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a8dae37813e1894d8eea3d88ad97bd981a8b9a67/Items%20Editing/BuyOne_Ripple%20edit%20per%20track%20when%20selected%20item%20length%20changes%20(settings%20inside).lua</source>
+      </version>
+      <version name="1.2" author="BuyOne" time="2022-02-14T19:27:40Z">
+        <changelog><![CDATA[#Added a tooltip warning when script is started without Ripple per track being enabled.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/8ad5c0a5a1f7f766586767b19a4c4c6a560f582d/Items%20Editing/BuyOne_Ripple%20edit%20per%20track%20when%20selected%20item%20length%20changes%20(settings%20inside).lua</source>
       </version>
     </reapack>
     <reapack name="BuyOne_Split grouped items keeping splits in the same group as the originals.lua" type="script" desc="Split grouped items keeping splits in the same group as the originals">
