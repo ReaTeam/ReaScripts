@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="18b3f334b246f6a9fa5c79fc4e9a51c6e7d386ee" name="ReaTeam Scripts">
+<index version="1" commit="a34ef0f56b49308457d098cd3fb1312dd574564a" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -14803,6 +14803,22 @@ is off-screen. Reaper issue, should be fixed soon.]]></changelog>
       <version name="1.0" author="Airon" time="2021-08-28T15:16:00Z">
         <changelog><![CDATA[Initial Release]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/61bf541c6171673130392d2a4977ff9fdf021298/Tracks%20Properties/airon_vca_show_leaders.lua</source>
+      </version>
+    </reapack>
+    <reapack name="ak5k_Toggle track visibility by items in current region.lua" type="script" desc="Toggle track visibility by items in current region">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Toggles track visibility based on existing items within current region.\par}
+}
+]]></description>
+        <link rel="website" href="https://forum.cockos.com/showthread.php?t=262559">Forum thread</link>
+        <link rel="screenshot">https://i.imgur.com/rvnZAzk.gif</link>
+      </metadata>
+      <version name="0.1.0" author="ak5k" time="2022-02-14T19:34:06Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a34ef0f56b49308457d098cd3fb1312dd574564a/Tracks%20Properties/ak5k_Toggle%20track%20visibility%20by%20items%20in%20current%20region.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Cycle layout for track under mouse cursor (applies to other selected tracks if track selected).lua" type="script" desc="Cycle layout for track under mouse cursor (applies to other selected tracks if track selected)">
