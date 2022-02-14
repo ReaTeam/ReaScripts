@@ -4,8 +4,48 @@
    * Author: pandabot
    * Author URI: http://forum.cockos.com/member.php?u=127396
    * Licence: GPL v3
-   * Version: 1.0
+   * Version: 1.1
+   * Changelog: + added persistence for window position
    */
+
+activeProjectIndex = 0;
+sectionName = "com.pandabot.selectEveryNItemsWithinSelection";
+interfaceXPositionKey = "interfaceXPosition";
+interfaceYPositionKey = "interfaceYPosition";
+positionHasBeenSetKey = "positionHasBeenSet";
+dockStateKey = "dockState";
+
+function printNumber(arg)
+(
+  sprintf(outputString, "%d\n", arg);
+  ShowConsoleMsg(outputString);
+);
+
+function printString(arg)
+(
+  sprintf(outputString, "%s\n", arg);
+  ShowConsoleMsg(outputString);
+);
+
+function setValue(key, value)
+(
+
+  // convert integer to string
+  sprintf(outputString, "%d", value);
+
+  SetProjExtState(activeProjectIndex, sectionName, key, outputString);
+);
+
+function getValue(key)
+(
+
+  GetProjExtState(activeProjectIndex, sectionName, key, value);
+
+  // convert string to integer
+  match("%d", value, returnValue);
+
+  returnValue;
+);
 
 function highlight_mouse_hover()
 (
@@ -123,10 +163,26 @@ function run()
   mouse_cap == 1 ? lmb_down = 1 : lmb_down = 0;
   
   gfx_update();
+
+  currentDockState = gfx_dock(-1, currentWindowXPosition, currentWindowYPosition);
+  setValue(dockStateKey, currentDockState);
+  setValue(interfaceXPositionKey, currentWindowXPosition);
+  setValue(interfaceYPositionKey, currentWindowYPosition);
+
   gfx_getchar() >= 0 ? defer("run();");
 );
 
-gfx_init("Item selector", 200, 100);
+interfaceXPosition = getValue(interfaceXPositionKey);
+interfaceYPosition = getValue(interfaceYPositionKey);
+dockState = getValue(dockStateKey);
+positionHasBeenSet = getValue(positionHasBeenSetKey);
+
+(positionHasBeenSet == 0) ? (
+  gfx_init("Item selector", 200, 100);
+):(
+  gfx_init("Item selector", 200, 100, dockState, interfaceXPosition, interfaceYPosition);
+);
+
 gfx_setfont(1, "Arial", 16);
 
 step = 1;
@@ -148,3 +204,5 @@ loop(numberOfSelectedMediaItems,
 );
 
 run();
+
+setValue(positionHasBeenSetKey, 1);
