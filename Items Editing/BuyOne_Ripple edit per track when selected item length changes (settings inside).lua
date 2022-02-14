@@ -2,12 +2,8 @@
 ReaScript name: Ripple edit per track when selected item length changes
 Author: BuyOne
 Website: https://forum.cockos.com/member.php?u=134058
-Version: 1.1
-Changelog: #Added support for ripple editing automation envelopes and automation items
-	   #Added new user settings		   
-	   #Updated script name
-	   #Updated screenshot
-	   #Updated text under About tag
+Version: 1.2
+Changelog: #Added a tooltip warning when script is started without Ripple per track being enabled.	    
 Licence: WTFPL
 REAPER: at least v5.962
 Screenshots: https://git.io/JSTkE
@@ -182,6 +178,12 @@ local cap = cap and type(cap) == 'string' and #cap > 0 and cap..' = ' or ''
 reaper.ShowConsoleMsg(cap..tostring(param)..'\n')
 end
 
+
+	if r.GetToggleCommandStateEx(0,41990) ~= 1 -- Toggle ripple editing per-track
+	then
+	local x, y = r.GetMousePosition()
+	r.TrackCtl_SetToolTip(('\n\n           ripple edit per track is disabled.  \n\n the script will run but won\'t affect items  \n\n                until ripple edit is enabled. \n\n '):upper(), x, y, true) -- topmost	true
+	end
 
 -- removes spaces for settings evaluation
 function is_set(sett) -- sett is a string
