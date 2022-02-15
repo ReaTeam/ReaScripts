@@ -15,6 +15,9 @@ interfaceYPositionKey = "interfaceYPosition";
 positionHasBeenSetKey = "positionHasBeenSet";
 dockStateKey = "dockState";
 
+interfaceWidth = 200;
+interfaceHeight = 100;
+
 function printNumber(arg)
 (
   sprintf(outputString, "%d\n", arg);
@@ -25,6 +28,18 @@ function printString(arg)
 (
   sprintf(outputString, "%s\n", arg);
   ShowConsoleMsg(outputString);
+);
+
+function getScreenWidth()
+(
+  my_getViewport(0, 0, screenWidth, 0, 0, 0, 0, 0, true);
+  screenWidth;
+);
+
+function getScreenHeight()
+(
+  my_getViewport(0, 0, 0, screenHeight, 0, 0, 0, 0, true);
+  screenHeight;
 );
 
 function setValue(key, value)
@@ -173,9 +188,16 @@ dockState = getValue(dockStateKey);
 positionHasBeenSet = getValue(positionHasBeenSetKey);
 
 (positionHasBeenSet == 0) ? (
-  gfx_init("Note selector", 200, 100);
+
+  defaultDockState = 0;
+  defaultInterfaceXPosition = getScreenWidth()/6 - interfaceWidth/2;
+  defaultInterfaceYPosition = getScreenHeight()/4 - interfaceHeight/2;
+
+  gfx_init("Note selector", interfaceWidth, interfaceHeight, defaultDockState, defaultInterfaceXPosition, defaultInterfaceYPosition);
+
 ):(
-  gfx_init("Note selector", 200, 100, dockState, interfaceXPosition, interfaceYPosition);
+
+  gfx_init("Note selector", interfaceWidth, interfaceHeight, dockState, interfaceXPosition, interfaceYPosition);
 );
 
 
