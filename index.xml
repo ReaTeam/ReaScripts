@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="a34ef0f56b49308457d098cd3fb1312dd574564a" name="ReaTeam Scripts">
+<index version="1" commit="488849ff3a7dde4c970ba975826ebe0490fecb27" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -6628,10 +6628,18 @@ here
       <version name="1.0" author="pandabot" time="2020-08-19T09:42:12Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/9921ba969e622cd6ab6483a51e94a7c61bd43c40/Items%20Editing/pandabot_Select%20every%20N%20items%20within%20selection.eel</source>
       </version>
+      <version name="1.1" author="pandabot" time="2022-02-18T03:46:40Z">
+        <changelog><![CDATA[+ added persistence for window position]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/488849ff3a7dde4c970ba975826ebe0490fecb27/Items%20Editing/pandabot_Select%20every%20N%20items%20within%20selection.eel</source>
+      </version>
     </reapack>
     <reapack name="pandabot_Select every N tracks within selection.eel" type="script" desc="Select every N tracks within selection">
       <version name="1.0" author="pandabot" time="2020-09-03T07:37:36Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/facf61b7745a660e14b973b07ecf2974a094e772/Items%20Editing/pandabot_Select%20every%20N%20tracks%20within%20selection.eel</source>
+      </version>
+      <version name="1.1" author="pandabot" time="2022-02-18T03:46:40Z">
+        <changelog><![CDATA[+ added persistence for window position]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/488849ff3a7dde4c970ba975826ebe0490fecb27/Items%20Editing/pandabot_Select%20every%20N%20tracks%20within%20selection.eel</source>
       </version>
     </reapack>
     <reapack name="Reaperblog_Smarter Duplicate.eel" type="script" desc="Smarter Duplicate">
@@ -12175,6 +12183,10 @@ Made by Mordi, Jan 2016]]></changelog>
     <reapack name="pandabot_Select every N notes within selection.eel" type="script" desc="Select every N notes within selection">
       <version name="1.0" author="pandabot" time="2020-11-06T04:58:49Z">
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/31597bd0e3376f067db1845f1c148718539e9a2b/MIDI%20Editor/pandabot_Select%20every%20N%20notes%20within%20selection.eel</source>
+      </version>
+      <version name="1.1" author="pandabot" time="2022-02-18T03:46:40Z">
+        <changelog><![CDATA[+ added persistence for window position]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/488849ff3a7dde4c970ba975826ebe0490fecb27/MIDI%20Editor/pandabot_Select%20every%20N%20notes%20within%20selection.eel</source>
       </version>
     </reapack>
     <reapack name="spk77_Add to selection next note at same pitch.eel" type="script" desc="Add to selection next note at same pitch">
