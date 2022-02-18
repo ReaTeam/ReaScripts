@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="488849ff3a7dde4c970ba975826ebe0490fecb27" name="ReaTeam Scripts">
+<index version="1" commit="838978a5ed0473a3fe10c67910cc9ac099a7e87b" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -12170,6 +12170,16 @@ Modified by AHmusic, Jan 2016]]></changelog>
       </version>
     </reapack>
     <reapack name="Mordi_Search selected notes in chord finder.lua" type="script" desc="Search selected notes in chord finder">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 This script will take any selected notes and generate a URL that will show what chord the notes make, if any. It uses the wonderful site "www.scales-chords.com" to do this.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Made by Mordi, Jan 2016\par}
+}
+]]></description>
+      </metadata>
       <version name="1.1" author="Mordi" time="2016-06-28T22:45:35Z">
         <changelog><![CDATA[This script will take any selected notes and generate a URL
 that will show what chord the notes make, if any.
@@ -12178,6 +12188,10 @@ do this.
 
 Made by Mordi, Jan 2016]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/682b3cc9ce9511ff8707e94fb694a0f66f777650/MIDI%20Editor/Mordi_Search%20selected%20notes%20in%20chord%20finder.lua</source>
+      </version>
+      <version name="1.2" author="Mordi" time="2022-02-18T04:02:02Z">
+        <changelog><![CDATA[Expand open URL function to Linux & ARM Mac]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/838978a5ed0473a3fe10c67910cc9ac099a7e87b/MIDI%20Editor/Mordi_Search%20selected%20notes%20in%20chord%20finder.lua</source>
       </version>
     </reapack>
     <reapack name="pandabot_Select every N notes within selection.eel" type="script" desc="Select every N notes within selection">
