@@ -1,10 +1,12 @@
 -- @description Normalize selected tracks - calculate only for the time selection, if present (peak/RMS/LUFS)...
 -- @author amagalma
--- @version 1.00
+-- @version 1.01
+-- @changelog - Forgot to mention in the help file that a CSV file is copied to the clipboard
 -- @donation https://www.paypal.me/amagalma
 -- @about
 --   Normalizes the selected tracks' volume to hit the desired value with the desired method.
 --   If a time selection is present, then the calculations will be based only on the part of the tracks that is inside the time selection.
+--   Upon completion, a CSV file containing all new track statistics is copied to the clipboard. You can paste it to a spreadsheet editor to view it.
 --
 --   - Requires ReaImGui
 
