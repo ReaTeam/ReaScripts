@@ -1,25 +1,14 @@
 -- @description Search selected notes in chord finder
--- @author Mordi
 -- @version 1.2
--- @changelog
+-- @changelog Expand open URL function to Linux & ARM Mac
+-- @author Mordi
+-- @about
 --   This script will take any selected notes and generate a URL
 --   that will show what chord the notes make, if any.
 --   It uses the wonderful site "www.scales-chords.com" to
 --   do this.
 --
 --   Made by Mordi, Jan 2016
-
--- @description Search selected notes in chord finder
--- @version 1.2
--- @author Mordi
--- @modified dottokuya
--- @changelog
---  This script will take any selected notes and generate a URL
---  that will show what chord the notes make, if any.
---  It uses the wonderful site "www.scales-chords.com" to
---  do this.
---
---  Made by Mordi, Jan 2016
 
 -- Function for opening a URL
 function OpenURL(url)
