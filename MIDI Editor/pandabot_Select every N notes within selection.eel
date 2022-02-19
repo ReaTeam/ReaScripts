@@ -4,8 +4,8 @@
    * Author: pandabot
    * Author URI: http://forum.cockos.com/member.php?u=127396
    * Licence: GPL v3
-   * Version: 1.1
-   * Changelog: + added persistence for window position
+   * Version: 1.2
+   * Changelog: + added escape keyboard shortcut to close the script
    */
 
 activeProjectIndex = 0;
@@ -151,6 +151,14 @@ function select_notes()
 );
 function run()
 (
+
+  escapeInputCharacter = 27;
+  inputCharacter = gfx_getchar();
+
+  (inputCharacter == escapeInputCharacter) ? (
+    gfx_quit();
+  );
+
   gfx_x = gfx_y = 20;
   gfx_r = 0.5;
   gfx_g = 0.8;
