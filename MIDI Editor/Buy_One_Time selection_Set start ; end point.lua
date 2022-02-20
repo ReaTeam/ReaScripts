@@ -13,8 +13,9 @@ Provides: [main=midi_editor,midi_inlineeditor] . > BuyOne_Time selection - set s
 
 local _, scr_name, sect_ID, cmd_ID, _,_,_ = reaper.get_action_context()
 
-local start_point = scr_name:match('([^\\/]+)%.%w+'):match('start point')
-local end_point = scr_name:match('([^\\/]+)%.%w+'):match('end point')
+local scr_name = scr_name:match('([^\\/]+)%.%w+')
+local start_point = scr_name:match('start point')
+local end_point = scr_name:match('end point')
 
 reaper.Undo_BeginBlock()
 
