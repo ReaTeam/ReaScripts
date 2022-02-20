@@ -6,8 +6,8 @@ About: Curiously the action is unavalable in the sections other than the Main.
        This is meant to make up for that so it can be used in custom actions
        in other contexts, mainly MIDI Editor.
 Metapackage: true
-Provides: [main=midi_editor,midi_inlineeditor] . > BuyOne_Time selection_Set start point.lua
-	  [main=midi_editor,midi_inlineeditor] . > BuyOne_Time selection_Set end point.lua
+Provides: [main=midi_editor,midi_inlineeditor] . > BuyOne_Time selection - set start point.lua
+	  [main=midi_editor,midi_inlineeditor] . > BuyOne_Time selection - set end point.lua
 ]]
 
 
