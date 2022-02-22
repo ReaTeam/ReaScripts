@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_MIDI Inspector.lua
-Version: 1.62
+Version: 1.65
 Author: juliansader
 Screenshot: http://stash.reaper.fm/28295/js_MIDI%20Inspector.jpeg
 Website: http://forum.cockos.com/showthread.php?t=176878
@@ -159,6 +159,8 @@ About:
     + Redraw docked inspector while playing or recording.
   * v1.62 (2020-08-29)
     + A bit more About info.
+  * v1.65 (2022-02-22)
+    + If using js_ReascriptAPI v1.302 or higher, text can have black shadow.
 ]]
 
 -- USER AREA
@@ -961,6 +963,7 @@ function getUserFontSettings()
        if not GDI_Font then reaper.MB("Could not create a GDI font.", "ERROR", 0) return(false) end
        reaper.JS_LICE_SetFontFromGDI(LICE_Font, GDI_Font, ME_TextOptions)
        reaper.JS_LICE_SetFontColor(LICE_Font, windowsOS and alphaMultiply(ME_TextColor) or ME_TextColor)
+       if reaper.JS_LICE_SetFontFXColor then reaper.JS_LICE_SetFontFXColor(LICE_Font, 0xFF000000) end
        return true
 end 
 
@@ -1653,6 +1656,7 @@ function main()
         if not GDI_Font then reaper.MB("Could not create a GDI font.", "ERROR", 0) return(false) end
         reaper.JS_LICE_SetFontFromGDI(LICE_Font, GDI_Font, ME_TextOptions)
         reaper.JS_LICE_SetFontColor(LICE_Font, windowsOS and alphaMultiply(ME_TextColor) or ME_TextColor)
+        if reaper.JS_LICE_SetFontFXColor then reaper.JS_LICE_SetFontFXColor(LICE_Font, 0xFF000000) end
     end    
  
     loopMIDIInspector()
