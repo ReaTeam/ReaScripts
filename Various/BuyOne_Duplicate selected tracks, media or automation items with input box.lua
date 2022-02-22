@@ -135,7 +135,7 @@ i2 1/8  — switch context to media items and duplicate selected media items twi
 
 a-3 1  — switch context to automation items and duplicate selected automation items 3 times leftwards (backwards) by a whole note
 
--5 /  — duplicate selected items in the current context leftwards (backwards) 5 times back to back
+-5 /  — (items context) duplicate selected items in the current context leftwards (backwards) 5 times back to back; (tracks context) duplicate selected tracks 5 times to the very end of the track list
 
 t-4  — switch context to tracks and duplicate selected tracks 4 times placing at the end of the visible track list
 
