@@ -137,9 +137,9 @@ a-3 1  — switch context to automation items and duplicate selected automation 
 
 -5 /  — (items context) duplicate selected items in the current context leftwards (backwards) 5 times back to back; (tracks context) duplicate selected tracks 5 times to the very end of the track list
 
-t-4  — switch context to tracks and duplicate selected tracks 4 times placing at the end of the visible track list
+t-4  — switch context to tracks and duplicate selected tracks 4 times placing at the end of the track list visible in Arrange
 
-8 /  — depending on the current context either duplicate selected items 8 times rightwards (forward) or duplicate selected tracks 8 times to the very end of the track list including tracks hidden in the Arrange
+8 /  — (items context) duplicate selected items 8 times rightwards (forward); (tracks context) duplicate selected tracks 8 times, slash command is ignored
 
 ****************************************
 
