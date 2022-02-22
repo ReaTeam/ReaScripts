@@ -118,7 +118,7 @@ For media/automation items — duplicate back to back, duplicates are placed imm
 With multiple selected items spacial relationship is only maintained within track/envelope, similarly to duplication by note.
 A single selected item is always duplicated back to back regardless of LONE SLASH presence.
 
-For tracks — duplicate to the end of track list after the very last track whether hidden or not in the Arrange.
+For tracks (when accompanied by DIRECTION command) — duplicate to the end of track list after the very last track whether hidden or not in the Arrange.
 
 ****************************************
 
