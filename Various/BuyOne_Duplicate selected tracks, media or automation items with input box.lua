@@ -36,7 +36,7 @@ About: 	The script is designed for duplication of objects according
 
 -----------------------------------------------------------------------------
 ------------------------------ USER SETTINGS --------------------------------
----------------------------------------------------------------------------
+-----------------------------------------------------------------------------
 
 -- Enable to have the script store last used setting per context
 -- in the current project;
