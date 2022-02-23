@@ -160,6 +160,9 @@ local _, scr_name, sect_ID, cmd_ID, _,_,_ = r.get_action_context()
 local named_ID = sect_ID..':'..r.ReverseNamedCommandLookup(cmd_ID)
 
 
+--================ F U N C T I O N S ===================
+
+
 function spaceout(str)
 return str:gsub('.', '%0 ')
 end
@@ -318,6 +321,104 @@ function Autofill(named_ID, ctx, str)
 	end
 return str
 end
+
+function RESOLVE_AI_OVERLAPS()
+
+local sel_AI_t = {}
+
+	for i = 0, r.CountTracks(0)-1 do -- store selected AIs and deselect
+	local tr = r.GetTrack(0,i)
+		for i = 0, r.CountTrackEnvelopes(tr)-1 do
+		local env = r.GetTrackEnvelope(tr, i)
+			for i = 0, r.CountAutomationItems(env)-1 do -- backwards because some AIs may need to be deleted
+				if r.GetSetAutomationItemInfo(env, i, 'D_UISEL', 0, false) ~= 0 then -- is_set false
+				sel_AI_t[env] = not sel_AI_t[env] and {} or sel_AI_t[env]
+				sel_AI_t[env][1] = r.CountAutomationItems(env) -- store count to collate later to allow deciding whether to restore
+				local len = #sel_AI_t[env] -- for brevity
+				sel_AI_t[env][len+1] = i
+				r.GetSetAutomationItemInfo(env, i, 'D_UISEL', 0, true) -- is_set true // deselect
+				end
+			end
+		end
+	end
+
+
+local cur_pos = r.GetCursorPosition()
+
+local func = r.GetSetAutomationItemInfo
+
+local function Find_First_Overlap(env, AI_idx, pos_curr) -- addresses cases when one AI overlaps several other AIs and have index which is not immediately precedes current AI index
+	for i = AI_idx-1, 0, -1 do -- start from previous
+	local fin_prev = func(env, i, 'D_POSITION', 0, false) + func(env, i, 'D_LENGTH', 0, false) -- is_set false
+	local diff = fin_prev - pos_curr
+		if diff > 0 then return diff, fin_prev end
+	end
+end
+
+local function Trim_AI_By_Splitting(env, AI_idx, fin_prev)
+func(env, AI_idx, 'D_UISEL', 1, true) -- is_set true // select AI
+r.SetEditCurPos(fin_prev, false, false) -- oveview, seekplay false // set cur to the end of prev AI which overlaps
+r.Main_OnCommand(42087, 0) -- Envelope: Split automation items
+func(env, AI_idx+1, 'D_UISEL', 0, true)-- is_set true // deselect right part of the split
+func(env, AI_idx, 'D_UISEL', 1, true) -- is_set true // select left part of the split
+r.Main_OnCommand(42086, 0) -- Envelope: Delete automation items // delete left part
+end
+
+	for i = 0, r.CountTracks(0)-1 do
+	local tr = r.GetTrack(0,i)
+		for i = 0, r.CountTrackEnvelopes(tr)-1 do
+		local env = r.GetTrackEnvelope(tr, i)
+			for i = r.CountAutomationItems(env)-1, 0, -1 do -- backwards because some AIs may need to be deleted
+			local func = r.GetSetAutomationItemInfo
+			local pos_curr = func(env, i, 'D_POSITION', 0, false) -- is_set false
+			local len_curr = func(env, i, 'D_LENGTH', 0, false) -- is_set false
+			local startoffs_curr = func(env, i, 'D_STARTOFFS', 0, false) -- is_set false
+			local playrate = func(env, i, 'D_PLAYRATE', 0, false) -- is_set false
+			local fin_curr = pos_curr + len_curr
+			local diff, fin_prev = Find_First_Overlap(env, i, pos_curr) -- addresses cases when one AI overlaps several which don't overlap each other
+				if diff and diff > 0 then -- AIs overlap
+					if len_curr < 0.02 -- delete because it cannot be shortened or split, AI length cannot be set to less than 100 ms via API (when setting length shorter that 100 ms to a an already shorter AI it ends up being exactly 100 ms) and it cannot be split with action if the edit cursor is at less than 10 ms from either of AI edges // must be deleted with action because setting length to 0 only shortens AI down to 100 ms // requires preemptive deselection of all AIs
+					or fin_prev >= fin_curr -- prev AI fully overlaps current one, delete current
+					or fin_curr - fin_prev < 0.01 -- overlaps almost completely shy of 10 ms, delete because there'll be no way to shorten the AI or to split and keep that extra non-overlapped length of under 10 ms // same as len_curr - diff < 0.01
+					then
+					func(env, i, 'D_UISEL', 1, true) -- is_set true // select
+					r.Main_OnCommand(42086, 0) -- Envelope: Delete automation items
+					elseif len_curr - diff >= 0.1 then -- can be shortened via API since certainly won't get shorter than 100 ms
+					func(env, i, 'D_POSITION', fin_prev, true) -- is_set true // shift rightwards
+					func(env, i, 'D_LENGTH', len_curr-diff, true) -- is_set true // shorten
+					func(env, i, 'D_STARTOFFS', startoffs_curr+diff*playrate, true) -- is_set true // shift contents leftwards so that it looks as if the AI start (pos) was cut off
+					elseif diff >= 0.01 and fin_curr-fin_prev >= 0.01 -- // same as len_curr - diff >= 0.01
+					then -- can't be shortened via API hence must be split provided the edit cursor can be placed farther than or at 0.01 from either edge of the AI; select, split with action, delete left hand part // action splits all selected AI crossed by the edit cursor so requires preemptive deselection of all, after split always selects right
+					Trim_AI_By_Splitting(env, i, fin_prev)
+					else -- the overlapped part is shorter than 10 ms which prevents splitting, hence lengthen the AI, shift left increasing the overlapped part to or to over 10 ms so it could be split and moving contents to original pos where they should end up after splitting
+					local ext = 0.1-len_curr -- minimum length to which an AI shorter than 100 ms can be set is 100 ms
+					func(env, i, 'D_LENGTH', len_curr+ext, true) -- is_set true // lengthen up to 100 ms
+					func(env, i, 'D_POSITION', pos_curr-ext, true) -- is_set true // offset by shifting left by the same amount
+					func(env, i, 'D_STARTOFFS', startoffs_curr-ext*playrate, true) -- is_set true // move contents rightwards by the same amount to restore their orig pos after split
+					Trim_AI_By_Splitting(env, i, fin_prev)
+					end
+				end
+			end -- AI loop end
+		end -- env loop end
+	end -- track loop end
+
+r.SetEditCurPos(cur_pos, false, false) -- oveview, seekplay false // restore cur pos in case changed
+
+	-- Restore AI selection
+	for env in pairs(sel_AI_t) do
+	local AI_cnt = r.CountAutomationItems(env)
+		if AI_cnt == sel_AI_t[env][1] then -- if count didn't change in the interim
+			for k, AI_idx in ipairs(sel_AI_t[env]) do -- restore AI selection
+			local re_sel = k ~= 1 and r.GetSetAutomationItemInfo(env, AI_idx, 'D_UISEL', 1, true) -- is_set true // excluding 1st field because it holds total count
+			end
+		end
+	end
+
+end -- RESOLVE_AI_OVERLAPS() end
+
+
+
+--================ F U N C T I O N S  E N D ===================
 
 
 local is_AI_sel
@@ -546,6 +647,10 @@ r.PreventUIRefresh(1) -- to disguse edit cursor movements
 		end
 	end
 
+
+	if ctx:match('Automation') then -- the option 'Options: Trim content behind automation items when editing or writing automation' doesn't work when pasting AIs alone, only along with media items while 'Options: Move envelope points with media items and razor edits' is ON, hence the need to resolve possible overlaps after AI duplication
+	RESOLVE_AI_OVERLAPS()
+	end
 
 r.PreventUIRefresh(-1)
 local items = ctx:match('[Ii]tems')
