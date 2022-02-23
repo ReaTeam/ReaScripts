@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Envelope LFO generator and shaper.lua
-Version: 2.15
+Version: 2.16
 Author: juliansader / Xenakios
 Website: http://forum.cockos.com/showthread.php?t=177437
 Screenshot: http://stash.reaper.fm/27661/LFO%20shaper.gif
@@ -119,6 +119,8 @@ About:
   * v2.15 (2022-02-23)
     + If Pitch envelope has custom envelope range, use full range.
     + Show envelope name in UI.
+  * v2.16 (2022-02-23)
+    + Fixed regression: Take envelope time range.
 ]]
 -- The archive of the full changelog is at the end of the script.
 
@@ -1027,13 +1029,14 @@ function MAIN_CalculateAndInsertPoints()
         BRenvMinValue, BRenvMaxValue = -r, r
     else
         local BRenv = reaper.BR_EnvAlloc(env, true)
-        local envTake = reaper.BR_EnvGetParentTake(BRenv)
+        --local envTake = reaper.BR_EnvGetParentTake(BRenv)
         _, _, _, _, _, _, BRenvMinValue, BRenvMaxValue, _, _, _ = reaper.BR_EnvGetProperties(BRenv)
         reaper.BR_EnvFree(BRenv, false)
     end
     local envscalingmode = reaper.GetEnvelopeScalingMode(env)
     
-    if envTake ~= nil then -- Envelope is take envelope
+    local envTake = reaper.GetEnvelopeInfo_Value(env, "P_TAKE")
+    if type(envTake) == "userdata" and reaper.ValidatePtr2(0, envTake, "MediaItem_Take*") then -- Envelope is take envelope
         local envItem = reaper.GetMediaItemTake_Item(envTake)
         local envItemOffset = reaper.GetMediaItemInfo_Value(envItem, "D_POSITION")
         --envItemLength = reaper.GetMediaItemInfo_Value(envItem, "D_LENGTH")
