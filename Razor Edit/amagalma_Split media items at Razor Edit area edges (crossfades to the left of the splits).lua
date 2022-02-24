@@ -1,7 +1,7 @@
 -- @description Split media items at Razor Edit area edges (crossfades to the left of the splits)
 -- @author amagalma
--- @version 1.02
--- @changelog Split empty items and MIDI items exactly at the edges, when auto-crossfades are enabled
+-- @version 1.03
+-- @changelog Set newly created items as selected (like in native action)
 -- @donation https://www.paypal.me/amagalma
 -- @about Like the native action of the Razor edit area left click context, but with the difference that it always creates crossfades to the left of the area edges.
 
@@ -40,6 +40,7 @@ local function SplitAtEdges( RazorEdges, RazorEdges_cnt )
   for tr = 1, RazorEdges_cnt do
     local track = RazorEdges[tr][1]
     local item_cnt = reaper.CountTrackMediaItems(track)
+    local splits = 0
     if item_cnt ~= 0 then
       local current_edge = RazorEdges[tr].n
       local it = item_cnt-1
@@ -53,7 +54,9 @@ local function SplitAtEdges( RazorEdges, RazorEdges_cnt )
           local split_pos = RazorEdges[tr][2][current_edge] - 
           ( ((not isEmpty) and (not isMidi)) and xfadetime or 0 )
           if split_pos > item_pos and split_pos < item_end then
-            reaper.SplitMediaItem( item, split_pos )
+            local new_item = reaper.SplitMediaItem( item, split_pos )
+            splits = splits + 1
+            if splits % 2 == 0 then reaper.SetMediaItemSelected( new_item, true ) end
             current_edge = current_edge - 1
           elseif split_pos >= item_end then
             current_edge = current_edge - 1
