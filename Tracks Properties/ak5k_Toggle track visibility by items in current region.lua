@@ -1,5 +1,15 @@
 -- @description Toggle track visibility by items in current region
 -- @author ak5k
+-- @version 0.2.0
+-- @changelog
+--   Fixed restoring track visibility
+--   Removed first run warning message.
+-- @link Forum thread https://forum.cockos.com/showthread.php?t=262559
+-- @screenshot https://i.imgur.com/rvnZAzk.gif
+-- @about Toggles track visibility based on existing items within current region.
+
+-- @description Toggle track visibility by items in current region
+-- @author ak5k
 -- @version 0.1.0
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=262559
 -- @screenshot https://i.imgur.com/rvnZAzk.gif
@@ -16,25 +26,13 @@ local regions = {}
 local tracks = {}
 local tracks_by_guid = {}
 
-local function clearTable(t)
-  for k in pairs(t) do
-    if type(k) == "table" then
-      clearTable(k)
-    end
-    t[k] = nil
-  end
-end
-
 local starts, ends = {}, {}
 local function GetRange()
-  --regions = {}
-  --tracks = {}
-  --tracks_by_guid = {}
-  clearTable(regions)
-  clearTable(tracks)
-  clearTable(tracks_by_guid)
-  clearTable(starts)
-  clearTable(ends)
+  regions = {}
+  tracks = {}
+  tracks_by_guid = {}
+  starts, ends = {}, {}
+
   local isPlaying = false
   if reaper.GetPlayState() ~= 0 then 
     isPlaying = true
@@ -121,9 +119,8 @@ local function GetRange()
  return range_start, range_end
 end
 
-local res = {}
 local function GetTracksToHide()
-  clearTable(res)
+  local res = {}
   local range_start, range_end = GetRange()
   if not range_start then return res end
   for track, _ in pairs(tracks) do
@@ -170,67 +167,36 @@ local function GetTracksToHide()
   return res
 end
 
-local warningTitle = "Toggle track visibility by items in current region"
-local warning = "\z
-When enabled, this script can make use of JS_ReaScript functions to provide \z  
-better performance while editing, and uninterrupted edits across region \z
-boundaries. Consider installing JS_ReaScript e.g. from ReaPack."
-
 local hasJS = false
 if reaper.APIExists("JS_Mouse_GetState") then
   hasJS = true
 end
 
-local res2 = {}
 local function GetSetState(state)
-  clearTable(res2)
+  local res = {}
   local extname = "ak5k"
   local key = "toggle_track_visibility_by_items_in_current_region"
   local state = state or nil
   local retval, current_state
   local n = 0
-  while not retval or n < 100 do
-    retval, current_state = reaper.GetProjExtState(0, extname, key)
-    n = n + 1
-  end
-  retval, n = 0, 0
-  
-  if current_state == nil or current_state == "" then
-    current_state = string.lower(string.sub(reaper.genGuid(), 2, 9)) .. ","
-    while retval == 0 or n < 100 do
-      retval = reaper.SetProjExtState(0, extname, key, current_state)
-      n = n + 1
-    end
-    retval, n = 0, 0
-    if not hasJS then
-      reaper.ShowMessageBox(warning, warningTitle, 0)
-    end
-  end
-  
-  local tag = string.match(current_state, '[^,]+')
+
+  retval, current_state = reaper.GetProjExtState(0, extname, key)
   
   if not state then
     for value in string.gmatch(current_state, '[^,]+') do
-      if not res[0] then
-        res[#res] = value
-      else
         res[#res + 1] = tracks_by_guid[value]
-      end
     end
   end
   
   if state then
-    current_state = tag .. ","
+    current_state = ""
     for track, _ in pairs(state) do
       current_state = current_state .. tracks[track] .. ","
     end
-    while retval == 0 or n < 100 do
-      retval = reaper.SetProjExtState(0, extname, key, current_state)
-      n = n + 1
-    end
+    retval = reaper.SetProjExtState(0, extname, key, current_state)
   end
   
-  return res2
+  return res
 end
 
 local function ToggleTrackVisibility(tracks_to_hide)
@@ -245,8 +211,6 @@ local function ToggleTrackVisibility(tracks_to_hide)
   local current_state = GetSetState()
   local tracks_to_hide = tracks_to_hide or GetTracksToHide()
   local tracks_to_show = {}
-  --local tag = "_" .. current_state[0]
-  
   
   GetSetState(tracks_to_hide)
   for i = 1, #current_state, 1 do
@@ -280,10 +244,11 @@ local function ToggleTrackVisibility(tracks_to_hide)
 end
 
 local function main()
-  time0 = reaper.time_precise()
+  --time0 = reaper.time_precise()
   
   ToggleTrackVisibility()
   
+  --[[
   time1 = reaper.time_precise() - time0
   time_max = time_max or 0
   if time1 > time_max then
@@ -291,6 +256,7 @@ local function main()
   end
   
   gb = collectgarbage("count")
+  ]]--
   
   reaper.defer(main)
 end
