@@ -1,6 +1,9 @@
 -- @description Toggle track visibility by items in current region
 -- @author ak5k
--- @version 0.1.0
+-- @version 0.2.0
+-- @changelog
+--   Fixed restoring track visibility
+--   Removed first run warning message.
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=262559
 -- @screenshot https://i.imgur.com/rvnZAzk.gif
 -- @about Toggles track visibility based on existing items within current region.
