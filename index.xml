@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="de96b3a2889d886bdf91725699fe78163ff4a738" name="ReaTeam Scripts">
+<index version="1" commit="febd0f9fbb2b4f464799f3060f602e6b3bbf23d9" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -13452,6 +13452,10 @@ Replace GetLastWord func with quicker solution (Thanks: Mespotine[t=233393]).]]>
       <version name="1.02" author="amagalma" time="2022-02-24T00:42:39Z">
         <changelog><![CDATA[Split empty items and MIDI items exactly at the edges, when auto-crossfades are enabled]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/de96b3a2889d886bdf91725699fe78163ff4a738/Razor%20Edit/amagalma_Split%20media%20items%20at%20Razor%20Edit%20area%20edges%20(crossfades%20to%20the%20left%20of%20the%20splits).lua</source>
+      </version>
+      <version name="1.03" author="amagalma" time="2022-02-24T09:29:24Z">
+        <changelog><![CDATA[Set newly created items as selected (like in native action)]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/febd0f9fbb2b4f464799f3060f602e6b3bbf23d9/Razor%20Edit/amagalma_Split%20media%20items%20at%20Razor%20Edit%20area%20edges%20(crossfades%20to%20the%20left%20of%20the%20splits).lua</source>
       </version>
     </reapack>
     <reapack name="az_Exclude tracks or envelopes from razor area depending on mouse placement.lua" type="script" desc="Exclude tracks or envelopes from razor area depending on mouse placement">
