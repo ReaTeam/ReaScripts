@@ -1,6 +1,7 @@
 -- @description Split media items at Razor Edit area edges (crossfades to the left of the splits)
 -- @author amagalma
--- @version 1.00
+-- @version 1.01
+-- @changelog Crossfades are created only if "Options: Toggle auto-crossfade on split" is enabled
 -- @donation https://www.paypal.me/amagalma
 -- @about Like the native action of the Razor edit area left click context, but with the difference that it always creates crossfades to the left of the area edges.
 
@@ -32,7 +33,10 @@ if RazorEdges_cnt == 0 then return reaper.defer(function() end) end
 -----------------------------------------------------------------------------------------
 
 local function SplitAtEdges( RazorEdges, RazorEdges_cnt )
-  local xfadetime = tonumber(({reaper.get_config_var_string( "defsplitxfadelen" )})[2]) or 0.01
+  local xfadetime = 0
+  if reaper.GetToggleCommandState( 40912 ) == 1 then -- -- Auto-crossfade on split enabled
+    xfadetime = tonumber(({reaper.get_config_var_string( "defsplitxfadelen" )})[2]) or 0.01
+  end
   for tr = 1, RazorEdges_cnt do
     local track = RazorEdges[tr][1]
     local item_cnt = reaper.CountTrackMediaItems(track)
@@ -65,18 +69,7 @@ end
 
 reaper.Undo_BeginBlock()
 reaper.PreventUIRefresh( 1 )
-
-if reaper.GetToggleCommandState( 40912 ) ~= 1 then
-  reaper.Main_OnCommand(40912, 0) -- Toggle auto-crossfade on split
-  restore = true
-end
-
 SplitAtEdges( RazorEdges, RazorEdges_cnt )
-
-if restore then
-  reaper.Main_OnCommand(40912, 0) -- Toggle auto-crossfade on split
-end
-
 reaper.PreventUIRefresh( -1 )
 reaper.UpdateArrange()
 reaper.Undo_EndBlock( "Split at razor edit edges", 1|4 )
