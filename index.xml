@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="ecf9ff839d26593f5a5139d1cab7c9a31bf4c323" name="ReaTeam Scripts">
+<index version="1" commit="5c0c82caa122ec59a9a8fa3a2e00ab6db431bb27" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -13429,6 +13429,21 @@ Replace GetLastWord func with quicker solution (Thanks: Mespotine[t=233393]).]]>
       </metadata>
       <version name="1.00" author="amagalma" time="2022-01-27T20:41:08Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/93c7c53b1bb1c29b9065e9a7efa333edac412c52/Razor%20Edit/amagalma_Set%20time%20selection%20to%20razor%20edits'%20start%20and%20end.lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Split media items at Razor Edit area edges (crossfades to the left of the splits).lua" type="script" desc="Split media items at Razor Edit area edges (crossfades to the left of the splits)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Like the native action of the Razor edit area left click context, but with the difference that it always creates crossfades to the left of the area edges.\par}
+}
+]]></description>
+        <link rel="donation">https://www.paypal.me/amagalma</link>
+      </metadata>
+      <version name="1.00" author="amagalma" time="2022-02-23T23:58:56Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/5c0c82caa122ec59a9a8fa3a2e00ab6db431bb27/Razor%20Edit/amagalma_Split%20media%20items%20at%20Razor%20Edit%20area%20edges%20(crossfades%20to%20the%20left%20of%20the%20splits).lua</source>
       </version>
     </reapack>
     <reapack name="az_Exclude tracks or envelopes from razor area depending on mouse placement.lua" type="script" desc="Exclude tracks or envelopes from razor area depending on mouse placement">
