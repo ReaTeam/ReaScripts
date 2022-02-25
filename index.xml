@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="febd0f9fbb2b4f464799f3060f602e6b3bbf23d9" name="ReaTeam Scripts">
+<index version="1" commit="e190764a0391ec83713e6fdcb76224df5d5db090" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -4689,33 +4689,6 @@ website
       </metadata>
       <version name="1.0" author="amagalma" time="2018-11-22T13:41:18Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Items%20Editing/amagalma_Nudge%20to%20source%20preferred%20position%20(used%20by%20BWF)%20for%20selected%20items'%20active%20takes.lua</source>
-      </version>
-    </reapack>
-    <reapack name="amagalma_Remove content (trim) behind items preserving crossfades.lua" type="script" desc="amagalma_Remove content (trim) behind items preserving crossfades">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Removes content behind selected items only if there is not a crossfade\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Undo point is created ony if something changed\sa180\par}
-}
-]]></description>
-      </metadata>
-      <version name="1.0" author="amagalma" time="2017-09-16T16:53:14Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/7f66e23ccb34d29226992c080154e5775932eba5/Items%20Editing/amagalma_Remove%20content%20(trim)%20behind%20items%20preserving%20crossfades.lua</source>
-      </version>
-      <version name="1.01" author="amagalma" time="2017-09-16T17:25:06Z">
-        <changelog><![CDATA[+ fixed bug when working with many overlapping selected items]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/df71b4b70ef5a7160eb81a8272234c967b08fd19/Items%20Editing/amagalma_Remove%20content%20(trim)%20behind%20items%20preserving%20crossfades.lua</source>
-      </version>
-      <version name="1.02" author="amagalma" time="2017-09-19T08:05:27Z">
-        <changelog><![CDATA[+ fixed bug when "trim behind items" is enabled]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/7041aa2d34e0d10040e65b4bbf092e2fcddee916/Items%20Editing/amagalma_Remove%20content%20(trim)%20behind%20items%20preserving%20crossfades.lua</source>
-      </version>
-      <version name="1.03" author="amagalma" time="2017-09-19T08:26:54Z">
-        <changelog><![CDATA[+ fixed bug not trimming when there were a fade-in and fade-out in both items and the fades were not crossing (no crossfade)]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/0c29c5b80b11f59ff7fa16667ed0a11b1326dc68/Items%20Editing/amagalma_Remove%20content%20(trim)%20behind%20items%20preserving%20crossfades.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Remove selected items' active takes' source file cue points (WAV only) - NO UNDO.lua" type="script" desc="amagalma_Remove selected items' active takes' source file cue points (WAV only) - NO UNDO!">
