@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="e190764a0391ec83713e6fdcb76224df5d5db090" name="ReaTeam Scripts">
+<index version="1" commit="08361f060866f406b94c19a1428d1656171d4d62" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -2657,6 +2657,10 @@ Remember the window position, size and dock state]]></changelog>
       <version name="2.16" author="juliansader / Xenakios" time="2022-02-23T22:21:25Z">
         <changelog><![CDATA[+ Fixed regression: Take envelope time range.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ecf9ff839d26593f5a5139d1cab7c9a31bf4c323/Envelopes/js_Envelope%20LFO%20generator%20and%20shaper.lua</source>
+      </version>
+      <version name="2.17" author="juliansader / Xenakios" time="2022-02-26T00:53:46Z">
+        <changelog><![CDATA[+ Use default Pitch range in Preferences.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/08361f060866f406b94c19a1428d1656171d4d62/Envelopes/js_Envelope%20LFO%20generator%20and%20shaper.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Switch to next track envelope in selected tracks.lua" type="script" desc="Switch to next track envelope in selected tracks">
