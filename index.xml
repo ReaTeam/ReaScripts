@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="08361f060866f406b94c19a1428d1656171d4d62" name="ReaTeam Scripts">
+<index version="1" commit="506c1292cef2cadf6a7e7b41880e9ca8c568e7ed" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -16775,6 +16775,11 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
       <version name="2.06" author="amagalma" time="2022-01-09T10:50:23Z">
         <changelog><![CDATA[- Fix: load IR in ReaVerb for v6.37+]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/03467e562de8726657c0de5ff6676e3a4f71bad5/Various/amagalma_Create%20Impulse%20Response%20(IR)%20of%20the%20FX%20chain%20of%20the%20selected%20track.lua</source>
+      </version>
+      <version name="2.10" author="amagalma" time="2022-02-26T16:39:43Z">
+        <changelog><![CDATA[- Multi-channel support
+- Make sure the IR is inserted exactly at the edit cursor position, if it was requested to be inserted to the project ]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/506c1292cef2cadf6a7e7b41880e9ca8c568e7ed/Various/amagalma_Create%20Impulse%20Response%20(IR)%20of%20the%20FX%20chain%20of%20the%20selected%20track.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Distinguish visually the ripple editing modes.lua" type="script" desc="Distinguish visually the ripple editing modes">
