@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="a6ae7bab0f25a6eedb4a423787b08247dbce7f27" name="ReaTeam Scripts">
+<index version="1" commit="faff9e100079dcf5b2170ead21e5158670ba3040" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -13361,6 +13361,24 @@ Replace GetLastWord func with quicker solution (Thanks: Mespotine[t=233393]).]]>
       </metadata>
       <version name="1.00" author="amagalma" time="2021-08-01T07:57:13Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/9b0ef5bfc03bf2bf7a167f77ce8485ec7481db57/Razor%20Edit/amagalma_Delete%20all%20envelope%20points%20inside%20Razor%20Edit%20areas%20%20(do%20not%20add%20edge%20points).lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Razor Edit Track Groups.lua" type="script" desc="Razor Edit Track Groups">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 A track selection can be stored as a Razor Edit Track Group. When a group is enabled, creating a razor edit, for any of its members, duplicates the edit to the rest of the group.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 For the time being, the script supports one group, but support for more (infinite number of) groups can be added in the future, if required.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Requires ReaImGui\sa180\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=263486</link>
+        <link rel="donation">https://www.paypal.me/amagalma</link>
+      </metadata>
+      <version name="1.00" author="amagalma" time="2022-02-27T11:08:57Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/faff9e100079dcf5b2170ead21e5158670ba3040/Razor%20Edit/amagalma_Razor%20Edit%20Track%20Groups.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Remove all item fades within Razor Edit areas.lua" type="script" desc="Remove all item fades within Razor Edit areas">
