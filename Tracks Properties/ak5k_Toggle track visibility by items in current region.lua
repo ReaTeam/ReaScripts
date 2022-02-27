@@ -8,14 +8,6 @@
 -- @screenshot https://i.imgur.com/rvnZAzk.gif
 -- @about Toggles track visibility based on existing items within current region.
 
--- @description Toggle track visibility by items in current region
--- @author ak5k
--- @version 0.1.0
--- @link Forum thread https://forum.cockos.com/showthread.php?t=262559
--- @screenshot https://i.imgur.com/rvnZAzk.gif
--- @about Toggles track visibility based on existing items within current region.
-
-
 -------------------------------------------------------------------------------
 local next = next
 local pairs = pairs
