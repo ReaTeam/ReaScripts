@@ -9,6 +9,7 @@ Changelog: #Added a temporary bypass for 'Options: Toggle trim content behind me
 	   #Added option to obey note-offs for scenarios where playback time of the original media in Arrange 
 	   is shorter than that of the portion imported into ReaSamplomatic5000
 	   #Added 2 ms of 'Release' in ReaSamplomatic5000 to prevent clicks
+	   #Added a setting to replace original media with a rendered one
 Licence: WTFPL
 REAPER: at least v5.962
 About:	This is a ported to ReaScript method of creating a take pitch envelope 
@@ -157,6 +158,16 @@ DELETE_TAKE_SRC = ""
 -- rendered takes is apparent and doesn't look as if the original item was deleted;
 -- If you still prefer to have take lanes collapsed, feel free to enable this setting.
 DO_NOT_SWITCH_TAKE_LANES_ON = ""
+
+
+-- If enabled, all media takes are deleted from the selected item(s), including 
+-- the original media take, MIDI vari-speed take is rendered to a new media take 
+-- which is placed at the top and locked, so that the item ends up only containing 
+-- two takes: the MIDI vari-speed envelope take and the rendered media take;
+-- if option DELETE_TAKE_SRC is enabled above the source files of all previously 
+-- rendered takes (if any) are deleted from the disk as well, save for the source 
+-- file of the original media.
+DELETE_RENDER_LOCK = ""
 
 -------------------------------------------------------------------------------------
 ------------------------------ END OF USER SETTINGS ---------------------------------
@@ -474,6 +485,29 @@ slider2:0<-80, 80, 1>Pitch offset
 
 ]]
 
+
+function Delete_Render_Lock(item)
+	-- delete all media takes from the item
+	for i = r.CountTakes(item)-1, 0, -1 do -- or r.GetMediaItemNumTakes(item)-1 // in reverse since takes will be getting deleted
+	local take = r.GetTake(item, i) -- or r.GetMediaItemTake(item, i)
+	local midi_take = r.TakeIsMIDI(take)		
+		if not midi_take then
+		local retval, tag = r.GetSetMediaItemTakeInfo_String(take, 'P_EXT:varispeed', '', false) -- setNewValue false
+			if tag == 'varispeed_rend' and DELETE_TAKE_SRC then -- only delete rendered take source files, keep the original media source file
+			Delete_Take_Src(take)
+			end
+		r.SetMediaItemInfo_Value(item, 'I_CURTAKE', i) -- set take active
+		ACT(40129) -- Take: Delete active take from items
+		end
+	end
+-- render new, move to top and lock
+ACT(41999) -- Item: Render items to new take
+local retval, tag = r.GetSetMediaItemTakeInfo_String(r.GetActiveTake(item), 'P_EXT:varispeed', 'varispeed_rend', true) -- setNewValue true // add tag to the newly rendered take
+ACT(41380) -- Item: Move active takes to top lane
+ACT(41340) -- Item properties: Lock to active take (mouse click will not change active take)
+end
+
+
 function Create_JSFX_if_None_or_Update(macro_controller_jsfx)
 
 local sep = r.GetResourcePath():match('[\\/]')
@@ -644,44 +678,47 @@ local delete_prev_takes
 			break end
 		end
 
-		if render then
+		if render then		
 		undo = 'Render vari-speed take(s) in items'
-			-- find if item already contains rendered takes and condition their deletion
-			for i = 0, r.CountTakes(item)-1 do -- or r.GetMediaItemNumTakes(item)-1
-			local take = r.GetTake(item, i) -- or r.GetMediaItemTake(item, i)
-			local retval, tag = r.GetSetMediaItemTakeInfo_String(take, 'P_EXT:varispeed', '', false) -- setNewValue false
-				if tag == 'varispeed_rend' and not delete_prev_takes then
-				local resp = r.MB('The item already contains varispeed take(s) rendered earlier.\n\n'..space(15)..'Should they be replaced with the new take?\n\n'..(DELETE_TAKE_SRC and '' or space(11)..'If "YES", take source files will remain on the disk.\n\n')..(#sel_item_t > 1 and space(12)..'(The choice will apply to all subsequent items).' or ''), 'PROMPT', 3)
-					if resp == 2 then return r.defer(function() do return end end) -- abort
-					elseif resp == 6 then delete_prev_takes = 1; break -- proceed with deleting
-					else delete_prev_takes = 2; break -- proceed without deleting
-					end
-				end
-			end
-		-- required since ACT(41999) -- 'Item: Render items to new take' applies to all currently selected items
-		-- placed here so selection is maintained while the prompt above is displayed and when script is aborted
-		r.SelectAllMediaItems(0, false) -- deselect all items
-		r.SetMediaItemSelected(item, true) -- select item
-			if delete_prev_takes == 1 then
-				for i = r.CountTakes(item)-1, 0, -1 do -- or r.GetMediaItemNumTakes(item)-1 // in reverse since takes will be getting deleted
+			if DELETE_RENDER_LOCK then Delete_Render_Lock(item)
+			else
+				-- find if item already contains rendered takes and condition their deletion
+				for i = 0, r.CountTakes(item)-1 do -- or r.GetMediaItemNumTakes(item)-1
 				local take = r.GetTake(item, i) -- or r.GetMediaItemTake(item, i)
 				local retval, tag = r.GetSetMediaItemTakeInfo_String(take, 'P_EXT:varispeed', '', false) -- setNewValue false
-					if tag == 'varispeed_rend' then
-					local del_src = DELETE_TAKE_SRC and Delete_Take_Src(take)
-					r.SetMediaItemInfo_Value(item, 'I_CURTAKE', i) -- set take active
-					ACT(40129) -- Take: Delete active take from items
+					if tag == 'varispeed_rend' and not delete_prev_takes then
+					local resp = r.MB('The item already contains varispeed take(s) rendered earlier.\n\n'..space(15)..'Should they be replaced with the new take?\n\n'..(DELETE_TAKE_SRC and '' or space(11)..'If "YES", take source files will remain on the disk.\n\n')..(#sel_item_t > 1 and space(12)..'(The choice will apply to all subsequent items).' or ''), 'PROMPT', 3)
+						if resp == 2 then return r.defer(function() do return end end) -- abort
+						elseif resp == 6 then delete_prev_takes = 1; break -- proceed with deleting
+						else delete_prev_takes = 2; break -- proceed without deleting
+						end
 					end
 				end
+			-- required since ACT(41999) -- 'Item: Render items to new take' applies to all currently selected items
+			-- placed here so selection is maintained while the prompt above is displayed and when script is aborted
+			r.SelectAllMediaItems(0, false) -- deselect all items
+			r.SetMediaItemSelected(item, true) -- select item
+				if delete_prev_takes == 1 then
+					for i = r.CountTakes(item)-1, 0, -1 do -- or r.GetMediaItemNumTakes(item)-1 // in reverse since takes will be getting deleted
+					local take = r.GetTake(item, i) -- or r.GetMediaItemTake(item, i)
+					local retval, tag = r.GetSetMediaItemTakeInfo_String(take, 'P_EXT:varispeed', '', false) -- setNewValue false
+						if tag == 'varispeed_rend' then
+						local del_src = DELETE_TAKE_SRC and Delete_Take_Src(take)
+						r.SetMediaItemInfo_Value(item, 'I_CURTAKE', i) -- set take active
+						ACT(40129) -- Take: Delete active take from items
+						end
+					end
+				end
+				-- set MIDI take active
+				for i = 0, r.CountTakes(item)-1 do -- or r.GetMediaItemNumTakes(item)-1
+				local take = r.GetTake(item, i) -- or r.GetMediaItemTake(item, i)
+				local retval, tag = r.GetSetMediaItemTakeInfo_String(take, 'P_EXT:varispeed', '', false) -- setNewValue false
+					if tag == 'varispeed_env' then r.SetMediaItemInfo_Value(item, 'I_CURTAKE', i) break end
+				end
+			ACT(41999) -- Item: Render items to new take
+			local retval, tag = r.GetSetMediaItemTakeInfo_String(r.GetActiveTake(item), 'P_EXT:varispeed', 'varispeed_rend', true) -- setNewValue true // add tag to the newly rendered take
 			end
-			-- set MIDI take active
-			for i = 0, r.CountTakes(item)-1 do -- or r.GetMediaItemNumTakes(item)-1
-			local take = r.GetTake(item, i) -- or r.GetMediaItemTake(item, i)
-			local retval, tag = r.GetSetMediaItemTakeInfo_String(take, 'P_EXT:varispeed', '', false) -- setNewValue false
-				if tag == 'varispeed_env' then r.SetMediaItemInfo_Value(item, 'I_CURTAKE', i) break end
-			end
-		ACT(41999) -- Item: Render items to new take
-		local retval, tag = r.GetSetMediaItemTakeInfo_String(r.GetActiveTake(item), 'P_EXT:varispeed', 'varispeed_rend', true) -- setNewValue true // add tag to the newly rendered take
-
+			
 		elseif tag ~= 'varispeed_env' then -- insert MIDI item with varispeed envelope if there's none
 
 		undo = 'Insert vari-speed envelope in items'
