@@ -658,10 +658,10 @@ local delete_prev_takes
 					end
 				end
 			end
-	-- required since ACT(41999) -- 'Item: Render items to new take' applies to all currently selected items
-	-- placed here so selection is maintained while the prompt above is displayed and when script is aborted
-	r.SelectAllMediaItems(0, false) -- deselect all items
-	r.SetMediaItemSelected(item, true) -- select item
+		-- required since ACT(41999) -- 'Item: Render items to new take' applies to all currently selected items
+		-- placed here so selection is maintained while the prompt above is displayed and when script is aborted
+		r.SelectAllMediaItems(0, false) -- deselect all items
+		r.SetMediaItemSelected(item, true) -- select item
 			if delete_prev_takes == 1 then
 				for i = r.CountTakes(item)-1, 0, -1 do -- or r.GetMediaItemNumTakes(item)-1 // in reverse since takes will be getting deleted
 				local take = r.GetTake(item, i) -- or r.GetMediaItemTake(item, i)
