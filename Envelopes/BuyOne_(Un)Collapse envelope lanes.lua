@@ -1,32 +1,31 @@
 --[[
 ReaScript Name: (Un)Collapse envelope lanes (18 scripts)
 Author: BuyOne
-Version: 1.1
-Changelog: #Fixed bug of un-arming envelope
-	   #Added screenshot
+Version: 1.2
+Changelog: #Added support for theme's default uncollapsed height if starts out from collapsed state
 Author URL: https://forum.cockos.com/member.php?u=134058
 Licence: WTFPL
 Screenshots: https://raw.githubusercontent.com/Buy-One/screenshots/main/(Un)Collapse%20envelope%20lanes.gif
 REAPER: at least v5.962  		
 Metapackage: true
-Provides: . > BuyOne_(Un)Collapse envelope lanes/BuyOne_Collapse selected envelope lane in track.lua
-	  . > BuyOne_(Un)Collapse envelope lanes/BuyOne_Uncollapse selected envelope lane in track.lua
-	  . > BuyOne_(Un)Collapse envelope lanes/BuyOne_Collapse selected envelope lane or all lanes in selected tracks.lua
-	  . > BuyOne_(Un)Collapse envelope lanes/BuyOne_Uncollapse selected envelope lane or all lanes in selected tracks.lua
-	  . > BuyOne_(Un)Collapse envelope lanes/BuyOne_Collapse selected envelope lane uncollapse others in track.lua
-	  . > BuyOne_(Un)Collapse envelope lanes/BuyOne_Uncollapse selected envelope lane collapse others in track.lua
-	  . > BuyOne_(Un)Collapse envelope lanes/BuyOne_Alternate collapsing selected envelope lane and other lanes in track.lua
-	  . > BuyOne_(Un)Collapse envelope lanes/BuyOne_Collapse track envelope lanes in selected tracks.lua
-	  . > BuyOne_(Un)Collapse envelope lanes/BuyOne_Uncollapse track envelope lanes in selected tracks.lua
-	  . > BuyOne_(Un)Collapse envelope lanes/BuyOne_Collapse FX envelope lanes in selected tracks.lua
-	  . > BuyOne_(Un)Collapse envelope lanes/BuyOne_Uncollapse FX envelope lanes in selected tracks.lua
-	  . > BuyOne_(Un)Collapse envelope lanes/BuyOne_Collapse all envelope lanes in selected tracks.lua
-	  . > BuyOne_(Un)Collapse envelope lanes/BuyOne_Uncollapse all envelope lanes in selected tracks.lua
-	  . > BuyOne_(Un)Collapse envelope lanes/BuyOne_Toggle collapse selected envelope lane in track.lua
-	  . > BuyOne_(Un)Collapse envelope lanes/BuyOne_Toggle collapse selected envelope lane or all lanes in selected tracks.lua
-	  . > BuyOne_(Un)Collapse envelope lanes/BuyOne_Toggle collapse track envelope lanes in selected tracks.lua
-	  . > BuyOne_(Un)Collapse envelope lanes/BuyOne_Toggle collapse FX envelope lanes in selected tracks.lua
-	  . > BuyOne_(Un)Collapse envelope lanes/BuyOne_Toggle collapse all envelope lanes in selected tracks.lua
+Provides: 	. > BuyOne_(Un)Collapse envelope lanes/BuyOne_Collapse selected envelope lane in track.lua
+		. > BuyOne_(Un)Collapse envelope lanes/BuyOne_Uncollapse selected envelope lane in track.lua
+		. > BuyOne_(Un)Collapse envelope lanes/BuyOne_Collapse selected envelope lane or all lanes in selected tracks.lua
+		. > BuyOne_(Un)Collapse envelope lanes/BuyOne_Uncollapse selected envelope lane or all lanes in selected tracks.lua
+		. > BuyOne_(Un)Collapse envelope lanes/BuyOne_Collapse selected envelope lane uncollapse others in track.lua
+		. > BuyOne_(Un)Collapse envelope lanes/BuyOne_Uncollapse selected envelope lane collapse others in track.lua
+		. > BuyOne_(Un)Collapse envelope lanes/BuyOne_Alternate collapsing selected envelope lane and other lanes in track.lua
+		. > BuyOne_(Un)Collapse envelope lanes/BuyOne_Collapse track envelope lanes in selected tracks.lua
+		. > BuyOne_(Un)Collapse envelope lanes/BuyOne_Uncollapse track envelope lanes in selected tracks.lua
+		. > BuyOne_(Un)Collapse envelope lanes/BuyOne_Collapse FX envelope lanes in selected tracks.lua
+		. > BuyOne_(Un)Collapse envelope lanes/BuyOne_Uncollapse FX envelope lanes in selected tracks.lua
+		. > BuyOne_(Un)Collapse envelope lanes/BuyOne_Collapse all envelope lanes in selected tracks.lua
+		. > BuyOne_(Un)Collapse envelope lanes/BuyOne_Uncollapse all envelope lanes in selected tracks.lua
+		. > BuyOne_(Un)Collapse envelope lanes/BuyOne_Toggle collapse selected envelope lane in track.lua
+		. > BuyOne_(Un)Collapse envelope lanes/BuyOne_Toggle collapse selected envelope lane or all lanes in selected tracks.lua
+		. > BuyOne_(Un)Collapse envelope lanes/BuyOne_Toggle collapse track envelope lanes in selected tracks.lua
+		. > BuyOne_(Un)Collapse envelope lanes/BuyOne_Toggle collapse FX envelope lanes in selected tracks.lua
+		. > BuyOne_(Un)Collapse envelope lanes/BuyOne_Toggle collapse all envelope lanes in selected tracks.lua
 About:	In these '(un)collapse envelope lane' scripts 
 	'track envelope' means envelope of TCP controls, those 
 	which are listed in the 'trim' (envelope) button context 
@@ -51,7 +50,7 @@ About:	In these '(un)collapse envelope lane' scripts
 -- before the script is first run and there're no previously stored data
 -- of such lanes height. Such data are saved with the project file and is
 -- available across project sessions.
--- If empty or malfromed defaults to 63 px
+-- If empty or malfromed defaults to theme's default uncollapsed height
 
 DEFAULT_UNCOLLAPSED_HEIGHT = ""
 
@@ -149,7 +148,7 @@ local scr_name = scr_name:match('([^\\/_]+)%.%w+') -- without scripter name and 
 local ext_state_sect = '(Un)Collapse envelope lanes' -- extended state will be shared by all script instances
 
 DEFAULT_UNCOLLAPSED_HEIGHT = DEFAULT_UNCOLLAPSED_HEIGHT:gsub(' ','')
-DEFAULT_UNCOLLAPSED_HEIGHT = tonumber(DEFAULT_UNCOLLAPSED_HEIGHT) and DEFAULT_UNCOLLAPSED_HEIGHT or 63
+DEFAULT_UNCOLLAPSED_HEIGHT = tonumber(DEFAULT_UNCOLLAPSED_HEIGHT) and DEFAULT_UNCOLLAPSED_HEIGHT or 0 -- 0 sets env lane height to theme's default from both collapsed and uncollapsed states, but in the script it's only relevant when the script is first run while the lane is collapsed
 
 local theme_stored = r.GetExtState(ext_state_sect, 'theme_cur')
 local theme_cur = r.GetLastColorThemeFile():match('.+[\\/](.+)')
@@ -263,7 +262,6 @@ local env = r.GetSelectedEnvelope(0)
 	end
 
 do return r.defer(function() do return end end) end -- TCP/EnvCP height changes cannot be undone even if they're registered in the undo history, native actions affecting TCP height don't even create undo points https://forums.cockos.com/showthread.php?t=262356 // must be placed outside of the block because at its end only the second condition is covered
-
 
 
 
