@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="18d6e70ea18c64bb5ecb04a8b48f0e13abbd87ee" name="ReaTeam Scripts">
+<index version="1" commit="280463564de5656ca51261c74f3caa65d11e4257" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -2379,6 +2379,27 @@ Refactored/reorganized the code for readability]]></changelog>
         <source file="BuyOne_(Un)Collapse envelope lanes/BuyOne_Toggle collapse track envelope lanes in selected tracks.lua">https://github.com/ReaTeam/ReaScripts/raw/bea1409155987fc89c594ebabf029c9a828691de/Envelopes/BuyOne_(Un)Collapse%20envelope%20lanes.lua</source>
         <source file="BuyOne_(Un)Collapse envelope lanes/BuyOne_Toggle collapse FX envelope lanes in selected tracks.lua">https://github.com/ReaTeam/ReaScripts/raw/bea1409155987fc89c594ebabf029c9a828691de/Envelopes/BuyOne_(Un)Collapse%20envelope%20lanes.lua</source>
         <source file="BuyOne_(Un)Collapse envelope lanes/BuyOne_Toggle collapse all envelope lanes in selected tracks.lua">https://github.com/ReaTeam/ReaScripts/raw/bea1409155987fc89c594ebabf029c9a828691de/Envelopes/BuyOne_(Un)Collapse%20envelope%20lanes.lua</source>
+      </version>
+      <version name="1.2" author="BuyOne" time="2022-03-12T05:34:52Z">
+        <changelog><![CDATA[#Added support for theme's default uncollapsed height if starts out from collapsed state]]></changelog>
+        <source file="BuyOne_(Un)Collapse envelope lanes/BuyOne_Collapse selected envelope lane in track.lua">https://github.com/ReaTeam/ReaScripts/raw/4003d12389ae5478668d4b2020930bdd6cd11e8a/Envelopes/BuyOne_(Un)Collapse%20envelope%20lanes.lua</source>
+        <source file="BuyOne_(Un)Collapse envelope lanes/BuyOne_Uncollapse selected envelope lane in track.lua">https://github.com/ReaTeam/ReaScripts/raw/4003d12389ae5478668d4b2020930bdd6cd11e8a/Envelopes/BuyOne_(Un)Collapse%20envelope%20lanes.lua</source>
+        <source file="BuyOne_(Un)Collapse envelope lanes/BuyOne_Collapse selected envelope lane or all lanes in selected tracks.lua">https://github.com/ReaTeam/ReaScripts/raw/4003d12389ae5478668d4b2020930bdd6cd11e8a/Envelopes/BuyOne_(Un)Collapse%20envelope%20lanes.lua</source>
+        <source file="BuyOne_(Un)Collapse envelope lanes/BuyOne_Uncollapse selected envelope lane or all lanes in selected tracks.lua">https://github.com/ReaTeam/ReaScripts/raw/4003d12389ae5478668d4b2020930bdd6cd11e8a/Envelopes/BuyOne_(Un)Collapse%20envelope%20lanes.lua</source>
+        <source file="BuyOne_(Un)Collapse envelope lanes/BuyOne_Collapse selected envelope lane uncollapse others in track.lua">https://github.com/ReaTeam/ReaScripts/raw/4003d12389ae5478668d4b2020930bdd6cd11e8a/Envelopes/BuyOne_(Un)Collapse%20envelope%20lanes.lua</source>
+        <source file="BuyOne_(Un)Collapse envelope lanes/BuyOne_Uncollapse selected envelope lane collapse others in track.lua">https://github.com/ReaTeam/ReaScripts/raw/4003d12389ae5478668d4b2020930bdd6cd11e8a/Envelopes/BuyOne_(Un)Collapse%20envelope%20lanes.lua</source>
+        <source file="BuyOne_(Un)Collapse envelope lanes/BuyOne_Alternate collapsing selected envelope lane and other lanes in track.lua">https://github.com/ReaTeam/ReaScripts/raw/4003d12389ae5478668d4b2020930bdd6cd11e8a/Envelopes/BuyOne_(Un)Collapse%20envelope%20lanes.lua</source>
+        <source file="BuyOne_(Un)Collapse envelope lanes/BuyOne_Collapse track envelope lanes in selected tracks.lua">https://github.com/ReaTeam/ReaScripts/raw/4003d12389ae5478668d4b2020930bdd6cd11e8a/Envelopes/BuyOne_(Un)Collapse%20envelope%20lanes.lua</source>
+        <source file="BuyOne_(Un)Collapse envelope lanes/BuyOne_Uncollapse track envelope lanes in selected tracks.lua">https://github.com/ReaTeam/ReaScripts/raw/4003d12389ae5478668d4b2020930bdd6cd11e8a/Envelopes/BuyOne_(Un)Collapse%20envelope%20lanes.lua</source>
+        <source file="BuyOne_(Un)Collapse envelope lanes/BuyOne_Collapse FX envelope lanes in selected tracks.lua">https://github.com/ReaTeam/ReaScripts/raw/4003d12389ae5478668d4b2020930bdd6cd11e8a/Envelopes/BuyOne_(Un)Collapse%20envelope%20lanes.lua</source>
+        <source file="BuyOne_(Un)Collapse envelope lanes/BuyOne_Uncollapse FX envelope lanes in selected tracks.lua">https://github.com/ReaTeam/ReaScripts/raw/4003d12389ae5478668d4b2020930bdd6cd11e8a/Envelopes/BuyOne_(Un)Collapse%20envelope%20lanes.lua</source>
+        <source file="BuyOne_(Un)Collapse envelope lanes/BuyOne_Collapse all envelope lanes in selected tracks.lua">https://github.com/ReaTeam/ReaScripts/raw/4003d12389ae5478668d4b2020930bdd6cd11e8a/Envelopes/BuyOne_(Un)Collapse%20envelope%20lanes.lua</source>
+        <source file="BuyOne_(Un)Collapse envelope lanes/BuyOne_Uncollapse all envelope lanes in selected tracks.lua">https://github.com/ReaTeam/ReaScripts/raw/4003d12389ae5478668d4b2020930bdd6cd11e8a/Envelopes/BuyOne_(Un)Collapse%20envelope%20lanes.lua</source>
+        <source file="BuyOne_(Un)Collapse envelope lanes/BuyOne_Toggle collapse selected envelope lane in track.lua">https://github.com/ReaTeam/ReaScripts/raw/4003d12389ae5478668d4b2020930bdd6cd11e8a/Envelopes/BuyOne_(Un)Collapse%20envelope%20lanes.lua</source>
+        <source file="BuyOne_(Un)Collapse envelope lanes/BuyOne_Toggle collapse selected envelope lane or all lanes in selected tracks.lua">https://github.com/ReaTeam/ReaScripts/raw/4003d12389ae5478668d4b2020930bdd6cd11e8a/Envelopes/BuyOne_(Un)Collapse%20envelope%20lanes.lua</source>
+        <source file="BuyOne_(Un)Collapse envelope lanes/BuyOne_Toggle collapse track envelope lanes in selected tracks.lua">https://github.com/ReaTeam/ReaScripts/raw/4003d12389ae5478668d4b2020930bdd6cd11e8a/Envelopes/BuyOne_(Un)Collapse%20envelope%20lanes.lua</source>
+        <source file="BuyOne_(Un)Collapse envelope lanes/BuyOne_Toggle collapse FX envelope lanes in selected tracks.lua">https://github.com/ReaTeam/ReaScripts/raw/4003d12389ae5478668d4b2020930bdd6cd11e8a/Envelopes/BuyOne_(Un)Collapse%20envelope%20lanes.lua</source>
+        <source file="BuyOne_(Un)Collapse envelope lanes/BuyOne_Toggle collapse all envelope lanes in selected tracks.lua">https://github.com/ReaTeam/ReaScripts/raw/4003d12389ae5478668d4b2020930bdd6cd11e8a/Envelopes/BuyOne_(Un)Collapse%20envelope%20lanes.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Delete points before or after the edit cursor in selected envelope.lua" type="script" desc="Delete points before or after the edit cursor in selected envelope">
@@ -5307,6 +5328,16 @@ For now it provides as empty arrange zone, and items should splitted at edit cur
       <version name="1.0" author="BenK-msx, BuyOne, Phazma" time="2022-02-11T22:18:21Z">
         <changelog><![CDATA[Initial release]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/aa66c32204ad0988b318532eed0f6b172b75e421/Items%20Editing/BuyOne_Create%20pitch-rate%20(vari-speed)%20take%20envelope%20and%20render%20to%20new%20take.lua</source>
+      </version>
+      <version name="1.1" author="BenK-msx, BuyOne, Phazma" time="2022-03-12T05:35:20Z">
+        <changelog><![CDATA[#Added a temporary bypass for 'Options: Toggle trim content behind media items when editing'
+in case it's enabled so it doesn't intefere
+#Added support for negative range only for users only interested in tape stop effect
+#Added option to obey note-offs for scenarios where playback time of the original media in Arrange 
+is shorter than that of the portion imported into ReaSamplomatic5000
+#Added 2 ms of 'Release' in ReaSamplomatic5000 to prevent clicks
+#Added a setting to replace original media with a rendered one]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/280463564de5656ca51261c74f3caa65d11e4257/Items%20Editing/BuyOne_Create%20pitch-rate%20(vari-speed)%20take%20envelope%20and%20render%20to%20new%20take.lua</source>
       </version>
     </reapack>
     <reapack name="BuyOne_Delete selected item(s) and select next or previous (settings inside).lua" type="script" desc="Delete selected item(s) and select next or previous">
