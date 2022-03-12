@@ -2,8 +2,14 @@
 ReaScript name: Create pitch-rate (vari-speed) take envelope and render to new take
 Author: BenK-msx, BuyOne, Phazma
 Website: https://forum.cockos.com/member.php?u=134058
-Version: 1.0
-Changelog: Initial release
+Version: 1.1
+Changelog: #Added a temporary bypass for 'Options: Toggle trim content behind media items when editing'
+	   in case it's enabled so it doesn't intefere
+	   #Added support for negative range only for users only interested in tape stop effect
+	   #Added option to obey note-offs for scenarios where playback time of the original media in Arrange 
+	   is shorter than that of the portion imported into ReaSamplomatic5000
+	   #Added 2 ms of 'Release' in ReaSamplomatic5000 to prevent clicks
+	   #Added a setting to replace original media with a rendered one
 Licence: WTFPL
 REAPER: at least v5.962
 About:	This is a ported to ReaScript method of creating a take pitch envelope 
@@ -80,7 +86,8 @@ About:	This is a ported to ReaScript method of creating a take pitch envelope
 -------------------------------------------------------------------------------------
 ---------------------------------- USER SETTINGS ------------------------------------
 -------------------------------------------------------------------------------------
--- To enable a setting insert any alphanumeric character between the quotation marks.
+-- To enable any setting save for PITCH_BEND_RANGE and PITCH_OFFSET_RANGE insert any 
+-- alphanumeric character between the quotation marks.
 
 -- This setting determines the parameter which controls sample pitch;
 -- If empty, the pitch is controlled by the pitch bend message sent to RS5k
@@ -106,9 +113,15 @@ PITCH_BEND_RANGE = ""
 
 -- Only relevant when PITCH_OFFSET setting above is ENabled;
 -- empty defaults to 80 (i.e. -80 to 80 st) which is a maximum range
--- of the corresponing control in RS5k;
--- the rest is as PITCH_BEND_RANGE setting mutatis mutandis;
+-- of the corresponding control in RS5k;
+-- the rest is as PITCH_BEND_RANGE setting mutatis mutandis.
 PITCH_OFFSET_RANGE = ""
+
+
+-- Enable if you only need tape-stop effect, i.e. vari-speed downwards,
+-- in which case the envelope range will start at 0 and go down to the negative
+-- value set as PITCH_BEND_RANGE or PITCH_OFFSET_RANGE above.
+NEGATIVE_RANGE = ""
 
 
 -- Orginal pitch control step in ReaControlMIDI and RS5k plugins is not semitone,
@@ -121,8 +134,16 @@ PITCH_OFFSET_RANGE = ""
 -- exact semitones; values up to a whole value and a half are rounded down, values
 -- greater than a whole value and a half (including) are rounded up, e.g. 1 semitone up
 -- from the root corresponds to envelope point values between 0.5 and 1.499,
--- 1 semitone down from the root to values between -0.51 and -1.450, and so forth.
+-- 1 semitone down from the root to values between -0.501 and -1.500, and so forth.
 SNAP_TO_SEMITONE = ""
+
+
+-- The setting ensures that the sample is cut off in RS5k in case the original media
+-- was shortened AFTER creation of the vari-speed envelope which would result in its
+-- being shorter than the portion imported into the RS5k, or when the sample is slowed
+-- down which makes it longer than the original, that's to prevent sample playback  
+-- extending beyond the media item end.
+OBEY_NOTE_OFFS = ""
 
 
 -- Before the script runs action 'Item: Render items to new take' it displays
@@ -132,11 +153,21 @@ SNAP_TO_SEMITONE = ""
 DELETE_TAKE_SRC = ""
 
 
--- The script will automatically enable option "Options: Show all takes in lanes (when room)"
+-- The script will automatically enable option 'Options: Show all takes in lanes (when room)'
 -- if it's OFF, so the addition of the MIDI take with the vari-speed envelope and subsequently
 -- rendered takes is apparent and doesn't look as if the original item was deleted;
 -- If you still prefer to have take lanes collapsed, feel free to enable this setting.
 DO_NOT_SWITCH_TAKE_LANES_ON = ""
+
+
+-- If enabled, all media takes are deleted from the selected item(s), including 
+-- the original media take, MIDI vari-speed take is rendered to a new media take 
+-- which is placed at the top and locked, so that the item ends up only containing 
+-- two takes: the MIDI vari-speed envelope take and the rendered media take;
+-- if option DELETE_TAKE_SRC is enabled above the source files of all previously 
+-- rendered takes (if any) are deleted from the disk as well, save for the source 
+-- file of the original media.
+DELETE_RENDER_LOCK = ""
 
 -------------------------------------------------------------------------------------
 ------------------------------ END OF USER SETTINGS ---------------------------------
@@ -241,6 +272,7 @@ end
 PITCH_BEND_RANGE = Get_Pitch_Range(PITCH_BEND_RANGE, 'bend')
 PITCH_OFFSET_RANGE = Get_Pitch_Range(PITCH_OFFSET_RANGE, 'offset')
 
+NEGATIVE_RANGE = #NEGATIVE_RANGE:gsub(' ','') > 0
 SNAP_TO_SEMITONE = #SNAP_TO_SEMITONE:gsub(' ','') > 0
 
 local pitch_wheel = [[
@@ -253,6 +285,9 @@ AUDIOCTLWT 1 1
 PLINK 1 0:-1 0 0
 >
 ]] -- parameter link to macro slider // values stay as they are, range is controlled by RS5k 'Pitch bend' control; could have been included in the next chunk
+
+local Scale = NEGATIVE_RANGE and 0.5 or 1 -- if negative, range goes from 0 downwards hence it's only half of the range which spans both negative and positive values
+local pitch_wheel = pitch_wheel:gsub('PLINK 1', 'PLINK '..Scale) -- PLINK fleld 1 value (Scale)
 
 local pitch_wheel = [[BYPASS 0 0 0
 <VST "VST: ReaControlMIDI (Cockos)" reacontrolMIDI.vst.dylib 0 "Pitch wheel" 1919118692 ""
@@ -276,13 +311,13 @@ bW9zcu5e7f4AAAAAAgAAAAEAAAAAAAAAAgAAAAAAAABSAQAAAQAAAAAAEAA=
 QzpcVXNlcnNcTUVcRGVza3RvcFxDaG9yZHNcYXVkaW9cb2xkLXNjaG9vbC10eXBlLWRydW0tbG9vcC1tYWRsaXAubXAzAAAAAAAAAPA/AAAAAAAA4D8AAAAAAADwPwAA
 AAAAAAAAAAAAAAAA8D+amZmZmZmxP83MzMzMzOs/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAdXlwf+uH7z4AAAAAAAAAAAAAAAAAAAAAAAAAYP9/5z8AAACgqkrvPwAA
 AAAAAOA/AQAAAAAAAAAAAAAAAAAAAAAA8D9AAAAAAAAAAAAA8D//////AAAAAAAAAAAAAAAAAADwPwAAAAAAAPA/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AADOpCEhGmWQPwAAAAAAAPA/TU+vKaEqMD8AAAAAAAAAAAAAAAAAAPA/AAAAAAAAAAA=
-AAAQAAAA
+AADOpCEhGmWQPwAAAAAAAPA/TU+vKaEqMD8AAAAAAAAAAAAAAAAAAPA/AAAAAAAAAAA=AAAQAAAA
 >
 FLOAT 0 0 0 0
 FXID {1863C847-5057-224E-A924-AECD86ADA4C5}
 WAK 0 0
 ]] .. comment
+
 
 
 local pitch_offset = [[
@@ -296,7 +331,11 @@ PLINK 1 0:-1 1 -0.5
 >
 ]] -- parameter link to macro slider // PARAMBASE and PLINK field 4 (Offset) values are required for scaling the range if user chooses so, they remain constant while PLINK fleld 1 value (Scale) may change
 
-local pitch_offset = pitch_offset:gsub('PLINK 1', 'PLINK '..PITCH_OFFSET_RANGE*1.25/100) -- 1 semitone of RS5k's 'Pitch offset' control corresponds to 1.25% (potitive) of Parameter modulation 'Scale' control; divided by 1 because in PLINK parameter 'Scale' control values are normalized, range between 0 to 1
+
+local Scale = PITCH_OFFSET_RANGE*1.25/100 -- 1 semitone of RS5k's 'Pitch offset' control corresponds to 1.25% (potitive) of Parameter modulation 'Scale' control; divided by 100 because in PLINK parameter 'Scale' control values are normalized, range between 0 to 1
+local Scale = NEGATIVE_RANGE and Scale/2 or Scale -- if negative, range goes from 0 downwards hence it's only half of the range which spans both negative and positive values
+local pitch_offset = pitch_offset:gsub('PLINK 1', 'PLINK '..Scale)
+local pitch_offset = NEGATIVE_RANGE and pitch_offset:gsub('%-0.5', '-1') or pitch_offset -- if negative, Offset val is -100%
 
 
 local pitch_offset = [[
@@ -305,9 +344,8 @@ BYPASS 0 0 0
 bW9zcu5e7f4AAAAAAgAAAAEAAAAAAAAAAgAAAAAAAABSAQAAAQAAAAAAEAA=
 QzpcVXNlcnNcTUVcRGVza3RvcFxDaG9yZHNcYXVkaW9cb2xkLXNjaG9vbC10eXBlLWRydW0tbG9vcC1tYWRsaXAubXAzAAAAAAAAAPA/AAAAAAAA4D8AAAAAAADwPwAA
 AAAAAAAAAAAAAAAA8D+amZmZmZmxP83MzMzMzOs/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAdXlwf+uH7z4AAAAAAAAAAAAAAAAAAAAAAAAAYP9/5z8AAACgqkrvPwAA
-AAAAAOA/AQAAAAAAAAAAAAAAAAAAAAAA8D9AAAAAAAAAAAAAAAD/////AAAAAAAAAAAAAAAAAADwPwAAAAAAAPA/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AADOpCEhGmWQPwAAAAAAAPA/TU+vKaEqMD8AAAAAAAAAAAAAAAAAAPA/AAAAAAAAAAA=
-AAAQAAAA
+AAAAAOA/AQAAAAAAAAAAAAAAAAAAAAAA8D9AAAAAAAAAAAAA8D//////AAAAAAAAAAAAAAAAAADwPwAAAAAAAPA/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AADOpCEhGmWQPwAAAAAAAPA/TU+vKaEqMD8AAAAAAAAAAAAAAAAAAPA/AAAAAAAAAAA=AAAQAAAA
 >
 FLOAT 484 140 511 0
 FXID {182CBE41-7185-41DD-B12F-75A4FBD4F10F}
@@ -427,7 +465,7 @@ local macro_controller_jsfx =
 
 /*
 To be used with the script:
-'BenK-msx;BuyOne;Phazma_Create pitch-rate (vari-speed) take envelope and render to new take.lua'
+'BuyOne_Create pitch-rate (vari-speed) take envelope and render to new take.lua'
 available via ReaPack
 If you have this file, the script either is or was installed on your machine
 If using the script settings you change pitch range and/or step to other than default, the start, end and step slider values
@@ -447,6 +485,29 @@ slider2:0<-80, 80, 1>Pitch offset
 
 ]]
 
+
+function Delete_Render_Lock(item)
+	-- delete all media takes from the item
+	for i = r.CountTakes(item)-1, 0, -1 do -- or r.GetMediaItemNumTakes(item)-1 // in reverse since takes will be getting deleted
+	local take = r.GetTake(item, i) -- or r.GetMediaItemTake(item, i)
+	local midi_take = r.TakeIsMIDI(take)		
+		if not midi_take then
+		local retval, tag = r.GetSetMediaItemTakeInfo_String(take, 'P_EXT:varispeed', '', false) -- setNewValue false
+			if tag == 'varispeed_rend' and DELETE_TAKE_SRC then -- only delete rendered take source files, keep the original media source file
+			Delete_Take_Src(take)
+			end
+		r.SetMediaItemInfo_Value(item, 'I_CURTAKE', i) -- set take active
+		ACT(40129) -- Take: Delete active take from items
+		end
+	end
+-- render new, move to top and lock
+ACT(41999) -- Item: Render items to new take
+local retval, tag = r.GetSetMediaItemTakeInfo_String(r.GetActiveTake(item), 'P_EXT:varispeed', 'varispeed_rend', true) -- setNewValue true // add tag to the newly rendered take
+ACT(41380) -- Item: Move active takes to top lane
+ACT(41340) -- Item properties: Lock to active take (mouse click will not change active take)
+end
+
+
 function Create_JSFX_if_None_or_Update(macro_controller_jsfx)
 
 local sep = r.GetResourcePath():match('[\\/]')
@@ -455,22 +516,24 @@ local file_path = r.GetResourcePath()..sep..'Effects'..sep..'utility'..sep..'Rea
 	local f = io.open(file_path, 'w')
 	f:write(macro_controller_jsfx)
 	f:close()
-	end
+	return end
 
 local f = io.open(file_path, 'r')
 local cont = f:read('*a')
 f:close()
-local pitch_bend_range, pitch_bend_step = cont:match('slider1:0<%-(%d+),.-, (.-)>') -- pitch bend slider range & step
-local pitch_offset_range, pitch_offset_step = cont:match('slider2:0<%-(%d+),.-, (.-)>') -- pitch offset slider range & step
+local pitch_bend_range, pitch_bend_range_strt, pitch_bend_step = cont:match('slider1:0<%-(%d+), (%d+), (.-)>') -- pitch offset slider range, pitch range start in case negative range is selected by the user & step
+local pitch_offset_range, pitch_offset_range_strt, pitch_offset_step = cont:match('slider2:0<%-(%d+), (%d+), (.-)>') -- same
 
 local cont_new
-	if not PITCH_OFFSET and (PITCH_BEND_RANGE ~= tonumber(pitch_bend_range) or SNAP_TO_SEMITONE and #pitch_bend_step ~= 1 or not SNAP_TO_SEMITONE and #pitch_bend_step ~= 4) then
-	local pitch_bend_slid = cont:match('slider1.->'):gsub('-','%%%0')
-	local pitch_bend_slid_new = 'slider1:0<-'..PITCH_BEND_RANGE..', '..PITCH_BEND_RANGE..', '..(SNAP_TO_SEMITONE and '1>' or '0.01>')
+	if not PITCH_OFFSET and (PITCH_BEND_RANGE ~= tonumber(pitch_bend_range) or NEGATIVE_RANGE and pitch_bend_range_strt ~= '0' or not NEGATIVE_RANGE and pitch_bend_range_strt == '0' or SNAP_TO_SEMITONE and #pitch_bend_step ~= 1 or not SNAP_TO_SEMITONE and #pitch_bend_step ~= 4) then -- 4 refers to 0.01
+	local pitch_bend_slid = cont:match('slider1.->'):gsub('-','%%%0') -- escape all minuses for replacement below
+	local PITCH_BEND_RANGE_STRT = NEGATIVE_RANGE and 0 or PITCH_BEND_RANGE
+	local pitch_bend_slid_new = 'slider1:0<-'..PITCH_BEND_RANGE..', '..PITCH_BEND_RANGE_STRT..', '..(SNAP_TO_SEMITONE and '1>' or '0.01>')
 	cont_new = cont:gsub(pitch_bend_slid, pitch_bend_slid_new)
-	elseif PITCH_OFFSET and (PITCH_OFFSET_RANGE ~= tonumber(pitch_offset_range) or SNAP_TO_SEMITONE and #pitch_offset_step ~= 1 or not SNAP_TO_SEMITONE and #pitch_offset_step ~= 4) then
-	local pitch_offset_slid = cont:match('slider2.->'):gsub('-','%%%0')
-	local pitch_offset_slid_new = 'slider2:0<-'..PITCH_OFFSET_RANGE..', '..PITCH_OFFSET_RANGE..', '..(SNAP_TO_SEMITONE and '1>' or '0.01>')
+	elseif PITCH_OFFSET and (PITCH_OFFSET_RANGE ~= tonumber(pitch_offset_range) or NEGATIVE_RANGE and pitch_offset_range_strt ~= '0' or not NEGATIVE_RANGE and pitch_offset_range_strt == '0' or SNAP_TO_SEMITONE and #pitch_offset_step ~= 1 or not SNAP_TO_SEMITONE and #pitch_offset_step ~= 4) then -- 4 refers to 0.01
+	local pitch_offset_slid = cont:match('slider2.->'):gsub('-','%%%0') -- escape all minuses for replacement below
+	local PITCH_OFFSET_RANGE_STRT = NEGATIVE_RANGE and 0 or PITCH_OFFSET_RANGE
+	local pitch_offset_slid_new = 'slider2:0<-'..PITCH_OFFSET_RANGE..', '..PITCH_OFFSET_RANGE_STRT..', '..(SNAP_TO_SEMITONE and '1>' or '0.01>')
 	cont_new = cont:gsub(pitch_offset_slid, pitch_offset_slid_new)
 	end
 	if cont_new then
@@ -479,6 +542,17 @@ local cont_new
 	f:close()
 	end
 
+end
+
+function Extend_MIDI_Note(item)
+local media_take = r.GetTake(item,0)
+local media_take_src = r.GetMediaItemTake_Source(media_take)
+local is_sect, start_offset_sect, len_sect, reversed = r.PCM_Source_GetSectionInfo(media_take_src)
+local src_fin = r.GetMediaItemInfo_Value(item, 'D_POSITION') + len_sect - r.GetMediaItemTakeInfo_Value(media_take, 'D_STARTOFFS') -- source of the media item is used in case it's looped so only end of the first loop iteration is respected
+local midi_take = r.GetTake(item,1)
+local src_fin_PPQ = r.MIDI_GetPPQPosFromProjTime(midi_take, src_fin)
+local retval, sel, muted, startppqpos, endppqpos, chan, pitch, vel = r.MIDI_GetNote(midi_take, 0)
+r.MIDI_SetNote(midi_take, 0, selectedIn, mutedIn, startppqpos, endppqpos + (src_fin_PPQ - endppqpos), pitchIn, velIn, noSortIn) -- selectedIn, mutedIn, chanIn, pitchIn, velIn, noSortIn nil
 end
 
 
@@ -541,12 +615,12 @@ local sel_item_t = {} -- collect sel items because they will be deselected durin
 			local retval, env_chunk = table.unpack(env and {r.GetEnvelopeStateChunk(env, '', false)} or {x, x}) -- isundo false
 			local active = env and env_chunk:match('ACT 1')
 				if env and active then
-				retval, time, env_pitch_val, shape, tens, is_sel = r.GetEnvelopePointEx(env, -1, 0) -- autoitem_idx -1
+				retval, time, env_pitch_val, shape, tens, is_sel = r.GetEnvelopePointEx(env, -1, 0) -- autoitem_idx -1 // env_pitch_val is used in the main routine hence global
 				mes_pitch_env = env_pitch_val ~= 0 and space(14)..'If pitch envelope affects take pitch\n'..space(9)..'only pitch value of the 1st envelope point\n'..space(20)..'will be reflected in the RS5k,\n'..space(17)..'but'..pitch_inset or mes_pitch_env
 				end
 
 			-- item is looped in Arrange and trimmed from the start
-			is_source_looped = r.GetMediaItemInfo_Value(item, 'B_LOOPSRC') == 1
+			is_source_looped = r.GetMediaItemInfo_Value(item, 'B_LOOPSRC') == 1 -- will be used in the main routine hence global
 			start_offset_take = r.GetMediaItemTakeInfo_Value(take, 'D_STARTOFFS')
 			local len_item = r.GetMediaItemInfo_Value(item, 'D_LENGTH')
 			local src = r.GetMediaItemTake_Source(take)
@@ -576,6 +650,7 @@ local sel_item_t = {} -- collect sel items because they will be deselected durin
 
 
 DELETE_TAKE_SRC = #DELETE_TAKE_SRC:gsub(' ','') > 0
+OBEY_NOTE_OFFS = #OBEY_NOTE_OFFS:gsub(' ','') > 0
 
 --------------------------- MAIN ROUTINE -------------------------------
 
@@ -584,6 +659,10 @@ DELETE_TAKE_SRC = #DELETE_TAKE_SRC:gsub(' ','') > 0
 
 r.PreventUIRefresh(1)
 r.Undo_BeginBlock()
+
+-- Temporarily disable trim content option if enabled because it will cause deletion of the media item when a MIDI item is inserted
+local trim_content = r.GetToggleCommandStateEx(0, 41117) == 1 -- Options: Toggle trim content behind media items when editing
+local off = trim_content and ACT(41117) -- Options: Toggle trim content behind media items when editing
 
 local delete_prev_takes
 
@@ -599,44 +678,47 @@ local delete_prev_takes
 			break end
 		end
 
-		if render then
+		if render then		
 		undo = 'Render vari-speed take(s) in items'
-			-- find if item already contains rendered takes and condition their deletion
-			for i = 0, r.CountTakes(item)-1 do -- or r.GetMediaItemNumTakes(item)-1
-			local take = r.GetTake(item, i) -- or r.GetMediaItemTake(item, i)
-			local retval, tag = r.GetSetMediaItemTakeInfo_String(take, 'P_EXT:varispeed', '', false) -- setNewValue false
-				if tag == 'varispeed_rend' and not delete_prev_takes then
-				local resp = r.MB('The item already contains varispeed take(s) rendered earlier.\n\n'..space(15)..'Should they be replaced with the new take?\n\n'..(DELETE_TAKE_SRC and '' or space(11)..'If "YES", take source files will remain on the disk.\n\n')..(#sel_item_t > 1 and space(12)..'(The choice will apply to all subsequent items).' or ''), 'PROMPT', 3)
-					if resp == 2 then return r.defer(function() do return end end) -- abort
-					elseif resp == 6 then delete_prev_takes = 1; break -- proceed with deleting
-					else delete_prev_takes = 2; break -- proceed without deleting
-					end
-				end
-			end
-	-- required since ACT(41999) -- 'Item: Render items to new take' applies to all currently selected items
-	-- placed here so selection is maintained while the prompt above is displayed and when script is aborted
-	r.SelectAllMediaItems(0, false) -- deselect all items
-	r.SetMediaItemSelected(item, true) -- select item
-			if delete_prev_takes == 1 then
-				for i = r.CountTakes(item)-1, 0, -1 do -- or r.GetMediaItemNumTakes(item)-1 // in reverse since takes will be getting deleted
+			if DELETE_RENDER_LOCK then Delete_Render_Lock(item)
+			else
+				-- find if item already contains rendered takes and condition their deletion
+				for i = 0, r.CountTakes(item)-1 do -- or r.GetMediaItemNumTakes(item)-1
 				local take = r.GetTake(item, i) -- or r.GetMediaItemTake(item, i)
 				local retval, tag = r.GetSetMediaItemTakeInfo_String(take, 'P_EXT:varispeed', '', false) -- setNewValue false
-					if tag == 'varispeed_rend' then
-					local del_src = DELETE_TAKE_SRC and Delete_Take_Src(take)
-					r.SetMediaItemInfo_Value(item, 'I_CURTAKE', i) -- set take active
-					ACT(40129) -- Take: Delete active take from items
+					if tag == 'varispeed_rend' and not delete_prev_takes then
+					local resp = r.MB('The item already contains varispeed take(s) rendered earlier.\n\n'..space(15)..'Should they be replaced with the new take?\n\n'..(DELETE_TAKE_SRC and '' or space(11)..'If "YES", take source files will remain on the disk.\n\n')..(#sel_item_t > 1 and space(12)..'(The choice will apply to all subsequent items).' or ''), 'PROMPT', 3)
+						if resp == 2 then return r.defer(function() do return end end) -- abort
+						elseif resp == 6 then delete_prev_takes = 1; break -- proceed with deleting
+						else delete_prev_takes = 2; break -- proceed without deleting
+						end
 					end
 				end
+			-- required since ACT(41999) -- 'Item: Render items to new take' applies to all currently selected items
+			-- placed here so selection is maintained while the prompt above is displayed and when script is aborted
+			r.SelectAllMediaItems(0, false) -- deselect all items
+			r.SetMediaItemSelected(item, true) -- select item
+				if delete_prev_takes == 1 then
+					for i = r.CountTakes(item)-1, 0, -1 do -- or r.GetMediaItemNumTakes(item)-1 // in reverse since takes will be getting deleted
+					local take = r.GetTake(item, i) -- or r.GetMediaItemTake(item, i)
+					local retval, tag = r.GetSetMediaItemTakeInfo_String(take, 'P_EXT:varispeed', '', false) -- setNewValue false
+						if tag == 'varispeed_rend' then
+						local del_src = DELETE_TAKE_SRC and Delete_Take_Src(take)
+						r.SetMediaItemInfo_Value(item, 'I_CURTAKE', i) -- set take active
+						ACT(40129) -- Take: Delete active take from items
+						end
+					end
+				end
+				-- set MIDI take active
+				for i = 0, r.CountTakes(item)-1 do -- or r.GetMediaItemNumTakes(item)-1
+				local take = r.GetTake(item, i) -- or r.GetMediaItemTake(item, i)
+				local retval, tag = r.GetSetMediaItemTakeInfo_String(take, 'P_EXT:varispeed', '', false) -- setNewValue false
+					if tag == 'varispeed_env' then r.SetMediaItemInfo_Value(item, 'I_CURTAKE', i) break end
+				end
+			ACT(41999) -- Item: Render items to new take
+			local retval, tag = r.GetSetMediaItemTakeInfo_String(r.GetActiveTake(item), 'P_EXT:varispeed', 'varispeed_rend', true) -- setNewValue true // add tag to the newly rendered take
 			end
-			-- set MIDI take active
-			for i = 0, r.CountTakes(item)-1 do -- or r.GetMediaItemNumTakes(item)-1
-			local take = r.GetTake(item, i) -- or r.GetMediaItemTake(item, i)
-			local retval, tag = r.GetSetMediaItemTakeInfo_String(take, 'P_EXT:varispeed', '', false) -- setNewValue false
-				if tag == 'varispeed_env' then r.SetMediaItemInfo_Value(item, 'I_CURTAKE', i) break end
-			end
-		ACT(41999) -- Item: Render items to new take
-		local retval, tag = r.GetSetMediaItemTakeInfo_String(r.GetActiveTake(item), 'P_EXT:varispeed', 'varispeed_rend', true) -- setNewValue true // add tag to the newly rendered take
-
+			
 		elseif tag ~= 'varispeed_env' then -- insert MIDI item with varispeed envelope if there's none
 
 		undo = 'Insert vari-speed envelope in items'
@@ -686,18 +768,20 @@ local delete_prev_takes
 		r.TakeFX_SetParamNormalized(midi_take, rs5k_idx, 13, start*unit) -- 13 'Sample start offset'
 	--	r.TakeFX_SetParam(midi_take, rs5k_idx, 14, (start+len)*unit) -- 14 'Sample end offset'
 		r.TakeFX_SetParamNormalized(midi_take, rs5k_idx, 14, (start+len)*unit)-- 14 'Sample end offset'
-		r.TakeFX_SetParam(midi_take, rs5k_idx, 15, 0.5+pitch*1/160) -- 15 'Pitch offset' aka Pitch adjust
+		r.TakeFX_SetParam(midi_take, rs5k_idx, 15, 0.5+pitch*1/160) -- 15 'Pitch offset' aka Pitch adjust // 160 is the max range: -80 + 80; 0.5 is 'Pitch offset' at 0
 	--	r.TakeFX_SetParamNormalized(midi_take, rs5k_idx, 15, 0.5+pitch*1/160) -- 15 'Pitch offset' aka Pitch adjust
+		r.TakeFX_SetParamNormalized(midi_take, rs5k_idx, 10, 1/1625*2) -- 10 'Release' // set to 2 ms to prevent clicks; 1625 is the max val
+		local set = OBEY_NOTE_OFFS and r.TakeFX_SetParamNormalized(midi_take, rs5k_idx, 11, 1) -- 11 'Obey note-offs'
 			if PITCH_BEND_RANGE and not PITCH_OFFSET then
 			r.TakeFX_SetParam(midi_take, rs5k_idx, 16, 1/12*PITCH_BEND_RANGE) -- 16 'Pitchbend range'
 			end
-			if is_source_looped and start_offset_take == 0 then
-			ACT(40698) -- Edit: Copy items
+			if is_source_looped and start_offset_take == 0 then -- is_source_looped var is initialized in WARNING MESSAGES routine
+			ACT(40698) -- Edit: Copy items // copy midi item
 			r.SelectAllMediaItems(0, false) -- deselect all items
 			r.SetMediaItemSelected(item, true) -- select media item
 			-- pasting a MIDI item with a note as take to a media item looped in Arrange with full first loop iteration results in slight drift of the MIDI item loop period relative to the media item one; this is remedied by shortening the media item down to its source (first loop iteration), pasting the MIDI item, toggling 'Loop source' option and restoring the media item original length; this works if done manually and via API only if done with actions, corresponding functions don't produce this effect
 			r.SetMediaItemInfo_Value(item, 'D_LENGTH', len) -- shorten media item
-			ACT(40603) -- Take: Paste as takes in items
+			ACT(40603) -- Take: Paste as takes in items // paste midi item
 			ACT(40636) -- Item properties: Loop item source // disable
 			ACT(40636) -- Item properties: Loop item source // re-enable
 			r.SetMediaItemInfo_Value(item, 'D_LENGTH', item_len) -- restore length
@@ -709,11 +793,12 @@ local delete_prev_takes
 			-- get rid of the loop notch created in the MIDI item after changing length
 			ACT(40636) -- Item properties: Loop item source // enable
 			ACT(40636) -- Item properties: Loop item source // disable
-			ACT(40699) -- Edit: Cut items
+			ACT(40699) -- Edit: Cut items // cut midi item
 			r.SelectAllMediaItems(0, false) -- deselect all items
 			r.SetMediaItemSelected(item, true) -- select media item
-			ACT(40603) -- Take: Paste as takes in items
+			ACT(40603) -- Take: Paste as takes in items // paste midi item
 			end
+		local extend = OBEY_NOTE_OFFS and Extend_MIDI_Note(item)	
 		end
 	end
 
@@ -725,6 +810,8 @@ local delete_prev_takes
 	and ACT(40435) -- Options: Show all takes in lanes (when room)
 
 
+local on = trim_content and ACT(41117) -- Options: Toggle trim content behind media items when editing // re-enable because it was disabled at the start of the routine
+	
 r.Undo_EndBlock(undo, -1)
 r.PreventUIRefresh(-1)
 
