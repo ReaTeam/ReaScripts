@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="280463564de5656ca51261c74f3caa65d11e4257" name="ReaTeam Scripts">
+<index version="1" commit="b049311857aab612e8f5923658d36594d0113693" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -5889,6 +5889,31 @@ Override Reaper option "Toggle enable/disable default fadein/fadeout" (on/off)]]
 + os.execute replaced with CF_ShellExecute for better performance and Linux compatibility.
 + Added a hidden option to force Sync to be enabled every time the script is run.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/8f36285cd10fd07252418f59b88aaf6ee1369120/Items%20Editing/cool_MK%20Slicer.lua</source>
+      </version>
+    </reapack>
+    <reapack name="Demoji_Next Variation.lua" type="script" desc="Next Variation">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Next Variation\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Sets content of selected audio item to next variation found. Perfect for sound designers working with recordings containing multiple variations in single file. Uses built-in transient detection, which can be configured action "Transient detection sensitivity/threshold: Adjust..."\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Example usage:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Add audio file containing multiple gunshot sounds into timeline\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Trim first gunshot variation from the audio item\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Select audio item and run the script\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab It should now contain the second variation in audio file\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Features:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Supports multiple selected items\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Uses separate tracks for item manipulation, so shouldn't mess with unselected track content\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Loops through item content, if Loop source is enabled\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Preserves item fades information\sa180\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="Demoji" time="2022-03-14T20:06:43Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b049311857aab612e8f5923658d36594d0113693/Items%20Editing/Demoji_Next%20Variation.lua</source>
       </version>
     </reapack>
     <reapack name="ED_Select items with take FX in active take.lua" type="script" desc="Select items with take FX in active take">
