@@ -39,11 +39,11 @@ About:	This is a script ancillary to 'BuyOne_Exclusive dummy toggle' script set
 -- that the state of the script which was last ON in each subset is restored
 -- on REAPER startup.
 
-Main = "A,B"
-MIDI_Ed = "A,B"
-MIDI_Inline_Ed = ""
-MIDI_Ev_List = ""
-Media_Ex = ""
+Main = "A"
+MIDI_Ed = "A"
+MIDI_Inline_Ed = "A"
+MIDI_Ev_List = "A"
+Media_Ex = "A"
 
 
 -------------------------------------------------------------------------------------
