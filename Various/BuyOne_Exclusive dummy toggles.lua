@@ -57,8 +57,8 @@ Provides:
 -- list section which makes toggle states of all mutually exclusive;
 -- empty slots and entries other than alphabetical (English) are not supported.
 
-Main = "B"
-MIDI_Ed = "B"
+Main = "A"
+MIDI_Ed = "A"
 MIDI_Inline_Ed = "A"
 MIDI_Ev_List = "A"
 Media_Ex = "A"
