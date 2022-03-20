@@ -4,6 +4,7 @@ Author: BuyOne
 Version: 1.0
 Changelog: Initial release
 Author URL: https://forum.cockos.com/member.php?u=134058
+Screenshots: https://raw.githubusercontent.com/Buy-One/screenshots/main/Insert%20note%20at%20constant%20velocity%20depending%20on%20dummy%20toggle%20scripts.gif
 Licence: WTFPL
 REAPER: at least v5.962
 Extensions: SWS/S&M extension (recommended for ability to use Cycle action editor)
