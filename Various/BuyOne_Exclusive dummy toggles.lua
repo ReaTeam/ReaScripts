@@ -22,7 +22,7 @@ About:	This set of 10 scripts borrows the concept of SWS extension 'SWS/S&M: Dum
         number and importing it into every Action list section.  
         With the USER SETTINGS the script set can be divided into subsets (groups) so that every 
         script in a subset only affects toggle state of other scripts in this subset. This way 
-        each subset can be dedicated to a specific task which requires mutually exclusive modes.  
+        each subset can be dedicated to a specific task which requires mutually exclusive modes.
 	Division into subsets is specific to the Action list section so in each section the dummy 
 	toggle script set can have its own subset division scheme.
 
