@@ -36,17 +36,17 @@ About:	This set of 10 scripts borrows the concept of SWS extension 'SWS/S&M: Dum
 	https://raw.githubusercontent.com/Buy-One/screenshots/main/Insert%20note%20at%20constant%20velocity%20depending%20on%20dummy%20toggle%20scripts.gif
 Metapackage: true
 Provides: 	
-			[main=main,midi_editor,midi_inlineeditor,midi_eventlisteditor,mediaexplorer] . > BuyOne_Exclusive dummy toggles/BuyOne_Exclusive dummy toggle 1.lua
-			[main=main,midi_editor,midi_inlineeditor,midi_eventlisteditor,mediaexplorer] . > BuyOne_Exclusive dummy toggles/BuyOne_Exclusive dummy toggle 2.lua
-			[main=main,midi_editor,midi_inlineeditor,midi_eventlisteditor,mediaexplorer] . > BuyOne_Exclusive dummy toggles/BuyOne_Exclusive dummy toggle 3.lua
-			[main=main,midi_editor,midi_inlineeditor,midi_eventlisteditor,mediaexplorer] . > BuyOne_Exclusive dummy toggles/BuyOne_Exclusive dummy toggle 4.lua
-			[main=main,midi_editor,midi_inlineeditor,midi_eventlisteditor,mediaexplorer] . > BuyOne_Exclusive dummy toggles/BuyOne_Exclusive dummy toggle 5.lua
-			[main=main,midi_editor,midi_inlineeditor,midi_eventlisteditor,mediaexplorer] . > BuyOne_Exclusive dummy toggles/BuyOne_Exclusive dummy toggle 6.lua
-			[main=main,midi_editor,midi_inlineeditor,midi_eventlisteditor,mediaexplorer] . > BuyOne_Exclusive dummy toggles/BuyOne_Exclusive dummy toggle 7.lua
-			[main=main,midi_editor,midi_inlineeditor,midi_eventlisteditor,mediaexplorer] . > BuyOne_Exclusive dummy toggles/BuyOne_Exclusive dummy toggle 8.lua
-			[main=main,midi_editor,midi_inlineeditor,midi_eventlisteditor,mediaexplorer] . > BuyOne_Exclusive dummy toggles/BuyOne_Exclusive dummy toggle 9.lua
-			[main=main,midi_editor,midi_inlineeditor,midi_eventlisteditor,mediaexplorer] . > BuyOne_Exclusive dummy toggles/BuyOne_Exclusive dummy toggle 10.lua
-			BuyOne_Exclusive dummy toggles/BuyOne_Exclusive dummy toggle startup script.lua
+	[main=main,midi_editor,midi_inlineeditor,midi_eventlisteditor,mediaexplorer] . > BuyOne_Exclusive dummy toggles/BuyOne_Exclusive dummy toggle 1.lua
+	[main=main,midi_editor,midi_inlineeditor,midi_eventlisteditor,mediaexplorer] . > BuyOne_Exclusive dummy toggles/BuyOne_Exclusive dummy toggle 2.lua
+	[main=main,midi_editor,midi_inlineeditor,midi_eventlisteditor,mediaexplorer] . > BuyOne_Exclusive dummy toggles/BuyOne_Exclusive dummy toggle 3.lua
+	[main=main,midi_editor,midi_inlineeditor,midi_eventlisteditor,mediaexplorer] . > BuyOne_Exclusive dummy toggles/BuyOne_Exclusive dummy toggle 4.lua
+	[main=main,midi_editor,midi_inlineeditor,midi_eventlisteditor,mediaexplorer] . > BuyOne_Exclusive dummy toggles/BuyOne_Exclusive dummy toggle 5.lua
+	[main=main,midi_editor,midi_inlineeditor,midi_eventlisteditor,mediaexplorer] . > BuyOne_Exclusive dummy toggles/BuyOne_Exclusive dummy toggle 6.lua
+	[main=main,midi_editor,midi_inlineeditor,midi_eventlisteditor,mediaexplorer] . > BuyOne_Exclusive dummy toggles/BuyOne_Exclusive dummy toggle 7.lua
+	[main=main,midi_editor,midi_inlineeditor,midi_eventlisteditor,mediaexplorer] . > BuyOne_Exclusive dummy toggles/BuyOne_Exclusive dummy toggle 8.lua
+	[main=main,midi_editor,midi_inlineeditor,midi_eventlisteditor,mediaexplorer] . > BuyOne_Exclusive dummy toggles/BuyOne_Exclusive dummy toggle 9.lua
+	[main=main,midi_editor,midi_inlineeditor,midi_eventlisteditor,mediaexplorer] . > BuyOne_Exclusive dummy toggles/BuyOne_Exclusive dummy toggle 10.lua
+	BuyOne_Exclusive dummy toggles/BuyOne_Exclusive dummy toggle startup script.lua
 ]]
 -------------------------------------------------------------------------------------
 ---------------------------------- USER SETTINGS ------------------------------------
