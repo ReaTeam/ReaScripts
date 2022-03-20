@@ -23,6 +23,8 @@ About:	This set of 10 scripts borrows the concept of SWS extension 'SWS/S&M: Dum
         With the USER SETTINGS the script set can be divided into subsets (groups) so that every 
         script in a subset only affects toggle state of other scripts in this subset. This way 
         each subset can be dedicated to a specific task which requires mutually exclusive modes.  
+	Division into subsets is specific to the Action list section so in each section the dummy 
+	toggle script set can have its own subset division scheme.
 
         The dummy toggle script whose toggle state is currently ON is stored. This allows restoring 
         its state on REAPER startup using 'BuyOne_Exclusive dummy toggle startup script.lua' script, 
