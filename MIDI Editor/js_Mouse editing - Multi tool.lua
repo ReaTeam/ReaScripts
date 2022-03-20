@@ -1,8 +1,8 @@
 --[[
 ReaScript name: js_Mouse editing - Multi Tool.lua
-Version: 6.56
+Version: 6.60
 Changelog:
-  + Remove minimum zone size limit.
+  + Update documentation: Editability no longer needs to be linked to selection in order for script to edit all editable takes.
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Donation: https://www.paypal.me/juliansader
@@ -49,22 +49,18 @@ About:
       * And, of course, the script offers a variety of editing tools such as warping, compressing, stretching and tilting that are not found among REAPER's native actions.
   
   
-  REAPER LIMITATIONS:
-  
-  REAPER does not provide scripts with a list of items that are editable in a MIDI editor, so most scripts can only edit the active item.  
-  Only in special circumstances, for example when editability follows item selection, can scripts deduce which items are editable.
-  Please bump the Feature Request thread: t=168563. 
-  
-  
   EDITABLE ITEMS:
   
-  This script can edit selected MIDI events in all editable items, but only if the following settings are all enabled:
-  * Preferences -> MIDI editor -> On MIDI editor per project
-  * Options: MIDI track list/media item lane selection is linked to visibility
-  * Options: MIDI track list/media item lane selection is linked to editability
+  If using an up-to-date version REAPER (v6.37 or newer), the script will edit selected MIDI events in all editable items, if either of the following options is enabled:
   * Options: Draw and edit CC events on all tracks
+  * Options: Edit CC events on all tracks
+
+  If using an older version of REAPER (v6.36 or older), the script can only edit selected MIDI events in all editable items if the following options are enabled
+  (in addition to the ones mentioned in the previous paragraph):
+  * Preferences -> MIDI editor -> One MIDI editor per project
+  * Options: MIDI track list/media item lane selection is linked to editability
   
-  If these setting are not all enabled, the script can only edit events in the active item.
+  If these setting are not all enabled, the script will only edit events in the active item.
   
   
   LANE UNDER MOUSE vs MULTIPLE LANES:
