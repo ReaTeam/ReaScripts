@@ -22,7 +22,10 @@ About:	This is a script ancillary to 'BuyOne_Exclusive dummy toggle' script set
         This script is only available in the Main section of the Action list because
         SWS extension Startup actions utility doesn't support other sections, nevertheless 
         it will affect dummy toggle scripts in all Action list sections provided their
-        subset letters are referenced in the USER SETTINGS below.
+        subset letters are referenced in the USER SETTINGS below.  
+	Alternatively to SWS Startup actions utility you can use an external __startup.lua
+	script which runs this script. For more info refer to the thread:  
+	https://forum.cockos.com/showthread.php?t=222833
 ]]
 -------------------------------------------------------------------------------------
 ---------------------------------- USER SETTINGS ------------------------------------
