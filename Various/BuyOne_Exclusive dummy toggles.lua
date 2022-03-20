@@ -4,7 +4,6 @@ Author: BuyOne
 Version: 1.0
 Changelog: Initial release
 Author URL: https://forum.cockos.com/member.php?u=134058
-Screenshots: https://raw.githubusercontent.com/Buy-One/screenshots/main/Insert%20note%20at%20constant%20velocity%20depending%20on%20dummy%20toggle%20scripts.gif
 Licence: WTFPL
 REAPER: at least v5.962
 Extensions: SWS/S&M extension (recommended for ability to use Cycle action editor)
@@ -30,6 +29,11 @@ About:	This set of 10 scripts borrows the concept of SWS extension 'SWS/S&M: Dum
         The dummy toggle script whose toggle state is currently ON is stored. This allows restoring 
         its state on REAPER startup using 'BuyOne_Exclusive dummy toggle startup script.lua' script, 
         provided it's included in the SWS extension Startup actions.
+		
+	SCREENSHOTS:  
+	https://raw.githubusercontent.com/Buy-One/screenshots/main/Exclusive%20dummy%20toggle%20scripts.gif  
+	Use case  
+	https://raw.githubusercontent.com/Buy-One/screenshots/main/Insert%20note%20at%20constant%20velocity%20depending%20on%20dummy%20toggle%20scripts.gif
 Metapackage: true
 Provides: 	
 			[main=main,midi_editor,midi_inlineeditor,midi_eventlisteditor,mediaexplorer] . > BuyOne_Exclusive dummy toggles/BuyOne_Exclusive dummy toggle 1.lua
