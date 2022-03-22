@@ -1,7 +1,10 @@
 -- @description Razor Edit Track Groups
 -- @author amagalma
--- @version 1.11
--- @changelog OSX: fixed crash with invalid font size
+-- @version 1.20
+-- @changelog
+--    - Support of fixed item lanes if +dev version is found
+--    - ReaImGui Window remembers last position
+--    - Notify user if ReaImGui is not installed rather than crash
 -- @link https://forum.cockos.com/showthread.php?t=263486
 -- @donation https://www.paypal.me/amagalma
 -- @about
@@ -19,6 +22,13 @@ local font_type = 'Lucida Console'
 
 --------------------------------------------------------------------------------------
 
+if not reaper.APIExists("ImGui_CreateContext") then
+  reaper.MB("This script requires ReaImGui to run. Please, install and run the script again.", "ReaImGui is not installed!", 0 )
+  return reaper.defer(function() end)
+end
+
+local AppVersion = reaper.GetAppVersion()
+local dev = AppVersion:match("dev")
 local GroupGUIDs = {}
 local TracksByGroup = {}
 local LastRazorEditsByTrack = {}
@@ -72,8 +82,14 @@ end
 
 local function GetRazorEditsForTracksInGroups()
   local tracks = {}
-  for track in pairs(TracksByGroup) do
-    tracks[track] = ({reaper.GetSetMediaTrackInfo_String( track, "P_RAZOREDITS", "", false )})[2]
+  if dev then
+    for track in pairs(TracksByGroup) do
+      tracks[track] = ({reaper.GetSetMediaTrackInfo_String( track, "P_RAZOREDITS_EXT", "", false )})[2]
+    end
+  else
+    for track in pairs(TracksByGroup) do
+      tracks[track] = ({reaper.GetSetMediaTrackInfo_String( track, "P_RAZOREDITS", "", false )})[2]
+    end
   end
   return tracks
 end
@@ -108,6 +124,46 @@ end
 
 --------------------------------------------------------------------------------------
 
+local function GetNumberOfTrackLanes( track ) -- dev build
+  local item = reaper.GetTrackMediaItem( track, 0 )
+  if not item then
+    return 1
+  else
+    local _, chunk = reaper.GetItemStateChunk( item, "", false )
+    local data = tonumber(chunk:match("YPOS %S+ (%S+)"))
+    if not data then
+      return 1
+    else
+      return math.floor(1/data + 0.5)
+    end
+  end
+end
+
+local function GetTrackLanesYPositions( track, index_by_number )
+  local item = reaper.GetTrackMediaItem( track, 0 )
+  local lanes_cnt = 1
+  if item then
+    local _, chunk = reaper.GetItemStateChunk( item, "", false )
+    local data = tonumber(chunk:match("YPOS %S+ (%S+)"))
+    if data then
+      lanes_cnt = math.floor(1/data + 0.5)
+    end
+  end
+  local t = {}
+  if index_by_number then
+    for l = 1, lanes_cnt+1 do
+      t[l] = string.format("%f", (l-1)/lanes_cnt)
+    end
+  else
+    for l = 1, lanes_cnt+1 do
+      t[string.format("%f", (l-1)/lanes_cnt)] = l
+    end
+  end
+  return t
+end
+
+--------------------------------------------------------------------------------------
+
 local function ApplyChangesToGroups()
   local new_razor_edits = GetRazorEditsForTracksInGroups()
   -- Validate Groups
@@ -131,28 +187,73 @@ local function ApplyChangesToGroups()
       end
     end
     if new_razor_edit then
-      for i = 1, track_cnt do
-        if changed_track ~= tracks[i] then
-          if envelopes_in_changed_track_RE then
+      if dev then
+        local changed_track_lanes_positions = GetTrackLanesYPositions( changed_track )
+        for i = 1, track_cnt do
+          if changed_track ~= tracks[i] then
+            local lane_positions = GetTrackLanesYPositions( tracks[i], true )
+            local env_info = envelopes_in_changed_track_RE and GetAllTrackEnvelopesInfo( tracks[i] ) or {}
             -- Create razor edits for envelopes with same name and chunkname
-            local env_info = GetAllTrackEnvelopesInfo( tracks[i] )
             local t, t_cnt = {}, 0
-            for area_st, area_en, guid in new_razor_edit:gmatch('(%S+ )(%S+ )"(%S-)"') do
-              if guid == '' then
-                t_cnt = t_cnt + 1
-                t[t_cnt] = area_st .. area_en .. '""'
+            for area_st, area_en, guid, top, btm in new_razor_edit:gmatch('([^%s,]+) (%S+) "(%S-)" (%S+) ([^,]+)') do
+              if guid == "" then
+                local new_top = changed_track_lanes_positions[top]
+                local new_btm = changed_track_lanes_positions[btm]
+                if lane_positions[new_top] and lane_positions[new_btm] == nil then
+                  for i = new_btm-1, 1, -1 do
+                    if lane_positions[i] then
+                      new_btm = i
+                      break
+                    end
+                  end
+                elseif lane_positions[new_btm] and lane_positions[new_top] == nil then
+                  for i = new_top-1, 1, -1 do
+                    if lane_positions[i] then
+                      new_top = i
+                      break
+                    end
+                  end
+                end
+                if lane_positions[new_top] and lane_positions[new_btm] and
+                   lane_positions[new_top] ~= lane_positions[new_btm]
+                then
+                  t_cnt = t_cnt + 1
+                  t[t_cnt] = string.format('%s %s "" %s %s', area_st, area_en, lane_positions[new_top], lane_positions[new_btm] )
+                end
               else
-                local env_name = envelopes_in_changed_track_RE[guid]
-                --reaper.ShowConsoleMsg(env_name.."\n")
+                local env_name = envelopes_in_changed_track_RE and envelopes_in_changed_track_RE[guid] or ""
                 if env_info[env_name] then
                   t_cnt = t_cnt + 1
-                  t[t_cnt] = area_st .. area_en .. '"' .. env_info[env_name] .. '"'
+                  t[t_cnt] = string.format('%s %s "%s" 0 1', area_st, area_en, env_info[env_name] )
                 end
               end
             end
-            reaper.GetSetMediaTrackInfo_String( tracks[i], "P_RAZOREDITS", table.concat(t, " "), true )
-          else
-            reaper.GetSetMediaTrackInfo_String( tracks[i], "P_RAZOREDITS", new_razor_edit, true )
+            reaper.GetSetMediaTrackInfo_String( tracks[i], "P_RAZOREDITS_EXT", table.concat(t, ","), true )
+          end
+        end  
+      else -- Not dev build -----------------------------------------------
+        for i = 1, track_cnt do
+          if changed_track ~= tracks[i] then
+            if envelopes_in_changed_track_RE then
+              -- Create razor edits for envelopes with same name and chunkname
+              local env_info = GetAllTrackEnvelopesInfo( tracks[i] )
+              local t, t_cnt = {}, 0
+              for area_st, area_en, guid in new_razor_edit:gmatch('(%S+ )(%S+ )"(%S-)"') do
+                if guid == '' then
+                  t_cnt = t_cnt + 1
+                  t[t_cnt] = area_st .. area_en .. '""'
+                else
+                  local env_name = envelopes_in_changed_track_RE[guid]
+                  if env_info[env_name] then
+                    t_cnt = t_cnt + 1
+                    t[t_cnt] = area_st .. area_en .. '"' .. env_info[env_name] .. '"'
+                  end
+                end
+              end
+              reaper.GetSetMediaTrackInfo_String( tracks[i], "P_RAZOREDITS", table.concat(t, " "), true )
+            else
+              reaper.GetSetMediaTrackInfo_String( tracks[i], "P_RAZOREDITS", new_razor_edit, true )
+            end
           end
         end
       end
@@ -185,8 +286,8 @@ end
 -- GUI --
 ---------
 
-local ctx = reaper.ImGui_CreateContext('Apply Razor Edits to Group', reaper.ImGui_ConfigFlags_NoSavedSettings())
-local font = reaper.ImGui_CreateFont(font_type, reaper.GetAppVersion():match('OSX') and math.floor(font_size*0.8 + 0.5) or font_size)
+local ctx = reaper.ImGui_CreateContext('amagalma_Razor Edit Track Groups')
+local font = reaper.ImGui_CreateFont(font_type, math.floor((AppVersion:match('OSX') and font_size*0.8 or font_size)+0.5))
 reaper.ImGui_AttachFont(ctx, font)
 
 local col_button = reaper.ImGui_Col_Button()
@@ -195,7 +296,7 @@ local enabled_button_display = "Disabled###State"
 local enabled_button_width, enabled_button_position
 local active_col, norm_col = reaper.ImGui_GetStyleColor( ctx, reaper.ImGui_Col_ButtonActive() ), enabled_color
 
-local window_flags = reaper.ImGui_WindowFlags_NoSavedSettings() | reaper.ImGui_WindowFlags_AlwaysAutoResize()
+local window_flags = reaper.ImGui_WindowFlags_AlwaysAutoResize()
 
 local collapsing_flags = reaper.ImGui_TreeNodeFlags_AllowItemOverlap() | reaper.ImGui_TreeNodeFlags_DefaultOpen()
 
