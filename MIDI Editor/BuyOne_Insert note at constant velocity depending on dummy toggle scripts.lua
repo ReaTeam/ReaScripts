@@ -139,7 +139,6 @@ local f = io.open(res_path..'reaper-kb.ini', 'r')
 	cont = f:read('*a')
 	f:close()
 	end
-local t = {}
 local is_scr, idx, scr_path, ON, subset
 	if cont and cont ~= '' then
 		for line in cont:gmatch('[^\n\r]*') do -- parse reaper-kb.ini code
