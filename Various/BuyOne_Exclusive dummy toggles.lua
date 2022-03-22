@@ -1,5 +1,5 @@
 --[[
-ReaScript Name: Exclusive dummy toggles (11 scripts)
+ReaScript Name: Exclusive dummy toggles (12 scripts)
 Author: BuyOne
 Version: 1.0
 Changelog: Initial release
@@ -47,6 +47,7 @@ Provides:
 	[main=main,midi_editor,midi_inlineeditor,midi_eventlisteditor,mediaexplorer] . > BuyOne_Exclusive dummy toggles/BuyOne_Exclusive dummy toggle 9.lua
 	[main=main,midi_editor,midi_inlineeditor,midi_eventlisteditor,mediaexplorer] . > BuyOne_Exclusive dummy toggles/BuyOne_Exclusive dummy toggle 10.lua
 	BuyOne_Exclusive dummy toggles/BuyOne_Exclusive dummy toggle startup script.lua
+	BuyOne_Exclusive dummy toggles/BuyOne_Exclusive dummy toggle - spawn new script.lua
 ]]
 -------------------------------------------------------------------------------------
 ---------------------------------- USER SETTINGS ------------------------------------
