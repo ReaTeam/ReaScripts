@@ -7,7 +7,6 @@ Changelog: Initial release
 Author URL: https://forum.cockos.com/member.php?u=134058
 Licence: WTFPL
 REAPER: at least v5.962
-Extensions: SWS/S&M extension (recommended for ability to use Startup actions)
 About: 	The script generates a new exclusive dummy toggle script and adds it
 		to all sections of the action list bar 'Main (alt recording)'.  
 		To be used when you've run out of all original 10 scripts and need
