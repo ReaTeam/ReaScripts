@@ -1,7 +1,7 @@
 -- @description Razor Edit Track Groups
 -- @author amagalma
--- @version 1.1
--- @changelog Added: Razor edits on envelopes will be duplicated on envelopes of tracks that belong to the same group, if their envelope name and chunk name match.
+-- @version 1.11
+-- @changelog OSX: fixed crash with invalid font size
 -- @link https://forum.cockos.com/showthread.php?t=263486
 -- @donation https://www.paypal.me/amagalma
 -- @about
@@ -186,7 +186,7 @@ end
 ---------
 
 local ctx = reaper.ImGui_CreateContext('Apply Razor Edits to Group', reaper.ImGui_ConfigFlags_NoSavedSettings())
-local font = reaper.ImGui_CreateFont(font_type, reaper.GetAppVersion():match('OSX') and font_size*0.8 or font_size)
+local font = reaper.ImGui_CreateFont(font_type, reaper.GetAppVersion():match('OSX') and math.floor(font_size*0.8 + 0.5) or font_size)
 reaper.ImGui_AttachFont(ctx, font)
 
 local col_button = reaper.ImGui_Col_Button()
