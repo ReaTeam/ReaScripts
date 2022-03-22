@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="d392948d5d8ae7db39e55cc62a7e3931b74675a6" name="ReaTeam Scripts">
+<index version="1" commit="748b17cf189bdc77dfa1bd5cd2d5ed46a14eeea9" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -13466,6 +13466,12 @@ Replace GetLastWord func with quicker solution (Thanks: Mespotine[t=233393]).]]>
       <version name="1.11" author="amagalma" time="2022-03-22T12:11:51Z">
         <changelog><![CDATA[OSX: fixed crash with invalid font size]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d392948d5d8ae7db39e55cc62a7e3931b74675a6/Razor%20Edit/amagalma_Razor%20Edit%20Track%20Groups.lua</source>
+      </version>
+      <version name="1.20" author="amagalma" time="2022-03-22T20:27:53Z">
+        <changelog><![CDATA[- Support of fixed item lanes if +dev version is found
+- ReaImGui Window remembers last position
+- Notify user if ReaImGui is not installed rather than crash]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/748b17cf189bdc77dfa1bd5cd2d5ed46a14eeea9/Razor%20Edit/amagalma_Razor%20Edit%20Track%20Groups.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Remove all item fades within Razor Edit areas.lua" type="script" desc="Remove all item fades within Razor Edit areas">
