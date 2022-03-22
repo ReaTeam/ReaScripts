@@ -34,7 +34,8 @@ About:
 	If this can't be ensured, then run it independently of the mouse click, that 
 	is via a shortcut assigned to the script in the Action list.
 	
-	SCREENSHOT:  	https://raw.githubusercontent.com/Buy-One/screenshots/main/Insert%20note%20at%20constant%20velocity%20depending%20on%20dummy%20toggle%20scripts.gif	
+	SCREENSHOT:  
+	https://raw.githubusercontent.com/Buy-One/screenshots/main/Insert%20note%20at%20constant%20velocity%20depending%20on%20dummy%20toggle%20scripts.gif	
 	
 	The script behavior can be replicated with an SWS Cycle action which executes MIDI Editor
 	custom actions depending on the state of dummy toggle scripts. As a blueprint for such custom
