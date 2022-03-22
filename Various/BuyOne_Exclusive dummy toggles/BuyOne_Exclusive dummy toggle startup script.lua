@@ -72,7 +72,6 @@ local is_used
 	-- convert subset letters to nested tables
 	local t = {}
 		for letter in v:gmatch('%a+') do
-Msg(letter)
 		t[#t+1] = letter
 		end
 	subset_t[k] = t
