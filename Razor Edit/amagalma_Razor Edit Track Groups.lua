@@ -1,10 +1,12 @@
 -- @description Razor Edit Track Groups
 -- @author amagalma
--- @version 1.00
+-- @version 1.1
+-- @changelog Added: Razor edits on envelopes will be duplicated on envelopes of tracks that belong to the same group, if their envelope name and chunk name match.
 -- @link https://forum.cockos.com/showthread.php?t=263486
 -- @donation https://www.paypal.me/amagalma
 -- @about
 --   A track selection can be stored as a Razor Edit Track Group. When a group is enabled, creating a razor edit, for any of its members, duplicates the edit to the rest of the group.
+--   Razor edits on envelopes will be duplicated on envelopes of tracks that belong to the same group, only if their envelope name and chunk name match.
 --
 --   For the time being, the script supports one group, but support for more (infinite number of) groups can be added in the future, if required.
 --
@@ -14,6 +16,7 @@
 local font_size = 13
 local font_type = 'Lucida Console'
 -----------------------------------
+
 --------------------------------------------------------------------------------------
 
 local GroupGUIDs = {}
@@ -77,6 +80,34 @@ end
 
 --------------------------------------------------------------------------------------
 
+local function GetTrackEnvelopeInfoFromRazorEdits( track, razor_edit )
+  local t, added = {}
+  for env_guid in razor_edit:gmatch("{.-}") do
+    added = true
+    local env = reaper.GetTrackEnvelopeByChunkName( track, env_guid )
+    local _, env_name = reaper.GetEnvelopeName( env )
+    env_name = env_name .. ({reaper.GetEnvelopeStateChunk( env, "", false )})[2]:match("[^\n]+")
+    t[env_guid] = env_name
+  end
+  return (added and t)
+end
+
+--------------------------------------------------------------------------------------
+
+local function GetAllTrackEnvelopesInfo( track )
+  local t = {}
+  for e = 0, reaper.CountTrackEnvelopes( track )-1 do
+    local env = reaper.GetTrackEnvelope( track, e )
+    local _, env_name = reaper.GetEnvelopeName( env )
+    local _, env_guid = reaper.GetSetEnvelopeInfo_String( env, "GUID", "", false )
+    env_name = env_name .. ({reaper.GetEnvelopeStateChunk( env, "", false )})[2]:match("[^\n]+")
+    t[env_name] = env_guid
+  end
+  return t
+end
+
+--------------------------------------------------------------------------------------
+
 local function ApplyChangesToGroups()
   local new_razor_edits = GetRazorEditsForTracksInGroups()
   -- Validate Groups
@@ -86,24 +117,43 @@ local function ApplyChangesToGroups()
   end
   reaper.PreventUIRefresh( 1 )
   for group_guid, tracks in pairs(validated_groups) do
-    local apply = false
-    local changed_track
+    local changed_track, new_razor_edit, envelopes_in_changed_track_RE
     local track_cnt = #tracks
     for i = 1, track_cnt do
       local track = validated_groups[group_guid][i]
       -- if no previous razor edit, or different razor edit then apply changes to group
       if not LastRazorEditsByTrack[track] or
         (new_razor_edits[track] ~= "" and new_razor_edits[track] ~= LastRazorEditsByTrack[track]) then
-        apply = new_razor_edits[track]
+        new_razor_edit = new_razor_edits[track]
         changed_track = track
-        --reaper.ShowConsoleMsg(new_razor_edits[track].. "\n")
+        envelopes_in_changed_track_RE = GetTrackEnvelopeInfoFromRazorEdits( changed_track, new_razor_edit )
         break
       end
     end
-    if apply then
+    if new_razor_edit then
       for i = 1, track_cnt do
         if changed_track ~= tracks[i] then
-          reaper.GetSetMediaTrackInfo_String( tracks[i], "P_RAZOREDITS", apply, true )
+          if envelopes_in_changed_track_RE then
+            -- Create razor edits for envelopes with same name and chunkname
+            local env_info = GetAllTrackEnvelopesInfo( tracks[i] )
+            local t, t_cnt = {}, 0
+            for area_st, area_en, guid in new_razor_edit:gmatch('(%S+ )(%S+ )"(%S-)"') do
+              if guid == '' then
+                t_cnt = t_cnt + 1
+                t[t_cnt] = area_st .. area_en .. '""'
+              else
+                local env_name = envelopes_in_changed_track_RE[guid]
+                --reaper.ShowConsoleMsg(env_name.."\n")
+                if env_info[env_name] then
+                  t_cnt = t_cnt + 1
+                  t[t_cnt] = area_st .. area_en .. '"' .. env_info[env_name] .. '"'
+                end
+              end
+            end
+            reaper.GetSetMediaTrackInfo_String( tracks[i], "P_RAZOREDITS", table.concat(t, " "), true )
+          else
+            reaper.GetSetMediaTrackInfo_String( tracks[i], "P_RAZOREDITS", new_razor_edit, true )
+          end
         end
       end
     end
@@ -142,7 +192,7 @@ reaper.ImGui_AttachFont(ctx, font)
 local col_button = reaper.ImGui_Col_Button()
 local enabled_color = reaper.ImGui_GetStyleColor( ctx, col_button )
 local enabled_button_display = "Disabled###State"
-local enabled_button_width
+local enabled_button_width, enabled_button_position
 local active_col, norm_col = reaper.ImGui_GetStyleColor( ctx, reaper.ImGui_Col_ButtonActive() ), enabled_color
 
 local window_flags = reaper.ImGui_WindowFlags_NoSavedSettings() | reaper.ImGui_WindowFlags_AlwaysAutoResize()
