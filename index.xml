@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="8bce2c4fd6b6f1e27e5a46f7f4aaee6d0a07a2e0" name="ReaTeam Scripts">
+<index version="1" commit="39b474a0ac9451e7b8d6a6ae9d5ee33399547961" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -13448,7 +13448,7 @@ Replace GetLastWord func with quicker solution (Thanks: Mespotine[t=233393]).]]>
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 A track selection can be stored as a Razor Edit Track Group. When a group is enabled, creating a razor edit, for any of its members, duplicates the edit to the rest of the group.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 A track selection can be stored as a Razor Edit Track Group. When a group is enabled, creating a razor edit, for any of its members, duplicates the edit to the rest of the group. Razor edits on envelopes will be duplicated on envelopes of tracks that belong to the same group, only if their envelope name and chunk name match.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 For the time being, the script supports one group, but support for more (infinite number of) groups can be added in the future, if required.\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Requires ReaImGui\sa180\par}
 }
@@ -13458,6 +13458,10 @@ Replace GetLastWord func with quicker solution (Thanks: Mespotine[t=233393]).]]>
       </metadata>
       <version name="1.00" author="amagalma" time="2022-02-27T11:08:57Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/faff9e100079dcf5b2170ead21e5158670ba3040/Razor%20Edit/amagalma_Razor%20Edit%20Track%20Groups.lua</source>
+      </version>
+      <version name="1.1" author="amagalma" time="2022-03-22T11:58:38Z">
+        <changelog><![CDATA[Added: Razor edits on envelopes will be duplicated on envelopes of tracks that belong to the same group, if their envelope name and chunk name match.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/39b474a0ac9451e7b8d6a6ae9d5ee33399547961/Razor%20Edit/amagalma_Razor%20Edit%20Track%20Groups.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Remove all item fades within Razor Edit areas.lua" type="script" desc="Remove all item fades within Razor Edit areas">
