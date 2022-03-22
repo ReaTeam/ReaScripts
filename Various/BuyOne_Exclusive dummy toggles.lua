@@ -32,7 +32,7 @@ About:	This set of 10 scripts borrows the concept of SWS extension 'SWS/S&M: Dum
 		
 	SCREENSHOTS:  
 	https://raw.githubusercontent.com/Buy-One/screenshots/main/Exclusive%20dummy%20toggle%20scripts.gif  
-	Use case  
+	Use case   
 	https://raw.githubusercontent.com/Buy-One/screenshots/main/Insert%20note%20at%20constant%20velocity%20depending%20on%20dummy%20toggle%20scripts.gif
 Metapackage: true
 Provides: 	
