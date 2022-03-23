@@ -13,7 +13,7 @@ About:
 	at the velocity of the last selected note with no way to define a constant 
 	velocity to which each new note will be set.  
 	
-	For proper functionality the script depends on 'Exclusive dummy toggles (11 scripts)' 
+	For proper functionality the script depends on 'Exclusive dummy toggles (12 scripts)' 
 	script set which can be installed via ReaPack as well.  
 	Velocity of a note inserted with this script is conditoned on the ON toggle state
 	of one of such exclusive dummy toggle scripts.  
