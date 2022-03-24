@@ -46,8 +46,8 @@ Provides:
 	[main=main,midi_editor,midi_inlineeditor,midi_eventlisteditor,mediaexplorer] . > BuyOne_Exclusive dummy toggles/BuyOne_Exclusive dummy toggle 8.lua
 	[main=main,midi_editor,midi_inlineeditor,midi_eventlisteditor,mediaexplorer] . > BuyOne_Exclusive dummy toggles/BuyOne_Exclusive dummy toggle 9.lua
 	[main=main,midi_editor,midi_inlineeditor,midi_eventlisteditor,mediaexplorer] . > BuyOne_Exclusive dummy toggles/BuyOne_Exclusive dummy toggle 10.lua
-	BuyOne_Exclusive dummy toggles/BuyOne_Exclusive dummy toggle startup script.lua
-	BuyOne_Exclusive dummy toggles/BuyOne_Exclusive dummy toggle - spawn new script.lua
+	[main] BuyOne_Exclusive dummy toggles/BuyOne_Exclusive dummy toggle startup script.lua
+	[main] BuyOne_Exclusive dummy toggles/BuyOne_Exclusive dummy toggle - spawn new script.lua
 ]]
 -------------------------------------------------------------------------------------
 ---------------------------------- USER SETTINGS ------------------------------------
