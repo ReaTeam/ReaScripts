@@ -27,8 +27,9 @@ About:	This set of 10 scripts borrows the concept of SWS extension 'SWS/S&M: Dum
 	toggle script set can have its own subset division scheme.
 
         The dummy toggle script whose toggle state is currently ON is stored. This allows restoring 
-        its state on REAPER startup using 'BuyOne_Exclusive dummy toggle startup script.lua' script, 
-        provided it's included in the SWS extension Startup actions.
+        its state on REAPER startup using 'BuyOne_Exclusive dummy toggle startup script.lua' script 
+        from the Main section of the Action list, provided it's included in the SWS extension Startup 
+	actions.
 		
 	SCREENSHOTS:  
 	https://raw.githubusercontent.com/Buy-One/screenshots/main/Exclusive%20dummy%20toggle%20scripts.gif  
@@ -45,9 +46,9 @@ Provides:
 	[main=main,midi_editor,midi_inlineeditor,midi_eventlisteditor,mediaexplorer] . > BuyOne_Exclusive dummy toggles/BuyOne_Exclusive dummy toggle 7.lua
 	[main=main,midi_editor,midi_inlineeditor,midi_eventlisteditor,mediaexplorer] . > BuyOne_Exclusive dummy toggles/BuyOne_Exclusive dummy toggle 8.lua
 	[main=main,midi_editor,midi_inlineeditor,midi_eventlisteditor,mediaexplorer] . > BuyOne_Exclusive dummy toggles/BuyOne_Exclusive dummy toggle 9.lua
-	[main=main,midi_editor,midi_inlineeditor,midi_eventlisteditor,mediaexplorer] . > BuyOne_Exclusive dummy toggles/BuyOne_Exclusive dummy toggle 10.lua
+	[main=main,midi_editor,midi_inlineeditor,midi_eventlisteditor,mediaexplorer] . > BuyOne_Exclusive dummy toggles/BuyOne_Exclusive dummy toggle 10.lua	
+	[main=main,midi_editor,midi_inlineeditor,midi_eventlisteditor,mediaexplorer] BuyOne_Exclusive dummy toggles/BuyOne_Exclusive dummy toggle - spawn new script.lua
 	[main] BuyOne_Exclusive dummy toggles/BuyOne_Exclusive dummy toggle startup script.lua
-	[main] BuyOne_Exclusive dummy toggles/BuyOne_Exclusive dummy toggle - spawn new script.lua
 ]]
 -------------------------------------------------------------------------------------
 ---------------------------------- USER SETTINGS ------------------------------------
