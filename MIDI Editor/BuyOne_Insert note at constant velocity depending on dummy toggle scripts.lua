@@ -18,7 +18,7 @@ About:
 	Velocity of a note inserted with this script is conditoned on the ON toggle state
 	of one of such exclusive dummy toggle scripts.  
 	For setup refer to the USER SETTINGS below.  
-	If 'Exclusive dummy toggles (11 scripts)' set isn't installed this script defaults
+	If 'Exclusive dummy toggles (12 scripts)' set isn't installed this script defaults
 	to velocity value of 100.  
 	
 	Since the script uses 'Edit: Insert note at mouse cursor' action, it obeys Grid if
