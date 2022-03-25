@@ -48,16 +48,16 @@ About:
 	of the Cycle action editor construct a Cycle action as follows:   
 	
 	IF      If next action is ON  
-				Script: BuyOne_Exclusive dummy toggle 1.lua  
-				Custom: Insert note at velocity A  
+			Script: BuyOne_Exclusive dummy toggle 1.lua  
+			Custom: Insert note at velocity A  
 	ENDIF	End of conditional statement  
 	IF      If next action is ON  
-				Script: BuyOne_Exclusive dummy toggle 2.lua  
-				Custom: Insert note at velocity B  
+			Script: BuyOne_Exclusive dummy toggle 2.lua  
+			Custom: Insert note at velocity B  
 	ENDIF	End of conditional statement  
 	IF      If next action is ON  
-				Script: BuyOne_Exclusive dummy toggle 3.lua  
-				Custom: Insert note at velocity C  
+			Script: BuyOne_Exclusive dummy toggle 3.lua  
+			Custom: Insert note at velocity C  
 	ENDIF	End of conditional statement  
 	
 	and so on repeating the IF - ENDIF block as many times as needed.
