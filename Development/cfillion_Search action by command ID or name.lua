@@ -1,9 +1,9 @@
 -- @description Search action by command ID or name
 -- @author cfillion
--- @version 2.0
--- @changelog Rewritten interface using ReaImGui
+-- @version 2.0.1
+-- @changelog Customize UI colors
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=226107
--- @screenshot https://i.imgur.com/keB0B4g.gif
+-- @screenshot https://i.imgur.com/yqkvZvf.gif
 -- @donation https://www.paypal.com/cgi-bin/webscr?business=T3DEWBQJAV7WL&cmd=_donations&currency_code=CAD
 
 local FLT_MIN, FLT_MAX = reaper.ImGui_NumericLimits_Float()
@@ -118,19 +118,34 @@ end
 
 local function loop()
   reaper.ImGui_PushFont(ctx, font)
+  reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_WindowBg(), 0xffffffff)
 
   reaper.ImGui_SetNextWindowSize(ctx, 442, 131, reaper.ImGui_Cond_FirstUseEver())
   local visible, open = reaper.ImGui_Begin(ctx, SCRIPT_NAME, true)
   if visible then
+    reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Border(),        0x2a2a2aff)
+    reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Button(),        0xdcdcdcff)
+    reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_ButtonActive(),  0x787878ff)
+    reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_ButtonHovered(), 0xdcdcdcff)
+    reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_FrameBg(),       0xffffffff)
+    reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_HeaderHovered(), 0x96afe1ff)
+    reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_PopupBg(),       0xffffffff)
+    reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Text(),          0x2a2a2aff)
+    reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_FrameBorderSize(),  1)
+
     if reaper.ImGui_BeginTable(ctx, '##layout', 2) then
       form()
       reaper.ImGui_EndTable(ctx)
     end
     reaper.ImGui_Spacing(ctx)
     buttons()
+
+    reaper.ImGui_PopStyleVar(ctx)
+    reaper.ImGui_PopStyleColor(ctx, 8)
     reaper.ImGui_End(ctx)
   end
 
+  reaper.ImGui_PopStyleColor(ctx)
   reaper.ImGui_PopFont(ctx)
 
   if open and not reaper.ImGui_IsKeyPressed(ctx, reaper.ImGui_Key_Escape()) then
