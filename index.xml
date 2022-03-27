@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="a674bd7effcb9a4ed503bfbaeb439c0b6a2fd4c7" name="ReaTeam Scripts">
+<index version="1" commit="4bed686d535c8e7abb176550bd96d3c8e5339840" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -715,7 +715,8 @@ Fix display glitch when pasting tab characters]]></changelog>
     </reapack>
     <reapack name="cfillion_Search action by command ID or name.lua" type="script" desc="Search action by command ID or name">
       <metadata>
-        <link rel="screenshot">https://i.imgur.com/nlGMR1T.gif</link>
+        <link rel="website" href="https://forum.cockos.com/showthread.php?t=226107">Forum thread</link>
+        <link rel="screenshot">https://i.imgur.com/keB0B4g.gif</link>
         <link rel="donation">https://www.paypal.com/cgi-bin/webscr?business=T3DEWBQJAV7WL&amp;cmd=_donations&amp;currency_code=CAD</link>
       </metadata>
       <version name="1.0" author="cfillion" time="2019-10-15T19:33:28Z">
@@ -725,6 +726,10 @@ Fix display glitch when pasting tab characters]]></changelog>
         <changelog><![CDATA[save and restore window position, size and dock state [p=2192851]
 fix crash when no matching action is found (hotfix for a last-minute change)]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/090e2274c2123c8198eb4eb4fe4f56de0ae615c6/Development/cfillion_Search%20action%20by%20command%20ID%20or%20name.lua</source>
+      </version>
+      <version name="2.0" author="cfillion" time="2022-03-27T21:00:36Z">
+        <changelog><![CDATA[Rewritten interface using ReaImGui]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4bed686d535c8e7abb176550bd96d3c8e5339840/Development/cfillion_Search%20action%20by%20command%20ID%20or%20name.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_GUI library v2 (developer tools).lua" type="script" desc="Lokasenna's GUI library v2 for Lua (developer tools)">
@@ -8123,6 +8128,31 @@ Renumber markers and regions when pasting]]></changelog>
       <version name="1.0" author="REAPER community" time="2022-02-27T14:56:53Z">
         <source main="midi_inlineeditor midi_editor" file="BuyOne_Time selection - set start point.lua">https://github.com/ReaTeam/ReaScripts/raw/18d6e70ea18c64bb5ecb04a8b48f0e13abbd87ee/MIDI%20Editor/Buy_One_Time%20selection%20-%20set%20start%20;%20end%20point.lua</source>
         <source main="midi_inlineeditor midi_editor" file="BuyOne_Time selection - set end point.lua">https://github.com/ReaTeam/ReaScripts/raw/18d6e70ea18c64bb5ecb04a8b48f0e13abbd87ee/MIDI%20Editor/Buy_One_Time%20selection%20-%20set%20start%20;%20end%20point.lua</source>
+      </version>
+    </reapack>
+    <reapack name="BuyOne_Insert note at constant velocity depending on dummy toggle scripts.lua" type="script" desc="Insert note at constant velocity depending on dummy toggle scripts">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Meant as an alternative to the default note insert action which inserts a note at the velocity of the last selected note with no way to define a constant velocity to which each new note will be set.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 For proper functionality the script depends on 'Exclusive dummy toggles (12 scripts)' script set which can be installed via ReaPack as well.\line Velocity of a note inserted with this script is conditoned on the ON toggle state of one of such exclusive dummy toggle scripts.\line For setup refer to the USER SETTINGS below.\line If 'Exclusive dummy toggles (12 scripts)' set isn't installed this script defaults to velocity value of 100.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Since the script uses 'Edit: Insert note at mouse cursor' action, it obeys Grid if 'Snap to grid' option is enabled.\line Since a note is inserted at mouse cursor, strictly speaking clicking isn't necessary.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 However if assigned to 'double click' context at Preferences -> MIDI Editor piano roll, and you don't want the cursor to move when a note is inserted (default behavior) then make sure that in the parallel slot or one with at least one same modifier under the 'left click' context there's no action (behavior) which moves the edit cursor, otherwise the first click out of the two will change the edit cursor position.\line If this can't be ensured, then run it independently of the mouse click, that is via a shortcut assigned to the script in the Action list.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 SCREENSHOT:\line https://raw.githubusercontent.com/Buy-One/screenshots/main/Insert%20note%20at%20constant%20velocity%20depending%20on%20dummy%20toggle%20scripts.gif\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The script behavior can be replicated with an SWS Cycle action which executes MIDI Editor custom actions depending on the state of dummy toggle scripts. As a blueprint for such custom actions the following code can be used (you can import it into the MIDI Editor section of the Action list as a .ReaperKeyMap file):\line ACT 3 32060 "26f61be727877d41933795baf400dadf" "Custom: Insert note at velocity 100 -- scalable" 40214 40001 40465 40465 40465 40465 40465 40465 40465 40465 40465 40465 40465 40465 40465 40463 40463 40463 40463 40463 40463 40463 40463 40463 40463 40464 40659\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Create as many such custom actions as velocity presets you need by modifying this blueprint custom action to produce the required velocity value and then in the MIDI Editor section of the Cycle action editor construct a Cycle action as follows:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 IF If next action is ON\line Script: BuyOne_Exclusive dummy toggle 1.lua\line Custom: Insert note at velocity A\line ENDIF End of conditional statement\line IF If next action is ON\line Script: BuyOne_Exclusive dummy toggle 2.lua\line Custom: Insert note at velocity B\line ENDIF End of conditional statement\line IF If next action is ON\line Script: BuyOne_Exclusive dummy toggle 3.lua\line Custom: Insert note at velocity C\line ENDIF End of conditional statement\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 and so on repeating the IF - ENDIF block as many times as needed.\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/member.php?u=134058</link>
+        <link rel="screenshot">https://raw.githubusercontent.com/Buy-One/screenshots/main/Insert%20note%20at%20constant%20velocity%20depending%20on%20dummy%20toggle%20scripts.gif</link>
+      </metadata>
+      <version name="1.0" author="BuyOne" time="2022-03-27T20:59:00Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/960f1536039dcf2f2b33f44b9a82fa86f7e280ba/MIDI%20Editor/BuyOne_Insert%20note%20at%20constant%20velocity%20depending%20on%20dummy%20toggle%20scripts.lua</source>
       </version>
     </reapack>
     <reapack name="BuyOne_Insert note at constant velocity set via a dialogue (guide inside).lua" type="script" desc="Insert note at constant velocity set via a dialogue">
@@ -15966,6 +15996,20 @@ Fix: More descriptive error message if valid settings aren't found]]></changelog
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e77723921aacab88d7ec0d1673e459f452431f3a/Tracks%20Properties/mordi_Paste%20text%20from%20clipboard%20to%20selected%20tracks%20names%20(separate%20by%20newline).lua</source>
       </version>
     </reapack>
+    <reapack name="mordi_Set media playback offset for selected tracks.lua" type="script" desc="Set media playback offset for selected tracks">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Sets the media playback offset for all selected tracks, in milliseconds.\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="Mordi" time="2022-03-27T20:57:48Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/306c0a4cd4a7f9382fcd5d9d98bf0dad1799177a/Tracks%20Properties/mordi_Set%20media%20playback%20offset%20for%20selected%20tracks.lua</source>
+      </version>
+    </reapack>
     <reapack name="mordi_Sort selected tracks alphabetically.lua" type="script" desc="Sort selected tracks alphabetically">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
@@ -18436,6 +18480,21 @@ SILENCE   |                                      |-  Empty Media Item (length 2s
       <version name="1.0" author="BuyOne" time="2021-05-30T15:08:48Z">
         <changelog><![CDATA[Initial release]]></changelog>
         <source main="main midi_editor">https://github.com/ReaTeam/ReaScripts/raw/58eba22d0e1c8a1e9c626469918449ac782e093d/Various/BuyOne_Dynamic%20ReaperMenu%20(guide%20inside).lua</source>
+      </version>
+    </reapack>
+    <reapack name="BuyOne_Exclusive dummy toggles.lua" type="script" desc="Exclusive dummy toggles (12 scripts)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 This set of 10 scripts borrows the concept of SWS extension 'SWS/S&M: Dummy toggle' actions but makes dummy toggle exclusive within the scope of an Action list section, meaning that when one of 10 scripts toggle state is ON, toggle state of the rest 9 is OFF while the state of a given script in one Action list section is completely independent from its state in other Acton list sections.\line These can be useful in switching between options/modes of operation depending on the state of a specific dummy toggle script, for example with the SWS Cycle actions through conditional statements or within other scripts. One such use case is switching between velocity presets in the MIDI Editor, another - mouse tool switcher. The switching can be done from a toolbar or a menu via toolbar buttons or menu items linked to the dummy toggle scripts.\line You can expand the script set by duplicating any instance, giving its duplicate a unique number and importing it into every Action list section.\line With the USER SETTINGS the script set can be divided into subsets (groups) so that every script in a subset only affects toggle state of other scripts in this subset. This way each subset can be dedicated to a specific task which requires mutually exclusive modes.\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="BuyOne" time="2022-03-27T20:58:38Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a290a22bc001d8f3e7ac368d9e319357dd8af124/Various/BuyOne_Exclusive%20dummy%20toggles.lua</source>
       </version>
     </reapack>
     <reapack name="BuyOne_REAPER Profile terminal.lua" type="script" desc="REAPER Profile terminal">
