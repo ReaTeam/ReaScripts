@@ -122,7 +122,6 @@ local function loop()
   reaper.ImGui_SetNextWindowSize(ctx, 442, 131, reaper.ImGui_Cond_FirstUseEver())
   local visible, open = reaper.ImGui_Begin(ctx, SCRIPT_NAME, true)
   if visible then
-  x, y = reaper.ImGui_GetWindowSize(ctx)
     if reaper.ImGui_BeginTable(ctx, '##layout', 2) then
       form()
       reaper.ImGui_EndTable(ctx)
@@ -134,7 +133,7 @@ local function loop()
 
   reaper.ImGui_PopFont(ctx)
 
-  if open then
+  if open and not reaper.ImGui_IsKeyPressed(ctx, reaper.ImGui_Key_Escape()) then
     reaper.defer(loop)
   else
     reaper.ImGui_DestroyContext(ctx)
