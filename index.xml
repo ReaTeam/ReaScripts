@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="2bf17e9b17744d686b1e57c50ec024ab5fbbb5d9" name="ReaTeam Scripts">
+<index version="1" commit="1eea717f2a75d9c29316c31d917dca21ae8a63e4" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -5158,9 +5158,15 @@ website
 \widowctrl\hyphauto
 
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Smart split items by mouse cursor\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Split items respect grouping, depend on context of mouse cursor, split at razor edit or time selection if exist, split at mouse or edit cursor otherwise. There is an option in the user area of code to switch off time selection.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Forum thread: https://forum.cockos.com/showthread.php?t=259751\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Split items respect grouping, depend on context of mouse cursor, split at razor edit or time selection if exist, split at mouse or edit cursor otherwise.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 There are options in the user area of code:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab to switch off time selection\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab to move edit cursor after splitting\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab to prefer split selected items at edit cursor (that allows use mouse placement for left/right selecting)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab respect grouping on razor split\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Also there is experimental fixed lanes support\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Thanks BirdBird for razor edit functions. https://forum.cockos.com/showthread.php?t=241604&highlight=razor+edit+scripts\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Date: october 2021\par}
 }
 ]]></description>
         <link rel="website" href="https://forum.cockos.com/showthread.php?t=259751">Forum thread</link>
@@ -5181,6 +5187,15 @@ This area recognise now as out of item.]]></changelog>
         <changelog><![CDATA[Removed dead zone where mouse placed on envelope and no automation item selected.
 For now it provides as empty arrange zone, and items should splitted at edit cursor or time selection.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/16fc5c7bf92baa94556ae2e66765c497b1a88728/Items%20Editing/az_Smart%20split%20items%20by%20mouse%20cursor.lua</source>
+      </version>
+      <version name="2.3" author="AZ" time="2022-03-30T16:15:37Z">
+        <changelog><![CDATA[Added in-code options:
+- to move edit cursor after splitting
+- to prefer split selected items at edit cursor
+- respect grouping on razor split
+
+Added experimental fixed lanes support]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/1eea717f2a75d9c29316c31d917dca21ae8a63e4/Items%20Editing/az_Smart%20split%20items%20by%20mouse%20cursor.lua</source>
       </version>
     </reapack>
     <reapack name="beaunus_Name item takes by last marker to cut item.lua" type="script" desc="Name item takes by last marker to cut item">
