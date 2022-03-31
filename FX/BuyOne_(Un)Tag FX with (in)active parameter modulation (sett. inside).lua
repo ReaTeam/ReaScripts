@@ -8,36 +8,36 @@ Licence: WTFPL
 REAPER: at least v5.962
 Extensions: SWS/S&M extension (not mandatory but recommended)
 About:  As the name suggests the script appends/clears tag 
-		to/from track and take FX name if FX has/doesn't have
-		active envelope.  
-		The tag is added at the beginning of the FX name in the
-		FX chain.  
-		The script must be run manually.  
-		To be aware: the tag won't be displayed in FX names in the 
-		track FX button right click menu and in its tooltip
-		if default FX names are used because these in REAPER are 
-		truncated automatically.  
-		So to check for them FX chain window will have to be opened.  
-		Refer to USER SETTINGS below.
-		
-		!!! WARNING !!!   
-		
-		With 3d party plugins which store lots of data the FX name
-		tagging may take a very long while and during the process 
-		REAPER will freeze.  
-		Just in case SAVE YOUR WORK BEFORE APPLYING THE SCRIPT so
-		if you're forced to shut down the program you can resume 
-		from where you've left off.  
-		If you find that applying the script to FX in the entire 
-		project does cause freezing, try applying it only to selected
-		objects by enabling SELECTED_ONLY setting in the USER SETTINGS.
-		
-		ATTENTION  
-		If you're going to use this script with  
-		BuyOne_(Un)Tag FX with (in)active envelopes.lua  
-		make sure that in the USER SETTINGS of these scripts the TAG 
-		settings are different, otherwise you won't be able to add a 
-		tag with one script after it's been added by another one.
+	to/from track and take FX name if FX has/doesn't have
+	active envelope.  
+	The tag is added at the beginning of the FX name in the
+	FX chain.  
+	The script must be run manually.  
+	To be aware: the tag won't be displayed in FX names in the 
+	track FX button right click menu and in its tooltip
+	if default FX names are used because these in REAPER are 
+	truncated automatically.  
+	So to check for them FX chain window will have to be opened.  
+	Refer to USER SETTINGS below.
+
+	!!! WARNING !!!   
+
+	With 3d party plugins which store lots of data the FX name
+	tagging may take a very long while and during the process 
+	REAPER will freeze.  
+	Just in case SAVE YOUR WORK BEFORE APPLYING THE SCRIPT so
+	if you're forced to shut down the program you can resume 
+	from where you've left off.  
+	If you find that applying the script to FX in the entire 
+	project does cause freezing, try applying it only to selected
+	objects by enabling SELECTED_ONLY setting in the USER SETTINGS.
+
+	ATTENTION  
+	If you're going to use this script with  
+	BuyOne_(Un)Tag FX with (in)active envelopes.lua  
+	make sure that in the USER SETTINGS of these scripts the TAG 
+	settings are different, otherwise you won't be able to add a 
+	tag with one script after it's been added by another one.
 ]]
 ----------------------------------------------------
 ------------------- USER SETTINGS ------------------
