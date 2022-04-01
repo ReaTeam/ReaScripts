@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="1036e200ad9792e21257091571ad4fcec70a61c5" name="ReaTeam Scripts">
+<index version="1" commit="8be6d704a2cb13af3d1287b463fae84f6f1afa23" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -12867,6 +12867,42 @@ enter or a = Exit and apply changes\par}
       </metadata>
       <version name="1.00" author="amagalma" time="2020-10-16T09:24:38Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f60ef5bd1e515491387265c1eb6eeff6096b0f70/Project%20Properties/amagalma_Toggle%20Project%20Bay%20option%20Automatically%20retain%20items%20when%20removed%20from%20project.lua</source>
+      </version>
+    </reapack>
+    <reapack name="BenjyO_Reset project start measure.lua" type="script" desc="Reset project start measure">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs28 Reset project start measure\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab The script sets measure 1 to start of project. It works the same as the option in Project settings.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Requires SWS extension to run\sa180\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/member.php?u=39350</link>
+      </metadata>
+      <version name="1.0" author="BenjyO" time="2022-04-01T00:05:17Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/bec46e9aa91c261c2abd587085700454adc738ae/Project%20Properties/BenjyO_Reset%20project%20start%20measure.lua</source>
+      </version>
+    </reapack>
+    <reapack name="BenjyO_Reset project start time.lua" type="script" desc="Reset project start time">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs28 Reset project start time\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab The script sets 0:00 time to start of project. It works the same as the option in Project settings.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Requires SWS extension to run.\sa180\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/member.php?u=39350</link>
+      </metadata>
+      <version name="1.0" author="BenjyO" time="2022-04-01T00:05:38Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/8be6d704a2cb13af3d1287b463fae84f6f1afa23/Project%20Properties/BenjyO_Reset%20project%20start%20time.lua</source>
       </version>
     </reapack>
     <reapack name="BenjyO_Set measure 1 to current edit cursor position (rounded).lua" type="script" desc="Set measure 1 to current edit cursor position (rounded)">
