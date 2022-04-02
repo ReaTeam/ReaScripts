@@ -155,16 +155,13 @@ r.PreventUIRefresh(1)
 		if ret == 'err_mess' then
 		Err_mess()
 		return r.defer(function() do return end end) end
-	local capt1 = Esc(fx_GUID)..'.-<PARMENV.+<PROGRAMENV.->' -- <PROGRAMENV block follows <PARMENV block of the same effect, hence must be evaluated first // covers code from the 1st <PARMENV to the last <PROGRAMENV block
-	local capt2 = Esc(fx_GUID)..'.-<PARMENV.+<PARMENV.->'
-	local fx_chunk = next_fx_GUID and ( chunk:match('('..capt1..').-'..Esc(next_fx_GUID)) 
-	or chunk:match('('..capt2..').-'..Esc(next_fx_GUID)) )
-	or chunk:match('('..capt1..').-<FXCHAIN_REC')
-	or chunk:match('('..capt2..').-<FXCHAIN_REC')
-	or chunk:match('('..capt1..').-<ITEM')
-	or chunk:match('('..capt2..').-<ITEM')
-	or chunk:match('('..capt1..').+')
-	or chunk:match('('..capt2..').+')
+	local capt1 = Esc(fx_GUID)..'.-<PARMENV.+<PROGRAMENV.+>' -- <PROGRAMENV block follows <PARMENV block of the same effect, hence must be evaluated first // covers code from the 1st <PARMENV to the last <PROGRAMENV block
+	local capt2 = Esc(fx_GUID)..'.-<PARMENV.+<PARMENV.+>'
+	local fx_chunk = next_fx_GUID and ( chunk:match('('..capt1..').-WAK.-'..Esc(next_fx_GUID)) 
+	or chunk:match('('..capt2..').-WAK.-'..Esc(next_fx_GUID)) ) -- if there's main track fx downstream
+	or chunk:match('('..capt1..').-WAK.-<FXCHAIN_REC') or chunk:match('('..capt2..').-WAK.-<FXCHAIN_REC') -- if there's input fx block downstream
+	or chunk:match('('..capt1..').-WAK.-<ITEM') or chunk:match('('..capt2..').-WAK.-<ITEM') -- if there's item block downstream
+	or chunk:match('('..capt1..').-WAK.+') or chunk:match('('..capt2..').-WAK.+') -- if the fx is the last in the chunk
 	
 	local env_block_orig, env_block_upd, mess = Move_Env_Up(env, env_GUID, fx_chunk, scr_name)
 		if mess then
