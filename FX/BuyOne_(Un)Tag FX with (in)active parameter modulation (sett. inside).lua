@@ -73,7 +73,7 @@ end
 
 local r = reaper
 
-local function GetObjChunk(obj) -- retval stems from r.GetFocusedFX(), value 0 is only considered at the pasting stage because in the copying stage it's error caught before the function
+local function GetObjChunk(obj)
 -- https://forum.cockos.com/showthread.php?t=193686
 -- https://raw.githubusercontent.com/EUGEN27771/ReaScripts_Test/master/Functions/FXChain
 -- https://github.com/EUGEN27771/ReaScripts/blob/master/Various/FXRack/Modules/FXChain.lua
@@ -102,7 +102,7 @@ r.ShowConsoleMsg(err_mess, r.ClearConsole())
 end
 
 
-local function SetObjChunk(obj, obj_chunk) -- retval stems from r.GetFocusedFX(), value 0 is only considered at the pasting stage because in the copying stage it's error caught before the function
+local function SetObjChunk(obj, obj_chunk)
 	if not (obj and obj_chunk) then return end
 local tr = r.ValidatePtr(obj, 'MediaTrack*')
 local item = r.ValidatePtr(obj, 'MediaItem*')
