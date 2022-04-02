@@ -19,10 +19,10 @@ About:  Moves selected FX envelope of a track to the top/bottom lane,
         active/visible track envelopes but only to those of the same FX
         as the selected envelope.  
 		
-		    Screenshot: https://raw.githubusercontent.com/Buy-One/screenshots/main/Move%20selected%20FX%20envelope%20in%20track%20to%20top_bottom_upwards_downwards.gif
+	Screenshot: https://raw.githubusercontent.com/Buy-One/screenshots/main/Move%20selected%20FX%20envelope%20in%20track%20to%20top_bottom_upwards_downwards.gif
 		
 Metapackage: true
-Provides: 	[main] BuyOne_Move selected FX envelope/BuyOne_Move selected FX envelope in track to top lane.lua
+Provides:   [main] BuyOne_Move selected FX envelope/BuyOne_Move selected FX envelope in track to top lane.lua
             [main] BuyOne_Move selected FX envelope/BuyOne_Move selected FX envelope in track to bottom lane.lua
             [main] BuyOne_Move selected FX envelope/BuyOne_Move selected FX envelope in track upwards one lane.lua
             [main] BuyOne_Move selected FX envelope/BuyOne_Move selected FX envelope in track downwards one lane.lua
@@ -170,7 +170,7 @@ r.PreventUIRefresh(1)
 		if mess then
 		mess = mess:match('wrong') and mess or 'the selected envelope  \n\n  is already at the '..mess
 		Error_Tooltip(('\n\n  '..mess..'  \n\n'))
-		r.Undo_EndBlock('',-1) -- ro prevent generic 'ReaScript: Run' message in the status bar
+		r.Undo_EndBlock('',-1) -- to prevent generic 'ReaScript: Run' message in the status bar
 		return r.defer(function() do return end end) end
 	local chunk_no_env = chunk:gsub(Esc(env_block_orig), '') -- remove envelopes
 	SetObjChunk(tr, chunk_no_env) -- set without envelopes
