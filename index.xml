@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="d0acce764c0472903b935eedc84bca2663e557bd" name="ReaTeam Scripts">
+<index version="1" commit="215ddd92a4937e9ccb094786c2cd3e8de949f73e" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -6977,6 +6977,12 @@ Fix bug on Windows]]></changelog>
       </version>
       <version name="1.2" author="Rodilab" time="2021-03-20T12:32:01Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/641dce873437ac6a10f7e340d7d49a5d57f45764/Items%20Editing/rodilab_Trim%20oversized%20edges.lua</source>
+      </version>
+    </reapack>
+    <reapack name="sockmonkey72_Paste at play position.lua" type="script" desc="Paste at play position">
+      <version name="1.0" author="sockmonkey72" time="2022-04-05T23:14:49Z">
+        <changelog><![CDATA[initial]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/215ddd92a4937e9ccb094786c2cd3e8de949f73e/Items%20Editing/sockmonkey72_Paste%20at%20play%20position.lua</source>
       </version>
     </reapack>
     <reapack name="solger_Smart split MIDI item.lua" type="script" desc="Smart split MIDI item">
