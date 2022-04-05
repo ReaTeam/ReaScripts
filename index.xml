@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="8be6d704a2cb13af3d1287b463fae84f6f1afa23" name="ReaTeam Scripts">
+<index version="1" commit="819fb95dc479d83cb0362c524789bd517816cfa1" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -5196,6 +5196,17 @@ For now it provides as empty arrange zone, and items should splitted at edit cur
 
 Added experimental fixed lanes support]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/1eea717f2a75d9c29316c31d917dca21ae8a63e4/Items%20Editing/az_Smart%20split%20items%20by%20mouse%20cursor.lua</source>
+      </version>
+      <version name="2.4" author="AZ" time="2022-04-05T23:06:01Z">
+        <changelog><![CDATA[Fixed bugs with left/right selection.
+
+Added in-code options:
+- to move edit cursor after splitting
+- to prefer split selected items at edit cursor
+- respect grouping on razor split
+
+Added experimental fixed lanes support]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/819fb95dc479d83cb0362c524789bd517816cfa1/Items%20Editing/az_Smart%20split%20items%20by%20mouse%20cursor.lua</source>
       </version>
     </reapack>
     <reapack name="beaunus_Name item takes by last marker to cut item.lua" type="script" desc="Name item takes by last marker to cut item">
