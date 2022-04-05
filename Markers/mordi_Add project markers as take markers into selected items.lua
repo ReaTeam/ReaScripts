@@ -69,4 +69,4 @@ for i = 0, marker_count+rgn_count-1 do
   ::continue::
 end
 
-reaper.Undo_EndBlock(SCRIPT_NAME)
+reaper.Undo_EndBlock(SCRIPT_NAME, 0)
