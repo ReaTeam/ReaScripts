@@ -16,4 +16,4 @@ reaper.SetEditCurPos2(0, editpos, false, false)
 
 reaper.PreventUIRefresh(-1)
 
-reaper.Undo_EndBlock2(0, "Paste At Play Position", -1)
+reaper.Undo_EndBlock2(0, "Paste at play position", -1)
