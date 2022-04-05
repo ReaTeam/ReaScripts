@@ -1,7 +1,9 @@
 -- @description Smart split items by mouse cursor
 -- @author AZ
--- @version 2.3
+-- @version 2.4
 -- @changelog
+--   Fixed bugs with left/right selection.
+--
 --   Added in-code options:
 --   - to move edit cursor after splitting
 --   - to prefer split selected items at edit cursor
@@ -29,8 +31,6 @@
 --   https://forum.cockos.com/showthread.php?t=241604&highlight=razor+edit+scripts
 
 
-
-
 -----------------------------
 ----------USER AREA----------
 use_TS_sel_Items = true -- Could selected items be splitted by TS or not.
@@ -38,7 +38,7 @@ use_TS_all = true       -- Use Time selection or not in all cases.
 
 eCurPriority = false     -- Edit cursor have piority against mouse on selected item.
 
-moveEditCursor = true -- moves cursor after splitting if not recording
+moveEditCursor = true -- moves cursor after splitting if mouse is on item and not recording
 curOffset = 1 -- offset between fade and edit cursor in sec
 editCurDistance = 4
 --^^ If edit cursor placed before the split within the limits of this value it will not moved.
@@ -489,21 +489,22 @@ end
 
 
 function split_by_edit_cursor_or_TS()
+  local SplitsT = {}
+  local splitTime
+  
 if TSexist==0 then  --if TS doesn't exist
-  if mouse_cur_pos >= cur_pos then
-    reaper.Main_OnCommandEx( 40759, 0, 0 ) -- split items under edit cursor (select right)
+  if mouse_cur_pos <= cur_pos and eCurPriority == true then
+    reaper.Main_OnCommandEx( 40758, 0, 0 ) -- split items under edit cursor (select left)
   else
-    reaper.Main_OnCommandEx( 40758, 0, 0 ) -- 40758 split items under edit cursor (select left)
+    reaper.Main_OnCommandEx( 40759, 0, 0 ) -- 40758 split items under edit cursor (select right)
   end
   if reaper.CountSelectedMediaItems(0) ~= 0 then
-    MoveEditCursor({reaper.GetCursorPosition()}, cur_pos)
+    splitTime = reaper.GetCursorPosition()
   else
     reaper.defer(function()end)
   end
 else
   crossTS=0
-  local SplitsT = {}
-  local splitTime
   
   if itemsNUMB == -1 then --if no one item selected
    reaper.Main_OnCommandEx(  40061, 0, 0 ) -- split at TS
@@ -516,7 +517,6 @@ else
       itemlen = reaper.GetMediaItemInfo_Value( item, "D_LENGTH" ) 
       itemend = itempos + itemlen
       splitTime = is_item_crossTS()
-      table.insert(SplitsT, splitTime)
     else
 
       for i= 0, itemsNUMB do
@@ -529,30 +529,32 @@ else
         
         splitTime = is_item_crossTS()
         if splitTime then table.insert(SplitsT, splitTime) end
-        
       end
-    end  
+    end
   
     if crossTS==0 then
-       if mouse_cur_pos >= cur_pos then
-         reaper.Main_OnCommandEx( 40759, 0, 0 ) -- split items under edit cursor (select right)
-       else
-         reaper.Main_OnCommandEx( 40758, 0, 0 ) -- 40758 split items under edit cursor (select left)
-       end
-       MoveEditCursor({reaper.GetCursorPosition()}, cur_pos)
+      if mouse_cur_pos <= cur_pos and eCurPriority == true then
+        reaper.Main_OnCommandEx( 40758, 0, 0 ) -- split items under edit cursor (select left)
+      else
+        reaper.Main_OnCommandEx( 40759, 0, 0 ) -- 40758 split items under edit cursor (select right)
+      end
+
+       splitTime = reaper.GetCursorPosition()
     else
       reaper.Undo_BeginBlock2( 0 )
       reaper.PreventUIRefresh( 1 )
       
       reaper.Main_OnCommandEx(  40061, 0, 0 ) -- split at TS
       reaper.Main_OnCommandEx( 40635, 0, 0 )  -- Time selection: Remove time selection
-      MoveEditCursor(SplitsT, cur_pos)
+      --MoveEditCursor(SplitsT, cur_pos)
       
       reaper.PreventUIRefresh( -1 )
       reaper.Undo_EndBlock2( 0, "Split items at time selection", -1 )
     end 
   end
 end
+if splitTime then table.insert(SplitsT, splitTime) end
+return SplitsT
 end
 
 
@@ -596,11 +598,13 @@ if eCurPriority == true then
 end
 
 if eCurSplit == true then
-  split_by_edit_cursor_or_TS() --CENTRAL FUNCTION
+   --CENTRAL FUNCTION
+  MoveEditCursor(split_by_edit_cursor_or_TS(), cur_pos)
 else
   reaper.Main_OnCommandEx( 40513, 0, 0 ) -- View: Move edit cursor to mouse cursor
-  split_by_edit_cursor_or_TS() --CENTRAL FUNCTION
+  local splitpoints = split_by_edit_cursor_or_TS() --CENTRAL FUNCTION
   reaper.SetEditCurPos(cur_pos, false, false)
+  MoveEditCursor(splitpoints, cur_pos)
 end
 
 end
@@ -667,9 +671,9 @@ end
 ------------------
 -------START------
 version = reaper.GetExtState("SmartSplit_AZ", "version")
-if version ~= "2.3" then
+if version ~= "2.4" then
   updateMSG()
-  reaper.SetExtState("SmartSplit_AZ", "version", "2.3", true)
+  reaper.SetExtState("SmartSplit_AZ", "version", "2.4", true)
 end
 
 cur_pos = reaper.GetCursorPosition()
