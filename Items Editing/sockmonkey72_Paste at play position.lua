@@ -1,7 +1,7 @@
--- @description Paste At Play Position
+-- @description Paste at play position
 -- @author sockmonkey72
 -- @version 1.0
--- @changelog 1.0: initial
+-- @changelog initial
 
 local pos = reaper.GetPlayPosition()
 local editpos = reaper.GetCursorPositionEx(0)
