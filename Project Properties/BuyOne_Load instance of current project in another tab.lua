@@ -7,7 +7,7 @@ Author URL: https://forum.cockos.com/member.php?u=134058
 Licence: WTFPL
 REAPER: at least v5.962
 About: 	Makes REAPER open a new tab and load last SAVED 
-		    instance of the currently open project in it.
+	instance of the currently open project in it.
 ]]
 
 
