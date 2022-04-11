@@ -4,7 +4,7 @@ Author: BuyOne
 Website: https://forum.cockos.com/member.php?u=134058
 Version: 1.1
 Changelog: #Fixed bug preventing loading in a new tab an already open project
-		   #Improved undo point handling when error
+	   #Improved undo point handling when error
 Licence: WTFPL
 REAPER: at least v5.962
 About: 
