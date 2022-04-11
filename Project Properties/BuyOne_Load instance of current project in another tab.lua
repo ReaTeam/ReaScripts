@@ -21,3 +21,8 @@ local r = reaper
 local retval, projfn = r.EnumProjects(-1) -- -1 = current project // or local projfn = r.GetProjectName(0, '')
 r.Main_OnCommand(40859,0) -- New project tab
 r.Main_openProject('noprompt:'..projfn) -- noprompt: - don't prompt for saving // here not really necessary because it's a blank tab and the prompt isn't generated anyway
+
+
+
+
+
