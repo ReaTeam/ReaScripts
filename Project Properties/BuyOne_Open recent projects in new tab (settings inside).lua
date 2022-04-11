@@ -2,18 +2,30 @@
 ReaScript name: Open recent projects in new tab
 Author: BuyOne
 Website: https://forum.cockos.com/member.php?u=134058
-Version: 1.0
-Changelog: Initial release
-Provides: [main] .
+Version: 1.1
+Changelog: #Fixed bug preventing loading in a new tab an already open project
+		   #Improved undo point handling when error
 Licence: WTFPL
 REAPER: at least v5.962
 About: 
 	An alternative to REAPER's native 'Recent projects menu' capable 
+	of opening recent projects in a new tab, which in my opinion should 
+	be a native feature and has been requested a couple of times:
+	https://forum.cockos.com/showthread.php?t=113259 (2012)
+	https://forum.cockos.com/showthread.php?t=249615 (2021)
+	----------------------------------------------------------
+	An alternative to REAPER's native 'Recent projects menu' capable 
 	of opening recent projects in a new tab, desisgned before a
 	native option was added in build 6.43:   
-	+ Projects: hold shift to open recent project in new project tab 
+	
+	+ Projects: hold shift to open recent project in new project tab   
+	
+	Can still be used if holding shift isn't viable for some reason.
+	
+	Also allows opening in another tab an instance of an already open
+	project which the native option doesn't allow.  
+	https://forum.cockos.com/showthread.php?t=265300
 
-	Can still be used in earlier releases or if holding shift isn't viable for some reason.
 ]]
 -----------------------------------------------------------------------------
 ------------------------------ USER SETTINGS --------------------------------
@@ -74,11 +86,13 @@ gfx.y = gfx.mouse_y
 
 local output = gfx.showmenu(table.concat(menu_t, '|'))
 
-	if output > 0 and r.file_exists(recent_proj_t[output]) then 
+local projfn = output > 0 and recent_proj_t[output]:match('!?(.+)') -- remove ! signifying checkmark of an open project in case such project is selected for loading
+
+	if projfn and r.file_exists(projfn) then 
 	r.Main_OnCommand(40859,0) -- New project tab
-	r.Main_openProject(recent_proj_t[output])
-	elseif output > 0 then r.MB('The file is not available at the stored path\n\n'..recent_proj_t[output],'ERROR',0)
-	return r.defer(function() end) end -- prevent generic undo point in case the above error message is displayed
+	r.Main_openProject(projfn)
+	elseif projfn then r.MB('The file is not available at the stored path\n\n'..recent_proj_t[output],'ERROR',0)
+	return r.defer(function() do return end end) end -- prevent generic undo point in case the above error message is displayed
 	
 gfx.quit()
 	
