@@ -4,8 +4,8 @@ Author: BuyOne
 Website: https://forum.cockos.com/member.php?u=134058
 Version: 1.1
 Changelog: #Fixed bug preventing loading in a new tab an already open project
-		   #Improved undo point handling when error
-		   #Added a setting to only list valid projects
+	   #Improved undo point handling when error
+	   #Added a setting to only list valid projects
 Licence: WTFPL
 REAPER: at least v5.962
 About: 
