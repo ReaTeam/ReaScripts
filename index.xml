@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="aa62a8146874862e8b58faba0b19eb73655a28ba" name="ReaTeam Scripts">
+<index version="1" commit="d8c3cb6aa5c562778e609df7fcf1b81f39232253" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -2411,6 +2411,22 @@ Refactored/reorganized the code for readability]]></changelog>
         <source file="BuyOne_(Un)Collapse envelope lanes/BuyOne_Toggle collapse all envelope lanes in selected tracks.lua">https://github.com/ReaTeam/ReaScripts/raw/4003d12389ae5478668d4b2020930bdd6cd11e8a/Envelopes/BuyOne_(Un)Collapse%20envelope%20lanes.lua</source>
       </version>
     </reapack>
+    <reapack name="BuyOne_Move selected FX envelope in track to top_bottom_upwards_downwards.lua" type="script" desc="Move selected FX envelope in track to top/bottom/upwards/downwards">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Moves selected FX envelope of a track to the top/bottom lane, upwards/downwards one lane depending on the script name.\line Upwards/downwards movement is cyclic.\line Reordering only affects active envelopes of the track FX the selected envelope belongs to, as all envelopes of a particular FX are grouped together and envelopes of different FX cannot be mixed while TCP envelopes always precede any FX envelopes and themselves cannot be reordered. Hence the movement is not relative to ALL active/visible track envelopes but only to those of the same FX as the selected envelope.\par}
+}
+]]></description>
+        <link rel="screenshot">https://raw.githubusercontent.com/Buy-One/screenshots/main/Move%20selected%20FX%20envelope%20in%20track%20to%20top_bottom_upwards_downwards.gif</link>
+      </metadata>
+      <version name="1.0" author="BuyOne" time="2022-04-16T01:58:03Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/8f4e2558b1a274b17d9c3cd4f6f66a7d2b7da637/Envelopes/BuyOne_Move%20selected%20FX%20envelope%20in%20track%20to%20top_bottom_upwards_downwards.lua</source>
+      </version>
+    </reapack>
     <reapack name="cfillion_Delete points before or after the edit cursor in selected envelope.lua" type="script" desc="Delete points before or after the edit cursor in selected envelope">
       <metadata>
         <link rel="donation">https://www.paypal.com/cgi-bin/webscr?business=T3DEWBQJAV7WL&amp;cmd=_donations&amp;currency_code=CAD</link>
@@ -3433,6 +3449,42 @@ Improve "under mouse cursor" variants to work over any envelope]]></changelog>
       <version name="1.01" author="amagalma" time="2021-10-16T12:27:17Z">
         <changelog><![CDATA[Update to work with v6.37+]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/086f5af344dd2105ea1337626ee268f46851eef0/FX/amagalma_Toggle%20wet%200-100%25%20(or%20current%20value)%20for%20focused%20FX.lua</source>
+      </version>
+    </reapack>
+    <reapack name="BuyOne_(Un)Tag FX with (in)active envelopes (settings inside).lua" type="script" desc="(Un)Tag FX with (in)active envelopes">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 As the name suggests the script appends/clears tag to/from track and take FX name if FX has/doesn't have active envelope.\line The tag is added at the beginning of the FX name in the FX chain.\line The script must be run manually.\line To be aware: the tag won't be displayed in FX names in the track FX button right click menu and in its tooltip if default FX names are used because these in REAPER are truncated automatically.\line So to check for them FX chain window will have to be opened.\line Refer to USER SETTINGS below.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 !!! WARNING !!!\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 With 3d party plugins which store lots of data the FX name tagging may take a very long while and during the process REAPER will freeze.\line Just in case SAVE YOUR WORK BEFORE APPLYING THE SCRIPT so if you're forced to shut down the program you can resume from where you've left off.\line If you find that applying the script to FX in the entire project does cause freezing, try applying it only to selected objects by enabling SELECTED_ONLY setting in the USER SETTINGS.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 ATTENTION\line If you're going to use this script with\line BuyOne_(Un)Tag FX with (in)active parameter modulation.lua\line make sure that in the USER SETTINGS of these scripts the TAG settings are different, otherwise you won't be able to add a tag with one script after it's been added by another one.\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="BuyOne" time="2022-04-16T01:57:10Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/7a96b2dcea4cf983793a1cfa1872455af7f8ca9d/FX/BuyOne_(Un)Tag%20FX%20with%20(in)active%20envelopes%20(settings%20inside).lua</source>
+      </version>
+    </reapack>
+    <reapack name="BuyOne_(Un)Tag FX with (in)active parameter modulation (sett. inside).lua" type="script" desc="(Un)Tag FX with (in)active parameter modulation">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 As the name suggests the script appends/clears tag to/from track and take FX name if FX has/doesn't have active envelope.\line The tag is added at the beginning of the FX name in the FX chain.\line The script must be run manually.\line To be aware: the tag won't be displayed in FX names in the track FX button right click menu and in its tooltip if default FX names are used because these in REAPER are truncated automatically.\line So to check for them FX chain window will have to be opened.\line Refer to USER SETTINGS below.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 !!! WARNING !!!\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 With 3d party plugins which store lots of data the FX name tagging may take a very long while and during the process REAPER will freeze.\line Just in case SAVE YOUR WORK BEFORE APPLYING THE SCRIPT so if you're forced to shut down the program you can resume from where you've left off.\line If you find that applying the script to FX in the entire project does cause freezing, try applying it only to selected objects by enabling SELECTED_ONLY setting in the USER SETTINGS.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 ATTENTION\line If you're going to use this script with\line BuyOne_(Un)Tag FX with (in)active envelopes.lua\line make sure that in the USER SETTINGS of these scripts the TAG settings are different, otherwise you won't be able to add a tag with one script after it's been added by another one.\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="BuyOne" time="2022-04-16T01:57:35Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/41b986e859f7c9f95967af9e1cfc1acbf4dcb848/FX/BuyOne_(Un)Tag%20FX%20with%20(in)active%20parameter%20modulation%20(sett.%20inside).lua</source>
       </version>
     </reapack>
     <reapack name="BuyOne_FX presets menu (guide inside).lua" type="script" desc="FX presets menu">
@@ -12954,6 +13006,21 @@ enter or a = Exit and apply changes\par}
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/178ca6857a2cd540c91630d27934354887dd188c/Project%20Properties/BuyOne_Export%20project%20tabs%20and%20import%20from%20dump%20(settings%20inside).lua</source>
       </version>
     </reapack>
+    <reapack name="BuyOne_Load instance of current project in another tab.lua" type="script" desc="Load instance of current project in another tab">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Makes REAPER open a new tab and load last SAVED instance of the currently open project in it.\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="BuyOne" time="2022-04-16T01:58:53Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f79bf2c0554ba62e8fa05bad200ae7a4e24b5c2a/Project%20Properties/BuyOne_Load%20instance%20of%20current%20project%20in%20another%20tab.lua</source>
+      </version>
+    </reapack>
     <reapack name="BuyOne_Open recent projects in new tab (settings inside).lua" type="script" desc="Open recent projects in new tab">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
@@ -12962,7 +13029,9 @@ enter or a = Exit and apply changes\par}
 
 {\pard \ql \f0 \sa180 \li0 \fi0 An alternative to REAPER's native 'Recent projects menu' capable of opening recent projects in a new tab, desisgned before a native option was added in build 6.43:\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Projects: hold shift to open recent project in new project tab\sa180\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Can still be used in earlier releases or if holding shift isn't viable for some reason.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Can still be used if holding shift isn't viable for some reason.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Also allows opening in another tab an instance of an already open project which the native option doesn't allow.\line https://forum.cockos.com/showthread.php?t=265300\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 However unlike in the native menu, if project file or path are no longer valid, its entry cannot be cleared from the script menu and will be listed as long as it's present in reaper.ini file.\line To compensate for this a setting VALID_PROJECTS_ONLY has been added to the USER SETTINGS\par}
 }
 ]]></description>
         <link rel="website">https://forum.cockos.com/member.php?u=134058</link>
@@ -12970,6 +13039,12 @@ enter or a = Exit and apply changes\par}
       <version name="1.0" author="BuyOne" time="2021-09-08T14:23:51Z">
         <changelog><![CDATA[Initial release]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/2b8c79939d74ae563d94d67f92ee86e8a9f9ecc5/Project%20Properties/BuyOne_Open%20recent%20projects%20in%20new%20tab%20(settings%20inside).lua</source>
+      </version>
+      <version name="1.1" author="BuyOne" time="2022-04-16T01:59:27Z">
+        <changelog><![CDATA[#Fixed bug preventing loading in a new tab an already open project
+#Improved undo point handling when error
+#Added a setting to only list valid projects]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b4eae35b4aeb46af1e81c83d0e69578d23d7a99e/Project%20Properties/BuyOne_Open%20recent%20projects%20in%20new%20tab%20(settings%20inside).lua</source>
       </version>
     </reapack>
     <reapack name="BuyOne_Save-Load window set #1-10 with Mixer scroll position.lua" type="script" desc="Save-Load window set #1-10 with Mixer scroll position (10 scripts)">
@@ -18784,6 +18859,48 @@ Fix Editing Behavior > MIDI Editor]]></changelog>
         <source main="main" file="cfillion_Open preferences page - Control, OSC, web.lua">https://github.com/ReaTeam/ReaScripts/raw/ada4ab8955ffbe48cd26533b7b672e9e7e337f7d/Various/cfillion_Open%20preferences%20page.lua</source>
         <source main="main" file="cfillion_Open preferences page - External Editors.lua">https://github.com/ReaTeam/ReaScripts/raw/ada4ab8955ffbe48cd26533b7b672e9e7e337f7d/Various/cfillion_Open%20preferences%20page.lua</source>
         <source main="main" file="cfillion_Open preferences page - Plug-ins - LV2.lua">https://github.com/ReaTeam/ReaScripts/raw/ada4ab8955ffbe48cd26533b7b672e9e7e337f7d/Various/cfillion_Open%20preferences%20page.lua</source>
+      </version>
+      <version name="1.0.3" author="cfillion" time="2022-04-16T01:59:44Z">
+        <changelog><![CDATA[Fix opening the Device page on Windows and Linux [p=2547777]]]></changelog>
+        <source main="main" file="cfillion_Open preferences page - General.lua">https://github.com/ReaTeam/ReaScripts/raw/d8c3cb6aa5c562778e609df7fcf1b81f39232253/Various/cfillion_Open%20preferences%20page.lua</source>
+        <source main="main" file="cfillion_Open preferences page - General - Paths.lua">https://github.com/ReaTeam/ReaScripts/raw/d8c3cb6aa5c562778e609df7fcf1b81f39232253/Various/cfillion_Open%20preferences%20page.lua</source>
+        <source main="main" file="cfillion_Open preferences page - General - Keyboard, Multitouch.lua">https://github.com/ReaTeam/ReaScripts/raw/d8c3cb6aa5c562778e609df7fcf1b81f39232253/Various/cfillion_Open%20preferences%20page.lua</source>
+        <source main="main" file="cfillion_Open preferences page - Project.lua">https://github.com/ReaTeam/ReaScripts/raw/d8c3cb6aa5c562778e609df7fcf1b81f39232253/Various/cfillion_Open%20preferences%20page.lua</source>
+        <source main="main" file="cfillion_Open preferences page - Project - Track, Send Defaults.lua">https://github.com/ReaTeam/ReaScripts/raw/d8c3cb6aa5c562778e609df7fcf1b81f39232253/Various/cfillion_Open%20preferences%20page.lua</source>
+        <source main="main" file="cfillion_Open preferences page - Project - Media Item Defaults.lua">https://github.com/ReaTeam/ReaScripts/raw/d8c3cb6aa5c562778e609df7fcf1b81f39232253/Various/cfillion_Open%20preferences%20page.lua</source>
+        <source main="main" file="cfillion_Open preferences page - Audio.lua">https://github.com/ReaTeam/ReaScripts/raw/d8c3cb6aa5c562778e609df7fcf1b81f39232253/Various/cfillion_Open%20preferences%20page.lua</source>
+        <source main="main" file="cfillion_Open preferences page - Audio - Device.lua">https://github.com/ReaTeam/ReaScripts/raw/d8c3cb6aa5c562778e609df7fcf1b81f39232253/Various/cfillion_Open%20preferences%20page.lua</source>
+        <source main="main" file="cfillion_Open preferences page - Audio - MIDI Devices.lua">https://github.com/ReaTeam/ReaScripts/raw/d8c3cb6aa5c562778e609df7fcf1b81f39232253/Various/cfillion_Open%20preferences%20page.lua</source>
+        <source main="main" file="cfillion_Open preferences page - Audio - Buffering.lua">https://github.com/ReaTeam/ReaScripts/raw/d8c3cb6aa5c562778e609df7fcf1b81f39232253/Various/cfillion_Open%20preferences%20page.lua</source>
+        <source main="main" file="cfillion_Open preferences page - Audio - Mute, Solo.lua">https://github.com/ReaTeam/ReaScripts/raw/d8c3cb6aa5c562778e609df7fcf1b81f39232253/Various/cfillion_Open%20preferences%20page.lua</source>
+        <source main="main" file="cfillion_Open preferences page - Audio - Playback.lua">https://github.com/ReaTeam/ReaScripts/raw/d8c3cb6aa5c562778e609df7fcf1b81f39232253/Various/cfillion_Open%20preferences%20page.lua</source>
+        <source main="main" file="cfillion_Open preferences page - Audio - Seeking.lua">https://github.com/ReaTeam/ReaScripts/raw/d8c3cb6aa5c562778e609df7fcf1b81f39232253/Various/cfillion_Open%20preferences%20page.lua</source>
+        <source main="main" file="cfillion_Open preferences page - Audio - Recording.lua">https://github.com/ReaTeam/ReaScripts/raw/d8c3cb6aa5c562778e609df7fcf1b81f39232253/Various/cfillion_Open%20preferences%20page.lua</source>
+        <source main="main" file="cfillion_Open preferences page - Audio - Loop Recording.lua">https://github.com/ReaTeam/ReaScripts/raw/d8c3cb6aa5c562778e609df7fcf1b81f39232253/Various/cfillion_Open%20preferences%20page.lua</source>
+        <source main="main" file="cfillion_Open preferences page - Audio - Rendering.lua">https://github.com/ReaTeam/ReaScripts/raw/d8c3cb6aa5c562778e609df7fcf1b81f39232253/Various/cfillion_Open%20preferences%20page.lua</source>
+        <source main="main" file="cfillion_Open preferences page - Appearance.lua">https://github.com/ReaTeam/ReaScripts/raw/d8c3cb6aa5c562778e609df7fcf1b81f39232253/Various/cfillion_Open%20preferences%20page.lua</source>
+        <source main="main" file="cfillion_Open preferences page - Appearance - Media.lua">https://github.com/ReaTeam/ReaScripts/raw/d8c3cb6aa5c562778e609df7fcf1b81f39232253/Various/cfillion_Open%20preferences%20page.lua</source>
+        <source main="main" file="cfillion_Open preferences page - Appearance - Peaks, Waveforms.lua">https://github.com/ReaTeam/ReaScripts/raw/d8c3cb6aa5c562778e609df7fcf1b81f39232253/Various/cfillion_Open%20preferences%20page.lua</source>
+        <source main="main" file="cfillion_Open preferences page - Appearance - Fades, Crossfades.lua">https://github.com/ReaTeam/ReaScripts/raw/d8c3cb6aa5c562778e609df7fcf1b81f39232253/Various/cfillion_Open%20preferences%20page.lua</source>
+        <source main="main" file="cfillion_Open preferences page - Appearance - Track Control Panels.lua">https://github.com/ReaTeam/ReaScripts/raw/d8c3cb6aa5c562778e609df7fcf1b81f39232253/Various/cfillion_Open%20preferences%20page.lua</source>
+        <source main="main" file="cfillion_Open preferences page - Editing Behavior.lua">https://github.com/ReaTeam/ReaScripts/raw/d8c3cb6aa5c562778e609df7fcf1b81f39232253/Various/cfillion_Open%20preferences%20page.lua</source>
+        <source main="main" file="cfillion_Open preferences page - Editing Behavior - Envelope Display.lua">https://github.com/ReaTeam/ReaScripts/raw/d8c3cb6aa5c562778e609df7fcf1b81f39232253/Various/cfillion_Open%20preferences%20page.lua</source>
+        <source main="main" file="cfillion_Open preferences page - Editing Behavior - Automation.lua">https://github.com/ReaTeam/ReaScripts/raw/d8c3cb6aa5c562778e609df7fcf1b81f39232253/Various/cfillion_Open%20preferences%20page.lua</source>
+        <source main="main" file="cfillion_Open preferences page - Editing Behavior - Mouse.lua">https://github.com/ReaTeam/ReaScripts/raw/d8c3cb6aa5c562778e609df7fcf1b81f39232253/Various/cfillion_Open%20preferences%20page.lua</source>
+        <source main="main" file="cfillion_Open preferences page - Editing Behavior - Mouse Modifiers.lua">https://github.com/ReaTeam/ReaScripts/raw/d8c3cb6aa5c562778e609df7fcf1b81f39232253/Various/cfillion_Open%20preferences%20page.lua</source>
+        <source main="main" file="cfillion_Open preferences page - Editing Behavior - MIDI Editor.lua">https://github.com/ReaTeam/ReaScripts/raw/d8c3cb6aa5c562778e609df7fcf1b81f39232253/Various/cfillion_Open%20preferences%20page.lua</source>
+        <source main="main" file="cfillion_Open preferences page - Media.lua">https://github.com/ReaTeam/ReaScripts/raw/d8c3cb6aa5c562778e609df7fcf1b81f39232253/Various/cfillion_Open%20preferences%20page.lua</source>
+        <source main="main" file="cfillion_Open preferences page - Media - MIDI.lua">https://github.com/ReaTeam/ReaScripts/raw/d8c3cb6aa5c562778e609df7fcf1b81f39232253/Various/cfillion_Open%20preferences%20page.lua</source>
+        <source main="main" file="cfillion_Open preferences page - Media - Video, REX, Misc.lua">https://github.com/ReaTeam/ReaScripts/raw/d8c3cb6aa5c562778e609df7fcf1b81f39232253/Various/cfillion_Open%20preferences%20page.lua</source>
+        <source main="main" file="cfillion_Open preferences page - Plug-ins.lua">https://github.com/ReaTeam/ReaScripts/raw/d8c3cb6aa5c562778e609df7fcf1b81f39232253/Various/cfillion_Open%20preferences%20page.lua</source>
+        <source main="main" file="cfillion_Open preferences page - Plug-ins - Compatibility.lua">https://github.com/ReaTeam/ReaScripts/raw/d8c3cb6aa5c562778e609df7fcf1b81f39232253/Various/cfillion_Open%20preferences%20page.lua</source>
+        <source main="main" file="cfillion_Open preferences page - Plug-ins - VST.lua">https://github.com/ReaTeam/ReaScripts/raw/d8c3cb6aa5c562778e609df7fcf1b81f39232253/Various/cfillion_Open%20preferences%20page.lua</source>
+        <source main="main" file="cfillion_Open preferences page - Plug-ins - ReWire.lua">https://github.com/ReaTeam/ReaScripts/raw/d8c3cb6aa5c562778e609df7fcf1b81f39232253/Various/cfillion_Open%20preferences%20page.lua</source>
+        <source main="main" file="cfillion_Open preferences page - Plug-ins - ReaScript.lua">https://github.com/ReaTeam/ReaScripts/raw/d8c3cb6aa5c562778e609df7fcf1b81f39232253/Various/cfillion_Open%20preferences%20page.lua</source>
+        <source main="main" file="cfillion_Open preferences page - Plug-ins - ReaMote.lua">https://github.com/ReaTeam/ReaScripts/raw/d8c3cb6aa5c562778e609df7fcf1b81f39232253/Various/cfillion_Open%20preferences%20page.lua</source>
+        <source main="main" file="cfillion_Open preferences page - Control, OSC, web.lua">https://github.com/ReaTeam/ReaScripts/raw/d8c3cb6aa5c562778e609df7fcf1b81f39232253/Various/cfillion_Open%20preferences%20page.lua</source>
+        <source main="main" file="cfillion_Open preferences page - External Editors.lua">https://github.com/ReaTeam/ReaScripts/raw/d8c3cb6aa5c562778e609df7fcf1b81f39232253/Various/cfillion_Open%20preferences%20page.lua</source>
+        <source main="main" file="cfillion_Open preferences page - Plug-ins - LV2.lua">https://github.com/ReaTeam/ReaScripts/raw/d8c3cb6aa5c562778e609df7fcf1b81f39232253/Various/cfillion_Open%20preferences%20page.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Project underrun monitor (xrun).lua" type="script" desc="Project underrun monitor (xrun)">
