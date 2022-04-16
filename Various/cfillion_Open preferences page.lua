@@ -1,7 +1,7 @@
 -- @description Open preferences page
 -- @author cfillion
--- @version 1.0.2
--- @changelog Add Plug-ins > LV2
+-- @version 1.0.3
+-- @changelog Fix opening the Device page on Windows and Linux [p=2547777]
 -- @metapackage
 -- @provides
 --   [main] . > cfillion_Open preferences page - General.lua
@@ -52,8 +52,9 @@
 --   Running the script opens the Preferences window with the corresponding page
 --   selected.
 
--- prefpage_lastpage
-local pages = {
+local macos, windows = reaper.GetOS():match('^OSX'), reaper.GetOS():match('^Win')
+
+local pages = { -- prefpage_lastpage
   ['General'                 ] = { 0x08b  ,
   [  'Paths'                 ] =   0x1da  ,
   [  'Keyboard, Multitouch'  ] =   0x0db },
@@ -61,7 +62,9 @@ local pages = {
   [  'Track, Send Defaults'  ] =   0x0b2  ,
   [  'Media Item Defaults'   ] =   0x1dd },
   ['Audio'                   ] = { 0x09c  ,
-  [  'Device'                ] =   0x1d9  ,
+  [  'Device'                ] =   (macos   and 0x1d9) or
+                                   (windows and 0x076) or
+                                                0x242,
   [  'MIDI Devices'          ] =   0x099  ,
   [  'Buffering'             ] =   0x0cb  ,
   [  'Mute, Solo'            ] =   0x248  ,
