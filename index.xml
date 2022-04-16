@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="215ddd92a4937e9ccb094786c2cd3e8de949f73e" name="ReaTeam Scripts">
+<index version="1" commit="aa62a8146874862e8b58faba0b19eb73655a28ba" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -2727,21 +2727,6 @@ Remember the window position, size and dock state]]></changelog>
       <version name="1.0" author="Meo-Ada Mespotine" time="2022-02-09T16:53:20Z">
         <changelog><![CDATA[First version]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c5e96289521dfe5be8b87e894953907d0210acf4/Envelopes/mespotine_Toggle%20height%20of%20selected%20track%20envelope.lua</source>
-      </version>
-    </reapack>
-    <reapack name="sockmonkey72_Add point for current value on visible armed envelopes of selected tracks at edit cursor.lua" type="script" desc="Add point for current value on visible armed envelopes of selected tracks at edit cursor">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 Modified version of X-Raym's "X-Raym_Add point on envelopes at edit cursor.lua"; instead of just adding a point for the momentary value along the existing envelope curve, this script adds a point for the current value of the parameter. The use case is latch-preview mode, if the user makes a change she likes and wants to print it as a point to the automation lane at the time under the edit cursor.\par}
-}
-]]></description>
-      </metadata>
-      <version name="1.0" author="sockmonkey72" time="2021-11-12T19:21:00Z">
-        <changelog><![CDATA[1.0 initial upload]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/43f21b94e001f07741f40c4258750039572b329c/Envelopes/sockmonkey72_Add%20point%20for%20current%20value%20on%20visible%20armed%20envelopes%20of%20selected%20tracks%20at%20edit%20cursor.lua</source>
       </version>
     </reapack>
     <reapack name="spk77_Adjust volume envelope point at mouse cursor via mousewheel.lua" type="script" desc="spk77_Adjust volume envelope point at mouse cursor via mousewheel.lua">
@@ -6977,12 +6962,6 @@ Fix bug on Windows]]></changelog>
       </version>
       <version name="1.2" author="Rodilab" time="2021-03-20T12:32:01Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/641dce873437ac6a10f7e340d7d49a5d57f45764/Items%20Editing/rodilab_Trim%20oversized%20edges.lua</source>
-      </version>
-    </reapack>
-    <reapack name="sockmonkey72_Paste at play position.lua" type="script" desc="Paste at play position">
-      <version name="1.0" author="sockmonkey72" time="2022-04-05T23:14:49Z">
-        <changelog><![CDATA[initial]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/215ddd92a4937e9ccb094786c2cd3e8de949f73e/Items%20Editing/sockmonkey72_Paste%20at%20play%20position.lua</source>
       </version>
     </reapack>
     <reapack name="solger_Smart split MIDI item.lua" type="script" desc="Smart split MIDI item">
@@ -13249,6 +13228,22 @@ Replace GetLastWord func with quicker solution (Thanks: Mespotine[t=233393]).]]>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4e7fcfac5ff272d9c41518e6963766d9ad166829/Project%20Properties/JerContact_Open%20project%20based%20on%20file%20in%20clipboard.lua</source>
       </version>
     </reapack>
+    <reapack name="nickstomp_Import Export track group names.lua" type="script" desc="Import/export track group names">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Export and import the track group names to a text file\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This allows to export the group names from a project and import it into another one.\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0.0" author="nickstomp" time="2022-04-16T01:49:59Z">
+        <source main="main" file="nickstomp_Import Export track group names/nickstomp_Export track group names.lua">https://github.com/ReaTeam/ReaScripts/raw/416f60c6598b2a18eec36cc49d404240f0391d33/Project%20Properties/nickstomp_Import%20Export%20track%20group%20names/nickstomp_Export%20track%20group%20names.lua</source>
+        <source main="main" file="nickstomp_Import Export track group names/nickstomp_Import track group names.lua">https://github.com/ReaTeam/ReaScripts/raw/416f60c6598b2a18eec36cc49d404240f0391d33/Project%20Properties/nickstomp_Import%20Export%20track%20group%20names/nickstomp_Import%20track%20group%20names.lua</source>
+      </version>
+    </reapack>
     <reapack name="solger_ReaLauncher.lua" type="script" desc="ReaLauncher">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
@@ -13722,25 +13717,6 @@ Replace GetLastWord func with quicker solution (Thanks: Mespotine[t=233393]).]]>
       <version name="1.00" author="juliansader" time="2021-04-21T22:52:47Z">
         <changelog><![CDATA[+ Initial release.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b43c6eb84381be87ad037bde045018123ad72fc2/Razor%20Edit/js_Razor%20edit%20-%20Enclose%20selected%20media%20items%20and%20automation%20items%20in%20minimal%20razor%20areas.lua</source>
-      </version>
-    </reapack>
-    <reapack name="sockmonkey72_Razor Edit - Fast Mode.eel" type="script" desc="Razor Edit - Fast Mode">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 Inspired by {\field{\*\fldinst{HYPERLINK "https://youtu.be/HEVKLiWkRkk"}}{\fldrslt{\ul
-Kenny Gioia's "Razor Edit - Fast Mode in REAPER"
-}}}
-, this script makes the appropriate changes to the Mouse Modifier preferences to support fast Razor Editing. Improved over what Kenny can do using standard actions is that the shift-modified left-drag actions are incorporated with the "ignoring snap" action variants.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 The workflow is also simpler, as it's just a single toggle script. It can be hooked up to a key command and/or a toolbar button.\par}
-}
-]]></description>
-      </metadata>
-      <version name="1.1" author="sockmonkey72" time="2021-12-06T08:52:40Z">
-        <changelog><![CDATA[simplify to a single Toggle Command script]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/bcefb9e7629a978993357e04de85577bc80b718c/Razor%20Edit/sockmonkey72_Razor%20Edit%20-%20Fast%20Mode.eel</source>
       </version>
     </reapack>
   </category>
