@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="d8c3cb6aa5c562778e609df7fcf1b81f39232253" name="ReaTeam Scripts">
+<index version="1" commit="2e529c133fc11ee475ff9785bcab376f8833c4b4" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -2425,6 +2425,13 @@ Refactored/reorganized the code for readability]]></changelog>
       <version name="1.0" author="BuyOne" time="2022-04-16T01:58:03Z">
         <changelog><![CDATA[Initial release]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/8f4e2558b1a274b17d9c3cd4f6f66a7d2b7da637/Envelopes/BuyOne_Move%20selected%20FX%20envelope%20in%20track%20to%20top_bottom_upwards_downwards.lua</source>
+      </version>
+      <version name="1.0.1" author="BuyOne" time="2022-04-20T01:28:34Z">
+        <changelog><![CDATA[Fix packaging metadata]]></changelog>
+        <source main="main" file="BuyOne_Move selected FX envelope/BuyOne_Move selected FX envelope in track to top lane.lua">https://github.com/ReaTeam/ReaScripts/raw/2e529c133fc11ee475ff9785bcab376f8833c4b4/Envelopes/BuyOne_Move%20selected%20FX%20envelope%20in%20track%20to%20top_bottom_upwards_downwards.lua</source>
+        <source main="main" file="BuyOne_Move selected FX envelope/BuyOne_Move selected FX envelope in track to bottom lane.lua">https://github.com/ReaTeam/ReaScripts/raw/2e529c133fc11ee475ff9785bcab376f8833c4b4/Envelopes/BuyOne_Move%20selected%20FX%20envelope%20in%20track%20to%20top_bottom_upwards_downwards.lua</source>
+        <source main="main" file="BuyOne_Move selected FX envelope/BuyOne_Move selected FX envelope in track upwards one lane.lua">https://github.com/ReaTeam/ReaScripts/raw/2e529c133fc11ee475ff9785bcab376f8833c4b4/Envelopes/BuyOne_Move%20selected%20FX%20envelope%20in%20track%20to%20top_bottom_upwards_downwards.lua</source>
+        <source main="main" file="BuyOne_Move selected FX envelope/BuyOne_Move selected FX envelope in track downwards one lane.lua">https://github.com/ReaTeam/ReaScripts/raw/2e529c133fc11ee475ff9785bcab376f8833c4b4/Envelopes/BuyOne_Move%20selected%20FX%20envelope%20in%20track%20to%20top_bottom_upwards_downwards.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Delete points before or after the edit cursor in selected envelope.lua" type="script" desc="Delete points before or after the edit cursor in selected envelope">
