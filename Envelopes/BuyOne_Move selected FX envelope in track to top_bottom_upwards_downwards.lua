@@ -1,8 +1,8 @@
 --[[
 ReaScript Name: Move selected FX envelope in track to top/bottom/upwards/downwards
 Author: BuyOne
-Version: 1.0
-Changelog: Initial release
+Version: 1.0.1
+Changelog: Fix packaging metadata
 Author URL: https://forum.cockos.com/member.php?u=134058
 Licence: WTFPL
 REAPER: at least v5.962
@@ -18,14 +18,12 @@ About:  Moves selected FX envelope of a track to the top/bottom lane,
         cannot be reordered. Hence the movement is not relative to ALL 
         active/visible track envelopes but only to those of the same FX
         as the selected envelope.  
-		
-	Screenshot: https://raw.githubusercontent.com/Buy-One/screenshots/main/Move%20selected%20FX%20envelope%20in%20track%20to%20top_bottom_upwards_downwards.gif
-		
+Screenshot: https://raw.githubusercontent.com/Buy-One/screenshots/main/Move%20selected%20FX%20envelope%20in%20track%20to%20top_bottom_upwards_downwards.gif
 Metapackage: true
-Provides:   [main] BuyOne_Move selected FX envelope/BuyOne_Move selected FX envelope in track to top lane.lua
-            [main] BuyOne_Move selected FX envelope/BuyOne_Move selected FX envelope in track to bottom lane.lua
-            [main] BuyOne_Move selected FX envelope/BuyOne_Move selected FX envelope in track upwards one lane.lua
-            [main] BuyOne_Move selected FX envelope/BuyOne_Move selected FX envelope in track downwards one lane.lua
+Provides:   [main] . > BuyOne_Move selected FX envelope/BuyOne_Move selected FX envelope in track to top lane.lua
+            [main] . > BuyOne_Move selected FX envelope/BuyOne_Move selected FX envelope in track to bottom lane.lua
+            [main] . > BuyOne_Move selected FX envelope/BuyOne_Move selected FX envelope in track upwards one lane.lua
+            [main] . > BuyOne_Move selected FX envelope/BuyOne_Move selected FX envelope in track downwards one lane.lua
 ]]
 
 function Msg(param, cap) -- caption second or none
