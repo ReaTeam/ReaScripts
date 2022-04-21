@@ -1,40 +1,40 @@
 --[[
 ReaScript Name: Move selected FX envelope in track to top/bottom/upwards/downwards
 Author: BuyOne
-Version: 1.2
+Version: 1.1
 Changelog: #Added swap mode to complement cyclic mode
-		   #Fixed a bug of respecting hidden envelopes during reordering
+	   #Fixed a bug of respecting hidden envelopes during reordering
 Author URL: https://forum.cockos.com/member.php?u=134058
 Licence: WTFPL
 REAPER: at least v5.962
 Screenshots: https://raw.githubusercontent.com/Buy-One/screenshots/main/Move%20selected%20FX%20envelope%20in%20track%20to%20top_bottom_upwards_downwards.gif
 Extensions: SWS/S&M extension (not mandatory but recommended)
 About:  Moves selected FX envelope of a track to the top/bottom lane,
-		upwards/downwards one lane depending on the script name.  
-		(cycle) in the script name means that all envelopes move 
-		upwards/downwards in unison with the selected one.  
-		(swap) in the script name means that the selected envelope 
-		is swapped with the one immediately above/below it while other 
-		envelopes maintain their lanes.  
-		Upwards/downwards movement is cyclic, i.e. if an envelope is pushed
-		past top/bottom lane its movement continues from the oppostite end.  
-		Reordering only affects active envelopes of the track FX
-		the selected envelope belongs to, as all envelopes of a particular
-		FX are grouped together and envelopes of different FX cannot be 
-		mixed while TCP envelopes always precede any FX envelopes and themselves
-		cannot be reordered. Hence the movement is not relative to ALL 
-		active/visible track envelopes but only to those of the same FX
-		as the selected envelope.  
-		
-		Screenshot: https://raw.githubusercontent.com/Buy-One/screenshots/main/Move%20selected%20FX%20envelope%20in%20track%20to%20top_bottom_upwards_downwards.gif
+	upwards/downwards one lane depending on the script name.  
+	(cycle) in the script name means that all envelopes move 
+	upwards/downwards in unison with the selected one.  
+	(swap) in the script name means that the selected envelope 
+	is swapped with the one immediately above/below it while other 
+	envelopes maintain their lanes.  
+	Upwards/downwards movement is cyclic, i.e. if an envelope is pushed
+	past top/bottom lane its movement continues from the oppostite end.  
+	Reordering only affects active envelopes of the track FX
+	the selected envelope belongs to, as all envelopes of a particular
+	FX are grouped together and envelopes of different FX cannot be 
+	mixed while TCP envelopes always precede any FX envelopes and themselves
+	cannot be reordered. Hence the movement is not relative to ALL 
+	active/visible track envelopes but only to those of the same FX
+	as the selected envelope.  
+
+	Screenshot: https://raw.githubusercontent.com/Buy-One/screenshots/main/Move%20selected%20FX%20envelope%20in%20track%20to%20top_bottom_upwards_downwards.gif
 		
 Metapackage: true
 Provides: 	[main] . > BuyOne_Move selected FX envelope/BuyOne_Move selected FX envelope in track to top lane.lua
-			[main] . > BuyOne_Move selected FX envelope/BuyOne_Move selected FX envelope in track to bottom lane.lua
-			[main] . > BuyOne_Move selected FX envelope/BuyOne_Move selected FX envelope in track up one lane (cycle).lua
-			[main] . > BuyOne_Move selected FX envelope/BuyOne_Move selected FX envelope in track down one lane (cycle).lua
-			[main] . > BuyOne_Move selected FX envelope/BuyOne_Move selected FX envelope in track up one lane (swap).lua
-			[main] . > BuyOne_Move selected FX envelope/BuyOne_Move selected FX envelope in track down one lane (swap).lua
+		[main] . > BuyOne_Move selected FX envelope/BuyOne_Move selected FX envelope in track to bottom lane.lua
+		[main] . > BuyOne_Move selected FX envelope/BuyOne_Move selected FX envelope in track up one lane (cycle).lua
+		[main] . > BuyOne_Move selected FX envelope/BuyOne_Move selected FX envelope in track down one lane (cycle).lua
+		[main] . > BuyOne_Move selected FX envelope/BuyOne_Move selected FX envelope in track up one lane (swap).lua
+		[main] . > BuyOne_Move selected FX envelope/BuyOne_Move selected FX envelope in track down one lane (swap).lua
 ]]
 
 
