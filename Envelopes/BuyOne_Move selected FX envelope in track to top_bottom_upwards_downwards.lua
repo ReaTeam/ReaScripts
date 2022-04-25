@@ -1,5 +1,5 @@
 --[[
-ReaScript Name: Move selected FX envelope in track to top/bottom/upwards/downwards
+ReaScript Name: Move selected FX envelope in track to top/bottom/upwards/downwards (6 scripts)
 Author: BuyOne
 Version: 1.1
 Changelog: #Added swap mode to complement cyclic mode
