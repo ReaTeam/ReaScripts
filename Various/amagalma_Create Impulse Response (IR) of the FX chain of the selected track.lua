@@ -1,8 +1,9 @@
 -- @description Create Impulse Response (IR) of the FX Chain of the selected Track
 -- @author amagalma
--- @version 2.06
+-- @version 2.10
 -- @changelog
---   - Fix: load IR in ReaVerb for v6.37+
+--   - Multi-channel support
+--   - Make sure the IR is inserted exactly at the edit cursor position, if it was requested to be inserted to the project 
 -- @donation https://www.paypal.me/amagalma
 -- @link https://forum.cockos.com/showthread.php?t=234517
 -- @about
@@ -19,17 +20,17 @@
 
 -- Thanks to EUGEN27771, spk77, X-Raym, Lokasenna
 
-local version = "2.06"
+local version = "2.10"
 --------------------------------------------------------------------------------------------
 
 
 -- ENTER HERE DEFAULT VALUES:
 local Max_IR_Lenght = 5 -- Seconds
-local Normalize_Peak = -0.4 -- (must be less than 0)
+local Normalize_Peak = -0.3 -- (must be less than 0)
 local Normalize_Enable = 1 -- (1 = enabled, 0 = disabled)
 local Trim_Silence_Below = -100 -- (must be less than -60)
 local Trim_Silence_Enable = 1 -- (1 = enabled, 0 = disabled)
-local Mono_Or_Stereo = 2 -- (1: mono, 2: stereo)
+local Number_of_Channels = 2 -- (1: mono, 2: stereo, etc)
 local Locate_In_Explorer = 1 -- (1 = yes, 0 = no)
 local Insert_In_Project = 0 -- (1 = yes, 0 = no)
 local Load_in_Reaverb = 1 -- (1 = yes, 0 = no)
@@ -43,8 +44,7 @@ local reaper = reaper
 local debug = false
 local problems = 0
 local floor, min, log = math.floor, math.min, math.log
-local Win = string.find(reaper.GetOS(), "Win" )
-local sep = Win and "\\" or "/"
+local sep = package.config:sub(1,1)
 
 -- Get project samplerate and path
 local samplerate = reaper.SNM_GetIntConfigVar( "projsrate", 0 )
@@ -55,9 +55,10 @@ local IR_Path = proj_path
 local IR_name = "IR"
 local IR_FullPath = IR_Path .. IR_name
 local IR_len, peak_normalize = Max_IR_Lenght, Normalize_Peak
-local trim, channels = Trim_Silence_Below, Mono_Or_Stereolo
+local trim, channels = Trim_Silence_Below, Number_of_Channels
 local max_pre_ringing_samples_val = 4096 -- samples
-local pre_ringing_threshold = -90 -- db
+local pre_ringing_threshold = -96 -- db
+local cur_pos = reaper.GetCursorPosition()
 
 -- Check if Channel Tool exists in ReaVerb
 local pre637 = false
@@ -172,7 +173,7 @@ local function Create_Dirac(FilePath, channels, item_len) -- based on EUGEN27771
   for i = pre_ringing + 1, pre_ringing + channels do
     buf[i] = 1
   end
-  local data_ChunkDataSize = numSamples * channels * 32/8
+  local data_ChunkDataSize = numSamples * channels * 4
   -- RIFF_Chunk =  RIFF_ChunkID, RIFF_chunkSize, RIFF_Type
     local RIFF_Chunk, RIFF_ChunkID, RIFF_chunkSize, RIFF_Type 
     RIFF_ChunkID   = "RIFF"
@@ -186,8 +187,8 @@ local function Create_Dirac(FilePath, channels, item_len) -- based on EUGEN27771
     local fmt_Chunk, fmt_ChunkID, fmt_ChunkDataSize, byterate, blockalign
     fmt_ChunkID       = "fmt "
     fmt_ChunkDataSize = 16 
-    byterate          = samplerate * channels * 32/8
-    blockalign        = channels * 32/8
+    byterate          = samplerate * channels * 4
+    blockalign        = channels * 4
     fmt_Chunk  = string.pack("< c4 I4 I2 I2 I4 I4 I2 I2",
                               fmt_ChunkID,
                               fmt_ChunkDataSize,
@@ -431,7 +432,7 @@ function CreateIR()
   if Trim_Silence_Enable then
     Msg("Trim Silence Below " .. trim)
   end
-  Msg("Channels: " .. (channels == 1 and "Mono" or "Stereo"))
+  Msg("Channels: " .. channels)
   if Locate_In_Explorer then Msg("Locate in Explorer enabled") end
   if Insert_In_Project then Msg("Insert in Project enabled") end
   if Load_in_Reaverb then Msg("Load in Reaverb enabled") end
@@ -473,8 +474,10 @@ function CreateIR()
   end
   if channels == 1 then
     reaper.Main_OnCommand(40361, 0) -- Item: Apply track/take FX to items (mono output)
-  else
+  elseif channels == 2 then 
     reaper.Main_OnCommand(40209, 0) -- Item: Apply track/take FX to items
+  else
+    reaper.Main_OnCommand(41993, 0) -- Apply track/take FX to items (multichannel output)
   end
   local take = reaper.GetActiveTake( item )
   local PCM_source = reaper.GetMediaItemTake_Source( take )
@@ -608,6 +611,8 @@ function CreateIR()
     reaper.Main_OnCommand(40439, 0) -- Item: Set selected media online
     reaper.Main_OnCommand(41858, 0) -- Item: Set item name from active take filename
     reaper.Main_OnCommand(40441, 0) -- Peaks: Rebuild peaks for selected items
+    reaper.SetMediaItemInfo_Value( item, "D_POSITION", cur_pos )
+    reaper.SetEditCurPos( cur_pos, false, false )
     Msg("IR was inserted in Project")
   else
     local ok = reaper.DeleteTrackMediaItem( track, item )
@@ -889,6 +894,10 @@ GUI.New("NormTrim", "Checklist", {
     tooltip = "Enable/Disable Normalize and Trim Silence"
 })
 
+local temp = {}
+for i = 1, 64 do temp[i] = i end
+temp[1], temp[2] = "Mono", "Stereo" 
+
 GUI.New("Channels", "Menubox", {
     z = 1,
     x = left_align,
@@ -896,7 +905,7 @@ GUI.New("Channels", "Menubox", {
     w = 127,
     h = 20,
     caption = "Number of Channels",
-    optarray = {"Mono", "Stereo"},
+    optarray = temp,
     retval = 2,
     font_a = 2,
     font_b = 2,
@@ -908,6 +917,8 @@ GUI.New("Channels", "Menubox", {
     align = 1,
     tooltip = "Choose to create Mono or Stereo IR"
 })
+
+temp = nil
 
 GUI.New("Options", "Checklist", {
     z = 1,
@@ -967,7 +978,7 @@ GUI.Val("Length", Max_IR_Lenght)
 GUI.Val("Normalize", Normalize_Peak)
 GUI.Val("Trim", Trim_Silence_Below)
 GUI.Val("NormTrim", {Normalize_Enable == 1, Trim_Silence_Enable == 1} )
-GUI.Val("Channels", Mono_Or_Stereo)
+GUI.Val("Channels", Number_of_Channels)
 GUI.Val("Options", {Locate_In_Explorer == 1, Insert_In_Project == 1, Load_in_Reaverb == 1})
 GUI.onresize = force_size
 GUI.func = MyFunction

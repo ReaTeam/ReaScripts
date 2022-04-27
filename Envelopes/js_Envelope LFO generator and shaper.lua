@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Envelope LFO generator and shaper.lua
-Version: 2.16
+Version: 2.17
 Author: juliansader / Xenakios
 Website: http://forum.cockos.com/showthread.php?t=177437
 Screenshot: http://stash.reaper.fm/27661/LFO%20shaper.gif
@@ -121,6 +121,8 @@ About:
     + Show envelope name in UI.
   * v2.16 (2022-02-23)
     + Fixed regression: Take envelope time range.
+  * v2.17 (2022-02-26)
+    + Use default Pitch range in Preferences.
 ]]
 -- The archive of the full changelog is at the end of the script.
 
@@ -1022,11 +1024,19 @@ function MAIN_CalculateAndInsertPoints()
     --    Project start time) does not appear to have an effect - but must still
     --    make sure about this...
     if envName:match("Pitch") then
-        local cOK, c = reaper.GetEnvelopeStateChunk(env, "", false)
-        local r = c:match("\nDEFSHAPE %S+ (%S+)") or "0"
-        r = tonumber(r)
-        if r <= 0 then r = 3 end
-        BRenvMinValue, BRenvMaxValue = -r, r
+        local range = -1 -- I'm not sure what the difference is between -1 and 0 in DEFSHAPE. Both seem to mean "use default range".
+        -- First try to get per-envelope pitch range
+        local OK, chunk = reaper.GetEnvelopeStateChunk(env, "", false)
+        if OK and chunk then
+            range = tonumber(chunk:match("\nDEFSHAPE %S+ (%S+)")) or -1
+        end
+        -- If no per-envelope setting, try to get global Preferences
+        if range <= 0 then 
+            OK, range = reaper.get_config_var_string("pitchenvrange")
+            range = tonumber(range) or -1
+        end
+        if range <= 0 then range = 3 end -- Couldn't get setting. Standard values for envelopes seem to be 3.
+        BRenvMinValue, BRenvMaxValue = -range, range
     else
         local BRenv = reaper.BR_EnvAlloc(env, true)
         --local envTake = reaper.BR_EnvGetParentTake(BRenv)

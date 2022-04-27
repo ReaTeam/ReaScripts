@@ -1,34 +1,33 @@
 -- @description Search action by command ID or name
 -- @author cfillion
--- @version 1.0.1
--- @changelog
---   save and restore window position, size and dock state [p=2192851]
---   fix crash when no matching action is found (hotfix for a last-minute change)
--- @screenshot https://i.imgur.com/nlGMR1T.gif
+-- @version 2.0.1
+-- @changelog Customize UI colors
+-- @link Forum thread https://forum.cockos.com/showthread.php?t=226107
+-- @screenshot https://i.imgur.com/yqkvZvf.gif
 -- @donation https://www.paypal.com/cgi-bin/webscr?business=T3DEWBQJAV7WL&cmd=_donations&currency_code=CAD
 
+local FLT_MIN, FLT_MAX = reaper.ImGui_NumericLimits_Float()
+local SCRIPT_NAME = ({reaper.get_action_context()})[2]:match("([^/\\_]+)%.lua$")
 local AL_SECTIONS = {
-  [0    ] = 'Main',
-  [100  ] = 'Main (alt recording)',
-  [32060] = 'MIDI Editor',
-  [32061] = 'MIDI Event List Editor',
-  [32062] = 'MIDI Inline Editor',
-  [32063] = 'Media Explorer',
+  { id=0,     name='Main'                   },
+  { id=100,   name='Main (alt recording)'   },
+  { id=32060, name='MIDI Editor'            },
+  { id=32061, name='MIDI Event List Editor' },
+  { id=32062, name='MIDI Inline Editor'     },
+  { id=32063, name='Media Explorer'         },
 }
 
-local MARGIN  = 10
-local PADDING = 7
+local ctx = reaper.ImGui_CreateContext(SCRIPT_NAME)
+local font = reaper.ImGui_CreateFont('sans-serif', 13)
+reaper.ImGui_AttachFont(ctx, font)
 
-local MB_OK = 0
+local section, commandId, actionName = AL_SECTIONS[1], '', ''
 
-local EXT_SECTION = 'cfillion_search action'
-local EXT_WINDOW_STATE = 'window_state'
-
-local function iterateActions(section)
+local function iterateActions()
   local i = 0
 
   return function()
-    local retval, name = reaper.CF_EnumerateActions(section, i, '')
+    local retval, name = reaper.CF_EnumerateActions(section.id, i, '')
     if retval > 0 then
       i = i + 1
       return retval, name
@@ -36,236 +35,124 @@ local function iterateActions(section)
   end
 end
 
-local function findAction(section)
-  local findId = commandIdField.value
-  local findName = actionNameField.value
+local function findById()
+  local numericId = reaper.NamedCommandLookup(commandId)
+  actionName = reaper.CF_GetCommandText(section.id, numericId)
+end
 
+local function findByName()
   for id, name in iterateActions(section) do
-    if id == findId or name == findName then
-      return id, name
+    if name == actionName then
+      local namedId = id and reaper.ReverseNamedCommandLookup(id)
+      commandId = namedId and ('_' .. namedId) or tostring(id)
+      return
     end
   end
+
+  commandId = ''
 end
 
-local function updateMatch()
-  local value = commandIdField.value or actionNameField.value
-  if not value then return end
+local function form()
+  local rv
 
-  local id, name = findAction(sectionField.value, value)
+  reaper.ImGui_TableSetupColumn(ctx, '', reaper.ImGui_TableColumnFlags_WidthFixed())
+  reaper.ImGui_TableSetupColumn(ctx, '', reaper.ImGui_TableColumnFlags_WidthStretch())
 
-  if not id then
-    reaper.ShowMessageBox("Command ID or action name not found.", scriptName, MB_OK)
+  reaper.ImGui_TableNextRow(ctx)
+  reaper.ImGui_TableNextColumn(ctx)
+  reaper.ImGui_AlignTextToFramePadding(ctx)
+  reaper.ImGui_Text(ctx, 'Section:')
+  reaper.ImGui_TableNextColumn(ctx)
+  reaper.ImGui_SetNextItemWidth(ctx, -FLT_MIN)
+  if reaper.ImGui_BeginCombo(ctx, '##section', section.name) then
+    for _, s in ipairs(AL_SECTIONS) do
+      if reaper.ImGui_Selectable(ctx, s.name, s.id == section.id) then
+        section = s
+        local oldName = actionName
+        findById()
+        if #actionName < 1 then
+          actionName = oldName
+          findByName()
+        end
+      end
+    end
+    reaper.ImGui_EndCombo(ctx)
   end
 
-  local namedId = id and reaper.ReverseNamedCommandLookup(id)
-  commandIdField.value = namedId and ('_' .. namedId) or id
-  actionNameField.value = name
+  reaper.ImGui_TableNextRow(ctx)
+  reaper.ImGui_TableNextColumn(ctx)
+  reaper.ImGui_AlignTextToFramePadding(ctx)
+  reaper.ImGui_Text(ctx, 'Command ID:')
+  reaper.ImGui_TableNextColumn(ctx)
+  reaper.ImGui_SetNextItemWidth(ctx, -FLT_MIN)
+  rv, commandId = reaper.ImGui_InputText(ctx, '##command_id', commandId)
+  if rv then findById() end
+
+  reaper.ImGui_TableNextRow(ctx)
+  reaper.ImGui_TableNextColumn(ctx)
+  reaper.ImGui_AlignTextToFramePadding(ctx)
+  reaper.ImGui_Text(ctx, 'Action name:')
+  reaper.ImGui_TableNextColumn(ctx)
+  reaper.ImGui_SetNextItemWidth(ctx, -FLT_MIN)
+  rv, actionName = reaper.ImGui_InputText(ctx, '##action_name', actionName)
+  if rv then findByName() end
 end
 
-local function setColor(color)
-  gfx.r = (color >> 16      ) / 255
-  gfx.g = (color >> 8 & 0xFF) / 255
-  gfx.b = (color      & 0xFF) / 255
-end
-
-local function button(x, y, w, h, label, onclick)
-  local underMouse =
-    gfx.mouse_x >= x and gfx.mouse_x < x + w and
-    gfx.mouse_y >= y and gfx.mouse_y < y + h
-
-  if mouseClick and underMouse then
-    gfx.x = x
-    local oldY = gfx.y
-    gfx.y = y + h
-    onclick()
-    gfx.y = oldY
+local function buttons()
+  local found = #commandId > 0 and #actionName > 0
+  reaper.ImGui_BeginDisabled(ctx, not found)
+  if reaper.ImGui_Button(ctx, 'Copy command ID') then
+    reaper.ImGui_SetClipboardText(ctx, commandId)
   end
-
-  setColor((underMouse and mouseDown) and 0x787878 or 0xdcdcdc)
-  gfx.rect(x, y, w, h, true)
-  setColor(0x2a2a2a)
-  gfx.rect(x, y, w, h, false)
-
-  gfx.x = x + PADDING
-  gfx.drawstr(label, 0, gfx.x + w - (PADDING * 2), gfx.y + h)
-end
-
-local function mouseInput()
-  if mouseClick then
-    mouseClick = false
-  elseif gfx.mouse_cap == 1 then
-    mouseDown = true
-  elseif mouseDown then
-    mouseClick = true
-    mouseDown = false
-  elseif mouseClick then
-    mouseClick = false
+  reaper.ImGui_SameLine(ctx)
+  if reaper.ImGui_Button(ctx, 'Copy action name') then
+    reaper.ImGui_SetClipboardText(ctx, actionName)
   end
-end
-
-local function defaultSetValue(field)
-  return reaper.GetUserInputs(scriptName, 1, field.label, field.value or '')
+  if not found and (#commandId > 0 or #actionName > 0) then
+    reaper.ImGui_SameLine(ctx)
+    reaper.ImGui_AlignTextToFramePadding(ctx)
+    reaper.ImGui_Text(ctx, 'Action not found.')
+  end
+  reaper.ImGui_EndDisabled(ctx)
 end
 
 local function loop()
-  mouseInput()
+  reaper.ImGui_PushFont(ctx, font)
+  reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_WindowBg(), 0xffffffff)
 
-  if gfx.getchar() < 0 then
-    gfx.quit()
-    return
+  reaper.ImGui_SetNextWindowSize(ctx, 442, 131, reaper.ImGui_Cond_FirstUseEver())
+  local visible, open = reaper.ImGui_Begin(ctx, SCRIPT_NAME, true)
+  if visible then
+    reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Border(),        0x2a2a2aff)
+    reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Button(),        0xdcdcdcff)
+    reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_ButtonActive(),  0x787878ff)
+    reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_ButtonHovered(), 0xdcdcdcff)
+    reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_FrameBg(),       0xffffffff)
+    reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_HeaderHovered(), 0x96afe1ff)
+    reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_PopupBg(),       0xffffffff)
+    reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Text(),          0x2a2a2aff)
+    reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_FrameBorderSize(),  1)
+
+    if reaper.ImGui_BeginTable(ctx, '##layout', 2) then
+      form()
+      reaper.ImGui_EndTable(ctx)
+    end
+    reaper.ImGui_Spacing(ctx)
+    buttons()
+
+    reaper.ImGui_PopStyleVar(ctx)
+    reaper.ImGui_PopStyleColor(ctx, 8)
+    reaper.ImGui_End(ctx)
   end
 
-  gfx.clear = 0xffffff
+  reaper.ImGui_PopStyleColor(ctx)
+  reaper.ImGui_PopFont(ctx)
 
-  local labelWidth, labelHeight = 0, 0
-  for _, field in ipairs(fields) do
-    local w, h = gfx.measurestr(field.label)
-    labelWidth = math.max(labelWidth, w)
-    labelHeight = math.max(labelHeight, h)
+  if open and not reaper.ImGui_IsKeyPressed(ctx, reaper.ImGui_Key_Escape()) then
+    reaper.defer(loop)
+  else
+    reaper.ImGui_DestroyContext(ctx)
   end
-
-  local buttonX = MARGIN + labelWidth + 10
-  local buttonWidth = gfx.w - buttonX - MARGIN
-  local buttonYoffset = labelHeight / 2.5
-  local buttonHeight = labelHeight * 1.5
-
-  gfx.y = MARGIN * 1.5
-  for _, field in ipairs(fields) do
-    gfx.x = MARGIN
-    setColor(0x000000)
-    gfx.drawstr(field.label)
-
-    local displayValue =
-      field.displayValue and field.displayValue(field.value) or field.value or ''
-
-    button(buttonX, gfx.y - buttonYoffset, buttonWidth, buttonHeight,
-           displayValue, function()
-      local setValue = field.setValue or defaultSetValue
-      local ok, newValue = setValue(field)
-
-      if ok then
-        field.value = newValue
-      end
-
-      updateMatch()
-    end)
-
-    gfx.y = gfx.y + buttonHeight + (MARGIN / 2)
-  end
-
-  gfx.x = gfx.w - MARGIN
-  gfx.y = gfx.y + PADDING
-
-  for _, control in ipairs(controls) do
-    local w = gfx.measurestr(control.label) + (PADDING * 2)
-    gfx.x = gfx.x - w
-    button(gfx.x, gfx.y - buttonYoffset, w, buttonHeight,
-      control.label, control.onclick)
-    gfx.x = gfx.x - w
-  end
-
-  gfx.update()
-  reaper.defer(loop)
 end
 
-function previousWindowState()
-  local state = tostring(reaper.GetExtState(EXT_SECTION, EXT_WINDOW_STATE))
-  return state:match("^(%d+) (%d+) (%d+) (-?%d+) (-?%d+)$")
-end
-
-function saveWindowState()
-  local dockState, xpos, ypos = gfx.dock(-1, 0, 0, 0, 0)
-  local w, h = gfx.w, gfx.h
-  if dockState > 0 then
-    w, h = previousWindowState()
-  end
-
-  reaper.SetExtState(EXT_SECTION, EXT_WINDOW_STATE,
-    string.format("%d %d %d %d %d", w, h, dockState, xpos, ypos), true)
-end
-
-sectionField = {
-  label = 'Section:',
-  value = 0,
-  setValue = function()
-    local sectionIds = {}
-    for id, _ in pairs(AL_SECTIONS) do
-      table.insert(sectionIds, id)
-    end
-    table.sort(sectionIds)
-
-    local menu = {}
-    for _, id in ipairs(sectionIds) do
-      table.insert(menu, AL_SECTIONS[id])
-    end
-
-    local choice = gfx.showmenu(table.concat(menu, '|'))
-    if choice > 0 then
-      commandIdField.value = nil
-      actionNameField.value = nil
-      return true, sectionIds[choice]
-    end
-  end,
-  displayValue = function(value)
-    return AL_SECTIONS[value]
-  end,
-}
-
-commandIdField = {
-  label = 'Command ID:',
-  setValue = function(field)
-    local retval, newValue = defaultSetValue(field)
-    if retval then
-      actionNameField.value = nil
-      newValue = reaper.NamedCommandLookup(newValue)
-      return retval, newValue
-    end
-  end,
-}
-
-actionNameField = {
-  label = 'Action name:',
-  setValue = function(field)
-    local retval, newValue = defaultSetValue(field)
-    if retval then
-      commandIdField.value = nil
-      return retval, newValue
-    end
-  end,
-}
-
-copyCommandId = {
-  label = 'Copy command ID',
-  onclick = function()
-    reaper.CF_SetClipboard(commandIdField.value)
-  end,
-}
-
-copyActionName = {
-  label = 'Copy action name',
-  onclick = function()
-    reaper.CF_SetClipboard(actionNameField.value)
-  end,
-}
-
-fields = {sectionField, commandIdField, actionNameField}
-controls = {copyActionName, copyCommandId}
-
-scriptName = ({reaper.get_action_context()})[2]:match("([^/\\_]+)%.lua$")
-
-local w, h, dockState, x, y = previousWindowState()
-
-if w then
-  gfx.init(scriptName, w, h, dockState, x, y)
-else
-  gfx.init(scriptName, 400, 125)
-end
-
-if reaper.GetAppVersion():match('OSX') then
-  gfx.setfont(1, 'sans-serif', 12)
-else
-  gfx.setfont(1, 'sans-serif', 15)
-end
-
-reaper.atexit(saveWindowState)
 loop()
