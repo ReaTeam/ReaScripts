@@ -1,7 +1,5 @@
 -- @noindex
 
--- @noindex
-
 -- module requirements for all actions
 -- doesn't provide any action by itself, so don't map any shortcut to it or run this action
 
