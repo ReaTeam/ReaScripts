@@ -1,8 +1,8 @@
 --[[
 ReaScript name: js_Mouse editing - Multi Tool.lua
-Version: 6.60
+Version: 6.61
 Changelog:
-  + Update documentation: Editability no longer needs to be linked to selection in order for script to edit all editable takes.
+  + Fixed: Custom cursor memory leak.
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Donation: https://www.paypal.me/juliansader
@@ -5515,7 +5515,7 @@ function MAIN()
                }
     for name, source in pairs(tCursors) do
         if type(source) == "string" then
-            tCursors[name] = reaper.JS_Mouse_LoadCursorFromFile(filename..source, true) -- The first time that the cursor is loaded in the session will be slow, but afterwards the extension will re-use previously loaded cursor
+            tCursors[name] = reaper.JS_Mouse_LoadCursorFromFile(filename..source, false) -- The first time that the cursor is loaded in the session will be slow, but afterwards the extension will re-use previously loaded cursor
             if not tCursors[name] then reaper.MB("Could not load the \""..source.."\" cursor file.\n\nPlease ensure that this file is located in the same folder as the Lua script file.", "ERROR", 0) return false end
         else
             tCursors[name] = reaper.JS_Mouse_LoadCursor(source)
