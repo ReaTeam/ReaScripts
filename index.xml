@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="a422f9eda1fb833fbfbdd41d188349c20b20be9e" name="ReaTeam Scripts">
+<index version="1" commit="b97a9d13ad63ed82a2b40a012da98a4ec3df383a" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -3178,6 +3178,21 @@ Improve "under mouse cursor" variants to work over any envelope]]></changelog>
       </metadata>
       <version name="1.0" author="amagalma" time="2021-08-02T20:06:59Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/84d3a3063d61e1d107daf79b178883afd1224aa0/Envelopes/Takes/amagalma_Clear%20all%20take%20envelopes%20for%20all%20selected%20items.lua</source>
+      </version>
+    </reapack>
+    <reapack name="edgemeal_Toggle last touched take FX envelope.lua" type="script" desc="Toggle last touched take FX envelope">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 If envelope for last touched Take FX parameter does not exist, it will be created and shown.\par}
+}
+]]></description>
+        <link rel="donation" href="https://www.paypal.me/Edgemeal">Donate</link>
+      </metadata>
+      <version name="1.00" author="Edgemeal" time="2022-05-02T18:46:16Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b97a9d13ad63ed82a2b40a012da98a4ec3df383a/Envelopes/Takes/edgemeal_Toggle%20last%20touched%20take%20FX%20envelope.lua</source>
       </version>
     </reapack>
     <reapack name="edgemeal_Toggle selected items take envelopes.lua" type="script" desc="Toggle selected items take envelopes">
