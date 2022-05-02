@@ -4,6 +4,11 @@
 -- @donation Donate https://www.paypal.me/Edgemeal
 -- @about If envelope for last touched Take FX parameter does not exist, it will be created and shown.
 
+if not reaper.APIExists('BR_EnvAlloc') then
+  reaper.MB('SWS extension is required for this script!', 'Missing API', 0)
+  return
+end
+
 local retval, tracknumber, fxnumber, paramnumber = reaper.GetLastTouchedFX()
 if retval then
   if (tracknumber >> 16) ~= 0 then -- Item FX
