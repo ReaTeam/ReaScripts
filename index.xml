@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="43b427b6bb7c246bac8ff7303b2f3429edbd5e1c" name="ReaTeam Scripts">
+<index version="1" commit="a422f9eda1fb833fbfbdd41d188349c20b20be9e" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -2418,6 +2418,7 @@ Refactored/reorganized the code for readability]]></changelog>
 \widowctrl\hyphauto
 
 {\pard \ql \f0 \sa180 \li0 \fi0 Moves selected FX envelope of a track to the top/bottom lane, upwards/downwards one lane depending on the script name.\line (cycle) in the script name means that all envelopes move upwards/downwards in unison with the selected one.\line (swap) in the script name means that the selected envelope is swapped with the one immediately above/below it while other envelopes maintain their lanes.\line Upwards/downwards movement is cyclic, i.e. if an envelope is pushed past top/bottom lane its movement continues from the oppostite end.\line Reordering only affects active envelopes of the track FX the selected envelope belongs to, as all envelopes of a particular FX are grouped together and envelopes of different FX cannot be mixed while TCP envelopes always precede any FX envelopes and themselves cannot be reordered. Hence the movement is not relative to ALL active/visible track envelopes but only to those of the same FX as the selected envelope.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 https://raw.githubusercontent.com/Buy-One/screenshots/main/Move%20selected%20FX%20envelope%20in%20track%20to%20top_bottom_upwards_downwards.gif\par}
 }
 ]]></description>
         <link rel="screenshot">https://raw.githubusercontent.com/Buy-One/screenshots/main/Move%20selected%20FX%20envelope%20in%20track%20to%20top_bottom_upwards_downwards.gif</link>
@@ -2436,12 +2437,12 @@ Refactored/reorganized the code for readability]]></changelog>
       <version name="1.1" author="BuyOne" time="2022-04-27T13:47:56Z">
         <changelog><![CDATA[#Added swap mode to complement cyclic mode
 #Fixed a bug of respecting hidden envelopes during reordering]]></changelog>
-        <source main="main" file="BuyOne_Move selected FX envelope/BuyOne_Move selected FX envelope in track to top lane.lua">https://github.com/ReaTeam/ReaScripts/raw/982cc104949dee4f8a13c37c491ff7f3c0fa365d/Envelopes/BuyOne_Move%20selected%20FX%20envelope%20in%20track%20to%20top_bottom_upwards_downwards.lua</source>
-        <source main="main" file="BuyOne_Move selected FX envelope/BuyOne_Move selected FX envelope in track to bottom lane.lua">https://github.com/ReaTeam/ReaScripts/raw/982cc104949dee4f8a13c37c491ff7f3c0fa365d/Envelopes/BuyOne_Move%20selected%20FX%20envelope%20in%20track%20to%20top_bottom_upwards_downwards.lua</source>
-        <source main="main" file="BuyOne_Move selected FX envelope/BuyOne_Move selected FX envelope in track up one lane (cycle).lua">https://github.com/ReaTeam/ReaScripts/raw/982cc104949dee4f8a13c37c491ff7f3c0fa365d/Envelopes/BuyOne_Move%20selected%20FX%20envelope%20in%20track%20to%20top_bottom_upwards_downwards.lua</source>
-        <source main="main" file="BuyOne_Move selected FX envelope/BuyOne_Move selected FX envelope in track down one lane (cycle).lua">https://github.com/ReaTeam/ReaScripts/raw/982cc104949dee4f8a13c37c491ff7f3c0fa365d/Envelopes/BuyOne_Move%20selected%20FX%20envelope%20in%20track%20to%20top_bottom_upwards_downwards.lua</source>
-        <source main="main" file="BuyOne_Move selected FX envelope/BuyOne_Move selected FX envelope in track up one lane (swap).lua">https://github.com/ReaTeam/ReaScripts/raw/982cc104949dee4f8a13c37c491ff7f3c0fa365d/Envelopes/BuyOne_Move%20selected%20FX%20envelope%20in%20track%20to%20top_bottom_upwards_downwards.lua</source>
-        <source main="main" file="BuyOne_Move selected FX envelope/BuyOne_Move selected FX envelope in track down one lane (swap).lua">https://github.com/ReaTeam/ReaScripts/raw/982cc104949dee4f8a13c37c491ff7f3c0fa365d/Envelopes/BuyOne_Move%20selected%20FX%20envelope%20in%20track%20to%20top_bottom_upwards_downwards.lua</source>
+        <source main="main" file="BuyOne_Move selected FX envelope/BuyOne_Move selected FX envelope in track to top lane.lua">https://github.com/ReaTeam/ReaScripts/raw/a422f9eda1fb833fbfbdd41d188349c20b20be9e/Envelopes/BuyOne_Move%20selected%20FX%20envelope%20in%20track%20to%20top_bottom_upwards_downwards.lua</source>
+        <source main="main" file="BuyOne_Move selected FX envelope/BuyOne_Move selected FX envelope in track to bottom lane.lua">https://github.com/ReaTeam/ReaScripts/raw/a422f9eda1fb833fbfbdd41d188349c20b20be9e/Envelopes/BuyOne_Move%20selected%20FX%20envelope%20in%20track%20to%20top_bottom_upwards_downwards.lua</source>
+        <source main="main" file="BuyOne_Move selected FX envelope/BuyOne_Move selected FX envelope in track up one lane (cycle).lua">https://github.com/ReaTeam/ReaScripts/raw/a422f9eda1fb833fbfbdd41d188349c20b20be9e/Envelopes/BuyOne_Move%20selected%20FX%20envelope%20in%20track%20to%20top_bottom_upwards_downwards.lua</source>
+        <source main="main" file="BuyOne_Move selected FX envelope/BuyOne_Move selected FX envelope in track down one lane (cycle).lua">https://github.com/ReaTeam/ReaScripts/raw/a422f9eda1fb833fbfbdd41d188349c20b20be9e/Envelopes/BuyOne_Move%20selected%20FX%20envelope%20in%20track%20to%20top_bottom_upwards_downwards.lua</source>
+        <source main="main" file="BuyOne_Move selected FX envelope/BuyOne_Move selected FX envelope in track up one lane (swap).lua">https://github.com/ReaTeam/ReaScripts/raw/a422f9eda1fb833fbfbdd41d188349c20b20be9e/Envelopes/BuyOne_Move%20selected%20FX%20envelope%20in%20track%20to%20top_bottom_upwards_downwards.lua</source>
+        <source main="main" file="BuyOne_Move selected FX envelope/BuyOne_Move selected FX envelope in track down one lane (swap).lua">https://github.com/ReaTeam/ReaScripts/raw/a422f9eda1fb833fbfbdd41d188349c20b20be9e/Envelopes/BuyOne_Move%20selected%20FX%20envelope%20in%20track%20to%20top_bottom_upwards_downwards.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Delete points before or after the edit cursor in selected envelope.lua" type="script" desc="Delete points before or after the edit cursor in selected envelope">
@@ -22080,6 +22081,86 @@ Fix SWS Startup / Lokasenna Radial Menu bug]]></changelog>
       <version name="1.4" author="Tagirijus" time="2021-06-08T17:08:19Z">
         <changelog><![CDATA[I added a compensation for the playback time offset. So now e.g. for a string library it is possible to have some negative time offset so that for quantized notes the strings will be in time, even if they have a slightly slower attack or so. My recording script now understand this playback time offset and compensates recorded MIDI data (which probably will be in sync with the beat during record but not after that anymore, if the time offset exists for the track!).]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/758a48bbcb25579f6ace621eedbe59e5f159017d/Various/tagirijus_Prevent%20item%20extend%20on%20record.lua</source>
+      </version>
+    </reapack>
+    <reapack name="timtam_IntelliFreeze.lua" type="script" desc="IntelliFreeze">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 About The Project\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 With a collaboration on the horizon, I started to check my possible ways to freely share work with others without having to re-import tracks all the time, but also allowing me and my collaborators to use plug-ins that the others don't have. Freezing was deffinetily the way to go, but my templates usually work with multiple levels of track folders and freezing a folder would just create a frozen item and mute all sub-tracks, which would cause various issues for my collaborators. Why not freeze all tracks individually from the get-go?\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Thats exactly how the actions within this script work, they check the currently selected tracks, recursively gather all the sub-tracks that require freezing and freeze them individually bottom-up.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs28 Built With\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://www.lua.org/manual/5.3/"}}{\fldrslt{\ul
+Lua 5.3
+}}}
+\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://reaper.fm"}}{\fldrslt{\ul
+REAPER 6.53 and above (older versions might run as well)
+}}}
+\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Getting Started\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs28 Installation\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs24 ReaPack\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 It is recommended to get the latest stable version from ReaPack by synchronizing your repositories and searching for IntelliFreeze in the package list. This will make sure to add all the available actions to your actions list as well.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs24 Building from source\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs20 Clone\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 If you thus instead want to test the bleeding edge build of this package, clone this repository locally:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \f1 git clone https://github.com/Timtam/IntelliFreeze.git\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Copy the timtam_IntelliFreeze folder into your REAPER's scripts folder afterwards.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 note: make sure to copy the folder directly into your Scripts folder, not in some other sub-folder or a totally different directory to make sure that the scripts work directly.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs20 Adding actions\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Open an empty project within REAPER and open the actions list (shortcut: F4). Now select New Action and Load ReaScript. Make sure to load every timtam_IntelliChords file from within the timtam_IntelliFreeze folder, except the one that is called timtam_IntelliFreeze.lua. That one only contains dependencies and doesn't contain any action.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Usage\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Its as easy as it can get, just select the tracks, folders, whatever you want to freeze within REAPER and run the corresponding action from the actions list. Feel free to bind them to keystrokes if you end up using them often.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Roadmap\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 See the {\field{\*\fldinst{HYPERLINK "https://github.com/Timtam/IntelliFreeze/issues"}}{\fldrslt{\ul
+open issues
+}}}
+ for a list of proposed features (and known issues).\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Contributing\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Contributions are what make the open source community such an amazing place to be learn, inspire, and create. Any contributions you make are {\b greatly appreciated}.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs28 Contribute by coding\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 1.\tx360\tab Fork the Project\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 2.\tx360\tab Create your Feature Branch ({\f1 git checkout -b feature/AmazingFeature})\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 3.\tx360\tab Commit your Changes ({\f1 git commit -m 'Add some AmazingFeature'})\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 4.\tx360\tab Push to the Branch ({\f1 git push origin feature/AmazingFeature})\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 5.\tx360\tab Open a Pull Request\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs28 Contribute by testing\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Feel free to give these scripts a go and see if they fit your workflow. Do you like those scripts, but can think of a way they might become even more useful to you? Feel free to let me know by opening an issue or contacting me via email at {\field{\*\fldinst{HYPERLINK "mailto:software@satoprogs.de"}}{\fldrslt{\ul
+software@satoprogs.de
+}}}
+. Same goes for bugs you might have encountered or new features you'd like to see.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs28 Contribute by paying me a coffee\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Developing takes time and effort and since those scripts are free to use and open-source, I don't get anything out of it except appreciation. Appreciation doesn't pay monthly bills though. If you think those scripts greatly improved your life by helping you with your productivity and workflow, or you simply want to give something back, i'd greatly appreciate a small donation via PayPal to the following link: {\field{\*\fldinst{HYPERLINK "https://paypal.me/ToniRonaldBarth"}}{\fldrslt{\ul
+https://paypal.me/ToniRonaldBarth
+}}}
+ Don't feel obligated though.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 License\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Distributed under the GNU GPL v3 License. See {\f1 LICENSE} for more information.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Contact\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Toni Barth - {\field{\*\fldinst{HYPERLINK "https://twitter.com/GixGax95"}}{\fldrslt{\ul
+@GixGax95
+}}}
+ - software@satoprogs.de\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Project Link: {\field{\*\fldinst{HYPERLINK "https://github.com/Timtam/IntelliFreeze"}}{\fldrslt{\ul
+https://github.com/Timtam/IntelliFreeze
+}}}
+\par}
+}
+]]></description>
+        <link rel="website" href="https://github.com/Timtam/IntelliFreeze">GitHub</link>
+        <link rel="donation" href="https://paypal.me/ToniRonaldBarth">Donate via PayPal</link>
+      </metadata>
+      <version name="1.0" author="Timtam" time="2022-05-02T15:26:17Z">
+        <changelog><![CDATA[initial release]]></changelog>
+        <source main="main" file="timtam_IntelliFreeze/timtam_IntelliFreeze Freeze all selected tracks to mono recursively.lua">https://github.com/ReaTeam/ReaScripts/raw/c6421bcb464a1349d4ab67bde73282f779d26967/Various/timtam_IntelliFreeze/timtam_IntelliFreeze%20Freeze%20all%20selected%20tracks%20to%20mono%20recursively.lua</source>
+        <source main="main" file="timtam_IntelliFreeze/timtam_IntelliFreeze Freeze all selected tracks to multi-channel recursively.lua">https://github.com/ReaTeam/ReaScripts/raw/c6421bcb464a1349d4ab67bde73282f779d26967/Various/timtam_IntelliFreeze/timtam_IntelliFreeze%20Freeze%20all%20selected%20tracks%20to%20multi-channel%20recursively.lua</source>
+        <source main="main" file="timtam_IntelliFreeze/timtam_IntelliFreeze Freeze all selected tracks to stereo recursively.lua">https://github.com/ReaTeam/ReaScripts/raw/c6421bcb464a1349d4ab67bde73282f779d26967/Various/timtam_IntelliFreeze/timtam_IntelliFreeze%20Freeze%20all%20selected%20tracks%20to%20stereo%20recursively.lua</source>
+        <source main="main" file="timtam_IntelliFreeze/timtam_IntelliFreeze Unfreeze all selected tracks recursively.lua">https://github.com/ReaTeam/ReaScripts/raw/c6421bcb464a1349d4ab67bde73282f779d26967/Various/timtam_IntelliFreeze/timtam_IntelliFreeze%20Unfreeze%20all%20selected%20tracks%20recursively.lua</source>
+        <source file="timtam_IntelliFreeze/timtam_IntelliFreeze.lua">https://github.com/ReaTeam/ReaScripts/raw/c6421bcb464a1349d4ab67bde73282f779d26967/Various/timtam_IntelliFreeze/timtam_IntelliFreeze.lua</source>
       </version>
     </reapack>
     <reapack name="tompad_MusicMath.lua" type="script" desc="MusicMath - bpm/pitch to ms/Hz converter">
