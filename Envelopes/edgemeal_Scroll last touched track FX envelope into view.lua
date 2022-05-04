@@ -24,7 +24,7 @@ function Main()
   if not reaper.ValidatePtr(env, 'TrackEnvelope*') then
     return
   else 
-    local br_env = reaper.BR_EnvAlloc(env, true) 
+    local br_env = reaper.BR_EnvAlloc(env, false) 
     local active, visible, armed, inLane, laneHeight, defaultShape, _, _, _, _, faderScaling = reaper.BR_EnvGetProperties(br_env)
     reaper.BR_EnvSetProperties(br_env, true, true, armed, true, laneHeight, defaultShape, faderScaling)
     reaper.BR_EnvFree(br_env, true) 
