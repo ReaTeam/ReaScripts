@@ -1,5 +1,5 @@
 --[[
-ReaScript Name: No project save prompt on quitting
+ReaScript Name: No project Save prompt on quitting
 Author: BuyOne
 Version: 1.0
 Changelog: Initial release
