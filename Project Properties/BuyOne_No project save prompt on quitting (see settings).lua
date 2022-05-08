@@ -21,7 +21,7 @@ About: 	If there're more than 1 project tab open - only closes current tab
 -- project, which is preferable;
 -- insert between the double square brackets.
 
-DUMMY_PROJECT_PATH = [[C:\Users\ME\Desktop\Chords\dummy project.RPP]] 
+DUMMY_PROJECT_PATH = [[]] 
 
 -----------------------------------------------------------------
 --------------- E N D  O F  U S E R  S E T T I N G S ------------
