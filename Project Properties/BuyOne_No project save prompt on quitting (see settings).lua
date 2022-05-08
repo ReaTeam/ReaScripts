@@ -7,10 +7,10 @@ Author URL: https://forum.cockos.com/member.php?u=134058
 Licence: WTFPL
 REAPER: at least v5.962
 About: 	If there're more than 1 project tab open - only closes current tab 
-		    without save prompt. If only 1 project tab is open - quits REAPER 
-		    without save prompt.   
-		    The script will only work if DUMMY_PROJECT_PATH setting in 
-		    USER SETTINGS is configured.
+	without save prompt. If only 1 project tab is open - quits REAPER 
+	without save prompt.   
+	The script will only work if DUMMY_PROJECT_PATH setting in 
+	USER SETTINGS is configured.
 ]]
 
 -----------------------------------------------------------------
