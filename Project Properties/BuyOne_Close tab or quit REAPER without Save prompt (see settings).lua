@@ -18,33 +18,74 @@ About: 	Use instead of the native actions whenever you like to exit
 ]]
 
 -----------------------------------------------------------------
--------------------- U S E R  S E T T I N G S -------------------
+------------------- U S E R  S E T T I N G S --------------------
 -----------------------------------------------------------------
 
--- Dummy project path must point at a valid .RPP file, e.g. empty 
+-- Dummy project path must point at a valid .RPP file, e.g. empty
 -- project, which is preferable;
 -- insert between the double square brackets.
 
-DUMMY_PROJECT_PATH = [[]] 
+DUMMY_PROJECT_PATH = [[C:\Users\ME\Desktop\Chords\dummy project.RPP]]
+
+
+-- To enable the following settings, insert any alphanumeric QWERTY
+-- character between the quotation marks;
+-- if MULTITAB is enabled, closes all tabs but doesn't quit REAPER,
+-- so you end up with an empty project;
+-- if MULTITAB_QUIT is enabled while MULTITAB is ON, quits REAPER
+-- after closing all tabs.
+
+MULTITAB = ""
+MULTITAB_QUIT = "" -- only relevant when MULTITAB is enabled
 
 -----------------------------------------------------------------
---------------- E N D  O F  U S E R  S E T T I N G S ------------
+-------------- E N D  O F  U S E R  S E T T I N G S -------------
 -----------------------------------------------------------------
 
-	if not reaper.file_exists(DUMMY_PROJECT_PATH) then 
+	if not reaper.file_exists(DUMMY_PROJECT_PATH) then
 	local x, y = reaper.GetMousePosition()
 	reaper.TrackCtl_SetToolTip(('\n\n        invalid path \n\n  to the dummy project  \n\n '):upper():gsub('.','%0 '), x, y, true) -- topmost true
 	return reaper.defer(function() do return end end) end
 
-local is_single_tab = not reaper.EnumProjects(1)
-	
+
+function CLOSE()
 reaper.Main_openProject('noprompt:'..DUMMY_PROJECT_PATH)
 reaper.Main_OnCommand(40860, 0) -- Close current project tab
+end
 
-	if is_single_tab -- no 2nd project // meaning only one tab is open
-	then
-	reaper.Main_OnCommand(40004, 0) -- File: Quit REAPER
+MULTITAB = #MULTITAB:gsub(' ','') > 0
+MULTITAB_QUIT = #MULTITAB_QUIT:gsub(' ','') > 0
+
+	if MULTITAB then
+	
+	-- Get proj count
+	local proj_cnt = 0
+		repeat
+		local proj = reaper.EnumProjects(proj_cnt)
+		proj_cnt = proj_cnt+1
+		until not proj
+
+		for i = 1, proj_cnt-1 do -- -1 since the proj_cnt var ends up greater by 1 than the actual proj count due to being incremented before the loop is exited
+		CLOSE()
+		end
+
+		if MULTITAB_QUIT then
+		reaper.Main_OnCommand(40004, 0) -- File: Quit REAPER
+		end
+
+	else
+
+	local is_single_tab = reaper.EnumProjects(1)
+
+	CLOSE()
+
+		if is_single_tab -- no 2nd project // meaning only one tab is open
+		then
+		reaper.Main_OnCommand(40004, 0) -- File: Quit REAPER
+		end
+
 	end
+
 	
 	
 	
