@@ -1,14 +1,18 @@
 --[[
-ReaScript Name: No project Save prompt on quitting
+ReaScript Name: Close tab or quit REAPER without Save prompt
 Author: BuyOne
 Version: 1.0
 Changelog: Initial release
 Author URL: https://forum.cockos.com/member.php?u=134058
 Licence: WTFPL
 REAPER: at least v5.962
-About: 	If there're more than 1 project tab open - only closes current tab 
+About: 	Use instead of the native actions whenever you like to exit  
+	without dealing with the project save prompt.  
+		
+	If there're more than 1 project tab open - only closes current tab 
 	without save prompt. If only 1 project tab is open - quits REAPER 
 	without save prompt.   
+
 	The script will only work if DUMMY_PROJECT_PATH setting in 
 	USER SETTINGS is configured.
 ]]
