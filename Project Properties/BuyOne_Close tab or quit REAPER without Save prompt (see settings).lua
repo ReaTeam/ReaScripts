@@ -10,8 +10,8 @@ About: 	Use instead of the native actions whenever you like to exit
 	without dealing with the project save prompt.  
 		
 	By default if there're more than 1 project tab open - only 
-	closes current tab without save prompt. If only 1 project tab 
-	is open - quits REAPER without save prompt.  
+	closes current tab without the save prompt. If only 1 project 
+	tab is open - quits REAPER without the save prompt.  
 	To be able to close multiple tabs without the save prompt 
 	enable MULTITAB in the USER SETTINGS.
 
