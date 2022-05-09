@@ -75,7 +75,7 @@ MULTITAB_QUIT = #MULTITAB_QUIT:gsub(' ','') > 0
 
 	else
 
-	local is_single_tab = reaper.EnumProjects(1)
+	local is_single_tab = not reaper.EnumProjects(1)
 
 	CLOSE()
 
