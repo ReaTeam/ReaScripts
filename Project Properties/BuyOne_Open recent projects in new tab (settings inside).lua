@@ -2,13 +2,18 @@
 ReaScript name: Open recent projects in new tab
 Author: BuyOne
 Website: https://forum.cockos.com/member.php?u=134058
-Version: 1.1
-Changelog: #Fixed bug preventing loading in a new tab an already open project
-	   #Improved undo point handling when error
-	   #Added a setting to only list valid projects
+Version: 1.2
+Changelog: 	#Added support for display of project title instead 
+			of project path or file name, if set in Project settings -> Notes
 Licence: WTFPL
 REAPER: at least v5.962
 About: 
+	An alternative to REAPER's native 'Recent projects menu' capable 
+	of opening recent projects in a new tab, which in my opinion should 
+	be a native feature and has been requested a couple of times:
+	https://forum.cockos.com/showthread.php?t=113259 (2012)
+	https://forum.cockos.com/showthread.php?t=249615 (2021)
+	----------------------------------------------------------
 	An alternative to REAPER's native 'Recent projects menu' capable 
 	of opening recent projects in a new tab, desisgned before a
 	native option was added in build 6.43:   
@@ -34,16 +39,28 @@ About:
 -- To enable a setting insert any QWERTY alphanumeric character between
 -- the quotation marks.
 
--- Enable to have the menu only list valid (loadable) projects
-VALID_PROJECTS_ONLY = ""
-
--- Enable to have the menu only display project names without the path
--- and the extension;
--- the max number of projects in the recent project list still depends on
--- the setting at Preferences -> General -> Maximum projects in recent project list:
--- the script doesn't allow removing invalid entries from the list.
+-- Enable to have the menu only display project file names instead of paths;
+-- the feature is supported natively since build 6.57;
+-- the max number of projects in the recent project list still depends 
+-- on the setting at:  
+-- Preferences -> General -> Maximum projects in recent project list:
 
 PROJECT_NAMES_ONLY = ""
+
+-- Enable to make the list display titles of projects set at:
+-- File -> Project settings... -> Notes -> Title;
+-- only relevant if PROJECT_NAMES_ONLY setting is enabled;
+-- if a project has no title its file name is displayed instead;
+-- the feature is supported natively since build 6.57.
+
+PROJECT_TITLES = ""
+
+
+-- Enable to have the menu only list valid (loadable) projects
+-- since the script doesn't allow removing invalid entries from the list
+-- as long as they're present in reaper.ini file.
+
+VALID_PROJECTS_ONLY = ""
 
 -----------------------------------------------------------------------------
 -------------------------- END OF USER SETTINGS -----------------------------
@@ -57,9 +74,42 @@ end
 
 local r = reaper
 
+
 function validate_sett(sett) -- can be either a non-empty string or a number
 return type(sett) == 'string' and #sett:gsub(' ','') > 0 or type(sett) == 'number'
 end
+
+function get_proj_title(projpath)
+
+	local function get_from_file(projpath)
+	local f = io.open(projpath,'r')
+	local cont = f:read('a*')
+	f:close()
+	return cont:match('TITLE "?(.-)"?\n') -- quotation marks only if there're spaces in the title
+	end
+	
+local proj_title, retval
+
+local i = 0
+	repeat
+	local ret, projfn = r.EnumProjects(i) -- find if the project is open in a tab
+		if projfn == projpath then retval = ret break end	
+	i = i+1
+	until not ret
+	if retval then -- the project is open in a tab
+		if tonumber(r.GetAppVersion():match('(.+)/')) >= 6.43 then -- if can be retrieved via API regardless of being saved to the project file // API for getting title was added in 6.43
+		retval, proj_title = r.GetSetProjectInfo_String(retval, 'PROJECT_TITLE', '', false) -- is_set false // retval is a proj pointer, not an index
+		else -- retrieve from file which in theory may be different from the latest title in case the project hasn't been saved
+		proj_title = get_from_file(projpath)
+		end
+	else
+	proj_title = get_from_file(projpath)
+	end
+	
+	return proj_title and proj_title:match('[%w]+') and proj_title -- if there're any alphanumeric chars // proj_title can be nil when extracted from .RPP file because without the title there's no TITLE key, if returned by the API function it's an empty string, when getting, retval is useless because it's always true unless the attribute, i.e. 'PROJECT_TITLE', is an empty string or invalid 
+	
+end
+
 
 VALID_PROJECTS_ONLY = validate_sett(VALID_PROJECTS_ONLY)
 
@@ -80,26 +130,25 @@ local t = {}
 	end
 
 
--- in reaper.ini recent projects are listed in descending order, thus table should be reordered
-
 PROJECT_NAMES_ONLY = validate_sett(PROJECT_NAMES_ONLY)
+PROJECT_TITLES = validate_sett(PROJECT_TITLES)
 
 local _, projfn = r.EnumProjects(-1) -- OR r.GetProjectPath('')..r.GetProjectPath(''):match('[\\/]')..r.GetProjectName(0,'')
 
+
 local recent_proj_t = {}
 local menu_t = {}
-	for i = #t,1,-1 do
+	for i = #t,1,-1 do -- in reaper.ini recent projects are listed in descending order, thus table should be reordered
 	recent_proj_t[#recent_proj_t+1] = t[i] == projfn and '!'..t[i] or t[i] -- adding checkmark to the menu item of the currently open project
 		if PROJECT_NAMES_ONLY then
-		local name = t[i]:match('.+[\\/](.-)%.[RrPp]+') -- strip away path and extension
+		local name = PROJECT_TITLES and get_proj_title(t[i]) or t[i]:match('.+[\\/](.-)%.[RrPp]+') -- if not title, strip away path and extension
 		menu_t[#menu_t+1] = t[i] == projfn and '!'..name or name -- adding checkmark to the menu item of the currently open project
 		end
 	end
 
+	
 local menu_t = #menu_t == 0 and recent_proj_t or menu_t -- if PROJECT_NAMES_ONLY is not ON, display full paths in the menu
 
-
-Msg(#recent_proj_t)
 
 gfx.init('', 1, 1)
 
