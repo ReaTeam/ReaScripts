@@ -3,17 +3,11 @@ ReaScript name: Open recent projects in new tab
 Author: BuyOne
 Website: https://forum.cockos.com/member.php?u=134058
 Version: 1.2
-Changelog: 	#Added support for display of project title instead 
-			of project path or file name, if set in Project settings -> Notes
+Changelog: #Added support for display of project title instead 
+	   of project path or file name, if set in Project settings -> Notes
 Licence: WTFPL
 REAPER: at least v5.962
 About: 
-	An alternative to REAPER's native 'Recent projects menu' capable 
-	of opening recent projects in a new tab, which in my opinion should 
-	be a native feature and has been requested a couple of times:
-	https://forum.cockos.com/showthread.php?t=113259 (2012)
-	https://forum.cockos.com/showthread.php?t=249615 (2021)
-	----------------------------------------------------------
 	An alternative to REAPER's native 'Recent projects menu' capable 
 	of opening recent projects in a new tab, desisgned before a
 	native option was added in build 6.43:   
