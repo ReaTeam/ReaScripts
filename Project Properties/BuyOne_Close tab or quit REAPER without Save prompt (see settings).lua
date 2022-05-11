@@ -23,11 +23,14 @@ About: 	Use instead of the native actions whenever you like to exit
 ------------------- U S E R  S E T T I N G S --------------------
 -----------------------------------------------------------------
 
--- Dummy project path must point at a valid .RPP file, e.g. empty
--- project, which is preferable;
+-- Dummy project path must be a full path to a valid .RPP file, 
+-- such as an empty project, which is preferable, e.g.
+-- C:\REAPER\ProjectTemplates\my_dummy_project.RPP
+-- it can point at whatever location on your hard drive as long 
+-- as it's valid;
 -- insert between the double square brackets.
 
-DUMMY_PROJECT_PATH = [[C:\Users\ME\Desktop\Chords\dummy project.RPP]]
+DUMMY_PROJECT_PATH = [[]]
 
 
 -- To enable the following settings, insert any alphanumeric QWERTY
