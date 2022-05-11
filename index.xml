@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="b1c5ba4d4b889b47d3cf6d8923d9a0fb7eb940fb" name="ReaTeam Scripts">
+<index version="1" commit="7a8b980919e0e5b859ab0d7a92cce47e90786ff7" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -17062,7 +17062,7 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
 \widowctrl\hyphauto
 
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Creates an impulse response (IR) of the FX Chain of the first selected track.\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Mono or Stereo IR creation\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Mono/Stereo/Multichannel IR creation\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Browse for path and filename\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Normalize to maximum peak value\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Trim trailing silence below set threshold\par}
@@ -17070,7 +17070,8 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Insert file in Project\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Load created IR in Reaverb and bypass the other FX in track\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Set default values inside the script\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Requires JS_ReaScriptAPI extension and Lokasenna GUI v2 libary\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Remembers last applied settings\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Requires JS_ReaScriptAPI, SWS and Lokasenna GUI v2 libary\sa180\par}
 }
 ]]></description>
         <link rel="website">https://forum.cockos.com/showthread.php?t=234517</link>
@@ -17148,6 +17149,11 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
         <changelog><![CDATA[- Multi-channel support
 - Make sure the IR is inserted exactly at the edit cursor position, if it was requested to be inserted to the project ]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/506c1292cef2cadf6a7e7b41880e9ca8c568e7ed/Various/amagalma_Create%20Impulse%20Response%20(IR)%20of%20the%20FX%20chain%20of%20the%20selected%20track.lua</source>
+      </version>
+      <version name="2.12" author="amagalma" time="2022-05-11T13:40:01Z">
+        <changelog><![CDATA[- Remember last applied settings per session
+- Always keep edit cursor position]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/7a8b980919e0e5b859ab0d7a92cce47e90786ff7/Various/amagalma_Create%20Impulse%20Response%20(IR)%20of%20the%20FX%20chain%20of%20the%20selected%20track.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Distinguish visually the ripple editing modes.lua" type="script" desc="Distinguish visually the ripple editing modes">
