@@ -1,14 +1,14 @@
 -- @description Create Impulse Response (IR) of the FX Chain of the selected Track
 -- @author amagalma
--- @version 2.10
+-- @version 2.12
 -- @changelog
---   - Multi-channel support
---   - Make sure the IR is inserted exactly at the edit cursor position, if it was requested to be inserted to the project 
+--   - Remember last applied settings per session
+--   - Always keep edit cursor position
 -- @donation https://www.paypal.me/amagalma
 -- @link https://forum.cockos.com/showthread.php?t=234517
 -- @about
 --   # Creates an impulse response (IR) of the FX Chain of the first selected track.
---   - Mono or Stereo IR creation
+--   - Mono/Stereo/Multichannel IR creation
 --   - Browse for path and filename
 --   - Normalize to maximum peak value
 --   - Trim trailing silence below set threshold
@@ -16,16 +16,17 @@
 --   - Insert file in Project
 --   - Load created IR in Reaverb and bypass the other FX in track
 --   - Set default values inside the script
---   - Requires JS_ReaScriptAPI extension and Lokasenna GUI v2 libary
+--   - Remembers last applied settings
+--   - Requires JS_ReaScriptAPI, SWS and Lokasenna GUI v2 libary
 
 -- Thanks to EUGEN27771, spk77, X-Raym, Lokasenna
 
-local version = "2.10"
+local version = "2.12"
 --------------------------------------------------------------------------------------------
 
 
 -- ENTER HERE DEFAULT VALUES:
-local Max_IR_Lenght = 5 -- Seconds
+local Max_IR_Length = 5 -- Seconds
 local Normalize_Peak = -0.3 -- (must be less than 0)
 local Normalize_Enable = 1 -- (1 = enabled, 0 = disabled)
 local Trim_Silence_Below = -100 -- (must be less than -60)
@@ -54,7 +55,7 @@ local IR_Path = proj_path
 -- Initialize Variables
 local IR_name = "IR"
 local IR_FullPath = IR_Path .. IR_name
-local IR_len, peak_normalize = Max_IR_Lenght, Normalize_Peak
+local IR_len, peak_normalize = Max_IR_Length, Normalize_Peak
 local trim, channels = Trim_Silence_Below, Number_of_Channels
 local max_pre_ringing_samples_val = 4096 -- samples
 local pre_ringing_threshold = -96 -- db
@@ -403,8 +404,8 @@ function CreateIR()
   
   IR_len = tonumber(GUI.Val("Length"))
   if not IR_len or IR_len <= 0 then
-    Msg("Length value must be above 0. Using default value: " .. Max_IR_Lenght)
-    IR_len = Max_IR_Lenght
+    Msg("Length value must be above 0. Using default value: " .. Max_IR_Length)
+    IR_len = Max_IR_Length
   end
   
   peak_normalize = tonumber(GUI.Val("Normalize"))
@@ -612,7 +613,6 @@ function CreateIR()
     reaper.Main_OnCommand(41858, 0) -- Item: Set item name from active take filename
     reaper.Main_OnCommand(40441, 0) -- Peaks: Rebuild peaks for selected items
     reaper.SetMediaItemInfo_Value( item, "D_POSITION", cur_pos )
-    reaper.SetEditCurPos( cur_pos, false, false )
     Msg("IR was inserted in Project")
   else
     local ok = reaper.DeleteTrackMediaItem( track, item )
@@ -680,6 +680,7 @@ function CreateIR()
   
   -- Create Undo
   reaper.Main_OnCommand(reaper.NamedCommandLookup('_SWS_RESTOREVIEW'), 0) -- SWS: Restore arrange view, slot 1
+  reaper.SetEditCurPos( cur_pos, false, false )
   reaper.PreventUIRefresh( -1 )
   reaper.Undo_EndBlock( "Create IR of FX Chain of selected track", 2|4 )
   reaper.UpdateArrange()
@@ -696,6 +697,11 @@ function CreateIR()
     Msg("\n\nCreated IR:\n-- " .. IR_FullPath .. " --\n\n")
     Msg("Script ended with no problems\n==============================\n")
   end
+  
+  -- Save Settings
+  reaper.SetExtState( "amagalma_CreateIR", "settings", string.format('%s;%f;%i;%f;%f;%i;%i;%i;%i;%i',
+  IR_Path, IR_len, channels, peak_normalize, trim, Normalize_Enable and 1 or 0, Trim_Silence_Enable and 1 or 0,
+  Locate_In_Explorer and 1 or 0, Insert_In_Project and 1 or 0, Load_in_Reaverb and 1 or 0), false )
   
 end
 
@@ -915,7 +921,7 @@ GUI.New("Channels", "Menubox", {
     pad = 5,
     noarrow = false,
     align = 1,
-    tooltip = "Choose to create Mono or Stereo IR"
+    tooltip = "Choose number of channels for the IR"
 })
 
 temp = nil
@@ -970,15 +976,31 @@ GUI.New("Create", "Button", {
     func = CreateIR
 })
 
+
+-- Load previous settings
+if reaper.HasExtState( "amagalma_CreateIR", "settings" ) then
+  local settings = reaper.GetExtState( "amagalma_CreateIR", "settings" )
+  local s, c = {}, 0
+  for val in settings:gmatch("[^;]+") do
+    c = c + 1
+    s[c] = c ~= 1 and tonumber(val) or val
+  end
+  if c == 10 then
+    IR_Path, IR_len, channels, peak_normalize, trim, Normalize_Enable, Trim_Silence_Enable,
+    Locate_In_Explorer, Insert_In_Project, Load_in_Reaverb =
+      s[1], s[2], s[3], s[4], s[5], s[6], s[7], s[8], s[9], s[10]
+  end
+end
+
 -- Set default values
-IR_FullPath = proj_path .. tr_name
-IR_Path, IR_name = proj_path, tr_name
+IR_Path, IR_name = IR_Path or proj_path, tr_name
+IR_FullPath = IR_Path .. tr_name
 GUI.Val("Name", tr_name)
-GUI.Val("Length", Max_IR_Lenght)
-GUI.Val("Normalize", Normalize_Peak)
-GUI.Val("Trim", Trim_Silence_Below)
+GUI.Val("Length", IR_len)
+GUI.Val("Normalize", peak_normalize)
+GUI.Val("Trim", trim)
 GUI.Val("NormTrim", {Normalize_Enable == 1, Trim_Silence_Enable == 1} )
-GUI.Val("Channels", Number_of_Channels)
+GUI.Val("Channels", channels)
 GUI.Val("Options", {Locate_In_Explorer == 1, Insert_In_Project == 1, Load_in_Reaverb == 1})
 GUI.onresize = force_size
 GUI.func = MyFunction
