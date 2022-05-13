@@ -1,12 +1,7 @@
 -- @description Track name groups
 -- @author Rodilab
--- @version 1.41
--- @changelog
---   - "Auto-remove empty tags" option
---   - Fix multiple project tabs bug
---   - New key modifiers (right-click on buttons to more info)
---   - First right click give window focus
---   - Add "Track name ends with the tag" option
+-- @version 1.41.1
+-- @changelog Enable ReaImGui backward-compatibility module
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=255223
 -- @donation Donate via PayPal https://www.paypal.com/donate?hosted_button_id=N5DUAELFWX4DC
 -- @about
@@ -21,6 +16,9 @@
 --   - Drag and drop name buttons to move tracks
 --   - Buttons are automatically reordered according to the order of the tracks in the session
 --   - Buttons take the color of first track found
+
+local imgui_compat = reaper.GetResourcePath() .. '/Scripts/ReaTeam Extensions/API/imgui.lua'
+if reaper.file_exists(imgui_compat) then dofile(imgui_compat)('0.6') end
 
 r = reaper
 script_name = 'Track name groups'

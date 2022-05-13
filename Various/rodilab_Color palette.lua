@@ -1,9 +1,7 @@
 -- @description Color palette
 -- @author Rodilab
--- @version 2.10
--- @changelog
---   - Minor code improvement
---   - Fix popup window position
+-- @version 2.10.1
+-- @changelog ReaImGui v0.7 compatibility
 -- @provides
 --   [data] rodilab_Color palette/color_palette_arm.cur
 --   [data] rodilab_Color palette/color_palette_arm_insert.cur
@@ -61,6 +59,9 @@
 --   - Many settings...
 --
 --   by Rodrigo Diaz (aka Rodilab)
+
+local imgui_compat = reaper.GetResourcePath() .. '/Scripts/ReaTeam Extensions/API/imgui.lua'
+if reaper.file_exists(imgui_compat) then dofile(imgui_compat)('0.6') end
 
 r = reaper
 script_name = "Color palette"

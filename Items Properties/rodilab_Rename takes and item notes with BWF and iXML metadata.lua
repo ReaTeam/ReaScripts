@@ -1,7 +1,7 @@
 -- @description Rename takes and item notes with BWF and iXML metadata
 -- @author Rodilab
--- @version 2.0
--- @changelog New ReaImGui interface
+-- @version 2.0.1
+-- @changelog Enable ReaImGui backward-compatibility module
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=250505
 -- @donation Donate via PayPal https://www.paypal.com/donate?hosted_button_id=N5DUAELFWX4DC
 -- @about
@@ -11,6 +11,9 @@
 --   $bitdepth, $chnl, $circled, $date, $falsestart, $fileindex, $filename, $filetyp, $nogood, $note, $originator, $originatorref, $project, $reaname, $reaproject, $reatrack, $samplerate, $scene, $speed, $startoffsset, $tag, $take, $taketyp, $tape, $tcstart, $time, $timeref, $totalfiles, $trackcount, $trackname, $ubits, $wildtrack
 --
 --   by Rodrigo Diaz (aka Rodilab)
+
+local imgui_compat = reaper.GetResourcePath() .. '/Scripts/ReaTeam Extensions/API/imgui.lua'
+if reaper.file_exists(imgui_compat) then dofile(imgui_compat)('0.6') end
 
 r = reaper
 script_name = 'Rename takes and item notes with BWF and iXML metadata'
