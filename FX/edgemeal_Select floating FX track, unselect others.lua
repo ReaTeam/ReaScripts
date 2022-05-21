@@ -2,6 +2,8 @@
 -- @author Edgemeal
 -- @version 1.00
 -- @donation Donate via PayPal https://www.paypal.me/Edgemeal
+-- @about
+-- Select track of focused floating FX and unselects all other tracks.
 
 local prev_fgw = nil
 
