@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="7a8b980919e0e5b859ab0d7a92cce47e90786ff7" name="ReaTeam Scripts">
+<index version="1" commit="5efb494f57b6c0968c16867ac564cac274fefcc9" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -13049,6 +13049,23 @@ enter or a = Exit and apply changes\par}
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/2bf17e9b17744d686b1e57c50ec024ab5fbbb5d9/Project%20Properties/BenjyO_Set%20measure%201%20to%20current%20edit%20cursor%20position%20(rounded).lua</source>
       </version>
     </reapack>
+    <reapack name="BuyOne_Close tab or quit REAPER without Save prompt (see settings).lua" type="script" desc="Close tab or quit REAPER without Save prompt">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Use instead of the native actions whenever you like to exit without dealing with the project save prompt.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 By default if there're more than 1 project tab open - only closes current tab without the save prompt. If only 1 project tab is open - quits REAPER without the save prompt.\line To be able to close multiple tabs without the save prompt enable MULTITAB in the USER SETTINGS.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The script will only work if DUMMY_PROJECT_PATH setting in USER SETTINGS is configured.\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="BuyOne" time="2022-05-22T01:16:16Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/5efb494f57b6c0968c16867ac564cac274fefcc9/Project%20Properties/BuyOne_Close%20tab%20or%20quit%20REAPER%20without%20Save%20prompt%20(see%20settings).lua</source>
+      </version>
+    </reapack>
     <reapack name="BuyOne_Export project tabs and import from dump (settings inside).lua" type="script" desc="Export project tabs and import from dump">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
@@ -13109,6 +13126,11 @@ enter or a = Exit and apply changes\par}
 #Improved undo point handling when error
 #Added a setting to only list valid projects]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b4eae35b4aeb46af1e81c83d0e69578d23d7a99e/Project%20Properties/BuyOne_Open%20recent%20projects%20in%20new%20tab%20(settings%20inside).lua</source>
+      </version>
+      <version name="1.2" author="BuyOne" time="2022-05-22T01:15:54Z">
+        <changelog><![CDATA[#Added support for display of project title instead
+of project path or file name, if set in Project settings -> Notes]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d067c4d59c8b826aa6262aa7e52edd0ddcf9deae/Project%20Properties/BuyOne_Open%20recent%20projects%20in%20new%20tab%20(settings%20inside).lua</source>
       </version>
     </reapack>
     <reapack name="BuyOne_Save-Load window set #1-10 with Mixer scroll position.lua" type="script" desc="Save-Load window set #1-10 with Mixer scroll position (10 scripts)">
