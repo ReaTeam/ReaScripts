@@ -168,7 +168,7 @@ return str:gsub('.', '%0 ')
 end
 
 function Note_Format_Check(note)
--- note is eighter whole 1,2,3 etc or fractional 1/2, 3/4, 7/12 etc
+-- note is either whole 1,2,3 etc or fractional 1/2, 3/4, 7/12 etc
 	for i = 1, 8 do
 	local denom = 2^i -- straight note value in all major note divisions is a power of 2
 	local straight = tostring(denom):match('(.+)%.') -- truncating decimal 0 with string function
