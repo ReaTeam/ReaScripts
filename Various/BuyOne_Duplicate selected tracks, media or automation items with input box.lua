@@ -172,7 +172,7 @@ function Note_Format_Check(note)
 	for i = 1, 8 do
 	local denom = 2^i -- straight note value in all major note divisions is a power of 2
 	local straight = tostring(denom):match('(.+)%.') -- truncating decimal 0 with string function
-	local triplet = tostring(denom+denom/2):match('(.+)%.') -- a triplet note length is a quotient of 1 bar division by straght note length + its half: 1/3 = 1/2 + 1; 1/6 = 1/4 + 2; 1/12 = 1/8 + 4; 1/24 = 1/16 + 8; 1/48 = 1/32 + 16; 1/96 = 1/64 + 32
+	local triplet = tostring(denom+denom/2):match('(.+)%.') -- a triplet note denominator is a sum of straight note denominator + half of the straight note denominator: 1/3 = 1/2 + 1; 1/6 = 1/4 + 2; 1/12 = 1/8 + 4; 1/24 = 1/16 + 8; 1/48 = 1/32 + 16; 1/96 = 1/64 + 32
 		if note:match('%-?%d+/'..straight) or note:match('%-?%d+/'..triplet)
 		or tonumber(note) and tonumber(note) == math.floor(tonumber(note)) -- whole
 		then
