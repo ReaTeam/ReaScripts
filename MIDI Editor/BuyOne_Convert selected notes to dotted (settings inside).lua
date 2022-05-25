@@ -132,7 +132,7 @@ r.Undo_BeginBlock()
 		local endppq_new = r.MIDI_GetPPQPosFromProjQN(take, endQN_new)
 		local overlap_pre = endppq_prev and endppq_prev > startppq
 		local overlap_post = startppq_new and startppq_new > startppq
-		local startppq, endppq_new = table.unpack(not overlap_pre and overlap_post and {startppq_new, endppq_new + startppq_new - startppq} or {startppq, endppq_new}) -- depending on CORRECT_OVERLAPPING_DIFF_PITCH option 
+		local startppq, endppq_new = table.unpack(not overlap_pre and overlap_post and {startppq_new, endppq_new + startppq_new - startppq} or {startppq, endppq_new}) -- depending on CORRECT_OVERLAPPING_DIFF_PITCH setting
 		r.MIDI_SetNote(take, i, x, x, startppq, endppq_new, x, x, x, true) -- noSortIn true	
 			if CORRECT_OVERLAPPING_DIFF_PITCH then -- store for the next cycle
 			startppq_new = endppq_new
