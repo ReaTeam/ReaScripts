@@ -21,8 +21,8 @@ Provides: [main=midi_editor,midi_inlineeditor] .
 -- it were regular straight note
 ROUND_NOTE_DURATION = "" 
 
--- If converted notes of different pitches happen to overlap each other 
--- as a result, nudge next one forward
+-- If converted notes of different pitches which weren't initially overlapping
+-- end up overlapping each other as a result, nudge next one forward
 CORRECT_OVERLAPPING_DIFF_PITCH = ""
 
 -- Correct overlapping notes of the same pitch
@@ -130,9 +130,14 @@ r.Undo_BeginBlock()
 		local noteQN_dur_new = noteQN_dur*1.5 -- without rounding doesn't take into account musical length of the note and simply lengthens it by 50%
 		local endQN_new = startQN + noteQN_dur_new
 		local endppq_new = r.MIDI_GetPPQPosFromProjQN(take, endQN_new)
-		local startppq, endppq_new = table.unpack(startppq_new and startppq_new > startppq and {startppq_new, endppq_new + startppq_new - startppq} or {startppq, endppq_new}) -- depending on CORRECT_OVERLAPPING_DIFF_PITCH option 
+		local overlap_pre = endppq_prev and endppq_prev > startppq
+		local overlap_post = startppq_new and startppq_new > startppq
+		local startppq, endppq_new = table.unpack(not overlap_pre and overlap_post and {startppq_new, endppq_new + startppq_new - startppq} or {startppq, endppq_new}) -- depending on CORRECT_OVERLAPPING_DIFF_PITCH option 
 		r.MIDI_SetNote(take, i, x, x, startppq, endppq_new, x, x, x, true) -- noSortIn true	
-			if CORRECT_OVERLAPPING_DIFF_PITCH then startppq_new = endppq_new end -- store for the next cycle
+			if CORRECT_OVERLAPPING_DIFF_PITCH then -- store for the next cycle
+			startppq_new = endppq_new
+			endppq_prev = endppq
+			end 
 		end
 	end
 
