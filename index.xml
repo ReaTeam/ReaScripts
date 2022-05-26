@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="742a3b333162b8c403fe624ce2d34998bd02333d" name="ReaTeam Scripts">
+<index version="1" commit="bc3a794d464fe6b895cc7b7f2a9457f58892ba09" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -16207,6 +16207,20 @@ Fix: More descriptive error message if valid settings aren't found]]></changelog
       <version name="1.5.1" author="Lokasenna" time="2019-09-07T16:14:32Z">
         <changelog><![CDATA[Fix: Expand error message when the library is missing]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4f93a8a4f1a0b8e057496213b6543d941bb252e2/Tracks%20Properties/Lokasenna_Show%20only%20specified%20tracks.lua</source>
+      </version>
+    </reapack>
+    <reapack name="manup_SendBox.lua" type="script" desc="SendBox">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Allows to create sends/receives using a cubase-like track searchbox\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="manup" time="2022-05-26T16:56:02Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/bc3a794d464fe6b895cc7b7f2a9457f58892ba09/Tracks%20Properties/manup_SendBox.lua</source>
       </version>
     </reapack>
     <reapack name="Mordi_Insert new track (inherit color from parent).lua" type="script" desc="Insert new track (inherit color from parent)">
