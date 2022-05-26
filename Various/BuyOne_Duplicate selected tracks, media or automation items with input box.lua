@@ -106,7 +106,7 @@ From 1/256th (the finest grid division REAPER supports), including triplets, to 
 
 The fraction numerator can be greater than 1 and greater than the denominator, which is useful when a distance longer than 1 note division is required or when a whole note needs to be extended, e.g. 10/16, 5/12, 3/2 is 1.5 notes, 5/2 is 2.5 notes, 4/3 is 1 + 1/3 notes (a whole + 1/2 triplet), 5/3 is 1 + 2/3 notes (a whole + two 1/2 triplets).
 
-Length of a dotted note is equivalent to the length of 3 notes of a smaller division, e.g. 1 dotted = 3/2, 1/2 dotted = 3/4, 1/4 dotted = 3/8 etc. To combibe several dotted notes multiply the nominator by the number of such notes, e.g. 9/2 = 3 dotted whole notes (3 x 3/2), 12/4 = 4 dotted half notes (3 x 3/4), 6/8 = 2 dotted quarter notes (2 x 3/8). To append dotted notes to whole notes: 1 whole note + 1/2 dotted = 4/4 + 3/4 = 7/4, 2 whole notes + three 1/16 dotted = 64/32 + 3 x 3/32 = 64/32 + 9/32 = 73/32.
+Length of a dotted note is equivalent to the length of 3 notes of a smaller division, e.g. 1 dotted = 3/2, 1/2 dotted = 3/4, 1/4 dotted = 3/8 etc. To combine several dotted notes multiply the nominator by the number of such notes, e.g. 9/2 = 3 dotted whole notes (3 x 3/2), 12/4 = 4 dotted half notes (4 x 3/4), 6/8 = 2 dotted quarter notes (2 x 3/8). To append dotted notes to whole notes: 1 whole note + 1/2 dotted = 4/4 + 3/4 = 7/4, 2 whole notes + three 1/16 dotted = 64/32 + 3 x 3/32 = 64/32 + 9/32 = 73/32.
 
 
 
@@ -168,11 +168,11 @@ return str:gsub('.', '%0 ')
 end
 
 function Note_Format_Check(note)
--- note is eighter whole 1,2,3 etc or fractional 1/2, 3/4, 7/12 etc
+-- note is either whole 1,2,3 etc or fractional 1/2, 3/4, 7/12 etc
 	for i = 1, 8 do
 	local denom = 2^i -- straight note value in all major note divisions is a power of 2
 	local straight = tostring(denom):match('(.+)%.') -- truncating decimal 0 with string function
-	local triplet = tostring(denom+denom/2):match('(.+)%.') -- a triplet note length is a quotient of 1 bar division by straght note length + its half: 1/3 = 1/2 + 1; 1/6 = 1/4 + 2; 1/12 = 1/8 + 4; 1/24 = 1/16 + 8; 1/48 = 1/32 + 16; 1/96 = 1/64 + 32
+	local triplet = tostring(denom+denom/2):match('(.+)%.') -- a triplet note denominator is a sum of straight note denominator + half of the straight note denominator: 1/3 = 1/2 + 1; 1/6 = 1/4 + 2; 1/12 = 1/8 + 4; 1/24 = 1/16 + 8; 1/48 = 1/32 + 16; 1/96 = 1/64 + 32
 		if note:match('%-?%d+/'..straight) or note:match('%-?%d+/'..triplet)
 		or tonumber(note) and tonumber(note) == math.floor(tonumber(note)) -- whole
 		then
