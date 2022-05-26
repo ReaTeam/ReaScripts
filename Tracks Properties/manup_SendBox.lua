@@ -1,16 +1,20 @@
 -- @description SendBox
 -- @author manup
--- @version 1.0
--- @about Allows to create sends/receives using a cubase-like track searchbox
+-- @version 1.1
+-- @changelog
+--   Added track color box to the left of search results
+--   Added send position selector (PostFader, PreFader, PostFX)
+-- @about Allows to create sends/receives using a Cubase-like track Searchbox.
 
--- manup-SendBox 1.0
+-- manup-SendBox 1.1
 -- Author : Manup (smandrap)
 -- License: GNU GPL v3
--- Thanks to: cfillion for ReaImGui and for helping with code for the track tree
+-- Thanks to: 
+        -- cfillion for ReaImGui and for helping with code for the track tree, submission to ReaPack, and helping a lot in general.
+        -- X-Raym for helping and giving great ideas
 
 local r = reaper
 
--- INIT TEMPLATE
 local function init()
 
     local function api_check()
@@ -86,6 +90,7 @@ local GuiData = {
 }
 
 local mode = 0 -- 0 = send, 1 = receive
+local send_position = 0 -- 0 = post-fader, 1= pre-FX, 3 = post-FX
 
 local dst_channel = 0
 local src_channels = {}
@@ -159,6 +164,7 @@ local function StartSendCreation()
 
                     r.BR_GetSetTrackSendInfo(current, 0, send_idx, 'I_SRCCHAN', true, src)
                     r.BR_GetSetTrackSendInfo(current, 0, send_idx, 'I_DSTCHAN', true, dst_channel)
+                    r.BR_GetSetTrackSendInfo(current, 0, send_idx, 'I_SENDMODE', true, send_position)
                 end
             else
                 -- RECEIVE MODE
@@ -171,6 +177,7 @@ local function StartSendCreation()
 
                     r.BR_GetSetTrackSendInfo(dest, 0, send_idx, 'I_SRCCHAN', true, src)
                     r.BR_GetSetTrackSendInfo(dest, 0, send_idx, 'I_DSTCHAN', true, dst_channel)
+                    r.BR_GetSetTrackSendInfo(dest, 0, send_idx, 'I_SENDMODE', true, send_position)
 
                 end
             end
@@ -242,6 +249,22 @@ local function GUI_DrawMenuBar()
             mode = 1
         end
 
+        r.ImGui_Separator(GuiData.ctx)
+
+        r.ImGui_MenuItem(GuiData.ctx, 'Post-Fader', nil, send_position == 0, true)
+        if r.ImGui_IsItemClicked(GuiData.ctx) then
+            send_position = 0
+        end
+        r.ImGui_MenuItem(GuiData.ctx, 'Pre-Fader', nil, send_position == 3, true)
+        if r.ImGui_IsItemClicked(GuiData.ctx) then
+            send_position = 3
+        end
+
+        r.ImGui_MenuItem(GuiData.ctx, 'Pre-FX', nil, send_position == 1, true)
+        if r.ImGui_IsItemClicked(GuiData.ctx) then
+            send_position = 1
+        end
+
         r.ImGui_EndMenu(GuiData.ctx)
     end
 
@@ -304,8 +327,6 @@ local function GUI_DrawTrackTree(open_action)
 
             if string.match(string.lower(name), "(" .. TrimString(GuiData.searchboxBuffer) .. ")") then
 
-                DoOpenAction()
-
                 local depth_delta = r.GetMediaTrackInfo_Value(track, 'I_FOLDERDEPTH')
                 depth_delta = math.max(depth_delta, -depth) -- prevent depth + delta being < 0
                 local is_folder = depth_delta > 0
@@ -326,6 +347,14 @@ local function GUI_DrawTrackTree(open_action)
                     if GuiData.selectedInTree[i] == true then
                         node_flags = node_flags | r.ImGui_TreeNodeFlags_Selected()
                     end
+
+                    local track_color = r.ImGui_ColorConvertNative(r.GetTrackColor(track))
+                    r.ImGui_ColorButton(GuiData.ctx, 'color', track_color,
+                        r.ImGui_ColorEditFlags_NoAlpha() | r.ImGui_ColorEditFlags_NoTooltip(), 12, 12)
+
+                    r.ImGui_SameLine(GuiData.ctx)
+
+                    DoOpenAction()
 
                     r.ImGui_PushID(GuiData.ctx, i) -- disambiguate if two tracks in the same level have the same name
                     parent_open = r.ImGui_TreeNode(GuiData.ctx, name, node_flags)
