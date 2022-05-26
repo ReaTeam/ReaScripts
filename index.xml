@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="5efb494f57b6c0968c16867ac564cac274fefcc9" name="ReaTeam Scripts">
+<index version="1" commit="742a3b333162b8c403fe624ce2d34998bd02333d" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -8249,6 +8249,22 @@ Renumber markers and regions when pasting]]></changelog>
       <version name="1.0" author="REAPER community" time="2022-02-27T14:56:53Z">
         <source main="midi_inlineeditor midi_editor" file="BuyOne_Time selection - set start point.lua">https://github.com/ReaTeam/ReaScripts/raw/18d6e70ea18c64bb5ecb04a8b48f0e13abbd87ee/MIDI%20Editor/Buy_One_Time%20selection%20-%20set%20start%20;%20end%20point.lua</source>
         <source main="midi_inlineeditor midi_editor" file="BuyOne_Time selection - set end point.lua">https://github.com/ReaTeam/ReaScripts/raw/18d6e70ea18c64bb5ecb04a8b48f0e13abbd87ee/MIDI%20Editor/Buy_One_Time%20selection%20-%20set%20start%20;%20end%20point.lua</source>
+      </version>
+    </reapack>
+    <reapack name="BuyOne_Convert selected notes to dotted (settings inside).lua" type="script" desc="Convert selected notes do dotted">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Converts all selected notes to dotted notes\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/member.php?u=134058</link>
+      </metadata>
+      <version name="1.0" author="BuyOne" time="2022-05-26T16:51:49Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/35788b0ea3641abedc851e1a9cd60000c80ffb2c/MIDI%20Editor/BuyOne_Convert%20selected%20notes%20to%20dotted%20(settings%20inside).lua</source>
       </version>
     </reapack>
     <reapack name="BuyOne_Insert note at constant velocity depending on dummy toggle scripts.lua" type="script" desc="Insert note at constant velocity depending on dummy toggle scripts">
@@ -18686,7 +18702,7 @@ SILENCE   |                                      |-  Empty Media Item (length 2s
       </metadata>
       <version name="1.0" author="BuyOne" time="2022-02-27T03:23:59Z">
         <changelog><![CDATA[Initial release]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d3b98e63d4184cc5ec717ac0dd7f2292edd19559/Various/BuyOne_Duplicate%20selected%20tracks,%20media%20or%20automation%20items%20with%20input%20box.lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/742a3b333162b8c403fe624ce2d34998bd02333d/Various/BuyOne_Duplicate%20selected%20tracks,%20media%20or%20automation%20items%20with%20input%20box.lua</source>
       </version>
     </reapack>
     <reapack name="BuyOne_Dynamic ReaperMenu (guide inside).lua" type="script" desc="Dynamic ReaperMenu">
