@@ -1,9 +1,8 @@
 -- @description Convert item fades to take volume envelopes
 -- @author Oded D
 -- @version 1.1
--- @changelog
---   v1.1
---   - Fix: Take's play rate is taken into account
+-- @changelog Fix: Take's play rate is taken into account
+-- @screenshot https://s8.gifyu.com/images/CleanShot-2022-05-30-at-09.54.51.gif
 -- @about
 --   Convert selected items' fades to their respective active takes' volume envelope, interpolating the existing envelope inside the fade region.
 --
@@ -110,8 +109,7 @@ function convertItemFadesToEnvelope(item)
   local env = reaper.GetTakeEnvelopeByName(take,"Volume")
   local fadeinStartTime = 0 
   local fadeoutStartTime = itemLength-fadeoutLength
-  
-  
+
   if fadeinLength > 0 or fadeoutLength > 0 then
   
     -- create fade in
