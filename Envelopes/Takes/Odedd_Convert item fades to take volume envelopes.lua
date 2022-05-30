@@ -1,6 +1,7 @@
 -- @description Convert item fades to take volume envelopes
 -- @author Oded D
--- @version 1.0
+-- @version 1.1
+-- @changelog Fix: Take's play rate is taken into account
 -- @screenshot https://s8.gifyu.com/images/CleanShot-2022-05-30-at-09.54.51.gif
 -- @about
 --   Convert selected items' fades to their respective active takes' volume envelope, interpolating the existing envelope inside the fade region.
@@ -36,21 +37,27 @@ _c.fadein = {
 }
 
 function stepsByLength(length)
-  if ((length * 5) < minPoints) then
+  if ((length * 10) < minPoints) then
     return minPoints 
   else
-    return length * 5
+    return length * 10
   end
 end
 
 function generateInterpolatedFade(env, start_time, end_time, shape, direction, inout, sort)
 
+  local take = reaper.Envelope_GetParentTake(env,0,-1)
+  local takePlaybackRate = reaper.GetMediaItemTakeInfo_Value(take, "D_PLAYRATE") 
+  start_time = start_time * takePlaybackRate
+  end_time = end_time * takePlaybackRate
+
   local points = {}
   local length = end_time - start_time
-  local steps = stepsByLength(length)
+  local steps = stepsByLength(length / takePlaybackRate)
   local isScale = reaper.GetEnvelopeScalingMode(env)
-  local safety_margin=0.0000001
+  local safety_margin=0.0000001 * takePlaybackRate
   
+  --length = length * takePlaybackRate
   -- interpolate fade curve with existing points
   for t=start_time, end_time, (length/steps) do
     pointVal = _c.fade(shape, t,start_time,end_time,direction, inout) 
@@ -102,7 +109,7 @@ function convertItemFadesToEnvelope(item)
   local env = reaper.GetTakeEnvelopeByName(take,"Volume")
   local fadeinStartTime = 0 
   local fadeoutStartTime = itemLength-fadeoutLength
-  
+
   if fadeinLength > 0 or fadeoutLength > 0 then
   
     -- create fade in
