@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="000fb289e77429b85c22db8267d01d43713aa6b7" name="ReaTeam Scripts">
+<index version="1" commit="f8eb5d139fc1c102018503e1c8c44b046e849356" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -8115,12 +8115,16 @@ Renumber markers and regions when pasting]]></changelog>
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 Adds project markers into selected items as take markers.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Adds project markers into selected items active take.\par}
 }
 ]]></description>
       </metadata>
       <version name="1.0" author="Mordi" time="2022-04-05T23:11:55Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d0acce764c0472903b935eedc84bca2663e557bd/Markers/mordi_Add%20project%20markers%20as%20take%20markers%20into%20selected%20items.lua</source>
+      </version>
+      <version name="1.1" author="Mordi" time="2022-05-30T14:58:04Z">
+        <changelog><![CDATA[Fixed playrate of take not being taken into account. Removed unused line. Thanks to X-Raym.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f8eb5d139fc1c102018503e1c8c44b046e849356/Markers/mordi_Add%20project%20markers%20as%20take%20markers%20into%20selected%20items.lua</source>
       </version>
     </reapack>
     <reapack name="Mordi_Create tempo-map from markers.lua" type="script" desc="Create tempo-map from markers (and remove markers)">
