@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="ca359971e8fbf901a309c322248ad5c9f1bd16cc" name="ReaTeam Scripts">
+<index version="1" commit="51bd7238dc149c260be0535e688a52c723b2b6db" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -3272,6 +3272,10 @@ Improve "under mouse cursor" variants to work over any envelope]]></changelog>
       </metadata>
       <version name="1.0" author="Oded D" time="2022-05-30T15:04:33Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ca359971e8fbf901a309c322248ad5c9f1bd16cc/Envelopes/Takes/Odedd_Convert%20item%20fades%20to%20take%20volume%20envelopes.lua</source>
+      </version>
+      <version name="1.1" author="Oded D" time="2022-05-30T15:39:32Z">
+        <changelog><![CDATA[Fix: Take's play rate is taken into account]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/51bd7238dc149c260be0535e688a52c723b2b6db/Envelopes/Takes/Odedd_Convert%20item%20fades%20to%20take%20volume%20envelopes.lua</source>
       </version>
     </reapack>
     <reapack name="spk77_Copy take mute envelope from selected take to other takes in same group.lua" type="script" desc="Copy take mute envelope from selected take to other takes in same group">
