@@ -195,5 +195,9 @@ GUI.freq = 0
 reaper.SetExtState("amagalma_Chunk Viewer-Editor", "MatchCase", "0", 0)
 
 GUI.Init()
+local script_hwnd = reaper.JS_Window_Find( "Chunk Viewer / Editor Find", true )
+if script_hwnd then
+	reaper.JS_Window_AttachTopmostPin( script_hwnd )
+end
 GUI.elms.FindWhat.focus = true
 GUI.Main()
