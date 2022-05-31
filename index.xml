@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="0abc6f18ec5344962ebedc1b4b0fa21040853a75" name="ReaTeam Scripts">
+<index version="1" commit="b701bcb86fc0a2f3b83ae9211eb830d5d984cff7" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -4440,6 +4440,21 @@ Better error-checking in general]]></changelog>
       <version name="1.3" author="Tagirijus" time="2021-09-08T14:21:33Z">
         <changelog><![CDATA[When shift+clicking TrackFXs bypass state is now being toggled and with ctrl+clicking a TrackXF gets removed.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/fe55c121155dd9bbec743183fe22402d04ab6503/FX/tagirijus_FX%20list%20menu.lua</source>
+      </version>
+    </reapack>
+    <reapack name="tagirijus_Toggle bypass non-instrument FX on selected track.lua" type="script" desc="Toggle bypass non-instrument FX on selected track">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Description\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This little script will toggle the bypass state for each FX plugin on the selected track. So it's not affecting instrument plugins, which is great for a quick "before / after" check after you applied some effect plugins on a track, which also have an instrument plugin inserted.\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.1" author="Tagirijus" time="2022-05-31T08:48:46Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b701bcb86fc0a2f3b83ae9211eb830d5d984cff7/FX/tagirijus_Toggle%20bypass%20non-instrument%20FX%20on%20selected%20track.lua</source>
       </version>
     </reapack>
   </category>
