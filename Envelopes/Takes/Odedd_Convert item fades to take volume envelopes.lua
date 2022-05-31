@@ -1,7 +1,9 @@
 -- @description Convert item fades to take volume envelopes
 -- @author Oded D
--- @version 1.1
--- @changelog Fix: Take's play rate is taken into account
+-- @version 1.2
+-- @changelog
+--   Added crossfades now supported
+--   Fix a potential infinite loop
 -- @screenshot https://s8.gifyu.com/images/CleanShot-2022-05-30-at-09.54.51.gif
 -- @about
 --   Convert selected items' fades to their respective active takes' volume envelope, interpolating the existing envelope inside the fade region.
@@ -50,7 +52,7 @@ function generateInterpolatedFade(env, start_time, end_time, shape, direction, i
   local takePlaybackRate = reaper.GetMediaItemTakeInfo_Value(take, "D_PLAYRATE") 
   start_time = start_time * takePlaybackRate
   end_time = end_time * takePlaybackRate
-
+  if shape==8 then shape=1 end
   local points = {}
   local length = end_time - start_time
   local steps = stepsByLength(length / takePlaybackRate)
@@ -59,48 +61,50 @@ function generateInterpolatedFade(env, start_time, end_time, shape, direction, i
   
   --length = length * takePlaybackRate
   -- interpolate fade curve with existing points
-  for t=start_time, end_time, (length/steps) do
-    pointVal = _c.fade(shape, t,start_time,end_time,direction, inout) 
-    retval, multiplier = reaper.Envelope_Evaluate(env,t, 44100,128)
-    multiplier = reaper.ScaleFromEnvelopeMode(isScale,multiplier)
-    val = reaper.ScaleToEnvelopeMode(isScale, pointVal * multiplier)
-    table.insert(points, {time=t,value=val})
-  end
-
-  -- interpolate existing points with fade curve
-  for pi=0, reaper.CountEnvelopePoints(env,-1) do
-  retval, t, pointVal = reaper.GetEnvelopePoint(env, pi)
-    if (t >= start_time) and (t <= end_time) then
-      normalizedPointVal = reaper.ScaleFromEnvelopeMode(isScale,pointVal)
-      multiplier = _c.fade(shape, t, start_time,end_time,direction, inout) 
-      val = reaper.ScaleToEnvelopeMode(isScale, normalizedPointVal * multiplier)
+  if end_time > start_time then
+    for t=start_time, end_time, (length/steps) do
+      pointVal = _c.fade(shape, t,start_time,end_time,direction, inout) 
+      retval, multiplier = reaper.Envelope_Evaluate(env,t, 44100,128)
+      multiplier = reaper.ScaleFromEnvelopeMode(isScale,multiplier)
+      val = reaper.ScaleToEnvelopeMode(isScale, pointVal * multiplier)
       table.insert(points, {time=t,value=val})
-    elseif (t > end_time) then
-      foundPoint=true
     end
-  end
-  reaper.DeleteEnvelopePointRange(env,start_time,end_time+safety_margin)
- 
-  -- insert actual points
-  for tk, val in pairs(points) do
-    reaper.InsertEnvelopePoint(env,val.time,val.value,0,1,false,false)
-  end
   
-  -- determine and insert last point
-  endVal = 0
-  if inout then
-    retval, endVal = reaper.Envelope_Evaluate(env,end_time, 44100,128)
-    endVal = reaper.ScaleFromEnvelopeMode(isScale,endVal)
+    -- interpolate existing points with fade curve
+    for pi=0, reaper.CountEnvelopePoints(env,-1) do
+    retval, t, pointVal = reaper.GetEnvelopePoint(env, pi)
+      if (t >= start_time) and (t <= end_time) then
+        normalizedPointVal = reaper.ScaleFromEnvelopeMode(isScale,pointVal)
+        multiplier = _c.fade(shape, t, start_time,end_time,direction, inout) 
+        val = reaper.ScaleToEnvelopeMode(isScale, normalizedPointVal * multiplier)
+        table.insert(points, {time=t,value=val})
+      elseif (t > end_time) then
+        foundPoint=true
+      end
+    end
+    reaper.DeleteEnvelopePointRange(env,start_time,end_time+safety_margin)
+   
+    -- insert actual points
+    for tk, val in pairs(points) do
+      reaper.InsertEnvelopePoint(env,val.time,val.value,0,1,false,false)
+    end
+    
+    -- determine and insert last point
+    endVal = 0
+    if inout then
+      retval, endVal = reaper.Envelope_Evaluate(env,end_time, 44100,128)
+      endVal = reaper.ScaleFromEnvelopeMode(isScale,endVal)
+    end
+    val = reaper.ScaleToEnvelopeMode(isScale, endVal)
+    reaper.InsertEnvelopePoint(env,end_time,val,0,1,false,false)
+    if sort then reaper.Envelope_SortPoints(env) end
   end
-  val = reaper.ScaleToEnvelopeMode(isScale, endVal)
-  reaper.InsertEnvelopePoint(env,end_time,val,0,1,false,false)
-  if sort then reaper.Envelope_SortPoints(env) end
 end
 
 function convertItemFadesToEnvelope(item)
   local itemLength = reaper.GetMediaItemInfo_Value(item,"D_LENGTH")
-  local fadeinLength = reaper.GetMediaItemInfo_Value(item,"D_FADEINLEN")
-  local fadeoutLength = reaper.GetMediaItemInfo_Value(item,"D_FADEOUTLEN")
+  local fadeinLength = not (reaper.GetMediaItemInfo_Value(item,"D_FADEINLEN_AUTO") == 0) and reaper.GetMediaItemInfo_Value(item,"D_FADEINLEN_AUTO") or reaper.GetMediaItemInfo_Value(item,"D_FADEINLEN")
+  local fadeoutLength = not (reaper.GetMediaItemInfo_Value(item,"D_FADEOUTLEN_AUTO") == 0) and reaper.GetMediaItemInfo_Value(item,"D_FADEOUTLEN_AUTO") or reaper.GetMediaItemInfo_Value(item,"D_FADEOUTLEN")
   local fadeinDir = reaper.GetMediaItemInfo_Value(item,"D_FADEINDIR")
   local fadeoutDir = reaper.GetMediaItemInfo_Value(item,"D_FADEOUTDIR")
   local fadeinShape = reaper.GetMediaItemInfo_Value(item,"C_FADEINSHAPE")+1
@@ -109,7 +113,8 @@ function convertItemFadesToEnvelope(item)
   local env = reaper.GetTakeEnvelopeByName(take,"Volume")
   local fadeinStartTime = 0 
   local fadeoutStartTime = itemLength-fadeoutLength
-
+  
+  
   if fadeinLength > 0 or fadeoutLength > 0 then
   
     -- create fade in
@@ -119,7 +124,9 @@ function convertItemFadesToEnvelope(item)
     reaper.Envelope_SortPoints(env)
     --reaper.Envelope_SortPoints(env,-1)
     reaper.SetMediaItemInfo_Value(item,"D_FADEINLEN",0)
+    reaper.SetMediaItemInfo_Value(item,"D_FADEINLEN_AUTO",0)
     reaper.SetMediaItemInfo_Value(item,"D_FADEOUTLEN",0)
+    reaper.SetMediaItemInfo_Value(item,"D_FADEOUTLEN_AUTO",0)
   end
 end
 
