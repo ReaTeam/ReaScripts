@@ -1,11 +1,9 @@
 -- @description Chunk Viewer/Editor
 -- @author amagalma
--- @version 1.53
+-- @version 1.55
 -- @changelog
---   - fix: changing font size with ctrl+mousewheel
---   - add: remember last font size
---   - add: attach topmost pin to Find Window
---   - change: dual chunk editors is enabled by default (disable inside script)
+--   - add: navigate to start of previous/next word with Ctrl + left/right arrows
+--   - fix: crash when using arrow keys with an empty editor
 -- @provides amagalma_Chunk ViewerEditor find.lua
 -- @link https://forum.cockos.com/showthread.php?t=194369
 -- @screenshot https://i.ibb.co/DfZFx9z/amagalma-Chunk-Viewer-Editor.gif
@@ -17,7 +15,7 @@
 --   - Enable Dual mode inside the script (defaults to true)
 --   - Chunks are automatically indented
 --   - Size of indentation set inside the script in User Settings area (default: 2 spaces)
---   - Ctrl + mousewheel changes font size
+--   - Ctrl + mousewheel changes font size (Click question mark for all shortcuts)
 --   - When it loads, the last clicked context (track/item/envelope) is automatically set
 --   - Automatic line numbering
 --   - Fully re-sizable
@@ -39,7 +37,7 @@ local dual_chunk_editor = true -- enable 2 chunk editors (true or false)
 --------------------------------------------------
 
 
-local version = "1.53"
+local version = "1.55"
 
 
 -- Check if JS_ReaScriptAPI is installed
@@ -334,9 +332,15 @@ local function esc(s)
   return (s:gsub(".", matches))
 end
 
+
 local function GetString()
   return reaper.GetExtState("amagalma_Chunk Viewer-Editor", "Find"),
   reaper.GetExtState("amagalma_Chunk Viewer-Editor", "MatchCase") == "1"
+end
+
+
+function GUI.TextEditor:getwndlength()
+  return #self.retval
 end
 
 
@@ -422,6 +426,7 @@ GUI.TextEditor.keys[GUI.chars.F3] = function (self) -- F3 Find next
   return
 end
 
+
 GUI.TextEditor.keys[GUI.chars.F2] = function (self) -- F2 Find previous
   local str, MatchCase = GetString()
   if #self.retval == 0 or str == "" or not str then return end
@@ -472,6 +477,85 @@ GUI.TextEditor.keys[GUI.chars.F2] = function (self) -- F2 Find previous
   reaper.JS_Window_SetFocus( focus )
   return
 end
+
+
+GUI.TextEditor.keys[GUI.chars.LEFT] = function(self)
+  if #self.retval ~= 0 then
+    if GUI.mouse.cap == 4 or GUI.mouse.cap == 12 then -- CTRL (CTRL|SHIFT)
+      local line = self.retval[self.caret.y] or ""
+      local cnt = 0
+      local prev_char = " "
+      for i = self.caret.x, 1, -1 do
+        cnt = cnt + 1
+        local char = self.retval[self.caret.y]:sub(i, i)
+        if char == " " and prev_char ~= " " then
+          self.caret.x = self.caret.x - cnt + 1
+          break
+        end
+        prev_char = char
+      end
+    else
+      if self.caret.x < 1 and self.caret.y > 1 then
+        self.caret.y = self.caret.y - 1
+        self.caret.x = self:carettoend()
+      else
+        self.caret.x = math.max(self.caret.x - 1, 0)
+      end
+    end
+  end
+end
+
+
+GUI.TextEditor.keys[GUI.chars.RIGHT] = function(self)
+  if #self.retval ~= 0 then
+    if GUI.mouse.cap == 4 or GUI.mouse.cap == 12 then -- CTRL (CTRL|SHIFT)
+      local line = self.retval[self.caret.y] or ""
+      local cnt = 0
+      local prev_char
+      for i = self.caret.x + 1, #line do
+        cnt = cnt + 1
+        local char = self.retval[self.caret.y]:sub(i, i)
+        if char ~= " " and prev_char == " " then
+          self.caret.x = self.caret.x + cnt -1
+          break
+        end
+        prev_char = char
+      end
+    else
+      if self.caret.x == self:carettoend() and self.caret.y < self:getwndlength() then
+        self.caret.y = self.caret.y + 1
+        self.caret.x = 0
+      else
+        self.caret.x = math.min(self.caret.x + 1, self:carettoend() )
+      end
+    end
+  end
+end
+
+
+GUI.TextEditor.keys[GUI.chars.UP] = function(self)
+  if #self.retval ~= 0 then
+    if self.caret.y == 1 then
+      self.caret.x = 0
+    else
+      self.caret.y = math.max(1, self.caret.y - 1)
+      self.caret.x = math.min(self.caret.x, self:carettoend() )
+    end
+  end
+end
+
+
+GUI.TextEditor.keys[GUI.chars.DOWN] = function(self)
+  if #self.retval ~= 0 then
+    if self.caret.y == self:getwndlength() then
+      self.caret.x = string.len(self.retval[#self.retval])
+    else
+      self.caret.y = math.min(self.caret.y + 1, #self.retval)
+      self.caret.x = math.min(self.caret.x, self:carettoend() )
+    end
+  end
+end
+
 
 local Maximized = false
 local prev_dock, prev_x, prev_y, prev_w, prev_h
@@ -529,6 +613,8 @@ Ctrl + V  : Paste
 Ctrl + Z  : Undo
 Ctrl + Y  : Redo
 Ctrl + F  : Find (opens new window)
+Ctrl + ←  : Go to start of previous word (non-space)
+Ctrl + →  : Go to start of next word (non-space)
 F2        : Go to previous search occurence
 F3        : Go to next search occurence
 Home      : Go to chunk start
