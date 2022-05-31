@@ -1,6 +1,6 @@
--- @description Toggle bypass FX on selected track
+-- @description Toggle bypass non-instrument FX on selected track
 -- @author Tagirijus
--- @version 1.0
+-- @version 1.1
 -- @about
 --   # Description
 --
