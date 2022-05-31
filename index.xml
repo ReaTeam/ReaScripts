@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="b701bcb86fc0a2f3b83ae9211eb830d5d984cff7" name="ReaTeam Scripts">
+<index version="1" commit="fcf63c940612770e1ffdde0eafb26a9cafd269c9" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -17095,15 +17095,14 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
 
 {\pard \ql \f0 \sa180 \li0 \fi0 Displays/edits the state chunk of the selected track/item/envelope. Intended for use by developers/scripters.\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Dual mode with two editors\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Enable Dual mode inside the script (defaults to false)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Enable Dual mode inside the script (defaults to true)\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Chunks are automatically indented\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Size of indentation set inside the script in User Settings area (default: 2 spaces)\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Default font size set inside the script in User Settings area (default: 16)\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Ctrl + mousewheel changes font size\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab When it loads, the last clicked context (track/item/envelope) is automatically set\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Automatic line numbering\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Fully re-sizable\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Remembers last size & position\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Remembers last window position and window/font size\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Search/Find ability (Ctrl+F)\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab "Go to next" (F3 key) and "Go to previous" (F2 key)\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab When Setting chunk, the appropriate and correctly named undo is created\par}
@@ -17167,6 +17166,14 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
 - add: Dual mode with two editors (enable Dual mode inside the script (defaults to false))]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/838a59042fc18d8b102d68145b96912e0962598a/Various/amagalma_Chunk%20ViewerEditor.lua</source>
         <source file="amagalma_Chunk ViewerEditor find.lua">https://github.com/ReaTeam/ReaScripts/raw/838a59042fc18d8b102d68145b96912e0962598a/Various/amagalma_Chunk%20ViewerEditor%20find.lua</source>
+      </version>
+      <version name="1.53" author="amagalma" time="2022-05-31T09:05:35Z">
+        <changelog><![CDATA[- fix: changing font size with ctrl+mousewheel
+- add: remember last font size
+- add: attach topmost pin to Find Window
+- change: dual chunk editors is enabled by default (disable inside script)]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/fcf63c940612770e1ffdde0eafb26a9cafd269c9/Various/amagalma_Chunk%20ViewerEditor.lua</source>
+        <source file="amagalma_Chunk ViewerEditor find.lua">https://github.com/ReaTeam/ReaScripts/raw/fcf63c940612770e1ffdde0eafb26a9cafd269c9/Various/amagalma_Chunk%20ViewerEditor%20find.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Create Impulse Response (IR) of the FX chain of the selected track.lua" type="script" desc="Create Impulse Response (IR) of the FX Chain of the selected Track">
