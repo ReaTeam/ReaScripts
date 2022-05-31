@@ -1,9 +1,11 @@
 -- @description Chunk Viewer/Editor
 -- @author amagalma
--- @version 1.50
+-- @version 1.53
 -- @changelog
---   - fix: F2 / "Go to previous"
---   - add: Dual mode with two editors (enable Dual mode inside the script (defaults to false))
+--   - fix: changing font size with ctrl+mousewheel
+--   - add: remember last font size
+--   - add: attach topmost pin to Find Window
+--   - change: dual chunk editors is enabled by default (disable inside script)
 -- @provides amagalma_Chunk ViewerEditor find.lua
 -- @link https://forum.cockos.com/showthread.php?t=194369
 -- @screenshot https://i.ibb.co/DfZFx9z/amagalma-Chunk-Viewer-Editor.gif
@@ -12,15 +14,14 @@
 --   Displays/edits the state chunk of the selected track/item/envelope. Intended for use by developers/scripters.
 --
 --   - Dual mode with two editors
---   - Enable Dual mode inside the script (defaults to false)
+--   - Enable Dual mode inside the script (defaults to true)
 --   - Chunks are automatically indented
 --   - Size of indentation set inside the script in User Settings area (default: 2 spaces)
---   - Default font size set inside the script in User Settings area (default: 16)
 --   - Ctrl + mousewheel changes font size
 --   - When it loads, the last clicked context (track/item/envelope) is automatically set
 --   - Automatic line numbering
 --   - Fully re-sizable
---   - Remembers last size & position
+--   - Remembers last window position and window/font size
 --   - Search/Find ability (Ctrl+F)
 --   - "Go to next" (F3 key) and "Go to previous" (F2 key)
 --   - When Setting chunk, the appropriate and correctly named undo is created
@@ -34,12 +35,11 @@
 
 -- USER SETTINGS ---------------------------------
 local number_of_spaces = 2 -- used for indentation
-local default_font_size = 16
-local dual_chunk_editor = false -- enable 2 chunk editors (true or false)
+local dual_chunk_editor = true -- enable 2 chunk editors (true or false)
 --------------------------------------------------
 
 
-local version = "1.50"
+local version = "1.53"
 
 
 -- Check if JS_ReaScriptAPI is installed
@@ -142,7 +142,7 @@ local function GetChunk()
   local sorry = "Sorry! Could not get chunk..."
   local editor = LastEditorFocus == 1 and "TextEditor" or "TextEditor2"
   if GUI.Val("ChooseObj") == 1 then
-    local track = reaper.GetSelectedTrack(0,0)
+    local track = reaper.GetSelectedTrack2(0,0,true)
     if track then
       local caret, wnd_pos = IfSameObjThenStoreWindow(track)
       last_chunk_obj = track
@@ -344,6 +344,14 @@ function GUI.TextEditor:onwheel(inc)
   -- Ctrl -- Change font size
   if GUI.mouse.cap & 4 == 4 then
     GUI.fonts.monospace[2] = GUI.fonts.monospace[2] + (inc > 0 and 1 or -1)
+    if dual_chunk_editor then
+      GUI.elms.TextEditor2:init()
+      GUI.elms.TextEditor2:redraw()
+      GUI.elms.TextEditor2:wnd_recalc()
+    end
+    GUI.elms.TextEditor:init()
+    GUI.elms.TextEditor:redraw()
+    GUI.elms.TextEditor:wnd_recalc()
   -- Shift -- Horizontal scroll
   elseif GUI.mouse.cap & 8 == 8 then
     local len = self:getmaxlength()
@@ -530,10 +538,8 @@ Page-Down : self-explanatory
 Insert    : Toggles between overwrite text and normal text insertion
 Ctrl + Mousewheel to change font size
 
-Default font size and number of spaces used for identation are set
-inside the script. (current identation is set to ]] ..
-number_of_spaces ..
-[[ spaces)
+Number of spaces used for identation are set inside the script.
+(current identation is set to ]] .. number_of_spaces .. [[ spaces)
 
 ** Dual mode with two editors is set inside the script **
 
@@ -697,7 +703,7 @@ end
 
 
 local fonts = GUI.get_OS_fonts()
-GUI.fonts.monospace = {fonts.mono, default_font_size or 16}
+GUI.fonts.monospace = {fonts.mono, tonumber(reaper.GetExtState("amagalma_Chunk Viewer-Editor", "FontSize")) or 16}
 GUI.colors.txt = {220, 220, 220, 255}
 GUI.colors.black = {30, 30, 30, 255}
 GUI.colors.green = {10, 85, 10, 255}
@@ -723,6 +729,7 @@ function Exit()
     reaper.SetExtState("amagalma_Chunk Viewer-Editor", "Settings",
       string.format("%i %i %i %i %i", prev_dock, prev_x, prev_y, prev_w, prev_h), 1)
   end
+  reaper.SetExtState("amagalma_Chunk Viewer-Editor", "FontSize", GUI.fonts.monospace[2], true)
   reaper.SetToggleCommandState( section, cmdID, 0 )
   reaper.RefreshToolbar2( section, cmdID )
   local find_hwnd = reaper.JS_Window_Find( "Chunk Viewer / Editor Find", true )
