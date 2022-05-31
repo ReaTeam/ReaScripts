@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="fcf63c940612770e1ffdde0eafb26a9cafd269c9" name="ReaTeam Scripts">
+<index version="1" commit="f66d9f1dbeb55c0d8ec6d6a0b82bd62c023b0182" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -17098,7 +17098,7 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Enable Dual mode inside the script (defaults to true)\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Chunks are automatically indented\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Size of indentation set inside the script in User Settings area (default: 2 spaces)\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Ctrl + mousewheel changes font size\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Ctrl + mousewheel changes font size (Click question mark for all shortcuts)\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab When it loads, the last clicked context (track/item/envelope) is automatically set\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Automatic line numbering\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Fully re-sizable\par}
@@ -17174,6 +17174,12 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
 - change: dual chunk editors is enabled by default (disable inside script)]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/fcf63c940612770e1ffdde0eafb26a9cafd269c9/Various/amagalma_Chunk%20ViewerEditor.lua</source>
         <source file="amagalma_Chunk ViewerEditor find.lua">https://github.com/ReaTeam/ReaScripts/raw/fcf63c940612770e1ffdde0eafb26a9cafd269c9/Various/amagalma_Chunk%20ViewerEditor%20find.lua</source>
+      </version>
+      <version name="1.55" author="amagalma" time="2022-05-31T12:01:30Z">
+        <changelog><![CDATA[- add: navigate to start of previous/next word with Ctrl + left/right arrows
+- fix: crash when using arrow keys with an empty editor]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f66d9f1dbeb55c0d8ec6d6a0b82bd62c023b0182/Various/amagalma_Chunk%20ViewerEditor.lua</source>
+        <source file="amagalma_Chunk ViewerEditor find.lua">https://github.com/ReaTeam/ReaScripts/raw/f66d9f1dbeb55c0d8ec6d6a0b82bd62c023b0182/Various/amagalma_Chunk%20ViewerEditor%20find.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Create Impulse Response (IR) of the FX chain of the selected track.lua" type="script" desc="Create Impulse Response (IR) of the FX Chain of the selected Track">
