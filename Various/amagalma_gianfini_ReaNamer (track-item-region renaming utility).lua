@@ -1,7 +1,7 @@
 -- @description ReaNamer (track-item-region renaming utility)
 -- @author amagalma & gianfini
--- @version 1.31
--- @changelog - gianfini: fix crash when renaming single item in list in "Items" or "Region" mode
+-- @version 1.32
+-- @changelog - lexaproductions: exclude adjacent regions to time selection
 -- @provides
 --   amagalma_ReaNamer Replace Help.lua
 --   amagalma_ReaNamer utf8data.lua
@@ -45,7 +45,7 @@
 
 -----------------------------------------------------------------------------------------------
 
-local version = "1.30"
+local version = "1.32"
 
 if not reaper.APIExists( "BR_Win32_FindWindowEx" ) then
   reaper.MB( "SWS / S&M extension is required for this script to work", "SWS / S&M extension is not installed!", 0 )
@@ -613,7 +613,11 @@ end
 
 local function AllRegionNames() -- in Time Selection
   local st, en = reaper.GetSet_LoopTimeRange( 0, 0, 0, 0, 0 )
-  if st == en then st, en = -math.huge, math.huge end
+  if st == en then
+    st, en = -math.huge, math.huge
+  else
+    st, en = st+.01, en-.01 -- exclude adjacent regions
+  end
   local marker_cnt = reaper.CountProjectMarkers( 0 )
   local table = {}
   local table2 = {}
