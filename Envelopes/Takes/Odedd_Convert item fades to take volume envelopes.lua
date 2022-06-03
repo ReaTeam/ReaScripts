@@ -1,9 +1,7 @@
 -- @description Convert item fades to take volume envelopes
 -- @author Oded D
--- @version 1.2
--- @changelog
---   Added crossfades now supported
---   Fix a potential infinite loop
+-- @version 1.3
+-- @changelog Special curve type for crossfades now supported
 -- @screenshot https://s8.gifyu.com/images/CleanShot-2022-05-30-at-09.54.51.gif
 -- @about
 --   Convert selected items' fades to their respective active takes' volume envelope, interpolating the existing envelope inside the fade region.
@@ -12,11 +10,21 @@
 --     https://forum.cockos.com/showthread.php?t=262260
 
 local minPoints = 15
-
 local _c = {}
 _c.fade = function(ftype,t,s,e,c,inout)
+  --
+  -- Returns 0 to 1
+  --
+  -- ftype is the REAPER fade type 1-7 (Note: not 0-6 here)
+  -- t - time code where fade is calculated
+  -- s - time code of fade start
+  -- e - time code of fade end
+  -- c - REAPER curvature parameter (D_FADEINDIR, D_FADEOUTDIR)
+  -- inout - true for fade in, false for fade out
+  --
   if e<=s then return 1 end
   t = t<s and s or t>e and e or t
+  
   local x = (t-s)/(e-s)
   local ret = _c.fadein[ftype](table.unpack(inout and {x,c} or {1-x,-c}))
   return ret
@@ -25,6 +33,9 @@ end
 _c.fade1 = function(x,c) return c<0 and (1+c)*x*(2-x)-c*(1-(1-x)^8)^.5 or (1-c)*x*(2-x)+c*x^4 end
 _c.fade2 = function(x,c) return c<0 and (1+c)*x-c*(1-(1-x)^2) or (1-c)*x+c*x^2 end
 _c.fade3 = function(x,c) return c<0 and (1+c)*x-c*(1-(1-x)^4) or (1-c)*x+c*x^4 end
+_c.fade4a = function(x,c) return (c*x^4)+(1-c)*(1-(1-x)^2*(2-math.pi/4-(1-math.pi/4)*(1-x)^2)) end
+_c.fade4b = function(x,c) return (c+1)*(1-x^2*(2-math.pi/4-(1-math.pi/4)*(x^2)))-c*((1-x)^4) end
+_c.fade4 = function(x,c) return c<0 and (1-_c.fade4b(x,c)^2)^.5 or _c.fade4a(x,c) end
 _c.fadeg = function(x,t) return t==.5 and x or ((x*(1-2*t)+t^2)^.5-t)/(1-2*t) end
 _c.fadeh = function(x,t) local g = _c.fadeg(x,t); return (2*t-1)*g^2+(2-2*t)*g end
 
@@ -36,6 +47,7 @@ _c.fadein = {
   function(x,c) c=c or 1; return _c.fade3(x,c) end,
   function(x,c) c=c or 0; local x1 = _c.fadeh(x,.25*(c+2)); return (3-2*x1)*x1^2 end,
   function(x,c) c=c or 0; local x2 = _c.fadeh(x,(5*c+8)/16); return x2<=.5 and 8*x2^4 or 1-8*(1-x2)^4 end,
+  function(x,c) c=c or 0; return _c.fade4(x,c) end,
 }
 
 function stepsByLength(length)
@@ -52,7 +64,7 @@ function generateInterpolatedFade(env, start_time, end_time, shape, direction, i
   local takePlaybackRate = reaper.GetMediaItemTakeInfo_Value(take, "D_PLAYRATE") 
   start_time = start_time * takePlaybackRate
   end_time = end_time * takePlaybackRate
-  if shape==8 then shape=1 end
+  if shape>8 then shape=1 end
   local points = {}
   local length = end_time - start_time
   local steps = stepsByLength(length / takePlaybackRate)
