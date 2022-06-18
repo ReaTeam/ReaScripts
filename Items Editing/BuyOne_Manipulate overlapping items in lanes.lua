@@ -1075,7 +1075,7 @@ local st, fin, step = table.unpack(explode and same_track and {#sel_itms_t, 1, -
 	end
 
 
------ M A I N  L O O P  E N D
+----------------- M A I N  L O O P  E N D -----------------
 
 
 	-- Concatenate 'move top/bottom' error message
