@@ -7,103 +7,103 @@ Author URL: https://forum.cockos.com/member.php?u=134058
 Licence: WTFPL
 REAPER: at least v5.962 and not later than 6.53
 Extensions: SWS/S&M, not mandatory but strongly recommended
-About:  	The script isn't compatible with REAPER builds 6.54 onward, because
-			the logic governing overlapping items display in lanes was changed
-			while the script was being developed.   
-			https://forum.cockos.com/showthread.php?t=267390
+About:  The script isn't compatible with REAPER builds 6.54 onward, because
+	the logic governing overlapping items display in lanes was changed
+	while the script was being developed.   
+	https://forum.cockos.com/showthread.php?t=267390
 
-			MOVE SELECTED TO TOP/BOTTOM LANE || ALL UP/DOWN ONE LANE
-			
-			In 'move selected to top/bottom lane' scripts, selection of multiple 
-			items within the same overlapping items cluster doesn't make 
-			sense, hence if multiple items are selected it's the first 
-			(whose lane is the highest) or the last (whose lane is the lowest) 
-			selected item per cluster which will be moved to the top/bottom 
-			lane respectively.	
-			'Cycle' in the script name means that all items change their lane 
-			along with the selected one.  
-			'Swap' means that only two items trade their lanes.  
-			
-			In 'move all up/down one lane' scripts the number of selected 
-			overlapping items per cluster doesn't matter.  
-			
-			SELECT NEXT/PREVIOUS
-			
-			Select any number of overlapping items in a cluster and execute
-			the script. Selection will be shifted down or up respectively.  
-			If all items in a cluster are selected nothing changes.  
-			
-			IMPLODE
-		
-			* To implode items select them, point mouse cursor at an item 
-			you want selected items to be placed underneath in lanes or select 
-			its track and place the edit cursor over such item (designated item).  
-			* If the designated item is already a part of an overlapping items 
-			cluster, the imploded items will be placed in lanes immediately beneath
-			such item provided it's selected, otherwise the imploded items 
-			will be placed beneath the bottommost item of such overlapping items 
-			cluster. If several items are selected in a cluster items are imploded 
-			beneath the last selected.  
-			* The designated item is always considered selected if the mouse cursor 
-			points at it at the moment of the script execution, in which case it has
-			to be run with a shortcut so the mouse cursor isn't enganged.   
-			* Items are imploded in their global project order (left to right,
-			top to bottom) beneath the designated item (one around which imploding 
-			is performed).   
-			* !!! After imploding, the originally selected items may end up in an 
-			unexpected order if there're mutually fully overlapping items among 
-			them, because in this case their global order isn't obvious, fully 
-			overlapping items apparent lanes order isn't governed by their global 
-			order in the project.  	
-			* It's only possible to implode selected items into a single cluster 
-			of overlapping items, meaning all selected items can either join an 
-			already existing cluster or coalesce into a new one.
-			
-			EXPLODE || CROP
-			
-			To explode or crop overlapping items select any number of such
-			overlapping items to have the rest exploded or removed respectively.
-			If all items happen to be selected the action won't be executed.
-			
-			BEHAVIOR IN COLLAPSED LANES 
-			
-			When overlapping item lanes are collapsed, after a script is applied 
-			generally the outermost (visible) item changes to reflect change 
-			in item positions in lanes with the following caveats:  
-			
-			* When actions   
-			'move selected to top/bottom lane', 'move all up/down one lane'   
-			are applied to overlapping items whose lanes are collapsed, only 1 item 
-			can stay selected per cluster which is the outermost (visible) one. 
-			Change in selection is reflected in the change of the outermost item.  
-			The outermost item lane isn't fixed and can be whatever.  		
-			* In 'select next/prevous' scripts, the outermost (visible) item  
-			only changes if it was selected before the script was applied.  
-			* Even when all items in an overlapping items cluster are selected 
-			before 'explode' or 'crop' script is executed all items will be
-			respectively exploded or cropped leaving only the outermost item
-			at its original position or intact respectively.  
-			If the outermost item isn't selected, no exploding or cropping occurs 
-			regardless of other items selection within the cluster.
-			
-			___________________________________________________________________
-			Be aware that after duplicating overlapping items in a batch the order
-			of their copies will likely be different. That's REAPER's quirk.
+	MOVE SELECTED TO TOP/BOTTOM LANE || ALL UP/DOWN ONE LANE
+
+	In 'move selected to top/bottom lane' scripts, selection of multiple 
+	items within the same overlapping items cluster doesn't make 
+	sense, hence if multiple items are selected it's the first 
+	(whose lane is the highest) or the last (whose lane is the lowest) 
+	selected item per cluster which will be moved to the top/bottom 
+	lane respectively.	
+	'Cycle' in the script name means that all items change their lane 
+	along with the selected one.  
+	'Swap' means that only two items trade their lanes.  
+
+	In 'move all up/down one lane' scripts the number of selected 
+	overlapping items per cluster doesn't matter.  
+
+	SELECT NEXT/PREVIOUS
+
+	Select any number of overlapping items in a cluster and execute
+	the script. Selection will be shifted down or up respectively.  
+	If all items in a cluster are selected nothing changes.  
+
+	IMPLODE
+
+	* To implode items select them, point mouse cursor at an item 
+	you want selected items to be placed underneath in lanes or select 
+	its track and place the edit cursor over such item (designated item).  
+	* If the designated item is already a part of an overlapping items 
+	cluster, the imploded items will be placed in lanes immediately beneath
+	such item provided it's selected, otherwise the imploded items 
+	will be placed beneath the bottommost item of such overlapping items 
+	cluster. If several items are selected in a cluster items are imploded 
+	beneath the last selected.  
+	* The designated item is always considered selected if the mouse cursor 
+	points at it at the moment of the script execution, in which case it has
+	to be run with a shortcut so the mouse cursor isn't enganged.   
+	* Items are imploded in their global project order (left to right,
+	top to bottom) beneath the designated item (one around which imploding 
+	is performed).   
+	* !!! After imploding, the originally selected items may end up in an 
+	unexpected order if there're mutually fully overlapping items among 
+	them, because in this case their global order isn't obvious, fully 
+	overlapping items apparent lanes order isn't governed by their global 
+	order in the project.  	
+	* It's only possible to implode selected items into a single cluster 
+	of overlapping items, meaning all selected items can either join an 
+	already existing cluster or coalesce into a new one.
+
+	EXPLODE || CROP
+
+	To explode or crop overlapping items select any number of such
+	overlapping items to have the rest exploded or removed respectively.
+	If all items happen to be selected the action won't be executed.
+
+	BEHAVIOR IN COLLAPSED LANES 
+
+	When overlapping item lanes are collapsed, after a script is applied 
+	generally the outermost (visible) item changes to reflect change 
+	in item positions in lanes with the following caveats:  
+
+	* When actions   
+	'move selected to top/bottom lane', 'move all up/down one lane'   
+	are applied to overlapping items whose lanes are collapsed, only 1 item 
+	can stay selected per cluster which is the outermost (visible) one. 
+	Change in selection is reflected in the change of the outermost item.  
+	The outermost item lane isn't fixed and can be whatever.  		
+	* In 'select next/prevous' scripts, the outermost (visible) item  
+	only changes if it was selected before the script was applied.  
+	* Even when all items in an overlapping items cluster are selected 
+	before 'explode' or 'crop' script is executed all items will be
+	respectively exploded or cropped leaving only the outermost item
+	at its original position or intact respectively.  
+	If the outermost item isn't selected, no exploding or cropping occurs 
+	regardless of other items selection within the cluster.
+
+	___________________________________________________________________
+	Be aware that after duplicating overlapping items in a batch the order
+	of their copies will likely be different. That's REAPER's quirk.
 			
 Metapackage: true
 Provides: 	[main] . > BuyOne_Overlapping items/BuyOne_Overlapping items - move selected to top lane (cycle).lua
-			[main] . > BuyOne_Overlapping items/BuyOne_Overlapping items - move selected to bottom lane (cycle).lua
-			[main] . > BuyOne_Overlapping items/BuyOne_Overlapping items - move selected to top lane (swap).lua
-			[main] . > BuyOne_Overlapping items/BuyOne_Overlapping items - move selected to bottom lane (swap).lua
-			[main] . > BuyOne_Overlapping items/BuyOne_Overlapping items - move all up one lane.lua
-			[main] . > BuyOne_Overlapping items/BuyOne_Overlapping items - move all down one lane.lua
-			[main] . > BuyOne_Overlapping items/BuyOne_Overlapping items - select next.lua
-			[main] . > BuyOne_Overlapping items/BuyOne_Overlapping items - select previous.lua
-			[main] . > BuyOne_Overlapping items/BuyOne_Overlapping items - implode selected items as overlapping items in lanes.lua
-			[main] . > BuyOne_Overlapping items/BuyOne_Overlapping items - explode on the same track (in place).lua
-			[main] . > BuyOne_Overlapping items/BuyOne_Overlapping items - explode across tracks (to new tracks).lua
-			[main] . > BuyOne_Overlapping items/BuyOne_Overlapping items - explode across tracks (to track duplicates).lua
-			[main] . > BuyOne_Overlapping items/BuyOne_Overlapping items - crop to first selected item.lua
+		[main] . > BuyOne_Overlapping items/BuyOne_Overlapping items - move selected to bottom lane (cycle).lua
+		[main] . > BuyOne_Overlapping items/BuyOne_Overlapping items - move selected to top lane (swap).lua
+		[main] . > BuyOne_Overlapping items/BuyOne_Overlapping items - move selected to bottom lane (swap).lua
+		[main] . > BuyOne_Overlapping items/BuyOne_Overlapping items - move all up one lane.lua
+		[main] . > BuyOne_Overlapping items/BuyOne_Overlapping items - move all down one lane.lua
+		[main] . > BuyOne_Overlapping items/BuyOne_Overlapping items - select next.lua
+		[main] . > BuyOne_Overlapping items/BuyOne_Overlapping items - select previous.lua
+		[main] . > BuyOne_Overlapping items/BuyOne_Overlapping items - implode selected items as overlapping items in lanes.lua
+		[main] . > BuyOne_Overlapping items/BuyOne_Overlapping items - explode on the same track (in place).lua
+		[main] . > BuyOne_Overlapping items/BuyOne_Overlapping items - explode across tracks (to new tracks).lua
+		[main] . > BuyOne_Overlapping items/BuyOne_Overlapping items - explode across tracks (to track duplicates).lua
+		[main] . > BuyOne_Overlapping items/BuyOne_Overlapping items - crop to first selected item.lua
 ]]
 
 function Msg(param, cap) -- caption second or none
