@@ -38,7 +38,6 @@
 --
 --
 --   P.S. There is experimental support for fixed media lanes being in pre-release versions.
-
 ---------------------
 Options = {
 --TO MODIFY THESE OPTIONS CALL THE OPTIONS WINDOW.
@@ -645,14 +644,14 @@ function SetCrossfade(Litem,Ritem,areaData)
   end
   
   
-  ---------Is new fade------- check for Midi items
+  ---------Is new fade------- check for Midi items and items on different lanes/tracks
   if LiNewEnd and RiNewStart and LiNewEnd > RiNewStart then
     
-    if reaper.GetMediaItemInfo_Value( Litem, "D_FADEOUTLEN_AUTO") == 0 and leftISmidi == true then
+    if reaper.GetMediaItemInfo_Value( Litem, "D_FADEOUTLEN_AUTO") == 0 then
       reaper.SetMediaItemInfo_Value( Litem, "D_FADEOUTLEN", LiNewEnd - RiNewStart )
     end
     
-    if reaper.GetMediaItemInfo_Value( Ritem, "D_FADEINLEN_AUTO") == 0 and rightISmidi == true then
+    if reaper.GetMediaItemInfo_Value( Ritem, "D_FADEINLEN_AUTO") == 0 then
       reaper.SetMediaItemInfo_Value( Ritem, "D_FADEINLEN", LiNewEnd - RiNewStart )
     end
 
@@ -1014,12 +1013,12 @@ function GetTSandItems(start_TS, end_TS) --returns areaMap and needBatch
     local itemEndPos_2 = iPos_2+reaper.GetMediaItemInfo_Value(item_2, "D_LENGTH")
     local iLock_2 = reaper.GetMediaItemInfo_Value(item_2, "C_LOCK")
     
-    if iLock_1 == 0 and iLock_2 == 0 then
+    if (iLock_1 == 0 and iLock_2 == 0) or RespectLocking == false then
       if iPos_1 <= start_TS and itemEndPos_1 > start_TS and iPos_1 < iPos_2 and
       iPos_2 < end_TS and itemEndPos_2 >= end_TS and itemEndPos_1 < itemEndPos_2 then
         items[1] = item_1
         items[2] = item_2
-      elseif iPos_2 <= start_TS and itemEndPos_2 >start_TS and iPos_2 < iPos_1 and
+      elseif iPos_2 <= start_TS and itemEndPos_2 > start_TS and iPos_2 < iPos_1 and
       iPos_1 < end_TS and itemEndPos_1 >= end_TS and itemEndPos_2 < itemEndPos_1 then
         items[1] = item_2
         items[2] = item_1
@@ -1350,6 +1349,7 @@ end --end of Main()
 
 ---------------------------
 
+---------------------------
 -----------START-----------
 if reaper.GetExtState(ScriptName,'version') ~= '1.2' then
   reaper.SetExtState(ScriptName,'version', '1.2', true)
