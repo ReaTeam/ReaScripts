@@ -89,7 +89,6 @@ About:  The script isn't compatible with REAPER builds 6.54 onward, because
 	___________________________________________________________________
 	Be aware that after duplicating overlapping items in a batch the order
 	of their copies will likely be different. That's REAPER's quirk.
-			
 Metapackage: true
 Provides: 	[main] . > BuyOne_Overlapping items/BuyOne_Overlapping items - move selected to top lane (cycle).lua
 		[main] . > BuyOne_Overlapping items/BuyOne_Overlapping items - move selected to bottom lane (cycle).lua
