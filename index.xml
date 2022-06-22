@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="b229d88172a48c417921b3b48e138c5b3074dee4" name="ReaTeam Scripts">
+<index version="1" commit="d025e519f534e125564e45f04c8c87cb55f5834a" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -3286,6 +3286,10 @@ Fix a potential infinite loop]]></changelog>
         <changelog><![CDATA[Special curve type for crossfades now supported]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b229d88172a48c417921b3b48e138c5b3074dee4/Envelopes/Takes/Odedd_Convert%20item%20fades%20to%20take%20volume%20envelopes.lua</source>
       </version>
+      <version name="1.4" author="Oded D" time="2022-06-22T22:39:47Z">
+        <changelog><![CDATA[Fix envelope point appearing at -inf in some cases]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d3acf3399d724ce0ce5d459570ec56b9838c757d/Envelopes/Takes/Odedd_Convert%20item%20fades%20to%20take%20volume%20envelopes.lua</source>
+      </version>
     </reapack>
     <reapack name="spk77_Copy take mute envelope from selected take to other takes in same group.lua" type="script" desc="Copy take mute envelope from selected take to other takes in same group">
       <version name="1.0" author="spk77" time="2015-12-06T06:55:53Z">
@@ -5261,18 +5265,22 @@ website
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 #Fade tool\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Fade tool\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Options window can be opened by pressing the shortcut assigned the script when mouse placed on transport or mixer panel.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Use top/bottom mouse placement on the item to define what fade you need, in or out.\par}
-{\pard \ql \f0 \sa180 \li360 \fi0 There is two ways that you can change in the User Area of the code.\par}
-{\pard \ql \f0 \sa180 \li360 \fi0 \f1   Default is top / bottom - fadein / fadeout\line
+{\pard \ql \f0 \sa180 \li360 \fi0 There is two ways that you can change in the options.\par}
+{\pard \ql \f0 \sa180 \li360 \fi0 \f1   Default is: top / bottom - fadein / fadeout\line
 \line
-  Another is top / bottom - close edge fade / far edge fade\par}
+  Another is: top / bottom - close edge fade / far edge fade\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Use razor edit area for fades and crossfades a pair of items.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Use time selection with item selection. Such way you can crossfade items on different tracks.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Also you can set both fades for item by selection it's middle part.\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Create batch fades / crossfades if there are more than 2 items selected.\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab There is option (ON by default) to move edit cursor with offset before first fade. That allows you to listen changes immediately.\sa180\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Script warns if non-midi items have too short source for creating crossfade and offer to loop source.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Create batch fades / crossfades if there is at least one whole item in the area .\sa180\par}
+{\pard \qc \f0 \sa180 \li0 \fi0 \emdash\emdash\emdash\emdash\emdash\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab There is an option (ON by default) to move edit cursor with offset before first fade. That allows you to listen changes immediately.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Locking respected by default.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Script warns if non-midi items have too short source for creating crossfade and offer to loop source.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Last batch values can be saved in project (by default)\sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 P.S. There is experimental support for fixed media lanes being in pre-release versions.\par}
 }
 ]]></description>
@@ -5285,6 +5293,13 @@ website
 -added butch fades/crossfades
 -added fixed lanes experimental support]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/16077e55692946da25962d9b1f0d5a93db829865/Items%20Editing/az_Fade%20tool%20(work%20on%20context%20of%20mouse,%20razor%20or%20time%20selection).lua</source>
+      </version>
+      <version name="1.2" author="AZ" time="2022-06-22T22:41:08Z">
+        <changelog><![CDATA[- Added options window
+- global locking and locked items are respected now.
+- batch fades/crossfades work for many tracks at ones.
+- last batch values can be saved in project (by default)]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d025e519f534e125564e45f04c8c87cb55f5834a/Items%20Editing/az_Fade%20tool%20(work%20on%20context%20of%20mouse,%20razor%20or%20time%20selection).lua</source>
       </version>
     </reapack>
     <reapack name="az_Smart split items by mouse cursor.lua" type="script" desc="Smart split items by mouse cursor">
