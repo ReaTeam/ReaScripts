@@ -1,7 +1,7 @@
 -- @description Convert item fades to take volume envelopes
 -- @author Oded D
--- @version 1.3
--- @changelog Special curve type for crossfades now supported
+-- @version 1.4
+-- @changelog Fix envelope point appearing at -inf in some cases
 -- @screenshot https://s8.gifyu.com/images/CleanShot-2022-05-30-at-09.54.51.gif
 -- @about
 --   Convert selected items' fades to their respective active takes' volume envelope, interpolating the existing envelope inside the fade region.
@@ -83,7 +83,7 @@ function generateInterpolatedFade(env, start_time, end_time, shape, direction, i
     end
   
     -- interpolate existing points with fade curve
-    for pi=0, reaper.CountEnvelopePoints(env,-1) do
+    for pi=0, reaper.CountEnvelopePoints(env,-1)-1 do
     retval, t, pointVal = reaper.GetEnvelopePoint(env, pi)
       if (t >= start_time) and (t <= end_time) then
         normalizedPointVal = reaper.ScaleFromEnvelopeMode(isScale,pointVal)
@@ -98,7 +98,7 @@ function generateInterpolatedFade(env, start_time, end_time, shape, direction, i
    
     -- insert actual points
     for tk, val in pairs(points) do
-      reaper.InsertEnvelopePoint(env,val.time,val.value,0,1,false,false)
+      reaper.InsertEnvelopePoint(env,val.time,val.value,0,0,false,false)
     end
     
     -- determine and insert last point
@@ -108,7 +108,7 @@ function generateInterpolatedFade(env, start_time, end_time, shape, direction, i
       endVal = reaper.ScaleFromEnvelopeMode(isScale,endVal)
     end
     val = reaper.ScaleToEnvelopeMode(isScale, endVal)
-    reaper.InsertEnvelopePoint(env,end_time,val,0,1,false,false)
+    reaper.InsertEnvelopePoint(env,end_time,val,0,0,false,false)
     if sort then reaper.Envelope_SortPoints(env) end
   end
 end
