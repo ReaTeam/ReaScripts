@@ -102,7 +102,7 @@ Provides: 	[main] . > BuyOne_Overlapping items/BuyOne_Overlapping items - move s
 		[main] . > BuyOne_Overlapping items/BuyOne_Overlapping items - explode on the same track (in place).lua
 		[main] . > BuyOne_Overlapping items/BuyOne_Overlapping items - explode across tracks (to new tracks).lua
 		[main] . > BuyOne_Overlapping items/BuyOne_Overlapping items - explode across tracks (to track duplicates).lua
-		[main] . > BuyOne_Overlapping items/BuyOne_Overlapping items - crop to first selected item.lua
+		[main] . > BuyOne_Overlapping items/BuyOne_Overlapping items - crop to selected items.lua
 ]]
 
 function Msg(param, cap) -- caption second or none
