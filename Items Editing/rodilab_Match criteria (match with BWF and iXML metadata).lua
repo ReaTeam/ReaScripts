@@ -1,7 +1,7 @@
 -- @description Match criteria (match with BWF and iXML metadata)
 -- @author Rodilab
--- @version 1.4
--- @changelog New ReaImGui v0.5 interface
+-- @version 1.5
+-- @changelog ReaImGui v0.7 compatibility
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=251640
 -- @screenshot Screenshot https://www.rodrigodiaz.fr/prive/Match_criteria_v1_4.jpg
 -- @donation Donate via PayPay https://www.paypal.com/donate?hosted_button_id=N5DUAELFWX4DC
@@ -36,6 +36,7 @@ if r.APIExists('ImGui_CreateContext') == true then
   if TestVersion(reaimgui_version,{0,5,0}) then
     if r.APIExists('JS_Dialog_BrowseForOpenFiles') == true then
 
+dofile(reaper.GetResourcePath() .. '/Scripts/ReaTeam Extensions/API/imgui.lua')('0.6')
 menubar_color = r.ImGui_ColorConvertHSVtoRGB(0.59,0.65,0.5,1)
 child_heigth = 185
 button_width = 100
