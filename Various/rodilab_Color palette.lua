@@ -1,9 +1,7 @@
 -- @description Color palette
 -- @author Rodilab
--- @version 2.10
--- @changelog
---   - Minor code improvement
---   - Fix popup window position
+-- @version 2.20
+-- @changelog - ReaImGui 0.7 compatibility
 -- @provides
 --   [data] rodilab_Color palette/color_palette_arm.cur
 --   [data] rodilab_Color palette/color_palette_arm_insert.cur
@@ -88,6 +86,7 @@ if r.APIExists('CF_GetClipboard') == true then
       if r.APIExists('JS_Dialog_BrowseForOpenFiles') == true then
         if TestVersion(r.GetAppVersion(),{6,28}) then
 
+dofile(reaper.GetResourcePath() .. '/Scripts/ReaTeam Extensions/API/imgui.lua')('0.6')
 FLT_MIN, FLT_MAX = r.ImGui_NumericLimits_Float()
 recalc_colors = true
 do
