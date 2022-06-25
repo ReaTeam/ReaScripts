@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="d025e519f534e125564e45f04c8c87cb55f5834a" name="ReaTeam Scripts">
+<index version="1" commit="78632dcd9253b9e784043cb6b3a0ab0d564a1443" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -7009,6 +7009,10 @@ Fix bug on Windows]]></changelog>
         <changelog><![CDATA[New ReaImGui v0.5 interface]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/9ff25d09f78d29f47ea103e41aed7a8d9d9e870b/Items%20Editing/rodilab_Match%20criteria%20(match%20with%20BWF%20and%20iXML%20metadata).lua</source>
       </version>
+      <version name="1.5" author="Rodilab" time="2022-06-25T20:33:26Z">
+        <changelog><![CDATA[ReaImGui v0.7 compatibility]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d21d7b022d451ec85553dee87b32beeebd3c8fe4/Items%20Editing/rodilab_Match%20criteria%20(match%20with%20BWF%20and%20iXML%20metadata).lua</source>
+      </version>
     </reapack>
     <reapack name="rodilab_Move items to synchronize with the TimeRef of the first selected item (BWF metadata).lua" type="script" desc="Move items to synchronize with the TimeRef of the first selected item (BWF metadata)">
       <metadata>
@@ -7684,6 +7688,10 @@ selection.]]></changelog>
       <version name="2.0" author="Rodilab" time="2021-07-13T09:50:01Z">
         <changelog><![CDATA[New ReaImGui interface]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a73bc3e771935a13bcfc5e3a859f31e710fa9b03/Items%20Properties/rodilab_Rename%20takes%20and%20item%20notes%20with%20BWF%20and%20iXML%20metadata.lua</source>
+      </version>
+      <version name="2.1" author="Rodilab" time="2022-06-25T20:33:34Z">
+        <changelog><![CDATA[ReaImGui 0.7 compatibility]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/27446be88a895ae5ebb08c01b4152e443023c127/Items%20Properties/rodilab_Rename%20takes%20and%20item%20notes%20with%20BWF%20and%20iXML%20metadata.lua</source>
       </version>
     </reapack>
     <reapack name="rodilab_Set items snap offset to max peak.lua" type="script" desc="Set items snap offset to max peak">
@@ -16578,6 +16586,10 @@ uc_track_name_abbreviations = \{"O-Out", "O-MID"\}\par}
 - Add "Track name ends with the tag" option]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/5315e4806b14808eaaf30576e2750051fbe318ff/Tracks%20Properties/rodilab_Track%20name%20groups.lua</source>
       </version>
+      <version name="1.50" author="Rodilab" time="2022-06-25T20:33:40Z">
+        <changelog><![CDATA[ReaImGui v0.7 compatibility]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/78632dcd9253b9e784043cb6b3a0ab0d564a1443/Tracks%20Properties/rodilab_Track%20name%20groups.lua</source>
+      </version>
     </reapack>
     <reapack name="spk77_Adjust all receive volumes on selected track by x dB.eel" type="script" desc="Adjust all receive volumes on selected track by x dB">
       <version name="0.2015.4.25" time="2015-12-02T21:24:29Z">
@@ -21977,6 +21989,12 @@ Fix SWS Startup / Lokasenna Radial Menu bug]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/78b7c5ebdee362b8e6981c97aefb9f44b6fbabb0/Various/rodilab_Color%20palette.lua</source>
         <source type="data" file="rodilab_Color palette/color_palette_arm.cur">https://github.com/ReaTeam/ReaScripts/raw/78b7c5ebdee362b8e6981c97aefb9f44b6fbabb0/Various/rodilab_Color%20palette/color_palette_arm.cur</source>
         <source type="data" file="rodilab_Color palette/color_palette_arm_insert.cur">https://github.com/ReaTeam/ReaScripts/raw/78b7c5ebdee362b8e6981c97aefb9f44b6fbabb0/Various/rodilab_Color%20palette/color_palette_arm_insert.cur</source>
+      </version>
+      <version name="2.20" author="Rodilab" time="2022-06-25T20:33:18Z">
+        <changelog><![CDATA[- ReaImGui 0.7 compatibility]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/65bb0cc2956ada316870491d87e3cbc6dd62c13c/Various/rodilab_Color%20palette.lua</source>
+        <source type="data" file="rodilab_Color palette/color_palette_arm.cur">https://github.com/ReaTeam/ReaScripts/raw/65bb0cc2956ada316870491d87e3cbc6dd62c13c/Various/rodilab_Color%20palette/color_palette_arm.cur</source>
+        <source type="data" file="rodilab_Color palette/color_palette_arm_insert.cur">https://github.com/ReaTeam/ReaScripts/raw/65bb0cc2956ada316870491d87e3cbc6dd62c13c/Various/rodilab_Color%20palette/color_palette_arm_insert.cur</source>
       </version>
     </reapack>
     <reapack name="rodilab_Smart remove.lua" type="script" desc="Smart remove">
