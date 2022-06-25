@@ -1,7 +1,7 @@
 -- @description Rename takes and item notes with BWF and iXML metadata
 -- @author Rodilab
--- @version 2.0
--- @changelog New ReaImGui interface
+-- @version 2.1
+-- @changelog ReaImGui 0.7 compatibility
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=250505
 -- @donation Donate via PayPal https://www.paypal.com/donate?hosted_button_id=N5DUAELFWX4DC
 -- @about
@@ -33,6 +33,7 @@ end
 if r.APIExists('ImGui_CreateContext') == true then
   if TestVersion(({r.ImGui_GetVersion()})[2],{0,5,1}) then
 
+dofile(reaper.GetResourcePath() .. '/Scripts/ReaTeam Extensions/API/imgui.lua')('0.6')
 message_box = true -- Popup message box (if not, set default value)
 separator = "~" -- This special character is prohibited in the message box
 wildcard_chars = {"$","#","@"}
