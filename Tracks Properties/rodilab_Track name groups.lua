@@ -1,12 +1,7 @@
 -- @description Track name groups
 -- @author Rodilab
--- @version 1.41
--- @changelog
---   - "Auto-remove empty tags" option
---   - Fix multiple project tabs bug
---   - New key modifiers (right-click on buttons to more info)
---   - First right click give window focus
---   - Add "Track name ends with the tag" option
+-- @version 1.50
+-- @changelog ReaImGui v0.7 compatibility
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=255223
 -- @donation Donate via PayPal https://www.paypal.com/donate?hosted_button_id=N5DUAELFWX4DC
 -- @about
@@ -46,6 +41,7 @@ if r.APIExists('CF_GetSWSVersion') == true then
     if TestVersion(({r.ImGui_GetVersion()})[2],{0,5,3}) then
       if r.APIExists('JS_ReaScriptAPI_Version') == true then
 
+dofile(reaper.GetResourcePath() .. '/Scripts/ReaTeam Extensions/API/imgui.lua')('0.6')
 FLT_MIN, FLT_MAX = r.ImGui_NumericLimits_Float()
 
 ---------------------------------------------------------------------------------
