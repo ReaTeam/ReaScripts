@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="78632dcd9253b9e784043cb6b3a0ab0d564a1443" name="ReaTeam Scripts">
+<index version="1" commit="fa0067767d1a74a1c5dd69d3677e8b6edc612ae2" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -5564,6 +5564,54 @@ is shorter than that of the portion imported into ReaSamplomatic5000
       <version name="1.1" author="BuyOne" time="2021-10-01T19:46:12Z">
         <changelog><![CDATA[#Added group locking in non-AUTO mode]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/882b19fae0b18d4e3db1c6f78e1378250d2e64b3/Items%20Editing/BuyOne_Exclusively%20solo%20or%20mute%20only%20selected%20grouped%20items%20(settings%20inside).lua</source>
+      </version>
+    </reapack>
+    <reapack name="BuyOne_Manipulate overlapping items in lanes.lua" type="script" desc="Move, select, im- &amp; explode, crop overlapping items in lanes (13 scripts) - only 6.53 and earlier">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 The script isn't compatible with REAPER builds 6.54 onward, because the logic governing overlapping items display in lanes was changed while the script was being developed.\line https://forum.cockos.com/showthread.php?t=267390\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 MOVE SELECTED TO TOP/BOTTOM LANE || ALL UP/DOWN ONE LANE\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 In 'move selected to top/bottom lane' scripts, selection of multiple items within the same overlapping items cluster doesn't make sense, hence if multiple items are selected it's the first (whose lane is the highest) or the last (whose lane is the lowest) selected item per cluster which will be moved to the top/bottom lane respectively.\line 'Cycle' in the script name means that all items change their lane along with the selected one.\line 'Swap' means that only two items trade their lanes.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 In 'move all up/down one lane' scripts the number of selected overlapping items per cluster doesn't matter.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 SELECT NEXT/PREVIOUS\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Select any number of overlapping items in a cluster and execute the script. Selection will be shifted down or up respectively.\line If all items in a cluster are selected nothing changes.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 IMPLODE\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab To implode items select them, point mouse cursor at an item you want selected items to be placed underneath in lanes or select its track and place the edit cursor over such item (designated item).\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab If the designated item is already a part of an overlapping items cluster, the imploded items will be placed in lanes immediately beneath such item provided it's selected, otherwise the imploded items will be placed beneath the bottommost item of such overlapping items cluster. If several items are selected in a cluster items are imploded beneath the last selected.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab The designated item is always considered selected if the mouse cursor points at it at the moment of the script execution, in which case it has to be run with a shortcut so the mouse cursor isn't enganged.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Items are imploded in their global project order (left to right, top to bottom) beneath the designated item (one around which imploding is performed).\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab !!! After imploding, the originally selected items may end up in an unexpected order if there're mutually fully overlapping items among them, because in this case their global order isn't obvious, fully overlapping items apparent lanes order isn't governed by their global order in the project.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab It's only possible to implode selected items into a single cluster of overlapping items, meaning all selected items can either join an already existing cluster or coalesce into a new one.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 EXPLODE || CROP\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 To explode or crop overlapping items select any number of such overlapping items to have the rest exploded or removed respectively. If all items happen to be selected the action won't be executed.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 BEHAVIOR IN COLLAPSED LANES\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 When overlapping item lanes are collapsed, after a script is applied generally the outermost (visible) item changes to reflect change in item positions in lanes with the following caveats:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab When actions\line 'move selected to top/bottom lane', 'move all up/down one lane'\line are applied to overlapping items whose lanes are collapsed, only 1 item can stay selected per cluster which is the outermost (visible) one. Change in selection is reflected in the change of the outermost item.\line The outermost item lane isn't fixed and can be whatever.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab In 'select next/prevous' scripts, the outermost (visible) item\line only changes if it was selected before the script was applied.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Even when all items in an overlapping items cluster are selected before 'explode' or 'crop' script is executed all items will be respectively exploded or cropped leaving only the outermost item at its original position or intact respectively.\line If the outermost item isn't selected, no exploding or cropping occurs regardless of other items selection within the cluster.\sa180\par}
+{\pard \qc \f0 \sa180 \li0 \fi0 \emdash\emdash\emdash\emdash\emdash\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Be aware that after duplicating overlapping items in a batch the order of their copies will likely be different. That's REAPER's quirk.\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="BuyOne" time="2022-07-02T23:24:46Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main" file="BuyOne_Overlapping items/BuyOne_Overlapping items - move selected to top lane (cycle).lua">https://github.com/ReaTeam/ReaScripts/raw/fa0067767d1a74a1c5dd69d3677e8b6edc612ae2/Items%20Editing/BuyOne_Manipulate%20overlapping%20items%20in%20lanes.lua</source>
+        <source main="main" file="BuyOne_Overlapping items/BuyOne_Overlapping items - move selected to bottom lane (cycle).lua">https://github.com/ReaTeam/ReaScripts/raw/fa0067767d1a74a1c5dd69d3677e8b6edc612ae2/Items%20Editing/BuyOne_Manipulate%20overlapping%20items%20in%20lanes.lua</source>
+        <source main="main" file="BuyOne_Overlapping items/BuyOne_Overlapping items - move selected to top lane (swap).lua">https://github.com/ReaTeam/ReaScripts/raw/fa0067767d1a74a1c5dd69d3677e8b6edc612ae2/Items%20Editing/BuyOne_Manipulate%20overlapping%20items%20in%20lanes.lua</source>
+        <source main="main" file="BuyOne_Overlapping items/BuyOne_Overlapping items - move selected to bottom lane (swap).lua">https://github.com/ReaTeam/ReaScripts/raw/fa0067767d1a74a1c5dd69d3677e8b6edc612ae2/Items%20Editing/BuyOne_Manipulate%20overlapping%20items%20in%20lanes.lua</source>
+        <source main="main" file="BuyOne_Overlapping items/BuyOne_Overlapping items - move all up one lane.lua">https://github.com/ReaTeam/ReaScripts/raw/fa0067767d1a74a1c5dd69d3677e8b6edc612ae2/Items%20Editing/BuyOne_Manipulate%20overlapping%20items%20in%20lanes.lua</source>
+        <source main="main" file="BuyOne_Overlapping items/BuyOne_Overlapping items - move all down one lane.lua">https://github.com/ReaTeam/ReaScripts/raw/fa0067767d1a74a1c5dd69d3677e8b6edc612ae2/Items%20Editing/BuyOne_Manipulate%20overlapping%20items%20in%20lanes.lua</source>
+        <source main="main" file="BuyOne_Overlapping items/BuyOne_Overlapping items - select next.lua">https://github.com/ReaTeam/ReaScripts/raw/fa0067767d1a74a1c5dd69d3677e8b6edc612ae2/Items%20Editing/BuyOne_Manipulate%20overlapping%20items%20in%20lanes.lua</source>
+        <source main="main" file="BuyOne_Overlapping items/BuyOne_Overlapping items - select previous.lua">https://github.com/ReaTeam/ReaScripts/raw/fa0067767d1a74a1c5dd69d3677e8b6edc612ae2/Items%20Editing/BuyOne_Manipulate%20overlapping%20items%20in%20lanes.lua</source>
+        <source main="main" file="BuyOne_Overlapping items/BuyOne_Overlapping items - implode selected items as overlapping items in lanes.lua">https://github.com/ReaTeam/ReaScripts/raw/fa0067767d1a74a1c5dd69d3677e8b6edc612ae2/Items%20Editing/BuyOne_Manipulate%20overlapping%20items%20in%20lanes.lua</source>
+        <source main="main" file="BuyOne_Overlapping items/BuyOne_Overlapping items - explode on the same track (in place).lua">https://github.com/ReaTeam/ReaScripts/raw/fa0067767d1a74a1c5dd69d3677e8b6edc612ae2/Items%20Editing/BuyOne_Manipulate%20overlapping%20items%20in%20lanes.lua</source>
+        <source main="main" file="BuyOne_Overlapping items/BuyOne_Overlapping items - explode across tracks (to new tracks).lua">https://github.com/ReaTeam/ReaScripts/raw/fa0067767d1a74a1c5dd69d3677e8b6edc612ae2/Items%20Editing/BuyOne_Manipulate%20overlapping%20items%20in%20lanes.lua</source>
+        <source main="main" file="BuyOne_Overlapping items/BuyOne_Overlapping items - explode across tracks (to track duplicates).lua">https://github.com/ReaTeam/ReaScripts/raw/fa0067767d1a74a1c5dd69d3677e8b6edc612ae2/Items%20Editing/BuyOne_Manipulate%20overlapping%20items%20in%20lanes.lua</source>
+        <source main="main" file="BuyOne_Overlapping items/BuyOne_Overlapping items - crop to selected items.lua">https://github.com/ReaTeam/ReaScripts/raw/fa0067767d1a74a1c5dd69d3677e8b6edc612ae2/Items%20Editing/BuyOne_Manipulate%20overlapping%20items%20in%20lanes.lua</source>
       </version>
     </reapack>
     <reapack name="BuyOne_Move items from one track to many or from many to one.lua" type="script" desc="Move items from one track to many or from many to one">
@@ -22331,6 +22379,20 @@ Fix SWS Startup / Lokasenna Radial Menu bug]]></changelog>
       <version name="1.4" author="Tagirijus" time="2021-06-08T17:08:19Z">
         <changelog><![CDATA[I added a compensation for the playback time offset. So now e.g. for a string library it is possible to have some negative time offset so that for quantized notes the strings will be in time, even if they have a slightly slower attack or so. My recording script now understand this playback time offset and compensates recorded MIDI data (which probably will be in sync with the beat during record but not after that anymore, if the time offset exists for the track!).]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/758a48bbcb25579f6ace621eedbe59e5f159017d/Various/tagirijus_Prevent%20item%20extend%20on%20record.lua</source>
+      </version>
+    </reapack>
+    <reapack name="tagirijus_Save project and move backups.lua" type="script" desc="Save project and move backups">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 This little script will just move all the *.rpp-bak files in the opened project folder to another location given in the script variable.\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="Tagirijus" time="2022-07-02T23:24:20Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/9e96eea791fd93d8151a7dce11d16995d67f3faa/Various/tagirijus_Save%20project%20and%20move%20backups.lua</source>
       </version>
     </reapack>
     <reapack name="timtam_IntelliFreeze.lua" type="script" desc="IntelliFreeze">
