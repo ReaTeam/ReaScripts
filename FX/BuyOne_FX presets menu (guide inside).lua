@@ -4,10 +4,10 @@ Author: BuyOne
 Website: https://forum.cockos.com/member.php?u=134058
 Version: 1.3
 Changelog:  # Fixed losing item focus and unnecessary horizontal scroll for REAPER builds prior to 6.37
-	    # Fixed transport stop when getting TCP under mouse cursor for REAPER builds prior to 6.37
-	    # Added MCP support for REAPER builds 6.37 onward
-	    # Minor code optimizations
-	    # Updated Guide
+			# Fixed transport stop when getting TCP under mouse cursor for REAPER builds prior to 6.37
+			# Added MCP support for REAPER builds 6.37 onward
+			# Minor code optimizations
+			# Updated Guide
 Provides: [main] .
 Licence: WTFPL
 REAPER: at least v5.962
@@ -505,90 +505,92 @@ local LOCK_FX_CHAIN_FOCUS = LOCK_FX_CHAIN_FOCUS:gsub(' ','') ~= ''
 	local x, y = r.GetMousePosition(); r.TrackCtl_SetToolTip(mess:gsub('.', '%0 '), x, y-20, 1)
 	return r.defer(function() do return end end) end -- prevent undo point creation
 
-	if not obj then return r.defer(function() do return end end) end -- prevent error when no item and when no track (empty area at bottom of the TCP, in MCP or the ruler or focused window) and prevent undo point creation
+	
+	if obj then -- prevent error when no item and when no track (empty area at bottom of the TCP, in MCP or the ruler or focused window) and prevent undo point creation
 
-	if obj_type == 1 then
-	local fx_chain_focus = LOCK_FX_CHAIN_FOCUS or r.GetCursorContext() == -1
-		if r.GetFocusedFX() == 2 and fx_chain_focus then -- (last) focused take FX chain
-		take = r.GetTake(obj,(select(4,r.GetFocusedFX()))>>16) -- make presets menu of focused take FX chain independent of the take being active
-		else take = r.GetActiveTake(obj) end
-	end
+		if obj_type == 1 then
+		local fx_chain_focus = LOCK_FX_CHAIN_FOCUS or r.GetCursorContext() == -1
+			if r.GetFocusedFX() == 2 and fx_chain_focus then -- (last) focused take FX chain
+			take = r.GetTake(obj,(select(4,r.GetFocusedFX()))>>16) -- make presets menu of focused take FX chain independent of the take being active
+			else take = r.GetActiveTake(obj) end
+		end
 
-local fx_cnt = obj_type == 0 and r.TrackFX_GetCount(obj) or obj_type == 1 and r.TakeFX_GetCount(take)
+	local fx_cnt = obj_type == 0 and r.TrackFX_GetCount(obj) or obj_type == 1 and r.TakeFX_GetCount(take)
 
-	if obj_type == 0 then rec_fx_cnt = r.TrackFX_GetRecCount(obj) end -- count input fx
-	local space = [[               ]]
-	if rec_fx_cnt then
-		if fx_cnt + rec_fx_cnt == 0 then mess = '\n  NO FX IN THE TRACK FX CHAINS  \n'..space
-		else
-			if fx_cnt > 0 then -- find out if plugins contain any presets
-			main_fx_pres = 0
-				for i = 0, fx_cnt-1 do
-				local retval, pres_cnt = r.TrackFX_GetPresetIndex(obj, i)
-				main_fx_pres = main_fx_pres + pres_cnt
+		if obj_type == 0 then rec_fx_cnt = r.TrackFX_GetRecCount(obj) end -- count input fx
+		local space = [[               ]]
+		if rec_fx_cnt then
+			if fx_cnt + rec_fx_cnt == 0 then mess = '\n  NO FX IN THE TRACK FX CHAINS  \n'..space
+			else
+				if fx_cnt > 0 then -- find out if plugins contain any presets
+				main_fx_pres = 0
+					for i = 0, fx_cnt-1 do
+					local retval, pres_cnt = r.TrackFX_GetPresetIndex(obj, i)
+					main_fx_pres = main_fx_pres + pres_cnt
+					end
+				end
+				if rec_fx_cnt and rec_fx_cnt > 0 then -- find out if plugins contain any presets
+				rec_fx_pres = 0
+					for i = 0, rec_fx_cnt-1 do
+					local retval, pres_cnt = r.TrackFX_GetPresetIndex(obj, i+0x1000000)
+					rec_fx_pres = rec_fx_pres + pres_cnt
+					end
 				end
 			end
-			if rec_fx_cnt and rec_fx_cnt > 0 then -- find out if plugins contain any presets
-			rec_fx_pres = 0
-				for i = 0, rec_fx_cnt-1 do
-				local retval, pres_cnt = r.TrackFX_GetPresetIndex(obj, i+0x1000000)
-				rec_fx_pres = rec_fx_pres + pres_cnt
+		else take_fx_cnt = r.TakeFX_GetCount(take)
+			if take_fx_cnt == 0 then mess = '\n  NO FX IN THE TAKE FX CHAIN  \n'..space
+			elseif take_fx_cnt > 0 then -- find out if plugins contain any ptresets
+			take_fx_pres = 0
+				for i = 0, take_fx_cnt-1 do
+				local retval, pres_cnt = r.TakeFX_GetPresetIndex(take, i)
+				take_fx_pres = take_fx_pres + pres_cnt
 				end
 			end
 		end
-	else take_fx_cnt = r.TakeFX_GetCount(take)
-		if take_fx_cnt == 0 then mess = '\n  NO FX IN THE TAKE FX CHAIN  \n'..space
-		elseif take_fx_cnt > 0 then -- find out if plugins contain any ptresets
-		take_fx_pres = 0
-			for i = 0, take_fx_cnt-1 do
-			local retval, pres_cnt = r.TakeFX_GetPresetIndex(take, i)
-			take_fx_pres = take_fx_pres + pres_cnt
+
+		if not mess then -- additional conditions
+		mess = ((fx_cnt > 0 and rec_fx_cnt and rec_fx_cnt > 0 and main_fx_pres + rec_fx_pres ==  0) or (fx_cnt > 0 and main_fx_pres == 0) or (rec_fx_cnt and rec_fx_cnt > 0 and rec_fx_pres == 0) or (take_fx_cnt and take_fx_cnt > 0 and take_fx_pres == 0)) and '\n  EITHER NO PRESETS OR NO PRESETS  \n\tACCESSIBLE TO THE SCRIPT\n'..space or nil
+		end
+
+		if mess then
+		local x, y = r.GetMousePosition(); r.TrackCtl_SetToolTip(mess:gsub('.', '%0 '), x, y-20, 1) -- y-20 raise tooltip above mouse cursor by that many px
+		return r.defer(function() do return end end) end
+
+
+	local ret, obj_chunk = GetObjChunk(obj, obj_type) -- needed for video processor and VST3 plugin instances detection with Collect_VideoProc_Instances() and Collect_VST3_Instances() functions
+
+		if ret == 'err_mess' then Err_mess() return r.defer(function() do return end end) end -- chunk size is over the limit and no SWS extention is installed to fall back on
+
+
+	local action_t = {{},{}} -- stores fx and preset indices as values for each key matching a preset index
+	local menu_t = {}
+
+
+		if fx_cnt > 0 then
+			if take then take_GUID = Esc(select(2,r.GetSetMediaItemTakeInfo_String(take, 'GUID', '', 0))) -- escape to use with string.match inside FX_Chain_Chunk()
+			obj = r.GetActiveTake(obj)
 			end
+		menu_t, action_t = MAIN(menu_t, action_t, FX_Chain_Chunk, Collect_VideoProc_Instances, Collect_VideoProc_Preset_Names, Collect_FX_Preset_Names, Esc, path, sep, obj, obj_chunk, fx_cnt, 0, take_GUID) -- 0 is type, track main fx
 		end
-	end
 
-	if not mess then -- additional conditions
-	mess = ((fx_cnt > 0 and rec_fx_cnt and rec_fx_cnt > 0 and main_fx_pres + rec_fx_pres ==  0) or (fx_cnt > 0 and main_fx_pres == 0) or (rec_fx_cnt and rec_fx_cnt > 0 and rec_fx_pres == 0) or (take_fx_cnt and take_fx_cnt > 0 and take_fx_pres == 0)) and '\n  EITHER NO PRESETS OR NO PRESETS  \n\tACCESSIBLE TO THE SCRIPT\n'..space or nil
-	end
-
-	if mess then
-	local x, y = r.GetMousePosition(); r.TrackCtl_SetToolTip(mess:gsub('.', '%0 '), x, y-20, 1) -- y-20 raise tooltip above mouse cursor by that many px
-	return r.defer(function() do return end end) end
-
-
-local ret, obj_chunk = GetObjChunk(obj, obj_type) -- needed for video processor and VST3 plugin instances detection with Collect_VideoProc_Instances() and Collect_VST3_Instances() functions
-
-	if ret == 'err_mess' then Err_mess() return r.defer(function() do return end end) end -- chunk size is over the limit and no SWS extention is installed to fall back on
-
-
-local action_t = {{},{}} -- stores fx and preset indices as values for each key matching a preset index
-local menu_t = {}
-
-
-	if fx_cnt > 0 then
-		if take then take_GUID = Esc(select(2,r.GetSetMediaItemTakeInfo_String(take, 'GUID', '', 0))) -- escape to use with string.match inside FX_Chain_Chunk()
-		obj = r.GetActiveTake(obj)
+		if rec_fx_cnt and rec_fx_cnt > 0 then
+		menu_t, action_t = MAIN(menu_t, action_t, FX_Chain_Chunk, Collect_VideoProc_Instances, Collect_VideoProc_Preset_Names, Collect_FX_Preset_Names, Esc, path, sep, obj, obj_chunk, rec_fx_cnt, 1, take_GUID) -- 1 is type, track input fx
 		end
-	menu_t, action_t = MAIN(menu_t, action_t, FX_Chain_Chunk, Collect_VideoProc_Instances, Collect_VideoProc_Preset_Names, Collect_FX_Preset_Names, Esc, path, sep, obj, obj_chunk, fx_cnt, 0, take_GUID) -- 0 is type, track main fx
+
+
+	gfx.init('FX Menu', 0, 0)
+	-- open menu at the mouse cursor
+	gfx.x = gfx.mouse_x
+	gfx.y = gfx.mouse_y
+
+	local input = gfx.showmenu(table.concat(menu_t))
+
+		if input > 0 then
+		local select_pres = obj_type == 0 and r.TrackFX_SetPresetByIndex(obj, action_t[1][input], action_t[2][input]) or obj_type == 1 and r.TakeFX_SetPresetByIndex(take, action_t[1][input], action_t[2][input])
+		end
+
 	end
-
-	if rec_fx_cnt and rec_fx_cnt > 0 then
-	menu_t, action_t = MAIN(menu_t, action_t, FX_Chain_Chunk, Collect_VideoProc_Instances, Collect_VideoProc_Preset_Names, Collect_FX_Preset_Names, Esc, path, sep, obj, obj_chunk, rec_fx_cnt, 1, take_GUID) -- 1 is type, track input fx
-	end
-
-
-gfx.init('FX Menu', 0, 0)
--- open menu at the mouse cursor
-gfx.x = gfx.mouse_x
-gfx.y = gfx.mouse_y
-
-local input = gfx.showmenu(table.concat(menu_t))
-
-	if input > 0 then
-	local select_pres = obj_type == 0 and r.TrackFX_SetPresetByIndex(obj, action_t[1][input], action_t[2][input]) or obj_type == 1 and r.TakeFX_SetPresetByIndex(take, action_t[1][input], action_t[2][input])
-	end
-
-
+	
 
 -- Undo is unnesessary as it's created automatically on preset change
 
