@@ -4,9 +4,10 @@ Author: BuyOne
 Website: https://forum.cockos.com/member.php?u=134058
 Version: 1.3
 Changelog:  # Fixed losing item focus and unnecessary horizontal scroll for REAPER builds prior to 6.37
-	    # Added MCP support for REAPER builds 6.37 onward
-	    # Minor code optimizations
-	    # Updated Guide
+			# Fixed transport stop when getting TCP under mouse cursor for for REAPER builds prior to 6.37
+			# Added MCP support for REAPER builds 6.37 onward
+			# Minor code optimizations
+			# Updated Guide
 Provides: [main] .
 Licence: WTFPL
 REAPER: at least v5.962
@@ -59,10 +60,6 @@ About:
 	in REAPER or pres Esc keyboard key.
 	
 	- Video processor preset menu is supported from REAPER build 6.26 onwards.
-	
-	CAVEAT: before build 6.37 getting FX preset menu of a track under mouse cursor is incompatible with 
-	playback, the transport will stop. Therefore opt for the setting SEL_OBJ_IN_CURR_CONTEXT to get FX preset menu
-	of the last selected track
 	
 ]]
 
