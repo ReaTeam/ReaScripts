@@ -4,7 +4,7 @@ Author: BuyOne
 Website: https://forum.cockos.com/member.php?u=134058
 Version: 1.3
 Changelog:  # Fixed losing item focus and unnecessary horizontal scroll for REAPER builds prior to 6.37
-	    # Fixed transport stop when getting TCP under mouse cursor for for REAPER builds prior to 6.37
+	    # Fixed transport stop when getting TCP under mouse cursor for REAPER builds prior to 6.37
 	    # Added MCP support for REAPER builds 6.37 onward
 	    # Minor code optimizations
 	    # Updated Guide
