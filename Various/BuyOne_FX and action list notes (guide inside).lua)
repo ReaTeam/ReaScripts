@@ -145,7 +145,7 @@ HIDE_ALL_TRACKS_TEMPORARILY = ""
 -- aren't dispayed in the FX browser, only file path.
 -- If you need this setting to work for for AU, LV2 or DX plugins,
 -- please contact me
--- 					!!! W A R N I N G !!!
+-- 			!!! W A R N I N G !!!
 -- THE SETTING INSTRUCTS THE SCRIPT TO MODIFY
 -- reaper-vstplugins(64).ini FILES, CONTAINING VST PLUGINS CACHE,
 -- AS WELL AS MODIFY NAMES OF JS PLUGINS DIRECTLY INSIDE THEIR
@@ -165,7 +165,7 @@ TAG_FX_NAME = ""
 -- For these changes to be reflected in FX Browser REAPER must
 -- be restarted or FX browser refreshed with F5, but otherwise
 -- this setting will still continue to work properly.
--- 					!!! W A R N I N G !!!
+-- 			!!! W A R N I N G !!!
 -- THE SETTING INSTRUCTS THE SCRIPT TO MODIFY ONCE
 -- reaper-fxfolders.ini FILE, CONTAINING FX BROWSER CATEGORIES
 -- AND FOLDER DATA. ALTHOUGH DURING TESTING NO DAMAGE WAS CAUSED
