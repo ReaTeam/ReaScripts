@@ -9,91 +9,91 @@ REAPER: at least v5.962
 Extensions: SWS/S&M strongly recommended
 About:	G U I D E
 
-		► C r e a t i n g / L o a d i n g   n o t e s
-		
-		To create/load action notes arm an action/script in the open 
-		Action list and run this script.  
-		To create/load FX notes select an FX in the open FX browser 
-		or select one in an open FX chain.   
-		Action notes for armed actions/scripts are only available 
-		while the Action list is open to avoid inadvertent unarming 
-		an action/script armed for other purposes. To be aware:   
-		A) arming is exclusive for all actions/scripts, so if you have 
-		any action/script armed, arming another will unarm the currently 
-		armed one;  
-		after execution of this script the action/script armed for the sake 
-		of creating/loading notes will be unarmed;  		
-		B) if several FX are selected in the FX browser only the 1st 
-		one is respected.  		  
-		
-		To reload existing notes of the actions/scripts whose notes 
-		have already been loaded into the Notes item, delete the Notes item 
-		and run the script again while the same action/script is re-armed 
-		or FX is selected.  
-		
-		If the Action list is open, actions/scripts armed there take 
-		presedence over FX selected in the open FX browser/chain. 
-		If the FX browser is open, an FX selected there takes precedence 
-		over an FX selected in an open FX chain, so notes management hierarchy 
-		is as follows:   
-		open Action list armed action -> open FX Browser selected FX -> 
-		open FX chain selected FX.  
-		
-		When the script is first executed a Notes item and a Notes track 
-		are created. By default the Notes track is placed at the end 
-		of the track list, which can be changed in the USER SETTINGS.  
-		If HIDE_ALL_TRACKS_TEMPORARILY setting is enabled all other tracks 
-		will get hidden. 
-		
-		► A d d i n g / C h a n g i n g   n o t e s
-		
-		To add/change notes, type in or change notes respectively 
-		in the Notes item notes window and click Apply or OK.  
-		To remove previously stored notes for a particular target 
-		along with its section, delete notes currently displayed 
-		in the Notes item window and type in X or x.  
-		Removing notes and keeping the section isn't possible.  
-		
-		► S t o r i n g / R e m o v i n g   n o t e s
+	► C r e a t i n g / L o a d i n g   n o t e s
 
-		To store/remove notes run the script again. The Notes item 
-		and Notes track will be deleted and the notes written into 
-		the Notes item will be stored in the external file or removed
-		from it. If at this moment another action/script is armed or
-		FX selected the current notes will be stored/removed 
-		and the contents of the Notes item will be updated as long as 
-		there're notes previously stored for the armed action/script 
-		or selected FX. If there're no previously stored notes the contents 
-		of the Notes item will be cleared.  
-		When no target is armed/selected and the Notes item and the Notes track 
-		are deleted, if HIDE_ALL_TRACKS_TEMPORARILY setting is enabled 
-		in the USER SETTINGS, all other tracks will become unhidden.  
-		
-		► G e n e r a l		
-		
-		If the SWS extension isn't installed action notes are only supported
-		for scripts and custom actions.
-		
-		Notes can only be managed in the first Notes item on the Notes track. 
-		Notes items elsewhere are ignored. So it's possible to keep several 
-		Notes items on another track (which is NOT a copy of the Notes track) 
-		for reference if needed. Keeping them on the Notes track following 
-		the first one is not advised because the Notes track is deleted once 
-		there're no armed actions/scripts or selected FX.  
-		If HIDE_ALL_TRACKS_TEMPORARILY setting is enabled in the USER SETTINGS 
-		tracks which host Notes items stay visible.  
-		
-		The notes are stored in external txt files inside the \Data folder 
-		of REAPER program directory. FX notes are stored in a file named 
-		'FX Notes' while action notes are stored in one named 'Action notes'. 
-		The folder can be accessed with 'Show REAPER resource path in explorer'
-		action also available as an 'Options' menu item.  
-		
-		!!! IMPORTANT !!!! THE NOTE FILES SHOULD NOT BE EDITED BY HAND OR
-		DRY SAVED IN ANY TEXT PROCESSOR BECAUSE FORMATTING WILL BREAK AND NOTES
-		LOADING MECHANISM MIGHT AS WELL.  
+	To create/load action notes arm an action/script in the open 
+	Action list and run this script.  
+	To create/load FX notes select an FX in the open FX browser 
+	or select one in an open FX chain.   
+	Action notes for armed actions/scripts are only available 
+	while the Action list is open to avoid inadvertent unarming 
+	an action/script armed for other purposes. To be aware:   
+	A) arming is exclusive for all actions/scripts, so if you have 
+	any action/script armed, arming another will unarm the currently 
+	armed one;  
+	after execution of this script the action/script armed for the sake 
+	of creating/loading notes will be unarmed;  		
+	B) if several FX are selected in the FX browser only the 1st 
+	one is respected.  		  
 
-		Also see USER SETTINGS.
+	To reload existing notes of the actions/scripts whose notes 
+	have already been loaded into the Notes item, delete the Notes item 
+	and run the script again while the same action/script is re-armed 
+	or FX is selected.  
+
+	If the Action list is open, actions/scripts armed there take 
+	presedence over FX selected in the open FX browser/chain. 
+	If the FX browser is open, an FX selected there takes precedence 
+	over an FX selected in an open FX chain, so notes management hierarchy 
+	is as follows:   
+	open Action list armed action -> open FX Browser selected FX -> 
+	open FX chain selected FX.  
+
+	When the script is first executed a Notes item and a Notes track 
+	are created. By default the Notes track is placed at the end 
+	of the track list, which can be changed in the USER SETTINGS.  
+	If HIDE_ALL_TRACKS_TEMPORARILY setting is enabled all other tracks 
+	will get hidden. 
+
+	► A d d i n g / C h a n g i n g   n o t e s
+
+	To add/change notes, type in or change notes respectively 
+	in the Notes item notes window and click Apply or OK.  
+	To remove previously stored notes for a particular target 
+	along with its section, delete notes currently displayed 
+	in the Notes item window and type in X or x.  
+	Removing notes and keeping the section isn't possible.  
+
+	► S t o r i n g / R e m o v i n g   n o t e s
+
+	To store/remove notes run the script again. The Notes item 
+	and Notes track will be deleted and the notes written into 
+	the Notes item will be stored in the external file or removed
+	from it. If at this moment another action/script is armed or
+	FX selected the current notes will be stored/removed 
+	and the contents of the Notes item will be updated as long as 
+	there're notes previously stored for the armed action/script 
+	or selected FX. If there're no previously stored notes the contents 
+	of the Notes item will be cleared.  
+	When no target is armed/selected and the Notes item and the Notes track 
+	are deleted, if HIDE_ALL_TRACKS_TEMPORARILY setting is enabled 
+	in the USER SETTINGS, all other tracks will become unhidden.  
+
+	► G e n e r a l		
+
+	If the SWS extension isn't installed action notes are only supported
+	for scripts and custom actions.
+
+	Notes can only be managed in the first Notes item on the Notes track. 
+	Notes items elsewhere are ignored. So it's possible to keep several 
+	Notes items on another track (which is NOT a copy of the Notes track) 
+	for reference if needed. Keeping them on the Notes track following 
+	the first one is not advised because the Notes track is deleted once 
+	there're no armed actions/scripts or selected FX.  
+	If HIDE_ALL_TRACKS_TEMPORARILY setting is enabled in the USER SETTINGS 
+	tracks which host Notes items stay visible.  
+
+	The notes are stored in external txt files inside the \Data folder 
+	of REAPER program directory. FX notes are stored in a file named 
+	'FX Notes' while action notes are stored in one named 'Action notes'. 
+	The folder can be accessed with 'Show REAPER resource path in explorer'
+	action also available as an 'Options' menu item.  
+
+	!!! IMPORTANT !!!! THE NOTE FILES SHOULD NOT BE EDITED BY HAND OR
+	DRY SAVED IN ANY TEXT PROCESSOR BECAUSE FORMATTING WILL BREAK AND NOTES
+	LOADING MECHANISM MIGHT AS WELL.  
+
+	Also see USER SETTINGS.
 
 ]]
 
