@@ -1,0 +1,948 @@
+--[[
+ReaScript name: FX and action list notes
+Author: BuyOne
+Website: https://forum.cockos.com/member.php?u=134058
+Version: 1.0
+Changelog: Initial release
+Licence: WTFPL
+REAPER: at least v5.962
+Extensions: SWS/S&M strongly recommended
+About:	G U I D E
+
+		► C r e a t i n g / L o a d i n g   n o t e s
+		
+		To create/load action notes arm an action/script in the open 
+		Action list and run this script.  
+		To create/load FX notes select an FX in the open FX browser 
+		or select one in an open FX chain.   
+		Action notes for armed actions/scripts are only available 
+		while the Action list is open to avoid inadvertent unarming 
+		an action/script armed for other purposes. To be aware:   
+		A) arming is exclusive for all actions/scripts, so if you have 
+		any action/script armed, arming another will unarm the currently 
+		armed one;  
+		after execution of this script the action/script armed for the sake 
+		of creating/loading notes will be unarmed;  		
+		B) if several FX are selected in the FX browser only the 1st 
+		one is respected.  		  
+		
+		To reload existing notes of the actions/scripts whose notes 
+		have already been loaded into the Notes item, delete the Notes item 
+		and run the script again while the same action/script is re-armed 
+		or FX is selected.  
+		
+		If the Action list is open, actions/scripts armed there take 
+		presedence over FX selected in the open FX browser/chain. 
+		If the FX browser is open, an FX selected there takes precedence 
+		over an FX selected in an open FX chain, so notes management hierarchy 
+		is as follows:   
+		open Action list armed action -> open FX Browser selected FX -> 
+		open FX chain selected FX.  
+		
+		When the script is first executed a Notes item and a Notes track 
+		are created. By default the Notes track is placed at the end 
+		of the track list, which can be changed in the USER SETTINGS.  
+		If HIDE_ALL_TRACKS_TEMPORARILY setting is enabled all other tracks 
+		will get hidden. 
+		
+		► A d d i n g / C h a n g i n g   n o t e s
+		
+		To add/change notes, type in or change notes respectively 
+		in the Notes item notes window and click Apply or OK.  
+		To remove previously stored notes for a particular target 
+		along with its section, delete notes currently displayed 
+		in the Notes item window and type in X or x.  
+		Removing notes and keeping the section isn't possible.  
+		
+		► S t o r i n g / R e m o v i n g   n o t e s
+
+		To store/remove notes run the script again. The Notes item 
+		and Notes track will be deleted and the notes written into 
+		the Notes item will be stored in the external file or removed
+		from it. If at this moment another action/script is armed or
+		FX selected the current notes will be stored/removed 
+		and the contents of the Notes item will be updated as long as 
+		there're notes previously stored for the armed action/script 
+		or selected FX. If there're no previously stored notes the contents 
+		of the Notes item will be cleared.  
+		When no target is armed/selected and the Notes item and the Notes track 
+		are deleted, if HIDE_ALL_TRACKS_TEMPORARILY setting is enabled 
+		in the USER SETTINGS, all other tracks will become unhidden.  
+		
+		► G e n e r a l		
+		
+		If the SWS extension isn't installed action notes are only supported
+		for scripts and custom actions.
+		
+		Notes can only be managed in the first Notes item on the Notes track. 
+		Notes items elsewhere are ignored. So it's possible to keep several 
+		Notes items on another track (which is NOT a copy of the Notes track) 
+		for reference if needed. Keeping them on the Notes track following 
+		the first one is not advised because the Notes track is deleted once 
+		there're no armed actions/scripts or selected FX.  
+		If HIDE_ALL_TRACKS_TEMPORARILY setting is enabled in the USER SETTINGS 
+		tracks which host Notes items stay visible.  
+		
+		The notes are stored in external txt files inside the \Data folder 
+		of REAPER program directory. FX notes are stored in a file named 
+		'FX Notes' while action notes are stored in one named 'Action notes'. 
+		The folder can be accessed with 'Show REAPER resource path in explorer'
+		action also available as an 'Options' menu item.  
+		
+		!!! IMPORTANT !!!! THE NOTE FILES SHOULD NOT BE EDITED BY HAND OR
+		DRY SAVED IN ANY TEXT PROCESSOR BECAUSE FORMATTING WILL BREAK AND NOTES
+		LOADING MECHANISM MIGHT AS WELL.  
+
+		Also see USER SETTINGS.
+
+]]
+
+------------------------------------------------------------------
+-------------------------- USER SETTINGS -------------------------
+------------------------------------------------------------------
+-- To enable a setting place any QWERTY character between
+-- the quotation marks.
+
+-- Enable to have Notes track inserted at the top
+-- of the track list rather than at the bottom,
+-- which is its default position.
+NOTES_TRACK_TOP = ""
+
+
+-- In seconds;
+-- if empty, defaults to 3 sec.
+NOTES_ITEM_LENGTH = ""
+
+
+-- Enable to temporarily hide all tracks except those which
+-- host Notes items, if any, when notes are loaded;
+-- May not be a viable option if you seek to view notes
+-- of an FX open in a focused FX chain, because when the script
+-- is run the track hosting the FX will become hidden although
+-- the FX chain will not;
+-- All tracks get unhidden when Notes track is deleted
+-- after confirmation of the notes storage provided no other
+-- action/script is armed or FX is selected;
+-- If this setting is enabled FX_NOTES_TRACK_TOP is pretty much
+-- irrelevant because only the Notes track will be visible anyway
+-- as well as tracks hosting Notes items, if any;
+-- In builds prior to 6.43 tracks will only be visibly hidden
+-- after Notes item window is closed, because in earlier builds
+-- it's a modal window which blocks the UI.
+HIDE_ALL_TRACKS_TEMPORARILY = ""
+
+
+-- Enable to append/remove note tag '(n)' to/from VST and JS plugin
+-- entries when the notes are added/removed;
+-- Names of the Video processor plugin cannot be modified;
+-- For the tag to be reflected in FX names REAPER must be
+-- restarted or FX Browser refreshed with F5, but otherwise
+-- this setting will still continue to work properly;
+-- Be aware that if the setting is disabled while some FX
+-- have the tag, when their notes are deleted the tag will
+-- not be cleared from their name;
+-- JSFX local to project aren't supported since their names
+-- aren't dispayed in the FX browser, only file path.
+-- If you need this setting to work for for AU, LV2 or DX plugins,
+-- please contact me
+-- 					!!! W A R N I N G !!!
+-- THE SETTING INSTRUCTS THE SCRIPT TO MODIFY
+-- reaper-vstplugins(64).ini FILES, CONTAINING VST PLUGINS CACHE,
+-- AS WELL AS MODIFY NAMES OF JS PLUGINS DIRECTLY INSIDE THEIR
+-- RESPECTIVE FILES.
+-- ALTHOUGH DURING TESTING NO DAMAGE WAS CAUSED TO THESE FILES,
+-- ENABLE AT YOUR OWN RISK.
+-- Alternatively you can manually create a folder and drag there
+-- each annotated FX.
+TAG_FX_NAME = ""
+
+
+-- If enabled, once very first notes are stored for an FX
+-- a smart folder named 'Annotated FX' will be created
+-- in the FX Browser and this FX will be added to it;
+-- If notes for an FX are deleted, such FX won't be listed
+-- in the 'Annotated FX' folder;
+-- For these changes to be reflected in FX Browser REAPER must
+-- be restarted or FX browser refreshed with F5, but otherwise
+-- this setting will still continue to work properly.
+-- 					!!! W A R N I N G !!!
+-- THE SETTING INSTRUCTS THE SCRIPT TO MODIFY ONCE
+-- reaper-fxfolders.ini FILE, CONTAINING FX BROWSER CATEGORIES
+-- AND FOLDER DATA. ALTHOUGH DURING TESTING NO DAMAGE WAS CAUSED
+-- TO THIS FILE, ENABLE AT YOUR OWN RISK.
+-- The smart folder will only be able to automatically collect FX
+-- whose name contains notes tag '(n)'. FX cannot be simply dragged
+-- and dropped into a smart folder. Thus if you don't plan to use
+-- TAG_FX_NAME setting above, enabling this setting is pointless.
+-- Alternatively you can manually create a folder and drag there
+-- each annotated FX.
+MAINTAIN_ANNOTATED_FX_FOLDER = ""
+
+
+-- Color code in HEX format, 6 or 3 digits preceded with #;
+-- if empty theme default color is used.
+NOTES_TRACK_ITEM_COLOR = "#16A085" -- #16A085
+
+-------------------------------------------------------------------
+----------------------- END OF USER SETTINGS ----------------------
+-------------------------------------------------------------------
+
+
+function Msg(param, cap) -- caption second or none
+local cap = cap and type(cap) == 'string' and #cap > 0 and cap..' = ' or ''
+reaper.ShowConsoleMsg(cap..tostring(param)..'\n')
+end
+
+local r = reaper
+
+
+local path = r.GetResourcePath()
+local sep = r.GetResourcePath():match('[\\/]')
+
+
+--============================== F U N C T I O N S ==============================
+
+function validate_sett(sett) -- validate setting, can be either a non-empty string or any number
+return type(sett) == 'string' and #sett:gsub(' ','') > 0 or type(sett) == 'number'
+end
+
+
+function get_mon_fx_props() -- get mon fx accounting for floating window, reaper.GetFocusedFX() doesn't detect mon fx in builds prior to 6.20
+
+	local master_tr = r.GetMasterTrack(0)
+	local mon_fx_idx = r.TrackFX_GetRecChainVisible(master_tr)
+	local is_mon_fx_float = false -- only relevant for pasting stage to reopen the fx in floating window
+		if mon_fx_idx < 0 then -- fx chain closed or no focused fx look for fx in a floating window // if this condition is removed floated fx gets priority
+			for i = 0, r.TrackFX_GetRecCount(master_tr) do
+				if r.TrackFX_GetFloatingWindow(master_tr, 0x1000000+i) then
+				mon_fx_idx = i; is_mon_fx_float = true break end
+			end
+		end
+	return mon_fx_idx, is_mon_fx_float -- expected >= 0, true
+end
+
+
+function get_obj_chunk(obj) -- retval stems from r.GetFocusedFX(), value 0 is only considered at the pasting stage because in the copying stage it's error caught before the function
+-- https://forum.cockos.com/showthread.php?t=193686
+-- https://raw.githubusercontent.com/EUGEN27771/ReaScripts_Test/master/Functions/FXChain
+-- https://github.com/EUGEN27771/ReaScripts/blob/master/Various/FXRack/Modules/FXChain.lua
+		if not obj then return end
+local tr = r.ValidatePtr(obj, 'MediaTrack*')
+local item = r.ValidatePtr(obj, 'MediaItem*')
+local env = r.ValidatePtr(obj, 'TrackEnvelope*') -- works for take envelope as well
+  -- Try standard function -----
+	local t = tr and {r.GetTrackStateChunk(obj, '', false)} or item and {r.GetItemStateChunk(obj, '', false)} or env and {r.GetEnvelopeStateChunk(obj, '', false)} -- isundo = false
+	local ret, obj_chunk = table.unpack(t)
+	-- OR
+	-- local ret, obj_chunk = table.unpack(tr and {r.GetTrackStateChunk(obj, '', false)} or item and {r.GetItemStateChunk(obj, '', false)} or env and {r.GetEnvelopeStateChunk(obj, '', false)} or {x,x}) -- isundo = false
+		if ret and obj_chunk and #obj_chunk >= 4194303 and not r.APIExists('SNM_CreateFastString') then return 'err_mess'
+		elseif ret and obj_chunk and #obj_chunk < 4194303 then return ret, obj_chunk -- 4194303 bytes = (4096 kb * 1024 bytes) - 1 byte
+		end
+-- If chunk_size >= max_size, use wdl fast string --
+	local fast_str = r.SNM_CreateFastString('')
+		if r.SNM_GetSetObjectState(obj, fast_str, false, false) -- setnewvalue and wantminimalstate = false
+		then obj_chunk = r.SNM_GetFastString(fast_str)
+		end
+	r.SNM_DeleteFastString(fast_str)
+		if obj_chunk then return true, obj_chunk end
+end
+
+
+function Err_mess() -- if chunk size limit is exceeded and SWS extension isn't installed
+local err_mess = 'The size of track data requires\n\nSWS/S&M extension to handle them.\n\nIf it\'s installed then it needs to be updated.\n\nGet the latest build of SWS/S&M extension at\nhttps://www.sws-extension.org/\n\n'
+r.ShowConsoleMsg(err_mess, r.ClearConsole())
+end
+
+
+function esc(str)
+return str:gsub('[%(%)%+%-%[%]%.%^%$%*%?%%]','%%%0')
+end
+
+
+function space(n) -- number of repeats, integer
+local n = not n and 0 or tonumber(n) and math.abs(math.floor(n)) or 0
+return string.rep(' ',n)
+-- return (' '):rep(n)
+end
+
+
+function Validate_HEX_Color_Setting(HEX_COLOR)
+local HEX_COLOR = type(HEX_COLOR) == 'string' and HEX_COLOR:gsub('%s','') -- remove empty spaces just in case
+-- Default to black if color is improperly formatted
+local HEX_COLOR = (not HEX_COLOR or type(HEX_COLOR) ~= 'string' or HEX_COLOR == ''
+or #HEX_COLOR < 4 or #HEX_COLOR > 7) and '' or not HEX_COLOR:match('^#') and '#'..HEX_COLOR or HEX_COLOR -- adding '#' if absent
+-- Extend shortened (3 digit) hex color code, duplicate each digit
+local HEX_COLOR = #HEX_COLOR == 4 and HEX_COLOR:gsub('%w','%0%0') or HEX_COLOR
+return HEX_COLOR
+--local R,G,B = hex2rgb(HEX_COLOR) -- R because r is already taken by reaper, the rest is for consistency
+--return R, G, B
+end
+
+
+function hex2rgb(HEX_COLOR)
+-- https://gist.github.com/jasonbradley/4357406
+    local hex = HEX_COLOR:sub(2) -- trimming leading '#'
+    return tonumber('0x'..hex:sub(1,2)), tonumber('0x'..hex:sub(3,4)), tonumber('0x'..hex:sub(5,6))
+end
+
+
+function Error_Tooltip(text)
+local x, y = r.GetMousePosition()
+r.TrackCtl_SetToolTip(text:upper():gsub('.','%0 '), x, y, true) -- topmost true
+end
+
+
+function re_store_selected_items(t)
+
+local t = t
+
+	if not t then
+	-- Store selected items
+	local sel_itms_cnt = r.CountSelectedMediaItems(0)
+		if sel_itms_cnt > 0 then
+		t = {}
+		local i = sel_itms_cnt-1
+			while i >= 0 do -- in reverse due to deselection
+			local item = r.GetSelectedMediaItem(0,i)
+			t[#t+1] = item
+		--	r.SetMediaItemSelected(item, false) -- selected false; deselect item // OPTIONAL
+			i = i - 1
+			end
+		end
+	elseif t and #t > 0 then -- Restore selected items
+--	r.Main_OnCommand(40289,0) -- Item: Unselect all items
+--	OR
+	r.SelectAllMediaItems(0, false) -- selected false
+		for _, item in ipairs(t) do
+		r.SetMediaItemSelected(item, true) -- selected true
+		end
+	r.UpdateArrange()
+	end
+
+return t
+
+end
+
+
+function get_focused_fx() -- complemented with get_mon_fx_props() to get Mon FX in builds prior to 6.20
+
+local retval, tr_num, itm_num, fx_num = r.GetFocusedFX()
+-- Returns 1 if a track FX window has focus or was the last focused and still open, 2 if an item FX window has focus or was the last focused and still open, 0 if no FX window has focus. tracknumber==0 means the master track, 1 means track 1, etc. itemnumber and fxnumber are zero-based. If item FX, fxnumber will have the high word be the take index, the low word the FX index.
+-- if take fx, item number is index of the item within the track (not within the project) while track number is the track this item belongs to, if not take fx itm_num is -1, if retval is 0 the rest return values are 0 as well
+-- if src_take_num is 0 then track or no object
+
+local mon_fx_num = get_mon_fx_props() -- expected >= 0 or > -1
+
+local tr = retval == 1 and (r.GetTrack(0,tr_num-1) or r.GetMasterTrack()) or retval == 0 and mon_fx_num >= 0 and r.GetMasterTrack() -- prior to build 6.20 Master track has to be gotten even when retval is 0
+
+local item = retval == 2 and r.GetTrackMediaItem(tr, itm_num)
+-- high word is 16 bits on the left, low word is 16 bits on the right
+local take_num, take_fx_num = fx_num>>16, fx_num&0xFFFF -- high word is right shifted by 16 bits (out of 32), low word is masked by 0xFFFF = binary 1111111111111111 (16 bit mask)
+local take = retval == 2 and r.GetMediaItemTake(item, take_num)
+local fx_num = retval == 2 and take_fx_num or retval == 1 and fx_num or mon_fx_num >= 0 and 0x1000000+mon_fx_num -- take or track fx index (incl. input/mon fx) // unlike in GetLastTouchedFX() input/Mon fx index is returned directly and need not be calculated // prior to build 6.20 Mon FX have to be gotten when retval is 0 as well // 0x1000000+mon_fx_num is equivalent to 16777216+mon_fx_num
+
+--	local mon_fx = retval == 0 and mon_fx_num >= 0
+--	local fx_num = mon_fx and mon_fx_num + 0x1000000 or fx_num -- mon fx index
+
+return retval, tr_num-1, tr, itm_num, item, take_num, take, fx_num, mon_fx_num >= 0 -- tr_num = -1 means Master;
+
+end
+
+
+function get_fx_chunk(chunk, fx_GUID, prev_fx_GUID)
+return chunk:match(esc(prev_fx_GUID)..'.-'..esc(fx_GUID))
+--OR
+--return chunk:match(esc(prev_fx_GUID)..'.-'..esc(fx_GUID)..'.-WAK %d %d') -- if complete fx chunk is needed and not just name and preset data
+end
+
+
+function get_mon_fx_chunk(fx_GUID, prev_fx_GUID)
+local path = r.GetResourcePath()
+local f = io.open(path..path:match('[\\/]')..'reaper-hwoutfx.ini','r')
+local chunk = f:read('*a')
+f:close()
+	return chunk:match(esc(prev_fx_GUID)..'.-'..esc(fx_GUID))
+end
+
+
+function Get_Armed_Action_Name(path, sep)
+
+	local function script_exists(line, name)
+	local f_path = line:match('.+"(.+)"$') or line:match(esc(name)..' (.+)$') -- path either with or without spaces, in the former case it's enclosed within quotation marks
+	local f_path = f_path:match('^%u:') and f_path or path..sep..'Scripts'..sep..f_path -- full (starts with the drive letter and a colon) or relative file path; in reaper-kb.ini full path is stored when the script resides outside of the 'Scripts' folder of the REAPER instance being used
+--	script_exists = r.file_exists(f_path)
+	return r.file_exists(f_path)
+	end
+
+local sws = r.APIExists('CF_GetCommandText')
+
+local sect_t = {['']=0,['MIDI Editor']=32060,['MIDI Event List Editor']=32061,
+				['MIDI Inline Editor']=32062,['Media Explorer']=32063}
+
+	if r.GetToggleCommandStateEx(0,40605) == 1 then -- Show action list // only if Action list window is open to force deliberate use of action notes and prevent accidents in case some action is already armed for other purposes
+	local cmd, section = r.GetArmedCommand() -- cmd is 0 when no armed action, empty string section is 'Main' section
+	r.ArmCommand(0, section) -- 0 unarm all
+	local named_cmd = r.ReverseNamedCommandLookup(cmd) -- if the cmd belongs to a native action or is 0 the return value is nil
+	local name, scr_exists, mess = false, true -- mess is nil
+		if cmd > 0 and not named_cmd and not sws then -- native action is armed; without CF_GetCommandText() there's no way to retrieve native action name, only script and custom action names via reaper-kb.ini; without the sws extension cycle actions aren't available
+		mess = space(6)..'since the sws extension \n\n'..space(11)..'is not installed \n\n only non-cycle custom actions \n\n'..space(4)..'and scripts are supported'
+		elseif named_cmd and not sws then -- without CF_GetCommandText() there's no way to retrieve the sws extension action names, only custom actions and scripts from reaper-kb.ini; without the sws extension cycle actions aren't available anyway
+			for line in io.lines(path..sep..'reaper-kb.ini') do -- much quicker than using io.read() which freezes UI
+			name = line:match('ACT.-("'..esc(named_cmd)..'" ".-")') or line:match('SCR.-('..esc(named_cmd)..' ".-")') -- extract command ID and name
+				if name then
+					if line:match('SCR') then -- evaluate if script exists
+					scr_exists = script_exists(line, name)
+					end
+				name = name:gsub('Custom:', 'Script:', 1) -- make script data retrieved from reaper-kb.ini conform to the name returned by CF_GetCommandText() which prefixes the name with 'Script:' following their appearance in the Action list instead of 'Custom:' as they're prefixed in reaper-kb.ini file
+				break end
+			end
+		else -- sws extension is installed
+		name = cmd > 0 and (named_cmd or cmd)..' "'..r.CF_GetCommandText(sect_t[section], cmd)..'"' -- add quotes to match data being retrieved form reaper-kb.ini to simplify creation of section title // if script, returns name with prefix 'Script:' as they're listed in the Action list even though in reaper-kb.ini script names are prefixed with 'Custom:' just like custom action names
+			if name and name:match('Script') then
+			local scr_name = name:match('"Script: (.+)"') -- evaluate if script exists
+				for line in io.lines(path..sep..'reaper-kb.ini') do
+					if line:match(esc(scr_name)) then
+					scr_exists = script_exists(line, name)
+					break end
+				end
+			end
+		end
+	return name, scr_exists, mess
+	end
+
+end
+
+
+
+function Get_Focused_FX_Name()
+
+-- non-JSFX plugin name changes in the FX browser are reflected in reaper-vstplugins(64).ini file
+-- JSFX plugin names can't be changed in the FX browser but can in the NAME entries inside reaper-jsfx.ini
+-- and then they will be reflected in the FX browser after restatring REAPER or refreshing the FX browser with F5
+
+local retval, fx_name, fx_type -- retval just because fx_name must be made local as both are returned together, otherwise retval would end up being global; fx_type to limit Add_Remove_FX_Notes_Tag() to VST plugins as cannot test AU/DX/LV2 (files reaper-auplugins_arm64-bc.ini, reaper-auplugins64-bc.ini, reaper-dxplugins64.ini)
+
+	if r.GetToggleCommandStateEx(0, 40271) == 1 -- View: Show FX browser window // fx browser is open // the action adds last selected fx from the fx browser even when it's closed so must be additionally conditioned
+	then -- Insert temporary track to insert FX and get FX props
+	r.InsertTrackAtIndex(r.GetNumTracks(), false) -- wantDefaults false; insert new track at end of track list and hide it; action 40702 'Track: Insert new track at end of track list' creates undo point hence unsuitable
+	local temp_tr = r.GetTrack(0,r.CountTracks(0)-1)
+	r.SetMediaTrackInfo_Value(temp_tr, 'B_SHOWINMIXER', 0) -- hide in Mixer
+	r.SetMediaTrackInfo_Value(temp_tr, 'B_SHOWINTCP', 0) -- hide in Arrange
+	r.TrackFX_AddByName(temp_tr, 'FXADD:1e', false, 0) -- recFX false
+	retval, fx_name = r.TrackFX_GetFXName(temp_tr, 0, '')
+	fx_type = fx_name:match('^[JLVSTAUDX]+') -- see explanation at the variable declaration above
+	r.DeleteTrack(temp_tr)
+	end
+
+	if not fx_name or #fx_name == 0 then -- FX browser isn't open or open and no FX is selected, look for focused FX in FX chain and get its orig name from chunk because it can be renamed by the user in the fx chain // orig name in the chunk reflects name in reaper-vstplugins64.ini and reaper-jsfx.ini (NAME entry)
+	local retval, tr_num, tr, itm_num, item, take_num, take, fx_num, mon_fx = get_focused_fx() -- tr_num = -1 means Master;
+		if fx_num then
+		local get_fx_GUID, obj = table.unpack((retval == 1 or retval == 0 and mon_fx) and {r.TrackFX_GetFXGUID, tr} or retval == 2 and {r.TakeFX_GetFXGUID, take})
+		local fx_GUID = get_fx_GUID(obj, fx_num)
+		local prev_fx_GUID = get_fx_GUID(obj, fx_num-1) or ''
+		local ret, displayed_fx_name = table.unpack(retval == 2 and {r.TakeFX_GetFXName(obj, fx_num, '')} or (retval == 1 or retval == 0 and mon_fx) and {r.TrackFX_GetFXName(obj, fx_num, '')})
+		-- Extract from chunk
+		local obj = (retval == 1 or retval == 0 and mon_fx) and obj or r.GetMediaItemTake_Item(obj) -- since the next function needs item, not a take
+		local ret, chunk = get_obj_chunk(obj)
+			if ret == 'err_mess' then return 'err_mess' end
+		local fx_chunk = mon_fx and get_mon_fx_chunk(fx_GUID, prev_fx_GUID) or get_fx_chunk(chunk, fx_GUID, prev_fx_GUID)
+		fx_name = fx_chunk:match('BYPASS.-<[VSTAUDXL23i:]+ "(.-)" ')
+		fx_type = fx_chunk:match('BYPASS.-<([JLVSTAUDX2]+)') -- see explanation at the variable declaration above
+		local fx_file_name = fx_chunk:match('BYPASS.-<[VSTAUDXL23i:]+ ".-" "(.-)" ') or fx_chunk:match('BYPASS.-<[VSTAUDXL23i:]+ ".-" (.-) ') -- file name WITH or WITHOUT spaces
+		-- in JSFX chunk only file relative path is displayed without the name defined at desc: tag in their code
+		fx_name = fx_name
+		or fx_chunk:match('BYPASS.-<JS "?(.-)" .-'..esc(displayed_fx_name)) -- displayed name with or without spaces; file path WITH spaces
+		or fx_chunk:match('BYPASS.-<JS (.-) .-'..esc(displayed_fx_name)) -- displayed name with or without spaces; file path WITHOUT spaces
+		or fx_chunk:match('BYPASS.-<JS "?(.-)"? ""') -- NO displayed name; file path with or without spaces
+		or fx_chunk:match('BYPASS.-<VIDEO_EFFECT "(Video processor)"')
+		end
+	end
+
+
+fx_name = fx_name and (fx_name:match('.+ %(n%) %[.-%]$') or fx_name:match('(.+) %(n%)')) or fx_name -- if there's notes tag ignore it, from JSFX it'll be removed in Create_Section_Title() function // option 1 is for JSFX since the tag is placed between the name and the path, option 2 is for other FX types
+
+return fx_name and #fx_name > 0 and fx_name, fx_type
+
+end
+
+
+function Create_Section_Title(name, fx_type)
+
+-- the name of a JSFX local to the project
+-- <JS "<Project>/ReaperBlog_Macro Controller test.jsfx" "" // chunk
+-- JS: <Project>/ReaperBlog_Macro Controller test.jsfx // track fx name
+
+local section_title
+
+	if fx_type then -- fx
+
+	local non_JSFX = name:match('^[VSTAUDXL23i]+:')
+	local vid_proc = name:match('Video processor')
+	local path = r.GetResourcePath()..r.GetResourcePath():match('[\\/]')
+	local file = r.file_exists(path..'reaper-vstplugins.ini') and 'reaper-vstplugins.ini' or 'reaper-vstplugins64.ini'
+	local local_jsfx = name:match('<Project>') -- JSFX local to the project
+	local file = non_JSFX and not vid_proc and file or not vid_proc and not local_jsfx and 'reaper-jsfx.ini' -- VST or JSFX which is not local to the project, i.e. one located inside \Effects folder in REAPER resource directory; JSFX local to project aren't listed in reaper-jsfx.ini
+	local f = file and io.open(path..file,'r')
+	local cont = f and f:read('*a') or '' -- the alternative is for when fx name is video processor
+	local close = f and f:close()
+
+	local fx_line
+		for line in cont:gmatch('[^%c]+') do
+			if not line then break end
+			if line:match('.-=.-'..esc(name:match('^[VSTAUDXL23i]+: (.+)') or '')) -- or '' to prevent passing nil to esc() function
+			or
+			line:match('NAME (.-'..esc(name)..'.-)') -- limit to NAME entries because they don't depend on the presence of 'desc:' tag in JSFX unlike REV entries
+			then fx_line = line break end
+		end
+
+	local fx_line = fx_line or local_jsfx and name or 'Video processor'
+
+	local local_jsfx_path = local_jsfx and select(2,r.EnumProjects(-1)):match('(.+[\\/])')..'Effects'..sep..name:match('/(.+)')
+
+	local fx_section_title = local_jsfx_path or fx_line == 'Video processor' and fx_line or non_JSFX and fx_line:match(esc(name:match('^[VSTAUDXL23i]+: (.+)')))..', '..fx_line:match('(.-)=') or fx_line:match('JS:') and fx_line:match('"JS: (.-)"'):gsub(' %[', ', ') or '' -- non-existing JSFX which may still be displayed in FX chains with the message 'The following fx plugins could not be loaded' don't have the name part in their entry inside reaper-jsfx.ini which in turn contains 'JS:' prefix; absence of VST plugins does not affect their entries inside reaper-vstplugins(64).ini
+
+	section_title = (non_JSFX or vid_proc or local_jsfx) and '['..fx_section_title..']' or '['..fx_section_title:gsub(' %(n%)', '') -- in JSFX the closing square bracket is carried over from extracted reaper-jsfx.ini entry and removing note tag if any
+
+	elseif name then -- action
+
+	local cmd_id, name = table.unpack({name:match('(.-) "(.+)"')} or {name:match('"(.-)" "(.+)"')})
+	local script = name:match('%.lua$') or name:match('%.eel$') or name:match('%.py$')
+	section_title = '['..name..'; '..cmd_id..']' -- if script data was retrieved from reaper-kb.ini when there's no sws extension make, it conform to the name returned by CF_GetCommandText which prefixes the name with 'Script:' following their appearamce in the Action list instead of 'Custom:' as they're prefixed in reaper-kb.ini file
+
+	end
+
+return section_title -- if fx is unavailable returns either [] or [
+
+end
+
+
+
+function Re_Create_Notes_Item(notes_item, path, sep, section_title, fx_type, NOTES_TRACK_TOP, NOTES_ITEM_LENGTH, RGB) -- create if necessary and load notes from external notes file // section_title, fx_type vars come from Create_Section_Title() function; notes_item comes from Get_Notes_Track_x_Item() when there's item, otherwise is nil
+
+r.Undo_BeginBlock()
+
+	local function insert_notes_item(tr)
+	-- helped to figure out https://searchcode.com/codesearch/view/13178651/ line 547
+	local item = r.AddMediaItemToTrack(tr)
+	r.AddTakeToMediaItem(item) -- creates a quasi-MIDI item so label can be added to it since label (P_NAME) is a take property // the item is affected by actions 'SWS/BR: Add envelope points...', 'SWS/BR: Insert 2 envelope points...' and 'SWS/BR: Insert envelope points on grid...' when applied to the Tempo envelope which cause creation of stretch markers in the item
+	r.GetSetMediaItemTakeInfo_String(r.GetActiveTake(item), 'P_NAME', section_title, true) -- setNewValue true
+	r.SetMediaItemInfo_Value(item, 'D_POSITION', 0)
+	r.SetMediaItemInfo_Value(item, 'D_LENGTH', NOTES_ITEM_LENGTH)
+	return item
+	end
+
+
+local notes_item, tr = notes_item -- tr is nil
+
+	if not notes_item then -- create one, add section_title as extended data and the label
+	local tr_idx = NOTES_TRACK_TOP and 0 or r.CountTracks(0)
+	r.InsertTrackAtIndex(tr_idx, false) -- wantDefaults false // insert track as the last in the project
+	tr = r.GetTrack(0,tr_idx)
+	r.GetSetMediaTrackInfo_String(tr, 'P_NAME', 'NOTES', true) -- setNewValue true
+	r.GetSetMediaTrackInfo_String(tr, 'P_EXT:NOTES', 'NOTES', true) -- setNewValue true // mark so it can be found to be deleted in case the item was deleted manually
+	local set_col = #RGB == 3 and r.SetMediaTrackInfo_Value(tr, 'I_CUSTOMCOLOR', r.ColorToNative(RGB[1],RGB[2],RGB[3])|0x1000000) -- or r.SetTrackColor(tr, r.ColorToNative(RGB[1],RGB[2],RGB[3])|0x100000) -- doesn't run if no color code is provided by the user
+	notes_item = insert_notes_item(tr)
+	else -- delete old and create a new // a work around a glitch which doesn't allow notes update when the notes window is open and a different target is selected; there's no way to evaluate with native API if the notes window is open in order to close it because 'Item: Show notes for items' action isn't a toggle
+	tr = r.GetMediaItemTrack(notes_item,0)
+	r.DeleteTrackMediaItem(tr, notes_item)
+	notes_item = insert_notes_item(tr)
+	end
+
+
+-- Scroll to project start to bring the Notes item into view // up/down scrolling it performed at the very end of the main routine
+r.SetEditCurPos(-3600, true, false) -- moveview true, seekplay false // move to -3600 or -1 hour mark in case project time start is negative, will surely move cursor to the very project start to reveal the notes item
+
+-- Add section_title as extended data and the label
+-- this sequence must be outside of the above block to provide access to item to the following functions
+local set_col = #RGB == 3 and r.SetMediaItemInfo_Value(notes_item, 'I_CUSTOMCOLOR', r.ColorToNative(RGB[1],RGB[2],RGB[3])|0x1000000) -- doesn't run if no color code is provided by the user
+r.GetSetMediaItemInfo_String(notes_item, 'P_EXT:NOTES', section_title..(fx_type and ';'..fx_type or ''), true) -- setNewValue true // including non_JSFX field for fx notes section title
+r.GetSetMediaItemTakeInfo_String(r.GetActiveTake(notes_item), 'P_NAME', section_title, true) -- setNewValue true
+
+-- Load stored notes if any
+local notes_file = fx_type and 'FX Notes (DO NOT EDIT OR DRY SAVE).txt' or 'Action Notes (DO NOT EDIT OR DRY SAVE).txt'
+local notes_path = path..sep..'Data'..sep..notes_file
+
+local f = io.open(notes_path, 'r')
+local cont = f and f:read('*a') or ''
+local close = f and f:close()
+
+-- Import into the notes item
+local notes = cont:match(esc(section_title)..'\n(.-[%s%w%p]-\n\r)%[.-%]') or cont:match(esc(section_title)..'\n(.+)') or '' -- fx notes section is or isn't followed by another section, if not stored notes then empty string
+
+r.GetSetMediaItemInfo_String(notes_item, 'P_NOTES', notes:match('%f[%w%p].+[%w%p]+') or notes:match('%f[%w%p].-[%w%p]') or '', true) -- setNewValue true // removing from notes string trailing spaces and control characters such as carriage returns or line breaks which force next line when notes are appended inside the item; 2nd option in case there's only 1 character in the notes
+
+------ Select the notes item to be able to open its notes with action
+local sel_itms_t = re_store_selected_items()
+
+-- Open the Notes item notes
+r.SelectAllMediaItems(0, false) -- selected false // deselect all
+r.SetMediaItemSelected(notes_item,true) -- selected true
+r.Main_OnCommand(40850,0) -- Item: Show notes for items...
+
+re_store_selected_items(sel_itms_t)
+
+r.Undo_EndBlock('Create Notes track and Notes item', -1)
+
+return notes_item -- to condition scrolling up/down
+
+end
+
+
+function Get_Notes_Track_x_Item() -- if there're several, duplicated by the user, on the 1st found Notes track only the 1st Notes item on the Notes track is returned
+local tr
+	for i = 0, r.CountTracks(0)-1 do -- find notes track
+	tr = r.GetTrack(0,i)
+	local ret, ext_data = r.GetSetMediaTrackInfo_String(tr, 'P_EXT:NOTES', '', false) -- setNewValue false
+		if ret then break
+		else tr = nil
+		end
+	end
+	if tr then
+	local get_props = r.GetSetMediaItemInfo_String
+	local item = r.GetTrackMediaItem(tr,0)
+		if item then
+			local ret, notes = get_props(item, 'P_NOTES', '', false) -- setNewValue false
+			local retval, ext_data = get_props(item, 'P_EXT:NOTES', '', false) -- setNewValue false
+			if #ext_data > 0 --and #notes:gsub(' ','') > 0 -- or retval instead of #ext_data > 0
+			then return {item=item, ext_data=ext_data, notes=notes} -- ext_data contains section_title and fx_type data; evaluation whether notes are empty is performed inside StoreNotes() function
+			end
+		end
+	end
+end
+
+
+function Add_Remove_FX_Notes_Tag(path, sep, fx_section_title, notes, cont_upd) -- to/from fx name to be displayed in the fx browser
+-- fx_section_title is ext_data from Get_Notes_Track_x_Item() function;
+-- cont_upd comes from StoreNotes(function) to condition the routine by difference between stored and loaded notes, if there's no change in notes content this routine won't run
+
+-- Only non-JSFX names can be modified, modification of JSFX names inside reaper-jsfx.ini renders them unavailable in REAPER, they appear in the FX browser under new names but are loaded empty into the FX chain
+
+-- https://github.com/Ultraschall/ultraschall-portable ini files for AU and DX plugins, reaper-auplugins_arm64-bc.ini, reaper-auplugins64-bc.ini, reaper-dxplugins64.ini
+-- paths to AU plugins https://github.com/Ultraschall/ultraschall-portable/blob/master/reaper-fxfolders.ini
+
+local act = notes:match('^[%c%sXx]+$') and 'remove' or #notes:gsub('[%c%s]','') > 0 and 'add' -- only add/remove if notes aren't empty
+local fx_section_title, fx_type = fx_section_title:match('(.-);(.-)$')
+local vid_proc = fx_section_title:match('Video processor')
+local VST = fx_type:match('VST')
+local JS = fx_type:match('JS')
+
+	if fx_type:match('[AUDXL2]+') -- or not VST and not JS
+	and act == 'add' -- to only display at add attempt in which case there will be nothing to remove afterwards and the message will be redundant // excluding AU, DX and LV2 plugins
+	then
+	r.MB(string.rep(' ',10)..'You have TAG_FX_NAME setting enabled.\n\n'..string.rep(' ',5)..'For now only VST & JSFX plugins are supported.\n\n'..string.rep(' ',9)..'If you need support for other plugin types\n\n\t'..string.rep(' ',12)..'please contact me\n\n'..string.rep(' ',10)..'using "Author URL"  in the script header.','INFO',0) return end
+
+	if act and cont_upd then
+		if (VST or JS) and not vid_proc then
+		local fx_name, fx_file = fx_section_title:match('%[(.+), (.+)%]')
+		local path = path..sep
+		local file = VST and (r.file_exists(path..'reaper-vstplugins.ini') and path..'reaper-vstplugins.ini' or path..'reaper-vstplugins64.ini') or JS and path..'Effects'..sep..fx_file -- JSFX names cannot be modified inside reaper-jsfx.ini file otherwise plugins stop loading hence must be modified directly in plugin file desc: tag
+		local f = io.open(file,'r')
+		local cont = f:read('*a')
+		f:close()
+		local tagged = fx_name:match('%(n%)') or (VST and cont:match(esc(fx_file)..'=.-'..esc(fx_name)..' %(n%)') or JS and cont:match('desc:.-'..esc(fx_name)..' %(n%)')) -- if there's no tag in the fx name check if it's in reaper-vstplugins(64).ini in case the fx browser hadn't been refreshed after adding it which resulted in its absence in fx name in both FX chain and track chunk
+		local line = VST and ( cont:match(esc(fx_file)..'=.-'..esc(fx_name)..' %(n%)') or cont:match(esc(fx_file)..'=.-'..esc(fx_name)) ) or JS and ( cont:match('desc:.-'..esc(fx_name)..' %(n%)') or cont:match('desc:.-'..esc(fx_name)) )-- see comment above; fx name may lack the tag if FX browser wasn't updated despite having it in reaper-vstplugins(64).ini, so two scenarios are evaluated
+		local repl_line = act == 'add' and not tagged and line..' (n)' or act == 'remove' and tagged and (line:match('(.+) %(n%)') or line)
+		local cont_upd = repl_line and cont:gsub(esc(line), repl_line, 1)
+			if cont_upd then
+			local f = io.open(file,'w')
+			f:write(cont_upd)
+			f:close()
+			end
+		end
+	end
+
+end
+
+
+function Create_Annotated_FX_Folder(path, sep, cont_upd)
+-- cont_upd comes from StoreNotes() function to condition the routine by difference between stored and loaded notes, if there's no change in notes content this routine won't run
+
+-- https://mespotin.uber.space/Ultraschall/Reaper-Filetype-Descriptions.html#Reaper-fxfolders.ini
+
+local file = path..sep..'reaper-fxfolders.ini'
+local f = io.open(file,'r')
+local cont = f:read('*a')
+f:close()
+
+local fldr_cnt = cont:match('NbFolders=(%d+)')
+local is_annotated_fx_fldr = cont:match('Name%d+=Annotated FX')
+local fl = math.floor
+
+	if cont_upd and not is_annotated_fx_fldr then -- create annotated fx folder entry
+	-- Add new entry to the [Folders] section
+	local folders_sect = cont:match('%[Folders%].-NbFolders=%d+')
+	local greatest_fldr_idx = fl(fldr_cnt-1) -- math.floor to strip off trailing decimal 0, here and elsewhere
+	local fx_fldr_idx = fldr_cnt
+	local upd_folders_sect = cont:match('(%[Folders%].-)\nNbFolders')..'\nName'..fldr_cnt..'=Annotated FX'..cont:match('%[Folders%].-(\nNbFolders=)')..fl(fldr_cnt+1) -- add Name entry
+	local upd_folders_sect = upd_folders_sect:match('%[Folders%].-Id'..greatest_fldr_idx..'='..greatest_fldr_idx)..'\nId'..fldr_cnt..'='..fldr_cnt..'\n'..upd_folders_sect:match('Name.+') -- add Id entry
+	local upd_cont = cont:gsub(esc(folders_sect), upd_folders_sect)
+	-- Create Annotated FX folder section as a smart folder
+	local last_fldr_fx_cnt = upd_cont:match('%[Folder'..fl(fldr_cnt-1)..'%].-Nb=(%d+)')
+	local last_folder = upd_cont:match('%[Folder'..fl(fldr_cnt-1)..'%].-Type'..fl(last_fldr_fx_cnt-1)..'=%d+') or upd_cont:match('%[Folder'..fl(fldr_cnt-1)..'%]\nNb=%d+') or upd_cont:match('%[Folder'..fl(fldr_cnt-1)..'%].-Type0=1048576') -- either folder with or without entries or smart folder
+	local last_folder_upd = last_folder..'\n\n'..'[Folder'..fldr_cnt..']\nItem0= (n)\nNb=1\nType0=1048576' -- add annotated fx folder as a smart folder
+	local upd_cont = upd_cont:gsub(esc(last_folder), last_folder_upd)
+		local f = io.open(file,'w')
+		f:write(upd_cont)
+		f:close()
+	end
+
+end
+
+
+function sort_notes_alphabetically(notes)
+
+--!!!!!!!!!!!????? string.find SEEMS TO NOT HANDLE SPECIAL CHARACTERS [MultifxVST (x86) (CTAF Audio - Cédric GESTES), multifxVST.dll]
+-- https://forum.cockos.com/showthread.php?t=218964
+-- https://stackoverflow.com/questions/41855842/converting-utf-8-string-to-ascii-in-pure-lua
+
+--[[
+carriage return char \r is used to separate sections invisibly
+with a character a user cannot accidentally use in fx notes
+and thereby break the separation mechanism
+the mechanism might break if FX Notes file is edited manually or dry saved,
+hence the warning in the name and the header
+alternatives to \r aren't viable due to being visible in one piece of software or another
+]]
+
+local st, i, header = notes:find('(%[.-%])') -- for some reason with 'find' capture is returned with outside content if the following pattern is used '(%[.-%].-)\n\r%[.-%]', hence the need to limit the capture by fx note entry and then append line breaks to the result; doesn't happen in 'match'
+-- https://sodocumentation.net/lua/topic/5829/pattern-matching
+-- https://www.lua.org/pil/2.4.html -- Control characters
+-- https://stackoverflow.com/questions/3091524/what-are-carriage-return-linefeed-and-form-feed
+-- https://stackoverflow.com/questions/3380538/what-is-a-vertical-tab
+
+local t = {}
+	repeat
+--	local st, fin, capt = notes:find('(\n\r%[.-%]\n.-)\n\r', i+1)
+	local capt = notes:match('(\n\r%[.-%].-)\n\r%[.-%]', i+1)
+		if capt then t[#t+1] = capt
+		else
+	--	st, fin, capt = notes:find('(\n\r%[.-%].+[%w%p])',i+1) -- last entry // works as well
+		capt = notes:match('\n\r%[.-%].+[%w%p]',i+1) -- last entry // stripping off any trailing control characters such as line breaks and re-adding them below to maintain consistent interval between entries after sorting
+			if capt then t[#t+1] = capt..'\n\n'
+			end
+		end
+--	i = fin
+	i = capt and i+#capt or i+1
+	until i >= #notes
+
+table.sort(t, function(a,b) return a:lower():sub(2) < b:lower():sub(2) end) -- doesn't sort if strings start with '[' hence needs to be isolated; ignoring register so it doesn't affect sorting
+
+table.insert(t, 1, header..'\n\n\n') -- the header isn't included in sorting
+
+return table.concat(t)
+
+end
+
+
+function StoreNotes(path, sep, section_title, notes)
+
+--[[
+carriage return char \r is used to separate sections invisibly
+with a character a user cannot accidentally use in fx notes
+and thereby break the separation mechanism
+the mechanism might break if FX Notes file is edited manually or dry saved,
+hence the warning in the name and the header
+alternatives to \r aren't viable due to being visible in one piece of software or another
+]]
+
+local path = path..sep..'Data'..sep
+local notes_path = section_title:match('.-%];.+') and path..'FX Notes (DO NOT EDIT OR DRY SAVE).txt' or path..'Action Notes (DO NOT EDIT OR DRY SAVE).txt' -- as ext_data returned by Get_Notes_Track_x_Item() fx section title contains fx_type field as well
+
+local section_title = section_title:match('(.+%]);') or section_title -- fx of action section title
+
+	if #notes:gsub('[%c%s]','') > 0 then -- only store/delete if notes aren't empty
+	local section_full = notes:match('^[%s%cXx]+$') and '' or section_title..'\n'..( notes:match('%f[%w%p](.+[%w%p]+)') or notes:match('%f[%w%p](.-[%w%p])') )..'\n\n\n\r' -- if notes only contain X or x  delete entire section, otherwise replace section title + notes, removing from notes any leading spaces and control characters such as line breaks / carriage returns; 2nd option in case there's only 1 character in the notes
+	local file_exists = r.file_exists(notes_path)
+	local _, scr_name, sect_ID, cmd_ID, _,_,_ = r.get_action_context()
+	local header = '[The file was generated and is maintained with '..scr_name:match('[^\\/]+%..+')..' script.\n\nDO NOT EDIT BY HAND OR DRY SAVE IN ANY TEXT PROCESSOR, THIS WILL BREAK FORMATTING AND LIKELY NOTES LOADING MECHANISM.\n\nIF ABSOLUTELY NEEDED, BEFORE EDITING CREATE A BACKUP COPY.]\n\n\n\n\r'
+	local f
+	local cont_upd
+		if not file_exists then
+		f = io.open(notes_path,'w') -- create file // or io.output(notes_path)
+		cont_upd = header..section_full
+		else
+		f = io.open(notes_path,'r')
+		local cont = f:read('*a')
+		f:close()
+		local empty_file = #cont:gsub('[%c%s]','') == 0
+		local section_exists = cont:match(esc(section_title))
+		local old_section = section_exists and ( cont:match('('..esc(section_title)..'.-\n\r)%[.-%]') or cont:match(esc(section_title)..'.+[%w%p]') ) -- 2nd option for when the section is the last
+			if old_section and old_section:match('.+[%w%p]') ~= section_title..'\n'..notes or not old_section or empty_file then
+			section_full = section_full:gsub('%%','%%%%') -- if new notes are different from the old, if no section or empty file
+			cont_upd = empty_file and cont:gsub(cont, header..section_full) or section_exists and cont:gsub(esc(old_section), section_full) or (cont:match('(.+[%w%p])') or '')..'\n\n\n\r'..section_full -- 2nd is adding the very 1st section while removing any trailing non-alphabetic characters such as line breaks
+			cont_upd = cont_upd:gsub('%%%%', '%%')
+			cont_upd = sort_notes_alphabetically(cont_upd)
+			f = io.open(notes_path,'w')
+			end
+		end
+
+		if cont_upd then
+		f:write(cont_upd)
+		f:close()
+		end
+
+	return cont_upd -- to use as a boolean in Add_Remove_FX_Notes_Tag() and Maintain_Annotated_FX_Folder() to condition fx name and 'Annotated FX' folder updates
+
+	end
+
+end
+
+
+function Delete_Notes_Track(item) -- if deleting item only, the argument is required
+--	if item then
+--	local tr = r.GetMediaItemTrack(item)
+	--r.DeleteTrackMediaItem(tr, item)
+--	r.DeleteTrack(tr)
+--	else -- if item was deleted by means other than this script leaving the track behind
+local notes_track, ext_data
+		for i = r.CountTracks(0)-1,0,-1 do -- from the end since it's likely to still be the last
+		local tr = r.GetTrack(0,i)
+		local ret, ext_data = r.GetSetMediaTrackInfo_String(tr, 'P_EXT:NOTES', '', false) -- setNewValue false
+			if ret then r.DeleteTrack(tr) --break -- without break deletes all NOTES tracks in case the 1st one has been duplicated by the user
+			notes_track = 1
+			end
+		end
+return notes_track
+--	end
+end
+
+
+function Un_Hide_All_Tracks(bool) -- no valid arg - hide, else unhide
+r.PreventUIRefresh(1)
+r.Undo_BeginBlock()
+local undo, unhide
+	if not bool then --- store
+	undo = 'Hide'
+		for i = 0, r.CountTracks(0)-1 do
+		local tr = r.GetTrack(0, i)
+	--	local ret, flags = r.GetTrackState(tr)
+	--	local visible = flags&512 ~= 512 -- 512 is hidden from TCP
+	--  OR
+		local visible = r.IsTrackVisible(tr, false) -- mixer false, only visibility in the TCP is needed
+			if visible then
+			local hide = 1
+				for i = 0, r.GetTrackNumMediaItems(tr)-1 do -- find at least one Notes item to keep track hosting it visible
+				local item = r.GetTrackMediaItem(tr, i)
+				local ret, ext_data = r.GetSetMediaItemInfo_String(item, 'P_EXT:NOTES', '', false) -- setNewValue false
+					if ret then hide = nil break end
+				end
+				if hide then -- only hide those which don't host notes items, to allow moving notes items to tracks other than the notes track if the user so wishes
+				r.GetSetMediaTrackInfo_String(tr, 'P_EXT:UNHIDE', '.', true) -- setNewValue true // store data to find it and unhide
+				r.SetMediaTrackInfo_Value(tr, 'B_SHOWINTCP', 0) -- newvalue 0, hide
+				end
+			end
+		end
+	else -- restore
+	undo = 'Unhide'
+		for i = 0, r.CountTracks(0)-1 do
+		local tr = r.GetTrack(0, i)
+		local ret, state = r.GetSetMediaTrackInfo_String(tr, 'P_EXT:UNHIDE', '', false) -- setNewValue false
+			if ret then
+			r.SetMediaTrackInfo_Value(tr, 'B_SHOWINTCP', 1) -- newvalue 1, unhide
+			r.GetSetMediaTrackInfo_String(tr, 'P_EXT:UNHIDE', '', true) -- setNewValue true // remove extended data
+			unhide = 1
+			end
+		end
+	end
+r.TrackList_AdjustWindows(true) -- isMinor true // TCP only
+r.Undo_EndBlock(undo..' tracks', -1)
+r.PreventUIRefresh(-1)
+return unhide
+end
+
+--=========================== F U N C T I O N S   E N D ===========================
+
+
+
+
+NOTES_TRACK_TOP = validate_sett(NOTES_TRACK_TOP)
+NOTES_ITEM_LENGTH = tonumber(function() return NOTES_ITEM_LENGTH:gsub(' ','') end) or 3 -- tonumber throws error if applied directly to string.gsub()
+HIDE_ALL_TRACKS_TEMPORARILY = validate_sett(HIDE_ALL_TRACKS_TEMPORARILY)
+TAG_FX_NAME = validate_sett(TAG_FX_NAME)
+MAINTAIN_ANNOTATED_FX_FOLDER = validate_sett(MAINTAIN_ANNOTATED_FX_FOLDER)
+RGB = {hex2rgb(Validate_HEX_Color_Setting(NOTES_TRACK_ITEM_COLOR))}
+
+local notes_item = Get_Notes_Track_x_Item() -- if there're several, duplicated by user, only the 1st on the track is returned
+
+r.PreventUIRefresh(1)
+
+	if notes_item then -- script is run while the notes item is already present
+
+	local act_name, script_exists = Get_Armed_Action_Name(path, sep)
+	local fx_name, fx_type = table.unpack(not act_name and {Get_Focused_FX_Name()} or {nil})-- to condition Add_Remove_FX_Notes_Tag()
+		if fx_name == 'err_mess' then Err_mess() return r.defer(function() do return end end) end
+	local name_tmp = act_name and act_name:match('(.+) "') or fx_name and (fx_name:match('^[VSTAUDXL23i]+: (.+)') or fx_name) -- temp to avoid altering name data which is required for further processing // for actions get command ID since it's unique
+	local same_obj = (act_name or fx_name) and ( fx_type == 'JS' and (notes_item.ext_data:match(', (.+)%]') == name_tmp:match('%[(.+)%]') or notes_item.ext_data:match(', (.+)%]') == name_tmp or notes_item.ext_data:match('.+'..sep..'(.+)%]') == name_tmp:match('/(.+)')) or notes_item.ext_data:match('('..esc(name_tmp)..')') ) -- options 1, 2 are for JSFX plugins capturing the path isolated either from fx chain name or from the chunk since it's unique, including JSFX local to project, isolating the file name only; option 3 is for actions/scripts and non-JSFX plugins
+	local fx_section = notes_item.ext_data:match('.-%];.+') -- fx section ext data contains 2 fields the 2nd being fx type
+
+		if not act_name and not fx_name or same_obj then -- no armed action / focused fx or the same action is armed / fx is in focus
+
+		local cont_upd = StoreNotes(path, sep, notes_item.ext_data, notes_item.notes) -- notes_item.ext_data is section_title
+		local tag = fx_section and TAG_FX_NAME and Add_Remove_FX_Notes_Tag(path, sep, notes_item.ext_data, notes_item.notes, cont_upd) -- only runs if stored notes are different from the displayed ones conditioned with cont_upd and if fx_type is supported
+		local create = fx_name and MAINTAIN_ANNOTATED_FX_FOLDER and Create_Annotated_FX_Folder(path, sep, cont_upd) -- after the setting has been enabled the folder is only created if notes change conditoned by cont_upd; ignored if already exists
+		Delete_Notes_Track(notes_item.item) -- notes_item.item isn't used as only tracks are deleted
+		Un_Hide_All_Tracks(1) -- 1 to unhide
+
+		elseif (act_name or fx_name) and not same_obj then -- an action/fx different from the one notes belong to is armed / in focus
+
+			if notes_item.notes then -- store prev fx notes
+			local cont_upd = StoreNotes(path, sep, notes_item.ext_data, notes_item.notes)
+			local tag = fx_section and TAG_FX_NAME and Add_Remove_FX_Notes_Tag(path, sep, notes_item.ext_data, notes_item.notes, cont_upd) -- only runs if stored fx notes are different from the displayed ones conditioned with cont_upd and if fx_type is supported
+			local create = fx_name and MAINTAIN_ANNOTATED_FX_FOLDER and Create_Annotated_FX_Folder(path, sep, cont_upd) -- after the setting has been enabled the folder is only created if notes change conditoned by cont_upd; ignored if already exists
+			end
+
+		local section_title = Create_Section_Title(script_exists and act_name or fx_name, fx_type)
+
+			if not section_title or not section_title:match('%w+') then
+			Error_Tooltip('\n\n this '..(not section_title and 'script seems \n\n' or 'fx seems')..' to be unavailable \n\n') -- if script is not available section_title is nil, if fx is not available section_title only contains either [] or [
+			else
+			notes_item = Re_Create_Notes_Item(notes_item.item, path, sep, section_title, fx_type, FX_NOTES_TRACK_TOP, NOTES_ITEM_LENGTH, RGB)
+			end
+
+		end
+
+	else -- script is run while there's no notes item
+
+	local act_name, script_exists, mess = Get_Armed_Action_Name(path, sep)
+	local fx_name, fx_type = table.unpack(not act_name and {Get_Focused_FX_Name()} or {nil})
+		if fx_name == 'err_mess' then Err_mess() return r.defer(function() do return end end) end
+	local is_notes_track = Delete_Notes_Track() -- delete notes track if any
+
+		if not act_name and not fx_name then
+
+		local unhide = Un_Hide_All_Tracks(1) -- in case both notes item and notes track were deleted manually, unhide all tracks which had been hidden // -- 1 to unhide
+
+			if not is_notes_track and not unhide then
+			local obj = r.GetToggleCommandStateEx(0,40605) == 1 -- Show action list
+			and not act_name and (mess or 'no armed actions') or 'no focused fx'
+			Error_Tooltip('\n\n no '..obj..' \n\n') -- only display error message when there have been no notes track and tracks haven't been unhidden, i.e. not immediately after storing notes
+			end
+
+		else
+
+		local section_title = Create_Section_Title(script_exists and act_name or fx_name, fx_type) -- for scripts script_exists is only false if script file isn't found, for other types of actions it's always true
+
+			if not section_title or not section_title:match('%w+') then
+			Error_Tooltip('\n\n this '..(not section_title and 'script seems \n\n' or 'fx seems')..' to be unavailable \n\n') -- if script is not available section_title is nil, if fx is not available section_title only contains either [] or [
+			else
+			local hide = HIDE_ALL_TRACKS_TEMPORARILY and Un_Hide_All_Tracks()
+			notes_item = Re_Create_Notes_Item(notes_item, path, sep, section_title, fx_type, NOTES_TRACK_TOP, NOTES_ITEM_LENGTH, RGB)
+			end
+
+		end
+
+	end
+
+
+r.PreventUIRefresh(-1)
+
+local vert_scroll = notes_item and not HIDE_ALL_TRACKS_TEMPORARILY and (NOTES_TRACK_TOP and r.CSurf_OnScroll(-6000,-2000) or not NOTES_TRACK_TOP and r.CSurf_OnScroll(-6000,2000)) -- only works after PreventUIRefresh(), seem to be affected by Notes item window opening // negative is scrolling left/up, large values to accommodate largest possible screens // for scrolling down option NOT operator must be used otherwise it's triggered when the first (scrolling up) option is true because it returns nil
+
+
+
+
+
+
+
+
+
