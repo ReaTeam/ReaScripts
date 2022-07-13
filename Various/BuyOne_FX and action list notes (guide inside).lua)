@@ -333,7 +333,7 @@ local retval, tr_num, itm_num, fx_num = r.GetFocusedFX()
 
 local mon_fx_num = get_mon_fx_props() -- expected >= 0 or > -1
 
-local tr = retval == 1 and (r.GetTrack(0,tr_num-1) or r.GetMasterTrack()) or retval == 0 and mon_fx_num >= 0 and r.GetMasterTrack() -- prior to build 6.20 Master track has to be gotten even when retval is 0
+local tr = retval > 0 and (r.GetTrack(0,tr_num-1) or r.GetMasterTrack()) or retval == 0 and mon_fx_num >= 0 and r.GetMasterTrack() -- prior to build 6.20 Master track has to be gotten even when retval is 0
 
 local item = retval == 2 and r.GetTrackMediaItem(tr, itm_num)
 -- high word is 16 bits on the left, low word is 16 bits on the right
@@ -369,7 +369,7 @@ function Get_Armed_Action_Name(path, sep)
 
 	local function script_exists(line, name)
 	local f_path = line:match('.+"(.+)"$') or line:match(esc(name)..' (.+)$') -- path either with or without spaces, in the former case it's enclosed within quotation marks
-	local f_path = f_path:match('^%u:') and f_path or path..sep..'Scripts'..sep..f_path -- full (starts with the drive letter and a colon) or relative file path; in reaper-kb.ini full path is stored when the script resides outside of the 'Scripts' folder of the REAPER instance being used
+	local f_path = f_path:match('^%u:') and f_path or path..sep..'Scripts'..sep..f_path -- full (starts with the drive letter and a colon) or relative file path; in reaper-kb.ini full path is stored when the script resides outside of the 'Scripts' folder of the REAPER instance being used // NOT SURE THE FULL PATH SYNTAX IS VALID ON OSs OTHER THAN WIN
 --	script_exists = r.file_exists(f_path)
 	return r.file_exists(f_path)
 	end
@@ -420,7 +420,17 @@ function Get_Focused_FX_Name()
 -- JSFX plugin names can't be changed in the FX browser but can in the NAME entries inside reaper-jsfx.ini
 -- and then they will be reflected in the FX browser after restatring REAPER or refreshing the FX browser with F5
 
-local retval, fx_name, fx_type -- retval just because fx_name must be made local as both are returned together, otherwise retval would end up being global; fx_type to limit Add_Remove_FX_Notes_Tag() to VST plugins as cannot test AU/DX/LV2 (files reaper-auplugins_arm64-bc.ini, reaper-auplugins64-bc.ini, reaper-dxplugins64.ini)
+	local function jsfx_exists(path, sep, name, type) -- evaluate if a JSFX exists in case it'd been removed before the FX browser was refreshed with F5 or REAPER restarted
+		if type == 'JS' then
+		local path = name:match('<Project>') and 
+		select(2,r.EnumProjects(-1)):match('(.+[\\/])')..'Effects'..sep..name:match('/(.+)')
+		or path..sep..'Effects'..sep..(name:match('%[(.+)%]') or name:match('.+')) -- 2nd option if a non-local jsfx appearing in the chain isn't available, in which case only relative path is displayed either in the chain or in the chunk, without the fx name
+		return r.file_exists(path)
+		end	
+	end
+
+
+local retval, fx_name, fx_type -- retval just because fx_name must be made local as both are returned together, otherwise retval would end up being global; fx_type to limit Add_Remove_FX_Notes_Tag() to VST and JSFX plugins as cannot test AU/DX/LV2 (files reaper-auplugins_arm64-bc.ini, reaper-auplugins64-bc.ini, reaper-dxplugins64.ini)
 
 	if r.GetToggleCommandStateEx(0, 40271) == 1 -- View: Show FX browser window // fx browser is open // the action adds last selected fx from the fx browser even when it's closed so must be additionally conditioned
 	then -- Insert temporary track to insert FX and get FX props
@@ -455,13 +465,18 @@ local retval, fx_name, fx_type -- retval just because fx_name must be made local
 		or fx_chunk:match('BYPASS.-<JS (.-) .-'..esc(displayed_fx_name)) -- displayed name with or without spaces; file path WITHOUT spaces
 		or fx_chunk:match('BYPASS.-<JS "?(.-)"? ""') -- NO displayed name; file path with or without spaces
 		or fx_chunk:match('BYPASS.-<VIDEO_EFFECT "(Video processor)"')
+		
+		-- Get JSFX which became unavailable during the session (before FX Browser was refreshed) to generate appropriate error message // if these were loaded into the fx chain after becoming unavailable no chunk data is stored for them, hence reliance on the displayed name is required // if they were renamed in the fx chain while being unavailable there's no way to retrieve their original type, name and path
+		fx_type = fx_type or displayed_fx_name:match('^[JLVSTAUDX]+')
+		fx_name = fx_name or displayed_fx_name:match('JS: %[(.+)%]') or displayed_fx_name:match('JS: (.+)') -- either regular or local
 		end
+		
 	end
 
 
 fx_name = fx_name and (fx_name:match('.+ %(n%) %[.-%]$') or fx_name:match('(.+) %(n%)')) or fx_name -- if there's notes tag ignore it, from JSFX it'll be removed in Create_Section_Title() function // option 1 is for JSFX since the tag is placed between the name and the path, option 2 is for other FX types
 
-return fx_name and #fx_name > 0 and fx_name, fx_type
+return fx_name and #fx_name > 0 and (fx_type == 'JS' and jsfx_exists(path, sep, fx_name, fx_type) or fx_type ~= 'JS') and fx_name, fx_type -- if JSFX, checking if file exists
 
 end
 
@@ -507,7 +522,7 @@ local section_title
 
 	local cmd_id, name = table.unpack({name:match('(.-) "(.+)"')} or {name:match('"(.-)" "(.+)"')})
 	local script = name:match('%.lua$') or name:match('%.eel$') or name:match('%.py$')
-	section_title = '['..name..'; '..cmd_id..']' -- if script data was retrieved from reaper-kb.ini when there's no sws extension make, it conform to the name returned by CF_GetCommandText which prefixes the name with 'Script:' following their appearamce in the Action list instead of 'Custom:' as they're prefixed in reaper-kb.ini file
+	section_title = '['..name..'; '..cmd_id..']' -- if script data was retrieved from reaper-kb.ini when there's no sws extension, make it conform to the name returned by CF_GetCommandText which prefixes the name with 'Script:' following their appearamce in the Action list instead of 'Custom:' as they're prefixed in reaper-kb.ini file
 
 	end
 
@@ -615,7 +630,7 @@ function Add_Remove_FX_Notes_Tag(path, sep, fx_section_title, notes, cont_upd) -
 -- fx_section_title is ext_data from Get_Notes_Track_x_Item() function;
 -- cont_upd comes from StoreNotes(function) to condition the routine by difference between stored and loaded notes, if there's no change in notes content this routine won't run
 
--- Only non-JSFX names can be modified, modification of JSFX names inside reaper-jsfx.ini renders them unavailable in REAPER, they appear in the FX browser under new names but are loaded empty into the FX chain
+-- Modification of JSFX names inside reaper-jsfx.ini renders them unavailable in REAPER, they appear in the FX browser under new names but are loaded empty into the FX chain, hence the tag is added directly to the decs: header in their code
 
 -- https://github.com/Ultraschall/ultraschall-portable ini files for AU and DX plugins, reaper-auplugins_arm64-bc.ini, reaper-auplugins64-bc.ini, reaper-dxplugins64.ini
 -- paths to AU plugins https://github.com/Ultraschall/ultraschall-portable/blob/master/reaper-fxfolders.ini
@@ -633,20 +648,22 @@ local JS = fx_type:match('JS')
 
 	if act and cont_upd then
 		if (VST or JS) and not vid_proc then
-		local fx_name, fx_file = fx_section_title:match('%[(.+), (.+)%]')
+		local fx_name, fx_file = fx_section_title:match('%[(.+), (.+)%]') -- excluding local JSFX because their names aren't displayed in the FX Browser anyway
 		local path = path..sep
-		local file = VST and (r.file_exists(path..'reaper-vstplugins.ini') and path..'reaper-vstplugins.ini' or path..'reaper-vstplugins64.ini') or JS and path..'Effects'..sep..fx_file -- JSFX names cannot be modified inside reaper-jsfx.ini file otherwise plugins stop loading hence must be modified directly in plugin file desc: tag
+		local file = VST and (r.file_exists(path..'reaper-vstplugins.ini') and path..'reaper-vstplugins.ini' or path..'reaper-vstplugins64.ini') or JS and fx_file and path..'Effects'..sep..fx_file or '' -- JSFX names cannot be modified inside reaper-jsfx.ini file otherwise plugins stop loading hence must be modified directly in plugin file desc: tag // the last empty string to avoid error at io.open()
 		local f = io.open(file,'r')
-		local cont = f:read('*a')
-		f:close()
-		local tagged = fx_name:match('%(n%)') or (VST and cont:match(esc(fx_file)..'=.-'..esc(fx_name)..' %(n%)') or JS and cont:match('desc:.-'..esc(fx_name)..' %(n%)')) -- if there's no tag in the fx name check if it's in reaper-vstplugins(64).ini in case the fx browser hadn't been refreshed after adding it which resulted in its absence in fx name in both FX chain and track chunk
-		local line = VST and ( cont:match(esc(fx_file)..'=.-'..esc(fx_name)..' %(n%)') or cont:match(esc(fx_file)..'=.-'..esc(fx_name)) ) or JS and ( cont:match('desc:.-'..esc(fx_name)..' %(n%)') or cont:match('desc:.-'..esc(fx_name)) )-- see comment above; fx name may lack the tag if FX browser wasn't updated despite having it in reaper-vstplugins(64).ini, so two scenarios are evaluated
-		local repl_line = act == 'add' and not tagged and line..' (n)' or act == 'remove' and tagged and (line:match('(.+) %(n%)') or line)
-		local cont_upd = repl_line and cont:gsub(esc(line), repl_line, 1)
-			if cont_upd then
-			local f = io.open(file,'w')
-			f:write(cont_upd)
+			if f then
+			local cont = f:read('*a')
 			f:close()
+			local tagged = fx_name:match('%(n%)') or (VST and cont:match(esc(fx_file)..'=.-'..esc(fx_name)..' %(n%)') or JS and cont:match('desc:.-'..esc(fx_name)..' %(n%)')) -- if there's no tag in the fx name check if it's in reaper-vstplugins(64).ini in case the fx browser hadn't been refreshed after adding it which resulted in its absence in fx name in both FX chain and track chunk
+			local line = VST and ( cont:match(esc(fx_file)..'=.-'..esc(fx_name)..' %(n%)') or cont:match(esc(fx_file)..'=.-'..esc(fx_name)) ) or JS and ( cont:match('desc:.-'..esc(fx_name)..' %(n%)') or cont:match('desc:.-'..esc(fx_name)) )-- see comment above; fx name may lack the tag if FX browser wasn't updated despite having it in reaper-vstplugins(64).ini, so two scenarios are evaluated
+			local repl_line = act == 'add' and not tagged and line..' (n)' or act == 'remove' and tagged and (line:match('(.+) %(n%)') or line)
+			local cont_upd = repl_line and cont:gsub(esc(line), repl_line, 1)
+				if cont_upd then
+				local f = io.open(file,'w')
+				f:write(cont_upd)
+				f:close()
+				end
 			end
 		end
 	end
@@ -904,8 +921,13 @@ r.PreventUIRefresh(1)
 	else -- script is run while there's no notes item
 
 	local act_name, script_exists, mess = Get_Armed_Action_Name(path, sep)
-	local fx_name, fx_type = table.unpack(not act_name and {Get_Focused_FX_Name()} or {nil})
-		if fx_name == 'err_mess' then Err_mess() return r.defer(function() do return end end) end
+	local fx_name, fx_type = table.unpack(not act_name and {Get_Focused_FX_Name(path, sep)} or {nil})
+	
+		if not fx_name and fx_type == 'JS' then -- JSFX isn't available but is listed in the FX browser or FX chain (before FX browser is refreshed with F5)
+		Error_Tooltip('\n\n    this fx seems \n\n to be unavailable \n\n') return r.defer(function() do return end end)
+		elseif fx_name == 'err_mess' then Err_mess() return r.defer(function() do return end end) 
+		end
+		
 	local is_notes_track = Delete_Notes_Track() -- delete notes track if any
 
 		if not act_name and not fx_name then
