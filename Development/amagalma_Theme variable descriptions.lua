@@ -1,17 +1,19 @@
 --[[
  * ReaScript Name: Theme variable descriptions
  * Author: amagalma, X-Raym
- * About: Parsed from reascripthelp.html
+ * About: Parsed from reascripthelp.html. Just copy paste and search replace with regex `(.+) : (.+) \-\-.+` to `$1 = "$2",`.
  * Repository: ReaTeam ReaScripts
  * Repository URI: https://github.com/ReaTeam/ReaScripts
  * Licence: GPL v3
  * REAPER: 5.0
- * Version: 1.0
+ * Version: 1.0.1
  * Provides: [nomain] .
 --]]
 
 --[[
  * Changelog:
+ * v1.0.1 (2022-07-18)
+	+ v6.63 variables
  * v1.0 (2021-03-17)
 	+ Initial Reapack Release
 --]]
@@ -23,9 +25,10 @@ theme_var_descriptions = {
   col_main_3dhl = "Main window 3D highlight",
   col_main_3dsh = "Main window 3D shadow",
   col_main_resize2 = "Main window pane resize mouseover",
-  col_main_text = "Window text",
-  col_main_bg = "Window background",
-  col_main_editbk = "Window edit background",
+  col_main_text = "Themed window text",
+  col_main_bg = "Themed window background",
+  col_main_editbk = "Themed window edit background",
+  col_nodarkmodemiscwnd = "Do not use window theming on macOS dark mode",
   col_transport_editbk = "Transport edit background",
   col_toolbar_text = "Toolbar button text",
   col_toolbar_text_on = "Toolbar button enabled text",
@@ -95,7 +98,7 @@ theme_var_descriptions = {
   col_mi_fade2 = "Media item edges of controls",
   col_mi_fade2_drawmode = "Media item edges of controls blend mode",
   item_grouphl = "Media item edge when selected via grouping",
-  col_offlinetext = 'Media item "offline" text',
+  col_offlinetext = "Media item "offline" text",
   col_stretchmarker = "Media item stretch marker line",
   col_stretchmarker_h0 = "Media item stretch marker handle (1x)",
   col_stretchmarker_h1 = "Media item stretch marker handle (>1x)",
@@ -115,6 +118,12 @@ theme_var_descriptions = {
   col_tr2_divline = "Track divider line (even tracks)",
   col_envlane1_divline = "Envelope lane divider line (odd tracks)",
   col_envlane2_divline = "Envelope lane divider line (even tracks)",
+  mute_overlay_col = "Muted/unsoloed track/item overlay color",
+  mute_overlay_mode = "Muted/unsoloed track/item overlay mode",
+  inactive_take_overlay_col = "Inactive take overlay color",
+  inactive_take_overlay_mode = "Inactive take overlay mode",
+  locked_overlay_col = "Locked track/item overlay color",
+  locked_overlay_mode = "Locked track/item overlay mode",
   marquee_fill = "Marquee fill",
   marquee_drawmode = "Marquee fill mode",
   marquee_outline = "Marquee outline",
@@ -130,11 +139,11 @@ theme_var_descriptions = {
   playcursor_color = "Play cursor",
   playcursor_drawmode = "Play cursor fill mode",
   col_gridlines2 = "Grid lines (start of measure)",
-  col_gridlines2dm = "Grid lines (start of measure)",
+  col_gridlines2dm = "Grid lines (start of measure) - draw mode",
   col_gridlines3 = "Grid lines (start of beats)",
-  col_gridlines3dm = "Grid lines (start of beats)",
+  col_gridlines3dm = "Grid lines (start of beats) - draw mode",
   col_gridlines = "Grid lines (in between beats)",
-  col_gridlines1dm = "Grid lines (in between beats)",
+  col_gridlines1dm = "Grid lines (in between beats) - draw mode",
   guideline_color = "Editing guide line color",
   guideline_drawmode = "Editing guide fill mode",
   region = "Regions",
@@ -156,10 +165,10 @@ theme_var_descriptions = {
   col_vubot = "VU meter bottom",
   col_vuintcol = "VU meter interlace/edge color",
   col_vumidi = "VU meter midi activity",
-  col_vuind1 = "VU (indicator)",
-  col_vuind2 = "VU (indicator)",
-  col_vuind3 = "VU (indicator)",
-  col_vuind4 = "VU (indicator)",
+  col_vuind1 = "VU (indicator) - no signal",
+  col_vuind2 = "VU (indicator) - low signal",
+  col_vuind3 = "VU (indicator) - med signal",
+  col_vuind4 = "VU (indicator) - hot signal",
   mcp_sends_normal = "Sends text: normal",
   mcp_sends_muted = "Sends text: muted",
   mcp_send_midihw = "Sends text: MIDI hardware",
@@ -171,21 +180,21 @@ theme_var_descriptions = {
   mcp_fxparm_bypassed = "FX parameter text: bypassed",
   mcp_fxparm_offlined = "FX parameter text: offline",
   tcp_list_scrollbar = "List scrollbar (track panel)",
-  tcp_list_scrollbar_mode = "List scrollbar (track panel)",
+  tcp_list_scrollbar_mode = "List scrollbar (track panel) - draw mode",
   tcp_list_scrollbar_mouseover = "List scrollbar mouseover (track panel)",
-  tcp_list_scrollbar_mouseover_mode = "List scrollbar mouseover (track panel)",
+  tcp_list_scrollbar_mouseover_mode = "List scrollbar mouseover (track panel) - draw mode",
   mcp_list_scrollbar = "List scrollbar (mixer panel)",
-  mcp_list_scrollbar_mode = "List scrollbar (mixer panel)",
+  mcp_list_scrollbar_mode = "List scrollbar (mixer panel) - draw mode",
   mcp_list_scrollbar_mouseover = "List scrollbar mouseover (mixer panel)",
-  mcp_list_scrollbar_mouseover_mode = "List scrollbar mouseover (mixer panel)",
+  mcp_list_scrollbar_mouseover_mode = "List scrollbar mouseover (mixer panel) - draw mode",
   midi_rulerbg = "MIDI editor ruler background",
   midi_rulerfg = "MIDI editor ruler text",
   midi_grid2 = "MIDI editor grid line (start of measure)",
-  midi_griddm2 = "MIDI editor grid line (start of measure)",
+  midi_griddm2 = "MIDI editor grid line (start of measure) - draw mode",
   midi_grid3 = "MIDI editor grid line (start of beats)",
-  midi_griddm3 = "MIDI editor grid line (start of beats)",
+  midi_griddm3 = "MIDI editor grid line (start of beats) - draw mode",
   midi_grid1 = "MIDI editor grid line (between beats)",
-  midi_griddm1 = "MIDI editor grid line (between beats)",
+  midi_griddm1 = "MIDI editor grid line (between beats) - draw mode",
   midi_trackbg1 = "MIDI editor background color (naturals)",
   midi_trackbg2 = "MIDI editor background color (sharps/flats)",
   midi_trackbg_outer1 = "MIDI editor background color, out of bounds (naturals)",
@@ -195,9 +204,9 @@ theme_var_descriptions = {
   midi_selbg = "MIDI editor time selection color",
   midi_selbg_drawmode = "MIDI editor time selection fill mode",
   midi_gridhc = "MIDI editor CC horizontal center line",
-  midi_gridhcdm = "MIDI editor CC horizontal center line",
+  midi_gridhcdm = "MIDI editor CC horizontal center line - draw mode",
   midi_gridh = "MIDI editor CC horizontal line",
-  midi_gridhdm = "MIDI editor CC horizontal line",
+  midi_gridhdm = "MIDI editor CC horizontal line - draw mode",
   midi_ccbut = "MIDI editor CC lane add/remove buttons",
   midi_ccbut_text = "MIDI editor CC lane button text",
   midi_ccbut_arrow = "MIDI editor CC lane button arrow",
@@ -244,6 +253,8 @@ theme_var_descriptions = {
   col_explorer_sel = "Media explorer selection",
   col_explorer_seldm = "Media explorer selection mode",
   col_explorer_seledge = "Media explorer selection edge",
+  explorer_grid = "Media explorer grid, markers",
+  explorer_pitchtext = "Media explorer pitch detection text",
   docker_shadow = "Tab control shadow",
   docker_selface = "Tab control selected tab",
   docker_unselface = "Tab control unselected tab",
@@ -260,7 +271,7 @@ theme_var_descriptions = {
   env_track_mute = "Envelope: Mute",
   col_env5 = "Envelope: Master playrate",
   col_env6 = "Envelope: Master tempo",
-  col_env7 = "Envelope: Send volume",
+  col_env7 = "Envelope: Width / Send volume",
   col_env8 = "Envelope: Send pan",
   col_env9 = "Envelope: Send volume 2",
   col_env10 = "Envelope: Send pan 2",
