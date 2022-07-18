@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="04999c14ee38c4928b7162919987c21de68f5312" name="ReaTeam Scripts">
+<index version="1" commit="32e7b53f799d110200db4415957a3f20549683c0" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -507,7 +507,7 @@
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 Parsed from reascripthelp.html. Just copy paste and search replace with regex {\f1 (.+) : (.+) \\-\\-.+} to {\f1 $1 = "$2",}.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Parsed from reascripthelp.html. Just copy paste and search replace with regex {\f1 (.+) : (.+) \\-\\-.+} to {\f1   \{ k = '$1', v = '$2' \},}.\par}
 }
 ]]></description>
       </metadata>
@@ -516,6 +516,9 @@
       </version>
       <version name="1.0.1" author="amagalma, X-Raym" time="2022-07-18T16:21:35Z">
         <source>https://github.com/ReaTeam/ReaScripts/raw/04999c14ee38c4928b7162919987c21de68f5312/Development/amagalma_Theme%20variable%20descriptions.lua</source>
+      </version>
+      <version name="1.1" author="amagalma, X-Raym" time="2022-07-18T16:49:45Z">
+        <source>https://github.com/ReaTeam/ReaScripts/raw/32e7b53f799d110200db4415957a3f20549683c0/Development/amagalma_Theme%20variable%20descriptions.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_GFX Input Inspector.lua" type="script" desc="GFX Input Inspector">
