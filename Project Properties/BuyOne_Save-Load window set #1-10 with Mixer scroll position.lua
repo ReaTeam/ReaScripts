@@ -2,8 +2,8 @@
 ReaScript name: Save-Load window set #1-10 with Mixer scroll position (10 scripts)
 Author: BuyOne
 Website: https://forum.cockos.com/member.php?u=134058
-Version: 1.1
-Changelog: #More reliable scroll in different situations
+Version: 1.2
+Changelog: #Fixed capture of MCP folder state
 Licence: WTFPL
 REAPER: at least v5.962
 Extensions: SWS/S&M for best performance
@@ -232,7 +232,7 @@ local i = targ_tr_idx-1 -- start from previous track
 		if is_parent then -- if a track is parent
 		local ret, chunk = GetTrackChunk(tr)
 			if ret == 'abort' then return -- if parent track chunk is larger than 4.194303 Mb and no SWS extension to handle that to find out if it's collapsed
-			elseif ret and chunk and chunk:match('BUSCOMP 0 (%d)') == '1' -- collapsed
+			elseif ret and chunk and chunk:match('BUSCOMP %d (%d)') == '1' -- collapsed
 			then return tr
 			end
 		end
