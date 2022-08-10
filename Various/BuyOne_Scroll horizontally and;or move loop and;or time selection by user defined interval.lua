@@ -7,60 +7,60 @@ Changelog: Initial release
 Licence: WTFPL
 REAPER: at least v5.962
 About:	Designed for either horizontal scrolling or moving loop
-		of time selection by the custom increments set in the 
-		USER SETTINGS either in seconds or in musical intervals.  
-		
-		Both functions can be combined so that loop and/or time
-		selection are kept in view during scrolling.
-		
-		Besides the incerement defined in the USER SETTINGS,
-		the script provides for an ad-hoc interval which overrides
-		that setting for the duration of the REAPER session or until
-		changed or cleared.   
-		1) To call an ad-hoc interval creation dialogue move
-		the mouse cursor to the upper left hand corner of your screen
-		(whether REAPER program window is fully open or not) and execute 
-		the script.  
-		In the dialogue type in the new interval value in format explained  
-		in the annotation to the INCREMENT setting of the USER SETTINGS, 
-		and click 'OK'.  
-		2) To clear an ad-hoc interval to be able to return to using
-		the one defined in the INCREMENT setting, type in x or X 
-		and click 'OK'.  
-		
-		Be aware that scrolling distance is not 100% precise
-		because it's measured in pixels and conversion from time
-		units such as seconds and musical intervals to pixels is
-		always an approximation, but it's within the ballpark.
-		The greater the zoom-in the more accurate the scrolling.
-		
-		To use effectively bind the script to the mousewheel.
-		
-		
-		► M u s i c a l  i n t e r v a l s  s y n t a x  
-		
-		Syntax of supported straight and triplet musical intervals:   
-		1/256, 1/192, 1/128, 1/96, 1/64, 1/48, 1/36, 1/24, 1/16, 1/12, 
-		1/8, 1/6, 1/4, 1/3, 1/2, 1, 2 etc.
+	of time selection by the custom increments set in the 
+	USER SETTINGS either in seconds or in musical intervals.  
 
-		The fraction numerator can be greater than 1, e.g. 10/16, 
-		5/12, and greater than the denominator, which is useful when 
-		an interval longer than 1 whole note is required, e.g.   
-		3/2 is 1.5 notes, 5/2 is 2.5 notes, 
-		4/3 is 1 + 1/3 notes (a whole + 1/2 triplet), 
-		5/3 is 1 + 2/3 notes (a whole + two 1/2 triplets).
+	Both functions can be combined so that loop and/or time
+	selection are kept in view during scrolling.
 
-		Length of a dotted note is equivalent to the length of 3 notes 
-		of a shorter duration, e.g. 1 dotted = 3/2, 1/2 dotted = 3/4, 
-		1/4 dotted = 3/8 etc. To combine several dotted notes multiply 
-		the nominator by the number of such notes, e.g. 
-		9/2 = 3 dotted whole notes (3 x 3/2), 
-		12/4 = 4 dotted half notes (4 x 3/4), 
-		6/8 = 2 dotted quarter notes (2 x 3/8). 
-		
-		Appending dotted notes to whole notes:   
-		1 whole note + 1/2 dotted = 4/4 + 3/4 = 7/4, 
-		2 whole notes + three 1/16 dotted = 64/32 + 3 x 3/32 = 64/32 + 9/32 = 73/32.
+	Besides the incerement defined in the USER SETTINGS,
+	the script provides for an ad-hoc interval which overrides
+	that setting for the duration of the REAPER session or until
+	changed or cleared.   
+	1) To call an ad-hoc interval creation dialogue move
+	the mouse cursor to the upper left hand corner of your screen
+	(whether REAPER program window is fully open or not) and execute 
+	the script.  
+	In the dialogue type in the new interval value in format explained  
+	in the annotation to the INCREMENT setting of the USER SETTINGS, 
+	and click 'OK'.  
+	2) To clear an ad-hoc interval to be able to return to using
+	the one defined in the INCREMENT setting, type in x or X 
+	and click 'OK'.  
+
+	Be aware that scrolling distance is not 100% precise
+	because it's measured in pixels and conversion from time
+	units such as seconds and musical intervals to pixels is
+	always an approximation, but it's within the ballpark.
+	The greater the zoom-in the more accurate the scrolling.
+
+	To use effectively bind the script to the mousewheel.
+
+
+	► M u s i c a l  i n t e r v a l s  s y n t a x  
+
+	Syntax of supported straight and triplet musical intervals:   
+	1/256, 1/192, 1/128, 1/96, 1/64, 1/48, 1/36, 1/24, 1/16, 1/12, 
+	1/8, 1/6, 1/4, 1/3, 1/2, 1, 2 etc.
+
+	The fraction numerator can be greater than 1, e.g. 10/16, 
+	5/12, and greater than the denominator, which is useful when 
+	an interval longer than 1 whole note is required, e.g.   
+	3/2 is 1.5 notes, 5/2 is 2.5 notes, 
+	4/3 is 1 + 1/3 notes (a whole + 1/2 triplet), 
+	5/3 is 1 + 2/3 notes (a whole + two 1/2 triplets).
+
+	Length of a dotted note is equivalent to the length of 3 notes 
+	of a shorter duration, e.g. 1 dotted = 3/2, 1/2 dotted = 3/4, 
+	1/4 dotted = 3/8 etc. To combine several dotted notes multiply 
+	the nominator by the number of such notes, e.g. 
+	9/2 = 3 dotted whole notes (3 x 3/2), 
+	12/4 = 4 dotted half notes (4 x 3/4), 
+	6/8 = 2 dotted quarter notes (2 x 3/8). 
+
+	Appending dotted notes to whole notes:   
+	1 whole note + 1/2 dotted = 4/4 + 3/4 = 7/4, 
+	2 whole notes + three 1/16 dotted = 64/32 + 3 x 3/32 = 64/32 + 9/32 = 73/32.
 		
 ]]
 
