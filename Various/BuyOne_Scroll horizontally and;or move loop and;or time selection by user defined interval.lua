@@ -110,7 +110,7 @@ KEEP_LOOP_TIME_IN_VIEW = ""
 
 -- The default mousewheel direction is:
 -- upward movement scrolls rightwards,
--- downward movement scroll leftwards;
+-- downward movement scrolls leftwards;
 -- enable to reverse;
 -- to enable, place any QWERTY character between
 -- the quotation marks.
