@@ -7,7 +7,7 @@ Changelog: Initial release
 Licence: WTFPL
 REAPER: at least v5.962
 About:	Designed for either horizontal scrolling or moving loop
-	of time selection by the custom increments set in the 
+	or time selection by the custom increments set in the 
 	USER SETTINGS either in seconds or in musical intervals.  
 
 	Both functions can be combined so that loop and/or time
