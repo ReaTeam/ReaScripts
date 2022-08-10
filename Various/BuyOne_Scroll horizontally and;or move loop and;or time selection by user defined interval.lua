@@ -85,7 +85,7 @@ HORIZ_SCROLL = "1"
 -- if the resolution is too low no scrolling occurs
 -- so the Arrange must be zoomed in (see AUTO_ZOOM_IN below);
 -- if empty or 0 or is not a numeral, defaults to 1 beat (1/4).
-INCREMENT = "1/4"
+INCREMENT = ""
 
 -- If the INCREMENT setting above is fine and the Arrange
 -- zoom-in level is low, the resolution might not
@@ -106,7 +106,7 @@ AUTO_ZOOM_IN = "1"
 -- any other numeral or character renders the setting disabled;
 -- having started out within view, loop/time selection
 -- cannot be moved beyond the visible portion of the timeline.
-KEEP_LOOP_TIME_IN_VIEW = "3"
+KEEP_LOOP_TIME_IN_VIEW = ""
 
 -- The default mousewheel direction is:
 -- upward movement scrolls rightwards,
