@@ -7,105 +7,105 @@ Changelog: Initial release
 Licence: WTFPL
 REAPER: at least v5.962
 About:        G I U D E
-		
-		The script in essense does in its own way what the native Track Manager,
-		the SWS extension Find utility, mpl_search tracks.lua and 
-		spk77_Track Tags.lua scripts do. In addition, besides track names track indices 
-		can be used to get to them.
 
-		OPERATORS (the character case is irrelevant) 
-		
-		1. Search term modifiers: e, c, i
-		
-		no operator - Search track by word or collocation contained in the track name		
-		
-		e - (exact) Search by exact name; the operator covers both track name scope 
-		and the register of its characters, so to satisfy the search the track name 
-		must only consist of the search term and match its characters register; without 
-		this operator any track name which contains the search term will be valid (see above); 
-		ignored if 'i' operator is used		
+	The script in essense does in its own way what the native Track Manager,
+	the SWS extension Find utility, mpl_search tracks.lua and 
+	spk77_Track Tags.lua scripts do. In addition, besides track names track indices 
+	can be used to get to them.
 
-		c - (case) Ignore earch term and track name register; ignored if 'i' operator 
-		is used; can be enabled permanently in the USER SETTINGS
-		
-		i - (index) Search track by index, the search term is interpreted as track 
-		index hence only numerals are supported; ignored when the search term is a mix
-		of alphabetic and numeric characters; combined with the exclusive display 
-		mode 'h' operator (see below) this operator supports lists and ranges in the 
-		format: (for range) 1-5=ih and (for list) 1,3,5=ih; can be enabled permanently
-		in the USER SETTINGS
-		
-		2. Action operators: u, h, s
-		
-		u - (uncollapse) Uncollapse all collapsed parent tracks if the matching track 
-		is inside a collapsed folder, including nested; doesn't apply to MCP, where 
-		if track is inside collapsed folders its first uncollapsed parent track is the one 
-		to be scrolled into view; can be enabled permanently in the USER SETTINGS
-		
-		h - (hide) Hide all tracks bar the matching ones, and if the latter belong 
-		to a folder then bar all their parents, children and siblings
-		
-		s - (show) Unhide all tracks hidden through the use of exclusive display mode
-		'h' operator; this operator should not be preceded by '=' sign (see below) 
-		but feature alone in the search field.
+	OPERATORS (the character case is irrelevant) 
 
-		3. Examples:
-		
-		If applied, operators must follow the search term and be separated from it 
-		with the '=' sign, they can be combined, e.g.:
- 
-		ad-lib - scroll to a track whose name contains 'ad-lib';  
-		10=i - scroll to track No 10;  
-		bass=ec - scroll to a track named exactly 'bass', disregarding the name's 
-		register (case), so the name 'BASS' is also valid;  
-		vocals=u - scroll to a track whose name contains the word 'vocals' and if 
-		it's a child in a collapsed folder, uncollapse it;  
-		12,35,44=hiu - exclusively show tracks No 12, 35 and 44 (including their folder 
-		relatives, if any) and if any of them is a child in a collapsed folder, uncollapse it;  
-		DRUMS=ch - exclusively show tracks whose names contain the word 'DRUMS' (including 
-		their folder relatives, if any), disregarding the word's register (case) so names 
-		containing 'drums' are also valid.
+	1. Search term modifiers: e, c, i
 
-		The order in which the operators are combined is immaterial.		
-		
-		In the TCP context (Arrange) the searched track is scrolled into view at the top 
-		of the tracklist. In the MCP context it's scrolled to the leftmost position. 
-		Contexts are enabled in the USER SETTINGS.
+	no operator - Search track by word or collocation contained in the track name		
 
-		If the searched track is inside a collapsed folder and 'u' operator isn't used, 
-		then its first uncollapsed parent track is scrolled into view.
+	e - (exact) Search by exact name; the operator covers both track name scope 
+	and the register of its characters, so to satisfy the search the track name 
+	must only consist of the search term and match its characters register; without 
+	this operator any track name which contains the search term will be valid (see above); 
+	ignored if 'i' operator is used		
 
-		If the found track is a folder child track, the track which ends up being selected 
-		depends on the currently active context, TCP or MCP, because folder state which 
-		the selection is conditioned by, in TCP and MCP may differ. If both contexts are active, 
-		track selection in the TCP has priority. Since track selection is global it cannot be 
-		different between the TCP and the MCP at the same time, so TCP has been chosen to be primary.
+	c - (case) Ignore earch term and track name register; ignored if 'i' operator 
+	is used; can be enabled permanently in the USER SETTINGS
 
-		If several track names match the search term, after the 1st one found is scrolled 
-		into view the input dialogue reappears to allow continuing the search for the next 
-		one. When the last such track has been found the search dialogue doesn't reappear.
+	i - (index) Search track by index, the search term is interpreted as track 
+	index hence only numerals are supported; ignored when the search term is a mix
+	of alphabetic and numeric characters; combined with the exclusive display 
+	mode 'h' operator (see below) this operator supports lists and ranges in the 
+	format: (for range) 1-5=ih and (for list) 1,3,5=ih; can be enabled permanently
+	in the USER SETTINGS
 
-		EXCLUSIVE DISPLAY MODE
-		
-		'h' operator allows to selectively show tracks whose index or names match the search 
-		term and the criteria set by the operators while keeping the rest hidden. To selectively 
-		show tracks by their indices make sure to add 'i' operator to the 'h' operator, 
-		i.e. 'ih' or 'hi'.
-		
-		When only TCP or MCP context is enabled in the USER SETTINGS only tracks in this context 
-		will be hidden and unhidden.
-		
-		When tracks matching the search term are part of a folder, the entire folder they belong to 
-		is shown, except for the tracks hidden prior to the application of the 'h' operator.
-		
-		When exclusive display mode is first activated the tracks matching the search term 
-		do not scroll into view.
-		
-		When tracks are in exclusive display mode the search dialogue search field is autofilled 
-		with 'h' perator showing that the mode is active. To be able to search tracks while in
-		exclusive display mode remove the 'h' operator from the search field.
-		
-		To unhide all tracks hidden through the use of the 'h' run 's' operator alone.
+	2. Action operators: u, h, s
+
+	u - (uncollapse) Uncollapse all collapsed parent tracks if the matching track 
+	is inside a collapsed folder, including nested; doesn't apply to MCP, where 
+	if track is inside collapsed folders its first uncollapsed parent track is the one 
+	to be scrolled into view; can be enabled permanently in the USER SETTINGS
+
+	h - (hide) Hide all tracks bar the matching ones, and if the latter belong 
+	to a folder then bar all their parents, children and siblings
+
+	s - (show) Unhide all tracks hidden through the use of exclusive display mode
+	'h' operator; this operator should not be preceded by '=' sign (see below) 
+	but feature alone in the search field.
+
+	3. Examples:
+
+	If applied, operators must follow the search term and be separated from it 
+	with the '=' sign, they can be combined, e.g.:
+
+	ad-lib - scroll to a track whose name contains 'ad-lib';  
+	10=i - scroll to track No 10;  
+	bass=ec - scroll to a track named exactly 'bass', disregarding the name's 
+	register (case), so the name 'BASS' is also valid;  
+	vocals=u - scroll to a track whose name contains the word 'vocals' and if 
+	it's a child in a collapsed folder, uncollapse it;  
+	12,35,44=hiu - exclusively show tracks No 12, 35 and 44 (including their folder 
+	relatives, if any) and if any of them is a child in a collapsed folder, uncollapse it;  
+	DRUMS=ch - exclusively show tracks whose names contain the word 'DRUMS' (including 
+	their folder relatives, if any), disregarding the word's register (case) so names 
+	containing 'drums' are also valid.
+
+	The order in which the operators are combined is immaterial.		
+
+	In the TCP context (Arrange) the searched track is scrolled into view at the top 
+	of the tracklist. In the MCP context it's scrolled to the leftmost position. 
+	Contexts are enabled in the USER SETTINGS.
+
+	If the searched track is inside a collapsed folder and 'u' operator isn't used, 
+	then its first uncollapsed parent track is scrolled into view.
+
+	If the found track is a folder child track, the track which ends up being selected 
+	depends on the currently active context, TCP or MCP, because folder state which 
+	the selection is conditioned by, in TCP and MCP may differ. If both contexts are active, 
+	track selection in the TCP has priority. Since track selection is global it cannot be 
+	different between the TCP and the MCP at the same time, so TCP has been chosen to be primary.
+
+	If several track names match the search term, after the 1st one found is scrolled 
+	into view the input dialogue reappears to allow continuing the search for the next 
+	one. When the last such track has been found the search dialogue doesn't reappear.
+
+	EXCLUSIVE DISPLAY MODE
+
+	'h' operator allows to selectively show tracks whose index or names match the search 
+	term and the criteria set by the operators while keeping the rest hidden. To selectively 
+	show tracks by their indices make sure to add 'i' operator to the 'h' operator, 
+	i.e. 'ih' or 'hi'.
+
+	When only TCP or MCP context is enabled in the USER SETTINGS only tracks in this context 
+	will be hidden and unhidden.
+
+	When tracks matching the search term are part of a folder, the entire folder they belong to 
+	is shown, except for the tracks hidden prior to the application of the 'h' operator.
+
+	When exclusive display mode is first activated the tracks matching the search term 
+	do not scroll into view.
+
+	When tracks are in exclusive display mode the search dialogue search field is autofilled 
+	with 'h' perator showing that the mode is active. To be able to search tracks while in
+	exclusive display mode remove the 'h' operator from the search field.
+
+	To unhide all tracks hidden through the use of the 'h' run 's' operator alone.
 		
 ]]
 
