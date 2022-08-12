@@ -221,7 +221,7 @@ local env = r.ValidatePtr(obj, 'TrackEnvelope*') -- works for take envelope as w
 end
 
 
-function Unhide_All(cmdID, TCP, MCP, BOTH_CTX, clear_x_unhide, exclusive_track_display) -- unhide all previosuly hidden with the script with 'h' operator // clear_x_unide is boolean to be able to avoid unhiding and clearing ext data when the function is used to determine whether the mode is exclusive track display in which case the dialogue input field is autofilled with =h operator
+function Unhide_All(TCP, MCP, BOTH_CTX, clear_x_unhide, exclusive_track_display) -- unhide all previosuly hidden with the script with 'h' operator // clear_x_unide is boolean to be able to avoid unhiding and clearing ext data when the function is used to determine whether the mode is exclusive track display in which case the dialogue input field is autofilled with =h operator
 
 	for i = 0, r.CountTracks(0)-1 do
 	local tr = r.GetTrack(0,i)
@@ -250,7 +250,7 @@ r.TrackList_AdjustWindows(false) -- isMinor false - both TCP and MCP
 end
 
 
-function Get_Vis_TCP_Tracklist_Length_px(cmdID, unhide, exclusive_track_display)
+function Get_Vis_TCP_Tracklist_Length_px(unhide, exclusive_track_display)
 -- UNHIDING AND GETTING TRACKLIST LENGTH IN THE SAME FUNCTION DOESN'T WORK
 
 	local function get_next_vis_track(cur_idx)
@@ -259,7 +259,6 @@ function Get_Vis_TCP_Tracklist_Length_px(cmdID, unhide, exclusive_track_display)
 		local name, flags = r.GetTrackState(tr)
 			if flags&512 ~= 512 then return tr end
 		end
-
 	end
 
 local master_vis = r.GetMasterTrackVisibility()&1 -- in TCP // OR r.GetToggleCommandStateEx(0,40075) == 1 -- View: Toggle master track visible
@@ -306,7 +305,7 @@ function capitalize(sett, str)
 return sett and str:upper() or str
 end
 
-local exclusive_track_display = Unhide_All(cmdID, TCP, MCP, BOTH_CTX, false) -- clear_x_unhide false, only evaluate if there're hidden tracks with ext data
+local exclusive_track_display = Unhide_All(TCP, MCP, BOTH_CTX, false) -- clear_x_unhide false, only evaluate if there're hidden tracks with ext data
 
 local next_tr_idx = next_name_t and next_name_t[2] -- must be placed here as after submitting GetUserInputs() the variable gets reset, probably because the script is restarted
 local prev_output = next_name_t and next_name_t[1]
@@ -328,10 +327,10 @@ local unhide = output_orig:lower():gsub(' ',''):match('.+') == 's'
 local output = output_orig:match('^(.+)=') or output_orig -- keep output and output_orig separated so that output_orig can be reused for autofilling the reloaded search dialogue with full search string including operators when another track with a matching name is found
 
 
-local tracklist_len, topmost_vis_tr = table.unpack((TCP or BOTH_CTX) and {Get_Vis_TCP_Tracklist_Length_px(cmdID, unhide, exclusive_track_display)} or {nil}) -- topmost_vis_tr is needed to be able, in case of a failed search or exiting the exclusive display mode with 's' operator, to restore scroll state prior to search routine which makes the tracklist scroll all the way up to the very 1st track, and to scroll up when hiding non-matching tracks // only for the TCP since in the Mixer no prepatory scrolling is done so nothing to restore // MUST COME BEFORE Unhide_All() to get the top track when exiting the exclusive display mode and no track matches the search term to be able to restore its scroll position in the unhidden tracklist
+local tracklist_len, topmost_vis_tr = table.unpack((TCP or BOTH_CTX) and {Get_Vis_TCP_Tracklist_Length_px(unhide, exclusive_track_display)} or {nil}) -- topmost_vis_tr is needed to be able, in case of a failed search or exiting the exclusive display mode with 's' operator, to restore scroll state prior to search routine which makes the tracklist scroll all the way up to the very 1st track, and to scroll up when hiding non-matching tracks // only for the TCP since in the Mixer no prepatory scrolling is done so nothing to restore // MUST COME BEFORE Unhide_All() to get the top track when exiting the exclusive display mode and no track matches the search term to be able to restore its scroll position in the unhidden tracklist
 local leftmost_vis_tr = (MCP or BOTH_CTX) and r.GetMixerScroll() -- to restore Mixer scroll state when going out of the exclusive display mode
 
-local show_all = exclusive_track_display and unhide and Unhide_All(cmdID, TCP, MCP, BOTH_CTX, true) -- if no =h operator unhide all that where hidden before // clear_x_unhide true
+local show_all = exclusive_track_display and unhide and Unhide_All(TCP, MCP, BOTH_CTX, true) -- if no =h operator unhide all that where hidden before // clear_x_unhide true
 
 INDEX = (validate_sett(INDEX) or index or sett.INDEX) and not output:match('[%a]+') -- either enabled default setting, 'i' operator in the user input or default setting within RESTART loop // only if the search term isn't a mix of alphabetic and numeric characters
 CASE_INSENSITIVE = validate_sett(CASE_INSENSITIVE) or case_insens or sett.CASE_INSENSITIVE -- either enabled default setting or 'c' operator in the user input or default setting within RESTART loop
