@@ -2,108 +2,108 @@
 ReaScript name: Scroll named track into view in the Mixer
 Author: BuyOne
 Website: https://forum.cockos.com/member.php?u=134058
-Version: 1.3
 Changelog: #Fixed capture of MCP folder state
+	   #Fixed logic of the search for the parent of a collapsed folder the target track is in
 Licence: WTFPL
 REAPER: at least v5.962
 Extensions: SWS/S&M for best performance
 About:
-		As the name suggests, scrolls track with the name, specified
-		in the USER SETTINGS into view in the Mixer.
-		
-		Although can be used by itself, originally was meant to enhance
-		Mixer screensets by including in a roundabout way position 
-		of certain tracks in the Mixer, because screensets don't store that 
-		data with them. And especially with mix templates to quickly access
-		different groups of tracks by track name.  
-		SWS extension 'Find' tool can bring a track into view in the Mixer
-		by name but it requires typing, exclusively selects the track, and
-		the track is only placed in the leftmost position in the Mixer.
-		
-		With this script tracks can be scrolled to the leftmost, the rightmost 
-		and central positions in the Mixer according to the POSITION setting.   
-		When the Master track is visible in the Mixer the left- and the rightmost
-		positions mean to the right and to the left of the Master track respectively.
-		
-		When the target track is a child in a folder and the folder 
-		is collapsed in the Mixer, the parent track will be scrolled into view
-		instead. If the target track belongs to one of several nested folders 
-		the parent track of the first collapsed folder (if any) to which it belongs 
-		will be scrolled into view.   
-		If the script happens to fail to determine whether or not the folder
-		is collapsed, no scrolling occurs.
-		
-				U S A G E   W I T H   S C R E E N S E T S
-		
-		1. In the TRACK_NAME setting specify the name of the track
-		you want to be scrolled into view in the Mixer when a screenset
-		is loaded.
+	As the name suggests, scrolls track with the name, specified
+	in the USER SETTINGS into view in the Mixer.
 
-		2. Create a custom action with the native screenset action
-		and the script in it placed in the following order, e.g.:
-				Screenset: Load window set #1  
-				Scroll named track into view in the Mixer.lua
+	Although can be used by itself, originally was meant to enhance
+	Mixer screensets by including in a roundabout way position 
+	of certain tracks in the Mixer, because screensets don't store that 
+	data with them. And especially with mix templates to quickly access
+	different groups of tracks by track name.  
+	SWS extension 'Find' tool can bring a track into view in the Mixer
+	by name but it requires typing, exclusively selects the track, and
+	the track is only placed in the leftmost position in the Mixer.
 
-		3. Use such custom action to load the screenset.
-		
-		The screenset itself can be saved the regular way but loaded with 
-		such custom action whenever you need specific track to be visible
-		at the preferred position when the Mixer is opened or when you need 
-		to bring the track back into view while the Mixer is already open.
+	With this script tracks can be scrolled to the leftmost, the rightmost 
+	and central positions in the Mixer according to the POSITION setting.   
+	When the Master track is visible in the Mixer the left- and the rightmost
+	positions mean to the right and to the left of the Master track respectively.
 
-		The script can be duplicated for each track which needs to be scrolled
-		into view and then each script instance be included in a separate 
-		custom action containing the same screenset action to be used 
-		for loading a Mixer screenset while having the Mixer scroll to different 
-		tracks. Which basically makes the screenset granular at a track position 
-		level in the Mixer.
+	When the target track is a child in a folder and the folder 
+	is collapsed in the Mixer, the parent track will be scrolled into view
+	instead. If the target track belongs to one of several nested folders 
+	the parent track of the first collapsed folder (if any) to which it belongs 
+	will be scrolled into view.   
+	If the script happens to fail to determine whether or not the folder
+	is collapsed, no scrolling occurs.
 
-		If needed the screenset can be loaded directly with the script when
-		its number is specified in the SCREENSET setting. Possible disadvantage
-		is that the script becomes hard linked with the screenset number.
-		
-		SWS/S&M Extension
-		
-		It's recommended to have the SWS/S&M extension installed so that all
-		3 track scroll positions are available regardless of the Mixer window width 
-		and that child and parent tracks of collapsed folders are always recognized.    
-		If not installed then worth being aware of the following:  
-		A) in the docked Mixer, central and rightmost positions will only be respected 
-		when the Mixer window is open to its full width,   
-		if it shares the docker with other windows in split mode (but not in tabbed
-		mode) and such other windows are visible any POSITION setting will be clamped 
-		to the leftmost;   
-		B) in the floating Mixer window only any POSITION setting will be clamped 
-		to the leftmost;  
-		C) if the MIDI Editor is docked in the same docker as the Mixer, visible or not,
-		any POSITION setting will be clamped to the leftmost.  
-		D) child target tracks or their folder parent tracks may go unrecognized 
-		depeding on the number and size of inserted FX and number of items on the track;		
+			U S A G E   W I T H   S C R E E N S E T S
 
-		BOTTOM LINE, absent the SWS/S&M extension use only leftmost position so the track
-		is sure to scroll into view. It could have been hard coded but i opted out just
-		to give the user some freedom of choice.
-				
-		CAVEATS
+	1. In the TRACK_NAME setting specify the name of the track
+	you want to be scrolled into view in the Mixer when a screenset
+	is loaded.
 
-		The Mixer will not scroll track into the position defined in the USER SETTINGS
-		if there're too few tracks or their combined MCPs are too narrow to allow 
-		sufficient distance for scrolling.
-		
-		When the scroll position is the rightmost, one or more extra tracks (depending
-		on their MCP width) may be revealed on the right side of the Mixer besides 
-		the target track, because the visible tracks may not necessarily fit exactly 
-		within the Mixer window. This is especially relevant for setups with mixed 
-		MCP layouts due to difference in their widths.
-		
-		Mind that as of build 6.38 the Mixer window is global for all projects open in tabs,
-		just the contents differ. Therefore changing Mixer scroll position in one such project
-		will affect it across all open projects.
-		
-		* * *
-		Check out also Save-Load window set with Mixer scroll position (10 scripts)
-		for a method of scrolling named track into view with hard linking between 
-		track name and screenset number.
+	2. Create a custom action with the native screenset action
+	and the script in it placed in the following order, e.g.:
+			Screenset: Load window set #1  
+			Scroll named track into view in the Mixer.lua
+
+	3. Use such custom action to load the screenset.
+
+	The screenset itself can be saved the regular way but loaded with 
+	such custom action whenever you need specific track to be visible
+	at the preferred position when the Mixer is opened or when you need 
+	to bring the track back into view while the Mixer is already open.
+
+	The script can be duplicated for each track which needs to be scrolled
+	into view and then each script instance be included in a separate 
+	custom action containing the same screenset action to be used 
+	for loading a Mixer screenset while having the Mixer scroll to different 
+	tracks. Which basically makes the screenset granular at a track position 
+	level in the Mixer.
+
+	If needed the screenset can be loaded directly with the script when
+	its number is specified in the SCREENSET setting. Possible disadvantage
+	is that the script becomes hard linked with the screenset number.
+
+	SWS/S&M Extension
+
+	It's recommended to have the SWS/S&M extension installed so that all
+	3 track scroll positions are available regardless of the Mixer window width 
+	and that child and parent tracks of collapsed folders are always recognized.    
+	If not installed then worth being aware of the following:  
+	A) in the docked Mixer, central and rightmost positions will only be respected 
+	when the Mixer window is open to its full width,   
+	if it shares the docker with other windows in split mode (but not in tabbed
+	mode) and such other windows are visible any POSITION setting will be clamped 
+	to the leftmost;   
+	B) in the floating Mixer window only any POSITION setting will be clamped 
+	to the leftmost;  
+	C) if the MIDI Editor is docked in the same docker as the Mixer, visible or not,
+	any POSITION setting will be clamped to the leftmost.  
+	D) child target tracks or their folder parent tracks may go unrecognized 
+	depeding on the number and size of inserted FX and number of items on the track;		
+
+	BOTTOM LINE, absent the SWS/S&M extension use only leftmost position so the track
+	is sure to scroll into view. It could have been hard coded but i opted out just
+	to give the user some freedom of choice.
+
+	CAVEATS
+
+	The Mixer will not scroll track into the position defined in the USER SETTINGS
+	if there're too few tracks or their combined MCPs are too narrow to allow 
+	sufficient distance for scrolling.
+
+	When the scroll position is the rightmost, one or more extra tracks (depending
+	on their MCP width) may be revealed on the right side of the Mixer besides 
+	the target track, because the visible tracks may not necessarily fit exactly 
+	within the Mixer window. This is especially relevant for setups with mixed 
+	MCP layouts due to difference in their widths.
+
+	Mind that as of build 6.38 the Mixer window is global for all projects open in tabs,
+	just the contents differ. Therefore changing Mixer scroll position in one such project
+	will affect it across all open projects.
+
+	* * *
+	Check out also Save-Load window set with Mixer scroll position (10 scripts)
+	for a method of scrolling named track into view with hard linking between 
+	track name and screenset number.
 
 ]]
 
@@ -184,33 +184,36 @@ function GetTrackChunk(obj) -- retval stems from r.GetFocusedFX(), value 0 is on
 end
 
 
-function Find_First_Collapsed_MCP_Parent(targ_tr, GetTrackChunk)
--- returns collapsed parent (if any) of the target track in order to scroll to it, because child track of a collapsed
--- folder can't be scrolled to
+function Find_Parent_Of_1st_Collapsed_Folder(targ_tr, GetTrackChunk)
+-- returns parent track of a collapsed folder (if any) the target belongs to in order to scroll to it, because child track of a collapsed folder can't be scrolled to
 -- r.GetMediaTrackInfo_Value(tr, 'B_SHOWINMIXER') doesn't indicate if it's under collapsed folder, only when it's explicitly hidden
+
 local targ_tr_depth = r.GetTrackDepth(targ_tr)
 	if targ_tr_depth == 0 then return targ_tr end -- if target track isn't a child
--- get the uppermost parent
+	
+-- collect all parents of the track
 local targ_tr_idx = r.CSurf_TrackToID(targ_tr, false)-1 -- mcpView false
-local parent
+local parent = r.GetParentTrack(targ_tr)
+local parents_t = {}
 local i = targ_tr_idx-1 -- start from previous track
 	repeat
-	parent = r.GetTrack(0,i)
+	local tr = r.GetTrack(0,i)
+		if tr == parent then parents_t[#parents_t+1] = parent 
+		parent = r.GetParentTrack(tr)
+		end
 	i = i - 1
 	until r.GetTrackDepth(parent) == 0 -- uppermost parent found
-	for i = r.CSurf_TrackToID(parent, false)-1, -- from the parent; mcpView false
-	targ_tr_idx-1 do -- until one preceding the target track
-	local tr = r.GetTrack(0,i)
-	local is_parent = r.GetMediaTrackInfo_Value(tr, 'I_FOLDERDEPTH') == 1
-		if is_parent then -- if a track is parent
-		local ret, chunk = GetTrackChunk(tr)
-			if ret == 'abort' then return -- if parent track chunk is larger than 4.194303 Mb and no SWS extension to handle that to find out if it's collapsed
-			elseif ret and chunk and chunk:match('BUSCOMP %d (%d)') == '1' -- collapsed
-			then return tr
-			end
+
+	-- Find the leftmost parent of the collapsed folder the child belongs to, if any
+	for i = #parents_t, 1, -1 do -- in reverse since parent tracks were stored from right to left; if the table is empty the loop won't start
+	local tr = parents_t[i]
+	local ret, chunk = GetTrackChunk(tr)
+		if ret == 'abort' then return -- if parent track chunk is larger than 4.194303 Mb and no SWS extension to handle that to find out if it's collapsed
+		elseif ret and chunk and chunk:match('BUSCOMP %d (%d)') == '1' -- collapsed
+		then return tr
 		end
 	end
-return targ_tr -- if no collapsed parent track was found
+return targ_tr -- if no parent track of a collapsed folder was found
 end
 
 
