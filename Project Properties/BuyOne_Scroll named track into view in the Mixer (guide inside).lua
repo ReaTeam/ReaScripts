@@ -2,6 +2,7 @@
 ReaScript name: Scroll named track into view in the Mixer
 Author: BuyOne
 Website: https://forum.cockos.com/member.php?u=134058
+Version: 1.3
 Changelog: #Fixed capture of MCP folder state
 	   #Fixed logic of the search for the parent of a collapsed folder the target track is in
 Licence: WTFPL
@@ -417,7 +418,7 @@ POSITION = (POSITION:match('[CR]') or #POSITION == 0) and POSITION or '' -- left
 			targ_tr = r.GetTrack(0,i) -- will be used outside of the loop and in the deferred Set_Mixer_Scroll() function if target track
 			name = targ_tr and {r.GetTrackName(targ_tr)} -- 2 return values; global to be evaluated below
 				if name and TRACK_NAME and name[2] == TRACK_NAME then
-				targ_tr = Find_First_Collapsed_MCP_Parent(targ_tr, GetTrackChunk) -- if the target track is a folder child grab its parent track instead if it's collapsed, because parent collapsed state prevents child track from being scrolled into view
+				targ_tr = Find_Parent_Of_1st_Collapsed_Folder(targ_tr, GetTrackChunk) -- if the target track is a folder child grab its parent track instead if it's collapsed, because parent collapsed state prevents child track from being scrolled into view
 					if not targ_tr then re_store_sel_trks(sel_trks_t) return r.defer(function() end) end -- one of parent track chunks was larger than 4.194303 Mb and no SWS extension to handle that to find out if it's collapsed, therefore abort scrolling entirely
 				r.SetOnlyTrackSelected(targ_tr) -- OR r.SetTrackSelected(targ_tr, 1) since all are deselected with the re_store_sel_trks() function
 				ACT(40914) -- Track: Set first selected track as last touched track // the only way to make sure target track is the last touched is to deselect all, select the track and set it as last touched
