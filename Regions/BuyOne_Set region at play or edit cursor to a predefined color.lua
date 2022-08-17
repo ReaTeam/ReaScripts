@@ -7,14 +7,14 @@ Changelog: Initial release
 Licence: WTFPL
 REAPER: at least v5.962
 About:	During playback looks for the playhead position,
-		otherwise - for the edit cursor position.
+	otherwise - for the edit cursor position.
 
-		When no playback, place the edit cursor at the beginning
-		or the end of a region or anywhere in between, run.
+	When no playback, place the edit cursor at the beginning
+	or the end of a region or anywhere in between, run.
 
-		The script can be duplicated to create as many
-		individual copies as there're colors you need to set
-		your regions to. Name each such copy differently.
+	The script can be duplicated to create as many
+	individual copies as there're colors you need to set
+	your regions to. Name each such copy differently.
 
 ]]
 
