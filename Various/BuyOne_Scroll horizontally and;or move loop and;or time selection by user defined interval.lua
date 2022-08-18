@@ -18,9 +18,12 @@ About:	Designed for either horizontal scrolling or moving loop
 	that setting for the duration of the REAPER session or until
 	changed or cleared.   
 	1) To call an ad-hoc interval creation dialogue move
-	the mouse cursor to the upper left hand corner of your screen
-	(whether REAPER program window is fully open or not) and execute 
-	the script.  
+	the mouse cursor to the upper left hand corner of your screen 
+	on Windows (bottom left hand corner on MacOS) (whether REAPER 
+	program window is fully open or not) and execute the script.  
+	In the dialogue type in the new interval value in format explained  
+	in the annotation to the INCREMENT setting of the USER SETTINGS, 
+	and click 'OK'.  
 	In the dialogue type in the new interval value in format explained  
 	in the annotation to the INCREMENT setting of the USER SETTINGS, 
 	and click 'OK'.  
