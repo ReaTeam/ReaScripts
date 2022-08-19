@@ -7,7 +7,7 @@ Changelog: Initial release
 Licence: WTFPL
 REAPER: at least v5.962
 About:        G I U D E
-
+		
 	The script in essense does in its own way what the native Track Manager,
 	the SWS extension Find utility, mpl_search tracks.lua and 
 	spk77_Track Tags.lua scripts do. In addition, besides track names track indices 
@@ -17,13 +17,13 @@ About:        G I U D E
 
 	1. Search term modifiers: e, c, i
 
-	no operator - Search track by word or collocation contained in the track name		
+	no operator - Search track by elements contained in the track name 
 
-	e - (exact) Search by exact name; the operator covers both track name scope 
+	e - (exact) Search by exact name; the operator covers syntax, scope of the track name
 	and the register of its characters, so to satisfy the search the track name 
 	must only consist of the search term and match its characters register; without 
-	this operator any track name which contains the search term will be valid (see above); 
-	ignored if 'i' operator is used		
+	this operator any track name which contains all the elements of the search term 
+	regardless of their order will be valid (see above); ignored if 'i' operator is used	
 
 	c - (case) Ignore earch term and track name register; ignored if 'i' operator 
 	is used; can be enabled permanently in the USER SETTINGS
@@ -33,7 +33,8 @@ About:        G I U D E
 	of alphabetic and numeric characters; combined with the exclusive display 
 	mode 'h' operator (see below) this operator supports lists and ranges in the 
 	format: (for range) 1-5=ih and (for list) 1,3,5=ih; can be enabled permanently
-	in the USER SETTINGS
+	in the USER SETTINGS; if the search term only contains alphabetic, punctuation 
+	characters and/or spaces 'i' operator is ignored.
 
 	2. Action operators: u, h, s
 
@@ -106,7 +107,7 @@ About:        G I U D E
 	exclusive display mode remove the 'h' operator from the search field.
 
 	To unhide all tracks hidden through the use of the 'h' run 's' operator alone.
-		
+
 ]]
 
 -----------------------------------------------------------------
@@ -332,12 +333,12 @@ local leftmost_vis_tr = (MCP or BOTH_CTX) and r.GetMixerScroll() -- to restore M
 
 local show_all = exclusive_track_display and unhide and Unhide_All(TCP, MCP, BOTH_CTX, true) -- if no =h operator unhide all that where hidden before // clear_x_unhide true
 
-INDEX = (validate_sett(INDEX) or index or sett.INDEX) and not output:match('[%a]+') -- either enabled default setting, 'i' operator in the user input or default setting within RESTART loop // only if the search term isn't a mix of alphabetic and numeric characters
+INDEX = (validate_sett(INDEX) or index or sett.INDEX) and not output:match('[%a%p%s]+') -- either enabled default setting, 'i' operator in the user input or default setting within RESTART loop // only if the search term isn't a mix of alphabetic, punctuation and numeric characters and doesn't only contain spaces
 CASE_INSENSITIVE = validate_sett(CASE_INSENSITIVE) or case_insens or sett.CASE_INSENSITIVE -- either enabled default setting or 'c' operator in the user input or default setting within RESTART loop
 UNCOLLAPSE = validate_sett(UNCOLLAPSE) or uncollapse or sett.UNCOLLAPSE -- either enabled default setting or 'u' operator in the user input or default setting within RESTART loop
 
 local output = CASE_INSENSITIVE and output:lower() or output
-local output = unhide and '' or output:match('%f[%w].+[%w%p]') or output:match('[%w%p]+') -- strip off empty spaces, last option when the search term is 1 character long
+local output = unhide and '' or output:match('[%w%p]*[%w%p]*') or output:match('[%w%p]+') -- strip off empty spaces, last option when the search term is 1 character long
 
 
 	if hide or unhide then r.Undo_BeginBlock() end -- scroll position isn't stored in undo history but track visibility is
@@ -353,6 +354,16 @@ function Get_Found_Track_Height(start_idx, output, output_orig, INDEX, exact, CA
 
 	if #output == 0 then return end -- true when 's' (unhide) operator is applied
 
+	local function validate_name(output, tr_name)
+	local cnt = 0
+	local truth_cnt = 0
+		for w in output:gmatch('[%w%p]*') do
+			if w then cnt = cnt+1 end
+			if tr_name:match(Esc(w)) then truth_cnt = truth_cnt+1 end
+		end
+	return cnt == truth_cnt -- all words/punctuation marks of the search term found in the track name
+	end
+	
 	local function get_last_TCP_uncollapsed_parent(child_idx, child_tr, t) -- t is a table // last uncollapsed means that the parent itself isn't collapsed inside the folder it belongs to, unless it's the topmost level parent of the entire folder which cannot be collapsed, this is equal to the parent of the 1st/topmost (sub)folder whose child tracks are collapsed
 		for i = child_idx, 0, -1 do -- in reverse
 		local tr = r.GetTrack(0,i)
@@ -396,7 +407,7 @@ function Get_Found_Track_Height(start_idx, output, output_orig, INDEX, exact, CA
 		if vis_TCP or vis_MCP then
 			if INDEX and tonumber(output) == i+1 -- index matches
 			or exact and name:match('^%s*('..Esc(output)..')%s*$') -- exact name match
-			or not exact and name:match(Esc(output)) -- word match // must be conditioned with 'not exact' to prevent it being true when exact is false and the name happens to contain the search term
+			or not exact and validate_name(output, name) -- word match // must be conditioned with 'not exact' to prevent it being true when exact is false and the name happens to contain the search term
 			then
 			-- Look for another track with the same name to condition reloading of the search dialogue
 			local next_name = not INDEX and get_next_name(i, output, exact, CASE_INSENSITIVE, TCP, MCP, BOTH_CTX) -- start_idx = i
@@ -431,6 +442,16 @@ function Show_Hide(output, INDEX, exact, CASE_INSENSITIVE, UNCOLLAPSE, cmdID, TC
 				if tonumber(idx) == tr_idx then return true end
 			end
 		end
+	end
+	
+	local function validate_name(output, tr_name)
+	local cnt = 0
+	local truth_cnt = 0
+		for w in output:gmatch('[%w%p]*') do
+			if w then cnt = cnt+1 end
+			if tr_name:match(Esc(w)) then truth_cnt = truth_cnt+1 end
+		end
+	return cnt == truth_cnt -- all words/punctuation marks of the search term found in the track name
 	end
 
 	local function get_last_uncollapsed_parent(child_idx, child_tr, t, tcp) -- t is a table; tcp is boolean to activate either the tcp or the mcp routine // last uncollapsed means that the parent itself isn't collapsed inside the folder it belongs to, unless it's the topmost level parent of the entire folder which cannot be collapsed, this is equal to the parent of the 1st/topmost (sub)folder whose child tracks are collapsed
@@ -479,7 +500,7 @@ function Show_Hide(output, INDEX, exact, CASE_INSENSITIVE, UNCOLLAPSE, cmdID, TC
 
 	local function show_track_and_relatives(found_tr_idx, found_tr, TCP, MCP, BOTH_CTX, UNCOLLAPSE)
 	local topmost_parent = r.GetTrackDepth(found_tr) == 0
-	-- get the last track in the folder the child belongs to
+	-- Get the last track in the folder the child belongs to
 	local last_child_idx
 	local cntr = 0 -- keep track of track indices to find the last child if it's the last track in the entire tracklist in which case the loop produces nil
 		for i = found_tr_idx, r.CountTracks(0)-1 do
@@ -493,7 +514,7 @@ function Show_Hide(output, INDEX, exact, CASE_INSENSITIVE, UNCOLLAPSE, cmdID, TC
 
 		local start, fin, dir = table.unpack(not topmost_parent and {last_child_idx, 0, -1} or {found_tr_idx, last_child_idx, 1}) -- if found_tr is not the topmost parent iterate in reverse, otherwise directly
 
-	-- unhide all siblings and parents which were just hidden (contain ext data), optionally uncollapsing
+	-- Unhide all siblings and parents which were just hidden (contain ext data), optionally uncollapsing
 		for i = start, fin, dir do
 		local tr = r.GetTrack(0,i)
 		local has_parent = r.GetParentTrack(tr)
@@ -561,7 +582,7 @@ local found_tr_t = {}
 		or not mcp_retval and flags&1024 ~= 1024))
 		and (INDEX and ( tonumber(output) and tonumber(output) == i+1 or get_index_from_range_or_list(output, i+1) ) -- index matches or indices match
 		or exact and name:match('^%s*('..Esc(output)..')%s*$') -- exact name match
-		or not exact and name:match(Esc(output)) ) -- fuzzy name match // must be conditioned with 'not exact' to prevent it being true when exact is false and the name happens to contain the search term
+		or not exact and validate_name(output, name) ) -- word match // must be conditioned with 'not exact' to prevent it being true when exact is false and the name happens to contain the search term
 		then
 		found_tr_t[i] = tr
 		end
