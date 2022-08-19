@@ -357,11 +357,11 @@ function Get_Found_Track_Height(start_idx, output, output_orig, INDEX, exact, CA
 	local function validate_name(output, tr_name)
 	local cnt = 0
 	local truth_cnt = 0
-		for w in output:gmatch('[%w%p]*') do
+		for w in output:gmatch('[%w%p]+') do
 			if w then cnt = cnt+1 end
 			if tr_name:match(Esc(w)) then truth_cnt = truth_cnt+1 end
 		end
-	return cnt == truth_cnt -- all words/punctuation marks of the search term found in the track name
+	return cnt > 0 and cnt == truth_cnt -- all words/punctuation marks of the search term found in the track name; preventing equality of zeros
 	end
 	
 	local function get_last_TCP_uncollapsed_parent(child_idx, child_tr, t) -- t is a table // last uncollapsed means that the parent itself isn't collapsed inside the folder it belongs to, unless it's the topmost level parent of the entire folder which cannot be collapsed, this is equal to the parent of the 1st/topmost (sub)folder whose child tracks are collapsed
@@ -447,11 +447,11 @@ function Show_Hide(output, INDEX, exact, CASE_INSENSITIVE, UNCOLLAPSE, cmdID, TC
 	local function validate_name(output, tr_name)
 	local cnt = 0
 	local truth_cnt = 0
-		for w in output:gmatch('[%w%p]*') do
+		for w in output:gmatch('[%w%p]+') do
 			if w then cnt = cnt+1 end
 			if tr_name:match(Esc(w)) then truth_cnt = truth_cnt+1 end
 		end
-	return cnt == truth_cnt -- all words/punctuation marks of the search term found in the track name
+	return cnt > 0 and cnt == truth_cnt -- all words/punctuation marks of the search term found in the track name; preventing equality of zeros
 	end
 
 	local function get_last_uncollapsed_parent(child_idx, child_tr, t, tcp) -- t is a table; tcp is boolean to activate either the tcp or the mcp routine // last uncollapsed means that the parent itself isn't collapsed inside the folder it belongs to, unless it's the topmost level parent of the entire folder which cannot be collapsed, this is equal to the parent of the 1st/topmost (sub)folder whose child tracks are collapsed
