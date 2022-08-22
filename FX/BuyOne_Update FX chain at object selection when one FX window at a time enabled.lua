@@ -7,7 +7,11 @@ Changelog: 	#Added option to prevent updating a docked FX chain when the docker 
 Licence: WTFPL
 REAPER: at least v5.962
 Screenshots: https://git.io/JXjO6
-About:
+About:		REAPER stock preferences allow changing open FX chain on track selection when options
+		"Only allow one FX chain window open at a time" and "Open track FX window on track
+		selection change" are enabled at Preferences -> Plug-ins. But they only affect track
+		main FX chain. This sctript additionally covers track input/Monitoring FX chains and
+		take FX chain.  
 		Meant to be used only when the option "Only allow one FX chain window open at a time" 
 		is enabled at Preferences -> Plug-ins in a global FX chain kind of setup.  
 		Normally when option "Only allow one FX chain window open at a time" is enabled, 
