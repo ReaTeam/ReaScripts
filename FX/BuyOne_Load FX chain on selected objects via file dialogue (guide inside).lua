@@ -2,8 +2,8 @@
 ReaScript name: Load FX chain on selected objects via file dialogue (guide inside)
 Author: BuyOne
 Website: https://forum.cockos.com/member.php?u=134058
-Version: 1.0
-Changelog: Initial release
+Version: 1.1
+Changelog: #Added a setting for custom FXChains folder
 About: 
   Allows loading selected FX chain on selected objects. Detailed description is available inside the script.
 
@@ -20,6 +20,9 @@ About:
 
   * The USER SETTINGS options TRACK_MAIN_FX, TRACK_INPUT_MON_FX, TAKE_FX allow to
   enable/disable loading FX chain as a particular FX chain type.
+  
+  * The USER SETTINGS option CUSTOM_FX_CHAIN_DIR allows using a custom FXChains
+  folder as a primary location for loading FX chain presets.
 
   * If item has several takes the FX chain is only applied to the selected one.
   
@@ -40,13 +43,18 @@ Extensions: SWS/S&M (not obligatory but recommended)
 ------------------------------ USER SETTINGS --------------------------------
 -----------------------------------------------------------------------------
 
--- To disable any of the options remove the character between the quotation
--- marks next to it.
+-- Insert full path to your custom FXChains folder between the double square 
+-- brackets;
+-- if empty or malformed REAPER's default FXChains folder will be used
+CUSTOM_FX_CHAIN_DIR = [[]]
+
+-- To disable any of the following options remove the character between 
+-- the quotation marks next to it.
 -- Conversely, to enable one place any alphanumeric character between those.
 -- Try to not leave empty spaces.
 
-DIALOGUE = "" -- choose mode of operation at runtime when ADD_APPEND is enabled
-ADD_APPEND = "" -- add/append mode instead of add/replace
+DIALOGUE = "1" -- choose mode of operation at runtime when ADD_APPEND is enabled
+ADD_APPEND = "1" -- add/append mode instead of add/replace
 TRACK_MAIN_FX = "1" -- load as track main FX chain
 TRACK_INPUT_MON_FX = "1" -- load as track input FX and Master track Monitor FX chains
 TAKE_FX = "1" -- load as take FX chain
@@ -63,6 +71,27 @@ end
 
 local r = reaper
 
+
+-- Validate path supplied in the user settings
+function Validate_Folder_Path(path) -- returns empty string if path is empty and nil if it's not a string
+	if type(path) == 'string' then
+	local path = path:match('^%s*(.-)%s*$') -- remove leading/trailing spaces
+	-- return not path:match('.+[\\/]$') and path:match('[\\/]') and path..path:match('[\\/]') or path -- add last separator if none
+-- more efficient:
+	return path..(not path:match('.+[\\/]$') and path:match('[\\/]') or '') -- add last separator if none
+	end
+end
+
+
+function Dir_Exists(path)
+local path = path:match('^%s*(.-)%s*$') -- remove leading/trailing spaces
+local sep = path:match('[\\/]')
+local path = path:match('.+[\\/]$') and path:sub(1,-2) or path -- last separator is removed to return 1 (valid)
+local _, mess = io.open(path)
+return mess:match('Permission denied') and path..sep -- dir exists // this one is enough
+end
+
+
 local function GetObjChunk(retval, obj)
 -- https://forum.cockos.com/showthread.php?t=193686
 -- https://raw.githubusercontent.com/EUGEN27771/ReaScripts_Test/master/Functions/FXChain
@@ -71,7 +100,7 @@ local function GetObjChunk(retval, obj)
   -- Try standard function -----
 	local t = retval == 1 and {r.GetTrackStateChunk(obj, '', false)} or {r.GetItemStateChunk(obj, '', false)} -- isundo = false
 	local ret, obj_chunk = table.unpack(t)
-		if ret and obj_chunk and #obj_chunk > 4194303 and not r.APIExists('SNM_CreateFastString') then return 'err_mess'
+		if ret and obj_chunk and #obj_chunk >= 4194303 and not r.APIExists('SNM_CreateFastString') then return 'err_mess'
 		elseif ret and obj_chunk and #obj_chunk < 4194303 then return ret, obj_chunk -- 4194303 bytes = (4096 kb * 1024 bytes) - 1 byte
 		end
 -- If chunk_size >= max_size, use wdl fast string --
@@ -100,6 +129,13 @@ local function SetObjChunk(retval, obj, obj_chunk)
 end
 
 
+function Error_Tooltip(text)
+local x, y = r.GetMousePosition()
+--r.TrackCtl_SetToolTip(text:upper(), x, y, true) -- topmost true
+r.TrackCtl_SetToolTip(text:upper():gsub('.','%0 '), x, y, true) -- spaced out // topmost true
+end
+
+
 local function UpdateTempTrackChunk(tr_chunk, fx_ch_chunk)
 
 local fx_chunk = tr_chunk:match('(<TRACK.-)\n>')
@@ -115,7 +151,7 @@ local ADD_APPEND = ADD_APPEND:gsub('[%s]','') ~= ''
 local TRACK_MAIN_FX = TRACK_MAIN_FX:gsub('[%s]','') ~= ''
 local TRACK_INPUT_MON_FX = TRACK_INPUT_MON_FX:gsub('[%s]','') ~= ''
 local TAKE_FX = TAKE_FX:gsub('[%s]','') ~= ''
-
+local CUSTOM_FX_CHAIN_DIR = #CUSTOM_FX_CHAIN_DIR:gsub('[%s]','') > 0 and CUSTOM_FX_CHAIN_DIR
 
 local sel_trk_cnt = r.CountSelectedTracks2(0,true) -- incl. Master
 local sel_itms_cnt = r.CountSelectedMediaItems(0)
@@ -129,8 +165,14 @@ local sel_itms_cnt = r.CountSelectedMediaItems(0)
 local path = reaper.GetResourcePath()
 local sep = r.GetOS():match('Win') and '\\' or '/'
 
+local fx_chain_dir = CUSTOM_FX_CHAIN_DIR and Dir_Exists(Validate_Folder_Path(CUSTOM_FX_CHAIN_DIR)) or path..sep..'FXChains'..sep
+
+	if CUSTOM_FX_CHAIN_DIR and fx_chain_dir == path..sep..'FXChains'..sep then
+	Error_Tooltip('\n\n        custom fx chain \n\n     directory isn\'t valid \n\n opening default directory \n\n')
+	end 
+
 ::RETRY::
-local retval, file = r.GetUserFileNameForRead(path..sep..'FXChains'..sep, 'Select and load FX chain', '.RfxChain')
+local retval, file = r.GetUserFileNameForRead(fx_chain_dir, 'Select and load FX chain', '.RfxChain')
 	if not retval then r.defer(function() end) return end
 	if not file:match('%.RfxChain$') then resp = r.MB('        The selected file desn\'t\n\n      appear to be an FX chain.\n\n            Click "OK" to retry.','ERROR',1)
 		if resp == 1 then goto RETRY
@@ -172,7 +214,7 @@ r.Undo_BeginBlock()
 
 		if sel_trk_cnt > 0 then
 			for i = 0, sel_trk_cnt-1 do
-			local tr = r.GetSelectedTrack(0,i) or r.GetMasterTrack(0)
+			local tr = r.GetSelectedTrack(0,i) or r.GetMasterTrack(0) -- or r.GetSelectedTrack2(0,i,1) -- incl. Master
 			local fx_cnt = r.TrackFX_GetRecCount(tr)
 				if TRACK_MAIN_FX then
 					if not ADD_APPEND then
