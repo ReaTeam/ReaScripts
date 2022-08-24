@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="ae2f928f1eb97eed4b54872b174ae6767bcce798" name="ReaTeam Scripts">
+<index version="1" commit="8c924aa8242ebac0d1ff039cd78a76face5c044e" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -3588,18 +3588,18 @@ Fix a potential infinite loop]]></changelog>
 \widowctrl\hyphauto
 
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs24 G U I D E\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The script displays FX preset menu of the object (track or item/active take) either currently found under the mouse cursor or the last selected if LAST_SEL_OBJ option is enabled in the USER SETTINGS below, or of the currently or last focused FX chain window. With regard to track FX currently only TCP is supported.\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab It's only able to list presets available in REAPER plugin wrapper drop-down list.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The script displays FX preset menu of the object (track or item/active take) either currently found under the mouse cursor or the last selected if SEL_OBJ_IN_CURR_CONTEXT setting is enabled in the USER SETTINGS below, or of the currently or last focused FX chain window. With regard to track FX, for REAPER builds prior to 6.37 only TCP is supported.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab It's only able to list presets available in REAPER plugin wrapper drop-down list including imported .vstpreset files.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Since in multi-take items the menu only lists active take FX presets, if you need FX presets from a take other then the active simply click on it to have it activated.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Track preset menu is divided into two sections, main FX menu (upper) and input FX menu (lower) if both types of FX are present.\line In the Master track FX preset menu instead of the preset menu for input FX a menu for Monitor FX is displayed.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab If there's active preset and plugin controls configuration matches the preset settings the preset name in the menu is checkmarked.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The script can be called in the following ways:\sa180\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 1)\tx360\tab by placing the mouse cursor over the object or its FX chain window and calling the script with a shortcut assigned to it;\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 2)\tx360\tab by assigning it to a Track AND an Item mouse modifiers under {\i Preferences -> Mouse modifiers} and actually clicking the object to call it;\line If LAST_SEL_OBJ option is enabled in the USER SETTINGS below:\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 3)\tx360\tab from an object right click context menu; main menus are not reliable;\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 4)\tx360\tab from a toolbar; the toolbar must either float over the Arrange or be docked in the top or bottom dockers; Main toolbar or other docker positions are not reliable;\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 5)\tx360\tab from the Action list (which is much less practicable)\line In cases 3)-5) the object must be selected.\line All five methods can work in parallel.\line Be aware that when LAST_SEL_OBJ option is enabled and the script is run via a keyboard shortcut, the menu will be called even when the cursor is outside of the TCP or Arrange and not over an FX chain window, like over the ruler, TCP bottom, empty Mixer area or any other focused window, in which case it will display a list of the last selected object FX presets.\sa180\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab LOCK_FX_CHAIN_FOCUS option in the USER SETTINGS allows displaying presets menu for FX of the last focused open FX chain even when mouse cursor is outside of the FX chain window and it itself isn't in focus and regardless of the last selected object in case LAST_SEL_OBJ option is enabled.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 2)\tx360\tab by assigning it to a Track AND an Item mouse modifiers under {\i Preferences -> Mouse modifiers} and actually clicking the object to call it;\line If SEL_OBJ_IN_CURR_CONTEXT setting is enabled in the USER SETTINGS below:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 3)\tx360\tab from an object right click context menu (main menus are not reliable);\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 4)\tx360\tab from a toolbar, the toolbar must either float over the Arrange or be docked in the top or bottom dockers; Main toolbar or other docker positions are not reliable;\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 5)\tx360\tab from the Action list (which is much less practicable)\line In cases 3)-5) the object must be selected as the mouse cursor is away from it.\line All five methods can work in parallel.\line Be aware that when SEL_OBJ_IN_CURR_CONTEXT setting is enabled and the script is run via a keyboard shortcut,the menu will be called even when the mouse cursor is outside of the TCP or Arrange and not over an FX chain window, like over the ruler, TCP bottom, empty Mixer area or any other focused window, in which case it will display a list of the last selected object FX presets.\sa180\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab LOCK_FX_CHAIN_FOCUS setting in the USER SETTINGS allows displaying presets menu for FX of the last focused open FX chain even when the mouse cursor is outside of the FX chain window and it itself isn't in focus and regardless of the last selected object in case SEL_OBJ_IN_CURR_CONTEXT setting is enabled.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab To close the menu after it's been called, without selecting any preset, either click elsewhere in REAPER or pres Esc keyboard key.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Video processor preset menu is supported from REAPER build 6.26 onwards.\sa180\par}
 }
@@ -3624,6 +3624,14 @@ Fix a potential infinite loop]]></changelog>
       <version name="1.2.1" author="BuyOne" time="2022-02-11T22:18:40Z">
         <changelog><![CDATA[# Minor fix of relational operator]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d69eb28984e5ec3373d0975afe90d834c471b36b/FX/BuyOne_FX%20presets%20menu%20(guide%20inside).lua</source>
+      </version>
+      <version name="1.3" author="BuyOne" time="2022-08-24T00:33:03Z">
+        <changelog><![CDATA[# Fixed losing item focus and unnecessary horizontal scroll for REAPER builds prior to 6.37
+# Fixed transport stop when getting TCP under mouse cursor for REAPER builds prior to 6.37
+# Added MCP support for REAPER builds 6.37 onward
+# Minor code optimizations
+# Updated Guide]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/8c924aa8242ebac0d1ff039cd78a76face5c044e/FX/BuyOne_FX%20presets%20menu%20(guide%20inside).lua</source>
       </version>
     </reapack>
     <reapack name="BuyOne_FX presets navigation.lua" type="script" desc="FX presets navigation (7 scripts)">
@@ -5931,8 +5939,8 @@ Rewrite the script's user interface using ReaImGui]]></changelog>
 ]]></description>
         <link rel="website" href="https://forum.cockos.com/showthread.php?t=232672">Forum Thread</link>
         <link rel="screenshot" href="https://i.imgur.com/QFWHt9a.png">MKSlicer2.0</link>
-        <link rel="donation" href="https://www.paypal.me/MKokarev">Donate via PayPal</link>
-        <link rel="donation" href="https://money.yandex.ru/to/41001256406969">Donate via Yandex</link>
+        <link rel="donation" href="https://www.buymeacoffee.com/MaximKokarev">Donate by BuyMeACoffee</link>
+        <link rel="donation" href="https://yoomoney.ru/to/41001256406969">Donate by YooMoney</link>
       </metadata>
       <version name="1.2" author="cool" time="2020-03-12T15:02:36Z">
         <changelog><![CDATA[1.2 - first tested public version.]]></changelog>
@@ -6147,6 +6155,34 @@ Override Reaper option "Toggle enable/disable default fadein/fadeout" (on/off)]]
 + os.execute replaced with CF_ShellExecute for better performance and Linux compatibility.
 + Added a hidden option to force Sync to be enabled every time the script is run.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/8f36285cd10fd07252418f59b88aaf6ee1369120/Items%20Editing/cool_MK%20Slicer.lua</source>
+      </version>
+      <version name="2.5" author="cool" time="2022-08-24T00:31:57Z">
+        <changelog><![CDATA[+ Added Pitch Detection mode for quick conversion of monophonic melodies and drums to MIDI.
++ The Drums preset in Pitch Detection recognizes and creates MIDI notes of Kick, Snare and Hat.
++ New overwrite mode for MIDI creation in Trigger and Pitch Detection modes.
++ Bug fixed: now the script does not crash when trying to process Empty Items.
++ Fixed a bug that slows down updating the script window when Loop is running.
++ Bug fixed: now after initializing items with a long silence at the beginning, Gain and Threshold do not take huge values.
++ Bug fixed: now if after initialization item selection disappears, all functions will still work.
++ Bug fixed: now Marker Quantize works if the visible grid is off.
++ Now when zooming horizontally with the keyboard keys, the waveform is centered on the edit cursor.
++ "Processing, wait..." message to brighten up your waiting while processing or initializing long items.
++ Service messages and caring error messages now appear at the top of the window.
++ The script runs even if the selection is not correct. No more intrusive pop-up windows. If unsuitable items are selected, the selection is removed automatically.
++ Now the script can run even on multitracks. Only the topmost selected track will be analyzed.
++ Now loop selection is not blocked and is captured by the script only at the moments of control from the Slicer interface.
++ The minimum value of the HPF slider turns off the HPF filter, completely removing filtering artifacts.
++ Limited minimum grid and ruler resolution: now long items and small grid resolutions do not overload the processor.
++ Optimization in general: now the script starts instantly. CPU load reduced by 50% in idle, memory consumption during processing and initialization is reduced.
++ Now, when initializing for multiple items, the script does not try to apply Heal by default. Glue only.
++ Smart Glue: On initialization, if a multitrack is selected, Glue happens selectively. Single items, MIDI and Empty Items are ignored.
++ Now in MIDI Trigger mode Glue will not work if the item's Rate is changed. The trigger has become non-destructive for single items.
++ Now the value of the pitch band is forced for ReaSamplomatic5000 instances. In the code, it is possible to turn off the boost or change the pitchband range.
++ After finishing MIDI processing, when no audio is loaded, loop selection is not captured by the script.
++ Improved responsiveness of sliders when using the mousewheel.
++ Increased the maximum width of the waveform window for ultra-wide screens.
++ Donate service changed to valid.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d6f2ff6e14bfe007d98b6ad5bb85ebd1f0e00c1d/Items%20Editing/cool_MK%20Slicer.lua</source>
       </version>
     </reapack>
     <reapack name="Demoji_Next Variation.lua" type="script" desc="Next Variation">
