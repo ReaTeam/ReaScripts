@@ -1,6 +1,6 @@
 -- @description MK Slicer
 -- @author cool
--- @version 2.5
+-- @version 2.50
 -- @changelog
 --   + Added Pitch Detection mode for quick conversion of monophonic melodies and drums to MIDI.
 --   + The Drums preset in Pitch Detection recognizes and creates MIDI notes of Kick, Snare and Hat.

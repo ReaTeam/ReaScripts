@@ -6156,7 +6156,7 @@ Override Reaper option "Toggle enable/disable default fadein/fadeout" (on/off)]]
 + Added a hidden option to force Sync to be enabled every time the script is run.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/8f36285cd10fd07252418f59b88aaf6ee1369120/Items%20Editing/cool_MK%20Slicer.lua</source>
       </version>
-      <version name="2.5" author="cool" time="2022-08-24T00:31:57Z">
+      <version name="2.50" author="cool" time="2022-08-24T00:31:57Z">
         <changelog><![CDATA[+ Added Pitch Detection mode for quick conversion of monophonic melodies and drums to MIDI.
 + The Drums preset in Pitch Detection recognizes and creates MIDI notes of Kick, Snare and Hat.
 + New overwrite mode for MIDI creation in Trigger and Pitch Detection modes.
