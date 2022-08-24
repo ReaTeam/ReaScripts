@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="8c924aa8242ebac0d1ff039cd78a76face5c044e" name="ReaTeam Scripts">
+<index version="1" commit="39c88e9abb515d881acabf0d551c8afc25fae905" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -6182,7 +6182,7 @@ Override Reaper option "Toggle enable/disable default fadein/fadeout" (on/off)]]
 + Improved responsiveness of sliders when using the mousewheel.
 + Increased the maximum width of the waveform window for ultra-wide screens.
 + Donate service changed to valid.]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d6f2ff6e14bfe007d98b6ad5bb85ebd1f0e00c1d/Items%20Editing/cool_MK%20Slicer.lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/39c88e9abb515d881acabf0d551c8afc25fae905/Items%20Editing/cool_MK%20Slicer.lua</source>
       </version>
     </reapack>
     <reapack name="Demoji_Next Variation.lua" type="script" desc="Next Variation">
