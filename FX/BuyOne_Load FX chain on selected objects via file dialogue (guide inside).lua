@@ -80,7 +80,7 @@ end
 
 local r = reaper
 
--- Validate path supplied in the user settings -- NEW
+-- Validate path supplied in the user settings
 function Validate_Folder_Path(path) -- returns empty string if path is empty and nil if it's not a string
 	if type(path) == 'string' then
 	local path = path:match('^%s*(.-)%s*$') -- remove leading/trailing spaces
@@ -90,7 +90,7 @@ function Validate_Folder_Path(path) -- returns empty string if path is empty and
 	end
 end
 
-function Dir_Exists(path) -- short -- NEW
+function Dir_Exists(path) -- short
 local path = path:match('^%s*(.-)%s*$') -- remove leading/trailing spaces
 local sep = path:match('[\\/]')
 local path = path:match('.+[\\/]$') and path:sub(1,-2) or path -- last separator is removed to return 1 (valid)
@@ -136,7 +136,7 @@ local function SetObjChunk(retval, obj, obj_chunk)
 end
 
 
-function Error_Tooltip(text) -- NEW
+function Error_Tooltip(text)
 local x, y = r.GetMousePosition()
 --r.TrackCtl_SetToolTip(text:upper(), x, y, true) -- topmost true
 r.TrackCtl_SetToolTip(text:upper():gsub('.','%0 '), x, y, true) -- spaced out // topmost true
