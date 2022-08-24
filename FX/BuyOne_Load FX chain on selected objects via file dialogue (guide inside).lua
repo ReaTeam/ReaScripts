@@ -9,6 +9,13 @@ About:
 
   Allows loading selected FX chain on selected objects.
 
+  The script had been developed before the option to add FX and FX chain preset
+  to multiple tracks/takes at once was introduced in REAPER build 6.12c.  
+  Still the script expands on this native feature in that it allows adding FX chain 
+  preset to tracks and takes and to track main and input/Monitoring FX chain 
+  in one go. It also provides a setting for configuring custom FXChains folder
+  different from the default one located in the REAPER resourse directory.
+  
   * By default the script works in add/replace mode adding FX chain to selected
   objects which don't have any and replacing current FX chain in those which do.
 
@@ -26,7 +33,7 @@ About:
   * The USER SETTINGS option CUSTOM_FX_CHAIN_DIR allows using a custom FXChains
   folder as a primary location for loading FX chain presets.
 
-  * If item has several takes the FX chain is only applied to the active one.
+  * If an item has several takes the FX chain is only applied to the active one.
   
   * To include Monitor FX chain in selected objects select Master track. Be aware
   that if TRACK_MAIN_FX option is enabled the same FX chain will also be loaded
