@@ -9,9 +9,11 @@ REAPER: at least v5.962
 About:        G I U D E
 		
 	The script in essense does in its own way what the native Track Manager,
-	the SWS extension Find utility, mpl_search tracks.lua and 
-	spk77_Track Tags.lua scripts do. In addition, besides track names track indices 
-	can be used to get to them.
+	the SWS extension Find utility, mpl_search tracks.lua, 
+	X-Raym_Scroll vertically to track by name and select it.lua, 
+	spk77_Track Tags.lua, tack_Select Track By Name.lua, 
+	Lokasenna_Select tracks by name.lua scripts do. 
+	In addition, besides track names track indices can be used to get to them.
 
 	OPERATORS (the character case is irrelevant) 
 
