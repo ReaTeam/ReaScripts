@@ -7,47 +7,51 @@ Changelog: 	#Added option to prevent updating a docked FX chain when the docker 
 Licence: WTFPL
 REAPER: at least v5.962
 Screenshots: https://git.io/JXjO6
-About:
-		Meant to be used only when the option "Only allow one FX chain window open at a time" 
-		is enabled at Preferences -> Plug-ins in a global FX chain kind of setup.  
-		Normally when option "Only allow one FX chain window open at a time" is enabled, 
-		to update currently open FX chain window with another FX chain, FX button must be 
-		clicked on the TCP or on the item.  
-		This script makes this a bit simpler by allowing to update the window with object 
-		selection, which requires less precision than clicking the tiny FX buttons,
-		besides ensuring that the FX chain is readily accessible.  		   
-		For best experience FX chain window should be docked, but the updating will work 
-		just as good with a floating FX chain window.  
-		To use it in a docker it's usually sufficient to dock any FX chain window, 
-		the rest will stay docked automatically, yet sometimes adjustment of a few
-		individual FX windows may be required.   
-		Active take FX chain is always loaded at item selection. The type of track FX chain 
-		to be loaded at track selection is determined by the USER SETTING below, but 
-		you'll still be able to load track FX chain of the other type normally by clicking 
-		FX button of the corresponding track.  
-		The currently open FX chain window can be temporarily closed with a click on FX button
-		or a by closing its tab in the docker, until another object is selected.   
-		Clicking FX button is also a way to re-open a closed FX chain of the same selected 
-		object besides having it deselected and selected again.  
-		Out of several selected objects only the first one is honored.   
-		Empty FX chains aren't loaded as well as track FX chain of the type disabled 
-		in the USER SETTINGS.
+About:	REAPER stock preferences allow changing open FX chain on track selection when options
+	"Only allow one FX chain window open at a time" and "Open track FX window on track
+	selection change" are enabled at Preferences -> Plug-ins. But they only affect track
+	main FX chain. This sctript additionally covers track input/Monitoring FX chains and
+	take FX chain.  
+	Meant to be used only when the option "Only allow one FX chain window open at a time" 
+	is enabled at Preferences -> Plug-ins in a global FX chain kind of setup.  
+	Normally when option "Only allow one FX chain window open at a time" is enabled, 
+	to update currently open FX chain window with another FX chain, FX button must be 
+	clicked on the TCP or on the item.  
+	This script makes this a bit simpler by allowing to update the window with object 
+	selection, which requires less precision than clicking the tiny FX buttons,
+	besides ensuring that the FX chain is readily accessible.  		   
+	For best experience FX chain window should be docked, but the updating will work 
+	just as good with a floating FX chain window.  
+	To use it in a docker it's usually sufficient to dock any FX chain window, 
+	the rest will stay docked automatically, yet sometimes adjustment of a few
+	individual FX windows may be required.   
+	Active take FX chain is always loaded at item selection. The type of track FX chain 
+	to be loaded at track selection is determined by the USER SETTING below, but 
+	you'll still be able to load track FX chain of the other type normally by clicking 
+	FX button of the corresponding track.  
+	The currently open FX chain window can be temporarily closed with a click on FX button
+	or a by closing its tab in the docker, until another object is selected.   
+	Clicking FX button is also a way to re-open a closed FX chain of the same selected 
+	object besides having it deselected and selected again.  
+	Out of several selected objects only the first one is honored.   
+	Empty FX chains aren't loaded as well as track FX chain of the type disabled 
+	in the USER SETTINGS.
 
-		CAVEATS
-		
-		FX chain window always becomes focused when updated, which means that if 
-		it's docked and open but not active (hidden) in a tabbed docker it will 
-		become active (visible), if it's docked in a closed docker the docker will
-		open, and if it's floating it will come in front of other windows.
-		
-		When FX chain changes in a docker it flickers because one is closed and another
-		is opened. This is REAPER's behavior which can't be controlled with a script.
-		
-		The FX chain of the last selected track which stays selected, can be re-opened 
-		with a click on the TCP after the FX chain was replaced with take FX chain, 
-		however not vice versa. In order to re-open take FX chain of the last selected 
-		item/active take after it was replaced with a track FX chain such item must be
-		deselected and selected again.
+	CAVEATS
+
+	FX chain window always becomes focused when updated, which means that if 
+	it's docked and open but not active (hidden) in a tabbed docker it will 
+	become active (visible), if it's docked in a closed docker the docker will
+	open, and if it's floating it will come in front of other windows.
+
+	When FX chain changes in a docker it flickers because one is closed and another
+	is opened. This is REAPER's behavior which can't be controlled with a script.
+
+	The FX chain of the last selected track which stays selected, can be re-opened 
+	with a click on the TCP after the FX chain was replaced with take FX chain, 
+	however not vice versa. In order to re-open take FX chain of the last selected 
+	item/active take after it was replaced with a track FX chain such item must be
+	deselected and selected again.
 		
 ]]
 
