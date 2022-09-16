@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="39c88e9abb515d881acabf0d551c8afc25fae905" name="ReaTeam Scripts">
+<index version="1" commit="9e4d8c3dc4ffc00ef8fcdf6c5e8b08fbaec6f048" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -3733,12 +3733,14 @@ Update version compatibility tag]]></changelog>
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 Allows loading selected FX chain on selected objects. Detailed description is available inside the script.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Allows loading selected FX chain on selected objects.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The script had been developed before the option to add FX and FX chain preset to multiple tracks/takes at once was introduced in REAPER build 6.12c.\line Still the script expands on this native feature in that it allows adding FX chain preset to tracks and takes and to track main and input/Monitoring FX chain in one go. It also provides a setting for configuring custom FXChains folder different from the default one located in the REAPER resourse directory.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab By default the script works in add/replace mode adding FX chain to selected objects which don't have any and replacing current FX chain in those which do.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab When option ADD_APPEND is enabled in the USER SETTINGS below the script works in add/append mode where instead of replacing current FX chain it appends it with the FX chain being added, placing it downstream.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab When both options DIALOGUE and ADD_APPEND are enabled in the USER SETTINGS below the user is presented with the dialogue allowing them to choose between the two modes every time the script is used.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The USER SETTINGS options TRACK_MAIN_FX, TRACK_INPUT_MON_FX, TAKE_FX allow to enable/disable loading FX chain as a particular FX chain type.\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab If item has several takes the FX chain is only applied to the selected one.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The USER SETTINGS option CUSTOM_FX_CHAIN_DIR allows using a custom FXChains folder as a primary location for loading FX chain presets.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab If an item has several takes the FX chain is only applied to the active one.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab To include Monitor FX chain in selected objects select Master track. Be aware that if TRACK_MAIN_FX option is enabled the same FX chain will also be loaded as the Master track main FX chain.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab It's advised to load FX chain preset to Monitor FX chain with the chain closed, otherwise REAPER will freeze for a short while as the chain is being updated and the arrange is being redrawn.\sa180\par}
 }
@@ -3748,6 +3750,11 @@ Update version compatibility tag]]></changelog>
       <version name="1.0" author="BuyOne" time="2021-05-12T08:18:24Z">
         <changelog><![CDATA[Initial release]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4551e51f75cf24b3910865fd20df767cd3f14087/FX/BuyOne_Load%20FX%20chain%20on%20selected%20objects%20via%20file%20dialogue%20(guide%20inside).lua</source>
+      </version>
+      <version name="1.1" author="BuyOne" time="2022-09-16T23:18:47Z">
+        <changelog><![CDATA[#Added a setting for custom FXChains folder
+#Fixed breaking plugin parameter link]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/cbf882a3a970804efd98747e2dddc02f7da0fb44/FX/BuyOne_Load%20FX%20chain%20on%20selected%20objects%20via%20file%20dialogue%20(guide%20inside).lua</source>
       </version>
     </reapack>
     <reapack name="BuyOne_Lock FX and FX chains.lua" type="script" desc="Lock FX and FX chains + Append or remove lock tag">
@@ -3828,7 +3835,7 @@ Update version compatibility tag]]></changelog>
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 Meant to be used only when the option "Only allow one FX chain window open at a time" is enabled at Preferences -> Plug-ins in a global FX chain kind of setup.\line Normally when option "Only allow one FX chain window open at a time" is enabled, to update currently open FX chain window with another FX chain, FX button must be clicked on the TCP or on the item.\line This script makes this a bit simpler by allowing to update the window with object selection, which requires less precision than clicking the tiny FX buttons, besides ensuring that the FX chain is readily accessible.\line For best experience FX chain window should be docked, but the updating will work just as good with a floating FX chain window.\line To use it in a docker it's usually sufficient to dock any FX chain window, the rest will stay docked automatically, yet sometimes adjustment of a few individual FX windows may be required.\line Active take FX chain is always loaded at item selection. The type of track FX chain to be loaded at track selection is determined by the USER SETTING below, but you'll still be able to load track FX chain of the other type normally by clicking FX button of the corresponding track.\line The currently open FX chain window can be temporarily closed with a click on FX button or a by closing its tab in the docker, until another object is selected.\line Clicking FX button is also a way to re-open a closed FX chain of the same selected object besides having it deselected and selected again.\line Out of several selected objects only the first one is honored.\line Empty FX chains aren't loaded as well as track FX chain of the type disabled in the USER SETTINGS.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 REAPER stock preferences allow changing open FX chain on track selection when options "Only allow one FX chain window open at a time" and "Open track FX window on track selection change" are enabled at Preferences -> Plug-ins. But they only affect track main FX chain. This sctript additionally covers track input/Monitoring FX chains and take FX chain.\line Meant to be used only when the option "Only allow one FX chain window open at a time" is enabled at Preferences -> Plug-ins in a global FX chain kind of setup.\line Normally when option "Only allow one FX chain window open at a time" is enabled, to update currently open FX chain window with another FX chain, FX button must be clicked on the TCP or on the item.\line This script makes this a bit simpler by allowing to update the window with object selection, which requires less precision than clicking the tiny FX buttons, besides ensuring that the FX chain is readily accessible.\line For best experience FX chain window should be docked, but the updating will work just as good with a floating FX chain window.\line To use it in a docker it's usually sufficient to dock any FX chain window, the rest will stay docked automatically, yet sometimes adjustment of a few individual FX windows may be required.\line Active take FX chain is always loaded at item selection. The type of track FX chain to be loaded at track selection is determined by the USER SETTING below, but you'll still be able to load track FX chain of the other type normally by clicking FX button of the corresponding track.\line The currently open FX chain window can be temporarily closed with a click on FX button or a by closing its tab in the docker, until another object is selected.\line Clicking FX button is also a way to re-open a closed FX chain of the same selected object besides having it deselected and selected again.\line Out of several selected objects only the first one is honored.\line Empty FX chains aren't loaded as well as track FX chain of the type disabled in the USER SETTINGS.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 CAVEATS\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 FX chain window always becomes focused when updated, which means that if it's docked and open but not active (hidden) in a tabbed docker it will become active (visible), if it's docked in a closed docker the docker will open, and if it's floating it will come in front of other windows.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 When FX chain changes in a docker it flickers because one is closed and another is opened. This is REAPER's behavior which can't be controlled with a script.\par}
@@ -3848,7 +3855,7 @@ Update version compatibility tag]]></changelog>
       </version>
       <version name="1.2" author="BuyOne" time="2021-11-23T18:58:30Z">
         <changelog><![CDATA[#Added option to prevent updating a docked FX chain when the docker is closed]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/89cf6559cb4e6fcaa17ba1ba38c6ae3b202cdccb/FX/BuyOne_Update%20FX%20chain%20at%20object%20selection%20when%20one%20FX%20window%20at%20a%20time%20enabled.lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e4b657b2bffa9eef511482561d2f7b8ef52af728/FX/BuyOne_Update%20FX%20chain%20at%20object%20selection%20when%20one%20FX%20window%20at%20a%20time%20enabled.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Monitoring FX bypass bundle.lua" type="script" desc="Monitoring FX bypass bundle (bypass, unbypass or toggle)">
@@ -14157,6 +14164,24 @@ Replace GetLastWord func with quicker solution (Thanks: Mespotine[t=233393]).]]>
         <source main="main" file="ausbaxter_Save region render matrix (slot 4).lua">https://github.com/ReaTeam/ReaScripts/raw/af423a7b88decb7586131edda25e22e2ac908ec6/Regions/ausbaxter_Save%20and%20Load%20region%20render%20matrix.lua</source>
       </version>
     </reapack>
+    <reapack name="BuyOne_Set region at play or edit cursor to a predefined color.lua" type="script" desc="Set region at play or edit cursor to a predefined color">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 During playback looks for the playhead position, otherwise - for the edit cursor position.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 When no playback, place the edit cursor at the beginning or the end of a region or anywhere in between, run.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The script can be duplicated to create as many individual copies as there're colors you need to set your regions to. Name each such copy differently.\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/member.php?u=134058</link>
+      </metadata>
+      <version name="1.0" author="BuyOne" time="2022-09-16T23:18:59Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ec2ce45a7bbe10d2e3184c044d1bf237f42f7d75/Regions/BuyOne_Set%20region%20at%20play%20or%20edit%20cursor%20to%20a%20predefined%20color.lua</source>
+      </version>
+    </reapack>
     <reapack name="BuyOne_Sort by length region bars displayed in lanes (respecting time sel.).lua" type="script" desc="Sort by length region bars displayed in lanes">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
@@ -15639,6 +15664,48 @@ Removed first run warning message.]]></changelog>
       <version name="1.0" author="BuyOne" time="2021-10-05T03:48:54Z">
         <changelog><![CDATA[Initial release]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/bc59fcfa135fbbd100c0563f0bb496b7b5a60bd3/Tracks%20Properties/BuyOne_Mute%20empty%20tracks%20with%20FX%20and%20optionally%20set%20their%20FX%20offline%20(guide%20inside).lua</source>
+      </version>
+    </reapack>
+    <reapack name="BuyOne_Scroll to or exclusively show track(s) by name or index.lua" type="script" desc="Scroll to or exclusively show track(s) by name or index">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 G I U D E\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The script in essense does in its own way what the native Track Manager, the SWS extension Find utility, mpl_search tracks.lua, X-Raym_Scroll vertically to track by name and select it.lua, spk77_Track Tags.lua, tack_Select Track By Name.lua, Lokasenna_Select tracks by name.lua scripts do. In addition, besides track names track indices can be used to get to them.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 OPERATORS (the character case is irrelevant)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 1.\tx360\tab Search term modifiers: e, c, i\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 no operator - Search track by elements contained in the track name\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 e - (exact) Search by exact name; the operator covers syntax, scope of the track name and the register of its characters, so to satisfy the search the track name must only consist of the search term and match its characters register; without this operator any track name which contains all the elements of the search term regardless of their order will be valid (see above); ignored if 'i' operator is used\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 c - (case) Ignore earch term and track name register; ignored if 'i' operator is used; can be enabled permanently in the USER SETTINGS\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 i - (index) Search track by index, the search term is interpreted as track index hence only numerals are supported; ignored when the search term is a mix of alphabetic and numeric characters; combined with the exclusive display mode 'h' operator (see below) this operator supports lists and ranges in the format: (for range) 1-5=ih and (for list) 1,3,5=ih; can be enabled permanently in the USER SETTINGS; if the search term only contains alphabetic, punctuation characters and/or spaces 'i' operator is ignored.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 2.\tx360\tab Action operators: u, h, s\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 u - (uncollapse) Uncollapse all collapsed parent tracks if the matching track is inside a collapsed folder, including nested; doesn't apply to MCP, where if track is inside collapsed folders its first uncollapsed parent track is the one to be scrolled into view; can be enabled permanently in the USER SETTINGS\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 h - (hide) Hide all tracks bar the matching ones, and if the latter belong to a folder then bar all their parents, children and siblings\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 s - (show) Unhide all tracks hidden through the use of exclusive display mode 'h' operator; this operator should not be preceded by '=' sign (see below) but feature alone in the search field.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 3.\tx360\tab Examples:\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 If applied, operators must follow the search term and be separated from it with the '=' sign, they can be combined, e.g.:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 ad-lib - scroll to a track whose name contains 'ad-lib';\line 10=i - scroll to track No 10;\line bass=ec - scroll to a track named exactly 'bass', disregarding the name's register (case), so the name 'BASS' is also valid;\line vocals=u - scroll to a track whose name contains the word 'vocals' and if it's a child in a collapsed folder, uncollapse it;\line 12,35,44=hiu - exclusively show tracks No 12, 35 and 44 (including their folder relatives, if any) and if any of them is a child in a collapsed folder, uncollapse it;\line DRUMS=ch - exclusively show tracks whose names contain the word 'DRUMS' (including their folder relatives, if any), disregarding the word's register (case) so names containing 'drums' are also valid.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The order in which the operators are combined is immaterial.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 In the TCP context (Arrange) the searched track is scrolled into view at the top of the tracklist. In the MCP context it's scrolled to the leftmost position. Contexts are enabled in the USER SETTINGS.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 If the searched track is inside a collapsed folder and 'u' operator isn't used, then its first uncollapsed parent track is scrolled into view.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 If the found track is a folder child track, the track which ends up being selected depends on the currently active context, TCP or MCP, because folder state which the selection is conditioned by, in TCP and MCP may differ. If both contexts are active, track selection in the TCP has priority. Since track selection is global it cannot be different between the TCP and the MCP at the same time, so TCP has been chosen to be primary.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 If several track names match the search term, after the 1st one found is scrolled into view the input dialogue reappears to allow continuing the search for the next one. When the last such track has been found the search dialogue doesn't reappear.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 EXCLUSIVE DISPLAY MODE\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 'h' operator allows to selectively show tracks whose index or names match the search term and the criteria set by the operators while keeping the rest hidden. To selectively show tracks by their indices make sure to add 'i' operator to the 'h' operator, i.e. 'ih' or 'hi'.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 When only TCP or MCP context is enabled in the USER SETTINGS only tracks in this context will be hidden and unhidden.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 When tracks matching the search term are part of a folder, the entire folder they belong to is shown, except for the tracks hidden prior to the application of the 'h' operator.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 When exclusive display mode is first activated the tracks matching the search term do not scroll into view.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 When tracks are in exclusive display mode the search dialogue search field is autofilled with 'h' perator showing that the mode is active. To be able to search tracks while in exclusive display mode remove the 'h' operator from the search field.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 To unhide all tracks hidden through the use of the 'h' run 's' operator alone.\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/member.php?u=134058</link>
+      </metadata>
+      <version name="1.0" author="BuyOne" time="2022-09-16T23:19:19Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/9e4d8c3dc4ffc00ef8fcdf6c5e8b08fbaec6f048/Tracks%20Properties/BuyOne_Scroll%20to%20or%20exclusively%20show%20track(s)%20by%20name%20or%20index.lua</source>
       </version>
     </reapack>
     <reapack name="BuyOne_Set sends;receives in selected tracks to the next mode (relative to the current).lua" type="script" desc="Set sends;receives in selected tracks to the next mode (relative to the current)">
