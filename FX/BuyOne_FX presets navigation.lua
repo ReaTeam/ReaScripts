@@ -26,4 +26,4 @@
 --   [main] BuyOne_FX presets navigation/BuyOne_Dedicated FX presets backwards switcher (FX ID dependent) (guide inside).lua
 --   [main] BuyOne_FX presets navigation/BuyOne_Dedicated FX presets forward switcher (TAG dependent) (guide inside).lua
 --   [main] BuyOne_FX presets navigation/BuyOne_Dedicated FX presets backwards switcher (TAG dependent) (guide inside).lua
---   [main] BuyOne_FX presets navigation/BuyOne_Extract focused FX preset count, active preset number and name.lua
+--   [main] BuyOne_FX presets navigation/BuyOne_Extract focused FX preset count, list, active preset number and name.lua
