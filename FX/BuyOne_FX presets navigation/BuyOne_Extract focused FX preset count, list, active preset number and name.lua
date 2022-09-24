@@ -13,7 +13,7 @@
 * Changelog:
 	+ v1.0 	Initial release
 	+ v1.1 	Added a list of presets to the presets info displayed in ReaConsole
-			Worked around a REAPER API problem of not differentiating between identically named user and built-in presets
+		Worked around a REAPER API problem of not differentiating between identically named user and built-in presets
 =========================================================================
 
 A preset name can be easily copied by selecting the preset, clicking
