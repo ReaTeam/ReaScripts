@@ -24,12 +24,16 @@ The script is intended to simplify the task.
 
 The format is:
 
-/////////////////////////////////////////
-preset count::preset number::preset name
+/////////////////////////////////////////////////////////
+preset_count::current_preset_number::current_preset_name
 ========================================
 (preset list)
-preset number preset name
-////////////////////////////////////////
+preset_number preset_name
+/////////////////////////////////////////////////////////
+
+The data is displayed in the ReaConsole. If all the data can't fit within 
+the Console due to the long preset list, it will be displayed in an empty
+item notes on a new track inserted at the end of the current track list.
 
 Video prosessor presets are supposed to be supported since REAPER build 6.26.
 
