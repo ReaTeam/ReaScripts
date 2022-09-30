@@ -121,6 +121,23 @@ the FX preset list or are left out of the action marker name, next preset is sel
 -- between the double square brackets next to it.
 TAG = [[PC]]
 
+-- Only relevant if the setting CUSTOM_PRESET_LIST 
+-- is enabled below;
+-- if the current setting is enabled, preset names 
+-- are immaterial, only their numbers matter,
+-- this allows changing names of the presets from the custom list
+-- and using the custom preset list to cycle through 
+-- presets of other plugins provided their preset lists 
+-- are long enough to include at least some of the preset 
+-- numbers featured in the custom list,
+-- BUT creating new presets for the original plugin may throw 
+-- off the configured preset sequence if the plugin preset list is re-ordered;
+-- conversely, if not enabled the custom preset list will 
+-- be pretty much tied to a single plugin whose preset names 
+-- will match it and creating new presets won't affect the functionality;
+-- to enable place any alphanumeric character between the quotation marks
+INDEX_BASED_PRESET_SWITCH = ""
+
 -- Replace the text between the double square brackets
 -- with the list of presets obtained using
 -- 'BuyOne_Extract focused FX preset count, list, active preset number and name.lua' script
@@ -139,7 +156,7 @@ TAG = [[PC]]
 -- having included the plugin data in the custom action name,
 -- in the latter case the custom action command ID can be used
 -- in action markers to trigger the script
-CUSTOM_PRESET_LIST =
+CUSTOM_PRESET_LIST = 
 [[
 
 R E P L A C E  T H I S  T E X T
@@ -230,53 +247,72 @@ local ret, fx_GUID = r.GetProjExtState(0, scr_name, 'PRESET_SWITCHER_DATA')
 	end
 
 
-function Construct_Custom_Preset_Array(CUSTOM_PRESET_LIST)
--- since this array is index based, the custom list can be used with presets
+function Construct_Custom_Preset_Array(CUSTOM_PRESET_LIST, INDEX_BASED_PRESET_SWITCH)
+-- if the array is index based, the custom list can be used with presets
 -- of any plugin as long as their indices match those in the array;
 -- in order to limit the custom list to specific plugin
 -- its name can be included as the 2nd field, e.g.
 -- t[#t+1] = {idx-1, line:match('%d (.+)')}
 -- to be then evaluated against the currently or next selected preset inside Switch_FX_Preset() function
+-- eventually was emplemented differently
 local t = {}
 	for line in CUSTOM_PRESET_LIST:gmatch('[^\n]+') do
-		if 	line:sub(1,1) == '+' then
-		local idx = tonumber(line:match('^%+%s*(%d+)'))
-			if idx then t[#t+1] = idx-1 end -- -1 since the listed indices count is 1-based
+		if line and line:match('^%s*%+') then
+		local value = INDEX_BASED_PRESET_SWITCH and tonumber(line:match('^%s*%+%s*(%d+)'))
+		or not INDEX_BASED_PRESET_SWITCH and line:match('^%s*%+%s*(%d+ .+)') -- preset name
+			if value then t[#t+1] = value end
 		end
 	end
 return t
 end
 
 
-function Switch_FX_Preset(obj, fx_idx, cust_pres_list_t, forward)
+function Switch_FX_Preset(obj, fx_idx, cust_pres_list_t, INDEX_BASED_PRESET_SWITCH, forward)
 
 local tr, take = r.ValidatePtr(obj, 'MediaTrack*'), r.ValidatePtr(obj, 'MediaItem_Take*')
-local get_pres_idx, set_preset, navigate_presets = table.unpack(tr and {r.TrackFX_GetPresetIndex, r.TrackFX_SetPresetByIndex, r.TrackFX_NavigatePresets} or take and {r.TakeFX_GetPresetIndex, r.TakeFX_SetPresetByIndex, r.TakeFX_NavigatePresets})
+local get_pres_idx, get_pres_name, set_preset, navigate_presets = table.unpack(tr and {r.TrackFX_GetPresetIndex, r.TrackFX_GetPreset, INDEX_BASED_PRESET_SWITCH and r.TrackFX_SetPresetByIndex or r.TrackFX_SetPreset, r.TrackFX_NavigatePresets} or take and {r.TakeFX_GetPresetIndex, r.TakeFX_GetPreset, INDEX_BASED_PRESET_SWITCH and r.TakeFX_SetPresetByIndex or r.TakeFX_SetPreset, r.TakeFX_NavigatePresets})
 local cur_pres_idx, pres_cnt = get_pres_idx(obj, fx_idx) -- only needed if set_preset() function is used below
+local retval, cur_pres_name = get_pres_name(obj, fx_idx, '')
 
-	if (not cust_pres_list_t or cust_pres_list_t and #cust_pres_list_t == 0) and cur_pres_idx > -1 and pres_cnt > 0	then
+	local function select_value(value, INDEX_BASED_PRESET_SWITCH)
+	return INDEX_BASED_PRESET_SWITCH and value-1 or value:match('^%d+ (.+)') -- -1 since the listed indices count is 1-based
+	end
+	
+	if (not cust_pres_list_t or cust_pres_list_t and #cust_pres_list_t == 0) and pres_cnt > 0 then
 		if cur_pres_idx == pres_cnt then -- 'No preset' is selected, in which case these values are equal (the index is out of the 0-based range), start from the beginning or the end of the list, navigate_presets() for some reason starts from the 2nd preset
 		set_preset(obj, fx_idx, forward and 0 or pres_cnt-1)
 		else -- navigate as normal
 		navigate_presets(obj, fx_idx, forward and 1 or -1)
 		end
 	elseif cust_pres_list_t and #cust_pres_list_t > 1 then
-		for k, pres_idx in ipairs(cust_pres_list_t) do -- search for the current preset idx in the table the select one from the next table slot
-			if pres_idx == cur_pres_idx then
-			local next_pres_idx = forward and cust_pres_list_t[k+1] or not forward and cust_pres_list_t[k-1]
-			local next_pres_idx = forward and not next_pres_idx and cust_pres_list_t[1] or not forward and not next_pres_idx and cust_pres_list_t[#cust_pres_list_t] or next_pres_idx -- next_pres_idx being nil means that the value is out of the table's range hence the count needs to be wrapped around
-			set_preset(obj, fx_idx, next_pres_idx) -- -1 since the indices are saved from 1-based count
+		for k, pres_idx_name in ipairs(cust_pres_list_t) do -- search for the current preset idx in the table the select one from the next table slot
+			if INDEX_BASED_PRESET_SWITCH and pres_idx_name-1 == cur_pres_idx -- -1 since the listed indices count is 1-based
+			or not INDEX_BASED_PRESET_SWITCH and cur_pres_name == pres_idx_name:match('^%d+ (.+)') then
+			local next_pres_idx_name = forward and cust_pres_list_t[k+1] or not forward and cust_pres_list_t[k-1]
+			local next_pres_idx_name = forward and not next_pres_idx_name and cust_pres_list_t[1] or not forward and not next_pres_idx_name and cust_pres_list_t[#cust_pres_list_t] or next_pres_idx_name -- next_pres_idx being nil means that the value is out of the table's range hence the count needs to be wrapped around
+			set_preset(obj, fx_idx, select_value(next_pres_idx_name, INDEX_BASED_PRESET_SWITCH))
 			break
-			elseif cur_pres_idx == pres_cnt then -- if the plugin started out with 'No preset' selected in which case these values are equal (the index is out of the 0-based range) and custom list routines won't work
-			local new_pres_idx = forward and cust_pres_list_t[1] or not forward and cust_pres_list_t[#cust_pres_list_t] -- start from the 1st if forward and from the last if backwards
-			set_preset(obj, fx_idx, new_pres_idx)
+			elseif cur_pres_idx == pres_cnt then -- OR cur_pres_name == '' // if the plugin started out with 'No preset' selected in which case these values are equal (the index is out of the 0-based range), custom list routines won't work
+			local new_pres_idx_name = forward and cust_pres_list_t[1] or not forward and cust_pres_list_t[#cust_pres_list_t] -- start from the 1st if forward and from the last if backwards
+			set_preset(obj, fx_idx, select_value(new_pres_idx_name, INDEX_BASED_PRESET_SWITCH))
 			break
-			else -- if a preset not from the custom list is currently active, select first preset from the list which is greater or smaller than the index of the current preset depending on the cycling direction
-				for _, pres_idx in ipairs(cust_pres_list_t) do
-					if forward and pres_idx > cur_pres_idx or not forward and pres_idx < cur_pres_idx then
-					set_preset(obj, fx_idx, pres_idx)
+			else -- if on the first main loop cycle custom list preset is diff from the active custom list preset or a preset not from the custom list is currently active, select first preset from the list which is greater or smaller than the index of the current preset depending on the cycling direction
+				local function return_idx(value, INDEX_BASED_PRESET_SWITCH)
+				return INDEX_BASED_PRESET_SWITCH and value or value:match('%d+')
+				end
+			local exit
+			local start, fin, dir = table.unpack(forward and {1, #cust_pres_list_t, 1} or {#cust_pres_list_t, 1, -1})
+				for idx = start, fin, dir do
+				local pres_idx_name = cust_pres_list_t[idx]
+				local pres_idx = tonumber(return_idx(pres_idx_name, INDEX_BASED_PRESET_SWITCH))-1 -- either name based or index based list // -1 since the listed indices count is 1-based
+				local pres_idx_name = forward and (cur_pres_idx > tonumber(return_idx(cust_pres_list_t[#cust_pres_list_t], INDEX_BASED_PRESET_SWITCH))-1 and cust_pres_list_t[1] or pres_idx > cur_pres_idx and pres_idx_name)
+				or not forward and (cur_pres_idx < tonumber(return_idx(cust_pres_list_t[1], INDEX_BASED_PRESET_SWITCH))-1 and cust_pres_list_t[#cust_pres_list_t] or pres_idx < cur_pres_idx and pres_idx_name) -- accounting for when active preset index is greater or smaller than the index of the first and the last presets in the custom list, which covers the very 1st and the very last presets // -1 since the listed indices count is 1-based
+					if pres_idx_name then
+					set_preset(obj, fx_idx, select_value(pres_idx_name, INDEX_BASED_PRESET_SWITCH))
+					exit = 1
 					break end
 				end
+				if exit then break end -- exit the main loop
 			end
 		end
 	end
@@ -305,7 +341,7 @@ end
 
 -- these functions are used for convenient breaking out from a nested loop with return and to cut down redundancy
 
-function NavigateTrackFXPresets(tr, fx_type, fx_cnt, fx_GUID, TAG, preset, cust_pres_list_t)
+function NavigateTrackFXPresets(tr, fx_type, fx_cnt, fx_GUID, TAG, preset, cust_pres_list_t, INDEX_BASED_PRESET_SWITCH)
 
 	if fx_cnt > 0 then
 		for i = 0, fx_cnt-1 do
@@ -319,7 +355,7 @@ function NavigateTrackFXPresets(tr, fx_type, fx_cnt, fx_GUID, TAG, preset, cust_
 				else
 				local pres = preset and type(preset) == 'number' and preset <= preset_cnt and r.TrackFX_SetPresetByIndex(tr, fx_num, preset-1) -- if preset index is used in an action marker // -1 since count starts from zero
 				or preset and r.TrackFX_SetPreset(tr, fx_num, preset) -- if preset name is used in an action marker
-				or Switch_FX_Preset(tr, fx_num, cust_pres_list_t, true) -- if the script is run manually // forward true
+				or Switch_FX_Preset(tr, fx_num, cust_pres_list_t, INDEX_BASED_PRESET_SWITCH, true) -- if the script is run manually // forward true
 				_, tr_name = r.GetTrackName(tr)
 				_, pres_name = r.TrackFX_GetPreset(tr, fx_num, '') -- for undo caption
 				return tag, tr_name, fx_name, fx_num, pres_name end -- except the tag the values are meant for undo caption, fx_num for being able to distingush between main and input/mon fx
@@ -329,7 +365,7 @@ function NavigateTrackFXPresets(tr, fx_type, fx_cnt, fx_GUID, TAG, preset, cust_
 
 end
 
-function NavigateTakeFXPresets(fx_GUID, TAG, preset, cust_pres_list_t)
+function NavigateTakeFXPresets(fx_GUID, TAG, preset, cust_pres_list_t, INDEX_BASED_PRESET_SWITCH)
 
 	if r.CountMediaItems(0) > 0 then
 		for i = 0, r.CountMediaItems(0)-1 do
@@ -348,7 +384,7 @@ function NavigateTakeFXPresets(fx_GUID, TAG, preset, cust_pres_list_t)
 							else
 							local pres = preset and type(preset) == 'number' and preset <= preset_cnt and r.TakeFX_SetPresetByIndex(take, j, preset-1) -- if preset index is used in an action marker // -1 since count starts from zero
 							or preset and r.TakeFX_SetPreset(take, j, preset) -- if preset name is used in an action marker
-							or Switch_FX_Preset(take, j, cust_pres_list_t, true) -- if the script is run manually // forward true
+							or Switch_FX_Preset(take, j, cust_pres_list_t, INDEX_BASED_PRESET_SWITCH, true) -- if the script is run manually // forward true
 							_, take_name = r.GetSetMediaItemTakeInfo_String(take, 'P_NAME', '', false)
 							_, pres_name = r.TakeFX_GetPreset(take, j, '') -- for undo caption
 							return tag, take_name, fx_name, take_cnt, i, pres_name end -- except the tag the values are meant for undo caption, 'i' = take_num
@@ -363,25 +399,27 @@ end
 
 local preset = GetPreset(cmd_ID)
 
-local cust_pres_list_t = Construct_Custom_Preset_Array(CUSTOM_PRESET_LIST)
+local INDEX_BASED_PRESET_SWITCH = INDEX_BASED_PRESET_SWITCH:gsub('[%s]','') ~= ''
+
+local cust_pres_list_t = Construct_Custom_Preset_Array(CUSTOM_PRESET_LIST, INDEX_BASED_PRESET_SWITCH)
 
 	-- Traverse tracks main fx chains
 	for i = -1, r.CSurf_NumTracks(true)-1 do -- start from -1 to accommodate Master track
 	local tr = r.GetTrack(0,i) or r.GetMasterTrack(0)
 	local fx_cnt = r.TrackFX_GetCount(tr)
-	tag, tr_name, fx_name, fx_num, pres_name = NavigateTrackFXPresets(tr, 1, fx_cnt, fx_GUID, TAG, preset, cust_pres_list_t) -- for undo caption, except the tag value, 1 is fx_type value
+	tag, tr_name, fx_name, fx_num, pres_name = NavigateTrackFXPresets(tr, 1, fx_cnt, fx_GUID, TAG, preset, cust_pres_list_t, INDEX_BASED_PRESET_SWITCH) -- for undo caption, except the tag value, 1 is fx_type value
 		if tag then break end
 	end
 	if not tag then -- Traverse tracks input fx chains/Master track monitor fx chain
 		for i = -1, r.CSurf_NumTracks(true)-1 do -- start from -1 to accommodate Master track
 		local tr = r.GetTrack(0,i) or r.GetMasterTrack(0)
 		local fx_cnt = r.TrackFX_GetRecCount(tr)
-		tag, tr_name, fx_name, fx_num, pres_name = NavigateTrackFXPresets(tr, 2, fx_cnt, fx_GUID, TAG, preset, cust_pres_list_t) -- for undo caption, except the tag value, 2 is fx_type value
+		tag, tr_name, fx_name, fx_num, pres_name = NavigateTrackFXPresets(tr, 2, fx_cnt, fx_GUID, TAG, preset, cust_pres_list_t, INDEX_BASED_PRESET_SWITCH) -- for undo caption, except the tag value, 2 is fx_type value
 			if tag then break end
 		end
 	end
 	if not tag then -- Traverse take fx chains
-	tag, take_name, fx_name, take_cnt, take_num, pres_name = NavigateTakeFXPresets(fx_GUID, TAG, preset, cust_pres_list_t)
+	tag, take_name, fx_name, take_cnt, take_num, pres_name = NavigateTakeFXPresets(fx_GUID, TAG, preset, cust_pres_list_t, INDEX_BASED_PRESET_SWITCH)
 	end
 
 	-- when aborted inside the function due to lack of presets
@@ -422,4 +460,5 @@ local cust_pres_list_t = Construct_Custom_Preset_Array(CUSTOM_PRESET_LIST)
 
 	r.Undo_BeginBlock() -- placed here to prevent 'ReaScript:Run' message in the Undo menu bar at return on script errors or prompts, which doesn't impede the actual undo point creation since it's created by Track/TakeFX_NavigatePresets() anyway
 	r.Undo_EndBlock('Set '..fx_name..' preset to: \''..pres_name..'\' '..src_name,-1) -- Track/TakeFX_NavigatePresets() function creates an undo point by design which can't be avoided, for Monitor FX no undo point can be created
+
 
