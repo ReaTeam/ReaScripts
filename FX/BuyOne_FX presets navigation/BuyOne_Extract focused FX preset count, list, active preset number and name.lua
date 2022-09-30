@@ -160,13 +160,19 @@ local pres_names_lst = {}
 
 -- IF THERE'S A USER PRESET NAMED AS A BUILT-IN PRESET THE r.Track/TakeFX_NavigatePresets() FUNCTION FAULTERS WHEN A DUPLICATE IS FOUND AND AUTO-SWITCHES TO THE IDENTICALLY NAMED PRESET WITH SMALLER INDEX (earlier in the list) to continue the loop from there, it also seems to act strangely with vst bult-in programs, returning index -1 which is an error as per Track/TakeFX_GetPresetIndex() function, and if the last of those is active before the loop starts it can't be restored afterwards as index -1 is invalid; r.Track/TakeFX_SetPresetByIndex() isn't affected by these problems // https://forum.cockos.com/showthread.php?t=270990
 
+local mess_box_trig
+
 	for i = 0, count-1 do
 	set_preset(obj, fx_num, i)
 	local retval, name = get_preset(obj, fx_num, '')
-	pres_names_lst[#pres_names_lst+1] = (i+1)..' '..(name:match('.+[\\/](.+)%.vstpreset') or name) -- stripping path and extension off a vst3 preset name
+		if not mess_box_trig and name:match('%.vstpreset') then resp = r.MB('\tThe preset list contains vst3 presets.\n\n\t       If you use custom preset list\n\n\tin my other preset navigation scripts\n\nwith INDEX_BASED_PRESET_SWITCH setting NOT enabled\n\n      you may want to have vst3 presets full paths listed\n\n\t         so they can be switched to.', 'PROMPT', 4) -- needed since to switch to vst3 presets by name Track/TakeFX_SetPreset() function requires its path
+			if resp == 6 then by_name = true end
+		mess_box_trig = 1 -- to prevent recurrent pop-ups during the loop
+		end
+	pres_names_lst[#pres_names_lst+1] = (i+1)..' '..(by_name and name or not by_name and (name:match('.+[\\/](.+)%.vstpreset') or name)) -- stripping path and extension off a vst3 preset name if presets won't be switched by name
 	end
 
-set_preset(obj, fx_num, pres_num) -- restore originally selected preset by index
+set_preset(obj, fx_num, pres_num) -- restore originally selected preset by index; if 'No preset' was active before the above loop, it won't be reasored since it's index is out of 0-based range and what will end up being selected after the loop which stored preset names is the very last preset
 
 	-- Find if there're presets with identical names to include a warning due to the bug of Track/TakeFX_NavigatePresets() and Track/TakeFX_GetPresetIndex() described above
 local duplicate
@@ -178,7 +184,7 @@ local duplicate
 	end
 
 local warning = duplicate and '!!!! WARNING !!! The preset list contains presets with identical names which will cause glitch if navigated with scripts due to REAPER API bug --> https://forum.cockos.com/showthread.php?t=270990 \r\n\r\n' or ''
-local output = count..'::'..(pres_num+1)..'::'..pres_name..'\r\n\r\n'..string.rep('=',60)..'\r\n\r\n'..warning..table.concat(pres_names_lst,'\r\n') -- +1 since the count is 0 based // for the item notes to recognize line breaks they must be replaced with '\r\n' if the string wasn't previously formatted in the notes field https://forum.cockos.com/showthread.php?t=214861#2
+local output = count..'::'..(pres_num+1)..'::'..(#pres_name > 0 and pres_name or pres_names_lst[#pres_names_lst])..'\r\n\r\n'..string.rep('=',60)..'\r\n\r\n'..warning..table.concat(pres_names_lst,'\r\n') -- +1 since the count is 0 based; if statring out from 'No preset' it won't be restored since it's index is out of 0-based range and what will end up being selected after the loop which stored preset names is the very last preset // for the item notes to recognize line breaks they must be replaced with '\r\n' if the string wasn't previously formatted in the notes field https://forum.cockos.com/showthread.php?t=214861#2
 
 	if #output > 16380 then -- console output maximum length is 16,382 (almost 16,384) bytes, https://forum.cockos.com/showthread.php?t=216979, display the output in an empty item notes
 	local sel_itms_t, sel_trk_t = Re_Store_Selected_Objects() -- store
