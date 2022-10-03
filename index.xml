@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="9e4d8c3dc4ffc00ef8fcdf6c5e8b08fbaec6f048" name="ReaTeam Scripts">
+<index version="1" commit="8f428909de8b4594c6db149a40fcf580f4b0c446" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -15127,6 +15127,22 @@ Fix the new menu crashing if there are new saved render presets]]></changelog>
       </metadata>
       <version name="1.0" author="Edgemeal" time="2019-10-24T00:12:15Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/9c75d93d46071c3f6567bc4b6bfe79b1d67b1c58/Time%20Selection/edgemeal_Move%20time%20selection%20to%20cursor.lua</source>
+      </version>
+    </reapack>
+    <reapack name="edgemeal_Playhead follower.lua" type="script" desc="Playhead follower">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 When Transport Repeat mode is off and playhead is near edge of time selection it moves to the right by its length.\par}
+}
+]]></description>
+        <link rel="website" href="https://forum.cockos.com/showthread.php?t=271236">Forum Thread</link>
+        <link rel="donation" href="https://www.paypal.me/Edgemeal">Donate</link>
+      </metadata>
+      <version name="1.00" author="Edgemeal" time="2022-10-03T18:40:34Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/8f428909de8b4594c6db149a40fcf580f4b0c446/Time%20Selection/edgemeal_Playhead%20follower.lua</source>
       </version>
     </reapack>
     <reapack name="edgemeal_Select muted items within time selection.lua" type="script" desc="Select muted items within time selection">
