@@ -1,32 +1,11 @@
 -- @description MK Slicer
 -- @author cool
--- @version 2.50
+-- @version 2.52
 -- @changelog
---   + Added Pitch Detection mode for quick conversion of monophonic melodies and drums to MIDI.
---   + The Drums preset in Pitch Detection recognizes and creates MIDI notes of Kick, Snare and Hat.
---   + New overwrite mode for MIDI creation in Trigger and Pitch Detection modes.
---   + Bug fixed: now the script does not crash when trying to process Empty Items.
---   + Fixed a bug that slows down updating the script window when Loop is running.
---   + Bug fixed: now after initializing items with a long silence at the beginning, Gain and Threshold do not take huge values.
---   + Bug fixed: now if after initialization item selection disappears, all functions will still work.
---   + Bug fixed: now Marker Quantize works if the visible grid is off.
---   + Now when zooming horizontally with the keyboard keys, the waveform is centered on the edit cursor.
---   + "Processing, wait..." message to brighten up your waiting while processing or initializing long items.
---   + Service messages and caring error messages now appear at the top of the window.
---   + The script runs even if the selection is not correct. No more intrusive pop-up windows. If unsuitable items are selected, the selection is removed automatically.
---   + Now the script can run even on multitracks. Only the topmost selected track will be analyzed.
---   + Now loop selection is not blocked and is captured by the script only at the moments of control from the Slicer interface.
---   + The minimum value of the HPF slider turns off the HPF filter, completely removing filtering artifacts.
---   + Limited minimum grid and ruler resolution: now long items and small grid resolutions do not overload the processor.
---   + Optimization in general: now the script starts instantly. CPU load reduced by 50% in idle, memory consumption during processing and initialization is reduced.
---   + Now, when initializing for multiple items, the script does not try to apply Heal by default. Glue only.
---   + Smart Glue: On initialization, if a multitrack is selected, Glue happens selectively. Single items, MIDI and Empty Items are ignored.
---   + Now in MIDI Trigger mode Glue will not work if the item's Rate is changed. The trigger has become non-destructive for single items.
---   + Now the value of the pitch band is forced for ReaSamplomatic5000 instances. In the code, it is possible to turn off the boost or change the pitchband range.
---   + After finishing MIDI processing, when no audio is loaded, loop selection is not captured by the script.
---   + Improved responsiveness of sliders when using the mousewheel.
---   + Increased the maximum width of the waveform window for ultra-wide screens.
---   + Donate service changed to valid.
+--   + Added "No MIDI" mode for Pitch Detection: note names are added to audio items.
+--   + Now in the Pitch Detection mode, repeatedly pressing the MIDI button does not break the item.
+--   + Now, after pressing the MIDI button in Trigger and Pitch Detection modes, the waveform remains active and you can immediately continue working.
+--   + Now the Reset All button can undo the actions of the MIDI button in Trigger and Pitch Detection modes.
 -- @link Forum Thread https://forum.cockos.com/showthread.php?t=232672
 -- @screenshot MKSlicer2.0 https://i.imgur.com/QFWHt9a.png
 -- @donation
@@ -84,7 +63,7 @@
 --   Sometimes a script applies glue to items. For example, when several items are selected and when a MIDI is created in a sampler mode.
 
 --[[
-MK Slicer v2.5 by Maxim Kokarev 
+MK Slicer v2.52 by Maxim Kokarev 
 https://forum.cockos.com/member.php?u=121750
 
 Co-Author of the compilation - MyDaw
@@ -143,6 +122,10 @@ TimeForPeaksRebuild = 0.6 -- (Additional delay required to rebuild peaks in Pitc
 ForcePitchBend = 1 -- Forces a Pitch Bend value for each ReaSamplomatic5000 instance (1 - On, 0 - Off)
 PitchBend = 12 -- if ForcePitchBend if on, set max pitch bend, semitones (0 - Min, 12 - Max)
 
+KickNote = 35
+SnareNote = 38
+HatNote = 42
+
 --------------------------------End of Advanced User Settings------------------------------------------
 
 ----------------------------------------------------------------------------
@@ -169,7 +152,9 @@ SliceQ_Init_Status = 0
 Markers_Init_Status = 0
 Markers_Status = 0
 MIDISmplr_Status = 0
+MIDIPitch_Status = 0
 Trigg_Status = 0
+Pitch_Det_Status = 0
 Take_Check = 0
 Reset_Status = 0
 Random_Status = 0
@@ -199,6 +184,7 @@ MIDISamplerCopyRouting = tonumber(r.GetExtState('cool_MK Slicer.lua','MIDISample
 MIDI_Mode = tonumber(r.GetExtState('cool_MK Slicer.lua','Midi_Sampler.norm_val'))or 1;
 Sampler_preset_state = tonumber(r.GetExtState('cool_MK Slicer.lua','Sampler_preset.norm_val'))or 1; 
 Create_Replace_state = tonumber(r.GetExtState('cool_MK Slicer.lua','Create_Replace.norm_val'))or 1; 
+Create_Replace_state2 = tonumber(r.GetExtState('cool_MK Slicer.lua','Create_Replace2.norm_val'))or 1; 
 Pitch_Det_Options_state = tonumber(r.GetExtState('cool_MK Slicer.lua','Pitch_Det_Options.norm_val'))or 1;
 Pitch_Det_Options_state2 = tonumber(r.GetExtState('cool_MK Slicer.lua','Pitch_Det_Options2.norm_val'))or 1;
 AutoScroll = tonumber(r.GetExtState('cool_MK Slicer.lua','AutoScroll'))or 0;
@@ -2695,8 +2681,6 @@ function Rng_Slider:draw()
     if fnt_sz <= 12 then fnt_sz = 12 end
 if fnt_sz >= 18 then fnt_sz = 18 end
     -- set additional coordinates --
- --   self.sb_w  = h-5
- --   self.sb_w  = floor(self.w/17) -- sidebuttons width(change it if need)
     self.sb_w  = self.w//10 -- sidebuttons width(change it if need)
     self.rng_x = self.x + self.sb_w    -- range streak min x
     self.rng_w = self.w - self.sb_w*2  -- range streak max w
@@ -3416,6 +3400,9 @@ local Pitch_Det_Options2 = CheckBox_simple:new(670+corrY3,450+corrY,98,18, 0.28,
 
 local Create_Replace = CheckBox_simple:new(862+corrY3,410+corrY,86,18, 0.28,0.4,0.7,0.8, "","Arial",16,  Create_Replace_state,
                               {"Create","Replace"} )
+
+local Create_Replace2 = CheckBox_simple:new(862+corrY3,410+corrY,86,18, 0.28,0.4,0.7,0.8, "","Arial",16,  Create_Replace_state2, -- Pitch Detection mode
+                              {"Create","Replace","No MIDI","No MIDI C"} )
 
 local VeloMode = CheckBox_simple:new(770+corrY3,410+corrY,90,18, 0.28,0.4,0.7,0.8, "","Arial",16,  1, -------velodaw
                               {"Use RMS","Use Peak"} )
@@ -4337,8 +4324,10 @@ Slice_Init_Status = 0
 SliceQ_Init_Status = 0
 Markers_Status = 0
 MIDISmplr_Status = 0
+MIDIPitch_Status = 0
 Take_Check = 0
 Trigg_Status = 0
+Pitch_Det_Status = 0
 Reset_Status = 0
 Midi_sampler_offs_stat = 0
 Pitch_Det_offs_stat = 0
@@ -5206,7 +5195,7 @@ Create_MIDI.onClick =
 
 function()
 
-if Wave.State and MIDISmplr_Status == 0 and Trigg_Status == 0 then
+if Wave.State and MIDISmplr_Status == 0 and MIDIPitch_Status == 0 then -- and Trigg_Status == 0
   Slice_Status = 1
   M_Check = 0
   MIDISampler = 1
@@ -5219,39 +5208,6 @@ if Wave.State and number_of_items_m < 1 then
 end
 
 
-
---[[
-     number_of_items_m =  r.CountSelectedMediaItems(0)
-  if number_of_items_m < 1 then
-
------------------------------------------Error Message1---------------------------------------------------
-
-  local timer = 2 -- Time in seconds
-  local time = reaper.time_precise()
-  local function Msg()
-     local char = gfx.getchar()
-       if char == 27 or char == -1 or (reaper.time_precise() - time) > timer then ErrMsg_Status = 0 return end
-  local Get_Sel_ErrMsg = ErrMsg:new(580,35,260,45, 1, 1, 1, 1, "No items selected")
-  local ErrMsg_TB = {Get_Sel_ErrMsg}
-ErrMsg_Status = 1
-       for key,btn    in pairs(ErrMsg_TB)   do btn:draw()    
-     gfx.update()
-    r.defer(Msg)
-  end
-  end
-if ErrMsg_Status ~= 1 then
-Msg()
-end
-
---------------------------------------End of Error Message1-------------------------------------------
-Init()
-
-  return
-
-  end -- не запускать, если нет айтемов.
-]]--
-
---sel_tracks_items() 
 selected_tracks_count = r.CountSelectedTracks(0)
 
   if selected_tracks_count > 1 then
@@ -5323,8 +5279,6 @@ end -- не запускать, если MIDI айтем.
 
    r.Main_OnCommand(41844, 0)  ---Delete All Markers  
 
---  sel_tracks_items() 
-
 function pitch_and_rate_check()
      selected_tracks_count = r.CountSelectedTracks(0)
      number_of_takes =  r.CountSelectedMediaItems(0)
@@ -5389,8 +5343,8 @@ pitch_and_rate_check()
         
           elseif (Midi_Sampler.norm_val == 3) then  
                  cursorpos = r.GetCursorPosition()
+                       MIDIPitch_Status = 1
                        Pitch_Det_offs_stat = 1
-                  --     Wave:Create_Track_Accessor() 
                        Wave:Just_Slice() 
                        MIDITrigger_pitched()
 
@@ -5410,7 +5364,9 @@ local Checkbox_TB_preset = {Sampler_preset}
 local Button_TB = {Get_Sel_Button, Settings, Just_Slice, Quantize_Slices, Add_Markers, Quantize_Markers, Random, Reset_All, Random_SetupB}
 local Button_TB2 = {Create_MIDI, Midi_Sampler}
 local Pitch_Det_Options_TB = {Pitch_Det_Options, Pitch_Det_Options2, Pitch_Preset}
-local  Create_Replace_TB = {others_table[11], others_table[12], others_table[13], Create_Replace}
+local  Create_Replace_TB = {others_table[11], others_table[12], others_table[13]}
+local  Create_Replace_TB2 = {Create_Replace} --trigger
+local  Create_Replace_TB3 = {Create_Replace2} --pitch detection
 local Random_Setup_TB2 = {elm_table[6], elm_table[7], Random_OrderB, Random_VolB, Random_PitchB, Random_PanB, Random_MuteB, Random_PositionB, Random_ReverseB, Random_SetupClearB}
  
 -------------------------------------------------------------------------------------
@@ -5605,7 +5561,7 @@ function Gate_Gl:Reduce_Points() -- Надо допилить!!!
 -------------------------------------------------------------------------------
 
 function DrawGridGuides()
---local start_time = reaper.time_precise()
+
 local lastitem = r.GetExtState('_Slicer_', 'ItemToSlice')
      
      local item =  r.BR_GetMediaItemByGUID( 0, lastitem )
@@ -5633,7 +5589,6 @@ local blueline = loop_start
    end 
  end 
 
---reaper.ShowConsoleMsg("Full Process time = " .. reaper.time_precise()-start_time .. '\n') -- time test 
 end
 
 -----------------------------------------------------------------------
@@ -5867,7 +5822,7 @@ function Wave:GetSet_MIDITake()
 
         tracknum = r.GetMediaTrackInfo_Value(self.track, "IP_TRACKNUMBER")
 
-        if Create_Replace.norm_val == 1 then r.InsertTrackAtIndex(tracknum, false) end
+        if Create_Replace.norm_val == 1 or Create_Replace2.norm_val == 1 then r.InsertTrackAtIndex(tracknum, false) end
 
         midi_track = r.GetTrack(0, tracknum)
         r.TrackList_AdjustWindows(0)
@@ -6690,15 +6645,21 @@ end
 ------------------------------------------------------------------------------------------------
 
 function Wave:Reset_All()
-
-if Random_Status == 1 then
+r.PreventUIRefresh(1)
+if Random_Status == 1 or Trigg_Status == 1 then
    if  Slice_Status == 1 then
      r.Main_OnCommand(40029, 0)  -- Undo
    else
      r.Main_OnCommand(40029, 0)  -- Undo
-     r.Main_OnCommand(40548, 0)     -- Heal Slices
+       if Pitch_Det_Status == 1 then
+           r.Main_OnCommand(40029, 0)  -- Undo
+           else
+           r.Main_OnCommand(40548, 0)     -- Heal Slices
+       end
    end
 Random_Status = 0
+Trigg_Status = 0
+Pitch_Det_Status = 0
 end
 
 SliceQ_Init_Status = 1
@@ -6710,7 +6671,7 @@ if Reset_Status == 1 then
 if Markers_Status ~= 0 or Slice_Init_Status ~= 0 then
 
  r.Undo_BeginBlock() 
-r.PreventUIRefresh(1)
+
 ------------------------------------------------------------------------------------------
 r.Main_OnCommand(r.NamedCommandLookup('_SWS_SAVESEL'), 0)  -- Save track selection
 
@@ -7067,11 +7028,6 @@ end
 -------------------------------------------------------------------
 function TransposeNotesToKickSnareHat()
 
-HatThreshold = HatThreshold -- velocity. Lowest vel becomes to hat, highest becomes to snare.
-local KickNote = 35
-local SnareNote = 38
-local HatNote = 42
-
 local collect_pitch = {}
 local retval, ret, sel, muted, startppq, endppq, chan, pitch, vel
  local item = r.GetSelectedMediaItem(0, 0)
@@ -7221,16 +7177,14 @@ function Wave:Detect_pitch()
          local attThresh_dB = -6  -- curve level above which the script turns on 
          local relThresh_dB = -12  -- curve level below which the script turns off
 
-
-
          if Pitch_Preset.norm_val == 1 then
              pitch_preset = 0.025 -- Drums
              peakrate = 1000
-             HatThreshold = 70
+             HatThreshold = 70 -- velocity. Lowest vel becomes to hat, highest becomes to snare.
              elseif Pitch_Preset.norm_val == 2 then
              pitch_preset = 0.005 -- Drums 2
              peakrate = 1000
-             HatThreshold = 85
+             HatThreshold = 85 -- velocity. Lowest vel becomes to hat, highest becomes to snare.
              attThresh_dB = -6
              relThresh_dB = -14
              elseif Pitch_Preset.norm_val == 3 then
@@ -7406,81 +7360,231 @@ for i=0, items-1 do
 end
 ------------------
 
+No_Midi = 0  -- initial states
+Item_Coloring = 0
+ 
+if Create_Replace2.norm_val == 3 then No_Midi = 1 
+elseif Create_Replace2.norm_val == 4 then No_Midi = 1; Item_Coloring = 1 
+end 
+
 ----------------------------------Create MIDI-------------------------------------------------------------------------
-         local item, take = Wave:GetSet_MIDITake()
-         if not take then return end 
 
-         r.MIDI_DisableSort(take)
+        local next_startppqpos, p0sition2, note2, duration2, velocity2, a_end2, fix_length, detect_ppqpos2, pow2
+        local items_t = #item_table 
 
-          local next_startppqpos, p0sition2, note2, duration2, velocity2, a_end2, fix_length, detect_ppqpos2, pow2
-
-           if (Guides.norm_val == 1) then -- staccato note length in Transient mode
-                  fix_length = 240
-                     else  -- staccato note length in Grid mode (half grid)
-                  local _, division, _, _ = r.GetSetProjectGrid(0,false)
-                  fix_length = division*1920 
-           end
-
-      local items_t = #item_table 
-          if items_t ~= 0 then
-                   for k=0, items_t do  
-                                         p0sition2 = item_table[k].p0sition_id       
-                                         note2 = item_table[k].note_id  
-                                         duration2 =  item_table[k].duration_id
-                                         velocity2 =  item_table[k].vel_id
-                                         a_end2 =  item_table[k].a_end
-                                         pow2 =  item_table[k].pow
+   if No_Midi == 0 then --create midi
+   
+      local item_midi, take_midi = Wave:GetSet_MIDITake()
+   
+            if not take_midi then return end 
+   
+            r.MIDI_DisableSort(take_midi)
+   
+              if (Guides.norm_val == 1) then -- staccato note length in Transient mode
+                     fix_length = 240
+                        else  -- staccato note length in Grid mode (half grid)
+                     local _, division, _, _ = r.GetSetProjectGrid(0,false)
+                     fix_length = division*1920 
+              end
+   
+             if items_t ~= 0 then
+                      for k=0, items_t do  
+                                            p0sition2 = item_table[k].p0sition_id       
+                                            note2 = item_table[k].note_id  
+                                            duration2 =  item_table[k].duration_id
+                                            velocity2 =  item_table[k].vel_id
+                                            a_end2 =  item_table[k].a_end
+                                            pow2 =  item_table[k].pow
+       
+                           start_ppqpos = r.MIDI_GetPPQPosFromProjTime(take_midi, p0sition2 )
+                           end_ppqpos = r.MIDI_GetPPQPosFromProjTime(take_midi, duration2 )
+                           detect_ppqpos = r.MIDI_GetPPQPosFromProjTime(take_midi, a_end2 )
+       
+                           if (Guides.norm_val == 1) then -- 
+                                 detect_ppqpos2 = detect_ppqpos
+                                   else -- fix note length in Grid mode 
+                                 detect_ppqpos2 = start_ppqpos+fix_length
+                           end
+       
+                           if Pitch_Det_Options2.norm_val == 1 then -- length, detected
+                                  note_length = detect_ppqpos
+       
+                                              ----------------del overlaps -----------
+                                                  if k<items-1 then next_startppqpos = r.MIDI_GetPPQPosFromProjTime(take_midi, item_table[k+1].p0sition_id ) -- next note position
+                                                        if next_startppqpos<detect_ppqpos then    -- del overlaps 
+                                                            note_length = min(detect_ppqpos2, next_startppqpos) 
+                                                        end
+                                                  end
+                                             -----------------------------------------
+       
+                           elseif Pitch_Det_Options2.norm_val == 2 then  -- staccato, fixed
+       
+                                 note_length = start_ppqpos+fix_length
+                                              ----------------del overlaps -----------
+                                                  if k<items-1 then next_startppqpos = r.MIDI_GetPPQPosFromProjTime(take_midi, item_table[k+1].p0sition_id ) -- next note position
+                                                        if next_startppqpos<start_ppqpos+fix_length then    -- del overlaps 
+                                                            note_length = min(end_ppqpos, next_startppqpos)-10
+                                                        end
+                                                  end
+                                              if note_length > start_ppqpos+240 then note_length = start_ppqpos+240 end -- length limiter
+                                             -----------------------------------------
+                               elseif Pitch_Det_Options2.norm_val == 3 then  -- legato
+                                  note_length = end_ppqpos-2
+                           end
+       
+                            if k == 0 and velocity2 < 35 then note2 = nil end
+       
+                               if note2 then
+                                   r.MIDI_InsertNote(take_midi, 1, 0, start_ppqpos, note_length, 0, note2, velocity2, true)
+                               end
+       
+                       end -- end of Create MIDI
+            end
+            
+                           r.MIDI_Sort(take_midi)           -- sort notes
+                           r.UpdateItemInProject(item_midi) -- update item
+   
+       if Pitch_Preset.norm_val == 1 or Pitch_Preset.norm_val == 2 then TransposeNotesToKickSnareHat() end
     
-                        start_ppqpos = r.MIDI_GetPPQPosFromProjTime(take, p0sition2 )
-                        end_ppqpos = r.MIDI_GetPPQPosFromProjTime(take, duration2 )
-                        detect_ppqpos = r.MIDI_GetPPQPosFromProjTime(take, a_end2 )
+           else -- or wave items renaming
+   
+      r.Undo_BeginBlock()
+      r.PreventUIRefresh(1)
+   
+   -----------------------Rainbow Color Palette------------------------------------
+   color1 = (194 << 16) | (70 << 8) | 70 -- rgb to native: (R << 16) | (G << 8) | B
+   color2 = (193 << 16) | (109 << 8) | 85
+   color3 = (193 << 16) | (142 << 8) | 73
+   color4 = (197 << 16) | (178 << 8) | 90
+   color5 = (125 << 16) | (183 << 8) | 74
+   color6 = (83 << 16) | (183 << 8) | 111
+   color7 = (85 << 16) | (189 << 8) | 189
+   color8 = (77 << 16) | (160 << 8) | 177
+   color9 = (98 << 16) | (135 << 8) | 183
+   color10 = (109 << 16) | (98 << 8) | 187
+   color11 = (156 << 16) | (80 << 8) | 189
+   color12 = (198 << 16) | (88 << 8) | 133
+   ----------------------------------------------------------------------------------
     
-                        if (Guides.norm_val == 1) then -- 
-                              detect_ppqpos2 = detect_ppqpos
-                                else -- fix note length in Grid mode 
-                              detect_ppqpos2 = start_ppqpos+fix_length
+               local collect_pitch_x = {}
+               local table_p = 0
+
+     if Pitch_Preset.norm_val == 1 or Pitch_Preset.norm_val == 2 then -- if Drums or Drums2 presets
+     
+                   local track = r.GetSelectedTrack(0,0,0) -- first selected track
+                   local items_count = r.CountSelectedMediaItems(0)   
+                       for ii=0, items_count-1 do
+                               local item = r.GetSelectedMediaItem(0,ii)
+                               it_pitch = item_table[ii].note_id  
+                               it_vel =  item_table[ii].vel_id
+            
+                               if it_pitch then
+                                      it_pitch = tonumber(it_pitch) -- convert string "x" to number x
+                
+                                      if it_vel and it_vel > HatThreshold then 
+                                           collect_pitch_x[table_p] = it_pitch
+                                      end  
+                              end
+                        table_p = table_p+1
                         end
-    
-                        if Pitch_Det_Options2.norm_val == 1 then -- length, detected
-                               note_length = detect_ppqpos
-    
-                                           ----------------del overlaps -----------
-                                               if k<items-1 then next_startppqpos = r.MIDI_GetPPQPosFromProjTime(take, item_table[k+1].p0sition_id ) -- next note position
-                                                     if next_startppqpos<detect_ppqpos then    -- del overlaps 
-                                                         note_length = min(detect_ppqpos2, next_startppqpos) 
-                                                     end
-                                               end
-                                          -----------------------------------------
-    
-                        elseif Pitch_Det_Options2.norm_val == 2 then  -- staccato, fixed
-    
-                              note_length = start_ppqpos+fix_length
-                                           ----------------del overlaps -----------
-                                               if k<items-1 then next_startppqpos = r.MIDI_GetPPQPosFromProjTime(take, item_table[k+1].p0sition_id ) -- next note position
-                                                     if next_startppqpos<start_ppqpos+fix_length then    -- del overlaps 
-                                                         note_length = min(end_ppqpos, next_startppqpos)-10
-                                                     end
-                                               end
-                                           if note_length > start_ppqpos+240 then note_length = start_ppqpos+240 end -- length limiter
-                                          -----------------------------------------
-                            elseif Pitch_Det_Options2.norm_val == 3 then  -- legato
-                               note_length = end_ppqpos-2
-                        end
-    
-                         if k == 0 and velocity2 < 35 then note2 = nil end
-                   --      if k == 0 and pow2 < 0.6  then note2 = nil end
-    
-                            if note2 then
-                                r.MIDI_InsertNote(take, 1, 0, start_ppqpos, note_length, 0, note2, velocity2, true)
+            
+                ----------------------------------- find lowest note---------------------------------
+                  local key_x, min_x = 1, collect_pitch_x[1]
+                       for k, v in ipairs(collect_pitch_x) do
+                           if collect_pitch_x[k] < min_x then
+                               min_x = v
+                           end
+                       end
+              
+     end
+
+
+   local    track = r.GetSelectedTrack(0,0,0) -- first selected track
+   local    items_count = r.CountSelectedMediaItems(0)   
+           for i=0, items_count-1 do
+                   item = r.GetSelectedMediaItem(0,i)
+                   take = r.GetActiveTake(item)
+                   itm_name = item_table[i].note_id  
+                   itm_vel =  item_table[i].vel_id
+   
+                     if itm_name then
+   
+                        itm_name = tonumber(itm_name) -- convert string "x" to number x
+
+
+    if Pitch_Preset.norm_val == 1 or Pitch_Preset.norm_val == 2 then  -- drums
+
+                       if min_x then
+                             itm_name = itm_name+(KickNote-min_x) -- kick and overal pitch
+                       end
+
+                       if itm_vel <= HatThreshold then
+                              itm_note = 'Hat' -- hats
+                              color_x = color7
+                         else
+                           if itm_vel > HatThreshold then
+                                if itm_name >= 37 then
+                                    itm_note = 'Snare' -- snare
+                                    color_x = color4
+                                end
                             end
-    
-                    end -- end of Create MIDI
-         end
-         
-                        r.MIDI_Sort(take)           -- sort notes
-                        r.UpdateItemInProject(item) -- update item
+                       end
 
-    if Pitch_Preset.norm_val == 1 or Pitch_Preset.norm_val == 2 then TransposeNotesToKickSnareHat() end
+                       if itm_name < 37 and itm_vel > HatThreshold then
+                          itm_note = 'Kick' -- any lowest to kick
+                          color_x = color12
+                       end
+
+             itm_name_oct = ("" .. itm_note .. "") -- create note + octave number string
+
+    else -- melodic
+
+                        if itm_name % 12 == 0 or itm_name == 0 then itm_note = 'C' color_x = color1; -- convert note numbers to notes
+                             elseif (itm_name+11) % 12 == 0 then itm_note = 'C#' color_x = color2;
+                             elseif (itm_name+10) % 12 == 0 then itm_note = 'D' color_x = color3;
+                             elseif (itm_name+9) % 12 == 0 then itm_note = 'D#' color_x = color4;
+                             elseif (itm_name+8) % 12 == 0 then itm_note = 'E' color_x = color5;
+                             elseif (itm_name+7) % 12 == 0 then itm_note = 'F' color_x = color6;
+                             elseif (itm_name+6) % 12 == 0 then itm_note = 'F#' color_x = color7;
+                             elseif (itm_name+5) % 12 == 0 then itm_note = 'G' color_x = color8;
+                             elseif (itm_name+4) % 12 == 0 then itm_note = 'G#' color_x = color9;
+                             elseif (itm_name+3) % 12 == 0 then itm_note = 'A' color_x = color10;
+                             elseif (itm_name+2) % 12 == 0 then itm_note = 'A#' color_x = color11;
+                             elseif (itm_name+1) % 12 == 0 then itm_note = 'B' color_x = color12;
+                        end
+   
+        
+                       if itm_name < 12 then add_oct = '-1' -- get octave numbers
+                           elseif itm_name >= 12 and itm_name < 24 then add_oct = '0' 
+                           elseif itm_name >= 24 and itm_name < 36 then add_oct = '1' 
+                           elseif itm_name >= 36 and itm_name < 48 then add_oct = '2' 
+                           elseif itm_name >= 48 and itm_name < 60 then add_oct = '3' 
+                           elseif itm_name >= 60 and itm_name < 72 then add_oct = '4' 
+                           elseif itm_name >= 72 and itm_name < 84 then add_oct = '5' 
+                           elseif itm_name >= 84 and itm_name < 96 then add_oct = '6' 
+                           elseif itm_name >= 96 and itm_name < 108 then add_oct = '7' 
+                           elseif itm_name >= 108 and itm_name < 120 then add_oct = '8' 
+                           elseif itm_name >= 120 then add_oct = '9' 
+                       end
+        
+                       itm_name_oct = ("" .. itm_note .. add_oct .. "") -- create note + octave number string
+
+      end
+
+                       r.GetSetMediaItemTakeInfo_String(take, 'P_NAME', itm_name_oct, 1) -- set name
+                       if Item_Coloring == 1 then 
+                           Cr, Cg, Cb = r.ColorFromNative(color_x)
+                           r.SetMediaItemInfo_Value( item, "I_CUSTOMCOLOR", reaper.ColorToNative(Cr, Cg, Cb)|0x1000000 ) -- set color
+                       end
+                 end
+            end
+   
+            r.PreventUIRefresh(-1)
+            r.Undo_EndBlock('Renaming Item(s)', -1)
+   
+   end
+
+
 
 end -- end of function Wave:Detect_pitch()
 
@@ -8317,9 +8421,16 @@ end
          end
      end
 
-                   if (Midi_Sampler.norm_val == 3 or Midi_Sampler.norm_val == 2) and Random_Setup ~= 1 then        
+                   if (Midi_Sampler.norm_val == 2) and Random_Setup ~= 1 then        
                         for key,frame  in pairs(Create_Replace_TB)    do frame:draw()  end 
+                        for key,frame  in pairs(Create_Replace_TB2)    do frame:draw()  end 
                   end
+
+                   if (Midi_Sampler.norm_val == 3) and Random_Setup ~= 1 then        
+                        for key,frame  in pairs(Create_Replace_TB)    do frame:draw()  end 
+                        for key,frame  in pairs(Create_Replace_TB3)    do frame:draw()  end 
+                  end
+
 
      if Guides.norm_val == 1  then
         for key,frame  in pairs(Frame_TB1)    do frame:draw()  end   
@@ -8625,7 +8736,7 @@ end
 function MIDITrigger()
    if Guides.norm_val == 1 then
      if Wave.State then Wave:Create_MIDI() end
-     Wave.State = false -- reset Wave.State
+     --Wave.State = false -- reset Wave.State
    end 
 end
 
@@ -8638,9 +8749,6 @@ function MIDITrigger_pitched()
          tggl_state = r.GetToggleCommandState(42294)
      
          if tggl_state == 0 then r.Main_OnCommand(42303,0) end
-
-      --   r.ClearPeakCache()
-      --   r.Main_OnCommand(40441,0) --rebuild peaks
 
          r.Main_OnCommand(40178, 0) -- Set take channel mode to mono (downmix)
          r.Main_OnCommand(40108, 0) -- Normalize
@@ -8670,21 +8778,31 @@ function MIDITrigger_pitched()
                  r.PreventUIRefresh(1)
                  -----------------------------------------------
                  if Wave.State then Wave:Detect_pitch() end
-                 Wave.State = false -- reset Wave.State
+             --    Wave.State = false -- reset Wave.State
                  -----------------------------------------------
 
                  ---------------we finish what we started in GetSet_MIDITake()-----------------
+
+            if Create_Replace2.norm_val ~= 3 and Create_Replace2.norm_val ~= 4 then
                  r.Main_OnCommand(r.NamedCommandLookup('_SWS_RESTALLSELITEMS1'), 0) -- SWS: Restore saved selected item(s)
+            end
+
                  r.Main_OnCommand(40635, 0) -- Time selection: Remove (unselect) time selection
 
                  if tggl_state == 0 then r.Main_OnCommand(42303,0) end -- 42294
 
                  r.Main_OnCommand(40176, 0)  -- Set take channel mode to normal
+
+            if Create_Replace2.norm_val ~= 3 and Create_Replace2.norm_val ~= 4 then
                  r.Main_OnCommand(40548, 0)  -- Heal Splits
+            end
+
                  r.Main_OnCommand(r.NamedCommandLookup('_SWS_RESTORESEL'), 0)  -- Restore track selection
                  Pitch_Det_offs_stat = 0
+                 Trigg_Status = 1
+                 Pitch_Det_Status = 1
+                 MIDIPitch_Status = 0
                  r.SetEditCurPos(cursorpos,0,0)
-               --  r.TrackList_AdjustWindows(0) 
 
                 ------------------------------------
                  if count_tracks == trackID then
@@ -8727,6 +8845,7 @@ function store_settings2() --store sliders/checkboxes
         r.SetExtState('cool_MK Slicer.lua','Midi_Sampler.norm_val',Midi_Sampler.norm_val,true);
         r.SetExtState('cool_MK Slicer.lua','Sampler_preset.norm_val',Sampler_preset.norm_val,true);
         r.SetExtState('cool_MK Slicer.lua','Create_Replace.norm_val',Create_Replace.norm_val,true);
+        r.SetExtState('cool_MK Slicer.lua','Create_Replace2.norm_val',Create_Replace2.norm_val,true);
         r.SetExtState('cool_MK Slicer.lua','Pitch_Det_Options.norm_val',Pitch_Det_Options.norm_val,true);
         r.SetExtState('cool_MK Slicer.lua','Pitch_Det_Options2.norm_val',Pitch_Det_Options2.norm_val,true);
         r.SetExtState('cool_MK Slicer.lua','QuantizeStrength',QStrength_Sld.form_val,true);
@@ -8770,7 +8889,7 @@ function Init()
     -- Some gfx Wnd Default Values ---------------
     local R,G,B = 45,45,45              -- 0...255 format -- цвет основного окна
     local Wnd_bgd = R + G*256 + B*65536 -- red+green*256+blue*65536  
-    local Wnd_Title = "MK Slicer v2.5"
+    local Wnd_Title = "MK Slicer v2.52"
     local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
  --   Wnd_W,Wnd_H = 1044,490 -- global values(used for define zoom level)
 
@@ -9109,7 +9228,7 @@ gfx.quit()
      dock_pos = dock_pos or 1025
      xpos = 400
      ypos = 320
-     local Wnd_Title = "MK Slicer v2.5"
+     local Wnd_Title = "MK Slicer v2.52"
      local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
      gfx.init( Wnd_Title, Wnd_W,Wnd_H, Wnd_Dock, Wnd_X,Wnd_Y )
 
@@ -9121,7 +9240,7 @@ gfx.quit()
     dock_pos = 0
     xpos = r.GetExtState("cool_MK Slicer.lua", "window_x") or 400
     ypos = r.GetExtState("cool_MK Slicer.lua", "window_y") or 320
-    local Wnd_Title = "MK Slicer v2.5"
+    local Wnd_Title = "MK Slicer v2.52"
     local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
     gfx.init( Wnd_Title, Wnd_W,Wnd_H, Wnd_Dock, Wnd_X,Wnd_Y )
  
@@ -9357,6 +9476,7 @@ Reset_to_def = 1
      DefMIDI_Mode =  1;
      DefSampler_preset_state =  1;
      DefCreate_Replace_state =  1
+     DefCreate_Replace_state2 =  1
      DefPitch_Det_Options_state =  1;
      DefPitch_Det_Options_state2 =  1;
      DefGuides_mode =  1;
@@ -9380,6 +9500,7 @@ Reset_to_def = 1
       r.SetExtState('cool_MK Slicer.lua','Midi_Sampler.norm_val',DefMIDI_Mode,true);
       r.SetExtState('cool_MK Slicer.lua','Sampler_preset.norm_val',DefSampler_preset_state,true);
       r.SetExtState('cool_MK Slicer.lua','Create_Replace.norm_val',DefCreate_Replace_state,true);
+      r.SetExtState('cool_MK Slicer.lua','Create_Replace.norm_val',DefCreate_Replace_state2,true);
       r.SetExtState('cool_MK Slicer.lua','Pitch_Det_Options.norm_val',DefPitch_Det_Options_state,true);
       r.SetExtState('cool_MK Slicer.lua','Pitch_Det_Options2.norm_val',DefPitch_Det_Options_state2,true);
       r.SetExtState('cool_MK Slicer.lua','XFadeOff',DefXFadeOff,true);
