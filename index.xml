@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="8f428909de8b4594c6db149a40fcf580f4b0c446" name="ReaTeam Scripts">
+<index version="1" commit="ef4fa64d015696bd237c09fbb760c8788dd3939a" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -6190,6 +6190,13 @@ Override Reaper option "Toggle enable/disable default fadein/fadeout" (on/off)]]
 + Increased the maximum width of the waveform window for ultra-wide screens.
 + Donate service changed to valid.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/39c88e9abb515d881acabf0d551c8afc25fae905/Items%20Editing/cool_MK%20Slicer.lua</source>
+      </version>
+      <version name="2.52" author="cool" time="2022-10-06T05:37:33Z">
+        <changelog><![CDATA[+ Added "No MIDI" mode for Pitch Detection: note names are added to audio items.
++ Now in the Pitch Detection mode, repeatedly pressing the MIDI button does not break the item.
++ Now, after pressing the MIDI button in Trigger and Pitch Detection modes, the waveform remains active and you can immediately continue working.
++ Now the Reset All button can undo the actions of the MIDI button in Trigger and Pitch Detection modes.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ef4fa64d015696bd237c09fbb760c8788dd3939a/Items%20Editing/cool_MK%20Slicer.lua</source>
       </version>
     </reapack>
     <reapack name="Demoji_Next Variation.lua" type="script" desc="Next Variation">
