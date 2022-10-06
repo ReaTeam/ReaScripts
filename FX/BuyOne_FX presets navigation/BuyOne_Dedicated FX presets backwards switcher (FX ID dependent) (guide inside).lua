@@ -6,12 +6,13 @@
 * Author: BuyOne
 * Author URL: https://forum.cockos.com/member.php?u=134058
 * Licence: WTFPL
-* Version: 1.0
+* Version: 1.1
 * Forum Thread:
 * Demo:
 * REAPER: at least v5.962
 * Changelog:
 	+ v1.0 	Initial release
+	+ v1.1	Added option for using custom preset lists for selective cycling
 
 --############################## G U I D E #####################################
 
@@ -43,20 +44,31 @@ The link between the script and the FX is based on the FX ID therefore it won't 
 broken up if the FX position is changed within the FX chain or if it's moved to another
 object with Alt(Option)+Left drag.
 
-!!! WARNING !!! Preset change creates an undo point unless it's a Monitor FX
+The script can work with a custom preset list allowing cycling through a selection
+of presets rather than the entire list, see CUSTOM_PRESET_LIST setting
+in the USER SETTINGS below.
+
+
+!!! WARNING !!!
+
+Preset change creates an undo point unless it's a Monitor FX
 
 If after closing the FX UI you happen to forget which FX it was, you can look up
 its details in the undo point its preset change creates in the REAPER Undo log
 accessible from the main menu panel or via action 'View: Show undo history window'.
 
+If in the preset list, either full or custom, there're presets with identical names
+the script will glitch due to REAPER API bug https://forum.cockos.com/showthread.php?t=270990
+and won't allow cycling through all presets in the list
+
 
 	## VIDEO PROCESSOR PLUGIN
 
-Video prosessor is supported since REAPER build 6.26 in which its preset navigation via 
+Video prosessor is supported since REAPER build 6.26 in which its preset navigation via
 API was introduced.
 
 HOWEVER Video processor instances in the FX chain are named after the selected preset.
-When the TAG is applied the name is effectively replaced with the custom one and no longer 
+When the TAG is applied the name is effectively replaced with the custom one and no longer
 updated to reflect the currently selected preset.
 
 
@@ -96,7 +108,7 @@ The action marker name must end with either the preset number or the preset name
 Although the preset number must be counted, its name can be easily copied by selecting
 the preset, clicking the '+' button on the FX panel and selecting 'Rename preset...'
 option. Alternatively you could use
-BuyOne_Extract focused FX preset count, active preset number and name.lua script.
+'BuyOne_Extract focused FX preset count, list, active preset number and name.lua' script.
 
 If preset number or preset name featuring in the action marker aren't found in
 the FX preset list or are left out of the action marker name, previous preset is selected.
@@ -108,8 +120,32 @@ the FX preset list or are left out of the action marker name, previous preset is
 -----------------------------------------------------------------------------
 -- Place any alphanumeric character or a combination thereof without spaces
 -- between the double square brackets next to it.
-
 TAG = [[PC]]
+
+-- Replace the text between the double square brackets
+-- with the list of presets obtained using
+-- 'BuyOne_Extract focused FX preset count, list, active preset number and name.lua' script
+-- and select presets for cycling by prefixing their number in the list with +, e.g:
+-- +34 MY_PRESET_1
+-- 35 MY_PRESET_2
+-- +36 MY_PRESET_3
+-- adding the entire extracted list isn't necessary
+-- as long as the entries which are added are marked with +;
+-- the script can be used with any plugin whose preset NUMBERS
+-- match those in the custom list regardless of their names,
+-- if you want it to work exclusively with the plugin the list
+-- originally belongs to, let me know;
+-- it's a good idea to write down what plugin on which track/item
+-- is linked to the script or wrap the script in a custom action
+-- having included the plugin data in the custom action name,
+-- in the latter case the custom action command ID can be used
+-- in action markers to trigger the script
+CUSTOM_PRESET_LIST =
+[[
+
+R E P L A C E  T H I S  T E X T
+
+]]
 
 -----------------------------------------------------------------------------
 -------------------------- END OF USER SETTINGS -----------------------------
@@ -192,8 +228,61 @@ local ret, fx_GUID = r.GetProjExtState(0, scr_name, 'PRESET_SWITCHER_DATA')
 			r.Main_SaveProject(0, mode)
 			else end
 		r.defer(function() end) return end
-
 	end
+
+
+function Construct_Custom_Preset_Array(CUSTOM_PRESET_LIST)
+-- since this array is index based, the custom list can be used with presets
+-- of any plugin as long as their indices match those in the array;
+-- in order to limit the custom list to specific plugin
+-- its name can be included as the 2nd field, e.g.
+-- t[#t+1] = {idx-1, line:match('%d (.+)')}
+-- to be then evaluated against the currently or next selected preset inside Switch_FX_Preset() function
+local t = {}
+	for line in CUSTOM_PRESET_LIST:gmatch('[^\n]+') do
+		if 	line:sub(1,1) == '+' then
+		local idx = tonumber(line:match('^%+%s*(%d+)'))
+			if idx then t[#t+1] = idx-1 end -- -1 since the listed indices count is 1-based
+		end
+	end
+return t
+end
+
+
+function Switch_FX_Preset(obj, fx_idx, cust_pres_list_t, forward)
+
+local tr, take = r.ValidatePtr(obj, 'MediaTrack*'), r.ValidatePtr(obj, 'MediaItem_Take*')
+local get_pres_idx, set_preset, navigate_presets = table.unpack(tr and {r.TrackFX_GetPresetIndex, r.TrackFX_SetPresetByIndex, r.TrackFX_NavigatePresets} or take and {r.TakeFX_GetPresetIndex, r.TakeFX_SetPresetByIndex, r.TakeFX_NavigatePresets})
+local cur_pres_idx, pres_cnt = get_pres_idx(obj, fx_idx) -- only needed if set_preset() function is used below
+
+	if (not cust_pres_list_t or cust_pres_list_t and #cust_pres_list_t == 0) and cur_pres_idx > -1 and pres_cnt > 0	then
+		if cur_pres_idx == pres_cnt then -- 'No preset' is selected, in which case these values are equal (the index is out of the 0-based range), start from the beginning or the end of the list, navigate_presets() for some reason starts from the 2nd preset
+		set_preset(obj, fx_idx, forward and 0 or pres_cnt-1)
+		else -- navigate as normal
+		navigate_presets(obj, fx_idx, forward and 1 or -1)
+		end
+	elseif cust_pres_list_t and #cust_pres_list_t > 1 then
+		for k, pres_idx in ipairs(cust_pres_list_t) do -- search for the current preset idx in the table the select one from the next table slot
+			if pres_idx == cur_pres_idx then
+			local next_pres_idx = forward and cust_pres_list_t[k+1] or not forward and cust_pres_list_t[k-1]
+			local next_pres_idx = forward and not next_pres_idx and cust_pres_list_t[1] or not forward and not next_pres_idx and cust_pres_list_t[#cust_pres_list_t] or next_pres_idx -- next_pres_idx being nil means that the value is out of the table's range hence the count needs to be wrapped around
+			set_preset(obj, fx_idx, next_pres_idx) -- -1 since the indices are saved from 1-based count
+			break
+			elseif cur_pres_idx == pres_cnt then -- if the plugin started out with 'No preset' selected in which case these values are equal (the index is out of the 0-based range) and custom list routines won't work
+			local new_pres_idx = forward and cust_pres_list_t[1] or not forward and cust_pres_list_t[#cust_pres_list_t] -- start from the 1st if forward and from the last if backwards
+			set_preset(obj, fx_idx, new_pres_idx)
+			break
+			else -- if a preset not from the custom list is currently active, select first preset from the list which is greater or smaller than the index of the current preset depending on the cycling direction
+				for _, pres_idx in ipairs(cust_pres_list_t) do
+					if forward and pres_idx > cur_pres_idx or not forward and pres_idx < cur_pres_idx then
+					set_preset(obj, fx_idx, pres_idx)
+					break end
+				end
+			end
+		end
+	end
+
+end
 
 
 function GetPreset(cmd_ID)
@@ -207,7 +296,8 @@ local play_state = r.GetPlayState()
 	local play_pos = r.GetPlayPosition()
 	local mrk_idx, reg_idx = reaper.GetLastMarkerAndCurRegion(0, play_pos)
 	local retval, isrgn, mrk_pos, rgnend, mrk_name, mrk_num = reaper.EnumProjectMarkers(mrk_idx)
-	local preset = mrk_name:match('!.*%s(.*)$')
+	local preset = mrk_name:match('!.-%s+(.+)$') -- accounting for mulitple leading empty spaces
+	local preset = preset:match('.+[%w%p]') -- trimming trailing empty space if any
 	return type(tonumber(preset)) == 'number' and tonumber(preset) or preset -- either index or name
 	end
 
@@ -216,11 +306,11 @@ end
 
 -- these functions are used for convenient breaking out from a nested loop with return and to cut down redundancy
 
-function NavigateTrackFXPresets(tr, fx_type, fx_cnt, fx_GUID, TAG, preset)
+function NavigateTrackFXPresets(tr, fx_type, fx_cnt, fx_GUID, TAG, preset, cust_pres_list_t)
 
 	if fx_cnt > 0 then
 		for i = 0, fx_cnt-1 do
-		local fx_num = obj_type == '10' and i or i+0x1000000
+		local fx_num = fx_type == 1 and i or i+0x1000000
 		local fx_guid = r.TrackFX_GetFXGUID(tr, fx_num)
 		local _, fx_name = r.TrackFX_GetFXName(tr, fx_num,'')
 		local tag = EvaluateTAG(fx_name,TAG)
@@ -228,9 +318,9 @@ function NavigateTrackFXPresets(tr, fx_type, fx_cnt, fx_GUID, TAG, preset)
 			local _, preset_cnt = r.TrackFX_GetPresetIndex(tr, fx_num)
 				if preset_cnt == 0 then tag = 'no presets' return tag
 				else
-				local pres = (preset and type(preset) == 'number' and preset <= preset_cnt) and r.TrackFX_SetPresetByIndex(tr, fx_num, preset-1) -- if index, -1 since count starts from zero
-				or (preset and r.TrackFX_SetPreset(tr, fx_num, preset) -- if name
-				or r.TrackFX_NavigatePresets(tr, fx_num, -1)) -- -1 = backwards
+				local pres = preset and type(preset) == 'number' and preset <= preset_cnt and r.TrackFX_SetPresetByIndex(tr, fx_num, preset-1) -- if preset index is used in an action marker // -1 since count starts from zero
+				or preset and r.TrackFX_SetPreset(tr, fx_num, preset) -- if preset name is used in an action marker
+				or Switch_FX_Preset(tr, fx_num, cust_pres_list_t, false) -- if the script is run manually // forward false
 				_, tr_name = r.GetTrackName(tr)
 				_, pres_name = r.TrackFX_GetPreset(tr, fx_num, '') -- for undo caption
 				return tag, tr_name, fx_name, fx_num, pres_name end -- except the tag the values are meant for undo caption, fx_num for being able to distingush between main and input/mon fx
@@ -240,7 +330,7 @@ function NavigateTrackFXPresets(tr, fx_type, fx_cnt, fx_GUID, TAG, preset)
 
 end
 
-function NavigateTakeFXPresets(fx_GUID, TAG, preset)
+function NavigateTakeFXPresets(fx_GUID, TAG, preset, cust_pres_list_t)
 
 	if r.CountMediaItems(0) > 0 then
 		for i = 0, r.CountMediaItems(0)-1 do
@@ -257,9 +347,9 @@ function NavigateTakeFXPresets(fx_GUID, TAG, preset)
 						local _, preset_cnt = r.TakeFX_GetPresetIndex(take, j)
 							if preset_cnt == 0 then tag = 'no presets' return tag
 							else
-							local pres = (preset and type(preset) == 'number' and preset <= preset_cnt) and r.TakeFX_SetPresetByIndex(take, j, preset-1) -- if index, -1 since count starts from zero
-							or (preset and r.TakeFX_SetPreset(take, j, preset) -- if name
-							or r.TakeFX_NavigatePresets(take, j, -1)) -- -1 = backwards
+							local pres = preset and type(preset) == 'number' and preset <= preset_cnt and r.TakeFX_SetPresetByIndex(take, j, preset-1) -- if preset index is used in an action marker // -1 since count starts from zero
+							or preset and r.TakeFX_SetPreset(take, j, preset) -- if preset name is used in an action marker
+							or Switch_FX_Preset(take, j, cust_pres_list_t, false) -- if the script is run manually // forward false
 							_, take_name = r.GetSetMediaItemTakeInfo_String(take, 'P_NAME', '', false)
 							_, pres_name = r.TakeFX_GetPreset(take, j, '') -- for undo caption
 							return tag, take_name, fx_name, take_cnt, i, pres_name end -- except the tag the values are meant for undo caption, 'i' = take_num
@@ -274,23 +364,25 @@ end
 
 local preset = GetPreset(cmd_ID)
 
+local cust_pres_list_t = Construct_Custom_Preset_Array(CUSTOM_PRESET_LIST)
+
 	-- Traverse tracks main fx chains
 	for i = -1, r.CSurf_NumTracks(true)-1 do -- start from -1 to accommodate Master track
 	local tr = r.GetTrack(0,i) or r.GetMasterTrack(0)
 	local fx_cnt = r.TrackFX_GetCount(tr)
-	tag, tr_name, fx_name, fx_num, pres_name = NavigateTrackFXPresets(tr, 1, fx_cnt, fx_GUID, TAG, preset) -- for undo caption, except the tag value, 1 is fx_type value
+	tag, tr_name, fx_name, fx_num, pres_name = NavigateTrackFXPresets(tr, 1, fx_cnt, fx_GUID, TAG, preset, cust_pres_list_t) -- for undo caption, except the tag value, 1 is fx_type value
 		if tag then break end
 	end
 	if not tag then -- Traverse tracks input fx chains/Master track monitor fx chain
 		for i = -1, r.CSurf_NumTracks(true)-1 do -- start from -1 to accommodate Master track
 		local tr = r.GetTrack(0,i) or r.GetMasterTrack(0)
 		local fx_cnt = r.TrackFX_GetRecCount(tr)
-		tag, tr_name, fx_name, fx_num, pres_name = NavigateTrackFXPresets(tr, 2, fx_cnt, fx_GUID, TAG, preset) -- for undo caption, except the tag value, 2 is fx_type value
+		tag, tr_name, fx_name, fx_num, pres_name = NavigateTrackFXPresets(tr, 2, fx_cnt, fx_GUID, TAG, preset, cust_pres_list_t) -- for undo caption, except the tag value, 2 is fx_type value
 			if tag then break end
 		end
 	end
 	if not tag then -- Traverse take fx chains
-	tag, take_name, fx_name, take_cnt, take_num, pres_name = NavigateTakeFXPresets(fx_GUID, TAG, preset)
+	tag, take_name, fx_name, take_cnt, take_num, pres_name = NavigateTakeFXPresets(fx_GUID, TAG, preset, cust_pres_list_t)
 	end
 
 	-- when aborted inside the function due to lack of presets
@@ -302,11 +394,15 @@ local preset = GetPreset(cmd_ID)
 	 -- Clear the link while conditioning the prompt by presense of ext state data in the proj. file
 	if not tag then
 	local proj_f = r.GetProjectPath('')..(r.GetOS():sub(1,3) == 'Win' and '\\' or '/')..r.GetProjectName(0, '')
-	local f = io.open(proj_f, 'r')
-	local proj_f = f:read('*a')
-	f:close()
 
-	local saved = proj_f:match('PRESET_SWITCHER_DATA%s(.-)\n') -- check if link data was already saved
+		if proj_f:lower():match('%.rpp') then -- when project isn't saved \REAPER Media folder path is returned
+		local f = io.open(proj_f, 'r')
+		local proj_f = f:read('*a')
+		f:close()
+		local saved = proj_f:match('PRESET_SWITCHER_DATA%s(.-)\n') -- check if link data was already saved
+		end
+
+	-- If project hasn't yet been saved, only clear extended state from the memory
 	local mess = saved and '\t    The link has been cleared.\n\n    To prevent its restoration in the next session\n\n\t  the project must be saved.\n\n          "YES" - just Save   "NO" - Save As...\n\n            or save later at your convenience.' or 'The link has been cleared.'
 	local mode = saved and 3 or 0
 
@@ -315,8 +411,11 @@ local preset = GetPreset(cmd_ID)
 		local mode = resp == 6 and false or (resp == 7 and true)
 			if resp ~= 1 then r.Main_SaveProject(0, mode) end -- only if ext state data was saved in the proj. file
 		else end
+
 	r.defer(function() end) return
+
 	end
+
 
 	-- Concatenate undo caption
 	local src_name = (fx_num and fx_num >= 16777216 and tr_name == 'MASTER') and 'in Monitor FX chain' or (take_cnt and take_cnt > 1 and 'in take '..tostring(take_num+1)..' of item \''..take_name..'\'' or (take_cnt and take_cnt == 1 and 'in item \''..take_name..'\'' or ((tr_name and tr_name == 'MASTER') and 'on Master track' or (tr_name and 'on '..tr_name))))
@@ -324,5 +423,4 @@ local preset = GetPreset(cmd_ID)
 
 	r.Undo_BeginBlock() -- placed here to prevent 'ReaScript:Run' message in the Undo menu bar at return on script errors or prompts, which doesn't impede the actual undo point creation since it's created by Track/TakeFX_NavigatePresets() anyway
 	r.Undo_EndBlock('Set '..fx_name..' preset to: \''..pres_name..'\' '..src_name,-1) -- Track/TakeFX_NavigatePresets() function creates an undo point by design which can't be avoided, for Monitor FX no undo point can be created
-
 
