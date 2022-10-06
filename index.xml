@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="7fdb0243df29a39ea99547b98a2087274edbe92c" name="ReaTeam Scripts">
+<index version="1" commit="b6ab69307926f89df0b12a3b2dbe2a0b64cc6696" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -19154,6 +19154,33 @@ SILENCE   |                                      |-  Empty Media Item (length 2s
       <version name="1.0" author="BuyOne" time="2021-07-04T21:41:37Z">
         <source main="main midi_editor" file="BuyOne_REAPER Profile terminal/BuyOne_REAPER Profile terminal (guide inside).lua">https://github.com/ReaTeam/ReaScripts/raw/9ab937813fe72642f20799a16ba1fcea16f1d778/Various/BuyOne_REAPER%20Profile%20terminal/BuyOne_REAPER%20Profile%20terminal%20(guide%20inside).lua</source>
         <source main="main midi_editor" file="BuyOne_REAPER Profile terminal/BuyOne_REAPER Profile terminal (autosave all) (guide inside).lua">https://github.com/ReaTeam/ReaScripts/raw/9ab937813fe72642f20799a16ba1fcea16f1d778/Various/BuyOne_REAPER%20Profile%20terminal/BuyOne_REAPER%20Profile%20terminal%20(autosave%20all)%20(guide%20inside).lua</source>
+      </version>
+    </reapack>
+    <reapack name="BuyOne_Scroll horizontally and;or move loop and;or time selection by user defined interval.lua" type="script" desc="Scroll horizontally and/or move loop and/or time selection by user defined interval">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Designed for either horizontal scrolling or moving loop or time selection by the custom increments set in the USER SETTINGS either in seconds or in musical intervals.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Both functions can be combined so that loop and/or time selection are kept in view during scrolling.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Besides the incerement defined in the USER SETTINGS, the script provides for an ad-hoc interval which overrides that setting for the duration of the REAPER session or until changed or cleared.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 1)\tx360\tab To call an ad-hoc interval creation dialogue move the mouse cursor to the upper left hand corner of your screen on Windows (bottom left hand corner on MacOS) (whether REAPER program window is fully open or not) and execute the script.\line In the dialogue type in the new interval value in format explained\line in the annotation to the INCREMENT setting of the USER SETTINGS, and click 'OK'.\line In the dialogue type in the new interval value in format explained\line in the annotation to the INCREMENT setting of the USER SETTINGS, and click 'OK'.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 2)\tx360\tab To clear an ad-hoc interval to be able to return to using the one defined in the INCREMENT setting, type in x or X and click 'OK'.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Be aware that scrolling distance is not 100% precise because it's measured in pixels and conversion from time units such as seconds and musical intervals to pixels is always an approximation, but it's within the ballpark. The greater the zoom-in the more accurate the scrolling.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 To use effectively bind the script to the mousewheel.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \u9658? M u s i c a l i n t e r v a l s s y n t a x\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Syntax of supported straight and triplet musical intervals:\line 1/256, 1/192, 1/128, 1/96, 1/64, 1/48, 1/36, 1/24, 1/16, 1/12, 1/8, 1/6, 1/4, 1/3, 1/2, 1, 2 etc.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The fraction numerator can be greater than 1, e.g. 10/16, 5/12, and greater than the denominator, which is useful when an interval longer than 1 whole note is required, e.g.\line 3/2 is 1.5 notes, 5/2 is 2.5 notes, 4/3 is 1 + 1/3 notes (a whole + 1/2 triplet), 5/3 is 1 + 2/3 notes (a whole + two 1/2 triplets).\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Length of a dotted note is equivalent to the length of 3 notes of a shorter duration, e.g. 1 dotted = 3/2, 1/2 dotted = 3/4, 1/4 dotted = 3/8 etc. To combine several dotted notes multiply the nominator by the number of such notes, e.g. 9/2 = 3 dotted whole notes (3 x 3/2), 12/4 = 4 dotted half notes (4 x 3/4), 6/8 = 2 dotted quarter notes (2 x 3/8).\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Appending dotted notes to whole notes:\line 1 whole note + 1/2 dotted = 4/4 + 3/4 = 7/4, 2 whole notes + three 1/16 dotted = 64/32 + 3 x 3/32 = 64/32 + 9/32 = 73/32.\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/member.php?u=134058</link>
+      </metadata>
+      <version name="1.0" author="BuyOne" time="2022-10-06T16:05:27Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b6ab69307926f89df0b12a3b2dbe2a0b64cc6696/Various/BuyOne_Scroll%20horizontally%20and;or%20move%20loop%20and;or%20time%20selection%20by%20user%20defined%20interval.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Big Repeat Button.lua" type="script" desc="Big Repeat Button">
