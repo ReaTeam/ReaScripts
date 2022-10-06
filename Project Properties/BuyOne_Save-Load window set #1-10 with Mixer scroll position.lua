@@ -2,8 +2,9 @@
 ReaScript name: Save-Load window set #1-10 with Mixer scroll position (10 scripts)
 Author: BuyOne
 Website: https://forum.cockos.com/member.php?u=134058
-Version: 1.1
-Changelog: #More reliable scroll in different situations
+Version: 1.2
+Changelog: #Fixed capture of MCP folder state
+	   #Fixed logic of the search for the parent of a collapsed folder the target track is in
 Licence: WTFPL
 REAPER: at least v5.962
 Extensions: SWS/S&M for best performance
@@ -211,33 +212,35 @@ function GetTrackChunk(obj) -- retval stems from r.GetFocusedFX(), value 0 is on
 end
 
 
-function Find_First_Collapsed_MCP_Parent(targ_tr, GetTrackChunk)
--- returns collapsed parent (if any) of the target track in order to scroll to it, because child track of a collapsed
--- folder can't be scrolled to
+function Find_Parent_Of_1st_Collapsed_Folder(targ_tr, GetTrackChunk)
+-- returns parent track of a collapsed folder (if any) the target belongs to in order to scroll to it, because child track of a collapsed folder can't be scrolled to
 -- r.GetMediaTrackInfo_Value(tr, 'B_SHOWINMIXER') doesn't indicate if it's under collapsed folder, only when it's explicitly hidden
-local targ_tr_depth = r.GetTrackDepth(targ_tr)
-	if targ_tr_depth == 0 then return targ_tr end -- if target track isn't a child
--- get the uppermost parent
+
+	if r.GetTrackDepth(targ_tr) == 0 then return targ_tr end -- if target track isn't a child
+	
+-- collect all parents of the track
 local targ_tr_idx = r.CSurf_TrackToID(targ_tr, false)-1 -- mcpView false
-local parent
+local parent = r.GetParentTrack(targ_tr)
+local parents_t = {}
 local i = targ_tr_idx-1 -- start from previous track
 	repeat
-	parent = r.GetTrack(0,i)
+	local tr = r.GetTrack(0,i)
+		if tr == parent then parents_t[#parents_t+1] = parent 
+		parent = r.GetParentTrack(tr)
+		end
 	i = i - 1
 	until r.GetTrackDepth(parent) == 0 -- uppermost parent found
-	for i = r.CSurf_TrackToID(parent, false)-1, -- from the parent; mcpView false
-	targ_tr_idx-1 do -- until one preceding the target track
-	local tr = r.GetTrack(0,i)
-	local is_parent = r.GetMediaTrackInfo_Value(tr, 'I_FOLDERDEPTH') == 1
-		if is_parent then -- if a track is parent
-		local ret, chunk = GetTrackChunk(tr)
-			if ret == 'abort' then return -- if parent track chunk is larger than 4.194303 Mb and no SWS extension to handle that to find out if it's collapsed
-			elseif ret and chunk and chunk:match('BUSCOMP 0 (%d)') == '1' -- collapsed
-			then return tr
-			end
+
+	-- Find the leftmost parent of the collapsed folder the child belongs to, if any
+	for i = #parents_t, 1, -1 do -- in reverse since parent tracks were stored from right to left; if the table is empty the loop won't start
+	local tr = parents_t[i]
+	local ret, chunk = GetTrackChunk(tr)
+		if ret == 'abort' then return -- if parent track chunk is larger than 4.194303 Mb and no SWS extension to handle that to find out if it's collapsed
+		elseif ret and chunk and chunk:match('BUSCOMP %d (%d)') == '1' -- collapsed
+		then return tr
 		end
 	end
-return targ_tr -- if no collapsed parent track was found
+return targ_tr -- if no parent track of a collapsed folder was found
 end
 
 
@@ -503,11 +506,10 @@ local not_screenset = r.GetToggleCommandStateEx(0, 40422) == 0 -- View: Show scr
 			for i = 0, r.CountTracks(0)-1 do -- scroll stored track into view
 			targ_tr = r.GetTrack(0,i) -- will be used outside of the loop and in the deferred Set_Mixer_Scroll() function if target track
 			name_t = targ_tr and {r.GetTrackName(targ_tr)} -- 2 return values; global to be evaluated below
-				if name_t and --name_t[2] == stored_tr_name
-				stored_tr_name == name_t[2]:match('^[%sCcRr>]*(.+)%s*$') -- compare names ignoring scroll tag (e.g. C>) to allow respecting the track current scroll tag // or name_t[2]match('^[%sCcRr>]*'..Esc(stored_tr_name)..'$')
+				if name_t and stored_tr_name == name_t[2]:match('^[%sCcRr>]*(.+)%s*$') -- compare names ignoring scroll tag (e.g. C>) to allow respecting the track current scroll tag // or name_t[2]match('^[%sCcRr>]*'..Esc(stored_tr_name)..'$')
 				then
 				pos = name_t[2]:upper():match('%s*([CR])>') or '' -- fetch from displayed track name // if not center or rightmost it's leftmost
-				targ_tr = Find_First_Collapsed_MCP_Parent(targ_tr, GetTrackChunk) -- if the target track is a folder child grab its parent track instead if it's collapsed, because parent collapsed state prevents child track from being scrolled into view
+				targ_tr = Find_Parent_Of_1st_Collapsed_Folder(targ_tr, GetTrackChunk) -- if the target track is a folder child grab its parent track instead if it's collapsed, because parent collapsed state prevents child track from being scrolled into view
 					if not targ_tr then re_store_sel_trks(sel_trks_t) return r.defer(function() end) end -- one of parent track chunks was larger than 4.194303 Mb and no SWS extension to handle that to find out if it's collapsed, therefore abort scrolling entirely
 				r.SetOnlyTrackSelected(targ_tr) -- OR r.SetTrackSelected(targ_tr, 1) since all are deselected with the re_store_sel_trks() function
 				ACT(40914) -- Track: Set first selected track as last touched track // the only way to make sure target track is the last touched is to deselect all, select the track and set it as last touched
