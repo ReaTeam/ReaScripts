@@ -175,33 +175,31 @@ end
 
 function GetItemsAndStartOffset(src_rgn_t)
 
-local itm_start_t, itm_t = {}, {}
+local start, itm_t = math.huge, {}
 
 	for i = 0, r.CountSelectedMediaItems(0)-1 do
 	local item = r.GetSelectedMediaItem(0,i)
 	local pos = r.GetMediaItemInfo_Value(item, 'D_POSITION')
 	local fin = pos + r.GetMediaItemInfo_Value(item, 'D_LENGTH')
 		if pos < src_rgn_t.rgnend and fin > src_rgn_t.pos then
-		itm_start_t[#itm_start_t+1] = pos
+		start = pos < start and pos or start -- getting the smallest item start
 		itm_t[#itm_t+1] = item
 		end
 	end
 
-	if #itm_t == 0 then -- OR #itm_start_t == 0; if no selected items within src region, collect all items within the src region
+	if #itm_t == 0 then -- OR start == math.huge; if no selected items within src region, collect all items within the src region
 		for i = 0, r.CountMediaItems(0)-1 do
 		local item = r.GetMediaItem(0,i)
 		local pos = r.GetMediaItemInfo_Value(item, 'D_POSITION')
 		local fin = pos + r.GetMediaItemInfo_Value(item, 'D_LENGTH')
 			if pos < src_rgn_t.rgnend and fin > src_rgn_t.pos then
-			itm_start_t[#itm_start_t+1] = pos
+			start = pos < start and pos or start -- getting the smallest item start
 			itm_t[#itm_t+1] = item
 			end
 		end
 	end
 
-table.sort(itm_start_t)
-
-return itm_t, itm_start_t[1] and itm_start_t[1] - src_rgn_t.pos -- get diff between the smallest item start and src region start to offset the paste position at target regions
+return itm_t, start < math.huge and start - src_rgn_t.pos -- get diff between the smallest item start and src region start to offset the paste position at target regions
 
 end
 
