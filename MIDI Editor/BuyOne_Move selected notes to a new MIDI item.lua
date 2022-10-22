@@ -8,7 +8,7 @@ Licence: WTFPL
 REAPER: at least v5.962
 Provides: [main=main,midi_editor] .
 About:	Does what the name suggests.   
-        Select the notes to be moved select the item, run. One item at a time.  
+        Select the notes to be moved, select the item, run. One item at a time.  
         The MIDI Editor can be open at the time of the execution.  
         The new MIDI item length will be equal to the original item
         regardless of the note selection length.
