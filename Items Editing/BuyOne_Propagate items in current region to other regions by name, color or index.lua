@@ -8,41 +8,41 @@ Licence: WTFPL
 REAPER: at least v5.962
 Screenshot: https://raw.githubusercontent.com/Buy-One/screenshots/main/Propagate%20items%20in%20current%20region%20to%20other%20regions%20by%20name%2C%20color%20or%20index.gif
 About:	The script is aimed at simplifying the process of arrangement
-		by helping to automatically propagate new parts to other composition
-		segments on the time line.  
-		
-		E.g. when you have several copies of a chorus and wish to propagate
-		new parts from one of its instances to all or some other instances.		
-		It's also possible to overwrite old parts with new ones.  
-		
-		Since the script works based on regions, the source and the target 
-		segments of the arrangement must be encompassed at least in part
-		by a region. An item is considered to be within a region if it's
-		crossed by either the start or the end of a region.
-		
-		Items are propagated relative to the region start.
-		
-		HOW TO USE
-		
-		Place the edit cursor at the start, end of the source region 
-		or inside it, select items to be propagated, run the script.  
-		
-		If MOUSE_CURSOR setting is enabled in the USER SETTINGS the
-		mouse cursor can be used to point at the source region provided
-		the mouse cursor is located within the Arrange area (the one 
-		designated for items) and the Action list is closed. For this
-		to work properly the script must be run with a shortcut, rather 
-		than from a menu or a toolbar.  
-		
-		If no item is selected, all items within the source region 
-		will be propagated.
-		
-		If the option 'Move envelope points with items' is ON envelope 
-		curves will also be propagated.
-		
-		Make sure to configure the script USER SETTINGS to suit your preferences.
-		
-		Demo: https://raw.githubusercontent.com/Buy-One/screenshots/main/Propagate%20items%20in%20current%20region%20to%20other%20regions%20by%20name%2C%20color%20or%20index.gif
+	by helping to automatically propagate new parts to other composition
+	segments on the time line.  
+
+	E.g. when you have several copies of a chorus and wish to propagate
+	new parts from one of its instances to all or some other instances.		
+	It's also possible to overwrite old parts with new ones.  
+
+	Since the script works based on regions, the source and the target 
+	segments of the arrangement must be encompassed at least in part
+	by a region. An item is considered to be within a region if it's
+	crossed by either the start or the end of a region or sits between them.
+
+	Items are propagated relative to the region start.
+
+	HOW TO USE
+
+	Place the edit cursor at the start, end of the source region 
+	or inside it, select items to be propagated, run the script.  
+
+	If MOUSE_CURSOR setting is enabled in the USER SETTINGS the
+	mouse cursor can be used to point at the source region provided
+	the mouse cursor is located within the Arrange area (the one 
+	designated for items) and the Action list is closed. For this
+	to work properly the script must be run with a shortcut, rather 
+	than from a menu or a toolbar.  
+
+	If no item is selected, all items within the source region 
+	will be propagated.
+
+	If the option 'Move envelope points with items' is ON envelope 
+	curves will also be propagated.
+
+	Make sure to configure the script USER SETTINGS to suit your preferences.
+
+	Demo: https://raw.githubusercontent.com/Buy-One/screenshots/main/Propagate%20items%20in%20current%20region%20to%20other%20regions%20by%20name%2C%20color%20or%20index.gif
 ]]
 
 ------------------------------------------------------------------
