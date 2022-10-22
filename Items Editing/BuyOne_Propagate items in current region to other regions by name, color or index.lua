@@ -52,7 +52,7 @@ About:	The script is aimed at simplifying the process of arrangement
 -- Enable this setting by inserting any QWERTY alphanumeric
 -- character between the quotation marks so the script can be used
 -- then configure the settings below
-ENABLE_SCRIPT = "1"
+ENABLE_SCRIPT = ""
 
 -- This setting allows to configure the criterion
 -- by which target regions will be selected:
