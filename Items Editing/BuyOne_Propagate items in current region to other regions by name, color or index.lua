@@ -49,6 +49,11 @@ About:	The script is aimed at simplifying the process of arrangement
 -------------------------- USER SETTINGS -------------------------
 ------------------------------------------------------------------
 
+-- Enable this setting by inserting any QWERTY alphanumeric
+-- character between the quotation marks so the script can be used
+-- then configure the settings below
+ENABLE_SCRIPT = "1"
+
 -- This setting allows to configure the criterion
 -- by which target regions will be selected:
 -- 1 - by name (same as the source region's),
@@ -289,6 +294,15 @@ re_store_sel_trks(sel_tr_t) -- restore orig track selection
 end
 
 -- MAIN ROUTINE START
+
+	if #ENABLE_SCRIPT:gsub(' ','') == 0 then
+	local emoji = [[
+		_(ツ)_
+		\_/|\_/
+	]]
+	r.MB('  Please enable the script in its USER SETTINGS.\n\nSelect it in the Action list and click "Edit action...".\n\n'..emoji, 'PROMPT', 0)	
+	return r.defer(function() do return end end) end
+	
 
 NAME_COLOR = tonumber(NAME_COLOR)
 IGNORE_REGISTER = #IGNORE_REGISTER:gsub(' ', '') > 0
