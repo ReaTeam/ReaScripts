@@ -7,12 +7,15 @@ Changelog: Initial release
 Licence: WTFPL
 REAPER: at least v5.962
 Provides: [main=main,midi_editor] .
+Screensot: https://raw.githubusercontent.com/Buy-One/screenshots/main/Move%20selected%20notes%20to%20a%20new%20MIDI%20item.gif
 About:	Does what the name suggests.   
         Select the notes to be moved, select the item, run. One item at a time.  
         The MIDI Editor can be open at the time of the execution.  
         The new MIDI item length will be equal to the original item
         regardless of the note selection length. The item will be placed
-	on a new track beneath the original item.
+	on a new track beneath the original item.  
+	
+	Demo: https://raw.githubusercontent.com/Buy-One/screenshots/main/Move%20selected%20notes%20to%20a%20new%20MIDI%20item.gif
 ]]
 
 
