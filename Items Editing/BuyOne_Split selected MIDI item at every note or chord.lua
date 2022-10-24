@@ -3,28 +3,28 @@ ReaScript name: Split selected MIDI item at every note or chord
 Author: BuyOne
 Website: https://forum.cockos.com/member.php?u=134058
 Version: 1.1
-Changelog: 	#Improved reliability in different situations
-			#Added support for chords
-			#Updated the script name to be more descriptive
+Changelog: #Improved reliability in different situations
+	   #Added support for chords
+	   #Updated the script name to be more descriptive
 Licence: WTFPL
 REAPER: at least v5.962
 Provides: [main=main,midi_editor] .
 Screenshot: https://raw.githubusercontent.com/Buy-One/screenshots/main/Split%20selected%20MIDI%20item%20at%20every%20note%20or%20chord.gif
 About: 	Splits selected MIDI item at every note or chord start.
 
-		To be run from Arrange. The notes must not overlap,
-		or they will be corrected if confirmed by the user.
-		If declined the script won't run.
+	To be run from Arrange. The notes must not overlap,
+	or they will be corrected if confirmed by the user.
+	If declined the script won't run.
 
-		Supports both melodic and harmony parts. The length
-		is only preserved for notes and chords which don't
-		overlap notes/chords which follow them.
+	Supports both melodic and harmony parts. The length
+	is only preserved for notes and chords which don't
+	overlap notes/chords which follow them.
 
-		Chord notes whose start times differ will be treated
-		as overlapping notes and chord structure won't be
-		preserved if notes correction is applied.
+	Chord notes whose start times differ will be treated
+	as overlapping notes and chord structure won't be
+	preserved if notes correction is applied.
 
-		Demo: https://raw.githubusercontent.com/Buy-One/screenshots/main/Split%20selected%20MIDI%20item%20at%20every%20note%20or%20chord.gif
+	Demo: https://raw.githubusercontent.com/Buy-One/screenshots/main/Split%20selected%20MIDI%20item%20at%20every%20note%20or%20chord.gif
 ]]
 
 ------------------------------------------------------------------
