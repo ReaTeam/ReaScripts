@@ -7,18 +7,18 @@ Changelog: Initial release
 Licence: WTFPL
 REAPER: at least v5.962
 About: 	Makes track/item of the focused track/take FX window selected.
-		Works in either manual or auto modes, see USER SETTINGS.  
-		
-		Bridged FX floating windows don't work unless they only display 
-		controls without the UI, which is a REAPER native object.  
-		
-		In auto mode to reselect the object (track or item/take) of the open 
-		FX window after other objects were selected while the FX focus didn't 
-		change, meaning other FX chain or FX floating windows weren't focused, 
-		toggle currently visible FX bypass ON and OFF or momentarily switch 
-		to another FX in the chain if there're several.	 
-		
-		See also BuyOne_Select track of the currently focused track FX window.lua
+	Works in either manual or auto modes, see USER SETTINGS.  
+
+	Bridged FX floating windows don't work unless they only display 
+	controls without the UI, which is a REAPER native object.  
+
+	In auto mode to reselect the object (track or item/take) of the open 
+	FX window after other objects were selected while the FX focus didn't 
+	change, meaning other FX chain or FX floating windows weren't focused, 
+	toggle currently visible FX bypass ON and OFF or momentarily switch 
+	to another FX in the chain if there're several.	 
+
+	See also BuyOne_Select track of the currently focused track FX window.lua
 		
 ]]
 
