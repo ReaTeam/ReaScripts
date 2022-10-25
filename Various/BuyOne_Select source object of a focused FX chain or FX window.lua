@@ -18,8 +18,7 @@ About: 	Makes track/item of the focused track/take FX window selected.
 	toggle currently visible FX bypass ON and OFF or momentarily switch 
 	to another FX in the chain if there're several.	 
 
-	See also BuyOne_Select track of the currently focused track FX window.lua
-		
+	See also BuyOne_Select track of the currently focused track FX window.lua		
 ]]
 
 ------------------------------------------------------------------
