@@ -1,5 +1,5 @@
 --[[
-ReaScript name: Switch to active CC lane
+ReaScript name: Switch to next/previous active CC lane
 Author: BuyOne
 Website: https://forum.cockos.com/member.php?u=134058
 Version: 1.0
@@ -7,8 +7,8 @@ Changelog: Initial release
 Licence: WTFPL
 REAPER: at least v5.962
 Metapackage: true
-Provides: 	. > BuyOne_Switch to next active CC lane.lua
-			. > BuyOne_Switch to previous active CC lane.lua
+Provides: . > BuyOne_Switch to next active CC lane.lua
+	  . > BuyOne_Switch to previous active CC lane.lua
 About: 	Works for the last clicked CC lane if several are open.
 		Doesn't support Velocity, Off Velocity, Text events, 
 		Notation enents and SySex lanes.
