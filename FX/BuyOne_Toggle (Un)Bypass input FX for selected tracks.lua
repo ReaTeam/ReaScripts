@@ -7,11 +7,11 @@ Changelog: Initial release
 Licence: WTFPL
 REAPER: at least v5.962
 About: 	To complement similar actions of the SWS extension for the track main FX chain.   
-		Supports Monitoring FX if the Master track is selected.  
-		If slots with greater number are required, duplicate the sctipt which
-		performs the desired action and change the FX slot number in its name.    	
-		Toggle scripts affecting all input FX on selected tracks target each FX
-		individually so their state is reversed independently of the other FX state.
+	Supports Monitoring FX if the Master track is selected.  
+	If slots with greater number are required, duplicate the sctipt which
+	performs the desired action and change the FX slot number in its name.    	
+	Toggle scripts affecting all input FX on selected tracks target each FX
+	individually so their state is reversed independently of the other FX state.
 Metapackage: true
 Provides: . > BuyOne_Toggle (Un)Bypass input FX for selected tracks/BuyOne_Toggle input FX bypass for selected tracks.lua
             . > BuyOne_Toggle (Un)Bypass input FX for selected tracks/BuyOne_Toggle input FX 1 bypass for selected tracks.lua
