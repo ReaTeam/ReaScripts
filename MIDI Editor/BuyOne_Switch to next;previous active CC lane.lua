@@ -10,9 +10,9 @@ Metapackage: true
 Provides: . > BuyOne_Switch to next active CC lane.lua
 	  . > BuyOne_Switch to previous active CC lane.lua
 About: 	Works for the last clicked CC lane if several are open.
-		Doesn't support Velocity, Off Velocity, Text events, 
-		Notation enents and SySex lanes.
-		CC00-31 14 bit lanes currently aren't supported either.
+	Doesn't support Velocity, Off Velocity, Text events, 
+	Notation enents and SySex lanes.
+	CC00-31 14 bit lanes currently aren't supported either.
 ]]
 
 
