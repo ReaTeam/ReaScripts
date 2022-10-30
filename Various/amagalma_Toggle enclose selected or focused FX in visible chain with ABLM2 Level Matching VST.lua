@@ -1,7 +1,7 @@
 -- @description Toggle enclose selected or focused FX in visible chain with ABLM2 Level Matching VST
 -- @author amagalma
--- @version 1.00
--- @link https://www.tbproaudio.de/products/ablm
+-- @version 1.01
+-- @changelog internal change: Use Track's P_EXT rather than ProjExtState
 -- @link https://forum.cockos.com/showthread.php?t=215215
 -- @donation https://www.paypal.me/amagalma
 -- @about
@@ -52,7 +52,7 @@ local function SearchIni( vst_ini )
         end
       end
       io.close( file )
-    end  
+    end
   end
 end
 
@@ -86,7 +86,7 @@ local function GetInfo()
         sel_FX[a+1] = tonumber(i)
         a = a + 1
       end
-      local what, trackGUID, take
+      local what, take
       reaper.JS_Window_SetForeground( FX_win ) -- GetFocusedFX works better
       local focus, track, item, fxid = reaper.GetFocusedFX()
       if focus == 1 then
@@ -96,19 +96,17 @@ local function GetInfo()
         else
           track = reaper.GetTrack(0, track-1)
         end
-        trackGUID = reaper.guidToString(reaper.GetTrackGUID(track), "")
       elseif focus == 2 then
         what = "item"
         item = reaper.GetMediaItem(0, item)
         track = reaper.GetMediaItemTrack(item)
-        trackGUID = reaper.guidToString(reaper.GetTrackGUID(track), "")
         take = reaper.GetMediaItemTake(item, fxid >> 16)
       end
       if #sel_FX > 1 then
         firstselFX = sel_FX[1]
         lastselFX = sel_FX[#sel_FX]
       end
-      return fxid, track, what, trackGUID, take, firstselFX, lastselFX, FX_win
+      return fxid, track, what, take, firstselFX, lastselFX, FX_win
     end
   end
 end
@@ -161,7 +159,7 @@ end
 
 ------------------------------------------------------------------------------------------------
 
-local function InsertAB(fxid, track, what, trackGUID, take, firstselFX, lastselFX)
+local function InsertAB(fxid, track, what, take, firstselFX, lastselFX)
   local focusedFX = fxid
   if lastselFX and focusedFX >= firstselFX and focusedFX <= lastselFX then
     focusedFX = fxid + 1
@@ -216,21 +214,21 @@ end
 
 -- Main function -------------------------------------------------------------------------------
 
-local fxid, track, what, trackGUID, take, firstselFX, lastselFX, FX_win = GetInfo()
-if track and trackGUID then
+local fxid, track, what, take, firstselFX, lastselFX, FX_win = GetInfo()
+if track then
   local _, left, top, right, bottom = reaper.JS_Window_GetRect( FX_win )
   local width = right - left
   local height = bottom - top
-  local ok, value = reaper.GetProjExtState(0, "ABLM2 Toggle", trackGUID)
+  local ok, value = reaper.GetSetMediaTrackInfo_String( track, "P_EXT:amagalma_ABLM2" , "", false )
   if ok and value == "1" then
     reaper.Undo_BeginBlock()
     RemoveAB(track, what, take)
-    reaper.SetProjExtState(0, "ABLM2 Toggle", trackGUID, "0")
+    reaper.GetSetMediaTrackInfo_String( track, "P_EXT:amagalma_ABLM2" , "", true )
     reaper.Undo_EndBlock("Remove ABLM2 from focused FX Chain", 2)
   else
     reaper.Undo_BeginBlock()
-    InsertAB(fxid, track, what, trackGUID, take, firstselFX, lastselFX)
-    reaper.SetProjExtState(0, "ABLM2 Toggle", trackGUID, "1")
+    InsertAB(fxid, track, what, take, firstselFX, lastselFX)
+    reaper.GetSetMediaTrackInfo_String( track, "P_EXT:amagalma_ABLM2" , "1", true )
     reaper.Undo_EndBlock("Enclose selected/focused FX in Chain with ABLM2", 2)
   end
   reaper.JS_Window_SetPosition( FX_win, left, top, width, height )
