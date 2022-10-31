@@ -15,26 +15,6 @@
 --
 --   Can be setup as a toolbar toggle on/off button, and this is recommended. REAPER 6.21 or later required. Visit [website](https://forum.cockos.com/showthread.php?t=245445) for detailed information or reporting bugs.
 
--- @description Low latency monitoring
--- @author ak5k
--- @version 2.2.0
--- @changelog
---   Improved path recursion.
---
---   Simple internalized table object memory management.
--- @link Forum thread, more detailed information https://forum.cockos.com/showthread.php?t=245445
--- @screenshot https://i.imgur.com/iKHyQXb.gif
--- @about
---   # Low latency monitoring
---
---   Provides REAPER a function also known as 'Low Latency Monitoring', 'Low Latency Mode', 'Native Low Latency Monitoring', 'Constrain Delay Compenstation' or 'Reduce Latency when Monitoring' in other DAWs. It resembles the one from Cubase.
---
---   While enabled, it bypasses (or takes offline) latency inducing plugins (VSTs etc) from rec armed, input monitored and automation write enabled signal chains, to provide lowest possible latency and CPU usage when monitoring through software.
---
---   Plugins contributing PDC latency to active signal chain will be bypassed, once the set limit is exceeded per signal chain. Useful when recording e.g. software synths or guitars through amp sims, or writing automation, into a REAPER project already filled with plugins.
---
---   Can be setup as a toolbar toggle on/off button, and this is recommended. REAPER 6.21 or later required. Visit [website](https://forum.cockos.com/showthread.php?t=245445) for detailed information or reporting bugs.
-
 local collectgarbage = collectgarbage
 local next = next
 local pairs = pairs
