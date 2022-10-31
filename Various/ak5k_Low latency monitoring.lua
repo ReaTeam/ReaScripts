@@ -1,10 +1,7 @@
 -- @description Low latency monitoring
 -- @author ak5k
--- @version 2.2.0
--- @changelog
---   Improved path recursion.
---
---   Simple internalized table object memory management.
+-- @version 2.2.1
+-- @changelog Detects if ReaLlm extension is installed and exits to prevent conflict.
 -- @link Forum thread, more detailed information https://forum.cockos.com/showthread.php?t=245445
 -- @screenshot https://i.imgur.com/iKHyQXb.gif
 -- @about
@@ -39,6 +36,15 @@ local trackFXsToEnable = nil
 local trackFXsToDisable = nil
 local trackFXsDisabled = nil
 local trackFXsSafe = nil
+
+if reaper.NamedCommandLookup("_AK5K_REALLM") ~= 0 then
+ reaper.MB(
+    "ReaLlm extension detected.\n" ..
+    "Use ReaLlm instead of this script.\n" ..
+    "Exiting...\n",
+    "ak5k: Low latency monitoring",0)
+  return
+end
 
 local function NewTable()
   local next = next
