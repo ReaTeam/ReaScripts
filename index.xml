@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="af678b90a38cdfe4a1515b323769dea50dffac47" name="ReaTeam Scripts">
+<index version="1" commit="c1455c91b8c4af35e729eb68a58bd574f367de90" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -17089,6 +17089,10 @@ Refactoring and performance optimization.]]></changelog>
 
 Simple internalized table object memory management.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/11804a6b64b7eaa13630ea7024d022ad2230e179/Various/ak5k_Low%20latency%20monitoring.lua</source>
+      </version>
+      <version name="2.2.1" author="ak5k" time="2022-10-31T22:45:25Z">
+        <changelog><![CDATA[Detects if ReaLlm extension is installed and exits to prevent conflict.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c1455c91b8c4af35e729eb68a58bd574f367de90/Various/ak5k_Low%20latency%20monitoring.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Add smart metronome click track below the selected track.lua" type="script" desc="Add smart metronome click track below the selected track">
