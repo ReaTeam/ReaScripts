@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="b60f9d85123b60780afd702df08449ad32ce9f4c" name="ReaTeam Scripts">
+<index version="1" commit="822eee68a7e1c6bd8d9f0d820537a582c93d4b4e" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -5723,6 +5723,33 @@ is shorter than that of the portion imported into ReaSamplomatic5000
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e10d14efcfd2751718f5856d42a0fb3af9574b86/Items%20Editing/BuyOne_Move%20items%20from%20one%20track%20to%20many%20or%20from%20many%20to%20one.lua</source>
       </version>
     </reapack>
+    <reapack name="BuyOne_Propagate items in current region to other regions by name, color or index.lua" type="script" desc="Propagate items in current region to other regions by name, color or index">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 The script is aimed at simplifying the process of arrangement by helping to automatically propagate new parts to other composition segments on the time line.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 E.g. when you have several copies of a chorus and wish to propagate new parts from one of its instances to all or some other instances.\line It's also possible to overwrite old parts with new ones.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Since the script works based on regions, the source and the target segments of the arrangement must be encompassed at least in part by a region. An item is considered to be within a region if it's crossed by either the start or the end of a region or sits between them.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Items are propagated relative to the region start.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 HOW TO USE\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Place the edit cursor at the start, end of the source region or inside it, select items to be propagated, run the script.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 If MOUSE_CURSOR setting is enabled in the USER SETTINGS the mouse cursor can be used to point at the source region provided the mouse cursor is located within the Arrange area (the one designated for items) and the Action list is closed. For this to work properly the script must be run with a shortcut, rather than from a menu or a toolbar.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 If no item is selected, all items within the source region will be propagated.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 If the option 'Move envelope points with items' is ON envelope curves will also be propagated.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Make sure to configure the script USER SETTINGS to suit your preferences.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Demo: https://raw.githubusercontent.com/Buy-One/screenshots/main/Propagate%20items%20in%20current%20region%20to%20other%20regions%20by%20name%2C%20color%20or%20index.gif\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/member.php?u=134058</link>
+        <link rel="screenshot">https://raw.githubusercontent.com/Buy-One/screenshots/main/Propagate%20items%20in%20current%20region%20to%20other%20regions%20by%20name%2C%20color%20or%20index.gif</link>
+      </metadata>
+      <version name="1.0" author="BuyOne" time="2022-11-06T04:58:47Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/822eee68a7e1c6bd8d9f0d820537a582c93d4b4e/Items%20Editing/BuyOne_Propagate%20items%20in%20current%20region%20to%20other%20regions%20by%20name,%20color%20or%20index.lua</source>
+      </version>
+    </reapack>
     <reapack name="BuyOne_Ripple edit per track when selected item length changes (settings inside).lua" type="script" desc="Ripple edit per track when selected item length changes">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
@@ -5781,20 +5808,27 @@ is shorter than that of the portion imported into ReaSamplomatic5000
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/5900e071a39413b09eed9b3000ae37a65701c5df/Items%20Editing/BuyOne_Split%20grouped%20items%20keeping%20splits%20in%20the%20same%20group%20as%20the%20originals.lua</source>
       </version>
     </reapack>
-    <reapack name="BuyOne_Split selected MIDI item by notes.lua" type="script" desc="Split selected MIDI item by notes">
+    <reapack name="BuyOne_Split selected MIDI item at every note or chord.lua" type="script" desc="Split selected MIDI item at every note or chord">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 To be run from Arrange. The notes must not overlap, or they will be corrected if confirmed by the user.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Splits selected MIDI item at every note or chord start.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 To be run from Arrange. The notes must not overlap, or they will be corrected if confirmed by the user. If declined the script won't run.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Supports both melodic and harmony parts. The length is only preserved for notes and chords which don't overlap notes/chords which follow them.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Chord notes whose start times differ will be treated as overlapping notes and chord structure won't be preserved if notes correction is applied.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Demo: https://raw.githubusercontent.com/Buy-One/screenshots/main/Split%20selected%20MIDI%20item%20at%20every%20note%20or%20chord.gif\par}
 }
 ]]></description>
-        <link rel="website" href="https://forum.cockos.com/member.php?u=134058">Author Profile</link>
-        <link rel="website" href="https://reddit.com/r/Reaper/comments/js4ipe/split_midi_items_into_their_individual_notes/">Idea source</link>
+        <link rel="website">https://forum.cockos.com/member.php?u=134058</link>
+        <link rel="screenshot">https://raw.githubusercontent.com/Buy-One/screenshots/main/Split%20selected%20MIDI%20item%20at%20every%20note%20or%20chord.gif</link>
       </metadata>
-      <version name="1.0" author="BuyOne" time="2021-01-02T20:08:05Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/0a11d031e43a9f392b9eca5c9e108847569dd85b/Items%20Editing/BuyOne_Split%20selected%20MIDI%20item%20by%20notes.lua</source>
+      <version name="1.1" author="BuyOne" time="2022-11-06T04:57:45Z">
+        <changelog><![CDATA[#Improved reliability in different situations
+#Added support for chords
+#Updated the script name to be more descriptive]]></changelog>
+        <source main="main midi_editor">https://github.com/ReaTeam/ReaScripts/raw/3873d66aee8d84fcf921f748a76c2c5d849c0e1e/Items%20Editing/BuyOne_Split%20selected%20MIDI%20item%20at%20every%20note%20or%20chord.lua</source>
       </version>
     </reapack>
     <reapack name="BuyOne_Swap 2 items (select both).lua" type="script" desc="Swap 2 items (select both)">
@@ -8642,6 +8676,23 @@ Renumber markers and regions when pasting]]></changelog>
         <source main="midi_editor" file="BuyOne_Move pitch cursor/BuyOne_Move pitch cursor to the note ending at edit cursor.lua">https://github.com/ReaTeam/ReaScripts/raw/c130939598f68e503902c19bbf4a326a58c47f8e/MIDI%20Editor/BuyOne_Move%20pitch%20cursor/BuyOne_Move%20pitch%20cursor%20to%20the%20note%20ending%20at%20edit%20cursor.lua</source>
         <source main="midi_editor" file="BuyOne_Move pitch cursor/BuyOne_Move pitch cursor to the note starting at edit cursor.lua">https://github.com/ReaTeam/ReaScripts/raw/c130939598f68e503902c19bbf4a326a58c47f8e/MIDI%20Editor/BuyOne_Move%20pitch%20cursor/BuyOne_Move%20pitch%20cursor%20to%20the%20note%20starting%20at%20edit%20cursor.lua</source>
         <source main="midi_editor" file="BuyOne_Move pitch cursor/BuyOne_Move pitch cursor to the note nearest to or under edit cursor.lua">https://github.com/ReaTeam/ReaScripts/raw/c130939598f68e503902c19bbf4a326a58c47f8e/MIDI%20Editor/BuyOne_Move%20pitch%20cursor/BuyOne_Move%20pitch%20cursor%20to%20the%20note%20nearest%20to%20or%20under%20edit%20cursor.lua</source>
+      </version>
+    </reapack>
+    <reapack name="BuyOne_Switch to next;previous active CC lane.lua" type="script" desc="Switch to next/previous active CC lane">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Works for the last clicked CC lane if several are open. Doesn't support Velocity, Off Velocity, Text events, Notation enents and SySex lanes. CC00-31 14 bit lanes currently aren't supported either.\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/member.php?u=134058</link>
+      </metadata>
+      <version name="1.0" author="BuyOne" time="2022-11-06T04:57:06Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source file="BuyOne_Switch to next active CC lane.lua">https://github.com/ReaTeam/ReaScripts/raw/b0860f6675cd5c536924c9318e5d0ffc3d7f126a/MIDI%20Editor/BuyOne_Switch%20to%20next;previous%20active%20CC%20lane.lua</source>
+        <source file="BuyOne_Switch to previous active CC lane.lua">https://github.com/ReaTeam/ReaScripts/raw/b0860f6675cd5c536924c9318e5d0ffc3d7f126a/MIDI%20Editor/BuyOne_Switch%20to%20next;previous%20active%20CC%20lane.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Set space between selected notes from grid size.lua" type="script" desc="Set space between selected notes from grid size">
