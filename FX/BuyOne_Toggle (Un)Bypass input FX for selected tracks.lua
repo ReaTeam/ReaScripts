@@ -14,32 +14,32 @@ About: 	To complement similar actions of the SWS extension for the track main FX
 	individually so their state is reversed independently of the other FX state.
 Metapackage: true
 Provides: . > BuyOne_Toggle (Un)Bypass input FX for selected tracks/BuyOne_Toggle input FX bypass for selected tracks.lua
-            . > BuyOne_Toggle (Un)Bypass input FX for selected tracks/BuyOne_Toggle input FX 1 bypass for selected tracks.lua
-            . > BuyOne_Toggle (Un)Bypass input FX for selected tracks/BuyOne_Toggle input FX 2 bypass for selected tracks.lua
-            . > BuyOne_Toggle (Un)Bypass input FX for selected tracks/BuyOne_Toggle input FX 3 bypass for selected tracks.lua
-            . > BuyOne_Toggle (Un)Bypass input FX for selected tracks/BuyOne_Toggle input FX 4 bypass for selected tracks.lua
+          . > BuyOne_Toggle (Un)Bypass input FX for selected tracks/BuyOne_Toggle input FX 1 bypass for selected tracks.lua
+          . > BuyOne_Toggle (Un)Bypass input FX for selected tracks/BuyOne_Toggle input FX 2 bypass for selected tracks.lua
+          . > BuyOne_Toggle (Un)Bypass input FX for selected tracks/BuyOne_Toggle input FX 3 bypass for selected tracks.lua
+          . > BuyOne_Toggle (Un)Bypass input FX for selected tracks/BuyOne_Toggle input FX 4 bypass for selected tracks.lua
           . > BuyOne_Toggle (Un)Bypass input FX for selected tracks/BuyOne_Bypass input FX for selected tracks.lua
-            . > BuyOne_Toggle (Un)Bypass input FX for selected tracks/BuyOne_Bypass input FX 1 for selected tracks.lua
-            . > BuyOne_Toggle (Un)Bypass input FX for selected tracks/BuyOne_Bypass input FX 2 for selected tracks.lua
-            . > BuyOne_Toggle (Un)Bypass input FX for selected tracks/BuyOne_Bypass input FX 3 for selected tracks.lua
-            . > BuyOne_Toggle (Un)Bypass input FX for selected tracks/BuyOne_Bypass input FX 4 for selected tracks.lua
+          . > BuyOne_Toggle (Un)Bypass input FX for selected tracks/BuyOne_Bypass input FX 1 for selected tracks.lua
+          . > BuyOne_Toggle (Un)Bypass input FX for selected tracks/BuyOne_Bypass input FX 2 for selected tracks.lua
+          . > BuyOne_Toggle (Un)Bypass input FX for selected tracks/BuyOne_Bypass input FX 3 for selected tracks.lua
+          . > BuyOne_Toggle (Un)Bypass input FX for selected tracks/BuyOne_Bypass input FX 4 for selected tracks.lua
           . > BuyOne_Toggle (Un)Bypass input FX for selected tracks/BuyOne_Unbypass input FX for selected tracks.lua
-            . > BuyOne_Toggle (Un)Bypass input FX for selected tracks/BuyOne_Unbypass input FX 1 for selected tracks.lua
-            . > BuyOne_Toggle (Un)Bypass input FX for selected tracks/BuyOne_Unbypass input FX 2 for selected tracks.lua
-            . > BuyOne_Toggle (Un)Bypass input FX for selected tracks/BuyOne_Unbypass input FX 3 for selected tracks.lua
-            . > BuyOne_Toggle (Un)Bypass input FX for selected tracks/BuyOne_Unbypass input FX 4 for selected tracks.lua
+          . > BuyOne_Toggle (Un)Bypass input FX for selected tracks/BuyOne_Unbypass input FX 1 for selected tracks.lua
+          . > BuyOne_Toggle (Un)Bypass input FX for selected tracks/BuyOne_Unbypass input FX 2 for selected tracks.lua
+          . > BuyOne_Toggle (Un)Bypass input FX for selected tracks/BuyOne_Unbypass input FX 3 for selected tracks.lua
+          . > BuyOne_Toggle (Un)Bypass input FX for selected tracks/BuyOne_Unbypass input FX 4 for selected tracks.lua
           . > BuyOne_Toggle (Un)Bypass input FX for selected tracks/BuyOne_Toggle input FX bypass (except 1) for selected tracks.lua
-            . > BuyOne_Toggle (Un)Bypass input FX for selected tracks/BuyOne_Toggle input FX bypass (except 2) for selected tracks.lua
-            . > BuyOne_Toggle (Un)Bypass input FX for selected tracks/BuyOne_Toggle input FX bypass (except 3) for selected tracks.lua
-            . > BuyOne_Toggle (Un)Bypass input FX for selected tracks/BuyOne_Toggle input FX bypass (except 4) for selected tracks.lua
+          . > BuyOne_Toggle (Un)Bypass input FX for selected tracks/BuyOne_Toggle input FX bypass (except 2) for selected tracks.lua
+          . > BuyOne_Toggle (Un)Bypass input FX for selected tracks/BuyOne_Toggle input FX bypass (except 3) for selected tracks.lua
+          . > BuyOne_Toggle (Un)Bypass input FX for selected tracks/BuyOne_Toggle input FX bypass (except 4) for selected tracks.lua
           . > BuyOne_Toggle (Un)Bypass input FX for selected tracks/BuyOne_Bypass input FX (except 1) for selected tracks.lua
-            . > BuyOne_Toggle (Un)Bypass input FX for selected tracks/BuyOne_Bypass input FX (except 2) for selected tracks.lua
-            . > BuyOne_Toggle (Un)Bypass input FX for selected tracks/BuyOne_Bypass input FX (except 3) for selected tracks.lua
-            . > BuyOne_Toggle (Un)Bypass input FX for selected tracks/BuyOne_Bypass input FX (except 4) for selected tracks.lua
+          . > BuyOne_Toggle (Un)Bypass input FX for selected tracks/BuyOne_Bypass input FX (except 2) for selected tracks.lua
+          . > BuyOne_Toggle (Un)Bypass input FX for selected tracks/BuyOne_Bypass input FX (except 3) for selected tracks.lua
+          . > BuyOne_Toggle (Un)Bypass input FX for selected tracks/BuyOne_Bypass input FX (except 4) for selected tracks.lua
           . > BuyOne_Toggle (Un)Bypass input FX for selected tracks/BuyOne_Unbypass input FX (except 1) for selected tracks.lua
-            . > BuyOne_Toggle (Un)Bypass input FX for selected tracks/BuyOne_Unbypass input FX (except 2) for selected tracks.lua
-            . > BuyOne_Toggle (Un)Bypass input FX for selected tracks/BuyOne_Unbypass input FX (except 3) for selected tracks.lua
-            . > BuyOne_Toggle (Un)Bypass input FX for selected tracks/BuyOne_Unbypass input FX (except 4) for selected tracks.lua
+          . > BuyOne_Toggle (Un)Bypass input FX for selected tracks/BuyOne_Unbypass input FX (except 2) for selected tracks.lua
+          . > BuyOne_Toggle (Un)Bypass input FX for selected tracks/BuyOne_Unbypass input FX (except 3) for selected tracks.lua
+          . > BuyOne_Toggle (Un)Bypass input FX for selected tracks/BuyOne_Unbypass input FX (except 4) for selected tracks.lua
 ]]
 
 
