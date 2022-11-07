@@ -2,12 +2,8 @@
 ReaScript name: FX presets menu
 Author: BuyOne
 Website: https://forum.cockos.com/member.php?u=134058
-Version: 1.3
-Changelog:  # Fixed losing item focus and unnecessary horizontal scroll for REAPER builds prior to 6.37
-			# Fixed transport stop when getting TCP under mouse cursor for REAPER builds prior to 6.37
-			# Added MCP support for REAPER builds 6.37 onward
-			# Minor code optimizations
-			# Updated Guide
+Version: 1.4
+Changelog:  # Fixed Arrange view movement when object under mouse is being detected while the edit cursor is out of sight
 Provides: [main] .
 Licence: WTFPL
 REAPER: at least v5.962
@@ -417,9 +413,9 @@ local obj, obj_type
 			local min_val, subtr_val = table.unpack(new_curs_pos == end_time+5 and {curs_pos, end_time+5} -- TCP found, edit cursor remained at end_time+5
 			or new_curs_pos ~= end_time+5 and {curs_pos, new_curs_pos} -- TCP not found, edit cursor moved
 			or {0,0})
-			r.MoveEditCursor(min_val - subtr_val, false) -- restore orig. edit curs pos, greater subtracted from the lesser to get negative value meaning to move closer to zero (project start); dosel false = don't create time sel
+			r.MoveEditCursor(min_val - subtr_val, false) -- dosel false = don't create time sel; restore orig. edit curs pos, greater subtracted from the lesser to get negative value meaning to move closer to zero (project start) // MOVES VIEW SO IS UNSUITABLE
 		-- 	OR SIMPLY
-		--	r.SetEditCurPos(curs_pos, false, false) -- moveview, seekplay false // restore orig. edit curs pos
+			r.SetEditCurPos(curs_pos, false, false) -- moveview, seekplay false // restore orig. edit curs pos
 			end
 		end
 	end
