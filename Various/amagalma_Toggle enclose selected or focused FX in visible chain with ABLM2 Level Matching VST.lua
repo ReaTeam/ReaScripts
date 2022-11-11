@@ -1,7 +1,7 @@
 -- @description Toggle enclose selected or focused FX in visible chain with ABLM2 Level Matching VST
 -- @author amagalma
--- @version 1.01
--- @changelog internal change: Use Track's P_EXT rather than ProjExtState
+-- @version 1.02
+-- @changelog internal change: Use send and receive names of ABLM2 instances in FX Chain in order to figure out if should remove or add
 -- @link https://forum.cockos.com/showthread.php?t=215215
 -- @donation https://www.paypal.me/amagalma
 -- @about
@@ -198,17 +198,39 @@ end
 
 ------------------------------------------------------------------------------------------------
 
-local function RemoveAB(track, what, take)
+local function GetIfABLMisPresent(track, what, take)
+  local send_id, recv_id
   if what == "track" then
-    local id = reaper.TrackFX_GetByName( track, receive_name, false )
-    reaper.TrackFX_Delete( track, id)
-    id = reaper.TrackFX_GetByName( track, send_name, false )
-    reaper.TrackFX_Delete( track, id)
+    send_id = reaper.TrackFX_AddByName( track, send_name, false, 0)
+    recv_id = reaper.TrackFX_AddByName( track, receive_name, false, 0)
   elseif what == "item" then
-    local id = reaper.TakeFX_AddByName( take, receive_name, 0 )
-    reaper.TakeFX_Delete( take, id )
-    id = reaper.TakeFX_AddByName( take, send_name, 0 )
-    reaper.TakeFX_Delete( take, id )
+    send_id = reaper.TakeFX_AddByName( take, send_name, 0 )
+    recv_id = reaper.TakeFX_AddByName( take, receive_name, 0 )
+  end
+  if recv_id > -1 or send_id > -1 then
+    return true, send_id, recv_id -- remove
+  else
+    return false -- add
+  end
+end
+
+------------------------------------------------------------------------------------------------
+
+local function RemoveAB(track, what, take, send_id, recv_id)
+  if what == "track" then
+    if recv_id > -1 then
+      reaper.TrackFX_Delete( track, recv_id)
+    end
+    if send_id > -1 then
+      reaper.TrackFX_Delete( track, send_id)
+    end
+  elseif what == "item" then
+    if recv_id > -1 then
+      reaper.TakeFX_Delete( take, recv_id )
+    end
+    if send_id > -1 then
+      reaper.TakeFX_Delete( take, send_id )
+    end
   end
 end
 
@@ -219,16 +241,14 @@ if track then
   local _, left, top, right, bottom = reaper.JS_Window_GetRect( FX_win )
   local width = right - left
   local height = bottom - top
-  local ok, value = reaper.GetSetMediaTrackInfo_String( track, "P_EXT:amagalma_ABLM2" , "", false )
-  if ok and value == "1" then
+  local already_exists, send_id, recv_id = GetIfABLMisPresent(track, what, take)
+  if already_exists then
     reaper.Undo_BeginBlock()
-    RemoveAB(track, what, take)
-    reaper.GetSetMediaTrackInfo_String( track, "P_EXT:amagalma_ABLM2" , "", true )
+    RemoveAB(track, what, take, send_id, recv_id)
     reaper.Undo_EndBlock("Remove ABLM2 from focused FX Chain", 2)
   else
     reaper.Undo_BeginBlock()
     InsertAB(fxid, track, what, take, firstselFX, lastselFX)
-    reaper.GetSetMediaTrackInfo_String( track, "P_EXT:amagalma_ABLM2" , "1", true )
     reaper.Undo_EndBlock("Enclose selected/focused FX in Chain with ABLM2", 2)
   end
   reaper.JS_Window_SetPosition( FX_win, left, top, width, height )
