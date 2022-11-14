@@ -8,7 +8,7 @@ Licence: WTFPL
 REAPER: at least v6.36
 About:	The script is meant to allow using mousewheel on controls with a modifier which
 	isn't possible natively. This gives the benefit of avoiding accidental parameter
-	change with a mousewheel if enabled in Preferences -> Editing behavior -> Mouse.
+	change with a mousewheel if allowed in Preferences -> Editing behavior -> Mouse.
 	So the script can be used with 'Ignore mousewheel on all faders' and/or 
 	'Ignore mousewheel on track panel faders' settings enabled if it's bound to 
 	the mousewheel with a modifier in the Action list.	
