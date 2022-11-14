@@ -7,130 +7,130 @@ Changelog: Initial release
 Licence: WTFPL
 REAPER: at least v6.36
 About:	The script is meant to allow using mousewheel on controls with a modifier which
-		isn't possible natively. This gives the benefit of avoiding accidental parameter
-		change with a mousewheel if enabled in Preferences -> Editing behavior -> Mouse.
-		So the script can be used with 'Ignore mousewheel on all faders' and/or 
-		'Ignore mousewheel on track panel faders' settings enabled if it's bound to 
-		the mousewheel with a modifier in the Action list.	
-		
-		▓ SUPPORTED PARAMETERS
-		
-		Track TCP - volume, pan (all modes), playback offset
-		Item - volume
-		Take - volume, pan, pitch
-		FX - see TARGETTING FX CONTROLS paragraph below
-		Envelope points - track, take and plugin parameter envelope points, 
-		including Master track tempo and playrate envelopes
-		
-		Track MCP is not supported due to REAPER limitations.
-		
-		
-		▓ MOUSE CURSOR PLACEMENTS  
-		to target different parameters in tracks, items, envelope points and plugin controls
-		
-		▪ Track volume - over the track volume control (knob or slider).  
-		▪ Track pan/width - over the track corresponding control.  
-		▪ Track playback offset - any other place within the TCP.  
-		▪ Item/take volume - around the center of the item/take UI.  
-		▪ Take pan - near the item left edge from inside (new cursor type is a good indicator).  
-		▪ Take pitch - near the item right edge from inside (new cursor type is a good indicator).  
-		(to switch to mainuplating item/take parameters after take envelope was manipulated,
-		de-select the envelope.)  
-		▪ Envelope point - slightly to the right of the point's vertical axis, not nesessarily 
-		near it, can be above or below; IMPORTANT: to be able to affect an envelope it must
-		be explicitly selected, or with track and FX parameter envelopes, if it's already selected, 
-		then it must be clicked when coming from FX context; selected track and FX parameter 
-		envelopes cannot be manipulated while the UI of the last touched FX is open, so its FX chain
-		must be either closed or switched to another plugin UI or its floating window must be closed.  
-		▪ Plugin controls - this is tricky, touch the control, then click elsewhere, to be safe
-		click REAPER program window title bar and run the script. After that regardless of the
-		mouse cursor placement and focus of the FX window the plugin control will respond 
-		to the mouswheel movements. See 'VERY IMPORTANT:' note in TARGETTING FX CONTROLS paragraph below.
-		
-		To change parameters of one object other than an envelope, it doesn't have to be selected. 
-		But if several such objects are selected and one of them is under the mouse cursor
-		the parameter will be changed in all. The change is relative to the current value
-		of the parameter in each one of selected objects. 
-		In automation items only selected points within the same item are affected.
-		
-		▓ TARGETTING ITEM PARAMETERS	
-		
-		Volume (gain) is the only parameter which exists on two levels, for item and for take.
-		
-		Item volume is controlled by the knob displayed above the item if enabled in 
-		Preferences -> Appearance -> Media -> Media item buttons and/or a handle if enabled under 
-		the same section. When item volume changes these change their state. Take volume (gain) 
-		is the volume control in the Media Item Properties window (default shortcut is F2) and it 
-		changes its state when take volume is changed.	
-		
-		If the item under the mouse cursor isn't selected regardless of its number of takes 
-		or if it's selected and only has 1 take, item volume it targeted by the script.  
-		If selected item has more than 1 take, its active take volume is targeted and not 
-		the volume of the take immediately under the mouse cursor.  
-		
-		If along with the item under the mouse cursor other items are selected the type of volume
-		which will be targeted in all such items depends on the number of takes in the item under
-		the mouse cursor. If there's only 1 take in the selected item under the mouse cursor, 
-		item volume will be targeted in all other selected items regardless of their own number of takes;
-		on the other hand if there're more than 1 take in the selected item under the mouse cursor,
-		take volume will be targeted in all other selected items regardless of their own number of takes.
-		In selected multi-take items their active take volume will be targeted similarly to the item under 
-		the mouse cursor in case it's selected (see above). 
-			
-		Pan and pitch can only be adjusted on the take level.
-	
-		 
-		▓ TARGETTING FX CONTROLS
+	isn't possible natively. This gives the benefit of avoiding accidental parameter
+	change with a mousewheel if enabled in Preferences -> Editing behavior -> Mouse.
+	So the script can be used with 'Ignore mousewheel on all faders' and/or 
+	'Ignore mousewheel on track panel faders' settings enabled if it's bound to 
+	the mousewheel with a modifier in the Action list.	
 
-		Only JSFX are fully supported. REAPER native VST plugins will work but inconsistently
-		in terms of the step resolution, for some parameters the step may be too big while
-		for others too small. Drop-down lists won't work.  
-		3d party plugins may work with the same reservation regarding the step resolution.
-		If the controls don't respond to the mousewheel in the plugin UI, switch to the slider 
-		interface by clicking the 'UI' button of the plugin wrapper and try there.  
-		VERY IMPORTANT: Placement of the mouse cursor depends on the 'Mousewheel targets:' setting
-		at Preferences -> Editing behavior -> Mouse. If it's set to 'Window with focus' the mouse
-		cursor can be located either within the FX window or outside of it, if it's set to 
-		'Window under cursor' it must only be located outside of the FX window otherwise the script
-		won't affect plugin parameters (in both cases provided the mouse cursor is not over a TCP 
-		or an item, because the track/item parameters will be targeted rather than that of the plugin).  
-		Some 3d party plugins may respond to mousewheel regardless of REAPER settings and for
-		such plugins this script isn't necessary.  
-		Monitoring FX are not supported due to REAPER limitations.	
-		The abovesaid regarding scope of support and step resolution applies to FX parameter envelopes 
-		as well.  
-		
-		As value is changed via the script a tootlip is displayed for values for which there's 
-		no readout in the UI, such as take pan and track playback offset. It also displays tooltips 
-		for item/take volume (gain) / velocity and take pitch for which readouts on item UI can be enabled 
-		in Preferences -> Appearance -> Media - Media item labels.  
-		In REAPER item volume (gain) / velocity value in the readout is a sum of item and take volume 
-		(gain) / velocity values, therefore if item gain readout is enabled in Preferences and it's not 
-		at unity its value may differ from the one displayed in the script tooltip when take volume / 
-		velocity  is targeted.  
-		If a multi-take item is a mix of media and MIDI takes, the units in the tooltip readout
-		depend on the take under the mouse cursor: for media takes it's dB, for MIDI takes it's
-		velocity.  
-		If several objects are selected the tooltip only displays values for the object under
-		the mouse cursor.  
-		Display of tooltips by the script for track and item depends on the settings at 
-		Preferences -> Appearance - Appearance settings - Tooltips: UI elements and Items/envelopes
-		respectively. 
-		 
-		If track/item/envelope under the mouse cursor is locked nothing happens.
-		
-		If 'Ignore mousewheel on all faders' and/or 'Ignore mousewheel on track panel faders' settings
-		aren't enabled in Preferences -> Editing behavior -> Mouse, the script won't be applied in the
-		relevant context, that is track volume/pan/width and FX parameter controls, and unmodified
-		mousewheel events will be used instead.  
-		
-		In the USER SETTINGS section you can define resolution for each supported parameter type.
-		Mute envelope resolution cannot be custom as there're only two possible values, 1 and 0.
-		The resolution for FX papameter envelopes is fixed.  
-		
-		The script doesn't create an undo point. Seems pointless for mousewheel actions which inundate
-		undo history with points as one mousewheel nudge means 1 discrete point and one movement
-		usually consists of several nudges in a row.
+	▓ SUPPORTED PARAMETERS
+
+	Track TCP - volume, pan (all modes), playback offset
+	Item - volume
+	Take - volume, pan, pitch
+	FX - see TARGETTING FX CONTROLS paragraph below
+	Envelope points - track, take and plugin parameter envelope points, 
+	including Master track tempo and playrate envelopes
+
+	Track MCP is not supported due to REAPER limitations.
+
+
+	▓ MOUSE CURSOR PLACEMENTS  
+	to target different parameters in tracks, items, envelope points and plugin controls
+
+	▪ Track volume - over the track volume control (knob or slider).  
+	▪ Track pan/width - over the track corresponding control.  
+	▪ Track playback offset - any other place within the TCP.  
+	▪ Item/take volume - around the center of the item/take UI.  
+	▪ Take pan - near the item left edge from inside (new cursor type is a good indicator).  
+	▪ Take pitch - near the item right edge from inside (new cursor type is a good indicator).  
+	(to switch to mainuplating item/take parameters after take envelope was manipulated,
+	de-select the envelope.)  
+	▪ Envelope point - slightly to the right of the point's vertical axis, not nesessarily 
+	near it, can be above or below; IMPORTANT: to be able to affect an envelope it must
+	be explicitly selected, or with track and FX parameter envelopes, if it's already selected, 
+	then it must be clicked when coming from FX context; selected track and FX parameter 
+	envelopes cannot be manipulated while the UI of the last touched FX is open, so its FX chain
+	must be either closed or switched to another plugin UI or its floating window must be closed.  
+	▪ Plugin controls - this is tricky, touch the control, then click elsewhere, to be safe
+	click REAPER program window title bar and run the script. After that regardless of the
+	mouse cursor placement and focus of the FX window the plugin control will respond 
+	to the mouswheel movements. See 'VERY IMPORTANT:' note in TARGETTING FX CONTROLS paragraph below.
+
+	To change parameters of one object other than an envelope, it doesn't have to be selected. 
+	But if several such objects are selected and one of them is under the mouse cursor
+	the parameter will be changed in all. The change is relative to the current value
+	of the parameter in each one of selected objects. 
+	In automation items only selected points within the same item are affected.
+
+	▓ TARGETTING ITEM PARAMETERS	
+
+	Volume (gain) is the only parameter which exists on two levels, for item and for take.
+
+	Item volume is controlled by the knob displayed above the item if enabled in 
+	Preferences -> Appearance -> Media -> Media item buttons and/or a handle if enabled under 
+	the same section. When item volume changes these change their state. Take volume (gain) 
+	is the volume control in the Media Item Properties window (default shortcut is F2) and it 
+	changes its state when take volume is changed.	
+
+	If the item under the mouse cursor isn't selected regardless of its number of takes 
+	or if it's selected and only has 1 take, item volume it targeted by the script.  
+	If selected item has more than 1 take, its active take volume is targeted and not 
+	the volume of the take immediately under the mouse cursor.  
+
+	If along with the item under the mouse cursor other items are selected the type of volume
+	which will be targeted in all such items depends on the number of takes in the item under
+	the mouse cursor. If there's only 1 take in the selected item under the mouse cursor, 
+	item volume will be targeted in all other selected items regardless of their own number of takes;
+	on the other hand if there're more than 1 take in the selected item under the mouse cursor,
+	take volume will be targeted in all other selected items regardless of their own number of takes.
+	In selected multi-take items their active take volume will be targeted similarly to the item under 
+	the mouse cursor in case it's selected (see above). 
+
+	Pan and pitch can only be adjusted on the take level.
+
+
+	▓ TARGETTING FX CONTROLS
+
+	Only JSFX are fully supported. REAPER native VST plugins will work but inconsistently
+	in terms of the step resolution, for some parameters the step may be too big while
+	for others too small. Drop-down lists won't work.  
+	3d party plugins may work with the same reservation regarding the step resolution.
+	If the controls don't respond to the mousewheel in the plugin UI, switch to the slider 
+	interface by clicking the 'UI' button of the plugin wrapper and try there.  
+	VERY IMPORTANT: Placement of the mouse cursor depends on the 'Mousewheel targets:' setting
+	at Preferences -> Editing behavior -> Mouse. If it's set to 'Window with focus' the mouse
+	cursor can be located either within the FX window or outside of it, if it's set to 
+	'Window under cursor' it must only be located outside of the FX window otherwise the script
+	won't affect plugin parameters (in both cases provided the mouse cursor is not over a TCP 
+	or an item, because the track/item parameters will be targeted rather than that of the plugin).  
+	Some 3d party plugins may respond to mousewheel regardless of REAPER settings and for
+	such plugins this script isn't necessary.  
+	Monitoring FX are not supported due to REAPER limitations.	
+	The abovesaid regarding scope of support and step resolution applies to FX parameter envelopes 
+	as well.  
+
+	As value is changed via the script a tootlip is displayed for values for which there's 
+	no readout in the UI, such as take pan and track playback offset. It also displays tooltips 
+	for item/take volume (gain) / velocity and take pitch for which readouts on item UI can be enabled 
+	in Preferences -> Appearance -> Media - Media item labels.  
+	In REAPER item volume (gain) / velocity value in the readout is a sum of item and take volume 
+	(gain) / velocity values, therefore if item gain readout is enabled in Preferences and it's not 
+	at unity its value may differ from the one displayed in the script tooltip when take volume / 
+	velocity  is targeted.  
+	If a multi-take item is a mix of media and MIDI takes, the units in the tooltip readout
+	depend on the take under the mouse cursor: for media takes it's dB, for MIDI takes it's
+	velocity.  
+	If several objects are selected the tooltip only displays values for the object under
+	the mouse cursor.  
+	Display of tooltips by the script for track and item depends on the settings at 
+	Preferences -> Appearance - Appearance settings - Tooltips: UI elements and Items/envelopes
+	respectively. 
+
+	If track/item/envelope under the mouse cursor is locked nothing happens.
+
+	If 'Ignore mousewheel on all faders' and/or 'Ignore mousewheel on track panel faders' settings
+	aren't enabled in Preferences -> Editing behavior -> Mouse, the script won't be applied in the
+	relevant context, that is track volume/pan/width and FX parameter controls, and unmodified
+	mousewheel events will be used instead.  
+
+	In the USER SETTINGS section you can define resolution for each supported parameter type.
+	Mute envelope resolution cannot be custom as there're only two possible values, 1 and 0.
+	The resolution for FX papameter envelopes is fixed.  
+
+	The script doesn't create an undo point. Seems pointless for mousewheel actions which inundate
+	undo history with points as one mousewheel nudge means 1 discrete point and one movement
+	usually consists of several nudges in a row.
 		
 ]]
 
