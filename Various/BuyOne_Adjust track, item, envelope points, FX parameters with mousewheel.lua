@@ -141,7 +141,7 @@ About:	The script is meant to allow using mousewheel on controls with a modifier
 -- Enable this setting by inserting any QWERTY alphanumeric
 -- character between the quotation marks so the script can be used
 -- then configure the settings below
-ENABLE_SCRIPT = "1"
+ENABLE_SCRIPT = ""
 
 -----------------------------------------------------------------------------
 
@@ -209,7 +209,7 @@ PLAYRATE_ENV_RESOLUTION = ""
 -- Preferences -> Editing behavior -> Envelope display -> Volume envelope range:
 -- The upper range limit is taken from this setting,
 -- the lower range limit is set in this script at -60dB for both UI control and envelope point
-ITEM_TAKE_VOL_RESOLUTION = "1"
+ITEM_TAKE_VOL_RESOLUTION = ""
 
 -- Only relevant for MIDI items/takes;
 -- If the setting is empty or invalid it defaults 0.05 per mousewheel nudge;
