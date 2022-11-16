@@ -1,9 +1,8 @@
 -- @description Create Impulse Response (IR) of the FX Chain of the selected Track
 -- @author amagalma
--- @version 2.12
+-- @version 2.13
 -- @changelog
---   - Remember last applied settings per session
---   - Always keep edit cursor position
+--   - Improvements when creating IRs from linear phase filters
 -- @donation https://www.paypal.me/amagalma
 -- @link https://forum.cockos.com/showthread.php?t=234517
 -- @about
@@ -21,15 +20,15 @@
 
 -- Thanks to EUGEN27771, spk77, X-Raym, Lokasenna
 
-local version = "2.12"
+local version = "2.13"
 --------------------------------------------------------------------------------------------
 
 
 -- ENTER HERE DEFAULT VALUES:
 local Max_IR_Length = 5 -- Seconds
-local Normalize_Peak = -0.3 -- (must be less than 0)
+local Normalize_Peak = -0.1 -- (must be less than 0)
 local Normalize_Enable = 1 -- (1 = enabled, 0 = disabled)
-local Trim_Silence_Below = -100 -- (must be less than -60)
+local Trim_Silence_Below = -144 -- (must be less than -60)
 local Trim_Silence_Enable = 1 -- (1 = enabled, 0 = disabled)
 local Number_of_Channels = 2 -- (1: mono, 2: stereo, etc)
 local Locate_In_Explorer = 1 -- (1 = yes, 0 = no)
@@ -57,8 +56,8 @@ local IR_name = "IR"
 local IR_FullPath = IR_Path .. IR_name
 local IR_len, peak_normalize = Max_IR_Length, Normalize_Peak
 local trim, channels = Trim_Silence_Below, Number_of_Channels
-local max_pre_ringing_samples_val = 4096 -- samples
-local pre_ringing_threshold = -96 -- db
+local max_pre_ringing_samples_val = floor(samplerate/2) -- samples
+local pre_ringing_threshold = -144 -- db
 local cur_pos = reaper.GetCursorPosition()
 
 -- Check if Channel Tool exists in ReaVerb
@@ -126,20 +125,43 @@ if missing_lib then
   return reaper.defer(function() end)
 end
 
-
--- Test if a track is selected
-local track = reaper.GetSelectedTrack( 0, 0 )
-local msg = "Please, select one track with enabled TrackFX Chain, for which you want the IR to be created."
-if not track then
-  reaper.MB( msg, "No track selected!", 0 )
+local function Exit( msg )
+  reaper.MB( "Please, select one track with enabled TrackFX Chain, for which you want the IR to be created.", msg, 0 )
   return reaper.defer(function() end)
+end
+
+-- Test if a valid track is selected
+local track = reaper.GetSelectedTrack( 0, 0 )
+if not track then
+  return Exit( "No track selected!" )
 end
 local fx_cnt = reaper.TrackFX_GetCount( track )
-local fx_enabled = reaper.GetMediaTrackInfo_Value( track, "I_FXEN" )
-if fx_cnt < 1 or fx_enabled == 0 then
-  reaper.MB( msg, "No FX loaded or FX Chain is bypassed!", 0 )
-  return reaper.defer(function() end)
+if fx_cnt == 0 then
+  return Exit( "No FX loaded in track!" )
 end
+local fx_enabled = reaper.GetMediaTrackInfo_Value( track, "I_FXEN" )
+if fx_enabled == 0 then
+  return Exit( "FX Chain is bypassed!" )
+end
+local enabled_fx_cnt = 0
+local pdc_exists = false
+for fx = 0, fx_cnt-1 do
+  if reaper.TrackFX_GetEnabled( track, fx ) and not reaper.TrackFX_GetOffline( track, fx ) then
+    enabled_fx_cnt = enabled_fx_cnt + 1
+    -- Check if there is PDC on track (denotes possibly linear phase)
+    if not pdc_exists then
+      if tonumber(({reaper.TrackFX_GetNamedConfigParm(track, fx, "pdc")})[2]) > 0 then
+        pdc_exists = true
+      end
+    end
+  end
+end
+if enabled_fx_cnt == 0 then
+  return Exit( "All FX in Chain are either disabled or offline!" )
+end
+
+max_pre_ringing_samples_val = pdc_exists and max_pre_ringing_samples_val or 0
+
 
 local _, tr_name = reaper.GetSetMediaTrackInfo_String( track, "P_NAME", "", false )
 local track_name = tr_name
@@ -378,13 +400,13 @@ local function trim_silence_below_threshold(item, threshold) -- threshold in dB
           position = item_len - 0.02
           --Msg("new position : " .. position)
         end
-          reaper.BR_SetItemEdges( item, item_pos, item_end - position )
+          reaper.BR_SetItemEdges( item, item_pos, item_end - position - (pdc_exists and 1/samplerate or 0) ) -- 1 sample for linear
         return true
       else
         return false
       end
     else -- trim start
-      reaper.BR_SetItemEdges( item, item_pos + position, item_end )
+      reaper.BR_SetItemEdges( item, item_pos + position, item_end + 1/samplerate) -- 1 sample for linear
     end
   else
     return false
