@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="e2c8b2f681c289bf7f000e656d6b87e19579569e" name="ReaTeam Scripts">
+<index version="1" commit="4476b616c488c2f70c216723d89ffd4cf1e92f29" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -17709,6 +17709,10 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
         <changelog><![CDATA[- Remember last applied settings per session
 - Always keep edit cursor position]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/7a8b980919e0e5b859ab0d7a92cce47e90786ff7/Various/amagalma_Create%20Impulse%20Response%20(IR)%20of%20the%20FX%20chain%20of%20the%20selected%20track.lua</source>
+      </version>
+      <version name="2.13" author="amagalma" time="2022-11-16T22:40:20Z">
+        <changelog><![CDATA[- Improvements when creating IRs from linear phase filters]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4476b616c488c2f70c216723d89ffd4cf1e92f29/Various/amagalma_Create%20Impulse%20Response%20(IR)%20of%20the%20FX%20chain%20of%20the%20selected%20track.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Distinguish visually the ripple editing modes.lua" type="script" desc="Distinguish visually the ripple editing modes">
