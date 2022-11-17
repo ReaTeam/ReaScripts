@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="4476b616c488c2f70c216723d89ffd4cf1e92f29" name="ReaTeam Scripts">
+<index version="1" commit="d7e9ca07a9cdc5e094bf7184c18e326ba8740dfc" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -15827,8 +15827,22 @@ Removed first run warning message.]]></changelog>
       </version>
     </reapack>
     <reapack name="AZ_Toggle exclusive solo for track under mouse.eel" type="script" desc="Toggle exclusive solo for track under mouse">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Toggle exclusive solo for track under mouse\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The script changes selection of track and toggles solo in exclusive mode.\par}
+}
+]]></description>
+      </metadata>
       <version name="1.0" author="AZ" time="2021-10-19T20:23:50Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3a155fadf53ee8ad9503c468a18841fc13fc57ff/Tracks%20Properties/AZ_Toggle%20exclusive%20solo%20for%20track%20under%20mouse.eel</source>
+      </version>
+      <version name="1.1" author="AZ" time="2022-11-17T17:24:15Z">
+        <changelog><![CDATA[Fixed wrong behavior if several tracks are soloed.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d7e9ca07a9cdc5e094bf7184c18e326ba8740dfc/Tracks%20Properties/AZ_Toggle%20exclusive%20solo%20for%20track%20under%20mouse.eel</source>
       </version>
     </reapack>
     <reapack name="BuyOne_Mute empty tracks with FX and optionally set their FX offline (guide inside).lua" type="script" desc="Mute empty tracks with FX and optionally set their FX offline">
