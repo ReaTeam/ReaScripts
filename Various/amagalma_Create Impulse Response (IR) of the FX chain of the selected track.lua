@@ -1,8 +1,8 @@
 -- @description Create Impulse Response (IR) of the FX Chain of the selected Track
 -- @author amagalma
--- @version 2.13
+-- @version 2.14
 -- @changelog
---   - Improvements when creating IRs from linear phase filters
+--   - Improvement when creating IRs from linear phase filters and trimming start and end
 -- @donation https://www.paypal.me/amagalma
 -- @link https://forum.cockos.com/showthread.php?t=234517
 -- @about
@@ -20,7 +20,7 @@
 
 -- Thanks to EUGEN27771, spk77, X-Raym, Lokasenna
 
-local version = "2.13"
+local version = "2.14"
 --------------------------------------------------------------------------------------------
 
 
@@ -57,7 +57,7 @@ local IR_FullPath = IR_Path .. IR_name
 local IR_len, peak_normalize = Max_IR_Length, Normalize_Peak
 local trim, channels = Trim_Silence_Below, Number_of_Channels
 local max_pre_ringing_samples_val = floor(samplerate/2) -- samples
-local pre_ringing_threshold = -144 -- db
+local pre_ringing_threshold = Trim_Silence_Below -- db
 local cur_pos = reaper.GetCursorPosition()
 
 -- Check if Channel Tool exists in ReaVerb
@@ -187,7 +187,7 @@ local function ValFromdB(dB_val) return 10^(dB_val/20) end
 
 local function Create_Dirac(FilePath, channels, item_len) -- based on EUGEN27771's Wave Generator
   local val_out
-  local pre_ringing = max_pre_ringing_samples_val * channels -- give 4096 samples for linear phase pre-ringing if it exists
+  local pre_ringing = max_pre_ringing_samples_val * channels -- give samples for linear phase pre-ringing if it exists
   local numSamples = floor(samplerate * item_len * channels + 0.5) + pre_ringing
   local buf = {}
   for i = 1, numSamples do
@@ -400,13 +400,14 @@ local function trim_silence_below_threshold(item, threshold) -- threshold in dB
           position = item_len - 0.02
           --Msg("new position : " .. position)
         end
-          reaper.BR_SetItemEdges( item, item_pos, item_end - position - (pdc_exists and 1/samplerate or 0) ) -- 1 sample for linear
+          reaper.BR_SetItemEdges( item, item_pos, item_end - position )
         return true
       else
         return false
       end
     else -- trim start
-      reaper.BR_SetItemEdges( item, item_pos + position, item_end + 1/samplerate) -- 1 sample for linear
+      reaper.BR_SetItemEdges( item, item_pos + position - 2/samplerate, item_end )
+      -- 2 samples offset in order to bring "trim start" in accordance to "trim end" with linear phase
     end
   else
     return false
