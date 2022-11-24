@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="29aae12c8dc0c254204e183b2233d5d06d438cc5" name="ReaTeam Scripts">
+<index version="1" commit="ff66eaf276daee3dffaa71f9fcf26f22ed7d1856" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -13787,22 +13787,25 @@ Replace GetLastWord func with quicker solution (Thanks: Mespotine[t=233393]).]]>
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Option to set custom folder paths for the [Projects], [Project Lists], [Backups] and [Docs] tabs\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab List filter in each tab that supports the use of multiple search words separated by a 'space' character\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab File paths can be shown/hidden and also displayed optionally in the status bar\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Sort options\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Sorting options\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab [Favorites] tab to list and manage bookmarked favorites of each tab\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab [Follow Actions] tab to set Actions that are triggered after certain operations (New Tab, Load Project, etc.)\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Global main panel (or main context menu if panel is hidden) for [Locate in Explorer/Finder], [Open Project], [New Project], [New Tab], [Load in Tab], [Load] and [Insert] functions\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Global functions accessible via main button panel or context menu: [Open Project], [New Project], [New Tab], [Load in Tab], [Load] and [Insert]\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Selection and loading of multiple entries at once (multi-select via mouse is already part of Lokasenna's GUI library)\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab 'Keep open' checkbox to toggle the automatic window closing behavior after Load/New/Insert operations\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Different tab selector styles (Tabstrip or Dropdown)\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Scalable and resizeable window\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Customizable colors\sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Features that require SWS Extensions (2.9.8 or higher):\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab [Docs] tab for listing .pdf files\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab [Recent Projects] tab for listing and managing recent project entries (with functions to remove selected entries and to clear the entire list)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab 'Last Active' project functions to check for and load last active project tabs\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab [Locate in Explorer/Finder] button to navigate to the location(s) of selected files in Explorer or Finder\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab [Docs] tab for listing .pdf files\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Setup of predefined Reaper Theme Slots and the possibility to switch between them (uses SWS Resources)\sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Features that require js_ReaScriptAPI (0.991 or higher):\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Function to preview attached 'demo' audio files (supported file extensions: .wav, .flac, .mp3 and .ogg)\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Option for adding folder paths in the [Options] tab via a 'Browse' dialog (besides copy & pasting paths manually)\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Option for adding folder paths in the [Options] tab via a 'Browse' dialog (besides copy & pasting paths manually)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Additional sorting options by date\sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Discussion thread\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 https://forum.cockos.com/showthread.php?t=208697\par}
 }
@@ -14015,6 +14018,28 @@ Replace GetLastWord func with quicker solution (Thanks: Mespotine[t=233393]).]]>
       <version name="2.4.3" author="solger" time="2021-11-07T16:11:14Z">
         <changelog><![CDATA[+ Filter: Bugfix for handling certain special characters to avoid 'unfinished capture' Lua error]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/12c22a96b43828151b2bff30d5c5246352f78618/Project%20Properties/solger_ReaLauncher.lua</source>
+      </version>
+      <version name="2.5" author="solger" time="2022-11-24T18:06:34Z">
+        <changelog><![CDATA[+ Audio Preview: Bugfix to prevent a 'nil value' error when selecting preview audio channels
++ Favorites: Added right-click menu options to add the current or all project tabs to a selected 'Project' category list
++ General: Changed the behavior of 'Load in Tab' to ignore the default template for new tabs
++ General: Left-click on the 'Refresh' button now always triggers a rescan of the folders/files and a rebuild of the file cache
++ General: Added functions for loading the last active project tabs - accessible via 'Last Active' button in the status bar or via shortcut 'A' (requires SWS Extensions installed)
++ General: Added additional sorting options by last modified date (requires js_ReaScriptAPI installed)
++ General: Added Checkbox and shortcut 'D' to toggle date display (requires js_ReaScriptAPI installed)
++ General: Cycling through the sorting options (shortcut 'S') is now also possible in reverse order via 'Shift + S'
++ General: Added additional shortcut 'Shift + T' for 'New project tab (ignore default template)'
++ General: Revised internal data structures
++ General: Installation check code improvements for js_ReaScriptAPI
++ Help: Changed the selector for the help pages from Dropdown to Listbox
++ Options: Added the possibility to set a specifc start tab
++ Options: Changed style selector for the main panel (Buttons or Context Menu) from Checkbox to Dropdown
++ Project Lists: Added additional sorting options to list files in the same or reverse order as they are in the .RPL file
++ Recent Projects: Updated 'remove entries' and 'clear list' code due to 'BR_Win32_WritePrivateProfileString' API changes introduced with SWS Extensions 2.13
++ UI: Option pages are now grouped into a single parent tab
++ UI: It is now possible to choose different styles for the tab selector: Tabstrip or Dropdown
++ UI: Tooltips can now be switched on/off via the 'Tooltips' button in the status bar or via shortcut 'I']]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ff66eaf276daee3dffaa71f9fcf26f22ed7d1856/Project%20Properties/solger_ReaLauncher.lua</source>
       </version>
     </reapack>
   </category>
