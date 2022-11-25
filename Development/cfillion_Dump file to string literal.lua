@@ -98,8 +98,10 @@ local function loop()
 
     local avail_w, avail_h = reaper.ImGui_GetContentRegionAvail(ctx)
     reaper.ImGui_PushFont(ctx, monospace)
+    reaper.ImGui_BeginDisabled(ctx, dump:len() == 0)
     reaper.ImGui_InputTextMultiline(ctx, '##f', dump, avail_w, avail_h,
       reaper.ImGui_InputTextFlags_ReadOnly())
+    reaper.ImGui_EndDisabled(ctx)
     reaper.ImGui_PopFont(ctx)
     reaper.ImGui_End(ctx)
   end
