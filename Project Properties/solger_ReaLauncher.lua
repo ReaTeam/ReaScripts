@@ -1,26 +1,9 @@
 -- @description ReaLauncher
 -- @author solger
--- @version 2.5
+-- @version 2.5.1
 -- @changelog
---   + Audio Preview: Bugfix to prevent a 'nil value' error when selecting preview audio channels
---   + Favorites: Added right-click menu options to add the current or all project tabs to a selected 'Project' category list
---   + General: Changed the behavior of 'Load in Tab' to ignore the default template for new tabs
---   + General: Left-click on the 'Refresh' button now always triggers a rescan of the folders/files and a rebuild of the file cache
---   + General: Added functions for loading the last active project tabs - accessible via 'Last Active' button in the status bar or via shortcut 'A' (requires SWS Extensions installed)
---   + General: Added additional sorting options by last modified date (requires js_ReaScriptAPI installed)
---   + General: Added Checkbox and shortcut 'D' to toggle date display (requires js_ReaScriptAPI installed)
---   + General: Cycling through the sorting options (shortcut 'S') is now also possible in reverse order via 'Shift + S'
---   + General: Added additional shortcut 'Shift + T' for 'New project tab (ignore default template)'
---   + General: Revised internal data structures
---   + General: Installation check code improvements for js_ReaScriptAPI
---   + Help: Changed the selector for the help pages from Dropdown to Listbox
---   + Options: Added the possibility to set a specifc start tab
---   + Options: Changed style selector for the main panel (Buttons or Context Menu) from Checkbox to Dropdown
---   + Project Lists: Added additional sorting options to list files in the same or reverse order as they are in the .RPL file
---   + Recent Projects: Updated 'remove entries' and 'clear list' code due to 'BR_Win32_WritePrivateProfileString' API changes introduced with SWS Extensions 2.13
---   + UI: Option pages are now grouped into a single parent tab
---   + UI: It is now possible to choose different styles for the tab selector: Tabstrip or Dropdown
---   + UI: Tooltips can now be switched on/off via the 'Tooltips' button in the status bar or via shortcut 'I'
+--   + Last Active Projects: Bugfix for updating the list when using the 'Show projects in list' menu option
+--   + Last Active Projects: Duplicate entries are now listed only once
 -- @screenshot https://forum.cockos.com/showthread.php?t=208697
 -- @about
 --   # ReaLauncher
@@ -1731,15 +1714,15 @@ if SWSinstalled then
   function FillLastActiveProjects(listInReverse)
     RL_SetFocusedTab(TabID.RecentProjects)
     GUI.elms.tab_recentProjects_btnLastActiveProject.col_txt = FilterColor.active
-    RecentProjects.items = {}
+    RecentProjects.items, RecentProjects.display = {}, {}
     local e = 0;
 
     if IsNotNullOrEmpty(LastActiveProjects.tabCount) and tonumber(LastActiveProjects.tabCount) then
       for i = 1, tonumber(LastActiveProjects.tabCount) do
-        local _, fullPath = reaper.BR_Win32_GetPrivateProfileString("REAPER", "projecttab" .. i, "noEntry", reaperIniPath)
-        if IsNotNullOrEmpty(fullPath) then
-          if ConfigFlags.listFilesInDebugMessages then MsgDebug(fullPath) end
-          e = AddRecentProjectEntries(fullPath, e)
+        local projectTabPath = LastActiveProjects.projectTabs[i]
+        if IsNotNullOrEmpty(projectTabPath) then 
+          if ConfigFlags.listFilesInDebugMessages then MsgDebug(projectTabPath) end
+          e = AddRecentProjectEntries(projectTabPath, e)
         end
       end
     end
@@ -1765,7 +1748,9 @@ function RL_Context_LastActiveProjects()
     if tonumber(LastActiveProjects.tabCount) and tonumber(LastActiveProjects.tabCount) > 0 then
       for i = 1, tonumber(LastActiveProjects.tabCount) do
         local _, projectTabPath = reaper.BR_Win32_GetPrivateProfileString("REAPER", "projecttab" .. i, "noEntry", reaperIniPath)
-        if IsNotNullOrEmpty(projectTabPath) and projectTabPath ~= "noEntry" then LastActiveProjects.projectTabs[#LastActiveProjects.projectTabs + 1] = projectTabPath end
+        if (IsNotNullOrEmpty(projectTabPath) or projectTabPath ~= "noEntry") and not CheckForDuplicates(LastActiveProjects.projectTabs, projectTabPath) then
+          LastActiveProjects.projectTabs[#LastActiveProjects.projectTabs + 1] = projectTabPath
+        end
       end
       if #LastActiveProjects.projectTabs > 0 then 
         menuEntries[#menuEntries + 1] = "2 - Load all last active project tabs (count: " .. #LastActiveProjects.projectTabs .. ")"
@@ -3003,7 +2988,7 @@ GUI.Draw_Version = function()
   GUI.color("txt")
 
   if not GUI.version then return 0 end
-  str = "RL 2.5 | Lokasenna_GUI " .. GUI.version
+  str = "RL 2.5.1 | Lokasenna_GUI " .. GUI.version
   str_w, str_h = gfx.measurestr(str)
   if osversion:find("Win") then gfx.x = GUI.w - (238 * RL.scaleFactor) else gfx.x = GUI.w - (250 * RL.scaleFactor) end
   gfx.y = GUI.h - (15.5 * RL.scaleFactor)
