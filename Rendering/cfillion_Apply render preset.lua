@@ -1,7 +1,7 @@
 -- @description Apply render preset
 -- @author cfillion
--- @version 2.0.2
--- @changelog Fix restoration of the tail checkbox
+-- @version 2.0.3
+-- @changelog Enable ReaImGui's backward compatibility shims
 -- @provides
 --   .
 --   [main] . > cfillion_Apply render preset (create action).lua
@@ -38,6 +38,11 @@
 --   - Render speed
 --   - Resample mode
 --   - Use project sample rate for mixing and FX/synth processing
+
+if reaper.ImGui_CreateContext then
+  dofile(reaper.GetResourcePath() ..
+        '/Scripts/ReaTeam Extensions/API/imgui.lua')('0.7')
+end
 
 local r = reaper
 local REAPER_BEFORE_V6 = tonumber(r.GetAppVersion():match('^%d+')) < 6
