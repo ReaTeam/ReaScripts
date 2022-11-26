@@ -7,7 +7,9 @@ Changelog: Initial release
 Licence: WTFPL
 REAPER: at least v5.962
 About: 	The script copies/moves selected notes and/or selected CC events in visible lanes
-	to user specified MIDI channels.  
+	to user specified MIDI channels. If the target lane in another MIDI channel already
+	contains events or piano roll already contains notes, these will be replaced by those 
+	being copied or moved.
 
 	If several CC lanes are open, selected events in 14 bit CC lanes will be ignored, 
 	therefore if you need them affected by the sctipt be sure to switch 14 bit
@@ -18,7 +20,11 @@ About: 	The script copies/moves selected notes and/or selected CC events in visi
 	3. In the input field list target MIDI channel numbers space separated or specify range as X - X
 	(inverted range is supported, e.g. 13 - 4)
 	4. Precede the list/range with the letter M or m if you wish the events to be moved rather than copied
-	4. Click OK
+	5. Click OK
+
+	If there're several visible lanes and only one of them contains selected events 
+	be sure to make it the last clicked by clicking it so that the events are  
+	copied/moved to the lane of the same message type in other MIDI channels.
 ]]
 
 function Msg(param, cap) -- caption second or none
@@ -39,6 +45,8 @@ end
 
 function Re_Store_Selected_CCEvents(ME, take, t, deselect_before_restore) -- deselect_before_restore is boolean
 -- !!!! will work EVEN IF events were deleted or added in the interim FOR ALL MIDI CHANNELS
+-- clicking within one MIDI channel doesn't affect event selection in other MIDI channels
+-- deleting selected events in one MIDI channel with action doesn't affect selected events in other MIDI channels; in the same MIDI channels selected events are deleted regardless of their lane visibility
 -- with the mouse CC events can only be selected in one lane, the selection is exclusive just like track automation envelope nodes unless Shift is held down, marque selection or Ctrl+A are used
 local ME = not ME and r.MIDIEditor_GetActive() or ME
 local take = not take and r.MIDIEditor_GetTake(ME) or take
@@ -49,7 +57,7 @@ local cur_ch_comm_ID = 40218 + cur_chan -- 40218 is 'Channel: Show only channel 
 	r.PreventUIRefresh(1)
 	local t = {}
 		for ch = 0, 15 do
-		local comm_ID = 40218 + 0 -- construct command ID for the next action 'Channel: Show only channel N'; starting from 1
+		local comm_ID = 40218 + ch -- construct command ID for the next action 'Channel: Show only channel N'; starting from 1
 		r.MIDIEditor_LastFocused_OnCommand(comm_ID, false) -- islistviewcommand false // select MIDI channel
 		local evt_idx = 0
 			repeat
@@ -71,7 +79,7 @@ local cur_ch_comm_ID = 40218 + cur_chan -- 40218 is 'Channel: Show only channel 
 --	r.MIDIEditor_LastFocused_OnCommand(40671, false) -- islistviewcommand false // Unselect all CC events -- IN FACT DESELECTS EVEN non-CC events such as text and notation
 		if deselect_before_restore then
 			for ch = 0, 15 do
-			local comm_ID = 40218 + 0 -- construct command ID for the next action 'Channel: Show only channel N'; starting from 1
+			local comm_ID = 40218 + ch -- construct command ID for the next action 'Channel: Show only channel N'; starting from 1
 			r.MIDIEditor_LastFocused_OnCommand(comm_ID, false) -- islistviewcommand false // select MIDI channel
 			local evt_idx = 0
 				repeat -- deselect all
@@ -83,7 +91,7 @@ local cur_ch_comm_ID = 40218 + cur_chan -- 40218 is 'Channel: Show only channel 
 			end
 		end
 		for ch = 0, 15 do
-		local comm_ID = 40218 + 0 -- construct command ID for the next action 'Channel: Show only channel N'; starting from 1
+		local comm_ID = 40218 + ch -- construct command ID for the next action 'Channel: Show only channel N'; starting from 1
 		r.MIDIEditor_LastFocused_OnCommand(comm_ID, false) -- islistviewcommand false // select MIDI channel
 		local evt_idx = 0
 			repeat
@@ -225,15 +233,15 @@ local lanes_err = 'No valid selected events in visible lanes.'
 
 
 -- Find if there're selected events in at least one visible CC lane (out of several)
-local ccidx = 0
+local evt_idx = 0
 local sel_cnt = 0
 	repeat -- deselect all
-	local retval, sel, muted, ppqpos, chanmsg, chan, msg2, msg3 = r.MIDI_GetCC(take, ccidx) -- just to use retval to stop the loop
+	local retval, sel, muted, ppqpos, chanmsg, chan, msg2, msg3 = r.MIDI_GetCC(take, evt_idx) -- just to use retval to stop the loop
 		for _, cc in ipairs(vis_lanes_t) do
 			if sel and (chanmsg == 176 and cc == msg2 or chanmsg == cc) then sel_cnt = sel_cnt+1 break end -- for non-CC messages (chanmsg =/= 176) their chanmsg value is stored since it's unique while their msg2 value doesn't refer to the CC#
 		end
 		if sel_cnt > 0 then break end -- exit if at least one found
-	ccidx = ccidx+1
+	evt_idx = evt_idx+1
 	until not retval
 
 	if sel_cnt == 0 and not notes_selected then
@@ -244,14 +252,18 @@ local sel_cnt = 0
 Re_Store_Selected_CCEvents(ME, take) -- deselect all
 
 
--- Only re-select events in the visible lanes
+-- Only re-select originally selected events in the visible lanes
+local cur_chan = r.MIDIEditor_GetSetting_int(ME, 'default_note_chan') -- 0-15
+
 	for _, sel_evts_data in ipairs(sel_evts_t) do
-	local chmsg, msg2 = sel_evts_data[5], sel_evts_data[7]
-		for _, cc in ipairs(vis_lanes_t) do
-			if chmsg == 176 and cc == msg2 -- CC message, chanmsg = 176
-			or chmsg == cc then -- non-CC message (chanmsg =/= 176) which has channel data, such as Pitch, Channel pressure, ProgramChange and for which chanmsg value is stored instead since it's unique while their msg2 value doesn't refer to the CC#
-			local evt_idx = sel_evts_data[9]
-			r.MIDI_SetCC(take, evt_idx, true, mutedIn, ppqposIn, chanmsgIn, chanIn, msg2In, msg3In, true) -- selectedIn, noSortIn true
+	local chmsg, chan, msg2 = sel_evts_data[5], sel_evts_data[6], sel_evts_data[7]
+		if chan == cur_chan then
+			for _, cc in ipairs(vis_lanes_t) do
+				if chmsg == 176 and cc == msg2 -- CC message, chanmsg = 176
+				or chmsg == cc then -- non-CC message (chanmsg =/= 176) which has channel data, such as Pitch, Channel pressure, ProgramChange and for which chanmsg value is stored instead since it's unique while their msg2 value doesn't refer to the CC#
+				local evt_idx = sel_evts_data[9]
+				r.MIDI_SetCC(take, evt_idx, true, mutedIn, ppqposIn, chanmsgIn, chanIn, msg2In, msg3In, true) -- selectedIn, noSortIn true
+				end
 			end
 		end
 	end
@@ -277,11 +289,9 @@ local ch_t = {}
 	end
 
 
-local cur_chan = r.MIDIEditor_GetSetting_int(ME, 'default_note_chan') -- 0-15
-
 	if #ch_t == 0 or #ch_t == 1 and ch_t[1]-1 == cur_chan -- -1 to conform to 0-based system used in cur_chan value
 	then
-	local err = #ch_t == 0 and 'No target MIDI channel has been specified.' or 'The target MIDI channel is the same as the current one.'
+	local err = #ch_t == 0 and 'No valid target MIDI channel has been specified.' or 'The target MIDI channel is the same as the current one.'
 	local resp = r.MB(err, 'ERROR', 5)
 		if resp == 4 then autofill = move and move..output or output goto RETRY
 		else return r.defer(function() do return end end)
@@ -309,6 +319,79 @@ local noteidx = 0
 r.MIDI_Sort(take)
 end
 
+function get_visible_lanes_with_selected_events(take, vis_lanes_t)
+-- Find numbers of the message types of visible lanes with selected events
+local lanes_with_sel_evts_t = {}
+local evt_idx = 0
+	repeat
+	local retval, sel, muted, ppqpos, chanmsg, chan, msg2, msg3 = r.MIDI_GetCC(take, evt_idx)
+		if sel then
+			for _, cc in ipairs(vis_lanes_t) do
+				if chanmsg == 176 and cc == msg2 -- CC message, chanmsg = 176
+				or chanmsg == cc then -- non-CC message (chanmsg =/= 176) which has channel data, such as Pitch, Channel pressure, ProgramChange and for which chanmsg value is stored instead since it's unique while their msg2 value doesn't refer to the CC#
+				local stored
+					for _, cc2 in ipairs(lanes_with_sel_evts_t) do
+						if cc == cc2 then stored = true break end
+					end
+					if not stored then
+					local len = #lanes_with_sel_evts_t+1
+					lanes_with_sel_evts_t[len] = chanmsg == 176 and msg2 or chanmsg -- only collect unique numbers of CC messages (chanmsg = 176) for which msg2 value represents CC#, or non-CC messages which have channel data (chanmsg is not 176) for which msg2 value doesn't represent CC#; chanmsg = Pitch bend - 224, Program - 192, Channel pressure - 208, Poly aftertouch - 160
+					end
+				end
+			end
+		end
+	evt_idx = evt_idx+1
+	until not retval
+return lanes_with_sel_evts_t
+end
+
+
+function delete_evts_from_target_lanes(take, lanes_with_sel_evts_t) -- before pasting/moving in case there's old automation to prevent mixing/garbling
+-- Count events in the current channel to use in reversed loop below for the sake of deletion
+local count = 0
+	repeat
+	local retval, sel, muted, ppqpos, chanmsg, chan, msg2, msg3 = r.MIDI_GetCC(take, count)
+		if not retval then break end
+	count = count+1
+	until not retval
+-- Delete events from target lanes, if any
+r.MIDI_DisableSort(take)
+local evt_idx = count-1 -- in reverse due to deletion, -1 because the count ends up being 1-based
+	repeat
+	local retval, sel, muted, ppqpos, chanmsg, chan, msg2, msg3 = r.MIDI_GetCC(take, evt_idx)
+		if not retval then break end
+		for _, cc in ipairs(lanes_with_sel_evts_t) do
+			if chanmsg == 176 and cc == msg2 -- CC message, chanmsg = 176
+			or chanmsg == cc then -- non-CC message (chanmsg =/= 176) which has channel data, such as Pitch, Channel pressure, ProgramChange and for which chanmsg value is stored instead since it's unique while their msg2 value doesn't refer to the CC#
+			r.MIDI_DeleteCC(take, evt_idx)
+			end
+		end
+	evt_idx = evt_idx-1
+	until not retval
+r.MIDI_Sort(take)
+end
+
+
+function delete_notes_in_MIDI_channel(take) -- to delete in the target MIDI channels
+-- Count notes in the current channel to use in reversed loop below for the sake of deletion
+local count = 0
+	repeat
+	local retval, sel, muted, ppqpos, endppq, chan, pitch, vel = r.MIDI_GetNote(take, count)
+		if not retval then break end
+	count = count+1
+	until not retval
+r.MIDI_DisableSort(take)
+local note_idx = count-1 -- in reverse due to deletion, -1 because the count ends up being 1-based
+	repeat
+	r.MIDI_DeleteNote(take, note_idx)
+	note_idx = note_idx-1
+	until note_idx < 0
+r.MIDI_Sort(take)
+end
+
+
+local lanes_with_sel_evts_t = get_visible_lanes_with_selected_events(take, vis_lanes_t)
+
 
 	if move then
 	ACT(40012) -- Edit: Cut // doesn't work in ternary expression
@@ -322,6 +405,8 @@ end
 		if ch-1 ~= cur_chan then -- ignoring current MIDI channel
 		local comm_ID = cur_ch_comm_ID + (ch-1 - cur_chan) -- ch-1 to conform to 0-based system used in cur_chan value
 		ACT(comm_ID) -- 'Channel: Show only channel N'
+		delete_evts_from_target_lanes(take, lanes_with_sel_evts_t)
+			if notes_selected then delete_notes_in_MIDI_channel(take) end
 		ACT(40036) -- View: Go to start of file
 		ACT(40429) -- Edit: Paste preserving position in measure
 			if not notes_selected then delete_temp_note(take) end -- delete from each channel after pasting/moving content
@@ -334,4 +419,5 @@ Re_Store_Selected_CCEvents(ME, take, sel_evts_t, false) -- deselect_before_resto
 r.PreventUIRefresh(-1)
 
 r.Undo_EndBlock((move and 'Move' or 'Paste')..' notes and/or other MIDI events to specified MIDI channels', -1)
+
 
