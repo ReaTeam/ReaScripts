@@ -7,8 +7,8 @@ Changelog: Initial release
 Licence: WTFPL
 REAPER: at least v5.962
 Metapackage: true
-Provides: 	. > BuyOne_Switch to next active CC envelope.lua
-		. > BuyOne_Switch to previous active CC envelope.lua
+Provides: . > BuyOne_Switch to next active CC envelope.lua
+	  . > BuyOne_Switch to previous active CC envelope.lua
 About: 	Works for the last clicked CC lane if several are open.
 
 	If next/previous active CC envelope is already open in
