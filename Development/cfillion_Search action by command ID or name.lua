@@ -1,10 +1,13 @@
 -- @description Search action by command ID or name
 -- @author cfillion
--- @version 2.0.1
--- @changelog Customize UI colors
+-- @version 2.0.2
+-- @changelog Enable ReaImGui's backward compatibility shims
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=226107
 -- @screenshot https://i.imgur.com/yqkvZvf.gif
 -- @donation https://www.paypal.com/cgi-bin/webscr?business=T3DEWBQJAV7WL&cmd=_donations&currency_code=CAD
+
+dofile(reaper.GetResourcePath() ..
+       '/Scripts/ReaTeam Extensions/API/imgui.lua')('0.7')
 
 local FLT_MIN, FLT_MAX = reaper.ImGui_NumericLimits_Float()
 local SCRIPT_NAME = ({reaper.get_action_context()})[2]:match("([^/\\_]+)%.lua$")
