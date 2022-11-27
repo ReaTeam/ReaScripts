@@ -1,7 +1,7 @@
 -- @description Project underrun monitor (xrun)
 -- @author cfillion
--- @version 2.0.1
--- @changelog Update the user interface to ReaImGui v0.5
+-- @version 2.0.2
+-- @changelog Enable ReaImGui's backward compatibility shims
 -- @link
 --   cfillion.ca https://cfillion.ca
 --   Request Thread https://forum.cockos.com/showthread.php?p=1942953
@@ -14,6 +14,9 @@
 --   underrun occured. Markers can optionally be created. The reported time and
 --   marker position accuracy is limited by the polling speed of ReaScripts
 --   which is around 30Hz.
+
+dofile(reaper.GetResourcePath() ..
+       '/Scripts/ReaTeam Extensions/API/imgui.lua')('0.7')
 
 local r = reaper
 
