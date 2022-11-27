@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="72290bc88b03c6d2707b9050aacf38fec0c8a9b2" name="ReaTeam Scripts">
+<index version="1" commit="c1a045b9c6b68a0184c1957b8aed1d5995f3af2b" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -521,6 +521,11 @@
         <source>https://github.com/ReaTeam/ReaScripts/raw/32e7b53f799d110200db4415957a3f20549683c0/Development/amagalma_Theme%20variable%20descriptions.lua</source>
       </version>
     </reapack>
+    <reapack name="cfillion_Dump file to string literal.lua" type="script" desc="Dump file to string literal">
+      <version name="1.0" author="cfillion" time="2022-11-27T16:32:34Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c1a045b9c6b68a0184c1957b8aed1d5995f3af2b/Development/cfillion_Dump%20file%20to%20string%20literal.lua</source>
+      </version>
+    </reapack>
     <reapack name="cfillion_GFX Input Inspector.lua" type="script" desc="GFX Input Inspector">
       <version name="2.0" author="cfillion" time="2018-04-11T23:42:40Z">
         <changelog><![CDATA[Previously named "GFX Keyboard Inspector"
@@ -740,6 +745,10 @@ fix crash when no matching action is found (hotfix for a last-minute change)]]><
       <version name="2.0.1" author="cfillion" time="2022-03-27T21:33:11Z">
         <changelog><![CDATA[Customize UI colors]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/bd07bbd3eeb9e332102b69b93b4d48cdd6c75280/Development/cfillion_Search%20action%20by%20command%20ID%20or%20name.lua</source>
+      </version>
+      <version name="2.0.2" author="cfillion" time="2022-11-27T16:30:31Z">
+        <changelog><![CDATA[Enable ReaImGui's backward compatibility shims]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/bd877eb9a3dd2681989e57457675aa03b8d1f022/Development/cfillion_Search%20action%20by%20command%20ID%20or%20name.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_GUI library v2 (developer tools).lua" type="script" desc="Lokasenna's GUI library v2 for Lua (developer tools)">
@@ -5490,6 +5499,22 @@ Added experimental fixed lanes support]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/050f09b7417a446ebdc39384b334910163400c1f/Items%20Editing/bfut_Extract%20loop%20section%20under%20mouse%20cursor%20to%20new%20item.lua</source>
       </version>
     </reapack>
+    <reapack name="bfut_Select items of less than 1 sample in length.lua" type="script" desc="Select items of less than 1 sample in length">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 HOW TO USE:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 1)\tx360\tab Run the script. REQUIRES: Reaper v6.70 or later\sa180\par}
+}
+]]></description>
+        <link rel="website">https://github.com/bfut/ReaScripts</link>
+      </metadata>
+      <version name="1.0" author="bfut" time="2022-11-27T16:29:59Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/21f51bb95a71e1baba756a7311c0e95b2570913c/Items%20Editing/bfut_Select%20items%20of%20less%20than%201%20sample%20in%20length.lua</source>
+      </version>
+    </reapack>
     <reapack name="bfut_Split looped item into separate items.lua" type="script" desc="Split looped item into separate items">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
@@ -5531,6 +5556,38 @@ Added experimental fixed lanes support]]></changelog>
       <version name="1.1" author="bfut" time="2020-11-17T04:41:32Z">
         <changelog><![CDATA[+ ignore locked items]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/050f09b7417a446ebdc39384b334910163400c1f/Items%20Editing/bfut_Trim%20to%20source%20media%20lengths%20(limit%20items%20lengths).lua</source>
+      </version>
+    </reapack>
+    <reapack name="bfut_Unselect items touching time selection.lua" type="script" desc="Unselect items touching time selection">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 HOW TO USE:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 1)\tx360\tab Run the script. REQUIRES: Reaper v6.70 or later\sa180\par}
+}
+]]></description>
+        <link rel="website">https://github.com/bfut/ReaScripts</link>
+      </metadata>
+      <version name="1.0" author="bfut" time="2022-11-27T16:29:59Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/21f51bb95a71e1baba756a7311c0e95b2570913c/Items%20Editing/bfut_Unselect%20items%20touching%20time%20selection.lua</source>
+      </version>
+    </reapack>
+    <reapack name="bfut_Unselect items within time selection.lua" type="script" desc="Unselect items within time selection">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 HOW TO USE:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 1)\tx360\tab Run the script. REQUIRES: Reaper v6.70 or later\sa180\par}
+}
+]]></description>
+        <link rel="website">https://github.com/bfut/ReaScripts</link>
+      </metadata>
+      <version name="1.0" author="bfut" time="2022-11-27T16:29:59Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/21f51bb95a71e1baba756a7311c0e95b2570913c/Items%20Editing/bfut_Unselect%20items%20within%20time%20selection.lua</source>
       </version>
     </reapack>
     <reapack name="boringcactus_BeatPermute.lua" type="script" desc="Beat Permute (swap/delete/duplicate)">
@@ -5955,6 +6012,12 @@ Rewrite the script's user interface using ReaImGui]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/1d7d062327c4863f898a84394302399f78af81f7/Items%20Editing/cfillion_Show%20all%20saved%20nudge%20settings.lua</source>
         <source main="main" file="cfillion_Nudge left by selected saved nudge dialog settings.lua">https://github.com/ReaTeam/ReaScripts/raw/1d7d062327c4863f898a84394302399f78af81f7/Items%20Editing/cfillion_Show%20all%20saved%20nudge%20settings.lua</source>
         <source main="main" file="cfillion_Nudge right by selected saved nudge dialog settings.lua">https://github.com/ReaTeam/ReaScripts/raw/1d7d062327c4863f898a84394302399f78af81f7/Items%20Editing/cfillion_Show%20all%20saved%20nudge%20settings.lua</source>
+      </version>
+      <version name="3.0.2" author="cfillion" time="2022-11-27T16:31:07Z">
+        <changelog><![CDATA[Enable ReaImGui's backward compatibility shims]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/280770bca827d64588e9634c194bbdfe26598e9e/Items%20Editing/cfillion_Show%20all%20saved%20nudge%20settings.lua</source>
+        <source main="main" file="cfillion_Nudge left by selected saved nudge dialog settings.lua">https://github.com/ReaTeam/ReaScripts/raw/280770bca827d64588e9634c194bbdfe26598e9e/Items%20Editing/cfillion_Show%20all%20saved%20nudge%20settings.lua</source>
+        <source main="main" file="cfillion_Nudge right by selected saved nudge dialog settings.lua">https://github.com/ReaTeam/ReaScripts/raw/280770bca827d64588e9634c194bbdfe26598e9e/Items%20Editing/cfillion_Show%20all%20saved%20nudge%20settings.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Split selected non-locked items at edit cursor.lua" type="script" desc="Split selected non-locked items at edit cursor">
@@ -8762,6 +8825,12 @@ Use ReaImGui for displaying the options menu (if installed)]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/8c64dff3b116aaacdc50d5edef51be493bd6b62b/MIDI%20Editor/cfillion_Step%20sequencing%20(replace%20mode).lua</source>
         <source main="midi_editor" file="cfillion_Step sequencing (options).lua">https://github.com/ReaTeam/ReaScripts/raw/8c64dff3b116aaacdc50d5edef51be493bd6b62b/MIDI%20Editor/cfillion_Step%20sequencing%20(replace%20mode).lua</source>
         <source type="effect" file="cfillion_Step sequencing (replace mode).jsfx">https://github.com/ReaTeam/ReaScripts/raw/8c64dff3b116aaacdc50d5edef51be493bd6b62b/MIDI%20Editor/cfillion_Step%20sequencing%20(replace%20mode).jsfx</source>
+      </version>
+      <version name="1.1.2" author="cfillion" time="2022-11-27T16:30:56Z">
+        <changelog><![CDATA[Enable ReaImGui's backward compatibility shims]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/d4e783fb243a366a682451bcd2642e66257dd8d7/MIDI%20Editor/cfillion_Step%20sequencing%20(replace%20mode).lua</source>
+        <source main="midi_editor" file="cfillion_Step sequencing (options).lua">https://github.com/ReaTeam/ReaScripts/raw/d4e783fb243a366a682451bcd2642e66257dd8d7/MIDI%20Editor/cfillion_Step%20sequencing%20(replace%20mode).lua</source>
+        <source type="effect" file="cfillion_Step sequencing (replace mode).jsfx">https://github.com/ReaTeam/ReaScripts/raw/d4e783fb243a366a682451bcd2642e66257dd8d7/MIDI%20Editor/cfillion_Step%20sequencing%20(replace%20mode).jsfx</source>
       </version>
     </reapack>
     <reapack name="cfillion_Toggle MIDI preview on transport change.lua" type="script" desc="Toggle MIDI preview on transport change">
@@ -14026,6 +14095,11 @@ Replace GetLastWord func with quicker solution (Thanks: Mespotine[t=233393]).]]>
 + UI: Tooltips can now be switched on/off via the 'Tooltips' button in the status bar or via shortcut 'I']]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ff66eaf276daee3dffaa71f9fcf26f22ed7d1856/Project%20Properties/solger_ReaLauncher.lua</source>
       </version>
+      <version name="2.5.1" author="solger" time="2022-11-27T16:30:18Z">
+        <changelog><![CDATA[+ Last Active Projects: Bugfix for updating the list when using the 'Show projects in list' menu option
++ Last Active Projects: Duplicate entries are now listed only once]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/aa2e98a780e7864196bb93ec7fe5e7110a2be232/Project%20Properties/solger_ReaLauncher.lua</source>
+      </version>
     </reapack>
   </category>
   <category name="Razor Edit">
@@ -14799,6 +14873,11 @@ Fix the new menu crashing if there are new saved render presets]]></changelog>
         <changelog><![CDATA[Fix restoration of the tail checkbox]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/7cbb79dc2da90fa98a99d8f5f21f510435cd472b/Rendering/cfillion_Apply%20render%20preset.lua</source>
         <source main="main" file="cfillion_Apply render preset (create action).lua">https://github.com/ReaTeam/ReaScripts/raw/7cbb79dc2da90fa98a99d8f5f21f510435cd472b/Rendering/cfillion_Apply%20render%20preset.lua</source>
+      </version>
+      <version name="2.0.3" author="cfillion" time="2022-11-27T16:30:47Z">
+        <changelog><![CDATA[Enable ReaImGui's backward compatibility shims]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/cfe37254524a48045b92e08e84003b654e13819b/Rendering/cfillion_Apply%20render%20preset.lua</source>
+        <source main="main" file="cfillion_Apply render preset (create action).lua">https://github.com/ReaTeam/ReaScripts/raw/cfe37254524a48045b92e08e84003b654e13819b/Rendering/cfillion_Apply%20render%20preset.lua</source>
       </version>
     </reapack>
     <reapack name="DSG_Render time selection to new track.lua" type="script" desc="Render time selection to new track">
@@ -19198,6 +19277,41 @@ SILENCE   |                                      |-  Empty Media Item (length 2s
         <source file="beaunus_Clip_Splicer/schema/ClipSplicerSchema.json">https://github.com/ReaTeam/ReaScripts/raw/f1460f9c230d0725352272270abeb2cae71293b6/Various/beaunus_Clip_Splicer/schema/ClipSplicerSchema.json</source>
       </version>
     </reapack>
+    <reapack name="BuyOne_Adjust track, item, envelope points, FX parameters with mousewheel.lua" type="script" desc="Adjust track, item, envelope points, FX parameters with mousewheel">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 The script is meant to allow using mousewheel on controls with a modifier which isn't possible natively. This gives the benefit of avoiding accidental parameter change with a mousewheel if allowed in Preferences -> Editing behavior -> Mouse. So the script can be used with 'Ignore mousewheel on all faders' and/or 'Ignore mousewheel on track panel faders' settings enabled if it's bound to the mousewheel with a modifier in the Action list.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \u9619? SUPPORTED PARAMETERS\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Track TCP - volume, pan (all modes), playback offset Item - volume Take - volume, pan, pitch FX - see TARGETTING FX CONTROLS paragraph below Envelope points - track, take and plugin parameter envelope points, including Master track tempo and playrate envelopes\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Track MCP is not supported due to REAPER limitations.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \u9619? MOUSE CURSOR PLACEMENTS\line to target different parameters in tracks, items, envelope points and plugin controls\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \u9642? Track volume - over the track volume control (knob or slider).\line \u9642? Track pan/width - over the track corresponding control.\line \u9642? Track playback offset - any other place within the TCP.\line \u9642? Item/take volume - around the center of the item/take UI.\line \u9642? Take pan - near the item left edge from inside (new cursor type is a good indicator).\line \u9642? Take pitch - near the item right edge from inside (new cursor type is a good indicator).\line (to switch to mainuplating item/take parameters after take envelope was manipulated, de-select the envelope.)\line \u9642? Envelope point - slightly to the right of the point's vertical axis, not nesessarily near it, can be above or below; IMPORTANT: to be able to affect an envelope it must be explicitly selected, or with track and FX parameter envelopes, if it's already selected, then it must be clicked when coming from FX context; selected track and FX parameter envelopes cannot be manipulated while the UI of the last touched FX is open, so its FX chain must be either closed or switched to another plugin UI or its floating window must be closed.\line \u9642? Plugin controls - this is tricky, touch the control, then click elsewhere, to be safe click REAPER program window title bar and run the script. After that regardless of the mouse cursor placement and focus of the FX window the plugin control will respond to the mouswheel movements. See 'VERY IMPORTANT:' note in TARGETTING FX CONTROLS paragraph below.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 To change parameters of one object other than an envelope, it doesn't have to be selected. But if several such objects are selected and one of them is under the mouse cursor the parameter will be changed in all. The change is relative to the current value of the parameter in each one of selected objects. In automation items only selected points within the same item are affected.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \u9619? TARGETTING ITEM PARAMETERS\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Volume (gain) is the only parameter which exists on two levels, for item and for take.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Item volume is controlled by the knob displayed above the item if enabled in Preferences -> Appearance -> Media -> Media item buttons and/or a handle if enabled under the same section. When item volume changes these change their state. Take volume (gain) is the volume control in the Media Item Properties window (default shortcut is F2) and it changes its state when take volume is changed.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 If the item under the mouse cursor isn't selected regardless of its number of takes or if it's selected and only has 1 take, item volume it targeted by the script.\line If selected item has more than 1 take, its active take volume is targeted and not the volume of the take immediately under the mouse cursor.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 If along with the item under the mouse cursor other items are selected the type of volume which will be targeted in all such items depends on the number of takes in the item under the mouse cursor. If there's only 1 take in the selected item under the mouse cursor, item volume will be targeted in all other selected items regardless of their own number of takes; on the other hand if there're more than 1 take in the selected item under the mouse cursor, take volume will be targeted in all other selected items regardless of their own number of takes. In selected multi-take items their active take volume will be targeted similarly to the item under the mouse cursor in case it's selected (see above).\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Pan and pitch can only be adjusted on the take level.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \u9619? TARGETTING FX CONTROLS\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Only JSFX are fully supported. REAPER native VST plugins will work but inconsistently in terms of the step resolution, for some parameters the step may be too big while for others too small. Drop-down lists won't work.\line 3d party plugins may work with the same reservation regarding the step resolution. If the controls don't respond to the mousewheel in the plugin UI, switch to the slider interface by clicking the 'UI' button of the plugin wrapper and try there.\line VERY IMPORTANT: Placement of the mouse cursor depends on the 'Mousewheel targets:' setting at Preferences -> Editing behavior -> Mouse. If it's set to 'Window with focus' the mouse cursor can be located either within the FX window or outside of it, if it's set to 'Window under cursor' it must only be located outside of the FX window otherwise the script won't affect plugin parameters (in both cases provided the mouse cursor is not over a TCP or an item, because the track/item parameters will be targeted rather than that of the plugin).\line Some 3d party plugins may respond to mousewheel regardless of REAPER settings and for such plugins this script isn't necessary.\line Monitoring FX are not supported due to REAPER limitations.\line The abovesaid regarding scope of support and step resolution applies to FX parameter envelopes as well.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 As value is changed via the script a tootlip is displayed for values for which there's no readout in the UI, such as take pan and track playback offset. It also displays tooltips for item/take volume (gain) / velocity and take pitch for which readouts on item UI can be enabled in Preferences -> Appearance -> Media - Media item labels.\line In REAPER item volume (gain) / velocity value in the readout is a sum of item and take volume (gain) / velocity values, therefore if item gain readout is enabled in Preferences and it's not at unity its value may differ from the one displayed in the script tooltip when take volume / velocity is targeted.\line If a multi-take item is a mix of media and MIDI takes, the units in the tooltip readout depend on the take under the mouse cursor: for media takes it's dB, for MIDI takes it's velocity.\line If several objects are selected the tooltip only displays values for the object under the mouse cursor.\line Display of tooltips by the script for track and item depends on the settings at Preferences -> Appearance - Appearance settings - Tooltips: UI elements and Items/envelopes respectively.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 If track/item/envelope under the mouse cursor is locked nothing happens.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 If 'Ignore mousewheel on all faders' and/or 'Ignore mousewheel on track panel faders' settings aren't enabled in Preferences -> Editing behavior -> Mouse, the script won't be applied in the relevant context, that is track volume/pan/width and FX parameter controls, and unmodified mousewheel events will be used instead.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 In the USER SETTINGS section you can define resolution for each supported parameter type. Mute envelope resolution cannot be custom as there're only two possible values, 1 and 0. The resolution for FX papameter envelopes is fixed.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The script doesn't create an undo point. Seems pointless for mousewheel actions which inundate undo history with points as one mousewheel nudge means 1 discrete point and one movement usually consists of several nudges in a row.\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/member.php?u=134058</link>
+      </metadata>
+      <version name="1.0" author="BuyOne" time="2022-11-27T16:32:00Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/9ffe9c7c10159a5fd01ae547780ec06d45680665/Various/BuyOne_Adjust%20track,%20item,%20envelope%20points,%20FX%20parameters%20with%20mousewheel.lua</source>
+      </version>
+    </reapack>
     <reapack name="BuyOne_Check length of custom action(s).lua" type="script" desc="Check length of custom action(s)">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
@@ -19675,6 +19789,10 @@ Fix Editing Behavior > MIDI Editor]]></changelog>
       <version name="2.0.1" author="cfillion" time="2021-06-29T05:13:03Z">
         <changelog><![CDATA[Update the user interface to ReaImGui v0.5]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/78b68691fdbda2e963b5a24364aae873bb9f4fd5/Various/cfillion_Project%20underrun%20monitor%20(xrun).lua</source>
+      </version>
+      <version name="2.0.2" author="cfillion" time="2022-11-27T16:31:20Z">
+        <changelog><![CDATA[Enable ReaImGui's backward compatibility shims]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f7e36ccafdf061c31c312a257c654960e3d407a8/Various/cfillion_Project%20underrun%20monitor%20(xrun).lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Song switcher.lua" type="script" desc="Song switcher (for live use)">
