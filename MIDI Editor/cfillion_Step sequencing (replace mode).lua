@@ -1,7 +1,7 @@
 -- @description Step sequencing (replace mode)
 -- @author cfillion
--- @version 1.1.1
--- @changelog Clamp the new options menu to monitor boundaries
+-- @version 1.1.2
+-- @changelog Enable ReaImGui's backward compatibility shims
 -- @provides
 --   .
 --   [main] . > cfillion_Step sequencing (options).lua
@@ -18,6 +18,11 @@
 --   An options action is provided to individually toggle replacing channel/pitch/velocity and skipping unselected notes.
 --
 --   Note that this script automatically inserts and removes an helper JSFX in the active track's input FX chain in order to receive live MIDI input.
+
+if reaper.ImGui_CreateContext then
+  dofile(reaper.GetResourcePath() ..
+        '/Scripts/ReaTeam Extensions/API/imgui.lua')('0.7')
+end
 
 local MB_OK = 0
 local MIDI_EDITOR_SECTION = 32060
