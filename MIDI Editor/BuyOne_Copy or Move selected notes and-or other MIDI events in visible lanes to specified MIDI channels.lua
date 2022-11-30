@@ -7,24 +7,27 @@ Changelog: Initial release
 Licence: WTFPL
 REAPER: at least v5.962
 About: 	The script copies/moves selected notes and/or selected CC events in visible lanes
-	to user specified MIDI channels. If the target lane in another MIDI channel already
-	contains events or piano roll already contains notes, these will be replaced by those 
-	being copied or moved.
-
-	If several CC lanes are open, selected events in 14 bit CC lanes will be ignored, 
-	therefore if you need them affected by the sctipt be sure to switch 14 bit
-	lanes to their 7 bit counterparts.  
-
-	1. Select MIDI notes and/or other MIDI events
-	2. Run the script
-	3. In the input field list target MIDI channel numbers space separated or specify range as X - X
-	(inverted range is supported, e.g. 13 - 4)
-	4. Precede the list/range with the letter M or m if you wish the events to be moved rather than copied
-	5. Click OK
-
-	If there're several visible lanes and only one of them contains selected events 
-	be sure to make it the last clicked by clicking it so that the events are  
-	copied/moved to the lane of the same message type in other MIDI channels.
+		to user specified MIDI channels. If the target lane in another MIDI channel already
+		contains events or piano roll already contains notes, these will be replaced by those 
+		being copied or moved.  
+		
+		If several CC lanes are open, selected events in 14 bit CC lanes will be ignored, 
+		therefore if you need them affected by the sctipt be sure to switch 14 bit
+		lanes to their 7 bit counterparts.  
+		
+		1. Select MIDI notes and/or other MIDI events  
+		2. Run the script  
+		3. In the input field list target MIDI channel numbers space separated or specify range as X - X
+		(inverted range is supported, e.g. 13 - 4)  
+		4. Precede the list/range with the letter M or m if you wish the events to be moved rather than copied  
+		5. Click OK  
+		
+		If there're several visible lanes and only one of them contains selected events 
+		be sure to make it the last clicked by clicking it so that the events are  
+		copied/moved to the lane of the same message type in other MIDI channels.
+		
+		Besides strictly CC events also supported are Pitch bend, Program change 
+		and Channel pressure events.
 ]]
 
 function Msg(param, cap) -- caption second or none
