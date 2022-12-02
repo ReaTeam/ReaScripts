@@ -1,6 +1,24 @@
 // @description Item stretch list
 // @author Damien Stewart (Hypex)
-// @version 1.0
+// @version 1.1
+// @changelog Updated to only list stretch markers within item time and format time as standard.
+// @screenshot Example https://github.com/Hypexed/Reaper-Scripts/raw/main/StretchList.png
+// @about
+//   # Item Stretch List
+//
+//   Displays a list of stretch markers in active take of selected item.
+//
+//   Will show table with Marker, Time, Position, Source-Offset and Slope.
+//
+//   Marker: Index in list.
+//   Time: On timeline.
+//   Position: In take.
+//   Source-Offset: In source media.
+//   Slope: Value if any.
+
+// @description Item stretch list
+// @author Damien Stewart (Hypex)
+// @version 1.1
 // @screenshot Example https://github.com/Hypexed/Reaper-Scripts/raw/main/StretchList.png
 // @about
 //   # Item Stretch List
@@ -19,9 +37,13 @@ function List()
 (
     Item = GetSelectedMediaItem(0, 0);
     ItemStart = GetMediaItemInfo_Value(Item, "D_POSITION");
+    ItemLength = GetMediaItemInfo_Value(Item, "D_LENGTH");
+    ItemEnd = ItemStart + ItemLength;
     Take = GetActiveTake(Item);
     TakeOffset = GetMediaItemTakeInfo_Value(Take, "D_STARTOFFS");
     Markers = GetTakeNumStretchMarkers(Take);
+    
+    Count = 0;
     
     Markers ?
     (
@@ -31,15 +53,28 @@ function List()
             GetTakeStretchMarker(Take, Marker, Position, Offset);
             (
                 Time = ItemStart + Position;
-                Slope = GetTakeStretchMarkerSlope(Take, Marker);
-                sprintf(#Info, "M=%d, T=%.9f, P=%.9f, O=%.9f, S=%f\n", Marker, Time, Position, Offset, Slope);
-                #List += #Info;
+                
+                (Time >= ItemStart) && (Time <= ItemEnd) ? 
+                (
+                    format_timestr(Time, #Time);
+                    Slope = GetTakeStretchMarkerSlope(Take, Marker);
+                    sprintf(#Info, "M=%d, T=%s, P=%.10f, O=%.10f, S=%+.10f\n", Marker, #Time, Position, Offset, Slope);
+                    #List += #Info;
+                    Count += 1;
+                )
             );
             
             Marker += 1;
         );
         
-        ShowMessageBox(#List, #Title, 0);
+        Count ?
+        (
+            ShowMessageBox(#List, #Title, 0);
+        )
+        :
+        (
+            ShowMessageBox("Info: No stretch markers found within item time.", #Title, 0);
+        );
 
     )
     :
