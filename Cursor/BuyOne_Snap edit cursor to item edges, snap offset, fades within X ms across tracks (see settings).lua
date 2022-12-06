@@ -2,22 +2,26 @@
 ReaScript name: Snap edit cursor to item edges, snap offset, fades within X ms across tracks
 Author: BuyOne
 Website: https://forum.cockos.com/member.php?u=134058
-Version: 1.0
-Changelog: Initial release
+Version: 1.1
+Changelog: 	#Now 'ReaScript task control' doesn't pop up when a shortcut is held down continuously
+		#Made 'About' text a little more descriptive
+		#Corected SENSITIVITY setting description
 Licence: WTFPL
 REAPER: at least v5.962
 Screenshot: https://git.io/JXcGu
 About:	
-		Either run with a shortcut or bind to a mouse click action at 
-		'Preferences -> Mouse modifiers'
-		under Context: Media Item, Track or Ruler.   
-		To modify the script behavior in terms of item selection combine 
-		it within a custom action with such actions as:  
-		Item: Select item under mouse cursor; Item: Unselect all items   
-		and bind this custom action to a mouse click action.
+	Position the mouse cursor over the snap target and run.  		
+	Either run with a shortcut or bind to a mouse click action at 
+	'Preferences -> Mouse modifiers'
+	under Context: Media Item, Track or Ruler. 
+	Because the script responds to the mouse cursor position.  
+	To modify the script behavior in terms of item selection combine 
+	it within a custom action with such actions as:  
+	Item: Select item under mouse cursor; Item: Unselect all items   
+	and bind this custom action to a mouse click action.
 
-		In this script the edit cursor is not affected by the global Snap settings.
-		You'd still want to have the regular behavior in another slot under Mouse modifiers.
+	In this script the edit cursor is not affected by the global Snap settings.
+	You'd still want to have the regular behavior in another slot under Mouse modifiers.
 ]]
 
 -----------------------------------------------------------------------------
@@ -27,12 +31,12 @@ About:
 -- Distance of the edit cursor from target in ms (1 ms = 0.001 sec)
 -- the greater the number the higher the sensitivity and vice versa
 -- 100 seems optimal but it's quite lax;
--- noticeable change occurs when the setting is changed by 50s and 100s;
--- If preceded by 'R' or 'r' e.g. "r100", sensitivity is relative
+-- noticeable change occurs when the setting is changed by 50 ms and 100 ms;
+-- if preceded by 'R' or 'r' e.g. "r100", sensitivity is relative
 -- to the zoom level; the specified numeric value is valid for zoom resolution
 -- of ~100 px per 1000 ms (or 1 sec); as the zoom resolution changes
 -- so does the minimum snap distance between the edit cursor and the target;
--- the more the view is zoomed out the lower the sensitivity
+-- the more the view is zoomed in the lower the sensitivity
 -- (the shorter the distance) and vice versa;
 -- If 0, empty or invalid the sensitivity defaults to constant 100 ms;
 SENSITIVITY = "100"
@@ -182,8 +186,5 @@ local selection_t = {}
 
 
 r.PreventUIRefresh(-1)
-
-do r.defer(function() if not bla then return end end) end -- to avoid defer being stuck and display ReaScript task control dialogue on successive runs
-
 
 
