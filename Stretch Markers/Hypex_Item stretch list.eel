@@ -4,16 +4,16 @@
 // @changelog Updated to only list stretch markers within item time and format time as standard.
 // @screenshot Example https://raw.githubusercontent.com/Hypexed/Reaper-Scripts/main/StretchList/StretchList.png
 // @about
-//   # Item Stretch List
+//   ### Item Stretch List
 //
 //   Displays a list of stretch markers in active take of selected item.
 //
 //   Will show table with Marker, Time, Position, Source-Offset and Slope.
 //
-//   Marker: Index in list.
-//   Time: On timeline.
-//   Position: In take.
-//   Source-Offset: In source media.
+//   Marker: Index in list.  
+//   Time: On timeline.  
+//   Position: In take.  
+//   Source-Offset: In source media.  
 //   Slope: Value if any.
 
 function List()
