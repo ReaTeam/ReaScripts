@@ -1,19 +1,19 @@
--- @description Tempo marker list
--- @author Hypex
--- @version 1.0
--- @screenshot https://raw.githubusercontent.com/Hypexed/Reaper-Scripts/main/TempoList/TempoList.png
--- @about
---   ### Tempo marker list
---
---   Displays a list of tempo markers.  
---
---   Marker: Index in list.  
---   Time: On timeline.  
---   Meter: Time signature if set.  
---   BPM: Tempo at time.  
---   Bar: Bar set at time.  
---   Beat: Beat count at time.  
---   Linear: Set if gradual change.
+// @description Tempo marker list
+// @author Damien Stewart (Hypex)
+// @version 1.0
+// @screenshot Example https://raw.githubusercontent.com/Hypexed/Reaper-Scripts/main/TempoList/TempoList.png
+// @about
+//   ### Tempo Marker List
+//
+//   Displays a list of tempo markers.
+//
+//   Marker: Index in list.  
+//   Time: On timeline.  
+//   Meter: Time signature if set.  
+//   BPM: Tempo at time.  
+//   Bar: Bar set at time.  
+//   Beat: Beat count at time.  
+//   Linear: Set if gradual change.
 
 
 function List()
