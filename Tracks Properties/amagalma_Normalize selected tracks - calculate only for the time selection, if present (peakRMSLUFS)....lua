@@ -1,7 +1,7 @@
 -- @description Normalize selected tracks - calculate only for the time selection, if present (peak/RMS/LUFS)...
 -- @author amagalma
--- @version 1.01
--- @changelog - Forgot to mention in the help file that a CSV file is copied to the clipboard
+-- @version 1.02
+-- @changelog - Request a specific version of ReaImGui's API
 -- @donation https://www.paypal.me/amagalma
 -- @about
 --   Normalizes the selected tracks' volume to hit the desired value with the desired method.
@@ -9,6 +9,11 @@
 --   Upon completion, a CSV file containing all new track statistics is copied to the clipboard. You can paste it to a spreadsheet editor to view it.
 --
 --   - Requires ReaImGui
+
+
+dofile(reaper.GetResourcePath() ..
+       '/Scripts/ReaTeam Extensions/API/imgui.lua')
+  ('0.5.10') -- current version at the time of writing the script
 
 
 -- first time run values
