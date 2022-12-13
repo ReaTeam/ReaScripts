@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="932ea8f2adb9775058422c0bb021fe3a539a8e7a" name="ReaTeam Scripts">
+<index version="1" commit="42768ac1281682e50d767d3522283d1f81684135" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -15883,6 +15883,10 @@ Removed first run warning message.]]></changelog>
       <version name="1.01" author="amagalma" time="2022-02-18T10:39:25Z">
         <changelog><![CDATA[- Forgot to mention in the help file that a CSV file is copied to the clipboard]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d68cd9e1ad56c0a159ef0900bf7668d69b9b966f/Tracks%20Properties/amagalma_Normalize%20selected%20tracks%20-%20calculate%20only%20for%20the%20time%20selection,%20if%20present%20(peakRMSLUFS)....lua</source>
+      </version>
+      <version name="1.02" author="amagalma" time="2022-12-13T11:21:35Z">
+        <changelog><![CDATA[- Request a specific version of ReaImGui's API]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/42768ac1281682e50d767d3522283d1f81684135/Tracks%20Properties/amagalma_Normalize%20selected%20tracks%20-%20calculate%20only%20for%20the%20time%20selection,%20if%20present%20(peakRMSLUFS)....lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Route selected tracks to new Channel Selector track above them.lua" type="script" desc="Route selected tracks to new Channel Selector track above them">
