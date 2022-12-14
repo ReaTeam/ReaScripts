@@ -31,7 +31,7 @@ function List()
         #List = "Legend: M=Marker, T=Time, P=Position, O=Source-Offset, S=Slope\n\n";
         
         GetSet_LoopTimeRange(0, 0, RangeStart, RangeEnd, 0);
-        RangeStart ?
+        RangeEnd - RangeStart ?
         (
             Start = RangeStart;
             End = RangeEnd;
@@ -51,7 +51,7 @@ function List()
             (
                 Time = ItemStart + Position;
                 
-                (Time >= RangeStart) && (Time <= RangeEnd) ? 
+                (Time >= Start) && (Time <= End) ? 
                 (
                     format_timestr(Time, #Time);
                     Slope = GetTakeStretchMarkerSlope(Take, Marker);
