@@ -27,7 +27,7 @@ function List()
         #List = "Legend: Marker, Time, Meter, BPM, Bar, Beat, Linear\n\n";
 
         GetSet_LoopTimeRange(0, 0, RangeStart, RangeEnd, 0);
-        RangeStart ?
+        RangeEnd - RangeStart ?
         (
             Marker = FindTempoTimeSigMarker(0, RangeStart);
             Start = RangeStart;
@@ -47,7 +47,7 @@ function List()
         (
             GetTempoTimeSigMarker(0, Marker, Time, Bar, Beat, BPM, Note, Size, Linear);
             
-            (Time >= RangeStart) && (Time <= RangeEnd) ? 
+            (Time >= Start) && (Time <= End) ? 
             (
                 format_timestr(Time, #Time);
                 
