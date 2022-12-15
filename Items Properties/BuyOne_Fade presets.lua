@@ -213,7 +213,7 @@ local presetNo
 	'\nxfadeout_shape='..(t.xfadeout_shape or '')..
 	'\nxfadeout_curve='..(t.xfadeout_curve or '')..
 	'\nxfadein_shape='..(t.xfadein_shape or '')..
-	'\nxfadein_curve='..(t.xfadein_curve or '')--..'\n\n'
+	'\nxfadein_curve='..(t.xfadein_curve or '')
 	or '' -- empty string if there're no selected items to delete a preset
 
 	local f_path = r.GetResourcePath()..'/Data/Fade_presets.ini'
