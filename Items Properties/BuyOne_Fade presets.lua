@@ -28,9 +28,10 @@ i.e. if several selected items have a fade-in only the first one found will be s
 To store a crossfade both items sharing a crossfade must be selected.  
 To be stored a crossfade doesn't have to be uniform, i.e. one in which lengths 
 of the fade-in and of the fade-out equal items intersection area size, because
-lengths of crossfade sides aren't stored with a preset. When a preset is applied 
-crossfade length is determined based on the intersection area size and its sides 
-are made equal to the size of the intersection.  
+lengths of crossfade sides aren't stored with a preset. It's enough of fade-out
+and fade-in intersect.  
+When a preset is applied crossfade length is determined based on the intersection 
+area size and its sides are made equal to the size of the intersection.  
 If items overlap without a crossfade but there're either fade-in or fade-out or both, 
 these are stored as separate fades.  
 
@@ -129,12 +130,14 @@ local presetNo
 		local itm_tr = r.GetMediaItemTrack(itm)
 		local prev_itm = r.GetTrackMediaItem(itm_tr, itm_idx-1)
 		local prev_itm_end = prev_itm and Get(prev_itm, 'D_POSITION') + Get(prev_itm, 'D_LENGTH')
+		local prev_itm_sel = prev_itm and r.IsMediaItemSelected(prev_itm)
 		local prev_itm_xfade_out_len = prev_itm and Get(prev_itm, 'D_FADEOUTLEN_AUTO')
 		local prev_itm_xfade_out_len = prev_itm and (prev_itm_xfade_out_len > 0 and prev_itm_xfade_out_len or Get(prev_itm, 'D_FADEOUTLEN')) -- do prefer auto-crossfade fade-out value but if 0 get regular fade-out
 
 		local start_overlap_size = prev_itm and prev_itm_end - itm_pos
-		local prev_itm_overlap = prev_itm and prev_itm_end > itm_pos -- overlap and crossfade with prev non-selected item
-			if not prev_itm_overlap and not t.fadein_len and fadein_len > 0 then -- only store once if genuine fade-in, not crosssfade fade-in
+		local prev_itm_overlap = prev_itm and prev_itm_end > itm_pos
+			if fadein_len > 0 and (not prev_itm_overlap or prev_itm_overlap and (not prev_itm_sel or fadein_len + prev_itm_xfade_out_len < start_overlap_size) ) 
+			and not t.fadein_len then -- only store once if genuine fade-in, not crosssfade fade-in
 			t.fadein_len = fadein_len
 			t.fadein_shape = Get(itm, 'C_FADEINSHAPE')
 			t.fadein_curve = Get(itm, 'D_FADEINDIR')
@@ -142,18 +145,22 @@ local presetNo
 		-- Find if the item is overlapped by a following item regardless of selection so that only its regular fade-out is stored, if any, and not crossfade's fade-out
 		local next_itm = r.GetTrackMediaItem(itm_tr, itm_idx+1)
 		local next_itm_pos = next_itm and Get(next_itm, 'D_POSITION')
+		local next_itm_sel = next_itm and r.IsMediaItemSelected(next_itm)
 		local next_itm_xfade_in_len = next_itm and Get(next_itm, 'D_FADEINLEN_AUTO')
 		local next_itm_xfade_in_len = next_itm and (next_itm_xfade_in_len > 0 and next_itm_xfade_in_len or Get(next_itm, 'D_FADEINLEN')) -- do prefer auto-crossfade fade-in value but if 0 get regular fade-in
 
 		local end_overlap_size = next_itm and itm_end - next_itm_pos
 		local next_itm_overlap = next_itm and next_itm_pos < itm_end
-			if not next_itm_overlap and not t.fadeout_len and fadeout_len > 0 then -- only store once if genuine fade-out, not crosssfade fade-out
+		local xfade_out_len = xfade_out_len > 0 and xfade_out_len or fadeout_len -- do prefer auto-crossfade fade-in value but if 0 get regular fade-in		
+			if fadeout_len > 0 and (not next_itm_overlap or next_itm_overlap and (not next_itm_sel or fadeout_len + next_itm_xfade_in_len < end_overlap_size) )
+			and not t.fadeout_len then -- only store once if genuine fade-out, not crosssfade fade-out
 			t.fadeout_len = fadeout_len
 			t.fadeout_shape = fadeout_shape
 			t.fadeout_curve = fadeout_curve
-			elseif next_itm_overlap and r.IsMediaItemSelected(next_itm) and (xfade_out_len > 0 or fadeout_len > 0) and not t.xfadeout_shape then -- only store once and when there're fades in the intesection
+			elseif next_itm_overlap and next_itm_sel and xfade_out_len > 0 and next_itm_xfade_in_len > 0 and xfade_out_len + next_itm_xfade_in_len > end_overlap_size and not t.xfadeout_shape
+			then -- only store once and when there're fades in the intesection and the fades intersect as well // crossfade on the right
 			-- crossfade length isn't stored as it will be determined at runtime according to the overlap size
-			t.xfadeout_shape = tostring(fadeout_shape) -- rostring is meant to prevent occasional 'No fades in selected items to store' message after applying crossfade and then trying to store it as is or after change to another crossfade shape from the stock menu, not sure if helps !!!!!!!!!!!!!!!!!!!!!
+			t.xfadeout_shape = tostring(fadeout_shape) -- tostring is meant to prevent occasional 'No fades in selected items to store' message after applying crossfade and then trying to store it as is or after change to another crossfade shape from the stock menu, not sure if helps !!!!!!!!!!!!!!!!!!!!!
 			t.xfadeout_curve = tostring(fadeout_curve)
 			t.xfadein_shape = tostring(Get(next_itm, 'C_FADEINSHAPE'))
 			t.xfadein_curve = tostring(Get(next_itm, 'D_FADEINDIR'))
