@@ -6,7 +6,7 @@ Version: 1.0
 Changelog: Initial release
 Licence: WTFPL
 REAPER: at least v5.962
-About:	The script adds fades-in, fades-out to and crossfades to selected audio items.  
+About:	The script adds fades-in, fades-out and crossfades to selected audio items.  
 	Adds fades to multi-take items containing mixed audio and MIDI takes 
 	(whoever does that?) if the active take is audio.  
 	See USER SETTINGS below in the script. 
