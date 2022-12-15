@@ -7,34 +7,34 @@ Changelog: Initial release
 Licence: WTFPL
 REAPER: at least v5.962
 About:	The script adds fade-in, fade-out to and crossfades to selected audio items.  
-		Adds fades to multi-take items containing mixed audio and MIDI takes 
-		(whoever does that?) if the active take is audio.  
-		See USER SETTINGS below in the script. 
-		
-		If crossfade setting is enabled in the USER SETTINGS, both sides of the created 
-		crossfade will have the length of items intersection area, something REAPER does 
-		when auto-crossfade is enabled.  
-		Alternatively non-uniform crossfades can be created by applying fades the length
-		of which might differ from the size of the items intersection area and from each
-		other's provided ENABLE_XFADE setting is disabled and ALLOW_NON_UNIFORM_XFADES 
-		setting is enabled.  
-		
-		The script is agnostic about fades already present in selected items and if any exist 
-		they will be overwritten.  
-		
-		If selected item overlaps a non-selected item and the fade-in and/or fade-out are enabled
-		in the USER SETTINGS, fade will only be applied to the non-overlapping end of the item. 
-		For a crossfade to be applied both overlapping items must be selected.  
-		
-		Applying a crossfade replaces fade-in and fade-out which existed in items prior 
-		to crossfading, if any. If auto-crossfade is not enabled in REAPER, when items are 
-		separated their fade-in and fade-out used in the crossfade are retained, otherwise
-		the lengths of original fade-in and fade-out are restored but not other properties.
-		
-		The script can be duplicated to create multiple instances and have different 
-		settings in each instance so that those could be used as fade presets.  
-		
-		See also script BayOne_Fade_presets.lua
+	Adds fades to multi-take items containing mixed audio and MIDI takes 
+	(whoever does that?) if the active take is audio.  
+	See USER SETTINGS below in the script. 
+
+	If crossfade setting is enabled in the USER SETTINGS, both sides of the created 
+	crossfade will have the length of items intersection area, something REAPER does 
+	when auto-crossfade is enabled.  
+	Alternatively non-uniform crossfades can be created by applying fades the length
+	of which might differ from the size of the items intersection area and from each
+	other's provided ENABLE_XFADE setting is disabled and ALLOW_NON_UNIFORM_XFADES 
+	setting is enabled.  
+
+	The script is agnostic about fades already present in selected items and if any exist 
+	they will be overwritten.  
+
+	If selected item overlaps a non-selected item and the fade-in and/or fade-out are enabled
+	in the USER SETTINGS, fade will only be applied to the non-overlapping end of the item. 
+	For a crossfade to be applied both overlapping items must be selected.  
+
+	Applying a crossfade replaces fade-in and fade-out which existed in items prior 
+	to crossfading, if any. If auto-crossfade is not enabled in REAPER, when items are 
+	separated their fade-in and fade-out used in the crossfade are retained, otherwise
+	the lengths of original fade-in and fade-out are restored but not other properties.
+
+	The script can be duplicated to create multiple instances and have different 
+	settings in each instance so that those could be used as fade presets.  
+
+	See also script BuyOne_Fade_presets.lua
 ]]
 
 -----------------------------------------------------------------------------
