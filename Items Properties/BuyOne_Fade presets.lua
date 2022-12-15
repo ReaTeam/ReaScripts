@@ -408,7 +408,7 @@ gfx.quit()
 local exit = Store_Preset(input, stored)
 	if exit then return r.defer(function() do return end end) end -- no Undo if storing
 
-Apply_Preset(input, stored)	-- Undo routine is inside
+Apply_Preset(input, stored) -- Undo routine is inside
 
 
 
