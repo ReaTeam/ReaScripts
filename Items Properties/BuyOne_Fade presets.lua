@@ -39,10 +39,10 @@ To apply a preset:
 1) Select target media items (MIDI items aren't supported)  
 2) Run the script and click Apply button corresponding with the preset.  
 
-Preset fades overwrite current item fades.  
-If selected item overlaps a non-selected item and the preset contains fade-in 
-and/or fade-out data, the fade will only be applied to the non-overlapping end 
-of the item.  
+The script is agnostic about fades already present in selected items 
+so if any exist they will be overwritten with the preset fades.  
+If selected item overlaps a non-selected item and the preset contains a fade 
+relevant for the overlapping end of the selected item, it will be applied.   
 For a crossfade to be applied both overlapping items must be selected.  
 
 To rename a preset:  
@@ -66,7 +66,7 @@ The types of fades stored in a preset are represented by pictographs
 next to the 'Apply' button: diagonal line from lower left to upper right - fade-in;
 diagonal cross - crossfade; diagonal line from lower right to upper left - fade-out.
 
-The default number of preset slots can be increased in the USER SETTINGS.  
+The default number of preset slots can be increased in the USER SETTINGS.   
 
 See also script BuyOne_Apply fade in, fade out and crossfade to selected items.lua
 		
@@ -136,7 +136,7 @@ local presetNo
 
 		local start_overlap_size = prev_itm and prev_itm_end - itm_pos
 		local prev_itm_overlap = prev_itm and prev_itm_end > itm_pos
-			if fadein_len > 0 and (not prev_itm_overlap or prev_itm_overlap and (not prev_itm_sel or fadein_len + prev_itm_xfade_out_len < start_overlap_size) ) 
+			if fadein_len > 0 and (not prev_itm_overlap or prev_itm_overlap and (not prev_itm_sel or fadein_len + prev_itm_xfade_out_len < start_overlap_size) )
 			and not t.fadein_len then -- only store once if genuine fade-in, not crosssfade fade-in
 			t.fadein_len = fadein_len
 			t.fadein_shape = Get(itm, 'C_FADEINSHAPE')
@@ -151,7 +151,7 @@ local presetNo
 
 		local end_overlap_size = next_itm and itm_end - next_itm_pos
 		local next_itm_overlap = next_itm and next_itm_pos < itm_end
-		local xfade_out_len = xfade_out_len > 0 and xfade_out_len or fadeout_len -- do prefer auto-crossfade fade-in value but if 0 get regular fade-in		
+		local xfade_out_len = xfade_out_len > 0 and xfade_out_len or fadeout_len -- do prefer auto-crossfade fade-in value but if 0 get regular fade-in
 			if fadeout_len > 0 and (not next_itm_overlap or next_itm_overlap and (not next_itm_sel or fadeout_len + next_itm_xfade_in_len < end_overlap_size) )
 			and not t.fadeout_len then -- only store once if genuine fade-out, not crosssfade fade-out
 			t.fadeout_len = fadeout_len
@@ -340,14 +340,14 @@ local presetNo
 		local midi_take_prev = itm_prev and r.TakeIsMIDI(r.GetActiveTake(itm_prev))
 		local itm_prev_tr = itm_prev and r.GetMediaItemTrack(itm_prev)
 		local prev_selected = itm_prev and r.IsMediaItemSelected(itm_prev)
-			if t.xfadein_shape and not midi_take and not midi_take_prev
-			and itm_prev_tr == itm_tr and pos < fin_prev and prev_selected then -- crossfade fade in, only if overlapping item is selected // covers cases where there's no previous item
+			if t.xfadein_shape and not midi_take and itm_prev and not midi_take_prev
+			and pos < fin_prev and prev_selected then -- crossfade fade in, only if overlapping item is selected // covers cases where there's no previous item
 			Set(itm, 'D_FADEINLEN_AUTO', prev_itm_end-pos) -- length is calculated according to the size of the overlap
 			Set(itm, 'C_FADEINSHAPE', t.xfadein_shape)
 			Set(itm, 'D_FADEINDIR', t.xfadein_curve)
 			crossfade = 'crossfade'
-			elseif t.fadein_len and not midi_take and (itm_prev_tr ~= itm_tr or itm_prev_tr == itm_tr and pos > fin_prev)
-			then -- regular fade in only if the current item doesn't overlap the prev item // covers cases where there's no previous item
+			elseif t.fadein_len and not midi_take and ( not itm_prev or itm_prev and (pos > fin_prev or not prev_selected) )
+			then -- regular fade in if the current item doesn't overlap the prev item or dpes overlap and the prev item isn't selected // covers cases where there's no previous item
 			Set(itm, 'D_FADEINLEN', t.fadein_len)
 			Set(itm, 'C_FADEINSHAPE', t.fadein_shape)
 			Set(itm, 'D_FADEINDIR', t.fadein_curve)
@@ -355,18 +355,18 @@ local presetNo
 			end
 		local fin = pos + Get(itm, 'D_LENGTH')
 		prev_itm_end = fin
-		local itm_nxt = r.GetTrackMediaItem(itm_tr, itm_idx+1)--r.GetSelectedMediaItem(0,i+1)
+		local itm_nxt = r.GetTrackMediaItem(itm_tr, itm_idx+1)
 		local pos_nxt = itm_nxt and Get(itm_nxt, 'D_POSITION')
 		local midi_take_nxt = itm_nxt and r.TakeIsMIDI(r.GetActiveTake(itm_nxt))
 		local itm_nxt_tr = itm_nxt and r.GetMediaItemTrack(itm_nxt)
 		local nxt_selected = itm_nxt and r.IsMediaItemSelected(itm_nxt)
-			if t.xfadeout_shape and not midi_take and pos_nxt and not midi_take_nxt
-			and itm_nxt_tr == itm_tr and pos_nxt < fin and nxt_selected then -- crossfade fade out, only if overlapping item is selected
+			if t.xfadeout_shape and not midi_take and pos_nxt and itm_nxt and not midi_take_nxt
+			and pos_nxt < fin and nxt_selected then -- crossfade fade out, only if overlapping item is selected
 			Set(itm, 'D_FADEOUTLEN_AUTO', fin-pos_nxt) -- length is calculated according to the size of the overlap
 			Set(itm, 'C_FADEOUTSHAPE', t.xfadeout_shape)
 			Set(itm, 'D_FADEOUTDIR', t.xfadeout_curve)
-			elseif t.fadeout_len and not midi_take and (itm_nxt_tr ~= itm_tr or itm_nxt_tr == itm_tr and pos_nxt >= fin)
-			then -- regular fade out only if the current item doesn't overlap the next item // covers cases where there's no next item
+			elseif t.fadeout_len and not midi_take and ( not itm_nxt or itm_nxt and (pos_nxt >= fin or not nxt_selected) )
+			then -- regular fade out only if the current item doesn't overlap the next item or does overlap and the next item isn't selected // covers cases where there's no next item
 			Set(itm, 'D_FADEOUTLEN', t.fadeout_len)
 			Set(itm, 'C_FADEOUTSHAPE', t.fadeout_shape)
 			Set(itm, 'D_FADEOUTDIR', t.fadeout_curve)
