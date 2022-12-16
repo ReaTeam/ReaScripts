@@ -1,7 +1,10 @@
 -- @description MK Slicer (80icio MOD)
 -- @author 80icio
--- @version 1.02
--- @changelog - New Grid Tolerance parameters
+-- @version 1.03
+-- @changelog
+--   - fixed weird loop range behaviour 
+--   - fixed  shift-drag behaviour for moving Trig Line position 
+--   - Little design changes
 -- @link Forum Thread https://forum.cockos.com/showthread.php?p=2436358#post2436358
 -- @about
 --   This is a lua script based on MK SLICER 2 by @Cool for quick slicing, quantizing by grid, re-quantizing, triggering or sampling audio.
@@ -30,6 +33,7 @@
 --   - Better FFT filtering with smaller buffer for better transient precision
 
 --[[
+
 
 MK Slicer 80icio MOD
 https://forum.cockos.com/showthread.php?p=2434154#post2434154
@@ -60,6 +64,7 @@ https://forum.cockos.com/member.php?u=100851
 
 ]]
  
+ 
 
 -------------------------------------------------------------------------------
 -- Some functions(local functions work faster in big cicles(~30%)) ------------
@@ -72,11 +77,12 @@ local min  = math.min
 local max  = math.max
 local sqrt = math.sqrt
 local ceil  = math.ceil
-local floor = math.floor   
+local floor = math.floor
 local exp = math.exp
 local logx = math.log
 local huge = math.huge      
 local random = math.random
+local linetable = {}
 
 Slice_Status = 1
 SliceQ_Status = 0
@@ -188,6 +194,15 @@ end
 
     r.Undo_BeginBlock() 
 r.PreventUIRefresh(1)
+
+
+--------------------------------------
+function exit()
+for i = 1, #linetable do
+  reaper.JS_LICE_DestroyBitmap(linetable[i])
+end
+end
+
 
 -------------------------------Check time range and unselect-----------------------------
 
@@ -849,7 +864,7 @@ function Element:mouseR_Down()
 end
 --------
 function Element:mouseM_Down()--icio mouse
-   return gfx.mouse_cap&1==1 and self:pointIN(mouse_ox,mouse_oy) --gfx.mouse_cap&64==64
+   return gfx.mouse_cap&64==64 and self:pointIN(mouse_ox,mouse_oy) --gfx.mouse_cap&64==64
 end
 
 ------------------------
@@ -2252,10 +2267,10 @@ function Loop_Slider:set_norm_val_m_wheel()
     Mult_S = 0.05 -- Set step
     end
     local Step = Mult_S
-    if gfx.mouse_wheel == 0 then return false end  -- return if m_wheel = 0
+    --[[if gfx.mouse_wheel == 0 then return false end  -- return if m_wheel = 0
     if gfx.mouse_wheel > 0 then self.norm_val2 = min(self.norm_val2+Step, 1) end
     if gfx.mouse_wheel < 0 then self.norm_val2 = max(self.norm_val2-Step, 0) end
-    if self.norm_val2 <= self.norm_val then self.norm_val2 = self.norm_val+0.05 end
+    if self.norm_val2 <= self.norm_val then self.norm_val2 = self.norm_val+0.05 end]]--
     return true
 end
 
@@ -2404,13 +2419,13 @@ function Loop_Slider:draw()
           if  self:mouseIN_rng() then a=a+0.2 end
     self.h = (self.def_xywh[4]* (Z_h/1.2)) -- upd y,h -- mw caption area height correction
     local h  = self.h
-          if  self:mouseIN() then 
+         --[[ if  self:mouseIN() then 
              if self:set_norm_val_m_wheel() then 
                  if gfx.mouse_wheel == 0 then 
                     if self.onMove then self.onMove() end 
-                 end 
-             end  
-          end
+                 end
+             end   
+          end]]--
           if MCtrl and self:mouseDown()  then       -- Ctrl+Click on empty loop area set defaults
           self.norm_val = 0   
           self.norm_val2 = 1   
@@ -3125,6 +3140,7 @@ end
 local Gate_Thresh = T_Slider:new(210,380+corrY,160,18, 0.28,0.4,0.7,0.8, "Threshold","Arial",16, readrms )
 function Gate_Thresh:draw_val()
   self.form_val = (self.norm_val-1)*57-3
+  --reaper.ShowConsoleMsg(self.form_val ..'\n')
   local x,y,w,h  = self.x,self.y,self.w,self.h
   local val = string.format("%.1f", self.form_val).." dB"
   local val_w, val_h = gfx.measurestr(val)
@@ -3151,6 +3167,7 @@ end
 local Gate_Sensitivity = S_Slider:new(210,401+corrY,160,18, 0.28,0.4,0.7,0.8, "Sensitivity","Arial",16, Sens_Slider )
 function Gate_Sensitivity:draw_val()
   self.form_val = 2+(self.norm_val)*8       -- form_val
+  --reaper.ShowConsoleMsg(self.form_val ..'\n')
   local x,y,w,h  = self.x,self.y,self.w,self.h
   local val = string.format("%.1f", self.form_val).." dB"
   local val_w, val_h = gfx.measurestr(val)
@@ -4724,7 +4741,9 @@ function Gate_Gl:Apply_toFiltered()
       -- Threshold, Sensitivity ----------
       local gain_fltr  = 10^(Fltr_Gain.form_val/20)      -- Gain from Fltr_Gain slider(need for scaling gate Thresh!)
       local Thresh     = 10^(Gate_Thresh.form_val/20)/gain_fltr -- Threshold regard gain_fltr
+      
               Thresh     = Thresh / (0.5/ block_size)      -- Threshold regard fft_real scale and gain_fltr
+              
       local Sensitivity  = 10^(Gate_Sensitivity.form_val/20) -- Gate "Sensitivity", diff between - fast and slow envelopes(in dB)
       -- Attack, Release Time -----------
       -- Эти параметры нужно либо выносить в доп. настройки, либо подбирать тщательнее...
@@ -4762,7 +4781,6 @@ function Gate_Gl:Apply_toFiltered()
        -----------------------------------------------------------------
        for i = 1, Wave.selSamples, 1 do
            local input = abs(Wave.out_buf[i]) -- abs sample value(abs envelope)
-           
            --------------------------------------------
            -- Envelope1(fast) -------------------------
            if envOut1 < input then envOut1 = input + ga1 * (envOut1 - input) 
@@ -4800,7 +4818,6 @@ function Gate_Gl:Apply_toFiltered()
                       self.State_Points[st_cnt+1] = {RMS, peak_smpl}    -- RMS, Peak values
                       ----------------------------------------gridblocks selection icio
                       
-                      
                       --------
                       minRMS  = min(minRMS, RMS)         -- save minRMS for scaling
                       minPeak = min(minPeak, peak_smpl)  -- save minPeak for scaling 
@@ -4818,6 +4835,7 @@ function Gate_Gl:Apply_toFiltered()
     self.minRMS, self.minPeak = minRMS, minPeak   -- minRMS, minPeak for scaling MIDI velo
     self.maxRMS, self.maxPeak = maxRMS, maxPeak   -- maxRMS, maxPeak for scaling MIDI velo
     -----------------------------
+    
     Gate_ReducePoints.cur_max = #self.State_Points/2 -- set Gate_ReducePoints slider m factor
     Gate_Gl:normalizeState_TB() -- нормализация таблицы(0...1)
     
@@ -5073,8 +5091,39 @@ quartercolor, measurescolor, grinline2, div = beatc(grinline2)
 --------------------------------RESTORE GRID-------------------------
 r.GetSetProjectGrid(0, 1, division, swingmode, swingamt)
 end
+-----------------------------------------------------------------------
+function Gate_Gl:draw_Lines_MW()
+if not self.Res_Points then return end -- return if no lines
+    local red, green, blue = 50, 0, 240
+    local function RGB(r,g,b)
+      return (((b)&0xFF)|(((g)&0xFF)<<8)|(((r)&0xFF)<<16)|(0xFF<<24))
+    end
+    local MainHwnd = reaper.GetMainHwnd()
+    local master = reaper.GetMasterTrack(0)
+    local trackview = reaper.JS_Window_FindChildByID(MainHwnd, 0x3E8)
+    local _, trackview_w, trackview_h = reaper.JS_Window_GetClientSize( trackview )
+    
+    local selitem =  reaper.GetSelectedMediaItem( 0, 0 )
+    local seltrack =  reaper.GetMediaItem_Track( selitem )
+    
+    
+    local TrackY = reaper.GetMediaTrackInfo_Value(seltrack, "I_TCPY")
+    local TrackH = reaper.GetMediaTrackInfo_Value(seltrack, "I_WNDH")
+    local sel_start = reaper.GetMediaItemInfo_Value( selitem, "D_POSITION" )
+    local _, scrollposv = reaper.JS_Window_GetScrollInfo( cur_view, "v" )
+    local _, scrollposh = reaper.JS_Window_GetScrollInfo( cur_view, "h" )
+    local zoom = reaper.GetHZoomLevel()
+    local linepos = ceil((sel_start)*zoom)
+    local line_x_MV = Wave.x + (self.Res_Points[i] - self.start_smpl) * self.Xsc
+    
+    linetable[linetablec] = reaper.JS_LICE_CreateBitmap(true, 1, 1)
+    reaper.JS_LICE_Clear(linetable[linetablec], RGB(red, green, blue))
+    
+    reaper.JS_Composite(trackview, ceil(line_x_MV), TrackY, 1, TrackH, linetable[linetablec], 0, 0, 1, 1, true)
+    ---reaper.ShowConsoleMsg(self.Xsc .. "\n")
+    linetablec = linetablec+1
 
-
+end
 -----------------------------------------------------------------------
 ---  Gate - Draw Gate Lines  -------------------------------------------
 -----------------------------------------------------------------------
@@ -5091,15 +5140,16 @@ function Gate_Gl:draw_Lines()
     self.Xsc = Wave.X_scale * Wave.Zoom * Z_w  -- x scale(regard zoom) for trigg lines
     self.Yop = Wave.y + Wave.h - offset        -- y start wave coord for velo points
     self.Ysc = Wave.h * self.scale             -- y scale for velo points 
-    --------------------------------------------------------
-  
+    -------------------------------------------------------TEST
+    
  if (Guides.norm_val == 1) then 
    
     -- Draw, capture trig lines ----------------------------
     --------------------------------------------------------
  
-    ----------------------------
- 
+    ---------------------------
+    local linetablec=1
+    
     for i=1, #self.Res_Points, 2 do
         local line_x   = Wave.x + (self.Res_Points[i] - self.start_smpl) * self.Xsc  -- line x coord
         local velo_y   = (self.Yop -  self.Res_Points[i+1][mode] * self.Ysc )          -- velo y coord
@@ -5109,11 +5159,14 @@ function Gate_Gl:draw_Lines()
         ------------------------
         -- draw line, velo -----
         ------------------------
+        
+        
+        
         if line_x>=Wave.x and line_x<=Wave.x+Wave.w then -- Verify line range
          
            gfx.line(line_x, (Wave.y+velo_y/2.5), line_x, Wave.h+(Wave.y-velo_y/2.5))
-
-
+           gfx.rect(line_x,(Wave.y+velo_y/2.5),3,22)
+           
         end
         
             ------------------------
@@ -5122,7 +5175,10 @@ function Gate_Gl:draw_Lines()
             if not self.cap_ln and abs(line_x-gfx.mouse_x)< (10*Z_w) then -- здесь 10*Z_w - величина окна захвата маркера.
                if Wave:mouseDown() or Wave:mouseR_Down() then self.cap_ln = i end
             end
-        end
+            
+      
+      end
+      
 
 ------------------------------------------------------------------------------------------------------------
 
@@ -5334,7 +5390,7 @@ function Gate_Gl:manual_Correction()
             self.Res_Points[self.cap_ln+1] = {newVelo, newVelo}   -- veloRMS, veloPeak from mouse y
 
         end
-        -- Move Line -----------------------------
+        -- Move Line -----------------------------eccola icio
         if Shift then 
             local curs_x = min(max(gfx.mouse_x, Wave.x), Wave.x + Wave.w) -- x coord
             local curs_y = min(max(gfx.mouse_y, Wave.y), self.Yop)        -- y coord
@@ -7116,10 +7172,10 @@ function Wave:draw_waveform(r,g,b,a)
     local Ppos = self.Pos*self.max_Zoom    -- старт. позиция в "мелкой"-Peak_TB для начала прорисовки  
     local curr = ceil(Ppos+1)              -- округление
     local n_Peaks = w*self.max_Zoom       -- Макс. доступное кол-во пиков
-    gfx.set(r,g,b,a)                       -- set color
+    --gfx.set(r,g,b,a)                       -- set color
     -- уточнить, нужно сделать исправление для неориг. размера окна --
     -- next выходит за w*max_Zoom, а должен - макс. w*max_Zoom(51200) при max_Zoom=50 --
-    for i=1, w do            
+    for i=1, w do 
        local next = min(i*Zfact + Ppos, n_Peaks ) -- грубоватое исправление...
        local min_peak, max_peak, peak = 0, 0, 0 
           for p=curr, next do
@@ -7130,7 +7186,8 @@ function Wave:draw_waveform(r,g,b,a)
           end
         curr = ceil(next)
         local y, y2 = Y - min_peak *Ysc, Y - max_peak *Ysc
-
+--reaper.ShowConsoleMsg(y-y2.." ")
+    gfx.set(r,g,b+((y-y2)/1000),a)
         gfx.line(i,y, i,y2) -- здесь всегда x=i --- disegna icio
     end 
 end
@@ -7267,14 +7324,14 @@ end
       self.Pos = self.insrc_mx_zoom - (gfx.mouse_x-self.x)/(self.Zoom*Z_w)
       self.Pos = max(self.Pos, 0)
       self.Pos = min(self.Pos, (self.w - self.w/self.Zoom)/Z_w )
-self_Zoom = self.Zoom --refresh loop by mw
+--self_Zoom = self.Zoom --refresh loop by mw
       -------------------
       Wave:Redraw() -- redraw after horizontal zoom
     end
     -----------------------------------------
      -----------------------------------------
         --- Wave Trackpad move (horizontal) --------------- icio
-        if self:mouseIN() and gfx.mouse_hwheel~=0 then 
+        if self:mouseIN() and gfx.mouse_hwheel then 
         local MH_Wheel = gfx.mouse_hwheel
           -- correction Wave Position from src --
          self.Pos = self.Pos - (MH_Wheel)/(self.Zoom*Z_w)
@@ -7298,12 +7355,12 @@ self_Zoom = self.Zoom --refresh loop by mw
     end
     -----------------------------------------
     --- Wave Move ---------------------------
-    if self:mouseM_Down() then 
+    if gfx.mouse_cap ==1 then --------
       self.Pos = self.Pos + (last_x - gfx.mouse_x)/(self.Zoom*Z_w) --gfx.mouse_x
       self.Pos = max(self.Pos, 0)
       self.Pos = min(self.Pos, (self.w - self.w/self.Zoom)/Z_w )
       --------------------
-self_Zoom = self.Zoom --refresh loop by mw middle click
+--self_Zoom = self.Zoom --refresh loop by mw middle click
       Wave:Redraw() -- redraw after move view
     end
 
@@ -7317,10 +7374,10 @@ self_Zoom = self.Zoom --refresh loop by mw middle click
     end
 
               -- loop correction for rng1 and rng2--
-      self.Pos3 = self.Pos + (last_x - gfx.mouse_x)/(self.Zoom*Z_w)
+      --[[self.Pos3 = self.Pos + (last_x - gfx.mouse_x)/(self.Zoom*Z_w)
       self.Pos3 = max(self.Pos, 0)
       self.Pos3 = min(self.Pos, (self.w - self.w/self.Zoom)/Z_w )
-      shift_Pos = self.Pos3
+      shift_Pos = self.Pos3]]--
 
      --------------------------------------------------------------------------------
      -- Zoom by Arrow Keys
@@ -7796,7 +7853,7 @@ end
 --   Mainloop   ------------------------
 ---------------------------------------
 function mainloop()
-
+ exit()
     -- zoom level -- 
     Wnd_WZ = r.GetExtState(scriptname, "zoomWZ") or 1044
     Wnd_HZ = r.GetExtState(scriptname, "zoomHZ") or 490
@@ -8218,6 +8275,8 @@ end
 end
 
 function getitem()
+exit()
+
 
 
 contextmenu()
@@ -8417,6 +8476,7 @@ end
 -----------------------end of User Defaults form--------------------------------
 
 function ClearExState()
+exit()
 r.DeleteExtState('_Slicer_', 'ItemToSlice', 0)
 r.DeleteExtState('_Slicer_', 'TrackForSlice', 0)
 r.SetExtState('_Slicer_', 'GetItemState', 'ItemNotLoaded', 0)
