@@ -1,23 +1,4 @@
-// @description Item stretch list
-// @author Damien Stewart (Hypex)
-// @version 1.1
-// @changelog
-//   Add Hypex_Item stretch list in time selection.eel
-//   Updated to only list stretch markers within item time and format time as standard.
-// @provides [main] Hypex_Item stretch list/Hypex_Item stretch list in time selection.eel
-// @screenshot Example https://github.com/Hypexed/Reaper-Scripts/raw/main/StretchList/StretchList.png
-// @about
-//   ### Item Stretch List
-//
-//   Displays a list of stretch markers in active take of selected item.
-//
-//   Will show table with Marker, Time, Position, Source-Offset and Slope.
-//
-//   Marker: Index in list.  
-//   Time: On timeline.  
-//   Position: In take.  
-//   Source-Offset: In source media.  
-//   Slope: Value if any.
+// @noindex
 
 function List()
 (
@@ -29,18 +10,32 @@ function List()
     TakeOffset = GetMediaItemTakeInfo_Value(Take, "D_STARTOFFS");
     Markers = GetTakeNumStretchMarkers(Take);
 
-    Count = 0;
-
     Markers ?
     (
         #List = "Legend: M=Marker, T=Time, P=Position, O=Source-Offset, S=Slope\n\n";
+
+        GetSet_LoopTimeRange(0, 0, RangeStart, RangeEnd, 0);
+        RangeEnd - RangeStart ?
+        (
+            Start = RangeStart;
+            End = RangeEnd;
+        )
+        :
+        (
+            Start = 0;
+            End = GetProjectLength(0);
+        );
+
+        Marker = 0;
+        Count = 0;
+
         while(Marker < Markers)
         (
             GetTakeStretchMarker(Take, Marker, Position, Offset);
             (
                 Time = ItemStart + Position;
 
-                (Time >= ItemStart) && (Time <= ItemEnd) ?
+                (Time >= Start) && (Time <= End) ?
                 (
                     format_timestr(Time, #Time);
                     Slope = GetTakeStretchMarkerSlope(Take, Marker);
@@ -59,9 +54,8 @@ function List()
         )
         :
         (
-            ShowMessageBox("Info: No stretch markers found within item time.", #Title, 0);
+            ShowMessageBox("Info: No stretch markers found within time selection.", #Title, 0);
         );
-
     )
     :
     (
