@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="da58ae36f9df061332511404c2ca908cde5b2ee3" name="ReaTeam Scripts">
+<index version="1" commit="5852fdd6d3e642726f489bd2f18a1c86e25354bd" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -6864,6 +6864,12 @@ Fix: Expand error message when the library is missing]]></changelog>
         <changelog><![CDATA[- New Grid Tolerance parameters]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/8487e82fc1eeded443c25cb566381039de43d4e0/Items%20Editing/MK%20Slicer%20(80icio%20MOD).lua</source>
       </version>
+      <version name="1.03" author="80icio" time="2022-12-22T00:07:01Z">
+        <changelog><![CDATA[- fixed weird loop range behaviour 
+- fixed  shift-drag behaviour for moving Trig Line position 
+- Little design changes]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/5852fdd6d3e642726f489bd2f18a1c86e25354bd/Items%20Editing/MK%20Slicer%20(80icio%20MOD).lua</source>
+      </version>
     </reapack>
     <reapack name="mordi_Align grouped items to selected items respectively.lua" type="script" desc="Align grouped items to selected items respectively">
       <metadata>
@@ -7694,6 +7700,37 @@ Fix bug on Windows]]></changelog>
       <version name="1.00" author="amagalma" time="2020-12-19T19:53:59Z">
         <source main="main" file="amagalma_Switch unlocked items only to previous take (grouped items with a locked item in their group do not switch).lua">https://github.com/ReaTeam/ReaScripts/raw/448ac13c2636278022a67c54458a7c47802c885f/Items%20Properties/amagalma_Switch%20unlocked%20items%20only%20to%20previous%20or%20next%20take%20bundle.lua</source>
         <source main="main" file="amagalma_Switch unlocked items only to next take (grouped items with a locked item in their group do not switch).lua">https://github.com/ReaTeam/ReaScripts/raw/448ac13c2636278022a67c54458a7c47802c885f/Items%20Properties/amagalma_Switch%20unlocked%20items%20only%20to%20previous%20or%20next%20take%20bundle.lua</source>
+      </version>
+    </reapack>
+    <reapack name="BuyOne_Apply fade-in, fade-out and crossfade to selected items.lua" type="script" desc="Apply fade-in, fade-out and crossfade to selected items">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 The script adds fades-in, fades-out and crossfades to selected audio items. Adds fades to multi-take items containing mixed audio and MIDI takes (whoever does that?) if the active take is audio.\line See USER SETTINGS below in the script.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 If crossfade setting is enabled in the USER SETTINGS, both sides of the created crossfade will have the length of items intersection area, something REAPER does when auto-crossfade is enabled.\line Alternatively non-uniform crossfades can be created by applying fades the length of which might differ from the size of the items intersection area and from each other's provided ENABLE_XFADE setting is disabled and ALLOW_NON_UNIFORM_XFADES setting is enabled.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The script is agnostic about fades already present in selected items and if any exist they will be overwritten.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 If selected item overlaps a non-selected item and the fade-in and/or fade-out are enabled in the USER SETTINGS, fade will only be applied to the non-overlapping end of the item. For a crossfade to be applied both overlapping items must be selected.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Applying a crossfade replaces fade-in and fade-out which existed in items prior to crossfading, if any. If auto-crossfade is not enabled in REAPER, when items are separated their fade-in and fade-out used in the crossfade are retained, otherwise the lengths of original fade-in and fade-out are restored but not other properties.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The script can be duplicated to create multiple instances and have different settings in each instance so that those could be used as fade presets.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 See also script BuyOne_Fade_presets.lua\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/member.php?u=134058</link>
+      </metadata>
+      <version name="1.0" author="BuyOne" time="2022-12-22T00:05:56Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e01f818653e4e5a1953223307acd1a87607f5cc6/Items%20Properties/BuyOne_Apply%20fade-in,%20fade-out%20and%20crossfade%20to%20selected%20items.lua</source>
+      </version>
+    </reapack>
+    <reapack name="BuyOne_Fade presets.lua" type="script" desc="Fade presets">
+      <metadata>
+        <link rel="website">https://forum.cockos.com/member.php?u=134058</link>
+      </metadata>
+      <version name="1.0" author="BuyOne" time="2022-12-22T00:06:24Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/048004ff2d5fbe8b10fd046b50c9c3cdab20611a/Items%20Properties/BuyOne_Fade%20presets.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Set item volume control mode.lua" type="script" desc="Set item volume control mode">
