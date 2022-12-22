@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="5852fdd6d3e642726f489bd2f18a1c86e25354bd" name="ReaTeam Scripts">
+<index version="1" commit="760b2afa1f5c62d574dc6a17d0a9b25e6ecf7848" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -8404,6 +8404,24 @@ Renumber markers and regions when pasting]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b0b2b0387ec43b2ca14220347678c695ffc85b41/Markers/daxliniere_Live%20recording%20take%20commenter.lua</source>
       </version>
     </reapack>
+    <reapack name="Hypex_Tempo marker list.eel" type="script" desc="Tempo marker list">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs28 Tempo Marker List\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Displays a list of tempo markers.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Marker: Index in list.\line Time: On timeline.\line Meter: Time signature if set.\line BPM: Tempo at time.\line Bar: Bar set at time.\line Beat: Beat count at time.\line Linear: Set if gradual change.\par}
+}
+]]></description>
+        <link rel="screenshot" href="https://github.com/Hypexed/Reaper-Scripts/raw/main/TempoList/TempoList.png">Example</link>
+      </metadata>
+      <version name="1.0" author="Damien Stewart (Hypex)" time="2022-12-22T00:56:51Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/760b2afa1f5c62d574dc6a17d0a9b25e6ecf7848/Markers/Hypex_Tempo%20marker%20list.eel</source>
+        <source main="main" file="Hypex_Tempo marker list/Hypex_Tempo marker list in time selection.eel">https://github.com/ReaTeam/ReaScripts/raw/760b2afa1f5c62d574dc6a17d0a9b25e6ecf7848/Markers/Hypex_Tempo%20marker%20list/Hypex_Tempo%20marker%20list%20in%20time%20selection.eel</source>
+      </version>
+    </reapack>
     <reapack name="js_Stretch tempo markers to edit cursor.lua" type="script" desc="js_Stretch tempo markers to edit cursor.lua">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
@@ -14998,16 +15016,22 @@ Fix the new menu crashing if there are new saved render presets]]></changelog>
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Item Stretch List\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs28 Item Stretch List\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Displays a list of stretch markers in active take of selected item.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Will show table with Marker, Time, Position, Source-Offset and Slope.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Marker: Index in list. Time: On timeline. Position: In take. Source-Offset: In source media. Slope: Value if any.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Marker: Index in list.\line Time: On timeline.\line Position: In take.\line Source-Offset: In source media.\line Slope: Value if any.\par}
 }
 ]]></description>
-        <link rel="screenshot" href="https://github.com/Hypexed/Reaper-Scripts/raw/main/StretchList.png">Example</link>
+        <link rel="screenshot" href="https://github.com/Hypexed/Reaper-Scripts/raw/main/StretchList/StretchList.png">Example</link>
       </metadata>
       <version name="1.0" author="Damien Stewart (Hypex)" time="2021-01-07T10:12:57Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c5826559d32f15b45a177d926200ee7069d0da95/Stretch%20Markers/Hypex_Item%20stretch%20list.eel</source>
+      </version>
+      <version name="1.1" author="Damien Stewart (Hypex)" time="2022-12-22T00:56:36Z">
+        <changelog><![CDATA[Add Hypex_Item stretch list in time selection.eel
+Updated to only list stretch markers within item time and format time as standard.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e83a17c38a0901fb14542910a28054732b94ecea/Stretch%20Markers/Hypex_Item%20stretch%20list.eel</source>
+        <source main="main" file="Hypex_Item stretch list/Hypex_Item stretch list in time selection.eel">https://github.com/ReaTeam/ReaScripts/raw/e83a17c38a0901fb14542910a28054732b94ecea/Stretch%20Markers/Hypex_Item%20stretch%20list/Hypex_Item%20stretch%20list%20in%20time%20selection.eel</source>
       </version>
     </reapack>
     <reapack name="js_Adjust audio items to tempo changes using stretch markers.lua" type="script" desc="js_Adjust audio items to tempo changes using stretch markers.lua">
