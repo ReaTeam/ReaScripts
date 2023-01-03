@@ -1,0 +1,302 @@
+desc:FIR Filter Half Band
+/*
+  FIR Half band filter
+
+  Reference: http://www.labbookpages.co.uk/audio/firWindowing.html
+ 
+  This filter is designed to do one job and do it well and as fast as JSFX can muster (almost).
+ 
+   It's a half band low pass 65 tap FIR filter meant for use with oversampling x2.
+ 
+   For 44.1Khz: At 88.2kHz it filters out frequencies after 22050hz which gets rid of aliasing introduced
+   by zero filling when oversampling.
+ 
+   The filter is steep and uses the following vars (44.1kHz):
+ 
+   Fa = 0
+   Fb = 22050
+   length = 65
+   Fs = 88200
+   Att = 96db
+ 
+   From here:
+ 
+     http://arc.id.au/FilterDesign.html
+ 
+   Example:
+  
+   // DAW sample rate 44.1kHz (left channel given, same for right channel)
+   // Oversampling x 2
+ 
+   @init
+   firL.init_FIR_filter_44100();
+ 
+   @sample
+   y0 = left.do_process(spl0);   // Apply application filters and other processing etc
+   y1 = left.do_process(0);      // Zero padding
+ 
+   spl0 = firL.do_FIR_filter(y0) * 2;  // First fir application
+   firL.do_FIR_filter(y1);             // Discard (crude decimation, only do this if you're
+                                       // not generating harmonics, ie. clean EQ)
+
+ */
+
+@init
+
+function init_FIR_filter_44100()
+  instance(
+    b0, b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12, b13, b14, b15, b16, b17, b18, b19,
+    b20, b21, b22, b23, b24, b25, b26, b27, b28, b29, b30, b31, b32, b33, b34, b35, b36, b37, b38, b39,
+    b40, b41, b42, b43, b44, b45, b46, b47, b48, b49, b50, b51, b52, b53, b54, b55, b56, b57, b58, b59,
+    b60, b61, b62, b63, b64,
+    w0, w1, w2, w3, w4, w5, w6, w7, w8, w9, w10, w11, w12, w13, w14, w15, w16, w17, w18, w19,
+    w20, w21, w22, w23, w24, w25, w26, w27, w28, w29, w30, w31, w32
+  )
+(
+  // Set the FIR window taking into account symmetry around the centre tap (w32).
+  w0  = -0.000000;
+  w1  = -0.000016; 
+  w2  = 0.000000;
+  w3  = 0.000067; 
+  w4  = -0.000000; 
+  w5  = -0.000189; 
+  w6  = -0.000000; 
+  w7  = 0.000438;
+  w8  = -0.000000; 
+  w9  = -0.000891; 
+  w10 = 0.000000; 
+  w11 = 0.001653; 
+  w12 = -0.000000; 
+  w13 = -0.002862; 
+  w14 = 0.000000; 
+  w15 = 0.004690; 
+  w16 = -0.000000; 
+  w17 = -0.007364; 
+  w18 = 0.000000; 
+  w19 = 0.011189; 
+  w20 = -0.000000; 
+  w21 = -0.016631; 
+  w22 = 0.000000; 
+  w23 = 0.024500; 
+  w24 = -0.000000; 
+  w25 = -0.036479; 
+  w26 = 0.000000; 
+  w27 = 0.056928; 
+  w28 = -0.000000; 
+  w29 = -0.101933; 
+  w30 = 0.000000; 
+  w31 = 0.316897; 
+  w32 = 0.500000; 
+);
+
+function init_FIR_filter_48000()
+  instance(
+    b0, b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12, b13, b14, b15, b16, b17, b18, b19,
+    b20, b21, b22, b23, b24, b25, b26, b27, b28, b29, b30, b31, b32, b33, b34, b35, b36, b37, b38, b39,
+    b40, b41, b42, b43, b44, b45, b46, b47, b48, b49, b50, b51, b52, b53, b54, b55, b56, b57, b58, b59,
+    b60, b61, b62, b63, b64,
+    w0, w1, w2, w3, w4, w5, w6, w7, w8, w9, w10, w11, w12, w13, w14, w15, w16, w17, w18, w19,
+    w20, w21, w22, w23, w24, w25, w26, w27, w28, w29, w30, w31, w32
+  )
+(
+  // Set the FIR window taking into account symmetry around the centre tap (w32).
+
+  w0  = -0.000005; 
+  w1  = 0.000006;
+  w2  = 0.000034; 
+  w3  = -0.000015; 
+  w4  = -0.000115; 
+  w5  = 0.000020; 
+  w6  = 0.000293; 
+  w7  = 0.000007; 
+  w8  = -0.000631; 
+  w9  = -0.000125; 
+  w10 = 0.001200; 
+  w11 = 0.000433; 
+  w12 = -0.002076; 
+  w13 = -0.001087; 
+  w14 = 0.003317; 
+  w15 = 0.002305; 
+  w16 = -0.004952; 
+  w17 = -0.004386; 
+  w18 = 0.006964; 
+  w19 = 0.007728; 
+  w20 = -0.009278; 
+  w21 = -0.012890; 
+  w22 = 0.011759; 
+  w23 = 0.020763; 
+  w24 = -0.014222; 
+  w25 = -0.033078; 
+  w26 = 0.016454; 
+  w27 = 0.054199; 
+  w28 = -0.018238; 
+  w29 = -0.100165; 
+  w30 = 0.019392; 
+  w31 = 0.316285; 
+  w32 = 0.480208; 
+);
+
+function do_FIR_filter_less_efficient(input)
+  instance(
+    b0, b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12, b13, b14, b15, b16, b17, b18, b19,
+    b20, b21, b22, b23, b24, b25, b26, b27, b28, b29, b30, b31, b32, b33, b34, b35, b36, b37, b38, b39,
+    b40, b41, b42, b43, b44, b45, b46, b47, b48, b49, b50, b51, b52, b53, b54, b55, b56, b57, b58, b59,
+    b60, b61, b62, b63, b64,
+    w0, w1, w2, w3, w4, w5, w6, w7, w8, w9, w10, w11, w12, w13, w14, w15, w16, w17, w18, w19,
+    w20, w21, w22, w23, w24, w25, w26, w27, w28, w29, w30, w31, w32
+  )  
+(
+  // Scroll the window
+  b64 = b63; b63 = b62; b62 = b61; b61 = b60;
+  b60 = b59; b59 = b58; b58 = b57; b57 = b56; b56 = b55; b55 = b54; b54 = b53; b53 = b52; b52 = b51; b51 = b50;
+  b50 = b49; b49 = b48; b48 = b47; b47 = b46; b46 = b45; b45 = b44; b44 = b43; b43 = b42; b42 = b41; b41 = b40;
+  b40 = b39; b39 = b38; b38 = b37; b37 = b36; b36 = b35; b35 = b34; b34 = b33; b33 = b32; b32 = b31; b31 = b30;
+  b30 = b29; b29 = b28; b28 = b27; b27 = b26; b26 = b25; b25 = b24; b24 = b23; b23 = b22; b22 = b21; b21 = b20;
+  b20 = b19; b19 = b18; b18 = b17; b17 = b16; b16 = b15; b15 = b14; b14 = b13; b13 = b12; b12 = b11; b11 = b10;
+  b10 = b9; b9 = b8; b8 = b7; b7 = b6; b6 = b5; b5 = b4; b4 = b3; b3 = b2; b2 = b1; b1 = b0;
+
+  // Introduce the new sample into the window
+  b0 = input;
+
+  // Compute and return, taking advantage of symmetrical fir filter to reduce operations 
+  w0 * (b0 + b64) + w1 * (b1 + b63) + w2 * (b2 + b62) + w3 * (b3 + b61) + w4 * (b4 + b60) + w5 * (b5 + b59) + w6 * (b6 + b58) +
+  w7 * (b7 + b57) + w8 * (b8 + b56) + w9 * (b9 + b55) + w10 * (b10 + b54) + w11 * (b11 + b53) + w12 * (b12 + b52) + w13 * (b13 + b51) +
+  w14 * (b14 + b50) + w15 * (b15 + b49) + w16 * (b16 + b48) + w17 * (b17 + b47) + w18 * (b18 + b46) + w19 * (b19 + b45) + w20 * (b20 + b44) +
+  w21 * (b21 + b43) + w22 * (b22 + b42) + w23 * (b23 + b41) + w24 * (b24 + b40) + w25 * (b25 + b39) + w26 * (b26 + b38) + w27 * (b27 + b37) +
+  w28 * (b28 + b36) + w29 * (b29 + b35) + w30 * (b30 + b34) + w31 * (b31 + b33) + w32 * (b32);
+);
+
+function do_FIR_filter(input0, input1) local(ret)
+  instance(
+    b0, b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12, b13, b14, b15, b16, b17, b18, b19,
+    b20, b21, b22, b23, b24, b25, b26, b27, b28, b29, b30, b31, b32, b33, b34, b35, b36, b37, b38, b39,
+    b40, b41, b42, b43, b44, b45, b46, b47, b48, b49, b50, b51, b52, b53, b54, b55, b56, b57, b58, b59,
+    b60, b61, b62, b63, b64,
+    w0, w1, w2, w3, w4, w5, w6, w7, w8, w9, w10, w11, w12, w13, w14, w15, w16, w17, w18, w19,
+    w20, w21, w22, w23, w24, w25, w26, w27, w28, w29, w30, w31, w32
+  )  
+(
+  // Compute and return.
+  // We're zero padding so only interest in the result of input0
+  // Taking advantage of symmetrical fir filter to reduce operations.
+  // We also arrange operations so that we don't need to scroll the window before calculating.
+  ret = w0 * (input0 + b63) + w1 * (b0 + b62) + w2 * (b1 + b61) + w3 * (b2 + b60) + w4 * (b3 + b59) + w5 * (b4 + b58) + w6 * (b5 + b57) +
+  w7 * (b6 + b56) + w8 * (b7 + b55) + w9 * (b8 + b54) + w10 * (b9 + b53) + w11 * (b10 + b52) + w12 * (b11 + b51) + w13 * (b12 + b50) +
+  w14 * (b13 + b49) + w15 * (b14 + b48) + w16 * (b15 + b47) + w17 * (b16 + b46) + w18 * (b17 + b45) + w19 * (b18 + b44) + w20 * (b19 + b43) +
+  w21 * (b20 + b42) + w22 * (b21 + b41) + w23 * (b22 + b40) + w24 * (b23 + b39) + w25 * (b24 + b38) + w26 * (b25 + b37) + w27 * (b26 + b36) +
+  w28 * (b27 + b35) + w29 * (b28 + b34) + w30 * (b29 + b33) + w31 * (b30 + b32) + w32 * (b31);
+
+  // Scroll the window by two
+  b64 = b62; b63 = b61; b62 = b60; b61 = b59;
+  b60 = b58; b59 = b57; b58 = b56; b57 = b55; b56 = b54; b55 = b53; b54 = b52; b53 = b51; b52 = b50; b51 = b49;
+  b50 = b48; b49 = b47; b48 = b46; b47 = b45; b46 = b44; b45 = b43; b44 = b42; b43 = b41; b42 = b40; b41 = b39;
+  b40 = b38; b39 = b37; b38 = b36; b37 = b35; b36 = b34; b35 = b33; b34 = b32; b33 = b31; b32 = b30; b31 = b29;
+  b30 = b28; b29 = b27; b28 = b26; b27 = b25; b26 = b24; b25 = b23; b24 = b22; b23 = b21; b22 = b20; b21 = b19;
+  b20 = b18; b19 = b17; b18 = b16; b17 = b15; b16 = b14; b15 = b13; b14 = b12; b13 = b11; b12 = b10; b11 = b9;
+  b10 = b8;  b9 =  b7;  b8 =  b6;  b7 =  b5;  b6  = b4;  b5  = b3;  b4  = b2;  b3  = b1;  b2  = b0;
+
+  b1 = input0;
+  b0 = input1;
+
+  // Filtering out the mirror beyond Nyquist reduces energy by half so multiply back out
+  ret * 2.0;
+);
+
+function get_FIR_pdc() ( 
+  // PDC is usually number of taps / 2 (that's 32)
+  // We'll be running x2 so the delay is halved again.
+  16;
+);
+
+// Included the un-rolled source code here for completeness and in case any other work
+// on coefficients etc is required.
+/*
+function init_FIR_filter(bufmem, ntaps, coeffs)
+  instance(hist_buf, buf_ptr, buf_ptr2, len, w)
+(
+  len = ntaps;
+  hist_buf = bufmem;
+  buf_ptr = hist_buf + (len-1);
+  buf_ptr2 = buf_ptr + len;
+  w = coeffs;
+
+  w[0] = w[64] = -0.000000;
+  w[1] = w[63] = -0.000016; 
+  w[2] = w[62] = 0.000000;
+  w[3] = w[61] = 0.000067; 
+  w[4] = w[60] = -0.000000; 
+  w[5] = w[59] = -0.000189; 
+  w[6] = w[58] = -0.000000; 
+  w[7] = w[57] = 0.000438;
+  w[8] = w[56] = -0.000000; 
+  w[9] = w[55] = -0.000891; 
+  w[10] = w[54] = 0.000000; 
+  w[11] = w[53] = 0.001653; 
+  w[12] = w[52] = -0.000000; 
+  w[13] = w[51] = -0.002862; 
+  w[14] = w[50] = 0.000000; 
+  w[15] = w[49] = 0.004690; 
+  w[16] = w[48] = -0.000000; 
+  w[17] = w[47] = -0.007364; 
+  w[18] = w[46] = 0.000000; 
+  w[19] = w[45] = 0.011189; 
+  w[20] = w[44] = -0.000000; 
+  w[21] = w[43] = -0.016631; 
+  w[22] = w[42] = 0.000000; 
+  w[23] = w[41] = 0.024500; 
+  w[24] = w[40] = -0.000000; 
+  w[25] = w[39] = -0.036479; 
+  w[26] = w[38] = 0.000000; 
+  w[27] = w[37] = 0.056928; 
+  w[28] = w[36] = -0.000000; 
+  w[29] = w[35] = -0.101933; 
+  w[30] = w[34] = 0.000000; 
+  w[31] = w[33] = 0.316897; 
+  w[32] = 0.500000; 
+);
+
+function do_FIR_filter(s0)
+  local(sum, n)
+  instance(hist_buf, buf_ptr, buf_ptr2, len, w)  
+(
+  buf_ptr[] = buf_ptr2[] = s0;
+
+  sum = n = 0;
+  loop(len,
+    sum += w[n] * buf_ptr[n];
+    n += 1;
+  );
+
+  buf_ptr -= 1; buf_ptr2 -= 1;
+  buf_ptr < hist_buf ? (
+    buf_ptr = hist_buf + (len-1);
+    buf_ptr2 = buf_ptr + len;
+  );
+
+  sum;
+);
+
+// Read coefficients from file using:
+handle = file_open("coff.txt");
+
+len = file_mem(handle, wm, 65);
+
+file_close(handle);
+
+m = len - 1;
+
+// Was the following normalisation really needed??
+n = 1;
+normalize = w[0];
+loop(len,
+  normalize += w[n];
+  n += 1;
+);
+
+n = 0;
+normalize = 1/normalize;
+loop(len,
+  w[n] *= normalize;
+  n += 1;
+);
+*/
