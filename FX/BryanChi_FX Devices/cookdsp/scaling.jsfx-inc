@@ -1,0 +1,531 @@
+/////////////////////////////////////////////////////////////////
+// Copyright (c) - 2014 - Olivier Belanger                     //
+// Permission to use, copy, modify, and/or distribute this     //
+// software for any purpose with or without fee is hereby      //
+// granted, provided that the above copyright notice and this  //
+// permission notice appear in all copies. CookDSP IS PROVIDED //
+// "AS IS", WITHOUT WARRANTY OF ANY KIND FROM THE AUTHOR.      //
+/////////////////////////////////////////////////////////////////
+
+@init
+
+/******************************************************* 
+MTOF
+====
+
+Midi to frequency conversion.
+
+Signature
+----------
+
+ret = mtof(midinote)
+
+Description
+-----------
+
+The mtof function takes a midi note as argument and returns
+the corresponding frequency in Hertz.
+
+Arguments
+---------
+
+- *midinote* {float} : Midi note, between 0 and 127. can be a
+                     float to do micro-tonal tunning.  
+
+Return
+------
+
+- *ret* {float} : Frequency value corresponding to midi note in input.
+
+Example
+-------
+
+    desc:Simple Mono Midi Synth
+
+    import cookdsp.jsfx-inc
+
+    @init
+    midinote = midiamp = 0;
+    // Initialize two sawtooth waves
+    ph1.phasor(0, 0);
+    ph2.phasor(0, 0);
+    // Initialize a midi triggered envelope
+    env.masr(0.01, 1);
+
+    @block
+    // Handle midi inputs
+    while (midirecv(offset, msg1, msg2, msg3)) (
+        // get noteons and noteoffs from all channels
+        (msg1 & $xF0) == $x90 || (msg1 & $xF0) == $x80 ? (
+            msg3 != 0 ? (
+                // noteon 
+                midinote = msg2;
+                // convert midi note to frequency in Hz
+                freq = mtof(midinote);
+                ph1.phasor_set_freq(freq);
+                ph2.phasor_set_freq(freq * 1.01);
+                // scales velocity to amplitude
+                midiamp = msg3 / 127;
+            ) : (
+                // noteoff (only with current pitch)
+                msg2 == midinote ? midiamp = 0;
+            );
+        ) : (
+            // passthrough other events
+            midisend(offset,msg1,msg2,msg3);
+        );
+    );
+
+    @sample
+    // Computes the envelope
+    gain = env.masr_do(midiamp) * 0.5;
+    // Computes the sawtooth waves
+    spl0 = (ph1.phasor_do() - 0.5) * gain;
+    spl1 = (ph2.phasor_do() - 0.5) * gain;
+
+********************************************************/
+function mtof(midinote)
+(
+    440.0 * pow(2.0, (midinote - 69) / 12.0);
+);
+
+/******************************************************* 
+MTOT
+====
+
+Midi to transposition factor conversion.
+
+Signature
+----------
+
+ret = mtot(midinote, centralkey)
+
+Description
+-----------
+
+The mtot function takes a midi note as argument and returns
+the corresponding transposition factor according to a central key.
+The central key is the midi note where there is no transposition
+(a factor of 1).
+
+Arguments
+---------
+
+- *midinote* {float} : Midi note, between 0 and 127. can be a
+                     float to do micro-tonal tunning.  
+- *centralkey* {float} : The midi note for which the transposition
+                     factor is 1 (no transposition).
+
+Return
+------
+
+- *ret* {float} : The transposition factor corresponding to midi note in input.
+
+Example
+-------
+
+    @init
+    // one octave below (low = 0.5)
+    low = mtot(48, 60);
+    // a fifth above (fifth = 1.4999)
+    fifth = mtot(67, 60);
+    // one octave above (high = 2.0)
+    high = mtot(72, 60);
+
+********************************************************/
+function mtot(midinote, centralkey)
+(
+    pow(1.0594630943592953, midinote - centralkey);
+);
+
+/******************************************************* 
+FTOM
+====
+
+Frequency to midi conversion.
+
+Signature
+----------
+
+ret = ftom(freq)
+
+Description
+-----------
+
+The ftom function takes a frequency value, in Hz, as argument 
+and returns the corresponding midi note number, as a float. If
+an integer midi note number is needed, one must round it to the
+nearest integer before using it.
+
+Arguments
+---------
+
+- *freq* {float} : Frequency value, in Hz, to convert.  
+
+Return
+------
+
+- *ret* {float} : Midi note number corresponding to frequency in input.
+
+Example
+-------
+
+    @init
+    A = ftom(440.0);
+
+********************************************************/
+function ftom(freq)
+(
+    12.0 * log2(freq / 440.0) + 69;
+);
+
+/******************************************************* 
+TTOS
+====
+
+Transposition factor to semitone conversion.
+
+Signature
+----------
+
+ret = ttos(transpo)
+
+Description
+-----------
+
+The `ttos` function takes a transposition factor (1 means no 
+transposition) as argument and returns the corresponding 
+transposition in semitones (0 means no transposition). If
+an integer semitone number is needed, one must round it to 
+the nearest integer before using it.
+
+Arguments
+---------
+
+- *transpo* {float} : Transposition factor to convert.  
+
+Return
+------
+
+- *ret* {float} : Semitone value corresponding to dactor in input.
+
+Example
+-------
+
+    @init
+    // octave below (-12)
+    semi = ttos(0.5);
+
+********************************************************/
+function ttos(transpo)
+(
+    12.0 * log2(transpo);
+);
+
+/******************************************************* 
+DBTOA
+=====
+
+Decibel to linear amplitude conversion.
+
+Signature
+----------
+
+ret = dbtoa(db)
+
+Description
+-----------
+
+The dbtoa function takes an amplitude defined on the decibel
+scale (-120 and up, 0 as nominal amplitude) as argument and 
+returns the corresponding linear amplitude, as a float.
+
+Arguments
+---------
+
+- *db* {float} : Decibel value to convert.  
+
+Return
+------
+
+- *ret* {float} : Linear amplitude corresponding to decibels in input.
+
+Example
+-------
+
+    desc:Decibel Amplitude
+
+    import cookdsp.jsfx-inc
+
+    slider1:0<-60,12,0.01>Amplitude (dB)
+
+    @init
+    amp = 1;
+
+    @slider
+    amp = dbtoa(slider1);
+
+    @sample
+    spl0 *= amp;
+    spl1 *= amp;
+
+********************************************************/
+function dbtoa(db)
+(
+    pow(10.0, db * 0.05);
+);
+
+/******************************************************* 
+ATODB
+=====
+
+Linear amplitude to decibel conversion.
+
+Signature
+----------
+
+ret = atodb(amp)
+
+Description
+-----------
+
+The atodb function takes an amplitude defined on a linear
+scale (0 means silence, 1 means nominal amplitude) as argument
+and returns the corresponding value on the decibel scale, as a 
+float. On the decibel scale, 0 means the nominal amplitude and
+negative values decrease the amplitude.
+
+Arguments
+---------
+
+- *amp* {float} : Linear amplitude value to convert.  
+
+Return
+------
+
+- *ret* {float} : Decibel value corresponding to amplitude in input.
+
+Example
+-------
+
+    desc:Rough Gate
+
+    import cookdsp.jsfx-inc
+
+    slider1:-20<-90,0,0.01>Threshold (dB) 
+
+    @init
+    fol = amp = 0;
+
+    @slider
+    thresh = slider1;
+
+    @sample
+    // mix stereo signal
+    input = (abs(spl0) + abs(spl1)) * 0.707;
+    // follow its amplitude
+    fol = input + (fol - input) * 0.99;
+    // convert amplitude to decibels
+    db = atodb(fol);
+    // compare with db threshold
+    db > thresh ? a = 1 : a = 0;
+    // interpolate new gain value
+    amp = a + (amp - a) * 0.99;
+    // apply to both signals
+    spl0 *= amp; spl1 *= amp;
+
+********************************************************/
+function atodb(amp)
+(
+    20.0 * log10(amp);
+);
+
+/******************************************************* 
+WRAP
+====
+
+Wraps-around an input value that exceeds the min and max limits.
+
+Signature
+----------
+
+ret = wrap(input, mini, maxi)
+
+Description
+-----------
+
+The wrap function wraps an input value between the range
+defined by `mini` and `maxi` values.
+
+Arguments
+---------
+
+- *input* {float} : Input value to constrain.
+- *mini* {float} : Minimum possible value.
+- *maxi* {float} : Maximum possible value.
+
+Return
+------
+
+- *ret* {float} : Input value constrained between `mini` and `maxi`.
+
+Example
+-------
+
+    desc:Out-Of-Phase Envelopes
+
+    import cookdsp.jsfx-inc
+
+    slider1:4<0.1,10,0.01>Modulation Frequency
+
+    @init
+    ph.phasor(slider1, 0);
+
+    @slider
+    ph.phasor_set_freq(slider1);
+
+    @sample
+    amp0 = ph.phasor_do();
+    // second ramp 180 degrees out-of-phase
+    amp1 = wrap(amp0 + 0.5, 0, 1);
+    spl0 *= amp0; 
+    spl1 *= amp1;
+
+********************************************************/
+function wrap(input mini maxi)
+(
+    while (input < mini) (
+        input += mini;
+    );
+    while (input >= maxi) (
+        input -= maxi;
+    );
+    input;
+);
+
+/******************************************************* 
+CLIP
+====
+
+Clips an input value that exceeds the min and max limits.
+
+Signature
+----------
+
+ret = clip(input, mini, maxi)
+
+Description
+-----------
+
+The clip function clips an input value to a range defined 
+by `mini` and `maxi` values. If `input` is lower than `mini`,
+the output will be `mini`, if `input` is higher than `maxi`,
+the output will be `maxi`, otherwise, `input` pass thru.
+
+Arguments
+---------
+
+- *input* {float} : Input value to constrain.
+- *mini* {float} : Minimum possible value.
+- *maxi* {float} : Maximum possible value.
+
+Return
+------
+
+- *ret* {float} : Input value clipped to the range defined by `mini` and `maxi`.
+
+Example
+-------
+
+    desc:Bell to Square Amplitude Envelope
+ 
+    import cookdsp.jsfx-inc
+
+    slider1:0.5<0.001,1,0.001>Clipping value
+    slider2:4<1,20,0.01>Envelope Frequency
+
+    @init
+    ph.phasor(slider2, 0);
+
+    @slider
+    ph.phasor_set_freq(slider2);
+
+    @sample
+    sine = sin(2 * $pi * ph.phasor_do());
+    amp = clip(sine, 0, slider1) / slider1;
+    spl0 *= amp; 
+    spl1 *= amp; 
+
+********************************************************/
+function clip(input mini maxi)
+(
+    max(min(input, maxi), mini);
+);
+
+/******************************************************* 
+SCALE
+=====
+
+Maps an input value from an input range to an output range with power factor.
+
+Signature
+----------
+
+ret = scale(input, xmin, xmax, ymin, ymax, ex)
+
+Description
+-----------
+
+The scale function takes an input value, scales it down
+to a 0-1 range according to input range (`xmin` - `xmax`),
+raises it to `ex` power and then rescales the result to
+the output range (`ymin` - `ymax`). This function is useful
+to convert a value from a  linear scale to an exponential one,
+like converting a midi slider (0-127 linear) to a frequency
+scale (20-20000 exponential).
+
+Arguments
+---------
+
+- *input* {float} : The input value to convert.  
+- *xmin* {float} : Minimum of the input range.  
+- *xmax* {float} : Maximum of the input range.  
+- *ymin* {float} : Minimum of the output range.  
+- *ymax* {float} : Maximum of the output range.  
+- *ex* {float} : Power factor (1 is linear, les than 1 is logarithmic, greter than 1 is exponential). 
+ 
+Return
+------
+
+- *ret* {float} : Value converted to the output range.
+
+Example
+-------
+   
+    desc:Normalized to Frequency Range
+ 
+    import cookdsp.jsfx-inc
+
+    slider1:0<0,1,0.001>Normalized Frequency
+
+    @init
+    lp.lop(20);
+
+    @slider
+    // 0-1 range converted to frequency range
+    f = scale(slider1, 0, 1, 20, srate/2, 4);
+    lp.lop_set_freq(f);
+
+    @sample
+    spl0 = lp.lop_do(spl0);
+    spl1 = lp.lop_do(spl1);
+
+********************************************************/
+function scale(x xmin xmax ymin ymax ex)
+(
+    x -= xmin;
+    x /= (xmax - xmin);
+    x ^= ex;
+    x *= (ymax - ymin);
+    x + ymin;
+);

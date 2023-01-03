@@ -1,0 +1,1280 @@
+/////////////////////////////////////////////////////////////////
+// Copyright (c) - 2015 - Olivier Belanger                     //
+// Permission to use, copy, modify, and/or distribute this     //
+// software for any purpose with or without fee is hereby      //
+// granted, provided that the above copyright notice and this  //
+// permission notice appear in all copies. CookDSP IS PROVIDED //
+// "AS IS", WITHOUT WARRANTY OF ANY KIND FROM THE AUTHOR.      //
+/////////////////////////////////////////////////////////////////
+
+/******************************************************* 
+LIST
+====
+
+Create a list and fill it with the given arguments.
+
+Signature
+---------
+
+index = list(h1 [, ..., h40])
+
+Description
+-----------
+
+The `list` function initializes a list of length equal to
+the *number of arguments + 1*. The first position in the
+list (index[0]) hold the list length and the remaining
+spaces are filled with the arguments given at the function
+call. The function returns the first position of the 
+allocated memory (ie the length of the list). To loop
+over the list, do something like:
+    
+    mylist = list(100,200,300,400,500);
+    k = 1;
+    while (k <= mylist[0]) (
+        v = mylist[k];
+        k += 1;
+    )
+
+This function uses `memalloc` internally, so it is safe to
+use it beside other CookDSP objects that use memory. 
+
+Arguments
+---------
+
+- *h1* {float} : First value stored into the list.  
+- *h2, ..., h40* {float} : Following values, up to 40 arguments.
+
+Return
+------
+
+- *index* {int} : first index of the allocated memory.
+
+Example
+-------
+
+    desc:Bandpass Filter Bank
+
+    import cookdsp.jsfx-inc
+
+    slider1:600<20, 1000>Filter Freq 1
+    slider2:900<200, 1500>Filter Freq 2
+    slider3:1500<1000, 2000>Filter Freq 3
+    slider4:2000<1500, 3000>Filter Freq 4
+    slider5:10<1,100>Filters Q
+
+    @init
+    // Create lists for filters's frequency and Q
+    freq = list(400, 1700, 3500, 8000);
+    q = list(slider5, slider5, slider5, slider5);
+    // Create a bank of bandpass filters
+    bps.Pbp(freq, q);
+
+    @slider
+    // Update lists values
+    k = 1;
+    while (k <= freq[0]) (
+      freq[k] = slider(k);
+      q[k] = slider5;
+      k += 1;
+    );
+    // Sets the new values to the filters
+    bps.Pbp_set_freq(freq);
+    bps.Pbp_set_q(q);
+    gain = scale(slider5, 1, 100, 1, 10, 1);
+
+    @sample
+    outbp = bps.Pbp_do(tmp(spl0, spl1));
+    outsig = sumchnls(2, outbp);
+    spl0 = outsig[0] * gain;
+    spl1 = outsig[1] * gain;
+
+********************************************************/
+
+@init
+
+_TMPLISTFIRSTPOS_ = 8388500;
+_SUMLISTFIRSTPOS_ = 8388550;
+
+function list(h1)
+(
+    this.buf = memalloc(2);
+    this.buf[0] = 1;
+    this.buf[1] = h1; 
+    this.buf;
+);
+function list(h1 h2)
+(
+    this.buf = memalloc(3);
+    this.buf[0] = 2;
+    this.buf[1] = h1; this.buf[2] = h2; 
+    this.buf;
+);
+function list(h1 h2 h3)
+(
+    this.buf = memalloc(4);
+    this.buf[0] = 3;
+    this.buf[1] = h1; this.buf[2] = h2; this.buf[3] = h3; 
+    this.buf;
+);
+function list(h1 h2 h3 h4)
+(
+    this.buf = memalloc(5);
+    this.buf[0] = 4;
+    this.buf[1] = h1; this.buf[2] = h2; this.buf[3] = h3; this.buf[4] = h4; 
+    this.buf;
+);
+function list(h1 h2 h3 h4 h5)
+(
+    this.buf = memalloc(6);
+    this.buf[0] = 5;
+    this.buf[1] = h1; this.buf[2] = h2; this.buf[3] = h3; this.buf[4] = h4; 
+    this.buf[5] = h5; 
+    this.buf;
+);
+function list(h1 h2 h3 h4 h5 h6)
+(
+    this.buf = memalloc(7);
+    this.buf[0] = 6;
+    this.buf[1] = h1; this.buf[2] = h2; this.buf[3] = h3; this.buf[4] = h4; 
+    this.buf[5] = h5; this.buf[6] = h6; 
+    this.buf;
+);
+function list(h1 h2 h3 h4 h5 h6 h7)
+(
+    this.buf = memalloc(8);
+    this.buf[0] = 7;
+    this.buf[1] = h1; this.buf[2] = h2; this.buf[3] = h3; this.buf[4] = h4; 
+    this.buf[5] = h5; this.buf[6] = h6; this.buf[7] = h7; 
+    this.buf;
+);
+function list(h1 h2 h3 h4 h5 h6 h7 h8)
+(
+    this.buf = memalloc(9);
+    this.buf[0] = 8;
+    this.buf[1] = h1; this.buf[2] = h2; this.buf[3] = h3; this.buf[4] = h4; 
+    this.buf[5] = h5; this.buf[6] = h6; this.buf[7] = h7; this.buf[8] = h8; 
+    this.buf;
+);
+function list(h1 h2 h3 h4 h5 h6 h7 h8 h9)
+(
+    this.buf = memalloc(10);
+    this.buf[0] = 9;
+    this.buf[1] = h1; this.buf[2] = h2; this.buf[3] = h3; this.buf[4] = h4; 
+    this.buf[5] = h5; this.buf[6] = h6; this.buf[7] = h7; this.buf[8] = h8; 
+    this.buf[9] = h9; 
+    this.buf;
+);
+function list(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10)
+(
+    this.buf = memalloc(11);
+    this.buf[0] = 10;
+    this.buf[1] = h1; this.buf[2] = h2; this.buf[3] = h3; this.buf[4] = h4; 
+    this.buf[5] = h5; this.buf[6] = h6; this.buf[7] = h7; this.buf[8] = h8; 
+    this.buf[9] = h9; this.buf[10] = h10; 
+    this.buf;
+);
+function list(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11)
+(
+    this.buf = memalloc(12);
+    this.buf[0] = 11;
+    this.buf[1] = h1; this.buf[2] = h2; this.buf[3] = h3; this.buf[4] = h4; 
+    this.buf[5] = h5; this.buf[6] = h6; this.buf[7] = h7; this.buf[8] = h8; 
+    this.buf[9] = h9; this.buf[10] = h10; this.buf[11] = h11; 
+    this.buf;
+);
+function list(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12)
+(
+    this.buf = memalloc(13);
+    this.buf[0] = 12;
+    this.buf[1] = h1; this.buf[2] = h2; this.buf[3] = h3; this.buf[4] = h4; 
+    this.buf[5] = h5; this.buf[6] = h6; this.buf[7] = h7; this.buf[8] = h8; 
+    this.buf[9] = h9; this.buf[10] = h10; this.buf[11] = h11; this.buf[12] = h12; 
+    this.buf;
+);
+function list(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13)
+(
+    this.buf = memalloc(14);
+    this.buf[0] = 13;
+    this.buf[1] = h1; this.buf[2] = h2; this.buf[3] = h3; this.buf[4] = h4; 
+    this.buf[5] = h5; this.buf[6] = h6; this.buf[7] = h7; this.buf[8] = h8; 
+    this.buf[9] = h9; this.buf[10] = h10; this.buf[11] = h11; this.buf[12] = h12; 
+    this.buf[13] = h13; 
+    this.buf;
+);
+function list(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14)
+(
+    this.buf = memalloc(15);
+    this.buf[0] = 14;
+    this.buf[1] = h1; this.buf[2] = h2; this.buf[3] = h3; this.buf[4] = h4; 
+    this.buf[5] = h5; this.buf[6] = h6; this.buf[7] = h7; this.buf[8] = h8; 
+    this.buf[9] = h9; this.buf[10] = h10; this.buf[11] = h11; this.buf[12] = h12; 
+    this.buf[13] = h13; this.buf[14] = h14; 
+    this.buf;
+);
+function list(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15)
+(
+    this.buf = memalloc(16);
+    this.buf[0] = 15;
+    this.buf[1] = h1; this.buf[2] = h2; this.buf[3] = h3; this.buf[4] = h4; 
+    this.buf[5] = h5; this.buf[6] = h6; this.buf[7] = h7; this.buf[8] = h8; 
+    this.buf[9] = h9; this.buf[10] = h10; this.buf[11] = h11; this.buf[12] = h12; 
+    this.buf[13] = h13; this.buf[14] = h14; this.buf[15] = h15; 
+    this.buf;
+);
+function list(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16)
+(
+    this.buf = memalloc(17);
+    this.buf[0] = 16;
+    this.buf[1] = h1; this.buf[2] = h2; this.buf[3] = h3; this.buf[4] = h4; 
+    this.buf[5] = h5; this.buf[6] = h6; this.buf[7] = h7; this.buf[8] = h8; 
+    this.buf[9] = h9; this.buf[10] = h10; this.buf[11] = h11; this.buf[12] = h12; 
+    this.buf[13] = h13; this.buf[14] = h14; this.buf[15] = h15; this.buf[16] = h16; 
+    this.buf;
+);
+function list(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17)
+(
+    this.buf = memalloc(18);
+    this.buf[0] = 17;
+    this.buf[1] = h1; this.buf[2] = h2; this.buf[3] = h3; this.buf[4] = h4; 
+    this.buf[5] = h5; this.buf[6] = h6; this.buf[7] = h7; this.buf[8] = h8; 
+    this.buf[9] = h9; this.buf[10] = h10; this.buf[11] = h11; this.buf[12] = h12; 
+    this.buf[13] = h13; this.buf[14] = h14; this.buf[15] = h15; this.buf[16] = h16; 
+    this.buf[17] = h17; 
+    this.buf;
+);
+function list(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18)
+(
+    this.buf = memalloc(19);
+    this.buf[0] = 18;
+    this.buf[1] = h1; this.buf[2] = h2; this.buf[3] = h3; this.buf[4] = h4; 
+    this.buf[5] = h5; this.buf[6] = h6; this.buf[7] = h7; this.buf[8] = h8; 
+    this.buf[9] = h9; this.buf[10] = h10; this.buf[11] = h11; this.buf[12] = h12; 
+    this.buf[13] = h13; this.buf[14] = h14; this.buf[15] = h15; this.buf[16] = h16; 
+    this.buf[17] = h17; this.buf[18] = h18; 
+    this.buf;
+);
+function list(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19)
+(
+    this.buf = memalloc(20);
+    this.buf[0] = 19;
+    this.buf[1] = h1; this.buf[2] = h2; this.buf[3] = h3; this.buf[4] = h4; 
+    this.buf[5] = h5; this.buf[6] = h6; this.buf[7] = h7; this.buf[8] = h8; 
+    this.buf[9] = h9; this.buf[10] = h10; this.buf[11] = h11; this.buf[12] = h12; 
+    this.buf[13] = h13; this.buf[14] = h14; this.buf[15] = h15; this.buf[16] = h16; 
+    this.buf[17] = h17; this.buf[18] = h18; this.buf[19] = h19; 
+    this.buf;
+);
+function list(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20)
+(
+    this.buf = memalloc(21);
+    this.buf[0] = 20;
+    this.buf[1] = h1; this.buf[2] = h2; this.buf[3] = h3; this.buf[4] = h4; 
+    this.buf[5] = h5; this.buf[6] = h6; this.buf[7] = h7; this.buf[8] = h8; 
+    this.buf[9] = h9; this.buf[10] = h10; this.buf[11] = h11; this.buf[12] = h12; 
+    this.buf[13] = h13; this.buf[14] = h14; this.buf[15] = h15; this.buf[16] = h16; 
+    this.buf[17] = h17; this.buf[18] = h18; this.buf[19] = h19; this.buf[20] = h20; 
+    this.buf;
+);
+function list(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21)
+(
+    this.buf = memalloc(22);
+    this.buf[0] = 21;
+    this.buf[1] = h1; this.buf[2] = h2; this.buf[3] = h3; this.buf[4] = h4; 
+    this.buf[5] = h5; this.buf[6] = h6; this.buf[7] = h7; this.buf[8] = h8; 
+    this.buf[9] = h9; this.buf[10] = h10; this.buf[11] = h11; this.buf[12] = h12; 
+    this.buf[13] = h13; this.buf[14] = h14; this.buf[15] = h15; this.buf[16] = h16; 
+    this.buf[17] = h17; this.buf[18] = h18; this.buf[19] = h19; this.buf[20] = h20; 
+    this.buf[21] = h21; 
+    this.buf;
+);
+function list(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22)
+(
+    this.buf = memalloc(23);
+    this.buf[0] = 22;
+    this.buf[1] = h1; this.buf[2] = h2; this.buf[3] = h3; this.buf[4] = h4; 
+    this.buf[5] = h5; this.buf[6] = h6; this.buf[7] = h7; this.buf[8] = h8; 
+    this.buf[9] = h9; this.buf[10] = h10; this.buf[11] = h11; this.buf[12] = h12; 
+    this.buf[13] = h13; this.buf[14] = h14; this.buf[15] = h15; this.buf[16] = h16; 
+    this.buf[17] = h17; this.buf[18] = h18; this.buf[19] = h19; this.buf[20] = h20; 
+    this.buf[21] = h21; this.buf[22] = h22; 
+    this.buf;
+);
+function list(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22 h23)
+(
+    this.buf = memalloc(24);
+    this.buf[0] = 23;
+    this.buf[1] = h1; this.buf[2] = h2; this.buf[3] = h3; this.buf[4] = h4; 
+    this.buf[5] = h5; this.buf[6] = h6; this.buf[7] = h7; this.buf[8] = h8; 
+    this.buf[9] = h9; this.buf[10] = h10; this.buf[11] = h11; this.buf[12] = h12; 
+    this.buf[13] = h13; this.buf[14] = h14; this.buf[15] = h15; this.buf[16] = h16; 
+    this.buf[17] = h17; this.buf[18] = h18; this.buf[19] = h19; this.buf[20] = h20; 
+    this.buf[21] = h21; this.buf[22] = h22; this.buf[23] = h23; 
+    this.buf;
+);
+function list(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22 h23 h24)
+(
+    this.buf = memalloc(25);
+    this.buf[0] = 24;
+    this.buf[1] = h1; this.buf[2] = h2; this.buf[3] = h3; this.buf[4] = h4; 
+    this.buf[5] = h5; this.buf[6] = h6; this.buf[7] = h7; this.buf[8] = h8; 
+    this.buf[9] = h9; this.buf[10] = h10; this.buf[11] = h11; this.buf[12] = h12; 
+    this.buf[13] = h13; this.buf[14] = h14; this.buf[15] = h15; this.buf[16] = h16; 
+    this.buf[17] = h17; this.buf[18] = h18; this.buf[19] = h19; this.buf[20] = h20; 
+    this.buf[21] = h21; this.buf[22] = h22; this.buf[23] = h23; this.buf[24] = h24; 
+    this.buf;
+);
+function list(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22 h23 h24 h25)
+(
+    this.buf = memalloc(26);
+    this.buf[0] = 25;
+    this.buf[1] = h1; this.buf[2] = h2; this.buf[3] = h3; this.buf[4] = h4; 
+    this.buf[5] = h5; this.buf[6] = h6; this.buf[7] = h7; this.buf[8] = h8; 
+    this.buf[9] = h9; this.buf[10] = h10; this.buf[11] = h11; this.buf[12] = h12; 
+    this.buf[13] = h13; this.buf[14] = h14; this.buf[15] = h15; this.buf[16] = h16; 
+    this.buf[17] = h17; this.buf[18] = h18; this.buf[19] = h19; this.buf[20] = h20; 
+    this.buf[21] = h21; this.buf[22] = h22; this.buf[23] = h23; this.buf[24] = h24; 
+    this.buf[25] = h25; 
+    this.buf;
+);
+function list(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22 h23 h24 h25 h26)
+(
+    this.buf = memalloc(27);
+    this.buf[0] = 26;
+    this.buf[1] = h1; this.buf[2] = h2; this.buf[3] = h3; this.buf[4] = h4; 
+    this.buf[5] = h5; this.buf[6] = h6; this.buf[7] = h7; this.buf[8] = h8; 
+    this.buf[9] = h9; this.buf[10] = h10; this.buf[11] = h11; this.buf[12] = h12; 
+    this.buf[13] = h13; this.buf[14] = h14; this.buf[15] = h15; this.buf[16] = h16; 
+    this.buf[17] = h17; this.buf[18] = h18; this.buf[19] = h19; this.buf[20] = h20; 
+    this.buf[21] = h21; this.buf[22] = h22; this.buf[23] = h23; this.buf[24] = h24; 
+    this.buf[25] = h25; this.buf[26] = h26; 
+    this.buf;
+);
+function list(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22 h23 h24 h25 h26 h27)
+(
+    this.buf = memalloc(28);
+    this.buf[0] = 27;
+    this.buf[1] = h1; this.buf[2] = h2; this.buf[3] = h3; this.buf[4] = h4; 
+    this.buf[5] = h5; this.buf[6] = h6; this.buf[7] = h7; this.buf[8] = h8; 
+    this.buf[9] = h9; this.buf[10] = h10; this.buf[11] = h11; this.buf[12] = h12; 
+    this.buf[13] = h13; this.buf[14] = h14; this.buf[15] = h15; this.buf[16] = h16; 
+    this.buf[17] = h17; this.buf[18] = h18; this.buf[19] = h19; this.buf[20] = h20; 
+    this.buf[21] = h21; this.buf[22] = h22; this.buf[23] = h23; this.buf[24] = h24; 
+    this.buf[25] = h25; this.buf[26] = h26; this.buf[27] = h27; 
+    this.buf;
+);
+function list(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22 h23 h24 h25 h26 h27 h28)
+(
+    this.buf = memalloc(29);
+    this.buf[0] = 28;
+    this.buf[1] = h1; this.buf[2] = h2; this.buf[3] = h3; this.buf[4] = h4; 
+    this.buf[5] = h5; this.buf[6] = h6; this.buf[7] = h7; this.buf[8] = h8; 
+    this.buf[9] = h9; this.buf[10] = h10; this.buf[11] = h11; this.buf[12] = h12; 
+    this.buf[13] = h13; this.buf[14] = h14; this.buf[15] = h15; this.buf[16] = h16; 
+    this.buf[17] = h17; this.buf[18] = h18; this.buf[19] = h19; this.buf[20] = h20; 
+    this.buf[21] = h21; this.buf[22] = h22; this.buf[23] = h23; this.buf[24] = h24; 
+    this.buf[25] = h25; this.buf[26] = h26; this.buf[27] = h27; this.buf[28] = h28; 
+    this.buf;
+);
+function list(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22 h23 h24 h25 h26 h27 h28 h29)
+(
+    this.buf = memalloc(30);
+    this.buf[0] = 29;
+    this.buf[1] = h1; this.buf[2] = h2; this.buf[3] = h3; this.buf[4] = h4; 
+    this.buf[5] = h5; this.buf[6] = h6; this.buf[7] = h7; this.buf[8] = h8; 
+    this.buf[9] = h9; this.buf[10] = h10; this.buf[11] = h11; this.buf[12] = h12; 
+    this.buf[13] = h13; this.buf[14] = h14; this.buf[15] = h15; this.buf[16] = h16; 
+    this.buf[17] = h17; this.buf[18] = h18; this.buf[19] = h19; this.buf[20] = h20; 
+    this.buf[21] = h21; this.buf[22] = h22; this.buf[23] = h23; this.buf[24] = h24; 
+    this.buf[25] = h25; this.buf[26] = h26; this.buf[27] = h27; this.buf[28] = h28; 
+    this.buf[29] = h29; 
+    this.buf;
+);
+function list(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22 h23 h24 h25 h26 h27 h28 h29 h30)
+(
+    this.buf = memalloc(31);
+    this.buf[0] = 30;
+    this.buf[1] = h1; this.buf[2] = h2; this.buf[3] = h3; this.buf[4] = h4; 
+    this.buf[5] = h5; this.buf[6] = h6; this.buf[7] = h7; this.buf[8] = h8; 
+    this.buf[9] = h9; this.buf[10] = h10; this.buf[11] = h11; this.buf[12] = h12; 
+    this.buf[13] = h13; this.buf[14] = h14; this.buf[15] = h15; this.buf[16] = h16; 
+    this.buf[17] = h17; this.buf[18] = h18; this.buf[19] = h19; this.buf[20] = h20; 
+    this.buf[21] = h21; this.buf[22] = h22; this.buf[23] = h23; this.buf[24] = h24; 
+    this.buf[25] = h25; this.buf[26] = h26; this.buf[27] = h27; this.buf[28] = h28; 
+    this.buf[29] = h29; this.buf[30] = h30; 
+    this.buf;
+);
+function list(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22 h23 h24 h25 h26 h27 h28 h29 h30 h31)
+(
+    this.buf = memalloc(32);
+    this.buf[0] = 31;
+    this.buf[1] = h1; this.buf[2] = h2; this.buf[3] = h3; this.buf[4] = h4; 
+    this.buf[5] = h5; this.buf[6] = h6; this.buf[7] = h7; this.buf[8] = h8; 
+    this.buf[9] = h9; this.buf[10] = h10; this.buf[11] = h11; this.buf[12] = h12; 
+    this.buf[13] = h13; this.buf[14] = h14; this.buf[15] = h15; this.buf[16] = h16; 
+    this.buf[17] = h17; this.buf[18] = h18; this.buf[19] = h19; this.buf[20] = h20; 
+    this.buf[21] = h21; this.buf[22] = h22; this.buf[23] = h23; this.buf[24] = h24; 
+    this.buf[25] = h25; this.buf[26] = h26; this.buf[27] = h27; this.buf[28] = h28; 
+    this.buf[29] = h29; this.buf[30] = h30; this.buf[31] = h31; 
+    this.buf;
+);
+function list(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22 h23 h24 h25 h26 h27 h28 h29 h30 h31 h32)
+(
+    this.buf = memalloc(33);
+    this.buf[0] = 32;
+    this.buf[1] = h1; this.buf[2] = h2; this.buf[3] = h3; this.buf[4] = h4; 
+    this.buf[5] = h5; this.buf[6] = h6; this.buf[7] = h7; this.buf[8] = h8; 
+    this.buf[9] = h9; this.buf[10] = h10; this.buf[11] = h11; this.buf[12] = h12; 
+    this.buf[13] = h13; this.buf[14] = h14; this.buf[15] = h15; this.buf[16] = h16; 
+    this.buf[17] = h17; this.buf[18] = h18; this.buf[19] = h19; this.buf[20] = h20; 
+    this.buf[21] = h21; this.buf[22] = h22; this.buf[23] = h23; this.buf[24] = h24; 
+    this.buf[25] = h25; this.buf[26] = h26; this.buf[27] = h27; this.buf[28] = h28; 
+    this.buf[29] = h29; this.buf[30] = h30; this.buf[31] = h31; this.buf[32] = h32; 
+    this.buf;
+);
+function list(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22 h23 h24 h25 h26 h27 h28 h29 h30 h31 h32 h33)
+(
+    this.buf = memalloc(34);
+    this.buf[0] = 33;
+    this.buf[1] = h1; this.buf[2] = h2; this.buf[3] = h3; this.buf[4] = h4; 
+    this.buf[5] = h5; this.buf[6] = h6; this.buf[7] = h7; this.buf[8] = h8; 
+    this.buf[9] = h9; this.buf[10] = h10; this.buf[11] = h11; this.buf[12] = h12; 
+    this.buf[13] = h13; this.buf[14] = h14; this.buf[15] = h15; this.buf[16] = h16; 
+    this.buf[17] = h17; this.buf[18] = h18; this.buf[19] = h19; this.buf[20] = h20; 
+    this.buf[21] = h21; this.buf[22] = h22; this.buf[23] = h23; this.buf[24] = h24; 
+    this.buf[25] = h25; this.buf[26] = h26; this.buf[27] = h27; this.buf[28] = h28; 
+    this.buf[29] = h29; this.buf[30] = h30; this.buf[31] = h31; this.buf[32] = h32; 
+    this.buf[33] = h33; 
+    this.buf;
+);
+function list(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22 h23 h24 h25 h26 h27 h28 h29 h30 h31 h32 h33 h34)
+(
+    this.buf = memalloc(35);
+    this.buf[0] = 34;
+    this.buf[1] = h1; this.buf[2] = h2; this.buf[3] = h3; this.buf[4] = h4; 
+    this.buf[5] = h5; this.buf[6] = h6; this.buf[7] = h7; this.buf[8] = h8; 
+    this.buf[9] = h9; this.buf[10] = h10; this.buf[11] = h11; this.buf[12] = h12; 
+    this.buf[13] = h13; this.buf[14] = h14; this.buf[15] = h15; this.buf[16] = h16; 
+    this.buf[17] = h17; this.buf[18] = h18; this.buf[19] = h19; this.buf[20] = h20; 
+    this.buf[21] = h21; this.buf[22] = h22; this.buf[23] = h23; this.buf[24] = h24; 
+    this.buf[25] = h25; this.buf[26] = h26; this.buf[27] = h27; this.buf[28] = h28; 
+    this.buf[29] = h29; this.buf[30] = h30; this.buf[31] = h31; this.buf[32] = h32; 
+    this.buf[33] = h33; this.buf[34] = h34; 
+    this.buf;
+);
+function list(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22 h23 h24 h25 h26 h27 h28 h29 h30 h31 h32 h33 h34 h35)
+(
+    this.buf = memalloc(36);
+    this.buf[0] = 35;
+    this.buf[1] = h1; this.buf[2] = h2; this.buf[3] = h3; this.buf[4] = h4; 
+    this.buf[5] = h5; this.buf[6] = h6; this.buf[7] = h7; this.buf[8] = h8; 
+    this.buf[9] = h9; this.buf[10] = h10; this.buf[11] = h11; this.buf[12] = h12; 
+    this.buf[13] = h13; this.buf[14] = h14; this.buf[15] = h15; this.buf[16] = h16; 
+    this.buf[17] = h17; this.buf[18] = h18; this.buf[19] = h19; this.buf[20] = h20; 
+    this.buf[21] = h21; this.buf[22] = h22; this.buf[23] = h23; this.buf[24] = h24; 
+    this.buf[25] = h25; this.buf[26] = h26; this.buf[27] = h27; this.buf[28] = h28; 
+    this.buf[29] = h29; this.buf[30] = h30; this.buf[31] = h31; this.buf[32] = h32; 
+    this.buf[33] = h33; this.buf[34] = h34; this.buf[35] = h35; 
+    this.buf;
+);
+function list(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22 h23 h24 h25 h26 h27 h28 h29 h30 h31 h32 h33 h34 h35 h36)
+(
+    this.buf = memalloc(37);
+    this.buf[0] = 36;
+    this.buf[1] = h1; this.buf[2] = h2; this.buf[3] = h3; this.buf[4] = h4; 
+    this.buf[5] = h5; this.buf[6] = h6; this.buf[7] = h7; this.buf[8] = h8; 
+    this.buf[9] = h9; this.buf[10] = h10; this.buf[11] = h11; this.buf[12] = h12; 
+    this.buf[13] = h13; this.buf[14] = h14; this.buf[15] = h15; this.buf[16] = h16; 
+    this.buf[17] = h17; this.buf[18] = h18; this.buf[19] = h19; this.buf[20] = h20; 
+    this.buf[21] = h21; this.buf[22] = h22; this.buf[23] = h23; this.buf[24] = h24; 
+    this.buf[25] = h25; this.buf[26] = h26; this.buf[27] = h27; this.buf[28] = h28; 
+    this.buf[29] = h29; this.buf[30] = h30; this.buf[31] = h31; this.buf[32] = h32; 
+    this.buf[33] = h33; this.buf[34] = h34; this.buf[35] = h35; this.buf[36] = h36; 
+    this.buf;
+);
+function list(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22 h23 h24 h25 h26 h27 h28 h29 h30 h31 h32 h33 h34 h35 h36 h37)
+(
+    this.buf = memalloc(38);
+    this.buf[0] = 37;
+    this.buf[1] = h1; this.buf[2] = h2; this.buf[3] = h3; this.buf[4] = h4; 
+    this.buf[5] = h5; this.buf[6] = h6; this.buf[7] = h7; this.buf[8] = h8; 
+    this.buf[9] = h9; this.buf[10] = h10; this.buf[11] = h11; this.buf[12] = h12; 
+    this.buf[13] = h13; this.buf[14] = h14; this.buf[15] = h15; this.buf[16] = h16; 
+    this.buf[17] = h17; this.buf[18] = h18; this.buf[19] = h19; this.buf[20] = h20; 
+    this.buf[21] = h21; this.buf[22] = h22; this.buf[23] = h23; this.buf[24] = h24; 
+    this.buf[25] = h25; this.buf[26] = h26; this.buf[27] = h27; this.buf[28] = h28; 
+    this.buf[29] = h29; this.buf[30] = h30; this.buf[31] = h31; this.buf[32] = h32; 
+    this.buf[33] = h33; this.buf[34] = h34; this.buf[35] = h35; this.buf[36] = h36; 
+    this.buf[37] = h37; 
+    this.buf;
+);
+function list(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22 h23 h24 h25 h26 h27 h28 h29 h30 h31 h32 h33 h34 h35 h36 h37 h38)
+(
+    this.buf = memalloc(39);
+    this.buf[0] = 38;
+    this.buf[1] = h1; this.buf[2] = h2; this.buf[3] = h3; this.buf[4] = h4; 
+    this.buf[5] = h5; this.buf[6] = h6; this.buf[7] = h7; this.buf[8] = h8; 
+    this.buf[9] = h9; this.buf[10] = h10; this.buf[11] = h11; this.buf[12] = h12; 
+    this.buf[13] = h13; this.buf[14] = h14; this.buf[15] = h15; this.buf[16] = h16; 
+    this.buf[17] = h17; this.buf[18] = h18; this.buf[19] = h19; this.buf[20] = h20; 
+    this.buf[21] = h21; this.buf[22] = h22; this.buf[23] = h23; this.buf[24] = h24; 
+    this.buf[25] = h25; this.buf[26] = h26; this.buf[27] = h27; this.buf[28] = h28; 
+    this.buf[29] = h29; this.buf[30] = h30; this.buf[31] = h31; this.buf[32] = h32; 
+    this.buf[33] = h33; this.buf[34] = h34; this.buf[35] = h35; this.buf[36] = h36; 
+    this.buf[37] = h37; this.buf[38] = h38; 
+    this.buf;
+);
+function list(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22 h23 h24 h25 h26 h27 h28 h29 h30 h31 h32 h33 h34 h35 h36 h37 h38 h39)
+(
+    this.buf = memalloc(40);
+    this.buf[0] = 39;
+    this.buf[1] = h1; this.buf[2] = h2; this.buf[3] = h3; this.buf[4] = h4; 
+    this.buf[5] = h5; this.buf[6] = h6; this.buf[7] = h7; this.buf[8] = h8; 
+    this.buf[9] = h9; this.buf[10] = h10; this.buf[11] = h11; this.buf[12] = h12; 
+    this.buf[13] = h13; this.buf[14] = h14; this.buf[15] = h15; this.buf[16] = h16; 
+    this.buf[17] = h17; this.buf[18] = h18; this.buf[19] = h19; this.buf[20] = h20; 
+    this.buf[21] = h21; this.buf[22] = h22; this.buf[23] = h23; this.buf[24] = h24; 
+    this.buf[25] = h25; this.buf[26] = h26; this.buf[27] = h27; this.buf[28] = h28; 
+    this.buf[29] = h29; this.buf[30] = h30; this.buf[31] = h31; this.buf[32] = h32; 
+    this.buf[33] = h33; this.buf[34] = h34; this.buf[35] = h35; this.buf[36] = h36; 
+    this.buf[37] = h37; this.buf[38] = h38; this.buf[39] = h39; 
+    this.buf;
+);
+function list(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22 h23 h24 h25 h26 h27 h28 h29 h30 h31 h32 h33 h34 h35 h36 h37 h38 h39 h40)
+(
+    this.buf = memalloc(41);
+    this.buf[0] = 40;
+    this.buf[1] = h1; this.buf[2] = h2; this.buf[3] = h3; this.buf[4] = h4; 
+    this.buf[5] = h5; this.buf[6] = h6; this.buf[7] = h7; this.buf[8] = h8; 
+    this.buf[9] = h9; this.buf[10] = h10; this.buf[11] = h11; this.buf[12] = h12; 
+    this.buf[13] = h13; this.buf[14] = h14; this.buf[15] = h15; this.buf[16] = h16; 
+    this.buf[17] = h17; this.buf[18] = h18; this.buf[19] = h19; this.buf[20] = h20; 
+    this.buf[21] = h21; this.buf[22] = h22; this.buf[23] = h23; this.buf[24] = h24; 
+    this.buf[25] = h25; this.buf[26] = h26; this.buf[27] = h27; this.buf[28] = h28; 
+    this.buf[29] = h29; this.buf[30] = h30; this.buf[31] = h31; this.buf[32] = h32; 
+    this.buf[33] = h33; this.buf[34] = h34; this.buf[35] = h35; this.buf[36] = h36; 
+    this.buf[37] = h37; this.buf[38] = h38; this.buf[39] = h39; this.buf[40] = h40; 
+    this.buf;
+);
+
+/******************************************************* 
+SET
+===
+
+Create a list and fill it with a single value.
+
+Signature
+---------
+
+index = set(n, value)
+
+Description
+-----------
+
+The `set` function initializes a list of length equal to
+*n + 1*. The first position in the list (index[0]) hold 
+the list length and the remaining spaces are filled with 
+the value `value` given at the function call. The 
+function returns the first position of the allocated 
+memory (ie the length of the list). To loop over the 
+list, do something like:
+    
+    mylist = set(8, 0);
+    k = 1;
+    while (k <= mylist[0]) (
+        mylist[k] = rand(2) - 1;
+        k += 1;
+    )
+
+This function uses `memalloc` internally, so it is safe to
+use it beside other CookDSP objects that use memory. 
+
+Arguments
+---------
+
+- *n* {int} : Length of the list.  
+- *value* {float} : Floating-point value used to fill the list.
+
+Return
+------
+
+- *index* {int} : first index of the allocated memory.
+
+Example
+-------
+
+    desc:Bandpass Filter Bank
+
+    import cookdsp.jsfx-inc
+
+    slider1:600<20, 1000>Filter Freq 1
+    slider2:900<200, 1500>Filter Freq 2
+    slider3:1500<1000, 2000>Filter Freq 3
+    slider4:2000<1500, 3000>Filter Freq 4
+    slider5:10<1,100>Filters Q
+
+    @init
+    // Just initialize lists, to be filled later,
+    // for filters's frequency and Q
+    freq = set(4, 0);
+    q = set(4, 0);
+    // Create a bank of bandpass filters
+    bps.Pbp(freq, q);
+
+    @slider
+    // Update list values
+    k = 1;
+    while (k <= freq[0]) (
+      freq[k] = slider(k);
+      q[k] = slider5;
+      k += 1;
+    );
+    // Sets the new values to the filters
+    bps.Pbp_set_freq(freq);
+    bps.Pbp_set_q(q);
+    gain = scale(slider5, 1, 100, 1, 10, 1);
+
+    @sample
+    outbp = bps.Pbp_do(tmp(spl0, spl1));
+    outsig = sumchnls(2, outbp);
+    spl0 = outsig[0] * gain;
+    spl1 = outsig[1] * gain;
+
+********************************************************/
+function set(n value)
+(
+    this.buf = memalloc(n+1);
+    this.buf[0] = n;
+    memset(this.buf+1, value, n);
+    this.buf;
+);
+
+/******************************************************* 
+TMP
+===
+
+Fill the temporary memory with the given arguments.
+
+Signature
+---------
+
+index = tmp(h1 [, ..., h40])
+
+Description
+-----------
+
+The `tmp` function fills the temporary memory for a total
+length equal to the *number of arguments + 1*. The first 
+position in the list (index[0]) hold the list length and 
+the remaining spaces are filled with the arguments given 
+at the function call. The function returns the first 
+position of the reserved temporary memory (holding the 
+length of the list). 
+
+This function always uses the same memory space (beginning
+at index 8388500) and should be use immediately after storing 
+values. It is primarily intended to be used in the @sample
+section of code, where we don't want to continuously 
+allocate new memory spaces.
+
+Arguments
+---------
+
+- *h1* {float} : First value stored into the list.  
+- *h2, ..., h40* {float} : Following values, up to 40 arguments.
+
+Return
+------
+
+- *index* {int} : first index of the temporary reserved memory.
+
+Example
+-------
+
+    desc:Bandpass Filter Bank
+
+    import cookdsp.jsfx-inc
+
+    slider1:600<20, 1000>Filter Freq 1
+    slider2:900<200, 1500>Filter Freq 2
+    slider3:1500<1000, 2000>Filter Freq 3
+    slider4:2000<1500, 3000>Filter Freq 4
+    slider5:10<1,100>Filters Q
+
+    @init
+    freq = list(400, 1700, 3500, 8000);
+    q = list(slider5, slider5, slider5, slider5);
+    bps.Pbp(freq, q);
+
+    @slider
+    k = 1;
+    while (k <= freq[0]) (
+      freq[k] = slider(k);
+      q[k] = slider5;
+      k += 1;
+    );
+    bps.Pbp_set_freq(freq);
+    bps.Pbp_set_q(q);
+    gain = scale(slider5, 1, 100, 1, 10, 1);
+
+    @sample
+    // Use "tmp" function to pass a list of floats
+    // to the Pbp_do() function. All P*_do() functions 
+    // wraps around the tmp list length so it is 
+    // safe to pass a list of different length than
+    // the number of internal objects.
+    outbp = bps.Pbp_do(tmp(spl0, spl1));
+    outsig = sumchnls(2, outbp);
+    spl0 = outsig[0] * gain;
+    spl1 = outsig[1] * gain;
+
+********************************************************/
+function tmp(h1)
+(
+    this.buf = _TMPLISTFIRSTPOS_;
+    this.buf[0] = 1;
+    this.buf[1] = h1; 
+    this.buf;
+);
+function tmp(h1 h2)
+(
+    this.buf = _TMPLISTFIRSTPOS_;
+    this.buf[0] = 2;
+    this.buf[1] = h1; this.buf[2] = h2; 
+    this.buf;
+);
+function tmp(h1 h2 h3)
+(
+    this.buf = _TMPLISTFIRSTPOS_;
+    this.buf[0] = 3;
+    this.buf[1] = h1; this.buf[2] = h2; this.buf[3] = h3; 
+    this.buf;
+);
+function tmp(h1 h2 h3 h4)
+(
+    this.buf = _TMPLISTFIRSTPOS_;
+    this.buf[0] = 4;
+    this.buf[1] = h1; this.buf[2] = h2; this.buf[3] = h3; this.buf[4] = h4; 
+    this.buf;
+);
+function tmp(h1 h2 h3 h4 h5)
+(
+    this.buf = _TMPLISTFIRSTPOS_;
+    this.buf[0] = 5;
+    this.buf[1] = h1; this.buf[2] = h2; this.buf[3] = h3; this.buf[4] = h4; 
+    this.buf[5] = h5; 
+    this.buf;
+);
+function tmp(h1 h2 h3 h4 h5 h6)
+(
+    this.buf = _TMPLISTFIRSTPOS_;
+    this.buf[0] = 6;
+    this.buf[1] = h1; this.buf[2] = h2; this.buf[3] = h3; this.buf[4] = h4; 
+    this.buf[5] = h5; this.buf[6] = h6; 
+    this.buf;
+);
+function tmp(h1 h2 h3 h4 h5 h6 h7)
+(
+    this.buf = _TMPLISTFIRSTPOS_;
+    this.buf[0] = 7;
+    this.buf[1] = h1; this.buf[2] = h2; this.buf[3] = h3; this.buf[4] = h4; 
+    this.buf[5] = h5; this.buf[6] = h6; this.buf[7] = h7; 
+    this.buf;
+);
+function tmp(h1 h2 h3 h4 h5 h6 h7 h8)
+(
+    this.buf = _TMPLISTFIRSTPOS_;
+    this.buf[0] = 8;
+    this.buf[1] = h1; this.buf[2] = h2; this.buf[3] = h3; this.buf[4] = h4; 
+    this.buf[5] = h5; this.buf[6] = h6; this.buf[7] = h7; this.buf[8] = h8; 
+    this.buf;
+);
+function tmp(h1 h2 h3 h4 h5 h6 h7 h8 h9)
+(
+    this.buf = _TMPLISTFIRSTPOS_;
+    this.buf[0] = 9;
+    this.buf[1] = h1; this.buf[2] = h2; this.buf[3] = h3; this.buf[4] = h4; 
+    this.buf[5] = h5; this.buf[6] = h6; this.buf[7] = h7; this.buf[8] = h8; 
+    this.buf[9] = h9; 
+    this.buf;
+);
+function tmp(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10)
+(
+    this.buf = _TMPLISTFIRSTPOS_;
+    this.buf[0] = 10;
+    this.buf[1] = h1; this.buf[2] = h2; this.buf[3] = h3; this.buf[4] = h4; 
+    this.buf[5] = h5; this.buf[6] = h6; this.buf[7] = h7; this.buf[8] = h8; 
+    this.buf[9] = h9; this.buf[10] = h10; 
+    this.buf;
+);
+function tmp(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11)
+(
+    this.buf = _TMPLISTFIRSTPOS_;
+    this.buf[0] = 11;
+    this.buf[1] = h1; this.buf[2] = h2; this.buf[3] = h3; this.buf[4] = h4; 
+    this.buf[5] = h5; this.buf[6] = h6; this.buf[7] = h7; this.buf[8] = h8; 
+    this.buf[9] = h9; this.buf[10] = h10; this.buf[11] = h11; 
+    this.buf;
+);
+function tmp(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12)
+(
+    this.buf = _TMPLISTFIRSTPOS_;
+    this.buf[0] = 12;
+    this.buf[1] = h1; this.buf[2] = h2; this.buf[3] = h3; this.buf[4] = h4; 
+    this.buf[5] = h5; this.buf[6] = h6; this.buf[7] = h7; this.buf[8] = h8; 
+    this.buf[9] = h9; this.buf[10] = h10; this.buf[11] = h11; this.buf[12] = h12; 
+    this.buf;
+);
+function tmp(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13)
+(
+    this.buf = _TMPLISTFIRSTPOS_;
+    this.buf[0] = 13;
+    this.buf[1] = h1; this.buf[2] = h2; this.buf[3] = h3; this.buf[4] = h4; 
+    this.buf[5] = h5; this.buf[6] = h6; this.buf[7] = h7; this.buf[8] = h8; 
+    this.buf[9] = h9; this.buf[10] = h10; this.buf[11] = h11; this.buf[12] = h12; 
+    this.buf[13] = h13; 
+    this.buf;
+);
+function tmp(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14)
+(
+    this.buf = _TMPLISTFIRSTPOS_;
+    this.buf[0] = 14;
+    this.buf[1] = h1; this.buf[2] = h2; this.buf[3] = h3; this.buf[4] = h4; 
+    this.buf[5] = h5; this.buf[6] = h6; this.buf[7] = h7; this.buf[8] = h8; 
+    this.buf[9] = h9; this.buf[10] = h10; this.buf[11] = h11; this.buf[12] = h12; 
+    this.buf[13] = h13; this.buf[14] = h14; 
+    this.buf;
+);
+function tmp(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15)
+(
+    this.buf = _TMPLISTFIRSTPOS_;
+    this.buf[0] = 15;
+    this.buf[1] = h1; this.buf[2] = h2; this.buf[3] = h3; this.buf[4] = h4; 
+    this.buf[5] = h5; this.buf[6] = h6; this.buf[7] = h7; this.buf[8] = h8; 
+    this.buf[9] = h9; this.buf[10] = h10; this.buf[11] = h11; this.buf[12] = h12; 
+    this.buf[13] = h13; this.buf[14] = h14; this.buf[15] = h15; 
+    this.buf;
+);
+function tmp(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16)
+(
+    this.buf = _TMPLISTFIRSTPOS_;
+    this.buf[0] = 16;
+    this.buf[1] = h1; this.buf[2] = h2; this.buf[3] = h3; this.buf[4] = h4; 
+    this.buf[5] = h5; this.buf[6] = h6; this.buf[7] = h7; this.buf[8] = h8; 
+    this.buf[9] = h9; this.buf[10] = h10; this.buf[11] = h11; this.buf[12] = h12; 
+    this.buf[13] = h13; this.buf[14] = h14; this.buf[15] = h15; this.buf[16] = h16; 
+    this.buf;
+);
+function tmp(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17)
+(
+    this.buf = _TMPLISTFIRSTPOS_;
+    this.buf[0] = 17;
+    this.buf[1] = h1; this.buf[2] = h2; this.buf[3] = h3; this.buf[4] = h4; 
+    this.buf[5] = h5; this.buf[6] = h6; this.buf[7] = h7; this.buf[8] = h8; 
+    this.buf[9] = h9; this.buf[10] = h10; this.buf[11] = h11; this.buf[12] = h12; 
+    this.buf[13] = h13; this.buf[14] = h14; this.buf[15] = h15; this.buf[16] = h16; 
+    this.buf[17] = h17; 
+    this.buf;
+);
+function tmp(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18)
+(
+    this.buf = _TMPLISTFIRSTPOS_;
+    this.buf[0] = 18;
+    this.buf[1] = h1; this.buf[2] = h2; this.buf[3] = h3; this.buf[4] = h4; 
+    this.buf[5] = h5; this.buf[6] = h6; this.buf[7] = h7; this.buf[8] = h8; 
+    this.buf[9] = h9; this.buf[10] = h10; this.buf[11] = h11; this.buf[12] = h12; 
+    this.buf[13] = h13; this.buf[14] = h14; this.buf[15] = h15; this.buf[16] = h16; 
+    this.buf[17] = h17; this.buf[18] = h18; 
+    this.buf;
+);
+function tmp(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19)
+(
+    this.buf = _TMPLISTFIRSTPOS_;
+    this.buf[0] = 19;
+    this.buf[1] = h1; this.buf[2] = h2; this.buf[3] = h3; this.buf[4] = h4; 
+    this.buf[5] = h5; this.buf[6] = h6; this.buf[7] = h7; this.buf[8] = h8; 
+    this.buf[9] = h9; this.buf[10] = h10; this.buf[11] = h11; this.buf[12] = h12; 
+    this.buf[13] = h13; this.buf[14] = h14; this.buf[15] = h15; this.buf[16] = h16; 
+    this.buf[17] = h17; this.buf[18] = h18; this.buf[19] = h19; 
+    this.buf;
+);
+function tmp(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20)
+(
+    this.buf = _TMPLISTFIRSTPOS_;
+    this.buf[0] = 20;
+    this.buf[1] = h1; this.buf[2] = h2; this.buf[3] = h3; this.buf[4] = h4; 
+    this.buf[5] = h5; this.buf[6] = h6; this.buf[7] = h7; this.buf[8] = h8; 
+    this.buf[9] = h9; this.buf[10] = h10; this.buf[11] = h11; this.buf[12] = h12; 
+    this.buf[13] = h13; this.buf[14] = h14; this.buf[15] = h15; this.buf[16] = h16; 
+    this.buf[17] = h17; this.buf[18] = h18; this.buf[19] = h19; this.buf[20] = h20; 
+    this.buf;
+);
+function tmp(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21)
+(
+    this.buf = _TMPLISTFIRSTPOS_;
+    this.buf[0] = 21;
+    this.buf[1] = h1; this.buf[2] = h2; this.buf[3] = h3; this.buf[4] = h4; 
+    this.buf[5] = h5; this.buf[6] = h6; this.buf[7] = h7; this.buf[8] = h8; 
+    this.buf[9] = h9; this.buf[10] = h10; this.buf[11] = h11; this.buf[12] = h12; 
+    this.buf[13] = h13; this.buf[14] = h14; this.buf[15] = h15; this.buf[16] = h16; 
+    this.buf[17] = h17; this.buf[18] = h18; this.buf[19] = h19; this.buf[20] = h20; 
+    this.buf[21] = h21; 
+    this.buf;
+);
+function tmp(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22)
+(
+    this.buf = _TMPLISTFIRSTPOS_;
+    this.buf[0] = 22;
+    this.buf[1] = h1; this.buf[2] = h2; this.buf[3] = h3; this.buf[4] = h4; 
+    this.buf[5] = h5; this.buf[6] = h6; this.buf[7] = h7; this.buf[8] = h8; 
+    this.buf[9] = h9; this.buf[10] = h10; this.buf[11] = h11; this.buf[12] = h12; 
+    this.buf[13] = h13; this.buf[14] = h14; this.buf[15] = h15; this.buf[16] = h16; 
+    this.buf[17] = h17; this.buf[18] = h18; this.buf[19] = h19; this.buf[20] = h20; 
+    this.buf[21] = h21; this.buf[22] = h22; 
+    this.buf;
+);
+function tmp(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22 h23)
+(
+    this.buf = _TMPLISTFIRSTPOS_;
+    this.buf[0] = 23;
+    this.buf[1] = h1; this.buf[2] = h2; this.buf[3] = h3; this.buf[4] = h4; 
+    this.buf[5] = h5; this.buf[6] = h6; this.buf[7] = h7; this.buf[8] = h8; 
+    this.buf[9] = h9; this.buf[10] = h10; this.buf[11] = h11; this.buf[12] = h12; 
+    this.buf[13] = h13; this.buf[14] = h14; this.buf[15] = h15; this.buf[16] = h16; 
+    this.buf[17] = h17; this.buf[18] = h18; this.buf[19] = h19; this.buf[20] = h20; 
+    this.buf[21] = h21; this.buf[22] = h22; this.buf[23] = h23; 
+    this.buf;
+);
+function tmp(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22 h23 h24)
+(
+    this.buf = _TMPLISTFIRSTPOS_;
+    this.buf[0] = 24;
+    this.buf[1] = h1; this.buf[2] = h2; this.buf[3] = h3; this.buf[4] = h4; 
+    this.buf[5] = h5; this.buf[6] = h6; this.buf[7] = h7; this.buf[8] = h8; 
+    this.buf[9] = h9; this.buf[10] = h10; this.buf[11] = h11; this.buf[12] = h12; 
+    this.buf[13] = h13; this.buf[14] = h14; this.buf[15] = h15; this.buf[16] = h16; 
+    this.buf[17] = h17; this.buf[18] = h18; this.buf[19] = h19; this.buf[20] = h20; 
+    this.buf[21] = h21; this.buf[22] = h22; this.buf[23] = h23; this.buf[24] = h24; 
+    this.buf;
+);
+function tmp(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22 h23 h24 h25)
+(
+    this.buf = _TMPLISTFIRSTPOS_;
+    this.buf[0] = 25;
+    this.buf[1] = h1; this.buf[2] = h2; this.buf[3] = h3; this.buf[4] = h4; 
+    this.buf[5] = h5; this.buf[6] = h6; this.buf[7] = h7; this.buf[8] = h8; 
+    this.buf[9] = h9; this.buf[10] = h10; this.buf[11] = h11; this.buf[12] = h12; 
+    this.buf[13] = h13; this.buf[14] = h14; this.buf[15] = h15; this.buf[16] = h16; 
+    this.buf[17] = h17; this.buf[18] = h18; this.buf[19] = h19; this.buf[20] = h20; 
+    this.buf[21] = h21; this.buf[22] = h22; this.buf[23] = h23; this.buf[24] = h24; 
+    this.buf[25] = h25; 
+    this.buf;
+);
+function tmp(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22 h23 h24 h25 h26)
+(
+    this.buf = _TMPLISTFIRSTPOS_;
+    this.buf[0] = 26;
+    this.buf[1] = h1; this.buf[2] = h2; this.buf[3] = h3; this.buf[4] = h4; 
+    this.buf[5] = h5; this.buf[6] = h6; this.buf[7] = h7; this.buf[8] = h8; 
+    this.buf[9] = h9; this.buf[10] = h10; this.buf[11] = h11; this.buf[12] = h12; 
+    this.buf[13] = h13; this.buf[14] = h14; this.buf[15] = h15; this.buf[16] = h16; 
+    this.buf[17] = h17; this.buf[18] = h18; this.buf[19] = h19; this.buf[20] = h20; 
+    this.buf[21] = h21; this.buf[22] = h22; this.buf[23] = h23; this.buf[24] = h24; 
+    this.buf[25] = h25; this.buf[26] = h26; 
+    this.buf;
+);
+function tmp(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22 h23 h24 h25 h26 h27)
+(
+    this.buf = _TMPLISTFIRSTPOS_;
+    this.buf[0] = 27;
+    this.buf[1] = h1; this.buf[2] = h2; this.buf[3] = h3; this.buf[4] = h4; 
+    this.buf[5] = h5; this.buf[6] = h6; this.buf[7] = h7; this.buf[8] = h8; 
+    this.buf[9] = h9; this.buf[10] = h10; this.buf[11] = h11; this.buf[12] = h12; 
+    this.buf[13] = h13; this.buf[14] = h14; this.buf[15] = h15; this.buf[16] = h16; 
+    this.buf[17] = h17; this.buf[18] = h18; this.buf[19] = h19; this.buf[20] = h20; 
+    this.buf[21] = h21; this.buf[22] = h22; this.buf[23] = h23; this.buf[24] = h24; 
+    this.buf[25] = h25; this.buf[26] = h26; this.buf[27] = h27; 
+    this.buf;
+);
+function tmp(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22 h23 h24 h25 h26 h27 h28)
+(
+    this.buf = _TMPLISTFIRSTPOS_;
+    this.buf[0] = 28;
+    this.buf[1] = h1; this.buf[2] = h2; this.buf[3] = h3; this.buf[4] = h4; 
+    this.buf[5] = h5; this.buf[6] = h6; this.buf[7] = h7; this.buf[8] = h8; 
+    this.buf[9] = h9; this.buf[10] = h10; this.buf[11] = h11; this.buf[12] = h12; 
+    this.buf[13] = h13; this.buf[14] = h14; this.buf[15] = h15; this.buf[16] = h16; 
+    this.buf[17] = h17; this.buf[18] = h18; this.buf[19] = h19; this.buf[20] = h20; 
+    this.buf[21] = h21; this.buf[22] = h22; this.buf[23] = h23; this.buf[24] = h24; 
+    this.buf[25] = h25; this.buf[26] = h26; this.buf[27] = h27; this.buf[28] = h28; 
+    this.buf;
+);
+function tmp(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22 h23 h24 h25 h26 h27 h28 h29)
+(
+    this.buf = _TMPLISTFIRSTPOS_;
+    this.buf[0] = 29;
+    this.buf[1] = h1; this.buf[2] = h2; this.buf[3] = h3; this.buf[4] = h4; 
+    this.buf[5] = h5; this.buf[6] = h6; this.buf[7] = h7; this.buf[8] = h8; 
+    this.buf[9] = h9; this.buf[10] = h10; this.buf[11] = h11; this.buf[12] = h12; 
+    this.buf[13] = h13; this.buf[14] = h14; this.buf[15] = h15; this.buf[16] = h16; 
+    this.buf[17] = h17; this.buf[18] = h18; this.buf[19] = h19; this.buf[20] = h20; 
+    this.buf[21] = h21; this.buf[22] = h22; this.buf[23] = h23; this.buf[24] = h24; 
+    this.buf[25] = h25; this.buf[26] = h26; this.buf[27] = h27; this.buf[28] = h28; 
+    this.buf[29] = h29; 
+    this.buf;
+);
+function tmp(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22 h23 h24 h25 h26 h27 h28 h29 h30)
+(
+    this.buf = _TMPLISTFIRSTPOS_;
+    this.buf[0] = 30;
+    this.buf[1] = h1; this.buf[2] = h2; this.buf[3] = h3; this.buf[4] = h4; 
+    this.buf[5] = h5; this.buf[6] = h6; this.buf[7] = h7; this.buf[8] = h8; 
+    this.buf[9] = h9; this.buf[10] = h10; this.buf[11] = h11; this.buf[12] = h12; 
+    this.buf[13] = h13; this.buf[14] = h14; this.buf[15] = h15; this.buf[16] = h16; 
+    this.buf[17] = h17; this.buf[18] = h18; this.buf[19] = h19; this.buf[20] = h20; 
+    this.buf[21] = h21; this.buf[22] = h22; this.buf[23] = h23; this.buf[24] = h24; 
+    this.buf[25] = h25; this.buf[26] = h26; this.buf[27] = h27; this.buf[28] = h28; 
+    this.buf[29] = h29; this.buf[30] = h30; 
+    this.buf;
+);
+function tmp(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22 h23 h24 h25 h26 h27 h28 h29 h30 h31)
+(
+    this.buf = _TMPLISTFIRSTPOS_;
+    this.buf[0] = 31;
+    this.buf[1] = h1; this.buf[2] = h2; this.buf[3] = h3; this.buf[4] = h4; 
+    this.buf[5] = h5; this.buf[6] = h6; this.buf[7] = h7; this.buf[8] = h8; 
+    this.buf[9] = h9; this.buf[10] = h10; this.buf[11] = h11; this.buf[12] = h12; 
+    this.buf[13] = h13; this.buf[14] = h14; this.buf[15] = h15; this.buf[16] = h16; 
+    this.buf[17] = h17; this.buf[18] = h18; this.buf[19] = h19; this.buf[20] = h20; 
+    this.buf[21] = h21; this.buf[22] = h22; this.buf[23] = h23; this.buf[24] = h24; 
+    this.buf[25] = h25; this.buf[26] = h26; this.buf[27] = h27; this.buf[28] = h28; 
+    this.buf[29] = h29; this.buf[30] = h30; this.buf[31] = h31; 
+    this.buf;
+);
+function tmp(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22 h23 h24 h25 h26 h27 h28 h29 h30 h31 h32)
+(
+    this.buf = _TMPLISTFIRSTPOS_;
+    this.buf[0] = 32;
+    this.buf[1] = h1; this.buf[2] = h2; this.buf[3] = h3; this.buf[4] = h4; 
+    this.buf[5] = h5; this.buf[6] = h6; this.buf[7] = h7; this.buf[8] = h8; 
+    this.buf[9] = h9; this.buf[10] = h10; this.buf[11] = h11; this.buf[12] = h12; 
+    this.buf[13] = h13; this.buf[14] = h14; this.buf[15] = h15; this.buf[16] = h16; 
+    this.buf[17] = h17; this.buf[18] = h18; this.buf[19] = h19; this.buf[20] = h20; 
+    this.buf[21] = h21; this.buf[22] = h22; this.buf[23] = h23; this.buf[24] = h24; 
+    this.buf[25] = h25; this.buf[26] = h26; this.buf[27] = h27; this.buf[28] = h28; 
+    this.buf[29] = h29; this.buf[30] = h30; this.buf[31] = h31; this.buf[32] = h32; 
+    this.buf;
+);
+function tmp(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22 h23 h24 h25 h26 h27 h28 h29 h30 h31 h32 h33)
+(
+    this.buf = _TMPLISTFIRSTPOS_;
+    this.buf[0] = 33;
+    this.buf[1] = h1; this.buf[2] = h2; this.buf[3] = h3; this.buf[4] = h4; 
+    this.buf[5] = h5; this.buf[6] = h6; this.buf[7] = h7; this.buf[8] = h8; 
+    this.buf[9] = h9; this.buf[10] = h10; this.buf[11] = h11; this.buf[12] = h12; 
+    this.buf[13] = h13; this.buf[14] = h14; this.buf[15] = h15; this.buf[16] = h16; 
+    this.buf[17] = h17; this.buf[18] = h18; this.buf[19] = h19; this.buf[20] = h20; 
+    this.buf[21] = h21; this.buf[22] = h22; this.buf[23] = h23; this.buf[24] = h24; 
+    this.buf[25] = h25; this.buf[26] = h26; this.buf[27] = h27; this.buf[28] = h28; 
+    this.buf[29] = h29; this.buf[30] = h30; this.buf[31] = h31; this.buf[32] = h32; 
+    this.buf[33] = h33; 
+    this.buf;
+);
+function tmp(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22 h23 h24 h25 h26 h27 h28 h29 h30 h31 h32 h33 h34)
+(
+    this.buf = _TMPLISTFIRSTPOS_;
+    this.buf[0] = 34;
+    this.buf[1] = h1; this.buf[2] = h2; this.buf[3] = h3; this.buf[4] = h4; 
+    this.buf[5] = h5; this.buf[6] = h6; this.buf[7] = h7; this.buf[8] = h8; 
+    this.buf[9] = h9; this.buf[10] = h10; this.buf[11] = h11; this.buf[12] = h12; 
+    this.buf[13] = h13; this.buf[14] = h14; this.buf[15] = h15; this.buf[16] = h16; 
+    this.buf[17] = h17; this.buf[18] = h18; this.buf[19] = h19; this.buf[20] = h20; 
+    this.buf[21] = h21; this.buf[22] = h22; this.buf[23] = h23; this.buf[24] = h24; 
+    this.buf[25] = h25; this.buf[26] = h26; this.buf[27] = h27; this.buf[28] = h28; 
+    this.buf[29] = h29; this.buf[30] = h30; this.buf[31] = h31; this.buf[32] = h32; 
+    this.buf[33] = h33; this.buf[34] = h34; 
+    this.buf;
+);
+function tmp(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22 h23 h24 h25 h26 h27 h28 h29 h30 h31 h32 h33 h34 h35)
+(
+    this.buf = _TMPLISTFIRSTPOS_;
+    this.buf[0] = 35;
+    this.buf[1] = h1; this.buf[2] = h2; this.buf[3] = h3; this.buf[4] = h4; 
+    this.buf[5] = h5; this.buf[6] = h6; this.buf[7] = h7; this.buf[8] = h8; 
+    this.buf[9] = h9; this.buf[10] = h10; this.buf[11] = h11; this.buf[12] = h12; 
+    this.buf[13] = h13; this.buf[14] = h14; this.buf[15] = h15; this.buf[16] = h16; 
+    this.buf[17] = h17; this.buf[18] = h18; this.buf[19] = h19; this.buf[20] = h20; 
+    this.buf[21] = h21; this.buf[22] = h22; this.buf[23] = h23; this.buf[24] = h24; 
+    this.buf[25] = h25; this.buf[26] = h26; this.buf[27] = h27; this.buf[28] = h28; 
+    this.buf[29] = h29; this.buf[30] = h30; this.buf[31] = h31; this.buf[32] = h32; 
+    this.buf[33] = h33; this.buf[34] = h34; this.buf[35] = h35; 
+    this.buf;
+);
+function tmp(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22 h23 h24 h25 h26 h27 h28 h29 h30 h31 h32 h33 h34 h35 h36)
+(
+    this.buf = _TMPLISTFIRSTPOS_;
+    this.buf[0] = 36;
+    this.buf[1] = h1; this.buf[2] = h2; this.buf[3] = h3; this.buf[4] = h4; 
+    this.buf[5] = h5; this.buf[6] = h6; this.buf[7] = h7; this.buf[8] = h8; 
+    this.buf[9] = h9; this.buf[10] = h10; this.buf[11] = h11; this.buf[12] = h12; 
+    this.buf[13] = h13; this.buf[14] = h14; this.buf[15] = h15; this.buf[16] = h16; 
+    this.buf[17] = h17; this.buf[18] = h18; this.buf[19] = h19; this.buf[20] = h20; 
+    this.buf[21] = h21; this.buf[22] = h22; this.buf[23] = h23; this.buf[24] = h24; 
+    this.buf[25] = h25; this.buf[26] = h26; this.buf[27] = h27; this.buf[28] = h28; 
+    this.buf[29] = h29; this.buf[30] = h30; this.buf[31] = h31; this.buf[32] = h32; 
+    this.buf[33] = h33; this.buf[34] = h34; this.buf[35] = h35; this.buf[36] = h36; 
+    this.buf;
+);
+function tmp(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22 h23 h24 h25 h26 h27 h28 h29 h30 h31 h32 h33 h34 h35 h36 h37)
+(
+    this.buf = _TMPLISTFIRSTPOS_;
+    this.buf[0] = 37;
+    this.buf[1] = h1; this.buf[2] = h2; this.buf[3] = h3; this.buf[4] = h4; 
+    this.buf[5] = h5; this.buf[6] = h6; this.buf[7] = h7; this.buf[8] = h8; 
+    this.buf[9] = h9; this.buf[10] = h10; this.buf[11] = h11; this.buf[12] = h12; 
+    this.buf[13] = h13; this.buf[14] = h14; this.buf[15] = h15; this.buf[16] = h16; 
+    this.buf[17] = h17; this.buf[18] = h18; this.buf[19] = h19; this.buf[20] = h20; 
+    this.buf[21] = h21; this.buf[22] = h22; this.buf[23] = h23; this.buf[24] = h24; 
+    this.buf[25] = h25; this.buf[26] = h26; this.buf[27] = h27; this.buf[28] = h28; 
+    this.buf[29] = h29; this.buf[30] = h30; this.buf[31] = h31; this.buf[32] = h32; 
+    this.buf[33] = h33; this.buf[34] = h34; this.buf[35] = h35; this.buf[36] = h36; 
+    this.buf[37] = h37; 
+    this.buf;
+);
+function tmp(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22 h23 h24 h25 h26 h27 h28 h29 h30 h31 h32 h33 h34 h35 h36 h37 h38)
+(
+    this.buf = _TMPLISTFIRSTPOS_;
+    this.buf[0] = 38;
+    this.buf[1] = h1; this.buf[2] = h2; this.buf[3] = h3; this.buf[4] = h4; 
+    this.buf[5] = h5; this.buf[6] = h6; this.buf[7] = h7; this.buf[8] = h8; 
+    this.buf[9] = h9; this.buf[10] = h10; this.buf[11] = h11; this.buf[12] = h12; 
+    this.buf[13] = h13; this.buf[14] = h14; this.buf[15] = h15; this.buf[16] = h16; 
+    this.buf[17] = h17; this.buf[18] = h18; this.buf[19] = h19; this.buf[20] = h20; 
+    this.buf[21] = h21; this.buf[22] = h22; this.buf[23] = h23; this.buf[24] = h24; 
+    this.buf[25] = h25; this.buf[26] = h26; this.buf[27] = h27; this.buf[28] = h28; 
+    this.buf[29] = h29; this.buf[30] = h30; this.buf[31] = h31; this.buf[32] = h32; 
+    this.buf[33] = h33; this.buf[34] = h34; this.buf[35] = h35; this.buf[36] = h36; 
+    this.buf[37] = h37; this.buf[38] = h38; 
+    this.buf;
+);
+function tmp(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22 h23 h24 h25 h26 h27 h28 h29 h30 h31 h32 h33 h34 h35 h36 h37 h38 h39)
+(
+    this.buf = _TMPLISTFIRSTPOS_;
+    this.buf[0] = 39;
+    this.buf[1] = h1; this.buf[2] = h2; this.buf[3] = h3; this.buf[4] = h4; 
+    this.buf[5] = h5; this.buf[6] = h6; this.buf[7] = h7; this.buf[8] = h8; 
+    this.buf[9] = h9; this.buf[10] = h10; this.buf[11] = h11; this.buf[12] = h12; 
+    this.buf[13] = h13; this.buf[14] = h14; this.buf[15] = h15; this.buf[16] = h16; 
+    this.buf[17] = h17; this.buf[18] = h18; this.buf[19] = h19; this.buf[20] = h20; 
+    this.buf[21] = h21; this.buf[22] = h22; this.buf[23] = h23; this.buf[24] = h24; 
+    this.buf[25] = h25; this.buf[26] = h26; this.buf[27] = h27; this.buf[28] = h28; 
+    this.buf[29] = h29; this.buf[30] = h30; this.buf[31] = h31; this.buf[32] = h32; 
+    this.buf[33] = h33; this.buf[34] = h34; this.buf[35] = h35; this.buf[36] = h36; 
+    this.buf[37] = h37; this.buf[38] = h38; this.buf[39] = h39; 
+    this.buf;
+);
+function tmp(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22 h23 h24 h25 h26 h27 h28 h29 h30 h31 h32 h33 h34 h35 h36 h37 h38 h39 h40)
+(
+    this.buf = _TMPLISTFIRSTPOS_;
+    this.buf[0] = 40;
+    this.buf[1] = h1; this.buf[2] = h2; this.buf[3] = h3; this.buf[4] = h4; 
+    this.buf[5] = h5; this.buf[6] = h6; this.buf[7] = h7; this.buf[8] = h8; 
+    this.buf[9] = h9; this.buf[10] = h10; this.buf[11] = h11; this.buf[12] = h12; 
+    this.buf[13] = h13; this.buf[14] = h14; this.buf[15] = h15; this.buf[16] = h16; 
+    this.buf[17] = h17; this.buf[18] = h18; this.buf[19] = h19; this.buf[20] = h20; 
+    this.buf[21] = h21; this.buf[22] = h22; this.buf[23] = h23; this.buf[24] = h24; 
+    this.buf[25] = h25; this.buf[26] = h26; this.buf[27] = h27; this.buf[28] = h28; 
+    this.buf[29] = h29; this.buf[30] = h30; this.buf[31] = h31; this.buf[32] = h32; 
+    this.buf[33] = h33; this.buf[34] = h34; this.buf[35] = h35; this.buf[36] = h36; 
+    this.buf[37] = h37; this.buf[38] = h38; this.buf[39] = h39; this.buf[40] = h40; 
+    this.buf;
+);
+
+/******************************************************* 
+SUMCHNLS
+========
+
+Mix down a list of `n` values to the desired number of channels.
+
+Signature
+---------
+
+index = sumchnls(chnls, list)
+
+Description
+-----------
+
+The `sunchnls` function wraps any number of values (packed
+in a CookDSP list, ie with the list length as first index)
+to `chnls` number of values. It computes a simple sum. That
+is, a two-channels sum for a list (4, 0.25, 0.1, 0.4, 0.75)
+will return a two-values array (0.65, 0.85). The function 
+returns the first position of the reserved summation memory. 
+
+This function always uses the same memory space (beginning
+at index 8388550) and should be use immediately after mixing 
+values. It is primarily intended to be used in the @sample
+section of code, where we don't want to continuously 
+allocate new memory spaces.
+
+Arguments
+---------
+
+- *chnls* {int} : Number of output values.  
+- *list* {CookDSP list} : List of values to mix together.
+
+Return
+------
+
+- *index* {int} : first channel of the summation reserved memory.
+
+Example
+-------
+
+    desc:Bandpass Filter Bank
+
+    import cookdsp.jsfx-inc
+
+    slider1:600<20, 1000>Filter Freq 1
+    slider2:900<200, 1500>Filter Freq 2
+    slider3:1500<1000, 2000>Filter Freq 3
+    slider4:2000<1500, 3000>Filter Freq 4
+    slider5:10<1,100>Filters Q
+
+    @init
+    freq = list(400, 1700, 3500, 8000);
+    q = list(slider5, slider5, slider5, slider5);
+    bps.Pbp(freq, q);
+
+    @slider
+    k = 1;
+    while (k <= freq[0]) (
+      freq[k] = slider(k);
+      q[k] = slider5;
+      k += 1;
+    );
+    bps.Pbp_set_freq(freq);
+    bps.Pbp_set_q(q);
+    gain = scale(slider5, 1, 100, 1, 10, 1);
+
+    @sample
+    outbp = bps.Pbp_do(tmp(spl0, spl1));
+    // Takes the four bandpass output values and mix them
+    // in stereo (first + third, second + fourth)
+    outsig = sumchnls(2, outbp);
+    spl0 = outsig[0] * gain;
+    spl1 = outsig[1] * gain;
+
+********************************************************/
+function sumchnls(chnls, list)
+(
+    num = list[0];
+    this.buf = _SUMLISTFIRSTPOS_;
+    memset(this.buf, 0.0, chnls);
+    k_ = 0;
+    while (k_ < num) (
+        this.buf[k_ % chnls] += list[k_ + 1];
+        k_ += 1;
+    );
+    this.buf;
+);

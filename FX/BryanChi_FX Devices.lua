@@ -2,16 +2,20 @@
 -- @author Bryan Chi
 -- @version 1.0beta
 -- @provides
---   [effect] bryanchi_FX Devices/FXD Macros.jsfx
---   [effect] bryanchi_FX Devices/FXD ReSpectrum.jsfx
---   [effect] bryanchi_FX Devices/FXD Gain Reduction Scope.jsfx
---   [effect] bryanchi_FX Devices/FXD Split to 32 Channels.jsfx
---   [effect] bryanchi_FX Devices/FXD Split To 4 Channels.jsfx
---   [effect] bryanchi_FX Devices/firhalfband.jsfx-inc
---   [effect] bryanchi_FX Devices/spectrum.jsfx-inc
---   [effect] bryanchi_FX Devices/svf_filter.jsfx-inc
---   bryanchi_FX Devices/IconFont1.ttf
--- @about Please check the forum post for info
+--   [effect] BryanChi_FX Devices/FXD Macros.jsfx
+--   [effect] BryanChi_FX Devices/FXD ReSpectrum.jsfx
+--   [effect] BryanChi_FX Devices/FXD Gain Reduction Scope.jsfx
+--   [effect] BryanChi_FX Devices/FXD Split to 32 Channels.jsfx
+--   [effect] BryanChi_FX Devices/FXD Split To 4 Channels.jsfx
+--   [effect] BryanChi_FX Devices/cookdsp.jsfx-inc
+--   [effect] BryanChi_FX Devices/cookdsp/*
+--   [effect] BryanChi_FX Devices/firhalfband.jsfx-inc
+--   [effect] BryanChi_FX Devices/spectrum.jsfx-inc
+--   [effect] BryanChi_FX Devices/svf_filter.jsfx-inc
+--   BryanChi_FX Devices/IconFont1.ttf
+-- @about
+--   Please check the forum post for info:
+--   https://forum.cockos.com/showthread.php?t=263622
 
 --------------------------==  declare Initial Variables & Functions  ------------------------
     VersionNumber = 'Dec 23 2022 - bug fix 3 '
@@ -2468,6 +2472,7 @@
     Font_Andale_Mono_20 = reaper.ImGui_CreateFont('andale mono', 20)
 
     local script_folder = select(2, r.get_action_context()):match('^(.+)[\\//]')
+    script_folder = script_folder .. '/BryanChi_FX Devices'
     FontAwesome = r.ImGui_CreateFont(script_folder .. '/IconFont1.ttf', 30)
 
     --FontAwesome = r.ImGui_CreateFont('Untitled2', 30)

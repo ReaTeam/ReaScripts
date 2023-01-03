@@ -1,0 +1,57 @@
+/////////////////////////////////////////////////////////////////
+// Copyright (c) - 2014 - Olivier Belanger                     //
+// Permission to use, copy, modify, and/or distribute this     //
+// software for any purpose with or without fee is hereby      //
+// granted, provided that the above copyright notice and this  //
+// permission notice appear in all copies. CookDSP IS PROVIDED //
+// "AS IS", WITHOUT WARRANTY OF ANY KIND FROM THE AUTHOR.      //
+/////////////////////////////////////////////////////////////////
+
+/* Missing math functions */
+import cookdsp/mmath.jsfx-inc
+
+/* Utility functions */
+import cookdsp/memalloc.jsfx-inc
+import cookdsp/scaling.jsfx-inc
+
+/* List management functions */
+import cookdsp/list.jsfx-inc
+
+/* Memory management objects */
+import cookdsp/buffer.jsfx-inc
+import cookdsp/delay.jsfx-inc
+
+/* Filtering objects */
+import cookdsp/filters.jsfx-inc
+
+/* Audio signal analysis objects */
+import cookdsp/analysis.jsfx-inc
+
+/* Oscillators objects */
+import cookdsp/oscil.jsfx-inc
+
+/* Pseudo-random generator object */
+import cookdsp/random.jsfx-inc
+
+/* Midi-related objects */
+import cookdsp/midi.jsfx-inc
+
+/* Dynamics objects */
+import cookdsp/dynamics.jsfx-inc
+
+/* Special Effects objects */
+import cookdsp/effects.jsfx-inc
+
+/* Granulation objects */
+import cookdsp/granulator.jsfx-inc
+
+/* Fast Fourier Transform objects */
+import cookdsp/fftobjects.jsfx-inc
+
+/* Phase Vocoder objects */
+import cookdsp/pvocobjects.jsfx-inc
+
+@init
+
+COOKDSP_VERSION = 0.5;
+

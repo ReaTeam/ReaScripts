@@ -1,0 +1,426 @@
+/////////////////////////////////////////////////////////////////
+// Copyright (c) - 2014 - Olivier Belanger                     //
+// Permission to use, copy, modify, and/or distribute this     //
+// software for any purpose with or without fee is hereby      //
+// granted, provided that the above copyright notice and this  //
+// permission notice appear in all copies. CookDSP IS PROVIDED //
+// "AS IS", WITHOUT WARRANTY OF ANY KIND FROM THE AUTHOR.      //
+/////////////////////////////////////////////////////////////////
+
+@init
+
+/******************************************************* 
+MASR
+====
+
+Generate a Midi-triggered Attack-Sustain-Release envelope.
+
+Description
+-----------
+
+The masr object initializes a midi-triggered attack-
+sustain-release envelope with different slope times for 
+the attack and the release. A positive value given to the 
+masr_do function triggers the attack part of the envelope 
+(with the given value as the target amplitude). The value is 
+held until a 0 comes to the masr_do function. The 0 
+triggers the release part of the envelope.
+
+It must be used with a variable name as prefix (object oriented).
+
+Initializer
+-----------
+
+#### masr(risetime, falltime) ####
+
+Initializes the envelope with the attack duration `risetime`
+and the release duration `falltime`. Both are times, in seconds,
+taken by the envelope to reach the target amplitude or the 0.
+
+Methods
+-------
+
+#### masr_set_risetime(risetime) ####
+
+Sets a new rising time in seconds. 
+
+#### masr_set_falltime(falltime) ####
+
+Sets a new falling time in seconds. 
+
+#### masr_do(signal) ####
+
+Computes and returns the next value of the envelope. `signal` is 
+the target value, either positive for the rising part or zero for 
+the falling part.
+
+Example
+-------
+
+    desc:Midi Filter
+
+    import cookdsp.jsfx-inc
+
+    slider1:0.01<0.001,1>Attack Time
+    slider2:1<0.01,10>Release Time
+
+    @init
+    midiamp = midinote = 0;
+    // Initializes the envelope
+    env.masr(slider1, slider2);
+    // Stereo bandpass filter
+    f1.bp(1000, 5);
+    f2.bp(1000, 5);
+
+    @slider
+    // Handle envelope slopes
+    env.masr_set_risetime(slider1);
+    env.masr_set_falltime(slider2);
+
+    @block
+    while (midirecv(offset, msg1, msg2, msg3)) (
+        // get noteons and noteoffs from all channels
+        (msg1 & $xF0) == $x90 || (msg1 & $xF0) == $x80 ? (
+            msg3 != 0 ? (
+                // noteon 
+                midinote = msg2;
+                // Sets filter's frequency
+                f1.bp_set_freq(mtof(midinote));
+                f2.bp_set_freq(mtof(midinote));
+                // Normalizes amplitude value
+                midiamp = msg3 / 127;
+            ) : (
+                // noteoff
+                msg2 == midinote ? midiamp = 0;
+            );
+        ) : (
+            // passthrough other events
+            midisend(offset,msg1,msg2,msg3);
+        );
+    );
+
+    @sample
+    // Compute the envelope
+    gain = env.masr_do(midiamp);
+    // Filters the signal
+    spl0 = f1.bp_do(spl0) * gain;
+    spl1 = f2.bp_do(spl1) * gain;
+
+********************************************************/
+function masr(risetime, falltime)
+(
+    risetime < 0.001 ? risetime = 0.001;
+    falltime < 0.001 ? falltime = 0.001;
+    this.risetime = risetime;
+    this.falltime = falltime;
+    this.c1 = exp(-2 * $pi / risetime / srate);
+    this.c2 = exp(-2 * $pi / falltime / srate);
+    this.fac = this.c1;
+    this.y0 = this.last = 0;
+);
+
+function masr_set_risetime(risetime)
+(
+    risetime < 0.001 ? risetime = 0.001;
+    this.risetime = risetime;
+    this.c1 = exp(-2 * $pi / risetime / srate);
+);
+
+function masr_get_risetime()
+(
+    this.risetime;
+);
+
+function masr_set_falltime(falltime)
+(
+    falltime < 0.001 ? falltime = 0.001;
+    this.falltime = falltime;
+    this.c2 = exp(-2 * $pi / falltime / srate);
+);
+
+function masr_get_falltime()
+(
+    this.falltime;
+);
+
+function masr_do(signal)
+(
+    signal != this.last ? (
+        signal > this.last ? (
+            this.fac = this.c1;
+        ) : (
+            this.fac = this.c2;
+        );
+        this.last = signal;
+    );
+    this.y0 = signal + (this.y0 - signal) * this.fac;
+    this.y0; 
+);
+
+/******************************************************* 
+NOTEIN
+======
+
+Retrieves information about midi note events.
+
+Description
+-----------
+
+The `notein` object allow the user to retrieve information about
+midi note events sent to the process. 
+
+It must be used with a variable name as prefix (object oriented),
+in order to be able to retrieve the midi note data.
+
+Methods
+-------
+
+#### notein() ####
+
+The function `notein` returns `true` if there is other midi events 
+to process and `false` when it's done. Usually, `notein` is called 
+(with a variable name as prefix) inside a `while` loop within the 
+"block" code section. Each call to `notein` should be followed by some 
+attribute processing. If a midi note has been detected, the attribute
+`ok` will be set to `true`. Attributes `channel`, `pitch` and `velocity`
+will then hold the midi note data. 
+
+Attributes
+----------
+
+#### notein.ok ####
+
+If a midi note has been detected, this attribute will be set to `true`.
+
+#### notein.channel ####
+
+Holds the channel number of the current midi note.
+
+#### notein.pitch ####
+
+Holds the pitch value of the current midi note.
+
+#### notein.velocity ####
+
+Holds the velocity value of the current midi note.
+
+Example
+-------
+
+    desc:Midi Driven Bandpass Filter
+
+    import cookdsp.jsfx-inc
+
+    @init
+    amp = midinote = 0;
+    // Initializes the envelope
+    env.masr(0.01, 1);
+    // Stereo bandpass filter
+    f1.bp(1000, 10);
+    f2.bp(1000, 10);
+
+    @block
+    // Until all midi events have been processed
+    while (n.notein()) (
+        // If midi event is a midi note
+        n.ok ? (
+            n.velocity > 0 ? (
+                // noteon 
+                midinote = n.pitch;
+                freq = mtof(midinote);
+                f1.bp_set_freq(freq);
+                f2.bp_set_freq(freq);
+                amp = n.velocity / 127;
+            ) : (
+                // noteoff
+                n.pitch == midinote ? amp = 0;
+            );
+        );
+    );
+
+    @sample
+    // Compute the envelope
+    gain = env.masr_do(amp);
+    // Filters the signal
+    spl0 = f1.bp_do(spl0) * gain;
+    spl1 = f2.bp_do(spl1) * gain;
+
+********************************************************/
+function notein()
+(
+    this.ok = this.channel = this.pitch = this.velocity = 0;
+    ret = midirecv(offset, msg1, msg2, msg3);
+    ret ? (
+        // Retrieve midi note messages
+        (msg1 & 0xF0) == 0x90 || (msg1 & 0xF0) == 0x80 ? (
+            this.ok = 1;
+            this.channel = (msg1 & 0x0F) + 1;
+            this.pitch = msg2;
+            this.velocity = msg3;
+        ) : (
+            // Passthrough other events
+            midisend(offset,msg1,msg2,msg3);
+        );
+    );
+    ret;
+);
+
+/******************************************************* 
+POLY
+====
+
+Midi polyphony voice manager.
+
+Description
+-----------
+
+The `poly` object collects noteon messages and assigns them 
+a voice number. Noteoff messages will be assigned to the same 
+voice number than the corresponding noteon pitch. 
+
+It must be used with a variable name as prefix (object oriented).
+
+Initializer
+-----------
+
+#### poly(voices, [stealing])
+
+Initializes the voice manager with a `voices` maximum of simultaneous 
+midi notes. The optional `stealing` argument controls the behaviour
+of the manager. A value of 0 (the default) will ignore additional notes
+while a value of 1 will activate the stealing mode. In stealing mode,
+when the manager is full, the newest note replaces the oldest ones. 
+
+Methods
+-------
+
+#### poly_do(pitch, velocity) ####
+
+The `poly_do` function takes pitch and velocity from a midi note and
+assigns a voice number to the pitch if the velocity is greater than
+0 (a noteon). When a noteoff comes in (velocity of 0), the voice 
+number assigned to the noteon with the same pitch will be reused.
+The voice number can be used to assign the noteoff to the process 
+that received the corresponding noteon.  
+
+Attributes
+----------
+
+#### poly.voice ####
+
+This attribute holds the current voice number.
+
+#### poly.pitch ####
+
+This attribute holds the current pitch value.
+
+#### poly.velocity ####
+
+This attribute holds the current velocity value.
+
+Example
+-------
+
+    desc:Polyphonic Midi Filter
+
+    import cookdsp.jsfx-inc
+
+    @init
+    amps = memalloc(3);
+    // Initializes the envelopes
+    env1.masr(0.01, 1);
+    env2.masr(0.01, 1);
+    env3.masr(0.01, 1);
+    // Initializes stereo filters
+    f1.bp(1000, 10); f2.bp(1000, 10);
+    ff1.bp(1000, 10); ff2.bp(1000, 10);
+    fff1.bp(1000, 10); fff2.bp(1000, 10);
+    // Initializes polyphony manager
+    p.poly(3, 1);
+
+    @block
+    // Until all midi events have been processed
+    while (n.notein()) (
+        // If midi event is a midi note
+        n.ok ? (
+            p.poly_do(n.pitch, n.velocity);
+            // If a voice has been assigned
+            p.voice != -1 ? (
+                freq = mtof(p.pitch);
+                p.voice == 0 ? (
+                    f1.bp_set_freq(freq); f2.bp_set_freq(freq);
+                ) : p.voice == 1 ? (
+                    ff1.bp_set_freq(freq); ff2.bp_set_freq(freq);
+                ) : p.voice == 2 ? (
+                    fff1.bp_set_freq(freq); fff2.bp_set_freq(freq);
+                );
+                amps[p.voice] = p.velocity / 127;
+            );
+        );
+    );
+
+    @sample
+    // Computes the envelopes
+    gain1 = env1.masr_do(amps[0]);
+    gain2 = env2.masr_do(amps[1]);
+    gain3 = env3.masr_do(amps[2]);
+    // Filters the signal
+    outl1 = f1.bp_do(spl0) * gain1; outr1 = f2.bp_do(spl1) * gain1;
+    outl2 = ff1.bp_do(spl0) * gain2; outr2 = ff2.bp_do(spl1) * gain2;
+    outl3 = fff1.bp_do(spl0) * gain3; outr3 = fff2.bp_do(spl1) * gain3;
+    // Sum and output
+    spl0 = outl1 + outl2 + outl3;
+    spl1 = outr1 + outr2 + outr3;
+
+********************************************************/
+function poly(voices stealing)
+(
+    this.voices = voices;
+    this.stealing = stealing;
+    this.pitches = memalloc(this.voices);
+    this.indexes = memalloc(this.voices);
+    this.icount = 0;
+    this.voice = this.pitch = this.velocity = -1;
+    memset(this.pitches, -1, this.voices);
+);
+
+function poly(voices)
+(
+    this.poly(voices, 0);
+);
+
+function poly_do(pitch velocity)
+(
+    this.pitch = pitch; 
+    this.velocity = velocity;
+    this.voice = -1;
+    k_ = 0;
+    found_ = 0;
+    velocity > 0 ? (
+        while (k_ < this.voices && found_ == 0) (
+            this.pitches[k_] == -1 ? (
+                this.voice = k_;
+                this.pitches[k_] = pitch;
+                found_ = 1;
+                this.indexes[this.icount] = k_;
+                this.icount = (this.icount + 1) % this.voices;
+            );
+            k_ += 1;
+        );
+        found_ == 0 && this.stealing ? (
+            k_ = this.indexes[this.icount];
+            this.voice = k_;
+            this.pitches[k_] = pitch;
+            this.icount = (this.icount + 1) % this.voices;            
+        );
+    ) : (
+        while (k_ < this.voices && found_ == 0) (
+            this.pitches[k_] == pitch ? (
+                this.voice = k_;
+                this.pitches[k_] = -1;
+                found_ = 1;
+            ); 
+            k_ += 1;
+        );
+    );
+);

@@ -1,0 +1,104 @@
+/////////////////////////////////////////////////////////////////
+// Copyright (c) - 2014 - Olivier Belanger                     //
+// Permission to use, copy, modify, and/or distribute this     //
+// software for any purpose with or without fee is hereby      //
+// granted, provided that the above copyright notice and this  //
+// permission notice appear in all copies. CookDSP IS PROVIDED //
+// "AS IS", WITHOUT WARRANTY OF ANY KIND FROM THE AUTHOR.      //
+/////////////////////////////////////////////////////////////////
+
+@init
+
+/******************************************************* 
+MEMALLOC
+========
+
+Allocate a region of the local memory buffer.
+
+Signature
+---------
+
+ret = memalloc(size [, noreinit])
+
+Description
+-----------
+
+The memalloc function reserves a region of the local
+memory buffer and returns its first index in the memory.
+The function will leave 8 memory slots between each 
+region. These slots can be used as extra spaces, as 
+needed by interpolation algorithms. 
+
+Other objects of the library that use the local memory
+buffer use this function for their space allocations, so
+it is recommended to use it every time a space in the
+local memory is needed to prevent interferences.
+
+If `noreinit` is not specified or 0, this function resets 
+all memory slots to 0.0.
+
+Arguments
+---------
+
+- *size* {int} : size, in samples, of the memory region.  
+- *noreinit* {int} : if greater than 0, the memory slots will 
+                   not be initialized to 0.0. Defaults to 0.
+
+Return
+------
+
+- *ret* {int} : first index of the buffer in the plugin's memory.
+
+Example
+-------
+
+    desc: Hand-Written Simple Delay Line
+
+    import cookdsp.jsfx-inc
+
+    slider1:0.25<0.001,0.999>Delay in seconds
+
+    @init
+    // one second stereo memory
+    buf0 = memalloc(srate);
+    buf1 = memalloc(srate);
+    // sample counter  
+    count = 0;
+
+    @sample
+    // compute delay position
+    pos = count - floor(slider1 * srate);
+    pos < 0 ? pos += srate;
+    // read memories at delay position
+    out0 = buf0[pos];
+    out1 = buf1[pos];
+    // record current samples into memories
+    buf0[count] = spl0;
+    buf1[count] = spl1;
+    // output a mix of current and delayed samples
+    spl0 = (spl0 + out0) * 0.7;
+    spl1 = (spl1 + out1) * 0.7;
+    // increment and wrap the counter
+    count = (count + 1) % srate;
+
+********************************************************/
+function memalloc(size)
+(
+    __memory_index = __memory_next + 8;
+    __memory_next = __memory_index + size;
+    memset(__memory_index, 0.0, size);
+    __memory_index;
+);
+
+function memalloc(size, noreinit)
+(
+    noreinit == 0 ? (
+        __memory_index = __memory_next + 8;
+        __memory_next = __memory_index + size;
+        memset(__memory_index, 0.0, size);
+    ) : (
+        __memory_index = __memory_next + 8;
+        __memory_next = __memory_index + size;
+    );
+    __memory_index;
+);

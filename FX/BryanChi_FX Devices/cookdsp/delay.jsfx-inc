@@ -1,0 +1,614 @@
+/////////////////////////////////////////////////////////////////
+// Copyright (c) - 2014 - Olivier Belanger                     //
+// Permission to use, copy, modify, and/or distribute this     //
+// software for any purpose with or without fee is hereby      //
+// granted, provided that the above copyright notice and this  //
+// permission notice appear in all copies. CookDSP IS PROVIDED //
+// "AS IS", WITHOUT WARRANTY OF ANY KIND FROM THE AUTHOR.      //
+/////////////////////////////////////////////////////////////////
+
+@init
+
+/******************************************************* 
+DELAY
+=====
+
+Initialize a delay line for writing and reading audio samples.
+
+Description
+-----------
+
+A delay object reserves a region of the local memory buffer 
+and initializes a delay line using this buffer. Several 
+interpolation algorithms can be used to read the samples 
+stored in the delay line. 
+
+It must be used with a variable name as prefix (object oriented).
+
+Initializer
+-----------
+
+#### delay(size) ####
+
+Initializes the delay line with a buffer of length `size`, in samples.
+  
+Methods
+-------
+
+#### delay_write(signal) ####
+
+Writes a sample value, `signal`, at the current position in the 
+delay's buffer. This function also increments the current position.
+
+#### delay_read(delay) ####
+
+Returns the value at the delayed position given in argument `delay`
+(in samples). This function uses no interpolation, ie. the position 
+is truncated to the biggest integer not greater than the real delayed 
+position.
+
+This function checks for delay's validity.
+
+#### delay_fread(delay) ####
+
+Returns the value at the delayed position given in argument `delay`
+(in samples). This function uses no interpolation, ie. the position 
+is truncated to the biggest integer not greater than the real delayed 
+position.
+
+This function is faster than `delay_read` because there is no check 
+for delay's validity. Use it only if `delay` is known to be valid.
+
+#### delay_read2(delay) ####
+
+Returns the value at the delayed position given in argument `delay` 
+(in samples). This function uses a linear interpolation to read the 
+"true" value for a floating-point sample position.
+
+This function checks for delay's validity.
+
+#### delay_fread2(delay) ####
+
+Returns the value at the delayed position given in argument `delay` 
+(in samples). This function uses a linear interpolation to read the 
+"true" value for a floating-point sample position.
+
+This function is faster than `delay_read2` because there is no check 
+for delay's validity. Use it only if `delay` is known to be valid.
+
+#### delay_read3(delay) ####
+
+Returns the value at the delayed position given in argument `delay`
+(in samples). This function uses a cubic interpolation to read the 
+"true" value for a floating-point sample position.  
+
+This function checks for delay's validity.
+
+#### delay_fread3(delay) ####
+
+Returns the value at the delayed position given in argument `delay`
+(in samples). This function uses a cubic interpolation to read the 
+"true" value for a floating-point sample position.  
+
+This function is faster than `delay_read3` because there is no check 
+for delay's validity. Use it only if `delay` is known to be valid.
+
+#### delay_sread(delay) ####
+
+Returns the value at the delayed position given in argument `delay`
+(in seconds). This function uses no interpolation, ie. the position 
+is truncated to the biggest integer not greater than the real delayed 
+position.
+
+This function checks for delay's validity.
+
+#### delay_fsread(delay) ####
+
+Returns the value at the delayed position given in argument `delay`
+(in seconds). This function uses no interpolation, ie. the position 
+is truncated to the biggest integer not greater than the real delayed 
+position.
+
+This function is faster than `delay_sread` because there is no check 
+for delay's validity. Use it only if `delay` is known to be valid.
+
+#### delay_sread2(delay) ####
+
+Returns the value at the delayed position given in argument `delay` 
+(in seconds). This function uses a linear interpolation to read the 
+"true" value for a floating-point sample position.
+
+This function checks for delay's validity.
+
+#### delay_fsread2(delay) ####
+
+Returns the value at the delayed position given in argument `delay`
+(in seconds). This function uses a linear interpolation to read the 
+"true" value for a floating-point sample position.
+
+This function is faster than `delay_sread2` because there is no check 
+for delay's validity. Use it only if `delay` is known to be valid.
+
+#### delay_sread3(delay) ####
+
+Returns the value at the delayed position given in argument `delay`
+(in seconds). This function uses a cubic interpolation to read the 
+"true" value for a floating-point sample position.  
+
+This function checks for delay's validity.
+
+#### delay_fsread3(delay) ####
+
+Returns the value at the delayed position given in argument `delay`
+(in seconds). This function uses a cubic interpolation to read the 
+"true" value for a floating-point sample position.  
+
+This function is faster than `delay_sread3` because there is no check 
+for delay's validity. Use it only if `delay` is known to be valid.
+ 
+Example
+-------
+
+    desc:Stereo Delay + Feedback
+
+    slider1:250<1,1000>Delay Time (ms)
+    slider2:0<-1,1>Feedback
+
+    import cookdsp.jsfx-inc
+
+    @init
+    // one second stereo delay line
+    d0.delay(srate);
+    d1.delay(srate);
+
+    @slider
+    // delay time in samples
+    samps = slider1 * 0.001 * srate;
+        
+    @sample
+    // read with cubic interpolation
+    val0 = d0.delay_read3(samps);
+    val1 = d1.delay_read3(samps);
+    // write values in delay lines 
+    d0.delay_write(spl0 + val0 * slider2);
+    d1.delay_write(spl1 + val1 * slider2);
+    // sum and output
+    spl0 = (spl0 + val0) * 0.5;
+    spl1 = (spl1 + val1) * 0.5;
+
+********************************************************/
+function delay(size)
+(
+    this.buf = memalloc(size);
+    this.size = size;
+    this.curpos = 0;
+    this.curval = 0;
+);
+
+function delay_write(signal)
+(
+    this.buf[this.curpos] = signal;
+    this.buf[this.size] = this.buf[0];
+    this.buf[this.size+1] = this.buf[1];
+    this.buf[-1] = this.buf[this.size-1];
+    this.curpos += 1;
+    this.curpos == this.size ? this.curpos = 0;
+);
+
+function delay_read(delay)
+(
+    delay >= 0 && delay < this.size ? (
+        pos_ = this.curpos - delay;
+        pos_ < 0 ? pos_ += this.size;
+        this.curval = this.buf[floor(pos_)];
+    );
+    this.curval;
+);
+
+function delay_fread(delay)
+(
+    pos_ = this.curpos - delay;
+    pos_ < 0 ? pos_ += this.size;
+    this.curval = this.buf[floor(pos_)];
+    this.curval;
+);
+
+function delay_sread(delay)
+(
+    this.delay_read(delay * srate);
+);
+
+function delay_fsread(delay)
+(
+    this.delay_fread(delay * srate);
+);
+
+function delay_read2(delay)
+(
+    delay >= 0 && delay < this.size ? (
+        pos_ = this.curpos - delay;
+        pos_ < 0 ? pos_ += this.size;
+        ip_ = floor(pos_);
+        this.curval = this.buf[ip_] + (this.buf[ip_+1] - this.buf[ip_]) * (pos_ - ip_);
+    );
+    this.curval;
+);
+
+function delay_fread2(delay)
+(
+    pos_ = this.curpos - delay;
+    pos_ < 0 ? pos_ += this.size;
+    ip_ = floor(pos_);
+    this.curval = this.buf[ip_] + (this.buf[ip_+1] - this.buf[ip_]) * (pos_ - ip_);
+    this.curval;
+);
+
+function delay_sread2(delay)
+(
+    this.delay_read2(delay * srate);
+);
+
+function delay_fsread2(delay)
+(
+    this.delay_fread2(delay * srate);
+);
+
+function delay_read3(delay)
+(
+    delay >= 0 && delay < this.size ? (
+        pos_ = this.curpos - delay;
+        pos_ < 0 ? pos_ += this.size;
+        i_ = floor(pos_);
+        f_ = pos_ - i_;
+        x0_ = this.buf[i_-1]; x1_ = this.buf[i_]; 
+        x2_ = this.buf[i_+1]; x3_ = this.buf[i_+2];
+        a3_ = f_ * f_; a3_ -= 1.0; a3_ *= (1.0 / 6.0);
+        a2_ = (f_ + 1.0) * 0.5; a0_ = a2_ - 1.0;
+        a1_ = a3_ * 3.0; a2_ -= a1_; a0_ -= a3_; a1_ -= f_;
+        a0_ *= f_; a1_ *= f_; a2_ *= f_; a3_ *= f_; a1_ += 1.0;
+        this.curval = a0_*x0_ + a1_*x1_ + a2_*x2_ + a3_*x3_;
+    );
+    this.curval;
+);
+
+function delay_fread3(delay)
+(
+    pos_ = this.curpos - delay;
+    pos_ < 0 ? pos_ += this.size;
+    i_ = floor(pos_);
+    f_ = pos_ - i_;
+    x0_ = this.buf[i_-1]; x1_ = this.buf[i_]; 
+    x2_ = this.buf[i_+1]; x3_ = this.buf[i_+2];
+    a3_ = f_ * f_; a3_ -= 1.0; a3_ *= (1.0 / 6.0);
+    a2_ = (f_ + 1.0) * 0.5; a0_ = a2_ - 1.0;
+    a1_ = a3_ * 3.0; a2_ -= a1_; a0_ -= a3_; a1_ -= f_;
+    a0_ *= f_; a1_ *= f_; a2_ *= f_; a3_ *= f_; a1_ += 1.0;
+    this.curval = a0_*x0_ + a1_*x1_ + a2_*x2_ + a3_*x3_;
+    this.curval;
+);
+
+function delay_sread3(delay)
+(
+    this.delay_read3(delay * srate);
+);
+
+function delay_fsread3(delay)
+(
+    this.delay_fread3(delay * srate);
+);
+
+/******************************************************* 
+SDELAY
+======
+
+Initialize an artifact-free delay line for writing and reading audio samples.
+
+Description
+-----------
+
+A sdelay object reserves a region of the local memory buffer 
+and initializes an artifact-free delay line using this buffer. 
+Several interpolation algorithms can be used to read the samples 
+stored in the delay line. 
+
+The sdelay object implements a delay line that does not produce
+clicks or pitch shifting when the delay time is changing.
+
+It must be used with a variable name as prefix (object oriented).
+
+Initializer
+-----------
+
+#### sdelay(size, xfade) ####
+
+Initializes the delay line with a buffer of length `size`, and a 
+crossfade duration of length `xfade`, both in samples.
+  
+Methods
+-------
+
+#### sdelay_set_xfade(xfade) ####
+
+Sets a new crossfade time, `xfade`, in samples.
+
+#### sdelay_write(signal) ####
+
+Writes a sample value, `signal`, at the current position in the 
+delay's buffer. This function also increments the current position.
+
+#### sdelay_read(delay) ####
+
+Returns the value at the delayed position given in argument `delay`
+(in samples). This function uses no interpolation, ie. the position 
+is truncated to the biggest integer not greater than the real delayed 
+position.
+
+This function checks for delay's validity.
+
+#### sdelay_fread(delay) ####
+
+Returns the value at the delayed position given in argument `delay`
+(in samples). This function uses no interpolation, ie. the position 
+is truncated to the biggest integer not greater than the real delayed 
+position.
+
+This function is faster than `sdelay_read` because there is no check 
+for delay's validity. Use it only if `delay` is known to be valid.
+
+#### sdelay_read2(delay) ####
+
+Returns the value at the delayed position given in argument `delay` 
+(in samples). This function uses a linear interpolation to read the 
+"true" value for a floating-point sample position.
+
+This function checks for delay's validity.
+
+#### sdelay_fread2(delay) ####
+
+Returns the value at the delayed position given in argument `delay` 
+(in samples). This function uses a linear interpolation to read the 
+"true" value for a floating-point sample position.
+
+This function is faster than `sdelay_read2` because there is no check 
+for delay's validity. Use it only if `delay` is known to be valid.
+
+#### sdelay_read3(delay) ####
+
+Returns the value at the delayed position given in argument `delay`
+(in samples). This function uses a cubic interpolation to read the 
+"true" value for a floating-point sample position.  
+
+This function checks for delay's validity.
+
+#### sdelay_fread3(delay) ####
+
+Returns the value at the delayed position given in argument `delay`
+(in samples). This function uses a cubic interpolation to read the 
+"true" value for a floating-point sample position.  
+
+This function is faster than `sdelay_read3` because there is no check 
+for delay's validity. Use it only if `delay` is known to be valid.
+
+#### sdelay_sread(delay) ####
+
+Returns the value at the delayed position given in argument `delay`
+(in seconds). This function uses no interpolation, ie. the position 
+is truncated to the biggest integer not greater than the real delayed 
+position.
+
+This function checks for delay's validity.
+
+#### sdelay_fsread(delay) ####
+
+Returns the value at the delayed position given in argument `delay`
+(in seconds). This function uses no interpolation, ie. the position 
+is truncated to the biggest integer not greater than the real delayed 
+position.
+
+This function is faster than `sdelay_sread` because there is no check 
+for delay's validity. Use it only if `delay` is known to be valid.
+
+#### sdelay_sread2(delay) ####
+
+Returns the value at the delayed position given in argument `delay` 
+(in seconds). This function uses a linear interpolation to read the 
+"true" value for a floating-point sample position.
+
+This function checks for delay's validity.
+
+#### sdelay_fsread2(delay) ####
+
+Returns the value at the delayed position given in argument `delay`
+(in seconds). This function uses a linear interpolation to read the 
+"true" value for a floating-point sample position.
+
+This function is faster than `sdelay_sread2` because there is no check 
+for delay's validity. Use it only if `delay` is known to be valid.
+
+#### sdelay_sread3(delay) ####
+
+Returns the value at the delayed position given in argument `delay`
+(in seconds). This function uses a cubic interpolation to read the 
+"true" value for a floating-point sample position.  
+
+This function checks for delay's validity.
+
+#### sdelay_fsread3(delay) ####
+
+Returns the value at the delayed position given in argument `delay`
+(in seconds). This function uses a cubic interpolation to read the 
+"true" value for a floating-point sample position.  
+
+This function is faster than `sdelay_sread3` because there is no check 
+for delay's validity. Use it only if `delay` is known to be valid.
+ 
+Example
+-------
+
+    desc:Smooth Stereo Delay + Feedback
+
+    slider1:250<1,1000>Delay Time (ms)
+    slider2:0<-1,1>Feedback
+    slider3:100<1,250>Crossfade Time (ms)
+
+    import cookdsp.jsfx-inc
+
+    @init
+    // one second stereo delay line
+    xfade = slider3 * 0.001 * srate;
+    d0.sdelay(srate, xfade);
+    d1.sdelay(srate, xfade);
+
+    @slider
+    // delay time in samples
+    samps = slider1 * 0.001 * srate;
+    xfade = slider3 * 0.001 * srate;
+    d0.sdelay_set_xfade(xfade);
+    d1.sdelay_set_xfade(xfade);
+      
+    @sample
+    // read with cubic interpolation
+    val0 = d0.sdelay_read2(samps);
+    val1 = d1.sdelay_read2(samps);
+    // write values in delay lines 
+    d0.sdelay_write(spl0 + val0 * slider2);
+    d1.sdelay_write(spl1 + val1 * slider2);
+    // sum and output
+    spl0 = (spl0 + val0) * 0.5;
+    spl1 = (spl1 + val1) * 0.5;
+
+********************************************************/
+function _sdelay_compute_time(delay)
+(
+    this.timer == 0 ? (
+        this.current = (this.current + 1) % 2;
+        this.sampdel = floor(delay + 0.5);
+        this.xfade = floor(this.xfade + 0.5);
+        this.xfade > this.sampdel ? this.xfade = this.sampdel;
+        this.xfade <= 0 ? this.xfade = 1;
+        this.current == 0 ? (
+            this.sampdel1 = delay;
+            this.inc1 = 1.0 / this.xfade;
+            this.inc2 = -this.inc1;
+        ) : (
+            this.sampdel2 = delay;
+            this.inc2 = 1.0 / this.xfade;
+            this.inc1 = -this.inc2;
+        );
+    );
+    this.timer += 1;
+    this.timer == this.sampdel ? this.timer = 0;
+);
+
+function _sdelay_update_amps()
+(
+    this.amp1 += this.inc1;
+    this.amp1 < 0 ? this.amp1 = 0.0 : this.amp1 > 1 ? this.amp1 = 1.0;
+    this.amp2 += this.inc2;
+    this.amp2 < 0 ? this.amp2 = 0.0 : this.amp2 > 1 ? this.amp2 = 1.0;
+);
+
+function sdelay(size xfade)
+(
+    this.delay.delay(size);
+    this.xfade = xfade;
+    this.current = 1;
+    this.timer = 0;
+    this.amp1 = 0.0;
+    this.amp2 = 1.0;
+    this.inc1 = this.inc2 = 0.0;
+);
+
+function sdelay_write(signal)
+(
+    this.delay.delay_write(signal);
+);
+
+function sdelay_set_xfade(xfade)
+(
+    this.xfade = xfade;
+);
+
+function sdelay_read(delay)
+(
+    this._sdelay_compute_time(delay);
+    val_ = this.delay.delay_read(this.sampdel1) * this.amp1;
+    val_ += this.delay.delay_read(this.sampdel2) * this.amp2;
+    this._sdelay_update_amps();
+    val_;
+);
+
+function sdelay_fread(delay)
+(
+    this._sdelay_compute_time(delay);
+    val_ = this.delay.delay_fread(this.sampdel1) * this.amp1;
+    val_ += this.delay.delay_fread(this.sampdel2) * this.amp2;
+    this._sdelay_update_amps();
+    val_;
+);
+
+function sdelay_sread(delay)
+(
+    this.sdelay_read(delay * srate);
+);
+
+function sdelay_fsread(delay)
+(
+    this.sdelay_fread(delay * srate);
+);
+
+function sdelay_read2(delay)
+(
+    this._sdelay_compute_time(delay);
+    val_ = this.delay.delay_read2(this.sampdel1) * this.amp1;
+    val_ += this.delay.delay_read2(this.sampdel2) * this.amp2;
+    this._sdelay_update_amps();
+    val_;
+);
+
+function sdelay_fread2(delay)
+(
+    this._sdelay_compute_time(delay);
+    val_ = this.delay.delay_fread2(this.sampdel1) * this.amp1;
+    val_ += this.delay.delay_fread2(this.sampdel2) * this.amp2;
+    this._sdelay_update_amps();
+    val_;
+);
+
+function sdelay_sread2(delay)
+(
+    this.sdelay_read2(delay * srate);
+);
+
+function sdelay_fsread2(delay)
+(
+    this.sdelay_fread2(delay * srate);
+);
+
+function sdelay_read3(delay)
+(
+    this._sdelay_compute_time(delay);
+    val_ = this.delay.delay_read3(this.sampdel1) * this.amp1;
+    val_ += this.delay.delay_read3(this.sampdel2) * this.amp2;
+    this._sdelay_update_amps();
+    val_;
+);
+
+function sdelay_fread3(delay)
+(
+    this._sdelay_compute_time(delay);
+    val_ = this.delay.delay_fread3(this.sampdel1) * this.amp1;
+    val_ += this.delay.delay_fread3(this.sampdel2) * this.amp2;
+    this._sdelay_update_amps();
+    val_;
+);
+
+function sdelay_sread3(delay)
+(
+    this.sdelay_read3(delay * srate);
+);
+
+function sdelay_fsread3(delay)
+(
+    this.sdelay_fread3(delay * srate);
+);
