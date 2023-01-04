@@ -1,0 +1,1440 @@
+@init
+
+// Sorensen in-place split-radix FFT for real values.
+//
+// data before process {array of doubles}:  
+// *re(0), re(1), re(2), ..., re(size-1)*
+//
+// data after process {array of doubles}:  
+// *re(0), re(1), re(2), ..., re(size/2), im(size/2-1), ..., im(1)*
+//
+// Output data is normalized by array length.
+//
+// Source:  
+// Sorensen et al: *Real-Valued Fast Fourier Transform Algorithms*, 
+// IEEE Trans. ASSP, ASSP-35, No. 6, June 1987
+//
+// Implementation in C by Toth Laszlo, 97.05.29
+// 
+// Transposed to jsfx language by Olivier Belanger 2014.06.11
+//
+// Original file can be found on musicdsp.org :
+// http://www.musicdsp.org/archive.php?classid=2#79
+///////////////////////////////////////////////////////////////////
+function realfft(data n twiddle)
+(
+    isqrt2 = 1.0 / 1.4142135623730951; // 1/sqrt(2.0)
+    n4 = n - 1;
+    nn8 = n >> 3;
+
+    // data shuffling
+    i = j = 0;
+    n2 = n/2;
+    while (i < n4) (
+        i < j ? (
+            t1 = data[j];
+            data[j] = data[i];
+            data[i] = t1;
+        );
+        k = n2;
+        while (k <= j) (
+            j -= k;
+            k = k >> 1;
+        );
+        j += k;
+        i += 1;
+    );
+  
+  // length two butterflies
+  i0 = 0;
+  id = 4;
+    while (
+        while (i0 < n4) (
+            i1 = i0 + 1;
+            t1 = data[i0];
+            data[i0] = t1 + data[i1];
+            data[i1] = t1 - data[i1];
+            i0 += id;
+        );
+        id = id << 1;
+        i0 = id - 2;
+        id = id << 1;
+        i0 < n4;
+    );
+
+    // L shaped butterflies
+    n2 = 2;
+    k = n;
+    while (k > 2) (
+        n2 = n2 << 1; // power of two from 4 to n
+        n4 = n2 >> 2;
+        n8 = n2 >> 3;
+        pas = n / n2;
+        i1 = 0;
+        id = n2 << 1;
+        while (
+            while (i1 < n) (
+                i2 = i1 + n4;
+                i3 = i2 + n4;
+                i4 = i3 + n4;
+                t1 = data[i4] + data[i3];
+                data[i4] -= data[i3];
+                data[i3] = data[i1] - t1;
+                data[i1] += t1;
+                n4 != 1 ? (
+                    i0 = i1 + n8;
+                    i2 += n8;
+                    i3 += n8;
+                    i4 += n8;
+                    t1 = (data[i3] + data[i4]) * isqrt2;
+                    t2 = (data[i3] - data[i4]) * isqrt2;
+                    data[i4] = data[i2] - t1;
+                    data[i3] = -data[i2] - t1;
+                    data[i2] = data[i0] - t2;
+                    data[i0] += t2;
+                );
+                i1 += id;
+            );
+            id = id << 1;
+            i1 = id - n2;
+            id = id << 1;
+            i1 < n;
+        );
+        j = 2;
+        while (j <= n8) (
+            pos = (j-1) * pas;
+            cc1 = twiddle[pos];
+            ss1 = twiddle[nn8+pos];
+            cc3 = twiddle[nn8*2+pos];
+            ss3 = twiddle[nn8*3+pos];
+            i = 0;
+            id = n2 << 1;
+            while (
+                while (i < n) (
+                    i1 = i + j - 1;
+                    i2 = i1 + n4;
+                    i3 = i2 + n4;
+                    i4 = i3 + n4;
+                    i5 = i + n4 - j + 1;
+                    i6 = i5 + n4;
+                    i7 = i6 + n4;
+                    i8 = i7 + n4;
+                    t1 = data[i3] * cc1 + data[i7] * ss1;
+                    t2 = data[i7] * cc1 - data[i3] * ss1;
+                    t3 = data[i4] * cc3 + data[i8] * ss3;
+                    t4 = data[i8] * cc3 - data[i4] * ss3;
+                    t5 = t1 + t3;
+                    t6 = t2 + t4;
+                    t3 = t1 - t3;
+                    t4 = t2 - t4;
+                    t2 = data[i6] + t6;
+                    data[i3] = t6 - data[i6];
+                    data[i8] = t2;
+                    t2 = data[i2] - t3;
+                    data[i7] = -data[i2] - t3;
+                    data[i4] = t2;
+                    t1 = data[i1] + t5;
+                    data[i6] = data[i1] - t5;
+                    data[i1] = t1;
+                    t1 = data[i5] + t4;
+                    data[i5] -= t4;
+                    data[i2] = t1;
+                    i += id;
+                );
+                id = id << 1;
+                i = id - n2;
+                id = id << 1;
+                i < n;
+            );
+            j += 1;
+        );
+        k = k >> 1;
+    );
+
+    // division with array length
+    norm = 1 / n;
+    i = 0;
+    loop(n, 
+        data[i] *= norm;
+        i += 1;
+    );
+);
+
+// Sorensen in-place inverse split-radix FFT for real values.
+//
+// data before process {array of doubles}:  
+// *re(0), re(1), re(2), ..., re(size/2), im(size/2-1), ..., im(1)*
+//
+// data after process {array of doubles}:  
+// *re(0), re(1), re(2), ..., re(size-1)*
+//
+// Processed data is NOT normalized by array length.
+//
+// Source:  
+// Sorensen et al: *Real-Valued Fast Fourier Transform Algorithms*, 
+// IEEE Trans. ASSP, ASSP-35, No. 6, June 1987
+//
+// Implementation in C by Toth Laszlo, 97.05.29
+//
+// Transposed to jsfx language by Olivier Belanger 2014.06.11
+//
+// Original file can be found on musicdsp.org :
+// http://www.musicdsp.org/archive.php?classid=2#79
+///////////////////////////////////////////////////////////////////
+function irealfft(data size twiddle)
+( 
+    isqrt2 = 1.0 / 1.4142135623730951; // 1/sqrt(2.0)
+    n = size;
+    nn8 = n >> 3;
+    n1 = n - 1;
+    n2 = n << 1;
+    k = n;
+    while (k > 2) (
+        id = n2;
+        n2 = n2 >> 1;
+        n4 = n2 >> 2;
+        n8 = n2 >> 3;
+        pas = n / n2;
+        i1 = 0;
+        while (
+            while (i1 < n) (
+                i2 = i1 + n4;
+                i3 = i2 + n4;
+                i4 = i3 + n4;
+                t1 = data[i1] - data[i3];
+                data[i1] += data[i3];
+                data[i2] *= 2;
+                data[i3] = t1 - 2 * data[i4];
+                data[i4] = t1 + 2 * data[i4];
+                n4 != 1 ? (
+                    i0 = i1 + n8;
+                    i2 += n8;
+                    i3 += n8;
+                    i4 += n8;
+                    t1 = (data[i2] - data[i0]) * isqrt2;
+                    t2 = (data[i4] + data[i3]) * isqrt2;
+                    data[i0] += data[i2];
+                    data[i2] = data[i4] - data[i3];
+                    data[i3] = 2 * (-t2 - t1);
+                    data[i4] = 2 * (-t2 + t1);
+                );
+                i1 += id;
+            );
+            id = id << 1;
+            i1 = id - n2;
+            id = id << 1;
+            i1 < n1
+        );
+        j = 2;
+        while (j <= n8) (
+            pos = (j-1) * pas;
+            cc1 = twiddle[pos];
+            ss1 = twiddle[nn8+pos];
+            cc3 = twiddle[nn8*2+pos];
+            ss3 = twiddle[nn8*3+pos];
+            i = 0;
+            id = n2 << 1;
+            while (
+                while (i < n) (
+                    i1 = i + j - 1;
+                    i2 = i1 + n4;
+                    i3 = i2 + n4;
+                    i4 = i3 + n4;
+                    i5 = i + n4 - j + 1;
+                    i6 = i5 + n4;
+                    i7 = i6 + n4;
+                    i8 = i7 + n4;
+                    t1 = data[i1] - data[i6];
+                    data[i1] += data[i6];
+                    t2 = data[i5] - data[i2];
+                    data[i5] += data[i2];
+                    t3 = data[i8] + data[i3];
+                    data[i6] = data[i8] - data[i3];
+                    t4 = data[i4] + data[i7];
+                    data[i2] = data[i4] - data[i7];
+                    t5 = t1 - t4;
+                    t1 += t4;
+                    t4 = t2 - t3;
+                    t2 += t3;
+                    data[i3] = t5 * cc1 + t4 * ss1;
+                    data[i7] = -t4 * cc1 + t5 * ss1;
+                    data[i4] = t1 * cc3 - t2 * ss3;
+                    data[i8] = t2 * cc3 + t1 * ss3;
+                    i += id;
+                );
+                id = id << 1;
+                i = id - n2;
+                id = id << 1;
+                i < n1;
+            );
+            j += 1;
+        );    
+        k = k >> 1;
+    );
+
+    i0 = 0;
+    id = 4;
+    while (
+        while (i0 < n1) (
+            i1 = i0 + 1;
+            t1 = data[i0];
+            data[i0] = t1 + data[i1];
+            data[i1] = t1 - data[i1];
+            i0 += id;
+        );
+        id = id << 1;
+        i0 = id - 2;
+        id = id << 1;
+        i0 < n1;
+    );
+
+    // data shuffling
+    i = j = 0;
+    n2 = n / 2;
+    while (i < n1) (
+        i < j ? (
+            t1 = data[j];
+            data[j] = data[i];
+            data[i] = t1;
+        );
+        k = n2;
+        while (k <= j) (
+            j -= k;
+            k = k >> 1;
+        );
+        j += k;
+        i += 1;
+    );
+);
+
+/******************************************************* 
+FFTIN
+=====
+
+Apply a Fast Fourier Transform analysis on an input signal.
+
+Description
+-----------
+
+The `fftin` object transforms an audio signal into its spectral
+representation. The real and imaginary part from the analysis 
+are stored in the `real` and `imag` internal arrays.
+ 
+Initializer
+-----------
+
+#### fftin(size, olaps, [window]) ####
+
+Initializes a Fast Fourier Transform algorithm. The FFT size, in
+samples, given by the `size` argument, must be a power of two.
+The `olaps` argument specifies the number of overlapping analysis.
+There will be an output analysis every `size / olaps` samples. The
+`window` argument, as an integer, gives the shape of the analysis 
+envelope (see `buffer` object for the available windows). The default 
+is a hanning window.
+ 
+Methods
+-------
+
+#### fftin_resize(size, olaps) ####
+
+Resizes internal memories of the FFT agorithm with the new `size` 
+and `olaps` factors. The corresponding `fftout` object (and every 
+processes in between) should always use the same size and number 
+of overlaps.
+
+#### fftin_set_window(window) ####
+
+Sets a new analysis window. See `buffer` object for the available 
+windows.
+
+#### fftin_do(signal) ####
+
+Processes one sample of the input `signal` and updates the `count`
+and `ready` attributes of the object. The `count` attribute should
+be used to retrieve the current resynthesized sample from a `fftout` 
+object. The `ready` attribute indicates when `real` and `imag` buffers 
+are ready to be processed.
+
+Attributes
+----------
+
+#### fftin.ready ####
+
+This attribute will have a value of 1 when a new frame (`real` 
+and  `imag` buffers) is ready to be processed. This will happen 
+every `size / olaps` samples. Otherwise, the `ready` attribute 
+holds a value of 0.
+
+#### fftin.count ####
+
+This attribute holds the current analysis sample count. It can 
+used to retrieve the current output sample from a `fftout` object.
+
+#### fftin.real ####
+
+Buffer that holds the real part of the analysis. Indexes run from 
+0 to half the FFT size.
+
+#### fftin.imag ####
+
+Buffer that holds the imaginary part of the analysis. Indexes run 
+from 0 to half the FFT size.
+
+Example
+-------
+
+    desc:FFT Randomizer
+
+    import cookdsp.jsfx-inc
+
+    // FFT parameters (only FFT Size for the example).
+    slider1:5<0,8,1{32,64,128,256,512,1024,2048,4096,8192}>FFT Size
+    // Effect's specific slider
+    slider2:10<1,100,1>How Many Bins
+
+    @init
+    size = pow(2, slider1+5);
+    // Initialize FFT with 4 overlaps and hanning window
+    fin.fftin(size, 4);
+    fout.fftout(size, 4);
+    real = memalloc(size/2);
+    imag = memalloc(size/2);
+    
+    @slider
+    size = pow(2, slider1+5);
+    // If fftsize or overlaps changed, re-initialize FFTs.
+    size != fin.size ? (
+        fin.fftin_resize(size, 4);
+        fout.fftout_resize(size, 4);
+        // Initialize effect's specific memories
+        real = memalloc(size/2);
+        imag = memalloc(size/2);
+    );
+
+    @sample
+    // Compute FFT on both channels at the same time to save space
+    fin.fftin_do((spl0 + spl1) * 0.707);
+    spl0 = spl1 = fout.fftout_get_output(fin.count);
+
+    fin.ready ? ( // New buffers ready for processing.
+        // Resets output buffers to zeros
+        memset(real, 0, size/2);
+        memset(imag, 0, size/2);
+        // Choose randomly "slider2" bins to output 
+        loop(slider2,
+            bin = rand(size/2);
+            real[bin] = fin.real[bin]; 
+            imag[bin] = fin.imag[bin];
+        );
+        // compute the inverse FFT.
+        fout.fftout_do(real, imag);
+    );
+
+********************************************************/
+// private fft window generator
+function _fft_generate_window(window)
+(
+    this.wind.buffer(this.size);
+    this.wind.buffer_window(window);
+    this.window = window;
+);
+
+// private twiddle generator function
+function _fft_generate_twiddle()
+(
+    n8 = this.size >> 3;
+    e = 2.0 * $pi / this.size;
+    a = e;
+    j = 2;
+    while (j <= n8) (
+        a3 = 3 * a;
+        this.twiddle[j-1] = cos(a);
+        this.twiddle[n8+j-1] = sin(a);
+        this.twiddle[n8*2+j-1] = cos(a3);
+        this.twiddle[n8*3+j-1] = sin(a3);
+        a = j * e;
+        j += 1;
+    );
+);
+
+// private fftin initialization function
+function _fftin_init(size, olaps, window)
+(
+    // init variables
+    this.ready = 0;
+    this.size = size;
+    this.olaps = olaps;
+    this.hsize = this.size / 2;
+    this.hopsize = this.size / this.olaps;
+    this.inputLatency = this.size - this.hopsize;
+    this.incount = this.inputLatency;
+    this.count = 0;
+    this.overcount = 0;
+    // init memories
+    this.inbuf = memalloc(this.size);
+    this.frame = memalloc(this.size);
+    this.real = memalloc(this.hsize);
+    this.imag = memalloc(this.hsize);
+    this.twiddle = memalloc(4 * (this.size >> 3));
+    this._fft_generate_window(window);
+    this._fft_generate_twiddle();
+);
+
+function fftin(size olaps window)
+(
+    this._fftin_init(size, olaps, window);
+);
+
+function fftin(size olaps)
+(
+    this._fftin_init(size, olaps, 1);
+);
+
+function fftin_resize(size olaps)
+(
+    this._fftin_init(size, olaps, this.window);
+);
+
+function fftin_set_window(window)
+(
+    this._fft_generate_window(window);
+);
+
+function fftin_do(signal)
+(
+    this.ready = 0;
+    this.count = this.incount - this.inputLatency;
+    this.inbuf[this.incount] = signal;
+    this.incount += 1;
+    this.incount >= this.size ? (
+        this.ready = 1;
+        this.incount = this.inputLatency;
+        mod_ = this.hopsize * this.overcount;
+        k_ = 0;
+        loop(this.size,
+            this.frame[(k_+mod_)%this.size] = this.inbuf[k_] * this.wind.buffer_fread(k_);
+            k_ += 1;
+        );
+        realfft(this.frame, this.size, this.twiddle);
+        this.real[0] = this.frame[0]; this.imag[0] = 0.0;
+        k_ = 1;
+        while (k_ < this.hsize) (
+            this.real[k_] = this.frame[k_]; this.imag[k_] = this.frame[this.size - k_];
+            k_ += 1;
+        );
+        k_ = 0;
+        while (k_ < this.inputLatency) (
+            this.inbuf[k_] = this.inbuf[k_ + this.hopsize];
+            k_ += 1;
+        );
+        this.overcount += 1;
+        this.overcount >= this.olaps ? this.overcount = 0;
+    );
+);
+
+/******************************************************* 
+FFTOUT
+======
+
+Apply an Inverse Fast Fourier Transform on an analysis signal.
+
+Description
+-----------
+
+The `fftout` object converts the spectral representation of a signal 
+into its temporal form (real signal). It takes a real and imaginary
+parts, coming from an FFT process, to compute the inverse FFT and 
+return the corresponding audio signal. 
+
+Initializer
+-----------
+
+#### fftout(size, olaps, [window]) ####
+
+Initializes an Inverse Fast Fourier Transform algorithm. The FFT size, 
+in samples, given by the `size` argument, must be a power of two.
+The `olaps` argument specifies the number of overlapping analysis.
+There will be a sample block outputted every `size / olaps` samples. 
+The `window` argument, as an integer, gives the shape of the analysis 
+envelope (see `buffer` object for the available windows). The default 
+is a hanning window.
+
+Methods
+-------
+
+#### fftout_resize(size, olaps) ####
+
+Resizes internal memories of the FFT agorithm with the new `size` 
+and `olaps` factors. The corresponding `fftin` object (and every 
+processes in between) should always use the same size and number 
+of overlaps.
+
+#### fftout_set_window(window) ####
+
+Sets a new analysis window. See `buffer` object for the available 
+windows.
+
+#### fftout_get_output(count) ####
+
+Use this function to retrieve the output sample, from the
+Inverse Fast Fourier Transform, at the position `count`. If
+the position comes from the `count` attribute of a `fftin` 
+object, the current output sample will be retrieved.
+
+#### fftout_do(real, imag) ####
+
+Computes an Inverse Fast Fourier Transform with the arrays
+`real` and `imag`. This function should be called only when
+the `fftin` attribute `ready` is 1.
+
+Example
+-------
+
+    desc:FFT Comb Filter
+
+    import cookdsp.jsfx-inc
+
+    // FFT parameters (only FFT Size for the example).
+    slider1:5<0,8,1{32,64,128,256,512,1024,2048,4096,8192}>FFT Size
+    // Effect's specific slider.
+    slider2:2<2,100,1>Bin Step
+
+    @init
+    size = pow(2, slider1+5);
+    // Initialize FFT with 4 overlaps and hanning window
+    fin.fftin(size, 4);
+    fout.fftout(size, 4);
+    real = memalloc(size/2);
+    imag = memalloc(size/2);
+
+    @slider
+    size = pow(2, slider1+5);
+    // If size changed, re-initialize FFTs.
+    size != fin.size ? (
+        fin.fftin_resize(size, 4);
+        fout.fftout_resize(size, 4);
+        // Initialize effect's specific memories
+        real = memalloc(size/2);
+        imag = memalloc(size/2);
+    );
+
+    @sample
+    // Compute FFT on both channels at the same time to save space
+    fin.fftin_do((spl0 + spl1) * 0.707);
+    spl0 = spl1 = fout.fftout_get_output(fin.count);
+
+    fin.ready ? ( // New buffers ready for processing.
+        k = 0;
+        while (k < size/2) (
+            // Passes the signal only for bins that are multiples of slider2 value
+            k % slider2 == 0 ? (
+                real[k] = fin.real[k]; 
+                imag[k] = fin.imag[k];
+            ) : (
+                real[k] = imag[k] = 0;
+            );
+            k += 1;
+        );
+        // compute the inverse FFT.
+        fout.fftout_do(real, imag);
+    );
+
+********************************************************/
+// private fftout initialization function
+function _fftout_init(size, olaps, window)
+(
+    // init variables
+    this.size = size;
+    this.olaps = olaps;
+    this.ampscl = 1.0 / sqrt(olaps);
+    this.hsize = this.size / 2;
+    this.hopsize = this.size / this.olaps;
+    this.overcount = 0;
+    // init memories
+    this.outbuf = memalloc(this.size);
+    this.frame = memalloc(this.size);
+    this.accum = memalloc(this.size + this.hopsize);
+    this.twiddle = memalloc(4 * (this.size >> 3));
+    this._fft_generate_window(window);
+    this._fft_generate_twiddle();
+);
+
+function fftout(size olaps window)
+(
+    this._fftout_init(size, olaps, window);
+);
+
+function fftout(size olaps)
+(
+    this._fftout_init(size, olaps, 1);
+);
+
+function fftout_resize(size olaps)
+(
+    this._fftout_init(size, olaps, this.window);
+);
+
+function fftout_set_window(window)
+(
+    this._fft_generate_window(window);
+);
+
+function fftout_get_output(count) 
+(
+    // count is fftin.count
+    this.outbuf[count];
+);
+
+// call fftout_do only when fftin.ready is true
+function fftout_do(real imag)
+(
+    mod_ = this.hopsize * this.overcount;
+    this.frame[0] = real[0]; this.frame[this.hsize] = 0.0;
+    k_ = 1;
+    while (k_ < this.hsize) (
+        this.frame[k_] = real[k_]; this.frame[this.size - k_] = imag[k_];
+        k_ += 1;
+    );
+    irealfft(this.frame, this.size, this.twiddle);
+    k_ = 0;
+    while (k_ < this.size) (
+        this.accum[k_] += this.frame[(k_+mod_)%this.size] * this.ampscl * this.wind.buffer_fread(k_);
+        k_ += 1;
+    );
+    k_ = 0;
+    while (k_ < this.hopsize) (
+        this.outbuf[k_] = this.accum[k_];
+        k_ += 1;
+    );
+    k_ = 0;
+    while (k_ < this.size) (
+         this.accum[k_] = this.accum[k_ + this.hopsize];
+        k_ += 1;
+    );
+    this.overcount += 1;
+    this.overcount >= this.olaps ? this.overcount = 0;
+);
+
+/******************************************************* 
+FFTBRICK
+========
+
+Apply a brickwall filter on a FFT analysis signal.
+
+Description
+-----------
+
+The `fftbrick` object takes a complex signal in input (real
+and imaginary parts of a FFT spectral analysis)  and applies
+either a lowpass or a highpass brickwall filter on it.
+
+Initializer
+-----------
+
+#### fftbrick(freq, type, size) ####
+
+Initializes either a lowpass or a highpass filter, accroding 
+to the `type` argument (0 means a lowpass, 1 means a highpass), 
+with `freq` argument as the cutoff frequency, in Hz. The `size` 
+argument is the length of the `real` and `imag` arrays, 
+usually half the FFT analysis size.
+
+Methods
+-------
+
+#### fftbrick_resize(size) ####
+
+Resizes internal memories of the process with the new `size`. 
+The size of a FFT process must be half the size of the FFT 
+used to analyse to input signal. This is the size of the real 
+and imaginary buffers.
+
+#### fftbrick_set_freq(freq) ####
+
+Sets a new cutoff frequency `freq`, in Hz.
+
+#### fftbrick_set_type(type) ####
+
+Sets a new filter type. 0 means a lowpass filter and 1 means a
+highpass filter.
+
+#### fftbrick_do(real, imag) ####
+
+Computes one frame of the process on a complex signal (`real` and 
+`imag` are the real and imaginary parts coming from a `fftin` or 
+any FFT processing object). The internal `real` and `imag` buffers 
+hold the processed complex signal. This function should be called
+only when the `ready` attribute of a `fftin` object has a value of 1.
+ 
+Attributes
+----------
+
+#### fftbrick.real ####
+
+Buffer that holds the real part of the process. Indexes run from 
+0 to the process size (usually half the FFT size).
+
+#### fftbrick.imag ####
+
+Buffer that holds the imaginary part of the process. Indexes run 
+from 0 to the process size (usually half the FFT size).
+
+Example
+-------
+
+    desc:FFT Stereo BrickWall Filter
+
+    import cookdsp.jsfx-inc
+
+    // FFT parameters (only FFT Size for the example).
+    slider1:5<0,8,1{32,64,128,256,512,1024,2048,4096,8192}>FFT Size
+    // Effect's specific sliders.
+    slider2:1000<100,18000>Filter Frequency
+    slider3:0<0,1,1{Lowpass,Highpass}>Filter Type
+
+    @init
+    size = pow(2, slider1+5);
+    fin.fftin(size, 4);
+    fin2.fftin(size, 4);
+    fout.fftout(size, 4);
+    fout2.fftout(size, 4);
+    brk.fftbrick(slider2, slider3, size/2);
+    brk2.fftbrick(slider2, slider3, size/2);
+
+    @slider
+    size = pow(2, slider1+5);
+    // If size changed, re-initialize FFTs.
+    size != fin.size ? (
+        fin.fftin_resize(size, 4);
+        fin2.fftin_resize(size, 4);
+        fout.fftout_resize(size, 4);
+        fout2.fftout_resize(size, 4);
+        // Initialize effect's specific memories.
+        brk.fftbrick_resize(size/2);
+        brk2.fftbrick_resize(size/2);
+    );
+    // If cutoff frequency changed.
+    slider2 != brk.freq ? (
+        brk.fftbrick_set_freq(slider2);
+        brk2.fftbrick_set_freq(slider2);
+    );
+    brk.fftbrick_set_type(slider3);
+    brk2.fftbrick_set_type(slider3);
+
+    @sample
+    // Input / Output
+    fin.fftin_do(spl0);
+    fin2.fftin_do(spl1);
+    spl0 = fout.fftout_get_output(fin.count);
+    spl1 = fout2.fftout_get_output(fin2.count);
+
+    fin.ready ? (
+        // New buffers ready for processing.
+        brk.fftbrick_do(fin.real, fin.imag);
+        brk2.fftbrick_do(fin2.real, fin2.imag);
+        // compute the inverse FFT.
+        fout.fftout_do(brk.real, brk.imag);
+        fout2.fftout_do(brk2.real, brk2.imag);
+    );
+
+********************************************************/
+function fftbrick(freq type size)
+(
+    this.ny = srate / 0.49;
+    freq < 20 ? freq = 20 : freq > this.ny ? freq = this.ny;
+    this.freq = freq;
+    type < 0 ? type = 0 : type > 1 ? type = 1;
+    this.type = type;
+    this.size = size;
+    this.factor = this.size * 2.0 / srate;
+    this.bin = floor(this.freq * this.factor  + 0.5);
+    this.real = memalloc(size);
+    this.imag = memalloc(size);
+);
+
+function fftbrick_set_freq(freq)
+(
+    freq < 20 ? freq = 20 : freq > this.ny ? freq = this.ny;
+    this.freq = freq;
+    this.bin = floor(this.freq * this.factor + 0.5);
+);
+
+function fftbrick_set_type(type)
+(
+    type < 0 ? type = 0 : type > 1 ? type = 1;
+    this.type = type;
+);
+
+function fftbrick_resize(size)
+(
+    this.size = size;
+    this.factor = this.size * 2.0 / srate;;
+    this.bin = floor(this.freq * this.factor + 0.5);
+    this.real = memalloc(size);
+    this.imag = memalloc(size);
+);
+
+function fftbrick_do(real imag)
+(
+    k_ = 0;
+    this.type == 0 ? (
+        // Lowpass
+        while (k_ < this.bin) (
+            this.real[k_] = real[k_]; this.imag[k_] = imag[k_];
+            k_ += 1;
+        );
+        while (k_ < this.size) (
+            this.real[k_] = 0.0; this.imag[k_] = 0.0;
+            k_ += 1;
+        );
+    ) : (
+        // Highpass
+        while (k_ < this.bin) (
+            this.real[k_] = 0.0; this.imag[k_] = 0.0;
+            k_ += 1;
+        );
+        while (k_ < this.size) (
+            this.real[k_] = real[k_]; this.imag[k_] = imag[k_];
+            k_ += 1;
+        );
+    );
+);
+
+/******************************************************* 
+FFTBAND
+=======
+
+Apply a bandpass filter on a FFT analysis signal.
+
+Description
+-----------
+
+The `fftband` object takes a complex signal in input (real
+and imaginary parts of a FFT spectral analysis)  and applies
+either a bandpass or a bandstop brickwall filter on it.
+
+Initializer
+-----------
+
+#### fftband(freq, bw, type, size) ####
+
+Initializes either a bandpass or a bandstop filter, accroding 
+to the `type` argument (0 means a bandpass, 1 means a bandstop), 
+with `freq` argument as the center frequency and `bw` argument 
+as the filter's bandwidth, both in Hz. The `size` argument is 
+the length of the `real` and `imag` arrays, usually half the 
+FFT analysis size.
+
+Methods
+-------
+
+#### fftband_resize(size) ####
+
+Resizes internal memories of the process with the new `size`. 
+The size of a FFT process must be half the size of the FFT 
+used to analyse to input signal. This is the size of the real 
+and imaginary buffers.
+
+#### fftband_set_freq(freq) ####
+
+Sets a new center frequency `freq`, in Hz.
+
+#### fftband_set_bw(bw) ####
+
+Sets a new filter's bandwidth `bw`, in Hz.
+
+#### fftband_set_type(type) ####
+
+Sets a new filter type. 0 means a bandpass filter and 1 means 
+a bandstop filter.
+
+#### fftband_do(real, imag) ####
+
+Computes one frame of the process on a complex signal (`real` and 
+`imag` are the real and imaginary parts coming from a `fftin` or 
+any FFT processing object). The internal `real` and `imag` buffers 
+hold the processed complex signal. This function should be called
+only when the `ready` attribute of a `fftin` object has a value of 1.
+
+Attributes
+----------
+
+#### fftband.real ####
+
+Buffer that holds the real part of the process. Indexes run from 
+0 to the process size (usually half the FFT size).
+
+#### fftband.imag ####
+
+Buffer that holds the imaginary part of the process. Indexes run 
+from 0 to the process size (usually half the FFT size).
+
+Example
+-------
+
+    desc:FFT Stereo Bandpass/Bandstop Filter
+
+    import cookdsp.jsfx-inc
+
+    // FFT parameters (only FFT Size for the example).
+    slider1:5<0,8,1{32,64,128,256,512,1024,2048,4096,8192}>FFT Size
+    // Effect's specific sliders.
+    slider2:1000<100,18000>Filter Frequency (Hz)
+    slider3:500<10,10000>Filter Bandwidth (Hz)
+    slider4:0<0,1,1{Bandpass,Bandstop}>Filter Type
+
+    @init
+    size = pow(2, slider1+5);
+    fin.fftin(size, 4);
+    fin2.fftin(size, 4);
+    fout.fftout(size, 4);
+    fout2.fftout(size, 4);
+    filt.fftband(slider2, slider3, slider4, size/2);
+    filt2.fftband(slider2, slider3, slider4, size/2);
+
+    @slider
+    size = pow(2, slider1+5);
+    // If size changed, re-initialize FFTs.
+    size != fin.size ? (
+        fin.fftin_resize(size, 4);
+        fin2.fftin_resize(size, 4);
+        fout.fftout_resize(size, 4);
+        fout2.fftout_resize(size, 4);
+        // Initialize effect's specific memories.
+        filt.fftband_resize(size/2);
+        filt2.fftband_resize(size/2);
+    );
+    // If center frequency changed.
+    slider2 != filt.freq ? (
+        filt.fftband_set_freq(slider2);
+        filt2.fftband_set_freq(slider2);
+    );
+    // If bandwidth changed.
+    slider3 != filt.bw ? (
+        filt.fftband_set_bw(slider3);
+        filt2.fftband_set_bw(slider3);
+    );
+    filt.fftband_set_type(slider4);
+    filt2.fftband_set_type(slider4);
+
+    @sample
+    // Input / Output
+    fin.fftin_do(spl0);
+    fin2.fftin_do(spl1);
+    spl0 = fout.fftout_get_output(fin.count);
+    spl1 = fout2.fftout_get_output(fin2.count);
+
+    fin.ready ? (
+        // New buffers ready for processing.
+        filt.fftband_do(fin.real, fin.imag);
+        filt2.fftband_do(fin2.real, fin2.imag);
+        // compute the inverse FFT.
+        fout.fftout_do(filt.real, filt.imag);
+        fout2.fftout_do(filt2.real, filt2.imag);
+    );
+
+********************************************************/
+function fftband(freq bw type size)
+(
+    this.ny = srate / 0.49;
+    this.ny2 = this.ny / 2;
+    freq < 20 ? freq = 20 : freq > this.ny ? freq = this.ny;
+    this.freq = freq;
+    bw < 5 ? bw = 5 : bw > this.ny2 ? bw = this.ny2;
+    this.bw = bw;
+    type < 0 ? type = 0 : type > 1 ? type = 1;
+    this.type = type;
+    this.size = size;
+    this.factor = this.size * 2.0 / srate;
+    this.bin1 = floor((this.freq - (this.bw / 2)) * this.factor  + 0.5);
+    this.bin2 = floor((this.freq + (this.bw / 2)) * this.factor  + 0.5);
+    this.real = memalloc(size);
+    this.imag = memalloc(size);
+);
+
+function fftband_set_freq(freq)
+(
+    freq < 20 ? freq = 20 : freq > this.ny ? freq = this.ny;
+    this.freq = freq;
+    this.bin1 = floor((this.freq - (this.bw / 2)) * this.factor  + 0.5);
+    this.bin2 = floor((this.freq + (this.bw / 2)) * this.factor  + 0.5);
+);
+
+function fftband_set_bw(bw)
+(
+    bw < 5 ? bw = 5 : bw > this.ny2 ? bw = this.ny2;
+    this.bw = bw;
+    this.bin1 = floor((this.freq - (this.bw / 2)) * this.factor  + 0.5);
+    this.bin2 = floor((this.freq + (this.bw / 2)) * this.factor  + 0.5);
+);
+
+function fftband_set_type(type)
+(
+    type < 0 ? type = 0 : type > 1 ? type = 1;
+    this.type = type;
+);
+
+function fftband_resize(size)
+(
+    this.size = size;
+    this.factor = this.size * 2.0 / srate;
+    this.bin1 = floor((this.freq - (this.bw / 2)) * this.factor  + 0.5);
+    this.bin2 = floor((this.freq + (this.bw / 2)) * this.factor  + 0.5);
+    this.real = memalloc(size);
+    this.imag = memalloc(size);
+);
+
+function fftband_do(real imag)
+(
+    k_ = 0;
+    this.type == 0 ? ( 
+        // Bandpass
+        while (k_ < this.bin1) (
+            this.real[k_] = 0.0; this.imag[k_] = 0.0;
+            k_ += 1;
+        );
+        while (k_ < this.bin2) (
+            this.real[k_] = real[k_]; this.imag[k_] = imag[k_];
+            k_ += 1;
+        );
+        while (k_ < this.size) (
+            this.real[k_] = 0.0; this.imag[k_] = 0.0;
+            k_ += 1;
+        );
+    ) : ( 
+        // Bandstop
+        while (k_ < this.bin1) (
+            this.real[k_] = real[k_]; this.imag[k_] = imag[k_];
+            k_ += 1;
+        );
+        while (k_ < this.bin2) (
+            this.real[k_] = 0.0; this.imag[k_] = 0.0;
+            k_ += 1;
+        );
+        while (k_ < this.size) (
+            this.real[k_] = real[k_]; this.imag[k_] = imag[k_];
+            k_ += 1;
+        );
+    );
+);
+
+/******************************************************* 
+FFTFILTER
+=========
+
+Filters an FFT-analysed signal according to the values in an array.
+
+Description
+-----------
+
+The `fftfilter` object takes a complex signal in input (real
+and imaginary parts of a FFT spectral analysis) and weights
+every bins according to the values stored in an array.
+
+Initializer
+-----------
+
+#### fftfilter(filtarray, size) ####
+
+Initializes the spectral filter with an argument `filtarray`, which
+is the first position of an array of amplitude values. The array
+length must equal or greater than the object's size. The `size` 
+argument is the length of the `real` and `imag` arrays, usually 
+half the FFT analysis size.
+
+Methods
+-------
+
+#### fftfilter_resize(size) ####
+
+Resizes internal memories of the process with the new `size`. 
+The size of a FFT process must be half the size of the FFT 
+used to analyse to input signal. This is the size of the real 
+and imaginary buffers.
+
+#### fftfilter_set_filtarray(filtarray) ####
+
+Sets a new amplitude array.
+
+#### fftfilter_do(real, imag) ####
+
+Computes one frame of the process on a complex signal (`real` and 
+`imag` are the real and imaginary parts coming from a `fftin` or 
+any FFT processing object). The internal `real` and `imag` buffers 
+hold the processed complex signal. This function should be called
+only when the `ready` attribute of a `fftin` object has a value of 1.
+ 
+Attributes
+----------
+
+#### fftfilter.real ####
+
+Buffer that holds the real part of the process. Indexes run from 
+0 to the process size (usually half the FFT size).
+
+#### fftfilter.imag ####
+
+Buffer that holds the imaginary part of the process. Indexes run 
+from 0 to the process size (usually half the FFT size).
+
+Example
+-------
+
+    desc:Spectral Filter
+
+    import cookdsp.jsfx-inc
+
+    // FFT parameters (only FFT Size for the example).
+    slider1:5<0,8,1{32,64,128,256,512,1024,2048,4096,8192}>FFT Size
+    
+    @init
+    function rand_filter(filtarray size)
+    (
+        // Generate a random filter
+        k = 0;
+        while (k < size) (
+            val = min(rand(1), rand(1));
+            filtarray[k] = val;
+            k += 1;
+        )
+    );
+
+    size = pow(2, slider1+5);
+    hsize = size / 2;
+    fin.fftin(size, 4);
+    fin2.fftin(size, 4);
+    fout.fftout(size, 4);
+    fout2.fftout(size, 4);
+    filter = memalloc(hsize);
+    filt.fftfilter(filter, hsize);
+    filt2.fftfilter(filter, hsize);
+    rand_filter(filter, hsize);
+
+    @slider
+    size = pow(2, slider1+5);
+    // If size changed, re-initialize FFTs.
+    size != fin.size ? (
+        hsize = size / 2;
+        fin.fftin_resize(size, 4);
+        fin2.fftin_resize(size, 4);
+        fout.fftout_resize(size, 4);
+        fout2.fftout_resize(size, 4);
+        // Initialize effect's specific memories.
+        filter = memalloc(hsize);
+        filt.fftfilter_resize(hsize);
+        filt2.fftfilter_resize(hsize);
+        filt.fftfilter_set_filtarray(filter);
+        filt2.fftfilter_set_filtarray(filter);
+        rand_filter(filter, hsize);
+    );
+
+    @sample
+    // Input / Output
+    fin.fftin_do(spl0);
+    fin2.fftin_do(spl1);
+    spl0 = fout.fftout_get_output(fin.count);
+    spl1 = fout2.fftout_get_output(fin2.count);
+
+    fin.ready ? (
+        // New buffers ready for processing.
+        filt.fftfilter_do(fin.real, fin.imag);
+        filt2.fftfilter_do(fin2.real, fin2.imag);
+        // compute the inverse FFT.
+        fout.fftout_do(filt.real, filt.imag);
+        fout2.fftout_do(filt2.real, filt2.imag);
+    );
+
+********************************************************/
+function fftfilter(filtarray size)
+(
+    this.filtarray = filtarray;
+    this.size = size;
+    this.real = memalloc(size);
+    this.imag = memalloc(size);
+);
+
+function fftfilter_set_filtarray(filtarray)
+(
+    this.filtarray = filtarray;
+);
+
+function fftfilter_resize(size)
+(
+    this.size = size;
+    this.real = memalloc(size);
+    this.imag = memalloc(size);
+);
+
+function fftfilter_do(real imag)
+(
+    k_ = 0;
+    while (k_ < this.size) (
+        this.real[k_] = real[k_] * this.filtarray[k_]; 
+        this.imag[k_] = imag[k_] * this.filtarray[k_];
+        k_ += 1;
+    );
+);
+
+/******************************************************* 
+FFTGATE
+=======
+
+Passes only the bins whose amplitude is above a given threshold.
+
+Description
+-----------
+
+The `fftgate` object takes a complex signal in input (real
+and imaginary parts of a FFT spectral analysis) and leaves
+only the bins whose amplitude is above a given threshold 
+unmodified. The bins whose amplitude is below the threshold 
+are scaled by the damping factor.
+
+Initializer
+-----------
+
+#### fftgate(thresh, damp, size) ####
+
+Initializes the spectral gate with a threshold `thresh`, in dB, 
+and a damping factor `damp`. The `size` argument is the length of 
+the `real` and `imag` arrays, usually half the FFT analysis size.
+
+Methods
+-------
+
+#### fftgate_resize(size) ####
+
+Resizes internal memories of the process with the new `size`. 
+The size of a FFT process must be half the size of the FFT 
+used to analyse to input signal. This is the size of the real 
+and imaginary buffers.
+
+#### fftgate_set_thresh(thresh) ####
+
+Sets a new threshold `thresh`, in dB.
+
+#### fftgate_set_damp(damp) ####
+
+Sets a new damping factor `damp`.
+
+#### fftgate_do(real, imag) ####
+
+Computes one frame of the process on a complex signal (`real` and 
+`imag` are the real and imaginary parts coming from a `fftin` or 
+any FFT processing object). The internal `real` and `imag` buffers 
+hold the processed complex signal. This function should be called
+only when the `ready` attribute of a `fftin` object has a value of 1.
+ 
+Attributes
+----------
+
+#### fftgate.real ####
+
+Buffer that holds the real part of the process. Indexes run from 
+0 to the process size (usually half the FFT size).
+
+#### fftgate.imag ####
+
+Buffer that holds the imaginary part of the process. Indexes run 
+from 0 to the process size (usually half the FFT size).
+
+Example
+-------
+
+    desc:Spectral Gate
+
+    import cookdsp.jsfx-inc
+
+    // FFT parameters (only FFT Size for the example).
+    slider1:5<0,8,1{32,64,128,256,512,1024,2048,4096,8192}>FFT Size
+    // Effect's specific sliders.
+    slider2:-20<-90,0>Threshold in dB
+    slider3:0<0,1>Damping Factor
+
+    @init
+    size = pow(2, slider1+5);
+    fin.fftin(size, 4);
+    fin2.fftin(size, 4);
+    fout.fftout(size, 4);
+    fout2.fftout(size, 4);
+    gate.fftgate(slider2, slider3, size/2);
+    gate2.fftgate(slider2, slider3, size/2);
+
+    @slider
+    size = pow(2, slider1+5);
+    // If size changed, re-initialize FFTs.
+    size != fin.size ? (
+        fin.fftin_resize(size, 4);
+        fin2.fftin_resize(size, 4);
+        fout.fftout_resize(size, 4);
+        fout2.fftout_resize(size, 4);
+        // Initialize effect's specific memories.
+        gate.fftgate_resize(size/2);
+        gate2.fftgate_resize(size/2);
+    );
+    gate.fftgate_set_thresh(slider2);
+    gate2.fftgate_set_thresh(slider2);
+    gate.fftgate_set_damp(slider3);
+    gate2.fftgate_set_damp(slider3);
+
+    @sample
+    // Input / Output
+    fin.fftin_do(spl0);
+    fin2.fftin_do(spl1);
+    spl0 = fout.fftout_get_output(fin.count);
+    spl1 = fout2.fftout_get_output(fin2.count);
+
+    fin.ready ? (
+        // New buffers ready for processing.
+        gate.fftgate_do(fin.real, fin.imag);
+        gate2.fftgate_do(fin2.real, fin2.imag);
+        // compute the inverse FFT.
+        fout.fftout_do(gate.real, gate.imag);
+        fout2.fftout_do(gate2.real, gate2.imag);
+    );
+
+********************************************************/
+function fftgate(thresh damp size)
+(
+    this.thresh = thresh;
+    this.linthresh = dbtoa(this.thresh);
+    this.damp = damp;
+    this.size = size;
+    this.real = memalloc(size);
+    this.imag = memalloc(size);
+);
+
+function fftgate_set_thresh(thresh)
+(
+    this.thresh = thresh;
+    this.linthresh = dbtoa(this.thresh);
+);
+
+function fftgate_set_damp(damp)
+(
+    this.damp = damp;
+);
+
+function fftgate_resize(size)
+(
+    this.size = size;
+    this.real = memalloc(size);
+    this.imag = memalloc(size);
+);
+
+function fftgate_do(real imag)
+(
+    k_ = 0;
+    while (k_ < this.size) (
+        a_ = sqrt(real[k_] * real[k_] + imag[k_] * imag[k_]);
+        a_ < this.linthresh ? (
+            this.real[k_] = real[k_] * this.damp;
+            this.imag[k_] = imag[k_] * this.damp;
+        ) : (
+            this.real[k_] = real[k_]; 
+            this.imag[k_] = imag[k_];
+        );
+        k_ += 1;
+    );
+);

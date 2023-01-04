@@ -1,0 +1,53 @@
+desc: FFT Stereo Template
+
+import cookdsp.jsfx-inc
+
+slider1:5<0,8,1{32,64,128,256,512,1024,2048,4096,8192}>FFT Size
+slider2:1<0,2,1{2,4,8}>Overlaps
+slider3:1<0,3,1{hamming,hanning,bartlett,blackman}>Window Shape
+// Effect's specific sliders here...
+
+@init
+size = pow(2, slider1+5);
+olaps = pow(2, slider2+1);
+fin.fftin(size, olaps, slider3);
+fin2.fftin(size, olaps, slider3);
+fout.fftout(size, olaps, slider3);
+fout2.fftout(size, olaps, slider3);
+
+@slider
+size = pow(2, slider1+5);
+olaps = pow(2, slider2+1);
+// If fftsize or overlaps changed, re-initialize FFTs.
+size != fin.size || olaps != fin.olaps ? (
+  fin.fftin_resize(size, olaps);
+  fin2.fftin_resize(size, olaps);
+  fout.fftout_resize(size, olaps);
+  fout2.fftout_resize(size, olaps);
+  // Initialize effect's specific memories here...
+
+);
+// Generate a new window if slider3 has changed.
+slider3 != fin.window ? (
+  fin.fftin_set_window(slider3);
+  fin2.fftin_set_window(slider3);
+  fout.fftout_set_window(slider3);
+  fout2.fftout_set_window(slider3);
+);
+// Process effect's specific sliders here...
+
+@sample
+// Input / Output
+fin.fftin_do(spl0);
+fin2.fftin_do(spl1);
+spl0 = fout.fftout_get_output(fin.count);
+spl1 = fout2.fftout_get_output(fin2.count);
+
+fin.ready ? (
+  // New buffers ready for processing.
+  // ... A simple thru...
+  // compute the inverse FFT.
+  fout.fftout_do(fin.real, fin.imag);
+  fout2.fftout_do(fin2.real, fin2.imag);
+);
+

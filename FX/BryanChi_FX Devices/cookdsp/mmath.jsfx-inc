@@ -1,0 +1,123 @@
+/////////////////////////////////////////////////////////////////
+// Copyright (c) - 2015 - Olivier Belanger                     //
+// Permission to use, copy, modify, and/or distribute this     //
+// software for any purpose with or without fee is hereby      //
+// granted, provided that the above copyright notice and this  //
+// permission notice appear in all copies. CookDSP IS PROVIDED //
+// "AS IS", WITHOUT WARRANTY OF ANY KIND FROM THE AUTHOR.      //
+/////////////////////////////////////////////////////////////////
+
+@init
+
+/******************************************************* 
+TANH
+====
+
+Returns the hyperbolic tangent of the parameter.
+
+Signature
+----------
+
+ret = tanh(x)
+
+Description
+-----------
+
+Tanh(x) is defined as the ratio of the corresponding hyperbolic sine and 
+hyperbolic cosine functions via `tanh(x) = sinh(x)/cosh(x)`. Tanh may also 
+be defined as `tanh(x) = (exp(2x)-1)/(exp(2x)+1)`, where `exp(x)` returns the 
+natural logarithm of `x`. 
+
+Arguments
+---------
+
+- *x* {float} : The input value.  
+ 
+Return
+------
+
+- *ret* {float} : Hyperbolic tangent of `x `.
+
+Example
+-------
+   
+    desc:Hyperbolic Tangent Simple Distortion
+
+    import cookdsp.jsfx-inc
+
+    slider1:0<0,1>Drive
+    slider2:3500<100,10000>Lowpass Cutoff
+
+    @init
+    lp0.butlp(slider2);
+    lp1.butlp(slider2);
+
+    @slider
+    drv = scale(slider1, 0, 1, 1, 100, 3);
+    lp0.butlp_set_freq(slider2);
+    lp1.butlp_set_freq(slider2);
+
+    @sample
+    spl0 = lp0.butlp_do(tanh(spl0 * drv) * 0.5);
+    spl1 = lp1.butlp_do(tanh(spl1 * drv) * 0.5);
+
+********************************************************/
+function tanh(x)
+(
+    (exp(2*x) - 1) / (exp(2*x) + 1);
+);
+
+/******************************************************* 
+LOG2
+====
+
+Returns the logarithm (base 2) of the parameter.
+
+Signature
+----------
+
+ret = log2(x)
+
+Description
+-----------
+
+Log2(x) the logarithm (base 2) of `x`, defined as `log(x) / log(2)`.
+Note that log2(x) is defined for any `x` greater than zero.
+
+Arguments
+---------
+
+- *x* {float} : The input value.  
+ 
+Return
+------
+
+- *ret* {float} : Logarithm (base 2) of `x `.
+
+Example
+-------
+   
+    desc:Logarithmic Envelope
+
+    import cookdsp.jsfx-inc
+
+    slider1:1<0.1,10>LFO Frequency
+
+    @init
+    lfo.phasor(slider1, 0);
+
+    @slider
+    lfo.phasor_set_freq(slider1);
+
+    @sample
+    ramp = lfo.phasor_do();
+    tri = min(ramp, 1-ramp) * 2 + 1;
+    env = log2(tri);
+    spl0 *= env;
+    spl1 *= env;
+
+********************************************************/
+function log2(x)
+(
+    log(x) / log(2);
+);

@@ -1,0 +1,609 @@
+/////////////////////////////////////////////////////////////////
+// Copyright (c) - 2014 - Olivier Belanger                     //
+// Permission to use, copy, modify, and/or distribute this     //
+// software for any purpose with or without fee is hereby      //
+// granted, provided that the above copyright notice and this  //
+// permission notice appear in all copies. CookDSP IS PROVIDED //
+// "AS IS", WITHOUT WARRANTY OF ANY KIND FROM THE AUTHOR.      //
+/////////////////////////////////////////////////////////////////
+
+@init
+
+/******************************************************* 
+FOLLOW
+======
+
+Initialize an envelope follower.
+
+Description
+-----------
+
+An envelope follower tracks and outputs the changes in 
+the amplitude of its input signal. Its only argument
+is the frequency of the internal lowpass filter. Higher
+frequency results in a more responsive tracking while
+lower frequency results in a smoother tracking.
+
+It must be used with a variable name as prefix (object oriented).
+
+Initializer
+-----------
+
+#### follow(freq) ####
+
+Initializes an envelope follower with `freq` as the cutoff 
+frequency of the internal lowpass filter. The lowpass filter
+defines the responsiveness of the follower.
+
+Methods
+-------
+
+#### follow_set_freq(freq) ####
+
+Sets a new cutoff frequency `freq`, in Hz, to the internal 
+lowpass filter.
+
+#### follow_do(signal) ####
+
+Processes one samples of an input signal `signal` and outputs
+the amplitude tracking between 0 and 1.
+
+Example
+-------
+
+    desc:Accompanying Noise
+
+    import cookdsp.jsfx-inc
+
+    slider1:10<1,100>Follower Responsiveness In Hz
+
+    @init
+    // Initializes the follower
+    fol.follow(slider1);
+
+    @slider
+    // Sets follower's responsiveness
+    fol.follow_set_freq(slider1);
+
+    @sample
+    // Follow the mixed input signal gain
+    amp = fol.follow_do((spl0+spl1)*0.7);
+    // Modulated noise generator
+    n = (rand(2) - 1) * 0.5 * amp;
+    // Add modulated noise to the input signal
+    spl0 += n;
+    spl1 += n;
+
+********************************************************/
+function follow(freq)
+(
+    this.lp.lop(freq);
+    this.freq = this.lp.freq; 
+);
+
+function follow_set_freq(freq)
+(
+    this.lp.lop_set_freq(freq);
+    this.freq = this.lp.freq; 
+);
+
+function follow_do(signal)
+(
+    this.lp.lop_do(abs(signal));
+);
+
+/******************************************************* 
+ZCROSS
+======
+
+Counts the number of zero-crossing inside a given time window.
+
+Description
+-----------
+
+The object `zcross` tracks the number of zero-crossing in the 
+input signal for a given time window. Its only argument is the 
+size, in seconds, of the window. The output value is normalized
+internally between 0 and 1.
+
+It must be used with a variable name as prefix (object oriented).
+
+Initializer
+-----------
+
+#### zcross(size) ####
+
+Initializes a zero-crossing follower with a time window given by
+the `size` argument, in seconds.
+
+Methods
+-------
+
+#### zcross_set_size(size) ####
+
+Sets a new time window of length `size`.
+
+#### zcross_do(signal) ####
+
+Processes one samples of an input signal `signal` and outputs
+the number of zero-crossing, normalized between 0 and 1.
+
+Example
+-------
+
+    desc:Accompanying Noise
+
+    import cookdsp.jsfx-inc
+
+    slider1:0.005<0.001,0.1>Size In Seconds
+
+    @init
+    // Initializes the zero-crossing follower
+    zc.zcross(slider1);
+
+    @slider
+    // Sets zero-crossing size
+    zc.zcross_set_size(slider1);
+
+    @sample
+    // Analyse the mixed channels
+    ncross = zc.zcross_do((spl0+spl1)*0.7);
+    // Modulated noise generator
+    n = (rand(2) - 1) * 0.5 * ncross;
+    // Add modulated noise to the input signal
+    spl0 += n; spl1 += n;
+
+********************************************************/
+function _zcross_init(size) (
+    size != this.size ? (
+        size < 0.001 ? size = 0.001;
+        this.size = size;
+        this.maxcount = floor(this.size * srate);
+        this.count = this.howmany = this.output = 0;
+        this.last = 0.0;
+    );
+);
+
+function zcross(size)
+(
+    this.size = -1;
+    this._zcross_init(size);
+);
+
+function zcross_set_size(size)
+(
+    this._zcross_init(size);
+);
+
+function zcross_do(signal)
+(
+    this.count += 1;
+    this.count == this.maxcount ? (
+        this.output = this.howmany;
+        this.howmany = this.count = 0;
+    );
+    this.last >= 0.0 ? (
+        signal < 0 && (this.last - signal) > 0.0001 ? (
+            this.howmany += 1;
+        );
+    ) : (
+        signal >= 0 && (signal - this.last) > 0.0001 ? (
+            this.howmany += 1;
+        );
+    );
+    this.last = signal;
+    this.output / this.maxcount;
+);
+
+/******************************************************* 
+YIN
+===
+
+Pitch tracker using the Yin algorithm.
+
+Description
+-----------
+
+Pitch tracker using the Yin algorithm based on the implementation in C of 
+the Aubio library. This algorithm was developped by A. de Cheveigne and 
+H. Kawahara and published in:
+
+> de Cheveigne, A., Kawahara, H. (2002), 
+> *YIN, a fundamental frequency estimator for speech and music*, 
+> J. Acoust. Soc. Am. 111, 1917-1930.
+
+The audio output of the object is the estimated frequency, in Hz, of the 
+input sound.
+
+It must be used with a variable name as prefix (object oriented).
+
+Initializer
+-----------
+
+#### yin(tolerance, minfreq, maxfreq, cutoff, size) ####
+
+Initializes a yin pitch follower with a time window given by
+the `size` argument, in samples. The size must be higher that two 
+periods of the lowest desired frequency. The `tolerance` argument is
+the parameter for the minima selection, between 0 and 1. The
+`minfreq` and `maxfreq` arguments are the limits of the estimated
+frequency, in Hz. The `cutoff` argument is the cutoff frequency 
+of a pre-analysis lowpass filter, used to remove small variation
+in the input signal.
+
+Here is a good set of parameters to start with:
+    
+    tolerance=0.2, minfreq=40, maxfreq=1000, cutoff=1000, size=1024
+
+Methods
+-------
+
+#### yin_set_tolerance(tolerance) ####
+
+Sets a new tolerance value `tolerance`, between 0 and 1.
+
+#### yin_set_minfreq(minfreq) ####
+
+Sets a new minimum frequency `minfreq`, in Hz.
+
+#### yin_set_maxfreq(maxfreq) ####
+
+Sets a new maximum frequency `maxfreq`, in Hz.
+
+#### yin_set_cutoff(cutoff) ####
+
+Sets a new lowpass cutoff frequency `cutoff`, in Hz.
+
+#### yin_set_size(size) ####
+
+Sets a new time window of length `size`.
+
+#### yin_do(signal) ####
+
+Processes one samples of an input signal `signal` and outputs
+the estimated frequency, in Hz.
+
+Example
+-------
+
+    desc:Pitch Follower
+
+    import cookdsp.jsfx-inc
+
+    slider1:0.2<0,1>Tolerance
+    slider2:40<20, 500>Minimum Estimated Frequency
+    slider3:1000<500, 5000>Maximum Estimated Frequency
+    slider4:1000<20, 5000>Pre-Analysis Lowpass Cutoff
+    slider5:1<0,4,1{512,1024,2048,4096,8192}>Window Size
+
+    @init
+    // Compute the size as a power of two
+    size = pow(2, slider5+9);
+    // Initializes the pitch follower
+    pit.yin(slider1, slider2, slider3, slider4, size);
+    // Initializes a simple sawtooth wave
+    saw.phasor(0, 0);
+
+    @slider
+    pit.yin_set_tolerance(slider1);
+    pit.yin_set_minfreq(slider2);
+    pit.yin_set_maxfreq(slider3);
+    pit.yin_set_cutoff(slider4);
+    size = pow(2, slider5+9);
+    pit.yin_set_size(size);
+
+    @sample
+    // Analyse mixed channels
+    freq = pit.yin_do((spl0+spl1)*0.707);
+    // Adjust the sawtooth frequency
+    saw.phasor_set_freq(freq);
+    // Add the sawtooth to the original signal
+    play_state == 1 ? (
+        sig = saw.phasor_do() * 0.5;
+    ) : (
+        sig = 0.0;
+    );
+    spl0 += sig; spl1 += sig;
+
+********************************************************/
+function _min_elem_pos(buf size) 
+(
+    k_ = 0;
+    pos_ = 0;
+    loop(size,
+        buf[k_] < buk[pos_] ? pos_ = k_;
+        k_ += 1;
+    );
+    pos_;
+);
+
+function _quadraticInterpolation(buf, period, size)
+(
+    period < 1 ? x0_ = period : x0_ = period - 1;
+    period + 1 < size ? x2_ = period + 1 : x2_ = period;
+    x0_ == period ? (
+        buf[period] <= buf[x2_] ? pitch_ = period : pitch_ = x2_;
+    ) : x2_ == period ? (
+        buf[period] <= buf[x0_] ? pitch_ = period : pitch_ = x0_;
+    ) : (
+        s0_ = buf[x0_];
+        s1_ = buf[period];
+        s2_ = buf[x2_];
+        pitch_ = period + 0.5 * (s2_ - s0_) / (s2_ - 2.0 * s1_ + s0_);
+    );
+    pitch_;
+);
+
+function _yin_init_memories(size)
+(
+    size != this.size ? (
+        this.size = size;
+        this.hsize = this.size / 2;
+        this.count = 0;
+        this.inbuf = memalloc(this.size);
+        this.yinbuf = memalloc(this.hsize);
+    );
+);
+
+function yin(tolerance minfreq maxfreq cutoff size)
+(
+    this.ny = srate / 2;
+    tolerance < 0 ? tolerance = 0 : tolerance > 1 ? tolerance = 1;
+    this.tolerance = tolerance;
+    minfreq < 1 ? minfreq = 1 : minfreq > this.ny ? minfreq = this.ny;
+    this.minfreq = minfreq;
+    maxfreq < 1 ? maxfreq = 1 : maxfreq > this.ny ? maxfreq = this.ny;
+    this.maxfreq = maxfreq;
+    cutoff < 1 ? cutoff = 1 : cutoff > this.ny ? cutoff = this.ny;
+    this.cutoff = cutoff;
+    this.c2 = exp(-2 * $pi * this.cutoff / srate);
+    this.y1 = 0.0;
+    this.pitch = this.minfreq;
+    this.size = -1;
+    this._yin_init_memories(size);
+);
+
+function yin_set_tolerance(tolerance)
+(
+    tolerance < 0 ? tolerance = 0 : tolerance > 1 ? tolerance = 1;
+    this.tolerance = tolerance;
+);
+
+function yin_set_minfreq(minfreq)
+(
+    minfreq < 1 ? minfreq = 1 : minfreq > this.ny ? minfreq = this.ny;
+    this.minfreq = minfreq;
+);
+
+function yin_set_maxfreq(maxfreq)
+(
+    maxfreq < 1 ? maxfreq = 1 : maxfreq > this.ny ? maxfreq = this.ny;
+    this.maxfreq = maxfreq;
+);
+
+function yin_set_cutoff(cutoff)
+(
+    cutoff < 1 ? cutoff = 1 : cutoff > this.ny ? cutoff = this.ny;
+    this.cutoff = cutoff;
+    this.c2 = exp(-2 * $pi * this.cutoff / srate);
+    this.y1 = 0.0;
+);
+
+function yin_set_size(size)
+(
+    this._yin_init_memories(size);
+);
+
+function yin_do(signal)
+(
+    this.y1 = signal + (this.y1 - signal) * this.c2;
+    this.inbuf[this.count] = this.y1;
+    this.count += 1;
+    this.count == this.size ? (
+        this.count = 0;
+        this.yinbuf[0] = 1.0;
+        tmp2_ = 0.0;
+        candidate_ = -1;
+        tau_ = 1;
+        while (tau_ < this.hsize) (
+            this.yinbuf[tau_] = 0.0;
+            j_ = 0;
+            loop(this.hsize,
+                tmp_ = this.inbuf[j_] - this.inbuf[j_ + tau_];
+                this.yinbuf[tau_] += tmp_ * tmp_;
+                j_ += 1;
+            );
+            tmp2_ += this.yinbuf[tau_];
+            this.yinbuf[tau_] *= tau_ / tmp2_; 
+            period_ = tau_ - 3;
+            tau_ > 4 && this.yinbuf[period_] < this.tolerance && this.yinbuf[period_] < this.yinbuf[period_ + 1] ? (
+                candidate_ = _quadraticInterpolation(this.yinbuf, period_, this.hsize);
+                tau_ = this.hsize;
+            );
+            tau_ += 1;
+        );
+        candidate_ == -1 ? (
+            candidate_ = _quadraticInterpolation(this.yinbuf, _min_elem_pos(this.yinbuf, this.hsize), this.hsize);
+        );
+        candidate_ = srate / candidate_;
+        candidate_ >= this.minfreq && candidate_ <= this.maxfreq ? this.pitch = candidate_;
+    );
+    this.pitch;
+);
+
+
+/******************************************************* 
+ONSET
+=====
+
+Audio signal onset detection.
+
+Description
+-----------
+
+The `onset` object analyses an audio signal in input and output 
+a trigger each time an onset is detected. An onset is a sharp 
+amplitude rising while the signal had previously fall below a 
+minimum threshold. Parameters must be carefully tuned depending 
+on the nature of the analysed signal and the level of the background 
+noise.
+
+It must be used with a variable name as prefix (object oriented).
+
+Initializer
+-----------
+
+#### onset(deltime, cutoff, upthresh, downthresh, reltime) ####
+
+Initializes a onset detector. The `deltime` argument is the delay,
+in seconds, bewteen two adjacent amplitude analysis. The current 
+amplitude value must be greater than the previous one added to a
+given threshold (the argument `upthresh`) to trigger an onset detection.
+Before a new onset can be detected, the signal must first fall below
+the `downthresh` value (given in dB). No new onset can be triggered
+before `reltime` seconds after a detection. The `cutoff` argument 
+is the cutoff frequency of the internal lowpass filter used to follow
+the amplitude envelope of the input signal.
+
+Here is a good set of parameters to start with:
+    
+    deltime=0.005, cutoff=10, upthresh=3, downthresh=-30, reltime=0.1
+
+Methods
+-------
+
+#### onset_set_deltime(deltime) ####
+
+Sets a new deltime value `deltime`, between 0.001 and 0.05 seconds.
+
+#### onset_set_cutoff(cutoff) ####
+
+Sets a new cutoff frequency `cutoff`, in Hz. The allowed range is 1
+to 1000 Hz.
+
+#### onset_set_upthresh(upthresh) ####
+
+Sets a new upper threshold `upthresh`, in dB. The allowed range is 0
+to 18 dB.
+
+#### onset_set_downthresh(downthresh) ####
+
+Sets a new minimum threshold `downthresh`, in dB. The allowed range is -90
+to 0 dB.
+
+#### onset_set_reltime(reltime) ####
+
+Sets a new release time `reltime`, between 0.001 and 0.5 seconds.
+
+#### onset_do(signal) ####
+
+Processes one samples of an input signal `signal` and outputs 1 when
+an onset is detected. Otherwise, this method returns 0.
+
+Example
+-------
+
+    desc:Attack Detection
+
+    import cookdsp.jsfx-inc
+
+    slider1:5<1,50>Delay Time (ms)
+    slider2:10<1,500>Follower Filter Frequency (Hz)
+    slider3:3<0,18>Upper Threshold (dB)
+    slider4:-30<-90,0>Minimum Threshold (db)
+    slider5:100<1,500>Release Time (ms)
+
+    @init
+    // Initializes the attack detector
+    deltime = slider1 * 0.001;
+    reltime = slider5 * 0.001;
+    od.onset(deltime, slider2, slider3, slider4, reltime);
+
+    @slider
+    od.onset_set_deltime(slider1 * 0.001);
+    od.onset_set_cutoff(slider2);
+    od.onset_set_upthresh(slider3);
+    od.onset_set_downthresh(slider4);
+    od.onset_set_reltime(slider5 * 0.001);
+
+    @sample
+    // Analyses mixed channels
+    trig = od.onset_do((spl0+spl1)*0.707);
+    // If "trig" is 1, a onset has been detected
+    // Here, we set the amplitude of a noise to 1
+    // Otherwise, amp fall down gradually...
+    trig == 1 ? amp = 1 : amp *= 0.999;
+    noise = (rand(1) - 0.5) * amp;
+    // Add the noise to the input signal
+    spl0 += noise; spl1 += noise;
+
+********************************************************/
+
+function onset(deltime cutoff upthresh downthresh reltime)
+(
+    deltime < 0.001 ? deltime = 0.001 : deltime > 0.05 ? deltime = 0.05;
+    this.deltime = deltime;
+    cutoff < 1 ? cutoff = 1 : cutoff > 1000 ? cutoff = 1000;
+    this.cutoff = cutoff;
+    upthresh < 0 ? upthresh = 0 : upthresh > 18 ? upthresh = 18;
+    this.upthresh = upthresh;
+    downthresh < -90 ? downthresh = -90 : downthresh > 0 ? downthresh = 0;
+    this.downthresh = downthresh;
+    reltime < 0.001 ? reltime = 0.001 : reltime > 0.5 ? reltime = 0.5;
+    this.reltime = reltime;
+    this.maxrel = floor(srate * this.reltime + 0.5);
+    this.timer = this.overminok = this.belowminok = 0;
+    this.fol.follow(this.cutoff);
+    this.fdel.delay(srate * 0.055);
+);
+
+function onset_set_deltime(deltime)
+(
+    deltime < 0.001 ? deltime = 0.001 : deltime > 0.05 ? deltime = 0.05;
+    this.deltime = deltime;
+);
+
+function onset_set_cutoff(cutoff)
+(
+    cutoff < 1 ? cutoff = 1 : cutoff > 1000 ? cutoff = 1000;
+    this.cutoff = cutoff;
+    this.fol.follow_set_freq(this.cutoff);
+);
+
+function onset_set_upthresh(upthresh)
+(
+    upthresh < 0 ? upthresh = 0 : upthresh > 18 ? upthresh = 18;
+    this.upthresh = upthresh;
+);
+
+function onset_set_downthresh(downthresh)
+(
+    downthresh < -90 ? downthresh = -90 : downthresh > 0 ? downthresh = 0;
+    this.downthresh = downthresh;
+);
+
+function onset_set_reltime(reltime)
+(
+    reltime < 0.001 ? reltime = 0.001 : reltime > 0.5 ? reltime = 0.5;
+    this.reltime = reltime;
+    this.maxrel = floor(srate * this.reltime + 0.5);
+);
+
+function onset_do(signal)
+(
+    out_ = 0;
+    fol_ = this.fol.follow_do(signal);
+    fol_ <= 0.000001 ? fdb_ = -120 : fdb_ = atodb(fol_);
+    prev_ = this.fdel.delay_sread2(this.deltime);
+    this.fdel.delay_write(fdb_);
+    this.timer >= this.maxrel && this.overminok == 1 ? (
+        fdb_ > (prev_ + this.upthresh) ? (
+            out_ = 1;
+            this.timer = this.overminok = this.belowminok = 0;
+        );
+    );
+    this.belowminok == 0 && fdb_ < this.downthresh ? this.belowminok = 1;
+    this.belowminok == 1 && fdb_ > this.downthresh ? this.overminok = 1;
+    this.timer += 1;
+    out_;
+);
