@@ -2471,6 +2471,7 @@
     Font_Andale_Mono_20 = reaper.ImGui_CreateFont('andale mono', 20)
 
     local script_folder = select(2, r.get_action_context()):match('^(.+)[\\//]')
+    script_folder = script_folder .. '/BryanChi_FX Devices'
     FontAwesome = r.ImGui_CreateFont(script_folder .. '/IconFont1.ttf', 30)
 
     --FontAwesome = r.ImGui_CreateFont('Untitled2', 30)
