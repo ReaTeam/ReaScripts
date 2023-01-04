@@ -35,7 +35,6 @@
 
     
 
-    testname = 'adfnadf : sdda .vst'
 
 
     UserOS = r.GetOS()
@@ -2472,7 +2471,6 @@
     Font_Andale_Mono_20 = reaper.ImGui_CreateFont('andale mono', 20)
 
     local script_folder = select(2, r.get_action_context()):match('^(.+)[\\//]')
-    script_folder = script_folder .. '/BryanChi_FX Devices'
     FontAwesome = r.ImGui_CreateFont(script_folder .. '/IconFont1.ttf', 30)
 
     --FontAwesome = r.ImGui_CreateFont('Untitled2', 30)
@@ -5848,18 +5846,11 @@ function loop()
                         end
 
                         if IsMacroActive then 
-                            local check1stFX = nil
-                            if check1stFX == nil then 
-                                for fx=0, Sel_Track_FX_Count, 1 do 
-                                    _, FX_NameMcro = r.TrackFX_GetFXName(LT_Track, fx)
-                                    if string.find (FX_NameMcro, 'Macros')~= nil then 
-                                        r.TrackFX_SetParamNormalized(LT_Track, fx, v-1, I.Val)
-                                    end
-                                end
+                            if r.TrackFX_AddByName(LT_Track, 'FXD macros.jsfx', 0, 0) ~= -1 then
+                                r.TrackFX_SetParamNormalized(LT_Track, 0, v-1, I.Val)
+                                r.SetProjExtState(0, 'FX Devices', 'Macro'.. i.. 'Value of Track'..TrkID , I.Val)
                             end
-                            r.SetProjExtState(0, 'FX Devices', 'Macro'.. i.. 'Value of Track'..TrkID , I.Val)
                         else
-                            local check1stFX = nil 
                         end
                         
 
@@ -6933,13 +6924,13 @@ function loop()
                                                 Trk[TrkID].Morph_ID[1]=FxGUID
                                                 FX[FxGUID].Morph_ID = 1
                                             else
-                                                if not FX[FxGUID].Morph_ID then   
+                                                if not FX[FxGUID].Morph_ID then 
                                                 table.insert(Trk[TrkID].Morph_ID, FxGUID)
                                                 FX[FxGUID].Morph_ID = tablefind(Trk[TrkID].Morph_ID, FxGUID)
                                                 end
                                             end
 
-                                            if --[[Add Macros JSFX if not found]]  r.TrackFX_AddByName(LT_Track, 'FXD macros.jsfx', 0, 0) == -1 and r.TrackFX_AddByName(LT_Track, 'Macros', 0, 0) == -1 then 
+                                            if --[[Add Macros JSFX if not found]]  r.TrackFX_AddByName(LT_Track, 'FXD macros.jsfx', 0, 0) == -1 and r.TrackFX_AddByName(LT_Track, 'FXD macros', 0, 0) == -1 then 
                                                 r.gmem_write (1   , PM.DIY_TrkID[TrkID] ) --gives jsfx a guid when it's being created, this will not change becuase it's in the @init.
                                                 AddMacroJSFX()
                                             end
