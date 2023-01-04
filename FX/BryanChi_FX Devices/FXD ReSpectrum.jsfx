@@ -1,5 +1,4 @@
 noindex: true
-
  desc: FXD ReSpectrum
 tags filters
 version: 1.1.4  //<--- Make sure you change VERSION below if this changes!!
@@ -96,176 +95,11 @@ function update_state() local (blocks) (
   );
 );
 
-/*
- * Draw a crosshair where the mouse is
- */
-function draw_mouse_crosshair() (
-  mouse_x >= 0 && mouse_x < gfx_w && mouse_y >=0 && mouse_y < gfx_h ? (
-    gfx_set(1.0, 1.0, 1.0, 0.3);
-    gfx_line(0,mouse_y,gfx_w,mouse_y,1);
-    gfx_line(mouse_x,0,mouse_x,gfx_h,1);
-  );
-);
 
-/*
- * Draw a round cornered rectangle
- */
-function draw_filled_rect(x, y, w, h, rad, alias) ( 
-    gfx_circle(x+rad, y+rad, rad, 1, alias);
-    gfx_circle(x+w-rad-1, y+rad, rad, 1, alias);
-    gfx_circle(x+w-rad-1, y+h-rad-1, rad, 1, alias);
-    gfx_circle(x+rad, y+h-rad-1, rad, 1, alias);
-
-    gfx_rect(x, y+rad, rad*2, h-rad*2, alias);
-    gfx_rect(x+w-rad*2, y+rad, rad*2, h-rad*2, alias);
-    gfx_rect(x+rad, y, w-rad*2, rad*2, alias);
-    gfx_rect(x+rad, y+h-rad*2, w-rad*2, rad*2, alias);
-
-    gfx_rect(x+rad, y+rad, w-rad*2, h-rad*2, alias);
-);
-
-/*
- * Draw the info panel showing frequency, note, cent and dB
- */
-function draw_info_panel(note_select)
-  local(read_freq, read_amp, q, band, C0, semi, octave, note, cent, keys, nn, note_freq, centstr, width, xpos, xpos2, ypos)
- (
-  mouse_x >= 0 && mouse_x < gfx_w && mouse_y >=0 && mouse_y < gfx_h ? (
-
-    gfx_set(0, 0.5, 1);
-
-    read_freq = note_select == 0 ? spectrum.x_to_freq(mouse_x) : note_select;
-    read_amp = spectrum.y_to_db(mouse_y);
-
-    !((very_compact_width) | (very_compact_height)) ? (
-      xpos = 100;
-      xpos2 = 155;
-      gfx_ext_retina != 2 ? (xpos -= 50; xpos2 -= 70);
-      ypos = gfx_h - (gfx_texth*6) - spectrum.bottom_margin;
-    ) : (
-      xpos = 30;
-      xpos2 = 80;
-      gfx_ext_retina != 2 ? (xpos = 15; xpos2 -= 30);
-      ypos = gfx_h - (gfx_texth*4);
-    );
-
-    gfx_x = xpos;
-    gfx_y = ypos;
-
-    gfx_r = 0; gfx_g = 0; gfx_b = 0; gfx_a = 1.0;
-
-    width = 130;
-    gfx_ext_retina != 2 ? width -= 40;
-
-    draw_filled_rect(gfx_x-5, gfx_y-5, width, gfx_texth*4, 8, 1);
-
-    gfx_r = (114 / 255) * 0.5; gfx_g = (215 / 255) * 0.5; gfx_b = (253 / 255) * 0.5; gfx_a = 1.0;
-
-    draw_filled_rect(gfx_x-10, gfx_y-10, width, gfx_texth*4, 8, 1);
-
-    gfx_r = 114 / 255; gfx_g = 215 / 255; gfx_b = 253 / 255; gfx_a = 1.0;
-
-    gfx_ext_retina != 2 ? gfx_y -= 8;
-
-    read_freq < 100 ? ( gfx_drawstr(sprintf(#,"%.1f Hz", read_freq)) ) :
-      (read_freq < 1000 ? ( gfx_drawstr(sprintf(#,"%.0f Hz", read_freq)) ) : ( 
-        (read_freq < 10000 ? ( gfx_drawstr(sprintf(#,"%.2f kHz", read_freq/1000)) ) : ( 
-          gfx_drawstr(sprintf(#,"%.1f kHz", read_freq/1000));
-        )
-      )
-    ));
-
-    // 440Hz is A4, get C0 as offset from that
-    C0 = 440 * pow(2, -4.75);
-
-    // Get seminotes (note number), octave and note within octave
-    semi = round(12 * log2(read_freq / C0));
-    octave = floor(semi / 12);
-    note = (semi % 12);
-
-    // Calculate cents
-    note_freq = C0 * 2.71828 ^ (0.0577623 * semi);
-    cent = floor(1200 * log2(read_freq / note_freq));
-
-    // The above math goes a bit screwy for our -1 lowest octave.
-    // We get a kind of inverse reflection.  This fixes it up.
-    octave == -1 ? (
-      note = (13 - (-(semi))) % 12;
-      cent = -(99 - cent);
-    );
-
-    // Display it all
-    keys="CCDDEFFGGAAB";
-
-    strcpy_substr(nn=#,keys,note,1);
-    note==1 || note==3 || note==6 || note==8 || note==10 ? strcat(nn,"#");
-
-    strcat(nn, int2str(octave));
-
-    cent < 0 ? strcpy(centstr=#,"-") : strcpy(centstr=#,"+");
-    abs(cent) <= 9 ? strcat(centstr, "0");
-
-    strcat(centstr, sprintf(#, "%d", abs(cent)));
-
-    gfx_x = xpos;
-    //gfx_ext_retina != 2 ? gfx_x -= 50;
-    gfx_y += gfx_texth+2;
-    gfx_drawstr(nn);
-    gfx_x = xpos2;
-    //gfx_ext_retina != 2 ? gfx_x -= 70;
-    gfx_drawstr(centstr);
-    gfx_x = xpos;
-    //gfx_ext_retina != 2 ? gfx_x -= 50;
-    gfx_y += gfx_texth+2;
-    gfx_drawstr(sprintf(#,"%.1f DB", read_amp));
-  );
-);
 
 /*
  * Draw the listener boundaries and set the Q for the bandpass filter
  */
-function draw_listen_helper()
-  local (mouse_spec, lread_freq, rread_freq, lfreq, rfreq, lx, rx, c0, lnsemi, lnoct, rnsemi, rnoct, oct)
-(
-  gfx_r = 114 / 255; gfx_g = 215 / 255; gfx_b = 253 / 255;
-
-  listen_freq = spectrum.x_to_freq(mouse_x);
-
-  mouse_spec = (mouse_x - spectrum.left_margin) / (gfx_w - spectrum.left_margin - spectrum.right_margin);
-
-  lread_freq = spectrum.min_freq * exp(spectrum.freq_log_max * (mouse_spec - listen_width));
-  rread_freq = spectrum.min_freq * exp(spectrum.freq_log_max * (mouse_spec + listen_width));
-
-  lfreq = lread_freq;
-  rfreq = rread_freq;
-
-  lx = spectrum.freq_to_x(lfreq);
-  rx = spectrum.freq_to_x(rfreq);
-
-  c0 = 440.0 * 2.0 ^ (-57.0 / 12.0);    //C0 is 57 semitones below A4 (440 Hz)
-
-  lnsemi = 12.0 * log(lfreq / c0) / log(2.0);
-  lnoct = lnsemi / 12;           //Scientific pitch notation octave number
-
-  rnsemi = 12.0 * log(rfreq / c0) / log(2.0);
-  rnoct = rnsemi / 12;           //Scientific pitch notation octave number
-
-  oct = rnoct - lnoct;
-
-  listen_q = filter.svf_bwtoq(oct);
-
-  gfx_a = 1.0;
-  gfx_line(lx, 0, lx, gfx_h - gfx_texth+2);
-  gfx_line(rx, 0, rx, gfx_h - gfx_texth+2);
-
-  gfx_a = 0.8;
-  gfx_line(lx-2, 0, lx-2, gfx_h - gfx_texth+2);
-  gfx_line(rx+2, 0, rx+2, gfx_h - gfx_texth+2);
-
-  gfx_a = 0.5;
-  gfx_line(lx-4, 0, lx-4, gfx_h - gfx_texth+2);
-  gfx_line(rx+4, 0, rx+4, gfx_h - gfx_texth+2);
-);
 
 /*
  * Initialise the peaks show button
@@ -673,7 +507,7 @@ Diy_ID == gmem[1]?(
 
   mouse_cap & 8 ? (
     do_listen = 1;
-    draw_listen_helper();
+    //draw_listen_helper();
 
     mw = mouse_wheel;
     md = -(mw - last_wheel) / 120;
