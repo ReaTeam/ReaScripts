@@ -1,6 +1,6 @@
 -- @description FX Devices
 -- @author Bryan Chi
--- @version 1.01beta
+-- @version 1.0beta1
 -- @changelog
 --   -Remove calling deleted functions in ReSpectrum
 --   -Update right names for Macros and Split to 4 channels and Main Script
