@@ -525,11 +525,6 @@ Diy_ID == gmem[1]?(
     ) : note_select = 0;
   );
 
-  draw_info_panel(note_select);
-
-  note_select == 0 ? (
-    draw_mouse_crosshair();
-  );
 
   !((very_compact_width) | (very_compact_height)) ? (
     gfx_ext_retina == 2 ? (menu.x = gfx_w - 140; menu.width = 120;) : (menu.x = gfx_w - 100; menu.width = 80;);
