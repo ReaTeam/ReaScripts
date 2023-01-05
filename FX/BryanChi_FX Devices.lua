@@ -1,6 +1,7 @@
 -- @description FX Devices
 -- @author Bryan Chi
--- @version 1.0beta
+-- @version 1.0beta1
+-- @changelog Update FXD ReSpectrum and FXD Split To 4 Channels
 -- @provides
 --   [effect] BryanChi_FX Devices/FXD Macros.jsfx
 --   [effect] BryanChi_FX Devices/FXD ReSpectrum.jsfx
@@ -8,7 +9,28 @@
 --   [effect] BryanChi_FX Devices/FXD Split to 32 Channels.jsfx
 --   [effect] BryanChi_FX Devices/FXD Split To 4 Channels.jsfx
 --   [effect] BryanChi_FX Devices/cookdsp.jsfx-inc
---   [effect] BryanChi_FX Devices/cookdsp/*
+--   [effect] BryanChi_FX Devices/cookdsp/analysis.jsfx-inc
+--   [effect] BryanChi_FX Devices/cookdsp/buffer.jsfx-inc
+--   [effect] BryanChi_FX Devices/cookdsp/delay.jsfx-inc
+--   [effect] BryanChi_FX Devices/cookdsp/dynamics.jsfx-inc
+--   [effect] BryanChi_FX Devices/cookdsp/effects.jsfx-inc
+--   [effect] BryanChi_FX Devices/cookdsp/fft-mono-template
+--   [effect] BryanChi_FX Devices/cookdsp/fft-stereo-template
+--   [effect] BryanChi_FX Devices/cookdsp/fftobjects.jsfx-inc
+--   [effect] BryanChi_FX Devices/cookdsp/filters.jsfx-inc
+--   [effect] BryanChi_FX Devices/cookdsp/granulator.jsfx-inc
+--   [effect] BryanChi_FX Devices/cookdsp/list.jsfx-inc
+--   [effect] BryanChi_FX Devices/cookdsp/memalloc.jsfx-inc
+--   [effect] BryanChi_FX Devices/cookdsp/midi.jsfx-inc
+--   [effect] BryanChi_FX Devices/cookdsp/mmath.jsfx-inc
+--   [effect] BryanChi_FX Devices/cookdsp/oscil.jsfx-inc
+--   [effect] BryanChi_FX Devices/cookdsp/pobjects.jsfx-inc
+--   [effect] BryanChi_FX Devices/cookdsp/pv-mono-template
+--   [effect] BryanChi_FX Devices/cookdsp/pv-stereo-template
+--   [effect] BryanChi_FX Devices/cookdsp/pvocobjects.jsfx-inc
+--   [effect] BryanChi_FX Devices/cookdsp/pvtrans-example
+--   [effect] BryanChi_FX Devices/cookdsp/random.jsfx-inc
+--   [effect] BryanChi_FX Devices/cookdsp/scaling.jsfx-inc
 --   [effect] BryanChi_FX Devices/firhalfband.jsfx-inc
 --   [effect] BryanChi_FX Devices/spectrum.jsfx-inc
 --   [effect] BryanChi_FX Devices/svf_filter.jsfx-inc

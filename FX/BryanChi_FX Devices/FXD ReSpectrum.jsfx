@@ -1,5 +1,6 @@
 noindex: true
- desc: FXD ReSpectrum
+
+desc: FXD ReSpectrum
 tags filters
 version: 1.1.4  //<--- Make sure you change VERSION below if this changes!!
 author: Justin Johnson
@@ -523,12 +524,6 @@ Diy_ID == gmem[1]?(
     mouse_x >= 0 && mouse_x < gfx_w && mouse_y >=0 && mouse_y < gfx_h ? (
       note_select = Show_Piano ? spectrum.draw_piano() : 0;
     ) : note_select = 0;
-  );
-
-  draw_info_panel(note_select);
-
-  note_select == 0 ? (
-    draw_mouse_crosshair();
   );
 
   !((very_compact_width) | (very_compact_height)) ? (
