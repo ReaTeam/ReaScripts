@@ -1,6 +1,9 @@
 -- @description FX Devices
 -- @author Bryan Chi
--- @version 1.0beta
+-- @version 1.0beta1
+-- @changelog
+--   -Remove calling deleted functions in ReSpectrum
+--   -Update right names for Macros and Split to 4 channels and Main Script
 -- @provides
 --   [effect] BryanChi_FX Devices/FXD Macros.jsfx
 --   [effect] BryanChi_FX Devices/FXD ReSpectrum.jsfx
@@ -8,7 +11,28 @@
 --   [effect] BryanChi_FX Devices/FXD Split to 32 Channels.jsfx
 --   [effect] BryanChi_FX Devices/FXD Split To 4 Channels.jsfx
 --   [effect] BryanChi_FX Devices/cookdsp.jsfx-inc
---   [effect] BryanChi_FX Devices/cookdsp/*
+--   [effect] BryanChi_FX Devices/cookdsp/analysis.jsfx-inc
+--   [effect] BryanChi_FX Devices/cookdsp/buffer.jsfx-inc
+--   [effect] BryanChi_FX Devices/cookdsp/delay.jsfx-inc
+--   [effect] BryanChi_FX Devices/cookdsp/dynamics.jsfx-inc
+--   [effect] BryanChi_FX Devices/cookdsp/effects.jsfx-inc
+--   [effect] BryanChi_FX Devices/cookdsp/fft-mono-template
+--   [effect] BryanChi_FX Devices/cookdsp/fft-stereo-template
+--   [effect] BryanChi_FX Devices/cookdsp/fftobjects.jsfx-inc
+--   [effect] BryanChi_FX Devices/cookdsp/filters.jsfx-inc
+--   [effect] BryanChi_FX Devices/cookdsp/granulator.jsfx-inc
+--   [effect] BryanChi_FX Devices/cookdsp/list.jsfx-inc
+--   [effect] BryanChi_FX Devices/cookdsp/memalloc.jsfx-inc
+--   [effect] BryanChi_FX Devices/cookdsp/midi.jsfx-inc
+--   [effect] BryanChi_FX Devices/cookdsp/mmath.jsfx-inc
+--   [effect] BryanChi_FX Devices/cookdsp/oscil.jsfx-inc
+--   [effect] BryanChi_FX Devices/cookdsp/pobjects.jsfx-inc
+--   [effect] BryanChi_FX Devices/cookdsp/pv-mono-template
+--   [effect] BryanChi_FX Devices/cookdsp/pv-stereo-template
+--   [effect] BryanChi_FX Devices/cookdsp/pvocobjects.jsfx-inc
+--   [effect] BryanChi_FX Devices/cookdsp/pvtrans-example
+--   [effect] BryanChi_FX Devices/cookdsp/random.jsfx-inc
+--   [effect] BryanChi_FX Devices/cookdsp/scaling.jsfx-inc
 --   [effect] BryanChi_FX Devices/firhalfband.jsfx-inc
 --   [effect] BryanChi_FX Devices/spectrum.jsfx-inc
 --   [effect] BryanChi_FX Devices/svf_filter.jsfx-inc
@@ -35,6 +59,7 @@
 
     
 
+    testname = 'adfnadf : sdda .vst'
 
 
     UserOS = r.GetOS()
@@ -858,10 +883,10 @@
     r.gmem_attach('gmemForSpectrum')
     
     -- FXs listed here will not have a fx window in the script UI
-    BlackListFXs = {'Macros','JS: Macros .+', 'Frequency Spectrum Analyzer Meter', 'JS: FXD Split to 32 Channels', 'JS: FXD (Mix)RackMixer .+', 'FXD (Mix)RackMixer','JS: FXD macros.jsfx', 
+    BlackListFXs = {'Macros','JS: Macros .+', 'Frequency Spectrum Analyzer Meter', 'JS: FXD Split to 32 Channels', 'JS: FXD (Mix)RackMixer .+', 'FXD (Mix)RackMixer','JS: FXD Macros', 'FXD Macros',
                     'JS: FXD Respectrum.jsfx', 'AU: AULowpass (Apple)', 'AU: AULowpass', 'VST: FabFilter Pro C 2 ' , 'Pro-C 2', 'Pro C 2' , 'JS: FXD Split To 4 Channels.jsfx', 'JS: FXD Gain Reduction Scope.jsfx',
                     }
-    UtilityFXs =    {'Macros', 'JS: Macros /[.+', 'Frequency Spectrum Analyzer Meter', 'JS: FXD Split to 32 Channels', 'JS: FXD (Mix)RackMixer .+', 'FXD (Mix)RackMixer','JS: FXD macros.jsfx', 
+    UtilityFXs =    {'Macros', 'JS: Macros /[.+', 'Frequency Spectrum Analyzer Meter', 'JS: FXD Split to 32 Channels', 'JS: FXD (Mix)RackMixer .+', 'FXD (Mix)RackMixer','JS: FXD Macros', 'FXD Macros',
                     'JS: FXD Respectrum.jsfx', 'JS: FXD Split To 4 Channels.jsfx', 'JS: FXD Gain Reduction Scope.jsfx'
                     }
     
@@ -1203,7 +1228,7 @@
             local ParamValue_Modding = r.TrackFX_GetParamNormalized( LT_Track, FX_Idx,P_Num) 
             AssignMODtoFX = FX_Idx
             r.gmem_attach('ParamValues')
-            if  r.TrackFX_AddByName(LT_Track, 'FXD macros.jsfx', 0, 0) == -1 and r.TrackFX_AddByName(LT_Track, 'Macros', 0, 0) == -1 then 
+            if  r.TrackFX_AddByName(LT_Track, 'FXD Macros', 0, 0) == -1 and r.TrackFX_AddByName(LT_Track, 'Macros', 0, 0) == -1 then 
                 r.gmem_write (1   , PM.DIY_TrkID[TrkID] ) --gives jsfx a guid when it's being created, this will not change becuase it's in the @init.
                 AddMacroJSFX()
                 AssignMODtoFX = AssignMODtoFX+1
@@ -1299,9 +1324,9 @@
 
     function AddMacroJSFX()
         local MacroGetLT_Track= reaper.GetLastTouchedTrack()
-        MacrosJSFXExist =  reaper.TrackFX_AddByName(MacroGetLT_Track, 'FXD macros.jsfx', 0, 0)
+        MacrosJSFXExist =  reaper.TrackFX_AddByName(MacroGetLT_Track, 'FXD Macros', 0, 0)
         if MacrosJSFXExist == -1 then
-        reaper.TrackFX_AddByName(MacroGetLT_Track, 'FXD macros.jsfx', 0, -1000)
+        reaper.TrackFX_AddByName(MacroGetLT_Track, 'FXD Macros', 0, -1000)
         reaper.TrackFX_Show( MacroGetLT_Track, 0, 2)
         else
         end
@@ -2471,7 +2496,6 @@
     Font_Andale_Mono_20 = reaper.ImGui_CreateFont('andale mono', 20)
 
     local script_folder = select(2, r.get_action_context()):match('^(.+)[\\//]')
-    script_folder = script_folder .. '/BryanChi_FX Devices'
     FontAwesome = r.ImGui_CreateFont(script_folder .. '/IconFont1.ttf', 30)
 
     --FontAwesome = r.ImGui_CreateFont('Untitled2', 30)
@@ -5847,7 +5871,7 @@ function loop()
                         end
 
                         if IsMacroActive then 
-                            if r.TrackFX_AddByName(LT_Track, 'FXD macros.jsfx', 0, 0) ~= -1 then
+                            if r.TrackFX_AddByName(LT_Track, 'FXD Macros', 0, 0) ~= -1 then
                                 r.TrackFX_SetParamNormalized(LT_Track, 0, v-1, I.Val)
                                 r.SetProjExtState(0, 'FX Devices', 'Macro'.. i.. 'Value of Track'..TrkID , I.Val)
                             end
@@ -6120,10 +6144,10 @@ function loop()
 
 
              
-            MacroPos = r.TrackFX_AddByName(LT_Track, 'FXD macros.jsfx', 0, 0)  
+            MacroPos = r.TrackFX_AddByName(LT_Track, 'FXD Macros', 0, 0)  
             local ReSpectrumPos = r.TrackFX_AddByName(LT_Track, 'FXD Respectrum.jsfx', 0, 0)  
             if MacroPos ~= -1 and MacroPos~= 0 then  -- if macro exists on track, and Macro is not the 1st fx
-                if FX.Win_Name[0] ~= 'JS: FXD macros.jsfx' then r.TrackFX_CopyToTrack(LT_Track, MacroPos ,LT_Track,0 ,true)  end -- move it to 1st slot
+                if FX.Win_Name[0] ~= 'JS: FXD Macros' then r.TrackFX_CopyToTrack(LT_Track, MacroPos ,LT_Track,0 ,true)  end -- move it to 1st slot
             end
 
 
@@ -6188,7 +6212,7 @@ function loop()
                     --------------==  Space between FXs--------------------
                     function AddSpaceBtwnFXs(FX_Idx, SpaceIsBeforeRackMixer, AddLastSpace, LyrID, SpcIDinPost)
                         local SpcIsInPre, Hide, SpcInPost, MoveTarget
-                        if FX_Idx == 1 and r.TrackFX_AddByName(LT_Track, 'FXD macros.jsfx', 0, 0) ~= -1 then FX_Idx=FX_Idx-1 else FX_Idx =FX_Idx end 
+                        if FX_Idx == 1 and r.TrackFX_AddByName(LT_Track, 'FXD Macros', 0, 0) ~= -1 then FX_Idx=FX_Idx-1 else FX_Idx =FX_Idx end 
                         TblIdxForSpace = FX_Idx..tostring (SpaceIsBeforeRackMixer)
                         FXGUID_To_Check_If_InLayer=r.TrackFX_GetFXGUID(LT_Track, FX_Idx)
                         if Trk[TrkID].PreFX[1] then
@@ -6390,7 +6414,7 @@ function loop()
                             elseif SpcInPost then       local offset 
 
 
-                                if r.TrackFX_AddByName(LT_Track, 'FXD macros.jsfx', 0, 0) == -1 then offset = -1 else offset =0 end 
+                                if r.TrackFX_AddByName(LT_Track, 'FXD Macros', 0, 0) == -1 then offset = -1 else offset =0 end 
 
                                 if not tablefind(Trk[TrkID].PostFX, FXGUID[DragFX_ID]) then -- if fx is not yet in post-fx chain
                                     InsertToPost_Src = DragFX_ID + offset+1
@@ -6749,7 +6773,7 @@ function loop()
                         if FX.InLyr[FXGUID_To_Check_If_InLayer] ==nil  and FindStringInTable(BlackListFXs, FX_Name)~=true and FX_Idx ~= RepeatTimeForWindows and string.find(FX_Name, 'RackMixer') ==nil then 
                             local Idx = FX_Idx 
                             if FX_Idx ==1 then local Nm = FX.Win_Name[0] 
-                                if Nm == 'JS: FXD macros.jsfx' or FindStringInTable(BlackListFXs, Nm ) then Idx = 0 end 
+                                if Nm == 'JS: FXD Macros' or FindStringInTable(BlackListFXs, Nm ) then Idx = 0 end 
                             end
 
                             AddSpaceBtwnFXs(Idx) 
@@ -6931,7 +6955,7 @@ function loop()
                                                 end
                                             end
 
-                                            if --[[Add Macros JSFX if not found]]  r.TrackFX_AddByName(LT_Track, 'FXD macros.jsfx', 0, 0) == -1 and r.TrackFX_AddByName(LT_Track, 'FXD macros', 0, 0) == -1 then 
+                                            if --[[Add Macros JSFX if not found]]  r.TrackFX_AddByName(LT_Track, 'FXD Macros', 0, 0) == -1 and r.TrackFX_AddByName(LT_Track, 'FXD macros', 0, 0) == -1 then 
                                                 r.gmem_write (1   , PM.DIY_TrkID[TrkID] ) --gives jsfx a guid when it's being created, this will not change becuase it's in the @init.
                                                 AddMacroJSFX()
                                             end
@@ -11841,7 +11865,7 @@ function loop()
                         
                         Trk[TrkID].MakeSpcForPostFXchain = 0
 
-                        if r.TrackFX_AddByName(LT_Track, 'FXD macros.jsfx', 0, 0) == -1 then offset = 0 else offset =1 end 
+                        if r.TrackFX_AddByName(LT_Track, 'FXD Macros', 0, 0) == -1 then offset = 0 else offset =1 end 
 
                         for FX_Idx, V in pairs(Trk[TrkID].PostFX) do 
                             

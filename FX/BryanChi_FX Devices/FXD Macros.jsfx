@@ -1,8 +1,7 @@
-version: 1.1.0
-desc:FXD Macros
 noindex: true
-import cookdsp.jsfx-inc
 
+desc:FXD Macros
+import cookdsp.jsfx-inc
 
 slider1:0<0,1>Macro 1
 slider2:0<0,1>Macro 2
