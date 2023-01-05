@@ -1,9 +1,6 @@
 noindex: true
- desc: FXD ReSpectrum
-tags filters
-version: 1.1.4  //<--- Make sure you change VERSION below if this changes!!
-author: Justin Johnson
-license: MIT
+
+desc: FXD ReSpectrum
 
 slider1:Spectrum_Mode=3<0,5,1{Full,Mid,Side,Mid / Side,Left,Right,Left / Right}>-Spectrum
 slider2:Display_Mode=0<0,2,1{Fill,Line,None}>-Display

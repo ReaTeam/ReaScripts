@@ -1,6 +1,6 @@
 noindex: true
 
-desc:Split to 4 channels
+desc:FXD Split to 4 channels
 
 
 slider1:gain_db=0<-150,12,1>gain (dB)
