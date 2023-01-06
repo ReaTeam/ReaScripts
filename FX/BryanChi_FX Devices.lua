@@ -2730,8 +2730,6 @@
 
         local radius_outer = Radius or Df.KnobRadius   ;         
         local FP = FX[FxGUID][Fx_P]
-        local Font= 'Font_Andale_Mono_'..roundUp( FP.FontSize or LblTextSize or Knob_DefaultFontSize,1 ) 
-        local V_Font = 'Font_Andale_Mono_'..roundUp( FP.V_FontSize or LblTextSize or  Knob_DefaultFontSize,1  )
 
         if LblTextSize ~= 'No Font' then 
             local Font= 'Font_Andale_Mono_'..roundUp( FP.FontSize or LblTextSize or Knob_DefaultFontSize,1 ) 
