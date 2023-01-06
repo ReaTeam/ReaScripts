@@ -2,11 +2,9 @@
 ReaScript name: Insert note at constant velocity set via a dialogue
 Author: BuyOne
 Website: https://forum.cockos.com/member.php?u=134058
-Version: 1.3
+Version: 1.4
 Changelog: 
-	#Fixed bug of muted notes getting unmuted when set to new velocity
-	#Corrected inconsistency of notes getting deselected when a note is inserted
-	#Added safeguard against creation of overlapped notes
+	#Fixed unnecessary scrolling when the scroll bar was shifted all the way to the right
 Provides: [main=midi_editor] .
 Screenshot: https://git.io/J0pdP
 Licence: WTFPL
@@ -179,13 +177,11 @@ local take = r.MIDIEditor_GetTake(ME)
 	local item = r.GetMediaItemTake_Item(take)
 	ACT(40443, ME) -- View: Move edit cursor to mouse cursor
 	local edit_cur_pos = r.GetCursorPosition()
-	ACT(40037, ME) -- View: Go to end of file
-	local item_end = r.GetCursorPosition()
-	ACT(40036, ME) -- View: Go to start of file
-	local item_start = r.GetCursorPosition()
+	local item_start = r.GetMediaItemInfo_Value(item, 'D_POSITION')
+	local item_end = item_start + r.GetMediaItemInfo_Value(item, 'D_LENGTH')
 	r.SetEditCurPos(stored_edit_cur_pos, 0, 0) -- restore edit cursor pos; moveview is 0, seekplay is 0
 		if edit_cur_pos >= item_end or edit_cur_pos <= item_start then
-		return r.defer(function() end) end -- prevent generic undo point creation
+		return end
 	r.PreventUIRefresh(-1)
 	end
 
