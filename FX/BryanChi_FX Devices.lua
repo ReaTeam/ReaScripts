@@ -1,10 +1,10 @@
 -- @description FX Devices
 -- @author Bryan Chi
--- @version 1.0beta2
+-- @version 1.0beta3
 -- @changelog
---   -Remove calling deleted functions in ReSpectrum
---   -Fix file path for iconfont
---   -Fix Respectrum typo, change from Respectrum to ReSpectrum
+--   -Remove all .jsfx in TrackFX_Addbyname()
+--
+--   -update modkeys functions to ImGui_ModFlags so that it's compatible with latest ReaImGui version.
 -- @provides
 --   [effect] BryanChi_FX Devices/FXD Macros.jsfx
 --   [effect] BryanChi_FX Devices/FXD ReSpectrum.jsfx
@@ -42,8 +42,9 @@
 --   Please check the forum post for info:
 --   https://forum.cockos.com/showthread.php?t=263622
 
+
 --------------------------==  declare Initial Variables & Functions  ------------------------
-    VersionNumber = 'V1.0beta2 '
+    VersionNumber = 'V1.0beta3 '
     FX_Add_Del_WaitTime=2
     r=reaper
 
@@ -59,8 +60,6 @@
     ('0.6')
 
     
-
-    testname = 'adfnadf : sdda .vst'
 
 
     UserOS = r.GetOS()
@@ -885,10 +884,10 @@
     
     -- FXs listed here will not have a fx window in the script UI
     BlackListFXs = {'Macros','JS: Macros .+', 'Frequency Spectrum Analyzer Meter', 'JS: FXD Split to 32 Channels', 'JS: FXD (Mix)RackMixer .+', 'FXD (Mix)RackMixer','JS: FXD Macros', 'FXD Macros',
-                    'JS: FXD ReSpectrum.jsfx', 'AU: AULowpass (Apple)', 'AU: AULowpass', 'VST: FabFilter Pro C 2 ' , 'Pro-C 2', 'Pro C 2' , 'JS: FXD Split To 4 Channels.jsfx', 'JS: FXD Gain Reduction Scope.jsfx',
+                    'JS: FXD ReSpectrum', 'AU: AULowpass (Apple)', 'AU: AULowpass', 'VST: FabFilter Pro C 2 ' , 'Pro-C 2', 'Pro C 2' , 'JS: FXD Split to 4 channels', 'JS: FXD Gain Reduction Scope',
                     }
     UtilityFXs =    {'Macros', 'JS: Macros /[.+', 'Frequency Spectrum Analyzer Meter', 'JS: FXD Split to 32 Channels', 'JS: FXD (Mix)RackMixer .+', 'FXD (Mix)RackMixer','JS: FXD Macros', 'FXD Macros',
-                    'JS: FXD ReSpectrum.jsfx', 'JS: FXD Split To 4 Channels.jsfx', 'JS: FXD Gain Reduction Scope.jsfx'
+                    'JS: FXD ReSpectrum', 'JS: FXD Split to 4 channels', 'JS: FXD Gain Reduction Scope'
                     }
     
     SpecialLayoutFXs = {'VST: FabFilter Pro C 2 ', 'Pro Q 3' , 'VST: FabFilter Pro Q 3 ', 'VST3: Pro Q 3 FabFilter'  , 'VST3: Pro C 2 FabFilter', 'AU: Pro C 2 FabFilter' }
@@ -1086,25 +1085,25 @@
             local L, _ = r.TrackFX_GetPinMappings(LT_Track, FX_Idx, 1, 0) -- L chan
             local R, _ = r.TrackFX_GetPinMappings(LT_Track, FX_Idx, 1, 1) -- R chan
             if L ~= Target_L then 
-                if FX_Name:find( 'JS: FXD ReSpectrum.jsfx') then 
+                if FX_Name:find( 'JS: FXD ReSpectrum') then 
                     for i=0, 16,1 do 
                         r.TrackFX_SetPinMappings(LT_Track, FX_Idx, 0, i,1,0)
                         r.TrackFX_SetPinMappings(LT_Track, FX_Idx, 1, i,1,0) 
                     end
                 end
                 r.TrackFX_SetPinMappings(LT_Track, FX_Idx, 1, 0,Target_L,0) 
-                if FX_Name == 'JS: FXD Split To 4 Channels.jsfx' then 
+                if FX_Name == 'JS: FXD Split to 4 channels' then 
                     r.TrackFX_SetPinMappings(LT_Track, FX_Idx, 1, 2,Target_R*2,0 ) 
-                elseif FX_Name == 'JS: FXD Gain Reduction Scope.jsfx' then 
+                elseif FX_Name == 'JS: FXD Gain Reduction Scope' then 
                     r.TrackFX_SetPinMappings(LT_Track, FX_Idx, 0, 2,Target_R*2,0 ) 
                 end
                 
             end 
             if R ~= Target_R then 
                 r.TrackFX_SetPinMappings(LT_Track, FX_Idx, 2, 1,Target_R,0 ) 
-                if FX_Name == 'JS: FXD Split To 4 Channels.jsfx' then 
+                if FX_Name == 'JS: FXD Split to 4 channels' then 
                     r.TrackFX_SetPinMappings(LT_Track, FX_Idx, 1, 3,Target_R*4,0 ) 
-                elseif FX_Name == 'JS: FXD Gain Reduction Scope.jsfx' then 
+                elseif FX_Name == 'JS: FXD Gain Reduction Scope' then 
                     r.TrackFX_SetPinMappings(LT_Track, FX_Idx, 0, 3,Target_R*4,0 ) 
                 end
             end 
@@ -5231,10 +5230,12 @@ function loop()
     -- ImGUI Variables-----------------------------------------------------------
     ----------------------------------------------------------------------------
     Mods = r.ImGui_GetKeyMods(ctx)
-    Alt  = r.ImGui_Mod_Alt()
-    Ctrl = r.ImGui_Mod_Ctrl()
-    Shift = r.ImGui_Mod_Shift()
-    Apl = r.ImGui_Mod_Shortcut()
+    Alt  = r.ImGui_ModFlags_Alt()
+    Ctrl = r.ImGui_ModFlags_Ctrl()
+    Shift = r.ImGui_ModFlags_Shift()
+    Apl = r.ImGui_ModFlags_Super()
+
+    
 
 
 
@@ -5441,13 +5442,13 @@ function loop()
                 for FX_Idx=0, Sel_Track_FX_Count-1, 1 do 
                     local _, FX_Name = r.TrackFX_GetFXName(LT_Track, FX_Idx or 0)
 
-                    if FX_Name== 'JS: FXD Gain Reduction Scope.jsfx' then
+                    if FX_Name== 'JS: FXD Gain Reduction Scope' then
                         local _,FX_Name_Before= r.TrackFX_GetFXName(LT_Track, FX_Idx-1 )
                         if string.find(FX_Name_Before, 'Pro%-C 2') == nil then
                             r.TrackFX_Delete( LT_Track, FX_Idx )
                         end
                     end
-                    if FX_Name=='JS: FXD Split To 4 Channels.jsfx'then
+                    if FX_Name=='JS: FXD Split to 4 channels'then
                         local _,FX_Name_After = r.TrackFX_GetFXName(LT_Track, FX_Idx+1 )
                         if string.find(FX_Name_After, 'Pro%-C 2') == nil and not AddFX.Name[1] then 
                             r.TrackFX_Delete( LT_Track, FX_Idx )
@@ -6147,7 +6148,7 @@ function loop()
 
              
             MacroPos = r.TrackFX_AddByName(LT_Track, 'FXD Macros', 0, 0)  
-            local ReSpectrumPos = r.TrackFX_AddByName(LT_Track, 'FXD ReSpectrum.jsfx', 0, 0)  
+            local ReSpectrumPos = r.TrackFX_AddByName(LT_Track, 'FXD ReSpectrum', 0, 0)  
             if MacroPos ~= -1 and MacroPos~= 0 then  -- if macro exists on track, and Macro is not the 1st fx
                 if FX.Win_Name[0] ~= 'JS: FXD Macros' then r.TrackFX_CopyToTrack(LT_Track, MacroPos ,LT_Track,0 ,true)  end -- move it to 1st slot
             end
@@ -7443,7 +7444,7 @@ function loop()
                                         r.ImGui_OpenPopup(ctx, 'Fx Module Menu') 
                                     elseif WindowBtn and Mods== 0  then
                                         openFXwindow(LT_Track, FX_Idx)
-                                    elseif WindowBtn and Mods== Shift  then 
+                                    elseif WindowBtn and Mods== Shift  then  
                                         ToggleBypassFX(LT_Track, FX_Idx)
                                     elseif WindowBtn and Mods==Alt  then  
                                         DeleteFX(FX_Idx)
@@ -8689,10 +8690,10 @@ function loop()
                                             r.ImGui_PopStyleVar(ctx,2 )
 
 
-                                            if FX.Win_Name[FX_Idx-1]~= 'JS: FXD Split To 4 Channels.jsfx' and not tablefind(Trk[TrkID].PreFX,FxGUID) and not tablefind(Trk[TrkID].PostFX,FxGUID)   then 
+                                            if FX.Win_Name[FX_Idx-1]~= 'JS: FXD Split to 4 channels' and not tablefind(Trk[TrkID].PreFX,FxGUID) and not tablefind(Trk[TrkID].PostFX,FxGUID)   then 
 
                                                 table.insert(AddFX.Pos, FX_Idx )
-                                                table.insert(AddFX.Name, 'FXD Split To 4 Channels.jsfx')
+                                                table.insert(AddFX.Name, 'FXD Split to 4 channels')
                                                 if  r.GetMediaTrackInfo_Value( LT_Track, 'I_NCHAN' ) < 4 then 
                                                     rv = r.SetMediaTrackInfo_Value(LT_Track, 'I_NCHAN', 4)
                                                 end 
@@ -8704,10 +8705,10 @@ function loop()
                     
                                             local _, NextFX = r.TrackFX_GetFXName( LT_Track,  FX_Idx+1) 
                     
-                                            if NextFX~= 'JS: FXD Gain Reduction Scope.jsfx' and not tablefind(Trk[TrkID].PreFX,FxGUID) and not tablefind(Trk[TrkID].PostFX,FxGUID)   then 
+                                            if NextFX~= 'JS: FXD Gain Reduction Scope' and not tablefind(Trk[TrkID].PreFX,FxGUID) and not tablefind(Trk[TrkID].PostFX,FxGUID)   then 
 
                                                 table.insert(AddFX.Pos, FX_Idx+1 )
-                                                table.insert(AddFX.Name, 'FXD Gain Reduction Scope.jsfx')
+                                                table.insert(AddFX.Name, 'FXD Gain Reduction Scope')
                                                 ProC.GainSc_FXGUID = FxGUID
 
                                                 function WriteGmemToGainReductionScope(FxGUID)
@@ -9631,7 +9632,8 @@ function loop()
                                         end
 
 
-                                        if FX.Win_Name[math.max(FX_Idx-1,0)]:find( 'JS: FXD ReSpectrum.+')   then 
+                                        if FX.Win_Name[math.max(FX_Idx-1,0)]:find( 'JS: FXD ReSpectrum')   then 
+
                                             r.TrackFX_Show(LT_Track, FX_Idx-1, 2)
                                             if tablefind(Trk[TrkID].PreFX, FxGUID) then r.TrackFX_Delete( LT_Track, FX_Idx-1 ) end 
 
@@ -9649,7 +9651,7 @@ function loop()
                                                 if r.ImGui_IsPopupOpen( ctx, 'Delete FX Layer ',r.ImGui_PopupFlags_AnyPopupId() + r.ImGui_PopupFlags_AnyPopupLevel()) then AnyPopupOpen = true  end 
                                                 
                                                 if not tablefind(Trk[TrkID].PostFX, FxGUID) and not tablefind(Trk[TrkID].PreFX, FxGUID) and not AnyPopupOpen then 
-                                                    rv = r.TrackFX_AddByName(LT_Track, 'FXD ReSpectrum.jsfx', 0, -1000-FX_Idx)
+                                                    rv = r.TrackFX_AddByName(LT_Track, 'FXD ReSpectrum', 0, -1000-FX_Idx)
                                                 end
                                                 FX[FxGUID].AddEQSpectrumWait=0
                                                 r.TrackFX_Show(LT_Track, FX_Idx-1, 2)
@@ -11535,7 +11537,7 @@ function loop()
                         r.ImGui_SameLine(ctx,nil,0)
                         FX[FXGUID[FX_Idx]].DontShowTilNextFullLoop = true
 
-                    elseif FX_Name:find( 'JS: FXD ReSpectrum.+' ) then 
+                    elseif FX_Name:find( 'JS: FXD ReSpectrum' ) then 
 
                         local _,FX_Name_After = r.TrackFX_GetFXName(LT_Track, FX_Idx+1 )
                         --if FX below is not Pro-Q 3
@@ -11556,7 +11558,7 @@ function loop()
                         end
 
 
-                    elseif FX_Name == 'JS: FXD Split To 4 Channels.jsfx'then
+                    elseif FX_Name == 'JS: FXD Split to 4 channels'then 
                         local _,FX_Name_After = r.TrackFX_GetFXName(LT_Track, FX_Idx+1 )
                         --if FX below is not Pro-C 2
                         if  FX_Name_After then 
@@ -11568,7 +11570,7 @@ function loop()
                         end
 
 
-                    elseif FX_Name== 'JS: FXD Gain Reduction Scope.jsfx' then
+                    elseif FX_Name== 'JS: FXD Gain Reduction Scope' then
                         
                         r.gmem_attach('CompReductionScope')
                         if FX[FXGUID[FX_Idx-1]] then 
