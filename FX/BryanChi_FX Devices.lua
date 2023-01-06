@@ -1,5 +1,49 @@
 -- @description FX Devices
 -- @author Bryan Chi
+-- @version 1.0beta2
+-- @changelog
+--   -Remove calling deleted functions in ReSpectrum
+--   -Fix file path for iconfont
+--   -Fix Respectrum typo, change from Respectrum to ReSpectrum
+-- @provides
+--   [effect] BryanChi_FX Devices/FXD Macros.jsfx
+--   [effect] BryanChi_FX Devices/FXD ReSpectrum.jsfx
+--   [effect] BryanChi_FX Devices/FXD Gain Reduction Scope.jsfx
+--   [effect] BryanChi_FX Devices/FXD Split to 32 Channels.jsfx
+--   [effect] BryanChi_FX Devices/FXD Split To 4 Channels.jsfx
+--   [effect] BryanChi_FX Devices/cookdsp.jsfx-inc
+--   [effect] BryanChi_FX Devices/cookdsp/analysis.jsfx-inc
+--   [effect] BryanChi_FX Devices/cookdsp/buffer.jsfx-inc
+--   [effect] BryanChi_FX Devices/cookdsp/delay.jsfx-inc
+--   [effect] BryanChi_FX Devices/cookdsp/dynamics.jsfx-inc
+--   [effect] BryanChi_FX Devices/cookdsp/effects.jsfx-inc
+--   [effect] BryanChi_FX Devices/cookdsp/fft-mono-template
+--   [effect] BryanChi_FX Devices/cookdsp/fft-stereo-template
+--   [effect] BryanChi_FX Devices/cookdsp/fftobjects.jsfx-inc
+--   [effect] BryanChi_FX Devices/cookdsp/filters.jsfx-inc
+--   [effect] BryanChi_FX Devices/cookdsp/granulator.jsfx-inc
+--   [effect] BryanChi_FX Devices/cookdsp/list.jsfx-inc
+--   [effect] BryanChi_FX Devices/cookdsp/memalloc.jsfx-inc
+--   [effect] BryanChi_FX Devices/cookdsp/midi.jsfx-inc
+--   [effect] BryanChi_FX Devices/cookdsp/mmath.jsfx-inc
+--   [effect] BryanChi_FX Devices/cookdsp/oscil.jsfx-inc
+--   [effect] BryanChi_FX Devices/cookdsp/pobjects.jsfx-inc
+--   [effect] BryanChi_FX Devices/cookdsp/pv-mono-template
+--   [effect] BryanChi_FX Devices/cookdsp/pv-stereo-template
+--   [effect] BryanChi_FX Devices/cookdsp/pvocobjects.jsfx-inc
+--   [effect] BryanChi_FX Devices/cookdsp/pvtrans-example
+--   [effect] BryanChi_FX Devices/cookdsp/random.jsfx-inc
+--   [effect] BryanChi_FX Devices/cookdsp/scaling.jsfx-inc
+--   [effect] BryanChi_FX Devices/firhalfband.jsfx-inc
+--   [effect] BryanChi_FX Devices/spectrum.jsfx-inc
+--   [effect] BryanChi_FX Devices/svf_filter.jsfx-inc
+--   BryanChi_FX Devices/IconFont1.ttf
+-- @about
+--   Please check the forum post for info:
+--   https://forum.cockos.com/showthread.php?t=263622
+
+-- @description FX Devices
+-- @author Bryan Chi
 -- @version 1.0beta1
 -- @changelog
 --   -Remove calling deleted functions in ReSpectrum
@@ -42,7 +86,7 @@
 --   https://forum.cockos.com/showthread.php?t=263622
 
 --------------------------==  declare Initial Variables & Functions  ------------------------
-    VersionNumber = 'Dec 23 2022 - bug fix 3 '
+    VersionNumber = 'V1.0beta2 '
     FX_Add_Del_WaitTime=2
     r=reaper
 
@@ -884,10 +928,10 @@
     
     -- FXs listed here will not have a fx window in the script UI
     BlackListFXs = {'Macros','JS: Macros .+', 'Frequency Spectrum Analyzer Meter', 'JS: FXD Split to 32 Channels', 'JS: FXD (Mix)RackMixer .+', 'FXD (Mix)RackMixer','JS: FXD Macros', 'FXD Macros',
-                    'JS: FXD Respectrum.jsfx', 'AU: AULowpass (Apple)', 'AU: AULowpass', 'VST: FabFilter Pro C 2 ' , 'Pro-C 2', 'Pro C 2' , 'JS: FXD Split To 4 Channels.jsfx', 'JS: FXD Gain Reduction Scope.jsfx',
+                    'JS: FXD ReSpectrum.jsfx', 'AU: AULowpass (Apple)', 'AU: AULowpass', 'VST: FabFilter Pro C 2 ' , 'Pro-C 2', 'Pro C 2' , 'JS: FXD Split To 4 Channels.jsfx', 'JS: FXD Gain Reduction Scope.jsfx',
                     }
     UtilityFXs =    {'Macros', 'JS: Macros /[.+', 'Frequency Spectrum Analyzer Meter', 'JS: FXD Split to 32 Channels', 'JS: FXD (Mix)RackMixer .+', 'FXD (Mix)RackMixer','JS: FXD Macros', 'FXD Macros',
-                    'JS: FXD Respectrum.jsfx', 'JS: FXD Split To 4 Channels.jsfx', 'JS: FXD Gain Reduction Scope.jsfx'
+                    'JS: FXD ReSpectrum.jsfx', 'JS: FXD Split To 4 Channels.jsfx', 'JS: FXD Gain Reduction Scope.jsfx'
                     }
     
     SpecialLayoutFXs = {'VST: FabFilter Pro C 2 ', 'Pro Q 3' , 'VST: FabFilter Pro Q 3 ', 'VST3: Pro Q 3 FabFilter'  , 'VST3: Pro C 2 FabFilter', 'AU: Pro C 2 FabFilter' }
@@ -1085,7 +1129,7 @@
             local L, _ = r.TrackFX_GetPinMappings(LT_Track, FX_Idx, 1, 0) -- L chan
             local R, _ = r.TrackFX_GetPinMappings(LT_Track, FX_Idx, 1, 1) -- R chan
             if L ~= Target_L then 
-                if FX_Name:find( 'JS: FXD Respectrum.jsfx') then 
+                if FX_Name:find( 'JS: FXD ReSpectrum.jsfx') then 
                     for i=0, 16,1 do 
                         r.TrackFX_SetPinMappings(LT_Track, FX_Idx, 0, i,1,0)
                         r.TrackFX_SetPinMappings(LT_Track, FX_Idx, 1, i,1,0) 
@@ -2496,6 +2540,7 @@
     Font_Andale_Mono_20 = reaper.ImGui_CreateFont('andale mono', 20)
 
     local script_folder = select(2, r.get_action_context()):match('^(.+)[\\//]')
+    script_folder = script_folder .. '/BryanChi_FX Devices'
     FontAwesome = r.ImGui_CreateFont(script_folder .. '/IconFont1.ttf', 30)
 
     --FontAwesome = r.ImGui_CreateFont('Untitled2', 30)
@@ -6145,7 +6190,7 @@ function loop()
 
              
             MacroPos = r.TrackFX_AddByName(LT_Track, 'FXD Macros', 0, 0)  
-            local ReSpectrumPos = r.TrackFX_AddByName(LT_Track, 'FXD Respectrum.jsfx', 0, 0)  
+            local ReSpectrumPos = r.TrackFX_AddByName(LT_Track, 'FXD ReSpectrum.jsfx', 0, 0)  
             if MacroPos ~= -1 and MacroPos~= 0 then  -- if macro exists on track, and Macro is not the 1st fx
                 if FX.Win_Name[0] ~= 'JS: FXD Macros' then r.TrackFX_CopyToTrack(LT_Track, MacroPos ,LT_Track,0 ,true)  end -- move it to 1st slot
             end
@@ -9629,7 +9674,7 @@ function loop()
                                         end
 
 
-                                        if FX.Win_Name[math.max(FX_Idx-1,0)]:find( 'JS: FXD Respectrum.+')   then 
+                                        if FX.Win_Name[math.max(FX_Idx-1,0)]:find( 'JS: FXD ReSpectrum.+')   then 
                                             r.TrackFX_Show(LT_Track, FX_Idx-1, 2)
                                             if tablefind(Trk[TrkID].PreFX, FxGUID) then r.TrackFX_Delete( LT_Track, FX_Idx-1 ) end 
 
@@ -9647,7 +9692,7 @@ function loop()
                                                 if r.ImGui_IsPopupOpen( ctx, 'Delete FX Layer ',r.ImGui_PopupFlags_AnyPopupId() + r.ImGui_PopupFlags_AnyPopupLevel()) then AnyPopupOpen = true  end 
                                                 
                                                 if not tablefind(Trk[TrkID].PostFX, FxGUID) and not tablefind(Trk[TrkID].PreFX, FxGUID) and not AnyPopupOpen then 
-                                                    rv = r.TrackFX_AddByName(LT_Track, 'FXD Respectrum.jsfx', 0, -1000-FX_Idx)
+                                                    rv = r.TrackFX_AddByName(LT_Track, 'FXD ReSpectrum.jsfx', 0, -1000-FX_Idx)
                                                 end
                                                 FX[FxGUID].AddEQSpectrumWait=0
                                                 r.TrackFX_Show(LT_Track, FX_Idx-1, 2)
@@ -11533,7 +11578,7 @@ function loop()
                         r.ImGui_SameLine(ctx,nil,0)
                         FX[FXGUID[FX_Idx]].DontShowTilNextFullLoop = true
 
-                    elseif FX_Name:find( 'JS: FXD Respectrum.+' ) then 
+                    elseif FX_Name:find( 'JS: FXD ReSpectrum.+' ) then 
 
                         local _,FX_Name_After = r.TrackFX_GetFXName(LT_Track, FX_Idx+1 )
                         --if FX below is not Pro-Q 3
