@@ -1,10 +1,7 @@
 -- @description FX Devices
 -- @author Bryan Chi
--- @version 1.0beta3
--- @changelog
---   -Remove all .jsfx in TrackFX_Addbyname()
---
---   -update modkeys functions to ImGui_ModFlags so that it's compatible with latest ReaImGui version.
+-- @version 1.0beta4
+-- @changelog -Add missing RackMixer JSFX into package
 -- @provides
 --   [effect] BryanChi_FX Devices/FXD Macros.jsfx
 --   [effect] BryanChi_FX Devices/FXD ReSpectrum.jsfx
@@ -38,6 +35,7 @@
 --   [effect] BryanChi_FX Devices/spectrum.jsfx-inc
 --   [effect] BryanChi_FX Devices/svf_filter.jsfx-inc
 --   BryanChi_FX Devices/IconFont1.ttf
+--   [effect] BryanChi_FX Devices/FXD (Mix)RackMixer
 -- @about
 --   Please check the forum post for info:
 --   https://forum.cockos.com/showthread.php?t=263622
