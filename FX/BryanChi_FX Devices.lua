@@ -1,7 +1,7 @@
 -- @description FX Devices
 -- @author Bryan Chi
--- @version 1.0beta4
--- @changelog -Add missing RackMixer JSFX into package
+-- @version 1.0beta5
+-- @changelog -Add layouts for 5 Valhalla plugins ( FreqEcho, Shimmer, VintageVerb, SuperMassive, Delay)
 -- @provides
 --   [effect] BryanChi_FX Devices/FXD Macros.jsfx
 --   [effect] BryanChi_FX Devices/FXD ReSpectrum.jsfx
@@ -36,6 +36,11 @@
 --   [effect] BryanChi_FX Devices/svf_filter.jsfx-inc
 --   BryanChi_FX Devices/IconFont1.ttf
 --   [effect] BryanChi_FX Devices/FXD (Mix)RackMixer
+--   BryanChi_FX Devices/FX Layouts/ValhallaFreqEcho (Valhalla DSP, LLC).ini
+--   BryanChi_FX Devices/FX Layouts/ValhallaShimmer (Valhalla DSP, LLC).ini
+--   BryanChi_FX Devices/FX Layouts/ValhallaVintageVerb (Valhalla DSP, LLC).ini
+--   BryanChi_FX Devices/FX Layouts/ValhallaSupermassive (Valhalla DSP, LLC).ini
+--   BryanChi_FX Devices/FX Layouts/ValhallaDelay _Valhalla DSP_ LLC_.ini
 -- @about
 --   Please check the forum post for info:
 --   https://forum.cockos.com/showthread.php?t=263622
