@@ -1,14 +1,15 @@
 -- @description Save selected tracks floating fx windows (4 slots)
 -- @author Edgemeal
--- @version 1.00
--- @link Forum https://forum.cockos.com/showpost.php?p=2349852&postcount=2196
--- @donation Donate https://www.paypal.me/Edgemeal
+-- @version 1.02
+-- @changelog Add support for Master track
 -- @metapackage
 -- @provides
 --   [main] . > edgemeal_Save selected tracks floating fx windows to slot 1.lua
 --   [main] . > edgemeal_Save selected tracks floating fx windows to slot 2.lua
 --   [main] . > edgemeal_Save selected tracks floating fx windows to slot 3.lua
 --   [main] . > edgemeal_Save selected tracks floating fx windows to slot 4.lua
+-- @link Forum https://forum.cockos.com/showpost.php?p=2349852&postcount=2196
+-- @donation Donate https://www.paypal.me/Edgemeal
 
 function Main()
   local name = ({reaper.get_action_context()})[2]:match("([^/\\_]+).lua$")
@@ -18,9 +19,9 @@ function Main()
     return
   end
   local guid = ""
-  local sel_tracks_count = reaper.CountSelectedTracks(0)
+  local sel_tracks_count = reaper.CountSelectedTracks2(0, true) 
   for i = 0, sel_tracks_count-1 do
-    local track = reaper.GetSelectedTrack(0, i)
+    local track = reaper.GetSelectedTrack2(0, i, true)
     local track_fx_count = reaper.TrackFX_GetCount(track)
     for j = 0, track_fx_count-1  do
       local hwnd = reaper.TrackFX_GetFloatingWindow(track, j)
