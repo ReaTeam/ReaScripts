@@ -1,7 +1,7 @@
 -- @description Restore tracks floating fx windows (4 slots)
 -- @author Edgemeal
--- @version 1.01
--- @changelog When restoring a slot and the floating fx window is already open then it is closed to act like a toggle.
+-- @version 1.02
+-- @changelog Add support for Master track
 -- @metapackage
 -- @provides
 --   [main] . > edgemeal_Restore tracks floating fx windows from slot 1.lua
@@ -14,21 +14,26 @@
 
 local track_count = reaper.CountTracks(0)
 
+function View(track, guid)
+  local track_fx_count = reaper.TrackFX_GetCount(track)
+  for j = 0, track_fx_count-1 do
+    if reaper.TrackFX_GetFXGUID(track, j) == guid then
+      local hwnd = reaper.TrackFX_GetFloatingWindow(track, j)
+      if hwnd == nil then
+        reaper.TrackFX_Show(track, j, 3) -- show floating window
+      else
+        reaper.TrackFX_Show(track, j, 2) -- hide floating window
+      end
+      return
+    end
+  end
+end
+
 function ShowFx(guid)
+  View(reaper.GetMasterTrack(0), guid)
   for i = 0, track_count-1 do
     local track = reaper.GetTrack(0, i)
-    local track_fx_count = reaper.TrackFX_GetCount(track)
-    for j = 0, track_fx_count-1 do
-      if reaper.TrackFX_GetFXGUID(track, j) == guid then
-	      local hwnd = reaper.TrackFX_GetFloatingWindow(track, j)
-        if hwnd == nil then
-          reaper.TrackFX_Show(track, j, 3) -- show floating window
-        else
-          reaper.TrackFX_Show(track, j, 2) -- hide floating window
-        end
-        return
-      end
-    end
+    View(track, guid)
   end
 end
 
