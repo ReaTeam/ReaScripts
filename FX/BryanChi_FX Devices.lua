@@ -1,7 +1,14 @@
 -- @description FX Devices
 -- @author Bryan Chi
--- @version 1.0beta5
--- @changelog -Add layouts for 5 Valhalla plugins ( FreqEcho, Shimmer, VintageVerb, SuperMassive, Delay)
+-- @version 1.0beta6
+-- @changelog
+--   FX Device update change log : 
+--
+--   - Fix drag behaviour bug.
+--   - Fix menu bar flickering.
+--   - Fix Shift-click FX crash.
+--   - Enclose FX Devices with r.ImGui_BeginGroup and r.ImGui_EndGroup.
+--   - Fix Macro
 -- @provides
 --   [effect] BryanChi_FX Devices/FXD Macros.jsfx
 --   [effect] BryanChi_FX Devices/FXD ReSpectrum.jsfx
@@ -46,8 +53,9 @@
 --   https://forum.cockos.com/showthread.php?t=263622
 
 
+
 --------------------------==  declare Initial Variables & Functions  ------------------------
-    VersionNumber = 'V1.0beta3 '
+    VersionNumber = 'V1.0beta6 '
     FX_Add_Del_WaitTime=2
     r=reaper
 
@@ -3647,8 +3655,8 @@
         end
         r.ImGui_SetNextItemWidth(ctx, Sldr_Width )
 
-
-        if Mods == Shift then DragSpeed = 0.0003  end
+        local DragSpeed = 0.01
+        if Mods == Shift then DragSpeed = 0.0003 end
         if DraggingMorph ==FxGUID then p_value = r.TrackFX_GetParamNormalized(LT_Track, FX_Idx, P_Num) end 
 
         
@@ -5454,14 +5462,12 @@ function loop()
                         if string.find(FX_Name_After, 'Pro%-C 2') == nil and not AddFX.Name[1] then 
                             r.TrackFX_Delete( LT_Track, FX_Idx )
                         end
-                         
                     end
-                    
                 end
             end
 
             ----- Move FX -----
-            if MovFX.FromPos then 
+            if MovFX.FromPos[1] then 
                 local UndoLbl
                 r.Undo_BeginBlock()
                 for i, v in ipairs(MovFX.FromPos) do  
@@ -6176,7 +6182,7 @@ function loop()
             local spaceIfPreFX=0
             if Trk[TrkID].PreFX[1] and Trk[TrkID].PostFX[1] and  not  Trk[TrkID].PostFX_Hide then spaceIfPreFX = 20 end 
             if Wheel_V ~=0 and not DisableScroll then r.ImGui_SetNextWindowScroll( ctx, -CursorStartX+Wheel_V*10, 0) end 
-
+            
             if r.ImGui_BeginChild(ctx, 'fx devices', MaxX- (PostFX_Width or 0)-spaceIfPreFX  , 240, nil,r.ImGui_WindowFlags_HorizontalScrollbar()+FX_DeviceWindow_NoScroll) then
                 ------------------------------------------------------
                 ----- Loop for every FX on the track -----------------
@@ -6188,8 +6194,8 @@ function loop()
                 r.ImGui_DrawList_AddLine(ViewPort_DL, 0, 0, 0, 0   , Clr.Dvdr.outline) -- Needed for drawlist to be active 
 
                 for FX_Idx=0,  Sel_Track_FX_Count-1 ,1 do
-
-
+                    
+                    
                     retval,FX_Name= r.TrackFX_GetFXName(LT_Track, FX_Idx) --i used to be i-1 
                     FXGUID[FX_Idx] = r.TrackFX_GetFXGUID(LT_Track, FX_Idx)
 
@@ -6801,7 +6807,7 @@ function loop()
                         BGColor_FXWindow = FX_Window_Clr_Default
                     end 
                     BGColor_FXWindow = BGColor_FXWindow or  0x434343ff 
-
+                    r.ImGui_BeginGroup(ctx)
 
                     function createFXWindow(FX_Idx)
                         local FxGUID = r.TrackFX_GetFXGUID(LT_Track, FX_Idx)
@@ -10781,528 +10787,533 @@ function loop()
                         --[[ if FX_Idx==1 then
                             AddSpaceBtwnFXs(0,true  )
                         end ]]
-
+                        local ScrPosX, ScrPosY =  r.ImGui_GetCursorScreenPos(ctx)
                         if not FX[FxGUID].Collapse  then 
 
 
 
-                                FXGUID_RackMixer = r.TrackFX_GetFXGUID(LT_Track, FX_Idx)
-                                r.TrackFX_Show( LT_Track, FX_Idx, 2 )
+                            FXGUID_RackMixer = r.TrackFX_GetFXGUID(LT_Track, FX_Idx)
+                            r.TrackFX_Show( LT_Track, FX_Idx, 2 )
 
-                                r.ImGui_SameLine(ctx,nil,0)
-                                --Gives the index of the specific MixRack
-                                r.ImGui_PushStyleColor(ctx, r.ImGui_Col_FrameBg(), FX_Layer_Container_BG or BGColor_FXLayeringWindow)
-                                FXLayeringWin_X = 240 ; local  Pad = 3
-                                if r.ImGui_BeginChildFrame(ctx, '##FX Layer at'..FX_Idx..'OnTrack '..TrkID, FXLayeringWin_X+Pad, 220, r.ImGui_WindowFlags_NoScrollbar())  then 
-                                    local WDL = r.ImGui_GetWindowDrawList(ctx)
-                                    FXLayerFrame_PosX_L, FXLayerFrame_PosY_T = r.ImGui_GetItemRectMin(ctx)
-                                    FXLayerFrame_PosX_R, FXLayerFrame_PosY_B = r.ImGui_GetItemRectMax(ctx);   FXLayerFrame_PosY_B = FXLayerFrame_PosY_B+220
-                                    
-                                    local clrhdrhvr = r.ImGui_GetColor(ctx,r.ImGui_Col_ButtonHovered())
-                                    local clrhdrAct = r.ImGui_GetColor(ctx,r.ImGui_Col_ButtonActive())
+                            r.ImGui_SameLine(ctx,nil,0)
+                            --Gives the index of the specific MixRack
+                            r.ImGui_PushStyleColor(ctx, r.ImGui_Col_FrameBg(), FX_Layer_Container_BG or BGColor_FXLayeringWindow)
+                            FXLayeringWin_X = 240 ; local  Pad = 3
+                            if r.ImGui_BeginChildFrame(ctx, '##FX Layer at'..FX_Idx..'OnTrack '..TrkID, FXLayeringWin_X+Pad, 220, r.ImGui_WindowFlags_NoScrollbar())  then 
+                                local WDL = r.ImGui_GetWindowDrawList(ctx)
 
-                                    r.ImGui_PushStyleColor(ctx, r.ImGui_Col_HeaderHovered( ), clrhdrhvr)
-                                    local clrhdr = r.ImGui_GetColor(ctx,r.ImGui_Col_Button())
-                                    r.ImGui_PushStyleColor(ctx, r.ImGui_Col_TableHeaderBg(),  clrhdr   )
+                                WDL_Split =  r.ImGui_CreateDrawListSplitter(WDL)
+                                r.ImGui_DrawListSplitter_Split(WDL_Split, 2) 
+                                r.ImGui_DrawListSplitter_SetCurrentChannel(WDL_Split, 0)
+                                FXLayerFrame_PosX_L, FXLayerFrame_PosY_T = r.ImGui_GetItemRectMin(ctx)
+                                FXLayerFrame_PosX_R, FXLayerFrame_PosY_B = r.ImGui_GetItemRectMax(ctx);   FXLayerFrame_PosY_B = FXLayerFrame_PosY_B+220
                                 
-                                    r.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_FramePadding(),0,0)
+                                local clrhdrhvr = r.ImGui_GetColor(ctx,r.ImGui_Col_ButtonHovered())
+                                local clrhdrAct = r.ImGui_GetColor(ctx,r.ImGui_Col_ButtonActive())
+
+                                r.ImGui_PushStyleColor(ctx, r.ImGui_Col_HeaderHovered( ), clrhdrhvr)
+                                local clrhdr = r.ImGui_GetColor(ctx,r.ImGui_Col_Button())
+                                r.ImGui_PushStyleColor(ctx, r.ImGui_Col_TableHeaderBg(),  clrhdr   )
+                            
+                                r.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_FramePadding(),0,0)
 
 
-                                    r.ImGui_BeginTable(ctx, '##FX Layer'..FX_Idx, 1)
-                                    r.ImGui_TableHeadersRow(ctx)
+                                r.ImGui_BeginTable(ctx, '##FX Layer'..FX_Idx, 1)
+                                r.ImGui_TableHeadersRow(ctx)
 
 
-                                    if r.ImGui_BeginDragDropSource(ctx, r.ImGui_DragDropFlags_AcceptNoDrawDefaultRect()) then
-                                        DragFX_ID = FX_Idx
-                                        r.ImGui_SetDragDropPayload(ctx, 'FX Layer Repositioning', FX_Idx)
-                                        r.ImGui_EndDragDropSource(ctx)
-                                        DragDroppingFX = true
-                                        if IsAnyMouseDown == false then DragDroppingFX= false end
-                                    end
-                                    if r.ImGui_IsItemClicked(ctx,0) and ModifierHeld==Alt then 
-                                        FX[FxGUID].DeleteFXLayer = true 
-                                    elseif r.ImGui_IsItemClicked( ctx, 1) then 
-                                        FX[FxGUID].Collapse = true 
-                                        FX[FxGUID].CollapseWidth = 27
-                                    elseif r.ImGui_IsItemClicked(ctx) and ModifierHeld==Shift then 
-                                        local Spltr, FX_Inst 
-                                        if FX[FxGUID].LyrDisable==nil then FX[FxGUID].LyrDisable = false end 
-                                        FX[FxGUID].AldreadyBPdFXs = FX[FxGUID].AldreadyBPdFXs or {}
+                                if r.ImGui_BeginDragDropSource(ctx, r.ImGui_DragDropFlags_AcceptNoDrawDefaultRect()) then
+                                    DragFX_ID = FX_Idx
+                                    r.ImGui_SetDragDropPayload(ctx, 'FX Layer Repositioning', FX_Idx)
+                                    r.ImGui_EndDragDropSource(ctx)
+                                    DragDroppingFX = true
+                                    if IsAnyMouseDown == false then DragDroppingFX= false end
+                                end
+                                if r.ImGui_IsItemClicked(ctx,0) and ModifierHeld==Alt then 
+                                    FX[FxGUID].DeleteFXLayer = true 
+                                elseif r.ImGui_IsItemClicked( ctx, 1) then 
+                                    FX[FxGUID].Collapse = true 
+                                    FX[FxGUID].CollapseWidth = 27
+                                elseif r.ImGui_IsItemClicked(ctx) and ModifierHeld==Shift then 
+                                    local Spltr, FX_Inst 
+                                    if FX[FxGUID].LyrDisable==nil then FX[FxGUID].LyrDisable = false end 
+                                    FX[FxGUID].AldreadyBPdFXs = FX[FxGUID].AldreadyBPdFXs or {}
 
 
 
 
 
-                                        for i=0, Sel_Track_FX_Count, 1  do 
-                                            if FX.InLyr[FXGUID[i]] == FXGUID[FX_Idx] then
-                                                
-                                                if not FX[FxGUID].LyrDisable then 
-                                                    if r.TrackFX_GetEnabled(LT_Track, i  ) == false then 
+                                    for i=0, Sel_Track_FX_Count, 1  do 
+                                        if FX.InLyr[FXGUID[i]] == FXGUID[FX_Idx] then
+                                            
+                                            if not FX[FxGUID].LyrDisable then 
+                                                if r.TrackFX_GetEnabled(LT_Track, i  ) == false then 
 
-                                                        if FX[FxGUID].AldreadyBPdFXs=={} then table.insert(FX[FxGUID].AldreadyBPdFXs, r.TrackFX_GetFXGUID(LT_Track, i ))
-                                                        elseif not FindStringInTable(FX[FxGUID].AldreadyBPdFXs, r.TrackFX_GetFXGUID(LT_Track, i ))  then table.insert(FX[FxGUID].AldreadyBPdFXs, r.TrackFX_GetFXGUID(LT_Track, i )) 
-                                                        end 
-
-
-                                                    else 
+                                                    if FX[FxGUID].AldreadyBPdFXs=={} then table.insert(FX[FxGUID].AldreadyBPdFXs, r.TrackFX_GetFXGUID(LT_Track, i ))
+                                                    elseif not FindStringInTable(FX[FxGUID].AldreadyBPdFXs, r.TrackFX_GetFXGUID(LT_Track, i ))  then table.insert(FX[FxGUID].AldreadyBPdFXs, r.TrackFX_GetFXGUID(LT_Track, i )) 
                                                     end 
-                                                    r.TrackFX_SetEnabled(LT_Track, i, false  ) 
-                                                else
-                                                    r.TrackFX_SetEnabled(LT_Track, i, true  ) 
-                                                    
-                                                end 
 
-                                                for ii, v in pairs(FX[FxGUID].AldreadyBPdFXs) do 
-                                                    if v == FXGUID[i] then r.TrackFX_SetEnabled(LT_Track, i, false  )  end 
-                                                end 
 
-                                            end
+                                                else 
+                                                end 
+                                                r.TrackFX_SetEnabled(LT_Track, i, false  ) 
+                                            else
+                                                r.TrackFX_SetEnabled(LT_Track, i, true  ) 
+                                                
+                                            end 
+
+                                            for ii, v in pairs(FX[FxGUID].AldreadyBPdFXs) do 
+                                                if v == FXGUID[i] then r.TrackFX_SetEnabled(LT_Track, i, false  )  end 
+                                            end 
+
                                         end
+                                    end
 
 
-                                        if not FX[FxGUID].LyrDisable then r.TrackFX_SetEnabled(LT_Track, FX_Idx, false  )
-                                        else r.TrackFX_SetEnabled(LT_Track, FX_Idx, true  ) FX[FxGUID].AldreadyBPdFXs = {} 
-                                        end 
-
-                                        if FX[FxGUID].LyrDisable then FX[FxGUID].LyrDisable = false else FX[FxGUID].LyrDisable = true end  
+                                    if not FX[FxGUID].LyrDisable then r.TrackFX_SetEnabled(LT_Track, FX_Idx, false  )
+                                    else r.TrackFX_SetEnabled(LT_Track, FX_Idx, true  ) FX[FxGUID].AldreadyBPdFXs = {} 
                                     end 
 
+                                    if FX[FxGUID].LyrDisable then FX[FxGUID].LyrDisable = false else FX[FxGUID].LyrDisable = true end  
+                                end 
 
-                                    if not FXLayerRenaming then  
-                                        if LBtnClickCount==2 and  r.ImGui_IsItemActivated( ctx)  then 
-                                            FX[FxGUID].RenameFXLayering = true 
-                                        end
+
+                                if not FXLayerRenaming then  
+                                    if LBtnClickCount==2 and  r.ImGui_IsItemActivated( ctx)  then 
+                                        FX[FxGUID].RenameFXLayering = true 
                                     end
+                                end
 
-                                    
-                                    r.ImGui_SameLine(ctx)
-                                    r.ImGui_AlignTextToFramePadding( ctx)
-                                    if not FX[FxGUID].RenameFXLayering then 
-                                        r.ImGui_SetNextItemWidth(ctx, 10)
-                                        local TitleShort
-                                        if string.len(FX[FxGUID].ContainerTitle or '')> 27 then 
-                                            TitleShort = string.sub (FX[FxGUID].ContainerTitle, 1, 27)
-                                        end
-                                        r.ImGui_Text( ctx, TitleShort or FX[FxGUID].ContainerTitle  or  'FX Layering')
-
-                                        
-
-                                        
-                                    else -- If Renaming
-                                        local Flag
-                                        r.ImGui_SetNextItemWidth(ctx, 180)
-                                        if FX[FxGUID].ContainerTitle == 'FX Layering' then Flag = r.ImGui_InputTextFlags_AutoSelectAll() end 
-                                        _, FX[FxGUID].ContainerTitle = r.ImGui_InputText(ctx, '##'..FxGUID, FX[FxGUID].ContainerTitle or 'FX Layering', Flag)
-
-                                        r.ImGui_SetItemDefaultFocus( ctx)
-                                        r.ImGui_SetKeyboardFocusHere( ctx, -1)
-
-                                        if r.ImGui_IsItemDeactivated( ctx) then 
-                                            FX[FxGUID].RenameFXLayering = nil
-                                            r.SetProjExtState(0, 'FX Devices - ',  'FX'..FxGUID..'FX Layer Container Title ', FX[FxGUID].ContainerTitle)
-                                        end
-
-                                    end
-
-                                    --r.ImGui_PushStyleColor(ctx,r.ImGui_Col_Button(), 0xffffff10)
-
-                                    r.ImGui_SameLine(ctx,FXLayeringWin_X-25,0) r.ImGui_AlignTextToFramePadding( ctx)
-                                    if not FX[FxGUID].SumMode then 
-                                        FX[FxGUID].SumMode = r.TrackFX_GetParamNormalized(LT_Track, FX_Idx, 40)
-
-                                    end
-                                    local Lbl 
-                                    if FX[FxGUID].SumMode == 0 then Lbl = 'Avg' else  Lbl = 'Sum' end 
-                                    if r.ImGui_Button(ctx, (Lbl or '') ..'##FX Lyr Mode'..FxGUID,30,r.ImGui_GetTextLineHeight(ctx)) then 
-                                        FX[FxGUID].SumMode = r.TrackFX_GetParamNormalized(LT_Track, FX_Idx, 40)
-
-                                        if FX[FxGUID].SumMode == 0 then 
-                                            r.TrackFX_SetParamNormalized(LT_Track,FX_Idx, 40,1)
-                                            FX[FxGUID].SumMode = 1
-                                        else 
-                                            r.TrackFX_SetParamNormalized(LT_Track,FX_Idx, 40,0)
-                                            FX[FxGUID].SumMode=0
-                                        end
-
-                                    end 
-
-                                    --r.ImGui_PopStyleColor(ctx)
-                                    r.ImGui_PopStyleVar(ctx)
-
-                                    r.ImGui_EndTable(ctx)   
-                                    r.ImGui_PopStyleColor(ctx,2)  --Header Clr
-                                    r.ImGui_PushStyleVar(ctx,r.ImGui_StyleVar_FrameRounding(),0)
-                                    --r.ImGui_PushStyleColor(ctx,r.ImGui_Col_FrameBgActive(), 0x99999999)
-                                    local StyleVarPop = 1
-                                    local StyleClrPop=1
-                                    
-
-                                    local FxGUID = r.TrackFX_GetFXGUID(LT_Track, FX_Idx)
                                 
-                                    
-                                    
-                                    local MaxChars
-
-                                    if FX[FxGUID].ActiveLyrCount <=4 then LineH= 4; Spacing= 0; Inner_Spacing = 2 ; BtnSizeManual = 34 ; MaxChars = 15
-                                    elseif FX[FxGUID].ActiveLyrCount == 5  then LineH,Spacing,Inner_Spacing = 3, -5, 0 ; BtnSizeManual = 30 ; MaxChars = 18
-                                    elseif FX[FxGUID].ActiveLyrCount==6 then LineH,Spacing,Inner_Spacing = 5.5, -5, -8 ; BtnSizeManual = 24 ; MaxChars = 20
-                                    elseif FX[FxGUID].ActiveLyrCount >=7 then LineH,Spacing,Inner_Spacing = 3, -5, -8 ; BtnSizeManual = 19;  MaxChars = 23
-                                    end 
-
-
-                                    
-                                    r.ImGui_PushStyleVar(ctx,r.ImGui_StyleVar_ItemSpacing(),1,Spacing)
-                                    r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_FramePadding(), 4, LineH)
-
-                                    local BtnSize, AnySoloChan
-                                    for LayerNum,LyrID in pairs(FX[FxGUID].LyrID)  do if Lyr.Solo[LyrID..FxGUID]==1 then FX[FxGUID].AnySoloChan=true AnySoloChan=true end end 
-                                    if not AnySoloChan then FX[FxGUID].AnySoloChan = nil end 
-
-
-                                    for LayerNum,LyrID in pairs(FX[FxGUID].LyrID)  do  
-
-                                        if Lyr.Solo[LyrID..FxGUID]==nil then  Lyr.Solo[LyrID..FxGUID] = reaper.TrackFX_GetParamNormalized(LT_Track, FX_Idx, 4+(5*(LyrID-1))) end
-                                        if Lyr.Solo[LyrID..FxGUID]==1 then FX[FxGUID].AnySoloChan = true      end 
-                                        if Lyr.Mute[LyrID..FxGUID] == nil then Lyr.Mute[LyrID..FxGUID] = reaper.TrackFX_GetParamNormalized(LT_Track, FX_Idx, 5*(LyrID-1)) end
-                                        if Lyr.Mute[LyrID..FxGUID]==1 then FX[FxGUID].AnyMuteChan = true end 
-
-                                        if Lyr.ProgBarVal[LyrID..FxGUID] ==nil then 
-                                            Layer1Vol= r.TrackFX_GetParamNormalized(LT_Track, FX_Idx, 1)
-                                            Lyr.ProgBarVal[LyrID..FxGUID]=Layer1Vol
-                                        end
-
-                                        LyrFX_Inst = math.max(LyrFX_Inst or 0, LyrID)
-                                        local HowManyFXinLyr=0
-                                        for i=0, Sel_Track_FX_Count, 1 do 
-                                            if FX.InLyr[FXGUID[i]] == FXGUID_RackMixer and FX[FXGUID[i]].inWhichLyr == LyrID then 
-                                                HowManyFXinLyr = HowManyFXinLyr+1
-                                            end 
-                                        end 
-
-
-                                        local Fx_P = (LyrID*2) -1 
-
-                                        local CurY = r.ImGui_GetCursorPosY(ctx)
-                                        if FX[FxGUID][Fx_P] then 
-                                            LyrCurX, LyrCurY = r.ImGui_GetCursorScreenPos( ctx )
-
-                                            if Lyr.Rename[LyrID..FxGUID] ~= true and Fx_P  then   
-                                                --r.ImGui_ProgressBar(ctx, Lyr.ProgBarVal[LyrID..FxGUID], FXLayeringWin_X-60, 30, '##Layer'.. LyrID)
-                                                local P_Num=1+(5*(LyrID-1))
-                                                local ID = LyrID
-                                                FX[FxGUID].LyrTitle = FX[FxGUID].LyrTitle or {}
-
-                                                local labeltoShow = FX[FxGUID].LyrTitle[ID]  or LyrID
-
-                                                if string.len ( labeltoShow or '') > MaxChars then 
-                                                    labeltoShow = string.sub (FX[FxGUID].LyrTitle[ID], 1, MaxChars)
-                                                end
-                                                local Fx_P = LyrID *2-1
-                                                local Label = '##'.. LyrID..FxGUID 
-                                                FX[FxGUID][Fx_P] = FX[FxGUID][Fx_P] or {}    FX[FxGUID][Fx_P].V = FX[FxGUID][Fx_P].V or 0.5
-                                                local p_value = FX[FxGUID][Fx_P].V or 0
-                                                --[[ r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_FramePadding(), 0, BtnSizeManual/3) ]]
-                                                --[[ r.ImGui_PushStyleColor(ctx, r.ImGui_Col_FrameBg(), getClr(r.ImGui_Col_Button())) ]]
-                                                SliderStyle=nil; Rounding=0
-                                                local CurY = r.ImGui_GetCursorPosY(ctx)
-                                                AddDrag(ctx, Label, labeltoShow, p_value, 0, 1, Fx_P,FX_Idx, P_Num,'FX Layering', FXLayeringWin_X- BtnSizeManual*3-23, Inner_Spacing, Disable,Lbl_Clickable, 'Bottom', 'Bottom', DragDir,'NoInput')
-                                                --[[ r.ImGui_PopStyleColor(ctx)  r.ImGui_PopStyleVar(ctx) ]]
-                                                
-                                                local L,T = r.ImGui_GetItemRectMin(ctx); B = T +BtnSizeManual
-                                                BtnSize = B-T
-                                                r.ImGui_SameLine(ctx, nil, 10)
-                                                r.ImGui_SetCursorPosY(ctx, CurY)
-
-                                                if Lyr.Selected[FXGUID_RackMixer]== LyrID then 
-                                                    local R = L+FXLayeringWin_X
-                                                    r.ImGui_DrawList_AddLine(WDL, L,T-2,R-2+Pad, T-2, 0x99999999)
-                                                    r.ImGui_DrawList_AddLine(WDL, L,B,R-2+Pad, B, 0x99999999)
-                                                    r.ImGui_DrawList_AddRectFilled(WDL, L, T-2, R+Pad,B,0xffffff09)
-                                                    FX[FxGUID].TheresFXinLyr=nil
-                                                    for FX_Idx=1, Sel_Track_FX_Count-1, 1 do 
-                                                        if FX[FXGUID[FX_Idx]] then 
-                                                            if FX[FXGUID[FX_Idx]].inWhichLyr == LyrID and FX.InLyr[FXGUID[FX_Idx]] == FXGUID_RackMixer then 
-                                                                r.ImGui_DrawList_AddLine(WDL, R-2+Pad,T,R-2+Pad, FXLayerFrame_PosY_T, 0x99999999)
-                                                                r.ImGui_DrawList_AddLine(WDL, R-2+Pad,B,R-2+Pad, FXLayerFrame_PosY_B, 0x99999999)
-                                                                FX[FxGUID].TheresFXinLyr= true 
-                                                            end
-                                                        end
-                                                    end
-                                                    if not FX[FxGUID].TheresFXinLyr then 
-                                                        r.ImGui_DrawList_AddLine(WDL, R,T,R, B, 0x99999999)
-                                                    else      
-                                                    end 
-                                                end
-
-                                                if r.ImGui_IsItemClicked(ctx) and Mods==Alt then 
-
-                                                    local TheresFXinLyr
-                                                    for FX_Idx=1, Sel_Track_FX_Count-1, 1 do 
-                                                        if FX[FXGUID[FX_Idx]].inWhichLyr == FX[FXGUID_RackMixer].LyrID[LyrID]  and FX.InLyr[FXGUID[FX_Idx]] == FXGUID_RackMixer then 
-                                                            TheresFXinLyr= true
-                                                        end
-                                                    end
-
-                                                    FX_Idx_RackMixer= FX_Idx
-                                                    function DeleteOneLayer(LyrID,FxGUID,FX_Idx,LT_Track)
-                                                        FX[FxGUID].LyrID[LyrID]= -1
-                                                        FX[FxGUID].LyrTitle[LyrID]=nil
-                                                        FX[FxGUID].ActiveLyrCount = math.max (FX[FxGUID].ActiveLyrCount -1 ,1 )
-                                                        r.TrackFX_SetParamNormalized(LT_Track, FX_Idx, 5*(LyrID-1), 0) -- turn channel power off
-                                                        r.TrackFX_SetParamNormalized(LT_Track, FX_Idx, 1+(5*(LyrID-1)+1), 0.5) -- set pan to center
-                                                        r.TrackFX_SetParamNormalized(LT_Track, FX_Idx, 1+(5*(LyrID-1)), 0.5) -- set Vol to 0
-                                                        r.SetProjExtState(0, 'FX Devices', 'FX'..FxGUID..'Layer ID '..LyrID, '-1')
-                                                        r.SetProjExtState(0, 'FX Devices - ',  'FX'..FxGUID..'Layer Title '..LyrID, '')
-                                                        
-                                                    end
-                                                    if not TheresFXinLyr then 
-                                                        DeleteOneLayer(LyrID,FxGUID,FX_Idx,LT_Track)
-                                                    else 
-                                                        local Modalw, Modalh = 225, 70 
-                                                        r.ImGui_SetNextWindowPos( ctx,  VP.x +VP.w/2- Modalw/2 ,VP.y+VP.h/2 - Modalh/2 )
-                                                        r.ImGui_SetNextWindowSize( ctx, Modalw, Modalh)
-                                                        r.ImGui_OpenPopup(ctx, 'Delete FX Layer '..LyrID..'? ##'..FxGUID)     
-                                                    end
-                                                elseif r.ImGui_IsItemClicked(ctx) and LBtnDC then 
-                                                    FX[FxGUID][Fx_P].V = 0.5 
-                                                    local rv = r.TrackFX_SetParamNormalized(LT_Track, FX_Idx, P_Num, 0.5)
-                                                elseif r.ImGui_IsItemClicked(ctx) and Mods==Ctrl and not FXLayerRenaming then 
-                                                    Lyr.Rename[LyrID..FxGUID]=true
-                                                elseif r.ImGui_IsItemClicked(ctx) and Mods==0 then 
-                                                    Lyr.Selected[FXGUID_RackMixer]= LyrID
-                                                end
-
-                                            elseif Lyr.Rename[LyrID..FxGUID] == true then
-                                                for i=1, 8 ,1 do -- set all other layer's rename to false
-                                                    if LyrID ~= i then Lyr.Rename[i..FxGUID] = false end 
-                                                end
-                                                FXLayerRenaming = true 
-                                                reaper.ImGui_SetKeyboardFocusHere( ctx)
-                                                r.ImGui_SetNextItemWidth(ctx, FXLayeringWin_X- BtnSizeManual*3-23)
-                                                local ID = FX[FxGUID].LyrID[LyrID]
-                                                FX[FxGUID].LyrTitle = FX[FxGUID].LyrTitle or {}
-                                                _ , FX[FxGUID].LyrTitle[ID] = r.ImGui_InputText( ctx, '##'..LyrID,  FX[FxGUID].LyrTitle[ID])
-                                                
-                                                if r.ImGui_IsItemDeactivatedAfterEdit( ctx) then 
-                                                    Lyr.Rename[LyrID..FxGUID] = false
-                                                    FXLayerRenaming = nil
-                                                    r.SetProjExtState(0, 'FX Devices - ',  'FX'..FxGUID..'Layer Title '..LyrID, FX[FxGUID].LyrTitle[ID])
-                                                elseif r.ImGui_IsItemDeactivated(ctx) then  
-                                                    Lyr.Rename[LyrID..FxGUID] = false
-                                                    FXLayerRenaming = nil
-                                                end
-                                                SL(nil, 10)
-                                            end
-
-                                            ------------ Confirm delete layer ---------------------
-                                            if r.ImGui_BeginPopupModal( ctx, 'Delete FX Layer '..LyrID..'? ##'..FxGUID,true,r.ImGui_WindowFlags_NoTitleBar()|r.ImGui_WindowFlags_NoResize()) then 
-                                                r.ImGui_Text(ctx,'Delete all FXs in layer '..LyrID.. '?')
-                                                r.ImGui_Text(ctx,' ')
-
-                                                if r.ImGui_Button(ctx, '(n) No (or Esc)') or r.ImGui_IsKeyPressed(ctx,78) or r.ImGui_IsKeyPressed(ctx,27) then
-                                                    r.ImGui_CloseCurrentPopup(ctx) 
-                                                end
-                                                r.ImGui_SameLine(ctx,nil,20)
-                                                if r.ImGui_Button(ctx, '(y) Yes') or r.ImGui_IsKeyPressed(ctx,89) then
-                                                    r.Undo_BeginBlock() 
-                                                    local L,H,HowMany = 999,0 , 0
-
-                                                    for FX_Idx=0, Sel_Track_FX_Count-1, 1 do 
-                                                        
-                                                        if FX[FXGUID[FX_Idx]].inWhichLyr == FX[FXGUID_RackMixer].LyrID[LyrID] and FX.InLyr[FXGUID[FX_Idx]] == FXGUID_RackMixer then 
-                                                            HowMany = HowMany +1
-                                                            L = math.min(FX_Idx,L)
-                                                            H = math.max(FX_Idx,H)
-                                                        end
-                                                    end
-                                                    
-                                                    for i=1, HowMany, 1 do 
-                                                        if FX[FXGUID[L]].inWhichLyr == FX[FXGUID_RackMixer].LyrID[LyrID] and FX.InLyr[FXGUID[L]] == FXGUID_RackMixer then 
-                                                            r.TrackFX_Delete(LT_Track, L)
-                                                        end 
-                                                    end 
-                                                    DeleteOneLayer(LyrID,FXGUID_RackMixer,FX_Idx_RackMixer,LT_Track)
-
-                                                    diff = H-L+1
-                                                    r.Undo_EndBlock('Delete Layer '..LyrID ,0)
-
-                                                end
-                                                r.ImGui_EndPopup(ctx)
-
-                                            end
-
-
-
-
-                                            ProgBar_Pos_L, ProgBar_PosY_T = r.ImGui_GetItemRectMin(ctx)
-                                            ProgBar_Pos_R, ProgBar_PosY_B = r.ImGui_GetItemRectMax(ctx)
-
-                                            
-
-
-
-                                            if Lyr.Selected[FXGUID_RackMixer]== LyrID and Lyr.Rename[LyrID..FxGUID]~=true then 
-                                                r.ImGui_DrawList_AddRect(drawlist, ProgBar_Pos_L, ProgBar_PosY_T, FXLayerFrame_PosX_R,ProgBar_PosY_B,0xffffffff)
-                                            end
-                                        
-                                            drawlistInFXLayering =  r.ImGui_GetForegroundDrawList(ctx)
-
-
-                                            if r.ImGui_BeginDragDropTarget(ctx) then        
-                                                dropped ,payload = r.ImGui_AcceptDragDropPayload(ctx, 'FX_Drag')-- 
-
-                                                if dropped and Mods ==0 then
-                                                    DropFXtoLayer(FX_Idx,LayerNum)
-                                                elseif dropped and Mods == Apl then 
-
-                                                    DragFX_Src = DragFX_ID  
-                                                    if DragFX_ID>FX_Idx then DragFX_Dest = FX_Idx-1 else DragFX_Dest = FX_Idx end 
-                                                    DropToLyrID = LyrID
-                                                    DroptoRack= FXGUID_RackMixer
-                                                end
-                                                HighlightSelectedItem(0x88888844, 0xffffffff, 0, L,T,R,B,h,w, H_OutlineSc, V_OutlineSc,'GetItemRect')
-                                                r.ImGui_EndDragDropTarget(ctx)
-                                            end
-                                            
-                                            local Label = '##Pan'.. LyrID..FxGUID 
-
-                                            local P_Num=1+(5*(LyrID-1)+1)
-                                            local Fx_P_Knob = LyrID*2
-                                            local Label = '## Pan'.. LyrID..FxGUID 
-                                            local p_value_Knob = FX[FxGUID][Fx_P_Knob].V
-                                            local labeltoShow =  HowManyFXinLyr
-                                            
-
-
-                                            AddKnob(ctx, Label, labeltoShow, p_value_Knob, 0, 1, Fx_P_Knob,FX_Idx, P_Num, 'FX Layering', BtnSizeManual/2, 0, Disabled, 9, 'Within','None')
-                                            r.ImGui_SameLine(ctx, nil , 10 )
-
-                                            if LBtnDC and  reaper.ImGui_IsItemClicked( ctx, 0 ) then  
-                                                FX[FxGUID][Fx_P_Knob].V = 0.5
-                                                local rv = r.TrackFX_SetParamNormalized(LT_Track, FX_Idx, P_Num, 0.5)
-                                            end
-
-                                            r.ImGui_SetCursorPosY(ctx,CurY)
-
-                                            if Lyr.Solo[LyrID..FxGUID]==1 then local Clr = Layer_Solo or CustomColorsDefault.Layer_Solo 
-                                                local Act, Hvr = Generate_Active_And_Hvr_CLRs(Clr)
-                                                r.ImGui_PushStyleColor(ctx, r.ImGui_Col_Button(), Clr )  
-                                                r.ImGui_PushStyleColor(ctx, r.ImGui_Col_ButtonActive(), Act )  
-                                                r.ImGui_PushStyleColor(ctx, r.ImGui_Col_ButtonHovered(), Hvr )  
-
-                                                SoloBtnClrPop = 3
-                                            end 
-
-                                            ClickOnSolo = r.ImGui_Button(ctx, 'S##'..LyrID, BtnSizeManual,BtnSizeManual ) -- ==  lyr solo
-
-                                            if Lyr.Solo[LyrID..FxGUID]==1 then r.ImGui_PopStyleColor(ctx,SoloBtnClrPop) end 
-
-
-                                            if ClickOnSolo then 
-                                                Lyr.Solo[LyrID..FxGUID] = reaper.TrackFX_GetParamNormalized(LT_Track, FX_Idx, 4+(5*(LyrID-1)))
-                                                if Lyr.Solo[LyrID..FxGUID]==1 then 
-                                                    Lyr.Solo[LyrID..FxGUID]=0
-                                                    r.TrackFX_SetParamNormalized(LT_Track, FX_Idx, 4+(5*(LyrID-1)), Lyr.Solo[LyrID..FxGUID])
-                                                    r.ImGui_PushStyleColor(ctx, r.ImGui_Col_Button(), 0x9ed9d3ff)
-                                                    r.ImGui_PopStyleColor(ctx)
-                                                elseif Lyr.Solo[LyrID..FxGUID] == 0 then
-                                                    Lyr.Solo[LyrID..FxGUID]=1
-                                                    r.TrackFX_SetParamNormalized(LT_Track, FX_Idx, 4+(5*(LyrID-1)), Lyr.Solo[LyrID..FxGUID])
-                                                end
-                                            end
-                                            if Lyr.Solo[LyrID..FxGUID]==nil then  Lyr.Solo[LyrID..FxGUID] = reaper.TrackFX_GetParamNormalized(LT_Track, FX_Idx, 4+(5*(LyrID-1))) end
-
-                                            r.ImGui_SameLine(ctx,nil,3)
-                                            r.ImGui_SetCursorPosY(ctx,CurY)
-                                            if Lyr.Mute[LyrID..FxGUID]==0 then local Clr = Layer_Mute or CustomColorsDefault.Layer_Mute
-                                                local Act, Hvr = Generate_Active_And_Hvr_CLRs(Clr)
-                                                r.ImGui_PushStyleColor(ctx, r.ImGui_Col_Button(), Clr )  
-                                                r.ImGui_PushStyleColor(ctx, r.ImGui_Col_ButtonActive(), Act )  
-                                                r.ImGui_PushStyleColor(ctx, r.ImGui_Col_ButtonHovered(), Hvr )  
-                                                LyrMuteClrPop=3
-                                            end
-                                            ClickOnMute = r.ImGui_Button(ctx, 'M##'..LyrID,BtnSizeManual,BtnSizeManual)
-                                            if Lyr.Mute[LyrID..FxGUID]==0 then r.ImGui_PopStyleColor(ctx,LyrMuteClrPop) end 
-
-
-
-                                            if Lyr.Mute[LyrID..FxGUID] == nil then Lyr.Mute[LyrID..FxGUID] = reaper.TrackFX_GetParamNormalized(LT_Track, FX_Idx, 5*(LyrID-1)) end
-
-                                            if ClickOnMute then 
-                                                Lyr.Mute[LyrID..FxGUID] = reaper.TrackFX_GetParamNormalized(LT_Track, FX_Idx, 5*(LyrID-1))
-                                                if Lyr.Mute[LyrID..FxGUID] == 1 then 
-                                                Lyr.Mute[LyrID..FxGUID] = 0 
-                                                reaper.TrackFX_SetParamNormalized(LT_Track, FX_Idx, 5*(LyrID-1), Lyr.Mute[LyrID..FxGUID])
-                                                elseif Lyr.Mute[LyrID..FxGUID] == 0 then 
-                                                    Lyr.Mute[LyrID..FxGUID] = 1 
-                                                    r.TrackFX_SetParamNormalized(LT_Track, FX_Idx, 5*(LyrID-1), Lyr.Mute[LyrID..FxGUID])
-
-                                                end 
-                                            end
-
-
-
-
-                                            MuteBtnR,MuteBtnB = r.ImGui_GetItemRectMax(ctx)
-
-                                            if FX[FxGUID].AnySoloChan  then 
-                                                if Lyr.Solo[LyrID..FxGUID] ~=1 then 
-                                                    r.ImGui_DrawList_AddRectFilled(WDL, LyrCurX,LyrCurY,MuteBtnR,MuteBtnB,  0x00000088)
-                                                end
-                                            end 
-                                            if Lyr.Mute[LyrID..FxGUID] ==0 then 
-                                                r.ImGui_DrawList_AddRectFilled(WDL, LyrCurX,LyrCurY,MuteBtnR,MuteBtnB, 0x00000088)
-                                            end
-                                        end
-                                        
-                                       
-
-            
+                                r.ImGui_SameLine(ctx)
+                                r.ImGui_AlignTextToFramePadding( ctx)
+                                if not FX[FxGUID].RenameFXLayering then 
+                                    r.ImGui_SetNextItemWidth(ctx, 10)
+                                    local TitleShort
+                                    if string.len(FX[FxGUID].ContainerTitle or '')> 27 then 
+                                        TitleShort = string.sub (FX[FxGUID].ContainerTitle, 1, 27)
                                     end
+                                    r.ImGui_Text( ctx, TitleShort or FX[FxGUID].ContainerTitle  or  'FX Layering')
 
+                                    
+                                else -- If Renaming
+                                    local Flag
+                                    r.ImGui_SetNextItemWidth(ctx, 180)
+                                    if FX[FxGUID].ContainerTitle == 'FX Layering' then Flag = r.ImGui_InputTextFlags_AutoSelectAll() end 
+                                    _, FX[FxGUID].ContainerTitle = r.ImGui_InputText(ctx, '##'..FxGUID, FX[FxGUID].ContainerTitle or 'FX Layering', Flag)
 
+                                    r.ImGui_SetItemDefaultFocus( ctx)
+                                    r.ImGui_SetKeyboardFocusHere( ctx, -1)
 
-
-                                    if FX[FxGUID].ActiveLyrCount ~= 8 then 
-
-                                        AddNewLayer = r.ImGui_Button(ctx, '+', FXLayeringWin_X , 25 )
-                                        if AddNewLayer then 
-                                            local FxGUID = r.TrackFX_GetFXGUID(LT_Track, FX_Idx)
-
-                                            if FX[FxGUID].ActiveLyrCount <=8 then 
-
-                                                local EmptyChan,chan1,chan2,chan3 ; local  lastnum = 0
-                                                for i, v in ipairs(FX[FxGUID].LyrID) do 
-                                                    if not EmptyChan then 
-                                                        if v==-1 then EmptyChan = i end
-                                                    end 
-                                                end 
-
-                                                if not EmptyChan then EmptyChan = FX[FxGUID].ActiveLyrCount+1 end 
-                                                r.TrackFX_SetParamNormalized(LT_Track, FX_Idx, 5*(EmptyChan-1), 1)
-                                                FX[FxGUID].ActiveLyrCount = math.min(FX[FxGUID].ActiveLyrCount+1,8)
-                                                FX[FxGUID][EmptyChan*2-1].V = 0.5 -- init val for Vol
-                                                FX[FxGUID][EmptyChan*2].V = 0.5-- init val for Pan  
-
-
-
-                                                FX[FxGUID].LyrID[EmptyChan]= EmptyChan
-
-                                                r.SetProjExtState(0, 'FX Devices', 'FX'..FxGUID..'Layer ID '..EmptyChan, EmptyChan)
-
-
-                                            end
-
-
-                                        end
+                                    if r.ImGui_IsItemDeactivated( ctx) then 
+                                        FX[FxGUID].RenameFXLayering = nil
+                                        r.SetProjExtState(0, 'FX Devices - ',  'FX'..FxGUID..'FX Layer Container Title ', FX[FxGUID].ContainerTitle)
                                     end
-                                    r.ImGui_PopStyleVar(ctx,StyleVarPop)
-                                    r.ImGui_PopStyleVar(ctx,2)
-
-                                    r.ImGui_EndChildFrame(ctx)
 
                                 end
-                                r.ImGui_PopStyleColor(ctx,StyleClrPop)
+
+                                --r.ImGui_PushStyleColor(ctx,r.ImGui_Col_Button(), 0xffffff10)
+
+                                r.ImGui_SameLine(ctx,FXLayeringWin_X-25,0) r.ImGui_AlignTextToFramePadding( ctx)
+                                if not FX[FxGUID].SumMode then 
+                                    FX[FxGUID].SumMode = r.TrackFX_GetParamNormalized(LT_Track, FX_Idx, 40)
+                                end
+                                local Lbl 
+                                if FX[FxGUID].SumMode == 0 then Lbl = 'Avg' else  Lbl = 'Sum' end 
+                                if r.ImGui_Button(ctx, (Lbl or '') ..'##FX Lyr Mode'..FxGUID,30,r.ImGui_GetTextLineHeight(ctx)) then 
+                                    FX[FxGUID].SumMode = r.TrackFX_GetParamNormalized(LT_Track, FX_Idx, 40)
+                                    if FX[FxGUID].SumMode == 0 then 
+                                        r.TrackFX_SetParamNormalized(LT_Track,FX_Idx, 40,1)
+                                        FX[FxGUID].SumMode = 1
+                                    else 
+                                        r.TrackFX_SetParamNormalized(LT_Track,FX_Idx, 40,0)
+                                        FX[FxGUID].SumMode=0
+                                    end
+
+                                end 
+
+                                --r.ImGui_PopStyleColor(ctx)
+                                r.ImGui_PopStyleVar(ctx)
+
+                                r.ImGui_EndTable(ctx)   
+                                r.ImGui_PopStyleColor(ctx,2)  --Header Clr
+                                r.ImGui_PushStyleVar(ctx,r.ImGui_StyleVar_FrameRounding(),0)
+                                --r.ImGui_PushStyleColor(ctx,r.ImGui_Col_FrameBgActive(), 0x99999999)
+                                local StyleVarPop = 1
+                                local StyleClrPop=1
+                                
+
+                                local FxGUID = r.TrackFX_GetFXGUID(LT_Track, FX_Idx)
+                            
+                                
+                                
+                                local MaxChars
+
+                                if FX[FxGUID].ActiveLyrCount <=4 then LineH= 4; Spacing= 0; Inner_Spacing = 2 ; BtnSizeManual = 34 ; MaxChars = 15
+                                elseif FX[FxGUID].ActiveLyrCount == 5  then LineH,Spacing,Inner_Spacing = 3, -5, 0 ; BtnSizeManual = 30 ; MaxChars = 18
+                                elseif FX[FxGUID].ActiveLyrCount==6 then LineH,Spacing,Inner_Spacing = 5.5, -5, -8 ; BtnSizeManual = 24 ; MaxChars = 20
+                                elseif FX[FxGUID].ActiveLyrCount >=7 then LineH,Spacing,Inner_Spacing = 3, -5, -8 ; BtnSizeManual = 19;  MaxChars = 23
+                                end 
+
+
+                                
+                                r.ImGui_PushStyleVar(ctx,r.ImGui_StyleVar_ItemSpacing(),1,Spacing)
+                                r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_FramePadding(), 4, LineH)
+
+                                local BtnSize, AnySoloChan
+                                for LayerNum,LyrID in pairs(FX[FxGUID].LyrID)  do if Lyr.Solo[LyrID..FxGUID]==1 then FX[FxGUID].AnySoloChan=true AnySoloChan=true end end 
+                                if not AnySoloChan then FX[FxGUID].AnySoloChan = nil end 
+
+
+                                for LayerNum,LyrID in pairs(FX[FxGUID].LyrID)  do  
+
+                                    if Lyr.Solo[LyrID..FxGUID]==nil then  Lyr.Solo[LyrID..FxGUID] = reaper.TrackFX_GetParamNormalized(LT_Track, FX_Idx, 4+(5*(LyrID-1))) end
+                                    if Lyr.Solo[LyrID..FxGUID]==1 then FX[FxGUID].AnySoloChan = true      end 
+                                    if Lyr.Mute[LyrID..FxGUID] == nil then Lyr.Mute[LyrID..FxGUID] = reaper.TrackFX_GetParamNormalized(LT_Track, FX_Idx, 5*(LyrID-1)) end
+                                    if Lyr.Mute[LyrID..FxGUID]==1 then FX[FxGUID].AnyMuteChan = true end 
+
+                                    if Lyr.ProgBarVal[LyrID..FxGUID] ==nil then 
+                                        Layer1Vol= r.TrackFX_GetParamNormalized(LT_Track, FX_Idx, 1)
+                                        Lyr.ProgBarVal[LyrID..FxGUID]=Layer1Vol
+                                    end
+
+                                    LyrFX_Inst = math.max(LyrFX_Inst or 0, LyrID)
+                                    local HowManyFXinLyr=0
+                                    for i=0, Sel_Track_FX_Count, 1 do 
+                                        if FX.InLyr[FXGUID[i]] == FXGUID_RackMixer and FX[FXGUID[i]].inWhichLyr == LyrID then 
+                                            HowManyFXinLyr = HowManyFXinLyr+1
+                                        end 
+                                    end 
+
+
+                                    local Fx_P = (LyrID*2) -1 
+
+                                    local CurY = r.ImGui_GetCursorPosY(ctx)
+                                    if FX[FxGUID][Fx_P] then 
+                                        LyrCurX, LyrCurY = r.ImGui_GetCursorScreenPos( ctx )
+
+                                        if Lyr.Rename[LyrID..FxGUID] ~= true and Fx_P  then   
+                                            --r.ImGui_ProgressBar(ctx, Lyr.ProgBarVal[LyrID..FxGUID], FXLayeringWin_X-60, 30, '##Layer'.. LyrID)
+                                            local P_Num=1+(5*(LyrID-1))
+                                            local ID = LyrID
+                                            FX[FxGUID].LyrTitle = FX[FxGUID].LyrTitle or {}
+
+                                            local labeltoShow = FX[FxGUID].LyrTitle[ID]  or LyrID
+
+                                            if string.len ( labeltoShow or '') > MaxChars then 
+                                                labeltoShow = string.sub (FX[FxGUID].LyrTitle[ID], 1, MaxChars)
+                                            end
+                                            local Fx_P = LyrID *2-1
+                                            local Label = '##'.. LyrID..FxGUID 
+                                            FX[FxGUID][Fx_P] = FX[FxGUID][Fx_P] or {}    FX[FxGUID][Fx_P].V = FX[FxGUID][Fx_P].V or 0.5
+                                            local p_value = FX[FxGUID][Fx_P].V or 0
+                                            --[[ r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_FramePadding(), 0, BtnSizeManual/3) ]]
+                                            --[[ r.ImGui_PushStyleColor(ctx, r.ImGui_Col_FrameBg(), getClr(r.ImGui_Col_Button())) ]]
+                                            SliderStyle=nil; Rounding=0
+                                            local CurY = r.ImGui_GetCursorPosY(ctx)
+                                            AddDrag(ctx, Label, labeltoShow, p_value, 0, 1, Fx_P,FX_Idx, P_Num,'FX Layering', FXLayeringWin_X- BtnSizeManual*3-23, Inner_Spacing, Disable,Lbl_Clickable, 'Bottom', 'Bottom', DragDir,'NoInput')
+                                            --[[ r.ImGui_PopStyleColor(ctx)  r.ImGui_PopStyleVar(ctx) ]]
+                                            
+                                            local L,T = r.ImGui_GetItemRectMin(ctx); B = T +BtnSizeManual
+                                            BtnSize = B-T
+                                            r.ImGui_SameLine(ctx, nil, 10)
+                                            r.ImGui_SetCursorPosY(ctx, CurY)
+
+                                            if Lyr.Selected[FXGUID_RackMixer]== LyrID then 
+                                                local R = L+FXLayeringWin_X
+                                                r.ImGui_DrawList_AddLine(WDL, L,T-2,R-2+Pad, T-2, 0x99999999)
+                                                r.ImGui_DrawList_AddLine(WDL, L,B,R-2+Pad, B, 0x99999999)
+                                                r.ImGui_DrawList_AddRectFilled(WDL, L, T-2, R+Pad,B,0xffffff09)
+                                                FX[FxGUID].TheresFXinLyr=nil
+                                                for FX_Idx=1, Sel_Track_FX_Count-1, 1 do 
+                                                    if FX[FXGUID[FX_Idx]] then 
+                                                        if FX[FXGUID[FX_Idx]].inWhichLyr == LyrID and FX.InLyr[FXGUID[FX_Idx]] == FXGUID_RackMixer then 
+                                                            r.ImGui_DrawList_AddLine(WDL, R-2+Pad,T,R-2+Pad, FXLayerFrame_PosY_T, 0x99999999)
+                                                            r.ImGui_DrawList_AddLine(WDL, R-2+Pad,B,R-2+Pad, FXLayerFrame_PosY_B, 0x99999999)
+                                                            FX[FxGUID].TheresFXinLyr= true 
+                                                        end
+                                                    end
+                                                end
+                                                if not FX[FxGUID].TheresFXinLyr then 
+                                                    r.ImGui_DrawList_AddLine(WDL, R,T,R, B, 0x99999999)
+                                                else      
+                                                end 
+                                            end
+
+                                            if r.ImGui_IsItemClicked(ctx) and Mods==Alt then 
+
+                                                local TheresFXinLyr
+                                                for FX_Idx=1, Sel_Track_FX_Count-1, 1 do 
+                                                    if FX[FXGUID[FX_Idx]].inWhichLyr == FX[FXGUID_RackMixer].LyrID[LyrID]  and FX.InLyr[FXGUID[FX_Idx]] == FXGUID_RackMixer then 
+                                                        TheresFXinLyr= true
+                                                    end
+                                                end
+
+                                                FX_Idx_RackMixer= FX_Idx
+                                                function DeleteOneLayer(LyrID,FxGUID,FX_Idx,LT_Track)
+                                                    FX[FxGUID].LyrID[LyrID]= -1
+                                                    FX[FxGUID].LyrTitle[LyrID]=nil
+                                                    FX[FxGUID].ActiveLyrCount = math.max (FX[FxGUID].ActiveLyrCount -1 ,1 )
+                                                    r.TrackFX_SetParamNormalized(LT_Track, FX_Idx, 5*(LyrID-1), 0) -- turn channel power off
+                                                    r.TrackFX_SetParamNormalized(LT_Track, FX_Idx, 1+(5*(LyrID-1)+1), 0.5) -- set pan to center
+                                                    r.TrackFX_SetParamNormalized(LT_Track, FX_Idx, 1+(5*(LyrID-1)), 0.5) -- set Vol to 0
+                                                    r.SetProjExtState(0, 'FX Devices', 'FX'..FxGUID..'Layer ID '..LyrID, '-1')
+                                                    r.SetProjExtState(0, 'FX Devices - ',  'FX'..FxGUID..'Layer Title '..LyrID, '')
+                                                    
+                                                end
+                                                if not TheresFXinLyr then 
+                                                    DeleteOneLayer(LyrID,FxGUID,FX_Idx,LT_Track)
+                                                else 
+                                                    local Modalw, Modalh = 225, 70 
+                                                    r.ImGui_SetNextWindowPos( ctx,  VP.x +VP.w/2- Modalw/2 ,VP.y+VP.h/2 - Modalh/2 )
+                                                    r.ImGui_SetNextWindowSize( ctx, Modalw, Modalh)
+                                                    r.ImGui_OpenPopup(ctx, 'Delete FX Layer '..LyrID..'? ##'..FxGUID)     
+                                                end
+                                            elseif r.ImGui_IsItemClicked(ctx) and LBtnDC then 
+                                                FX[FxGUID][Fx_P].V = 0.5 
+                                                local rv = r.TrackFX_SetParamNormalized(LT_Track, FX_Idx, P_Num, 0.5)
+                                            elseif r.ImGui_IsItemClicked(ctx) and Mods==Ctrl and not FXLayerRenaming then 
+                                                Lyr.Rename[LyrID..FxGUID]=true
+                                            elseif r.ImGui_IsItemClicked(ctx) and Mods==0 then 
+                                                Lyr.Selected[FXGUID_RackMixer]= LyrID
+                                            end
+
+                                        elseif Lyr.Rename[LyrID..FxGUID] == true then
+                                            for i=1, 8 ,1 do -- set all other layer's rename to false
+                                                if LyrID ~= i then Lyr.Rename[i..FxGUID] = false end 
+                                            end
+                                            FXLayerRenaming = true 
+                                            reaper.ImGui_SetKeyboardFocusHere( ctx)
+                                            r.ImGui_SetNextItemWidth(ctx, FXLayeringWin_X- BtnSizeManual*3-23)
+                                            local ID = FX[FxGUID].LyrID[LyrID]
+                                            FX[FxGUID].LyrTitle = FX[FxGUID].LyrTitle or {}
+                                            _ , FX[FxGUID].LyrTitle[ID] = r.ImGui_InputText( ctx, '##'..LyrID,  FX[FxGUID].LyrTitle[ID])
+                                            
+                                            if r.ImGui_IsItemDeactivatedAfterEdit( ctx) then 
+                                                Lyr.Rename[LyrID..FxGUID] = false
+                                                FXLayerRenaming = nil
+                                                r.SetProjExtState(0, 'FX Devices - ',  'FX'..FxGUID..'Layer Title '..LyrID, FX[FxGUID].LyrTitle[ID])
+                                            elseif r.ImGui_IsItemDeactivated(ctx) then  
+                                                Lyr.Rename[LyrID..FxGUID] = false
+                                                FXLayerRenaming = nil
+                                            end
+                                            SL(nil, 10)
+                                        end
+
+                                        ------------ Confirm delete layer ---------------------
+                                        if r.ImGui_BeginPopupModal( ctx, 'Delete FX Layer '..LyrID..'? ##'..FxGUID,true,r.ImGui_WindowFlags_NoTitleBar()|r.ImGui_WindowFlags_NoResize()) then 
+                                            r.ImGui_Text(ctx,'Delete all FXs in layer '..LyrID.. '?')
+                                            r.ImGui_Text(ctx,' ')
+
+                                            if r.ImGui_Button(ctx, '(n) No (or Esc)') or r.ImGui_IsKeyPressed(ctx,78) or r.ImGui_IsKeyPressed(ctx,27) then
+                                                r.ImGui_CloseCurrentPopup(ctx) 
+                                            end
+                                            r.ImGui_SameLine(ctx,nil,20)
+                                            if r.ImGui_Button(ctx, '(y) Yes') or r.ImGui_IsKeyPressed(ctx,89) then
+                                                r.Undo_BeginBlock() 
+                                                local L,H,HowMany = 999,0 , 0
+
+                                                for FX_Idx=0, Sel_Track_FX_Count-1, 1 do 
+                                                    
+                                                    if FX[FXGUID[FX_Idx]].inWhichLyr == FX[FXGUID_RackMixer].LyrID[LyrID] and FX.InLyr[FXGUID[FX_Idx]] == FXGUID_RackMixer then 
+                                                        HowMany = HowMany +1
+                                                        L = math.min(FX_Idx,L)
+                                                        H = math.max(FX_Idx,H)
+                                                    end
+                                                end
+                                                
+                                                for i=1, HowMany, 1 do 
+                                                    if FX[FXGUID[L]].inWhichLyr == FX[FXGUID_RackMixer].LyrID[LyrID] and FX.InLyr[FXGUID[L]] == FXGUID_RackMixer then 
+                                                        r.TrackFX_Delete(LT_Track, L)
+                                                    end 
+                                                end 
+                                                DeleteOneLayer(LyrID,FXGUID_RackMixer,FX_Idx_RackMixer,LT_Track)
+
+                                                diff = H-L+1
+                                                r.Undo_EndBlock('Delete Layer '..LyrID ,0)
+
+                                            end
+                                            r.ImGui_EndPopup(ctx)
+
+                                        end
+
+
+
+
+                                        ProgBar_Pos_L, ProgBar_PosY_T = r.ImGui_GetItemRectMin(ctx)
+                                        ProgBar_Pos_R, ProgBar_PosY_B = r.ImGui_GetItemRectMax(ctx)
+
+                                        
+
+
+
+                                        if Lyr.Selected[FXGUID_RackMixer]== LyrID and Lyr.Rename[LyrID..FxGUID]~=true then 
+                                            r.ImGui_DrawList_AddRect(drawlist, ProgBar_Pos_L, ProgBar_PosY_T, FXLayerFrame_PosX_R,ProgBar_PosY_B,0xffffffff)
+                                        end
+                                    
+                                        drawlistInFXLayering =  r.ImGui_GetForegroundDrawList(ctx)
+
+
+                                        if r.ImGui_BeginDragDropTarget(ctx) then        
+                                            dropped ,payload = r.ImGui_AcceptDragDropPayload(ctx, 'FX_Drag')-- 
+
+                                            if dropped and Mods ==0 then
+                                                DropFXtoLayer(FX_Idx,LayerNum)
+                                            elseif dropped and Mods == Apl then 
+
+                                                DragFX_Src = DragFX_ID  
+                                                if DragFX_ID>FX_Idx then DragFX_Dest = FX_Idx-1 else DragFX_Dest = FX_Idx end 
+                                                DropToLyrID = LyrID
+                                                DroptoRack= FXGUID_RackMixer
+                                            end
+                                            HighlightSelectedItem(0x88888844, 0xffffffff, 0, L,T,R,B,h,w, H_OutlineSc, V_OutlineSc,'GetItemRect')
+                                            r.ImGui_EndDragDropTarget(ctx)
+                                        end
+                                        
+                                        local Label = '##Pan'.. LyrID..FxGUID 
+
+                                        local P_Num=1+(5*(LyrID-1)+1)
+                                        local Fx_P_Knob = LyrID*2
+                                        local Label = '## Pan'.. LyrID..FxGUID 
+                                        local p_value_Knob = FX[FxGUID][Fx_P_Knob].V
+                                        local labeltoShow =  HowManyFXinLyr
+                                        
+
+
+                                        AddKnob(ctx, Label, labeltoShow, p_value_Knob, 0, 1, Fx_P_Knob,FX_Idx, P_Num, 'FX Layering', BtnSizeManual/2, 0, Disabled, 9, 'Within','None')
+                                        r.ImGui_SameLine(ctx, nil , 10 )
+
+                                        if LBtnDC and  reaper.ImGui_IsItemClicked( ctx, 0 ) then  
+                                            FX[FxGUID][Fx_P_Knob].V = 0.5
+                                            local rv = r.TrackFX_SetParamNormalized(LT_Track, FX_Idx, P_Num, 0.5)
+                                        end
+
+                                        r.ImGui_SetCursorPosY(ctx,CurY)
+
+                                        if Lyr.Solo[LyrID..FxGUID]==1 then local Clr = Layer_Solo or CustomColorsDefault.Layer_Solo 
+                                            local Act, Hvr = Generate_Active_And_Hvr_CLRs(Clr)
+                                            r.ImGui_PushStyleColor(ctx, r.ImGui_Col_Button(), Clr )  
+                                            r.ImGui_PushStyleColor(ctx, r.ImGui_Col_ButtonActive(), Act )  
+                                            r.ImGui_PushStyleColor(ctx, r.ImGui_Col_ButtonHovered(), Hvr )  
+
+                                            SoloBtnClrPop = 3
+                                        end 
+
+                                        ClickOnSolo = r.ImGui_Button(ctx, 'S##'..LyrID, BtnSizeManual,BtnSizeManual ) -- ==  lyr solo
+
+                                        if Lyr.Solo[LyrID..FxGUID]==1 then r.ImGui_PopStyleColor(ctx,SoloBtnClrPop) end 
+
+
+                                        if ClickOnSolo then 
+                                            Lyr.Solo[LyrID..FxGUID] = reaper.TrackFX_GetParamNormalized(LT_Track, FX_Idx, 4+(5*(LyrID-1)))
+                                            if Lyr.Solo[LyrID..FxGUID]==1 then 
+                                                Lyr.Solo[LyrID..FxGUID]=0
+                                                r.TrackFX_SetParamNormalized(LT_Track, FX_Idx, 4+(5*(LyrID-1)), Lyr.Solo[LyrID..FxGUID])
+                                                r.ImGui_PushStyleColor(ctx, r.ImGui_Col_Button(), 0x9ed9d3ff)
+                                                r.ImGui_PopStyleColor(ctx)
+                                            elseif Lyr.Solo[LyrID..FxGUID] == 0 then
+                                                Lyr.Solo[LyrID..FxGUID]=1
+                                                r.TrackFX_SetParamNormalized(LT_Track, FX_Idx, 4+(5*(LyrID-1)), Lyr.Solo[LyrID..FxGUID])
+                                            end
+                                        end
+                                        if Lyr.Solo[LyrID..FxGUID]==nil then  Lyr.Solo[LyrID..FxGUID] = reaper.TrackFX_GetParamNormalized(LT_Track, FX_Idx, 4+(5*(LyrID-1))) end
+
+                                        r.ImGui_SameLine(ctx,nil,3)
+                                        r.ImGui_SetCursorPosY(ctx,CurY)
+                                        if Lyr.Mute[LyrID..FxGUID]==0 then local Clr = Layer_Mute or CustomColorsDefault.Layer_Mute
+                                            local Act, Hvr = Generate_Active_And_Hvr_CLRs(Clr)
+                                            r.ImGui_PushStyleColor(ctx, r.ImGui_Col_Button(), Clr )  
+                                            r.ImGui_PushStyleColor(ctx, r.ImGui_Col_ButtonActive(), Act )  
+                                            r.ImGui_PushStyleColor(ctx, r.ImGui_Col_ButtonHovered(), Hvr )  
+                                            LyrMuteClrPop=3
+                                        end
+                                        ClickOnMute = r.ImGui_Button(ctx, 'M##'..LyrID,BtnSizeManual,BtnSizeManual)
+                                        if Lyr.Mute[LyrID..FxGUID]==0 then r.ImGui_PopStyleColor(ctx,LyrMuteClrPop) end 
+
+
+
+                                        if Lyr.Mute[LyrID..FxGUID] == nil then Lyr.Mute[LyrID..FxGUID] = reaper.TrackFX_GetParamNormalized(LT_Track, FX_Idx, 5*(LyrID-1)) end
+
+                                        if ClickOnMute then 
+                                            Lyr.Mute[LyrID..FxGUID] = reaper.TrackFX_GetParamNormalized(LT_Track, FX_Idx, 5*(LyrID-1))
+                                            if Lyr.Mute[LyrID..FxGUID] == 1 then 
+                                            Lyr.Mute[LyrID..FxGUID] = 0 
+                                            reaper.TrackFX_SetParamNormalized(LT_Track, FX_Idx, 5*(LyrID-1), Lyr.Mute[LyrID..FxGUID])
+                                            elseif Lyr.Mute[LyrID..FxGUID] == 0 then 
+                                                Lyr.Mute[LyrID..FxGUID] = 1 
+                                                r.TrackFX_SetParamNormalized(LT_Track, FX_Idx, 5*(LyrID-1), Lyr.Mute[LyrID..FxGUID])
+
+                                            end 
+                                        end
+
+
+
+
+                                        MuteBtnR,MuteBtnB = r.ImGui_GetItemRectMax(ctx)
+
+                                        if FX[FxGUID].AnySoloChan  then 
+                                            if Lyr.Solo[LyrID..FxGUID] ~=1 then 
+                                                r.ImGui_DrawList_AddRectFilled(WDL, LyrCurX,LyrCurY,MuteBtnR,MuteBtnB,  0x00000088)
+                                            end
+                                        end 
+                                        if Lyr.Mute[LyrID..FxGUID] ==0 then 
+                                            r.ImGui_DrawList_AddRectFilled(WDL, LyrCurX,LyrCurY,MuteBtnR,MuteBtnB, 0x00000088)
+                                        end
+                                    end
+                                    
+                                    
+
+        
+                                end
+
+
+
+
+                                if FX[FxGUID].ActiveLyrCount ~= 8 then 
+
+                                    AddNewLayer = r.ImGui_Button(ctx, '+', FXLayeringWin_X , 25 )
+                                    if AddNewLayer then 
+                                        local FxGUID = r.TrackFX_GetFXGUID(LT_Track, FX_Idx)
+
+                                        if FX[FxGUID].ActiveLyrCount <=8 then 
+
+                                            local EmptyChan,chan1,chan2,chan3 ; local  lastnum = 0
+                                            for i, v in ipairs(FX[FxGUID].LyrID) do 
+                                                if not EmptyChan then 
+                                                    if v==-1 then EmptyChan = i end
+                                                end 
+                                            end 
+
+                                            if not EmptyChan then EmptyChan = FX[FxGUID].ActiveLyrCount+1 end 
+                                            r.TrackFX_SetParamNormalized(LT_Track, FX_Idx, 5*(EmptyChan-1), 1)
+                                            FX[FxGUID].ActiveLyrCount = math.min(FX[FxGUID].ActiveLyrCount+1,8)
+                                            FX[FxGUID][EmptyChan*2-1].V = 0.5 -- init val for Vol
+                                            FX[FxGUID][EmptyChan*2].V = 0.5-- init val for Pan  
+
+
+
+                                            FX[FxGUID].LyrID[EmptyChan]= EmptyChan
+
+                                            r.SetProjExtState(0, 'FX Devices', 'FX'..FxGUID..'Layer ID '..EmptyChan, EmptyChan)
+
+
+                                        end
+
+
+                                    end
+                                end
+                                r.ImGui_PopStyleVar(ctx,StyleVarPop)
+                                r.ImGui_PopStyleVar(ctx,2)
+                                r.ImGui_DrawListSplitter_SetCurrentChannel(WDL_Split, 1)
+                                if not  r.TrackFX_GetEnabled(LT_Track,FX_Idx) then r.ImGui_DrawList_AddRectFilled(WDL, ScrPosX,ScrPosY, ScrPosX+240, ScrPosY+220, 0x00000055 ) end 
+        
+                                r.ImGui_DrawListSplitter_Merge(WDL_Split)
+        
+                                r.ImGui_EndChildFrame(ctx)
+
+
+                            end
+                            r.ImGui_PopStyleColor(ctx,StyleClrPop)
 
                         else    -- if collapsed
                             if r.ImGui_BeginChildFrame(ctx, '##FX Layer at'..FX_Idx..'OnTrack '..TrkID, 27, 220, r.ImGui_WindowFlags_NoScrollbar())  then
@@ -11313,7 +11324,7 @@ function loop()
                                 WindowBtnVertical = reaper.ImGui_Button(ctx, title ..'##Vertical', 25, 220 ) -- create window name button
                                 if WindowBtnVertical and Mods == 0 then 
                                 elseif WindowBtnVertical == true and Mods==Shift then 
-                                    ToggleBypassFX()
+                                    ToggleBypassFX(LT_Track, FX_Idx)
                                 elseif r.ImGui_IsItemClicked(ctx) and Mods ==Alt then 
                                     FX[FxGUID].DeleteFXLayer = true 
                                 elseif r.ImGui_IsItemClicked(ctx, 1) then 
@@ -11339,6 +11350,7 @@ function loop()
                             
 
                         end
+
 
                         FX[FxGUID].DontShowTilNextFullLoop = true 
                         
@@ -11535,6 +11547,7 @@ function loop()
                             r.ImGui_EndPopup(ctx)
                         end
 
+
                         r.ImGui_SameLine(ctx,nil,0)
                         FX[FXGUID[FX_Idx]].DontShowTilNextFullLoop = true
 
@@ -11686,7 +11699,9 @@ function loop()
                     elseif FX_Idx+1 == RepeatTimeForWindows and Trk[TrkID].PostFX[1]  then 
                         AddSpaceBtwnFXs(Sel_Track_FX_Count-#Trk[TrkID].PostFX, nil, 'LastSpc')
                     end
+                    r.ImGui_EndGroup(ctx) SL(nil,0)
 
+                    
                 end  --for repeat as many times as FX instances
 
 
@@ -11835,6 +11850,7 @@ function loop()
                     if Trk[TrkID].PostFX_Hide then Trk[TrkID].PostFX_Hide=false else Trk[TrkID].PostFX_Hide=true end 
                 end
                 if r.ImGui_BeginDragDropTarget(ctx) then     -- if drop to post fx chain Btn  
+
 
                     Drop,payload = r.ImGui_AcceptDragDropPayload(ctx, 'FX_Drag')
                     HighlightSelectedItem(0xffffff22, 0xffffffff, -1, L,T,R,B,h,w, H_OutlineSc, V_OutlineSc,'GetItemRect',WDL )
