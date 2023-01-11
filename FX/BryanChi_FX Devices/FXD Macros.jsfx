@@ -1,5 +1,7 @@
 noindex: true
 
+
+
 desc:FXD Macros
 import cookdsp.jsfx-inc
 
@@ -34,11 +36,17 @@ env.masr(slider1, slider2);
 
 totalTrackCount =  gmem[0];
 trkGUID_Num = gmem[1];
-function Set_Mcro(x)(
+function Set_Mcro(x, y)(
   this.mcro = x;
+  this.new = 11111;
 );
 
-abc.Set_Mcro(123);
+abc.Set_Mcro(123, 0);
+
+
+function test(x)(  this.tst = x;
+
+);
 
 
 //gmem offsets ------------------------------
@@ -58,9 +66,10 @@ abc.Set_Mcro(123);
 //gmem 11 = env2 atk
 //gmem 12 = env2 rel
 //etc..24
-//gmem 25 = Modulation type (Macro or Env)
-//gmem 101~8 = send env 1~8s postion back to imgui
-
+//gmem 31~38 = Modulation type (Macro or Env)
+//gmem 101~108 = send env 1~8s postion back to imgui
+a=0;
+a[-1]= 123;
 
 ModAmt = 1000;
 ModAmt2 = 2000;
@@ -72,6 +81,7 @@ ModAmt7 = 7000;
 ModAmt8 = 8000;
 PsUsed = 100; 
 P_OrigV = 11000 ;
+SEQ = 20000; // 20001~20048 = Macro1 Seq 1~48
 //------------------------------------------------------------
 // TABLE INDEX ------------------------------
 // 1,3,5,7,9,11,13,15 = envelope 1~8 's atk
@@ -146,7 +156,7 @@ midi_bus=15;
 
 //if user tweaking track that matches trkGUID
 trkGUID_Num === gmem[2]? 
-  
+  Macro = gmem[5];
   mode ==1?(   // if User is right-dragging on param in ImGui...
     P.Inst = gmem[3];    
     Param = gmem[6];
@@ -167,9 +177,26 @@ trkGUID_Num === gmem[2]?
   mode ==4?(   Macro = gmem[5]; //if user ctrl-r-click and change type to Env...
       Macro==1?(Macro1Type ='env'); Macro==2?(Macro2Type ='env'); Macro==3?(Macro3Type ='env');Macro==4?(Macro4Type ='env');Macro==5?(Macro5Type ='env');Macro==6?(Macro6Type ='env');Macro==7?(Macro7Type ='env');Macro==8?(Macro8Type ='env');
       );
-  mode ==5? (   Macro = gmem[5]; //if user ctrl-r-click and change type to macro...
+  mode ==5? (   
+    Macro = gmem[5]; //if user ctrl-r-click and change type to macro...
      Macro==1?(Macro1Type ='Mc'); Macro==2?(Macro2Type ='Mc'); Macro==3?(Macro3Type ='Mc');Macro==4?(Macro4Type ='Mc');Macro==5?(Macro5Type ='Mc');Macro==6?(Macro6Type ='Mc');Macro==7?(Macro7Type ='Mc');Macro==8?(Macro8Type ='Mc');
      );
+  mode == 6? (  
+    Macro = gmem[5]; // if user change type to Step Seq
+     Macro==1?(Macro1Type ='step'); Macro==2?(Macro2Type ='step'); Macro==3?(Macro3Type ='step');Macro==4?(Macro4Type ='step');Macro==5?(Macro5Type ='step');Macro==6?(Macro6Type ='step');Macro==7?(Macro7Type ='step');Macro==8?(Macro8Type ='step');
+  ):(mode == 7 ? (  // if user is tweaking a step's Value
+       Macro==1?(Macro1Type ='step'); Macro==2?(Macro2Type ='step'); Macro==3?(Macro3Type ='step');Macro==4?(Macro4Type ='step');Macro==5?(Macro5Type ='step');Macro==6?(Macro6Type ='step');Macro==7?(Macro7Type ='step');Macro==8?(Macro8Type ='step');
+    WhichStep= gmem[8]; 
+    Macro==1?(
+      SEQ[WhichStep]= gmem[7]; //writes seq value from table slot 20001~20048
+      abc=0[20002];
+      A_WhichStep= WhichStep
+    ):Macro==2?(    // //writes seq value from table slot 20050~20098
+      Macro1.Seq= 456;  
+    );
+  
+    );
+  );
       
   gmem[7] != 0?( // if user uses Imgui to tweak param...
     
@@ -181,6 +208,10 @@ trkGUID_Num === gmem[2]?
   );
 );
 
+MeasureNum= floor(beat_position/ts_denom);
+
+
+BeatPos= beat_position - ts_denom* (MeasureNum);
 
 
 while (midirecv(offset, msg1, msg2, msg3)) (
@@ -199,7 +230,6 @@ while (midirecv(offset, msg1, msg2, msg3)) (
             midisend(offset,msg1,msg2,msg3);
         );
     ) : (
-    aa=123;
         // passthrough other events
         midisend(offset,msg1,msg2,msg3);
     );
@@ -214,11 +244,10 @@ while ( i <= P.Inst)(
       env1.masr_set_falltime(rel1);
       Mc1Amt =  env1.masr_do(midiamp)*ModAmt[i];
       trkGUID_Num === gmem[2]? (gmem[101] = env1.masr_do(midiamp) );   
-      
+    ):Macro1Type== 'step'? ( // if macro 1 is Step Seq
+      BeatPos > 0 && BeatPos < 1? ( Mc1Amt = SEQ[1]*127);  
     ):(//if macro 1 is macro
-   
     Mc1Amt = Macro1 * ModAmt[i]*127;
-    
     );  
   ):(Mc1Amt=0);
 
