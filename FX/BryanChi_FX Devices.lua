@@ -1,14 +1,7 @@
 -- @description FX Devices
 -- @author Bryan Chi
--- @version 1.0beta6
--- @changelog
---   FX Device update change log : 
---
---   - Fix drag behaviour bug.
---   - Fix menu bar flickering.
---   - Fix Shift-click FX crash.
---   - Enclose FX Devices with r.ImGui_BeginGroup and r.ImGui_EndGroup.
---   - Fix Macro
+-- @version 1.0beta7
+-- @changelog - Fix vertical slider modulation indicator.
 -- @provides
 --   [effect] BryanChi_FX Devices/FXD Macros.jsfx
 --   [effect] BryanChi_FX Devices/FXD ReSpectrum.jsfx
@@ -53,9 +46,8 @@
 --   https://forum.cockos.com/showthread.php?t=263622
 
 
-
 --------------------------==  declare Initial Variables & Functions  ------------------------
-    VersionNumber = 'V1.0beta6 '
+    VersionNumber = 'V1.0beta7 '
     FX_Add_Del_WaitTime=2
     r=reaper
 
@@ -3530,7 +3522,7 @@
 
             if Vertical =='Vert' then ModLineDir = Height else ModLineDir = Sldr_Width end
 
-            Tweaking = MakeModulationPossible(FxGUID,Fx_P,FX_Idx,P_Num,p_value,Sldr_Width)
+            Tweaking = MakeModulationPossible(FxGUID,Fx_P,FX_Idx,P_Num,p_value,Sldr_Width, Vertical)
 
             --repeat for every param stored on track...
             --[[  for P=1, Trk.Prm.Inst[TrkID] or 0 , 1 do 
@@ -3552,44 +3544,44 @@
 
 
 
-                local TextW,  h = r.ImGui_CalcTextSize( ctx, labeltoShow, nil, nil, true)
-                local TxtClr
-                if Disable =='Disabled' then TxtClr = 0x111111ff else TxtClr =0xD6D6D6ff end
-                
-                local _, Format_P_V =    r.TrackFX_GetFormattedParamValue(LT_Track, FX_Idx, P_Num)
-                r.ImGui_PushFont(ctx,Arial_11)
-                TextW,  Texth = r.ImGui_CalcTextSize( ctx, Format_P_V, nil, nil, true, -100)
-                r.ImGui_PopFont(ctx)   
+            local TextW,  h = r.ImGui_CalcTextSize( ctx, labeltoShow, nil, nil, true)
+            local TxtClr
+            if Disable =='Disabled' then TxtClr = 0x111111ff else TxtClr =0xD6D6D6ff end
+            
+            local _, Format_P_V =    r.TrackFX_GetFormattedParamValue(LT_Track, FX_Idx, P_Num)
+            r.ImGui_PushFont(ctx,Arial_11)
+            TextW,  Texth = r.ImGui_CalcTextSize( ctx, Format_P_V, nil, nil, true, -100)
+            r.ImGui_PopFont(ctx)   
 
 
-                if BtmLbl ~= 'No BtmLbl' then 
-                    local Cx, Cy = r.ImGui_GetCursorScreenPos(ctx)
-                    if Vertical ~= 'Vert' then 
-                        r.ImGui_DrawList_AddTextEx(draw_list, Font_Andale_Mono_11, 11, Cx, Cy, TxtClr, labeltoShow or FX[FxGUID][Fx_P].Name,nil, PosL, PosT, SldrR-TextW-3 , PosB+20)
-                    else
-                        if FP.Lbl_Pos== 'Bottom' or not FP.Lbl_Pos then 
-                            local CurX = r.ImGui_GetCursorPosX(ctx)
-                            local w=  r.ImGui_CalcTextSize(ctx, labeltoShow or FP.Name )
-                            r.ImGui_SetCursorPosX(ctx, CurX - w/2 + Sldr_Width/2)    
-                            r.ImGui_TextColored(ctx, FP.Lbl_Clr or r.ImGui_GetColor(ctx, r.ImGui_Col_Text())  ,labeltoShow or FP.Name )
-                        end
-                        if FP.V_Pos =='Bottom' then 
-                            local Cx =  r.ImGui_GetCursorPosX(ctx)
-                            local txtW = r.ImGui_CalcTextSize( ctx, Format_P_V, nil, nil, true)
-                            r.ImGui_SetCursorPosX(ctx, Cx + Sldr_Width/2 - txtW/2)
-                            r.ImGui_TextColored(ctx, FP.V_Clr or r.ImGui_GetColor(ctx,r.ImGui_Col_Text()) , Format_P_V)
-                        end
+            if BtmLbl ~= 'No BtmLbl' then 
+                local Cx, Cy = r.ImGui_GetCursorScreenPos(ctx)
+                if Vertical ~= 'Vert' then 
+                    r.ImGui_DrawList_AddTextEx(draw_list, Font_Andale_Mono_11, 11, Cx, Cy, TxtClr, labeltoShow or FX[FxGUID][Fx_P].Name,nil, PosL, PosT, SldrR-TextW-3 , PosB+20)
+                else
+                    if FP.Lbl_Pos== 'Bottom' or not FP.Lbl_Pos then 
+                        local CurX = r.ImGui_GetCursorPosX(ctx)
+                        local w=  r.ImGui_CalcTextSize(ctx, labeltoShow or FP.Name )
+                        r.ImGui_SetCursorPosX(ctx, CurX - w/2 + Sldr_Width/2)    
+                        r.ImGui_TextColored(ctx, FP.Lbl_Clr or r.ImGui_GetColor(ctx, r.ImGui_Col_Text())  ,labeltoShow or FP.Name )
+                    end
+                    if FP.V_Pos =='Bottom' then 
+                        local Cx =  r.ImGui_GetCursorPosX(ctx)
+                        local txtW = r.ImGui_CalcTextSize( ctx, Format_P_V, nil, nil, true)
+                        r.ImGui_SetCursorPosX(ctx, Cx + Sldr_Width/2 - txtW/2)
+                        r.ImGui_TextColored(ctx, FP.V_Clr or r.ImGui_GetColor(ctx,r.ImGui_Col_Text()) , Format_P_V)
                     end
                 end
+            end
 
-                if Vertical ~= 'Vert' then 
-                    
-                    r.ImGui_PushFont(ctx,Arial_11)   ;local X, Y = r.ImGui_GetCursorScreenPos(ctx)
-                    r.ImGui_SetCursorScreenPos(ctx, SldrR-TextW, Y)
+            if Vertical ~= 'Vert' then 
+                
+                r.ImGui_PushFont(ctx,Arial_11)   ;local X, Y = r.ImGui_GetCursorScreenPos(ctx)
+                r.ImGui_SetCursorScreenPos(ctx, SldrR-TextW, Y)
 
-                    r.ImGui_TextColored(ctx, 0xD6D6D6ff,Format_P_V )
+                r.ImGui_TextColored(ctx, 0xD6D6D6ff,Format_P_V )
 
-                    r.ImGui_PopFont(ctx)   
+                r.ImGui_PopFont(ctx)   
             end
 
             
@@ -4059,9 +4051,9 @@
                 end
             end
         end
-        
+        local Vertical
 
-        
+        if Type == 'Vert' then Vertical = 'Vert' end 
         
         
         if--[[Right Dragging to adjust Mod Amt]] Trk.Prm.Assign and FP.WhichCC == Trk.Prm.Assign and AssigningMacro then 
@@ -4093,14 +4085,15 @@
             r.GetSetMediaTrackInfo_String(LT_Track,'P_EXT: FX'..FxGUID..'Prm'..Fx_P.. 'Macro'..M.. 'Mod Amt' , FP.ModAMT[M],true   )  
         end 
 
+       
 
-        
         if Type~= 'knob' and  FP.ModAMT then 
             for M,v in ipairs(MacroNums) do 
                 if FP.ModAMT[M]  then 
                     --if Modulation has been assigned to params
                     local sizeX, sizeY = r.ImGui_GetItemRectSize(ctx)
                     local P_V_Norm = r.TrackFX_GetParamNormalized(LT_Track, FX_Idx, P_Num)
+
 
                     --- indicator of where the param is currently 
                     if not FX[FxGUID][Fx_P].V then FX[FxGUID][Fx_P].V = r.TrackFX_GetParamNormalized(LT_Track, FX_Idx, P_Num) end 
@@ -4109,6 +4102,8 @@
                     ParamHasMod_Any= true
                 end
             end -- of reapeat for every macro
+        
+
         end
 
         return Tweaking
