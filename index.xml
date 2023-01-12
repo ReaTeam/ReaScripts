@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="ec2f6376f7dbb7c2cf8ce0bd3aa7c851010b2df7" name="ReaTeam Scripts">
+<index version="1" commit="7b32050d24143251eeeb1673365ea84b91ff61a6" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -3814,6 +3814,48 @@ Fix a potential infinite loop]]></changelog>
         <source file="BryanChi_FX Devices/FX Layouts/ValhallaSupermassive (Valhalla DSP, LLC).ini">https://github.com/ReaTeam/ReaScripts/raw/ec2f6376f7dbb7c2cf8ce0bd3aa7c851010b2df7/FX/BryanChi_FX%20Devices/FX%20Layouts/ValhallaSupermassive%20(Valhalla%20DSP,%20LLC).ini</source>
         <source file="BryanChi_FX Devices/FX Layouts/ValhallaDelay _Valhalla DSP_ LLC_.ini">https://github.com/ReaTeam/ReaScripts/raw/ec2f6376f7dbb7c2cf8ce0bd3aa7c851010b2df7/FX/BryanChi_FX%20Devices/FX%20Layouts/ValhallaDelay%20_Valhalla%20DSP_%20LLC_.ini</source>
       </version>
+      <version name="1.0beta7" author="Bryan Chi" time="2023-01-12T09:44:36Z">
+        <changelog><![CDATA[- Fix vertical slider modulation indicator.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/fecbd23dd00cebbecccde816aefa1c04e509d3d1/FX/BryanChi_FX%20Devices.lua</source>
+        <source type="effect" file="BryanChi_FX Devices/FXD Macros.jsfx">https://github.com/ReaTeam/ReaScripts/raw/fecbd23dd00cebbecccde816aefa1c04e509d3d1/FX/BryanChi_FX%20Devices/FXD%20Macros.jsfx</source>
+        <source type="effect" file="BryanChi_FX Devices/FXD ReSpectrum.jsfx">https://github.com/ReaTeam/ReaScripts/raw/fecbd23dd00cebbecccde816aefa1c04e509d3d1/FX/BryanChi_FX%20Devices/FXD%20ReSpectrum.jsfx</source>
+        <source type="effect" file="BryanChi_FX Devices/FXD Gain Reduction Scope.jsfx">https://github.com/ReaTeam/ReaScripts/raw/fecbd23dd00cebbecccde816aefa1c04e509d3d1/FX/BryanChi_FX%20Devices/FXD%20Gain%20Reduction%20Scope.jsfx</source>
+        <source type="effect" file="BryanChi_FX Devices/FXD Split to 32 Channels.jsfx">https://github.com/ReaTeam/ReaScripts/raw/fecbd23dd00cebbecccde816aefa1c04e509d3d1/FX/BryanChi_FX%20Devices/FXD%20Split%20to%2032%20Channels.jsfx</source>
+        <source type="effect" file="BryanChi_FX Devices/FXD Split To 4 Channels.jsfx">https://github.com/ReaTeam/ReaScripts/raw/fecbd23dd00cebbecccde816aefa1c04e509d3d1/FX/BryanChi_FX%20Devices/FXD%20Split%20To%204%20Channels.jsfx</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/fecbd23dd00cebbecccde816aefa1c04e509d3d1/FX/BryanChi_FX%20Devices/cookdsp.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/analysis.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/fecbd23dd00cebbecccde816aefa1c04e509d3d1/FX/BryanChi_FX%20Devices/cookdsp/analysis.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/buffer.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/fecbd23dd00cebbecccde816aefa1c04e509d3d1/FX/BryanChi_FX%20Devices/cookdsp/buffer.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/delay.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/fecbd23dd00cebbecccde816aefa1c04e509d3d1/FX/BryanChi_FX%20Devices/cookdsp/delay.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/dynamics.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/fecbd23dd00cebbecccde816aefa1c04e509d3d1/FX/BryanChi_FX%20Devices/cookdsp/dynamics.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/effects.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/fecbd23dd00cebbecccde816aefa1c04e509d3d1/FX/BryanChi_FX%20Devices/cookdsp/effects.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/fft-mono-template">https://github.com/ReaTeam/ReaScripts/raw/fecbd23dd00cebbecccde816aefa1c04e509d3d1/FX/BryanChi_FX%20Devices/cookdsp/fft-mono-template</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/fft-stereo-template">https://github.com/ReaTeam/ReaScripts/raw/fecbd23dd00cebbecccde816aefa1c04e509d3d1/FX/BryanChi_FX%20Devices/cookdsp/fft-stereo-template</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/fftobjects.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/fecbd23dd00cebbecccde816aefa1c04e509d3d1/FX/BryanChi_FX%20Devices/cookdsp/fftobjects.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/filters.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/fecbd23dd00cebbecccde816aefa1c04e509d3d1/FX/BryanChi_FX%20Devices/cookdsp/filters.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/granulator.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/fecbd23dd00cebbecccde816aefa1c04e509d3d1/FX/BryanChi_FX%20Devices/cookdsp/granulator.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/list.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/fecbd23dd00cebbecccde816aefa1c04e509d3d1/FX/BryanChi_FX%20Devices/cookdsp/list.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/memalloc.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/fecbd23dd00cebbecccde816aefa1c04e509d3d1/FX/BryanChi_FX%20Devices/cookdsp/memalloc.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/midi.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/fecbd23dd00cebbecccde816aefa1c04e509d3d1/FX/BryanChi_FX%20Devices/cookdsp/midi.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/mmath.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/fecbd23dd00cebbecccde816aefa1c04e509d3d1/FX/BryanChi_FX%20Devices/cookdsp/mmath.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/oscil.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/fecbd23dd00cebbecccde816aefa1c04e509d3d1/FX/BryanChi_FX%20Devices/cookdsp/oscil.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/pobjects.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/fecbd23dd00cebbecccde816aefa1c04e509d3d1/FX/BryanChi_FX%20Devices/cookdsp/pobjects.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/pv-mono-template">https://github.com/ReaTeam/ReaScripts/raw/fecbd23dd00cebbecccde816aefa1c04e509d3d1/FX/BryanChi_FX%20Devices/cookdsp/pv-mono-template</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/pv-stereo-template">https://github.com/ReaTeam/ReaScripts/raw/fecbd23dd00cebbecccde816aefa1c04e509d3d1/FX/BryanChi_FX%20Devices/cookdsp/pv-stereo-template</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/pvocobjects.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/fecbd23dd00cebbecccde816aefa1c04e509d3d1/FX/BryanChi_FX%20Devices/cookdsp/pvocobjects.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/pvtrans-example">https://github.com/ReaTeam/ReaScripts/raw/fecbd23dd00cebbecccde816aefa1c04e509d3d1/FX/BryanChi_FX%20Devices/cookdsp/pvtrans-example</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/random.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/fecbd23dd00cebbecccde816aefa1c04e509d3d1/FX/BryanChi_FX%20Devices/cookdsp/random.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/scaling.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/fecbd23dd00cebbecccde816aefa1c04e509d3d1/FX/BryanChi_FX%20Devices/cookdsp/scaling.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/firhalfband.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/fecbd23dd00cebbecccde816aefa1c04e509d3d1/FX/BryanChi_FX%20Devices/firhalfband.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/spectrum.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/fecbd23dd00cebbecccde816aefa1c04e509d3d1/FX/BryanChi_FX%20Devices/spectrum.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/svf_filter.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/fecbd23dd00cebbecccde816aefa1c04e509d3d1/FX/BryanChi_FX%20Devices/svf_filter.jsfx-inc</source>
+        <source file="BryanChi_FX Devices/IconFont1.ttf">https://github.com/ReaTeam/ReaScripts/raw/fecbd23dd00cebbecccde816aefa1c04e509d3d1/FX/BryanChi_FX%20Devices/IconFont1.ttf</source>
+        <source type="effect" file="BryanChi_FX Devices/FXD (Mix)RackMixer">https://github.com/ReaTeam/ReaScripts/raw/fecbd23dd00cebbecccde816aefa1c04e509d3d1/FX/BryanChi_FX%20Devices/FXD%20(Mix)RackMixer</source>
+        <source file="BryanChi_FX Devices/FX Layouts/ValhallaFreqEcho (Valhalla DSP, LLC).ini">https://github.com/ReaTeam/ReaScripts/raw/fecbd23dd00cebbecccde816aefa1c04e509d3d1/FX/BryanChi_FX%20Devices/FX%20Layouts/ValhallaFreqEcho%20(Valhalla%20DSP,%20LLC).ini</source>
+        <source file="BryanChi_FX Devices/FX Layouts/ValhallaShimmer (Valhalla DSP, LLC).ini">https://github.com/ReaTeam/ReaScripts/raw/fecbd23dd00cebbecccde816aefa1c04e509d3d1/FX/BryanChi_FX%20Devices/FX%20Layouts/ValhallaShimmer%20(Valhalla%20DSP,%20LLC).ini</source>
+        <source file="BryanChi_FX Devices/FX Layouts/ValhallaVintageVerb (Valhalla DSP, LLC).ini">https://github.com/ReaTeam/ReaScripts/raw/fecbd23dd00cebbecccde816aefa1c04e509d3d1/FX/BryanChi_FX%20Devices/FX%20Layouts/ValhallaVintageVerb%20(Valhalla%20DSP,%20LLC).ini</source>
+        <source file="BryanChi_FX Devices/FX Layouts/ValhallaSupermassive (Valhalla DSP, LLC).ini">https://github.com/ReaTeam/ReaScripts/raw/fecbd23dd00cebbecccde816aefa1c04e509d3d1/FX/BryanChi_FX%20Devices/FX%20Layouts/ValhallaSupermassive%20(Valhalla%20DSP,%20LLC).ini</source>
+        <source file="BryanChi_FX Devices/FX Layouts/ValhallaDelay _Valhalla DSP_ LLC_.ini">https://github.com/ReaTeam/ReaScripts/raw/fecbd23dd00cebbecccde816aefa1c04e509d3d1/FX/BryanChi_FX%20Devices/FX%20Layouts/ValhallaDelay%20_Valhalla%20DSP_%20LLC_.ini</source>
+      </version>
     </reapack>
     <reapack name="BuyOne_(Un)Tag FX with (in)active envelopes (settings inside).lua" type="script" desc="(Un)Tag FX with (in)active envelopes">
       <metadata>
@@ -4297,42 +4339,21 @@ Special Thanks to amagalma, https://forum.cockos.com/showthread.php?t=239556]]><
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b7e8a967b76656a33e646b6970e87f19206b90bf/FX/edgemeal_Display%20last%20touched%20FX%20parameter.lua</source>
       </version>
     </reapack>
-    <reapack name="edgemeal_Restore tracks floating fx windows (4 slots).lua" type="script" desc="Restore tracks floating fx windows (4 slots)">
+    <reapack name="edgemeal_Save and restore selected tracks floating FX windows (4 slots).lua" type="script" desc="Save and restore selected tracks floating FX windows (4 slots)">
       <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 For use with, Save selected tracks floating fx windows (4 slots)\par}
-}
-]]></description>
-        <link rel="website" href="https://forum.cockos.com/showpost.php?p=2349852&amp;postcount=2196">Forum</link>
-        <link rel="donation" href="https://www.paypal.me/Edgemeal">Donate</link>
+        <link rel="website" href="https://forum.cockos.com/showpost.php?p=2349852&amp;postcount=2196">Forum thread</link>
+        <link rel="donation">https://www.paypal.me/Edgemeal</link>
       </metadata>
-      <version name="1.00" author="Edgemeal" time="2020-10-07T02:19:10Z">
-        <source main="main" file="edgemeal_Restore tracks floating fx windows from slot 1.lua">https://github.com/ReaTeam/ReaScripts/raw/68c28a2cf67cdfb35b745b45c8198171d877e457/FX/edgemeal_Restore%20tracks%20floating%20fx%20windows%20(4%20slots).lua</source>
-        <source main="main" file="edgemeal_Restore tracks floating fx windows from slot 2.lua">https://github.com/ReaTeam/ReaScripts/raw/68c28a2cf67cdfb35b745b45c8198171d877e457/FX/edgemeal_Restore%20tracks%20floating%20fx%20windows%20(4%20slots).lua</source>
-        <source main="main" file="edgemeal_Restore tracks floating fx windows from slot 3.lua">https://github.com/ReaTeam/ReaScripts/raw/68c28a2cf67cdfb35b745b45c8198171d877e457/FX/edgemeal_Restore%20tracks%20floating%20fx%20windows%20(4%20slots).lua</source>
-        <source main="main" file="edgemeal_Restore tracks floating fx windows from slot 4.lua">https://github.com/ReaTeam/ReaScripts/raw/68c28a2cf67cdfb35b745b45c8198171d877e457/FX/edgemeal_Restore%20tracks%20floating%20fx%20windows%20(4%20slots).lua</source>
-      </version>
-      <version name="1.01" author="Edgemeal" time="2021-08-13T03:11:13Z">
-        <changelog><![CDATA[When restoring a slot and the floating fx window is already open then it is closed to act like a toggle.]]></changelog>
-        <source main="main" file="edgemeal_Restore tracks floating fx windows from slot 1.lua">https://github.com/ReaTeam/ReaScripts/raw/62c2623b7635088c48f31c09d409e4c2794c31b8/FX/edgemeal_Restore%20tracks%20floating%20fx%20windows%20(4%20slots).lua</source>
-        <source main="main" file="edgemeal_Restore tracks floating fx windows from slot 2.lua">https://github.com/ReaTeam/ReaScripts/raw/62c2623b7635088c48f31c09d409e4c2794c31b8/FX/edgemeal_Restore%20tracks%20floating%20fx%20windows%20(4%20slots).lua</source>
-        <source main="main" file="edgemeal_Restore tracks floating fx windows from slot 3.lua">https://github.com/ReaTeam/ReaScripts/raw/62c2623b7635088c48f31c09d409e4c2794c31b8/FX/edgemeal_Restore%20tracks%20floating%20fx%20windows%20(4%20slots).lua</source>
-        <source main="main" file="edgemeal_Restore tracks floating fx windows from slot 4.lua">https://github.com/ReaTeam/ReaScripts/raw/62c2623b7635088c48f31c09d409e4c2794c31b8/FX/edgemeal_Restore%20tracks%20floating%20fx%20windows%20(4%20slots).lua</source>
-      </version>
-    </reapack>
-    <reapack name="edgemeal_Save selected tracks floating fx windows (4 slots).lua" type="script" desc="Save selected tracks floating fx windows (4 slots)">
-      <metadata>
-        <link rel="website" href="https://forum.cockos.com/showpost.php?p=2349852&amp;postcount=2196">Forum</link>
-        <link rel="donation" href="https://www.paypal.me/Edgemeal">Donate</link>
-      </metadata>
-      <version name="1.00" author="Edgemeal" time="2020-10-07T02:18:49Z">
-        <source main="main" file="edgemeal_Save selected tracks floating fx windows to slot 1.lua">https://github.com/ReaTeam/ReaScripts/raw/aa696783d5752ca4db1f3829ca191c08c103bca9/FX/edgemeal_Save%20selected%20tracks%20floating%20fx%20windows%20(4%20slots).lua</source>
-        <source main="main" file="edgemeal_Save selected tracks floating fx windows to slot 2.lua">https://github.com/ReaTeam/ReaScripts/raw/aa696783d5752ca4db1f3829ca191c08c103bca9/FX/edgemeal_Save%20selected%20tracks%20floating%20fx%20windows%20(4%20slots).lua</source>
-        <source main="main" file="edgemeal_Save selected tracks floating fx windows to slot 3.lua">https://github.com/ReaTeam/ReaScripts/raw/aa696783d5752ca4db1f3829ca191c08c103bca9/FX/edgemeal_Save%20selected%20tracks%20floating%20fx%20windows%20(4%20slots).lua</source>
-        <source main="main" file="edgemeal_Save selected tracks floating fx windows to slot 4.lua">https://github.com/ReaTeam/ReaScripts/raw/aa696783d5752ca4db1f3829ca191c08c103bca9/FX/edgemeal_Save%20selected%20tracks%20floating%20fx%20windows%20(4%20slots).lua</source>
+      <version name="1.02" author="Edgemeal" time="2023-01-12T09:44:50Z">
+        <changelog><![CDATA[Add support for Master track]]></changelog>
+        <source main="main" file="edgemeal_Save and restore selected tracks floating FX windows (4 slots)/edgemeal_Save selected tracks floating FX windows to slot 1.lua">https://github.com/ReaTeam/ReaScripts/raw/f4f34be7c5208a8da60f6dfade1b786f8923370d/FX/edgemeal_Save%20and%20restore%20selected%20tracks%20floating%20FX%20windows%20(4%20slots)/edgemeal_Save%20selected%20tracks%20floating%20FX%20windows.lua</source>
+        <source main="main" file="edgemeal_Save and restore selected tracks floating FX windows (4 slots)/edgemeal_Save selected tracks floating FX windows to slot 2.lua">https://github.com/ReaTeam/ReaScripts/raw/f4f34be7c5208a8da60f6dfade1b786f8923370d/FX/edgemeal_Save%20and%20restore%20selected%20tracks%20floating%20FX%20windows%20(4%20slots)/edgemeal_Save%20selected%20tracks%20floating%20FX%20windows.lua</source>
+        <source main="main" file="edgemeal_Save and restore selected tracks floating FX windows (4 slots)/edgemeal_Save selected tracks floating FX windows to slot 3.lua">https://github.com/ReaTeam/ReaScripts/raw/f4f34be7c5208a8da60f6dfade1b786f8923370d/FX/edgemeal_Save%20and%20restore%20selected%20tracks%20floating%20FX%20windows%20(4%20slots)/edgemeal_Save%20selected%20tracks%20floating%20FX%20windows.lua</source>
+        <source main="main" file="edgemeal_Save and restore selected tracks floating FX windows (4 slots)/edgemeal_Save selected tracks floating FX windows to slot 4.lua">https://github.com/ReaTeam/ReaScripts/raw/f4f34be7c5208a8da60f6dfade1b786f8923370d/FX/edgemeal_Save%20and%20restore%20selected%20tracks%20floating%20FX%20windows%20(4%20slots)/edgemeal_Save%20selected%20tracks%20floating%20FX%20windows.lua</source>
+        <source main="main" file="edgemeal_Save and restore selected tracks floating FX windows (4 slots)/edgemeal_Restore tracks floating FX windows from slot 1.lua">https://github.com/ReaTeam/ReaScripts/raw/f4f34be7c5208a8da60f6dfade1b786f8923370d/FX/edgemeal_Save%20and%20restore%20selected%20tracks%20floating%20FX%20windows%20(4%20slots)/edgemeal_Restore%20tracks%20floating%20FX%20windows.lua</source>
+        <source main="main" file="edgemeal_Save and restore selected tracks floating FX windows (4 slots)/edgemeal_Restore tracks floating FX windows from slot 2.lua">https://github.com/ReaTeam/ReaScripts/raw/f4f34be7c5208a8da60f6dfade1b786f8923370d/FX/edgemeal_Save%20and%20restore%20selected%20tracks%20floating%20FX%20windows%20(4%20slots)/edgemeal_Restore%20tracks%20floating%20FX%20windows.lua</source>
+        <source main="main" file="edgemeal_Save and restore selected tracks floating FX windows (4 slots)/edgemeal_Restore tracks floating FX windows from slot 3.lua">https://github.com/ReaTeam/ReaScripts/raw/f4f34be7c5208a8da60f6dfade1b786f8923370d/FX/edgemeal_Save%20and%20restore%20selected%20tracks%20floating%20FX%20windows%20(4%20slots)/edgemeal_Restore%20tracks%20floating%20FX%20windows.lua</source>
+        <source main="main" file="edgemeal_Save and restore selected tracks floating FX windows (4 slots)/edgemeal_Restore tracks floating FX windows from slot 4.lua">https://github.com/ReaTeam/ReaScripts/raw/f4f34be7c5208a8da60f6dfade1b786f8923370d/FX/edgemeal_Save%20and%20restore%20selected%20tracks%20floating%20FX%20windows%20(4%20slots)/edgemeal_Restore%20tracks%20floating%20FX%20windows.lua</source>
       </version>
     </reapack>
     <reapack name="edgemeal_Toggle show monitoring FX chain.lua" type="script" desc="Toggle show monitoring FX chain">
