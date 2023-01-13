@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="7b32050d24143251eeeb1673365ea84b91ff61a6" name="ReaTeam Scripts">
+<index version="1" commit="3d9d991d7bc73607ad857e38dd0657a4ae89ff47" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -7176,6 +7176,11 @@ Fix: Expand error message when the library is missing]]></changelog>
 - fixed  shift-drag behaviour for moving Trig Line position 
 - Little design changes]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/5852fdd6d3e642726f489bd2f18a1c86e25354bd/Items%20Editing/MK%20Slicer%20(80icio%20MOD).lua</source>
+      </version>
+      <version name="1.04" author="80icio" time="2023-01-13T11:39:36Z">
+        <changelog><![CDATA[- fixed Mouse scrolling waveform horizontally even when outside of waveform region 
+- Improved Reduce By Grid function with time signature changes]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3d9d991d7bc73607ad857e38dd0657a4ae89ff47/Items%20Editing/MK%20Slicer%20(80icio%20MOD).lua</source>
       </version>
     </reapack>
     <reapack name="mordi_Align grouped items to selected items respectively.lua" type="script" desc="Align grouped items to selected items respectively">
