@@ -1,10 +1,9 @@
 -- @description MK Slicer (80icio MOD)
 -- @author 80icio
--- @version 1.03
+-- @version 1.04
 -- @changelog
---   - fixed weird loop range behaviour 
---   - fixed  shift-drag behaviour for moving Trig Line position 
---   - Little design changes
+--   - fixed Mouse scrolling waveform horizontally even when outside of waveform region 
+--   - Improved Reduce By Grid function with time signature changes
 -- @link Forum Thread https://forum.cockos.com/showthread.php?p=2436358#post2436358
 -- @about
 --   This is a lua script based on MK SLICER 2 by @Cool for quick slicing, quantizing by grid, re-quantizing, triggering or sampling audio.
@@ -77,7 +76,7 @@ local min  = math.min
 local max  = math.max
 local sqrt = math.sqrt
 local ceil  = math.ceil
-local floor = math.floor
+local floor = math.floor   
 local exp = math.exp
 local logx = math.log
 local huge = math.huge      
@@ -2267,10 +2266,10 @@ function Loop_Slider:set_norm_val_m_wheel()
     Mult_S = 0.05 -- Set step
     end
     local Step = Mult_S
-    --[[if gfx.mouse_wheel == 0 then return false end  -- return if m_wheel = 0
+    if gfx.mouse_wheel == 0 then return false end  -- return if m_wheel = 0
     if gfx.mouse_wheel > 0 then self.norm_val2 = min(self.norm_val2+Step, 1) end
     if gfx.mouse_wheel < 0 then self.norm_val2 = max(self.norm_val2-Step, 0) end
-    if self.norm_val2 <= self.norm_val then self.norm_val2 = self.norm_val+0.05 end]]--
+    if self.norm_val2 <= self.norm_val then self.norm_val2 = self.norm_val+0.05 end
     return true
 end
 
@@ -4907,7 +4906,8 @@ local blockline = loop_start
         function beatc(beatpos)
            local retval, measures, cml, fullbeats, cdenom = r.TimeMap2_timeToBeats(0, beatpos)
            local _, division, _, _ = r.GetSetProjectGrid(0,false)
-           beatpos = r.TimeMap2_beatsToTime(0, fullbeats +(division*2))
+           ---beatpos = r.TimeMap2_beatsToTime(0, fullbeats +(division*2))
+           beatpos = r.TimeMap2_beatsToTime(0, fullbeats +(division*2*(cdenom/4)))
            return beatpos
         end
         blockline = beatc(blockline)
@@ -7313,7 +7313,7 @@ end
     self:Get_Cursor()
     self:Set_Cursor()   
     -----------------------------------------
-    --- Wave Zoom(horizontal) ---------------
+    --- Wave Zoom(horizontal) ---------------eccolo
     if self:mouseIN() and gfx.mouse_wheel~=0 and not(Ctrl or Shift) then 
     local M_Wheel = gfx.mouse_wheel
       -------------------
@@ -7355,7 +7355,7 @@ end
     end
     -----------------------------------------
     --- Wave Move ---------------------------
-    if gfx.mouse_cap ==1 then --------
+    if self:mouseDown() and gfx.mouse_cap ==1 then --------
       self.Pos = self.Pos + (last_x - gfx.mouse_x)/(self.Zoom*Z_w) --gfx.mouse_x
       self.Pos = max(self.Pos, 0)
       self.Pos = min(self.Pos, (self.w - self.w/self.Zoom)/Z_w )
