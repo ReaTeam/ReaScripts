@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="fa51291b7f6a690a79d37a9e9c3e91871cd64031" name="ReaTeam Scripts">
+<index version="1" commit="34860be1002e6a78c42f24dfa84d2d33c3bece4a" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -14499,6 +14499,10 @@ Replace GetLastWord func with quicker solution (Thanks: Mespotine[t=233393]).]]>
         <changelog><![CDATA[+ Last Active Projects: Bugfix for updating the list when using the 'Show projects in list' menu option
 + Last Active Projects: Duplicate entries are now listed only once]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/aa2e98a780e7864196bb93ec7fe5e7110a2be232/Project%20Properties/solger_ReaLauncher.lua</source>
+      </version>
+      <version name="2.5.2" author="solger" time="2023-01-17T17:21:13Z">
+        <changelog><![CDATA[+ Recent Projects: Bugfix for updating the list after using the 'remove entries' or 'clear list' functions]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/34860be1002e6a78c42f24dfa84d2d33c3bece4a/Project%20Properties/solger_ReaLauncher.lua</source>
       </version>
     </reapack>
   </category>
