@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="3d9d991d7bc73607ad857e38dd0657a4ae89ff47" name="ReaTeam Scripts">
+<index version="1" commit="fa51291b7f6a690a79d37a9e9c3e91871cd64031" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -2408,7 +2408,7 @@ Refactored/reorganized the code for readability]]></changelog>
 \widowctrl\hyphauto
 
 {\pard \ql \f0 \sa180 \li0 \fi0 Moves selected FX envelope of a track to the top/bottom lane, upwards/downwards one lane depending on the script name.\line (cycle) in the script name means that all envelopes move upwards/downwards in unison with the selected one.\line (swap) in the script name means that the selected envelope is swapped with the one immediately above/below it while other envelopes maintain their lanes.\line Upwards/downwards movement is cyclic, i.e. if an envelope is pushed past top/bottom lane its movement continues from the oppostite end.\line Reordering only affects active envelopes of the track FX the selected envelope belongs to, as all envelopes of a particular FX are grouped together and envelopes of different FX cannot be mixed while TCP envelopes always precede any FX envelopes and themselves cannot be reordered. Hence the movement is not relative to ALL active/visible track envelopes but only to those of the same FX as the selected envelope.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 https://raw.githubusercontent.com/Buy-One/screenshots/main/Move%20selected%20FX%20envelope%20in%20track%20to%20top_bottom_upwards_downwards.gif\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Screenshot: https://raw.githubusercontent.com/Buy-One/screenshots/main/Move%20selected%20FX%20envelope%20in%20track%20to%20top_bottom_upwards_downwards.gif\par}
 }
 ]]></description>
         <link rel="screenshot">https://raw.githubusercontent.com/Buy-One/screenshots/main/Move%20selected%20FX%20envelope%20in%20track%20to%20top_bottom_upwards_downwards.gif</link>
@@ -2433,6 +2433,10 @@ Refactored/reorganized the code for readability]]></changelog>
         <source main="main" file="BuyOne_Move selected FX envelope/BuyOne_Move selected FX envelope in track down one lane (cycle).lua">https://github.com/ReaTeam/ReaScripts/raw/a422f9eda1fb833fbfbdd41d188349c20b20be9e/Envelopes/BuyOne_Move%20selected%20FX%20envelope%20in%20track%20to%20top_bottom_upwards_downwards.lua</source>
         <source main="main" file="BuyOne_Move selected FX envelope/BuyOne_Move selected FX envelope in track up one lane (swap).lua">https://github.com/ReaTeam/ReaScripts/raw/a422f9eda1fb833fbfbdd41d188349c20b20be9e/Envelopes/BuyOne_Move%20selected%20FX%20envelope%20in%20track%20to%20top_bottom_upwards_downwards.lua</source>
         <source main="main" file="BuyOne_Move selected FX envelope/BuyOne_Move selected FX envelope in track down one lane (swap).lua">https://github.com/ReaTeam/ReaScripts/raw/a422f9eda1fb833fbfbdd41d188349c20b20be9e/Envelopes/BuyOne_Move%20selected%20FX%20envelope%20in%20track%20to%20top_bottom_upwards_downwards.lua</source>
+      </version>
+      <version name="1.2" author="BuyOne" time="2023-01-17T14:41:00Z">
+        <changelog><![CDATA[#Fixed script crach when applying to the only envelope of a particular FX]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/fa51291b7f6a690a79d37a9e9c3e91871cd64031/Envelopes/BuyOne_Move%20selected%20FX%20envelope%20in%20track%20to%20top_bottom_upwards_downwards.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Delete points before or after the edit cursor in selected envelope.lua" type="script" desc="Delete points before or after the edit cursor in selected envelope">
