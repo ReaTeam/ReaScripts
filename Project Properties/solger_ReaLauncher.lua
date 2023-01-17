@@ -1,9 +1,7 @@
 -- @description ReaLauncher
 -- @author solger
--- @version 2.5.1
--- @changelog
---   + Last Active Projects: Bugfix for updating the list when using the 'Show projects in list' menu option
---   + Last Active Projects: Duplicate entries are now listed only once
+-- @version 2.5.2
+-- @changelog + Recent Projects: Bugfix for updating the list after using the 'remove entries' or 'clear list' functions
 -- @screenshot https://forum.cockos.com/showthread.php?t=208697
 -- @about
 --   # ReaLauncher
@@ -2604,7 +2602,7 @@ end
 local function Path_Set_ProjectTemplateFolder()
   if GUI.Val("paths_txtProjectTemplatesPath") == "" then
     CustomPaths.ProjectTemplates = ""
-    ProjectTemplates.items = {}, {}
+    ProjectTemplates.items = {}
     ProjectTemplates.filteredItems, ProjectTemplates.filteredDisplay = {}, {}
     GUI.Val("paths_txtProjectTemplatesPath", "")
     GUI.elms.tab_projectTemplates_listbox.list = {}
@@ -2961,13 +2959,18 @@ end
       end
 
       GUI.Val("tab_recentProjects_listbox", {})
+      RecentProjects.items, RecentProjects.filteredItems, RecentProjects.display, RecentProjects.filteredDisplay = {}, {}, {}, {}
       RefreshRecentProjects(false)
+      UpdateListDisplay_RecentProjects()
+      Filter_RecentProject_Apply()
     end
 
     function RecentProjects_ClearList()
       for k = 1, RecentProjects.maxIndex do reaper.BR_Win32_WritePrivateProfileString("Recent", "recent" .. string.format("%02d", k), " ", reaperIniPath) end
       MsgDebug("Recent Projects | list cleared")
+      RecentProjects.items, RecentProjects.filteredItems, RecentProjects.display, RecentProjects.filteredDisplay = {}, {}, {}, {}
       RefreshRecentProjects(false)
+      Filter_RecentProject_Clear()
     end
   end
 -- SWS block end
@@ -2988,7 +2991,7 @@ GUI.Draw_Version = function()
   GUI.color("txt")
 
   if not GUI.version then return 0 end
-  str = "RL 2.5.1 | Lokasenna_GUI " .. GUI.version
+  str = "RL 2.5.2 | Lokasenna_GUI " .. GUI.version
   str_w, str_h = gfx.measurestr(str)
   if osversion:find("Win") then gfx.x = GUI.w - (238 * RL.scaleFactor) else gfx.x = GUI.w - (250 * RL.scaleFactor) end
   gfx.y = GUI.h - (15.5 * RL.scaleFactor)
