@@ -1,10 +1,8 @@
 --[[
 ReaScript Name: Move selected FX envelope in track to top/bottom/upwards/downwards (6 scripts)
 Author: BuyOne
-Version: 1.1
-Changelog:
-  #Added swap mode to complement cyclic mode
-  #Fixed a bug of respecting hidden envelopes during reordering
+Version: 1.2
+Changelog: #Fixed script crach when applying to the only envelope of a particular FX
 Author URL: https://forum.cockos.com/member.php?u=134058
 Licence: WTFPL
 REAPER: at least v5.962
@@ -27,7 +25,8 @@ About:  Moves selected FX envelope of a track to the top/bottom lane,
 	active/visible track envelopes but only to those of the same FX
 	as the selected envelope.  
 
-	https://raw.githubusercontent.com/Buy-One/screenshots/main/Move%20selected%20FX%20envelope%20in%20track%20to%20top_bottom_upwards_downwards.gif	
+	Screenshot: https://raw.githubusercontent.com/Buy-One/screenshots/main/Move%20selected%20FX%20envelope%20in%20track%20to%20top_bottom_upwards_downwards.gif
+
 Metapackage: true
 Provides: 	[main] . > BuyOne_Move selected FX envelope/BuyOne_Move selected FX envelope in track to top lane.lua
 		[main] . > BuyOne_Move selected FX envelope/BuyOne_Move selected FX envelope in track to bottom lane.lua
@@ -185,23 +184,26 @@ r.PreventUIRefresh(1)
 		return r.defer(function() do return end end) end
 	local capt1 = Esc(fx_GUID)..'.-<PARMENV.+<PROGRAMENV.+>' -- <PROGRAMENV block follows <PARMENV block of the same effect, hence must be evaluated first // covers code from the 1st <PARMENV to the last <PROGRAMENV block
 	local capt2 = Esc(fx_GUID)..'.-<PARMENV.+<PARMENV.+>'
+	local capt3 = Esc(fx_GUID)..'.-<PARMENV.->'
 	local fx_chunk = next_fx_GUID and ( chunk:match('('..capt1..').-WAK.-'..Esc(next_fx_GUID))
 	or chunk:match('('..capt2..').-WAK.-'..Esc(next_fx_GUID)) ) -- if there's main track fx downstream
 	or chunk:match('('..capt1..').-WAK.-<FXCHAIN_REC') or chunk:match('('..capt2..').-WAK.-<FXCHAIN_REC') -- if there's input fx block downstream
 	or chunk:match('('..capt1..').-WAK.-<ITEM') or chunk:match('('..capt2..').-WAK.-<ITEM') -- if there's item block downstream
 	or chunk:match('('..capt1..').-WAK.+') or chunk:match('('..capt2..').-WAK.+') -- if the fx is the last in the chunk
-
-	local env_block_orig, env_block_upd, mess = Move_Sel_Envelope(env, env_GUID, fx_chunk, scr_name)
-		if mess then
-		mess = not env_block_orig and mess or mess:match('wrong') and mess or 'the selected envelope  \n\n  is already at the '..mess
-		Error_Tooltip(('\n\n  '..mess..'  \n\n'))
-		r.Undo_EndBlock('',-1) -- to prevent generic 'ReaScript: Run' message in the status bar
-		return r.defer(function() do return end end) end
-	local chunk_no_env = chunk:gsub(Esc(env_block_orig), '') -- remove envelopes
-	SetObjChunk(tr, chunk_no_env) -- set without envelopes
-	local chunk1, chunk2 = chunk:match('(.+'..Esc(fx_GUID)..')(.+)')
-	local chunk_upd = chunk1..'\n'..env_block_upd..chunk2
-	SetObjChunk(tr, chunk_upd) -- set with reordered envelopes
+	or chunk:match('('..capt3..').-WAK.+') -- the only envelope in fx
+	--	if fx_chunk and #fx_chunk > 0 then -- fixes crash when applied to the only envelope in fx, but a better solution is using capt3 above
+		local env_block_orig, env_block_upd, mess = Move_Sel_Envelope(env, env_GUID, fx_chunk, scr_name)
+			if mess then
+			mess = not env_block_orig and mess or mess:match('wrong') and mess or 'the selected envelope  \n\n  is already at the '..mess
+			Error_Tooltip(('\n\n  '..mess..'  \n\n'))
+			r.Undo_EndBlock('',-1) -- to prevent generic 'ReaScript: Run' message in the status bar
+			return r.defer(function() do return end end) end
+		local chunk_no_env = chunk:gsub(Esc(env_block_orig), '') -- remove envelopes
+		SetObjChunk(tr, chunk_no_env) -- set without envelopes
+		local chunk1, chunk2 = chunk:match('(.+'..Esc(fx_GUID)..')(.+)')
+		local chunk_upd = chunk1..'\n'..env_block_upd..chunk2
+		SetObjChunk(tr, chunk_upd) -- set with reordered envelopes
+	--	end
 	end
 
 local sel_env = r.GetFXEnvelope(tr, fx_idx, parm_idx, false) -- create false // after setting the chunk and reordering envelopes, originally selected envelope pointer ends up belonging to another envelope, so in order to keep the original envelope selected its new pointer must be retrieved because now it will differ from the originally selected envelope pointer
@@ -211,6 +213,9 @@ r.SetCursorContext(2, sel_env) -- restore env selection
 
 r.PreventUIRefresh(-1)
 r.Undo_EndBlock(scr_name:match('_(.+)'),-1)
+
+
+
 
 
 
