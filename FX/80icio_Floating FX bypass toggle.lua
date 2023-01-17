@@ -1,4 +1,4 @@
--- @description Floating FX Bypass Toggle
+-- @description Floating FX bypass toggle
 -- @author 80icio
 -- @version 1.0
 -- @about
