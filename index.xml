@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="34860be1002e6a78c42f24dfa84d2d33c3bece4a" name="ReaTeam Scripts">
+<index version="1" commit="278a6624b820f53acf55f9541f14dbb663c57f56" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -3397,6 +3397,21 @@ Fix a potential infinite loop]]></changelog>
     </reapack>
   </category>
   <category name="FX">
+    <reapack name="80icio_Floating FX bypass toggle.lua" type="script" desc="Floating FX bypass toggle">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 This script let you toggle any visible floating FX bypass. track FX, take FX, input FX or fx chain focused FX Please install IMGUI library\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Thanks to BirdBird & Tycho\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="80icio" time="2023-01-17T23:20:07Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/278a6624b820f53acf55f9541f14dbb663c57f56/FX/80icio_Floating%20FX%20bypass%20toggle.lua</source>
+      </version>
+    </reapack>
     <reapack name="amagalma_Calculate difference in LUFS for selected or all FX of focused FX chain.lua" type="script" desc="Calculate difference in LUFS for selected or all FX of focused FX chain">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
