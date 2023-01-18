@@ -1,7 +1,7 @@
 -- @description FX Devices
 -- @author Bryan Chi
--- @version 1.0beta7
--- @changelog - Fix vertical slider modulation indicator.
+-- @version 1.0beta8
+-- @changelog - Fix unintentional window repositioning when dragging items in layout edit mode.
 -- @provides
 --   [effect] BryanChi_FX Devices/FXD Macros.jsfx
 --   [effect] BryanChi_FX Devices/FXD ReSpectrum.jsfx
@@ -47,7 +47,7 @@
 
 
 --------------------------==  declare Initial Variables & Functions  ------------------------
-    VersionNumber = 'V1.0beta7 '
+    VersionNumber = 'V1.0beta8 '
     FX_Add_Del_WaitTime=2
     r=reaper
 
@@ -1724,6 +1724,7 @@
 
             function ChangeItmPos ()
                 if LBtnDrag then 
+                    WindowFlagNoMove = r.ImGui_WindowFlags_NoMove()
                     local Dx,Dy = r.ImGui_GetMouseDelta(ctx)
                     r.ImGui_SetMouseCursor( ctx, 2)
                     FX[FxGUID][Fx_P].PosX = FX[FxGUID][Fx_P].PosX or PosX
@@ -3599,7 +3600,6 @@
             else  r.ImGui_Spacing(ctx); r.ImGui_Spacing(ctx); r.ImGui_Spacing(ctx); r.ImGui_Spacing(ctx); r.ImGui_Spacing(ctx)
             end
         end
-
         return value_changed, p_value
     end
     
@@ -5221,8 +5221,11 @@ function loop()
     TrkClr = ((TrkClr or 0) << 8) | 0x66 -- shift 0x00RRGGBB to 0xRRGGBB00 then add 0xFF for 100% opacity
     r.ImGui_PushStyleColor(ctx, r.ImGui_Col_MenuBarBg(),  TrkClr)
 
+   if IsLBtnRel then WindowFlagNoMove = 0 end 
+
+ 
    --------------------------==  BEGIN GUI----------------------------------------------------------------------------
-    visible, open = r.ImGui_Begin(ctx, 'FX Device', true,r.ImGui_WindowFlags_NoScrollWithMouse()+r.ImGui_WindowFlags_NoScrollbar()+ r.ImGui_WindowFlags_MenuBar()+r.ImGui_WindowFlags_NoCollapse())
+    visible, open = r.ImGui_Begin(ctx, 'FX Device', true,(WindowFlagNoMove or 0 )|r.ImGui_WindowFlags_NoScrollWithMouse()|r.ImGui_WindowFlags_NoScrollbar()| r.ImGui_WindowFlags_MenuBar()|r.ImGui_WindowFlags_NoCollapse())
     r.ImGui_PopStyleColor(ctx)
 
     local Viewport = r.ImGui_GetWindowViewport( ctx)
@@ -5608,6 +5611,7 @@ function loop()
                 IsLBtnClicked = r.ImGui_IsMouseClicked(ctx,0)
                 LBtnClickCount = r.ImGui_GetMouseClickedCount(ctx,0)
                 IsLBtnHeld = reaper.ImGui_IsMouseDown( ctx, 0)
+                IsLBtnRel = r.ImGui_IsMouseReleased(ctx,0)
                 IsRBtnHeld = r.ImGui_IsMouseDown(ctx,1)
                 Mods = reaper.ImGui_GetKeyMods( ctx)  -- Alt = 4  shift =2  ctrl = 1  Command=8
                 
@@ -7340,11 +7344,14 @@ function loop()
                                             if IsLBtnClicked then 
                                                 LE.ResizingFX = FX_Idx --@Todo change fxidx to fxguid
                                             end
+                                            WindowFlagNoMove = r.ImGui_WindowFlags_NoMove()
 
                                         end
 
 
                                         if LE.ResizingFX == FX_Idx and IsLBtnHeld then 
+                                            WindowFlagNoMove = r.ImGui_WindowFlags_NoMove()
+                                            
                                             r.ImGui_SetMouseCursor( ctx, 4)
 
                                             r.ImGui_DrawList_AddRectFilled(WinDrawList, Win_L or 0 , Win_T or 0 , Win_R or 0 , Win_B, 0x00000055)
@@ -7521,7 +7528,6 @@ function loop()
                                             LE.MouseX_before, _ = r.ImGui_GetMousePos(ctx)
                                             elseif IsRBtnClicked  then 
                                                 r.ImGui_OpenPopup(ctx, 'Fx Module Menu') 
-
                                             end
                                         end
 
@@ -9706,6 +9712,7 @@ function loop()
 
                             r.ImGui_EndGroup(ctx)
 
+                            if r.ImGui_IsItemHovered(ctx) then WindowFlagNoMove = r.ImGui_WindowFlags_NoMove() end 
                         end
                         
                         
