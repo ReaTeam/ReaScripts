@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="5345696b01251dcc325e0bc2ce1a8fc696acbb87" name="ReaTeam Scripts">
+<index version="1" commit="6f08e296b9f5929c86a4d252bb811e8407bdbf56" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -15733,6 +15733,20 @@ Updated to only list stretch markers within item time and format time as standar
       </metadata>
       <version name="1.0" author="Mordi" time="2016-12-24T10:36:07Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/9905277302b7d6ebc7661ef8348d41a7d4c0d695/Takes%20Properties/Mordi_Set%20selected%20items%20active%20takes%20name%20to%20track%20name.lua</source>
+      </version>
+    </reapack>
+    <reapack name="myrrc_Toggle take two mono to stereo play (doubletrack mode).lua" type="script" desc="Toggle take two mono to stereo play (doubletrack mode)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 For media item with two takes, toggle between playing one take a time and both takes playing panned100% left and right (doubletrack mode, useful for guitars).\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="myrrc" time="2023-01-20T17:02:10Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6f08e296b9f5929c86a4d252bb811e8407bdbf56/Takes%20Properties/myrrc_Toggle%20take%20two%20mono%20to%20stereo%20play%20(doubletrack%20mode).lua</source>
       </version>
     </reapack>
     <reapack name="Nagasaki45_Randomize active takes pan in selected items.lua" type="script" desc="Randomize active takes pan in selected items">
