@@ -15,9 +15,9 @@ item = reaper.GetSelectedMediaItem(0, 0)
 if reaper.GetMediaItemNumTakes(item) ~= 2 then return msg("Media item must contain two takes") end
 left, right = reaper.GetMediaItemTake(item, 0), reaper.GetMediaItemTake(item, 1)
 
-reaper.SetMediaItemInfo_Value(item, "B_ALLTAKESPLAY", (reaper.GetMediaItemInfo_Value(item, "B_ALLTAKESPLAY") + 1) % 2)
-reaper.SetMediaItemTakeInfo_Value(left, "D_PAN", (reaper.GetMediaItemTakeInfo_Value(left, "D_PAN") + 1) % -2)
-reaper.SetMediaItemTakeInfo_Value(right, "D_PAN", (reaper.GetMediaItemTakeInfo_Value(right, "D_PAN") + 1) % 2)
+reaper.SetMediaItemInfo_Value(item, "B_ALLTAKESPLAY", reaper.GetMediaItemInfo_Value(item, "B_ALLTAKESPLAY") ~ 1)
+reaper.SetMediaItemTakeInfo_Value(left, "D_PAN", math.floor(reaper.GetMediaItemTakeInfo_Value(left, "D_PAN") + 1) % -2)
+reaper.SetMediaItemTakeInfo_Value(right, "D_PAN", math.floor(reaper.GetMediaItemTakeInfo_Value(right, "D_PAN") + 1) % 2)
 
 reaper.Undo_EndBlock("Toggle pair take mode", -1)
 reaper.UpdateArrange()
