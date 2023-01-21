@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="6f08e296b9f5929c86a4d252bb811e8407bdbf56" name="ReaTeam Scripts">
+<index version="1" commit="64e26a660474d39c251aa5742395968625c9e713" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -14659,6 +14659,10 @@ Replace GetLastWord func with quicker solution (Thanks: Mespotine[t=233393]).]]>
       </metadata>
       <version name="1.0" author="amagalma" time="2022-06-02T10:22:28Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/78e888f62e321dfd7872f689314e063bbeafc4b6/Razor%20Edit/amagalma_Insert%20empty%20space%20at%20Razor%20Edit%20areas%20moving%20later%20items%20(ripple%20per%20track).lua</source>
+      </version>
+      <version name="1.01" author="amagalma" time="2023-01-21T17:16:30Z">
+        <changelog><![CDATA[Fixed action misbehaving when already in Ripple mode]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/64e26a660474d39c251aa5742395968625c9e713/Razor%20Edit/amagalma_Insert%20empty%20space%20at%20Razor%20Edit%20areas%20moving%20later%20items%20(ripple%20per%20track).lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Remove all item fades within Razor Edit areas.lua" type="script" desc="Remove all item fades within Razor Edit areas">
