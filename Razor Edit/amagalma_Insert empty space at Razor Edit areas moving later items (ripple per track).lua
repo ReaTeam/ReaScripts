@@ -1,6 +1,7 @@
 -- @description Insert empty space at Razor Edit areas moving later items (ripple per track)
 -- @author amagalma
--- @version 1.0
+-- @version 1.01
+-- @changelog Fixed action misbehaving when already in Ripple mode
 -- @link https://forum.cockos.com/showthread.php?t=266539
 -- @donation https://www.paypal.me/amagalma
 -- @about Similar to native "Insert empty space at time selection (moving later items)" but works with Razor Edits and ripples per track.
@@ -31,18 +32,9 @@ local editing_all_tracks = reaper.GetToggleCommandState( 40311 ) == 1
 
 if not editing_per_track then
   reaper.Main_OnCommand( 40310, 0 )
-  restore = true
 end
 
 reaper.Main_OnCommand(40142, 0) -- Insert empty item
-
-if restore then
-  if editing_all_tracks then
-    reaper.Main_OnCommand( 40311, 0 )
-  else
-    reaper.Main_OnCommand(40309, 0) -- Set ripple editing off
-  end
-end
 
 for i = 0, reaper.CountMediaItems( 0 )-1 do
   local item = reaper.GetMediaItem(0, i)
@@ -50,8 +42,16 @@ for i = 0, reaper.CountMediaItems( 0 )-1 do
     reaper.SetMediaItemSelected( item, true )
   end
 end
+reaper.Main_OnCommand(40309, 0) -- Set ripple editing off
 reaper.Main_OnCommand(40006, 0) -- Remove items
 
+if editing_all_tracks then
+  reaper.Main_OnCommand( 40311, 0 ) -- Set ripple editing all tracks
+elseif editing_per_track then
+  reaper.Main_OnCommand( 40310, 0 ) -- Set ripple editing per track
+else
+  reaper.Main_OnCommand(40309, 0) -- Set ripple editing off
+end
 
 reaper.PreventUIRefresh( -1 )
 reaper.UpdateArrange()
