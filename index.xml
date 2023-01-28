@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="64e26a660474d39c251aa5742395968625c9e713" name="ReaTeam Scripts">
+<index version="1" commit="b5e86d9b46b4cf9a234a3e5b3053ca38a06ee558" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -2064,35 +2064,6 @@ Refactored/reorganized the code for readability]]></changelog>
         <source file="../Development/Scythe library v3/library/public/table.lua">https://github.com/jalovatt/scythe/raw/11cee4e1cea8aefd2cde2bb322181e49075479f6/library/public/table.lua</source>
         <source file="../Development/Scythe library v3/library/public/text.lua">https://github.com/jalovatt/scythe/raw/11cee4e1cea8aefd2cde2bb322181e49075479f6/library/public/text.lua</source>
         <source file="../Development/Scythe library v3/library/scythe.lua">https://github.com/jalovatt/scythe/raw/11cee4e1cea8aefd2cde2bb322181e49075479f6/library/scythe.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_API help.lua" type="script" desc="API help">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 This script supposed to contain basic info provided with API Help page comes with REAPER, but allow to extend info and snippets database from users.\par}
-}
-]]></description>
-      </metadata>
-      <version name="1.0" author="MPL" time="2021-08-28T19:29:05Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/9dc8f998f41a3198e2306b0a70aae023948bfd14/Development/mpl_API%20help.lua</source>
-      </version>
-      <version name="1.02" author="MPL, nofish" time="2021-08-30T20:53:39Z">
-        <changelog><![CDATA[+ Turn down text brighness for buttons, when snippet code not available
-+ Add link to cockos forum thread
-+ Add scroll for functions list
-+ Parse multiline description enclosed with DESCN_START...DESCN_END
-- Remove all MPL mentions from menu, add ReaTeam author to the reaPack metadata
-# fix open url function
-# fix error when trying to run non-existed code snippet]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4d1a78147ba513ddbfda4054c613be98319ed836/Development/mpl_API%20help.lua</source>
-      </version>
-      <version name="1.03" author="MPL, nofish" time="2021-10-11T02:07:41Z">
-        <changelog><![CDATA[# fix ignore commas when clicking on function code]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d91b9a9969903e63ee0ce89d7fa90ada9bb890d2/Development/mpl_API%20help.lua</source>
       </version>
     </reapack>
     <reapack name="pandabot_Convert image to Lua function.lua" type="script" desc="Convert image to Lua function">
