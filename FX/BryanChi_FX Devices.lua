@@ -7371,7 +7371,7 @@ function loop()
                                 FX.Width[FxGUID] = ProC.Width
                             elseif FindStringInTable(BlackListFXs, FX_Name) then 
                                 Hide = true 
-                            else FX.Width[FxGUID] = nil
+                            elseif FX.Width[FxGUID]==340 then  FX.Width[FxGUID] = nil
                             end
                             
                             if Trk[TrkID].PreFX_Hide then 
