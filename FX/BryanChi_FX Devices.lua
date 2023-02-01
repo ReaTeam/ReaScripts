@@ -1095,11 +1095,11 @@
                 if not FX_Name then _, FX_Name = r.TrackFX_GetFXName(LT_Track, FX_Idx) end 
 
                 r.TrackFX_SetPinMappings(LT_Track, FX_Idx, 0, 0,Target_L,0)    
-
-
                 if FX_Name:find( 'JS: FXD ReSpectrum') then 
-                    for i=0, 16,1 do 
+                    for i=2, 16,1 do 
                         r.TrackFX_SetPinMappings(LT_Track, FX_Idx, 0, i,0,0)
+
+
                         r.TrackFX_SetPinMappings(LT_Track, FX_Idx, 1, i,0,0) 
                     end
                 end
@@ -6309,8 +6309,8 @@ function loop()
                                 table.insert(AddFX.Pos ,  FX_Idx)
                                 table.insert(AddFX.Name, 'FXD Band Joiner')
                                 table.insert(AddFX.Pos ,  FX_Idx+1)
-                                if r.GetMediaTrackInfo_Value(LT_Track, 'I_NCHAN') < 10 then -- Set track channels to 10 if it's lower than 10
-                                    r.SetMediaTrackInfo_Value(LT_Track, 'I_NCHAN', 10) 
+                                if r.GetMediaTrackInfo_Value(LT_Track, 'I_NCHAN') < 12 then -- Set track channels to 10 if it's lower than 10
+                                    r.SetMediaTrackInfo_Value(LT_Track, 'I_NCHAN', 12) 
                                 end
                                 
                                 FX_Idx_OpenedPopup=nil
