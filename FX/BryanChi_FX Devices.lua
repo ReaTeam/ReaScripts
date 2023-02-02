@@ -1,7 +1,7 @@
 -- @description FX Devices
 -- @author Bryan Chi
--- @version 1.0beta9
--- @changelog - New Major Feature: Band Split FX Container
+-- @version 1.0beta9.1
+-- @changelog - fix modulation direction mistake when using vertical slider.
 -- @provides
 --   [effect] BryanChi_FX Devices/FXD Macros.jsfx
 --   [effect] BryanChi_FX Devices/FXD ReSpectrum.jsfx
@@ -3566,7 +3566,7 @@
 
             if Vertical =='Vert' then ModLineDir = Height else ModLineDir = Sldr_Width end
 
-            Tweaking = MakeModulationPossible(FxGUID,Fx_P,FX_Idx,P_Num,p_value,Sldr_Width)
+            Tweaking = MakeModulationPossible(FxGUID,Fx_P,FX_Idx,P_Num,p_value,Sldr_Width, Vertical)
 
             --repeat for every param stored on track...
             --[[  for P=1, Trk.Prm.Inst[TrkID] or 0 , 1 do 
@@ -3921,7 +3921,7 @@
 
         IfTryingToAddExistingPrm(Fx_P,FxGUID,'Rect', PosL, PosT,PosR,PosB)
 
-        Tweaking = MakeModulationPossible(FxGUID,Fx_P,FX_Idx,P_Num,p_value,Sldr_Width)
+        Tweaking = MakeModulationPossible(FxGUID,Fx_P,FX_Idx,P_Num,p_value,Sldr_Width, Vertical)
 
 
         local TextW,  h = reaper.ImGui_CalcTextSize( ctx, labeltoShow, nil, nil, true)
