@@ -1,4 +1,7 @@
+noindex: true
+
 desc:FXD Band Joiner
+
 /*
 Short Description:
 CP is channel pair, aka chain(1/2,3/4 etc)
