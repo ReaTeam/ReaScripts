@@ -35,14 +35,14 @@
 --   [effect] BryanChi_FX Devices/spectrum.jsfx-inc
 --   [effect] BryanChi_FX Devices/svf_filter.jsfx-inc
 --   BryanChi_FX Devices/IconFont1.ttf
---   [effect] BryanChi_FX Devices/FXD (Mix)RackMixer
+--   [effect] BryanChi_FX Devices/FXD (Mix)RackMixer.jsfx
 --   BryanChi_FX Devices/FX Layouts/ValhallaFreqEcho (Valhalla DSP, LLC).ini
 --   BryanChi_FX Devices/FX Layouts/ValhallaShimmer (Valhalla DSP, LLC).ini
 --   BryanChi_FX Devices/FX Layouts/ValhallaVintageVerb (Valhalla DSP, LLC).ini
 --   BryanChi_FX Devices/FX Layouts/ValhallaSupermassive (Valhalla DSP, LLC).ini
---   BryanChi_FX Devices/FX Layouts/ValhallaDelay _Valhalla DSP_ LLC_.ini
---   [effect] BryanChi_FX Devices/FXD Saike BandSplitter
---   [effect] BryanChi_FX Devices/FXD Band Joiner
+--   BryanChi_FX Devices/FX Layouts/ValhallaDelay (Valhalla DSP, LLC).ini
+--   [effect] BryanChi_FX Devices/FXD Saike BandSplitter.jsfx
+--   [effect] BryanChi_FX Devices/FXD Band Joiner.jsfx
 -- @about
 --   Please check the forum post for info:
 --   https://forum.cockos.com/showthread.php?t=263622
