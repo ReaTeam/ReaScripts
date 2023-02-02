@@ -1,4 +1,7 @@
-desc: FXD (Mix)RackMixer
+noindex: true
+
+desc:FXD Band Joiner
+
 /*
 Short Description:
 CP is channel pair, aka chain(1/2,3/4 etc)
@@ -25,20 +28,20 @@ slider8:Out2.Pan=0<-100,100,0.1>-Pan 2
 slider9:Out2.Phase=0<0,1,1{Normal,Inverted}>-Phase 2
 slider10:Out2.Solo=0<0,1,1{Not soloed,Soloed}>-Solo 2
 
-slider11:Out3.Power=0<0,1,1{Off,On}>-Power 3
+slider11:Out3.Power=1<0,1,1{Off,On}>-Power 3
 slider12:Out3.Vol=0<-60,12,0.1>-Vol 3
 slider13:Out3.Pan=0<-100,100,0.1>-Pan 3
 slider14:Out3.Phase=0<0,1,1{Normal,Inverted}>-Phase 3
 slider15:Out3.Solo=0<0,1,1{Not soloed,Soloed}>-Solo 3
 
-slider16:Out4.Power=0<0,1,1{Off,On}>-Power 4
+slider16:Out4.Power=1<0,1,1{Off,On}>-Power 4
 slider17:Out4.Vol=0<-60,12,0.1>-Vol 4
 slider18:Out4.Pan=0<-100,100,0.1>-Pan 4
 slider19:Out4.Phase=0<0,1,1{Normal,Inverted}>-Phase 4
 slider20:Out4.Solo=0<0,1,1{Not soloed,Soloed}>-Solo 4
 
 //-- CP 5 - 8 ----------------
-slider21:Out5.Power=0<0,1,1{Off,On}>-Power 5
+slider21:Out5.Power=1<0,1,1{Off,On}>-Power 5
 slider22:Out5.Vol=0<-60,12,0.1>-Vol 5
 slider23:Out5.Pan=0<-100,100,0.1>-Pan 5
 slider24:Out5.Phase=0<0,1,1{Normal,Inverted}>-Phase 5
@@ -63,7 +66,7 @@ slider39:Out8.Phase=0<0,1,1{Normal,Inverted}>-Phase 8
 slider40:Out8.Solo=0<0,1,1{Not soloed,Soloed}>-Solo 8
 
 //-- SumMode -------
-slider41:SumMode=0<0,1,1{Average,Summing>-SumMode
+slider41:SumMode=1<0,1,1{Average,Summing>-SumMode
 
 //-- Cur Preset ----
 slider42:RWMode=0<0,2,1{Read from JS memory, Write to JS memory, ClearMemory}>-Memory RWMode
