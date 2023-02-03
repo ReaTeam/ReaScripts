@@ -2,6 +2,8 @@
 -- @author BuyOne
 -- @website https://forum.cockos.com/member.php?u=134058
 -- @version 1.1
+-- @changelog
+--    Added option for using custom preset lists for selective cycling
 -- @about
 --   **6 scripts to navigate FX presets / automate FX presets change + 1 auxiliary script.**
 --   **All complete with instructions.**
