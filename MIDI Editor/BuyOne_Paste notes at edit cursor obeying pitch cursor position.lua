@@ -38,11 +38,12 @@ LOWERMOST_LEADS = ""
 UPPERMOST_LEADS = ""
 
 -- If neither LOWERMOST_LEADS nor UPPERMOST_LEADS setting
--- is enabled, when pasting to a higher pitch the uppermost 
--- pasted note will end up at the destination pitch,
--- when pasting to a lower pitch or to a pitch between
--- the lowermost and the uppemost selected notes the lowermost
--- pasted note will end up at the destination pitch
+-- is enabled, when pasting to a pitch above the uppermost 
+-- selected note event the uppermost pasted event will end up 
+-- at the destination pitch, when pasting to a pitch lower 
+-- than the lowermost selected note event or to a pitch between 
+-- the lowermost and the uppemost selected note events 
+-- the lowermost pasted event will end up at the destination pitch
 
 -------------------------------------------------------------------
 ----------------------- END OF USER SETTINGS ----------------------
