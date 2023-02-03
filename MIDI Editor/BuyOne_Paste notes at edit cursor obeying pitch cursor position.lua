@@ -7,14 +7,14 @@ Changelog: Initial release
 Licence: WTFPL
 REAPER: at least v5.962
 About: The default paste action pastes notes at the same pitch(es).  
-	   The script provides an alternative.  
-	   Combined with the action 'View: Move edit cursor to mouse cursor'
-	   within a custom action can be used to paste notes at mouse cursor.  
-	   1. Copy selected notes
-	   2. Select the destination pitch by clicking on a key in the MIDI Editor graphic keyboard
-	   3. Run the script
-	   
-	   See USER SETTINGS
+       The script provides an alternative.  
+       Combined with the action 'View: Move edit cursor to mouse cursor'
+       within a custom action can be used to paste notes at mouse cursor.  
+       1. Copy selected notes
+       2. Select the destination pitch by clicking on a key in the MIDI Editor graphic keyboard
+       3. Run the script
+
+       See USER SETTINGS
 ]]
 
 ------------------------------------------------------------------
