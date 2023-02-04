@@ -88,11 +88,17 @@ UPPERMOST_LEADS = #UPPERMOST_LEADS:gsub(' ','') > 0
 r.PreventUIRefresh(1)
 r.Undo_BeginBlock()
 
+local ME = r.MIDIEditor_GetActive()
+local take = r.MIDIEditor_GetTake(ME)
+
+local retval, notecnt_init, ccevtcnt, textsyxevtcnt = r.MIDI_CountEvts(take)
 
 r.MIDIEditor_LastFocused_OnCommand(40011, false) -- islistviewcommand false // Edit: Paste
 
-local ME = r.MIDIEditor_GetActive()
-local take = r.MIDIEditor_GetTake(ME)
+local retval, notecnt, ccevtcnt, textsyxevtcnt = r.MIDI_CountEvts(take)
+
+	if notecnt_init == notecnt then return r.defer(function() do return end end) end -- abort if nothing has been pasted
+	
 local i = -1
 local highest, lowest = 0, 127 -- reversed to get full range
 	repeat
