@@ -1,13 +1,34 @@
 -- @description MK Slicer
 -- @author cool
--- @version 2.52
+-- @version 3.01
 -- @changelog
---   + Added "No MIDI" mode for Pitch Detection: note names are added to audio items.
---   + Now in the Pitch Detection mode, repeatedly pressing the MIDI button does not break the item.
---   + Now, after pressing the MIDI button in Trigger and Pitch Detection modes, the waveform remains active and you can immediately continue working.
---   + Now the Reset All button can undo the actions of the MIDI button in Trigger and Pitch Detection modes.
+--   + New color design, the ability to choose a color theme.
+--   + Added 9 new themes.
+--   + Added BPM indicator: calculation of item's tempo by transients.
+--   + Added Set BPM function to synchronize item and project tempo.
+--   + Added Mapping function to create a tempo map by transients.
+--   + Added marker flags for simple mouse dragging without using hotkeys.
+--   + Interactive markers: now the active marker is highlighted when hovering the mouse.
+--   + Added Aim Assist tool: cursor for precise positioning of markers and velocities.
+--   + Added Snap Area tool: Edit Cursor snaps to left marker next to mouse click. This highlights the entire playback area of the sample.
+--   + Now the mouse wheel resizes the grid if the cursor is over the grid resolution buttons.
+--   + Fixed a bug: now, if during initialization the selected items were overlapped on non-selected ones, the script will work correctly.
+--   + Fixed a bug: now, if the Rate of an item is changed, the content of the item is not shifted.
+--   + Fixed a bug: now the Random Reverse function will work if the Random button was pressed before opening Random Settings.
+--   + Fixed a bug: now the script works correctly with Reverse items.
+--   + Fixed a bug: now the script does not crash with an error when trying to use it without an item.
+--   + Fixed a bug: now low BPM doesn't break the Retrig slider.
+--   + Fixed a bug (again): now the script does not crash with an error if there are no tracks in the project.
+--   + Fixed a bug (again, sorry): now, when triggering, the script does not take 0.5ms from each note.
+--   + Significantly increased the maximum value of the Retrig parameter.
+--   + Now the Sensitivity control has a scale from 1 to 10 and works more logically: 1 - minimum sensitivity, 10 - maximum.
+--   + Improved marker capture zoning depending on window size and zoom.
+--   + Removed the old "Info Line" feature from the bottom of the screen.
+--   + Now the View menu looks like a translucent rectangle.
+--   + Sync View option is now in the main menu.
+--   + For compatibility and correct work, now extstate data is written under a new header.
 -- @link Forum Thread https://forum.cockos.com/showthread.php?t=232672
--- @screenshot MKSlicer2.0 https://i.imgur.com/QFWHt9a.png
+-- @screenshot MK_Slicer 3 https://i.imgur.com/L7WnvoO.jpg
 -- @donation
 --   Donate by BuyMeACoffee https://www.buymeacoffee.com/MaximKokarev
 --   Donate by YooMoney https://yoomoney.ru/to/41001256406969
@@ -26,34 +47,33 @@
 --    - One click sampling and exporting into RS5k.
 --    - Trigger. Easy conversion of rhythmic parts to midi patterns with accurate velocity reproduction.
 --    - Random - a function for randomizing slices and some of their parameters. Ideal for uniqualization, humanization and creation of new parts.
---    - Advanced interface. Intuitive controls. Resetting values to defaults by Ctrl+Click. Change operations on-the-fly without the need of Undo.
+--   - Pitch detection: the ability to convert simple single-voiced parts and drums to midi.
+--   - Tempo detection, item rate change to adapt to project tempo. Ability to create a tempo map from an item.
 --    - Adaptive initial settings. Upon initialization, the script sets the View Gain, Threshold, and Retrig settings depending on the material and tempo of the project.
 --
 --   Instructions for use:
 --
---   1. Select an item or several items on the same track. The script will not run if items are placed on different tracks.
+--   1. Select an item or several items. If items on multiple tracks are selected, only the top one will be analyzed. If several items are selected on the same track, they will be glued together.
 --   2. Run the script.
 --   3. Do your work.
 --   4. To cancel an actions, use Reset or just Ctrl + Z. Reset sliders to default: Ctrl + Click. Fine tune: Shift + Drag. Exit the script: Esc, Space - Play. 
 --
---     On Waveform Area:
---     Mouswheel or Left/Right keys - Horizontal Zoom,
---     Ctrl(Shift)+Mouswheel or Up/Down keys - Vertical Zoom,
---     Middle Drag - Move View (Scroll),
---     Left Click - Set Edit Cursor,
---     Shift+Left Drag - Move Marker,
---     Ctrl+Left Drag - Change Velocity,
---     Shift+Ctrl+Left Drag - Move Marker and Change Velocity,
---     Right Click on Marker - Delete Marker,
---     Right Click on Empty Space - Insert Marker.
+--   On Waveform Area:
+--   Mouswheel or Left/Right keys - Horizontal Zoom,
+--   Ctrl(Shift)+Mouswheel or Up/Down keys - Vertical Zoom, 
+--   Left or Middle Drag - Move View (Horizontal Scroll),
+--   Left Click - Set Edit Cursor,
+--   Left Drag Small Flag - Move Marker,
+--   Ctrl+Left Drag - Change Velocity,
+--   Right Click on Marker - Delete Marker,
+--   Right Click on Empty Space - Insert Marker.
 --
 --   Working with multitrack:
 --
 --   0. Before starting the work, I recommend you to create a guide track - usually a mixdown kick, snare and toms tracks together in one track. This track will be used as a “lead” for the detector to operate more accurately After the work is completed, you can delete it.
---   1. Select one (guide) item. The script will not run if items are placed on different tracks.
+--   1. Select items. If items on multiple tracks are selected, only the top one will be analyzed.
 --   2. Run the script.
---   3. Select the rest items in the multitrack - you can do it with the help of Marque Selection or even Ctrl+A - it will make no difference. Your workspace will be set equal to the length of an item selected at the moment you start the script. 
---   4. Do your work. When a slicing or placing markers occurs on a multitrack, items will be automatically added to Groups.
+--   3. Do your work. When a slicing or placing markers occurs on a multitrack, items will be automatically added to Groups.
 --
 --
 --   Important.
@@ -63,7 +83,7 @@
 --   Sometimes a script applies glue to items. For example, when several items are selected and when a MIDI is created in a sampler mode.
 
 --[[
-MK Slicer v2.52 by Maxim Kokarev 
+MK Slicer v3.01 by Maxim Kokarev 
 https://forum.cockos.com/member.php?u=121750
 
 Co-Author of the compilation - MyDaw
@@ -72,7 +92,6 @@ https://www.facebook.com/MyDawEdition/
 "Remove selected overlapped items (by tracks)" 
 "Remove final selected item in tracks"
 "Unselect all items except first selected in track"
-"Grid switch" (snippet)
 scripts by Archie
 https://forum.cockos.com/member.php?u=120700
 
@@ -106,7 +125,6 @@ AutoXFadesOnSplitOverride = 1 -- (Override "Options: Toggle auto-crossfade on sp
 Compensate_Oct_Offset = 0 -- (Trigger: octave shift of note names to compensate "MIDI octave name display offset". -4 - Min, 4 - Max)
 WFiltering = 0 -- (Waveform Visual Filtering while Window Scaling. 1 - On, 0 - Off)
 ShowRuler = 1 -- (Show Project Grid Green Markers. 1 - On, 0 - Off)
-ShowInfoLine = 0 -- (Show Project Info Line (Grid and Swing status). 1 - On, 0 - Off)
 ShowTrackAndItemInfo = 1 -- (Show processed item and related track number. 1 - On, 0 - Off)
 SnapToStart = 1 --(Snap Play Cursor to Waveform Start. 1 - On, 0 - Off)
 ZeroCrossingType = 1 -- (1 - Snap to Nearest (working fine), 0 - Snap to previous (not recommend, for testing only!))
@@ -115,6 +133,7 @@ ForceSync = 0 -- (force Sync On on the script starts: 1 - On (Force On), 0 - Off
 No_Heal_On_Init = 1 --(Don't try healing multiple items on the script starts: 1 - On (Glue only), 0 - Off (Trying to undestructive Heal items, if not successful, then Glue))
 No_Glue_On_Init = 0 --(Don't try gluing multiple items on the script starts: 1 - On ( No Glue, not recommend), 0 - Off (Glue, Recommended))
 GroupingWhenSlicing = 1 -- (Grouping Multitrack When Slicing: 1 - On, 0 - Off. Disabling greatly increases the speed of Slicing multitrack. )
+SetTkMarker = 0 -- (Place Tempo Marker When Set BPM (Item Rate): 1 - On, 0 - Off.)
 
 RebuildPeaksOnStart = 0 -- (Rebuilding waveform peaks when the script starts. Required for Pitch Detection to work correctly on slow PC. 1 - On (Recommended), 0 - Off)
 TimeForPeaksRebuild = 0.6 -- (Additional delay required to rebuild peaks in Pitch Detection mode. If you get an empty MIDI file, you need to increase the value. I recommend values between: 0.3 (fast modern PC) and 1 (slowest PC). Default: 0.3, Recommended: 0.6 ).
@@ -122,9 +141,699 @@ TimeForPeaksRebuild = 0.6 -- (Additional delay required to rebuild peaks in Pitc
 ForcePitchBend = 1 -- Forces a Pitch Bend value for each ReaSamplomatic5000 instance (1 - On, 0 - Off)
 PitchBend = 12 -- if ForcePitchBend if on, set max pitch bend, semitones (0 - Min, 12 - Max)
 
-KickNote = 35
+KickNote = 35 -- Pitch Detector Notes ("Drums" preset)
 SnareNote = 38
 HatNote = 42
+
+local TH = {wfb, wff, bgnd, mf1, mf2, wf1, wf2, wf3, rc, g_w3, g_a3, thr, mc, g_w, g_a, g_w_def, g_a_def, area, gc, ec, g_w1, g_a1, pc, g_w2, g_a2, aim, bc1, bc2, sc1, sc2, sc3, sc4, tc, te, tg, tg2, btb, btt, ge, mfb, mfs, ltr, thk}
+
+function Theming(Theme)
+
+      if Theme == nil then Theme = 1 end 
+      if Theme < 0 then Theme = 1 elseif Theme >= 10 then Theme = 10 end 
+
+
+      if Theme == 1 then 
+      -------------------------Prime------------------------------
+      theme_name = "Prime"
+      -------Backgrounds and Frames-----------------
+      TH[1] = {0.172, 0.20, 0.215,1} -- Waveform, Background Box
+      TH[2] = {0.172, 0.20, 0.215,1} -- Waveform, Frame
+      TH[3] = { 0.208, 0.243, 0.251} -- Main Background
+      TH[4] = { 0.32, 0.34, 0.34, 1 } -- Controls Body
+      TH[5] = { 0.22, 0.24, 0.24, 0 } -- Controls Frame
+
+      -----------Waveforms---------------
+      TH[6] = { 0.078, 0.58, 0.725,1 } -- Waveform, Filtered 
+      TH[7] = {0.16, 0.14, 0.14,1} -- Waveform, Original 
+      TH[8] = { 0.12, 0.10, 0.10,1 } -- Waveform, Draw original Only
+
+      --------Waveform Lines--------------
+      TH[9] = { 0.1, 0.8, 0.4, 1 } -- Ruler 
+      TH[10] = 4 -- Ruler Gradient Width (0 = off)
+      TH[11] = 0.05 --Ruler Gradient Transparency
+
+      TH[12] = { 1, 1, 1, 0.1 } -- Threshold Lines
+      TH[13] = { 0.906, 0.463, 0.0, 0.9 } -- Transient Markers
+      TH[14] = 5 -- Transient Markers Gradient Width (if Selected)
+      TH[15] = 0.3 --Transient Markers Gradient Transparency (if Selected)
+      TH[16] = 0 -- Transient Markers Gradient Width (0 - off)
+      TH[17] = 0 --Transient Markers Gradient Transparency
+
+      TH[18] = { 0.906, 0.463, 0.0, 0.1 } -- Sample Area if enabled
+
+      TH[19] = { 0.82, 0.294, 0.0, 0.7 } -- Grid Markers
+
+      TH[20] = { 0.8, 0.8, 0.8, 1 } -- Edit Cursor
+      TH[21] = 5 -- Edit Cursor Gradient Width
+      TH[22] = 0.2 --Edit Cursor Gradient Transparency
+
+      TH[23] = { 0.031, 0.604, 0.765, 1 } -- Play Cursor
+      TH[24] = 5 -- Play Cursor Gradient Width
+      TH[25] = 0.2 --Play Cursor Gradient Transparency
+
+      TH[26] = { 0.2, 1, 0.5, 0.5 } -- Aim Assist Cursor
+
+      -------Buttons and Sliders ---------
+      TH[27] = {0.2, 0.2 ,0.2 ,1} -- Button Body
+      TH[28] = {0.2, 0.2 ,0.2 ,1} -- Button Frames
+      
+      TH[29] = {0.23, 0.25, 0.25,1} -- Slider Frames
+      TH[30] = {0.23, 0.25, 0.25,1} -- Slider Body
+      
+      TH[31] = {0.32, 0.34, 0.34, 1} -- Slider Frames (Top, Loop and Swing)
+      TH[32] = {0.32, 0.34, 0.34, 1} -- Slider Body (Top, Loop and Swing)
+      
+      --------------Text--------------------
+      TH[33] = { 0.61, 0.61, 0.61, 1 } -- Text Main
+      TH[34] = { 1, 0.5, 0.3, 1 } -- Text Warn (Small "Processing, wait...")
+      TH[35] = { 0.45, 0.45, 0.45, 1 } -- Txt Greyed (BPM)
+      TH[36] = { 0.55, 0.55, 0.55, 1 } -- Txt Greyed (Presets, Mode)      
+      TH[37] = -0.1 -- an additional value is added to the brightness of the BPM digits. Can be negative.
+      TH[38] = 0.9 -- BPM digits transparency
+
+      -----------Elements------------------
+      TH[39] =  { 0.1, 0.8, 0.4, 1 } -- Green tops elements (Loop triangles, Buttons Leds)
+      TH[40] = { 0.60, 0.60, 0.60, 0.4 } -- Txt Brackets
+      TH[41] = { 0.60, 0.60, 0.60, 0.4 } -- Main Separators
+      TH[42] = 0.7 -- Leds Transparency (Controls Body)
+      TH[43] = 0.1 -- Waveform Peaks Thickness (Transparency) - 0 = normal peaks, 1 - thick peaks, 0.5 or something = like a blur/antialiasing
+      --------------------------------------------------------------
+
+
+      elseif Theme == 2 then 
+     ------------------------------Neon---------------------------
+      theme_name = "Neon"
+      -------Backgrounds and Frames-----------------
+      TH[1] = {0.12157, 0.14118, 0.16471,1} -- Waveform, Background Box
+      TH[2] = {0.172, 0.20, 0.215,1} -- Waveform, Frame
+      TH[3] = { 0.20922, 0.22882, 0.26804} -- Main Background
+      TH[4] = { 0.18, 0.19, 0.22, 1 } -- Controls Body
+      TH[5] = { 0.22, 0.22, 0.22, 0 } -- Controls Frame
+
+      -----------Waveforms---------------
+      TH[6] = {0.875, 0.525, 0.098,1} -- Waveform, Filtered 
+      TH[7] = {0.24,0.23,0.21,1} -- Waveform, Original 
+      TH[8] = { 0.37, 0.33, 0.28 ,1 } -- Waveform, Draw original Only
+
+      --------Waveform Lines--------------
+      TH[9] = { 0.0, 0.97647, 0.49804, 1 } -- Ruler
+      TH[10] = 4 -- Ruler Gradient Width (0 = off)
+      TH[11] = 0.12 --Ruler Gradient Transparency
+
+      TH[12] = { 0.027, 0.624, 0.749, 0.3 } -- Threshold Lines
+      TH[13] = { 0.035, 0.604, 0.718, 0.9 } -- Transient Markers
+      TH[14] = 7 -- Transient Markers Gradient Width (if Selected)
+      TH[15] = 0.3 --Transient Markers Gradient Transparency (if Selected)
+      TH[16] = 7 -- Transient Markers Gradient Width (0 - off)
+      TH[17] = 0.1 --Transient Markers Gradient Transparency
+
+      TH[18] = { 0.035, 0.604, 0.718, 0.12 } -- Sample Area if enabled
+
+      TH[19] = { 0, 0.7, 0.7, 0.7 } -- Grid Markers
+      
+      TH[20] = { 0.98, 0.114, 0.984, 1 } -- Edit Cursor
+      TH[21] = 5 -- Edit Cursor Gradient Width
+      TH[22] = 0.2 --Edit Cursor Gradient Transparency
+
+      TH[23] = { 0.141, 0.98, 0.69, 1 } -- Play Cursor
+      TH[24] = 5 -- Play Cursor Gradient Width
+      TH[25] = 0.2 --Play Cursor Gradient Transparency
+
+      TH[26] = { 0.0, 1, 0.5, 0.5 } -- Aim Assist Cursor
+      
+      -------Buttons and Sliders ---------
+      TH[27] = {0.3, 0.31 ,0.32 ,1} -- Button Body
+      TH[28] = {0.3, 0.31 ,0.32 ,1} -- Button Frames
+      
+      TH[29] = {0.28235, 0.32941, 0.34118,1} -- Slider Frames
+      TH[30] = {0.28235, 0.32941, 0.34118,1} -- Slider Body
+      
+      TH[31] = {0.33235, 0.37941, 0.39118,1} -- Slider Frames (Top, Loop and Swing)
+      TH[32] = {0.33235, 0.37941, 0.39118,1} -- Slider Body (Top, Loop and Swing)
+      
+      --------------Text--------------------     
+      TH[33] = { 0.7, 0.7, 0.7, 1 } -- Text Main
+      TH[34] = { 1, 0.5, 0.3, 1 } -- Text Warn (Small "Processing, wait...")
+      TH[35] = { 0.4, 0.4, 0.4, 0.5 } -- Txt Greyed (BPM)
+      TH[36] = { 0.5, 0.5, 0.5, 0.5 } -- Txt Greyed (Presets, Mode)
+      TH[37] = 0 -- an additional value is added to the brightness of the BPM digits. Can be negative.
+      TH[38] = 0.9 -- BPM digits transparency
+    
+      -----------Elements------------------
+      TH[39] =  { 0.0, 0.81176, 0.41176, 1 } -- Green tops elements (Loop triangles, Buttons Leds)
+      TH[40] = { 0.4, 0.4, 0.4, 0.5 } -- Txt Brackets
+      TH[41] = { 0.4, 0.4, 0.4, 0.5 } -- Main Separators
+      TH[42] = 0.9 -- Leds Transparency (Controls Body)
+      TH[43] = 0.15 -- Waveform Peaks Thickness (Transparency) - 0 = normal peaks, 1 - thick peaks, 0.5 or something = like a blur/antialiasing
+      --------------------------------------------------------------
+
+
+      elseif Theme == 3 then 
+       -------------------------Black------------------------------
+      theme_name = "Black"
+      -------Backgrounds and Frames-----------------
+      TH[1] = {0.188, 0.196, 0.2,1} -- Waveform, Background Box
+      TH[2] = {0.172, 0.20, 0.215,1} -- Waveform, Frame
+      TH[3] = { 0.166, 0.174, 0.177} -- Main Background
+      TH[4] = { 0.157, 0.157, 0.157, 1 } -- Controls Body
+      TH[5] = { 0.22, 0.22, 0.22, 0 } -- Controls Frame
+
+      -----------Waveforms---------------
+      TH[6] = { 0.078, 0.725, 0.725,1 } -- Waveform, Filtered 
+      TH[7] = {0.16, 0.14, 0.14,1} -- Waveform, Original 
+      TH[8] = { 0.12, 0.10, 0.10,1 } -- Waveform, Draw original Only
+
+      --------Waveform Lines--------------
+      TH[9] = { 0.9, 0.9, 0.9, 1 } -- Ruler 
+      TH[10] = 4 -- Ruler Gradient Width (0 = off)
+      TH[11] = 0.05 --Ruler Gradient Transparency
+
+      TH[12] = { 0.9, 0.9, 0.9, 0.2 } -- Threshold Lines
+      TH[13] = { 0.906, 0.463, 0.0, 0.9 } -- Transient Markers
+      TH[14] = 5 -- Transient Markers Gradient Width (if Selected)
+      TH[15] = 0.3 --Transient Markers Gradient Transparency (if Selected)
+      TH[16] = 0 -- Transient Markers Gradient Width (0 - off)
+      TH[17] = 0 --Transient Markers Gradient Transparency
+
+      TH[18] = { 0.906, 0.463, 0.0, 0.1 } -- Sample Area if enabled
+
+      TH[19] = { 0.906, 0.463, 0.0, 0.9 } -- Grid Markers
+
+      TH[20] = { 0.8, 0.8, 0.8, 1 } -- Edit Cursor
+      TH[21] = 4 -- Edit Cursor Gradient Width
+      TH[22] = 0.1 --Edit Cursor Gradient Transparency
+
+      TH[23] = { 0.031, 0.604, 0.765, 1 } -- Play Cursor
+      TH[24] = 4 -- Play Cursor Gradient Width
+      TH[25] = 0.1 --Play Cursor Gradient Transparency
+
+      TH[26] = { 0.97, 0.97, 0, 0.5 } -- Aim Assist Cursor
+
+      -------Buttons and Sliders ---------
+      TH[27] = {0.3, 0.305, 0.31 ,1} -- Button Body
+      TH[28] = {0.3, 0.305, 0.31 ,1} -- Button Frames
+      
+      TH[29] = {0.24, 0.25, 0.25,1} -- Slider Frames
+      TH[30] = {0.24, 0.25, 0.25,1} -- Slider Body
+      
+      TH[31] = {0.32, 0.33, 0.33, 1} -- Slider Frames (Top, Loop and Swing)
+      TH[32] = {0.32, 0.33, 0.33, 1} -- Slider Body (Top, Loop and Swing)
+      
+      --------------Text--------------------
+      TH[33] = { 0.9, 0.9, 0.9, 0.7 } -- Text Main
+      TH[34] = { 1, 0.5, 0.3, 1 } -- Text Warn (Small "Processing, wait...")
+      TH[35] = { 0.45, 0.45, 0.45, 1 } -- Txt Greyed (BPM)
+      TH[36] = { 0.55, 0.55, 0.55, 1 } -- Txt Greyed (Presets, Mode)      
+      TH[37] = -0.1 -- an additional value is added to the brightness of the BPM digits. Can be negative.
+      TH[38] = 0.9 -- BPM digits transparency
+
+      -----------Elements------------------
+      TH[39] =  { 0.808, 0.525, 0.098, 1 } -- Green tops elements (Loop triangles, Buttons Leds)
+      TH[40] = { 0.22, 0.23, 0.23, 0.7 } -- Txt Brackets
+      TH[41] = { 0.22, 0.23, 0.23, 0.7 } -- Main Separators
+      TH[42] = 0.9 -- Leds Transparency (Controls Body)
+      TH[43] = 0 -- Waveform Peaks Thickness (Transparency) - 0 = normal peaks, 1 - thick peaks, 0.5 or something = like a blur/antialiasing
+      --------------------------------------------------------------
+
+
+      elseif Theme == 4 then 
+      -------------------------Blue Lake------------------------------
+      theme_name = "Blue Lake"
+      -------Backgrounds and Frames-----------------
+      TH[1] = {0.071, 0.227, 0.369,1} -- Waveform, Background Box
+      TH[2] = {0.071, 0.227, 0.369,1} -- Waveform, Frame
+      TH[3] = { 0.035, 0.137, 0.231} -- Main Background
+      TH[4] = { 0.153, 0.216, 0.267, 1 } -- Controls Body
+      TH[5] = { 0.22, 0.22, 0.22, 0 } -- Controls Frame
+
+      -----------Waveforms---------------
+      TH[6] = { 0.231, 0.62, 0.992,1 } -- Waveform, Filtered 
+      TH[7] = {0.008, 0.188, 0.349,1} -- Waveform, Original 
+      TH[8] = { 0.008, 0.188, 0.349,1 } -- Waveform, Draw original Only
+
+      --------Waveform Lines--------------
+      TH[9] = { 0.104, 0.731, 1.0, 1 } -- Ruler
+      TH[10] = 4 -- Ruler Gradient Width (0 = off)
+      TH[11] = 0.1 --Ruler Gradient Transparency
+
+      TH[12] = { 0.98, 0.788, 0.008, 0.5 } -- Threshold Lines
+      TH[13] = { 0.98, 0.788, 0.008, 0.9 } -- Transient Markers
+      TH[14] = 5 -- Transient Markers Gradient Width (if Selected)
+      TH[15] = 0.3 --Transient Markers Gradient Transparency (if Selected)
+      TH[16] = 5 -- Transient Markers Gradient Width (0 - off)
+      TH[17] = 0.05 --Transient Markers Gradient Transparency
+
+      TH[18] = { 0.98, 0.788, 0.008, 0.12 } -- Sample Area if enabled
+
+      TH[19] = { 0.98, 0.788, 0.008, 0.7 } -- Grid Markers
+      
+      TH[20] = { 0.8, 0.2, 0.2, 1 } -- Edit Cursor
+      TH[21] = 5 -- Edit Cursor Gradient Width
+      TH[22] = 0.4 --Edit Cursor Gradient Transparency
+
+      TH[23] = { 0.5, 0.89608, 0.82941, 1 } -- Play Cursor
+      TH[24] = 5 -- Play Cursor Gradient Width
+      TH[25] = 0.2 --Play Cursor Gradient Transparency
+
+      TH[26] = { 1, 1, 1, 0.5 } -- Aim Assist Cursor
+      
+      -------Buttons and Sliders ---------      
+      TH[27] = {0.234, 0.32, 0.339 ,1} -- Button Body
+      TH[28] = {0.234, 0.32, 0.339 ,1} -- Button Frames
+      
+      TH[29] = {0.224, 0.29, 0.329,1} -- Slider Frames
+      TH[30] = {0.224, 0.29, 0.329,1} -- Slider Body
+      
+      TH[31] = {0.204, 0.27, 0.329, 1} -- Slider Frames (Top, Loop and Swing)
+      TH[32] = {0.204, 0.27, 0.329, 1} -- Slider Body (Top, Loop and Swing)
+      
+      --------------Text--------------------      
+      TH[33] = { 0.65, 0.65, 0.65, 1 } -- Text Main
+      TH[34] = { 0.894, 0.737, 0.235, 1 } -- Text Warn (Small "Processing, wait...")
+      TH[35] = { 0.45, 0.45, 0.45, 1 } -- Txt Greyed (BPM)
+      TH[36] = { 0.45, 0.45, 0.45, 1 } -- Txt Greyed (Presets, Mode)
+      TH[37] = 0 -- an additional value is added to the brightness of the BPM digits. Can be negative.
+      TH[38] = 0.9 -- BPM digits transparency
+     
+      -----------Elements------------------
+      TH[39] =  { 0.98, 0.788, 0.008, 1 } -- Green tops elements (Loop triangles, Buttons Leds)
+      TH[40] = { 0.45, 0.45, 0.45, 0.5 } -- Txt Brackets
+      TH[41] = { 0.45, 0.45, 0.45, 0.5 } -- Main Separators
+      TH[42] = 0.9 -- Leds Transparency (Controls Body)
+      TH[43] = 0.1 -- Waveform Peaks Thickness (Transparency) - 0 = normal peaks, 1 - thick peaks, 0.5 or something = like a blur/antialiasing
+      --------------------------------------------------------------
+
+
+      elseif Theme == 5 then 
+      -------------------------Fall------------------------------
+      theme_name = "Fall"
+      -------Backgrounds and Frames-----------------
+      TH[1] = {0.169, 0.169, 0.169,1} -- Waveform, Background Box
+      TH[2] = {0.172, 0.20, 0.215,1} -- Waveform, Frame
+      TH[3] = { 0.533, 0.537, 0.537} -- Main Background
+      TH[4] = { 0.651, 0.651, 0.651, 1 } -- Controls Body
+      TH[5] = { 0.22, 0.22, 0.22, 0 } -- Controls Frame
+
+      -----------Waveforms---------------
+      TH[6] = {0.224, 0.62, 0.808,1} -- Waveform, Filtered 
+      TH[7] = {0.19, 0.19, 0.19,1} -- Waveform, Original 
+      TH[8] = { 0.294, 0.239, 0.192 ,1 } -- Waveform, Draw original Only
+
+      --------Waveform Lines--------------
+      TH[9] = { 0.7, 0.7, 0.8, 1 } -- Ruler
+      TH[10] = 4 -- Ruler Gradient Width (0 = off)
+      TH[11] = 0.05 --Ruler Gradient Transparency
+
+      TH[12] = { 0.7, 0.7, 0.7, 0.4 } -- Threshold Lines
+      TH[13] = { 0.9, 0.4, 0.1, 0.9 } -- Transient Markers
+      TH[14] = 5 -- Transient Markers Gradient Width (if Selected)
+      TH[15] = 0.3 --Transient Markers Gradient Transparency (if Selected)
+      TH[16] = 0 -- Transient Markers Gradient Width (0 - off)
+      TH[17] = 0 --Transient Markers Gradient Transparency
+
+      TH[18] = { 0.9, 0.4, 0.1, 0.12 } -- Sample Area if enabled
+
+      TH[19] = { 0.7, 0.7, 0.8, 0.7 } -- Grid Markers
+      
+      TH[20] = { 1.0, 0.9, 0.9, 1 } -- Edit Cursor
+      TH[21] = 5 -- Edit Cursor Gradient Width
+      TH[22] = 0.2 --Edit Cursor Gradient Transparency
+
+      TH[23] = { 0.7, 0.7, 0.7, 1 } -- Play Cursor
+      TH[24] = 5 -- Play Cursor Gradient Width
+      TH[25] = 0.2 --Play Cursor Gradient Transparency
+
+      TH[26] = { 0.9, 0.9, 1, 0.5 } -- Aim Assist Cursor
+      
+      -------Buttons and Sliders ---------      
+      TH[27] = {0.3, 0.31 ,0.32 ,0} -- Button Body
+      TH[28] = {0.15, 0.15, 0.15 ,1} -- Button Frames
+      
+      TH[29] = {0.28235, 0.32941, 0.34118,1} -- Slider Frames
+      TH[30] = {0.859, 0.494, 0.161,1} -- Slider Body
+      
+      TH[31] = {0.32, 0.32, 0.32,1} -- Slider Frames (Top, Loop and Swing)
+      TH[32] = {0.32, 0.32, 0.32,1} -- Slider Body (Top, Loop and Swing)
+      
+      --------------Text--------------------      
+      TH[33] = { 0.078, 0.078, 0.078, 1 } -- Text Main
+      TH[34] = { 0.906, 0.524, 0.229, 1 } -- Text Warn (Small "Processing, wait...")
+      TH[35] = { 0.4, 0.4, 0.4, 0.7 } -- Txt Greyed (BPM)
+      TH[36] = { 0.2, 0.2, 0.2, 0.7 } -- Txt Greyed (Presets, Mode)
+      TH[37] = -0.32 -- an additional value is added to the brightness of the BPM digits. Can be negative.
+      TH[38] = 0.8 -- BPM digits transparency
+
+      -----------Elements------------------      
+      TH[39] =  {0.9, 0.4, 0.1, 1 } -- Green tops elements (Loop triangles, Buttons Leds)
+      TH[40] = { 0.3, 0.3, 0.3, 1 } -- Txt Brackets
+      TH[41] = { 0.3, 0.3, 0.3, 1 } -- Main Separators
+      TH[42] = 0.7 -- Leds Transparency (Controls Body)
+      TH[43] = 0 -- Waveform Peaks Thickness (Transparency) - 0 = normal peaks, 1 - thick peaks, 0.5 or something = like a blur/antialiasing
+      --------------------------------------------------------------
+
+
+      elseif Theme == 6 then 
+      -------------------------Soft Dark--------------------------
+      theme_name = "Soft Dark"
+      -------Backgrounds and Frames-----------------
+      TH[1] = {0.267, 0.267, 0.267,1} -- Waveform, Background Box
+      TH[2] = {0.267, 0.267, 0.267,1} -- Waveform, Frame
+      TH[3] = { 0.227, 0.227, 0.227} -- Main Background
+      TH[4] = { 0.267, 0.267, 0.267, 1 } -- Controls Body
+      TH[5] = { 0.28, 0.28, 0.28, 1 } -- Controls Frame
+
+      -----------Waveforms---------------
+      TH[6] = { 0.894, 0.447, 0.6,1 } -- Waveform, Filtered 
+      TH[7] = {0.217, 0.217, 0.217,1} -- Waveform, Original 
+      TH[8] = { 0.17, 0.17, 0.17,1 } -- Waveform, Draw original Only
+
+      --------Waveform Lines--------------
+      TH[9] = { 0.551, 0.696, 1, 1 } -- Ruler
+      TH[10] = 4 -- Ruler Gradient Width (0 = off)
+      TH[11] = 0.07 --Ruler Gradient Transparency
+
+      TH[12] = { 0.882, 0.89, 0.447, 0.3 } -- Threshold Lines
+      TH[13] = { 0.882, 0.89, 0.447, 0.8 } -- Transient Markers
+      TH[14] = 5 -- Transient Markers Gradient Width (if Selected)
+      TH[15] = 0.3 --Transient Markers Gradient Transparency (if Selected)
+      TH[16] = 0 -- Transient Markers Gradient Width (0 - off)
+      TH[17] = 0 --Transient Markers Gradient Transparency
+
+      TH[18] = { 0.882, 0.89, 0.447, 0.12 } -- Sample Area if enabled
+
+      TH[19] = { 0.2, 1, 0.5, 0.5 } -- Grid Markers
+
+      TH[20] = { 0.8, 0.8, 0.8, 1 } -- Edit Cursor
+      TH[21] = 5 -- Edit Cursor Gradient Width
+      TH[22] = 0.2 --Edit Cursor Gradient Transparency
+
+      TH[23] = { 0.451, 0.596, 0.906, 1 } -- Play Cursor
+      TH[24] = 5 -- Play Cursor Gradient Width
+      TH[25] = 0.2 --Play Cursor Gradient Transparency
+
+      TH[26] = { 0.2, 1, 0.5, 0.5 } -- Aim Assist Cursor
+
+      -------Buttons and Sliders ---------
+      TH[27] = {0.2, 0.2 ,0.2 ,1} -- Button Body
+      TH[28] = {0.2, 0.2 ,0.2 ,1} -- Button Frames
+      
+      TH[29] = {0.22, 0.22, 0.22,1} -- Slider Frames
+      TH[30] = {0.22, 0.22, 0.22,1} -- Slider Body
+      
+      TH[31] = {0.32, 0.34, 0.34, 1} -- Slider Frames (Top, Loop and Swing)
+      TH[32] = {0.32, 0.34, 0.34, 1} -- Slider Body (Top, Loop and Swing)
+      
+      --------------Text--------------------
+      TH[33] = { 0.55, 0.55, 0.55, 1 } -- Text Main
+      TH[34] = { 0.551, 0.696, 1, 1 } -- Text Warn (Small "Processing, wait...")
+      TH[35] = { 0.45, 0.45, 0.45, 1 } -- Txt Greyed (BPM)
+      TH[36] = { 0.45, 0.45, 0.45, 1 } -- Txt Greyed (Presets, Mode)
+      TH[37] = -0.1 -- an additional value is added to the brightness of the BPM digits. Can be negative.
+      TH[38] = 0.7 -- BPM digits transparency
+
+      -----------Elements------------------
+      TH[39] =  { 0.451, 0.596, 0.906, 0.7 } -- Green tops elements (Loop triangles, Buttons Leds)
+      TH[40] = { 0.9, 0.9, 0.9, 0.12 } -- Txt Brackets
+      TH[41] = { 0.2, 0.2, 0.2, 0.7 } -- Main Separators
+      TH[42] = 0.7 -- Leds Transparency (Controls Body)
+      TH[43] = 0 -- Waveform Peaks Thickness (Transparency) - 0 = normal peaks, 1 - thick peaks, 0.5 or something = like a blur/antialiasing
+      --------------------------------------------------------------
+
+
+elseif Theme == 7 then 
+      --------------------------Graphite-------------------------------
+      theme_name = "Graphite"
+      -------Backgrounds and Frames-----------------
+      TH[1] = {0.73, 0.75, 0.75,1} -- Waveform, Background Box
+      TH[2] = {0.63, 0.65, 0.65,1} -- Waveform, Frame
+      TH[3] = { 0.73, 0.75, 0.75} -- Main Background
+      TH[4] = { 0.73, 0.75, 0.75, 1 } -- Controls Body
+      TH[5] = { 0.22, 0.22, 0.22, 0 } -- Controls Frame
+
+      -----------Waveforms---------------
+      TH[6] = { 0.4, 0.306, 0.675 ,1 } -- Waveform, Filtered 
+      TH[7] = {0.62,0.64,0.64,1} -- Waveform, Original 
+      TH[8] = { 0.55, 0.57, 0.57 ,1 } -- Waveform, Draw original Only
+
+      --------Waveform Lines--------------
+      TH[9] = { 0.357, 0.267, 0.624, 1 } -- Ruler
+      TH[10] = 4 -- Ruler Gradient Width (0 = off)
+      TH[11] = 0.1 --Ruler Gradient Transparency
+
+      TH[12] = { 0.1, 0.1, 0.1, 0.3 } -- Threshold Lines
+      TH[13] = { 0.094, 0.094, 0.094, 0.7 } -- Transient Markers
+      TH[14] = 5 -- Transient Markers Gradient Width (if Selected)
+      TH[15] = 0.2 --Transient Markers Gradient Transparency (if Selected)
+      TH[16] = 5 -- Transient Markers Gradient Width (0 - off)
+      TH[17] = 0.05 --Transient Markers Gradient Transparency
+
+      TH[18] = { 0.094, 0.094, 0.094, 0.12 } -- Sample Area if enabled
+
+      TH[19] = { 0.1, 0.1, 0.1, 0.7 } -- Grid Markers
+      
+      TH[20] = { 0.82, 0.1, 0.0, 1 } -- Edit Cursor
+      TH[21] = 4 -- Edit Cursor Gradient Width
+      TH[22] = 0.1 --Edit Cursor Gradient Transparency
+
+      TH[23] = { 0.82, 0.294, 0.0, 1 } -- Play Cursor
+      TH[24] = 4 -- Play Cursor Gradient Width
+      TH[25] = 0.1 --Play Cursor Gradient Transparency
+
+      TH[26] = { 1, 1, 1, 0.75 } -- Aim Assist Cursor
+      
+      -------Buttons and Sliders ---------      
+      TH[27] = {0.3, 0.31 ,0.32 ,0} -- Button Body
+      TH[28] = {0.15, 0.15, 0.15 ,0.7} -- Button Frames
+      
+      TH[29] = {0.48, 0.49, 0.5, 0.7} -- Slider Frames
+      TH[30] = {0.50, 0.52, 0.53,1} -- Slider Body
+      
+      TH[31] = {0.48, 0.49, 0.5, 0.7} -- Slider Frames (Top, Loop and Swing)
+      TH[32] = {0.45, 0.47, 0.48,1} -- Slider Body (Top, Loop and Swing)
+      
+      --------------Text--------------------      
+      TH[33] = { 0.16, 0.16, 0.19, 1 } -- Text Main
+      TH[34] = { 0.3, 0.2, 0.3, 1 } -- Text Warn (Small "Processing, wait...")
+      TH[35] = { 0.45, 0.45, 0.45, 1 } -- Txt Greyed (BPM)
+      TH[36] = { 0.45, 0.45, 0.45, 1 } -- Txt Greyed (Presets, Mode)
+      TH[37] = -0.3 -- an additional value is added to the brightness of the BPM digits. Can be negative.
+      TH[38] = 0.8 -- BPM digits transparency
+     
+      -----------Elements------------------
+      TH[39] =  {0.257, 0.167, 0.524 ,1 } -- Green tops elements (Loop triangles, Buttons Leds)
+      TH[40] = { 0.15, 0.15, 0.15 ,0.7 } -- Txt Brackets
+      TH[41] = { 0.15, 0.15, 0.15 ,0.7 } -- Main Separators
+      TH[42] = 0.7 -- Leds Transparency (Controls Body)
+      TH[43] = 1 -- Waveform Peaks Thickness (Transparency) - 0 = normal peaks, 1 - thick peaks, 0.5 or something = like a blur/antialiasing
+      --------------------------------------------------------------
+
+
+elseif Theme == 8 then 
+      -------------------------Clean------------------------------
+      theme_name = "Clean"
+      -------Backgrounds and Frames-----------------
+      TH[1] = {0.95, 0.95, 0.95,1} -- Waveform, Background Box
+      TH[2] = {0.071, 0.227, 0.369,0} -- Waveform, Frame
+      TH[3] = { 0.835, 0.843, 0.839} -- Main Background
+      TH[4] = { 0.941, 0.941, 0.941, 1 } -- Controls Body
+      TH[5] = { 0.922, 0.91, 0.404, 0 } -- Controls Frame
+
+      -----------Waveforms---------------
+      TH[6] = { 0.349, 0.745, 0.302,1 } -- Waveform, Filtered 
+      TH[7] = {0.90, 0.90, 0.90,0.07} -- Waveform, Original 
+      TH[8] = { 0.843, 0.851, 0.961,1 } -- Waveform, Draw original Only
+
+      --------Waveform Lines--------------
+      TH[9] = { 0.1, 0.1, 0.1, 1 } -- Ruler
+      TH[10] = 0 -- Ruler Gradient Width (0 = off)
+      TH[11] = 0 --Ruler Gradient Transparency
+
+      TH[12] = { 0.1, 0.1, 0.1, 0.15 } -- Threshold Lines
+      TH[13] = { 0.1, 0.1, 0.1, 0.6 } -- Transient Markers
+      TH[14] = 6 -- Transient Markers Gradient Width (if Selected)
+      TH[15] = 0.12 --Transient Markers Gradient Transparency (if Selected)
+      TH[16] = 0 -- Transient Markers Gradient Width (0 - off)
+      TH[17] = 0 --Transient Markers Gradient Transparency
+
+      TH[18] = { 0.1, 0.1, 0.1, 0.1 } -- Sample Area if enabled
+
+      TH[19] = { 0.071, 0.451, 0.635, 0.7 } -- Grid Markers
+      
+      TH[20] = { 0.765, 0.384, 0.78, 0.7 } -- Edit Cursor
+      TH[21] = 5 -- Edit Cursor Gradient Width
+      TH[22] = 0.1 --Edit Cursor Gradient Transparency
+
+      TH[23] = { 0.3, 0.78, 0.7, 0.7 } -- Play Cursor
+      TH[24] = 5 -- Play Cursor Gradient Width
+      TH[25] = 0.1 --Play Cursor Gradient Transparency
+
+      TH[26] = {  0.337, 0.643, 0.792 ,1 } -- Aim Assist Cursor
+      
+      -------Buttons and Sliders ---------      
+      TH[27] = {0.337, 0.643, 0.792 ,0.8} -- Button Body
+      TH[28] = {0.337, 0.643, 0.792 ,0.8} -- Button Frames
+      
+      TH[29] = {0.953, 0.533, 0.267,0.8} -- Slider Frames
+      TH[30] = {0.953, 0.533, 0.267,0.8} -- Slider Body
+      
+      TH[31] = {0.923, 0.503, 0.237, 0.8} -- Slider Frames (Top, Loop and Swing)
+      TH[32] = {0.923, 0.503, 0.237, 0.8} -- Slider Body (Top, Loop and Swing)
+      
+      --------------Text--------------------      
+      TH[33] = { 0.2, 0.2, 0.2, 1 } -- Text Main
+      TH[34] = { 0.922, 0.502, 0.235, 1 } -- Text Warn (Small "Processing, wait...")
+      TH[35] = { 0.45, 0.45, 0.45, 0.6 } -- Txt Greyed (BPM)
+      TH[36] = { 0.40, 0.40, 0.40, 0.6 } -- Txt Greyed (Presets, Mode)
+      TH[37] = -0.2 -- an additional value is added to the brightness of the BPM digits. Can be negative.
+      TH[38] = 0.7 -- BPM digits transparency
+     
+      -----------Elements------------------
+      TH[39] =  { 0.337, 0.451, 0.671, 1 } -- Green tops elements (Loop triangles, Buttons Leds)
+      TH[40] = { 0.2, 0.2, 0.2, 0.2 } -- Txt Brackets
+      TH[41] = { 0.2, 0.2, 0.2, 0.2 } -- Main Separators
+      TH[42] = 0.7 -- Leds Transparency (Controls Body)
+      TH[43] = 0 -- Waveform Peaks Thickness (Transparency) - 0 = normal peaks, 1 - thick peaks, 0.5 or something = like a blur/antialiasing
+      --------------------------------------------------------------
+
+elseif Theme == 9 then 
+      -------------------------Ink------------------------------
+      theme_name = "Ink"
+      -------Backgrounds and Frames-----------------
+      TH[1] = {0.95, 0.95, 0.95,1} -- Waveform, Background Box
+      TH[2] = {0.071, 0.227, 0.369,0} -- Waveform, Frame
+      TH[3] = { 0.835, 0.843, 0.839} -- Main Background
+      TH[4] = { 0.941, 0.941, 0.941, 1 } -- Controls Body
+      TH[5] = { 0.922, 0.91, 0.404, 0 } -- Controls Frame
+
+      -----------Waveforms---------------
+      TH[6] = { 0.1, 0.1, 0.4,1 } -- Waveform, Filtered 
+      TH[7] = {0.90, 0.90, 0.90,0.08} -- Waveform, Original 
+      TH[8] = { 0.843, 0.851, 0.961,1 } -- Waveform, Draw original Only
+
+      --------Waveform Lines--------------
+      TH[9] = { 0.149, 0.145, 0.624, 1 } -- Ruler
+      TH[10] = 0 -- Ruler Gradient Width (0 = off)
+      TH[11] = 0 --Ruler Gradient Transparency
+
+      TH[12] = { 0.1, 0.1, 0.1, 0.5 } -- Threshold Lines
+      TH[13] = { 0.5, 0.5, 0.5, 1.5 } -- Transient Markers
+      TH[14] = 5 -- Transient Markers Gradient Width (if Selected)
+      TH[15] = 0.2 --Transient Markers Gradient Transparency (if Selected)
+      TH[16] = 0 -- Transient Markers Gradient Width (0 - off)
+      TH[17] = 0 --Transient Markers Gradient Transparency
+
+      TH[18] = { 0.1, 0.1, 0.1, 1.35 } -- Sample Area if enabled
+
+      TH[19] = { 0.965, 0.1, 0.1, 0.7 } -- Grid Markers
+      
+      TH[20] = { 0.965, 0.384, 0.98, 1 } -- Edit Cursor
+      TH[21] = 5 -- Edit Cursor Gradient Width
+      TH[22] = 0.1 --Edit Cursor Gradient Transparency
+
+      TH[23] = { 0.3, 0.38, 0.3, 1 } -- Play Cursor
+      TH[24] = 5 -- Play Cursor Gradient Width
+      TH[25] = 0.1 --Play Cursor Gradient Transparency
+
+      TH[26] = {  0.4, 0.4, 0.9, 1.5 } -- Aim Assist Cursor
+      
+      -------Buttons and Sliders ---------      
+      TH[27] = {0.835, 0.843, 0.839 ,1} -- Button Body
+      TH[28] = {0.565, 0.565, 0.565 ,1} -- Button Frames
+      
+      TH[29] = {0.565, 0.565, 0.565,1} -- Slider Frames
+      TH[30] = {0.835, 0.843, 0.839,1} -- Slider Body
+      
+      TH[31] = {0.565, 0.565, 0.565, 1} -- Slider Frames (Top, Loop and Swing)
+      TH[32] = {0.735, 0.743, 0.739, 1} -- Slider Body (Top, Loop and Swing)
+      
+      --------------Text--------------------      
+      TH[33] = { 0.142, 0.111, 0.566, 0.9 } -- Text Main
+      TH[34] = { 0.604, 0.184, 0.545, 0.9 } -- Text Warn (Small "Processing, wait...")
+      TH[35] = { 0.45, 0.45, 0.45, 0.7 } -- Txt Greyed (BPM)
+      TH[36] = { 0.45, 0.45, 0.45, 0.7 } -- Txt Greyed (Presets, Mode)
+      TH[37] = -0.32 -- an additional value is added to the brightness of the BPM digits. Can be negative.
+      TH[38] = 0.7 -- BPM digits transparency
+     
+      -----------Elements------------------
+      TH[39] =  { 0.149, 0.145, 0.624, 1 } -- Green tops elements (Loop triangles, Buttons Leds)
+      TH[40] = { 0.2, 0.2, 0.2, 0.5 } -- Txt Brackets
+      TH[41] = { 0.2, 0.2, 0.2, 0.5 } -- Main Separators
+      TH[42] = 0.7 -- Leds Transparency (Controls Body)
+      TH[43] = 0 -- Waveform Peaks Thickness (Transparency) - 0 = normal peaks, 1 - thick peaks, 0.5 or something = like a blur/antialiasing
+      --------------------------------------------------------------
+
+      elseif Theme == 10 then 
+      ------------------Slicer Classic---------------------------------
+      theme_name = "Classic"
+      -------Backgrounds and Frames-----------------
+      TH[1] = { 0.122, 0.122, 0.122, 1 } -- Waveform, Background
+      TH[2] = { 0, 0, 0, 0 } -- Waveform, Frame
+      TH[3] = { 0.17647, 0.17647, 0.17647} -- Main Background
+      TH[4] = { 0.17647, 0.17647, 0.17647, 1 } -- Controls Body
+      TH[5] = { 0.22, 0.22, 0.22, 1 } -- Controls Frame
+
+      -----------Waveforms---------------
+      TH[6] = { 0.7, 0.2, 0.25, 1 } -- Waveform, Only filtered 
+      TH[7] = { 0.14, 0.34, 0.59, 1 } -- Waveform, Only original 
+      TH[8] = { 0.14, 0.34, 0.59, 1 } -- Waveform, Draw original Only
+
+      --------Waveform Lines--------------
+      TH[9] = { 0.1, 1, 0.1, 1 } -- Ruler 
+      TH[10] = 0 -- Ruler Gradient Width (0 = off)
+      TH[11] = 0 --Ruler Gradient Transparency
+
+      TH[12] = { 0.7, 0.7, 0.7, 0.3 } -- Threshold Lines
+      TH[13] = { 0.8, 0.8, 0, 0.95 } -- Transient Markers
+      TH[14] = 5 -- Transient Markers Gradient Width (if Selected)
+      TH[15] = 0.2 --Transient Markers Gradient Transparency (if Selected)
+      TH[16] = 0 -- Transient Markers Gradient Width (0 - off)
+      TH[17] = 0 --Transient Markers Gradient Transparency
+
+      TH[18] = { 0.8, 0.8, 0, 0.1 } -- Sample Area if enabled
+
+      TH[19] = { 0, 0.7, 0.7, 0.7 } -- Grid Markers
+
+      TH[20] = { 0.7, 0.8, 0.9, 1 } -- Edit Cursor
+      TH[21] = 5 -- Edit Cursor Gradient Width
+      TH[22] = 0.2 --Edit Cursor Gradient Transparency
+
+      TH[23] = { 0.5, 0.5, 1, 1 } -- Play Cursor
+      TH[24] = 5 -- Play Cursor Gradient Width
+      TH[25] = 0.2 --Play Cursor Gradient Transparency
+
+      TH[26] = { 0.2, 1, 0.2, 0.7 } -- Aim Assist Cursor
+      
+      -------Buttons and Sliders ---------      
+      TH[27] = { 0.3, 0.3 ,0.3 ,1 } -- Button Body
+      TH[28] = { 0.3, 0.3, 0.3 ,1 } -- Button Frames
+      
+      TH[29] = {0.28,0.4,0.7,0.8} -- Slider Frames
+      TH[30] = {0.28,0.4,0.7,0.8} -- Slider Body
+      
+      TH[31] = {0.28,0.4,0.7,0.8} -- Slider Frames (Top, Loop and Swing)
+      TH[32] = {0.28,0.4,0.7,0.8} -- Slider Body (Top, Loop and Swing)
+      
+      --------------Text--------------------      
+      TH[33] = { 0.8, 0.8, 0.8, 0.9 } -- Text Color
+      TH[34] = { 1, 0.5, 0.3, 1 } -- Text Warn (Small "Processing, wait...")
+      TH[35] = { 1, 1, 1, 0.2 } -- Txt Greyed (BPM)
+      TH[36] = { 1, 1, 1, 0.25 } -- Txt Greyed (Presets, Mode)
+      TH[37] = 0 -- an additional value is added to the brightness of the BPM digits. Can be negative.
+      TH[38] = 0.9 -- BPM digits transparency
+    
+      -----------Elements------------------
+      TH[39] =  { 0.0, 0.7, 0.0, 1 } -- Green tops elements (Loop triangles, Buttons Leds)
+      TH[40] = { 0.4, 0.4, 0.4, 0.5 } -- Txt Brackets
+      TH[41] = { 0.4, 0.4, 0.4, 0.5 } -- Main Separators
+      TH[42] = 1 -- Leds Transparency (Controls Body)
+      TH[43] = 0 -- Waveform Peaks Thickness (Transparency) - 0 = normal peaks, 1 - thick peaks, 0.5 or something = like a blur/antialiasing
+      --------------------------------------------------------------
+      end
+end
+
+ThemeSel = tonumber(reaper.GetExtState('MK_Slicer_3','ThemeSel'))or 1;
+Theming(ThemeSel)
 
 --------------------------------End of Advanced User Settings------------------------------------------
 
@@ -143,6 +852,7 @@ local exp = math.exp
 local logx = math.log
 local huge = math.huge      
 local random = math.random
+local fmod = math.fmod
 -----------------------------------------------------------------------------
 Slice_Status = 1
 SliceQ_Status = 0
@@ -175,50 +885,63 @@ Grid32_on = 0
 Grid64_on = 0
 GridT_on = 0
 ErrMsg_Status = 0
+SetBPMButtonStatus = 0
+SetBPMStatus_Reset = 0
+SetBPMStatus_ResetRate = 0
+TMInit_Status = 0
+BPMButtonStatus2 = 0
+Markers_BPM_Reset_Status = 0
+Slice_BPM_Reset_Status = 0
 -----------------------------------States and UA  protection-----------------------------
 
-Docked = tonumber(r.GetExtState('cool_MK Slicer.lua','Docked'))or 0;
-EscToExit = tonumber(r.GetExtState('cool_MK Slicer.lua','EscToExit'))or 1;
-MIDISamplerCopyFX = tonumber(r.GetExtState('cool_MK Slicer.lua','MIDISamplerCopyFX'))or 1;
-MIDISamplerCopyRouting = tonumber(r.GetExtState('cool_MK Slicer.lua','MIDISamplerCopyRouting'))or 1;
-MIDI_Mode = tonumber(r.GetExtState('cool_MK Slicer.lua','Midi_Sampler.norm_val'))or 1;
-Sampler_preset_state = tonumber(r.GetExtState('cool_MK Slicer.lua','Sampler_preset.norm_val'))or 1; 
-Create_Replace_state = tonumber(r.GetExtState('cool_MK Slicer.lua','Create_Replace.norm_val'))or 1; 
-Create_Replace_state2 = tonumber(r.GetExtState('cool_MK Slicer.lua','Create_Replace2.norm_val'))or 1; 
-Pitch_Det_Options_state = tonumber(r.GetExtState('cool_MK Slicer.lua','Pitch_Det_Options.norm_val'))or 1;
-Pitch_Det_Options_state2 = tonumber(r.GetExtState('cool_MK Slicer.lua','Pitch_Det_Options2.norm_val'))or 1;
-AutoScroll = tonumber(r.GetExtState('cool_MK Slicer.lua','AutoScroll'))or 0;
-PlayMode = tonumber(r.GetExtState('cool_MK Slicer.lua','PlayMode'))or 0;
-Loop_on = tonumber(r.GetExtState('cool_MK Slicer.lua','Loop_on'))or 1;
+Docked = tonumber(r.GetExtState('MK_Slicer_3','Docked'))or 0;
+EscToExit = tonumber(r.GetExtState('MK_Slicer_3','EscToExit'))or 1;
+MIDISamplerCopyFX = tonumber(r.GetExtState('MK_Slicer_3','MIDISamplerCopyFX'))or 1;
+MIDISamplerCopyRouting = tonumber(r.GetExtState('MK_Slicer_3','MIDISamplerCopyRouting'))or 1;
+MIDI_Mode = tonumber(r.GetExtState('MK_Slicer_3','Midi_Sampler.norm_val'))or 1;
+Sampler_preset_state = tonumber(r.GetExtState('MK_Slicer_3','Sampler_preset.norm_val'))or 1; 
+Create_Replace_state = tonumber(r.GetExtState('MK_Slicer_3','Create_Replace.norm_val'))or 1; 
+Create_Replace_state2 = tonumber(r.GetExtState('MK_Slicer_3','Create_Replace2.norm_val'))or 1; 
+Set_Rate_Feel_state = tonumber(r.GetExtState('MK_Slicer_3','Set_Rate_Feel.norm_val'))or 1; 
+Set_Rate_Mode_state = tonumber(r.GetExtState('MK_Slicer_3','Set_Rate_Mode.norm_val'))or 1; 
+Pitch_Det_Options_state = tonumber(r.GetExtState('MK_Slicer_3','Pitch_Det_Options.norm_val'))or 1;
+Pitch_Det_Options_state2 = tonumber(r.GetExtState('MK_Slicer_3','Pitch_Det_Options2.norm_val'))or 1;
+AutoScroll = tonumber(r.GetExtState('MK_Slicer_3','AutoScroll'))or 0;
+PlayMode = tonumber(r.GetExtState('MK_Slicer_3','PlayMode'))or 0;
+Snap_AutoPlay = tonumber(r.GetExtState('MK_Slicer_3','Snap_AutoPlay'))or 0;
+Loop_on = tonumber(r.GetExtState('MK_Slicer_3','Loop_on'))or 1;
+Snap_on = tonumber(r.GetExtState('MK_Slicer_3','Snap_on'))or 0;
+Aim_on = tonumber(r.GetExtState('MK_Slicer_3','Aim_on'))or 0;
 
    if ForceSync == 1 then
        Sync_on = 1
          else
-       Sync_on = tonumber(r.GetExtState('cool_MK Slicer.lua','Sync_on'))or 0;
+       Sync_on = tonumber(r.GetExtState('MK_Slicer_3','Sync_on'))or 0;
    end
 
-ZeroCrossings = tonumber(r.GetExtState('cool_MK Slicer.lua','ZeroCrossings'))or 0;
-ItemFadesOverride = tonumber(r.GetExtState('cool_MK Slicer.lua','ItemFadesOverride'))or 1;
-ObeyingTheSelection = tonumber(r.GetExtState('cool_MK Slicer.lua','ObeyingTheSelection'))or 1;
-ObeyingItemSelection = tonumber(r.GetExtState('cool_MK Slicer.lua','ObeyingItemSelection'))or 1;
-XFadeOff = tonumber(r.GetExtState('cool_MK Slicer.lua','XFadeOff'))or 0;
-Guides_mode = tonumber(r.GetExtState('cool_MK Slicer.lua','Guides.norm_val'))or 1;
-OutNote_State = tonumber(r.GetExtState('cool_MK Slicer.lua','OutNote.norm_val'))or 1;
-Notes_On = tonumber(r.GetExtState('cool_MK Slicer.lua','Notes_On'))or 1;
-VeloRng = tonumber(r.GetExtState('cool_MK Slicer.lua','Gate_VeloScale.norm_val'))or 0.231;
-VeloRng2 = tonumber(r.GetExtState('cool_MK Slicer.lua','Gate_VeloScale.norm_val2'))or 1;
-Random_Order = tonumber(r.GetExtState('cool_MK Slicer.lua','Random_Order'))or 1;
-Random_Vol = tonumber(r.GetExtState('cool_MK Slicer.lua','Random_Vol'))or 0;
-Random_Pan = tonumber(r.GetExtState('cool_MK Slicer.lua','Random_Pan'))or 0;
-Random_Pitch = tonumber(r.GetExtState('cool_MK Slicer.lua','Random_Pitch'))or 0;
-Random_Mute = tonumber(r.GetExtState('cool_MK Slicer.lua','Random_Mute'))or 0;
-Random_Position = tonumber(r.GetExtState('cool_MK Slicer.lua','Random_Position'))or 0;
-Random_Reverse = tonumber(r.GetExtState('cool_MK Slicer.lua','Random_Reverse'))or 0;
-RandV = tonumber(r.GetExtState('cool_MK Slicer.lua','RandV_Sld.norm_val'))or 0.5;
-RandPan = tonumber(r.GetExtState('cool_MK Slicer.lua','RandPan_Sld.norm_val'))or 1;
-RandPtch = tonumber(r.GetExtState('cool_MK Slicer.lua','RandPtch_Sld.norm_val'))or 0.5;
-RandPos = tonumber(r.GetExtState('cool_MK Slicer.lua','RandPos_Sld.norm_val'))or 0.2;
-RandMute = tonumber(r.GetExtState('cool_MK Slicer.lua','RandRev_Sld.norm_val'))or 0.5;
+ZeroCrossings = tonumber(r.GetExtState('MK_Slicer_3','ZeroCrossings'))or 0;
+ItemFadesOverride = tonumber(r.GetExtState('MK_Slicer_3','ItemFadesOverride'))or 1;
+ObeyingTheSelection = tonumber(r.GetExtState('MK_Slicer_3','ObeyingTheSelection'))or 1;
+ObeyingItemSelection = tonumber(r.GetExtState('MK_Slicer_3','ObeyingItemSelection'))or 1;
+XFadeOff = tonumber(r.GetExtState('MK_Slicer_3','XFadeOff'))or 0;
+Guides_mode = tonumber(r.GetExtState('MK_Slicer_3','Guides.norm_val'))or 1;
+
+OutNote_State = tonumber(r.GetExtState('MK_Slicer_3','OutNote.norm_val'))or 1;
+Notes_On = tonumber(r.GetExtState('MK_Slicer_3','Notes_On'))or 1;
+VeloRng = tonumber(r.GetExtState('MK_Slicer_3','Gate_VeloScale.norm_val'))or 0.231;
+VeloRng2 = tonumber(r.GetExtState('MK_Slicer_3','Gate_VeloScale.norm_val2'))or 1;
+Random_Order = tonumber(r.GetExtState('MK_Slicer_3','Random_Order'))or 1;
+Random_Vol = tonumber(r.GetExtState('MK_Slicer_3','Random_Vol'))or 0;
+Random_Pan = tonumber(r.GetExtState('MK_Slicer_3','Random_Pan'))or 0;
+Random_Pitch = tonumber(r.GetExtState('MK_Slicer_3','Random_Pitch'))or 0;
+Random_Mute = tonumber(r.GetExtState('MK_Slicer_3','Random_Mute'))or 0;
+Random_Position = tonumber(r.GetExtState('MK_Slicer_3','Random_Position'))or 0;
+Random_Reverse = tonumber(r.GetExtState('MK_Slicer_3','Random_Reverse'))or 0;
+RandV = tonumber(r.GetExtState('MK_Slicer_3','RandV_Sld.norm_val'))or 0.5;
+RandPan = tonumber(r.GetExtState('MK_Slicer_3','RandPan_Sld.norm_val'))or 1;
+RandPtch = tonumber(r.GetExtState('MK_Slicer_3','RandPtch_Sld.norm_val'))or 0.5;
+RandPos = tonumber(r.GetExtState('MK_Slicer_3','RandPos_Sld.norm_val'))or 0.2;
+RandRev = tonumber(r.GetExtState('MK_Slicer_3','RandRev_Sld.norm_val'))or 0.5;
 
 if AutoXFadesOnSplitOverride == nil then AutoXFadesOnSplitOverride = 1 end 
 if AutoXFadesOnSplitOverride <= 0 then AutoXFadesOnSplitOverride = 0 elseif AutoXFadesOnSplitOverride >= 1 then AutoXFadesOnSplitOverride = 1 end 
@@ -228,6 +951,14 @@ if Compensate_Oct_Offset == nil then Compensate_Oct_Offset = 0 end
 if Compensate_Oct_Offset <= -4 then Compensate_Oct_Offset = -4 elseif Compensate_Oct_Offset >= 4 then Compensate_Oct_Offset = 4 end 
 if WFiltering == nil then WFiltering = 1 end 
 if WFiltering <= 0 then WFiltering = 0 elseif WFiltering >= 1 then WFiltering = 1 end 
+
+
+transportstate = r.GetToggleCommandStateEx( 0, 41834) -- get Options: "Toggle stop playback at end of loop if repeat is disabled"
+if transportstate == 0 then
+   r.Main_OnCommand(41834, 0) -- Options: "Toggle stop playback at end of loop if repeat is disabled"
+   transportstate_status = 1
+end
+
 
  loopcheck = 0
 ----loopcheck------
@@ -242,43 +973,65 @@ function GetLoopTimeRange()
 start, ending = r.GetSet_LoopTimeRange( 0, 0, 0, 0, 0 )
 end
 
+-------------------------------Save and Restore Initial Rate and Length--------------------------------------------
+
+function SaveInitRate() -- save rate/length
+RateTable = {rate, init_length}
+   local lastitem = r.GetExtState('_Slicer_', 'ItemToSlice')
+   local item =  r.BR_GetMediaItemByGUID( 0, lastitem )
+       if item ~= nil then
+               local take = r.GetActiveTake(item)
+               local rate = r.GetMediaItemTakeInfo_Value(take, "D_PLAYRATE")
+               local init_length    = r.GetMediaItemInfo_Value(item, "D_LENGTH")
+               if rate == nil then rate = 1 end
+               RateTable[1] = {rate = rate}
+               RateTable[2] = {init_length = init_length}
+        end             
+end
+-----------------
+function RestoreInitRate()-- restore rate/length
+   local lastitem = r.GetExtState('_Slicer_', 'ItemToSlice')
+   local item =  r.BR_GetMediaItemByGUID( 0, lastitem )
+       if item ~= nil then
+           local take = r.GetActiveTake(item)
+           if RateTable ~= nil then
+                 local it_rate = RateTable[1].rate -- first item start      
+                 local init_length = RateTable[2].init_length -- first item start           
+                 r.SetMediaItemTakeInfo_Value(take, "D_PLAYRATE", it_rate)
+                 r.SetMediaItemInfo_Value(item, 'D_LENGTH', init_length)
+                 if SetTkMarker == 1 then
+                 r.DeleteTakeMarker(take, 0)
+                 end
+           end
+       end
+end
+
+------------------------------------------------------------------------------------------
+
     r.Undo_BeginBlock() 
 r.PreventUIRefresh(1)
 
 -------------------------------Check time range and unselect-----------------------------
 function unselect_if_out_of_time_range()
 
-local j=0; -- unselect if out of time range 
-while(true) do;
-  j=j+1;
-  local track = r.GetSelectedTrack(0,j-1);
-  if track then;
-    GetLoopTimeRange()
-      local i=0; 
-      while(true) do;
-        i=i+1;
-        local item = r.GetSelectedMediaItem(0,i-1);
-        if item then;
-               item_pos =  r.GetMediaItemInfo_Value( item, 'D_POSITION' )
-               item_length = r.GetMediaItemInfo_Value( item, 'D_LENGTH' )
-               item_end = item_pos + item_length
-        if item_pos ~= start and item_end ~= ending then
-              r.SetMediaItemSelected(item, false)
-        end
-        if item_pos > start and item_end < ending then
-               r.SetMediaItemSelected(item, true)
-        end
-      else;
-        break;
+GetLoopTimeRange()
+
+    if start == ending then return end;
+
+    local CountSelItem = reaper.CountSelectedMediaItems(0)
+    if CountSelItem == 0 then return end;
+
+    for i = reaper.CountSelectedMediaItems(0)-1,0,-1 do;
+        local SelItem = reaper.GetSelectedMediaItem(0,i);
+        local PosIt = reaper.GetMediaItemInfo_Value(SelItem,"D_POSITION");
+                     EndIt = PosIt + r.GetMediaItemInfo_Value(SelItem, "D_LENGTH")
+        if (PosIt ~= start and EndIt ~= ending) and (PosIt < start or EndIt > ending) then;
+            reaper.SetMediaItemInfo_Value(SelItem,"B_UISEL",0);
+        end;
     end;
-  end;
- else;
-   break;
- end;
-end;
 
 end
-
+ 
 ------------------------------Detect MIDI takes/Empty Items--------------------------------
 function take_check()
 local i=0;
@@ -357,17 +1110,15 @@ track = r.GetSelectedTrack(0,0,0) -- first selected track
          it_end = SelItems[it_table].ending_b -- last item end
       end
    
-         if it_start and it_end then
-   
+         if it_start or it_end then
                 r.GetSet_LoopTimeRange( 1, 0, it_start, it_end, 0 ) -- set loop/selection area
-    
+r.Main_OnCommand(40061, 0) -- Split at Time Selection
+   
                 if sel and ((it_start >= start and it_start < ending) or (it_end <= ending and it_end > start) or (it_start < start and it_end > ending)) and start ~= ending then -- if selection exist and outside the item
                     r.Main_OnCommand(40635, 0) -- Remove Time Selection
                     goto start
                 end
-   
-          end
-   
+         end
      end
 end
 
@@ -470,8 +1221,8 @@ r.Undo_BeginBlock();
 r.PreventUIRefresh(1);
 local cursorpos = r.GetCursorPosition()
 
-  r.Main_OnCommand(40290, 0) -- selection by items
-  
+ -- r.Main_OnCommand(40290, 0) -- selection by items
+  unselect_if_out_of_time_range()
   GetLoopTimeRange()
   
   function IsOneSelectedMediaItem(track)
@@ -510,6 +1261,7 @@ local cursorpos = r.GetCursorPosition()
   if item or ObeyingItemSelection == 0 then 
      r.Main_OnCommand(40362, 0) -- glue
      r.Main_OnCommand(40718, 0) -- Item: Select all items on selected tracks in current time selection
+     unselect_if_out_of_time_range()
      UnSelectMIDIAndEmptyItems()
   end
 
@@ -532,7 +1284,8 @@ local function InitTrackItemName()
 
       if not track then 
         track = r.GetTrack(0, 0)
-        r.SetTrackSelected(track, true)
+            if track == nil then return end
+            r.SetTrackSelected(track, true)
       end
  
       track_num = r.GetMediaTrackInfo_Value(track, "IP_TRACKNUMBER")
@@ -644,10 +1397,11 @@ end
 
             GetLoopTimeRange()
                   if start ~= ending then -- if selection exist
+                    --    TimeSelToFirstTrackItems()
                         r.Main_OnCommand(40061, 0) -- Split at Time Selection
                         TimeSelToFirstTrackItems()
                         UnSelectMIDIAndEmptyItems()
-                  else
+                  else -- if selection not exist
                         TimeSelToFirstTrackItems()
                         UnSelectMIDIAndEmptyItems()
                         GetLoopTimeRange() -- check again
@@ -704,7 +1458,7 @@ if ObeyingTheSelection == 1 and count_itms ~= 0 and start ~= ending and time_sel
            r.Main_OnCommand(40548, 0)  -- Heal Splits -- (если больше одного айтема и не миди айтем, то попытка не деструктивно склеить).
         end
   
-       if No_Glue_On_Init == 0 then -- проверяем ещё раз. Если не удалось, клеим деструктивно.
+       if number_of_takes ~= 1 and No_Glue_On_Init == 0 then -- проверяем ещё раз. Если не удалось, клеим деструктивно.
              GlueMultitrack()
        end
 
@@ -722,7 +1476,7 @@ local cursorpos = r.GetCursorPosition()
             r.Main_OnCommand(r.NamedCommandLookup("_SWS_RESTTIME1"),0)
 
 r.SetEditCurPos(cursorpos,0,0) 
-r.PreventUIRefresh(-1)
+
     r.Undo_EndBlock("Init", -1) 
 
 ------------------------------Prepare Item(s) and Foolproof---------------------------------
@@ -745,24 +1499,24 @@ if number_of_takes ~= 1 and No_Heal_On_Init == 0 then
      r.Main_OnCommand(40548, 0)  -- Heal Splits -- (если больше одного айтема и не миди айтем, то клей, попытка не деструктивно склеить).
 end
 
- if No_Glue_On_Init == 0  then -- проверяем ещё раз. Если не удалось, клеим деструктивно.
+ if number_of_takes ~= 1 and No_Glue_On_Init == 0  then -- проверяем ещё раз. Если не удалось, клеим деструктивно.
              GlueMultitrack()
  end
 
+r.Main_OnCommand(40635, 0) -- Remove Time Selection
+r.PreventUIRefresh(-1)
 
-
-------------------------------------------------------------------------------------------
 r.Main_OnCommand(r.NamedCommandLookup('_SWS_RESTORESEL'), 0)  -- Restore track selection
 ----------------------------------Get States from last session-----------------------------
 
 if RememberLast == 1 then
-CrossfadeTime = tonumber(r.GetExtState('cool_MK Slicer.lua','CrossfadeTime'))or 15;
-PitchDetect = tonumber(r.GetExtState('cool_MK Slicer.lua','PitchDetect'))or 5;
-QuantizeStrength = tonumber(r.GetExtState('cool_MK Slicer.lua','QuantizeStrength'))or 100;
-Offs_Slider = tonumber(r.GetExtState('cool_MK Slicer.lua','Offs_Slider'))or 0.5;
-HF_Slider = tonumber(r.GetExtState('cool_MK Slicer.lua','HF_Slider'))or 0.3312;
-LF_Slider = tonumber(r.GetExtState('cool_MK Slicer.lua','LF_Slider'))or 1;
-Sens_Slider = tonumber(r.GetExtState('cool_MK Slicer.lua','Sens_Slider'))or 0.375;
+CrossfadeTime = tonumber(r.GetExtState('MK_Slicer_3','CrossfadeTime'))or 15;
+PitchDetect = tonumber(r.GetExtState('MK_Slicer_3','PitchDetect'))or 5;
+QuantizeStrength = tonumber(r.GetExtState('MK_Slicer_3','QuantizeStrength'))or 100;
+Offs_Slider = tonumber(r.GetExtState('MK_Slicer_3','Offs_Slider'))or 0.5;
+HF_Slider = tonumber(r.GetExtState('MK_Slicer_3','HF_Slider'))or 0.3312;
+LF_Slider = tonumber(r.GetExtState('MK_Slicer_3','LF_Slider'))or 1;
+Sens_Slider = tonumber(r.GetExtState('MK_Slicer_3','Sens_Slider'))or 0.63;
 else
 CrossfadeTime = DefaultXFadeTime or 15;
 PitchDetect = DefaultP_Slider or 5;
@@ -770,7 +1524,7 @@ QuantizeStrength = DefaultQStrength or 100;
 Offs_Slider = DefaultOffset or 0.5;
 HF_Slider = DefaultHP or 0.3312;
 LF_Slider = DefaultLP or 1;
-Sens_Slider = DefaultSens or 0.375;
+Sens_Slider = DefaultSens or 0.63;
 end
 
 ------------------Item;  Remove selected overlapped items (by tracks)----------------------
@@ -841,6 +1595,96 @@ function cleanup_slices()
     end;
 
 end
+----------------------------------FillGaps----------------------------------------------------------------------------
+function FillGaps()
+   local sel_item = {}
+   local offs_table = {item_id, p0sition_id}
+   local item_cnt = r.CountSelectedMediaItems(0)
+   
+     r.PreventUIRefresh(1)
+     local trimstate = r.GetToggleCommandStateEx( 0, 41117) -- get Options: Toggle trim behind items state
+     if trimstate == 1 then
+       r.Main_OnCommand(41121, 0) -- Options: Disable trim behind items when editing
+     end
+
+     -----------------Collect Offset Data-----------------------------------------
+     local num_items = reaper.CountSelectedMediaItems(0)
+     for j = 0, num_items-1 do
+               item_id = r.GetSelectedMediaItem(0, j); 
+               p0sition_id = r.GetMediaItemInfo_Value(item_id, "D_POSITION")
+     
+        offs_table[j] = {
+               item_id = item_id,
+               p0sition_id = p0sition_id
+               }
+     end
+     --------------------------------------------------
+
+     for i = 1, item_cnt do
+       local item = r.GetSelectedMediaItem(0, 0)
+       sel_item[i] = item
+       r.SetMediaItemSelected(item, false)
+     end
+   
+   local it_table = #sel_item
+   
+     for i = 2, it_table do
+       local item = sel_item[i]
+       local previousitem = sel_item[i-1]
+   
+      if r.GetMediaItem_Track(item) == r.GetMediaItem_Track(previousitem) then
+         local secondstart = r.GetMediaItemInfo_Value(item, "D_POSITION")
+         local firstend = r.GetMediaItemInfo_Value(previousitem, "D_POSITION") + r.GetMediaItemInfo_Value(previousitem, "D_LENGTH")
+         if secondstart >= firstend then
+   
+                    r.SetMediaItemSelected(item, true)
+                    r.ApplyNudge(0, 1, 1, 1, firstend, 0, 0)
+                    r.SetMediaItemSelected(item, false)
+   
+           elseif firstend > secondstart then -- items are overlapping
+             local overlap = firstend - secondstart
+             if overlap > 0 then
+   
+                     r.SetMediaItemSelected(previousitem, true)
+                     r.ApplyNudge(0, 1, 3, 1, secondstart, 0, 0)
+                     r.SetMediaItemSelected(previousitem, false)
+
+             end
+         end
+       end
+     end
+   
+     if trimstate == 1 then
+       r.Main_OnCommand(41120,0) -- Re-enable trim behind items (if it was enabled)
+     end
+   
+   local it_table2 = #sel_item
+       for i = 1, it_table2 do
+         r.SetMediaItemSelected(sel_item[i], true)
+       end
+
+      ----------------------Set Offset Through Tracks---------------------
+      local items2 = #offs_table 
+                for k=0, items2 do
+                     if item_id ~= nil then 
+       
+                        item = offs_table[k].item_id                   
+                        p0sition = offs_table[k].p0sition_id 
+              
+                            if item ~= nil and p0sition ~= nil then
+                                local newstart = r.GetMediaItemInfo_Value(item, "D_POSITION")
+                                set_offs = p0sition-newstart
+                                r.SetMediaItemInfo_Value(item, "D_SNAPOFFSET", set_offs)
+                            end
+                      end
+                end
+     -------------------------------------------------------------------------
+
+     r.PreventUIRefresh(-1)
+     r.UpdateArrange()
+end
+
+
 ----------------------------------Crossfades-------------------------------------------
     local function Overlap(CrossfadeT);
         local t,ret = {};
@@ -1086,8 +1930,7 @@ getitem = 1
 function GetTempo()
     tempo = r.Master_GetTempo()
     tempo_corr = 1/(r.Master_GetTempo()/120)
-    retoffset = (60000/tempo)/16 - 20
-    retrigms = retoffset*0.00493 or 0.0555
+    retrigms = 0.1703 -- 30ms retrig
 end
 GetTempo()
 ---------------------Initial Swing Set---------------------------------------------
@@ -1099,6 +1942,39 @@ GetTempo()
        Swing_on = 1 
      end
 r.PreventUIRefresh(-1); r.Undo_EndBlock('Slicer', -1)
+
+
+
+----------------------- Global Elem Position and Width-------------------
+
+----------Get Item Block-------------------
+a_pos = 16 
+a_width = 145
+
+----------Sliders Block----------------------
+b_pos = 171
+b_width = 150
+
+----------Divider Line1---------------------
+dl1_pos = 330
+
+----------Slice/Q/Random  Block----------
+c_pos = -60 -- global shift only
+
+----------Divider Line2---------------------
+dl2_pos = 600
+
+----------MIDI Block------------------------
+d_pos = -60 -- global shift only
+
+----------Divider Line3---------------------
+dl3_pos = 882
+
+----------BPM Block------------------------
+e_pos = -60 -- global shift only
+
+----------Global Vertical Correction-------
+corrY = 10 -- global shift only
 
 --------------------------------------------------------------------------------
 ---------------------Retina Check---------------------------------------------
@@ -1145,7 +2021,7 @@ function Element:new(x,y,w,h, r,g,b,a, lbl,fnt,fnt_sz, norm_val,norm_val2, fnt_r
     elm.x, elm.y, elm.w, elm.h = x, y, w, h
     elm.r, elm.g, elm.b, elm.a = r, g, b, a
     elm.lbl, elm.fnt, elm.fnt_sz = lbl, fnt, fnt_sz
-    elm.fnt_rgba = fnt_rgba or {0.8, 0.8, 0.8, 0.9} --цвет текста кнопок, фреймов и слайдеров
+    elm.fnt_rgba = fnt_rgba or { TH[33][1], TH[33][2], TH[33][3], TH[33][4] } --цвет текста кнопок, фреймов и слайдеров
     elm.norm_val = norm_val
     elm.norm_val2 = norm_val2
     ------
@@ -1206,6 +2082,11 @@ function Element:mouseClick()
   return gfx.mouse_cap&1==0 and last_mouse_cap&1==1 and
   self:pointIN(gfx.mouse_x,gfx.mouse_y) and self:pointIN(mouse_ox,mouse_oy)         
 end
+--------
+function Element:mouseRClick()
+  return gfx.mouse_cap&2==0 and last_mouse_cap&2==2 and
+  self:pointIN(gfx.mouse_x,gfx.mouse_y) and self:pointIN(mouse_ox,mouse_oy)         
+end
 ------------------------
 function Element:mouseR_Down()
   return gfx.mouse_cap&2==2 and self:pointIN(mouse_ox,mouse_oy)
@@ -1218,20 +2099,30 @@ end
 function Element:draw_frame()
   local x,y,w,h  = self.x,self.y,self.w,self.h
     local r,g,b,a  = self.r,self.g,self.b,self.a
-    local an = 1.02
-    if self:mouseIN() then an=an+0.25 end
-    if self:mouseDown() then an=an+0.35 end
-  gfx.set(0.259,0.357,0.592,an) -- sliders and checkboxes borders
+    local an = TH[29][4]
+    if self:mouseIN() then an=an+0.1 end
+    if self:mouseDown() then an=an+0.1 end
+  gfx.set(TH[29][1],TH[29][2],TH[29][3],an) -- sliders and checkboxes borders
   gfx.rect(x, y, w, h, false)            -- frame1      
 end
 
-function Element:draw_frame_rng()
+function Element:draw_frame_sw()
   local x,y,w,h  = self.x,self.y,self.w,self.h
     local r,g,b,a  = self.r,self.g,self.b,self.a
-    local an = 1.02
-    local rn = 0.259
-    local gn = 0.357
-    local bn = 0.592
+    local an = TH[29][4]
+    if self:mouseIN() then an=an+0.1 end
+    if self:mouseDown() then an=an+0.1 end
+  gfx.set(TH[31][1],TH[31][2],TH[31][3],an) -- swing slider borders
+  gfx.rect(x, y, w, h, false)            -- frame1      
+end
+
+function Element:draw_frame_rng() -- range slider
+  local x,y,w,h  = self.x,self.y,self.w,self.h
+    local r,g,b,a  = self.r,self.g,self.b,self.a
+    local an = TH[30][4]
+    local rn = TH[30][1]
+    local gn = TH[30][2]
+    local bn = TH[30][3]
     if self:mouseIN() then 
 an=an+0.25 
 rn = 0.29
@@ -1251,28 +2142,42 @@ end
 function Element:draw_frame_loop()
   local x,y,w,h  = self.x,self.y,self.w,self.h*24
     local r,g,b,a  = self.r,self.g,self.b,self.a
-  gfx.set(0.3,0.3,0.35,0.2) -- sliders and checkboxes borders
+  gfx.set(0.3,0.3,0.35,0.2) -- loop slider background
   gfx.rect(x, y, w, h, true)            -- frame1      
 end
 
 function Element:draw_frame2()
   local x,y,w,h  = self.x,self.y,self.w,self.h
     local r,g,b,a  = self.r,self.g,self.b,self.a
-  gfx.set(0.3,0.3,0.3,1) -- main frames
+  gfx.set(TH[40][1],TH[40][2],TH[40][3],TH[40][4]) -- brackets
   gfx.rect(x, y, w, h, false)            -- frame1      
 end
 
 function Element:draw_frame3()
   local x,y,w,h  = self.x,self.y,self.w,self.h
- --   local r,g,b,a  = self.r,self.g,self.b,self.a
---  gfx.set(0.25,0.25,0.25,1) -- waveform window and buttons frames
+    local r,g,b,a  = self.r,self.g,self.b,self.a
+  gfx.set(TH[28][1],TH[28][2],TH[28][3],TH[28][4]) -- waveform window and buttons frames
   gfx.rect(x, y, w, h, false)            -- frame1      
 end
 
 function Element:draw_frame4()
   local x,y,w,h  = self.x,self.y,self.w,self.h
     local r,g,b,a  = self.r,self.g,self.b,self.a
-  gfx.set(0.22,0.22,0.22,1) -- main frames
+  gfx.set(TH[4][1],TH[4][2],TH[4][3],TH[4][4]) -- main frame body
+  gfx.rect(x, y, w, h, true)            -- frame1   
+end
+
+function Element:draw_frame5()
+  local x,y,w,h  = self.x,self.y,self.w,self.h
+    local r,g,b,a  = self.r,self.g,self.b,self.a
+  gfx.set(TH[5][1],TH[5][2],TH[5][3],TH[5][4]) -- main frame
+  gfx.rect(x, y, w, h, false)            -- frame1     
+end
+
+function Element:draw_frame_waveform()
+  local x,y,w,h  = self.x,self.y,self.w,self.h
+    local r,g,b,a  = self.r,self.g,self.b,self.a
+  gfx.set(TH[2][1],TH[2][2],TH[2][3],TH[2][4]) -- main frame
   gfx.rect(x, y, w, h, false)            -- frame1     
 end
 
@@ -1283,20 +2188,20 @@ end
 
 function Element:draw_rect()
   local x,y,w,h  = self.x,self.y,self.w,self.h
-  gfx.set(0,0,0,0.3) -- цвет фона окна waveform
+  gfx.set(TH[1][1],TH[1][2],TH[1][3],TH[1][4]) -- цвет фона окна waveform
   gfx.rect(x, y, w, h, true)            -- frame1      
 end
 
 function Element:draw_rect_ruler()
   local x,y,w,h  = self.x,self.y,self.w,self.h
-  gfx.set(0.122,0.122,0.122,0.3) -- цвет фона окна waveform
+  gfx.set(0.122,0.122,0.122,0.3) -- 
   gfx.rect(x, y, w, h, true)            -- frame1      
 end
 
 ----------------------------------------------------------------------------------------------------
 ---   Create Element Child Classes(Button,Slider,Knob)   ----------------------------------------
 ----------------------------------------------------------------------------------------------------
-  local Button, Button_small, Button_top, Button_Settings, Slider, Slider_small, Slider_simple, Slider_complex, Slider_Fine, Slider_Swing, Slider_fgain, Rng_Slider, Knob, CheckBox, CheckBox_simple, CheckBox_Show, Frame, Colored_Rect, Colored_Rect_top, Frame_filled, ErrMsg, SysMsg, Txt, Txt2, Line, Line_colored, Line2, Ruler = {},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}
+  local Button, Button_small, Button_top, Button_Settings, Slider, Slider_small, Slider_simple, Slider_complex, Slider_Fine, Slider_Swing, Slider_fgain, Rng_Slider, Knob, CheckBox, CheckBox_simple, CheckBox_Show, Frame_body, Frame, Colored_Rect, Colored_Rect_top, Frame_filled, ErrMsg, SysMsg, Txt, Txt2, Line, Line_colored, Line2, Ruler = {},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}
   extended(Button,     Element)
   extended(Button_small,     Element)
   extended(Button_top,     Element)
@@ -1337,6 +2242,7 @@ end
     ---------------------------------
   extended(Rng_Slider, Element)
   extended(Loop_Slider, Element)
+  extended(Frame_body,      Element)
   extended(Frame,      Element)
   extended(Colored_Rect,      Element)
   extended(Colored_Rect_top,      Element)
@@ -1364,7 +2270,7 @@ function Button_small:draw()
     local r,g,b,a  = self.r,self.g,self.b,self.a
     local fnt,fnt_sz = self.fnt, self.fnt_sz*(Z_h/1.2)
     if fnt_sz <= 9 then fnt_sz = 9 end
-if fnt_sz >= 17 then fnt_sz = 17 end
+    if fnt_sz >= 17 then fnt_sz = 17 end
     -- Get mouse state ---------
           -- in element --------
           if self:mouseIN() then a=a+0.3 end
@@ -1399,7 +2305,7 @@ function Button:draw()
     local r,g,b,a  = self.r,self.g,self.b,self.a
     local fnt,fnt_sz = self.fnt, self.fnt_sz*(Z_h*1.05)
     if fnt_sz <= 12 then fnt_sz = 12 end
-if fnt_sz >= 18 then fnt_sz = 18 end
+    if fnt_sz >= 18 then fnt_sz = 18 end
     -- Get mouse state ---------
           -- in element --------
           if self:mouseIN() then a=a+0.3 end
@@ -1515,7 +2421,7 @@ function Txt:draw()
     local x,y,w,h  = self.x,self.y,self.w,self.h
     local lbl_w, lbl_h = gfx.measurestr(self.lbl)
     gfx.x = x+(w-lbl_w)/2; gfx.y = y+(h-lbl_h)/2
-    gfx.set(1,1,1,0.4)    -- set body color
+    gfx.set(TH[36][1],TH[36][2],TH[36][3],TH[36][4])    -- set body color
     gfx.drawstr(self.lbl)
 end
 
@@ -1584,7 +2490,7 @@ function ErrMsg:draw()
         fnt_sz = fnt_sz*(Z_h*1.05)
         gfx.setfont(1, "Arial", fnt_sz)
 
-    gfx.set(1, 1, 1, 0.5) -- цвет текста 
+    gfx.set(TH[34][1], TH[34][2], TH[34][3], TH[34][4]) -- цвет текста 
         gfx.drawstr(self.lbl, 0|4, 900*Z_w, (50/(Z_h*8))+(22*Z_h))
 
 end
@@ -1632,7 +2538,7 @@ function SysMsg:draw()
           end
       end
 
-    gfx.set(1, 1, 1, 0.5) -- цвет текста 
+    gfx.set(TH[33][1], TH[33][2], TH[33][3], TH[33][4]) -- цвет текста 
         gfx.drawstr(self.lbl, 0|4, 900*Z_w, (50/(Z_h*8))+(22*Z_h))
 end
 
@@ -1659,9 +2565,9 @@ function Slider:set_norm_val_m_wheel()
     Mult_S = 0.05 -- Set step
     end
     local Step = Mult_S
-    if gfx.mouse_wheel == 0 then return false end  -- return if m_wheel = 0
-    if gfx.mouse_wheel > 0 then self.norm_val = min(self.norm_val+Step, 1) end
-    if gfx.mouse_wheel < 0 then self.norm_val = max(self.norm_val-Step, 0) end
+    if gfx.mouse_wheel == 0 then Slider_Status = 0; return false end  -- return if m_wheel = 0
+    if gfx.mouse_wheel > 0 then self.norm_val = min(self.norm_val+Step, 1); Slider_Status = 1 end
+    if gfx.mouse_wheel < 0 then self.norm_val = max(self.norm_val-Step, 0); Slider_Status = 1 end
     return true
 end
 
@@ -1685,9 +2591,9 @@ function Slider_complex:set_norm_val_m_wheel()
     Mult_S = 0.05 -- Set step
     end
     local Step = Mult_S
-    if gfx.mouse_wheel == 0 then return false end  -- return if m_wheel = 0
-    if gfx.mouse_wheel > 0 then self.norm_val = min(self.norm_val+Step, 1)end
-    if gfx.mouse_wheel < 0 then self.norm_val = max(self.norm_val-Step, 0)end
+    if gfx.mouse_wheel == 0 then Slider_Status = 0; return false end  -- return if m_wheel = 0
+    if gfx.mouse_wheel > 0 then self.norm_val = min(self.norm_val+Step, 1); Slider_Status = 1 end
+    if gfx.mouse_wheel < 0 then self.norm_val = max(self.norm_val-Step, 0); Slider_Status = 1 end
     return true
 end
 
@@ -1698,9 +2604,9 @@ function Slider_Fine:set_norm_val_m_wheel()
     Mult_S = 0.005 -- Set step
     end
     local Step = Mult_S
-    if gfx.mouse_wheel == 0 then return false end  -- return if m_wheel = 0
-    if gfx.mouse_wheel > 0 then self.norm_val = min(self.norm_val+Step, 1) end
-    if gfx.mouse_wheel < 0 then self.norm_val = max(self.norm_val-Step, 0) end
+    if gfx.mouse_wheel == 0 then Slider_Status = 0; return false end  -- return if m_wheel = 0
+    if gfx.mouse_wheel > 0 then self.norm_val = min(self.norm_val+Step, 1); Slider_Status = 1 end
+    if gfx.mouse_wheel < 0 then self.norm_val = max(self.norm_val-Step, 0); Slider_Status = 1 end
     return true
 end
 
@@ -1711,9 +2617,9 @@ function Slider_Swing:set_norm_val_m_wheel()
     Mult_S = 0.05 -- Set step
     end
     local Step = Mult_S
-    if gfx.mouse_wheel == 0 then return false end  -- return if m_wheel = 0
-    if gfx.mouse_wheel > 0 then self.norm_val = min(self.norm_val+Step+0.00001, 1) end
-    if gfx.mouse_wheel < 0 then self.norm_val = max(self.norm_val-Step+0.00001, 0) end
+    if gfx.mouse_wheel == 0 then Slider_Status = 0; return false end  -- return if m_wheel = 0
+    if gfx.mouse_wheel > 0 then self.norm_val = min(self.norm_val+Step+0.00001, 1); Slider_Status = 1 end
+    if gfx.mouse_wheel < 0 then self.norm_val = max(self.norm_val-Step+0.00001, 0); Slider_Status = 1 end
     return true
 end
 
@@ -1724,9 +2630,9 @@ function Slider_fgain:set_norm_val_m_wheel()
     Mult_S = 0.05 -- Set step
     end
     local Step = Mult_S
-    if gfx.mouse_wheel == 0 then return false end  -- return if m_wheel = 0
-    if gfx.mouse_wheel > 0 then self.norm_val = min(self.norm_val+Step, 1) end
-    if gfx.mouse_wheel < 0 then self.norm_val = max(self.norm_val-Step, 0) end
+    if gfx.mouse_wheel == 0 then Slider_Status = 0; return false end  -- return if m_wheel = 0
+    if gfx.mouse_wheel > 0 then self.norm_val = min(self.norm_val+Step, 1); Slider_Status = 1 end
+    if gfx.mouse_wheel < 0 then self.norm_val = max(self.norm_val-Step, 0); Slider_Status = 1 end
     return true
 end
 
@@ -1764,7 +2670,7 @@ function HP_Slider:set_norm_val()
     if Shift then VAL = self.norm_val + ((gfx.mouse_x-last_x)/(w*K))
        else VAL = (gfx.mouse_x-x)/w end
     if VAL<0 then VAL=0 elseif VAL>1 then VAL=1 end
-    DefaultHP = tonumber(r.GetExtState('cool_MK Slicer.lua','DefaultHP'))or 0.3312;
+    DefaultHP = tonumber(r.GetExtState('MK_Slicer_3','DefaultHP'))or 0.3312;
     if MCtrl then VAL = DefaultHP end --set default value by Ctrl+LMB
     self.norm_val=VAL
 
@@ -1778,7 +2684,7 @@ function LP_Slider:set_norm_val()
     if Shift then VAL = self.norm_val + ((gfx.mouse_x-last_x)/(w*K))
        else VAL = (gfx.mouse_x-x)/w end
     if VAL<0 then VAL=0 elseif VAL>1 then VAL=1 end
-    DefaultLP = tonumber(r.GetExtState('cool_MK Slicer.lua','DefaultLP'))or 1;
+    DefaultLP = tonumber(r.GetExtState('MK_Slicer_3','DefaultLP'))or 1;
     if MCtrl then VAL = DefaultLP end --set default value by Ctrl+LMB
     self.norm_val=VAL
 
@@ -1801,7 +2707,7 @@ function S_Slider:set_norm_val()
     if Shift then VAL = self.norm_val + ((gfx.mouse_x-last_x)/(w*K))
        else VAL = (gfx.mouse_x-x)/w end
     if VAL<0 then VAL=0 elseif VAL>1 then VAL=1 end
-    DefaultSens = tonumber(r.GetExtState('cool_MK Slicer.lua','DefaultSens'))or 0.375;
+    DefaultSens = tonumber(r.GetExtState('MK_Slicer_3','DefaultSens'))or 0.63;
     if MCtrl then VAL = DefaultSens end --set default value by Ctrl+LMB
     self.norm_val=VAL
 
@@ -1834,7 +2740,7 @@ function O_Slider:set_norm_val()
     if Shift then VAL = self.norm_val + ((gfx.mouse_x-last_x)/(w*K))
        else VAL = (gfx.mouse_x-x)/w end
     if VAL<0 then VAL=0 elseif VAL>1 then VAL=1 end
-    DefaultOffset = tonumber(r.GetExtState('cool_MK Slicer.lua','DefaultOffset'))or 0.5;
+    DefaultOffset = tonumber(r.GetExtState('MK_Slicer_3','DefaultOffset'))or 0.5;
     if MCtrl then VAL = DefaultOffset end --set default value by Ctrl+LMB
     self.norm_val=VAL
 
@@ -1858,7 +2764,7 @@ function Q_Slider:set_norm_val()
     if Shift then VAL = self.norm_val + ((gfx.mouse_x-last_x)/(w*K))
        else VAL = (gfx.mouse_x-x)/w end
     if VAL<0 then VAL=0 elseif VAL>1 then VAL=1 end
-    DefaultQStrength = tonumber(r.GetExtState('cool_MK Slicer.lua','DefaultQStrength'))or 100;
+    DefaultQStrength = tonumber(r.GetExtState('MK_Slicer_3','DefaultQStrength'))or 100;
     if MCtrl then VAL = DefaultQStrength*0.01 end --set default value by Ctrl+LMB
     self.norm_val=VAL
 
@@ -1872,7 +2778,7 @@ function X_Slider:set_norm_val()
     if Shift then VAL = self.norm_val + ((gfx.mouse_x-last_x)/(w*K))
        else VAL = (gfx.mouse_x-x)/w end
     if VAL<0 then VAL=0 elseif VAL>1 then VAL=1 end
-    DefaultXFadeTime = tonumber(r.GetExtState('cool_MK Slicer.lua','DefaultXFadeTime'))or 15;
+    DefaultXFadeTime = tonumber(r.GetExtState('MK_Slicer_3','DefaultXFadeTime'))or 15;
     if MCtrl then VAL = DefaultXFadeTime*0.02 end --set default value by Ctrl+LMB
     self.norm_val=VAL
     
@@ -2156,8 +3062,8 @@ function Slider_small:draw()
     local r,g,b,a  = self.r,self.g,self.b,self.a
     local fnt,fnt_sz = self.fnt, self.fnt_sz*(Z_h*1.05)
     if fnt_sz <= 12 then fnt_sz = 12 end
-if fnt_sz >= 17 then fnt_sz = 17 end
-fnt_sz = fnt_sz-1
+    if fnt_sz >= 17 then fnt_sz = 17 end
+    fnt_sz = fnt_sz-1
     -- Get mouse state ---------
           -- in element(and get mouswheel) --
           if self:mouseIN() then a=a+0.2
@@ -2196,7 +3102,7 @@ function Slider:draw()
     local r,g,b,a  = self.r,self.g,self.b,self.a
     local fnt,fnt_sz = self.fnt, self.fnt_sz*(Z_h*1.05)
     if fnt_sz <= 12 then fnt_sz = 12 end
-if fnt_sz >= 18 then fnt_sz = 18 end
+    if fnt_sz >= 18 then fnt_sz = 18 end
     -- Get mouse state ---------
           -- in element(and get mouswheel) --
 
@@ -2237,6 +3143,7 @@ if fnt_sz >= 18 then fnt_sz = 18 end
           if self:mouseDown() then a=a+0.3 
              self:set_norm_val()
              if self.onMove then self.onMove() end 
+             Slider_Status = 1 
           end
           --in elm L_up(released and was previously pressed)--
           --if self:mouseClick() then --[[self.onClick()]] end
@@ -2244,6 +3151,7 @@ if fnt_sz >= 18 then fnt_sz = 18 end
           if self:mouseUp() and self.onUp then self.onUp()
              MouseUpX = 1
              mouse_ox, mouse_oy = -1, -1 -- reset after self.onUp()
+             Slider_Status = 0 
           end    
     -- Draw sldr body, frame ---
     gfx.set(r,g,b,a)  -- set body,frame color
@@ -2262,7 +3170,7 @@ function Slider_simple:draw() -- slider without waveform and markers redraw
     local r,g,b,a  = self.r,self.g,self.b,self.a
     local fnt,fnt_sz = self.fnt, self.fnt_sz*(Z_h*1.05)
     if fnt_sz <= 12 then fnt_sz = 12 end
-if fnt_sz >= 18 then fnt_sz = 18 end
+    if fnt_sz >= 18 then fnt_sz = 18 end
     -- Get mouse state ---------
           -- in element(and get mouswheel) --
           if self:mouseIN() then a=a+0.2
@@ -2341,6 +3249,7 @@ if fnt_sz >= 18 then fnt_sz = 18 end
           if self:mouseDown() then a=a+0.3 
              self:set_norm_val()
              if self.onMove then self.onMove() end 
+             Slider_Status = 1 
           end
           --in elm L_up(released and was previously pressed)--
           --if self:mouseClick() then --[[self.onClick()]] end
@@ -2348,6 +3257,7 @@ if fnt_sz >= 18 then fnt_sz = 18 end
           if self:mouseUp() and self.onUp then self.onUp()
              MouseUpX = 1
              mouse_ox, mouse_oy = -1, -1 -- reset after self.onUp()
+             Slider_Status = 0 
           end    
     -- Draw sldr body, frame ---
     gfx.set(r,g,b,a)  -- set body,frame color
@@ -2360,14 +3270,14 @@ if fnt_sz >= 18 then fnt_sz = 18 end
     self:draw_val()   -- draw value
 end
 ------------------------------------------------------------------------------
-function Slider_Swing:draw() -- Offset slider with fine tuning and additional line redrawing
+function Slider_Swing:draw() -- Swing slider
   if not Z_w or not Z_h then return end -- return if zoom not defined
   self.x, self.w = (self.def_xywh[1]* Z_w) , (self.def_xywh[3]* Z_w) -- upd x,w
   self.y, self.h = (self.def_xywh[2]* Z_h) , (self.def_xywh[4]* Z_h) -- upd y,h
     local r,g,b,a  = self.r,self.g,self.b,self.a
     local fnt,fnt_sz = self.fnt, self.fnt_sz*(Z_h*1.05)
     if fnt_sz <= 12 then fnt_sz = 12 end
-if fnt_sz >= 18 then fnt_sz = 18 end
+    if fnt_sz >= 18 then fnt_sz = 18 end
     -- Get mouse state ---------
           -- in element(and get mouswheel) --
           if self:mouseIN() then a=a+0.2
@@ -2386,6 +3296,7 @@ if fnt_sz >= 18 then fnt_sz = 18 end
           if self:mouseDown() then a=a+0.3 
              self:set_norm_val()
              if self.onMove then self.onMove() end 
+             Slider_Status = 1 
           end
           --in elm L_up(released and was previously pressed)--
           --if self:mouseClick() then --[[self.onClick()]] end
@@ -2393,11 +3304,12 @@ if fnt_sz >= 18 then fnt_sz = 18 end
           if self:mouseUp() and self.onUp then self.onUp()
              MouseUpX = 1
              mouse_ox, mouse_oy = -1, -1 -- reset after self.onUp()
+             Slider_Status = 0 
           end    
     -- Draw sldr body, frame ---
     gfx.set(r,g,b,a)  -- set body,frame color
     self:draw_body()  -- body
-    self:draw_frame() -- frame
+    self:draw_frame_sw() -- frame
     -- Draw label,value --------
     gfx.set(table.unpack(self.fnt_rgba))   -- set lbl,val color
     gfx.setfont(1, fnt, fnt_sz) -- set lbl,val fnt
@@ -2411,7 +3323,7 @@ function Slider_complex:draw() -- slider with full waveform and markers redraw
     local r,g,b,a  = self.r,self.g,self.b,self.a
     local fnt,fnt_sz = self.fnt, self.fnt_sz*(Z_h*1.05)
     if fnt_sz <= 12 then fnt_sz = 12 end
-if fnt_sz >= 18 then fnt_sz = 18 end
+    if fnt_sz >= 18 then fnt_sz = 18 end
     -- Get mouse state ---------
           -- in element(and get mouswheel) --
           if self:mouseIN() then a=a+0.2
@@ -2451,6 +3363,7 @@ if fnt_sz >= 18 then fnt_sz = 18 end
           if self:mouseDown() then a=a+0.3 
              self:set_norm_val()
              if self.onMove then self.onMove() end 
+             Slider_Status = 1 
           end
           --in elm L_up(released and was previously pressed)--
           --if self:mouseClick() then --[[self.onClick()]] end
@@ -2458,6 +3371,7 @@ if fnt_sz >= 18 then fnt_sz = 18 end
           if self:mouseUp() and self.onUp then self.onUp()
              MouseUpX = 1
              mouse_ox, mouse_oy = -1, -1 -- reset after self.onUp()
+             Slider_Status = 0
           end    
     -- Draw sldr body, frame ---
     gfx.set(r,g,b,a)  -- set body,frame color
@@ -2475,7 +3389,7 @@ function Slider_fgain:draw() -- filter slider without waveform processing
     local r,g,b,a  = self.r,self.g,self.b,self.a
     local fnt,fnt_sz = self.fnt, self.fnt_sz*(Z_h*1.05)
     if fnt_sz <= 12 then fnt_sz = 12 end
-if fnt_sz >= 18 then fnt_sz = 18 end
+    if fnt_sz >= 18 then fnt_sz = 18 end
     -- Get mouse state ---------
           -- in element(and get mouswheel) --
           if self:mouseIN() then a=a+0.2
@@ -2643,7 +3557,7 @@ function Rng_Slider:draw_sbtns()
     local sb_w = self.sb_w
     local val  = w * self.norm_val
     local val2 = w * self.norm_val2-1
-    gfx.set(1,1,1,0.15)  -- sbtns body color
+    gfx.set(TH[30][1]/1.2,TH[30][2]/1.2,TH[30][3]/1.2,TH[30][4])  -- sbtns body color
     gfx.rect(x+val-sb_w, y, sb_w+1, h, true)   -- sbtn1 body
     gfx.rect(x+val2-1,     y, sb_w+1, h, true) -- sbtn2 body
     
@@ -2679,7 +3593,7 @@ function Rng_Slider:draw()
     local r,g,b,a  = self.r,self.g,self.b,self.a
     local fnt,fnt_sz = self.fnt, self.fnt_sz*(Z_h*1.05)
     if fnt_sz <= 12 then fnt_sz = 12 end
-if fnt_sz >= 18 then fnt_sz = 18 end
+    if fnt_sz >= 18 then fnt_sz = 18 end
     -- set additional coordinates --
     self.sb_w  = self.w//10 -- sidebuttons width(change it if need)
     self.rng_x = self.x + self.sb_w    -- range streak min x
@@ -2842,7 +3756,7 @@ function Loop_Slider:draw_sbtns()
     local sb_w = self.sb_w
     local val  = w * self.norm_val
     local val2 = w * self.norm_val2+1
-    gfx.set(0,0.7,0,1)  -- sbtns body color
+    gfx.set(TH[39][1],TH[39][2],TH[39][3],TH[39][4])  -- sbtns body color
     gfx.triangle(x+val-sb_w, y, x+val-sb_w, y*1.5, x+val-sb_w+15, y)
     gfx.triangle(x+val2+sb_w-1, y, x+val2+sb_w-1, y*1.5, x+val2+sb_w-1-15, y)  
 end
@@ -3131,7 +4045,7 @@ function CheckBox_Show:draw_val()
     local val = self.norm_val2[self.norm_val]
     local val_w, val_h = gfx.measurestr(val)
     gfx.x = x+3; gfx.y = y+(h-val_h)/2
-    gfx.drawstr(val) -- draw checkbox val
+ --   gfx.drawstr(val) -- draw checkbox val
 end
 ------------------------
 function CheckBox_Show:draw()
@@ -3142,14 +4056,15 @@ function CheckBox_Show:draw()
 if fnt_sz >= 18 then fnt_sz = 18 end
     -- Get mouse state ---------
           -- in element --------
-          if self:mouseIN() then a=a+0.2
+          a=a-0.6
+          if self:mouseIN() then a=a+0.3
              if self:set_norm_val_m_wheel() then -- use if need
                 if self.onMove then self.onMove() end   
                       MW_doit_checkbox_show()
             end  
           end          
           -- in elm L_down -----
-          if self:mouseDown() then a=a+0.3 end
+          if self:mouseDown() then a=a+0.4 end
           -- in elm L_up(released and was previously pressed) --
           if self:mouseClick() then self:set_norm_val()
              if self:mouseClick() and self.onClick then self.onClick() end
@@ -3157,7 +4072,7 @@ if fnt_sz >= 18 then fnt_sz = 18 end
     -- Draw ch_box body, frame -
     gfx.set(r,g,b,a)    -- set body color
     self:draw_body()    -- body
-    self:draw_frame()   -- frame
+ --   self:draw_frame()   -- frame
     -- Draw label --------------
     gfx.set(table.unpack(self.fnt_rgba))   -- set label,val color
     gfx.setfont(1, fnt, fnt_sz) -- set label,val fnt
@@ -3168,11 +4083,18 @@ end
 --------------------------------------------------------------------------------
 ---   Frame Class Methods  --------------------------------------------------
 --------------------------------------------------------------------------------
+function Frame_body:draw()
+   self:update_xywh() -- Update xywh(if wind changed)
+   local r,g,b,a  = self.r,self.g,self.b,self.a
+   gfx.set(r,g,b,a)   -- set frame color -- цвет рамок
+   self:draw_frame4()  -- draw frame body
+end
+
 function Frame:draw()
    self:update_xywh() -- Update xywh(if wind changed)
    local r,g,b,a  = self.r,self.g,self.b,self.a
    gfx.set(r,g,b,a)   -- set frame color -- цвет рамок
-   self:draw_frame4()  -- draw frame
+   self:draw_frame5()  -- draw frame
 end
 
 --------------------------------------------------------------------------------
@@ -3247,94 +4169,102 @@ local defPPQ = 960         -- change, if need.
 local Wave = Element:new(10,45,1024,335)
 local Gate_Gl  = {}
 
-corrY = 10
-corrY3 = 16 -- MIDI Elements Shift
-
 ---------------------------------------------------------------
 ---  Create Frames ------------------------------------------
 ---------------------------------------------------------------
 ------local tables to reduce locals (avoid 200 locals limits)-------
-local elm_table = {Fltr_Frame, Gate_Frame, Mode_Frame, Mode_Frame_filled, Gate_Frame_filled, Random_Setup_Frame_filled, Random_Setup_Frame, Grid1_Led, Grid2_Led, Grid4_Led, Grid8_Led, Grid16_Led, Grid32_Led, Grid64_Led, GridT_Led, Swing_Led, MIDI_Divider_Line, MIDI_Divider_Line2}
+local elm_table = {Fltr_Frame, Gate_Frame, Mode_Frame, Mode_Frame_filled, Gate_Frame_filled, Random_Setup_Frame_filled, Random_Setup_Frame, Grid1_Led, Grid2_Led, Grid4_Led, Grid8_Led, Grid16_Led, Grid32_Led, Grid64_Led, GridT_Led, Swing_Led, MIDI_Divider_Line, MIDI_Divider_Line2, BPM_Divider_Line, BPM_Divider_Line2, Frame}
 
-elm_table[1] = Frame:new(10, 375+corrY,180,100) --Fltr_Frame
-elm_table[2] = Frame:new(200,375+corrY,180,100) --Gate_Frame
-elm_table[3] = Frame:new(390,375+corrY,645,100) --Mode_Frame
-elm_table[4] = Frame_filled:new(685,380+corrY,279,69,  0.2,0.2,0.2,0.5 ) --Mode_Frame_filled
-elm_table[5] = Frame_filled:new(210,380+corrY,160,89,  0.2,0.2,0.2,0.5 ) --Gate_Frame_filled
+elm_table[1] = Frame_body:new(10, 385,1024,100) --Main_Frame_body
 
-elm_table[6] = Frame_filled:new(670,376,147,112,  0.15,0.15,0.15,1 ) --Random_Setup_Frame_filled
-elm_table[7] = Frame:new(670,376,147,112,  0.15,0.15,0.15,1 ) --Random_Setup_Frame
+elm_table[2] = Line2:new(dl1_pos,380+corrY,4,88, TH[41][1],TH[41][2],TH[41][3],TH[41][4]) -- Vertical Line
+elm_table[3] = Line2:new(dl1_pos+1,380+corrY,4,88, TH[4][1],TH[4][2],TH[4][3],TH[4][4])--| fill
 
-elm_table[8] = Colored_Rect_top:new(50,24,40,2,  0.0,0.7,0.0,1 ) -- Grid1_Led
-elm_table[9] = Colored_Rect_top:new(92,24,40,2,  0.0,0.7,0.0,1 ) -- Grid2_Led
-elm_table[10] = Colored_Rect_top:new(134,24,40,2,  0.0,0.7,0.0,1 ) -- Grid4_Led
-elm_table[11] = Colored_Rect_top:new(176,24,40,2,  0.0,0.7,0.0,1 ) -- Grid8_Led
-elm_table[12] = Colored_Rect_top:new(218,24,40,2,  0.0,0.7,0.0,1 ) -- Grid16_Led
-elm_table[13] = Colored_Rect_top:new(260,24,40,2,  0.0,0.7,0.0,1 ) -- Grid32_Led
-elm_table[14] = Colored_Rect_top:new(302,24,40,2,  0.0,0.7,0.0,1 ) -- Grid64_Led
-elm_table[15] = Colored_Rect_top:new(344,24,40,2,  0.0,0.7,0.0,1 ) -- GridT_Led
-elm_table[16] = Colored_Rect_top:new(391,24,50,2,  0.0,0.7,0.0,1 ) -- Swing_Led
+elm_table[4] = Frame_filled:new(669+d_pos,380+corrY,279,69,  TH[4][1],TH[4][2],TH[4][3],TH[4][4]-0.4 ) --Mode_Frame_filled
+elm_table[5] = Frame_filled:new(b_pos,380+corrY,160,89,  TH[4][1],TH[4][2],TH[4][3],TH[4][4]-0.4 ) --Gate_Frame_filled
 
-elm_table[17] = Line2:new(675,380+corrY,4,88,0.3,0.3,0.3,0.5) -- Vertical Line 
-elm_table[18] = Line2:new(676,380+corrY,4,88,0.177,0.177,0.177,1)--| fill
+elm_table[6] = Frame_filled:new(656+c_pos,376,147,112,  TH[4][1],TH[4][2],TH[4][3],TH[4][4] ) --Random_Setup_Frame_filled
+elm_table[7] = Line:new(656+c_pos,376,147,112,  TH[5][1],TH[5][2],TH[5][3],TH[5][4] ) --Random_Setup_Frame
 
-local leds_table = {Frame_byGrid, Frame_byGrid2, Light_Loop_on, Light_Loop_off, Light_Sync_on, Light_Sync_off, Rand_Mode_Color1, Rand_Mode_Color2, Rand_Mode_Color3, Rand_Mode_Color4, Rand_Mode_Color5, Rand_Mode_Color6, Rand_Mode_Color7, Rand_Button_Color1, Rand_Button_Color2, Rand_Button_Color3, Rand_Button_Color4, Rand_Button_Color5, Rand_Button_Color6, Rand_Button_Color7, MIDIMode1, MIDIMode2, MIDIMode3}
+elm_table[8] = Colored_Rect_top:new(50,24,40,2,  TH[39][1],TH[39][2],TH[39][3],TH[39][4] ) -- Grid1_Led
+elm_table[9] = Colored_Rect_top:new(92,24,40,2,  TH[39][1],TH[39][2],TH[39][3],TH[39][4] ) -- Grid2_Led
+elm_table[10] = Colored_Rect_top:new(134,24,40,2,  TH[39][1],TH[39][2],TH[39][3],TH[39][4] ) -- Grid4_Led
+elm_table[11] = Colored_Rect_top:new(176,24,40,2,  TH[39][1],TH[39][2],TH[39][3],TH[39][4] ) -- Grid8_Led
+elm_table[12] = Colored_Rect_top:new(218,24,40,2,  TH[39][1],TH[39][2],TH[39][3],TH[39][4] ) -- Grid16_Led
+elm_table[13] = Colored_Rect_top:new(260,24,40,2,  TH[39][1],TH[39][2],TH[39][3],TH[39][4] ) -- Grid32_Led
+elm_table[14] = Colored_Rect_top:new(302,24,40,2,  TH[39][1],TH[39][2],TH[39][3],TH[39][4] ) -- Grid64_Led
+elm_table[15] = Colored_Rect_top:new(344,24,40,2,  TH[39][1],TH[39][2],TH[39][3],TH[39][4] ) -- GridT_Led
+elm_table[16] = Colored_Rect_top:new(391,24,50,2,  TH[39][1],TH[39][2],TH[39][3],TH[39][4] ) -- Swing_Led
 
-leds_table[1] = Colored_Rect:new(591,410+corrY,2,18,  0.1,0.7,0.6,1 ) -- Frame_byGrid (Blue indicator)
-leds_table[2] = Colored_Rect:new(591,410+corrY,2,18,  0.7,0.7,0.0,1 ) -- Frame_byGrid2 (Yellow indicator)
+elm_table[17] = Line2:new(dl2_pos,380+corrY,4,88, TH[41][1],TH[41][2],TH[41][3],TH[41][4]) -- Vertical Line2 
+elm_table[18] = Line2:new(dl2_pos+1,380+corrY,4,88, TH[4][1],TH[4][2],TH[4][3],TH[4][4])--| fill
 
-leds_table[3] = Colored_Rect_top:new(981,5,2,20,  0.0,0.7,0.0,1 ) -- Light_Loop_on
-leds_table[4] = Colored_Rect_top:new(981,5,2,20,  0.5,0.5,0.5,0.5 ) -- Light_Loop_off
+elm_table[19] = Line2:new(dl3_pos,380+corrY,4,88, TH[41][1],TH[41][2],TH[41][3],TH[41][4]) -- Vertical Line3 
+elm_table[20] = Line2:new(dl3_pos+1,380+corrY,4,88, TH[4][1],TH[4][2],TH[4][3],TH[4][4])--| fill
 
-leds_table[5] = Colored_Rect_top:new(921,5,2,20,  0.0,0.7,0.0,1 ) -- Light_Sync_on
-leds_table[6] = Colored_Rect_top:new(921,5,2,20,  0.5,0.5,0.5,0.5 ) -- Light_Sync_off
+elm_table[21] = Frame:new(10, 385,1024,100) --Main_Frame
 
-leds_table[7] = Colored_Rect:new(675,380,2,14,  0.1,0.8,0.2,1 ) --  Rand_Mode_Color1
-leds_table[8] = Colored_Rect:new(675,395,2,14,  0.7,0.7,0.0,1 ) --  Rand_Mode_Color2
-leds_table[9] = Colored_Rect:new(675,410,2,14,  0.8,0.4,0.1,1 ) --  Rand_Mode_Color3
-leds_table[10] = Colored_Rect:new(675,425,2,14,  0.7,0.0,0.0,1 ) --  Rand_Mode_Color4
-leds_table[11] = Colored_Rect:new(675,455,2,14,  0.2,0.5,1,1 ) --  Rand_Mode_Color5
-leds_table[12] = Colored_Rect:new(675,440,2,14,  0.8,0.1,0.8,1 ) --  Rand_Mode_Color6
-leds_table[13] = Colored_Rect:new(675,470,2,14,  0.1,0.7,0.6,1 ) --  Rand_Mode_Color7
+local leds_table = {Frame_byGrid, Frame_byGrid2, Light_Loop_on, Light_Loop_off, Light_Snap_on, Light_Snap_off, Rand_Mode_Color1, Rand_Mode_Color2, Rand_Mode_Color3, Rand_Mode_Color4, Rand_Mode_Color5, Rand_Mode_Color6, Rand_Mode_Color7, Rand_Button_Color1, Rand_Button_Color2, Rand_Button_Color3, Rand_Button_Color4, Rand_Button_Color5, Rand_Button_Color6, Rand_Button_Color7, MIDIMode1, MIDIMode2, MIDIMode3, Light_Aim_on, Light_Aim_off}
 
-leds_table[14] = Colored_Rect:new(598,436,8,2,  0.1,0.8,0.2,1 ) --  Rand_Button_Color1
-leds_table[15] = Colored_Rect:new(607,436,9,2,  0.7,0.7,0.0,1 ) --  Rand_Button_Color2
-leds_table[16] = Colored_Rect:new(617,436,9,2,  0.8,0.4,0.1,1 ) --  Rand_Button_Color3
-leds_table[17] = Colored_Rect:new(627,436,9,2,  0.7,0.0,0.0,1 ) --  Rand_Button_Color4
-leds_table[18] = Colored_Rect:new(647,436,9,2,  0.2,0.5,1,1 ) --  Rand_Button_Color5
-leds_table[19] = Colored_Rect:new(637,436,9,2,  0.8,0.1,0.8,1 ) --  Rand_Button_Color6
-leds_table[20] = Colored_Rect:new(657,436,8,2,  0.1,0.7,0.6,1 ) --  Rand_Button_Color7
+leds_table[1] = Colored_Rect:new(577+c_pos,410+corrY,2,18,  0.1,0.7,0.6,TH[42] ) -- Frame_byGrid (Blue indicator)
+leds_table[2] = Colored_Rect:new(577+c_pos,410+corrY,2,18,  0.7,0.7,0.0,TH[42] ) -- Frame_byGrid2 (Yellow indicator)
 
-leds_table[21] = Colored_Rect:new(766+corrY3,410+corrY,2,18,  0.69,0.17,0.17,1 ) -- MIDIMode1
-leds_table[22] = Colored_Rect:new(766+corrY3,410+corrY,2,18,  0.69,0.32,0.05,1 ) -- MIDIMode2
-leds_table[23] = Colored_Rect:new(766+corrY3,410+corrY,2,18,  0.54,0.14,1,1 ) -- MIDIMode3
+leds_table[3] = Colored_Rect_top:new(983,5,2,20,  TH[39][1],TH[39][2],TH[39][3],TH[39][4] ) -- Light_Loop_on
+leds_table[4] = Colored_Rect_top:new(983,5,2,20,  0.5,0.5,0.5,0.5 ) -- Light_Loop_off
 
+leds_table[5] = Colored_Rect_top:new(950,5,2,20,  TH[39][1],TH[39][2],TH[39][3],TH[39][4] ) -- Light_Snap_on
+leds_table[6] = Colored_Rect_top:new(950,5,2,20,  0.5,0.5,0.5,0.5 ) -- Light_Snap_off
+
+leds_table[7] = Colored_Rect:new(661+c_pos,380,2,14,  0.1,0.8,0.2,TH[42] ) --  Rand_Mode_Color1
+leds_table[8] = Colored_Rect:new(661+c_pos,395,2,14,  0.7,0.7,0.0,TH[42] ) --  Rand_Mode_Color2
+leds_table[9] = Colored_Rect:new(661+c_pos,410,2,14,  0.8,0.4,0.1,TH[42] ) --  Rand_Mode_Color3
+leds_table[10] = Colored_Rect:new(661+c_pos,425,2,14,  0.7,0.0,0.0,TH[42] ) --  Rand_Mode_Color4
+leds_table[11] = Colored_Rect:new(661+c_pos,455,2,14,  0.2,0.5,1,TH[42] ) --  Rand_Mode_Color5
+leds_table[12] = Colored_Rect:new(661+c_pos,440,2,14,  0.8,0.1,0.8,TH[42] ) --  Rand_Mode_Color6
+leds_table[13] = Colored_Rect:new(661+c_pos,470,2,14,  0.1,0.7,0.6,TH[42] ) --  Rand_Mode_Color7
+
+leds_table[14] = Colored_Rect:new(584+c_pos,426+corrY,8,2,  0.1,0.8,0.2,TH[42] ) --  Rand_Button_Color1
+leds_table[15] = Colored_Rect:new(593+c_pos,426+corrY,9,2,  0.7,0.7,0.0,TH[42] ) --  Rand_Button_Color2
+leds_table[16] = Colored_Rect:new(603+c_pos,426+corrY,9,2,  0.8,0.4,0.1,TH[42] ) --  Rand_Button_Color3
+leds_table[17] = Colored_Rect:new(613+c_pos,426+corrY,9,2,  0.7,0.0,0.0,TH[42] ) --  Rand_Button_Color4
+leds_table[18] = Colored_Rect:new(633+c_pos,426+corrY,9,2,  0.2,0.5,1,TH[42] ) --  Rand_Button_Color5
+leds_table[19] = Colored_Rect:new(623+c_pos,426+corrY,9,2,  0.8,0.1,0.8,TH[42] ) --  Rand_Button_Color6
+leds_table[20] = Colored_Rect:new(643+c_pos,426+corrY,8,2,  0.1,0.7,0.6,TH[42] ) --  Rand_Button_Color7
+
+leds_table[21] = Colored_Rect:new(761+d_pos,410+corrY,2,18,  0.69,0.17,0.17,TH[42] ) -- MIDIMode1
+leds_table[22] = Colored_Rect:new(761+d_pos,410+corrY,2,18,  0.69,0.32,0.05,TH[42] ) -- MIDIMode2
+leds_table[23] = Colored_Rect:new(761+d_pos,410+corrY,2,18,  0.54,0.14,1,TH[42] ) -- MIDIMode3
+
+leds_table[25] = Colored_Rect_top:new(917,5,2,20,  TH[39][1],TH[39][2],TH[39][3],TH[39][4] ) -- Light_Aim_on
+leds_table[26] = Colored_Rect_top:new(917,5,2,20,  0.5,0.5,0.5,0.5 ) -- Light_Aim_off
 
 local others_table = {Triangle, RandText, Q_Rnd_Linked, Q_Rnd_Linked2, Line, Line2, Loop_Dis, Ruler, Preset, Velocity, Mode, Mode2, ModeText}
 
-others_table[1] = Txt2:new(642,418,55,18, 0.4,0.4,0.4,1, ">","Arial",20) --Triangle
-others_table[2] = Txt2:new(749,377,55,18, 0.4,0.4,0.4,1, "Intensity","Arial",10) --RandText
+others_table[1] = Txt2:new(628+c_pos,408+corrY,55,18, TH[36][1],TH[36][2],TH[36][3],TH[36][4], ">","Arial",20) --Triangle
+others_table[2] = Txt2:new(735+c_pos,377,55,18, TH[36][1],TH[36][2],TH[36][3],TH[36][4], "Intensity","Arial",10) --RandText
 
-others_table[3] = Line_colored:new(482,375+corrY,152,18,  0.7,0.5,0.1,1) --| Q_Rnd_Linked (Bracket)
-others_table[4] = Line2:new(480,380+corrY,156,18,  0.177,0.177,0.177,1)--| Q_Rnd_Linked2 (Bracket fill)
+others_table[3] = Line_colored:new(474+c_pos,375+corrY,145,18,  0.7,0.5,0.1,1) --| Q_Rnd_Linked (Bracket)
+others_table[4] = Line2:new(472+c_pos,380+corrY,149,18,  TH[4][1],TH[4][2],TH[4][3],TH[4][4])--| Q_Rnd_Linked2 (Bracket fill)
 
-others_table[5] = Line:new(774+corrY3,404+corrY,82,6) --Line (Preset/Velocity Bracket)
-others_table[6] = Line2:new(774+corrY3,407+corrY,82,4,  0.177,0.177,0.177,1)--Line2 (Preset/Velocity Bracket fill)
+others_table[5] = Line:new(769+d_pos,404+corrY,77,6) --Line (Preset/Velocity Bracket)
+others_table[6] = Line2:new(769+d_pos,407+corrY,77,4,  TH[4][1],TH[4][2],TH[4][3],TH[4][4])--Line2 (Preset/Velocity Bracket fill)
 others_table[7] = Colored_Rect_top:new(10,28,1024,15,  0.23,0.23,0.23,0.5)--Loop_Dis (Loop Disable fill)
 others_table[8] = Ruler:new(10,42,1024,13,  0,0,0,0)--Loop_Dis (Loop Disable fill)
 
-others_table[9] = Txt:new(788+corrY3,384+corrY,55,18, 0.8,0.8,0.8,0.8, "Preset","Arial",22)
-others_table[10] = Txt:new(788+corrY3,384+corrY,55,18, 0.8,0.8,0.8,0.8, "Velocity","Arial",22)
+others_table[9] = Txt:new(781+d_pos,384+corrY,55,18, TH[36][1],TH[36][2],TH[36][3],TH[36][4], "Preset","Arial",22)
+others_table[10] = Txt:new(780+d_pos,384+corrY,55,18, TH[36][1],TH[36][2],TH[36][3],TH[36][4], "Velocity","Arial",22)
 
-others_table[11] = Line:new(866+corrY3,404+corrY,78,6) --Line (Mode Bracket)
-others_table[12] = Line2:new(866+corrY3,407+corrY,78,4,  0.177,0.177,0.177,1)--Line2 (Mode Bracket fill)
-others_table[13] = Txt:new(878+corrY3,384+corrY,55,18, 0.8,0.8,0.8,0.8, "Mode","Arial",22) -- Mode Text
+others_table[11] = Line:new(856+d_pos,404+corrY,73,6) --Line (Mode Bracket)
+others_table[12] = Line2:new(856+d_pos,407+corrY,73,4,  TH[4][1],TH[4][2],TH[4][3],TH[4][4])--Line2 (Mode Bracket fill)
+others_table[13] = Txt:new(868+d_pos,384+corrY,52,18, TH[36][1],TH[36][2],TH[36][3],TH[36][4], "Mode","Arial",22) -- Mode Text
 
-local Frame_Sync_TB = {leds_table[5]}
-local Frame_Sync_TB2 = {leds_table[6]}
+local Frame_Snap_TB = {leds_table[5]}
+local Frame_Snap_TB2 = {leds_table[6]}
+local Frame_Aim_TB = {leds_table[25]}
+local Frame_Aim_TB2 = {leds_table[26]}
 local Frame_Loop_TB = {leds_table[3]}
 local Frame_Loop_TB2 = {leds_table[4], others_table[7]}
-local Frame_TB = {elm_table[1], elm_table[2], elm_table[3], elm_table[17], elm_table[18]} 
+local Frame_TB = {elm_table[1], elm_table[2], elm_table[3], elm_table[17], elm_table[18], elm_table[19], elm_table[20], elm_table[21]} 
 local FrameR_TB = {others_table[5], others_table[6]}
 local FrameQR_Link_TB = {others_table[3],others_table[4]}
 local Frame_TB1 = {leds_table[2]}
@@ -3378,33 +4308,38 @@ local MIDI_Mode_Color3_TB = {leds_table[23]}
 
 
 
-local Midi_Sampler = CheckBox_simple:new(670+corrY3,410+corrY,96,18, 0.28,0.4,0.7,0.8, "","Arial",16,  MIDI_Mode,
+local Midi_Sampler = CheckBox_simple:new(670+d_pos,410+corrY,91,18, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "","Arial",16,  MIDI_Mode,
                               {"Sampler","Trigger","Pitch Detect"} )
 
-if Midi_Sampler.norm_val == 3 and RebuildPeaksOnStart == 1 then
-    r.Main_OnCommand(40441,0) --rebuild peaks when the script starts
-end
+                              if Midi_Sampler.norm_val == 3 and RebuildPeaksOnStart == 1 then
+                                  r.Main_OnCommand(40441,0) --rebuild peaks when the script starts
+                              end
 
-local Sampler_preset = CheckBox_simple:new(770+corrY3,410+corrY,90,18, 0.28,0.4,0.7,0.8, "","Arial",16,  Sampler_preset_state,
+local Sampler_preset = CheckBox_simple:new(765+d_pos,410+corrY,85,18, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "","Arial",16,  Sampler_preset_state,
                               {"Percussive","Melodic"} )
 
-local Pitch_Preset = CheckBox_simple:new(770+corrY3,410+corrY,90,18, 0.28,0.4,0.7,0.8, "","Arial",16,  PitchDetect,
+local Pitch_Preset = CheckBox_simple:new(765+d_pos,410+corrY,85,18, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "","Arial",16,  PitchDetect,
                               {"Drums","Drums 2", "Percussion", "Bass","Default","Melodic","Complex"} )
 
-
-local Pitch_Det_Options = CheckBox_simple:new(670+corrY3,430+corrY,98,18, 0.28,0.4,0.7,0.8, "","Arial",16,  Pitch_Det_Options_state,
+local Pitch_Det_Options = CheckBox_simple:new(670+d_pos,430+corrY,93,18, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "","Arial",16,  Pitch_Det_Options_state,
                               {"Velocity On","Velocity Off"} )
 
-local Pitch_Det_Options2 = CheckBox_simple:new(670+corrY3,450+corrY,98,18, 0.28,0.4,0.7,0.8, "","Arial",16,  Pitch_Det_Options_state2,
+local Pitch_Det_Options2 = CheckBox_simple:new(670+d_pos,450+corrY,93,18, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "","Arial",16,  Pitch_Det_Options_state2,
                               {"Note Lgth.","Staccato","Legato"} )
 
-local Create_Replace = CheckBox_simple:new(862+corrY3,410+corrY,86,18, 0.28,0.4,0.7,0.8, "","Arial",16,  Create_Replace_state,
+local Create_Replace = CheckBox_simple:new(852+d_pos,410+corrY,81,18, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "","Arial",16,  Create_Replace_state,
                               {"Create","Replace"} )
 
-local Create_Replace2 = CheckBox_simple:new(862+corrY3,410+corrY,86,18, 0.28,0.4,0.7,0.8, "","Arial",16,  Create_Replace_state2, -- Pitch Detection mode
+local Create_Replace2 = CheckBox_simple:new(852+d_pos,410+corrY,81,18, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "","Arial",16,  Create_Replace_state2, -- Pitch Detection mode
                               {"Create","Replace","No MIDI","No MIDI C"} )
 
-local VeloMode = CheckBox_simple:new(770+corrY3,410+corrY,90,18, 0.28,0.4,0.7,0.8, "","Arial",16,  1, -------velodaw
+local Set_Rate_Feel = CheckBox_simple:new(952+e_pos,430+corrY,72,18, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "","Arial",16,  Set_Rate_Feel_state, -- Pitch Detection mode
+                              {"Straight","Triplets"} )
+
+local Set_Rate_Mode = CheckBox_simple:new(952+e_pos,450+corrY,72,18, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "","Arial",16,  Set_Rate_Mode_state, -- Pitch Detection mode
+                              {"Item Rate","Tempo","Mapping"} )
+
+local VeloMode = CheckBox_simple:new(765+d_pos,410+corrY,85,18, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "","Arial",16,  1, -------velodaw
                               {"Use RMS","Use Peak"} )
 
 
@@ -3471,19 +4406,57 @@ local Menu =
   class(
     function(menu, id)
       menu.id = id    
-      menu.items = {} -- Menu items are collected to this table
+      menu.items = {}       -- Menu items are collected to this table
+      menu.items_str = ""
+      menu.curr_item_pos = 1
     end
   )
 
 ------------------
 -- Menu methods --
 ------------------
+-- Returns "menu item table" (or false if "id" not found)
+function Menu:get_item_from_id(id)
+  for i=1, #self.items do
+    if self.items[i].id == id then
+      return self.items[i]
+    end
+  end
+  return false
+end
+
+
+-- Updates "menu item type" variables (_has_submenu, _last_item_in_submenu etc.)
+function Menu:update_item(item_table)
+  local t = item_table
+  t._has_submenu = false
+  t._last_item_in_submenu = false
+  t.id = self.curr_item_pos
+  
+  if string.sub(t.label, 1, 1) == ">" or
+     string.sub(t.label, 1, 2) == "<>" or
+     string.sub(t.label, 1, 2) == "><" then
+    t._has_submenu = true
+    t.id = -1
+    self.curr_item_pos = self.curr_item_pos - 1
+
+  elseif string.sub(t.label, 1, 1) == "<" then
+    t._has_submenu = false
+    t._last_item_in_submenu = true
+  end
+  --t.id = self.curr_item_pos
+  self.curr_item_pos = self.curr_item_pos + 1
+end
+
+
 -- Returns the created table and table index in "menu_obj.items"
 function Menu:add_item(...)
-  t = ... or {}
+  local t = ... or {}
   self.items[#self.items+1] = t -- add new menu item at the end of menu
+  
   -- Parse arguments
   for i,v in pairs(t) do
+    --msg(i .. " = " .. tostring(v))
     if i == "label" then
       t.label = v
     elseif i == "selected" then
@@ -3498,19 +4471,26 @@ function Menu:add_item(...)
   end
   
   -- Default values for menu items
-  -- Edit these
+  -- (Edit these)
   if t.label == nil or t.label == "" then
     t.label = tostring(#self.items) -- if label is nil or "" -> label is set to "table index in menu_obj.items"
   end
   
-  if t.selected == nil then t.selected = false end 
-  if t.active == nil then t.active = true  end 
-  if t.toggleable == nil then t.toggleable = false end
-  if t.command == nil then
-    t.command = function() return end
+  if t.selected == nil then
+    t.selected = false   -- edit
   end
+  
+  if t.active == nil then
+    t.active = true      -- edit
+  end
+  
+  if t.toggleable == nil then
+    t.toggleable = false -- edit
+  end
+
   return t, #self.items
 end
+
 
 -- Get menu item table at index
 function Menu:get_item(index)
@@ -3520,26 +4500,50 @@ function Menu:get_item(index)
   return self.items[index]
 end
 
+
 -- Show menu at mx, my
 function Menu:show(mx, my)
   gfx.x = mx
   gfx.y = my
+  
+  -- Check which items has a function to call when a menu is about to be shown
+  for i=1, #self.items do
+    if self.items[i].on_menu_show ~= nil then
+      self.items[i].on_menu_show()
+    end
+    -- Update item
+    self:update_item(self.items[i])
+  end
+  
+  -- Convert menu item tables to string
   self.items_str = self:table_to_string() or ""
   self.val = gfx.showmenu(self.items_str)
   if self.val > 0 then
     self:update(self.val)
   end
+  self.curr_item_pos = 1 -- set "menu item position counter" back to the initial value
 end
 
+
 function Menu:update(menu_item_index)
+  -- check which "menu item id" matches with "menu_item_index"
+  for i=1, #self.items do
+    if self.items[i].id == menu_item_index then
+      menu_item_index = i
+      break
+    end
+  end
   local i = menu_item_index 
+  -- if menu item is "toggleable" then toggle "selected" state
   if self.items[i].toggleable then
     self.items[i].selected = not self.items[i].selected
   end
+  -- if menu item has a "command" (function), then call that function
   if self.items[i].command ~= nil then
     self.items[i].command()
   end
 end
+
 
 -- Convert "Menu_obj.items" to string
 function Menu:table_to_string()
@@ -3549,30 +4553,21 @@ function Menu:table_to_string()
   self.items_str = ""
   
   for i=1, #self.items do
-    s = ""
+    local temp_str = ""
     local menu_item = self.items[i]
     if menu_item.selected then
-      s = "!"
+      temp_str = "!"
     end
     
     if not menu_item.active then
-      s = s .. "#"
-    end
-    
-    if #menu_item > 0 then
-      --self.items[i]
-      s = s .. ">"
+      temp_str = temp_str .. "#"
     end
     
     if menu_item.label ~= "" then
-      s = s .. menu_item.label .. "|"
+      temp_str = temp_str .. menu_item.label .. "|"
     end
-    
-    if i < #self.items then
-    --  s = s .. "|"
-    end
-    --aas = self
-    self.items_str = self.items_str .. s
+
+    self.items_str = self.items_str .. temp_str
   end
   
   return self.items_str
@@ -3588,9 +4583,9 @@ end
 --- Filter Sliders ------------------------------------------------------------------
 -----------------------------------------------------------------------------------
 -- Filter HP_Freq --------------------------------
-local HP_Freq = HP_Slider:new(20,410+corrY,160,18, 0.28,0.4,0.7,0.8, "Low Cut","Arial",16, HF_Slider )
+local HP_Freq = HP_Slider:new(a_pos,410+corrY,a_width,18, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "Low Cut","Arial",16, HF_Slider )
 -- Filter LP_Freq --------------------------------
-local LP_Freq = LP_Slider:new(20,430+corrY,160,18, 0.28,0.4,0.7,0.8, "High Cut","Arial",16, LF_Slider )
+local LP_Freq = LP_Slider:new(a_pos,430+corrY,a_width,18, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "High Cut","Arial",16, LF_Slider )
 ------------------------------------------------
 -- Filter Freq Sliders draw_val function ---------
 ------------------------------------------------
@@ -3627,7 +4622,7 @@ end
 
 
 -- Filter Gain -----------------------------------
-local Fltr_Gain = G_Slider:new(20,450+corrY,160,18,  0.28,0.4,0.7,0.8, "Filtered Gain","Arial",16, out_gain )
+local Fltr_Gain = G_Slider:new(a_pos,450+corrY,a_width,18,  TH[30][1],TH[30][2],TH[30][3],TH[30][4], "Filt. Gain","Arial",16, out_gain )
 function Fltr_Gain:draw_val()
   self.form_val = self.norm_val*30  -- form value
   local x,y,w,h  = self.x,self.y,self.w,self.h
@@ -3665,7 +4660,7 @@ end
 -------------------------------------------------------------------------------------
 -- Threshold -----------------------------------
 ------------------------------------------------
-local Gate_Thresh = T_Slider:new(210,380+corrY,160,18, 0.28,0.4,0.7,0.8, "Threshold","Arial",16, readrms )
+local Gate_Thresh = T_Slider:new(b_pos,380+corrY,b_width,18, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "Threshold","Arial",16, readrms )
 function Gate_Thresh:draw_val()
   self.form_val = (self.norm_val-1)*57-3
   local x,y,w,h  = self.x,self.y,self.w,self.h
@@ -3676,34 +4671,22 @@ function Gate_Thresh:draw_val()
   Gate_Thresh:draw_val_line() -- Draw GATE Threshold lines !!!
 end
      
---------------------------------------------------
--- Gate Threshold-lines function -----------------
--------------------------------------------------- 
-function Gate_Thresh:draw_val_line()
-  if Wave.State then gfx.set(0.7,0.7,0.7,0.3) --цвет линий treshold
-    local val = (10^(self.form_val/20)) * Wave.Y_scale * Wave.vertZoom * Z_h -- value in gfx
-    if val>Wave.h/2 then return end            -- don't draw lines if value out of range
-    local val_line1 = Wave.y + Wave.h/2 - val  -- line1 y coord
-    local val_line2 = Wave.y + Wave.h/2 + val  -- line2 y coord
-    gfx.line(Wave.x, val_line1, Wave.x+Wave.w-1, val_line1 )
-    gfx.line(Wave.x, val_line2, Wave.x+Wave.w-1, val_line2 )
-  end
-end
-
 -- Sensitivity -------------------------------------
-local Gate_Sensitivity = S_Slider:new(210,400+corrY,160,18, 0.28,0.4,0.7,0.8, "Sensitivity","Arial",16, Sens_Slider )
+local Gate_Sensitivity = S_Slider:new(b_pos,400+corrY,b_width,18, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "Sensitivity","Arial",16, Sens_Slider )
 function Gate_Sensitivity:draw_val()
-  self.form_val = 2+(self.norm_val)*8       -- form_val
+  sens_val = ((self.norm_val+0.125)*9)-0.125
+  self.form_val = 2+(abs(self.norm_val-1))*8       -- form_val
   local x,y,w,h  = self.x,self.y,self.w,self.h
-  local val = string.format("%.1f", self.form_val).." dB"
+  local val = string.format("%.1f", sens_val)..""
   local val_w, val_h = gfx.measurestr(val)
   gfx.x = x+w-val_w-3
   gfx.drawstr(val)--draw Slider Value
 end
 -- Retrig ----------------------------------------
-local Gate_Retrig = Rtg_Slider:new(210,420+corrY,160,18, 0.28,0.4,0.7,0.8, "Retrig","Arial",16, retrigms )
+local Gate_Retrig = Rtg_Slider:new(b_pos,420+corrY,b_width,18, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "Retrig","Arial",16, retrigms )
 function Gate_Retrig:draw_val()
-  self.form_val  = 20+ self.norm_val * 180   -- form_val
+  custom_log = (self.norm_val*(self.norm_val/2))*2
+  self.form_val  = 10 + custom_log * 690   -- form_val
   local x,y,w,h  = self.x,self.y,self.w,self.h
   local val = string.format("%.1f", self.form_val).." ms"
   local val_w, val_h = gfx.measurestr(val)
@@ -3711,7 +4694,7 @@ function Gate_Retrig:draw_val()
   gfx.drawstr(val)--draw Slider Value
 end
 -- Reduce points slider -------------------------- 
-local Gate_ReducePoints = Rdc_Slider:new(210,450+corrY,160,18, 0.28,0.4,0.7,0.8, "Reduce","Arial",16, 1 )
+local Gate_ReducePoints = Rdc_Slider:new(b_pos,450+corrY,b_width,18, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "Reduce","Arial",16, 1 )
 function Gate_ReducePoints:draw_val()
   self.cur_max   = self.cur_max or 0 -- current points max
   self.form_val  = ceil(self.norm_val * self.cur_max) -- form_val
@@ -3739,7 +4722,7 @@ Gate_Sensitivity.onUp = Gate_Sldrs_onUp
 Gate_Retrig.onUp    = Gate_Sldrs_onUp
 
 -----------------Offset Slider------------------------ 
-local Offset_Sld = O_Slider:new(400,430+corrY,265,18, 0.28,0.4,0.7,0.8, "Offset","Arial",16, Offs_Slider )
+local Offset_Sld = O_Slider:new(400+c_pos,430+corrY,251,18, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "Offset","Arial",16, Offs_Slider )
 function Offset_Sld:draw_val()
 
   self.form_val  = (100- self.norm_val * 200)*( -1)     -- form_val
@@ -3769,7 +4752,7 @@ function()
 end
 
 -- QStrength slider ------------------------------ 
-local QStrength_Sld = Q_Slider:new(400,450+corrY,130,18, 0.28,0.4,0.7,0.8, "QStrength","Arial",16, QuantizeStrength*0.01 )
+local QStrength_Sld = Q_Slider:new(400+c_pos,450+corrY,123,18, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "QStrength","Arial",16, QuantizeStrength*0.01 )
 function QStrength_Sld:draw_val()
   self.form_val = (self.norm_val)*100       -- form_val
   local x,y,w,h  = self.x,self.y,self.w,self.h
@@ -3785,7 +4768,7 @@ function()
 end
 
 -- XFade slider ------------------------------ 
-local XFade_Sld = X_Slider:new(532,450+corrY,133,18, 0.28,0.4,0.7,0.8, "XFades","Arial",16, CrossfadeTime*0.02 )
+local XFade_Sld = X_Slider:new(525+c_pos,450+corrY,126,18, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "XFades","Arial",16, CrossfadeTime*0.02 )
 function XFade_Sld:draw_val()
   self.form_val = (self.norm_val)*50       -- form_val
   local x,y,w,h  = self.x,self.y,self.w,self.h
@@ -3801,7 +4784,7 @@ function()
 end
 
 -- XFade sliderOff ------------------------------ 
-local XFade_Sld_Off = X_SliderOff:new(532,450+corrY,133,18, 0.4,0.4,0.4,0.4, "XFades","Arial",16, 0 )
+local XFade_Sld_Off = X_SliderOff:new(525+c_pos,450+corrY,126,18, 0.4,0.4,0.4,0.4, "XFades","Arial",16, 0 )
 function XFade_Sld_Off:draw_val()
   self.form_val = (self.norm_val)*50       -- form_val
   local x,y,w,h  = self.x,self.y,self.w,self.h
@@ -3818,7 +4801,7 @@ end
 
 
 -- RandV_Sld ------------------------------ 
-local RandV_Sld = H_Slider:new(737,395,75,14, 0.28,0.4,0.7,0.8, "","Arial",16, RandV )
+local RandV_Sld = H_Slider:new(723+c_pos,395,75,14, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "","Arial",16, RandV )
 function RandV_Sld:draw_val()
   self.form_val = (self.norm_val)*100       -- form_val
   local x,y,w,h  = self.x,self.y,self.w,self.h
@@ -3836,7 +4819,7 @@ end
 if RandVval == nil then RandVval = RandV*100 end
 
 -- RandPan_Sld ------------------------------ 
-local RandPan_Sld = H_Slider:new(737,410,75,14, 0.28,0.4,0.7,0.8, "","Arial",16, RandPan )
+local RandPan_Sld = H_Slider:new(723+c_pos,410,75,14, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "","Arial",16, RandPan )
 function RandPan_Sld:draw_val()
   self.form_val = (self.norm_val)*100       -- form_val
   local x,y,w,h  = self.x,self.y,self.w,self.h
@@ -3854,7 +4837,7 @@ end
 if RandPanval == nil then RandPanval = RandPan*100 end
 
 -- RandPtch_Sld ------------------------------ 
-local RandPtch_Sld = H_Slider:new(737,425,75,14, 0.28,0.4,0.7,0.8, "","Arial",16, RandPtch )
+local RandPtch_Sld = H_Slider:new(723+c_pos,425,75,14, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "","Arial",16, RandPtch )
 function RandPtch_Sld:draw_val()
   self.form_val = (self.norm_val)*100       -- form_val
   local x,y,w,h  = self.x,self.y,self.w,self.h
@@ -3872,7 +4855,7 @@ end
 if RandPtchval == nil then RandPtchval = RandPtch*12 end
 
 -- RandPos_Sld ------------------------------ 
-local RandPos_Sld = H_Slider:new(737,440,75,14, 0.28,0.4,0.7,0.8, "","Arial",16, RandPos )
+local RandPos_Sld = H_Slider:new(723+c_pos,440,75,14, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "","Arial",16, RandPos )
 function RandPos_Sld:draw_val()
   self.form_val = (self.norm_val)*100       -- form_val
   local x,y,w,h  = self.x,self.y,self.w,self.h
@@ -3891,7 +4874,7 @@ end
 if RandPosval == nil then RandPosval = RandPos*100 end
 
 -- RandRev_Sld ------------------------------ 
-local RandRev_Sld = H_Slider:new(737,455,75,14, 0.28,0.4,0.7,0.8, "","Arial",16, RandMute )
+local RandRev_Sld = H_Slider:new(723+c_pos,455,75,14, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "","Arial",16, RandRev )
 function RandRev_Sld:draw_val()
   self.form_val = (self.norm_val)*100       -- form_val
   local x,y,w,h  = self.x,self.y,self.w,self.h
@@ -3908,12 +4891,12 @@ RandRev_Sld.onUp =
 function() 
 
 end
-if RandRevVal == nil then RandRevVal = RandMute*100 end
+if RandRevVal == nil then RandRevVal = ceil((((logx((RandRev*100)+1))*21.63)*-1)+100) end
 
 -------------------------------------------------------------------------------------
 --- Range Slider --------------------------------------------------------------------
 -------------------------------------------------------------------------------------
-local Gate_VeloScale = Rng_Slider:new(770+corrY3,430+corrY,90,18, 0.28,0.4,0.7,0.8, "Range","Arial",16, VeloRng, VeloRng2 )---velodaw 
+local Gate_VeloScale = Rng_Slider:new(765+d_pos,430+corrY,85,18, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "Range","Arial",16, VeloRng, VeloRng2 )---velodaw 
 function Gate_VeloScale:draw_val()
 
   self.form_val  = floor(1+ self.norm_val * 126)  -- form_val
@@ -3935,7 +4918,7 @@ end
 -------------------------------------------------------------------------------------
 --- Loop Slider --------------------------------------------------------------------
 -------------------------------------------------------------------------------------
-local LoopScale = Loop_Slider:new(10,29,1024,18, 0.28,0.4,0.7,0.8, "","Arial",16, 0,1 ) -- Play Loop Range
+local LoopScale = Loop_Slider:new(10,29,1024,18, TH[32][1],TH[32][2],TH[32][3],TH[32][4], "","Arial",16, 0,1 ) -- Play Loop Range
 
 function LoopScale:draw_val()
 
@@ -3951,7 +4934,7 @@ end
               if rng2 == nil then rng2 = 1 end
 
 -- Swing Button ----------------------------
-local Swing_Btn = Button_top:new(391,5,50,19, 0.3,0.3,0.3,1, "Swing",    "Arial",16 )
+local Swing_Btn = Button_top:new(391,5,50,19, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "Swing",    "Arial",16 )
 Swing_Btn.onClick = 
 function()
    if Wave.State then 
@@ -3963,14 +4946,14 @@ function()
              Swing_on = 0
     r.GetSetProjectGrid(0, true, division, 0)
         end
-DrawGridGuides()
+Wave:DrawGridGuides()
    end 
 end 
 
 triplets = 2
 
 -- Grid Button T----------------------------
-local GridT_Btn = Button_top:new(344,5,40,19, 0.3,0.3,0.3,1, "T",    "Arial",16 )
+local GridT_Btn = Button_top:new(344,5,40,19, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "T",    "Arial",16 )
 GridT_Btn.onClick = 
 function()
    if Wave.State then 
@@ -3985,12 +4968,12 @@ function()
     local _, division, _, _ = r.GetSetProjectGrid(0,false)
     r.GetSetProjectGrid(0, true, division+division/2, swing_mode, swingamt)
         end
-DrawGridGuides()
+Wave:DrawGridGuides()
    end 
 end 
 
 -- Grid Button 1----------------------------
-local Grid1_Btn = Button_top:new(50,5,40,19, 0.3,0.3,0.3,1, "1",    "Arial",16 )
+local Grid1_Btn = Button_top:new(50,5,40,19, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "1",    "Arial",16 )
 Grid1_Btn.onClick = 
 function()
 
@@ -4013,12 +4996,12 @@ function()
                else
              Grid1_on = 0
         end
-DrawGridGuides()
+Wave:DrawGridGuides()
    end 
 end 
 
 -- Grid Button 1/2----------------------------
-local Grid2_Btn = Button_top:new(92,5,40,19, 0.3,0.3,0.3,1, "1/2",    "Arial",16 )
+local Grid2_Btn = Button_top:new(92,5,40,19, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "1/2",    "Arial",16 )
 Grid2_Btn.onClick = 
 function()
    if Wave.State then 
@@ -4040,12 +5023,12 @@ function()
                else
              Grid2_on = 0
         end
-DrawGridGuides()
+Wave:DrawGridGuides()
    end 
 end 
 
 -- Grid Button 1/4----------------------------
-local Grid4_Btn = Button_top:new(134,5,40,19, 0.3,0.3,0.3,1, "1/4",    "Arial",16 )
+local Grid4_Btn = Button_top:new(134,5,40,19, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "1/4",    "Arial",16 )
 Grid4_Btn.onClick = 
 function()
    if Wave.State then 
@@ -4067,12 +5050,12 @@ function()
                else
              Grid4_on = 0
         end
-DrawGridGuides()
+Wave:DrawGridGuides()
    end 
 end 
 
 -- Grid Button 1/8----------------------------
-local Grid8_Btn = Button_top:new(176,5,40,19, 0.3,0.3,0.3,1, "1/8",    "Arial",16 )
+local Grid8_Btn = Button_top:new(176,5,40,19, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "1/8",    "Arial",16 )
 Grid8_Btn.onClick = 
 function()
    if Wave.State then 
@@ -4094,12 +5077,12 @@ function()
                else
              Grid8_on = 0
         end
-DrawGridGuides()
+Wave:DrawGridGuides()
    end 
 end 
 
 -- Grid Button 1/16----------------------------
-local Grid16_Btn = Button_top:new(218,5,40,19, 0.3,0.3,0.3,1, "1/16",    "Arial",16 )
+local Grid16_Btn = Button_top:new(218,5,40,19, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "1/16",    "Arial",16 )
 Grid16_Btn.onClick = 
 function()
    if Wave.State then 
@@ -4121,12 +5104,12 @@ function()
                else
              Grid16_on = 0
         end
-DrawGridGuides()
+Wave:DrawGridGuides()
    end 
 end 
 
 -- Grid Button 1/32----------------------------
-local Grid32_Btn = Button_top:new(260,5,40,19, 0.3,0.3,0.3,1, "1/32",    "Arial",16 )
+local Grid32_Btn = Button_top:new(260,5,40,19, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "1/32",    "Arial",16 )
 Grid32_Btn.onClick = 
 function()
    if Wave.State then 
@@ -4148,12 +5131,12 @@ function()
                else
              Grid32_on = 0
         end
-DrawGridGuides()
+Wave:DrawGridGuides()
    end 
 end 
 
 -- Grid Button 1/64----------------------------
-local Grid64_Btn = Button_top:new(302,5,40,19, 0.3,0.3,0.3,1, "1/64",    "Arial",16 )
+local Grid64_Btn = Button_top:new(302,5,40,19, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "1/64",    "Arial",16 )
 Grid64_Btn.onClick = 
 function()
    if Wave.State then 
@@ -4175,7 +5158,7 @@ function()
                else
              Grid64_on = 0
         end
-DrawGridGuides()
+Wave:DrawGridGuides()
    end 
 end 
 
@@ -4183,7 +5166,7 @@ end
 -----------------Swing Slider-----------------------------------------------------
 -------------------------------------------------------------------------------------
 
-local Swing_Sld = Sw_Slider:new(443,5,100,20, 0.28,0.4,0.7,0.8, " ","Arial",16, swngdefamt )
+local Swing_Sld = Sw_Slider:new(443,5,100,20, TH[32][1],TH[32][2],TH[32][3],TH[32][4], " ","Arial",16, swngdefamt )
 function Swing_Sld:draw_val()
 
   self.form_val  = ((100- self.norm_val * 200)*( -1))     -- form_val
@@ -4212,11 +5195,11 @@ end
 ----------------------------------------------------------------------------------
 ----------------------Notes CheckBox---------------------------------------------
 ----------------------------------------------------------------------------------
-Trigger_Oct_Shift = tonumber(r.GetExtState('cool_MK Slicer.lua','Trigger_Oct_Shift'))or 0;
+Trigger_Oct_Shift = tonumber(r.GetExtState('MK_Slicer_3','Trigger_Oct_Shift'))or 0;
 octa = Trigger_Oct_Shift+1
 note = 23+(octa*12)
 
-local OutNote  = CheckBox_simple:new(670+corrY3,430+corrY,98,18, 0.28,0.4,0.7,0.8, "","Arial",16,  OutNote_State,
+local OutNote  = CheckBox_simple:new(670+d_pos,430+corrY,93,18, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "","Arial",16,  OutNote_State,
                               {
                                    "B" .. Compensate_Oct_Offset+octa .. ": " .. note, 
                                    "C" .. Compensate_Oct_Offset+octa+1 .. ": " .. note+1, 
@@ -4236,7 +5219,7 @@ local OutNote  = CheckBox_simple:new(670+corrY3,430+corrY,98,18, 0.28,0.4,0.7,0.
                                    "D" .. Compensate_Oct_Offset+octa+2 .. ": " .. note+15} 
                               )
 
-local OutNote2  = CheckBox_simple:new(670+corrY3,430+corrY,98,18, 0.28,0.4,0.7,0.8, "","Arial",16,  OutNote_State, -- named notes
+local OutNote2  = CheckBox_simple:new(670+d_pos,430+corrY,93,18, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "","Arial",16,  OutNote_State, -- named notes
                               {
                                    "B" .. Compensate_Oct_Offset+octa .. ":Kick1", 
                                    "C" .. Compensate_Oct_Offset+octa+1 .. ":Kick2", 
@@ -4262,7 +5245,7 @@ local OutNote2  = CheckBox_simple:new(670+corrY3,430+corrY,98,18, 0.28,0.4,0.7,0
 ----------------------------------------
 
 local Slider_TB = {HP_Freq,LP_Freq,Fltr_Gain, 
-                   Gate_Thresh,Gate_Sensitivity,Gate_Retrig,Gate_ReducePoints,Offset_Sld,QStrength_Sld,Project}
+                   Gate_Thresh,Gate_Sensitivity,Gate_Retrig,Gate_ReducePoints,Offset_Sld,QStrength_Sld,Project,Set_Rate_Mode, Set_Rate_Feel}
 
 local Sliders_Grid_TB = {Grid1_Btn, Grid2_Btn, Grid4_Btn, Grid8_Btn, Grid16_Btn, Grid32_Btn, Grid64_Btn, GridT_Btn}
 
@@ -4286,33 +5269,49 @@ local SliderRand_TBM = {RandRev_Sld}
 -------------------------------------------------------------------------------------
 
 -- Create Loop  Button ----------------------------
-local Loop_Btn = Button_top:new(984,5,50,20, 0.3,0.3,0.3,1, "Loop",    "Arial",16 )
+local Loop_Btn = Button_top:new(986,5,48,20, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "Loop",    "Arial",16 )
 Loop_Btn.onClick = 
 function()
    if Wave.State then 
+        SetLoop = 0
         if Loop_on == 0 then 
-             Loop_on = 1
+                  Loop_on = 1
                else
-             Loop_on = 0
+                  Loop_on = 0
         end
    end 
 end 
 
--- Create Sync Button ----------------------------
-local Sync_Btn = Button_top:new(924,5,50,20, 0.3,0.3,0.3,1, "Sync",    "Arial",16 )
-Sync_Btn.onClick = 
+-- Aim Button ----------------------------
+local Aim_Btn = Button_top:new(920,5,27,20, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "I",    "Arial",16 )
+Aim_Btn.onClick = 
 function()
    if Wave.State then 
-        if Sync_on == 0 then 
-             Sync_on = 1
+        if Aim_on == 0 then 
+             Aim_on = 1
                else
-             Sync_on = 0
+             Aim_on = 0
         end
+   end 
+end 
+
+-- Create Snap Button ----------------------------
+local Snap_Btn = Button_top:new(953,5,27,20, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "Ll",    "Arial",16 )
+Snap_Btn.onClick = 
+function()
+   if Wave.State then 
+         repeatstate_status = 0
+         if Snap_on == 0 then
+                Snap_on = 1
+             else
+              SetSnap = 0
+              Snap_on = 0
+         end
    end 
 end 
 
 -- Get Selection button --------------------------
-local Get_Sel_Button = Button:new(20,380+corrY,160,25, 0.3,0.3,0.3,1, "Get Item",    "Arial",16 )
+local Get_Sel_Button = Button:new(a_pos,380+corrY,a_width,25, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "Get Item",    "Arial",16 )
 Get_Sel_Button.onClick = 
 
 function()
@@ -4334,6 +5333,12 @@ Pitch_Det_offs_stat = 0
 Random_Status = 0
 SliceQ_Status_Rand = 0
 ErrMsg_Status = 0
+SetBPMButtonStatus = 0
+SetBPMStatus_Reset = 0
+SetBPMStatus_ResetRate = 0
+TMInit_Status = 0
+Markers_BPM_Reset_Status = 0
+Slice_BPM_Reset_Status = 0
 
  loopcheck = 0
 ----loopcheck------
@@ -4536,7 +5541,7 @@ local cursorpos = r.GetCursorPosition()
             r.Main_OnCommand(r.NamedCommandLookup("_SWS_RESTTIME1"),0)
 
 r.SetEditCurPos(cursorpos,0,0) 
-r.PreventUIRefresh(-1)
+
     r.Undo_EndBlock("Init", -1) 
 
 --------------------------A Bit More Foolproof----------------------------
@@ -4615,7 +5620,7 @@ end -- не запускать, если MIDI айтем.
              GlueMultitrack()
 
   end
-
+SaveInitRate()
 --------------------------------------------------------------------------------
     r.Undo_BeginBlock() 
 r.PreventUIRefresh(1)
@@ -4639,27 +5644,29 @@ getitem()
 
 if Wave.State then
 --      Wave:Reset_All() --Reset item to Init before the "Get Item"
-      DrawGridGuides()
+      Wave:DrawGridGuides()
 end
 
 if Midi_Sampler.norm_val == 3 and RebuildPeaksOnStart == 1 then
     r.Main_OnCommand(40441,0) --rebuild peaks when the script starts
 end
 
+r.Main_OnCommand(40635, 0) -- Remove Time Selection
+r.PreventUIRefresh(-1)
 ::zzz::
 
 end
 
 
 -- Create Settings Button ----------------------------
-local Settings = Button_Settings:new(9,10,40,40, 0.3, 0.3, 0.3, 1, ">",    "Arial",20 )
+local Settings = Button_Settings:new(9,10,40,40, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "=",    "Arial",20 )
 Settings.onClick = 
 function()
    Wave:Settings()
 end 
 
 -- Create Just Slice  Button ----------------------------
-local Just_Slice = Button:new(400,380+corrY,67,25, 0.3,0.3,0.3,1, "Slice",    "Arial",16 )
+local Just_Slice = Button:new(400+c_pos,380+corrY,60,25, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "Slice",    "Arial",16 )
 Just_Slice.onClick = 
 function()
    if Wave.State then 
@@ -4704,7 +5711,7 @@ end
 end 
 
 -- Create Quantize Slices Button ----------------------------
-local Quantize_Slices = Button:new(469,380+corrY,25,25, 0.3,0.3,0.3,1, "Q",    "Arial",16 )
+local Quantize_Slices = Button:new(462+c_pos,380+corrY,25,25, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "Q",    "Arial",16 )
 Quantize_Slices.onClick = 
 function()
    if Wave.State then 
@@ -4750,14 +5757,14 @@ end
 end 
 
 -- Create Add Markers Button ----------------------------
-local Add_Markers = Button:new(499,380+corrY,67,25, 0.3,0.3,0.3,1, "Markers",    "Arial",16 )
+local Add_Markers = Button:new(492+c_pos,380+corrY,60,25, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "Markers",    "Arial",16 )
 Add_Markers.onClick = 
 function()
    if Wave.State then Wave:Add_Markers() end 
 end 
 
 -- Create Quantize Markers Button ----------------------------
-local Quantize_Markers = Button:new(568,380+corrY,25,25, 0.3,0.3,0.3,1, "Q",    "Arial",16 )
+local Quantize_Markers = Button:new(554+c_pos,380+corrY,25,25, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "Q",    "Arial",16 )
 Quantize_Markers.onClick = 
 function()
    if Wave.State then Wave:Quantize_Markers() end 
@@ -4768,237 +5775,238 @@ end
 ----------------------------------------------------
 function Randomizer()
 
-    if Random_Order == 1 then
-        r.Main_OnCommand(41638, 0)  -- Random Order  
-    end
-
-math.randomseed(reaper.time_precise()*os.time()/1e3)
-local t = {}
-local sel_items = {}
-local function SaveSelItems()
-  for i = 0, r.CountSelectedMediaItems(0)-1 do
-    sel_items[i+1] = r.GetSelectedMediaItem(0, i)
-  end
-end
-
-local function RestoreSelItems()
-  r.SelectAllMediaItems(0, 0) -- unselect all items
-  for _, item in ipairs(sel_items) do
-    if item then r.SetMediaItemSelected(item, 1) end
-  end
-end
-
-function swap(array, index1, index2)
-  array[index1], array[index2] = array[index2], array[index1]
-end
-
-function shuffle(array)
-  local counter = #array
-  while counter > 1 do
-    local index = random(counter)
-    swap(array, index, counter)
-    counter = counter - 1
-  end
-end
-
-function random_numbers_less_than(x)
-  local t, t_res = {},{}
-  local e = 0
-  local d = 0
-  for i = 1, x do 
-     e = e + 1
-     t[e] = i 
-  end
-  shuffle(t)
-  local max = x//((RandRevVal/10)+1)
-  for i = 1, max do 
-    d = d + 1
-    t_res[d] = t[i] 
-  end
-  return t_res
-end
-
-local items = r.CountSelectedMediaItems()
-if items == 0 then return end
-
-for i = 0, items - 1 do --RANDOMIZE PAN AND PITCH and other
-    item = r.GetSelectedMediaItem(0, i)
-
-       if item then
-                  item_take = r.GetActiveTake(item)
-        
-                  if Random_Pan == 1 then
-                      local random_pan = random()*(RandPanval/50) - (RandPanval/100)
-                      r.SetMediaItemTakeInfo_Value(item_take, 'D_PAN', random_pan)
-                  end
-        
-                  if Random_Vol == 1 then
-                   local random_vol = (random()*(RandVval/100))+(1/(RandVval/2)) -- +0.1
-                    if RandVval <= 2 then random_vol = 1 end
-                    if RandVval >= 3 and RandVval <= 10 then random_vol = (random_vol+0.45) end
-                    if RandVval >= 11 and RandVval <= 45 then random_vol = (random_vol+0.55) end
-                    if RandVval >= 46 and RandVval <= 70 then random_vol = (random_vol+0.4) end
-                    if RandVval >= 71 and RandVval <= 80 then random_vol = (random_vol+0.2) end
-                    if RandVval >= 81 and RandVval <= 100 then random_vol = (random_vol+0.1) end
-                   r.SetMediaItemTakeInfo_Value(item_take, 'D_VOL', random_vol)
-                  end
-
-                  if Random_Pitch == 1 then
-                     local random_polarity = random()*2 - 1
-                     local random_pitch
-                     local random_pitch2                   
-                                 if RandPtchval <= 1.3 then --slider = 10
-                                    random_pitch = random() * (RandPtchval*random_polarity) -- by cents
-                                    else
-                                    random_pitch = ceil(random() * (RandPtchval*random_polarity)) -- by semitones
-                                 end
-
-                              if RandPtchval >= 10.7 then  ----- by intervals,  slider = 90
-                                    if random_pitch == 0  then random_pitch2 = 0 end
-                                
-                                    if random_pitch >= 1 and random_pitch <= 2  then random_pitch2 = 3 end
-                                    if random_pitch >= 3 and random_pitch <= 4 then random_pitch2 = 5 end
-                                    if random_pitch >= 5 and random_pitch <= 7 then random_pitch2 = 7 end
-                                    if random_pitch >= 8 and random_pitch <= 12 then random_pitch2 = 12 end
-                                    
-                                    if random_pitch <= -1 and random_pitch >= -2  then random_pitch2 = -3 end
-                                    if random_pitch <= -3 and random_pitch >= -4 then random_pitch2 = -5 end
-                                    if random_pitch <= -5 and random_pitch >= -7 then random_pitch2 = -7 end
-                                    if random_pitch <= -8 and random_pitch >= -12 then random_pitch2 = -12 end
-                                 else
-                                    random_pitch2 = random_pitch
-                              end
-
-                     r.SetMediaItemTakeInfo_Value(item_take, 'D_PITCH', random_pitch2)
-                 end
-
+      if Random_Order == 1 then
+          r.Main_OnCommand(41638, 0)  -- Random Order  
+      end
+     
+     math.randomseed(reaper.time_precise()*os.time()/1e3)
+     local t = {}
+     local sel_items = {}
+     local function SaveSelItems()
+       for i = 0, r.CountSelectedMediaItems(0)-1 do
+         sel_items[i+1] = r.GetSelectedMediaItem(0, i)
+       end
      end
-end
-
-for i = 1, items - 1 do --RANDOMIZE Position instead first item
-    item = r.GetSelectedMediaItem(0, i)
-       if item then
-                  item_take = r.GetActiveTake(item)   
-                  if Random_Position == 1 then
-                      local random_position = random(ceil((RandPosval/10)+1))-1
-                      local random_polarity2 = random()*2 - 1
-                      local it_start = r.GetMediaItemInfo_Value(item, "D_POSITION")
-                      local random_pos = it_start+((random_position/300)*random_polarity2)*tempo_corr
-                      r.SetMediaItemInfo_Value(item, "D_POSITION", random_pos)
-                 end
+     
+     local function RestoreSelItems()
+       r.SelectAllMediaItems(0, 0) -- unselect all items
+       for _, item in ipairs(sel_items) do
+         if item then r.SetMediaItemSelected(item, 1) end
+       end
      end
-end
-
-SaveSelItems()
-local f = 0
-for i = 0, items-1 do
-  local it = r.GetSelectedMediaItem(0,i)
-  f = f + 1
-  t[f] = it
-end
-
-local t_nums = random_numbers_less_than(items)
-
-r.Undo_BeginBlock(); r.PreventUIRefresh(1)
-
-r.SelectAllMediaItems(0, 0) -- unselect all items
-for i = 1, #t_nums-1 do
-  local it = t[t_nums[i]]
-  if it and IsEven(i) == true then
-     r.SetMediaItemSelected(it,1)
-  end
-end
-        if Random_Reverse == 1 then
-             r.Main_OnCommand(41051,0) --Item properties: Toggle take reverse
-        end
-
-RestoreSelItems()
-
-----------------------------------------------------------------------------------------
-local t = {}
-local sel_items = {}
-local function SaveSelItems()
-  for i = 0, r.CountSelectedMediaItems(0)-1 do
-    sel_items[i+1] = r.GetSelectedMediaItem(0, i)
-  end
-end
-
-local function RestoreSelItems()
-  r.SelectAllMediaItems(0, 0) -- unselect all items
-  for _, item in ipairs(sel_items) do
-    if item then r.SetMediaItemSelected(item, 1) end
-  end
-end
-
-function swap(array, index1, index2)
-  array[index1], array[index2] = array[index2], array[index1]
-end
-
-function shuffle(array)
-  local counter = #array
-  while counter > 1 do
-    local index = random(counter)
-    swap(array, index, counter)
-    counter = counter - 1
-  end
-end
-
-function random_numbers_less_than(x)
-  local t, t_res = {},{}
-  local e = 0
-  local d = 0
-  for i = 1, x do 
-     e = e + 1
-     t[e] = i 
-  end
-  shuffle(t)
-  local max = (x)
-  for i = 1, max do 
-    d = d + 1
-    t_res[d] = t[i] 
-  end
-  return t_res
-end
-
-local items = r.CountSelectedMediaItems()
-if items == 0 then return end
-
-SaveSelItems()
-local f = 0
-for i = 0, items-1 do
-  local it = r.GetSelectedMediaItem(0,i)
-  f = f + 1
-  t[f] = it
-end
-
-local t_nums = random_numbers_less_than(items)
-
-
-r.SelectAllMediaItems(0, 0) -- unselect all items
-for i = 1, #t_nums-1 do
-  local it = t[t_nums[i]]
-  if it and IsEven(i) == true then
-     r.SetMediaItemSelected(it,1)
-  end
-end
-        if Random_Mute == 1 then
-            r.Main_OnCommand(40719,0) -- Item properties: Mute
-        end
-
-RestoreSelItems()
-----------------------------------------------------------------------------------------------
-
-        if Random_Position == 1 then
-            r.Main_OnCommand(r.NamedCommandLookup("_SWS_AWFILLGAPSQUICK"),0) -- fill gaps 
-        end
-
-r.PreventUIRefresh(-1); r.Undo_EndBlock('Random', -1)
+     
+     function swap(array, index1, index2)
+       array[index1], array[index2] = array[index2], array[index1]
+     end
+     
+     function shuffle(array)
+       local counter = #array
+       while counter > 1 do
+         local index = random(counter)
+         swap(array, index, counter)
+         counter = counter - 1
+       end
+     end
+     
+     function random_numbers_less_than(x)
+       local t, t_res = {},{}
+       local e = 0
+       local d = 0
+       for i = 1, x do 
+          e = e + 1
+          t[e] = i 
+       end
+       shuffle(t)
+       local max = x//((RandRevVal/10)+1)
+       for i = 1, max do 
+         d = d + 1
+         t_res[d] = t[i] 
+       end
+       return t_res
+     end
+     
+     local items = r.CountSelectedMediaItems()
+     if items == 0 then return end
+     
+     for i = 0, items - 1 do --RANDOMIZE PAN AND PITCH and other
+         item = r.GetSelectedMediaItem(0, i)
+     
+            if item then
+                       item_take = r.GetActiveTake(item)
+             
+                       if Random_Pan == 1 then
+                           local random_pan = random()*(RandPanval/50) - (RandPanval/100)
+                           r.SetMediaItemTakeInfo_Value(item_take, 'D_PAN', random_pan)
+                       end
+             
+                       if Random_Vol == 1 then
+                        local random_vol = (random()*(RandVval/100))+(1/(RandVval/2)) -- +0.1
+                         if RandVval <= 2 then random_vol = 1 end
+                         if RandVval >= 3 and RandVval <= 10 then random_vol = (random_vol+0.45) end
+                         if RandVval >= 11 and RandVval <= 45 then random_vol = (random_vol+0.55) end
+                         if RandVval >= 46 and RandVval <= 70 then random_vol = (random_vol+0.4) end
+                         if RandVval >= 71 and RandVval <= 80 then random_vol = (random_vol+0.2) end
+                         if RandVval >= 81 and RandVval <= 100 then random_vol = (random_vol+0.1) end
+                        r.SetMediaItemTakeInfo_Value(item_take, 'D_VOL', random_vol)
+                       end
+     
+                       if Random_Pitch == 1 then
+                          local random_polarity = random()*2 - 1
+                          local random_pitch
+                          local random_pitch2                   
+                                      if RandPtchval <= 1.3 then --slider = 10
+                                         random_pitch = random() * (RandPtchval*random_polarity) -- by cents
+                                         else
+                                         random_pitch = ceil(random() * (RandPtchval*random_polarity)) -- by semitones
+                                      end
+     
+                                   if RandPtchval >= 10.7 then  ----- by intervals,  slider = 90
+                                         if random_pitch == 0  then random_pitch2 = 0 end
+                                     
+                                         if random_pitch >= 1 and random_pitch <= 2  then random_pitch2 = 3 end
+                                         if random_pitch >= 3 and random_pitch <= 4 then random_pitch2 = 5 end
+                                         if random_pitch >= 5 and random_pitch <= 7 then random_pitch2 = 7 end
+                                         if random_pitch >= 8 and random_pitch <= 12 then random_pitch2 = 12 end
+                                         
+                                         if random_pitch <= -1 and random_pitch >= -2  then random_pitch2 = -3 end
+                                         if random_pitch <= -3 and random_pitch >= -4 then random_pitch2 = -5 end
+                                         if random_pitch <= -5 and random_pitch >= -7 then random_pitch2 = -7 end
+                                         if random_pitch <= -8 and random_pitch >= -12 then random_pitch2 = -12 end
+                                      else
+                                         random_pitch2 = random_pitch
+                                   end
+     
+                          r.SetMediaItemTakeInfo_Value(item_take, 'D_PITCH', random_pitch2)
+                      end
+     
+          end
+     end
+     
+     for i = 1, items - 1 do --RANDOMIZE Position instead first item
+         item = r.GetSelectedMediaItem(0, i)
+            if item then
+                       item_take = r.GetActiveTake(item)   
+                       if Random_Position == 1 then
+                           local random_position = random(ceil((RandPosval/10)+1))-1
+                           local random_polarity2 = random()*2 - 1
+                           local it_start = r.GetMediaItemInfo_Value(item, "D_POSITION")
+                           local random_pos = it_start+((random_position/300)*random_polarity2)*tempo_corr
+                           r.SetMediaItemInfo_Value(item, "D_POSITION", random_pos)
+                      end
+          end
+     end
+     
+     SaveSelItems()
+     local f = 0
+     for i = 0, items-1 do
+       local it = r.GetSelectedMediaItem(0,i)
+       f = f + 1
+       t[f] = it
+     end
+     
+     local t_nums = random_numbers_less_than(items)
+     
+     r.Undo_BeginBlock(); r.PreventUIRefresh(1)
+     
+     r.SelectAllMediaItems(0, 0) -- unselect all items
+     for i = 1, #t_nums-1 do
+       local it = t[t_nums[i]]
+       if it and IsEven(i) == true then
+          r.SetMediaItemSelected(it,1)
+       end
+     end
+             if Random_Reverse == 1 then
+                  r.Main_OnCommand(41051,0) --Item properties: Toggle take reverse
+             end
+     
+     RestoreSelItems()
+     
+     ----------------------------------------------------------------------------------------
+     local t = {}
+     local sel_items = {}
+     local function SaveSelItems()
+       for i = 0, r.CountSelectedMediaItems(0)-1 do
+         sel_items[i+1] = r.GetSelectedMediaItem(0, i)
+       end
+     end
+     
+     local function RestoreSelItems()
+       r.SelectAllMediaItems(0, 0) -- unselect all items
+       for _, item in ipairs(sel_items) do
+         if item then r.SetMediaItemSelected(item, 1) end
+       end
+     end
+     
+     function swap(array, index1, index2)
+       array[index1], array[index2] = array[index2], array[index1]
+     end
+     
+     function shuffle(array)
+       local counter = #array
+       while counter > 1 do
+         local index = random(counter)
+         swap(array, index, counter)
+         counter = counter - 1
+       end
+     end
+     
+     function random_numbers_less_than(x)
+       local t, t_res = {},{}
+       local e = 0
+       local d = 0
+       for i = 1, x do 
+          e = e + 1
+          t[e] = i 
+       end
+       shuffle(t)
+       local max = (x)
+       for i = 1, max do 
+         d = d + 1
+         t_res[d] = t[i] 
+       end
+       return t_res
+     end
+     
+     local items = r.CountSelectedMediaItems()
+     if items == 0 then return end
+     
+     SaveSelItems()
+     local f = 0
+     for i = 0, items-1 do
+       local it = r.GetSelectedMediaItem(0,i)
+       f = f + 1
+       t[f] = it
+     end
+     
+     local t_nums = random_numbers_less_than(items)
+     
+     
+     r.SelectAllMediaItems(0, 0) -- unselect all items
+     for i = 1, #t_nums-1 do
+       local it = t[t_nums[i]]
+       if it and IsEven(i) == true then
+          r.SetMediaItemSelected(it,1)
+       end
+     end
+             if Random_Mute == 1 then
+                 r.Main_OnCommand(40719,0) -- Item properties: Mute
+             end
+     
+     RestoreSelItems()
+     ----------------------------------------------------------------------------------------------
+     
+             if Random_Position == 1 then
+             --    r.Main_OnCommand(r.NamedCommandLookup("_SWS_AWFILLGAPSQUICK"),0) -- fill gaps 
+                   FillGaps()
+             end
+     
+     r.PreventUIRefresh(-1); r.Undo_EndBlock('Random', -1)
 
 end
 
 
 -- Random_Setup Button ----------------------------
-local Random_SetupB = Button_small:new(598,410+corrY,67,15, 0.3,0.3,0.3,1, "Rnd.Set",    "Arial",16 )
+local Random_SetupB = Button_small:new(584+c_pos,410+corrY,67,15, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "Rnd.Set",    "Arial",16 )
 Random_SetupB.onClick = 
 function()
      if Random_Setup ~= 1 then
@@ -5008,9 +6016,11 @@ function()
      end
 end
 
+local sbtbl = {Random_OrderB, Random_VolB, Random_PanB, Random_PitchB, Random_PositionB, Random_ReverseB, Random_MuteB, Random_SetupClearB}
+
 -- Random_Clear Button ----------------------------
-local Random_SetupClearB = Button_small:new(772,470,40,14, 0.3,0.3,0.3,1, "Clear",    "Arial",16 )
-Random_SetupClearB.onClick = 
+sbtbl[8] = Button_small:new(758+c_pos,470,40,14, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "Clear",    "Arial",16 )
+sbtbl[8].onClick = 
 function()
 Random_Order = 1 
 Random_Vol = 0 
@@ -5019,103 +6029,103 @@ Random_Pitch = 0
 Random_Position = 0
 Random_Mute = 0 
 Random_Reverse = 0
-r.SetExtState('cool_MK Slicer.lua','Random_Order',Random_Order,true);
-r.SetExtState('cool_MK Slicer.lua','Random_Vol',Random_Vol,true);
-r.SetExtState('cool_MK Slicer.lua','Random_Pan',Random_Pan,true);
-r.SetExtState('cool_MK Slicer.lua','Random_Pitch',Random_Pitch,true);
-r.SetExtState('cool_MK Slicer.lua','Random_Position',Random_Position,true);
-r.SetExtState('cool_MK Slicer.lua','Random_Position',Random_Position,true);
-r.SetExtState('cool_MK Slicer.lua','Random_Mute',Random_Mute,true);
-r.SetExtState('cool_MK Slicer.lua','Random_Reverse',Random_Reverse,true);
+r.SetExtState('MK_Slicer_3','Random_Order',Random_Order,true);
+r.SetExtState('MK_Slicer_3','Random_Vol',Random_Vol,true);
+r.SetExtState('MK_Slicer_3','Random_Pan',Random_Pan,true);
+r.SetExtState('MK_Slicer_3','Random_Pitch',Random_Pitch,true);
+r.SetExtState('MK_Slicer_3','Random_Position',Random_Position,true);
+r.SetExtState('MK_Slicer_3','Random_Position',Random_Position,true);
+r.SetExtState('MK_Slicer_3','Random_Mute',Random_Mute,true);
+r.SetExtState('MK_Slicer_3','Random_Reverse',Random_Reverse,true);
 end
 
 -- Random_Order Button ----------------------------
-local Random_OrderB = Button_small:new(675,380,60,14, 0.3,0.3,0.3,1, "Order",    "Arial",5 )
-Random_OrderB.onClick = 
+sbtbl[1] = Button_small:new(661+c_pos,380,60,14, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "Order",    "Arial",5 )
+sbtbl[1].onClick = 
 function()
      if Random_Order ~= 1 then
             Random_Order = 1 
         else
             Random_Order = 0 
      end
-          r.SetExtState('cool_MK Slicer.lua','Random_Order',Random_Order,true);
+          r.SetExtState('MK_Slicer_3','Random_Order',Random_Order,true);
 end
 
 -- Random_Vol Button ----------------------------
-local Random_VolB = Button_small:new(675,395,60,14, 0.3,0.3,0.3,1, "Volume",    "Arial",5 )
-Random_VolB.onClick = 
+sbtbl[2] = Button_small:new(661+c_pos,395,60,14, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "Volume",    "Arial",5 )
+sbtbl[2].onClick = 
 function()
      if Random_Vol ~= 1 then
             Random_Vol = 1 
         else
             Random_Vol = 0 
      end
-          r.SetExtState('cool_MK Slicer.lua','Random_Vol',Random_Vol,true);
+          r.SetExtState('MK_Slicer_3','Random_Vol',Random_Vol,true);
 end
 
 -- Random_Pan Button ----------------------------
-local Random_PanB = Button_small:new(675,410,60,14, 0.3,0.3,0.3,1, "Pan",    "Arial",5 )
-Random_PanB.onClick = 
+sbtbl[3] = Button_small:new(661+c_pos,410,60,14, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "Pan",    "Arial",5 )
+sbtbl[3].onClick = 
 function()
      if Random_Pan ~= 1 then
             Random_Pan = 1 
         else
             Random_Pan = 0 
      end
-          r.SetExtState('cool_MK Slicer.lua','Random_Pan',Random_Pan,true);
+          r.SetExtState('MK_Slicer_3','Random_Pan',Random_Pan,true);
 end
 
 -- Random_Pitch Button ----------------------------
-local Random_PitchB = Button_small:new(675,425,60,14, 0.3,0.3,0.3,1, "Pitch",    "Arial",5 )
-Random_PitchB.onClick = 
+sbtbl[4] = Button_small:new(661+c_pos,425,60,14, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "Pitch",    "Arial",5 )
+sbtbl[4].onClick = 
 function()
      if Random_Pitch ~= 1 then
             Random_Pitch = 1 
         else
             Random_Pitch = 0 
      end
-          r.SetExtState('cool_MK Slicer.lua','Random_Pitch',Random_Pitch,true);
+          r.SetExtState('MK_Slicer_3','Random_Pitch',Random_Pitch,true);
 end
 
 -- Random_Position Button ----------------------------
-local Random_PositionB = Button_small:new(675,440,60,14, 0.3,0.3,0.3,1, "Position",    "Arial",5 )
-Random_PositionB.onClick = 
+sbtbl[5] = Button_small:new(661+c_pos,440,60,14, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "Position",    "Arial",5 )
+sbtbl[5].onClick = 
 function()
      if Random_Position ~= 1 then
             Random_Position = 1 
         else
             Random_Position = 0 
      end
-          r.SetExtState('cool_MK Slicer.lua','Random_Position',Random_Position,true);
+          r.SetExtState('MK_Slicer_3','Random_Position',Random_Position,true);
 end
 
 -- Random_Reverse Button ----------------------------
-local Random_ReverseB = Button_small:new(675,455,60,14, 0.3,0.3,0.3,1, "Reverse",    "Arial",5 )
-Random_ReverseB.onClick = 
+sbtbl[6] = Button_small:new(661+c_pos,455,60,14, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "Reverse",    "Arial",5 )
+sbtbl[6].onClick = 
 function()
      if Random_Reverse ~= 1 then
             Random_Reverse = 1 
         else
             Random_Reverse = 0 
      end
-          r.SetExtState('cool_MK Slicer.lua','Random_Reverse',Random_Reverse,true);
+          r.SetExtState('MK_Slicer_3','Random_Reverse',Random_Reverse,true);
 end
 
 -- Random_Mute Button ----------------------------
-local Random_MuteB = Button_small:new(675,470,60,14, 0.3,0.3,0.3,1, "Mute",    "Arial",5 )
-Random_MuteB.onClick = 
+sbtbl[7] = Button_small:new(661+c_pos,470,60,14, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "Mute",    "Arial",5 )
+sbtbl[7].onClick = 
 function()
      if Random_Mute ~= 1 then
             Random_Mute = 1 
         else
             Random_Mute = 0 
      end
-          r.SetExtState('cool_MK Slicer.lua','Random_Mute',Random_Mute,true);
+          r.SetExtState('MK_Slicer_3','Random_Mute',Random_Mute,true);
 end
 
 -- Random Button ----------------------------
 
-local Random = Button:new(598,380+corrY,67,25, 0.3,0.3,0.3,1, "Random",    "Arial",16 ) 
+local Random = Button:new(584+c_pos,380+corrY,67,25, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "Random",    "Arial",16 ) 
 Random.onClick = 
 function()
 if Wave.State then 
@@ -5164,7 +6174,7 @@ end
 
 if XFadeOff == 0 then
 
---  r.Main_OnCommand(r.NamedCommandLookup("_SWS_AWFILLGAPSQUICK"),0) -- fill gaps 
+----  r.Main_OnCommand(r.NamedCommandLookup("_SWS_AWFILLGAPSQUICK"),0) -- fill gaps 
 
     r.Undo_BeginBlock();
     local Over = Overlap(CrossfadeT);
@@ -5180,7 +6190,7 @@ r.PreventUIRefresh(-1)
 end
 
 -- Reset All Button ----------------------------
-local Reset_All = Button:new(970,445+corrY,55,25, 0.3,0.3,0.3,1, "Reset",    "Arial",16 )
+local Reset_All = Button:new(973,448+corrY,55,22, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "Reset",    "Arial",16 )
 Reset_All.onClick = 
 function()
    if Wave.State then 
@@ -5189,8 +6199,32 @@ function()
    end 
 end
 
+
+-- Set Rate Button ----------------------------
+local Set_Rate = Button:new(952+e_pos,380+corrY,72,25, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "Set BPM",    "Arial",16 )
+Set_Rate.onClick = 
+function()
+   if Wave.State then 
+       Wave:Reset_All()
+       SetBPMButtonStatus = 1
+       if Set_Rate_Mode.norm_val == 1 then
+             SetRate()
+             SetBPMStatus_ResetRate = 1
+             elseif Set_Rate_Mode.norm_val == 2 then
+             DelTempo()
+             SetTempo(bpm4c)
+             SetBPMStatus_Reset = 1
+             elseif Set_Rate_Mode.norm_val == 3 then
+             DelTempo()
+             TMInit_Status = 1
+             SetBPMStatus_Reset = 1
+       end
+   end 
+end
+
+
 -- Create Midi Button ----------------------------
-local Create_MIDI = Button:new(670+corrY3,380+corrY,98,25, 0.3,0.3,0.3,1, "MIDI",    "Arial",16 )
+local Create_MIDI = Button:new(670+d_pos,380+corrY,93,25, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "MIDI",    "Arial",16 )
 Create_MIDI.onClick = 
 
 function()
@@ -5204,7 +6238,9 @@ number_of_items_m =  r.CountSelectedMediaItems(0)
 if Wave.State and number_of_items_m < 1 then
      local lastitem = r.GetExtState('_Slicer_', 'ItemToSlice')
      local item =  r.BR_GetMediaItemByGUID( 0, lastitem )
-     r.SetMediaItemSelected(item, true)
+     if item ~= nil then
+         r.SetMediaItemSelected(item, true)
+     end
 end
 
 
@@ -5357,38 +6393,38 @@ end
 --- Button_TB --------------------------
 ----------------------------------------
 local Loop_TB = {LoopScale}
-local LoopBtn_TB = {Loop_Btn, Sync_Btn, Swing_Btn}
+local LoopBtn_TB = {Loop_Btn, Aim_Btn, Snap_Btn, Swing_Btn}
 
 local Checkbox_TB_preset = {Sampler_preset}
 
-local Button_TB = {Get_Sel_Button, Settings, Just_Slice, Quantize_Slices, Add_Markers, Quantize_Markers, Random, Reset_All, Random_SetupB}
+local Button_TB = {Get_Sel_Button, Settings, Just_Slice, Quantize_Slices, Add_Markers, Quantize_Markers, Random, Reset_All, Random_SetupB, Set_Rate, Set_Rate_Incr, Set_Rate_Decr}
 local Button_TB2 = {Create_MIDI, Midi_Sampler}
 local Pitch_Det_Options_TB = {Pitch_Det_Options, Pitch_Det_Options2, Pitch_Preset}
 local  Create_Replace_TB = {others_table[11], others_table[12], others_table[13]}
 local  Create_Replace_TB2 = {Create_Replace} --trigger
 local  Create_Replace_TB3 = {Create_Replace2} --pitch detection
-local Random_Setup_TB2 = {elm_table[6], elm_table[7], Random_OrderB, Random_VolB, Random_PitchB, Random_PanB, Random_MuteB, Random_PositionB, Random_ReverseB, Random_SetupClearB}
+local Random_Setup_TB2 = {elm_table[6], elm_table[7], sbtbl[1], sbtbl[2], sbtbl[3], sbtbl[4], sbtbl[5], sbtbl[6], sbtbl[7], sbtbl[8]}
  
 -------------------------------------------------------------------------------------
 --- CheckBoxes ---------------------------------------------------------------------
 -------------------------------------------------------------------------------------
 
-local Guides  = CheckBox:new(400,410+corrY,193,18, 0.28,0.4,0.7,0.8, "","Arial",16,  Guides_mode,
+local Guides  = CheckBox:new(400+c_pos,410+corrY,177,18, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "","Arial",16,  Guides_mode,
                               {"Guides By Transients","Guides By Grid"} )
 
 Guides.onClick = 
 function() 
    if Wave.State then
       Wave:Reset_All()
-      DrawGridGuides()
+      Wave:DrawGridGuides()
    end 
 end
 
 --------------------------------------------------
 -- View Checkboxes -------------------------------
 -------------------------
-local ViewMode = CheckBox_Show:new(970,380+corrY,55,18,  0.28,0.4,0.7,0.8, "","Arial",16,  1,
-                              { "View All", "Original", "Filtered" } )
+local ViewMode = CheckBox_Show:new(1019,375+corrY,15,15,  0.4,0.4,0.4,0.7, "","Arial",16,  1,
+                              { "Show All", "Original", "Filtered" } )
 ViewMode.onClick = 
 function() 
    if Wave.State then Wave:Redraw() end 
@@ -5553,41 +6589,44 @@ function Gate_Gl:Reduce_Points() -- Надо допилить!!!
             local p = #self.Res_Points+1
             self.Res_Points[p]   = self.State_Points[i]+(Offset_Sld.form_val/1000*srate)
             self.Res_Points[p+1] = {self.State_Points[i+1][1], self.State_Points[i+1][2]}
+
         end
     end 
- end     
+
+end
+
 -------------------------------------------------------------------------------
 ------------------------------View "Grid by" Lines------------------------------
 -------------------------------------------------------------------------------
 
-function DrawGridGuides()
+function Wave:DrawGridGuides()
 
 local lastitem = r.GetExtState('_Slicer_', 'ItemToSlice')
      
      local item =  r.BR_GetMediaItemByGUID( 0, lastitem )
 
-                if item then 
+        if item then 
 
-Grid_Points ={}
-Grid_Points_S ={}
-
-local b = 0
-
-if loop_start == nil then loop_start = 0 end
-if loop_end == nil then loop_end = 0 end
-if srate == nil then return end
-
-local blueline = loop_start 
-   while (blueline <= loop_end) do
-
-        blueline = beatc(blueline)
-
-        b = b + 1
-        Grid_Points[b] = (((blueline - loop_start)*srate)//1)+(Offset_Sld.form_val/1000*srate)
-        Grid_Points_S[b] = ((blueline*srate)//1)+(Offset_Sld.form_val/1000*srate)
-
-   end 
- end 
+           Grid_Points ={}
+           self.Grid_Points_S ={}
+           
+           local b = 0
+           
+           if loop_start == nil then loop_start = 0 end
+           if loop_end == nil then loop_end = 0 end
+           if srate == nil then return end
+           
+           local blueline = loop_start 
+                while (blueline <= loop_end) do
+             
+                     blueline = beatc(blueline)
+             
+                     b = b + 1
+                     Grid_Points[b] = (((blueline - loop_start)*srate)//1)+(Offset_Sld.form_val/1000*srate)
+                     self.Grid_Points_S[b] = ((blueline*srate)//1)+(Offset_Sld.form_val/1000*srate)
+             
+                end 
+         end 
 
 end
 
@@ -5599,6 +6638,7 @@ function Gate_Gl:draw_Lines()
     --------------------------------------------------------
     -- Set values ------------------------------------------
     --------------------------------------------------------
+    TrMrkrHover = 0
     local sw_shift = 0
     local velo_y, line_x_mouse_x, line_x
     local mode = VeloMode.norm_val
@@ -5609,41 +6649,65 @@ function Gate_Gl:draw_Lines()
     self.Xsc = Wave.X_scale * Wave.Zoom * Z_w  -- x scale(regard zoom) for trigg lines
     self.Yop = Wave.y + Wave.h - offset        -- y start wave coord for velo points
     self.Ysc = Wave.h * self.scale             -- y scale for velo points 
+    vel_point_lowest = 30 -- vel point bottom line
+    const = 1.132 -- triangle, vertical position
+
+    triangle_size = 40*((Z_w/10)+(Wave.Zoom/20))
+    if triangle_size > 14 then triangle_size = 14 end
     --------------------------------------------------------
- 
+    mouse_pos_height =  gfx.mouse_y/Z_h 
+    mouse_pos_width =  gfx.mouse_x/Z_w
+
  if (Guides.norm_val == 1) then 
 
     -- Draw, capture trig lines ----------------------------
     --------------------------------------------------------
-    gfx.set(0.9, 0.9, 0, 0.7) -- gate line, point color -- цвет маркеров транзиентов
+    gfx.set(TH[13][1],TH[13][2],TH[13][3],TH[13][4]) -- gate line, point color -- цвет маркеров транзиентов
     ----------------------------
    
     for i=1, #self.Res_Points, 2 do
            line_x = Wave.x + (self.Res_Points[i] - self.start_smpl) * self.Xsc  -- line x coord
 
            if (Midi_Sampler.norm_val == 2) then
-                 velo_y = self.Yop -  self.Res_Points[i+1][mode] * self.Ysc  -- velo y coord    
+                 velo_y = (self.Yop-vel_point_lowest) -  self.Res_Points[i+1][mode] * (self.Ysc-vel_point_lowest)  -- velo y coord       
            end
         ------------------------
         -- draw line, velo -----
         ------------------------
         if line_x>=Wave.x and line_x<=Wave.x+Wave.w then -- Verify line range
-           gfx.line(line_x, Wave.y, line_x, Wave.y+Wave.h-1)  -- Draw Trig Line
-           
+           gfx.line(line_x, Wave.y+2, line_x, Wave.y+Wave.h-1)  -- Draw Trig Line
+           if TH[16] > 0 then
+               grad_w2 = TH[16]*(0.7+Z_w/2)
+               gfx.gradrect((line_x+1)-grad_w2, Wave.y, grad_w2, Wave.h,        TH[13][1],TH[13][2],TH[13][3], 0.0,    0, 0, 0, TH[17] / grad_w2) -- grad back
+               gfx.gradrect(line_x-1, Wave.y, grad_w2, Wave.h,        TH[13][1],TH[13][2],TH[13][3], TH[17],    0, 0, 0, -TH[17] / grad_w2) -- grad ahead
+           end
+           gfx.triangle(line_x+1, Wave.h*const, line_x+1, (Wave.h*const)-triangle_size, line_x+triangle_size+1, Wave.h*const) -- Triangle (Transient Small Flag)
+
            if (Midi_Sampler.norm_val == 2) then
               gfx.circle(line_x, velo_y, 3,1,1)             -- Draw Velocity point
            end
-        end
+         end
         
             ------------------------
             -- Get mouse -----------
             ------------------------
             line_x_mouse_x = line_x-gfx.mouse_x
             if line_x_mouse_x < 0 then line_x_mouse_x = line_x_mouse_x*-1 end
-            if not self.cap_ln and line_x_mouse_x < (10*Z_w) then -- здесь 10*Z_w - величина окна захвата маркера.
+
+            grab_corr = 50*((Z_w/10)+(Wave.Zoom/20)) --14*(Z_w/4)
+            if grab_corr >= 15  then grab_corr = 15 end
+            if not self.cap_ln and line_x_mouse_x < (grab_corr) then -- здесь grab_corr - величина окна захвата маркера.
                 if Wave:mouseDown() or Wave:mouseR_Down() then self.cap_ln = i end
+                   TrMrkrHover = 1
+                   if not Ctrl and mouse_pos_height >= 355 and mouse_pos_height <= 380 then  
+                       if TH[14] > 0 then
+                          grad_w = TH[14]*(0.7+Z_w/2) -- selected marker gradient
+                          gfx.gradrect((line_x+1)-grad_w, Wave.y, grad_w, Wave.h,        TH[13][1],TH[13][2],TH[13][3], 0.0,    0, 0, 0, TH[15] / grad_w) -- grad back
+                          gfx.gradrect(line_x-1, Wave.y, grad_w, Wave.h,        TH[13][1],TH[13][2],TH[13][3], TH[15],    0, 0, 0, -TH[15] / grad_w) -- grad ahead
+                        end
+                   end
             end
-    end
+       end
 
        --------------------------------------------------------
        -- Operations with captured lines(if exist) ------------
@@ -5655,7 +6719,7 @@ function Gate_Gl:draw_Lines()
 
  else  ------------------------------------------------------------------------------------------------------------     
 
-gfx.set(0, 0.7, 0.7, 0.7) -- gate line, point color -- цвет маркеров при отображении сетки
+gfx.set(TH[19][1],TH[19][2],TH[19][3],TH[19][4]) -- grid line, point color -- цвет маркеров при отображении сетки
 
 local Grid_Points = Grid_Points or {};     
 local _, division, swingmode, swingamt = r.GetSetProjectGrid(0, 0)
@@ -5677,12 +6741,74 @@ if 0.00007 > self.Xsc*division then self.Xsc = 0.00007/division end
          line_x  = Wave.x+sw_shift + (Grid_Points[i] - self.start_smpl+OffsSldCorrG) * self.Xsc  -- line x coord
 
          if line_x>=Wave.x and line_x<=Wave.x+Wave.w then -- Verify line range
-            gfx.line(line_x, Wave.y, line_x, Wave.y+Wave.h-1)  -- Draw Trig Line
+            gfx.line(line_x, Wave.y, line_x, Wave.y+Wave.h-2)  -- Draw Trig Line
          end
 
       end  
 
 end   
+
+---------------------------------Snap and Loop Toggles----------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------
+     if Snap_on == 1 then
+     
+             repeatstate = r.GetToggleCommandStateEx( 0, 1068) -- get Options: ""Transport: Toggle repeat"
+             if repeatstate == 0 then
+                r.Main_OnCommand(1068, 0) -- Options: "Transport: Toggle repeat"
+             --   repeatstate_status = 0
+             end
+            
+         elseif Snap_on == 0 then
+     
+            if repeatstate_status == 0 then
+                 repeatstate = r.GetToggleCommandStateEx( 0, 1068) -- get Options: ""Transport: Toggle repeat"
+                 if repeatstate == 1 then
+                    r.Main_OnCommand(1068, 0) -- Options: "Transport: Toggle repeat"
+                    repeatstate_status = 1
+                 end
+            end
+     
+            if SetSnap == 0 then 
+                  if Loop_on == 1 then 
+                     r.GetSet_LoopTimeRange(1, 1, item_pos, item_end, 0) -- reset loop  
+                     else
+                     r.GetSet_LoopTimeRange(1, 1, 0, 0, 0) -- reset loop  
+                  end
+               SetSnap = 1
+            end
+     
+     end
+---------------------------------------------------------------------------------------------------------------------
+
+     if Loop_on == 1 then
+     
+             repeatstate = r.GetToggleCommandStateEx( 0, 1068) -- get Options: ""Transport: Toggle repeat"
+             if repeatstate == 0 then
+                r.Main_OnCommand(1068, 0) -- Options: "Transport: Toggle repeat"
+             --   repeatstate_status = 0
+             end
+             
+          elseif Loop_on == 0 then
+     
+            repeatstate = r.GetToggleCommandStateEx( 0, 1068) -- get Options: ""Transport: Toggle repeat"
+            if repeatstate == 1 then
+               r.Main_OnCommand(1068, 0) -- Options: "Transport: Toggle repeat"
+           --    repeatstate_status = 1
+            end
+            
+            if SetLoop == 0 then 
+                if Snap_on == 0 then 
+                    if Loop_on == 1 then
+                       r.GetSet_LoopTimeRange(1, 1, item_pos, item_end, 0) -- reset loop  
+                       else
+                       r.GetSet_LoopTimeRange(1, 1, 0, 0, 0) -- reset loop  
+                    end
+                end
+                SetLoop = 1
+            end
+
+     end
+---------------------------------------------------------------------------------------------------------------------
 
 end -- function Gate_Gl:draw_Lines()
 ----------------------------------------------------------------------------------------------------------------------
@@ -5703,6 +6829,7 @@ if division < 0.0078125 then division = 0.0078125 end
 local lnt_corr = (loop_length/tempo_corr)/8
 local ruler_recolor, p_corr, sw_shift = 0, 1, 0
 if 0.00007 > self.Xsc*division then self.Xsc = 0.00007/division; ruler_recolor = 1 end
+local grad_w3, grad_a3
 
  for i=1, #Grid_Points_Ruler  do
 
@@ -5723,19 +6850,545 @@ if 0.00007 > self.Xsc*division then self.Xsc = 0.00007/division; ruler_recolor =
          ----------------------      
          if line_x>=Wave.x and line_x<=Wave.x+Wave.w then -- Verify line range
 
+
              if ruler_recolor == 0 then
-                 gfx.set(0, 0, 0, 0.8) -- ruler black background
+                 gfx.set(TH[1][1],TH[1][2],TH[1][3],TH[1][4]) -- ruler black background
                  gfx.rect(line_x-1,(Wave.y*1.02), 3, 3+(Wave.h/50), true) -- draw body
+                 grad_w3 = TH[10]*(0.7+Z_w/2)
+                 grad_a3 = TH[11]
                else
-                 gfx.set(0.1, 1, 0.1, 0.4) -- ruler green background ("grid too small")
-                 gfx.rect(line_x-2,(Wave.y*1.02), 5, 3+(Wave.h/50), false) -- draw body
+                   grad_w3 = 5*(0.7+Z_w/2)
+                   grad_a3 = 0.4
              end
 
-            gfx.set(0.1, 1, 0.1, 1) -- ruler green short line, point color -- цвет линий сетки проекта
+            gfx.set(TH[9][1], TH[9][2], TH[9][3], TH[9][4]) -- ruler green short line, point color -- цвет линий сетки проекта
             gfx.line(line_x, (Wave.y*1.17), line_x, Wave.y-1+(Wave.h/300))  -- Draw Trig Line
-
+              if TH[10] ~= 0 then -- ruler gradient. 0 = off
+                 gfx.gradrect((line_x+1)-grad_w3, (Wave.y*1.01), grad_w3, (Wave.h/38),        TH[9][1], TH[9][2], TH[9][3], 0.0,    0, 0, 0, grad_a3 / grad_w3) -- grad back
+                 gfx.gradrect(line_x-1, (Wave.y*1.01), grad_w3, (Wave.h/38),        TH[9][1], TH[9][2], TH[9][3], grad_a3,    0, 0, 0, -grad_a3 / grad_w3) -- grad ahead
+              end
         end
    end  
+
+end
+
+--------------------------------------------------
+-- Gate Threshold-lines function -----------------
+-------------------------------------------------- 
+function Gate_Thresh:draw_val_line()
+  if Wave.State and (Guides.norm_val == 1) then gfx.set(TH[12][1],TH[12][2],TH[12][3],TH[12][4]) --цвет линий treshold
+    local val = (10^(self.form_val/20)) * Wave.Y_scale * Wave.vertZoom * Z_h -- value in gfx
+    if val>Wave.h/2 then return end            -- don't draw lines if value out of range
+    local val_line1 = Wave.y + Wave.h/2 - val  -- line1 y coord
+    local val_line2 = Wave.y + Wave.h/2 + val  -- line2 y coord
+    gfx.line(Wave.x, val_line1, Wave.x+Wave.w-1, val_line1 )
+    gfx.line(Wave.x, val_line2, Wave.x+Wave.w-1, val_line2 )
+  end
+end
+
+
+------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------BPM--------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
+
+function InitRate(i_rate)
+     local lastitem = r.GetExtState('_Slicer_', 'ItemToSlice')
+     local item =  r.BR_GetMediaItemByGUID( 0, lastitem )
+         if item ~= nil then
+                  take = r.GetActiveTake(item)
+      
+            local i_rate = r.GetMediaItemTakeInfo_Value(take, "D_PLAYRATE")
+                if i_rate == nil then i_rate = 1 end
+
+                 return i_rate
+            else
+               i_rate = 1
+        end
+end
+
+--------------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------------
+
+function FixLength()
+     local lastitem = r.GetExtState('_Slicer_', 'ItemToSlice')
+     local item =  r.BR_GetMediaItemByGUID( 0, lastitem )
+            take = r.GetActiveTake(item)
+
+        i_rate = InitRate()
+
+        local item_src = reaper.GetMediaItemTake_Source(take)
+        local item_src_l = reaper.GetMediaSourceLength(item_src)
+    
+        local _, _, init_start, init_length, _, _ = r.BR_GetMediaSourceProperties( take )
+    
+        local a_condition = ((init_length*i_rate)+init_start)-item_src_l
+    
+    if a_condition > 0 then
+       r.SetMediaItemInfo_Value(item, "D_LENGTH", (item_src_l-init_start)/i_rate)
+    end
+    
+      r.UpdateArrange()  
+
+end
+
+------------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------DelTempo------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
+
+function DelTempo()
+
+   local lastitem = r.GetExtState('_Slicer_', 'ItemToSlice')
+   local item =  r.BR_GetMediaItemByGUID( 0, lastitem )
+       if item ~= nil then
+               local take = r.GetActiveTake(item)
+
+             local init_pos = r.GetMediaItemInfo_Value(item, "D_POSITION")
+             local init_rate = r.GetMediaItemTakeInfo_Value(take, "D_PLAYRATE")
+             local init_length    = r.GetMediaItemInfo_Value(item, "D_LENGTH")
+             item_end = init_pos+init_length
+        
+            local t_start_i = r.FindTempoTimeSigMarker(0, init_pos)
+            
+            if not t_start_i or t_start_i == -1 then return end
+            local _, t_start = r.GetTempoTimeSigMarker(0, t_start_i)
+            if t_start < init_pos then
+               _, t_start = r.GetTempoTimeSigMarker(0, t_start_i+1)
+               if t_start == 0 or t_start > item_end then
+                  return
+               else t_start_i = t_start_i+1  end
+            end
+            
+            local t_end_i = r.FindTempoTimeSigMarker(0, item_end)
+           
+            for i = t_end_i,t_start_i,-1 do
+              r.DeleteTempoTimeSigMarker(0, i)
+            end
+        
+          r.SetMediaItemTakeInfo_Value(take, "D_PLAYRATE", init_rate)
+          r.SetMediaItemInfo_Value(item, 'D_LENGTH', init_length)
+      end
+
+end
+
+------------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------SetTempoMap----------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
+
+function Gate_Gl:SetTempoMap()
+
+     if TMInit_Status == 1 then
+     
+      local PntsMap= {} -- collect transients only
+      local Pos_BPM_Table = {}
+
+      local sPR_count = #self.Res_Points
+           for j=3, sPR_count, 2 do -- starts from 2 because...
+           local k = #PntsMap+1
+              PntsMap[k] = self.Res_Points[j]
+           end
+          table.insert(PntsMap, 0) -- ...this is first. 
+          table.sort(PntsMap)
+          
+      local PM_count = #PntsMap         
+          for i = 2, PM_count do
+            local prev_val = PntsMap[i - 1]
+            local val = PntsMap[i]
+            table.insert(Pos_BPM_Table, prev_val)
+            new_val = 60/((val - prev_val)/srate)
+            table.insert(Pos_BPM_Table, new_val)
+          end
+          
+     local lastitem = r.GetExtState('_Slicer_', 'ItemToSlice')
+     local item =  r.BR_GetMediaItemByGUID( 0, lastitem )
+           if item ~= nil then
+                         take = r.GetActiveTake(item)
+             
+                  local init_rate = r.GetMediaItemTakeInfo_Value(take, "D_PLAYRATE")
+                  local init_pos    = r.GetMediaItemInfo_Value(item, "D_POSITION")
+                  local init_length    = r.GetMediaItemInfo_Value(item, "D_LENGTH")
+
+             local PBPMT_count = #Pos_BPM_Table 
+                   for i = 1, PBPMT_count, 2 do
+                     local time = Pos_BPM_Table[i]
+                     local bpm = Pos_BPM_Table[i+1]
+                             time = (time)/srate
+                             time_init = (Pos_BPM_Table[1])/srate
+ 
+                        time = r.BR_GetClosestGridDivision(time+init_pos)
+         
+                        if bpm and time then
+         
+                                 if bpm < 40 then 
+                                     bpm_div = 0.125
+                                     elseif bpm >= 40 and bpm < 60 then 
+                                     bpm_div = 0.25
+                                     elseif bpm >= 60 and bpm < 160 then 
+                                     bpm_div = 0.5
+                                     elseif bpm >= 160 and bpm < 240 then 
+                                     bpm_div = 1
+                                     elseif bpm >= 240 and bpm < 320 then 
+                                     bpm_div = 1
+                                     elseif bpm >= 320 and bpm < 720 then 
+                                     bpm_div = 2
+                                     elseif bpm >= 720 and bpm < 1440 then
+                                     bpm_div = 4
+                                     elseif bpm >= 1440 then
+                                     bpm_div = 8    
+                                     else
+                                     bpm_div = 0.5    
+                                 end
+                       
+                                 if Set_Rate_Feel.norm_val == 1 then 
+                                     bpm = bpm -- straight feel
+                                     else
+                                     bpm = bpm*0.666666666 -- triplet feel
+                                 end
+            
+                                 bpm = math_round((bpm/(2*bpm_div)),1)
+                                  r.SetTempoTimeSigMarker( 0, -1, time, -1, -1, bpm, -1, -1, 0 )
+                        end
+                   end
+
+              r.SetMediaItemTakeInfo_Value(take, "D_PLAYRATE", init_rate)
+              r.SetMediaItemInfo_Value(item, 'D_LENGTH', init_length)
+              --FixLength() -- fix item end tail
+         
+               r.Main_OnCommand(40635, 0) -- Remove Time Selection
+         
+               r.UpdateArrange()  
+               r.UpdateTimeline()
+         
+               Wave:DrawGridGuides()
+             -- getitem()
+         
+              TMInit_Status = 0
+           end
+     end
+
+end
+
+------------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------SetTempo--------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
+
+function SetTempo(bpm_in)
+    r.Undo_BeginBlock();
+    r.PreventUIRefresh(1);
+    
+     local lastitem = r.GetExtState('_Slicer_', 'ItemToSlice')
+     local item =  r.BR_GetMediaItemByGUID( 0, lastitem )
+      if item ~= nil then
+                     take = r.GetActiveTake(item)
+         
+              local init_rate = r.GetMediaItemTakeInfo_Value(take, "D_PLAYRATE")
+              local init_pos    = r.GetMediaItemInfo_Value(item, "D_POSITION")
+              local init_length    = r.GetMediaItemInfo_Value(item, "D_LENGTH")
+         
+              local _, _, bpm1 = reaper.TimeMap_GetTimeSigAtTime(0, init_pos)
+         
+                      bpm_in = bpm_in
+                      
+                      r.AddTempoTimeSigMarker(0, init_pos, bpm_in, 0, 0, 0)
+     
+              local init_rate2 = r.GetMediaItemTakeInfo_Value(take, "D_PLAYRATE")
+              local init_length2    = r.GetMediaItemInfo_Value(item, "D_LENGTH")
+              local init_pos2    = r.GetMediaItemInfo_Value(item, "D_POSITION")
+                      
+                      item_pos_end = init_pos2+(init_length2*init_rate2)/init_rate
+                      
+                      r.AddTempoTimeSigMarker(0, item_pos_end, bpm1, 0, 0, 0)
+     
+          r.SetMediaItemTakeInfo_Value(take, "D_PLAYRATE", init_rate)
+          r.SetMediaItemInfo_Value(item, 'D_LENGTH', init_length)
+          FixLength() -- fix item end tail
+     
+           r.Main_OnCommand(40635, 0) -- Remove Time Selection
+     
+           r.UpdateArrange()  
+           r.UpdateTimeline()
+     
+           Wave:DrawGridGuides()
+         --  getitem()
+     end
+    r.PreventUIRefresh(-1);
+    r.Undo_EndBlock("Change Tempo",-1);
+end
+
+------------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------SetRate()--------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
+
+function SetRate() 
+-----------------------------------------------------------------------
+     local lastitem = r.GetExtState('_Slicer_', 'ItemToSlice')
+     local item =  r.BR_GetMediaItemByGUID( 0, lastitem )
+        if item ~= nil then
+               take = r.GetActiveTake(item)
+        
+               local item_source = reaper.GetMediaItemTake_Source(take)
+               local item_source_length = reaper.GetMediaSourceLength(item_source)
+        
+               local init_rate = r.GetMediaItemTakeInfo_Value(take, "D_PLAYRATE")
+               local init_length = r.GetMediaItemInfo_Value(item, "D_LENGTH")
+               local init_offs = r.GetMediaItemInfo_Value(item, "D_SNAPOFFSET")
+        
+               new_offs = init_offs*init_rate
+               new_length = init_length*init_rate
+        
+              GetTempo()
+              new_rate = (tempo/bpm4)*init_rate
+        
+                 r.SetMediaItemTakeInfo_Value(take, "D_PLAYRATE", new_rate)
+                 r.SetMediaItemInfo_Value(item, "D_LENGTH", new_length/new_rate)
+                 r.SetMediaItemInfo_Value(item, "D_SNAPOFFSET", new_offs/new_rate)
+          
+              if SetTkMarker == 1 then
+                  SetItemMarker( math_round(bpm4/init_rate,1) ) -- set take marker
+              end  
+
+    --          FixLength() -- fix item end tail
+        
+              r.Main_OnCommand(40635, 0) -- Remove Time Selection
+
+              getitem_fast()
+        
+              r.UpdateArrange()
+       end
+-----------------------------------------------------------------------
+end
+
+------------------------------------------------------------------------------------------------------------------
+----------------------------------------Set Item Marker-------------------------------------------------------
+
+function SetItemMarker(input)
+     local lastitem = r.GetExtState('_Slicer_', 'ItemToSlice')
+     local item =  r.BR_GetMediaItemByGUID( 0, lastitem )
+            take = r.GetActiveTake(item)
+            local rate = r.GetMediaItemTakeInfo_Value(take, "D_PLAYRATE")
+            local st_offs = r.GetMediaItemTakeInfo_Value( take, 'D_STARTOFFS' )
+      r.DeleteTakeMarker(take, 0)
+      r.SetTakeMarker(take, 0, ("" .. tostring(input) .. " bpm"), st_offs, 1)
+   r.UpdateArrange()  
+end
+
+------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------Median------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
+
+function Gate_Gl:SplsToMedian()
+        
+          local Pnts_m = {} -- collect transients only
+          local Output_Table = {}
+
+      local sPR_count_m = #self.Res_Points
+                 for j=1, sPR_count_m, 2 do
+                 local k = #Pnts_m+1
+                    Pnts_m[k] = self.Res_Points[j]
+                 end
+                 table.sort(Pnts_m)
+     
+       local Pts_m_count = #Pnts_m
+             for i = 2, Pts_m_count do -- collect time (spls) between transients to new table
+                local prev_val = Pnts_m[i - 1]
+                local val = Pnts_m[i]
+                table.insert(Output_Table, val - prev_val)
+             end
+              
+             -----http://lua-users.org/wiki/SimpleStats----------           
+            -- calculation mean (median) script
+             function median(t) 
+               local temp={}
+               for k,v in pairs(t) do
+                 if type(v) == 'number' then
+                   table.insert( temp, v )
+                 end
+               end
+               table.sort( temp )
+               local tmp = #temp
+               if fmod(tmp,2) == 0 then
+                  if tmp > 1 then
+                      return ( temp[tmp/2] + temp[(tmp/2)+1] ) / 2
+                  end
+               else
+                 return temp[ceil(tmp/2)]
+               end
+             end
+            
+             -- calculation deviation between transients
+             function standardDeviation(t) 
+               local m
+               local vm
+               local sum = 0
+               local count = 0
+               local result
+               m = median(t)
+               for k,v in pairs(t) do
+                 if type(v) == 'number' then
+                   vm = v - m
+                   sum = sum + (vm * vm)
+                   count = count + 1
+                 end
+               end
+               result = sqrt(sum/(count-1))
+               return result
+             end
+             ---------------------------------------------------
+
+             median_spls = median(Output_Table)
+                          
+             if median_spls then
+                 bpm_m = (60/(median_spls/srate)) -- calc bpm from samples
+
+                 if Set_Rate_Feel.norm_val == 1 then 
+                     bpm_m = bpm_m -- straight feel
+                     else
+                     bpm_m = bpm_m*0.666666666 -- triplet feel
+                 end
+     
+     
+                 if bpm_m < 40 then 
+                     bpm_div = 0.125
+                     elseif bpm_m >= 40 and bpm_m < 80 then 
+                     bpm_div = 0.25
+                     elseif bpm_m >= 80 and bpm_m < 160 then 
+                     bpm_div = 0.5
+                     elseif bpm_m >= 160 and bpm_m < 240 then 
+                     bpm_div = 1
+                     elseif bpm_m >= 240 and bpm_m < 320 then 
+                     bpm_div = 1
+                     elseif bpm_m >= 320 and bpm_m < 720 then 
+                     bpm_div = 2
+                     elseif bpm_m >= 720 and bpm_m < 1440 then
+                     bpm_div = 4
+                     elseif bpm_m >= 1440 then
+                     bpm_div = 8    
+                     else
+                     bpm_div = 0.5    
+                 end
+     
+                      bpm2 = bpm_m/(1*bpm_div)
+                      bpm4 = bpm_m/(2*bpm_div)
+                      bpm8 = bpm_m/(4*bpm_div)
+     
+                 if #Output_Table >=2 then
+                        dev_simple = ((standardDeviation(Output_Table))*bpm_div)/1000 -- deviation 0 - 10
+                        else
+                        dev_simple = 3 
+                  end
+        
+             end
+
+end
+
+------------------------------------------------------------------------------------------------------------------------
+---------------------------------------Wave:BPM_Numbers()-------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
+
+function Wave:BPM_Numbers()
+  if not Z_w or not Z_h then return end -- return if zoom not defined
+  local zoom_coeff =   (gfx_width/1200)+1
+  if zoom_coeff <= 2.044 then zoom_coeff = 2.044 end 
+  self.x, self.w = (self.def_xywh[1]* Z_w/zoom_coeff)*2.045, (self.def_xywh[3]* Z_w/zoom_coeff)*2.045-- upd x,w
+  self.x = self.x+(zoom_coeff-2.044)*380 -- auto slide to right when zoom
+  self.x = math_round(self.x,2)
+  self.w = math_round(self.w,2)
+  self.y, self.h = (self.def_xywh[2]* Z_h) , (self.def_xywh[4]* Z_h) -- upd y,h
+    local x,y,w,h  = self.x,self.y,self.w,self.h
+    local lbl_w, lbl_h = gfx.measurestr(self.lbl)
+    local fnt_sz = 15
+    fnt_sz = fnt_sz*(Z_h*1.25)
+    local fnt = self.fnt
+
+    if fnt_sz then
+       if gfx.ext_retina == 1 then
+          if fnt_sz <= 15 then fnt_sz = 15 end
+          if fnt_sz >= 36 then fnt_sz = 36 end
+          else
+          if fnt_sz <= 12 then fnt_sz = 12 end
+          if fnt_sz >= 30 then fnt_sz = 30 end
+       end
+    end 
+
+     if dev_simple then
+   
+          if Set_Rate_Mode.norm_val == 1 then
+              i_rate = InitRate()
+              else
+              i_rate = 1
+           end
+
+           if i_rate then
+              bpm2c = (bpm2/i_rate) -- init_rate
+              bpm4c = (bpm4/i_rate) -- init_rate
+              bpm8c = (bpm8/i_rate) -- init_rate
+           else
+              bpm2c = bpm2
+              bpm4c = bpm4
+              bpm8c = bpm8
+           end
+
+
+           bpm2c = math_round(bpm2c,1)
+           bpm4c = math_round(bpm4c,1)
+           bpm8c = math_round(bpm8c,1)
+    
+
+           col_r = dev_simple/10 -- R
+           col_g = abs((dev_simple/10)-1) -- G
+           col_b = 0.2 -- B
+
+--[[
+            if fmod(bpm4c, 1) == 0.0 then -- bonus points (more green) for integers
+               col_g = col_g+0.3
+               col_r = col_r-0.1
+               else
+               col_g = col_g
+            end
+]]--
+            
+            if (col_r <= 1 and col_r >= 0.2) and (col_g < 1 and col_g >= 0.2) then col_r = 1 end
+            if (col_g <= 1 and col_g >= 0.2) and (col_r < 1 and col_r >= 0.2)  then col_g = 1 end
+            
+            if col_r < 0.2 then col_r = 0.2 end
+            if col_g < 0.2 then col_g = 0.2 end
+            
+             col_r = col_r+TH[37]
+             col_g = col_g+TH[37]
+             col_b = col_b+TH[37]
+
+            if col_r < 0 then col_r = 0 elseif col_r > 1 then col_r = 1 end -- limiters after btb theme correction
+            if col_g < 0 then col_g = 0 elseif col_g > 1 then col_g = 1 end
+            if col_b < 0 then col_b = 0 elseif col_b > 1 then col_b = 1 end
+
+             gfx.set(col_r, col_g, col_b, TH[38]) -- bpm text color
+     
+      end
+
+      if bpm4c == nil then bpm4c = "BPM" end
+      if bpm2c == nil then bpm2c = "" end
+      if bpm8c == nil then bpm8c = "" end
+
+      gfx.x = x+((w/1.030)-lbl_h)-(fnt_sz/2)
+      gfx.y = y+(h*1.125)
+      gfx.y = gfx.y/1.018
+      gfx.setfont(1, "Arial", fnt_sz+1, 98) -- 98 - Bold flag
+     
+      gfx.drawstr("" .. tostring(bpm4c) .. "") -- big bpm x1
+
+      gfx.setfont(1, "Arial", fnt_sz)
+      gfx.set(TH[35][1], TH[35][2], TH[35][3], TH[35][4]-0.05)
+
+      gfx.x = x+((w/1.030)-lbl_h)-(fnt_sz/2)
+      gfx.y = y+fnt_sz-3+(h*1.125)
+      gfx.y = gfx.y/1.020
+      gfx.drawstr("" .. tostring(bpm8c) .. "") -- bpm below (x0.5)
+
+      gfx.x = x+((w/1.030)-lbl_h)-(fnt_sz/2)
+      gfx.y = y-fnt_sz+4+(h*1.125)
+      gfx.y = gfx.y/1.020
+      gfx.drawstr("" .. tostring(bpm2c) .. "") -- bpm above (x2)
 
 end
 
@@ -5746,7 +7399,7 @@ function Gate_Gl:manual_Correction()
     -- Change Velo, Move, Del Line ---------------
     if self.cap_ln and (Guides.norm_val == 1) then
         -- Change Velo ---------------------------
-        if Ctrl then
+        if Ctrl and Midi_Sampler.norm_val == 2 and mouse_pos_height < 355 then
             local curs_x = Wave.x + (self.Res_Points[self.cap_ln] - self.start_smpl) * self.Xsc  -- x coord
             local curs_y = min(max(gfx.mouse_y, Wave.y), Wave.y+Wave.h)                            -- y coord
             gfx.set(1, 1, 1, 0.8) -- cursor color -- цвет курсора
@@ -5754,20 +7407,35 @@ function Gate_Gl:manual_Correction()
             gfx.line(curs_x, curs_y-12, curs_x, curs_y+12) -- cursor line
             gfx.circle(curs_x, curs_y, 3, 0, 1)            -- cursor point
             --------------------
-            local newVelo = (self.Yop - curs_y)/(Wave.h*self.scale) -- velo from mouse y pos
+            local newVelo = (self.Yop-vel_point_lowest - curs_y)/((Wave.h*self.scale)-vel_point_lowest) -- velo from mouse y pos
             newVelo   = min(max(newVelo,0),1)
+            --------------Edit Velocity Text---------------
+            true_velocity = ceil(127*(Gate_VeloScale.norm_val+newVelo*self.scale))
+            if true_velocity <= 0 then true_velocity = 1 end
+
+             local fnt_sz = 60
+             if gfx.ext_retina == 1 then
+              fnt_sz = max(10,  fnt_sz* (Z_h)/2)
+              fnt_sz = min(60, fnt_sz* Z_h)
+             else
+              fnt_sz = max(12,  fnt_sz* (Z_h)/2)
+              fnt_sz = min(72, fnt_sz* Z_h)
+             end
+             
+              gfx.setfont(1, "Arial", fnt_sz)
+              gfx.set(TH[1][1],TH[1][2],TH[1][3],TH[1][4]) -- background color
+              gfx.x = curs_x+10
+              gfx.y = Wave.y*1.2
+              gfx.rect(gfx.x,gfx.y,  0.14*gfx.h, 0.07* gfx.h, true)
+              gfx.set(TH[13][1],TH[13][2],TH[13][3],TH[13][4]) -- velocity text color 
+              gfx.drawstr("" .. true_velocity .. "", 1|4, (curs_x+(0.005*gfx.w))+(0.14*gfx.h), (0.19*gfx.h)-10)
             --------------------
             self.Res_Points[self.cap_ln+1] = {newVelo, newVelo}   -- veloRMS, veloPeak from mouse y
-
         end
+
         -- Move Line -----------------------------
-        if Shift then 
+        if not Ctrl and (mouse_pos_height >= 355 and mouse_pos_height <= 390)then 
             local curs_x = min(max(gfx.mouse_x, Wave.x), Wave.x + Wave.w) -- x coord
-            local curs_y = min(max(gfx.mouse_y, Wave.y), self.Yop)        -- y coord
-            gfx.set(1, 1, 1, 0.8) -- cursor color -- цвет курсора
-            gfx.line(curs_x-12, curs_y, curs_x+12, curs_y) -- cursor line
-            gfx.line(curs_x, curs_y-12, curs_x, curs_y+12) -- cursor line
-            gfx.circle(curs_x, curs_y, 3, 0, 1)            -- cursor point
             --------------------
             self.Res_Points[self.cap_ln] = self.start_smpl + (curs_x-Wave.x) / self.Xsc -- Set New Position
         end
@@ -5780,9 +7448,27 @@ function Gate_Gl:manual_Correction()
                     mouseR_Up_status = 0
                     MouseUpX = 1
             end
-        end       
+        end 
     end
-    
+
+        -- Assist Lines and Arrows---------------------------
+        if Aim_on == 1 and not Ctrl and not Wave:mouseDown() and not self.cap_ln and TrMrkrHover == 0 and ((mouse_pos_height >= 45 and mouse_pos_height <= 380 and mouse_pos_width >= 10 and mouse_pos_width <= 1034) or (mouse_pos_height >= 5 and mouse_pos_height <= 30 and mouse_pos_width >= 910 and mouse_pos_width <= 950))  then -- waveform box and aim button
+            local curs_x = min(max(gfx.mouse_x, Wave.x), Wave.x + Wave.w) -- x coord
+            local curs_y = min(max(gfx.mouse_y, Wave.y), self.Yop)        -- y coord
+            gfx.set(TH[26][1],TH[26][2],TH[26][3],TH[26][4]) -- aim cursor color -- цвет курсора
+            if (Guides.norm_val == 1) and Midi_Sampler.norm_val == 2 then
+               gfx.line(curs_x-10, (curs_y), curs_x+10, (curs_y)) -- cursor line horizontal
+            end
+            gfx.line(curs_x,Wave.y+2, curs_x, (Wave.y*8.4)+1) -- cursor line
+
+            triangle_size_as = 3*(0.7+Z_h/2)
+            arrow_height = 12*(0.7+Z_h/2)
+            const2 = 7.27
+            gfx.triangle(curs_x-triangle_size_as, Wave.h*const, curs_x, (Wave.h*const)-arrow_height, curs_x+triangle_size_as+1, Wave.h*const) -- Triangle Arrow Bottom
+            gfx.triangle(curs_x-triangle_size_as+1, (Wave.h/const2), curs_x, (Wave.h/const2)+(arrow_height-arrow_height/5), curs_x+triangle_size_as-1, (Wave.h/const2)) -- Triangle Arrow Top
+            --------------------
+        end
+
     -- Insert Line(on mouseR_Down) -------------------------
     if SButton == 0 and Guides.norm_val == 1 and not self.cap_ln and Wave:mouseR_Down() then gfx.x, gfx.y  = mouse_ox, mouse_oy
         if mouseR_Up_status == 1 and not Wave:mouseDown() then
@@ -5798,7 +7484,17 @@ function Gate_Gl:manual_Correction()
                     mouseR_Up_status = 0
                     MouseUpX = 1
         end
-    end 
+    end
+
+    if not Wave:mouseR_Down() then -- stop BPM calculation while trig line inserting
+        Gate_Gl:SplsToMedian()
+        Gate_Gl:SetTempoMap()
+    end
+
+    if Snap_on == 1 then
+        Gate_Gl:SnapAreaTables()
+    end
+
 end
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -5947,6 +7643,7 @@ if Slice_Status == 1 or MouseUpX == 1 then
 MouseUpX = 0
 Slice_Status = 0
 Reset_Status = 1
+Slice_BPM_Reset_Status = 1
 
 r.PreventUIRefresh(1)
 
@@ -6048,7 +7745,7 @@ end
        r.Main_OnCommand(40548, 0)  -- Heal Splits
     elseif tkrev == 1 then
       r.Main_OnCommand(41588, 0)  -- Glue
-      getitem()
+      getitem_fast()
     end
 
 sel_tracks_items() -- select for a multitrack check
@@ -6172,11 +7869,11 @@ end
          
    else
 
- Grid_Points_S = Grid_Points_S or {}
+ self.Grid_Points_S = self.Grid_Points_S or {}
  local sw_shift = 0
  local _, division, swingmode, swingamt = r.GetSetProjectGrid(0, 0)
 
-    for i=1, #Grid_Points_S or 0 do --split by grid 
+    for i=1, #self.Grid_Points_S or 0 do --split by grid 
 
    if Swing_on == 1 and swing_slider_amont ~= 0 then
          sw_shift = swingamt*(1-abs(division-1))
@@ -6187,7 +7884,7 @@ end
          end
     end
                
-            r.SetEditCurPos((Grid_Points_S[i]/srate)+(0.5/1000)+sw_shift,0,0)
+            r.SetEditCurPos((self.Grid_Points_S[i]/srate)+(0.5/1000)+sw_shift,0,0)
                 if ZeroCrossings == 1 then
                     if ZeroCrossingType == 1 then
                          r.Main_OnCommand(41995, 0)   -- move to nearest zero crossing
@@ -6317,7 +8014,10 @@ cleanup_slices()
 
 if XFadeOff == 0 then
 
-  r.Main_OnCommand(r.NamedCommandLookup("_SWS_AWFILLGAPSQUICK"),0) -- fill gaps 
+--  r.Main_OnCommand(r.NamedCommandLookup("_SWS_AWFILLGAPSQUICK"),0) -- fill gaps 
+
+    FillGaps()
+
 
     r.Undo_BeginBlock();
     local Over = Overlap(CrossfadeT);
@@ -6345,10 +8045,12 @@ function Wave:Add_Markers()
 MarkersQ_Status = 1
 SliceQ_Init_Status = 0
 Reset_Status = 1
-
+Markers_BPM_Reset_Status = 1
 if Random_Status == 1 or Markers_Status == 1 then  
 Wave:Reset_All()
 end
+
+Markers_BPM_Reset_Status = 1
 
  r.Undo_BeginBlock() 
 r.PreventUIRefresh(1)
@@ -6505,7 +8207,7 @@ r.PreventUIRefresh(1)
      else -- Add Markers by Grid
  local sw_shift = 0
  local _, division, swingmode, swingamt = r.GetSetProjectGrid(0, 0)
-      for i=1, #Grid_Points_S do
+      for i=1, #self.Grid_Points_S do
 
    if Swing_on == 1 and swing_slider_amont ~= 0 then
          sw_shift = swingamt*(1-abs(division-1))
@@ -6516,7 +8218,7 @@ r.PreventUIRefresh(1)
          end
     end
        
-            r.SetEditCurPos((Grid_Points_S[i]/srate)+sw_shift,0,0)
+            r.SetEditCurPos((self.Grid_Points_S[i]/srate)+sw_shift,0,0)
         
             r.Main_OnCommand(41842, 0)  ---Add Marker
        
@@ -6744,10 +8446,27 @@ end
 
 r.Main_OnCommand(r.NamedCommandLookup('_SWS_RESTORESEL'), 0)  -- Restore track selection
 
+if Markers_BPM_Reset_Status == 0 and Slice_BPM_Reset_Status == 0 then
+
+    if SetBPMStatus_ResetRate == 1 then
+       RestoreInitRate()
+       getitem_fast()
+       SetBPMStatus_ResetRate = 0
+    end
+    
+    if SetBPMStatus_Reset == 1 then
+       DelTempo()
+       SetBPMStatus_Reset = 0
+    end
+
+end
+
  r.PreventUIRefresh(-1)
     -------------------------------------------
     r.Undo_EndBlock("Reset_All", -1)   
  
+Markers_BPM_Reset_Status = 0
+Slice_BPM_Reset_Status = 0
 Reset_Status = 0
 SliceQ_Status = 0
 SliceQ_Init_Status = 0
@@ -6777,22 +8496,24 @@ r.Main_OnCommand(40297,0) ----unselect all tracks
 
 lastitem = r.GetExtState('_Slicer_', 'ItemToSlice')   
 item =  r.BR_GetMediaItemByGUID( 0, lastitem )
-track = r.GetMediaItem_Track(item)
-
-r.GetSet_LoopTimeRange2( 0, 1, 0, self.sel_start, self.sel_end, 0 )
-
-r.SetTrackSelected( track, 1 )
-
-             volume_ = r.GetMediaTrackInfo_Value(track,"D_VOL") -- Copy Vol
-             solo_ = r.GetMediaTrackInfo_Value(track,"I_SOLO") -- Copy Solo
-             mute_ = r.GetMediaTrackInfo_Value(track,"B_MUTE") -- Copy Mute
-             pan_ = r.GetMediaTrackInfo_Value(track,"D_PAN") -- Copy Pan
-             width_ = r.GetMediaTrackInfo_Value(track,"D_WIDTH") -- Copy Width
-
-if MIDISamplerCopyFX == 1 then
-             r.Main_OnCommand(r.NamedCommandLookup("_S&M_COPYFXCHAIN5"),0) -- Copy FX
-end
-             r.Main_OnCommand(r.NamedCommandLookup("_SWS_RESTTIME1"),0)
+    if item ~= nil then
+          track = r.GetMediaItem_Track(item)
+          
+          r.GetSet_LoopTimeRange2( 0, 1, 0, self.sel_start, self.sel_end, 0 )
+          
+          r.SetTrackSelected( track, 1 )
+          
+                       volume_ = r.GetMediaTrackInfo_Value(track,"D_VOL") -- Copy Vol
+                       solo_ = r.GetMediaTrackInfo_Value(track,"I_SOLO") -- Copy Solo
+                       mute_ = r.GetMediaTrackInfo_Value(track,"B_MUTE") -- Copy Mute
+                       pan_ = r.GetMediaTrackInfo_Value(track,"D_PAN") -- Copy Pan
+                       width_ = r.GetMediaTrackInfo_Value(track,"D_WIDTH") -- Copy Width
+          
+          if MIDISamplerCopyFX == 1 then
+              r.Main_OnCommand(r.NamedCommandLookup("_S&M_COPYFXCHAIN5"),0) -- Copy FX
+          end
+        r.Main_OnCommand(r.NamedCommandLookup("_SWS_RESTTIME1"),0)
+     end
 
 elseif not (ItemState=="ItemLoaded") then 
 
@@ -6922,7 +8643,7 @@ function Load()
                 local item = r.GetSelectedMediaItem(0,0)
                 if not item then return true end  
               -- get base pitch
-                MIDI_Base_Oct = tonumber(r.GetExtState('cool_MK Slicer.lua','MIDI_Base_Oct'))or 2;
+                MIDI_Base_Oct = tonumber(r.GetExtState('MK_Slicer_3','MIDI_Base_Oct'))or 2;
                 base_pitch = MIDI_Base_Oct*12 
               -- get info for new midi take
                 local proceed_MIDI, MIDI = ExportSelItemsToRs5k_FormMIDItake_data()        
@@ -7123,7 +8844,7 @@ function Wave:Create_MIDI()
     local velo_scale  = Gate_VeloScale.form_val2 - Gate_VeloScale.form_val
     local velo_offset = Gate_VeloScale.form_val
     -- Note parameters ---------
-    Trigger_Oct_Shift = tonumber(r.GetExtState('cool_MK Slicer.lua','Trigger_Oct_Shift'))or 0;
+    Trigger_Oct_Shift = tonumber(r.GetExtState('MK_Slicer_3','Trigger_Oct_Shift'))or 0;
     local base_shift = Trigger_Oct_Shift*12 
     if Notes_On == 1 then OutNote.norm_val = OutNote2.norm_val end
     local pitch = (34+base_shift) + OutNote.norm_val        -- pitch from checkbox
@@ -7134,7 +8855,7 @@ function Wave:Create_MIDI()
     ----------------------------
     local points_cnt = #Gate_Gl.Res_Points
     for i=1, points_cnt, 2 do
-        startppqpos = r.MIDI_GetPPQPosFromProjTime(take, self.sel_start + Gate_Gl.Res_Points[i]/srate )
+        startppqpos = r.MIDI_GetPPQPosFromProjTime(take, self.sel_start + (Gate_Gl.Res_Points[i]/srate)+0.0005 )
         endppqpos   =  startppqpos + len
         -- По идее,нет смысла по два раза считать,можно просто ставить предыдущую - переделать! --
         if i<points_cnt-2 then next_startppqpos = r.MIDI_GetPPQPosFromProjTime(take, self.sel_start + Gate_Gl.Res_Points[i+2]/srate )
@@ -7682,16 +9403,14 @@ end
 end
 end
 
----------------------------------------------------------------------------------------------------
----  Wave(Processing, drawing etc)  ----------------------------------------------------------------
----------------------------------------------------------------------------------------------------
-
 --------------------------------------------------------------------------------------------
---- DRAW -----------------------------------------------------------------------------------
+---  Wave(Processing, drawing etc)  ---------------------------------------------------
 --------------------------------------------------------------------------------------------
+--- DRAW --------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------
 
 --------------------------------------------------------------------------------
---- Draw Original,Filtered -----------------------------------------------------
+--- Draw Original,Filtered --------------------------------------------------
 --------------------------------------------------------------------------------
 function Wave:Redraw()
     local x,y,w,h = self.def_xywh[1],self.def_xywh[2],self.def_xywh[3],self.def_xywh[4]
@@ -7701,10 +9420,10 @@ function Wave:Redraw()
     gfx.setimgdim(1,-1,-1) -- clear buf1(Wave)
     gfx.setimgdim(1,w,h)   -- set gfx buffer w,h
     ---------------
-      if ViewMode.norm_val == 1 then self:draw_waveform(1,  0.12,0.32,0.57,0.95) -- Draw Original(1, r,g,b,a) -- цвет оригинальной и фильтрованной waveform
-                                                  self:draw_waveform(2,  0.75,0.2,0.25,1) -- Draw Filtered(2, r,g,b,a)
-        elseif ViewMode.norm_val == 2 then self:draw_waveform(1,  0.14,0.34,0.59,1) -- Only original 
-        elseif ViewMode.norm_val == 3 then self:draw_waveform(2,  0.7,0.2,0.25,1) -- Only filtered 
+      if ViewMode.norm_val == 1 then self:draw_waveform(1,  TH[7][1],TH[7][2],TH[7][3],TH[7][4]) -- Draw Original(1, r,g,b,a) -- цвет оригинальной и фильтрованной waveform
+                                                  self:draw_waveform(2,  TH[6][1],TH[6][2],TH[6][3],TH[6][4]) -- Draw Filtered(2, r,g,b,a)
+        elseif ViewMode.norm_val == 2 then self:draw_waveform(1, TH[8][1],TH[8][2],TH[8][3],TH[8][4]) -- Only original 
+        elseif ViewMode.norm_val == 3 then self:draw_waveform(2,  TH[6][1],TH[6][2],TH[6][3],TH[6][4]) -- Only filtered 
       end
     ---------------
     gfx.dest = -1          -- set main gfx dest buffer
@@ -7714,7 +9433,7 @@ end
 --------------------------------------------------------------
 --------------------------------------------------------------
 function Wave:draw_waveform(mode, r,g,b,a)
-
+--local start_time = reaper.time_precise()
     local Peak_TB, Ysc
     local Y = self.Y
     ----------------------------
@@ -7731,12 +9450,13 @@ function Wave:draw_waveform(mode, r,g,b,a)
     local Ppos = self.Pos*self.max_Zoom    -- старт. позиция в "мелкой"-Peak_TB для начала прорисовки  
     local curr = ceil(Ppos+1)              -- округление
     local n_Peaks = w*self.max_Zoom       -- Макс. доступное кол-во пиков
-    gfx.set(r,g,b,a)                       -- set color
+    --gfx.set(r,g,b,a)                       -- set color
     -- уточнить, нужно сделать исправление для неориг. размера окна --
     -- next выходит за w*max_Zoom, а должен - макс. w*max_Zoom(51200) при max_Zoom=50 --
     for i=1, w do            
        local next = min(i*Zfact + Ppos, n_Peaks ) -- грубоватое исправление...
        local min_peak, max_peak, peak = 0, 0, 0 
+        local i_next = i+1
           for p=curr, next do
               peak = Peak_TB[p][1]
               min_peak = min(min_peak, peak)
@@ -7745,10 +9465,18 @@ function Wave:draw_waveform(mode, r,g,b,a)
           end
         curr = ceil(next)
         local y, y2 = Y - min_peak *Ysc, Y - max_peak *Ysc 
-        gfx.line(i,y, i,y2) -- здесь всегда x=i
+        gfx.set(r,g,b,a)   
+        gfx.line(i,y, i,y2) -- peaks
+
+        if TH[43] > 0 then
+           gfx.set(r,g,b,TH[43]) 
+           gfx.line(i+1,y-1, i+1,y2+1) -- additional peaks (blur/thickness)
+           gfx.line(i-1,y-1, i-1,y2+1) -- 
+        end
+
     end  
     ----------------------------
-
+--reaper.ShowConsoleMsg("Full Process time = " .. reaper.time_precise()-start_time .. '\n') -- time test 
 end
 
 --------------------------------------------------------------
@@ -7848,7 +9576,6 @@ end
 
 -----------------------------------
 function Wave:Processing()
---local start_time = reaper.time_precise()
     -----------------------------
     -- Filter values --------------
     -----------------------------
@@ -7932,7 +9659,6 @@ function Wave:Processing()
     self.State = true -- Change State
     -------------------------
     collectgarbage() -- collectgarbage(подметает память) 
---reaper.ShowConsoleMsg("Full Process time = " .. reaper.time_precise()-start_time .. '\n') -- time test 
 end 
 
 
@@ -7946,46 +9672,55 @@ function Wave:Get_Cursor()
   local insrc_Ecx = (E_Curs - self.sel_start) * srate * self.X_scale    -- cursor in source!
      insrc_Ecx_k = insrc_Ecx
      self.Ecx = (insrc_Ecx - self.Pos) * self.Zoom*Z_w                  -- Edit cursor
-     if self.Ecx >= 0 and self.Ecx <= self.w then gfx.set(0.7,0.8,0.9,1) -- main edit cursor color
-        gfx.line(self.x + self.Ecx, self.y, self.x + self.Ecx, self.y+self.h -1 )
+     if (self.Ecx >= 0 and self.Ecx <= self.w) then gfx.set(TH[20][1],TH[20][2],TH[20][3],TH[20][4]) -- main edit cursor color
+        gfx.line(self.x + self.Ecx, self.y+2, self.x + self.Ecx, self.y+self.h -2 )
      end
-     if self.Ecx >= 0 and self.Ecx <= self.w then gfx.set(1,1,1,1) -- loop edit cursor color 
-        gfx.line(self.x + self.Ecx, self.y/1.5, self.x + self.Ecx, (self.y+self.h)/9.3 )
+     if self.Ecx >= 0 and self.Ecx <= self.w then gfx.set(1,1,1,1)
+             grad_w1 = TH[21]*(0.7+Z_w/2)
+             gfx.gradrect(((self.x+1) + self.Ecx)-grad_w1, self.y, grad_w1, self.h,        TH[20][1],TH[20][2],TH[20][3], 0.0,    0, 0, 0, TH[22] / grad_w1) -- grad back
+             gfx.gradrect((self.x-1) + self.Ecx, self.y, grad_w1, self.h,        TH[20][1],TH[20][2],TH[20][3], TH[22],    0, 0, 0, -TH[22] / grad_w1) -- grad ahead
+             Reaper_Cursor_Grab = 1
      end
+
   --- play cursor ---
   if r.GetPlayState()&1 == 1 then local P_Curs = r.GetPlayPosition()
      local insrc_Pcx = (P_Curs - self.sel_start) * srate * self.X_scale -- cursor in source!
      self.Pcx = (insrc_Pcx - self.Pos) * self.Zoom*Z_w                  -- Play cursor
-     if self.Pcx >= 0 and self.Pcx <= self.w then gfx.set(0.5,0.5,1,1) -- play cursor color  -- цвет плэй курсора
+     if self.Pcx >= 0 and self.Pcx <= self.w then gfx.set(TH[23][1],TH[23][2],TH[23][3],TH[23][4]) -- play cursor color  -- цвет плэй курсора
         gfx.line(self.x + self.Pcx, self.y, self.x + self.Pcx, self.y+self.h -1 )
+          if not self:mouseDown() then
+             grad_w2 = TH[24]*(0.7+Z_w/2)
+             gfx.gradrect(((self.x+1) + self.Pcx)-grad_w2, self.y, grad_w2, self.h,        TH[23][1],TH[23][2],TH[23][3], 0.0,    0, 0, 0, TH[25] / grad_w2) -- grad back
+             gfx.gradrect((self.x-1) + self.Pcx, self.y, grad_w2, self.h,        TH[23][1],TH[23][2],TH[23][3], TH[25],    0, 0, 0, -TH[25] / grad_w2) -- grad ahead
+          end
      end
 
---------------------Auto-Scroll------------------------------------------------
-
-if AutoScroll == 1 or PlayMode == 1 then
-         if PlayMode == 0 then -- disable correction when Spacebar to Pause
-               if self.Pcx < 0 then mouseAutScrl_status = 1 end
-               
-               if char==32 and mouseAutScrl_status == 1 then -- cursor focus behavior
-               mouseAutScrl_status = 0
-               local corr = r.GetCursorPosition() - self.sel_start-0.02 --pos_cor
-                     if corr < 0 then corr = 0 end
-                     self.Pos =  (corr) * srate * self.X_scale
-                     self.Pos = max(self.Pos, 0)
-                     self.Pos = min(self.Pos, (self.w - self.w/self.Zoom)/Z_w )
-                     --------------------
-                     Wave:Redraw() -- redraw after move view
+      --------------------Auto-Scroll------------------------------------------------
+      
+      if AutoScroll == 1 or PlayMode == 1 then
+               if PlayMode == 0 then -- disable correction when Spacebar to Pause
+                     if self.Pcx < 0 then mouseAutScrl_status = 1 end
+                     
+                     if char==32 and mouseAutScrl_status == 1 then -- cursor focus behavior
+                     mouseAutScrl_status = 0
+                     local corr = r.GetCursorPosition() - self.sel_start-0.02 --pos_cor
+                           if corr < 0 then corr = 0 end
+                           self.Pos =  (corr) * srate * self.X_scale
+                           self.Pos = max(self.Pos, 0)
+                           self.Pos = min(self.Pos, (self.w - self.w/self.Zoom)/Z_w )
+                           --------------------
+                           Wave:Redraw() -- redraw after move view
+                     end
                end
-         end
-   if self.Pcx > self.w then 
-      mouseAutScrl_status = 1
-      self.Pos = self.Pos + self.w/(self.Zoom*Z_w)
-      self.Pos = max(self.Pos, 0)
-      self.Pos = min(self.Pos, (self.w - self.w/self.Zoom)/Z_w )
-      Wave:Redraw()
-   end 
-end
-------------------------------------------------------------------------------
+         if self.Pcx > self.w then 
+            mouseAutScrl_status = 1
+            self.Pos = self.Pos + self.w/(self.Zoom*Z_w)
+            self.Pos = max(self.Pos, 0)
+            self.Pos = min(self.Pos, (self.w - self.w/self.Zoom)/Z_w )
+            Wave:Redraw()
+         end 
+      end
+      ------------------------------------------------------------------------------
   end
 end 
 
@@ -7993,10 +9728,155 @@ end
 function Wave:Set_Cursor()
   if SButton == 0 and self:mouseDown() and not(Ctrl or Shift) then  
     if self.insrc_mx then local New_Pos = self.sel_start + (self.insrc_mx/self.X_scale )/srate
-       r.SetEditCurPos(New_Pos, false, true)    -- true-seekplay(false-no seekplay) 
+       if Reaper_Cursor_Grab == 1 and (Snap_on == 0 or Guides.norm_val == 2) and mouse_pos_height <=355 then 
+          r.SetEditCurPos(New_Pos, false, false)    -- true-seekplay(false-no seekplay) 
+          Reaper_Cursor_Grab = 0
+       end
     end
   end
 end 
+
+--------------------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------SnapArea------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------------------
+
+function GetItemParams()
+     local lastitem = r.GetExtState('_Slicer_', 'ItemToSlice')
+     local item =  r.BR_GetMediaItemByGUID( 0, lastitem )
+           if item ~= nil then
+                item_pos =  r.GetMediaItemInfo_Value( item, 'D_POSITION' )
+                item_length = r.GetMediaItemInfo_Value( item, 'D_LENGTH' )
+                item_end = item_pos + item_length
+            end
+end
+
+
+SelAreaTable = {play_start_id, play_length_id}
+
+
+function Gate_Gl:SnapAreaTables()
+
+   local MousePnts= {} -- collect transients only
+   local TrTable = {}
+
+             local sPcount = #self.Res_Points
+                 for j=1, sPcount, 2 do
+                 local k = #MousePnts+1
+                    MousePnts[k] = self.Res_Points[j]
+                 end
+
+              GetItemParams()
+
+                 table.insert(MousePnts, 0)
+                 table.insert(MousePnts, item_end*srate)
+                 table.insert(MousePnts, (item_end*srate)-1/srate)
+                 table.sort(MousePnts)
+
+         local mpts = #MousePnts
+             for i = 2, mpts do -- collect time (spls) between transients to new table
+                local prev_val = MousePnts[i - 1]
+                local val = MousePnts[i]
+                table.insert(TrTable, prev_val)
+                table.insert(TrTable, val - prev_val)
+             end
+
+St = 0
+if TrTable ~= nil and Snap_on == 1 then
+
+   local TrTbl = #TrTable
+   for i = 1, TrTbl, 2 do
+           local l_start_posx = TrTable[i]
+           local l_lengthx = TrTable[i+1]
+           local l_next_posx = TrTable[i+2]
+
+         GetItemParams()
+
+         if item ~= nil then
+
+              if l_next_posx ~= nil and item_end ~= nil and item_pos ~= nil then
+   
+                   l_start_pos = ((l_start_posx)/srate)+item_pos
+                   l_end_pos = ((l_start_posx)/srate)+((l_lengthx)/srate)+item_pos
+                   l_length = ((l_lengthx)/srate)+item_pos
+                   l_next = ((l_next_posx)/srate)+item_pos
+   
+                   local edit_cur_pos = r.GetCursorPosition()
+
+                   play_start = (l_start_pos - item_pos) * srate * Wave.X_scale    -- l_start_pos
+                   play_length = ((l_length) - item_pos) * srate * Wave.X_scale    -- l_length
+   
+                   l_next = (l_next - item_pos) * srate * Wave.X_scale    -- l_next
+                   
+                   mouse_pos = Wave.Pos + (gfx.mouse_x-Wave.x)/(Wave.Zoom*Z_w) -- its current mouse position in source!
+                   if mouse_pos < 0 then mouse_pos = 0 elseif mouse_pos > 1024 then mouse_pos = 1024 end 
+
+
+                   if Wave:mouseDown() or Wave:mouseRClick() then                   
+                         local Edit_cur = (r.GetCursorPosition() - Wave.sel_start) * srate * Wave.X_scale    -- cursor in source!            
+                         if (Edit_cur-4 <= mouse_pos and Edit_cur+4 >= mouse_pos)  then
+                             mouse_pos1 = mouse_pos+0.05 -- "+" = left transient,
+                             mouse_pos2 = mouse_pos+0.05 -- 
+                             else
+                             mouse_pos1 = mouse_pos-0.05 --  "-" = right transient
+                             mouse_pos2 = mouse_pos-0.05 -- 
+                         end               
+                    end
+
+
+                   if  ( Wave:mouseClick() or Wave:mouseRClick() or Slider_Status == 1 ) and St == 0 then  --   or self:mouseRClick() -- self:mouseUp() -- self:mouseClick()
+
+                        if play_start_id ~= nil and play_length_id ~= nil and (mouse_pos_height > 380) then -- mouse hover imitation: if mouse on controls and controls changed, snap area stay in focus
+                           mouse_pos1 = SelAreaTable.play_start_id+(SelAreaTable.play_length_id/8) -- or /2
+                           mouse_pos2 = mouse_pos1
+                        end
+
+                        if mouse_pos1 == nil or mouse_pos2 == nil then mouse_pos1 = mouse_pos; mouse_pos2 = mouse_pos end
+
+                        if play_start <= mouse_pos1 and l_next >= mouse_pos2 then -- if mouse between two transients
+   
+                              if r.GetPlayState()&1 == 1 and Wave:mouseClick() then -- autoplay by click while playback
+                                 r.SetEditCurPos(l_start_pos, false, true)
+                              end
+
+                              r.SetEditCurPos((l_start_pos), false, false)    -- true-seekplay(false-no seekplay) 
+
+                              if Snap_AutoPlay == 1 and (mouse_pos_height < 355 and mouse_pos_height > 45) and not Wave:mouseRClick() then
+                                  if r.GetPlayState()&1 == 0 then
+                                     r.OnPlayButton()
+                                     else
+                                        if edit_cur_pos == l_start_pos then
+                                            r.OnStopButton()
+                                            else
+                                            r.OnPlayButton()
+                                        end
+                                  end
+                              end   
+
+                                   if l_end_pos >= item_end then l_end_pos = item_end end
+                                   if l_start_pos == item_pos and (l_start_pos+0.05 >= l_end_pos) then l_start_pos = l_end_pos  end
+                                   r.GetSet_LoopTimeRange(1, true, (l_start_pos), l_end_pos, false) -- if loop
+                                      
+                                  play_start_id = play_start  
+                                  play_length_id = play_length   
+                                   SelAreaTable = {
+                                         play_start_id = play_start_id,
+                                         play_length_id = play_length_id
+                                         }
+                                  St = 1
+
+                        end
+
+                   end
+   
+              end
+        end -- if item
+     end
+
+end
+
+end
 
 ----------------------------------------------------------------------------------------------------
 ---  Wave - Get Mouse  -----------------------------------------------------------------------------
@@ -8018,6 +9898,8 @@ else
     self.insrc_mx = self.Pos + (gfx.mouse_x-self.x)/(self.Zoom*Z_w) -- old behavior
 end
 
+
+
     ----------------------------- 
     --- Wave get-set Cursors ----
     self:Get_Cursor()
@@ -8027,7 +9909,7 @@ self.insrc_mx_zoom_k = self.Pos + (insrc_Ecx_k-self.x)/(self.Zoom*Z_w) -- its cu
     -----------------------------------------
     --- Wave Zoom(horizontal) ---------------
     if self:mouseIN() and gfx.mouse_wheel~=0 and not(Ctrl or Shift) then 
-DrawGridGuides()
+Wave:DrawGridGuides()
     local M_Wheel = gfx.mouse_wheel
       -------------------
       if     M_Wheel>0 then self.Zoom = min(self.Zoom*1.25, self.max_Zoom)   
@@ -8056,7 +9938,7 @@ self_Zoom = self.Zoom --refresh loop by mw
     -----------------------------------------
       Cursor_Status = 0
     --- Wave Move ---------------------------
-    if (self:mouseDown() or self:mouseM_Down()) and not Shift and not Ctrl then 
+    if (self:mouseDown() or self:mouseM_Down()) and not Shift and not Ctrl and (mouse_pos_height <= 355) then 
       Cursor_Status = 1
       self.Pos = self.Pos + (last_x - gfx.mouse_x)/(self.Zoom*Z_w)
       self.Pos = max(self.Pos, 0)
@@ -8090,29 +9972,29 @@ if Cursor_Status == 1 and (last_x - gfx.mouse_x) ~= 0.0 then -- set and delay ne
 
 end
 
-MouseAct = 0
-if ((last_x - gfx.mouse_x) ~= 0.0) and (self:mouseDown() or self:mouseM_Down()) then MouseAct = 1 end
+     MouseAct = 0
+     if ((last_x - gfx.mouse_x) ~= 0.0) and (self:mouseDown() or self:mouseM_Down()) then MouseAct = 1 end
 
-if Sync_on == 1 and ((self:mouseIN() and gfx.mouse_wheel ~= 0) or MouseAct == 1) then -- sync_on by mousewheel only
-
-        time_startx = reaper.time_precise()       
- local  function Mainx()     
-            local elapsedx = reaper.time_precise() - time_startx      
-            if elapsedx >= 0.2 then
-              Sync_on2 = 0
-              runcheckx = 0
-                return
-            else
-             Sync_on2 = 1
-              runcheckx = 1
-                reaper.defer(Mainx)
-            end           
-        end
-        
-        if runcheckx ~= 1 then
-           Mainx()
-        end
-end
+     if Sync_on == 1 and ((self:mouseIN() and gfx.mouse_wheel ~= 0) or MouseAct == 1) then -- sync_on by mousewheel only
+     
+             time_startx = reaper.time_precise()       
+      local  function Mainx()     
+                 local elapsedx = reaper.time_precise() - time_startx      
+                 if elapsedx >= 0.2 then
+                   Sync_on2 = 0
+                   runcheckx = 0
+                     return
+                 else
+                  Sync_on2 = 1
+                   runcheckx = 1
+                     reaper.defer(Mainx)
+                 end           
+             end
+             
+             if runcheckx ~= 1 then
+                Mainx()
+             end
+     end
 
     --------------------------------------------
     --- Reset Zoom by Middle Mouse Button------
@@ -8165,29 +10047,101 @@ local KeyUP, KeyDWN, KeyL, KeyR
      Wave:Redraw() -- redraw after vertical zoom
      end   
 
+
+     if SetBPMButtonStatus == 1 then
+             time_startt = reaper.time_precise()       
+      local  function Maint()     
+                 local elapsedt = reaper.time_precise() - time_startt      
+                 if elapsedt >= 0.2 then
+                BPMButtonStatus2 = 0
+                   runcheckt = 0
+                     return
+                 else
+               BPMButtonStatus2 = 1
+                   runcheckt = 1
+                     reaper.defer(Maint)
+                 end           
+             end
+             
+             if runcheckt ~= 1 then
+                Maint()
+             SetBPMButtonStatus = 0
+             end
+     end
+
 end
+
 
 --------------------------------------------------------------------------------
 ---  Insert from buffer(inc. Get_Mouse) ----------------------------------------
 --------------------------------------------------------------------------------
 function Wave:from_gfxBuffer()
 
+    if not Z_w or not Z_h then return end -- return if zoom not defined
+    self.x, self.w = (self.def_xywh[1]* Z_w) , (self.def_xywh[3]* Z_w) -- upd x,w
+    self.y, self.h = (self.def_xywh[2]* Z_h) , (self.def_xywh[4]* Z_h) -- upd y,h
+  
+    -- draw Wave frame, axis -------------
+    self:draw_rect()
+    self:draw_frame_waveform()
+     -- Insert Wave from gfx buffer1 ------
+    gfx.a = 1 -- gfx.a for blit
+    local srcw, srch = Wave.def_xywh[3], Wave.def_xywh[4] -- its always def values 
+    if WFiltering == 0 then gfx.mode = 4 end
+    gfx.blit(1, 1, 0, 0, 0, srcw, srch,  self.x, self.y, self.w, self.h)
+
+     -- draw Yellow Selection Box  -------------
+         if play_length_id ~= nil and Snap_on == 1 and Guides.norm_val == 1 then 
+            
+                      sel_width = SelAreaTable.play_length_id     
+                      sel_start_s = SelAreaTable.play_start_id     
+                      
+                      if sel_width ~= nil and sel_start_s ~= nil then 
+                          gfx.set(TH[18][1],TH[18][2],TH[18][3],TH[18][4]) -- snap area color                         
+                          sel_width  = (sel_width)*self.Zoom*Z_w  -- zoom and width correction        
+                          sel_start_s  = (sel_start_s - self.Pos)*self.Zoom*Z_w  -- zoom and width correction        
+                          gfx.rect(sel_start_s+self.x, self.y, sel_width, self.h,true) -- draw btn body
+                      end
+         else
+         SelAreaTable = {} -- reset table
+       end
+
+       -- Get Mouse -------------------------
+       self:Get_Mouse()     -- get mouse(for zoom, move etc) 
+
+end  
+
+function Wave:CursorTop()
+
+     if self.sel_start ~= nil  then
+         local insrc_Ecx3 = (r.GetCursorPosition() - self.sel_start) * srate * self.X_scale    -- cursor in source!
+         self.Ecx3 = (insrc_Ecx3 - self.Pos) * self.Zoom*Z_w                  -- Edit cursor
+         if self.Ecx3 >= 0 and self.Ecx3 <= self.w then gfx.set(0.9,0.9,0.9,0.7) -- loop edit cursor color 
+            gfx.line(self.x + self.Ecx3, self.y/1.5, self.x + self.Ecx3, (self.y+self.h)/9.3 )
+         end
+     
+         if r.GetPlayState()&1 == 1 then
+              local insrc_Pcx2 = (r.GetPlayPosition() - self.sel_start) * srate * self.X_scale -- cursor in source!
+              self.Pcx2 = (insrc_Pcx2 - self.Pos) * self.Zoom*Z_w                  -- Play cursor
+              if self.Pcx2 >= 0 and self.Pcx2 <= self.w then gfx.set(0.9,0.9,0.9,0.4) -- play cursor color  -- цвет плэй курсора
+                     gfx.line(self.x + self.Pcx2, self.y/1.5, self.x + self.Pcx2, (self.y+self.h)/9.3 )
+              end
+         end
+     end
+
+end
+
+function Wave:ForegroundBorders()
   if not Z_w or not Z_h then return end -- return if zoom not defined
   self.x, self.w = (self.def_xywh[1]* Z_w) , (self.def_xywh[3]* Z_w) -- upd x,w
   self.y, self.h = (self.def_xywh[2]* Z_h) , (self.def_xywh[4]* Z_h) -- upd y,h
+--------------left and right borders-----------------------------------
+    gfx.set(TH[3][1],TH[3][2],TH[3][3],1)
+    gfx.rect(0, self.y,self.x, self.h,true) -- left
 
-  -- draw Wave frame, axis -------------
-  self:draw_rect()
-
-   -- Insert Wave from gfx buffer1 ------
-  gfx.a = 1 -- gfx.a for blit
-  local srcw, srch = Wave.def_xywh[3], Wave.def_xywh[4] -- its always def values 
-    if WFiltering == 0 then gfx.mode = 4 end
-  gfx.blit(1, 1, 0, 0, 0, srcw, srch,  self.x, self.y, self.w, self.h)
-
-  -- Get Mouse -------------------------
-  self:Get_Mouse()     -- get mouse(for zoom, move etc) 
-end  
+    gfx.set(TH[3][1],TH[3][2],TH[3][3],1)
+    gfx.rect(self.x+1024*Z_w, self.y,self.x+2, self.h+2,true) -- right
+end
 
 --------------------------------------------------------------------------------
 ---  Wave - show_help, info ----------------------------------------------------
@@ -8203,13 +10157,13 @@ else
 end
 
  gfx.setfont(1, "Arial", fnt_sz)
- gfx.set(0.6, 0.6, 0.6, 1) -- цвет текста инфо
+ gfx.set(TH[33][1], TH[33][2], TH[33][3], TH[33][4]) -- цвет текста инфо
  local ZH_correction = Z_h*40
  gfx.x, gfx.y = self.x+23 * (Z_w+Z_h)-ZH_correction, (self.y+1*(Z_h*3))-15
  gfx.drawstr(
   [[
-    Select an item (max 300s).
-    It is better not to use items longer than 60s.
+    Select an item (max 300sec).
+    It is better to use items shorter than 60sec.
     Press "Get Item" button.
     Use sliders to change detection setting.
     Shift+Drag/Mousewheel - fine tune,
@@ -8220,11 +10174,10 @@ end
     On Waveform Area:
     Mouswheel or Left/Right keys - Horizontal Zoom,
     Ctrl(Shift)+Mouswheel or Up/Down keys - Vertical Zoom, 
-    Middle Drag - Move View (Scroll),
+    Left or Middle Drag - Move View (Horizontal Scroll),
     Left Click - Set Edit Cursor,
-    Shift+Left Drag - Move Marker,
+    Left Drag Small Flag - Move Marker,
     Ctrl+Left Drag - Change Velocity,
-    Shift+Ctrl+Left Drag - Move Marker and Change Velocity,
     Right Click on Marker - Delete Marker,
     Right Click on Empty Space - Insert Marker.
   ]]) 
@@ -8249,7 +10202,7 @@ function Wave:show_process_wait()
              end
              
               gfx.setfont(1, "Arial", fnt_sz)
-              gfx.set(0.6, 0.6, 0.6, 1) -- цвет текста инфо
+              gfx.set(TH[33][1], TH[33][2], TH[33][3], TH[33][4]) -- цвет текста инфо
               local ZH_correction = Z_h*40
               gfx.x, gfx.y = self.x+23 * (Z_w+Z_h)-ZH_correction, (self.y+1*(Z_h*3))+120
              
@@ -8278,15 +10231,36 @@ end
 function MAIN()
 
   -- Draw Wave, lines etc ------
-    if Wave.State then      
+    if Wave.State then   
+   
           Wave:from_gfxBuffer() -- Wave from gfx buffer
           Gate_Gl:draw_Lines()  -- Draw Gate trig-lines
+
       --       for key,btn    in pairs(Ruler_TB)   do btn:draw()    end   -- Draw Ruler Background
          if ShowRuler == 1 then Gate_Gl:draw_Ruler() end -- Draw Ruler lines
 
 
         local _, division, swing, _ = r.GetSetProjectGrid(0,false)
-        if division < 0.0078125 then division = 0.0078125 end
+
+------------------------------------MouseWheelOverTheButtons---------------------------------------
+       if gfx.mouse_wheel ~= 0 and (mouse_pos_height >= 5 and mouse_pos_height <= 25 and mouse_pos_width >= 50 and  mouse_pos_width <= 342) then  
+           if gfx.mouse_wheel < 0 then 
+                 _, division, swing, _ = r.GetSetProjectGrid(0,false)
+                division = division*2 
+               if division >= 1 then division = 1 end
+                r.GetSetProjectGrid(0,true,division, swing)
+           end
+           if gfx.mouse_wheel > 0then 
+                _, division, swing, _ = r.GetSetProjectGrid(0,false)
+               division = division/2 
+               if division <= 0.015625 then division = 0.015625 end
+               r.GetSetProjectGrid(0,true,division, swing)
+           end
+       Wave:DrawGridGuides()
+       end
+--------------------------------------------------------------------------------------------------------
+
+        if division < 0.0078125 then division = 0.0078125 end --128th
 -----------------------------Grid Buttons Leds-------------------------------------------------------
         if division == 1 or division == 2/3 then
                  for key,frame  in pairs(Grid1_Led_TB)    do frame:draw()  end  
@@ -8332,10 +10306,16 @@ function MAIN()
               for key,btn    in pairs(Slider_Swing_TB)   do btn:draw()    end 
           end
 
-           if Sync_on == 1 then
-              for key,btn    in pairs(Frame_Sync_TB)   do btn:draw()    end 
+           if Aim_on == 1 then
+              for key,btn    in pairs(Frame_Aim_TB)   do btn:draw()    end 
               else
-              for key,btn    in pairs(Frame_Sync_TB2)   do btn:draw()    end 
+              for key,btn    in pairs(Frame_Aim_TB2)   do btn:draw()    end 
+          end
+
+           if Snap_on == 1 then
+              for key,btn    in pairs(Frame_Snap_TB)   do btn:draw()    end 
+              else
+              for key,btn    in pairs(Frame_Snap_TB2)   do btn:draw()    end 
           end
 
           if Loop_on == 1 then
@@ -8484,13 +10464,14 @@ end
            for key,frame  in pairs(Frame_TB2_Trigg)    do frame:draw()  end -- mode fill
      end
 
-    if ShowInfoLine == 1 and Random_Setup ~= 1 then
-        Info_Line()
-    end
+        Wave:BPM_Numbers()
 
      if ErrMsg_Status == 0 and Random_Setup ~= 1 then
           Wave:show_init_track_item_name()
      end
+
+Wave:ForegroundBorders()
+Wave:CursorTop()
 
 end
 
@@ -8568,7 +10549,7 @@ function MW_doit_slider_Fine(mwsf)
                        ----------------------------------------------------------------
                         OffsSldCorr = (Offset_Sld.form_val/1000*srate)
                         Gate_Gl:Apply_toFiltered()
-                        DrawGridGuides()
+                        Wave:DrawGridGuides()
                         Slice_Status = 1
                         ---------------------------------------------------------------
                          runcheckd = 0
@@ -8588,7 +10569,7 @@ function MW_doit_slider_Fine(mwsf)
            else
                   OffsSldCorr = (Offset_Sld.form_val/1000*srate)
                   Gate_Gl:Apply_toFiltered()
-                  DrawGridGuides()
+                  Wave:DrawGridGuides()
                   Slice_Status = 1
            end
 
@@ -8711,7 +10692,7 @@ end
 function MW_doit_checkbox()
       if Wave.State then
          Wave.Reset_All()
-         DrawGridGuides()
+         Wave:DrawGridGuides()
       end
 end
 
@@ -8746,22 +10727,22 @@ end
 
 function MIDITrigger_pitched()
 
-         tggl_state = r.GetToggleCommandState(42294)
-     
-         if tggl_state == 0 then r.Main_OnCommand(42303,0) end
-
-         r.Main_OnCommand(40178, 0) -- Set take channel mode to mono (downmix)
-         r.Main_OnCommand(40108, 0) -- Normalize
-
-      ----------------add_time getting and calculation-------------------
-        lastitemq = r.GetExtState('_Slicer_', 'ItemToSlice')   
-        itemq =  r.BR_GetMediaItemByGUID( 0, lastitemq )
-       
-       sel_tracks_items()
-       local track = r.GetSelectedTrack(0,0)
-       trackID = track and r.CSurf_TrackToID( track, false )
-       local count_tracks = r.CountTracks(0)
-
+ tggl_state = r.GetToggleCommandState(42294)
+ 
+ if tggl_state == 0 then r.Main_OnCommand(42303,0) end
+ 
+ r.Main_OnCommand(40178, 0) -- Set take channel mode to mono (downmix)
+ r.Main_OnCommand(40108, 0) -- Normalize
+ 
+ ----------------add_time getting and calculation-------------------
+ lastitemq = r.GetExtState('_Slicer_', 'ItemToSlice')   
+ itemq =  r.BR_GetMediaItemByGUID( 0, lastitemq )
+ 
+ sel_tracks_items()
+ local track = r.GetSelectedTrack(0,0)
+ trackID = track and r.CSurf_TrackToID( track, false )
+ local count_tracks = r.CountTracks(0)
+   if itemq ~= nil then
         takeq = r.GetActiveTake( itemq )
         local source = r.GetMediaItemTake_Source(takeq) 
         local true_length, lengthIsQN = reaper.GetMediaSourceLength(source);
@@ -8827,46 +10808,49 @@ function MIDITrigger_pitched()
            Main()
         end
         ------------------------------------------------------
-
+   end
 
 end
 
 ------------------------------------------------------------------------------------
 
 function store_settings() --store dock position
-   r.SetExtState("cool_MK Slicer.lua", "dock", gfx.dock(-1), true)
+   r.SetExtState("MK_Slicer_3", "dock", gfx.dock(-1), true)
 end
 
 function store_settings2() --store sliders/checkboxes
      if RememberLast == 1 then 
-        r.SetExtState('cool_MK Slicer.lua','Guides.norm_val',Guides.norm_val,true);
+        r.SetExtState('MK_Slicer_3','Guides.norm_val',Guides.norm_val,true);
         if Notes_On == 1 then OutNote.norm_val = OutNote2.norm_val end
-        r.SetExtState('cool_MK Slicer.lua','OutNote.norm_val',OutNote.norm_val,true);
-        r.SetExtState('cool_MK Slicer.lua','Midi_Sampler.norm_val',Midi_Sampler.norm_val,true);
-        r.SetExtState('cool_MK Slicer.lua','Sampler_preset.norm_val',Sampler_preset.norm_val,true);
-        r.SetExtState('cool_MK Slicer.lua','Create_Replace.norm_val',Create_Replace.norm_val,true);
-        r.SetExtState('cool_MK Slicer.lua','Create_Replace2.norm_val',Create_Replace2.norm_val,true);
-        r.SetExtState('cool_MK Slicer.lua','Pitch_Det_Options.norm_val',Pitch_Det_Options.norm_val,true);
-        r.SetExtState('cool_MK Slicer.lua','Pitch_Det_Options2.norm_val',Pitch_Det_Options2.norm_val,true);
-        r.SetExtState('cool_MK Slicer.lua','QuantizeStrength',QStrength_Sld.form_val,true);
-        r.SetExtState('cool_MK Slicer.lua','HF_Slider',HP_Freq.norm_val,true);
-        r.SetExtState('cool_MK Slicer.lua','LF_Slider',LP_Freq.norm_val,true);
-        r.SetExtState('cool_MK Slicer.lua','Sens_Slider',Gate_Sensitivity.norm_val,true);
-        r.SetExtState('cool_MK Slicer.lua','Offs_Slider',Offset_Sld.norm_val,true);
+        r.SetExtState('MK_Slicer_3','OutNote.norm_val',OutNote.norm_val,true);
+        r.SetExtState('MK_Slicer_3','Midi_Sampler.norm_val',Midi_Sampler.norm_val,true);
+        r.SetExtState('MK_Slicer_3','Sampler_preset.norm_val',Sampler_preset.norm_val,true);
+        r.SetExtState('MK_Slicer_3','Create_Replace.norm_val',Create_Replace.norm_val,true);
+        r.SetExtState('MK_Slicer_3','Create_Replace2.norm_val',Create_Replace2.norm_val,true);
+        r.SetExtState('MK_Slicer_3','Set_Rate_Feel.norm_val',Set_Rate_Feel.norm_val,true);
+        r.SetExtState('MK_Slicer_3','Set_Rate_Mode.norm_val',Set_Rate_Mode.norm_val,true);
+        r.SetExtState('MK_Slicer_3','Pitch_Det_Options.norm_val',Pitch_Det_Options.norm_val,true);
+        r.SetExtState('MK_Slicer_3','Pitch_Det_Options2.norm_val',Pitch_Det_Options2.norm_val,true);
+        r.SetExtState('MK_Slicer_3','QuantizeStrength',QStrength_Sld.form_val,true);
+        r.SetExtState('MK_Slicer_3','HF_Slider',HP_Freq.norm_val,true);
+        r.SetExtState('MK_Slicer_3','LF_Slider',LP_Freq.norm_val,true);
+        r.SetExtState('MK_Slicer_3','Sens_Slider',Gate_Sensitivity.norm_val,true);
+        r.SetExtState('MK_Slicer_3','Offs_Slider',Offset_Sld.norm_val,true);
         if XFadeOff == 0 then
-           r.SetExtState('cool_MK Slicer.lua','CrossfadeTime',XFade_Sld.form_val,true);
+           r.SetExtState('MK_Slicer_3','CrossfadeTime',XFade_Sld.form_val,true);
         end
-        r.SetExtState('cool_MK Slicer.lua','PitchDetect',Pitch_Preset.norm_val,true);
-        r.SetExtState('cool_MK Slicer.lua','Gate_VeloScale.norm_val',Gate_VeloScale.norm_val,true);
-        r.SetExtState('cool_MK Slicer.lua','Gate_VeloScale.norm_val2',Gate_VeloScale.norm_val2,true);
+        r.SetExtState('MK_Slicer_3','PitchDetect',Pitch_Preset.norm_val,true);
+        r.SetExtState('MK_Slicer_3','Gate_VeloScale.norm_val',Gate_VeloScale.norm_val,true);
+        r.SetExtState('MK_Slicer_3','Gate_VeloScale.norm_val2',Gate_VeloScale.norm_val2,true);
 
-        r.SetExtState('cool_MK Slicer.lua','RandV_Sld.norm_val',RandV_Sld.norm_val,true);
-        r.SetExtState('cool_MK Slicer.lua','RandPan_Sld.norm_val',RandPan_Sld.norm_val,true);
-        r.SetExtState('cool_MK Slicer.lua','RandPtch_Sld.norm_val',RandPtch_Sld.norm_val,true);
-        r.SetExtState('cool_MK Slicer.lua','RandPos_Sld.norm_val',RandPos_Sld.norm_val,true);
-        r.SetExtState('cool_MK Slicer.lua','RandRev_Sld.norm_val',RandRev_Sld.norm_val,true);
+        r.SetExtState('MK_Slicer_3','RandV_Sld.norm_val',RandV_Sld.norm_val,true);
+        r.SetExtState('MK_Slicer_3','RandPan_Sld.norm_val',RandPan_Sld.norm_val,true);
+        r.SetExtState('MK_Slicer_3','RandPtch_Sld.norm_val',RandPtch_Sld.norm_val,true);
+        r.SetExtState('MK_Slicer_3','RandPos_Sld.norm_val',RandPos_Sld.norm_val,true);
+        r.SetExtState('MK_Slicer_3','RandRev_Sld.norm_val',RandRev_Sld.norm_val,true);
 
-          r.SetExtState('cool_MK Slicer.lua','Sync_on',Sync_on,true);
+          r.SetExtState('MK_Slicer_3','Snap_on',Snap_on,true);
+          r.SetExtState('MK_Slicer_3','Aim_on',Aim_on,true);
      end
 end
 
@@ -8874,7 +10858,7 @@ end
 --   INIT   --------------------------------------------------------------------
 -------------------------------------------------------------------------------
 function Init()
-   dock_pos = r.GetExtState("cool_MK Slicer.lua", "dock")
+   dock_pos = r.GetExtState("MK_Slicer_3", "dock")
        if Docked == 1 then
          if dock_pos == "0.0" then dock_pos = 1025 end
            dock_pos = dock_pos or 1025
@@ -8882,19 +10866,19 @@ function Init()
            ypos = 320
            else
            dock_pos = 0
-           xpos = r.GetExtState("cool_MK Slicer.lua", "window_x") or 400
-           ypos = r.GetExtState("cool_MK Slicer.lua", "window_y") or 320
+           xpos = r.GetExtState("MK_Slicer_3", "window_x") or 400
+           ypos = r.GetExtState("MK_Slicer_3", "window_y") or 320
         end
 
     -- Some gfx Wnd Default Values ---------------
-    local R,G,B = 45,45,45              -- 0...255 format -- цвет основного окна
+    local R,G,B = ceil(TH[3][1]*255),ceil(TH[3][2]*255),ceil(TH[3][3]*255)             -- 0...255 format -- цвет основного окна
     local Wnd_bgd = R + G*256 + B*65536 -- red+green*256+blue*65536  
-    local Wnd_Title = "MK Slicer v2.52"
+    local Wnd_Title = "MK Slicer v3.01" .. " " .. theme_name .. ""
     local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
  --   Wnd_W,Wnd_H = 1044,490 -- global values(used for define zoom level)
 
-       Wnd_W = r.GetExtState("cool_MK Slicer.lua", "zoomW") or 1044
-       Wnd_H = r.GetExtState("cool_MK Slicer.lua", "zoomH") or 490
+       Wnd_W = r.GetExtState("MK_Slicer_3", "zoomW") or 1044
+       Wnd_H = r.GetExtState("MK_Slicer_3", "zoomH") or 490
        if Wnd_W == (nil or "") then Wnd_W = 1044 end
        if Wnd_H == (nil or "") then Wnd_H = 490 end
     -- Init window ------
@@ -8908,47 +10892,6 @@ function Init()
     mouse_ox, mouse_oy = -1, -1
 end
 
-
-function Info_Line()
-       -- Draw out_gain value
-   if not Z_w or not Z_h then return end -- return if zoom not defined
-       gfx.set(1,1,1,0.4)    -- set body color
-       gfx.x = gfx.x+(Z_w*120)
-       gfx.y = gfx.y+3
-   local _, division, swing, swingamt = r.GetSetProjectGrid(0,false)
-   if swingamt then
-       swngamt = math_round((swingamt*100),0)
-       swngamt = string.format("%d", swngamt)
-
----------------------Grid---------------------------------
-        division = tonumber(division);
-        if not tonumber(division) then return false end;
-        local i,T,str1,str2,str3,str4;
-    if  division >= 0.6 and division <= 0.7 then divisi = division/2
-    else divisi = division end
-        fraction = 1//divisi
-        str1 = (string.format("%.0f",1).."/"..string.format("%.0f",fraction)):gsub("/%s-1$","");
-        if division >= 1 then str2 = string.format("%.3f",division):gsub("[0.]-$","") else str2 = str1 end;
-        if (fraction % 3) == 0 then T = true else T = false end;
-        if T == true then tripl = "T" else tripl = "" end
-        if T then str3=string.format("%.0f",1).."/"..string.format("%.0f",fraction-(fraction/3)).."T"else str3=str1 end;
-        if T then;
-            if division>=0.6666 then str4=string.format("%.3f",(division/2)+division):gsub("[0.]-$","").."T"else str4=str3;end;
-            elseif division >= 1 then str4=str2 else str4=str1;
-        end;
-
-       gfx.printf("Project: Grid " .. tostring(str4) .. "  ")
-
-   if swing == 0 then 
-   swngamt = "Off" 
-          gfx.printf("Swing " .. tostring(swngamt) .. "")
-   else 
-   swngamt = swngamt 
-          gfx.printf("Swing " .. tostring(swngamt) .. "%%")
-   end
-  end
-
-end
 ---------------------------------------
 --   Mainloop   ------------------------
 ---------------------------------------
@@ -8958,10 +10901,11 @@ local rng1x = rng1
 local rng2x = rng2
 
 local Loop_onx = Loop_on
+local Guides_norm_val = Guides.norm_val
 
     -- zoom level -- 
-    Wnd_WZ = r.GetExtState("cool_MK Slicer.lua", "zoomWZ") or 1044
-    Wnd_HZ = r.GetExtState("cool_MK Slicer.lua", "zoomHZ") or 490
+    Wnd_WZ = r.GetExtState("MK_Slicer_3", "zoomWZ") or 1044
+    Wnd_HZ = r.GetExtState("MK_Slicer_3", "zoomHZ") or 490
     if Wnd_WZ == (nil or "") then Wnd_WZ = 1044 end
     if Wnd_HZ == (nil or "") then Wnd_HZ = 490 end
 
@@ -9002,13 +10946,25 @@ local Loop_onx = Loop_on
     end
 
 
-if Loop_onx ~= Loop_on then
-                r.GetSet_LoopTimeRange(true, true, 0, 0, false) -- loop off when Loop_on == 0
-end
+      if Loop_onx ~= Loop_on and Snap_on == 0 then
+          r.GetSet_LoopTimeRange(true, true, 0, 0, false) -- loop off when Loop_on == 0
+      end
 
 
-    if loop_start and Wave.State and (rng1x ~= rng1 or rng2x ~= rng2) or Loop_onx ~= Loop_on then
-        r.GetSet_LoopTimeRange(isloop, true, rng1, rng2, false)
+    if loop_start and Wave.State and (rng1x ~= rng1 or rng2x ~= rng2) or Loop_onx ~= Loop_on or BPMButtonStatus2 == 1 or Guides_norm_val ~= Guides.norm_val then
+        if Snap_on == 1 and Loop_on == 1 then
+             if Guides.norm_val == 2 then
+                r.GetSet_LoopTimeRange(isloop, true, rng1, rng2, false)
+             end
+           elseif (Snap_on == 0 and Loop_on == 0) then
+             r.GetSet_LoopTimeRange(1, true, 0, 0, false)
+           elseif (Snap_on == 1 and Loop_on == 0) then
+             if Guides.norm_val == 2 then
+                r.GetSet_LoopTimeRange(1, true, 0, 0, false)
+             end
+           elseif Snap_on == 0 and Loop_on == 1 then
+             r.GetSet_LoopTimeRange(isloop, true, rng1, rng2, false)
+        end
     end
 
 
@@ -9024,7 +10980,6 @@ end
               if rng4 == nil then rng4 = 1 end
 
          r.GetSet_ArrangeView2( 0,1,0,0,rng3, rng4 )
-
     end
 
 
@@ -9042,12 +10997,19 @@ end
 
     char = gfx.getchar()
 
-    if char==32 then 
-         if PlayMode == 0 then
-         r.Main_OnCommand(40044, 0) 
-         else
-         r.Main_OnCommand(40073, 0) 
+    if char==32 then
+ 
+         if CursorFollowsLoop == 1 and Loop_on == 1 then
+             cursorstart, _ = r.GetSet_LoopTimeRange( 0, 1, 0, 0, 0 )
+             r.SetEditCurPos(cursorstart, false, false)
          end
+
+         if PlayMode == 1 and Snap_on == 0 then
+            r.Main_OnCommand(40073, 0) -- play/pause
+            else
+            r.Main_OnCommand(40044, 0) -- play/stop
+         end
+
     end -- play
   
      if char==26 then 
@@ -9079,12 +11041,12 @@ end
 
 function store_window() -- store window dock state/position/size
   local _, xpos, ypos, Wnd_W, Wnd_H = gfx.dock(-1, 0, 0, 0, 0)
-    r.SetExtState("cool_MK Slicer.lua", "window_x", xpos, true)
-    r.SetExtState("cool_MK Slicer.lua", "window_y", ypos, true)
-    r.SetExtState("cool_MK Slicer.lua", "zoomW", Wnd_W, true)
-    r.SetExtState("cool_MK Slicer.lua", "zoomH", Wnd_H, true)
-    r.SetExtState("cool_MK Slicer.lua", "zoomWZ", Wnd_WZ, true)
-    r.SetExtState("cool_MK Slicer.lua", "zoomHZ", Wnd_HZ, true)
+    r.SetExtState("MK_Slicer_3", "window_x", xpos, true)
+    r.SetExtState("MK_Slicer_3", "window_y", ypos, true)
+    r.SetExtState("MK_Slicer_3", "zoomW", Wnd_W, true)
+    r.SetExtState("MK_Slicer_3", "zoomH", Wnd_H, true)
+    r.SetExtState("MK_Slicer_3", "zoomWZ", Wnd_WZ, true)
+    r.SetExtState("MK_Slicer_3", "zoomHZ", Wnd_HZ, true)
 end
 
 function getitem()
@@ -9110,7 +11072,7 @@ function getitem()
                               if Wave.State then
                                  Wave:Redraw()
                                  Gate_Gl:Apply_toFiltered() 
-                                 DrawGridGuides()
+                                 Wave:DrawGridGuides()
                               end
                            end
                         ----------------------------------
@@ -9138,6 +11100,62 @@ function getitem()
 
 end
 
+
+function getitem_fast()
+
+        r.Undo_BeginBlock() 
+        r.PreventUIRefresh(1)
+        Muted = 0
+        if number_of_takes == 1 and mute_check == 1 then 
+        r.Main_OnCommand(40175, 0) 
+        Muted = 1
+        end
+        
+        ----------------------------
+           Wave:Destroy_Track_Accessor() -- Destroy previos AA(освобождает память etc)
+           Wave.State = false -- reset Wave.State
+           if Wave:Create_Track_Accessor() then Wave:Processing()
+              if Wave.State then
+                 Wave:Redraw()
+                 Gate_Gl:Apply_toFiltered() 
+                 Wave:DrawGridGuides()
+              end
+           end
+        ----------------------------------
+        
+        if Muted == 1 then
+        r.Main_OnCommand(40175, 0) 
+        end
+        r.PreventUIRefresh(-1)
+        r.Undo_EndBlock("Toggle Item Mute", -1) 
+
+end
+
+function SaveRateDelay()
+
+     time_start_srd = reaper.time_precise()       
+        local function Main()     
+            local elapsed = reaper.time_precise() - time_start_srd       
+            if elapsed >= 0.2 then
+            ---------------------------------------------------------
+                              if Wave.State then
+                                 SaveInitRate()
+                              end
+                        ----------------------------------
+              runcheck_srd = 0
+                return
+            else
+              runcheck_srd = 1
+                reaper.defer(Main)
+            end           
+        end
+        
+        if runcheck_srd ~= 1 then
+           Main()
+        end
+
+end
+SaveRateDelay()
 -----------------------------------------------------------------------------------
 -- Set ToolBar Button ON
 function SetButtonON()
@@ -9214,38 +11232,38 @@ end
 item5.command = function()
                      if item5.selected == true then 
   local _, xpos, ypos, Wnd_W, Wnd_H = gfx.dock(-1, 0, 0, 0, 0)
-    r.SetExtState("cool_MK Slicer.lua", "window_x", xpos, true)
-    r.SetExtState("cool_MK Slicer.lua", "window_y", ypos, true)
-    r.SetExtState("cool_MK Slicer.lua", "zoomW", Wnd_W, true)
-    r.SetExtState("cool_MK Slicer.lua", "zoomH", Wnd_H, true)
-    r.SetExtState("cool_MK Slicer.lua", "zoomWZ", Wnd_WZ, true)
-    r.SetExtState("cool_MK Slicer.lua", "zoomHZ", Wnd_HZ, true)
+    r.SetExtState("MK_Slicer_3", "window_x", xpos, true)
+    r.SetExtState("MK_Slicer_3", "window_y", ypos, true)
+    r.SetExtState("MK_Slicer_3", "zoomW", Wnd_W, true)
+    r.SetExtState("MK_Slicer_3", "zoomH", Wnd_H, true)
+    r.SetExtState("MK_Slicer_3", "zoomWZ", Wnd_WZ, true)
+    r.SetExtState("MK_Slicer_3", "zoomHZ", Wnd_HZ, true)
 
 gfx.quit()
      Docked = 1
-     dock_pos = r.GetExtState("cool_MK Slicer.lua", "dock")
+     dock_pos = r.GetExtState("MK_Slicer_3", "dock")
      if dock_pos == "0.0" then dock_pos = 1025 end
      dock_pos = dock_pos or 1025
      xpos = 400
      ypos = 320
-     local Wnd_Title = "MK Slicer v2.52"
+     local Wnd_Title = "MK Slicer v3.01"
      local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
      gfx.init( Wnd_Title, Wnd_W,Wnd_H, Wnd_Dock, Wnd_X,Wnd_Y )
 
                      else
 
-    r.SetExtState("cool_MK Slicer.lua", "dock", gfx.dock(-1), true)
+    r.SetExtState("MK_Slicer_3", "dock", gfx.dock(-1), true)
 gfx.quit()
     Docked = 0
     dock_pos = 0
-    xpos = r.GetExtState("cool_MK Slicer.lua", "window_x") or 400
-    ypos = r.GetExtState("cool_MK Slicer.lua", "window_y") or 320
-    local Wnd_Title = "MK Slicer v2.52"
+    xpos = r.GetExtState("MK_Slicer_3", "window_x") or 400
+    ypos = r.GetExtState("MK_Slicer_3", "window_y") or 320
+    local Wnd_Title = "MK Slicer v3.01"
     local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
     gfx.init( Wnd_Title, Wnd_W,Wnd_H, Wnd_Dock, Wnd_X,Wnd_Y )
  
-    Wnd_WZ = r.GetExtState("cool_MK Slicer.lua", "zoomWZ") or 1044
-    Wnd_HZ = r.GetExtState("cool_MK Slicer.lua", "zoomHZ") or 490
+    Wnd_WZ = r.GetExtState("MK_Slicer_3", "zoomWZ") or 1044
+    Wnd_HZ = r.GetExtState("MK_Slicer_3", "zoomHZ") or 490
     if Wnd_WZ == (nil or "") then Wnd_WZ = 1044 end
     if Wnd_HZ == (nil or "") then Wnd_HZ = 490 end
  
@@ -9254,7 +11272,7 @@ gfx.quit()
     if Z_w<0.63 then Z_w = 0.63 elseif Z_w>2.2 then Z_w = 2.2 end 
     if Z_h<0.63 then Z_h = 0.63 elseif Z_h>2.2 then Z_h = 2.2 end 
                      end
-          r.SetExtState('cool_MK Slicer.lua','Docked',Docked,true);
+          r.SetExtState('MK_Slicer_3','Docked',Docked,true);
 end
 
 
@@ -9269,7 +11287,7 @@ item6.command = function()
                      else
                      EscToExit = 0
                      end
-          r.SetExtState('cool_MK Slicer.lua','EscToExit',EscToExit,true);
+          r.SetExtState('MK_Slicer_3','EscToExit',EscToExit,true);
 end
 
 
@@ -9284,7 +11302,7 @@ item7.command = function()
                      else
                      AutoScroll = 0
                      end
-          r.SetExtState('cool_MK Slicer.lua','AutoScroll',AutoScroll,true);
+          r.SetExtState('MK_Slicer_3','AutoScroll',AutoScroll,true);
 end
 
 
@@ -9299,14 +11317,29 @@ item8.command = function()
                      else
                      PlayMode = 0
                      end
-          r.SetExtState('cool_MK Slicer.lua','PlayMode',PlayMode,true);
+          r.SetExtState('MK_Slicer_3','PlayMode',PlayMode,true);
+end
+
+
+if Snap_AutoPlay == 1 then
+item35 = context_menu:add_item({label = "Snap Area: Auto Play by Click", toggleable = true, selected = true})
+else
+item35 = context_menu:add_item({label = "Snap Area: Auto Play by Click", toggleable = true, selected = false})
+end
+item35.command = function()
+                     if item35.selected == true then 
+                     Snap_AutoPlay = 1
+                     else
+                     Snap_AutoPlay = 0
+                     end
+          r.SetExtState('MK_Slicer_3','Snap_AutoPlay',Snap_AutoPlay,true);
 end
 
 
 if Loop_on == 1 then
-item9 = context_menu:add_item({label = "Loop is Enabled when the Script Starts|", toggleable = true, selected = true})
+item9 = context_menu:add_item({label = "Loop is Enabled when the Script Starts", toggleable = true, selected = true})
 else
-item9 = context_menu:add_item({label = "Loop is Enabled when the Script Starts|", toggleable = true, selected = false})
+item9 = context_menu:add_item({label = "Loop is Enabled when the Script Starts", toggleable = true, selected = false})
 end
 item9.command = function()
                      if item9.selected == true then 
@@ -9314,7 +11347,21 @@ item9.command = function()
                      else
                      Loop_on = 0
                      end
-          r.SetExtState('cool_MK Slicer.lua','Loop_on',Loop_on,true);
+          r.SetExtState('MK_Slicer_3','Loop_on',Loop_on,true);
+end
+
+if Sync_on == 1 then
+item33 = context_menu:add_item({label = "Sync Waveform and Arrange View|", toggleable = true, selected = true})
+else
+item33 = context_menu:add_item({label = "Sync Waveform and Arrange View|", toggleable = true, selected = false})
+end
+item33.command = function()
+                     if item33.selected == true then 
+                     Sync_on = 1
+                     else
+                     Sync_on = 0
+                     end
+          r.SetExtState('MK_Slicer_3','Sync_on',Sync_on,true);
 end
 
 
@@ -9329,7 +11376,7 @@ item10.command = function()
                      else
                      ZeroCrossings = 0
                      end
-          r.SetExtState('cool_MK Slicer.lua','ZeroCrossings',ZeroCrossings,true);
+          r.SetExtState('MK_Slicer_3','ZeroCrossings',ZeroCrossings,true);
 end
 
 
@@ -9344,7 +11391,7 @@ item11.command = function()
                      else
                      ItemFadesOverride = 0
                      end
-          r.SetExtState('cool_MK Slicer.lua','ItemFadesOverride',ItemFadesOverride,true);
+          r.SetExtState('MK_Slicer_3','ItemFadesOverride',ItemFadesOverride,true);
 end
 
 
@@ -9359,7 +11406,7 @@ item12.command = function()
                      else
                      MIDISamplerCopyFX = 0
                      end
-          r.SetExtState('cool_MK Slicer.lua','MIDISamplerCopyFX',MIDISamplerCopyFX,true);
+          r.SetExtState('MK_Slicer_3','MIDISamplerCopyFX',MIDISamplerCopyFX,true);
 end 
 
 
@@ -9374,7 +11421,7 @@ item13.command = function()
                      else
                      MIDISamplerCopyRouting = 0
                      end
-          r.SetExtState('cool_MK Slicer.lua','MIDISamplerCopyRouting',MIDISamplerCopyRouting,true);
+          r.SetExtState('MK_Slicer_3','MIDISamplerCopyRouting',MIDISamplerCopyRouting,true);
 end
 
 
@@ -9389,7 +11436,7 @@ item14.command = function()
                      else
                      Notes_On = 0
                      end
-          r.SetExtState('cool_MK Slicer.lua','Notes_On',Notes_On,true);
+          r.SetExtState('MK_Slicer_3','Notes_On',Notes_On,true);
 end 
 
 
@@ -9404,7 +11451,7 @@ item15.command = function()
                      else
                      ObeyingTheSelection = 0
                      end
-          r.SetExtState('cool_MK Slicer.lua','ObeyingTheSelection',ObeyingTheSelection,true);
+          r.SetExtState('MK_Slicer_3','ObeyingTheSelection',ObeyingTheSelection,true);
 end
 
 
@@ -9419,7 +11466,7 @@ item16.command = function()
                      else
                      ObeyingItemSelection = 0
                      end
-          r.SetExtState('cool_MK Slicer.lua','ObeyingItemSelection',ObeyingItemSelection,true);
+          r.SetExtState('MK_Slicer_3','ObeyingItemSelection',ObeyingItemSelection,true);
 
 end
 
@@ -9431,47 +11478,47 @@ end
 
 
 item18 = context_menu:add_item({label = "Set User Defaults", toggleable = false})
-item17.command = function()
+item18.command = function()
 user_defaults()
 end
 
 
 item19 = context_menu:add_item({label = "Reset All Setted User Defaults", toggleable = false})
-item18.command = function()
+item19.command = function()
 
-      r.SetExtState('cool_MK Slicer.lua','DefaultXFadeTime',15,true);
-      r.SetExtState('cool_MK Slicer.lua','DefaultP_Slider',5,true);
-      r.SetExtState('cool_MK Slicer.lua','DefaultQStrength',100,true);
-      r.SetExtState('cool_MK Slicer.lua','DefaultLP',1,true);
-      r.SetExtState('cool_MK Slicer.lua','DefaultHP',0.3312,true);
-      r.SetExtState('cool_MK Slicer.lua','DefaultSens',0.375,true);
-      r.SetExtState('cool_MK Slicer.lua','DefaultOffset',0.5,true);
-      r.SetExtState('cool_MK Slicer.lua','MIDI_Base_Oct',2,true);
-      r.SetExtState('cool_MK Slicer.lua','Trigger_Oct_Shift',0,true);
+      r.SetExtState('MK_Slicer_3','DefaultXFadeTime',15,true);
+      r.SetExtState('MK_Slicer_3','DefaultP_Slider',5,true);
+      r.SetExtState('MK_Slicer_3','DefaultQStrength',100,true);
+      r.SetExtState('MK_Slicer_3','DefaultLP',1,true);
+      r.SetExtState('MK_Slicer_3','DefaultHP',0.3312,true);
+      r.SetExtState('MK_Slicer_3','DefaultSens',0.63,true);
+      r.SetExtState('MK_Slicer_3','DefaultOffset',0.5,true);
+      r.SetExtState('MK_Slicer_3','MIDI_Base_Oct',2,true);
+      r.SetExtState('MK_Slicer_3','Trigger_Oct_Shift',0,true);
 
 end
 
 
 item20 = context_menu:add_item({label = "|XFades and Fill Gaps On/Off (Experimental)", toggleable = false})
-item19.command = function()
+item20.command = function()
  if XFadeOff == 1 then XFadeOff = 0
 elseif XFadeOff == 0 then XFadeOff = 1
 end
-      r.SetExtState('cool_MK Slicer.lua','XFadeOff',XFadeOff,true);
+      r.SetExtState('MK_Slicer_3','XFadeOff',XFadeOff,true);
 end
 
 
 item21 = context_menu:add_item({label = "|Reset Controls to User Defaults (Restart required)|<", toggleable = false})
-item20.command = function()
+item21.command = function()
 Reset_to_def = 1
   --sliders--
-      DefaultXFadeTime = tonumber(r.GetExtState('cool_MK Slicer.lua','DefaultXFadeTime'))or 15;
-      DefaultP_Slider = tonumber(r.GetExtState('cool_MK Slicer.lua','DefaultP_Slider'))or 5;
-      DefaultQStrength = tonumber(r.GetExtState('cool_MK Slicer.lua','DefaultQStrength'))or 100;
-      DefaultHP = tonumber(r.GetExtState('cool_MK Slicer.lua','DefaultHP'))or 0.3312;
-      DefaultLP = tonumber(r.GetExtState('cool_MK Slicer.lua','DefaultLP'))or 1;
-      DefaultSens = tonumber(r.GetExtState('cool_MK Slicer.lua','DefaultSens'))or 0.375;
-      DefaultOffset = tonumber(r.GetExtState('cool_MK Slicer.lua','DefaultOffset'))or 0.5;
+      DefaultXFadeTime = tonumber(r.GetExtState('MK_Slicer_3','DefaultXFadeTime'))or 15;
+      DefaultP_Slider = tonumber(r.GetExtState('MK_Slicer_3','DefaultP_Slider'))or 5;
+      DefaultQStrength = tonumber(r.GetExtState('MK_Slicer_3','DefaultQStrength'))or 100;
+      DefaultHP = tonumber(r.GetExtState('MK_Slicer_3','DefaultHP'))or 0.3312;
+      DefaultLP = tonumber(r.GetExtState('MK_Slicer_3','DefaultLP'))or 1;
+      DefaultSens = tonumber(r.GetExtState('MK_Slicer_3','DefaultSens'))or 0.63;
+      DefaultOffset = tonumber(r.GetExtState('MK_Slicer_3','DefaultOffset'))or 0.5;
   --sheckboxes--
      DefMIDI_Mode =  1;
      DefSampler_preset_state =  1;
@@ -9486,35 +11533,153 @@ Reset_to_def = 1
      DefXFadeOff = 0
 
   --sliders--
-      r.SetExtState('cool_MK Slicer.lua','CrossfadeTime',DefaultXFadeTime,true);
-      r.SetExtState('cool_MK Slicer.lua','PitchDetect',DefaultP_Slider,true);
-      r.SetExtState('cool_MK Slicer.lua','QuantizeStrength',DefaultQStrength,true);
-      r.SetExtState('cool_MK Slicer.lua','Offs_Slider',DefaultOffset,true);
-      r.SetExtState('cool_MK Slicer.lua','HF_Slider',DefaultHP,true);
-      r.SetExtState('cool_MK Slicer.lua','LF_Slider',DefaultLP,true);
-      r.SetExtState('cool_MK Slicer.lua','Sens_Slider',DefaultSens,true);
+      r.SetExtState('MK_Slicer_3','CrossfadeTime',DefaultXFadeTime,true);
+      r.SetExtState('MK_Slicer_3','PitchDetect',DefaultP_Slider,true);
+      r.SetExtState('MK_Slicer_3','QuantizeStrength',DefaultQStrength,true);
+      r.SetExtState('MK_Slicer_3','Offs_Slider',DefaultOffset,true);
+      r.SetExtState('MK_Slicer_3','HF_Slider',DefaultHP,true);
+      r.SetExtState('MK_Slicer_3','LF_Slider',DefaultLP,true);
+      r.SetExtState('MK_Slicer_3','Sens_Slider',DefaultSens,true);
   --sheckboxes--
-      r.SetExtState('cool_MK Slicer.lua','Guides.norm_val',DefGuides_mode,true);
+      r.SetExtState('MK_Slicer_3','Guides.norm_val',DefGuides_mode,true);
       if Notes_On == 1 then OutNote.norm_val = OutNote2.norm_val end
-      r.SetExtState('cool_MK Slicer.lua','OutNote.norm_val',DefOutNote_State,true);
-      r.SetExtState('cool_MK Slicer.lua','Midi_Sampler.norm_val',DefMIDI_Mode,true);
-      r.SetExtState('cool_MK Slicer.lua','Sampler_preset.norm_val',DefSampler_preset_state,true);
-      r.SetExtState('cool_MK Slicer.lua','Create_Replace.norm_val',DefCreate_Replace_state,true);
-      r.SetExtState('cool_MK Slicer.lua','Create_Replace.norm_val',DefCreate_Replace_state2,true);
-      r.SetExtState('cool_MK Slicer.lua','Pitch_Det_Options.norm_val',DefPitch_Det_Options_state,true);
-      r.SetExtState('cool_MK Slicer.lua','Pitch_Det_Options2.norm_val',DefPitch_Det_Options_state2,true);
-      r.SetExtState('cool_MK Slicer.lua','XFadeOff',DefXFadeOff,true);
-      r.SetExtState('cool_MK Slicer.lua','Gate_VeloScale.norm_val',DefGate_VeloScale,true);
-      r.SetExtState('cool_MK Slicer.lua','Gate_VeloScale.norm_val2',DefGate_VeloScale2,true);
+      r.SetExtState('MK_Slicer_3','OutNote.norm_val',DefOutNote_State,true);
+      r.SetExtState('MK_Slicer_3','Midi_Sampler.norm_val',DefMIDI_Mode,true);
+      r.SetExtState('MK_Slicer_3','Sampler_preset.norm_val',DefSampler_preset_state,true);
+      r.SetExtState('MK_Slicer_3','Create_Replace.norm_val',DefCreate_Replace_state,true);
+      r.SetExtState('MK_Slicer_3','Create_Replace.norm_val',DefCreate_Replace_state2,true);
+      r.SetExtState('MK_Slicer_3','Pitch_Det_Options.norm_val',DefPitch_Det_Options_state,true);
+      r.SetExtState('MK_Slicer_3','Pitch_Det_Options2.norm_val',DefPitch_Det_Options_state2,true);
+      r.SetExtState('MK_Slicer_3','XFadeOff',DefXFadeOff,true);
+      r.SetExtState('MK_Slicer_3','Gate_VeloScale.norm_val',DefGate_VeloScale,true);
+      r.SetExtState('MK_Slicer_3','Gate_VeloScale.norm_val2',DefGate_VeloScale2,true);
 
 end
 
+--------------------------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------------------------
+item22 = context_menu:add_item({label = ">Select Theme (Script will close. Re-open required)"})
+item22.command = function()
+end
 
-item22 = context_menu:add_item({label = "|Reset Window Size", toggleable = false})
-item21.command = function()
+
+if ThemeSel == 1 then
+item23 = context_menu:add_item({label = "Prime", toggleable = true, selected = true})
+else
+item23 = context_menu:add_item({label = "Prime", toggleable = true, selected = false})
+end
+item23.command = function()
+                   ThemeSel = 1
+                   r.SetExtState('MK_Slicer_3','ThemeSel',ThemeSel,true);
+                   gfx.quit()
+end
+
+
+if ThemeSel == 2 then
+item24 = context_menu:add_item({label = "Neon", toggleable = true, selected = true})
+else
+item24 = context_menu:add_item({label = "Neon", toggleable = true, selected = false})
+end
+item24.command = function()
+                   ThemeSel = 2
+                   r.SetExtState('MK_Slicer_3','ThemeSel',ThemeSel,true);
+                   gfx.quit()
+end
+
+if ThemeSel == 3 then
+item25 = context_menu:add_item({label = "Black", toggleable = true, selected = true})
+else
+item25 = context_menu:add_item({label = "Black", toggleable = true, selected = false})
+end
+item25.command = function()
+                   ThemeSel = 3
+                   r.SetExtState('MK_Slicer_3','ThemeSel',ThemeSel,true);
+                   gfx.quit()
+end
+
+if ThemeSel == 4 then
+item24 = context_menu:add_item({label = "Blue Lake", toggleable = true, selected = true})
+else
+item24 = context_menu:add_item({label = "Blue Lake", toggleable = true, selected = false})
+end
+item24.command = function()
+                   ThemeSel = 4
+                   r.SetExtState('MK_Slicer_3','ThemeSel',ThemeSel,true);
+                   gfx.quit()
+end
+
+if ThemeSel == 5 then
+item27 = context_menu:add_item({label = "Fall", toggleable = true, selected = true})
+else
+item27 = context_menu:add_item({label = "Fall", toggleable = true, selected = false})
+end
+item27.command = function()
+                   ThemeSel = 5
+                   r.SetExtState('MK_Slicer_3','ThemeSel',ThemeSel,true);
+                   gfx.quit()
+end
+
+if ThemeSel == 6 then
+item28 = context_menu:add_item({label = "Soft Dark", toggleable = true, selected = true})
+else
+item28 = context_menu:add_item({label = "Soft Dark", toggleable = true, selected = false})
+end
+item28.command = function()
+                   ThemeSel = 6
+                   r.SetExtState('MK_Slicer_3','ThemeSel',ThemeSel,true);
+                   gfx.quit()
+end
+
+if ThemeSel == 7 then
+item29 = context_menu:add_item({label = "Graphite", toggleable = true, selected = true})
+else
+item29 = context_menu:add_item({label = "Graphite", toggleable = true, selected = false})
+end
+item29.command = function()
+                   ThemeSel = 7
+                   r.SetExtState('MK_Slicer_3','ThemeSel',ThemeSel,true);
+                   gfx.quit()
+end
+
+if ThemeSel == 8 then
+item30 = context_menu:add_item({label = "Clean", toggleable = true, selected = true})
+else
+item30 = context_menu:add_item({label = "Clean", toggleable = true, selected = false})
+end
+item30.command = function()
+                   ThemeSel = 8
+                   r.SetExtState('MK_Slicer_3','ThemeSel',ThemeSel,true);
+                   gfx.quit()
+end
+
+if ThemeSel == 9 then
+item31 = context_menu:add_item({label = "Ink", toggleable = true, selected = true})
+else
+item31 = context_menu:add_item({label = "Ink", toggleable = true, selected = false})
+end
+item31.command = function()
+                   ThemeSel = 9
+                   r.SetExtState('MK_Slicer_3','ThemeSel',ThemeSel,true);
+                   gfx.quit()
+end
+
+if ThemeSel == 10 then
+item32 = context_menu:add_item({label = "Classic|<", toggleable = true, selected = true})
+else
+item32 = context_menu:add_item({label = "Classic|<", toggleable = true, selected = false})
+end
+item32.command = function()
+                   ThemeSel = 10
+                   r.SetExtState('MK_Slicer_3','ThemeSel',ThemeSel,true);
+                   gfx.quit()
+end
+
+
+item34 = context_menu:add_item({label = "|Reset Window Size", toggleable = false})
+item34.command = function()
 store_window()
-           xpos = r.GetExtState("cool_MK Slicer.lua", "window_x") or 400
-           ypos = r.GetExtState("cool_MK Slicer.lua", "window_y") or 320
+           xpos = r.GetExtState("MK_Slicer_3", "window_x") or 400
+           ypos = r.GetExtState("MK_Slicer_3", "window_y") or 320
     local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
     Wnd_W,Wnd_H = 1044,490 -- global values(used for define zoom level)
     -- Re-Init window ------
@@ -9523,6 +11688,7 @@ store_window()
 
 end
 
+
 ----------------------------end of context menu--------------------------------
 
  mainloop_settings()
@@ -9530,15 +11696,15 @@ end
 ------------------------------User Defaults form--------------------------------
 function user_defaults()
 ::first_string::
-DefaultXFadeTime = tonumber(r.GetExtState('cool_MK Slicer.lua','DefaultXFadeTime'))or 15;
-DefaultP_Slider = tonumber(r.GetExtState('cool_MK Slicer.lua','DefaultP_Slider'))or 5;
-DefaultQStrength = tonumber(r.GetExtState('cool_MK Slicer.lua','DefaultQStrength'))or 100;
-DefaultHP = tonumber(r.GetExtState('cool_MK Slicer.lua','DefaultHP'))or 0.3312;
-DefaultLP = tonumber(r.GetExtState('cool_MK Slicer.lua','DefaultLP'))or 1;
-DefaultSens = tonumber(r.GetExtState('cool_MK Slicer.lua','DefaultSens'))or 0.375;
-DefaultOffset = tonumber(r.GetExtState('cool_MK Slicer.lua','DefaultOffset'))or 0.5;
-MIDI_Base_Oct = tonumber(r.GetExtState('cool_MK Slicer.lua','MIDI_Base_Oct'))or 2;
-Trigger_Oct_Shift  = tonumber(r.GetExtState('cool_MK Slicer.lua','Trigger_Oct_Shift'))or 0;
+DefaultXFadeTime = tonumber(r.GetExtState('MK_Slicer_3','DefaultXFadeTime'))or 15;
+DefaultP_Slider = tonumber(r.GetExtState('MK_Slicer_3','DefaultP_Slider'))or 5;
+DefaultQStrength = tonumber(r.GetExtState('MK_Slicer_3','DefaultQStrength'))or 100;
+DefaultHP = tonumber(r.GetExtState('MK_Slicer_3','DefaultHP'))or 0.3312;
+DefaultLP = tonumber(r.GetExtState('MK_Slicer_3','DefaultLP'))or 1;
+DefaultSens = tonumber(r.GetExtState('MK_Slicer_3','DefaultSens'))or 0.63;
+DefaultOffset = tonumber(r.GetExtState('MK_Slicer_3','DefaultOffset'))or 0.5;
+MIDI_Base_Oct = tonumber(r.GetExtState('MK_Slicer_3','MIDI_Base_Oct'))or 2;
+Trigger_Oct_Shift  = tonumber(r.GetExtState('MK_Slicer_3','Trigger_Oct_Shift'))or 0;
 
 function toHertz(val) --  val to hz
   local sxx = 16+(val*100)*1.20103
@@ -9548,7 +11714,7 @@ end;
   DefaultLP = toHertz(DefaultLP)
   DefaultHP = toHertz(DefaultHP)
 
-  DefaultSens = 2+(DefaultSens)*8
+  DefaultSens = ((DefaultSens+0.125)*9)-0.125
   DefaultOffset = (100- DefaultOffset * 200)*( -1)
 
 math_round = function(num, idp) -- rounding
@@ -9572,7 +11738,7 @@ local values = tostring(DefaultXFadeTime)
 ..","..tostring(MIDI_Base_Oct)
 ..","..tostring(Trigger_Oct_Shift)
 
-local retval, value = r.GetUserInputs("User Defaults", 8, "Crossfade Time (0 - 50) ms ,Quantize Strength (0 - 100) % ,LowCut Slider (20 - 20000) Hz ,High Cut Slider (20 - 20000) Hz ,Sensitivity (2 - 10) dB ,Offset Slider (-100 - +100) ,Sampler Base Octave (0 - 9) ,Trigger Octave Shift (-2 - 7) ", values)
+local retval, value = r.GetUserInputs("User Defaults", 8, "Crossfade Time (0 - 50) ms ,Quantize Strength (0 - 100) % ,LowCut Slider (20 - 20000) Hz ,High Cut Slider (20 - 20000) Hz ,Sensitivity (1 - 10) ,Offset Slider (-100 - +100) ,Sampler Base Octave (0 - 9) ,Trigger Octave Shift (-2 - 7) ", values)
    if retval then
      local val1, val2, val3, val4, val5, val6, val7, val8 = value:match("([^,]+),([^,]+),([^,]+),([^,]+),([^,]+),([^,]+),([^,]+),([^,]+)")
 
@@ -9592,7 +11758,7 @@ if DefaultXFadeTime2 < 0 then DefaultXFadeTime2 = 0 elseif DefaultXFadeTime2 > 5
 if DefaultQStrength2 < 0 then DefaultQStrength2 = 0 elseif DefaultQStrength2 > 100 then DefaultQStrength2 = 100 end
 if DefaultHP2 < 20 then DefaultHP2 = 20 elseif DefaultHP2 > 20000 then DefaultHP2 = 20000 end
 if DefaultLP2 < 20 then DefaultLP2 = 20 elseif DefaultLP2 > 20000 then DefaultLP2 = 20000 end
-if DefaultSens2 < 2 then DefaultSens2 = 2 elseif DefaultSens2 > 10 then DefaultSens2 = 10 end
+if DefaultSens2 < 1 then DefaultSens2 = 1 elseif DefaultSens2 > 10 then DefaultSens2 = 10 end
 if DefaultOffset2 < -100 then DefaultOffset2 = -100 elseif DefaultOffset2 > 100 then DefaultOffset2 = 100 end
 if MIDI_Base_Oct2 < 0 then MIDI_Base_Oct2 = 0 elseif MIDI_Base_Oct2 > 9 then MIDI_Base_Oct2 = 9 end
 if Trigger_Oct_Shift2 < -2 then Trigger_Oct_Shift2 = -2 elseif Trigger_Oct_Shift2 > 7 then Trigger_Oct_Shift2 = 7 end
@@ -9605,23 +11771,27 @@ end;
 
 DefaultLP2 = fromHertz(DefaultLP2)
 DefaultHP2 = fromHertz(DefaultHP2)
-DefaultSens2 = (DefaultSens2-2)/8
+DefaultSens2 = ((DefaultSens2+0.125)/9)-0.125
 DefaultOffset2 = ((DefaultOffset2/100)+1)/2
 
-          r.SetExtState('cool_MK Slicer.lua','DefaultXFadeTime',DefaultXFadeTime2,true);
-          r.SetExtState('cool_MK Slicer.lua','DefaultQStrength',DefaultQStrength2,true);
-          r.SetExtState('cool_MK Slicer.lua','DefaultLP',DefaultLP2,true);
-          r.SetExtState('cool_MK Slicer.lua','DefaultHP',DefaultHP2,true);
-          r.SetExtState('cool_MK Slicer.lua','DefaultSens',DefaultSens2,true);
-          r.SetExtState('cool_MK Slicer.lua','DefaultOffset',DefaultOffset2,true);
-          r.SetExtState('cool_MK Slicer.lua','MIDI_Base_Oct',MIDI_Base_Oct2,true);
-          r.SetExtState('cool_MK Slicer.lua','Trigger_Oct_Shift',Trigger_Oct_Shift2,true);
+          r.SetExtState('MK_Slicer_3','DefaultXFadeTime',DefaultXFadeTime2,true);
+          r.SetExtState('MK_Slicer_3','DefaultQStrength',DefaultQStrength2,true);
+          r.SetExtState('MK_Slicer_3','DefaultLP',DefaultLP2,true);
+          r.SetExtState('MK_Slicer_3','DefaultHP',DefaultHP2,true);
+          r.SetExtState('MK_Slicer_3','DefaultSens',DefaultSens2,true);
+          r.SetExtState('MK_Slicer_3','DefaultOffset',DefaultOffset2,true);
+          r.SetExtState('MK_Slicer_3','MIDI_Base_Oct',MIDI_Base_Oct2,true);
+          r.SetExtState('MK_Slicer_3','Trigger_Oct_Shift',Trigger_Oct_Shift2,true);
 
 end
 end
 -----------------------end of User Defaults form--------------------------------
 
 function ClearExState()
+
+if transportstate_status == 1 then r.Main_OnCommand(41834,0) end -- Re-enable "Toggle stop playback at end of loop if repeat is disabled" (if it was enabled)
+if repeatstate_status == 1 then r.Main_OnCommand(1068,0) end -- Re-enable "Transport: Toggle repeat" (if it was enabled)
+
 r.DeleteExtState('_Slicer_', 'ItemToSlice', 0)
 r.DeleteExtState('_Slicer_', 'TrackForSlice', 0)
 r.SetExtState('_Slicer_', 'GetItemState', 'ItemNotLoaded', 0)
