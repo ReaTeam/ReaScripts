@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="84338f124031c18065acf7395f94a50ae0956137" name="ReaTeam Scripts">
+<index version="1" commit="6cb9437e290b8e75249e241149da50f7ced796bf" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -3976,6 +3976,55 @@ Fix a potential infinite loop]]></changelog>
         <source type="effect" file="BryanChi_FX Devices/FXD Saike BandSplitter.jsfx">https://github.com/ReaTeam/ReaScripts/raw/84338f124031c18065acf7395f94a50ae0956137/FX/BryanChi_FX%20Devices/FXD%20Saike%20BandSplitter.jsfx</source>
         <source type="effect" file="BryanChi_FX Devices/FXD Band Joiner.jsfx">https://github.com/ReaTeam/ReaScripts/raw/84338f124031c18065acf7395f94a50ae0956137/FX/BryanChi_FX%20Devices/FXD%20Band%20Joiner.jsfx</source>
       </version>
+      <version name="1.0beta9.2" author="Bryan Chi" time="2023-02-09T23:01:10Z">
+        <changelog><![CDATA[- In layout editor, Add shift+Arrow buttons to adjust position by one pixel.
+- Add ‘Save all values as default’ button to define plugin’s default values, once set you can double click to revert parameters to their saved default values.
+- Disable docking floating windows ( preset morph settings, layout editor, style editor)
+- Add alt+right-click on wet dry knob to delta-solo.
+- In Band Splitter, Fix soloing and muting when no FX is inside the Splitter
+- Add option to put label on parameter’s right side for Selection and Switch type.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ebe972dd36a8f74962ba6634015fd9c9e5fcfb8f/FX/BryanChi_FX%20Devices.lua</source>
+        <source type="effect" file="BryanChi_FX Devices/FXD Macros.jsfx">https://github.com/ReaTeam/ReaScripts/raw/ebe972dd36a8f74962ba6634015fd9c9e5fcfb8f/FX/BryanChi_FX%20Devices/FXD%20Macros.jsfx</source>
+        <source type="effect" file="BryanChi_FX Devices/FXD ReSpectrum.jsfx">https://github.com/ReaTeam/ReaScripts/raw/ebe972dd36a8f74962ba6634015fd9c9e5fcfb8f/FX/BryanChi_FX%20Devices/FXD%20ReSpectrum.jsfx</source>
+        <source type="effect" file="BryanChi_FX Devices/FXD Gain Reduction Scope.jsfx">https://github.com/ReaTeam/ReaScripts/raw/ebe972dd36a8f74962ba6634015fd9c9e5fcfb8f/FX/BryanChi_FX%20Devices/FXD%20Gain%20Reduction%20Scope.jsfx</source>
+        <source type="effect" file="BryanChi_FX Devices/FXD Split to 32 Channels.jsfx">https://github.com/ReaTeam/ReaScripts/raw/ebe972dd36a8f74962ba6634015fd9c9e5fcfb8f/FX/BryanChi_FX%20Devices/FXD%20Split%20to%2032%20Channels.jsfx</source>
+        <source type="effect" file="BryanChi_FX Devices/FXD Split To 4 Channels.jsfx">https://github.com/ReaTeam/ReaScripts/raw/ebe972dd36a8f74962ba6634015fd9c9e5fcfb8f/FX/BryanChi_FX%20Devices/FXD%20Split%20To%204%20Channels.jsfx</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/ebe972dd36a8f74962ba6634015fd9c9e5fcfb8f/FX/BryanChi_FX%20Devices/cookdsp.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/analysis.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/ebe972dd36a8f74962ba6634015fd9c9e5fcfb8f/FX/BryanChi_FX%20Devices/cookdsp/analysis.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/buffer.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/ebe972dd36a8f74962ba6634015fd9c9e5fcfb8f/FX/BryanChi_FX%20Devices/cookdsp/buffer.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/delay.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/ebe972dd36a8f74962ba6634015fd9c9e5fcfb8f/FX/BryanChi_FX%20Devices/cookdsp/delay.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/dynamics.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/ebe972dd36a8f74962ba6634015fd9c9e5fcfb8f/FX/BryanChi_FX%20Devices/cookdsp/dynamics.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/effects.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/ebe972dd36a8f74962ba6634015fd9c9e5fcfb8f/FX/BryanChi_FX%20Devices/cookdsp/effects.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/fft-mono-template">https://github.com/ReaTeam/ReaScripts/raw/ebe972dd36a8f74962ba6634015fd9c9e5fcfb8f/FX/BryanChi_FX%20Devices/cookdsp/fft-mono-template</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/fft-stereo-template">https://github.com/ReaTeam/ReaScripts/raw/ebe972dd36a8f74962ba6634015fd9c9e5fcfb8f/FX/BryanChi_FX%20Devices/cookdsp/fft-stereo-template</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/fftobjects.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/ebe972dd36a8f74962ba6634015fd9c9e5fcfb8f/FX/BryanChi_FX%20Devices/cookdsp/fftobjects.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/filters.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/ebe972dd36a8f74962ba6634015fd9c9e5fcfb8f/FX/BryanChi_FX%20Devices/cookdsp/filters.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/granulator.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/ebe972dd36a8f74962ba6634015fd9c9e5fcfb8f/FX/BryanChi_FX%20Devices/cookdsp/granulator.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/list.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/ebe972dd36a8f74962ba6634015fd9c9e5fcfb8f/FX/BryanChi_FX%20Devices/cookdsp/list.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/memalloc.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/ebe972dd36a8f74962ba6634015fd9c9e5fcfb8f/FX/BryanChi_FX%20Devices/cookdsp/memalloc.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/midi.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/ebe972dd36a8f74962ba6634015fd9c9e5fcfb8f/FX/BryanChi_FX%20Devices/cookdsp/midi.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/mmath.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/ebe972dd36a8f74962ba6634015fd9c9e5fcfb8f/FX/BryanChi_FX%20Devices/cookdsp/mmath.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/oscil.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/ebe972dd36a8f74962ba6634015fd9c9e5fcfb8f/FX/BryanChi_FX%20Devices/cookdsp/oscil.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/pobjects.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/ebe972dd36a8f74962ba6634015fd9c9e5fcfb8f/FX/BryanChi_FX%20Devices/cookdsp/pobjects.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/pv-mono-template">https://github.com/ReaTeam/ReaScripts/raw/ebe972dd36a8f74962ba6634015fd9c9e5fcfb8f/FX/BryanChi_FX%20Devices/cookdsp/pv-mono-template</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/pv-stereo-template">https://github.com/ReaTeam/ReaScripts/raw/ebe972dd36a8f74962ba6634015fd9c9e5fcfb8f/FX/BryanChi_FX%20Devices/cookdsp/pv-stereo-template</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/pvocobjects.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/ebe972dd36a8f74962ba6634015fd9c9e5fcfb8f/FX/BryanChi_FX%20Devices/cookdsp/pvocobjects.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/pvtrans-example">https://github.com/ReaTeam/ReaScripts/raw/ebe972dd36a8f74962ba6634015fd9c9e5fcfb8f/FX/BryanChi_FX%20Devices/cookdsp/pvtrans-example</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/random.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/ebe972dd36a8f74962ba6634015fd9c9e5fcfb8f/FX/BryanChi_FX%20Devices/cookdsp/random.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/scaling.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/ebe972dd36a8f74962ba6634015fd9c9e5fcfb8f/FX/BryanChi_FX%20Devices/cookdsp/scaling.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/firhalfband.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/ebe972dd36a8f74962ba6634015fd9c9e5fcfb8f/FX/BryanChi_FX%20Devices/firhalfband.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/spectrum.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/ebe972dd36a8f74962ba6634015fd9c9e5fcfb8f/FX/BryanChi_FX%20Devices/spectrum.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/svf_filter.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/ebe972dd36a8f74962ba6634015fd9c9e5fcfb8f/FX/BryanChi_FX%20Devices/svf_filter.jsfx-inc</source>
+        <source file="BryanChi_FX Devices/IconFont1.ttf">https://github.com/ReaTeam/ReaScripts/raw/ebe972dd36a8f74962ba6634015fd9c9e5fcfb8f/FX/BryanChi_FX%20Devices/IconFont1.ttf</source>
+        <source type="effect" file="BryanChi_FX Devices/FXD (Mix)RackMixer.jsfx">https://github.com/ReaTeam/ReaScripts/raw/ebe972dd36a8f74962ba6634015fd9c9e5fcfb8f/FX/BryanChi_FX%20Devices/FXD%20(Mix)RackMixer.jsfx</source>
+        <source file="BryanChi_FX Devices/FX Layouts/ValhallaFreqEcho (Valhalla DSP, LLC).ini">https://github.com/ReaTeam/ReaScripts/raw/ebe972dd36a8f74962ba6634015fd9c9e5fcfb8f/FX/BryanChi_FX%20Devices/FX%20Layouts/ValhallaFreqEcho%20(Valhalla%20DSP,%20LLC).ini</source>
+        <source file="BryanChi_FX Devices/FX Layouts/ValhallaShimmer (Valhalla DSP, LLC).ini">https://github.com/ReaTeam/ReaScripts/raw/ebe972dd36a8f74962ba6634015fd9c9e5fcfb8f/FX/BryanChi_FX%20Devices/FX%20Layouts/ValhallaShimmer%20(Valhalla%20DSP,%20LLC).ini</source>
+        <source file="BryanChi_FX Devices/FX Layouts/ValhallaVintageVerb (Valhalla DSP, LLC).ini">https://github.com/ReaTeam/ReaScripts/raw/ebe972dd36a8f74962ba6634015fd9c9e5fcfb8f/FX/BryanChi_FX%20Devices/FX%20Layouts/ValhallaVintageVerb%20(Valhalla%20DSP,%20LLC).ini</source>
+        <source file="BryanChi_FX Devices/FX Layouts/ValhallaSupermassive (Valhalla DSP, LLC).ini">https://github.com/ReaTeam/ReaScripts/raw/ebe972dd36a8f74962ba6634015fd9c9e5fcfb8f/FX/BryanChi_FX%20Devices/FX%20Layouts/ValhallaSupermassive%20(Valhalla%20DSP,%20LLC).ini</source>
+        <source file="BryanChi_FX Devices/FX Layouts/ValhallaDelay (Valhalla DSP, LLC).ini">https://github.com/ReaTeam/ReaScripts/raw/ebe972dd36a8f74962ba6634015fd9c9e5fcfb8f/FX/BryanChi_FX%20Devices/FX%20Layouts/ValhallaDelay%20(Valhalla%20DSP,%20LLC).ini</source>
+        <source type="effect" file="BryanChi_FX Devices/FXD Saike BandSplitter.jsfx">https://github.com/ReaTeam/ReaScripts/raw/ebe972dd36a8f74962ba6634015fd9c9e5fcfb8f/FX/BryanChi_FX%20Devices/FXD%20Saike%20BandSplitter.jsfx</source>
+        <source type="effect" file="BryanChi_FX Devices/FXD Band Joiner.jsfx">https://github.com/ReaTeam/ReaScripts/raw/ebe972dd36a8f74962ba6634015fd9c9e5fcfb8f/FX/BryanChi_FX%20Devices/FXD%20Band%20Joiner.jsfx</source>
+      </version>
     </reapack>
     <reapack name="BuyOne_(Un)Tag FX with (in)active envelopes (settings inside).lua" type="script" desc="(Un)Tag FX with (in)active envelopes">
       <metadata>
@@ -4097,13 +4146,14 @@ Fix a potential infinite loop]]></changelog>
         <source main="main" file="BuyOne_FX presets navigation/BuyOne_Extract focused FX preset count, active preset number and name.lua">https://github.com/ReaTeam/ReaScripts/raw/75d124600d5a0509f3aa976ef4659d2ed7a0c33c/FX/BuyOne_FX%20presets%20navigation/BuyOne_Extract%20focused%20FX%20preset%20count,%20active%20preset%20number%20and%20name.lua</source>
       </version>
       <version name="1.1" author="BuyOne" time="2022-10-06T15:58:11Z">
-        <source main="main" file="BuyOne_FX presets navigation/BuyOne_Cycle through focused FX presets forward (guide inside).lua">https://github.com/ReaTeam/ReaScripts/raw/ed7a00c149ac1d22a345c41f17acc3e01ab95887/FX/BuyOne_FX%20presets%20navigation/BuyOne_Cycle%20through%20focused%20FX%20presets%20forward%20(guide%20inside).lua</source>
-        <source main="main" file="BuyOne_FX presets navigation/BuyOne_Cycle through focused FX presets backwards (guide inside).lua">https://github.com/ReaTeam/ReaScripts/raw/ed7a00c149ac1d22a345c41f17acc3e01ab95887/FX/BuyOne_FX%20presets%20navigation/BuyOne_Cycle%20through%20focused%20FX%20presets%20backwards%20(guide%20inside).lua</source>
-        <source main="main" file="BuyOne_FX presets navigation/BuyOne_Dedicated FX presets forward switcher (FX ID dependent) (guide inside).lua">https://github.com/ReaTeam/ReaScripts/raw/ed7a00c149ac1d22a345c41f17acc3e01ab95887/FX/BuyOne_FX%20presets%20navigation/BuyOne_Dedicated%20FX%20presets%20forward%20switcher%20(FX%20ID%20dependent)%20(guide%20inside).lua</source>
-        <source main="main" file="BuyOne_FX presets navigation/BuyOne_Dedicated FX presets backwards switcher (FX ID dependent) (guide inside).lua">https://github.com/ReaTeam/ReaScripts/raw/ed7a00c149ac1d22a345c41f17acc3e01ab95887/FX/BuyOne_FX%20presets%20navigation/BuyOne_Dedicated%20FX%20presets%20backwards%20switcher%20(FX%20ID%20dependent)%20(guide%20inside).lua</source>
-        <source main="main" file="BuyOne_FX presets navigation/BuyOne_Dedicated FX presets forward switcher (TAG dependent) (guide inside).lua">https://github.com/ReaTeam/ReaScripts/raw/ed7a00c149ac1d22a345c41f17acc3e01ab95887/FX/BuyOne_FX%20presets%20navigation/BuyOne_Dedicated%20FX%20presets%20forward%20switcher%20(TAG%20dependent)%20(guide%20inside).lua</source>
-        <source main="main" file="BuyOne_FX presets navigation/BuyOne_Dedicated FX presets backwards switcher (TAG dependent) (guide inside).lua">https://github.com/ReaTeam/ReaScripts/raw/ed7a00c149ac1d22a345c41f17acc3e01ab95887/FX/BuyOne_FX%20presets%20navigation/BuyOne_Dedicated%20FX%20presets%20backwards%20switcher%20(TAG%20dependent)%20(guide%20inside).lua</source>
-        <source main="main" file="BuyOne_FX presets navigation/BuyOne_Extract focused FX preset count, list, active preset number and name.lua">https://github.com/ReaTeam/ReaScripts/raw/ed7a00c149ac1d22a345c41f17acc3e01ab95887/FX/BuyOne_FX%20presets%20navigation/BuyOne_Extract%20focused%20FX%20preset%20count,%20list,%20active%20preset%20number%20and%20name.lua</source>
+        <changelog><![CDATA[Added option for using custom preset lists for selective cycling]]></changelog>
+        <source main="main" file="BuyOne_FX presets navigation/BuyOne_Cycle through focused FX presets forward (guide inside).lua">https://github.com/ReaTeam/ReaScripts/raw/9b817634d5d6a0a4ff3d6db0003cfff47a75d52b/FX/BuyOne_FX%20presets%20navigation/BuyOne_Cycle%20through%20focused%20FX%20presets%20forward%20(guide%20inside).lua</source>
+        <source main="main" file="BuyOne_FX presets navigation/BuyOne_Cycle through focused FX presets backwards (guide inside).lua">https://github.com/ReaTeam/ReaScripts/raw/9b817634d5d6a0a4ff3d6db0003cfff47a75d52b/FX/BuyOne_FX%20presets%20navigation/BuyOne_Cycle%20through%20focused%20FX%20presets%20backwards%20(guide%20inside).lua</source>
+        <source main="main" file="BuyOne_FX presets navigation/BuyOne_Dedicated FX presets forward switcher (FX ID dependent) (guide inside).lua">https://github.com/ReaTeam/ReaScripts/raw/9b817634d5d6a0a4ff3d6db0003cfff47a75d52b/FX/BuyOne_FX%20presets%20navigation/BuyOne_Dedicated%20FX%20presets%20forward%20switcher%20(FX%20ID%20dependent)%20(guide%20inside).lua</source>
+        <source main="main" file="BuyOne_FX presets navigation/BuyOne_Dedicated FX presets backwards switcher (FX ID dependent) (guide inside).lua">https://github.com/ReaTeam/ReaScripts/raw/9b817634d5d6a0a4ff3d6db0003cfff47a75d52b/FX/BuyOne_FX%20presets%20navigation/BuyOne_Dedicated%20FX%20presets%20backwards%20switcher%20(FX%20ID%20dependent)%20(guide%20inside).lua</source>
+        <source main="main" file="BuyOne_FX presets navigation/BuyOne_Dedicated FX presets forward switcher (TAG dependent) (guide inside).lua">https://github.com/ReaTeam/ReaScripts/raw/9b817634d5d6a0a4ff3d6db0003cfff47a75d52b/FX/BuyOne_FX%20presets%20navigation/BuyOne_Dedicated%20FX%20presets%20forward%20switcher%20(TAG%20dependent)%20(guide%20inside).lua</source>
+        <source main="main" file="BuyOne_FX presets navigation/BuyOne_Dedicated FX presets backwards switcher (TAG dependent) (guide inside).lua">https://github.com/ReaTeam/ReaScripts/raw/9b817634d5d6a0a4ff3d6db0003cfff47a75d52b/FX/BuyOne_FX%20presets%20navigation/BuyOne_Dedicated%20FX%20presets%20backwards%20switcher%20(TAG%20dependent)%20(guide%20inside).lua</source>
+        <source main="main" file="BuyOne_FX presets navigation/BuyOne_Extract focused FX preset count, list, active preset number and name.lua">https://github.com/ReaTeam/ReaScripts/raw/9b817634d5d6a0a4ff3d6db0003cfff47a75d52b/FX/BuyOne_FX%20presets%20navigation/BuyOne_Extract%20focused%20FX%20preset%20count,%20list,%20active%20preset%20number%20and%20name.lua</source>
       </version>
     </reapack>
     <reapack name="BuyOne_Insert selected FX or FX chain presets in OR copy focused FX to selected objects.lua" type="script" desc="Insert selected FX or FX chain presets in OR copy focused FX to selected objects">
@@ -6460,27 +6510,27 @@ Rewrite the script's user interface using ReaImGui]]></changelog>
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab One click sampling and exporting into RS5k.\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Trigger. Easy conversion of rhythmic parts to midi patterns with accurate velocity reproduction.\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Random - a function for randomizing slices and some of their parameters. Ideal for uniqualization, humanization and creation of new parts.\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Advanced interface. Intuitive controls. Resetting values to defaults by Ctrl+Click. Change operations on-the-fly without the need of Undo.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Pitch detection: the ability to convert simple single-voiced parts and drums to midi.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Tempo detection, item rate change to adapt to project tempo. Ability to create a tempo map from an item.\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Adaptive initial settings. Upon initialization, the script sets the View Gain, Threshold, and Retrig settings depending on the material and tempo of the project.\sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Instructions for use:\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 1.\tx360\tab Select an item or several items on the same track. The script will not run if items are placed on different tracks.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 1.\tx360\tab Select an item or several items. If items on multiple tracks are selected, only the top one will be analyzed. If several items are selected on the same track, they will be glued together.\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 2.\tx360\tab Run the script.\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 3.\tx360\tab Do your work.\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 4.\tx360\tab To cancel an actions, use Reset or just Ctrl + Z. Reset sliders to default: Ctrl + Click. Fine tune: Shift + Drag. Exit the script: Esc, Space - Play.\sa180\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 On Waveform Area: Mouswheel or Left/Right keys - Horizontal Zoom, Ctrl(Shift)+Mouswheel or Up/Down keys - Vertical Zoom, Middle Drag - Move View (Scroll), Left Click - Set Edit Cursor, Shift+Left Drag - Move Marker, Ctrl+Left Drag - Change Velocity, Shift+Ctrl+Left Drag - Move Marker and Change Velocity, Right Click on Marker - Delete Marker, Right Click on Empty Space - Insert Marker.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 On Waveform Area: Mouswheel or Left/Right keys - Horizontal Zoom, Ctrl(Shift)+Mouswheel or Up/Down keys - Vertical Zoom, Left or Middle Drag - Move View (Horizontal Scroll), Left Click - Set Edit Cursor, Left Drag Small Flag - Move Marker, Ctrl+Left Drag - Change Velocity, Right Click on Marker - Delete Marker, Right Click on Empty Space - Insert Marker.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Working with multitrack:\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 0.\tx360\tab Before starting the work, I recommend you to create a guide track - usually a mixdown kick, snare and toms tracks together in one track. This track will be used as a \u8220"lead\u8221" for the detector to operate more accurately After the work is completed, you can delete it.\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 1.\tx360\tab Select one (guide) item. The script will not run if items are placed on different tracks.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 1.\tx360\tab Select items. If items on multiple tracks are selected, only the top one will be analyzed.\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 2.\tx360\tab Run the script.\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 3.\tx360\tab Select the rest items in the multitrack - you can do it with the help of Marque Selection or even Ctrl+A - it will make no difference. Your workspace will be set equal to the length of an item selected at the moment you start the script.\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 4.\tx360\tab Do your work. When a slicing or placing markers occurs on a multitrack, items will be automatically added to Groups.\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 3.\tx360\tab Do your work. When a slicing or placing markers occurs on a multitrack, items will be automatically added to Groups.\sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Important.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 For the machanism Reset to operate correctly and for the operations on-the-fly to follow each other smoothly, it is OBLIGATORY for the items to start from the beginning of the bar. It's the condition which ensures comfortable work without surprises like a sudden move of the items after the following quantization. Additionaly, I don't recommend to change selection manually or do anything with the items while the script is working. Also, do not forget to save your project regularly. Just in case.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Sometimes a script applies glue to items. For example, when several items are selected and when a MIDI is created in a sampler mode.\par}
 }
 ]]></description>
         <link rel="website" href="https://forum.cockos.com/showthread.php?t=232672">Forum Thread</link>
-        <link rel="screenshot" href="https://i.imgur.com/QFWHt9a.png">MKSlicer2.0</link>
+        <link rel="screenshot" href="https://i.imgur.com/L7WnvoO.jpg">MK_Slicer 3</link>
         <link rel="donation" href="https://www.buymeacoffee.com/MaximKokarev">Donate by BuyMeACoffee</link>
         <link rel="donation" href="https://yoomoney.ru/to/41001256406969">Donate by YooMoney</link>
       </metadata>
@@ -6732,6 +6782,34 @@ Override Reaper option "Toggle enable/disable default fadein/fadeout" (on/off)]]
 + Now, after pressing the MIDI button in Trigger and Pitch Detection modes, the waveform remains active and you can immediately continue working.
 + Now the Reset All button can undo the actions of the MIDI button in Trigger and Pitch Detection modes.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ef4fa64d015696bd237c09fbb760c8788dd3939a/Items%20Editing/cool_MK%20Slicer.lua</source>
+      </version>
+      <version name="3.01" author="cool" time="2023-02-09T23:00:36Z">
+        <changelog><![CDATA[+ New color design, the ability to choose a color theme.
++ Added 9 new themes.
++ Added BPM indicator: calculation of item's tempo by transients.
++ Added Set BPM function to synchronize item and project tempo.
++ Added Mapping function to create a tempo map by transients.
++ Added marker flags for simple mouse dragging without using hotkeys.
++ Interactive markers: now the active marker is highlighted when hovering the mouse.
++ Added Aim Assist tool: cursor for precise positioning of markers and velocities.
++ Added Snap Area tool: Edit Cursor snaps to left marker next to mouse click. This highlights the entire playback area of the sample.
++ Now the mouse wheel resizes the grid if the cursor is over the grid resolution buttons.
++ Fixed a bug: now, if during initialization the selected items were overlapped on non-selected ones, the script will work correctly.
++ Fixed a bug: now, if the Rate of an item is changed, the content of the item is not shifted.
++ Fixed a bug: now the Random Reverse function will work if the Random button was pressed before opening Random Settings.
++ Fixed a bug: now the script works correctly with Reverse items.
++ Fixed a bug: now the script does not crash with an error when trying to use it without an item.
++ Fixed a bug: now low BPM doesn't break the Retrig slider.
++ Fixed a bug (again): now the script does not crash with an error if there are no tracks in the project.
++ Fixed a bug (again, sorry): now, when triggering, the script does not take 0.5ms from each note.
++ Significantly increased the maximum value of the Retrig parameter.
++ Now the Sensitivity control has a scale from 1 to 10 and works more logically: 1 - minimum sensitivity, 10 - maximum.
++ Improved marker capture zoning depending on window size and zoom.
++ Removed the old "Info Line" feature from the bottom of the screen.
++ Now the View menu looks like a translucent rectangle.
++ Sync View option is now in the main menu.
++ For compatibility and correct work, now extstate data is written under a new header.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b8748a70a0dcf89bc8469beaf30ddb2056e94617/Items%20Editing/cool_MK%20Slicer.lua</source>
       </version>
     </reapack>
     <reapack name="Demoji_Next Variation.lua" type="script" desc="Next Variation">
@@ -9253,6 +9331,26 @@ Renumber markers and regions when pasting]]></changelog>
       <version name="1.0" author="BuyOne" time="2022-11-06T05:02:26Z">
         <changelog><![CDATA[Initial release]]></changelog>
         <source main="main midi_editor">https://github.com/ReaTeam/ReaScripts/raw/440c47167505deed854925493943495762d447c6/MIDI%20Editor/BuyOne_Move%20selected%20notes%20to%20a%20new%20MIDI%20item.lua</source>
+      </version>
+    </reapack>
+    <reapack name="BuyOne_Paste notes at edit cursor obeying pitch cursor position.lua" type="script" desc="Paste notes at edit cursor obeying pitch cursor position">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 The default paste action pastes notes at the same pitch(es). The script provides an alternative.\line Combined with the action 'View: Move edit cursor to mouse cursor' within a custom action can be used to paste notes at mouse cursor.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 1.\tx360\tab Copy selected notes\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 2.\tx360\tab Select the destination pitch by clicking on a key in the MIDI Editor graphic keyboard\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 3.\tx360\tab Run the script\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 See USER SETTINGS\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/member.php?u=134058</link>
+      </metadata>
+      <version name="1.0" author="BuyOne" time="2023-02-09T23:02:42Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/6cb9437e290b8e75249e241149da50f7ced796bf/MIDI%20Editor/BuyOne_Paste%20notes%20at%20edit%20cursor%20obeying%20pitch%20cursor%20position.lua</source>
       </version>
     </reapack>
     <reapack name="BuyOne_Switch to next;previous active CC envelope.lua" type="script" desc="Switch to next/previous active CC envelope">
@@ -16481,21 +16579,22 @@ Removed first run warning message.]]></changelog>
 {\pard \ql \f0 \sa180 \li0 \fi0 OPERATORS (the character case is irrelevant)\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 1.\tx360\tab Search term modifiers: e, c, i\sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 no operator - Search track by elements contained in the track name\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 e - (exact) Search by exact name; the operator covers syntax, scope of the track name and the register of its characters, so to satisfy the search the track name must only consist of the search term and match its characters register; without this operator any track name which contains all the elements of the search term regardless of their order will be valid (see above); ignored if 'i' operator is used\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 c - (case) Ignore earch term and track name register; ignored if 'i' operator is used; can be enabled permanently in the USER SETTINGS\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 i - (index) Search track by index, the search term is interpreted as track index hence only numerals are supported; ignored when the search term is a mix of alphabetic and numeric characters; combined with the exclusive display mode 'h' operator (see below) this operator supports lists and ranges in the format: (for range) 1-5=ih and (for list) 1,3,5=ih; can be enabled permanently in the USER SETTINGS; if the search term only contains alphabetic, punctuation characters and/or spaces 'i' operator is ignored.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 e - (exact) Search by exact name; the operator covers syntax, scope of the track name and the register of its characters, so to satisfy the search the track name must only consist of the search term and match its characters register; without this operator any track name which contains all the elements of the search term regardless of their order will be valid (see above)\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 c - (case) Ignore search term and track name register; can be enabled permanently in the USER SETTINGS\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 i - (index) Search track by index, the search term is interpreted as track index hence only numerals are supported; ignored when the search term is a mix of alphabetic and numeric characters; if along with numerals the search term contains alphabetic and/or punctuation characters 'i' operator is ignored; combined with the exclusive display mode 'h' operator (see below) this operator supports lists and ranges in the format: (for range) 1-5=ih or 5-1=ih, and (for list) 1,3,5=ih, in this case if the search term containing a single numeral is followed by a comma the operator will work; 'i' operator can be enabled permanently in the USER SETTINGS\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 2.\tx360\tab Action operators: u, h, s\sa180\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 u - (uncollapse) Uncollapse all collapsed parent tracks if the matching track is inside a collapsed folder, including nested; doesn't apply to MCP, where if track is inside collapsed folders its first uncollapsed parent track is the one to be scrolled into view; can be enabled permanently in the USER SETTINGS\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 h - (hide) Hide all tracks bar the matching ones, and if the latter belong to a folder then bar all their parents, children and siblings\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 s - (show) Unhide all tracks hidden through the use of exclusive display mode 'h' operator; this operator should not be preceded by '=' sign (see below) but feature alone in the search field.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 u - (uncollapse) Uncollapse all collapsed parent tracks if the matching track is inside a collapsed folder, including nested; doesn't apply to MCP, where if track is inside collapsed folders its first uncollapsed parent track is the one to be scrolled into view; can be enabled permanently in the USER SETTINGS as well as a setting to restore collapsed state of folders at the end of the search if their children tracks matched the search term but were skipped\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 h - (hide) Hide all tracks bar those whose name/index matches the search term, and if such track belongs to a folder then bar all its parents, children and siblings\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 s - (show) Unhide all tracks hidden through the use of exclusive display mode 'h' operator; this operator should not be preceded by '=' sign (see below) but feature alone in the search field; to make the script ignore 's' character as an operatior and allow searching for 's' or 'S' characters in track names add '=' sign after them\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 3.\tx360\tab Examples:\sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 If applied, operators must follow the search term and be separated from it with the '=' sign, they can be combined, e.g.:\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 ad-lib - scroll to a track whose name contains 'ad-lib';\line 10=i - scroll to track No 10;\line bass=ec - scroll to a track named exactly 'bass', disregarding the name's register (case), so the name 'BASS' is also valid;\line vocals=u - scroll to a track whose name contains the word 'vocals' and if it's a child in a collapsed folder, uncollapse it;\line 12,35,44=hiu - exclusively show tracks No 12, 35 and 44 (including their folder relatives, if any) and if any of them is a child in a collapsed folder, uncollapse it;\line DRUMS=ch - exclusively show tracks whose names contain the word 'DRUMS' (including their folder relatives, if any), disregarding the word's register (case) so names containing 'drums' are also valid.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 The order in which the operators are combined is immaterial.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 ad-lib - scroll to a track whose name contains the word 'ad-lib';\line background vox - scroll to a track whose name contains both words regardless of their order or presence of intervening elements;\line 10 - scroll to a track whose name contains numeral '10';\line 10=i - scroll to track No 10;\line bass=ec - scroll to a track named exactly 'bass', disregarding the name's register (case), so the name 'BASS' is also valid;\line guitar=u - scroll to a track whose name contains the word 'guitar' and if it's a child in a collapsed folder, uncollapse it;\line 12,35,44=hiu - exclusively show tracks No 12, 35 and 44 (including their folder relatives, if any) and if any of them is a child in a collapsed folder, uncollapse it;\line DRUMS=ch - exclusively show tracks whose names contain the word 'DRUMS' (including their folder relatives, if any), disregarding the word's register (case) so names containing 'drums' are also valid.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The order in which the operators are combined and their register is immaterial.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 In the TCP context (Arrange) the searched track is scrolled into view at the top of the tracklist. In the MCP context it's scrolled to the leftmost position. Contexts are enabled in the USER SETTINGS.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 If the searched track is inside a collapsed folder and 'u' operator isn't used, then its first uncollapsed parent track is scrolled into view.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 If the found track is a folder child track, the track which ends up being selected depends on the currently active context, TCP or MCP, because folder state which the selection is conditioned by, in TCP and MCP may differ. If both contexts are active, track selection in the TCP has priority. Since track selection is global it cannot be different between the TCP and the MCP at the same time, so TCP has been chosen to be primary.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 If several track names match the search term, after the 1st one found is scrolled into view the input dialogue reappears to allow continuing the search for the next one. When the last such track has been found the search dialogue doesn't reappear.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Unless 'e' (exact) operator is used all elements of a multi-word search term must be present in a track name regardless of their order.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 EXCLUSIVE DISPLAY MODE\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 'h' operator allows to selectively show tracks whose index or names match the search term and the criteria set by the operators while keeping the rest hidden. To selectively show tracks by their indices make sure to add 'i' operator to the 'h' operator, i.e. 'ih' or 'hi'.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 When only TCP or MCP context is enabled in the USER SETTINGS only tracks in this context will be hidden and unhidden.\par}
@@ -16510,6 +16609,14 @@ Removed first run warning message.]]></changelog>
       <version name="1.0" author="BuyOne" time="2022-09-16T23:19:19Z">
         <changelog><![CDATA[Initial release]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/9e4d8c3dc4ffc00ef8fcdf6c5e8b08fbaec6f048/Tracks%20Properties/BuyOne_Scroll%20to%20or%20exclusively%20show%20track(s)%20by%20name%20or%20index.lua</source>
+      </version>
+      <version name="1.1" author="BuyOne" time="2023-02-09T23:01:40Z">
+        <changelog><![CDATA[#Fixed search by search terms consisting of more than one word
+#Fixed switching to exclusive display mode using list and range of track indices
+#Ensured that, if selected by the user, folders uncollapse during search and not afterwards
+#Added a setting to restore collapsed state of folders containing matching tracks skipped by the user
+#Updated Guide]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3525f402509392d36e49c0637ca7566aad01cd48/Tracks%20Properties/BuyOne_Scroll%20to%20or%20exclusively%20show%20track(s)%20by%20name%20or%20index.lua</source>
       </version>
     </reapack>
     <reapack name="BuyOne_Set sends;receives in selected tracks to the next mode (relative to the current).lua" type="script" desc="Set sends;receives in selected tracks to the next mode (relative to the current)">
