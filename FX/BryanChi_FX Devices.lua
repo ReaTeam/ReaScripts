@@ -7950,7 +7950,7 @@ function loop()
                                                 Content = file:read('*a')       local Ct = Content
 
                                                 local pos =  Ct:find(FX_Name)  
-                                                if pos then   msg(pos)
+                                                if pos then   
                                                     file:seek('set', pos-1)
                                                 else file:seek('end')
                                                 end
