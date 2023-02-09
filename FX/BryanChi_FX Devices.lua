@@ -1,7 +1,13 @@
 -- @description FX Devices
 -- @author Bryan Chi
--- @version 1.0beta9.1
--- @changelog - fix modulation direction mistake when using vertical slider.
+-- @version 1.0beta9.2
+-- @changelog
+--   - In layout editor, Add shift+Arrow buttons to adjust position by one pixel.
+--   - Add ‘Save all values as default’ button to define plugin’s default values, once set you can double click to revert parameters to their saved default values.
+--   - Disable docking floating windows ( preset morph settings, layout editor, style editor)
+--   - Add alt+right-click on wet dry knob to delta-solo.
+--   - In Band Splitter, Fix soloing and muting when no FX is inside the Splitter
+--   - Add option to put label on parameter’s right side for Selection and Switch type.
 -- @provides
 --   [effect] BryanChi_FX Devices/FXD Macros.jsfx
 --   [effect] BryanChi_FX Devices/FXD ReSpectrum.jsfx
@@ -48,7 +54,7 @@
 --   https://forum.cockos.com/showthread.php?t=263622
 
 --------------------------==  declare Initial Variables & Functions  ------------------------
-    VersionNumber = '1.0beta9'
+    VersionNumber = '1.0beta9.2 '
     FX_Add_Del_WaitTime=2
     r=reaper
 
@@ -121,6 +127,7 @@
     ClrPallet={}
     Glob={};
     Sel_Cross={}
+    ToDef = {}
     DraggingFXs = { } ; DraggingFXs_Idx = {}
 
     function ConcatPath(...)
@@ -1083,7 +1090,7 @@
          
         function SyncAnalyzerPinWithFX(FX_Idx, Target_FX_Idx,FX_Name)
 
-
+            
             -- input --
             local Target_L, _ = r.TrackFX_GetPinMappings(LT_Track, Target_FX_Idx, 0, 0) -- L chan
             local Target_R, _ = r.TrackFX_GetPinMappings(LT_Track, Target_FX_Idx, 0, 1) -- R chan
@@ -1095,13 +1102,14 @@
                 if not FX_Name then _, FX_Name = r.TrackFX_GetFXName(LT_Track, FX_Idx) end 
 
                 r.TrackFX_SetPinMappings(LT_Track, FX_Idx, 0, 0,Target_L,0)    
+
+
                 if FX_Name:find( 'JS: FXD ReSpectrum') then 
                     for i=2, 16,1 do 
                         r.TrackFX_SetPinMappings(LT_Track, FX_Idx, 0, i,0,0)
-
-
                         r.TrackFX_SetPinMappings(LT_Track, FX_Idx, 1, i,0,0) 
                     end
+
                 end
 
                 
@@ -1454,9 +1462,11 @@
         retval=ultraschall.SetTrackStateChunk_Tracknumber(TrackNumToBeMod, TrackStateChunk)
     end ]]
     function ChangeFX_Name(FX_Name)
-        local FX_Name = FX_Name:gsub( "%w+%:%s+" , {['AU: ']="", ['JS: ']="", ['VST: '] = "" , ['VSTi: ']="" ,['VST3: ']='' , ['VST3i: ']="" , ['CLAP: ']="" , ['CLAPi: ']="" } )
-        local FX_Name = FX_Name:gsub('[%:%[%]%/]', "_") 
-        return FX_Name 
+        if FX_Name then 
+            local FX_Name = FX_Name:gsub( "%w+%:%s+" , {['AU: ']="", ['JS: ']="", ['VST: '] = "" , ['VSTi: ']="" ,['VST3: ']='' , ['VST3i: ']="" , ['CLAP: ']="" , ['CLAPi: ']="" } )
+            local FX_Name = FX_Name:gsub('[%:%[%]%/]', "_") 
+            return FX_Name 
+        end
     end
 
     function HighlightSelectedItem(FillClr,OutlineClr, Padding, L,T,R,B,h,w, H_OutlineSc, V_OutlineSc,GetItemRect, Foreground,rounding)
@@ -1640,21 +1650,37 @@
 
 
             if LE.Sel_Items then 
-                if r.ImGui_IsKeyPressed( ctx, r.ImGui_Key_DownArrow() ) then 
+                if r.ImGui_IsKeyPressed( ctx, r.ImGui_Key_DownArrow() )and Mods == 0 then 
                     for i, v in ipairs(LE.Sel_Items) do 
                         if v ==Fx_P then FX[FxGUID][v].PosY = FX[FxGUID][v].PosY+LE.GridSize end 
                     end
-                elseif r.ImGui_IsKeyPressed( ctx, r.ImGui_Key_UpArrow() ) then 
+                elseif r.ImGui_IsKeyPressed( ctx, r.ImGui_Key_UpArrow() ) and Mods == 0 then 
                     for i, v in ipairs(LE.Sel_Items) do 
                         if v ==Fx_P then FX[FxGUID][v].PosY = FX[FxGUID][v].PosY-LE.GridSize   end 
                     end
-                elseif r.ImGui_IsKeyPressed( ctx, r.ImGui_Key_LeftArrow() ) then 
+                elseif r.ImGui_IsKeyPressed( ctx, r.ImGui_Key_LeftArrow() )and Mods == 0 then 
                     for i, v in ipairs(LE.Sel_Items) do 
                         if v ==Fx_P then FX[FxGUID][v].PosX = FX[FxGUID][v].PosX-LE.GridSize   end 
                     end
-                elseif r.ImGui_IsKeyPressed( ctx, r.ImGui_Key_RightArrow() ) then 
+                elseif r.ImGui_IsKeyPressed( ctx, r.ImGui_Key_RightArrow() )and Mods == 0 then 
                     for i, v in ipairs(LE.Sel_Items) do 
                         if v ==Fx_P then FX[FxGUID][v].PosX = FX[FxGUID][v].PosX+LE.GridSize   end 
+                    end
+                elseif r.ImGui_IsKeyPressed( ctx, r.ImGui_Key_DownArrow() ) and Mods == Shift then 
+                    for i, v in ipairs(LE.Sel_Items) do
+                        if v ==Fx_P then FX[FxGUID][v].PosY = FX[FxGUID][v].PosY+1 end 
+                    end 
+                elseif r.ImGui_IsKeyPressed( ctx, r.ImGui_Key_UpArrow() ) and Mods == Shift then 
+                    for i, v in ipairs(LE.Sel_Items) do
+                        if v ==Fx_P then FX[FxGUID][v].PosY = FX[FxGUID][v].PosY-1 end 
+                    end 
+                elseif r.ImGui_IsKeyPressed( ctx, r.ImGui_Key_LeftArrow() )and Mods == Shift then 
+                    for i, v in ipairs(LE.Sel_Items) do 
+                        if v ==Fx_P then FX[FxGUID][v].PosX = FX[FxGUID][v].PosX-1   end 
+                    end
+                elseif r.ImGui_IsKeyPressed( ctx, r.ImGui_Key_RightArrow() )and Mods == Shift then 
+                    for i, v in ipairs(LE.Sel_Items) do 
+                        if v ==Fx_P then FX[FxGUID][v].PosX = FX[FxGUID][v].PosX+1   end 
                     end
                 end
             end
@@ -1994,6 +2020,7 @@
 
 
     function AddSwitch(LT_Track,FX_Idx, Value, P_Num, BgClr, Lbl_Type , Fx_P,F_Tp, FontSize, FxGUID)
+        
         local clr, TextW, Font
         FX[FxGUID][Fx_P] = FX[FxGUID][Fx_P] or {} 
         local FP = FX[FxGUID][Fx_P]
@@ -2003,7 +2030,7 @@
         if FX[FxGUID][Fx_P].Lbl_Clr then r.ImGui_PushStyleColor(ctx, r.ImGui_Col_Text(),FX[FxGUID][Fx_P].Lbl_Clr ) end 
         
 
-
+        r.ImGui_BeginGroup(ctx)
         if FP.V_Pos =='Within' then 
             _, lbl = r.TrackFX_GetFormattedParamValue(LT_Track, FX_Idx, P_Num)
             TextW = r.ImGui_CalcTextSize(ctx, lbl)
@@ -2021,6 +2048,7 @@
 
         if FP.Lbl_Pos == 'Left' then r.ImGui_AlignTextToFramePadding(ctx) r.ImGui_Text(ctx,FP.CustomLbl or FP.Name) SL() end 
         if FP.Lbl_Pos =='Within' then lbl =FP.CustomLbl or FP.Name end
+        
 
         if FX[FxGUID][Fx_P].V ==nil then FX[FxGUID][Fx_P].V = r.TrackFX_GetParamNormalized(LT_Track,FX_Idx, P_Num) end
 
@@ -2062,6 +2090,11 @@
         local X,Y = r.ImGui_GetItemRectMin(ctx) ;local   W,H = r.ImGui_GetItemRectSize(ctx)
         local DL = r.ImGui_GetWindowDrawList(ctx)
 
+        if FP.Lbl_Pos == 'Right' then SL()
+            r.ImGui_AlignTextToFramePadding(ctx) r.ImGui_Text(ctx,FP.CustomLbl or FP.Name) 
+        end 
+
+        r.ImGui_EndGroup(ctx)
 
         r.ImGui_DrawList_AddRectFilled(DL, X,Y,X+W,Y+H, clr, FX.Round[FxGUID] or 0)
 
@@ -2069,8 +2102,6 @@
         if BgClr then r.ImGui_PopStyleColor(ctx)end
         if  FX[FxGUID][Fx_P].Lbl_Clr then  r.ImGui_PopStyleColor(ctx)end
         if Value == 0 then return 0 else return 1 end
-
-
     end
 
 
@@ -2115,11 +2146,11 @@
         LabelValue = Label..'Value'
         local FP
         FX[FxGUID or ''][Fx_P or ''] = FX[FxGUID or ''][Fx_P or ''] or {} 
-
+        r.ImGui_BeginGroup(ctx)
         if Fx_P then FP = FX[FxGUID][Fx_P] end 
         
         if Fx_P and FP then
-            if FP.Lbl_Pos and Lbl_Pos~= 'No Lbl' then  
+            if FP.Lbl_Pos=='Left' and Lbl_Pos~= 'No Lbl' then  
                 local _, name = r.TrackFX_GetParamName(LT_Track, FX_Idx, WhichPrm)
                 r.ImGui_AlignTextToFramePadding( ctx)
                 r.ImGui_TextColored(ctx, FP.Lbl_Clr or r.ImGui_GetColor(ctx,r.ImGui_Col_Text()),LabelOveride or  FP.CustomLbl or CustomLbl or name )
@@ -2282,8 +2313,11 @@
 
         if not FX[FxGUID][Fx_P].Sldr_W then FX[FxGUID][Fx_P].Sldr_W, H = r.ImGui_GetItemRectSize(ctx) end 
 
+        if FP.Lbl_Pos == 'Right' then SL()
+            r.ImGui_AlignTextToFramePadding(ctx) r.ImGui_Text(ctx,FP.CustomLbl or FP.Name) 
+        end 
 
-
+        r.ImGui_EndGroup(ctx)
         r.ImGui_PopStyleColor(ctx,PopClr or 0)
         if rv then return rv, v_format end 
 
@@ -3244,12 +3278,15 @@
       
         local ANGLE_MIN = 3.141592 * 0.75
         local ANGLE_MAX = 3.141592 * 2.25
-      
+        local FxGUID = FXGUID[FX_Idx]
+
         reaper.ImGui_InvisibleButton(ctx, label, radius_outer*2, radius_outer*2 + line_height-10 + item_inner_spacing[2])
+        
         local value_changed = false
         local is_active = reaper.ImGui_IsItemActive(ctx)
         local is_hovered = reaper.ImGui_IsItemHovered(ctx)
-        if is_active and mouse_delta[2]~= 0.0 then
+
+        if is_active and mouse_delta[2]~= 0.0 and FX[FxGUID].DeltaP_V~=1 then
           local step = (v_max - v_min) / 200.0
           if Mods== Shift then step = 0.001   end 
           p_value = p_value + ((-mouse_delta[2])  * step)
@@ -3257,8 +3294,8 @@
           if p_value > v_max then p_value = v_max end
         end
 
-
-
+        FX[FxGUID].DeltaP_V = FX[FxGUID].DeltaP_V or 0
+        FX[FxGUID].DeltaP  = FX[FxGUID].DeltaP or (r.TrackFX_GetNumParams(LT_Track, LT_FXNum) -1 )
 
 
         if is_active then 
@@ -3281,15 +3318,27 @@
         local angle = ANGLE_MIN + (ANGLE_MAX - ANGLE_MIN) * t
         local angle_cos, angle_sin = math.cos(angle), math.sin(angle)
         local radius_inner = radius_outer*0.40
-
+        if r.ImGui_IsItemClicked(ctx,1) and Mods==Alt then 
+            local Total_P = r.TrackFX_GetNumParams(LT_Track, LT_FXNum)  local P = Total_P-1 
+            local DeltaV = r.TrackFX_GetParamNormalized(LT_Track, FX_Idx, P)
+            if DeltaV ==1 then reaper.TrackFX_SetParamNormalized(LT_Track,FX_Idx, P , 0 ) FX[FxGUID].DeltaP_V = 0 
+            else reaper.TrackFX_SetParamNormalized(LT_Track,FX_Idx, P , 1) FX[FxGUID].DeltaP_V = 1 
+            end 
+            FX[FxGUID].DeltaP = P 
+        end 
         
+        if FX[FxGUID].DeltaP_V~= 1 then 
 
-        r.ImGui_DrawList_AddCircle(draw_list, center[1], center[2], radius_outer, CircleClr or lineClr, 16)
-        r.ImGui_DrawList_AddLine(draw_list, center[1], center[2] , center[1] + angle_cos*(radius_outer-2), center[2] + angle_sin*(radius_outer-2), lineClr, 2.0)
-        r.ImGui_DrawList_AddText(draw_list, pos[1], pos[2] + radius_outer * 2 + item_inner_spacing[2], reaper.ImGui_GetColor(ctx, reaper.ImGui_Col_Text()), labeltoShow)
+            r.ImGui_DrawList_AddCircle(draw_list, center[1], center[2], radius_outer, CircleClr or lineClr, 16)
+            r.ImGui_DrawList_AddLine(draw_list, center[1], center[2] , center[1] + angle_cos*(radius_outer-2), center[2] + angle_sin*(radius_outer-2), lineClr, 2.0)
+            r.ImGui_DrawList_AddText(draw_list, pos[1], pos[2] + radius_outer * 2 + item_inner_spacing[2], reaper.ImGui_GetColor(ctx, reaper.ImGui_Col_Text()), labeltoShow)
+        else 
+            local radius_outer = radius_outer 
+            r.ImGui_DrawList_AddTriangleFilled(draw_list, center[1]-radius_outer, center[2]+radius_outer, center[1], center[2]-radius_outer, center[1] +radius_outer , center[2]+radius_outer,  0x999900ff)
+            r.ImGui_DrawList_AddText(draw_list, center[1]-radius_outer/2+1, center[2]-radius_outer/2  , 0xffffffff, 'S')
+        end
 
-
-        if is_active or is_hovered  then
+        if is_active or is_hovered  and FX[FxGUID].DeltaP_V~=1 then
           local window_padding = {reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_WindowPadding())}
           reaper.ImGui_SetNextWindowPos(ctx, pos[1] - window_padding[1], pos[2] - line_height - item_inner_spacing[2] - window_padding[2] -8)
           reaper.ImGui_BeginTooltip(ctx)
@@ -3298,6 +3347,7 @@
           end 
           reaper.ImGui_EndTooltip(ctx)
         end
+        if is_hovered then HintMsg = 'Alt+Right-Click = Delta-Solo' end 
     
         return ActiveAny, value_changed, p_value
     end
@@ -3319,12 +3369,14 @@
 
         FX[FxGUID][Fx_P] = FX[FxGUID][Fx_P] or {} 
         local FP = FX[FxGUID][Fx_P]
+
+        if LBtnDC then r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_DisabledAlpha() ,1 )  end 
         if FX[FxGUID][Fx_P].Name then 
             
             local CC = FP.WhichCC or -1
 
 
-            if FX[FxGUID].Morph_Value_Edit or Mods==Alt+Ctrl then  r.ImGui_BeginDisabled(ctx)  end 
+            if FX[FxGUID].Morph_Value_Edit or Mods==Alt+Ctrl  or LBtnDC then  r.ImGui_BeginDisabled(ctx)  end 
 
             if item_inner_spacing then 
                 r.ImGui_PushStyleVar(ctx,r.ImGui_StyleVar_ItemSpacing(), item_inner_spacing, item_inner_spacing )    
@@ -3402,6 +3454,9 @@
             if Knob_Active == true then 
                 if IsLBtnHeld == false then Knob_Active = false end
             end
+
+
+
 
             if SliderStyle == 'Pro C'  then 
                 SldrLength  = PosR - PosL
@@ -3489,7 +3544,7 @@
             
 
             
-        -- if IsLBtnHeld ==false then Tweaking= nil end
+         -- if IsLBtnHeld ==false then Tweaking= nil end
 
             if PM.TimeNow~= nil then 
                 if  r.time_precise()> PM.TimeNow+1 then 
@@ -3566,7 +3621,7 @@
 
             if Vertical =='Vert' then ModLineDir = Height else ModLineDir = Sldr_Width end
 
-            Tweaking = MakeModulationPossible(FxGUID,Fx_P,FX_Idx,P_Num,p_value,Sldr_Width, Vertical)
+            Tweaking = MakeModulationPossible(FxGUID,Fx_P,FX_Idx,P_Num,p_value,Sldr_Width)
 
             --repeat for every param stored on track...
             --[[  for P=1, Trk.Prm.Inst[TrkID] or 0 , 1 do 
@@ -3626,12 +3681,12 @@
                     r.ImGui_TextColored(ctx, 0xD6D6D6ff,Format_P_V )
 
                     r.ImGui_PopFont(ctx)   
-            end
+                end
 
             
 
 
-            if FX[FxGUID].Morph_Value_Edit or Mods==Alt+Ctrl then  r.ImGui_EndDisabled(ctx) end 
+            if FX[FxGUID].Morph_Value_Edit or Mods==Alt+Ctrl or LBtnDC  then  r.ImGui_EndDisabled(ctx) end 
 
 
             r.ImGui_EndGroup( ctx)
@@ -3642,8 +3697,13 @@
                 for i=1, SpacingBelow, 1 do r.ImGui_Spacing(ctx) end
             else  r.ImGui_Spacing(ctx); r.ImGui_Spacing(ctx); r.ImGui_Spacing(ctx); r.ImGui_Spacing(ctx); r.ImGui_Spacing(ctx)
             end
-        end
 
+            
+
+
+        end
+        
+        if LBtnDC then r.ImGui_PopStyleVar(ctx) end 
         return value_changed, p_value
     end
     
@@ -3921,7 +3981,7 @@
 
         IfTryingToAddExistingPrm(Fx_P,FxGUID,'Rect', PosL, PosT,PosR,PosB)
 
-        Tweaking = MakeModulationPossible(FxGUID,Fx_P,FX_Idx,P_Num,p_value,Sldr_Width, Vertical)
+        Tweaking = MakeModulationPossible(FxGUID,Fx_P,FX_Idx,P_Num,p_value,Sldr_Width)
 
 
         local TextW,  h = reaper.ImGui_CalcTextSize( ctx, labeltoShow, nil, nil, true)
@@ -4429,7 +4489,7 @@
 
             if not ctx then  ctx = r.ImGui_CreateContext('Style Editor 2') end 
             if not styleEditorIsOpen then r.ImGui_SetNextWindowSize(ctx,500, 800) end 
-            open,OpenStyleEditor = r.ImGui_Begin(ctx, 'FX Devices Style Editor', OpenStyleEditor, r.ImGui_WindowFlags_TopMost()+r.ImGui_WindowFlags_NoCollapse()--[[ +r.ImGui_WindowFlags_AlwaysAutoResize() ]])
+            open,OpenStyleEditor = r.ImGui_Begin(ctx, 'FX Devices Style Editor', OpenStyleEditor, r.ImGui_WindowFlags_TopMost()+r.ImGui_WindowFlags_NoCollapse()+r.ImGui_WindowFlags_NoDocking()--[[ +r.ImGui_WindowFlags_AlwaysAutoResize() ]])
             
 
             if open  then 
@@ -4462,7 +4522,7 @@
                 r.ImGui_PopItemWidth(ctx)
 
 
-
+                
 
 
 
@@ -4844,7 +4904,6 @@
                         FX.TitleWidth[FxGUID] = RecallGlobInfo(Ct, 'Title Width = ', 'Num')    
                         FX[FxGUID].TitleClr = RecallGlobInfo(Ct, 'Title Clr = ', 'Num')           
                         FX[FxGUID].CustomTitle = RecallGlobInfo(Ct, 'Custom Title = ')           
-
                         PrmInst = RecallGlobInfo(Ct, 'Param Instance = ', 'Num')  
         
                     end
@@ -5479,14 +5538,16 @@ function loop()
         VP.w,  VP.h = r.ImGui_Viewport_GetSize( Viewport)
         VP.FDL = VP.FDL or r.ImGui_GetForegroundDrawList(ctx)
         VP.X,VP.Y = r.ImGui_GetCursorScreenPos(ctx)
+
+
         
-        
+
         if LT_Track == nil then 
             local Viewport = r.ImGui_GetWindowViewport( ctx)
             
             r.ImGui_DrawList_AddTextEx(VP.FDL,Font_Andale_Mono_20_B,20, VP.X,  VP.Y+ VP.h/2 , 0xffffffff, 'Select a track to start')
         else
-
+            HintMsg=nil
             ------- Add FX ---------
             for i, v in ipairs(AddFX.Name) do 
                 if v:find('FXD Gain Reduction Scope') then 
@@ -5512,7 +5573,7 @@ function loop()
                     
                 end 
 
-
+                
 
                 AddFX_HideWindow(LT_Track,v,-1000-AddFX.Pos[i])
                 if v:find('FXD Band Joiner') then 
@@ -5524,7 +5585,7 @@ function loop()
 
                 elseif v:find('FXD Gain Reduction Scope') then 
                     local _, FX_Name = r.TrackFX_GetFXName(LT_Track, AddFX.Pos[i])
-                  
+
                     SyncAnalyzerPinWithFX(AddFX.Pos[i], AddFX.Pos[i]-1, FX_Name)
                 end 
             end
@@ -5600,8 +5661,13 @@ function loop()
                 MovFX.Lbl = {} ]]
             end
 
+            ----- Double click to revert to default value -------- 
+            --[[ if ToDef.ID then 
+                r.TrackFX_SetParamNormalized(LT_Track,  ToDef.ID , ToDef.P, ToDef.V)
+                ToDef={}
+            end ]]
 
-
+            
 
             ----- Duplicating FX to Layer -------
             if DragFX_Dest then 
@@ -7873,6 +7939,45 @@ function loop()
                                             if Draw.DrawMode[FxGUID] then Draw.DrawMode[FxGUID]= nil end
                                         end
 
+
+                                        if r.ImGui_Button(ctx, 'Save all values as default',-FLT_MIN) then
+                                            local dir_path = ConcatPath(reaper.GetResourcePath(), 'Scripts', 'ReaTeam Scripts', 'FX', 'BryanChi_FX Devices')
+                                            local file_path = ConcatPath(dir_path, 'FX Default Values.ini')
+                                            local file = io.open(file_path, 'r+')
+                                            
+                                            if file then 
+                                                local FX_Name= ChangeFX_Name(FX_Name)
+                                                Content = file:read('*a')       local Ct = Content
+
+                                                local pos =  Ct:find(FX_Name)  
+                                                if pos then   msg(pos)
+                                                    file:seek('set', pos-1)
+                                                else file:seek('end')
+                                                end
+
+                                                file:write(FX_Name,'\n')
+                                                local PrmCount = r.TrackFX_GetNumParams(LT_Track, FX_Idx)
+                                                PrmCount= PrmCount-4
+                                                file:write('Number of Params: ', PrmCount,'\n')
+
+                                                local function write(i, name, Value)
+                                                    file:write(i, '. ',name ,' = ', Value or '', '\n')
+                                                end
+
+                                                for i=0 , PrmCount , 1 do 
+                                                    local V = r.TrackFX_GetParamNormalized(LT_Track, FX_Idx, i )
+                                                    local _,N = r.TrackFX_GetParamName(LT_Track,FX_Idx, i )
+                                                    write(i, N, V)
+                                                end 
+
+                                                file:write('\n')
+
+                                                
+                                                file:close()
+                                            end 
+                                            r.ImGui_CloseCurrentPopup(ctx)
+                                        end
+
                                         
 
                                         if FX.Def_Type[FxGUID] ~= 'Knob' then 
@@ -7903,7 +8008,7 @@ function loop()
 
 
                                     if OpenMorphSettings then 
-                                        Open, Oms =   r.ImGui_Begin(ctx, 'Preset Morph Settings ', Oms, r.ImGui_WindowFlags_NoCollapse())  
+                                        Open, Oms =   r.ImGui_Begin(ctx, 'Preset Morph Settings ', Oms, r.ImGui_WindowFlags_NoCollapse()+r.ImGui_WindowFlags_NoDocking())  
                                         if Oms then  
                                             if FxGUID == OpenMorphSettings then 
                                                 r.ImGui_Text(ctx, 'Set blacklist parameters here: ')    local SpaceForBtn
@@ -8225,9 +8330,9 @@ function loop()
                                     --------------------------------
                                     function SyncWetValues ()
                                         --when track change
-                                        --if  Wet.Val[FX_Idx] == nil or TrkID~=TrkID_End or FXCountEndLoop ~= Sel_Track_FX_Count then -- if it's nil
+                                        if  Wet.Val[FX_Idx] == nil or TrkID~=TrkID_End or FXCountEndLoop ~= Sel_Track_FX_Count then -- if it's nil
                                             SyncWetValues = true
-                                        --end
+                                        end
 
                                         if SyncWetValues == true then
                                             Wet.P_Num[FX_Idx]= reaper.TrackFX_GetParamFromIdent( LT_Track, FX_Idx, ':wet' )
@@ -8240,6 +8345,8 @@ function loop()
                                         if LT_ParamNum==Wet.P_Num[FX_Idx] and  focusedFXState == 1 then 
                                             Wet.Get=reaper.TrackFX_GetParamNormalized( LT_Track, FX_Idx, Wet.P_Num[FX_Idx])
                                             Wet.Val[FX_Idx] =  Wet.Get
+                                        elseif LT_ParamNum == FX[FxGUID].DeltaP then 
+                                            FX[FxGUID].DeltaP_V = r.TrackFX_GetParamNormalized( LT_Track, FX_Idx, FX[FxGUID].DeltaP)
                                         end
                                     end
 
@@ -8570,6 +8677,42 @@ function loop()
                                                         MakeItemEditable(FxGUID,Fx_P,Prm.Sldr_W,'Selection',curX,CurY) 
                                                     end
 
+                                                    if r.ImGui_IsItemClicked(ctx) and LBtnDC  then 
+                                                        local dir_path = ConcatPath(reaper.GetResourcePath(), 'Scripts', 'ReaTeam Scripts', 'FX', 'BryanChi_FX Devices')
+                                                        local file_path = ConcatPath(dir_path, 'FX Default Values.ini')
+                                                        local file = io.open(file_path, 'r')
+
+                                                        if file then 
+                                                            local FX_Name= ChangeFX_Name(FX_Name)
+                                                            Content = file:read('*a')       local Ct = Content
+                                                            local P_Num = Prm.Num
+                                                            local _, P_Nm = r.TrackFX_GetParamName(LT_Track,FX_Idx, P_Num)
+                                                            local Df = RecallGlobInfo(Ct, P_Num..'. '..P_Nm..' = '    ,  'Num')
+
+                                                            r.TrackFX_SetParamNormalized(LT_Track,  FX_Idx, P_Num, Df)
+                                                            ToDef = { ID = FX_Idx ; P = P_Num ; V = Df }
+                                                        end 
+                                                    end 
+
+                                                    if ToDef.ID then 
+                                                         
+                                                        r.TrackFX_SetParamNormalized(LT_Track,  ToDef.ID , ToDef.P, ToDef.V)
+                                                        if Prm.WhichCC then 
+                                                            if Trk.Prm.WhichMcros[Prm.WhichCC..TrkID] then 
+                                                                Unlink_Parm(LT_TrackNum,ToDef.ID,ToDef.P)
+                                                                r.TrackFX_SetParamNormalized(LT_Track, ToDef.ID, ToDef.P, ToDef.V  )
+                                                                r.GetSetMediaTrackInfo_String(LT_Track,'P_EXT: FX'..FxGUID..'Prm'..ToDef.P.. 'Value before modulation' , ToDef.V, true    )  
+                                                                r.gmem_write(7, Prm.WhichCC) --tells jsfx to retrieve P value
+                                                                PM.TimeNow= r.time_precise()
+                                                                r.gmem_write(11000+Prm.WhichCC , ToDef.V )
+                                                                Link_Param_to_CC(LT_TrackNum, ToDef.ID, ToDef.P, true, true, 176, Prm.WhichCC)
+                                                            end
+                                                        end
+                                                        Prm.V = ToDef.V 
+
+                                                        ToDef={}
+                                                    end
+                                                    
                                                     --Try another method: use undo history to detect if user has changed a preset, if so, unlink all params 
                                                     --[[ if r.TrackFX_GetOpen(LT_Track, FX_Idx) and focusedFXState==1 and FX_Index_FocusFX==FX_Idx then  
                                                         
@@ -9943,9 +10086,6 @@ function loop()
                             --------------------FX Devices--------------------
 
                             reaper.ImGui_PopStyleColor( ctx, poptimes)        -- -- PopColor #1 FX Window
-
-
-
                             reaper.ImGui_SameLine(ctx,nil,0)
 
 
@@ -9978,7 +10118,7 @@ function loop()
                             
 
 
-                            rv,LayEdProp_Open = r.ImGui_Begin(ctx, 'LayoutEdit Propertiess', true, r.ImGui_WindowFlags_MenuBar()+r.ImGui_WindowFlags_NoCollapse()+r.ImGui_WindowFlags_NoTitleBar())
+                            rv,LayEdProp_Open = r.ImGui_Begin(ctx, 'LayoutEdit Propertiess', true, r.ImGui_WindowFlags_MenuBar()+r.ImGui_WindowFlags_NoCollapse()+r.ImGui_WindowFlags_NoTitleBar()+r.ImGui_WindowFlags_NoDocking())
                             --r.ImGui_PushStyleColor(ctx, r.ImGui_Col_FrameBg(), 0x191919ff ) ;
                             local FxGUID = FXGUID[FX_Idx]
 
@@ -10256,6 +10396,9 @@ function loop()
                                                     if r.ImGui_Selectable(ctx, 'Within')  then  
                                                         for i, v in pairs(LE.Sel_Items) do   FX[FxGUID][v].Lbl_Pos= 'Within' end    
                                                     end
+                                                end
+                                                if r.ImGui_Selectable(ctx, 'Right')  then   
+                                                    for i, v in pairs(LE.Sel_Items) do   FX[FxGUID][v].Lbl_Pos= 'Right' end    
                                                 end
                                                 if r.ImGui_Selectable(ctx, 'None')  then   
                                                     for i, v in pairs(LE.Sel_Items) do  FX[FxGUID][v].Lbl_Pos= nil   end       
@@ -12227,7 +12370,8 @@ function loop()
                                         FX[FxGUID].PreviouslySolodBand = FX[FxGUID].PreviouslySolodBand or {}
 
                                         --Mute Band
-                                        if r.ImGui_IsKeyPressed(ctx,  r.ImGui_Key_M()) and #FX[FxGUID].FXsInBS > 0 and Mods ==0  then 
+                                        if r.ImGui_IsKeyPressed(ctx,  r.ImGui_Key_M())  and Mods ==0  then 
+
                                             local Solo = r.TrackFX_GetParamNormalized(LT_Track, JoinerID ,  4+5*i)
                                             if Solo == 0  then 
                                                 local OnOff = r.TrackFX_GetParamNormalized(LT_Track, JoinerID ,  5*i)
@@ -12237,7 +12381,7 @@ function loop()
                                                 FX[FxGUID].PreviouslyMutedBand = {}
                                             end
                                         --Solo Band 
-                                        elseif r.ImGui_IsKeyPressed(ctx,  r.ImGui_Key_S()) and #FX[FxGUID].FXsInBS > 0 and Mods ==0 then 
+                                        elseif r.ImGui_IsKeyPressed(ctx,  r.ImGui_Key_S()) and Mods ==0 then 
                                             local Mute = r.TrackFX_GetParamNormalized(LT_Track, JoinerID ,  5*i)
                                             if Mute == 1 then 
                                                 local OnOff = r.TrackFX_GetParamNormalized(LT_Track, JoinerID ,  4+5*i)
@@ -12246,7 +12390,7 @@ function loop()
                                                 r.TrackFX_SetParamNormalized(LT_Track, JoinerID ,  4+5*i, V) 
                                                 FX[FxGUID].PreviouslySolodBand = {}
                                             end
-                                        elseif r.ImGui_IsKeyPressed(ctx,  r.ImGui_Key_M()) and #FX[FxGUID].FXsInBS > 0 and Mods == Shift  then 
+                                        elseif r.ImGui_IsKeyPressed(ctx,  r.ImGui_Key_M())  and Mods == Shift  then 
                                             
                                             local AnyMutedBand 
 
@@ -12264,7 +12408,7 @@ function loop()
 
                                             if not AnyMutedBand then FX[FxGUID].PreviouslyMutedBand = {}end 
 
-                                        elseif r.ImGui_IsKeyPressed(ctx,  r.ImGui_Key_S()) and #FX[FxGUID].FXsInBS > 0 and Mods ==Shift then 
+                                        elseif r.ImGui_IsKeyPressed(ctx,  r.ImGui_Key_S())  and Mods ==Shift then 
                                             local AnySolodBand 
 
                                             for i=0, Cuts*4, 1 do
@@ -12463,7 +12607,7 @@ function loop()
 
 
                                     local Solo, Pwr 
-                                    if  #FX[FxGUID].FXsInBS >0 and JoinerID then 
+                                    if   JoinerID then 
                                         Pwr = r.TrackFX_GetParamNormalized(LT_Track, JoinerID,5*i )
 
                                         local Clr = Layer_Mute or CustomColorsDefault.Layer_Mute
@@ -12472,7 +12616,6 @@ function loop()
                                         Solo = r.TrackFX_GetParamNormalized(LT_Track, JoinerID, 4+ 5*i )
                                         local Clr = Layer_Solo or CustomColorsDefault.Layer_Solo 
                                         if Solo == 1 then r.ImGui_DrawList_AddRectFilled(WDL, WinL, Nxt_CrossPos, WinR, CrossPos, Clr) end
-
                                     end 
 
 
@@ -12736,7 +12879,6 @@ function loop()
                     end--  for if FX_Name ~='JS: FXD (Mix)RackMixer' 
                     r.ImGui_SameLine(ctx,nil,0)
             
-                    
 
                     
 
@@ -12863,7 +13005,7 @@ function loop()
                 r.ImGui_EndChild(ctx)
                 if HoverOnScrollItem then DisableScroll= true else DisableScroll=nil end 
 
-                if AnySplitBandHvred then HintMsg = 'Mouse: Alt=Delete All FXs in Layer | Shift=Bypass FXs    Keys: M=mute band   Shift+M=Toggle all muted band | S=solo band  Shift+S=Toggle all solo\'d band' else  HintMsg = nil  end 
+                if AnySplitBandHvred then HintMsg = 'Mouse: Alt=Delete All FXs in Layer | Shift=Bypass FXs    Keys: M=mute band   Shift+M=Toggle all muted band | S=solo band  Shift+S=Toggle all solo\'d band'   end 
             end
             Pos_Devices_R , Pos_Devices_B =  r.ImGui_GetItemRectMax(ctx)
 
@@ -13077,6 +13219,7 @@ function loop()
             if not IsLBtnHeld then DraggingFXs = {} DraggingFXs_Idx = {} end 
 
 
+            
 
         end -- end for if LT_Track ~= nil 
 
