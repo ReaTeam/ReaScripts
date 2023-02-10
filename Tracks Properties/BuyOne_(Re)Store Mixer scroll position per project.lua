@@ -217,7 +217,7 @@ AUTO_MODE = #AUTO_MODE:gsub(' ', '') > 0
 
 	AUTO()
 
-end
+	end
 
 
 do return r.defer(function() do return end end) end
