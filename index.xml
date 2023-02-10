@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="6cb9437e290b8e75249e241149da50f7ced796bf" name="ReaTeam Scripts">
+<index version="1" commit="580d95bc09dc5acdc1174105d3da1e72cac782e8" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -6810,6 +6810,14 @@ Override Reaper option "Toggle enable/disable default fadein/fadeout" (on/off)]]
 + Sync View option is now in the main menu.
 + For compatibility and correct work, now extstate data is written under a new header.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b8748a70a0dcf89bc8469beaf30ddb2056e94617/Items%20Editing/cool_MK%20Slicer.lua</source>
+      </version>
+      <version name="3.02" author="cool" time="2023-02-10T02:07:59Z">
+        <changelog><![CDATA[+Fixed a bug: now when moving the sliders, the "Processing" text is displayed again.
++Fixed a bug: now on exit the script restores the original state of the Transport/Toggle Repeat button
++Fixed a bug: the script now correctly restores the original state of the "Toggle stop playback at end of loop if repeat is disabled" option when exiting
++Auto Play by Click: Significantly reduced the possibility of playback false triggering while scrolling with the left mouse button.
++Minor code cleanup.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/580d95bc09dc5acdc1174105d3da1e72cac782e8/Items%20Editing/cool_MK%20Slicer.lua</source>
       </version>
     </reapack>
     <reapack name="Demoji_Next Variation.lua" type="script" desc="Next Variation">
