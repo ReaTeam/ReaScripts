@@ -1,32 +1,12 @@
 -- @description MK Slicer
 -- @author cool
--- @version 3.01
+-- @version 3.02
 -- @changelog
---   + New color design, the ability to choose a color theme.
---   + Added 9 new themes.
---   + Added BPM indicator: calculation of item's tempo by transients.
---   + Added Set BPM function to synchronize item and project tempo.
---   + Added Mapping function to create a tempo map by transients.
---   + Added marker flags for simple mouse dragging without using hotkeys.
---   + Interactive markers: now the active marker is highlighted when hovering the mouse.
---   + Added Aim Assist tool: cursor for precise positioning of markers and velocities.
---   + Added Snap Area tool: Edit Cursor snaps to left marker next to mouse click. This highlights the entire playback area of the sample.
---   + Now the mouse wheel resizes the grid if the cursor is over the grid resolution buttons.
---   + Fixed a bug: now, if during initialization the selected items were overlapped on non-selected ones, the script will work correctly.
---   + Fixed a bug: now, if the Rate of an item is changed, the content of the item is not shifted.
---   + Fixed a bug: now the Random Reverse function will work if the Random button was pressed before opening Random Settings.
---   + Fixed a bug: now the script works correctly with Reverse items.
---   + Fixed a bug: now the script does not crash with an error when trying to use it without an item.
---   + Fixed a bug: now low BPM doesn't break the Retrig slider.
---   + Fixed a bug (again): now the script does not crash with an error if there are no tracks in the project.
---   + Fixed a bug (again, sorry): now, when triggering, the script does not take 0.5ms from each note.
---   + Significantly increased the maximum value of the Retrig parameter.
---   + Now the Sensitivity control has a scale from 1 to 10 and works more logically: 1 - minimum sensitivity, 10 - maximum.
---   + Improved marker capture zoning depending on window size and zoom.
---   + Removed the old "Info Line" feature from the bottom of the screen.
---   + Now the View menu looks like a translucent rectangle.
---   + Sync View option is now in the main menu.
---   + For compatibility and correct work, now extstate data is written under a new header.
+--   +Fixed a bug: now when moving the sliders, the "Processing" text is displayed again.
+--   +Fixed a bug: now on exit the script restores the original state of the Transport/Toggle Repeat button
+--   +Fixed a bug: the script now correctly restores the original state of the "Toggle stop playback at end of loop if repeat is disabled" option when exiting
+--   +Auto Play by Click: Significantly reduced the possibility of playback false triggering while scrolling with the left mouse button.
+--   +Minor code cleanup.
 -- @link Forum Thread https://forum.cockos.com/showthread.php?t=232672
 -- @screenshot MK_Slicer 3 https://i.imgur.com/L7WnvoO.jpg
 -- @donation
@@ -83,7 +63,7 @@
 --   Sometimes a script applies glue to items. For example, when several items are selected and when a MIDI is created in a sampler mode.
 
 --[[
-MK Slicer v3.01 by Maxim Kokarev 
+MK Slicer v3.02 by Maxim Kokarev 
 https://forum.cockos.com/member.php?u=121750
 
 Co-Author of the compilation - MyDaw
@@ -145,8 +125,8 @@ KickNote = 35 -- Pitch Detector Notes ("Drums" preset)
 SnareNote = 38
 HatNote = 42
 
-local TH = {wfb, wff, bgnd, mf1, mf2, wf1, wf2, wf3, rc, g_w3, g_a3, thr, mc, g_w, g_a, g_w_def, g_a_def, area, gc, ec, g_w1, g_a1, pc, g_w2, g_a2, aim, bc1, bc2, sc1, sc2, sc3, sc4, tc, te, tg, tg2, btb, btt, ge, mfb, mfs, ltr, thk}
-
+--------------------------------Themes----------------------------------------------
+local TH = {}
 function Theming(Theme)
 
       if Theme == nil then Theme = 1 end 
@@ -892,8 +872,8 @@ TMInit_Status = 0
 BPMButtonStatus2 = 0
 Markers_BPM_Reset_Status = 0
 Slice_BPM_Reset_Status = 0
+Drag = 0
 -----------------------------------States and UA  protection-----------------------------
-
 Docked = tonumber(r.GetExtState('MK_Slicer_3','Docked'))or 0;
 EscToExit = tonumber(r.GetExtState('MK_Slicer_3','EscToExit'))or 1;
 MIDISamplerCopyFX = tonumber(r.GetExtState('MK_Slicer_3','MIDISamplerCopyFX'))or 1;
@@ -952,13 +932,29 @@ if Compensate_Oct_Offset <= -4 then Compensate_Oct_Offset = -4 elseif Compensate
 if WFiltering == nil then WFiltering = 1 end 
 if WFiltering <= 0 then WFiltering = 0 elseif WFiltering >= 1 then WFiltering = 1 end 
 
-
-transportstate = r.GetToggleCommandStateEx( 0, 41834) -- get Options: "Toggle stop playback at end of loop if repeat is disabled"
-if transportstate == 0 then
-   r.Main_OnCommand(41834, 0) -- Options: "Toggle stop playback at end of loop if repeat is disabled"
-   transportstate_status = 1
+---------------------------------------Check and Store Inits----------------------------------------------------------
+function TransportStateInit()
+local state
+local transport = {}
+state = r.GetToggleCommandStateEx( 0, 41834) -- get Option: "Toggle stop playback at end of loop if repeat is disabled"
+   transport[1] = {state = state}
+   transportstate_init = transport[1].state
 end
+TransportStateInit()
 
+ repeatstate = r.GetToggleCommandStateEx( 0, 41834) -- get Option: "Toggle stop playback at end of loop if repeat is disabled"
+ if repeatstate == 0 then
+    r.Main_OnCommand(41834, 0) -- Option: "Toggle stop playback at end of loop if repeat is disabled"
+ end
+
+function TransportRepeatInit()
+local state
+local loop = {}
+state = r.GetToggleCommandStateEx( 0, 1068) -- get Option: ""Transport: Toggle repeat"
+   loop[1] = {state = state}
+   repeatstate_init = loop[1].state
+end
+TransportRepeatInit()
 
  loopcheck = 0
 ----loopcheck------
@@ -969,9 +965,22 @@ if loopcheckstart == loopcheckending and loopcheckstart and loopcheckending then
      loopcheck = 1
 end
 
-function GetLoopTimeRange()
-start, ending = r.GetSet_LoopTimeRange( 0, 0, 0, 0, 0 )
+function GetLoopTimeRangeInit()
+   local st, en
+   local selection = {st, en}
+   st, en = r.GetSet_LoopTimeRange( 0, 0, 0, 0, 0 )
+   selection[1] = {st = st}
+   selection[2] = {en = en}
+   start_init = selection[1].st
+   ending_init = selection[2].en
 end
+GetLoopTimeRangeInit()
+
+----------------------------function GetLoopTimeRange-----------------------------
+function GetLoopTimeRange()
+  start, ending = r.GetSet_LoopTimeRange( 0, 0, 0, 0, 0 )
+end
+
 
 -------------------------------Save and Restore Initial Rate and Length--------------------------------------------
 
@@ -4396,10 +4405,10 @@ function class(base, init)
    setmetatable(c, mt)
    return c
 end
+
 ----------------
 -- Menu class --
 ----------------
-
 -- To create a new menu instance, call this function like this:
 --   menu_name = Menu("menu_name")
 local Menu = 
@@ -4425,7 +4434,6 @@ function Menu:get_item_from_id(id)
   return false
 end
 
-
 -- Updates "menu item type" variables (_has_submenu, _last_item_in_submenu etc.)
 function Menu:update_item(item_table)
   local t = item_table
@@ -4447,7 +4455,6 @@ function Menu:update_item(item_table)
   --t.id = self.curr_item_pos
   self.curr_item_pos = self.curr_item_pos + 1
 end
-
 
 -- Returns the created table and table index in "menu_obj.items"
 function Menu:add_item(...)
@@ -4491,7 +4498,6 @@ function Menu:add_item(...)
   return t, #self.items
 end
 
-
 -- Get menu item table at index
 function Menu:get_item(index)
   if self.items[index] == nil then
@@ -4499,7 +4505,6 @@ function Menu:get_item(index)
   end
   return self.items[index]
 end
-
 
 -- Show menu at mx, my
 function Menu:show(mx, my)
@@ -4524,7 +4529,6 @@ function Menu:show(mx, my)
   self.curr_item_pos = 1 -- set "menu item position counter" back to the initial value
 end
 
-
 function Menu:update(menu_item_index)
   -- check which "menu item id" matches with "menu_item_index"
   for i=1, #self.items do
@@ -4543,7 +4547,6 @@ function Menu:update(menu_item_index)
     self.items[i].command()
   end
 end
-
 
 -- Convert "Menu_obj.items" to string
 function Menu:table_to_string()
@@ -5244,8 +5247,7 @@ local OutNote2  = CheckBox_simple:new(670+d_pos,430+corrY,93,18, TH[30][1],TH[30
 
 ----------------------------------------
 
-local Slider_TB = {HP_Freq,LP_Freq,Fltr_Gain, 
-                   Gate_Thresh,Gate_Sensitivity,Gate_Retrig,Gate_ReducePoints,Offset_Sld,QStrength_Sld,Project,Set_Rate_Mode, Set_Rate_Feel}
+local Slider_TB = {HP_Freq,LP_Freq,Fltr_Gain,Gate_Thresh,Gate_Sensitivity,Gate_Retrig,Gate_ReducePoints,Offset_Sld,QStrength_Sld,Project,Set_Rate_Mode, Set_Rate_Feel}
 
 local Sliders_Grid_TB = {Grid1_Btn, Grid2_Btn, Grid4_Btn, Grid8_Btn, Grid16_Btn, Grid32_Btn, Grid64_Btn, GridT_Btn}
 
@@ -5643,7 +5645,6 @@ Init()
 getitem()
 
 if Wave.State then
---      Wave:Reset_All() --Reset item to Init before the "Get Item"
       Wave:DrawGridGuides()
 end
 
@@ -6752,18 +6753,17 @@ end
 ---------------------------------------------------------------------------------------------------------------------
      if Snap_on == 1 then
      
-             repeatstate = r.GetToggleCommandStateEx( 0, 1068) -- get Options: ""Transport: Toggle repeat"
+             repeatstate = r.GetToggleCommandStateEx( 0, 1068) -- get Option: ""Transport: Toggle repeat"
              if repeatstate == 0 then
-                r.Main_OnCommand(1068, 0) -- Options: "Transport: Toggle repeat"
-             --   repeatstate_status = 0
+                r.Main_OnCommand(1068, 0) -- Option: "Transport: Toggle repeat"
              end
             
          elseif Snap_on == 0 then
      
             if repeatstate_status == 0 then
-                 repeatstate = r.GetToggleCommandStateEx( 0, 1068) -- get Options: ""Transport: Toggle repeat"
+                 repeatstate = r.GetToggleCommandStateEx( 0, 1068) -- get Option: ""Transport: Toggle repeat"
                  if repeatstate == 1 then
-                    r.Main_OnCommand(1068, 0) -- Options: "Transport: Toggle repeat"
+                    r.Main_OnCommand(1068, 0) -- Option: "Transport: Toggle repeat"
                     repeatstate_status = 1
                  end
             end
@@ -6782,18 +6782,16 @@ end
 
      if Loop_on == 1 then
      
-             repeatstate = r.GetToggleCommandStateEx( 0, 1068) -- get Options: ""Transport: Toggle repeat"
+             repeatstate = r.GetToggleCommandStateEx( 0, 1068) -- get Option: ""Transport: Toggle repeat"
              if repeatstate == 0 then
-                r.Main_OnCommand(1068, 0) -- Options: "Transport: Toggle repeat"
-             --   repeatstate_status = 0
+                r.Main_OnCommand(1068, 0) -- Option: "Transport: Toggle repeat"
              end
              
           elseif Loop_on == 0 then
      
-            repeatstate = r.GetToggleCommandStateEx( 0, 1068) -- get Options: ""Transport: Toggle repeat"
+            repeatstate = r.GetToggleCommandStateEx( 0, 1068) -- get Option: ""Transport: Toggle repeat"
             if repeatstate == 1 then
-               r.Main_OnCommand(1068, 0) -- Options: "Transport: Toggle repeat"
-           --    repeatstate_status = 1
+               r.Main_OnCommand(1068, 0) -- Option: "Transport: Toggle repeat"
             end
             
             if SetLoop == 0 then 
@@ -7329,25 +7327,15 @@ function Wave:BPM_Numbers()
               bpm8c = bpm8
            end
 
-
            bpm2c = math_round(bpm2c,1)
            bpm4c = math_round(bpm4c,1)
            bpm8c = math_round(bpm8c,1)
     
-
            col_r = dev_simple/10 -- R
            col_g = abs((dev_simple/10)-1) -- G
            col_b = 0.2 -- B
 
---[[
-            if fmod(bpm4c, 1) == 0.0 then -- bonus points (more green) for integers
-               col_g = col_g+0.3
-               col_r = col_r-0.1
-               else
-               col_g = col_g
-            end
-]]--
-            
+         
             if (col_r <= 1 and col_r >= 0.2) and (col_g < 1 and col_g >= 0.2) then col_r = 1 end
             if (col_g <= 1 and col_g >= 0.2) and (col_r < 1 and col_r >= 0.2)  then col_g = 1 end
             
@@ -9306,7 +9294,6 @@ end
    end
 
 
-
 end -- end of function Wave:Detect_pitch()
 
 --------------------------------------------------------------------------------
@@ -9351,9 +9338,8 @@ function Wave:Get_TimeSelection()
 
  local item = r.GetSelectedMediaItem(0,0)
     if item then
-      GetLoopTimeRange()
-      if start ~= ending then
-          time_sel_length = ending - start
+      if start_init ~= ending_init then
+          time_sel_length = ending_init - start_init
           else
           time_sel_length = 1
       end
@@ -9695,8 +9681,7 @@ function Wave:Get_Cursor()
           end
      end
 
-      --------------------Auto-Scroll------------------------------------------------
-      
+      --------------------Auto-Scroll------------------------------------------------   
       if AutoScroll == 1 or PlayMode == 1 then
                if PlayMode == 0 then -- disable correction when Spacebar to Pause
                      if self.Pcx < 0 then mouseAutScrl_status = 1 end
@@ -9737,11 +9722,8 @@ function Wave:Set_Cursor()
 end 
 
 --------------------------------------------------------------------------------------------------------------------------------
---------------------------------------------------------------------------------------------------------------------------------
 ---------------------------------------------------SnapArea------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------------------------------------
---------------------------------------------------------------------------------------------------------------------------------
-
 function GetItemParams()
      local lastitem = r.GetExtState('_Slicer_', 'ItemToSlice')
      local item =  r.BR_GetMediaItemByGUID( 0, lastitem )
@@ -9752,9 +9734,7 @@ function GetItemParams()
             end
 end
 
-
 SelAreaTable = {play_start_id, play_length_id}
-
 
 function Gate_Gl:SnapAreaTables()
 
@@ -9812,7 +9792,6 @@ if TrTable ~= nil and Snap_on == 1 then
                    mouse_pos = Wave.Pos + (gfx.mouse_x-Wave.x)/(Wave.Zoom*Z_w) -- its current mouse position in source!
                    if mouse_pos < 0 then mouse_pos = 0 elseif mouse_pos > 1024 then mouse_pos = 1024 end 
 
-
                    if Wave:mouseDown() or Wave:mouseRClick() then                   
                          local Edit_cur = (r.GetCursorPosition() - Wave.sel_start) * srate * Wave.X_scale    -- cursor in source!            
                          if (Edit_cur-4 <= mouse_pos and Edit_cur+4 >= mouse_pos)  then
@@ -9823,7 +9802,6 @@ if TrTable ~= nil and Snap_on == 1 then
                              mouse_pos2 = mouse_pos-0.05 -- 
                          end               
                     end
-
 
                    if  ( Wave:mouseClick() or Wave:mouseRClick() or Slider_Status == 1 ) and St == 0 then  --   or self:mouseRClick() -- self:mouseUp() -- self:mouseClick()
 
@@ -9836,35 +9814,35 @@ if TrTable ~= nil and Snap_on == 1 then
 
                         if play_start <= mouse_pos1 and l_next >= mouse_pos2 then -- if mouse between two transients
    
-                              if r.GetPlayState()&1 == 1 and Wave:mouseClick() then -- autoplay by click while playback
-                                 r.SetEditCurPos(l_start_pos, false, true)
-                              end
+                                if r.GetPlayState()&1 == 1 and Wave:mouseClick() then -- autoplay by click while playback
+                                   r.SetEditCurPos(l_start_pos, false, true)
+                                end
+  
+                                r.SetEditCurPos((l_start_pos), false, false)    -- true-seekplay(false-no seekplay) 
+  
+                                if Snap_AutoPlay == 1 and (mouse_pos_height < 355 and mouse_pos_height > 45) and not Wave:mouseRClick() and Drag == 0 then
+                                    if r.GetPlayState()&1 == 0 then
+                                       r.OnPlayButton()
+                                       else
+                                          if edit_cur_pos == l_start_pos then
+                                              r.OnStopButton()
+                                              else
+                                              r.OnPlayButton()
+                                          end
+                                    end
+                                end   
 
-                              r.SetEditCurPos((l_start_pos), false, false)    -- true-seekplay(false-no seekplay) 
-
-                              if Snap_AutoPlay == 1 and (mouse_pos_height < 355 and mouse_pos_height > 45) and not Wave:mouseRClick() then
-                                  if r.GetPlayState()&1 == 0 then
-                                     r.OnPlayButton()
-                                     else
-                                        if edit_cur_pos == l_start_pos then
-                                            r.OnStopButton()
-                                            else
-                                            r.OnPlayButton()
-                                        end
-                                  end
-                              end   
-
-                                   if l_end_pos >= item_end then l_end_pos = item_end end
-                                   if l_start_pos == item_pos and (l_start_pos+0.05 >= l_end_pos) then l_start_pos = l_end_pos  end
-                                   r.GetSet_LoopTimeRange(1, true, (l_start_pos), l_end_pos, false) -- if loop
-                                      
-                                  play_start_id = play_start  
-                                  play_length_id = play_length   
-                                   SelAreaTable = {
-                                         play_start_id = play_start_id,
-                                         play_length_id = play_length_id
-                                         }
-                                  St = 1
+                                if l_end_pos >= item_end then l_end_pos = item_end end
+                                if l_start_pos == item_pos and (l_start_pos+0.05 >= l_end_pos) then l_start_pos = l_end_pos  end
+                                r.GetSet_LoopTimeRange(1, true, (l_start_pos), l_end_pos, false) -- if loop
+                                   
+                               play_start_id = play_start  
+                               play_length_id = play_length   
+                                SelAreaTable = {
+                                      play_start_id = play_start_id,
+                                      play_length_id = play_length_id
+                                      }
+                               St = 1
 
                         end
 
@@ -9897,8 +9875,6 @@ local pos_margin = gfx.mouse_x-self.x
 else
     self.insrc_mx = self.Pos + (gfx.mouse_x-self.x)/(self.Zoom*Z_w) -- old behavior
 end
-
-
 
     ----------------------------- 
     --- Wave get-set Cursors ----
@@ -9949,18 +9925,19 @@ self_Zoom = self.Zoom --refresh loop by mw middle click
       Wave:Redraw() -- redraw after move view
     end
 
-
 if Cursor_Status == 1 and (last_x - gfx.mouse_x) ~= 0.0 then -- set and delay new cursor
 
         time_start = reaper.time_precise()       
         local function Main()     
             local elapsed = reaper.time_precise() - time_start       
-            if elapsed >= 0.1 then
+            if elapsed >= 0.17 then
               gfx.setcursor(32512)  --set "arrow" cursor
+              Drag = 0 -- snap area condition
               runcheck = 0
                 return
             else
               gfx.setcursor(429, 1) --set "hand" cursor
+              Drag = 1 -- snap area condition
               runcheck = 1
                 reaper.defer(Main)
             end           
@@ -10047,7 +10024,6 @@ local KeyUP, KeyDWN, KeyL, KeyR
      Wave:Redraw() -- redraw after vertical zoom
      end   
 
-
      if SetBPMButtonStatus == 1 then
              time_startt = reaper.time_precise()       
       local  function Maint()     
@@ -10070,7 +10046,6 @@ local KeyUP, KeyDWN, KeyL, KeyR
      end
 
 end
-
 
 --------------------------------------------------------------------------------
 ---  Insert from buffer(inc. Get_Mouse) ----------------------------------------
@@ -10128,7 +10103,6 @@ function Wave:CursorTop()
               end
          end
      end
-
 end
 
 function Wave:ForegroundBorders()
@@ -10759,7 +10733,6 @@ function MIDITrigger_pitched()
                  r.PreventUIRefresh(1)
                  -----------------------------------------------
                  if Wave.State then Wave:Detect_pitch() end
-             --    Wave.State = false -- reset Wave.State
                  -----------------------------------------------
 
                  ---------------we finish what we started in GetSet_MIDITake()-----------------
@@ -10873,7 +10846,7 @@ function Init()
     -- Some gfx Wnd Default Values ---------------
     local R,G,B = ceil(TH[3][1]*255),ceil(TH[3][2]*255),ceil(TH[3][3]*255)             -- 0...255 format -- цвет основного окна
     local Wnd_bgd = R + G*256 + B*65536 -- red+green*256+blue*65536  
-    local Wnd_Title = "MK Slicer v3.01" .. " " .. theme_name .. ""
+    local Wnd_Title = "MK Slicer v3.02" .. " " .. theme_name .. ""
     local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
  --   Wnd_W,Wnd_H = 1044,490 -- global values(used for define zoom level)
 
@@ -11178,7 +11151,6 @@ mainloop()
 getitem()
 
 ----------------------------Menu GFX and Items------------------------------------
-
  mouse = {  
                   -- Constants
                   LB = 1,
@@ -11202,7 +11174,6 @@ end
   gfx.update()
   if gfx.getchar() >= 0 then r.defer(mainloop_settings) end
 end
-
 
 ---------------------------
 -- Create "context" menu --
@@ -11246,7 +11217,7 @@ gfx.quit()
      dock_pos = dock_pos or 1025
      xpos = 400
      ypos = 320
-     local Wnd_Title = "MK Slicer v3.01"
+     local Wnd_Title = "MK Slicer v3.02"
      local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
      gfx.init( Wnd_Title, Wnd_W,Wnd_H, Wnd_Dock, Wnd_X,Wnd_Y )
 
@@ -11258,7 +11229,7 @@ gfx.quit()
     dock_pos = 0
     xpos = r.GetExtState("MK_Slicer_3", "window_x") or 400
     ypos = r.GetExtState("MK_Slicer_3", "window_y") or 320
-    local Wnd_Title = "MK Slicer v3.01"
+    local Wnd_Title = "MK Slicer v3.02"
     local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
     gfx.init( Wnd_Title, Wnd_W,Wnd_H, Wnd_Dock, Wnd_X,Wnd_Y )
  
@@ -11789,8 +11760,16 @@ end
 
 function ClearExState()
 
-if transportstate_status == 1 then r.Main_OnCommand(41834,0) end -- Re-enable "Toggle stop playback at end of loop if repeat is disabled" (if it was enabled)
-if repeatstate_status == 1 then r.Main_OnCommand(1068,0) end -- Re-enable "Transport: Toggle repeat" (if it was enabled)
+transportstate = r.GetToggleCommandStateEx(0, 41834) -- get Option: "Toggle stop playback at end of loop if repeat is disabled"
+if transportstate_init ~= transportstate then
+   r.Main_OnCommand(41834,0) -- Re-enable "Toggle stop playback at end of loop if repeat is disabled" (if it was enabled)
+end
+
+
+repeatstate = r.GetToggleCommandStateEx(0, 1068) -- get Option: ""Transport: Toggle repeat"
+if repeatstate_init ~= repeatstate then
+   r.Main_OnCommand(1068, 0) -- Re-enable "Transport: Toggle repeat" (if it was enabled on init)
+end
 
 r.DeleteExtState('_Slicer_', 'ItemToSlice', 0)
 r.DeleteExtState('_Slicer_', 'TrackForSlice', 0)
