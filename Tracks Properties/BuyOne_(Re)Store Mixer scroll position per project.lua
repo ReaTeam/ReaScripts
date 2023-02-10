@@ -101,7 +101,7 @@ About: 	The script allows storing and recalling last project specific Mixer scro
 -- between the quotation marks.
 
 -- Enable this setting so the script can be used
-ENABLE_SCRIPT = "1"
+ENABLE_SCRIPT = ""
 
 
 AUTO_MODE = ""
