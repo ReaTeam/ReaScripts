@@ -7,8 +7,9 @@ Changelog: Initial release
 Licence: WTFPL
 REAPER: at least v5.962
 Extensions: SWS, not mandatory but recommended
-About: 	The script allows storing and recalling last project specific Mixer scroll position.
-        It can work in manual and in auto modes.
+About: 	The script allows storing and recalling last project specific 
+	Mixer scroll position on project load and when switching between
+	project tabs. It can work in manual and in auto modes.
 
         ▓ M A N U A L  M O D E
 
@@ -165,10 +166,9 @@ function Manage_Scroll_Auto(load) -- load is boolean
 		if load and stored then
 		r.SetMixerScroll(tr) -- load
 		return end
-		if not load and stored then -- store
-		r.GetSetMediaTrackInfo_String(tr, 'P_EXT:MIXER SCROLL', '', true) -- setNewValue true // DELETE CURRENT EXT DATA BECAUSE ANOTHER TRACK IS LIKELY TO MOVE TO THE LEFTMOST POSITION AND BE STORED
-		local tr = r.GetMixerScroll()
-		r.GetSetMediaTrackInfo_String(tr, 'P_EXT:MIXER SCROLL', 'stored', true) -- setNewValue true
+		if not load and stored and r.GetMixerScroll() ~= tr then -- store, only when Mixer scroll postition changes to avoid unnecessary overwriting
+		r.GetSetMediaTrackInfo_String(tr, 'P_EXT:MIXER SCROLL', '', true) -- setNewValue true // DELETE CURRENT EXT DATA BECAUSE ANOTHER TRACK IS LIKELY TO MOVE TO THE LEFTMOST POSITION AND BE STORED		
+		r.GetSetMediaTrackInfo_String(r.GetMixerScroll(), 'P_EXT:MIXER SCROLL', 'stored', true) -- setNewValue true
 		return end
 	end
 end
