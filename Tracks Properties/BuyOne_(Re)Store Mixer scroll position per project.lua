@@ -91,7 +91,8 @@ About: 	The script allows storing and recalling last project specific
         between project tabs saving isn't necessary.  
         This mode must be enabled in the USER SETTINGS.  
         To launch the script automatically on REAPER startup add its command ID to the 
-        SWS extension 'Startup actions' as a 'Global startup action'.
+        SWS extension 'Startup actions' as a 'Global startup action'.  
+	If the script is linked to a toolbar button in auto mode the button will be lit.
 
 ]]
 ------------------------------------------------------------------
@@ -188,9 +189,25 @@ r.defer(AUTO)
 
 end
 
+function At_Exit_Wrapper(func, ...)
+-- thanks to Lokasenna, https://forums.cockos.com/showthread.php?t=218805 -- defer with args
+-- his code didn't work because func(...) produced an error without there being elipsis
+-- in function() as well, but gave direction
+local t = {...}
+return function() func(table.unpack(t)) end
+end
+
+
+function Re_Set_Toggle_State(sect_ID, cmd_ID, toggle_state)
+r.SetToggleCommandState(sect_ID, cmd_ID, toggle_state)
+r.RefreshToolbar(cmd_ID)
+end
+
 
 	if Script_Not_Enabled(ENABLE_SCRIPT) then return r.defer(function() do return end end) end
 
+	
+local _, scr_name, sect_ID, cmd_ID, _,_,_ = r.get_action_context()
 
 AUTO_MODE = #AUTO_MODE:gsub(' ', '') > 0
 
@@ -211,15 +228,24 @@ AUTO_MODE = #AUTO_MODE:gsub(' ', '') > 0
 	Manage_Scroll_Manual(LOAD, tab_cnt, proj)
 
 	else
+	
+	Re_Set_Toggle_State(sect_ID, cmd_ID, 1)
 
 	tab_cnt_init = Count_Proj_Tabs()
 	proj_init, projfn = r.EnumProjects(-1) -- -1 current proj
-
+	
 	AUTO()
 
 	end
 
+	
+	if AUTO_MODE then
+	r.atexit(At_Exit_Wrapper(Re_Set_Toggle_State, sect_ID, cmd_ID, 0))
+	end
 
 do return r.defer(function() do return end end) end
+
+
+
 
 
