@@ -2,7 +2,6 @@
 -- @author Bryan Chi
 -- @version 1.0beta9.3
 -- @changelog
---   FXD v1.0 beta 9.3 change log:
 --   - Add 'FXD Saike BandSplitter' and 'FXD Band Joiner' in BlackListFXs array to prevent FXS Saike BandSplitter being treated as normal fx.
 --   - Add ‘FXD Split to 32 Channels’ in BlackListFXs array (instead of ‘JS:  FXD Split to 32 Channels’ to make script recognize the FX in case if paths are shown in FX name. 
 --   Window Buttons: 
