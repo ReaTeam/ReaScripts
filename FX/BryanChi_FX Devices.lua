@@ -1,13 +1,18 @@
 -- @description FX Devices
 -- @author Bryan Chi
--- @version 1.0beta9.2
+-- @version 1.0beta9.3
 -- @changelog
---   - In layout editor, Add shift+Arrow buttons to adjust position by one pixel.
---   - Add ‘Save all values as default’ button to define plugin’s default values, once set you can double click to revert parameters to their saved default values.
---   - Disable docking floating windows ( preset morph settings, layout editor, style editor)
---   - Add alt+right-click on wet dry knob to delta-solo.
---   - In Band Splitter, Fix soloing and muting when no FX is inside the Splitter
---   - Add option to put label on parameter’s right side for Selection and Switch type.
+--   FXD v1.0 beta 9.3 change log:
+--   - Add 'FXD Saike BandSplitter' and 'FXD Band Joiner' in BlackListFXs array to prevent FXS Saike BandSplitter being treated as normal fx.
+--   - Add ‘FXD Split to 32 Channels’ in BlackListFXs array (instead of ‘JS:  FXD Split to 32 Channels’ to make script recognize the FX in case if paths are shown in FX name. 
+--   Window Buttons: 
+--       - Fix unintentionally opening multiple windows when left clicking on window button when some FXs are collapsed.
+--       - Add Alt+R-click to toggle collapse all FXs.
+--       - Add Hint Message when hovering on a window button
+--
+--   Layout Editor
+--   	- Change knob value font to Arial - Easier to read numbers. 
+--   	- Fix knobs’ default value position displayed as ‘Bottom’ where it should be ‘None’.
 -- @provides
 --   [effect] BryanChi_FX Devices/FXD Macros.jsfx
 --   [effect] BryanChi_FX Devices/FXD ReSpectrum.jsfx
@@ -54,7 +59,7 @@
 --   https://forum.cockos.com/showthread.php?t=263622
 
 --------------------------==  declare Initial Variables & Functions  ------------------------
-    VersionNumber = '1.0beta9.2 '
+    VersionNumber = 'V1.0beta9.3 '
     FX_Add_Del_WaitTime=2
     r=reaper
 
@@ -899,10 +904,10 @@
     -- FXs listed here will not have a fx window in the script UI
     BlackListFXs = {'Macros','JS: Macros .+', 'Frequency Spectrum Analyzer Meter', 'JS: FXD Split to 32 Channels', 'JS: FXD (Mix)RackMixer .+', 'FXD (Mix)RackMixer','JS: FXD Macros', 'FXD Macros',
                     'JS: FXD ReSpectrum', 'AU: AULowpass (Apple)', 'AU: AULowpass', 'VST: FabFilter Pro C 2 ' , 'Pro-C 2', 'Pro C 2' , 'JS: FXD Split to 4 channels', 'JS: FXD Gain Reduction Scope',
-                    'JS: FXD Saike BandSplitter', 'JS: FXD Band Joiner'
+                    'JS: FXD Saike BandSplitter', 'JS: FXD Band Joiner', 'FXD Saike BandSplitter', 'FXD Band Joiner', 'FXD Split to 32 Channels'
                     }
     UtilityFXs =    {'Macros', 'JS: Macros /[.+', 'Frequency Spectrum Analyzer Meter', 'JS: FXD Split to 32 Channels', 'JS: FXD (Mix)RackMixer .+', 'FXD (Mix)RackMixer','JS: FXD Macros', 'FXD Macros',
-                    'JS: FXD ReSpectrum', 'JS: FXD Split to 4 channels', 'JS: FXD Gain Reduction Scope', 'JS: FXD Band Joiner'
+                    'JS: FXD ReSpectrum', 'JS: FXD Split to 4 channels', 'JS: FXD Gain Reduction Scope', 'JS: FXD Band Joiner', 'FXD Split to 32 Channels'
                     }
     
     SpecialLayoutFXs = {'VST: FabFilter Pro C 2 ', 'Pro Q 3' , 'VST: FabFilter Pro Q 3 ', 'VST3: Pro Q 3 FabFilter'  , 'VST3: Pro C 2 FabFilter', 'AU: Pro C 2 FabFilter' }
@@ -1567,6 +1572,42 @@
         
     end
 
+    function BlinkItem(dur, rpt, var, highlightEdge, EdgeNoBlink)
+
+         TimeBegin = TimeBegin or r.time_precise()
+        local Now = r.time_precise()
+        local EdgeClr = 0x00000000 
+        if highlightEdge then EdgeClr = highlightEdge end 
+
+        for i=0, rpt-1 , 1 do 
+
+            if Now > TimeBegin+dur*i and Now < TimeBegin+dur*(i+0.5) then -- second blink
+                HighlightSelectedItem(0xffffff77,EdgeClr, 0, L,T,R,B,h,w, H_OutlineSc, V_OutlineSc,'GetItemRect', Foreground)
+            end
+
+
+
+        end
+ 
+        if EdgeNoBlink == 'EdgeNoBlink' then 
+            if Now < TimeBegin+dur*(rpt-0.95)  then 
+                HighlightSelectedItem(0xffffff00,EdgeClr, 0, L,T,R,B,h,w, H_OutlineSc, V_OutlineSc,'GetItemRect', Foreground)
+            end 
+        end 
+
+
+
+        if Now > TimeBegin+dur*(rpt-0.95)  then 
+            TimeBegin=nil
+
+            return nil  
+        else return var
+        end 
+
+    end
+
+
+
 
     function MyText(text, font, color, WrapPosX)
         if WrapPosX then r.ImGui_PushTextWrapPos( ctx, WrapPosX) end 
@@ -1649,7 +1690,7 @@
             end
 
 
-            if LE.Sel_Items then 
+            if LE.Sel_Items and not r.ImGui_IsAnyItemActive( ctx) then 
                 if r.ImGui_IsKeyPressed( ctx, r.ImGui_Key_DownArrow() )and Mods == 0 then 
                     for i, v in ipairs(LE.Sel_Items) do 
                         if v ==Fx_P then FX[FxGUID][v].PosY = FX[FxGUID][v].PosY+LE.GridSize end 
@@ -3106,7 +3147,7 @@
         end
         RemoveModulationIfDoubleRClick(FxGUID,Fx_P, P_Num,FX_Idx)
         
-        if V_Pos =='Bottom' or V_Pos =='Within'  then
+        if V_Pos ~= 'None' and V_Pos  then
 
             r.ImGui_PushFont(ctx, _G[V_Font])
             _, FormatPV = r.TrackFX_GetFormattedParamValue(LT_Track,FX_Idx, P_Num)
@@ -3138,7 +3179,7 @@
             
             if V_Pos =='Within' then Y_Offset= radius_outer*1.2  end 
             if is_active or is_hovered then drawlist = Glob.FDL else drawlist = draw_list end 
-            r.ImGui_DrawList_AddTextEx(drawlist,_G[V_Font],FX[FxGUID][Fx_P].V_FontSize or Knob_DefaultFontSize, CenteredVPos, pos[2] + radius_outer * 2 + item_inner_spacing[2]-(Y_Offset or 0), FX[FxGUID][Fx_P].V_Clr or 0xffffffff, FormatPV, (Radius or 20)* 2)
+            r.ImGui_DrawList_AddTextEx(drawlist,Arial,FX[FxGUID][Fx_P].V_FontSize or Knob_DefaultFontSize, CenteredVPos, pos[2] + radius_outer * 2 + item_inner_spacing[2]-(Y_Offset or 0), FX[FxGUID][Fx_P].V_Clr or 0xffffffff, FormatPV, (Radius or 20)* 2)
             r.ImGui_PopFont(ctx)
         end 
 
@@ -3347,7 +3388,7 @@
           end 
           reaper.ImGui_EndTooltip(ctx)
         end
-        if is_hovered then HintMsg = 'Alt+Right-Click = Delta-Solo' end 
+        if is_hovered then HintMessage = 'Alt+Right-Click = Delta-Solo' end 
     
         return ActiveAny, value_changed, p_value
     end
@@ -3651,6 +3692,8 @@
                 r.ImGui_PushFont(ctx,Arial_11)
                 TextW,  Texth = r.ImGui_CalcTextSize( ctx, Format_P_V, nil, nil, true, -100)
                 r.ImGui_PopFont(ctx)   
+
+                if FX[FxGUID][Fx_P].V_Round then Format_P_V = RoundPrmV(StrToNum(Format_P_V), FX[FxGUID][Fx_P].V_Round) end 
 
 
                 if BtmLbl ~= 'No BtmLbl' then 
@@ -5547,7 +5590,7 @@ function loop()
             
             r.ImGui_DrawList_AddTextEx(VP.FDL,Font_Andale_Mono_20_B,20, VP.X,  VP.Y+ VP.h/2 , 0xffffffff, 'Select a track to start')
         else
-            HintMsg=nil
+            HintMessage=nil
             ------- Add FX ---------
             for i, v in ipairs(AddFX.Name) do 
                 if v:find('FXD Gain Reduction Scope') then 
@@ -5702,6 +5745,7 @@ function loop()
             Sel_Track_FX_Count=reaper.TrackFX_GetCount( LT_Track )
             LBtnDrag = r.ImGui_IsMouseDragging( ctx, 0 )
             LBtnDC =  r.ImGui_IsMouseDoubleClicked( ctx, 0 )
+
             _, TrkName = r.GetTrackName(LT_Track)
             
 
@@ -7604,7 +7648,7 @@ function loop()
 
                                     end
 
-                                    if Draw[FX.Win_Name_S[FX_Idx]] and not FX.Collapse[FxGUID]  then     local D = Draw[FX.Win_Name_S[FX_Idx]]
+                                    if Draw[FX.Win_Name_S[FX_Idx]] and not FX[FxGUID].Collapse  then     local D = Draw[FX.Win_Name_S[FX_Idx]]
                                         for i, Type in pairs (D.Type)  do 
 
                                             if D.Type[i] == 'line' then 
@@ -7698,7 +7742,7 @@ function loop()
                                     end
 
                                     --[[ r.ImGui_PushStyleColor(ctx, ) ]]
-                                    if FX.Collapse[FxGUID]~= true then 
+                                    if FX[FxGUID].Collapse~= true then 
                                         if string.find(FX_Name, 'Pro Q 3')~= nil then 
                                             WindowBtn = r.ImGui_Button(ctx,'Pro-Q 3'..'##', 60, 20 ) -- create window name button
                                             ProQ_TitlePosX_L,  ProQ_TitlePosY_T = reaper.ImGui_GetItemRectMin( ctx)
@@ -7725,11 +7769,8 @@ function loop()
                                         else FX[FxGUID].TtlHvr = nil
                                         end
 
-                                        if r.ImGui_IsItemClicked( ctx,  1) and Mods == 0 then       
-                                            FX.Collapse[FXGUID[FX_Idx]]= true 
-                                        end
-                                        FX.WidthCollapse[FX_Idx] = nil
-                                    else 
+
+                                    else  -- if collapsed
                                         
                                         FX.WidthCollapse[FX_Idx]= 27
 
@@ -7742,7 +7783,8 @@ function loop()
                                         local Name_V_NoManuFacturer = Name_V:gsub("%b()", "")
                                         reaper.ImGui_PushStyleVar( ctx,  BtnTxtAlign, 0.5 , 0.2)  --StyleVar#3
                                         r.ImGui_SameLine(ctx,nil, 0)
-                                        CreateWindowBtn_Vertical(Name_V_NoManuFacturer..'##Vertical', FX_Idx)
+
+                                        rv = r.ImGui_Button(ctx,Name_V_NoManuFacturer, 25, 220 )
 
                                         
                                         r.ImGui_PopStyleVar(ctx)        --StyleVar#3 POP
@@ -7753,18 +7795,40 @@ function loop()
 
 
                                     r.ImGui_SetNextWindowSizeConstraints( ctx, AddPrmWin_W or 50, 50, 9999, 500)
+                                    local R_ClickOnWindowBtn = r.ImGui_IsItemClicked(ctx,1)
+                                    local L_ClickOnWindowBtn = r.ImGui_IsItemClicked(ctx)
 
-                                    if r.ImGui_IsItemClicked(ctx,1) and ModifierHeld == Ctrl then       
+                                    if R_ClickOnWindowBtn and Mods == Ctrl then       
                                         r.ImGui_OpenPopup(ctx, 'Fx Module Menu') 
-                                    elseif WindowBtn and Mods== 0  then
+                                    elseif R_ClickOnWindowBtn and Mods == 0 then 
+                                        FX[FxGUID].Collapse= toggle(FX[FxGUID].Collapse )
+                                        if not FX[FxGUID].Collapse then   FX.WidthCollapse[FX_Idx]= nil end 
+                                    elseif R_ClickOnWindowBtn and Mods == Alt then 
+                                        -- check if all are collapsed 
+                                        local All_Collapsed 
+                                        for i=0, Sel_Track_FX_Count-1, 1 do 
+                                            if not FX[FXGUID[i]].Collapse then All_Collapsed = false end 
+                                        end
+                                        if  All_Collapsed==false  then 
+                                            for i=0, Sel_Track_FX_Count-1, 1 do 
+                                                FX[FXGUID[i]].Collapse = true
+                                            end 
+                                        else  -- if all is collapsed 
+                                            for i=0, Sel_Track_FX_Count-1, 1 do 
+                                                FX[FXGUID[i]].Collapse = false   FX.WidthCollapse[i]= nil 
+                                            end 
+                                            BlinkFX = FX_Idx
+                                        end
+                                    elseif L_ClickOnWindowBtn and Mods== 0  then
                                         openFXwindow(LT_Track, FX_Idx)
-                                    elseif WindowBtn and Mods== Shift  then 
+                                    elseif L_ClickOnWindowBtn and Mods== Shift  then 
                                         ToggleBypassFX(LT_Track, FX_Idx)
-                                    elseif WindowBtn and Mods==Alt  then  
+                                    elseif L_ClickOnWindowBtn and Mods==Alt  then  
                                         DeleteFX(FX_Idx)
                                     end
 
-
+                                    if r.ImGui_IsItemHovered(ctx) then HintMessage = 'Mouse: L=Open FX Window | Shift+L = Toggle Bypass | Alt+L = Delete | R = Collapse | Alt+R = Collapse All' end 
+                                   
 
                                     r.ImGui_PushStyleColor(ctx, r.ImGui_Col_Border(), getClr(r.ImGui_Col_FrameBg()))
 
@@ -7881,7 +7945,6 @@ function loop()
                                     --r.Undo_OnStateChangeEx(string descchange, integer whichStates, integer trackparm) -- @todo Detect FX deletion
 
 
-                                    
                                     
 
 
@@ -8290,7 +8353,7 @@ function loop()
                                     
 
                                     if R_Click_WindowBtnVertical then
-                                        FX.Collapse[FXGUID[FX_Idx]]= false
+                                        FX[FXGUID[FX_Idx]].Collapse= false
                                     end
 
 
@@ -8354,7 +8417,7 @@ function loop()
                                     if FindStringInTable(SpecialLayoutFXs, FX_Name) == false then
                                         SyncWetValues() 
 
-                                        if FX.Collapse[FXGUID[FX_Idx]]~= true then 
+                                        if FX[FXGUID[FX_Idx]].Collapse~= true then 
                                             Wet.ActiveAny, Wet.Active, Wet.Val[FX_Idx]   = Add_WetDryKnob(ctx,'a','',Wet.Val[FX_Idx] or 0 ,0,1, FX_Idx)
                                         end
                                         
@@ -8485,7 +8548,7 @@ function loop()
                                     elseif string.find(FX_Name, 'Pro C 2')~=nil then
                                         Rounding = 3
                                         r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_FrameRounding(), Rounding)
-                                        if FX.Collapse[FXGUID[FX_Idx]]~= true then 
+                                        if not FX[FXGUID[FX_Idx]].Collapse then 
 
                                             if not OverSampleValue then   _, OverSampleValue = r.TrackFX_GetFormattedParamValue(LT_Track,FX_Idx, 40) end
                                             r.ImGui_SetNextItemWidth(ctx, 10)
@@ -8514,7 +8577,7 @@ function loop()
                                     ------------------------------------------
                                     ------ Generic FX's knobs and sliders area
                                     ------------------------------------------
-                                    if  not FX.Collapse[FXGUID[FX_Idx]] and FindStringInTable(BlackListFXs, FX_Name)~=true and FindStringInTable(SpecialLayoutFXs, FX_Name) == false then
+                                    if  not FX[FXGUID[FX_Idx]].Collapse and FindStringInTable(BlackListFXs, FX_Name)~=true and FindStringInTable(SpecialLayoutFXs, FX_Name) == false then
 
 
                                         
@@ -8678,7 +8741,7 @@ function loop()
                                                     end
 
                                                     if r.ImGui_IsItemClicked(ctx) and LBtnDC  then 
-                                                        local dir_path = ConcatPath(reaper.GetResourcePath(), 'Scripts', 'ReaTeam Scripts', 'FX', 'BryanChi_FX Devices')
+                                                        local dir_path = ConcatPath(r.GetResourcePath(), 'Scripts', 'ReaTeam Scripts', 'FX', 'BryanChi_FX Devices')
                                                         local file_path = ConcatPath(dir_path, 'FX Default Values.ini')
                                                         local file = io.open(file_path, 'r')
 
@@ -8761,7 +8824,7 @@ function loop()
                                     --------------------------------------------------------------------------------------
                                     --------------------------------------Pro C --------------------------------------
                                     --------------------------------------------------------------------------------------
-                                    if string.find(FX_Name, 'Pro C 2') and not FX.Collapse[FxGUID]  then
+                                    if string.find(FX_Name, 'Pro C 2') and not FX[FxGUID].Collapse  then
                                         if Prm.InstAdded[FXGUID[FX_Idx] ]~= true and FX.Win_Name[FX_Idx]:find('Pro%-C 2') then
 
 
@@ -9134,7 +9197,7 @@ function loop()
                                     --------------------------------------------------------------------------------------
                                     --------------------------------------Pro Q --------------------------------------
                                     --------------------------------------------------------------------------------------
-                                    if string.find(FX_Name, 'Pro Q 3')~= nil and FX.Collapse[FxGUID]~= true  then   -- ==  Pro Q Graph
+                                    if string.find(FX_Name, 'Pro Q 3')~= nil and FX[FxGUID].Collapse~= true  then   -- ==  Pro Q Graph
                                         r.gmem_attach('gmemReEQ_Spectrum') 
 
 
@@ -10098,9 +10161,11 @@ function loop()
                             r.ImGui_EndGroup(ctx)
 
                         end
-                        
-                        
+                        if BlinkFX == FX_Idx then BlinkFX = BlinkItem(0.2, 2, BlinkFX)  end 
+
                     end --of Create fx window function 
+
+                    
 
                     if--[[Normal Window]] (not string.find(FX_Name,'FXD %(Mix%)RackMixer')) and FX.InLyr[FXGUID[FX_Idx]] ==nil  and FX_Idx~=RepeatTimeForWindows  and FindStringInTable(BlackListFXs, FX_Name)~=true    then  
                         --FX_IdxREAL =  FX_Idx+Lyr.FX_Ins[FXGUID[FX_Idx]]
@@ -10254,7 +10319,15 @@ function loop()
 
                                         else ID     = FxGUID..LE.Sel_Items[1]
                                         end
-                                    
+                                        local function FreeValuePosSettings()
+                                            if FrstSelItm.V_Pos =='Free' then 
+                                                r.ImGui_Text(ctx, 'X:') SL()  r.ImGui_SetNextItemWidth(ctx,50 )
+                                                local EditPosX,  PosX = r.ImGui_DragDouble( ctx, ' ##EditValuePosX'..FxGUID..LE.Sel_Items[1], FrstSelItm.V_Pos_X or 0 ,0.25, nil, nil ,'%.2f')  SL()
+                                                if EditPosX then 
+                                                    for i, v in pairs(LE.Sel_Items) do FrstSelItm.V_Pos_X = PosX end 
+                                                end 
+                                            end
+                                        end
 
                                         
                                         -----Type--------   
@@ -10322,8 +10395,11 @@ function loop()
                                                 elseif r.ImGui_Selectable(ctx, 'None')  then  
                                                     for i, v in pairs(LE.Sel_Items) do  FX[FxGUID][v].V_Pos= 'None' end       
                                                 end
+
                                                 r.ImGui_EndCombo(ctx)
                                             end     r.ImGui_SameLine(ctx)  
+
+                                            FreeValuePosSettings()
                                             DragV_Clr_edited, Drag_V_Clr = r.ImGui_ColorEdit4(ctx, '##V  Clr'..LE.Sel_Items[1],FrstSelItm.V_Clr or r.ImGui_GetColor( ctx, r.ImGui_Col_Text())   ,r.ImGui_ColorEditFlags_NoInputs()|    r.ImGui_ColorEditFlags_AlphaPreviewHalf()|r.ImGui_ColorEditFlags_AlphaBar()) 
                                             if DragV_Clr_edited then    
                                                 for i, v in pairs(LE.Sel_Items) do  FX[FxGUID][v].V_Clr= Drag_V_Clr end       
@@ -10359,7 +10435,7 @@ function loop()
                                                 for i, v in pairs(LE.Sel_Items) do  FX[FxGUID][v].Lbl_Clr= Lbl_V_Clr end       
                                             end
                                             r.ImGui_Text(ctx,'Value Pos: ') ;r.ImGui_SameLine(ctx) ; r.ImGui_SetNextItemWidth(ctx, 45)
-                                            if r.ImGui_BeginCombo( ctx, '## V Pos'..LE.Sel_Items[1],  FX[FxGUID][LE.Sel_Items[1]or''].V_Pos or 'Bottom', r.ImGui_ComboFlags_NoArrowButton()) then
+                                            if r.ImGui_BeginCombo( ctx, '## V Pos'..LE.Sel_Items[1],  FX[FxGUID][LE.Sel_Items[1]or''].V_Pos or 'None', r.ImGui_ComboFlags_NoArrowButton()) then
 
                                                 if r.ImGui_Selectable(ctx, 'Bottom')  then        
                                                     for i, v in pairs(LE.Sel_Items) do  FX[FxGUID][v].V_Pos= 'Bottom' end       
@@ -10474,7 +10550,7 @@ function loop()
 
                                         end
 
-
+                                        
                                         
 
 
@@ -10588,7 +10664,7 @@ function loop()
                                             end
                                         end 
 
-                                        if FrstSelItm.Type == 'Knob' or FrstSelItm.Type == 'Drag'  then 
+                                        if FrstSelItm.Type == 'Knob' or FrstSelItm.Type == 'Drag' or FrstSelItm.Type == 'Slider'  then 
                                             r.ImGui_Text(ctx,'Value Decimal Places: ') ;r.ImGui_SameLine(ctx)   r.ImGui_SetNextItemWidth(ctx, 80    )
                                             if not FX[FxGUID][LE.Sel_Items[1]].V_Round then 
                                                 local _,FormatV = r.TrackFX_GetFormattedParamValue(LT_Track,FX_Idx, FX[FxGUID][LE.Sel_Items[1]].Num) 
@@ -10599,8 +10675,8 @@ function loop()
                                                 end
                                             end 
 
-                                            local Edit,  rd = r.ImGui_InputInt( ctx, '##EditValueDecimals'..FxGUID..(LE.Sel_Items[1]or''), FrstSelItm.V_Round  or rd)
-                                            if Edit then for i, v in pairs(LE.Sel_Items) do FX[FxGUID][v].V_Round = rd end  end 
+                                            local Edit,  rd = r.ImGui_InputInt( ctx, '##EditValueDecimals'..FxGUID..(LE.Sel_Items[1]or''), FrstSelItm.V_Round  or rd,1)
+                                            if Edit then for i, v in pairs(LE.Sel_Items) do FX[FxGUID][v].V_Round = math.max(rd,0) end  end 
                                         end 
 
                                         r.ImGui_Text(ctx,'Value to Note Length: ') ;r.ImGui_SameLine(ctx)   r.ImGui_SetNextItemWidth(ctx, 80    )
@@ -10706,14 +10782,14 @@ function loop()
                                         end
                                         ---Pos  -------
                                         
-                                        r.ImGui_Text(ctx,'Pos-X: ') ;r.ImGui_SameLine(ctx) r.ImGui_SetNextItemWidth(ctx,-R_ofs)
-                                        local EditPosX,  PosX = r.ImGui_DragDouble( ctx, ' ##EditPosX'..FxGUID..LE.Sel_Items[1], PosX or FrstSelItm.PosX,LE.GridSize,0,Win_W-10)
+                                        r.ImGui_Text(ctx,'Pos-X: ') ;r.ImGui_SameLine(ctx) r.ImGui_SetNextItemWidth(ctx, 80)
+                                        local EditPosX,  PosX = r.ImGui_DragDouble( ctx, ' ##EditPosX'..FxGUID..LE.Sel_Items[1], PosX or FrstSelItm.PosX,LE.GridSize,0,Win_W-10, '%.0f')
                                         if EditPosX then 
                                             for i, v in pairs (LE.Sel_Items) do FX[FxGUID][v].PosX= PosX  end
                                         end 
-                                        
-                                        r.ImGui_Text(ctx,'Pos-Y: ') ;r.ImGui_SameLine(ctx) r.ImGui_SetNextItemWidth(ctx,-R_ofs)
-                                        local EditPosY,  PosY = r.ImGui_DragDouble( ctx, ' ##EditPosY'..FxGUID..LE.Sel_Items[1], PosY or FrstSelItm.PosY,LE.GridSize,20,210)
+                                        SL()
+                                        r.ImGui_Text(ctx,'Pos-Y: ') ;r.ImGui_SameLine(ctx) r.ImGui_SetNextItemWidth(ctx, 80)
+                                        local EditPosY,  PosY = r.ImGui_DragDouble( ctx, ' ##EditPosY'..FxGUID..LE.Sel_Items[1], PosY or FrstSelItm.PosY,LE.GridSize,20,210, '%.0f')
                                         if EditPosY then  for i, v in pairs (LE.Sel_Items) do FX[FxGUID][v].PosY= PosY  end end 
 
                                         ---Color -----
@@ -11649,8 +11725,6 @@ function loop()
                                             FX[FxGUID][EmptyChan*2-1].V = 0.5 -- init val for Vol
                                             FX[FxGUID][EmptyChan*2].V = 0.5-- init val for Pan  
 
-
-
                                             FX[FxGUID].LyrID[EmptyChan]= EmptyChan
 
                                             r.SetProjExtState(0, 'FX Devices', 'FX'..FxGUID..'Layer ID '..EmptyChan, EmptyChan)
@@ -12036,7 +12110,6 @@ function loop()
                         if FX[FxGUID].Collapse then Width = 35 end 
                         if r.ImGui_BeginChild(ctx, 'FXD Saike BandSplitter'..FxGUID, Width, 220) then
                             local SpcW = AddSpaceBtwnFXs(FX_Idx, 'SpaceBeforeBS' ,nil,nil,1, FxGUID)  SL(nil,0)
-
 
                             local btnTitle = string.gsub('Band Split',"(.)", "%1\n")
                             local btn= r.ImGui_Button(ctx, btnTitle..'##Vertical', BtnWidth, 220 ) -- create window name button   Band Split button
@@ -13005,7 +13078,7 @@ function loop()
                 r.ImGui_EndChild(ctx)
                 if HoverOnScrollItem then DisableScroll= true else DisableScroll=nil end 
 
-                if AnySplitBandHvred then HintMsg = 'Mouse: Alt=Delete All FXs in Layer | Shift=Bypass FXs    Keys: M=mute band   Shift+M=Toggle all muted band | S=solo band  Shift+S=Toggle all solo\'d band'   end 
+                if AnySplitBandHvred then HintMessage = 'Mouse: Alt=Delete All FXs in Layer | Shift=Bypass FXs    Keys: M=mute band   Shift+M=Toggle all muted band | S=solo band  Shift+S=Toggle all solo\'d band'   end 
             end
             Pos_Devices_R , Pos_Devices_B =  r.ImGui_GetItemRectMax(ctx)
 
@@ -13212,9 +13285,9 @@ function loop()
 
             --[[ HintPos = HintPost or r.ImGui_GetCursorPosY(ctx)
             r.ImGui_SetCursorPosY(ctx, HintPos) ]]
-            if HintMsg then 
+            if HintMessage then 
                 r.ImGui_Text(ctx, ' !') SL()
-                MyText(HintMsg,Font_Andale_Mono_13, 0xffffff88)
+                MyText(HintMessage,Font_Andale_Mono_13, 0xffffff88)
             end
             if not IsLBtnHeld then DraggingFXs = {} DraggingFXs_Idx = {} end 
 
