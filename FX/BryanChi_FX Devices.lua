@@ -1,17 +1,7 @@
 -- @description FX Devices
 -- @author Bryan Chi
--- @version 1.0beta9.3
--- @changelog
---   - Add 'FXD Saike BandSplitter' and 'FXD Band Joiner' in BlackListFXs array to prevent FXS Saike BandSplitter being treated as normal fx.
---   - Add ‘FXD Split to 32 Channels’ in BlackListFXs array (instead of ‘JS:  FXD Split to 32 Channels’ to make script recognize the FX in case if paths are shown in FX name. 
---   Window Buttons: 
---       - Fix unintentionally opening multiple windows when left clicking on window button when some FXs are collapsed.
---       - Add Alt+R-click to toggle collapse all FXs.
---       - Add Hint Message when hovering on a window button
---
---   Layout Editor
---   	- Change knob value font to Arial - Easier to read numbers. 
---   	- Fix knobs’ default value position displayed as ‘Bottom’ where it should be ‘None’.
+-- @version 1.0beta9.3hotfix
+-- @changelog add desc line into FXD Saike BandSplitter
 -- @provides
 --   [effect] BryanChi_FX Devices/FXD Macros.jsfx
 --   [effect] BryanChi_FX Devices/FXD ReSpectrum.jsfx

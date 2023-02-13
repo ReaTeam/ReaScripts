@@ -1,6 +1,12 @@
 noindex: true
 
-license: MIT
+desc:FXD Saike BandSplitter
+noindex: true
+tags: bandsplitter
+version: 0.17
+author: Joep Vanlier
+
+
 
 in_pin:left input
 in_pin:right input
