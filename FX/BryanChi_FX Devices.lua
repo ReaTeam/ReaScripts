@@ -1,6 +1,6 @@
 -- @description FX Devices
 -- @author Bryan Chi
--- @version 1.0beta9.3hotfix
+-- @version 1.0beta9.3-1
 -- @changelog add desc line into FXD Saike BandSplitter
 -- @provides
 --   [effect] BryanChi_FX Devices/FXD Macros.jsfx
