@@ -1,9 +1,9 @@
 -- @description MK Slicer (80icio MOD)
 -- @author 80icio
--- @version 1.04
+-- @version 1.05
 -- @changelog
---   - fixed Mouse scrolling waveform horizontally even when outside of waveform region 
---   - Improved Reduce By Grid function with time signature changes
+--   -fixed rare clear.buffer bug
+--   -fixed filter working with no items
 -- @link Forum Thread https://forum.cockos.com/showthread.php?p=2436358#post2436358
 -- @about
 --   This is a lua script based on MK SLICER 2 by @Cool for quick slicing, quantizing by grid, re-quantizing, triggering or sampling audio.
@@ -510,10 +510,10 @@ function  Check_selection()
         startTstore = startT
         itemlstore = iteml
         local startTqn = r.TimeMap2_timeToQN(0, startT)
-  
+        
        -- local endTqn = r.TimeMap2_timeToQN(0, endT)
 
-        if startTqn - floor(startTqn) < 0.000001 or startTqn - floor(startTqn) > 0.9999  then-- and endTqn - floor(endTqn) <= 0.000001 then
+        if floor(startTqn) == startTqn then
         Errorcheck = false
         
         else
@@ -3101,13 +3101,13 @@ end
 -- onUp function for Filter Freq sliders ---------icio
 --------------------------------------------------
 function Fltr_Sldrs_onUp()
-   --if Wave.AA then 
+   if Wave.AA then 
    Wave:Multi_Item_Sample_Sum()
       if Wave.State then
          Wave:Redraw() 
          Gate_Gl:Apply_toFiltered()
       end
-  -- end
+   end
 end
 ----------------
 HP_Freq.onUp   = Fltr_Sldrs_onUp
@@ -6938,13 +6938,13 @@ local Nofreqcut
                          local emptysamples2 = emptysamples - self.Xblock/2
     
                            
-                         self.buffer.clear(0, emptysamples, self.Xblock-emptysamples)
+                         self.buffer.clear(0, emptysamples+1, self.Xblock-emptysamples)
                        
                          if emptysamples2<= 0 then
                            self.buffer2.clear()
                          else
 
-                           self.buffer2.clear(0, emptysamples2, self.Xblock-emptysamples2)
+                           self.buffer2.clear(0, emptysamples2+1, self.Xblock-emptysamples2)
                          end
                      end
                  
@@ -7000,7 +7000,7 @@ local Nofreqcut
                                                 local emptysamples = self.Xblock - ((self.Xblock*self.total_XBlocks)-self.selSamples)
                                   
                                               
-                                                  self.buffer.clear(0, emptysamples, self.Xblock-emptysamples)
+                                                  self.buffer.clear(0, emptysamples+1, self.Xblock-emptysamples)
                               end
                           
                         end
