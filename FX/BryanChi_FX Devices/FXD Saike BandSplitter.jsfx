@@ -1,6 +1,7 @@
 noindex: true
 
 desc:FXD Saike BandSplitter
+license: MIT
 noindex: true
 tags: bandsplitter
 version: 0.17
