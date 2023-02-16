@@ -1,9 +1,7 @@
 -- @description MK Slicer (80icio MOD)
 -- @author 80icio
--- @version 1.05
--- @changelog
---   -fixed rare clear.buffer bug
---   -fixed filter working with no items
+-- @version 1.06
+-- @changelog - fixed menu bug
 -- @link Forum Thread https://forum.cockos.com/showthread.php?p=2436358#post2436358
 -- @about
 --   This is a lua script based on MK SLICER 2 by @Cool for quick slicing, quantizing by grid, re-quantizing, triggering or sampling audio.
@@ -153,7 +151,7 @@ ZeroCrossings = tonumber(r.GetExtState(scriptname,'ZeroCrossings'))or 0;
 ItemFadesOverride = tonumber(r.GetExtState(scriptname,'ItemFadesOverride'))or 1;
 ObeyingTheSelection = tonumber(r.GetExtState(scriptname,'ObeyingTheSelection'))or 1;
 ObeyingItemSelection = tonumber(r.GetExtState(scriptname,'ObeyingItemSelection'))or 1;
-XFadeOff = tonumber(r.GetExtState(scriptname,'XFadeOff'))or 0;
+XFadeOff = 0 --tonumber(r.GetExtState(scriptname,'XFadeOff'))or 0;
 Guides_mode = tonumber(r.GetExtState(scriptname,'Guides.norm_val'))or 1;
 OutNote_State = tonumber(r.GetExtState(scriptname,'OutNote.norm_val'))or 1;
 Notes_On = tonumber(r.GetExtState(scriptname,'Notes_On'))or 1;
@@ -7961,6 +7959,8 @@ item2 = context_menu:add_item({label = "Donate to 80icio (PayPal)", toggleable =
 item2.command = function()
                      OpenURL('https://paypal.me/80icio')
 end
+
+
 item22 = context_menu:add_item({label = "Donate to Cool (PayPal)|", toggleable = false})
 item22.command = function()
                      OpenURL('https://paypal.me/MKokarev')
@@ -8171,6 +8171,7 @@ if ObeyingItemSelection == 1 then
            else
            item15 = context_menu:add_item({label = "Time Selection Require Item(s) Selection|", toggleable = true, selected = false, active = true})
 end
+
 item15.command = function()
                      if item15.selected == true then 
                      ObeyingItemSelection = 1
@@ -8182,10 +8183,10 @@ item15.command = function()
 end
 
 
-item16 = context_menu:add_item({label = ">User Settings (Advanced)"})
-item16.command = function()
+--item16 = context_menu:add_item({label = ">User Settings (Advanced)"})
+--item16.command = function()
 
-end
+--end
 
 
 item17 = context_menu:add_item({label = "Set User Defaults", toggleable = false})
@@ -8193,85 +8194,86 @@ item17.command = function()
 user_defaults()
 end
 
+  
+  item18 = context_menu:add_item({label = "Reset All Setted User Defaults", toggleable = false})
+  item18.command = function()
+  
+        r.SetExtState(scriptname,'DefaultXFadeTime',15,true);
+        r.SetExtState(scriptname,'DefaultLpadTime',0,true);
+        r.SetExtState(scriptname,'DefaultQStrength',100,true);
+        r.SetExtState(scriptname,'DefaultLP',1,true);
+        r.SetExtState(scriptname,'DefaultHP',0.001,true);
+        r.SetExtState(scriptname,'DefaultSens',0.375,true);
+        r.SetExtState(scriptname,'DefaultOffset',0.5,true);
+        r.SetExtState(scriptname,'MIDI_Base_Oct',2,true);
+        r.SetExtState(scriptname,'Trigger_Oct_Shift',0,true);
+  
+  end
 
-item18 = context_menu:add_item({label = "Reset All Setted User Defaults", toggleable = false})
-item18.command = function()
-
-      r.SetExtState(scriptname,'DefaultXFadeTime',15,true);
-      r.SetExtState(scriptname,'DefaultLpadTime',0,true);
-      r.SetExtState(scriptname,'DefaultQStrength',100,true);
-      r.SetExtState(scriptname,'DefaultLP',1,true);
-      r.SetExtState(scriptname,'DefaultHP',0.001,true);
-      r.SetExtState(scriptname,'DefaultSens',0.375,true);
-      r.SetExtState(scriptname,'DefaultOffset',0.5,true);
-      r.SetExtState(scriptname,'MIDI_Base_Oct',2,true);
-      r.SetExtState(scriptname,'Trigger_Oct_Shift',0,true);
-
-end
-
-
-item19 = context_menu:add_item({label = "|XFades and Fill Gaps On/Off (Experimental)", toggleable = false})
-item19.command = function()
- if XFadeOff == 1 then XFadeOff = 0
-elseif XFadeOff == 0 then XFadeOff = 1
-end
-      r.SetExtState(scriptname,'XFadeOff',XFadeOff,true);
-end
-
-
-item20 = context_menu:add_item({label = "|Reset Controls to User Defaults (Restart required)|<", toggleable = false})
-item20.command = function()
-Reset_to_def = 1
-  --sliders--
-      DefaultXFadeTime = tonumber(r.GetExtState(scriptname,'DefaultXFadeTime'))or 15;
-      DefaultLpadTime = tonumber(r.GetExtState(scriptname,'DefaultLpadTime'))or 0;
-      DefaultQStrength = tonumber(r.GetExtState(scriptname,'DefaultQStrength'))or 100;
-      DefaultHP = tonumber(r.GetExtState(scriptname,'DefaultHP'))or 0.001;
-      DefaultLP = tonumber(r.GetExtState(scriptname,'DefaultLP'))or 1;
-      DefaultSens = tonumber(r.GetExtState(scriptname,'DefaultSens'))or 0.375;
-      DefaultOffset = tonumber(r.GetExtState(scriptname,'DefaultOffset'))or 0.5;
-  --sheckboxes--
-     DefMIDI_Mode =  1;
-     DefSampler_preset_state =  1;
-     DefGuides_mode =  1;
-     DefOutNote_State =  1;
-     DefGate_VeloScale =  1;
-     DefGate_VeloScale2 =  1;
-     DefXFadeOff = 0
-
-  --sliders--
-      r.SetExtState(scriptname,'CrossfadeTime',DefaultXFadeTime,true);
-      r.SetExtState(scriptname,'LpadTime',DefaultLpadTime,true);
-      r.SetExtState(scriptname,'QuantizeStrength',DefaultQStrength,true);
-      r.SetExtState(scriptname,'Offs_Slider',DefaultOffset,true);
-      r.SetExtState(scriptname,'HF_Slider',DefaultHP,true);
-      r.SetExtState(scriptname,'LF_Slider',DefaultLP,true);
-      r.SetExtState(scriptname,'Sens_Slider',DefaultSens,true);
-  --sheckboxes--
-      r.SetExtState(scriptname,'Guides.norm_val',DefGuides_mode,true);
-      if Notes_On == 1 then OutNote.norm_val = OutNote2.norm_val end
-      r.SetExtState(scriptname,'OutNote.norm_val',DefOutNote_State,true);
-      r.SetExtState(scriptname,'Midi_Sampler.norm_val',DefMIDI_Mode,true);
-      r.SetExtState(scriptname,'Sampler_preset.norm_val',DefSampler_preset_state,true);
-      r.SetExtState(scriptname,'XFadeOff',DefXFadeOff,true);
-      r.SetExtState(scriptname,'Gate_VeloScale.norm_val',DefGate_VeloScale,true);
-      r.SetExtState(scriptname,'Gate_VeloScale.norm_val2',DefGate_VeloScale2,true);
-
-end
+--[[
+  item19 = context_menu:add_item({label = "|XFades and Fill Gaps On/Off (Experimental)", toggleable = false})
+  item19.command = function()
+  if XFadeOff == 1 then XFadeOff = 0
+  else
+  XFadeOff = 1 
+  end
+        r.SetExtState(scriptname,'XFadeOff',XFadeOff,true);
+  end
+]]--
+  
+  item20 = context_menu:add_item({label = "|Reset Controls to User Defaults (Restart required)|", toggleable = false})
+  item20.command = function()
+  Reset_to_def = 1
+    --sliders--
+        DefaultXFadeTime = tonumber(r.GetExtState(scriptname,'DefaultXFadeTime'))or 15;
+        DefaultLpadTime = tonumber(r.GetExtState(scriptname,'DefaultLpadTime'))or 0;
+        DefaultQStrength = tonumber(r.GetExtState(scriptname,'DefaultQStrength'))or 100;
+        DefaultHP = tonumber(r.GetExtState(scriptname,'DefaultHP'))or 0.001;
+        DefaultLP = tonumber(r.GetExtState(scriptname,'DefaultLP'))or 1;
+        DefaultSens = tonumber(r.GetExtState(scriptname,'DefaultSens'))or 0.375;
+        DefaultOffset = tonumber(r.GetExtState(scriptname,'DefaultOffset'))or 0.5;
+    --sheckboxes--
+       DefMIDI_Mode =  1;
+       DefSampler_preset_state =  1;
+       DefGuides_mode =  1;
+       DefOutNote_State =  1;
+       DefGate_VeloScale =  1;
+       DefGate_VeloScale2 =  1;
+       DefXFadeOff = 0
+  
+    --sliders--
+        r.SetExtState(scriptname,'CrossfadeTime',DefaultXFadeTime,true);
+        r.SetExtState(scriptname,'LpadTime',DefaultLpadTime,true);
+        r.SetExtState(scriptname,'QuantizeStrength',DefaultQStrength,true);
+        r.SetExtState(scriptname,'Offs_Slider',DefaultOffset,true);
+        r.SetExtState(scriptname,'HF_Slider',DefaultHP,true);
+        r.SetExtState(scriptname,'LF_Slider',DefaultLP,true);
+        r.SetExtState(scriptname,'Sens_Slider',DefaultSens,true);
+    --sheckboxes--
+        r.SetExtState(scriptname,'Guides.norm_val',DefGuides_mode,true);
+        if Notes_On == 1 then OutNote.norm_val = OutNote2.norm_val end
+        r.SetExtState(scriptname,'OutNote.norm_val',DefOutNote_State,true);
+        r.SetExtState(scriptname,'Midi_Sampler.norm_val',DefMIDI_Mode,true);
+        r.SetExtState(scriptname,'Sampler_preset.norm_val',DefSampler_preset_state,true);
+        r.SetExtState(scriptname,'XFadeOff',DefXFadeOff,true);
+        r.SetExtState(scriptname,'Gate_VeloScale.norm_val',DefGate_VeloScale,true);
+        r.SetExtState(scriptname,'Gate_VeloScale.norm_val2',DefGate_VeloScale2,true);
+  
+  end
 
 
-item21 = context_menu:add_item({label = "|Reset Window Size", toggleable = false})
-item21.command = function()
-store_window()
-           xpos = r.GetExtState(scriptname, "window_x") or 400
-           ypos = r.GetExtState(scriptname, "window_y") or 320
-    local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
-    Wnd_W,Wnd_H = 1044,490 -- global values(used for define zoom level)
-    -- Re-Init window ------
-    gfx.init( Wnd_Title, Wnd_W,Wnd_H, Wnd_Dock, Wnd_X,Wnd_Y )
-    gfx.update()
-
-end
+  item21 = context_menu:add_item({label = "|Reset Window Size", toggleable = false})
+  item21.command = function()
+  store_window()
+             xpos = r.GetExtState(scriptname, "window_x") or 400
+             ypos = r.GetExtState(scriptname, "window_y") or 320
+      local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
+      Wnd_W,Wnd_H = 1044,490 -- global values(used for define zoom level)
+      -- Re-Init window ------
+      gfx.init( Wnd_Title, Wnd_W,Wnd_H, Wnd_Dock, Wnd_X,Wnd_Y )
+      gfx.update()
+  
+  end
 end
 
 function getitem()
