@@ -7,55 +7,55 @@ Changelog: Initial release
 Licence: WTFPL
 REAPER: at least v5.962
 About: 	During playback or recording the script makes the play cursor skip marker(s) 
-		or region(s) containing in their name a keyword defined in the KEYWORD setting 
-		in the USER SETTINGS. Once launched the script runs in the background.
-		
-		By default it skips markers, to switch to skipping regions enable USE_REGIONS 
-		setting in the USER SETTINGS.
-		
-		USING MARKERS
-		
-		Place one marker with the name containing the KEYWORD before the segment 
-		to be skipped and another one without the KEYWORD at the end of such segment. 
-		As soon as the play cursor reaches the 1st marker it will jump to the 2nd one.  
-		If in between there're any markers whose name also contains the KEYWORD 
-		the segment which follow will be skipped as well. So the play cursor skips
-		to the first marker which doesn't contain the KEYWORD in the name following 
-		a marker which does.
-		
-		USING REGIONS
-		
-		Encompass with a region a timeline segment which needs to be skipped 
-		and add the KEYWORD to its name.   
-		Once the play cursor reaches the start of the region whose name contains 
-		the KEYWORD it will jump to such region's end thereby skipping it. If there're 
-		several such regions in a row with no gaps, the play cursor jumps to the end 
-		of the last one which precedes a region without the KEYWORD in its name 
-		or the end of the project.  
-		If the script is launched while the play cursor is within a region which 
-		contains the KEYWORD in its name, such region won't be marked for skipping. 
-		Only regions which lay ahead of the play cursor are detected for skipping.
-		
-		RECORDING
-		
-		Recording will be done in segments. After skipping a marker or a region 
-		a new segment will begin. The start time of the next segment will depend 
-		on the pre-roll setting available in the Metronome configuration window. 
-		If pre-roll isn't enabled the recording will start as soon as the play cursor 
-		jumps to another marker or a region end.
+	or region(s) containing in their name a keyword defined in the KEYWORD setting 
+	in the USER SETTINGS. Once launched the script runs in the background.
 
-		It's not recommended to move markers and regions around or change regions 
-		bounds during playback or recording because their data are only updated after 
-		skipping. If they're moved beforehand the target point won't change and 
-		the play cursor will end up at the location which may not correspond 
-		to the new marker / region end position. If you do move them around, then 
-		the script might need re-starting.
-		
-		As far as recording is concerned the script does in essense what can be 
-		done natively with 'Auto-punch selected items' feature https://youtu.be/bjb8G6jnkUo
-		
-		If the script is linked to a toolbar button the button will be lit while 
-		it's running.
+	By default it skips markers, to switch to skipping regions enable USE_REGIONS 
+	setting in the USER SETTINGS.
+
+	USING MARKERS
+
+	Place one marker with the name containing the KEYWORD before the segment 
+	to be skipped and another one without the KEYWORD at the end of such segment. 
+	As soon as the play cursor reaches the 1st marker it will jump to the 2nd one.  
+	If in between there're any markers whose name also contains the KEYWORD 
+	the segment which follow will be skipped as well. So the play cursor skips
+	to the first marker which doesn't contain the KEYWORD in the name following 
+	a marker which does.
+
+	USING REGIONS
+
+	Encompass with a region a timeline segment which needs to be skipped 
+	and add the KEYWORD to its name.   
+	Once the play cursor reaches the start of the region whose name contains 
+	the KEYWORD it will jump to such region's end thereby skipping it. If there're 
+	several such regions in a row with no gaps, the play cursor jumps to the end 
+	of the last one which precedes a region without the KEYWORD in its name 
+	or the end of the project.  
+	If the script is launched while the play cursor is within a region which 
+	contains the KEYWORD in its name, such region won't be marked for skipping. 
+	Only regions which lay ahead of the play cursor are detected for skipping.
+
+	RECORDING
+
+	Recording will be done in segments. After skipping a marker or a region 
+	a new segment will begin. The start time of the next segment will depend 
+	on the pre-roll setting available in the Metronome configuration window. 
+	If pre-roll isn't enabled the recording will start as soon as the play cursor 
+	jumps to another marker or a region end.
+
+	It's not recommended to move markers and regions around or change regions 
+	bounds during playback or recording because their data are only updated after 
+	skipping. If they're moved beforehand the target point won't change and 
+	the play cursor will end up at the location which may not correspond 
+	to the new marker / region end position. If you do move them around, then 
+	the script might need re-starting.
+
+	As far as recording is concerned the script does in essense what can be 
+	done natively with 'Auto-punch selected items' feature https://youtu.be/bjb8G6jnkUo
+
+	If the script is linked to a toolbar button the button will be lit while 
+	it's running.
 
 ]]
 
