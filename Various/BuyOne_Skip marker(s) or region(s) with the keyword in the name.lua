@@ -150,9 +150,9 @@ local rgn_t = {}
 	mrkr_idx = retval > 0 and not isrgn and mrkr_idx+1 or mrkr_idx
 	rgn_idx = retval > 0 and isrgn and rgn_idx+1 or rgn_idx
 		if retval > 0 then
-			if not USE_REGIONS and not isrgn and ref_idx and mrkr_idx > ref_idx and not name:match(Esc(ref_name)) then return mrkr_idx, pos
+			if not USE_REGIONS and not isrgn and ref_idx and mrkr_idx > ref_idx and not name:lower():match(Esc(ref_name)) then return mrkr_idx, pos
 			elseif USE_REGIONS and isrgn and ref_idx and rgn_idx > ref_idx then
-			local name_match = name:match(Esc(ref_name))
+			local name_match = name:lower():match(Esc(ref_name))
 				if name_match and pos > ref_rgn_end and rgn_idx-1 == ref_idx then return ref_idx, ref_rgn_end -- if there's a gap between the upcoming region and the one which immediately follows, both of which contain the KEYWORD in the name, return the upcoming region end to resume playback/recording after it instead of adding the following region to the continuos segment to be skipped as the next conditions do
 				elseif next(rgn_t) and name_match and pos > rgn_t.rgn_end and rgn_idx-1 == rgn_t.rgn_idx then return rgn_t.rgn_idx, rgn_t.rgn_end -- if there's a gap between one of the following regions with the KEYWORD, return the data of the last one before the gap
 				end
@@ -189,7 +189,7 @@ local count = not USE_REGIONS and mrkr_cnt or rgn_cnt
 		play_pos_init = play_pos
 		end
 
-		if next_mrkr_idx and mrkr_name and mrkr_name:lower():match(KEYWORD:lower()) and mrkr_pos > play_pos and mrkr_pos - play_pos <= 0.04 then -- mrkr_pos > play_pos makes sure that jump only occurs when the marker is ahead of the playhead otherwise the playhead might get stuck at the last marker; 0.04 - the defer loop runs ca every 30 ms, so this value must be greater to be always detected
+		if next_mrkr_idx and mrkr_name and mrkr_name:lower():match(KEYWORD) and mrkr_pos > play_pos and mrkr_pos - play_pos <= 0.04 then -- mrkr_pos > play_pos makes sure that jump only occurs when the marker is ahead of the playhead otherwise the playhead might get stuck at the last marker; 0.04 - the defer loop runs ca every 30 ms, so this value must be greater to be always detected
 			if recording then r.CSurf_OnStop() end -- during recording playhead doesn't follow the edit cursor so it must be stopped
 			if not USE_REGIONS then r.GoToMarker(0, next_mrkr_idx+1, true) -- use_timeline_order true; +1 because this function uses 1-based count whereas Get_First_MarkerOrRgn_After_Time() returns 0-based count
 			else
@@ -208,6 +208,10 @@ end
 
 local _, scr_name, sect_ID, cmd_ID, _,_,_ = r.get_action_context()
 Re_Set_Toggle_State(sect_ID, cmd_ID, 1)
+
+KEYWORD = #KEYWORD:gsub(' ','') > 0 and KEYWORD:lower()
+
+	if not KEYWORD then r.MB('The KEYWORD isn\'t defined', 'ERROR', 0) return r.defer(function() do return end end) end
 
 SKIP_MARKERS_OR_REGIONS()
 
