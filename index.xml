@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="405aecfe4a877fc5adabf9b739d1f83a2956d958" name="ReaTeam Scripts">
+<index version="1" commit="2544d6e39d84967dc424aa988e3b24422b4f4454" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -7489,6 +7489,10 @@ Fix: Expand error message when the library is missing]]></changelog>
         <changelog><![CDATA[-fixed rare clear.buffer bug
 -fixed filter working with no items]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/405aecfe4a877fc5adabf9b739d1f83a2956d958/Items%20Editing/MK%20Slicer%20(80icio%20MOD).lua</source>
+      </version>
+      <version name="1.06" author="80icio" time="2023-02-16T22:46:05Z">
+        <changelog><![CDATA[- fixed menu bug]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/2544d6e39d84967dc424aa988e3b24422b4f4454/Items%20Editing/MK%20Slicer%20(80icio%20MOD).lua</source>
       </version>
     </reapack>
     <reapack name="mordi_Align grouped items to selected items respectively.lua" type="script" desc="Align grouped items to selected items respectively">
