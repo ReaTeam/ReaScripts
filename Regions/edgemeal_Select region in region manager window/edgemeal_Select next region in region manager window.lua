@@ -34,7 +34,7 @@ function Main()
         end
       end
       reaper.JS_ListView_SetItemState(lv, -1, 0x0, 0x2)         -- unselect all items
-      reaper.JS_ListView_SetItemState(lv, sel_region, 0xF, 0x2) -- select item @ index
+      reaper.JS_ListView_SetItemState(lv, sel_region, 0xF, 0x3) -- select item @ index
       reaper.JS_ListView_EnsureVisible(lv, sel_region, false) -- OPTIONAL: scroll item into view
       reaper.JS_Window_SetFocus(lv)                           -- OPTIONAL: set input focus on ListView
     end
