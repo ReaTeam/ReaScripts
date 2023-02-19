@@ -60,7 +60,7 @@ About: 	During playback or recording the script makes the play cursor skip marke
 -- Enable this setting by inserting any QWERTY character
 -- between the quotation marks so the script can be used
 -- then configure the settings below
-ENABLE_SCRIPT = "1"
+ENABLE_SCRIPT = ""
 
 -- Add this to the marker(s)/region(s) to be skipped;
 -- the script is case insensitive to the keyword.
@@ -69,7 +69,7 @@ KEYWORD = "skip"
 -- To enable the settings place any QWERTY character
 -- between the quotation marks.
 -- If empty markers are used
-USE_REGIONS = "1"
+USE_REGIONS = ""
 
 -------------------------------------------------------------------
 ----------------------- END OF USER SETTINGS ----------------------
