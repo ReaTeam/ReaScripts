@@ -1,12 +1,12 @@
 -- @description MK Slicer
 -- @author cool
--- @version 3.02
+-- @version 3.03
 -- @changelog
---   +Fixed a bug: now when moving the sliders, the "Processing" text is displayed again.
---   +Fixed a bug: now on exit the script restores the original state of the Transport/Toggle Repeat button
---   +Fixed a bug: the script now correctly restores the original state of the "Toggle stop playback at end of loop if repeat is disabled" option when exiting
---   +Auto Play by Click: Significantly reduced the possibility of playback false triggering while scrolling with the left mouse button.
---   +Minor code cleanup.
+--   +Added experimental font smoothing option (requires RealmGUI to be installed).
+--   +When scrolling horizontally, hand cursor changed to double arrow cursor (required for RealmGUI compatibility)
+--   +Fixed a bug: now the script does not close with an error if used with 0 transient markers.
+--   +Fixed a bug: now when the "Script Starts Docked" option is enabled, the script is immediately sent to the dock.
+--   +Fixed a bug: now multiple button presses do not cause multiple drawing of the error text.
 -- @link Forum Thread https://forum.cockos.com/showthread.php?t=232672
 -- @screenshot MK_Slicer 3 https://i.imgur.com/L7WnvoO.jpg
 -- @donation
