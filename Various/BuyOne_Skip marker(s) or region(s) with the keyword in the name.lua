@@ -44,8 +44,9 @@ About: 	During playback or recording the script makes the play cursor skip marke
 	is determined by the one with the greatest displayed index; if they only end 
 	at the same time their behavior is determined by the one with the earliest 
 	start; if they start at the same time, their behavior is determined 
-	by the longest one.
-
+	by the longest one; if start and end times of overlapping regions don't
+	coincide the one containing the KEYWORD takes precendence.
+		
 	RECORDING
 
 	Recording will be done in segments. After skipping a marker or a region 
