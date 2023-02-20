@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="1ef8ca6d9010758634eb2588ba5a6a4612be11c7" name="ReaTeam Scripts">
+<index version="1" commit="094de7428e588249bf9d4ed8d130e3262a99870c" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -6915,6 +6915,14 @@ Override Reaper option "Toggle enable/disable default fadein/fadeout" (on/off)]]
 +Auto Play by Click: Significantly reduced the possibility of playback false triggering while scrolling with the left mouse button.
 +Minor code cleanup.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/580d95bc09dc5acdc1174105d3da1e72cac782e8/Items%20Editing/cool_MK%20Slicer.lua</source>
+      </version>
+      <version name="3.03" author="cool" time="2023-02-20T06:36:00Z">
+        <changelog><![CDATA[+Added experimental font smoothing option (requires RealmGUI to be installed).
++When scrolling horizontally, hand cursor changed to double arrow cursor (required for RealmGUI compatibility)
++Fixed a bug: now the script does not close with an error if used with 0 transient markers.
++Fixed a bug: now when the "Script Starts Docked" option is enabled, the script is immediately sent to the dock.
++Fixed a bug: now multiple button presses do not cause multiple drawing of the error text.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/094de7428e588249bf9d4ed8d130e3262a99870c/Items%20Editing/cool_MK%20Slicer.lua</source>
       </version>
     </reapack>
     <reapack name="Demoji_Next Variation.lua" type="script" desc="Next Variation">
