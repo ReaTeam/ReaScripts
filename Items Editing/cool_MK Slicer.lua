@@ -1,12 +1,12 @@
 -- @description MK Slicer
 -- @author cool
--- @version 3.02
+-- @version 3.03
 -- @changelog
---   +Fixed a bug: now when moving the sliders, the "Processing" text is displayed again.
---   +Fixed a bug: now on exit the script restores the original state of the Transport/Toggle Repeat button
---   +Fixed a bug: the script now correctly restores the original state of the "Toggle stop playback at end of loop if repeat is disabled" option when exiting
---   +Auto Play by Click: Significantly reduced the possibility of playback false triggering while scrolling with the left mouse button.
---   +Minor code cleanup.
+--   +Added experimental font smoothing option (requires RealmGUI to be installed).
+--   +When scrolling horizontally, hand cursor changed to double arrow cursor (required for RealmGUI compatibility)
+--   +Fixed a bug: now the script does not close with an error if used with 0 transient markers.
+--   +Fixed a bug: now when the "Script Starts Docked" option is enabled, the script is immediately sent to the dock.
+--   +Fixed a bug: now multiple button presses do not cause multiple drawing of the error text.
 -- @link Forum Thread https://forum.cockos.com/showthread.php?t=232672
 -- @screenshot MK_Slicer 3 https://i.imgur.com/L7WnvoO.jpg
 -- @donation
@@ -63,7 +63,7 @@
 --   Sometimes a script applies glue to items. For example, when several items are selected and when a MIDI is created in a sampler mode.
 
 --[[
-MK Slicer v3.02 by Maxim Kokarev 
+MK Slicer v3.03 by Maxim Kokarev 
 https://forum.cockos.com/member.php?u=121750
 
 Co-Author of the compilation - MyDaw
@@ -904,6 +904,7 @@ ItemFadesOverride = tonumber(r.GetExtState('MK_Slicer_3','ItemFadesOverride'))or
 ObeyingTheSelection = tonumber(r.GetExtState('MK_Slicer_3','ObeyingTheSelection'))or 1;
 ObeyingItemSelection = tonumber(r.GetExtState('MK_Slicer_3','ObeyingItemSelection'))or 1;
 XFadeOff = tonumber(r.GetExtState('MK_Slicer_3','XFadeOff'))or 0;
+FontAntiAliasing = tonumber(r.GetExtState('MK_Slicer_3','FontAntiAliasing'))or 0;
 Guides_mode = tonumber(r.GetExtState('MK_Slicer_3','Guides.norm_val'))or 1;
 
 OutNote_State = tonumber(r.GetExtState('MK_Slicer_3','OutNote.norm_val'))or 1;
@@ -975,6 +976,22 @@ function GetLoopTimeRangeInit()
    ending_init = selection[2].en
 end
 GetLoopTimeRangeInit()
+
+if FontAntiAliasing == 1 then
+    GFX2IMGUI_NO_LOG = true
+    GFX2IMGUI_MAX_DRAW_CALLS = 1<<16
+    local gfx2imgui_path = reaper.GetResourcePath() .. '/Scripts/ReaTeam Extensions/API/gfx2imgui.lua'
+    local os_sep = package.config:sub(1,1)
+    gfx2imgui_path = gfx2imgui_path:gsub( "/", os_sep )
+    if reaper.file_exists( gfx2imgui_path ) then
+       gfx = dofile(reaper.GetResourcePath() .. '/Scripts/ReaTeam Extensions/API/gfx2imgui.lua')
+       RG_status = "(RealmGUI)"
+       else
+       RG_status = "(RealmGUI not installed)"
+    end
+else
+RG_status = ""
+end
 
 ----------------------------function GetLoopTimeRange-----------------------------
 function GetLoopTimeRange()
@@ -1618,15 +1635,15 @@ function FillGaps()
 
      -----------------Collect Offset Data-----------------------------------------
      local num_items = reaper.CountSelectedMediaItems(0)
-     for j = 0, num_items-1 do
-               item_id = r.GetSelectedMediaItem(0, j); 
-               p0sition_id = r.GetMediaItemInfo_Value(item_id, "D_POSITION")
-     
-        offs_table[j] = {
-               item_id = item_id,
-               p0sition_id = p0sition_id
-               }
-     end
+         for j = 1, num_items-1 do
+                   item_id = r.GetSelectedMediaItem(0, j); 
+                   p0sition_id = r.GetMediaItemInfo_Value(item_id, "D_POSITION")
+         
+            offs_table[j] = {
+                   item_id = item_id,
+                   p0sition_id = p0sition_id
+                   }
+         end
      --------------------------------------------------
 
      for i = 1, item_cnt do
@@ -1673,17 +1690,17 @@ function FillGaps()
        end
 
       ----------------------Set Offset Through Tracks---------------------
-      local items2 = #offs_table 
-                for k=0, items2 do
+      items2 = #offs_table 
+                for k=1, items2 do
                      if item_id ~= nil then 
        
-                        item = offs_table[k].item_id                   
-                        p0sition = offs_table[k].p0sition_id 
+                        item_offs2 = offs_table[k].item_id                   
+                        p0sition_offs2 = offs_table[k].p0sition_id 
               
-                            if item ~= nil and p0sition ~= nil then
-                                local newstart = r.GetMediaItemInfo_Value(item, "D_POSITION")
-                                set_offs = p0sition-newstart
-                                r.SetMediaItemInfo_Value(item, "D_SNAPOFFSET", set_offs)
+                            if item_offs2 ~= nil and p0sition_offs2 ~= nil then
+                                local newstart = r.GetMediaItemInfo_Value(item_offs2, "D_POSITION")
+                                set_offs = p0sition_offs2-newstart
+                                r.SetMediaItemInfo_Value(item_offs2, "D_SNAPOFFSET", set_offs)
                             end
                       end
                 end
@@ -5517,16 +5534,16 @@ local timer = 2 -- Time in seconds
 local time = reaper.time_precise()
 local function Msg()
    local char = gfx.getchar()
-     if char == 27 or char == -1 or (reaper.time_precise() - time) > timer then ErrMsg_Status = 0 return end
-local Get_Sel_ErrMsg = ErrMsg:new(580,35,260,45, 1, 1, 1, 1, "Time Selection is Too Short (<0.25s)")
-local ErrMsg_TB = {Get_Sel_ErrMsg}
-ErrMsg_Status = 1
+     if char == 27 or char == -1 or (reaper.time_precise() - time) > timer then ErrM_St_s = 0 return else ErrM_St_s = 1 end
+     local Get_Sel_ErrMsg = ErrMsg:new(580,35,260,45, 1, 1, 1, 1, "Time Selection is Too Short (<0.25s)")
+     local ErrMsg_TB = {Get_Sel_ErrMsg}
+     ErrMsg_Status = 1
      for key,btn    in pairs(ErrMsg_TB)   do btn:draw()    
    gfx.update()
   r.defer(Msg)
 end
 end
- if ErrMsg_Status ~= 1 then
+ if ErrM_St_s ~= 1 then
  Msg()
  end
 --------------------------------------End of Error Message-------------------------------------
@@ -5558,16 +5575,16 @@ r.SetEditCurPos(cursorpos,0,0)
   local time = reaper.time_precise()
   local function Msg()
      local char = gfx.getchar()
-       if char == 27 or char == -1 or (reaper.time_precise() - time) > timer then ErrMsg_Status = 0 return end
-  local Get_Sel_ErrMsg = ErrMsg:new(580,35,260,45, 1, 1, 1, 1, "No items selected")
-  local ErrMsg_TB = {Get_Sel_ErrMsg}
-ErrMsg_Status = 1
-       for key,btn    in pairs(ErrMsg_TB)   do btn:draw()    
-     gfx.update()
-    r.defer(Msg)
+     if char == 27 or char == -1 or (reaper.time_precise() - time) > timer then ErrM_St = 0 return else ErrM_St = 1 end
+     local Get_Sel_ErrMsg = ErrMsg:new(580,35,260,45, 1, 1, 1, 1, "No items selected")
+     local ErrMsg_TB = {Get_Sel_ErrMsg}
+     ErrMsg_Status = 1
+     for key,btn    in pairs(ErrMsg_TB)   do btn:draw()    
+       gfx.update()
+       r.defer(Msg)
+     end
   end
-  end
-if ErrMsg_Status ~= 1 then
+if ErrM_St ~= 1 then
 Msg()
 end
 
@@ -5593,16 +5610,16 @@ local timer = 2 -- Time in seconds
 local time = reaper.time_precise()
 local function Msg()
    local char = gfx.getchar()
-     if char == 27 or char == -1 or (reaper.time_precise() - time) > timer then ErrMsg_Status = 0 return end
-local Get_Sel_ErrMsg = ErrMsg:new(580,35,260,45, 1, 1, 1, 1, "Only Wave items, please")
-local ErrMsg_TB = {Get_Sel_ErrMsg}
-ErrMsg_Status = 1
+     if char == 27 or char == -1 or (reaper.time_precise() - time) > timer then ErrM_St_w = 0 return else ErrM_St_w = 1 end
+     local Get_Sel_ErrMsg = ErrMsg:new(580,35,260,45, 1, 1, 1, 1, "Only Wave items, please")
+     local ErrMsg_TB = {Get_Sel_ErrMsg}
+     ErrMsg_Status = 1
      for key,btn    in pairs(ErrMsg_TB)   do btn:draw()    
    gfx.update()
   r.defer(Msg)
 end
 end
-if ErrMsg_Status ~= 1 then
+if ErrM_St_w ~= 1 then
 Msg()
 end
 -------------------------------------End of Error Message3----------------------------------------
@@ -5641,7 +5658,7 @@ r.PreventUIRefresh(-1)
     r.Undo_EndBlock("Toggle Item Mute", -1) 
 
 Init_Srate()
-Init()
+--Init()
 getitem()
 
 if Wave.State then
@@ -6137,7 +6154,7 @@ if Wave.State then
          local time = reaper.time_precise()
          local function Msg()
             local char = gfx.getchar()
-              if char == 27 or char == -1 or (reaper.time_precise() - time) > timer then ErrMsg_Status = 0 return end
+     if char == 27 or char == -1 or (reaper.time_precise() - time) > timer then ErrM_St_r = 0 return else ErrM_St_r = 1 end
          local Get_Sel_ErrMsg = ErrMsg:new(580,35,260,45, 1, 1, 1, 1, "Select at least one option in Rnd.Set")
          local ErrMsg_TB = {Get_Sel_ErrMsg}
          ErrMsg_Status = 1
@@ -6146,7 +6163,7 @@ if Wave.State then
            r.defer(Msg)
          end
          end
-         if ErrMsg_Status ~= 1 then
+         if ErrM_St_r ~= 1 then
          Msg()
          end
          --------------------------------------End of Error Message------------------------------------  
@@ -6255,7 +6272,7 @@ selected_tracks_count = r.CountSelectedTracks(0)
   local time = reaper.time_precise()
   local function Msg()
      local char = gfx.getchar()
-       if char == 27 or char == -1 or (reaper.time_precise() - time) > timer then ErrMsg_Status = 0 return end
+     if char == 27 or char == -1 or (reaper.time_precise() - time) > timer then ErrM_St_m = 0 return else ErrM_St_m = 1 end
   local Get_Sel_ErrMsg = ErrMsg:new(580,35,260,45, 1, 1, 1, 1, "Only single track items, please")
   local ErrMsg_TB = {Get_Sel_ErrMsg}
 ErrMsg_Status = 1
@@ -6264,7 +6281,7 @@ ErrMsg_Status = 1
     r.defer(Msg)
   end
   end
-if ErrMsg_Status ~= 1 then
+if ErrM_St_m ~= 1 then
 Msg()
 end
 
@@ -6287,7 +6304,7 @@ local timer = 2 -- Time in seconds
 local time = reaper.time_precise()
 local function Msg()
    local char = gfx.getchar()
-     if char == 27 or char == -1 or (reaper.time_precise() - time) > timer then ErrMsg_Status = 0 return end
+     if char == 27 or char == -1 or (reaper.time_precise() - time) > timer then ErrM_St_m2 = 0 return else ErrM_St_m2 = 1 end
 local Get_Sel_ErrMsg = ErrMsg:new(580,35,260,45, 1, 1, 1, 1, "Only Wave items, please")
 local ErrMsg_TB = {Get_Sel_ErrMsg}
 ErrMsg_Status = 1
@@ -6296,7 +6313,7 @@ ErrMsg_Status = 1
   r.defer(Msg)
 end
 end
-if ErrMsg_Status ~= 1 then
+if ErrM_St_m2 ~= 1 then
 Msg()
 end
 
@@ -7077,7 +7094,7 @@ function SetTempo(bpm_in)
     
      local lastitem = r.GetExtState('_Slicer_', 'ItemToSlice')
      local item =  r.BR_GetMediaItemByGUID( 0, lastitem )
-      if item ~= nil then
+      if item ~= nil and bpm_in ~= nil then
                      take = r.GetActiveTake(item)
          
               local init_rate = r.GetMediaItemTakeInfo_Value(take, "D_PLAYRATE")
@@ -7086,7 +7103,7 @@ function SetTempo(bpm_in)
          
               local _, _, bpm1 = reaper.TimeMap_GetTimeSigAtTime(0, init_pos)
          
-                      bpm_in = bpm_in
+                      a1 = bpm_in
                       
                       r.AddTempoTimeSigMarker(0, init_pos, bpm_in, 0, 0, 0)
      
@@ -7122,7 +7139,7 @@ function SetRate()
 -----------------------------------------------------------------------
      local lastitem = r.GetExtState('_Slicer_', 'ItemToSlice')
      local item =  r.BR_GetMediaItemByGUID( 0, lastitem )
-        if item ~= nil then
+        if item ~= nil and bpm4 ~= nil then
                take = r.GetActiveTake(item)
         
                local item_source = reaper.GetMediaItemTake_Source(take)
@@ -7354,7 +7371,8 @@ function Wave:BPM_Numbers()
      
       end
 
-      if bpm4c == nil then bpm4c = "BPM" end
+      bpm4c2 = bpm4c
+      if bpm4c2 == nil then bpm4c2 = "BPM" end
       if bpm2c == nil then bpm2c = "" end
       if bpm8c == nil then bpm8c = "" end
 
@@ -7363,7 +7381,7 @@ function Wave:BPM_Numbers()
       gfx.y = gfx.y/1.018
       gfx.setfont(1, "Arial", fnt_sz+1, 98) -- 98 - Bold flag
      
-      gfx.drawstr("" .. tostring(bpm4c) .. "") -- big bpm x1
+      gfx.drawstr("" .. tostring(bpm4c2) .. "") -- big bpm x1
 
       gfx.setfont(1, "Arial", fnt_sz)
       gfx.set(TH[35][1], TH[35][2], TH[35][3], TH[35][4]-0.05)
@@ -8398,7 +8416,7 @@ local timer = 2 -- Time in seconds
 local time = reaper.time_precise()
 local function Msg()
    local char = gfx.getchar()
-     if char == 27 or char == -1 or (reaper.time_precise() - time) > timer then ErrMsg_Status = 0 return end
+     if char == 27 or char == -1 or (reaper.time_precise() - time) > timer then ErrM_St_rs = 0 return else ErrM_St_rs = 1 end
 local Get_Sel_ErrMsg = ErrMsg:new(580,35,260,45, 1, 1, 1, 1, "Something went wrong. Use Undo (Ctrl+Z)")
 local ErrMsg_TB = {Get_Sel_ErrMsg}
 ErrMsg_Status = 1
@@ -8407,7 +8425,7 @@ ErrMsg_Status = 1
   r.defer(Msg)
 end
 end
-if ErrMsg_Status ~= 1 then
+if ErrM_St_rs ~= 1 then
 Msg()
 end
 
@@ -9362,7 +9380,7 @@ local timer = 2 -- Time in seconds
 local time = reaper.time_precise()
 local function Msg()
    local char = gfx.getchar()
-     if char == 27 or char == -1 or (reaper.time_precise() - time) > timer then ErrMsg_Status = 0 return end
+     if char == 27 or char == -1 or (reaper.time_precise() - time) > timer then ErrM_St_s2 = 0 return else ErrM_St_s2 = 1 end
 local Get_Sel_ErrMsg = ErrMsg:new(580,35,260,45, 1, 1, 1, 1, "Item is Too Short (<0.25s)")
 local ErrMsg_TB = {Get_Sel_ErrMsg}
 ErrMsg_Status = 1
@@ -9371,7 +9389,7 @@ ErrMsg_Status = 1
   r.defer(Msg)
 end
 end
-if ErrMsg_Status ~= 1 then
+if ErrM_St_s2 ~= 1 then
 Msg()
 end
 --------------------------------------End of Error Message-------------------------------------
@@ -9436,7 +9454,6 @@ function Wave:draw_waveform(mode, r,g,b,a)
     local Ppos = self.Pos*self.max_Zoom    -- старт. позиция в "мелкой"-Peak_TB для начала прорисовки  
     local curr = ceil(Ppos+1)              -- округление
     local n_Peaks = w*self.max_Zoom       -- Макс. доступное кол-во пиков
-    --gfx.set(r,g,b,a)                       -- set color
     -- уточнить, нужно сделать исправление для неориг. размера окна --
     -- next выходит за w*max_Zoom, а должен - макс. w*max_Zoom(51200) при max_Zoom=50 --
     for i=1, w do            
@@ -9936,7 +9953,7 @@ if Cursor_Status == 1 and (last_x - gfx.mouse_x) ~= 0.0 then -- set and delay ne
               runcheck = 0
                 return
             else
-              gfx.setcursor(429, 1) --set "hand" cursor
+              gfx.setcursor(32644, 1) --set "hand" cursor
               Drag = 1 -- snap area condition
               runcheck = 1
                 reaper.defer(Main)
@@ -10072,7 +10089,7 @@ function Wave:from_gfxBuffer()
                       sel_start_s = SelAreaTable.play_start_id     
                       
                       if sel_width ~= nil and sel_start_s ~= nil then 
-                          gfx.set(TH[18][1],TH[18][2],TH[18][3],TH[18][4]) -- snap area color                         
+                          gfx.set(TH[18][1],TH[18][2],TH[18][3], gfx.imgui and TH[18][4]%1 or TH[18][4]) -- snap area color                         
                           sel_width  = (sel_width)*self.Zoom*Z_w  -- zoom and width correction        
                           sel_start_s  = (sel_start_s - self.Pos)*self.Zoom*Z_w  -- zoom and width correction        
                           gfx.rect(sel_start_s+self.x, self.y, sel_width, self.h,true) -- draw btn body
@@ -10174,7 +10191,7 @@ function Wave:show_process_wait()
               fnt_sz = max(17,  fnt_sz* (Z_h)/2)
               fnt_sz = min(96, fnt_sz* Z_h)
              end
-             
+
               gfx.setfont(1, "Arial", fnt_sz)
               gfx.set(TH[33][1], TH[33][2], TH[33][3], TH[33][4]) -- цвет текста инфо
               local ZH_correction = Z_h*40
@@ -10300,8 +10317,6 @@ function MAIN()
               for key,btn    in pairs(Frame_Loop_TB2)   do btn:draw()    end 
               for key,btn    in pairs(LoopBtn_TB)   do btn:draw()    end 
           end
-      else 
-          Wave:show_help()      -- else show help
 
     end
 
@@ -10446,6 +10461,10 @@ end
 
 Wave:ForegroundBorders()
 Wave:CursorTop()
+
+    if not Wave.State then  
+          Wave:show_help()      -- else show help
+    end
 
 end
 
@@ -10831,33 +10850,48 @@ end
 --   INIT   --------------------------------------------------------------------
 -------------------------------------------------------------------------------
 function Init()
-   dock_pos = r.GetExtState("MK_Slicer_3", "dock")
+
+  --Dock ------
+   dock_pos = tonumber(r.GetExtState("MK_Slicer_3", "dock"))
        if Docked == 1 then
-         if dock_pos == "0.0" then dock_pos = 1025 end
-           dock_pos = dock_pos or 1025
+         if not dock_pos or dock_pos == 0 then dock_pos = 1025 end
+           dock_pos = dock_pos | 1
+           gfx.dock(dock_pos)
            xpos = 400
            ypos = 320
            else
            dock_pos = 0
-           xpos = r.GetExtState("MK_Slicer_3", "window_x") or 400
-           ypos = r.GetExtState("MK_Slicer_3", "window_y") or 320
+           xpos = tonumber(r.GetExtState("MK_Slicer_3", "window_x")) or 400
+           ypos = tonumber(r.GetExtState("MK_Slicer_3", "window_y")) or 320
         end
 
     -- Some gfx Wnd Default Values ---------------
     local R,G,B = ceil(TH[3][1]*255),ceil(TH[3][2]*255),ceil(TH[3][3]*255)             -- 0...255 format -- цвет основного окна
     local Wnd_bgd = R + G*256 + B*65536 -- red+green*256+blue*65536  
-    local Wnd_Title = "MK Slicer v3.02" .. " " .. theme_name .. ""
+    local Wnd_Title = "MK Slicer v3.03" .. " " .. theme_name .. " " .. RG_status .. ""
     local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
+
+     -- set init fonts/size
+     gfx.setfont(1, "Arial", 12)
+     gfx.setfont(2, "Arial", 14)
+     gfx.setfont(3, "Arial", 16)
+     gfx.setfont(4, "Arial", 18)
+     gfx.setfont(5, "Arial", 20)
+     gfx.setfont(6, "Arial", 22)
+     gfx.setfont(7, "Arial", 36)
+     gfx.setfont(8, "Arial", 40)
+     gfx.setfont(9, "Arial", 72)
+     gfx.setfont(10, "Arial", 80)
+
  --   Wnd_W,Wnd_H = 1044,490 -- global values(used for define zoom level)
 
-       Wnd_W = r.GetExtState("MK_Slicer_3", "zoomW") or 1044
-       Wnd_H = r.GetExtState("MK_Slicer_3", "zoomH") or 490
-       if Wnd_W == (nil or "") then Wnd_W = 1044 end
-       if Wnd_H == (nil or "") then Wnd_H = 490 end
+       Wnd_W = tonumber(r.GetExtState("MK_Slicer_3", "zoomW")) or 1044
+       Wnd_H = tonumber(r.GetExtState("MK_Slicer_3", "zoomH")) or 490
+       if Wnd_W == (nil or 0) then Wnd_W = 1044 end
+       if Wnd_H == (nil or 0) then Wnd_H = 490 end
     -- Init window ------
     gfx.clear = Wnd_bgd         
     gfx.init( Wnd_Title, Wnd_W,Wnd_H, Wnd_Dock, Wnd_X,Wnd_Y )
-
 
     -- Init mouse last --
     last_mouse_cap = 0
@@ -10877,10 +10911,10 @@ local Loop_onx = Loop_on
 local Guides_norm_val = Guides.norm_val
 
     -- zoom level -- 
-    Wnd_WZ = r.GetExtState("MK_Slicer_3", "zoomWZ") or 1044
-    Wnd_HZ = r.GetExtState("MK_Slicer_3", "zoomHZ") or 490
-    if Wnd_WZ == (nil or "") then Wnd_WZ = 1044 end
-    if Wnd_HZ == (nil or "") then Wnd_HZ = 490 end
+    Wnd_WZ = tonumber(r.GetExtState("MK_Slicer_3", "zoomWZ")) or 1044
+    Wnd_HZ = tonumber(r.GetExtState("MK_Slicer_3", "zoomHZ")) or 490
+    if Wnd_WZ == (nil or 0) then Wnd_WZ = 1044 end
+    if Wnd_HZ == (nil or 0) then Wnd_HZ = 490 end
 
     Z_w, Z_h = gfx.w/Wnd_WZ, gfx.h/Wnd_HZ
     gfx_width = gfx.w
@@ -11202,46 +11236,48 @@ item5 = context_menu:add_item({label = "Script Starts Docked", toggleable = true
 end
 item5.command = function()
                      if item5.selected == true then 
-  local _, xpos, ypos, Wnd_W, Wnd_H = gfx.dock(-1, 0, 0, 0, 0)
-    r.SetExtState("MK_Slicer_3", "window_x", xpos, true)
-    r.SetExtState("MK_Slicer_3", "window_y", ypos, true)
-    r.SetExtState("MK_Slicer_3", "zoomW", Wnd_W, true)
-    r.SetExtState("MK_Slicer_3", "zoomH", Wnd_H, true)
-    r.SetExtState("MK_Slicer_3", "zoomWZ", Wnd_WZ, true)
-    r.SetExtState("MK_Slicer_3", "zoomHZ", Wnd_HZ, true)
-
-gfx.quit()
-     Docked = 1
-     dock_pos = r.GetExtState("MK_Slicer_3", "dock")
-     if dock_pos == "0.0" then dock_pos = 1025 end
-     dock_pos = dock_pos or 1025
-     xpos = 400
-     ypos = 320
-     local Wnd_Title = "MK Slicer v3.02"
-     local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
-     gfx.init( Wnd_Title, Wnd_W,Wnd_H, Wnd_Dock, Wnd_X,Wnd_Y )
+                          local _, xpos, ypos, Wnd_W, Wnd_H = gfx.dock(-1, 0, 0, 0, 0)
+                         r.SetExtState("MK_Slicer_3", "window_x", xpos, true)
+                         r.SetExtState("MK_Slicer_3", "window_y", ypos, true)
+                         r.SetExtState("MK_Slicer_3", "zoomW", Wnd_W, true)
+                         r.SetExtState("MK_Slicer_3", "zoomH", Wnd_H, true)
+                         r.SetExtState("MK_Slicer_3", "zoomWZ", Wnd_WZ, true)
+                         r.SetExtState("MK_Slicer_3", "zoomHZ", Wnd_HZ, true)
+                     
+                          gfx.quit()
+                          Docked = 1
+                          dock_pos = tonumber(r.GetExtState("MK_Slicer_3", "dock"))
+                          if not dock_pos or dock_pos == 0 then dock_pos = 1025 end
+                          dock_pos = dock_pos | 1
+                          gfx.dock(dock_pos)
+                          xpos = 400
+                          ypos = 320
+                          local Wnd_Title = "MK Slicer v3.03"
+                          local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
+                          gfx.init( Wnd_Title, Wnd_W,Wnd_H, Wnd_Dock, Wnd_X,Wnd_Y )
 
                      else
 
-    r.SetExtState("MK_Slicer_3", "dock", gfx.dock(-1), true)
-gfx.quit()
-    Docked = 0
-    dock_pos = 0
-    xpos = r.GetExtState("MK_Slicer_3", "window_x") or 400
-    ypos = r.GetExtState("MK_Slicer_3", "window_y") or 320
-    local Wnd_Title = "MK Slicer v3.02"
-    local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
-    gfx.init( Wnd_Title, Wnd_W,Wnd_H, Wnd_Dock, Wnd_X,Wnd_Y )
- 
-    Wnd_WZ = r.GetExtState("MK_Slicer_3", "zoomWZ") or 1044
-    Wnd_HZ = r.GetExtState("MK_Slicer_3", "zoomHZ") or 490
-    if Wnd_WZ == (nil or "") then Wnd_WZ = 1044 end
-    if Wnd_HZ == (nil or "") then Wnd_HZ = 490 end
- 
-    Z_w, Z_h = gfx.w/Wnd_WZ, gfx.h/Wnd_HZ
- 
-    if Z_w<0.63 then Z_w = 0.63 elseif Z_w>2.2 then Z_w = 2.2 end 
-    if Z_h<0.63 then Z_h = 0.63 elseif Z_h>2.2 then Z_h = 2.2 end 
+                         r.SetExtState("MK_Slicer_3", "dock", gfx.dock(-1), true)
+                         gfx.quit()
+                         Docked = 0
+                         dock_pos = 0
+                         xpos = tonumber(r.GetExtState("MK_Slicer_3", "window_x")) or 400
+                         ypos = tonumber(r.GetExtState("MK_Slicer_3", "window_y")) or 320
+                         local Wnd_Title = "MK Slicer v3.03"
+                         local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
+                         if Wnd_Y == (nil or 0) then Wnd_Y = Wnd_Y+25 end -- correction for window header visibility
+                         gfx.init( Wnd_Title, Wnd_W,Wnd_H, Wnd_Dock, Wnd_X,Wnd_Y )
+                      
+                         Wnd_WZ = tonumber(r.GetExtState("MK_Slicer_3", "zoomWZ")) or 1044
+                         Wnd_HZ = tonumber(r.GetExtState("MK_Slicer_3", "zoomHZ")) or 490
+                         if Wnd_WZ == (nil or 0) then Wnd_WZ = 1044 end
+                         if Wnd_HZ == (nil or 0) then Wnd_HZ = 490 end
+                      
+                         Z_w, Z_h = gfx.w/Wnd_WZ, gfx.h/Wnd_HZ
+                      
+                         if Z_w<0.63 then Z_w = 0.63 elseif Z_w>2.2 then Z_w = 2.2 end 
+                         if Z_h<0.63 then Z_h = 0.63 elseif Z_h>2.2 then Z_h = 2.2 end 
                      end
           r.SetExtState('MK_Slicer_3','Docked',Docked,true);
 end
@@ -11454,7 +11490,7 @@ user_defaults()
 end
 
 
-item19 = context_menu:add_item({label = "Reset All Setted User Defaults", toggleable = false})
+item19 = context_menu:add_item({label = "Reset All Setted User Defaults|", toggleable = false})
 item19.command = function()
 
       r.SetExtState('MK_Slicer_3','DefaultXFadeTime',15,true);
@@ -11469,13 +11505,29 @@ item19.command = function()
 
 end
 
+item37 = context_menu:add_item({label = "Experimental Options", active = false})
 
-item20 = context_menu:add_item({label = "|XFades and Fill Gaps On/Off (Experimental)", toggleable = false})
+item20 = context_menu:add_item({label = "|XFades and Fill Gaps On/Off", toggleable = false})
 item20.command = function()
  if XFadeOff == 1 then XFadeOff = 0
 elseif XFadeOff == 0 then XFadeOff = 1
 end
       r.SetExtState('MK_Slicer_3','XFadeOff',XFadeOff,true);
+end
+
+
+if FontAntiAliasing == 1 then
+           item36 = context_menu:add_item({label = "Font AntiAliasing (Need RealmGUI, Restart required)", toggleable = true, selected = true, active = true})
+           else
+           item36 = context_menu:add_item({label = "Font AntiAliasing (Need RealmGUI, Restart required)", toggleable = true, selected = false, active = true})
+end
+item36.command = function()
+                     if item36.selected == true then 
+                     FontAntiAliasing = 1
+                     else
+                     FontAntiAliasing = 0
+                     end
+          r.SetExtState('MK_Slicer_3','FontAntiAliasing',FontAntiAliasing,true);
 end
 
 
@@ -11649,8 +11701,8 @@ end
 item34 = context_menu:add_item({label = "|Reset Window Size", toggleable = false})
 item34.command = function()
 store_window()
-           xpos = r.GetExtState("MK_Slicer_3", "window_x") or 400
-           ypos = r.GetExtState("MK_Slicer_3", "window_y") or 320
+           xpos = tonumber(r.GetExtState("MK_Slicer_3", "window_x")) or 400
+           ypos = tonumber(r.GetExtState("MK_Slicer_3", "window_y")) or 320
     local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
     Wnd_W,Wnd_H = 1044,490 -- global values(used for define zoom level)
     -- Re-Init window ------
