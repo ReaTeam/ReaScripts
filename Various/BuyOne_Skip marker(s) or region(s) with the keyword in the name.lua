@@ -259,6 +259,7 @@ USE_REGIONS = #USE_REGIONS:gsub(' ','') > 0
 mrkr_idx, mrkr_pos, next_rgn_end = math.huge*-1, math.huge*-1, math.huge*-1 -- to get the routine going at the very start
 local play_pos_init
 
+
 function SKIP_MARKERS_OR_REGIONS()
 
 local retval, mrkr_cnt, rgn_cnt = r.CountProjectMarkers(0)
@@ -267,25 +268,29 @@ local count = not USE_REGIONS and mrkr_cnt or rgn_cnt
 
 	if (playback or recording) and (not USE_REGIONS and mrkr_cnt > 1 or rgn_cnt > 0) then
 
-	local play_pos = r.GetPlayPosition() -- GetPlayPosition2() is contantly being updated even without playback on
+	local play_pos = r.GetPlayPosition() -- GetPlayPosition2() is contantly being updated even without playback on // https://forum.cockos.com/showthread.php?t=273104
 
 	ref_t = update and Monitor_MrkrsOrRgns(USE_REGIONS) or ref_t -- collect markers and regions time data, only update if there's change, otherwise updates constantly and change isn't detected; the function doesn't start right away since update is nil, first runs its another instance downstream, returns a table as update var which is true which then triggers this instance // allows reordering on the fly and maintaining correct functionality
 
 		-- Update routine
-		if mrkr_idx and mrkr_pos and mrkr_idx < count-1 and (play_pos > mrkr_pos or USE_REGIONS and play_pos > next_rgn_end) or play_pos_init and play_pos < play_pos_init or update
-		then -- after the last marker mrkr_pos and mrkr_idx will be nil hence must be evaluated to prevent error // only run once 1) after playhead crossed a marker or region end, marker/region start/name or region end changed; 2) before the last marker is reached or 3) when playhead is manually moved back
+		if mrkr_idx and mrkr_pos and mrkr_idx < count-1 and (not USE_REGIONS and skip and play_pos > mrkr_pos or USE_REGIONS and play_pos > next_rgn_end) or play_pos_init and play_pos < play_pos_init or update then -- after the last marker mrkr_pos and mrkr_idx will be nil hence must be evaluated to prevent error // only run once 1) after playhead crossed a marker or region end, marker/region start/name or region end changed; 2) before the last marker is reached or 3) when playhead is manually moved back; 'skip' var is required if markers are skipped after being passed, i.e. cond_t[2] is selected below, doesn't affect regions
 		mrkr_idx, mrkr_pos, mrkr_name, rgn_end = Get_First_MarkerOrRgn_After_Time(play_pos, USE_REGIONS, KEYWORD) -- mrkr_idx, mrkr_pos, mrkr_name refer to region properties when USE_REGIONS is enabled
 		next_mrkr_idx, next_rgn_end = Find_Next_MrkrOrRgn_By_Name(mrkr_idx, not USE_REGIONS and mrkr_pos or rgn_end, USE_REGIONS, KEYWORD) -- next_mrkr_idx, next_pos refer to region properties when USE_REGIONS is enabled
 		play_pos_init = play_pos
 		update = nil
+		skip = nil -- reset, required if markers are skipped after being passed, i.e. cond_t[2] is selected below, doesn't affect regions
 		end
 
+local cond_t = {mrkr_pos and mrkr_pos > play_pos and mrkr_pos - play_pos <= 0.04, -- skip before marker/region start; 'mrkr_pos > play_pos' makes sure that skip only occurs when the marker is ahead of the playhead otherwise the playhead might get stuck at the last marker; 0.04 - the defer loop runs ca every 30 ms, so this value must be greater to be always detected
+				mrkr_pos and play_pos >= mrkr_pos and play_pos - mrkr_pos <= 0.04} -- skip after marker/region end
+local cond = cond_t[2] -- select 1 or 2		
+		
 		-- Skip routine
-		if next_mrkr_idx and mrkr_name and mrkr_name:lower():match(Esc(KEYWORD)) and mrkr_pos > play_pos and mrkr_pos - play_pos <= 0.04 -- mrkr_pos > play_pos makes sure that jump only occurs when the marker is ahead of the playhead otherwise the playhead might get stuck at the last marker; 0.04 - the defer loop runs ca every 30 ms, so this value must be greater to be always detected
-		then
+		if next_mrkr_idx and mrkr_name and mrkr_name:lower():match(Esc(KEYWORD)) and cond then
 			if recording then r.CSurf_OnStop() end -- during recording playhead doesn't follow the edit cursor so it must be stopped
 			if not USE_REGIONS then
 			r.GoToMarker(0, next_mrkr_idx+1, true) -- use_timeline_order true; +1 because this function uses 1-based count whereas Get_First_MarkerOrRgn_After_Time() returns 0-based count // SetEditCurPos() could be used instead like it is used for regions below
+			skip = true -- required if markers are skipped after being passed, i.e. cond_t[2] is selected above, doesn't affect regions
 			else
 			r.SetEditCurPos(next_rgn_end, true, true) -- moveview (only moves if the target is out of sight), seekplay true // r.GoToRegion() isn't suitable for this task due to the way it functions
 			end
