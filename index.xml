@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="f7c619b5633da96a7ba5011e5047febca478eba3" name="ReaTeam Scripts">
+<index version="1" commit="ec48c4ab9f3bf8aac3ef1dc66382ac7fc013f5a7" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -709,7 +709,7 @@ Fix display glitch when pasting tab characters]]></changelog>
         <link rel="donation">https://reapack.com/donate</link>
       </metadata>
       <version name="1.0" author="cfillion" time="2023-02-22T07:03:08Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/33a4e4493cdf84475847c27146f4db507e434a84/Development/cfillion_Joystick%20inspector.lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ec48c4ab9f3bf8aac3ef1dc66382ac7fc013f5a7/Development/cfillion_Joystick%20inspector.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Search action by command ID or name.lua" type="script" desc="Search action by command ID or name">
