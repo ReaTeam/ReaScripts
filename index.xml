@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="094de7428e588249bf9d4ed8d130e3262a99870c" name="ReaTeam Scripts">
+<index version="1" commit="33a4e4493cdf84475847c27146f4db507e434a84" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -697,6 +697,15 @@ Print the command name when running actions (SWS v2.10+ only)]]></changelog>
         <changelog><![CDATA[Fix autocompletion after an opening parenthesis
 Fix display glitch when pasting tab characters]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/9d7b03cfa766987b637b781a4c3b6b63d1799ca3/Development/cfillion_Interactive%20ReaScript.lua</source>
+      </version>
+    </reapack>
+    <reapack name="cfillion_Joystick inspector.lua" type="script" desc="Joystick inspector">
+      <metadata>
+        <link rel="screenshot">https://i.imgur.com/WuON2x7.gif</link>
+        <link rel="donation">https://reapack.com/donate</link>
+      </metadata>
+      <version name="1.0" author="cfillion" time="2023-02-22T07:03:08Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/33a4e4493cdf84475847c27146f4db507e434a84/Development/cfillion_Joystick%20inspector.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Search action by command ID or name.lua" type="script" desc="Search action by command ID or name">
