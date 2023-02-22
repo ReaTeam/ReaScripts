@@ -21,13 +21,11 @@ local c_text   = reaper.ImGui_GetColor(ctx, reaper.ImGui_Col_Text())
 
 local function updateDevices()
   devices = {}
-  local i = 0
-  while true do
+  for i = 0, math.huge do
     -- joystick_enum is CPU intensive!
     local guid, name = reaper.joystick_enum(i)
     if not guid then return end
-    i = i + 1
-    devices[#devices + 1] = { guid=guid, name=name }
+    devices[i + 1] = { guid=guid, name=name }
   end
 end
 
@@ -54,6 +52,8 @@ local function deviceSelect()
   if not devices then updateDevices() end
   if #devices == 0 then
     reaper.ImGui_TextDisabled(ctx, 'No joysticks are currently available.')
+    reaper.ImGui_EndCombo(ctx)
+    return
   end
   if reaper.ImGui_BeginTable(ctx, 'devices', 2) then
     local sf = reaper.ImGui_SelectableFlags_SpanAllColumns()
@@ -136,7 +136,7 @@ local function inspectAxes(dl)
     reaper.ImGui_Text(ctx, ('%+.6f'):format(value))
     reaper.ImGui_TableSetColumnIndex(ctx, 1)
     reaper.ImGui_ProgressBar(ctx, (value + 1) / 2, -FLT_MIN, height, '')
-    
+
     local x1, y1 = reaper.ImGui_GetItemRectMin(ctx)
     local x2, y2 = reaper.ImGui_GetItemRectMax(ctx)
     local x = x1 + ((x2 - x1) // 2)
