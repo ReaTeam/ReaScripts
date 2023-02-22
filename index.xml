@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="33a4e4493cdf84475847c27146f4db507e434a84" name="ReaTeam Scripts">
+<index version="1" commit="f7c619b5633da96a7ba5011e5047febca478eba3" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -501,7 +501,7 @@
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c1a045b9c6b68a0184c1957b8aed1d5995f3af2b/Development/cfillion_Dump%20file%20to%20string%20literal.lua</source>
       </version>
     </reapack>
-    <reapack name="cfillion_GFX Input Inspector.lua" type="script" desc="GFX Input Inspector">
+    <reapack name="cfillion_GFX Input Inspector.lua" type="script" desc="GFX input inspector">
       <version name="2.0" author="cfillion" time="2018-04-11T23:42:40Z">
         <changelog><![CDATA[Previously named "GFX Keyboard Inspector"
 
@@ -509,6 +509,10 @@
 - Display values in hexadecimal
 - Enhance data presentation]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/8c727cb80a20e80933dc1998c62f98d374362175/Development/cfillion_GFX%20Input%20Inspector.lua</source>
+      </version>
+      <version name="2.1" author="cfillion" time="2023-02-22T11:26:19Z">
+        <changelog><![CDATA[Add REAPER 6.65's gfx.char second return value]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f7c619b5633da96a7ba5011e5047febca478eba3/Development/cfillion_GFX%20Input%20Inspector.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Interactive ReaScript.lua" type="script" desc="Interactive ReaScript (iReaScript)">
