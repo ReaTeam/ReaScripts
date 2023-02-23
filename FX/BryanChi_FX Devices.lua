@@ -19,6 +19,7 @@
 --   - Fix unable to drag from post/pre FX chain back to normal
 --   - Fix Setting envelope name to ‘blah’ when wanting to automate macro slider by ctrl+RMB menu.
 --   - Fix window button LMB behaviour - no need to left double click to drag FX.
+--   - Fix Delta Solo behavior bug
 -- @provides
 --   [effect] BryanChi_FX Devices/FXD Macros.jsfx
 --   [effect] BryanChi_FX Devices/FXD ReSpectrum.jsfx
@@ -3408,7 +3409,7 @@
         local angle_cos, angle_sin = math.cos(angle), math.sin(angle)
         local radius_inner = radius_outer*0.40
         if r.ImGui_IsItemClicked(ctx,1) and Mods==Alt then 
-            local Total_P = r.TrackFX_GetNumParams(LT_Track, LT_FXNum)  local P = Total_P-1 
+            local Total_P = r.TrackFX_GetNumParams(LT_Track, FX_Idx)  local P = Total_P-1 
             local DeltaV = r.TrackFX_GetParamNormalized(LT_Track, FX_Idx, P)
             if DeltaV ==1 then reaper.TrackFX_SetParamNormalized(LT_Track,FX_Idx, P , 0 ) FX[FxGUID].DeltaP_V = 0 
             else reaper.TrackFX_SetParamNormalized(LT_Track,FX_Idx, P , 1) FX[FxGUID].DeltaP_V = 1 
