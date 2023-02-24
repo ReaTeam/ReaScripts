@@ -1,25 +1,12 @@
 -- @description FX Devices
 -- @author Bryan Chi
--- @version 1.0beta9.4
+-- @version 1.0beta9.4-1
 -- @changelog
---   - Layout Editor:  
---   	- Disallow arrow keys to move item when any text field is active.
---   	- Add ‘Free’ as an option for Label Pos and Value Pos for all types.
---   	- Disallow setting decimal places display to lower than 0.
---   	- Allow setting decimal places for Sliders.
---   	- Put Pos X and Pos Y settings on the same line, disables decimal places display.
---   	- Label Pos and Value Pos will be shown as ‘Default’ when the value is still unchosen
---   	- For slider’s Value Pos - add ‘None’ as option. Tooltip will pop up when user is hovering or tweaking the slider.
---   	- For Switch add ‘none’ as an option for value display
---
---   Band Splitter: 
---   - Fix Band Split not deletable when collapsed.
---
---   Others:
---   - Fix unable to drag from post/pre FX chain back to normal
---   - Fix Setting envelope name to ‘blah’ when wanting to automate macro slider by ctrl+RMB menu.
---   - Fix window button LMB behaviour - no need to left double click to drag FX.
---   - Fix Delta Solo behavior bug
+--   - Fix switch settings for toggle and momentary.
+--   - Add color options for switch.
+--   - Show property as  ‘default’ for Value Pos when a value is not yet chosen.
+--   - Various fixes of font sizes not responding to settings.
+--   - Add ‘Top’ label option for switches and selections.
 -- @provides
 --   [effect] BryanChi_FX Devices/FXD Macros.jsfx
 --   [effect] BryanChi_FX Devices/FXD ReSpectrum.jsfx
@@ -66,7 +53,7 @@
 --   https://forum.cockos.com/showthread.php?t=263622
 
 --------------------------==  declare Initial Variables & Functions  ------------------------
-    VersionNumber = 'V1.0beta9.3 '
+    VersionNumber = 'V1.0beta9.4-1 '
     FX_Add_Del_WaitTime=2
     r=reaper
 
@@ -2081,16 +2068,21 @@
         local clr, TextW, Font
         FX[FxGUID][Fx_P] = FX[FxGUID][Fx_P] or {} 
         local FP = FX[FxGUID][Fx_P]
+        local V_Font = 'Font_Andale_Mono_'..roundUp( FP.V_FontSize or LblTextSize or  Knob_DefaultFontSize,1  )
 
         if FontSize then Font= 'Font_Andale_Mono_'..roundUp (FontSize,1);  r.ImGui_PushFont( ctx,_G [Font] )     end 
-        if BgClr then r.ImGui_PushStyleColor(ctx, r.ImGui_Col_Button() , BgClr) end 
         if FX[FxGUID][Fx_P].Lbl_Clr then r.ImGui_PushStyleColor(ctx, r.ImGui_Col_Text(),FX[FxGUID][Fx_P].Lbl_Clr ) end 
-        
+        local popClr
 
         r.ImGui_BeginGroup(ctx)
+        if FP.Lbl_Pos == 'Left' then r.ImGui_AlignTextToFramePadding(ctx) r.ImGui_Text(ctx,FP.CustomLbl or FP.Name) SL() 
+        elseif FP.Lbl_Pos == 'Top' then r.ImGui_Text(ctx,FP.CustomLbl or FP.Name) 
+        end 
+
         if FP.V_Pos =='None' or FP.V_Pos =='Free'  then 
             lbl='  '
         elseif FP.V_Pos =='Within' then 
+             r.ImGui_PushFont(ctx, _G[V_Font]) 
             _, lbl = r.TrackFX_GetFormattedParamValue(LT_Track, FX_Idx, P_Num)
             TextW = r.ImGui_CalcTextSize(ctx, lbl)
 
@@ -2105,13 +2097,28 @@
             _, lbl = r.TrackFX_GetFormattedParamValue(LT_Track,FX_Idx, P_Num) 
         end
 
-        if FP.Lbl_Pos == 'Left' then r.ImGui_AlignTextToFramePadding(ctx) r.ImGui_Text(ctx,FP.CustomLbl or FP.Name) SL() end 
         if FP.Lbl_Pos =='Within' then lbl =FP.CustomLbl or FP.Name end
         
         
 
 
         if FX[FxGUID][Fx_P].V ==nil then FX[FxGUID][Fx_P].V = r.TrackFX_GetParamNormalized(LT_Track,FX_Idx, P_Num) end
+
+
+        if FX[FxGUID][Fx_P].Switch_On_Clr then 
+            if FX[FxGUID][Fx_P].V == 1 then      popClr=2
+                r.ImGui_PushStyleColor(ctx, r.ImGui_Col_Button() , FX[FxGUID][Fx_P].Switch_On_Clr) 
+                r.ImGui_PushStyleColor(ctx, r.ImGui_Col_ButtonHovered() , Change_Clr_A( FX[FxGUID][Fx_P].Switch_On_Clr, -0.2) )
+            else        popClr=2
+                r.ImGui_PushStyleColor(ctx, r.ImGui_Col_Button() , BgClr) 
+                r.ImGui_PushStyleColor(ctx, r.ImGui_Col_ButtonHovered() , Change_Clr_A( BgClr, -0.2) )
+            end 
+        else 
+            if BgClr then           popClr = 2
+                r.ImGui_PushStyleColor(ctx, r.ImGui_Col_Button() , BgClr) 
+                r.ImGui_PushStyleColor(ctx, r.ImGui_Col_ButtonHovered() , Change_Clr_A( BgClr, -0.2) )
+            end 
+        end
 
 
         if FP.V_Clr then r.ImGui_PushStyleColor(ctx, r.ImGui_Col_Text(), FP.V_Clr) end 
@@ -2166,6 +2173,7 @@
             local _, lbl = r.TrackFX_GetFormattedParamValue(LT_Track, FX_Idx, P_Num)
             r.ImGui_DrawList_AddTextEx(DL, _G[Font], FontSize or 11, Cx+ (FP.V_Pos_X or 0), Cy + (FP.V_Pos_Y or 0), FP.Lbl_Clr or getClr(r.ImGui_Col_Text()) , lbl)
         end
+        if FP.V_Pos =='Within' then r.ImGui_PopFont(ctx) end
 
 
         r.ImGui_EndGroup(ctx)
@@ -2173,7 +2181,7 @@
         r.ImGui_DrawList_AddRectFilled(DL, X,Y,X+W,Y+H, clr, FX.Round[FxGUID] or 0)
 
         if FontSize then r.ImGui_PopFont( ctx) end 
-        if BgClr then r.ImGui_PopStyleColor(ctx)end
+        if BgClr then r.ImGui_PopStyleColor(ctx, popClr)end
         if  FX[FxGUID][Fx_P].Lbl_Clr then  r.ImGui_PopStyleColor(ctx)end
         if Value == 0 then return 0 else return 1 end
     end
@@ -2222,13 +2230,18 @@
         FX[FxGUID or ''][Fx_P or ''] = FX[FxGUID or ''][Fx_P or ''] or {} 
         r.ImGui_BeginGroup(ctx)
         if Fx_P then FP = FX[FxGUID][Fx_P] end 
+        local V_Font = 'Font_Andale_Mono_'..roundUp( FP.V_FontSize or LblTextSize or  Knob_DefaultFontSize,1  )
+        local Font = 'Font_Andale_Mono_'..roundUp( FP.FontSize or LblTextSize or  Knob_DefaultFontSize,1  )
         
         if Fx_P and FP then
-            if FP.Lbl_Pos=='Left' and Lbl_Pos~= 'No Lbl' then  
-                local _, name = r.TrackFX_GetParamName(LT_Track, FX_Idx, WhichPrm)
+            if (FP.Lbl_Pos=='Left' and Lbl_Pos~= 'No Lbl') or FP.Lbl_Pos=='Top'  then  
+                local name 
+                if not LabelOveride and not FP.CustomLbl and not CustomLbl then  _, name = r.TrackFX_GetParamName(LT_Track, FX_Idx, WhichPrm) end 
                 r.ImGui_AlignTextToFramePadding( ctx)
-                r.ImGui_TextColored(ctx, FP.Lbl_Clr or r.ImGui_GetColor(ctx,r.ImGui_Col_Text()),LabelOveride or  FP.CustomLbl or CustomLbl or name )
-                r.ImGui_SameLine(ctx)
+                MyText(LabelOveride or  FP.CustomLbl or CustomLbl or FP.Name , _G[Font], FP.Lbl_Clr or r.ImGui_GetColor(ctx,r.ImGui_Col_Text())) 
+                if FP.Lbl_Pos=='Left' and Lbl_Pos~= 'No Lbl' then 
+                    SL() 
+                end
             end
         end
 
@@ -2303,7 +2316,7 @@
         end
 
         function begincombo(ctx)
-            
+            if FP.V_FontSize then r.ImGui_PushFont(ctx, _G[V_Font]) end 
             if r.ImGui_BeginCombo( ctx, '##'..tostring(Label), LabelOveride or  _G[LabelValue], r.ImGui_ComboFlags_NoArrowButton()) then
                 
                 -----Style--------
@@ -2373,6 +2386,7 @@
                 end 
 
             end
+            if FP.V_FontSize then r.ImGui_PopFont(ctx) end 
         end
 
         local rv, v_format = begincombo(ctx)
@@ -2392,10 +2406,11 @@
         if not FX[FxGUID][Fx_P].Sldr_W then FX[FxGUID][Fx_P].Sldr_W, H = r.ImGui_GetItemRectSize(ctx) end 
 
         if FP.Lbl_Pos == 'Right' then SL()
-            r.ImGui_AlignTextToFramePadding(ctx) r.ImGui_Text(ctx,FP.CustomLbl or FP.Name) 
-        elseif FP.Lbl_Pos =='Bottom' then 
-            r.ImGui_AlignTextToFramePadding(ctx) r.ImGui_Text(ctx,FP.CustomLbl or FP.Name) 
+            r.ImGui_AlignTextToFramePadding(ctx) --[[ r.ImGui_Text(ctx,FP.CustomLbl or FP.Name)  ]]
+            MyText(LabelOveride or  FP.CustomLbl or CustomLbl or FP.Name , _G[Font], FP.Lbl_Clr or r.ImGui_GetColor(ctx,r.ImGui_Col_Text())) 
 
+        elseif FP.Lbl_Pos =='Bottom' then  
+            MyText(LabelOveride or  FP.CustomLbl or CustomLbl or FP.Name , _G[Font], FP.Lbl_Clr or r.ImGui_GetColor(ctx,r.ImGui_Col_Text())) 
         end 
 
         r.ImGui_EndGroup(ctx)
@@ -2681,9 +2696,30 @@
     r.ImGui_AttachFont(ctx, FontAwesome)
 
     Arial = r.ImGui_CreateFont('Arial', 12)
+    Arial_10 = r.ImGui_CreateFont('Arial', 10)
+    Arial_9 = r.ImGui_CreateFont('Arial', 9)
+    Arial_8 = r.ImGui_CreateFont('Arial', 8)
+    Arial_7 = r.ImGui_CreateFont('Arial', 7)
+    Arial_6 = r.ImGui_CreateFont('Arial', 6)
+    Arial_12 = r.ImGui_CreateFont('Arial', 12)
     Arial_11 = r.ImGui_CreateFont('Arial', 11)
-    r.ImGui_AttachFont(ctx, Arial)
+    Arial_13 = r.ImGui_CreateFont('Arial', 13)
+    Arial_14 = r.ImGui_CreateFont('Arial', 14)
+    Arial_15 = r.ImGui_CreateFont('Arial', 15)
+    Arial_16 = r.ImGui_CreateFont('Arial', 16)
+
+    r.ImGui_AttachFont(ctx, Arial_6)
+    r.ImGui_AttachFont(ctx, Arial_7)
+    r.ImGui_AttachFont(ctx, Arial_8)
+    r.ImGui_AttachFont(ctx, Arial_9)
+    r.ImGui_AttachFont(ctx, Arial_10)
     r.ImGui_AttachFont(ctx, Arial_11)
+    r.ImGui_AttachFont(ctx, Arial_12)
+    r.ImGui_AttachFont(ctx, Arial_13)
+    r.ImGui_AttachFont(ctx, Arial_14)
+    r.ImGui_AttachFont(ctx, Arial_15)
+    r.ImGui_AttachFont(ctx, Arial_16)
+    r.ImGui_AttachFont(ctx, Arial)
 
 
 
@@ -3461,8 +3497,10 @@
         FX[FxGUID][Fx_P] = FX[FxGUID][Fx_P] or {} 
         local FP = FX[FxGUID][Fx_P]
         local Font= 'Font_Andale_Mono_'..roundUp( FP.FontSize or LblTextSize or Knob_DefaultFontSize,1 ) 
-        local V_Font = 'Font_Andale_Mono_'..roundUp( FP.V_FontSize or LblTextSize or  Knob_DefaultFontSize,1  )
-        
+
+        local V_Font = 'Arial_'..roundUp( FP.V_FontSize or LblTextSize or  Knob_DefaultFontSize,1  )
+
+
         if FP.Lbl_Pos == 'Left'  then
             r.ImGui_PushFont(ctx, _G[Font])
             r.ImGui_AlignTextToFramePadding(ctx)
@@ -3517,14 +3555,15 @@
                     local CurX = r.ImGui_GetCursorPosX(ctx)
                     local w=  r.ImGui_CalcTextSize(ctx, labeltoShow or FP.Name )
                     r.ImGui_SetCursorPosX(ctx, CurX - w/2 + Sldr_Width/2)    
-                    r.ImGui_TextColored(ctx, FP.Lbl_Clr or r.ImGui_GetColor(ctx, r.ImGui_Col_Text())  ,labeltoShow or FP.Name )
+                    --r.ImGui_TextColored(ctx, FP.Lbl_Clr or r.ImGui_GetColor(ctx, r.ImGui_Col_Text())  ,labeltoShow or FP.Name )
+                    MyText( labeltoShow or FP.Name , _G[Font], r.ImGui_GetColor(ctx, r.ImGui_Col_Text()))
                 end
                 if FP.V_Pos== 'Top' then 
                     local CurX = r.ImGui_GetCursorPosX(ctx)
                     local Get,Param_Value  =r.TrackFX_GetFormattedParamValue(LT_Track, FX_Idx, P_Num)
                     local w=  r.ImGui_CalcTextSize(ctx, Param_Value )
                     r.ImGui_SetCursorPosX(ctx, CurX - w/2 + Sldr_Width/2)    
-                    if Get then  r.ImGui_TextColored(ctx, FP.V_Clr or r.ImGui_GetColor(ctx, r.ImGui_Col_Text())  ,Param_Value ) end 
+                    if Get then MyText( Param_Value  , _G[V_Font], r.ImGui_GetColor(ctx, r.ImGui_Col_Text())) end 
                 end
             end
             
@@ -3752,7 +3791,7 @@
             r.ImGui_PopFont(ctx)   
 
             if FX[FxGUID][Fx_P].V_Round then Format_P_V = RoundPrmV(StrToNum(Format_P_V), FX[FxGUID][Fx_P].V_Round) end 
-
+            
 
             if BtmLbl ~= 'No BtmLbl'  then 
                 local Cx, Cy = r.ImGui_GetCursorScreenPos(ctx)
@@ -3765,19 +3804,21 @@
                         local CurX = r.ImGui_GetCursorPosX(ctx)
                         local w=  r.ImGui_CalcTextSize(ctx, labeltoShow or FP.Name )
                         r.ImGui_SetCursorPosX(ctx, CurX - w/2 + Sldr_Width/2)    
-                        r.ImGui_TextColored(ctx, FP.Lbl_Clr or r.ImGui_GetColor(ctx, r.ImGui_Col_Text())  ,labeltoShow or FP.Name )
+                        MyText( labeltoShow or FP.Name , _G[Font], r.ImGui_GetColor(ctx, r.ImGui_Col_Text()))
                     end
                     if FP.V_Pos =='Bottom' then 
                         local Cx =  r.ImGui_GetCursorPosX(ctx)
                         local txtW = r.ImGui_CalcTextSize( ctx, Format_P_V, nil, nil, true)
                         r.ImGui_SetCursorPosX(ctx, Cx + Sldr_Width/2 - txtW/2)
-                        r.ImGui_TextColored(ctx, FP.V_Clr or r.ImGui_GetColor(ctx,r.ImGui_Col_Text()) , Format_P_V)
+                        MyText( Format_P_V , _G[V_Font], r.ImGui_GetColor(ctx, r.ImGui_Col_Text()))
+
                     end
                 end
                 if FP.Lbl_Pos == 'Free' then 
                     r.ImGui_DrawList_AddTextEx(draw_list, _G[Font], FP.FontSize or LblTextSize or Knob_DefaultFontSize, Cx+ (FP.Lbl_Pos_X or 0), Cy + (FP.Lbl_Pos_Y or 0), TxtClr, labeltoShow or FX[FxGUID][Fx_P].Name)
                 end
             end 
+
             if FP.V_Pos == 'Free' then  
                 local Ox, Oy = r.ImGui_GetCursorScreenPos(ctx)
                 r.ImGui_DrawList_AddTextEx(draw_list,Arial,FP.V_FontSize or Knob_DefaultFontSize,  Ox +Sldr_Width -TextW+ (FP.V_Pos_X or 0), Oy+ (FP.V_Pos_Y or 0), FP.V_Clr or 0xffffffff, Format_P_V)
@@ -3788,7 +3829,8 @@
                 r.ImGui_PushFont(ctx,Arial_11)   ;local X, Y = r.ImGui_GetCursorScreenPos(ctx)
                 r.ImGui_SetCursorScreenPos(ctx, SldrR-TextW, Y)
 
-                r.ImGui_TextColored(ctx, 0xD6D6D6ff,Format_P_V )
+                
+                MyText(Format_P_V,_G[V_Font], 0xD6D6D6ff)
 
                 r.ImGui_PopFont(ctx)   
             end
@@ -4114,7 +4156,7 @@
         if is_active then txtclr = 0xEEEEEEff else txtclr = 0xD6D6D6ff end 
 
         if (V_Pos == 'Within' or Lbl_Pos=='Left') and V_Pos~= 'None' and V_Pos ~= 'Free' and V_Pos    then    
-            r.ImGui_DrawList_AddText(draw_list,SldrL+ W/2 - TextW/2 ,SldrT+H/2-5 , FX[FxGUID][Fx_P].V_Clr or  txtclr, Format_P_V  )
+            r.ImGui_DrawList_AddTextEx(draw_list,Arial,FP.V_FontSize or Knob_DefaultFontSize, SldrL+ W/2 - TextW/2 ,SldrT+H/2-5 , FX[FxGUID][Fx_P].V_Clr or  txtclr, Format_P_V  )
         elseif FP.V_Pos == 'Free' then 
             local X = SldrL+ W/2 - TextW/2    local Y = SldrT+H/2-5
             local Ox , Oy = Get
@@ -4146,10 +4188,8 @@
             r.ImGui_SetCursorScreenPos(ctx,SldrR-TextW, Y)
 
             if Style ~= 'Pro C Lookahead' and Style ~= 'Pro C' and (not FX[FxGUID][Fx_P].V_Pos or FX[FxGUID][Fx_P].V_Pos =='Right') then 
-                r.ImGui_PushFont(ctx,Arial_11)   
-                r.ImGui_TextColored(ctx, TxtClr ,Format_P_V )
-                --r.ImGui_DrawList_AddText(draw_list, SldrR-TextW, Y, TxtClr,Format_P_V)
-                r.ImGui_PopFont(ctx)   
+
+                MyText( Format_P_V, _G[V_Font], TxtClr)
             end
 
         end
@@ -10504,8 +10544,9 @@ function loop()
                                                 AddOption('Left', 'Lbl_Pos')
                                                 AddOption('Bottom', 'Lbl_Pos')
                                             elseif FrstSelItm.Type == 'Selection' or FrstSelItm.Type =='Switch' then    
+                                                AddOption('Top', 'Lbl_Pos')
                                                 AddOption('Left', 'Lbl_Pos')    
-                                                AddOption('Within', 'Lbl_Pos')
+                                                if FrstSelItm.Type =='Switch' then AddOption('Within', 'Lbl_Pos') end 
                                                 AddOption('Bottom','Lbl_Pos')
                                                 AddOption('Right','Lbl_Pos')
                                                 AddOption("None",'Lbl_Pos')
@@ -10522,28 +10563,23 @@ function loop()
 
 
                                         r.ImGui_Text(ctx,'Value Pos: ') ;r.ImGui_SameLine(ctx) ; r.ImGui_SetNextItemWidth(ctx, 100   )
-                                        if r.ImGui_BeginCombo( ctx, '## V Pos'..LE.Sel_Items[1],  FrstSelItm.V_Pos or '', r.ImGui_ComboFlags_NoArrowButton()) then
+                                        if r.ImGui_BeginCombo( ctx, '## V Pos'..LE.Sel_Items[1],  FrstSelItm.V_Pos or 'Default', r.ImGui_ComboFlags_NoArrowButton()) then
                                            
-
                                             if FrstSelItm.Type == 'V-Slider' then 
                                                 AddOption('Bottom', 'V_Pos')
                                                 AddOption('Top','V_Pos')
-                                                AddOption('None','V_Pos')
                                             elseif FrstSelItm.Type == 'Knob' then 
                                                 AddOption('Bottom', 'V_Pos')
                                                 AddOption('Within','V_Pos' )
-                                                AddOption('None','V_Pos' )
                                             elseif FrstSelItm.Type == 'Switch' or FrstSelItm.Type == 'Selection'   then
                                                 AddOption('Within','V_Pos' )
-                                                AddOption('None','V_Pos' )
                                             elseif FrstSelItm.Type =='Drag' then 
                                                 AddOption('Right','V_Pos'  )
                                                 AddOption('Within','V_Pos' )
-                                                AddOption('None','V_Pos' )
                                             elseif FrstSelItm.Type == 'Slider'  then 
                                                 AddOption('Right','V_Pos'  )
-                                                AddOption('None','V_Pos' )
                                             end 
+                                            if FrstSelItm.Type ~= 'Selection'  then AddOption('None','V_Pos' ) end 
 
                                             AddOption('Free', 'V_Pos')
 
@@ -10577,26 +10613,8 @@ function loop()
                                        
 
 
-                                        --[[ if FrstSelItm.Type == 'Switch' then 
+                                        if FrstSelItm.Type == 'Switch' then 
                                             
-                                            r.ImGui_Text(ctx,'Value Pos: ') ;r.ImGui_SameLine(ctx); r.ImGui_SetNextItemWidth(ctx,-R_ofs -30)
-                                            if r.ImGui_BeginCombo( ctx, '## V Pos'..LE.Sel_Items[1],  FrstSelItm.V_Pos or 'None', r.ImGui_ComboFlags_NoArrowButton()) then
-                                                if r.ImGui_Selectable(ctx, 'Within')  then  
-                                                    for i, v in pairs(LE.Sel_Items) do   FX[FxGUID][v].V_Pos= 'Within' 
-                                                        if FrstSelItm.Lbl_Pos == 'Within' then FrstSelItm.Lbl_Pos = nil end 
-                                                    end       
-                                                end
-                                                
-                                                if r.ImGui_Selectable(ctx, 'None')  then   
-                                                    for i, v in pairs(LE.Sel_Items) do  FX[FxGUID][v].V_Pos= 'None'  end       
-                                                end
-                                                r.ImGui_EndCombo(ctx)
-                                            end
-                                            r.ImGui_SameLine(ctx)
-                                            local Edited ,V_Clr = r.ImGui_ColorEdit4(ctx, '##V Clr'..LE.Sel_Items[1],FrstSelItm.V_Clr or r.ImGui_GetColor( ctx, r.ImGui_Col_Text())   ,r.ImGui_ColorEditFlags_NoInputs()|    r.ImGui_ColorEditFlags_AlphaPreviewHalf()|r.ImGui_ColorEditFlags_AlphaBar()) 
-                                            if  Edited then 
-                                                for i, v in pairs(LE.Sel_Items) do  FX[FxGUID][v].V_Clr= V_Clr end       
-                                            end
 
                                             local Momentary , Toggle
                                             if FrstSelItm.SwitchType == 'Momentary' then Momentary = true 
@@ -10610,7 +10628,8 @@ function loop()
                                             elseif EdM then 
                                                 for i, v in pairs(LE.Sel_Items) do  FX[FxGUID][v].SwitchType= 'Momentary'  end 
                                             end  
-                                        end  ]]
+
+                                        end 
 
 
 
@@ -10647,18 +10666,12 @@ function loop()
                                                 FX[FxGUID][v].FontSize= ft
                                             end 
                                         end 
-                                        if FrstSelItm.Type == 'Switch' then 
-                                            r.ImGui_SameLine(ctx)
-                                            DragLbl_Clr_Edited ,Lbl_V_Clr = r.ImGui_ColorEdit4(ctx, '##Lbl Clr'..LE.Sel_Items[1],  FX[FxGUID][LE.Sel_Items[1]or''].Lbl_Clr or r.ImGui_GetColor( ctx, r.ImGui_Col_Text())   ,r.ImGui_ColorEditFlags_NoInputs()|    r.ImGui_ColorEditFlags_AlphaPreviewHalf()|r.ImGui_ColorEditFlags_AlphaBar()) 
-                                            if  DragLbl_Clr_Edited then 
-                                                for i, v in pairs(LE.Sel_Items) do  FX[FxGUID][v].Lbl_Clr= Lbl_V_Clr end       
-                                            end
-                                        end
+
                                         
 
                                             
 
-                                        if FrstSelItm.Type == 'Knob' or FrstSelItm.V_Pos=='Free' or FrstSelItm.V_Pos=='Right'  then 
+
                                             SL()
                                             r.ImGui_Text(ctx,'Value Font Size: ') ;r.ImGui_SameLine(ctx)   r.ImGui_SetNextItemWidth(ctx, 50)
                                             local Drag,  ft = r.ImGui_DragDouble( ctx, '##EditV_FontSize'..FxGUID..(LE.Sel_Items[1]or''), FX[FxGUID][LE.Sel_Items[1]].V_FontSize  or Knob_DefaultFontSize, 0.25,6,16, '%.2f')
@@ -10667,7 +10680,7 @@ function loop()
                                                     FX[FxGUID][v].V_FontSize= ft
                                                 end 
                                             end 
-                                        end
+
 
                                         
 
@@ -10857,6 +10870,12 @@ function loop()
                                             local DragLbl_Clr_Edited ,V_Clr = r.ImGui_ColorEdit4(ctx, '##V Clr'..LE.Sel_Items[1],  FX[FxGUID][LE.Sel_Items[1]or''].V_Clr or r.ImGui_GetColor( ctx, r.ImGui_Col_Text())   ,r.ImGui_ColorEditFlags_NoInputs()|    r.ImGui_ColorEditFlags_AlphaPreviewHalf()|r.ImGui_ColorEditFlags_AlphaBar()) 
                                             if  DragLbl_Clr_Edited then 
                                                 for i, v in pairs(LE.Sel_Items) do  FX[FxGUID][v].V_Clr= V_Clr end       
+                                            end
+                                        elseif FrstSelItm.Type == 'Switch'  then
+                                            SL( )r.ImGui_Text(ctx,'On Color: ') r.ImGui_SameLine(ctx)
+                                            local DragLbl_Clr_Edited ,V_Clr = r.ImGui_ColorEdit4(ctx, '##Switch on Clr'..LE.Sel_Items[1],  FX[FxGUID][LE.Sel_Items[1]or''].Switch_On_Clr or r.ImGui_GetColor( ctx, r.ImGui_Col_Text())   ,r.ImGui_ColorEditFlags_NoInputs()|    r.ImGui_ColorEditFlags_AlphaPreviewHalf()|r.ImGui_ColorEditFlags_AlphaBar()) 
+                                            if  DragLbl_Clr_Edited then 
+                                                for i, v in pairs(LE.Sel_Items) do  FX[FxGUID][v].Switch_On_Clr= V_Clr end       
                                             end
                                         end
 
