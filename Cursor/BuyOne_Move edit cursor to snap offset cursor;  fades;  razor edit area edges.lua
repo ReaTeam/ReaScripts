@@ -46,7 +46,11 @@ About: 	The set of scripts is meant to complement
         If certain Razor Edit area covers an item on one track and 
         an envelope on the previous track the script names and selection 
         conditions described above apply as normal.  
-        The Master track is supported for builds 6.72 onwards.
+        The Master track is supported for builds 6.72 onwards.  
+	
+	In the USER SETTINGS you can enable MOVE_VIEW setting so that
+	the the Arrange view scrolls when the edit cursor moves to out
+	of sight areas.
 ]]
 
 -----------------------------------------------------------------------------
