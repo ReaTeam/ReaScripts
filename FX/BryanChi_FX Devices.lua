@@ -1,12 +1,11 @@
 -- @description FX Devices
 -- @author Bryan Chi
--- @version 1.0beta9.4-1
+-- @version 1.0beta9.4-2
 -- @changelog
---   - Fix switch settings for toggle and momentary.
---   - Add color options for switch.
---   - Show property as  ‘default’ for Value Pos when a value is not yet chosen.
---   - Various fixes of font sizes not responding to settings.
---   - Add ‘Top’ label option for switches and selections.
+--   - Fix typo in RemoveFXfromBS function which caused various bugs when moving FX out of Band Splitter
+--   - Fix crash when removing parameter a macro has been assigned to it.
+--   - Fix various bugs when interacting with FX title button.
+--   - Fix Envelope name bug when clicking ‘Automate’
 -- @provides
 --   [effect] BryanChi_FX Devices/FXD Macros.jsfx
 --   [effect] BryanChi_FX Devices/FXD ReSpectrum.jsfx
@@ -53,7 +52,7 @@
 --   https://forum.cockos.com/showthread.php?t=263622
 
 --------------------------==  declare Initial Variables & Functions  ------------------------
-    VersionNumber = 'V1.0beta9.4-1 '
+    VersionNumber = 'V1.0beta9.4-2 '
     FX_Add_Del_WaitTime=2
     r=reaper
 
@@ -5629,7 +5628,7 @@ function loop()
         if FP.WhichMODs then 
             Trk[TrkID].ModPrmInst = Trk[TrkID].ModPrmInst -1 
             FX[FxGUID][Fx_P].WhichCC = nil 
-            r.GetSetMediaTrackInfo_String(LT_Track,'P_EXT: FX'..FxGUID..'WhichCC'..P_Num , FP.WhichCC,true   )  
+            r.GetSetMediaTrackInfo_String(LT_Track,'P_EXT: FX'..FxGUID..'WhichCC'..FP.Num , '',true   )  
 
             FX[FxGUID][Fx_P].WhichMODs = nil 
             r.GetSetMediaTrackInfo_String(LT_Track,'P_EXT: FX'..FxGUID..'Prm'..Fx_P.. 'Linked to which Mods' , '',true   )  
@@ -6340,12 +6339,13 @@ function loop()
                     end ]]
                     if r.ImGui_BeginPopup(ctx, 'Macro'..i..'Menu') then
                         if r.ImGui_Selectable(ctx, 'Automate') then
+                            msg(i)
                             AddMacroJSFX()
                             -- Show Envelope for Morph Slider
 
                             r.GetFXEnvelope(LT_Track, 0, i-1, true)
-                            SetPrmAlias(LT_TrackNum, 1, i-1  ,'Macro'..i) --don't know what this line does, but without it Envelope won't show....
-
+                            SetPrmAlias(LT_TrackNum, 1, i  , Trk[TrkID].Mod[i].Name or ('Macro'..i)) --don't know what this line does, but without it Envelope won't show....
+                            r.UpdateArrange()
                             r.ImGui_CloseCurrentPopup(ctx)
                         end
                         if r.ImGui_Selectable(ctx, 'Set Type to Envelope') then
@@ -6578,6 +6578,7 @@ function loop()
 
                     if SpcIsInPre then 
                         if not tablefind(Trk[TrkID].PreFX, FXGUID[DragFX_ID]) then -- if fx is not in pre fx  
+                            
                             if SpaceIsBeforeRackMixer=='End of PreFX' then 
                                 table.insert(Trk[TrkID].PreFX,#Trk[TrkID].PreFX+1 ,FXGUID[DragFX_ID]) 
                                 r.TrackFX_CopyToTrack( LT_Track, DragFX_ID, LT_Track, FX_Idx+1, true  )
@@ -7164,6 +7165,7 @@ function loop()
 
                 if rv then 
                     if not tablefind(Trk[TrkID].PreFX,   FXGUID[DragFX_ID]) then
+                        msg('not in pre')
                         table.insert(Trk[TrkID].PreFX,   FXGUID[DragFX_ID]) 
                         r.GetSetMediaTrackInfo_String(LT_Track, 'P_EXT: PreFX '..#Trk[TrkID].PreFX, FXGUID[DragFX_ID], true)
                     end
@@ -7629,7 +7631,7 @@ function loop()
                                     r.ImGui_SetCursorPosX(ctx,VP.X+VP.w- (FX[FxGUID].PostWin_SzX or 0)) ]]
                                 end
 
-                                if  r.ImGui_BeginChild(ctx, FX_Name..FX_Idx, FX.WidthCollapse[FX_Idx] or  FX.Width[FXGUID[FX_Idx]] or DefaultWidth,220, nil, r.ImGui_WindowFlags_NoScrollWithMouse() |r.ImGui_WindowFlags_NoScrollbar()) and not Hide then    ----START CHILD WINDOW------
+                                if  r.ImGui_BeginChild(ctx, FX_Name..FX_Idx, FX.WidthCollapse[FxGUID] or  FX.Width[FXGUID[FX_Idx]] or DefaultWidth,220, nil, r.ImGui_WindowFlags_NoScrollWithMouse() |r.ImGui_WindowFlags_NoScrollbar()) and not Hide then    ----START CHILD WINDOW------
 
                                     if Draw[FxNameS]~= nil then 
                                         local D = Draw[FxNameS]
@@ -7870,6 +7872,7 @@ function loop()
                                     else WinbtnClrPop=1 
                                     end
 
+                                    local WindowBtn
                                     --[[ r.ImGui_PushStyleColor(ctx, ) ]]
                                     if FX[FxGUID].Collapse~= true then 
                                         if string.find(FX_Name, 'Pro Q 3')~= nil then 
@@ -7902,7 +7905,7 @@ function loop()
 
                                     else  -- if collapsed
                                         
-                                        FX.WidthCollapse[FX_Idx]= 27
+                                        FX.WidthCollapse[FxGUID]= 27
 
                                         local Name = ChangeFX_Name(FX_Name)
 
@@ -7914,7 +7917,7 @@ function loop()
                                         reaper.ImGui_PushStyleVar( ctx,  BtnTxtAlign, 0.5 , 0.2)  --StyleVar#3
                                         r.ImGui_SameLine(ctx,nil, 0)
 
-                                        rv = r.ImGui_Button(ctx,Name_V_NoManuFacturer, 25, 220 )
+                                        WindowBtn = r.ImGui_Button(ctx,Name_V_NoManuFacturer, 25, 220 )
 
                                         
                                         r.ImGui_PopStyleVar(ctx)        --StyleVar#3 POP
@@ -7932,7 +7935,7 @@ function loop()
                                         r.ImGui_OpenPopup(ctx, 'Fx Module Menu') 
                                     elseif R_ClickOnWindowBtn and Mods == 0 then 
                                         FX[FxGUID].Collapse= toggle(FX[FxGUID].Collapse )
-                                        if not FX[FxGUID].Collapse then   FX.WidthCollapse[FX_Idx]= nil end 
+                                        if not FX[FxGUID].Collapse then   FX.WidthCollapse[FxGUID]= nil end 
                                     elseif R_ClickOnWindowBtn and Mods == Alt then 
                                         -- check if all are collapsed 
                                         local All_Collapsed 
@@ -7945,7 +7948,7 @@ function loop()
                                             end 
                                         else  -- if all is collapsed 
                                             for i=0, Sel_Track_FX_Count-1, 1 do 
-                                                FX[FXGUID[i]].Collapse = false   FX.WidthCollapse[i]= nil 
+                                                FX[FXGUID[i]].Collapse = false   FX.WidthCollapse[FXGUID[i]]= nil 
                                             end 
                                             BlinkFX = FX_Idx
                                         end
@@ -13169,10 +13172,10 @@ function loop()
                         local FxID =tablefind(FX[FXGUID[FX_Idx]].FXsInBS, FXGUID[DragFX_ID])
                         if FxID then 
                             table.remove(FX[FXGUID[FX_Idx]].FXsInBS, FxID) 
-                            FX[FXGUID[FxID]].InWhichBand = nil 
-                            r.GetSetMediaTrackInfo_String(LT_Track,'P_EXT: FX is in which BS'..FXGUID[FxID], '' , true  )  
-                            r.GetSetMediaTrackInfo_String(LT_Track,'P_EXT: FX is in which Band'..FXGUID[FxID], '', true  )  
-
+                            FX[FXGUID[DragFX_ID]].InWhichBand = nil 
+                            r.GetSetMediaTrackInfo_String(LT_Track,'P_EXT: FX is in which BS'..FXGUID[DragFX_ID], '' , true  )  
+                            r.GetSetMediaTrackInfo_String(LT_Track,'P_EXT: FX is in which Band'..FXGUID[DragFX_ID], '', true  )  
+                            msg('\n remove from bs')
                         end 
                     end
                 end
@@ -13281,7 +13284,7 @@ function loop()
                                 r.ImGui_SameLine(ctx,nil,0)
 
                                 FX[FXGUID[I]].PostWin_SzX,_ = r.ImGui_GetItemRectSize(ctx)
-                                Trk[TrkID].MakeSpcForPostFXchain = (Trk[TrkID].MakeSpcForPostFXchain or 0) +  (FX.WidthCollapse[I] or  FX.Width[FXGUID[I]] or DefaultWidth ) + 10
+                                Trk[TrkID].MakeSpcForPostFXchain = (Trk[TrkID].MakeSpcForPostFXchain or 0) +  (FX.WidthCollapse[FXGUID[I]] or  FX.Width[FXGUID[I]] or DefaultWidth ) + 10
                                 
                                 if FX_Idx == #Trk[TrkID].PostFX then AddSpaceBtwnFXs(I,'SpcInPost',nil,nil, #Trk[TrkID].PostFX+1) 
                                 else AddSpaceBtwnFXs(I,'SpcInPost',nil,nil, FX_Idx+1) 
