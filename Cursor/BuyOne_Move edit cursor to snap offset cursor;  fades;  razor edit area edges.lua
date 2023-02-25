@@ -7,7 +7,7 @@ Changelog: Initial release
 Licence: WTFPL
 REAPER: at least v5.962
 Metapackage: true
-Provides: 	. > BuyOne_Move edit cursor right to snap offset cursor in items.lua
+Provides:   . > BuyOne_Move edit cursor right to snap offset cursor in items.lua
             . > BuyOne_Move edit cursor left to snap offset cursor in items.lua
             . > BuyOne_Move edit cursor right to fade in items.lua
             . > BuyOne_Move edit cursor left to fade in items.lua
