@@ -1,11 +1,12 @@
 --[[
-ReaScript name: Move edit cursor to snap offset cursor / fades / take markers / Razor Edit area edges (12 scripts)
+ReaScript name: Move edit cursor to snap offset cursor / fades / take|stretch markers / media cues / Razor Edit area edges (16 scripts)
 Author: BuyOne
 Website: https://forum.cockos.com/member.php?u=134058
 Version: 1.0
 Changelog: Initial release
 Licence: WTFPL
 REAPER: at least v5.962
+Extensions: SWS/S&M for media cue navigation scripts
 Metapackage: true
 Provides: 	. > BuyOne_Move edit cursor right to snap offset cursor in items.lua
 		. > BuyOne_Move edit cursor left to snap offset cursor in items.lua
@@ -13,6 +14,10 @@ Provides: 	. > BuyOne_Move edit cursor right to snap offset cursor in items.lua
 		. > BuyOne_Move edit cursor left to fade in items.lua
 		. > BuyOne_Move edit cursor right to take marker.lua
 		. > BuyOne_Move edit cursor left to take marker.lua
+		. > BuyOne_Move edit cursor right to stretch marker.lua
+		. > BuyOne_Move edit cursor left to stretch marker.lua
+		. > BuyOne_Move edit cursor right to media cue.lua
+		. > BuyOne_Move edit cursor left to media cue.lua
 		. > BuyOne_Move edit cursor right to edge of Razor Edit area.lua
 		. > BuyOne_Move edit cursor left to edge of Razor Edit area.lua
 		. > BuyOne_Move edit cursor right to edge of item Razor Edit area.lua
@@ -22,16 +27,20 @@ Provides: 	. > BuyOne_Move edit cursor right to snap offset cursor in items.lua
 About: 	The set of scripts is meant to complement 
 	REAPER stock navigation actions.  
 
-	► Snap offset cursor & Fades & Take markers
+	► Snap offset cursor, Fades, Take/Stretch markers & Media cues
 
 	Scripts which move the edit cursor to snap offset cursor 
 	and fades in items only apply to selected items if any
 	are selected, otherwise they move the edit cursor to snap 
 	offset cursor and fades in all items.  
-	Scripts which move the edit cursor to take markers additionally 
-	only apply to active take in items.  
-	If any tracks are selected these scripts only apply to items
-	on selected tracks.  
+	Scripts which move the edit cursor to take/stretch markers
+	and media cues additionally only apply to active take in items.  
+	If any tracks are selected, these scripts only apply to items
+	on selected tracks provided no items are selected or all items 
+	which are selected belong to selected tracks.  
+	!!! The scripts will get stuck if simultaneously on the one 
+	hand there're no selected items on selected tracks and on the 
+	other tracks of selected items are not selected !!!  
 	Snap offset cursor position is only respected if it differs
 	from item start.  
 
@@ -183,11 +192,53 @@ local itm_cnt = sel_itm_cnt > 0 and sel_itm_cnt or GetItem and r.CountMediaItems
 end
 
 
-function Move_EditCur_To_TakeMarkers(dir, sel_tracks, curs_undo)
+function Error_Tooltip(text)
+local x, y = r.GetMousePosition()
+--r.TrackCtl_SetToolTip(text:upper(), x, y, true) -- topmost true
+r.TrackCtl_SetToolTip(text:upper():gsub('.','%0 '), x, y, true) -- spaced out // topmost true
+end
+
+function Move_EditCur_To_TakeOrStretch_Marker(dir, sel_tracks, curs_undo, wantstretchmarkers, wantmediacues) -- wantstretchmarkers and wantmediacues are booleans to target stretch markers and media cues
 -- dir is string 'right' or 'left' taken from the script name
 -- if sel_tracks true only applies to items on selected tracks, see next condition
 -- if some items are selected, only applies to them, otherwise to all items either on selected or all tracks depending on the above condition
 -- only applies to active takes
+
+	local function CollectTakeOrStretchMarkersOrMediaCues(t, act_take, mrkr_cnt, itm_pos, itm_end, startoffs, playrate, wantstretchmarkers, wantmediacues)
+		if wantstretchmarkers or not wantstretchmarkers and not wantmediacues then
+		local GetMarker = not wantstretchmarkers and r.GetTakeMarker or r.GetTakeStretchMarker
+			for i = 0, mrkr_cnt-1 do
+			local take_mrkr_pos, stretch_mrkr_pos = GetMarker(act_take, i)
+			local mrkr_pos = not wantstretchmarkers and take_mrkr_pos or stretch_mrkr_pos
+			local startoffs = not wantstretchmarkers and startoffs or 0 -- for stretch_mrkr_pos val start offset is irrelevant because it's relative to item start, its position in source value is ignored here, start offset would be relevant if that value were used
+			local mrkr_pos = itm_pos + (mrkr_pos - startoffs)/playrate -- calculate pos of marker in project
+				if mrkr_pos >= itm_pos and mrkr_pos <= itm_end then -- if visible
+				t[#t+1] = mrkr_pos
+				end
+			end
+		elseif wantmediacues and r.APIExists('CF_EnumMediaSourceCues') then
+		local src = r.GetMediaItemTake_Source(act_take)
+		local sect, startoffs, len, rev = r.PCM_Source_GetSectionInfo(src) -- if sect is false src_startoffs and src_len are 0
+		local src = (sect or rev) and r.GetMediaSourceParent(src) or src -- retrieve original media source if section or reversed
+		local i = 0 -- to start at 0 because CF_EnumMediaSourceCues returns props of the next media cue
+			repeat
+			local retval, pos, endTime, isRegion, name = r.CF_EnumMediaSourceCues(src, i)
+				if retval > 0 then
+				local pos = itm_pos + (pos - startoffs)/playrate
+				local endTime = itm_pos + (endTime - startoffs)/playrate
+					if pos >= itm_pos and pos <= itm_end then
+					t[#t+1] = pos
+					end
+					if isRegion and endTime >= itm_pos and endTime <= itm_end then
+					t[#t+1] = endTime
+					end
+				end
+			i = i+1
+			until retval == 0
+		elseif not r.APIExists('CF_EnumMediaSourceCues') then
+		Error_Tooltip('\n\n       The script requires \n\n SWS/S&M extension to work. \n\n')
+		end
+	end
 
 local right = dir:match('right')
 local left = dir:match('left')
@@ -202,7 +253,7 @@ local itm_cnt = sel_itm_cnt > 0 and sel_itm_cnt or GetItem and r.CountMediaItems
 		for i = 0, itm_cnt-1 do
 		local item = GetItem(0,i)
 		local act_take = r.GetActiveTake(item)
-		local mrkr_cnt = r.GetNumTakeMarkers(act_take)
+		local mrkr_cnt = wantmediacues and 1 or not wantstretchmarkers and r.GetNumTakeMarkers(act_take) or r.GetTakeNumStretchMarkers(act_take) -- media cues cannot be counted without direct enumeration hence a value greater than 0 is assigned to make the routine go through
 			if mrkr_cnt > 0 then
 			local itm_pos = GetVal(item, 'D_POSITION')
 			local itm_end = itm_pos + GetVal(item, 'D_LENGTH')
@@ -212,14 +263,8 @@ local itm_cnt = sel_itm_cnt > 0 and sel_itm_cnt or GetItem and r.CountMediaItems
 			local retval, tr_flags = r.GetTrackState(itm_tr)
 			local tr_vis = tr_flags&512 ~= 512 -- visible in TCP
 			local is_track_sel = r.IsTrackSelected(itm_tr)
-				if tr_vis and (sel_tracks and is_track_sel or not sel_tracks) then 
-					for i = 0, mrkr_cnt-1 do
-					local mrkr_pos, name, color = reaper.GetTakeMarker(act_take, i)
-					local mrkr_pos = itm_pos + (mrkr_pos - startoffs)/playrate -- calculate pos of marker in project
-						if mrkr_pos >= itm_pos and mrkr_pos <= itm_end then -- if visible
-						t[#t+1] = mrkr_pos
-						end
-					end				
+				if tr_vis and (sel_tracks and is_track_sel or not sel_tracks) then
+				CollectTakeOrStretchMarkersOrMediaCues(t, act_take, mrkr_cnt, itm_pos, itm_end, startoffs, playrate, wantstretchmarkers, wantmediacues)
 				end
 			 end
 		end
@@ -228,9 +273,9 @@ local itm_cnt = sel_itm_cnt > 0 and sel_itm_cnt or GetItem and r.CountMediaItems
 
 		if curs_undo and #t > 0 then r.Undo_BeginBlock() end
 
-		for _, snapoffs in ipairs(t) do
-			if right and snapoffs > edit_cur_pos or left and snapoffs < edit_cur_pos then
-			r.SetEditCurPos(snapoffs, MOVE_VIEW, false) -- moveview, seekplay false // if moveview is true only moves if the time point is out of sight
+		for _, val in ipairs(t) do
+			if right and val > edit_cur_pos or left and val < edit_cur_pos then
+			r.SetEditCurPos(val, MOVE_VIEW, false) -- moveview, seekplay false // if moveview is true only moves if the time point is out of sight
 			break end
 		end
 
@@ -354,7 +399,7 @@ end
 
 local _, scr_name, sect_ID, cmd_ID, _,_,_ = r.get_action_context() -- UNCOMMENT !!!!!!
 local scr_name = scr_name:match('[^\\/]+_(.+)%.%w+') -- without path, scripter name & ext
-local type_t = {'snap offset', 'fade', 'take marker', 'Razor Edit'}
+local type_t = {'snap offset', 'fade', 'take marker', 'stretch marker', 'media cue', 'Razor Edit'}
 
 -- validate script name
 local no_elm1 = Invalid_Script_Name(scr_name,table.unpack(type_t))
@@ -383,7 +428,11 @@ local curs_undo = GetUndoSettings()[4] -- only create a meaningful undo point if
 	elseif Type == 'fade' then
 	Move_EditCur_To_Fade(scr_name, sel_tracks, curs_undo) -- dir arg is scr_name, sel_track flag depends on presence of selected tracks
 	elseif Type == 'take marker' then
-	Move_EditCur_To_TakeMarkers(scr_name, sel_tracks, curs_undo)	
+	Move_EditCur_To_TakeOrStretch_Marker(scr_name, sel_tracks, curs_undo)
+	elseif Type == 'stretch marker' then
+	Move_EditCur_To_TakeOrStretch_Marker(scr_name, sel_tracks, curs_undo, true) -- wantstretchmarkers true
+	elseif Type == 'media cue' then
+	Move_EditCur_To_TakeOrStretch_Marker(scr_name, sel_tracks, curs_undo, wantstretchmarkers, true) -- wantmediacues true
 	elseif Type == 'Razor Edit' then
 	Move_EditCur_To_RazEdAreaEdge(scr_name, scr_name:match('item'), scr_name:match('envelope'), curs_undo) -- dir arg is scr_name, items & envs booleans are obtained from scr_name capture
 	end
