@@ -1,5 +1,5 @@
 --[[
-ReaScript name: Move edit cursor to snap offset cursor / fades / Razor Edit area edges (10 scripts)
+ReaScript name: Move edit cursor to snap offset cursor / fades / take markers / Razor Edit area edges (12 scripts)
 Author: BuyOne
 Website: https://forum.cockos.com/member.php?u=134058
 Version: 1.0
@@ -11,6 +11,8 @@ Provides: 	. > BuyOne_Move edit cursor right to snap offset cursor in items.lua
 		. > BuyOne_Move edit cursor left to snap offset cursor in items.lua
 		. > BuyOne_Move edit cursor right to fade in items.lua
 		. > BuyOne_Move edit cursor left to fade in items.lua
+		. > BuyOne_Move edit cursor right to take marker.lua
+		. > BuyOne_Move edit cursor left to take marker.lua
 		. > BuyOne_Move edit cursor right to edge of Razor Edit area.lua
 		. > BuyOne_Move edit cursor left to edge of Razor Edit area.lua
 		. > BuyOne_Move edit cursor right to edge of item Razor Edit area.lua
@@ -20,12 +22,14 @@ Provides: 	. > BuyOne_Move edit cursor right to snap offset cursor in items.lua
 About: 	The set of scripts is meant to complement 
 	REAPER stock navigation actions.  
 
-	► Snap offset cursor & Fades
+	► Snap offset cursor & Fades & Take markers
 
 	Scripts which move the edit cursor to snap offset cursor 
 	and fades in items only apply to selected items if any
 	are selected, otherwise they move the edit cursor to snap 
 	offset cursor and fades in all items.  
+	Scripts which move the edit cursor to take markers additionally 
+	only apply to active take in items.  
 	If any tracks are selected these scripts only apply to items
 	on selected tracks.  
 	Snap offset cursor position is only respected if it differs
@@ -102,8 +106,8 @@ local itm_cnt = sel_itm_cnt > 0 and sel_itm_cnt or GetItem and r.CountMediaItems
 		local retval, tr_flags = r.GetTrackState(itm_tr)
 		local tr_vis = tr_flags&512 ~= 512 -- visible in TCP
 		local is_track_sel = r.IsTrackSelected(itm_tr)
-		  if tr_vis and (sel_tracks and is_track_sel or not sel_tracks)
-		  and snapoffs ~= pos then t[#t+1] = snapoffs end
+			if tr_vis and (sel_tracks and is_track_sel or not sel_tracks)
+			and snapoffs ~= pos then t[#t+1] = snapoffs end
 		end
 
 		if right then table.sort(t) elseif left then table.sort(t, function(a,b) return a > b end) end
@@ -119,7 +123,7 @@ local itm_cnt = sel_itm_cnt > 0 and sel_itm_cnt or GetItem and r.CountMediaItems
 	local edit_cur_pos_new = r.GetCursorPosition()
 
 		if curs_undo and edit_cur_pos_new ~= edit_cur_pos then
-		r.Undo_EndBlock(dir, -1) end -- dir argument is the script name
+		r.Undo_EndBlock(dir..' at '..r.format_timestr(edit_cur_pos_new, ''), -1) end -- dir argument is the script name
 
 	end
 
@@ -172,11 +176,73 @@ local itm_cnt = sel_itm_cnt > 0 and sel_itm_cnt or GetItem and r.CountMediaItems
 	local edit_cur_pos_new = r.GetCursorPosition()
 
 		if curs_undo and edit_cur_pos_new ~= edit_cur_pos then
-		r.Undo_EndBlock(dir, -1) end -- dir argument is the script name
+		r.Undo_EndBlock(dir..' at '..r.format_timestr(edit_cur_pos_new, ''), -1) end -- dir argument is the script name
 
 	end
 
 end
+
+
+function Move_EditCur_To_TakeMarkers(dir, sel_tracks, curs_undo)
+-- dir is string 'right' or 'left' taken from the script name
+-- if sel_tracks true only applies to items on selected tracks, see next condition
+-- if some items are selected, only applies to them, otherwise to all items either on selected or all tracks depending on the above condition
+-- only applies to active takes
+
+local right = dir:match('right')
+local left = dir:match('left')
+local edit_cur_pos = r.GetCursorPosition()
+local sel_itm_cnt = r.CountSelectedMediaItems(0)
+local GetItem = sel_itm_cnt > 0 and r.GetSelectedMediaItem or r.GetMediaItem(0,0) and r.GetMediaItem
+local itm_cnt = sel_itm_cnt > 0 and sel_itm_cnt or GetItem and r.CountMediaItems(0) or 0
+
+	if itm_cnt > 0 then
+	local GetVal, GetTakeVal = r.GetMediaItemInfo_Value, r.GetMediaItemTakeInfo_Value
+	local t = {}
+		for i = 0, itm_cnt-1 do
+		local item = GetItem(0,i)
+		local act_take = r.GetActiveTake(item)
+		local mrkr_cnt = r.GetNumTakeMarkers(act_take)
+			if mrkr_cnt > 0 then
+			local itm_pos = GetVal(item, 'D_POSITION')
+			local itm_end = itm_pos + GetVal(item, 'D_LENGTH')
+			local startoffs = GetTakeVal(act_take, 'D_STARTOFFS')
+			local playrate = GetTakeVal(act_take, 'D_PLAYRATE')
+			local itm_tr = r.GetMediaItemTrack(item)
+			local retval, tr_flags = r.GetTrackState(itm_tr)
+			local tr_vis = tr_flags&512 ~= 512 -- visible in TCP
+			local is_track_sel = r.IsTrackSelected(itm_tr)
+				if tr_vis and (sel_tracks and is_track_sel or not sel_tracks) then 
+					for i = 0, mrkr_cnt-1 do
+					local mrkr_pos, name, color = reaper.GetTakeMarker(act_take, i)
+					local mrkr_pos = itm_pos + (mrkr_pos - startoffs)/playrate -- calculate pos of marker in project
+						if mrkr_pos >= itm_pos and mrkr_pos <= itm_end then -- if visible
+						t[#t+1] = mrkr_pos
+						end
+					end				
+				end
+			 end
+		end
+
+		if right then table.sort(t) elseif left then table.sort(t, function(a,b) return a > b end) end
+
+		if curs_undo and #t > 0 then r.Undo_BeginBlock() end
+
+		for _, snapoffs in ipairs(t) do
+			if right and snapoffs > edit_cur_pos or left and snapoffs < edit_cur_pos then
+			r.SetEditCurPos(snapoffs, MOVE_VIEW, false) -- moveview, seekplay false // if moveview is true only moves if the time point is out of sight
+			break end
+		end
+
+	local edit_cur_pos_new = r.GetCursorPosition()
+
+		if curs_undo and edit_cur_pos_new ~= edit_cur_pos then
+		r.Undo_EndBlock(dir..' at '..r.format_timestr(edit_cur_pos_new, ''), -1) end -- dir argument is the script name
+
+	end
+
+end
+
 
 
 function REAPER_Ver_Check(build) -- build is REAPER build number, the function must be followed by 'do return end'
@@ -239,7 +305,7 @@ local t = {}
 	local edit_cur_pos_new = r.GetCursorPosition()
 
 		if curs_undo and edit_cur_pos_new ~= edit_cur_pos then
-		r.Undo_EndBlock(dir, -1)  -- dir argument is the script name
+		r.Undo_EndBlock(dir..' at '..r.format_timestr(edit_cur_pos_new, ''), -1)  -- dir argument is the script name
 		end
 
 end
@@ -286,9 +352,9 @@ return (' '):rep(n)
 end
 
 
-local _, scr_name, sect_ID, cmd_ID, _,_,_ = r.get_action_context()
+local _, scr_name, sect_ID, cmd_ID, _,_,_ = r.get_action_context() -- UNCOMMENT !!!!!!
 local scr_name = scr_name:match('[^\\/]+_(.+)%.%w+') -- without path, scripter name & ext
-local type_t = {'snap offset', 'fade', 'Razor Edit'}
+local type_t = {'snap offset', 'fade', 'take marker', 'Razor Edit'}
 
 -- validate script name
 local no_elm1 = Invalid_Script_Name(scr_name,table.unpack(type_t))
@@ -310,13 +376,14 @@ MOVE_VIEW = #MOVE_VIEW:gsub(' ','') > 0
 
 local sel_tracks = r.CountSelectedTracks(0) > 0
 
-local curs_undo = GetUndoSettings()[4] -- only create undo point if edit cursor pos is saved in the undo state as per the Preferences
-
+local curs_undo = GetUndoSettings()[4] -- only create a meaningful undo point if edit cursor pos is saved in the undo state as per the Preferences
 
 	if Type == 'snap offset' then
 	Move_EditCur_To_SnapoffsetCur(scr_name, sel_tracks, curs_undo) -- dir arg is scr_name, sel_track boolean depends on presence of selected tracks
 	elseif Type == 'fade' then
 	Move_EditCur_To_Fade(scr_name, sel_tracks, curs_undo) -- dir arg is scr_name, sel_track flag depends on presence of selected tracks
+	elseif Type == 'take marker' then
+	Move_EditCur_To_TakeMarkers(scr_name, sel_tracks, curs_undo)	
 	elseif Type == 'Razor Edit' then
 	Move_EditCur_To_RazEdAreaEdge(scr_name, scr_name:match('item'), scr_name:match('envelope'), curs_undo) -- dir arg is scr_name, items & envs booleans are obtained from scr_name capture
 	end
