@@ -7,50 +7,54 @@ Changelog: Initial release
 Licence: WTFPL
 REAPER: at least v5.962
 Metapackage: true
-Provides:   . > BuyOne_Move edit cursor right to snap offset cursor in items.lua
-            . > BuyOne_Move edit cursor left to snap offset cursor in items.lua
-            . > BuyOne_Move edit cursor right to fade in items.lua
-            . > BuyOne_Move edit cursor left to fade in items.lua
-            . > BuyOne_Move edit cursor right to edge of Razor Edit area.lua
-            . > BuyOne_Move edit cursor left to edge of Razor Edit area.lua
-            . > BuyOne_Move edit cursor right to edge of item Razor Edit area.lua
-            . > BuyOne_Move edit cursor left to edge of item Razor Edit area.lua
-            . > BuyOne_Move edit cursor right to edge of envelope Razor Edit area.lua
-            . > BuyOne_Move edit cursor left to edge of envelope Razor Edit area.lua
+Provides: 	. > BuyOne_Move edit cursor right to snap offset cursor in items.lua
+		. > BuyOne_Move edit cursor left to snap offset cursor in items.lua
+		. > BuyOne_Move edit cursor right to fade in items.lua
+		. > BuyOne_Move edit cursor left to fade in items.lua
+		. > BuyOne_Move edit cursor right to edge of Razor Edit area.lua
+		. > BuyOne_Move edit cursor left to edge of Razor Edit area.lua
+		. > BuyOne_Move edit cursor right to edge of item Razor Edit area.lua
+		. > BuyOne_Move edit cursor left to edge of item Razor Edit area.lua
+		. > BuyOne_Move edit cursor right to edge of envelope Razor Edit area.lua
+		. > BuyOne_Move edit cursor left to edge of envelope Razor Edit area.lua
 About: 	The set of scripts is meant to complement 
-        REAPER stock navigation actions.  
+	REAPER stock navigation actions.  
 
-        ► Snap offset cursor & Fades  
+	► Snap offset cursor & Fades
 
-        Scripts which move the edit cursor to snap offset cursor 
-        and fades in items only apply to selected items if any
-        are selected, otherwise they move the edit cursor to snap 
-        offset cursor and fades in all items.  
-        If any tracks are selected these scripts only apply to items
-        on selected tracks.  
-        Snap offset cursor position is only respected if it differs
-        from item start.  
+	Scripts which move the edit cursor to snap offset cursor 
+	and fades in items only apply to selected items if any
+	are selected, otherwise they move the edit cursor to snap 
+	offset cursor and fades in all items.  
+	If any tracks are selected these scripts only apply to items
+	on selected tracks.  
+	Snap offset cursor position is only respected if it differs
+	from item start.  
 
-        ► Razor Edit areas  
+	► Razor Edit areas
 
-        Scripts which move the edit cursor to Razor Edit area edges
-        only apply to these on selected tracks if any are selected,
-        otherwise they apply to Razor Edit area edges on all tracks. 
-        If certain Razor Edit area covers both item and envelope on 
-        the same track the scripts don't dicriminate between them 
-        and move the edit cursor to the area edges regardless of the 
-        script name, however track selection condition applies.  
-        If certain Razor Edit area covers items and envelopes on 
-        multiple tracks, neither script names nor track selection 
-        condition apply, the edit cursor will always move to its edges.  
-        If certain Razor Edit area covers an item on one track and 
-        an envelope on the previous track the script names and selection 
-        conditions described above apply as normal.  
-        The Master track is supported for builds 6.72 onwards.  
-	
+	Scripts which move the edit cursor to Razor Edit area edges
+	only apply to these on selected tracks if any are selected,
+	otherwise they apply to Razor Edit area edges on all tracks. 
+	If certain Razor Edit area covers both item and envelope on 
+	the same track the scripts don't dicriminate between them 
+	and move the edit cursor to the area edges regardless of the 
+	script name, however track selection condition applies.  
+	If certain Razor Edit area covers items and envelopes on 
+	multiple tracks, neither script names nor track selection 
+	condition apply, the edit cursor will always move to its edges.  
+	If certain Razor Edit area covers an item on one track and 
+	an envelope on the previous track the script names and selection 
+	conditions described above apply as normal.  
+	The Master track is supported for builds 6.72 onwards.  
+
 	In the USER SETTINGS you can enable MOVE_VIEW setting so that
 	the the Arrange view scrolls when the edit cursor moves to out
-	of sight areas.
+	of sight areas.  
+
+	In line with behavior of the stock navigation actions, the scripts 
+	only createmeaningful undo points if 'cursor position' option
+	is enabled at Preferences -> General -> Undo settings.
 ]]
 
 -----------------------------------------------------------------------------
@@ -58,9 +62,9 @@ About: 	The set of scripts is meant to complement
 -----------------------------------------------------------------------------
 -- To enable settings insert any alphanumeric character between the quotes
 
--- Enable to make the Arrange view scroll when the time point 
+-- Enable to make the Arrange view scroll when the time point
 -- the cursor moves to is out of sight
-MOVE_VIEW = ""
+MOVE_VIEW = "1"
 
 -----------------------------------------------------------------------------
 -------------------------- END OF USER SETTINGS -----------------------------
@@ -75,7 +79,7 @@ reaper.ShowConsoleMsg(cap..tostring(param)..'\n')
 end
 
 
-function Move_EditCur_To_SnapoffsetCur(dir, sel_tracks) -- if snap offset differs from item start
+function Move_EditCur_To_SnapoffsetCur(dir, sel_tracks, curs_undo) -- if snap offset differs from item start
 -- dir is string 'right' or 'left' taken from the script name
 -- if sel_tracks true only applies to items on selected tracks, see next condition
 -- if some items are selected, only applies to them, otherwise to all items either on selected or all tracks depending on the above condition
@@ -104,17 +108,25 @@ local itm_cnt = sel_itm_cnt > 0 and sel_itm_cnt or GetItem and r.CountMediaItems
 
 		if right then table.sort(t) elseif left then table.sort(t, function(a,b) return a > b end) end
 
+		if curs_undo and #t > 0 then r.Undo_BeginBlock() end
+
 		for _, snapoffs in ipairs(t) do
 			if right and snapoffs > edit_cur_pos or left and snapoffs < edit_cur_pos then
 			r.SetEditCurPos(snapoffs, MOVE_VIEW, false) -- moveview, seekplay false // if moveview is true only moves if the time point is out of sight
 			break end
 		end
+
+	local edit_cur_pos_new = r.GetCursorPosition()
+
+		if curs_undo and edit_cur_pos_new ~= edit_cur_pos then
+		r.Undo_EndBlock(dir, -1) end -- dir argument is the script name
+
 	end
 
 end
 
 
-function Move_EditCur_To_Fade(dir, sel_tracks)
+function Move_EditCur_To_Fade(dir, sel_tracks, curs_undo)
 -- dir is string 'right' or 'left' taken from the script name
 -- if sel_tracks true only applies to items on selected tracks, see next condition
 -- if some items are selected, only applies to them, otherwise to all items either on selected or all tracks depending on the above condition
@@ -147,13 +159,20 @@ local itm_cnt = sel_itm_cnt > 0 and sel_itm_cnt or GetItem and r.CountMediaItems
 			end
 		end
 
-	if right then table.sort(t) elseif left then table.sort(t, function(a,b) return a > b end) end
+		if right then table.sort(t) elseif left then table.sort(t, function(a,b) return a > b end) end
+
+		if curs_undo and #t > 0 then r.Undo_BeginBlock() end
 
 		for _, fade in ipairs(t) do
 		if right and fade > edit_cur_pos or left and fade < edit_cur_pos then
 		r.SetEditCurPos(fade, MOVE_VIEW, false) -- moveview, seekplay false // if moveview is true only moves if the time point is out of sight
 		break end
 		end
+
+	local edit_cur_pos_new = r.GetCursorPosition()
+
+		if curs_undo and edit_cur_pos_new ~= edit_cur_pos then
+		r.Undo_EndBlock(dir, -1) end -- dir argument is the script name
 
 	end
 
@@ -170,7 +189,7 @@ function REAPER_Ver_Check(build) -- build is REAPER build number, the function m
 	end
 end
 
-function Move_EditCur_To_RazEdAreaEdge(dir, items, envs)
+function Move_EditCur_To_RazEdAreaEdge(dir, items, envs, curs_undo)
 -- if any tracks are selected only applies to RazEd areas on them, otherwise to RazEd areas on all tracks
 -- if items and envs are both true or both are false, the function applies to both item and env RazEd areas
 
@@ -209,33 +228,97 @@ local t = {}
 
 	if right then table.sort(t) elseif left then table.sort(t, function(a,b) return a > b end) end
 
+	if curs_undo and #t > 0 then r.Undo_BeginBlock() end
+
 	for _, raz_edge in ipairs(t) do
 		if right and raz_edge > edit_cur_pos or left and raz_edge < edit_cur_pos then
 		r.SetEditCurPos(raz_edge, MOVE_VIEW, false) -- moveview, seekplay false // if moveview is true only moves if the time point is out of sight
 		break end
 	end
 
+	local edit_cur_pos_new = r.GetCursorPosition()
+
+		if curs_undo and edit_cur_pos_new ~= edit_cur_pos then
+		r.Undo_EndBlock(dir, -1)  -- dir argument is the script name
+		end
+
 end
 
 
+function GetUndoSettings()
+-- Checking settings at Preferences -> General -> Undo settings -> Include selection:
+-- thanks to Mespotine https://mespotin.uber.space/Ultraschall/Reaper_Config_Variables.html
+-- https://github.com/mespotine/ultraschall-and-reaper-docs/blob/master/Docs/Reaper-ConfigVariables-Documentation.txt
+local f = io.open(r.get_ini_file(),'r')
+local cont = f:read('*a')
+f:close()
+local undoflags = cont:match('undomask=(%d+)')
+local t = {
+1, -- item selection
+2, -- time selection
+4, -- full undo, keep the newest state
+8, -- cursor pos
+16, -- track selection
+32 -- env point selection
+}
+	for k, bit in ipairs(t) do
+	t[k] = undoflags&bit == bit
+	end
+return t
+end
+
+
+function Invalid_Script_Name(scr_name,...)
+-- check if necessary elements are found in script name
+-- if more than 1 match is needed run twice with different sets of elements which are supposed to appear in the same name, but elements within each set must not be expected to appear in the same name
+local t = {...}
+
+	for k, v in ipairs(t) do
+		if scr_name:match(v) then return end -- at least one match was found
+	end
+
+return true
+
+end
+
+function Rep(n) -- number of repeats, integer
+return (' '):rep(n)
+end
+
+
+local _, scr_name, sect_ID, cmd_ID, _,_,_ = r.get_action_context()
 local scr_name = scr_name:match('[^\\/]+_(.+)%.%w+') -- without path, scripter name & ext
 local type_t = {'snap offset', 'fade', 'Razor Edit'}
-	for _, v in ipairs(type_t) do
+
+-- validate script name
+local no_elm1 = Invalid_Script_Name(scr_name,table.unpack(type_t))
+local no_elm2 = Invalid_Script_Name(scr_name,'left','right')
+	if no_elm1 or no_elm2 then
+	local br = '\n\n'
+	r.MB([[The script name has been changed]]..br..Rep(7)..[[which renders it inoperable.]]..br..
+	[[   please restore the original name]]..br..[[  referring to the list in the header,]]..br..
+	Rep(9)..[[or reinstall the package.]], 'ERROR', 0)
+	return r.defer(function() do return end end) end
+
+	for _, v in ipairs(type_t) do -- get script type to condition the selection of functions below
 		if scr_name:match(v) then
 		Type = scr_name:match(v) break
 		end
 	end
 
-MOVE_VIEW = #MOVE_VIEW:gsub(' ','') > 0	
-	
+MOVE_VIEW = #MOVE_VIEW:gsub(' ','') > 0
+
 local sel_tracks = r.CountSelectedTracks(0) > 0
 
+local curs_undo = GetUndoSettings()[4] -- only create undo point if edit cursor pos is saved in the undo state as per the Preferences
+
+
 	if Type == 'snap offset' then
-	Move_EditCur_To_SnapoffsetCur(scr_name, sel_tracks) -- dir arg is scr_name, sel_track boolean depends on presence of selected tracks
+	Move_EditCur_To_SnapoffsetCur(scr_name, sel_tracks, curs_undo) -- dir arg is scr_name, sel_track boolean depends on presence of selected tracks
 	elseif Type == 'fade' then
-	Move_EditCur_To_Fade(scr_name, sel_tracks) -- dir arg is scr_name, sel_track flag depends on presence of selected tracks
+	Move_EditCur_To_Fade(scr_name, sel_tracks, curs_undo) -- dir arg is scr_name, sel_track flag depends on presence of selected tracks
 	elseif Type == 'Razor Edit' then
-	Move_EditCur_To_RazEdAreaEdge(scr_name, scr_name:match('item'), scr_name:match('envelope')) -- dir arg is scr_name, items & envs booleans are obtained from scr_name capture
+	Move_EditCur_To_RazEdAreaEdge(scr_name, scr_name:match('item'), scr_name:match('envelope'), curs_undo) -- dir arg is scr_name, items & envs booleans are obtained from scr_name capture
 	end
 
 
