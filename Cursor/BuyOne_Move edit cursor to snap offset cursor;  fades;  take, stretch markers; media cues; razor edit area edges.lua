@@ -77,7 +77,7 @@ About: 	The set of scripts is meant to complement
 
 -- Enable to make the Arrange view scroll when the time point
 -- the cursor moves to is out of sight
-MOVE_VIEW = "1"
+MOVE_VIEW = ""
 
 -----------------------------------------------------------------------------
 -------------------------- END OF USER SETTINGS -----------------------------
