@@ -1,0 +1,119 @@
+// @description MIDI looping step velocity
+// @author mpasserini
+// @version 1.0
+// @changelog Initial commit of mpasserini_MIDI_looping_step_velocity.eel
+// @provides [darwin64 main=main] .
+// @screenshot https://github.com/mpasserini/REAPER-ReaScripts/raw/main/MIDI/MIDI_looping_step_velocity/images/mpasserini_MIDI_looping_step_velocity.png
+// @about
+//   # MIDI looping step velocity
+//
+//   Did you ever wish you were able to accent the first beat of every bar? Or maybe every upbeat? Or maybe have polyrhythmic accents that affect every 3, 5, 7... notes? This scripts lets you set the velocities of selected MIDI notes in a repeated way, with chosen granularity. Editing long note sequences is tedious, you can use this script to speed up your workflow.
+//
+//   Usage: select some MIDI notes in the editor, run the script and choose the time division of a bar (for example, 16th). A bar divided in 16th, is made out of 16 steps. You should then decide over how many steps you want to iterate. If you choose 4 steps, you will be able to select the velocity of the first 4 16th steps of your sequence. If you click apply, these velocities will be applied to the first 4 steps and iteratively to any further steps in your selection.
+
+/**
+ * ReaScript Name: MIDI looping step velocity
+ * Author: Marco Passerini
+ * Author URI: https://github.com/mpasserini/
+ * Repository: GitHub > mpasserini > REAPER-ReaScripts
+ * Repository URI: https://github.com/mpasserini/REAPER-ReaScripts
+ * Licence: GPL v3
+ * Forum Thread: New script to set MIDI velocities with ImGUI
+ * Forum Thread URI: https://forum.cockos.com/showthread.php?t=276417
+ * REAPER: 6.24
+ * Version: 1.0
+**/
+
+/**
+ * Changelog:
+ * v1.0 (2023-02-28)
+  + Initial release
+**/
+
+ctx = ImGui_CreateContext("Note velocities");
+ImGui_NumericLimits_Float(FLT_MIN, FLT_MAX);
+
+
+function setVelocities(velocity, num_vel, num_steps, num_divisions)
+(
+  take = MIDIEditor_GetTake(MIDIEditor_GetActive()); // GET TAKE IN MIDI EDITOR
+  MIDI_CountEvts(take, notes, ccs, sysex);// COUNT MIDI NOTES
+
+  j = 0; // INIT
+  loop(notes, // EXECUTE THE ACTION BASED ON NUMBER OF NOTES
+
+    MIDI_GetNote(take, j, sel, muted, start, end, chan, pitch, vel); // GET NOTE J
+
+    sel == 1 ? ( // IF NOTE IS SELECTED
+      measure_start = MIDI_GetPPQPos_StartOfMeasure(take, start);
+      measure_end = MIDI_GetPPQPos_EndOfMeasure(take, end);
+      relative_start = start - measure_start;
+      measure_len = measure_end - measure_start;
+      division_len = measure_len / num_divisions;
+      velo_step = (relative_start / division_len) % num_steps ;
+      vel = velocity[velo_step];
+
+      MIDI_SetNote(take, j, sel, muted, start, end, chan, pitch, vel); // SET NOTE J
+    ); // END IF NOTE IS SELECTED
+    j += 1; // INCREMENT
+  ); // END OF LOOP
+
+  UpdateArrange();
+);
+
+function divName(div)(
+    var = "";
+    (div == 0) ? (var = "1/8");
+    (div == 1) ? (var ="1");
+    (div == 2) ? (var ="1/2");
+    (div == 4) ? (var ="1/4");
+    (div == 8) ? (var ="1/8");
+    (div == 16) ? (var ="1/16");
+    (div == 32) ? (var ="1/32");
+    (div == 64) ? (var ="1/64");
+    var;
+);
+
+function frame() (
+  ImGui_TextWrapped(ctx, "Enter the step velocities.");
+
+
+  ImGui_BeginCombo(ctx,"Division", divName(div)  ) ? (
+    ImGui_Selectable(ctx, "1" ) ? div = 1;
+    ImGui_Selectable(ctx, "1/2") ? div = 2;
+    ImGui_Selectable(ctx, "1/4") ? div = 4;
+    ImGui_Selectable(ctx, "1/8") ? div = 8;
+    ImGui_Selectable(ctx, "1/16") ? div = 16;
+    ImGui_Selectable(ctx, "1/32") ? div = 32;
+    ImGui_Selectable(ctx, "1/64") ? div = 64;
+
+    ImGui_EndCombo(ctx);
+  );
+
+  ImGui_SliderInt(ctx, "num_steps", num_steps, 1, 16);
+  //ImGui_SliderInt(ctx, "num_divisions", num_divisions, 1, 32);
+
+  i = 0;
+
+  while(i < num_steps)(
+    ImGui_SliderInt(ctx, sprintf(#, "step %d\n", i)  , velocity[i], 0, 127);
+    i += 1;
+  );
+
+  ImGui_Button(ctx, "Apply") ? (
+    //ShowConsoleMsg( divName(div));
+    //ShowConsoleMsg(sprintf(#, "div %d\n", div));
+    setVelocities(velocity, i,  num_steps, div);
+  );
+
+);
+
+function loop() (
+  open = 1; // enable the close button
+  ImGui_SetNextWindowSize(ctx, 550, 420, ImGui_Cond_FirstUseEver());
+  ImGui_Begin(ctx, "Note velocities", open) ? ( frame(); ImGui_End(ctx); );
+  open ? defer("loop()")
+);
+
+defer("loop()");
+
