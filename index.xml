@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="05e1627885e91feccbaf2b6e10e2ef48a5751538" name="ReaTeam Scripts">
+<index version="1" commit="387d662cf27ed1bdacbf3e64adfa0d746b3e5771" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -20392,6 +20392,33 @@ SILENCE   |                                      |-  Empty Media Item (length 2s
       <version name="1.0" author="BuyOne" time="2022-11-06T05:02:01Z">
         <changelog><![CDATA[Initial release]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/5da97c3761b0f5314e42611c34c0578facf28f3f/Various/BuyOne_Select%20track%20of%20the%20currently%20focused%20track%20FX%20window.lua</source>
+      </version>
+    </reapack>
+    <reapack name="BuyOne_Skip marker(s) or region(s) with the keyword in the name.lua" type="script" desc="Skip marker(s) or region(s) with the keyword in the name">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 During playback or recording the script makes the play cursor skip marker(s) or region(s) containing in their name a keyword defined in the KEYWORD setting in the USER SETTINGS. Once launched the script runs in the background.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 By default it skips markers, to switch to skipping regions enable USE_REGIONS setting in the USER SETTINGS. Markers and regions can be re-ordered and renamed on the fly.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 USING MARKERS\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Place one marker with the name containing the KEYWORD before the segment to be skipped and another one without the KEYWORD at the end of such segment. As soon as the play cursor reaches the 1st marker it will jump to the 2nd one.\line If in between there're any markers whose name also contains the KEYWORD the segment which follow will be skipped as well. So the play cursor skips to the first marker which doesn't contain the KEYWORD in the name following a marker which does.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Behavior of overlapping markers is determined by the one with the greatest displayed index.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 USING REGIONS\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Encompass with a region a timeline segment which needs to be skipped and add the KEYWORD to its name.\line Once the play cursor reaches the start of the region whose name contains the KEYWORD it will jump to such region's end thereby skipping it. If there're several such regions in a row with no gaps, the play cursor jumps to the end of the last one which precedes a region without the KEYWORD in its name or which is followed by a gap between regions or by the end of the project.\line If the script is launched while the play cursor is within a region which contains the KEYWORD in its name, such region won't be marked for skipping. Only regions which lay ahead of the play cursor are detected for skipping.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 If overlapping regions start and end at the same time their behavior is determined by the one with the greatest displayed index; if they only end at the same time their behavior is determined by the one with the earliest start; if they start at the same time, their behavior is determined by the longest one; if start and end times of overlapping regions don't coincide the one containing the KEYWORD takes precendence.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 RECORDING\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Recording will be done in segments. After skipping a marker or a region a new segment will begin. The start time of the next segment will depend on the pre-roll setting available in the Metronome configuration window. If pre-roll isn't enabled the recording will start as soon as the play cursor jumps to another marker or a region end.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 As far as recording is concerned the script does in essense what can be done natively with 'Auto-punch selected items' feature https://youtu.be/bjb8G6jnkUo\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 If the script is linked to a toolbar button the button will be lit while it's running.\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/member.php?u=134058</link>
+      </metadata>
+      <version name="1.0" author="BuyOne" time="2023-02-28T17:45:59Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/387d662cf27ed1bdacbf3e64adfa0d746b3e5771/Various/BuyOne_Skip%20marker(s)%20or%20region(s)%20with%20the%20keyword%20in%20the%20name.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Big Repeat Button.lua" type="script" desc="Big Repeat Button">
