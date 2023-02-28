@@ -11,25 +11,6 @@
 //
 //   Usage: select some MIDI notes in the editor, run the script and choose the time division of a bar (for example, 16th). A bar divided in 16th, is made out of 16 steps. You should then decide over how many steps you want to iterate. If you choose 4 steps, you will be able to select the velocity of the first 4 16th steps of your sequence. If you click apply, these velocities will be applied to the first 4 steps and iteratively to any further steps in your selection.
 
-/**
- * ReaScript Name: MIDI looping step velocity
- * Author: Marco Passerini
- * Author URI: https://github.com/mpasserini/
- * Repository: GitHub > mpasserini > REAPER-ReaScripts
- * Repository URI: https://github.com/mpasserini/REAPER-ReaScripts
- * Licence: GPL v3
- * Forum Thread: New script to set MIDI velocities with ImGUI
- * Forum Thread URI: https://forum.cockos.com/showthread.php?t=276417
- * REAPER: 6.24
- * Version: 1.0
-**/
-
-/**
- * Changelog:
- * v1.0 (2023-02-28)
-  + Initial release
-**/
-
 ctx = ImGui_CreateContext("Note velocities");
 ImGui_NumericLimits_Float(FLT_MIN, FLT_MAX);
 
