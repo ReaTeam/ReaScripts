@@ -2,8 +2,8 @@
 ReaScript name: FX presets menu
 Author: BuyOne
 Website: https://forum.cockos.com/member.php?u=134058
-Version: 1.4
-Changelog:  # Fixed Arrange view movement when object under mouse is being detected while the edit cursor is out of sight
+Version: 1.5
+Changelog: #Fixed error on loading preset menu of plugins with embedded presets and no external preset file
 Provides: [main] .
 Licence: WTFPL
 REAPER: at least v5.962
@@ -221,41 +221,51 @@ local counter = 0 -- to store indices of video processor instances
 end
 
 
-function Collect_FX_Preset_Names(path, sep, pres_fn)
+function Collect_FX_Preset_Names(obj, src_fx_cnt, src_fx_idx, pres_cnt)
+-- getting all preset names in a roundabout way by travesring them in an instance on a temp track
+-- cannot traverse in the source track as if plugin parameters haven't been stored in a preset
+-- after traversing they will be lost and will require prior storage and restoration whose accuracy isn't guaranteed
 
-local pres_dir = path..sep..'presets'..sep
+r.PreventUIRefresh(1)
+r.InsertTrackAtIndex(r.GetNumTracks(), false) -- insert new track at end of track list and hide it; action 40702 creates undo point
+local temp_track = r.GetTrack(0,r.CountTracks(0)-1)
+r.SetMediaTrackInfo_Value(temp_track, 'B_SHOWINMIXER', 0) -- hide in Mixer
+r.SetMediaTrackInfo_Value(temp_track, 'B_SHOWINTCP', 0) -- hide in Arrange
 
-r.EnumerateFiles(path, -1) -- reset cache
-
--- verify if preset file returned with TrackFX_GetUserPresetFilename() does exist, because it also returns files which don't exist
-local i = 0
-	repeat
-	pres_file = r.EnumerateFiles(pres_dir, i)
-		if pres_file == pres_fn then break end
-	i = i + 1
-	until not pres_file or pres_file == ''
-
-	if pres_file then
-	local cntr = 0
-	local preset_name_t = {}
-
-		for line in io.lines(pres_dir..pres_file) do
-			if line:match('%[Preset%d+%]') then
-			pres_idx = tonumber(line:match('Preset(%d+)'))+1 end -- to make 1 the lowest table key index, since the preset count is 0 based
-			if pres_idx and line:match('Name=') then
-			preset_name_t[pres_idx] = line:match('Name=(.*)')..'|'
-			end
-		end
-
-table.insert(preset_name_t, #preset_name_t, '<') -- close submenu
-
-	return preset_name_t
+	if r.ValidatePtr(obj, 'MediaTrack*') then
+	r.TrackFX_CopyToTrack(obj, src_fx_idx, temp_track, 0, false) -- is_move false
+	elseif r.ValidatePtr(obj, 'MediaItem_Take*') then
+	r.TakeFX_CopyToTrack(obj, src_fx_idx, temp_track, 0, false) -- is_move false
 	end
+
+r.TrackFX_SetPresetByIndex(temp_track, 0, pres_cnt-1) -- start from the last preset in case user has a default preset enabled and advance forward in the loop below
+local _, pres_cnt = r.TrackFX_GetPresetIndex(temp_track, 0)
+
+local preset_name_t = {}
+
+	for i = 1, pres_cnt do
+	r.TrackFX_NavigatePresets(temp_track, 0, 1) -- forward
+	local _, pres_name = r.TrackFX_GetPreset(temp_track, 0, '')
+	preset_name_t[i] = pres_name..'|'
+	end
+
+r.DeleteTrack(temp_track)
+
+r.PreventUIRefresh(-1)
+
+	if src_fx_cnt > 1 then -- close submenu, otherwise no submenu
+	table.insert(preset_name_t, #preset_name_t, '<') 
+	end
+	
+	if #preset_name_t > 0 and 
+	(#preset_name_t-1 == pres_cnt  -- one extra entry '<' if any
+	or #preset_name_t == pres_cnt) -- when there's no submenu closure '<' because there's only one plugin in the chain
+	then return preset_name_t end
 
 end
 
 
-function Collect_VideoProc_Preset_Names(pres_cnt)
+function Collect_VideoProc_Preset_Names(fx_cnt, pres_cnt)
 -- builtin_video_processor.ini file only stores user added presets to the exclusion of the stock ones
 -- getting all preset names in a roundabout way by travesring them in an instance on a temp track
 
@@ -280,9 +290,13 @@ r.DeleteTrack(temp_track)
 
 r.PreventUIRefresh(-1)
 
-table.insert(preset_name_t, #preset_name_t, '<') -- close submenu
+	if fx_cnt > 1 then -- close submenu, otherwise no submenu
+	table.insert(preset_name_t, #preset_name_t, '<') 
+	end
 
-	if #preset_name_t > 0 and #preset_name_t-1 == pres_cnt  -- one extra entry '<'
+	if #preset_name_t > 0 and 
+	(#preset_name_t-1 == pres_cnt  -- one extra entry '<' if any
+	or #preset_name_t == pres_cnt) -- when there's no submenu closure '<' because there's only one plugin in the chain
 	then return preset_name_t end
 
 end
@@ -338,9 +352,13 @@ r.DeleteTrack(temp_track)
 
 r.PreventUIRefresh(-1)
 
-table.insert(preset_name_t, #preset_name_t, '<') -- close submenu
+	if fx_cnt > 1 then -- close submenu, otherwise no submenu
+	table.insert(preset_name_t, #preset_name_t, '<') 
+	end
 
-	if #preset_name_t > 0 and #preset_name_t-1 == pres_cnt  -- one extra entry '<'
+	if #preset_name_t > 0 and 
+	(#preset_name_t-1 == pres_cnt  -- one extra entry '<' if any
+	or #preset_name_t == pres_cnt) -- when there's no submenu closure '<' because there's only one plugin in the chain
 	then return preset_name_t end
 
 end
@@ -446,7 +464,8 @@ function MAIN(menu_t, action_t, FX_Chain_Chunk, Collect_VideoProc_Instances, Col
 			action_t[1][#action_t[1]+1] = '' -- dummy value
 			action_t[2][#action_t[2]+1] = '' -- same
 			elseif pres_cnt > 0 then -- only plugins with presets
-			local preset_name_t = video_proc_t[i] and Collect_VideoProc_Preset_Names(pres_cnt) or vst3_t[i] and Collect_VST3_Preset_Names(obj, fx_idx, take_GUID, pres_cnt) or Collect_FX_Preset_Names(path, sep, pres_fn)
+			local preset_name_t = video_proc_t[i] and Collect_VideoProc_Preset_Names(fx_cnt, pres_cnt) or vst3_t[i] and Collect_VST3_Preset_Names(obj, fx_cnt, fx_idx, take_GUID, pres_cnt) or Collect_FX_Preset_Names(obj, fx_cnt, fx_idx, pres_cnt)
+			local preset_name_list = preset_name_t and table.concat(preset_name_t)
 			local preset_name_list = preset_name_t and table.concat(preset_name_t)
 				if preset_name_list then -- add active preset checkmark
 					if act and act_pres_name ~= '' then -- if active preset matches the plug actual settings and not 'No preset'
@@ -454,7 +473,9 @@ function MAIN(menu_t, action_t, FX_Chain_Chunk, Collect_VideoProc_Instances, Col
 					local act_pres_name_esc = Esc(act_pres_name) -- escape special chars just in case
 					preset_name_list = preset_name_list:gsub(act_pres_name_esc, '!'..act_pres_name) -- add checkmark to indicate active preset in the menu
 					end
-				menu_t[#menu_t+1] = div..'>'..fx_name..'|'..preset_name_list
+				local div = fx_cnt > 1 and div..'>' or '' -- only add submenu tag if more than 1 plugin in the chain because submenu only makes sense in this scenario, addition of the closure tag < is conditioned within collect preset names functions
+				local fx_name = fx_cnt > 1 and fx_name..'|' or '' -- only include plugin name as submenu header if more than 1 plugin in the chain because submenu only makes sense in this scenario
+				menu_t[#menu_t+1] = div..fx_name..preset_name_list
 					for j = 0, pres_cnt-1 do
 					action_t[1][#action_t[1]+1] = fx_idx -- fx indices, repeated as many times as there're fx presets per fx to be triggered by the input form the menu
 					action_t[2][#action_t[2]+1] = j -- preset indices, repeated as many times as there're fx presets, starts from 0 with every new fx index
@@ -589,7 +610,6 @@ local LOCK_FX_CHAIN_FOCUS = LOCK_FX_CHAIN_FOCUS:gsub(' ','') ~= ''
 	
 
 -- Undo is unnesessary as it's created automatically on preset change
-
 
 
 
