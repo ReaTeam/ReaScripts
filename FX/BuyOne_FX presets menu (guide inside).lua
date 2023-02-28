@@ -474,7 +474,7 @@ function MAIN(menu_t, action_t, FX_Chain_Chunk, Collect_VideoProc_Instances, Col
 					preset_name_list = preset_name_list:gsub(act_pres_name_esc, '!'..act_pres_name) -- add checkmark to indicate active preset in the menu
 					end
 				local div = fx_cnt > 1 and div..'>' or '' -- only add submenu tag if more than 1 plugin in the chain because submenu only makes sense in this scenario, addition of the closure tag < is conditioned within collect preset names functions
-				local fx_name = fx_cnt > 1 and fx_name..'|' or '' -- only include plugin name as submenu header if more than 1 plugin in the chain because submenu only makes sense in this scenario
+				local fx_name = fx_cnt > 1 and fx_name..'|' or '' -- only include plugin name as submenu header if more than 1 plugin in the chain because submenu only makes sense in this scenario otherwise it counts agains the preset entry indices and disrupts their correspondence to preset indices
 				menu_t[#menu_t+1] = div..fx_name..preset_name_list
 					for j = 0, pres_cnt-1 do
 					action_t[1][#action_t[1]+1] = fx_idx -- fx indices, repeated as many times as there're fx presets per fx to be triggered by the input form the menu
