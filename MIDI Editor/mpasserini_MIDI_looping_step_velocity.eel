@@ -2,7 +2,6 @@
 // @author mpasserini
 // @version 1.0
 // @changelog Initial commit of mpasserini_MIDI_looping_step_velocity.eel
-// @provides [darwin64 main=main] .
 // @screenshot https://github.com/mpasserini/REAPER-ReaScripts/raw/main/MIDI/MIDI_looping_step_velocity/images/mpasserini_MIDI_looping_step_velocity.png
 // @about
 //   # MIDI looping step velocity
