@@ -62,7 +62,15 @@ function Find_And_Get_New_Tracks(t)
 end
 
 local item = r.GetSelectedMediaItem(0,0)
-local mess = not item and 'no selected item' or not r.TakeIsMIDI(r.GetActiveTake(item)) and 'the item isn\'t MIDI'
+local act_take = r.GetActiveTake(item)
+local is_midi = r.TakeIsMIDI(act_take)
+r.PreventUIRefresh(1)
+local open = is_midi and r.Main_OnCommand(40153, 0) -- Item: Open in built-in MIDI editor (set default behavior in preferences)
+local hwnd = r.MIDIEditor_GetActive()
+local midi_take = r.MIDIEditor_GetTake(hwnd)
+local retval, notecnt, ccevtcnt, textsyxevtcnt = table.unpack(is_midi and {r.MIDI_CountEvts(midi_take)} or {})
+r.MIDIEditor_LastFocused_OnCommand(2, false) -- File: Close window; islistviewcommand false
+local mess = not item and 'no selected item' or not is_midi and 'the take isn\'t MIDI' or notecnt == 0 and 'no notes in the midi take'
 	if mess then Error_Tooltip('\n\n '..mess..' \n\n') return end
 
 r.Undo_BeginBlock()
