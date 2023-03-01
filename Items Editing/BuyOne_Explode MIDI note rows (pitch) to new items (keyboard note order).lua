@@ -76,9 +76,9 @@ local mess = not item and 'no selected item' or not is_midi and 'the take isn\'t
 r.Undo_BeginBlock()
 r.PreventUIRefresh(1)
 
-local t = Find_And_Get_New_Tracks()
+local t = Find_And_Get_New_Tracks() -- store current
 r.Main_OnCommand(40920, 0) -- Item: Explode MIDI note rows (pitch) to new items
-local t = Find_And_Get_New_Tracks(t)
+local t = Find_And_Get_New_Tracks(t) -- find and get new
 
 KEEP_FOLDER_STRUCTURE = #KEEP_FOLDER_STRUCTURE:gsub(' ','') > 0
 
