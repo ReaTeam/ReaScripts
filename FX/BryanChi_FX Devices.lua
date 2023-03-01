@@ -69,6 +69,9 @@
 
 
 
+
+
+
     UserOS = r.GetOS()
     if UserOS ==  "OSX32" or UserOS ==  "OSX64" or UserOS == "macOS-arm64" then 
         Invisi_Cursor = reaper.JS_Mouse_LoadCursorFromFile(r.GetResourcePath()..'/Cursors/Empty Cursor.cur')
@@ -965,13 +968,13 @@
             if Str then 
 
                 local Out,LineChange
-                local Start, End = Str:find(ID)
+                local Start, End = Str:find(ID)  
 
                 if untilwhere then LineChange =  Str:find(untilwhere ,Start) 
                 else LineChange = Str:find('\n',Start) 
                 end
                 if End and Str and LineChange then 
-                    if Type == 'Num' then Out = tonumber(string.sub(Str, End+1, LineChange-1))
+                    if Type == 'Num' then Out = tonumber(string.sub(Str, End+1, LineChange-1)) 
                     elseif Type =='Bool' then 
                         if string.sub(Str, End+1, LineChange-1) == 'true' then Out = true else Out = false end 
                     else Out = string.sub(Str, End+1, LineChange-1)
@@ -1725,7 +1728,7 @@
                 r.ImGui_DrawList_AddCircleFilled(WinDrawList, R, T+ h/2, 3, 0x999999dd)
                 if MouseX > R-5 and MouseX<R+5 and MouseY > T and MouseY<B  then 
                     r.ImGui_DrawList_AddCircleFilled(WinDrawList, R, T+ h/2, 4, 0xbbbbbbff)
-                    r.ImGui_SetMouseCursor( ctx, 4)
+                    r.ImGui_SetMouseCursor( ctx, r.ImGui_MouseCursor_ResizeEW())
                     if  IsLBtnClicked  then 
                         local ChangeSelectedItmBounds
                         for i, v in pairs(LE.Sel_Items) do 
@@ -1747,7 +1750,7 @@
                 
                 r.ImGui_DrawList_AddCircleFilled(WinDrawList, R, B, 3, 0x999999dd)
                 if MouseX > R-5 and MouseX< R+5 and MouseY >B-5 and MouseY< B+3 then 
-                    r.ImGui_SetMouseCursor( ctx, 6)
+                    r.ImGui_SetMouseCursor( ctx, r.ImGui_MouseCursor_ResizeNWSE())
                     r.ImGui_DrawList_AddCircleFilled(WinDrawList, R, B, 4, 0xbbbbbbff)
                     if IsLBtnClicked  then
                         local ChangeSelItmRadius
@@ -1764,7 +1767,7 @@
 
 
             function ChangeParamWidth(Fx_P)
-                r.ImGui_SetMouseCursor( ctx, 4)
+                r.ImGui_SetMouseCursor( ctx, r.ImGui_MouseCursor_ResizeEW())
                 r.ImGui_DrawList_AddCircleFilled(WinDrawList, R, T+ h/2, 3, 0x444444ff)
                 local MsDragDeltaX, MsDragDeltaY = r.ImGui_GetMouseDragDelta(ctx) ; local Dx,Dy = r.ImGui_GetMouseDelta(ctx)
                 if ItemWidth ==nil then 
@@ -1790,7 +1793,7 @@
             end
 
             function ChangeKnobRadius(Fx_P)
-                r.ImGui_SetMouseCursor( ctx, 6)
+                r.ImGui_SetMouseCursor( ctx, r.ImGui_MouseCursor_ResizeNWSE())
                 r.ImGui_DrawList_AddCircleFilled(WinDrawList, R, B, 3, 0x444444ff)
                 local Dx,Dy = r.ImGui_GetMouseDelta(ctx)
                 if not FX[FxGUID][Fx_P].Sldr_W  then FX[FxGUID][Fx_P].Sldr_W  = Df.KnobRadius end
@@ -1834,7 +1837,7 @@
                     if Mods == Ctrl or Mods == Ctrl+Shift then Dx = 0 
                     elseif Mods == Alt or Mods == Alt+Shift then Dy = 0 
                     end 
-                    r.ImGui_SetMouseCursor( ctx, 2)
+                    r.ImGui_SetMouseCursor( ctx, r.ImGui_MouseCursor_ResizeAll())
                     FX[FxGUID][Fx_P].PosX = FX[FxGUID][Fx_P].PosX or PosX
                     FX[FxGUID][Fx_P].PosY = FX[FxGUID][Fx_P].PosY or PosY
                     FX[FxGUID][Fx_P].PosX = FX[FxGUID][Fx_P].PosX+ Dx ; FX[FxGUID][Fx_P].PosY = FX[FxGUID][Fx_P].PosY + Dy
@@ -2678,7 +2681,7 @@
     --FontAwesome = r.ImGui_CreateFont('Untitled2', 30)
     function attachImages()
         Img= {
-            Analog1 = r.ImGui_CreateImage(r.GetResourcePath()..'/Scripts/ReaTeam Scripts/FX/BryanChi_FX Devices/Images/Analog 1.png');
+            Analog1 = r.ImGui_CreateImage(r.GetResourcePath()..'/Scripts/ReaTeam Scripts/FX/BryanChi_FX Devices/Images/Analog Knob 1.png');
 
         }
         r.ImGui_Attach( ctx, Img.Analog1 )
@@ -4543,25 +4546,23 @@
                         r.ImGui_PushStyleColor(ctx, i, value)
                 end
             else 
-                local file, file_path = CallFile('r', 'ThemeColors.ini')
+                local file_path = ConcatPath(reaper.GetResourcePath(), 'Scripts', 'ReaTeam Scripts', 'FX', 'BryanChi_FX Devices', 'ThemeColors.ini')
+                local file = io.open(file_path, 'r')
+
+                
+                
                 if file then 
-                    local Lines = get_lines(file_path)
-                    if #Lines > 30 then 
-                        for i in demo.EachEnum('Col') do
+                    local content = file:read("a+")
 
-                            if i == 54 then 
-                                r.ImGui_PushStyleColor(ctx,54,get_aftr_Equal_Num(Lines[55]))
-                            else
-                            r.ImGui_PushStyleColor(ctx,i,get_aftr_Equal_Num(Lines[i+1]))
-                            end
-                        end 
-                        NeedtoPopStyle = true 
-                        for i, v in pairs (CustomColors) do 
-                            _G[v] =  get_aftr_Equal_Num(Lines[55+i])
-                        end
 
+
+                    
+                    for i, v in pairs (CustomColors) do 
+                        _G[v] =  RecallGlobInfo(content, v..' = ', 'Num')
                     end
-                else 
+
+                    
+                end
                     DefaultThemeActive = true 
                     ------------------- Default Color Theme --------------------
                     r.ImGui_PushStyleColor(ctx,r.ImGui_Col_FrameBg(), 0x48484837)
@@ -4574,7 +4575,7 @@
                     r.ImGui_PushStyleColor(ctx,r.ImGui_Col_SliderGrab(),0x616161FF)
                     r.ImGui_PushStyleColor(ctx,r.ImGui_Col_SliderGrabActive(),0xD1D1D1AC)
                     DefaultStylePop = 9
-                end
+
         
             end
         end
@@ -4643,7 +4644,7 @@
             local vec2 = {
             'ButtonTextAlign', 'SelectableTextAlign', 'CellPadding', 'ItemSpacing',
             'ItemInnerSpacing', 'FramePadding', 'WindowPadding', 'WindowMinSize',
-            'WindowTitleAlign',
+            'WindowTitleAlign','SeparatorTextAlign', 'SeparatorTextPadding'
             }
         
             for i, name in demo.EachEnum('StyleVar') do
@@ -4808,14 +4809,16 @@
                         end ]]
 
                         for i, value in pairs(app.style_editor.style.colors) do
-                            if i == 0 then 
+                            --[[ if i == 0 then 
                                 file:write(55, ' = ', r.ImGui_GetStyleColor(ctx,r.ImGui_Col_ModalWindowDimBg() ),'\n')
                             elseif i > 0 then 
                                 file:write(i, ' = ', app.style_editor.style.colors[i-1],'\n')
-                            end
+                            end ]]
 
                         end
-
+                        --[[ for i, name in demo.EachEnum('Col') do 
+                            file:write(name..' = '.. r.ImGui_GetStyleColor(ctx,r.ImGui_Col_ModalWindowDimBg() ))
+                        end  ]]
 
 
 
@@ -4960,10 +4963,10 @@
                             end
                         end
 
-                        AddSpacing(2) r.ImGui_Text(ctx,'Generic Colors') AddSpacing(2)
 
 
-                        for i, name in demo.EachEnum('Col') do
+
+                        --[[ for i, name in demo.EachEnum('Col') do
                             if r.ImGui_TextFilter_PassFilter(app.style_editor.colors.filter.inst, name) then
                                 r.ImGui_PushID(ctx, i)
                                 rv, app.style_editor.style.colors[i] = r.ImGui_ColorEdit4(ctx, '##color', app.style_editor.style.colors[i], r.ImGui_ColorEditFlags_AlphaBar() | app.style_editor.colors.alpha_flags)
@@ -4984,7 +4987,7 @@
                                 r.ImGui_Text(ctx, name)
                                 r.ImGui_PopID(ctx)
                             end
-                        end
+                        end ]]
 
                         
 
@@ -7684,7 +7687,7 @@ function loop()
                                         for i=0, FX.Width[FXGUID[FX_Idx]] or DefaultWidth , LE.GridSize do r.ImGui_DrawList_AddLine(WinDrawList, Win_L+i , Win_T, Win_L+i , Win_B, 0x44444411) end
                                         if r.ImGui_IsMouseHoveringRect( ctx, Win_L, Win_T, Win_R, Win_B) and HvringItmSelector ==nil and not Draw.SelItm and Draw.Time==0 then 
 
-                                            if Draw.Type == 'Text' then   r.ImGui_SetMouseCursor( ctx, 1) end                                
+                                            if Draw.Type == 'Text' then   r.ImGui_SetMouseCursor( ctx, r.ImGui_MouseCursor_TextInput()) end                                
                                             if IsLBtnClicked and Mods==0 then MsX_Start, MsY_Start =  r.ImGui_GetMousePos(ctx); CurX, CurY= r.ImGui_GetCursorScreenPos( ctx) 
                                                 Win_MsX_Start = MsX_Start - CurX ; Win_MsY_Start = MsY_Start- CurY+3
                                             end
@@ -7713,7 +7716,7 @@ function loop()
                                                     r.ImGui_DrawList_AddCircleFilled(WDL, MsX_Start, MsY_Start, Rad  , Draw.clr)
                                                 elseif Draw.Type == 'Text' then 
                                                     --r.ImGui_DrawList_AddTextEx(WDL, Font_Andale_Mono_20, 20 , MsX, MsY  , Draw.clr, D.Txt)
-                                                    r.ImGui_SetMouseCursor( ctx, 1)
+                                                    r.ImGui_SetMouseCursor( ctx, r.ImGui_MouseCursor_TextInput())
 
 
                                                 end
@@ -7778,7 +7781,7 @@ function loop()
                                             
                                             --if hover on item node ...
                                             if r.ImGui_IsMouseHoveringRect( ctx, CircleX-5, CircleY-5, CircleX+5, CircleY+10) then 
-                                                HvringItmSelector = true                r.ImGui_SetMouseCursor( ctx, 2)
+                                                HvringItmSelector = true                r.ImGui_SetMouseCursor( ctx, r.ImGui_MouseCursor_ResizeAll())
                                                 if DragItm ==nil then  r.ImGui_DrawList_AddCircle(WDL, CircleX, CircleY ,9, 0x999999ff ) end 
                                                 if IsLBtnClicked and ModifierHeld==0 then 
                                                     Draw.SelItm = i       DragItm = i
@@ -7801,7 +7804,7 @@ function loop()
 
                                             end
                                             if LBtnDrag and DragItm == i  then --- Drag node to reposition
-                                                r.ImGui_SetMouseCursor( ctx, 2)
+                                                r.ImGui_SetMouseCursor( ctx, r.ImGui_MouseCursor_ResizeAll())
                                                 r.ImGui_DrawList_AddCircleFilled(WDL, CircleX, CircleY ,7, 0x00000033 )
                                                 local Dx, Dy = r.ImGui_GetMouseDelta( ctx)
                                                 if D.Type[DragItm]~= 'circle' and D.Type[DragItm]~= 'circle fill' then 
@@ -7865,7 +7868,7 @@ function loop()
 
                                         if r.ImGui_IsMouseHoveringRect(ctx,Win_R-5, Win_T, Win_R+5, Win_B  )  then 
                                             r.ImGui_DrawList_AddLine(WinDrawList, Win_R-3 , Win_T , Win_R-3 , Win_B, 0xffffffff,3)
-                                            r.ImGui_SetMouseCursor( ctx, 4)
+                                            r.ImGui_SetMouseCursor( ctx, r.ImGui_MouseCursor_ResizeEW())
 
                                             if IsLBtnClicked then 
                                                 LE.ResizingFX = FX_Idx --@Todo change fxidx to fxguid
@@ -7875,7 +7878,7 @@ function loop()
 
 
                                         if LE.ResizingFX == FX_Idx and IsLBtnHeld then 
-                                            r.ImGui_SetMouseCursor( ctx, 4)
+                                            r.ImGui_SetMouseCursor( ctx, r.ImGui_MouseCursor_ResizeEW())
 
                                             r.ImGui_DrawList_AddRectFilled(WinDrawList, Win_L or 0 , Win_T or 0 , Win_R or 0 , Win_B, 0x00000055)
                                             local MsDragDeltaX, MsDragDeltaY = r.ImGui_GetMouseDragDelta(ctx) ; local Dx,Dy = r.ImGui_GetMouseDelta(ctx)
@@ -8075,7 +8078,7 @@ function loop()
                                         end
 
                                         if  LBtnDrag and LE.ChangingTitleSize then 
-                                            r.ImGui_SetMouseCursor( ctx, 4)
+                                            r.ImGui_SetMouseCursor( ctx, r.ImGui_MouseCursor_ResizeEW())
                                             DeltaX, DeltaY = r.ImGui_GetMouseDelta(ctx)
                                             local AddedDelta = AddedDelta or 0 + DeltaX
                                             LE.MouseX_after,_ =  r.ImGui_GetMousePos(ctx)
