@@ -1,11 +1,10 @@
 -- @description FX Devices
 -- @author Bryan Chi
--- @version 1.0beta9.4-2
+-- @version 1.0beta9.4-3
 -- @changelog
---   - Fix typo in RemoveFXfromBS function which caused various bugs when moving FX out of Band Splitter
---   - Fix crash when removing parameter a macro has been assigned to it.
---   - Fix various bugs when interacting with FX title button.
---   - Fix Envelope name bug when clicking ‘Automate’
+--   -Fix Style Editor crash
+--   -Fix console messages popping up
+--   -Add Analog knob as a new style option
 -- @provides
 --   [effect] BryanChi_FX Devices/FXD Macros.jsfx
 --   [effect] BryanChi_FX Devices/FXD ReSpectrum.jsfx
@@ -47,12 +46,13 @@
 --   BryanChi_FX Devices/FX Layouts/ValhallaDelay (Valhalla DSP, LLC).ini
 --   [effect] BryanChi_FX Devices/FXD Saike BandSplitter.jsfx
 --   [effect] BryanChi_FX Devices/FXD Band Joiner.jsfx
+--   BryanChi_FX Devices/Images/Analog Knob 1.png
 -- @about
 --   Please check the forum post for info:
 --   https://forum.cockos.com/showthread.php?t=263622
 
 --------------------------==  declare Initial Variables & Functions  ------------------------
-    VersionNumber = 'V1.0beta9.4-2 '
+    VersionNumber = 'V1.0beta9.4-3 '
     FX_Add_Del_WaitTime=2
     r=reaper
 
@@ -2676,6 +2676,15 @@
     FontAwesome = r.ImGui_CreateFont(script_folder .. '/IconFont1.ttf', 30)
 
     --FontAwesome = r.ImGui_CreateFont('Untitled2', 30)
+    function attachImages()
+        Img= {
+            Analog1 = r.ImGui_CreateImage(r.GetResourcePath()..'/Scripts/ReaTeam Scripts/FX/BryanChi_FX Devices/Images/Analog 1.png');
+
+        }
+        r.ImGui_Attach( ctx, Img.Analog1 )
+
+    end
+    attachImages()
 
 
     r.ImGui_AttachFont(ctx, Font_Andale_Mono)
@@ -2728,8 +2737,23 @@
 
 
     --r.ImGui_SetNextWindowDockID(ctx, -1)   ---Dock the script
-   
-    
+    function ImageAngle(ctx, img, angle,w, h,x,y)
+        if not x and not y then  x, y = reaper.ImGui_GetCursorScreenPos(ctx) end 
+        local cx, cy = x + (w/2), y + (h/2)
+        local rotate = function(x, y)
+        x, y = x - cx, y - cy
+        return (x*math.cos(angle) - y*math.sin(angle)) + cx,
+                 (x*math.sin(angle) + y*math.cos(angle)) + cy
+        end
+        local dl = reaper.ImGui_GetWindowDrawList(ctx)
+        local p1_x, p1_y = rotate(x,   y)
+        local p2_x, p2_y = rotate(x+w, y)
+        local p3_x, p3_y = rotate(x+w, y+h)
+        local p4_x, p4_y = rotate(x,   y+h)
+        reaper.ImGui_DrawList_AddImageQuad(dl, img,
+            p1_x, p1_y, p2_x, p2_y, p3_x, p3_y, p4_x, p4_y)
+        --r.ImGui_Dummy(ctx, w, h)
+    end
     
 
     function DrawModLines(Macro, AddIndicator, McroV, FxGUID, F_Tp, Sldr_Width, P_V, Vertical, FP)
@@ -2992,7 +3016,7 @@
             if get then             local Y_Pos
                 if Lbl_Pos =='Top' then _,Y_Pos = r.ImGui_GetCursorScreenPos(ctx) end
                 local window_padding = {r.ImGui_GetStyleVar(ctx, r.ImGui_StyleVar_WindowPadding())}
-                r.ImGui_SetNextWindowPos(ctx, pos[1] , Y_Pos or  pos[2] - line_height - window_padding[2] -8 )
+                r.ImGui_SetNextWindowPos(ctx, pos[1] + radius_outer/2 , Y_Pos or  pos[2] - line_height - window_padding[2] -8 )
                 r.ImGui_BeginTooltip(ctx)
                 r.ImGui_Text(ctx, PV)
                 r.ImGui_EndTooltip(ctx)
@@ -3124,7 +3148,14 @@
             r.ImGui_DrawList_PathStroke( draw_list, r.ImGui_GetColor(ctx,r.ImGui_Col_FrameBg()), nil, radius_outer)
 
             r.ImGui_DrawList_AddCircleFilled(draw_list, center[1], center[2], radius_inner, r.ImGui_GetColor(ctx, is_active and reaper.ImGui_Col_FrameBgActive() or is_hovered and reaper.ImGui_Col_FrameBgHovered() or reaper.ImGui_Col_FrameBg()), 16)
+        elseif Style == 'Analog 1' then 
+            local scale = 2
+            local sz = radius_outer*scale
+            --r.ImGui_Image( ctx,  KnobImg_Analog1, 30, 30, 0.0,  0.0, 1.0, 1.0,  0xFFFFFFFF,  0x00000000)
+            ImageAngle(ctx, Img.Analog1, 4+ FP.V*4.5 , sz, sz ,center[1]-sz/2, center[2]-sz/2)
+            --FP.V*5
             
+
         else -- for all generic FXs 
 
             r.ImGui_DrawList_AddCircleFilled(draw_list, center[1], center[2], radius_outer, FX[FxGUID][Fx_P].BgClr or  r.ImGui_GetColor(ctx, r.ImGui_Col_Button()))
@@ -3136,7 +3167,8 @@
 
         end
 
-        
+
+
 
 
         if FX[FxGUID].Morph_Value_Edit or Mods ==Alt+Ctrl and FX[FxGUID].MorphA and FX[FxGUID].MorphB  then    
@@ -3349,7 +3381,7 @@
                     r.ImGui_DrawList_PathClear( draw_list)
 
                     --- shows modulation range 
-                    r.ImGui_DrawList_PathArcTo( draw_list,  center[1] , center[2], radius_outer-1 , angle , angle + (ANGLE_MAX - ANGLE_MIN) *FP.ModAMT[Macro] )
+                    r.ImGui_DrawList_PathArcTo( draw_list,  center[1] , center[2], radius_outer-1 , angle , SetMinMax(  angle + (ANGLE_MAX - ANGLE_MIN) *FP.ModAMT[Macro] ,ANGLE_MIN,ANGLE_MAX ))
                     reaper.ImGui_DrawList_PathStroke( draw_list, EightColors.HighSat_MidBright[Macro], nil, radius_outer*0.1)
                     r.ImGui_DrawList_PathClear( draw_list)
 
@@ -3465,7 +3497,7 @@
 
         if is_active or is_hovered  and FX[FxGUID].DeltaP_V~=1 then
           local window_padding = {reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_WindowPadding())}
-          reaper.ImGui_SetNextWindowPos(ctx, pos[1] - window_padding[1], pos[2] - line_height - item_inner_spacing[2] - window_padding[2] -8)
+          reaper.ImGui_SetNextWindowPos(ctx, pos[1] - window_padding[1]  , pos[2] - line_height - item_inner_spacing[2] - window_padding[2] -8)
           reaper.ImGui_BeginTooltip(ctx)
           if Mods== Shift then r.ImGui_Text(ctx, ('%.1f'):format(p_value*100)..'%')
           else r.ImGui_Text(ctx, ('%.0f'):format(p_value*100)..'%' --[[ ('%.3f'):format(p_value) ]])
@@ -4500,13 +4532,13 @@
         function demo.PushStyle()
             if app.style_editor then
                 app.style_editor.push_count = app.style_editor.push_count + 1
-                for i, value in pairs(app.style_editor.style.vars) do
+                --[[ for i, value in pairs(app.style_editor.style.vars) do
                         if type(value) == 'table' then
                             r.ImGui_PushStyleVar(ctx, i, table.unpack(value))
                         else
                             r.ImGui_PushStyleVar(ctx, i, value)
                         end
-                end
+                end ]]
                 for i, value in pairs(app.style_editor.style.colors) do
                         r.ImGui_PushStyleColor(ctx, i, value)
                 end
@@ -4653,7 +4685,7 @@
             if not ctx then  ctx = r.ImGui_CreateContext('Style Editor 2') end 
             if not styleEditorIsOpen then r.ImGui_SetNextWindowSize(ctx,500, 800) end 
             open,OpenStyleEditor = r.ImGui_Begin(ctx, 'FX Devices Style Editor', OpenStyleEditor, r.ImGui_WindowFlags_TopMost()+r.ImGui_WindowFlags_NoCollapse()+r.ImGui_WindowFlags_NoDocking()--[[ +r.ImGui_WindowFlags_AlwaysAutoResize() ]])
-            
+
 
             if open  then 
                 styleEditorIsOpen = true 
@@ -6339,13 +6371,15 @@ function loop()
                     end ]]
                     if r.ImGui_BeginPopup(ctx, 'Macro'..i..'Menu') then
                         if r.ImGui_Selectable(ctx, 'Automate') then
-                            msg(i)
                             AddMacroJSFX()
                             -- Show Envelope for Morph Slider
 
-                            r.GetFXEnvelope(LT_Track, 0, i-1, true)
+                            local env = r.GetFXEnvelope(LT_Track, 0, i-1, true)
                             SetPrmAlias(LT_TrackNum, 1, i  , Trk[TrkID].Mod[i].Name or ('Macro'..i)) --don't know what this line does, but without it Envelope won't show....
+                            local active,  visible,  armed,  inLane,  laneHeight,  defaultShape,  minValue,  maxValue,  centerValue,  Tp,  faderScaling = r.BR_EnvGetProperties(env)
+                            r.BR_EnvSetProperties(env, true ,  true  ,  armed,  inLane,  laneHeight,  defaultShape,  faderScaling)
                             r.UpdateArrange()
+
                             r.ImGui_CloseCurrentPopup(ctx)
                         end
                         if r.ImGui_Selectable(ctx, 'Set Type to Envelope') then
@@ -7165,7 +7199,7 @@ function loop()
 
                 if rv then 
                     if not tablefind(Trk[TrkID].PreFX,   FXGUID[DragFX_ID]) then
-                        msg('not in pre')
+
                         table.insert(Trk[TrkID].PreFX,   FXGUID[DragFX_ID]) 
                         r.GetSetMediaTrackInfo_String(LT_Track, 'P_EXT: PreFX '..#Trk[TrkID].PreFX, FXGUID[DragFX_ID], true)
                     end
@@ -8858,7 +8892,8 @@ function loop()
                                                     if Prm.Type == 'Slider' or (not Prm.Type and not FX.Def_Type[FxGUID] ) or  FX.Def_Type[FxGUID] =='Slider'  then 
                                                         AddSlider(ctx, '##'..(Prm.Name or Fx_P), Prm.CustomLbl, Prm.V or 0, 0, 1, Fx_P,FX_Idx, Prm.Num ,Style, Prm.Sldr_W or FX.Def_Sldr_W[FxGUID]  ,0, Disable, Vertical, GrabSize,Prm.Lbl, 8)
                                                         MakeItemEditable(FxGUID,Fx_P,Prm.Sldr_W,'Sldr', curX,CurY)
-                                                    elseif FP.Type =='Knob' or (FX.Def_Type[FxGUID]=='Knob' and Prm.Type==nil ) then 
+                                                    elseif FP.Type =='Knob' or (FX.Def_Type[FxGUID]=='Knob' and Prm.Type==nil ) then                                                
+
                                                         AddKnob(ctx, '##'..Prm.Name, Prm.CustomLbl, Prm.V or 0, 0, 1, Fx_P,FX_Idx, Prm.Num ,Prm.Style, Prm.Sldr_W or Df.KnobRadius, 0, Disabled,Prm.FontSize, Prm.Lbl_Pos or 'Bottom', Prm.V_Pos )
                                                         MakeItemEditable(FxGUID,Fx_P,Prm.Sldr_W,'Knob', curX,CurY)
                                                     elseif Prm.Type =='V-Slider'or (FX.Def_Type[FxGUID]=='V-Slider' ) then 
@@ -10779,10 +10814,29 @@ function loop()
                                         local stylename
                                         if FrstSelItm.Style == 'Pro C' then stylename = 'Minimalistic' end 
                                         if r.ImGui_Button(ctx, (stylename or FrstSelItm.Style or 'Choose Style')..'##'..(LE.Sel_Items[1] or 'Style'), 155) then 
-
                                             r.ImGui_OpenPopup(ctx, 'Choose style window') 
-
                                         end
+
+                                        --[[ if  r.ImGui_BeginCombo( ctx, '##'..(LE.Sel_Items[1] or 'Style') , FrstSelItm.Style or 'Choose Style', nil) then 
+                                            local function AddStyle (Name, Style)
+                                                if r.ImGui_Selectable(ctx, Name) then 
+                                                    for i, v in pairs (LE.Sel_Items) do           
+                                                        FX[FxGUID][v].Style = Style ;   r.ImGui_CloseCurrentPopup(ctx)
+                                                    end
+                                                end
+                                            end
+                                            local T = {Name ={}; Style = {}}
+                                            T.Name={'Default', 'Minimalistic', 'Analog 1'}
+                                            T.Style = {'Default', 'Pro C', 'Analog 1'}
+
+                                            for i, v in ipairs(T.Name) do 
+                                                AddStyle(v, T.Style[i])
+                                            end
+
+                                            r.ImGui_EndCombo(ctx)
+                                            
+                                        end ]]
+
 
                                         if r.ImGui_BeginPopup(ctx, 'Choose style window') then
                                             r.ImGui_BeginDisabled(ctx)
@@ -10809,6 +10863,8 @@ function loop()
 
                                                 SetStyle ('Default',  Style )
                                                 SetStyle('Minimalistic', 'Pro C')
+                                                SetStyle('Analog 1', 'Analog 1')
+
                                                 
 
                                             end
@@ -13175,7 +13231,6 @@ function loop()
                             FX[FXGUID[DragFX_ID]].InWhichBand = nil 
                             r.GetSetMediaTrackInfo_String(LT_Track,'P_EXT: FX is in which BS'..FXGUID[DragFX_ID], '' , true  )  
                             r.GetSetMediaTrackInfo_String(LT_Track,'P_EXT: FX is in which Band'..FXGUID[DragFX_ID], '', true  )  
-                            msg('\n remove from bs')
                         end 
                     end
                 end
