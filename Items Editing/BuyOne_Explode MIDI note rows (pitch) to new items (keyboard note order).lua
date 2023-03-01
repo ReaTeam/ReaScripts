@@ -71,7 +71,7 @@ local midi_take = r.MIDIEditor_GetTake(hwnd)
 local retval, notecnt, ccevtcnt, textsyxevtcnt = table.unpack(is_midi and {r.MIDI_CountEvts(midi_take)} or {})
 r.MIDIEditor_LastFocused_OnCommand(2, false) -- File: Close window; islistviewcommand false
 local mess = not item and 'no selected item' or not is_midi and 'the take isn\'t MIDI' or notecnt == 0 and 'no notes in the midi take'
-	if mess then Error_Tooltip('\n\n '..mess..' \n\n') return end
+	if mess then Error_Tooltip('\n\n '..mess..' \n\n') return r.defer(function() do return end end) end
 
 r.Undo_BeginBlock()
 r.PreventUIRefresh(1)
