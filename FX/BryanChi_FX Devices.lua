@@ -4519,7 +4519,7 @@
             if app.style_editor and app.style_editor.push_count > 0 then
                 app.style_editor.push_count = app.style_editor.push_count - 1
                 r.ImGui_PopStyleColor(ctx, #cache['Col'])
-                r.ImGui_PopStyleVar(ctx, #cache['StyleVar'])
+                --r.ImGui_PopStyleVar(ctx, #cache['StyleVar'])
             elseif NeedtoPopStyle then 
                 for i in demo.EachEnum('Col') do
                     r.ImGui_PopStyleColor(ctx)
