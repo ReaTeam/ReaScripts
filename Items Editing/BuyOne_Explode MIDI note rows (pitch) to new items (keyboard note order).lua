@@ -70,7 +70,7 @@ local open = is_midi and not is_open and r.Main_OnCommand(40153, 0) -- Item: Ope
 local hwnd = r.MIDIEditor_GetActive()
 local midi_take = r.MIDIEditor_GetTake(hwnd)
 local retval, notecnt, ccevtcnt, textsyxevtcnt = table.unpack(is_midi and {r.MIDI_CountEvts(midi_take)} or {})
-	if not is_open then r.MIDIEditor_LastFocused_OnCommand(2, false) end -- File: Close window; islistviewcommand false
+	if not is_open then r.MIDIEditor_LastFocused_OnCommand(2, false) end -- File: Close window; islistviewcommand false // close if wasn't open intially
 local mess = not item and 'no selected item' or not is_midi and 'the take isn\'t MIDI' or notecnt == 0 and 'no notes in the midi take'
 	if mess then Error_Tooltip('\n\n '..mess..' \n\n') return r.defer(function() do return end end) end
 
