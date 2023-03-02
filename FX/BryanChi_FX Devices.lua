@@ -1,10 +1,7 @@
 -- @description FX Devices
 -- @author Bryan Chi
--- @version 1.0beta9.4-3
--- @changelog
---   -Fix Style Editor crash
---   -Fix console messages popping up
---   -Add Analog knob as a new style option
+-- @version 1.0beta9.4-4
+-- @changelog -Upload missing Analog Knob 1 file
 -- @provides
 --   [effect] BryanChi_FX Devices/FXD Macros.jsfx
 --   [effect] BryanChi_FX Devices/FXD ReSpectrum.jsfx
