@@ -64,13 +64,7 @@ end
 local item = r.GetSelectedMediaItem(0,0)
 local act_take = r.GetActiveTake(item)
 local is_midi = r.TakeIsMIDI(act_take)
-r.PreventUIRefresh(1)
-local is_open = r.MIDIEditor_GetActive() -- check if MIDI Editor is open
-local open = is_midi and not is_open and r.Main_OnCommand(40153, 0) -- Item: Open in built-in MIDI editor (set default behavior in preferences)
-local hwnd = r.MIDIEditor_GetActive()
-local midi_take = r.MIDIEditor_GetTake(hwnd)
-local retval, notecnt, ccevtcnt, textsyxevtcnt = table.unpack(is_midi and {r.MIDI_CountEvts(midi_take)} or {})
-	if not is_open then r.MIDIEditor_LastFocused_OnCommand(2, false) end -- File: Close window; islistviewcommand false // close if wasn't open intially
+local retval, notecnt, ccevtcnt, textsyxevtcnt = table.unpack(is_midi and {r.MIDI_CountEvts(act_take)} or {})
 local mess = not item and 'no selected item' or not is_midi and 'the take isn\'t MIDI' or notecnt == 0 and 'no notes in the midi take'
 	if mess then Error_Tooltip('\n\n '..mess..' \n\n') return r.defer(function() do return end end) end
 
