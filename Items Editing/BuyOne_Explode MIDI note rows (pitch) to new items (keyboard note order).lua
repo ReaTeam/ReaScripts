@@ -62,8 +62,8 @@ function Find_And_Get_New_Tracks(t)
 end
 
 local item = r.GetSelectedMediaItem(0,0)
-local act_take = r.GetActiveTake(item)
-local is_midi = r.TakeIsMIDI(act_take)
+local act_take = item and r.GetActiveTake(item)
+local is_midi = act_take and r.TakeIsMIDI(act_take)
 local retval, notecnt, ccevtcnt, textsyxevtcnt = table.unpack(is_midi and {r.MIDI_CountEvts(act_take)} or {})
 local mess = not item and 'no selected item' or not is_midi and 'the take isn\'t MIDI' or notecnt == 0 and 'no notes in the midi take'
 	if mess then Error_Tooltip('\n\n '..mess..' \n\n') return r.defer(function() do return end end) end
