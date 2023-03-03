@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="4f842a870876c2d0981f2cdc051ca03093ef0df6" name="ReaTeam Scripts">
+<index version="1" commit="d39fabfc1cbbeedf0a348ed92315494e4d1124e3" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -434,7 +434,7 @@
     </reapack>
   </category>
   <category name="Development">
-    <reapack name="amagalma_Find action or script name by its Command ID.lua" type="script" desc="amagalma_Find action or script name by its Command ID">
+    <reapack name="amagalma_Find action or script name by its Command ID.lua" type="script" desc="Find action or script name by its Command ID">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
@@ -443,6 +443,8 @@
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Returns the action/script name of the given ID\par}
 }
 ]]></description>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=197714</link>
+        <link rel="donation">https://www.paypal.me/amagalma</link>
       </metadata>
       <version name="1.0" author="amagalma" time="2017-10-27T20:49:11Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e7cbe0c66458db56fd582e124d40528aad624931/Development/amagalma_Find%20action%20or%20script%20name%20by%20its%20Command%20ID.lua</source>
@@ -450,6 +452,10 @@
       <version name="2.0" author="amagalma" time="2019-04-08T01:09:10Z">
         <changelog><![CDATA[# Uses new CF_GetCommandText function. No need to write action list into txt file any more.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b415a837980dd40f8dcd5d9f6a5eb64f04b1f038/Development/amagalma_Find%20action%20or%20script%20name%20by%20its%20Command%20ID.lua</source>
+      </version>
+      <version name="2.01" author="amagalma" time="2023-03-03T06:48:22Z">
+        <changelog><![CDATA[- Uses new kbd_getTextFromCmd API, if available]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d39fabfc1cbbeedf0a348ed92315494e4d1124e3/Development/amagalma_Find%20action%20or%20script%20name%20by%20its%20Command%20ID.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Search for the selected action in the Action List, or the open script in the IDE, in ReaPack.lua" type="script" desc="Search for the selected action in the Action List, or the open script in the IDE, in ReaPack">
