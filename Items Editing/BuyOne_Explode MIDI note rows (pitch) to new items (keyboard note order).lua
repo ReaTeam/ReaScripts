@@ -24,7 +24,7 @@ About: 	The native action 'Item: Explode MIDI note rows (pitch) to new items'
 -- enable to keep this folder structure;
 -- if empty, the tracks with exploded items will be
 -- converted to regular tracks
-KEEP_FOLDER_STRUCTURE = "1"
+KEEP_FOLDER = "1"
 
 -----------------------------------------------------------------------------
 -------------------------- END OF USER SETTINGS -----------------------------
@@ -75,10 +75,10 @@ local t = Find_And_Get_New_Tracks() -- store current
 r.Main_OnCommand(40920, 0) -- Item: Explode MIDI note rows (pitch) to new items
 local t = Find_And_Get_New_Tracks(t) -- find and get new
 
-KEEP_FOLDER_STRUCTURE = #KEEP_FOLDER_STRUCTURE:gsub(' ','') > 0
+KEEP_FOLDER = #KEEP_FOLDER:gsub(' ','') > 0
 
 	if t then
-	local makePrevFolder = KEEP_FOLDER_STRUCTURE and 2 or 0 -- if beforeTrackIdx follows last track in folder or a normal one
+	local makePrevFolder = KEEP_FOLDER and 2 or 0 -- if beforeTrackIdx follows last track in folder or a normal one
 	local ref_idx = t[#t].idx+1 -- track which immediately follows the last new track
 	local decrement = 0
 		for _, props in ipairs(t) do
