@@ -77,7 +77,13 @@ MIN_HEIGHT = "30"
 -- ANY FOLDER TRACKS
 -- Multi-selection of tracks which includes folder children
 -- tracks is very prone to intense flickering;
--- Enable by inserting any alphanumeric character between the quotes
+-- if the code provided at the bottom of this file
+-- is used in lieu of actions
+-- 'Go to next/previous track leaving other tracks selected'
+-- to create multi-selections, this problem can be avoided 
+-- as the said code includes safeguards against it being  
+-- tailored for use with this script;
+-- Enable by inserting any alphanumeric character between the quotes.
 
 INCLUDE_FOLDER_CHILDREN = ""
 
