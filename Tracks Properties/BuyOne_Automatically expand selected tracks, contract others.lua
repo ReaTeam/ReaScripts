@@ -239,6 +239,8 @@ end
 
 function Manage_Track_Heights(sel_tr_t, MIN_HEIGHT, MAX_HEIGHT, theme_min_tr_height)
 
+local CUST_MIN_HEIGHT = MIN_HEIGHT > theme_min_tr_height
+
 	local function All_Parent_Folders_Uncollapsed(tr)
 	local tr_idx = r.CSurf_TrackToID(tr, false) -- mcpView false
 		for i = tr_idx-2, 0, -1 do -- in reverse to the top
@@ -276,7 +278,7 @@ local first_sel_tr = r.GetSelectedTrack(0,0)
 	r.Main_OnCommand(40727,0) -- View: Minimize all tracks
 	r.PreventUIRefresh(-1)
 
-		if MIN_HEIGHT > theme_min_tr_height then -- actions 'Track: Go to next/previous track' don't work when this routine runs, i.e. when MIN_HEIGHT > theme specific min height // the routine must not be enclosed between PreventUIRefresh() because in this case actions 'View: Increase/decrease selected track heights' don't affect tracks
+		if CUST_MIN_HEIGHT then -- actions 'Track: Go to next/previous track' don't work when this routine runs, i.e. when MIN_HEIGHT > theme specific min height // the routine must not be enclosed between PreventUIRefresh() because in this case actions 'View: Increase/decrease selected track heights' don't affect tracks
 
 			-- select all
 			for i = 0, r.CountTracks(0)-1 do
@@ -318,7 +320,7 @@ local first_sel_tr = r.GetSelectedTrack(0,0)
 		end
 
 	-- finally restore ALL originally selected tracks
-	if MIN_HEIGHT > theme_min_tr_height then -- ensures that actions 'Track: Go to next/previous track [leaving other tracks selected]' can be used when MIN_HEIGHT > theme_min_tr_height isn't true, i.e. when theme specific MIN_HEIHT is used	
+	if CUST_MIN_HEIGHT then -- ensures that actions 'Track: Go to next/previous track [leaving other tracks selected]' can be used when MIN_HEIGHT > theme_min_tr_height isn't true, i.e. when theme specific MIN_HEIHT is used	
 	r.SetOnlyTrackSelected(r.GetMasterTrack(0)) -- deselect all
 		for _, tr in ipairs(sel_tr_t) do
 		r.SetTrackSelected(tr, true) -- selected true
@@ -326,8 +328,9 @@ local first_sel_tr = r.GetSelectedTrack(0,0)
 	end
 
 local Y = r.GetMediaTrackInfo_Value(uppermost_tr, 'I_TCPY')
-	if MIN_HEIGHT > theme_min_tr_height and Y ~= Y_init then-- when min track height is used restoration of scroll state isn't needed	
-  r.PreventUIRefresh(1)
+
+	if CUST_MIN_HEIGHT and Y ~= Y_init then-- when min track height is used restoration of scroll state isn't needed	
+	r.PreventUIRefresh(1)
 	local dir = Y > Y_init and 1 or Y < Y_init and -1 -- 1 = 8, -1 = -8 px; 1 down so that tracklist moves up and vice versa
 		if dir then
 		local y_monitor = Y
@@ -338,7 +341,7 @@ local Y = r.GetMediaTrackInfo_Value(uppermost_tr, 'I_TCPY')
 				else break end -- in case the scroll cannot go any further because after contraction of tracks the tracklist becomes shorter and the track cannot reach the original value, especially it it's close to the bottom, otherwise the loop will become endless and freeze REAPER
 			until dir > 0 and Y <= Y_init or dir < 0 and Y >= Y_init
 		end
-  r.PreventUIRefresh(-1)
+	r.PreventUIRefresh(-1)
 	end
 
 end
