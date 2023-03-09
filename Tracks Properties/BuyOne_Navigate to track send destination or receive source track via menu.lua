@@ -18,7 +18,7 @@ About: 	As far as going to send destination track is concerned
         The menu lists send destination / receive source track
         index, name (if any), number of sends/receives routed
         from/to the given track, whether send destination / receive 
-        source track is a child in a collapsed folder (-f) and 
+        source track is a child in a collapsed folder (-c) and 
         whether it's hidden in the currently active context (-h) 
         which is either the Arrange view or the Mixer.
 
@@ -137,7 +137,7 @@ local dest_tr_init, dest_snd_cnt = nil, 0
 	for i = 0, r.GetTrackNumSends(tr, cat)-1 do
 	local dest_tr = r.GetTrackSendInfo_Value(tr, cat, i, parm)
 --	local mute = r.GetTrackSendInfo_Value(tr, cat, i, 'B_MUTE') == 1 and ' -m' or ''
-	local child_of_collapsed_folder = Track_Is_Child_Of_Collapsed_Folder(dest_tr, mixer_vis) and ' -f' or ''
+	local child_of_collapsed_folder = Track_Is_Child_Of_Collapsed_Folder(dest_tr, mixer_vis) and ' -c' or ''
 	local is_hidden = not r.IsTrackVisible(dest_tr, mixer_vis) and ' -h' or ''
 	local data = child_of_collapsed_folder..is_hidden
 		if dest_tr ~= dest_tr_init then
