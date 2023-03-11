@@ -105,7 +105,7 @@ local TAKE_FX = TAKE_FX:gsub('[%s]','') ~= ''
 		if err then r.MB(err,'ERROR',0) r.defer(function() end) return end
 
 		-- Generate prompts
-		if fx_brws == 1 and fx_chain then resp = r.MB('Both FX chain and FX browser are open.\n\n\"YES\" - to insert FX selected in the FX browser.\n\n\"NO\" - to insert FX selected in the focused in FX chain.','PROMPT',3)
+		if fx_brws == 1 and fx_chain then resp = r.MB('Both FX chain and FX browser are open.\n\n\"YES\" - to insert FX selected in the FX browser.\n\n\"NO\" - to insert FX selected in the focused FX chain.','PROMPT',3)
 			if resp == 6 then fx_brws, fx_chain = 1, false
 			elseif resp == 7 then fx_brws, fx_chain = 0, true
 			else r.defer(function() end) return end
