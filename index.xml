@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="d39fabfc1cbbeedf0a348ed92315494e4d1124e3" name="ReaTeam Scripts">
+<index version="1" commit="1e4398de31f8896fa495d606529c1a470eb8156d" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -8584,6 +8584,21 @@ Fix bug on Windows]]></changelog>
     <reapack name="amagalma_Name selected items notes after the region they are in.lua" type="script" desc="Name selected items' notes after the region they are in">
       <version name="1.00" author="amagalma" time="2021-12-22T11:01:58Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/21f13c69d19eca9f672353173cfdff8f1f9cabe2/Items%20Properties/amagalma_Name%20selected%20items%20notes%20after%20the%20region%20they%20are%20in.lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Paste text from clipboard to selected items' notes (one line per item).lua" type="script" desc="Paste text from clipboard to selected items' notes (one line per item)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Each selected item gets one line from the text in the clipboard. Helpful when using it with lyrics on empty items.\par}
+}
+]]></description>
+        <link rel="donation">https://www.paypal.me/amagalma</link>
+      </metadata>
+      <version name="1.00" author="amagalma" time="2023-03-11T16:40:02Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/1e4398de31f8896fa495d606529c1a470eb8156d/Items%20Properties/amagalma_Paste%20text%20from%20clipboard%20to%20selected%20items'%20notes%20(one%20line%20per%20item).lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Switch unlocked items only to previous or next take bundle.lua" type="script" desc="Switch unlocked items only to previous or next take bundle">
