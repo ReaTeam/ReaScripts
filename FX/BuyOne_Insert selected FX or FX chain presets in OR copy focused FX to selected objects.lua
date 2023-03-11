@@ -4,6 +4,7 @@
 -- @version 1.4
 -- @changelog
 --    Fixed temporary track being left behind after aborting the script
+--    Fixed a bug of copying FX to the same FX chain
 -- @about Allows inserting multiple FX or FX chain presets from FX browser or copying FX focused in an FX chain or in a floating window to selected objects. Detailed description is available inside the script.
 
 --[[
@@ -167,7 +168,7 @@ r.Undo_BeginBlock()
 			if sel_trk_cnt > 0 then
 				for i = 0, sel_trk_cnt-1 do
 				local dest_trk = r.GetSelectedTrack(0,i) or r.GetMasterTrack(0)
-					if (retval == 1 or src_mon_fx_idx >= 0 and dest_trk ~= src_trk) or retval == 2 then -- to prevent copying back to the source track only when src fx is track fx, without retval cond dest_trk ~= src_trk is true for the track of a src_item and prevents copying to such track
+					if ((retval == 1 or src_mon_fx_idx >= 0) and dest_trk ~= src_trk) or retval == 2 then -- to prevent copying back to the source track only when src fx is track fx, without retval cond dest_trk ~= src_trk is true for the track of a src_item and prevents copying to such track
 					local main_fx_pos = pos == -1 and r.TrackFX_GetCount(dest_trk) or 0
 					local input_fx_pos = pos == -1 and r.TrackFX_GetRecCount(dest_trk)+0x1000000 or 0x1000000
 					local insert = (retval <= 1 and TRACK_MAIN_FX) and r.TrackFX_CopyToTrack(src_trk, src_fx_num, dest_trk, main_fx_pos, false) or ((retval == 2 and TRACK_MAIN_FX) and r.TakeFX_CopyToTrack(src_take, src_fx_num, dest_trk, main_fx_pos, false))
