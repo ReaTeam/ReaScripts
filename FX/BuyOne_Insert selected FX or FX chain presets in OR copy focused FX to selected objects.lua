@@ -1,11 +1,9 @@
 -- @description Insert selected FX or FX chain presets in OR copy focused FX to selected objects
 -- @author BuyOne
 -- @website https://forum.cockos.com/member.php?u=134058
--- @version 1.3
+-- @version 1.4
 -- @changelog
---    Following ReaPack issue report 776:
---    Added version compatibility check
---    Update version compatibility tag
+--    Fixed temporary track being left behind after aborting the script
 -- @about Allows inserting multiple FX or FX chain presets from FX browser or copying FX focused in an FX chain or in a floating window to selected objects. Detailed description is available inside the script.
 
 --[[
@@ -126,7 +124,9 @@ local TAKE_FX = TAKE_FX:gsub('[%s]','') ~= ''
 		r.SetMediaTrackInfo_Value(temp_track, 'B_SHOWINMIXER', 0)
 		r.SetMediaTrackInfo_Value(temp_track, 'B_SHOWINTCP', 0)
 		r.TrackFX_AddByName(temp_track, 'FXADD:', false, -1)
-			if r.TrackFX_GetCount(temp_track) == 0 then	r.MB('No FX have been selected in the FX browser.', 'ERROR', 0) r.defer(function() end) return
+			if r.TrackFX_GetCount(temp_track) == 0 then	
+			r.DeleteTrack(temp_track)
+			r.MB('No FX have been selected in the FX browser.', 'ERROR', 0) r.defer(function() do return end end) return
 			else
 			fx_list = ''
 				for i = 0, r.TrackFX_GetCount(temp_track)-1 do
