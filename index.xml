@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="1e4398de31f8896fa495d606529c1a470eb8156d" name="ReaTeam Scripts">
+<index version="1" commit="e2ef17cb1c7627069f29225fafb578257cdf00ee" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -4482,6 +4482,10 @@ Others:
         <changelog><![CDATA[# Fixed Arrange view movement when object under mouse is being detected while the edit cursor is out of sight]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/72290bc88b03c6d2707b9050aacf38fec0c8a9b2/FX/BuyOne_FX%20presets%20menu%20(guide%20inside).lua</source>
       </version>
+      <version name="1.5" author="BuyOne" time="2023-03-12T15:48:41Z">
+        <changelog><![CDATA[#Fixed error on loading preset menu of plugins with embedded presets and no external preset file]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f3f35d9053f47fb94a4bed517dd78e861344797d/FX/BuyOne_FX%20presets%20menu%20(guide%20inside).lua</source>
+      </version>
     </reapack>
     <reapack name="BuyOne_FX presets navigation.lua" type="script" desc="FX presets navigation (7 scripts)">
       <metadata>
@@ -7768,6 +7772,10 @@ Fix: Expand error message when the library is missing]]></changelog>
       <version name="1.06" author="80icio" time="2023-02-16T22:46:05Z">
         <changelog><![CDATA[- fixed menu bug]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/2544d6e39d84967dc424aa988e3b24422b4f4454/Items%20Editing/MK%20Slicer%20(80icio%20MOD).lua</source>
+      </version>
+      <version name="1.07" author="80icio" time="2023-03-12T15:48:19Z">
+        <changelog><![CDATA[- fixed start at quarter notes check]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/242c4778254526c6b3926a341c7f3dc2ffb93419/Items%20Editing/MK%20Slicer%20(80icio%20MOD).lua</source>
       </version>
     </reapack>
     <reapack name="mordi_Align grouped items to selected items respectively.lua" type="script" desc="Align grouped items to selected items respectively">
@@ -16125,6 +16133,23 @@ Updated to only list stretch markers within item time and format time as standar
     <reapack name="Argitoth_Convert all takes rate to pitch.eel" type="script" desc="Convert all takes rate to pitch">
       <version name="1.0" author="Elan Hickler (Argitoth)" time="2015-12-03T07:38:56Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Takes%20Properties/Argitoth_Convert%20all%20takes%20rate%20to%20pitch.eel</source>
+      </version>
+    </reapack>
+    <reapack name="az_Propagate project Pitch Shift mode to all takes with default mode.lua" type="script" desc="Propagate project Pitch Shift mode to all takes with default mode">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 #Propagate project Pitch Shift mode to all takes with default mode\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Useful for copying content to other projects.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Just select items and run the script.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 NOTE: Project has to be saved in file to let the script access to its actual settings.\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="AZ" time="2023-03-12T15:49:10Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e2ef17cb1c7627069f29225fafb578257cdf00ee/Takes%20Properties/az_Propagate%20project%20Pitch%20Shift%20mode%20to%20all%20takes%20with%20default%20mode.lua</source>
       </version>
     </reapack>
     <reapack name="BuyOne_Randomize active take in items (settings inside).lua" type="script" desc="Randomize active take in items">
