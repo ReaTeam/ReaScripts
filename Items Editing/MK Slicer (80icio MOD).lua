@@ -1,7 +1,7 @@
 -- @description MK Slicer (80icio MOD)
 -- @author 80icio
--- @version 1.06
--- @changelog - fixed menu bug
+-- @version 1.07
+-- @changelog - fixed start at quarter notes check
 -- @link Forum Thread https://forum.cockos.com/showthread.php?p=2436358#post2436358
 -- @about
 --   This is a lua script based on MK SLICER 2 by @Cool for quick slicing, quantizing by grid, re-quantizing, triggering or sampling audio.
@@ -507,11 +507,11 @@ function  Check_selection()
         
         startTstore = startT
         itemlstore = iteml
-        local startTqn = r.TimeMap2_timeToQN(0, startT)
-        
+        local startTqn = tonumber(tostring(r.TimeMap2_timeToQN(0, startT)))
        -- local endTqn = r.TimeMap2_timeToQN(0, endT)
 
         if floor(startTqn) == startTqn then
+        
         Errorcheck = false
         
         else
@@ -3602,13 +3602,17 @@ qn_check = true
         
         startTstore = startT
         itemlstore = iteml
-        local startTqn = r.TimeMap2_timeToQN(0, startT)
+        local startTqn = tonumber(tostring(r.TimeMap2_timeToQN(0, startT)))
   
 
-        if startTqn - floor(startTqn) < 0.000001 or startTqn - floor(startTqn) > 0.9999  then-- and endTqn - floor(endTqn) <= 0.000001 then
+        if  floor(startTqn) == startTqn then
+        
+        reaper.ShowConsoleMsg(startTqn .. ' ' .. floor(startTqn))
         qn_check = true
         
         else
+        
+        reaper.ShowConsoleMsg(startTqn .. ' ' .. floor(startTqn))
         qn_check = false
         end
      end
@@ -3864,6 +3868,7 @@ Init()
 end -- 
 
 --------------------------------------------------------------------------------------------
+
 if qn_check == false then ---------
 
 ------------------------------------------Error Message-----------------------------------------
@@ -6682,7 +6687,7 @@ Loading = Txt:new(680,450+corrY,260,25, 1, 1, 1, 1, "Loading...",    "Arial", 22
 -- Filter_FFT ----------------------------------------------
 -----------------------------------------------------------
 function Wave:Filter_FFT(lowband, hiband)
---reaper.ShowConsoleMsg(self.buffer[0] .. " - " .. block_size .. "\n")
+
 
 
   --local buf = self.buffer
@@ -6697,7 +6702,7 @@ function Wave:Filter_FFT(lowband, hiband)
       -- Clear lowband bins --
       self.buffer.clear(0, 1, lowband)                  -- clear low bins
       self.buffer2.clear(0, 1, lowband)
-      
+
       -- Clear hiband bins  --
       self.buffer.clear(0, hiband+1, block_size-hiband) -- clear hi bins
       self.buffer2.clear(0, hiband+1, block_size-hiband)
@@ -6852,9 +6857,10 @@ end
 triaglecrx = {} --------triangular window
 function trianglecrossfade()
   for i = 1, block_size/2 do
-  triaglecrx[i] = (2/block_size)*(i)
-  triaglecrx[i+block_size/2] = ((2/block_size)*((block_size/2)-i))
+    triaglecrx[i] = ((2/block_size)*(i))
+    triaglecrx[block_size-i+1] = triaglecrx[i]
   end
+  
 end
 trianglecrossfade()
 --------------------------------------------------------------------------------
@@ -6895,8 +6901,8 @@ local Nofreqcut
       
             lowband = floor(lowband/2)*2 --- hi band and lo band
             hiband  = ceil(hiband/2)*2  
-           
-          
+           --reaper.ClearConsole()
+          ---reaper.ShowConsoleMsg(lowband .. ' ' .. hiband)
           -------------------------------------------------------------------------
           -- Filtering >> samples to out_buf >> to table >> create peaks ----------
           -------------------------------------------------------------------------
