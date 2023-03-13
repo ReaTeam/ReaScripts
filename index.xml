@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="e2ef17cb1c7627069f29225fafb578257cdf00ee" name="ReaTeam Scripts">
+<index version="1" commit="fc45790da3a170235f3a8fd4efb205b79aae4c64" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -7776,6 +7776,10 @@ Fix: Expand error message when the library is missing]]></changelog>
       <version name="1.07" author="80icio" time="2023-03-12T15:48:19Z">
         <changelog><![CDATA[- fixed start at quarter notes check]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/242c4778254526c6b3926a341c7f3dc2ffb93419/Items%20Editing/MK%20Slicer%20(80icio%20MOD).lua</source>
+      </version>
+      <version name="1.08" author="80icio" time="2023-03-13T12:04:51Z">
+        <changelog><![CDATA[- fixed wrong script update]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/fc45790da3a170235f3a8fd4efb205b79aae4c64/Items%20Editing/MK%20Slicer%20(80icio%20MOD).lua</source>
       </version>
     </reapack>
     <reapack name="mordi_Align grouped items to selected items respectively.lua" type="script" desc="Align grouped items to selected items respectively">
@@ -16838,6 +16842,10 @@ is off-screen. Reaper issue, should be fixed soon.]]></changelog>
         <changelog><![CDATA[Fixed restoring track visibility
 Removed first run warning message.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a6ae7bab0f25a6eedb4a423787b08247dbce7f27/Tracks%20Properties/ak5k_Toggle%20track%20visibility%20by%20items%20in%20current%20region.lua</source>
+      </version>
+      <version name="0.2.1" author="ak5k" time="2023-03-13T12:04:30Z">
+        <changelog><![CDATA[Zero-length time selection is no longer registered as 'point of interest'.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/0f735acd8448467322a8e63f9f8bb14343ed6db8/Tracks%20Properties/ak5k_Toggle%20track%20visibility%20by%20items%20in%20current%20region.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Cycle layout for track under mouse cursor (applies to other selected tracks if track selected).lua" type="script" desc="Cycle layout for track under mouse cursor (applies to other selected tracks if track selected)">
