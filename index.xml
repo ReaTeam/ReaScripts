@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="6b57482b4ab9e5c48aeed76f7f0b7ec9b0907e7b" name="ReaTeam Scripts">
+<index version="1" commit="e7905c766f5f1bd21be28c1003874ce53e42da0d" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -6553,6 +6553,38 @@ is shorter than that of the portion imported into ReaSamplomatic5000
       <version name="1.1" author="BuyOne" time="2021-10-01T19:46:12Z">
         <changelog><![CDATA[#Added group locking in non-AUTO mode]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/882b19fae0b18d4e3db1c6f78e1378250d2e64b3/Items%20Editing/BuyOne_Exclusively%20solo%20or%20mute%20only%20selected%20grouped%20items%20(settings%20inside).lua</source>
+      </version>
+    </reapack>
+    <reapack name="BuyOne_Explode MIDI note rows (pitch) to new items (keyboard note order).lua" type="script" desc="Explode MIDI note rows (pitch) to new items (keyboard note order)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 The native action 'Item: Explode MIDI note rows (pitch) to new items' explodes note rows from the low to the high and in the tracklist the exploded items end up in the order inverse to the vertical note order on the keyboard, which seems counterintuitive, so the script is an alternative.\line https://forum.cockos.com/showthread.php?t=276685\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/member.php?u=134058</link>
+      </metadata>
+      <version name="1.0" author="BuyOne" time="2023-03-13T22:36:22Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3ce1489ea5842df3c9c0883f48584cbd88dfcad2/Items%20Editing/BuyOne_Explode%20MIDI%20note%20rows%20(pitch)%20to%20new%20items%20(keyboard%20note%20order).lua</source>
+      </version>
+    </reapack>
+    <reapack name="BuyOne_Explode multichannel MIDI to new one-channel items obeying keyboard note order.lua" type="script" desc="Explode multichannel MIDI to new one-channel items obeying keyboard note order">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Alternative to the native action 'Item: Explode multichannel MIDI or audio to new one-channel items' for MIDI items.\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/member.php?u=134058</link>
+      </metadata>
+      <version name="1.0" author="BuyOne" time="2023-03-13T22:37:52Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e7905c766f5f1bd21be28c1003874ce53e42da0d/Items%20Editing/BuyOne_Explode%20multichannel%20MIDI%20to%20new%20one-channel%20items%20obeying%20keyboard%20note%20order.lua</source>
       </version>
     </reapack>
     <reapack name="BuyOne_Manipulate overlapping items in lanes.lua" type="script" desc="Move, select, im- &amp; explode, crop overlapping items in lanes (13 scripts) - only 6.53 and earlier">
