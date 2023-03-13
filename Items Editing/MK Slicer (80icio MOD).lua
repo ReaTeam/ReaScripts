@@ -1,7 +1,7 @@
 -- @description MK Slicer (80icio MOD)
 -- @author 80icio
--- @version 1.07
--- @changelog - fixed start at quarter notes check
+-- @version 1.08
+-- @changelog - fixed wrong script update
 -- @link Forum Thread https://forum.cockos.com/showthread.php?p=2436358#post2436358
 -- @about
 --   This is a lua script based on MK SLICER 2 by @Cool for quick slicing, quantizing by grid, re-quantizing, triggering or sampling audio.
@@ -3607,12 +3607,10 @@ qn_check = true
 
         if  floor(startTqn) == startTqn then
         
-        reaper.ShowConsoleMsg(startTqn .. ' ' .. floor(startTqn))
         qn_check = true
         
         else
-        
-        reaper.ShowConsoleMsg(startTqn .. ' ' .. floor(startTqn))
+ 
         qn_check = false
         end
      end
@@ -6721,16 +6719,21 @@ function Wave:Filter_FFT(lowband, hiband)
     
 end 
 
+--[[
 function Wave:Original_FFT()
 
+    for i = 1, #self.buffer do
+    self.buffer[i]= self.buffer[i]*block_size*2
+    end
 
+    --[[
     self.buffer.fft_real(block_size,true)       -- FFT
     self.buffer.ifft_real(block_size,true)      -- iFFT
     ----------------------------------------
-    
+
     
 end 
-
+]]--
 --------------------------------------------------------------------------------
 ---  Create MIDI  --------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -6863,6 +6866,8 @@ function trianglecrossfade()
   
 end
 trianglecrossfade()
+    
+    
 --------------------------------------------------------------------------------
 ---  Multi Item Accessor  ------------------------------------------------------icio accessor----------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -7008,9 +7013,15 @@ local Nofreqcut
                               end
                           
                         end
-                    
-          
-                                  self:Original_FFT()
+                        
+                        
+                                  --self:Original_FFT()
+                                 
+                                  
+                                  for i = 1, #self.buffer do
+                                    self.buffer[i]= self.buffer[i]*block_size*2
+                                  end
+                        
                                   
                         
                       
@@ -7067,9 +7078,10 @@ local Nofreqcut
   Wave:Destroy_Track_Accessor()
   end
   
+  
+  
   self:Create_Peaks()
   self.State = true -- Change State
-
 
 end
  
