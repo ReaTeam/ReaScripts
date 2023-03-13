@@ -1,9 +1,7 @@
 -- @description Toggle track visibility by items in current region
 -- @author ak5k
--- @version 0.2.0
--- @changelog
---   Fixed restoring track visibility
---   Removed first run warning message.
+-- @version 0.2.1
+-- @changelog Zero-length time selection is no longer registered as 'point of interest'.
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=262559
 -- @screenshot https://i.imgur.com/rvnZAzk.gif
 -- @about Toggles track visibility based on existing items within current region.
@@ -41,7 +39,7 @@ local function GetRange()
   
   local loop_start, loop_end = 
     reaper.GetSet_LoopTimeRange(false, false, _,_, false)
-  if not (loop_start == 0 and loop_end == 0) then
+  if (loop_end - loop_start ~= 0) then
     starts[#starts+1] = loop_start
     ends[#ends+1] = loop_end
   end
