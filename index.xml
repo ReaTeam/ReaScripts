@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="f1e2064e941bd620342997a026653528461dd49f" name="ReaTeam Scripts">
+<index version="1" commit="c241b21aee24113a17052d729c24ae5014f0ecf4" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -5365,13 +5365,26 @@ Better error-checking in general]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/551a68f8c3beb8bb0a1804854bab44a2a2e33469/FX/Lokasenna_Toggle%20FX%20bypass%20by%20track%20and%20slot.lua</source>
       </version>
     </reapack>
-    <reapack name="spk77_Link selected tracks FX parameters.lua" type="script" desc="Link selected tracks FX parameter">
+    <reapack name="spk77_Link selected tracks FX parameters.lua" type="script" desc="Link selected tracks FX parameters">
       <metadata>
-        <link rel="screenshot">http://stash.reaper.fm/24908/Link%20FX%20params3.gif</link>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 #spk77_Link selected tracks FX parameters.lua @ReaScript Name: Link selected tracks FX parameter @about Link selected tracks FX parameter, if they have the same name. @Instructions: Select tracks. Run. Terminate once it is done. @Screenshot: http://stash.reaper.fm/24908/Link%20FX%20params3.gif @Author: spk77 @Licence: GPL v3 @Forum Thread: Scripts: FX Param Values (various) @Forum Thread URI: http://forum.cockos.com/showpost.php?p=1562493&postcount=31 @Forum Thread URI: https://forum.cockos.com/showthread.php?t=267771 @REAPER: 5.0 @Version: 1.01 @Description Toolbar button now indicates whether the script is running or not.\par}
+}
+]]></description>
       </metadata>
       <version name="1.0" author="spk77" time="2017-02-08T16:53:25Z">
         <changelog><![CDATA[+ Initial Release]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/247255a02eb50e565d8dade9685aa85a97f69f9c/FX/spk77_Link%20selected%20tracks%20FX%20parameters.lua</source>
+      </version>
+      <version name="1.01" author="spk77" time="2023-03-14T10:32:50Z">
+        <changelog><![CDATA[v1.0 ( 2015-08-23 )
+	+ Initial Release
+v1.01 ( 2022-06-15 )
+	+ Added toolbar button indicator, thanks to X-Raym, otherwise unchanged.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c241b21aee24113a17052d729c24ae5014f0ecf4/FX/spk77_Link%20selected%20tracks%20FX%20parameters.lua</source>
       </version>
     </reapack>
     <reapack name="tagirijus_FX list menu.lua" type="script" desc="FX list menu">
