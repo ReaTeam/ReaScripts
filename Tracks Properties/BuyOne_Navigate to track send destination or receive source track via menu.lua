@@ -70,9 +70,9 @@ About: 	As far as going to send destination track is concerned
 -- To enable the following settings insert any alphanumeric character
 -- between the quotes.
 
--- Enable so the script can be used
--- then configure the settings below
-ENABLE_SCRIPT = ""
+-- Enable this setting to permanently 
+-- prevent USER SETTINGS reminder pop-up
+REMINDER_OFF = ""
 
 -- Both settings are valid if both are filled out or both are empty;
 -- it's recommended to have both valid because this will allow easy
@@ -107,16 +107,26 @@ reaper.ShowConsoleMsg(cap..tostring(param)..'\n')
 end
 
 
-function Script_Not_Enabled(ENABLE_SCRIPT)
-	if #ENABLE_SCRIPT:gsub(' ','') == 0 then
-	local emoji = [[
-		_(ツ)_
-		\_/|\_/
-	]]
-	r.MB('  Please enable the script in its USER SETTINGS.\n\nSelect it in the Action list and click "Edit action...".\n\n'..emoji, 'PROMPT', 0)
-	return true
+function Reminder_Off(REMINDER_OFF)
+	local function gap(n) -- number of repeats, integer
+	local n = not n and 0 or tonumber(n) and math.abs(math.floor(n)) or 0
+	return string.rep(' ',n)
+	-- return (' '):rep(n)
+	end
+local _, scr_name, scr_sect_ID, cmd_ID, _,_,_ = r.get_action_context()
+local scr_name = scr_name:match('([^\\/]+)%.%w+') -- without path and extension
+--local cmd_ID = r.ReverseNamedCommandLookup(cmd_ID) -- to use instead of scr_name // just an idea
+local ret, state = r.GetProjExtState(0, scr_name, 'REMINDER_OFF')
+	if #REMINDER_OFF:gsub(' ','') == 0 and ret == 0 then
+	local resp = r.MB('\t'..gap(7)..'This is to make you aware\n\n'..gap(12)..'that the script includes USER SETTINGS\n\n'..gap(10)..'you might want to tailor to your workflow.\n\n'..gap(17)..'Clicking "OK" disables this prompt\n\n'..gap(8)..'for the current project (which will be saved).\n\n\t'..gap(6)..'To disable it permanently\n\n change the REMINDER_OFF setting inside the script.\n\n   Select it the the Action list and click "Edit action..."', 'REMINDER', 1)
+		if resp == 1 then
+		r.SetProjExtState(0, scr_name, 'REMINDER_OFF', '1')
+		r.Main_SaveProject(0, false) -- forceSaveAsIn false
+		return true
+		end
 	end
 end
+
 
 
 function Error_Tooltip(text)
@@ -234,7 +244,7 @@ or not wantMixer and get_first_collapsed_tcp_fldr(tr)
 end
 
 
-	if Script_Not_Enabled(ENABLE_SCRIPT) then return r.defer(function() do return end end) end
+	if not Reminder_Off(REMINDER_OFF) then return r.defer(function() do return end end) end
 
 
 LIST_SENDS = #LIST_SENDS:gsub(' ','') > 0
