@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="c241b21aee24113a17052d729c24ae5014f0ecf4" name="ReaTeam Scripts">
+<index version="1" commit="22063cd8e7f16d44a424cdaf9f34bbe428635040" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -17095,6 +17095,22 @@ Removed first run warning message.]]></changelog>
       <version name="1.0" author="BuyOne" time="2023-02-12T07:23:51Z">
         <changelog><![CDATA[Initial release]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6e6a66de2ab7168ccc9c2543754b2099e8881d2a/Tracks%20Properties/BuyOne_(Re)Store%20Mixer%20scroll%20position%20per%20project.lua</source>
+      </version>
+    </reapack>
+    <reapack name="BuyOne_Automatically increase height of selected tracks, decrease others'.lua" type="script" desc="Automatically increase height of selected tracks, decrease others'">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 The script works similalrly to the combination of preference 'Always show full control panel on armed track' and option\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/member.php?u=134058</link>
+      </metadata>
+      <version name="1.0" author="BuyOne" time="2023-03-14T14:28:35Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/22063cd8e7f16d44a424cdaf9f34bbe428635040/Tracks%20Properties/BuyOne_Automatically%20increase%20height%20of%20selected%20tracks,%20decrease%20others'.lua</source>
       </version>
     </reapack>
     <reapack name="BuyOne_Mute empty tracks with FX and optionally set their FX offline (guide inside).lua" type="script" desc="Mute empty tracks with FX and optionally set their FX offline">
