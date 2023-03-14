@@ -1,24 +1,40 @@
---[[
- * ReaScript Name: Link selected tracks FX parameter
- * Description: Link selected tracks FX parameter, if they have the same name.
- * Instructions: Select tracks. Run. Terminate once it is done.
- * Screenshot: http://stash.reaper.fm/24908/Link%20FX%20params3.gif
- * Author: spk77
- * Licence: GPL v3
- * Forum Thread: 	Scripts: FX Param Values (various)
- * Forum Thread URI: http://forum.cockos.com/showpost.php?p=1562493&postcount=31
- * REAPER: 5.0
- * Version: 1.0
---]]
+-- @description Link selected tracks FX parameters
+-- @author spk77
+-- @version 1.01
+-- @changelog
+--   v1.0 ( 2015-08-23 )
+--   	+ Initial Release
+--   v1.01 ( 2022-06-15 )
+--   	+ Added toolbar button indicator, thanks to X-Raym, otherwise unchanged.
+-- @about
+--   #spk77_Link selected tracks FX parameters.lua
+--   @ReaScript Name: Link selected tracks FX parameter
+--   @about Link selected tracks FX parameter, if they have the same name.
+--   @Instructions: Select tracks. Run. Terminate once it is done.
+--   @Screenshot: http://stash.reaper.fm/24908/Link%20FX%20params3.gif
+--   @Author: spk77
+--   @Licence: GPL v3
+--   @Forum Thread: 	Scripts: FX Param Values (various)
+--   @Forum Thread URI: http://forum.cockos.com/showpost.php?p=1562493&postcount=31
+--   @Forum Thread URI: https://forum.cockos.com/showthread.php?t=267771
+--   @REAPER: 5.0
+--   @Version: 1.01
+--   @Description Toolbar button now indicates whether the script is running or not.
 
---[[
- * Changelog:
- * v1.0 ( 2015-08-23 )
-	+ Initial Release
---]]
 
 -- Link FX parameters
 -- Lua script by X-Raym, casrya and SPK77 (23-Aug-2015)
+-- Tiny addition by X-Raym(template code) & Airon(60 seconds of editing)
+
+-- Set ToolBar Button State, from X-Rayms template at
+-- https://github.com/ReaTeam/ReaScripts-Templates/blob/master/Templates/X-Raym_Background%20script.lua
+
+function SetButtonState( set )
+  local is_new_value, filename, sec, cmd, mode, resolution, val = reaper.get_action_context()
+  reaper.SetToggleCommandState( sec, cmd, set or 0 )
+  reaper.RefreshToolbar2( sec, cmd )
+end
+
 
 local last_param_number = -1
 local last_val = -10000000
@@ -75,5 +91,7 @@ function main()
   reaper.defer(main)
 end
 
+-- RUN
+SetButtonState( 1 )
 main()
-
+reaper.atexit( SetButtonState )
