@@ -447,7 +447,7 @@ SCROLL_TO_SELECTED_TRACK = "1"
 -- FURTHER INFORMATION:
 -- The flickering problem mentioned in connection with
 -- INCLUDE_FOLDER_CHILDREN setting of the main script
--- BuyOne_Automatically expand selected tracks, contract others.lua
+-- BuyOne_Automatically increase height of selected tracks, decrease others'.lua
 -- is addressed in this code by preventing creation
 -- of multi-selections with scripts
 -- 'Go to next/previous track leaving other tracks selected'
