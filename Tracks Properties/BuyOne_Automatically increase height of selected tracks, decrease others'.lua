@@ -1,5 +1,5 @@
 --[[
-ReaScript name: Automatically expand selected tracks, contract others
+ReaScript name: Automatically increase height of selected tracks, decrease others'
 Author: BuyOne
 Website: https://forum.cockos.com/member.php?u=134058
 Version: 1.0
