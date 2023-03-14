@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="e6a5d796260210bcbd89e079f912dd7bea4ca878" name="ReaTeam Scripts">
+<index version="1" commit="60fd428869eaa6ba3b431c780763dd698925104c" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -7827,6 +7827,37 @@ Fix: Expand error message when the library is missing]]></changelog>
       <version name="1.01" author="Lokasenna" time="2017-02-27T15:03:35Z">
         <changelog><![CDATA[Initial release]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c9d4accc8c3851add25d15874555f50ab74becd9/Items%20Editing/Lokasenna_Unselect%20all%20MIDI%20notes%20in%20selected%20items.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mendel_Restore ripple mode from persistent ExtState.lua" type="script" desc="Restore ripple mode from persistent ExtState">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Restore ripple mode from persistent ExtState\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This script works in conjunction with "Save ripple mode to persistent ExtState". These two scripts are intended to be used as bookends for custom actions which change the ripple mode programatically. This allows a custom action to proceed as expected, leaving the user experience of the ripple mode unchanged.\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="mendel" time="2023-03-14T19:52:08Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/60fd428869eaa6ba3b431c780763dd698925104c/Items%20Editing/mendel_Restore%20ripple%20mode%20from%20persistent%20ExtState.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mendel_Save ripple mode to persistent ExtState.lua" type="script" desc="Save ripple mode to persistent ExtState">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Save ripple mode to persistent ExtState\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 A most basic script that simply gets the current ripple mode, and saves it as a persistent ExtState. This state may be recalled by another script, and the ripple mode restored.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 These two scripts are intended to be used in conjunction: as bookends to custom actions that require a programmatic change of the ripple mode.\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="mendel" time="2023-03-14T19:51:50Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/307638fbd4cd7b8156bce858ebfa83e618878fd4/Items%20Editing/mendel_Save%20ripple%20mode%20to%20persistent%20ExtState.lua</source>
       </version>
     </reapack>
     <reapack name="MK Slicer (80icio MOD).lua" type="script" desc="MK Slicer (80icio MOD)">
@@ -17152,6 +17183,30 @@ Removed first run warning message.]]></changelog>
       <version name="1.0" author="BuyOne" time="2021-10-05T03:48:54Z">
         <changelog><![CDATA[Initial release]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/bc59fcfa135fbbd100c0563f0bb496b7b5a60bd3/Tracks%20Properties/BuyOne_Mute%20empty%20tracks%20with%20FX%20and%20optionally%20set%20their%20FX%20offline%20(guide%20inside).lua</source>
+      </version>
+    </reapack>
+    <reapack name="BuyOne_Navigate to track send destination or receive source track via menu.lua" type="script" desc="Navigate to track send destination or receive source track via menu">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 As far as going to send destination track is concerned the script is an alternative to the native feature accessible in the TCP/MCP send slot right click menu. It lists all send destinations in a single menu along with their basic information.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 In addition the script provides a facility to go to receive source tracks which isn't available natively.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The menu lists send destination / receive source track index, name (if any), number of sends/receives routed from/to the given track, whether send destination / receive source track is a child in a collapsed folder (-c) and whether it's hidden in the currently active context (-h) which is either the Arrange view or the Mixer.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The currently active context is determined by the Mixer visibility. If visible the target track will be scrolled to in the Mixer, otherwise it will be scrolled to in the Arrange view.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 When the script is run via a shortcut, it displays sends/receives menu of a track under mouse cursor. A click on the send or receive menu item makes the tracklist scroll to the corresponding track and select it. In the Mixer such track ends up at the leftmost position, in the Arrange view - in the middle of the tracklist.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 If the send destination / receive source track happens to be inside a collapsed folder in the Mixer, its parent or the leftmost visible grandparent track of a collapsed folder its parent is a child in (if any) is scrolled into view instead.\line If the track is visible in the Mixer and happens to be in a collapsed folder whose parent track is hidden, the leftmost visible grandparent track of a collapsed folder its parent is a child in (if any) is scrolled into view.\line The send destination / receive source track is selected even if its (grand)parents are scrolled into view, so in case it's inside a collapsed folder it's easy to pick it out after uncollapsing the folder.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 If there's no track under mouse cursor the script looks for the first selected track. Thus it can also be run from a toolbar or a menu in which case the relevant track must be selected.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 If there're more than one send to or receive from a particular track, the total of such sends/receives is displayed in square brackets next to the destination track entry in the menu. This if purely for information.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 To close the menu without action click elsewhere with the mouse or click 'Esc' key on the keyboard or click 'close' menu item at the bottom.\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/member.php?u=134058</link>
+      </metadata>
+      <version name="1.0" author="BuyOne" time="2023-03-14T19:50:31Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/2d906433ce65cf85d85e3deb2144e2cca1192670/Tracks%20Properties/BuyOne_Navigate%20to%20track%20send%20destination%20or%20receive%20source%20track%20via%20menu.lua</source>
       </version>
     </reapack>
     <reapack name="BuyOne_Scroll to or exclusively show track(s) by name or index.lua" type="script" desc="Scroll to or exclusively show track(s) by name or index">
