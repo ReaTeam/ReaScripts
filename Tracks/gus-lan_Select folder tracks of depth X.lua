@@ -1,17 +1,18 @@
--- @description Select foldertracks based on track indentation
+-- @description Select folder tracks of depth X
 -- @author gus-lan
 -- @version 1.0
 -- @provides
---   [main] guslan_Select foldertracks based on track indentation/gus-lan_Select foldertracks based on track indentation (trackdepth) (settings inside).lua
---   [main] guslan_Select foldertracks based on track indentation/gus-lan_Select foldertracks based on track depth 1.lua
---   [main] guslan_Select foldertracks based on track indentation/gus-lan_Select foldertracks based on track depth 2.lua
---   [main] guslan_Select foldertracks based on track indentation/gus-lan_Select foldertracks based on track depth 3.lua
---   [main] guslan_Select foldertracks based on track indentation/gus-lan_Select foldertracks based on track depth 4.lua
---   [main] guslan_Select foldertracks based on track indentation/gus-lan_Select foldertracks based on track depth 5.lua
+--   [main] . > gus-lan_Select folder tracks of depth 0.lua
+--   [main] . > gus-lan_Select folder tracks of depth 1.lua
+--   [main] . > gus-lan_Select folder tracks of depth 2.lua
+--   [main] . > gus-lan_Select folder tracks of depth 3.lua
+--   [main] . > gus-lan_Select folder tracks of depth 4.lua
+--   [main] . > gus-lan_Select folder tracks of depth 5.lua
 -- @about
 --   Select Foldertracks based on track indentation (property - track depth)
 --
 --   Adds tracks to selection if it follows the criteria that it is a folder track, and at the track depth that the user has chosen.
+--   Enhanced by X-Raym
 
 --────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 --        ::::::::  :::    :::  ::::::::                :::            :::     ::::    :::          ::::::::   ::::::::  :::::::::  ::::::::::: ::::::::: ::::::::::: ::::::::  --
@@ -25,10 +26,23 @@
 
 --──── USER INPUT ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────  
 
-  user_trackdepth_value = 1 -- Change this value from 0-> to select foldertracks at different trackdepths. 0 = no parents. 
+
+script_name = ({reaper.get_action_context()})[2]:match("([^/\\_]+)%.lua$")
+
+user_trackdepth_value = script_name:match("(%d+)")
+if user_trackdepth_value then
+  user_trackdepth_value = tonumber(user_trackdepth_value)
+  if user_trackdepth_value then
+    user_trackdepth_value = math.max(math.min(64, user_trackdepth_value), 1)
+  end
+end
+
+if not user_trackdepth_value then user_trackdepth_value = 0 end
+
+  -- user_trackdepth_value = 1 -- Change this value from 0-> to select foldertracks at different trackdepths. 0 = no parents. 
 
 --──── END USER INPUT ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-  
+  reaper.PreventUIRefresh(1)
   local i = 0 
   while i < reaper.CountTracks(0) do
     local current_track = reaper.GetTrack (0, i)
@@ -41,5 +55,6 @@
     end
     i = i + 1
   end
+  reaper.PreventUIRefresh(-1)
 
   
