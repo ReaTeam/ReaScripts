@@ -27,7 +27,15 @@ local entrypath = ({reaper.get_action_context()})[2]:match('^.+[\\//]')
 package.path = string.format('%s/Scripts/rtk/1/?.lua;%s?.lua;', reaper.GetResourcePath(), entrypath)
 
 --Loads ultrashall API
- dofile(reaper.GetResourcePath().."/UserPlugins/ultraschall_api.lua")
+ultraschall_path = reaper.GetResourcePath().."/UserPlugins/ultraschall_api.lua"
+if reaper.file_exists( ultraschall_path ) then
+  dofile( ultraschall_path )
+end
+
+if not ultraschall or not ultraschall.GetApiVersion then -- If ultraschall loading failed of if it doesn't have the functions you want to use
+  reaper.MB("Please install Ultraschall API, available via Reapack. Check online doc of the script for more infos.\nhttps://github.com/Ultraschall/ultraschall-lua-api-for-reaper", "Error", 0)
+  return
+end
 
 -- Loads rtk in the global scope, and, if missing, attempts to install using
 -- ReaPack APIs.
