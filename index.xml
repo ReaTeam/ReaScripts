@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="e7905c766f5f1bd21be28c1003874ce53e42da0d" name="ReaTeam Scripts">
+<index version="1" commit="f1e2064e941bd620342997a026653528461dd49f" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -4584,6 +4584,11 @@ Updated undo caption to reflect name]]></changelog>
 Added version compatibility check
 Update version compatibility tag]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/8086dcd26ee950152b2fc3fe23c61f9996754660/FX/BuyOne_Insert%20selected%20FX%20or%20FX%20chain%20presets%20in%20OR%20copy%20focused%20FX%20to%20selected%20objects.lua</source>
+      </version>
+      <version name="1.4" author="BuyOne" time="2023-03-14T01:28:33Z">
+        <changelog><![CDATA[Fixed temporary track being left behind after aborting the script
+Fixed a bug of copying FX to the same FX chain]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f1e2064e941bd620342997a026653528461dd49f/FX/BuyOne_Insert%20selected%20FX%20or%20FX%20chain%20presets%20in%20OR%20copy%20focused%20FX%20to%20selected%20objects.lua</source>
       </version>
     </reapack>
     <reapack name="BuyOne_Link two FX parameters via parameter modulation (guide inside).lua" type="script" desc="Link two FX parameters via parameter modulation">
