@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="6ee7ad0758b2e8824da1923277a0180ebc3db601" name="ReaTeam Scripts">
+<index version="1" commit="a7051704a53985b8ca279c6075768ba8602769b7" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -16926,6 +16926,28 @@ is off-screen. Reaper issue, should be fixed soon.]]></changelog>
       <version name="0.1" author="spk77" time="2016-06-18T18:53:59Z">
         <changelog><![CDATA[+ Initial Release]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3f04ce442b485bf934aa110f42ff13757e72641f/Time%20Selection/spk77_Set%20time%20selection%20to%20item%20fade-out.lua</source>
+      </version>
+    </reapack>
+  </category>
+  <category name="Tracks">
+    <reapack name="gus-lan_Select folder tracks of depth X.lua" type="script" desc="Select folder tracks of depth X">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Select Foldertracks based on track indentation (property - track depth)\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Adds tracks to selection if it follows the criteria that it is a folder track, and at the track depth that the user has chosen. Enhanced by X-Raym\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="gus-lan" time="2023-03-14T21:26:13Z">
+        <source main="main" file="gus-lan_Select folder tracks of depth 0.lua">https://github.com/ReaTeam/ReaScripts/raw/a7051704a53985b8ca279c6075768ba8602769b7/Tracks/gus-lan_Select%20folder%20tracks%20of%20depth%20X.lua</source>
+        <source main="main" file="gus-lan_Select folder tracks of depth 1.lua">https://github.com/ReaTeam/ReaScripts/raw/a7051704a53985b8ca279c6075768ba8602769b7/Tracks/gus-lan_Select%20folder%20tracks%20of%20depth%20X.lua</source>
+        <source main="main" file="gus-lan_Select folder tracks of depth 2.lua">https://github.com/ReaTeam/ReaScripts/raw/a7051704a53985b8ca279c6075768ba8602769b7/Tracks/gus-lan_Select%20folder%20tracks%20of%20depth%20X.lua</source>
+        <source main="main" file="gus-lan_Select folder tracks of depth 3.lua">https://github.com/ReaTeam/ReaScripts/raw/a7051704a53985b8ca279c6075768ba8602769b7/Tracks/gus-lan_Select%20folder%20tracks%20of%20depth%20X.lua</source>
+        <source main="main" file="gus-lan_Select folder tracks of depth 4.lua">https://github.com/ReaTeam/ReaScripts/raw/a7051704a53985b8ca279c6075768ba8602769b7/Tracks/gus-lan_Select%20folder%20tracks%20of%20depth%20X.lua</source>
+        <source main="main" file="gus-lan_Select folder tracks of depth 5.lua">https://github.com/ReaTeam/ReaScripts/raw/a7051704a53985b8ca279c6075768ba8602769b7/Tracks/gus-lan_Select%20folder%20tracks%20of%20depth%20X.lua</source>
       </version>
     </reapack>
   </category>
