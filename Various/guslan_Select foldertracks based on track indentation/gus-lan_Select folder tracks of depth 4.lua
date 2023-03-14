@@ -15,7 +15,7 @@
 
 --──── USER INPUT ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────  
 
-  user_trackdepth_value = 1 -- Change this value from 0-> to select foldertracks at different trackdepths. 0 = no parents. 
+  user_trackdepth_value = 4 -- Change this value from 0-> to select foldertracks at different trackdepths. 0 = no parents. 
 
 --──── END USER INPUT ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
   
