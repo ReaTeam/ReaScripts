@@ -6,9 +6,10 @@ Version: 1.0
 Changelog: Initial release
 Licence: WTFPL
 REAPER: at least v5.962
-About:	The script works similalrly to the preference   
-        'Always show full control panel on armed track'  
-        for any track in that it expands selected track TCP up to the size specified 
+About:	The script works similalrly to the combination of preference  
+        'Always show full control panel on armed track' and option 
+	'Automatic record-arm when track selected' for any track in that 
+	it expands selected track TCP up to the size specified 
         in the USER SETTINGS and contracts any de-selected TCP down to the size specified 
         in the USER SETTINGS. 
 
