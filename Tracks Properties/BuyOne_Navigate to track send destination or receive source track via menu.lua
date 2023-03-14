@@ -124,6 +124,7 @@ local ret, state = r.GetProjExtState(0, scr_name, 'REMINDER_OFF')
 		r.Main_SaveProject(0, false) -- forceSaveAsIn false
 		return true
 		end
+	else return true
 	end
 end
 
