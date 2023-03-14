@@ -1,7 +1,6 @@
--- @description tompad_FXchain_A-B
+-- @description FX chain A-B
 -- @author Thomas Dahl
 -- @version 1.0
--- @changelog Release 13 mars 2023
 -- @about
 --   # tompad_FXchain_A-B
 --   Reascript for A/B-ing FX chains in Reaper DAW 
