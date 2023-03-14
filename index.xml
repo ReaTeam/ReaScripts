@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="60fd428869eaa6ba3b431c780763dd698925104c" name="ReaTeam Scripts">
+<index version="1" commit="0fb796c7132b09dca5e821186bade89b14acaf27" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -17206,7 +17206,7 @@ Removed first run warning message.]]></changelog>
       </metadata>
       <version name="1.0" author="BuyOne" time="2023-03-14T19:50:31Z">
         <changelog><![CDATA[Initial release]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/2d906433ce65cf85d85e3deb2144e2cca1192670/Tracks%20Properties/BuyOne_Navigate%20to%20track%20send%20destination%20or%20receive%20source%20track%20via%20menu.lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/0fb796c7132b09dca5e821186bade89b14acaf27/Tracks%20Properties/BuyOne_Navigate%20to%20track%20send%20destination%20or%20receive%20source%20track%20via%20menu.lua</source>
       </version>
     </reapack>
     <reapack name="BuyOne_Scroll to or exclusively show track(s) by name or index.lua" type="script" desc="Scroll to or exclusively show track(s) by name or index">
