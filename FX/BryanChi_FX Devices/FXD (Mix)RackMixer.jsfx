@@ -1,0 +1,534 @@
+noindex: true
+
+desc: FXD (Mix)RackMixer
+
+/*
+Short Description:
+CP is channel pair, aka chain(1/2,3/4 etc)
+Power   = 0, 1 (Off,On)
+Vol    = -60 .. 30 (dB)
+Pan     = -100 ... 100  (L<>R)
+Phase   = 0, 1 (Normal, Inverted)
+Solo    = 0, 1 (Not soloed, Soloed)
+SumMode = Sum - станд. сложение, SumMode = Average - сумма делится на кол-во активных каналов.
+In functions names - CP = chan pair, 1 = 1/2; 2 = 3/4 etc
+*/
+
+//==============================================================================
+//-- CP 1 - 4 ----------------
+slider1:Out1.Power=1<0,1,1{Off,On}>-Power 1
+slider2:Out1.Vol=0<-60,12,0.1>-Vol 1
+slider3:Out1.Pan=0<-100,100,0.1>-Pan 1
+slider4:Out1.Phase=0<0,1,1{Normal,Inverted}>-Phase 1
+slider5:Out1.Solo=0<0,1,1{Not soloed,Soloed}>-Solo 1
+ 
+slider6:Out2.Power=1<0,1,1{Off,On}>-Power 2
+slider7:Out2.Vol=0<-60,12,0.1>-Vol 2
+slider8:Out2.Pan=0<-100,100,0.1>-Pan 2
+slider9:Out2.Phase=0<0,1,1{Normal,Inverted}>-Phase 2
+slider10:Out2.Solo=0<0,1,1{Not soloed,Soloed}>-Solo 2
+
+slider11:Out3.Power=0<0,1,1{Off,On}>-Power 3
+slider12:Out3.Vol=0<-60,12,0.1>-Vol 3
+slider13:Out3.Pan=0<-100,100,0.1>-Pan 3
+slider14:Out3.Phase=0<0,1,1{Normal,Inverted}>-Phase 3
+slider15:Out3.Solo=0<0,1,1{Not soloed,Soloed}>-Solo 3
+
+slider16:Out4.Power=0<0,1,1{Off,On}>-Power 4
+slider17:Out4.Vol=0<-60,12,0.1>-Vol 4
+slider18:Out4.Pan=0<-100,100,0.1>-Pan 4
+slider19:Out4.Phase=0<0,1,1{Normal,Inverted}>-Phase 4
+slider20:Out4.Solo=0<0,1,1{Not soloed,Soloed}>-Solo 4
+
+//-- CP 5 - 8 ----------------
+slider21:Out5.Power=0<0,1,1{Off,On}>-Power 5
+slider22:Out5.Vol=0<-60,12,0.1>-Vol 5
+slider23:Out5.Pan=0<-100,100,0.1>-Pan 5
+slider24:Out5.Phase=0<0,1,1{Normal,Inverted}>-Phase 5
+slider25:Out5.Solo=0<0,1,1{Not soloed,Soloed}>-Solo 5
+
+slider26:Out6.Power=0<0,1,1{Off,On}>-Power 6
+slider27:Out6.Vol=0<-60,12,0.1>-Vol 6
+slider28:Out6.Pan=0<-100,100,0.1>-Pan 6
+slider29:Out6.Phase=0<0,1,1{Normal,Inverted}>-Phase 6
+slider30:Out6.Solo=0<0,1,1{Not soloed,Soloed}>-Solo 6
+
+slider31:Out7.Power=0<0,1,1{Off,On}>-Power 7
+slider32:Out7.Vol=0<-60,12,0.1>-Vol 7
+slider33:Out7.Pan=0<-100,100,0.1>-Pan 7
+slider34:Out7.Phase=0<0,1,1{Normal,Inverted}>-Phase 7
+slider35:Out7.Solo=0<0,1,1{Not soloed,Soloed}>-Solo 7
+
+slider36:Out8.Power=0<0,1,1{Off,On}>-Power 8
+slider37:Out8.Vol=0<-60,12,0.1>-Vol 8
+slider38:Out8.Pan=0<-100,100,0.1>-Pan 8
+slider39:Out8.Phase=0<0,1,1{Normal,Inverted}>-Phase 8
+slider40:Out8.Solo=0<0,1,1{Not soloed,Soloed}>-Solo 8
+
+//-- SumMode -------
+slider41:SumMode=0<0,1,1{Average,Summing>-SumMode
+
+//-- Cur Preset ----
+slider42:RWMode=0<0,2,1{Read from JS memory, Write to JS memory, ClearMemory}>-Memory RWMode
+slider43:mempos=0<0,255,1>-Memory Position
+slider44:memval=0<0,255,1>-Memory Value
+
+
+//-- Inputs --------
+in_pin:in 1 L
+in_pin:in 1 R
+in_pin:in 2 L
+in_pin:in 2 R
+in_pin:in 3 L
+in_pin:in 3 R
+in_pin:in 4 L
+in_pin:in 4 R
+
+in_pin:in 5 L
+in_pin:in 5 R
+in_pin:in 6 L
+in_pin:in 6 R
+in_pin:in 7 L
+in_pin:in 7 R
+in_pin:in 8 L
+in_pin:in 8 R
+
+//-- Outputs -------
+out_pin:output L
+out_pin:output R
+
+
+@init
+gfx_clear = 0x180E01; //  bg color
+col1 = 0xB9C1D4; // controls color
+
+membuf = 0; // memory(for preset name)
+membuf_sz = 255; // memory max size
+
+
+//-- Mouse -----------------------------
+//-- if point(p_x, p_y) in rect(x,y,w,h) area ----
+function pointINrect(p_x,p_y, x,y,w,h) ( p_x>=x && p_x<=x+w && p_y>=y && p_y<=y+h; );
+//-- if mouse cursor in rect(x,y,w,h) area -------
+function mouseINrect(x,y,w,h) ( pointINrect(mouse_x, mouse_y, x,y,w,h); );
+//-- Left Mouse Button ---------------------------
+function mouseDown(x,y,w,h) ( mouse_down && mouseINrect(x,y,w,h); );
+
+//-- Set RRGGBB color ------------------
+function SetRGB(RGB)
+(
+  gfx_r = (RGB & 0xFF0000) / 16711680; // 256*256*255
+  gfx_g = (RGB & 0x00FF00) / 65280; // 256*255
+  gfx_b = (RGB & 0x0000FF) / 255; // 255
+  gfx_a = 1
+);
+
+//--------------------------------------
+function minmax(x, minv, maxv)
+(
+  min(max(x, minv), maxv);
+);
+
+//--------------------------------------
+function DB2VAL(x)
+(
+  exp((x)*0.11512925464970228420089957273422);
+);
+
+//--------------------------------------
+//-- String from/to memory functions ---
+//--------------------------------------
+function ClearMemory()
+(
+  memset(membuf, 0, membuf_sz);
+);
+//--------
+function ReadFromMemory()
+(
+  memval = membuf[mempos];
+);
+//--------
+function WriteToMemory()
+(
+  membuf[mempos] = memval;
+);
+//--------
+function SerializeMemory()
+(
+  file_mem(0, membuf, membuf_sz);
+);
+//--------
+function DrawStringFromMemory() // For tests
+  local(i, char)
+(
+  SetRGB(col1);
+  i = 1; // Read from 1
+  gfx_x = 20; gfx_y = 2;
+  gfx_drawstr("FXRack Preset: ");
+  while( (char = membuf[i]) && i <= membuf_sz)
+  (
+    gfx_drawchar(char);
+    i+=1;
+  );
+);
+
+//--------------------------------------
+//-- Mixer functions -------------------
+//--------------------------------------
+function CPOut_Init()
+  instance(Vol, Pan, src_vol, src_pan, tgt_vol, tgt_pan)
+(
+  src_vol = tgt_vol = DB2VAL(Vol);
+  src_pan = tgt_pan = Pan*0.01;
+);
+//--------
+function CPOut_Slider()
+  instance(Vol, Pan, Phase, Power, Solo, tgt_vol, tgt_pan)
+(
+  tgt_vol = tgt_pan = 0;
+  Power && (Solo || AllSolo) ? (
+    tgt_vol = DB2VAL(Vol);
+    Phase ? tgt_vol *= -1;
+    tgt_pan = Pan*0.01;
+  );
+);
+//--------
+function CPOut_Block()
+  instance(d_vol,d_pan, tvol,tpan, src_vol,src_pan, tgt_vol,tgt_pan)
+(
+  d_vol = (tgt_vol-src_vol)/samplesblock;
+  d_pan = (tgt_pan-src_pan)/samplesblock;
+  tvol = src_vol;
+  tpan = src_pan;
+  src_vol = tgt_vol;
+  src_pan = tgt_pan;
+);
+//--------
+function CPOut_Sample()
+  instance(d_vol, d_pan, tvol, tpan, L, R)
+(
+  tvol += d_vol;
+  tpan += d_pan;
+
+  L = R = tvol;
+  tpan > 0.0 ? L *= 1.0-tpan;
+  tpan < 0.0 ? R *= 1.0+tpan;
+);
+
+//--------------------------------------
+function Mixer_Init()
+(
+  Out1.CPOut_Init();
+  Out2.CPOut_Init();
+  Out3.CPOut_Init();
+  Out4.CPOut_Init();
+  Out5.CPOut_Init();
+  Out6.CPOut_Init();
+  Out7.CPOut_Init();
+  Out8.CPOut_Init();
+);
+
+//--------------------------------------
+function MixVolAverage()
+(
+  // сумма активных каналов - Power && (Solo || AllSolo)
+  ActSum = 0;
+  Out1.Power && (Out1.Solo || AllSolo) ? ActSum+=1;
+  Out2.Power && (Out2.Solo || AllSolo) ? ActSum+=1;
+  Out3.Power && (Out3.Solo || AllSolo) ? ActSum+=1;
+  Out4.Power && (Out4.Solo || AllSolo) ? ActSum+=1;
+  Out5.Power && (Out5.Solo || AllSolo) ? ActSum+=1;
+  Out6.Power && (Out6.Solo || AllSolo) ? ActSum+=1;
+  Out7.Power && (Out7.Solo || AllSolo) ? ActSum+=1;
+  Out8.Power && (Out8.Solo || AllSolo) ? ActSum+=1;
+  ActSum > 0 ? MixVol = 1/ActSum : MixVol = 0; // ret average
+);
+
+//--------------------------------------
+function Mixer_Slider()
+(
+  // All Soloed = No Soloed
+  AllSolo = !(Out1.Solo + Out2.Solo + Out3.Solo + Out4.Solo +
+              Out5.Solo + Out6.Solo + Out7.Solo + Out8.Solo);
+
+  Out1.CPOut_Slider();
+  Out2.CPOut_Slider();
+  Out3.CPOut_Slider();
+  Out4.CPOut_Slider();
+  Out5.CPOut_Slider();
+  Out6.CPOut_Slider();
+  Out7.CPOut_Slider();
+  Out8.CPOut_Slider();
+
+  SumMode == 1 ? MixVol = 1 : MixVol = MixVolAverage();
+
+);
+
+//--------------------------------------
+function Mixer_Block()
+(
+  Out1.CPOut_Block();
+  Out2.CPOut_Block();
+  Out3.CPOut_Block();
+  Out4.CPOut_Block();
+  Out5.CPOut_Block();
+  Out6.CPOut_Block();
+  Out7.CPOut_Block();
+  Out8.CPOut_Block();
+);
+
+//--------------------------------------
+function Mixer_Sample()
+(
+  Out1.CPOut_Sample();
+  Out2.CPOut_Sample();
+  Out3.CPOut_Sample();
+  Out4.CPOut_Sample();
+  Out5.CPOut_Sample();
+  Out6.CPOut_Sample();
+  Out7.CPOut_Sample();
+  Out8.CPOut_Sample();
+);
+
+
+//--------------------------------------
+//--------------------------------------
+Mixer_Init();
+
+
+@slider
+Mixer_Slider(); // Update if sliders changed
+
+// For Read/Write Preset Name from/to Script
+RWMode == 0 ? ReadFromMemory() :
+RWMode == 1 ? WriteToMemory() :
+RWMode == 2 ? ClearMemory();
+
+@serialize
+SerializeMemory(); // serialize membuf
+
+@block
+Mixer_Block();
+
+@sample
+Mixer_Sample();
+
+spl0 = ( (spl0 * Out1.L) + (spl2 * Out2.L) + (spl4 * Out3.L) + (spl6 * Out4.L) +
+         (spl8 * Out5.L) + (spl10 * Out6.L) + (spl12 * Out7.L) + (spl14 * Out8.L) ) * MixVol; 
+
+spl1 = ( (spl1 * Out1.R) + (spl3 * Out2.R) + (spl5 * Out3.R) + (spl7 * Out4.R) +
+         (spl9 * Out5.R) + (spl11 * Out6.R) + (spl13 * Out7.R) + (spl15 * Out8.R) ) * MixVol;
+
+
+
+//==================================================================================================
+
+@gfx 650 320
+//==========================================================
+//** Simple label ******************************************
+//==========================================================
+function SL_Label(x,y,w,h, flag, RGB, lbl)
+(
+  SetRGB(RGB);
+  gfx_x = x + 4; gfx_y = y;
+  gfx_drawstr(lbl, flag, x+w-4, y+h);
+  //----------------
+  gfx_r *= 0.3; gfx_g *= 0.3; gfx_b *= 0.3;// bg col
+  gfx_roundrect(x-1,y-1,w,h,2,0);  // frame
+);
+
+//==========================================================
+//** Simple slider-linked button ***************************
+//==========================================================
+function SL_BtnDraw(x,y,w,h, RGB, lbl)
+(
+  this.isChanged = 0;
+  mouseDown(x,y,w,h) ? (
+    this = !this;
+    slider_automate(this);
+    this.isChanged = 1;
+  );
+
+  this ? (
+    SetRGB(RGB); gfx_a = 0.2;
+    gfx_rect(x,y,w,h, 1);
+  );
+
+  SL_Label(x,y,w,h, 5, RGB, lbl);
+);
+
+//==========================================================
+//** Simple slider-linked cycle button *********************
+//==========================================================
+/*
+function SL_CBtnDraw(x,y,w,h, RGB, lbl, maxval)
+(
+  this.isChanged = 0;
+  mouseDown(x,y,w,h) ? (
+    this += 1; this > maxval ? this = 0;
+    slider_automate(this);
+    this.isChanged = 1;
+  );
+
+  this ? (
+    SetRGB(RGB); gfx_a = 0.2;
+    gfx_rect(x,y,w,h, 1);
+  );
+
+  SL_Label(x,y,w,h, 5, RGB, lbl);
+);
+*/
+//==========================================================
+//** Simple slider-linked knob *****************************
+//==========================================================
+function SL_KnobImage(x,y,w,h, RGB, normval)
+  local(cx, cy, rds, offs, angmax, ang1, ang2, i)
+(
+   cx = x + w/2; cy = y + h/2; rds = w/2;
+   angmax = 2.75*$pi;  // max val ang
+   offs = 1.25 * $pi;  //$pi + $pi*0.25;
+   ang1 = offs - 0.01; // 0.01 mini offset
+   ang2 = offs + (1.5 * $pi) * normval; // cur val ang
+   //-------------------------
+   SetRGB(RGB);
+   gfx_r *= 0.3; gfx_g *= 0.3; gfx_b *= 0.3;// bg col
+   gfx_circle(cx, cy, rds-7, 1);
+   //gfx_rect(x,y,w,h,0); // test rect
+   //-------------------------
+   i=0;
+   loop(5,
+     gfx_arc(cx, cy, rds-i,  ang1, angmax, 1);
+     i+=0.5;
+   );
+   //-------------------------
+   SetRGB(RGB); // val arc col
+   i=0;
+   loop(5,
+     gfx_arc(cx, cy, rds-i,  ang1, ang2, 1);
+     i+=0.5;
+   );
+);
+
+//--------------------------------------
+function SL_KnobDraw(x,y,w,h, RGB, lbl, minval, maxval, valstep)
+  local(normval, K)
+(
+  this.isChanged = 0;
+  mouse_cap&1 && pointINrect(mouse_down_x, mouse_down_y, x,y,w,h) ? (
+    mouse_last_y - mouse_y ? (
+      mouse_cap&4 ? K = valstep : K = valstep*4; // drag coeff
+      this = minmax(this + (mouse_last_y - mouse_y)*K, minval, maxval);
+      slider_automate(this);
+      this.isChanged = 1;
+    );
+  );
+
+  //-- knob image ------------
+  normval = (this - minval) / (maxval - minval);
+  SL_KnobImage(x,y,w,h, RGB, normval);
+
+  //-- knob label ------------
+  lbl = sprintf(#, "%s: %.1f", lbl, this);
+  SL_Label(x+w+5, y, 85, h, 4, RGB, lbl);
+
+);
+
+//**********************************************************
+//** Draw one mixer channel(CP = chan pair) ****************
+//**********************************************************
+
+function CPOut_Draw(x, y, h, lbl)
+  instance(Vol,Pan,Phase,Power,Solo,  L, R)
+  local(w, RGB)
+(
+  RGB = col1;
+  //-- CP label --------------
+  w = 45;
+  SL_Label(x,y,w,h, 5, RGB, lbl);
+
+  //-- CP Power --------------
+  w = 50;
+  Power.SL_BtnDraw(x + 60, y, w, h,  RGB, "Power");
+
+  //-- CP knobs --------------
+  w = 22;
+  Vol.SL_KnobDraw(x + 140, y, w, h, RGB, "Vol", -60, 30, 0.1);
+  Pan.SL_KnobDraw(x + 270, y, w, h, RGB, "Pan", -100, 100, 0.1);
+
+  //-- CP Phase, Solo --------
+  w = 30;
+  Phase.SL_BtnDraw(x + 400, y, w, h, RGB, "ø");
+  Solo.SL_BtnDraw(x + 440, y, w, h,  RGB, "S");
+
+  //-- Update mixer if changed ---------
+  Power.isChanged || Vol.isChanged || Pan.isChanged || 
+  Phase.isChanged || Solo.isChanged ? (
+    Mixer_Slider();
+  );
+);
+
+//**********************************************************
+//** Draw mixer ********************************************
+//**********************************************************
+function Draw()
+  local(x, y, h, offs, xx, yy, mx, my, lbl, RGB)
+(
+  x = 20; y = 20; // Start drawing position
+  h = 22;         // CP heigth
+  offs = h + 8;   // CP vertical offset
+  gfx_setfont(1, "Tahoma", 14); // main font
+  RGB = col1;
+
+  //-- Label ---------------------------
+  xx = x; yy = y;
+  SL_Label(xx, yy, 252, h, 5, RGB, "FXRack Mixer");
+
+  //-- Sum Mode Button -----------------
+  xx = x + 270; yy = y;
+  lbl = sprintf(#, "Sum Mode: %s", strcpy_fromslider(#, SumMode));
+  SumMode.SL_BtnDraw(xx, yy, 200, h, RGB, lbl);
+  SumMode.isChanged ? Mixer_Slider();
+
+  //-- CP Outs -------------------------
+  xx = x; yy = y;
+  //-- 1 - 4 -------
+  Out1.CPOut_Draw(xx, yy+=offs, h, "1/2");
+  Out2.CPOut_Draw(xx, yy+=offs, h, "3/4");
+  Out3.CPOut_Draw(xx, yy+=offs, h, "5/6");
+  Out4.CPOut_Draw(xx, yy+=offs, h, "7/8");
+  //-- 5 - 8 -------
+  Out5.CPOut_Draw(xx, yy+=offs, h, "9/10");
+  Out6.CPOut_Draw(xx, yy+=offs, h, "11/12");
+  Out7.CPOut_Draw(xx, yy+=offs, h, "13/14");
+  Out8.CPOut_Draw(xx, yy+=offs, h, "15/16");
+
+  //-- Wires ---------------------------
+  SetRGB(RGB);
+  xx = x + 490; yy = y + offs + h/2;
+  my = y + offs * 4.5 - 4;
+  mx = xx + 60;
+  loop(8,
+    gfx_x = xx; gfx_y = yy;
+    gfx_lineto(xx + 10, yy, 1);
+    gfx_lineto(mx, my, 1);
+    gfx_circle(xx, yy, 2, 1);
+    yy+=offs;
+  );
+  //-- Out label -------------
+  gfx_circle(mx, my, 2, 1);
+  xx = mx + 15; yy = y + offs * 4;
+  SL_Label(xx, yy, 45, h, 5, RGB, "1/2");
+
+);
+
+
+//**********************************************************
+mouse_down = mouse_cap&1 && !mouse_last_cap&1;
+mouse_down ? (mouse_down_x = mouse_x; mouse_down_y = mouse_y);
+
+Draw(); // Main Draw function
+DrawStringFromMemory(); // Test
+
+mouse_last_cap = mouse_cap;
+mouse_last_x = mouse_x;
+mouse_last_y = mouse_y;

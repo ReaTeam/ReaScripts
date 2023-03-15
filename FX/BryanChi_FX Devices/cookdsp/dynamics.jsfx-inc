@@ -1,0 +1,800 @@
+@init
+
+/******************************************************* 
+COMPRESS
+========
+
+Compress an audio signal that rises above a given threshold.
+
+Description
+-----------
+
+The compress object reduces the volume of loud sounds or amplifies 
+quiet sounds by narrowing or "compressing" an audio signal's dynamic 
+range.
+
+It must be used with a variable name as prefix (object oriented).
+
+Initializer
+-----------
+
+#### compress(thresh, ratio, attack, release, lookahead) ####
+
+Initializes a compress object. The `thresh` argument is the 
+threshold, in dB, where the compression begins. The `ratio`
+argument is the amount of compression (with a ratio of 4, if
+there is a rise of 8 dB above the threshold in input, the
+output signal rises by only 2 dB). The `attack` argument, 
+in ms, is the upward slope of the internal envelope follower. 
+The `release` argument, in ms, is the downward slope of the 
+internal envelope follower. The `lookahead` argument is a 
+little delay, specified in ms, applied to the signal to 
+compress in order to synchronize the compressor with the 
+internal envelope follower.
+
+Methods
+-------
+
+#### compress_set_thresh(thresh) ####
+
+Sets a new threshold, in dB, to the compressor.
+
+#### compress_set_ratio(ratio) ####
+
+Sets a new compression ratio to the compressor.
+
+#### compress_set_attack(attack) ####
+
+Sets a new attack time, in ms, to the internal envelope follower.
+
+#### compress_set_release(release) ####
+
+Sets a new release time, in ms, to the internal envelope follower.
+
+#### compress_set_lookahead(lookahead) ####
+
+Sets a new delay time, in ms, applied on the signal to compress.
+
+#### compress_do(signal) ####
+
+Compress the signal given as argument with the current compressor 
+state.
+
+Example
+-------
+
+    desc:Two Independant Channels Compression
+
+    import cookdsp.jsfx-inc
+
+    slider1:-30<-70,0>Threshold (dB)
+    slider2:4<1,20>Ratio
+    slider3:10<1,150>Attack Time (ms)
+    slider4:100<1,250>Release Time (ms)
+    slider5:5<0.5,10>Look Ahead (ms)
+    slider6:0<-6,18>Post Gain
+
+    @init
+    cL.compress(slider1, slider2, slider3, slider4, slider5);
+    cR.compress(slider1, slider2, slider3, slider4, slider5);
+
+    @slider
+    cL.compress_set_thresh(slider1);
+    cR.compress_set_thresh(slider1);
+    cL.compress_set_ratio(slider2);
+    cR.compress_set_ratio(slider2);
+    cL.compress_set_attack(slider3);
+    cR.compress_set_attack(slider3);
+    cL.compress_set_release(slider4);
+    cR.compress_set_release(slider4);
+    cL.compress_set_lookahead(slider5);
+    cR.compress_set_lookahead(slider5);
+    gain = pow(10, slider6 * 0.05);
+
+    @sample
+    spl0 = cL.compress_do(spl0) * gain;
+    spl1 = cR.compress_do(spl1) * gain;
+
+********************************************************/
+function compress(thresh ratio attack release lookahead)
+(
+    this.thresh = thresh; this.ratio = ratio;
+    this.attack = attack; this.release = release;
+    this.lookahead = lookahead;
+    this.look.delay(srate/8);
+    this.y0 = 0.0;
+    freq_ = 1 / (attack * 0.001);
+    this.acoeff = exp(-2 * $pi * freq_ / srate);
+    freq_ = 1 / (release * 0.001);
+    this.rcoeff = exp(-2 * $pi * freq_ / srate);
+);
+
+function compress_set_thresh(thresh)
+(
+    this.thresh = thresh;
+);
+
+function compress_set_ratio(ratio)
+(
+    this.ratio = ratio;
+);
+
+function compress_set_attack(attack)
+(
+    this.attack = attack;
+    freq_ = 1 / (attack * 0.001);
+    this.acoeff = exp(-2 * $pi * freq_ / srate);
+);
+
+function compress_set_release(release)
+(
+    this.release = release;
+    freq_ = 1 / (release * 0.001);
+    this.rcoeff = exp(-2 * $pi * freq_ / srate);
+);
+
+function compress_set_lookahead(lookahead)
+(
+    this.lookahead = lookahead;
+);
+
+function compress_do(signal)
+(
+    tmp_ = this.look.delay_fsread2(this.lookahead * 0.001);
+    this.look.delay_write(signal);
+    absin_ = abs(signal);
+    absin_ > this.y0 ? (
+        this.y0 = absin_ + (this.y0 - absin_) * this.acoeff;
+    ) : (
+        this.y0 = absin_ + (this.y0 - absin_) * this.rcoeff;
+    );
+    dbin_ = 20 * log10(this.y0 + 0.0000001);
+    dbin_ > this.thresh ? (
+        diff_ = dbin_ - this.thresh;
+        att_ = pow(10, (diff_ - diff_ / this.ratio) * 0.05);
+        tmp_ /= att_;
+    );
+    tmp_;
+);
+
+/******************************************************* 
+STCOMP
+======
+
+Compress a stereo signal that rises above a given threshold.
+
+Description
+-----------
+
+The stcomp object reduces the volume of loud sounds or amplifies 
+quiet sounds by narrowing or "compressing" an audio signal's dynamic 
+range. It compresses equally the two channels of a stereo signal,
+according to an analysis performed on a mix of the two channels.
+This preserves the weighting level between the two channels. 
+
+It must be used with a variable name as prefix (object oriented).
+
+Initializer
+-----------
+
+#### stcomp(thresh, ratio, attack, release, lookahead) ####
+
+Initializes a stcomp object. The `thresh` argument is the 
+threshold, in dB, where the compression begins. The `ratio`
+argument is the amount of compression (with a ratio of 4, if
+there is a rise of 8 dB above the threshold in input, the
+output signal rises by only 2 dB). The `attack` argument, 
+in ms, is the upward slope of the internal envelope follower. 
+The `release` argument, in ms, is the downward slope of the 
+internal envelope follower. The `lookahead` argument is a 
+little delay, specified in ms, applied to the signal to 
+compress in order to synchronize the compressor with the 
+internal envelope follower.
+
+Methods
+-------
+
+#### stcomp_set_thresh(thresh) ####
+
+Sets a new threshold, in dB, to the compressor.
+
+#### stcomp_set_ratio(ratio) ####
+
+Sets a new compression ratio to the compressor.
+
+#### stcomp_set_attack(attack) ####
+
+Sets a new attack time, in ms, to the internal envelope follower.
+
+#### stcomp_set_release(release) ####
+
+Sets a new release time, in ms, to the internal envelope follower.
+
+#### stcomp_set_lookahead(lookahead) ####
+
+Sets a new delay time, in ms, applied on the signals to compress.
+
+#### stcomp_do(sig0, sig1) ####
+
+Compress the signals given as argument with the current compressor 
+state. Compressed signals are saved in `out0` and `out1` attributes.
+
+Attributes
+----------
+
+#### stcomp.out0 ####
+
+Floating-point value that holds the left part of the compressed 
+stereo signal. 
+
+#### stcomp.out1 ####
+
+Floating-point value that holds the right part of the compressed 
+stereo signal. 
+
+Example
+-------
+
+    desc:Two Linked Channels Compression
+
+    import cookdsp.jsfx-inc
+
+    slider1:-30<-70,0>Threshold (dB)
+    slider2:4<1,20>Ratio
+    slider3:10<1,150>Attack Time (ms)
+    slider4:100<1,250>Release Time (ms)
+    slider5:5<0.5,10>Look Ahead (ms)
+    slider6:0<-6,18>Post Gain
+
+    @init
+    comp.stcomp(slider1, slider2, slider3, slider4, slider5);
+
+    @slider
+    comp.stcomp_set_thresh(slider1);
+    comp.stcomp_set_ratio(slider2);
+    comp.stcomp_set_attack(slider3);
+    comp.stcomp_set_release(slider4);
+    comp.stcomp_set_lookahead(slider5);
+    gain = pow(10, slider6 * 0.05);
+
+    @sample
+    comp.stcomp_do(spl0, spl1);
+    spl0 = comp.out0 * gain;
+    spl1 = comp.out1 * gain;
+
+********************************************************/
+function stcomp(thresh ratio attack release lookahead)
+(
+    this.thresh = thresh; this.ratio = ratio;
+    this.attack = attack; this.release = release;
+    this.out0 = this.out1 = 0.0;
+    this.lookahead = lookahead;
+    this.look0.delay(srate/8);
+    this.look1.delay(srate/8);
+    this.y0 = 0.0;
+    freq_ = 1 / (attack * 0.001);
+    this.acoeff = exp(-2 * $pi * freq_ / srate);
+    freq_ = 1 / (release * 0.001);
+    this.rcoeff = exp(-2 * $pi * freq_ / srate);
+);
+
+function stcomp_set_thresh(thresh)
+(
+    this.thresh = thresh;
+);
+
+function stcomp_set_ratio(ratio)
+(
+    this.ratio = ratio;
+);
+
+function stcomp_set_attack(attack)
+(
+    this.attack = attack;
+    freq_ = 1 / (attack * 0.001);
+    this.acoeff = exp(-2 * $pi * freq_ / srate);
+);
+
+function stcomp_set_release(release)
+(
+    this.release = release;
+    freq_ = 1 / (release * 0.001);
+    this.rcoeff = exp(-2 * $pi * freq_ / srate);
+);
+
+function stcomp_set_lookahead(lookahead)
+(
+    this.lookahead = lookahead;
+);
+
+function stcomp_do(sig0 sig1)
+(
+    in_ = (sig0 + sig1) * 0.7071;
+    delInSec_ = this.lookahead * 0.001;
+    tmp0_ = this.look0.delay_fsread2(delInSec_);
+    tmp1_ = this.look1.delay_fsread2(delInSec_);
+    this.look0.delay_write(sig0);
+    this.look1.delay_write(sig1);
+    absin_ = abs(in_);
+    absin_ > this.y0 ? (
+        this.y0 = absin_ + (this.y0 - absin_) * this.acoeff;
+    ) : (
+        this.y0 = absin_ + (this.y0 - absin_) * this.rcoeff;
+    );
+    dbin_ = 20 * log10(this.y0 + 0.0000001);
+    dbin_ > this.thresh ? (
+        diff_ = dbin_ - this.thresh;
+        att_ = pow(10, (diff_ - diff_ / this.ratio) * 0.05);
+        tmp0_ /= att_;
+        tmp1_ /= att_;
+    );
+    this.out0 = tmp0_;
+    this.out1 = tmp1_;
+);
+
+/******************************************************* 
+GATE
+====
+
+Allows a signal to pass only when its amplitude is above a threshold.
+
+Description
+-----------
+
+A noise gate is used when the level of the signal is below the level 
+of the noise floor. The threshold is set above the level of the noise 
+and so when there is no signal the gate is closed. A noise gate does 
+not remove noise from the signal. When the gate is open both the signal 
+and the noise will pass through.
+
+It must be used with a variable name as prefix (object oriented).
+
+Initializer
+-----------
+
+#### gate(thresh, attack, release, lookahead) ####
+
+Initializes a gate object. The `thresh` argument is the 
+threshold, in dB, below which the signal is cut. The `attack` 
+argument, in ms, is the speed of the opening part of the gate. 
+The `release` argument, in ms, is the speed of the closing
+par of the gate. The `lookahead` argument is a little delay, 
+specified in ms, applied to the signal to gate in order to 
+synchronize the gate with the internal envelope follower.
+
+Methods
+-------
+
+#### gate_set_thresh(thresh) ####
+
+Sets a new threshold, in dB, to the gate.
+
+#### gate_set_attack(attack) ####
+
+Sets a new opening time, in ms, to the gate gain curve.
+
+#### gate_set_release(release) ####
+
+Sets a new closing time, in ms, to the gate gain curve.
+
+#### gate_set_lookahead(lookahead) ####
+
+Sets a new delay time, in ms, applied on the signal to gate.
+
+#### gate_do(signal) ####
+
+Cut or let pass the signal given as argument with the current 
+gate state.
+
+Example
+-------
+
+    desc:Two Independant Channels Gate
+
+    import cookdsp.jsfx-inc
+
+    slider1:-50<-90,-12>Threshold (dB)
+    slider2:10<1,150>Attack Time (ms)
+    slider3:50<1,250>Release Time (ms)
+    slider4:5<0.5,10>Look Ahead (ms)
+
+    @init
+    gL.gate(slider1, slider2, slider3, slider4);
+    gR.gate(slider1, slider2, slider3, slider4);
+
+    @slider
+    gL.gate_set_thresh(slider1);
+    gR.gate_set_thresh(slider1);
+    gL.gate_set_attack(slider2);
+    gR.gate_set_attack(slider2);
+    gL.gate_set_release(slider3);
+    gR.gate_set_release(slider3);
+    gL.gate_set_lookahead(slider4);
+    gR.gate_set_lookahead(slider4);
+
+    @sample
+    spl0 = gL.gate_do(spl0);
+    spl1 = gR.gate_do(spl1);
+
+********************************************************/
+function gate(thresh attack release lookahead)
+(
+    this.thresh = thresh; this.lookahead = lookahead;
+    this.attack = attack; this.release = release;
+    this.fol.follow(20);
+    this.look.delay(srate/8);
+    this.amp = this.port = 0;
+    this.linth = pow(10, this.thresh * 0.05);
+    freq_ = 1 / (attack * 0.001);
+    this.acoeff = exp(-2 * $pi * freq_ / srate);
+    freq_ = 1 / (release * 0.001);
+    this.rcoeff = exp(-2 * $pi * freq_ / srate);
+);
+
+function gate_set_thresh(thresh)
+(
+    this.thresh = thresh;
+    this.linth = pow(10, this.thresh * 0.05);
+);
+
+function gate_set_attack(attack)
+(
+    this.attack = attack;
+    freq_ = 1 / (attack * 0.001);
+    this.acoeff = exp(-2 * $pi * freq_ / srate);
+);
+
+function gate_set_release(release)
+(
+    this.release = release;
+    freq_ = 1 / (release * 0.001);
+    this.rcoeff = exp(-2 * $pi * freq_ / srate);
+);
+
+function gate_set_lookahead(lookahead)
+(
+    this.lookahead = lookahead;
+);
+
+function gate_do(signal)
+(
+    tmp_ = this.look.delay_fsread2(this.lookahead * 0.001);
+    this.look.delay_write(signal);
+    this.fol.follow_do(signal) > this.linth ? (
+        this.amp = 1.0 + (this.amp - 1.0) * this.acoeff;
+    ) : (
+        this.amp = this.amp * this.acoeff;
+    );
+    tmp_ * this.amp;
+);
+
+/******************************************************* 
+STGATE
+======
+
+Allows a stereo signal to pass only when its amplitude is above a threshold.
+
+Description
+-----------
+
+A noise gate is used when the level of the signal is below the level 
+of the noise floor. The threshold is set above the level of the noise 
+and so when there is no signal the gate is closed. A noise gate does 
+not remove noise from the signal. When the gate is open both the signal 
+and the noise will pass through.
+
+It must be used with a variable name as prefix (object oriented).
+
+Initializer
+-----------
+
+#### stgate(thresh, attack, release, lookahead) ####
+
+Initializes a gate object for a stereo input. The `thresh` argument 
+is the threshold, in dB, below which the signal is cut. The `attack` 
+argument, in ms, is the speed of the opening part of the gate. The 
+`release` argument, in ms, is the speed of the closing par of the 
+gate. The `lookahead` argument is a little delay, specified in ms, 
+applied to the signal to gate in order to synchronize the gate with 
+the internal envelope follower.
+
+Methods
+-------
+
+#### stgate_set_thresh(thresh) ####
+
+Sets a new threshold, in dB, to the gate.
+
+#### stgate_set_attack(attack) ####
+
+Sets a new opening time, in ms, to the gate gain curve.
+
+#### stgate_set_release(release) ####
+
+Sets a new closing time, in ms, to the gate gain curve.
+
+#### stgate_set_lookahead(lookahead) ####
+
+Sets a new delay time, in ms, applied on the signal to gate.
+
+#### stgate_do(sig0, sig1) ####
+
+Cut or let pass the signals given as argumenta with the current 
+gate state. Gated signals are saved in `out0` and `out1` attributes.
+
+Attributes
+----------
+
+#### stgate.out0 ####
+
+Floating-point value that holds the left part of the gated stereo signal. 
+
+#### stgate.out1 ####
+
+Floating-point value that holds the right part of the gated stereo signal. 
+
+Example
+-------
+
+    desc:Two Linked Channels Gate
+
+    import cookdsp.jsfx-inc
+
+    slider1:-50<-90,-12>Threshold (dB)
+    slider2:10<1,150>Attack Time (ms)
+    slider3:50<1,250>Release Time (ms)
+    slider4:5<0.5,10>Look Ahead (ms)
+
+    @init
+    gt.stgate(slider1, slider2, slider3, slider4);
+
+    @slider
+    gt.stgate_set_thresh(slider1);
+    gt.stgate_set_attack(slider2);
+    gt.stgate_set_release(slider3);
+    gt.stgate_set_lookahead(slider4);
+
+    @sample
+    gt.stgate_do(spl0, spl1);
+    spl0 = gt.out0;
+    spl1 = gt.out1;
+
+********************************************************/
+function stgate(thresh attack release lookahead)
+(
+    this.thresh = thresh; this.lookahead = lookahead;
+    this.attack = attack; this.release = release;
+    this.fol.follow(20);
+    this.look0.delay(srate/8);
+    this.look1.delay(srate/8);
+    this.amp = this.port = 0;
+    this.out0 = this.out1 = 0.0;
+    this.linth = pow(10, this.thresh * 0.05);
+    freq_ = 1 / (attack * 0.001);
+    this.acoeff = exp(-2 * $pi * freq_ / srate);
+    freq_ = 1 / (release * 0.001);
+    this.rcoeff = exp(-2 * $pi * freq_ / srate);
+);
+
+function stgate_set_thresh(thresh)
+(
+    this.thresh = thresh;
+    this.linth = pow(10, this.thresh * 0.05);
+);
+
+function stgate_set_attack(attack)
+(
+    this.attack = attack;
+    freq_ = 1 / (attack * 0.001);
+    this.acoeff = exp(-2 * $pi * freq_ / srate);
+);
+
+function stgate_set_release(release)
+(
+    this.release = release;
+    freq_ = 1 / (release * 0.001);
+    this.rcoeff = exp(-2 * $pi * freq_ / srate);
+);
+
+function stgate_set_lookahead(lookahead)
+(
+    this.lookahead = lookahead;
+);
+
+function stgate_do(sig0 sig1)
+(
+    in_ = (sig0 + sig1) * 0.7071;
+    delInSec_ = this.lookahead * 0.001;
+    tmp0_ = this.look0.delay_fsread2(delInSec_);
+    tmp1_ = this.look1.delay_fsread2(delInSec_);
+    this.look0.delay_write(sig0);
+    this.look1.delay_write(sig1);
+    this.fol.follow_do(in_) > this.linth ? (
+        this.amp = 1.0 + (this.amp - 1.0) * this.acoeff;
+    ) : (
+        this.amp = this.amp * this.acoeff;
+    );
+    this.out0 = tmp0_ * this.amp;
+    this.out1 = tmp1_ * this.amp;
+);
+
+/******************************************************* 
+EXPAND
+======
+
+Expand an audio signal that rises above or falls below given thresholds.
+
+Description
+-----------
+
+The expand object will boost the volume of the input sound if it rises
+above the upper threshold. It will also reduce the volume of the input
+sound if it falls below the lower threshold. This process will "expand"
+the audio signal's dynamic range.
+
+It must be used with a variable name as prefix (object oriented).
+
+Initializer
+-----------
+
+#### expand(upthresh, downthresh, ratio, attack, release, lookahead) ####
+
+Initializes an expand object. The `upthresh` argument is the 
+threshold, in dB, above which the signal is getting louder, 
+according to the `ratio`. The `downthresh` argument is the
+threshold, in dB, below which the signal is getting softer, 
+according to the same `ratio` as the upper threshold. The `ratio`
+argument is the amount of expansion (with a ratio of 4, if
+there is a rise of 2 dB above the upper threshold, the
+output signal will rises by 8 dB), and contrary for the lower 
+threshold. The `attack` argument, in ms, is the upward slope 
+of the internal envelope follower. The `release` argument, 
+in ms, is the downward slope of the internal envelope follower. 
+The `lookahead` argument is a little delay, specified in ms, 
+applied to the signal to expand in order to synchronize the 
+expansion with the internal envelope follower.
+
+Methods
+-------
+
+#### expand_set_upthresh(upthresh) ####
+
+Sets a new upper threshold, in dB, to the expander.
+
+#### expand_set_downthresh(downthresh) ####
+
+Sets a new lower threshold, in dB, to the expander.
+
+#### expand_set_ratio(ratio) ####
+
+Sets a new expansion ratio to the expander.
+
+#### expand_set_attack(attack) ####
+
+Sets a new attack time, in ms, to the internal envelope follower.
+
+#### expand_set_release(release) ####
+
+Sets a new release time, in ms, to the internal envelope follower.
+
+#### expand_set_lookahead(lookahead) ####
+
+Sets a new delay time, in ms, applied on the signal to expand.
+
+#### expand_do(signal) ####
+
+Expand the signal given as argument with the current expander 
+state.
+
+Example
+-------
+
+    desc:Two Independant Channels Expansion
+
+    import cookdsp.jsfx-inc
+
+    slider1:-20<-70,0>Upper Threshold (dB)
+    slider2:-40<-70,0>Lower Threshold (dB)
+    slider3:2<1,8>Ratio
+    slider4:25<1,150>Attack Time (ms)
+    slider5:50<1,250>Release Time (ms)
+    slider6:-6<-18,6>Post Gain
+
+    @init
+    cL.expand(slider1, slider2, slider3, slider4, slider5, 5);
+    cR.expand(slider1, slider2, slider3, slider4, slider5, 5);
+
+    @slider
+    cL.expand_set_upthresh(slider1);
+    cR.expand_set_upthresh(slider1);
+    cL.expand_set_downthresh(slider2);
+    cR.expand_set_downthresh(slider2);
+    cL.expand_set_ratio(slider3);
+    cR.expand_set_ratio(slider3);
+    cL.expand_set_attack(slider4);
+    cR.expand_set_attack(slider4);
+    cL.expand_set_release(slider5);
+    cR.expand_set_release(slider5);
+    gain = pow(10, slider6 * 0.05);
+
+    @sample
+    spl0 = cL.expand_do(spl0) * gain;
+    spl1 = cR.expand_do(spl1) * gain;
+
+********************************************************/
+function expand(upthresh downthresh ratio attack release lookahead)
+(
+    this.upthresh = upthresh; this.downthresh = downthresh;
+    this.attack = attack; this.release = release;
+    this.lookahead = lookahead; this.ratio = ratio;
+    this.look.delay(srate/8);
+    this.yu = this.yd = 0.0;
+    freq_ = 1 / (attack * 0.001);
+    this.acoeff = exp(-2 * $pi * freq_ / srate);
+    freq_ = 1 / (release * 0.001);
+    this.rcoeff = exp(-2 * $pi * freq_ / srate);
+);
+
+function expand_set_upthresh(upthresh)
+(
+    this.upthresh = upthresh;
+);
+
+function expand_set_downthresh(downthresh)
+(
+    this.downthresh = downthresh;
+);
+
+function expand_set_ratio(ratio)
+(
+    this.ratio = ratio;
+);
+
+function expand_set_attack(attack)
+(
+    this.attack = attack;
+    freq_ = 1 / (attack * 0.001);
+    this.acoeff = exp(-2 * $pi * freq_ / srate);
+);
+
+function expand_set_release(release)
+(
+    this.release = release;
+    freq_ = 1 / (release * 0.001);
+    this.rcoeff = exp(-2 * $pi * freq_ / srate);
+);
+
+function expand_set_lookahead(lookahead)
+(
+    this.lookahead = lookahead;
+);
+
+function expand_do(signal)
+(
+    tmp_ = this.look.delay_fsread2(this.lookahead * 0.001);
+    this.look.delay_write(signal);
+    absin_ = abs(signal);
+    absin_ > this.yu ? ( // upward expand
+        this.yu = absin_ + (this.yu - absin_) * this.acoeff;
+    ) : (
+        this.yu = absin_ + (this.yu - absin_) * this.rcoeff;
+    );
+    dbin_ = 20 * log10(this.yu + 0.0000001);
+    dbin_ > this.upthresh ? (
+        diff_ = dbin_ - this.upthresh;
+        boo_ = pow(10, (diff_ * this.ratio - diff_) * 0.05);
+        tmp_ *= boo_;
+    );
+    absin_ > this.yd ? ( // downward expand
+        this.yd = absin_ + (this.yd - absin_) * this.acoeff;
+    ) : (
+        this.yd = absin_ + (this.yd - absin_) * this.rcoeff;
+    );
+    dbin_ = 20 * log10(this.yd + 0.0000001);
+    dbin_ < this.downthresh ? (
+        diff_ = this.downthresh - dbin_;
+        cut_ = pow(10, (diff_ - diff_ * this.ratio) * 0.05);
+        tmp_ *= cut_;
+    );
+    tmp_;
+);

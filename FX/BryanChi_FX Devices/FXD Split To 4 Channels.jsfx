@@ -1,0 +1,35 @@
+noindex: true
+
+desc:FXD Split to 4 channels
+
+
+slider1:gain_db=0<-150,12,1>gain (dB)
+in_pin:left input
+in_pin:right input
+in_pin:left input compare
+in_pin:right input compare
+out_pin:left output
+out_pin:right output
+out_pin:left Compare
+out_pin:right compare
+
+@init
+last_gain=10^(gain_db/20);
+
+@slider
+next_gain=10^(gain_db/20);
+
+
+@block
+d_gain = (next_gain - last_gain)/samplesblock;
+
+@sample
+spl0 = spl0;
+spl1 = spl1 ; 
+spl2 = spl0; spl3 = spl1;
+spl2 *= last_gain;
+spl3 *= last_gain;
+last_gain += d_gain;
+spl(3) = spl(3);
+spl(2) = spl(2);
+spl(4) = spl(4)

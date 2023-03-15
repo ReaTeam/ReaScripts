@@ -1,17 +1,21 @@
 -- @description Create single region from selected items (get name and color from folder track)
 -- @author Mordi
--- @version 1.0
+-- @version 1.2.1
+-- @changelog Set the dropdown to actually make the two new scripts appear in the action list (d'oh).
+-- @provides
+--   [main] Mordi_Create single region from selected items (get name and color from folder track)/Mordi_Create single region from selected items (get name and color from folder track) and mark it in region render matrix via master.lua
+--   [main] Mordi_Create single region from selected items (get name and color from folder track)/Mordi_Create single region from selected items (get name and color from folder track) and mark it in region render matrix.lua
 -- @screenshot Creating regions from items https://i.imgur.com/xUg7bSU.gif
 -- @about
 --   # Create single region from selected items (get name and color from folder track)
 --
---   Made for exporting sound effects. Select all the items that make up your sound effect, and run this script. A region will be created which encompasses all the items and inherits its name and color from the parent track of the topmost item.
+--   Made for exporting sound effects for games. Select all the items that make up your sound effect, and run this script. A region will be created which encompasses all the items and inherits its name and color from the parent track of the topmost item.
 --
---   See screenshot.
---
---   This script works well with "Set render matrix by comparing track names and region names.lua".
+--   Depending on which of the scripts you run, it will also tag the resulting region for rendering either via the track itself or via the master track.
 
 SCRIPT_NAME = "Create single region from selected items (get name and color from folder track)"
+
+reaper.ClearConsole()
 
 function Msg(variable)
   reaper.ShowConsoleMsg(tostring(variable).."\n")
@@ -74,13 +78,29 @@ end
 -- Get track from track index
 track = reaper.GetTrack(0, topTrackIndex-1)
 
--- Get parent of topmost track
-parent = reaper.GetParentTrack(track)
+-- Init parent variable
+parent = track
 
--- If it has no parent, use the topmost track instead
-if parent == nil then
-  parent = track
-end
+-- Loop: Get topmost parent
+repeat
+
+  -- Get potential parent
+  potParent = reaper.GetParentTrack(parent)
+
+  -- Check if potential parent exists
+  if potParent == nil then
+    break;
+  else
+    -- Check if potential parent's name starts with "#FX"
+    retval, name = reaper.GetTrackName(potParent, "")
+    if string.sub(name, 1, 3) == "#FX" then
+      break
+    end
+  end
+
+  parent = potParent
+  
+until(reaper.GetParentTrack(parent) == nil)
 
 -- Get color of track
 color = reaper.GetTrackColor(parent)

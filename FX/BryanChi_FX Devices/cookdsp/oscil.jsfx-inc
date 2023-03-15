@@ -1,0 +1,389 @@
+/////////////////////////////////////////////////////////////////
+// Copyright (c) - 2014 - Olivier Belanger                     //
+// Permission to use, copy, modify, and/or distribute this     //
+// software for any purpose with or without fee is hereby      //
+// granted, provided that the above copyright notice and this  //
+// permission notice appear in all copies. CookDSP IS PROVIDED //
+// "AS IS", WITHOUT WARRANTY OF ANY KIND FROM THE AUTHOR.      //
+/////////////////////////////////////////////////////////////////
+
+@init
+
+/******************************************************* 
+PHASOR
+======
+
+Generate an ascending ramp with sharp corner (sawtooth wave).
+
+
+Description
+-----------
+
+The phasor function initializes an ascending ramp (from 0 to 1) 
+with the given frequency and phase. Useful for looping over the 
+content of a buffer to produce arbitrary waveforms.
+
+It must be used with a variable name as prefix (object oriented).
+
+Initializer
+-----------
+
+#### phasor(freq, phase) ####
+
+Initializes the oscillator with the given frequency `freq`, in Hz,
+and initial phase `phase`, between 0 and 1.
+
+Methods
+-------
+
+#### phasor_set_freq(freq) ####
+
+Sets a new frequency `freq`, in Hz, to the oscillator.
+
+#### phasor_set_phase(phase) ####
+
+Sets a new phase `phase`, between 0 and 1, to the oscillator.
+
+#### phasor_reset() ####
+
+Resets immediately the oscillator phase to 0.
+
+#### phasor_do() ####
+
+Processes one sample of the oscillator and increment the internal
+reading pointer. Returns the current value, between 0 and 1, of 
+the oscilator.
+
+Example
+-------
+
+    desc:Alternating Channels
+
+    import cookdsp.jsfx-inc
+
+    slider1:4<0.25,20>LFO Speed
+
+    @init
+    // Initialize a buffer
+    b.buffer(8192);
+    // Write a square wave into it
+    b.buffer_square(50);
+    // Remove the negative part
+    b.buffer_clip(0, 1);
+    // Initialize an upward ramp
+    ph.phasor(slider1, 0);
+
+    @slider
+    ph.phasor_set_freq(slider1);
+
+    @sample
+    // Compute the phase for the left channel
+    phL = ph.phasor_do();
+    // 180 degrees out-of-phase for the right channel
+    phR = wrap(phL+0.5, 0, 1);
+    // Read the buffer and multiply each channel
+    spl0 *= b.buffer_fnread2(phL);
+    spl1 *= b.buffer_fnread2(phR);
+
+********************************************************/
+function phasor(freq phase)
+(
+    phase < 0 ? phase = 0 : phase > 1 ? phase = 1;
+    this.phase = phase;
+    this.freq = freq;
+    this.inc = this.freq / srate;
+    this.current = 0;
+);
+
+function phasor_set_freq(freq)
+(
+    this.freq = freq;
+    this.inc = this.freq / srate;
+);
+
+function phasor_set_phase(phase)
+(
+    phase < 0 ? phase = 0 : phase > 1 ? phase = 1;
+    this.phase = phase;    
+);
+
+function phasor_reset()
+(
+    this.current = 0;
+);
+
+function phasor_do()
+(
+    val_ = this.current + this.phase;
+    val_ >= 1 ? val_ -= 1 : val_ < 0 ? val_ += 1;
+    this.current += this.inc;
+    this.current >= 1 ? this.current -= 1 : this.current < 0 ? this.current += 1;
+    val_;
+);
+
+/******************************************************* 
+SINE
+====
+
+Generate a sine wave oscillator.
+
+
+Description
+-----------
+
+The `sine` object initializes a sine wave oscillator with the 
+given frequency and phase.
+
+It must be used with a variable name as prefix (object oriented).
+
+Initializer
+-----------
+
+#### sine(freq, phase) ####
+
+Initializes the oscillator with the given frequency `freq`, in Hz,
+and initial phase `phase`, between 0 and 1.
+
+Methods
+-------
+
+#### sine_set_freq(freq) ####
+
+Sets a new frequency `freq`, in Hz, to the oscillator.
+
+#### sine_set_phase(phase) ####
+
+Sets a new phase `phase`, between 0 and 1, to the oscillator.
+
+#### sine_reset() ####
+
+Resets immediately the oscillator phase to 0.
+
+#### sine_do() ####
+
+Processes one sample of the oscillator and increment the internal
+reading pointer. Returns the current value, between -1 and 1, of 
+the oscilator.
+
+Example
+-------
+
+    desc:Ring Modulation
+
+    import cookdsp.jsfx-inc
+
+    slider1:100<1,500>Modulation Frequency
+
+    @init
+    rm.sine(slider1, 0);
+
+    @slider
+    rm.sine_set_freq(slider1);
+
+    @sample
+    x = rm.sine_do();
+    spl0 *= x; 
+    spl1 *= x;
+
+********************************************************/
+function sine(freq phase)
+(
+    this.ph.phasor(freq, phase);
+    this.freq = this.ph.freq; 
+    this.phase = this.ph.phase;
+    this.buf.buffer(1024);
+    this.buf.buffer_gen10(1);
+);
+
+function sine_set_freq(freq)
+(
+    this.ph.phasor_set_freq(freq);
+    this.freq = this.ph.freq; 
+);
+
+function sine_set_phase(phase)
+(
+    this.ph.phasor_set_phase(phase);    
+    this.phase = this.ph.phase;
+);
+
+function sine_reset()
+(
+    this.ph.phasor_reset();
+);
+
+function sine_do()
+(
+    this.buf.buffer_fnread2(this.ph.phasor_do());
+);
+
+/******************************************************* 
+BLOSC
+=====
+
+Band-limited oscillator with different wave shapes.
+
+
+Description
+-----------
+
+This object implements a collection of oscillators that don't have
+frequencies above the Nyquist frequency (anti-aliased).
+
+It must be used with a variable name as prefix (object oriented).
+
+Initializer
+-----------
+
+#### blosc(freq, sharp, type) ####
+
+Initializes the oscillator with the given frequency `freq`, in Hz,
+edge sharp factor `sharp`, between 0 and 1, and waveform shape `type` (int).
+Available shapes are:
+
+    0. Upward Sawtooth
+    1. Downward Sawtooth
+    2. Square
+    3. Triangle
+    4. Pulse
+    5. Bipolar Pulse
+
+Methods
+-------
+
+#### blosc_set_freq(freq) ####
+
+Sets a new frequency `freq`, in Hz, to the oscillator.
+
+#### blosc_set_sharp(sharp) ####
+
+Sets a new sharp factor `sharp`, between 0 and 1, to the oscillator.
+
+#### blosc_set_type(type) ####
+
+Changes the current waveform shape of the oscillator (`type` in an integer). 
+Available shapes are:
+
+    0. Upward Sawtooth
+    1. Downward Sawtooth
+    2. Square
+    3. Triangle
+    4. Pulse
+    5. Bipolar Pulse
+
+#### blosc_reset() ####
+
+Resets immediately the oscillator phase to 0.
+
+#### blosc_do() ####
+
+Processes one sample of the oscillator and increment the internal
+reading pointer. Returns the current value, between -1 and 1, of 
+the oscilator.
+
+Example
+-------
+
+    desc:Complex Ring-Modulation
+
+    import cookdsp.jsfx-inc
+
+    slider1:20<20,500>Frequency
+    slider2:0.5<0,1>Sharp
+    slider3:0<0,5,1{Saw Up,Saw Down,Square,Triangle,Pulse,Bi-Pulse}>Shape
+
+    @init
+    blo.blosc(slider1, slider2, slider3);
+
+    @slider
+    blo.blosc_set_freq(slider1);
+    blo.blosc_set_sharp(slider2);
+    blo.blosc_set_type(slider3);
+
+    @sample
+    amp = blo.blosc_do();
+    spl0 *= amp;
+    spl1 *= amp;
+
+********************************************************/
+function blosc(freq sharp type)
+(
+    this.ph.phasor(freq, 0);
+    this.freq = this.ph.freq;
+    sharp < 0 ? sharp = 0 : sharp > 1 ? sharp = 1; 
+    this.sharp = sharp;
+    type < 0 ? type = 0 : type > 5 ? type = 5; 
+    this.type = floor(type);
+    this.srOnFour = srate * 0.25;
+    this.srOnEight = srate * 0.125;
+    this.twopi = 2 * $pi;
+    this.oneOnPiOnTwo = 1 / ($pi / 2);
+);
+
+function blosc_set_freq(freq)
+(
+    this.ph.phasor_set_freq(freq);
+    this.freq = this.ph.freq; 
+);
+
+function blosc_set_sharp(sharp)
+(
+    sharp < 0 ? sharp = 0 : sharp > 1 ? sharp = 1; 
+    this.sharp = sharp;
+);
+
+function blosc_set_type(type)
+(
+    type < 0 ? type = 0 : type > 5 ? type = 5; 
+    this.type = floor(type);
+);
+
+function blosc_reset()
+(
+    this.ph.phasor_reset();
+);
+
+function blosc_do()
+(
+    val_ = 0;
+    ph_ = this.ph.phasor_do();
+    this.type == 0 ? (
+        maxh_ = floor(this.srOnFour/this.freq);
+        numh_ = this.sharp * 46.0 + 4.0;
+        numh_ > maxh_ ? numh_ = maxh_;
+        ph_ = ph_ * 2 - 1;
+        val_ = ph_ - tanh(numh_ * ph_) / tanh(numh_);
+    ) : this.type == 1 ? (
+        maxh_ = floor(this.srOnFour/this.freq);
+        numh_ = this.sharp * 46.0 + 4.0;
+        numh_ > maxh_ ? numh_ = maxh_;
+        ph_ = ph_ * 2 - 1;
+        val_ = -(ph_ - tanh(numh_ * ph_) / tanh(numh_));
+    ) : this.type == 2 ? (
+        maxh_ = floor(this.srOnEight/this.freq);
+        numh_ = this.sharp * 46.0 + 4.0;
+        numh_ > maxh_ ? numh_ = maxh_;
+        val_ = atan(numh_ * sin(this.twopi * ph_)) * this.oneOnPiOnTwo;
+    ) : this.type == 3 ? (
+        maxh_ = floor(this.srOnFour/this.freq);
+        this.sharp * 36.0 > maxh_ ? numh_ = maxh_ / 36 : numh_ = this.sharp;
+        v1_ = tan(sin(this.twopi * ph_)) * this.oneOnPiOnTwo;
+        ph2_ = ph_ + 0.25;
+        ph2_ > 1 ? ph2_ -= 1;
+        v2_ = 4 * (0.5 - abs(ph2_ - 0.5)) - 1;
+        val_ = v1_ + (v2_ - v1_) * numh_;
+    ) : this.type == 4 ? (
+        maxh_ = floor(this.srOnEight/this.freq);
+        numh_ = floor(this.sharp * 46.0 + 4.0);
+        numh_ > maxh_ ? numh_ = maxh_;
+        numh_ % 2 == 0 ? numh_ += 1;
+        val_ = tan(pow(abs(sin(this.twopi*ph_)), numh_)) * this.oneOnPiOnTwo;
+    ) : this.type == 5 ? (
+        maxh_ = floor(this.srOnEight/this.freq);
+        numh_ = floor(this.sharp * 46.0 + 4.0);
+        numh_ > maxh_ ? numh_ = maxh_;
+        numh_ % 2 == 0 ? numh_ += 1;
+        val_ = tan(pow(sin(this.twopi*ph_), numh_)) * this.oneOnPiOnTwo;
+    );
+    val_;
+);

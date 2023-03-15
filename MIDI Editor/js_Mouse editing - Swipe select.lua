@@ -1,6 +1,8 @@
 --[[
 ReaScript name: js_Mouse editing - Swipe select.lua
-Version: 2.20
+Version: 2.21
+Changelog:
+  + Shift disables snapping.
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Donation: https://www.paypal.me/juliansader
@@ -104,7 +106,6 @@ About:
 ]]
  
 --[[
-  Changelog:
   * v0.90 (2018-06-11)
     + Initial beta release
   * v0.91 (2018-07-09)
@@ -123,6 +124,8 @@ About:
   * v2.20 (2019-04-25)
     + Clicking armed toolbar button disarms script.
     + Improved starting/stopping: 1) Any keystroke terminates script; 2) Alternatively, hold shortcut for second and release to terminate.
+  * v2.21 (2021-03-27)
+    + Shift disables snapping.
 ]]
 
 
@@ -167,7 +170,7 @@ local prevMouseTime = 0
 
 -- The script will intercept keystrokes, to allow control of script via keyboard, 
 --    and to prevent inadvertently running other actions such as closing MIDI editor by pressing ESC
-local VKLow, VKHi = 8, 0xFE --0xA5 -- Range of virtual key codes to check for key presses
+local VKLow, VKHi = 0x13, 0xFE --8, 0xA5 -- Range of virtual key codes to check for key presses. Skip mouse modifiers, which will be detected with JS_Mouse_GetState.
 local VKState0 = string.rep("\0", VKHi-VKLow+1)
 local dragTime = 0.5 -- How long must the shortcut key be held down before left-drag is activated?
 local dragTimeStarted = false
@@ -195,7 +198,7 @@ local minimumTick, maximumTick -- The mouse PPO position should not go outside t
 
 -- Some internal stuff that will be used to set up everything
 local _, activeItem, activeTake = nil, nil
-local window, segment, details = nil, nil, nil -- given by the SWS function reaper.BR_GetMouseCursorContext()
+local window, segment, details = nil, nil, nil -- given by the SWS func BR_GetMouseCursorContext()
 local startTime, prevMousewheelTime = 0, 0
 
 -- If the mouse is over a MIDI editor, these variables will store the on-screen layout of the editor.
@@ -292,7 +295,7 @@ local function DEFERLOOP_TrackMouseAndUpdateMIDI()
     -- This can detect left clicks even if the mouse is outside the MIDI editor
     local prevMouseState = mouseState or 0xFF
     mouseState = reaper.JS_Mouse_GetState(0xFF)
-    if ((mouseState&61) > (prevMouseState&61)) -- 61 = 0b00111101 = Ctrl | Shift | Alt | Win | Left button
+    if ((mouseState&53) > (prevMouseState&53)) -- 53 = 0b00110101 = Win | Ctrl | skip Shift | Alt | skip right |  Left button
     or (dragTimeStarted and (mouseState&1) < (prevMouseState&1)) then
         return false
     end
@@ -378,7 +381,7 @@ local function DEFERLOOP_TrackMouseAndUpdateMIDI()
         end
         
         -- Adjust mouse PPQ position for snapping
-        if not isSnapEnabled then
+        if not isSnapEnabled or (mouseState&8)==8 then
             snappedNewPPQPos = m_floor(mouseNewPPQPos+0.5)
         elseif isInline then
             local timePos = reaper.MIDI_GetProjTimeFromPPQPos(activeTake, mouseNewPPQPos)
@@ -1226,7 +1229,7 @@ function MAIN()
     -- Finally, startup completed OK, so can continue with loop!
     return true 
     
-end -- function Main()
+end -- Main()
 
 
 --################################################

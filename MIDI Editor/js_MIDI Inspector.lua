@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_MIDI Inspector.lua
-Version: 1.56
+Version: 1.65
 Author: juliansader
 Screenshot: http://stash.reaper.fm/28295/js_MIDI%20Inspector.jpeg
 Website: http://forum.cockos.com/showthread.php?t=176878
@@ -36,8 +36,7 @@ About:
   Font options are BLUR, SHADOW, INVERT, NATIVE, BOTTOMUP, MONO, VERTICAL and OUTLINE.
   NOTE: On Windows, small LICE text is not properly antialiased.  The "BLUR" option may achieve a similar effect by slightly blurring the text.
   
-  
-  
+
   # TERMINATION
   
   If all MIDI editors are closed, the script will continue running in the background (with negligible CPU usage),
@@ -63,7 +62,17 @@ About:
     * Right-click on the Inspector to open a context menu.
   
   
-  WARNING: 
+  # FLICKERING ON WINDOWS OS
+  
+  On WindowsOS, graphics that are drawn inside REAPER's windows by scripts (for example by the Multi Tool, or when the MIDI Inspector is docked)
+  may occasionally flicker.  This flickering can be reduced by limiting the refresh rate of the window, but the optimal setting is specific to each DAW 
+  and may depend on factors such as CPU speed and monitor refresh rate.
+  
+  In the right-click context menu, the user can enable or disable flickering reduction, and select a refresh rate.  
+  0.05 seconds is the default, and should work fine on most systems.
+
+  
+  # WARNING: 
   
   Updating MIDI information in realtime can take a toll on the responsiveness of the MIDI editor, 
       particularly if the take contains many thousands of MIDI events.  The GUI therefore provides a
@@ -144,6 +153,14 @@ About:
     + Edit piano roll font settings through right-click menu.
   * v1.56 (2019-06-07)
     + On WindowOS, automatic alpha-premultiplication of font color when docked in MIDI editor.
+  * v1.60 (2020-07-18)
+    + On WindowsOS, setting in right-click menu to reduce flickering.
+  * v1.61 (2020-08-20)
+    + Redraw docked inspector while playing or recording.
+  * v1.62 (2020-08-29)
+    + A bit more About info.
+  * v1.65 (2022-02-22)
+    + If using js_ReascriptAPI v1.302 or higher, text can have black shadow.
 ]]
 
 -- USER AREA
@@ -279,6 +296,8 @@ local ME_TextWeight  = 100
 local ME_TextColor   = 0xAA00FF00
 local ME_TextOptions = ""
 
+local tDelayTimes = {0, 0.03, 0.05, 0.07, 0.10}
+
 
 -------------------------
 function measureStrings()
@@ -386,10 +405,11 @@ function saveCurrentState()
                   .. tostring(dockedMidiview)
         reaper.SetExtState("MIDI Inspector", "Last state", saveState, true)
     end
+    reaper.SetExtState("MIDI Inspector", "Delay", tostring(compositeDelay), true)
 end
 
 
-----------------------------
+-----------------------------
 function alphaMultiply(color)
     local a = (color&0xff000000)>>24
     if a == 0xFF then 
@@ -414,14 +434,16 @@ function exit()
     reaper.DeleteExtState("MIDI Inspector", "Last dimensions", true)
     reaper.DeleteExtState("MIDI Inspector", "Set channel", true)
     
+    if midiview then setCompositeDelay(midiview, "original") end
+    
     --if editor and reaper.MIDIEditor_GetMode(editor) ~= -1 and midiview and midiviewDC then reaper.JS_GDI_ReleaseDC(midiview, midiviewDC) end
     if GDI_Font then reaper.JS_GDI_DeleteObject(GDI_Font) end
     --[[for _, midiview in pairs(tEditorMidiview) do
-        reaper.JS_Composite_Unlink(midiview, LICE_Bitmap)
+        jsCompositeUnlink(midiview, LICE_Bitmap)
     end]]
     
     if LICE_Bitmap then 
-        if midiview then reaper.JS_Composite_Unlink(midiview, LICE_Bitmap) reaper.JS_Window_InvalidateRect(midiview, 0, 0, 1200, 26, false) end
+        if midiview then jsCompositeUnlink(midiview, LICE_Bitmap) reaper.JS_Window_InvalidateRect(midiview, 0, 0, 1200, 26, false) end
         reaper.JS_LICE_DestroyBitmap(LICE_Bitmap)
     end
     
@@ -552,6 +574,59 @@ local function timeStr(take, ppq, format)
     elseif format == 7 then 
         return string.format("%.11f", ppq):gsub("%.?0+$", "") -- ppq should always be integer, but format just in case...
     end
+end
+
+
+tDelays = {} -- Store original and new delay settings, so that can restore when unlinking
+-------------------------
+function setCompositeDelay(win, d)
+    if d == "original" then
+        if tDelays[win] and tDelays[win].origMin and tDelays[win].origMax and tDelays[win].origBitmaps then
+            reaper.JS_Composite_Delay(win, tDelays[win].origMin, tDelays[win].origMax, tDelays[win].origBitmaps)
+        else
+            reaper.JS_Composite_Delay(win, 0, 0, 0)
+        end
+    else
+        compositeDelay = d
+        reaper.SetExtState("MIDI Inspector", "Delay", tostring(d), true)
+        
+        if not tDelays[win] then 
+            tDelays[win] = {}
+            local t = tDelays[win]
+            _, t.origMin, t.origMax, t.origBitmaps = reaper.JS_Composite_Delay(win, -1, -1, -1)
+        end
+        
+        --[[if tDelays[win].origMin < d then
+            local t = tDelays[win]
+            t.newMin = (t.origMin < d) and d or t.origMin -- New settings are also stored, so that when unlinking, can check whether another script has changed the settings.
+            t.newMax = (t.origMax < d) and d or t.origMax
+            t.newBitmaps = (t.origBitmaps < 2) and 2 or t.origBitmaps
+            setDelayOK = reaper.JS_Composite_Delay(win, t.newMin, t.newMax, t.newBitmaps)
+        end]]
+        setDelayOK = reaper.JS_Composite_Delay(win, d, d, 2)
+    end
+end
+
+
+-------------------------------------------------------------
+function jsComposite(win, dx, dy, dw, dh, bm, sx, sy, sw, sh)
+    setCompositeDelay(win, compositeDelay)
+    reaper.JS_Composite(win, dx, dy, dw, dh, bm, sx, sy, sw, sh)
+end
+
+
+function jsCompositeUnlink(win, bitmap)
+    --[==[if tDelays[win] then
+        local t = tDelays[win]
+        -- Has another script changed the settings while Inspector was running?  If not, can reset.
+        --[[local _, currentMin, currentMax, currentBitmaps = reaper.JS_Composite_Delay(win, -1, -1, -1)
+        if currentMin == t.newMin and currentMax == t.newMax and currentBitmaps == t.bitmaps then
+            reaper.JS_Composite_Delay(win, t.origMin, t.origMax, t.origBitmaps)
+        end]]
+        reaper.JS_Composite_Delay(win, t.origMin, t.origMax, t.origBitmaps)
+    end]==]
+    setCompositeDelay(win, "original")
+    reaper.JS_Composite_Unlink(win, bitmap)
 end
 
 
@@ -888,11 +963,11 @@ function getUserFontSettings()
        if not GDI_Font then reaper.MB("Could not create a GDI font.", "ERROR", 0) return(false) end
        reaper.JS_LICE_SetFontFromGDI(LICE_Font, GDI_Font, ME_TextOptions)
        reaper.JS_LICE_SetFontColor(LICE_Font, windowsOS and alphaMultiply(ME_TextColor) or ME_TextColor)
+       if reaper.JS_LICE_SetFontFXColor then reaper.JS_LICE_SetFontFXColor(LICE_Font, 0xFF000000) end
        return true
 end 
 
 
-tMidiview = {}
 local prevTime = 0
 ----------------------------
 function loopMIDIInspector() 
@@ -905,7 +980,7 @@ function loopMIDIInspector()
     if editor == nil then 
         if prevEditor then -- Previously one or more editors were open, so this is first cycle after all editors have been closed.
             if midiview then 
-                reaper.JS_Composite_Unlink(midiview, LICE_Bitmap) 
+                jsCompositeUnlink(midiview, LICE_Bitmap) 
                 if reaper.ValidatePtr(midiview, "HWND") then reaper.JS_Window_InvalidateRect(midiview, 0, 0, 1200, 26, false) end
             end
             midiview = nil
@@ -925,16 +1000,17 @@ function loopMIDIInspector()
             mustUpdateGUI = true
             -- Unlink previous editor's midiview
             if midiview then                 
-                reaper.JS_Composite_Unlink(midiview, LICE_Bitmap) 
+                jsCompositeUnlink(midiview, LICE_Bitmap) 
                 if reaper.ValidatePtr(midiview, "HWND") then reaper.JS_Window_InvalidateRect(midiview, 0, 0, 1200, 26, false) end
             end
             -- Composite new editor's midiview
             midiview = reaper.JS_Window_FindChildByID(editor, 1001)
             if midiview and reaper.ValidatePtr(midiview, "HWND") then 
                 if dockedMidiview then
-                    reaper.JS_Composite(midiview, 0, 0, 1200, 26, LICE_Bitmap, 0, 0, 1200, 26)
+                    jsComposite(midiview, 0, 0, 1200, 26, LICE_Bitmap, 0, 0, 1200, 26)
                 end
             else
+                midiview = nil
                 reaper.MB("Could not determine the midiview child window of the active MIDI editor.", "ERROR", 0)
                 return false
             end
@@ -953,14 +1029,28 @@ function loopMIDIInspector()
                 if reaper.JS_Window_FromPoint(x, y) == midiview then
                     local cx, cy = reaper.JS_Window_ScreenToClient(midiview, x, y)
                     if 0 <= cy and cy < 25 then
-                        local menuString = paused and "!Pause|Undock||#Display position as:|" or "Pause|Undock||#Display position as:|"
+                        local menuString = paused and "!Pause|Undock||>Time format|" or "Pause|Undock||>Time format|"
                         -- Time format ranges from -1 (default) to 5
                         for i = -1, #tableTimeFormats do
                             if i == timeFormat then menuString = menuString .. "!" end
                             menuString = menuString .. tableTimeFormats[i] .. "|"
                         end
-                        menuString = menuString .. "|Font settings"
-                        gfx.init("", 0, 0, 0, x+20, y+30)
+                        menuString = menuString .. "<||Font settings"
+                        if windowsOS then 
+                            menuString = menuString .. "||>Flicker reduction|" -- .. ((compositeDelay == 0 or not compositeDelay) and "!" or "") .. "0 (Disable)"
+                            for _, d in ipairs(tDelayTimes) do
+                                menuString = menuString .. (compositeDelay == d and "|!" or "|") .. (d == 0 and "0 (disable)" or string.format("%.02f seconds", d))
+                            end
+                        end
+                            --[[
+                            .. (compositeDelay == 0.01 and "!" or "") .. "0.01 seconds|"
+                            .. (compositeDelay == 0.05 and "!" or "") .. "0.05 seconds|"
+                            .. (compositeDelay == 0.10 and "!" or "") .. "0.10 seconds" 
+                            ]]
+  
+                        gfx.init("wecqwecfqwefxq", 0, 0, 0, x+20, y+30)
+                        local win = reaper.JS_Window_FindTop("wecqwecfqwefxq", true)
+                        if win then reaper.JS_Window_SetOpacity(win, "ALPHA", 0) end
                         gfx.x = -20
                         gfx.y = -50
                         local menuChoice = gfx.showmenu(menuString)
@@ -969,16 +1059,18 @@ function loopMIDIInspector()
                             paused = not paused
                         elseif menuChoice == 2 then
                             dockedMidiview = false
-                            if midiview and reaper.ValidatePtr(midiview, "HWND") then reaper.JS_Composite_Unlink(midiview, LICE_Bitmap) reaper.JS_Window_InvalidateRect(midiview, 0, 0, 1200, 26, false) end
+                            if midiview and reaper.ValidatePtr(midiview, "HWND") then jsCompositeUnlink(midiview, LICE_Bitmap) reaper.JS_Window_InvalidateRect(midiview, 0, 0, 1200, 26, false) end
                             mustUpdateGUI = true
                             initializeGUI()
-                        elseif menuChoice == 6 + #tableTimeFormats then
+                        elseif menuChoice >= 3 and menuChoice <= 4 + #tableTimeFormats then 
+                            timeFormat = menuChoice-4
+                            mustUpdateGUI = true
+                            prevHash = nil -- This just to force GUI to update in next loop 
+                        elseif menuChoice == 5 + #tableTimeFormats then
                             getUserFontSettings()
                             mustUpdateGUI = true
-                        elseif menuChoice > 3 then 
-                            timeFormat = menuChoice-5
-                            mustUpdateGUI = true
-                            prevHash = nil -- This just to force GUI to update in next loop    
+                        elseif menuChoice > 5 + #tableTimeFormats then
+                            setCompositeDelay(midiview, tDelayTimes[menuChoice - 5 - #tableTimeFormats])
                         end
                     end -- if 0 <= cy and cy < 24
                 end -- if reaper.JS_Window_FromPoint(x, y) == midiview
@@ -1043,7 +1135,7 @@ function loopMIDIInspector()
                     mouseAlreadyClicked = true
                     mustUpdateGUI = true
                     dockedMidiview = true
-                    if midiview and reaper.ValidatePtr(midiview, "HWND") then reaper.JS_Composite(midiview, 0, 0, 1200, 26, LICE_Bitmap, 0, 0, 1200, 26) reaper.JS_Window_InvalidateRect(midiview, 0, 0, 1200, 26, false) end
+                    if midiview and reaper.ValidatePtr(midiview, "HWND") then jsComposite(midiview, 0, 0, 1200, 26, LICE_Bitmap, 0, 0, 1200, 26) reaper.JS_Window_InvalidateRect(midiview, 0, 0, 1200, 26, false) end
                 end
             end
             
@@ -1133,7 +1225,7 @@ function loopMIDIInspector()
                         reaper.MIDIEditor_OnCommand(editor, 40004) -- Call Event Properties
                     elseif userInput == 7 then -- "No", so call properties without deselecting
                         reaper.MIDIEditor_OnCommand(editor, 40004) -- Call Event Properties
-                    end
+                    end  
                 else -- no selected notes and/or sysex found
                     reaper.MIDIEditor_OnCommand(editor, 40004) -- Call Event Properties
                 end
@@ -1145,12 +1237,19 @@ function loopMIDIInspector()
         
         -- If paused, GUI size will update and mouseclicks will be intercepted, but no MIDI updates.
         -- Also automatically pause while playing or recording, or if a js_Mouse editing script is running.
-        
         if reaper.time_precise() > prevTime + updateTime then
             -- prevTime will be update *after* all the analyses
-    
-            local curPaused = paused or reaper.GetPlayState()&5 ~= 0 or reaper.GetExtState("js_Mouse actions", "Status") == "Running" -- playState: &1=playing,&2=pause,&=4 is recording
-            if not curPaused then     
+            
+            -- Moving playhead does not trigger window updates, so overwrites docked inspector. This code forces updates.
+            local curPlaying = (reaper.GetPlayState()&5 ~= 0) -- playState: &1=playing,&2=pause,&=4 is recording
+            if curPlaying then
+                if dockedMidiview and midiview then
+                    reaper.JS_Window_InvalidateRect(midiview, 0, 0, 1200, 26, false)
+                end
+            end
+            
+            local mustPause = paused or curPlaying or reaper.GetExtState("js_Mouse actions", "Status") == "Running" 
+            if not mustPause then     
                 
                 -- (GetTake is buggy and sometimes returns an invalid, deleted take, so must validate take.)
                 local take = reaper.MIDIEditor_GetTake(editor)
@@ -1414,7 +1513,7 @@ function loopMIDIInspector()
                         end -- if gotAllOK
                     end -- if takeHash ~= prevHash: get new note and CC info           
                 end -- if take ~= nil: get new default channel and velocity
-            end -- if curPaused == false       
+            end -- if mustPause == false       
             
             prevTime = reaper.time_precise()
             
@@ -1433,7 +1532,7 @@ function loopMIDIInspector()
         
         -- COMMUNICATE with the script "js_Option - Selecting single note or CC in active take sets channel for new events.lua"
         local extStateSetChannel = ""
-        if curPaused then
+        if mustPause then
             extStateSetChannel = "Paused"
         elseif countSelNotes == 1 then
             extStateSetChannel = noteChannel
@@ -1459,7 +1558,7 @@ end -- function loop GetSetChannel
 function main()
     
     -- Check whether ReaScriptAPI extension is available
-    if not reaper.MIDI_DisableSort then
+    if not (reaper.MIDI_DisableSort and reaper.GetThemeColor) then
         reaper.MB("This script requires an up-to-date version of REAPER.", "ERROR", 0)
         return(false)
     elseif not reaper.JS_LICE_WritePNG then
@@ -1502,6 +1601,7 @@ function main()
     
     -- To make script GUI feel more 'native', try to use theme colors.
     -- Strangely, SNM_GetIntConfigVar does not appear to work for theme colors.
+    --[[
     if not themeTextColor then
         local f = reaper.get_ini_file()
         if f then
@@ -1510,16 +1610,28 @@ function main()
                 local fs = f:read("*all")
                 if fs then
                     themeTextColor = tonumber(fs:match("midi_rulerfg=(%d+)")) -- REAPER's ini file uses BBGGRR format
+                    reaper.ShowConsoleMsg(string.format("\n0x%x", themeTextColor))
                     if themeTextColor then
                         themeTextColor = 0xFF000000 | math.min(0xFF0000, 2*(themeTextColor&0xFF0000)) | math.min(0x00FF00, 2*(themeTextColor&0x00FF00)) | math.min(0x0000FF, 2*(themeTextColor&0x0000FF)) -- LICE uses AARRGGBB
                     end
                     f:close()
     end end end end
     if not themeTextColor then themeTextColor = 0xFFFF0000 end
+    ]]
+    local function Color(c)
+        return 0xFF000000 | ((c&0xFF0000)>>16) | (c&0x00FF00) | ((c&0xFF)<<16) -- REAPER's ini file uses BBGGRR format
+    end
+    themeTextColor =    Color(reaper.GetThemeColor("midi_rulerfg", 0) or 0x9b9b9b)
+    --theme3DHighColor =  Color(reaper.GetThemeColor("col_main_3dhl", 0) or 0x494949)
+    --theme3DShadowColor = Color(reaper.GetThemeColor("col_main_3dsh", 0) or 0x202020)
+    --themeWinEditColor = Color(reaper.GetThemeColor("col_main_editbk", 0) or 0x1b1b1b)
+    --themeWinTextColor = Color(reaper.GetThemeColor("col_main_text", 0) or 0xd9d9d9)
     
     LICE_Font = reaper.JS_LICE_CreateFont()
     if not LICE_Font then reaper.MB("Could not create a LICE font.", "ERROR", 0) return(false) end
     reaper.JS_LICE_SetFontBkColor(LICE_Font, 0) -- Transparent
+    
+    compositeDelay = tonumber(reaper.GetExtState("MIDI Inspector", "Delay") or "0.05") or 0.05
     
     appearanceExtState = reaper.GetExtState("MIDI Inspector", "Appearance") or ""
     local init_FontFace, init_TextHeight, init_TextWeight, init_TextColor, init_TextOptions = appearanceExtState:match("([^,]*),([^,]*),([^,]*),([^,]*),(.*)")
@@ -1544,6 +1656,7 @@ function main()
         if not GDI_Font then reaper.MB("Could not create a GDI font.", "ERROR", 0) return(false) end
         reaper.JS_LICE_SetFontFromGDI(LICE_Font, GDI_Font, ME_TextOptions)
         reaper.JS_LICE_SetFontColor(LICE_Font, windowsOS and alphaMultiply(ME_TextColor) or ME_TextColor)
+        if reaper.JS_LICE_SetFontFXColor then reaper.JS_LICE_SetFontFXColor(LICE_Font, 0xFF000000) end
     end    
  
     loopMIDIInspector()

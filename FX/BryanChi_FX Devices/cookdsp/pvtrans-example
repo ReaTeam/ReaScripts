@@ -1,0 +1,49 @@
+desc: Phase Vocoder Stereo Transposer
+
+import cookdsp.jsfx-inc
+
+slider1:5<0,8,1{32,64,128,256,512,1024,2048,4096,8192}>FFT Size
+slider2:1<0,2,1{2,4,8}>Overlaps
+slider3:1<0.5,2>Transposition Factor
+
+@init
+size = pow(2, slider1+5);
+olaps = pow(2, slider2+1);
+pin.pvin(size, olaps);
+pin2.pvin(size, olaps);
+pout.pvout(size, olaps);
+pout2.pvout(size, olaps);
+pvt.pvtrans(slider3, size/2);
+pvt2.pvtrans(slider3, size/2);
+
+@slider
+size = pow(2, slider1+5);
+olaps = pow(2, slider2+1);
+// If fftsize or overlaps changed, re-initialize PVs.
+size != pin.size || olaps != pin.olaps ? (
+  pin.pvin_resize(size, olaps);
+  pin2.pvin_resize(size, olaps);
+  pout.pvout_resize(size, olaps);
+  pout2.pvout_resize(size, olaps);
+  // Initialize effect's specific memories here...
+  pvt.pvtrans_resize(size/2);
+  pvt2.pvtrans_resize(size/2);
+);
+  // Process effect's specific sliders here...
+  pvt.pvtrans_set_transpo(slider3);
+  pvt2.pvtrans_set_transpo(slider3);
+
+@sample
+// Input / Output
+pin.pvin_do(spl0);
+pin2.pvin_do(spl1);
+spl0 = pout.pvout_get_output(pin.count);
+spl1 = pout2.pvout_get_output(pin2.count);
+
+pin.ready ? (
+  pvt.pvtrans_do(pin.magn, pin.freq);
+  pvt2.pvtrans_do(pin2.magn, pin2.freq);
+  pout.pvout_do(pvt.magn, pvt.freq);
+  pout2.pvout_do(pvt2.magn, pvt2.freq);
+);
+

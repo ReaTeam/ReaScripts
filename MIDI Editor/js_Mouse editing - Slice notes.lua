@@ -1,6 +1,8 @@
 --[[
 ReaScript name: js_Mouse editing - Slice notes.lua
-Version: 4.20
+Version: 4.21
+Changelog:
+  + New: Options to trim note onsets.
 Author: juliansader
 Screenshot: http://stash.reaper.fm/27951/Split%20notes%20by%20drawing%20line%20with%20mouse.gif
 Website: http://forum.cockos.com/showthread.php?t=176878
@@ -21,8 +23,10 @@ About:
   After drawing the line, the script will pop up a menu at the mouse position, with which the user can select between:
   * Split selected notes (split only *selected* notes that intersect the line)
   * Split notes (split any note that intersects the line)
-  * Trim selected notes
-  * Trim notes
+  * Trim selected note ends
+  * Trim note ends
+  + Trim selected note onsets
+  + Trim note onsets
 
 
   # INSTRUCTIONS
@@ -40,7 +44,6 @@ About:
 ]] 
 
 --[[
-  Changelog:
   * v4.00 (2019-01-19)
     + Updated for ReaScriptAPI extension.
   * v4.01 (2019-02-10)
@@ -56,6 +59,8 @@ About:
   * v4.20 (2019-04-25)
     + Clicking armed toolbar button disarms script.
     + Improved starting/stopping: 1) Any keystroke terminates script; 2) Alternatively, hold shortcut for second and release to terminate.
+  * v4.21 (2021-03-25)
+    + New: Options to trim note starts.
 ]]
 
 
@@ -126,7 +131,7 @@ local minimumTick, maximumTick -- The mouse PPO position should not go outside t
 
 -- Some internal stuff that will be used to set up everything
 local  _, activeItem, activeTake
-local window, segment, details = nil, nil, nil -- given by the SWS function reaper.BR_GetMouseCursorContext()
+local window, segment, details = nil, nil, nil -- given by the SWS func BR_GetMouseCursorContext()
 local startTime, prevMouseTime = 0, 0
 --local lastPPQPos -- to calculate offset to next CC
 --local lastValue -- To compare against last value, if skipRedundantCCs
@@ -423,7 +428,7 @@ function SliceNotes()
     local tableEvents = {} -- Individual events in MIDIString will be stored in this table while parsing, and re-concatenated at the end
     
     -- First, show menu and get user inputs
-    local menuStr = "|Split notes|Split selected notes||Trim notes|Trim selected notes||"
+    local menuStr = "|Split notes|Split selected notes||Trim ends|Trim selected ends||Trim onsets|Trim selected onsets|"
     local x, y = reaper.GetMousePosition()
     gfx.init("_Split_or_Trim______", 0, 0, 0, x, y)
     local hwnd = reaper.JS_Window_Find("_Split_or_Trim______", true)
@@ -440,6 +445,44 @@ function SliceNotes()
     
         dontSlice = true
     
+    -- These "Trim starts" options were jury rigged added on in later versions, so use a different algorithm than the original options.
+    -- The script was originally coded before the nifty new "DisableSort" function.
+    elseif mode == 5 then
+    
+        reaper.MIDI_SetAllEvts(activeTake, MIDIString)
+        reaper.MIDI_DisableSort(activeTake)
+        local _, noteCount = reaper.MIDI_CountEvts(activeTake)
+        for n = 0, noteCount-1 do
+            local noteOK, _, _, startTick, endTick, _, pitch = reaper.MIDI_GetNote(activeTake, n)
+            if noteOK and tableCutPPQPos[pitch] then -- Does this pitch fall within the cutting line's pitch range?
+                if startTick < tableCutPPQPos[pitch] and tableCutPPQPos[pitch] < endTick then
+                    reaper.MIDI_SetNote(activeTake, n, nil, nil, tableCutPPQPos[pitch], nil, nil, nil, nil, true)
+                end
+            end
+        end
+        reaper.MIDI_Sort(activeTake)
+        return true
+        
+    elseif mode == 6 then
+    
+        reaper.MIDI_SetAllEvts(activeTake, MIDIString)
+        reaper.MIDI_DisableSort(activeTake)
+        local n = -1
+        do ::nextNote::
+            n = reaper.MIDI_EnumSelNotes(activeTake, n)
+            if n and n > -1 then
+                local noteOK, _, _, startTick, endTick, _, pitch = reaper.MIDI_GetNote(activeTake, n)
+                if noteOK and tableCutPPQPos[pitch] then -- Does this pitch fall within the cutting line's pitch range?
+                    if startTick < tableCutPPQPos[pitch] and tableCutPPQPos[pitch] < endTick then
+                        reaper.MIDI_SetNote(activeTake, n, nil, nil, tableCutPPQPos[pitch], nil, nil, nil, nil, true)
+                    end
+                end
+                goto nextNote
+            end
+        end
+        reaper.MIDI_Sort(activeTake)
+        return true
+        
     else
     
         local notOnlySelected = (mode == 1 or mode == 3)
@@ -1261,7 +1304,7 @@ function MAIN()
     -- Finally, startup completed OK, so can continue with loop!
     return true 
     
-end -- function Main()
+end --
 
 
 --################################################

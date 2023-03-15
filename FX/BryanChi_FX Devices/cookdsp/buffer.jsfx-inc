@@ -1,0 +1,1506 @@
+/////////////////////////////////////////////////////////////////
+// Copyright (c) - 2014 - Olivier Belanger                     //
+// Permission to use, copy, modify, and/or distribute this     //
+// software for any purpose with or without fee is hereby      //
+// granted, provided that the above copyright notice and this  //
+// permission notice appear in all copies. CookDSP IS PROVIDED //
+// "AS IS", WITHOUT WARRANTY OF ANY KIND FROM THE AUTHOR.      //
+/////////////////////////////////////////////////////////////////
+
+@init
+
+/******************************************************** 
+BUFFER
+======
+
+Create a bloc of memory to store and manipulate audio samples.
+
+Description
+-----------
+
+A buffer object reserves a region of the local memory buffer 
+where samples can be stored and manipulated. Several algorithms 
+can be used to generate waveforms and window functions.  
+
+It must be used with a variable name as prefix (object oriented).
+
+Initializer
+-----------
+
+#### buffer(size) ####
+
+Initializes a buffer of length `size`, in samples. This function
+returns the location of the buffer in the global memory, allowing
+a fast and unchecked access.
+
+Methods
+-------
+
+#### buffer_init(h1, [h2, h3, ..., h40]) ####
+
+Initializes the first positions (up to 40) in the buffer to the values
+given as arguments to the function. 
+
+#### buffer_write(pos, signal) ####
+
+Writes a sample value `signal` at the position `pos` (in samples) 
+in the buffer. This function does boundary checking. The values in 
+the first two locations are copied just after the last location of 
+the buffer and the value in the last location is copied at the location 
+just before the buffer first index. This is done to create extra samples 
+needed by linear and cubic interpolation. 
+
+#### buffer_read(pos) ####
+
+Returns the value located at the position given in argument `pos` (in 
+samples). This function uses no interpolation, ie. the position is 
+truncated to the biggest integer not greater than the asked real position. 
+
+This function checks for position's validity.
+
+#### buffer_fread(pos) ####
+
+Returns the value located at the position given in argument `pos` (in 
+samples). This function uses no interpolation, ie. the position is 
+truncated to the biggest integer not greater than the asked real position. 
+
+This function is faster than `buffer_read` because there is no check for 
+position's validity. Use it only if `pos` is known to be valid.
+
+#### buffer_read2(pos) ####
+
+Returns the value located at the position given in argument `pos` (in
+samples). This function uses a linear interpolation to read the "true" 
+value for a floating-point sample position. 
+
+This function checks for position's validity.
+
+#### buffer_fread2(pos) ####
+
+Returns the value located at the position given in argument `pos` (in
+samples). This function uses a linear interpolation to read the "true" 
+value for a floating-point sample position. 
+
+This function is faster than `buffer_read2` because there is no check for 
+position's validity. Use it only if `pos` is known to be valid.
+
+#### buffer_read3(pos) ####
+
+Returns the value located at the position given in argument `pos` (in
+samples). This function uses a cubic interpolation to read the "true" 
+value for a floating-point sample position. 
+
+This function checks for position's validity.
+
+#### buffer_fread3(pos) ####
+
+Returns the value located at the position given in argument `pos` (in
+samples). This function uses a cubic interpolation to read the "true" 
+value for a floating-point sample position. 
+
+This function is faster than `buffer_read3` because there is no check for 
+position's validity. Use it only if `pos` is known to be valid.
+
+#### buffer_nread(pos) ####
+
+Returns the value located at the position given in argument `pos` (`pos` 
+is a normalized position between 0 and 1). This function uses no 
+interpolation, ie. the position is truncated to the biggest integer 
+not greater than the asked real position. 
+
+This function checks for position's validity.
+
+#### buffer_fnread(pos) ####
+
+Returns the value located at the position given in argument `pos` (`pos` 
+is a normalized position between 0 and 1). This function uses no 
+interpolation, ie. the position is truncated to the biggest integer 
+not greater than the asked real position. 
+
+This function is faster than `buffer_nread` because there is no check for 
+position's validity. Use it only if `pos` is known to be valid.
+
+#### buffer_nread2(pos) ####
+
+Returns the value located at the position given in argument `pos` (`pos` 
+is a normalized position between 0 and 1). This function uses a linear 
+interpolation to read the "true" value for a floating-point sample position. 
+
+This function checks for position's validity.
+
+#### buffer_fnread2(pos) ####
+
+Returns the value located at the position given in argument `pos` (`pos` 
+is a normalized position between 0 and 1). This function uses a linear 
+interpolation to read the "true" value for a floating-point sample position. 
+
+This function is faster than `buffer_nread2` because there is no check for 
+position's validity. Use it only if `pos` is known to be valid.
+
+#### buffer_nread3(pos) ####
+
+Returns the value located at the position given in argument `pos` (`pos` 
+is a normalized position between 0 and 1). This function uses a cubic 
+interpolation to read the "true" value for a floating-point sample position. 
+
+This function checks for position's validity.
+
+#### buffer_fnread3(pos) ####
+
+Returns the value located at the position given in argument `pos` (`pos` 
+is a normalized position between 0 and 1). This function uses a cubic 
+interpolation to read the "true" value for a floating-point sample position. 
+
+This function is faster than `buffer_nread3` because there is no check for 
+position's validity. Use it only if `pos` is known to be valid.
+
+#### buffer_lookup(pos) ####
+
+This function performs a table lookup of the buffer with `pos` as the 
+input signal. The input signal must be in the range [-1, 1]. This 
+function uses no interpolation, ie. the position is truncated to the 
+biggest integer not greater than the asked real position. 
+
+#### buffer_lookup2(pos) ####
+
+This function performs a table lookup of the buffer with `pos` as the 
+input signal. The input signal must be in the range [-1, 1]. This 
+function uses a linear interpolation to read the "true" value for a 
+floating-point sample position.
+
+#### buffer_lookup3(pos) ####
+
+This function performs a table lookup of the buffer with `pos` as the 
+input signal. The input signal must be in the range [-1, 1]. This 
+function uses a cubic interpolation to read the "true" value for a 
+floating-point sample position.
+
+#### buffer_gen10(h1, [h2, h3, ..., h40]) ####
+
+Generates composite waveforms made up of weighted sums of simple 
+sinusoids. Up to 40 harmonic relative amplitudes (`h1` to `h40`)
+can be specified.
+
+#### buffer_saw(order) ####
+
+Generates a sawtooth waveform made up of `order` number of harmonics.
+
+#### buffer_square(order) ####
+
+Generates a square waveform made up of `order` number of harmonics.
+Only odd harmonics are present in the waveform.
+
+#### buffer_triangle(order) ####
+
+Generates a triangle waveform made up of `order` number of harmonics.
+Only odd harmonics are present in the waveform.
+
+#### buffer_window(which) ####
+
+Chooses and generates a window function. `which` parameter can be:
+
+- 0: Hamming  
+- 1: Hanning  
+- 2: Bartlett  
+- 3: Blackman  
+- 4: Blackman-Harris 4 terms  
+- 5: Blackman-Harris 7 terms  
+- 6: Tuckey (50%)  
+- 7: Half sine
+- 8: parabolic
+
+#### buffer_atan(slope) ####
+
+Generates an arctangent transfert function with varying slope. When `slope`
+is 0, the transfert function is a straight line, while at 1, the transfert 
+function is a perfect square. This function is useful, in conjunction with 
+the buffer_lookup functions, to design distortion models.
+
+#### buffer_normalize(amp) ####
+
+Normalizes buffer samples between `-amp` and `amp`.
+
+#### buffer_reset() ####
+
+Resets buffer samples to 0.
+
+#### buffer_reverse() ####
+
+Reverses the buffer samples in time.
+
+#### buffer_clip(mini, maxi) ####
+
+Clips the content of the buffer between `mini` and `maxi` values.
+
+#### buffer_mul(x) ####
+
+Multiply each value in the buffer by `x` factor and replace the 
+value with the result.
+
+#### buffer_div(x) ####
+
+Divide each value in the buffer by `x` factor and replace the 
+value with the result.
+
+#### buffer_rdiv(x) ####
+
+Divide `x` by each value in the buffer and replace the value 
+with the result.
+
+#### buffer_add(x) ####
+
+Add `x` factor to each value in the buffer and replace the value
+with the result.
+
+#### buffer_sub(x) ####
+
+Substract `x` factor to each value in the buffer and replace the
+value with the result.
+
+#### buffer_rsub(x) ####
+
+Substract each value in the buffer to `x` and replace the value 
+with the result.
+
+Example
+-------
+
+    desc:Various Waveforms Amplitude Modulator
+
+    slider1:8<0.1,20>Modulation Frequency (Hz)
+    slider2:0<0,4,1{Sine,Saw Down,Saw Up,Square,Triangle}>Waveform type
+
+    import cookdsp.jsfx-inc
+
+    @init
+    // uses buffer methods to generate various waveforms with normalization
+    function generate_waveform(buf curwave)
+    (
+      curwave == 0 ? buf.buffer_gen10(1) : 
+      curwave == 1 ? buf.buffer_saw(64) :
+      curwave == 2 ? (buf.buffer_saw(64); buf.buffer_reverse();) :
+      curwave == 3 ? buf.buffer_square(64) :
+      curwave == 4 ? buf.buffer_triangle(64);
+      buf.buffer_normalize(1);
+    );
+    // buffer size and initialization
+    size = 1024;
+    buf.buffer(size);
+    // generate intial waveform
+    curwave = -1;
+    curwave != slider2 ? (
+      curwave = slider2;
+      generate_waveform(buf, curwave);
+    );
+    // initial phase of the reading pointer
+    phase = 0;
+
+    @slider
+    // increment of the pointer
+    inc = slider1 / srate;
+    // generate selected waveform
+    curwave != slider2 ? (
+      curwave = slider2;
+      generate_waveform(buf, curwave);
+    );
+      
+    @sample
+    // read waveform with cubic interpolation and make it unipolar
+    val = buf.buffer_read3(phase * size) * 0.5 + 0.5;
+    // increment and wrap reading pointer
+    phase += inc; phase >= 1 ? phase -= 1;
+    // modulate input signal
+    spl0 *= val; spl1 *= val;
+
+********************************************************/
+function buffer(size)
+(
+    this.buf = memalloc(size);
+    this.size = size;
+    this.hsize = this.size * 0.5;
+    this.curval = 0.0;
+    this.buf;
+);
+
+function buffer_init(h1)
+(
+    this.buf[0] = h1; 
+);
+function buffer_init(h1 h2)
+(
+    this.buf[0] = h1; this.buf[1] = h2; 
+);
+function buffer_init(h1 h2 h3)
+(
+    this.buf[0] = h1; this.buf[1] = h2; this.buf[2] = h3; 
+);
+function buffer_init(h1 h2 h3 h4)
+(
+    this.buf[0] = h1; this.buf[1] = h2; this.buf[2] = h3; this.buf[3] = h4; 
+);
+function buffer_init(h1 h2 h3 h4 h5)
+(
+    this.buf[0] = h1; this.buf[1] = h2; this.buf[2] = h3; this.buf[3] = h4; 
+    this.buf[4] = h5; 
+);
+function buffer_init(h1 h2 h3 h4 h5 h6)
+(
+    this.buf[0] = h1; this.buf[1] = h2; this.buf[2] = h3; this.buf[3] = h4; 
+    this.buf[4] = h5; this.buf[5] = h6; 
+);
+function buffer_init(h1 h2 h3 h4 h5 h6 h7)
+(
+    this.buf[0] = h1; this.buf[1] = h2; this.buf[2] = h3; this.buf[3] = h4; 
+    this.buf[4] = h5; this.buf[5] = h6; this.buf[6] = h7; 
+);
+function buffer_init(h1 h2 h3 h4 h5 h6 h7 h8)
+(
+    this.buf[0] = h1; this.buf[1] = h2; this.buf[2] = h3; this.buf[3] = h4; 
+    this.buf[4] = h5; this.buf[5] = h6; this.buf[6] = h7; this.buf[7] = h8; 
+);
+function buffer_init(h1 h2 h3 h4 h5 h6 h7 h8 h9)
+(
+    this.buf[0] = h1; this.buf[1] = h2; this.buf[2] = h3; this.buf[3] = h4; 
+    this.buf[4] = h5; this.buf[5] = h6; this.buf[6] = h7; this.buf[7] = h8; 
+    this.buf[8] = h9; 
+);
+function buffer_init(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10)
+(
+    this.buf[0] = h1; this.buf[1] = h2; this.buf[2] = h3; this.buf[3] = h4; 
+    this.buf[4] = h5; this.buf[5] = h6; this.buf[6] = h7; this.buf[7] = h8; 
+    this.buf[8] = h9; this.buf[9] = h10; 
+);
+function buffer_init(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11)
+(
+    this.buf[0] = h1; this.buf[1] = h2; this.buf[2] = h3; this.buf[3] = h4; 
+    this.buf[4] = h5; this.buf[5] = h6; this.buf[6] = h7; this.buf[7] = h8; 
+    this.buf[8] = h9; this.buf[9] = h10; this.buf[10] = h11; 
+);
+function buffer_init(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12)
+(
+    this.buf[0] = h1; this.buf[1] = h2; this.buf[2] = h3; this.buf[3] = h4; 
+    this.buf[4] = h5; this.buf[5] = h6; this.buf[6] = h7; this.buf[7] = h8; 
+    this.buf[8] = h9; this.buf[9] = h10; this.buf[10] = h11; this.buf[11] = h12; 
+);
+function buffer_init(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13)
+(
+    this.buf[0] = h1; this.buf[1] = h2; this.buf[2] = h3; this.buf[3] = h4; 
+    this.buf[4] = h5; this.buf[5] = h6; this.buf[6] = h7; this.buf[7] = h8; 
+    this.buf[8] = h9; this.buf[9] = h10; this.buf[10] = h11; this.buf[11] = h12; 
+    this.buf[12] = h13; 
+);
+function buffer_init(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14)
+(
+    this.buf[0] = h1; this.buf[1] = h2; this.buf[2] = h3; this.buf[3] = h4; 
+    this.buf[4] = h5; this.buf[5] = h6; this.buf[6] = h7; this.buf[7] = h8; 
+    this.buf[8] = h9; this.buf[9] = h10; this.buf[10] = h11; this.buf[11] = h12; 
+    this.buf[12] = h13; this.buf[13] = h14; 
+);
+function buffer_init(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15)
+(
+    this.buf[0] = h1; this.buf[1] = h2; this.buf[2] = h3; this.buf[3] = h4; 
+    this.buf[4] = h5; this.buf[5] = h6; this.buf[6] = h7; this.buf[7] = h8; 
+    this.buf[8] = h9; this.buf[9] = h10; this.buf[10] = h11; this.buf[11] = h12; 
+    this.buf[12] = h13; this.buf[13] = h14; this.buf[14] = h15; 
+);
+function buffer_init(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16)
+(
+    this.buf[0] = h1; this.buf[1] = h2; this.buf[2] = h3; this.buf[3] = h4; 
+    this.buf[4] = h5; this.buf[5] = h6; this.buf[6] = h7; this.buf[7] = h8; 
+    this.buf[8] = h9; this.buf[9] = h10; this.buf[10] = h11; this.buf[11] = h12; 
+    this.buf[12] = h13; this.buf[13] = h14; this.buf[14] = h15; this.buf[15] = h16; 
+);
+function buffer_init(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17)
+(
+    this.buf[0] = h1; this.buf[1] = h2; this.buf[2] = h3; this.buf[3] = h4; 
+    this.buf[4] = h5; this.buf[5] = h6; this.buf[6] = h7; this.buf[7] = h8; 
+    this.buf[8] = h9; this.buf[9] = h10; this.buf[10] = h11; this.buf[11] = h12; 
+    this.buf[12] = h13; this.buf[13] = h14; this.buf[14] = h15; this.buf[15] = h16; 
+    this.buf[16] = h17; 
+);
+function buffer_init(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18)
+(
+    this.buf[0] = h1; this.buf[1] = h2; this.buf[2] = h3; this.buf[3] = h4; 
+    this.buf[4] = h5; this.buf[5] = h6; this.buf[6] = h7; this.buf[7] = h8; 
+    this.buf[8] = h9; this.buf[9] = h10; this.buf[10] = h11; this.buf[11] = h12; 
+    this.buf[12] = h13; this.buf[13] = h14; this.buf[14] = h15; this.buf[15] = h16; 
+    this.buf[16] = h17; this.buf[17] = h18; 
+);
+function buffer_init(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19)
+(
+    this.buf[0] = h1; this.buf[1] = h2; this.buf[2] = h3; this.buf[3] = h4; 
+    this.buf[4] = h5; this.buf[5] = h6; this.buf[6] = h7; this.buf[7] = h8; 
+    this.buf[8] = h9; this.buf[9] = h10; this.buf[10] = h11; this.buf[11] = h12; 
+    this.buf[12] = h13; this.buf[13] = h14; this.buf[14] = h15; this.buf[15] = h16; 
+    this.buf[16] = h17; this.buf[17] = h18; this.buf[18] = h19; 
+);
+function buffer_init(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20)
+(
+    this.buf[0] = h1; this.buf[1] = h2; this.buf[2] = h3; this.buf[3] = h4; 
+    this.buf[4] = h5; this.buf[5] = h6; this.buf[6] = h7; this.buf[7] = h8; 
+    this.buf[8] = h9; this.buf[9] = h10; this.buf[10] = h11; this.buf[11] = h12; 
+    this.buf[12] = h13; this.buf[13] = h14; this.buf[14] = h15; this.buf[15] = h16; 
+    this.buf[16] = h17; this.buf[17] = h18; this.buf[18] = h19; this.buf[19] = h20; 
+);
+function buffer_init(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21)
+(
+    this.buf[0] = h1; this.buf[1] = h2; this.buf[2] = h3; this.buf[3] = h4; 
+    this.buf[4] = h5; this.buf[5] = h6; this.buf[6] = h7; this.buf[7] = h8; 
+    this.buf[8] = h9; this.buf[9] = h10; this.buf[10] = h11; this.buf[11] = h12; 
+    this.buf[12] = h13; this.buf[13] = h14; this.buf[14] = h15; this.buf[15] = h16; 
+    this.buf[16] = h17; this.buf[17] = h18; this.buf[18] = h19; this.buf[19] = h20; 
+    this.buf[20] = h21; 
+);
+function buffer_init(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22)
+(
+    this.buf[0] = h1; this.buf[1] = h2; this.buf[2] = h3; this.buf[3] = h4; 
+    this.buf[4] = h5; this.buf[5] = h6; this.buf[6] = h7; this.buf[7] = h8; 
+    this.buf[8] = h9; this.buf[9] = h10; this.buf[10] = h11; this.buf[11] = h12; 
+    this.buf[12] = h13; this.buf[13] = h14; this.buf[14] = h15; this.buf[15] = h16; 
+    this.buf[16] = h17; this.buf[17] = h18; this.buf[18] = h19; this.buf[19] = h20; 
+    this.buf[20] = h21; this.buf[21] = h22; 
+);
+function buffer_init(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22 h23)
+(
+    this.buf[0] = h1; this.buf[1] = h2; this.buf[2] = h3; this.buf[3] = h4; 
+    this.buf[4] = h5; this.buf[5] = h6; this.buf[6] = h7; this.buf[7] = h8; 
+    this.buf[8] = h9; this.buf[9] = h10; this.buf[10] = h11; this.buf[11] = h12; 
+    this.buf[12] = h13; this.buf[13] = h14; this.buf[14] = h15; this.buf[15] = h16; 
+    this.buf[16] = h17; this.buf[17] = h18; this.buf[18] = h19; this.buf[19] = h20; 
+    this.buf[20] = h21; this.buf[21] = h22; this.buf[22] = h23; 
+);
+function buffer_init(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22 h23 h24)
+(
+    this.buf[0] = h1; this.buf[1] = h2; this.buf[2] = h3; this.buf[3] = h4; 
+    this.buf[4] = h5; this.buf[5] = h6; this.buf[6] = h7; this.buf[7] = h8; 
+    this.buf[8] = h9; this.buf[9] = h10; this.buf[10] = h11; this.buf[11] = h12; 
+    this.buf[12] = h13; this.buf[13] = h14; this.buf[14] = h15; this.buf[15] = h16; 
+    this.buf[16] = h17; this.buf[17] = h18; this.buf[18] = h19; this.buf[19] = h20; 
+    this.buf[20] = h21; this.buf[21] = h22; this.buf[22] = h23; this.buf[23] = h24; 
+);
+function buffer_init(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22 h23 h24 h25)
+(
+    this.buf[0] = h1; this.buf[1] = h2; this.buf[2] = h3; this.buf[3] = h4; 
+    this.buf[4] = h5; this.buf[5] = h6; this.buf[6] = h7; this.buf[7] = h8; 
+    this.buf[8] = h9; this.buf[9] = h10; this.buf[10] = h11; this.buf[11] = h12; 
+    this.buf[12] = h13; this.buf[13] = h14; this.buf[14] = h15; this.buf[15] = h16; 
+    this.buf[16] = h17; this.buf[17] = h18; this.buf[18] = h19; this.buf[19] = h20; 
+    this.buf[20] = h21; this.buf[21] = h22; this.buf[22] = h23; this.buf[23] = h24; 
+    this.buf[24] = h25; 
+);
+function buffer_init(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22 h23 h24 h25 h26)
+(
+    this.buf[0] = h1; this.buf[1] = h2; this.buf[2] = h3; this.buf[3] = h4; 
+    this.buf[4] = h5; this.buf[5] = h6; this.buf[6] = h7; this.buf[7] = h8; 
+    this.buf[8] = h9; this.buf[9] = h10; this.buf[10] = h11; this.buf[11] = h12; 
+    this.buf[12] = h13; this.buf[13] = h14; this.buf[14] = h15; this.buf[15] = h16; 
+    this.buf[16] = h17; this.buf[17] = h18; this.buf[18] = h19; this.buf[19] = h20; 
+    this.buf[20] = h21; this.buf[21] = h22; this.buf[22] = h23; this.buf[23] = h24; 
+    this.buf[24] = h25; this.buf[25] = h26; 
+);
+function buffer_init(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22 h23 h24 h25 h26 h27)
+(
+    this.buf[0] = h1; this.buf[1] = h2; this.buf[2] = h3; this.buf[3] = h4; 
+    this.buf[4] = h5; this.buf[5] = h6; this.buf[6] = h7; this.buf[7] = h8; 
+    this.buf[8] = h9; this.buf[9] = h10; this.buf[10] = h11; this.buf[11] = h12; 
+    this.buf[12] = h13; this.buf[13] = h14; this.buf[14] = h15; this.buf[15] = h16; 
+    this.buf[16] = h17; this.buf[17] = h18; this.buf[18] = h19; this.buf[19] = h20; 
+    this.buf[20] = h21; this.buf[21] = h22; this.buf[22] = h23; this.buf[23] = h24; 
+    this.buf[24] = h25; this.buf[25] = h26; this.buf[26] = h27; 
+);
+function buffer_init(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22 h23 h24 h25 h26 h27 h28)
+(
+    this.buf[0] = h1; this.buf[1] = h2; this.buf[2] = h3; this.buf[3] = h4; 
+    this.buf[4] = h5; this.buf[5] = h6; this.buf[6] = h7; this.buf[7] = h8; 
+    this.buf[8] = h9; this.buf[9] = h10; this.buf[10] = h11; this.buf[11] = h12; 
+    this.buf[12] = h13; this.buf[13] = h14; this.buf[14] = h15; this.buf[15] = h16; 
+    this.buf[16] = h17; this.buf[17] = h18; this.buf[18] = h19; this.buf[19] = h20; 
+    this.buf[20] = h21; this.buf[21] = h22; this.buf[22] = h23; this.buf[23] = h24; 
+    this.buf[24] = h25; this.buf[25] = h26; this.buf[26] = h27; this.buf[27] = h28; 
+);
+function buffer_init(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22 h23 h24 h25 h26 h27 h28 h29)
+(
+    this.buf[0] = h1; this.buf[1] = h2; this.buf[2] = h3; this.buf[3] = h4; 
+    this.buf[4] = h5; this.buf[5] = h6; this.buf[6] = h7; this.buf[7] = h8; 
+    this.buf[8] = h9; this.buf[9] = h10; this.buf[10] = h11; this.buf[11] = h12; 
+    this.buf[12] = h13; this.buf[13] = h14; this.buf[14] = h15; this.buf[15] = h16; 
+    this.buf[16] = h17; this.buf[17] = h18; this.buf[18] = h19; this.buf[19] = h20; 
+    this.buf[20] = h21; this.buf[21] = h22; this.buf[22] = h23; this.buf[23] = h24; 
+    this.buf[24] = h25; this.buf[25] = h26; this.buf[26] = h27; this.buf[27] = h28; 
+    this.buf[28] = h29; 
+);
+function buffer_init(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22 h23 h24 h25 h26 h27 h28 h29 h30)
+(
+    this.buf[0] = h1; this.buf[1] = h2; this.buf[2] = h3; this.buf[3] = h4; 
+    this.buf[4] = h5; this.buf[5] = h6; this.buf[6] = h7; this.buf[7] = h8; 
+    this.buf[8] = h9; this.buf[9] = h10; this.buf[10] = h11; this.buf[11] = h12; 
+    this.buf[12] = h13; this.buf[13] = h14; this.buf[14] = h15; this.buf[15] = h16; 
+    this.buf[16] = h17; this.buf[17] = h18; this.buf[18] = h19; this.buf[19] = h20; 
+    this.buf[20] = h21; this.buf[21] = h22; this.buf[22] = h23; this.buf[23] = h24; 
+    this.buf[24] = h25; this.buf[25] = h26; this.buf[26] = h27; this.buf[27] = h28; 
+    this.buf[28] = h29; this.buf[29] = h30; 
+);
+function buffer_init(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22 h23 h24 h25 h26 h27 h28 h29 h30 h31)
+(
+    this.buf[0] = h1; this.buf[1] = h2; this.buf[2] = h3; this.buf[3] = h4; 
+    this.buf[4] = h5; this.buf[5] = h6; this.buf[6] = h7; this.buf[7] = h8; 
+    this.buf[8] = h9; this.buf[9] = h10; this.buf[10] = h11; this.buf[11] = h12; 
+    this.buf[12] = h13; this.buf[13] = h14; this.buf[14] = h15; this.buf[15] = h16; 
+    this.buf[16] = h17; this.buf[17] = h18; this.buf[18] = h19; this.buf[19] = h20; 
+    this.buf[20] = h21; this.buf[21] = h22; this.buf[22] = h23; this.buf[23] = h24; 
+    this.buf[24] = h25; this.buf[25] = h26; this.buf[26] = h27; this.buf[27] = h28; 
+    this.buf[28] = h29; this.buf[29] = h30; this.buf[30] = h31; 
+);
+function buffer_init(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22 h23 h24 h25 h26 h27 h28 h29 h30 h31 h32)
+(
+    this.buf[0] = h1; this.buf[1] = h2; this.buf[2] = h3; this.buf[3] = h4; 
+    this.buf[4] = h5; this.buf[5] = h6; this.buf[6] = h7; this.buf[7] = h8; 
+    this.buf[8] = h9; this.buf[9] = h10; this.buf[10] = h11; this.buf[11] = h12; 
+    this.buf[12] = h13; this.buf[13] = h14; this.buf[14] = h15; this.buf[15] = h16; 
+    this.buf[16] = h17; this.buf[17] = h18; this.buf[18] = h19; this.buf[19] = h20; 
+    this.buf[20] = h21; this.buf[21] = h22; this.buf[22] = h23; this.buf[23] = h24; 
+    this.buf[24] = h25; this.buf[25] = h26; this.buf[26] = h27; this.buf[27] = h28; 
+    this.buf[28] = h29; this.buf[29] = h30; this.buf[30] = h31; this.buf[31] = h32; 
+);
+function buffer_init(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22 h23 h24 h25 h26 h27 h28 h29 h30 h31 h32 h33)
+(
+    this.buf[0] = h1; this.buf[1] = h2; this.buf[2] = h3; this.buf[3] = h4; 
+    this.buf[4] = h5; this.buf[5] = h6; this.buf[6] = h7; this.buf[7] = h8; 
+    this.buf[8] = h9; this.buf[9] = h10; this.buf[10] = h11; this.buf[11] = h12; 
+    this.buf[12] = h13; this.buf[13] = h14; this.buf[14] = h15; this.buf[15] = h16; 
+    this.buf[16] = h17; this.buf[17] = h18; this.buf[18] = h19; this.buf[19] = h20; 
+    this.buf[20] = h21; this.buf[21] = h22; this.buf[22] = h23; this.buf[23] = h24; 
+    this.buf[24] = h25; this.buf[25] = h26; this.buf[26] = h27; this.buf[27] = h28; 
+    this.buf[28] = h29; this.buf[29] = h30; this.buf[30] = h31; this.buf[31] = h32; 
+    this.buf[32] = h33; 
+);
+function buffer_init(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22 h23 h24 h25 h26 h27 h28 h29 h30 h31 h32 h33 h34)
+(
+    this.buf[0] = h1; this.buf[1] = h2; this.buf[2] = h3; this.buf[3] = h4; 
+    this.buf[4] = h5; this.buf[5] = h6; this.buf[6] = h7; this.buf[7] = h8; 
+    this.buf[8] = h9; this.buf[9] = h10; this.buf[10] = h11; this.buf[11] = h12; 
+    this.buf[12] = h13; this.buf[13] = h14; this.buf[14] = h15; this.buf[15] = h16; 
+    this.buf[16] = h17; this.buf[17] = h18; this.buf[18] = h19; this.buf[19] = h20; 
+    this.buf[20] = h21; this.buf[21] = h22; this.buf[22] = h23; this.buf[23] = h24; 
+    this.buf[24] = h25; this.buf[25] = h26; this.buf[26] = h27; this.buf[27] = h28; 
+    this.buf[28] = h29; this.buf[29] = h30; this.buf[30] = h31; this.buf[31] = h32; 
+    this.buf[32] = h33; this.buf[33] = h34; 
+);
+function buffer_init(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22 h23 h24 h25 h26 h27 h28 h29 h30 h31 h32 h33 h34 h35)
+(
+    this.buf[0] = h1; this.buf[1] = h2; this.buf[2] = h3; this.buf[3] = h4; 
+    this.buf[4] = h5; this.buf[5] = h6; this.buf[6] = h7; this.buf[7] = h8; 
+    this.buf[8] = h9; this.buf[9] = h10; this.buf[10] = h11; this.buf[11] = h12; 
+    this.buf[12] = h13; this.buf[13] = h14; this.buf[14] = h15; this.buf[15] = h16; 
+    this.buf[16] = h17; this.buf[17] = h18; this.buf[18] = h19; this.buf[19] = h20; 
+    this.buf[20] = h21; this.buf[21] = h22; this.buf[22] = h23; this.buf[23] = h24; 
+    this.buf[24] = h25; this.buf[25] = h26; this.buf[26] = h27; this.buf[27] = h28; 
+    this.buf[28] = h29; this.buf[29] = h30; this.buf[30] = h31; this.buf[31] = h32; 
+    this.buf[32] = h33; this.buf[33] = h34; this.buf[34] = h35; 
+);
+function buffer_init(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22 h23 h24 h25 h26 h27 h28 h29 h30 h31 h32 h33 h34 h35 h36)
+(
+    this.buf[0] = h1; this.buf[1] = h2; this.buf[2] = h3; this.buf[3] = h4; 
+    this.buf[4] = h5; this.buf[5] = h6; this.buf[6] = h7; this.buf[7] = h8; 
+    this.buf[8] = h9; this.buf[9] = h10; this.buf[10] = h11; this.buf[11] = h12; 
+    this.buf[12] = h13; this.buf[13] = h14; this.buf[14] = h15; this.buf[15] = h16; 
+    this.buf[16] = h17; this.buf[17] = h18; this.buf[18] = h19; this.buf[19] = h20; 
+    this.buf[20] = h21; this.buf[21] = h22; this.buf[22] = h23; this.buf[23] = h24; 
+    this.buf[24] = h25; this.buf[25] = h26; this.buf[26] = h27; this.buf[27] = h28; 
+    this.buf[28] = h29; this.buf[29] = h30; this.buf[30] = h31; this.buf[31] = h32; 
+    this.buf[32] = h33; this.buf[33] = h34; this.buf[34] = h35; this.buf[35] = h36; 
+);
+function buffer_init(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22 h23 h24 h25 h26 h27 h28 h29 h30 h31 h32 h33 h34 h35 h36 h37)
+(
+    this.buf[0] = h1; this.buf[1] = h2; this.buf[2] = h3; this.buf[3] = h4; 
+    this.buf[4] = h5; this.buf[5] = h6; this.buf[6] = h7; this.buf[7] = h8; 
+    this.buf[8] = h9; this.buf[9] = h10; this.buf[10] = h11; this.buf[11] = h12; 
+    this.buf[12] = h13; this.buf[13] = h14; this.buf[14] = h15; this.buf[15] = h16; 
+    this.buf[16] = h17; this.buf[17] = h18; this.buf[18] = h19; this.buf[19] = h20; 
+    this.buf[20] = h21; this.buf[21] = h22; this.buf[22] = h23; this.buf[23] = h24; 
+    this.buf[24] = h25; this.buf[25] = h26; this.buf[26] = h27; this.buf[27] = h28; 
+    this.buf[28] = h29; this.buf[29] = h30; this.buf[30] = h31; this.buf[31] = h32; 
+    this.buf[32] = h33; this.buf[33] = h34; this.buf[34] = h35; this.buf[35] = h36; 
+    this.buf[36] = h37; 
+);
+function buffer_init(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22 h23 h24 h25 h26 h27 h28 h29 h30 h31 h32 h33 h34 h35 h36 h37 h38)
+(
+    this.buf[0] = h1; this.buf[1] = h2; this.buf[2] = h3; this.buf[3] = h4; 
+    this.buf[4] = h5; this.buf[5] = h6; this.buf[6] = h7; this.buf[7] = h8; 
+    this.buf[8] = h9; this.buf[9] = h10; this.buf[10] = h11; this.buf[11] = h12; 
+    this.buf[12] = h13; this.buf[13] = h14; this.buf[14] = h15; this.buf[15] = h16; 
+    this.buf[16] = h17; this.buf[17] = h18; this.buf[18] = h19; this.buf[19] = h20; 
+    this.buf[20] = h21; this.buf[21] = h22; this.buf[22] = h23; this.buf[23] = h24; 
+    this.buf[24] = h25; this.buf[25] = h26; this.buf[26] = h27; this.buf[27] = h28; 
+    this.buf[28] = h29; this.buf[29] = h30; this.buf[30] = h31; this.buf[31] = h32; 
+    this.buf[32] = h33; this.buf[33] = h34; this.buf[34] = h35; this.buf[35] = h36; 
+    this.buf[36] = h37; this.buf[37] = h38; 
+);
+function buffer_init(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22 h23 h24 h25 h26 h27 h28 h29 h30 h31 h32 h33 h34 h35 h36 h37 h38 h39)
+(
+    this.buf[0] = h1; this.buf[1] = h2; this.buf[2] = h3; this.buf[3] = h4; 
+    this.buf[4] = h5; this.buf[5] = h6; this.buf[6] = h7; this.buf[7] = h8; 
+    this.buf[8] = h9; this.buf[9] = h10; this.buf[10] = h11; this.buf[11] = h12; 
+    this.buf[12] = h13; this.buf[13] = h14; this.buf[14] = h15; this.buf[15] = h16; 
+    this.buf[16] = h17; this.buf[17] = h18; this.buf[18] = h19; this.buf[19] = h20; 
+    this.buf[20] = h21; this.buf[21] = h22; this.buf[22] = h23; this.buf[23] = h24; 
+    this.buf[24] = h25; this.buf[25] = h26; this.buf[26] = h27; this.buf[27] = h28; 
+    this.buf[28] = h29; this.buf[29] = h30; this.buf[30] = h31; this.buf[31] = h32; 
+    this.buf[32] = h33; this.buf[33] = h34; this.buf[34] = h35; this.buf[35] = h36; 
+    this.buf[36] = h37; this.buf[37] = h38; this.buf[38] = h39; 
+);
+function buffer_init(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22 h23 h24 h25 h26 h27 h28 h29 h30 h31 h32 h33 h34 h35 h36 h37 h38 h39 h40)
+(
+    this.buf[0] = h1; this.buf[1] = h2; this.buf[2] = h3; this.buf[3] = h4; 
+    this.buf[4] = h5; this.buf[5] = h6; this.buf[6] = h7; this.buf[7] = h8; 
+    this.buf[8] = h9; this.buf[9] = h10; this.buf[10] = h11; this.buf[11] = h12; 
+    this.buf[12] = h13; this.buf[13] = h14; this.buf[14] = h15; this.buf[15] = h16; 
+    this.buf[16] = h17; this.buf[17] = h18; this.buf[18] = h19; this.buf[19] = h20; 
+    this.buf[20] = h21; this.buf[21] = h22; this.buf[22] = h23; this.buf[23] = h24; 
+    this.buf[24] = h25; this.buf[25] = h26; this.buf[26] = h27; this.buf[27] = h28; 
+    this.buf[28] = h29; this.buf[29] = h30; this.buf[30] = h31; this.buf[31] = h32; 
+    this.buf[32] = h33; this.buf[33] = h34; this.buf[34] = h35; this.buf[35] = h36; 
+    this.buf[36] = h37; this.buf[37] = h38; this.buf[38] = h39; this.buf[39] = h40; 
+);
+
+function buffer_write(pos, signal)
+(
+    pos >= 0 && pos < this.size ? (
+        this.buf[pos] = signal;
+        this.buf[this.size] = this.buf[0];
+        this.buf[this.size+1] = this.buf[1];
+        this.buf[-1] = this.buf[this.size-1];
+    );
+);
+
+function buffer_read(pos)
+(
+    pos >= 0 && pos < this.size ? (
+        this.curval = this.buf[pos];
+    );
+    this.curval;
+);
+
+function buffer_fread(pos)
+(
+    this.curval = this.buf[pos];
+    this.curval;
+);
+
+function buffer_nread(pos)
+(
+    this.buffer_read(pos * this.size);
+);
+
+function buffer_fnread(pos)
+(
+    this.buffer_fread(pos * this.size);
+);
+
+function buffer_read2(pos)
+(
+    pos >= 0 && pos < this.size ? (
+        i_ = floor(pos);
+        this.curval = this.buf[i_] + (this.buf[i_+1] - this.buf[i_]) * (pos - i_);
+    );
+    this.curval;
+);
+
+function buffer_fread2(pos)
+(
+    i_ = floor(pos);
+    this.curval = this.buf[i_] + (this.buf[i_+1] - this.buf[i_]) * (pos - i_);
+    this.curval;
+);
+
+function buffer_nread2(pos)
+(
+    this.buffer_read2(pos * this.size);
+);
+
+function buffer_fnread2(pos)
+(
+    this.buffer_fread2(pos * this.size);
+);
+
+function buffer_read3(pos)
+(
+    pos >= 0 && pos < this.size ? (
+        i_ = floor(pos);
+        f_ = pos - i_;
+        x0_ = this.buf[i_-1]; x1_ = this.buf[i_]; 
+        x2_ = this.buf[i_+1]; x3_ = this.buf[i_+2];
+        a3_ = f_ * f_; a3_ -= 1.0; a3_ *= (1.0 / 6.0);
+        a2_ = (f_ + 1.0) * 0.5; a0_ = a2_ - 1.0;
+        a1_ = a3_ * 3.0; a2_ -= a1_; a0_ -= a3_; a1_ -= f_;
+        a0_ *= f_; a1_ *= f_; a2_ *= f_; a3_ *= f_; a1_ += 1.0;
+        this.curval = a0_*x0_ + a1_*x1_ + a2_*x2_ + a3_*x3_;
+    );
+    this.curval;
+);
+
+function buffer_fread3(pos)
+(
+    i_ = floor(pos);
+    f_ = pos - i_;
+    x0_ = this.buf[i_-1]; x1_ = this.buf[i_]; 
+    x2_ = this.buf[i_+1]; x3_ = this.buf[i_+2];
+    a3_ = f_ * f_; a3_ -= 1.0; a3_ *= (1.0 / 6.0);
+    a2_ = (f_ + 1.0) * 0.5; a0_ = a2_ - 1.0;
+    a1_ = a3_ * 3.0; a2_ -= a1_; a0_ -= a3_; a1_ -= f_;
+    a0_ *= f_; a1_ *= f_; a2_ *= f_; a3_ *= f_; a1_ += 1.0;
+    this.curval = a0_*x0_ + a1_*x1_ + a2_*x2_ + a3_*x3_;
+    this.curval;
+);
+
+function buffer_nread3(pos)
+(
+    this.buffer_read3(pos * this.size);
+);
+
+function buffer_fnread3(pos)
+(
+    this.buffer_fread3(pos * this.size);
+);
+
+function buffer_lookup(pos)
+(
+    pos *= (this.hsize - 1);
+    pos += this.hsize;
+    this.buffer_fread(pos);
+);
+
+function buffer_lookup2(pos)
+(
+    pos *= (this.hsize - 1);
+    pos += this.hsize;
+    this.buffer_fread2(pos);
+);
+
+function buffer_lookup3(pos)
+(
+    pos *= (this.hsize - 2);
+    pos += this.hsize;
+    this.buffer_fread3(pos);
+);
+
+// private function for writing harmonic waveforms
+function _buffer_gen10(buf size amps n)
+(
+    fac_ = 1 / (size * 0.5) * $pi;
+    i_ = 0;
+    loop(size,
+        val_ = 0.0;
+        j_ = 0;
+        loop(n,
+            amp_ = amps[j_];
+            amp_ != 0 ? (
+                val_ += sin((j_+1) * i_ * fac_) * amp_;
+            );
+            j_ += 1;
+        );
+        buf[i_] = val_;
+        i_ += 1;
+    );
+    buf[size] = buf[0];
+    buf[size+1] = buf[1];
+    buf[-1] = buf[size-1];
+);
+
+function buffer_gen10(h1)
+(
+    __amps__ = memalloc(1);
+    __amps__[0] = h1;
+    _buffer_gen10(this.buf, this.size, __amps__, 1);
+);
+function buffer_gen10(h1 h2)
+(
+    __amps__ = memalloc(2);
+    __amps__[0] = h1; __amps__[1] = h2;
+    _buffer_gen10(this.buf, this.size, __amps__, 2);
+);
+function buffer_gen10(h1 h2 h3)
+(
+    __amps__ = memalloc(3);
+    __amps__[0] = h1; __amps__[1] = h2; __amps__[2] = h3;
+    _buffer_gen10(this.buf, this.size, __amps__, 3);
+);
+function buffer_gen10(h1 h2 h3 h4)
+(
+    __amps__ = memalloc(4);
+    __amps__[0] = h1; __amps__[1] = h2; __amps__[2] = h3; __amps__[3] = h4;
+    _buffer_gen10(this.buf, this.size, __amps__, 4);
+);
+function buffer_gen10(h1 h2 h3 h4 h5)
+(
+    __amps__ = memalloc(5);
+    __amps__[0] = h1; __amps__[1] = h2; __amps__[2] = h3; __amps__[3] = h4;
+    __amps__[4] = h5;
+    _buffer_gen10(this.buf, this.size, __amps__, 5);
+);
+function buffer_gen10(h1 h2 h3 h4 h5 h6)
+(
+    __amps__ = memalloc(6);
+    __amps__[0] = h1; __amps__[1] = h2; __amps__[2] = h3; __amps__[3] = h4;
+    __amps__[4] = h5; __amps__[5] = h6;
+    _buffer_gen10(this.buf, this.size, __amps__, 6);
+);
+function buffer_gen10(h1 h2 h3 h4 h5 h6 h7)
+(
+    __amps__ = memalloc(6);
+    __amps__[0] = h1; __amps__[1] = h2; __amps__[2] = h3; __amps__[3] = h4;
+    __amps__[4] = h5; __amps__[5] = h6; __amps__[6] = h7;
+    _buffer_gen10(this.buf, this.size, __amps__, 7);
+);
+function buffer_gen10(h1 h2 h3 h4 h5 h6 h7 h8)
+(
+    __amps__ = memalloc(8);
+    __amps__[0] = h1; __amps__[1] = h2; __amps__[2] = h3; __amps__[3] = h4;
+    __amps__[4] = h5; __amps__[5] = h6; __amps__[6] = h7; __amps__[7] = h8;
+    _buffer_gen10(this.buf, this.size, __amps__, 8);
+);
+function buffer_gen10(h1 h2 h3 h4 h5 h6 h7 h8 h9)
+(
+    __amps__ = memalloc(9);
+    __amps__[0] = h1; __amps__[1] = h2; __amps__[2] = h3; __amps__[3] = h4;
+    __amps__[4] = h5; __amps__[5] = h6; __amps__[6] = h7; __amps__[7] = h8;
+    __amps__[8] = h9;
+    _buffer_gen10(this.buf, this.size, __amps__, 9);
+);
+function buffer_gen10(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10)
+(
+    __amps__ = memalloc(10);
+    __amps__[0] = h1; __amps__[1] = h2; __amps__[2] = h3; __amps__[3] = h4;
+    __amps__[4] = h5; __amps__[5] = h6; __amps__[6] = h7; __amps__[7] = h8;
+    __amps__[8] = h9; __amps__[9] = h10;
+    _buffer_gen10(this.buf, this.size, __amps__, 10);
+);
+function buffer_gen10(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11)
+(
+    __amps__ = memalloc(11);
+    __amps__[0] = h1; __amps__[1] = h2; __amps__[2] = h3; __amps__[3] = h4;
+    __amps__[4] = h5; __amps__[5] = h6; __amps__[6] = h7; __amps__[7] = h8;
+    __amps__[8] = h9; __amps__[9] = h10; __amps__[10] = h11;
+    _buffer_gen10(this.buf, this.size, __amps__, 11);
+);
+function buffer_gen10(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12)
+(
+    __amps__ = memalloc(12);
+    __amps__[0] = h1; __amps__[1] = h2; __amps__[2] = h3; __amps__[3] = h4;
+    __amps__[4] = h5; __amps__[5] = h6; __amps__[6] = h7; __amps__[7] = h8;
+    __amps__[8] = h9; __amps__[9] = h10; __amps__[10] = h11; __amps__[11] = h12;
+    _buffer_gen10(this.buf, this.size, __amps__, 12);
+);
+function buffer_gen10(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13)
+(
+    __amps__ = memalloc(13);
+    __amps__[0] = h1; __amps__[1] = h2; __amps__[2] = h3; __amps__[3] = h4;
+    __amps__[4] = h5; __amps__[5] = h6; __amps__[6] = h7; __amps__[7] = h8;
+    __amps__[8] = h9; __amps__[9] = h10; __amps__[10] = h11; __amps__[11] = h12;
+    __amps__[12] = h13;
+    _buffer_gen10(this.buf, this.size, __amps__, 13);
+);
+function buffer_gen10(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14)
+(
+    __amps__ = memalloc(14);
+    __amps__[0] = h1; __amps__[1] = h2; __amps__[2] = h3; __amps__[3] = h4;
+    __amps__[4] = h5; __amps__[5] = h6; __amps__[6] = h7; __amps__[7] = h8;
+    __amps__[8] = h9; __amps__[9] = h10; __amps__[10] = h11; __amps__[11] = h12;
+    __amps__[12] = h13; __amps__[13] = h14;
+    _buffer_gen10(this.buf, this.size, __amps__, 14);
+);
+function buffer_gen10(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15)
+(
+    __amps__ = memalloc(15);
+    __amps__[0] = h1; __amps__[1] = h2; __amps__[2] = h3; __amps__[3] = h4;
+    __amps__[4] = h5; __amps__[5] = h6; __amps__[6] = h7; __amps__[7] = h8;
+    __amps__[8] = h9; __amps__[9] = h10; __amps__[10] = h11; __amps__[11] = h12;
+    __amps__[12] = h13; __amps__[13] = h14; __amps__[14] = h15;
+    _buffer_gen10(this.buf, this.size, __amps__, 15);
+);
+function buffer_gen10(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16)
+(
+    __amps__ = memalloc(16);
+    __amps__[0] = h1; __amps__[1] = h2; __amps__[2] = h3; __amps__[3] = h4;
+    __amps__[4] = h5; __amps__[5] = h6; __amps__[6] = h7; __amps__[7] = h8;
+    __amps__[8] = h9; __amps__[9] = h10; __amps__[10] = h11; __amps__[11] = h12;
+    __amps__[12] = h13; __amps__[13] = h14; __amps__[14] = h15; __amps__[15] = h16;
+    _buffer_gen10(this.buf, this.size, __amps__, 16);
+);
+function buffer_gen10(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17)
+(
+    __amps__ = memalloc(17);
+    __amps__[0] = h1; __amps__[1] = h2; __amps__[2] = h3; __amps__[3] = h4;
+    __amps__[4] = h5; __amps__[5] = h6; __amps__[6] = h7; __amps__[7] = h8;
+    __amps__[8] = h9; __amps__[9] = h10; __amps__[10] = h11; __amps__[11] = h12;
+    __amps__[12] = h13; __amps__[13] = h14; __amps__[14] = h15; __amps__[15] = h16;
+    __amps__[16] = h17;
+    _buffer_gen10(this.buf, this.size, __amps__, 17);
+);
+function buffer_gen10(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18)
+(
+    __amps__ = memalloc(18);
+    __amps__[0] = h1; __amps__[1] = h2; __amps__[2] = h3; __amps__[3] = h4;
+    __amps__[4] = h5; __amps__[5] = h6; __amps__[6] = h7; __amps__[7] = h8;
+    __amps__[8] = h9; __amps__[9] = h10; __amps__[10] = h11; __amps__[11] = h12;
+    __amps__[12] = h13; __amps__[13] = h14; __amps__[14] = h15; __amps__[15] = h16;
+    __amps__[16] = h17; __amps__[17] = h18;
+    _buffer_gen10(this.buf, this.size, __amps__, 18);
+);
+function buffer_gen10(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19)
+(
+    __amps__ = memalloc(19);
+    __amps__[0] = h1; __amps__[1] = h2; __amps__[2] = h3; __amps__[3] = h4;
+    __amps__[4] = h5; __amps__[5] = h6; __amps__[6] = h7; __amps__[7] = h8;
+    __amps__[8] = h9; __amps__[9] = h10; __amps__[10] = h11; __amps__[11] = h12;
+    __amps__[12] = h13; __amps__[13] = h14; __amps__[14] = h15; __amps__[15] = h16;
+    __amps__[16] = h17; __amps__[17] = h18; __amps__[18] = h19;
+    _buffer_gen10(this.buf, this.size, __amps__, 19);
+);
+function buffer_gen10(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20)
+(
+    __amps__ = memalloc(20);
+    __amps__[0] = h1; __amps__[1] = h2; __amps__[2] = h3; __amps__[3] = h4;
+    __amps__[4] = h5; __amps__[5] = h6; __amps__[6] = h7; __amps__[7] = h8;
+    __amps__[8] = h9; __amps__[9] = h10; __amps__[10] = h11; __amps__[11] = h12;
+    __amps__[12] = h13; __amps__[13] = h14; __amps__[14] = h15; __amps__[15] = h16;
+    __amps__[16] = h17; __amps__[17] = h18; __amps__[18] = h19; __amps__[19] = h20;
+    _buffer_gen10(this.buf, this.size, __amps__, 20);
+);
+function buffer_gen10(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21)
+(
+    __amps__ = memalloc(21);
+    __amps__[0] = h1; __amps__[1] = h2; __amps__[2] = h3; __amps__[3] = h4;
+    __amps__[4] = h5; __amps__[5] = h6; __amps__[6] = h7; __amps__[7] = h8;
+    __amps__[8] = h9; __amps__[9] = h10; __amps__[10] = h11; __amps__[11] = h12;
+    __amps__[12] = h13; __amps__[13] = h14; __amps__[14] = h15; __amps__[15] = h16;
+    __amps__[16] = h17; __amps__[17] = h18; __amps__[18] = h19; __amps__[19] = h20;
+    __amps__[20] = h21;
+    _buffer_gen10(this.buf, this.size, __amps__, 21);
+);
+function buffer_gen10(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22)
+(
+    __amps__ = memalloc(22);
+    __amps__[0] = h1; __amps__[1] = h2; __amps__[2] = h3; __amps__[3] = h4;
+    __amps__[4] = h5; __amps__[5] = h6; __amps__[6] = h7; __amps__[7] = h8;
+    __amps__[8] = h9; __amps__[9] = h10; __amps__[10] = h11; __amps__[11] = h12;
+    __amps__[12] = h13; __amps__[13] = h14; __amps__[14] = h15; __amps__[15] = h16;
+    __amps__[16] = h17; __amps__[17] = h18; __amps__[18] = h19; __amps__[19] = h20;
+    __amps__[20] = h21; __amps__[21] = h22;
+    _buffer_gen10(this.buf, this.size, __amps__, 22);
+);
+function buffer_gen10(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22 h23)
+(
+    __amps__ = memalloc(23);
+    __amps__[0] = h1; __amps__[1] = h2; __amps__[2] = h3; __amps__[3] = h4;
+    __amps__[4] = h5; __amps__[5] = h6; __amps__[6] = h7; __amps__[7] = h8;
+    __amps__[8] = h9; __amps__[9] = h10; __amps__[10] = h11; __amps__[11] = h12;
+    __amps__[12] = h13; __amps__[13] = h14; __amps__[14] = h15; __amps__[15] = h16;
+    __amps__[16] = h17; __amps__[17] = h18; __amps__[18] = h19; __amps__[19] = h20;
+    __amps__[20] = h21; __amps__[21] = h22; __amps__[22] = h23;
+    _buffer_gen10(this.buf, this.size, __amps__, 23);
+);
+function buffer_gen10(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22 h23 h24)
+(
+    __amps__ = memalloc(24);
+    __amps__[0] = h1; __amps__[1] = h2; __amps__[2] = h3; __amps__[3] = h4;
+    __amps__[4] = h5; __amps__[5] = h6; __amps__[6] = h7; __amps__[7] = h8;
+    __amps__[8] = h9; __amps__[9] = h10; __amps__[10] = h11; __amps__[11] = h12;
+    __amps__[12] = h13; __amps__[13] = h14; __amps__[14] = h15; __amps__[15] = h16;
+    __amps__[16] = h17; __amps__[17] = h18; __amps__[18] = h19; __amps__[19] = h20;
+    __amps__[20] = h21; __amps__[21] = h22; __amps__[22] = h23; __amps__[23] = h24;
+    _buffer_gen10(this.buf, this.size, __amps__, 24);
+);
+
+function buffer_gen10(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22 h23 h24 h25)
+(
+    __amps__ = memalloc(25);
+    __amps__[0] = h1; __amps__[1] = h2; __amps__[2] = h3; __amps__[3] = h4; 
+    __amps__[4] = h5; __amps__[5] = h6; __amps__[6] = h7; __amps__[7] = h8; 
+    __amps__[8] = h9; __amps__[9] = h10; __amps__[10] = h11; __amps__[11] = h12; 
+    __amps__[12] = h13; __amps__[13] = h14; __amps__[14] = h15; __amps__[15] = h16; 
+    __amps__[16] = h17; __amps__[17] = h18; __amps__[18] = h19; __amps__[19] = h20; 
+    __amps__[20] = h21; __amps__[21] = h22; __amps__[22] = h23; __amps__[23] = h24; 
+    __amps__[24] = h25; 
+    _buffer_gen10(this.buf, this.size, __amps__, 25);
+);
+function buffer_gen10(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22 h23 h24 h25 h26)
+(
+    __amps__ = memalloc(26);
+    __amps__[0] = h1; __amps__[1] = h2; __amps__[2] = h3; __amps__[3] = h4; 
+    __amps__[4] = h5; __amps__[5] = h6; __amps__[6] = h7; __amps__[7] = h8; 
+    __amps__[8] = h9; __amps__[9] = h10; __amps__[10] = h11; __amps__[11] = h12; 
+    __amps__[12] = h13; __amps__[13] = h14; __amps__[14] = h15; __amps__[15] = h16; 
+    __amps__[16] = h17; __amps__[17] = h18; __amps__[18] = h19; __amps__[19] = h20; 
+    __amps__[20] = h21; __amps__[21] = h22; __amps__[22] = h23; __amps__[23] = h24; 
+    __amps__[24] = h25; __amps__[25] = h26; 
+    _buffer_gen10(this.buf, this.size, __amps__, 26);
+);
+function buffer_gen10(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22 h23 h24 h25 h26 h27)
+(
+    __amps__ = memalloc(27);
+    __amps__[0] = h1; __amps__[1] = h2; __amps__[2] = h3; __amps__[3] = h4; 
+    __amps__[4] = h5; __amps__[5] = h6; __amps__[6] = h7; __amps__[7] = h8; 
+    __amps__[8] = h9; __amps__[9] = h10; __amps__[10] = h11; __amps__[11] = h12; 
+    __amps__[12] = h13; __amps__[13] = h14; __amps__[14] = h15; __amps__[15] = h16; 
+    __amps__[16] = h17; __amps__[17] = h18; __amps__[18] = h19; __amps__[19] = h20; 
+    __amps__[20] = h21; __amps__[21] = h22; __amps__[22] = h23; __amps__[23] = h24; 
+    __amps__[24] = h25; __amps__[25] = h26; __amps__[26] = h27; 
+    _buffer_gen10(this.buf, this.size, __amps__, 27);
+);
+function buffer_gen10(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22 h23 h24 h25 h26 h27 h28)
+(
+    __amps__ = memalloc(28);
+    __amps__[0] = h1; __amps__[1] = h2; __amps__[2] = h3; __amps__[3] = h4; 
+    __amps__[4] = h5; __amps__[5] = h6; __amps__[6] = h7; __amps__[7] = h8; 
+    __amps__[8] = h9; __amps__[9] = h10; __amps__[10] = h11; __amps__[11] = h12; 
+    __amps__[12] = h13; __amps__[13] = h14; __amps__[14] = h15; __amps__[15] = h16; 
+    __amps__[16] = h17; __amps__[17] = h18; __amps__[18] = h19; __amps__[19] = h20; 
+    __amps__[20] = h21; __amps__[21] = h22; __amps__[22] = h23; __amps__[23] = h24; 
+    __amps__[24] = h25; __amps__[25] = h26; __amps__[26] = h27; __amps__[27] = h28; 
+    _buffer_gen10(this.buf, this.size, __amps__, 28);
+);
+function buffer_gen10(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22 h23 h24 h25 h26 h27 h28 h29)
+(
+    __amps__ = memalloc(29);
+    __amps__[0] = h1; __amps__[1] = h2; __amps__[2] = h3; __amps__[3] = h4; 
+    __amps__[4] = h5; __amps__[5] = h6; __amps__[6] = h7; __amps__[7] = h8; 
+    __amps__[8] = h9; __amps__[9] = h10; __amps__[10] = h11; __amps__[11] = h12; 
+    __amps__[12] = h13; __amps__[13] = h14; __amps__[14] = h15; __amps__[15] = h16; 
+    __amps__[16] = h17; __amps__[17] = h18; __amps__[18] = h19; __amps__[19] = h20; 
+    __amps__[20] = h21; __amps__[21] = h22; __amps__[22] = h23; __amps__[23] = h24; 
+    __amps__[24] = h25; __amps__[25] = h26; __amps__[26] = h27; __amps__[27] = h28; 
+    __amps__[28] = h29; 
+    _buffer_gen10(this.buf, this.size, __amps__, 29);
+);
+function buffer_gen10(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22 h23 h24 h25 h26 h27 h28 h29 h30)
+(
+    __amps__ = memalloc(30);
+    __amps__[0] = h1; __amps__[1] = h2; __amps__[2] = h3; __amps__[3] = h4; 
+    __amps__[4] = h5; __amps__[5] = h6; __amps__[6] = h7; __amps__[7] = h8; 
+    __amps__[8] = h9; __amps__[9] = h10; __amps__[10] = h11; __amps__[11] = h12; 
+    __amps__[12] = h13; __amps__[13] = h14; __amps__[14] = h15; __amps__[15] = h16; 
+    __amps__[16] = h17; __amps__[17] = h18; __amps__[18] = h19; __amps__[19] = h20; 
+    __amps__[20] = h21; __amps__[21] = h22; __amps__[22] = h23; __amps__[23] = h24; 
+    __amps__[24] = h25; __amps__[25] = h26; __amps__[26] = h27; __amps__[27] = h28; 
+    __amps__[28] = h29; __amps__[29] = h30; 
+    _buffer_gen10(this.buf, this.size, __amps__, 30);
+);
+function buffer_gen10(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22 h23 h24 h25 h26 h27 h28 h29 h30 h31)
+(
+    __amps__ = memalloc(31);
+    __amps__[0] = h1; __amps__[1] = h2; __amps__[2] = h3; __amps__[3] = h4; 
+    __amps__[4] = h5; __amps__[5] = h6; __amps__[6] = h7; __amps__[7] = h8; 
+    __amps__[8] = h9; __amps__[9] = h10; __amps__[10] = h11; __amps__[11] = h12; 
+    __amps__[12] = h13; __amps__[13] = h14; __amps__[14] = h15; __amps__[15] = h16; 
+    __amps__[16] = h17; __amps__[17] = h18; __amps__[18] = h19; __amps__[19] = h20; 
+    __amps__[20] = h21; __amps__[21] = h22; __amps__[22] = h23; __amps__[23] = h24; 
+    __amps__[24] = h25; __amps__[25] = h26; __amps__[26] = h27; __amps__[27] = h28; 
+    __amps__[28] = h29; __amps__[29] = h30; __amps__[30] = h31; 
+    _buffer_gen10(this.buf, this.size, __amps__, 31);
+);
+function buffer_gen10(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22 h23 h24 h25 h26 h27 h28 h29 h30 h31 h32)
+(
+    __amps__ = memalloc(32);
+    __amps__[0] = h1; __amps__[1] = h2; __amps__[2] = h3; __amps__[3] = h4; 
+    __amps__[4] = h5; __amps__[5] = h6; __amps__[6] = h7; __amps__[7] = h8; 
+    __amps__[8] = h9; __amps__[9] = h10; __amps__[10] = h11; __amps__[11] = h12; 
+    __amps__[12] = h13; __amps__[13] = h14; __amps__[14] = h15; __amps__[15] = h16; 
+    __amps__[16] = h17; __amps__[17] = h18; __amps__[18] = h19; __amps__[19] = h20; 
+    __amps__[20] = h21; __amps__[21] = h22; __amps__[22] = h23; __amps__[23] = h24; 
+    __amps__[24] = h25; __amps__[25] = h26; __amps__[26] = h27; __amps__[27] = h28; 
+    __amps__[28] = h29; __amps__[29] = h30; __amps__[30] = h31; __amps__[31] = h32; 
+    _buffer_gen10(this.buf, this.size, __amps__, 32);
+);
+function buffer_gen10(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22 h23 h24 h25 h26 h27 h28 h29 h30 h31 h32 h33)
+(
+    __amps__ = memalloc(33);
+    __amps__[0] = h1; __amps__[1] = h2; __amps__[2] = h3; __amps__[3] = h4; 
+    __amps__[4] = h5; __amps__[5] = h6; __amps__[6] = h7; __amps__[7] = h8; 
+    __amps__[8] = h9; __amps__[9] = h10; __amps__[10] = h11; __amps__[11] = h12; 
+    __amps__[12] = h13; __amps__[13] = h14; __amps__[14] = h15; __amps__[15] = h16; 
+    __amps__[16] = h17; __amps__[17] = h18; __amps__[18] = h19; __amps__[19] = h20; 
+    __amps__[20] = h21; __amps__[21] = h22; __amps__[22] = h23; __amps__[23] = h24; 
+    __amps__[24] = h25; __amps__[25] = h26; __amps__[26] = h27; __amps__[27] = h28; 
+    __amps__[28] = h29; __amps__[29] = h30; __amps__[30] = h31; __amps__[31] = h32; 
+    __amps__[32] = h33; 
+    _buffer_gen10(this.buf, this.size, __amps__, 33);
+);
+function buffer_gen10(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22 h23 h24 h25 h26 h27 h28 h29 h30 h31 h32 h33 h34)
+(
+    __amps__ = memalloc(34);
+    __amps__[0] = h1; __amps__[1] = h2; __amps__[2] = h3; __amps__[3] = h4; 
+    __amps__[4] = h5; __amps__[5] = h6; __amps__[6] = h7; __amps__[7] = h8; 
+    __amps__[8] = h9; __amps__[9] = h10; __amps__[10] = h11; __amps__[11] = h12; 
+    __amps__[12] = h13; __amps__[13] = h14; __amps__[14] = h15; __amps__[15] = h16; 
+    __amps__[16] = h17; __amps__[17] = h18; __amps__[18] = h19; __amps__[19] = h20; 
+    __amps__[20] = h21; __amps__[21] = h22; __amps__[22] = h23; __amps__[23] = h24; 
+    __amps__[24] = h25; __amps__[25] = h26; __amps__[26] = h27; __amps__[27] = h28; 
+    __amps__[28] = h29; __amps__[29] = h30; __amps__[30] = h31; __amps__[31] = h32; 
+    __amps__[32] = h33; __amps__[33] = h34; 
+    _buffer_gen10(this.buf, this.size, __amps__, 34);
+);
+function buffer_gen10(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22 h23 h24 h25 h26 h27 h28 h29 h30 h31 h32 h33 h34 h35)
+(
+    __amps__ = memalloc(35);
+    __amps__[0] = h1; __amps__[1] = h2; __amps__[2] = h3; __amps__[3] = h4; 
+    __amps__[4] = h5; __amps__[5] = h6; __amps__[6] = h7; __amps__[7] = h8; 
+    __amps__[8] = h9; __amps__[9] = h10; __amps__[10] = h11; __amps__[11] = h12; 
+    __amps__[12] = h13; __amps__[13] = h14; __amps__[14] = h15; __amps__[15] = h16; 
+    __amps__[16] = h17; __amps__[17] = h18; __amps__[18] = h19; __amps__[19] = h20; 
+    __amps__[20] = h21; __amps__[21] = h22; __amps__[22] = h23; __amps__[23] = h24; 
+    __amps__[24] = h25; __amps__[25] = h26; __amps__[26] = h27; __amps__[27] = h28; 
+    __amps__[28] = h29; __amps__[29] = h30; __amps__[30] = h31; __amps__[31] = h32; 
+    __amps__[32] = h33; __amps__[33] = h34; __amps__[34] = h35; 
+    _buffer_gen10(this.buf, this.size, __amps__, 35);
+);
+function buffer_gen10(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22 h23 h24 h25 h26 h27 h28 h29 h30 h31 h32 h33 h34 h35 h36)
+(
+    __amps__ = memalloc(36);
+    __amps__[0] = h1; __amps__[1] = h2; __amps__[2] = h3; __amps__[3] = h4; 
+    __amps__[4] = h5; __amps__[5] = h6; __amps__[6] = h7; __amps__[7] = h8; 
+    __amps__[8] = h9; __amps__[9] = h10; __amps__[10] = h11; __amps__[11] = h12; 
+    __amps__[12] = h13; __amps__[13] = h14; __amps__[14] = h15; __amps__[15] = h16; 
+    __amps__[16] = h17; __amps__[17] = h18; __amps__[18] = h19; __amps__[19] = h20; 
+    __amps__[20] = h21; __amps__[21] = h22; __amps__[22] = h23; __amps__[23] = h24; 
+    __amps__[24] = h25; __amps__[25] = h26; __amps__[26] = h27; __amps__[27] = h28; 
+    __amps__[28] = h29; __amps__[29] = h30; __amps__[30] = h31; __amps__[31] = h32; 
+    __amps__[32] = h33; __amps__[33] = h34; __amps__[34] = h35; __amps__[35] = h36; 
+    _buffer_gen10(this.buf, this.size, __amps__, 36);
+);
+function buffer_gen10(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22 h23 h24 h25 h26 h27 h28 h29 h30 h31 h32 h33 h34 h35 h36 h37)
+(
+    __amps__ = memalloc(37);
+    __amps__[0] = h1; __amps__[1] = h2; __amps__[2] = h3; __amps__[3] = h4; 
+    __amps__[4] = h5; __amps__[5] = h6; __amps__[6] = h7; __amps__[7] = h8; 
+    __amps__[8] = h9; __amps__[9] = h10; __amps__[10] = h11; __amps__[11] = h12; 
+    __amps__[12] = h13; __amps__[13] = h14; __amps__[14] = h15; __amps__[15] = h16; 
+    __amps__[16] = h17; __amps__[17] = h18; __amps__[18] = h19; __amps__[19] = h20; 
+    __amps__[20] = h21; __amps__[21] = h22; __amps__[22] = h23; __amps__[23] = h24; 
+    __amps__[24] = h25; __amps__[25] = h26; __amps__[26] = h27; __amps__[27] = h28; 
+    __amps__[28] = h29; __amps__[29] = h30; __amps__[30] = h31; __amps__[31] = h32; 
+    __amps__[32] = h33; __amps__[33] = h34; __amps__[34] = h35; __amps__[35] = h36; 
+    __amps__[36] = h37; 
+    _buffer_gen10(this.buf, this.size, __amps__, 37);
+);
+function buffer_gen10(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22 h23 h24 h25 h26 h27 h28 h29 h30 h31 h32 h33 h34 h35 h36 h37 h38)
+(
+    __amps__ = memalloc(38);
+    __amps__[0] = h1; __amps__[1] = h2; __amps__[2] = h3; __amps__[3] = h4; 
+    __amps__[4] = h5; __amps__[5] = h6; __amps__[6] = h7; __amps__[7] = h8; 
+    __amps__[8] = h9; __amps__[9] = h10; __amps__[10] = h11; __amps__[11] = h12; 
+    __amps__[12] = h13; __amps__[13] = h14; __amps__[14] = h15; __amps__[15] = h16; 
+    __amps__[16] = h17; __amps__[17] = h18; __amps__[18] = h19; __amps__[19] = h20; 
+    __amps__[20] = h21; __amps__[21] = h22; __amps__[22] = h23; __amps__[23] = h24; 
+    __amps__[24] = h25; __amps__[25] = h26; __amps__[26] = h27; __amps__[27] = h28; 
+    __amps__[28] = h29; __amps__[29] = h30; __amps__[30] = h31; __amps__[31] = h32; 
+    __amps__[32] = h33; __amps__[33] = h34; __amps__[34] = h35; __amps__[35] = h36; 
+    __amps__[36] = h37; __amps__[37] = h38; 
+    _buffer_gen10(this.buf, this.size, __amps__, 38);
+);
+function buffer_gen10(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22 h23 h24 h25 h26 h27 h28 h29 h30 h31 h32 h33 h34 h35 h36 h37 h38 h39)
+(
+    __amps__ = memalloc(39);
+    __amps__[0] = h1; __amps__[1] = h2; __amps__[2] = h3; __amps__[3] = h4; 
+    __amps__[4] = h5; __amps__[5] = h6; __amps__[6] = h7; __amps__[7] = h8; 
+    __amps__[8] = h9; __amps__[9] = h10; __amps__[10] = h11; __amps__[11] = h12; 
+    __amps__[12] = h13; __amps__[13] = h14; __amps__[14] = h15; __amps__[15] = h16; 
+    __amps__[16] = h17; __amps__[17] = h18; __amps__[18] = h19; __amps__[19] = h20; 
+    __amps__[20] = h21; __amps__[21] = h22; __amps__[22] = h23; __amps__[23] = h24; 
+    __amps__[24] = h25; __amps__[25] = h26; __amps__[26] = h27; __amps__[27] = h28; 
+    __amps__[28] = h29; __amps__[29] = h30; __amps__[30] = h31; __amps__[31] = h32; 
+    __amps__[32] = h33; __amps__[33] = h34; __amps__[34] = h35; __amps__[35] = h36; 
+    __amps__[36] = h37; __amps__[37] = h38; __amps__[38] = h39; 
+    _buffer_gen10(this.buf, this.size, __amps__, 39);
+);
+function buffer_gen10(h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22 h23 h24 h25 h26 h27 h28 h29 h30 h31 h32 h33 h34 h35 h36 h37 h38 h39 h40)
+(
+    __amps__ = memalloc(40);
+    __amps__[0] = h1; __amps__[1] = h2; __amps__[2] = h3; __amps__[3] = h4; 
+    __amps__[4] = h5; __amps__[5] = h6; __amps__[6] = h7; __amps__[7] = h8; 
+    __amps__[8] = h9; __amps__[9] = h10; __amps__[10] = h11; __amps__[11] = h12; 
+    __amps__[12] = h13; __amps__[13] = h14; __amps__[14] = h15; __amps__[15] = h16; 
+    __amps__[16] = h17; __amps__[17] = h18; __amps__[18] = h19; __amps__[19] = h20; 
+    __amps__[20] = h21; __amps__[21] = h22; __amps__[22] = h23; __amps__[23] = h24; 
+    __amps__[24] = h25; __amps__[25] = h26; __amps__[26] = h27; __amps__[27] = h28; 
+    __amps__[28] = h29; __amps__[29] = h30; __amps__[30] = h31; __amps__[31] = h32; 
+    __amps__[32] = h33; __amps__[33] = h34; __amps__[34] = h35; __amps__[35] = h36; 
+    __amps__[36] = h37; __amps__[37] = h38; __amps__[38] = h39; __amps__[39] = h40; 
+    _buffer_gen10(this.buf, this.size, __amps__, 40);
+);
+
+function buffer_saw(order)
+(
+    __amps__ = memalloc(order);
+    i_ = 0;
+    loop(order,
+        __amps__[i_] = 1 / (i_ + 1);
+        i_ += 1;
+    );
+    _buffer_gen10(this.buf, this.size, __amps__, order);
+);
+
+function buffer_square(order)
+(
+    __amps__ = memalloc(order);
+    i_ = 0;
+    loop(order,
+        i_ & 1 ? __amps__[i_] = 0 : __amps__[i_] = 1 / (i_ + 1);
+        i_ += 1;
+    );
+    _buffer_gen10(this.buf, this.size, __amps__, order);
+);
+
+function buffer_triangle(order)
+(
+    __amps__ = memalloc(order);
+    i_ = 0;
+    ph_ = 1;
+    loop(order,
+        i_ & 1 ? (
+            __amps__[i_] = 0;
+        ) : (
+            __amps__[i_] = ph_ * 1 / pow(i_ + 1, 2);
+            ph_ *= -1; 
+        );
+        i_ += 1;
+    );
+    _buffer_gen10(this.buf, this.size, __amps__, order);
+);
+
+function buffer_normalize(amp)
+(
+    mi_ = ma_ = 0;
+    i_ = 0;
+    loop(this.size,
+        mi_ > this.buf[i_] ? mi_ = this.buf[i_];
+        ma_ < this.buf[i_] ? ma_ = this.buf[i_];
+        i_ += 1;
+    );
+    (mi_*mi_ > ma_*ma_) ? max_ = abs(mi_) : max_ = abs(ma_);
+    max_ > 0 ? (
+        ratio_ = amp / max_;
+        i_ = 0;
+        loop(this.size,
+            this.buf[i_] *= ratio_;
+            i_ += 1;
+        );
+    );
+    this.buf[this.size] *= ratio_;
+    this.buf[this.size+1] *= ratio_;
+    this.buf[-1] *= ratio_;
+);
+
+function buffer_reset()
+(
+    i_ = 0;
+    loop(this.size,
+        this.buf[i_] = 0;
+        i_ += 1;
+    );
+    this.buf[this.size] = 0;
+    this.buf[this.size+1] = 0;
+    this.buf[-1] = 0;
+);
+
+function buffer_reverse()
+(
+    hsize_ = floor(this.size / 2);
+    size1_ = this.size - 1;
+    i_ = 0;
+    loop(hsize_,
+        tmp_ = this.buf[i_];
+        this.buf[i_] = this.buf[size1_ - i_];
+        this.buf[size1_ - i_] = tmp_;
+        i_ += 1;
+    );
+    this.buf[this.size] = this.buf[0];
+    this.buf[this.size+1] = this.buf[1];
+    this.buf[-1] = this.buf[this.size-1];
+);
+
+function buffer_window(which)
+(
+    // defaults to hanning
+    which < 0 || which > 8 ? which = 1;
+    which == 0 ? ( // hamming
+        arg_ = 2.0 * $pi / (this.size-1);
+        i_ = 0;
+        loop(this.size,
+            this.buf[i_] = 0.54 - 0.46 * cos(arg_ * i_);
+            i_ += 1;
+        );
+    ) :
+    which == 1 ? ( // hanning
+        arg_ = 2.0 * $pi / (this.size-1);
+        i_ = 0;
+        loop(this.size,
+            this.buf[i_] = 0.5 - 0.5 * cos(arg_ * i_);
+            i_ += 1;
+        );
+    ) :
+    which == 2 ? ( // bartlett
+        arg_ = 2.0 / (this.size-1);
+        hsize_ = floor((this.size-1)/2);
+        i_ = 0;
+        loop(hsize_,
+            this.buf[i_] = i_ * arg_;
+            i_ += 1;
+        );
+        loop(this.size - hsize_,
+            this.buf[i_] = 2.0 - i_ * arg_;
+            i_ += 1;
+        );
+    ) :
+    which == 3 ? ( // blackman
+        arg_ = 2.0 * $pi / (this.size-1);
+        i_ = 0;
+        loop(this.size,
+            this.buf[i_] = 0.42323 - 0.49755 * cos(arg_*i_) + 0.07922 * cos(2*arg_*i_);
+            i_ += 1;
+        );
+    ) :
+    which == 4 ? ( // blackman_harris_4
+        arg_ = 2.0 * $pi / (this.size-1);
+        i_ = 0;
+        loop(this.size,
+            this.buf[i_] = 0.35875 - 0.48829 * cos(arg_*i_) + 0.14128 * cos(2*arg_*i_) - 0.01168 * cos(3*arg_*i_);
+            i_ += 1;
+        );
+    ) :
+    which == 5 ? ( // blackman_harris_7
+        arg_ = 2.0 * $pi / (this.size-1);
+        i_ = 0;
+        loop(this.size,
+            this.buf[i_] = 0.2712203606 - 0.4334446123 * cos(arg_*i_) + 0.21800412 * cos(2*arg_*i_) - 0.0657853433 * cos(3*arg_*i_) + 0.0107618673 * cos(4*arg_*i_) - 0.0007700127 * cos(5*arg_*i_) + 0.00001368088 * cos(6*arg_*i_);
+            i_ += 1;
+        );
+    ) :
+    which == 6 ? ( // tuckey 50%
+        i_ = 0;
+        step_ = floor(0.5 * this.size / 2);
+        loop(step_,
+            this.buf[i_] = 0.5 * (1 + cos($pi * (2 * i_ / (0.5 * this.size) - 1)));
+            i_ += 1;
+        );
+        step_ = this.size * (1 - 0.5 / 2) - step_;
+        loop(step_,
+            this.buf[i_] = 1.0;
+            i_ += 1;
+        );
+        step_ = this.size - step_;
+        loop(step_,
+            this.buf[i_] = 0.5 * (1 + cos($pi * (2 * i_ / (0.5 * this.size) - 2 / 0.5 + 1)));
+            i_ += 1;
+        );
+    ) :
+    which == 7 ? ( // halfsine
+        arg_ = $pi / (this.size-1);
+        i_ = 0;
+        loop(this.size,
+            this.buf[i_] = sin(arg_ * i_);
+            i_ += 1;
+        );
+    ) :
+    which == 8 ? ( // parabolic
+        size1_ = this.size - 1;
+        rdur_ = 1 / size1_;
+        rdur2_ = rdur_ * rdur_;
+        level_ = 0;
+        slope_ = 4 * (rdur_ - rdur2_);
+        curve_ = -8 * rdur2_;
+
+        i_ = 0;
+        loop(size1_,
+            this.buf[i_] = level_;
+            level_ += slope_;
+            slope_ += curve_;
+            i_ += 1;
+        );
+        this.buf[size1_] = this.buf[0];
+    );
+    this.buf[this.size] = this.buf[0];
+    this.buf[this.size+1] = this.buf[1];
+    this.buf[-1] = this.buf[this.size-1];
+);
+
+function buffer_atan(slope)
+(
+    invh_ = 1.0 / this.hsize;
+    invpi_ = 1.0 / $pi; 
+    drv_ = 1.0 - slope;
+    drv_ = drv_ * drv_ * drv_ * $pi;
+    i_ = 0;
+    loop(this.hsize + 1,
+        t_ = i_ * invh_ - 1;
+        val_ = atan2(t_, drv_) * invpi_;
+        i_ == 0 ? fac_ = 1.0 / -val_;
+        val_ *= fac_;
+        this.buf[i_] = val_;
+        this.buf[this.size - i_] = -val_;
+        i_ += 1;
+    );
+);
+
+function buffer_clip(mini maxi)
+(
+    k_ = -1;
+    loop(this.size+3,
+        this.buf[k_] = max(min(this.buf[k_], maxi), mini);
+        k_ += 1;
+    );
+);
+
+function buffer_mul(x)
+(
+    k_ = -1;
+    loop(this.size+3,
+        this.buf[k_] = this.buf[k_] * x;
+        k_ += 1;
+    );
+);
+
+function buffer_div(x)
+(
+    k_ = -1;
+    loop(this.size+3,
+        this.buf[k_] = this.buf[k_] / x;
+        k_ += 1;
+    );
+);
+
+function buffer_rdiv(x)
+(
+    k_ = -1;
+    loop(this.size+3,
+        this.buf[k_] = x / this.buf[k_];
+        k_ += 1;
+    );
+);
+
+function buffer_add(x)
+(
+    k_ = -1;
+    loop(this.size+3,
+        this.buf[k_] = this.buf[k_] + x;
+        k_ += 1;
+    );
+);
+
+function buffer_sub(x)
+(
+    k_ = -1;
+    loop(this.size+3,
+        this.buf[k_] = this.buf[k_] - x;
+        k_ += 1;
+    );
+);
+
+function buffer_rsub(x)
+(
+    k_ = -1;
+    loop(this.size+3,
+        this.buf[k_] = x - this.buf[k_];
+        k_ += 1;
+    );
+);

@@ -1,0 +1,541 @@
+noindex: true
+
+desc: FXD ReSpectrum
+
+slider1:Spectrum_Mode=3<0,5,1{Full,Mid,Side,Mid / Side,Left,Right,Left / Right}>-Spectrum
+slider2:Display_Mode=0<0,2,1{Fill,Line,None}>-Display
+slider3:Ceiling_Value=0<0,2,1{0dB,20dB,40dB}>-Ceiling
+slider4:Floor_Value=0<0,2,1{-60dB,-140dB,-200dB}>-Floor
+slider5:Tilt_Value=3<0,5,1{0dB/oct,1.5dB/oct,3dB/oct,4.5dB/oct,6dB/oct}>-Tilt
+slider6:Type_Value=1<0,3,1{Hamming,Blackman-Harris,Blackman,Rectangular}>-Type
+slider7:Block_Value=2<0,3,1{2048,4096,8192,16384}>-Block Size
+slider8:Show_Piano=0<0,1,1{Off,On}>-Show Piano
+slider8:Show_Peaks=0<0,1,1{Off,On}>-Show Peaks
+
+import Dependencies/spectrum.jsfx-inc
+import Dependencies/svf_filter.jsfx-inc
+
+options:no_meter
+options:gmem=gmemReEQ_Spectrum
+options:gfx_idle
+options:gfx_hz=60
+@init
+
+#VERSION = "1.1.4";
+
+gfx_ext_retina  = 1;
+ext_nodenorm    = 1;
+ext_noinit = 1;
+last_gfx_ext_retina = -1;
+DIY_ID = gmem[1];
+ThisFXID = gmem[2];
+/*
+ * Round number up or down
+ */
+function round(in) (
+  floor(in + 0.5 * sign(in));
+);
+
+/*
+ * Standard log2
+ */
+function log2(x) ( 
+  log(x) / log(2);
+);
+
+/*
+ * Return string of integer
+ */
+function int2str(intIn) local (outStr) (
+  strcpy(outStr=#,"");
+  sprintf(outStr,"%d",intIn);
+  outStr;
+);
+
+/*
+ * Update the state of any changes
+ */
+function update_state() local (blocks) (
+  spectrum.ceiling = Ceiling_Value == 0 ? 0 : Ceiling_Value == 1 ? 20 : Ceiling_Value == 2 ? 40;
+  spectrum.noise_floor = Floor_Value == 0 ? -90 : Floor_Value == 1 ? -140 : Floor_Value == 2 ? -200;
+  spectrum.noise_floor = Floor_Value == 0 ? -90 : Floor_Value == 1 ? -140 : Floor_Value == 2 ? -200;
+  spectrum.tilt = Tilt_Value == 0 ? 0 : Tilt_Value == 1 ? 1.5 : Tilt_Value == 2 ? 3 : Tilt_Value == 3 ? 4.5 :
+                  Tilt_Value == 4 ? 6;
+
+  spectrum.windowtype != Type_Value+1 ? spectrum.set_type(Type_Value+1);
+
+  blocks = (2 ^ (Block_Value+1)) * 1024;
+
+  spectrum.windowsize != blocks ? spectrum.set_block_size(blocks);
+
+  Display_Mode == 0 ? (
+    fill_r = 46 / 255;
+    fill_g = 71 / 255;
+    fill_b = 83 / 255;
+    fill_a = 1.0;
+    spectrum.set_fill(0, 1);
+    spectrum.set_color(0, fill_r, fill_g, fill_b, fill_a);
+    fill_r = 96 / 255;
+    fill_g = 223 / 255;
+    fill_b = 255 / 255;
+    fill_a = 0.5;
+    spectrum.set_fill(1, 1); 
+    spectrum.set_color(1, fill_r, fill_g, fill_b, fill_a);
+  ) : Display_Mode == 1 ? (
+    line_a=1.0;
+    line_r = 114 / 255; line_g = 215 / 255; line_b = 253 / 255;;
+    spectrum.set_fill(0, 0);
+    spectrum.set_color(0, line_r, line_g, line_b, line_a);
+    line_r = 253 / 255; line_g = 185 / 255; line_b = 21 / 255;;
+    spectrum.set_fill(1, 0);
+    spectrum.set_color(1, line_r, line_g, line_b, line_a);
+  );
+);
+
+
+
+/*
+ * Draw the listener boundaries and set the Q for the bandpass filter
+ */
+
+/*
+ * Initialise the peaks show button
+ */
+function init_peak_button(xpos, ypos, buttonwidth) instance (x, y, width, label) (
+  x = xpos;
+  y = ypos;
+  width = buttonwidth;
+  label = "Peaks";
+);
+
+/*
+ * Draw the peaks toggle button
+ */
+function draw_peak_button() instance (x, y, width, menutext, label, pressed, height, label) local(w, h, a) ( 
+  mouse_x >= 0 && mouse_x < gfx_w && mouse_y >=0 && mouse_y < gfx_h ? (
+  gfx_a = 1;
+
+  gfx_measurestr(label, w, h);
+
+  height = h + 8;
+
+  mouse_x >= x && mouse_x <= x+width && mouse_y >= y && mouse_y <= y + height ? ( 
+    gfx_r = (114 / 255) * 0.6;
+    gfx_g = (215 / 255) * 0.6;
+    gfx_b = (253 / 255) * 0.6;
+  ) : (
+    Show_Peaks ? a = 0.6 : a = 0.4;
+    gfx_r = (114 / 255) * a;
+    gfx_g = (215 / 255) * a;
+    gfx_b = (253 / 255) * a;
+  );
+
+  gfx_rect(x, y, width, h+9);
+
+  gfx_circle(x, y + ((h+8)*0.5), ((h+8)*0.5), 1);
+  gfx_circle(x + width, y + ((h+8)*0.5), ((h+8)*0.5), 1);
+
+  Show_Peaks ? (
+    gfx_r = (114 / 255);
+    gfx_g = (215 / 255);
+    gfx_b = (253 / 255);
+  ) : ( 
+    gfx_r = (114 / 300);
+    gfx_g = (215 / 300);
+    gfx_b = (253 / 300);    
+  );
+  gfx_a = 1;
+  gfx_x = x + (width / 2) - (w / 2);
+  gfx_y = y + 4;
+  gfx_drawstr(label);
+  );
+);
+
+/*
+ * Handle clicking the peaks button
+ */
+function handle_peak_button() instance (x, y, width, label, pressed, height, label)
+  local (last_clicked_item)
+(
+  last_clicked_item = 0;
+  mouse_cap & 1 && !pressed ? (
+    mouse_x >= x && mouse_x <= x+width && mouse_y >= y && mouse_y <= y + height ? ( 
+      pressed = 1;
+
+      Show_Peaks = Show_Peaks ? Show_Peaks = 0 : 1;
+
+      spectrum.set_show_peaks(Show_Peaks);
+
+    ) : pressed = 0;
+  ) : ( 
+    !(mouse_cap & 1) ? pressed = 0;
+  );
+);
+
+/*
+ * Initialise the piano keys toggle button
+ */
+function init_piano_button(xpos, ypos, buttonwidth) instance (x, y, width, label) (
+  x = xpos;
+  y = ypos;
+  width = buttonwidth;
+  label = "Keys";
+);
+
+/*
+ * Draw the piano keys button
+ */
+function draw_piano_button() instance (x, y, width, menutext, label, pressed, height, label) local(w, h, a) ( 
+  mouse_x >= 0 && mouse_x < gfx_w && mouse_y >=0 && mouse_y < gfx_h ? (
+  gfx_a = 1;
+
+  gfx_measurestr(label, w, h);
+
+  height = h + 8;
+
+  mouse_x >= x && mouse_x <= x+width && mouse_y >= y && mouse_y <= y + height ? ( 
+    gfx_r = (114 / 255) * 0.6;
+    gfx_g = (215 / 255) * 0.6;
+    gfx_b = (253 / 255) * 0.6;
+  ) : (
+    Show_Piano ? a = 0.6 : a = 0.4;
+    gfx_r = (114 / 255) * a;
+    gfx_g = (215 / 255) * a;
+    gfx_b = (253 / 255) * a;
+  );
+
+  gfx_rect(x, y, width, h+9);
+
+  gfx_circle(x, y + ((h+8)*0.5), ((h+8)*0.5), 1);
+  gfx_circle(x + width, y + ((h+8)*0.5), ((h+8)*0.5), 1);
+
+  Show_Piano ? (
+    gfx_r = (114 / 255);
+    gfx_g = (215 / 255);
+    gfx_b = (253 / 255);
+  ) : ( 
+    gfx_r = (114 / 300);
+    gfx_g = (215 / 300);
+    gfx_b = (253 / 300);    
+  );
+  gfx_a = 1;
+  gfx_x = x + (width / 2) - (w / 2);
+  gfx_y = y + 4;
+  gfx_drawstr(label);
+  );
+);
+
+/*
+ * Handle the piano keys button
+ */
+function handle_piano_button() instance (x, y, width, label, pressed, height, label)
+  local (last_clicked_item)
+(
+  last_clicked_item = 0;
+  mouse_cap & 1 && !pressed ? (
+    mouse_x >= x && mouse_x <= x+width && mouse_y >= y && mouse_y <= y + height ? ( 
+      pressed = 1;
+
+      Show_Piano = Show_Piano ? Show_Piano = 0 : 1;
+
+    ) : pressed = 0;
+  ) : ( 
+    !(mouse_cap & 1) ? pressed = 0;
+  );
+);
+
+/*
+ * Initialise the analyzer options button
+ */
+function init_menu_button(xpos, ypos, buttonwidth, buttonlabel, menutext) instance (x, y, width, menutext, label) (
+  x = xpos;
+  y = ypos;
+  width = buttonwidth;
+  this.menutext = menutext;
+  label = buttonlabel;
+);
+
+/*
+ * Draw the analyzer options button
+ */
+function draw_menu_button() instance (x, y, width, menutext, label, pressed, height, label) ( 
+  mouse_x >= 0 && mouse_x < gfx_w && mouse_y >=0 && mouse_y < gfx_h ? (
+  gfx_a = 1;
+
+  gfx_measurestr(label, w, h);
+
+  height = h + 8;
+
+  mouse_x >= x && mouse_x <= x+width && mouse_y >= y && mouse_y <= y + height ? ( 
+    gfx_r = (114 / 255) * 0.6;
+    gfx_g = (215 / 255) * 0.6;
+    gfx_b = (253 / 255) * 0.6;
+  ) : (
+    gfx_r = (114 / 255) * 0.4;
+    gfx_g = (215 / 255) * 0.4;
+    gfx_b = (253 / 255) * 0.4;
+  );
+
+  gfx_rect(x, y, width, h+9);
+
+  gfx_circle(x, y + ((h+8)*0.5), ((h+8)*0.5), 1);
+  gfx_circle(x + width, y + ((h+8)*0.5), ((h+8)*0.5), 1);
+
+  gfx_r = (114 / 255);
+  gfx_g = (215 / 255);
+  gfx_b = (253 / 255);
+  gfx_a = 1;
+  gfx_x = x + (width / 2) - (w / 2);
+  gfx_y = y + 4;
+  gfx_drawstr(label);
+  );
+);
+
+/*
+ * Handle the analyzer options button
+ */
+function handle_menu_button() instance (x, y, width, menutext, label, pressed, height, label)
+  local (last_clicked_item)
+(
+  last_clicked_item = 0;
+  mouse_cap & 1 && !pressed ? (
+    mouse_x >= x && mouse_x <= x+width && mouse_y >= y && mouse_y <= y + height ? ( 
+      pressed = 1;
+
+        #menu = "#Version: ";
+        #menu += #VERSION;
+        #menu += " ||";
+
+        #menu += ">Spectrum|";
+        Spectrum_Mode == 0 ? #menu += "!"; #menu += "Full|";
+        Spectrum_Mode == 1 ? #menu += "!"; #menu += "Mid|";
+        Spectrum_Mode == 2 ? #menu += "!"; #menu += "Side|";
+        Spectrum_Mode == 3 ? #menu += "!"; #menu += "Mid + Side|";
+        Spectrum_Mode == 4 ? #menu += "!"; #menu += "Left|";
+        Spectrum_Mode == 5 ? #menu += "!"; #menu += "Right|";
+        Spectrum_Mode == 6 ? #menu += "!"; #menu += "<Left + Right|";
+
+        #menu += ">Display|";
+        Display_Mode == 0 ? #menu += "!"; #menu += "Fill|";
+        Display_Mode == 1 ? #menu += "!"; #menu += "Line|";
+        Display_Mode == 2 ? #menu += "!"; #menu += "<None|";
+
+        #menu += ">Range|";
+        Ceiling_Value == 0 ? #menu += "!"; #menu += "Ceiling 0dB|";
+        Ceiling_Value == 1 ? #menu += "!"; #menu += "Ceiling 20dB|";
+        Ceiling_Value == 2 ? #menu += "!"; #menu += "Ceiling 40dB||";
+        Floor_Value == 0 ? #menu += "!"; #menu += "Floor -90dB|";
+        Floor_Value == 1 ? #menu += "!"; #menu += "Floor -140dB|";
+        Floor_Value == 2 ? #menu += "!"; #menu += "<Floor -200dB|";
+
+        #menu += ">Tilt|";
+        Tilt_Value == 0 ? #menu += "!"; #menu += "0dB/oct|";
+        Tilt_Value == 1 ? #menu += "!"; #menu += "1.5dB/oct|";
+        Tilt_Value == 2 ? #menu += "!"; #menu += "3dB/oct|";
+        Tilt_Value == 3 ? #menu += "!"; #menu += "4.5dB/oct|";
+        Tilt_Value == 4 ? #menu += "!"; #menu += "<6dB/oct|";
+
+        #menu += ">Window Type|";
+        Type_Value == 0 ? #menu += "!"; #menu += "Hamming|";
+        Type_Value == 1 ? #menu += "!"; #menu += "Blackman-Harris|";
+        Type_Value == 2 ? #menu += "!"; #menu += "Blackman|";
+        Type_Value == 3 ? #menu += "!"; #menu += "<Rectangular|";
+
+        #menu += ">FFT Size|";
+        Block_Value == 0 ? #menu += "!"; #menu += "2048|";
+        Block_Value == 1 ? #menu += "!"; #menu += "4096|";
+        Block_Value == 2 ? #menu += "!"; #menu += "8192|";
+        Block_Value == 3 ? #menu += "!"; #menu += "16384|";
+
+      gfx_x = mouse_x;
+      gfx_y = mouse_y;
+
+      last_clicked_item = gfx_showmenu(#menu) - 1;
+
+      pressed = 0;
+
+      last_clicked_item >= 1 && last_clicked_item <= 7 ? (
+        // Force reset of peak buffers
+        spectrum.set_show_peaks(Show_Peaks);
+
+        Spectrum_Mode = last_clicked_item - 1;
+      );
+
+      last_clicked_item >= 8 && last_clicked_item <= 10 ? ( 
+        Display_Mode = last_clicked_item - 8;
+      );
+
+      last_clicked_item >= 11 && last_clicked_item <= 13 ? ( 
+        Ceiling_Value = last_clicked_item - 11;
+      );
+
+      last_clicked_item >= 14 && last_clicked_item <= 16 ? ( 
+        Floor_Value = last_clicked_item - 14;
+      );
+
+      last_clicked_item >= 17 && last_clicked_item <= 21 ? ( 
+        Tilt_Value = last_clicked_item - 17;
+      );
+
+      last_clicked_item >= 22 && last_clicked_item <= 25 ? ( 
+        Type_Value = last_clicked_item - 22;
+      );
+
+      last_clicked_item >= 26 && last_clicked_item <= 29 ? ( 
+        Block_Value = last_clicked_item - 26;
+      );
+
+      last_clicked_item >= 1 ? update_state();
+    ) : pressed = 0;
+  ) : ( 
+    !(mouse_cap & 1) ? pressed = 0;
+  );
+
+  last_clicked_item;
+);
+
+/*
+ * Set global state vars
+ */
+
+do_listen = 0;
+listen_width = 0.10;
+
+filter.svf_set_sample_rate(srate);
+
+gfx_ext_retina == 2 ? (
+  menu.init_menu_button(gfx_w - 140, 10, 120, "Settings", "");
+  piano.init_piano_button(gfx_w - 300, 10, 100);
+  peaks.init_peak_button(gfx_w - 420, 10, 100);
+) : ( 
+  menu.init_menu_button(gfx_w - 140, 10, 80, "Settings", "");
+  piano.init_piano_button(gfx_w - 300, 10, 60);
+  peaks.init_peak_button(gfx_w - 420, 10, 60);
+);
+
+spectrum.set_show_peaks(Show_Peaks);
+
+spectrum.init();
+
+@slider
+
+update_state();
+
+@sample
+
+// Mid/Side encode
+mid = (spl0 + spl1) * 0.5;
+side = (spl0 - spl1) * 0.5;
+
+// Feed the correct buffers depending on spectrum modes
+Spectrum_Mode == 0 ? spectrum.sample0(spl0 + spl1) :
+Spectrum_Mode == 1 ? spectrum.sample0(mid) :
+Spectrum_Mode == 2 ? spectrum.sample0(side) :
+Spectrum_Mode == 3 ? (spectrum.sample0(mid); spectrum.sample1(side)) :
+Spectrum_Mode == 4 ? spectrum.sample0(spl0);  
+Spectrum_Mode == 5 ? spectrum.sample0(spl1) :
+Spectrum_Mode == 6 ? (spectrum.sample0(spl0); spectrum.sample1(spl1));
+
+// Filter if we're in listen mode
+do_listen ? (
+  mono = 0.5 * (spl0 + spl1);
+  filter.svf_bp2(listen_freq, listen_q);
+  spl0 = spl1 = filter.svf_svf0(mono); 
+);
+
+@gfx 640 400
+Fx_Idx = gmem[ThisFXID];
+Diy_ID == gmem[1]?(
+  gfx_ext_flags = 2;
+
+  gfx_ext_retina != last_gfx_ext_retina ? (
+    last_gfx_ext_retina = gfx_ext_retina;
+    
+    gfx_ext_retina > 1 ? (
+      gfx_setfont(1,"Arial",20,'b');
+      gfx_setfont(2,"Arial",18,'b');
+    ) : (
+      gfx_setfont(1,"Arial",12,'b');
+      gfx_setfont(2,"Arial",10,'b');
+    );
+    gfx_setfont(1);
+  );
+
+  actual_width = gfx_w / gfx_ext_retina;
+  actual_height = gfx_h / gfx_ext_retina;
+
+  // Calculage compact view flags
+  // These are used to disable certain elements for graceful visual shrinking
+  compact_width = actual_width < 600;
+  compact_height = actual_height < 320;
+
+  gfx_ext_retina != 2 ? (
+    very_compact_width = (actual_width < 450);
+    very_compact_height = (actual_height < 240);
+  ) : (
+    very_compact_width = (actual_width < 300);
+    very_compact_height = (actual_height < 160);
+  );
+
+  very_compact_width | very_compact_height ? (
+    spectrum.bottom_margin = -18 * gfx_ext_retina;
+  ) : ( 
+    spectrum.bottom_margin = 0;
+  );
+
+
+
+  Display_Mode < 2 ? (
+    spectrum.draw(0);
+    
+    Spectrum_Mode == 3 || Spectrum_Mode == 6 ? spectrum.draw(1);
+  ); //draw two spectrums if mode = Mid+ Side or L + R 
+
+  ht = (gfx_h - spectrum.bottom_margin - gfx_texth) + 2;
+
+  dst_a = 0.55 / ht;
+  gfx_gradrect(0, ht/2, gfx_w, ht/2, 0,0,0,0,    0, 0, 0, 0, 0, 0, 0, dst_a*2); 
+
+  !((very_compact_width) | (very_compact_height)) ? (
+    spectrum.draw_grid(0);
+  );
+
+  chr = gfx_getchar();
+
+  mouse_cap & 8 ? (
+    do_listen = 1;
+    //draw_listen_helper();
+
+    mw = mouse_wheel;
+    md = -(mw - last_wheel) / 120;
+    last_wheel = mw;;;
+
+    listen_width += md / 200;
+    listen_width = min(0.30, listen_width);
+    listen_width = max(0.01, listen_width);
+
+  ) : do_listen = 0;
+
+  !((compact_width) | (compact_height)) ? (
+    mouse_x >= 0 && mouse_x < gfx_w && mouse_y >=0 && mouse_y < gfx_h ? (
+      note_select = Show_Piano ? spectrum.draw_piano() : 0;
+    ) : note_select = 0;
+  );
+
+
+  !((very_compact_width) | (very_compact_height)) ? (
+    gfx_ext_retina == 2 ? (menu.x = gfx_w - 140; menu.width = 120;) : (menu.x = gfx_w - 100; menu.width = 80;);
+    menu.draw_menu_button();
+    menu.handle_menu_button();
+
+    gfx_ext_retina == 2 ? (piano.x = gfx_w - 280; piano.width = 100;) : (piano.x = gfx_w - 190; piano.width = 60;);
+    piano.draw_piano_button();
+    piano.handle_piano_button();
+
+    gfx_ext_retina == 2 ? (peaks.x = gfx_w - 420; peaks.width = 100;) : (peaks.x = gfx_w - 280; peaks.width = 60;);
+    peaks.draw_peak_button();
+    peaks.handle_peak_button();
+  );
+
+
+);

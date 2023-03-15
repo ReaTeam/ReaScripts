@@ -1,0 +1,65 @@
+// @description Tempo marker list
+// @author Damien Stewart (Hypex)
+// @version 1.0
+// @provides [main] Hypex_Tempo marker list/Hypex_Tempo marker list in time selection.eel
+// @screenshot Example https://github.com/Hypexed/Reaper-Scripts/raw/main/TempoList/TempoList.png
+// @about
+//   ### Tempo Marker List
+//
+//   Displays a list of tempo markers.
+//
+//   Marker: Index in list.  
+//   Time: On timeline.  
+//   Meter: Time signature if set.  
+//   BPM: Tempo at time.  
+//   Bar: Bar set at time.  
+//   Beat: Beat count at time.  
+//   Linear: Set if gradual change.
+
+function List()
+(
+    Markers = CountTempoTimeSigMarkers(0);
+
+    Markers ?
+    (
+        #List = "Legend: Marker, Time, Meter, BPM, Bar, Beat, Linear\n\n";
+
+        Marker = 0;
+
+        while(Marker < Markers)
+        (
+            GetTempoTimeSigMarker(0, Marker, Time, Bar, Beat, BPM, Note, Size, Linear);
+
+            format_timestr(Time, #Time);
+
+            (Note == -1) && (Size == -1) ?
+            (
+                #Meter = "-/-";
+            )
+            :
+            (
+                sprintf(#Meter, "%d/%d", Note, Size);
+            );
+
+            sprintf(#Info, "%d, %s, %s, %.9f, %d, %.9f, %d\n", Marker, #Time, #Meter, BPM, Bar, Beat, Linear);
+            #List += #Info;
+
+            Marker += 1;
+        );
+
+        ShowMessageBox(#List, #Title, 0);
+    )
+    :
+    (
+        ShowMessageBox("Info: No tempo markers exist in current project.", #Title, 0);
+    );
+);
+
+function main()
+(
+    #Title="Tempo Marker List";
+
+    List();
+);
+
+main();

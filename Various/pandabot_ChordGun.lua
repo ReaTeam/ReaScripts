@@ -2,26 +2,28 @@
 Description: ChordGun
 Author: pandabot
 License: MIT
-Version: 1.0
+Version: 1.9
+Changelog:
+  - now preserving existing velocity, mute state and channel if notes are selected
+  - fixed bug where some keyboard shortcuts did not work on Windows machines
+  - added ability to stop all notes from playing using middle mouse button
+  - added some optional code at bottom of the file to make ChordGun window be always on top (Windows only)
+  - added mini version for small screen users
 Screenshot: https://github.com/benjohnson2001/ChordGun/raw/release/ChordGun/src/images/chordGunInterface.png
 Donate: https://paypal.me/benjohnson2001
 Links:
   pandabot (Cockos forum) https://forum.cockos.com/member.php?u=127396
   Source repository (GitHub) https://github.com/benjohnson2001/ChordGun/tree/release
 Metapackage: true
-Provides:
-    [main=main,midi_editor] pandabot_ChordGun/*.lua
+Provides: [main=main,midi_editor] pandabot_ChordGun/*.lua
 About:
-
     ### Chord Gun
     
     #### What is it?
     Reaper tool that fires scale chords and notes into a composition, either by sequencing through the MIDI Editor or recording directly into Media Items
-    
 
     #### How do I use it?
     There is an instructional video [here](www.youtube.com/watch?v=1CqVYcN3VAw)
-		
 
     #### keyboard shortcuts (when GUI has focus)
     0 - stop all notes from playing

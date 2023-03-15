@@ -1,10 +1,11 @@
 -- @description Split selected non-locked items at edit cursor
--- @version 1.0
 -- @author cfillion
+-- @version 1.1
+-- @changelog Split items that are only locked to active take [p=2403266]
 -- @link Forum Thread http://forum.cockos.com/showthread.php?t=189347
 -- @donation https://www.paypal.me/cfillion
 -- @about
---   This script splits selected non-locked items at edit cursor.
+--   This script splits selected non-locked items at edit cursor. Items that are only locked to active take are split.
 --
 --   The logic is inspired by spk77's script "Split all items at edit cursor".
 
@@ -14,7 +15,7 @@ local UNDO_STATE_ITEMS = 4
 
 for i = 0, reaper.CountSelectedMediaItems() - 1 do
   local item = reaper.GetSelectedMediaItem(0, i)
-  local locked = reaper.GetMediaItemInfo_Value(item, 'C_LOCK') > 0
+  local locked = reaper.GetMediaItemInfo_Value(item, 'C_LOCK') & 1 > 0
   local length = reaper.GetMediaItemInfo_Value(item, 'D_LENGTH')
   local pos = reaper.GetMediaItemInfo_Value(item, 'D_POSITION')
 

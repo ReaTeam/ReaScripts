@@ -1,46 +1,48 @@
 /*
-   * ReaScript Name: Create take volume envelope from active take to other takes in item
-   * EEL script for Cockos REAPER
-   * Author: spk77
-   * Author URI: http://forum.cockos.com/member.php?u=49553
-   * Licence: GPL v3
-   * Version: 1.0
-   */
-  
-  // Paste take volume envelope from active take in selected item to other takes in item 
-// EEL script by spk77 16.7.2014
-//
-// Version: 0.2014.7.16
+ * ReaScript Name: Create take volume envelope from active take to other takes in item
+ * About: EEL script for Cockos REAPER by spk77. Mod by X-Raym for v1.1 (multi-items support).
+ * Author: spk77
+ * Author URI: http://forum.cockos.com/member.php?u=49553
+ * Licence: GPL v3
+ * Version: 1.1.1
+ */
 
-function paste_take_vol_env()
-(
-  CountSelectedMediaItems(0) == 1 && (source_take = GetActiveTake(GetSelectedMediaItem(0, 0))) ? (
-    item = GetSelectedMediaItem(0, 0);
+function paste_take_vol_env() (
+  j = 0;
+  loop( count_sel_items,
+    item = GetSelectedMediaItem(0, j);
+    source_take = GetActiveTake( item );
     (source_vol_env = GetTakeEnvelopeByName(source_take, "Volume")) ? (
-      GetSetEnvelopeState(source_vol_env, #source_vol_env);
-      
-      Undo_BeginBlock();
+      GetEnvelopeStateChunk(source_vol_env, #env,0);
       i = 0;
       loop(CountTakes(item),
         source_vol_env && source_take != GetTake(item, i) ? (
           SetActiveTake(GetTake(item, i));
           (env = GetTakeEnvelopeByName(GetTake(item, i), "Volume")) ? (
-            GetSetEnvelopeState(env, #source_vol_env);
+            SetEnvelopeStateChunk(env, #env,0);
           ) : (
-            Main_OnCommand(NamedCommandLookup("_S&M_TAKEENV1"), 0);
+            Main_OnCommand(NamedCommandLookup("_S&M_TAKEENV1"), 0); // SWS/S&M: Show and unbypass take volume envelope
             (env = GetTakeEnvelopeByName(GetTake(item, i), "Volume")) ? (
-              GetSetEnvelopeState(env, #source_vol_env);
+              SetEnvelopeStateChunk(env, #env,0);
             );
           );
         );
         i += 1;
       );
       SetActiveTake(source_take);
-      Undo_EndBlock("Paste take vol envelope", -1);
     );
-  ) : (
-    ShowConsoleMsg("Please select only one (non-empty) item.");
-  );
+    j+=1;
+  )
 );
 
-paste_take_vol_env();
+count_sel_items = CountSelectedMediaItems(0);
+count_sel_items >= 1 ? (
+  Undo_BeginBlock();
+  PreventUIRefresh(1);
+  paste_take_vol_env();
+  UpdateArrange();
+  PreventUIRefresh(-1);
+  Undo_EndBlock("Paste take vol envelope", -1);
+) : (
+  ShowConsoleMsg("Please select only one (non-empty) item.");
+);

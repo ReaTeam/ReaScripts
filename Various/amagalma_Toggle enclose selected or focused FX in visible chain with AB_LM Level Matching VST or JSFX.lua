@@ -1,85 +1,67 @@
--- @description amagalma_Toggle enclose selected or focused FX in visible chain with AB_LM Level Matching VST/JSFX
+-- @description Toggle enclose selected or focused FX in visible chain with AB_LM Level Matching VST/JSFX
 -- @author amagalma
--- @version 1.27
+-- @version 1.36
+-- @changelog - small improvement
+-- @link http://www.tb-software.com/TBProAudio/ab_lm.html
+-- @donation https://www.paypal.me/amagalma
 -- @about
 --   # Inserts or Removes TBProAudio's AB_LM Level Matching VST/JSFX enclosing the selected FXs or the focused FX (if not any selected)
---   - Automatically checks if AB_LM VST2, VST3 or JSFX are present in your system
---   - Ability to set in the script the prefered format of AB_LM (VST2, VST3 or JSFX)
+--   - Ability to set in the script the prefered format of AB_LM (VST2, VST3 or JSFX) [defaults to VST3]
 --   - Smart undo point creation
--- @link http://www.tb-software.com/TBProAudio/ab_lm.html
--- @changelog
---    # hopefully, first-time-run error-checking should be fixed now for x64 platforms
+--   - Requires JS_ReaScriptAPI
 
 ------------------------------------------------------------------------------------------------
-local reaper = reaper
 
 --==============================================================================
-local pref = 1 -- SET HERE YOUR PREFERENCE (1 = JSFX, 2 = VST2, 3 = VST3      ==
+local pref = 3 -- SET HERE YOUR PREFERENCE (1 = JSFX, 2 = VST2, 3 = VST3      ==
 local lite = 0 -- SET TO 1 IF YOU PREFER THE LITE VERSION OF THE JSFX CONTROL ==
 --==============================================================================
 
 ------------------------------------------------------------------------------------------------
-local not_firsttime = reaper.HasExtState( "AB_LM Toggle", "format" )
-if not not_firsttime then
-  local separ = string.match(reaper.GetOS(), "Win") and "\\" or "/"
-  local path = reaper.GetResourcePath()
-  -- first time running the script, do the checks
-  -- Check Reaper version
-  if tonumber(reaper.GetAppVersion():match("%d+.%d+")) < 5.965 then
-    reaper.MB( "Please, update to Reaper v5.965 or newer.", "Cannot run script!", 0 )
-    reaper.defer(function() end)
-    return
+
+local reaper = reaper
+-- Check if JS_ReaScriptAPI is installed
+if not reaper.APIExists("JS_ReaScriptAPI_Version") then
+  reaper.MB( "Please, right-click and install 'js_ReaScriptAPI: API functions for ReaScripts'. Then restart Reaper and run the script again. Thanks!", "You need to install the JS_ReaScriptAPI", 0 )
+  local ok, err = reaper.ReaPack_AddSetRepository( "ReaTeam Extensions", "https://github.com/ReaTeam/Extensions/raw/master/index.xml", true, 1 )
+  if ok then
+    reaper.ReaPack_BrowsePackages( "js_ReaScriptAPI" )
+  else
+    reaper.MB( err, "Something went wrong...", 0)
   end
-  -- Check if js_ReaScriptAPI extension is installed
-    local i = 0
-    local file, exists = true, false
-    while file do
-      file = reaper.EnumerateFiles( path .. separ .. "UserPlugins", i )
-      if file:match"reaper_js_ReaScriptAPI" then
-        exists = true
-        break
-      end
-      i = i + 1
-    end
-    if exists then
-      local js_vers = reaper.JS_ReaScriptAPI_Version()
-      if js_vers < 0.962 then
-        reaper.MB( "You need js_ReaScriptAPI extension v0.962 or newer.", "Cannot run script!", 0 )
-        reaper.defer(function() end)
-        return
-      end
-    else
-      reaper.MB( "You need to install js_ReaScriptAPI extension from ReaPack.", "Cannot run script!", 0 )
-      reaper.defer(function() end)
-      return
-    end
-  -- Check if AB_LM .dll or .vst3 or jsfx exist in your system
-  local jsfx, vst2, vst3 = false, false, false
-  local OS, architecture = string.match(reaper.GetOS(), "(%a+)(%d?%d?)")
-  local separ = OS == "Win" and "\\" or "/"
+  return reaper.defer(function() end)
+end
+
+-- Check if AB_LM .dll or .vst3 or jsfx exist in your system
+local exists = false
+local OS, architecture = string.match(reaper.GetOS(), "(%a+)(%d?%d?)")
+local separ = OS == "Win" and "\\" or "/"
+if pref == 2 or pref == 3 then
+  -- check for VST2/3 presence, if not Linux
   local vst_ini
   if architecture == "32" then
     vst_ini = reaper.GetResourcePath() .. separ .."reaper-vstplugins.ini"
   elseif architecture == "64" then
     vst_ini = reaper.GetResourcePath() .. separ .."reaper-vstplugins64.ini"
   end
-  local jsfx_ini = reaper.GetResourcePath() .. separ .. "reaper-jsfx.ini"
   if architecture ~= "" then
-    -- check for VST2/3 presence, if not Linux
     local file = io.open (vst_ini)
     if file then
       for line in file:lines() do
-        if line:match("AB_LM[_x64]*.dll") then
-          vst2 = 2
-        elseif line:match("AB_LM[_x64]*.vst3") then
-          vst3 = 3
+        if line:match("AB_LM[_x64]*.dll") and pref == 2 then
+          exists = true
+          break
+        elseif line:match("AB_LM[_x64]*.vst3") and pref == 3 then
+          exists = true
+          break
         end
-        if vst2 and vst3 then break end
       end
       io.close(file)
     end
   end
+elseif pref == 1 then
   -- check for JSFX presence
+  local jsfx_ini = reaper.GetResourcePath() .. separ .. "reaper-jsfx.ini"
   local file = io.open (jsfx_ini)
   local cntrl, src, ltcntrl = false, false, false
   for line in file:lines() do
@@ -91,44 +73,32 @@ if not not_firsttime then
       src = true
     end
     if cntrl and src and ltcntrl then 
-      jsfx = 1
-      break 
+      exists = true
+      break
     end
   end
   io.close(file)
-  if not vst2 and not vst3 and not jsfx then
-    reaper.MB( "No AB_LM VST2/VST3/JSFX has been found on your system.", "Can't run the action!", 0 )
-    local prev = reaper.HasExtState( "AB_LM Toggle", "format" )
-    if prev then
-      reaper.DeleteExtState( "AB_LM Toggle", "format", true )
-    end
-    reaper.defer(function() end)
-    return
-  end
-  -- what to do if preference does not exist
-  if pref == 1 and not jsfx then
-    pref = vst2 and vst2 or vst3
-  elseif pref == 2 and not vst2 then
-    pref = vst3 and vst3 or jsfx
-  elseif pref == 3 and not vst3 then
-    pref = vst2 and vst2 or jsfx
-  end
-  reaper.SetExtState( "AB_LM Toggle", "format", pref, true )
-else
-  pref = tonumber(reaper.GetExtState( "AB_LM Toggle", "format" ))
+end
+local format = pref == 1 and "JSFX" or (pref == 2 and "VST2" or "VST3")
+if not exists then
+  reaper.MB( "Please, set the format of AB_LM you have inside the script.", "AB_LM " .. format .. " is not installed", 0 )
+  reaper.defer(function() end)
+  return
 end
 
 ------------------------------------------------------------------------------------------------
+
 local function GetInfo()
-  local FX_win = reaper.JS_Window_Find("FX: ", false )
-  local sel_FX, firstselFX, lastselFX = {}
-  if FX_win then
-    local title = reaper.JS_Window_GetTitle( FX_win, "" )
+  local number, window_list = reaper.JS_Window_ListFind("FX: ", false)
+  if number == 0 then return nil end
+  for address in window_list:gmatch("[^,]+") do
+    local FX_win = reaper.JS_Window_HandleFromAddress(address)
+    local title = reaper.JS_Window_GetTitle(FX_win)
     if title:match("FX: Track ") or title:match("FX: Master Track") or title:match("FX: Item ") then
+      local sel_FX, firstselFX, lastselFX = {}
       local list = reaper.JS_Window_FindChildByID(FX_win, 1076)
       local _, sel_fx = reaper.JS_ListView_ListAllSelItems(list)
       local a = 0
-      local sel_FX = {}
       for i in sel_fx:gmatch("%d+") do
         sel_FX[a+1] = tonumber(i)
         a = a + 1
@@ -156,13 +126,12 @@ local function GetInfo()
         lastselFX = sel_FX[#sel_FX]
       end
       return fxid, track, what, trackGUID, take, firstselFX, lastselFX, FX_win
-    else
-      return nil
     end
   end
 end
 
 ------------------------------------------------------------------------------------------------
+
 local function AddTrackAB(track, pos, x)
   if pref == 1 then
     if x == 1 then
@@ -202,6 +171,7 @@ local function AddTakeAB(take, pos, x)
 end
 
 ------------------------------------------------------------------------------------------------
+
 local function AlterChunk(chunk, lastselFX, focusedFX, fxid, t)
   local cnt = -1
   local float = false
@@ -240,6 +210,7 @@ local function AlterChunk(chunk, lastselFX, focusedFX, fxid, t)
 end
 
 ------------------------------------------------------------------------------------------------
+
 local function InsertAB(fxid, track, what, trackGUID, take, firstselFX, lastselFX)
   local focusedFX = fxid
   if lastselFX and focusedFX >= firstselFX and focusedFX <= lastselFX then
@@ -278,6 +249,7 @@ local function InsertAB(fxid, track, what, trackGUID, take, firstselFX, lastselF
 end
 
 ------------------------------------------------------------------------------------------------
+
 local function RemoveAB(track, what, take)
   if what == "track" then
     local id = reaper.TrackFX_GetByName( track, "-- AB_LM Receive --", false )
@@ -293,6 +265,7 @@ local function RemoveAB(track, what, take)
 end
 
 -- Main function -------------------------------------------------------------------------------
+
 local fxid, track, what, trackGUID, take, firstselFX, lastselFX, FX_win = GetInfo()
 if track and trackGUID then
   local _, left, top, right, bottom = reaper.JS_Window_GetRect( FX_win )
@@ -303,12 +276,12 @@ if track and trackGUID then
     reaper.Undo_BeginBlock()
     RemoveAB(track, what, take)
     reaper.SetProjExtState(0, "AB_LM Toggle", trackGUID, "0")
-    reaper.Undo_EndBlock("Remove AB_LM from focused FX Chain", -1)
+    reaper.Undo_EndBlock("Remove AB_LM from focused FX Chain", 2)
   else
     reaper.Undo_BeginBlock()
     InsertAB(fxid, track, what, trackGUID, take, firstselFX, lastselFX)
     reaper.SetProjExtState(0, "AB_LM Toggle", trackGUID, "1")
-    reaper.Undo_EndBlock("Enclose selected/focused FX in Chain with AB_LM", -1)
+    reaper.Undo_EndBlock("Enclose selected/focused FX in Chain with AB_LM", 2)
   end
   reaper.JS_Window_SetPosition( FX_win, left, top, width, height )
 else

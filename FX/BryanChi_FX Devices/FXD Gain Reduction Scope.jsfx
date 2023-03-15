@@ -1,0 +1,619 @@
+noindex: true
+
+desc:FXD Gain Reduction Scope
+//tags: analysis scope meter
+//author: Cockos
+/*
+Copyright (C) 2007-2016 Cockos Incorporated
+License: LGPL - http://www.gnu.org/licenses/lgpl.html
+*/
+
+slider1:view_msec=2000<400,3000,1>-view size (ms)
+slider2:view_maxdb=-20<-100,-6.02,.01>-vzoom
+slider3:view_rms=10<0.01,500.0,.01>-RMS size
+slider4:view_meter_range=-50<-150,0,1>-meter range
+slider5:gain_db=0<-30,12,1>gain (dB)
+
+in_pin:left input 1
+in_pin:right input 1
+in_pin:left input 2
+in_pin:right input 2
+out_pin: left output 1
+out_pin: right output 1
+options:no_meter
+options:gmem=CompReductionScope
+options:gfx_idle
+options: ext_noinit=1.0
+
+@init
+ext_noinit=1.0;
+last_gain=10^(gain_db/20);
+gfx_ext_retina=1;
+ext_nodenorm=1;
+recpos=0;
+gfx_clear=-1;
+g_maxlen_ms=3000;
+histsize=((srate*2.0*g_maxlen_ms/1000)|0)*2;
+g_hold=-1;
+need_view_update=1;
+
+Diy_ID = gmem[2000];
+ThisFX_ID = gmem[2002];
+FXIDXX = gmem[ThisFX_ID];
+
+
+function rms.init(buf, maxsz) global() (
+  this.buf = buf;
+  this.maxsz=maxsz|0;
+  this.size=this.suml=this.sumr=this.cnt=this.ptr=0;  
+);
+
+function rms.getmax(splsquarel, splsquarer) 
+  instance(buf suml sumr cnt ptr size maxsz) 
+  local(i) 
+  global()
+(
+  while (cnt >= size) (
+    i = (ptr<cnt ? ptr-cnt+maxsz:ptr-cnt)*2;
+    suml -= buf[i];
+    sumr -= buf[i+1];
+    cnt-=1;
+  );
+  cnt+=1;
+  buf[i=ptr*2]=splsquarel; 
+  buf[i+1]=splsquarer; 
+  (ptr+=1) >= maxsz ? ptr=0;  
+  (suml += splsquarel) < 0 ? suml=0;
+  (sumr += splsquarer) < 0 ? sumr=0;
+);
+
+function rms.set_size(sz) global() (
+  (this.size=max(0,min(sz|0,this.maxsz))) < 1 ? (
+    this.cnt=this.suml=this.sumr=0;
+  );
+);
+
+function rms.get_l() instance(suml cnt) global() local(f)
+( 
+  suml>cnt*exp(-21) ? max(log(suml/cnt)*.5,-22):-22;
+);
+function rms.get_r() instance(sumr cnt) global() local(f)
+(
+  sumr>cnt*exp(-21) ? max(log(sumr/cnt)*.5,-22):-22;
+);
+
+rmsa.rms.init(histsize, srate);
+rmsb.rms.init(histsize + rmsa.rms.maxsz*2, srate);
+
+@slider
+next_gain=10^(gain_db/20);
+
+
+@block 
+g_hold<0?need_view_update=1;
+rmsa.rms.set_size(view_rms*.001*srate);
+rmsb.rms.set_size(view_rms*.001*srate);
+peak_atten = exp(-1/(srate*0.25));
+d_gain = (next_gain - last_gain)/samplesblock;
+
+@sample
+NewSpl0 = spl0;
+NewSpl1 = spl1;
+spl0 *= last_gain;
+spl1 *= last_gain;
+last_gain += d_gain;
+ 
+g_hold<0 ? (
+ rmsa.rms.getmax(sqr(NewSpl0),sqr(NewSpl1));
+ rmsb.rms.getmax(sqr(spl2),sqr(spl3));
+ 
+ peak_spl0 = max(peak_spl0*peak_atten,abs(NewSpl0));
+ peak_spl1 = max(peak_spl1*peak_atten,abs(NewSpl1));
+ peak_spl2 = max(peak_spl2*peak_atten,abs(spl2));
+ peak_spl3 = max(peak_spl3*peak_atten,abs(spl3));
+ 
+ recpos[0]=rmsb.rms.get_l() - rmsa.rms.get_l(); 
+ recpos[1]=rmsb.rms.get_r() - rmsa.rms.get_r();
+ recpos = (recpos+2) >= histsize ? 0 : (recpos+2);
+ 
+ 
+);
+ 
+@gfx 680 900 
+
+  
+
+  FXIDXX = gmem[ThisFX_ID];
+  gfx_w = 680; gfx_h = 900;
+  gfx_ext_retina=2;
+  gfx_ext_retina>1 ? gfx_setfont(1,"Arial",16*gfx_ext_retina,'b') : gfx_setfont(0);
+
+  gfx_getchar(); // request mouse_cap to be set even when mouse button not down
+
+  function color1() ( gfx_r=0.5; gfx_g=1.0; gfx_b=0.5; );
+  function color2() ( gfx_r=1.0; gfx_g=0.5; gfx_b=1.0; );
+
+  function draw_button(xp, yp, str) 
+    instance(w,h,x,y) 
+    globals(gfx_r,gfx_g,gfx_b,gfx_x,gfx_y) 
+  (
+    gfx_measurestr(str, w, h);
+    xp -= w+3;
+    x=xp;
+    y=yp;
+    gfx_set(0,0,.75);
+    w+=3;
+    h+=3;
+    gfx_rect(x,y,w,h);
+    gfx_set(0,.5,1);
+    gfx_line(x,y,x+w,y);
+    gfx_line(x+w,y,x+w,y+h);
+    gfx_line(x,y+h,x+w,y+h);
+    gfx_line(x,y,x,y+h);
+    h+=1;
+    w+=1;
+    gfx_x=xp+2; gfx_y=yp+2;
+    gfx_drawstr(str);
+    gfx_x = xp;
+  );
+  function hit_button(xp,yp,cm) 
+    instance(w,h,x,y) 
+    globals(cap_mode, cap_last_x, cap_last_y) 
+  ( 
+    xp>=x&&yp>=y&&xp<x+w&&yp<y+h ? (
+      cap_last_x = xp;
+      cap_last_y = yp;
+      cap_mode=cm;
+    );
+  );
+
+  function drag_slider(x, y, z, dx)
+    globals(mouse_y, cap_last_y, cap_drag)
+  (
+    x = min(max(x + dx * (cap_last_y-mouse_y),y),z);
+    cap_last_y=mouse_y;
+    cap_drag=1;
+    x;
+  );
+
+  function drag_slider_precise(x, y, z, dx)
+    globals(mouse_cap)
+  (
+    (mouse_cap & 4) ? dx *= 0.1;
+    drag_slider(x, y, z, dx);
+  );
+
+  function cycle_slider(x, y, z, dx)
+    globals(last_mouse_cap)
+  (
+    (last_mouse_cap & 16) ? x -= dx : x += dx;
+    y > z ? ( dx=y; y=z; z=dx; );
+    x > z ? y : x < y ? z : x;
+  );
+
+  
+  (mouse_cap & 1) ? (
+    !(last_mouse_cap & 1) ? (  
+      (cap_mode == 1||cap_mode==4 || cap_mode==5) && !cap_drag && cap_timer < 12 ? (
+        cap_mode==1 ? view_maxdb = -20 : cap_mode==5 ? view_meter_range=-50.0 : view_rms = 10.0;
+        cap_mode=0;
+        need_view_update=1;      
+        slider_automate(cap_mode==1 ? view_maxdb : cap_mode==5 ? view_meter_range : view_rms);
+      ) : (
+        cap_mode = cap_drag = cap_timer = 0;     
+        length_button.hit_button(mouse_x,mouse_y,2)||
+        vzoom_button.hit_button(mouse_x,mouse_y,1)||
+        hold_button.hit_button(mouse_x,mouse_y,3)||
+        rms_button.hit_button(mouse_x,mouse_y,4)||
+        meter_range_button.hit_button(mouse_x,mouse_y,5);
+      
+        
+        cap_mode == 3 ? g_hold_needadj=1;
+        
+        cap_mode == 0 && mouse_y >= 40 ? (
+          cap_mode = 100;
+          cap_last_y=mouse_y;
+          cap_last_x=mouse_x;
+          
+          (mouse_cap&8) ? (
+            g_hold < 0 ? (
+              g_hold_needadj=1;
+              g_hold=0;
+            ) : g_hold=-1;
+          );
+        );
+      );
+    );
+    
+    cap_last_y != mouse_y ? (
+      (cap_mode == 1 || cap_mode==100) ? (
+        cap_mode == 100 && (mouse_cap&16) ? (
+          g_hold >= 0 ? ovhold = g_hold + (gfx_w-mouse_x)*view_msec*0.001/gfx_w*srate;
+          view_msec = min(g_maxlen_ms,max(0.125,exp(drag_slider_precise(log(view_msec), log(0.125), log(g_maxlen_ms),-0.02))));
+          slider_automate(view_msec);
+          g_hold >= 0 ? (
+            // zoom at mouse cursor
+            g_hold = ovhold - (gfx_w-mouse_x)*view_msec*0.001/gfx_w*srate;
+            g_hold  > histsize*.5-viewsize_spls ? g_hold = histsize*.5-viewsize_spls : g_hold < 0 ? g_hold=0;  
+          );
+        ) : (
+          view_maxdb = drag_slider_precise(view_maxdb, -100, -6.02, -0.2);
+          need_view_update=1;      
+          slider_automate(view_maxdb);
+        );
+      );
+      cap_mode == 5 ? (
+          view_meter_range = drag_slider_precise(view_meter_range, -150, 0, -0.2);
+          need_view_update=1;      
+          slider_automate(view_meter_range);
+      );
+      cap_mode == 2 ? (
+        view_msec = min(g_maxlen_ms,max(0.125,exp(drag_slider_precise(log(view_msec), log(0.125), log(g_maxlen_ms),-0.02))));
+        slider_automate(view_msec);
+        need_view_update=1;
+      );
+      cap_mode == 4 ? (
+        view_rms = min(500,max(0.01,exp(drag_slider_precise(log(view_rms),log(0.01),log(500.0), 0.01))));
+        slider_automate(view_rms);
+        need_view_update=1;
+      );
+    );
+    cap_mode == 3 || (cap_mode == 100&&g_hold>=0) ? (
+      dx = mouse_x-cap_last_x + (cap_mode == 3 ? (mouse_y-cap_last_y)*0.2);
+      dx ? (
+        cap_drag=1;
+        g_hold += dx * viewsize_spls/gfx_w;
+        g_hold  > histsize*.5-viewsize_spls ? g_hold = histsize*.5-viewsize_spls;
+        cap_last_x = mouse_x;
+        cap_last_y = mouse_y;
+        need_view_update=1;
+      );
+      g_hold < 0 ? g_hold=0;
+    );
+  ) : (
+    g_hold_needadj=0;
+    cap_mode == 3 && !cap_drag ? (
+      g_hold=-1;
+      cap_mode=0;
+    );
+  );
+  
+  cap_mode && cap_timer < 12 ? cap_timer += 1;
+  last_mouse_cap = mouse_cap;
+
+  function format_time_msec(a) (
+    abs(a) < 1000 ? 
+      sprintf(#,"%.02fms",a + 0.005) : 
+      sprintf(#,"%.02fs",a*0.001 + 0.005);
+  );
+
+  /* mouse_wheel ? (
+    (mouse_cap&8) ? (
+      view_maxdb = min(-6.02,max(-100,view_maxdb*exp(-mouse_wheel*0.0003)));
+      slider_automate(view_maxdb);
+    ) : (mouse_cap&16) ? (
+      g_hold += mouse_wheel*(1/(120.0*8.0)) * viewsize_spls;
+      g_hold  > histsize*.5-viewsize_spls ? g_hold = histsize*.5-viewsize_spls : g_hold < 0 ? g_hold=0;  
+    ) : (
+      g_hold >= 0 ? ovhold = g_hold + (gfx_w-mouse_x)*view_msec*0.001/gfx_w*srate;
+      view_msec = min(2000,max(1,view_msec*exp(-mouse_wheel*0.0003)));
+      slider_automate(view_msec);
+      g_hold >= 0 ? (
+        // zoom at mouse cursor
+        g_hold = ovhold - (gfx_w-mouse_x)*view_msec*0.001/gfx_w*srate;
+        g_hold  > histsize*.5-viewsize_spls ? g_hold = histsize*.5-viewsize_spls : g_hold < 0 ? g_hold=0;  
+      );
+    );
+    mouse_wheel=0;
+    need_view_update=1;
+  ); */
+
+  function draw_meter(v,c,xp,w) ( c ? color2():color1(); v < gfx_h ? gfx_rect(xp,v,w,gfx_h-v); );
+ 
+  Diy_ID == gmem[2000]?(
+  // only update if new fft data is there or if the size changed
+  need_view_update || view_meter_range != view_meter_range_last || view_maxdb != view_maxdb_last || old_w != gfx_w || old_h!=gfx_h? (
+    view_maxdb_last = view_maxdb;
+    view_meter_range_last = view_meter_range;
+    need_view_update=0;
+    old_w=gfx_w; old_h=gfx_h;
+
+    gfx_r=gfx_g=gfx_b=0; gfx_a=1;
+    gfx_x=gfx_y=0;
+    gfx_rectto(gfx_w,gfx_h);
+  
+    scope_h = ((gfx_h-gfx_texth*2-6-4)*0.5)|0;
+    scope_ycent = gfx_h - scope_h*1.5 - gfx_texth - 4 +100;
+
+    // draw meter scale
+    
+    // draw meters
+    view_meter_range<-1 ? (
+      metersz=16*gfx_ext_retina;
+      metersz2=4*gfx_ext_retina;
+      lx=metersz*8+metersz2;
+      x=lx+3;
+      sc = gfx_h /(-view_meter_range);
+      gfx_a=1.0;
+      gfx_r=gfx_g=gfx_b=0.6;
+      gfx_line(x,0,x,gfX_h);
+    
+      sc < gfx_texth*1.5 + 3 ? (
+        dv = log10(2)*5;
+        while (dv*sc < gfx_texth*2+4 && dv < 300) (dv*=2);
+      ) : dv = 1;
+      v=dv;
+      while (
+        a = v * sc;
+        a < gfx_h ? (
+          gfx_a=.25;
+          gfx_line(0,a,lx,a);
+          gfx_a=.5;
+          gfx_x=0; gfx_y=a+2; 
+          gfx_printf("-%.2fdB",v);
+          v += dv;
+          1;
+        );
+      );
+        
+      sc *= -(20.0/log(10));  
+      gfx_a=0.5;
+      draw_meter(sc * rmsa.rms.get_l(), 0, 0, metersz-1);
+      draw_meter(sc * log(peak_spl0), 0, metersz, metersz-1);
+
+      draw_meter(sc * log(peak_spl1), 1, metersz*2, metersz-1);
+      gmem[1000] = log(peak_spl0); 
+      AAAALogSpl0=log(peak_spl0);
+      gmem[1001] = log(peak_spl1);
+      gmem[1002] = log(peak_spl2);
+      gmem[1003] = log(peak_spl3);
+
+
+      draw_meter(sc * rmsa.rms.get_r(), 1, metersz*3, metersz-1);
+    
+      draw_meter(sc * rmsb.rms.get_l(), 0, metersz*4+metersz2, metersz-1);
+      draw_meter(sc * log(peak_spl2), 0, metersz*4+metersz2+metersz, metersz-1);
+      draw_meter(sc * log(peak_spl3), 1, metersz*4+metersz2+metersz*2, metersz-1);
+      draw_meter(sc * rmsb.rms.get_r(), 1, metersz*4+metersz2+metersz*3, metersz-1);
+      
+      lx=(x+=3*gfx_ext_retina);
+    ) : x=lx=0;
+    
+    // draw horz grid
+    sc= -scope_h * 1.5 / (view_maxdb);
+    gfx_r=gfx_g=gfx_b=0.6;
+    gfx_a=1.0;
+    gfx_line(lx,scope_ycent,gfx_w,scope_ycent);
+
+    sc < gfx_texth*1.5 + 3 ? (
+      dv = log10(2)*5;
+      while (dv*sc < gfx_texth*2+4 && dv < 300) (dv*=2);
+    ) : dv = 1;
+    v=dv;
+    while (
+      a = v * sc;
+      scope_ycent + a < gfx_h ? (
+        gfx_a=.25;
+        scope_ycent - a > gfx_texth+10 ? gfx_line(lx,scope_ycent-a,gfx_w,scope_ycent-a);
+        gfx_line(lx,scope_ycent+a,gfx_w,scope_ycent+a);
+        gfx_a=.5;
+        gfx_x=lx; gfx_y=scope_ycent+a+2; 
+        gfx_printf("-%.2fdB",v);
+        gfx_x=lx; gfx_y=scope_ycent-a-2-gfx_texth; 
+        gfx_y > gfx_texth*2 ? gfx_printf("%+.2fdB",v);
+        v += dv;
+        1;
+      );
+    );
+    sc *= (20.0/log(10));
+
+    // draw vert grid
+    v=gfx_w - 96*gfx_ext_retina;
+    while(
+      gfx_a=0.25;
+      gfx_line(v,gfx_texth+8,v,gfx_h);
+      a = view_msec - view_msec * v / (gfx_w-x);
+      
+      gfx_a=0.5;
+      gfx_x = v + 2; gfx_y = gfx_texth+12;
+      gfx_drawstr(sprintf(#,"%d",a*srate*0.001+0.5));
+      
+      g_hold > 0 ? (
+        gfx_x=v+2;
+        gfx_y += gfx_texth+2;
+        gfx_drawstr(sprintf(#,"-%d",a*srate*0.001 + g_hold + 0.5));
+      );
+      
+      g_hold > 0 ? (
+        gfx_x=v+2;
+        gfx_y = gfx_h - gfx_texth*3 - 4;
+        gfx_drawstr(format_time_msec(-a-(g_hold*1000/srate)));
+      );
+            
+      gfx_x = v + 2; gfx_y = gfx_h - gfx_texth;
+      gfx_drawstr(format_time_msec(a));
+      
+      v -= 96*gfx_ext_retina;
+      v > 56*gfx_ext_retina + lx;
+    );
+
+  viewsize_spls = (view_msec*srate*0.001)|0;
+  viewadv = (gfx_w-x)/viewsize_spls;
+
+  rdptr = recpos - viewsize_spls*2 - 2;
+  rdptr < 0 ? rdptr += histsize;
+  (g_hold_needadj ? (g_hold>0) : (g_hold>=0)) && g_hold < histsize*0.5 ? (
+    rdptr -= (g_hold|0)*2;
+    rdptr < 0 ? rdptr += histsize;
+  );
+
+  g_hold_needadj=0;
+
+  rdptr >= histsize ? rdptr -= histsize;
+  viewadv < 1 ? (
+  // multiple samples per pixel
+    i=0;
+    minl=maxl=rdptr[0]; minr=maxr=rdptr[1];
+    (rdptr+=2) >= histsize ? rdptr=0;
+    loop(viewsize_spls ,          // lx starts at 500 because the meter on left, every pixel needs 2 lx
+      tx=(x|0);
+      tx>lx?(
+        minl = min(max(-1,(scope_ycent+0.5-minl*sc)|0),gfx_h+2);
+        maxl = min(max(-1,(scope_ycent+0.5-maxl*sc)|0),gfx_h+2);
+        minr = min(max(-1,(scope_ycent+0.5- minr*sc)|0),gfx_h+2);
+        maxr = min(max(-1,(scope_ycent+0.5-maxr*sc)|0),gfx_h+2);
+        
+        gfx_a=0.25;
+        color1();
+        maxl-1 > scope_ycent ? gfx_line(lx,maxl-1,lx,scope_ycent) : 
+        minl+1 < scope_ycent ? gfx_line(lx,minl+1,lx,scope_ycent);
+
+        color2();
+        maxr-1 > scope_ycent ? gfx_line(lx,maxr-1,lx,scope_ycent) : 
+        minr+1 < scope_ycent ? gfx_line(lx,minr+1,lx,scope_ycent);
+            
+        color1();
+        gfx_a=.6;
+        gfx_line(lx,minl,lx,maxl);
+
+
+        //gmem[lx-273]= minl;
+        gmem[lx-497+200+ 10000*FXIDXX ]=maxl; //497 is very important! if change gfx UI size, then 497 needs to change
+        
+        color2();
+        gfx_line(lx,minr,lx,maxr);
+
+        minl=maxl=rdptr[0]; minr=maxr=rdptr[1];
+        lx=tx;
+      ) : (
+        minl=min(minl,v = rdptr[0]); maxl=max(maxl,v);
+        minr=min(minr,v2 = rdptr[1]); maxr=max(maxr,v2);
+      );
+      (rdptr+=2) >= histsize ? rdptr=0;
+      x+=viewadv;
+    );
+
+
+    i=0;
+    minl=maxl=rdptr[0]; minr=maxr=rdptr[1];
+    (rdptr+=2) >= histsize ? rdptr=0;
+    /* loop(viewsize_spls, //H = 100, W = 200
+      tx = (x|0);
+
+      tx>lx?(
+        minl = min(max(-1,(scope_ycent+0.5-minl*sc)|0),200+2);
+        maxl = min(max(-1,(scope_ycent+0.5-maxl*sc)|0),200+2);
+        minr = min(max(-1,(scope_ycent+0.5- minr*sc)|0),200+2);
+        maxr = min(max(-1,(scope_ycent+0.5-maxr*sc)|0),200+2);
+        maxl-1 > scope_ycent ? gfx_line(lx,maxl-1,lx,scope_ycent) : 
+        minl+1 < scope_ycent ? gfx_line(lx,minl+1,lx,scope_ycent);
+        
+        maxr-1 > scope_ycent ? gfx_line(lx,maxr-1,lx,scope_ycent) : 
+        minr+1 < scope_ycent ? gfx_line(lx,minr+1,lx,scope_ycent);
+        gmem[lx]=minl;
+        gmem[lx+200]=maxl;
+        gmem[lx+600]=minr;
+        gmem[lx+800]=maxr;
+
+
+        
+        minl=maxl=rdptr[0]; minr=maxr=rdptr[1];
+      ) : (
+        minl=min(minl,v = rdptr[0]); maxl=max(maxl,v);
+        minr=min(minr,v2 = rdptr[1]); maxr=max(maxr,v2);
+      );
+      (rdptr+=2) >= histsize ? rdptr=0;
+      x+=1;
+    
+    
+    
+    );
+  */
+/*
+    // last pixel
+    minl = min(max(-1,(scope_ycent+0.5-minl*sc)|0),gfx_h+2);
+    maxl = min(max(-1,(scope_ycent+0.5-maxl*sc)|0),gfx_h+2);
+    minr = min(max(-1,(scope_ycent+0.5-minr*sc)|0),gfx_h+2);
+    maxr = min(max(-1,(scope_ycent+0.5-maxr*sc)|0),gfx_h+2);
+    color1();
+    gfx_a=0.35;
+    maxl-1 > scope_ycent ? gfx_line(lx,maxl-1,lx,scope_ycent) : 
+    minl+1 < scope_ycent ? gfx_line(lx,minl+1,lx,scope_ycent);
+
+    color2();
+    maxr-1 > scope_ycent ? gfx_line(lx,maxr-1,lx,scope_ycent) : 
+    minr+1 < scope_ycent ? gfx_line(lx,minr+1,lx,scope_ycent);
+        
+    gfx_a=.6;
+    color1();
+    gfx_line(lx,minl,lx,maxl);
+    color2();
+    gfx_line(lx,minr,lx,maxr);  
+    */
+    
+  ) : ( 
+    maxval=gfx_h+64+300;
+    // multiple pixels per sample
+    i=viewsize_spls&1;
+    loop(viewsize_spls,
+      x1 = x|0;
+      x2 = (x+=viewadv)|0;
+      
+      viewadv<3 ? (
+        color1();
+        
+        loop(2,
+          v = (rdptr[0] * sc)|0;
+          
+          gfx_a=.25;
+          v < 0 ? (
+            v < -maxval ? v=-maxval;
+            gfx_rect(x1,scope_ycent,x2-x1,-v)
+          ) : (
+            v > maxval ? v=maxval;
+            gfx_rect(x1,scope_ycent-v,x2-x1,v);      
+          );
+          gfx_a=.6;
+          gfx_rect(x1,scope_ycent-v,x2-x1,1);
+
+          rdptr+=1;
+          color2();
+        );
+      
+      ) : (
+        color1();
+        
+        loop(2,
+          gfx_a=(i&1) ? 0.25:0.125;
+          v = (rdptr[0] * sc)|0;
+          v < 0 ? (
+            v < -maxval ? v=-maxval;
+            gfx_rect(x1,scope_ycent,x2-x1,-v) 
+          ) : (
+            v > maxval ? v=maxval;
+            gfx_rect(x1,scope_ycent-v,x2-x1,v);      
+          );
+          gfx_a=0.6;
+          gfx_rect(x1,scope_ycent-v,x2-x1,1);
+          rdptr+=1;
+          color2();
+          i+=1;
+        );
+        i+=1;
+      );
+      rdptr >= histsize ? rdptr=0;
+    );
+  );
+
+  hold_button.draw_button(gfx_w,0, g_hold>=0 ? sprintf(#,"hold: -%d samples",g_hold+0.5) : "hold");
+
+  length_button.draw_button(gfx_x-8, 0, sprintf(#,"length: %s",  format_time_msec(view_msec)) );
+
+  vzoom_button.draw_button(gfx_x-8, 0, sprintf(#,"range: %+.1fdB",view_maxdb));
+
+  rms_button.draw_button(gfx_x-8, 0, sprintf(#,"rms: %s", format_time_msec(view_rms)));
+
+  meter_range_button.draw_button(gfx_x-8, 0, view_meter_range>-1?"meter off":sprintf(#,"meter range: %+.1fdB",view_meter_range));
+
+  );
+);

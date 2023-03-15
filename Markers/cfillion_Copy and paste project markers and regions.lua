@@ -1,22 +1,21 @@
 -- @description Copy/paste project markers and/or regions
--- @version 1.1.1
--- @changelog
---   Fix markers being copied past the end of the time selection [p=1942313]
---   Renumber markers and regions when pasting
 -- @author cfillion
--- @links
+-- @version 1.1.2
+-- @changelog Remove error message when pasting without any markers or regions in the clipboard
+-- @metapackage
+-- @provides
+--   [main] . > cfillion_Copy project markers and regions in time selection.lua
+--   [main] . > cfillion_Copy project markers in time selection.lua
+--   [main] . > cfillion_Copy project regions in time selection.lua
+--   [main] . > cfillion_Paste project markers and regions.lua
+--   [main] . > cfillion_Paste project markers and regions at edit cursor.lua
+-- @link
 --   cfillion.ca https://cfillion.ca/
 --   Request Thread https://forum.cockos.com/showthread.php?t=201983
--- @screenshots
+-- @screenshot
 --   Basic usage https://i.imgur.com/dSyRnKe.gif
 --   Paste at edit cursor https://i.imgur.com/Zdu5VIF.gif
--- @donate https://www.paypal.com/cgi-bin/webscr?business=T3DEWBQJAV7WL&cmd=_donations&currency_code=CAD&item_name=ReaScript%3A+Set+item+playback+rate+from+semitones
--- @provides
---   . > cfillion_Copy project markers and regions in time selection.lua
---   . > cfillion_Copy project markers in time selection.lua
---   . > cfillion_Copy project regions in time selection.lua
---   . > cfillion_Paste project markers and regions.lua
---   . > cfillion_Paste project markers and regions at edit cursor.lua
+-- @donation https://www.paypal.com/cgi-bin/webscr?business=T3DEWBQJAV7WL&cmd=_donations&currency_code=CAD&item_name=ReaScript%3A+Set+item+playback+rate+from+semitones
 -- @about
 --   This script provides actions to copy and paste project markers and/or
 --   regions in the time selection. All markers and/or regions in the project
@@ -57,7 +56,6 @@ function paste()
   local _, markerId, regionId = reaper.CountProjectMarkers(0)
 
   if #markers < 1 then
-    reaper.MB("Marker clipboard is empty!", script_name, 0)
     return
   end
 

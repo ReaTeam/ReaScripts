@@ -1,0 +1,286 @@
+/////////////////////////////////////////////////////////////////
+// Copyright (c) - 2015 - Olivier Belanger                     //
+// Permission to use, copy, modify, and/or distribute this     //
+// software for any purpose with or without fee is hereby      //
+// granted, provided that the above copyright notice and this  //
+// permission notice appear in all copies. CookDSP IS PROVIDED //
+// "AS IS", WITHOUT WARRANTY OF ANY KIND FROM THE AUTHOR.      //
+/////////////////////////////////////////////////////////////////
+
+@init
+
+/******************************************************* 
+GRAINS
+======
+
+Simple granular synthesis generator.
+
+Description
+-----------
+
+The `grains` object implements a synchronous granular synthesis.
+There will be `num` grains with their starting point equally spaced 
+in time over the duration specified with the `dur` parameter. It uses
+an internal tuckey window function as the grain envelope.
+
+It must be used with a variable name as prefix (object oriented).
+
+Initializer
+-----------
+
+#### grains(num, pitch, pos, dur, pitrnd, posrnd, maxlen) ####
+
+The `grains` function initializes a synchronous granular synthesis
+generator. It provides control over the number of overlapped grains
+(`num`), the overall transposition (`pitch`), the position of the
+playback pointer (`pos`), normalized between 0 and 1 and the duration,
+in seconds, of the grains (`dur`). The arguments `pitrnd` and `posrnd`
+control the amount of random applied to the pitch and the playback 
+position of each grain (regardless of the values of the other grains).
+These arguments are normalized between 0 and 1. The `maxlen` argument
+is the length of the internal memory, in seconds, allocated at 
+initialization time. This space will be used to record the samples
+to be granulated.
+
+Methods
+-------
+
+#### grains_record(state) ####
+
+If `state` is 1, the object starts recording the samples given as
+argument to `grains_do` method into the internal memory space. A
+`state` of 0 stops the recording and switch back to the playing mode.
+If the recording reach the end of the internal memory, the recording
+is stopped automatically.
+
+#### grains_set(num, pitch, pos, dur, pitrnd, posrnd) ####
+
+Sets all parameters at once. See other methods for more details.
+
+#### grains_set_num(num) ####
+
+Sets a new number of overlapped grains `num`. The maximum number of
+grains is 128.
+
+#### grains_set_pitch(pitch) ####
+
+Sets a new transposition factor `pitch` (1 means no transposition).
+
+#### grains_set_pos(pos) ####
+
+Sets a new playback position `pos`, normalized between 0 (beginning) 
+and 1 (end), into the recording chunk.
+
+#### grains_set_dur(dur) ####
+
+Sets a new grain duration `dur`, in seconds.
+
+#### grains_set_pitrnd(pitrnd) ####
+
+Sets a new pitch random factor, between 0 (no transposition) and 1
+(full range random transposition).
+
+#### grains_set_posrnd(posrnd) ####
+
+Sets a new position random factor, between 0 (no deviation) and 1
+(full range random deviation).
+
+#### grains_do(signal) ####
+
+Processes one samples of an input signal `signal` and outputs
+the processed sample.
+
+Example
+-------
+
+    desc:Simple Granulator
+
+    slider1:24<1,64,1>Number Of Grains
+    slider2:1<0.125,4>Transposition
+    slider3:0.5<0,1>Reading Position
+    slider4:0.1<0.01,0.5>Grain Duration
+    slider5:0.1<0,1>Random Transposition
+    slider6:0.1<0,1>Random Position
+    slider7:0<0,1,1{Playing,Recording}>Play/Record Mode
+
+    import cookdsp.jsfx-inc
+
+    @init
+    // Initializes 2 granulators with an internal memory of 10 seconds.
+    bufL = grL.grains(slider1, slider2, slider3, slider4, slider5, slider6, 10);
+    bufR = grR.grains(slider1, slider2, slider3, slider4, slider5, slider6, 10);
+
+    @slider
+    // Sets all parameters at once.
+    grL.grains_set(slider1, slider2, slider3, slider4, slider5, slider6);
+    grR.grains_set(slider1, slider2, slider3, slider4, slider5, slider6);
+    // We need to record some samples in memory to be able to granulate them.
+    grL.grains_record(slider7);
+    grR.grains_record(slider7);
+
+    @sample
+    // Only output signal when in playing state.
+    play_state == 1 ? (
+        spl0 = grL.grains_do(spl0); 
+        spl1 = grR.grains_do(spl1);
+    );
+
+********************************************************/
+
+// Private functions
+function _grains_init_memories()
+(
+    this.startpos = memalloc(128);
+    this.gsize = memalloc(128);
+    this.gphase = memalloc(128);
+    this.lastpos = memalloc(128);
+);
+
+function _grains_reset_memories()
+(
+    memset(this.startpos, 0, 128);
+    memset(this.gsize, 0, 128);
+    memset(this.gphase, 0, 128);
+    memset(this.lastpos, 0, 128);
+);
+
+function _grains_compute_phase_inc()
+(
+    this.dur == 0 ? durtosamps_ = 0 : durtosamps_ = (1 / this.dur) / srate;
+    this.inc = this.pitch * durtosamps_;
+);
+
+// grains setter functions
+function grains_set_num(num)
+(
+    num != this.num ? (
+        num > 128 ? num = 128;
+        this.num = num;
+        num <= 24 ? (
+            this.gain = pow(10, -num/2 * 0.05);
+        ) : (
+            this.gain = pow(10, -12 * 0.05);
+        );
+        this._grains_reset_memories();
+        nc_ = 0;
+        loop(num,
+            ph_ = (nc_/num) * (1.0 + (rand(2)-1) * 0.01);
+            ph_ < 0 ? ph_ = 0 : ph_ >= 1 ? ph_ -= 1;
+            this.gphase[nc_] = ph_;
+            this.lastpos[nc_] = 1;
+            nc_ += 1;
+        );
+    );
+);
+
+function grains_set_pitch(pitch)
+(
+    pitch != this.pitch ? (
+        this.pitch = pitch;
+        this._grains_compute_phase_inc();
+    );
+);
+
+function grains_set_pos(pos)
+(
+    pos < 0 ? pos = 0 : pos > 1 ? pos = 1;
+    this.pos = pos;
+);
+
+function grains_set_dur(dur)
+(
+    dur != this.dur ? (
+        this.dur = dur;
+        this._grains_compute_phase_inc();
+    );
+);
+
+function grains_set_pitrnd(pitrnd)
+(
+    pitrnd < 0 ? pitrnd = 0 : pitrnd > 1 ? pitrnd = 1;
+    this.pitrnd = pow(pitrnd, 3) * 0.5;
+);
+
+function grains_set_posrnd(posrnd)
+(
+    posrnd < 0 ? posrnd = 0 : posrnd > 1 ? posrnd = 1;
+    this.posrnd = pow(posrnd, 3) * 0.5;
+);
+
+function grains_set(num pitch pos dur pitrnd posrnd)
+(
+    this.grains_set_num(num);   
+    this.grains_set_pitch(pitch); 
+    this.grains_set_pos(pos);   
+    this.grains_set_dur(dur);   
+    this.grains_set_pitrnd(pitrnd);
+    this.grains_set_posrnd(posrnd);
+);
+
+// grains initializer
+function grains(num pitch pos dur pitrnd posrnd maxlen)
+(
+    this.maxlen = maxlen;
+    bufloc_ = this.buf.buffer(srate*maxlen);
+    this.env.buffer(1024); this.env.buffer_window(6);
+    this.grains_set_pitch(pitch);
+    this.grains_set_pos(pos);
+    this.grains_set_dur(dur);
+    this.grains_set_pitrnd(pitrnd);
+    this.grains_set_posrnd(posrnd);
+    this._grains_init_memories();
+    this.grains_set_num(num);
+    this.phase = this.recpos = this.reclen = this.sum = this.record = 0;
+    bufloc_; // return buffer location into the global memory
+);
+
+// grains start/stop record function
+function grains_record(state)
+(
+    state == 1 && this.record == 0 ? (
+        this.record = 1;
+    ) : state == 0 && this.record == 1 ? (
+        this.record = this.recpos = 0;
+    );
+);
+
+function grains_do(signal)
+(
+    this.record == 1 ? ( // record input signal
+        tmp_ = signal;
+        this.buf.buffer_write(this.recpos, signal);
+        this.recpos += 1;
+        this.reclen = this.recpos;
+        this.recpos == (srate*this.maxlen) ? this.grains_record(0);
+    ) : ( // granulate recorded signal
+        tmp_ = 0;
+        nc_ = 0;
+        loop(this.num,
+            ppos_ = this.phase + this.gphase[nc_];
+            ppos_ >= 1 ? ppos_ -= 1;
+            amp_ = this.env.buffer_fnread2(ppos_);
+            ppos_ < this.lastpos[nc_] ? (
+                len_ = this.reclen - this.gsize[nc_];
+                this.gsize[nc_] = this.dur * srate;
+                this.gsize[nc_] *= 1 + (rand(2)-1) * this.pitrnd;
+                this.startpos[nc_] = this.pos * len_;
+                this.startpos[nc_] += (rand(2)-1) * this.posrnd * this.reclen;
+                this.startpos[nc_] < 0 ? (
+                    this.startpos[nc_] += len_;
+                ) : this.startpos[nc_] >=  len_ ? (
+                    this.startpos[nc_] -=  len_;
+                );
+            );
+            this.lastpos[nc_] = ppos_;
+            index_ = ppos_ * this.gsize[nc_] + this.startpos[nc_];
+            index_ >= 0 && index_ < this.reclen ? (
+                tmp_ += this.buf.buffer_fread2(index_) * amp_;
+            );
+            nc_ += 1;
+        );
+        tmp_ *= this.gain;
+        this.phase += this.inc;
+        this.phase < 0 ? this.phase += 1 : this.phase >= 1 ? this.phase -= 1;
+    );
+    tmp_;
+);

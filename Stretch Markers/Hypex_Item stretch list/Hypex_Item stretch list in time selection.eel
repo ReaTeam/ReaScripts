@@ -1,0 +1,85 @@
+// @noindex
+
+function List()
+(
+    Item = GetSelectedMediaItem(0, 0);
+    ItemStart = GetMediaItemInfo_Value(Item, "D_POSITION");
+    ItemLength = GetMediaItemInfo_Value(Item, "D_LENGTH");
+    ItemEnd = ItemStart + ItemLength;
+    Take = GetActiveTake(Item);
+    TakeOffset = GetMediaItemTakeInfo_Value(Take, "D_STARTOFFS");
+    Markers = GetTakeNumStretchMarkers(Take);
+
+    Markers ?
+    (
+        #List = "Legend: M=Marker, T=Time, P=Position, O=Source-Offset, S=Slope\n\n";
+
+        GetSet_LoopTimeRange(0, 0, RangeStart, RangeEnd, 0);
+        RangeEnd - RangeStart ?
+        (
+            Start = RangeStart;
+            End = RangeEnd;
+        )
+        :
+        (
+            Start = 0;
+            End = GetProjectLength(0);
+        );
+
+        Marker = 0;
+        Count = 0;
+
+        while(Marker < Markers)
+        (
+            GetTakeStretchMarker(Take, Marker, Position, Offset);
+            (
+                Time = ItemStart + Position;
+
+                (Time >= Start) && (Time <= End) ?
+                (
+                    format_timestr(Time, #Time);
+                    Slope = GetTakeStretchMarkerSlope(Take, Marker);
+                    sprintf(#Info, "M=%d, T=%s, P=%.10f, O=%.10f, S=%+.10f\n", Marker, #Time, Position, Offset, Slope);
+                    #List += #Info;
+                    Count += 1;
+                )
+            );
+
+            Marker += 1;
+        );
+
+        Count ?
+        (
+            ShowMessageBox(#List, #Title, 0);
+        )
+        :
+        (
+            ShowMessageBox("Info: No stretch markers found within time selection.", #Title, 0);
+        );
+    )
+    :
+    (
+        ShowMessageBox("Info: No stretch markers exist in active take of item.", #Title, 0);
+    );
+);
+
+function Info()
+(
+    ShowMessageBox("Instructions: Select an item to see list of stretch markers in active take of item.", #Title, 0);
+);
+
+function main()
+(
+    #Title="Stretch Marker List";
+
+    CountSelectedMediaItems(0) ?
+    (
+        List();
+    )
+    :
+    (
+        Info();
+    );
+);
+
+main();

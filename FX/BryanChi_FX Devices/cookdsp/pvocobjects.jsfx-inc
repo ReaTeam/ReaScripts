@@ -1,0 +1,843 @@
+@init
+
+/******************************************************* 
+PVIN
+====
+
+Apply a Phase Vocoder analysis on an input signal.
+
+Description
+-----------
+
+The `pvin` object transforms an audio signal into its spectral
+representation using a phase vocoder analysis. This results in 
+two streams, one for the bin's magnitudes and the other for the 
+bin's true frequencies. These two streams are used by the `pvxxx` 
+object family to transform the input signal using spectral domain 
+algorithms. The last object in the phase vocoder chain must be a 
+`pvout` to perform the spectral to time domain conversion.
+
+The magnitude and true frequency part from the analysis are stored 
+in the `magn` and `freq` internal arrays.
+ 
+Initializer
+-----------
+
+#### pvin(size, olaps, [window]) ####
+
+Initializes a Phase Vocoder Transform algorithm. The PV size, in
+samples, given by the `size` argument, must be a power of two.
+The `olaps` argument specifies the number of overlapping analysis.
+There will be an output analysis every `size / olaps` samples. The
+`window` argument, as an integer, gives the shape of the analysis 
+envelope (see `buffer` object for the available windows). The default 
+is a hanning window.
+ 
+Methods
+-------
+
+#### pvin_resize(size, olaps) ####
+
+Resizes internal memories of the PV agorithm with the new `size` 
+and `olaps` factors. The corresponding `pvout` object (and every 
+processes in between) should always use the same size and number 
+of overlaps.
+
+#### pvin_set_window(window) ####
+
+Sets a new analysis window. See `buffer` object for the available 
+windows.
+
+#### pvin_do(signal) ####
+
+Processes one sample of the input `signal` and updates the `count`
+and `ready` attributes of the object. The `count` attribute should
+be used to retrieve the current resynthesized sample from a `pvout` 
+object. The `ready` attribute indicates when `magn` and `freq` buffers 
+are ready to be processed.
+
+Attributes
+----------
+
+#### pvin.ready ####
+
+This attribute will have a value of 1 when a new frame (`magn` 
+and  `freq` buffers) is ready to be processed. This will happen 
+every `size / olaps` samples. Otherwise, the `ready` attribute 
+holds a value of 0.
+
+#### pvin.count ####
+
+This attribute holds the current analysis sample count. It can 
+used to retrieve the current output sample from a `pvout` object.
+
+#### pvin.magn ####
+
+Buffer that holds the magnitude part of the analysis. Indexes run from 
+0 to half the PV size.
+
+#### pvin.freq ####
+
+Buffer that holds the true frequency part of the analysis. Indexes run 
+from 0 to half the PV size.
+
+Example
+-------
+
+    desc:Phase Vocoder Randomizer
+
+    import cookdsp.jsfx-inc
+
+    // PV parameters (only PV Size for the example).
+    slider1:5<0,8,1{32,64,128,256,512,1024,2048,4096,8192}>PV Size
+    // Effect's specific slider
+    slider2:10<1,100,1>How Many Bins
+
+    @init
+    size = pow(2, slider1+5);
+    // Initialize PV with 4 overlaps and hanning window
+    pin.pvin(size, 4);
+    pout.pvout(size, 4);
+    magn = memalloc(size/2);
+    freq = memalloc(size/2);
+    
+    @slider
+    size = pow(2, slider1+5);
+    // If size or overlaps changed, re-initialize PVs.
+    size != pin.size ? (
+        pin.pvin_resize(size, 4);
+        pout.pvout_resize(size, 4);
+        // Initialize effect's specific memories
+        magn = memalloc(size/2);
+        freq = memalloc(size/2);
+    );
+
+    @sample
+    // Compute PV on both channels at the same time to save space
+    pin.pvin_do((spl0 + spl1) * 0.707);
+    spl0 = spl1 = pout.pvout_get_output(pin.count);
+
+    pin.ready ? ( // New buffers ready for processing.
+        // Resets output buffers to zeros
+        memset(magn, 0, size/2);
+        memset(freq, 0, size/2);
+        // Choose randomly "slider2" bins to output 
+        loop(slider2,
+            bin = rand(size/2);
+            magn[bin] = pin.magn[bin]; 
+            freq[bin] = pin.freq[bin];
+        );
+        // compute the inverse PV.
+        pout.pvout_do(magn, freq);
+    );
+
+********************************************************/
+// Private function
+function _pvin_init()
+(
+    this.window = this.fftobj.window;
+    this.olaps = this.fftobj.olaps;
+    this.size = this.fftobj.size;
+    this.hsize = this.fftobj.hsize;
+    this.hopsize = this.fftobj.hopsize;
+    this.factor = srate / (this.hopsize * this.twopi);
+    this.scale = this.twopi * this.hopsize / this.size;
+    this.magn = memalloc(this.hsize);
+    this.freq = memalloc(this.hsize);
+    this.prev = memalloc(this.hsize);
+);
+
+function pvin(size olaps window)
+(
+    this.twopi = 2 * $pi;
+    this.fftobj.fftin(size, olaps, window);
+    this._pvin_init();
+);
+
+function pvin(size olaps)
+(
+    this.twopi = 2 * $pi;
+    this.fftobj.fftin(size, olaps, 1);
+    this._pvin_init();
+);
+
+function pvin_resize(size olaps)
+(
+    this.fftobj.fftin_resize(size, olaps);
+    this._pvin_init();
+);
+
+function pvin_set_window(window)
+(
+    this.fftobj.fftin_set_window(window);
+    this.window = this.fftobj.window;
+);
+
+function pvin_do(signal)
+(
+    this.ready = 0;
+    this.fftobj.fftin_do(signal);
+    this.count = this.fftobj.count;
+    this.fftobj.ready ? (
+        this.ready = 1;
+        k_ = 0;
+        while (k_ < this.hsize) (
+            re_ = this.fftobj.real[k_];
+            im_ = this.fftobj.imag[k_];
+            mag_ = sqrt(re_*re_ + im_*im_);
+            phase_ = atan2(im_, re_);
+            tmp_ = phase_ - this.prev[k_];
+            this.prev[k_] = phase_;
+            while (tmp_ > $pi) (tmp_ -= this.twopi;);
+            while (tmp_ < -$pi) (tmp_ += this.twopi;);
+            this.magn[k_] = mag_;
+            this.freq[k_] = (tmp_ + k_ * this.scale) * this.factor;
+            k_ += 1;
+        );
+    );
+);
+
+/******************************************************* 
+PVOUT
+=====
+
+Apply an Inverse Phase Vocoder Transform on an analysis signal.
+
+Description
+-----------
+
+The `pvout` object converts the spectral representation of a signal 
+into its temporal form (real signal). It takes magnitude and true
+frequency parts, coming from an PV process, to compute the inverse
+PV and return the corresponding audio signal. 
+
+Initializer
+-----------
+
+#### pvout(size, olaps, [window]) ####
+
+Initializes an Inverse Phase Vocoder Transform algorithm. The PV size, 
+in samples, given by the `size` argument, must be a power of two.
+The `olaps` argument specifies the number of overlapping analysis.
+There will be a sample block outputted every `size / olaps` samples. 
+The `window` argument, as an integer, gives the shape of the analysis 
+envelope (see `buffer` object for the available windows). The default 
+is a hanning window.
+
+Methods
+-------
+
+#### pvout_resize(size, olaps) ####
+
+Resizes internal memories of the PV agorithm with the new `size` 
+and `olaps` factors. The corresponding `pvin` object (and every 
+processes in between) should always use the same size and number 
+of overlaps.
+
+#### pvout_set_window(window) ####
+
+Sets a new analysis window. See `buffer` object for the available 
+windows.
+
+#### pvout_get_output(count) ####
+
+Use this function to retrieve the output sample, from the
+Inverse Phase Vocoder Transform, at the position `count`. If
+the position comes from the `count` attribute of a `pvin` 
+object, the current output sample will be retrieved.
+
+#### pvout_do(magn, freq) ####
+
+Computes an Inverse Phase Vocoder Transform with the arrays
+`magn` and `freq`. This function should be called only when
+the `pvin` attribute `ready` is 1.
+
+Example
+-------
+
+    desc:Phase Vocoder Comb Filter
+
+    import cookdsp.jsfx-inc
+
+    // PV parameters (only PV Size for the example).
+    slider1:5<0,8,1{32,64,128,256,512,1024,2048,4096,8192}>PV Size
+    // Effect's specific slider.
+    slider2:2<2,100,1>Bin Step
+
+    @init
+    size = pow(2, slider1+5);
+    // Initialize PV with 4 overlaps and hanning window
+    pin.pvin(size, 4);
+    pout.pvout(size, 4);
+    magn = memalloc(size/2);
+    freq = memalloc(size/2);
+
+    @slider
+    size = pow(2, slider1+5);
+    // If size changed, re-initialize PVs.
+    size != pin.size ? (
+        pin.pvin_resize(size, 4);
+        pout.pvout_resize(size, 4);
+        // Initialize effect's specific memories
+        magn = memalloc(size/2);
+        freq = memalloc(size/2);
+    );
+
+    @sample
+    // Compute PV on both channels at the same time to save space
+    pin.pvin_do((spl0 + spl1) * 0.707);
+    spl0 = spl1 = pout.pvout_get_output(pin.count);
+
+    pin.ready ? ( // New buffers ready for processing.
+        k = 0;
+        while (k < size/2) (
+            // Passes the signal only for bins that are multiples of slider2 value
+            k % slider2 == 0 ? (
+                magn[k] = pin.magn[k]; 
+                freq[k] = pin.freq[k];
+            ) : (
+                magn[k] = freq[k] = 0;
+            );
+            k += 1;
+        );
+        // compute the inverse FFT.
+        pout.pvout_do(magn, freq);
+    );
+
+********************************************************/
+
+// Private function
+function _pvout_init()
+(
+    this.window = this.fftobj.window;
+    this.olaps = this.fftobj.olaps;
+    this.size = this.fftobj.size;
+    this.hsize = this.fftobj.hsize;
+    this.hopsize = this.fftobj.hopsize;
+    this.ifactor = this.hopsize * this.twopi / srate;
+    this.iscale = srate / this.size;
+    this.real = memalloc(this.hsize);
+    this.imag = memalloc(this.hsize);
+    this.phacc = memalloc(this.hsize);
+);
+
+function pvout(size olaps window)
+(
+    this.twopi = 2 * $pi;
+    this.fftobj.fftout(size, olaps, window);
+    this._pvout_init();
+);
+
+function pvout(size olaps)
+(
+    this.twopi = 2 * $pi;
+    this.fftobj.fftout(size, olaps, 1);
+    this._pvout_init();
+);
+
+function pvout_resize(size olaps)
+(
+    this.fftobj.fftout_resize(size, olaps);
+    this._pvout_init();
+);
+
+function pvout_set_window(window)
+(
+    this.fftobj.fftout_set_window(window);
+    this.window = this.fftobj.window;
+);
+
+function pvout_get_output(count) 
+(
+    // count is pvin.count
+    this.fftobj.outbuf[count];
+);
+
+// call pvout_do only when pvin.ready is true
+function pvout_do(magn freq)
+(
+    k_ = 0;
+    loop(this.hsize,
+        mag_ = magn[k_];
+        tmp_ = freq[k_];           
+        tmp_ = (tmp_ - k_ * this.iscale) * this.ifactor;
+        this.phacc[k_] += tmp_;
+        phase_ = this.phacc[k_];
+        this.real[k_] = mag_ * cos(phase_);
+        this.imag[k_] = mag_ * sin(phase_);
+        k_ += 1;
+    );
+    this.fftobj.fftout_do(this.real, this.imag);
+);
+
+/******************************************************* 
+PVSHIFT
+=======
+
+Linearly moves the frequency components of a PV stream.
+
+Description
+-----------
+
+The `pvshift` object takes a PV signal in input (magnitude
+and true freqency parts of a PV spectral analysis) and 
+linearly moves its frequency components by an amount specified
+in Hz.
+
+Initializer
+-----------
+
+#### pvshift(shift, size) ####
+
+Initializes PV frequency shifter with the argument `shift` as the 
+amount of shifting in Hz. The `size` argument is the length of 
+the `magn` and `freq` arrays, usually half the PV analysis size.
+
+Methods
+-------
+
+#### pvshift_resize(size) ####
+
+Resizes internal memories of the process with the new `size`. 
+The size of a PV process must be half the size of the PV 
+used to analyse to input signal. This is the size of the magnitude 
+and true frequency buffers.
+
+#### pvshift_set_shift(shift) ####
+
+Sets a new shifting factor `shift`, in Hz.
+
+#### pvshift_do(magn, freq) ####
+
+Computes one frame of the process on a complex signal (`magn` and 
+`freq` are the magnitude and true frequency parts coming from a `pvin` 
+or any PV processing object). The internal `magn` and `freq` buffers 
+hold the processed complex signal. This function should be called
+only when the `ready` attribute of a `pvin` object has a value of 1.
+ 
+Attributes
+----------
+
+#### pvshift.magn ####
+
+Buffer that holds the magnitude part of the process. Indexes run 
+from 0 to the process size (usually half the PV size).
+
+#### pvshift.freq ####
+
+Buffer that holds the true frequency part of the process. Indexes 
+run from 0 to the process size (usually half the PV size).
+
+Example
+-------
+
+    desc: Phase Vocoder Frequency Shifter
+
+    import cookdsp.jsfx-inc
+
+    slider1:5<0,8,1{32,64,128,256,512,1024,2048,4096,8192}>PV Size
+    slider2:1<0,2,1{2,4,8}>Overlaps
+    slider3:0<-2000,2000>Amount Of Shifting In Hz
+
+    @init
+    size = pow(2, slider1+5);
+    olaps = pow(2, slider2+1);
+    pin.pvin(size, olaps);
+    pin2.pvin(size, olaps);
+    pout.pvout(size, olaps);
+    pout2.pvout(size, olaps);
+    pvs.pvshift(slider3, size/2);
+    pvs2.pvshift(slider3, size/2);
+
+    @slider
+    size = pow(2, slider1+5);
+    olaps = pow(2, slider2+1);
+    // If size or overlaps changed, re-initialize PVs.
+    size != pin.size || olaps != pin.olaps ? (
+        pin.pvin_resize(size, olaps);
+        pin2.pvin_resize(size, olaps);
+        pout.pvout_resize(size, olaps);
+        pout2.pvout_resize(size, olaps);
+        // Initialize effect's specific memories here...
+        pvs.pvshift_resize(size/2);
+        pvs2.pvshift_resize(size/2);
+    );
+    // Process effect's specific sliders here...
+    pvs.pvshift_set_shift(slider3);
+    pvs2.pvshift_set_shift(slider3);
+
+    @sample
+    // Input / Output
+    pin.pvin_do(spl0);
+    pin2.pvin_do(spl1);
+    spl0 = pout.pvout_get_output(pin.count);
+    spl1 = pout2.pvout_get_output(pin2.count);
+
+    pin.ready ? (
+        pvs.pvshift_do(pin.magn, pin.freq);
+        pvs2.pvshift_do(pin2.magn, pin2.freq);
+        pout.pvout_do(pvs.magn, pvs.freq);
+        pout2.pvout_do(pvs2.magn, pvs2.freq);
+    );
+
+*******************************************************/
+function pvshift(shift size)
+(
+    this.shift = shift;
+    this.size = size;
+    this.magn = memalloc(size);
+    this.freq = memalloc(size);
+);
+
+function pvshift_set_shift(shift)
+(
+    this.shift = shift;
+);
+
+function pvshift_resize(size)
+(
+    this.size = size;
+    this.magn = memalloc(size);
+    this.freq = memalloc(size);
+);
+
+function pvshift_do(magn freq)
+(
+    k_ = 0;
+    while (k_ < this.size) (
+        this.magn[k_] = this.freq[k_] = 0;
+        k_ += 1;
+    );
+    binf_ = srate / this.size;
+    dev_ = floor(this.shift / binf_);
+    k_ = 0;
+    while (k_ < this.size) (
+        index_ = k_ + dev_;
+        index_ >= 0 && index_ < this.size ? (
+            this.magn[index_] += magn[k_];
+            this.freq[index_] = freq[k_] + this.shift;
+        );
+        k_ += 1;
+    );
+);
+
+/******************************************************* 
+PVTRANS
+=======
+
+Transpose the frequency components of a PV stream.
+
+Description
+-----------
+
+The `pvtrans` object takes a PV signal in input (magnitude
+and true freqency parts of a PV spectral analysis) and 
+transpose its frequency components.
+
+Initializer
+-----------
+
+#### pvtrans(transpo, size) ####
+
+Initializes PV transposer with the argument `transpo` as the 
+transposition factor. The `size` argument is the length of 
+the `magn` and `freq` arrays, usually half the PV analysis size.
+
+Methods
+-------
+
+#### pvtrans_resize(size) ####
+
+Resizes internal memories of the process with the new `size`. 
+The size of a PV process must be half the size of the PV 
+used to analyse to input signal. This is the size of the magnitude 
+and true frequency buffers.
+
+#### pvtrans_set_transpo(transpo) ####
+
+Sets a new transposition factor `transpo`.
+
+#### pvtrans_do(magn, freq) ####
+
+Computes one frame of the process on a complex signal (`magn` and 
+`freq` are the magnitude and true frequency parts coming from a `pvin` 
+or any PV processing object). The internal `magn` and `freq` buffers 
+hold the processed complex signal. This function should be called
+only when the `ready` attribute of a `pvin` object has a value of 1.
+ 
+Attributes
+----------
+
+#### pvtrans.magn ####
+
+Buffer that holds the magnitude part of the process. Indexes run 
+from 0 to the process size (usually half the PV size).
+
+#### pvtrans.freq ####
+
+Buffer that holds the true frequency part of the process. Indexes 
+run from 0 to the process size (usually half the PV size).
+
+Example
+-------
+
+    desc: Phase Vocoder Stereo Transposer
+
+    import cookdsp.jsfx-inc
+
+    slider1:5<0,8,1{32,64,128,256,512,1024,2048,4096,8192}>PV Size
+    slider2:1<0,2,1{2,4,8}>Overlaps
+    slider3:1<0.5,2>Transposition Factor
+
+    @init
+    size = pow(2, slider1+5);
+    olaps = pow(2, slider2+1);
+    pin.pvin(size, olaps);
+    pin2.pvin(size, olaps);
+    pout.pvout(size, olaps);
+    pout2.pvout(size, olaps);
+    pvt.pvtrans(slider3, size/2);
+    pvt2.pvtrans(slider3, size/2);
+
+    @slider
+    size = pow(2, slider1+5);
+    olaps = pow(2, slider2+1);
+    // If size or overlaps changed, re-initialize PVs.
+    size != pin.size || olaps != pin.olaps ? (
+        pin.pvin_resize(size, olaps);
+        pin2.pvin_resize(size, olaps);
+        pout.pvout_resize(size, olaps);
+        pout2.pvout_resize(size, olaps);
+        // Initialize effect's specific memories here...
+        pvt.pvtrans_resize(size/2);
+        pvt2.pvtrans_resize(size/2);
+    );
+    // Process effect's specific sliders here...
+    pvt.pvtrans_set_transpo(slider3);
+    pvt2.pvtrans_set_transpo(slider3);
+
+    @sample
+    // Input / Output
+    pin.pvin_do(spl0);
+    pin2.pvin_do(spl1);
+    spl0 = pout.pvout_get_output(pin.count);
+    spl1 = pout2.pvout_get_output(pin2.count);
+
+    pin.ready ? (
+        pvt.pvtrans_do(pin.magn, pin.freq);
+        pvt2.pvtrans_do(pin2.magn, pin2.freq);
+        pout.pvout_do(pvt.magn, pvt.freq);
+        pout2.pvout_do(pvt2.magn, pvt2.freq);
+    );
+
+*******************************************************/
+function pvtrans(transpo size)
+(
+    transpo < 0.01 ? transpo = 0.01 : transpo > 10 ? transpo = 10;
+    this.transpo = transpo;
+    this.size = size;
+    this.magn = memalloc(size);
+    this.freq = memalloc(size);
+);
+
+function pvtrans_set_transpo(transpo)
+(
+    transpo < 0.01 ? transpo = 0.01 : transpo > 10 ? transpo = 10;
+    this.transpo = transpo;
+);
+
+function pvtrans_resize(size)
+(
+    this.size = size;
+    this.magn = memalloc(size);
+    this.freq = memalloc(size);
+);
+
+function pvtrans_do(magn freq)
+(
+    k_ = 0;
+    while (k_ < this.size) (
+        this.magn[k_] = this.freq[k_] = 0;
+        k_ += 1;
+    );
+    k_ = 0;
+    while (k_ < this.size) (
+        index_ = floor(k_ * this.transpo);
+        index_ < this.size ? (
+            this.magn[index_] += magn[k_];
+            this.freq[index_] = freq[k_] * this.transpo;
+        );
+        k_ += 1;
+    );
+);
+
+/******************************************************* 
+PVVERB
+======
+
+Spectral domain reverberation.
+
+Description
+-----------
+
+The `pvverb` object takes a PV signal in input (magnitude
+and true freqency parts of a PV spectral analysis) and 
+slow down the decay rate of both the magnitude and true
+frequency components.
+
+Initializer
+-----------
+
+#### pvverb(revtime, damp, size) ####
+
+Initializes PV verb with the argument `revtime` as the reverberation 
+factor, between 0 and 1. The `damp` argument (between 0 and 1) indicates 
+how faster the high frequencies will decay than the lower frequencies. 
+The `size` argument is the length of the `magn` and `freq` arrays, 
+usually half the PV analysis size.
+
+Methods
+-------
+
+#### pvverb_resize(size) ####
+
+Resizes internal memories of the process with the new `size`. 
+The size of a PV process must be half the size of the PV 
+used to analyse to input signal. This is the size of the magnitude 
+and true frequency buffers.
+
+#### pvverb_set_revtime(revtime) ####
+
+Sets a new reverberation factor `revtime`, between 0 and 1.
+
+#### pvverb_set_damp(damp) ####
+
+Sets a new damping factor `damp`, between 0 and 1.
+
+#### pvverb_do(magn, freq) ####
+
+Computes one frame of the process on a complex signal (`magn` and 
+`freq` are the magnitude and true frequency parts coming from a `pvin` 
+or any PV processing object). The internal `magn` and `freq` buffers 
+hold the processed complex signal. This function should be called
+only when the `ready` attribute of a `pvin` object has a value of 1.
+
+Attributes
+----------
+
+#### pvverb.magn ####
+
+Buffer that holds the magnitude part of the process. Indexes run 
+from 0 to the process size (usually half the PV size).
+
+#### pvverb.freq ####
+
+Buffer that holds the true frequency part of the process. Indexes 
+run from 0 to the process size (usually half the PV size).
+
+Example
+-------
+
+    desc: Phase Vocoder Stereo Verb
+
+    import cookdsp.jsfx-inc
+
+    slider1:5<0,8,1{32,64,128,256,512,1024,2048,4096,8192}>PV Size
+    slider2:1<0,2,1{2,4,8}>Overlaps
+    slider3:0.75<0,1>Reverb Time
+    slider4:0.9<0,1>Damping Factor
+
+    @init
+    size = pow(2, slider1+5);
+    olaps = pow(2, slider2+1);
+    pin.pvin(size, olaps);
+    pin2.pvin(size, olaps);
+    pout.pvout(size, olaps);
+    pout2.pvout(size, olaps);
+    pvv.pvverb(slider3, slider4, size/2);
+    pvv2.pvverb(slider3, slider4, size/2);
+
+    @slider
+    size = pow(2, slider1+5);
+    olaps = pow(2, slider2+1);
+    // If fftsize or overlaps changed, re-initialize PVs.
+    size != pin.size || olaps != pin.olaps ? (
+        pin.pvin_resize(size, olaps);
+        pin2.pvin_resize(size, olaps);
+        pout.pvout_resize(size, olaps);
+        pout2.pvout_resize(size, olaps);
+        // Initialize effect's specific memories here...
+        pvv.pvverb_resize(size/2);
+        pvv2.pvverb_resize(size/2);
+    );
+    // Process effect's specific sliders here...
+    pvv.pvverb_set_revtime(slider3);
+    pvv2.pvverb_set_revtime(slider3);
+    pvv.pvverb_set_damp(slider4);
+    pvv2.pvverb_set_damp(slider4);
+
+    @sample
+    // Input / Output
+    pin.pvin_do(spl0);
+    pin2.pvin_do(spl1);
+    spl0 = pout.pvout_get_output(pin.count);
+    spl1 = pout2.pvout_get_output(pin2.count);
+
+    pin.ready ? (
+        pvv.pvverb_do(pin.magn, pin.freq);
+        pvv2.pvverb_do(pin2.magn, pin2.freq);
+        pout.pvout_do(pvv.magn, pvv.freq);
+        pout2.pvout_do(pvv2.magn, pvv2.freq);
+    );
+
+*******************************************************/
+function pvverb(revtime damp size)
+(
+    revtime < 0 ? revtime = 0 : revtime > 1 ? revtime = 1;
+    this.revtime = revtime;
+    damp < 0 ? damp = 0 : damp > 1 ? damp = 1;
+    this.damp = damp;
+    this.size = size;
+    this.magn = memalloc(size);
+    this.freq = memalloc(size);
+);
+
+function pvverb_set_revtime(revtime)
+(
+    revtime < 0 ? revtime = 0 : revtime > 1 ? revtime = 1;
+    this.revtime = revtime;
+);
+
+function pvverb_set_damp(damp)
+(
+    damp < 0 ? damp = 0 : damp > 1 ? damp = 1;
+    this.damp = damp;
+);
+
+function pvverb_resize(size)
+(
+    this.size = size;
+    this.magn = memalloc(size);
+    this.freq = memalloc(size);
+);
+
+function pvverb_do(magn freq)
+(
+    rev_ = this.revtime * 0.25 + 0.75;
+    dp_ = this.damp * 0.003 + 0.997;
+    k_ = 0;
+    amp_ = 1.0; 
+    while (k_ < this.size) (
+        mg_ = magn[k_];
+        fq_ = freq[k_];
+        mg_ > this.magn[k_] ? (
+            this.magn[k_] = magn[k_];
+            this.freq[k_] = freq[k_];
+        ) : (
+            this.magn[k_] = mg_ + (this.magn[k_] - mg_) * rev_ * amp_;
+            this.freq[k_] = fq_ + (this.freq[k_] - fq_) * rev_ * amp_;
+        );
+        amp_ *= dp_;
+        k_ += 1;
+    );
+);

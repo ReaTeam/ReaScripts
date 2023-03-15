@@ -4,13 +4,14 @@
    * Author: spk77
    * Author URI: http://forum.cockos.com/member.php?u=49553
    * Licence: GPL v3
-   * Version: 1.0
+   * Version: 1.0.1
 */
   
   // Rename tracks to source filename (optionally remove file ext. from name) - EEL script by spk77 21.8.2014
 // Tracks with in-project MIDI -> uses "active take's name" for renaming
 //
 // Version: 0.2014.8.21
+// Version 1.0.1 by X-Raym 2021-05-13
 
 //// FUNCTION get_filename(path, remove_ext) ////
 //    - extracts "filename" from "full path name"
@@ -48,7 +49,7 @@ function main() local (t_i, tr, first_item, pcm_source, fn, tr_name)
               GetMediaSourceFileName(pcm_source, fn);
               tr_name = get_filename(fn, 1);
             );
-            tr_name != "" ? GetTakeName(tr_name, GetActiveTake(first_item));
+            tr_name == "" ? GetTakeName(tr_name, GetActiveTake(first_item));
             tr_name != "" ? GetSetMediaTrackInfo_String(tr, "P_NAME", tr_name, 1);
               
           );

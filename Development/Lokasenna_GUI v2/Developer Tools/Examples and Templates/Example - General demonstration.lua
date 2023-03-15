@@ -42,24 +42,24 @@ if missing_lib then return 0 end
 
 
 local function fade_lbl()
-   
+
    -- Fade out the label
     if GUI.elms.my_lbl.z == 3 then
         GUI.elms.my_lbl:fade(1, 3, 6)
-        
+
     -- Bring it back
     else
         GUI.elms.my_lbl:fade(1, 3, 6, -3)
     end
-    
+
 end
 
 
 local function btn_click()
-	
+
     -- Open the Window element
 	GUI.elms.wnd_test:open()
-	
+
 end
 
 
@@ -67,29 +67,29 @@ local function wnd_OK()
 
     -- Close the Window element
     GUI.elms.wnd_test:close()
-    
+
 end
 
 
 -- Returns a list of every element on the specified z-layer and
 -- a second list of each element's values
 local function get_values_for_tab(tab_num)
-    
-	-- The '+ 2' here is just to translate from a tab number to its' 
-	-- associated z layer. More complicated scripts would have to 
+
+	-- The '+ 2' here is just to translate from a tab number to its'
+	-- associated z layer. More complicated scripts would have to
 	-- actually access GUI.elms.tabs.z_sets[tab_num] and iterate over
 	-- the table's contents (see the call to GUI.elms.tabs:update_sets
 	-- below)
     local strs_v, strs_val = {}, {}
 	for k, v in pairs(GUI.elms_list[tab_num + 2]) do
-		
+
         strs_v[#strs_v + 1] = v
 		local val = GUI.Val(v)
 		if type(val) == "table" then
 			local strs = {}
 			for k, v in pairs(val) do
-                local str = tostring(v) 
-                
+                local str = tostring(v)
+
                 -- For conciseness, reduce boolean values to T/F
 				if str == "true" then
                     str = "T"
@@ -100,17 +100,17 @@ local function get_values_for_tab(tab_num)
 			end
 			val = table.concat(strs, ", ")
 		end
-        
+
         -- Limit the length of the returned string so it doesn't
         -- spill out past the edge of the window
 		strs_val[#strs_val + 1] = string.len(tostring(val)) <= 35
                                 and tostring(val)
                                 or  string.sub(val, 1, 32) .. "..."
-		
+
 	end
-    
+
     return strs_v, strs_val
-    
+
 end
 
 
@@ -126,12 +126,12 @@ GUI.x, GUI.y, GUI.w, GUI.h = 0, 0, 432, 500
 GUI.anchor, GUI.corner = "mouse", "C"
 
 
---[[	
+--[[
 
 	Button		z, 	x, 	y, 	w, 	h, caption, func[, ...]
 	Checklist	z, 	x, 	y, 	w, 	h, caption, opts[, dir, pad]
 	Frame		z, 	x, 	y, 	w, 	h[, shadow, fill, color, round]
-	Knob		z, 	x, 	y, 	w, 	caption, min, max, default[, inc, vals]	
+	Knob		z, 	x, 	y, 	w, 	caption, min, max, default[, inc, vals]
 	Label		z, 	x, 	y,		caption[, shadow, font, color, bg]
 	Menubox		z, 	x, 	y, 	w, 	h, caption, opts
 	Radio		z, 	x, 	y, 	w, 	h, caption, opts[, dir, pad]
@@ -139,7 +139,7 @@ GUI.anchor, GUI.corner = "mouse", "C"
 	Tabs		z, 	x, 	y, 		tab_w, tab_h, opts[, pad]
 	Textbox		z, 	x, 	y, 	w, 	h[, caption, pad]
     Window      z,  x,  y,  w,  h,  caption, z_set[, center]
-	
+
 ]]--
 
 
@@ -193,11 +193,11 @@ GUI.New("my_frm", 	"Frame", 		3, 16, 288, 192, 128, true, false, "elm_frame", 4)
 -- have the knob's caption update itself to show the value instead.
 GUI.elms.my_knob.vals = false
 function GUI.elms.my_knob:redraw()
-	
+
     GUI.Knob.redraw(self)
 
     self.caption = self.retval .. "dB"
-	
+
 end
 
 -- Make sure it shows the value right away
@@ -223,14 +223,14 @@ GUI.New("my_rng2", 	"Slider",		4, 352, 96, 256, "Vertical?", 0, 30, {5, 10, 15, 
 
 -- Using a function to change the value label depending on the value
 GUI.elms.my_pan.output = function(val)
-	
+
 	val = tonumber(val)
-	return (val == 0	and "0" 
-						or	(math.abs(val)..	
-							(val < 0 and "L" or "R") 
-							) 
+	return (val == 0	and "0"
+						or	(math.abs(val)..
+							(val < 0 and "L" or "R")
+							)
 			)
-	
+
 end
 
 
@@ -271,29 +271,29 @@ GUI.elms_hide[10] = true
 -- :onopen is a hook provided by the Window class. This function will be run
 -- every time the window opens.
 function GUI.elms.wnd_test:onopen()
-    
+
     -- :adjustelm places the element's specified x,y coordinates relative to
     -- the Window. i.e. creating an element at 0,0 and adjusting it will put
     -- the element in the Window's top-left corner.
     self:adjustelm(GUI.elms.btn_close)
-    
+
     -- Buttons look nice when they're centered.
-    GUI.elms.btn_close.x, _ = GUI.center(GUI.elms.btn_close, self)    
-    
+    GUI.elms.btn_close.x, _ = GUI.center(GUI.elms.btn_close, self)
+
     self:adjustelm(GUI.elms.lbl_elms)
     self:adjustelm(GUI.elms.lbl_vals)
-    
+
     -- Set the Window's title
 	local tab_num = GUI.Val("tabs")
     self.caption = "Element values for Tab " .. tab_num
-	
+
     -- This Window provides a readout of the values for every element
     -- on the current tab.
     local strs_v, strs_val = get_values_for_tab(tab_num)
-    
+
     GUI.Val("lbl_elms", table.concat(strs_v, "\n"))
     GUI.Val("lbl_vals", table.concat(strs_val, "\n"))
-    
+
 end
 
 
@@ -307,18 +307,18 @@ end
 -- This will be run on every update loop of the GUI script; anything you would put
 -- inside a reaper.defer() loop should go here. (The function name doesn't matter)
 local function Main()
-	
+
 	-- Prevent the user from resizing the window
 	if GUI.resized then
-		
+
 		-- If the window's size has been changed, reopen it
 		-- at the current position with the size we specified
 		local __,x,y,w,h = gfx.dock(-1,0,0,0,0)
 		gfx.quit()
 		gfx.init(GUI.name, GUI.w, GUI.h, 0, x, y)
 		GUI.redraw_z[0] = true
-	end		
-	
+	end
+
 end
 
 

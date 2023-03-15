@@ -1,0 +1,1690 @@
+/////////////////////////////////////////////////////////////////
+// Copyright (c) - 2014 - Olivier Belanger                     //
+// Permission to use, copy, modify, and/or distribute this     //
+// software for any purpose with or without fee is hereby      //
+// granted, provided that the above copyright notice and this  //
+// permission notice appear in all copies. CookDSP IS PROVIDED //
+// "AS IS", WITHOUT WARRANTY OF ANY KIND FROM THE AUTHOR.      //
+/////////////////////////////////////////////////////////////////
+
+@init
+
+/******************************************************* 
+LOP
+===
+
+First-order IIR lowpass filter.
+
+Description
+-----------
+
+The lop object initializes a first-order IIR lowpass filter. 
+It takes the cutoff frequency, in Hz, as argument.
+
+With very low cutoff frequency (< 10 Hz), this filter can do
+parameter interpolation efficiently.
+
+It must be used with a variable name as prefix (object oriented).
+
+Initializer
+-----------
+
+#### lop(freq) ####
+
+Initializes a lowpass filter with `freq` as the cutoff frequency.
+
+Methods
+-------
+
+#### lop_set_freq(freq) ####
+
+Sets a new cutoff frequency `freq`, in Hz.
+
+#### lop_do(signal) ####
+
+Processes one samples of an input signal `signal` and outputs
+the filtered sample.
+
+Example
+-------
+
+    desc:Interpolated Stereo Lowpass Filter
+
+    import cookdsp.jsfx-inc
+
+    slider1:3500<100,10000>Cutoff Frequency In Hz
+    slider2:1<0.01,10>Interpolation Time In Seconds
+
+    @init
+    // Initializes the interpolator
+    interp.lop(1.0 / slider2);
+    // Initializes the filters
+    filt1.lop(slider1);
+    filt2.lop(slider1);
+
+    @slider
+    // Sets the interpolator's frequency
+    interp.lop_set_freq(1.0 / slider2);
+
+    @sample
+    // Compute and sets the filters's frequency
+    freq = interp.lop_do(slider1);
+    filt1.lop_set_freq(freq);
+    filt2.lop_set_freq(freq);
+    // Filters the input signal
+    spl0 = filt1.lop_do(spl0);
+    spl1 = filt2.lop_do(spl1);
+
+********************************************************/
+function lop(freq)
+(
+  this.y0 = 0;
+  this.ny = srate * 0.49;
+  freq < 0.1 ? freq = 0.1 : freq > this.ny ? freq = this.ny;
+  this.freq = freq; 
+  this.c = exp(-2 * $pi * this.freq / srate);
+);
+
+function lop_set_freq(freq)
+(
+  freq < 0.1 ? freq = 0.1 : freq > this.ny ? freq = this.ny;
+  this.freq = freq; 
+  this.c = exp(-2 * $pi * this.freq / srate);
+);
+
+function lop_do(signal)
+(
+  this.y0 = signal + (this.y0 - signal) * this.c;
+  this.y0;
+);
+
+/******************************************************* 
+HIP
+===
+
+First-order IIR highpass filter.
+
+Description
+-----------
+
+The hip object initializes a first-order IIR highpass filter. 
+It takes the cutoff frequency, in Hz, as argument.
+
+It must be used with a variable name as prefix (object oriented).
+
+Initializer
+-----------
+
+#### hip(freq) ####
+
+Initializes a highpass filter with `freq` as the cutoff frequency.
+
+Methods
+-------
+
+#### hip_set_freq(freq) ####
+
+Sets a new cutoff frequency `freq`, in Hz.
+
+#### hip_do(signal) ####
+
+Processes one samples of an input signal `signal` and outputs
+the filtered sample.
+
+Example
+-------
+
+    desc:Interpolated Stereo Highpass Filter
+
+    import cookdsp.jsfx-inc
+
+    slider1:3500<50,10000>Cutoff Frequency In Hz
+    slider2:1<0.01,10>Interpolation Time In Seconds
+
+    @init
+    // Initializes the interpolator
+    interp.lop(1.0 / slider2);
+    // Initializes the filters
+    filt1.hip(slider1);
+    filt2.hip(slider1);
+
+    @slider
+    // Sets the interpolator's frequency
+    interp.lop_set_freq(1.0 / slider2);
+
+    @sample
+    // Compute and sets the filters's frequency
+    freq = interp.lop_do(slider1);
+    filt1.hip_set_freq(freq);
+    filt2.hip_set_freq(freq);
+    // Filters the input signal
+    spl0 = filt1.hip_do(spl0);
+    spl1 = filt2.hip_do(spl1);
+
+********************************************************/
+function _hip_compute_coeffs()
+(
+  this.b1 = exp(-2 * $pi * this.freq / srate);
+  this.a0 = (1 + this.b1) / 2;
+  this.a1 = -this.a0;
+);
+
+function hip(freq)
+(
+  this.x0 = this.y0 = 0;
+  this.ny = srate * 0.49;
+  freq < 0.1 ? freq = 0.1 : freq > this.ny ? freq = this.ny;
+  this.freq = freq; 
+  this._hip_compute_coeffs();
+);
+
+function hip_set_freq(freq)
+(
+  freq < 0.1 ? freq = 0.1 : freq > this.ny ? freq = this.ny;
+  this.freq = freq; 
+  this._hip_compute_coeffs();
+);
+
+function hip_do(signal)
+(
+  this.y0 = signal * this.a0 + this.x0 * this.a1 + this.y0 * this.b1;
+  this.x0 = signal;
+  this.y0;
+);
+
+/******************************************************* 
+BP
+===
+
+Second-order IIR bandpass filter.
+
+
+Description
+-----------
+
+The bp object initializes a second-order IIR bandpass
+filter. It takes center frequency, in Hz, and Q as 
+arguments.
+
+It must be used with a variable name as prefix (object oriented).
+
+Initializer
+-----------
+
+#### bp(freq, q) ####
+
+Initializes a second order IIR bandpass filter with `freq` as the
+center frequency, in Hz, and `q` as the Q factor (ie. the amount 
+of resonance). The bandwidth of the filter is computed as `freq / q`.
+
+Methods
+-------
+
+#### bp_set_freq(freq) ####
+
+Sets a new center frequency, `freq`, to the filter.
+
+#### bp_set_q(q) ####
+
+Sets a new Q, ie. amount of resonance, to the filter.
+
+#### bp_do(signal) ####
+
+Processes one samples of an input signal `signal` and outputs
+the filtered sample.
+
+Example
+-------
+
+    desc:Second Order Stereo Bandpass Filter
+
+    import cookdsp.jsfx-inc
+
+    slider1:3500<100,10000>Center Frequency In Hz
+    slider2:20<1,100>Q Factor
+
+    @init
+    // Initializes the filters
+    filt1.bp(slider1, slider2);
+    filt2.bp(slider1, slider2);
+
+    @slider
+    filt1.bp_set_freq(slider1);
+    filt2.bp_set_freq(slider1);
+    filt1.bp_set_q(slider2);
+    filt2.bp_set_q(slider2);
+
+    @sample
+    // Filters the input signal
+    spl0 = filt1.bp_do(spl0);
+    spl1 = filt2.bp_do(spl1);
+
+********************************************************/
+// Private function //
+function _bp_compute_coeffs()
+(
+    bw_ = this.freq / this.q;
+    this.b2 = exp(-2 * $pi / srate * bw_);
+    this.b1 = (-4.0 * this.b2) / (1.0 + this.b2) * cos(2 * $pi * this.freq / srate);
+    this.a1 = 1.0 - sqrt(this.b2);
+);
+
+function bp(freq q)
+(
+    this.ny = srate * 0.49;
+    freq < 20 ? freq = 20 : freq > this.ny ? freq = this.ny; 
+    this.freq = freq;
+    q < 0.5 ? q = 0.5 : q > 1000 ? q = 1000;
+    this.q = q;
+    this.x1 = this.x2 = this.y1 = this.y2 = 0.0;
+    this._bp_compute_coeffs();
+);
+
+function bp_set_freq(freq)
+(
+    freq < 20 ? freq = 20 : freq > this.ny ? freq = this.ny; 
+    this.freq = freq;
+    this._bp_compute_coeffs();
+);
+
+function bp_set_q(q)
+(
+    q < 0.5 ? q = 0.5 : q > 1000 ? q = 1000;
+    this.q = q;
+    this._bp_compute_coeffs(); 
+);
+
+function bp_do(signal)
+(
+    tmp_ = (this.a1 * signal) - (this.a1 * this.x2) - (this.b1 * this.y1) - (this.b2 * this.y2);
+    this.x2 = this.x1; this.x1 = signal; this.y2 = this.y1; this.y1 = tmp_;
+    tmp_;
+);
+
+/******************************************************* 
+BUTLP
+=====
+
+Second-order Butterworth lowpass filter.
+
+Description
+-----------
+
+The butlp object initializes a second-order IIR Butterworth 
+lowpass filter. It takes the cutoff frequency, in Hz, as argument.
+
+The Butterworth filter is a type of signal processing filter designed 
+to have as flat a frequency response as possible in the passband.
+
+It must be used with a variable name as prefix (object oriented).
+
+Initializer
+-----------
+
+#### butlp(freq) ####
+
+Initializes a lowpass filter with `freq` as the cutoff frequency.
+
+Methods
+-------
+
+#### butlp_set_freq(freq) ####
+
+Sets a new cutoff frequency `freq`, in Hz.
+
+#### butlp_do(signal) ####
+
+Processes one samples of an input signal `signal` and outputs
+the filtered sample.
+
+Example
+-------
+
+    desc:Butterworth Lowpass Filter
+
+    import cookdsp.jsfx-inc
+
+    slider1:3500<100,10000>Cutoff Frequency In Hz
+
+    @init
+    // Initializes the filters
+    filt1.butlp(slider1);
+    filt2.butlp(slider1);
+
+    @slider
+    filt1.butlp_set_freq(slider1);
+    filt2.butlp_set_freq(slider1);
+
+    @sample
+    // Filters the input signal
+    spl0 = filt1.butlp_do(spl0);
+    spl1 = filt2.butlp_do(spl1);
+
+********************************************************/
+function _butlp_compute_coeffs(freq)
+(
+    freq < 1.0 ? freq = 1.0 : freq > this.ny ? freq = this.ny;
+    this.freq = freq; 
+    c_ = 1.0 / tan(this.pioversr * this.freq);
+    c2_ = c_ * c_;
+    this.a0 = this.a2 = 1.0 / (1.0 + this.sqrt2 * c_ + c2_);
+    this.a1 = 2.0 * this.a0;
+    this.b1 = this.a1 * (1.0 - c2_);
+    this.b2 = this.a0 * (1.0 - this.sqrt2 * c_ + c2_);
+);
+
+function butlp(freq)
+(
+    this.x1 = this.x2 = this.y1 = this.y2 = 0.0;
+    this.pioversr = $pi / srate;
+    this.sqrt2 = sqrt(2.0);
+    this.ny = srate * 0.49;
+    this._butlp_compute_coeffs(freq);
+);
+
+function butlp_set_freq(freq)
+(
+    this._butlp_compute_coeffs(freq);
+);
+
+function butlp_do(signal)
+(
+    tmp_ = this.a0 * signal + this.a1 * this.x1 + this.a2 * this.x2 - this.b1 * this.y1 - this.b2 * this.y2;
+    this.x2 = this.x1; this.x1 = signal; this.y2 = this.y1; this.y1 = tmp_;
+    tmp_;
+);
+
+/******************************************************* 
+BUTHP
+=====
+
+Second-order Butterworth highpass filter.
+
+Description
+-----------
+
+The buthp object initializes a second-order IIR Butterworth 
+highpass filter. It takes the cutoff frequency, in Hz, as argument.
+
+The Butterworth filter is a type of signal processing filter designed 
+to have as flat a frequency response as possible in the passband.
+
+It must be used with a variable name as prefix (object oriented).
+
+Initializer
+-----------
+
+#### buthp(freq) ####
+
+Initializes a highpass filter with `freq` as the cutoff frequency.
+
+Methods
+-------
+
+#### buthp_set_freq(freq) ####
+
+Sets a new cutoff frequency `freq`, in Hz.
+
+#### buthp_do(signal) ####
+
+Processes one samples of an input signal `signal` and outputs
+the filtered sample.
+
+Example
+-------
+
+    desc:Butterworth Highpass Filter
+
+    import cookdsp.jsfx-inc
+
+    slider1:3500<100,10000>Cutoff Frequency In Hz
+
+    @init
+    // Initializes the filter
+    filt1.buthp(slider1);
+    filt2.buthp(slider1);
+
+    @slider
+    filt1.buthp_set_freq(slider1);
+    filt2.buthp_set_freq(slider1);
+
+    @sample
+    // Filters the input signal
+    spl0 = filt1.buthp_do(spl0);
+    spl1 = filt2.buthp_do(spl1);
+
+********************************************************/
+function _buthp_compute_coeffs(freq)
+(
+    freq < 1.0 ? freq = 1.0 : freq > this.ny ? freq = this.ny;
+    this.freq = freq; 
+    c_ = tan(this.pioversr * this.freq);
+    c2_ = c_ * c_;
+    this.a0 = this.a2 = 1.0 / (1.0 + this.sqrt2 * c_ + c2_);
+    this.a1 = -2.0 * this.a0;
+    this.b1 = 2.0 * this.a0 * (c2_ - 1.0);
+    this.b2 = this.a0 * (1.0 - this.sqrt2 * c_ + c2_);
+);
+
+function buthp(freq)
+(
+    this.x1 = this.x2 = this.y1 = this.y2 = 0.0;
+    this.pioversr = $pi / srate;
+    this.sqrt2 = sqrt(2.0);
+    this.ny = srate * 0.49;
+    this._buthp_compute_coeffs(freq);
+);
+
+function buthp_set_freq(freq)
+(
+    this._buthp_compute_coeffs(freq);
+);
+
+function buthp_do(signal)
+(
+    tmp_ = this.a0 * signal + this.a1 * this.x1 + this.a2 * this.x2 - this.b1 * this.y1 - this.b2 * this.y2;
+    this.x2 = this.x1; this.x1 = signal; this.y2 = this.y1; this.y1 = tmp_;
+    tmp_;
+);
+
+/******************************************************* 
+BUTBP
+=====
+
+Second-order Butterworth bandpass filter.
+
+Description
+-----------
+
+The butbp object initializes a second-order IIR Butterworth 
+bandpass filter. It takes the center frequency, in Hz, and 
+the Q, as argument.
+
+The Butterworth filter is a type of signal processing filter designed 
+to have as flat a frequency response as possible in the passband.
+
+It must be used with a variable name as prefix (object oriented).
+
+Initializer
+-----------
+
+#### butbp(freq, q) ####
+
+Initializes a bandpass filter with `freq` as the center frequency,
+and `q` as the inverse of the filter's bandwidth.
+
+Methods
+-------
+
+#### butbp_set_freq(freq) ####
+
+Sets a new center frequency `freq`, in Hz.
+
+#### butbp_set_q(q) ####
+
+Sets a new `q`. The Q of the filter is the inverse of the bandwidth.
+
+#### butbp_do(signal) ####
+
+Processes one samples of an input signal `signal` and outputs
+the filtered sample.
+
+Example
+-------
+
+    desc:Butterworth Bandpass Filter
+
+    import cookdsp.jsfx-inc
+
+    slider1:3500<100,10000>Cutoff Frequency In Hz
+    slider2:5<1,100>Filter Q
+
+    @init
+    // Initializes the filter
+    filt1.butbp(slider1, slider2);
+    filt2.butbp(slider1, slider2);
+
+    @slider
+    filt1.butbp_set_freq(slider1);
+    filt2.butbp_set_freq(slider1);
+    filt1.butbp_set_q(slider2);
+    filt2.butbp_set_q(slider2);
+
+    @sample
+    // Filters the input signal
+    spl0 = filt1.butbp_do(spl0);
+    spl1 = filt2.butbp_do(spl1);
+
+********************************************************/
+function _butbp_compute_coeffs()
+(
+    bw_ = this.freq / this.q;
+    c_ = 1.0 / tan(this.pioversr * bw_);
+    d_ = 2.0 * cos(2.0 * this.pioversr * this.freq);
+    this.a0 = 1.0 / (1.0 + c_);
+    this.a2 = -this.a0;
+    this.b1 = this.a2 * c_ * d_;
+    this.b2 = this.a0 * (c_ - 1.0);
+);
+
+function butbp(freq q)
+(
+    freq < 1.0 ? freq = 1.0 : freq > this.ny ? freq = this.ny;
+    this.freq = freq; 
+    q < 0.5 ? q = 0.5 : q > 1000 ? q = 1000;
+    this.q = q; 
+    this.x1 = this.x2 = this.y1 = this.y2 = 0.0;
+    this.pioversr = $pi / srate;
+    this.ny = srate * 0.49;
+    this._butbp_compute_coeffs();
+);
+
+function butbp_set_freq(freq)
+(
+    freq < 1.0 ? freq = 1.0 : freq > this.ny ? freq = this.ny;
+    this.freq = freq; 
+    this._butbp_compute_coeffs();
+);
+
+function butbp_set_q(q)
+(
+    q < 0.5 ? q = 0.5 : q > 1000 ? q = 1000;
+    this.q = q; 
+    this._butbp_compute_coeffs();
+);
+
+function butbp_do(signal)
+(
+    tmp_ = this.a0 * signal + this.a2 * this.x2 - this.b1 * this.y1 - this.b2 * this.y2;
+    this.x2 = this.x1; this.x1 = signal; this.y2 = this.y1; this.y1 = tmp_;
+    tmp_;
+);
+
+/******************************************************* 
+BUTBR
+=====
+
+Second-order Butterworth band reject filter.
+
+Description
+-----------
+
+The butbp object initializes a second-order IIR Butterworth 
+band reject filter. It takes the center frequency, in Hz, and 
+the Q, as argument.
+
+The Butterworth filter is a type of signal processing filter designed 
+to have as flat a frequency response as possible in the passband.
+
+It must be used with a variable name as prefix (object oriented).
+
+Initializer
+-----------
+
+#### butbr(freq, q) ####
+
+Initializes a band reject filter with `freq` as the center frequency,
+and `q` as the inverse of the filter's bandwidth.
+
+Methods
+-------
+
+#### butbr_set_freq(freq) ####
+
+Sets a new center frequency `freq`, in Hz.
+
+#### butbr_set_q(q) ####
+
+Sets a new `q`. The Q of the filter is the inverse of the bandwidth.
+
+#### butbr_do(signal) ####
+
+Processes one samples of an input signal `signal` and outputs
+the filtered sample.
+
+Example
+-------
+
+    desc:Butterworth Band Reject Filter
+
+    import cookdsp.jsfx-inc
+
+    slider1:3500<100,10000>Cutoff Frequency In Hz
+    slider2:5<1,100>Filter Q
+
+    @init
+    // Initializes the filter
+    filt1.butbr(slider1, slider2);
+    filt2.butbr(slider1, slider2);
+
+    @slider
+    filt1.butbr_set_freq(slider1);
+    filt2.butbr_set_freq(slider1);
+    filt1.butbr_set_q(slider2);
+    filt2.butbr_set_q(slider2);
+
+    @sample
+    // Filters the input signal
+    spl0 = filt1.butbr_do(spl0);
+    spl1 = filt2.butbr_do(spl1);
+
+********************************************************/
+function _butbr_compute_coeffs()
+(
+    bw_ = this.freq / this.q;
+    c_ = tan(this.pioversr * bw_);
+    d_ = 2.0 * cos(2.0 * this.pioversr * this.freq);
+    this.a0 = this.a2 = 1.0 / (1.0 + c_);
+    this.a1 = this.b1 = -this.a0 * d_;
+    this.b2 = this.a0 * (1.0 - c_);
+);
+
+function butbr(freq q)
+(
+    freq < 1.0 ? freq = 1.0 : freq > this.ny ? freq = this.ny;
+    this.freq = freq; 
+    q < 0.5 ? q = 0.5 : q > 1000 ? q = 1000;
+    this.q = q; 
+    this.x1 = this.x2 = this.y1 = this.y2 = 0.0;
+    this.pioversr = $pi / srate;
+    this.ny = srate * 0.49;
+    this._butbr_compute_coeffs();
+);
+
+function butbr_set_freq(freq)
+(
+    freq < 1.0 ? freq = 1.0 : freq > this.ny ? freq = this.ny;
+    this.freq = freq; 
+    this._butbr_compute_coeffs();
+);
+
+function butbr_set_q(q)
+(
+    q < 0.5 ? q = 0.5 : q > 1000 ? q = 1000;
+    this.q = q; 
+    this._butbr_compute_coeffs();
+);
+
+function butbr_do(signal)
+(
+    tmp_ = this.a0 * signal + this.a1 * this.x1 + this.a2 * this.x2 - this.b1 * this.y1 - this.b2 * this.y2;
+    this.x2 = this.x1; this.x1 = signal; this.y2 = this.y1; this.y1 = tmp_;
+    tmp_;
+);
+
+/******************************************************* 
+APASS
+=====
+
+Second-order phase shifter allpass.
+
+
+Description
+-----------
+
+This kind of filter is used in phaser implementation. The signal
+produced by this filter, when added to original sound, creates a 
+notch in the spectrum at a frequency given by the `freq` argument.
+The `apass` object also takes the bandwidth of the filter and the
+feedback coefficient as argument.
+
+It must be used with a variable name as prefix (object oriented).
+
+Initializer
+-----------
+
+#### apass(freq, bw [, feed]) ####
+
+Initializes a second order IIR phase shifter allpass with `freq` as 
+the center frequency, in Hz, and `bw` as the bandwidth of the , also 
+in Hz. The optional argument `feed` is the feedback coefficient. It
+defaults to 0.
+
+Methods
+-------
+
+#### apass_set_freq(freq) ####
+
+Sets a new center frequency, `freq`, to the filter.
+
+#### apass_set_bw(bw) ####
+
+Sets a new bandwidth, `bw`, to the filter.
+
+#### apass_set_feed(feed) ####
+
+Sets a new feedback coefficient, `feed`, to the filter.
+
+#### apass_do(signal) ####
+
+Processes one samples of an input signal `signal` and outputs
+the filtered sample.
+
+Example
+-------
+
+    desc: Second-Order Phase Shifter Allpass
+
+    import cookdsp.jsfx-inc
+
+    slider1:1000<100,10000>Notch Frequency (Hz)
+    slider2:1000<100,2000>Bandwidth (Hz)
+    slider3:0<0,0.99>Feedback
+
+    @init
+    apL.apass(slider1, slider2, slider3);
+    apR.apass(slider1, slider2, slider3);
+
+    @slider
+    apL.apass_set_freq(slider1);
+    apR.apass_set_freq(slider1);
+    apL.apass_set_bw(slider2);
+    apR.apass_set_bw(slider2);
+    apL.apass_set_feed(slider3);
+    apR.apass_set_feed(slider3);
+
+    @sample
+    filt = apL.apass_do(spl0);
+    spl0 = (spl0 + filt) * 0.5;  
+
+    filt = apR.apass_do(spl1);
+    spl1 = (spl1 + filt) * 0.5;
+
+********************************************************/
+// Private function //
+function _apass_compute_coeffs()
+(
+    r_ = exp(-$pi * this.bw / srate);
+    this.a = r_ * r_;
+    this.b = -2 * r_ * cos(2 * $pi * this.freq / srate);
+);
+
+function apass(freq bw feed)
+(
+    this.ny = srate * 0.49;
+    freq < 10 ? freq = 10 : freq > this.ny ? freq = this.ny; 
+    this.freq = freq;
+    bw < 1 ? bw = 1 : bw > this.ny ? bw = this.ny;
+    this.bw = bw;
+    feed < 0 ? feed = 0 : feed > 0.999 ? feed = 0.999;
+    this.feed = feed;
+    this.y = this.y1 = this.y2 = 0.0;
+    this._apass_compute_coeffs();
+);
+
+function apass(freq bw)
+(
+    this.apass(freq, bw, 0);
+);
+
+function apass_set_freq(freq)
+(
+    freq < 10 ? freq = 10 : freq > this.ny ? freq = this.ny; 
+    this.freq = freq;
+    this._apass_compute_coeffs();
+);
+
+function apass_set_bw(bw)
+(
+    bw < 1 ? bw = 1 : bw > this.ny ? bw = this.ny;
+    this.bw = bw;
+    this._apass_compute_coeffs(); 
+);
+
+function apass_set_feed(feed)
+(
+    feed < 0 ? feed = 0 : feed > 0.999 ? feed = 0.999;
+    this.feed = feed;
+);
+
+function apass_do(signal)
+(
+    in_ = signal + this.y * this.feed;
+    tmp_ = in_ + (this.y1 * -this.b) + (this.y2 * -this.a);
+    this.y = (tmp_ * this.a) + (this.y1 * this.b) + this.y2;
+    this.y2 = this.y1; this.y1 = tmp_;
+    this.y;
+);
+
+/******************************************************* 
+HILBERT
+=======
+
+Hilbert transform.
+
+Description
+-----------
+
+Hilbert is an IIR filter based implementation of a broad-band 90 degree
+phase difference network. The outputs of hilbert have an identical
+frequency response to the input (i.e. they sound the same), but the two
+outputs have a constant phase difference of 90 degrees, plus or minus some
+small amount of error, throughout the entire frequency range. The outputs
+are in quadrature.
+
+Hilbert is useful in the implementation of many digital signal processing
+techniques that require a signal in phase quadrature. The real part corresponds
+to the cosine output of hilbert, while the imaginary part corresponds to the
+sine output. The two outputs have a constant phase difference throughout the
+audio range that corresponds to the phase relationship between cosine and sine 
+waves.
+
+It must be used with a variable name as prefix (object oriented).
+
+Initializer
+-----------
+
+#### hilbert() ####
+
+Initializes a sixth-order IIR Hilbert filter.
+
+Methods
+-------
+
+#### hilbert_do(signal) ####
+
+Processes one samples of an input signal `signal` and stores the real part 
+in the `real` attribute and the imaginary part in the `imag` attribute.
+
+Attributes
+----------
+
+#### hilbert.real ####
+
+Floating-point value that holds the real part of the complex filtering. 
+
+#### hilbert.imag ####
+
+Floating-point value that holds the imaginary part of the complex filtering. 
+
+Example
+-------
+
+    desc:Single-Sideband-Modulation Via The Hilbert Transform
+
+    import cookdsp.jsfx-inc
+
+    slider1:1000<1,2000>Shifting Frequency (Hz)
+    slider2:0<0,1,1{Down Shifting, Up Shifting}>Shifting Sideband
+
+    @init
+    // Initializes the Hilbert transform
+    hilb.hilbert();
+    // Sinusoid phase
+    ph.phasor(slider1, 0);
+
+    @slider
+    ph.phasor_set_freq(slider1);
+
+    @sample
+    // Mixed input
+    input = (spl0 + spl1) * 0.5;
+    // Complex phase
+    ph1 = ph.phasor_do();
+    ph2 = wrap(ph1+0.25, 0, 1);
+    // Complex sinusoid
+    q1 = sin(2 * $pi * ph1);
+    q2 = sin(2 * $pi * ph2);
+    // Hilbert transform
+    hilb.hilbert_do(input);
+    // Complex modulation
+    mod1 = hilb.real * q1;
+    mod2 = hilb.imag * q2;
+    // Sideband separation
+    down = mod1 + mod2;
+    up = mod1 - mod2;
+    // Choose the desired sideband
+    slider2 == 0 ? side = down : side = up;
+    // Mix the sideband with input signal
+    spl0 = (spl0 + side) * 0.5;
+    spl1 = (spl1 + side) * 0.5;
+
+********************************************************/
+function hilbert()
+(
+    this.real = this.imag = 0.0;
+    this.poles.buffer(12);
+    this.poles.buffer_init(.3609, 2.7412, 11.1573, 44.7581, 179.6242,
+                           798.4578, 1.2524, 5.5671, 22.3423, 89.6271, 
+                           364.7914, 2770.1114);
+    this.coeffs.buffer(12);
+    this.x1.buffer(12);
+    this.y1.buffer(12);
+    twopi_ = $pi * 2;
+    i_ = 0;
+    loop(12,
+        pf_ = this.poles.buffer_fread(i_) * 15.0;
+        rc_ = 1.0 / (twopi_ * pf_);
+        al_ = 1.0 / rc_;
+        fac_ = al_ / (2.0 * srate);
+        beta_ = (1.0 - fac_) / (1.0 + fac_);
+        this.coeffs.buffer_write(i_, -beta_);
+        i_ += 1;
+    );
+);
+
+function hilbert_do(signal)
+(
+    xn1_ = signal;
+    i_ = 0;
+    loop(6,
+        c_ = this.coeffs.buffer_fread(i_);
+        x1_ = this.x1.buffer_fread(i_);
+        y1_ = this.y1.buffer_fread(i_);
+        yn1_ = x1_ + (xn1_ - y1_) * c_;
+        this.x1.buffer_write(i_, xn1_);
+        this.y1.buffer_write(i_, yn1_);
+        xn1_ = yn1_;
+        i_ += 1;
+    );
+    xn2_ = signal;
+    loop(6,
+        c_ = this.coeffs.buffer_fread(i_);
+        x2_ = this.x1.buffer_fread(i_);
+        y2_ = this.y1.buffer_fread(i_);
+        yn2_ = x2_ + (xn2_ - y2_) * c_;
+        this.x1.buffer_write(i_, xn2_);
+        this.y1.buffer_write(i_, yn2_);
+        xn2_ = yn2_;
+        i_ += 1;
+    );
+    this.real = yn1_;
+    this.imag = yn2_;
+);
+
+/******************************************************* 
+BIQUAD
+======
+
+A sweepable general purpose biquadratic digital filter.
+
+Description
+-----------
+
+The `biquad` object initializes a second-order IIR general purpose 
+biquadratic digital filter. It takes the cutoff frequency `freq`, 
+in Hz, the quality factor `q` (as `freq` / `bandwidth`) and the 
+filter's type `type`, as argument.
+
+It must be used with a variable name as prefix (object oriented).
+
+Initializer
+-----------
+
+#### biquad(freq, q, type) ####
+
+Initializes a second-order IIR general purpose biquadratic digital filter. 
+It takes the cutoff frequency `freq`, in Hz, the quality factor `q` 
+(as `freq` / `bandwidth`) and the filter's type `type`, as argument. 
+Possible types are:
+
+    - 0 : lowpass
+    - 1 : highpass
+    - 2 : bandpass
+    - 3 : bandstop
+    - 4 : allpass
+
+Methods
+-------
+
+#### biquad_set_freq(freq) ####
+
+Sets a new cutoff frequency `freq`, in Hz.
+
+#### biquad_set_q(q) ####
+
+Sets a new quality factor `q` (as `freq` / `bandwidth`).
+
+#### biquad_set_type(type) ####
+
+Sets a new filter's type. Possible types are:
+
+    - 0 : lowpass
+    - 1 : highpass
+    - 2 : bandpass
+    - 3 : bandstop
+    - 4 : allpass
+
+#### biquad_do(signal) ####
+
+Processes one samples of an input signal `signal` and outputs
+the filtered sample.
+
+Example
+-------
+
+    desc:Resonant Multi-type Filter
+
+    import cookdsp.jsfx-inc
+
+    slider1:3500<100,10000>Cutoff Frequency In Hz
+    slider2:5<1,100>Quality Factor (Q)
+    slider3:0<0,4,1{lowpass,highpass,bandpass,bandstop,allpass}>Filter Type
+
+    @init
+    // Initializes the filter
+    filt1.biquad(slider1, slider2, slider3);
+    filt2.biquad(slider1, slider2, slider3);
+
+    @slider
+    filt1.biquad_set_freq(slider1);
+    filt2.biquad_set_freq(slider1);
+    filt1.biquad_set_q(slider2);
+    filt2.biquad_set_q(slider2);
+    filt1.biquad_set_type(slider3);
+    filt2.biquad_set_type(slider3);
+
+    @sample
+    // Filters the input signal
+    spl0 = filt1.biquad_do(spl0);
+    spl1 = filt2.biquad_do(spl1);
+
+********************************************************/
+function _biquad_compute_lp_coeffs()
+(
+    this.b0 = this.b2 = (1 - this.c) / 2;
+    this.b1 = 1 - this.c;
+    this.a0 = 1 + this.alpha;
+    this.a1 = -2 * this.c;
+    this.a2 = 1 - this.alpha;
+);
+
+function _biquad_compute_hp_coeffs()
+(
+    this.b0 = (1 + this.c) / 2;
+    this.b1 = -(1 + this.c);
+    this.b2 = this.b0;
+    this.a0 = 1 + this.alpha;
+    this.a1 = -2 * this.c;
+    this.a2 = 1 - this.alpha;
+);
+
+function _biquad_compute_bp_coeffs()
+(
+    this.b0 = this.alpha;
+    this.b1 = 0;
+    this.b2 = -this.alpha;
+    this.a0 = 1 + this.alpha;
+    this.a1 = -2 * this.c;
+    this.a2 = 1 - this.alpha;
+);
+
+function _biquad_compute_bs_coeffs()
+(
+    this.b0 = 1;
+    this.b1 = this.a1 = -2 * this.c;
+    this.b2 = 1;
+    this.a0 = 1 + this.alpha;
+    this.a2 = 1 - this.alpha;
+);
+
+function _biquad_compute_ap_coeffs()
+(
+    this.b0 = this.a2 = 1 - this.alpha;
+    this.b1 = this.a1 = -2 * this.c;
+    this.b2 = this.a0 = 1 + this.alpha;
+);
+
+function _biquad_compute_vars(freq q)
+(
+    freq <= 0.1 ? freq = 0.1 : freq > this.ny ? freq = this.ny;
+    this.freq = freq;
+    q < 0.1 ? q = 0.1;
+    this.q = q;
+    w0 = this.twopi * this.freq / srate;
+    this.c = cos(w0);
+    this.alpha = sin(w0) / (2 * this.q);
+    this.type == 0 ? this._biquad_compute_lp_coeffs() :
+    this.type == 1 ? this._biquad_compute_hp_coeffs() :
+    this.type == 2 ? this._biquad_compute_bp_coeffs() :
+    this.type == 3 ? this._biquad_compute_bs_coeffs() :
+    this.type == 4 ? this._biquad_compute_ap_coeffs();
+);
+
+function biquad(freq q type)
+(
+    this.x1 = this.x2 = this.y1 = this.y2 = 0.0;
+    this.twopi = $pi * 2;
+    this.ny = srate * 0.49;
+    type < 0 ? type = 0 : type > 4 ? type = 4;
+    this.type = type;
+    this._biquad_compute_vars(freq, q);
+);
+
+function biquad_set_freq(freq)
+(
+    freq != this.freq ? this._biquad_compute_vars(freq, this.q);
+);
+
+function biquad_set_q(q)
+(
+    q != this.q ? this._biquad_compute_vars(this.freq, q);
+);
+
+function biquad_set_type(type)
+(
+    type != this.type ? (
+        type < 0 ? type = 0 : type > 4 ? type = 4;
+        this.type = type;
+        this._biquad_compute_vars(this.freq, this.q);
+    );
+);
+
+function biquad_do(signal)
+(
+    tmp_ = (this.b0 * signal + this.b1 * this.x1 + this.b2 * this.x2 - this.a1 * this.y1 - this.a2 * this.y2) / this.a0;
+    this.x2 = this.x1; this.x1 = signal; this.y2 = this.y1; this.y1 = tmp_;
+    tmp_;
+);
+
+/******************************************************* 
+MOOG
+====
+
+24dB/oct resonant lowpass filter.
+
+Description
+-----------
+
+Implementation of the Moog ladder filter based on the work of Antti 
+Huovilainen, described in the paper "Non-Linear Digital Implementation 
+of the Moog Ladder Filter" (Proceedings of DaFX04, University of Napoli).
+Adapted from Csound code for the moogladder opcode (Victor Lazzarini).
+
+It must be used with a variable name as prefix (object oriented).
+
+Initializer
+-----------
+
+#### moog(freq, res) ####
+
+Initializes a fourth-order IIR resonant lowpass filter with cutoff
+frequency `freq`, in Hz, and amount of resonance `res`, between 0
+(no resonance) and 1 (self-oscillation). 
+
+Methods
+-------
+
+#### moog_set_freq(freq) ####
+
+Sets a new cutoff frequency `freq`, in Hz.
+
+#### moog_set_res(res) ####
+
+Sets a new resonance factor, between 0 and 1.
+
+#### moog_do(signal) ####
+
+Processes one samples of an input signal `signal` and outputs
+the filtered sample.
+
+Example
+-------
+
+    desc:24dB/oct Resonant Lowpass Filter
+
+    import cookdsp.jsfx-inc
+
+    slider1:3500<100,12000>Cutoff Frequency in Hz
+    slider2:0.5<0,1>Resonance
+
+    @init
+    // Initializes the filter
+    filt1.moog(slider1, slider2);
+    filt2.moog(slider1, slider2);
+
+    @slider
+    filt1.moog_set_freq(slider1);
+    filt2.moog_set_freq(slider1);
+    filt1.moog_set_res(slider2);
+    filt2.moog_set_res(slider2);
+
+    @sample
+    // Filters the input signal
+    spl0 = filt1.moog_do(spl0);
+    spl1 = filt2.moog_do(spl1);
+
+********************************************************/
+function _moog_compute_coeffs(freq res)
+(
+    freq < 1 ? freq = 1 : freq > this.ny ? freq = this.ny;
+    this.freq = freq; 
+    res < 0 ? res = 0 : res > 1 ? res = 1;
+    this.res = res;
+    // srate is half the actual filter sampling rate
+    fc_ = this.freq / srate;
+    f_  =  0.5 * fc_;
+    fc2_ = fc_ * fc_;
+    fc3_ = fc2_ * fc_;
+    // frequency & amplitude correction
+    fcr_ = 1.8730 * fc3_ + 0.4955 * fc2_ - 0.6490 * fc_ + 0.9988;
+    acr_ = -3.9364 * fc2_ + 1.8409 * fc_ + 0.9968;
+    this.scl = (1.0 - exp(-2 * $pi * f_ * fcr_)) / this.z; // filter tuning
+    this.r4 = 3.96 * this.res * acr_; // filter feedback
+);
+
+function moog(freq res)
+(
+    this.y1 = this.y2 = this.y3 = this.y4 = this.y5 = this.out = 0;
+    this.ny = srate * 0.49;
+    this.z = 1/40000; // twice the "thermal voltage of a transistor"
+    this._moog_compute_coeffs(freq, res);
+);
+
+function moog_set_freq(freq)
+(
+    freq != this.freq ? this._moog_compute_coeffs(freq, this.res);
+);
+
+function moog_set_res(res)
+(
+    res != this.res ? this._moog_compute_coeffs(this.freq, res);
+);
+
+function moog_do(signal)
+(
+    loop(2,
+        this.y1 = this.y1 + this.scl * (tanh((signal - this.r4 * this.out) * this.z) - tanh(this.y1*this.z));
+        this.y2 = this.y2 + this.scl * (tanh(this.y1 * this.z) - tanh(this.y2 * this.z));
+        this.y3 = this.y3 + this.scl * (tanh(this.y2 * this.z) - tanh(this.y3 * this.z));
+        this.y4 = this.y4 + this.scl * (tanh(this.y3 * this.z) - tanh(this.y4 * this.z));
+        this.out = (this.y4 + this.y5) * 0.5;
+        this.y5 = this.y4;
+    );
+    this.out;
+);
+
+
+/******************************************************* 
+COMB
+====
+
+Reverberates an input signal with a colored frequency response.
+
+Description
+-----------
+
+Comb creates a comb filter with peaks in the spectrum located at all
+multiples of `1 / delay time`. This kind of filter is often used in simple 
+digital reverb implementations.
+
+It must be used with a variable name as prefix (object oriented).
+
+Initializer
+-----------
+
+#### comb(delay, feed) ####
+
+Initializes acomb filter with frequency as the inverse of the delay
+time `delay`, in seconds, and feedback `feed`, between 0 and 1. 
+
+Methods
+-------
+
+#### comb_set_delay(delay) ####
+
+Sets a new delay time, in seconds.
+
+#### comb_set_feed(feed) ####
+
+Sets a new feedback factor, between 0 and 1.
+
+#### comb_do(signal) ####
+
+Processes one samples of an input signal `signal` and outputs
+the filtered sample.
+
+Example
+-------
+
+    desc:Schroeder Reverb 2
+
+    import cookdsp.jsfx-inc
+
+    slider1:3500<500,10000>Lowpass Cutoff
+    slider2:0.2<0,1>Balance Dry/Wet
+
+    @init
+    // Left ch. comb filters        Right ch. comb filters
+    c1L.comb(0.0297, 0.65);         c1R.comb(0.0277, 0.65);
+    c2L.comb(0.0371, 0.51);         c2R.comb(0.0393, 0.51);
+    c3L.comb(0.0411, 0.5);          c3R.comb(0.0409, 0.5);
+    c4L.comb(0.0137, 0.73);         c4R.comb(0.0155, 0.73);
+    // Left ch. allpass filters     Right ch. allpass filters
+    a1L.allpass(0.005, 0.75);       a1R.allpass(0.00507, 0.75);
+    a2L.allpass(0.0117, 0.61);      a2R.allpass(0.0123, 0.61);
+    // Left ch. lowpass filter      Right ch. lowpass filter
+    lpL.lop(3500);                  lpR.lop(3500);
+
+    @slider
+    lpL.lop_set_freq(slider1);
+    lpR.lop_set_freq(slider1);
+
+    @sample
+    // Left ch. comb filters        Right ch. comb filters
+    sig1L = c1L.comb_do(spl0);      sig1R = c1R.comb_do(spl1);
+    sig2L = c2L.comb_do(spl0);      sig2R = c2R.comb_do(spl1);
+    sig3L = c3L.comb_do(spl0);      sig3R = c3R.comb_do(spl1);
+    sig4L = c4L.comb_do(spl0);      sig4R = c4R.comb_do(spl1);
+    // Comb filters summation
+    sumL = spl0 + sig1L + sig2L + sig3L + sig4L;
+    sumR = spl1 + sig1R + sig2R + sig3R + sig4R;
+    // Left ch. allpass filters     Right ch. allpass filters
+    all1L = a1L.allpass_do(sumL);   all1R = a1R.allpass_do(sumR);
+    all2L = a2L.allpass_do(all1L);  all2R = a2R.allpass_do(all1R);
+    // Left ch. lowpass filter      Right ch. lowpass filter
+    sigL = lpL.lop_do(all2L) * .2;  sigR = lpR.lop_do(all2R) * .2;
+    // Balance and output
+    spl0 = spl0 + (sigL - spl0) * slider2;
+    spl1 = spl1 + (sigR - spl1) * slider2;
+
+********************************************************/
+function comb(delay feed)
+(
+    this.dline.delay(srate/2);
+    delay < 1/srate ? delay = 1/srate : delay > 0.5 ? delay = 0.5;
+    this.delay = delay;
+    feed < 0 ? feed = 0 : feed > 1 ? feed = 1;
+    this.feed = feed;
+);
+
+function comb_set_delay(delay)
+(
+    delay < 1/srate ? delay = 1/srate : delay > 0.5 ? delay = 0.5;
+    this.delay = delay;
+);
+
+function comb_set_feed(feed)
+(
+    feed < 0 ? feed = 0 : feed > 1 ? feed = 1;
+    this.feed = feed;
+);
+
+function comb_do(signal)
+(
+    tmp_ = this.dline.delay_fsread2(this.delay);
+    this.dline.delay_write(signal + tmp_ * this.feed);
+    tmp_;
+);
+
+/******************************************************* 
+ALLPASS
+=======
+
+Reverberates an input signal with a flat frequency response.
+
+Description
+-----------
+
+Allpass is based on the combination of feedforward and feedback comb filter. 
+This kind of filter is often used in simple digital reverb implementations.
+
+It must be used with a variable name as prefix (object oriented).
+
+Initializer
+-----------
+
+#### allpass(delay, feed) ####
+
+Initializes an allpass filter with frequency as the inverse of the delay
+time `delay`, in seconds, and feedback `feed`, between 0 and 1. 
+
+Methods
+-------
+
+#### allpass_set_delay(delay) ####
+
+Sets a new delay time, in seconds.
+
+#### allpass_set_feed(feed) ####
+
+Sets a new feedback factor, between 0 and 1.
+
+#### allpass_do(signal) ####
+
+Processes one samples of an input signal `signal` and outputs
+the filtered sample.
+
+Example
+-------
+
+    desc:Schroeder Reverb 1
+
+    import cookdsp.jsfx-inc
+
+    slider1:0.2<0,1>Balance Dry/Wet
+
+    @init
+    // Left ch. allpass filters     Right ch. allpass filters
+    a1L.allpass(0.0204, 0.35);      a1R.allpass(0.02011, 0.35);
+    a2L.allpass(0.06653, 0.41);     a2R.allpass(0.06641, 0.41);
+    a3L.allpass(0.035007, 0.5);     a3R.allpass(0.03504, 0.5);
+    a4L.allpass(0.023021, 0.65);    a4R.allpass(0.022987, 0.65);
+    // Left ch. lowpass filters     Right ch. lowpass filters
+    lp1L.lop(5000);                 lp1R.lop(5000);
+    lp2L.lop(3000);                 lp2R.lop(3000);
+    lp3L.lop(1500);                 lp3R.lop(1500);
+    lp4L.lop(500);                  lp4R.lop(500);
+        
+    @sample
+    // Left channel                 Right channel                 
+    sig1L = a1L.allpass_do(spl0);   sig1R = a1R.allpass_do(spl1);
+    sig2L = a2L.allpass_do(sig1L);  sig2R = a2R.allpass_do(sig1R);
+    sig3L = a3L.allpass_do(sig2L);  sig3R = a3R.allpass_do(sig2R);
+    sig4L = a4L.allpass_do(sig3L);  sig4R = a4R.allpass_do(sig3R);
+    lop1L = lp1L.lop_do(sig1L);     lop1R = lp1R.lop_do(sig1R);
+    lop2L = lp2L.lop_do(sig2L);     lop2R = lp2R.lop_do(sig2R);
+    lop3L = lp3L.lop_do(sig3L);     lop3R = lp3R.lop_do(sig3R);
+    lop4L = lp4L.lop_do(sig4L);     lop4R = lp4R.lop_do(sig4R);
+    sigL = (lop1L + lop2L + lop3L + lop4L) * 0.5;
+    sigR = (lop1R + lop2R + lop3R + lop4R) * 0.5;
+    spl0 = spl0 + (sigL - spl0) * slider1;
+    spl1 =  spl1 + (sigR - spl1) * slider1;
+
+********************************************************/
+function allpass(delay feed)
+(
+    this.dline.delay(srate/2);
+    delay < 1/srate ? delay = 1/srate : delay > 0.5 ? delay = 0.5;
+    this.delay = delay;
+    feed < 0 ? feed = 0 : feed > 1 ? feed = 1;
+    this.feed = feed;
+);
+
+function allpass_set_delay(delay)
+(
+    delay < 1/srate ? delay = 1/srate : delay > 0.5 ? delay = 0.5;
+    this.delay = delay;
+);
+
+function allpass_set_feed(feed)
+(
+    feed < 0 ? feed = 0 : feed > 1 ? feed = 1;
+    this.feed = feed;
+);
+
+function allpass_do(signal)
+(
+    tmp_ = this.dline.delay_fsread2(this.delay);
+    this.dline.delay_write(signal + tmp_ * this.feed);
+    tmp_ * (1 - this.feed * this.feed) + signal * -this.feed;
+);
+
+/******************************************************* 
+EQ
+===
+
+Equalizer filter.
+
+Description
+-----------
+
+EQ is a biquadratic digital filter designed for equalization. 
+It provides peak/notch and lowshelf/highshelf filters for building 
+parametric equalizers.
+
+It must be used with a variable name as prefix (object oriented).
+
+Initializer
+-----------
+
+#### eq(freq, q, boost, type) ####
+
+Initializes a second-order IIR equalizer filter. It takes as arguments the 
+center (or cutoff) frequency `freq`, in Hz, the quality factor `q` 
+(defined as `freq` / `bandwidth`), the amount of boost/cut, expressed in 
+dB, and the filter's type `type`. Possible types are:
+
+    - 0 : peak/notch
+    - 1 : lowshelf
+    - 2 : highshelf
+
+Methods
+-------
+
+#### eq_set_freq(freq) ####
+
+Sets a new center or cutoff frequency `freq`, in Hz.
+
+#### eq_set_q(q) ####
+
+Sets a new quality factor `q` (defined as `freq` / `bandwidth`).
+
+#### eq_set_boost(boost) ####
+
+Sets a new boost/cut gain factor, expressed in dB (0 dB is nominal gain).
+
+#### eq_set_type(type) ####
+
+Sets a new filter's type. Possible types are:
+
+    - 0 : peak/notch
+    - 1 : lowshelf
+    - 2 : highshelf
+
+#### eq_do(signal) ####
+
+Processes one samples of an input signal `signal` and outputs
+the filtered sample.
+
+Example
+-------
+
+    desc:Parametric EQ Filter
+
+    import cookdsp.jsfx-inc
+
+    slider1:1000<100,10000>Center Frequency
+    slider2:1<0.5,20>Filter Q
+    slider3:0<-18,18>Boost/Cut (dB)
+    slider4:0<0,2,1{Peak/Notch,Lowshelf,Highshelf}>Filter type
+
+    @init
+    f1.eq(slider1, slider2, slider3, slider4);
+    f2.eq(slider1, slider2, slider3, slider4);
+
+    @slider
+    f1.eq_set_freq(slider1); f2.eq_set_freq(slider1);
+    f1.eq_set_q(slider2); f2.eq_set_q(slider2);
+    f1.eq_set_boost(slider3); f2.eq_set_boost(slider3);
+    f1.eq_set_type(slider4); f2.eq_set_type(slider4);
+
+    @sample
+    spl0 = f1.eq_do(spl0);
+    spl1 = f2.eq_do(spl1);
+
+********************************************************/
+function _eq_compute_peak_coeffs()
+(
+    amul_ = this.alpha * this.a;
+    adiv_ = this.alpha / this.a;
+    this.b0 = 1.0 + amul_;
+    this.b1 = this.a1 = -2.0 * this.c;
+    this.b2 = 1.0 - amul_;
+    this.a0 = 1 + adiv_;
+    this.a2 = 1 - adiv_;
+);
+
+function _eq_compute_ls_coeffs()
+(
+    sqrt2a_ = sqrt(this.a * 2.0) * this.alpha;
+    amin1c_ = (this.a - 1.0) * this.c;
+    aadd1c_ = (this.a + 1.0) * this.c;
+    this.b0 = this.a * ((this.a + 1.0) - amin1c_ + sqrt2a_);
+    this.b1 = 2.0 * this.a * ((this.a - 1.0) - aadd1c_);
+    this.b2 = this.a * ((this.a + 1.0) - amin1c_ - sqrt2a_);
+    this.a0 = (this.a + 1.0) + amin1c_ + sqrt2a_;
+    this.a1 = -2.0 * ((this.a - 1.0) + aadd1c_);
+    this.a2 = (this.a + 1.0) + amin1c_ - sqrt2a_;
+);
+
+function _eq_compute_hs_coeffs()
+(
+    sqrt2a_ = sqrt(this.a * 2.0) * this.alpha;
+    amin1c_ = (this.a - 1.0) * this.c;
+    aadd1c_ = (this.a + 1.0) * this.c;
+    this.b0 = this.a * ((this.a + 1.0) + amin1c_ + sqrt2a_);
+    this.b1 = -2.0 * this.a * ((this.a - 1.0) + aadd1c_);
+    this.b2 = this.a * ((this.a + 1.0) + amin1c_ - sqrt2a_);
+    this.a0 = (this.a + 1.0) - amin1c_ + sqrt2a_;
+    this.a1 = 2.0 * ((this.a - 1.0) - aadd1c_);
+    this.a2 = (this.a + 1.0) - amin1c_ - sqrt2a_;
+);
+
+function _eq_compute_vars(freq q boost)
+(
+    freq <= 1 ? freq = 1 : freq > this.ny ? freq = this.ny;
+    this.freq = freq;
+    q < 0.1 ? q = 0.1;
+    this.q = q;
+    this.boost = boost;
+
+    this.a = pow(10, boost/40);
+    w0 = this.twopi * this.freq / srate;
+    this.c = cos(w0);
+    this.alpha = sin(w0) / (2 * this.q);
+    this.type == 0 ? this._eq_compute_peak_coeffs() :
+    this.type == 1 ? this._eq_compute_ls_coeffs() :
+    this.type == 2 ? this._eq_compute_hs_coeffs();
+);
+
+function eq(freq q boost type)
+(
+    this.x1 = this.x2 = this.y1 = this.y2 = 0.0;
+    this.twopi = $pi * 2;
+    this.ny = srate * 0.49;
+    type < 0 ? type = 0 : type > 2 ? type = 2;
+    this.type = type;
+    this._eq_compute_vars(freq, q, boost);
+);
+
+function eq_set_freq(freq)
+(
+    freq != this.freq ? this._eq_compute_vars(freq, this.q, this.boost);
+);
+
+function eq_set_q(q)
+(
+    q != this.q ? this._eq_compute_vars(this.freq, q, this.boost);
+);
+
+function eq_set_boost(boost)
+(
+    boost != this.boost ? this._eq_compute_vars(this.freq, this.q, boost);
+);
+
+function eq_set_type(type)
+(
+    type != this.type ? (
+        type < 0 ? type = 0 : type > 2 ? type = 2;
+        this.type = type;
+        this._eq_compute_vars(this.freq, this.q, this.boost);
+    );
+);
+
+function eq_do(signal)
+(
+    tmp_ = (this.b0 * signal + this.b1 * this.x1 + this.b2 * this.x2 - this.a1 * this.y1 - this.a2 * this.y2) / this.a0;
+    this.x2 = this.x1; this.x1 = signal; this.y2 = this.y1; this.y1 = tmp_;
+    tmp_;
+);

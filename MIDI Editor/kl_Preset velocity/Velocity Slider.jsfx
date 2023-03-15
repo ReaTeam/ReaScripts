@@ -1,0 +1,36 @@
+noindex: true
+
+version: 0.1
+author: KL
+# Preset Velocity
+desc: Velocity Slider
+slider1:vel=1< 1,127,1> Preset velocity 
+ 
+options:gmem=ddddddddddddddddddsgd334f3e_____________________gh
+ 
+@init
+
+ext_noinit =1.0;
+
+gmem[0]=vel;
+ 
+
+@slider
+
+gmem[0] = vel; 
+gmem[1] = vel; 
+//gmem[12] = 1;
+gmem[9] = vel 
+ 
+@block 
+ 
+  (gmem[9] == 1)?( 
+     gmem[9] = 0;
+     vel=gmem[0];
+  );
+  
+ 
+  
+@sample //Pass-through audio
+  spl0 = spl0;
+  spl1 = spl1;

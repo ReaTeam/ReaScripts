@@ -1,0 +1,53 @@
+desc: Phase Vocoder Stereo Template
+
+import cookdsp.jsfx-inc
+
+slider1:5<0,8,1{32,64,128,256,512,1024,2048,4096,8192}>FFT Size
+slider2:1<0,2,1{2,4,8}>Overlaps
+slider3:1<0,3,1{hamming,hanning,bartlett,blackman}>Window Shape
+// Effect's specific sliders here...
+
+@init
+size = pow(2, slider1+5);
+olaps = pow(2, slider2+1);
+pin.pvin(size, olaps, slider3);
+pin2.pvin(size, olaps, slider3);
+pout.pvout(size, olaps, slider3);
+pout2.pvout(size, olaps, slider3);
+
+@slider
+size = pow(2, slider1+5);
+olaps = pow(2, slider2+1);
+// If fftsize or overlaps changed, re-initialize PVs.
+size != pin.size || olaps != pin.olaps ? (
+  pin.pvin_resize(size, olaps);
+  pin2.pvin_resize(size, olaps);
+  pout.pvout_resize(size, olaps);
+  pout2.pvout_resize(size, olaps);
+  // Initialize effect's specific memories here...
+
+);
+// Generate a new window if slider3 has changed.
+slider3 != pin.window ? (
+  pin.pvin_set_window(slider3);
+  pin2.pvin_set_window(slider3);
+  pout.pvout_set_window(slider3);
+  pout2.pvout_set_window(slider3);
+);
+// Process effect's specific sliders here...
+
+@sample
+// Input / Output
+pin.pvin_do(spl0);
+pin2.pvin_do(spl1);
+spl0 = pout.pvout_get_output(pin.count);
+spl1 = pout2.pvout_get_output(pin2.count);
+
+pin.ready ? (
+  // New buffers ready for processing.
+  // ... A simple thru...
+  // compute the inverse PV.
+  pout.pvout_do(pin.magn, pin.freq);
+  pout2.pvout_do(pin2.magn, pin2.freq);
+);
+

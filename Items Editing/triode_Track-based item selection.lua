@@ -1,0 +1,34 @@
+-- @description Track-based item selection
+-- @author Triode
+-- @version 0.72
+-- @metapackage
+-- @provides
+--   [main] triode_Track-based item selection/triode_Track-based item selection.lua
+--   [main] triode_Track-based item selection/triode_Track-based item range selection.lua
+--   [main] triode_Track-based item selection/triode_Track-based split items (select left).lua
+--   [main] triode_Track-based item selection/triode_Track-based split items (select right).lua
+--   [main] triode_Track-based item selection/triode_Unselect all items (track-based item selection).lua
+--   [main] triode_Track-based item selection/triode_Track-based non-contiguous item selection.lua
+--   [main] triode_Track-based item selection/triode_Record Toggle (compatible with track based item selection).lua
+--   [main] triode_Track-based item selection/triode_Play-Stop Toggle (compatible with track based item selection).lua
+--   [main] triode_Track-based item selection/triode_Individual item selection (compatible with track-based item selection).lua
+--   [main] triode_Track-based item selection/triode_Individual item range selection (compatible with track-based item selection).lua
+--   [main] triode_Track-based item selection/triode_Individual non-contiguous item selection (compatible with track-based item selection).lua
+-- @link http://www.outoftheboxsounds.com/
+-- @donation If you like this script please support https://www.paypal.com/paypalme/outoftheboxsounds
+-- @about
+--   Map this to media item left-click in mouse modifiers to allow selection of items based on the folder or track group they are contained in.  This script also includes individual item selection and selection of items across all tracks.
+--
+--   Requires SWS exclusive toggles B1 to B4 on the toolbar which correspond to the following item selection modes:
+--
+--   B1: Folder-based item selection
+--   B2: Item selection across all tracks
+--   B3: Individual item selection
+--   B4: Track group based item selection
+--
+--   This first script is for selecting items.  The other track based scripts create item range selection (shift-click), toggle item selection, item split (select right or left) using the same modes.
+--   There are also scripts for unselecting all items and making newly recorded items create selections compatible with the above actions.
+--   You can map the individual item selection scripts to modifiers to bypass the track-based scripts when their modes are selected.
+--   None of these scripts run anything in the background.
+--   No undo point is created by the item selection scripts (unless you specifically set item select undo in reaper's preferences)
+

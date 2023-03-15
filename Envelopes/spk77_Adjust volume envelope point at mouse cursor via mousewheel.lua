@@ -1,25 +1,20 @@
-/*
-   * ReaScript Name: Adjust volume envelope point at mouse cursor via mousewheel
-   * EEL script for Cockos REAPER
-   * Author: spk77
-   * Author URI: http://forum.cockos.com/member.php?u=49553
-   * Licence: GPL v3
-   * Version: 1.0
-   */
-  
-  -- Adjust volume envelope point at mouse cursor via mousewheel 
--- Lua script by SPK77 31-Aug-2015
---
--- Version: 0.2015.9.2
--- Changelog: 2-Sep-2015
---   added support for all track envelopes
+--[[
+ReaScript name: spk77_Adjust volume envelope point at mouse cursor via mousewheel.lua
+Version: 1.2
+Author: spk77
+About:
+  # Adjusts envelope points under mouse cursor via the mousewheel
+Changelog:
+ * v1.2(27-01-2020)
+  + amagalma modifications: added improved support for Tempo envelope, added Trim Volume env support, added support for any other envelope
+--]]
 
 -------------------
 -- User settings --
 -------------------
+
 -- Adjustment behavior
 local adj_sel_env = false   -- true:  envelope has to be selected
-
 
 -- Volume envelope step size
 -- (User configurable "dB_steps": see "set_envelope_point" -function)
@@ -33,9 +28,10 @@ local width_env_step = 0.01 -- 200 steps (-1 to 1)
 -- Mute envelope step size
 local mute_env_step = 1 -- 2 steps (0 to 1)
 
+-- Step count for all other envelopes
+local all_steps = 200
+
 ----------------------------------------------------------------------
-
-
 
 local dB_step = 0.2
 
@@ -71,7 +67,6 @@ end
 function set_envelope_point(env_prop_table, m_wheel_delta)
   local e = env_prop_table
   local env = e.pointer
-  --msg(env)
   if env == nil then
     return
   end
@@ -83,9 +78,9 @@ function set_envelope_point(env_prop_table, m_wheel_delta)
   local p_index = reaper.BR_EnvFind(br_env, pos, 10)
   local get_point_ret, position, value, shape, selected, bezier = reaper.BR_EnvGetPoint(br_env, p_index)
   reaper.BR_EnvFree(br_env, false)
-  
+
   -- Volume envelopes
-  if e.name == "Volume" or e.name == "Volume (Pre-FX)" then
+  if e.name == "Volume" or e.name == "Volume (Pre-FX)" or e.name == "Trim Volume" then
     local dB_val = VAL2DB(abs(value))
    
     -- Change the "dB_step" here
@@ -101,8 +96,6 @@ function set_envelope_point(env_prop_table, m_wheel_delta)
       dB_step = -dB_step 
     end
      value = DB2VAL(dB_val + dB_step)
-    
-  --end
   
   -- Pan envelopes
   elseif e.name == "Pan" or e.name == "Pan (Pre-FX)" then
@@ -110,7 +103,6 @@ function set_envelope_point(env_prop_table, m_wheel_delta)
       pan_env_step = -pan_env_step
     end
     value = value + pan_env_step
-  --end
 
   -- Width envelopes 
   elseif e.name == "Width" or e.name == "Width (Pre-FX)" then
@@ -118,7 +110,6 @@ function set_envelope_point(env_prop_table, m_wheel_delta)
       width_env_step = -width_env_step
     end
     value = value + width_env_step
-  --end
   
   -- Mute envelope
   elseif e.name == "Mute" then
@@ -126,12 +117,32 @@ function set_envelope_point(env_prop_table, m_wheel_delta)
       mute_env_step = -mute_env_step
     end
     value = value + mute_env_step
+  
+  -- Tempo Map envelope
+  elseif e.name == "Tempo map" then
+    local sign = 1
+    if m_wheel_delta < -1 then 
+      sign = -1
+    end
+    if value < 65 then
+      value = value + 0.5*sign
+    elseif value >= 65 and value < 140 then
+      value = value + 1*sign
+    else
+      value = value + 2*sign
+    end
+    
+  else -- all other envelopes
+    local step = (e.max_val - e.min_val)/all_steps
+    if m_wheel_delta < -1 then 
+     step = -step
+   end
+   value = value + step
   end
   
   if value < e.min_val then
     value = e.min_val
   end
-  
   
   if value > e.max_val then
     value = e.max_val
@@ -142,8 +153,8 @@ function set_envelope_point(env_prop_table, m_wheel_delta)
   end
   
   reaper.SetEnvelopePoint(env, p_index, nil, value, nil, nil, nil, true)
-  reaper.UpdateArrange()
-  reaper.Undo_OnStateChangeEx("Adjust volume envelope point", -1, -1)
+  reaper.UpdateTimeline()
+  reaper.Undo_OnStateChangeEx("Adjust envelope point", 1, -1)
 end
 
 
@@ -151,7 +162,6 @@ end
 function get_env_properties(env)
    envelope = {}
   if env ~= nil then
-    --local env_name = ({reaper.GetEnvelopeName(env, "")})[2]
     local br_env = reaper.BR_EnvAlloc(env, true)
     local active, visible, armed, in_lane, lane_height, default_shape, 
           min_val, max_val, center_val, env_type, is_fader_scaling
@@ -196,11 +206,10 @@ function get_env_properties(env)
     envelope.is_fader_scaling = is_fader_scaling
     envelope.type = env_type
     envelope.name = env_name
-    envelope.is_tempo = env_type == 9
   end
   return envelope
   
-end 
+end
 
 
 ----------
@@ -208,7 +217,7 @@ end
 ----------
 function main()
   local m_wheel_delta = ({reaper.get_action_context()})[7]
-  if m_wheel_delta == -1 then 
+  if m_wheel_delta == -1 then
     return
   end 
   local windowOut, segment, details = reaper.BR_GetMouseCursorContext()
@@ -219,14 +228,17 @@ function main()
     env, is_take_env = reaper.BR_GetMouseCursorContext_Envelope()
   end
   if env == nil then -- or is_take_env then
-    return
+    local track, context = reaper.BR_TrackAtMouseCursor()
+    local master = reaper.GetMasterTrack( 0 )
+    if context == 2 and track == master then
+      env = reaper.GetTrackEnvelopeByName( master, "Tempo map" )
+    else
+      return
+    end
   end
-  --local env_name = ({reaper.GetEnvelopeName(env, "")})[2]
-  --if env_name == "Volume" or env_name == "Volume (Pre-FX)" then  
-    env_properties = get_env_properties(env)
-    set_envelope_point(env_properties, m_wheel_delta)
-  --end
+  local env_name = ({reaper.GetEnvelopeName(env, "")})[2]
+  env_properties = get_env_properties(env)
+  set_envelope_point(env_properties, m_wheel_delta)
 end
 
 reaper.defer(main)
-

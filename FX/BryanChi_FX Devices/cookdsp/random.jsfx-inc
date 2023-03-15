@@ -1,0 +1,139 @@
+/////////////////////////////////////////////////////////////////
+// Copyright (c) - 2014 - Olivier Belanger                     //
+// Permission to use, copy, modify, and/or distribute this     //
+// software for any purpose with or without fee is hereby      //
+// granted, provided that the above copyright notice and this  //
+// permission notice appear in all copies. CookDSP IS PROVIDED //
+// "AS IS", WITHOUT WARRANTY OF ANY KIND FROM THE AUTHOR.      //
+/////////////////////////////////////////////////////////////////
+
+@init
+
+/******************************************************* 
+RANDOM
+======
+
+Generate a periodic pseudo-random generator.
+
+Description
+-----------
+
+The random object initializes a pseudo-random number generator
+whose generated values lie between `mini` and `maxi` arguments.
+A new value is chosen at a frequency specified by `freq` argument.
+The random function can hold the generated value until the next 
+generation or linearly interpolate between the old value and the 
+new one.
+
+It must be used with a variable name as prefix (object oriented).
+
+Initializer
+-----------
+
+#### random(mini, maxi, freq, mode) ####
+
+Initializes the random generator. Lower limit of the generation
+is specified by `mini` argument while `maxi` argument id the 
+higher limit. A new value is chosen randomly at a rate given by
+the `freq` argument and the `mode` argument indicates the 
+behaviour of the object : 0 means linear interpolation and 1 means 
+sample-and-hold.
+
+Methods
+-------
+
+#### random_set_limits(mini, maxi) ####
+
+Sets new values for minimum (`mini`) and maximum (`maxi`) limits. 
+
+#### random_set_freq(freq) ####
+
+Sets new generation frequency in Hz. 
+
+#### random_set_mode(mode) ####
+
+Changes th behaviour of the object. 0 means linear interpolation 
+and 1 means sample-and-hold.
+
+#### random_do() ####
+
+Computes and returns the next value of the random generator.
+ 
+Example
+-------
+
+    desc:Randomizing Channels
+
+    import cookdsp.jsfx-inc
+
+    slider1:4<0.25,20>Random Speed
+
+    @init
+    rL.random(0, 1, slider1, 0);
+    rR.random(0, 1, slider1, 0);
+
+
+    @slider
+    rL.random_set_freq(slider1);
+    rR.random_set_freq(slider1);
+
+    @sample
+    spl0 *= rL.random_do();
+    spl1 *= rR.random_do();
+
+********************************************************/
+function random(mini maxi freq mode)
+(
+    mode = floor(mode);
+    mode < 0 ? mode = 0 : mode > 1 ? mode = 1;
+    this.mode = mode;
+    mini > maxi ? (
+        tmp_ = mini; mini = maxi; maxi = tmp_;
+    );
+    this.mini = mini; 
+    this.maxi = maxi; 
+    this.freq = abs(freq);
+    this.range = this.maxi - this.mini;
+    this.inc = this.freq / srate; 
+    this.diff = this.val = this.oldval = 0;
+    this.time = 1.0;
+);
+
+function random_set_limits(mini maxi)
+(
+    mini > maxi ? (
+        tmp_ = mini; mini = maxi; maxi = tmp_;
+    );
+    this.mini = mini;
+    this.maxi = maxi;
+    this.range = this.maxi - this.mini;
+);
+
+function random_set_freq(freq)
+(
+    this.freq = abs(freq);
+    this.inc = this.freq / srate;
+);
+
+function random_set_mode(mode)
+(
+    mode = floor(mode);
+    mode < 0 ? mode = 0 : mode > 1 ? mode = 1;
+    this.mode = mode;
+);
+
+function random_do()
+(
+    this.time += this.inc;
+    this.time >= 1 ? (
+        this.time -= 1;
+        this.oldval = this.val;
+        this.val = this.range * rand(1) + this.mini;
+        this.diff = this.val - this.oldval;
+    );
+    this.mode == 0 ? (
+        this.oldval + this.diff * this.time;
+    ) : (
+        this.val;
+    );
+);

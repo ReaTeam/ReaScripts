@@ -1,0 +1,12 @@
+-- @description Select region in region manager window (Next/Previous)
+-- @author Edgemeal
+-- @version 1.01
+-- @changelog Support newer versions of REAPER (last tested v6.75)
+-- @metapackage
+-- @provides
+--   [main] edgemeal_Select region in region manager window/edgemeal_Select next region in region manager window.lua
+--   [main] edgemeal_Select region in region manager window/edgemeal_Select previous region in region manager window.lua
+-- @link Forum https://forum.cockos.com/showthread.php?t=256856
+-- @donation Donate https://www.paypal.me/Edgemeal
+-- @about Requires js_ReaScriptAPI extension version v1.217 or later.
+

@@ -1,0 +1,70 @@
+noindex: true
+
+desc:FXD Split to 32 Channels
+
+
+
+
+slider1:0<-120,12,1>ch 1 Volume (dB)
+slider2:0<-120,12,1>ch 2 Volume (dB)
+slider3:0<-120,12,1>ch 3 Volume (dB)
+slider4:0<-120,12,1>ch 4 Volume (dB)
+slider5:0<-120,12,1>ch 5 Volume (dB)
+slider6:0<-120,12,1>ch 6 Volume (dB)
+slider7:0<-120,12,1>ch 7 Volume (dB)
+slider8:0<-120,12,1>ch 8 Volume (dB)
+slider9:0<-120,12,1>ch 9 Volume (dB)
+slider10:0<-120,12,1>ch 10 Volume (dB)
+slider11:0<-120,12,1>ch 11 Volume (dB)
+slider12:0<-120,12,1>ch 12 Volume (dB)
+slider13:0<-120,12,1>ch 13 Volume (dB)
+slider14:0<-120,12,1>ch 14 Volume (dB)
+slider15:0<-120,12,1>ch 15 Volume (dB)
+slider16:0<-120,12,1>ch 16 Volume (dB)
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+@slider
+
+adj1 = (2^(slider1/6));
+adj2 = (2^(slider2/6));
+adj3 = (2^(slider3/6));
+adj4 = (2^(slider4/6));
+adj5 = (2^(slider5/6));
+adj6 = (2^(slider6/6));
+adj7 = (2^(slider7/6));
+adj8 = (2^(slider8/6));
+adj9 = (2^(slider9/6));
+adj10 = (2^(slider10/6));
+adj11 = (2^(slider11/6));
+adj12 = (2^(slider12/6));
+adj13 = (2^(slider13/6));
+adj14 = (2^(slider14/6));
+adj15 = (2^(slider15/6));
+adj16 = (2^(slider16/6));
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+@sample
+spl(0) = spl(0)*adj1;
+spl(1) = spl(1)*adj2;
+spl(2) = spl(2)*adj3;
+spl(3) = spl(3)*adj4;
+spl(4) = spl(4)*adj5;
+spl(5) = spl(5)*adj6;
+spl(6) = spl(6)*adj7;
+spl(7) = spl(7)*adj8;
+spl(8) = spl(8)*adj9;
+spl(9) = spl(9)*adj10;
+spl(10) = spl(10)*adj11;
+spl(11) = spl(11)*adj12;
+spl(12) = spl(12)*adj13;
+spl(13) = spl(13)*adj14;
+spl(14) = spl(14)*adj15;
+spl(15) = spl(15)*adj16;
+spl(16) = spl(16)*adj17;

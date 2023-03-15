@@ -1,7 +1,7 @@
 -- @description Set render matrix by comparing track names and region names
 -- @author Mordi
--- @version 1.1
--- @changelog Fixed a bug where markers would offset the region index.
+-- @version 1.2
+-- @changelog Fixed a similar bug where markers would interfere with regions.
 -- @screenshot Set render matrix https://i.imgur.com/AHBjNrn.gif
 -- @about
 --   #Set render matrix by comparing track names and region names
@@ -11,6 +11,7 @@
 --   See screenshot for demonstration.
 --
 --   Works well with "Create single region from selected items (get name and color from folder track).lua".
+
 
 SCRIPT_NAME = "Set render matrix by comparing track names and region names"
 
@@ -63,9 +64,6 @@ end
 deadRegions = {}
 deadRegionsIndex = 0
 
--- Variable for skipping normal marker indexes
-skip = 0
-
 -- Loop through all markers and regions
 for i = 0, num_regions+num_markers-1 do
   retval, isrgn, pos, rgnend, rgnName, rgnIndex = reaper.EnumProjectMarkers(i)
@@ -74,21 +72,19 @@ for i = 0, num_regions+num_markers-1 do
   if isrgn then
     
     -- Get first track which this region will be rendering through (if any)
-    track = reaper.EnumRegionRenderMatrix(0, i+1-skip, 0)
+    track = reaper.EnumRegionRenderMatrix(0, rgnIndex, 0)
     
     -- If no track was found...
     if track == nil then
-    
+      
       -- Format position to hh:mm:ss
       time = reaper.format_timestr(pos, "")
     
       -- Add name of region to array
-      deadRegions[deadRegionsIndex] = rgnName .. " (" .. time .. ")"
+      deadRegions[deadRegionsIndex] = rgnIndex .. " - " .. rgnName .. " (" .. time .. ")"
       deadRegionsIndex = deadRegionsIndex + 1
       
     end
-  else
-    skip = skip + 1
   end
 end
 

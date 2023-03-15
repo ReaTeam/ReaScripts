@@ -1111,7 +1111,7 @@ GUI.Val = function (elm, newval)
 
     if not GUI.elms[elm] then return nil end
 
-    if newval then
+    if newval ~= nil then
         GUI.elms[elm]:val(newval)
     else
         return GUI.elms[elm]:val()
@@ -2567,11 +2567,11 @@ end
 
 -- Tab forward (or backward, if Shift is down) to the next element with .tab_idx = number.
 -- Removes focus from the given element, and gives it to the new element.
-function GUI.tab_to_next(elm)
+function GUI.tab_to_next(elm, prev)
 
     if not elm.tab_idx then return end
 
-    local inc = (GUI.mouse.cap & 8 == 8) and -1 or 1
+    local inc = (prev or GUI.mouse.cap & 8 == 8) and -1 or 1
 
     -- Get a list of all tab_idx elements, and a list of tab_idxs
     local indices, elms = {}, {}

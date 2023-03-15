@@ -1,0 +1,357 @@
+noindex: true
+
+desc:FXD Macros
+import cookdsp.jsfx-inc
+
+slider1:0<0,1>Macro 1
+slider2:0<0,1>Macro 2
+slider3:0<0,1>Macro 3
+slider4:0<0,1>Macro 4
+slider5:0<0,1>Macro 5
+slider6:0<0,1>Macro 6
+slider7:0<0,1>Macro 7
+slider8:0<0,1>Macro 8
+slider9:0<0,127>Morph 1
+slider10:0<0,127>Morph 2
+slider11:0<0,127>Morph 3
+slider12:0<0,127>Morph 4
+slider13:0<0,127>Morph 5
+slider14:0<0,127>Morph 6
+slider15:0<0,127>Morph 7
+slider16:0<0,127>Morph 8
+
+
+in_pin:none
+out_pin:none
+
+options:gmem=ParamValues
+@init 
+ext_noinit=1;
+ext_midi_bus = 1;
+
+midiamp = midinote = 0;
+env.masr(slider1, slider2);
+
+totalTrackCount =  gmem[0];
+trkGUID_Num = gmem[1];
+function Set_Mcro(x, y)(
+  this.mcro = x;
+  this.new = 11111;
+);
+
+abc.Set_Mcro(123, 0);
+
+
+function test(x)(  this.tst = x;
+
+);
+
+
+//gmem offsets ------------------------------
+//gmem 1 = this track's DIY GUID
+//gmem 2 = Selected track's Diy GUID
+//gmem 3 = Prm Inst
+//gmem 4 = if 1 then user is R-Dragging on prm
+         //if 2 then user is adjusting env atk
+         //if 3 then user is adjusting env rel
+         //if 4.1 then Mod 1 is Env, 4.2 then Mod 2 is Env
+        
+         
+//gmem 5 = Which Macro is user assigning
+//gmem 6 = Which Param's mod range is user tweaking 
+//gmem 9 = env1 atk
+//gmem 10 = env1 rel
+//gmem 11 = env2 atk
+//gmem 12 = env2 rel
+//etc..24
+//gmem 31~38 = Modulation type (Macro or Env)
+//gmem 101~108 = send env 1~8s postion back to imgui
+a=0;
+a[-1]= 123;
+
+ModAmt = 1000;
+ModAmt2 = 2000;
+ModAmt3 = 3000;
+ModAmt4 = 4000;
+ModAmt5 = 5000;
+ModAmt6 = 6000;
+ModAmt7 = 7000;
+ModAmt8 = 8000;
+PsUsed = 100; 
+P_OrigV = 11000 ;
+SEQ = 20000; // 20001~20048 = Macro1 Seq 1~48
+//------------------------------------------------------------
+// TABLE INDEX ------------------------------
+// 1,3,5,7,9,11,13,15 = envelope 1~8 's atk
+// 2,4,6,8,10,12,14,16 = envelope 1~8 's rel
+
+function SetMacroTypeToMacro()
+     (
+     Macro = gmem[5];
+      gmem[5]==1?(Macro1Type ='Mc'); Macro==2?(Macro2Type ='Mc'); Macro==3?(Macro3Type ='Mc');Macro==4?(Macro4Type ='Mc');Macro==5?(Macro5Type ='Mc');Macro==6?(Macro6Type ='Mc');Macro==7?(Macro7Type ='Mc');Macro==8?(Macro8Type ='Mc');
+     );
+
+
+
+
+
+midi_bus=15;   
+
+
+
+@slider
+Macro1 = slider1;
+Macro2 = slider2;
+Macro3 = slider3;
+Macro4 = slider4;
+Macro5 = slider5;
+Macro6 = slider6;
+Macro7 = slider7;
+Macro8 = slider8;
+
+@block
+Sel_Trk_GUID_num = gmem[2];
+// This will only execute once when playback starts
+play_state === 0 ? (   
+sendMidi = 0;
+);  
+play_state != 0 && sendMidi === 0 ? (
+midi_bus=15;   
+midisend(0, $x81, 30, 127); //Channel is the numb after $x9
+sendMidi= 1;
+);
+// ----------------------------------------
+
+//▼Send Midi Msg only when slider is moved or automated
+Sldr9!=Slider9?( midisend(0, $xAF/*AfterTouch, 16th Chan*/, 1/*Which Note*/  , Slider9));
+Sldr9=Slider9;
+
+Sldr10!=Slider10?( midisend(0, $xAF/*AfterTouch, 16th Chan*/, 2/*Which Note*/  , Slider10));
+Sldr10=Slider10;
+
+Sldr11!=Slider11?( midisend(0, $xAF/*AfterTouch, 16th Chan*/, 3/*Which Note*/  , Slider11));
+Sldr11=Slider11;
+
+Sldr12!=Slider12?( midisend(0, $xAF/*AfterTouch, 16th Chan*/, 4/*Which Note*/  , Slider12));
+Sldr12=Slider12;
+
+Sldr13!=Slider13?( midisend(0, $xAF/*AfterTouch, 16th Chan*/, 5/*Which Note*/  , Slider13));
+Sldr13=Slider13;
+
+Sldr14!=Slider14?( midisend(0, $xAF/*AfterTouch, 16th Chan*/, 6/*Which Note*/  , Slider14));
+Sldr14=Slider14;
+
+Sldr15!=Slider15?( midisend(0, $xAF/*AfterTouch, 16th Chan*/, 7/*Which Note*/  , Slider15));
+Sldr15=Slider15;
+
+Sldr16!=Slider16?( midisend(0, $xAF/*AfterTouch, 16th Chan*/, 8/*Which Note*/  , Slider16));
+Sldr16=Slider16;
+
+
+mode= gmem[4];
+midi_bus=15;   
+
+
+//if user tweaking track that matches trkGUID
+trkGUID_Num === gmem[2]? 
+  Macro = gmem[5];
+  mode ==1?(   // if User is right-dragging on param in ImGui...
+    P.Inst = gmem[3];    
+    Param = gmem[6];
+    Macro = gmem[5];
+    a[Param+ Macro*1000] = gmem[Param+ Macro*1000];
+        
+  );
+  mode ==2?(   // if User is adjusting atk...  
+      gmem[9] !=0?(atk1 = gmem[9]); gmem[11]!=0?(atk2 = gmem[11]);  gmem[13]!=0?(atk3 = gmem[13]);gmem[15]!=0?(atk4 = gmem[15]);gmem[17]!=0?(atk5 = gmem[17]);gmem[19]!=0?(atk6 = gmem[19]);gmem[21]!=0?(atk7 = gmem[21]);gmem[23]!=0?(atk8 = gmem[23]);
+      Macro==1?(Macro1Type ='env'); Macro==2?(Macro2Type ='env'); Macro==3?(Macro3Type ='env');Macro==4?(Macro4Type ='env');Macro==5?(Macro5Type ='env');Macro==6?(Macro6Type ='env');Macro==7?(Macro7Type ='env');Macro==8?(Macro8Type ='env');
+            
+      );
+  mode ==3?(   // if User is adjusting Release...
+      gmem[10]!=0?(rel1=gmem[10]);gmem[12]!=0?(rel2=gmem[12]);gmem[14]!=0?(rel3=gmem[14]);gmem[16]!=0?(rel4=gmem[16]);gmem[18]!=0?(rel5=gmem[18]);gmem[20]!=0?(rel6=gmem[20]);gmem[22]!=0?(rel7=gmem[22]);gmem[24]!=0?(rel8=gmem[22]);
+      Macro==1?(Macro1Type ='env'); Macro==2?(Macro2Type ='env'); Macro==3?(Macro3Type ='env');Macro==4?(Macro4Type ='env');Macro==5?(Macro5Type ='env');Macro==6?(Macro6Type ='env');Macro==7?(Macro7Type ='env');Macro==8?(Macro8Type ='env');
+            
+      );
+  mode ==4?(   Macro = gmem[5]; //if user ctrl-r-click and change type to Env...
+      Macro==1?(Macro1Type ='env'); Macro==2?(Macro2Type ='env'); Macro==3?(Macro3Type ='env');Macro==4?(Macro4Type ='env');Macro==5?(Macro5Type ='env');Macro==6?(Macro6Type ='env');Macro==7?(Macro7Type ='env');Macro==8?(Macro8Type ='env');
+      );
+  mode ==5? (   
+    Macro = gmem[5]; //if user ctrl-r-click and change type to macro...
+     Macro==1?(Macro1Type ='Mc'); Macro==2?(Macro2Type ='Mc'); Macro==3?(Macro3Type ='Mc');Macro==4?(Macro4Type ='Mc');Macro==5?(Macro5Type ='Mc');Macro==6?(Macro6Type ='Mc');Macro==7?(Macro7Type ='Mc');Macro==8?(Macro8Type ='Mc');
+     );
+  mode == 6? (  
+    Macro = gmem[5]; // if user change type to Step Seq
+     Macro==1?(Macro1Type ='step'); Macro==2?(Macro2Type ='step'); Macro==3?(Macro3Type ='step');Macro==4?(Macro4Type ='step');Macro==5?(Macro5Type ='step');Macro==6?(Macro6Type ='step');Macro==7?(Macro7Type ='step');Macro==8?(Macro8Type ='step');
+  ):(mode == 7 ? (  // if user is tweaking a step's Value
+       Macro==1?(Macro1Type ='step'); Macro==2?(Macro2Type ='step'); Macro==3?(Macro3Type ='step');Macro==4?(Macro4Type ='step');Macro==5?(Macro5Type ='step');Macro==6?(Macro6Type ='step');Macro==7?(Macro7Type ='step');Macro==8?(Macro8Type ='step');
+    WhichStep= gmem[8]; 
+    Macro==1?(
+      SEQ[WhichStep]= gmem[7]; //writes seq value from table slot 20001~20048
+      abc=0[20002];
+      A_WhichStep= WhichStep
+    ):Macro==2?(    // //writes seq value from table slot 20050~20098
+      Macro1.Seq= 456;  
+    );
+  
+    );
+  );
+      
+  gmem[7] != 0?( // if user uses Imgui to tweak param...
+    
+    P_Id = gmem[7];
+    P_OrigV[P_Id]= gmem[11000+P_Id];
+    what=gmem[8];
+    gmem[8] != 0?( // if paramV + Mod is over 1...
+      a[Param+ Macro*1000] = gmem[Param+ Macro*1000]
+  );
+);
+
+MeasureNum= floor(beat_position/ts_denom);
+
+
+BeatPos= beat_position - ts_denom* (MeasureNum);
+
+
+while (midirecv(offset, msg1, msg2, msg3)) (
+    // get noteons and noteoffs from all channels
+    (msg1 & $xF0) == $x90 || (msg1 & $xF0) == $x80 ? (
+        msg3 != 0 ? (
+            // noteon 
+            midinote = msg2;
+            
+            // msg3 == Velocity
+            midiamp =  128; // /msg33   // if you want Velocity involved use msg 3
+            midisend(offset,msg1,msg2,msg3);
+        ) : (
+            // noteoff
+            msg2 == midinote ? midiamp = 0;
+            midisend(offset,msg1,msg2,msg3);
+        );
+    ) : (
+        // passthrough other events
+        midisend(offset,msg1,msg2,msg3);
+    );
+);
+ 
+i=1;    
+while ( i <= P.Inst)(
+  
+  ModAmt[i]!== 0 ? (   //if modulation amount for prm is not 0
+    Macro1Type=='env'?(   //if macro 1 is env
+      env1.masr_set_risetime(atk1); 
+      env1.masr_set_falltime(rel1);
+      Mc1Amt =  env1.masr_do(midiamp)*ModAmt[i];
+      trkGUID_Num === gmem[2]? (gmem[101] = env1.masr_do(midiamp) );   
+    ):Macro1Type== 'step'? ( // if macro 1 is Step Seq
+      BeatPos > 0 && BeatPos < 1? ( Mc1Amt = SEQ[1]*127);  
+    ):(//if macro 1 is macro
+    Mc1Amt = Macro1 * ModAmt[i]*127;
+    );  
+  ):(Mc1Amt=0);
+
+  ModAmt2[i]!== 0 ? (
+    Macro2Type=='env'?( //if macro 2 is env
+      env2.masr_set_risetime(atk2);
+      env2.masr_set_falltime(rel2);
+      Mc2Amt =  env2.masr_do(midiamp)*ModAmt2[i];
+      trkGUID_Num === gmem[2]? (gmem[102] = env2.masr_do(midiamp));
+    ):( //if macro 2 is macro
+    Mc2Amt = Macro2 * ModAmt2[i]*127);
+  ):(Mc2Amt=0);
+  
+  ModAmt3[i]!== 0 ? (
+    Macro3Type=='env'?( //if macro 3 is env
+      env3.masr_set_risetime(atk3);
+      env3.masr_set_falltime(rel3);
+      Mc3Amt =  env3.masr_do(midiamp)*ModAmt3[i];
+      trkGUID_Num === gmem[2]? (gmem[103] = env3.masr_do(midiamp));
+    ):( //if macro 2 is macro aaaa
+    Mc3Amt = Macro3 * ModAmt3[i]*127); 
+  ):(Mc3Amt=0);
+  
+  ModAmt4[i]!== 0 ? (
+    Macro4Type=='env'?( //if macro 4 is env
+      env4.masr_set_risetime(atk4);
+      env4.masr_set_falltime(rel4);
+      Mc4Amt =  env4.masr_do(midiamp)*ModAmt4[i];
+      trkGUID_Num === gmem[2]? (gmem[104] =  env4.masr_do(midiamp));
+    ):( //if macro 4 is macro
+    Mc4Amt = Macro4 * ModAmt4[i]*127);
+  ):(Mc4Amt=0);
+
+  ModAmt5[i]!== 0 ? (
+    Macro5Type=='env'?( //if macro 4 is env
+      env5.masr_set_risetime(atk5);
+      env5.masr_set_falltime(rel5);
+      Mc5Amt =  env5.masr_do(midiamp)*ModAmt5[i];
+      trkGUID_Num === gmem[2]? (gmem[105] =env5.masr_do(midiamp));
+    ):( //if macro 4 is macro
+    Mc5Amt = Macro5 * ModAmt5[i]*127);
+  ):(Mc5Amt=0);
+  
+  ModAmt6[i]!== 0 ? (
+    Macro6Type=='env'?( //if macro 4 is env
+      env6.masr_set_risetime(atk6);
+      env6.masr_set_falltime(rel6);
+      Mc6Amt =  env6.masr_do(midiamp)*ModAmt6[i];
+      trkGUID_Num === gmem[2]? (gmem[106] =env6.masr_do(midiamp));
+    ):( //if macro 6 is macro
+    Mc6Amt = Macro6 * ModAmt6[i]*127);
+  ):(Mc6Amt=0);
+  
+  ModAmt7[i]!== 0 ? (
+    Macro7Type=='env'?( //if macro 7 is env
+      env7.masr_set_risetime(atk7);
+      env7.masr_set_falltime(rel7);
+      Mc7Amt =  env7.masr_do(midiamp)*ModAmt7[i];
+      trkGUID_Num === gmem[2]? (gmem[107] = env7.masr_do(midiamp));
+    ):( //if macro 7 is macro
+    Mc7Amt = Macro7 * ModAmt7[i]*127);
+  ):(Mc7Amt=0);
+  
+  ModAmt8[i]!== 0 ? (
+    Macro8Type=='env'?( //if macro 8 is env
+      env8.masr_set_risetime(atk8);
+      env8.masr_set_falltime(rel8);
+      Mc8Amt =  env8.masr_do(midiamp)*ModAmt8[i];
+      trkGUID_Num === gmem[2]? (gmem[108] =env8.masr_do(midiamp));
+    ):( //if macro 8 is macro
+    Mc8Amt = Macro8 * ModAmt8[i]*127);
+  ):(Mc8Amt=0);
+  
+
+  
+  ModAmtTotal = Mc1Amt+Mc2Amt+Mc3Amt+Mc4Amt+Mc5Amt+Mc6Amt+Mc7Amt+Mc8Amt;
+  
+  SendAmt = P_OrigV[i]*127 + ModAmtTotal;
+
+  SendAmt > 127 ? (SendAmt = 127) ;
+    
+  midisend(0, $xBf, i, SendAmt);
+      
+  i+=1;
+);
+
+
+
+while (midirecv(offset, msg1, msg2, msg3)) (
+    // get noteons and noteoffs from all channels
+    (msg1 & $xF0) == $x90 || (msg1 & $xF0) == $x80 ? (
+        msg3 != 0 ? (
+            // noteon 
+            midinote = msg2;
+            // Normalizes amplitude value
+            midiamp = msg3 / 94;
+            time = time_precise();
+            Aa_TestEnv = 1;
+            
+            
+        ) : (
+            // noteoff
+            msg2 == midinote ? midiamp = 0;
+        );
+    ) : (
+        // passthrough other events
+        midisend(offset,msg1,msg2,msg3);
+    );
+);
