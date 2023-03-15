@@ -1,6 +1,6 @@
 -- @description FX chain A-B
 -- @author Thomas Dahl
--- @version 1.0
+-- @version 1.01
 -- @about
 --   # tompad_FXchain_A-B
 --   Reascript for A/B-ing FX chains in Reaper DAW 
@@ -96,27 +96,34 @@ end
 -- goes here.
 function main()
 
+--local rtk = require('rtk')
+--local log = rtk.log
+
+-- Set the current log level to INFO
+--log.level = log.DEBUG
+
+
 -- Global variables to store the FX chains
-fx_chain1 = ""
-fx_chain2 = ""
+fx_chain1 = " "
+fx_chain2 = " "
 
     -- Create an rtk.Window object that is to be the main application window   
- local window = rtk.Window{w=250, h=215, borderless=true, resizable=false, opacity=0.5, border='black'}
+ local window = rtk.Window{w=235, h=215, borderless=true, resizable=false, opacity=0.90, border='black'}
 
-    local hbox1 = window:add(rtk.HBox{spacing=20,  margin=20, halign='center'})
+    local hbox1 = window:add(rtk.HBox{spacing=20,  margin=20})
 
-    		local btn_a = hbox1:add(rtk.Button{"A",fontscale=8.5,color='red',border='white',})
+        local btn_a = hbox1:add(rtk.Button{"A",fontscale=7, h=140, w=86, color='red',border='white',})
             btn_a.onclick = function() 
             loadFXChain1()
             end
 
-            local btn_b = hbox1:add(rtk.Button{"B",fontscale=8.5, color='blue',border='white',})
+            local btn_b = hbox1:add(rtk.Button{"B",fontscale=7,h=140, w=86, color='blue',border='white',})
             btn_b.onclick = function()
              loadFXChain2()
             end
 
-local hbox2 = window:add(rtk.HBox{spacing=45, tmargin=170, lmargin=33, halign='center'})
-  			local btn_inject_a = hbox2:add(rtk.Button{"Inject A"})
+local hbox2 = window:add(rtk.HBox{spacing=40, tmargin=170, lmargin=30})  --, halign='center'
+        local btn_inject_a = hbox2:add(rtk.Button{"Inject A"})
             btn_inject_a.onclick = function()
                saveFXChain1()
             end
@@ -126,46 +133,82 @@ local hbox2 = window:add(rtk.HBox{spacing=45, tmargin=170, lmargin=33, halign='c
               saveFXChain2()
             end
  
--- Save the current FX chain to a string variable
+-- Save the current FX chain to a string variable (Inject)
 function saveFXChain()
-  track = reaper.GetSelectedTrack(0, 0)
-  retval, fx_chain = reaper.GetTrackStateChunk(track,"")
-  fx_chain, linenumber = ultraschall.GetFXStateChunk(fx_chain)
-  return fx_chain
+    local track = reaper.GetSelectedTrack(0, 0)  
+    local retval1,StateChunk = reaper.GetTrackStateChunk(track,"",false)
+    local fx_chain, linenumber = ultraschall.GetFXStateChunk(StateChunk)
+    local count_of_fx= ultraschall.CountFXFromFXStateChunk(fx_chain)
+    
+      if count_of_fx == 0 then
+          reaper.ShowMessageBox( "You need a FX chain on track before you can inject it!", "Error", 0)
+      else
+        return fx_chain
+      end       
 end
 
 -- Load an FX chain from a string variable
 function loadFXChain(fx_chain)
-  track = reaper.GetSelectedTrack(0, 0)
-  retval, StateChunk = reaper.GetTrackStateChunk(track,"")
-  retval, fx_chain = ultraschall.SetFXStateChunk(StateChunk, fx_chain)
-    if retval then
-          reaper.SetTrackStateChunk(track, fx_chain, false)
-      else
-         reaper.ShowMessageBox( "You need to inject a FX chain before you can load it", "Error", 0)
-     end
+    
+    if fx_chain == nil then
+     reaper.ShowMessageBox( "You need to inject a FX chain before you can load it!", "Error", 0)
+    else
+    local track = reaper.GetSelectedTrack(0, 0)  
+    local retval1,StateChunk = reaper.GetTrackStateChunk(track,"",false)
+    local retval2, newStateChunk = ultraschall.SetFXStateChunk(StateChunk, fx_chain)
+     reaper.SetTrackStateChunk(track, newStateChunk, true) 
+   end
 end
 
 -- Save the current FX chain to fx_chain1 variable
 function saveFXChain1()
-  fx_chain1 = saveFXChain()
+    local antalTrack = reaper.CountSelectedTracks(0)
+    if antalTrack == 1 then
+        fx_chain1 = saveFXChain()
+    else
+        reaper.ShowMessageBox( "You need to select one track!", "Error", 0) 
+   end
 end
 
 -- Save the current FX chain to fx_chain2 variable
 function saveFXChain2()
-  fx_chain2 = saveFXChain()
+ local antalTrack = reaper.CountSelectedTracks(0)
+    if antalTrack == 1 then
+        fx_chain2 = saveFXChain()
+    else
+        reaper.ShowMessageBox( "You need to select one track!", "Error", 0) 
+   end
 end
 
 -- Load the first FX chain
 function loadFXChain1()
-  loadFXChain(fx_chain1)
+ local antalTrack = reaper.CountSelectedTracks(0)
+   
+   if antalTrack == 1 then
+        if fx_chain1 == " " then
+             reaper.ShowMessageBox( "You need to inject a FX chain in A before you can load it!", "Error", 0)
+        else
+        loadFXChain(fx_chain1)
+        end
+   else
+      reaper.ShowMessageBox( "You need to select one track!", "Error", 0)    
+   end
 end
 
 -- Load the second FX chain
 function loadFXChain2()
-  loadFXChain(fx_chain2)
+ local antalTrack = reaper.CountSelectedTracks(0)
+  if antalTrack == 1 then
+    if fx_chain2 == " " then
+        reaper.ShowMessageBox( "You need to inject a FX chain in B before you can load it!", "Error", 0)
+    else
+      loadFXChain(fx_chain2)
+    end
+  else
+      reaper.ShowMessageBox( "You need to select one track!", "Error", 0)    
+  end
 end
     
     window:open{align='center'}
-   end
+end
 init()
