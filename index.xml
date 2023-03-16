@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="ed2d9bf954ab821cd79a5817290dde457d2d9a7d" name="ReaTeam Scripts">
+<index version="1" commit="cddb7964a4522cb5f46f85e5ee8e1359628aafec" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -5466,6 +5466,10 @@ v1.01 ( 2022-06-15 )
         <changelog><![CDATA[Made some checks for selected track, if fx chain is present, if inject is done.
 Made changes to the GUI also because it didnt look the same on Windows as when developed on linux.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ed2d9bf954ab821cd79a5817290dde457d2d9a7d/FX/tompad_FX%20chain%20AB.lua</source>
+      </version>
+      <version name="1.02" author="Thomas Dahl" time="2023-03-16T19:35:26Z">
+        <changelog><![CDATA[Some bugs and forgotten reaper.ShowConsoleMsg :-)]]></changelog>
+        <source main="main" platform="windows">https://github.com/ReaTeam/ReaScripts/raw/cddb7964a4522cb5f46f85e5ee8e1359628aafec/FX/tompad_FX%20chain%20AB.lua</source>
       </version>
     </reapack>
   </category>
