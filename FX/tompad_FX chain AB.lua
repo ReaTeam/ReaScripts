@@ -1,9 +1,8 @@
 -- @description FX chain A-B
 -- @author Thomas Dahl
--- @version 1.01
--- @changelog
---   Made some checks for selected track, if fx chain is present, if inject is done.
---   Made changes to the GUI also because it didnt look the same on Windows as when developed on linux.
+-- @version 1.02
+-- @changelog Some bugs and forgotten reaper.ShowConsoleMsg :-)
+-- @provides [windows] .
 -- @about
 --   # tompad_FXchain_A-B
 --   Reascript for A/B-ing FX chains in Reaper DAW 
@@ -107,8 +106,8 @@ function main()
 
 
 -- Global variables to store the FX chains
-fx_chain1 = " "
-fx_chain2 = " "
+fx_chain1 = nil
+fx_chain2 = nil
 
     -- Create an rtk.Window object that is to be the main application window   
  local window = rtk.Window{w=235, h=215, borderless=true, resizable=false, opacity=0.90, border='black'}
@@ -125,7 +124,7 @@ fx_chain2 = " "
              loadFXChain2()
             end
 
-local hbox2 = window:add(rtk.HBox{spacing=40, tmargin=170, lmargin=30})  --, halign='center'
+local hbox2 = window:add(rtk.HBox{spacing=40, tmargin=170, lmargin=30})  
         local btn_inject_a = hbox2:add(rtk.Button{"Inject A"})
             btn_inject_a.onclick = function()
                saveFXChain1()
@@ -142,8 +141,7 @@ function saveFXChain()
     local retval1,StateChunk = reaper.GetTrackStateChunk(track,"",false)
     local fx_chain, linenumber = ultraschall.GetFXStateChunk(StateChunk)
     local count_of_fx= ultraschall.CountFXFromFXStateChunk(fx_chain)
-    
-      if count_of_fx == 0 then
+      if count_of_fx == nil then
           reaper.ShowMessageBox( "You need a FX chain on track before you can inject it!", "Error", 0)
       else
         return fx_chain
@@ -152,15 +150,10 @@ end
 
 -- Load an FX chain from a string variable
 function loadFXChain(fx_chain)
-    
-    if fx_chain == nil then
-     reaper.ShowMessageBox( "You need to inject a FX chain before you can load it!", "Error", 0)
-    else
     local track = reaper.GetSelectedTrack(0, 0)  
     local retval1,StateChunk = reaper.GetTrackStateChunk(track,"",false)
     local retval2, newStateChunk = ultraschall.SetFXStateChunk(StateChunk, fx_chain)
-     reaper.SetTrackStateChunk(track, newStateChunk, true) 
-   end
+     reaper.SetTrackStateChunk(track, newStateChunk, false) 
 end
 
 -- Save the current FX chain to fx_chain1 variable
@@ -186,9 +179,8 @@ end
 -- Load the first FX chain
 function loadFXChain1()
  local antalTrack = reaper.CountSelectedTracks(0)
-   
    if antalTrack == 1 then
-        if fx_chain1 == " " then
+        if fx_chain1 == nil then
              reaper.ShowMessageBox( "You need to inject a FX chain in A before you can load it!", "Error", 0)
         else
         loadFXChain(fx_chain1)
@@ -202,7 +194,7 @@ end
 function loadFXChain2()
  local antalTrack = reaper.CountSelectedTracks(0)
   if antalTrack == 1 then
-    if fx_chain2 == " " then
+    if fx_chain2 == nil then
         reaper.ShowMessageBox( "You need to inject a FX chain in B before you can load it!", "Error", 0)
     else
       loadFXChain(fx_chain2)
@@ -215,4 +207,3 @@ end
     window:open{align='center'}
 end
 init()
-
