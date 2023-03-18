@@ -1,18 +1,22 @@
 -- @description FX chain A-B
 -- @author Thomas Dahl
--- @version 1.02
--- @changelog Some bugs and forgotten reaper.ShowConsoleMsg :-)
--- @provides [windows] .
+-- @version 1.03
+-- @changelog
+--   Added visual feedback on loaded A and B buttons (white border)
+--   Added target platform: All (tested on Windows and Ubuntu linux)
+--
+--   Removed in description about copying to another track - waiting for 
+--   a solution on possible bug in ultraschall.SetFXStateChunk.
 -- @about
---   # tompad_FXchain_A-B
+--   # tompad_FX_chain_AB
 --   Reascript for A/B-ing FX chains in Reaper DAW 
 --
---   Use tompad_FXchain_A-B to compare different fx chains you create on a track.
---   You can also use it to copy a fx chain to another track.
+--   Use tompad_FX_chain_AB to compare different fx chains you create on a track.
+--
 --
 --   How to use:
 --   1. Create a fx chain on a track.
---   2. Run tompad_FXchain_A-B.
+--   2. Run tompad_FXchain_AB.
 --   3. Make sure the track with the fx chain is selected and press Inject A-button.
 --   4. Make a new fx chain on track OR make some adjustments to the fx chain and press Inject B-button.
 --   5. Its now possible to compare the two fx chains by pressing the two big buttons A and B.
@@ -22,6 +26,7 @@
 --   Reaper Tool Kit (rtk) from https://reapertoolkit.dev/index.xml 
 --
 --   Ultraschall API package from https://github.com/Ultraschall/ultraschall-lua-api-for-reaper/raw/master/ultraschall_api_index.xml
+
 
 
 -- Setup package path locations to find rtk via ReaPack
@@ -114,12 +119,12 @@ fx_chain2 = nil
 
     local hbox1 = window:add(rtk.HBox{spacing=20,  margin=20})
 
-        local btn_a = hbox1:add(rtk.Button{"A",fontscale=7, h=140, w=86, color='red',border='white',})
+        local btn_a = hbox1:add(rtk.Button{"A",fontscale=7, h=140, w=86, color='red',border='black',})
             btn_a.onclick = function() 
             loadFXChain1()
             end
 
-            local btn_b = hbox1:add(rtk.Button{"B",fontscale=7,h=140, w=86, color='blue',border='white',})
+            local btn_b = hbox1:add(rtk.Button{"B",fontscale=7,h=140, w=86, color='blue',border='black',})
             btn_b.onclick = function()
              loadFXChain2()
             end
@@ -128,11 +133,13 @@ local hbox2 = window:add(rtk.HBox{spacing=40, tmargin=170, lmargin=30})
         local btn_inject_a = hbox2:add(rtk.Button{"Inject A"})
             btn_inject_a.onclick = function()
                saveFXChain1()
+               btn_a:attr('border', 'white')
             end
 
             local btn_inject_b = hbox2:add(rtk.Button{"Inject B"})
             btn_inject_b.onclick = function()
               saveFXChain2()
+                btn_b:attr('border', 'white')
             end
  
 -- Save the current FX chain to a string variable (Inject)
