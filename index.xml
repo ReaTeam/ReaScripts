@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="cddb7964a4522cb5f46f85e5ee8e1359628aafec" name="ReaTeam Scripts">
+<index version="1" commit="116e2b2f93f3e04527080dc04caadd5106470e60" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -5444,12 +5444,12 @@ v1.01 ( 2022-06-15 )
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 tompad_FXchain_A-B\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 tompad_FX_chain_AB\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Reascript for A/B-ing FX chains in Reaper DAW\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Use tompad_FXchain_A-B to compare different fx chains you create on a track. You can also use it to copy a fx chain to another track.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Use tompad_FX_chain_AB to compare different fx chains you create on a track.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 How to use:\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 1.\tx360\tab Create a fx chain on a track.\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 2.\tx360\tab Run tompad_FXchain_A-B.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 2.\tx360\tab Run tompad_FXchain_AB.\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 3.\tx360\tab Make sure the track with the fx chain is selected and press Inject A-button.\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 4.\tx360\tab Make a new fx chain on track OR make some adjustments to the fx chain and press Inject B-button.\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 5.\tx360\tab Its now possible to compare the two fx chains by pressing the two big buttons A and B.\sa180\par}
@@ -5470,6 +5470,14 @@ Made changes to the GUI also because it didnt look the same on Windows as when d
       <version name="1.02" author="Thomas Dahl" time="2023-03-16T19:35:26Z">
         <changelog><![CDATA[Some bugs and forgotten reaper.ShowConsoleMsg :-)]]></changelog>
         <source main="main" platform="windows">https://github.com/ReaTeam/ReaScripts/raw/cddb7964a4522cb5f46f85e5ee8e1359628aafec/FX/tompad_FX%20chain%20AB.lua</source>
+      </version>
+      <version name="1.03" author="Thomas Dahl" time="2023-03-18T20:02:34Z">
+        <changelog><![CDATA[Added visual feedback on loaded A and B buttons (white border)
+Added target platform: All (tested on Windows and Ubuntu linux)
+
+Removed in description about copying to another track - waiting for 
+a solution on possible bug in ultraschall.SetFXStateChunk.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/116e2b2f93f3e04527080dc04caadd5106470e60/FX/tompad_FX%20chain%20AB.lua</source>
       </version>
     </reapack>
   </category>
