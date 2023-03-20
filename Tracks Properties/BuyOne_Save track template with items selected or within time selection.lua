@@ -33,11 +33,12 @@ About:  The script allows saving track template with selected
         which is the default location for saving track templates.  
         If you saved a template elsewhere, simply navigate to that 
         location.  
-        The script is blind to the path of the newly saved template 
-        file and to the actual save operation, therefore 
-        'Select .RTrackTemplate file' dialogue will appear even if 
-        you closed native 'Save track template' dialogue without 
-        saving a template.  
+	The script is blind to the path of the newly saved template 
+	file, to the actual save operation and to the state of the 
+	option 'Include track items in template', therefore 
+	'Select .RTrackTemplate file' dialogue will appear even if 
+	you closed native 'Save track template' dialogue without 
+	saving a template or didn't enable the option to save items.  
 
         If after saving a template you closed 'Select .RTrackTemplate file'
         dialogue without allowing the script to process the template
