@@ -353,7 +353,7 @@ local mess, typ = table.unpack(fx_list and (valid_fx_cnt > 1 and {'Creating .rea
 		end
 
 		if not reabank_type then -- previous prompt wasn't triggered
-		local resp = r.MB(mess, 'ONLY UNIQUE FX AND FX WITH PRESETS ARE LISTED', typ)
+		local resp = r.MB(mess, 'ONLY UNIQUE FX WITH PRESETS ARE LISTED', typ)
 			if resp == 2 then -- Cancel
 			r.defer(function() do return end end) return
 			elseif resp == 1 or resp == 7 then reabank_type = 2 -- OK in type 1 prompt (one reabank file for a single plugin) and NO in type 3 prompt (one reabank file per each plugin)
