@@ -2,33 +2,44 @@
 ReaScript name: Update FX chain at object selection when one FX window at a time enabled
 Author: BuyOne
 Website: https://forum.cockos.com/member.php?u=134058
-Version: 1.2
-Changelog: 	#Added option to prevent updating a docked FX chain when the docker is closed
+Version: 1.3
+Changelog: #Added support for empty FX chains as a new setting
+	   #Fixed bug of inability to close Master/Monitoring FX chains
 Licence: WTFPL
 REAPER: at least v5.962
 Screenshots: https://git.io/JXjO6
-About:	REAPER stock preferences allow changing open FX chain on track selection when options
+About: 	REAPER stock preferences allow changing open FX chain on track selection when options
 	"Only allow one FX chain window open at a time" and "Open track FX window on track
 	selection change" are enabled at Preferences -> Plug-ins. But they only affect track
-	main FX chain. This sctript additionally covers track input/Monitoring FX chains and
+	main FX chain. This script additionally covers track input/Monitoring FX chains and
 	take FX chain.  
+
 	Meant to be used only when the option "Only allow one FX chain window open at a time" 
 	is enabled at Preferences -> Plug-ins in a global FX chain kind of setup.  
 	Normally when option "Only allow one FX chain window open at a time" is enabled, 
 	to update currently open FX chain window with another FX chain, FX button must be 
 	clicked on the TCP or on the item.  
+
 	This script makes this a bit simpler by allowing to update the window with object 
 	selection, which requires less precision than clicking the tiny FX buttons,
-	besides ensuring that the FX chain is readily accessible.  		   
+	besides ensuring that the FX chain is readily accessible.  
+
+	The script doesn't interfere with the option "Open track FX window on track
+	selection change", it affects track FX chains regardless of whether it's enabled 
+	and on top of that supports Master, Monitor and input FX chains.
+
 	For best experience FX chain window should be docked, but the updating will work 
 	just as good with a floating FX chain window.  
+
 	To use it in a docker it's usually sufficient to dock any FX chain window, 
 	the rest will stay docked automatically, yet sometimes adjustment of a few
 	individual FX windows may be required.   
+
 	Active take FX chain is always loaded at item selection. The type of track FX chain 
 	to be loaded at track selection is determined by the USER SETTING below, but 
 	you'll still be able to load track FX chain of the other type normally by clicking 
 	FX button of the corresponding track.  
+
 	The currently open FX chain window can be temporarily closed with a click on FX button
 	or a by closing its tab in the docker, until another object is selected.   
 	Clicking FX button is also a way to re-open a closed FX chain of the same selected 
@@ -42,7 +53,7 @@ About:	REAPER stock preferences allow changing open FX chain on track selection 
 	FX chain window always becomes focused when updated, which means that if 
 	it's docked and open but not active (hidden) in a tabbed docker it will 
 	become active (visible), if it's docked in a closed docker the docker will
-	open, and if it's floating it will come in front of other windows.
+	open, and if it's floating it will come in front of other windows.   
 
 	When FX chain changes in a docker it flickers because one is closed and another
 	is opened. This is REAPER's behavior which can't be controlled with a script.
@@ -52,7 +63,6 @@ About:	REAPER stock preferences allow changing open FX chain on track selection 
 	however not vice versa. In order to re-open take FX chain of the last selected 
 	item/active take after it was replaced with a track FX chain such item must be
 	deselected and selected again.
-		
 ]]
 
 -----------------------------------------------------------------------------
@@ -69,8 +79,15 @@ TRACK_FX_CHAIN = ""
 -- only active take FX chain in a multi-take item can be loaded
 TAKE_FX_CHAIN = "1"
 
+-- Switch to FX chain of selected object 
+-- even if its FX chain is empty
+RESPECT_EMPTY_FX_CHAINS = ""
+
 -- If enabled, FX chain window can be updated by change in selection performed
--- by means other than mouse click
+-- by means other than mouse click, 
+-- e.g. with actions 'Track: Go to next/previous track',
+-- 'Item navigation: Select and move to next/previous item'
+-- 'Item navigation: Select and move to item in next/previous track'
 CHANGE_IN_SELECTION_CHANGES_FOCUS = ""
 
 -- To only have FX chain updated when the docker is open,
@@ -108,10 +125,11 @@ end
 -- https://github.com/mespotine/ultraschall-and-reaper-docs/blob/master/Docs/Reaper-ConfigVariables-Documentation.txt
 
 	if Check_reaper_ini('fxfloat_focus')&2 == 0 then r.MB(space(6)..'The script only makes sense when option\n\n"Only allow one FX chain window open at a time"\n\n'..space(9)..'is enabled at Preferences -> Plug-ins', 'ERROR',0)
-    return r.defer(function() if not bla then  return end end) end
+    return r.defer(function() if not bla then return end end) end
 
 main_ch = #TRACK_FX_CHAIN:gsub(' ','') == 0
 take_ch = #TAKE_FX_CHAIN:gsub(' ','') > 0
+empty_ch = #RESPECT_EMPTY_FX_CHAINS:gsub(' ','') > 0
 change_focus = #CHANGE_IN_SELECTION_CHANGES_FOCUS:gsub(' ','') > 0
 
 local init_tr
@@ -132,19 +150,19 @@ local curr_ctx = r.GetCursorContext()
 local curr_ctx = change_focus and sel_tr ~= init_tr and r.SetCursorContext(0)
 or change_focus and act_take ~= init_take and r.SetCursorContext(1) or curr_ctx
 
-	if sel_tr and (sel_tr ~= init_tr or curr_ctx ~= init_ctx) and curr_ctx == 0 -- curr_ctx ~= init_ctx makes sure track and take fx chains can be switched even if object selection hasn't changed
+	if sel_tr and (sel_tr ~= init_tr or curr_ctx ~= init_ctx) and curr_ctx == 0 and DOCKER_STATE -- curr_ctx ~= init_ctx makes sure track and take fx chains can be switched even if object selection hasn't changed
 	then
-	local master, track -- specifically declared, otherwise empty fx chains get opened, because the vars become global and don't depend on the below condition any longer
-		if main_ch and r.TrackFX_GetCount(sel_tr) > 0 then
+	local master, track -- specifically declared, otherwise empty fx chains get opened even if not enabled, because the vars become global and don't depend on the below condition any longer
+		if main_ch and (empty_ch or not empty_ch and r.TrackFX_GetCount(sel_tr) > 0) then
 		master, track = 40846, 40291 -- Track: View FX chain for master track /  Track: View FX chain for current/last touched track
-		elseif r.TrackFX_GetRecCount(sel_tr) > 0 then
+		elseif empty_ch or not empty_ch and r.TrackFX_GetRecCount(sel_tr) > 0 then
 		master, track = 41882, 40844 -- View: Show monitoring FX chain / Track: View input FX chain for current/last touched track
 		end
 	local upd = master and tr_name[2] == 'MASTER' and r.Main_OnCommand(master,0) or track and r.Main_OnCommand(track,0)
 	init_tr = sel_tr
 	init_ctx = curr_ctx
 	end
-	if take_ch and act_take and act_take ~= init_take and r.TakeFX_GetCount(act_take) > 0 and curr_ctx == 1 -- curr_ctx ~= init_ctx condition isn't used so take FX chain doesn't compete with track FX chain completely preventing it from loading in tabbed dock layout
+	if take_ch and act_take and act_take ~= init_take and (empty_ch or not empty_ch and r.TakeFX_GetCount(act_take) > 0) and curr_ctx == 1 and DOCKER_STATE -- curr_ctx ~= init_ctx condition isn't used so take FX chain doesn't compete with track FX chain completely preventing it from loading in tabbed dock layout
 	then
 	r.Main_OnCommand(40638,0) -- Item: Show FX chain for item take
 	init_take = act_take
@@ -153,7 +171,7 @@ or change_focus and act_take ~= init_take and r.SetCursorContext(1) or curr_ctx
 
 	if r.CountSelectedMediaItems(0) == 0 then init_take = nil end -- reset, ensures that FX chain of the last selected item can be re-opened after the item was deselected and selected again
 	--[needed when curr_ctx ~= init_ctx isn't used as a condition to switch to take fx chain since it's commented out in the track fx chain selection routine to prevent auto-switching to take fx chain in tabbed docker layout]
-	if r.CountSelectedTracks(0) == 0 then init_tr = nil end -- reset, ensures that FX chain of the last selected track can be re-opened after the track was deselected and selected again
+	if r.CountSelectedTracks2(0, true) == 0 then init_tr = nil end -- wantmaster true; reset, ensures that FX chain of the last selected track can be re-opened after the track was deselected and selected again;
 
 r.defer(UPDATE_FX_CHAIN)
 
