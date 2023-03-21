@@ -7,34 +7,42 @@ Changelog: Initial release
 Licence: WTFPL
 REAPER: at least v5.962
 About: 	The script allows creating .reabank files for individual plugins
-        or one .reabank file for several plugins.
+	or one .reabank file for several plugins.
 
-        Open FX browser and select plugins there or open an FX chain 
-        and keeping it open, run the script. All types of FX chains 
-        are supported.  
-        The best way to create one .reabank for a number of plugins 
-        is to insert an assortment of plugins in the desired order into 
-        a track blank FX chain and run the script while the FX chain is open.  
+	Open FX browser and select plugins there or open an FX chain 
+	and keeping it open, run the script. All types of FX chains 
+	are supported.  
+	The best way to create one .reabank for a number of plugins 
+	is to insert an assortment of plugins in the desired order into 
+	a track blank FX chain and run the script while the FX chain is open.  
 
-        The .reabank file is placed in the /Data folder in the REAPER
-        resource directory, where the stock GM.reabank file is located
-        and which ReaControlMIDI plugin and Bank/Program Select MIDI events
-        in MIDI items are by default pointed to.  
+	The .reabank file is placed in the /Data folder in the REAPER
+	resource directory, where the stock GM.reabank file is located
+	and which ReaControlMIDI plugin and Bank/Program Select MIDI events
+	in MIDI items are by default pointed to.  
 
-        Exporting Video processor presets is supported from REAPER build 6.26 
-        onwards.
+	Exporting Video processor presets is supported from REAPER build 6.26 
+	onwards.
 
-        In the .reabank file plugins will be listed by the name which appears in
-        the FX browser even if in the focused FX chain they're named differently.
+	All types of FX chains are supported.  
 
-        You may also check out a similar script mpl_Generate reabank from focused FX.lua 
-        which generates reabank code for an FX currently focused in a track FX chain
-        with output to ReaScript console.
+	If option 'Only allow one FX chain window open at a time' is enabled
+	at Preferences -> Plug-ins the focused FX chain may jolt when the
+	script is run, and the FX selected in the FX chain will switch to the
+	focused FX if it's displayed in a floating window and wasn't selected
+	initially. This is inevitable due to REAPER API peculiarities.
 
-        Instructions on using .reabank files to switch presets in real time 
-        is available in chapter 13.47 'Using MIDI CC Messages to Control FX Presets' 
-        of the User Guide and/or in this video https://www.youtube.com/watch?v=216O6xGWCxU
-        by Kenneth A of Crashwaggon Music
+	In the .reabank file plugins will be listed by the name which appears in
+	the FX browser even if in the focused FX chain they're named differently.
+
+	You may also check out a similar script mpl_Generate reabank from focused FX.lua 
+	which generates reabank code for an FX currently focused in a track FX chain
+	with output to ReaScript console.
+
+	Instructions on using .reabank files to switch presets in real time 
+	is available in chapter 13.47 'Using MIDI CC Messages to Control FX Presets' 
+	of the User Guide and/or in this video https://www.youtube.com/watch?v=216O6xGWCxU
+	by Kenneth A of Crashwaggon Music
 
 ]]
 
@@ -127,7 +135,15 @@ return retval, tr_num-1, tr, itm_num, item, take_num, take, fx_num, mon_fx_num >
 end
 
 
-function Check_Selected_FX(take, track, fx_idx) -- presence of arguments makes the function target the focused FX chain, otherwise selected plugins in the open FX browser are targeted
+function Check_reaper_ini(key) -- the arg must be a string
+local f = io.open(r.get_ini_file(),'r')
+local cont = f:read('a*')
+f:close()
+return cont:match(key..'=(%d+)')
+end
+
+
+function Check_Selected_FX(take, track, fx_idx, one_chain) -- presence of arguments makes the function target the focused FX chain, otherwise selected plugins in the open FX browser are targeted // one_chain is boolean of whether 'Only allow one FX chain window at a time' option is enabled as it necessitates special accommodation, see below
 
 r.PreventUIRefresh(1)
 r.InsertTrackAtIndex(r.GetNumTracks(), false) -- insert new track at end of track list and hide it; action 40702 creates undo point
@@ -139,12 +155,23 @@ r.SetMediaTrackInfo_Value(temp_track, 'B_SHOWINTCP', 0) -- hide in Arrange
 
 	if fx_idx then -- only copy if arguments are provided, without arguments instantiated from FX browser below
 	-- take is evaluated first because if take is true track is true as well
-	local GetFXCount, CopyToTrack = table.unpack(take and {r.TakeFX_GetCount, r.TakeFX_CopyToTrack} or track and {fx_idx < 16777216 and r.TrackFX_GetCount or r.TrackFX_GetRecCount, r.TrackFX_CopyToTrack} or {})
+	local GetFXCount, CopyToTrack, FX_Show, GetFloatingWindow = table.unpack(take and {r.TakeFX_GetCount, r.TakeFX_CopyToTrack, r.TakeFX_Show, r.TakeFX_GetFloatingWindow} or track and {fx_idx < 16777216 and r.TrackFX_GetCount or r.TrackFX_GetRecCount, r.TrackFX_CopyToTrack, r.TrackFX_Show, r.TrackFX_GetFloatingWindow} or {})
 	local obj = take or track
+	-- When the setting 'Preferences -> Only allow one FX chain window at a time' is enabled the functions Track/TakeFX_CopyToTrack/Take() close focused FX chain window, which requires its re-opening
+	-- https://forum.cockos.com/showthread.php?t=277429 bug report
+	local is_foc_float = one_chain and GetFloatingWindow(obj, fx_idx) -- if focused FX is open in a floating window
+		
 		for idx = 0, GetFXCount(obj)-1 do
 		local src_idx = fx_idx < 16777216 and idx or 16777216+idx -- or 0x1000000+idx, input/monitoring fx
 		CopyToTrack(obj, src_idx, temp_track, idx, false) -- is_move false // when copying FX envelopes don't follow, only when moving
 		end
+		
+	-- When re-opening FX chain window after it's been closed with Track/TakeFX_CopyToTrack/Take() selection must be switched to the focused FX even if it wasn't selected originally which is possible with floating windows, because restoration of the originally selected FX if its window is also floating, will bring it in front of the originally focused floating FX window even if the latter is re-floated last, and it's impossible to change selection of FX in the chain while windows are floating
+		if one_chain then
+		FX_Show(obj, fx_idx, 1) -- showFlag 1 (show chain) with focused FX selected even if it wasn't selected originally which is possible with floating windows
+			if is_foc_float then FX_Show(obj, fx_idx, 2) FX_Show(obj, fx_idx, 3) end -- showFlag 2 (hide) 3 (show floating), close and re-open floating window, if any, to bring it to the foreground
+		end	
+		
 	else
 	r.TrackFX_AddByName(temp_track, 'FXADD:', false, -1) -- recFX false, instantiate -1: specify a negative value for instantiate to always create a new effect
 	end
@@ -331,7 +358,11 @@ local err = not err and fx_brows_open and fx_chain and 'Both FX chain and FX bro
 	end
 
 
-local chain_fx_list, valid_fx_cnt_chain, _129_chain = table.unpack(fx_chain and {Check_Selected_FX(take, tr, fx_num)} or {''})
+-- Thanks to mespotine for figuring out config variables
+-- https://github.com/mespotine/ultraschall-and-reaper-docs/blob/master/Docs/Reaper-ConfigVariables-Documentation.txt
+local one_chain = Check_reaper_ini('fxfloat_focus')&2 == 2 -- 'Only allow one FX chain window at a time' is enabled in Preferences -> Plug-ins	
+	
+local chain_fx_list, valid_fx_cnt_chain, _129_chain = table.unpack(fx_chain and {Check_Selected_FX(take, tr, fx_num, one_chain)} or {''})
 local brows_fx_list, valid_fx_cnt_brows, _129_brows = table.unpack(fx_brows_open and {Check_Selected_FX()} or {''})
 
 local fx_list = #chain_fx_list > 0 and chain_fx_list or #brows_fx_list > 0 and brows_fx_list
@@ -411,6 +442,5 @@ local mess, typ = table.unpack(fx_list and (valid_fx_cnt > 1 and {'Creating .rea
 
 
 do r.defer(function() do return end end) return end -- prevent undo point creation
-
 
 
