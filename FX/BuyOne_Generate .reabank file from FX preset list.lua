@@ -360,7 +360,7 @@ local err = not err and fx_brows_open and fx_chain and 'Both FX chain and FX bro
 
 -- Thanks to mespotine for figuring out config variables
 -- https://github.com/mespotine/ultraschall-and-reaper-docs/blob/master/Docs/Reaper-ConfigVariables-Documentation.txt
-local one_chain = Check_reaper_ini('fxfloat_focus')&2 == 2 -- 'Only allow one FX chain window at a time' is enabled in Preferences -> Plug-ins	
+local one_chain = fx_chain and Check_reaper_ini('fxfloat_focus')&2 == 2 -- 'Only allow one FX chain window at a time' is enabled in Preferences -> Plug-ins	
 	
 local chain_fx_list, valid_fx_cnt_chain, _129_chain = table.unpack(fx_chain and {Check_Selected_FX(take, tr, fx_num, one_chain)} or {''})
 local brows_fx_list, valid_fx_cnt_brows, _129_brows = table.unpack(fx_brows_open and {Check_Selected_FX()} or {''})
