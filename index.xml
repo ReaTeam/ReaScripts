@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="116e2b2f93f3e04527080dc04caadd5106470e60" name="ReaTeam Scripts">
+<index version="1" commit="d098dbace67cd13f363df76e3174894e54dc2f24" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -7905,7 +7905,7 @@ Fix: Expand error message when the library is missing]]></changelog>
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Added Mac Osx trackpad swipe gestures\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Improved GUI with better Trig lines and better Grid lines\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Grid Tolerance for light editing on large grid division settings\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Better FFT filtering with smaller buffer for better transient precision\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Allpass-based Low Pass and Hi Pass filters for perfect time accuracy\sa180\par}
 }
 ]]></description>
         <link rel="website" href="https://forum.cockos.com/showthread.php?p=2436358#post2436358">Forum Thread</link>
@@ -7948,6 +7948,11 @@ Fix: Expand error message when the library is missing]]></changelog>
       <version name="1.08" author="80icio" time="2023-03-13T12:04:51Z">
         <changelog><![CDATA[- fixed wrong script update]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/fc45790da3a170235f3a8fd4efb205b79aae4c64/Items%20Editing/MK%20Slicer%20(80icio%20MOD).lua</source>
+      </version>
+      <version name="1.09" author="80icio" time="2023-03-23T00:50:52Z">
+        <changelog><![CDATA[- New allpass-based Low Pass and Hi Pass filters for perfect time accuracy.
+- Fixed 'Control + left-click emulates right click' behaviour on script (thanks cfillion)]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d098dbace67cd13f363df76e3174894e54dc2f24/Items%20Editing/MK%20Slicer%20(80icio%20MOD).lua</source>
       </version>
     </reapack>
     <reapack name="mordi_Align grouped items to selected items respectively.lua" type="script" desc="Align grouped items to selected items respectively">
