@@ -1,9 +1,7 @@
 -- @description MK Slicer (80icio MOD)
 -- @author 80icio
--- @version 1.09
--- @changelog
---   - New allpass-based Low Pass and Hi Pass filters for perfect time accuracy.
---   - Fixed 'Control + left-click emulates right click' behaviour on script (thanks cfillion)
+-- @version 1.10
+-- @changelog - Collect hitpoints bug fixed
 -- @link Forum Thread https://forum.cockos.com/showthread.php?p=2436358#post2436358
 -- @about
 --   This is a lua script based on MK SLICER 2 by @Cool for quick slicing, quantizing by grid, re-quantizing, triggering or sampling audio.
@@ -5457,7 +5455,7 @@ function Wave:GetSet_MIDITake()
         return item, take
 end
 ------------------------------
---[[
+
 Collect = {}
 function Wave:Collect() -----icio
 local total = 0 + #Collect
@@ -5470,7 +5468,7 @@ local total = 0 + #Collect
     end
   end
   Collect_Stop = true
-end]]--
+end
 -----------------------------------apply Leading PAD-----------icio----------------------
 function lpadapply()
 
