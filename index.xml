@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="d098dbace67cd13f363df76e3174894e54dc2f24" name="ReaTeam Scripts">
+<index version="1" commit="ea4ab615c662b16da1f29e03932592c08539bf7c" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -7953,6 +7953,10 @@ Fix: Expand error message when the library is missing]]></changelog>
         <changelog><![CDATA[- New allpass-based Low Pass and Hi Pass filters for perfect time accuracy.
 - Fixed 'Control + left-click emulates right click' behaviour on script (thanks cfillion)]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d098dbace67cd13f363df76e3174894e54dc2f24/Items%20Editing/MK%20Slicer%20(80icio%20MOD).lua</source>
+      </version>
+      <version name="1.10" author="80icio" time="2023-03-23T22:28:04Z">
+        <changelog><![CDATA[- Collect hitpoints bug fixed]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ea4ab615c662b16da1f29e03932592c08539bf7c/Items%20Editing/MK%20Slicer%20(80icio%20MOD).lua</source>
       </version>
     </reapack>
     <reapack name="mordi_Align grouped items to selected items respectively.lua" type="script" desc="Align grouped items to selected items respectively">
