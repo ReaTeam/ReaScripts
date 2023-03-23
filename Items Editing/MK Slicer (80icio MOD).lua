@@ -1,7 +1,9 @@
 -- @description MK Slicer (80icio MOD)
 -- @author 80icio
--- @version 1.08
--- @changelog - fixed wrong script update
+-- @version 1.09
+-- @changelog
+--   - New allpass-based Low Pass and Hi Pass filters for perfect time accuracy.
+--   - Fixed 'Control + left-click emulates right click' behaviour on script (thanks cfillion)
 -- @link Forum Thread https://forum.cockos.com/showthread.php?p=2436358#post2436358
 -- @about
 --   This is a lua script based on MK SLICER 2 by @Cool for quick slicing, quantizing by grid, re-quantizing, triggering or sampling audio.
@@ -27,7 +29,7 @@
 --   - Added Mac Osx trackpad swipe gestures
 --   - Improved GUI with better Trig lines and better Grid lines
 --   - Grid Tolerance for light editing on large grid division settings 
---   - Better FFT filtering with smaller buffer for better transient precision
+--   - Allpass-based Low Pass and Hi Pass filters for perfect time accuracy
 
 --[[
 
@@ -489,7 +491,7 @@ function  Check_selection()
         local startT = r.GetMediaItemInfo_Value(itemsel, "D_POSITION")
         
           if i>1 and startT~=startTstore then 
-          --reaper.ShowConsoleMsg(startT .. " " .. startTstore .. "\n")
+      
           Errorcheck = true
           gfx.quit()
           r.ShowMessageBox("Multiple items need to start and end on the same spot ;)", "Slicer", 0)
@@ -497,7 +499,7 @@ function  Check_selection()
           return
           end
           if i>1 and itemlstore~=iteml then
-         -- reaper.ShowConsoleMsg(itemlstore .. " " .. iteml .. "\n")
+      
           Errorcheck = true
           gfx.quit()
           r.ShowMessageBox("Multiple items need to start and end on the same spot ;)", "Slicer", 0)
@@ -507,9 +509,11 @@ function  Check_selection()
         
         startTstore = startT
         itemlstore = iteml
-        local startTqn = tonumber(tostring(r.TimeMap2_timeToQN(0, startT)))
+        local startTqn = tonumber(tostring(r.TimeMap_timeToQN(startT)))
+        
        -- local endTqn = r.TimeMap2_timeToQN(0, endT)
-
+      -- reaper.ClearConsole()
+       -- reaper.ShowConsoleMsg(startTqn .. ' - ' .. floor(startTqn)..'\n')
         if floor(startTqn) == startTqn then
         
         Errorcheck = false
@@ -596,7 +600,7 @@ local itemgrpsel =  r.NamedCommandLookup( '_SWS_AWSELGROUPIFGROUP' )
     r.RefreshToolbar( 41156 )
   end
   if mode == 2 then
-  --reaper.ShowConsoleMsg(tostring(r.GetToggleCommandState( 41156 )))
+
      if r.GetToggleCommandState( 41156 ) == 1 then r.Main_OnCommand(41156, 0) end
    
        r.RefreshToolbar( 41156 )
@@ -3137,7 +3141,7 @@ end
 local Gate_Thresh = T_Slider:new(210,380+corrY,160,18, 0.28,0.4,0.7,0.8, "Threshold","Arial",16, readrms )
 function Gate_Thresh:draw_val()
   self.form_val = (self.norm_val-1)*57-3
-  --reaper.ShowConsoleMsg(self.form_val ..'\n')
+
   local x,y,w,h  = self.x,self.y,self.w,self.h
   local val = string.format("%.1f", self.form_val).." dB"
   local val_w, val_h = gfx.measurestr(val)
@@ -3164,7 +3168,7 @@ end
 local Gate_Sensitivity = S_Slider:new(210,401+corrY,160,18, 0.28,0.4,0.7,0.8, "Sensitivity","Arial",16, Sens_Slider )
 function Gate_Sensitivity:draw_val()
   self.form_val = 2+(self.norm_val)*8       -- form_val
-  --reaper.ShowConsoleMsg(self.form_val ..'\n')
+
   local x,y,w,h  = self.x,self.y,self.w,self.h
   local val = string.format("%.1f", self.form_val).." dB"
   local val_w, val_h = gfx.measurestr(val)
@@ -5121,7 +5125,6 @@ if not self.Res_Points then return end -- return if no lines
     reaper.JS_LICE_Clear(linetable[linetablec], RGB(red, green, blue))
     
     reaper.JS_Composite(trackview, ceil(line_x_MV), TrackY, 1, TrackH, linetable[linetablec], 0, 0, 1, 1, true)
-    ---reaper.ShowConsoleMsg(self.Xsc .. "\n")
     linetablec = linetablec+1
 
 end
@@ -5391,7 +5394,7 @@ function Gate_Gl:manual_Correction()
             self.Res_Points[self.cap_ln+1] = {newVelo, newVelo}   -- veloRMS, veloPeak from mouse y
 
         end
-        -- Move Line -----------------------------eccola icio
+        -- Move Line -----------------------------
         if Shift then 
             local curs_x = min(max(gfx.mouse_x, Wave.x), Wave.x + Wave.w) -- x coord
             local curs_y = min(max(gfx.mouse_y, Wave.y), self.Yop)        -- y coord
@@ -5405,7 +5408,7 @@ function Gate_Gl:manual_Correction()
 
         -- Delete Line ---------------------------
         if SButton == 0 and Wave:mouseR_Down() then gfx.x, gfx.y  = mouse_ox, mouse_oy
-            if mouseR_Up_status == 1 and not Wave:mouseDown() then
+            if mouseR_Up_status == 1 then --and not Wave:mouseDown() then
                table.remove(self.Res_Points,self.cap_ln) -- Del self.cap_ln - Элементы смещаются влево!
                table.remove(self.Res_Points,self.cap_ln) -- Поэтому, опять тот же индекс(а не self.cap_ln+1)
                     mouseR_Up_status = 0
@@ -5416,7 +5419,7 @@ function Gate_Gl:manual_Correction()
     
     -- Insert Line(on mouseR_Down) -------------------------
     if SButton == 0 and Guides.norm_val == 1 and not self.cap_ln and Wave:mouseR_Down() then gfx.x, gfx.y  = mouse_ox, mouse_oy
-        if mouseR_Up_status == 1 and not Wave:mouseDown() then
+        if mouseR_Up_status == 1 then --and not Wave:mouseDown() then
             local line_pos = self.start_smpl + (mouse_ox-Wave.x)/self.Xsc  -- Time point(in Samples!) from mouse_ox pos
             --------------------
             local newVelo = (self.Yop - mouse_oy)/(Wave.h*self.scale) -- velo from mouse y pos
@@ -5454,6 +5457,7 @@ function Wave:GetSet_MIDITake()
         return item, take
 end
 ------------------------------
+--[[
 Collect = {}
 function Wave:Collect() -----icio
 local total = 0 + #Collect
@@ -5466,7 +5470,7 @@ local total = 0 + #Collect
     end
   end
   Collect_Stop = true
-end
+end]]--
 -----------------------------------apply Leading PAD-----------icio----------------------
 function lpadapply()
 
@@ -6655,9 +6659,9 @@ function Wave:Create_Track_Accessor(itemn)
 
        
          self.buffer   = r.new_array(block_size)-- main block-buffer
-         self.buffer2   = r.new_array(block_size)
+         --self.buffer2   = r.new_array(block_size)
          self.buffer.clear()
-         self.buffer2.clear()
+         --self.buffer2.clear()
 
 end
 end
@@ -6670,7 +6674,7 @@ function Wave:Destroy_Track_Accessor()
 if getitem == 0 then
     if self.AA then r.DestroyAudioAccessor(self.AA) 
        self.buffer.clear()
-       self.buffer2.clear()
+       --self.buffer2.clear()
     end
  end
 end
@@ -6787,13 +6791,13 @@ end
 function Wave:table_plus(size, tmp_buf)
 
   local buf=self.out_buf 
-  --reaper.ShowConsoleMsg(#buf.."\n")
+
   local j = 1
   for i = size+1, size + #tmp_buf, 1 do  
       buf[i] = tmp_buf[j]
       j=j+1 
   end
-  --reaper.ShowConsoleMsg(#buf)
+
 end
 
 function Wave:table_plus2(size, tmp_buf)
@@ -6857,6 +6861,7 @@ end
 --------------------------------------------------------------------------------
 ---  triangular crossfade window for FFT filtering artifacts ----------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
+--[[
 triaglecrx = {} --------triangular window
 function trianglecrossfade()
   for i = 1, block_size/2 do
@@ -6865,15 +6870,75 @@ function trianglecrossfade()
   end
   
 end
-trianglecrossfade()
-    
-    
+trianglecrossfade()]]--
+--------------------------allpass filter
+function a1_coefficient(break_frequency, sampling_rate)
+    local t = math.tan((math.pi * break_frequency) / sampling_rate)
+    return (t - 1) / (t + 1)
+end    
+
+local function allpass_filter(x)
+        y = a1 * x + dn_1
+        dn_1 = x - a1 * y
+    return y
+end
+
+
+function lowpass_filter(input_signal,cutfreq,srate)
+output_signal ={}
+ax1, ay1 = 0, 0
+dn_1 = 0
+a1= a1_coefficient(cutfreq, srate)
+    for i = 1, #input_signal do
+        output_signal[i] = allpass_filter(input_signal[i])
+        
+        output_signal[i] = (input_signal[i]+output_signal[i])*0.5
+    end
+  return output_signal
+end   
+
+
+function hipass_filter(input_signal,cutfreq,srate)
+output_signal ={}
+ax1, ay1 = 0, 0
+dn_1 = 0
+a1= a1_coefficient(cutfreq, srate)
+    for i = 1, #input_signal do
+        output_signal[i] = allpass_filter(input_signal[i])
+        
+        output_signal[i] = (input_signal[i]+(output_signal[i]*-1))*0.5
+    end
+  return output_signal
+end
+
+----------------------------------------------------------------------2ndorder allpass TEST
+--[[
+function secondorder_allpassfilter(input_signal,cutfreq,BW,sampling_rate)
+local c = math.tan((math.pi * BW) / sampling_rate)
+c = (c - 1) / (c + 1)
+d = -math.cos(2*math.pi*cutfreq/sampling_rate)
+v ={}
+
+for i = 1, #input_signal do
+v[i] = 0
+end
+
+output_signal = {}
+
+  for i = 3, #input_signal do
+  v[i] = input_signal[i]-d*(1-c)*v[i-1]+c*v[i-2]
+    --local v[i]=input_signal[i]-d*(1-c)*v[i-1]+c*v[i-2]
+  output_signal[i]= -c*v[i]+d*(1-c)*v[i-1]+v[i-2]
+  end
+return output_signal
+end
+]]--
 --------------------------------------------------------------------------------
 ---  Multi Item Accessor  ------------------------------------------------------icio accessor----------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
 function Wave:Multi_Item_Sample_Sum()
-local Nofreqcut
+
 
          if not self.State then
               if not self:Set_Values() then return end -- set main values, coordinates etc   
@@ -6890,24 +6955,23 @@ local Nofreqcut
           -- Filter values --------------
           -------------------------------
           -- LP = HiFreq, HP = LowFreq --
-          local Low_Freq, Hi_Freq =  HP_Freq.form_val, LP_Freq.form_val
-          
+          Low_Freq, Hi_Freq =  HP_Freq.form_val, LP_Freq.form_val
+         --[[   
           if Low_Freq == 20 and Hi_Freq == 20000 then 
              Nofreqcut = true
           else
              Nofreqcut = false
           end
-        
-            local bin_freq = srate/(block_size*2)          -- freq step 
-            local lowband  = Low_Freq/bin_freq             -- low bin
+        ]]--
+           -- local bin_freq = srate/(block_size*2)          -- freq step 
+            --local lowband  = Low_Freq/bin_freq             -- low bin
            
             
-            local hiband   = Hi_Freq/bin_freq              -- hi bin
+           -- local hiband   = Hi_Freq/bin_freq              -- hi bin
       
-            lowband = floor(lowband/2)*2 --- hi band and lo band
-            hiband  = ceil(hiband/2)*2  
-           --reaper.ClearConsole()
-          ---reaper.ShowConsoleMsg(lowband .. ' ' .. hiband)
+            --lowband = floor(lowband/2)*2 --- hi band and lo band
+            --hiband  = ceil(hiband/2)*2  
+
           -------------------------------------------------------------------------
           -- Filtering >> samples to out_buf >> to table >> create peaks ----------
           -------------------------------------------------------------------------
@@ -6922,7 +6986,7 @@ local Nofreqcut
                                        
                  end
                  
-              if Nofreqcut == false then
+              --[[if Nofreqcut == false then
                  
                  tmp_buf = r.new_array(size)
                  tmp_buf2 = r.new_array(size)
@@ -6960,7 +7024,7 @@ local Nofreqcut
                  
     
                               
-                               self:Filter_FFT(lowband, hiband)-- Filter(note: don't use out of range freq!)
+                              -- self:Filter_FFT(lowband, hiband)-- Filter(note: don't use out of range freq!)
                   
                                
                      local bufpos = ((block-1)* self.Xblock)
@@ -6987,7 +7051,7 @@ local Nofreqcut
                    end
               tmp_buf2.clear()  
               
-              else -----------------if no filter 
+              else -----------------if no filter ]]--
               
               tmp_buf = r.new_array(size)
              
@@ -7015,13 +7079,7 @@ local Nofreqcut
                         end
                         
                         
-                                  --self:Original_FFT()
-                                 
-                                  
-                                  for i = 1, #self.buffer do
-                                    self.buffer[i]= self.buffer[i]*block_size*2
-                                  end
-                        
+
                                   
                         
                       
@@ -7038,7 +7096,7 @@ local Nofreqcut
                            
                     end
           
-              end
+              --end
              
              
              
@@ -7078,7 +7136,24 @@ local Nofreqcut
   Wave:Destroy_Track_Accessor()
   end
   
+  if  Hi_Freq ~= 20000 then
   
+    self.out_buf = lowpass_filter(self.out_buf, Hi_Freq, srate)
+    self.out_buf = lowpass_filter(self.out_buf, Hi_Freq, srate)
+    self.out_buf = lowpass_filter(self.out_buf, Hi_Freq, srate)
+  end
+  
+  if  Low_Freq ~= 20 then
+
+    self.out_buf = hipass_filter(self.out_buf, Low_Freq, srate)
+    self.out_buf = hipass_filter(self.out_buf, Low_Freq, srate)
+    self.out_buf = hipass_filter(self.out_buf, Low_Freq, srate)
+
+  end
+  
+  for i = 1, #self.out_buf do --------normalize to buffersize
+    self.out_buf[i]= self.out_buf[i]*block_size*2
+  end
   
   self:Create_Peaks()
   self.State = true -- Change State
@@ -7202,7 +7277,7 @@ function Wave:draw_waveform(r,g,b,a)
           end
         curr = ceil(next)
         local y, y2 = Y - min_peak *Ysc, Y - max_peak *Ysc
---reaper.ShowConsoleMsg(y-y2.." ")
+
     gfx.set(r,g,b+((y-y2)/1000),a)
         gfx.line(i,y, i,y2) -- здесь всегда x=i --- disegna icio
     end 
@@ -7297,7 +7372,7 @@ end
 
 --------------------------
 function Wave:Set_Cursor()
-  if SButton == 0 and self:mouseDown() and not(Ctrl or Shift) then  
+  if SButton == 0  and self:mouseDown() and ccntrLcheck == true and not(Ctrl or Shift) then  
     if self.insrc_mx then local New_Pos = self.sel_start + (self.insrc_mx/self.X_scale )/srate
        r.SetEditCurPos(New_Pos, false, true)    -- true-seekplay(false-no seekplay) 
     end
@@ -7864,11 +7939,14 @@ function Info_Line()
   end
 
 end
-
+-------------------------------------
+ccntrLcheck = true
+ccntrLcheck_time = 0
 ---------------------------------------
 --   Mainloop   ------------------------
 ---------------------------------------
 function mainloop()
+
  exit()
     -- zoom level -- 
     Wnd_WZ = r.GetExtState(scriptname, "zoomWZ") or 1044
@@ -7883,9 +7961,14 @@ function mainloop()
   
     -- mouse and modkeys --
     if gfx.mouse_cap&2==0 then mouseR_Up_status = 1 end
+    if gfx.mouse_cap&3==3 then 
+    ccntrLcheck = false 
+    ccntrLcheck_time = reaper.time_precise()
+    end
     if gfx.mouse_cap&1==1   and last_mouse_cap&1==0  or   -- L mouse
        gfx.mouse_cap&2==2   and last_mouse_cap&2==0  or   -- R mouse
        gfx.mouse_cap&64==64 and last_mouse_cap&64==0 then -- M mouse
+       if reaper.time_precise()>ccntrLcheck_time + 0.1 then ccntrLcheck = true end
        mouse_ox, mouse_oy = gfx.mouse_x, gfx.mouse_y 
     end
     Ctrl  = gfx.mouse_cap&4==4   -- Ctrl  state
@@ -7894,6 +7977,7 @@ function mainloop()
     Alt   = gfx.mouse_cap&16==16 -- Alt state
 
     if gfx.mouse_cap&1==1 then 
+    
        mouse_oxz = gfx.mouse_x/Z_w
        mouse_oyz = gfx.mouse_y/Z_h
           if mouse_oxz <= 1034 and mouse_oyz <= 360 then
