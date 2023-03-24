@@ -110,12 +110,14 @@ local obj = take or tr
 	local menu = ''
 		for i=0, FXCount(obj)-1 do
 		local ret, name = GetFXName(obj, i, '')
+		local name = name:match(': (.+)[%(%[]') or name -- strip off plugin prefix and dev or path (for JSFX) suffix of default name format
 		menu = menu..(i == 0 and '' or '|')..name
 		end
 		if tr and r.TrackFX_GetRecCount(tr) > 0 then
 		menu = menu..(#menu > 0 and '||' or '|')
 			for i=0,r.TrackFX_GetRecCount(tr)-1 do
 			local ret, name = GetFXName(obj, i+0x1000000, '')
+			local name = name:match(': (.+)[%(%[]') or name
 			menu = menu..'|'..name
 			end
 		end
@@ -131,6 +133,7 @@ local obj = take or tr
 		end
 	end
 end
+
 
 
 
