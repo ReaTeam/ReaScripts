@@ -22,7 +22,7 @@ About:		——  To insert FX or FX chain preset in multiple objects (tracks and/
 		at a track or a take, in which case it will evoke a menu of FX currently present in the FX chain 
 		of the object under mouse cursor and click the menu item holding the name of the FX which needs to
 		be copied.   
-		However FX chain takes precedence if any happens to be open.  
+		However FX chain takes precedence if any happens to be open.   
 		In the track FX menu if both main and input FX chains are populated their FX are separated 
 		by a divider.
 
