@@ -3,7 +3,7 @@ ReaScript Name: Insert selected FX or FX chain preset in OR copy focused FX to s
 Author: Buy One
 Author URL: https://forum.cockos.com/member.php?u=134058
 Licence: WTFPL
-ersion: 1.5
+Version: 1.5
 REAPER: v6.12c+ recommended
 Changelog:	#Fixed a bug of copying take FX to the same FX chain
 		#Added support for copying FX envelopes along with FX
