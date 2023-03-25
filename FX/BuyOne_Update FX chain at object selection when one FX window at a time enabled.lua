@@ -75,7 +75,7 @@ About: 	REAPER stock preferences allow changing open FX chain on track selection
 -- If enabled - track input FX chain is loaded
 -- (incl. Monitoring FX chain when Master track is selected)
 -- otherwise track main FX chain (incl. Master track FX chain) -- default
-TRACK_FX_CHAIN = "1"
+TRACK_FX_CHAIN = ""
 
 -- To be able to also load take FX chain on item selection,
 -- only active take FX chain in a multi-take item can be loaded
