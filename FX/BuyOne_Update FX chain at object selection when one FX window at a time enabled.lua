@@ -83,7 +83,7 @@ TAKE_FX_CHAIN = "1"
 
 -- Switch to FX chain of selected object 
 -- even if its FX chain is empty
-RESPECT_EMPTY_FX_CHAINS = "1"
+RESPECT_EMPTY_FX_CHAINS = ""
 
 -- If enabled, FX chain window can be updated by change in selection performed
 -- by means other than mouse click, 
