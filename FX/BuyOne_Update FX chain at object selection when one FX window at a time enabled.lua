@@ -6,6 +6,7 @@ Version: 1.3
 Changelog: 	#Added support for empty FX chains as a new setting
 		#Added support for ignoring selection if no FX chain window is open, as a new setting
 		#Added a setting to ignore track FX chains
+		#Added a setting to prefer open track FX chain and prevent replacing it with take FX chain
 		#Fixed bug of inability to close Master/Monitoring FX chains
 Licence: WTFPL
 REAPER: at least v5.962
@@ -86,6 +87,10 @@ TRACK_FX_CHAIN = ""
 -- is enabled at Preferences -> Plug-ins
 IGNORE_TRACKS = ""
 
+-- If enabled, currently open track FX chain will get priority
+-- and item selection won't replace it with take FX chain
+PREFER_OPEN_TRACK_CHAIN = ""
+
 -- To be able to also load take FX chain on item selection,
 -- only active take FX chain in a multi-take item can be loaded
 TAKE_FX_CHAIN = "1"
@@ -164,6 +169,7 @@ end
 
 main_ch = #TRACK_FX_CHAIN:gsub(' ','') == 0
 ignore_tr = #IGNORE_TRACKS:gsub(' ','') > 0
+pref_open_tr_ch = #PREFER_OPEN_TRACK_CHAIN:gsub(' ','') > 0
 take_ch = #TAKE_FX_CHAIN:gsub(' ','') > 0
 empty_ch = #RESPECT_EMPTY_FX_CHAINS:gsub(' ','') > 0
 change_focus = #CHANGE_IN_SELECTION_CHANGES_FOCUS:gsub(' ','') > 0
@@ -188,6 +194,7 @@ local curr_ctx = r.GetCursorContext()
 local curr_ctx = change_focus and sel_tr ~= init_tr and r.SetCursorContext(0)
 or change_focus and act_take ~= init_take and r.SetCursorContext(1) or curr_ctx
 local chain_op = chain_op and (r.GetFocusedFX() > 0 or GetMonFXProps() >= 0 or jsAPI and r.JS_Window_GetTitle(r.JS_Window_Find('FX: ', false)):match('FX: [ItemMonsTrack]+')) or not chain_op -- empty FX chains are ignored by GetFocusedFX() so have to be detected via window props search
+local pref_open_tr_ch = pref_open_tr_ch and (r.GetFocusedFX() == 1 or GetMonFXProps() >= 0 or jsAPI and r.JS_Window_GetTitle(r.JS_Window_Find('FX: ', false)):match('FX: [TrackMonigste]+')) -- see prev comment
 
 	if not ignore_tr and sel_tr and (sel_tr ~= init_tr or curr_ctx ~= init_ctx) and curr_ctx == 0 and DOCKER_STATE and chain_op -- curr_ctx ~= init_ctx makes sure track and take fx chains can be switched even if object selection hasn't changed
 	then
@@ -201,7 +208,7 @@ local chain_op = chain_op and (r.GetFocusedFX() > 0 or GetMonFXProps() >= 0 or j
 	init_tr = sel_tr
 	init_ctx = curr_ctx
 	end
-	if take_ch and act_take and act_take ~= init_take and (empty_ch or not empty_ch and r.TakeFX_GetCount(act_take) > 0) and curr_ctx == 1 and DOCKER_STATE and chain_op -- curr_ctx ~= init_ctx condition isn't used so take FX chain doesn't compete with track FX chain completely preventing it from loading in tabbed dock layout
+	if not pref_open_tr_ch and take_ch and act_take and act_take ~= init_take and (empty_ch or not empty_ch and r.TakeFX_GetCount(act_take) > 0) and curr_ctx == 1 and DOCKER_STATE and chain_op -- curr_ctx ~= init_ctx condition isn't used so take FX chain doesn't compete with track FX chain completely preventing it from loading in tabbed dock layout
 	then
 	r.Main_OnCommand(40638,0) -- Item: Show FX chain for item take
 	init_take = act_take
