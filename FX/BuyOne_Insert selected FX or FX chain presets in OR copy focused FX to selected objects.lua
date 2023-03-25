@@ -9,7 +9,7 @@ Changelog:	#Fixed a bug of copying take FX to the same FX chain
 		#Added support for copying FX envelopes along with FX
 		#Implemented a workround to the API bug which causes an FX chain window to close when 
 		'Only allow one FX chain window at a time' setting is enabled in Preferences
-		#Added support for accessing FX from a menu with FX chain closed
+		#Added support for accessing FX from a menu
 About:		——  To insert FX or FX chain preset in multiple objects (tracks and/or items) at once open the FX 
 		Browser, select FX or FX chain preset, as many as needed, select the destination objects and run 
 		the script. <<<< This feature exists natively since build 6.12c, in this respect the script is
@@ -18,11 +18,10 @@ About:		——  To insert FX or FX chain preset in multiple objects (tracks and/
 
 		—— To copy FX to multiple objects at once select an FX in an open and focused FX chain or focus
 		its floating window, select the destination objects and run the script.  
-		Alternatively run the script with a shortcut while FX chain is closed pointing the mouse cursor 
-		at a track or a take, in which case it will evoke a menu of FX currently present in the FX chain 
-		of the object under mouse cursor and click the menu item holding the name of the FX which needs to
-		be copied.   
-		However FX chain takes precedence if any happens to be open.   
+		Alternatively run the script with a shortcut pointing the mouse cursor at a track or a take, 
+		in which case it will evoke a menu of FX currently present in the FX chain of the object under mouse 
+		cursor and click the menu item holding the name of the FX which needs to be copied.   
+		FX menu takes precedence over the open FX chain.  
 		In the track FX menu if both main and input FX chains are populated their FX are separated 
 		by a divider.
 
@@ -86,7 +85,7 @@ return cont:match(key..'=(%d+)')
 end
 
 
-local function GetMonFXProps() -- get mon fx accounting for floating window, reaper.GetFocusedFX() doesn't detect mon fx
+local function GetMonFXProps() -- get mon fx accounting for floating window, reaper.GetFocusedFX() doesn't detect mon fx in builds prior to 6.20
 
 -- r.TrackFX_GetOpen(master_tr, integer fx)
 	local master_tr = r.GetMasterTrack(0)
@@ -133,7 +132,6 @@ local obj = take or tr
 		end
 	end
 end
-
 
 
 
@@ -299,24 +297,27 @@ local TRACK_INPUT_MON_FX = TRACK_INPUT_MON_FX:gsub('[%s]','') ~= ''
 local TAKE_FX = TAKE_FX:gsub('[%s]','') ~= ''
 
 
-	local retval, src_trk_num, src_item_num, src_fx_num = r.GetFocusedFX() -- if take fx, item number is index of the item within the track (not within the project) while track number is the track this item belongs to, if not take fx src_item_num is -1, if retval is 0 the rest return values are 0 as well
-	local src_trk = r.GetTrack(0, src_trk_num-1) or r.GetMasterTrack(0)
-	local src_item = src_trk_num ~= 0 and r.GetTrackMediaItem(src_trk, src_item_num)
+	local retval, src_trk_num, src_item_num, src_fx_num_focus = r.GetFocusedFX() -- if take fx, item number is index of the item within the track (not within the project) while track number is the track this item belongs to, if not take fx src_item_num is -1, if retval is 0 the rest return values are 0 as well
+	local src_trk_focus = r.GetTrack(0, src_trk_num-1) or r.GetMasterTrack(0)
+	local src_item_focus = src_trk_num ~= 0 and r.GetTrackMediaItem(src_trk_focus, src_item_num)
 
-	local src_take = retval == 2 and r.GetMediaItemTake(src_item, src_fx_num>>16) -- retval to avoid error when src_item_num = -1 due to track fx chain
+	local src_take_focus = retval == 2 and r.GetMediaItemTake(src_item_focus, src_fx_num_focus>>16) -- retval to avoid error when src_item_num = -1 due to track fx chain -- NEW
 	local src_mon_fx_idx = GetMonFXProps() -- get Monitor FX
 	local sel_trk_cnt = r.CountSelectedTracks2(0,true) -- incl. Master
 	local sel_itms_cnt = r.CountSelectedMediaItems(0)
+--	local fx_chain = retval > 0 or src_mon_fx_idx >= 0
 	local app_ver = tonumber(r.GetAppVersion():match('(.+)/')) > 6.11
 	local fx_brws = app_ver and r.GetToggleCommandStateEx(0, 40271) -- View: Show FX browser window
 	or 0 -- disable FX browser routine in builds prior to 6.12c where the API doesn't support it
 
 	local x, y = r.GetMousePosition()
-	local src_trk = (retval == 1 or src_mon_fx_idx >= 0) and src_trk or r.GetTrackFromPoint(x,y)
-	local src_item, src_take = table.unpack(src_take and {src_item, src_take} or {r.GetItemFromPoint(x, y, true)}) -- allow_locked true
+	local src_trk = r.GetTrackFromPoint(x,y) or (retval == 1 or src_mon_fx_idx >= 0) and src_trk_focus
+	local src_item, src_take = r.GetItemFromPoint(x, y, true) -- allow_locked true
+	local src_item, src_take = table.unpack(not src_take and {src_item_focus, src_take_focus} or {src_item, src_take})
 	local same_take = src_take and src_take == r.GetActiveTake(src_item) -- evaluation if focused fx chain belongs to the active take to avoid copying to the source, but allow copying to other takes, for error message below
 
-	local src_fx_num = (retval > 0 or src_mon_fx_idx >= 0) and src_fx_num or FX_menu(src_trk, src_take)
+	local obj_under_mouse = r.GetTrackFromPoint(x,y) or r.GetItemFromPoint(x, y, true) -- allow_locked true
+	local src_fx_num = obj_under_mouse and FX_menu(src_trk, src_take) or src_fx_num_focus
 		if not src_fx_num then return r.defer(function() do return end end) end -- this will be true if the menu was closed without selection
 	local fx_chain = src_fx_num
 
@@ -401,8 +402,8 @@ r.Undo_BeginBlock()
 		-- https://forum.cockos.com/showthread.php?t=277429 bug report
 		-- Thanks to mespotine for figuring out config variables
 		-- https://github.com/mespotine/ultraschall-and-reaper-docs/blob/master/Docs/Reaper-ConfigVariables-Documentation.txt
-		local one_chain = Check_reaper_ini('fxfloat_focus')&2 == 2 -- 'Only allow one FX chain window at a time' is enabled in Preferences -> Plug-ins
-		local is_foc_float = one_chain and (src_take and r.TakeFX_GetFloatingWindow(src_take, src_fx_num) or r.TrackFX_GetFloatingWindow(src_trk, src_fx_num)) -- if focused FX is open in a floating window
+		local one_chain = (src_take_focus and src_take_focus == src_take or src_trk_focus and src_trk_focus == src_trk) and Check_reaper_ini('fxfloat_focus')&2 == 2 -- 'Only allow one FX chain window at a time' is enabled in Preferences -> Plug-ins // only relevant when inserting from an open FX chain or when the FX menu stems from the same object as the focused FX chain 
+		local is_foc_float = one_chain and (src_take and r.TakeFX_GetFloatingWindow(src_take, src_fx_num) or src_trk and r.TrackFX_GetFloatingWindow(src_trk, src_fx_num)) -- if focused FX is open in a floating window
 
 			if incl_envs then
 
@@ -436,11 +437,11 @@ r.Undo_BeginBlock()
 
 			-- RESTORE SELECTION AND FLOATING STATE
 			-- When re-opening FX chain window after it's been closed with Track/TakeFX_CopyToTrack/Take(), selection must be switched to the focused FX even if it wasn't selected originally which is possible with floating windows, because restoration of the originally selected FX if its window is also floating, will bring it in front of the originally focused floating FX window even if the latter is re-floated last, and it's impossible to change selection of FX in the chain while windows are floating
-			if one_chain then
-			local FX_Show = src_take and r.TakeFX_Show or r.TrackFX_Show
-			local obj = src_take or src_trk
-			FX_Show(obj, src_fx_num, 1)
-				if is_foc_float then FX_Show(obj, src_fx_num, 2) FX_Show(obj, src_fx_num, 3) end
+			if one_chain then  -- only relevant when inserting from an open FX chain
+			local FX_Show = src_take_focus and r.TakeFX_Show or r.TrackFX_Show
+			local obj = src_take_focus or src_trk_focus
+			FX_Show(obj, src_fx_num_focus, 1)
+				if is_foc_float then FX_Show(obj, src_fx_num_focus, 2) FX_Show(obj, src_fx_num_focus, 3) end
 			end
 
 		end
