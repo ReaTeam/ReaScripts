@@ -317,7 +317,7 @@ local TAKE_FX = TAKE_FX:gsub('[%s]','') ~= ''
 	local same_take = src_take and src_take == r.GetActiveTake(src_item) -- evaluation if focused fx chain belongs to the active take to avoid copying to the source, but allow copying to other takes, for error message below
 
 	local obj_under_mouse = r.GetTrackFromPoint(x,y) or r.GetItemFromPoint(x, y, true) -- allow_locked true
-	local src_fx_num = obj_under_mouse and FX_menu(src_trk, src_take) or src_fx_num_focus
+	local src_fx_num = obj_under_mouse and FX_menu(src_trk, src_take) or (retval > 0 or src_mon_fx_idx >= 0) and src_fx_num_focus
 		if not src_fx_num then return r.defer(function() do return end end) end -- this will be true if the menu was closed without selection
 	local fx_chain = src_fx_num
 
