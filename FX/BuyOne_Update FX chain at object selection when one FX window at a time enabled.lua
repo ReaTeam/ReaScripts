@@ -83,7 +83,7 @@ TAKE_FX_CHAIN = "1"
 
 -- Switch to FX chain of selected object 
 -- even if its FX chain is empty
-RESPECT_EMPTY_FX_CHAINS = ""
+RESPECT_EMPTY_FX_CHAINS = "1"
 
 -- If enabled, FX chain window can be updated by change in selection performed
 -- by means other than mouse click, 
@@ -177,14 +177,14 @@ local act_take = item and r.GetActiveTake(item)
 local curr_ctx = r.GetCursorContext()
 local curr_ctx = change_focus and sel_tr ~= init_tr and r.SetCursorContext(0)
 or change_focus and act_take ~= init_take and r.SetCursorContext(1) or curr_ctx
-local chain_op = chain_op and (r.GetFocusedFX() > 0 or GetMonFXProps() >= 0 or jsAPI and r.JS_Window_GetTitle(r.JS_Window_Find('FX: ', false)):match('FX: [ItemTrack]+')) or not chain_op -- empty FX chains are ignored by GetFocusedFX() so have to be detected via window props search
+local chain_op = chain_op and (r.GetFocusedFX() > 0 or GetMonFXProps() >= 0 or jsAPI and r.JS_Window_GetTitle(r.JS_Window_Find('FX: ', false)):match('FX: [ItemMonsTrack]+')) or not chain_op -- empty FX chains are ignored by GetFocusedFX() so have to be detected via window props search
 
 	if sel_tr and (sel_tr ~= init_tr or curr_ctx ~= init_ctx) and curr_ctx == 0 and DOCKER_STATE and chain_op -- curr_ctx ~= init_ctx makes sure track and take fx chains can be switched even if object selection hasn't changed
 	then
 	local master, track -- specifically declared, otherwise empty fx chains get opened even if not enabled, because the vars become global and don't depend on the below condition any longer
 		if main_ch and (empty_ch or not empty_ch and r.TrackFX_GetCount(sel_tr) > 0) then
 		master, track = 40846, 40291 -- Track: View FX chain for master track /  Track: View FX chain for current/last touched track
-		elseif empty_ch or not empty_ch and r.TrackFX_GetRecCount(sel_tr) > 0 then
+		elseif not main_ch and (empty_ch or not empty_ch and r.TrackFX_GetRecCount(sel_tr) > 0) then
 		master, track = 41882, 40844 -- View: Show monitoring FX chain / Track: View input FX chain for current/last touched track
 		end
 	local upd = master and tr_name[2] == 'MASTER' and r.Main_OnCommand(master,0) or track and r.Main_OnCommand(track,0)
