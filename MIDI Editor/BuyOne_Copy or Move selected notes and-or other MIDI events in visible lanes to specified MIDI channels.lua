@@ -124,8 +124,6 @@ local cur_ch_comm_ID = 40218 + cur_chan -- 40218 is 'Channel: Show only channel 
 end
 
 
-
-
 function Get_Currently_Visible_CC_Lanes(ME, take) -- must be preceded and followed by Re_Store_Selected_CCEvents() because it changes selection
 -- lanes of 14-bit CC messages aren't supported because the action 40802 'Edit: Select all CC events in time selection (in all visible CC lanes)' doesn't select their events, it only does if their 7-bit lane is open
 local ME = not ME and r.MIDIEditor_GetActive() or ME
@@ -207,7 +205,7 @@ local take = r.MIDIEditor_GetTake(ME)
 
 local filter_on
 	for i = 40218, 40233 do -- ID range of actions 'Channel: Show only channel X' which select a channel in the filter and enable the filter
-		if r.GetToggleCommandStateEx(32060, i) == 1 then filter_on =  1 break end
+		if r.GetToggleCommandStateEx(32060, i) == 1 then filter_on = 1 break end
 	end
 	if not filter_on then
 	local s = ' '
