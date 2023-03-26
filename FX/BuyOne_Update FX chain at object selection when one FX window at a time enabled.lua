@@ -88,7 +88,11 @@ TRACK_FX_CHAIN = ""
 IGNORE_TRACKS = ""
 
 -- If enabled, currently open track FX chain will get priority
--- and item selection won't replace it with take FX chain
+-- and item selection won't replace it with take FX chain;
+-- the setting applies regardless of the above settings;
+-- if js_ReaScriptAPI extension is not installed and RESPECT_EMPTY_FX_CHAINS
+-- setting is enabled below, this setting won't apply to open 
+-- empty track FX chains 
 PREFER_OPEN_TRACK_CHAIN = ""
 
 -- To be able to also load take FX chain on item selection,
@@ -107,7 +111,7 @@ RESPECT_EMPTY_FX_CHAINS = ""
 CHANGE_IN_SELECTION_CHANGES_FOCUS = ""
 
 -- To only have FX chain updated when the docker is open,
--- meant to prevent opening and updating a docked FX chain window
+-- meant to prevent opening and updating a docked FX chain window 
 -- when the docker is closed
 -- will affect floating FX chain window as well
 -- so only useful when one is docked
@@ -115,7 +119,7 @@ ONLY_WHEN_DOCKER_OPEN = ""
 
 -- Enable to make the script only update FX chain if FX chain window 
 -- is already open, and ignore object selection if none is open;
--- if jsReaScriptAPI extension is not installed and RESPECT_EMPTY_FX_CHAINS
+-- if js_ReaScriptAPI extension is not installed and RESPECT_EMPTY_FX_CHAINS
 -- setting is enabled above, the script will only update FX chain 
 -- on object selection if currently open chain isn't empty
 ONLY_WHEN_FX_CHAIN_OPEN = ""
@@ -193,9 +197,9 @@ local act_take = item and r.GetActiveTake(item)
 local curr_ctx = r.GetCursorContext()
 local curr_ctx = change_focus and sel_tr ~= init_tr and r.SetCursorContext(0)
 or change_focus and act_take ~= init_take and r.SetCursorContext(1) or curr_ctx
-local chain_op = chain_op and (r.GetFocusedFX() > 0 or GetMonFXProps() >= 0 or jsAPI and r.JS_Window_GetTitle(r.JS_Window_Find('FX: ', false)):match('FX: [ItemMonsTrack]+')) or not chain_op -- empty FX chains are ignored by GetFocusedFX() so have to be detected via window props search
+local chain_op = chain_op and (r.GetFocusedFX() > 0 or GetMonFXProps() >= 0 or jsAPI and r.JS_Window_GetTitle(r.JS_Window_Find('FX: ', false)):match('FX: [ItemMonigsTrack]+')) or not chain_op -- empty FX chains are ignored by GetFocusedFX() so have to be detected via window props search
 local pref_open_tr_ch = pref_open_tr_ch and (r.GetFocusedFX() == 1 or GetMonFXProps() >= 0 or jsAPI and r.JS_Window_GetTitle(r.JS_Window_Find('FX: ', false)):match('FX: [TrackMonigste]+')) -- see prev comment
-
+	
 	if not ignore_tr and sel_tr and (sel_tr ~= init_tr or curr_ctx ~= init_ctx) and curr_ctx == 0 and DOCKER_STATE and chain_op -- curr_ctx ~= init_ctx makes sure track and take fx chains can be switched even if object selection hasn't changed
 	then
 	local master, track -- specifically declared, otherwise empty fx chains get opened even if not enabled, because the vars become global and don't depend on the below condition any longer
