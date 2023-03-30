@@ -2,32 +2,32 @@
 ReaScript name: Copy or Move selected notes and/or other MIDI events in visible lanes to specified MIDI channels
 Author: BuyOne
 Website: https://forum.cockos.com/member.php?u=134058
-Version: 1.0
-Changelog: Initial release
+Version: 1.1
+Changelog: #Added a verification mechanism to ensure that only one MIDI channel is selected
 Licence: WTFPL
 REAPER: at least v5.962
 About: 	The script copies/moves selected notes and/or selected CC events in visible lanes
-		to user specified MIDI channels. If the target lane in another MIDI channel already
-		contains events or piano roll already contains notes, these will be replaced by those 
-		being copied or moved.  
-		
-		If several CC lanes are open, selected events in 14 bit CC lanes will be ignored, 
-		therefore if you need them affected by the sctipt be sure to switch 14 bit
-		lanes to their 7 bit counterparts.  
-		
-		1. Select MIDI notes and/or other MIDI events  
-		2. Run the script  
-		3. In the input field list target MIDI channel numbers space separated or specify range as X - X
-		(inverted range is supported, e.g. 13 - 4)  
-		4. Precede the list/range with the letter M or m if you wish the events to be moved rather than copied  
-		5. Click OK  
-		
-		If there're several visible lanes and only one of them contains selected events 
-		be sure to make it the last clicked by clicking it so that the events are  
-		copied/moved to the lane of the same message type in other MIDI channels.
-		
-		Besides strictly CC events also supported are Pitch bend, Program change 
-		and Channel pressure events.
+	to user specified MIDI channels. If the target lane in another MIDI channel already
+	contains events or piano roll already contains notes, these will be replaced by those 
+	being copied or moved.  
+
+	If several CC lanes are open, selected events in 14 bit CC lanes will be ignored, 
+	therefore if you need them affected by the sctipt be sure to switch 14 bit
+	lanes to their 7 bit counterparts.  
+
+	1. Select MIDI notes and/or other MIDI events  
+	2. Run the script  
+	3. In the input field list target MIDI channel numbers space separated or specify range as X - X
+	(inverted range is supported, e.g. 13 - 4)  
+	4. Precede the list/range with the letter M or m if you wish the events to be moved rather than copied  
+	5. Click OK  
+
+	If there're several visible lanes and only one of them contains selected events 
+	be sure to make it the last clicked by clicking it so that the events are  
+	copied/moved to the lane of the same message type in other MIDI channels.
+
+	Besides strictly CC events also supported are Pitch bend, Program change 
+	and Channel pressure events.
 ]]
 
 function Msg(param, cap) -- caption second or none
@@ -124,8 +124,6 @@ local cur_ch_comm_ID = 40218 + cur_chan -- 40218 is 'Channel: Show only channel 
 end
 
 
-
-
 function Get_Currently_Visible_CC_Lanes(ME, take) -- must be preceded and followed by Re_Store_Selected_CCEvents() because it changes selection
 -- lanes of 14-bit CC messages aren't supported because the action 40802 'Edit: Select all CC events in time selection (in all visible CC lanes)' doesn't select their events, it only does if their 7-bit lane is open
 local ME = not ME and r.MIDIEditor_GetActive() or ME
@@ -203,7 +201,18 @@ r.PreventUIRefresh(1)
 local ME = r.MIDIEditor_GetActive()
 local take = r.MIDIEditor_GetTake(ME)
 
-local sel_evts_t = Re_Store_Selected_CCEvents(ME, take, t) -- store
+-- MIDIEditor_GetSetting_int(ME, 'default_note_chan') used inside Re_Store_Selected_CCEvents() is unreliable in getting the current channel because when 'All Channels' or 'Multichannel' option is selected in the Channel filter it still returns the last active channel which may not be the channel the user intends to use as the source but which will be selected by Re_Store_Selected_CCEvents() restore routine and if such channel has no events the script will throw an error message about absence of valid selected events, hence the need to make the user select the channel explicitly; restoring the channel selection to 'All Channels' in this case will not look consistent if the user initially had channel selected
+
+local filter_on
+	for i = 40218, 40233 do -- ID range of actions 'Channel: Show only channel X' which select a channel in the filter and enable the filter
+		if r.GetToggleCommandStateEx(32060, i) == 1 then filter_on = 1 break end
+	end
+	if not filter_on then
+	local s = ' '
+	r.MB(s:rep(10)..'The script only supports one source channel.\n\n   It appears that the MIDI channel filter is not enabled.\n\n\t'..s:rep(6)..'For the script to work reliably\n\n  please select the MIDI channel in the filter and enable it.', 'ALERT', 0)
+	return r.defer(function() do return end end) end
+
+local sel_evts_t = Re_Store_Selected_CCEvents(ME, take, t) -- store & deselect all so that currently visible lanes can be easily identified through selection of their events inside Get_Currently_Visible_CC_Lanes()
 
 local vis_lanes_t = Get_Currently_Visible_CC_Lanes(ME, take)
 
