@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="02cb0987bef974a2f5ebaadac5932226dd5e082e" name="ReaTeam Scripts">
+<index version="1" commit="7a7b2deefb945ddf8c7799b3e1031f924eeacb8a" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -4471,6 +4471,58 @@ Others:
         <source type="effect" file="BryanChi_FX Devices/FXD Band Joiner.jsfx">https://github.com/ReaTeam/ReaScripts/raw/02cb0987bef974a2f5ebaadac5932226dd5e082e/FX/BryanChi_FX%20Devices/FXD%20Band%20Joiner.jsfx</source>
         <source file="BryanChi_FX Devices/Images/Analog Knob 1.png">https://github.com/ReaTeam/ReaScripts/raw/02cb0987bef974a2f5ebaadac5932226dd5e082e/FX/BryanChi_FX%20Devices/Images/Analog%20Knob%201.png</source>
       </version>
+      <version name="1.0beta9.5.1" author="Bryan Chi" time="2023-03-30T17:18:47Z">
+        <changelog><![CDATA[FX Device Update 9.5.1
+- Fix incorrect fx positioning when drag fx into Band Split
+- Fix FX not added to Pre/Post chain when user add fx by clicking an empty space in Pre/Post chain.
+- Fix unable to move Band Splitter into the last space of chain.
+- Fix crash when moving an FX Layer container after another fx.
+- Fix unable to drag FX to 1st slot.
+- Add min/max limit for Vertical slider’s width
+- Make Toggle all collapse work with band splitter button]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a3b20d0a1cca9091c063c1f6236a7f1cad0a8ab3/FX/BryanChi_FX%20Devices.lua</source>
+        <source type="effect" file="BryanChi_FX Devices/FXD Macros.jsfx">https://github.com/ReaTeam/ReaScripts/raw/a3b20d0a1cca9091c063c1f6236a7f1cad0a8ab3/FX/BryanChi_FX%20Devices/FXD%20Macros.jsfx</source>
+        <source type="effect" file="BryanChi_FX Devices/FXD ReSpectrum.jsfx">https://github.com/ReaTeam/ReaScripts/raw/a3b20d0a1cca9091c063c1f6236a7f1cad0a8ab3/FX/BryanChi_FX%20Devices/FXD%20ReSpectrum.jsfx</source>
+        <source type="effect" file="BryanChi_FX Devices/FXD Gain Reduction Scope.jsfx">https://github.com/ReaTeam/ReaScripts/raw/a3b20d0a1cca9091c063c1f6236a7f1cad0a8ab3/FX/BryanChi_FX%20Devices/FXD%20Gain%20Reduction%20Scope.jsfx</source>
+        <source type="effect" file="BryanChi_FX Devices/FXD Split to 32 Channels.jsfx">https://github.com/ReaTeam/ReaScripts/raw/a3b20d0a1cca9091c063c1f6236a7f1cad0a8ab3/FX/BryanChi_FX%20Devices/FXD%20Split%20to%2032%20Channels.jsfx</source>
+        <source type="effect" file="BryanChi_FX Devices/FXD Split To 4 Channels.jsfx">https://github.com/ReaTeam/ReaScripts/raw/a3b20d0a1cca9091c063c1f6236a7f1cad0a8ab3/FX/BryanChi_FX%20Devices/FXD%20Split%20To%204%20Channels.jsfx</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/a3b20d0a1cca9091c063c1f6236a7f1cad0a8ab3/FX/BryanChi_FX%20Devices/cookdsp.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/analysis.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/a3b20d0a1cca9091c063c1f6236a7f1cad0a8ab3/FX/BryanChi_FX%20Devices/cookdsp/analysis.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/buffer.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/a3b20d0a1cca9091c063c1f6236a7f1cad0a8ab3/FX/BryanChi_FX%20Devices/cookdsp/buffer.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/delay.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/a3b20d0a1cca9091c063c1f6236a7f1cad0a8ab3/FX/BryanChi_FX%20Devices/cookdsp/delay.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/dynamics.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/a3b20d0a1cca9091c063c1f6236a7f1cad0a8ab3/FX/BryanChi_FX%20Devices/cookdsp/dynamics.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/effects.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/a3b20d0a1cca9091c063c1f6236a7f1cad0a8ab3/FX/BryanChi_FX%20Devices/cookdsp/effects.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/fft-mono-template">https://github.com/ReaTeam/ReaScripts/raw/a3b20d0a1cca9091c063c1f6236a7f1cad0a8ab3/FX/BryanChi_FX%20Devices/cookdsp/fft-mono-template</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/fft-stereo-template">https://github.com/ReaTeam/ReaScripts/raw/a3b20d0a1cca9091c063c1f6236a7f1cad0a8ab3/FX/BryanChi_FX%20Devices/cookdsp/fft-stereo-template</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/fftobjects.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/a3b20d0a1cca9091c063c1f6236a7f1cad0a8ab3/FX/BryanChi_FX%20Devices/cookdsp/fftobjects.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/filters.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/a3b20d0a1cca9091c063c1f6236a7f1cad0a8ab3/FX/BryanChi_FX%20Devices/cookdsp/filters.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/granulator.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/a3b20d0a1cca9091c063c1f6236a7f1cad0a8ab3/FX/BryanChi_FX%20Devices/cookdsp/granulator.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/list.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/a3b20d0a1cca9091c063c1f6236a7f1cad0a8ab3/FX/BryanChi_FX%20Devices/cookdsp/list.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/memalloc.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/a3b20d0a1cca9091c063c1f6236a7f1cad0a8ab3/FX/BryanChi_FX%20Devices/cookdsp/memalloc.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/midi.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/a3b20d0a1cca9091c063c1f6236a7f1cad0a8ab3/FX/BryanChi_FX%20Devices/cookdsp/midi.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/mmath.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/a3b20d0a1cca9091c063c1f6236a7f1cad0a8ab3/FX/BryanChi_FX%20Devices/cookdsp/mmath.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/oscil.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/a3b20d0a1cca9091c063c1f6236a7f1cad0a8ab3/FX/BryanChi_FX%20Devices/cookdsp/oscil.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/pobjects.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/a3b20d0a1cca9091c063c1f6236a7f1cad0a8ab3/FX/BryanChi_FX%20Devices/cookdsp/pobjects.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/pv-mono-template">https://github.com/ReaTeam/ReaScripts/raw/a3b20d0a1cca9091c063c1f6236a7f1cad0a8ab3/FX/BryanChi_FX%20Devices/cookdsp/pv-mono-template</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/pv-stereo-template">https://github.com/ReaTeam/ReaScripts/raw/a3b20d0a1cca9091c063c1f6236a7f1cad0a8ab3/FX/BryanChi_FX%20Devices/cookdsp/pv-stereo-template</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/pvocobjects.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/a3b20d0a1cca9091c063c1f6236a7f1cad0a8ab3/FX/BryanChi_FX%20Devices/cookdsp/pvocobjects.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/pvtrans-example">https://github.com/ReaTeam/ReaScripts/raw/a3b20d0a1cca9091c063c1f6236a7f1cad0a8ab3/FX/BryanChi_FX%20Devices/cookdsp/pvtrans-example</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/random.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/a3b20d0a1cca9091c063c1f6236a7f1cad0a8ab3/FX/BryanChi_FX%20Devices/cookdsp/random.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/scaling.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/a3b20d0a1cca9091c063c1f6236a7f1cad0a8ab3/FX/BryanChi_FX%20Devices/cookdsp/scaling.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/firhalfband.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/a3b20d0a1cca9091c063c1f6236a7f1cad0a8ab3/FX/BryanChi_FX%20Devices/firhalfband.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/spectrum.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/a3b20d0a1cca9091c063c1f6236a7f1cad0a8ab3/FX/BryanChi_FX%20Devices/spectrum.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/svf_filter.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/a3b20d0a1cca9091c063c1f6236a7f1cad0a8ab3/FX/BryanChi_FX%20Devices/svf_filter.jsfx-inc</source>
+        <source file="BryanChi_FX Devices/IconFont1.ttf">https://github.com/ReaTeam/ReaScripts/raw/a3b20d0a1cca9091c063c1f6236a7f1cad0a8ab3/FX/BryanChi_FX%20Devices/IconFont1.ttf</source>
+        <source type="effect" file="BryanChi_FX Devices/FXD (Mix)RackMixer.jsfx">https://github.com/ReaTeam/ReaScripts/raw/a3b20d0a1cca9091c063c1f6236a7f1cad0a8ab3/FX/BryanChi_FX%20Devices/FXD%20(Mix)RackMixer.jsfx</source>
+        <source file="BryanChi_FX Devices/FX Layouts/ValhallaFreqEcho (Valhalla DSP, LLC).ini">https://github.com/ReaTeam/ReaScripts/raw/a3b20d0a1cca9091c063c1f6236a7f1cad0a8ab3/FX/BryanChi_FX%20Devices/FX%20Layouts/ValhallaFreqEcho%20(Valhalla%20DSP,%20LLC).ini</source>
+        <source file="BryanChi_FX Devices/FX Layouts/ValhallaShimmer (Valhalla DSP, LLC).ini">https://github.com/ReaTeam/ReaScripts/raw/a3b20d0a1cca9091c063c1f6236a7f1cad0a8ab3/FX/BryanChi_FX%20Devices/FX%20Layouts/ValhallaShimmer%20(Valhalla%20DSP,%20LLC).ini</source>
+        <source file="BryanChi_FX Devices/FX Layouts/ValhallaVintageVerb (Valhalla DSP, LLC).ini">https://github.com/ReaTeam/ReaScripts/raw/a3b20d0a1cca9091c063c1f6236a7f1cad0a8ab3/FX/BryanChi_FX%20Devices/FX%20Layouts/ValhallaVintageVerb%20(Valhalla%20DSP,%20LLC).ini</source>
+        <source file="BryanChi_FX Devices/FX Layouts/ValhallaSupermassive (Valhalla DSP, LLC).ini">https://github.com/ReaTeam/ReaScripts/raw/a3b20d0a1cca9091c063c1f6236a7f1cad0a8ab3/FX/BryanChi_FX%20Devices/FX%20Layouts/ValhallaSupermassive%20(Valhalla%20DSP,%20LLC).ini</source>
+        <source file="BryanChi_FX Devices/FX Layouts/ValhallaDelay (Valhalla DSP, LLC).ini">https://github.com/ReaTeam/ReaScripts/raw/a3b20d0a1cca9091c063c1f6236a7f1cad0a8ab3/FX/BryanChi_FX%20Devices/FX%20Layouts/ValhallaDelay%20(Valhalla%20DSP,%20LLC).ini</source>
+        <source type="effect" file="BryanChi_FX Devices/FXD Saike BandSplitter.jsfx">https://github.com/ReaTeam/ReaScripts/raw/a3b20d0a1cca9091c063c1f6236a7f1cad0a8ab3/FX/BryanChi_FX%20Devices/FXD%20Saike%20BandSplitter.jsfx</source>
+        <source type="effect" file="BryanChi_FX Devices/FXD Band Joiner.jsfx">https://github.com/ReaTeam/ReaScripts/raw/a3b20d0a1cca9091c063c1f6236a7f1cad0a8ab3/FX/BryanChi_FX%20Devices/FXD%20Band%20Joiner.jsfx</source>
+        <source file="BryanChi_FX Devices/Images/Analog Knob 1.png">https://github.com/ReaTeam/ReaScripts/raw/a3b20d0a1cca9091c063c1f6236a7f1cad0a8ab3/FX/BryanChi_FX%20Devices/Images/Analog%20Knob%201.png</source>
+      </version>
     </reapack>
     <reapack name="BuyOne_(Un)Tag FX with (in)active envelopes (settings inside).lua" type="script" desc="(Un)Tag FX with (in)active envelopes">
       <metadata>
@@ -4606,13 +4658,43 @@ Others:
         <source main="main" file="BuyOne_FX presets navigation/BuyOne_Extract focused FX preset count, list, active preset number and name.lua">https://github.com/ReaTeam/ReaScripts/raw/9b817634d5d6a0a4ff3d6db0003cfff47a75d52b/FX/BuyOne_FX%20presets%20navigation/BuyOne_Extract%20focused%20FX%20preset%20count,%20list,%20active%20preset%20number%20and%20name.lua</source>
       </version>
     </reapack>
-    <reapack name="BuyOne_Insert selected FX or FX chain presets in OR copy focused FX to selected objects.lua" type="script" desc="Insert selected FX or FX chain presets in OR copy focused FX to selected objects">
+    <reapack name="BuyOne_Generate .reabank file from FX preset list.lua" type="script" desc="Generate .reabank file from FX preset list">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 Allows inserting multiple FX or FX chain presets from FX browser or copying FX focused in an FX chain or in a floating window to selected objects. Detailed description is available inside the script.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The script allows creating .reabank files for individual plugins or one .reabank file for several plugins.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Open FX browser and select plugins there or open an FX chain and keeping it open, run the script. All types of FX chains are supported.\line The best way to create one .reabank for a number of plugins is to insert an assortment of plugins in the desired order into a track blank FX chain and run the script while the FX chain is open.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The .reabank file is placed in the /Data folder in the REAPER resource directory, where the stock GM.reabank file is located and which ReaControlMIDI plugin and Bank/Program Select MIDI events in MIDI items are by default pointed to.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Exporting Video processor presets is supported from REAPER build 6.26 onwards.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 All types of FX chains are supported.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 If option 'Only allow one FX chain window open at a time' is enabled at Preferences -> Plug-ins the focused FX chain may jolt when the script is run, and the FX selected in the FX chain will switch to the focused FX if it's displayed in a floating window and wasn't selected initially. This is inevitable due to REAPER API peculiarities.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 In the .reabank file plugins will be listed by the name which appears in the FX browser even if in the focused FX chain they're named differently.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 You may also check out a similar script mpl_Generate reabank from focused FX.lua which generates reabank code for an FX currently focused in a track FX chain with output to ReaScript console.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Instructions on using .reabank files to switch presets in real time is available in chapter 13.47 'Using MIDI CC Messages to Control FX Presets' of the User Guide and/or in this video https://www.youtube.com/watch?v=216O6xGWCxU by Kenneth A of Crashwaggon Music\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/member.php?u=134058</link>
+      </metadata>
+      <version name="1.0" author="BuyOne" time="2023-03-30T17:20:55Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/7a7b2deefb945ddf8c7799b3e1031f924eeacb8a/FX/BuyOne_Generate%20.reabank%20file%20from%20FX%20preset%20list.lua</source>
+      </version>
+    </reapack>
+    <reapack name="BuyOne_Insert selected FX or FX chain presets in OR copy focused FX to selected objects.lua" type="script" desc="Insert selected FX or FX chain preset in OR copy focused FX to selected objects">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \u8212-\u8212- To insert FX or FX chain preset in multiple objects (tracks and/or items) at once open the FX Browser, select FX or FX chain preset, as many as needed, select the destination objects and run the script. <<<< This feature exists natively since build 6.12c, in this respect the script is only useful when inserting FX or FX chain in input/Monitoring FX chains which aren't supported by the native feature.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \u8212-\u8212- To copy FX to multiple objects at once select an FX in an open and focused FX chain or focus its floating window, select the destination objects and run the script.\line Alternatively run the script with a shortcut pointing the mouse cursor at a track or a take, in which case it will evoke a menu of FX currently present in the FX chain of the object under mouse cursor and click the menu item holding the name of the FX which needs to be copied.\line FX menu takes precedence over the open FX chain.\line In the track FX menu if both main and input FX chains are populated their FX are separated by a divider.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \u8212-\u8212- If a destination item contains more than one take the FX is copied to its active take FX chain. Take FX of multi-take items can be copied to the active take of the same item.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \u8212-\u8212- Inserting FX or FX chain preset in / copying FX to Monitor FX chain cannot be undone because the data gets written by the program to an external file and stored there.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \u8212-\u8212- In the USER SETTINGS you can disable objects which you don't want FX or FX chain preset to be inserted in or FX copied to. This is useful for avoiding accidental adding FX or FX chain presets to objects which were unintentionally selected. You can create a copy of the script with a slightly different name and dedicate each copy to inserting FX or FX chain preset in / copying FX to objects of specific kind determined by the USER SETTINGS. If default settings are kept it may be useful to run actions 'Item: Unselect all items' or 'Track: Unselect all tracks' after destination object has been selected, to exclude objects of an unwanted type. On the other hand when inserting/copying FX on/to selected objects of different types it may be useful to run the abovementioned actions before making the selection.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \u8212-\u8212- Track main and input FX chains are treated by the script independently. So each one can be disabled without another being affected. It's only when they both are turned off in the USER SETTINGS that FX cannot be inserted in or copied to any track.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \u8212-\u8212- TRACK_INPUT_MON_FX option affects both Input and Monitor FX chains.\par}
 }
 ]]></description>
         <link rel="website">https://forum.cockos.com/member.php?u=134058</link>
@@ -4634,6 +4716,14 @@ Update version compatibility tag]]></changelog>
         <changelog><![CDATA[Fixed temporary track being left behind after aborting the script
 Fixed a bug of copying FX to the same FX chain]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f1e2064e941bd620342997a026653528461dd49f/FX/BuyOne_Insert%20selected%20FX%20or%20FX%20chain%20presets%20in%20OR%20copy%20focused%20FX%20to%20selected%20objects.lua</source>
+      </version>
+      <version name="1.5" author="BuyOne" time="2023-03-30T17:20:15Z">
+        <changelog><![CDATA[#Fixed a bug of copying take FX to the same FX chain
+#Added support for copying FX envelopes along with FX
+#Implemented a workround to the API bug which causes an FX chain window to close when 
+'Only allow one FX chain window at a time' setting is enabled in Preferences
+#Added support for accessing FX from a menu]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/149cc5f0f3347756f78c77f16c892fad91424618/FX/BuyOne_Insert%20selected%20FX%20or%20FX%20chain%20presets%20in%20OR%20copy%20focused%20FX%20to%20selected%20objects.lua</source>
       </version>
     </reapack>
     <reapack name="BuyOne_Link two FX parameters via parameter modulation (guide inside).lua" type="script" desc="Link two FX parameters via parameter modulation">
@@ -4827,11 +4917,18 @@ Fixed a bug of copying FX to the same FX chain]]></changelog>
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 REAPER stock preferences allow changing open FX chain on track selection when options "Only allow one FX chain window open at a time" and "Open track FX window on track selection change" are enabled at Preferences -> Plug-ins. But they only affect track main FX chain. This sctript additionally covers track input/Monitoring FX chains and take FX chain.\line Meant to be used only when the option "Only allow one FX chain window open at a time" is enabled at Preferences -> Plug-ins in a global FX chain kind of setup.\line Normally when option "Only allow one FX chain window open at a time" is enabled, to update currently open FX chain window with another FX chain, FX button must be clicked on the TCP or on the item.\line This script makes this a bit simpler by allowing to update the window with object selection, which requires less precision than clicking the tiny FX buttons, besides ensuring that the FX chain is readily accessible.\line For best experience FX chain window should be docked, but the updating will work just as good with a floating FX chain window.\line To use it in a docker it's usually sufficient to dock any FX chain window, the rest will stay docked automatically, yet sometimes adjustment of a few individual FX windows may be required.\line Active take FX chain is always loaded at item selection. The type of track FX chain to be loaded at track selection is determined by the USER SETTING below, but you'll still be able to load track FX chain of the other type normally by clicking FX button of the corresponding track.\line The currently open FX chain window can be temporarily closed with a click on FX button or a by closing its tab in the docker, until another object is selected.\line Clicking FX button is also a way to re-open a closed FX chain of the same selected object besides having it deselected and selected again.\line Out of several selected objects only the first one is honored.\line Empty FX chains aren't loaded as well as track FX chain of the type disabled in the USER SETTINGS.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 REAPER stock preferences allow changing open FX chain on track selection when options "Only allow one FX chain window open at a time" and "Open track FX window on track selection change" are enabled at Preferences -> Plug-ins. But they only affect track main FX chain. This script additionally covers track input/Monitoring FX chains and take FX chain.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Meant to be used only when the option "Only allow one FX chain window open at a time" is enabled at Preferences -> Plug-ins in a global FX chain kind of setup.\line Normally when option "Only allow one FX chain window open at a time" is enabled, to update currently open FX chain window with another FX chain, FX button must be clicked on the TCP or on the item.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This script makes this a bit simpler by allowing to update the window with object selection, which requires less precision than clicking the tiny FX buttons, besides ensuring that the FX chain is readily accessible.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The script doesn't interfere with the option "Open track FX window on track selection change", it affects track FX chains regardless of whether it's enabled unless IGNORE_TRACKS setting is enabled in the USER SETTINGS and on top of that it supports Master, Monitor and input FX chains.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 For best experience FX chain window should be docked, but the updating will work just as good with a floating FX chain window.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 To use it in a docker it's usually sufficient to dock any FX chain window, the rest will stay docked automatically, yet sometimes adjustment of a few individual FX windows may be required.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Active take FX chain is always loaded at item selection. The type of track FX chain to be loaded at track selection is determined by the USER SETTING below, but you'll still be able to load track FX chain of the other type normally by clicking FX button of the corresponding track.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The currently open FX chain window can be temporarily closed with a click on FX button or a by closing its tab in the docker, until another object is selected.\line Clicking FX button is also a way to re-open a closed FX chain of the same selected object besides having it deselected and selected again.\line Out of several selected objects only the first one is honored.\line Empty FX chains aren't loaded as well as track FX chain of the type disabled in the USER SETTINGS.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 CAVEATS\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 FX chain window always becomes focused when updated, which means that if it's docked and open but not active (hidden) in a tabbed docker it will become active (visible), if it's docked in a closed docker the docker will open, and if it's floating it will come in front of other windows.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 When FX chain changes in a docker it flickers because one is closed and another is opened. This is REAPER's behavior which can't be controlled with a script.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 The FX chain of the last selected track which stays selected, can be re-opened with a click on the TCP after the FX chain was replaced with take FX chain, however not vice versa. In order to re-open take FX chain of the last selected item/active take after it was replaced with a track FX chain such item must be deselected and selected again.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The FX chain of the last selected track which stays selected, can be re-opened with a click on the TCP after the FX chain was replaced with a take FX chain, however not vice versa. In order to re-open a take FX chain of the last selected item/active take after it was replaced with a track FX chain such item must be deselected and selected again.\par}
 }
 ]]></description>
         <link rel="website">https://forum.cockos.com/member.php?u=134058</link>
@@ -4848,6 +4945,14 @@ Fixed a bug of copying FX to the same FX chain]]></changelog>
       <version name="1.2" author="BuyOne" time="2021-11-23T18:58:30Z">
         <changelog><![CDATA[#Added option to prevent updating a docked FX chain when the docker is closed]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e4b657b2bffa9eef511482561d2f7b8ef52af728/FX/BuyOne_Update%20FX%20chain%20at%20object%20selection%20when%20one%20FX%20window%20at%20a%20time%20enabled.lua</source>
+      </version>
+      <version name="1.3" author="BuyOne" time="2023-03-30T17:20:02Z">
+        <changelog><![CDATA[#Added support for empty FX chains as a new setting
+#Added support for ignoring selection if no FX chain window is open, as a new setting
+#Added a setting to ignore track FX chains
+#Added a setting to prefer open track FX chain and prevent replacing it with take FX chain
+#Fixed bug of inability to close Master/Monitoring FX chains]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a1053c90be032c5970f6773dcf97c74946259580/FX/BuyOne_Update%20FX%20chain%20at%20object%20selection%20when%20one%20FX%20window%20at%20a%20time%20enabled.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Monitoring FX bypass bundle.lua" type="script" desc="Monitoring FX bypass bundle (bypass, unbypass or toggle)">
@@ -9814,6 +9919,10 @@ Renumber markers and regions when pasting]]></changelog>
         <changelog><![CDATA[Initial release]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/83dbccbac267937db29f618e66c7587c8e348157/MIDI%20Editor/BuyOne_Copy%20or%20Move%20all%20notes%20and-or%20other%20MIDI%20events%20to%20specified%20MIDI%20channels.lua</source>
       </version>
+      <version name="1.1" author="BuyOne" time="2023-03-30T17:20:40Z">
+        <changelog><![CDATA[#Added warning when MIDI channel filter is not enabled]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/6aa113edff555baa01910976197c6c364e0c80a5/MIDI%20Editor/BuyOne_Copy%20or%20Move%20all%20notes%20and-or%20other%20MIDI%20events%20to%20specified%20MIDI%20channels.lua</source>
+      </version>
     </reapack>
     <reapack name="BuyOne_Copy or Move selected notes and-or other MIDI events in visible lanes to specified MIDI channels.lua" type="script" desc="Copy or Move selected notes and/or other MIDI events in visible lanes to specified MIDI channels">
       <metadata>
@@ -9837,6 +9946,10 @@ Renumber markers and regions when pasting]]></changelog>
       <version name="1.0" author="BuyOne" time="2022-12-05T20:46:28Z">
         <changelog><![CDATA[Initial release]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/661f2a025fb6e2fdc5acc9dde7e4cdb69516018f/MIDI%20Editor/BuyOne_Copy%20or%20Move%20selected%20notes%20and-or%20other%20MIDI%20events%20in%20visible%20lanes%20to%20specified%20MIDI%20channels.lua</source>
+      </version>
+      <version name="1.1" author="BuyOne" time="2023-03-30T17:20:27Z">
+        <changelog><![CDATA[#Added a verification mechanism to ensure that only one MIDI channel is selected]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/77577f9b2c471d5ff5f4a04d16ae1eb08126d25d/MIDI%20Editor/BuyOne_Copy%20or%20Move%20selected%20notes%20and-or%20other%20MIDI%20events%20in%20visible%20lanes%20to%20specified%20MIDI%20channels.lua</source>
       </version>
     </reapack>
     <reapack name="BuyOne_Insert note at constant velocity depending on dummy toggle scripts.lua" type="script" desc="Insert note at constant velocity depending on dummy toggle scripts">
@@ -17308,6 +17421,26 @@ Removed first run warning message.]]></changelog>
       <version name="1.0" author="BuyOne" time="2023-03-14T19:50:31Z">
         <changelog><![CDATA[Initial release]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/0fb796c7132b09dca5e821186bade89b14acaf27/Tracks%20Properties/BuyOne_Navigate%20to%20track%20send%20destination%20or%20receive%20source%20track%20via%20menu.lua</source>
+      </version>
+    </reapack>
+    <reapack name="BuyOne_Save track template with items selected or within time selection.lua" type="script" desc="Save track template with items selected or within time selection">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 The script allows saving track template with selected items or items within time selection provided option\line 'Include track items in template'\line is enabled in 'Save track template' dialogue. REAPER native action saves all items on selected tracks. Without the option enabled the script is useless.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Inspired by a feature request at\line https://forum.cockos.com/showthread.php?t=277300\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The script works in 2 stages, first it triggers the native action 'Track: Save tracks as track template...' to allow you to save track template as normal.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Once 'Save track template' dialogue is closed the script immediately triggers custom 'Select .RTrackTemplate file' dialogue inviting you to select the template just saved in order to process it.\line After the newly saved template is selected and button 'Open' is clicked in the dialogue the script completes its task leaving the track template only containing items you selected.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 'Select .RTrackTemplate file' dialogue points to the /TrackTemplates folder inside REAPER resource directory which is the default location for saving track templates.\line If you saved a template elsewhere, simply navigate to that location.\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/member.php?u=134058</link>
+      </metadata>
+      <version name="1.0" author="BuyOne" time="2023-03-30T17:19:48Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c3d92f021a3a97e9f9ed701f8d164377f4532455/Tracks%20Properties/BuyOne_Save%20track%20template%20with%20items%20selected%20or%20within%20time%20selection.lua</source>
       </version>
     </reapack>
     <reapack name="BuyOne_Scroll to or exclusively show track(s) by name or index.lua" type="script" desc="Scroll to or exclusively show track(s) by name or index">
