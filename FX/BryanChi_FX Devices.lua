@@ -152,8 +152,8 @@
  ]]    
 
     ----------- Custom Colors-------------------
-    CustomColors = {'FX_Devices_Bg','FX_Layer_Container_BG','Space_Between_FXs', 'Morph_A', 'Morph_B','Layer_Solo','Layer_Mute'}
-    CustomColorsDefault = {FX_Devices_Bg=0x151515ff; FX_Layer_Container_BG=0x262626ff; Space_Between_FXs=0x131313ff ; Morph_A=0x22222266; Morph_B=0x78787877; Layer_Solo= 0xDADF3775; Layer_Mute=0xBE01015C}
+    CustomColors = {'Window_BG','FX_Devices_Bg','FX_Layer_Container_BG','Space_Between_FXs', 'Morph_A', 'Morph_B','Layer_Solo','Layer_Mute'}
+    CustomColorsDefault = { Window_BG = 0x000000ff ;FX_Devices_Bg=0x151515ff; FX_Layer_Container_BG=0x262626ff; Space_Between_FXs=0x131313ff ; Morph_A=0x22222266; Morph_B=0x78787877; Layer_Solo= 0xDADF3775; Layer_Mute=0xBE01015C}
 
 
 
@@ -5785,6 +5785,7 @@ function loop()
     if LT_Track then TrkClr = r.ImGui_ColorConvertNative(r.GetTrackColor(LT_Track)) end 
     TrkClr = ((TrkClr or 0) << 8) | 0x66 -- shift 0x00RRGGBB to 0xRRGGBB00 then add 0xFF for 100% opacity
     r.ImGui_PushStyleColor(ctx, r.ImGui_Col_MenuBarBg(),  TrkClr)
+    r.ImGui_PushStyleColor(ctx, r.ImGui_Col_WindowBg(),Window_BG or CustomColorsDefault.Window_BG)
 
    --------------------------==  BEGIN GUI----------------------------------------------------------------------------
     visible, open = r.ImGui_Begin(ctx, 'FX Device', true,r.ImGui_WindowFlags_NoScrollWithMouse()+r.ImGui_WindowFlags_NoScrollbar()+ r.ImGui_WindowFlags_MenuBar()+r.ImGui_WindowFlags_NoCollapse())
@@ -13806,7 +13807,9 @@ function loop()
 
 
 
-            r.ImGui_PopStyleColor(ctx)
+            r.ImGui_PopStyleColor(ctx)  --  For Menu Bar Color
+            r.ImGui_PopStyleColor(ctx)  --  For WindowBg
+
             r.ImGui_PopStyleVar(ctx) --(Border Size for all fx devices)
             r.ImGui_PopStyleVar(ctx) --StyleVar#1 (Child Frame for all FX Devices)
 
