@@ -12911,9 +12911,9 @@ function loop()
                                                 if FX[v].InWhichBand == i then InsPos = tablefind(FXGUID,v) end 
                                             end
                                             Pl = Pl or InsPos
-                                            if  not InsPos then InsPos = FX_Idx -1   msg('not ff')
+                                            if  not InsPos then InsPos = FX_Idx -1   
                                             elseif Pl > FX_Idx then InsPos = InsPos or (FX_Idx)   
-                                            elseif Pl < FX_Idx then InsPos = (InsPos or (FX_Idx-1)) -1  msg(InsPos)
+                                            elseif Pl < FX_Idx then InsPos = (InsPos or (FX_Idx-1)) -1  
                                             end 
                                             return InsPos
                                         end
