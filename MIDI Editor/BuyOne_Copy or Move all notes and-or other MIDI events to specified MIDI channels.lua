@@ -2,30 +2,30 @@
 ReaScript name: Copy or Move all notes and/or other MIDI events to specified MIDI channels
 Author: BuyOne
 Website: https://forum.cockos.com/member.php?u=134058
-Version: 1.0
-Changelog: Initial release
+Version: 1.1
+Changelog: #Added warning when MIDI channel filter is not enabled
 Licence: WTFPL
 REAPER: at least v5.962
 About: 	The script copies/moves all notes and/or CC events to user specified MIDI channels.  
-		If in the target MIDI channel there're already events for a particular CC message  
-		or the piano roll already contains notes, these will be replaced by those being 
-		copied or moved.  
-		
-		1. Run the script  
-		2. In the 1st input field list target MIDI channel numbers space separated 
-		or specify range as X - X (inverted range is supported, e.g. 13 - 4)  
-		3. In the 2nd and/or 3d input fields enter letter M or m if you wish the events 
-		to be moved or any other character if you want them copied  
-		4. Click OK  
-		
-		Besides strictly CC events also supported are Pitch bend, Program change 
-		and Channel pressure events.
-		
-		CAVEATS
-		
-		To be aware that Bezier curve in Pitch bend envelope may very slightly change
-		in the target MIDI channel after copying/moving. However this is not a consistent 
-		behavior. https://forum.cockos.com/showthread.php?t=273173
+	If in the target MIDI channel there're already events for a particular CC message  
+	or the piano roll already contains notes, these will be replaced by those being 
+	copied or moved.  
+
+	1. Run the script  
+	2. In the 1st input field list target MIDI channel numbers space separated 
+	or specify range as X - X (inverted range is supported, e.g. 13 - 4)  
+	3. In the 2nd and/or 3d input fields enter letter M or m if you wish the events 
+	to be moved or any other character if you want them copied  
+	4. Click OK  
+
+	Besides strictly CC events also supported are Pitch bend, Program change 
+	and Channel pressure events.
+
+	CAVEATS
+
+	To be aware that Bezier curve in Pitch bend envelope may very slightly change
+	in the target MIDI channel after copying/moving. However this is not a consistent 
+	behavior. https://forum.cockos.com/showthread.php?t=273173
 
 ]]
 
@@ -69,7 +69,7 @@ function Store_Insert_Notes_OR_Evts(ME, take, t, move, chanIn, events) -- move i
 local ME = not ME and r.MIDIEditor_GetActive() or ME
 local take = not take and r.MIDIEditor_GetTake(ME) or take
 local Get, Delete, Insert = table.unpack(not events and {r.MIDI_GetNote, r.MIDI_DeleteNote, r.MIDI_InsertNote} or {r.MIDI_GetCC, r.MIDI_DeleteCC, r.MIDI_InsertCC})
--- Get, Delete, Insert, GeCCShape functions only target event in the current channel
+-- !!!! Get, Delete, Insert, GeCCShape functions only target event in the current MIDI channel if Channel filter is enabled !!!!!
 -- local chanIn = not chanIn and r.MIDIEditor_GetSetting_int(ME, 'default_note_chan') or chanIn -- 0-15
 	if not t then
 	local t = {}
@@ -129,6 +129,18 @@ end
 
 local ME = r.MIDIEditor_GetActive()
 local take = r.MIDIEditor_GetTake(ME)
+
+
+local filter_on
+	for i = 40218, 40233 do -- ID range of actions 'Channel: Show only channel X' which select a channel in the filter and enable the filter
+		if r.GetToggleCommandStateEx(32060, i) == 1 then filter_on = 1 break end
+	end
+	if not filter_on then
+	local s = ' '
+	local resp = r.MB(s:rep(8)..'It appears that the MIDI channel filter is not enabled.\n\n\t'..s:rep(5)..'This means that if there\'re events\n\n\t'..s:rep(12)..'in multiple MIDI channels\n\n'..s:rep(6)..'they all will be copied/moved to the target channels.\n\n\t'..s:rep(12)..'Do you wish to proceed?', 'WARNING', 4)
+		if resp == 7 then return r.defer(function() do return end end) end
+	end
+
 
 local notes_t = Store_Insert_Notes_OR_Evts(ME, take, t, move, chanIn, events) -- events false // store
 local evts_t = Store_Insert_Notes_OR_Evts(ME, take, t, move, chanIn, true) -- events true // store
