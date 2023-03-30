@@ -1,7 +1,15 @@
 -- @description FX Devices
 -- @author Bryan Chi
--- @version 1.0beta9.5
--- @changelog - Add FX Adder when clicking on empty space between FXs.
+-- @version 1.0beta9.5.1
+-- @changelog
+--   FX Device Update 9.5.1
+--   - Fix incorrect fx positioning when drag fx into Band Split
+--   - Fix FX not added to Pre/Post chain when user add fx by clicking an empty space in Pre/Post chain.
+--   - Fix unable to move Band Splitter into the last space of chain.
+--   - Fix crash when moving an FX Layer container after another fx.
+--   - Fix unable to drag FX to 1st slot.
+--   - Add min/max limit for Vertical slider’s width
+--   - Make Toggle all collapse work with band splitter button
 -- @provides
 --   [effect] BryanChi_FX Devices/FXD Macros.jsfx
 --   [effect] BryanChi_FX Devices/FXD ReSpectrum.jsfx
@@ -49,7 +57,7 @@
 --   https://forum.cockos.com/showthread.php?t=263622
 
 --------------------------==  declare Initial Variables & Functions  ------------------------
-    VersionNumber = 'V1.0beta9.5 '
+    VersionNumber = 'V1.0beta9.5.1 '
     FX_Add_Del_WaitTime=2
     r=reaper
 
@@ -196,7 +204,7 @@
 
 
     Knob_DefaultFontSize=10 LBL_DefaultFontSize = 10
-    Df={ KnobRadius=18; KnobSize= 15*3; Sldr_W=160 ; Dvdr_Width = 15 ; Dvdr_Hvr_W = 0 }
+    Df={ V_Sldr_W = 15;  KnobRadius=18; KnobSize= 15*3; Sldr_W=160 ; Dvdr_Width = 15 ; Dvdr_Hvr_W = 0 }
     
 
 
@@ -2739,8 +2747,8 @@
         end
 
 
-        function FilterBox(FX_Idx, LyrID, SpaceIsBeforeRackMixer, FxGUID_Container)
-            local FX_Idx_For_AddFX
+        function FilterBox(FX_Idx, LyrID, SpaceIsBeforeRackMixer, FxGUID_Container, SpcIsInPre, SpcInPost, SpcIDinPost)
+            local FX_Idx_For_AddFX, close 
             if AddLastSPCinRack then FX_Idx_For_AddFX = FX_Idx - 1 end 
             local MAX_FX_SIZE = 250     local FxGUID = FXGUID[FX_Idx_For_AddFX or FX_Idx]
 
@@ -2757,20 +2765,38 @@
             local filtered_fx = Filter_actions(ADDFX_FILTER)
             --r.ImGui_SetNextWindowPos(ctx, r.ImGui_GetItemRectMin(ctx), ({ r.ImGui_GetItemRectMax(ctx) })[2])
             local filter_h = #filtered_fx == 0 and 2 or (#filtered_fx > 40 and 20 * 17 or (17 * #filtered_fx))
-            local function InsertFX (Name )
-                --- CLICK INSERT
+            local function InsertFX (Name )         local FX_Idx = FX_Idx
+                --- CLICK INSERT    
+                if SpaceIsBeforeRackMixer=='End of PreFX' then FX_Idx = FX_Idx+1 end 
                 r.TrackFX_AddByName( LT_Track, Name, false, -1000-FX_Idx )
 
                 -- if Inserted into Layer 
+                local FxID = r.TrackFX_GetFXGUID(LT_Track, FX_Idx)
+
                 if FX.InLyr[FxGUID] == FXGUID_RackMixer and FX.InLyr[FxGUID] then 
                     DropFXtoLayerNoMove(FXGUID_RackMixer , LyrID, FX_Idx)
                 end 
                 if SpaceIsBeforeRackMixer == 'SpcInBS' then  
-                    local FxID = r.TrackFX_GetFXGUID(LT_Track, FX_Idx)
                     DropFXintoBS (FxID, FxGUID_Container, FX[FxGUID_Container].Sel_Band, FX_Idx+1, FX_Idx  )
+                end 
+                if SpcIsInPre then  local inspos = FX_Idx+1
+                    if SpaceIsBeforeRackMixer=='End of PreFX' then table.insert(Trk[TrkID].PreFX ,FxID)  
+                    else table.insert(Trk[TrkID].PreFX ,FX_Idx+1,FxID)
+                    end 
+                    for i, v in pairs(Trk[TrkID].PreFX) do  r.GetSetMediaTrackInfo_String(LT_Track, 'P_EXT: PreFX '..i, v, true) end
+                elseif SpcInPost then 
+                    if r.TrackFX_AddByName(LT_Track, 'FXD Macros', 0, 0) == -1 then offset = -1 else offset =0 end 
+                    table.insert(Trk[TrkID].PostFX, SpcIDinPost +offset +1 ,FxID) 
+                    -- InsertToPost_Src = FX_Idx + offset+2 
+                    for i=1, #Trk[TrkID].PostFX+1, 1 do 
+                        r.GetSetMediaTrackInfo_String(LT_Track, 'P_EXT: PostFX '..i, Trk[TrkID].PostFX[i] or '', true)
+                    end
+
+
                 end 
 
                 ADDFX_FILTER = nil
+
             end 
             if ADDFX_FILTER ~= '' and ADDFX_FILTER then  SL() 
                 r.ImGui_SetNextWindowSize(ctx, MAX_FX_SIZE, filter_h+20) 
@@ -2779,12 +2805,14 @@
                 if  r.ImGui_BeginPopup(ctx, "##popupp", r.ImGui_WindowFlags_NoFocusOnAppearing() --[[ MAX_FX_SIZE, filter_h ]]) then
 
 
+
                     ADDFX_Sel_Entry =   SetMinMax ( ADDFX_Sel_Entry or 1 ,  1 , #filtered_fx)
                     for i = 1, #filtered_fx do
                         if r.ImGui_Selectable(ctx, filtered_fx[i], DRAG_FX == i) then
                             
                             InsertFX (filtered_fx[i])
                             r.ImGui_CloseCurrentPopup(ctx)
+                            close = true 
                         end
                         if i==ADDFX_Sel_Entry then 
                             HighlightSelectedItem(0xffffff11, nil, 0, L,T,R,B,h,w, 1, 1,'GetItemRect')
@@ -2821,6 +2849,7 @@
                 r.ImGui_CloseCurrentPopup(ctx)
                 ADDFX_FILTER=nil
             end
+            return close 
         end
 
         function Drag(name)
@@ -2855,7 +2884,7 @@
         end
         -- OPEN FX LIST 
         if r.ImGui_BeginPopup(ctx, "FILTER LIST") then
-            FilterBox(FX_Idx)
+            if FilterBox(FX_Idx) then r.ImGui_CloseCurrentPopup(ctx) end 
             r.ImGui_EndPopup(ctx)
         end
         
@@ -6724,8 +6753,8 @@ function loop()
 
                         if r.ImGui_BeginPopup(ctx, 'Btwn FX Windows'..FX_Idx) then
                             FX_Idx_OpenedPopup  = FX_Idx..(tostring(SpaceIsBeforeRackMixer) or '')
-                            
-                            FilterBox( FX_Idx,LyrID, SpaceIsBeforeRackMixer, FxGUID_Container) -- Add FX Window
+
+                            FilterBox( FX_Idx,LyrID, SpaceIsBeforeRackMixer, FxGUID_Container, SpcIsInPre, SpcInPost ,SpcIDinPost) -- Add FX Window
                             if r.ImGui_Selectable(ctx, 'Add FX Layering') then
                                 local FX_Idx = FX_Idx 
                                 --[[ if FX_Name:find('Pro%-C 2') then FX_Idx = FX_Idx-1 end ]] 
@@ -6842,7 +6871,7 @@ function loop()
                                 DontMove = true 
                             else table.insert(Trk[TrkID].PreFX,FX_Idx+1 ,FXGUID[DragFX_ID]) 
                             end
-                        else -- if fx is is pre fx
+                        else -- if fx is in pre fx
                             if FX_Idx < DragFX_ID then  -- if drag towards left
                                 table.remove(Trk[TrkID].PreFX, DragFX_ID+1)
                                 table.insert(Trk[TrkID].PreFX, FX_Idx+1,FXGUID[DragFX_ID]) 
@@ -7249,9 +7278,10 @@ function loop()
 
                             if SpaceIsBeforeRackMixer == 'SpcInBS' or FX_Idx == Pl or  Pl+ (#FX[FXGUID[Pl]].FXsInBS or 0)+2 == FX_Idx  then  
                                 Dvdr.Width[TblIdxForSpace]=0
+
                             else 
                                 dropped ,payload = r.ImGui_AcceptDragDropPayload(ctx, 'BS_Drag')
-                                Dvdr.Width[TblIdxForSpace] = 30 
+                                Dvdr.Width[TblIdxForSpace] = 30   
                                 if dropped then 
 
                                     RepositionFXsInContainer(FX_Idx,Payload)
@@ -7285,10 +7315,10 @@ function loop()
                 if AddLastSpace == 'LastSpc' and Trk[TrkID].PostFX[1] then 
                     FX_Idx = FX_Idx-#Trk[TrkID].PostFX
                 end
-                
+
 
                 -- Move the Head of Container
-                if  FX_Idx > Payload and FX_Idx ~= RepeatTimeForWindows or (FX_Idx == RepeatTimeForWindows and AddLastSpace == 'LastSpc' ) then
+                if  FX_Idx > Payload  or (FX_Idx == RepeatTimeForWindows and AddLastSpace == 'LastSpc' ) then
                     --table.insert(MovFX.FromPos,DragFX_ID) table.insert(MovFX.ToPos, FX_Idx-1)
                     reaper.TrackFX_CopyToTrack( LT_Track, Payload, LT_Track, FX_Idx-1, true )
 
@@ -7296,8 +7326,7 @@ function loop()
 
                     reaper.TrackFX_CopyToTrack( LT_Track, Payload, LT_Track, FX_Idx, true )
                     --table.insert(MovFX.FromPos,DragFX_ID) table.insert(MovFX.ToPos, FX_Idx)
-
-                end
+                end 
 
 
 
@@ -7342,7 +7371,7 @@ function loop()
                 elseif Payload_Type == 'BS_Drag' then
                     
                     for i, v in ipairs(FX[FXGUID[Payload]].FXsInBS) do 
-                        if  FX_Idx > Payload and FX_Idx ~= RepeatTimeForWindows or (FX_Idx == RepeatTimeForWindows and AddLastSpace == 'LastSpc' ) then
+                        if  FX_Idx > Payload  or (FX_Idx == RepeatTimeForWindows and AddLastSpace == 'LastSpc' ) then
                             reaper.TrackFX_CopyToTrack( LT_Track, Payload, LT_Track, FX_Idx-1, true )
                         elseif Payload > FX_Idx and FX_Idx ~= RepeatTimeForWindows then
                             reaper.TrackFX_CopyToTrack( LT_Track, Payload+i, LT_Track, FX_Idx+i, true )
@@ -7350,7 +7379,7 @@ function loop()
                     end
 
                     --Move Joiner
-                    if  FX_Idx > Payload and FX_Idx ~= RepeatTimeForWindows or (FX_Idx == RepeatTimeForWindows and AddLastSpace == 'LastSpc' ) then
+                    if  FX_Idx > Payload  or (FX_Idx == RepeatTimeForWindows and AddLastSpace == 'LastSpc' ) then
                         reaper.TrackFX_CopyToTrack( LT_Track, Payload, LT_Track, FX_Idx-1, true )
                     elseif Payload > FX_Idx and FX_Idx ~= RepeatTimeForWindows then 
                         reaper.TrackFX_CopyToTrack( LT_Track, Payload + #FX[FXGUID[Payload]].FXsInBS+1, LT_Track, FX_Idx + #FX[FXGUID[Payload]].FXsInBS+1, true )
@@ -7374,7 +7403,7 @@ function loop()
                             elseif i < FX_Idx then 
                                 --table.insert(MovFX.FromPos,i) table.insert(MovFX.ToPos, FX_Idx)
 
-                                r.TrackFX_CopyToTrack( LT_Track, i, LT_Track, DropDest, true )
+                                r.TrackFX_CopyToTrack( LT_Track, i, LT_Track, DropDest or FX_Idx, true )
                             end
                         end
                     end
@@ -7448,9 +7477,9 @@ function loop()
 
             r.ImGui_PushStyleVar(ctx,  reaper.ImGui_StyleVar_ChildBorderSize(),0)
             Cx_LeftEdge,Cy_BeforeFXdevices = r.ImGui_GetCursorScreenPos(ctx) 
-            MouseAtLeftEdge = r.ImGui_IsMouseHoveringRect( ctx, Cx_LeftEdge, Cy_BeforeFXdevices,  Cx_LeftEdge+10, Cy_BeforeFXdevices+220)
+            MouseAtLeftEdge = r.ImGui_IsMouseHoveringRect( ctx, Cx_LeftEdge-50, Cy_BeforeFXdevices,  Cx_LeftEdge+5, Cy_BeforeFXdevices+220)
             --MouseAtRightEdge = r.ImGui_IsMouseHoveringRect( ctx, VP.X+VP.w-40, Cy_BeforeFXdevices,  VP.X+VP.w, Cy_BeforeFXdevices+220)
-            if (Payload_Type and MouseAtLeftEdge) and not Trk[TrkID].PreFX[1] then
+            if MouseAtLeftEdge and not Trk[TrkID].PreFX[1] and string.len(Payload_Type)>1 then
                 rv  = r.ImGui_Button( ctx, 'P\nr\ne\n \nF\nX\n \nC\nh\na\ni\nn', 20 , 220)
                 SL(nil, 0)
                 HighlightSelectedItem(0xffffff22, 0xffffffff, -1, L,T,R,B,h,w, H_OutlineSc, V_OutlineSc,'GetItemRect',WDL )
@@ -11035,6 +11064,8 @@ function loop()
                                             DefaultW = FrstSelItm.Combo_W        MaxW = 300  MinW = 20
                                         elseif FrstSelItm.Type=='Switch' then  
                                             DefaultW =  FrstSelItm.Switch_W     MaxW = 300  MinW = 15
+                                        elseif FrstSelItm.Type=='V-Slider' then  
+                                            DefaultW =  FrstSelItm.V_Sldr_W      MaxW = 60    MinW = 7
                                         end 
                                         local DragSpeed= 5 
 
@@ -12554,6 +12585,21 @@ function loop()
                                 FX[FxGUID].DeleteBandSplitter = true 
                             elseif r.ImGui_IsItemClicked(ctx,1) and Mods ==0 then 
                                 FX[FxGUID].Collapse = toggle(FX[FxGUID].Collapse )
+                            elseif   r.ImGui_IsItemClicked(ctx,1) and Mods ==Alt then    -- check if all are collapsed 
+                                local All_Collapsed 
+                                for i=0, Sel_Track_FX_Count-1, 1 do 
+                                    if not FX[FXGUID[i]].Collapse then All_Collapsed = false end 
+                                end
+                                if  All_Collapsed==false  then 
+                                    for i=0, Sel_Track_FX_Count-1, 1 do 
+                                        FX[FXGUID[i]].Collapse = true
+                                    end 
+                                else  -- if all is collapsed 
+                                    for i=0, Sel_Track_FX_Count-1, 1 do 
+                                        FX[FXGUID[i]].Collapse = false   FX.WidthCollapse[FXGUID[i]]= nil 
+                                    end 
+                                    BlinkFX = FX_Idx
+                                end
                             elseif r.ImGui_IsItemActive(ctx) then   
                                 
                                 DraggingFX_L_Pos = r.ImGui_GetCursorScreenPos(ctx) +10
@@ -12858,14 +12904,15 @@ function loop()
                                     local HvrOnNxtBand= r.ImGui_IsMouseHoveringRect(ctx, WinL, Nxt_CrossPos-3, WinR, Nxt_CrossPos+3 ) 
                                     
                                     if --[[Hovering over a band]] r.ImGui_IsMouseHoveringRect(ctx, WinL, Nxt_CrossPos, WinR, CrossPos ) and not (HvrOnBand or HvrOnNxtBand ) then 
-                                        local function Find_InsPos()
+                                        local function Find_InsPos() 
+                                            local InsPos
                                             for I, v in ipairs(FX[FxGUID].FXsInBS) do 
-                                                if FX[v].InWhichBand == i then InsPos = tablefind(FXGUID,v ) end 
+                                                if FX[v].InWhichBand == i then InsPos = tablefind(FXGUID,v) end 
                                             end
                                             Pl = Pl or InsPos
-                                            if not Pl and not InsPos then InsPos = FX_Idx +1
-                                            elseif Pl > FX_Idx then InsPos = InsPos or (FX_Idx) 
-                                            elseif Pl < FX_Idx then InsPos = InsPos or (FX_Idx-1)
+                                            if  not InsPos then InsPos = FX_Idx -1   msg('not ff')
+                                            elseif Pl > FX_Idx then InsPos = InsPos or (FX_Idx)   
+                                            elseif Pl < FX_Idx then InsPos = (InsPos or (FX_Idx-1)) -1  msg(InsPos)
                                             end 
                                             return InsPos
                                         end
@@ -12876,6 +12923,7 @@ function loop()
                                                 r.ImGui_DrawList_AddRectFilled(WDL,WinL, CrossPos, WinR, Nxt_CrossPos, 0xffffff66)
                                                 if  r.ImGui_IsMouseReleased(ctx,0) then     local DropDest=FX_Idx
                                                     local InsPos = Find_InsPos()
+
                                                     DropFXintoBS (FXGUID[Pl], FxGUID, i, Pl , InsPos+1)
                                                 end
                                             end
@@ -13397,6 +13445,7 @@ function loop()
                             end
                             SL()
                             if r.ImGui_Button(ctx, '(esc) Cancel') or r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_Escape()) then 
+                                FX[FxGUID].DeleteBandSplitter = nil 
                                 r.ImGui_CloseCurrentPopup(ctx)
                             end
                             r.ImGui_EndPopup(ctx)
