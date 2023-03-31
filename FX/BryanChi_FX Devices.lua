@@ -8,6 +8,9 @@
 --  - Add parameter context menu when ctrl+RMB.
 --  - Add option to add parameter to envelope in parameter context menu.
 --  - Prevent FX adder’s filter box to go out of window bounds.
+--  - Fix 'Moving FX from a band to a fx layer leaves weird remains.' and vise versa.
+--  - Fix crashing when deleting a track.
+--  - Add collapse all functionality to when alt+LMB on FX layering.
 
 -- @provides
 --   [effect] BryanChi_FX Devices/FXD Macros.jsfx
@@ -1172,7 +1175,24 @@
         end
 
 
- 
+        function ToggleCollapseAll ()
+            -- check if all are collapsed 
+            local All_Collapsed 
+            for i=0, Sel_Track_FX_Count-1, 1 do 
+                if not FX[FXGUID[i]].Collapse then All_Collapsed = false end 
+            end
+            if  All_Collapsed==false  then 
+                for i=0, Sel_Track_FX_Count-1, 1 do 
+                    FX[FXGUID[i]].Collapse = true
+                end 
+            else  -- if all is collapsed 
+                for i=0, Sel_Track_FX_Count-1, 1 do 
+                    FX[FXGUID[i]].Collapse = false   FX.WidthCollapse[FXGUID[i]]= nil 
+                end 
+                BlinkFX = FX_Idx
+            end
+            return BlinkFX 
+        end
 
         function RoundPrmV(str, DecimalPlaces)
             local A = tostring ('%.'..DecimalPlaces..'f')
@@ -1431,7 +1451,7 @@
 
     GetLTParam()
 
-    local ctx = r.ImGui_CreateContext('FX Device', r.ImGui_ConfigFlags_DockingEnable())
+     ctx = r.ImGui_CreateContext('FX Device', r.ImGui_ConfigFlags_DockingEnable())
     dofile(reaper.GetResourcePath().."/UserPlugins/ultraschall_api.lua")
 
     Show_H_ScrollBar = reaper.ImGui_WindowFlags_HorizontalScrollbar()
@@ -2574,6 +2594,8 @@
                 end
             end
         end
+
+        
     end
 
 
@@ -2598,6 +2620,10 @@
         else 
             guid = r.TrackFX_GetFXGUID(LT_Track, DragFX_ID)
         end 
+
+        if FX[FXGUID[DragFX_ID]].InWhichBand then 
+            MoveFX_Out_Of_BS ()
+        end
 
 
         if FX.InLyr[guid] ~= FXGUID_RackMixer then 
@@ -5781,19 +5807,20 @@ function loop()
     Dock_Now=nil
     ProC.ChanSplit=nil
 
-    
+
 
     
 
 
     if LT_Track then TrkClr = r.ImGui_ColorConvertNative(r.GetTrackColor(LT_Track)) end 
     TrkClr = ((TrkClr or 0) << 8) | 0x66 -- shift 0x00RRGGBB to 0xRRGGBB00 then add 0xFF for 100% opacity
-    r.ImGui_PushStyleColor(ctx, r.ImGui_Col_MenuBarBg(),  TrkClr)
+    if LT_Track then
+    r.ImGui_PushStyleColor(ctx, r.ImGui_Col_MenuBarBg(),  TrkClr or 0x00000000)
     r.ImGui_PushStyleColor(ctx, r.ImGui_Col_WindowBg(),Window_BG or CustomColorsDefault.Window_BG)
-
+    end 
    --------------------------==  BEGIN GUI----------------------------------------------------------------------------
     visible, open = r.ImGui_Begin(ctx, 'FX Device', true,r.ImGui_WindowFlags_NoScrollWithMouse()+r.ImGui_WindowFlags_NoScrollbar()+ r.ImGui_WindowFlags_MenuBar()+r.ImGui_WindowFlags_NoCollapse())
-    r.ImGui_PopStyleColor(ctx)
+    if LT_Track then r.ImGui_PopStyleColor(ctx)end 
 
     local Viewport = r.ImGui_GetWindowViewport( ctx)
         
@@ -7086,7 +7113,7 @@ function loop()
                     if DragFX_ID == FX_Idx or DragFX_ID == FX_Idx - 1 and FX.InLyr[FXGUID_of_DraggingFX] == FXGUID[FX_Idx] then 
                         Dvdr.Width[TblIdxForSpace]=0 
                     else
-                        if r.ImGui_BeginDragDropTarget(ctx)  then
+                        if r.ImGui_BeginDragDropTarget(ctx)  then 
                             FxDroppingTo = FX_Idx
                             ----- Drag Drop FX -------
                             dropped ,payload = r.ImGui_AcceptDragDropPayload(ctx, 'FX_Drag')
@@ -7097,10 +7124,13 @@ function loop()
                             r.ImGui_SameLine(ctx,100,10)
 
                         
-                            if dropped and Mods==0 then 
-
+                            if dropped and Mods==0 then
+                                
                                 DropFXtoLayer(FX_Idx, LyrID)
                                 Dvdr.Width[TblIdxForSpace]=0   FxDroppingTo = nil
+
+                                
+
                             elseif  dropped and Mods==Apl then 
                                 DragFX_Src = DragFX_ID  
 
@@ -7169,6 +7199,19 @@ function loop()
                 
                 
                 else       -- if Space is not in FX Layer
+
+                    function MoveFX_Out_Of_BS ()  
+
+                        for i=0, Sel_Track_FX_Count-1, 1 do 
+                            if FX[FXGUID[i]].FXsInBS then  -- i is Band Splitter
+                                table.remove(FX[FXGUID[i]].FXsInBS, tablefind(FX[FXGUID[i]].FXsInBS, FXGUID[DragFX_ID]))
+                                r.GetSetMediaTrackInfo_String(LT_Track,'P_EXT: FX is in which BS'..FXGUID[DragFX_ID], '' , true  )  
+                                r.GetSetMediaTrackInfo_String(LT_Track,'P_EXT: FX is in which Band'..FXGUID[DragFX_ID], '', true  )  
+                            end
+                        end
+                        FX[FXGUID[DragFX_ID]].InWhichBand = nil 
+
+                    end
 
                     
                     
@@ -8308,20 +8351,10 @@ function loop()
                                         if not FX[FxGUID].Collapse then   FX.WidthCollapse[FxGUID]= nil end 
                                     elseif R_ClickOnWindowBtn and Mods == Alt then 
                                         -- check if all are collapsed 
-                                        local All_Collapsed 
-                                        for i=0, Sel_Track_FX_Count-1, 1 do 
-                                            if not FX[FXGUID[i]].Collapse then All_Collapsed = false end 
-                                        end
-                                        if  All_Collapsed==false  then 
-                                            for i=0, Sel_Track_FX_Count-1, 1 do 
-                                                FX[FXGUID[i]].Collapse = true
-                                            end 
-                                        else  -- if all is collapsed 
-                                            for i=0, Sel_Track_FX_Count-1, 1 do 
-                                                FX[FXGUID[i]].Collapse = false   FX.WidthCollapse[FXGUID[i]]= nil 
-                                            end 
-                                            BlinkFX = FX_Idx
-                                        end
+                                        
+
+                                        BlinkFX= ToggleCollapseAll ()
+
                                     elseif WindowBtn and Mods== 0   then
                                         openFXwindow(LT_Track, FX_Idx)
                                     elseif WindowBtn and Mods== Shift  then 
@@ -11789,6 +11822,8 @@ function loop()
                                 if not FXLayerRenaming then  
                                     if LBtnClickCount==2 and  r.ImGui_IsItemActivated( ctx)  then 
                                         FX[FxGUID].RenameFXLayering = true 
+                                    elseif r.ImGui_IsItemClicked(ctx,1) and Mods==Alt then 
+                                        BlinkFX= ToggleCollapseAll ()
                                     end
                                 end
 
@@ -12244,8 +12279,11 @@ function loop()
                                     ToggleBypassFX()
                                 elseif r.ImGui_IsItemClicked(ctx) and Mods ==Alt then 
                                     FX[FxGUID].DeleteFXLayer = true 
-                                elseif r.ImGui_IsItemClicked(ctx, 1) then 
+                                elseif r.ImGui_IsItemClicked(ctx, 1) and Mods == 0 then 
                                     FX[FxGUID].Collapse = nil
+                                elseif r.ImGui_IsItemClicked(ctx,1) and Mods==Alt then  
+
+                                    BlinkFX= ToggleCollapseAll ()
                                 end
 
                                 if r.ImGui_BeginDragDropSource(ctx, r.ImGui_DragDropFlags_None()) then
@@ -12841,9 +12879,19 @@ function loop()
                             
                                 function DropFXintoBS (FxID, FxGUID_BS, Band, Pl, DropDest,DontMove) --Pl is payload    --!!!! Correct drop dest!!!!
                                     FX[FxID]= FX[FxID] or {}
+
+                                    if FX.InLyr[FxID] then   --- move fx out of Layer
+                                        FX.InLyr[FXGUID[DragFX_ID]] = nil
+                                        r.SetProjExtState(0, 'FX Devices', 'FXLayer - '.. 'is FX' ..FXGUID[DragFX_ID]..'in layer',  '' )
+                                    end
+
+
+
                                     if FX[FxID].InWhichBand then 
                                         table.remove(FX[FxGUID_BS].FXsInBS, tablefind(FX[FxGUID_BS].FXsInBS, FxID) )
                                     end
+
+
 
                                     if TABinsertPos then table.insert(FX[FxGUID_BS].FXsInBS,TABinsertPos, FxID )
                                     else table.insert(FX[FxGUID_BS].FXsInBS, FxID )
@@ -13836,10 +13884,10 @@ function loop()
             end
 
 
-
+            if LT_Track then
             r.ImGui_PopStyleColor(ctx)  --  For Menu Bar Color
             r.ImGui_PopStyleColor(ctx)  --  For WindowBg
-
+            end 
             r.ImGui_PopStyleVar(ctx) --(Border Size for all fx devices)
             r.ImGui_PopStyleVar(ctx) --StyleVar#1 (Child Frame for all FX Devices)
 
