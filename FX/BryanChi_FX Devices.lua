@@ -2,10 +2,13 @@
 -- @author Bryan Chi
 -- @version 1.0beta9.5.2
 -- @changelog
---   FX Devices beta9.5.2	
---   - Add option for windows inner background
---   - Fix space between fx color option not displaying color set by user.
---   - Added background color to Band Splitter’s frequency bar.
+--  - Add option for windows inner background
+--  - Fix space between fx color option not displaying color set by user.
+--  - Added background color to Band Splitter’s frequency bar.
+--  - Add parameter context menu when ctrl+RMB.
+--  - Add option to add parameter to envelope in parameter context menu.
+--  - Prevent FX adder’s filter box to go out of window bounds.
+
 -- @provides
 --   [effect] BryanChi_FX Devices/FXD Macros.jsfx
 --   [effect] BryanChi_FX Devices/FXD ReSpectrum.jsfx
