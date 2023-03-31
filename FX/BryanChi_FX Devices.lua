@@ -2797,6 +2797,11 @@
             if ADDFX_FILTER ~= '' and ADDFX_FILTER then  SL() 
                 r.ImGui_SetNextWindowSize(ctx, MAX_FX_SIZE, filter_h+20) 
                 local x, y = r.ImGui_GetCursorScreenPos(ctx)
+
+                ParentWinPos_x, ParentWinPos_y = r.ImGui_GetWindowPos(  ctx)
+                local VP_R = VP.X + VP.w     
+                if x + MAX_FX_SIZE > VP_R then x = ParentWinPos_x - MAX_FX_SIZE end 
+
                 r.ImGui_SetNextWindowPos(ctx, x, y-filter_h/2  )
                 if  r.ImGui_BeginPopup(ctx, "##popupp", r.ImGui_WindowFlags_NoFocusOnAppearing() --[[ MAX_FX_SIZE, filter_h ]]) then
 
@@ -6751,6 +6756,7 @@ function loop()
                         end
 
                         if r.ImGui_BeginPopup(ctx, 'Btwn FX Windows'..FX_Idx) then
+
                             FX_Idx_OpenedPopup  = FX_Idx..(tostring(SpaceIsBeforeRackMixer) or '')
 
                             FilterBox( FX_Idx,LyrID, SpaceIsBeforeRackMixer, FxGUID_Container, SpcIsInPre, SpcInPost ,SpcIDinPost) -- Add FX Window
@@ -9290,6 +9296,25 @@ function loop()
                                                             FocusedFX=nil      FP.UnlinkedModTable = nil
                                                         end
                                                     end ]]
+                                                end
+
+                                                if r.ImGui_IsItemClicked(ctx, 1) and Mods ==Ctrl then 
+                                                    
+                                                    r.ImGui_OpenPopup(ctx, '##prm Context menu')
+                                                end
+                                                if r.ImGui_BeginPopup(  ctx, '##prm Context menu') then 
+
+                                                    if r.ImGui_Selectable(ctx, 'Add Parameter to Envelope') then 
+                                                        local env = r.GetFXEnvelope(LT_Track, 0, FP.Num, true)
+                                                        local active,  visible,  armed,  inLane,  laneHeight,  defaultShape,  minValue,  maxValue,  centerValue,  Tp,  faderScaling = r.BR_EnvGetProperties(env)
+
+                                                        r.BR_EnvSetProperties(env, true ,  true  ,  armed,  inLane,  laneHeight,  defaultShape,  faderScaling)
+                                                        r.UpdateArrange()
+
+
+                                                    end
+                                                    r.ImGui_BeginPopupContextItem( ctx, 'optional string str_idIn')
+                                                    r.ImGui_EndPopup(ctx)
                                                 end
 
                                             end
