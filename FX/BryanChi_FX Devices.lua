@@ -1,15 +1,11 @@
 -- @description FX Devices
 -- @author Bryan Chi
--- @version 1.0beta9.5.1
+-- @version 1.0beta9.5.2
 -- @changelog
---   FX Device Update 9.5.1
---   - Fix incorrect fx positioning when drag fx into Band Split
---   - Fix FX not added to Pre/Post chain when user add fx by clicking an empty space in Pre/Post chain.
---   - Fix unable to move Band Splitter into the last space of chain.
---   - Fix crash when moving an FX Layer container after another fx.
---   - Fix unable to drag FX to 1st slot.
---   - Add min/max limit for Vertical slider’s width
---   - Make Toggle all collapse work with band splitter button
+--   FX Devices beta9.5.2	
+--   - Add option for windows inner background
+--   - Fix space between fx color option not displaying color set by user.
+--   - Added background color to Band Splitter’s frequency bar.
 -- @provides
 --   [effect] BryanChi_FX Devices/FXD Macros.jsfx
 --   [effect] BryanChi_FX Devices/FXD ReSpectrum.jsfx
@@ -57,7 +53,7 @@
 --   https://forum.cockos.com/showthread.php?t=263622
 
 --------------------------==  declare Initial Variables & Functions  ------------------------
-    VersionNumber = 'V1.0beta9.5.1 '
+    VersionNumber = 'V1.0beta9.5.2 '
     FX_Add_Del_WaitTime=2
     r=reaper
 
@@ -6699,7 +6695,7 @@ function loop()
                 local ClrLbl = FX_Idx..(tostring(SpaceIsBeforeRackMixer) or '')
                 
 
-                Dvdr.Clr[ClrLbl] = Dvdr.Clr[ClrLbl]  or  0x131313ff  
+                Dvdr.Clr[ClrLbl] =  Space_Between_FXs  
                 Dvdr.Width[TblIdxForSpace]= Dvdr.Width[TblIdxForSpace] or 0 
                 if FX_Idx==0 and DragDroppingFX and not SpcIsInPre then 
                     if r.ImGui_IsMouseHoveringRect( ctx, Cx_LeftEdge+10, Cy_BeforeFXdevices,  Cx_LeftEdge+25, Cy_BeforeFXdevices+220) and DragFX_ID~=0 then 
@@ -6726,6 +6722,8 @@ function loop()
                             if DebugMode then  tooltip('FX_Idx :'..FX_Idx..'\n Pre/Post/Norm : '.. tostring(SpaceIsBeforeRackMixer)..'\n SpcIDinPost: '.. tostring(SpcIDinPost)) end 
                             r.ImGui_PushStyleColor(ctx,r.ImGui_Col_ButtonHovered(), CLR_BtwnFXs_Btn_Hover)
                             r.ImGui_PushStyleColor(ctx,r.ImGui_Col_ButtonActive(), CLR_BtwnFXs_Btn_Active)
+                            local x , y  =  r.ImGui_GetCursorScreenPos(ctx)
+                            r.ImGui_SetCursorScreenPos(ctx, x, Glob.WinT)
                             BTN_Btwn_FXWindows =  r.ImGui_Button(ctx, '##Button between Windows', 99, 217)
                             FX_Insert_Pos = FX_Idx
                             
@@ -7177,9 +7175,7 @@ function loop()
                                 FX_Idx = FX_Idx-1 
                                 if (DragFX_ID  == FX_Idx +1) or (DragFX_ID == FX_Idx-1)  then DontAllowDrop = true end 
                             end  ]]
-
-
-
+                            
                             if (DragFX_ID == FX_Idx or DragFX_ID  == FX_Idx - 1)  and SpaceIsBeforeRackMixer ~= true and FX.InLyr[FXGUID[DragFX_ID]]== nil and not SpcInPost and not allowDropNext
                             or  (Trk[TrkID].PreFX[#Trk[TrkID].PreFX]==FXGUID[DragFX_ID] and SpaceIsBeforeRackMixer=='End of PreFX')  or DontAllowDrop   then 
                                 r.ImGui_SameLine(ctx, nil, 0)
@@ -7187,6 +7183,9 @@ function loop()
                                 Dvdr.Width[TblIdxForSpace]=0
                                 r.ImGui_EndDragDropTarget(ctx)
                             else
+
+                                HighlightSelectedItem(0xffffff22,nil, 0, L,T,R,B,h,w, 0, 0,'GetItemRect', Foreground)
+
 
                                 Dvdr.Clr[ClrLbl] = r.ImGui_GetStyleColor(ctx, r.ImGui_Col_Button())
                                 Dvdr.Width[TblIdxForSpace] = Df.Dvdr_Width
@@ -7581,7 +7580,7 @@ function loop()
                 end
             end
             offset=nil 
-            r.ImGui_PushStyleColor(ctx, r.ImGui_Col_ChildBg(), r.ImGui_GetStyleColor(ctx, r.ImGui_Col_WindowBg()) )
+            r.ImGui_PushStyleColor(ctx, r.ImGui_Col_ChildBg(), Window_BG or CustomColorsDefault.Window_BG)
 
             local spaceIfPreFX=0
             if Trk[TrkID].PreFX[1] and Trk[TrkID].PostFX[1] and  not  Trk[TrkID].PostFX_Hide then spaceIfPreFX = 20 end 
@@ -12913,7 +12912,7 @@ function loop()
                                             Pl = Pl or InsPos
                                             if  not InsPos then InsPos = FX_Idx -1   
                                             elseif Pl > FX_Idx then InsPos = InsPos or (FX_Idx)   
-                                            elseif Pl < FX_Idx then InsPos = (InsPos or (FX_Idx-1)) -1  
+                                            elseif Pl < FX_Idx then InsPos = (InsPos or (FX_Idx-1)) -1 
                                             end 
                                             return InsPos
                                         end
@@ -13297,6 +13296,9 @@ function loop()
                                     end
 
                                 end
+
+                                -- Draw Background
+                                r.ImGui_DrawList_AddRectFilled(WDL,WinL, Glob.WinT, WinR, Glob.WinB, 0xffffff33)
 
                                 local Copy 
                                 
