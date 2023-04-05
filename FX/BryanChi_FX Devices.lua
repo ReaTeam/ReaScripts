@@ -1,6 +1,6 @@
 -- @description FX Devices
 -- @author Bryan Chi
--- @version 1.0beta9.5.2
+-- @version 1.0beta9.5.2-1
 -- @changelog
 --  - Add option for windows inner background
 --  - Fix space between fx color option not displaying color set by user.
@@ -11,7 +11,6 @@
 --  - Fix 'Moving FX from a band to a fx layer leaves weird remains.' and vise versa.
 --  - Fix crashing when deleting a track.
 --  - Add collapse all functionality to when alt+LMB on FX layering.
-
 -- @provides
 --   [effect] BryanChi_FX Devices/FXD Macros.jsfx
 --   [effect] BryanChi_FX Devices/FXD ReSpectrum.jsfx
