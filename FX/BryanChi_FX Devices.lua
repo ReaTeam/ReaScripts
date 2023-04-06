@@ -2,7 +2,6 @@
 -- @author Bryan Chi
 -- @version 1.0beta9.5.3
 -- @changelog
---   FX Devices beta9.5.3
 --   - Fix showing multiple ‘add parameter to envelope’ option showing up when Ctrl+RMB on parameter
 --   - Fix crashing when changing scripts dock position.
 --   - Fix issues with FX adder can’t find vst3 plugins and plugins with comma in its name. (Eg. Valhalla plugins)
