@@ -1,16 +1,12 @@
 -- @description FX Devices
 -- @author Bryan Chi
--- @version 1.0beta9.5.2-1
+-- @version 1.0beta9.5.3
 -- @changelog
---  - Add option for windows inner background
---  - Fix space between fx color option not displaying color set by user.
---  - Added background color to Band Splitter’s frequency bar.
---  - Add parameter context menu when ctrl+RMB.
---  - Add option to add parameter to envelope in parameter context menu.
---  - Prevent FX adder’s filter box to go out of window bounds.
---  - Fix 'Moving FX from a band to a fx layer leaves weird remains.' and vise versa.
---  - Fix crashing when deleting a track.
---  - Add collapse all functionality to when alt+LMB on FX layering.
+--   FX Devices beta9.5.3
+--   - Fix showing multiple ‘add parameter to envelope’ option showing up when Ctrl+RMB on parameter
+--   - Fix crashing when changing scripts dock position.
+--   - Fix issues with FX adder can’t find vst3 plugins and plugins with comma in its name. (Eg. Valhalla plugins)
+--   - Change Pro-C’s analyzer plugins’ recognition from ‘if ==‘ to ‘if string.find’, to make result consistent if plugin names shows differently.
 -- @provides
 --   [effect] BryanChi_FX Devices/FXD Macros.jsfx
 --   [effect] BryanChi_FX Devices/FXD ReSpectrum.jsfx
@@ -58,7 +54,7 @@
 --   https://forum.cockos.com/showthread.php?t=263622
 
 --------------------------==  declare Initial Variables & Functions  ------------------------
-    VersionNumber = 'V1.0beta9.5.2 '
+    VersionNumber = 'V1.0beta9.5.3 '
     FX_Add_Del_WaitTime=2
     r=reaper
 
@@ -1450,14 +1446,14 @@
 
     GetLTParam()
 
-     ctx = r.ImGui_CreateContext('FX Device', r.ImGui_ConfigFlags_DockingEnable())
+    local ctx = r.ImGui_CreateContext('FX Device', r.ImGui_ConfigFlags_DockingEnable())
     dofile(reaper.GetResourcePath().."/UserPlugins/ultraschall_api.lua")
 
     Show_H_ScrollBar = reaper.ImGui_WindowFlags_HorizontalScrollbar()
     AlwaysHScroll = reaper.ImGui_WindowFlags_AlwaysHorizontalScrollbar()
 
 
-
+    
    --[[  function Link_LT_Param(TrackNumToBeMod, FX_Slt_Indx_ToBeMod, parmlink, PARMLINK_LINKEDPLUGIN,PARMLINK_LINKEDPARMIDX,PARAM_NR, PARMLINK_OFFSET, PARMLINK_SCALE,PARAMOD_BASELINE)
         -- let's create a default ParmModTable
         ParmModTable = ultraschall.CreateDefaultParmModTable()
@@ -2597,10 +2593,6 @@
         
     end
 
-
-
-
-
     function DropFXtoLayer(FX_Idx , LayerNum, AltDragSrc) --fxIdx == the position in chain it's dropped to 
         DragFX_ID = DragFX_ID or  AltDragSrc  or FX_Idx
         local function SetPinMappings(i)
@@ -2692,19 +2684,29 @@
         local max = math.max
         local MAX_FX_SIZE = 0
 
-        function FX_NAME(str)
+        function FX_NAME(str, i )
             local vst_name
-            for name_segment in str:gmatch('[^%,]+') do
-                if name_segment:match("(%S+) ") then
+            for name_segment in str:gmatch('[^%,]+')  do  --- Split Line into segments spearated by comma
+                
+                if name_segment:match("(%S+) ")  then   -- if segment has space in it 
                     if name_segment:match('"(JS: .-)"') then
                         vst_name = name_segment:match('"JS: (.-)"') and "JS:" .. name_segment:match('"JS: (.-)"') or nil
-                    else
-                        vst_name = name_segment:match("(%S+ .-%))") and "VST:" .. name_segment:match("(%S+ .-%))") or nil
+                    elseif name_segment:find('=<.+>') then   -- AU Plugins
+                        vst_name = 'AU:'.. name_segment:gsub('=<.+>', '')
                     end
+                elseif  name_segment:find('%.vst3=') then  local nm = name_segment
+                    vst_name= 'VST3:'..nm:sub( 0,nm:find('%.vst3=')-1 )
+                    vst_name= vst_name:gsub('_', ' ')
+                elseif name_segment:find('%.vst=') then  local nm = name_segment
+                    vst_name= 'VST:'..nm:sub( 0,nm:find('%.vst=')-1 )
+                    vst_name= vst_name:gsub('_', ' ')
                 end
             end
             if vst_name then return vst_name end
         end
+
+    
+        
 
         function GetFileContext(fp)
             local str = "\n"
@@ -2730,17 +2732,20 @@
             local jsfx_path  = r.GetResourcePath() .. "/reaper-jsfx.ini"
             local jsfx_str   = GetFileContext(jsfx_path)
 
-            local au_path    = r.GetResourcePath() .. "/reaper-auplugins64-bc.ini"
+            local au_path    = r.GetResourcePath() .. "/reaper-auplugins_arm64.ini"
             local au_str     = GetFileContext(au_path)
+            
+            local plugins    = vst_str.. vst_str32 .. jsfx_str .. au_str
 
-            local plugins    = vst_str .. vst_str32 .. jsfx_str .. au_str
 
             for line in plugins:gmatch('[^\r\n]+') do tbl[#tbl + 1] = line end
+
 
             -- CREATE NODE LIST
             for i = 1, #tbl do
                 local fx_name = FX_NAME(tbl[i])
                 if fx_name then
+
                     tbl_list[#tbl_list + 1] = fx_name
                 end
             end
@@ -2752,9 +2757,9 @@
         local function Lead_Trim_ws(s) return s:match '^%s*(.*)' end
 
         local function Filter_actions(filter_text)
-            filter_text = Lead_Trim_ws(filter_text)
+            --filter_text = Lead_Trim_ws(filter_text)
             local t = {}
-            if filter_text == "" then return t end
+            if filter_text == "" or not filter_text then return t end
             for i = 1, #FX_LIST do
                 local action = FX_LIST[i]
                 local name = action:lower()
@@ -2783,6 +2788,7 @@
             _, ADDFX_FILTER = r.ImGui_InputText(ctx, '##input', ADDFX_FILTER,r.ImGui_InputTextFlags_AutoSelectAll()) 
 
             if r.ImGui_IsWindowAppearing( ctx) then 
+                local tb = Fill_fx_list()
                 r.ImGui_SetKeyboardFocusHere(ctx, -1)
             end
 
@@ -5797,6 +5803,8 @@
 ---------------------------- End For Before GUI ----------------------------
 
 function loop()     
+
+
     GetLT_FX_Num()
     GetLTParam()
 
@@ -5807,19 +5815,18 @@ function loop()
     ProC.ChanSplit=nil
 
 
-
     
 
 
     if LT_Track then TrkClr = r.ImGui_ColorConvertNative(r.GetTrackColor(LT_Track)) end 
     TrkClr = ((TrkClr or 0) << 8) | 0x66 -- shift 0x00RRGGBB to 0xRRGGBB00 then add 0xFF for 100% opacity
-    if LT_Track then
-    r.ImGui_PushStyleColor(ctx, r.ImGui_Col_MenuBarBg(),  TrkClr or 0x00000000)
+    
+    r.ImGui_PushStyleColor(ctx , r.ImGui_Col_MenuBarBg(),  TrkClr or 0x00000000)
     r.ImGui_PushStyleColor(ctx, r.ImGui_Col_WindowBg(),Window_BG or CustomColorsDefault.Window_BG)
-    end 
    --------------------------==  BEGIN GUI----------------------------------------------------------------------------
-    visible, open = r.ImGui_Begin(ctx, 'FX Device', true,r.ImGui_WindowFlags_NoScrollWithMouse()+r.ImGui_WindowFlags_NoScrollbar()+ r.ImGui_WindowFlags_MenuBar()+r.ImGui_WindowFlags_NoCollapse())
-    if LT_Track then r.ImGui_PopStyleColor(ctx)end 
+    local visible, open = r.ImGui_Begin(ctx, 'FX Device', true,r.ImGui_WindowFlags_NoScrollWithMouse()+r.ImGui_WindowFlags_NoScrollbar()+ r.ImGui_WindowFlags_MenuBar()+r.ImGui_WindowFlags_NoCollapse())
+    r.ImGui_PopStyleColor(ctx,2) -- for menu  bar and window BG
+
 
     local Viewport = r.ImGui_GetWindowViewport( ctx)
         
@@ -6456,11 +6463,13 @@ function loop()
             -----------==  Create Macros (Headers)-------------
                 MacroNums = {1, 2, 3, 4, 5, 6, 7, 8, }
                 r.ImGui_BeginTable(ctx,'table1',16,r.ImGui_TableFlags_NoPadInnerX() )
+                Trk[TrkID] = Trk[TrkID] or {}       Trk[TrkID].Mod= Trk[TrkID].Mod or {}
                 for m = 1, 16 , 1 do 
                     if m == 1 or m == 3 or m == 5 or m == 7 or m ==9 or m==11 or m==13 or m==15 then 
                     r.ImGui_TableSetupColumn(ctx, '', r.ImGui_TableColumnFlags_WidthStretch(), 2)
-                    elseif m == 2 or m==4 or m == 6 or m ==8 or m==10 or m ==12 or m==14 or m==16  then 
-                    r.ImGui_TableSetupColumn(ctx, '', r.ImGui_TableColumnFlags_WidthStretch(), 1)
+                    elseif m == 2 or m==4 or m == 6 or m ==8 or m==10 or m ==12 or m==14 or m==16  then local weight, flag
+                        if Trk[TrkID].Mod[m/2] then if Trk[TrkID].Mod[m/2].Type =='Step' then   weight, flag =0, r.ImGui_TableColumnFlags_WidthFixed() end end 
+                    r.ImGui_TableSetupColumn(ctx, '', flag or r.ImGui_TableColumnFlags_WidthStretch(), weight or 1)
                     end
                 end
                 
@@ -6509,8 +6518,6 @@ function loop()
 
                         MacroValueLBL=TrkID..'Macro'..MacroNums[i]
 
-                        
-                        
                         r.ImGui_PushItemWidth( ctx, -FLT_MIN)
 
                         IsMacroSlidersEdited, I.Val =reaper.ImGui_SliderDouble(ctx, i..'##', I.Val , Slider1Min or 0, Slider1Max or 1)
@@ -6632,6 +6639,47 @@ function loop()
                             end
                         end
                         r.ImGui_PopStyleColor(ctx,clrPop)
+
+                    elseif Trk[TrkID].Mod[i].Type =='Step' then 
+                        Macros_WDL = Macros_WDL or r.ImGui_GetWindowDrawList(ctx)
+
+                        r.ImGui_TableSetColumnIndex(ctx,(i-1) * 2)  --r.ImGui_PushItemWidth( ctx, -FLT_MIN)
+                        
+                        --r.ImGui_SetNextItemWidth(ctx, 20) 
+                        Trk[TrkID].Mod[i].SEQ= Trk[TrkID].Mod[i].SEQ or {}
+                        local S = Trk[TrkID].Mod[i].SEQ  
+                        HowManySteps = 8
+                        for St=1, HowManySteps, 1 do     -- create 8 steps         
+
+                            local W = (VP.w-10) /12
+                            local L,T = r.ImGui_GetCursorScreenPos(ctx)
+                            --_, S[St]= r.ImGui_DragDouble(ctx, '##SEQ '..St ,  S[St], 0 ,0, 1, ' ',r.ImGui_SliderFlags_NoInput())
+                            r.ImGui_InvisibleButton(ctx,  '##SEQ'..St..TrkID, W/8, 20)
+                            S[St]= SetMinMax( S[St] or 0.5, 0,1)
+                            if r.ImGui_IsItemActive(ctx) then local _ , v =  r.ImGui_GetMouseDelta( ctx, nil, nil)
+                                if Mods == Shift then DrgSpdMod = 4 end 
+                                if v ~= 0 then 
+                                    if not ( S[St] ==1 and v>0) and not (S[St] ==0 and v<0) then 
+                                        S[St] = S[St] + v/100 
+                                        r.gmem_write(4,7) -- tells jsfx user is changing a step's value
+                                        r.gmem_write(5,i) -- tells which macro user is tweaking
+                                        r.gmem_write(7, SetMinMax(S[St] , 0 , 1)*(-1)+1 ) -- tells the step's value
+                                        r.gmem_write(8, St) -- tells which step
+                                        ttp(St)
+                                    end
+                                    r.ImGui_ResetMouseDragDelta(ctx)
+                                end
+                            elseif r.ImGui_IsItemClicked(ctx,1) then 
+                                if AssigningMacro then AssigningMacro = nil else AssigningMacro=i end 
+                                
+                            end
+                            local W,H = r.ImGui_GetItemRectSize(ctx)   
+                            local Clr = Change_Clr_A(EightColors.Bright_HighSat[i], -0.5)
+                            if r.ImGui_IsItemActive(ctx)  then Clr = EightColors.Bright_HighSat[i]
+                            elseif r.ImGui_IsItemHovered(ctx) then  Clr = Change_Clr_A(EightColors.Bright_HighSat[i], -0.3) end 
+                            r.ImGui_DrawList_AddRectFilled(Macros_WDL, L,T+H, L+W-1 ,T+H* S[St], Clr)
+                            SL(nil,0)
+                        end 
                     end
                     --check if there's envelope
                     --[[  IsThereEnvOnMacro[i] = reaper.GetFXEnvelope(LT_Track, 0, i-1, false)
@@ -6665,6 +6713,13 @@ function loop()
                             r.GetSetMediaTrackInfo_String(LT_Track,'P_EXT: Mod'..i..'Type', 'env', true  )  
                             r.gmem_write(4,4) -- tells jsfx macro type = env
                             r.gmem_write(5,i) -- tells jsfx which macro 
+                        elseif r.ImGui_Selectable(ctx, 'Set Type to Step Sequencer') then
+                            Trk[TrkID].Mod[i].Type='Step'
+                            r.gmem_write(4,6) -- tells jsfx macro type = step seq
+                            r.gmem_write(5,i)
+                            r.GetSetMediaTrackInfo_String(LT_Track,'P_EXT: Mod'..i..'Type', 'Step', true  )  
+
+                            if I.Name=='Env '..i or I.Name == 'Macro ' ..i then  I.Name = 'Step ' ..i end 
                         end
                         r.ImGui_EndPopup(ctx)
                     end
@@ -9335,26 +9390,30 @@ function loop()
 
                                                 if r.ImGui_IsItemClicked(ctx, 1) and Mods ==Ctrl then 
                                                     
-                                                    r.ImGui_OpenPopup(ctx, '##prm Context menu')
+                                                    r.ImGui_OpenPopup(ctx, '##prm Context menu'..FP.Num)
                                                 end
-                                                if r.ImGui_BeginPopup(  ctx, '##prm Context menu') then 
+                                                if r.ImGui_BeginPopup(  ctx, '##prm Context menu'..FP.Num) then 
 
                                                     if r.ImGui_Selectable(ctx, 'Add Parameter to Envelope') then 
+        
                                                         local env = r.GetFXEnvelope(LT_Track, 0, FP.Num, true)
                                                         local active,  visible,  armed,  inLane,  laneHeight,  defaultShape,  minValue,  maxValue,  centerValue,  Tp,  faderScaling = r.BR_EnvGetProperties(env)
-
+        
                                                         r.BR_EnvSetProperties(env, true ,  true  ,  armed,  inLane,  laneHeight,  defaultShape,  faderScaling)
                                                         r.UpdateArrange()
-
-
+        
+        
                                                     end
                                                     r.ImGui_BeginPopupContextItem( ctx, 'optional string str_idIn')
                                                     r.ImGui_EndPopup(ctx)
                                                 end
+                                                
 
                                             end
 
                                         end -- Rpt for every param
+
+                                        
                                         if FX.LayEdit then 
                                             if LE.DragY> LE.GridSize or LE.DragX> LE.GridSize or  LE.DragY< - LE.GridSize or LE.DragX< - LE.GridSize then  r.ImGui_ResetMouseDragDelta(ctx) end 
                                         end     
@@ -9701,7 +9760,7 @@ function loop()
                                             r.ImGui_PopStyleVar(ctx,2 )
 
 
-                                            if FX.Win_Name[FX_Idx-1]~= 'JS: FXD Split to 4 channels' and not tablefind(Trk[TrkID].PreFX,FxGUID) and not tablefind(Trk[TrkID].PostFX,FxGUID)   then 
+                                            if FX.Win_Name[FX_Idx-1]:find('JS: FXD Split to 4 channels') and not tablefind(Trk[TrkID].PreFX,FxGUID) and not tablefind(Trk[TrkID].PostFX,FxGUID)   then 
                                                 table.insert(AddFX.Pos, FX_Idx )
                                                 table.insert(AddFX.Name, 'FXD Split to 4 channels')
                                                 if  r.GetMediaTrackInfo_Value( LT_Track, 'I_NCHAN' ) < 4 then 
@@ -9715,7 +9774,7 @@ function loop()
                     
                                             local _, NextFX = r.TrackFX_GetFXName( LT_Track,  FX_Idx+1) 
                     
-                                            if NextFX~= 'JS: FXD Gain Reduction Scope' and not tablefind(Trk[TrkID].PreFX,FxGUID) and not tablefind(Trk[TrkID].PostFX,FxGUID)   then 
+                                            if not NextFX:find('JS: FXD Gain Reduction Scope') and not tablefind(Trk[TrkID].PreFX,FxGUID) and not tablefind(Trk[TrkID].PostFX,FxGUID)   then 
 
                                                 table.insert(AddFX.Pos, FX_Idx+1 )
                                                 table.insert(AddFX.Name, 'FXD Gain Reduction Scope')
@@ -13883,10 +13942,10 @@ function loop()
             end
 
 
-            if LT_Track then
-            r.ImGui_PopStyleColor(ctx)  --  For Menu Bar Color
-            r.ImGui_PopStyleColor(ctx)  --  For WindowBg
-            end 
+                r.ImGui_PopStyleColor(ctx)
+               --[[  r.ImGui_PopStyleColor(ctx)  --  For Menu Bar Color
+                r.ImGui_PopStyleColor(ctx)  --  For WindowBg ]]
+
             r.ImGui_PopStyleVar(ctx) --(Border Size for all fx devices)
             r.ImGui_PopStyleVar(ctx) --StyleVar#1 (Child Frame for all FX Devices)
 
@@ -13919,10 +13978,7 @@ function loop()
 
 
         r.ImGui_SetNextWindowSize(ctx, 500, 440, r.ImGui_Cond_FirstUseEver())
-            if LT_Track then FXCountEndLoop = r.TrackFX_GetCount(LT_Track) end 
-
-
-
+        if LT_Track then FXCountEndLoop = r.TrackFX_GetCount(LT_Track) end 
         r.ImGui_End(ctx)
     end--end for Visible
 
@@ -13941,7 +13997,6 @@ function loop()
                     r.SetProjExtState(0, 'FX Devices', 'Macro'.. i.. 'Value of Track'..TrkID , Trk[TrkID].Mod[i].Val)
                 end
             end
-
 
         end
         r.ImGui_DestroyContext(ctx)
