@@ -35,7 +35,7 @@ About: 	The native action 'Item: Explode MIDI note rows (pitch) to new items'
 -- it will be dismantled
 KEEP_FOLDER = "1"
 
--- Enable to place the newly exploded items
+-- Enable to place the newly created items
 -- on tracks from previous explosions, if any,
 -- PROVIDED the note names are retained in track labels
 -- and their note names match
