@@ -39,7 +39,7 @@ KEEP_FOLDER = "1"
 -- on tracks from previous explosions, if any,
 -- PROVIDED the note names are retained in track labels
 -- and their note names match
-REUSE_TRACKS = "1"
+REUSE_TRACKS = ""
 
 -----------------------------------------------------------------------------
 -------------------------- END OF USER SETTINGS -----------------------------
