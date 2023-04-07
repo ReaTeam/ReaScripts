@@ -1,11 +1,10 @@
 -- @description FX Devices
 -- @author Bryan Chi
--- @version 1.0beta9.5.3
+-- @version 1.0beta9.5.4
 -- @changelog
---   - Fix showing multiple ‘add parameter to envelope’ option showing up when Ctrl+RMB on parameter
---   - Fix crashing when changing scripts dock position.
---   - Fix issues with FX adder can’t find vst3 plugins and plugins with comma in its name. (Eg. Valhalla plugins)
---   - Change Pro-C’s analyzer plugins’ recognition from ‘if ==‘ to ‘if string.find’, to make result consistent if plugin names shows differently.
+--   - Fix mistaken FX position when move into Band Split.
+--   - Allow drag and drop FX from FX Adder into a space in Band Split.
+--   - Fix FX adder unable to find Reaper native plugins.
 -- @provides
 --   [effect] BryanChi_FX Devices/FXD Macros.jsfx
 --   [effect] BryanChi_FX Devices/FXD ReSpectrum.jsfx
@@ -53,7 +52,7 @@
 --   https://forum.cockos.com/showthread.php?t=263622
 
 --------------------------==  declare Initial Variables & Functions  ------------------------
-    VersionNumber = 'V1.0beta9.5.3 '
+    VersionNumber = 'V1.0beta9.5.4 '
     FX_Add_Del_WaitTime=2
     r=reaper
 
@@ -2692,6 +2691,8 @@
                         vst_name = name_segment:match('"JS: (.-)"') and "JS:" .. name_segment:match('"JS: (.-)"') or nil
                     elseif name_segment:find('=<.+>') then   -- AU Plugins
                         vst_name = 'AU:'.. name_segment:gsub('=<.+>', '')
+                    else
+                        vst_name = name_segment:match("(%S+ .-%))") and "VST:" .. name_segment:match("(%S+ .-%))") or nil
                     end
                 elseif  name_segment:find('%.vst3=') then  local nm = name_segment
                     vst_name= 'VST3:'..nm:sub( 0,nm:find('%.vst3=')-1 )
@@ -2699,6 +2700,8 @@
                 elseif name_segment:find('%.vst=') then  local nm = name_segment
                     vst_name= 'VST:'..nm:sub( 0,nm:find('%.vst=')-1 )
                     vst_name= vst_name:gsub('_', ' ')
+                elseif name_segment:find('%.vst.dylib=') then  local nm = name_segment  -- Reaper Native plugins
+                    vst_name= 'VST:'..nm:sub( 0,nm:find('%.vst.dylib=')-1 )
                 end
             end
             if vst_name then return vst_name end
@@ -7120,7 +7123,7 @@ function loop()
                     r.Undo_EndBlock(Undo_Lbl,0)
                 end
 
-                local function AddFX_Sexan()
+                local function AddFX_Sexan(Dest)
                     dropped ,payload = r.ImGui_AcceptDragDropPayload(ctx, 'AddFX_Sexan')
                     Dvdr.Clr[ClrLbl] = r.ImGui_GetStyleColor(ctx, r.ImGui_Col_Button())
                     Dvdr.Width[TblIdxForSpace] = Df.Dvdr_Width
@@ -7150,6 +7153,9 @@ function loop()
                             for i=1, #Trk[TrkID].PostFX+1, 1 do 
                                 r.GetSetMediaTrackInfo_String(LT_Track, 'P_EXT: PostFX '..i, Trk[TrkID].PostFX[i] or '', true)
                             end
+                        elseif SpaceIsBeforeRackMixer == 'SpcInBS' then
+                            DropFXintoBS (FxID,  FxGUID_Container, FX[FxGUID_Container].Sel_Band, FX_Idx, Dest +1 )
+
                         end
 
 
@@ -7243,6 +7249,11 @@ function loop()
 
                                 Dvdr.Width[TblIdxForSpace]=0   FxDroppingTo = nil
                             end
+                            -- Add from Sexan Add FX 
+                            if Payload_Type =='AddFX_Sexan' then 
+                                AddFX_Sexan(FX_Idx)
+                            end                            
+
                             r.ImGui_EndDragDropTarget(ctx)
                         else
                             Dvdr.Width[TblIdxForSpace]=0 FxDroppingTo = nil
@@ -8350,7 +8361,7 @@ function loop()
                                         else     
 
                                         if DebugMode then FX.Win_Name[FX_Idx] = FxGUID    WindowBtn = reaper.ImGui_Button(ctx,FxGUID..'## ', FX.TitleWidth[FxGUID] or DefaultWidth - 30 , 20 ) -- create window name button
-                                            else  WindowBtn = r.ImGui_Button(ctx, (FX[FxGUID].CustomTitle or FX.Win_Name[FX_Idx])..'## ', FX.TitleWidth[FxGUID] or DefaultWidth - 30  , 20 ) -- create window name button
+                                            else  WindowBtn = r.ImGui_Button(ctx, (FX[FxGUID].CustomTitle or FX.Win_Name[FX_Idx] or '')..'## ', FX.TitleWidth[FxGUID] or DefaultWidth - 30  , 20 ) -- create window name button
                                             end 
                                         end
                                         if r.ImGui_IsItemHovered(ctx) and FindStringInTable(SpecialLayoutFXs, FX_Name) == false then  FX[FxGUID].TtlHvr=true 
@@ -13043,7 +13054,7 @@ function loop()
                                                 if FX[v].InWhichBand == i then InsPos = tablefind(FXGUID,v) end 
                                             end
                                             Pl = Pl or InsPos
-                                            if  not InsPos then InsPos = FX_Idx -1   
+                                            if  not InsPos then InsPos = FX_Idx 
                                             elseif Pl > FX_Idx then InsPos = InsPos or (FX_Idx)   
                                             elseif Pl < FX_Idx then InsPos = (InsPos or (FX_Idx-1)) -1 
                                             end 
@@ -13056,7 +13067,6 @@ function loop()
                                                 r.ImGui_DrawList_AddRectFilled(WDL,WinL, CrossPos, WinR, Nxt_CrossPos, 0xffffff66)
                                                 if  r.ImGui_IsMouseReleased(ctx,0) then     local DropDest=FX_Idx
                                                     local InsPos = Find_InsPos()
-
                                                     DropFXintoBS (FXGUID[Pl], FxGUID, i, Pl , InsPos+1)
                                                 end
                                             end
