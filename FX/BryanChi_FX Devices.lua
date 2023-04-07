@@ -1,10 +1,7 @@
 -- @description FX Devices
 -- @author Bryan Chi
--- @version 1.0beta9.5.4
--- @changelog
---   - Fix mistaken FX position when move into Band Split.
---   - Allow drag and drop FX from FX Adder into a space in Band Split.
---   - Fix FX adder unable to find Reaper native plugins.
+-- @version 1.0beta9.5.4-1
+-- @changelog - Fix mistaken FX position when drag FX from FX adder into BandSplit.
 -- @provides
 --   [effect] BryanChi_FX Devices/FXD Macros.jsfx
 --   [effect] BryanChi_FX Devices/FXD ReSpectrum.jsfx
@@ -52,7 +49,7 @@
 --   https://forum.cockos.com/showthread.php?t=263622
 
 --------------------------==  declare Initial Variables & Functions  ------------------------
-    VersionNumber = 'V1.0beta9.5.4 '
+    VersionNumber = 'V1.0beta9.5.4-1 '
     FX_Add_Del_WaitTime=2
     r=reaper
 
@@ -13075,8 +13072,8 @@ function loop()
                                             
                                             if  r.ImGui_IsMouseReleased(ctx,0) then local InsPos = Find_InsPos() 
                                                 local rv, type, payload,  is_preview, is_delivery = r.ImGui_GetDragDropPayload( ctx)
-                                                r.TrackFX_AddByName( LT_Track, payload, false, -1000-InsPos )    
-                                                local FXid = r.TrackFX_GetFXGUID(LT_Track, InsPos)
+                                                r.TrackFX_AddByName( LT_Track, payload, false, -1000-InsPos-1 )    
+                                                local FXid = r.TrackFX_GetFXGUID(LT_Track, InsPos+1)
                                                 DropFXintoBS(FXid, FxGUID, i, InsPos, FX_Idx,'DontMove')
                                             end
 
