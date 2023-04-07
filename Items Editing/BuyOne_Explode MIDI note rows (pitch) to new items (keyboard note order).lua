@@ -39,7 +39,7 @@ KEEP_FOLDER = "1"
 -- on tracks from previous explosions, if any,
 -- PROVIDED the note names are retained in track labels
 -- and their note names match
-REUSE_TRACKS = ""
+REUSE_TRACKS = "1"
 
 -----------------------------------------------------------------------------
 -------------------------- END OF USER SETTINGS -----------------------------
@@ -186,7 +186,7 @@ local s = ' '
 local mess = not item and 'no selected item' or not is_midi and 'the take isn\'t MIDI' or notecnt == 0 and 'no notes in the midi take'
 
 	if not mess then
-	local patt = '^%[[A-G]+[#b%-]*[0-9]+%]$'
+	local patt = '%[[A-G]+[#b%-]*[0-9]+%]'
 		for i = 0, r.CountSelectedMediaItems(0)-1 do
 		local itm = r.GetSelectedMediaItem(0,i)
 		local itm_tr = r.GetMediaItemTrack(itm)
@@ -314,7 +314,7 @@ local itm_t = Find_And_Get_New_Items(itm_t) -- find and get new (exploded)
 					end
 					if not tr_match then -- if not one of the tracks just created
 					local ret, tr_name = r.GetTrackName(tr)
-					local note_tr = tr_name:match('^%[.+%]$') -- only tracks which labeled with a note name in square brackets
+					local note_tr = tr_name:match('%[.+%]') -- only tracks which labeled with a note name in square brackets
 						if note_itm == note_tr then
 						local itm_tr = r.GetMediaItemTrack(itm)
 						r.MoveMediaItemToTrack(itm, tr) -- no position adjustment is necessary
@@ -350,7 +350,7 @@ local itm_t = Find_And_Get_New_Items(itm_t) -- find and get new (exploded)
 				end
 				if not stored then -- excluding tracks just created
 				local ret, tr_name = r.GetTrackName(tr)
-				local note_name = tr_name:match('^%[.+%]$') -- only note name in square brackets
+				local note_name = tr_name:match('%[.+%]') -- only note name in square brackets
 					if note_name then tr_t[#tr_t+1] = {tr=tr, idx=i} -- index will be used for sorting
 					note_names_t[#note_names_t+1] = note_name -- add name to the names table
 					end
@@ -366,7 +366,7 @@ local itm_t = Find_And_Get_New_Items(itm_t) -- find and get new (exploded)
 			local note = note_names_t[i]
 				for _, data in ipairs(tr_t) do
 				local ret, tr_name = r.GetTrackName(data.tr)
-					if note == tr_name then
+					if note == tr_name:match('%[.+%]') then
 					r.SetOnlyTrackSelected(data.tr, true) -- selected true
 					r.ReorderSelectedTracks(ref_idx, makePrevFolder) -- beforeTrackIdx is ref_idx
 					--	if not KEEP_FOLDER then r.SetMediaTrackInfo_Value(data.tr, 'I_FOLDERDEPTH', 0) end
