@@ -1,6 +1,7 @@
 -- @description Propagate project Pitch Shift mode to all takes with default mode
 -- @author AZ
--- @version 1.0
+-- @version 1.1
+-- @changelog Fixed major bug with multiply items changing
 -- @about
 --   #Propagate project Pitch Shift mode to all takes with default mode
 --
@@ -10,6 +11,8 @@
 --
 --   NOTE: Project has to be saved in file to let the script access to its actual settings.
 
+--Version 1.0
+--Date 06.03.2023
 
 --FUNCTIONS--
 
@@ -53,6 +56,7 @@ function SetMode(item)
   end --if PrjMode doesn't exist
   
   if PrjMode then
+    local iChunkNew
     local retval, iChunkOld = reaper.GetItemStateChunk( item, '', false )
     --msg(iChunkOld)
     
@@ -63,13 +67,14 @@ function SetMode(item)
         for s in line:gmatch("%S+") do
           table.insert(PLAYRATE, s)
         end
-        if tonumber(PLAYRATE[5]) == -1 or tonumber(PLAYRATE[6]) == 0 then
+        if tonumber(PLAYRATE[5]) < 0 or tonumber(PLAYRATE[6]) == 0 then
           EditsCount = EditsCount+1 --just for statistics
         end
-        if tonumber(PLAYRATE[5]) == -1 then PLAYRATE[5] = PrjMode.pitch end
+        if tonumber(PLAYRATE[5]) < 0 then PLAYRATE[5] = PrjMode.pitch end
         if tonumber(PLAYRATE[6]) == 0 then PLAYRATE[6] = PrjMode.stretch end
         
         line = table.concat(PLAYRATE,' ')
+        --msg(line)
       end
       
       if not iChunkNew then iChunkNew = line
@@ -95,10 +100,10 @@ function main()
     local item = reaper.GetSelectedMediaItem(0,i)
     local takeCount = reaper.CountTakes(item)
     
-    for i=0, takeCount-1 do
-      local take = reaper.GetTake(item,i)
+    for t=0, takeCount-1 do
+      local take = reaper.GetTake(item,t)
       local mode = reaper.GetMediaItemTakeInfo_Value(take,'I_PITCHMODE')
-      if mode == -1 then
+      if mode < 0 then
         if SetMode(item) == true then break
         else goto exit end
       end
@@ -108,7 +113,7 @@ function main()
   ::exit::
 end
 
---------Start------------
+-------------------------
 
 reaper.PreventUIRefresh(1)
 reaper.Undo_BeginBlock()
