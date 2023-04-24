@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="feccd3f6605787d771b349a27a582dd0edebb6b1" name="ReaTeam Scripts">
+<index version="1" commit="a2abd7980302e80699206443ab208d69e99defc5" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -5291,6 +5291,22 @@ Special Thanks to amagalma, https://forum.cockos.com/showthread.php?t=239556]]><
         <source main="main" file="edgemeal_Save and restore selected tracks floating FX windows (4 slots)/edgemeal_Restore tracks floating FX windows from slot 4.lua">https://github.com/ReaTeam/ReaScripts/raw/f4f34be7c5208a8da60f6dfade1b786f8923370d/FX/edgemeal_Save%20and%20restore%20selected%20tracks%20floating%20FX%20windows%20(4%20slots)/edgemeal_Restore%20tracks%20floating%20FX%20windows.lua</source>
       </version>
     </reapack>
+    <reapack name="edgemeal_Save selected tracks floating Input FX windows to slot.lua" type="script" desc="Save selected tracks floating Input FX windows to slot">
+      <metadata>
+        <link rel="website" href="https://forum.cockos.com/showthread.php?t=277748">Thread</link>
+        <link rel="donation" href="https://www.paypal.me/Edgemeal">Donate</link>
+      </metadata>
+      <version name="1.00" author="Edgemeal" time="2023-04-24T12:50:07Z">
+        <source main="main" file="edgemeal_Save selected tracks floating Input FX windows to slot/edgemeal_Save selected tracks floating input FX windows to slot 1.lua">https://github.com/ReaTeam/ReaScripts/raw/a2abd7980302e80699206443ab208d69e99defc5/FX/edgemeal_Save%20selected%20tracks%20floating%20Input%20FX%20windows%20to%20slot/edgemeal_Save%20selected%20tracks%20floating%20input%20FX%20windows%20to%20slot%201.lua</source>
+        <source main="main" file="edgemeal_Save selected tracks floating Input FX windows to slot/edgemeal_Save selected tracks floating input FX windows to slot 2.lua">https://github.com/ReaTeam/ReaScripts/raw/a2abd7980302e80699206443ab208d69e99defc5/FX/edgemeal_Save%20selected%20tracks%20floating%20Input%20FX%20windows%20to%20slot/edgemeal_Save%20selected%20tracks%20floating%20input%20FX%20windows%20to%20slot%201.lua</source>
+        <source main="main" file="edgemeal_Save selected tracks floating Input FX windows to slot/edgemeal_Save selected tracks floating input FX windows to slot 3.lua">https://github.com/ReaTeam/ReaScripts/raw/a2abd7980302e80699206443ab208d69e99defc5/FX/edgemeal_Save%20selected%20tracks%20floating%20Input%20FX%20windows%20to%20slot/edgemeal_Save%20selected%20tracks%20floating%20input%20FX%20windows%20to%20slot%201.lua</source>
+        <source main="main" file="edgemeal_Save selected tracks floating Input FX windows to slot/edgemeal_Save selected tracks floating input FX windows to slot 4.lua">https://github.com/ReaTeam/ReaScripts/raw/a2abd7980302e80699206443ab208d69e99defc5/FX/edgemeal_Save%20selected%20tracks%20floating%20Input%20FX%20windows%20to%20slot/edgemeal_Save%20selected%20tracks%20floating%20input%20FX%20windows%20to%20slot%201.lua</source>
+        <source main="main" file="edgemeal_Save selected tracks floating Input FX windows to slot/edgemeal_Restore tracks floating Input fx windows from slot 1.lua">https://github.com/ReaTeam/ReaScripts/raw/a2abd7980302e80699206443ab208d69e99defc5/FX/edgemeal_Save%20selected%20tracks%20floating%20Input%20FX%20windows%20to%20slot/edgemeal_Restore%20tracks%20floating%20Input%20fx%20windows%20from%20slot%201.lua</source>
+        <source main="main" file="edgemeal_Save selected tracks floating Input FX windows to slot/edgemeal_Restore tracks floating Input fx windows from slot 2.lua">https://github.com/ReaTeam/ReaScripts/raw/a2abd7980302e80699206443ab208d69e99defc5/FX/edgemeal_Save%20selected%20tracks%20floating%20Input%20FX%20windows%20to%20slot/edgemeal_Restore%20tracks%20floating%20Input%20fx%20windows%20from%20slot%201.lua</source>
+        <source main="main" file="edgemeal_Save selected tracks floating Input FX windows to slot/edgemeal_Restore tracks floating Input fx windows from slot 3.lua">https://github.com/ReaTeam/ReaScripts/raw/a2abd7980302e80699206443ab208d69e99defc5/FX/edgemeal_Save%20selected%20tracks%20floating%20Input%20FX%20windows%20to%20slot/edgemeal_Restore%20tracks%20floating%20Input%20fx%20windows%20from%20slot%201.lua</source>
+        <source main="main" file="edgemeal_Save selected tracks floating Input FX windows to slot/edgemeal_Restore tracks floating Input fx windows from slot 4.lua">https://github.com/ReaTeam/ReaScripts/raw/a2abd7980302e80699206443ab208d69e99defc5/FX/edgemeal_Save%20selected%20tracks%20floating%20Input%20FX%20windows%20to%20slot/edgemeal_Restore%20tracks%20floating%20Input%20fx%20windows%20from%20slot%201.lua</source>
+      </version>
+    </reapack>
     <reapack name="edgemeal_Toggle show monitoring FX chain.lua" type="script" desc="Toggle show monitoring FX chain">
       <version name="1.02" author="Edgemeal" time="2019-03-19T01:41:12Z">
         <changelog><![CDATA[Fix for MacOS - Now closes window.
@@ -6685,6 +6701,22 @@ website
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d025e519f534e125564e45f04c8c87cb55f5834a/Items%20Editing/az_Fade%20tool%20(work%20on%20context%20of%20mouse,%20razor%20or%20time%20selection).lua</source>
       </version>
     </reapack>
+    <reapack name="az_Open item copy in primary external editor with handles.lua" type="script" desc="Open item copy in primary external editor with handles">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 #Open item copy in primary external editor with handles\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Like native action, but has 0,5 sec handles by default and preserves fx and envelopes.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Also, like native action, it can't adress stretch markers the right way, stretch markers will ignored.\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="AZ" time="2023-04-24T12:49:16Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4b3beb161a015b307331b08c84ca4f39785a4e46/Items%20Editing/az_Open%20item%20copy%20in%20primary%20external%20editor%20with%20handles.lua</source>
+      </version>
+    </reapack>
     <reapack name="az_Smart split items by mouse cursor.lua" type="script" desc="Smart split items by mouse cursor">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
@@ -6992,6 +7024,10 @@ is shorter than that of the portion imported into ReaSamplomatic5000
       <version name="1.0" author="BuyOne" time="2023-03-13T22:36:22Z">
         <changelog><![CDATA[Initial release]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3ce1489ea5842df3c9c0883f48584cbd88dfcad2/Items%20Editing/BuyOne_Explode%20MIDI%20note%20rows%20(pitch)%20to%20new%20items%20(keyboard%20note%20order).lua</source>
+      </version>
+      <version name="1.1" author="BuyOne" time="2023-04-24T12:48:24Z">
+        <changelog><![CDATA[#Added a setting to allow re-using tracks created in previous explosions]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b049eeca56c3f1a3d30846b755c280b93daa34bb/Items%20Editing/BuyOne_Explode%20MIDI%20note%20rows%20(pitch)%20to%20new%20items%20(keyboard%20note%20order).lua</source>
       </version>
     </reapack>
     <reapack name="BuyOne_Explode multichannel MIDI to new one-channel items obeying keyboard note order.lua" type="script" desc="Explode multichannel MIDI to new one-channel items obeying keyboard note order">
@@ -10136,10 +10172,10 @@ Renumber markers and regions when pasting]]></changelog>
 \widowctrl\hyphauto
 
 {\pard \ql \f0 \sa180 \li0 \fi0 The script copies/moves selected notes and/or selected CC events in visible lanes to user specified MIDI channels. If the target lane in another MIDI channel already contains events or piano roll already contains notes, these will be replaced by those being copied or moved.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 If several CC lanes are open, selected events in 14 bit CC lanes will be ignored, therefore if you need them affected by the sctipt be sure to switch 14 bit lanes to their 7 bit counterparts.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 If several CC lanes are open, selected events in 14 bit CC lanes will be ignored, therefore if you need them affected by the sctipt be sure to switch 14-bit lanes to their 7-bit counterparts.\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 1.\tx360\tab Select MIDI notes and/or other MIDI events\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 2.\tx360\tab Run the script\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 3.\tx360\tab In the input field list target MIDI channel numbers space separated or specify range as X - X (inverted range is supported, e.g. 13 - 4)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 3.\tx360\tab In the input field list target MIDI channel numbers space separated or specify range as X - X\line (inverted range is supported, e.g. 13 - 4)\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 4.\tx360\tab Precede the list/range with the letter M or m if you wish the events to be moved rather than copied\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 5.\tx360\tab Click OK\sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 If there're several visible lanes and only one of them contains selected events be sure to make it the last clicked by clicking it so that the events are\line copied/moved to the lane of the same message type in other MIDI channels.\par}
@@ -10155,6 +10191,10 @@ Renumber markers and regions when pasting]]></changelog>
       <version name="1.1" author="BuyOne" time="2023-03-30T17:20:27Z">
         <changelog><![CDATA[#Added a verification mechanism to ensure that only one MIDI channel is selected]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/77577f9b2c471d5ff5f4a04d16ae1eb08126d25d/MIDI%20Editor/BuyOne_Copy%20or%20Move%20selected%20notes%20and-or%20other%20MIDI%20events%20in%20visible%20lanes%20to%20specified%20MIDI%20channels.lua</source>
+      </version>
+      <version name="2.0" author="BuyOne" time="2023-04-24T12:47:58Z">
+        <changelog><![CDATA[#Overhauled the code to allow copying and moving selected events from multiple channels]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/aeaa99ab53f856fee915b70b6377b7041b3267ea/MIDI%20Editor/BuyOne_Copy%20or%20Move%20selected%20notes%20and-or%20other%20MIDI%20events%20in%20visible%20lanes%20to%20specified%20MIDI%20channels.lua</source>
       </version>
     </reapack>
     <reapack name="BuyOne_Insert note at constant velocity depending on dummy toggle scripts.lua" type="script" desc="Insert note at constant velocity depending on dummy toggle scripts">
