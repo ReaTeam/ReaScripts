@@ -10,12 +10,12 @@
 reaper.PreventUIRefresh(1)
 reaper.Undo_BeginBlock()
 
-local script_name = select(2, reaper.get_action_context()):match("([^/\\_]+)%.lua$")
+local script_name = select(2, reaper.get_action_context()):match('([^/\\_]+)%.lua$')
 local track_index, track_count = 0, reaper.CountTracks()
 local bucket, bucket_index = {}, 0
 
 while track_index < track_count do
-  local track = reaper.GetTrack(0, track_index)
+  local track = reaper.GetTrack(nil, track_index)
 
   local fx_count   = reaper.TrackFX_GetCount(track)
   local item_count = reaper.CountTrackMediaItems(track)
