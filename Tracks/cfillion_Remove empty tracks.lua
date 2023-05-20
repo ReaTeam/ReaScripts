@@ -41,8 +41,7 @@ if bucket_index > 0 then
     dialog_btn = 1
   else
     dialog_btn = reaper.ShowMessageBox(
-      string.format('Remove %d empty tracks?', bucket_index),
-      'Confirmation', 1)
+      ('Remove %d empty tracks?'):format(bucket_index), 'Confirmation', 1)
   end
 
   if dialog_btn == 1 then
