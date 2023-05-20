@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="0e4bf58174a80199ad9e85f1c4939145f500b07d" name="ReaTeam Scripts">
+<index version="1" commit="3013ae40bf68ce79c4674f6696db8d410dde8684" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -17378,6 +17378,16 @@ is off-screen. Reaper issue, should be fixed soon.]]></changelog>
     </reapack>
   </category>
   <category name="Tracks">
+    <reapack name="cfillion_Remove empty tracks.lua" type="script" desc="Remove empty tracks">
+      <metadata>
+        <link rel="website" href="https://forum.cockos.com/showthread.php?t=168134">Forum thread</link>
+        <link rel="donation">https://reapack.com/donate</link>
+      </metadata>
+      <version name="1.0" author="cfillion" time="2023-05-20T14:26:51Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3013ae40bf68ce79c4674f6696db8d410dde8684/Tracks/cfillion_Remove%20empty%20tracks.lua</source>
+        <source main="main" file="cfillion_Remove empty tracks (no prompt).lua">https://github.com/ReaTeam/ReaScripts/raw/3013ae40bf68ce79c4674f6696db8d410dde8684/Tracks/cfillion_Remove%20empty%20tracks.lua</source>
+      </version>
+    </reapack>
     <reapack name="gus-lan_Select folder tracks of depth X.lua" type="script" desc="Select folder tracks of depth X">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
