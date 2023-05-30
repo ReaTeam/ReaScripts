@@ -1,13 +1,13 @@
 -- @description Lil FX Slot Homie
 -- @author Sexan
 -- @version 1.0
--- @screenshot https://forum.cockos.com/showthread.php?p=2680992#post2680992
+-- @link https://forum.cockos.com/showthread.php?p=2680992#post2680992
 
 local SLOT = 1
 
 local r = reaper
 
-local ctx = r.ImGui_CreateContext('My script', r.ImGui_ConfigFlags_NavEnableKeyboard())
+local ctx = r.ImGui_CreateContext('Lil FX Slot Homie', r.ImGui_ConfigFlags_NavEnableKeyboard())
 
 function FX_NAME(str)
     local vst_name
