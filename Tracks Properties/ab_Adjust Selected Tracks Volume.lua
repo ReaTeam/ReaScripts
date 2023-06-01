@@ -1,17 +1,15 @@
 -- @description Adjust Selected Tracks Volume
 -- @author AB
 -- @version 1.0
-
--- Author: AB
--- Version: 1.0
--- Description: This script enables you to adjust (substract/add) the volume of the selected track(s) in decibels (dB).
--- If you'd like to use it by double-clicking on a mixer track panel. Follow these steps:
--- 1-Go to Preferences.
--- 2-Select Mouse Modifiers.
--- 3-Navigate to Mixer Control Panel.
--- 4-Locate the Double Click option.
--- 5-Set this script as the "Default Action".
--- 6-Now you can adjust the volume of the selected track(s) by double-clicking on the mixer track.
+-- @about
+--   This script enables you to adjust (substract/add) the volume of the selected track(s) in decibels (dB).
+--   If you'd like to use it by double-clicking on a mixer track panel. Follow these steps:
+--   1. Go to Preferences.
+--   2. Select Mouse Modifiers.
+--   3. Navigate to Mixer Control Panel.
+--   4. Locate the Double Click option.
+--   5. Set this script as the "Default Action".
+--   6. Now you can adjust the volume of the selected track(s) by double-clicking on the mixer track.
 
 function db2lin(db)
   return 10 ^ (db / 20)
