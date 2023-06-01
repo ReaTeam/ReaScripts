@@ -1,7 +1,7 @@
 -- @description Color palette
 -- @author Rodilab
--- @version 2.20
--- @changelog - ReaImGui 0.7 compatibility
+-- @version 2.21
+-- @changelog - Bug fix with ReaImGui v2.0 : line 2585
 -- @provides
 --   [data] rodilab_Color palette/color_palette_arm.cur
 --   [data] rodilab_Color palette/color_palette_arm_insert.cur
@@ -2582,7 +2582,7 @@ function loop()
   r.ImGui_PopFont(ctx)
   r.ImGui_PopStyleVar(ctx)
 
-  if not open or r.ImGui_IsKeyDown(ctx,27)then
+  if not open or close or r.ImGui_IsKeyDown(ctx, 27) then
     r.ImGui_DestroyContext(ctx)
   else
     r.defer(loop)
