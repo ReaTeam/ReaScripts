@@ -1,4 +1,4 @@
--- @description Adjust Selected Tracks Volume
+-- @description Adjust selected tracks volume
 -- @author AB
 -- @version 1.0
 -- @about
