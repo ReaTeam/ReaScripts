@@ -1,7 +1,7 @@
 -- @description Color palette
 -- @author Rodilab
 -- @version 2.21
--- @changelog - Bug fix with ReaImGui v2.0 : line 2585
+-- @changelog - Fix behavior of the "quit after apply color" option
 -- @provides
 --   [data] rodilab_Color palette/color_palette_arm.cur
 --   [data] rodilab_Color palette/color_palette_arm_insert.cur
