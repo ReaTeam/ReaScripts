@@ -1,7 +1,10 @@
 -- @description FX Devices
 -- @author Bryan Chi
--- @version 1.0beta9.5.4-1
--- @changelog - Fix mistaken FX position when drag FX from FX adder into BandSplit.
+-- @version 1.0beta9.6
+-- @changelog
+--   -New Major Feature - Step Sequence Modulator
+--   -Blink Modulator when assigning modulation
+--   -Fix modulation indication for vertical slider.
 -- @provides
 --   [effect] BryanChi_FX Devices/FXD Macros.jsfx
 --   [effect] BryanChi_FX Devices/FXD ReSpectrum.jsfx
@@ -49,7 +52,7 @@
 --   https://forum.cockos.com/showthread.php?t=263622
 
 --------------------------==  declare Initial Variables & Functions  ------------------------
-    VersionNumber = 'V1.0beta9.5.4-1 '
+    VersionNumber = 'V1.0beta9.6 '
     FX_Add_Del_WaitTime=2
     r=reaper
 
@@ -128,6 +131,10 @@
     ToDef = {}
     DraggingFXs = { } ; DraggingFXs_Idx = {}
     DefaultWidth= 200
+    --Sequencer -----
+    StepSEQ_W = 20    StepSEQ_H = 100
+    SEQ_Default_Num_of_Steps = 8
+    SEQ_Default_Denom = 1 
 
     function ConcatPath(...)
         -- Get system dependent path separator
@@ -1293,6 +1300,7 @@
     
             end
 
+
             r.gmem_write ( 2, PM.DIY_TrkID[TrkID]) --Sends Trk GUID for jsfx to determine track
             r.gmem_write(11000+Trk.Prm.Assign ,ParamValue_Modding)
         end
@@ -1384,10 +1392,12 @@
         local MacroGetLT_Track= reaper.GetLastTouchedTrack()
         MacrosJSFXExist =  reaper.TrackFX_AddByName(MacroGetLT_Track, 'FXD Macros', 0, 0)
         if MacrosJSFXExist == -1 then
-        reaper.TrackFX_AddByName(MacroGetLT_Track, 'FXD Macros', 0, -1000)
-        reaper.TrackFX_Show( MacroGetLT_Track, 0, 2)
+            reaper.TrackFX_AddByName(MacroGetLT_Track, 'FXD Macros', 0, -1000)
+            reaper.TrackFX_Show( MacroGetLT_Track, 0, 2)
+            return false  
         else
-        end
+            return true 
+        end 
     end
     
     function GetLTParam()
@@ -1582,37 +1592,44 @@
         
     end
 
-    function BlinkItem(dur, rpt, var, highlightEdge, EdgeNoBlink)
+    function BlinkItem(dur, rpt, var, highlightEdge, EdgeNoBlink,L,T,R,B,h,w)
 
-         TimeBegin = TimeBegin or r.time_precise()
+        TimeBegin = TimeBegin or r.time_precise()
         local Now = r.time_precise()
         local EdgeClr = 0x00000000 
         if highlightEdge then EdgeClr = highlightEdge end 
+        local GetItemRect = 'GetItemRect'
+        if L then GetItemRect = nil end 
 
-        for i=0, rpt-1 , 1 do 
+        if rpt then 
+            for i=0, rpt-1 , 1 do 
 
-            if Now > TimeBegin+dur*i and Now < TimeBegin+dur*(i+0.5) then -- second blink
-                HighlightSelectedItem(0xffffff77,EdgeClr, 0, L,T,R,B,h,w, H_OutlineSc, V_OutlineSc,'GetItemRect', Foreground)
+                if Now > TimeBegin+dur*i and Now < TimeBegin+dur*(i+0.5) then -- second blink
+                    HighlightSelectedItem(0xffffff77,EdgeClr, 0, L,T,R,B,h,w, H_OutlineSc, V_OutlineSc,GetItemRect, Foreground)
+                end
+
             end
-
-
-
+        else  
+            if Now > TimeBegin and Now < TimeBegin+dur/2 then 
+                HighlightSelectedItem(0xffffff77,EdgeClr, 0, L,T,R,B,h,w, H_OutlineSc, V_OutlineSc,GetItemRect, Foreground)
+            elseif Now > TimeBegin+dur/2+dur then 
+                TimeBegin = r.time_precise()
+            end
         end
  
         if EdgeNoBlink == 'EdgeNoBlink' then 
             if Now < TimeBegin+dur*(rpt-0.95)  then 
-                HighlightSelectedItem(0xffffff00,EdgeClr, 0, L,T,R,B,h,w, H_OutlineSc, V_OutlineSc,'GetItemRect', Foreground)
+                HighlightSelectedItem(0xffffff00,EdgeClr, 0, L,T,R,B,h,w, H_OutlineSc, V_OutlineSc,GetItemRect, Foreground)
             end 
         end 
 
-
-
-        if Now > TimeBegin+dur*(rpt-0.95)  then 
-            TimeBegin=nil
-
-            return nil  
-        else return var
-        end 
+        if rpt then 
+            if Now > TimeBegin+dur*(rpt-0.95)  then 
+                TimeBegin=nil
+                return nil  
+            else return var
+            end 
+        end
 
     end
 
@@ -3053,6 +3070,7 @@
             SliderModPos = SetMinMax(SliderModPos, L,PosX_End_Of_Slider )
 
         elseif Vertical == 'Vert'then 
+
             PosX_End_Of_Slider=T
             SldrGrabPos=(SizeY)* (P_V)
             SliderCurPos=B-SldrGrabPos
@@ -3672,6 +3690,7 @@
         end -- of reapeat for every macro
 
         if Trk.Prm.Assign  and F_Tp == Trk.Prm.Assign and AssigningMacro then 
+
             local M = AssigningMacro
 
             RightBtnDragX,RightBtnDragY = r.ImGui_GetMouseDragDelta(ctx, x,y,1)
@@ -4086,7 +4105,7 @@
 
             if Vertical =='Vert' then ModLineDir = Height else ModLineDir = Sldr_Width end
 
-            Tweaking = MakeModulationPossible(FxGUID,Fx_P,FX_Idx,P_Num,p_value,Sldr_Width)
+            Tweaking = MakeModulationPossible(FxGUID,Fx_P,FX_Idx,P_Num,p_value,Sldr_Width,Vertical)
 
 
 
@@ -4545,6 +4564,8 @@
     end
 
     function MakeModulationPossible(FxGUID,Fx_P,FX_Idx,P_Num,p_value,Sldr_Width, Type)
+
+
         local FP = FX[FxGUID][Fx_P]
         local CC = FP.WhichCC
 
@@ -4592,7 +4613,10 @@
 
             --r.SetProjExtState(0, 'FX Devices', 'Prm'..F_Tp..'Has Which Macro Assigned, TrkID ='..TrkID, Trk.Prm.WhichMcros[F_Tp..TrkID])
             r.gmem_write(7, CC) --tells jsfx to retrieve P value
+            r.gmem_write(11000+CC , p_value)
+
             r.gmem_write(6, CC)
+
 
             AssignToPrmNum = P_Num
 
@@ -4600,6 +4624,9 @@
             PrepareFXforModulation(FX_Idx, P_Num,FxGUID)
             Link_Param_to_CC(LT_TrackNum, AssignMODtoFX, AssignToPrmNum, true, true, 176, CC)
             r.gmem_write(3, Trk[TrkID].ModPrmInst)
+
+            r.gmem_write(7, CC) --tells jsfx to retrieve P value
+            r.gmem_write(11000+CC , p_value)
         end
 
 
@@ -4656,9 +4683,7 @@
             if FP.ModAMT[M]+p_value > 1 then FP.ModAMT[M] = 1 - p_value end
             if FP.ModAMT[M]+p_value < 0 then FP.ModAMT[M] = - p_value end
 
-
-
-            r.gmem_write(4, 1) --tells jsfx that user is changing Macro Mod Amount
+            if not IsLBtnHeld then r.gmem_write(4, 1) end --tells jsfx that user is changing Macro Mod Amount 
             r.gmem_write(1000*AssigningMacro+Trk.Prm.Assign  ,FP.ModAMT[M])
             r.ImGui_ResetMouseDragDelta(ctx, 1)
 
@@ -4676,6 +4701,7 @@
 
                     --- indicator of where the param is currently 
                     if not FX[FxGUID][Fx_P].V then FX[FxGUID][Fx_P].V = r.TrackFX_GetParamNormalized(LT_Track, FX_Idx, P_Num) end 
+
                     DrawModLines(M, true, Trk[TrkID].Mod[M].Val, FxGUID, FP.WhichCC, ModLineDir or Sldr_Width, FX[FxGUID][Fx_P].V, Vertical,FP)
                     Mc.V_Out[M]= (FP.ModAMT[M]*p_value)
                     ParamHasMod_Any= true
@@ -5343,6 +5369,8 @@
         
     end
 
+    
+
     function RetrieveFXsSavedLayout(Sel_Track_FX_Count)
 
         if LT_Track then 
@@ -5561,11 +5589,26 @@
         
         Trk[TrkID]= Trk[TrkID] or {} 
         Trk[TrkID].Mod = {} 
-        for i=1, 8,1 do 
+        Trk[TrkID].SEQL = Trk[TrkID].SEQL or {}
+        Trk[TrkID].SEQ_Dnom = Trk[TrkID].SEQ_Dnom or {}
+        for i=1, 8,1 do -- for every modulator
             Trk[TrkID].Mod[i] = {}
             Trk[TrkID].Mod[i].ATK = tonumber(select(2, r.GetSetMediaTrackInfo_String(Track, 'P_EXT: Macro '..i..' Atk', '', false)))
             Trk[TrkID].Mod[i].REL = tonumber(select(2, r.GetSetMediaTrackInfo_String(Track, 'P_EXT: Macro '..i..' Rel', '', false)))
+            Trk[TrkID].SEQL[i] = tonumber(select(2, r.GetSetMediaTrackInfo_String(Track, 'P_EXT: Macro '..i..' SEQ Length', '', false  )))
+            Trk[TrkID].SEQ_Dnom[i] = tonumber(select(2, r.GetSetMediaTrackInfo_String(Track, 'P_EXT: Macro '..i..' SEQ Denominator', '', false  )))
+
+            Trk[TrkID].Mod[i].SEQ= Trk[TrkID].Mod[i].SEQ or {}
+            --Get Seq Steps
+            if Trk[TrkID].SEQL[i]  then 
+                for St=1, Trk[TrkID].SEQL[i] , 1 do 
+                    Trk[TrkID].Mod[i].SEQ[St] =    tonumber(select(2, r.GetSetMediaTrackInfo_String(Track, 'P_EXT: Macro '..i..' SEQ Step = '.. St..' Val', '', false   )))
+                end
+            end
         end
+
+
+
         local FXCount = reaper.TrackFX_GetCount( Track )
         Trk[TrkID] = Trk[TrkID] or {}
         Trk[TrkID].PreFX=Trk[TrkID].PreFX or {}
@@ -6462,6 +6505,7 @@ function loop()
             -----------==  Create Macros (Headers)-------------
                 MacroNums = {1, 2, 3, 4, 5, 6, 7, 8, }
                 r.ImGui_BeginTable(ctx,'table1',16,r.ImGui_TableFlags_NoPadInnerX() )
+                
                 Trk[TrkID] = Trk[TrkID] or {}       Trk[TrkID].Mod= Trk[TrkID].Mod or {}
                 for m = 1, 16 , 1 do 
                     if m == 1 or m == 3 or m == 5 or m == 7 or m ==9 or m==11 or m==13 or m==15 then 
@@ -6471,17 +6515,26 @@ function loop()
                     r.ImGui_TableSetupColumn(ctx, '', flag or r.ImGui_TableColumnFlags_WidthStretch(), weight or 1)
                     end
                 end
-                
+
                 reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_HeaderHovered(), 0x373737ff)
 
                 reaper.ImGui_TableHeadersRow(ctx)   --create header row
                 r.gmem_attach('ParamValues')
-                ModulatorR, ModulatorB =   r.ImGui_GetItemRectMax(ctx)
+                ModulatorR, ModulatorB =   r.ImGui_GetItemRectMax(ctx) 
                 Trk[TrkID] = Trk[TrkID] or {}
                 Trk[TrkID].Mod = Trk[TrkID].Mod or {}
 
+
+
+
+
+
+
                 for i,v in ipairs(MacroNums) do      --Do 8 Times
+
+
                     Mcro_Asgn_Md_Idx = 'Macro'..tostring(MacroNums[i])
+                    
                     Trk[TrkID].Mod[i] = Trk[TrkID].Mod[i] or {}
                     local I , Name, CurX = Trk[TrkID].Mod[i] ,nil, r.ImGui_GetCursorPosX(ctx)
                     local frameBgColor        = reaper.ImGui_ColorConvertHSVtoRGB((i-1) / 7.0, 0.5, 0.5, 0.2)
@@ -6506,6 +6559,8 @@ function loop()
                         return PopColorTime
                     end      
 
+
+
                     Trk[TrkID].Mod[i].Type = Trk[TrkID].Mod[i].Type or 'Macro'
                     if Trk[TrkID].Mod[i].Type == 'Macro' then 
                                 
@@ -6528,6 +6583,8 @@ function loop()
                             r.ImGui_OpenPopup(ctx, 'Macro'..i..'Menu') 
                         end
 
+
+                        
 
                         --- Macro Label
                         reaper.ImGui_TableSetColumnIndex(ctx,MacroNums[i] * 2 - 1 )
@@ -6588,7 +6645,9 @@ function loop()
                         r.ImGui_DrawList_AddLine(WDL, L+ W*Mc.ATK ,T,R,T, 0xffffffff)
                         r.ImGui_DrawList_AddLine(WDL, L ,B ,L+W*Mc.ATK,T, 0xffffffff)
                         
-                        
+                        if AssigningMacro == i then
+                            BlinkItem(0.3, nil, nil, highlightEdge, EdgeNoBlink )
+                        end 
 
                         r.ImGui_SetNextItemWidth(ctx, 60)
 
@@ -6610,7 +6669,9 @@ function loop()
                         local L, T = r.ImGui_GetItemRectMin(ctx) local W,H = r.ImGui_GetItemRectSize(ctx) local R,B = L+W, T+H local Rel = Mc.rel or 0.001
                         --r.ImGui_DrawList_AddLine(Glob.FDL, L ,T,L+W*Rel,T, 0xffffffff)
                         r.ImGui_DrawList_AddLine(WDL, L ,T ,L+W*Mc.REL,B, 0xffffffff)
-
+                        if AssigningMacro == i then
+                            BlinkItem(0.3, nil, nil, highlightEdge, EdgeNoBlink )
+                        end 
                         r.ImGui_TableSetColumnIndex(ctx,i * 2 - 1 )
                         r.ImGui_PushItemWidth( ctx, -FLT_MIN)
                         reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_FrameBg(), EightColors.LowSat[i])
@@ -6640,46 +6701,219 @@ function loop()
                         r.ImGui_PopStyleColor(ctx,clrPop)
 
                     elseif Trk[TrkID].Mod[i].Type =='Step' then 
+                        
                         Macros_WDL = Macros_WDL or r.ImGui_GetWindowDrawList(ctx)
-
                         r.ImGui_TableSetColumnIndex(ctx,(i-1) * 2)  --r.ImGui_PushItemWidth( ctx, -FLT_MIN)
                         
+                        r.gmem_attach('ParamValues')
+                        local CurrentPos = r.gmem_read(120+i)+1
+
                         --r.ImGui_SetNextItemWidth(ctx, 20) 
                         Trk[TrkID].Mod[i].SEQ= Trk[TrkID].Mod[i].SEQ or {}
                         local S = Trk[TrkID].Mod[i].SEQ  
-                        HowManySteps = 8
-                        for St=1, HowManySteps, 1 do     -- create 8 steps         
+                        
+                        Trk[TrkID].SEQL  = Trk[TrkID].SEQL or {}
+                        Trk[TrkID].SEQ_Dnom = Trk[TrkID].SEQ_Dnom or {}
+
+                        local HoverOnAnyStep
+                        local SmallSEQActive
+                        local HdrPosL, HdrPosT = r.ImGui_GetCursorScreenPos(ctx)
+                        for St=1, Trk[TrkID].SEQL[i]  or SEQ_Default_Num_of_Steps, 1 do     -- create all steps         
 
                             local W = (VP.w-10) /12
                             local L,T = r.ImGui_GetCursorScreenPos(ctx)
+                            if St == 1 and AssigningMacro == i then      local H = 20
+                                local W = (VP.w-10) /12
+                                BlinkItem(0.3, nil, nil, highlightEdge, EdgeNoBlink, L,T,L+W,T+H,H,W )
+                                
+                                --HighlightSelectedItem(0xffffff77,0xffffff33, 0, L,T,L+W,T+H,H,W, 1, 1,GetItemRect, Foreground)
+                            end
                             --_, S[St]= r.ImGui_DragDouble(ctx, '##SEQ '..St ,  S[St], 0 ,0, 1, ' ',r.ImGui_SliderFlags_NoInput())
                             r.ImGui_InvisibleButton(ctx,  '##SEQ'..St..TrkID, W/8, 20)
-                            S[St]= SetMinMax( S[St] or 0.5, 0,1)
-                            if r.ImGui_IsItemActive(ctx) then local _ , v =  r.ImGui_GetMouseDelta( ctx, nil, nil)
+                            local L, T = r.ImGui_GetItemRectMin( ctx ) ;local R,B = r.ImGui_GetItemRectMax( ctx );local w,h=r.ImGui_GetItemRectSize(ctx)
+                            local FillClr = 0x00000000
+                            
+
+
+                            SEQ_Popup_L = SEQ_Popup_L or L
+                            SEQ_Popup_T = SEQ_Popup_T or T
+                         
+                            if r.ImGui_IsMouseHoveringRect(ctx, L,T,R,B) then HoverOnAnyStep = true 
+                            end
+                            if HoverOnAnyStep then  WhichMacroIsHovered = i end 
+
+
+                            if r.ImGui_IsItemHovered(ctx) then FillClr = 0xffffff22 end 
+                            HighlightSelectedItem(FillClr,0xffffff33, 0, L-1,T,R-1,B,h,w, 1, 1,GetItemRect, Foreground)
+
+
+
+                            S[St]= SetMinMax( S[St] or 0, 0,1)
+                            if r.ImGui_IsItemActive(ctx) then local _ , v =  r.ImGui_GetMouseDelta( ctx, nil, nil)  
+                                
                                 if Mods == Shift then DrgSpdMod = 4 end 
                                 if v ~= 0 then 
+                                    v = v* (-1)
                                     if not ( S[St] ==1 and v>0) and not (S[St] ==0 and v<0) then 
                                         S[St] = S[St] + v/100 
                                         r.gmem_write(4,7) -- tells jsfx user is changing a step's value
                                         r.gmem_write(5,i) -- tells which macro user is tweaking
-                                        r.gmem_write(7, SetMinMax(S[St] , 0 , 1)*(-1)+1 ) -- tells the step's value
-                                        r.gmem_write(8, St) -- tells which step
-                                        ttp(St)
+                                        r.gmem_write(112, SetMinMax(S[St] , 0 , 1)*(-1)+1 ) -- tells the step's value
+                                        r.gmem_write(113, St) -- tells which step
+
                                     end
                                     r.ImGui_ResetMouseDragDelta(ctx)
                                 end
+                                SmallSEQActive =  true 
+
                             elseif r.ImGui_IsItemClicked(ctx,1) then 
                                 if AssigningMacro then AssigningMacro = nil else AssigningMacro=i end 
-                                
+                            elseif r.ImGui_IsItemDeactivated( ctx) then 
+
+                                r.GetSetMediaTrackInfo_String(LT_Track, 'P_EXT: Macro '..i..' SEQ Step = '.. St..' Val',  S[St], true   )
                             end
                             local W,H = r.ImGui_GetItemRectSize(ctx)   
                             local Clr = Change_Clr_A(EightColors.Bright_HighSat[i], -0.5)
                             if r.ImGui_IsItemActive(ctx)  then Clr = EightColors.Bright_HighSat[i]
                             elseif r.ImGui_IsItemHovered(ctx) then  Clr = Change_Clr_A(EightColors.Bright_HighSat[i], -0.3) end 
-                            r.ImGui_DrawList_AddRectFilled(Macros_WDL, L,T+H, L+W-1 ,T+H* S[St], Clr)
+
+                            r.ImGui_DrawList_AddRectFilled(Macros_WDL, L,T+H, L+W-1 , math.max( B- H* (S[St] or 0) , T) , Clr)
+                            if CurrentPos == St  then    -- if Step SEQ 'playhead' is now on current step
+                                r.ImGui_DrawList_AddRect(Macros_WDL, L,T+H, L+W-1 , T , 0xffffff99)
+                            end
                             SL(nil,0)
+                            if (r.ImGui_IsItemClicked(ctx,1) ) and Mods ==Ctrl  then 
+                                r.ImGui_OpenPopup(ctx, 'Step'..i..'Menu')  
+                            end
+
                         end 
+
+                        
+
+                        r.ImGui_SetNextWindowPos(ctx, HdrPosL, VP.y- StepSEQ_H-100 )
+
+                        function openSEQWin(Track , i)
+                            if r.ImGui_Begin(ctx, 'SEQ Window'..i,true , r.ImGui_WindowFlags_NoResize()+r.ImGui_WindowFlags_NoDocking()+r.ImGui_WindowFlags_NoCollapse()+r.ImGui_WindowFlags_NoTitleBar()+r.ImGui_WindowFlags_AlwaysAutoResize()) then 
+
+                                local WDL = r.ImGui_GetWindowDrawList(ctx)
+                                r.ImGui_Text(ctx, 'Sequence Length : ') 
+                                local function writeSEQDNom ()  
+                                    if AddMacroJSFX() then 
+                                        r.gmem_write(4, 8)--[[tells JSFX user is tweaking seq length or DNom]]
+                                        r.gmem_write(5, i)--[[tells JSFX the macro]]   
+                                        r.gmem_write(111, Trk[TrkID].SEQ_Dnom[i]  ) 
+                                        r.GetSetMediaTrackInfo_String(LT_Track, 'P_EXT: Macro '..i..' SEQ Denominator', Trk[TrkID].SEQ_Dnom[i], true )
+                                    end
+                                end 
+    
+                                local function writeSEQGmem ()  
+                                    if AddMacroJSFX() then 
+                                        r.gmem_write(4, 8) r.gmem_write(5, i) r.gmem_write(110, Trk[TrkID].SEQL[i])
+                                        r.GetSetMediaTrackInfo_String(LT_Track, 'P_EXT: Macro '..i..' SEQ Length', Trk[TrkID].SEQL[i], true )
+                                    end
+                                end
+    
+                                
+                                
+                                Trk[TrkID].SEQL = Trk[TrkID].SEQL or {}
+                                rv, Trk[TrkID].SEQL[i]  = r.ImGui_SliderInt(ctx, '##'..'Macro'..i..'SEQ Length', Trk[TrkID].SEQL[i] or SEQ_Default_Num_of_Steps ,  2, 64 )
+                                if r.ImGui_IsItemActive(ctx) then writeSEQGmem () end 
+                                SL() if r.ImGui_Button(ctx, 'x2##'..i  ) then Trk[TrkID].SEQL[i] = math.floor ((Trk[TrkID].SEQL[i] or SEQ_Default_Num_of_Steps) * 2)  writeSEQGmem () end 
+                                SL() if r.ImGui_Button(ctx, '/2##'..i  ) then Trk[TrkID].SEQL[i] = math.floor ((Trk[TrkID].SEQL[i] or SEQ_Default_Num_of_Steps) / 2) writeSEQGmem () end  
+                                
+                                r.ImGui_Text(ctx, 'Step Length : ') 
+                                if r.ImGui_Button(ctx, '1 ##'..'Macro'..i..'SEQ Denom' ) then Trk[TrkID].SEQ_Dnom[i] = 0.25  writeSEQDNom ()  end
+                                if Trk[TrkID].SEQ_Dnom[i] == 0.25 then HighlightSelectedItem(0xffffff22 ,0xffffff77, 0, L,T,R,B,h,w, H_OutlineSc, V_OutlineSc,'GetItemRect', Foreground) end SL()
+                                if r.ImGui_Button(ctx, '1/2 ##'..'Macro'..i..'SEQ Denom' ) then Trk[TrkID].SEQ_Dnom[i] = 0.5 writeSEQDNom ()  end 
+                                if Trk[TrkID].SEQ_Dnom[i] == 0.5 then HighlightSelectedItem(0xffffff22 ,0xffffff77, 0, L,T,R,B,h,w, H_OutlineSc, V_OutlineSc,'GetItemRect', Foreground) end SL()
+                                if r.ImGui_Button(ctx, '1/4 ##'..'Macro'..i..'SEQ Denom' ) then Trk[TrkID].SEQ_Dnom[i] = 1  writeSEQDNom ()  end 
+                                if Trk[TrkID].SEQ_Dnom[i] == 1 then HighlightSelectedItem(0xffffff22 ,0xffffff77, 0, L,T,R,B,h,w, H_OutlineSc, V_OutlineSc,'GetItemRect', Foreground) end SL()
+                                if r.ImGui_Button(ctx, '1/8 ##'..'Macro'..i..'SEQ Denom' ) then Trk[TrkID].SEQ_Dnom[i] = 2 writeSEQDNom ()  end 
+                                if Trk[TrkID].SEQ_Dnom[i] == 2 then HighlightSelectedItem(0xffffff22 ,0xffffff77, 0, L,T,R,B,h,w, H_OutlineSc, V_OutlineSc,'GetItemRect', Foreground) end SL()
+                                if r.ImGui_Button(ctx, '1/16 ##'..'Macro'..i..'SEQ Denom' ) then Trk[TrkID].SEQ_Dnom[i] = 4 writeSEQDNom ()  end 
+                                if Trk[TrkID].SEQ_Dnom[i] == 4 then HighlightSelectedItem(0xffffff22 ,0xffffff77, 0, L,T,R,B,h,w, H_OutlineSc, V_OutlineSc,'GetItemRect', Foreground) end SL()
+                                if r.ImGui_Button(ctx, '1/32 ##'..'Macro'..i..'SEQ Denom' ) then Trk[TrkID].SEQ_Dnom[i] = 8 writeSEQDNom ()  end 
+                                if Trk[TrkID].SEQ_Dnom[i] == 8 then HighlightSelectedItem(0xffffff22 ,0xffffff77, 0, L,T,R,B,h,w, H_OutlineSc, V_OutlineSc,'GetItemRect', Foreground) end
+    
+
+    
+                                for St=1, Trk[TrkID].SEQL[i]  or SEQ_Default_Num_of_Steps, 1 do
+    
+                                    r.ImGui_InvisibleButton(ctx,  '##SEQ'..St..TrkID, StepSEQ_W, StepSEQ_H)
+                                    local L, T = r.ImGui_GetItemRectMin( ctx ) ;local R,B = r.ImGui_GetItemRectMax( ctx );local w,h=r.ImGui_GetItemRectSize(ctx)
+                                    r.ImGui_DrawList_AddText(WDL, L+StepSEQ_W/2/2, B-15,0x999999ff, St )
+                                    SL(nil,0)
+                                    local FillClr= 0x00000000
+                                    if IsLBtnHeld and  r.ImGui_IsMouseHoveringRect(ctx, L,T,R,B) and not SmallSEQActive then 
+                                        --Calculate Value at Mouse pos
+                                        local MsX, MsY = r.ImGui_GetMousePos(ctx)
+
+                                        S[St] =  ((B-MsY) / StepSEQ_H  )--[[ *(-1) ]]
+                                        r.gmem_write(4,7) -- tells jsfx user is changing a step's value
+                                        r.gmem_write(5,i) -- tells which macro user is tweaking
+                                        r.gmem_write(112, SetMinMax(S[St] , 0 , 1) ) -- tells the step's value
+                                        r.gmem_write(113, St) -- tells which step
+
+                                        r.GetSetMediaTrackInfo_String(LT_Track, 'P_EXT: Macro '..i..' SEQ Step = '.. St..' Val',  S[St], true   )
+                                    elseif IsRBtnHeld and r.ImGui_IsMouseHoveringRect(ctx, L,T,R,B) and not SmallSEQActive then 
+                                        SEQ_RMB_Val = 0 
+                                        S[St] = SEQ_RMB_Val
+                                        r.gmem_write(4,7) -- tells jsfx user is changing a step's value
+                                        r.gmem_write(5,i) -- tells which macro user is tweaking
+                                        r.gmem_write(112, SEQ_RMB_Val ) -- tells the step's value
+                                        r.gmem_write(113, St) -- tells which step
+                                        r.GetSetMediaTrackInfo_String(LT_Track, 'P_EXT: Macro '..i..' SEQ Step = '.. St..' Val',  SEQ_RMB_Val, true   )
+
+                                    end 
+                                    local Clr = Change_Clr_A(EightColors.Bright_HighSat[i], -0.5)
+    
+                                    if r.ImGui_IsItemHovered(ctx, r.ImGui_HoveredFlags_RectOnly()) and not SmallSEQActive then FillClr = 0xffffff22     Clr = Change_Clr_A(EightColors.Bright_HighSat[i], -0.3) end 
+                                    HighlightSelectedItem(FillClr,0xffffff33, 0, L-1,T,R-1,B,h,w, 1, 1,GetItemRect, Foreground)
+    
+    
+    
+                                    r.ImGui_DrawList_AddRectFilled(WDL, L,T+StepSEQ_H, L+StepSEQ_W-1 , math.max( B- StepSEQ_H* (S[St] or 0) , T), Clr)
+
+                                    if CurrentPos == St  then 
+                                        r.ImGui_DrawList_AddRect(WDL, L,B, L+StepSEQ_W-1 ,T, 0xffffff88)
+
+                                    end
+                                end
+    
+    
+
+
+                                local x,  y = r.ImGui_GetWindowPos( ctx)
+                                local  w,  h = r.ImGui_GetWindowSize( ctx)
+
+
+                                if r.ImGui_IsMouseHoveringRect(ctx, x, y, x+w, y+h)  then  notHoverSEQ_Time = 0  end 
+
+                                r.ImGui_End(ctx)
+                            end
+                        end
+
+                        if WhichMacroIsHovered ==i and HoverOnAnyStep or SmallSEQActive    then 
+                            openSEQWin(Track,i)   
+                            notHoverSEQ_Time=0
+                        end
+                         
+                        if WhichMacroIsHovered==i and not HoverOnAnyStep and not SmallSEQActive  then 
+                            notHoverSEQ_Time = math.min((notHoverSEQ_Time or 0), 11) +1
+                            if notHoverSEQ_Time < 10 then 
+                                openSEQWin(Track,i)
+                            else
+                                WhichMacroIsHovered = nil 
+                                notHoverSEQ_Time = 0
+                            end 
+                        end
+
+                        
                     end
+
+                    
+                    
+                    
                     --check if there's envelope
                     --[[  IsThereEnvOnMacro[i] = reaper.GetFXEnvelope(LT_Track, 0, i-1, false)
                     Str_IsThereEnvOnMacro = tostring(IsThereEnvOnMacro[i])
@@ -6704,7 +6938,6 @@ function loop()
                             local active,  visible,  armed,  inLane,  laneHeight,  defaultShape,  minValue,  maxValue,  centerValue,  Tp,  faderScaling = r.BR_EnvGetProperties(env)
                             r.BR_EnvSetProperties(env, true ,  true  ,  armed,  inLane,  laneHeight,  defaultShape,  faderScaling)
                             r.UpdateArrange()
-
                             r.ImGui_CloseCurrentPopup(ctx)
                         end
                         if r.ImGui_Selectable(ctx, 'Set Type to Envelope') then
@@ -6717,31 +6950,61 @@ function loop()
                             r.gmem_write(4,6) -- tells jsfx macro type = step seq
                             r.gmem_write(5,i)
                             r.GetSetMediaTrackInfo_String(LT_Track,'P_EXT: Mod'..i..'Type', 'Step', true  )  
+                            Trk[TrkID].SEQL = Trk[TrkID].SEQL or {}     Trk[TrkID].SEQ_Dnom = Trk[TrkID].SEQ_Dnom or {}
+                            Trk[TrkID].SEQL[i] = Trk[TrkID].SEQL[i]  or SEQ_Default_Num_of_Steps
+                            Trk[TrkID].SEQ_Dnom[i] = Trk[TrkID].SEQ_Dnom[i] or SEQ_Default_Denom
+
+                            r.GetSetMediaTrackInfo_String(LT_Track, 'P_EXT: Macro '..i..' SEQ Length', Trk[TrkID].SEQL[i] or SEQ_Default_Num_of_Steps, true )
+                            r.GetSetMediaTrackInfo_String(LT_Track, 'P_EXT: Macro '..i..' SEQ Denominator', Trk[TrkID].SEQ_Dnom[i] or SEQ_Default_Denom, true )
 
                             if I.Name=='Env '..i or I.Name == 'Macro ' ..i then  I.Name = 'Step ' ..i end 
                         end
                         r.ImGui_EndPopup(ctx)
-                    end
-                    if r.ImGui_BeginPopup(ctx, 'Env'..i..'Menu') then 
+                    elseif r.ImGui_BeginPopup(ctx, 'Env'..i..'Menu') then 
                         if r.ImGui_Selectable(ctx, 'Set Type to Macro') then
                             Trk[TrkID].Mod[i].Type='Macro'
                             r.GetSetMediaTrackInfo_String(LT_Track,'P_EXT: Mod'..i..'Type', 'Macro', true  ) 
                             r.gmem_write(4,5) -- tells jsfx macro type = Macro
                             r.gmem_write(5,i) -- tells jsfx which macro 
                             if I.Name=='Env '..i then I.Name = 'Macro ' ..i end 
+                        elseif r.ImGui_Selectable(ctx, 'Set Type to Step Sequencer') then
+                            Trk[TrkID].Mod[i].Type='Step'
+                            r.gmem_write(4,6) -- tells jsfx macro type = step seq
+                            r.gmem_write(5,i)
+                            r.GetSetMediaTrackInfo_String(LT_Track,'P_EXT: Mod'..i..'Type', 'Step', true  )  
 
+                            if I.Name=='Env '..i or I.Name == 'Macro ' ..i then  I.Name = 'Step ' ..i end 
+                        end
+                        r.ImGui_EndPopup(ctx)
+                    elseif r.ImGui_BeginPopup(ctx, 'Step'..i..'Menu') then 
+                        r.gmem_write(4, 8) -- tells macro JSFX user is now tweaking Sequencer Length or note length
+                        
+
+
+
+                        if r.ImGui_Selectable(ctx, 'Set Type to Macro') then
+                            Trk[TrkID].Mod[i].Type='Macro'
+                            r.GetSetMediaTrackInfo_String(LT_Track,'P_EXT: Mod'..i..'Type', 'Macro', true  ) 
+                            r.gmem_write(4,5) -- tells jsfx macro type = Macro
+                            r.gmem_write(5,i) -- tells jsfx which macro 
+                            if I.Name=='Env '..i then I.Name = 'Macro ' ..i end 
+                        elseif r.ImGui_Selectable(ctx, 'Set Type to Envelope') then
+                            Trk[TrkID].Mod[i].Type='env'
+                            r.GetSetMediaTrackInfo_String(LT_Track,'P_EXT: Mod'..i..'Type', 'env', true  )  
+                            r.gmem_write(4,4) -- tells jsfx macro type = env
+                            r.gmem_write(5,i) -- tells jsfx which macro
                         end
                         r.ImGui_EndPopup(ctx)
 
                     end
-                    reaper.ImGui_PopID(ctx) 
+
                     
-    
+                    r.ImGui_PopID(ctx) 
                 end
 
                 if not FX_Dvs_BgDL then FX_Dvs_BgDL = r.ImGui_GetWindowDrawList(ctx) end 
-                reaper.ImGui_PopStyleColor(ctx,1) 
-                reaper.ImGui_EndTable(ctx)
+                r.ImGui_PopStyleColor(ctx,1) 
+                r.ImGui_EndTable(ctx)
             ---------------End Of header-----------------------
 
             --[[ 
