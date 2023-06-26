@@ -2,8 +2,6 @@
 -- @author Bryan Chi
 -- @version 1.0beta9.6
 -- @changelog
---   FX Devices ChangeLog
---
 --   -New Major Feature - Step Sequence Modulator
 --   -Blink Modulator when assigning modulation
 --   -Fix modulation indication for vertical slider.
