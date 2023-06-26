@@ -1,5 +1,7 @@
 noindex: true
 
+noindex: true
+
 desc:FXD Macros
 import cookdsp.jsfx-inc
 
@@ -46,6 +48,24 @@ function test(x)(  this.tst = x;
 
 );
 
+Mc1_SEQ_DNom = 1;
+Mc1_SEQ_Leng = 8;
+
+Mc2_SEQ_DNom = 1;
+Mc2_SEQ_Leng = 8;
+
+Mc3_SEQ_DNom = 1;
+Mc3_SEQ_Leng = 8;
+Mc4_SEQ_DNom = 1;
+Mc4_SEQ_Leng = 8;
+Mc5_SEQ_DNom = 1;
+Mc5_SEQ_Leng = 8;
+Mc6_SEQ_DNom = 1;
+Mc6_SEQ_Leng = 8;
+Mc7_SEQ_DNom = 1;
+Mc7_SEQ_Leng = 8;
+Mc8_SEQ_DNom = 1;
+Mc8_SEQ_Leng = 8;
 
 //gmem offsets ------------------------------
 //gmem 1 = this track's DIY GUID
@@ -59,6 +79,7 @@ function test(x)(  this.tst = x;
          
 //gmem 5 = Which Macro is user assigning
 //gmem 6 = Which Param's mod range is user tweaking 
+//gmem 7 = determine Param's value before modulaiton
 //gmem 9 = env1 atk
 //gmem 10 = env1 rel
 //gmem 11 = env2 atk
@@ -66,8 +87,11 @@ function test(x)(  this.tst = x;
 //etc..24
 //gmem 31~38 = Modulation type (Macro or Env)
 //gmem 101~108 = send env 1~8s postion back to imgui
-a=0;
-a[-1]= 123;
+//gmem 110 = SEQ Length or Denominator when user is tweaking 
+//gmem 111 = SEQ Denominator when user is tweaking
+//gmem 112 = step value of currently tweaking step
+//gmem 121 ~128 = SEQ 1 ~ 8 Current Pos 
+
 
 ModAmt = 1000;
 ModAmt2 = 2000;
@@ -79,7 +103,7 @@ ModAmt7 = 7000;
 ModAmt8 = 8000;
 PsUsed = 100; 
 P_OrigV = 11000 ;
-SEQ = 20000; // 20001~20048 = Macro1 Seq 1~48
+SEQ = 20000; // 20001~20048 = Macro1 Seq 1~64
 //------------------------------------------------------------
 // TABLE INDEX ------------------------------
 // 1,3,5,7,9,11,13,15 = envelope 1~8 's atk
@@ -92,7 +116,9 @@ function SetMacroTypeToMacro()
      );
 
 
-
+function fmod (n, k) (
+    n - k * floor(n/k);
+  );
 
 
 midi_bus=15;   
@@ -153,7 +179,7 @@ midi_bus=15;
 
 
 //if user tweaking track that matches trkGUID
-trkGUID_Num === gmem[2]? 
+trkGUID_Num === gmem[2]? (
   Macro = gmem[5];
   mode ==1?(   // if User is right-dragging on param in ImGui...
     P.Inst = gmem[3];    
@@ -163,10 +189,10 @@ trkGUID_Num === gmem[2]?
         
   );
   mode ==2?(   // if User is adjusting atk...  
-      gmem[9] !=0?(atk1 = gmem[9]); gmem[11]!=0?(atk2 = gmem[11]);  gmem[13]!=0?(atk3 = gmem[13]);gmem[15]!=0?(atk4 = gmem[15]);gmem[17]!=0?(atk5 = gmem[17]);gmem[19]!=0?(atk6 = gmem[19]);gmem[21]!=0?(atk7 = gmem[21]);gmem[23]!=0?(atk8 = gmem[23]);
-      Macro==1?(Macro1Type ='env'); Macro==2?(Macro2Type ='env'); Macro==3?(Macro3Type ='env');Macro==4?(Macro4Type ='env');Macro==5?(Macro5Type ='env');Macro==6?(Macro6Type ='env');Macro==7?(Macro7Type ='env');Macro==8?(Macro8Type ='env');
-            
-      );
+    gmem[9] !=0?(atk1 = gmem[9]); gmem[11]!=0?(atk2 = gmem[11]);  gmem[13]!=0?(atk3 = gmem[13]);gmem[15]!=0?(atk4 = gmem[15]);gmem[17]!=0?(atk5 = gmem[17]);gmem[19]!=0?(atk6 = gmem[19]);gmem[21]!=0?(atk7 = gmem[21]);gmem[23]!=0?(atk8 = gmem[23]);
+    Macro==1?(Macro1Type ='env'); Macro==2?(Macro2Type ='env'); Macro==3?(Macro3Type ='env');Macro==4?(Macro4Type ='env');Macro==5?(Macro5Type ='env');Macro==6?(Macro6Type ='env');Macro==7?(Macro7Type ='env');Macro==8?(Macro8Type ='env');
+          
+  );
   mode ==3?(   // if User is adjusting Release...
       gmem[10]!=0?(rel1=gmem[10]);gmem[12]!=0?(rel2=gmem[12]);gmem[14]!=0?(rel3=gmem[14]);gmem[16]!=0?(rel4=gmem[16]);gmem[18]!=0?(rel5=gmem[18]);gmem[20]!=0?(rel6=gmem[20]);gmem[22]!=0?(rel7=gmem[22]);gmem[24]!=0?(rel8=gmem[22]);
       Macro==1?(Macro1Type ='env'); Macro==2?(Macro2Type ='env'); Macro==3?(Macro3Type ='env');Macro==4?(Macro4Type ='env');Macro==5?(Macro5Type ='env');Macro==6?(Macro6Type ='env');Macro==7?(Macro7Type ='env');Macro==8?(Macro8Type ='env');
@@ -181,56 +207,115 @@ trkGUID_Num === gmem[2]?
      );
   mode == 6? (  
     Macro = gmem[5]; // if user change type to Step Seq
-     Macro==1?(Macro1Type ='step'); Macro==2?(Macro2Type ='step'); Macro==3?(Macro3Type ='step');Macro==4?(Macro4Type ='step');Macro==5?(Macro5Type ='step');Macro==6?(Macro6Type ='step');Macro==7?(Macro7Type ='step');Macro==8?(Macro8Type ='step');
-  ):(mode == 7 ? (  // if user is tweaking a step's Value
+    Macro==1?(Macro1Type ='step'); Macro==2?(Macro2Type ='step'); Macro==3?(Macro3Type ='step');Macro==4?(Macro4Type ='step');Macro==5?(Macro5Type ='step');Macro==6?(Macro6Type ='step');Macro==7?(Macro7Type ='step');Macro==8?(Macro8Type ='step');
+  );
+  mode == 7 ? (  // if user is tweaking a step's Value
        Macro==1?(Macro1Type ='step'); Macro==2?(Macro2Type ='step'); Macro==3?(Macro3Type ='step');Macro==4?(Macro4Type ='step');Macro==5?(Macro5Type ='step');Macro==6?(Macro6Type ='step');Macro==7?(Macro7Type ='step');Macro==8?(Macro8Type ='step');
-    WhichStep= gmem[8]; 
+    WhichStep= gmem[113]; 
     Macro==1?(
-      SEQ[WhichStep]= gmem[7]; //writes seq value from table slot 20001~20048
-      abc=0[20002];
-      A_WhichStep= WhichStep
-    ):Macro==2?(    // //writes seq value from table slot 20050~20098
-      Macro1.Seq= 456;  
+      SEQ[WhichStep]= gmem[112]; //writes seq value from table slot 20001~20048
+    ):Macro==2?(    // //writes seq value from table slot 20065~20129
+      SEQ[WhichStep+64]= gmem[112];  
+    ):Macro==3?(    // //writes seq value from table slot 20065~20129
+      SEQ[WhichStep+64*2]= gmem[112];  
+    ):Macro==4?(    // //writes seq value from table slot 20065~20129
+      SEQ[WhichStep+64*3]= gmem[112];  
+    ):Macro==5?(    // //writes seq value from table slot 20065~20129
+      SEQ[WhichStep+64*4]= gmem[112];  
+    ):Macro==6?(    // //writes seq value from table slot 20065~20129
+      SEQ[WhichStep+64*5]= gmem[112];  
+    ):Macro==7?(    // //writes seq value from table slot 20065~20129
+      SEQ[WhichStep+64*6]= gmem[112];  
+    ):Macro==8?(    // //writes seq value from table slot 20065~20129
+      SEQ[WhichStep+64*7]= gmem[112];  
     );
   
+  );
+
+  mode == 8 ? (// if user is changing Sequencer Lenth or note length...
+    Macro = gmem[5];
+    Macro==1?( //if user is tweaking macro 1
+      Mc1_SEQ_Leng = gmem[110] ; 
+      Mc1_SEQ_DNom = gmem[111] ;
+    ):Macro==2?(
+      Mc2_SEQ_Leng = gmem[110]; 
+      Mc2_SEQ_DNom = gmem[111];
+    ):Macro==3?(
+      Mc3_SEQ_Leng = gmem[110]; 
+      Mc3_SEQ_DNom = gmem[111];
+    ):Macro==4?(
+      Mc4_SEQ_Leng = gmem[110]; 
+      Mc4_SEQ_DNom = gmem[111];
+    ):Macro==5?(
+      Mc5_SEQ_Leng = gmem[110]; 
+      Mc5_SEQ_DNom = gmem[111];
+    ):Macro==6?(
+      Mc6_SEQ_Leng = gmem[110]; 
+      Mc6_SEQ_DNom = gmem[111];
+    ):Macro==7?(
+      Mc7_SEQ_Leng = gmem[110]; 
+      Mc7_SEQ_DNom = gmem[111];
+    ):Macro==8?(
+      Mc8_SEQ_Leng = gmem[110]; 
+      Mc8_SEQ_DNom = gmem[111];
     );
   );
       
   gmem[7] != 0?( // if user uses Imgui to tweak param...
-    
+    AA_CC = gmem[7];
+    AA_ORIGV = gmem[11000+AA_CC];
     P_Id = gmem[7];
     P_OrigV[P_Id]= gmem[11000+P_Id];
     what=gmem[8];
     gmem[8] != 0?( // if paramV + Mod is over 1...
       a[Param+ Macro*1000] = gmem[Param+ Macro*1000]
+    );
+   
   );
-);
-
-MeasureNum= floor(beat_position/ts_denom);
 
 
-BeatPos= beat_position - ts_denom* (MeasureNum);
+
+
+  MeasureNum= floor(beat_position/ts_denom);
+
+  
+
+  beat_pos = play_position * tempo ; 
+
+
+
+  BeatPos= beat_position - ts_denom* (MeasureNum);
+
+
+
+  beat_per_block = beat_per_spl * samplesblock;
+  beat_per_block *= speed;
+  next_block_pos = fmod(bp + beat_per_block, sequence_length);
+
+); // --------------------- End of if track is selected -----------------------
+
+
 
 
 while (midirecv(offset, msg1, msg2, msg3)) (
-    // get noteons and noteoffs from all channels
-    (msg1 & $xF0) == $x90 || (msg1 & $xF0) == $x80 ? (
-        msg3 != 0 ? (
-            // noteon 
-            midinote = msg2;
-            
-            // msg3 == Velocity
-            midiamp =  128; // /msg33   // if you want Velocity involved use msg 3
-            midisend(offset,msg1,msg2,msg3);
-        ) : (
-            // noteoff
-            msg2 == midinote ? midiamp = 0;
-            midisend(offset,msg1,msg2,msg3);
-        );
-    ) : (
-        // passthrough other events
-        midisend(offset,msg1,msg2,msg3);
-    );
+  // get noteons and noteoffs from all channels
+  (msg1 & $xF0) == $x90 || (msg1 & $xF0) == $x80 ? (
+      msg3 != 0 ? (
+          // noteon 
+          midinote = msg2;
+          
+          // msg3 == Velocity
+          midiamp =  128; // /msg33   // if you want Velocity involved use msg 3
+          midisend(offset,msg1,msg2,msg3);
+      ) : (
+          // noteoff
+          msg2 == midinote ? midiamp = 0;
+          midisend(offset,msg1,msg2,msg3);
+      );
+  ) : (
+      // passthrough other events
+      midisend(offset,msg1,msg2,msg3);
+  );
 );
  
 i=1;    
@@ -243,7 +328,10 @@ while ( i <= P.Inst)(
       Mc1Amt =  env1.masr_do(midiamp)*ModAmt[i];
       trkGUID_Num === gmem[2]? (gmem[101] = env1.masr_do(midiamp) );   
     ):Macro1Type== 'step'? ( // if macro 1 is Step Seq
-      BeatPos > 0 && BeatPos < 1? ( Mc1Amt = SEQ[1]*127);  
+      
+      Mc1_CurrentPos = (beat_position * Mc1_SEQ_DNom  ) %  Mc1_SEQ_Leng;
+      Mc1Amt = SEQ[Mc1_CurrentPos+1]*127*ModAmt[i];
+      
     ):(//if macro 1 is macro
     Mc1Amt = Macro1 * ModAmt[i]*127;
     );  
@@ -255,6 +343,9 @@ while ( i <= P.Inst)(
       env2.masr_set_falltime(rel2);
       Mc2Amt =  env2.masr_do(midiamp)*ModAmt2[i];
       trkGUID_Num === gmem[2]? (gmem[102] = env2.masr_do(midiamp));
+    ):Macro2Type== 'step'? ( // if macro 1 is Step Seq
+      Mc2_CurrentPos = (beat_position * Mc2_SEQ_DNom) % Mc2_SEQ_Leng ;
+      Mc2Amt = SEQ[Mc2_CurrentPos+1+64]*127*ModAmt2[i];
     ):( //if macro 2 is macro
     Mc2Amt = Macro2 * ModAmt2[i]*127);
   ):(Mc2Amt=0);
@@ -265,6 +356,9 @@ while ( i <= P.Inst)(
       env3.masr_set_falltime(rel3);
       Mc3Amt =  env3.masr_do(midiamp)*ModAmt3[i];
       trkGUID_Num === gmem[2]? (gmem[103] = env3.masr_do(midiamp));
+    ): Macro3Type== 'step'? ( // if macro 1 is Step Seq
+      Mc3_CurrentPos = (beat_position * Mc3_SEQ_DNom) % Mc3_SEQ_Leng ;
+      Mc3Amt = SEQ[Mc3_CurrentPos+1+64*2]*127*ModAmt3[i];
     ):( //if macro 2 is macro aaaa
     Mc3Amt = Macro3 * ModAmt3[i]*127); 
   ):(Mc3Amt=0);
@@ -275,6 +369,9 @@ while ( i <= P.Inst)(
       env4.masr_set_falltime(rel4);
       Mc4Amt =  env4.masr_do(midiamp)*ModAmt4[i];
       trkGUID_Num === gmem[2]? (gmem[104] =  env4.masr_do(midiamp));
+    ):Macro4Type== 'step'? ( // if macro 1 is Step Seq
+    Mc4_CurrentPos = (beat_position * Mc4_SEQ_DNom) % Mc4_SEQ_Leng ;
+    Mc4Amt = SEQ[Mc4_CurrentPos+1+64*3]*127*ModAmt4[i];  
     ):( //if macro 4 is macro
     Mc4Amt = Macro4 * ModAmt4[i]*127);
   ):(Mc4Amt=0);
@@ -285,6 +382,9 @@ while ( i <= P.Inst)(
       env5.masr_set_falltime(rel5);
       Mc5Amt =  env5.masr_do(midiamp)*ModAmt5[i];
       trkGUID_Num === gmem[2]? (gmem[105] =env5.masr_do(midiamp));
+    ):Macro5Type== 'step'? ( // if macro 1 is Step Seq
+      Mc5_CurrentPos = (beat_position * Mc5_SEQ_DNom) % Mc5_SEQ_Leng ;
+      Mc5Amt = SEQ[Mc5_CurrentPos+1+64*4]*127*ModAmt5[i];  
     ):( //if macro 4 is macro
     Mc5Amt = Macro5 * ModAmt5[i]*127);
   ):(Mc5Amt=0);
@@ -295,6 +395,9 @@ while ( i <= P.Inst)(
       env6.masr_set_falltime(rel6);
       Mc6Amt =  env6.masr_do(midiamp)*ModAmt6[i];
       trkGUID_Num === gmem[2]? (gmem[106] =env6.masr_do(midiamp));
+    ):Macro6Type== 'step'? ( // if macro is Step Seq
+      Mc6_CurrentPos = (beat_position * Mc6_SEQ_DNom) % Mc6_SEQ_Leng ;
+      Mc6Amt = SEQ[Mc6_CurrentPos+1+64*5]*127*ModAmt6[i];  
     ):( //if macro 6 is macro
     Mc6Amt = Macro6 * ModAmt6[i]*127);
   ):(Mc6Amt=0);
@@ -305,6 +408,9 @@ while ( i <= P.Inst)(
       env7.masr_set_falltime(rel7);
       Mc7Amt =  env7.masr_do(midiamp)*ModAmt7[i];
       trkGUID_Num === gmem[2]? (gmem[107] = env7.masr_do(midiamp));
+    ):Macro7Type== 'step'? ( // if macro 1 is Step Seq
+      Mc7_CurrentPos = (beat_position * Mc7_SEQ_DNom) % Mc7_SEQ_Leng ;
+      Mc7Amt = SEQ[Mc7_CurrentPos+1+64*6]*127*ModAmt7[i];  
     ):( //if macro 7 is macro
     Mc7Amt = Macro7 * ModAmt7[i]*127);
   ):(Mc7Amt=0);
@@ -315,6 +421,9 @@ while ( i <= P.Inst)(
       env8.masr_set_falltime(rel8);
       Mc8Amt =  env8.masr_do(midiamp)*ModAmt8[i];
       trkGUID_Num === gmem[2]? (gmem[108] =env8.masr_do(midiamp));
+    ):Macro8Type== 'step'? ( // if macro is Step Seq
+      Mc8_CurrentPos = (beat_position * Mc8_SEQ_DNom) % Mc8_SEQ_Leng ;
+      Mc8Amt = SEQ[Mc8_CurrentPos+1+64*7]*127*ModAmt8[i];  
     ):( //if macro 8 is macro
     Mc8Amt = Macro8 * ModAmt8[i]*127);
   ):(Mc8Amt=0);
