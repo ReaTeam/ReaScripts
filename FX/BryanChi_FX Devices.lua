@@ -1,10 +1,12 @@
 -- @description FX Devices
 -- @author Bryan Chi
--- @version 1.0beta9.6
+-- @version 1.0beta9.6.1
 -- @changelog
---   -New Major Feature - Step Sequence Modulator
---   -Blink Modulator when assigning modulation
---   -Fix modulation indication for vertical slider.
+--   - Add step length option ‘2’ and ‘1/64’.
+--   - Fix SEQ modulator : ‘Changing step length values for the first time when opening REAPER stops sequencer working. ’ (reported by Suzuki).
+--   - Fix FX Adder can’t show plugins with comma
+--   - Add plugin type indicator in FX Adder.
+--   - New Modulator - ‘Audio Follower’  in Alpha ( only works on macro 1, don’t use yet).
 -- @provides
 --   [effect] BryanChi_FX Devices/FXD Macros.jsfx
 --   [effect] BryanChi_FX Devices/FXD ReSpectrum.jsfx
@@ -52,7 +54,7 @@
 --   https://forum.cockos.com/showthread.php?t=263622
 
 --------------------------==  declare Initial Variables & Functions  ------------------------
-    VersionNumber = 'V1.0beta9.6 '
+    VersionNumber = 'V1.0beta9.5.4-1 '
     FX_Add_Del_WaitTime=2
     r=reaper
 
@@ -151,8 +153,8 @@
  ]]    
 
     ----------- Custom Colors-------------------
-    CustomColors = {'Window_BG','FX_Devices_Bg','FX_Layer_Container_BG','Space_Between_FXs', 'Morph_A', 'Morph_B','Layer_Solo','Layer_Mute'}
-    CustomColorsDefault = { Window_BG = 0x000000ff ;FX_Devices_Bg=0x151515ff; FX_Layer_Container_BG=0x262626ff; Space_Between_FXs=0x131313ff ; Morph_A=0x22222266; Morph_B=0x78787877; Layer_Solo= 0xDADF3775; Layer_Mute=0xBE01015C}
+    CustomColors = {'Window_BG','FX_Devices_Bg','FX_Layer_Container_BG','Space_Between_FXs', 'Morph_A', 'Morph_B','Layer_Solo','Layer_Mute', 'FX_Adder_VST', 'FX_Adder_VST3', 'FX_Adder_JS', 'FX_Adder_AU'}
+    CustomColorsDefault = { Window_BG = 0x000000ff ;FX_Devices_Bg=0x151515ff; FX_Layer_Container_BG=0x262626ff; Space_Between_FXs=0x131313ff ; Morph_A=0x22222266; Morph_B=0x78787877; Layer_Solo= 0xDADF3775; Layer_Mute=0xBE01015C; FX_Adder_VST= 0x6FB74BFF; FX_Adder_VST3= 0xC3DC5CFF; FX_Adder_JS = 0x9348A9FF; FX_Adder_AU = 0x526D97FF}
 
 
 
@@ -2698,25 +2700,42 @@
 
         function FX_NAME(str, i )
             local vst_name
-            for name_segment in str:gmatch('[^%,]+')  do  --- Split Line into segments spearated by comma
-                
-                if name_segment:match("(%S+) ")  then   -- if segment has space in it 
-                    if name_segment:match('"(JS: .-)"') then
-                        vst_name = name_segment:match('"JS: (.-)"') and "JS:" .. name_segment:match('"JS: (.-)"') or nil
-                    elseif name_segment:find('=<.+>') then   -- AU Plugins
-                        vst_name = 'AU:'.. name_segment:gsub('=<.+>', '')
-                    else
-                        vst_name = name_segment:match("(%S+ .-%))") and "VST:" .. name_segment:match("(%S+ .-%))") or nil
+            if str:find('=<.+>') then  -- if it's AU
+                local maker = str:sub(0, str:find(':%s')-1)
+                local ActualName = str:sub(str:find(':%s')+2, str:find('=<.+>')-1 )
+                --vst_name = 'AU:'.. ActualName..' ('.. maker..')' 
+                vst_name = 'AU:'..str:gsub('=<.+>', '')
+            --[[ elseif (str:find('.vst') or str:find('.vst3')) and str:find('(.+,.+)') then 
+
+                msg(str..'\n') ]]
+            elseif str:find('%.vst=') then          -- if it's vst
+                local nm = str
+                vst_name= 'VST:'..nm:sub( 0,nm:find('%.vst=')-1 )..'.vst'
+                vst_name= vst_name:gsub('_', ' ')
+            elseif  str:find('%.vst3=') then    -- if it's vst3
+                local nm = str
+                vst_name= 'VST3:'..nm:sub( 0,nm:find('%.vst3=')-1 )
+                vst_name= vst_name:gsub('_', ' ')
+            else
+
+                for name_segment in str:gmatch('[^%,]+')  do  --- Split Line into segments spearated by comma
+                    
+                    if name_segment:match("(%S+) ")  then   -- if segment has space in it 
+                        if name_segment:match('"(JS: .-)"') then
+                            vst_name = name_segment:match('"JS: (.-)"') and "JS:" .. name_segment:match('"JS: (.-)"') or nil
+                        --[[elseif name_segment:find('=<.+>') then   -- AU Plugins
+                            vst_name = 'AU:'.. name_segment:gsub('=<.+>', '')
+                        else
+                            vst_name = name_segment:match("(%S+ .-%))") and "VST:" .. name_segment:match("(%S+ .-%))") or nil
+                        --]]
+                        end
+
+                    elseif name_segment:find('%.vst.dylib=') then  local nm = name_segment  -- Reaper Native plugins
+                        vst_name= 'VST:'..nm:sub( 0,nm:find('%.vst.dylib=')-1 )
                     end
-                elseif  name_segment:find('%.vst3=') then  local nm = name_segment
-                    vst_name= 'VST3:'..nm:sub( 0,nm:find('%.vst3=')-1 )
-                    vst_name= vst_name:gsub('_', ' ')
-                elseif name_segment:find('%.vst=') then  local nm = name_segment
-                    vst_name= 'VST:'..nm:sub( 0,nm:find('%.vst=')-1 )
-                    vst_name= vst_name:gsub('_', ' ')
-                elseif name_segment:find('%.vst.dylib=') then  local nm = name_segment  -- Reaper Native plugins
-                    vst_name= 'VST:'..nm:sub( 0,nm:find('%.vst.dylib=')-1 )
+
                 end
+
             end
             if vst_name then return vst_name end
         end
@@ -2753,9 +2772,7 @@
             
             local plugins    = vst_str.. vst_str32 .. jsfx_str .. au_str
 
-
             for line in plugins:gmatch('[^\r\n]+') do tbl[#tbl + 1] = line end
-
 
             -- CREATE NODE LIST
             for i = 1, #tbl do
@@ -2786,6 +2803,7 @@
                         break
                     end
                 end
+
                 if found then t[#t + 1] = action end
             end
             return t
@@ -2859,8 +2877,31 @@
 
                     ADDFX_Sel_Entry =   SetMinMax ( ADDFX_Sel_Entry or 1 ,  1 , #filtered_fx)
                     for i = 1, #filtered_fx do
-                        if r.ImGui_Selectable(ctx, filtered_fx[i], DRAG_FX == i) then
-                            
+                        local ShownName
+                        if filtered_fx[i]:find('.vst') then   local fx = filtered_fx[i]
+                            ShownName = fx:sub(5,fx:find('.vst')-1)
+                            local clr = FX_Adder_VST or CustomColorsDefault.FX_Adder_VST
+                            MyText('VST', nil, clr) SL()
+                            HighlightSelectedItem(nil, clr, 0 ,L,T,R,B,h,w, 1, 1,'GetItemRect')
+                        elseif filtered_fx[i]:find('VST3:') then  local fx = filtered_fx[i]
+                            ShownName = fx:sub(6)
+                            local clr = FX_Adder_VST3 or CustomColorsDefault.FX_Adder_VST3
+                            MyText('VST3', nil, clr) SL()
+                            HighlightSelectedItem(nil, clr, 0 ,L,T,R,B,h,w, 1, 1,'GetItemRect')
+                        elseif filtered_fx[i]:find('JS:') then  local fx = filtered_fx[i]
+                            ShownName = fx:sub(4)
+                            local clr = FX_Adder_JS or CustomColorsDefault.FX_Adder_JS
+                            MyText('JS', nil, clr) SL()
+                            HighlightSelectedItem(nil, clr, 0 ,L,T,R,B,h,w, 1, 1,'GetItemRect')
+                        elseif filtered_fx[i]:find('AU:') then  local fx = filtered_fx[i]
+                            ShownName = fx:sub(4)
+                            local clr = FX_Adder_AU or CustomColorsDefault.FX_Adder_AU
+                            MyText('AU', nil, clr) SL()
+                            HighlightSelectedItem(nil, clr, 0 ,L,T,R,B,h,w, 1, 1,'GetItemRect')
+
+                        end
+
+                        if r.ImGui_Selectable(ctx, ShownName or filtered_fx[i], DRAG_FX == i) then
                             InsertFX (filtered_fx[i])
                             r.ImGui_CloseCurrentPopup(ctx)
                             close = true 
@@ -6798,13 +6839,13 @@ function loop()
                                 local WDL = r.ImGui_GetWindowDrawList(ctx)
                                 r.ImGui_Text(ctx, 'Sequence Length : ') 
                                 local function writeSEQDNom ()  
-                                    if AddMacroJSFX() then 
+                                    if AddMacroJSFX() then
                                         r.gmem_write(4, 8)--[[tells JSFX user is tweaking seq length or DNom]]
-                                        r.gmem_write(5, i)--[[tells JSFX the macro]]   
-                                        r.gmem_write(111, Trk[TrkID].SEQ_Dnom[i]  ) 
+                                        r.gmem_write(5, i)--[[tells JSFX the macro]]
+                                        r.gmem_write(111, Trk[TrkID].SEQ_Dnom[i])
                                         r.GetSetMediaTrackInfo_String(LT_Track, 'P_EXT: Macro '..i..' SEQ Denominator', Trk[TrkID].SEQ_Dnom[i], true )
                                     end
-                                end 
+                                end
     
                                 local function writeSEQGmem ()  
                                     if AddMacroJSFX() then 
@@ -6822,19 +6863,23 @@ function loop()
                                 SL() if r.ImGui_Button(ctx, '/2##'..i  ) then Trk[TrkID].SEQL[i] = math.floor ((Trk[TrkID].SEQL[i] or SEQ_Default_Num_of_Steps) / 2) writeSEQGmem () end  
                                 
                                 r.ImGui_Text(ctx, 'Step Length : ') 
+                                if r.ImGui_Button(ctx, '2 ##'..'Macro'..i..'SEQ Denom' ) then Trk[TrkID].SEQ_Dnom[i] = 0.125  writeSEQDNom ()  end
+                                if Trk[TrkID].SEQ_Dnom[i] == 0.125 then HighlightSelectedItem(0xffffff22 ,0xffffff77, 0, L,T,R,B,h,w, H_OutlineSc, V_OutlineSc,'GetItemRect', Foreground) end SL()
                                 if r.ImGui_Button(ctx, '1 ##'..'Macro'..i..'SEQ Denom' ) then Trk[TrkID].SEQ_Dnom[i] = 0.25  writeSEQDNom ()  end
                                 if Trk[TrkID].SEQ_Dnom[i] == 0.25 then HighlightSelectedItem(0xffffff22 ,0xffffff77, 0, L,T,R,B,h,w, H_OutlineSc, V_OutlineSc,'GetItemRect', Foreground) end SL()
-                                if r.ImGui_Button(ctx, '1/2 ##'..'Macro'..i..'SEQ Denom' ) then Trk[TrkID].SEQ_Dnom[i] = 0.5 writeSEQDNom ()  end 
+                                if r.ImGui_Button(ctx, '1/2 ##'..'Macro'..i..'SEQ Denom' ) then Trk[TrkID].SEQ_Dnom[i] = 0.5   writeSEQDNom ()  end
                                 if Trk[TrkID].SEQ_Dnom[i] == 0.5 then HighlightSelectedItem(0xffffff22 ,0xffffff77, 0, L,T,R,B,h,w, H_OutlineSc, V_OutlineSc,'GetItemRect', Foreground) end SL()
-                                if r.ImGui_Button(ctx, '1/4 ##'..'Macro'..i..'SEQ Denom' ) then Trk[TrkID].SEQ_Dnom[i] = 1  writeSEQDNom ()  end 
+                                if r.ImGui_Button(ctx, '1/4 ##'..'Macro'..i..'SEQ Denom' ) then Trk[TrkID].SEQ_Dnom[i] = 1  writeSEQDNom ()  end
                                 if Trk[TrkID].SEQ_Dnom[i] == 1 then HighlightSelectedItem(0xffffff22 ,0xffffff77, 0, L,T,R,B,h,w, H_OutlineSc, V_OutlineSc,'GetItemRect', Foreground) end SL()
-                                if r.ImGui_Button(ctx, '1/8 ##'..'Macro'..i..'SEQ Denom' ) then Trk[TrkID].SEQ_Dnom[i] = 2 writeSEQDNom ()  end 
+                                if r.ImGui_Button(ctx, '1/8 ##'..'Macro'..i..'SEQ Denom' ) then Trk[TrkID].SEQ_Dnom[i] = 2 writeSEQDNom ()  end
                                 if Trk[TrkID].SEQ_Dnom[i] == 2 then HighlightSelectedItem(0xffffff22 ,0xffffff77, 0, L,T,R,B,h,w, H_OutlineSc, V_OutlineSc,'GetItemRect', Foreground) end SL()
                                 if r.ImGui_Button(ctx, '1/16 ##'..'Macro'..i..'SEQ Denom' ) then Trk[TrkID].SEQ_Dnom[i] = 4 writeSEQDNom ()  end 
                                 if Trk[TrkID].SEQ_Dnom[i] == 4 then HighlightSelectedItem(0xffffff22 ,0xffffff77, 0, L,T,R,B,h,w, H_OutlineSc, V_OutlineSc,'GetItemRect', Foreground) end SL()
-                                if r.ImGui_Button(ctx, '1/32 ##'..'Macro'..i..'SEQ Denom' ) then Trk[TrkID].SEQ_Dnom[i] = 8 writeSEQDNom ()  end 
+                                if r.ImGui_Button(ctx, '1/32 ##'..'Macro'..i..'SEQ Denom' ) then Trk[TrkID].SEQ_Dnom[i] = 8 writeSEQDNom ()  end  SL()
                                 if Trk[TrkID].SEQ_Dnom[i] == 8 then HighlightSelectedItem(0xffffff22 ,0xffffff77, 0, L,T,R,B,h,w, H_OutlineSc, V_OutlineSc,'GetItemRect', Foreground) end
-    
+                                if r.ImGui_Button(ctx, '1/64 ##'..'Macro'..i..'SEQ Denom' ) then Trk[TrkID].SEQ_Dnom[i] = 16 writeSEQDNom ()  end 
+                                if Trk[TrkID].SEQ_Dnom[i] == 16 then HighlightSelectedItem(0xffffff22 ,0xffffff77, 0, L,T,R,B,h,w, H_OutlineSc, V_OutlineSc,'GetItemRect', Foreground) end
+
 
     
                                 for St=1, Trk[TrkID].SEQL[i]  or SEQ_Default_Num_of_Steps, 1 do
@@ -6884,7 +6929,7 @@ function loop()
 
 
                                 local x,  y = r.ImGui_GetWindowPos( ctx)
-                                local  w,  h = r.ImGui_GetWindowSize( ctx)
+                                local w,  h = r.ImGui_GetWindowSize( ctx)
 
 
                                 if r.ImGui_IsMouseHoveringRect(ctx, x, y, x+w, y+h)  then  notHoverSEQ_Time = 0  end 
@@ -6909,6 +6954,57 @@ function loop()
                         end
 
                         
+                    elseif Trk[TrkID].Mod[i].Type =='Follower' then 
+                        r.ImGui_TableSetColumnIndex(ctx,(i-1) * 2)
+                        
+                        r.ImGui_Text(ctx, 'Follower     ')
+                        if r.ImGui_IsItemClicked(ctx, 1) and Mods == Ctrl then 
+                            r.ImGui_OpenPopup(ctx,'Follower'..i..'Menu')
+                        end
+                        function openFollowerWin(Track , i)
+                            if r.ImGui_Begin(ctx, 'Follower Window'..i,true , r.ImGui_WindowFlags_NoResize()+r.ImGui_WindowFlags_NoDocking()+r.ImGui_WindowFlags_NoCollapse()+r.ImGui_WindowFlags_NoTitleBar()+r.ImGui_WindowFlags_AlwaysAutoResize()) then 
+                                r.ImGui_Text(ctx, 'Smoothness : ') SL()
+                                retval, v = r.ImGui_DragDouble( ctx, '##Smoothness', v, 1, 1, 100, formatIn, flagsIn )
+                                if r.ImGui_IsItemHovered(ctx) or r.ImGui_IsItemActive(ctx) then  HoveringSmoothness = true WhichMacroIsHovered = i else HoveringSmoothness = false  end 
+                                local x,  y = r.ImGui_GetWindowPos( ctx)
+                                local w,  h = r.ImGui_GetWindowSize( ctx)
+
+
+                                if r.ImGui_IsMouseHoveringRect(ctx, x, y, x+w, y+h)  then WhichMacroIsHovered = i  notHoverFOL_Time = 0 HoveringSmoothness = true  end 
+
+
+                                r.ImGui_End(ctx)
+                            end
+
+
+                        end
+
+                        
+
+                        HdrPosL, HdrPosT = r.ImGui_GetCursorScreenPos(ctx)
+                        r.ImGui_SetNextWindowPos(ctx, HdrPosL, VP.y-35 )
+
+                        if r.ImGui_IsItemHovered(ctx) or HoveringSmoothness  then 
+                            
+                            WhichMacroIsHovered = i
+
+                            openFollowerWin(Track , i)
+                            notHoverFOL_Time = 0
+                        end
+                        if WhichMacroIsHovered==i and not HoveringSmoothness and not r.ImGui_IsItemHovered(ctx)  then 
+                            notHoverFOL_Time = math.min((notHoverFOL_Time or 0), 11) +1
+                            if notHoverFOL_Time < 10 then 
+                                
+                                openFollowerWin(Track,i)
+                            else
+                                WhichMacroIsHovered = nil 
+                                notHoverFOL_Time = 0
+                            end 
+                        end
+
+
+
+
                     end
 
                     
@@ -6928,24 +7024,17 @@ function loop()
                         reaper.ImGui_DrawList_AddCircleFilled(drawlist, Array_Parameter.PosX_Left[i], Array_Parameter.PosY_Top[i],4,_G[MacroColor])
                     else IsThereEnvOnMacro[i]=0                                                                     
                     end ]]
-                    if r.ImGui_BeginPopup(ctx, 'Macro'..i..'Menu') then
-                        if r.ImGui_Selectable(ctx, 'Automate') then
-                            AddMacroJSFX()
-                            -- Show Envelope for Morph Slider
-
-                            local env = r.GetFXEnvelope(LT_Track, 0, i-1, true)
-                            SetPrmAlias(LT_TrackNum, 1, i  , Trk[TrkID].Mod[i].Name or ('Macro'..i)) --don't know what this line does, but without it Envelope won't show....
-                            local active,  visible,  armed,  inLane,  laneHeight,  defaultShape,  minValue,  maxValue,  centerValue,  Tp,  faderScaling = r.BR_EnvGetProperties(env)
-                            r.BR_EnvSetProperties(env, true ,  true  ,  armed,  inLane,  laneHeight,  defaultShape,  faderScaling)
-                            r.UpdateArrange()
-                            r.ImGui_CloseCurrentPopup(ctx)
-                        end
+                    local function SetTypeToEnv()
                         if r.ImGui_Selectable(ctx, 'Set Type to Envelope') then
                             Trk[TrkID].Mod[i].Type='env'
                             r.GetSetMediaTrackInfo_String(LT_Track,'P_EXT: Mod'..i..'Type', 'env', true  )  
                             r.gmem_write(4,4) -- tells jsfx macro type = env
                             r.gmem_write(5,i) -- tells jsfx which macro 
-                        elseif r.ImGui_Selectable(ctx, 'Set Type to Step Sequencer') then
+                        end
+                    end
+
+                    local function SetTypeToStepSEQ()
+                        if r.ImGui_Selectable(ctx, 'Set Type to Step Sequencer') then
                             Trk[TrkID].Mod[i].Type='Step'
                             r.gmem_write(4,6) -- tells jsfx macro type = step seq
                             r.gmem_write(5,i)
@@ -6959,41 +7048,59 @@ function loop()
 
                             if I.Name=='Env '..i or I.Name == 'Macro ' ..i then  I.Name = 'Step ' ..i end 
                         end
+                    end
+
+                    local function SetTypeToFollower()
+                        if r.ImGui_Selectable(ctx, 'Set Type to Audio Follower') then 
+                            r.gmem_write(4,9) -- tells jsfx macro type = Follower
+                            r.gmem_write(5,i) -- tells jsfx which macro 
+                            Trk[TrkID].Mod[i].Type='Follower'
+                            r.GetSetMediaTrackInfo_String(LT_Track,'P_EXT: Mod'..i..'Type', 'Follower', true  )  
+
+                        end
+                    end
+                    local function SetTypeToMacro()
+                        if r.ImGui_Selectable(ctx, 'Set Type to Macro') then
+                            Trk[TrkID].Mod[i].Type='Macro'
+                            r.GetSetMediaTrackInfo_String(LT_Track,'P_EXT: Mod'..i..'Type', 'Macro', true  ) 
+                            r.gmem_write(4,5) -- tells jsfx macro type = Macro
+                            r.gmem_write(5,i) -- tells jsfx which macro 
+                            if I.Name=='Env '..i then I.Name = 'Macro ' ..i end 
+                        end
+                    end
+
+
+                    if r.ImGui_BeginPopup(ctx, 'Macro'..i..'Menu') then
+                        if r.ImGui_Selectable(ctx, 'Automate') then
+                            AddMacroJSFX()
+                            -- Show Envelope for Morph Slider
+                            local env = r.GetFXEnvelope(LT_Track, 0, i-1, true)
+                            SetPrmAlias(LT_TrackNum, 1, i  , Trk[TrkID].Mod[i].Name or ('Macro'..i)) --don't know what this line does, but without it Envelope won't show....
+                            local active,  visible,  armed,  inLane,  laneHeight,  defaultShape,  minValue,  maxValue,  centerValue,  Tp,  faderScaling = r.BR_EnvGetProperties(env)
+                            r.BR_EnvSetProperties(env, true ,  true  ,  armed,  inLane,  laneHeight,  defaultShape,  faderScaling)
+                            r.UpdateArrange()
+                            r.ImGui_CloseCurrentPopup(ctx)
+                        end
+                        SetTypeToEnv()
+                        SetTypeToStepSEQ()
+                        SetTypeToFollower()
+
                         r.ImGui_EndPopup(ctx)
                     elseif r.ImGui_BeginPopup(ctx, 'Env'..i..'Menu') then 
-                        if r.ImGui_Selectable(ctx, 'Set Type to Macro') then
-                            Trk[TrkID].Mod[i].Type='Macro'
-                            r.GetSetMediaTrackInfo_String(LT_Track,'P_EXT: Mod'..i..'Type', 'Macro', true  ) 
-                            r.gmem_write(4,5) -- tells jsfx macro type = Macro
-                            r.gmem_write(5,i) -- tells jsfx which macro 
-                            if I.Name=='Env '..i then I.Name = 'Macro ' ..i end 
-                        elseif r.ImGui_Selectable(ctx, 'Set Type to Step Sequencer') then
-                            Trk[TrkID].Mod[i].Type='Step'
-                            r.gmem_write(4,6) -- tells jsfx macro type = step seq
-                            r.gmem_write(5,i)
-                            r.GetSetMediaTrackInfo_String(LT_Track,'P_EXT: Mod'..i..'Type', 'Step', true  )  
-
-                            if I.Name=='Env '..i or I.Name == 'Macro ' ..i then  I.Name = 'Step ' ..i end 
-                        end
+                        SetTypeToMacro()
+                        SetTypeToStepSEQ()
+                        SetTypeToFollower()
                         r.ImGui_EndPopup(ctx)
                     elseif r.ImGui_BeginPopup(ctx, 'Step'..i..'Menu') then 
-                        r.gmem_write(4, 8) -- tells macro JSFX user is now tweaking Sequencer Length or note length
-                        
 
-
-
-                        if r.ImGui_Selectable(ctx, 'Set Type to Macro') then
-                            Trk[TrkID].Mod[i].Type='Macro'
-                            r.GetSetMediaTrackInfo_String(LT_Track,'P_EXT: Mod'..i..'Type', 'Macro', true  ) 
-                            r.gmem_write(4,5) -- tells jsfx macro type = Macro
-                            r.gmem_write(5,i) -- tells jsfx which macro 
-                            if I.Name=='Env '..i then I.Name = 'Macro ' ..i end 
-                        elseif r.ImGui_Selectable(ctx, 'Set Type to Envelope') then
-                            Trk[TrkID].Mod[i].Type='env'
-                            r.GetSetMediaTrackInfo_String(LT_Track,'P_EXT: Mod'..i..'Type', 'env', true  )  
-                            r.gmem_write(4,4) -- tells jsfx macro type = env
-                            r.gmem_write(5,i) -- tells jsfx which macro
-                        end
+                        SetTypeToMacro()
+                        SetTypeToEnv()
+                        SetTypeToFollower()
+                        r.ImGui_EndPopup(ctx)
+                    elseif r.ImGui_BeginPopup(ctx, 'Follower'..i..'Menu') then 
+                        SetTypeToMacro()
+                        SetTypeToEnv()
+                        SetTypeToStepSEQ()
                         r.ImGui_EndPopup(ctx)
 
                     end
@@ -9614,13 +9721,15 @@ function loop()
                                                             local P_Num = Prm.Num
                                                             local _, P_Nm = r.TrackFX_GetParamName(LT_Track,FX_Idx, P_Num)
                                                             local Df = RecallGlobInfo(Ct, P_Num..'. '..P_Nm..' = '    ,  'Num')
-
-                                                            r.TrackFX_SetParamNormalized(LT_Track,  FX_Idx, P_Num, Df)
-                                                            ToDef = { ID = FX_Idx ; P = P_Num ; V = Df }
+                                                            if Df then 
+                                                                r.TrackFX_SetParamNormalized(LT_Track,  FX_Idx, P_Num, Df )
+                                                                ToDef = { ID = FX_Idx ; P = P_Num ; V = Df }
+                                                            end
+                                                            
                                                         end 
                                                     end 
 
-                                                    if ToDef.ID then 
+                                                    if ToDef.ID and ToDef.V then 
                                                          
                                                         r.TrackFX_SetParamNormalized(LT_Track,  ToDef.ID , ToDef.P, ToDef.V)
                                                         if Prm.WhichCC then 

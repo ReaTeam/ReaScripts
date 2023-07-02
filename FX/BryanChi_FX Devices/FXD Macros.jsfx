@@ -2,6 +2,8 @@ noindex: true
 
 noindex: true
 
+noindex: true
+
 desc:FXD Macros
 import cookdsp.jsfx-inc
 
@@ -235,29 +237,29 @@ trkGUID_Num === gmem[2]? (
   mode == 8 ? (// if user is changing Sequencer Lenth or note length...
     Macro = gmem[5];
     Macro==1?( //if user is tweaking macro 1
-      Mc1_SEQ_Leng = gmem[110] ; 
-      Mc1_SEQ_DNom = gmem[111] ;
+      gmem[110] != 0 ? (Mc1_SEQ_Leng = gmem[110];    gmem[110] = 0) ; 
+      gmem[111] != 0 ? (Mc1_SEQ_DNom = gmem[111];    gmem[111] = 0);
     ):Macro==2?(
-      Mc2_SEQ_Leng = gmem[110]; 
-      Mc2_SEQ_DNom = gmem[111];
+      gmem[110] != 0 ? (Mc2_SEQ_Leng = gmem[110];    gmem[110] = 0); 
+      gmem[111] != 0 ? (Mc2_SEQ_DNom = gmem[111];    gmem[111] = 0);
     ):Macro==3?(
-      Mc3_SEQ_Leng = gmem[110]; 
-      Mc3_SEQ_DNom = gmem[111];
+      gmem[110] != 0 ? (Mc3_SEQ_Leng = gmem[110];    gmem[110] = 0); 
+      gmem[111] != 0 ? (Mc3_SEQ_DNom = gmem[111];    gmem[111] = 0);
     ):Macro==4?(
-      Mc4_SEQ_Leng = gmem[110]; 
-      Mc4_SEQ_DNom = gmem[111];
+      gmem[110] != 0 ? (Mc4_SEQ_Leng = gmem[110];    gmem[110] = 0); 
+      gmem[111] != 0 ? (Mc4_SEQ_DNom = gmem[111];    gmem[111] = 0);
     ):Macro==5?(
-      Mc5_SEQ_Leng = gmem[110]; 
-      Mc5_SEQ_DNom = gmem[111];
+      gmem[110] != 0 ? (Mc5_SEQ_Leng = gmem[110];    gmem[110] = 0); 
+      gmem[111] != 0 ? (Mc5_SEQ_DNom = gmem[111];    gmem[111] = 0);
     ):Macro==6?(
-      Mc6_SEQ_Leng = gmem[110]; 
-      Mc6_SEQ_DNom = gmem[111];
+      gmem[110] != 0 ? (Mc6_SEQ_Leng = gmem[110];    gmem[110] = 0); 
+      gmem[111] != 0 ? (Mc6_SEQ_DNom = gmem[111];    gmem[111] = 0);
     ):Macro==7?(
-      Mc7_SEQ_Leng = gmem[110]; 
-      Mc7_SEQ_DNom = gmem[111];
+      gmem[110] != 0 ? (Mc7_SEQ_Leng = gmem[110];    gmem[110] = 0); 
+      gmem[111] != 0 ? (Mc7_SEQ_DNom = gmem[111];    gmem[111] = 0);
     ):Macro==8?(
-      Mc8_SEQ_Leng = gmem[110]; 
-      Mc8_SEQ_DNom = gmem[111];
+      gmem[110] != 0 ? (Mc8_SEQ_Leng = gmem[110];    gmem[110] = 0); 
+      gmem[111] != 0 ? (Mc8_SEQ_DNom = gmem[111];    gmem[111] = 0);
     );
   );
       
