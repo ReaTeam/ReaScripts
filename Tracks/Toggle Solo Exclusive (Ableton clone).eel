@@ -1,0 +1,21 @@
+// @description Toggle Solo Exclusive (Ableton clone)
+// @author Yogen
+// @version 1.0
+// @about
+//   The purpose of this project is to bring Reaper users the comfort of using the "Solo in Place" and "Solo Exclusive" actions using keyboard shortcuts (or any means accessible via the Action List).
+//
+//   Coming from Ableton, Protools, and Logic Pro, I needed to make Reaper work the way I was used to on Ableton for that particular action, as it is in my opinion, the best implementation of a Solo feature across all DAWs I use daily. It is simple, predictable, and very intuitive to me.
+//
+//   I mapped the actions to [S]= Toggle Solo Exclusive, and [Shift+S]= Toggle Add to Solo.
+
+<?xml version="1.0" encoding="utf-8"?>
+<index version="1" name="Yogen_Toggle Solo Exclusive (Ableton clone)">
+    <category name="Tracks">
+        <reapack name="Yogen_Toggle Solo Exclusive (Ableton clone)" type="Script">
+            <version name="1.0.0">
+                <source>https://github.com/Yogen-Git/REAPER-ReaScripts/raw/5e3e17dd49051c6692567d8be70a90a3aebd9273/Ableton%20Solo%20Toggle%20Actions%20(Solo%20Exclusive%20%3A%20Add%20to%20Solo)/Yogen_Toggle%20Solo%20Exclusive.eel</source>
+            </version>
+        </reapack>
+    </category>
+</index>
+    
