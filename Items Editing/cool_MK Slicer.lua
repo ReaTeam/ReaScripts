@@ -1,12 +1,11 @@
 -- @description MK Slicer
 -- @author cool
--- @version 3.03
+-- @version 3.04
 -- @changelog
---   +Added experimental font smoothing option (requires RealmGUI to be installed).
---   +When scrolling horizontally, hand cursor changed to double arrow cursor (required for RealmGUI compatibility)
---   +Fixed a bug: now the script does not close with an error if used with 0 transient markers.
---   +Fixed a bug: now when the "Script Starts Docked" option is enabled, the script is immediately sent to the dock.
---   +Fixed a bug: now multiple button presses do not cause multiple drawing of the error text.
+--   +Added global options for RS5K
+--   +Fixed a bug: now the cursor can be edited by clicking on the waveform if it is connected to the borders of the item.
+--   +Fixed bug: now the play marker is not displayed if the audio is not loaded.
+--   +Fixed a bug: now the script does not generate an error when accessing items with a sample rate below 22050Hz.
 -- @link Forum Thread https://forum.cockos.com/showthread.php?t=232672
 -- @screenshot MK_Slicer 3 https://i.imgur.com/L7WnvoO.jpg
 -- @donation
@@ -63,7 +62,7 @@
 --   Sometimes a script applies glue to items. For example, when several items are selected and when a MIDI is created in a sampler mode.
 
 --[[
-MK Slicer v3.03 by Maxim Kokarev 
+MK Slicer v3.04 by Maxim Kokarev 
 https://forum.cockos.com/member.php?u=121750
 
 Co-Author of the compilation - MyDaw
@@ -879,7 +878,7 @@ EscToExit = tonumber(r.GetExtState('MK_Slicer_3','EscToExit'))or 1;
 MIDISamplerCopyFX = tonumber(r.GetExtState('MK_Slicer_3','MIDISamplerCopyFX'))or 1;
 MIDISamplerCopyRouting = tonumber(r.GetExtState('MK_Slicer_3','MIDISamplerCopyRouting'))or 1;
 MIDI_Mode = tonumber(r.GetExtState('MK_Slicer_3','Midi_Sampler.norm_val'))or 1;
-Sampler_preset_state = tonumber(r.GetExtState('MK_Slicer_3','Sampler_preset.norm_val'))or 1; 
+RS_ObeyNoteOff_state = tonumber(r.GetExtState('MK_Slicer_3','RS_ObeyNoteOff.norm_val'))or 1; 
 Create_Replace_state = tonumber(r.GetExtState('MK_Slicer_3','Create_Replace.norm_val'))or 1; 
 Create_Replace_state2 = tonumber(r.GetExtState('MK_Slicer_3','Create_Replace2.norm_val'))or 1; 
 Set_Rate_Feel_state = tonumber(r.GetExtState('MK_Slicer_3','Set_Rate_Feel.norm_val'))or 1; 
@@ -1537,6 +1536,8 @@ r.Main_OnCommand(r.NamedCommandLookup('_SWS_RESTORESEL'), 0)  -- Restore track s
 
 if RememberLast == 1 then
 CrossfadeTime = tonumber(r.GetExtState('MK_Slicer_3','CrossfadeTime'))or 15;
+DefaultAttTime = tonumber(r.GetExtState('MK_Slicer_3','DefaultAttTime'))or 1;
+DefaultRelTime = tonumber(r.GetExtState('MK_Slicer_3','DefaultRelTime'))or 1;
 PitchDetect = tonumber(r.GetExtState('MK_Slicer_3','PitchDetect'))or 5;
 QuantizeStrength = tonumber(r.GetExtState('MK_Slicer_3','QuantizeStrength'))or 100;
 Offs_Slider = tonumber(r.GetExtState('MK_Slicer_3','Offs_Slider'))or 0.5;
@@ -1816,7 +1817,7 @@ local itemproc = r.GetSelectedMediaItem(0,0)
       take_source_sample_rate = r.GetMediaSourceSampleRate(take_pcm_source)
     end
  
-if take_source_sample_rate == 0 then take_source_sample_rate = 44100 end -- if MIDI item, create fake samplerate           
+if take_source_sample_rate  < 22050 then take_source_sample_rate = 44100 end -- if MIDI item, create fake samplerate           
 
    if take_source_num_channels > 2 then take_source_num_channels = 2 end
    local channel_data = {} -- channel data is collected to this table
@@ -2249,7 +2250,7 @@ end
   extended(Line2,     Element)
   extended(Ruler,     Element)
     -- Create Slider Child Classes --
-  local H_Slider, V_Slider, T_Slider, HP_Slider, LP_Slider, G_Slider, S_Slider, Rtg_Slider, Loop_Slider, Rdc_Slider, O_Slider, Sw_Slider, Q_Slider, X_Slider, X_SliderOff = {},{},{},{},{},{},{},{},{},{},{},{},{},{},{}
+  local H_Slider, V_Slider, T_Slider, HP_Slider, LP_Slider, G_Slider, S_Slider, Rtg_Slider, Loop_Slider, Rdc_Slider, O_Slider, Sw_Slider, Q_Slider, X_Slider, X_SliderOff, Slider_Att, Slider_Rel = {},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}
     extended(H_Slider, Slider_small)
     extended(V_Slider, Slider)
     extended(T_Slider, Slider)
@@ -2265,6 +2266,8 @@ end
     extended(Q_Slider, Slider_simple)
     extended(X_Slider, Slider_simple)
     extended(X_SliderOff, Slider)
+    extended(Slider_Att, Slider_simple)
+    extended(Slider_Rel, Slider_simple)
     ---------------------------------
   extended(Rng_Slider, Element)
   extended(Loop_Slider, Element)
@@ -2820,6 +2823,28 @@ function X_SliderOff:set_norm_val()
     self.norm_val=VAL
 end
 
+function Slider_Att:set_norm_val()
+    local x, w = self.x, self.w
+    local VAL,K = 0,10 -- VAL=temp value;K=coefficient(when Ctrl pressed)
+    if Shift then VAL = self.norm_val + ((gfx.mouse_x-last_x)/(w*K))
+       else VAL = (gfx.mouse_x-x)/w end
+    if VAL<0 then VAL=0 elseif VAL>1 then VAL=1 end
+    DefaultAttTime = tonumber(r.GetExtState('MK_Slicer_3','DefaultAttTime'))or 0.01;
+    if MCtrl then VAL = 0.01 end --set default value by Ctrl+LMB
+    self.norm_val=VAL
+end
+
+function Slider_Rel:set_norm_val()
+    local x, w = self.x, self.w
+    local VAL,K = 0,10 -- VAL=temp value;K=coefficient(when Ctrl pressed)
+    if Shift then VAL = self.norm_val + ((gfx.mouse_x-last_x)/(w*K))
+       else VAL = (gfx.mouse_x-x)/w end
+    if VAL<0 then VAL=0 elseif VAL>1 then VAL=1 end
+    DefaultRelTime = tonumber(r.GetExtState('MK_Slicer_3','DefaultRelTime'))or 0.01;
+    if MCtrl then VAL = 0.01 end --set default value by Ctrl+LMB
+    self.norm_val=VAL
+end
+
 -----------------------------------------------------------------------------
 function H_Slider:draw_body()
     local x,y,w,h  = self.x,self.y,self.w,self.h
@@ -2890,6 +2915,16 @@ function X_SliderOff:draw_body()
     local x,y,w,h  = self.x,self.y,self.w,self.h
     local val = 0
     gfx.rect(x+1,y+1, val-2, h-2, true)  -- draw X_Slider body
+end
+function Slider_Att:draw_body()
+    local x,y,w,h  = self.x,self.y,self.w,self.h
+    local val = w * self.norm_val
+    gfx.rect(x+1,y+1, val-2, h-2, true)  -- draw Slider_Att body
+end
+function Slider_Rel:draw_body()
+    local x,y,w,h  = self.x,self.y,self.w,self.h
+    local val = w * self.norm_val
+    gfx.rect(x+1,y+1, val-2, h-2, true)  -- draw Slider_Rel body
 end
 --------------------------------------------------------------
 function H_Slider:draw_lbl()
@@ -2979,6 +3014,18 @@ function X_SliderOff:draw_lbl()
     gfx.set(1,1,1,0.2)  -- set body,frame color
 self:draw_frame2() -- frame
     gfx.drawstr(self.lbl) -- draw X_Slider label
+end
+function Slider_Att:draw_lbl()
+    local x,y,w,h  = self.x,self.y,self.w,self.h
+    local lbl_w, lbl_h = gfx.measurestr(self.lbl)
+    gfx.x = x+3; gfx.y = y+(h-lbl_h)/2;
+    gfx.drawstr(self.lbl) -- draw Slider_Att label
+end
+function Slider_Rel:draw_lbl()
+    local x,y,w,h  = self.x,self.y,self.w,self.h
+    local lbl_w, lbl_h = gfx.measurestr(self.lbl)
+    gfx.x = x+3; gfx.y = y+(h-lbl_h)/2;
+    gfx.drawstr(self.lbl) -- draw Slider_Rel label
 end
 ---------------------------------------------------------------
 function H_Slider:draw_val()
@@ -3080,6 +3127,20 @@ function X_SliderOff:draw_val()
     local val_w, val_h = gfx.measurestr(val)
     gfx.x = x+w-val_w-5; gfx.y = y+(h-val_h)/2;
     gfx.drawstr(val) -- draw X_Slider Value
+end
+function Slider_Att:draw_val()
+    local x,y,w,h  = self.x,self.y,self.w,self.h
+    local val = string.format("%.2f", self.norm_val)
+    local val_w, val_h = gfx.measurestr(val)
+    gfx.x = x+w-val_w-5; gfx.y = y+(h-val_h)/2;
+    gfx.drawstr(val) -- draw Slider_Att Value
+end
+function Slider_Rel:draw_val()
+    local x,y,w,h  = self.x,self.y,self.w,self.h
+    local val = string.format("%.2f", self.norm_val)
+    local val_w, val_h = gfx.measurestr(val)
+    gfx.x = x+w-val_w-5; gfx.y = y+(h-val_h)/2;
+    gfx.drawstr(val) -- draw Slider_Rel Value
 end
 ----------------------------------------------------------------
 
@@ -4264,7 +4325,7 @@ leds_table[23] = Colored_Rect:new(761+d_pos,410+corrY,2,18,  0.54,0.14,1,TH[42] 
 leds_table[25] = Colored_Rect_top:new(917,5,2,20,  TH[39][1],TH[39][2],TH[39][3],TH[39][4] ) -- Light_Aim_on
 leds_table[26] = Colored_Rect_top:new(917,5,2,20,  0.5,0.5,0.5,0.5 ) -- Light_Aim_off
 
-local others_table = {Triangle, RandText, Q_Rnd_Linked, Q_Rnd_Linked2, Line, Line2, Loop_Dis, Ruler, Preset, Velocity, Mode, Mode2, ModeText}
+local others_table = {Triangle, RandText, Q_Rnd_Linked, Q_Rnd_Linked2, Line, Line2, Loop_Dis, Ruler, Preset, Velocity, Mode, Mode2, ModeText, Line3, Line4, RS5k_Settings}
 
 others_table[1] = Txt2:new(628+c_pos,408+corrY,55,18, TH[36][1],TH[36][2],TH[36][3],TH[36][4], ">","Arial",20) --Triangle
 others_table[2] = Txt2:new(735+c_pos,377,55,18, TH[36][1],TH[36][2],TH[36][3],TH[36][4], "Intensity","Arial",10) --RandText
@@ -4283,6 +4344,11 @@ others_table[10] = Txt:new(780+d_pos,384+corrY,55,18, TH[36][1],TH[36][2],TH[36]
 others_table[11] = Line:new(856+d_pos,404+corrY,73,6) --Line (Mode Bracket)
 others_table[12] = Line2:new(856+d_pos,407+corrY,73,4,  TH[4][1],TH[4][2],TH[4][3],TH[4][4])--Line2 (Mode Bracket fill)
 others_table[13] = Txt:new(868+d_pos,384+corrY,52,18, TH[36][1],TH[36][2],TH[36][3],TH[36][4], "Mode","Arial",22) -- Mode Text
+
+others_table[14] = Line:new(781+d_pos,404+corrY,146,5) --Line (RS5k_Settings Bracket)
+others_table[15] = Line2:new(780+d_pos,407+corrY,148,3,  TH[4][1],TH[4][2],TH[4][3],TH[4][4])--Line2 (RS5k_Settings Bracket fill)
+others_table[16] = Txt:new(828+d_pos,384+corrY,52,18, TH[36][1],TH[36][2],TH[36][3],TH[36][4], "RS5k_Settings","Arial",22) -- Mode Text
+
 
 local Frame_Snap_TB = {leds_table[5]}
 local Frame_Snap_TB2 = {leds_table[6]}
@@ -4327,6 +4393,7 @@ local Triangle_TB = {others_table[1]}
 local RandText_TB = {others_table[2]}
 local Ruler_TB = {others_table[8]}
 local Preset_TB = {others_table[9]}  
+local Preset_TB2 = {others_table[14], others_table[15], others_table[16]}  
 
 local MIDI_Mode_Color1_TB = {leds_table[21]}
 local MIDI_Mode_Color2_TB = {leds_table[22]}
@@ -4341,8 +4408,8 @@ local Midi_Sampler = CheckBox_simple:new(670+d_pos,410+corrY,91,18, TH[30][1],TH
                                   r.Main_OnCommand(40441,0) --rebuild peaks when the script starts
                               end
 
-local Sampler_preset = CheckBox_simple:new(765+d_pos,410+corrY,85,18, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "","Arial",16,  Sampler_preset_state,
-                              {"Percussive","Melodic"} )
+local RS_ObeyNoteOff = CheckBox_simple:new(670+d_pos,430+corrY,93,18, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "","Arial",16,  RS_ObeyNoteOff_state,
+                              {"NoteOff: Yes","NoteOff: No"} )
 
 local Pitch_Preset = CheckBox_simple:new(765+d_pos,410+corrY,85,18, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "","Arial",16,  PitchDetect,
                               {"Drums","Drums 2", "Percussion", "Bass","Default","Melodic","Complex"} )
@@ -4913,6 +4980,100 @@ function()
 end
 if RandRevVal == nil then RandRevVal = ceil((((logx((RandRev*100)+1))*21.63)*-1)+100) end
 
+
+---------------------------------RS5K--------------------------------------------------------------------------
+
+-- Att_Sld ------------------------------ 
+local RS_Att_Sld = Slider_Att:new(765+d_pos,410+corrY,85,18, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "Att.","Arial",16, DefaultAttTime )
+function RS_Att_Sld:draw_val()
+  self.form_val = (self.norm_val)*10       -- form_val
+  local x,y,w,h  = self.x,self.y,self.w,self.h
+  local val = string.format("%.1f", self.form_val).."ms"
+  local val_w, val_h = gfx.measurestr(val)
+  gfx.x = x+w-val_w-3
+  gfx.y = y+(h-val_h)/2
+  gfx.drawstr(val)--draw Slider Value
+
+RS_Att = self.form_val
+
+end
+RS_Att_Sld.onUp =
+function() 
+
+end
+
+
+-- Rel_Sld ------------------------------ 
+local RS_Rel_Sld = Slider_Rel:new(765+d_pos,430+corrY,85,18, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "Rel.","Arial",16, DefaultRelTime )
+function RS_Rel_Sld:draw_val()
+  self.form_val = (self.norm_val)*100       -- form_val
+  local x,y,w,h  = self.x,self.y,self.w,self.h
+  local val = string.format("%.0f", self.form_val).."ms"
+  local val_w, val_h = gfx.measurestr(val)
+  gfx.x = x+w-val_w-3
+  gfx.y = y+(h-val_h)/2
+  gfx.drawstr(val)--draw Slider Value
+
+RS_Rel = self.form_val
+
+end
+RS_Rel_Sld.onUp =
+function() 
+
+end
+
+
+-- PitchOffset_Sld ------------------------------ 
+local PitchOffset_Sld = O_Slider:new(852+d_pos,410+corrY,85,18, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "Pitch","Arial",16, 0.5 )
+function PitchOffset_Sld:draw_val()
+
+  self.form_val  = floor(24- self.norm_val * 48)*( -1)     -- form_val
+
+  function fixzero()
+  FixMunus = self.form_val
+  if (FixMunus== 0.0)then FixMunus = 0
+  end
+
+  end
+  fixzero()  
+  local x,y,w,h  = self.x,self.y,self.w,self.h
+  local val = string.format("%.0f", FixMunus).."st"
+  local val_w, val_h = gfx.measurestr(val)
+  gfx.x = x+w-val_w-3
+  gfx.drawstr(val)--draw Slider Value
+
+RS_PitchOffset = self.form_val
+
+  end
+PitchOffset_Sld.onUp =
+function() 
+
+
+
+      fixzero() 
+
+end
+
+
+-- RS_PitchBend_Sld ------------------------------ 
+local RS_PitchBend_Sld = S_Slider:new(852+d_pos,430+corrY,85,18, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "P.Bend","Arial",16, 1 )
+function RS_PitchBend_Sld:draw_val()
+  self.form_val = floor((self.norm_val)*12)       -- form_val
+  local x,y,w,h  = self.x,self.y,self.w,self.h
+  local val = string.format("%.0f", self.form_val).."st"
+  local val_w, val_h = gfx.measurestr(val)
+  gfx.x = x+w-val_w-3
+  gfx.y = y+(h-val_h)/2
+  gfx.drawstr(val)--draw Slider Value
+
+RS_PitchBend = self.form_val
+
+end
+RS_PitchBend_Sld.onUp =
+function() 
+
+end
+
 -------------------------------------------------------------------------------------
 --- Range Slider --------------------------------------------------------------------
 -------------------------------------------------------------------------------------
@@ -4953,9 +5114,10 @@ end
               if rng1 == nil then rng1 = 0 end
               if rng2 == nil then rng2 = 1 end
 
+local GrBtnT = {Grid1_Btn,Grid2_Btn,Grid4_Btn,Grid8_Btn,Grid16_Btn,Grid32_Btn,Grid64_Btn,GridT_Btn,Swing_Btn}
 -- Swing Button ----------------------------
-local Swing_Btn = Button_top:new(391,5,50,19, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "Swing",    "Arial",16 )
-Swing_Btn.onClick = 
+GrBtnT[9] = Button_top:new(391,5,50,19, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "Swing",    "Arial",16 )
+GrBtnT[9].onClick = 
 function()
    if Wave.State then 
     local _, division, _, swingamt = r.GetSetProjectGrid(0,false)
@@ -4973,8 +5135,8 @@ end
 triplets = 2
 
 -- Grid Button T----------------------------
-local GridT_Btn = Button_top:new(344,5,40,19, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "T",    "Arial",16 )
-GridT_Btn.onClick = 
+GrBtnT[8] = Button_top:new(344,5,40,19, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "T",    "Arial",16 )
+GrBtnT[8].onClick = 
 function()
    if Wave.State then 
         if GridT_on == 0 then 
@@ -4993,8 +5155,8 @@ Wave:DrawGridGuides()
 end 
 
 -- Grid Button 1----------------------------
-local Grid1_Btn = Button_top:new(50,5,40,19, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "1",    "Arial",16 )
-Grid1_Btn.onClick = 
+GrBtnT[1] = Button_top:new(50,5,40,19, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "1",    "Arial",16 )
+GrBtnT[1].onClick = 
 function()
 
    if Wave.State then 
@@ -5021,8 +5183,8 @@ Wave:DrawGridGuides()
 end 
 
 -- Grid Button 1/2----------------------------
-local Grid2_Btn = Button_top:new(92,5,40,19, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "1/2",    "Arial",16 )
-Grid2_Btn.onClick = 
+GrBtnT[2] = Button_top:new(92,5,40,19, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "1/2",    "Arial",16 )
+GrBtnT[2].onClick = 
 function()
    if Wave.State then 
        if GridT_on == 1 then
@@ -5048,8 +5210,8 @@ Wave:DrawGridGuides()
 end 
 
 -- Grid Button 1/4----------------------------
-local Grid4_Btn = Button_top:new(134,5,40,19, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "1/4",    "Arial",16 )
-Grid4_Btn.onClick = 
+GrBtnT[3] = Button_top:new(134,5,40,19, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "1/4",    "Arial",16 )
+GrBtnT[3].onClick = 
 function()
    if Wave.State then 
        if GridT_on == 1 then
@@ -5075,8 +5237,8 @@ Wave:DrawGridGuides()
 end 
 
 -- Grid Button 1/8----------------------------
-local Grid8_Btn = Button_top:new(176,5,40,19, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "1/8",    "Arial",16 )
-Grid8_Btn.onClick = 
+GrBtnT[4] = Button_top:new(176,5,40,19, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "1/8",    "Arial",16 )
+GrBtnT[4].onClick = 
 function()
    if Wave.State then 
        if GridT_on == 1 then
@@ -5102,8 +5264,8 @@ Wave:DrawGridGuides()
 end 
 
 -- Grid Button 1/16----------------------------
-local Grid16_Btn = Button_top:new(218,5,40,19, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "1/16",    "Arial",16 )
-Grid16_Btn.onClick = 
+GrBtnT[5] = Button_top:new(218,5,40,19, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "1/16",    "Arial",16 )
+GrBtnT[5].onClick = 
 function()
    if Wave.State then 
        if GridT_on == 1 then
@@ -5129,8 +5291,8 @@ Wave:DrawGridGuides()
 end 
 
 -- Grid Button 1/32----------------------------
-local Grid32_Btn = Button_top:new(260,5,40,19, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "1/32",    "Arial",16 )
-Grid32_Btn.onClick = 
+GrBtnT[6] = Button_top:new(260,5,40,19, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "1/32",    "Arial",16 )
+GrBtnT[6].onClick = 
 function()
    if Wave.State then 
        if GridT_on == 1 then
@@ -5156,8 +5318,8 @@ Wave:DrawGridGuides()
 end 
 
 -- Grid Button 1/64----------------------------
-local Grid64_Btn = Button_top:new(302,5,40,19, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "1/64",    "Arial",16 )
-Grid64_Btn.onClick = 
+GrBtnT[7] = Button_top:new(302,5,40,19, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "1/64",    "Arial",16 )
+GrBtnT[7].onClick = 
 function()
    if Wave.State then 
        if GridT_on == 1 then
@@ -5266,7 +5428,7 @@ local OutNote2  = CheckBox_simple:new(670+d_pos,430+corrY,93,18, TH[30][1],TH[30
 
 local Slider_TB = {HP_Freq,LP_Freq,Fltr_Gain,Gate_Thresh,Gate_Sensitivity,Gate_Retrig,Gate_ReducePoints,Offset_Sld,QStrength_Sld,Project,Set_Rate_Mode, Set_Rate_Feel}
 
-local Sliders_Grid_TB = {Grid1_Btn, Grid2_Btn, Grid4_Btn, Grid8_Btn, Grid16_Btn, Grid32_Btn, Grid64_Btn, GridT_Btn}
+local Sliders_Grid_TB = {GrBtnT[1], GrBtnT[2], GrBtnT[3], GrBtnT[4], GrBtnT[5], GrBtnT[6], GrBtnT[7], GrBtnT[8]}
 
 local Slider_Swing_TB = {Swing_Sld}
 
@@ -6411,11 +6573,11 @@ end
 --- Button_TB --------------------------
 ----------------------------------------
 local Loop_TB = {LoopScale}
-local LoopBtn_TB = {Loop_Btn, Aim_Btn, Snap_Btn, Swing_Btn}
+local LoopBtn_TB = {Loop_Btn, Aim_Btn, Snap_Btn, GrBtnT[9]}
 
-local Checkbox_TB_preset = {Sampler_preset}
+local Checkbox_TB_preset = {RS_Att_Sld, RS_Rel_Sld, PitchOffset_Sld, RS_PitchBend_Sld, RS_ObeyNoteOff}
 
-local Button_TB = {Get_Sel_Button, Settings, Just_Slice, Quantize_Slices, Add_Markers, Quantize_Markers, Random, Reset_All, Random_SetupB, Set_Rate, Set_Rate_Incr, Set_Rate_Decr}
+local Button_TB = {Get_Sel_Button, Settings, Just_Slice, Quantize_Slices, Add_Markers, Quantize_Markers, Random, Reset_All, Random_SetupB, Set_Rate}
 local Button_TB2 = {Create_MIDI, Midi_Sampler}
 local Pitch_Det_Options_TB = {Pitch_Det_Options, Pitch_Det_Options2, Pitch_Preset}
 local  Create_Replace_TB = {others_table[11], others_table[12], others_table[13]}
@@ -8530,21 +8692,15 @@ end
 
 data ={}
 
-obeynoteoff_default = 1
-
       if not track then return end
       nmb = r.GetMediaTrackInfo_Value(track,"IP_TRACKNUMBER");
       track = r.GetTrack(nmb-1,0);
 
-local RS_Att
-local RS_Rel
 
- if Sampler_preset.norm_val == 1 then
-RS_Att = 2 -- ms
-RS_Rel = 10 -- ms
-else
-RS_Att = 0.1 -- ms
-RS_Rel = 1 -- ms
+if RS_ObeyNoteOff.norm_val == 1 then
+   obeynoteoff_default = 1
+   else
+   obeynoteoff_default = 0
 end
 
 RS_Att = RS_Att/2000
@@ -8568,8 +8724,9 @@ function ExportItemToRS5K_defaults(data,conf,refresh,note,filepath, start_offs, 
     if start_offs and end_offs then
       r.TrackFX_SetParamNormalized( track, rs5k_pos, 13, start_offs ) -- attack
       r.TrackFX_SetParamNormalized( track, rs5k_pos, 14, end_offs )   
+      r.TrackFX_SetParamNormalized( track, rs5k_pos, 15, 0.5+((0.075/12)*RS_PitchOffset) ) -- pitch offset
         if ForcePitchBend == 1 then
-              r.TrackFX_SetParamNormalized( track, rs5k_pos, 16, (1/12)*PitchBend ) -- pitch bend
+              r.TrackFX_SetParamNormalized( track, rs5k_pos, 16, (1/12)*RS_PitchBend ) -- pitch bend
         end
     end  
   end
@@ -9682,7 +9839,6 @@ function Wave:Get_Cursor()
              grad_w1 = TH[21]*(0.7+Z_w/2)
              gfx.gradrect(((self.x+1) + self.Ecx)-grad_w1, self.y, grad_w1, self.h,        TH[20][1],TH[20][2],TH[20][3], 0.0,    0, 0, 0, TH[22] / grad_w1) -- grad back
              gfx.gradrect((self.x-1) + self.Ecx, self.y, grad_w1, self.h,        TH[20][1],TH[20][2],TH[20][3], TH[22],    0, 0, 0, -TH[22] / grad_w1) -- grad ahead
-             Reaper_Cursor_Grab = 1
      end
 
   --- play cursor ---
@@ -9730,9 +9886,8 @@ end
 function Wave:Set_Cursor()
   if SButton == 0 and self:mouseDown() and not(Ctrl or Shift) then  
     if self.insrc_mx then local New_Pos = self.sel_start + (self.insrc_mx/self.X_scale )/srate
-       if Reaper_Cursor_Grab == 1 and (Snap_on == 0 or Guides.norm_val == 2) and mouse_pos_height <=355 then 
+       if (Snap_on == 0 or Guides.norm_val == 2) and mouse_pos_height <=355 then  
           r.SetEditCurPos(New_Pos, false, false)    -- true-seekplay(false-no seekplay) 
-          Reaper_Cursor_Grab = 0
        end
     end
   end
@@ -10105,7 +10260,7 @@ end
 
 function Wave:CursorTop()
 
-     if self.sel_start ~= nil  then
+     if self.sel_start ~= nil and Wave.State then
          local insrc_Ecx3 = (r.GetCursorPosition() - self.sel_start) * srate * self.X_scale    -- cursor in source!
          self.Ecx3 = (insrc_Ecx3 - self.Pos) * self.Zoom*Z_w                  -- Edit cursor
          if self.Ecx3 >= 0 and self.Ecx3 <= self.w then gfx.set(0.9,0.9,0.9,0.7) -- loop edit cursor color 
@@ -10329,7 +10484,9 @@ function MAIN()
 
     if  Random_Setup ~= 1 then
        for key,btn    in pairs(Button_TB2)   do btn:draw()    end 
-       for key,btn    in pairs(FrameR_TB)   do btn:draw()    end 
+       if Midi_Sampler.norm_val ~= 1 then
+          for key,btn    in pairs(FrameR_TB)   do btn:draw()    end 
+       end
     end
     for key,btn    in pairs(Button_TB)   do btn:draw()    end 
     for key,sldr   in pairs(Slider_TB)   do sldr:draw()   end
@@ -10383,7 +10540,11 @@ end
            end
      else
          if  Random_Setup ~= 1 then
-              for key,frame  in pairs(Preset_TB)    do frame:draw()  end 
+              if Midi_Sampler.norm_val ~= 1 then
+                  for key,frame  in pairs(Preset_TB)    do frame:draw()  end 
+                  else
+                  for key,frame  in pairs(Preset_TB2)    do frame:draw()  end 
+              end
                    if Midi_Sampler.norm_val == 3 then
                         for key,frame  in pairs(Pitch_Det_Options_TB)    do frame:draw()  end  
                    end  
@@ -10816,7 +10977,7 @@ function store_settings2() --store sliders/checkboxes
         if Notes_On == 1 then OutNote.norm_val = OutNote2.norm_val end
         r.SetExtState('MK_Slicer_3','OutNote.norm_val',OutNote.norm_val,true);
         r.SetExtState('MK_Slicer_3','Midi_Sampler.norm_val',Midi_Sampler.norm_val,true);
-        r.SetExtState('MK_Slicer_3','Sampler_preset.norm_val',Sampler_preset.norm_val,true);
+        r.SetExtState('MK_Slicer_3','RS_ObeyNoteOff.norm_val',RS_ObeyNoteOff.norm_val,true);
         r.SetExtState('MK_Slicer_3','Create_Replace.norm_val',Create_Replace.norm_val,true);
         r.SetExtState('MK_Slicer_3','Create_Replace2.norm_val',Create_Replace2.norm_val,true);
         r.SetExtState('MK_Slicer_3','Set_Rate_Feel.norm_val',Set_Rate_Feel.norm_val,true);
@@ -10828,6 +10989,8 @@ function store_settings2() --store sliders/checkboxes
         r.SetExtState('MK_Slicer_3','LF_Slider',LP_Freq.norm_val,true);
         r.SetExtState('MK_Slicer_3','Sens_Slider',Gate_Sensitivity.norm_val,true);
         r.SetExtState('MK_Slicer_3','Offs_Slider',Offset_Sld.norm_val,true);
+        r.SetExtState('MK_Slicer_3','DefaultAttTime',RS_Att_Sld.norm_val,true);
+        r.SetExtState('MK_Slicer_3','DefaultRelTime',RS_Rel_Sld.norm_val,true);
         if XFadeOff == 0 then
            r.SetExtState('MK_Slicer_3','CrossfadeTime',XFade_Sld.form_val,true);
         end
@@ -10868,7 +11031,7 @@ function Init()
     -- Some gfx Wnd Default Values ---------------
     local R,G,B = ceil(TH[3][1]*255),ceil(TH[3][2]*255),ceil(TH[3][3]*255)             -- 0...255 format -- цвет основного окна
     local Wnd_bgd = R + G*256 + B*65536 -- red+green*256+blue*65536  
-    local Wnd_Title = "MK Slicer v3.03" .. " " .. theme_name .. " " .. RG_status .. ""
+    local Wnd_Title = "MK Slicer v3.04" .. " " .. theme_name .. " " .. RG_status .. ""
     local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
 
      -- set init fonts/size
@@ -11252,7 +11415,7 @@ item5.command = function()
                           gfx.dock(dock_pos)
                           xpos = 400
                           ypos = 320
-                          local Wnd_Title = "MK Slicer v3.03"
+                          local Wnd_Title = "MK Slicer v3.04"
                           local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
                           gfx.init( Wnd_Title, Wnd_W,Wnd_H, Wnd_Dock, Wnd_X,Wnd_Y )
 
@@ -11264,7 +11427,7 @@ item5.command = function()
                          dock_pos = 0
                          xpos = tonumber(r.GetExtState("MK_Slicer_3", "window_x")) or 400
                          ypos = tonumber(r.GetExtState("MK_Slicer_3", "window_y")) or 320
-                         local Wnd_Title = "MK Slicer v3.03"
+                         local Wnd_Title = "MK Slicer v3.04"
                          local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
                          if Wnd_Y == (nil or 0) then Wnd_Y = Wnd_Y+25 end -- correction for window header visibility
                          gfx.init( Wnd_Title, Wnd_W,Wnd_H, Wnd_Dock, Wnd_X,Wnd_Y )
@@ -11536,6 +11699,8 @@ item21.command = function()
 Reset_to_def = 1
   --sliders--
       DefaultXFadeTime = tonumber(r.GetExtState('MK_Slicer_3','DefaultXFadeTime'))or 15;
+      DefaultAttTime = tonumber(r.GetExtState('MK_Slicer_3','DefaultAttTime'))or 15;
+      DefaultRelTime = tonumber(r.GetExtState('MK_Slicer_3','DefaultRelTime'))or 15;
       DefaultP_Slider = tonumber(r.GetExtState('MK_Slicer_3','DefaultP_Slider'))or 5;
       DefaultQStrength = tonumber(r.GetExtState('MK_Slicer_3','DefaultQStrength'))or 100;
       DefaultHP = tonumber(r.GetExtState('MK_Slicer_3','DefaultHP'))or 0.3312;
@@ -11568,7 +11733,7 @@ Reset_to_def = 1
       if Notes_On == 1 then OutNote.norm_val = OutNote2.norm_val end
       r.SetExtState('MK_Slicer_3','OutNote.norm_val',DefOutNote_State,true);
       r.SetExtState('MK_Slicer_3','Midi_Sampler.norm_val',DefMIDI_Mode,true);
-      r.SetExtState('MK_Slicer_3','Sampler_preset.norm_val',DefSampler_preset_state,true);
+      r.SetExtState('MK_Slicer_3','RS_ObeyNoteOff.norm_val',DefSampler_preset_state,true);
       r.SetExtState('MK_Slicer_3','Create_Replace.norm_val',DefCreate_Replace_state,true);
       r.SetExtState('MK_Slicer_3','Create_Replace.norm_val',DefCreate_Replace_state2,true);
       r.SetExtState('MK_Slicer_3','Pitch_Det_Options.norm_val',DefPitch_Det_Options_state,true);
@@ -11720,6 +11885,8 @@ end
 function user_defaults()
 ::first_string::
 DefaultXFadeTime = tonumber(r.GetExtState('MK_Slicer_3','DefaultXFadeTime'))or 15;
+DefaultAttTime = tonumber(r.GetExtState('MK_Slicer_3','DefaultAttTime'))or 15;
+DefaultRelTime = tonumber(r.GetExtState('MK_Slicer_3','DefaultRelTime'))or 15;
 DefaultP_Slider = tonumber(r.GetExtState('MK_Slicer_3','DefaultP_Slider'))or 5;
 DefaultQStrength = tonumber(r.GetExtState('MK_Slicer_3','DefaultQStrength'))or 100;
 DefaultHP = tonumber(r.GetExtState('MK_Slicer_3','DefaultHP'))or 0.3312;
