@@ -1,12 +1,7 @@
 -- @description FX Devices
 -- @author Bryan Chi
--- @version 1.0beta9.6.1
--- @changelog
---   - Add step length option ‘2’ and ‘1/64’.
---   - Fix SEQ modulator : ‘Changing step length values for the first time when opening REAPER stops sequencer working. ’ (reported by Suzuki).
---   - Fix FX Adder can’t show plugins with comma
---   - Add plugin type indicator in FX Adder.
---   - New Modulator - ‘Audio Follower’  in Alpha ( only works on macro 1, don’t use yet).
+-- @version 1.0beta9.6.2
+-- @changelog -Fix FX adder
 -- @provides
 --   [effect] BryanChi_FX Devices/FXD Macros.jsfx
 --   [effect] BryanChi_FX Devices/FXD ReSpectrum.jsfx
@@ -2705,17 +2700,36 @@
                 local ActualName = str:sub(str:find(':%s')+2, str:find('=<.+>')-1 )
                 --vst_name = 'AU:'.. ActualName..' ('.. maker..')' 
                 vst_name = 'AU:'..str:gsub('=<.+>', '')
-            --[[ elseif (str:find('.vst') or str:find('.vst3')) and str:find('(.+,.+)') then 
+            --[[ elseif str:find('.vst=') or str:find('.vst<') then 
+                local nm = str
+                vst_name= 'VST:'..nm:sub( 0, (nm:find('%.vst=') or nm:find('%.vst<')) +3 )
+                vst_name= vst_name:gsub('_', ' ')
+                Manufacturer =  (nm:sub(nm:find('%(') or 0, nm:find('/n')) or 0) ]]
+            elseif str:find('.vst=') or str:find('.vst<') then              
+                local comma =1
 
-                msg(str..'\n') ]]
-            elseif str:find('%.vst=') then          -- if it's vst
-                local nm = str
-                vst_name= 'VST:'..nm:sub( 0,nm:find('%.vst=')-1 )..'.vst'
-                vst_name= vst_name:gsub('_', ' ')
-            elseif  str:find('%.vst3=') then    -- if it's vst3
-                local nm = str
-                vst_name= 'VST3:'..nm:sub( 0,nm:find('%.vst3=')-1 )
-                vst_name= vst_name:gsub('_', ' ')
+                for i = 1, 2 do     -- Since there are 2 comma's in each line
+                    comma = string.find(str, ",", (comma or 0)+1)    -- find 'next' comma
+                end
+
+                if comma then 
+                    vst_name = "VST:".. str:sub(comma+1, str:find('\n') )
+                end
+               --[[  for nm in str:gmatch('[^%,]+')  do  --- Split Line into segments spearated by comma
+                    vst_name = nm:match("(%S+ .-%))") and "VST:" .. (nm:match("(%S+ .-%))") or '')
+                    Manufacturer =  (nm:sub(nm:find('%(') or 0, nm:find('/n')) or 0)
+
+                end  ]]
+            elseif str:find('.vst3=') or str:find('.vst3<') then 
+                local comma =1
+
+                for i = 1, 2 do     -- Since there are 2 comma's in each line
+                    comma = string.find(str, ",", (comma or 0)+1)    -- find 'next' comma
+                end
+
+                if comma then 
+                    vst_name = "VST3:".. str:sub(comma+1, str:find('\n') )
+                end
             else
 
                 for name_segment in str:gmatch('[^%,]+')  do  --- Split Line into segments spearated by comma
@@ -2723,12 +2737,20 @@
                     if name_segment:match("(%S+) ")  then   -- if segment has space in it 
                         if name_segment:match('"(JS: .-)"') then
                             vst_name = name_segment:match('"JS: (.-)"') and "JS:" .. name_segment:match('"JS: (.-)"') or nil
-                        --[[elseif name_segment:find('=<.+>') then   -- AU Plugins
-                            vst_name = 'AU:'.. name_segment:gsub('=<.+>', '')
+                        --[[ elseif name_segment:find('=<.+>') then   -- AU Plugins
+                            vst_name = 'AU:'.. name_segment:gsub('=<.+>', '') ]]
                         else
                             vst_name = name_segment:match("(%S+ .-%))") and "VST:" .. name_segment:match("(%S+ .-%))") or nil
-                        --]]
                         end
+
+                    elseif name_segment:find('%.vst=') then          -- if it's vst
+                        local nm = name_segment
+                        vst_name= 'VST:'..nm:sub( 0,nm:find('%.vst=')-1 )
+                        vst_name= vst_name:gsub('_', ' ')
+                    elseif  name_segment:find('%.vst3=') then    -- if it's vst3
+                        local nm = name_segment
+                        vst_name= 'VST3:'..nm:sub( 0,nm:find('%.vst3=')-1 )
+                        vst_name= vst_name:gsub('_', ' ')
 
                     elseif name_segment:find('%.vst.dylib=') then  local nm = name_segment  -- Reaper Native plugins
                         vst_name= 'VST:'..nm:sub( 0,nm:find('%.vst.dylib=')-1 )
@@ -2878,13 +2900,13 @@
                     ADDFX_Sel_Entry =   SetMinMax ( ADDFX_Sel_Entry or 1 ,  1 , #filtered_fx)
                     for i = 1, #filtered_fx do
                         local ShownName
-                        if filtered_fx[i]:find('.vst') then   local fx = filtered_fx[i]
-                            ShownName = fx:sub(5,fx:find('.vst')-1)
+                        if filtered_fx[i]:find('VST:') then   local fx = filtered_fx[i]
+                            ShownName = fx:sub(5,(fx:find('.vst') or 999)-1)
                             local clr = FX_Adder_VST or CustomColorsDefault.FX_Adder_VST
                             MyText('VST', nil, clr) SL()
                             HighlightSelectedItem(nil, clr, 0 ,L,T,R,B,h,w, 1, 1,'GetItemRect')
                         elseif filtered_fx[i]:find('VST3:') then  local fx = filtered_fx[i]
-                            ShownName = fx:sub(6)
+                            ShownName = fx:sub(6)..'##vst3'
                             local clr = FX_Adder_VST3 or CustomColorsDefault.FX_Adder_VST3
                             MyText('VST3', nil, clr) SL()
                             HighlightSelectedItem(nil, clr, 0 ,L,T,R,B,h,w, 1, 1,'GetItemRect')
@@ -2898,10 +2920,10 @@
                             local clr = FX_Adder_AU or CustomColorsDefault.FX_Adder_AU
                             MyText('AU', nil, clr) SL()
                             HighlightSelectedItem(nil, clr, 0 ,L,T,R,B,h,w, 1, 1,'GetItemRect')
-
                         end
 
-                        if r.ImGui_Selectable(ctx, ShownName or filtered_fx[i], DRAG_FX == i) then
+                        if r.ImGui_Selectable(ctx,ShownName or filtered_fx[i], DRAG_FX == i) then
+                            --msg(filtered_fx[i])
                             InsertFX (filtered_fx[i])
                             r.ImGui_CloseCurrentPopup(ctx)
                             close = true 
@@ -2918,9 +2940,9 @@
                     end
                     
                     if r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_Enter()) then 
+                        msg(filtered_fx[ADDFX_Sel_Entry])
                         InsertFX (filtered_fx[ADDFX_Sel_Entry])
                         ADDFX_Sel_Entry = nil
-                        
                     elseif r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_UpArrow()) then 
                         ADDFX_Sel_Entry = ADDFX_Sel_Entry -1 
                     elseif r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_DownArrow()) then 
@@ -7496,7 +7518,7 @@ function loop()
                     Dvdr.Width[TblIdxForSpace] = Df.Dvdr_Width
                     if dropped then                 local FX_Idx = FX_Idx
                         if SpaceIsBeforeRackMixer=='End of PreFX' then FX_Idx = FX_Idx +1  end 
-                        r.TrackFX_AddByName( LT_Track, payload, false, -1000- FX_Idx )
+                        r.TrackFX_AddByName( LT_Track, payload, false, -1000- FX_Idx, false )
                         local FxID = r.TrackFX_GetFXGUID(LT_Track, FX_Idx)
                         local _, nm = r.TrackFX_GetFXName(LT_Track, FX_Idx) 
 
