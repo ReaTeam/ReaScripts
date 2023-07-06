@@ -1,7 +1,7 @@
 -- @description FX Devices
 -- @author Bryan Chi
--- @version 1.0beta9.6.2
--- @changelog -Fix FX adder
+-- @version 1.0beta9.6.2fix1
+-- @changelog -Fix console message popping up when adding fx with enter key
 -- @provides
 --   [effect] BryanChi_FX Devices/FXD Macros.jsfx
 --   [effect] BryanChi_FX Devices/FXD ReSpectrum.jsfx
@@ -49,7 +49,7 @@
 --   https://forum.cockos.com/showthread.php?t=263622
 
 --------------------------==  declare Initial Variables & Functions  ------------------------
-    VersionNumber = 'V1.0beta9.5.4-1 '
+    VersionNumber = 'V1.0beta9.6.2fix1 '
     FX_Add_Del_WaitTime=2
     r=reaper
 
@@ -2940,7 +2940,7 @@
                     end
                     
                     if r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_Enter()) then 
-                        msg(filtered_fx[ADDFX_Sel_Entry])
+
                         InsertFX (filtered_fx[ADDFX_Sel_Entry])
                         ADDFX_Sel_Entry = nil
                     elseif r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_UpArrow()) then 
