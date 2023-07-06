@@ -1,6 +1,6 @@
 -- @description FX Devices
 -- @author Bryan Chi
--- @version 1.0beta9.6.2fix1
+-- @version 1.0beta9.6.2.1
 -- @changelog -Fix console message popping up when adding fx with enter key
 -- @provides
 --   [effect] BryanChi_FX Devices/FXD Macros.jsfx
