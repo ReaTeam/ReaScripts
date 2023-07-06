@@ -49,7 +49,7 @@
 --   https://forum.cockos.com/showthread.php?t=263622
 
 --------------------------==  declare Initial Variables & Functions  ------------------------
-    VersionNumber = 'V1.0beta9.6.2fix1 '
+    VersionNumber = 'V1.0beta9.6.2.1 '
     FX_Add_Del_WaitTime=2
     r=reaper
 
