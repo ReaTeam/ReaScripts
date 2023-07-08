@@ -2,7 +2,6 @@
 -- @author Bryan Chi
 -- @version 1.0beta9.6.3
 -- @changelog
---   FX Devices 9.6.3
 --   - Fix changing Modulator type not working.
 --   - Fix modulated parameters showing incorrect values after reopening script.
 --   - FX Adder : Get rid of ‘!!!VSTi’ for VST instrument FXs.
