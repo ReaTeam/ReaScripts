@@ -1,7 +1,13 @@
 -- @description FX Devices
 -- @author Bryan Chi
--- @version 1.0beta9.6.2.1
--- @changelog -Fix console message popping up when adding fx with enter key
+-- @version 1.0beta9.6.3
+-- @changelog
+--   FX Devices 9.6.3
+--   - Fix changing Modulator type not working.
+--   - Fix modulated parameters showing incorrect values after reopening script.
+--   - FX Adder : Get rid of ‘!!!VSTi’ for VST instrument FXs.
+--   - FX Adder: Remove <SHELL> Entries from waves plugins.
+--   - Pre-FX : Fix misbehaviour when moving FX around when ‘FXD Macros’ is in the first slot of FX Chain.
 -- @provides
 --   [effect] BryanChi_FX Devices/FXD Macros.jsfx
 --   [effect] BryanChi_FX Devices/FXD ReSpectrum.jsfx
@@ -49,7 +55,7 @@
 --   https://forum.cockos.com/showthread.php?t=263622
 
 --------------------------==  declare Initial Variables & Functions  ------------------------
-    VersionNumber = 'V1.0beta9.6.2.1 '
+    VersionNumber = 'V1.0beta9.5.4-1 '
     FX_Add_Del_WaitTime=2
     r=reaper
 
@@ -2759,6 +2765,8 @@
                 end
 
             end
+            if vst_name then     vst_name = vst_name:gsub('!!!VSTi', '') end
+            if vst_name == 'VST:<SHELL>' or vst_name =='VST3:<SHELL>'  then vst_name =nil end 
             if vst_name then return vst_name end
         end
 
@@ -3392,7 +3400,7 @@
         if Knob_Active == true then 
             if IsLBtnHeld == false then Knob_Active = false end
         end
-
+        
         if is_active and -mouse_delta[2] ~= 0.0 then
             local stepscale = 1
             if ModifierHeld == Shift then stepscale = 3 end
@@ -4648,6 +4656,9 @@
         end
         
         if --[[Assign Mod]] AssigningMacro  and r.ImGui_IsItemClicked(ctx,1)   then 
+            local _, ValBeforeMod  r.GetSetMediaTrackInfo_String(LT_Track,'P_EXT: FX'..FxGUID..'Prm'..Fx_P.. 'Value before modulation' , '', false    )  
+            if not ValBeforeMod then r.GetSetMediaTrackInfo_String(LT_Track,'P_EXT: FX'..FxGUID..'Prm'..Fx_P.. 'Value before modulation' , FX[FxGUID][Fx_P].V, true    )   end 
+
             
             Trk.Prm.Assign = FP.WhichCC 
             --store which param has which Macros assigned
@@ -6829,12 +6840,14 @@ function loop()
                                 end
                                 SmallSEQActive =  true 
 
-                            elseif r.ImGui_IsItemClicked(ctx,1) then 
+                            elseif r.ImGui_IsItemClicked(ctx,1) and  Mods==0 then   
                                 if AssigningMacro then AssigningMacro = nil else AssigningMacro=i end 
                             elseif r.ImGui_IsItemDeactivated( ctx) then 
 
                                 r.GetSetMediaTrackInfo_String(LT_Track, 'P_EXT: Macro '..i..' SEQ Step = '.. St..' Val',  S[St], true   )
                             end
+
+
                             local W,H = r.ImGui_GetItemRectSize(ctx)   
                             local Clr = Change_Clr_A(EightColors.Bright_HighSat[i], -0.5)
                             if r.ImGui_IsItemActive(ctx)  then Clr = EightColors.Bright_HighSat[i]
@@ -6865,6 +6878,7 @@ function loop()
                                         r.gmem_write(4, 8)--[[tells JSFX user is tweaking seq length or DNom]]
                                         r.gmem_write(5, i)--[[tells JSFX the macro]]
                                         r.gmem_write(111, Trk[TrkID].SEQ_Dnom[i])
+                                        r.gmem_write(110,Trk[TrkID].SEQL[i] or  SEQ_Default_Num_of_Steps) 
                                         r.GetSetMediaTrackInfo_String(LT_Track, 'P_EXT: Macro '..i..' SEQ Denominator', Trk[TrkID].SEQ_Dnom[i], true )
                                     end
                                 end
@@ -6872,6 +6886,7 @@ function loop()
                                 local function writeSEQGmem ()  
                                     if AddMacroJSFX() then 
                                         r.gmem_write(4, 8) r.gmem_write(5, i) r.gmem_write(110, Trk[TrkID].SEQL[i])
+                                        r.gmem_write(111, Trk[TrkID].SEQ_Dnom[i] or SEQ_Default_Denom)
                                         r.GetSetMediaTrackInfo_String(LT_Track, 'P_EXT: Macro '..i..' SEQ Length', Trk[TrkID].SEQL[i], true )
                                     end
                                 end
@@ -7106,7 +7121,6 @@ function loop()
                         SetTypeToEnv()
                         SetTypeToStepSEQ()
                         SetTypeToFollower()
-
                         r.ImGui_EndPopup(ctx)
                     elseif r.ImGui_BeginPopup(ctx, 'Env'..i..'Menu') then 
                         SetTypeToMacro()
@@ -7155,16 +7169,20 @@ function loop()
             --------------==  Space between FXs--------------------
             function AddSpaceBtwnFXs(FX_Idx, SpaceIsBeforeRackMixer, AddLastSpace, LyrID, SpcIDinPost, FxGUID_Container,AdditionalWidth)
                 local SpcIsInPre, Hide, SpcInPost, MoveTarget
-
-                if FX_Idx == 1 and r.TrackFX_AddByName(LT_Track, 'FXD Macros', 0, 0) ~= -1 then FX_Idx=FX_Idx-1 else FX_Idx =FX_Idx end 
+                
+                
+                if FX_Idx == 0 and r.TrackFX_AddByName(LT_Track, 'FXD Macros', 0, 0) ~= -1 then FX_Idx = 1 end 
+                --if FX_Idx == 1 and r.TrackFX_AddByName(LT_Track, 'FXD Macros', 0, 0) ~= -1 then FX_Idx=FX_Idx-1 else FX_Idx =FX_Idx end 
                 TblIdxForSpace = FX_Idx..tostring (SpaceIsBeforeRackMixer)
                 FXGUID_To_Check_If_InLayer=r.TrackFX_GetFXGUID(LT_Track, FX_Idx)
                 if Trk[TrkID].PreFX[1] then
+                    local offset 
+                    if r.TrackFX_AddByName(LT_Track, 'FXD Macros', 0, 0) ~= -1 then offset = 1 else offset =0 end 
                     if SpaceIsBeforeRackMixer=='End of PreFX' then 
                         SpcIsInPre = true 
                         if Trk[TrkID].PreFX_Hide then Hide = true end 
                         MoveTarget=FX_Idx+1
-                    elseif FX_Idx+1 <= #Trk[TrkID].PreFX and SpaceIsBeforeRackMixer ~='End of PreFX' then 
+                    elseif FX_Idx+1-offset <= #Trk[TrkID].PreFX and SpaceIsBeforeRackMixer ~='End of PreFX' then 
                         SpcIsInPre = true  ; if Trk[TrkID].PreFX_Hide then Hide = true end 
                     end
                 end
@@ -7343,6 +7361,7 @@ function loop()
                     if SpcInPost then  SpcIsInPre=false  end 
 
                     if SpcIsInPre then 
+
                         if not tablefind(Trk[TrkID].PreFX, FXGUID[DragFX_ID]) then -- if fx is not in pre fx  
                             
                             if SpaceIsBeforeRackMixer=='End of PreFX' then 
@@ -7350,18 +7369,21 @@ function loop()
                                 r.TrackFX_CopyToTrack( LT_Track, DragFX_ID, LT_Track, FX_Idx+1, true  )
                                 DontMove = true 
                             else table.insert(Trk[TrkID].PreFX,FX_Idx+1 ,FXGUID[DragFX_ID]) 
-                            end
+                            end 
+
                         else -- if fx is in pre fx
+                            local offset = 0 
+                            if r.TrackFX_AddByName(LT_Track, 'FXD Macros', 0, 0) ~= -1 then offset = -1 end 
                             if FX_Idx < DragFX_ID then  -- if drag towards left
-                                table.remove(Trk[TrkID].PreFX, DragFX_ID+1)
-                                table.insert(Trk[TrkID].PreFX, FX_Idx+1,FXGUID[DragFX_ID]) 
+                                table.remove(Trk[TrkID].PreFX, DragFX_ID+1+offset)
+                                table.insert(Trk[TrkID].PreFX, FX_Idx+1+offset,FXGUID[DragFX_ID]) 
                             elseif SpaceIsBeforeRackMixer=='End of PreFX' then  
                                 table.insert(Trk[TrkID].PreFX,#Trk[TrkID].PreFX+1,FXGUID[DragFX_ID])
-                                table.remove(Trk[TrkID].PreFX, DragFX_ID+1)
+                                table.remove(Trk[TrkID].PreFX, DragFX_ID+1+offset)
                                 --move fx down 
                             else
-                                table.insert(Trk[TrkID].PreFX, FX_Idx+1,FXGUID[DragFX_ID])
-                                table.remove(Trk[TrkID].PreFX, DragFX_ID+1)
+                                table.insert(Trk[TrkID].PreFX, FX_Idx+1+offset,FXGUID[DragFX_ID])
+                                table.remove(Trk[TrkID].PreFX, DragFX_ID+1+offset)
                             end
                         end
 
@@ -7371,8 +7393,6 @@ function loop()
                         end
                         FX.InLyr[FXGUID[DragFX_ID]]=nil
                     elseif SpcInPost then       local offset 
-
-
 
                         if r.TrackFX_AddByName(LT_Track, 'FXD Macros', 0, 0) == -1 then offset = -1 else offset =0 end 
 
@@ -7671,23 +7691,28 @@ function loop()
                     if r.ImGui_BeginDragDropTarget(ctx)    then     
                         if Payload_Type=='FX_Drag' then 
                             local allowDropNext, MoveFromPostToNorm , DontAllowDrop   local FX_Idx=FX_Idx
-                            if Mods == Apl then allowDropNext = true end 
-                            if tablefind(Trk[TrkID].PreFX,FXGUID[DragFX_ID]) and (not SpcIsInPre or SpaceIsBeforeRackMixer=='End of PreFX') then allowDropNext= true end 
-                            if tablefind(Trk[TrkID].PostFX,FXGUID[DragFX_ID]) and (not SpcInPost or AddLastSpace == 'LastSpc') then allowDropNext= true ; MoveFromPostToNorm=true end 
+                            if Mods == Apl then allowDropNext = true end    
+
+
+
+                            if tablefind(Trk[TrkID].PreFX,FXGUID[DragFX_ID]) and (not SpcIsInPre or SpaceIsBeforeRackMixer=='End of PreFX') then allowDropNext= true  end 
+                            if tablefind(Trk[TrkID].PostFX,FXGUID[DragFX_ID]) and (not SpcInPost or AddLastSpace == 'LastSpc') then allowDropNext= true ; MoveFromPostToNorm=true   end 
                             if FX[FXGUID[DragFX_ID]].InWhichBand then allowDropNext = true end 
                             if not FX[FXGUID[DragFX_ID]].InWhichBand and SpaceIsBeforeRackMixer == 'SpcInBS' then allowDropNext = true end 
                             --[[  if (FX.Win_Name_S[DragFX_ID]or''):find('Pro%-C 2') then 
                                 FX_Idx = FX_Idx-1 
                                 if (DragFX_ID  == FX_Idx +1) or (DragFX_ID == FX_Idx-1)  then DontAllowDrop = true end 
                             end  ]]
-                            
-                            if (DragFX_ID == FX_Idx or DragFX_ID  == FX_Idx - 1)  and SpaceIsBeforeRackMixer ~= true and FX.InLyr[FXGUID[DragFX_ID]]== nil and not SpcInPost and not allowDropNext
+
+                            if r.TrackFX_AddByName(LT_Track, 'FXD Macros', 0, 0) ~= -1 then offset = 0 else offset =0 end 
+                            --if allowDropNext then msg('allow drop next') end
+                            if (DragFX_ID+offset == FX_Idx or DragFX_ID+offset  == FX_Idx - 1)  and SpaceIsBeforeRackMixer ~= true and FX.InLyr[FXGUID[DragFX_ID]]== nil and not SpcInPost and not allowDropNext
                             or  (Trk[TrkID].PreFX[#Trk[TrkID].PreFX]==FXGUID[DragFX_ID] and SpaceIsBeforeRackMixer=='End of PreFX')  or DontAllowDrop   then 
                                 r.ImGui_SameLine(ctx, nil, 0)
 
                                 Dvdr.Width[TblIdxForSpace]=0
                                 r.ImGui_EndDragDropTarget(ctx)
-                            else
+                            else      
 
                                 HighlightSelectedItem(0xffffff22,nil, 0, L,T,R,B,h,w, 0, 0,'GetItemRect', Foreground)
 
@@ -9710,13 +9735,15 @@ function loop()
                                                 local Prm = FP
                                                 local F_Tp= FX.Prm.ToTrkPrm[FxGUID..Fx_P]
                                                 if Prm then 
+
+                                                    --Prm.V = Prm.V or r.TrackFX_GetParamNormalized(LT_Track, FX_Idx, Prm.Num) 
                                                     --- Add Parameter controls ---------
                                                     if Prm.Type == 'Slider' or (not Prm.Type and not FX.Def_Type[FxGUID] ) or  FX.Def_Type[FxGUID] =='Slider'  then 
                                                         AddSlider(ctx, '##'..(Prm.Name or Fx_P), Prm.CustomLbl, Prm.V or 0, 0, 1, Fx_P,FX_Idx, Prm.Num ,Style, Prm.Sldr_W or FX.Def_Sldr_W[FxGUID]  ,0, Disable, Vertical, GrabSize,Prm.Lbl, 8)
                                                         MakeItemEditable(FxGUID,Fx_P,Prm.Sldr_W,'Sldr', curX,CurY)
                                                     elseif FP.Type =='Knob' or (FX.Def_Type[FxGUID]=='Knob' and Prm.Type==nil ) then                                                
-
-                                                        AddKnob(ctx, '##'..Prm.Name, Prm.CustomLbl, Prm.V or 0, 0, 1, Fx_P,FX_Idx, Prm.Num ,Prm.Style, Prm.Sldr_W or Df.KnobRadius, 0, Disabled,Prm.FontSize, Prm.Lbl_Pos or 'Bottom', Prm.V_Pos )
+                                                         
+                                                        AddKnob(ctx, '##'..Prm.Name, Prm.CustomLbl, Prm.V , 0, 1, Fx_P,FX_Idx, Prm.Num ,Prm.Style, Prm.Sldr_W or Df.KnobRadius, 0, Disabled,Prm.FontSize, Prm.Lbl_Pos or 'Bottom', Prm.V_Pos )
                                                         MakeItemEditable(FxGUID,Fx_P,Prm.Sldr_W,'Knob', curX,CurY)
                                                     elseif Prm.Type =='V-Slider'or (FX.Def_Type[FxGUID]=='V-Slider' ) then 
                                                         AddSlider(ctx, '##'..Prm.Name, Prm.CustomLbl, Prm.V or 0, 0, 1, Fx_P,FX_Idx, Prm.Num ,Style, Prm.Sldr_W or 15,0, Disable, 'Vert', GrabSize,Prm.Lbl, nil, Prm.Sldr_H or 160)
@@ -13078,7 +13105,7 @@ function loop()
                         pin = r.TrackFX_GetPinMappings(LT_Track, FX_Idx, 0,0)
                         
 
-                    elseif FX_Name:find('FXD Saike BandSplitter') then       local Width, BtnWidth = 65, 25        
+                    elseif FX_Name:find('FXD Saike BandSplitter') then       local Width, BtnWidth = 65, 25  
                         local WinL, WinT,H,WinR
                         local WDL = WDL or r.ImGui_GetWindowDrawList(ctx)
 
@@ -13998,7 +14025,7 @@ function loop()
 
                     ------- Pre FX Chain --------------
                     local FXisInPreChain, offset=nil,0
-                    if MacroPos==0 then offset = 1 end 
+                    if MacroPos==0 then offset = 1 end --else offset = 0
                     if Trk[TrkID].PreFX[1] then 
                         if Trk[TrkID].PreFX[FX_Idx+1-offset]== FXGUID[FX_Idx] then 
                             FXisInPreChain=true  
