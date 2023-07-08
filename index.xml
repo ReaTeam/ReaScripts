@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="65f37632ae58bf69e9ded16c049253ffc4c426e7" name="ReaTeam Scripts">
+<index version="1" commit="551091d503ab641b15addaac16b5f7af3335ee69" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -6862,13 +6862,17 @@ website
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Options window can be opened by pressing the shortcut assigned the script when mouse placed on transport or mixer panel.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Use top/bottom mouse placement on the item to define what fade you need, in or out.\par}
 {\pard \ql \f0 \sa180 \li360 \fi0 There is two ways that you can change in the options.\par}
-{\pard \ql \f0 \sa180 \li360 \fi0 \f1   Default is: top / bottom - fadein / fadeout\line
+{\pard \ql \f0 \sa180 \li360 \fi0 \f1   Default is: top / bottom -> fadein / fadeout\line
 \line
-  Another is: top / bottom - close edge fade / far edge fade\par}
+  Another is: top / bottom -> close edge fade / far edge fade\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Use razor edit area for fades and crossfades a pair of items.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Use time selection with item selection. Such way you can crossfade items on different tracks.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Also you can set both fades for item by selection it's middle part.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Create batch fades / crossfades if there is at least one whole item in the area .\sa180\par}
+{\pard \qc \f0 \sa180 \li0 \fi0 \emdash\emdash\emdash\emdash\emdash\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Use razor edit to create envelope transitions\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Different mouse cursors define different behavior\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab You can mirror item fade in envelopes using razor and mouse placement\sa180\par}
 {\pard \qc \f0 \sa180 \li0 \fi0 \emdash\emdash\emdash\emdash\emdash\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab There is an option (ON by default) to move edit cursor with offset before first fade. That allows you to listen changes immediately.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Locking respected by default.\par}
@@ -6877,6 +6881,7 @@ website
 {\pard \ql \f0 \sa180 \li0 \fi0 P.S. There is experimental support for fixed media lanes being in pre-release versions.\par}
 }
 ]]></description>
+        <link rel="website" href="https://forum.cockos.com/member.php?u=135221">Author's page</link>
       </metadata>
       <version name="1.0" author="AZ" time="2022-01-30T18:21:52Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d2612ce21752277c396fb7689081b5728438d69c/Items%20Editing/az_Fade%20tool%20(work%20on%20context%20of%20mouse,%20razor%20or%20time%20selection).lua</source>
@@ -6893,6 +6898,11 @@ website
 - batch fades/crossfades work for many tracks at ones.
 - last batch values can be saved in project (by default)]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d025e519f534e125564e45f04c8c87cb55f5834a/Items%20Editing/az_Fade%20tool%20(work%20on%20context%20of%20mouse,%20razor%20or%20time%20selection).lua</source>
+      </version>
+      <version name="1.3" author="AZ" time="2023-07-08T01:14:13Z">
+        <changelog><![CDATA[- Creating envelope transitions via razor
+- Ability to mirror item fade in envelopes using razor and mouse placement]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/551091d503ab641b15addaac16b5f7af3335ee69/Items%20Editing/az_Fade%20tool%20(work%20on%20context%20of%20mouse,%20razor%20or%20time%20selection).lua</source>
       </version>
     </reapack>
     <reapack name="az_Open item copy in primary external editor with handles.lua" type="script" desc="Open item copy in primary external editor with handles">
