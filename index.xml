@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="22ba8b370e365af4ceeb6f072fda0639b977ca36" name="ReaTeam Scripts">
+<index version="1" commit="c132720e18c28f9bb8ae1208d646d422d1663b1b" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -21560,7 +21560,7 @@ Fix mouse cursor click hit detection in small windows]]></changelog>
         <link rel="donation">https://reapack.com/donate</link>
       </metadata>
       <version name="1.0" author="cfillion" time="2023-07-17T04:28:42Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/22ba8b370e365af4ceeb6f072fda0639b977ca36/Various/cfillion_Docker%20placeholders.lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c132720e18c28f9bb8ae1208d646d422d1663b1b/Various/cfillion_Docker%20placeholders.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Enable or disable external timecode synchronization.lua" type="script" desc="Enable or disable external timecode synchronization">
