@@ -54,7 +54,9 @@ function loop()
   local visible, open = ImGui.Begin(ctx, 'Docker placeholders', true,
     ImGui.WindowFlags_AlwaysAutoResize())
   if visible then
-    ImGui.TextWrapped(ctx, 'Click on a docker in the list below to open a placeholder window in that docker.')
+    ImGui.PushTextWrapPos(ctx, 160)
+    ImGui.Text(ctx, 'Click on a docker in the list below to open a placeholder window in that docker.')
+    ImGui.PopTextWrapPos(ctx)
     ImGui.Spacing(ctx)
     ImGui.PushStyleVar(ctx, ImGui.StyleVar_FramePadding(), 0, 0)
     for i=0,15 do checkbox(i) end
