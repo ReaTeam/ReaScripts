@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="80081fbe1984c6be4a617599a759618394731503" name="ReaTeam Scripts">
+<index version="1" commit="22ba8b370e365af4ceeb6f072fda0639b977ca36" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -21543,6 +21543,24 @@ Try harder to fit the button in very small windows]]></changelog>
         <changelog><![CDATA[Show the button even if the window cannot fit the text
 Fix mouse cursor click hit detection in small windows]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a25eec49940dfd08a0ff44831f97d90884018f39/Various/cfillion_Big%20Repeat%20Button.lua</source>
+      </version>
+    </reapack>
+    <reapack name="cfillion_Docker placeholders.lua" type="script" desc="Docker placeholders">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Docker placeholders\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Open a placeholder window in any of REAPER's 16 dockers.\par}
+}
+]]></description>
+        <link rel="website" href="https://forum.cockos.com/showthread.php?p=2693350">Request thread</link>
+        <link rel="screenshot">https://i.imgur.com/UxnT1pp.gif</link>
+        <link rel="donation">https://reapack.com/donate</link>
+      </metadata>
+      <version name="1.0" author="cfillion" time="2023-07-17T04:28:42Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/22ba8b370e365af4ceeb6f072fda0639b977ca36/Various/cfillion_Docker%20placeholders.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Enable or disable external timecode synchronization.lua" type="script" desc="Enable or disable external timecode synchronization">
