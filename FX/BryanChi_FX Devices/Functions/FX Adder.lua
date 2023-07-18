@@ -237,11 +237,12 @@
                             HighlightSelectedItem(nil, clr, 0 ,L,T,R,B,h,w, 1, 1,'GetItemRect')
                         end
 
-                        if r.ImGui_Selectable(ctx,ShownName or filtered_fx[i], DRAG_FX == i) then
-                            --msg(filtered_fx[i])
-                            InsertFX (filtered_fx[i])
-                            r.ImGui_CloseCurrentPopup(ctx)
-                            close = true 
+                        if r.ImGui_Selectable(ctx,ShownName or filtered_fx[i] or '## emptyName', DRAG_FX == i) then
+                            if filtered_fx[i] then 
+                                InsertFX (filtered_fx[i])
+                                r.ImGui_CloseCurrentPopup(ctx)
+                                close = true 
+                            end
                         end
                         if i==ADDFX_Sel_Entry then 
                             HighlightSelectedItem(0xffffff11, nil, 0, L,T,R,B,h,w, 1, 1,'GetItemRect')
