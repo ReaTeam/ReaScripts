@@ -2,9 +2,9 @@
 -- @author Bryan Chi
 -- @version 1.0beta9.6.4
 -- @changelog
---   -Added Keyboard Shortcut Editor.
---
---   -Cleaned up script by splitting functions into corresponding individual files in 'Functions' folder.
+--   -Fix parameters in ImGui not syncing with plugin when adjusting parameter values through plugin window.
+--   -Fix unable to select any item in layout edit mode.
+--   - add .lua to theme editor functions file name.
 -- @provides
 --   [effect] BryanChi_FX Devices/FXD Macros.jsfx
 --   [effect] BryanChi_FX Devices/FXD ReSpectrum.jsfx
@@ -53,7 +53,7 @@
 --   BryanChi_FX Devices/Functions/FX Adder.lua
 --   BryanChi_FX Devices/Functions/Layout Editor functions.lua
 --   BryanChi_FX Devices/Functions/Modulation.lua
---   BryanChi_FX Devices/Functions/Theme Editor Functions
+--   BryanChi_FX Devices/Functions/Theme Editor Functions.lua
 -- @about
 --   Please check the forum post for info:
 --   https://forum.cockos.com/showthread.php?t=263622
