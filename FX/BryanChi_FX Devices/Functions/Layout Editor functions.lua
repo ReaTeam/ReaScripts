@@ -419,7 +419,7 @@
         
         if is_active and -mouse_delta[2] ~= 0.0 then
             local stepscale = 1
-            if ModifierHeld == Shift then stepscale = 3 end
+            if Mods == Shift then stepscale = 3 end
             local step = (v_max - v_min) / (200.0*stepscale)
             p_value = p_value + (-mouse_delta[2] * step)
             if p_value < v_min then p_value = v_min end
@@ -722,6 +722,8 @@
         local AlreadyAddPrm = false 
 
         if LT_ParamNum == P_Num and focusedFXState==1 and LT_FXGUID== FxGUID and not FP.WhichCC  then
+            local LT_ParamValue=r.TrackFX_GetParamNormalized(LT_Track,LT_FX_Number,LT_ParamNum)
+
             p_value = LT_ParamValue
             FX[FxGUID][Fx_P].V =p_value
 
@@ -1011,7 +1013,9 @@
             local AlreadyAddPrm = false 
 
             if LT_ParamNum == P_Num and focusedFXState==1 and LT_FXGUID== FxGUID and not FP.WhichCC then
-                FP.V = LT_ParamValue
+                local LT_ParamValue=r.TrackFX_GetParamNormalized(LT_Track,LT_FX_Number,LT_ParamNum)
+
+                FX[FxGUID][Fx_P].V = LT_ParamValue
 
                 reaper.ImGui_DrawList_AddRectFilled(draw_list, PosL, PosT,PosR,PosB, 0x99999922, Rounding)
                 reaper.ImGui_DrawList_AddRect(draw_list, PosL, PosT,PosR,PosB, 0x99999966,Rounding)
@@ -1438,6 +1442,8 @@
         local AlreadyAddPrm = false 
 
         if LT_ParamNum == P_Num and focusedFXState==1 and LT_FXGUID== FxGUID and FX[FxGUID][Fx_P].Name and not FP.WhichCC then
+            local LT_ParamValue=r.TrackFX_GetParamNormalized(LT_Track,LT_FX_Number,LT_ParamNum)
+
             FX[FxGUID][Fx_P].V = LT_ParamValue
             reaper.ImGui_DrawList_AddRectFilled(draw_list, PosL, PosT,PosR,PosB, 0x99999922, Rounding)
             reaper.ImGui_DrawList_AddRect(draw_list, PosL, PosT,PosR,PosB, 0x99999966,Rounding)
@@ -2229,15 +2235,16 @@
 
             --- if mouse is on an item
             if MouseX > L and MouseX<R-5 and MouseY >T and MouseY < B  then 
-                if LBtnRel and Max_L_MouseDownDuration<0.1 and ModifierHeld==0  then 
+                if LBtnRel and Max_L_MouseDownDuration<0.1 and Mods==0  then 
                     LE.Sel_Items={} 
                     table.insert(LE.Sel_Items,Fx_P)
                 end 
 
-                if IsLBtnClicked and ModifierHeld==0 then 
+                if IsLBtnClicked and Mods==0 then 
+
                     LE.SelectedItem = Fx_P
                     
-                elseif IsLBtnClicked and ModifierHeld==Shift then 
+                elseif IsLBtnClicked and Mods==Shift then 
                     local ClickOnSelItem, ClickedItmNum
                     for i, v in pairs (LE.Sel_Items) do     
                         if v == Fx_P then 
@@ -2357,7 +2364,7 @@
                 elseif ItemWidth < 5 and ItemType =='V-Slider' then ItemWidth = 4
                 end
 
-                if ModifierHeld == 0 then ItemWidth = ItemWidth+ Dx end 
+                if Mods == 0 then ItemWidth = ItemWidth+ Dx end 
 
                 if ItemType =='Sldr' or ItemType =='V-Slider' or ItemType =='Drag' or ItemType == 'Selection' or ItemType == 'Switch' then
                     FX[FxGUID][Fx_P].Sldr_W =  ItemWidth
@@ -2374,7 +2381,7 @@
                 local Dx,Dy = r.ImGui_GetMouseDelta(ctx)
                 if not FX[FxGUID][Fx_P].Sldr_W  then FX[FxGUID][Fx_P].Sldr_W  = Df.KnobRadius end
                 local DiagDrag = (Dx+Dy) /2 
-                if ModifierHeld == 0 then 
+                if Mods == 0 then 
                     FX[FxGUID][Fx_P].Sldr_W = FX[FxGUID][Fx_P].Sldr_W+ DiagDrag;  
                 end
                 if LBtnRel and  LE.ChangeRaius==Fx_P then FX[FxGUID][Fx_P].Sldr_W = roundUp(FX[FxGUID][Fx_P].Sldr_W, LE.GridSize/2) end 
