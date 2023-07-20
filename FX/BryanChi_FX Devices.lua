@@ -58,7 +58,7 @@
 --   https://forum.cockos.com/showthread.php?t=263622
 
 --------------------------==  declare Initial Variables & Functions  ------------------------
-VersionNumber = 'V1.0beta9.6.4 '
+VersionNumber = 'V1.0beta9.6.6 '
 FX_Add_Del_WaitTime=2
 r=reaper
 
@@ -796,7 +796,7 @@ if visible  then
                     --[[ local commandID = r.NamedCommandLookup('_BR_FOCUS_ARRANGE_WND')
                     local CommandTxt =  r.CF_GetCommandText(0, commandID) -- 0 prob means arrange window, it's the section drop down from action window's top right corner
                     r.Main_OnCommand(commandID, 0) ]]
-                    msg('A '..v.. '\n')
+
                     if Command_ID[i] then 
                         local Cmd_Num = r.NamedCommandLookup(Command_ID[i])
                         r.Main_OnCommand(Cmd_Num, 0)
@@ -821,7 +821,7 @@ if visible  then
 
 
                 if Mods == Mod and  r.ImGui_IsKeyPressed(ctx,  AllAvailableKeys[AftrLastPlus] )  then 
-                    msg('B'..v..'\n')
+
                     if Command_ID[i] then 
                         local Cmd_Num = r.NamedCommandLookup(Command_ID[i])
                         r.Main_OnCommand(Cmd_Num, 0)
