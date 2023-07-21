@@ -1,7 +1,7 @@
 -- @description FX Devices
 -- @author Bryan Chi
--- @version 1.0beta9.6.6-1
--- @changelog - fix unable to open script
+-- @version 1.0beta9.6.6-2
+-- @changelog - fix unable to open script.... 2nd attempt...
 -- @provides
 --   [effect] BryanChi_FX Devices/FXD Macros.jsfx
 --   [effect] BryanChi_FX Devices/FXD ReSpectrum.jsfx
@@ -56,8 +56,9 @@
 --   https://forum.cockos.com/showthread.php?t=263622
 
 
+
 --------------------------==  declare Initial Variables & Functions  ------------------------
-VersionNumber = 'V1.0beta9.6.6-1 '
+VersionNumber = 'V1.0beta9.6.6-2 '
 FX_Add_Del_WaitTime = 2
 r = reaper
 
