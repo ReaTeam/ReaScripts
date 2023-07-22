@@ -1,7 +1,9 @@
 -- @description FX Devices
 -- @author Bryan Chi
--- @version 1.0beta9.6.6-2
--- @changelog - fix unable to open script.... 2nd attempt...
+-- @version 1.0beta9.6.6-3
+-- @changelog
+--   - Fix Theme editor saving empty entry crashes
+--   - Fix Pro-C 2 crash
 -- @provides
 --   [effect] BryanChi_FX Devices/FXD Macros.jsfx
 --   [effect] BryanChi_FX Devices/FXD ReSpectrum.jsfx
@@ -55,10 +57,8 @@
 --   Please check the forum post for info:
 --   https://forum.cockos.com/showthread.php?t=263622
 
-
-
 --------------------------==  declare Initial Variables & Functions  ------------------------
-VersionNumber = 'V1.0beta9.6.6-2 '
+VersionNumber = 'V1.0beta9.6.6-3 '
 FX_Add_Del_WaitTime = 2
 r = reaper
 
@@ -86,8 +86,19 @@ demo = {}
 app = {}
 enum_cache = {}
 cache = {}
-Draw = { Rect = {}, DrawMode = {}, ItemInst = {}, L = {}, R = {}, Y = {}, T = {}, B = {}, FxGUID = {}, Time = 0,
-    Df_EdgeRound = {} }
+Draw = {
+    Rect = {},
+    DrawMode = {},
+    ItemInst = {},
+    L = {},
+    R = {},
+    Y = {},
+    T = {},
+    B = {},
+    FxGUID = {},
+    Time = 0,
+    Df_EdgeRound = {}
+}
 AddFX = { Pos = {}, Name = {}, GUID = {} }
 DelFX = { Pos = {}, Name = {} }
 MovFX = { ToPos = {}, FromPos = {}, Lbl = {}, Copy = {} }
@@ -109,10 +120,20 @@ SEQ_Default_Denom = 1
 ----------- Custom Colors-------------------
 CustomColors = { 'Window_BG', 'FX_Devices_Bg', 'FX_Layer_Container_BG', 'Space_Between_FXs', 'Morph_A', 'Morph_B',
     'Layer_Solo', 'Layer_Mute', 'FX_Adder_VST', 'FX_Adder_VST3', 'FX_Adder_JS', 'FX_Adder_AU' }
-CustomColorsDefault = { Window_BG = 0x000000ff, FX_Devices_Bg = 0x151515ff, FX_Layer_Container_BG = 0x262626ff,
-    Space_Between_FXs = 0x131313ff, Morph_A = 0x22222266, Morph_B = 0x78787877, Layer_Solo = 0xDADF3775,
-    Layer_Mute = 0xBE01015C, FX_Adder_VST = 0x6FB74BFF, FX_Adder_VST3 = 0xC3DC5CFF, FX_Adder_JS = 0x9348A9FF,
-    FX_Adder_AU = 0x526D97FF }
+CustomColorsDefault = {
+    Window_BG = 0x000000ff,
+    FX_Devices_Bg = 0x151515ff,
+    FX_Layer_Container_BG = 0x262626ff,
+    Space_Between_FXs = 0x131313ff,
+    Morph_A = 0x22222266,
+    Morph_B = 0x78787877,
+    Layer_Solo = 0xDADF3775,
+    Layer_Mute = 0xBE01015C,
+    FX_Adder_VST = 0x6FB74BFF,
+    FX_Adder_VST3 = 0xC3DC5CFF,
+    FX_Adder_JS = 0x9348A9FF,
+    FX_Adder_AU = 0x526D97FF
+}
 
 
 
@@ -180,8 +201,12 @@ FXchain = { FxGUID = {}, wait = 0, }
 
 
 ----track--------------------------------
-Trk = { GUID = {}, Prm = { FXGUID = {}, Inst = {}, AssignWhich = {}, V = {}, O_V = {}, Num = {}, WhichMcros = {} },
-    FxGUID = {}, PreFX = {} }
+Trk = {
+    GUID = {},
+    Prm = { FXGUID = {}, Inst = {}, AssignWhich = {}, V = {}, O_V = {}, Num = {}, WhichMcros = {} },
+    FxGUID = {},
+    PreFX = {}
+}
 
 ------------------Divider---------------
 Dvdr = { Width = {}, Clr = {}, Spc_Hover = {}, RestoreNormWidthWait = 0, RestoreNormWidthWait = {}, JustDrop = {}, }
@@ -204,11 +229,41 @@ FX = {
     GrbRound = {},
     BgClr = {},
     Def_Sldr_W = {},
-    Prm = { V_Round = {}, V_FontSize = {}, ShowCondition = {}, ConditionPrm = {}, ConditionPrm_V = {}, Switch_W = {},
-        Combo_W = {}, Options = {}, BgClrHvr = {}, BgClrAct = {}, Lbl_Clr = {}, V_Clr = {}, DragDir = {}, Lbl_Pos = {},
-        V_Pos = {}, Style = {}, GrbClr = {}, BgClr = {}, Count = {}, Name = {}, Num = {}, V = {}, InitV = {},
-        AssignWhichParam = {}, ToTrkPrm = {}, Lbl = {}, PosX = {}, PosY = {}, VertSldr = {}, Type = {}, CustomLbl = {},
-        FontSize = {}, Sldr_H = {} }
+    Prm = {
+        V_Round = {},
+        V_FontSize = {},
+        ShowCondition = {},
+        ConditionPrm = {},
+        ConditionPrm_V = {},
+        Switch_W = {},
+        Combo_W = {},
+        Options = {},
+        BgClrHvr = {},
+        BgClrAct = {},
+        Lbl_Clr = {},
+        V_Clr = {},
+        DragDir = {},
+        Lbl_Pos = {},
+        V_Pos = {},
+        Style = {},
+        GrbClr = {},
+        BgClr = {},
+        Count = {},
+        Name = {},
+        Num = {},
+        V = {},
+        InitV = {},
+        AssignWhichParam = {},
+        ToTrkPrm = {},
+        Lbl = {},
+        PosX = {},
+        PosY = {},
+        VertSldr = {},
+        Type = {},
+        CustomLbl = {},
+        FontSize = {},
+        Sldr_H = {}
+    }
 }
 
 
@@ -402,8 +457,17 @@ Macro6Color = 0xb9ff21ff
 Macro7Color = 0x6fff21ff
 Macro8Color = 0x21ff6bff
 
-EightColors = { LowMidSat = {}, LowSat = {}, MidSat = {}, Bright = {}, Bright_HighSat = {}, HighSat_MidBright = {},
-    bgWhenAsgnMod = {}, bgWhenAsgnModAct = {}, bgWhenAsgnModHvr = {} }
+EightColors = {
+    LowMidSat = {},
+    LowSat = {},
+    MidSat = {},
+    Bright = {},
+    Bright_HighSat = {},
+    HighSat_MidBright = {},
+    bgWhenAsgnMod = {},
+    bgWhenAsgnModAct = {},
+    bgWhenAsgnModHvr = {}
+}
 for a = 1, 8, 1 do
     colors = reaper.ImGui_ColorConvertHSVtoRGB(0.08 * (a - 1), 0.25, 0.33, 0.25)
     table.insert(EightColors.LowSat, colors)
@@ -538,7 +602,7 @@ FontAwesome           = r.ImGui_CreateFont(script_folder .. '/IconFont1.ttf', 30
 function attachImages()
     Img = {
         Analog1 = r.ImGui_CreateImage(r.GetResourcePath() ..
-        '/Scripts/ReaTeam Scripts/FX/BryanChi_FX Devices/Images/Analog Knob 1.png'),
+            '/Scripts/ReaTeam Scripts/FX/BryanChi_FX Devices/Images/Analog Knob 1.png'),
 
     }
     r.ImGui_Attach(ctx, Img.Analog1)
@@ -627,7 +691,7 @@ for Track_Idx = 0, NumOfTotalTracks - 1, 1 do
     Trk[TrkID].Mod = {}
     Trk[TrkID].SEQL = Trk[TrkID].SEQL or {}
     Trk[TrkID].SEQ_Dnom = Trk[TrkID].SEQ_Dnom or {}
-    for i = 1, 8, 1 do  -- for every modulator
+    for i = 1, 8, 1 do -- for every modulator
         Trk[TrkID].Mod[i] = {}
         Trk[TrkID].Mod[i].ATK = tonumber(select(2,
             r.GetSetMediaTrackInfo_String(Track, 'P_EXT: Macro ' .. i .. ' Atk', '', false)))
@@ -721,11 +785,11 @@ for Track_Idx = 0, NumOfTotalTracks - 1, 1 do
         if FxGUID ~= nil then
             GetProjExt_FxNameNum(FxGUID)
 
-            _, FX.InLyr[FxGUID]         = r.GetProjExtState(0, 'FX Devices', 'FXLayer - ' .. 'is FX' ..
-            FxGUID .. 'in layer')
+            _, FX.InLyr[FxGUID]          = r.GetProjExtState(0, 'FX Devices', 'FXLayer - ' .. 'is FX' ..
+                FxGUID .. 'in layer')
             --FX.InLyr[FxGUID] = StringToBool[FX.InLyr[FxGUID]]
-            _, FX.LyrNum[FxGUID]        = r.GetProjExtState(0, 'FX Devices', 'FXLayer ' .. FxGUID .. 'LayerNum')
-            _, FX[FxGUID].inWhichLyr    = r.GetProjExtState(0, 'FX Devices', 'FXLayer - ' .. FxGUID .. 'is in Layer ID')
+            _, FX.LyrNum[FxGUID]         = r.GetProjExtState(0, 'FX Devices', 'FXLayer ' .. FxGUID .. 'LayerNum')
+            _, FX[FxGUID].inWhichLyr     = r.GetProjExtState(0, 'FX Devices', 'FXLayer - ' .. FxGUID .. 'is in Layer ID')
             _, FX[FxGUID].ContainerTitle = r.GetProjExtState(0, 'FX Devices - ',
                 'FX' .. FxGUID .. 'FX Layer Container Title ')
             if FX[FxGUID].ContainerTitle == '' then FX[FxGUID].ContainerTitle = nil end
@@ -756,11 +820,11 @@ for Track_Idx = 0, NumOfTotalTracks - 1, 1 do
             for Fx_P = 1, #FX[FxGUID] or 0, 1 do
                 FX[FxGUID][Fx_P].V = tonumber(select(2,
                     r.GetSetMediaTrackInfo_String(Track, 'P_EXT: FX' .. FxGUID .. 'Prm' ..
-                    Fx_P .. 'Value before modulation', '', false)))
+                        Fx_P .. 'Value before modulation', '', false)))
 
 
                 local ParamX_Value = 'Param' ..
-                tostring(FX[FxGUID][Fx_P].Name) .. 'On  ID:' .. tostring(Fx_P) .. 'value' .. FxGUID
+                    tostring(FX[FxGUID][Fx_P].Name) .. 'On  ID:' .. tostring(Fx_P) .. 'value' .. FxGUID
                 ParamValue_At_Script_Start = r.TrackFX_GetParamNormalized(Track, FX_Idx, FX[FxGUID][Fx_P].Num or 0)
                 _G[ParamX_Value] = ParamValue_At_Script_Start
                 _, FX.Prm.ToTrkPrm[FxGUID .. Fx_P] = r.GetProjExtState(0, 'FX Devices',
@@ -772,7 +836,7 @@ for Track_Idx = 0, NumOfTotalTracks - 1, 1 do
                 _G[ParamX_Value] = FX[FxGUID][Fx_P].V or 0
                 FX[FxGUID][Fx_P].WhichCC = tonumber(select(2,
                     r.GetSetMediaTrackInfo_String(Track, 'P_EXT: FX' .. FxGUID .. 'WhichCC' ..
-                    (FX[FxGUID][Fx_P].Num or 0), '', false)))
+                        (FX[FxGUID][Fx_P].Num or 0), '', false)))
                 _, FX[FxGUID][Fx_P].WhichMODs = r.GetSetMediaTrackInfo_String(Track,
                     'P_EXT: FX' .. FxGUID .. 'Prm' .. Fx_P .. 'Linked to which Mods', '', false)
                 if FX[FxGUID][Fx_P].WhichMODs == '' then FX[FxGUID][Fx_P].WhichMODs = nil end
@@ -784,7 +848,7 @@ for Track_Idx = 0, NumOfTotalTracks - 1, 1 do
                 for m = 1, 8, 1 do
                     FX[FxGUID][Fx_P].ModAMT[m] = tonumber(select(2,
                         r.GetSetMediaTrackInfo_String(Track, 'P_EXT: FX' .. FxGUID .. 'Prm' ..
-                        Fx_P .. 'Macro' .. m .. 'Mod Amt', '', false)))
+                            Fx_P .. 'Macro' .. m .. 'Mod Amt', '', false)))
                     if FX[FxGUID][Fx_P].ModAMT[m] then HasModAmt = true end
 
                     Trk[TrkID].Mod = Trk[TrkID].Mod or {}
@@ -844,8 +908,10 @@ for Track_Idx = 0, NumOfTotalTracks - 1, 1 do
                     'FX' .. FXGUIDofRackMixer .. 'Layer Title ' .. i)
                 if FX[FXGUIDofRackMixer].LyrTitle[i] == '' then FX[FXGUIDofRackMixer].LyrTitle[i] = nil end
                 FX[FXGUIDofRackMixer].LyrID[i] = tonumber(FX[FXGUIDofRackMixer].LyrID[i])
-                if FX[FXGUIDofRackMixer].LyrID[i] ~= -1 and FX[FXGUIDofRackMixer].LyrID[i] then FX[FXGUIDofRackMixer].ActiveLyrCount =
-                    FX[FXGUIDofRackMixer].ActiveLyrCount + 1 end
+                if FX[FXGUIDofRackMixer].LyrID[i] ~= -1 and FX[FXGUIDofRackMixer].LyrID[i] then
+                    FX[FXGUIDofRackMixer].ActiveLyrCount =
+                        FX[FXGUIDofRackMixer].ActiveLyrCount + 1
+                end
             end
 
 
@@ -856,7 +922,7 @@ for Track_Idx = 0, NumOfTotalTracks - 1, 1 do
             FX[FxGUID].BandSplitID = tonumber(select(2,
                 r.GetSetMediaTrackInfo_String(Track, 'P_EXT: BandSplitterID' .. FxGUID, '', false)))
             _, FX[FxGUID].AttachToJoiner = r.GetSetMediaTrackInfo_String(Track, 'P_EXT: Splitter\'s Joiner FxID ' ..
-            FxGUID, '', false)
+                FxGUID, '', false)
 
             for FX_Idx = 0, FXCount - 1, 1 do --repeat as many times as fx instances
                 --Restore Band Split
@@ -961,7 +1027,7 @@ function loop()
         ----------------- Keyboard Shortcuts ---------------
         if not r.ImGui_IsAnyItemActive(ctx) then
             for i, v in pairs(KB_Shortcut) do
-                if not v:find('+') then   --if shortcut has no modifier
+                if not v:find('+') then --if shortcut has no modifier
                     if r.ImGui_IsKeyPressed(ctx, AllAvailableKeys[v]) and Mods == 0 then
                         --[[ local commandID = r.NamedCommandLookup('_BR_FOCUS_ARRANGE_WND')
                         local CommandTxt =  r.CF_GetCommandText(0, commandID) -- 0 prob means arrange window, it's the section drop down from action window's top right corner
@@ -1205,19 +1271,21 @@ function loop()
             LBtnRel                = r.ImGui_IsMouseReleased(ctx, 0)
             RBtnRel                = r.ImGui_IsMouseReleased(ctx, 1)
             if IsLBtnClicked then Max_L_MouseDownDuration = nil end
-            if IsLBtnHeld then Max_L_MouseDownDuration = math.max(LBtn_MousdDownDuration or -1,
-                    Max_L_MouseDownDuration or -1) end
+            if IsLBtnHeld then
+                Max_L_MouseDownDuration = math.max(LBtn_MousdDownDuration or -1,
+                    Max_L_MouseDownDuration or -1)
+            end
 
             IsRBtnClicked = r.ImGui_IsMouseClicked(ctx, 1)
 
 
-            if r.ImGui_IsKeyDown(ctx, 49) then      -- if number 1 is pressed
+            if r.ImGui_IsKeyDown(ctx, 49) then -- if number 1 is pressed
                 ShowKeyCode = true
             end
 
             -- if ShowKeyCode then
             if ShowKeyCode then
-                for keynum = 0, 300, 1 do   --
+                for keynum = 0, 300, 1 do --
                     KeyDown = reaper.ImGui_IsKeyDown(ctx, keynum)
                     if KeyDown then
                         tooltip(tostring(keynum))
@@ -1228,7 +1296,7 @@ function loop()
             LBtnClickCount = r.ImGui_GetMouseClickedCount(ctx, 0)
             IsLBtnHeld = reaper.ImGui_IsMouseDown(ctx, 0)
             IsRBtnHeld = r.ImGui_IsMouseDown(ctx, 1)
-            Mods = reaper.ImGui_GetKeyMods(ctx)      -- Alt = 4  shift =2  ctrl = 1  Command=8
+            Mods = reaper.ImGui_GetKeyMods(ctx) -- Alt = 4  shift =2  ctrl = 1  Command=8
 
 
             -- end
@@ -1290,8 +1358,10 @@ function loop()
                             TimeNow = r.time_precise()
                         end
                     end
-                    if not RptPrmFound and LT_FXGUID then StoreNewParam(LT_FXGUID, LT_ParamName, LT_ParamNum, LT_FXNum,
-                            true --[[ , nil, #F+1  ]]) end
+                    if not RptPrmFound and LT_FXGUID then
+                        StoreNewParam(LT_FXGUID, LT_ParamName, LT_ParamNum, LT_FXNum,
+                            true --[[ , nil, #F+1  ]])
+                    end
                 end
             end
 
@@ -1360,7 +1430,7 @@ function loop()
             r.ImGui_Text(ctx, TrkName)
 
             TxtSz = r.ImGui_CalcTextSize(ctx, TrkName)
-            r.ImGui_SameLine(ctx, VP.w - TxtSz - 20, nil)   --r.ImGui_SetCursorPosX( ctx, BarR-50)
+            r.ImGui_SameLine(ctx, VP.w - TxtSz - 20, nil) --r.ImGui_SetCursorPosX( ctx, BarR-50)
 
 
 
@@ -1430,15 +1500,19 @@ function loop()
                     r.ImGui_TableSetupColumn(ctx, '', r.ImGui_TableColumnFlags_WidthStretch(), 2)
                 elseif m == 2 or m == 4 or m == 6 or m == 8 or m == 10 or m == 12 or m == 14 or m == 16 then
                     local weight, flag
-                    if Trk[TrkID].Mod[m / 2] then if Trk[TrkID].Mod[m / 2].Type == 'Step' then weight, flag = 0,
-                                r.ImGui_TableColumnFlags_WidthFixed() end end
+                    if Trk[TrkID].Mod[m / 2] then
+                        if Trk[TrkID].Mod[m / 2].Type == 'Step' then
+                            weight, flag = 0,
+                                r.ImGui_TableColumnFlags_WidthFixed()
+                        end
+                    end
                     r.ImGui_TableSetupColumn(ctx, '', flag or r.ImGui_TableColumnFlags_WidthStretch(), weight or 1)
                 end
             end
 
             reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_HeaderHovered(), 0x373737ff)
 
-            reaper.ImGui_TableHeadersRow(ctx)     --create header row
+            reaper.ImGui_TableHeadersRow(ctx) --create header row
             r.gmem_attach('ParamValues')
             ModulatorR, ModulatorB = r.ImGui_GetItemRectMax(ctx)
             Trk[TrkID] = Trk[TrkID] or {}
@@ -1450,7 +1524,7 @@ function loop()
 
 
 
-            for i, v in ipairs(MacroNums) do    --Do 8 Times
+            for i, v in ipairs(MacroNums) do --Do 8 Times
                 Mcro_Asgn_Md_Idx            = 'Macro' .. tostring(MacroNums[i])
 
                 Trk[TrkID].Mod[i]           = Trk[TrkID].Mod[i] or {}
@@ -1550,9 +1624,9 @@ function loop()
                     local Atk = Mc.atk
                     if at then
                         Mc.atk = 0.001 ^ (1 - Mc.ATK)
-                        r.gmem_write(4, 2)                    -- tells jsfx user is adjusting atk
+                        r.gmem_write(4, 2)                      -- tells jsfx user is adjusting atk
                         r.gmem_write(9 + ((i - 1) * 2), Mc.atk) -- tells atk value
-                        r.gmem_write(5, i)                    -- tells which macro is being tweaked
+                        r.gmem_write(5, i)                      -- tells which macro is being tweaked
                         r.GetSetMediaTrackInfo_String(LT_Track, 'P_EXT: Macro ' .. i .. ' Atk', Mc.ATK, true)
                     end
                     if r.ImGui_IsItemActive(ctx) then
@@ -1579,9 +1653,9 @@ function loop()
                     if re then
                         --Mc.rel = 10^(rel or 0.001) /10
                         Mc.rel = 0.001 ^ (1 - Mc.REL)
-                        r.gmem_write(4, 3)                    -- tells jsfx user is adjusting rel
+                        r.gmem_write(4, 3)                       -- tells jsfx user is adjusting rel
                         r.gmem_write(10 + ((i - 1) * 2), Mc.rel) -- tells rel value
-                        r.gmem_write(5, i)                    -- tells which macro is being tweaked
+                        r.gmem_write(5, i)                       -- tells which macro is being tweaked
                         r.GetSetMediaTrackInfo_String(LT_Track, 'P_EXT: Macro ' .. i .. ' Rel', Mc.REL, true)
                     end
                     if r.ImGui_IsItemActive(ctx) then
@@ -1629,7 +1703,7 @@ function loop()
                     r.ImGui_PopStyleColor(ctx, clrPop)
                 elseif Trk[TrkID].Mod[i].Type == 'Step' then
                     Macros_WDL = Macros_WDL or r.ImGui_GetWindowDrawList(ctx)
-                    r.ImGui_TableSetColumnIndex(ctx, (i - 1) * 2)  --r.ImGui_PushItemWidth( ctx, -FLT_MIN)
+                    r.ImGui_TableSetColumnIndex(ctx, (i - 1) * 2) --r.ImGui_PushItemWidth( ctx, -FLT_MIN)
 
                     r.gmem_attach('ParamValues')
                     local CurrentPos       = r.gmem_read(120 + i) + 1
@@ -1644,7 +1718,7 @@ function loop()
                     local HoverOnAnyStep
                     local SmallSEQActive
                     local HdrPosL, HdrPosT = r.ImGui_GetCursorScreenPos(ctx)
-                    for St = 1, Trk[TrkID].SEQL[i] or SEQ_Default_Num_of_Steps, 1 do    -- create all steps
+                    for St = 1, Trk[TrkID].SEQL[i] or SEQ_Default_Num_of_Steps, 1 do -- create all steps
                         local W = (VP.w - 10) / 12
                         local L, T = r.ImGui_GetCursorScreenPos(ctx)
                         if St == 1 and AssigningMacro == i then
@@ -1657,7 +1731,7 @@ function loop()
                         --_, S[St]= r.ImGui_DragDouble(ctx, '##SEQ '..St ,  S[St], 0 ,0, 1, ' ',r.ImGui_SliderFlags_NoInput())
                         r.ImGui_InvisibleButton(ctx, '##SEQ' .. St .. TrkID, W / 8, 20)
                         local L, T = r.ImGui_GetItemRectMin(ctx); local R, B = r.ImGui_GetItemRectMax(ctx); local w, h =
-                        r.ImGui_GetItemRectSize(ctx)
+                            r.ImGui_GetItemRectSize(ctx)
                         local FillClr = 0x00000000
 
 
@@ -1686,10 +1760,10 @@ function loop()
                                 v = v * (-1)
                                 if not (S[St] == 1 and v > 0) and not (S[St] == 0 and v < 0) then
                                     S[St] = S[St] + v / 100
-                                    r.gmem_write(4, 7)                                      -- tells jsfx user is changing a step's value
-                                    r.gmem_write(5, i)                                      -- tells which macro user is tweaking
-                                    r.gmem_write(112, SetMinMax(S[St], 0, 1) * (-1) + 1)    -- tells the step's value
-                                    r.gmem_write(113, St)                                   -- tells which step
+                                    r.gmem_write(4, 7)                                   -- tells jsfx user is changing a step's value
+                                    r.gmem_write(5, i)                                   -- tells which macro user is tweaking
+                                    r.gmem_write(112, SetMinMax(S[St], 0, 1) * (-1) + 1) -- tells the step's value
+                                    r.gmem_write(113, St)                                -- tells which step
                                 end
                                 r.ImGui_ResetMouseDragDelta(ctx)
                             end
@@ -1698,7 +1772,7 @@ function loop()
                             if AssigningMacro then AssigningMacro = nil else AssigningMacro = i end
                         elseif r.ImGui_IsItemDeactivated(ctx) then
                             r.GetSetMediaTrackInfo_String(LT_Track, 'P_EXT: Macro ' .. i .. ' SEQ Step = ' .. St ..
-                            ' Val', S[St], true)
+                                ' Val', S[St], true)
                         end
 
 
@@ -1712,7 +1786,7 @@ function loop()
 
                         r.ImGui_DrawList_AddRectFilled(Macros_WDL, L, T + H, L + W - 1, math.max(B - H * (S[St] or 0), T),
                             Clr)
-                        if CurrentPos == St then      -- if Step SEQ 'playhead' is now on current step
+                        if CurrentPos == St then -- if Step SEQ 'playhead' is now on current step
                             r.ImGui_DrawList_AddRect(Macros_WDL, L, T + H, L + W - 1, T, 0xffffff99)
                         end
                         SL(nil, 0)
@@ -1773,64 +1847,80 @@ function loop()
                                 Trk[TrkID].SEQ_Dnom[i] = 0.125
                                 writeSEQDNom()
                             end
-                            if Trk[TrkID].SEQ_Dnom[i] == 0.125 then HighlightSelectedItem(0xffffff22, 0xffffff77, 0, L, T,
-                                    R, B, h, w, H_OutlineSc, V_OutlineSc, 'GetItemRect', Foreground) end
+                            if Trk[TrkID].SEQ_Dnom[i] == 0.125 then
+                                HighlightSelectedItem(0xffffff22, 0xffffff77, 0, L, T,
+                                    R, B, h, w, H_OutlineSc, V_OutlineSc, 'GetItemRect', Foreground)
+                            end
                             SL()
                             if r.ImGui_Button(ctx, '1 ##' .. 'Macro' .. i .. 'SEQ Denom') then
                                 Trk[TrkID].SEQ_Dnom[i] = 0.25
                                 writeSEQDNom()
                             end
-                            if Trk[TrkID].SEQ_Dnom[i] == 0.25 then HighlightSelectedItem(0xffffff22, 0xffffff77, 0, L, T,
-                                    R, B, h, w, H_OutlineSc, V_OutlineSc, 'GetItemRect', Foreground) end
+                            if Trk[TrkID].SEQ_Dnom[i] == 0.25 then
+                                HighlightSelectedItem(0xffffff22, 0xffffff77, 0, L, T,
+                                    R, B, h, w, H_OutlineSc, V_OutlineSc, 'GetItemRect', Foreground)
+                            end
                             SL()
                             if r.ImGui_Button(ctx, '1/2 ##' .. 'Macro' .. i .. 'SEQ Denom') then
                                 Trk[TrkID].SEQ_Dnom[i] = 0.5
                                 writeSEQDNom()
                             end
-                            if Trk[TrkID].SEQ_Dnom[i] == 0.5 then HighlightSelectedItem(0xffffff22, 0xffffff77, 0, L, T,
-                                    R, B, h, w, H_OutlineSc, V_OutlineSc, 'GetItemRect', Foreground) end
+                            if Trk[TrkID].SEQ_Dnom[i] == 0.5 then
+                                HighlightSelectedItem(0xffffff22, 0xffffff77, 0, L, T,
+                                    R, B, h, w, H_OutlineSc, V_OutlineSc, 'GetItemRect', Foreground)
+                            end
                             SL()
                             if r.ImGui_Button(ctx, '1/4 ##' .. 'Macro' .. i .. 'SEQ Denom') then
                                 Trk[TrkID].SEQ_Dnom[i] = 1
                                 writeSEQDNom()
                             end
-                            if Trk[TrkID].SEQ_Dnom[i] == 1 then HighlightSelectedItem(0xffffff22, 0xffffff77, 0, L, T, R,
-                                    B, h, w, H_OutlineSc, V_OutlineSc, 'GetItemRect', Foreground) end
+                            if Trk[TrkID].SEQ_Dnom[i] == 1 then
+                                HighlightSelectedItem(0xffffff22, 0xffffff77, 0, L, T, R,
+                                    B, h, w, H_OutlineSc, V_OutlineSc, 'GetItemRect', Foreground)
+                            end
                             SL()
                             if r.ImGui_Button(ctx, '1/8 ##' .. 'Macro' .. i .. 'SEQ Denom') then
                                 Trk[TrkID].SEQ_Dnom[i] = 2
                                 writeSEQDNom()
                             end
-                            if Trk[TrkID].SEQ_Dnom[i] == 2 then HighlightSelectedItem(0xffffff22, 0xffffff77, 0, L, T, R,
-                                    B, h, w, H_OutlineSc, V_OutlineSc, 'GetItemRect', Foreground) end
+                            if Trk[TrkID].SEQ_Dnom[i] == 2 then
+                                HighlightSelectedItem(0xffffff22, 0xffffff77, 0, L, T, R,
+                                    B, h, w, H_OutlineSc, V_OutlineSc, 'GetItemRect', Foreground)
+                            end
                             SL()
                             if r.ImGui_Button(ctx, '1/16 ##' .. 'Macro' .. i .. 'SEQ Denom') then
                                 Trk[TrkID].SEQ_Dnom[i] = 4
                                 writeSEQDNom()
                             end
-                            if Trk[TrkID].SEQ_Dnom[i] == 4 then HighlightSelectedItem(0xffffff22, 0xffffff77, 0, L, T, R,
-                                    B, h, w, H_OutlineSc, V_OutlineSc, 'GetItemRect', Foreground) end
+                            if Trk[TrkID].SEQ_Dnom[i] == 4 then
+                                HighlightSelectedItem(0xffffff22, 0xffffff77, 0, L, T, R,
+                                    B, h, w, H_OutlineSc, V_OutlineSc, 'GetItemRect', Foreground)
+                            end
                             SL()
                             if r.ImGui_Button(ctx, '1/32 ##' .. 'Macro' .. i .. 'SEQ Denom') then
                                 Trk[TrkID].SEQ_Dnom[i] = 8
                                 writeSEQDNom()
                             end
                             SL()
-                            if Trk[TrkID].SEQ_Dnom[i] == 8 then HighlightSelectedItem(0xffffff22, 0xffffff77, 0, L, T, R,
-                                    B, h, w, H_OutlineSc, V_OutlineSc, 'GetItemRect', Foreground) end
+                            if Trk[TrkID].SEQ_Dnom[i] == 8 then
+                                HighlightSelectedItem(0xffffff22, 0xffffff77, 0, L, T, R,
+                                    B, h, w, H_OutlineSc, V_OutlineSc, 'GetItemRect', Foreground)
+                            end
                             if r.ImGui_Button(ctx, '1/64 ##' .. 'Macro' .. i .. 'SEQ Denom') then
                                 Trk[TrkID].SEQ_Dnom[i] = 16
                                 writeSEQDNom()
                             end
-                            if Trk[TrkID].SEQ_Dnom[i] == 16 then HighlightSelectedItem(0xffffff22, 0xffffff77, 0, L, T, R,
-                                    B, h, w, H_OutlineSc, V_OutlineSc, 'GetItemRect', Foreground) end
+                            if Trk[TrkID].SEQ_Dnom[i] == 16 then
+                                HighlightSelectedItem(0xffffff22, 0xffffff77, 0, L, T, R,
+                                    B, h, w, H_OutlineSc, V_OutlineSc, 'GetItemRect', Foreground)
+                            end
 
 
 
                             for St = 1, Trk[TrkID].SEQL[i] or SEQ_Default_Num_of_Steps, 1 do
                                 r.ImGui_InvisibleButton(ctx, '##SEQ' .. St .. TrkID, StepSEQ_W, StepSEQ_H)
                                 local L, T = r.ImGui_GetItemRectMin(ctx); local R, B = r.ImGui_GetItemRectMax(ctx); local w, h =
-                                r.ImGui_GetItemRectSize(ctx)
+                                    r.ImGui_GetItemRectSize(ctx)
                                 r.ImGui_DrawList_AddText(WDL, L + StepSEQ_W / 2 / 2, B - 15, 0x999999ff, St)
                                 SL(nil, 0)
                                 local FillClr = 0x00000000
@@ -1839,20 +1929,20 @@ function loop()
                                     local MsX, MsY = r.ImGui_GetMousePos(ctx)
 
                                     S[St] = ((B - MsY) / StepSEQ_H) --[[ *(-1) ]]
-                                    r.gmem_write(4, 7)                               -- tells jsfx user is changing a step's value
-                                    r.gmem_write(5, i)                               -- tells which macro user is tweaking
-                                    r.gmem_write(112, SetMinMax(S[St], 0, 1))        -- tells the step's value
-                                    r.gmem_write(113, St)                            -- tells which step
+                                    r.gmem_write(4, 7)                        -- tells jsfx user is changing a step's value
+                                    r.gmem_write(5, i)                        -- tells which macro user is tweaking
+                                    r.gmem_write(112, SetMinMax(S[St], 0, 1)) -- tells the step's value
+                                    r.gmem_write(113, St)                     -- tells which step
 
                                     r.GetSetMediaTrackInfo_String(LT_Track,
                                         'P_EXT: Macro ' .. i .. ' SEQ Step = ' .. St .. ' Val', S[St], true)
                                 elseif IsRBtnHeld and r.ImGui_IsMouseHoveringRect(ctx, L, T, R, B) and not SmallSEQActive then
                                     SEQ_RMB_Val = 0
                                     S[St] = SEQ_RMB_Val
-                                    r.gmem_write(4, 7)                  -- tells jsfx user is changing a step's value
-                                    r.gmem_write(5, i)                  -- tells which macro user is tweaking
-                                    r.gmem_write(112, SEQ_RMB_Val)      -- tells the step's value
-                                    r.gmem_write(113, St)               -- tells which step
+                                    r.gmem_write(4, 7)             -- tells jsfx user is changing a step's value
+                                    r.gmem_write(5, i)             -- tells which macro user is tweaking
+                                    r.gmem_write(112, SEQ_RMB_Val) -- tells the step's value
+                                    r.gmem_write(113, St)          -- tells which step
                                     r.GetSetMediaTrackInfo_String(LT_Track,
                                         'P_EXT: Macro ' .. i .. ' SEQ Step = ' .. St .. ' Val', SEQ_RMB_Val, true)
                                 end
@@ -1917,7 +2007,9 @@ function loop()
                             if r.ImGui_IsItemHovered(ctx) or r.ImGui_IsItemActive(ctx) then
                                 HoveringSmoothness = true
                                 WhichMacroIsHovered = i
-                            else HoveringSmoothness = false end
+                            else
+                                HoveringSmoothness = false
+                            end
                             local x, y = r.ImGui_GetWindowPos(ctx)
                             local w, h = r.ImGui_GetWindowSize(ctx)
 
@@ -1974,15 +2066,15 @@ function loop()
                     if r.ImGui_Selectable(ctx, 'Set Type to Envelope') then
                         Trk[TrkID].Mod[i].Type = 'env'
                         r.GetSetMediaTrackInfo_String(LT_Track, 'P_EXT: Mod' .. i .. 'Type', 'env', true)
-                        r.gmem_write(4, 4)    -- tells jsfx macro type = env
-                        r.gmem_write(5, i)    -- tells jsfx which macro
+                        r.gmem_write(4, 4) -- tells jsfx macro type = env
+                        r.gmem_write(5, i) -- tells jsfx which macro
                     end
                 end
 
                 local function SetTypeToStepSEQ()
                     if r.ImGui_Selectable(ctx, 'Set Type to Step Sequencer') then
                         Trk[TrkID].Mod[i].Type = 'Step'
-                        r.gmem_write(4, 6)    -- tells jsfx macro type = step seq
+                        r.gmem_write(4, 6) -- tells jsfx macro type = step seq
                         r.gmem_write(5, i)
                         r.GetSetMediaTrackInfo_String(LT_Track, 'P_EXT: Mod' .. i .. 'Type', 'Step', true)
                         Trk[TrkID].SEQL = Trk[TrkID].SEQL or {}
@@ -2001,8 +2093,8 @@ function loop()
 
                 local function SetTypeToFollower()
                     if r.ImGui_Selectable(ctx, 'Set Type to Audio Follower') then
-                        r.gmem_write(4, 9)    -- tells jsfx macro type = Follower
-                        r.gmem_write(5, i)    -- tells jsfx which macro
+                        r.gmem_write(4, 9) -- tells jsfx macro type = Follower
+                        r.gmem_write(5, i) -- tells jsfx which macro
                         Trk[TrkID].Mod[i].Type = 'Follower'
                         r.GetSetMediaTrackInfo_String(LT_Track, 'P_EXT: Mod' .. i .. 'Type', 'Follower', true)
                     end
@@ -2011,8 +2103,8 @@ function loop()
                     if r.ImGui_Selectable(ctx, 'Set Type to Macro') then
                         Trk[TrkID].Mod[i].Type = 'Macro'
                         r.GetSetMediaTrackInfo_String(LT_Track, 'P_EXT: Mod' .. i .. 'Type', 'Macro', true)
-                        r.gmem_write(4, 5)    -- tells jsfx macro type = Macro
-                        r.gmem_write(5, i)    -- tells jsfx which macro
+                        r.gmem_write(4, 5) -- tells jsfx macro type = Macro
+                        r.gmem_write(5, i) -- tells jsfx which macro
                         if I.Name == 'Env ' .. i then I.Name = 'Macro ' .. i end
                     end
                 end
@@ -2023,9 +2115,9 @@ function loop()
                         AddMacroJSFX()
                         -- Show Envelope for Morph Slider
                         local env = r.GetFXEnvelope(LT_Track, 0, i - 1, true)
-                        SetPrmAlias(LT_TrackNum, 1, i, Trk[TrkID].Mod[i].Name or ('Macro' .. i))     --don't know what this line does, but without it Envelope won't show....
+                        SetPrmAlias(LT_TrackNum, 1, i, Trk[TrkID].Mod[i].Name or ('Macro' .. i)) --don't know what this line does, but without it Envelope won't show....
                         local active, visible, armed, inLane, laneHeight, defaultShape, minValue, maxValue, centerValue, Tp, faderScaling =
-                        r.BR_EnvGetProperties(env)
+                            r.BR_EnvGetProperties(env)
                         r.BR_EnvSetProperties(env, true, true, armed, inLane, laneHeight, defaultShape, faderScaling)
                         r.UpdateArrange()
                         r.ImGui_CloseCurrentPopup(ctx)
@@ -2116,8 +2208,12 @@ function loop()
                     Dvdr.Width[TblIdxForSpace] = 15
                 end
 
-                if FX_Idx_OpenedPopup == (FX_Idx or 0) .. (tostring(SpaceIsBeforeRackMixer) or '') then Dvdr.Clr[ClrLbl] =
-                    Clr.Dvdr.Active else Dvdr.Clr[ClrLbl] = Dvdr.Clr[ClrLbl] or Clr.Dvdr.In_Layer end
+                if FX_Idx_OpenedPopup == (FX_Idx or 0) .. (tostring(SpaceIsBeforeRackMixer) or '') then
+                    Dvdr.Clr[ClrLbl] =
+                        Clr.Dvdr.Active
+                else
+                    Dvdr.Clr[ClrLbl] = Dvdr.Clr[ClrLbl] or Clr.Dvdr.In_Layer
+                end
 
                 r.ImGui_PushStyleColor(ctx, r.ImGui_Col_FrameBg(), Dvdr.Clr[ClrLbl])
 
@@ -2129,10 +2225,12 @@ function loop()
 
                         if HoverOnWindow == true and Dragging_TrueUntilMouseUp ~= true and DragDroppingFX ~= true and AssignWhichParam == nil and Is_ParamSliders_Active ~= true and Wet.ActiveAny ~= true and Knob_Active ~= true and not Dvdr.JustDroppedFX and LBtn_MousdDownDuration < 0.2 then
                             Dvdr.Spc_Hover[TblIdxForSpace] = Df.Dvdr_Hvr_W
-                            if DebugMode then tooltip('FX_Idx :' ..
-                                FX_Idx ..
-                                '\n Pre/Post/Norm : ' ..
-                                tostring(SpaceIsBeforeRackMixer) .. '\n SpcIDinPost: ' .. tostring(SpcIDinPost)) end
+                            if DebugMode then
+                                tooltip('FX_Idx :' ..
+                                    FX_Idx ..
+                                    '\n Pre/Post/Norm : ' ..
+                                    tostring(SpaceIsBeforeRackMixer) .. '\n SpcIDinPost: ' .. tostring(SpcIDinPost))
+                            end
                             r.ImGui_PushStyleColor(ctx, r.ImGui_Col_ButtonHovered(), CLR_BtwnFXs_Btn_Hover)
                             r.ImGui_PushStyleColor(ctx, r.ImGui_Col_ButtonActive(), CLR_BtwnFXs_Btn_Active)
                             local x, y = r.ImGui_GetCursorScreenPos(ctx)
@@ -2165,7 +2263,7 @@ function loop()
                             FX_Idx_OpenedPopup = FX_Idx .. (tostring(SpaceIsBeforeRackMixer) or '')
 
                             FilterBox(FX_Idx, LyrID, SpaceIsBeforeRackMixer, FxGUID_Container, SpcIsInPre, SpcInPost,
-                                SpcIDinPost)                                                                                       -- Add FX Window
+                                SpcIDinPost) -- Add FX Window
                             if r.ImGui_Selectable(ctx, 'Add FX Layering') then
                                 local FX_Idx = FX_Idx
                                 --[[ if FX_Name:find('Pro%-C 2') then FX_Idx = FX_Idx-1 end ]]
@@ -2200,7 +2298,7 @@ function loop()
                                     local FXGUID = r.TrackFX_GetFXGUID(LT_Track, F)
                                     local _, FX_Name = reaper.TrackFX_GetFXName(LT_Track, F)
                                     if string.find(FX_Name, 'FXD Split to 32 Channels') ~= nil then
-                                        FX_Layr_Inst                     = FX_Layr_Inst + 1
+                                        FX_Layr_Inst                       = FX_Layr_Inst + 1
                                         Lyr.SpltrID[FX_Layr_Inst .. TrkID] = r.TrackFX_GetFXGUID(LT_Track, FX_Idx - 1)
                                     end
                                 end
@@ -2297,8 +2395,10 @@ function loop()
                             end
                         end
 
-                        for i, v in pairs(Trk[TrkID].PreFX) do r.GetSetMediaTrackInfo_String(LT_Track, 'P_EXT: PreFX ' ..
-                            i, v, true) end
+                        for i, v in pairs(Trk[TrkID].PreFX) do
+                            r.GetSetMediaTrackInfo_String(LT_Track, 'P_EXT: PreFX ' ..
+                                i, v, true)
+                        end
                         if tablefind(Trk[TrkID].PostFX, FXGUID[DragFX_ID]) then
                             table.remove(Trk[TrkID].PostFX, tablefind(Trk[TrkID].PostFX, FXGUID[DragFX_ID]))
                         end
@@ -2335,11 +2435,15 @@ function loop()
                     else -- if space is not in pre or post
                         r.GetSetMediaTrackInfo_String(LT_Track, 'P_EXT: PreFX ' .. DragFX_ID, '', true)
                         if not MoveFromPostToNorm then
-                            if tablefind(Trk[TrkID].PreFX, FXGUID[DragFX_ID]) then table.remove(Trk[TrkID].PreFX,
-                                    tablefind(Trk[TrkID].PreFX, FXGUID[DragFX_ID])) end
+                            if tablefind(Trk[TrkID].PreFX, FXGUID[DragFX_ID]) then
+                                table.remove(Trk[TrkID].PreFX,
+                                    tablefind(Trk[TrkID].PreFX, FXGUID[DragFX_ID]))
+                            end
                         end
-                        if tablefind(Trk[TrkID].PostFX, FXGUID[DragFX_ID]) then table.remove(Trk[TrkID].PostFX,
-                                tablefind(Trk[TrkID].PostFX, FXGUID[DragFX_ID])) end
+                        if tablefind(Trk[TrkID].PostFX, FXGUID[DragFX_ID]) then
+                            table.remove(Trk[TrkID].PostFX,
+                                tablefind(Trk[TrkID].PostFX, FXGUID[DragFX_ID]))
+                        end
                     end
                     for i = 1, #Trk[TrkID].PostFX + 1, 1 do
                         r.GetSetMediaTrackInfo_String(LT_Track, 'P_EXT: PostFX ' .. i, Trk[TrkID].PostFX[i] or '', true)
@@ -2551,7 +2655,7 @@ function loop()
                                 r.GetSetMediaTrackInfo_String(LT_Track, 'P_EXT: FX is in which BS' .. FXGUID[DragFX_ID],
                                     '', true)
                                 r.GetSetMediaTrackInfo_String(LT_Track, 'P_EXT: FX is in which Band' .. FXGUID
-                                [DragFX_ID], '', true)
+                                    [DragFX_ID], '', true)
                             end
                         end
                         FX[FXGUID[DragFX_ID]].InWhichBand = nil
@@ -2630,7 +2734,7 @@ function loop()
                                     -- Move FX Out of Layer
                                     if Lyr.FX_Ins[FX.InLyr[FXGUID_To_Check_If_InLayer]] ~= nil then
                                         Lyr.FX_Ins[FX.InLyr[FXGUID_To_Check_If_InLayer]] = Lyr.FX_Ins
-                                        [FX.InLyr[FXGUID_To_Check_If_InLayer]] - 1
+                                            [FX.InLyr[FXGUID_To_Check_If_InLayer]] - 1
                                     end
                                     r.SetProjExtState(0, 'FX Devices',
                                         'FXLayer - ' .. 'is FX' .. FXGUID_To_Check_If_InLayer .. 'in layer', "")
@@ -2709,7 +2813,7 @@ function loop()
             FrameRounding = reaper.ImGui_StyleVar_FrameRounding()
             BtnTxtAlign = reaper.ImGui_StyleVar_ButtonTextAlign()
 
-            r.ImGui_PushStyleVar(ctx, framepadding, 0, 3)    --StyleVar#1 (Child Frame for all FX Devices)
+            r.ImGui_PushStyleVar(ctx, framepadding, 0, 3) --StyleVar#1 (Child Frame for all FX Devices)
             --r.ImGui_PushStyleColor(ctx, r.ImGui_Col_FrameBg(), 0x121212ff)
 
 
@@ -2878,7 +2982,7 @@ function loop()
 
 
                 local ViewPort_DL = r.ImGui_GetWindowDrawList(ctx)
-                r.ImGui_DrawList_AddLine(ViewPort_DL, 0, 0, 0, 0, Clr.Dvdr.outline)    -- Needed for drawlist to be active
+                r.ImGui_DrawList_AddLine(ViewPort_DL, 0, 0, 0, 0, Clr.Dvdr.outline) -- Needed for drawlist to be active
 
                 for FX_Idx = 0, Sel_Track_FX_Count - 1, 1 do
                     retval, FX_Name = r.TrackFX_GetFXName(LT_Track, FX_Idx) --i used to be i-1
@@ -2904,10 +3008,10 @@ function loop()
                     FXGUID_To_Check_If_InLayer = reaper.TrackFX_GetFXGUID(LT_Track, FX_Idx)
 
                     if not tablefind(Trk[TrkID].PostFX, FxGUID) and FXGUID[FX_Idx] ~= FXGUID[FX_Idx - 1] then
-                        if FX.InLyr[FXGUID_To_Check_If_InLayer] == nil     --not in layer
+                        if FX.InLyr[FXGUID_To_Check_If_InLayer] == nil           --not in layer
                             and FindStringInTable(BlackListFXs, FX_Name) ~= true -- not blacklisted
                             and string.find(FX_Name, 'RackMixer') == nil
-                            and FX_Idx ~= RepeatTimeForWindows             --not last fx
+                            and FX_Idx ~= RepeatTimeForWindows                   --not last fx
                             and not FX[FxGUID].InWhichBand --[[Not in Band Split]] then
                             local Idx = FX_Idx
                             if FX_Idx == 1 then
@@ -2974,15 +3078,19 @@ function loop()
                                             if DontStoreCurrentVal ~= 'Dont' then FX[FxGUID].MorphA[i] = Prm_Val end
                                             r.GetSetMediaTrackInfo_String(LT_Track, 'P_EXT: FX Morph A' .. i .. FxGUID,
                                                 FX[FxGUID].MorphA[i], true)
-                                            if LinkCC then Link_Param_to_CC(LT_TrackNum, FX_Idx, i, true, true, 160,
-                                                    LinkCC, Prm_Val, FX[FxGUID].MorphB[i]) end
+                                            if LinkCC then
+                                                Link_Param_to_CC(LT_TrackNum, FX_Idx, i, true, true, 160,
+                                                    LinkCC, Prm_Val, FX[FxGUID].MorphB[i])
+                                            end
                                         else
                                             if DontStoreCurrentVal ~= 'Dont' then FX[FxGUID].MorphB[i] = Prm_Val end
                                             if FX[FxGUID].MorphB[i] then
                                                 r.GetSetMediaTrackInfo_String(LT_Track, 'P_EXT: FX Morph B' .. i ..
-                                                FxGUID, FX[FxGUID].MorphB[i], true)
-                                                if LinkCC then Link_Param_to_CC(LT_TrackNum, FX_Idx, i, true, true, 160,
-                                                        LinkCC, FX[FxGUID].MorphA[i], Prm_Val - FX[FxGUID].MorphA[i]) end
+                                                    FxGUID, FX[FxGUID].MorphB[i], true)
+                                                if LinkCC then
+                                                    Link_Param_to_CC(LT_TrackNum, FX_Idx, i, true, true, 160,
+                                                        LinkCC, FX[FxGUID].MorphA[i], Prm_Val - FX[FxGUID].MorphA[i])
+                                                end
                                             end
                                         end
                                     end
@@ -3015,8 +3123,11 @@ function loop()
                                 --r.ImGui_PopStyleColor(ctx,3)
 
 
-                                if r.ImGui_IsItemHovered(ctx) and FX[FxGUID].MorphA_Name then if FX[FxGUID].MorphA_Name ~= '' then
-                                        HintToolTip(FX[FxGUID].MorphA_Name) end end
+                                if r.ImGui_IsItemHovered(ctx) and FX[FxGUID].MorphA_Name then
+                                    if FX[FxGUID].MorphA_Name ~= '' then
+                                        HintToolTip(FX[FxGUID].MorphA_Name)
+                                    end
+                                end
 
                                 local H = 180
                                 r.ImGui_SetCursorPos(ctx, x, y + 20)
@@ -3031,7 +3142,8 @@ function loop()
                                     BgClr = r.ImGui_GetStyleColor(ctx, r.ImGui_Col_FrameBgActive())
                                     isActive = true
                                     BgClrA = DefClr_A_Act
-                                    BgClrB = DefClr_B_Act                                                                                                                                           -- shift 0x00RRGGBB to 0xRRGGBB00 then add 0xFF for 100% opacity
+                                    BgClrB =
+                                        DefClr_B_Act -- shift 0x00RRGGBB to 0xRRGGBB00 then add 0xFF for 100% opacity
                                 elseif r.ImGui_IsItemHovered(ctx) then
                                     ifHvr = true
                                     BgClrA = DefClr_A_Hvr
@@ -3060,7 +3172,7 @@ function loop()
                                     if Mods == Shift then DrgSpdMod = 4 end
                                     DraggingMorph = FxGUID
                                     FX[FxGUID].MorphAB_Sldr = SetMinMax(
-                                    (FX[FxGUID].MorphAB_Sldr or 0) + v / (DrgSpdMod or 2), 0, 100)
+                                        (FX[FxGUID].MorphAB_Sldr or 0) + v / (DrgSpdMod or 2), 0, 100)
                                     SldrActClr = r.ImGui_GetStyleColor(ctx, r.ImGui_Col_SliderGrabActive())
                                     if FX[FxGUID].MorphB[1] ~= nil then
                                         local M_ID
@@ -3073,12 +3185,13 @@ function loop()
                                                     if FX[FxGUID].PrmList[i] then
                                                         if FX[FxGUID].PrmList[i].BL ~= true then
                                                             Fv = v +
-                                                            (FX[FxGUID].MorphB[i] - v) * (FX[FxGUID].MorphAB_Sldr / 100)
+                                                                (FX[FxGUID].MorphB[i] - v) *
+                                                                (FX[FxGUID].MorphAB_Sldr / 100)
                                                             r.TrackFX_SetParamNormalized(LT_Track, FX_Idx, i, Fv)
                                                         end
                                                     else
                                                         Fv = v + (FX[FxGUID].MorphB[i] - v) *
-                                                        (FX[FxGUID].MorphAB_Sldr / 100)
+                                                            (FX[FxGUID].MorphAB_Sldr / 100)
                                                         r.TrackFX_SetParamNormalized(LT_Track, FX_Idx, i, Fv)
                                                     end
                                                 end
@@ -3102,8 +3215,10 @@ function loop()
                                 if r.ImGui_BeginPopup(ctx, 'Morphing menu' .. FX_Idx) then
                                     local Disable
                                     MorphingMenuOpen = true
-                                    if not FX[FxGUID].MorphA[1] or not FX[FxGUID].MorphB[1] then r.ImGui_BeginDisabled(
-                                        ctx) end
+                                    if not FX[FxGUID].MorphA[1] or not FX[FxGUID].MorphB[1] then
+                                        r.ImGui_BeginDisabled(
+                                            ctx)
+                                    end
 
                                     if not FX[FxGUID].Morph_ID or FX[FxGUID].Unlink then
                                         if r.ImGui_Selectable(ctx, 'Automate') then
@@ -3121,7 +3236,7 @@ function loop()
                                             end
 
                                             if --[[Add Macros JSFX if not found]] r.TrackFX_AddByName(LT_Track, 'FXD Macros', 0, 0) == -1 and r.TrackFX_AddByName(LT_Track, 'FXD Macros', 0, 0) == -1 then
-                                                r.gmem_write(1, PM.DIY_TrkID[TrkID])      --gives jsfx a guid when it's being created, this will not change becuase it's in the @init.
+                                                r.gmem_write(1, PM.DIY_TrkID[TrkID]) --gives jsfx a guid when it's being created, this will not change becuase it's in the @init.
                                                 AddMacroJSFX()
                                             end
                                             for i, v in ipairs(FX[FxGUID].MorphA), FX[FxGUID].MorphA, -1 do
@@ -3184,8 +3299,12 @@ function loop()
                                     if not FX[FxGUID].MorphA[1] or not FX[FxGUID].MorphB[1] then r.ImGui_EndDisabled(ctx) end
 
                                     if r.ImGui_Selectable(ctx, 'Morphing Blacklist Settings') then
-                                        if OpenMorphSettings then OpenMorphSettings = FxGUID else OpenMorphSettings =
-                                            FxGUID end
+                                        if OpenMorphSettings then
+                                            OpenMorphSettings = FxGUID
+                                        else
+                                            OpenMorphSettings =
+                                                FxGUID
+                                        end
                                         local Ct = r.TrackFX_GetNumParams(LT_Track, FX_Idx)
                                         FX[FxGUID].PrmList = FX[FxGUID].PrmList or {}
                                         for i = 0, Ct - 4, 1 do --get param names
@@ -3224,11 +3343,15 @@ function loop()
 
                                 r.ImGui_SameLine(ctx)
                                 r.ImGui_SetCursorPos(ctx, x, y + 200)
-                                if not FX[FxGUID].MorphB[1] then BtnB_TxtClr = r.ImGui_GetStyleColor(ctx,
-                                        r.ImGui_Col_TextDisabled()) end
+                                if not FX[FxGUID].MorphB[1] then
+                                    BtnB_TxtClr = r.ImGui_GetStyleColor(ctx,
+                                        r.ImGui_Col_TextDisabled())
+                                end
 
-                                if BtnB_TxtClr then r.ImGui_PushStyleColor(ctx, r.ImGui_Col_Text(),
-                                        r.ImGui_GetStyleColor(ctx, r.ImGui_Col_TextDisabled())) end
+                                if BtnB_TxtClr then
+                                    r.ImGui_PushStyleColor(ctx, r.ImGui_Col_Text(),
+                                        r.ImGui_GetStyleColor(ctx, r.ImGui_Col_TextDisabled()))
+                                end
                                 r.ImGui_PushStyleColor(ctx, r.ImGui_Col_Button(), DefClr_B)
                                 r.ImGui_PushStyleColor(ctx, r.ImGui_Col_ButtonHovered(), DefClr_B_Hvr)
                                 r.ImGui_PushStyleColor(ctx, r.ImGui_Col_ButtonActive(), DefClr_B_Act)
@@ -3238,13 +3361,17 @@ function loop()
                                     local rv, presetname = r.TrackFX_GetPreset(LT_Track, FX_Idx)
                                     if rv then FX[FxGUID].MorphB_Name = presetname end
                                 end
-                                if r.ImGui_IsItemHovered(ctx) and FX[FxGUID].MorphB_Name then HintToolTip(FX[FxGUID]
-                                    .MorphB_Name) end
+                                if r.ImGui_IsItemHovered(ctx) and FX[FxGUID].MorphB_Name then
+                                    HintToolTip(FX[FxGUID]
+                                        .MorphB_Name)
+                                end
                                 r.ImGui_PopStyleColor(ctx, 3)
 
                                 if BtnB_TxtClr then r.ImGui_PopStyleColor(ctx) end
-                                if FX.Enable[FX_Idx] == false then r.ImGui_DrawList_AddRectFilled(WDL, L, T - 20, R, B +
-                                    20, 0x00000088) end
+                                if FX.Enable[FX_Idx] == false then
+                                    r.ImGui_DrawList_AddRectFilled(WDL, L, T - 20, R, B +
+                                        20, 0x00000088)
+                                end
 
                                 r.ImGui_SetCursorPos(ctx, OrigCurX + 19, OrigCurY)
                             end
@@ -3261,7 +3388,7 @@ function loop()
                             FX[FxGUID] = FX[FxGUID] or {}
 
                             local PrmCount = tonumber(select(2, r.GetProjExtState(0, 'FX Devices', 'Prm Count' .. FxGUID))) or
-                            0
+                                0
                             local Def_Sldr_W = 160
                             if FX.Def_Sldr_W[FxGUID] then Def_Sldr_W = FX.Def_Sldr_W[FxGUID] end
 
@@ -3328,23 +3455,29 @@ function loop()
 
                                     WDL = r.ImGui_GetWindowDrawList(ctx)
                                     Win_L, Win_T = r.ImGui_GetItemRectMin(ctx); Win_W, Win_H = r.ImGui_GetItemRectSize(
-                                    ctx)
+                                        ctx)
                                     Win_R, _ = r.ImGui_GetItemRectMax(ctx); Win_B = Win_T + 220
 
                                     if Draw.DrawMode[FxGUID] == true then
                                         local D = Draw[FxNameS]
                                         r.ImGui_DrawList_AddRectFilled(WDL, Win_L, Win_T, Win_R, Win_B, 0x00000033)
-                                        for i = 0, 220, LE.GridSize do r.ImGui_DrawList_AddLine(WinDrawList, Win_L,
-                                                Win_T + i, Win_R, Win_T + i, 0x44444411) end
-                                        for i = 0, FX.Width[FXGUID[FX_Idx]] or DefaultWidth, LE.GridSize do r
+                                        for i = 0, 220, LE.GridSize do
+                                            r.ImGui_DrawList_AddLine(WinDrawList, Win_L,
+                                                Win_T + i, Win_R, Win_T + i, 0x44444411)
+                                        end
+                                        for i = 0, FX.Width[FXGUID[FX_Idx]] or DefaultWidth, LE.GridSize do
+                                            r
                                                 .ImGui_DrawList_AddLine(WinDrawList, Win_L + i, Win_T, Win_L + i, Win_B,
-                                                    0x44444411) end
+                                                    0x44444411)
+                                        end
                                         if r.ImGui_IsMouseHoveringRect(ctx, Win_L, Win_T, Win_R, Win_B) and HvringItmSelector == nil and not Draw.SelItm and Draw.Time == 0 then
-                                            if Draw.Type == 'Text' then r.ImGui_SetMouseCursor(ctx,
-                                                    r.ImGui_MouseCursor_TextInput()) end
+                                            if Draw.Type == 'Text' then
+                                                r.ImGui_SetMouseCursor(ctx,
+                                                    r.ImGui_MouseCursor_TextInput())
+                                            end
                                             if IsLBtnClicked and Mods == 0 then
                                                 MsX_Start, MsY_Start = r.ImGui_GetMousePos(ctx); CurX, CurY = r
-                                                .ImGui_GetCursorScreenPos(ctx)
+                                                    .ImGui_GetCursorScreenPos(ctx)
                                                 Win_MsX_Start = MsX_Start - CurX; Win_MsY_Start = MsY_Start - CurY + 3
                                             end
 
@@ -3440,16 +3573,20 @@ function loop()
                                                 0x999999ff, i)
 
 
-                                            if Draw.SelItm == i then r.ImGui_DrawList_AddCircleFilled(WDL, CircleX,
-                                                    CircleY, 7, 0x99999955) end
+                                            if Draw.SelItm == i then
+                                                r.ImGui_DrawList_AddCircleFilled(WDL, CircleX,
+                                                    CircleY, 7, 0x99999955)
+                                            end
 
 
                                             --if hover on item node ...
                                             if r.ImGui_IsMouseHoveringRect(ctx, CircleX - 5, CircleY - 5, CircleX + 5, CircleY + 10) then
                                                 HvringItmSelector = true
                                                 r.ImGui_SetMouseCursor(ctx, r.ImGui_MouseCursor_ResizeAll())
-                                                if DragItm == nil then r.ImGui_DrawList_AddCircle(WDL, CircleX, CircleY,
-                                                        9, 0x999999ff) end
+                                                if DragItm == nil then
+                                                    r.ImGui_DrawList_AddCircle(WDL, CircleX, CircleY,
+                                                        9, 0x999999ff)
+                                                end
                                                 if IsLBtnClicked and Mods == 0 then
                                                     Draw.SelItm = i
                                                     DragItm = i
@@ -3470,7 +3607,7 @@ function loop()
                                                     end
                                                 end
                                             end
-                                            if LBtnDrag and DragItm == i then  --- Drag node to reposition
+                                            if LBtnDrag and DragItm == i then --- Drag node to reposition
                                                 r.ImGui_SetMouseCursor(ctx, r.ImGui_MouseCursor_ResizeAll())
                                                 r.ImGui_DrawList_AddCircleFilled(WDL, CircleX, CircleY, 7, 0x00000033)
                                                 local Dx, Dy = r.ImGui_GetMouseDelta(ctx)
@@ -3541,11 +3678,15 @@ function loop()
                                             LE.GridSize = LE.GridSize - 5
                                         end
 
-                                        for i = 0, FX.Width[FXGUID[FX_Idx]] or DefaultWidth, LE.GridSize do r
+                                        for i = 0, FX.Width[FXGUID[FX_Idx]] or DefaultWidth, LE.GridSize do
+                                            r
                                                 .ImGui_DrawList_AddLine(WinDrawList, Win_L + i, Win_T, Win_L + i, Win_B,
-                                                    0x44444455) end
-                                        for i = 0, 220, LE.GridSize do r.ImGui_DrawList_AddLine(WinDrawList, Win_L,
-                                                Win_T + i, Win_R, Win_T + i, 0x44444455) end
+                                                    0x44444455)
+                                        end
+                                        for i = 0, 220, LE.GridSize do
+                                            r.ImGui_DrawList_AddLine(WinDrawList, Win_L,
+                                                Win_T + i, Win_R, Win_T + i, 0x44444455)
+                                        end
 
                                         r.ImGui_DrawList_AddLine(WinDrawList, Win_R - 3, Win_T, Win_R - 3, Win_B,
                                             0x66666677, 1)
@@ -3568,7 +3709,7 @@ function loop()
                                             r.ImGui_DrawList_AddRectFilled(WinDrawList, Win_L or 0, Win_T or 0,
                                                 Win_R or 0, Win_B, 0x00000055)
                                             local MsDragDeltaX, MsDragDeltaY = r.ImGui_GetMouseDragDelta(ctx); local Dx, Dy =
-                                            r.ImGui_GetMouseDelta(ctx)
+                                                r.ImGui_GetMouseDelta(ctx)
                                             if not FX.Width[FXGUID[FX_Idx]] then FX.Width[FXGUID[FX_Idx]] = DefaultWidth end
                                             FX.Width[FXGUID[FX_Idx]] = FX.Width[FXGUID[FX_Idx]] + Dx; LE.BeenEdited = true
                                         end
@@ -3590,7 +3731,7 @@ function loop()
                                         WinbtnClrPop = 3
                                         if not FX[FxGUID].TitleClrHvr then
                                             FX[FxGUID].TitleClrAct, FX[FxGUID].TitleClrHvr = Generate_Active_And_Hvr_CLRs(
-                                            FX[FxGUID].TitleClr)
+                                                FX[FxGUID].TitleClr)
                                         end
                                         r.ImGui_PushStyleColor(ctx, r.ImGui_Col_ButtonHovered(),
                                             FX[FxGUID].TitleClrHvr or 0x22222233)
@@ -3613,11 +3754,11 @@ function loop()
                                             if DebugMode then
                                                 FX.Win_Name[FX_Idx] = FxGUID
                                                 WindowBtn = reaper.ImGui_Button(ctx, FxGUID .. '## ',
-                                                    FX.TitleWidth[FxGUID] or DefaultWidth - 30, 20)                                                                                                -- create window name button
+                                                    FX.TitleWidth[FxGUID] or DefaultWidth - 30, 20) -- create window name button
                                             else
                                                 WindowBtn = r.ImGui_Button(ctx,
                                                     (FX[FxGUID].CustomTitle or FX.Win_Name[FX_Idx] or '') .. '## ',
-                                                    FX.TitleWidth[FxGUID] or DefaultWidth - 30, 20)                                                                                                -- create window name button
+                                                    FX.TitleWidth[FxGUID] or DefaultWidth - 30, 20) -- create window name button
                                             end
                                         end
                                         if r.ImGui_IsItemHovered(ctx) and FindStringInTable(SpecialLayoutFXs, FX_Name) == false then
@@ -3649,13 +3790,13 @@ function loop()
                                         --if Name:find('FabFilter Pro%-C 2')  then Name = 'Pro|C 2' end
                                         local Name_V = Name:gsub("(.)", "%1\n")
                                         local Name_V_NoManuFacturer = Name_V:gsub("%b()", "")
-                                        reaper.ImGui_PushStyleVar(ctx, BtnTxtAlign, 0.5, 0.2)    --StyleVar#3
+                                        reaper.ImGui_PushStyleVar(ctx, BtnTxtAlign, 0.5, 0.2) --StyleVar#3
                                         r.ImGui_SameLine(ctx, nil, 0)
 
                                         WindowBtn = r.ImGui_Button(ctx, Name_V_NoManuFacturer, 25, 220)
 
 
-                                        r.ImGui_PopStyleVar(ctx) --StyleVar#3 POP
+                                        r.ImGui_PopStyleVar(ctx)             --StyleVar#3 POP
                                     end
                                     r.ImGui_PopStyleColor(ctx, WinbtnClrPop) -- win btn clr
                                     HighlightSelectedItem(nil, 0xffffff11, -1, L, T, R, B, h, w, 1, 1, 'GetItemRect', WDL,
@@ -3684,8 +3825,10 @@ function loop()
                                         DeleteFX(FX_Idx)
                                     end
 
-                                    if r.ImGui_IsItemHovered(ctx) then HintMessage =
-                                        'Mouse: L=Open FX Window | Shift+L = Toggle Bypass | Alt+L = Delete | R = Collapse | Alt+R = Collapse All' end
+                                    if r.ImGui_IsItemHovered(ctx) then
+                                        HintMessage =
+                                        'Mouse: L=Open FX Window | Shift+L = Toggle Bypass | Alt+L = Delete | R = Collapse | Alt+R = Collapse All'
+                                    end
 
 
                                     r.ImGui_PushStyleColor(ctx, r.ImGui_Col_Border(), getClr(r.ImGui_Col_FrameBg()))
@@ -3703,8 +3846,10 @@ function loop()
 
                                         r.ImGui_SetNextItemWidth(ctx, 60)
 
-                                        if not FX[FxGUID].NotFirstOpenPrmWin then r.ImGui_SetKeyboardFocusHere(ctx,
-                                                offsetIn) end
+                                        if not FX[FxGUID].NotFirstOpenPrmWin then
+                                            r.ImGui_SetKeyboardFocusHere(ctx,
+                                                offsetIn)
+                                        end
 
                                         if r.ImGui_TextFilter_Draw(PrmFilter, ctx, '##PrmFilterTxt', -1 - (SpaceForBtn or 0)) then
                                             PrmFilterTxt = r.ImGui_TextFilter_Get(PrmFilter)
@@ -3752,7 +3897,7 @@ function loop()
 
                                     if FX.LayEdit == FxGUID and Draw.DrawMode[FxGUID] ~= true then
                                         local L, T = r.ImGui_GetItemRectMin(ctx); local R, _ = r.ImGui_GetItemRectMax(
-                                        ctx); B = T + 20
+                                            ctx); B = T + 20
                                         r.ImGui_DrawList_AddCircleFilled(WinDrawList, R, T + 10, 3, 0x999999ff)
                                         r.ImGui_DrawList_AddRect(WinDrawList, L, T, R, T + 20, 0x999999ff)
 
@@ -3767,8 +3912,10 @@ function loop()
                                             end
                                         end
 
-                                        if LE.SelectedItem == 'Title' then r.ImGui_DrawList_AddRect(WinDrawList, L, T, R,
-                                                T + 20, 0x999999ff) end
+                                        if LE.SelectedItem == 'Title' then
+                                            r.ImGui_DrawList_AddRect(WinDrawList, L, T, R,
+                                                T + 20, 0x999999ff)
+                                        end
 
                                         if MouseX > R - 5 and MouseX < R + 5 and MouseY > T and MouseY < B then --if hover on right edge
                                             if IsLBtnClicked then LE.ChangingTitleSize = true end
@@ -3781,15 +3928,17 @@ function loop()
                                             LE.MouseX_after, _ = r.ImGui_GetMousePos(ctx)
                                             local MouseDiff = LE.MouseX_after - LE.MouseX_before
 
-                                            if FX.TitleWidth[FxGUID] == nil then FX.TitleWidth[FxGUID] = DefaultWidth -
-                                                30 end
+                                            if FX.TitleWidth[FxGUID] == nil then
+                                                FX.TitleWidth[FxGUID] = DefaultWidth -
+                                                    30
+                                            end
                                             if Mods == 0 then
                                                 if MouseDiff > LE.GridSize then
                                                     FX.TitleWidth[FxGUID] = FX.TitleWidth[FxGUID] + LE.GridSize; LE.MouseX_before =
-                                                    r.ImGui_GetMousePos(ctx); LE.BeenEdited = true
+                                                        r.ImGui_GetMousePos(ctx); LE.BeenEdited = true
                                                 elseif MouseDiff < -LE.GridSize then
                                                     FX.TitleWidth[FxGUID] = FX.TitleWidth[FxGUID] - LE.GridSize; LE.MouseX_before =
-                                                    r.ImGui_GetMousePos(ctx); LE.BeenEdited = true
+                                                        r.ImGui_GetMousePos(ctx); LE.BeenEdited = true
                                                 end
                                             end
                                             if Mods == Shift then
@@ -3830,7 +3979,7 @@ function loop()
                                                 local PrmCount = r.TrackFX_GetNumParams(LT_Track, FX_Idx)
                                                 for i = 0, PrmCount - 4, 1 do
                                                     local Prm_Val, minval, maxval = reaper.TrackFX_GetParamNormalized(
-                                                    LT_Track, FX_Idx, i)
+                                                        LT_Track, FX_Idx, i)
                                                     FX[FxGUID].MorphA[i] = Prm_Val
                                                     r.GetSetMediaTrackInfo_String(LT_Track,
                                                         'P_EXT: FX Morph A' .. i .. FxGUID, Prm_Val, true)
@@ -3861,8 +4010,12 @@ function loop()
                                                 getClr(r.ImGui_Col_TextDisabled()))
                                         end
                                         if IconBtn(20, 20, 'Y') then -- settings icon
-                                            if OpenMorphSettings then OpenMorphSettings = FxGUID else OpenMorphSettings =
-                                                FxGUID end
+                                            if OpenMorphSettings then
+                                                OpenMorphSettings = FxGUID
+                                            else
+                                                OpenMorphSettings =
+                                                    FxGUID
+                                            end
                                             local Ct = r.TrackFX_GetNumParams(LT_Track, FX_Idx)
                                             FX[FxGUID].PrmList = FX[FxGUID].PrmList or {}
                                             for i = 0, Ct - 4, 1 do --get param names
@@ -3943,8 +4096,10 @@ function loop()
                                             Edited, FX.Def_Sldr_W[FxGUID] = r.ImGui_DragInt(ctx,
                                                 '##' .. FxGUID .. 'Default Width', FX.Def_Sldr_W[FxGUID] or 160,
                                                 LE.GridSize, 50, 300, '%.0f')
-                                            if Edited then r.SetProjExtState(0, 'FX Devices',
-                                                    'Default Slider Width for FX:' .. FxGUID, FX.Def_Sldr_W[FxGUID]) end
+                                            if Edited then
+                                                r.SetProjExtState(0, 'FX Devices',
+                                                    'Default Slider Width for FX:' .. FxGUID, FX.Def_Sldr_W[FxGUID])
+                                            end
                                         end
 
 
@@ -4005,13 +4160,13 @@ function loop()
                                                 SL()
                                                 local FxNam = FX.Win_Name_S[FX_Idx]:gsub("%b()", "")
                                                 demo.HelpMarker(
-                                                'FX Instance: \nBlacklist will only apply to the current instance of' ..
-                                                FxNam ..
-                                                '\n\nProject:\nBlacklist will apply to all instances of ' ..
-                                                FxNam ..
-                                                'in the current project\n\nGlobal:\nBlacklist will be applied to all instances of ' ..
-                                                FxNam ..
-                                                ' across all projects.\n\nOrder of precedence goes from: FX Instance -> Project -> Global')
+                                                    'FX Instance: \nBlacklist will only apply to the current instance of' ..
+                                                    FxNam ..
+                                                    '\n\nProject:\nBlacklist will apply to all instances of ' ..
+                                                    FxNam ..
+                                                    'in the current project\n\nGlobal:\nBlacklist will be applied to all instances of ' ..
+                                                    FxNam ..
+                                                    ' across all projects.\n\nOrder of precedence goes from: FX Instance -> Project -> Global')
 
 
 
@@ -4024,8 +4179,10 @@ function loop()
                                                 if Tooltip_Timer then
                                                     if r.ImGui_BeginPopupModal(ctx, '## Successfully saved preset morph', nil, r.ImGui_WindowFlags_NoTitleBar()|r.ImGui_WindowFlags_NoResize()) then
                                                         r.ImGui_Text(ctx, 'Successfully saved ')
-                                                        if r.ImGui_IsMouseClicked(ctx, 0) then r.ImGui_CloseCurrentPopup(
-                                                            ctx) end
+                                                        if r.ImGui_IsMouseClicked(ctx, 0) then
+                                                            r.ImGui_CloseCurrentPopup(
+                                                                ctx)
+                                                        end
                                                         r.ImGui_EndPopup(ctx)
                                                     end
 
@@ -4098,8 +4255,10 @@ function loop()
 
                                                         local i = LT_ParamNum or 0
                                                         local OrigV = r.TrackFX_GetParamNormalized(LT_Track, FX_Idx, i)
-                                                        if not P.FormatV_A and FX[FxGUID].MorphA[1] then P.FormatV_A =
-                                                            GetFormatPrmV(FX[FxGUID].MorphA[i], OrigV, i) end
+                                                        if not P.FormatV_A and FX[FxGUID].MorphA[1] then
+                                                            P.FormatV_A =
+                                                                GetFormatPrmV(FX[FxGUID].MorphA[i], OrigV, i)
+                                                        end
 
 
                                                         P.Drag_A, FX[FxGUID].MorphA[i] = r.ImGui_DragDouble(ctx,
@@ -4175,8 +4334,10 @@ function loop()
                                                                 prm[i].BL)
 
                                                             r.ImGui_TableSetColumnIndex(ctx, 1)
-                                                            if P.BL then r.ImGui_PushStyleColor(ctx, r.ImGui_Col_Text(),
-                                                                    getClr(r.ImGui_Col_TextDisabled())) end
+                                                            if P.BL then
+                                                                r.ImGui_PushStyleColor(ctx, r.ImGui_Col_Text(),
+                                                                    getClr(r.ImGui_Col_TextDisabled()))
+                                                            end
 
 
                                                             r.ImGui_Text(ctx, i .. '. ' .. (P.Name or ''))
@@ -4191,8 +4352,10 @@ function loop()
                                                             local OrigV = r.TrackFX_GetParamNormalized(LT_Track, FX_Idx,
                                                                 i)
                                                             r.ImGui_SetNextItemWidth(ctx, -FLT_MIN)
-                                                            if not P.FormatV_A and FX[FxGUID].MorphA[1] then P.FormatV_A =
-                                                                GetFormatPrmV(FX[FxGUID].MorphA[i + 1], OrigV, i) end
+                                                            if not P.FormatV_A and FX[FxGUID].MorphA[1] then
+                                                                P.FormatV_A =
+                                                                    GetFormatPrmV(FX[FxGUID].MorphA[i + 1], OrigV, i)
+                                                            end
 
 
                                                             P.Drag_A, FX[FxGUID].MorphA[i] = r.ImGui_DragDouble(ctx,
@@ -4402,7 +4565,7 @@ function loop()
                                         if ProQ3.LT_EQBand[FXGUID[FX_Idx]] ~= nil then
                                             Freq_LTBandNorm = r.TrackFX_GetParamNormalized(LT_Track, FX_Idx,
                                                 13 * (ProQ3.LT_EQBand[FXGUID[FX_Idx]] - 1) + 2)
-                                            Freq_LTBand = math.floor(x_to_freq(Freq_LTBandNorm * 340))   -- width
+                                            Freq_LTBand = math.floor(x_to_freq(Freq_LTBandNorm * 340)) -- width
                                             ProQ3['Freq_LTBand - ' .. FXGUID[FX_Idx]] = Freq_LTBand
                                             local Gain = r.TrackFX_GetParamNormalized(LT_Track, FX_Idx,
                                                 13 * (ProQ3.LT_EQBand[FXGUID[FX_Idx]] - 1) + 3)
@@ -4421,7 +4584,7 @@ function loop()
                                             FreqLbl = ProQ3['Freq_LTBand - ' .. FXGUID[FX_Idx]] .. ' Hz'
                                         elseif ProQ3['Freq_LTBand - ' .. FXGUID[FX_Idx]] ~= nil and ProQ3['Freq_LTBand - ' .. FXGUID[FX_Idx]] > 1000 then
                                             FreqLbl = round(ProQ3['Freq_LTBand - ' .. FXGUID[FX_Idx]] / 1000, 2) ..
-                                            ' kHz'
+                                                ' kHz'
                                         end
                                         if ProQ3['Freq_LTBand - ' .. FXGUID[FX_Idx]] ~= nil then
                                             if Mods == Shift then
@@ -4468,7 +4631,7 @@ function loop()
                                             ProQ3.DspRange[FX_Idx] = tonumber(ProQ3.DspRange[FX_Idx])
                                             ProQ3['scaleLabel' .. ' ID' .. FXGUID[FX_Idx]] = ProQ3.DspRange[FX_Idx]
                                             ProQ3['scale' .. ' ID' .. FXGUID[FX_Idx]] = syncProQ_DispRange(ProQ3
-                                            .DspRange[FX_Idx])
+                                                .DspRange[FX_Idx])
                                         end
 
 
@@ -4516,8 +4679,10 @@ function loop()
                                         Rounding = 3
                                         r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_FrameRounding(), Rounding)
                                         if not FX[FXGUID[FX_Idx]].Collapse then
-                                            if not OverSampleValue then _, OverSampleValue = r
-                                                .TrackFX_GetFormattedParamValue(LT_Track, FX_Idx, 40) end
+                                            if not OverSampleValue then
+                                                _, OverSampleValue = r
+                                                    .TrackFX_GetFormattedParamValue(LT_Track, FX_Idx, 40)
+                                            end
                                             r.ImGui_SetNextItemWidth(ctx, 10)
                                             r.ImGui_PushFont(ctx, Font_Andale_Mono_10)
                                             MyText('Over:', nil, 0x818181ff)
@@ -4564,13 +4729,19 @@ function loop()
                                             times = 5 ]]
                                         end
 
-                                        if FX.Round[FxGUID] then r.ImGui_PushStyleVar(ctx,
-                                                r.ImGui_StyleVar_FrameRounding(), FX.Round[FxGUID]) end
-                                        if FX.GrbRound[FxGUID] then r.ImGui_PushStyleVar(ctx,
-                                                r.ImGui_StyleVar_GrabRounding(), FX.GrbRound[FxGUID]) end
+                                        if FX.Round[FxGUID] then
+                                            r.ImGui_PushStyleVar(ctx,
+                                                r.ImGui_StyleVar_FrameRounding(), FX.Round[FxGUID])
+                                        end
+                                        if FX.GrbRound[FxGUID] then
+                                            r.ImGui_PushStyleVar(ctx,
+                                                r.ImGui_StyleVar_GrabRounding(), FX.GrbRound[FxGUID])
+                                        end
 
-                                        if FX.LayEdit == FxGUID or Draw.DrawMode[FxGUID] == true then r
-                                                .ImGui_BeginDisabled(ctx, true) end
+                                        if FX.LayEdit == FxGUID or Draw.DrawMode[FxGUID] == true then
+                                            r
+                                                .ImGui_BeginDisabled(ctx, true)
+                                        end
                                         if FX.LayEdit then
                                             LE.DragX, LE.DragY = r.ImGui_GetMouseDragDelta(ctx, 0)
                                         end
@@ -4581,17 +4752,17 @@ function loop()
                                         --[[ for Fx_P, v in ipairs(FX[FxGUID])    do
                                             if not FX[FxGUID][Fx_P].Name then table.remove(FX[FxGUID],Fx_P) end
                                         end ]]
-                                        for Fx_P, v in ipairs(FX[FxGUID]) do    --parameter faders
+                                        for Fx_P, v in ipairs(FX[FxGUID]) do --parameter faders
                                             --FX[FxGUID][Fx_P]= FX[FxGUID][Fx_P] or {}
 
                                             local FP = FX[FxGUID][Fx_P]
 
                                             local F_Tp = FX.Prm.ToTrkPrm[FXGUID[FX_Idx] .. Fx_P]; local ID = FxGUID ..
-                                            Fx_P
+                                                Fx_P
                                             Rounding = 0.5
 
                                             ParamX_Value = 'Param' ..
-                                            tostring(FP.Name) .. 'On  ID:' .. tostring(Fx_P) .. 'value' .. FxGUID
+                                                tostring(FP.Name) .. 'On  ID:' .. tostring(Fx_P) .. 'value' .. FxGUID
 
                                             ----Default Layouts
                                             if not FP.PosX and not FP.PosY then
@@ -4644,8 +4815,11 @@ function loop()
                                                 r.ImGui_SetCursorPosY(ctx, 210)
                                                 CurY = 210
                                             end
-                                            if curX < 0 then r.ImGui_SetCursorPosX(ctx, 0) elseif curX > (FX.Width[FxGUID] or DefaultWidth) then
-                                                r.ImGui_SetCursorPosX(ctx, (FX.Width[FxGUID] or DefaultWidth) - 10) end
+                                            if curX < 0 then
+                                                r.ImGui_SetCursorPosX(ctx, 0)
+                                            elseif curX > (FX.Width[FxGUID] or DefaultWidth) then
+                                                r.ImGui_SetCursorPosX(ctx, (FX.Width[FxGUID] or DefaultWidth) - 10)
+                                            end
 
                                             -- if prm has clr set, calculate colors for active and hvr clrs
                                             if FP.BgClr then
@@ -4657,7 +4831,7 @@ function loop()
                                                     ActV = V - 0.5
                                                 end
                                                 local RGB, _, R, G, B = r.ImGui_ColorConvertHSVtoRGB(H, S, HvrV or V +
-                                                0.1)
+                                                    0.1)
                                                 local HvrClr = r.ImGui_ColorConvertDouble4ToU32(R, G, B, A)
                                                 local RGB, _, R, G, B = r.ImGui_ColorConvertHSVtoRGB(H, S,
                                                     ActV or V + 0.2)
@@ -4675,15 +4849,18 @@ function loop()
                                                 if FP[ConditionPrm] then
                                                     if not FX[FxGUID][Fx_P][ConditionPrm_PID] then
                                                         for i, v in ipairs(FX[FxGUID]) do
-                                                            if v.Num == FX[FxGUID][Fx_P][ConditionPrm] then FX[FxGUID][Fx_P][ConditionPrm_PID] =
-                                                                i end
+                                                            if v.Num == FX[FxGUID][Fx_P][ConditionPrm] then
+                                                                FX[FxGUID][Fx_P][ConditionPrm_PID] =
+                                                                    i
+                                                            end
                                                         end
                                                     end
                                                     local PID = FP[ConditionPrm_PID]
 
                                                     if FX[FxGUID][PID].ManualValues then
                                                         local V = round(
-                                                        r.TrackFX_GetParamNormalized(LT_Track, FX_Idx, FP[ConditionPrm]),
+                                                            r.TrackFX_GetParamNormalized(LT_Track, FX_Idx,
+                                                                FP[ConditionPrm]),
                                                             3)
                                                         if FP[ConditionPrm_V_Norm] then
                                                             for i, v in ipairs(FP[ConditionPrm_V_Norm]) do
@@ -4755,7 +4932,7 @@ function loop()
                                                     elseif Prm.Type == 'Selection' then
                                                         AddCombo(ctx, LT_Track, FX_Idx, Prm.Name .. FxGUID, Prm.Num,
                                                             FP.ManualValuesFormat or 'Get Options', Prm.Sldr_W, Prm
-                                                        .Style, FxGUID, Fx_P, FP.ManualValues)
+                                                            .Style, FxGUID, Fx_P, FP.ManualValues)
                                                         MakeItemEditable(FxGUID, Fx_P, Prm.Sldr_W, 'Selection', curX,
                                                             CurY)
                                                     end
@@ -4784,7 +4961,7 @@ function loop()
 
                                                     if ToDef.ID and ToDef.V then
                                                         r.TrackFX_SetParamNormalized(LT_Track, ToDef.ID, ToDef.P, ToDef
-                                                        .V)
+                                                            .V)
                                                         if Prm.WhichCC then
                                                             if Trk.Prm.WhichMcros[Prm.WhichCC .. TrkID] then
                                                                 Unlink_Parm(LT_TrackNum, ToDef.ID, ToDef.P)
@@ -4832,7 +5009,7 @@ function loop()
                                                     if r.ImGui_Selectable(ctx, 'Add Parameter to Envelope') then
                                                         local env = r.GetFXEnvelope(LT_Track, 0, FP.Num, true)
                                                         local active, visible, armed, inLane, laneHeight, defaultShape, minValue, maxValue, centerValue, Tp, faderScaling =
-                                                        r.BR_EnvGetProperties(env)
+                                                            r.BR_EnvGetProperties(env)
 
                                                         r.BR_EnvSetProperties(env, true, true, armed, inLane, laneHeight,
                                                             defaultShape, faderScaling)
@@ -4847,7 +5024,8 @@ function loop()
 
                                         if FX.LayEdit then
                                             if LE.DragY > LE.GridSize or LE.DragX > LE.GridSize or LE.DragY < -LE.GridSize or LE.DragX < -LE.GridSize then
-                                                r.ImGui_ResetMouseDragDelta(ctx) end
+                                                r.ImGui_ResetMouseDragDelta(ctx)
+                                            end
                                         end
 
 
@@ -4864,8 +5042,10 @@ function loop()
                                         if FX.Round[FxGUID] then r.ImGui_PopStyleVar(ctx) end
                                         if FX.GrbRound[FxGUID] then r.ImGui_PopStyleVar(ctx) end
 
-                                        if FX.LayEdit == FxGUID or Draw.DrawMode[FxGUID] == true then r
-                                                .ImGui_EndDisabled(ctx) end
+                                        if FX.LayEdit == FxGUID or Draw.DrawMode[FxGUID] == true then
+                                            r
+                                                .ImGui_EndDisabled(ctx)
+                                        end
 
                                         --r.ImGui_PopStyleColor(ctx, times)
                                     end --if there are params stored
@@ -4880,34 +5060,34 @@ function loop()
                                         if Prm.InstAdded[FXGUID[FX_Idx]] ~= true and FX.Win_Name[FX_Idx]:find('Pro%-C 2') then
                                             --- number in green represents FX Prm Index
                                             StoreNewParam(FXGUID[FX_Idx], 'Knee', 3, FX_Idx, false, 'AddingFromExtState',
-                                                1, FX_Idx)                                                                                --1. Knee
+                                                1, FX_Idx)                       --1. Knee
                                             StoreNewParam(FXGUID[FX_Idx], 'Range', 4, FX_Idx, false, 'AddingFromExtState',
-                                                2, FX_Idx)                                                                                --2. Range
+                                                2, FX_Idx)                       --2. Range
                                             StoreNewParam(FXGUID[FX_Idx], 'Lookahead', 8, FX_Idx, false,
-                                                'AddingFromExtState', 3, FX_Idx)                                                          --3. Lookahead
+                                                'AddingFromExtState', 3, FX_Idx) --3. Lookahead
                                             StoreNewParam(FXGUID[FX_Idx], 'Hold', 9, FX_Idx, false, 'AddingFromExtState',
-                                                4, FX_Idx)                                                                                --4. Hold
+                                                4, FX_Idx)                       --4. Hold
 
                                             StoreNewParam(FXGUID[FX_Idx], 'Ratio', 2, FX_Idx, false, 'AddingFromExtState',
-                                                5, FX_Idx)                                                                                --5. Ratio
+                                                5, FX_Idx)                       --5. Ratio
                                             StoreNewParam(FXGUID[FX_Idx], 'Attack', 5, FX_Idx, false,
-                                                'AddingFromExtState', 6, FX_Idx)                                                          --6. Attack
+                                                'AddingFromExtState', 6, FX_Idx) --6. Attack
                                             StoreNewParam(FXGUID[FX_Idx], 'Release', 6, FX_Idx, false,
-                                                'AddingFromExtState', 7, FX_Idx)                                                          --7. release
+                                                'AddingFromExtState', 7, FX_Idx) --7. release
 
                                             StoreNewParam(FXGUID[FX_Idx], 'Gain', 10, FX_Idx, false, 'AddingFromExtState',
-                                                8, FX_Idx)                                                                                --8. Gain
+                                                8, FX_Idx)                        --8. Gain
                                             StoreNewParam(FXGUID[FX_Idx], 'Dry', 12, FX_Idx, false, 'AddingFromExtState',
-                                                9, FX_Idx)                                                                                --9. Dry Gain
+                                                9, FX_Idx)                        --9. Dry Gain
                                             StoreNewParam(FXGUID[FX_Idx], 'Thresh', 1, FX_Idx, false,
-                                                'AddingFromExtState', 10, FX_Idx)                                                         -- 10. Thresh
+                                                'AddingFromExtState', 10, FX_Idx) -- 10. Thresh
 
                                             StoreNewParam(FXGUID[FX_Idx], 'Mix', 34, FX_Idx, false, 'AddingFromExtState',
-                                                11, FX_Idx)                                                                               -- 11. Mix
+                                                11, FX_Idx)                       -- 11. Mix
                                             StoreNewParam(FXGUID[FX_Idx], 'Input Gain', 35, FX_Idx, false,
-                                                'AddingFromExtState', 12, FX_Idx)                                                         -- 12. Input Gain
+                                                'AddingFromExtState', 12, FX_Idx) -- 12. Input Gain
                                             StoreNewParam(FXGUID[FX_Idx], 'Output Gain', 37, FX_Idx, false,
-                                                'AddingFromExtState', 13, FX_Idx)                                                         -- 13. Output Gain
+                                                'AddingFromExtState', 13, FX_Idx) -- 13. Output Gain
 
 
 
@@ -4970,7 +5150,7 @@ function loop()
                                                 ScaleActive = true
                                                 r.ImGui_EndCombo(ctx)
                                                 local L, T = r.ImGui_GetItemRectMin(ctx); local R, B = r
-                                                .ImGui_GetItemRectMax(ctx)
+                                                    .ImGui_GetItemRectMax(ctx)
                                                 local lineheight = reaper.ImGui_GetTextLineHeight(ctx)
                                                 local drawlist = r.ImGui_GetForegroundDrawList(ctx)
 
@@ -4986,8 +5166,10 @@ function loop()
 
                                             if not Sel_Scale then Sel_Scale = 3 end
 
-                                            if LT_ParamNum == 41 then Lookahead = r.TrackFX_GetParamNormalized(LT_Track,
-                                                    FX_Idx, 41) end
+                                            if LT_ParamNum == 41 then
+                                                Lookahead = r.TrackFX_GetParamNormalized(LT_Track,
+                                                    FX_Idx, 41)
+                                            end
 
 
 
@@ -5037,14 +5219,14 @@ function loop()
 
                                                 if IsLBtnClicked and AnyActive == false and not ProC.ChoosingStyle then
                                                     r.ImGui_DrawList_AddRectFilled(Drawlist, SpX, SpY, SpX + 180, SpY +
-                                                    100, 0x88888866, nil)
+                                                        100, 0x88888866, nil)
                                                     ShowDpRange = true
                                                     TimeNow = r.time_precise()
                                                     Sel_Scale = math.max(Sel_Scale - 1, 1)
                                                 end
                                                 if IsRBtnClicked then
                                                     r.ImGui_DrawList_AddRectFilled(Drawlist, SpX, SpY, SpX + 180, SpY +
-                                                    100, 0x88888866, nil)
+                                                        100, 0x88888866, nil)
                                                     ShowDpRange = true
                                                     TimeNow = r.time_precise()
                                                     Sel_Scale = math.min(Sel_Scale + 1, 3)
@@ -5056,7 +5238,7 @@ function loop()
                                                     r.ImGui_SetScrollX(ctx, 0)
                                                     local OV = r.TrackFX_GetParamNormalized(LT_Track, FX_Idx + 1, 0)
                                                     r.TrackFX_SetParamNormalized(LT_Track, FX_Idx + 1, 0, OV + Wheel_V /
-                                                    50)
+                                                        50)
                                                     TimeNow = r.time_precise()
                                                     FX[FxGUID].ShowMsecRange = true
                                                     FX[FxGUID].MsecRange = tonumber(select(2,
@@ -5064,10 +5246,10 @@ function loop()
                                                     if FX[FxGUID].MsecRange then
                                                         if FX[FxGUID].MsecRange > 999 then
                                                             FX[FxGUID].MsecRange = round((FX[FxGUID].MsecRange / 1000), 2) ..
-                                                            's'
+                                                                's'
                                                         else
                                                             FX[FxGUID].MsecRange = math.floor(FX[FxGUID].MsecRange) ..
-                                                            'ms'
+                                                                'ms'
                                                         end
                                                     end
                                                 end
@@ -5093,25 +5275,25 @@ function loop()
 
                                             -- Draw Grid
                                             r.ImGui_DrawList_AddLine(Drawlist, SpX, SpY + 95, SpX + 180, SpY + 95,
-                                                0x99999955, 1)                                                              --- -3dB
+                                                0x99999955, 1) --- -3dB
                                             r.ImGui_DrawList_AddText(Drawlist, SpX + 185, SpY + 90, 0x999999bb,
                                                 '-' .. 3 * Sel_Scale)
                                             r.ImGui_DrawList_AddLine(Drawlist, SpX, SpY + 72, SpX + 180, SpY + 72,
-                                                0x99999933, 1)                                                              --- -1.5dB
+                                                0x99999933, 1) --- -1.5dB
                                             r.ImGui_DrawList_AddText(Drawlist, SpX + 185, SpY + 70, 0x999999aa,
                                                 '-' .. 1.5 * Sel_Scale)
 
                                             r.ImGui_DrawList_AddLine(Drawlist, SpX, SpY + 50, SpX + 180, SpY + 50,
-                                                0x99999955, 1)                                                              --- 0dB
+                                                0x99999955, 1) --- 0dB
                                             r.ImGui_DrawList_AddText(Drawlist, SpX + 185, SpY + 45, 0x999999bb, ' 0')
 
                                             r.ImGui_DrawList_AddLine(Drawlist, SpX, SpY + 27, SpX + 180, SpY + 27,
-                                                0x99999933, 1)                                                              --- -1.5dB
+                                                0x99999933, 1) --- -1.5dB
                                             r.ImGui_DrawList_AddText(Drawlist, SpX + 185, SpY + 20, 0x999999aa,
                                                 '+' .. 1.5 * Sel_Scale)
 
                                             r.ImGui_DrawList_AddLine(Drawlist, SpX, SpY + 4, SpX + 180, SpY + 4,
-                                                0x99999955, 1)                                                            --- +3dB
+                                                0x99999955, 1) --- +3dB
                                             r.ImGui_DrawList_AddText(Drawlist, SpX + 185, SpY - 5, 0x999999bb,
                                                 '+' .. 3 * Sel_Scale)
 
@@ -5155,22 +5337,32 @@ function loop()
                                                 local SegL = i * ((MtrB - MtrT) / HowManySeg); local Clr
 
                                                 local _, _, RR, GG, BB = r.ImGui_ColorConvertHSVtoRGB(
-                                                0.4 - (0.3 / HowManySeg) * i, 0.6, 0.5)
+                                                    0.4 - (0.3 / HowManySeg) * i, 0.6, 0.5)
                                                 local MtrClr = r.ImGui_ColorConvertDouble4ToU32(RR, GG, BB, 1)
                                                 local MtrClrDim = r.ImGui_ColorConvertDouble4ToU32(RR, GG, BB, 0.4)
 
-                                                if MtrT - (20 * MtrPreL) < MtrB - SegL then r.ImGui_DrawList_AddLine(
-                                                    Drawlist, SpX - 15, MtrB - SegL, SpX - 15, MtrB - SegL - 1, MtrClr,
-                                                        MtrW) end
-                                                if MtrT - (20 * MtrPreR) < MtrB - SegL then r.ImGui_DrawList_AddLine(
-                                                    Drawlist, SpX - 15 + MtrW + 2, MtrB - SegL, SpX - 15 + MtrW + 2,
-                                                        MtrB - SegL - 1, MtrClr, MtrW) end
-                                                if MtrT - (20 * MtrPoL) < MtrB - SegL then r.ImGui_DrawList_AddLine(
-                                                    Drawlist, SpX + 250, MtrB - SegL, SpX + 250, MtrB - SegL - 1, MtrClr,
-                                                        MtrW) end
-                                                if MtrT - (20 * MtrPoR) < MtrB - SegL then r.ImGui_DrawList_AddLine(
-                                                    Drawlist, SpX + 250 + MtrW + 2, MtrB - SegL, SpX + 250 + MtrW + 2,
-                                                        MtrB - SegL - 1, MtrClr, MtrW) end
+                                                if MtrT - (20 * MtrPreL) < MtrB - SegL then
+                                                    r.ImGui_DrawList_AddLine(
+                                                        Drawlist, SpX - 15, MtrB - SegL, SpX - 15, MtrB - SegL - 1,
+                                                        MtrClr,
+                                                        MtrW)
+                                                end
+                                                if MtrT - (20 * MtrPreR) < MtrB - SegL then
+                                                    r.ImGui_DrawList_AddLine(
+                                                        Drawlist, SpX - 15 + MtrW + 2, MtrB - SegL, SpX - 15 + MtrW + 2,
+                                                        MtrB - SegL - 1, MtrClr, MtrW)
+                                                end
+                                                if MtrT - (20 * MtrPoL) < MtrB - SegL then
+                                                    r.ImGui_DrawList_AddLine(
+                                                        Drawlist, SpX + 250, MtrB - SegL, SpX + 250, MtrB - SegL - 1,
+                                                        MtrClr,
+                                                        MtrW)
+                                                end
+                                                if MtrT - (20 * MtrPoR) < MtrB - SegL then
+                                                    r.ImGui_DrawList_AddLine(
+                                                        Drawlist, SpX + 250 + MtrW + 2, MtrB - SegL, SpX + 250 + MtrW + 2,
+                                                        MtrB - SegL - 1, MtrClr, MtrW)
+                                                end
 
                                                 r.ImGui_DrawList_AddLine(Drawlist, SpX - 15, MtrB - SegL, SpX - 15,
                                                     MtrB - SegL - 1, MtrClrDim, MtrW)
@@ -5195,14 +5387,22 @@ function loop()
                                                 PoRPeak = true; PlayStateWhenPeak = r.GetPlayState()
                                             end
 
-                                            if PreLPeak then r.ImGui_DrawList_AddRectFilled(Drawlist, SpX - 16, MtrT - 2,
-                                                    SpX - 13, MtrT + 3, 0xf20000ff) end
-                                            if PreRPeak then r.ImGui_DrawList_AddRectFilled(Drawlist, SpX + 250 + MtrW +
-                                                2, MtrT - 2, SpX + 250 + MtrW + 5, MtrT + 3, 0xf20000ff) end
-                                            if PoLPeak then r.ImGui_DrawList_AddRectFilled(Drawlist, SpX + 250 + MtrW * 3 +
-                                                12, MtrT - 2, SpX + 250 + MtrW * 3 + 15, MtrT + 3, 0xf20000ff) end
-                                            if PoRPeak then r.ImGui_DrawList_AddRectFilled(Drawlist, SpX + 250 + MtrW * 4 +
-                                                14, MtrT - 2, SpX + 250 + MtrW * 4 + 17, MtrT + 3, 0xf20000ff) end
+                                            if PreLPeak then
+                                                r.ImGui_DrawList_AddRectFilled(Drawlist, SpX - 16, MtrT - 2,
+                                                    SpX - 13, MtrT + 3, 0xf20000ff)
+                                            end
+                                            if PreRPeak then
+                                                r.ImGui_DrawList_AddRectFilled(Drawlist, SpX + 250 + MtrW +
+                                                    2, MtrT - 2, SpX + 250 + MtrW + 5, MtrT + 3, 0xf20000ff)
+                                            end
+                                            if PoLPeak then
+                                                r.ImGui_DrawList_AddRectFilled(Drawlist, SpX + 250 + MtrW * 3 +
+                                                    12, MtrT - 2, SpX + 250 + MtrW * 3 + 15, MtrT + 3, 0xf20000ff)
+                                            end
+                                            if PoRPeak then
+                                                r.ImGui_DrawList_AddRectFilled(Drawlist, SpX + 250 + MtrW * 4 +
+                                                    14, MtrT - 2, SpX + 250 + MtrW * 4 + 17, MtrT + 3, 0xf20000ff)
+                                            end
 
 
 
@@ -5259,8 +5459,10 @@ function loop()
                                                 local F_Tp = FX.Prm.ToTrkPrm[FxGUID .. Fx_p]
                                                 local P_Num = FX[FxGUID][Fx_p].Num
                                                 SliderStyle = 'Pro C'
-                                                if FX[FxGUID][Fx_P].V == nil then FX[FxGUID][Fx_P].V = r
-                                                    .TrackFX_GetParamNormalized(LT_Track, FX_Idx, P_Num) end
+                                                if FX[FxGUID][Fx_P].V == nil then
+                                                    FX[FxGUID][Fx_P].V = r
+                                                        .TrackFX_GetParamNormalized(LT_Track, FX_Idx, P_Num)
+                                                end
 
                                                 if P_Num == 8 then
                                                     if Lookahead == 0 then
@@ -5286,7 +5488,7 @@ function loop()
                                             r.ImGui_PopStyleVar(ctx, 2)
 
 
-                                            if FX.Win_Name[FX_Idx - 1]:find('JS: FXD Split to 4 channels') and not tablefind(Trk[TrkID].PreFX, FxGUID) and not tablefind(Trk[TrkID].PostFX, FxGUID) then
+                                            if not FX.Win_Name[math.max(FX_Idx - 1, 0)]:find('JS: FXD Split to 4 channels') and not tablefind(Trk[TrkID].PreFX, FxGUID) and not tablefind(Trk[TrkID].PostFX, FxGUID) then
                                                 table.insert(AddFX.Pos, FX_Idx)
                                                 table.insert(AddFX.Name, 'FXD Split to 4 channels')
                                                 if r.GetMediaTrackInfo_Value(LT_Track, 'I_NCHAN') < 4 then
@@ -5346,7 +5548,7 @@ function loop()
                                                 331)
                                             ProQ3['scaleLabel' .. ' ID' .. FXGUID[FX_Idx]] = ProQ3.DspRange[FX_Idx]
                                             ProQ3['scale' .. ' ID' .. FXGUID[FX_Idx]] = syncProQ_DispRange(ProQ3
-                                            .DspRange[FX_Idx])
+                                                .DspRange[FX_Idx])
                                         end
 
                                         _, ProQ3.Format = r.TrackFX_GetNamedConfigParm(LT_Track, FX_Idx, 'fx_type')
@@ -5384,7 +5586,7 @@ function loop()
                                             floor = -80; ly = 0; lx = -1;
 
                                             sc = (ProQ3.Width - 20) * 20 /
-                                            (floor * math.log(10))                        --      200 = width of window
+                                                (floor * math.log(10)) --      200 = width of window
                                             Foreground = r.ImGui_GetWindowDrawList(ctx)
                                             SpectrumX = 0
                                             SpectrumY = 0
@@ -5455,7 +5657,7 @@ function loop()
                                                 ProQ3.Band_UseState[Band] = r.TrackFX_GetParamNormalized(LT_Track, FX_Idx,
                                                     paramOfUsed)
                                                 Band_Enabled[Band .. FXGUID_ProQ] = r.TrackFX_GetParamNormalized(
-                                                LT_Track, FX_Idx, paramOfEnabled)
+                                                    LT_Track, FX_Idx, paramOfEnabled)
                                                 local x = ProQ_Xpos_L
                                                 local y = Y_Mid
                                                 if ProQ3.Band_UseState[Band] == 1 then
@@ -5466,9 +5668,9 @@ function loop()
                                                     Gain[Band] = r.TrackFX_GetParamNormalized(LT_Track, FX_Idx,
                                                         paramOfUsed + 3)
                                                     _, ProQ3['Shape of Band' .. Band .. 'ID' .. FXGUID_ProQ] = r
-                                                    .TrackFX_GetFormattedParamValue(LT_Track, FX_Idx, paramOfUsed + 8)
+                                                        .TrackFX_GetFormattedParamValue(LT_Track, FX_Idx, paramOfUsed + 8)
                                                     NodeFreq['B-' .. Band .. 'GUID-' .. FXGUID_ProQ] = x_to_freq(Freq
-                                                    [Band] * ProQ3.Width)
+                                                        [Band] * ProQ3.Width)
                                                     if ProQ3['Shape of Band' .. Band .. 'ID' .. FXGUID_ProQ] == 'Low Shelf' or ProQ3['Shape of Band' .. Band .. 'ID' .. FXGUID_ProQ] == 'High Shelf' then
                                                         Gain[Band] = -30 + Gain[Band] * 60
                                                         ShelfGain_Node = Gain[Band] * 1.3
@@ -5511,9 +5713,11 @@ function loop()
                                                         X2 = x + 2
                                                         BandColor = determineBandColor(ProQ3.LT_EQBand[FXGUID_ProQ])
                                                         i = iteration
-                                                        if i ~= 1 then r.ImGui_DrawList_AddLine(Foreground, x, y1, X2,
+                                                        if i ~= 1 then
+                                                            r.ImGui_DrawList_AddLine(Foreground, x, y1, X2,
                                                                 Y_Mid - pts[i .. 'B-' .. Band .. FXGUID_ProQ], BandColor,
-                                                                1.7) end
+                                                                1.7)
+                                                        end
                                                         x = X2
                                                     end
                                                 end
@@ -5552,15 +5756,18 @@ function loop()
                                                             mag = 20 * math.log(mag, 10)
                                                             mag = db_to_y(mag)
                                                             pts[i .. 'B-' .. Band .. FXGUID_ProQ] = ((pts[i .. 'B-' .. Band .. FXGUID_ProQ] + mag) / 2) *
-                                                            ProQ3['scale' .. ' ID' .. FXGUID[FX_Idx]]
+                                                                ProQ3['scale' .. ' ID' .. FXGUID[FX_Idx]]
                                                             FillClr_LT_Band(i, y)
                                                             if ProQ3.LT_EQBand[FXGUID_ProQ] == Band then
                                                                 X2 = x + 2
                                                                 BandColor = determineBandColor(ProQ3.LT_EQBand
-                                                                [FXGUID_ProQ])
-                                                                if i ~= 1 then r.ImGui_DrawList_AddLine(Foreground, x,
+                                                                    [FXGUID_ProQ])
+                                                                if i ~= 1 then
+                                                                    r.ImGui_DrawList_AddLine(Foreground, x,
                                                                         Y_Mid, X2, Y_Mid -
-                                                                    pts[i .. 'B-' .. Band .. FXGUID_ProQ], BandColor, 1.7) end
+                                                                        pts[i .. 'B-' .. Band .. FXGUID_ProQ], BandColor,
+                                                                        1.7)
+                                                                end
                                                                 x = X2
                                                             end
                                                         end
@@ -5576,11 +5783,12 @@ function loop()
 
                                                     if Band_Enabled[Band .. FXGUID_ProQ] == 1 then
                                                         for i = 1, ProQ3.Width, 2 do
-                                                            local xscale                    = 800 / (ProQ3.Width - 4);
-                                                            Q_Math                          = ((Q[Band] ^ 3.2) * 0.55) /
-                                                            2 + 0.005
+                                                            local xscale                          = 800 /
+                                                                (ProQ3.Width - 4);
+                                                            Q_Math                                = ((Q[Band] ^ 3.2) * 0.55) /
+                                                                2 + 0.005
                                                             pts[i .. 'B-' .. Band .. FXGUID_ProQ] = (Gain_Math * Euler ^ -(Q_Math * (i - Freq_Math)) ^ 2) *
-                                                            ProQ3['scale' .. ' ID' .. FXGUID[FX_Idx]]
+                                                                ProQ3['scale' .. ' ID' .. FXGUID[FX_Idx]]
                                                             FillClr_LT_Band(i, Y_Mid)
                                                         end
 
@@ -5632,7 +5840,7 @@ function loop()
                                                         if Band_Enabled[Band .. FXGUID_ProQ] == 1 then
                                                             if Slope[Band] ~= 1 then
                                                                 pts[i .. 'B-' .. Band .. FXGUID_ProQ] = mag *
-                                                                ProQ3['scale' .. ' ID' .. FXGUID[FX_Idx]]
+                                                                    ProQ3['scale' .. ' ID' .. FXGUID[FX_Idx]]
                                                             elseif Slope[Band] == 1 then --if Slope = brickwall
                                                                 if iToFreq > FreqToActualFreq then
                                                                     magForBrickwall = db_to_y(-100)
@@ -5644,12 +5852,14 @@ function loop()
 
                                                             if ProQ3.LT_EQBand[FXGUID_ProQ] == Band then
                                                                 BandColor = determineBandColor(ProQ3.LT_EQBand
-                                                                [FXGUID_ProQ])
+                                                                    [FXGUID_ProQ])
                                                                 local X2 = x + 2
-                                                                if i ~= 1 then r.ImGui_DrawList_AddLine(Foreground, x,
+                                                                if i ~= 1 then
+                                                                    r.ImGui_DrawList_AddLine(Foreground, x,
                                                                         Y_Mid + 100, X2,
                                                                         Y_Mid - pts[i .. 'B-' .. Band .. FXGUID_ProQ],
-                                                                        BandColor, 2) end
+                                                                        BandColor, 2)
+                                                                end
                                                                 x = X2
                                                             end
                                                         end
@@ -5700,7 +5910,7 @@ function loop()
 
                                                             if Slope[Band] ~= 1 then
                                                                 pts[i .. 'B-' .. Band .. FXGUID_ProQ] = mag *
-                                                                ProQ3['scale' .. ' ID' .. FXGUID[FX_Idx]]
+                                                                    ProQ3['scale' .. ' ID' .. FXGUID[FX_Idx]]
                                                             elseif Slope[Band] == 1 then --if Slope = brickwall
                                                                 local magForBrickwall;
                                                                 if iToFreq > FreqToActualFreq then
@@ -5713,12 +5923,14 @@ function loop()
 
                                                             if ProQ3.LT_EQBand[FXGUID_ProQ] == Band then
                                                                 BandColor = determineBandColor(ProQ3.LT_EQBand
-                                                                [FXGUID_ProQ])
+                                                                    [FXGUID_ProQ])
                                                                 local X2 = x + 1
-                                                                if i ~= 1 then r.ImGui_DrawList_AddLine(Foreground, x,
+                                                                if i ~= 1 then
+                                                                    r.ImGui_DrawList_AddLine(Foreground, x,
                                                                         Y_Mid + 100, X2,
                                                                         Y_Mid - pts[i .. 'B-' .. Band .. FXGUID_ProQ],
-                                                                        BandColor, 2) end
+                                                                        BandColor, 2)
+                                                                end
                                                                 x = X2
                                                             end
                                                         end
@@ -5739,15 +5951,18 @@ function loop()
                                                             mag = 20 * math.log(mag, 10)
                                                             mag = db_to_y(mag)
                                                             pts[i .. 'B-' .. Band .. FXGUID_ProQ] = mag *
-                                                            ProQ3['scale' .. ' ID' .. FXGUID[FX_Idx]]
+                                                                ProQ3['scale' .. ' ID' .. FXGUID[FX_Idx]]
 
                                                             if ProQ3.LT_EQBand[FXGUID_ProQ] == Band then
                                                                 local X2 = x + 1
                                                                 BandColor = determineBandColor(ProQ3.LT_EQBand
-                                                                [FXGUID_ProQ])
-                                                                if i ~= 1 then r.ImGui_DrawList_AddLine(Foreground, x, y,
-                                                                        X2, Y_Mid - pts[i .. 'B-' .. Band .. FXGUID_ProQ],
-                                                                        BandColor) end
+                                                                    [FXGUID_ProQ])
+                                                                if i ~= 1 then
+                                                                    r.ImGui_DrawList_AddLine(Foreground, x, y,
+                                                                        X2, Y_Mid - pts
+                                                                        [i .. 'B-' .. Band .. FXGUID_ProQ],
+                                                                        BandColor)
+                                                                end
                                                                 x = X2
                                                             end
                                                         end
@@ -5766,14 +5981,17 @@ function loop()
                                                             mag = 20 * math.log(mag, 10)
                                                             mag = db_to_y(mag)
                                                             pts[i .. 'B-' .. Band .. FXGUID_ProQ] = mag *
-                                                            ProQ3['scale' .. ' ID' .. FXGUID[FX_Idx]]
+                                                                ProQ3['scale' .. ' ID' .. FXGUID[FX_Idx]]
                                                             if ProQ3.LT_EQBand[FXGUID_ProQ] == Band then
                                                                 local X2 = x + 1
                                                                 BandColor = determineBandColor(ProQ3.LT_EQBand
-                                                                [FXGUID_ProQ])
-                                                                if i ~= 1 then r.ImGui_DrawList_AddLine(Foreground, x, y,
-                                                                        X2, Y_Mid - pts[i .. 'B-' .. Band .. FXGUID_ProQ],
-                                                                        BandColor) end
+                                                                    [FXGUID_ProQ])
+                                                                if i ~= 1 then
+                                                                    r.ImGui_DrawList_AddLine(Foreground, x, y,
+                                                                        X2, Y_Mid - pts
+                                                                        [i .. 'B-' .. Band .. FXGUID_ProQ],
+                                                                        BandColor)
+                                                                end
                                                                 x = X2
                                                             end
                                                         end
@@ -5791,15 +6009,17 @@ function loop()
                                                             mag = 20 * math.log(mag, 10)
                                                             mag = db_to_y(mag)
                                                             pts[i .. 'B-' .. Band .. FXGUID_ProQ] = mag *
-                                                            ProQ3['scale' .. ' ID' .. FXGUID[FX_Idx]]
+                                                                ProQ3['scale' .. ' ID' .. FXGUID[FX_Idx]]
                                                             if ProQ3.LT_EQBand[FXGUID_ProQ] == Band then
                                                                 local X2 = x + 1
                                                                 BandColor = determineBandColor(ProQ3.LT_EQBand
-                                                                [FXGUID_ProQ])
-                                                                if i ~= 1 then r.ImGui_DrawList_AddLine(Foreground, x,
+                                                                    [FXGUID_ProQ])
+                                                                if i ~= 1 then
+                                                                    r.ImGui_DrawList_AddLine(Foreground, x,
                                                                         Y_Mid + 100, X2,
                                                                         Y_Mid - pts[i .. 'B-' .. Band .. FXGUID_ProQ],
-                                                                        BandColor) end
+                                                                        BandColor)
+                                                                end
                                                                 x = X2
                                                             end
                                                         end
@@ -5817,14 +6037,17 @@ function loop()
                                                             mag = 20 * math.log(mag, 10)
                                                             mag = db_to_y(mag)
                                                             pts[i .. 'B-' .. Band .. FXGUID_ProQ] = mag *
-                                                            ProQ3['scale' .. ' ID' .. FXGUID[FX_Idx]]
+                                                                ProQ3['scale' .. ' ID' .. FXGUID[FX_Idx]]
                                                             if ProQ3.LT_EQBand[FXGUID_ProQ] == Band then
                                                                 local X2 = x + 2
                                                                 BandColor = determineBandColor(ProQ3.LT_EQBand
-                                                                [FXGUID_ProQ])
-                                                                if i ~= 1 then r.ImGui_DrawList_AddLine(Foreground, x, y,
-                                                                        X2, Y_Mid - pts[i .. 'B-' .. Band .. FXGUID_ProQ],
-                                                                        BandColor) end
+                                                                    [FXGUID_ProQ])
+                                                                if i ~= 1 then
+                                                                    r.ImGui_DrawList_AddLine(Foreground, x, y,
+                                                                        X2, Y_Mid - pts
+                                                                        [i .. 'B-' .. Band .. FXGUID_ProQ],
+                                                                        BandColor)
+                                                                end
                                                                 x = X2
                                                             end
                                                         end
@@ -5848,14 +6071,16 @@ function loop()
                                                     if ProQ3.Band_UseState[Band] == 1 then
                                                         if pts[i .. 'B-' .. Band .. FXGUID_ProQ] ~= nil and Band_Enabled[Band .. FXGUID_ProQ] == 1 then
                                                             pts[i .. FXGUID_ProQ] = pts[i .. FXGUID_ProQ] +
-                                                            pts[i .. 'B-' .. Band .. FXGUID_ProQ]
+                                                                pts[i .. 'B-' .. Band .. FXGUID_ProQ]
                                                         end
                                                     end
                                                 end
                                                 pts[i .. FXGUID_ProQ] = pts[i .. FXGUID_ProQ]
                                                 local X2 = x + 2
-                                                if i ~= 1 then r.ImGui_DrawList_AddLine(Foreground, x, y, X2,
-                                                        Y_Mid - pts[i .. FXGUID_ProQ], 0xFFC43488, 2.5) end
+                                                if i ~= 1 then
+                                                    r.ImGui_DrawList_AddLine(Foreground, x, y, X2,
+                                                        Y_Mid - pts[i .. FXGUID_ProQ], 0xFFC43488, 2.5)
+                                                end
 
 
                                                 local Y_Mid = (ProQ_Ypos_T + ProQ3.H / 2)
@@ -5976,38 +6201,41 @@ function loop()
                                             for Band = 1, 24, 1 do
                                                 if ProQ3.Band_UseState[Band] == 1 then
                                                     NodeFreq['B-' .. Band .. 'GUID-' .. FXGUID_ProQ] = x_to_freq(Freq
-                                                    [Band] * ProQ3.Width)
+                                                        [Band] * ProQ3.Width)
                                                     XposNode[Band] = freq_to_scx(NodeFreq
-                                                    ['B-' .. Band .. 'GUID-' .. FXGUID_ProQ])
+                                                        ['B-' .. Band .. 'GUID-' .. FXGUID_ProQ])
                                                     _, ProQ3['Shape of Band' .. Band .. 'ID' .. FXGUID_ProQ] = r
-                                                    .TrackFX_GetFormattedParamValue(LT_Track, FX_Idx, 8 + 13 * (Band - 1))
+                                                        .TrackFX_GetFormattedParamValue(LT_Track, FX_Idx,
+                                                            8 + 13 * (Band - 1))
 
                                                     determineBandColor(Band)
                                                     if ProQ3['Shape of Band' .. Band .. 'ID' .. FXGUID_ProQ] == 'Bell' then
                                                         NodeY_Pos[Band] = Y_Mid -
-                                                        (Gain[Band] * 3.2) * ProQ3['scale' .. ' ID' .. FXGUID[FX_Idx]];
+                                                            (Gain[Band] * 3.2) *
+                                                            ProQ3['scale' .. ' ID' .. FXGUID[FX_Idx]];
                                                     elseif ProQ3['Shape of Band' .. Band .. 'ID' .. FXGUID_ProQ] == 'Low Cut' then
                                                         NodeY_Pos[Band] = Y_Mid -
-                                                        (Q_Node[Band]) * ProQ3['scale' .. ' ID' .. FXGUID[FX_Idx]]
+                                                            (Q_Node[Band]) * ProQ3['scale' .. ' ID' .. FXGUID[FX_Idx]]
                                                     elseif ProQ3['Shape of Band' .. Band .. 'ID' .. FXGUID_ProQ] == 'High Cut' then
                                                         NodeY_Pos[Band] = Y_Mid -
-                                                        (Q_Node[Band]) * ProQ3['scale' .. ' ID' .. FXGUID[FX_Idx]]
+                                                            (Q_Node[Band]) * ProQ3['scale' .. ' ID' .. FXGUID[FX_Idx]]
                                                     elseif ProQ3['Shape of Band' .. Band .. 'ID' .. FXGUID_ProQ] == 'Low Shelf' then
                                                         NodeY_Pos[Band] = Y_Mid -
-                                                        (ShelfGain_Node) * ProQ3['scale' .. ' ID' .. FXGUID[FX_Idx]]
+                                                            (ShelfGain_Node) * ProQ3['scale' .. ' ID' .. FXGUID[FX_Idx]]
                                                     elseif ProQ3['Shape of Band' .. Band .. 'ID' .. FXGUID_ProQ] == 'High Shelf' then
                                                         NodeY_Pos[Band] = Y_Mid -
-                                                        (ShelfGain_Node) * ProQ3['scale' .. ' ID' .. FXGUID[FX_Idx]]
+                                                            (ShelfGain_Node) * ProQ3['scale' .. ' ID' .. FXGUID[FX_Idx]]
                                                     elseif ProQ3['Shape of Band' .. Band .. 'ID' .. FXGUID_ProQ] == 'Band Pass' then
                                                         NodeY_Pos[Band] = Y_Mid
                                                     elseif ProQ3['Shape of Band' .. Band .. 'ID' .. FXGUID_ProQ] == 'Notch' then
                                                         NodeY_Pos[Band] = Y_Mid
                                                     elseif ProQ3['Shape of Band' .. Band .. 'ID' .. FXGUID_ProQ] == 'Tilt Shelf' then
                                                         NodeY_Pos[Band] = Y_Mid -
-                                                        (Gain[Band] * 1.4) * ProQ3['scale' .. ' ID' .. FXGUID[FX_Idx]]
+                                                            (Gain[Band] * 1.4) *
+                                                            ProQ3['scale' .. ' ID' .. FXGUID[FX_Idx]]
                                                     elseif ProQ3['Shape of Band' .. Band .. 'ID' .. FXGUID_ProQ] == 'Flat Tilt' then
                                                         NodeY_Pos[Band] = Y_Mid -
-                                                        (0.08 * 1.4) * ProQ3['scale' .. ' ID' .. FXGUID[FX_Idx]]
+                                                            (0.08 * 1.4) * ProQ3['scale' .. ' ID' .. FXGUID[FX_Idx]]
                                                     end
 
 
@@ -6021,12 +6249,16 @@ function loop()
                                                             Clr_HalfAlpha)
                                                     end
                                                     if ProQ_Xpos_L and XposNode[Band] and NodeY_Pos[Band] then
-                                                        if Band <= 9 then r.ImGui_DrawList_AddTextEx(Foreground,
+                                                        if Band <= 9 then
+                                                            r.ImGui_DrawList_AddTextEx(Foreground,
                                                                 Font_Andale_Mono, 12, ProQ_Xpos_L + XposNode[Band] - 2.5,
-                                                                NodeY_Pos[Band] - 4.5, 0x000000ff, Band) end
-                                                        if Band > 9 then r.ImGui_DrawList_AddTextEx(Foreground,
+                                                                NodeY_Pos[Band] - 4.5, 0x000000ff, Band)
+                                                        end
+                                                        if Band > 9 then
+                                                            r.ImGui_DrawList_AddTextEx(Foreground,
                                                                 Font_Andale_Mono, 10, ProQ_Xpos_L + XposNode[Band] - 5,
-                                                                NodeY_Pos[Band] - 4, 0x000000ff, Band) end
+                                                                NodeY_Pos[Band] - 4, 0x000000ff, Band)
+                                                        end
                                                     end
 
                                                     local NodeHoverArea = 10
@@ -6041,7 +6273,7 @@ function loop()
                                                         NodeHasbeenHovered = true
                                                         FX_DeviceWindow_NoScroll = r.ImGui_WindowFlags_NoScrollWithMouse()
                                                         r.ImGui_DrawList_AddCircle(Foreground, ProQ_Xpos_L +
-                                                        XposNode[Band], NodeY_Pos[Band], 7.7, 0xf0f0f0ff)
+                                                            XposNode[Band], NodeY_Pos[Band], 7.7, 0xf0f0f0ff)
                                                         if IsLBtnHeld then
                                                             r.ImGui_DrawList_AddCircleFilled(Foreground,
                                                                 ProQ_Xpos_L + XposNode[Band], NodeY_Pos[Band], 7.7,
@@ -6058,7 +6290,8 @@ function loop()
                                                             BandforQadjusting = Band
                                                         end
                                                         if IsLBtnClicked and Mods == Alt then -- delete node
-                                                            r.TrackFX_SetParamNormalized(LT_Track, FX_Idx, ((Band - 1) * 13),
+                                                            r.TrackFX_SetParamNormalized(LT_Track, FX_Idx,
+                                                                ((Band - 1) * 13),
                                                                 0)
                                                             ProQ3['NodeHvr' .. Band .. 'FXID-' .. FXGUID[FX_Idx]] = false
                                                             HvringNode = nil
@@ -6088,7 +6321,7 @@ function loop()
 
                                                     if ProQ3['AdjustingQ' .. FXGUID[FX_Idx]] then
                                                         local MousePosX_AdjustingQ_CheckXpos, Y = reaper
-                                                        .GetMousePosition()
+                                                            .GetMousePosition()
                                                         if Mods == Shift then
                                                             WheelQFineAdj = 20
                                                         else
@@ -6135,8 +6368,8 @@ function loop()
 
                                                         if ProQ3['Shape of Band' .. Band .. 'ID' .. FXGUID_ProQ] == 'Low Cut' or ProQ3['Shape of Band' .. Band .. 'ID' .. FXGUID_ProQ] == 'High Cut' then
                                                             Q_Output = Q +
-                                                            (-MouseDeltaY / QDragScale) *
-                                                            (ProQ3['scale' .. ' ID' .. FXGUID[FX_Idx]] / ProQ3['DragGainScale' .. ' ID' .. FXGUID[FX_Idx]])
+                                                                (-MouseDeltaY / QDragScale) *
+                                                                (ProQ3['scale' .. ' ID' .. FXGUID[FX_Idx]] / ProQ3['DragGainScale' .. ' ID' .. FXGUID[FX_Idx]])
                                                             r.TrackFX_SetParamNormalized(LT_Track, FX_Idx,
                                                                 ((Band - 1) * 13) + 7, Q_Output)
 
@@ -6156,8 +6389,8 @@ function loop()
                                                                 GainOutput = 0
                                                             else
                                                                 GainOutput = Gain +
-                                                                (-MouseDeltaY / 270) *
-                                                                (ProQ3['scale' .. ' ID' .. FXGUID[FX_Idx]] / ProQ3['DragGainScale' .. ' ID' .. FXGUID[FX_Idx]])
+                                                                    (-MouseDeltaY / 270) *
+                                                                    (ProQ3['scale' .. ' ID' .. FXGUID[FX_Idx]] / ProQ3['DragGainScale' .. ' ID' .. FXGUID[FX_Idx]])
                                                             end
 
                                                             if Freq > 1 and MouseDeltaX > 0 then
@@ -6209,8 +6442,8 @@ function loop()
                                                                 GainOutput = 0
                                                             else
                                                                 GainOutput = Gain +
-                                                                (-MouseDeltaY / 270) *
-                                                                (ProQ3['scale' .. ' ID' .. FXGUID[FX_Idx]] / ProQ3['DragGainScale' .. ' ID' .. FXGUID[FX_Idx]])
+                                                                    (-MouseDeltaY / 270) *
+                                                                    (ProQ3['scale' .. ' ID' .. FXGUID[FX_Idx]] / ProQ3['DragGainScale' .. ' ID' .. FXGUID[FX_Idx]])
                                                             end
                                                             r.TrackFX_SetParamNormalized(LT_Track, FX_Idx,
                                                                 ((ProQ3.LT_EQBand[proQ_LT_GUID] - 1) * 13) + 3,
@@ -6314,7 +6547,7 @@ function loop()
                                                     reaper.TrackFX_SetParamNormalized(LT_Track, FX_Idx,
                                                         13 * (BandNotInUse - 1) + 2, FreqToAddNode)
                                                     local GainToAddNode = ((((Y_Mid - MouseY_AddNode) - 100) / 100 + 1) / ProQ3['scale' .. ' ID' .. FXGUID[FX_Idx]] + 1) /
-                                                    2
+                                                        2
                                                     reaper.TrackFX_SetParamNormalized(LT_Track, FX_Idx,
                                                         13 * (BandNotInUse - 1) + 3, GainToAddNode)
                                                     if FreqToAddNode > 0.9 then
@@ -6355,9 +6588,12 @@ function loop()
 
                                         if FX.Win_Name[math.max(FX_Idx - 1, 0)]:find('FXD ReSpectrum') then
                                             r.TrackFX_Show(LT_Track, FX_Idx - 1, 2)
-                                            if tablefind(Trk[TrkID].PreFX, FxGUID) then r.TrackFX_Delete(LT_Track,
-                                                    FX_Idx - 1) end
-                                            SyncAnalyzerPinWithFX(FX_Idx - 1, FX_Idx, FX.Win_Name[math.max(FX_Idx - 1, 0)])
+                                            if tablefind(Trk[TrkID].PreFX, FxGUID) then
+                                                r.TrackFX_Delete(LT_Track,
+                                                    FX_Idx - 1)
+                                            end
+                                            SyncAnalyzerPinWithFX(FX_Idx - 1, FX_Idx,
+                                                FX.Win_Name[math.max(FX_Idx - 1, 0)])
                                         else -- if no spectrum is before pro-Q 3
                                             FX[FxGUID].AddEQSpectrumWait = (FX[FxGUID].AddEQSpectrumWait or 0) + 1
                                             if FX[FxGUID].AddEQSpectrumWait > FX_Add_Del_WaitTime then
@@ -6374,12 +6610,12 @@ function loop()
                                                     r.gmem_attach('gmemReEQ_Spectrum')
                                                     r.gmem_write(1, PM.DIY_TrkID[TrkID])
                                                     FX[FxGUID].ProQ_ID = FX[FxGUID].ProQ_ID or
-                                                    math.random(1000000, 9999999)
+                                                        math.random(1000000, 9999999)
                                                     r.GetSetMediaTrackInfo_String(LT_Track, 'P_EXT: ProQ_ID ' .. FxGUID,
                                                         FX[FxGUID].ProQ_ID, true)
                                                     r.gmem_write(2, FX[FxGUID].ProQ_ID)
                                                     rv = r.TrackFX_AddByName(LT_Track, 'FXD ReSpectrum', 0, -1000 -
-                                                    FX_Idx)
+                                                        FX_Idx)
                                                 end
                                                 FX[FxGUID].AddEQSpectrumWait = 0
                                                 r.TrackFX_Show(LT_Track, FX_Idx - 1, 2)
@@ -6396,8 +6632,10 @@ function loop()
                                     end --------------- End of Pro - Q
 
 
-                                    if FX.Enable[FX_Idx] == false then r.ImGui_DrawList_AddRectFilled(WDL, Win_L, Win_T,
-                                            Win_R, Win_B, 0x00000088) end
+                                    if FX.Enable[FX_Idx] == false then
+                                        r.ImGui_DrawList_AddRectFilled(WDL, Win_L, Win_T,
+                                            Win_R, Win_B, 0x00000088)
+                                    end
 
 
                                     r.ImGui_EndChild(ctx)
@@ -6411,7 +6649,7 @@ function loop()
 
                             --------------------FX Devices--------------------
 
-                            reaper.ImGui_PopStyleColor(ctx, poptimes)  -- -- PopColor #1 FX Window
+                            reaper.ImGui_PopStyleColor(ctx, poptimes) -- -- PopColor #1 FX Window
                             reaper.ImGui_SameLine(ctx, nil, 0)
 
 
@@ -6459,9 +6697,21 @@ function loop()
 
                                         if r.ImGui_Button(ctx, 'Enter Draw Mode ') then
                                             Draw.DrawMode[FxGUID] = true
-                                            if Draw[FX.Win_Name_S[FX_Idx]] == nil then Draw[FX.Win_Name_S[FX_Idx]] = {
-                                                    Rect = {}, clr = {}, ItemInst = {}, L = {}, R = {}, Y = {}, T = {},
-                                                    B = {}, Type = {}, FxGUID = {}, Txt = {} } end
+                                            if Draw[FX.Win_Name_S[FX_Idx]] == nil then
+                                                Draw[FX.Win_Name_S[FX_Idx]] = {
+                                                    Rect = {},
+                                                    clr = {},
+                                                    ItemInst = {},
+                                                    L = {},
+                                                    R = {},
+                                                    Y = {},
+                                                    T = {},
+                                                    B = {},
+                                                    Type = {},
+                                                    FxGUID = {},
+                                                    Txt = {}
+                                                }
+                                            end
                                         end
                                     else
                                         if r.ImGui_Button(ctx, 'Exit Draw Mode ') then Draw.DrawMode[FxGUID] = false end
@@ -6570,7 +6820,7 @@ function loop()
                                     end
                                 elseif LE.Sel_Items[1] then
                                     local ID, TypeID; local FrstSelItm = FX[FxGUID][LE.Sel_Items[1]]; local FItm = LE
-                                    .Sel_Items[1]
+                                        .Sel_Items[1]
                                     local R_ofs = 50
                                     if LE.Sel_Items[1] and not LE.Sel_Items[2] then
                                         ID       = FxGUID .. LE.Sel_Items[1]
@@ -6590,13 +6840,25 @@ function loop()
                                                 --if FX[FxGUID][frst].GrbClr ~= FX[FxGUID][v].GrbClr then Diff_GrbClr_Found = true end
                                             end
                                         end
-                                        if Diff_Types_Found then TypeID = 'Group' else TypeID = FxGUID .. LE.Sel_Items
-                                            [1] end
-                                        if Diff_Width_Found then WidthID = 'Group' else WidthID = FxGUID ..
-                                            LE.Sel_Items[1] end
+                                        if Diff_Types_Found then
+                                            TypeID = 'Group'
+                                        else
+                                            TypeID = FxGUID .. LE.Sel_Items
+                                                [1]
+                                        end
+                                        if Diff_Width_Found then
+                                            WidthID = 'Group'
+                                        else
+                                            WidthID = FxGUID ..
+                                                LE.Sel_Items[1]
+                                        end
                                         if Diff_Clr_Found then ClrID = 'Group' else ClrID = FxGUID .. LE.Sel_Items[1] end
-                                        if Diff_GrbClr_Found then GrbClrID = 'Group' else GrbClrID = FxGUID ..
-                                            LE.Sel_Items[1] end
+                                        if Diff_GrbClr_Found then
+                                            GrbClrID = 'Group'
+                                        else
+                                            GrbClrID = FxGUID ..
+                                                LE.Sel_Items[1]
+                                        end
                                         ID = FxGUID .. LE.Sel_Items[1]
                                     else
                                         ID = FxGUID .. LE.Sel_Items[1]
@@ -6661,8 +6923,12 @@ function loop()
 
                                     local PrmTypeLbl
 
-                                    if TypeID == 'Group' then PrmTypeLbl = 'Multiple Values' else PrmTypeLbl = FrstSelItm
-                                        .Type or '' end
+                                    if TypeID == 'Group' then
+                                        PrmTypeLbl = 'Multiple Values'
+                                    else
+                                        PrmTypeLbl = FrstSelItm
+                                            .Type or ''
+                                    end
                                     if not FrstSelItm.Type then FrstSelItm.Type = FX.Def_Type[FxGUID] end
                                     r.ImGui_Text(ctx, 'Type : '); r.ImGui_SameLine(ctx); r.ImGui_PushStyleColor(ctx,
                                         r.ImGui_Col_FrameBg(), 0x444444aa)
@@ -6703,7 +6969,7 @@ function loop()
 
                                     --Label Pos
                                     r.ImGui_Text(ctx, 'Label Pos: '); r.ImGui_SameLine(ctx); r.ImGui_SetNextItemWidth(
-                                    ctx, 100)
+                                        ctx, 100)
                                     if r.ImGui_BeginCombo(ctx, '## Lbl Pos' .. LE.Sel_Items[1], FrstSelItm.Lbl_Pos or 'Default', r.ImGui_ComboFlags_NoArrowButton()) then
                                         if FrstSelItm.Type == 'Knob' or FrstSelItm.Type == 'V-Slider' then
                                             AddOption('Top', 'Lbl_Pos')
@@ -6726,7 +6992,7 @@ function loop()
                                     FreeLblPosSettings()
                                     -- Label Color
                                     DragLbl_Clr_Edited, Lbl_V_Clr = r.ImGui_ColorEdit4(ctx, '##Lbl Clr' ..
-                                    LE.Sel_Items[1], FrstSelItm.Lbl_Clr or r.ImGui_GetColor(ctx, r.ImGui_Col_Text()),
+                                        LE.Sel_Items[1], FrstSelItm.Lbl_Clr or r.ImGui_GetColor(ctx, r.ImGui_Col_Text()),
                                         r.ImGui_ColorEditFlags_NoInputs()|    r.ImGui_ColorEditFlags_AlphaPreviewHalf()|
                                         r.ImGui_ColorEditFlags_AlphaBar())
                                     if DragLbl_Clr_Edited then
@@ -6735,7 +7001,7 @@ function loop()
 
 
                                     r.ImGui_Text(ctx, 'Value Pos: '); r.ImGui_SameLine(ctx); r.ImGui_SetNextItemWidth(
-                                    ctx, 100)
+                                        ctx, 100)
                                     if r.ImGui_BeginCombo(ctx, '## V Pos' .. LE.Sel_Items[1], FrstSelItm.V_Pos or 'Default', r.ImGui_ComboFlags_NoArrowButton()) then
                                         if FrstSelItm.Type == 'V-Slider' then
                                             AddOption('Bottom', 'V_Pos')
@@ -6819,8 +7085,10 @@ function loop()
                                             '##EditBaseV' .. FxGUID .. (LE.Sel_Items[1] or ''),
                                             FX[FxGUID][LE.Sel_Items[1]].SwitchBaseV or 0, 0.05, 0, 1, '%.2f')
                                         if Drag then
-                                            for i, v in pairs(LE.Sel_Items) do FX[FxGUID][LE.Sel_Items[1]].SwitchBaseV =
-                                                Bv end
+                                            for i, v in pairs(LE.Sel_Items) do
+                                                FX[FxGUID][LE.Sel_Items[1]].SwitchBaseV =
+                                                    Bv
+                                            end
                                         end
                                         r.ImGui_Text(ctx, 'Target Value: ')
                                         r.ImGui_SameLine(ctx); r.ImGui_SetNextItemWidth(ctx, 80)
@@ -6828,8 +7096,10 @@ function loop()
                                             '##EditTargV' .. FxGUID .. (LE.Sel_Items[1] or ''),
                                             FX[FxGUID][LE.Sel_Items[1]].SwitchTargV or 1, 0.05, 0, 1, '%.2f')
                                         if Drag then
-                                            for i, v in pairs(LE.Sel_Items) do FX[FxGUID][LE.Sel_Items[1]].SwitchTargV =
-                                                Tv end
+                                            for i, v in pairs(LE.Sel_Items) do
+                                                FX[FxGUID][LE.Sel_Items[1]].SwitchTargV =
+                                                    Tv
+                                            end
                                         end
                                     end
 
@@ -6848,7 +7118,7 @@ function loop()
                                     r.ImGui_Text(ctx, 'Label Font Size: '); r.ImGui_SameLine(ctx)
                                     r.ImGui_SetNextItemWidth(ctx, 50)
                                     Drag, ft = r.ImGui_DragDouble(ctx, '##EditFontSize' .. FxGUID ..
-                                    (LE.Sel_Items[1] or ''),
+                                        (LE.Sel_Items[1] or ''),
                                         FX[FxGUID][LE.Sel_Items[1]].FontSize or Knob_DefaultFontSize, 0.25, 6, 16, '%.2f')
                                     if Drag then
                                         for i, v in pairs(LE.Sel_Items) do
@@ -6910,7 +7180,8 @@ function loop()
 
 
 
-                                    local _, W = r.ImGui_DragDouble(ctx, '##EditWidth' .. FxGUID .. (LE.Sel_Items[1] or ''),
+                                    local _, W = r.ImGui_DragDouble(ctx,
+                                        '##EditWidth' .. FxGUID .. (LE.Sel_Items[1] or ''),
                                         FX[FxGUID][LE.Sel_Items[1] or ''].Sldr_W or DefaultW, LE.GridSize / 4, MinW, MaxW,
                                         '%.1f')
 
@@ -6936,8 +7207,12 @@ function loop()
                                         local Edit, rd = r.ImGui_InputInt(ctx,
                                             '##EditValueDecimals' .. FxGUID .. (LE.Sel_Items[1] or ''),
                                             FrstSelItm.V_Round or rd, 1)
-                                        if Edit then for i, v in pairs(LE.Sel_Items) do FX[FxGUID][v].V_Round = math.max(
-                                                rd, 0) end end
+                                        if Edit then
+                                            for i, v in pairs(LE.Sel_Items) do
+                                                FX[FxGUID][v].V_Round = math.max(
+                                                    rd, 0)
+                                            end
+                                        end
                                     end
 
                                     r.ImGui_Text(ctx, 'Value to Note Length: '); r.ImGui_SameLine(ctx)
@@ -6954,7 +7229,7 @@ function loop()
                                             end
                                         end
                                     end
-                                    if FrstSelItm.Type == 'Selection' then     --r.ImGui_Text(ctx,'Edit Values Manually: ') ;r.ImGui_SameLine(ctx)
+                                    if FrstSelItm.Type == 'Selection' then --r.ImGui_Text(ctx,'Edit Values Manually: ') ;r.ImGui_SameLine(ctx)
                                         local Itm = LE.Sel_Items[1]
                                         local FP = FX[FxGUID][Itm]
 
@@ -7034,17 +7309,17 @@ function loop()
                                                 FX[FxGUID][v].Style = Style; r.ImGui_CloseCurrentPopup(ctx)
                                             end
                                         end
-                                        if FrstSelItm.Type == 'Slider' or (not FrstSelItm.Type and FX.Def_Type[FxGUID] == 'Slider') then     -- if all selected itms are Sliders
+                                        if FrstSelItm.Type == 'Slider' or (not FrstSelItm.Type and FX.Def_Type[FxGUID] == 'Slider') then -- if all selected itms are Sliders
                                             --AddSlider(ctx, '##'..FrstSelItm.Name , 'Default', 0, 0, 1, v,FX_Idx, FrstSelItm.Num ,Style, FrstSelItm.Sldr_W or FX.Def_Sldr_W[FxGUID]  ,0, Disable, Vertical, GrabSize,     FrstSelItm.Lbl, 8)
                                             --AddSlider(ctx, '##'..FrstSelItm.Name , 'Default', 0, 0, 1, v,FX_Idx, FrstSelItm.Num ,Style, FrstSelItm.Sldr_W or FX.Def_Sldr_W[FxGUID]  ,0, Disable, Vertical, GrabSize, FrstSelItm.Lbl, 8)
                                         end
 
-                                        if FrstSelItm.Type == 'Knob' or (not FrstSelItm.Type and FX.Def_Type[FxGUID] == 'Knob') then       -- if all selected itms are knobs
+                                        if FrstSelItm.Type == 'Knob' or (not FrstSelItm.Type and FX.Def_Type[FxGUID] == 'Knob') then -- if all selected itms are knobs
                                             local function SetStyle(Name, Style)
                                                 r.ImGui_Text(ctx, Name)
                                                 AddKnob(ctx, '##' .. FrstSelItm.Name, '', 0, 0, 1, FItm, FX_Idx,
                                                     FrstSelItm.Num, Style, 15, 0, Disabled, 12)
-                                                if HighlightHvredItem() then      --if clicked on highlighted itm
+                                                if HighlightHvredItem() then --if clicked on highlighted itm
                                                     setItmStyle(Style)
                                                     r.ImGui_CloseCurrentPopup(ctx)
                                                 end
@@ -7081,7 +7356,7 @@ function loop()
                                     r.ImGui_Text(ctx, 'Pos-X: '); r.ImGui_SameLine(ctx)
                                     r.ImGui_SetNextItemWidth(ctx, 80)
                                     local EditPosX, PosX = r.ImGui_DragDouble(ctx, ' ##EditPosX' ..
-                                    FxGUID .. LE.Sel_Items[1], PosX or FrstSelItm.PosX, LE.GridSize, 0, Win_W - 10,
+                                        FxGUID .. LE.Sel_Items[1], PosX or FrstSelItm.PosX, LE.GridSize, 0, Win_W - 10,
                                         '%.0f')
                                     if EditPosX then
                                         for i, v in pairs(LE.Sel_Items) do FX[FxGUID][v].PosX = PosX end
@@ -7090,7 +7365,7 @@ function loop()
                                     r.ImGui_Text(ctx, 'Pos-Y: '); r.ImGui_SameLine(ctx)
                                     r.ImGui_SetNextItemWidth(ctx, 80)
                                     local EditPosY, PosY = r.ImGui_DragDouble(ctx, ' ##EditPosY' ..
-                                    FxGUID .. LE.Sel_Items[1], PosY or FrstSelItm.PosY, LE.GridSize, 20, 210, '%.0f')
+                                        FxGUID .. LE.Sel_Items[1], PosY or FrstSelItm.PosY, LE.GridSize, 20, 210, '%.0f')
                                     if EditPosY then for i, v in pairs(LE.Sel_Items) do FX[FxGUID][v].PosY = PosY end end
 
                                     ---Color -----
@@ -7102,7 +7377,8 @@ function loop()
                                         r.ImGui_ColorEditFlags_NoInputs()|    r.ImGui_ColorEditFlags_AlphaPreviewHalf()|
                                         reaper.ImGui_ColorEditFlags_AlphaBar())
                                     if not FX[FxGUID][LE.Sel_Items[1]].BgClr or FX[FxGUID][LE.Sel_Items[1]] == r.ImGui_GetColor(ctx, r.ImGui_Col_FrameBg()) then
-                                        HighlightSelectedItem(nil, 0xffffffdd, 0, L, T, R, B, h, w, 0, 0, 'GetItemRect') end
+                                        HighlightSelectedItem(nil, 0xffffffdd, 0, L, T, R, B, h, w, 0, 0, 'GetItemRect')
+                                    end
                                     if ClrEdited then
                                         for i, v in pairs(LE.Sel_Items) do FX[FxGUID][v].BgClr = PrmBgClr end
                                     end
@@ -7118,9 +7394,14 @@ function loop()
                                             reaper.ImGui_ColorEditFlags_AlphaBar())
                                         if not FX[FxGUID][LE.Sel_Items[1]].GrbClr or FX[FxGUID][LE.Sel_Items[1]].GrbClr == r.ImGui_GetColor(ctx, r.ImGui_Col_SliderGrab()) then
                                             HighlightSelectedItem(nil, 0xffffffdd, 0, L, T, R, B, h, w, 0, 0,
-                                                'GetItemRect') end
-                                        if GrbClrEdited then for i, v in pairs(LE.Sel_Items) do FX[FxGUID][v].GrbClr =
-                                                GrbClr end end
+                                                'GetItemRect')
+                                        end
+                                        if GrbClrEdited then
+                                            for i, v in pairs(LE.Sel_Items) do
+                                                FX[FxGUID][v].GrbClr =
+                                                    GrbClr
+                                            end
+                                        end
                                     end
 
                                     if FrstSelItm.Type == 'Knob' then
@@ -7191,8 +7472,10 @@ function loop()
                                             end
                                         end
 
-                                        if r.ImGui_IsItemHovered(ctx) then HintToolTip(
-                                            'Alt-Click to Delete All Conditions') end
+                                        if r.ImGui_IsItemHovered(ctx) then
+                                            HintToolTip(
+                                                'Alt-Click to Delete All Conditions')
+                                        end
 
 
 
@@ -7200,8 +7483,10 @@ function loop()
                                             SL()
                                             if not FX[FxGUID][P][ConditionPrm_PID] then
                                                 for i, v in ipairs(FX[FxGUID]) do
-                                                    if FX[FxGUID][i].Num == FrstSelItm[ConditionPrm] then FrstSelItm[ConditionPrm_PID] =
-                                                        i end
+                                                    if FX[FxGUID][i].Num == FrstSelItm[ConditionPrm] then
+                                                        FrstSelItm[ConditionPrm_PID] =
+                                                            i
+                                                    end
                                                 end
                                             end
                                             local PID = FX[FxGUID][P][ConditionPrm_PID] or 1
@@ -7209,13 +7494,17 @@ function loop()
                                             if r.ImGui_Button(ctx, 'Prm:##' .. ConditionPrm) then
                                                 FX[FxGUID][P].ConditionPrm = LT_ParamNum
                                                 for i, v in ipairs(FX[FxGUID]) do
-                                                    if FX[FxGUID][i].Num == FrstSelItm[ConditionPrm] then FrstSelItm[ConditionPrm_PID] =
-                                                        i end
+                                                    if FX[FxGUID][i].Num == FrstSelItm[ConditionPrm] then
+                                                        FrstSelItm[ConditionPrm_PID] =
+                                                            i
+                                                    end
                                                 end
                                                 --GetParamOptions ('get', FxGUID,FX_Idx, LE.Sel_Items[1],LT_ParamNum)
                                             end
-                                            if r.ImGui_IsItemHovered(ctx) then tooltip(
-                                                'Click to set to last touched parameter') end
+                                            if r.ImGui_IsItemHovered(ctx) then
+                                                tooltip(
+                                                    'Click to set to last touched parameter')
+                                            end
 
                                             r.ImGui_SameLine(ctx)
                                             r.ImGui_SetNextItemWidth(ctx, 80)
@@ -7226,14 +7515,18 @@ function loop()
                                                 '##' .. ConditionPrm .. LE.Sel_Items[1] .. FxGUID,
                                                 FX[FxGUID][P][ConditionPrm] or 0)
 
-                                            if FX[FxGUID][P][ConditionPrm] then _, PrmName = r.TrackFX_GetParamName(
-                                                LT_Track, FX_Idx, FX[FxGUID][P][ConditionPrm]) end
+                                            if FX[FxGUID][P][ConditionPrm] then
+                                                _, PrmName = r.TrackFX_GetParamName(
+                                                    LT_Track, FX_Idx, FX[FxGUID][P][ConditionPrm])
+                                            end
 
                                             if Edit then
                                                 FX[FxGUID][P][ConditionPrm] = Cond
                                                 for i, v in ipairs(FX[FxGUID]) do
-                                                    if FX[FxGUID][i].Num == FrstSelItm[ConditionPrm] then FrstSelItm[ConditionPrm_PID] =
-                                                        i end
+                                                    if FX[FxGUID][i].Num == FrstSelItm[ConditionPrm] then
+                                                        FrstSelItm[ConditionPrm_PID] =
+                                                            i
+                                                    end
                                                 end
                                             end
 
@@ -7259,14 +7552,16 @@ function loop()
                                                     FX[FxGUID][v][ConditionPrm] = Cond
                                                     FX[FxGUID][v][ConditionPrm_V] = FX[FxGUID][v][ConditionPrm_V] or {}
                                                     FX[FxGUID][v][ConditionPrm_V_Norm] = FX[FxGUID][v]
-                                                    [ConditionPrm_V_Norm] or {}
+                                                        [ConditionPrm_V_Norm] or {}
                                                     FX[FxGUID][v][ConditionPrm_V][1] = V_Formatted
                                                     FX[FxGUID][v][ConditionPrm_V_Norm][1] = r.TrackFX_GetParamNormalized(
-                                                    LT_Track, FX_Idx, FX[FxGUID][P][ConditionPrm])
+                                                        LT_Track, FX_Idx, FX[FxGUID][P][ConditionPrm])
                                                 end
                                             end
-                                            if not FX[FxGUID][P][ConditionPrm_V][1] then FX[FxGUID][P][ConditionPrm_V][1] =
-                                                '' end
+                                            if not FX[FxGUID][P][ConditionPrm_V][1] then
+                                                FX[FxGUID][P][ConditionPrm_V][1] =
+                                                ''
+                                            end
 
                                             if FX[FxGUID][P][ConditionPrm_V] then
                                                 if FX[FxGUID][P][ConditionPrm_V][2] then
@@ -7276,7 +7571,7 @@ function loop()
                                                             r.ImGui_SameLine(ctx)
                                                             local Value_Selected, V_Formatted = AddCombo(ctx, LT_Track,
                                                                 FX_Idx, 'CondPrmV' .. (PrmName or '') .. v ..
-                                                            ConditionPrm, FX[FxGUID][P][ConditionPrm] or 0,
+                                                                ConditionPrm, FX[FxGUID][P][ConditionPrm] or 0,
                                                                 FX[FxGUID][PID].ManualValuesFormat or 'Get Options',
                                                                 Width, Style, FxGUID, PID, FX[FxGUID][PID].ManualValues,
                                                                 v, nil, 'No Lbl')
@@ -7284,8 +7579,8 @@ function loop()
                                                                 for I, v in pairs(LE.Sel_Items) do
                                                                     FX[FxGUID][v][ConditionPrm_V][i] = V_Formatted
                                                                     FX[FxGUID][v][ConditionPrm_V_Norm][i] = r
-                                                                    .TrackFX_GetParamNormalized(LT_Track, FX_Idx,
-                                                                        FX[FxGUID][P][ConditionPrm])
+                                                                        .TrackFX_GetParamNormalized(LT_Track, FX_Idx,
+                                                                            FX[FxGUID][P][ConditionPrm])
                                                                 end
                                                             end
                                                         end
@@ -7314,20 +7609,28 @@ function loop()
 
                                     Condition('ConditionPrm', 'ConditionPrm_PID', 'ConditionPrm_V', 'ConditionPrm_V_Norm',
                                         'Show only if:', 'ShowCondition')
-                                    if FrstSelItm.ConditionPrm then Condition('ConditionPrm2', 'ConditionPrm_PID2',
-                                            'ConditionPrm_V2', 'ConditionPrm_V_Norm2', 'And if:', 'ShowCondition2') end
-                                    if FrstSelItm.ConditionPrm2 then Condition('ConditionPrm3', 'ConditionPrm_PID3',
-                                            'ConditionPrm_V3', 'ConditionPrm_V_Norm3', 'And if:', 'ShowCondition3') end
-                                    if FrstSelItm.ConditionPrm3 then Condition('ConditionPrm4', 'ConditionPrm_PID4',
-                                            'ConditionPrm_V4', 'ConditionPrm_V_Norm4', 'And if:', 'ShowCondition4') end
-                                    if FrstSelItm.ConditionPrm4 then Condition('ConditionPrm5', 'ConditionPrm_PID5',
-                                            'ConditionPrm_V5', 'ConditionPrm_V_Norm5', 'And if:', 'ShowCondition5') end
+                                    if FrstSelItm.ConditionPrm then
+                                        Condition('ConditionPrm2', 'ConditionPrm_PID2',
+                                            'ConditionPrm_V2', 'ConditionPrm_V_Norm2', 'And if:', 'ShowCondition2')
+                                    end
+                                    if FrstSelItm.ConditionPrm2 then
+                                        Condition('ConditionPrm3', 'ConditionPrm_PID3',
+                                            'ConditionPrm_V3', 'ConditionPrm_V_Norm3', 'And if:', 'ShowCondition3')
+                                    end
+                                    if FrstSelItm.ConditionPrm3 then
+                                        Condition('ConditionPrm4', 'ConditionPrm_PID4',
+                                            'ConditionPrm_V4', 'ConditionPrm_V_Norm4', 'And if:', 'ShowCondition4')
+                                    end
+                                    if FrstSelItm.ConditionPrm4 then
+                                        Condition('ConditionPrm5', 'ConditionPrm_PID5',
+                                            'ConditionPrm_V5', 'ConditionPrm_V_Norm5', 'And if:', 'ShowCondition5')
+                                    end
 
 
 
 
                                     r.ImGui_PopStyleColor(ctx)
-                                end     -------------------- End of Repeat for every selected item
+                                end -------------------- End of Repeat for every selected item
                                 if LE.SelectedItem == 'Title' then
                                     r.ImGui_PushStyleColor(ctx, r.ImGui_Col_FrameBgActive(), 0x66666688)
 
@@ -7348,7 +7651,8 @@ function loop()
                                         r.ImGui_ColorEditFlags_NoInputs()|    r.ImGui_ColorEditFlags_AlphaPreviewHalf()|
                                         r.ImGui_ColorEditFlags_AlphaBar())
                                     if FX.BgClr[FxGUID] == r.ImGui_GetColor(ctx, r.ImGui_Col_FrameBg()) then
-                                        HighlightSelectedItem(nil, 0xffffffdd, 0, L, T, R, B, h, w, 1, 1, 'GetItemRect') end
+                                        HighlightSelectedItem(nil, 0xffffffdd, 0, L, T, R, B, h, w, 1, 1, 'GetItemRect')
+                                    end
 
                                     r.ImGui_Text(ctx, 'FX Title Color:')
                                     r.ImGui_SameLine(ctx)
@@ -7554,7 +7858,7 @@ function loop()
 
                                         for i, v in ipairs(ClrPallet) do
                                             clrpick, LblColor1 = r.ImGui_ColorEdit4(ctx, '##ClrPalette' .. Pal ..
-                                            i .. FxGUID, v,
+                                                i .. FxGUID, v,
                                                 r.ImGui_ColorEditFlags_NoInputs()|
                                                 r.ImGui_ColorEditFlags_AlphaPreviewHalf()|
                                                 r.ImGui_ColorEditFlags_AlphaBar())
@@ -7614,8 +7918,10 @@ function loop()
                             AdjustDrawRectPos = nil
                         end
 
-                        if Draw.Rect.L then r.ImGui_DrawList_AddRectFilled(FDL, Draw.Rect.L, Draw.Rect.T, Draw.Rect.R,
-                                Draw.Rect.B, 0xbbbbbb66, Draw.Df_EdgeRound[FxGUID] or 0) end
+                        if Draw.Rect.L then
+                            r.ImGui_DrawList_AddRectFilled(FDL, Draw.Rect.L, Draw.Rect.T, Draw.Rect.R,
+                                Draw.Rect.B, 0xbbbbbb66, Draw.Df_EdgeRound[FxGUID] or 0)
+                        end
                     elseif --[[FX Layer Window ]] string.find(FX_Name, 'FXD %(Mix%)RackMixer') or string.find(FX_Name, 'FXRack') then --!!!!  FX Layer Window
                         if not FX[FxGUID].Collapse then
                             FXGUID_RackMixer = r.TrackFX_GetFXGUID(LT_Track, FX_Idx)
@@ -7630,7 +7936,7 @@ function loop()
                                 local WDL = r.ImGui_GetWindowDrawList(ctx)
                                 FXLayerFrame_PosX_L, FXLayerFrame_PosY_T = r.ImGui_GetItemRectMin(ctx)
                                 FXLayerFrame_PosX_R, FXLayerFrame_PosY_B = r.ImGui_GetItemRectMax(ctx); FXLayerFrame_PosY_B =
-                                FXLayerFrame_PosY_B + 220
+                                    FXLayerFrame_PosY_B + 220
 
                                 local clrhdrhvr = r.ImGui_GetColor(ctx, r.ImGui_Col_ButtonHovered())
                                 local clrhdrAct = r.ImGui_GetColor(ctx, r.ImGui_Col_ButtonActive())
@@ -7724,8 +8030,10 @@ function loop()
                                 else -- If Renaming
                                     local Flag
                                     r.ImGui_SetNextItemWidth(ctx, 180)
-                                    if FX[FxGUID].ContainerTitle == 'FX Layering' then Flag = r
-                                        .ImGui_InputTextFlags_AutoSelectAll() end
+                                    if FX[FxGUID].ContainerTitle == 'FX Layering' then
+                                        Flag = r
+                                            .ImGui_InputTextFlags_AutoSelectAll()
+                                    end
                                     _, FX[FxGUID].ContainerTitle = r.ImGui_InputText(ctx, '##' .. FxGUID,
                                         FX[FxGUID].ContainerTitle or 'FX Layering', Flag)
 
@@ -7735,7 +8043,7 @@ function loop()
                                     if r.ImGui_IsItemDeactivated(ctx) then
                                         FX[FxGUID].RenameFXLayering = nil
                                         r.SetProjExtState(0, 'FX Devices - ', 'FX' .. FxGUID ..
-                                        'FX Layer Container Title ', FX[FxGUID].ContainerTitle)
+                                            'FX Layer Container Title ', FX[FxGUID].ContainerTitle)
                                     end
                                 end
 
@@ -7793,19 +8101,25 @@ function loop()
                                 r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_FramePadding(), 4, LineH)
 
                                 local BtnSize, AnySoloChan
-                                for LayerNum, LyrID in pairs(FX[FxGUID].LyrID) do if Lyr.Solo[LyrID .. FxGUID] == 1 then
+                                for LayerNum, LyrID in pairs(FX[FxGUID].LyrID) do
+                                    if Lyr.Solo[LyrID .. FxGUID] == 1 then
                                         FX[FxGUID].AnySoloChan = true
                                         AnySoloChan = true
-                                    end end
+                                    end
+                                end
                                 if not AnySoloChan then FX[FxGUID].AnySoloChan = nil end
 
 
                                 for LayerNum, LyrID in pairs(FX[FxGUID].LyrID) do
-                                    if Lyr.Solo[LyrID .. FxGUID] == nil then Lyr.Solo[LyrID .. FxGUID] = reaper
-                                        .TrackFX_GetParamNormalized(LT_Track, FX_Idx, 4 + (5 * (LyrID - 1))) end
+                                    if Lyr.Solo[LyrID .. FxGUID] == nil then
+                                        Lyr.Solo[LyrID .. FxGUID] = reaper
+                                            .TrackFX_GetParamNormalized(LT_Track, FX_Idx, 4 + (5 * (LyrID - 1)))
+                                    end
                                     if Lyr.Solo[LyrID .. FxGUID] == 1 then FX[FxGUID].AnySoloChan = true end
-                                    if Lyr.Mute[LyrID .. FxGUID] == nil then Lyr.Mute[LyrID .. FxGUID] = reaper
-                                        .TrackFX_GetParamNormalized(LT_Track, FX_Idx, 5 * (LyrID - 1)) end
+                                    if Lyr.Mute[LyrID .. FxGUID] == nil then
+                                        Lyr.Mute[LyrID .. FxGUID] = reaper
+                                            .TrackFX_GetParamNormalized(LT_Track, FX_Idx, 5 * (LyrID - 1))
+                                    end
                                     if Lyr.Mute[LyrID .. FxGUID] == 1 then FX[FxGUID].AnyMuteChan = true end
 
                                     if Lyr.ProgBarVal[LyrID .. FxGUID] == nil then
@@ -7894,13 +8208,14 @@ function loop()
                                                     FX[FxGUID].LyrID[LyrID] = -1
                                                     FX[FxGUID].LyrTitle[LyrID] = nil
                                                     FX[FxGUID].ActiveLyrCount = math.max(FX[FxGUID].ActiveLyrCount - 1, 1)
-                                                    r.TrackFX_SetParamNormalized(LT_Track, FX_Idx, 5 * (LyrID - 1), 0)     -- turn channel power off
-                                                    r.TrackFX_SetParamNormalized(LT_Track, FX_Idx, 1 + (5 * (LyrID - 1) + 1),
-                                                        0.5)                                                               -- set pan to center
+                                                    r.TrackFX_SetParamNormalized(LT_Track, FX_Idx, 5 * (LyrID - 1), 0) -- turn channel power off
+                                                    r.TrackFX_SetParamNormalized(LT_Track, FX_Idx,
+                                                        1 + (5 * (LyrID - 1) + 1),
+                                                        0.5) -- set pan to center
                                                     r.TrackFX_SetParamNormalized(LT_Track, FX_Idx, 1 + (5 * (LyrID - 1)),
-                                                        0.5)                                                               -- set Vol to 0
+                                                        0.5) -- set Vol to 0
                                                     r.SetProjExtState(0, 'FX Devices', 'FX' .. FxGUID ..
-                                                    'Layer ID ' .. LyrID, '-1')
+                                                        'Layer ID ' .. LyrID, '-1')
                                                     r.SetProjExtState(0, 'FX Devices - ',
                                                         'FX' .. FxGUID .. 'Layer Title ' .. LyrID, '')
                                                 end
@@ -7913,7 +8228,7 @@ function loop()
                                                         VP.y + VP.h / 2 - Modalh / 2)
                                                     r.ImGui_SetNextWindowSize(ctx, Modalw, Modalh)
                                                     r.ImGui_OpenPopup(ctx, 'Delete FX Layer ' .. LyrID .. '? ##' ..
-                                                    FxGUID)
+                                                        FxGUID)
                                                 end
                                             elseif r.ImGui_IsItemClicked(ctx) and LBtnDC then
                                                 FX[FxGUID][Fx_P].V = 0.5
@@ -7939,7 +8254,7 @@ function loop()
                                                 Lyr.Rename[LyrID .. FxGUID] = false
                                                 FXLayerRenaming = nil
                                                 r.SetProjExtState(0, 'FX Devices - ', 'FX' ..
-                                                FxGUID .. 'Layer Title ' .. LyrID, FX[FxGUID].LyrTitle[ID])
+                                                    FxGUID .. 'Layer Title ' .. LyrID, FX[FxGUID].LyrTitle[ID])
                                             elseif r.ImGui_IsItemDeactivated(ctx) then
                                                 Lyr.Rename[LyrID .. FxGUID] = false
                                                 FXLayerRenaming = nil
@@ -8006,8 +8321,12 @@ function loop()
                                                 DropFXtoLayer(FX_Idx, LayerNum)
                                             elseif dropped and Mods == Apl then
                                                 DragFX_Src = DragFX_ID
-                                                if DragFX_ID > FX_Idx then DragFX_Dest = FX_Idx - 1 else DragFX_Dest =
-                                                    FX_Idx end
+                                                if DragFX_ID > FX_Idx then
+                                                    DragFX_Dest = FX_Idx - 1
+                                                else
+                                                    DragFX_Dest =
+                                                        FX_Idx
+                                                end
                                                 DropToLyrID = LyrID
                                                 DroptoRack = FXGUID_RackMixer
                                             end
@@ -8076,8 +8395,10 @@ function loop()
                                                     Lyr.Solo[LyrID .. FxGUID])
                                             end
                                         end
-                                        if Lyr.Solo[LyrID .. FxGUID] == nil then Lyr.Solo[LyrID .. FxGUID] = reaper
-                                            .TrackFX_GetParamNormalized(LT_Track, FX_Idx, 4 + (5 * (LyrID - 1))) end
+                                        if Lyr.Solo[LyrID .. FxGUID] == nil then
+                                            Lyr.Solo[LyrID .. FxGUID] = reaper
+                                                .TrackFX_GetParamNormalized(LT_Track, FX_Idx, 4 + (5 * (LyrID - 1)))
+                                        end
 
                                         r.ImGui_SameLine(ctx, nil, 3)
                                         r.ImGui_SetCursorPosY(ctx, CurY)
@@ -8094,8 +8415,10 @@ function loop()
 
 
 
-                                        if Lyr.Mute[LyrID .. FxGUID] == nil then Lyr.Mute[LyrID .. FxGUID] = reaper
-                                            .TrackFX_GetParamNormalized(LT_Track, FX_Idx, 5 * (LyrID - 1)) end
+                                        if Lyr.Mute[LyrID .. FxGUID] == nil then
+                                            Lyr.Mute[LyrID .. FxGUID] = reaper
+                                                .TrackFX_GetParamNormalized(LT_Track, FX_Idx, 5 * (LyrID - 1))
+                                        end
 
                                         if ClickOnMute then
                                             Lyr.Mute[LyrID .. FxGUID] = reaper.TrackFX_GetParamNormalized(LT_Track,
@@ -8149,7 +8472,7 @@ function loop()
                                             r.TrackFX_SetParamNormalized(LT_Track, FX_Idx, 5 * (EmptyChan - 1), 1)
                                             FX[FxGUID].ActiveLyrCount = math.min(FX[FxGUID].ActiveLyrCount + 1, 8)
                                             FX[FxGUID][EmptyChan * 2 - 1].V = 0.5 -- init val for Vol
-                                            FX[FxGUID][EmptyChan * 2].V = 0.5 -- init val for Pan
+                                            FX[FxGUID][EmptyChan * 2].V = 0.5     -- init val for Pan
 
                                             FX[FxGUID].LyrID[EmptyChan] = EmptyChan
 
@@ -8214,7 +8537,7 @@ function loop()
                                 for LayerNum, LyrID in pairs(FX[FxGUID].LyrID) do
                                     FXGUID_To_Check_If_InLayer = r.TrackFX_GetFXGUID(LT_Track, FX_Idx_InLayer)
 
-                                    if FX.InLyr[FXGUID_To_Check_If_InLayer] == FXGUID[FX_Idx] then  --if fx is in rack mixer
+                                    if FX.InLyr[FXGUID_To_Check_If_InLayer] == FXGUID[FX_Idx] then --if fx is in rack mixer
                                         if FindStringInTable(BlackListFXs, FX.Win_Name[FX_Idx_InLayer]) then end
 
                                         if Lyr.Selected[FXGUID_RackMixer] == nil then Lyr.Selected[FXGUID_RackMixer] = 1 end
@@ -8262,7 +8585,7 @@ function loop()
 
 
 
-                            if HowManyFXinLyr > 0 and FX[FxGUID].TheresFXinLyr then  -- ==  Add and theres fx in selected layer
+                            if HowManyFXinLyr > 0 and FX[FxGUID].TheresFXinLyr then -- ==  Add and theres fx in selected layer
                                 --if there's fx in the rack
 
                                 AddLastSPCinRack = true
@@ -8283,7 +8606,7 @@ function loop()
                                 end
 
 
-                                if TheresFXinLyr then    --==  lines to enclose fx layering
+                                if TheresFXinLyr then --==  lines to enclose fx layering
                                     r.ImGui_DrawList_AddLine(ViewPort_DL, Xpos_Left, Ypos_Top, Xpos_Right, Ypos_Top,
                                         Clr.Dvdr.outline)
                                     r.ImGui_DrawList_AddLine(ViewPort_DL, Xpos_Left, Ypos_Btm, Xpos_Right, Ypos_Btm,
@@ -8477,12 +8800,12 @@ function loop()
                                 local Fx_P = i * 2 - 1
                                 local P_Name = 'Chan ' .. i .. ' Vol'
                                 StoreNewParam(FxGUID_Rack, P_Name, P_Num, FX_Idx, IsDeletable, 'AddingFromExtState', Fx_P,
-                                    FX_Idx)                                                                                       -- Vol
+                                    FX_Idx) -- Vol
                                 local P_Num = 1 + (5 * (i - 1) + 1)
                                 local Fx_P_Pan = i * 2
                                 local P_Name = 'Chan ' .. i .. ' Pan'
                                 StoreNewParam(FxGUID_Rack, P_Name, P_Num, FX_Idx, IsDeletable, 'AddingFromExtState',
-                                    Fx_P_Pan, FX_Idx)                                                                                 -- Pan
+                                    Fx_P_Pan, FX_Idx) -- Pan
                             end
                             Spltr[FxGUID].New = false
                         end
@@ -8857,10 +9180,18 @@ function loop()
                                     local CrossPos, Nxt_CrossPos
                                     local Pl = tonumber(Payload)
 
-                                    if i == 0 then CrossPos = WinT + H else CrossPos = FX[FxGUID].Cross[math.min(i, 4)]
-                                        .Pos end
-                                    if i == Cuts * 4 then Nxt_CrossPos = WinT else Nxt_CrossPos = FX[FxGUID].Cross[i + 1]
-                                        .Pos end
+                                    if i == 0 then
+                                        CrossPos = WinT + H
+                                    else
+                                        CrossPos = FX[FxGUID].Cross[math.min(i, 4)]
+                                            .Pos
+                                    end
+                                    if i == Cuts * 4 then
+                                        Nxt_CrossPos = WinT
+                                    else
+                                        Nxt_CrossPos = FX[FxGUID].Cross[i + 1]
+                                            .Pos
+                                    end
                                     local HvrOnBand = r.ImGui_IsMouseHoveringRect(ctx, WinL, CrossPos - 3, WinR,
                                         CrossPos + 3)
                                     local HvrOnNxtBand = r.ImGui_IsMouseHoveringRect(ctx, WinL, Nxt_CrossPos - 3, WinR,
@@ -8900,7 +9231,7 @@ function loop()
                                             if r.ImGui_IsMouseReleased(ctx, 0) then
                                                 local InsPos = Find_InsPos()
                                                 local rv, type, payload, is_preview, is_delivery = r
-                                                .ImGui_GetDragDropPayload(ctx)
+                                                    .ImGui_GetDragDropPayload(ctx)
                                                 r.TrackFX_AddByName(LT_Track, payload, false, -1000 - InsPos - 1)
                                                 local FXid = r.TrackFX_GetFXGUID(LT_Track, InsPos + 1)
                                                 DropFXintoBS(FXid, FxGUID, i, InsPos, FX_Idx, 'DontMove')
@@ -9082,11 +9413,13 @@ function loop()
                                                     local offset
                                                     local srcFX = DraggingFXs_Idx[I] + Ofs
                                                     local TrgFX = srcFX + #DraggingFXs
-                                                    if not FXCountForBand[i] then         -- if theres no fx in the band
+                                                    if not FXCountForBand[i] then -- if theres no fx in the band
                                                     elseif FXCountForBand[i] > 0 then
                                                         for FxInB, v in ipairs(FX[FxGUID].FXsInBS) do
-                                                            if FX[v].InWhichBand == i and tablefind(FXGUID, v) then offset =
-                                                                tablefind(FXGUID, v) end
+                                                            if FX[v].InWhichBand == i and tablefind(FXGUID, v) then
+                                                                offset =
+                                                                    tablefind(FXGUID, v)
+                                                            end
                                                         end
                                                         TrgFX = offset + I
                                                     end
@@ -9098,8 +9431,10 @@ function loop()
                                                     r.TrackFX_CopyToTrack(LT_Track, srcFX, LT_Track, TrgFX, false)
                                                     local ID = r.TrackFX_GetFXGUID(LT_Track, TrgFX)
 
-                                                    if not tablefind(FX[FxGUID].FXsInBS, ID) then table.insert(
-                                                        FX[FxGUID].FXsInBS, ID) end
+                                                    if not tablefind(FX[FxGUID].FXsInBS, ID) then
+                                                        table.insert(
+                                                            FX[FxGUID].FXsInBS, ID)
+                                                    end
                                                     FX[ID] = FX[ID] or {}
                                                     FX[ID].InWhichBand = i
                                                     r.GetSetMediaTrackInfo_String(LT_Track,
@@ -9149,13 +9484,17 @@ function loop()
                                         Pwr = r.TrackFX_GetParamNormalized(LT_Track, JoinerID, 5 * i)
 
                                         local Clr = Layer_Mute or CustomColorsDefault.Layer_Mute
-                                        if Pwr == 0 then r.ImGui_DrawList_AddRectFilled(WDL, WinL, Nxt_CrossPos, WinR,
-                                                CrossPos, Clr) end
+                                        if Pwr == 0 then
+                                            r.ImGui_DrawList_AddRectFilled(WDL, WinL, Nxt_CrossPos, WinR,
+                                                CrossPos, Clr)
+                                        end
 
                                         Solo = r.TrackFX_GetParamNormalized(LT_Track, JoinerID, 4 + 5 * i)
                                         local Clr = Layer_Solo or CustomColorsDefault.Layer_Solo
-                                        if Solo == 1 then r.ImGui_DrawList_AddRectFilled(WDL, WinL, Nxt_CrossPos, WinR,
-                                                CrossPos, Clr) end
+                                        if Solo == 1 then
+                                            r.ImGui_DrawList_AddRectFilled(WDL, WinL, Nxt_CrossPos, WinR,
+                                                CrossPos, Clr)
+                                        end
                                     end
                                 end
 
@@ -9353,8 +9692,10 @@ function loop()
                                 r.ImGui_DrawList_AddLine(WDL, WinR, WinT, LastFX_XPos, WinT, Clr)
                                 r.ImGui_DrawList_AddLine(WDL, LastFX_XPos - 1, WinT, LastFX_XPos - 1, WinT + H, Clr)
                                 if AddTopLine then r.ImGui_DrawList_AddLine(WDL, WinL, WinT, WinR, WinT, Clr) end
-                                if FX[FxGUID].Sel_Band == 0 then r.ImGui_DrawList_AddLine(WDL, WinL, WinT + H, WinR,
-                                        WinT + H, Clr) end
+                                if FX[FxGUID].Sel_Band == 0 then
+                                    r.ImGui_DrawList_AddLine(WDL, WinL, WinT + H, WinR,
+                                        WinT + H, Clr)
+                                end
 
                                 if DraggingFX_L_Pos then
                                     local W = LastFX_XPos - DraggingFX_L_Pos
@@ -9403,7 +9744,7 @@ function loop()
                                         r.GetSetMediaTrackInfo_String(LT_Track, 'P_EXT: FX is in which BS' .. FXGUID[i],
                                             '', true)
                                         r.GetSetMediaTrackInfo_String(LT_Track, 'P_EXT: FX is in which Band' .. FXGUID
-                                        [i], '', true)
+                                            [i], '', true)
                                         FX[FXGUID[i]].InWhichBand = nil
                                     end
                                 end
@@ -9560,8 +9901,10 @@ function loop()
                 r.ImGui_EndChild(ctx)
                 if HoverOnScrollItem then DisableScroll = true else DisableScroll = nil end
 
-                if AnySplitBandHvred then HintMessage =
-                    'Mouse: Alt=Delete All FXs in Layer | Shift=Bypass FXs    Keys: M=mute band   Shift+M=Toggle all muted band | S=solo band  Shift+S=Toggle all solo\'d band' end
+                if AnySplitBandHvred then
+                    HintMessage =
+                    'Mouse: Alt=Delete All FXs in Layer | Shift=Bypass FXs    Keys: M=mute band   Shift+M=Toggle all muted band | S=solo band  Shift+S=Toggle all solo\'d band'
+                end
             end
             Pos_Devices_R, Pos_Devices_B = r.ImGui_GetItemRectMax(ctx)
 
@@ -9613,7 +9956,7 @@ function loop()
                     if Drop and not tablefind(Trk[TrkID].PostFX, FXGUID[DragFX_ID]) then
                         table.insert(Trk[TrkID].PostFX, FXGUID[DragFX_ID])
                         r.GetSetMediaTrackInfo_String(LT_Track, 'P_EXT: PostFX ' .. #Trk[TrkID].PostFX, FXGUID
-                        [DragFX_ID], true)
+                            [DragFX_ID], true)
                         r.TrackFX_CopyToTrack(LT_Track, DragFX_ID, LT_Track, 999, true)
 
                         local IDinPre = tablefind(Trk[TrkID].PreFX, FXGUID[DragFX_ID])
@@ -9640,7 +9983,8 @@ function loop()
 
 
             PostFX_Width = math.min(
-            (MakeSpaceForPostFX or 0) + ((Trk[TrkID].MakeSpcForPostFXchain or 0) + (PostFX_LastSpc or 0)) + 30, VP.w / 2)
+                (MakeSpaceForPostFX or 0) + ((Trk[TrkID].MakeSpcForPostFXchain or 0) + (PostFX_LastSpc or 0)) + 30,
+                VP.w / 2)
 
             --ttp('PostFX_Width = '..PostFX_Width..'\n MakeSpaceForPostFX = '.. (MakeSpaceForPostFX or 0 )..'\n   MakeSpcForPostFXchain = '.. (Trk[TrkID].MakeSpcForPostFXchain or  0 ).. '\n  PostFX_LastSpc = '.. (PostFX_LastSpc or 0))
 
@@ -9707,7 +10051,7 @@ function loop()
 
                         for FX_Idx, V in pairs(Trk[TrkID].PostFX) do
                             local I = --[[ tablefind(FXGUID, Trk[TrkID].PostFX[#Trk[TrkID].PostFX+1-FX_Idx])  ]]
-                            tablefind(FXGUID, V)
+                                tablefind(FXGUID, V)
 
                             local Spc
                             if FX_Idx == 1 and I then AddSpaceBtwnFXs(I - 1, 'SpcInPost', nil, nil, 1) end
@@ -9717,8 +10061,8 @@ function loop()
 
                                 FX[FXGUID[I]].PostWin_SzX, _ = r.ImGui_GetItemRectSize(ctx)
                                 Trk[TrkID].MakeSpcForPostFXchain = (Trk[TrkID].MakeSpcForPostFXchain or 0) +
-                                (FX.WidthCollapse[FXGUID[I]] or FX.Width[FXGUID[I]] or (DefaultWidth)) +
-                                10                                                                                                                                                            -- 10 is space btwn fxs
+                                    (FX.WidthCollapse[FXGUID[I]] or FX.Width[FXGUID[I]] or (DefaultWidth)) +
+                                    10 -- 10 is space btwn fxs
 
                                 if FX_Idx == #Trk[TrkID].PostFX then
                                     AddSpaceBtwnFXs(I, 'SpcInPost', nil, nil, #Trk[TrkID].PostFX + 1)

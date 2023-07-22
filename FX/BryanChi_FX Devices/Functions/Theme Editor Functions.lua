@@ -1,5 +1,6 @@
 -- @noindex
 
+
 ------------------------------------------------------
 -----------Style Editor ------------------------------
 ------------------------------------------------------
@@ -201,11 +202,11 @@ function ShowStyleEditor()
 
         local Alpha, DisabledAlpha = r.ImGui_StyleVar_Alpha(), r.ImGui_StyleVar_DisabledAlpha()
         rv, app.style_editor.style.vars[Alpha] = r.ImGui_DragDouble(ctx, 'Global Alpha',
-            app.style_editor.style.vars[Alpha], 0.005, 0.20, 1.0, '%.2f')                                                                                 -- Not exposing zero here so user doesn't "lose" the UI (zero alpha clips all widgets). But application code could have a toggle to switch between zero and non-zero.
+            app.style_editor.style.vars[Alpha], 0.005, 0.20, 1.0, '%.2f') -- Not exposing zero here so user doesn't "lose" the UI (zero alpha clips all widgets). But application code could have a toggle to switch between zero and non-zero.
         r.ImGui_SameLine(ctx)
         rv, app.style_editor.style.vars[DisabledAlpha] = r.ImGui_DragDouble(ctx, 'Disabled Alpha',
             app.style_editor.style.vars[DisabledAlpha], 0.005, 0.0, 1.0, '%.2f'); r.ImGui_SameLine(ctx); demo.HelpMarker(
-        'Additional alpha multiplier for disabled items (multiply over current value of Alpha).')
+            'Additional alpha multiplier for disabled items (multiply over current value of Alpha).')
         r.ImGui_PopItemWidth(ctx)
 
 
@@ -509,7 +510,8 @@ function Show_KBShortcutEditor()
     if not ctx then ctx = r.ImGui_CreateContext('Shortcut Editor') end
     if not KBEditorIsOpen then r.ImGui_SetNextWindowSize(ctx, 500, 800) end
     open, OpenKBEditor = r.ImGui_Begin(ctx, 'FX Devices Shortcut Editor', OpenKBEditor,
-        r.ImGui_WindowFlags_NoCollapse() + r.ImGui_WindowFlags_NoDocking() --[[ +r.ImGui_WindowFlags_AlwaysAutoResize() ]])
+        r.ImGui_WindowFlags_NoCollapse() +
+        r.ImGui_WindowFlags_NoDocking() --[[ +r.ImGui_WindowFlags_AlwaysAutoResize() ]])
 
 
     if open then
@@ -532,7 +534,7 @@ function Show_KBShortcutEditor()
         if r.ImGui_Button(ctx, 'Save') then
             local file = CallFile('w', 'Keyboard Shortcuts.ini')
             for i, v in pairs(KB_Shortcut) do
-                file:write(v, ' = ', Command_ID[i], '\n')
+                file:write(v, ' = ', Command_ID[i] or '', '\n')
             end
         end
 
@@ -541,7 +543,7 @@ function Show_KBShortcutEditor()
         MyText('(?)', nil, 0xffffff66)
         if r.ImGui_IsItemHovered(ctx) then
             HintToolTip(
-            'Start by click on the + and entering a key or key combination \nLeft click on a shortcut key to swap assigned actions \nAlt+Left click to remove shortcut')
+                'Start by click on the + and entering a key or key combination \nLeft click on a shortcut key to swap assigned actions \nAlt+Left click to remove shortcut')
         end
 
 
