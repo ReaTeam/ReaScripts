@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="ac88c8860b2df17f2ea1deda6de35990fb5468c0" name="ReaTeam Scripts">
+<index version="1" commit="f50bf0dc8b1920b1633bd7c1a3db9353440d8a45" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -5229,6 +5229,59 @@ Others:
         <source file="BryanChi_FX Devices/Functions/Modulation.lua">https://github.com/ReaTeam/ReaScripts/raw/ac88c8860b2df17f2ea1deda6de35990fb5468c0/FX/BryanChi_FX%20Devices/Functions/Modulation.lua</source>
         <source file="BryanChi_FX Devices/Functions/Theme Editor Functions.lua">https://github.com/ReaTeam/ReaScripts/raw/ac88c8860b2df17f2ea1deda6de35990fb5468c0/FX/BryanChi_FX%20Devices/Functions/Theme%20Editor%20Functions.lua</source>
       </version>
+      <version name="1.0beta9.6.6-3" author="Bryan Chi" time="2023-07-24T06:12:11Z">
+        <changelog><![CDATA[- Fix Theme editor saving empty entry crashes
+- Fix Pro-C 2 crash]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ed88de065b85f68c4f96202d368c57d2047b4c8f/FX/BryanChi_FX%20Devices.lua</source>
+        <source type="effect" file="BryanChi_FX Devices/FXD Macros.jsfx">https://github.com/ReaTeam/ReaScripts/raw/ed88de065b85f68c4f96202d368c57d2047b4c8f/FX/BryanChi_FX%20Devices/FXD%20Macros.jsfx</source>
+        <source type="effect" file="BryanChi_FX Devices/FXD ReSpectrum.jsfx">https://github.com/ReaTeam/ReaScripts/raw/ed88de065b85f68c4f96202d368c57d2047b4c8f/FX/BryanChi_FX%20Devices/FXD%20ReSpectrum.jsfx</source>
+        <source type="effect" file="BryanChi_FX Devices/FXD Gain Reduction Scope.jsfx">https://github.com/ReaTeam/ReaScripts/raw/ed88de065b85f68c4f96202d368c57d2047b4c8f/FX/BryanChi_FX%20Devices/FXD%20Gain%20Reduction%20Scope.jsfx</source>
+        <source type="effect" file="BryanChi_FX Devices/FXD Split to 32 Channels.jsfx">https://github.com/ReaTeam/ReaScripts/raw/ed88de065b85f68c4f96202d368c57d2047b4c8f/FX/BryanChi_FX%20Devices/FXD%20Split%20to%2032%20Channels.jsfx</source>
+        <source type="effect" file="BryanChi_FX Devices/FXD Split To 4 Channels.jsfx">https://github.com/ReaTeam/ReaScripts/raw/ed88de065b85f68c4f96202d368c57d2047b4c8f/FX/BryanChi_FX%20Devices/FXD%20Split%20To%204%20Channels.jsfx</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/ed88de065b85f68c4f96202d368c57d2047b4c8f/FX/BryanChi_FX%20Devices/cookdsp.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/analysis.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/ed88de065b85f68c4f96202d368c57d2047b4c8f/FX/BryanChi_FX%20Devices/cookdsp/analysis.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/buffer.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/ed88de065b85f68c4f96202d368c57d2047b4c8f/FX/BryanChi_FX%20Devices/cookdsp/buffer.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/delay.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/ed88de065b85f68c4f96202d368c57d2047b4c8f/FX/BryanChi_FX%20Devices/cookdsp/delay.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/dynamics.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/ed88de065b85f68c4f96202d368c57d2047b4c8f/FX/BryanChi_FX%20Devices/cookdsp/dynamics.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/effects.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/ed88de065b85f68c4f96202d368c57d2047b4c8f/FX/BryanChi_FX%20Devices/cookdsp/effects.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/fft-mono-template">https://github.com/ReaTeam/ReaScripts/raw/ed88de065b85f68c4f96202d368c57d2047b4c8f/FX/BryanChi_FX%20Devices/cookdsp/fft-mono-template</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/fft-stereo-template">https://github.com/ReaTeam/ReaScripts/raw/ed88de065b85f68c4f96202d368c57d2047b4c8f/FX/BryanChi_FX%20Devices/cookdsp/fft-stereo-template</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/fftobjects.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/ed88de065b85f68c4f96202d368c57d2047b4c8f/FX/BryanChi_FX%20Devices/cookdsp/fftobjects.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/filters.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/ed88de065b85f68c4f96202d368c57d2047b4c8f/FX/BryanChi_FX%20Devices/cookdsp/filters.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/granulator.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/ed88de065b85f68c4f96202d368c57d2047b4c8f/FX/BryanChi_FX%20Devices/cookdsp/granulator.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/list.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/ed88de065b85f68c4f96202d368c57d2047b4c8f/FX/BryanChi_FX%20Devices/cookdsp/list.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/memalloc.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/ed88de065b85f68c4f96202d368c57d2047b4c8f/FX/BryanChi_FX%20Devices/cookdsp/memalloc.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/midi.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/ed88de065b85f68c4f96202d368c57d2047b4c8f/FX/BryanChi_FX%20Devices/cookdsp/midi.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/mmath.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/ed88de065b85f68c4f96202d368c57d2047b4c8f/FX/BryanChi_FX%20Devices/cookdsp/mmath.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/oscil.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/ed88de065b85f68c4f96202d368c57d2047b4c8f/FX/BryanChi_FX%20Devices/cookdsp/oscil.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/pobjects.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/ed88de065b85f68c4f96202d368c57d2047b4c8f/FX/BryanChi_FX%20Devices/cookdsp/pobjects.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/pv-mono-template">https://github.com/ReaTeam/ReaScripts/raw/ed88de065b85f68c4f96202d368c57d2047b4c8f/FX/BryanChi_FX%20Devices/cookdsp/pv-mono-template</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/pv-stereo-template">https://github.com/ReaTeam/ReaScripts/raw/ed88de065b85f68c4f96202d368c57d2047b4c8f/FX/BryanChi_FX%20Devices/cookdsp/pv-stereo-template</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/pvocobjects.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/ed88de065b85f68c4f96202d368c57d2047b4c8f/FX/BryanChi_FX%20Devices/cookdsp/pvocobjects.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/pvtrans-example">https://github.com/ReaTeam/ReaScripts/raw/ed88de065b85f68c4f96202d368c57d2047b4c8f/FX/BryanChi_FX%20Devices/cookdsp/pvtrans-example</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/random.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/ed88de065b85f68c4f96202d368c57d2047b4c8f/FX/BryanChi_FX%20Devices/cookdsp/random.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/cookdsp/scaling.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/ed88de065b85f68c4f96202d368c57d2047b4c8f/FX/BryanChi_FX%20Devices/cookdsp/scaling.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/firhalfband.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/ed88de065b85f68c4f96202d368c57d2047b4c8f/FX/BryanChi_FX%20Devices/firhalfband.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/spectrum.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/ed88de065b85f68c4f96202d368c57d2047b4c8f/FX/BryanChi_FX%20Devices/spectrum.jsfx-inc</source>
+        <source type="effect" file="BryanChi_FX Devices/svf_filter.jsfx-inc">https://github.com/ReaTeam/ReaScripts/raw/ed88de065b85f68c4f96202d368c57d2047b4c8f/FX/BryanChi_FX%20Devices/svf_filter.jsfx-inc</source>
+        <source file="BryanChi_FX Devices/IconFont1.ttf">https://github.com/ReaTeam/ReaScripts/raw/ed88de065b85f68c4f96202d368c57d2047b4c8f/FX/BryanChi_FX%20Devices/IconFont1.ttf</source>
+        <source type="effect" file="BryanChi_FX Devices/FXD (Mix)RackMixer.jsfx">https://github.com/ReaTeam/ReaScripts/raw/ed88de065b85f68c4f96202d368c57d2047b4c8f/FX/BryanChi_FX%20Devices/FXD%20(Mix)RackMixer.jsfx</source>
+        <source file="BryanChi_FX Devices/FX Layouts/ValhallaFreqEcho (Valhalla DSP, LLC).ini">https://github.com/ReaTeam/ReaScripts/raw/ed88de065b85f68c4f96202d368c57d2047b4c8f/FX/BryanChi_FX%20Devices/FX%20Layouts/ValhallaFreqEcho%20(Valhalla%20DSP,%20LLC).ini</source>
+        <source file="BryanChi_FX Devices/FX Layouts/ValhallaShimmer (Valhalla DSP, LLC).ini">https://github.com/ReaTeam/ReaScripts/raw/ed88de065b85f68c4f96202d368c57d2047b4c8f/FX/BryanChi_FX%20Devices/FX%20Layouts/ValhallaShimmer%20(Valhalla%20DSP,%20LLC).ini</source>
+        <source file="BryanChi_FX Devices/FX Layouts/ValhallaVintageVerb (Valhalla DSP, LLC).ini">https://github.com/ReaTeam/ReaScripts/raw/ed88de065b85f68c4f96202d368c57d2047b4c8f/FX/BryanChi_FX%20Devices/FX%20Layouts/ValhallaVintageVerb%20(Valhalla%20DSP,%20LLC).ini</source>
+        <source file="BryanChi_FX Devices/FX Layouts/ValhallaSupermassive (Valhalla DSP, LLC).ini">https://github.com/ReaTeam/ReaScripts/raw/ed88de065b85f68c4f96202d368c57d2047b4c8f/FX/BryanChi_FX%20Devices/FX%20Layouts/ValhallaSupermassive%20(Valhalla%20DSP,%20LLC).ini</source>
+        <source file="BryanChi_FX Devices/FX Layouts/ValhallaDelay (Valhalla DSP, LLC).ini">https://github.com/ReaTeam/ReaScripts/raw/ed88de065b85f68c4f96202d368c57d2047b4c8f/FX/BryanChi_FX%20Devices/FX%20Layouts/ValhallaDelay%20(Valhalla%20DSP,%20LLC).ini</source>
+        <source type="effect" file="BryanChi_FX Devices/FXD Saike BandSplitter.jsfx">https://github.com/ReaTeam/ReaScripts/raw/ed88de065b85f68c4f96202d368c57d2047b4c8f/FX/BryanChi_FX%20Devices/FXD%20Saike%20BandSplitter.jsfx</source>
+        <source type="effect" file="BryanChi_FX Devices/FXD Band Joiner.jsfx">https://github.com/ReaTeam/ReaScripts/raw/ed88de065b85f68c4f96202d368c57d2047b4c8f/FX/BryanChi_FX%20Devices/FXD%20Band%20Joiner.jsfx</source>
+        <source file="BryanChi_FX Devices/Images/Analog Knob 1.png">https://github.com/ReaTeam/ReaScripts/raw/ed88de065b85f68c4f96202d368c57d2047b4c8f/FX/BryanChi_FX%20Devices/Images/Analog%20Knob%201.png</source>
+        <source file="BryanChi_FX Devices/Functions/EQ functions.lua">https://github.com/ReaTeam/ReaScripts/raw/ed88de065b85f68c4f96202d368c57d2047b4c8f/FX/BryanChi_FX%20Devices/Functions/EQ%20functions.lua</source>
+        <source file="BryanChi_FX Devices/Functions/General Functions.lua">https://github.com/ReaTeam/ReaScripts/raw/ed88de065b85f68c4f96202d368c57d2047b4c8f/FX/BryanChi_FX%20Devices/Functions/General%20Functions.lua</source>
+        <source file="BryanChi_FX Devices/Functions/FX Layering.lua">https://github.com/ReaTeam/ReaScripts/raw/ed88de065b85f68c4f96202d368c57d2047b4c8f/FX/BryanChi_FX%20Devices/Functions/FX%20Layering.lua</source>
+        <source file="BryanChi_FX Devices/Functions/FX Adder.lua">https://github.com/ReaTeam/ReaScripts/raw/ed88de065b85f68c4f96202d368c57d2047b4c8f/FX/BryanChi_FX%20Devices/Functions/FX%20Adder.lua</source>
+        <source file="BryanChi_FX Devices/Functions/Layout Editor functions.lua">https://github.com/ReaTeam/ReaScripts/raw/ed88de065b85f68c4f96202d368c57d2047b4c8f/FX/BryanChi_FX%20Devices/Functions/Layout%20Editor%20functions.lua</source>
+        <source file="BryanChi_FX Devices/Functions/Modulation.lua">https://github.com/ReaTeam/ReaScripts/raw/ed88de065b85f68c4f96202d368c57d2047b4c8f/FX/BryanChi_FX%20Devices/Functions/Modulation.lua</source>
+        <source file="BryanChi_FX Devices/Functions/Theme Editor Functions.lua">https://github.com/ReaTeam/ReaScripts/raw/ed88de065b85f68c4f96202d368c57d2047b4c8f/FX/BryanChi_FX%20Devices/Functions/Theme%20Editor%20Functions.lua</source>
+      </version>
     </reapack>
     <reapack name="BuyOne_(Un)Tag FX with (in)active envelopes (settings inside).lua" type="script" desc="(Un)Tag FX with (in)active envelopes">
       <metadata>
@@ -8358,6 +8411,21 @@ Override Reaper option "Toggle enable/disable default fadein/fadeout" (on/off)]]
         <changelog><![CDATA[Initial release]]></changelog>
         <source main="main" file="FnA_Unselect First Selected Item.lua">https://github.com/ReaTeam/ReaScripts/raw/7782d6f989492506d1699b7699bf010b0db047d2/Items%20Editing/FnA_Unselect%20First-Last%20Selected%20Item.lua</source>
         <source main="main" file="FnA_Unselect Last Selected Item.lua">https://github.com/ReaTeam/ReaScripts/raw/7782d6f989492506d1699b7699bf010b0db047d2/Items%20Editing/FnA_Unselect%20First-Last%20Selected%20Item.lua</source>
+      </version>
+    </reapack>
+    <reapack name="ilovemedia_Replace with an empty item.lua" type="script" desc="Replace with an empty item">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Replace with an empty item\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Replace the selected item with an empty one with the same name, duration and position.\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="ilovemedia" time="2023-07-24T06:12:57Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f50bf0dc8b1920b1633bd7c1a3db9353440d8a45/Items%20Editing/ilovemedia_Replace%20with%20an%20empty%20item.lua</source>
       </version>
     </reapack>
     <reapack name="JerContact_Zero crossing loop maker for items.lua" type="script" desc="Zero crossing loop maker for items">
