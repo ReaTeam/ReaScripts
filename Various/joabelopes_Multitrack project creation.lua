@@ -1,0 +1,22 @@
+-- @description Multitrack project creation
+-- @author Joabe Lopes
+-- @version 1.0.0beta
+-- @provides
+--   joabelopes_Multitrack project creation/createMultipleTracks.lua
+--   joabelopes_Multitrack project creation/insertMultipleFiles.lua
+--   joabelopes_Multitrack project creation/newMultipleFiles.lua
+-- @link Github repo https://github.com/joabeslopes/Reaper-scripts-multitrack-creation
+-- @about
+--   # Multitrack project creation
+--
+--   Some Reaper scripts for automate creation of multitrack show projects, using Lua language.
+--
+--   Each script have comments explaining it's operation, so please read the comments.
+--
+--   They are supposed to work on Windows, Linux and MacOS systems.
+--
+--   All scripts are licensed under GPL version 3, what means that you can use, modify and distribute your changes of these scripts, but you need to mantain then under this license.
+--
+--   It's fair enough.
+
+reaper.ShowConsoleMsg("This is only the package file, please select any other script to run")
