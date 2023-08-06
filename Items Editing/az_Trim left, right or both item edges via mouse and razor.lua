@@ -1,6 +1,7 @@
 -- @description Trim left, right or both item edges via mouse and razor
 -- @author AZ
--- @version 1.0
+-- @version 1.1
+-- @changelog -bug fix: treat several selected items
 -- @link Autor's page https://forum.cockos.com/member.php?u=135221
 -- @about
 --   #Trim left, right or both item edges via mouse and razor
@@ -9,7 +10,6 @@
 --   Use razor to trim items at both sides.
 --
 --   Look at options in user area of the code. (just this simplest way for a while)
-
 
 ----------------------------
 --------USER OPTIONS--------
@@ -569,26 +569,25 @@ function MouseTrim()
     GroupEnabled = reaper.GetToggleCommandState(1156) --Options: Toggle item grouping override
     
     SaveSelItems()
-    reaper.SelectAllMediaItems( 0, false )
-    reaper.SetMediaItemSelected(item, true)
+    
+    if reaper.IsMediaItemSelected(item) == false then
+      reaper.SelectAllMediaItems( 0, false )
+      reaper.SetMediaItemSelected(item, true)
+    end
+    
     if RespectGrouping == true and GroupEnabled == 1 then
       reaper.Main_OnCommandEx(40034,0,0) --Item grouping: Select all items in groups
     end
     
-    if half == "no item" then  -- case when mouse above the item on it's track
-      reaper.ShowMessageBox('Something wrong','Whoops',0)
-      reaper.defer(function() end)
-    else
-      
-      local side
-      if half == 'top' then side = 'left' elseif half == 'bottom' then side = 'right' end
-  
-      undoType = trim_sel_items(side, trimTime)
-      
-      RestoreSelItems()
-      reaper.PreventUIRefresh( -1 )
-      reaper.Undo_EndBlock2( 0, "Trim "..undoType.." edge of items under mouse", -1 )
-    end
+    local side
+    if half == 'top' then side = 'left' elseif half == 'bottom' then side = 'right' end
+    
+    undoType = trim_sel_items(side, trimTime)
+    
+    RestoreSelItems()
+    reaper.PreventUIRefresh( -1 )
+    reaper.Undo_EndBlock2( 0, "Trim "..undoType.." edge of items under mouse", -1 )
+ 
   end
 end
 
