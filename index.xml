@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="42ff1e9454c05ae0459dbddbc7a2f14953ed94fa" name="ReaTeam Scripts">
+<index version="1" commit="7d8abe21cc04fdc1c238bbcd0bf915bc76d19f41" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -7362,6 +7362,10 @@ Added experimental fixed lanes support]]></changelog>
       </metadata>
       <version name="1.0" author="AZ" time="2023-07-29T15:25:02Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/42ff1e9454c05ae0459dbddbc7a2f14953ed94fa/Items%20Editing/az_Trim%20left,%20right%20or%20both%20item%20edges%20via%20mouse%20and%20razor.lua</source>
+      </version>
+      <version name="1.1" author="AZ" time="2023-08-06T13:29:14Z">
+        <changelog><![CDATA[-bug fix: treat several selected items]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/7d8abe21cc04fdc1c238bbcd0bf915bc76d19f41/Items%20Editing/az_Trim%20left,%20right%20or%20both%20item%20edges%20via%20mouse%20and%20razor.lua</source>
       </version>
     </reapack>
     <reapack name="beaunus_Name item takes by last marker to cut item.lua" type="script" desc="Name item takes by last marker to cut item">
