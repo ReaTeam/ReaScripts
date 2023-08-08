@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="7d8abe21cc04fdc1c238bbcd0bf915bc76d19f41" name="ReaTeam Scripts">
+<index version="1" commit="cb8eefc50e944320717588469f408a9819bad696" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -105,7 +105,7 @@
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/1423e0007c25bf597ff849409ab5cec61c4c964f/Cursor/amagalma_Move%20edit%20cursor%20to%20previous%20possible%20bad%20or%20missing%20items%20crossfade%20on%20selected%20tracks.lua</source>
       </version>
     </reapack>
-    <reapack name="amagalma_Move edit cursor to previous visible grid line.lua" type="script" desc="amagalma_Move edit cursor to previous visible grid line">
+    <reapack name="amagalma_Move edit cursor to previous visible grid line.lua" type="script" desc="Move edit cursor to previous visible grid line">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
@@ -137,6 +137,10 @@
       <version name="1.06" author="amagalma" time="2020-06-18T13:57:22Z">
         <changelog><![CDATA[- Improved behavior with framerate grid and lots of frames/sec]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/fd6edb0c15fd6004f54c74fd1bfed27dccc72923/Cursor/amagalma_Move%20edit%20cursor%20to%20previous%20visible%20grid%20line.lua</source>
+      </version>
+      <version name="1.07" author="amagalma" time="2023-08-08T19:04:42Z">
+        <changelog><![CDATA[- Fixed case: edit cursor a bit to the right of a grid line]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/cb8eefc50e944320717588469f408a9819bad696/Cursor/amagalma_Move%20edit%20cursor%20to%20previous%20visible%20grid%20line.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Transport Play from start of arrange view - Stop at play cursor (editing).lua" type="script" desc="Transport Play from start of arrange view / Stop at play cursor (editing)">
