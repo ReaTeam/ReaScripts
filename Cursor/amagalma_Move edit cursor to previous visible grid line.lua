@@ -1,8 +1,8 @@
--- @description amagalma_Move edit cursor to previous visible grid line
+-- @description Move edit cursor to previous visible grid line
 -- @author amagalma
--- @version 1.06
+-- @version 1.07
 -- @changelog
---   - Improved behavior with framerate grid and lots of frames/sec
+--   - Fixed case: edit cursor a bit to the right of a grid line
 -- @about
 --   # Moves the edit cursor to the previous grid line that is visible
 
@@ -27,14 +27,19 @@ else
 end
 
 if cursorpos > 0 then
-  local grid = cursorpos
-  while (grid >= cursorpos) do
-      cursorpos = cursorpos - grid_duration
-      if cursorpos >= grid_duration then
-        grid = reaper.SnapToGrid(0, cursorpos)
-      else
-        grid = 0
-      end
+  local snapped, grid = reaper.SnapToGrid(0, cursorpos)
+  if snapped < cursorpos then
+    grid = snapped
+  else
+    grid = cursorpos
+    while (grid >= cursorpos) do
+        cursorpos = cursorpos - grid_duration
+        if cursorpos >= grid_duration then
+          grid = reaper.SnapToGrid(0, cursorpos)
+        else
+          grid = 0
+        end
+    end
   end
   reaper.SetEditCurPos(grid,1,1)
 end
