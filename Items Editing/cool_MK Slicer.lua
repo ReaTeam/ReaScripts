@@ -1,11 +1,10 @@
 -- @description MK Slicer
 -- @author cool
--- @version 3.04
+-- @version 3.05
 -- @changelog
---   +Added global options for RS5K
---   +Fixed a bug: now the cursor can be edited by clicking on the waveform if it is connected to the borders of the item.
---   +Fixed bug: now the play marker is not displayed if the audio is not loaded.
---   +Fixed a bug: now the script does not generate an error when accessing items with a sample rate below 22050Hz.
+--   + Fixed a bug (typo) in the function of changing the grid step with the mouse wheel.
+--   + Fixed bugs for compatibility with the new version of Lua (Reaper 7)
+--   + Added an item to the theme for the correct display of the bracket when Random+Q is active.
 -- @link Forum Thread https://forum.cockos.com/showthread.php?t=232672
 -- @screenshot MK_Slicer 3 https://i.imgur.com/L7WnvoO.jpg
 -- @donation
@@ -62,7 +61,7 @@
 --   Sometimes a script applies glue to items. For example, when several items are selected and when a MIDI is created in a sampler mode.
 
 --[[
-MK Slicer v3.04 by Maxim Kokarev 
+MK Slicer v3.05 by Maxim Kokarev 
 https://forum.cockos.com/member.php?u=121750
 
 Co-Author of the compilation - MyDaw
@@ -197,6 +196,7 @@ function Theming(Theme)
       TH[41] = { 0.60, 0.60, 0.60, 0.4 } -- Main Separators
       TH[42] = 0.7 -- Leds Transparency (Controls Body)
       TH[43] = 0.1 -- Waveform Peaks Thickness (Transparency) - 0 = normal peaks, 1 - thick peaks, 0.5 or something = like a blur/antialiasing
+      TH[44] = { 0.1, 0.8, 0.4, 0.75 } -- Random+Q Bracket Color
       --------------------------------------------------------------
 
 
@@ -265,6 +265,7 @@ function Theming(Theme)
       TH[41] = { 0.4, 0.4, 0.4, 0.5 } -- Main Separators
       TH[42] = 0.9 -- Leds Transparency (Controls Body)
       TH[43] = 0.15 -- Waveform Peaks Thickness (Transparency) - 0 = normal peaks, 1 - thick peaks, 0.5 or something = like a blur/antialiasing
+      TH[44] = { 0.906, 0.463, 0.0, 0.9 } -- Random+Q Bracket Color
       --------------------------------------------------------------
 
 
@@ -333,6 +334,7 @@ function Theming(Theme)
       TH[41] = { 0.22, 0.23, 0.23, 0.7 } -- Main Separators
       TH[42] = 0.9 -- Leds Transparency (Controls Body)
       TH[43] = 0 -- Waveform Peaks Thickness (Transparency) - 0 = normal peaks, 1 - thick peaks, 0.5 or something = like a blur/antialiasing
+      TH[44] = { 0.60, 0.60, 0.60, 0.6 } -- Random+Q Bracket Color
       --------------------------------------------------------------
 
 
@@ -401,6 +403,7 @@ function Theming(Theme)
       TH[41] = { 0.45, 0.45, 0.45, 0.5 } -- Main Separators
       TH[42] = 0.9 -- Leds Transparency (Controls Body)
       TH[43] = 0.1 -- Waveform Peaks Thickness (Transparency) - 0 = normal peaks, 1 - thick peaks, 0.5 or something = like a blur/antialiasing
+      TH[44] = { 0.906, 0.463, 0.0, 0.9 } -- Random+Q Bracket Color
       --------------------------------------------------------------
 
 
@@ -469,6 +472,7 @@ function Theming(Theme)
       TH[41] = { 0.3, 0.3, 0.3, 1 } -- Main Separators
       TH[42] = 0.7 -- Leds Transparency (Controls Body)
       TH[43] = 0 -- Waveform Peaks Thickness (Transparency) - 0 = normal peaks, 1 - thick peaks, 0.5 or something = like a blur/antialiasing
+      TH[44] = { 0.20, 0.20, 0.20, 1 } -- Random+Q Bracket Color
       --------------------------------------------------------------
 
 
@@ -537,6 +541,7 @@ function Theming(Theme)
       TH[41] = { 0.2, 0.2, 0.2, 0.7 } -- Main Separators
       TH[42] = 0.7 -- Leds Transparency (Controls Body)
       TH[43] = 0 -- Waveform Peaks Thickness (Transparency) - 0 = normal peaks, 1 - thick peaks, 0.5 or something = like a blur/antialiasing
+      TH[44] = { 0.551, 0.696, 1, 0.6 } -- Random+Q Bracket Color
       --------------------------------------------------------------
 
 
@@ -605,6 +610,7 @@ elseif Theme == 7 then
       TH[41] = { 0.15, 0.15, 0.15 ,0.7 } -- Main Separators
       TH[42] = 0.7 -- Leds Transparency (Controls Body)
       TH[43] = 1 -- Waveform Peaks Thickness (Transparency) - 0 = normal peaks, 1 - thick peaks, 0.5 or something = like a blur/antialiasing
+      TH[44] = { 0.20, 0.20, 0.20, 1 } -- Random+Q Bracket Color
       --------------------------------------------------------------
 
 
@@ -673,6 +679,7 @@ elseif Theme == 8 then
       TH[41] = { 0.2, 0.2, 0.2, 0.2 } -- Main Separators
       TH[42] = 0.7 -- Leds Transparency (Controls Body)
       TH[43] = 0 -- Waveform Peaks Thickness (Transparency) - 0 = normal peaks, 1 - thick peaks, 0.5 or something = like a blur/antialiasing
+      TH[44] = { 0.20, 0.20, 0.20, 1 } -- Random+Q Bracket Color
       --------------------------------------------------------------
 
 elseif Theme == 9 then 
@@ -740,6 +747,7 @@ elseif Theme == 9 then
       TH[41] = { 0.2, 0.2, 0.2, 0.5 } -- Main Separators
       TH[42] = 0.7 -- Leds Transparency (Controls Body)
       TH[43] = 0 -- Waveform Peaks Thickness (Transparency) - 0 = normal peaks, 1 - thick peaks, 0.5 or something = like a blur/antialiasing
+      TH[44] = { 0.20, 0.20, 0.20, 0.7 } -- Random+Q Bracket Color
       --------------------------------------------------------------
 
       elseif Theme == 10 then 
@@ -807,6 +815,7 @@ elseif Theme == 9 then
       TH[41] = { 0.4, 0.4, 0.4, 0.5 } -- Main Separators
       TH[42] = 1 -- Leds Transparency (Controls Body)
       TH[43] = 0 -- Waveform Peaks Thickness (Transparency) - 0 = normal peaks, 1 - thick peaks, 0.5 or something = like a blur/antialiasing
+      TH[44] = { 0.906, 0.463, 0.0, 0.9 } -- Random+Q Bracket Color
       --------------------------------------------------------------
       end
 end
@@ -2201,6 +2210,13 @@ function Element:draw_frame5()
   gfx.rect(x, y, w, h, false)            -- frame1     
 end
 
+function Element:draw_frame_rnd_q()
+  local x,y,w,h  = self.x,self.y,self.w,self.h
+    local r,g,b,a  = self.r,self.g,self.b,self.a
+  gfx.set(TH[44][1],TH[44][2],TH[44][3],TH[44][4]) -- brackets
+  gfx.rect(x, y, w, h, false)            -- frame1      
+end
+
 function Element:draw_frame_waveform()
   local x,y,w,h  = self.x,self.y,self.w,self.h
     local r,g,b,a  = self.r,self.g,self.b,self.a
@@ -2228,7 +2244,7 @@ end
 ----------------------------------------------------------------------------------------------------
 ---   Create Element Child Classes(Button,Slider,Knob)   ----------------------------------------
 ----------------------------------------------------------------------------------------------------
-  local Button, Button_small, Button_top, Button_Settings, Slider, Slider_small, Slider_simple, Slider_complex, Slider_Fine, Slider_Swing, Slider_fgain, Rng_Slider, Knob, CheckBox, CheckBox_simple, CheckBox_Show, Frame_body, Frame, Colored_Rect, Colored_Rect_top, Frame_filled, ErrMsg, SysMsg, Txt, Txt2, Line, Line_colored, Line2, Ruler = {},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}
+  local Button, Button_small, Button_top, Button_Settings, Slider, Slider_small, Slider_simple, Slider_complex, Slider_Fine, Slider_Swing, Slider_fgain, Rng_Slider, Knob, CheckBox, CheckBox_simple, CheckBox_Show, Frame_body, Frame, Colored_Rect, Colored_Rect_top, Frame_filled, ErrMsg, SysMsg, Txt, Txt2, Line, Line_colored, Line2, Line3, Ruler = {},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}
   extended(Button,     Element)
   extended(Button_small,     Element)
   extended(Button_top,     Element)
@@ -2248,6 +2264,7 @@ end
   extended(Line,     Element)
   extended(Line_colored,     Element)
   extended(Line2,     Element)
+  extended(Line3,     Element)
   extended(Ruler,     Element)
     -- Create Slider Child Classes --
   local H_Slider, V_Slider, T_Slider, HP_Slider, LP_Slider, G_Slider, S_Slider, Rtg_Slider, Loop_Slider, Rdc_Slider, O_Slider, Sw_Slider, Q_Slider, X_Slider, X_SliderOff, Slider_Att, Slider_Rel = {},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}
@@ -2488,6 +2505,13 @@ function Line2:draw()
    local r,g,b,a  = self.r,self.g,self.b,self.a
    gfx.set(r,g,b,a)   -- set frame color -- цвет рамок
    self:draw_frame_filled()  -- draw frame
+end
+
+function Line3:draw() -- rnd q bracket
+   self:update_xywh() -- Update xywh(if wind changed)
+   local r,g,b,a  = self.r,self.g,self.b,self.a
+   gfx.set(r,g,b,a)   -- set frame color -- цвет рамок
+   self:draw_frame_rnd_q()  -- draw frame
 end
 
 function Ruler:draw()
@@ -4330,7 +4354,7 @@ local others_table = {Triangle, RandText, Q_Rnd_Linked, Q_Rnd_Linked2, Line, Lin
 others_table[1] = Txt2:new(628+c_pos,408+corrY,55,18, TH[36][1],TH[36][2],TH[36][3],TH[36][4], ">","Arial",20) --Triangle
 others_table[2] = Txt2:new(735+c_pos,377,55,18, TH[36][1],TH[36][2],TH[36][3],TH[36][4], "Intensity","Arial",10) --RandText
 
-others_table[3] = Line_colored:new(474+c_pos,375+corrY,145,18,  0.7,0.5,0.1,1) --| Q_Rnd_Linked (Bracket)
+others_table[3] = Line3:new(474+c_pos,375+corrY,145,18) --| Q_Rnd_Linked (Bracket)
 others_table[4] = Line2:new(472+c_pos,380+corrY,149,18,  TH[4][1],TH[4][2],TH[4][3],TH[4][4])--| Q_Rnd_Linked2 (Bracket fill)
 
 others_table[5] = Line:new(769+d_pos,404+corrY,77,6) --Line (Preset/Velocity Bracket)
@@ -5959,7 +5983,6 @@ function Randomizer()
           r.Main_OnCommand(41638, 0)  -- Random Order  
       end
      
-     math.randomseed(reaper.time_precise()*os.time()/1e3)
      local t = {}
      local sel_items = {}
      local function SaveSelItems()
@@ -10396,7 +10419,7 @@ function MAIN()
                if division >= 1 then division = 1 end
                 r.GetSetProjectGrid(0,true,division, swing)
            end
-           if gfx.mouse_wheel > 0then 
+           if gfx.mouse_wheel > 0 then 
                 _, division, swing, _ = r.GetSetProjectGrid(0,false)
                division = division/2 
                if division <= 0.015625 then division = 0.015625 end
@@ -11031,7 +11054,7 @@ function Init()
     -- Some gfx Wnd Default Values ---------------
     local R,G,B = ceil(TH[3][1]*255),ceil(TH[3][2]*255),ceil(TH[3][3]*255)             -- 0...255 format -- цвет основного окна
     local Wnd_bgd = R + G*256 + B*65536 -- red+green*256+blue*65536  
-    local Wnd_Title = "MK Slicer v3.04" .. " " .. theme_name .. " " .. RG_status .. ""
+    local Wnd_Title = "MK Slicer v3.05" .. " " .. theme_name .. " " .. RG_status .. ""
     local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
 
      -- set init fonts/size
@@ -11415,7 +11438,7 @@ item5.command = function()
                           gfx.dock(dock_pos)
                           xpos = 400
                           ypos = 320
-                          local Wnd_Title = "MK Slicer v3.04"
+                          local Wnd_Title = "MK Slicer v3.05"
                           local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
                           gfx.init( Wnd_Title, Wnd_W,Wnd_H, Wnd_Dock, Wnd_X,Wnd_Y )
 
@@ -11427,7 +11450,7 @@ item5.command = function()
                          dock_pos = 0
                          xpos = tonumber(r.GetExtState("MK_Slicer_3", "window_x")) or 400
                          ypos = tonumber(r.GetExtState("MK_Slicer_3", "window_y")) or 320
-                         local Wnd_Title = "MK Slicer v3.04"
+                         local Wnd_Title = "MK Slicer v3.05"
                          local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
                          if Wnd_Y == (nil or 0) then Wnd_Y = Wnd_Y+25 end -- correction for window header visibility
                          gfx.init( Wnd_Title, Wnd_W,Wnd_H, Wnd_Dock, Wnd_X,Wnd_Y )
