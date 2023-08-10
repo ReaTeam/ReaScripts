@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="d5e7e7c5835e4dca923407b0e73cf7aec0eb3df5" name="ReaTeam Scripts">
+<index version="1" commit="40f23576d3eaa84a847464a2ab2f89bbe973bde1" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -8330,6 +8330,12 @@ Override Reaper option "Toggle enable/disable default fadein/fadeout" (on/off)]]
 +Fixed bug: now the play marker is not displayed if the audio is not loaded.
 +Fixed a bug: now the script does not generate an error when accessing items with a sample rate below 22050Hz.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e4656404e324152ed66c7dce4f8b2170baf87b4c/Items%20Editing/cool_MK%20Slicer.lua</source>
+      </version>
+      <version name="3.05" author="cool" time="2023-08-10T12:46:16Z">
+        <changelog><![CDATA[+ Fixed a bug (typo) in the function of changing the grid step with the mouse wheel.
++ Fixed bugs for compatibility with the new version of Lua (Reaper 7)
++ Added an item to the theme for the correct display of the bracket when Random+Q is active.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/40f23576d3eaa84a847464a2ab2f89bbe973bde1/Items%20Editing/cool_MK%20Slicer.lua</source>
       </version>
     </reapack>
     <reapack name="Demoji_Next Variation.lua" type="script" desc="Next Variation">
