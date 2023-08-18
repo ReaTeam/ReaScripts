@@ -2,7 +2,7 @@
 -- @author cfillion
 -- @version 1.0.1
 -- @changelog Restore compatibility with REAPER before v7.0
--- @provides [main=main,midi_inlineeditor,midi_editor] .
+-- @provides [main=main,midi_editor,midi_inlineeditor] .
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=281810
 -- @screenshot https://i.imgur.com/IdK4mL1.gif
 -- @donation https://reapack.com/donate
@@ -66,7 +66,7 @@ end
 
 local function update()
   local current_pscc = reaper.GetProjectStateChangeCount()
-  local need_recount = pscc ~= reaper.GetProjectStateChangeCount()
+  local need_recount = pscc ~= current_pscc
   pscc = current_pscc
 
   local me_take = reaper.MIDIEditor_GetTake(reaper.MIDIEditor_GetActive())
@@ -89,8 +89,6 @@ local function update()
     takes = new_takes
   end
 
-  if not need_recount then return end
-
   selected_notes = 0
   forEachNote(function(take, note_i)
     if select(2, reaper.MIDI_GetNote(take, note_i)) then
@@ -100,9 +98,10 @@ local function update()
 end
 
 local function apply()
-  local i = 1
+  local i, max_i = 1, (PRESETS_MAX * 2) - 2
   while i < #presets do
-    if i >= (PRESETS_MAX * 2) - 2 or presets[i] == vel_min and presets[i + 1] == vel_max then
+    if i >= max_i or
+        presets[i] == vel_min and presets[i + 1] == vel_max then
       table.remove(presets, i)
       table.remove(presets, i)
     else
@@ -114,8 +113,9 @@ local function apply()
   table.insert(presets, 2, vel_max)
 
   local format = string.rep('<b', #presets)
+  local storage = string.pack(format, table.unpack(presets))
   reaper.SetExtState(script_name, 'presets',
-    reaper.NF_Base64_Encode(string.pack(format, table.unpack(presets)), true), true)
+    reaper.NF_Base64_Encode(storage, true), true)
 
   reaper.PreventUIRefresh(1)
   forEachNote(function(take, note_i)
@@ -162,7 +162,7 @@ local function presetsCombo()
 end
 
 local function window()
-  ImGui.SetNextItemWidth(ctx, -115)
+  ImGui.SetNextItemWidth(ctx, 255)
   vel_min, vel_max = select(2, ImGui.DragInt2(ctx, 'Velocity range', vel_min, vel_max,
     nil, 0, 0x7f, nil, ImGui.SliderFlags_AlwaysClamp()))
   if ImGui.IsItemDeactivatedAfterEdit(ctx) then
@@ -175,7 +175,7 @@ local function window()
   end
   tooltip('Recent values')
 
-  ImGui.Text(ctx, '(Double click to enter a specific value)')
+  ImGui.Text(ctx, '(Double-click to enter a specific value)')
   ImGui.Spacing(ctx)
 
   ImGui.PushStyleVar(ctx, ImGui.StyleVar_ItemSpacing(), 5, 0)
