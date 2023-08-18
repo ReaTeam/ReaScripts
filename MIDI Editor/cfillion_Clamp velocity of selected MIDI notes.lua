@@ -1,7 +1,8 @@
 -- @description Clamp velocity of selected MIDI notes
 -- @author cfillion
--- @version 1.0
--- @provides [main=main,midi_editor,midi_inlineeditor] .
+-- @version 1.0.1
+-- @changelog Restore compatibility with REAPER before v7.0
+-- @provides [main=main,midi_inlineeditor,midi_editor] .
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=281810
 -- @screenshot https://i.imgur.com/IdK4mL1.gif
 -- @donation https://reapack.com/donate
@@ -25,12 +26,12 @@ for name, func in pairs(reaper) do
   if name then ImGui[name] = func end
 end
 
-local script_name <const> = 'Clamp velocity of selected MIDI notes'
+local script_name = 'Clamp velocity of selected MIDI notes'
 local ctx = ImGui.CreateContext(script_name)
 local sans_serif = ImGui.CreateFont('sans-serif', 13)
 ImGui.Attach(ctx, sans_serif)
 
-local PRESETS_MAX <const> = 8
+local PRESETS_MAX = 8
 local vel_min, vel_max = 0, 127
 
 function math.clamp(v, min, max)
