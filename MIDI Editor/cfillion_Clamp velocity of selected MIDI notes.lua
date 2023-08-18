@@ -1,8 +1,8 @@
 -- @description Clamp velocity of selected MIDI notes
 -- @author cfillion
--- @version 1.0.1
--- @changelog Restore compatibility with REAPER before v7.0
--- @provides [main=main,midi_editor,midi_inlineeditor] .
+-- @version 1.0.2
+-- @changelog Add keyboard shortcuts (Enter for OK and Escape for Cancel)
+-- @provides [main=main,midi_inlineeditor,midi_editor] .
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=281810
 -- @screenshot https://i.imgur.com/IdK4mL1.gif
 -- @donation https://reapack.com/donate
@@ -179,7 +179,9 @@ local function window()
 
   ImGui.PushStyleVar(ctx, ImGui.StyleVar_ItemSpacing(), 5, 0)
   local keep_open = true
-  if ImGui.Button(ctx, 'OK') then
+  if ImGui.Button(ctx, 'OK') or
+      ImGui.IsKeyPressed(ctx, ImGui.Key_Enter()) or
+      ImGui.IsKeyPressed(ctx, ImGui.Key_KeypadEnter()) then
     apply()
     keep_open = false
   end
@@ -188,7 +190,8 @@ local function window()
     apply()
   end
   ImGui.SameLine(ctx)
-  if ImGui.Button(ctx, 'Cancel') then
+  if ImGui.Button(ctx, 'Cancel') or
+      ImGui.IsKeyPressed(ctx, ImGui.Key_Escape()) then
     keep_open = false
   end
   ImGui.SameLine(ctx)
