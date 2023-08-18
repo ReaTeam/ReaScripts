@@ -114,8 +114,7 @@ local function apply()
 
   local format = string.rep('<b', #presets)
   local storage = string.pack(format, table.unpack(presets))
-  reaper.SetExtState(script_name, 'presets',
-    reaper.NF_Base64_Encode(storage, true), true)
+  reaper.SetExtState(script_name, 'presets', reaper.NF_Base64_Encode(storage, true), true)
 
   reaper.PreventUIRefresh(1)
   forEachNote(function(take, note_i)
