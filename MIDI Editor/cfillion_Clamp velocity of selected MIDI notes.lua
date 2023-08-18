@@ -174,7 +174,7 @@ local function window()
   end
   tooltip('Recent values')
 
-  ImGui.Text(ctx, '(Double-click to enter a specific value)')
+  ImGui.Text(ctx, 'Double-click to enter a specific value')
   ImGui.Spacing(ctx)
 
   ImGui.PushStyleVar(ctx, ImGui.StyleVar_ItemSpacing(), 5, 0)
