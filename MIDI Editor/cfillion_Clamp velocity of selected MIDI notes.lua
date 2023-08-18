@@ -161,7 +161,6 @@ local function presetsCombo()
 end
 
 local function window()
-  local rv
   ImGui.SetNextItemWidth(ctx, -115)
   vel_min, vel_max = select(2, ImGui.DragInt2(ctx, 'Velocity range', vel_min, vel_max,
     nil, 0, 0x7f, nil, ImGui.SliderFlags_AlwaysClamp()))
