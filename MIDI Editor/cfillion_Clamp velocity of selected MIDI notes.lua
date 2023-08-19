@@ -13,21 +13,6 @@
 --
 --   The last few applied velocity ranges are saved and may be recalled via a menu.
 
--- @description Clamp velocity of selected MIDI notes
--- @author cfillion
--- @version 1.0.1
--- @changelog Restore compatibility with REAPER before v7.0
--- @provides [main=main,midi_editor,midi_inlineeditor] .
--- @link Forum thread https://forum.cockos.com/showthread.php?t=281810
--- @screenshot https://i.imgur.com/IdK4mL1.gif
--- @donation https://reapack.com/donate
--- @about
---   # Clamp velocity of selected MIDI notes
---
---   This script opens a window for selecting a minimum and maximum velocity to apply to selected MIDI notes. The selected MIDI notes are taken from the active MIDI editor or selected takes.
---
---   The last few applied velocity ranges are saved and may be recalled via a menu.
-
 dofile(reaper.GetResourcePath() ..
        '/Scripts/ReaTeam Extensions/API/imgui.lua')('0.8')
 
