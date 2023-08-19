@@ -133,6 +133,7 @@ local function tooltip(text)
     ImGui.EndTooltip(ctx)
   end
 end
+
 local function shortcuts(...)
   if had_any_item_active then
     return false
