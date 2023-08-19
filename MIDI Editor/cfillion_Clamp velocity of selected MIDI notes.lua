@@ -1,7 +1,7 @@
 -- @description Clamp velocity of selected MIDI notes
 -- @author cfillion
 -- @version 1.0.3
--- @changelog Add keyboard shortcuts (Enter for OK and Escape for Cancel)
+-- @changelog Improve display and shortcut management
 -- @provides [main=main,midi_editor,midi_inlineeditor] .
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=281810
 -- @screenshot https://i.imgur.com/SPKgPo1.gif
