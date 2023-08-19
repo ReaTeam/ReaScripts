@@ -1,8 +1,23 @@
 -- @description Clamp velocity of selected MIDI notes
 -- @author cfillion
--- @version 1.0.2
+-- @version 1.0.3
 -- @changelog Add keyboard shortcuts (Enter for OK and Escape for Cancel)
--- @provides [main=main,midi_inlineeditor,midi_editor] .
+-- @provides [main=main,midi_editor,midi_inlineeditor] .
+-- @link Forum thread https://forum.cockos.com/showthread.php?t=281810
+-- @screenshot https://i.imgur.com/SPKgPo1.gif
+-- @donation https://reapack.com/donate
+-- @about
+--   # Clamp velocity of selected MIDI notes
+--
+--   This script opens a window for selecting a minimum and maximum velocity to apply to selected MIDI notes. The selected MIDI notes are taken from the active MIDI editor or selected takes.
+--
+--   The last few applied velocity ranges are saved and may be recalled via a menu.
+
+-- @description Clamp velocity of selected MIDI notes
+-- @author cfillion
+-- @version 1.0.1
+-- @changelog Restore compatibility with REAPER before v7.0
+-- @provides [main=main,midi_editor,midi_inlineeditor] .
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=281810
 -- @screenshot https://i.imgur.com/IdK4mL1.gif
 -- @donation https://reapack.com/donate
@@ -51,6 +66,7 @@ end
 
 local presets = loadPresets()
 local takes, in_me, selected_notes, pscc = {}, false
+local had_any_item_active = false
 
 local function forEachNote(callback)
   for take_i, take in ipairs(takes) do
@@ -127,10 +143,24 @@ local function apply()
 end
 
 local function tooltip(text)
+  reaper.ImGui_ShowDebugLogWindow(ctx)
   if ImGui.IsItemHovered(ctx, ImGui.HoveredFlags_DelayShort()) and ImGui.BeginTooltip(ctx) then
     ImGui.Text(ctx, text)
     ImGui.EndTooltip(ctx)
   end
+end
+local function shortcuts(...)
+  if had_any_item_active then
+    return false
+  end
+
+  for i = 1, select('#', ...) do
+    if ImGui.IsKeyPressed(ctx, select(i, ...), false) then
+      return true
+    end
+  end
+
+  return false
 end
 
 local function presetsCombo()
@@ -162,11 +192,8 @@ end
 
 local function window()
   ImGui.SetNextItemWidth(ctx, 255)
-  vel_min, vel_max = select(2, ImGui.DragInt2(ctx, 'Velocity range', vel_min, vel_max,
-    nil, 0, 0x7f, nil, ImGui.SliderFlags_AlwaysClamp()))
-  if ImGui.IsItemDeactivatedAfterEdit(ctx) then
-    vel_min, vel_max = math.min(vel_min, vel_max), math.max(vel_min, vel_max)
-  end
+  vel_min, vel_max = select(2, ImGui.DragIntRange2(ctx, 'Value range', vel_min, vel_max,
+    nil, 0, 0x7f, 'Min: %d', 'Max: %d', ImGui.SliderFlags_AlwaysClamp()))
   ImGui.SameLine(ctx)
   if ImGui.BeginCombo(ctx, '##preset', '', ImGui.ComboFlags_NoPreview()) then
     presetsCombo()
@@ -174,14 +201,13 @@ local function window()
   end
   tooltip('Recent values')
 
-  ImGui.Text(ctx, 'Double-click to enter a specific value')
+  ImGui.Text(ctx, 'Drag or double-click to enter a specific value')
   ImGui.Spacing(ctx)
 
   ImGui.PushStyleVar(ctx, ImGui.StyleVar_ItemSpacing(), 5, 0)
   local keep_open = true
   if ImGui.Button(ctx, 'OK') or
-      ImGui.IsKeyPressed(ctx, ImGui.Key_Enter()) or
-      ImGui.IsKeyPressed(ctx, ImGui.Key_KeypadEnter()) then
+      shortcuts(ImGui.Key_Enter(), ImGui.Key_KeypadEnter()) then
     apply()
     keep_open = false
   end
@@ -190,8 +216,7 @@ local function window()
     apply()
   end
   ImGui.SameLine(ctx)
-  if ImGui.Button(ctx, 'Cancel') or
-      ImGui.IsKeyPressed(ctx, ImGui.Key_Escape()) then
+  if ImGui.Button(ctx, 'Cancel') or shortcuts(ImGui.Key_Escape()) then
     keep_open = false
   end
   ImGui.SameLine(ctx)
@@ -210,6 +235,8 @@ local function loop()
     ImGui.End(ctx)
   end
   ImGui.PopFont(ctx)
+
+  had_any_item_active = ImGui.IsAnyItemActive(ctx)
 
   if open then
     reaper.defer(loop)
