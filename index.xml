@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="80a60334625199a94bdbcc41b1051c4aebce369d" name="ReaTeam Scripts">
+<index version="1" commit="f2bbd6b61af9a8fb08592127a84ee93681531233" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -22576,6 +22576,33 @@ Web Interface: restore the previous locked state on load]]></changelog>
     <reapack name="HeDa_View Scroll Top.lua" type="script" desc="View Scroll Top">
       <version name="1.0" author="HeDa" time="2016-02-14T02:19:23Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/7e9c4ed73ed3e9b0a3b15d363bc3db28a19db265/Various/HeDa_View%20Scroll%20Top.lua</source>
+      </version>
+    </reapack>
+    <reapack name="ilovemedia_Arranged Live Looping.lua" type="script" desc="Arranged Live Looping">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Arranged Live Looping\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Main Features\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Hands-free live looping\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Supports both MIDI and audio\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Auto-punch on each record item\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Repeat recording sections wherever you want, even on other tracks with different parameters or instruments\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Automatically select any track using markers\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Prepare your template for live looping\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Create your template tracks (MIDI and/or audio). MIDI tracks should be set to {\f1 Record: MIDI overdub or replace}.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Regardless of whether it will be an audio or MIDI track, create new MIDI items ({\f1 Insert \u8594? New MIDI Item}) for the areas where you want to record and for the areas where the recorded content will be repeated. Playback items can be added to any track, and their length can be different. If the playback items are longer, they will loop.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab In the {\f1 Item Properties -> Take Name} you need to modify the name of each take according to the following guidelines: For the items you want to convert into recording zones, add the word {\f1 record} at the end of their name. For the items from which you want to copy the content, use the same name as the record item, but replace record with {\f1 playback} at the end of the name. Keep the rest of the name identical.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Create markers at the points where you want to select another track. Name the markers with the exact name of the track you want to select.\sa180\par}
+}
+]]></description>
+        <link rel="website" href="https://ilovemedia.es/arranged-live-looping-for-reaper/">Arranged Live Looping - Instructions and Examples</link>
+      </metadata>
+      <version name="1.0" author="ilovemedia" time="2023-08-20T15:57:44Z">
+        <changelog><![CDATA[First release!]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f2bbd6b61af9a8fb08592127a84ee93681531233/Various/ilovemedia_Arranged%20Live%20Looping.lua</source>
       </version>
     </reapack>
     <reapack name="JamesHE_Audition Takes of Selected items.eel" type="script" desc="Audition Takes">
