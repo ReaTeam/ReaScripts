@@ -13,7 +13,7 @@ end
 
 local chosen_selection = tonumber(reaper.GetExtState("amagalma_Split at mouse cursor position", "selection")) or 3
 local xfadeposition = tonumber(reaper.GetExtState("amagalma_Split at mouse cursor position", "xfadeposition")) or 1
-
+local snaptogrid = tonumber(reaper.GetExtState("amagalma_Split at mouse cursor position", "snaptogrid")) or 0
 
 local t = {
       {"#Selection after split:"},
@@ -24,7 +24,9 @@ local t = {
       {"#Auto crossfade position:"},
       {"on the left side", 1},
       {"centered at mouse cursor position", 0.5},
-      {"on the right side", 0}
+      {"on the right side", 0},
+      {"|#Respect snap setting:"},
+      {"snap to grid respected", snaptogrid}
 }
 
 
@@ -35,6 +37,8 @@ for i = 1, #t do
     if chosen_selection == i-1 then check = "!" end
   elseif i > 6 and i < 10 then
     if xfadeposition == t[i][2] then check = "!" end
+  elseif i == 11 then
+    if snaptogrid == 1 then check = "!" end
   end
   menu = menu .. check .. t[i][1] .. "|"
 end
@@ -53,6 +57,9 @@ gfx.quit()
 
 if selection > 2 and selection <= 5 then
   reaper.SetExtState("amagalma_Split at mouse cursor position", "selection", t[selection-1][2], true)
-elseif selection > 6 then
+elseif selection > 6 and selection < 10 then
   reaper.SetExtState("amagalma_Split at mouse cursor position", "xfadeposition", t[selection][2], true)
+elseif selection == 11 then
+  reaper.SetExtState("amagalma_Split at mouse cursor position", "snaptogrid", 1 - snaptogrid, true)
 end
+reaper.defer(function() end)
