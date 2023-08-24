@@ -1,6 +1,9 @@
 -- @description Split item at mouse cursor position ( use defined crossfade and selection settings )
 -- @author amagalma
--- @version 1.00
+-- @version 1.02
+-- @changelog 
+--       - Added setting to respect or not the Snapping setting
+--       - Fixed code for getting expected crossfade length
 -- @provides [main] amagalma_Split item at mouse cursor position ( use defined crossfade and selection settings )/amagalma_Split item at mouse cursor position ( Define crossfade and selection settings ).lua > amagalma_Split item at mouse cursor position ( Define crossfade and selection settings ).lua
 -- @donation https://www.paypal.me/amagalma
 -- @about
@@ -24,6 +27,7 @@ local selection = {
 local chosen_selection = tonumber(reaper.GetExtState("amagalma_Split at mouse cursor position", "selection")) or 3
 local xfadeposition = tonumber(reaper.GetExtState("amagalma_Split at mouse cursor position", "xfadeposition")) or 1
 -- xfadeposition : 1 = left, 0.5 = center, 0 = right
+local snaptogrid = tonumber(reaper.GetExtState("amagalma_Split at mouse cursor position", "snaptogrid")) == 1
 
 -------------------------
 
@@ -47,35 +51,40 @@ if not reaper.IsMediaItemSelected( item_mouse ) then
   reaper.SetMediaItemSelected( item_mouse, true )
 end
 
-
 local hzoomlevel = reaper.GetHZoomLevel()
-
-local function GetProjectPositionFromScreenX( x )
-  local arrangeview = reaper.JS_Window_FindChildByID( reaper.GetMainHwnd(), 1000 )
-  local _, left, _, right = reaper.JS_Window_GetClientRect( arrangeview ) -- without scrollbars
-  return reaper.GetSet_ArrangeView2( 0, false, left, right ) +
-         (x + reaper.JS_Window_ScreenToClient( arrangeview, 0, 0 )) / hzoomlevel
-end
+local arrangeview =  reaper.JS_Window_FindChildByID( reaper.GetMainHwnd(), 1000 )
+local _, left, _, right = reaper.JS_Window_GetClientRect( arrangeview ) -- without scrollbars
+local mousepos = reaper.GetSet_ArrangeView2( 0, false, left, right ) +
+                 (x + reaper.JS_Window_ScreenToClient( arrangeview, 0, 0 )) / hzoomlevel
 
 
-local autoxfade = reaper.GetToggleCommandState( 40912 ) == 1 -- Toggle auto-crossfade on split
-local xfadelen = 0
-
-if autoxfade and xfadeposition ~= 0 then
-  local defsplitxfadelen = tonumber(({reaper.get_config_var_string( "defsplitxfadelen" )})[2])
-  if not defsplitxfadelen then
+local function GetExpectedXFadeLength()
+  local xfadetime = tonumber(({reaper.get_config_var_string( "defsplitxfadelen" )})[2])
+  if not xfadetime then
     error('Could not retrieve "defsplitxfadelen" from reaper.ini')
   end
-  if hzoomlevel < 96000 then
-    if defsplitxfadelen > 50/hzoomlevel then xfadelen = 50/hzoomlevel
-    else xfadelen = defsplitxfadelen
+  local splitautoxfade = tonumber(({reaper.get_config_var_string( "splitautoxfade" )})[2])
+
+  local restricted_len_by_perc = ((right - left)*0.5) / hzoomlevel
+  local restricted_by_px = (splitautoxfade and (splitautoxfade & 256 == 256)) and
+                           (tonumber(({reaper.get_config_var_string( "splitmaxpix" )})[2])) / hzoomlevel
+  local restricted_len = (restricted_by_px and restricted_by_px < restricted_len_by_perc) and
+                          restricted_by_px or restricted_len_by_perc
+  if hzoomlevel >= 96000 then -- nofade
+    return 0
+  else
+    if xfadetime <= restricted_len then -- fade
+      return xfadetime
+    else -- restrict
+      return restricted_len
     end
   end
 end
 
 -------------------------
 
-reaper.SetEditCurPos( GetProjectPositionFromScreenX( x ) - (xfadeposition * xfadelen), false, false )
+reaper.SetEditCurPos( (snaptogrid and reaper.SnapToGrid( 0, mousepos ) or mousepos ) - 
+                      (xfadeposition * GetExpectedXFadeLength()), false, false )
 reaper.Main_OnCommand( selection[chosen_selection], 0 )
 
 
