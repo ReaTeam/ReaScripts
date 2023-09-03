@@ -1,67 +1,5 @@
 -- @description FX Devices
 -- @author Bryan Chi
--- @version 1.0beta9.6.7
--- @changelog
---   FX Devices 9.6.6-4
---   - New : Shift+ RMB to bypass a modulation.
---   - Fix Slider default width shows as 0 , and inputting values by typing don’t work.
---   - Fix unable to RMB drag to adjust modulation range without choosing a source when there’s only one modulation on the parameter.
---   - Add Clap plugins support for FX adder !!! Thanks to Suzuki’s contribution !!!!
--- @provides
---   [effect] BryanChi_FX Devices/FXD Macros.jsfx
---   [effect] BryanChi_FX Devices/FXD ReSpectrum.jsfx
---   [effect] BryanChi_FX Devices/FXD Gain Reduction Scope.jsfx
---   [effect] BryanChi_FX Devices/FXD Split to 32 Channels.jsfx
---   [effect] BryanChi_FX Devices/FXD Split To 4 Channels.jsfx
---   [effect] BryanChi_FX Devices/cookdsp.jsfx-inc
---   [effect] BryanChi_FX Devices/cookdsp/analysis.jsfx-inc
---   [effect] BryanChi_FX Devices/cookdsp/buffer.jsfx-inc
---   [effect] BryanChi_FX Devices/cookdsp/delay.jsfx-inc
---   [effect] BryanChi_FX Devices/cookdsp/dynamics.jsfx-inc
---   [effect] BryanChi_FX Devices/cookdsp/effects.jsfx-inc
---   [effect] BryanChi_FX Devices/cookdsp/fft-mono-template
---   [effect] BryanChi_FX Devices/cookdsp/fft-stereo-template
---   [effect] BryanChi_FX Devices/cookdsp/fftobjects.jsfx-inc
---   [effect] BryanChi_FX Devices/cookdsp/filters.jsfx-inc
---   [effect] BryanChi_FX Devices/cookdsp/granulator.jsfx-inc
---   [effect] BryanChi_FX Devices/cookdsp/list.jsfx-inc
---   [effect] BryanChi_FX Devices/cookdsp/memalloc.jsfx-inc
---   [effect] BryanChi_FX Devices/cookdsp/midi.jsfx-inc
---   [effect] BryanChi_FX Devices/cookdsp/mmath.jsfx-inc
---   [effect] BryanChi_FX Devices/cookdsp/oscil.jsfx-inc
---   [effect] BryanChi_FX Devices/cookdsp/pobjects.jsfx-inc
---   [effect] BryanChi_FX Devices/cookdsp/pv-mono-template
---   [effect] BryanChi_FX Devices/cookdsp/pv-stereo-template
---   [effect] BryanChi_FX Devices/cookdsp/pvocobjects.jsfx-inc
---   [effect] BryanChi_FX Devices/cookdsp/pvtrans-example
---   [effect] BryanChi_FX Devices/cookdsp/random.jsfx-inc
---   [effect] BryanChi_FX Devices/cookdsp/scaling.jsfx-inc
---   [effect] BryanChi_FX Devices/firhalfband.jsfx-inc
---   [effect] BryanChi_FX Devices/spectrum.jsfx-inc
---   [effect] BryanChi_FX Devices/svf_filter.jsfx-inc
---   BryanChi_FX Devices/IconFont1.ttf
---   [effect] BryanChi_FX Devices/FXD (Mix)RackMixer.jsfx
---   BryanChi_FX Devices/FX Layouts/ValhallaFreqEcho (Valhalla DSP, LLC).ini
---   BryanChi_FX Devices/FX Layouts/ValhallaShimmer (Valhalla DSP, LLC).ini
---   BryanChi_FX Devices/FX Layouts/ValhallaVintageVerb (Valhalla DSP, LLC).ini
---   BryanChi_FX Devices/FX Layouts/ValhallaSupermassive (Valhalla DSP, LLC).ini
---   BryanChi_FX Devices/FX Layouts/ValhallaDelay (Valhalla DSP, LLC).ini
---   [effect] BryanChi_FX Devices/FXD Saike BandSplitter.jsfx
---   [effect] BryanChi_FX Devices/FXD Band Joiner.jsfx
---   BryanChi_FX Devices/Images/Analog Knob 1.png
---   BryanChi_FX Devices/Functions/EQ functions.lua
---   BryanChi_FX Devices/Functions/General Functions.lua
---   BryanChi_FX Devices/Functions/FX Layering.lua
---   BryanChi_FX Devices/Functions/FX Adder.lua
---   BryanChi_FX Devices/Functions/Layout Editor functions.lua
---   BryanChi_FX Devices/Functions/Modulation.lua
---   BryanChi_FX Devices/Functions/Theme Editor Functions.lua
--- @about
---   Please check the forum post for info:
---   https://forum.cockos.com/showthread.php?t=263622
-
--- @description FX Devices
--- @author Bryan Chi
 -- @version 1.0beta9.6.6-3
 -- @changelog
 --   - Fix Theme editor saving empty entry crashes
@@ -439,9 +377,6 @@ Command_ID = {}
 
 --------Pro C ------------------------
 ProC = { Width = 280, Pt = { R = { m = {}, M = {} }, L = { m = {}, M = {} } } }
-
-
-
 
 
 
@@ -9178,12 +9113,15 @@ function loop()
                                     FX[FxID].InWhichBand = Band
 
                                     if not DontMove then
+                                        local DropDest = DropDest
                                         table.insert(MovFX.FromPos, Pl)
                                         if Pl > FX_Idx and not DropDest then DropDest = FX_Idx + 1 end
 
 
+                                        if Pl < DropDest then
+                                            DropDest = DropDest - 1
+                                        end
 
-                                        local _, Nm = r.TrackFX_GetFXName(LT_Track, DropDest)
 
 
                                         table.insert(MovFX.ToPos, DropDest or FX_Idx)
