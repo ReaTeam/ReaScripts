@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="12398035e9f46abf5d0f067b235fdf9cdc177e72" name="ReaTeam Scripts">
+<index version="1" commit="e953ef3760f8b3f72ee63be69ef9d056f6fbdfca" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -20381,19 +20381,19 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/124834656a86bd043ccc101acbe2641531420404/Various/amagalma_Enclose%20selected%20or%20focused%20FX%20in%20visible%20chain%20with%20ABLM2%20Level%20Matching%20VST.lua</source>
       </version>
     </reapack>
-    <reapack name="amagalma_gianfini_ReaNamer (track-item-region renaming utility).lua" type="script" desc="ReaNamer (track-item-region renaming utility)">
+    <reapack name="amagalma_gianfini_ReaNamer (track-item-region renaming utility).lua" type="script" desc="ReaNamer (track-item-region-marker renaming utility)">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Utility to manipulate track, item or region names\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Manipulate track/item/region names (prefix/suffix, trim start/end, keep, clear, uppercase/lowercase, swap case/capitalize/titlecase, replace, strip leading & trailing whitespaces).\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Utility to manipulate track, item, region or marker names\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Manipulate track/item/region/marker names (prefix/suffix, trim start/end, keep, clear, uppercase/lowercase, swap case/capitalize/titlecase, replace, strip leading & trailing whitespaces).\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Mode (tracks or items) is automatically chosen when the script starts. Then to change mode click on appropriate button.\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab When satisfied with the modifications (which can be previewed in the list), COMMIT button writes the values to tracks/items/regions and creates an Undo point in Reaper's Undo History\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab When satisfied with the modifications (which can be previewed in the list), COMMIT button writes the values to tracks/items/regions/markers and creates an Undo point in Reaper's Undo History\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab UTF-8 support for case-changing functions\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab SWS / S&M extension is required\sa180\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Key Shortcuts: Esc to close script Ctrl+Enter to Commit Ctrl+T for Tracks mode Ctrl+R for Regions mode Ctrl+I for Items mode Ctrl+Z for Undo Ctrl+Shift+Z for Redo Alt+A for swAp case Alt+C for Clear Alt+E for trim End Alt+K for Keep Alt+L for Lowercase Alt+N for Number Alt+P for Prefix Alt+R for Replace Alt+S for trim Start Alt+T for Titlecase Alt+U for Uppercase Alt+W for strip Whitespaces Alt+X for suffiX Alt+Z for capitaliZe\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Key Shortcuts: Esc to close script Ctrl+Enter to Commit Ctrl+T for Tracks mode Ctrl+I for Items mode Ctrl+R for Regions mode Ctrl+M for Markers mode Ctrl+Z for Undo Ctrl+Shift+Z for Redo Alt+A for swAp case Alt+C for Clear Alt+E for trim End Alt+K for Keep Alt+L for Lowercase Alt+N for Number Alt+P for Prefix Alt+R for Replace Alt+S for trim Start Alt+T for Titlecase Alt+U for Uppercase Alt+W for strip Whitespaces Alt+X for suffiX Alt+Z for capitaliZe\par}
 }
 ]]></description>
         <link rel="website">http://forum.cockos.com/showthread.php?t=190534</link>
@@ -20515,6 +20515,12 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/44b495d7015754e3a236d1c855265a600b60b527/Various/amagalma_gianfini_ReaNamer%20(track-item-region%20renaming%20utility).lua</source>
         <source file="amagalma_ReaNamer Replace Help.lua">https://github.com/ReaTeam/ReaScripts/raw/44b495d7015754e3a236d1c855265a600b60b527/Various/amagalma_ReaNamer%20Replace%20Help.lua</source>
         <source file="amagalma_ReaNamer utf8data.lua">https://github.com/ReaTeam/ReaScripts/raw/44b495d7015754e3a236d1c855265a600b60b527/Various/amagalma_ReaNamer%20utf8data.lua</source>
+      </version>
+      <version name="1.40" author="amagalma &amp; gianfini" time="2023-09-03T13:53:47Z">
+        <changelog><![CDATA[- Added markers support]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e953ef3760f8b3f72ee63be69ef9d056f6fbdfca/Various/amagalma_gianfini_ReaNamer%20(track-item-region%20renaming%20utility).lua</source>
+        <source file="amagalma_ReaNamer Replace Help.lua">https://github.com/ReaTeam/ReaScripts/raw/e953ef3760f8b3f72ee63be69ef9d056f6fbdfca/Various/amagalma_ReaNamer%20Replace%20Help.lua</source>
+        <source file="amagalma_ReaNamer utf8data.lua">https://github.com/ReaTeam/ReaScripts/raw/e953ef3760f8b3f72ee63be69ef9d056f6fbdfca/Various/amagalma_ReaNamer%20utf8data.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Go to track (mousewheel only) reverse.eel" type="script" desc="amagalma_Go to track (mousewheel only) reverse">
