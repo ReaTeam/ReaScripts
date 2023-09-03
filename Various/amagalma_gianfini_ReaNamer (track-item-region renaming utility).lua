@@ -1,7 +1,7 @@
--- @description ReaNamer (track-item-region renaming utility)
+-- @description ReaNamer (track-item-region-marker renaming utility)
 -- @author amagalma & gianfini
--- @version 1.32
--- @changelog - lexaproductions: exclude adjacent regions to time selection
+-- @version 1.40
+-- @changelog - Added markers support
 -- @provides
 --   amagalma_ReaNamer Replace Help.lua
 --   amagalma_ReaNamer utf8data.lua
@@ -10,11 +10,11 @@
 --   http://forum.cockos.com/showthread.php?t=194414
 -- @donation https://www.paypal.me/amagalma
 -- @about
---   # Utility to manipulate track, item or region names
+--   # Utility to manipulate track, item, region or marker names
 --
---   - Manipulate track/item/region names (prefix/suffix, trim start/end, keep, clear, uppercase/lowercase, swap case/capitalize/titlecase, replace, strip leading & trailing whitespaces).
+--   - Manipulate track/item/region/marker names (prefix/suffix, trim start/end, keep, clear, uppercase/lowercase, swap case/capitalize/titlecase, replace, strip leading & trailing whitespaces).
 --   - Mode (tracks or items) is automatically chosen when the script starts. Then to change mode click on appropriate button.
---   - When satisfied with the modifications (which can be previewed in the list), COMMIT button writes the values to tracks/items/regions and creates an Undo point in Reaper's Undo History
+--   - When satisfied with the modifications (which can be previewed in the list), COMMIT button writes the values to tracks/items/regions/markers and creates an Undo point in Reaper's Undo History
 --   - UTF-8 support for case-changing functions
 --   - SWS / S&M extension is required
 --
@@ -22,8 +22,9 @@
 --    Esc to close script
 --    Ctrl+Enter to Commit
 --    Ctrl+T for Tracks mode
---    Ctrl+R for Regions mode
 --    Ctrl+I for Items mode
+--    Ctrl+R for Regions mode
+--    Ctrl+M for Markers mode
 --    Ctrl+Z for Undo
 --    Ctrl+Shift+Z for Redo
 --    Alt+A for swAp case
@@ -45,7 +46,7 @@
 
 -----------------------------------------------------------------------------------------------
 
-local version = "1.32"
+local version = "1.40"
 
 if not reaper.APIExists( "BR_Win32_FindWindowEx" ) then
   reaper.MB( "SWS / S&M extension is required for this script to work", "SWS / S&M extension is not installed!", 0 )
@@ -452,13 +453,14 @@ utf8_lc_uc, utf8_uc_lc = nil, nil
 local has_changed, what, trackCount, indexed_track, scroll_line_selected, itemCount, indexed_item
 local undo_stack, ToBeTrackNames, OriginalTrackNames, ToBeItemNames, OriginalItemNames, redo_stack
 local regionCount, ToBeRegionNames, OriginalRegionNames = 0
+local markerCount, ToBeMarkerNames, OriginalMarkerNames = 0
 local mod_stack_name, mod_stack_parm1, mod_stack_parm2 = {}, {}, {} -- management of modifiers' undo stack
 local scroll_list_x, scroll_list_y, scroll_list_w, scroll_list_h, scroll_line_selected
 local matchCase = "y"
 local give_back_focus = false
 gfx.setfont(1, "Arial", 19)
 local strw, strh = gfx.measurestr("Strip leading & trailing whitespaces")
-local NAME = "ReaNamer  v"..version.."    -    Track/Item/Region Renaming Utility"
+local NAME = "ReaNamer  v"..version.."   -   Track/Item/Region/Marker Renaming Utility"
 local script_hwnd
 local utf8_char = "[%z\1-\127\194-\244][\128-\191]*"
 
@@ -575,6 +577,14 @@ local function Check()
       GiveBackFocus()
       return false
     end
+  elseif what == "markers" then
+    if markerCount > 0 then
+      return true
+    else
+      reaper.MB("Please select at least one marker", "No markers selected!", 0)
+      GiveBackFocus()
+      return false
+    end
   end
 end
 
@@ -629,6 +639,28 @@ local function AllRegionNames() -- in Time Selection
         -- do not add
       else
         table[markrgnindexnumber] = {pos, rgnend, name}
+        count = count + 1
+        table2[count] = markrgnindexnumber
+      end
+    end
+  end
+  return table, table2
+end
+
+local function AllMarkerNames() -- in Time Selection
+  local st, en = reaper.GetSet_LoopTimeRange( 0, 0, 0, 0, 0 )
+  if st == en then
+    st, en = -math.huge, math.huge
+  end
+  local marker_cnt = reaper.CountProjectMarkers( 0 )
+  local table = {}
+  local table2 = {}
+  local count = 0
+  for i = 0, marker_cnt-1 do
+    local _, isrgn, pos, rgnend, name, markrgnindexnumber = reaper.EnumProjectMarkers( i )
+    if not isrgn then
+      if pos >= st and pos <= en then
+        table[markrgnindexnumber] = {pos, name}
         count = count + 1
         table2[count] = markrgnindexnumber
       end
@@ -837,6 +869,23 @@ local function RefreshTrackItemList(tl_x, tl_y, tl_w, tl_h) -- redraws the track
       DrawTrackName(x_start + math.floor(lsth_small/3), y_start+math.floor((i-first_s_line)*lsth_small),
       string.format("%" .. digits .. "i. ",rg_index[i]) .. tostring(ToBeRegionNames[rg_index[i]][3]))
     end
+  elseif what == "markers" then
+    local mr_table, mr_index = AllMarkerNames()
+    markerCount = #mr_index
+    if markerCount == 0 then return end
+    num_displayed_lines = 12
+    first_s_line, last_s_line = indexed_marker, indexed_marker + num_displayed_lines - 1
+    last_s_line = last_s_line <= markerCount and last_s_line or markerCount
+    if markerCount > num_displayed_lines and last_s_line < markerCount then
+      btn_DOWN_can_move = 1
+    else
+      btn_DOWN_can_move = 0
+    end
+    local digits = #tostring(markerCount)
+    for i = first_s_line, last_s_line do
+      DrawTrackName(x_start + math.floor(lsth_small/3), y_start+math.floor((i-first_s_line)*lsth_small),
+      string.format("%" .. digits .. "i. ",mr_index[i]) .. tostring(ToBeMarkerNames[mr_index[i]][2]))
+    end
   end
 end
 
@@ -979,7 +1028,7 @@ function ApplyModifier(prevName, modifier, parm1, parm2, seq_number) -- apply on
   elseif modifier == "number" then
     if parm1 ~= "" then
       local mode, number, digits, separator = parm1:match("([psPS])%s?(%d+)\n(%d+)\n(.*)")
-      number = what == "regions" and number-1 or number
+      number = (what == "regions" or what == "markers") and number-1 or number
       if mode:match("[pP]") then
         newName = string.format("%0" .. digits .. "d", math.floor(number+i)) .. separator .. newName
       else
@@ -1122,6 +1171,23 @@ function WriteCurrentModifier() -- write last modifier only to all tracks-items 
         has_changed = 1
       end
     end
+  elseif what == "markers" then
+    local mr_table, mr_index = AllMarkerNames()
+    markerCount = #mr_index
+    for i=1, markerCount do
+      local prevName = ToBeMarkerNames[mr_index[i]][2]
+      if undo_stack > 0 then
+        local modifier = mod_stack_name[undo_stack]
+        local parm1 = mod_stack_parm1[undo_stack]
+        local parm2 = mod_stack_parm2[undo_stack]
+        newName = ApplyModifier(prevName, modifier, parm1, parm2, i) -- write a single modifier to newName based on prevName
+      end
+      -- Update list
+      if newName ~= prevName then
+        ToBeMarkerNames[mr_index[i]][2] = newName
+        has_changed = 1
+      end
+    end
   end
   if has_changed == 0 and undo_stack > 0 then
     undo_stack = undo_stack - 1
@@ -1181,19 +1247,36 @@ function WriteModifiersStack() -- write all modifiers to track-items list (not t
     local rg_table, rg_index = AllRegionNames()
     regionCount = #rg_index
     for i=1, regionCount do
-     local newName = OriginalRegionNames[rg_index[i]][3]
-     if undo_stack > 0 then
-       for j=1, undo_stack do
-         local modifier = mod_stack_name[j]
-         local parm1 = mod_stack_parm1[j]
-         local parm2 = mod_stack_parm2[j]
-         prevName = newName
-         newName = ApplyModifier(prevName, modifier, parm1, parm2, i) -- write a single modifier to newName based on prevName
-       end
-     end
-     -- Update list
-     ToBeRegionNames[rg_index[i]][3] = newName
-   end
+    local newName = OriginalRegionNames[rg_index[i]][3]
+    if undo_stack > 0 then
+      for j=1, undo_stack do
+        local modifier = mod_stack_name[j]
+        local parm1 = mod_stack_parm1[j]
+        local parm2 = mod_stack_parm2[j]
+        prevName = newName
+        newName = ApplyModifier(prevName, modifier, parm1, parm2, i) -- write a single modifier to newName based on prevName
+      end
+    end
+    -- Update list
+    ToBeRegionNames[rg_index[i]][3] = newName
+    end
+  elseif what == "markers" then
+    local mr_table, mr_index = AllMarkerNames()
+    markerCount = #mr_index
+    for i=1, markerCount do
+    local newName = OriginalMarkerNames[mr_index[i]][2]
+    if undo_stack > 0 then
+      for j=1, undo_stack do
+        local modifier = mod_stack_name[j]
+        local parm1 = mod_stack_parm1[j]
+        local parm2 = mod_stack_parm2[j]
+        prevName = newName
+        newName = ApplyModifier(prevName, modifier, parm1, parm2, i) -- write a single modifier to newName based on prevName
+      end
+    end
+    -- Update list
+    ToBeMarkerNames[mr_index[i]][2] = newName
+    end
   end
   UpdateUndoHelp()
   UpdateRedoHelp()
@@ -1209,6 +1292,10 @@ local function get_line_name(line_num)  -- get the text of line in scroll list a
   elseif what == "regions" then
     if RegionNamesIndex[line_num+1] then
       return ToBeRegionNames[RegionNamesIndex[line_num+1]][3], RegionNamesIndex[line_num+1]
+    end
+  elseif what == "markers" then
+    if MarkerNamesIndex[line_num+1] then
+      return ToBeMarkerNames[MarkerNamesIndex[line_num+1]][2], MarkerNamesIndex[line_num+1]
     end
   else
     local itemId = reaper.GetSelectedMediaItem(0, line_num)
@@ -1231,6 +1318,8 @@ local function modify_single_line(line_num)
     indexed_obj = indexed_track
   elseif what == "regions" then
     indexed_obj = indexed_region
+  elseif what == "markers" then
+    indexed_obj = indexed_marker
   else
     indexed_obj = indexed_item
   end
@@ -1240,6 +1329,9 @@ local function modify_single_line(line_num)
     line_object = string.format("track %i",track_num)
   elseif what == "regions" then
     line_object = string.format("region %i",track_num)
+    line_num = line_num + 1
+  elseif what == "markers" then
+    line_object = string.format("marker %i",track_num)
     line_num = line_num + 1
   else
     line_object = "item"
@@ -1282,6 +1374,9 @@ local function init_tables()
     ToBeRegionNames, RegionNamesIndex = nil, nil
     OriginalRegionNames = nil
     indexed_region = nil
+    ToBeMarkerNames, MarkerNamesIndex = nil, nil
+    OriginalMarkerNames = nil
+    indexed_marker = nil
   elseif what == "items" then
     ToBeItemNames = AllItemNames()
     OriginalItemNames = AllItemNames()
@@ -1295,6 +1390,9 @@ local function init_tables()
     ToBeRegionNames, RegionNamesIndex = nil, nil
     OriginalRegionNames = nil
     indexed_region = nil
+    ToBeMarkerNames, MarkerNamesIndex = nil, nil
+    OriginalMarkerNames = nil
+    indexed_marker = nil
   elseif what == "regions" then
     ToBeRegionNames, RegionNamesIndex = AllRegionNames()
     OriginalRegionNames = AllRegionNames()
@@ -1308,6 +1406,25 @@ local function init_tables()
     ToBeItemNames = nil
     OriginalItemNames = nil
     indexed_item = nil
+    ToBeMarkerNames, MarkerNamesIndex = nil, nil
+    OriginalMarkerNames = nil
+    indexed_marker = nil
+  elseif what == "markers" then
+    ToBeMarkerNames, MarkerNamesIndex = AllMarkerNames()
+    OriginalMarkerNames = AllMarkerNames()
+    indexed_marker = 1
+    undo_stack = 0
+    redo_stack = 0
+    -- free memory
+    ToBeTrackNames = nil
+    OriginalTrackNames = nil
+    indexed_track = nil
+    ToBeItemNames = nil
+    OriginalItemNames = nil
+    indexed_item = nil
+    ToBeRegionNames, RegionNamesIndex = nil, nil
+    OriginalRegionNames = nil
+    indexed_region = nil
   end
   btn_DOWN_can_move = 0
 end
@@ -1336,6 +1453,7 @@ local function main() -- MAIN FUNCTION -----------------------------------------
   f(); Tracks_btn:draw()
   f(); Items_btn:draw()
   f(); Regions_btn:draw()
+  f(); Markers_btn:draw()
   f(); commit_btn:draw()
   f(); reset_btn:draw()
   f(); undo_btn:draw()
@@ -1344,23 +1462,31 @@ local function main() -- MAIN FUNCTION -----------------------------------------
   f(); DOWN_btn:draw()
   DrawDividingLines()
 
-  gfx.x, gfx.y = 329, 334
+  --[[gfx.x, gfx.y = 329, 334
   gfx.set(1,1,1,0.44)
   gfx.setfont(2, "Arial", 14)
-  gfx.printf("amagalma\n&  gianfini")
+  gfx.printf("amagalma\n&  gianfini")--]]
 
   if what == "tracks" then
     Tracks_btn:set_color1()
     Items_btn:set_color2()
     Regions_btn:set_color2()
+    Markers_btn:set_color2()
   elseif what == "items" then
     Items_btn:set_color1()
     Tracks_btn:set_color2()
     Regions_btn:set_color2()
+    Markers_btn:set_color2()
   elseif what == "regions" then
     Regions_btn:set_color1()
     Tracks_btn:set_color2()
     Items_btn:set_color2()
+    Markers_btn:set_color2()
+  elseif what == "markers" then
+    Markers_btn:set_color1()
+    Tracks_btn:set_color2()
+    Items_btn:set_color2()
+    Regions_btn:set_color2()
   end
 
   commit_btn:set_color_commit()
@@ -1384,7 +1510,7 @@ local function main() -- MAIN FUNCTION -----------------------------------------
   end
 
   if (what == "tracks" and indexed_track > 1) or (what == "items" and indexed_item > 1) or
-     (what == "regions" and indexed_region > 1)
+     (what == "regions" and indexed_region > 1) or (what == "markers" and indexed_marker > 1)
   then
     UP_btn:set_color_updown_can_move(0)
   else
@@ -1398,6 +1524,13 @@ local function main() -- MAIN FUNCTION -----------------------------------------
 
   if what == "regions" then
     local _, _, num_regions = reaper.CountProjectMarkers( 0 )
+    local st, en = reaper.GetSet_LoopTimeRange2( 0, 0, 0, 0, 0, 0 )
+    if st ~= prev_st or en ~= prev_en then
+      init_tables()
+      prev_st, prev_en = st, en
+    end
+  elseif what == "markers" then
+    local _, _, num_markers = reaper.CountProjectMarkers( 0 )
     local st, en = reaper.GetSet_LoopTimeRange2( 0, 0, 0, 0, 0, 0 )
     if st ~= prev_st or en ~= prev_en then
       init_tables()
@@ -1539,6 +1672,10 @@ local function main() -- MAIN FUNCTION -----------------------------------------
     -- Ctrl+R for Regions
     elseif getchar == 18 then
       Regions_btn.onClick()
+  
+    -- Ctrl+M for Markers -------------------------- BROKEN
+    elseif getchar == 109 then
+      Markers_btn.onClick()
 
     -- Ctrl+I for Items
     elseif getchar == 9 then
@@ -1576,7 +1713,7 @@ local function init() -- INITIALIZATION ----------------------------------------
   if (context == 1 and reaper.CountSelectedMediaItems(0) > 0) then what = "items" else what = "tracks" end
   init_tables()
   f() -- set font
-  gfx.clear = reaper.ColorToNative( 4, 15, 47 )
+  gfx.clear = 0x2f1504
   -- set of global variables for screen drawing
   win_w = math.floor(strw*1.6)
   win_h = strh+math.floor(11.5*strh*2.5)
@@ -1692,7 +1829,7 @@ local function init() -- INITIALIZATION ----------------------------------------
   commit_btn = Button(x_pos, y_pos, width*2, height, 2, 0, 0, "COMMIT",
                 "Commit all modifications")
 
-  -- 9th raw: Tracks/Items/Regions mode --------------------------------------------
+  -- 9th raw: Tracks/Items/Regions/Markers mode --------------------------------------------
   local height = btn_height
   local width = math.floor((win_w - 5*win_border)/4)
   local x_pos = win_border
@@ -1708,6 +1845,11 @@ local function init() -- INITIALIZATION ----------------------------------------
   Regions_btn = Button(x_pos, y_pos, width, height, 2, 0, 0, "Regions",
   "Click to select Regions mode      [ Ctrl + R ]\nIf Time Selection, then only regions \z
   touching the TS, else all regions")
+
+  local x_pos = win_border*4 + width*3
+  Markers_btn = Button(x_pos, y_pos, width, height, 2, 0, 0, "Markers",
+  "Click to select Markers mode      [ Ctrl + M ]\nIf Time Selection, then only markers \z
+  touching the TS, else all markers")
 
   --- scroll list measures ----------------------------------------------------
   scroll_list_x = win_border
@@ -1763,6 +1905,14 @@ local function init() -- INITIALIZATION ----------------------------------------
 
   function Regions_btn.onClick()
     what = "regions"
+    init_tables()
+    undo_btn.help_text = "Nothing to undo"
+    redo_btn.help_text = "Nothing to redo"
+    has_changed = 0
+  end
+  
+  function Markers_btn.onClick()
+    what = "markers"
     init_tables()
     undo_btn.help_text = "Nothing to undo"
     redo_btn.help_text = "Nothing to redo"
@@ -1979,6 +2129,9 @@ local function init() -- INITIALIZATION ----------------------------------------
     elseif what == "regions" then
       indexed_region = indexed_region - 1
       if indexed_region < 1 then indexed_region = 1 end
+    elseif what == "markers" then
+      indexed_marker = indexed_marker - 1
+      if indexed_marker < 1 then indexed_marker = 1 end
     end
   end
 
@@ -1990,6 +2143,8 @@ local function init() -- INITIALIZATION ----------------------------------------
       indexed_item = indexed_item + 1
     elseif what == "regions" then
       indexed_region = indexed_region + 1
+    elseif what == "markers" then
+      indexed_marker = indexed_marker + 1
     end
   end
 
@@ -2003,6 +2158,9 @@ local function init() -- INITIALIZATION ----------------------------------------
     elseif what == "regions" then
       indexed_region = indexed_region - 1
       if indexed_region < 1 then indexed_region = 1 end
+    elseif what == "markers" then
+      indexed_marker = indexed_marker - 1
+      if indexed_marker < 1 then indexed_marker = 1 end
     end
   end
 
@@ -2014,6 +2172,8 @@ local function init() -- INITIALIZATION ----------------------------------------
       indexed_item = indexed_item + 1
     elseif what == "regions" then
       indexed_region = indexed_region + 1
+    elseif what == "markers" then
+      indexed_marker = indexed_marker + 1
     end
   end
 
@@ -2078,6 +2238,14 @@ local function init() -- INITIALIZATION ----------------------------------------
         reaper.PreventUIRefresh( -1 )
         reaper.UpdateTimeline()
         reaper.Undo_EndBlock("Region name manipulation", 8)
+      elseif what == "markers" then
+        for i = 1, markerCount do
+          local t = ToBeMarkerNames[MarkerNamesIndex[i]]
+          reaper.SetProjectMarker4( 0, MarkerNamesIndex[i], false, t[1], 0, t[2], 0, t[2] == "" and 1 or 0 )
+        end
+        reaper.PreventUIRefresh( -1 )
+        reaper.UpdateTimeline()
+        reaper.Undo_EndBlock("Marker name manipulation", 8)
       end
       init_tables()
       undo_btn.help_text = "Nothing to undo"
