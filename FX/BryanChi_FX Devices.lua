@@ -449,7 +449,6 @@ ProC = { Width = 280, Pt = { R = { m = {}, M = {} }, L = { m = {}, M = {} } } }
 
 
 
-msg('a')
 
 
 -------------------Macros --------------------------
@@ -4165,7 +4164,7 @@ function loop()
                                             local SldrW_DrgSpd
                                             if Mods == Shift then SldrW_DrgSpd = 1 else SldrW_DrgSpd = LE.GridSize end
                                             r.ImGui_SetNextItemWidth(ctx, -FLT_MIN)
-                                            msg(FX.Def_Sldr_W[FxGUID])
+
 
                                             Edited, FX.Def_Sldr_W[FxGUID] = r.ImGui_DragInt(ctx,
                                                 '##' .. FxGUID .. 'Default Width', FX.Def_Sldr_W[FxGUID] or 160,
