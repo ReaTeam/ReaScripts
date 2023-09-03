@@ -1,7 +1,9 @@
 -- @description FXD - Vertical FX list
 -- @author Bryan Chi
--- @version 0.8
--- @changelog first release
+-- @version 0.8.1
+-- @changelog
+--   - Fix top alignment.
+--   - Fix incorrect install path for functions.
 -- @provides
 --   bryanchi_FXD - Vertical FX list/starHollow.png
 --   bryanchi_FXD - Vertical FX list/star.png
@@ -10,8 +12,8 @@
 --   bryanchi_FXD - Vertical FX list/show.png
 --   bryanchi_FXD - Vertical FX list/hide.png
 --   bryanchi_FXD - Vertical FX list/link.png
---   bryanchi_FXD - Vertical FX list/General Functions.Lua
---   bryanchi_FXD - Vertical FX list/FX Adder.Lua
+--   bryanchi_FXD - Vertical FX list/Functions/General Functions.Lua
+--   bryanchi_FXD - Vertical FX list/Functions/FX Adder.Lua
 -- @about
 --   See forum post for details : 
 --   https://forum.cockos.com/showthread.php?t=282282
@@ -24,10 +26,11 @@ local FunctionFolder = r.GetResourcePath() ..
 dofile(FunctionFolder .. 'General functions.lua')
 dofile(FunctionFolder .. 'FX Adder.lua')
 
+--[[ arrange_hwnd  = reaper.JS_Window_FindChildByID(reaper.GetMainHwnd(), 0x3E8) -- client position
 
+_, Top_Arrang = reaper.JS_Window_ClientToScreen(arrange_hwnd, 0, 0)         -- convert to screen position (where clients x,y is actually on the screen)
+ ]]
 
-Top_Arrang           = tonumber(select(2, r.BR_Win32_GetPrivateProfileString("REAPER", "toppane", "", r.get_ini_file()))) +
-    5
 WetDryKnobSz         = 6
 SpaceBtwnFXs         = 1
 ShowFXNum            = true
@@ -585,6 +588,8 @@ end
 
 ----------====================================================================================================
 function loop()
+  Top_Arrang = tonumber(select(2, r.BR_Win32_GetPrivateProfileString("REAPER", "toppane", "", r.get_ini_file()))) + 5
+
   visible, open = r.ImGui_Begin(ctx, 'My window', true,
     r.ImGui_WindowFlags_NoScrollWithMouse() + r.ImGui_WindowFlags_NoScrollbar() + r.ImGui_WindowFlags_MenuBar())
 
@@ -597,11 +602,6 @@ function loop()
     end
     r.ImGui_PopFont(ctx)
   end
-
-
-
-
-
 
 
   VP.vp = r.ImGui_GetWindowViewport(ctx)
