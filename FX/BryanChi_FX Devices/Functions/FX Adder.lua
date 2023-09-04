@@ -8,73 +8,75 @@
 
         function FX_NAME(str, i )
             local vst_name
-            if str:find('=<.+>') then  -- if it's AU
-                local maker = str:sub(0, str:find(':%s')-1)
-                local ActualName = str:sub(str:find(':%s')+2, str:find('=<.+>')-1 )
-                --vst_name = 'AU:'.. ActualName..' ('.. maker..')' 
-                vst_name = 'AU:'..str:gsub('=<.+>', '')
-            --[[ elseif str:find('.vst=') or str:find('.vst<') then 
-                local nm = str
-                vst_name= 'VST:'..nm:sub( 0, (nm:find('%.vst=') or nm:find('%.vst<')) +3 )
-                vst_name= vst_name:gsub('_', ' ')
-                Manufacturer =  (nm:sub(nm:find('%(') or 0, nm:find('/n')) or 0) ]]
-            elseif str:find('.vst=') or str:find('.vst<') then              
-                local comma =1
-
-                for i = 1, 2 do     -- Since there are 2 comma's in each line
-                    comma = string.find(str, ",", (comma or 0)+1)    -- find 'next' comma
-                end
-
-                if comma then 
-                    vst_name = "VST:".. str:sub(comma+1, str:find('\n') )
-                end
-               --[[  for nm in str:gmatch('[^%,]+')  do  --- Split Line into segments spearated by comma
-                    vst_name = nm:match("(%S+ .-%))") and "VST:" .. (nm:match("(%S+ .-%))") or '')
-                    Manufacturer =  (nm:sub(nm:find('%(') or 0, nm:find('/n')) or 0)
-
-                end  ]]
-            elseif str:find('.vst3=') or str:find('.vst3<') then 
-                local comma =1
-
-                for i = 1, 2 do     -- Since there are 2 comma's in each line
-                    comma = string.find(str, ",", (comma or 0)+1)    -- find 'next' comma
-                end
-
-                if comma then 
-                    vst_name = "VST3:".. str:sub(comma+1, str:find('\n') )
-                end
-            else
-
-                for name_segment in str:gmatch('[^%,]+')  do  --- Split Line into segments spearated by comma
-                    
-                    if name_segment:match("(%S+) ")  then   -- if segment has space in it 
-                        if name_segment:match('"(JS: .-)"') then
-                            vst_name = name_segment:match('"JS: (.-)"') and "JS:" .. name_segment:match('"JS: (.-)"') or nil
-                        --[[ elseif name_segment:find('=<.+>') then   -- AU Plugins
-                            vst_name = 'AU:'.. name_segment:gsub('=<.+>', '') ]]
-                        else
-                            vst_name = name_segment:match("(%S+ .-%))") and "VST:" .. name_segment:match("(%S+ .-%))") or nil
-                        end
-
-                    elseif name_segment:find('%.vst=') then          -- if it's vst
-                        local nm = name_segment
-                        vst_name= 'VST:'..nm:sub( 0,nm:find('%.vst=')-1 )
-                        vst_name= vst_name:gsub('_', ' ')
-                    elseif  name_segment:find('%.vst3=') then    -- if it's vst3
-                        local nm = name_segment
-                        vst_name= 'VST3:'..nm:sub( 0,nm:find('%.vst3=')-1 )
-                        vst_name= vst_name:gsub('_', ' ')
-
-                    elseif name_segment:find('%.vst.dylib=') then  local nm = name_segment  -- Reaper Native plugins
-                        vst_name= 'VST:'..nm:sub( 0,nm:find('%.vst.dylib=')-1 )
+            if str then 
+                if str:find('=<.+>') then  -- if it's AU
+                    local maker = str:sub(0, str:find(':%s')-1)
+                    local ActualName = str:sub(str:find(':%s')+2, str:find('=<.+>')-1 )
+                    --vst_name = 'AU:'.. ActualName..' ('.. maker..')' 
+                    vst_name = 'AU:'..str:gsub('=<.+>', '')
+                --[[ elseif str:find('.vst=') or str:find('.vst<') then 
+                    local nm = str
+                    vst_name= 'VST:'..nm:sub( 0, (nm:find('%.vst=') or nm:find('%.vst<')) +3 )
+                    vst_name= vst_name:gsub('_', ' ')
+                    Manufacturer =  (nm:sub(nm:find('%(') or 0, nm:find('/n')) or 0) ]]
+                elseif str:find('.vst=') or str:find('.vst<') then              
+                    local comma =1
+    
+                    for i = 1, 2 do     -- Since there are 2 comma's in each line
+                        comma = string.find(str, ",", (comma or 0)+1)    -- find 'next' comma
                     end
-
+    
+                    if comma then 
+                        vst_name = "VST:".. str:sub(comma+1, str:find('\n') )
+                    end
+                   --[[  for nm in str:gmatch('[^%,]+')  do  --- Split Line into segments spearated by comma
+                        vst_name = nm:match("(%S+ .-%))") and "VST:" .. (nm:match("(%S+ .-%))") or '')
+                        Manufacturer =  (nm:sub(nm:find('%(') or 0, nm:find('/n')) or 0)
+    
+                    end  ]]
+                elseif str:find('.vst3=') or str:find('.vst3<') then 
+                    local comma =1
+    
+                    for i = 1, 2 do     -- Since there are 2 comma's in each line
+                        comma = string.find(str, ",", (comma or 0)+1)    -- find 'next' comma
+                    end
+    
+                    if comma then 
+                        vst_name = "VST3:".. str:sub(comma+1, str:find('\n') )
+                    end
+                else
+    
+                    for name_segment in str:gmatch('[^%,]+')  do  --- Split Line into segments spearated by comma
+                        
+                        if name_segment:match("(%S+) ")  then   -- if segment has space in it 
+                            if name_segment:match('"(JS: .-)"') then
+                                vst_name = name_segment:match('"JS: (.-)"') and "JS:" .. name_segment:match('"JS: (.-)"') or nil
+                            --[[ elseif name_segment:find('=<.+>') then   -- AU Plugins
+                                vst_name = 'AU:'.. name_segment:gsub('=<.+>', '') ]]
+                            else
+                                vst_name = name_segment:match("(%S+ .-%))") and "VST:" .. name_segment:match("(%S+ .-%))") or nil
+                            end
+    
+                        elseif name_segment:find('%.vst=') then          -- if it's vst
+                            local nm = name_segment
+                            vst_name= 'VST:'..nm:sub( 0,nm:find('%.vst=')-1 )
+                            vst_name= vst_name:gsub('_', ' ')
+                        elseif  name_segment:find('%.vst3=') then    -- if it's vst3
+                            local nm = name_segment
+                            vst_name= 'VST3:'..nm:sub( 0,nm:find('%.vst3=')-1 )
+                            vst_name= vst_name:gsub('_', ' ')
+    
+                        elseif name_segment:find('%.vst.dylib=') then  local nm = name_segment  -- Reaper Native plugins
+                            vst_name= 'VST:'..nm:sub( 0,nm:find('%.vst.dylib=')-1 )
+                        end
+    
+                    end
+    
                 end
-
+                if vst_name then     vst_name = vst_name:gsub('!!!VSTi', '') end
+                if vst_name == 'VST:<SHELL>' or vst_name =='VST3:<SHELL>'  then vst_name =nil end 
+                if vst_name then return vst_name end
             end
-            if vst_name then     vst_name = vst_name:gsub('!!!VSTi', '') end
-            if vst_name == 'VST:<SHELL>' or vst_name =='VST3:<SHELL>'  then vst_name =nil end 
-            if vst_name then return vst_name end
         end
 
     
