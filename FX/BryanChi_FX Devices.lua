@@ -1,9 +1,11 @@
 -- @description FX Devices
 -- @author Bryan Chi
--- @version 1.0beta9.6.6-3
+-- @version 1.0beta9.6.7
 -- @changelog
---   - Fix Theme editor saving empty entry crashes
---   - Fix Pro-C 2 crash
+--   - New : Shift+ RMB to bypass a modulation.
+--   - Fix Slider default width shows as 0 , and inputting values by typing don’t work.
+--   - Fix unable to RMB drag to adjust modulation range without choosing a source when there’s only one modulation on the parameter.
+--   - Add Clap plugins support for FX adder !!! Thanks to Suzuki’s contribution !!!!
 -- @provides
 --   [effect] BryanChi_FX Devices/FXD Macros.jsfx
 --   [effect] BryanChi_FX Devices/FXD ReSpectrum.jsfx
@@ -58,7 +60,7 @@
 --   https://forum.cockos.com/showthread.php?t=263622
 
 --------------------------==  declare Initial Variables & Functions  ------------------------
-VersionNumber = 'V1.0beta9.6.6-3 '
+VersionNumber = 'V1.0beta9.6.7 '
 FX_Add_Del_WaitTime = 2
 r = reaper
 
@@ -132,7 +134,9 @@ CustomColorsDefault = {
     FX_Adder_VST = 0x6FB74BFF,
     FX_Adder_VST3 = 0xC3DC5CFF,
     FX_Adder_JS = 0x9348A9FF,
-    FX_Adder_AU = 0x526D97FF
+    FX_Adder_AU = 0x526D97FF,
+    FX_Adder_CLAP = 0xB62424FF
+
 }
 
 
@@ -375,10 +379,6 @@ Command_ID = {}
 
 --------Pro C ------------------------
 ProC = { Width = 280, Pt = { R = { m = {}, M = {} }, L = { m = {}, M = {} } } }
-
-
-
-
 
 
 
@@ -845,7 +845,8 @@ for Track_Idx = 0, NumOfTotalTracks - 1, 1 do
 
                 local CC = FX[FxGUID][Fx_P].WhichCC
                 local HasModAmt
-                for m = 1, 8, 1 do
+                for m, v in ipairs(MacroNums) do
+                    local FP = FX[FxGUID][Fx_P]
                     FX[FxGUID][Fx_P].ModAMT[m] = tonumber(select(2,
                         r.GetSetMediaTrackInfo_String(Track, 'P_EXT: FX' .. FxGUID .. 'Prm' ..
                             Fx_P .. 'Macro' .. m .. 'Mod Amt', '', false)))
@@ -855,6 +856,11 @@ for Track_Idx = 0, NumOfTotalTracks - 1, 1 do
                     Trk[TrkID].Mod[m] = Trk[TrkID].Mod[m] or {}
                     Trk[TrkID].Mod[m].Val = tonumber(select(2,
                         r.GetProjExtState(0, 'FX Devices', 'Macro' .. m .. 'Value of Track' .. TrkID)))
+
+                    FP.ModBypass = RemoveEmptyStr(select(2,
+                        r.GetSetMediaTrackInfo_String(Track, 'P_EXT: FX' .. FxGUID .. 'Prm' .. Fx_P .. 'Mod bypass', '',
+                            false)))
+
 
 
 
@@ -970,6 +976,8 @@ if CallFile('r', 'Keyboard Shortcuts.ini') then
         Command_ID[i] = v:sub(v:find(' =') + 3, nil)
     end
 end
+
+
 
 
 
@@ -4093,9 +4101,13 @@ function loop()
                                             local SldrW_DrgSpd
                                             if Mods == Shift then SldrW_DrgSpd = 1 else SldrW_DrgSpd = LE.GridSize end
                                             r.ImGui_SetNextItemWidth(ctx, -FLT_MIN)
+
+
                                             Edited, FX.Def_Sldr_W[FxGUID] = r.ImGui_DragInt(ctx,
                                                 '##' .. FxGUID .. 'Default Width', FX.Def_Sldr_W[FxGUID] or 160,
-                                                LE.GridSize, 50, 300, '%.0f')
+                                                LE.GridSize, 50, 300)
+
+
                                             if Edited then
                                                 r.SetProjExtState(0, 'FX Devices',
                                                     'Default Slider Width for FX:' .. FxGUID, FX.Def_Sldr_W[FxGUID])
@@ -4969,8 +4981,9 @@ function loop()
                                                                     ToDef.V)
                                                                 r.GetSetMediaTrackInfo_String(LT_Track,
                                                                     'P_EXT: FX' ..
-                                                                    FxGUID .. 'Prm' ..
-                                                                    ToDef.P .. 'Value before modulation', ToDef.V, true)
+                                                                    FxGUID ..
+                                                                    'Prm' .. ToDef.P .. 'Value before modulation',
+                                                                    ToDef.V, true)
                                                                 r.gmem_write(7, Prm.WhichCC) --tells jsfx to retrieve P value
                                                                 PM.TimeNow = r.time_precise()
                                                                 r.gmem_write(11000 + Prm.WhichCC, ToDef.V)
@@ -9102,12 +9115,15 @@ function loop()
                                     FX[FxID].InWhichBand = Band
 
                                     if not DontMove then
+                                        local DropDest = DropDest
                                         table.insert(MovFX.FromPos, Pl)
                                         if Pl > FX_Idx and not DropDest then DropDest = FX_Idx + 1 end
 
 
+                                        if Pl < DropDest then
+                                            DropDest = DropDest - 1
+                                        end
 
-                                        local _, Nm = r.TrackFX_GetFXName(LT_Track, DropDest)
 
 
                                         table.insert(MovFX.ToPos, DropDest or FX_Idx)
