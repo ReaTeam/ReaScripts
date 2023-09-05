@@ -326,14 +326,3 @@ function RemoveModulationIfDoubleRClick(FxGUID, Fx_P, P_Num, FX_Idx)
         end
     end
 end
-Clicked(ctx,1) and r.ImGui_IsItemClicked(ctx,1) then 
-            if FX[FxGUID][Fx_P].ModAMT then 
-                for Mc=1, 8,1 do 
-                    if FX[FxGUID][Fx_P].ModAMT[Mc] then 
-                        Unlink_Parm(LT_TrackNum,FX_Idx,P_Num)
-                        FX[FxGUID][Fx_P].ModAMT[Mc]=0
-                    end
-                end
-            end 
-        end
-    end
