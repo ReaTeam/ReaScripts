@@ -1,6 +1,6 @@
 -- @description FX Devices
 -- @author Bryan Chi
--- @version 1.0beta9.6.7
+-- @version 1.0beta9.6.7-1
 -- @changelog
 --   - Fix crash upon opening.
 --   - Remove debug messages that's left unintentionally.
