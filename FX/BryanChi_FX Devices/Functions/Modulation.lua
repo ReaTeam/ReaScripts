@@ -1,5 +1,6 @@
 -- @noindex
-MacroNums = { 1, 2, 3, 4, 5, 6, 7, 8, }
+
+
 
 
 
@@ -65,16 +66,16 @@ function Unlink_Parm(TrackNumToBeMod, FX_Slt_Indx_ToBeMod, PARAM_Num)
 
     --ParmModTable = ultraschall.CreateDefaultParmModTable()
     --[[ParmModTable["PARAM_NR"]                    =PARAM_Num
-        ParmModTable["PARAM_TYPE"]                  = ""
-        ParmModTable["WINDOW_ALTERED"]              =true
+    ParmModTable["PARAM_TYPE"]                  = ""
+    ParmModTable["WINDOW_ALTERED"]              =true
 
-        ParmModTable["PARAMOD_ENABLE_PARAMETER_MODULATION"]  = false
-        ParmModTable["MIDIPLINK"]              = false
-        ParmModTable["PARMLINK"]               =false
-        ParmModTable["MIDIPLINK_BUS"]          =nil
-        ParmModTable["MIDIPLINK_CHANNEL"]      =nil
-        ParmModTable["MIDIPLINK_MIDICATEGORY"] =nil
-        ParmModTable["MIDIPLINK_MIDINOTE"]     =nil ]]
+    ParmModTable["PARAMOD_ENABLE_PARAMETER_MODULATION"]  = false
+    ParmModTable["MIDIPLINK"]              = false
+    ParmModTable["PARMLINK"]               =false
+    ParmModTable["MIDIPLINK_BUS"]          =nil
+    ParmModTable["MIDIPLINK_CHANNEL"]      =nil
+    ParmModTable["MIDIPLINK_MIDICATEGORY"] =nil
+    ParmModTable["MIDIPLINK_MIDINOTE"]     =nil ]]
     whetherValidUnlink = ultraschall.IsValidParmModTable(ParmModTable)
     retval, TrackStateChunk = ultraschall.GetTrackStateChunk_Tracknumber(TrackNumToBeMod)
     FXStateChunk = ultraschall.GetFXStateChunk(TrackStateChunk)
@@ -108,6 +109,28 @@ function PrepareFXforModulation(FX_Idx, P_Num, FxGUID)
     r.gmem_write(2, PM.DIY_TrkID[TrkID]) --Sends Trk GUID for jsfx to determine track
     r.gmem_write(11000 + Trk.Prm.Assign, ParamValue_Modding)
 end
+
+function RemoveModulationIfDoubleRClick(FxGUID, Fx_P, P_Num, FX_Idx)
+    if r.ImGui_IsMouseDoubleClicked(ctx, 1) and r.ImGui_IsItemClicked(ctx, 1) then
+        if FX[FxGUID][Fx_P].ModAMT then
+            for Mc = 1, 8, 1 do
+                if FX[FxGUID][Fx_P].ModAMT[Mc] then
+                    Unlink_Parm(LT_TrackNum, FX_Idx, P_Num)
+                    FX[FxGUID][Fx_P].ModAMT[Mc] = 0
+                end
+            end
+        end
+    end
+end
+
+MacroNums = { 1, 2, 3, 4, 5, 6, 7, 8, }
+
+
+
+
+
+
+
 
 function MakeModulationPossible(FxGUID, Fx_P, FX_Idx, P_Num, p_value, Sldr_Width, Type)
     local FP = FX[FxGUID][Fx_P]
@@ -158,7 +181,8 @@ function MakeModulationPossible(FxGUID, Fx_P, FX_Idx, P_Num, p_value, Sldr_Width
 
     if DecideShortOrLongClick == FP and Dur then
         if r.ImGui_IsMouseReleased(ctx, 1) then
-            if Dur < 0.14 then                      ---- if short right click
+            if Dur < 0.14 then
+                ---- if short right click
                 if FP.ModBypass then
                     r.gmem_write(5, BypassingMacro) --tells jsfx which macro is user tweaking
                     r.gmem_write(6, FP.WhichCC)
@@ -313,27 +337,3 @@ function MakeModulationPossible(FxGUID, Fx_P, FX_Idx, P_Num, p_value, Sldr_Width
 
     return Tweaking
 end
-
-function RemoveModulationIfDoubleRClick(FxGUID, Fx_P, P_Num, FX_Idx)
-    if r.ImGui_IsMouseDoubleClicked(ctx, 1) and r.ImGui_IsItemClicked(ctx, 1) then
-        if FX[FxGUID][Fx_P].ModAMT then
-            for Mc = 1, 8, 1 do
-                if FX[FxGUID][Fx_P].ModAMT[Mc] then
-                    Unlink_Parm(LT_TrackNum, FX_Idx, P_Num)
-                    FX[FxGUID][Fx_P].ModAMT[Mc] = 0
-                end
-            end
-        end
-    end
-end
-Clicked(ctx,1) and r.ImGui_IsItemClicked(ctx,1) then 
-            if FX[FxGUID][Fx_P].ModAMT then 
-                for Mc=1, 8,1 do 
-                    if FX[FxGUID][Fx_P].ModAMT[Mc] then 
-                        Unlink_Parm(LT_TrackNum,FX_Idx,P_Num)
-                        FX[FxGUID][Fx_P].ModAMT[Mc]=0
-                    end
-                end
-            end 
-        end
-    end
