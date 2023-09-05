@@ -2,7 +2,6 @@
 -- @author Bryan Chi
 -- @version 1.0beta9.6.7
 -- @changelog
---   FX Devices 9.6.6-4
 --   - New : Shift+ RMB to bypass a modulation.
 --   - Fix Slider default width shows as 0 , and inputting values by typing don’t work.
 --   - Fix unable to RMB drag to adjust modulation range without choosing a source when there’s only one modulation on the parameter.
