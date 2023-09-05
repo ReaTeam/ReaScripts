@@ -1,10 +1,12 @@
 -- @noindex
 
+-- @noindex
+
 
 
 function AddKnob(ctx, label, labeltoShow, p_value, v_min, v_max, Fx_P, FX_Idx, P_Num, Style, Radius,
-                    item_inner_spacing,
-                    Disabled, LblTextSize, Lbl_Pos, V_Pos)
+                 item_inner_spacing,
+                 Disabled, LblTextSize, Lbl_Pos, V_Pos)
     if Style == 'Pro C' then r.gmem_attach('ParamValues') end
 
     local FxGUID = FXGUID[FX_Idx]
@@ -556,7 +558,7 @@ function AddKnob(ctx, label, labeltoShow, p_value, v_min, v_max, Fx_P, FX_Idx, P
 end
 
 function AddSlider(ctx, label, labeltoShow, p_value, v_min, v_max, Fx_P, FX_Idx, P_Num, SliderStyle, Sldr_Width,
-                    item_inner_spacing, Disable, Vertical, GrabSize, BtmLbl, SpacingBelow, Height)
+                   item_inner_spacing, Disable, Vertical, GrabSize, BtmLbl, SpacingBelow, Height)
     local PosL, PosR, PosT, PosB
     local ClrPop = 0
     local pos = { r.ImGui_GetCursorScreenPos(ctx) }
@@ -957,7 +959,7 @@ function AddSlider(ctx, label, labeltoShow, p_value, v_min, v_max, Fx_P, FX_Idx,
 end
 
 function AddDrag(ctx, label, labeltoShow, p_value, v_min, v_max, Fx_P, FX_Idx, P_Num, Style, Sldr_Width,
-                    item_inner_spacing, Disable, Lbl_Clickable, Lbl_Pos, V_Pos, DragDir, AllowInput)
+                 item_inner_spacing, Disable, Lbl_Clickable, Lbl_Pos, V_Pos, DragDir, AllowInput)
     local FxGUID = FXGUID[FX_Idx]
     local FP = FX[FxGUID][Fx_P]
 
@@ -1771,7 +1773,7 @@ function DrawModLines(Macro, AddIndicator, McroV, FxGUID, F_Tp, Sldr_Width, P_V,
 
     local Midsat, MidBright = EightColors.MidSat[Macro], EightColors.HighSat_MidBright[Macro]
     if FP.ModBypass == Macro then Midsat, MidBright = 0x88888866, 0xaaaaaa66 end
-    msg(FP.ModBypass or ' no BP')
+
     if AddIndicator and FP.ModAMT[Macro] ~= 0 then
         if Trk[TrkID].Mod[Macro].Type == 'env' then
             r.gmem_attach('ParamValues')
@@ -2280,4 +2282,3 @@ function AddGuideLines(Clr, L, T, R, B)
     r.ImGui_DrawList_AddLine(Glob.FDL, R, B, R, B + 9999, Clr)
     r.ImGui_DrawList_AddLine(Glob.FDL, R, T, R, T - 9999, Clr)
 end
-

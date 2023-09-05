@@ -2,10 +2,8 @@
 -- @author Bryan Chi
 -- @version 1.0beta9.6.7
 -- @changelog
---   - New : Shift+ RMB to bypass a modulation.
---   - Fix Slider default width shows as 0 , and inputting values by typing don’t work.
---   - Fix unable to RMB drag to adjust modulation range without choosing a source when there’s only one modulation on the parameter.
---   - Add Clap plugins support for FX adder !!! Thanks to Suzuki’s contribution !!!!
+--   - Fix crash upon opening.
+--   - Remove debug messages that's left unintentionally.
 -- @provides
 --   [effect] BryanChi_FX Devices/FXD Macros.jsfx
 --   [effect] BryanChi_FX Devices/FXD ReSpectrum.jsfx
@@ -59,8 +57,9 @@
 --   Please check the forum post for info:
 --   https://forum.cockos.com/showthread.php?t=263622
 
+
 --------------------------==  declare Initial Variables & Functions  ------------------------
-VersionNumber = 'V1.0beta9.6.7 '
+VersionNumber = 'V1.0beta9.6.7.1 '
 FX_Add_Del_WaitTime = 2
 r = reaper
 
@@ -2003,51 +2002,86 @@ function loop()
                 elseif Trk[TrkID].Mod[i].Type == 'Follower' then
                     r.ImGui_TableSetColumnIndex(ctx, (i - 1) * 2)
 
-                    r.ImGui_Text(ctx, 'Follower     ')
+                    r.ImGui_Button(ctx, 'Follower     ')
                     if r.ImGui_IsItemClicked(ctx, 1) and Mods == Ctrl then
                         r.ImGui_OpenPopup(ctx, 'Follower' .. i .. 'Menu')
                     end
+
+                    if r.ImGui_IsItemHovered(ctx) then FolMacroHover = i end
+
+
+
                     function openFollowerWin(Track, i)
-                        if r.ImGui_Begin(ctx, 'Follower Window' .. i, true, r.ImGui_WindowFlags_NoResize() + r.ImGui_WindowFlags_NoDocking() + r.ImGui_WindowFlags_NoCollapse() + r.ImGui_WindowFlags_NoTitleBar() + r.ImGui_WindowFlags_AlwaysAutoResize()) then
+                        local HoveringSmoothness
+
+                        local HdrPosL, HdrPosT = r.ImGui_GetCursorScreenPos(ctx)
+
+                        r.ImGui_SetNextWindowPos(ctx, VP.x, VP.y - 55)
+                        if r.ImGui_Begin(ctx, 'Follower Window' .. i, true, r.ImGui_WindowFlags_NoResize() + r.ImGui_WindowFlags_NoDocking() + r.ImGui_WindowFlags_NoCollapse() + r.ImGui_WindowFlags_NoScrollbar() + r.ImGui_WindowFlags_NoTitleBar()) then
                             r.ImGui_Text(ctx, 'Smoothness : ')
                             SL()
-                            retval, v = r.ImGui_DragDouble(ctx, '##Smoothness', v, 1, 1, 100, formatIn, flagsIn)
+                            local m = Trk[TrkID].Mod[i]
+                            local CurX = r.ImGui_GetCursorPosX(ctx)
+                            r.ImGui_SetNextItemWidth(ctx, 100)
+                            retval, m.Smooth = r.ImGui_DragDouble(ctx, '##Smoothness', m.Smooth or 1, 0.01, 0.1, 600, '')
+
+
                             if r.ImGui_IsItemHovered(ctx) or r.ImGui_IsItemActive(ctx) then
-                                HoveringSmoothness = true
-                                WhichMacroIsHovered = i
-                            else
-                                HoveringSmoothness = false
+                                HoveringSmoothness = i
                             end
                             local x, y = r.ImGui_GetWindowPos(ctx)
                             local w, h = r.ImGui_GetWindowSize(ctx)
 
 
                             if r.ImGui_IsMouseHoveringRect(ctx, x, y, x + w, y + h) then
-                                WhichMacroIsHovered = i
                                 notHoverFOL_Time = 0
-                                HoveringSmoothness = true
+                                HoveringSmoothness = i
                             end
 
+                            if retval then
+                                m.smooth = SetMinMax(0.1 ^ (1 - m.Smooth), 0.1, 100)
+                                r.gmem_write(4, 10)       ---tells jsfx macro type = Follower, and user is adjusting smoothness
+                                r.gmem_write(5, i)        ---tells jsfx which macro
+                                r.gmem_write(9, m.smooth) -- Sets the smoothness
+                            end
+                            SL()
+
+                            r.ImGui_Text(ctx, (m.smooth or ''))
+                            r.ImGui_Text(ctx, 'Gain : ')
+                            SL(CurX)
+
+                            rv, m.Gain = r.ImGui_DragDouble(ctx, '##Gain', m.Gain or 100, 1, 0, 200, '%.0f' .. '%%')
+                            if r.ImGui_IsItemActive(ctx) then
+                                r.gmem_write(4, 11) ---tells jsfx macro type = Follower, and user is adjusting gain
+                                r.gmem_write(5, i)
+                                r.gmem_write(9, m.Gain / 100)
+                            end
+
+                            if r.ImGui_IsItemHovered(ctx) or r.ImGui_IsItemActive(ctx) then HoveringSmoothness = i end
 
                             r.ImGui_End(ctx)
                         end
+                        if r.ImGui_IsWindowHovered(ctx) then HoveringSmoothness = i end
+                        return HoveringSmoothness
                     end
 
-                    HdrPosL, HdrPosT = r.ImGui_GetCursorScreenPos(ctx)
-                    r.ImGui_SetNextWindowPos(ctx, HdrPosL, VP.y - 35)
-
-                    if r.ImGui_IsItemHovered(ctx) or HoveringSmoothness then
-                        WhichMacroIsHovered = i
-
-                        openFollowerWin(Track, i)
+                    --[[ if FolMacroHover == i and HoveringSmoothness then
+                        msg('both')
+                        HoveringSmoothness = openFollowerWin(Track, i)
                         notHoverFOL_Time = 0
+                    end ]]
+                    if HoveringSmoothness == i then
+                        HoveringSmoothness = openFollowerWin(Track, i)
                     end
-                    if WhichMacroIsHovered == i and not HoveringSmoothness and not r.ImGui_IsItemHovered(ctx) then
-                        notHoverFOL_Time = math.min((notHoverFOL_Time or 0), 11) + 1
-                        if notHoverFOL_Time < 10 then
-                            openFollowerWin(Track, i)
+
+                    if FolMacroHover == i and not HoveringSmoothness then
+                        local timeout = 20
+                        notHoverFOL_Time = math.min((notHoverFOL_Time or 0), timeout + 1) + 1
+                        if notHoverFOL_Time < timeout then
+                            HoveringSmoothness = openFollowerWin(Track, i)
                         else
-                            WhichMacroIsHovered = nil
+                            --HoveringSmoothness = openFollowerWin(Track, i)
+                            FolMacroHover = nil
                             notHoverFOL_Time = 0
                         end
                     end
