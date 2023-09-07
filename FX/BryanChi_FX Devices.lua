@@ -4301,7 +4301,7 @@ function LayoutEditorFunctions()
         local uvmin = (1 / FrameNum) * StepizedV * FrameNum
 
         local uvmax = 1 / FrameNum + (1 / FrameNum) * StepizedV * FrameNum
-        ttp()
+
 
         return uvmin, uvmax, w, h
 
