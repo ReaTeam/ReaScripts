@@ -2,8 +2,6 @@ noindex: true
 
 noindex: true
 
-noindex: true
-
 desc:FXD Macros
 import cookdsp.jsfx-inc
 
@@ -34,40 +32,39 @@ ext_noinit=1;
 ext_midi_bus = 1;
 
 midiamp = midinote = 0;
-env.masr(slider1, slider2);
+
 
 totalTrackCount =  gmem[0];
 trkGUID_Num = gmem[1];
-function Set_Mcro(x, y)(
-  this.mcro = x;
-  this.new = 11111;
-);
-
-abc.Set_Mcro(123, 0);
 
 
-function test(x)(  this.tst = x;
+Mc1.Fol_Gain= 0.7 ; 
+Mc2.Fol_Gain= 0.7 ; 
+Mc3.Fol_Gain= 0.7 ; 
+Mc4.Fol_Gain= 0.7 ; 
+Mc5.Fol_Gain= 0.7 ; 
+Mc6.Fol_Gain= 0.7 ; 
+Mc7.Fol_Gain= 0.7 ; 
+Mc8.Fol_Gain= 0.7 ; 
 
-);
 
-Mc1_SEQ_DNom = 1;
-Mc1_SEQ_Leng = 8;
 
-Mc2_SEQ_DNom = 1;
-Mc2_SEQ_Leng = 8;
-
-Mc3_SEQ_DNom = 1;
-Mc3_SEQ_Leng = 8;
-Mc4_SEQ_DNom = 1;
-Mc4_SEQ_Leng = 8;
-Mc5_SEQ_DNom = 1;
-Mc5_SEQ_Leng = 8;
-Mc6_SEQ_DNom = 1;
-Mc6_SEQ_Leng = 8;
-Mc7_SEQ_DNom = 1;
-Mc7_SEQ_Leng = 8;
-Mc8_SEQ_DNom = 1;
-Mc8_SEQ_Leng = 8;
+Mc1.SEQ_DNom = 1;
+Mc1.SEQ_Leng = 8;
+Mc2.SEQ_DNom = 1;
+Mc2.SEQ_Leng = 8;
+Mc3.SEQ_DNom = 1;
+Mc3.SEQ_Leng = 8;
+Mc4.SEQ_DNom = 1;
+Mc4.SEQ_Leng = 8;
+Mc5.SEQ_DNom = 1;
+Mc5.SEQ_Leng = 8;
+Mc6.SEQ_DNom = 1;
+Mc6.SEQ_Leng = 8;
+Mc7.SEQ_DNom = 1;
+Mc7.SEQ_Leng = 8;
+Mc8.SEQ_DNom = 1;
+Mc8.SEQ_Leng = 8;
 
 //gmem offsets ------------------------------
 //gmem 1 = this track's DIY GUID
@@ -82,17 +79,19 @@ Mc8_SEQ_Leng = 8;
 //gmem 5 = Which Macro is user assigning
 //gmem 6 = Which Param's mod range is user tweaking 
 //gmem 7 = determine Param's value before modulaiton
-//gmem 9 = env1 atk
+//gmem 8 =  ? 
+//gmem 9 = env1 atk      |   Follower Smoothness
 //gmem 10 = env1 rel
 //gmem 11 = env2 atk
 //gmem 12 = env2 rel
 //etc..24
 //gmem 31~38 = Modulation type (Macro or Env)
-//gmem 101~108 = send env 1~8s postion back to imgui
+//gmem 101~108 = send Modulation info back to imgui
 //gmem 110 = SEQ Length or Denominator when user is tweaking 
 //gmem 111 = SEQ Denominator when user is tweaking
 //gmem 112 = step value of currently tweaking step
 //gmem 121 ~128 = SEQ 1 ~ 8 Current Pos 
+
 
 
 ModAmt = 1000;
@@ -106,16 +105,12 @@ ModAmt8 = 8000;
 PsUsed = 100; 
 P_OrigV = 11000 ;
 SEQ = 20000; // 20001~20048 = Macro1 Seq 1~64
+
 //------------------------------------------------------------
 // TABLE INDEX ------------------------------
 // 1,3,5,7,9,11,13,15 = envelope 1~8 's atk
 // 2,4,6,8,10,12,14,16 = envelope 1~8 's rel
 
-function SetMacroTypeToMacro()
-     (
-     Macro = gmem[5];
-      gmem[5]==1?(Macro1Type ='Mc'); Macro==2?(Macro2Type ='Mc'); Macro==3?(Macro3Type ='Mc');Macro==4?(Macro4Type ='Mc');Macro==5?(Macro5Type ='Mc');Macro==6?(Macro6Type ='Mc');Macro==7?(Macro7Type ='Mc');Macro==8?(Macro8Type ='Mc');
-     );
 
 
 function fmod (n, k) (
@@ -125,17 +120,126 @@ function fmod (n, k) (
 
 midi_bus=15;   
 
+Mc1.follow(10);
+Mc2.follow(10);
+Mc3.follow(10);
+Mc4.follow(10);
+Mc5.follow(10);
+Mc6.follow(10);
+Mc7.follow(10);
+Mc8.follow(10);
+
+Mc1.Macro = 1;
+Mc2.Macro = 2;
+Mc3.Macro = 3;
+Mc4.Macro = 4;
+Mc5.Macro = 5;
+Mc6.Macro = 6;
+Mc7.Macro = 7;
+Mc8.Macro = 8;
+
+Mc1.EnvToImGui = 101;
+Mc2.EnvToImGui = 102;
+Mc3.EnvToImGui = 103;
+Mc4.EnvToImGui = 104;
+Mc5.EnvToImGui = 105;
+Mc6.EnvToImGui = 106;
+Mc7.EnvToImGui = 107;
+Mc8.EnvToImGui = 108;
+
+
+function SendInfoBackToImGui()
+(
+  this.type =='step'?(
+    (gmem[this.EnvToImGui] = SEQ[this.CurrentPos+1+64*(this.Macro-1)]*127);
+  ):this.type =='env'?(
+    gmem[this.EnvToImGui] = this.masr_do(midiamp)
+  ):this.type =='Fol' ? (
+    gmem[this.EnvToImGui] =  this.FOL_out*this.FOL_Gain*127;);
+);
+
+
+function SetMacroAttribute( x , y )
+(
+    //gmem[5] == this.Macro ? ( AAA = 'suc';  this.x = y ) ;
+    Macro==1?(Mc1.FOL_Gain = y); 
+    Macro==2?(Mc2.FOL_Gain = y); 
+    Macro==3?(Mc3.FOL_Gain = y);
+    Macro==4?(Mc4.FOL_Gain = y);
+    Macro==5?(Mc5.FOL_Gain = y);
+    Macro==6?(Mc6.FOL_Gain = y);
+    Macro==7?(Mc7.FOL_Gain = y);
+    Macro==8?(Mc8.FOL_Gain = y);
+);
+
+function CalculatMacroAmt(ModRange)
+(
+  ModRange!==0?(
+    this.type =='step'?(
+      this.CurrentPos = (beat_position * this.SEQ_DNom) % this.SEQ_Leng ;
+      this.out = SEQ[this.CurrentPos+1+64*(this.Macro-1)]*127*ModRange  ;
+
+
+    ):this.type =='env'?(
+
+      this.masr_set_risetime(this.atk);
+      this.masr_set_falltime(this.rel);
+      this.out =  this.masr_do(midiamp)*ModRange;
+      //trkGUID_Num === gmem[2]? (gmem[this.EnvToImGui] = this.masr_do(midiamp));
+
+
+
+    ):this.type =='Fol' ? ( // if macro  is Follower 
+
+      this.out = this.FOL_out*this.FOL_Gain *127*ModRange ;
+    ):(   //if type is macro
+      this.Out = this.Slider * ModRange*127);
+
+
+  ):(this.Out = 0 );
+
+);
+
+
+function SetTypeTo (T)
+(
+  Macro = gmem[5];
+  Macro==1?(Mc1.type=T); 
+  Macro==2?(Mc2.type=T);
+  Macro==3?(Mc3.Type=T);
+  Macro==4?(Mc4.Type=T);
+  Macro==5?(Mc5.Type=T);
+  Macro==6?(Mc6.Type=T);
+  Macro==7?(Mc7.Type=T);
+  Macro==8?(Mc8.Type=T);
+);
+
+
+
 
 
 @slider
-Macro1 = slider1;
-Macro2 = slider2;
-Macro3 = slider3;
-Macro4 = slider4;
-Macro5 = slider5;
-Macro6 = slider6;
-Macro7 = slider7;
-Macro8 = slider8;
+Mc1.Slider = slider1;
+Mc2.Slider = slider2;
+Mc3.Slider = slider3;
+Mc4.Slider = slider4;
+Mc5.Slider = slider5;
+Mc6.Slider = slider6;
+Mc7.Slider = slider7;
+Mc8.Slider = slider8;
+
+@sample 
+
+
+Mc1.FOL_out  = Mc1.follow_do((spl0+spl1));
+Mc2.FOL_out  = Mc2.follow_do((spl0+spl1));
+Mc3.FOL_out  = Mc3.follow_do((spl0+spl1));
+Mc4.FOL_out  = Mc4.follow_do((spl0+spl1));
+Mc5.FOL_out  = Mc5.follow_do((spl0+spl1));
+Mc6.FOL_out  = Mc6.follow_do((spl0+spl1));
+Mc7.FOL_out  = Mc7.follow_do((spl0+spl1));
+Mc8.FOL_out  = Mc8.follow_do((spl0+spl1));
+
 
 @block
 Sel_Trk_GUID_num = gmem[2];
@@ -191,28 +295,38 @@ trkGUID_Num === gmem[2]? (
         
   );
   mode ==2?(   // if User is adjusting atk...  
-    gmem[9] !=0?(atk1 = gmem[9]); gmem[11]!=0?(atk2 = gmem[11]);  gmem[13]!=0?(atk3 = gmem[13]);gmem[15]!=0?(atk4 = gmem[15]);gmem[17]!=0?(atk5 = gmem[17]);gmem[19]!=0?(atk6 = gmem[19]);gmem[21]!=0?(atk7 = gmem[21]);gmem[23]!=0?(atk8 = gmem[23]);
-    Macro==1?(Macro1Type ='env'); Macro==2?(Macro2Type ='env'); Macro==3?(Macro3Type ='env');Macro==4?(Macro4Type ='env');Macro==5?(Macro5Type ='env');Macro==6?(Macro6Type ='env');Macro==7?(Macro7Type ='env');Macro==8?(Macro8Type ='env');
-          
+    gmem[9] !=0?(Mc1.atk = gmem[9]); 
+    gmem[11]!=0?(Mc2.atk = gmem[11]);  
+    gmem[13]!=0?(Mc3.atk = gmem[13]);
+    gmem[15]!=0?(Mc4.atk = gmem[15]);
+    gmem[17]!=0?(Mc5.atk = gmem[17]);
+    gmem[19]!=0?(Mc6.atk = gmem[19]);
+    gmem[21]!=0?(Mc7.atk = gmem[21]);
+    gmem[23]!=0?(Mc8.atk = gmem[23]);
+    SetTypeTo ('env');                    
   );
   mode ==3?(   // if User is adjusting Release...
-      gmem[10]!=0?(rel1=gmem[10]);gmem[12]!=0?(rel2=gmem[12]);gmem[14]!=0?(rel3=gmem[14]);gmem[16]!=0?(rel4=gmem[16]);gmem[18]!=0?(rel5=gmem[18]);gmem[20]!=0?(rel6=gmem[20]);gmem[22]!=0?(rel7=gmem[22]);gmem[24]!=0?(rel8=gmem[22]);
-      Macro==1?(Macro1Type ='env'); Macro==2?(Macro2Type ='env'); Macro==3?(Macro3Type ='env');Macro==4?(Macro4Type ='env');Macro==5?(Macro5Type ='env');Macro==6?(Macro6Type ='env');Macro==7?(Macro7Type ='env');Macro==8?(Macro8Type ='env');
-            
+      gmem[10]!=0?(Mc1.Rel=gmem[10]);
+      gmem[12]!=0?(Mc2.Rel=gmem[12]);
+      gmem[14]!=0?(Mc3.Rel=gmem[14]);
+      gmem[16]!=0?(Mc4.Rel=gmem[16]);
+      gmem[18]!=0?(Mc5.Rel=gmem[18]);
+      gmem[20]!=0?(Mc6.Rel=gmem[20]);
+      gmem[22]!=0?(Mc7.Rel=gmem[22]);
+      gmem[24]!=0?(Mc8.Rel=gmem[22]);
+      SetTypeTo ('env');            
       );
-  mode ==4?(   Macro = gmem[5]; //if user ctrl-r-click and change type to Env...
-      Macro==1?(Macro1Type ='env'); Macro==2?(Macro2Type ='env'); Macro==3?(Macro3Type ='env');Macro==4?(Macro4Type ='env');Macro==5?(Macro5Type ='env');Macro==6?(Macro6Type ='env');Macro==7?(Macro7Type ='env');Macro==8?(Macro8Type ='env');
+  mode ==4?(   //if user ctrl-r-click and change type to Env...
+    SetTypeTo ('env');
       );
   mode ==5? (   
-    Macro = gmem[5]; //if user ctrl-r-click and change type to macro...
-     Macro==1?(Macro1Type ='Mc'); Macro==2?(Macro2Type ='Mc'); Macro==3?(Macro3Type ='Mc');Macro==4?(Macro4Type ='Mc');Macro==5?(Macro5Type ='Mc');Macro==6?(Macro6Type ='Mc');Macro==7?(Macro7Type ='Mc');Macro==8?(Macro8Type ='Mc');
+    SetTypeTo ('Mc');
      );
   mode == 6? (  
-    Macro = gmem[5]; // if user change type to Step Seq
-    Macro==1?(Macro1Type ='step'); Macro==2?(Macro2Type ='step'); Macro==3?(Macro3Type ='step');Macro==4?(Macro4Type ='step');Macro==5?(Macro5Type ='step');Macro==6?(Macro6Type ='step');Macro==7?(Macro7Type ='step');Macro==8?(Macro8Type ='step');
+    SetTypeTo ('step');
   );
   mode == 7 ? (  // if user is tweaking a step's Value
-       Macro==1?(Macro1Type ='step'); Macro==2?(Macro2Type ='step'); Macro==3?(Macro3Type ='step');Macro==4?(Macro4Type ='step');Macro==5?(Macro5Type ='step');Macro==6?(Macro6Type ='step');Macro==7?(Macro7Type ='step');Macro==8?(Macro8Type ='step');
+    SetTypeTo ('step');
     WhichStep= gmem[113]; 
     Macro==1?(
       SEQ[WhichStep]= gmem[112]; //writes seq value from table slot 20001~20048
@@ -237,35 +351,66 @@ trkGUID_Num === gmem[2]? (
   mode == 8 ? (// if user is changing Sequencer Lenth or note length...
     Macro = gmem[5];
     Macro==1?( //if user is tweaking macro 1
-      gmem[110] != 0 ? (Mc1_SEQ_Leng = gmem[110];    gmem[110] = 0) ; 
-      gmem[111] != 0 ? (Mc1_SEQ_DNom = gmem[111];    gmem[111] = 0);
+      gmem[110] != 0 ? (Mc1.SEQ_Leng = gmem[110];    gmem[110] = 0) ; 
+      gmem[111] != 0 ? (Mc1.SEQ_DNom = gmem[111];    gmem[111] = 0);
     ):Macro==2?(
-      gmem[110] != 0 ? (Mc2_SEQ_Leng = gmem[110];    gmem[110] = 0); 
-      gmem[111] != 0 ? (Mc2_SEQ_DNom = gmem[111];    gmem[111] = 0);
+      gmem[110] != 0 ? (Mc2.SEQ_Leng = gmem[110];    gmem[110] = 0); 
+      gmem[111] != 0 ? (Mc2.SEQ_DNom = gmem[111];    gmem[111] = 0);
     ):Macro==3?(
-      gmem[110] != 0 ? (Mc3_SEQ_Leng = gmem[110];    gmem[110] = 0); 
-      gmem[111] != 0 ? (Mc3_SEQ_DNom = gmem[111];    gmem[111] = 0);
+      gmem[110] != 0 ? (Mc3.SEQ_Leng = gmem[110];    gmem[110] = 0); 
+      gmem[111] != 0 ? (Mc3.SEQ_DNom = gmem[111];    gmem[111] = 0);
     ):Macro==4?(
-      gmem[110] != 0 ? (Mc4_SEQ_Leng = gmem[110];    gmem[110] = 0); 
-      gmem[111] != 0 ? (Mc4_SEQ_DNom = gmem[111];    gmem[111] = 0);
+      gmem[110] != 0 ? (Mc4.SEQ_Leng = gmem[110];    gmem[110] = 0); 
+      gmem[111] != 0 ? (Mc4.SEQ_DNom = gmem[111];    gmem[111] = 0);
     ):Macro==5?(
-      gmem[110] != 0 ? (Mc5_SEQ_Leng = gmem[110];    gmem[110] = 0); 
-      gmem[111] != 0 ? (Mc5_SEQ_DNom = gmem[111];    gmem[111] = 0);
+      gmem[110] != 0 ? (Mc5.SEQ_Leng = gmem[110];    gmem[110] = 0); 
+      gmem[111] != 0 ? (Mc5.SEQ_DNom = gmem[111];    gmem[111] = 0);
     ):Macro==6?(
-      gmem[110] != 0 ? (Mc6_SEQ_Leng = gmem[110];    gmem[110] = 0); 
-      gmem[111] != 0 ? (Mc6_SEQ_DNom = gmem[111];    gmem[111] = 0);
+      gmem[110] != 0 ? (Mc6.SEQ_Leng = gmem[110];    gmem[110] = 0); 
+      gmem[111] != 0 ? (Mc6.SEQ_DNom = gmem[111];    gmem[111] = 0);
     ):Macro==7?(
-      gmem[110] != 0 ? (Mc7_SEQ_Leng = gmem[110];    gmem[110] = 0); 
-      gmem[111] != 0 ? (Mc7_SEQ_DNom = gmem[111];    gmem[111] = 0);
+      gmem[110] != 0 ? (Mc7.SEQ_Leng = gmem[110];    gmem[110] = 0); 
+      gmem[111] != 0 ? (Mc7.SEQ_DNom = gmem[111];    gmem[111] = 0);
     ):Macro==8?(
-      gmem[110] != 0 ? (Mc8_SEQ_Leng = gmem[110];    gmem[110] = 0); 
-      gmem[111] != 0 ? (Mc8_SEQ_DNom = gmem[111];    gmem[111] = 0);
+      gmem[110] != 0 ? (Mc8.SEQ_Leng = gmem[110];    gmem[110] = 0); 
+      gmem[111] != 0 ? (Mc8.SEQ_DNom = gmem[111];    gmem[111] = 0);
     );
+  );
+
+  mode == 9? (
+    SetTypeTo('Fol')
+
+  );
+
+  mode == 10 ? (
+     // sets smoothness
+    Macro = gmem[5];
+    Macro==1?(Mc1.follow_set_freq(gmem[9]));
+    Macro==2?(Mc2.follow_set_freq(gmem[9]));
+    Macro==3?(Mc3.follow_set_freq(gmem[9]));
+    Macro==4?(Mc4.follow_set_freq(gmem[9]));
+    Macro==5?(Mc5.follow_set_freq(gmem[9]));
+    Macro==6?(Mc6.follow_set_freq(gmem[9]));
+    Macro==7?(Mc7.follow_set_freq(gmem[9]));
+    Macro==8?(Mc8.follow_set_freq(gmem[9]));
+
+  );
+  mode == 11 ? (
+
+
+
+
+    Macro==1?(Mc1.FOL_Gain = gmem[9];); 
+    Macro==2?(Mc2.FOL_Gain = gmem[9];); 
+    Macro==3?(Mc3.FOL_Gain = gmem[9];);
+    Macro==4?(Mc4.FOL_Gain = gmem[9];);
+    Macro==5?(Mc5.FOL_Gain = gmem[9];);
+    Macro==6?(Mc6.FOL_Gain = gmem[9];);
+    Macro==7?(Mc7.FOL_Gain = gmem[9];);
+    Macro==8?(Mc8.FOL_Gain = gmem[9];);
   );
       
   gmem[7] != 0?( // if user uses Imgui to tweak param...
-    AA_CC = gmem[7];
-    AA_ORIGV = gmem[11000+AA_CC];
     P_Id = gmem[7];
     P_OrigV[P_Id]= gmem[11000+P_Id];
     what=gmem[8];
@@ -323,116 +468,19 @@ while (midirecv(offset, msg1, msg2, msg3)) (
 i=1;    
 while ( i <= P.Inst)(
   
-  ModAmt[i]!== 0 ? (   //if modulation amount for prm is not 0
-    Macro1Type=='env'?(   //if macro 1 is env
-      env1.masr_set_risetime(atk1); 
-      env1.masr_set_falltime(rel1);
-      Mc1Amt =  env1.masr_do(midiamp)*ModAmt[i];
-      trkGUID_Num === gmem[2]? (gmem[101] = env1.masr_do(midiamp) );   
-    ):Macro1Type== 'step'? ( // if macro 1 is Step Seq
-      
-      Mc1_CurrentPos = (beat_position * Mc1_SEQ_DNom  ) %  Mc1_SEQ_Leng;
-      Mc1Amt = SEQ[Mc1_CurrentPos+1]*127*ModAmt[i];
-      
-    ):(//if macro 1 is macro
-    Mc1Amt = Macro1 * ModAmt[i]*127;
-    );  
-  ):(Mc1Amt=0);
-
-  ModAmt2[i]!== 0 ? (
-    Macro2Type=='env'?( //if macro 2 is env
-      env2.masr_set_risetime(atk2);
-      env2.masr_set_falltime(rel2);
-      Mc2Amt =  env2.masr_do(midiamp)*ModAmt2[i];
-      trkGUID_Num === gmem[2]? (gmem[102] = env2.masr_do(midiamp));
-    ):Macro2Type== 'step'? ( // if macro 1 is Step Seq
-      Mc2_CurrentPos = (beat_position * Mc2_SEQ_DNom) % Mc2_SEQ_Leng ;
-      Mc2Amt = SEQ[Mc2_CurrentPos+1+64]*127*ModAmt2[i];
-    ):( //if macro 2 is macro
-    Mc2Amt = Macro2 * ModAmt2[i]*127);
-  ):(Mc2Amt=0);
-  
-  ModAmt3[i]!== 0 ? (
-    Macro3Type=='env'?( //if macro 3 is env
-      env3.masr_set_risetime(atk3);
-      env3.masr_set_falltime(rel3);
-      Mc3Amt =  env3.masr_do(midiamp)*ModAmt3[i];
-      trkGUID_Num === gmem[2]? (gmem[103] = env3.masr_do(midiamp));
-    ): Macro3Type== 'step'? ( // if macro 1 is Step Seq
-      Mc3_CurrentPos = (beat_position * Mc3_SEQ_DNom) % Mc3_SEQ_Leng ;
-      Mc3Amt = SEQ[Mc3_CurrentPos+1+64*2]*127*ModAmt3[i];
-    ):( //if macro 2 is macro aaaa
-    Mc3Amt = Macro3 * ModAmt3[i]*127); 
-  ):(Mc3Amt=0);
-  
-  ModAmt4[i]!== 0 ? (
-    Macro4Type=='env'?( //if macro 4 is env
-      env4.masr_set_risetime(atk4);
-      env4.masr_set_falltime(rel4);
-      Mc4Amt =  env4.masr_do(midiamp)*ModAmt4[i];
-      trkGUID_Num === gmem[2]? (gmem[104] =  env4.masr_do(midiamp));
-    ):Macro4Type== 'step'? ( // if macro 1 is Step Seq
-    Mc4_CurrentPos = (beat_position * Mc4_SEQ_DNom) % Mc4_SEQ_Leng ;
-    Mc4Amt = SEQ[Mc4_CurrentPos+1+64*3]*127*ModAmt4[i];  
-    ):( //if macro 4 is macro
-    Mc4Amt = Macro4 * ModAmt4[i]*127);
-  ):(Mc4Amt=0);
-
-  ModAmt5[i]!== 0 ? (
-    Macro5Type=='env'?( //if macro 4 is env
-      env5.masr_set_risetime(atk5);
-      env5.masr_set_falltime(rel5);
-      Mc5Amt =  env5.masr_do(midiamp)*ModAmt5[i];
-      trkGUID_Num === gmem[2]? (gmem[105] =env5.masr_do(midiamp));
-    ):Macro5Type== 'step'? ( // if macro 1 is Step Seq
-      Mc5_CurrentPos = (beat_position * Mc5_SEQ_DNom) % Mc5_SEQ_Leng ;
-      Mc5Amt = SEQ[Mc5_CurrentPos+1+64*4]*127*ModAmt5[i];  
-    ):( //if macro 4 is macro
-    Mc5Amt = Macro5 * ModAmt5[i]*127);
-  ):(Mc5Amt=0);
-  
-  ModAmt6[i]!== 0 ? (
-    Macro6Type=='env'?( //if macro 4 is env
-      env6.masr_set_risetime(atk6);
-      env6.masr_set_falltime(rel6);
-      Mc6Amt =  env6.masr_do(midiamp)*ModAmt6[i];
-      trkGUID_Num === gmem[2]? (gmem[106] =env6.masr_do(midiamp));
-    ):Macro6Type== 'step'? ( // if macro is Step Seq
-      Mc6_CurrentPos = (beat_position * Mc6_SEQ_DNom) % Mc6_SEQ_Leng ;
-      Mc6Amt = SEQ[Mc6_CurrentPos+1+64*5]*127*ModAmt6[i];  
-    ):( //if macro 6 is macro
-    Mc6Amt = Macro6 * ModAmt6[i]*127);
-  ):(Mc6Amt=0);
-  
-  ModAmt7[i]!== 0 ? (
-    Macro7Type=='env'?( //if macro 7 is env
-      env7.masr_set_risetime(atk7);
-      env7.masr_set_falltime(rel7);
-      Mc7Amt =  env7.masr_do(midiamp)*ModAmt7[i];
-      trkGUID_Num === gmem[2]? (gmem[107] = env7.masr_do(midiamp));
-    ):Macro7Type== 'step'? ( // if macro 1 is Step Seq
-      Mc7_CurrentPos = (beat_position * Mc7_SEQ_DNom) % Mc7_SEQ_Leng ;
-      Mc7Amt = SEQ[Mc7_CurrentPos+1+64*6]*127*ModAmt7[i];  
-    ):( //if macro 7 is macro
-    Mc7Amt = Macro7 * ModAmt7[i]*127);
-  ):(Mc7Amt=0);
-  
-  ModAmt8[i]!== 0 ? (
-    Macro8Type=='env'?( //if macro 8 is env
-      env8.masr_set_risetime(atk8);
-      env8.masr_set_falltime(rel8);
-      Mc8Amt =  env8.masr_do(midiamp)*ModAmt8[i];
-      trkGUID_Num === gmem[2]? (gmem[108] =env8.masr_do(midiamp));
-    ):Macro8Type== 'step'? ( // if macro is Step Seq
-      Mc8_CurrentPos = (beat_position * Mc8_SEQ_DNom) % Mc8_SEQ_Leng ;
-      Mc8Amt = SEQ[Mc8_CurrentPos+1+64*7]*127*ModAmt8[i];  
-    ):( //if macro 8 is macro
-    Mc8Amt = Macro8 * ModAmt8[i]*127);
-  ):(Mc8Amt=0);
   
 
+
+  Mc1.CalculatMacroAmt(ModAmt[i]);
+  Mc2.CalculatMacroAmt(ModAmt2[i]);
+  Mc3.CalculatMacroAmt(ModAmt3[i]);
+  Mc4.CalculatMacroAmt(ModAmt4[i]);
+  Mc5.CalculatMacroAmt(ModAmt5[i]);
+  Mc6.CalculatMacroAmt(ModAmt6[i]);
+  Mc7.CalculatMacroAmt(ModAmt7[i]);
+  Mc8.CalculatMacroAmt(ModAmt8[i]);
   
-  ModAmtTotal = Mc1Amt+Mc2Amt+Mc3Amt+Mc4Amt+Mc5Amt+Mc6Amt+Mc7Amt+Mc8Amt;
+  ModAmtTotal = Mc1.Out+Mc2.Out+Mc3.Out+Mc4.Out+Mc5.Out+Mc6.Out+Mc7.Out+Mc8.Out;
   
   SendAmt = P_OrigV[i]*127 + ModAmtTotal;
 
@@ -443,6 +491,35 @@ while ( i <= P.Inst)(
   i+=1;
 );
 
+
+///  ---------------- Send info back to ImGui ------------------ 
+trkGUID_Num === gmem[2]? (
+  loop(8, 
+  m+=1;
+  Mc1.SendInfoBackToImGui();
+  Mc2.SendInfoBackToImGui();
+  Mc3.SendInfoBackToImGui();
+  Mc4.SendInfoBackToImGui();
+  Mc5.SendInfoBackToImGui();
+  Mc6.SendInfoBackToImGui();
+  Mc7.SendInfoBackToImGui();
+  Mc8.SendInfoBackToImGui();
+
+  );
+);
+  
+  
+
+
+
+
+
+
+
+
+
+
+//------------------------------------------------------------------------------------------------
 
 
 while (midirecv(offset, msg1, msg2, msg3)) (
@@ -466,3 +543,6 @@ while (midirecv(offset, msg1, msg2, msg3)) (
         midisend(offset,msg1,msg2,msg3);
     );
 );
+
+
+    
