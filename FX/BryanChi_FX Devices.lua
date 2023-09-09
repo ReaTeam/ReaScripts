@@ -1,16 +1,15 @@
 -- @description FX Devices
 -- @author Bryan Chi
--- @version 1.0beta10
+-- @version 1.0beta10.1
 -- @changelog
---   -   New Feature in layout editor:  - Strip image support for knobs and switches.
---   -   New Feature in layout editor:  - Custom image in draw mode.
+--   - New feature!  attach draw list items on to a parameter - drawings can be affected by the respective parameter’s value by setting the ‘value affect’ property.
+--   - Automatically copy image file into FX Device’s Image folder when user drag and drop image
+--   - Style menu drop down menu : show all images as styles in the parameter type’s respective image folder.
 --
---   -   Correct envelope modulation indication direction when mod range is negative.
---   -   Add modulation indication for step sequencer and follower.
---   -   Add offset to modulation indicators when there’s multiple modulations assigned to one parameter for easier reading of modulation range.
---   -   Blink modulators when they’re being assigned.
---   -   Put all functions back into one script. (I find this much easier for my workflow)
---   -   Fix crash on opening caused by the FX_Name function
+--   - Fix Sequence window opening when mouse is adjusting other parameters but hovering over the modulator.
+--   - Fix various unintended behavior when layout edit window is overlapping FX Device window.
+--   - Fix Switch buttons default to 0xffffffff (fully white) color.
+--   - Fix draw mode broken types - Circle, Circle filled, V-line, Text
 -- @provides
 --   [effect] BryanChi_FX Devices/FXD Macros.jsfx
 --   [effect] BryanChi_FX Devices/FXD ReSpectrum.jsfx
@@ -57,8 +56,70 @@
 --   Please check the forum post for info:
 --   https://forum.cockos.com/showthread.php?t=263622
 
+-- @description FX Devices
+-- @author Bryan Chi
+-- @version 1.0beta9.6.7
+-- @changelog
+--   FX Devices 9.6.6-4
+--   - New : Shift+ RMB to bypass a modulation.
+--   - Fix Slider default width shows as 0 , and inputting values by typing don’t work.
+--   - Fix unable to RMB drag to adjust modulation range without choosing a source when there’s only one modulation on the parameter.
+--   - Add Clap plugins support for FX adder !!! Thanks to Suzuki’s contribution !!!!
+-- @provides
+--   [effect] BryanChi_FX Devices/FXD Macros.jsfx
+--   [effect] BryanChi_FX Devices/FXD ReSpectrum.jsfx
+--   [effect] BryanChi_FX Devices/FXD Gain Reduction Scope.jsfx
+--   [effect] BryanChi_FX Devices/FXD Split to 32 Channels.jsfx
+--   [effect] BryanChi_FX Devices/FXD Split To 4 Channels.jsfx
+--   [effect] BryanChi_FX Devices/cookdsp.jsfx-inc
+--   [effect] BryanChi_FX Devices/cookdsp/analysis.jsfx-inc
+--   [effect] BryanChi_FX Devices/cookdsp/buffer.jsfx-inc
+--   [effect] BryanChi_FX Devices/cookdsp/delay.jsfx-inc
+--   [effect] BryanChi_FX Devices/cookdsp/dynamics.jsfx-inc
+--   [effect] BryanChi_FX Devices/cookdsp/effects.jsfx-inc
+--   [effect] BryanChi_FX Devices/cookdsp/fft-mono-template
+--   [effect] BryanChi_FX Devices/cookdsp/fft-stereo-template
+--   [effect] BryanChi_FX Devices/cookdsp/fftobjects.jsfx-inc
+--   [effect] BryanChi_FX Devices/cookdsp/filters.jsfx-inc
+--   [effect] BryanChi_FX Devices/cookdsp/granulator.jsfx-inc
+--   [effect] BryanChi_FX Devices/cookdsp/list.jsfx-inc
+--   [effect] BryanChi_FX Devices/cookdsp/memalloc.jsfx-inc
+--   [effect] BryanChi_FX Devices/cookdsp/midi.jsfx-inc
+--   [effect] BryanChi_FX Devices/cookdsp/mmath.jsfx-inc
+--   [effect] BryanChi_FX Devices/cookdsp/oscil.jsfx-inc
+--   [effect] BryanChi_FX Devices/cookdsp/pobjects.jsfx-inc
+--   [effect] BryanChi_FX Devices/cookdsp/pv-mono-template
+--   [effect] BryanChi_FX Devices/cookdsp/pv-stereo-template
+--   [effect] BryanChi_FX Devices/cookdsp/pvocobjects.jsfx-inc
+--   [effect] BryanChi_FX Devices/cookdsp/pvtrans-example
+--   [effect] BryanChi_FX Devices/cookdsp/random.jsfx-inc
+--   [effect] BryanChi_FX Devices/cookdsp/scaling.jsfx-inc
+--   [effect] BryanChi_FX Devices/firhalfband.jsfx-inc
+--   [effect] BryanChi_FX Devices/spectrum.jsfx-inc
+--   [effect] BryanChi_FX Devices/svf_filter.jsfx-inc
+--   BryanChi_FX Devices/IconFont1.ttf
+--   [effect] BryanChi_FX Devices/FXD (Mix)RackMixer.jsfx
+--   BryanChi_FX Devices/FX Layouts/ValhallaFreqEcho (Valhalla DSP, LLC).ini
+--   BryanChi_FX Devices/FX Layouts/ValhallaShimmer (Valhalla DSP, LLC).ini
+--   BryanChi_FX Devices/FX Layouts/ValhallaVintageVerb (Valhalla DSP, LLC).ini
+--   BryanChi_FX Devices/FX Layouts/ValhallaSupermassive (Valhalla DSP, LLC).ini
+--   BryanChi_FX Devices/FX Layouts/ValhallaDelay (Valhalla DSP, LLC).ini
+--   [effect] BryanChi_FX Devices/FXD Saike BandSplitter.jsfx
+--   [effect] BryanChi_FX Devices/FXD Band Joiner.jsfx
+--   BryanChi_FX Devices/Images/Analog Knob 1.png
+--   BryanChi_FX Devices/Functions/EQ functions.lua
+--   BryanChi_FX Devices/Functions/General Functions.lua
+--   BryanChi_FX Devices/Functions/FX Layering.lua
+--   BryanChi_FX Devices/Functions/FX Adder.lua
+--   BryanChi_FX Devices/Functions/Layout Editor functions.lua
+--   BryanChi_FX Devices/Functions/Modulation.lua
+--   BryanChi_FX Devices/Functions/Theme Editor Functions.lua
+-- @about
+--   Please check the forum post for info:
+--   https://forum.cockos.com/showthread.php?t=263622
+
 --------------------------==  declare Initial Variables & Functions  ------------------------
-VersionNumber = 'V1.0beta10 '
+VersionNumber = 'V1.0beta10.1 '
 FX_Add_Del_WaitTime = 2
 r = reaper
 
@@ -66,9 +127,8 @@ r = reaper
 
 
 
-
-function msg(A)
-    r.ShowConsoleMsg(A)
+function msg(m)
+    return reaper.ShowConsoleMsg(tostring(m) .. "\n")
 end
 
 VP = {}
@@ -966,6 +1026,18 @@ function GeneralFunctions()
         if GetItemRect == 'GetItemRect' then return L, T, R, B, w, h end
     end
 
+
+
+
+
+    function PC(ctx, itm, clr)
+        r.ImGui_PushStyleColor(ctx, itm, clr)
+    end
+
+    function PopClr(ctx, time)
+        r.ImGui_PopStyleColor(ctx, time)
+    end
+
     function SaveDrawings(FX_Idx, FxGUID)
         local dir_path = ConcatPath(r.GetResourcePath(), 'Scripts', 'ReaTeam Scripts', 'FX', 'BryanChi_FX Devices',
             'FX Layouts')
@@ -1318,14 +1390,14 @@ function GeneralFunctions()
     function Generate_Active_And_Hvr_CLRs(Clr)
         local ActV, HvrV
         local R, G, B, A = r.ImGui_ColorConvertU32ToDouble4(Clr)
-        local HSV, _, H, S, V = r.ImGui_ColorConvertRGBtoHSV(R, G, B)
+        local H, S, V = r.ImGui_ColorConvertRGBtoHSV(R, G, B)
         if V > 0.9 then
             ActV = V - 0.2
             HvrV = V - 0.1
         end
-        local RGB, _, R, G, B = r.ImGui_ColorConvertHSVtoRGB(H, S, SetMinMax(ActV or V + 0.2, 0, 1))
+        local R, G, B = r.ImGui_ColorConvertHSVtoRGB(H, S, SetMinMax(ActV or V + 0.2, 0, 1))
         local ActClr = r.ImGui_ColorConvertDouble4ToU32(R, G, B, A)
-        local RGB, _, R, G, B = r.ImGui_ColorConvertHSVtoRGB(H, S, HvrV or V + 0.1)
+        local R, G, B = r.ImGui_ColorConvertHSVtoRGB(H, S, HvrV or V + 0.1)
         local HvrClr = r.ImGui_ColorConvertDouble4ToU32(R, G, B, A)
         return ActClr, HvrClr
     end
@@ -1536,6 +1608,18 @@ function GeneralFunctions()
 
 
 
+    function scandir(directory)
+
+        local Files = {}
+        for i=0, 999, 1 do 
+            local F = r.EnumerateFiles(directory,i)
+            if F then table.insert(Files, F ) end 
+            
+            if not F then return Files end 
+        end
+
+        return F
+    end
 
     function RemoveEmptyStr(str)
         if str == '' then return nil else return str end
@@ -1554,10 +1638,15 @@ function GeneralFunctions()
     end
 end
 
+function CopyFile(old_path, new_path)
+    local CopyCmd = r.GetOS():find("Win") and 'copy "' or 'cp "'
+    local ok = os.execute(CopyCmd .. old_path .. '" "' .. new_path .. '"')
+    return ok
+end
+
 function LayoutEditorFunctions()
     function AddKnob(ctx, label, labeltoShow, p_value, v_min, v_max, Fx_P, FX_Idx, P_Num, Style, Radius,
-                     item_inner_spacing,
-                     Disabled, LblTextSize, Lbl_Pos, V_Pos)
+                     item_inner_spacing,Disabled, LblTextSize, Lbl_Pos, V_Pos,ImgPath)
         if Style == 'Pro C' then r.gmem_attach('ParamValues') end
 
         local FxGUID = FXGUID[FX_Idx]
@@ -1677,7 +1766,6 @@ function LayoutEditorFunctions()
             MvingP_Idx = F_Tp
             Tweaking = P_Num .. FxGUID
         end
-
         local t = (p_value - v_min) / (v_max - v_min)
 
         local angle = ANGLE_MIN + (ANGLE_MAX - ANGLE_MIN) * t
@@ -1807,22 +1895,23 @@ function LayoutEditorFunctions()
             ImageAngle(ctx, Img.Analog1, 4 + FP.V * 4.5, sz, sz, center[1] - sz / 2, center[2] - sz / 2)
             --FP.V*5
         elseif Style == 'Custom Image' then
-            local w, h = r.ImGui_Image_GetSize(FP.Image)
+            local Image =  ImgPath or FP.Image
+            local w, h = r.ImGui_Image_GetSize(Image)
 
             if h > w * 5 then -- It's probably a strip knob file
                 local scale = 2
                 local sz = radius_outer * scale
 
 
-                uvmin, uvmax = Calc_strip_uv(FP.Image, FP.V)
+                uvmin, uvmax = Calc_strip_uv(Image, FP.V)
 
 
-                r.ImGui_DrawList_AddImage(WDL, FP.Image, center[1] - sz / 2, center[2] - sz / 2, center[1] + sz / 2,
+                r.ImGui_DrawList_AddImage(WDL, Image, center[1] - sz / 2, center[2] - sz / 2, center[1] + sz / 2,
                     center[2] + sz / 2, 0, uvmin, 1, uvmax, FP.BgClr or 0xffffffff)
             else
                 local scale = 2
                 local sz = radius_outer * scale
-                ImageAngle(ctx, FP.Image, 4 + FP.V * 4.5, sz, sz, center[1] - sz / 2, center[2] - sz / 2)
+                ImageAngle(ctx, Image, 4 + FP.V * 4.5, sz, sz, center[1] - sz / 2, center[2] - sz / 2)
             end
         else -- for all generic FXs
             r.ImGui_DrawList_AddCircleFilled(draw_list, center[1], center[2], radius_outer,
@@ -2193,9 +2282,9 @@ function LayoutEditorFunctions()
             if FP.GrbClr then
                 local ActV
                 local R, G, B, A = r.ImGui_ColorConvertU32ToDouble4(FP.GrbClr)
-                local HSV, _, H, S, V = r.ImGui_ColorConvertRGBtoHSV(R, G, B)
+                local H, S, V = r.ImGui_ColorConvertRGBtoHSV(R, G, B)
                 if V > 0.9 then ActV = V - 0.2 end
-                local RGB, _, R, G, B = r.ImGui_ColorConvertHSVtoRGB(H, S, ActV or V + 0.2)
+                local R, G, B = r.ImGui_ColorConvertHSVtoRGB(H, S, ActV or V + 0.2)
                 local ActClr = r.ImGui_ColorConvertDouble4ToU32(R, G, B, A)
                 r.ImGui_PushStyleColor(ctx, r.ImGui_Col_SliderGrab(), FP.GrbClr)
                 r.ImGui_PushStyleColor(ctx, r.ImGui_Col_SliderGrabActive(), ActClr)
@@ -2789,14 +2878,14 @@ function LayoutEditorFunctions()
                     Change_Clr_A(FX[FxGUID][Fx_P].Switch_On_Clr, -0.2))
             else
                 popClr = 2
-                r.ImGui_PushStyleColor(ctx, r.ImGui_Col_Button(), BgClr)
-                r.ImGui_PushStyleColor(ctx, r.ImGui_Col_ButtonHovered(), Change_Clr_A(BgClr, -0.2))
+                r.ImGui_PushStyleColor(ctx, r.ImGui_Col_Button(), BgClr or 0x00000000)
+                r.ImGui_PushStyleColor(ctx, r.ImGui_Col_ButtonHovered(), Change_Clr_A((BgClr or 0xffffff00), -0.2))
             end
         else
             if BgClr then
                 popClr = 2
-                r.ImGui_PushStyleColor(ctx, r.ImGui_Col_Button(), BgClr)
-                r.ImGui_PushStyleColor(ctx, r.ImGui_Col_ButtonHovered(), Change_Clr_A(BgClr, -0.2))
+                r.ImGui_PushStyleColor(ctx, r.ImGui_Col_Button(), BgClr or 0xffffff00)
+                r.ImGui_PushStyleColor(ctx, r.ImGui_Col_ButtonHovered(), Change_Clr_A((BgClr or 0xffffff00), -0.2))
             end
         end
 
@@ -2809,13 +2898,12 @@ function LayoutEditorFunctions()
         if not FP.Image then
             r.ImGui_Button(ctx, lbl .. '##' .. FxGUID .. Fx_P, FX[FxGUID][Fx_P].Sldr_W or TextW)
         else -- if there's an image
-            FP.Style = 'Custom Image'
             uvmin, uvmax, w, h = Calc_strip_uv(FP.Image, FP.V)
 
 
 
             r.ImGui_ImageButton(ctx, lbl .. '##' .. FxGUID .. Fx_P, FP.Image, FP.Sldr_W or 30, FP.Sldr_W or 30, 0,
-                uvmin, 1, uvmax, FP.BgClr or 0xffffffff)
+                uvmin, 1, uvmax, FP.BgClr or 0xffffff00)
         end
 
 
@@ -2884,7 +2972,7 @@ function LayoutEditorFunctions()
         r.ImGui_DrawList_AddRectFilled(DL, X, Y, X + W, Y + H, clr, FX.Round[FxGUID] or 0)
 
         if FontSize then r.ImGui_PopFont(ctx) end
-        if BgClr then r.ImGui_PopStyleColor(ctx, popClr) end
+        if popClr then r.ImGui_PopStyleColor(ctx, popClr) end
         if FX[FxGUID][Fx_P].Lbl_Clr then r.ImGui_PopStyleColor(ctx) end
         if Value == 0 then return 0 else return 1 end
     end
@@ -3391,7 +3479,7 @@ function LayoutEditorFunctions()
                 if FxGUID then
                     FX[FxGUID] = FX[FxGUID] or {}
                     FX[FxGUID].File = file
-
+                    local FX_Name_Short = ChangeFX_Name(FX_Name)
                     if file then
                         Line = get_lines(file_path)
                         FX[FxGUID].FileLine = Line
@@ -3406,9 +3494,10 @@ function LayoutEditorFunctions()
                         FX[FxGUID].TitleClr = RecallGlobInfo(Ct, 'Title Clr = ', 'Num')
                         FX[FxGUID].CustomTitle = RecallGlobInfo(Ct, 'Custom Title = ')
                         PrmInst = RecallGlobInfo(Ct, 'Param Instance = ', 'Num')
+                    else Draw[FX_Name_Short] =nil
                     end
 
-                    local FX_Name_Short = ChangeFX_Name(FX_Name)
+                    
 
 
                     -------------------------------------Parameters -------------------------------------------------
@@ -3456,8 +3545,6 @@ function LayoutEditorFunctions()
 
                                 if FP.ImagePath then
                                     FP.Style = 'Custom Image'
-
-
                                     FP.Image = r.ImGui_CreateImage(FP.ImagePath)
                                     r.ImGui_Attach(ctx, FP.Image)
                                 end
@@ -3497,6 +3584,39 @@ function LayoutEditorFunctions()
 
                                 FP.ManualValues = RecallIntoTable(Ct, Fx_P .. '. Manual V:1=', Fx_P, 'Num')
                                 FP.ManualValuesFormat = RecallIntoTable(Ct, Fx_P .. '. Manual Val format:1=', Fx_P)
+
+
+
+                                local DrawNum = RecallInfo(Ct, 'Number of attached drawings', Fx_P, 'Num')
+                                if DrawNum then
+                                    FP.Draw = FP.Draw or {}
+                                    for D = 1, DrawNum, 1 do
+                                        FP.Draw[D] = FP.Draw[D] or {}
+                                        local d = FP.Draw[D]
+
+                                        local function RC(name, type)
+                                            return RecallInfo(Ct, 'Draw Item ' .. D .. ': ' .. name, Fx_P, type)
+                                        end
+
+                                        d.Type = RC('Type')
+                                        d.X_Offset = RC('X Offset', 'Num')
+                                        d.X_Offset_VA = RC('X Offset Value Affect', 'Num')
+                                        d.Y_Offset = RC('Y offset', 'Num')
+                                        d.Y_Offset_VA = RC('Y Offset Value Affect', 'Num')
+                                        d.Width = RC('Width', 'Num')
+                                        d.Width_VA = RC('Width Value Affect', 'Num')
+                                        d.Clr = RC('Color', 'Num')
+                                        d.FillClr = RC('Fill Color', 'Num')
+                                        d.Angle_Min = RC('Angle Min', 'Num')
+                                        d.Angle_Max = RC('Angle Max', 'Num')
+                                        d.Rad_In = RC('Radius Inner', 'Num')
+                                        d.Rad_Out = RC('Radius Outer' , 'Num')
+                                        d.Height = RC('Height' , 'Num')
+                                        d.Height_VA = RC('Height_VA' , 'Num')
+                                        d.Round = RC('Round', 'Num')
+                                        d.Thick = RC('Thick', 'Num')
+                                    end
+                                end
                             end
                             GetProjExt_FxNameNum(FxGUID)
                             Prm.InstAdded[FxGUID] = true
@@ -3598,14 +3718,18 @@ function LayoutEditorFunctions()
 
 
                                 --[[ Draw[FX_Name_Short].Type[i] = get_aftr_Equal(LN(1))
-                            D.L[i] =   get_aftr_Equal_Num(LN(2))
-                            D.R[i] =   get_aftr_Equal_Num(LN(3))
-                            D.T[i] =   get_aftr_Equal_Num(LN(4))
-                            D.B[i] =   get_aftr_Equal_Num(LN(5))
-                            D.clr[i] = get_aftr_Equal_Num(LN(6))
-                            D.Txt[i] = get_aftr_Equal(LN(7)) ]]
+                                    D.L[i] =   get_aftr_Equal_Num(LN(2))
+                                    D.R[i] =   get_aftr_Equal_Num(LN(3))
+                                    D.T[i] =   get_aftr_Equal_Num(LN(4))
+                                    D.B[i] =   get_aftr_Equal_Num(LN(5))
+                                    D.clr[i] = get_aftr_Equal_Num(LN(6))
+                                    D.Txt[i] = get_aftr_Equal(LN(7)) ]]
                             end
+                        else 
+                            Draw[FX_Name_Short] =nil
+                            
                         end
+                        
                     end
                 end
             end
@@ -3820,7 +3944,9 @@ function LayoutEditorFunctions()
                     i = 1; FP = {}
                 end
                 local function write(Name, Value)
-                    file:write(i .. '. ' .. Name, ' = ', Value or '', '\n')
+                    if Value then
+                        file:write(i .. '. ' .. Name, ' = ', Value or '', '\n')
+                    end
                 end
 
 
@@ -3849,9 +3975,10 @@ function LayoutEditorFunctions()
                 write('Custom Image', FP.ImagePath)
 
 
-                file:write(i .. '. Condition Param = ', FP.ConditionPrm or '')
 
                 if FP.ConditionPrm_V then
+                    file:write(i .. '. Condition Param = ', FP.ConditionPrm or '')
+
                     for i, v in pairs(FP.ConditionPrm_V) do
                         file:write('|', i, '=', v or '')
                         --write('Condition Params Value'..i, v)
@@ -3872,31 +3999,33 @@ function LayoutEditorFunctions()
                 end
 
                 for I = 2, 5, 1 do
-                    file:write(i .. '. Condition Param' .. I .. ' = ', FP['ConditionPrm' .. I] or '')
-
                     if FP['ConditionPrm_V' .. I] then
-                        for i, v in pairs(FP['ConditionPrm_V' .. I]) do
-                            file:write('|', i, '=', v or '')
-                            --write('Condition Params Value'..i, v)
-                        end
-                        file:write('|\n')
-                    else
-                        file:write('\n')
-                    end
+                        file:write(i .. '. Condition Param' .. I .. ' = ', FP['ConditionPrm' .. I] or '')
 
-                    if FP['ConditionPrm_V_Norm' .. I] then
-                        file:write(i .. '. Condition Param Norm' .. I .. ' = ')
-                        for i, v in ipairs(FP['ConditionPrm_V_Norm' .. I]) do
-                            file:write('|', i, '=', v or '')
+                        if FP['ConditionPrm_V' .. I] then
+                            for i, v in pairs(FP['ConditionPrm_V' .. I]) do
+                                file:write('|', i, '=', v or '')
+                                --write('Condition Params Value'..i, v)
+                            end
+                            file:write('|\n')
+                        else
+                            file:write('\n')
                         end
-                        file:write('|\n')
-                    else
-                        file:write('\n')
+
+                        if FP['ConditionPrm_V_Norm' .. I] then
+                            file:write(i .. '. Condition Param Norm' .. I .. ' = ')
+                            for i, v in ipairs(FP['ConditionPrm_V_Norm' .. I]) do
+                                file:write('|', i, '=', v or '')
+                            end
+                            file:write('|\n')
+                        else
+                            file:write('\n')
+                        end
                     end
                 end
 
                 write('Decimal Rounding', FP.V_Round)
-                write('Value to Note Length', tostring(FP.ValToNoteL))
+                write('Value to Note Length', FP.ValToNoteL)
                 write('Switch type', FP.SwitchType)
                 write('Switch Base Value', FP.SwitchBaseV)
                 write('Switch Target Value', FP.SwitchTargV)
@@ -3914,6 +4043,32 @@ function LayoutEditorFunctions()
                             file:write(i, '=', V, '|')
                         end
                         file:write('\n')
+                    end
+                end
+                if FP.Draw then
+                    write('Number of attached drawings', #FP.Draw)
+                    for D, v in ipairs(FP.Draw) do
+                        local function WRITE(name, val)
+                            write('Draw Item ' .. D .. ': ' .. name, val)
+                        end
+                        WRITE('Type', v.Type)
+                        WRITE('X Offset', v.X_Offset)
+                        WRITE('X Offset Value Affect', v.X_Offset_VA)
+                        WRITE('Y offset', v.Y_Offset)
+                        WRITE('Y Offset Value Affect', v.Y_Offset_VA)
+                        WRITE('Width', v.Width)
+                        WRITE('Width Value Affect', v.Width_VA)
+                        WRITE('Y offset', v.Y_Offset)
+                        WRITE('Color', v.Clr)
+                        WRITE('Fill Color', v.FillClr)
+                        WRITE('Angle Min',v.Angle_Min)
+                        WRITE('Angle Max',v.Angle_Max)
+                        WRITE('Radius Inner', v.Rad_In)
+                        WRITE('Radius Outer', v.Rad_Out)
+                        WRITE('Thick', v.Thick)
+                        WRITE('Height', v.Height)
+                        WRITE('Height_VA',v.Height_VA)
+                        WRITE('Round', v.Round)
                     end
                 end
             end
@@ -3994,33 +4149,35 @@ function LayoutEditorFunctions()
 
 
             --- if mouse is on an item
-            if MouseX > L and MouseX < R - 5 and MouseY > T and MouseY < B then
-                if LBtnRel and Max_L_MouseDownDuration < 0.1 and Mods == 0 then
-                    LE.Sel_Items = {}
-                    table.insert(LE.Sel_Items, Fx_P)
-                end
-
-                if IsLBtnClicked and Mods == 0 then
-                    LE.SelectedItem = Fx_P
-                elseif IsLBtnClicked and Mods == Shift then
-                    local ClickOnSelItem, ClickedItmNum
-                    for i, v in pairs(LE.Sel_Items) do
-                        if v == Fx_P then
-                            ClickedItmNum = i
-                        else
-                        end
+            if r.ImGui_IsWindowHovered(ctx, r.ImGui_HoveredFlags_RootAndChildWindows()) then 
+                if MouseX > L and MouseX < R - 5 and MouseY > T and MouseY < B then
+                    if LBtnRel and Max_L_MouseDownDuration < 0.1 and Mods == 0 then
+                        LE.Sel_Items = {}
+                        table.insert(LE.Sel_Items, Fx_P)
                     end
-                    if ClickedItmNum then table.remove(LE.Sel_Items, ClickedItmNum) else table.insert(LE.Sel_Items, Fx_P) end
-                end
 
-                if IsLBtnClicked then
-                    ClickOnAnyItem = true
-                    FX[FxGUID][Fx_P].PosX = PosX
-                    FX[FxGUID][Fx_P].PosY = PosY
-                    if #LE.Sel_Items > 1 then
-                        LE.ChangePos = LE.Sel_Items
-                    else
-                        LE.ChangePos = Fx_P
+                    if IsLBtnClicked and Mods == 0 then
+                        LE.SelectedItem = Fx_P
+                    elseif IsLBtnClicked and Mods == Shift then
+                        local ClickOnSelItem, ClickedItmNum
+                        for i, v in pairs(LE.Sel_Items) do
+                            if v == Fx_P then
+                                ClickedItmNum = i
+                            else
+                            end
+                        end
+                        if ClickedItmNum then table.remove(LE.Sel_Items, ClickedItmNum) else table.insert(LE.Sel_Items, Fx_P) end
+                    end
+
+                    if IsLBtnClicked then
+                        ClickOnAnyItem = true
+                        FX[FxGUID][Fx_P].PosX = PosX
+                        FX[FxGUID][Fx_P].PosY = PosY
+                        if #LE.Sel_Items > 1 then
+                            LE.ChangePos = LE.Sel_Items
+                        else
+                            LE.ChangePos = Fx_P
+                        end
                     end
                 end
             end
@@ -4764,9 +4921,9 @@ function ModulationFunctions()
         end
         if TrkID ~= TrkID_End then
             r.gmem_write(3, Trk[TrkID].ModPrmInst or 0)
-            if FP.ModAMT then
+            if FP.ModAMT and FP.WhichCC then
                 for M = 1, 8, 1 do
-                    r.gmem_write(1000 * M + CC, FP.ModAMT[M] or 0)
+                    r.gmem_write(1000 * M + FP.WhichCC, FP.ModAMT[M] or 0)
                 end
             end
         end
@@ -6668,6 +6825,8 @@ for Track_Idx = 0, NumOfTotalTracks - 1, 1 do
         Img = {
             Analog1 = r.ImGui_CreateImage(r.GetResourcePath() ..
                 '/Scripts/ReaTeam Scripts/FX/BryanChi_FX Devices/Images/Analog Knob 1.png'),
+            Trash = r.ImGui_CreateImage(r.GetResourcePath() ..
+            '/Scripts/ReaTeam Scripts/FX/BryanChi_FX Devices/Images/trash.png')
 
         }
         r.ImGui_Attach(ctx, Img.Analog1)
@@ -6703,6 +6862,7 @@ for Track_Idx = 0, NumOfTotalTracks - 1, 1 do
         r.ImGui_Attach(ctx, Font_Andale_Mono_20_B)
         r.ImGui_Attach(ctx, Font_Andale_Mono_20)
         r.ImGui_Attach(ctx, FontAwesome)
+        r.ImGui_Attach(ctx, Img.Trash)
 
         Arial = r.ImGui_CreateFont('Arial', 12)
         Arial_10 = r.ImGui_CreateFont('Arial', 10)
@@ -6730,6 +6890,16 @@ for Track_Idx = 0, NumOfTotalTracks - 1, 1 do
         r.ImGui_Attach(ctx, Arial_16)
         r.ImGui_Attach(ctx, Arial)
     end
+
+    function TrashIcon (size, lbl,ClrBG , ClrTint)
+        local rv = r.ImGui_ImageButton(ctx,'##'..lbl,Img.Trash, size, size, nil,nil,nil,nil, ClrBG,ClrTint ) 
+        if r.ImGui_IsItemHovered(ctx) then  
+
+            TintClr = 0xCE1A28ff
+            return rv, TintClr 
+        end
+    end
+
 
     RetrieveFXsSavedLayout(FXCount)
 
@@ -7389,6 +7559,13 @@ function loop()
 
             if FX.LayEdit then
                 local FxGUID = FX.LayEdit
+
+                if r.ImGui_Button(ctx, 'Grid +') then
+                    LE.GridSize = LE.GridSize + 5
+                elseif r.ImGui_Button(ctx, 'Grid -') then
+                    LE.GridSize = LE.GridSize - 5
+                end
+
                 if #LE.Sel_Items > 1 then
                     SL()
                     if r.ImGui_Button(ctx, 'Align Y-Axis') then
@@ -7425,13 +7602,9 @@ function loop()
                         end
                     end
                 end
+            else --- only show if not in Layout edit mode
+                r.ImGui_Text(ctx, TrkName)
             end
-
-
-
-
-            r.ImGui_Text(ctx, TrkName)
-
             TxtSz = r.ImGui_CalcTextSize(ctx, TrkName)
             r.ImGui_SameLine(ctx, VP.w - TxtSz - 20, nil) --r.ImGui_SetCursorPosX( ctx, BarR-50)
 
@@ -7752,7 +7925,7 @@ function loop()
                         SEQ_Popup_L = SEQ_Popup_L or L
                         SEQ_Popup_T = SEQ_Popup_T or T
 
-                        if r.ImGui_IsMouseHoveringRect(ctx, L, T, R, B) then
+                        if r.ImGui_IsMouseHoveringRect(ctx, L, T, R, B) and not r.ImGui_IsMouseDown(ctx,0) then
                             HoverOnAnyStep = true
                         end
                         if HoverOnAnyStep then WhichMacroIsHovered = i end
@@ -8085,10 +8258,7 @@ function loop()
 
                             r.ImGui_End(ctx)
                         end
-                        --[[ if r.ImGui_IsWindowHovered(ctx) then
-                            HoveringSmoothness = i
-                            msg('a')
-                        end ]]
+
 
                         return HoveringSmoothness
                     end
@@ -9029,12 +9199,14 @@ function loop()
 
             local spaceIfPreFX = 0
             if Trk[TrkID].PreFX[1] and Trk[TrkID].PostFX[1] and not Trk[TrkID].PostFX_Hide then spaceIfPreFX = 20 end
-            if Wheel_V ~= 0 and not DisableScroll then r.ImGui_SetNextWindowScroll(ctx, -CursorStartX + Wheel_V * 10, 0) end
+            if Wheel_V ~= 0 and not DisableScroll  then r.ImGui_SetNextWindowScroll(ctx, -CursorStartX + Wheel_V * 10, 0) end
 
             if r.ImGui_BeginChild(ctx, 'fx devices', MaxX - (PostFX_Width or 0) - spaceIfPreFX, 240, nil, r.ImGui_WindowFlags_HorizontalScrollbar() + FX_DeviceWindow_NoScroll) then
                 ------------------------------------------------------
                 ----- Loop for every FX on the track -----------------
                 ------------------------------------------------------
+               
+
                 CursorStartX = r.ImGui_GetCursorStartPos(ctx)
                 Glob.WinL, Glob.WinT = r.ImGui_GetCursorScreenPos(ctx)
                 Glob.Height = 220
@@ -9527,9 +9699,7 @@ function loop()
                                                 Win_T + i, Win_R, Win_T + i, 0x44444411)
                                         end
                                         for i = 0, FX.Width[FXGUID[FX_Idx]] or DefaultWidth, LE.GridSize do
-                                            r
-                                                .ImGui_DrawList_AddLine(WinDrawList, Win_L + i, Win_T, Win_L + i, Win_B,
-                                                    0x44444411)
+                                            r.ImGui_DrawList_AddLine(WinDrawList, Win_L + i, Win_T, Win_L + i, Win_B, 0x44444411)
                                         end
                                         if r.ImGui_IsMouseHoveringRect(ctx, Win_L, Win_T, Win_R, Win_B) and HvringItmSelector == nil and not Draw.SelItm and Draw.Time == 0 then
                                             if Draw.Type == 'Text' then
@@ -9537,8 +9707,8 @@ function loop()
                                                     r.ImGui_MouseCursor_TextInput())
                                             end
                                             if IsLBtnClicked and Mods == 0 then
-                                                MsX_Start, MsY_Start = r.ImGui_GetMousePos(ctx); CurX, CurY = r
-                                                    .ImGui_GetCursorScreenPos(ctx)
+                                                MsX_Start, MsY_Start = r.ImGui_GetMousePos(ctx); 
+                                                CurX, CurY = r.ImGui_GetCursorScreenPos(ctx)
                                                 Win_MsX_Start = MsX_Start - CurX; Win_MsY_Start = MsY_Start - CurY + 3
                                             end
 
@@ -9554,8 +9724,7 @@ function loop()
                                                     r.ImGui_DrawList_AddLine(WDL, MsX_Start, MsY_Start, MsX, MsY_Start,
                                                         Draw.clr)
                                                 elseif Draw.Type == 'V-line' then
-                                                    r.ImGui_DrawList_AddLine(WDL, MsX_Start, MsY_Start, MsX_Start, MsY,
-                                                        Draw.clr)
+                                                    r.ImGui_DrawList_AddLine(WDL, MsX_Start, MsY_Start, MsX_Start, MsY, Draw.clr)
                                                 elseif Draw.Type == 'rectangle' then
                                                     r.ImGui_DrawList_AddRect(WDL, MsX_Start, MsY_Start, MsX, MsY,
                                                         Draw.clr, Draw.Df_EdgeRound[FxGUID] or 0)
@@ -9574,11 +9743,10 @@ function loop()
                                                 end
                                             end
 
-                                            if LBtnRel and Mods == 0 then
+                                        if r.ImGui_IsMouseReleased(ctx,0) and Mods == 0 and Draw.Type ~='Text' then
                                                 local D = Draw[FxNameS]
                                                 LE.BeenEdited = true
                                                 --find the next available slot in table
-                                                if Draw.Type == 'Text' then AddText = true end
 
                                                 if Draw.Type == 'circle' or Draw.Type == 'circle fill' then
                                                     table.insert(D.R, Rad)
@@ -9586,24 +9754,53 @@ function loop()
                                                     table.insert(D.R, Win_MsX)
                                                 end
 
-                                                table.insert(D.L, Win_MsX_Start); table.insert(D.T, Win_MsY_Start);; table
-                                                    .insert(D.Type, Draw.Type)
+                                                table.insert(D.L, Win_MsX_Start);
+                                                table.insert(D.T, Win_MsY_Start);;
+                                                table.insert(D.Type, Draw.Type)
                                                 table.insert(D.B, Win_MsY)
                                                 table.insert(D.clr, Draw.clr or 0xffffffff)
+
                                             end
+
+
+
+                                            if Draw.Type == 'Text' and IsLBtnClicked and Mods==0 then AddText = #D.Type+1 end
                                         end
                                         HvringItmSelector = nil
-                                        if AddText == true then
+                                        if AddText  then
                                             r.ImGui_OpenPopup(ctx, 'Drawlist Add Text Menu')
                                         end
 
                                         if r.ImGui_BeginPopup(ctx, 'Drawlist Add Text Menu') then
-                                            enter, NewDrawTxt = r.ImGui_InputText(ctx, '##' .. 'DrawTxt', NewDrawTxt)
 
+                                            r.ImGui_SetKeyboardFocusHere( ctx)
+
+                                             enter, NewDrawTxt = r.ImGui_InputText(ctx, '##' .. 'DrawTxt', NewDrawTxt)
+                                            --r.ImGui_SetItemDefaultFocus( ctx)
+
+                                            if r.ImGui_IsWindowAppearing( ctx) then 
+                                                table.insert(D.L, Win_MsX_Start);
+                                                table.insert(D.T, Win_MsY_Start);;
+                                                table.insert(D.Type, Draw.Type)
+                                                table.insert(D.B, Win_MsY)
+                                                table.insert(D.clr, Draw.clr )
+
+                                            end
+
+
+                                            if AddText then 
+                                            D.Txt[AddText]=  NewDrawTxt
+                                            end
 
                                             if r.ImGui_IsItemDeactivatedAfterEdit(ctx) then
-                                                table.insert(D.Txt, NewDrawTxt); AddText = nil; r
-                                                    .ImGui_CloseCurrentPopup(ctx)
+
+                                                D.Txt[#D.Txt]=  NewDrawTxt
+                                                AddText = nil; 
+                                                NewDrawTxt = nil
+                                                
+
+
+                                                r .ImGui_CloseCurrentPopup(ctx)
                                             end
 
                                             r.ImGui_SetItemDefaultFocus(ctx)
@@ -9618,66 +9815,65 @@ function loop()
                                             if IsLBtnClicked then
                                                 Draw.SelItm = nil
                                                 Draw.Time = 1
-                                                AddText = nil
                                             end
                                         end
                                         if Draw.Time > 0 then Draw.Time = Draw.Time + 1 end
                                         if Draw.Time > 6 then Draw.Time = 0 end
 
+                                        if Draw[FxNameS] then 
 
-                                        for i, Type in pairs(D.Type) do
-                                            local ID = FX_Name .. i
-                                            local CircleX, CircleY = Win_L + D.L[i], Win_T + D.T[i]
-                                            local FDL = r.ImGui_GetForegroundDrawList(ctx)
-                                            r.ImGui_DrawList_AddCircle(FDL, CircleX, CircleY, 7, 0x99999999)
-                                            r.ImGui_DrawList_AddText(FDL, Win_L + D.L[i] - 2, Win_T + D.T[i] - 7,
-                                                0x999999ff, i)
-
-
-                                            if Draw.SelItm == i then
-                                                r.ImGui_DrawList_AddCircleFilled(WDL, CircleX,
-                                                    CircleY, 7, 0x99999955)
-                                            end
+                                            for i, Type in pairs(D.Type) do
+                                                local ID = FX_Name .. i
+                                                local CircleX, CircleY = Win_L + D.L[i], Win_T + D.T[i]
+                                                local FDL = r.ImGui_GetForegroundDrawList(ctx)
+                                                r.ImGui_DrawList_AddCircle(FDL, CircleX, CircleY, 7, 0x99999999)
+                                                r.ImGui_DrawList_AddText(FDL, Win_L + D.L[i] - 2, Win_T + D.T[i] - 7, 0x999999ff, i)
 
 
-                                            --if hover on item node ...
-                                            if r.ImGui_IsMouseHoveringRect(ctx, CircleX - 5, CircleY - 5, CircleX + 5, CircleY + 10) then
-                                                HvringItmSelector = true
-                                                r.ImGui_SetMouseCursor(ctx, r.ImGui_MouseCursor_ResizeAll())
-                                                if DragItm == nil then
-                                                    r.ImGui_DrawList_AddCircle(WDL, CircleX, CircleY,
-                                                        9, 0x999999ff)
+                                                if Draw.SelItm == i then
+                                                    r.ImGui_DrawList_AddCircleFilled(WDL, CircleX,
+                                                        CircleY, 7, 0x99999955)
                                                 end
-                                                if IsLBtnClicked and Mods == 0 then
-                                                    Draw.SelItm = i
-                                                    DragItm = i
-                                                end
-                                                if LBtnRel then DragItm = nil end
 
-                                                if IsLBtnClicked and Mods == Alt then
-                                                    table.remove(D.Type, i)
-                                                    table.remove(D.L, i)
-                                                    table.remove(D.R, i)
-                                                    table.remove(D.T, i)
-                                                    table.remove(D.B, i)
-                                                    if D.Txt[i] then table.remove(D.Txt, i) end
-                                                    if D.clr[i] then table.remove(D.clr, i) end
-                                                    if r.ImGui_BeginPopup(ctx, 'Drawlist Add Text Menu') then
-                                                        r.ImGui_CloseCurrentPopup(ctx)
-                                                        r.ImGui_EndPopup(ctx)
+
+                                                --if hover on item node ...
+                                                if r.ImGui_IsMouseHoveringRect(ctx, CircleX - 5, CircleY - 5, CircleX + 5, CircleY + 10) then
+                                                    HvringItmSelector = true
+                                                    r.ImGui_SetMouseCursor(ctx, r.ImGui_MouseCursor_ResizeAll())
+                                                    if DragItm == nil then
+                                                        r.ImGui_DrawList_AddCircle(WDL, CircleX, CircleY,9, 0x999999ff)
+                                                    end
+                                                    if IsLBtnClicked and Mods == 0 then
+                                                        Draw.SelItm = i
+                                                        DragItm = i
+                                                    end
+                                                    if LBtnRel then DragItm = nil end
+
+                                                    if IsLBtnClicked and Mods == Alt then
+                                                        table.remove(D.Type, i)
+                                                        table.remove(D.L, i)
+                                                        table.remove(D.R, i)
+                                                        table.remove(D.T, i)
+                                                        table.remove(D.B, i)
+                                                        if D.Txt[i] then table.remove(D.Txt,SetMinMax( i, 1, #D.Txt )) end
+                                                        if D.clr[i] then table.remove(D.clr,SetMinMax( i, 1, #D.clr )) end
+                                                        if r.ImGui_BeginPopup(ctx, 'Drawlist Add Text Menu') then
+                                                            r.ImGui_CloseCurrentPopup(ctx)
+                                                            r.ImGui_EndPopup(ctx)
+                                                        end
                                                     end
                                                 end
-                                            end
-                                            if LBtnDrag and DragItm == i then --- Drag node to reposition
-                                                r.ImGui_SetMouseCursor(ctx, r.ImGui_MouseCursor_ResizeAll())
-                                                r.ImGui_DrawList_AddCircleFilled(WDL, CircleX, CircleY, 7, 0x00000033)
-                                                local Dx, Dy = r.ImGui_GetMouseDelta(ctx)
-                                                if D.Type[DragItm] ~= 'circle' and D.Type[DragItm] ~= 'circle fill' then
-                                                    D.R[i] = D.R[i] + Dx -- this is circle's radius
+                                                if LBtnDrag and DragItm == i then --- Drag node to reposition
+                                                    r.ImGui_SetMouseCursor(ctx, r.ImGui_MouseCursor_ResizeAll())
+                                                    r.ImGui_DrawList_AddCircleFilled(WDL, CircleX, CircleY, 7, 0x00000033)
+                                                    local Dx, Dy = r.ImGui_GetMouseDelta(ctx)
+                                                    if D.Type[DragItm] ~= 'circle' and D.Type[DragItm] ~= 'circle fill' then
+                                                        D.R[i] = D.R[i] + Dx -- this is circle's radius
+                                                    end
+                                                    D.L[i] = D.L[i] + Dx
+                                                    D.T[i] = D.T[i] + Dy
+                                                    D.B[i] = D.B[i] + Dy
                                                 end
-                                                D.L[i] = D.L[i] + Dx
-                                                D.T[i] = D.T[i] + Dy
-                                                D.B[i] = D.B[i] + Dy
                                             end
                                         end
                                     end
@@ -9688,13 +9884,15 @@ function loop()
                                             D[i] = D[i] or {}
                                             local L = Win_L + D.L[i]
                                             local T = Win_T + D.T[i]
-                                            local R = Win_L + D.R[i]
+                                            local R = Win_L + (D.R[i] or 0)
                                             local B = Win_T + D.B[i]
                                             local Round = Draw.Df_EdgeRound[FxGUID] or 0
 
                                             if D.Type[i] == 'line' then
+
                                                 r.ImGui_DrawList_AddLine(WDL, L, T, R, T, D.clr[i] or 0xffffffff)
                                             elseif D.Type[i] == 'V-line' then
+
                                                 r.ImGui_DrawList_AddLine(WDL, Win_L + D.L[i], Win_T + D.T[i],
                                                     Win_L + D.L[i], Win_T + D.B[i], D.clr[i] or 0xffffffff)
                                             elseif D.Type[i] == 'rectangle' then
@@ -9703,9 +9901,9 @@ function loop()
                                                 r.ImGui_DrawList_AddRectFilled(WDL, L, T, R, B, D.clr[i] or 0xffffffff,
                                                     Round)
                                             elseif D.Type[i] == 'circle' then
-                                                r.ImGui_DrawList_AddCircle(WDL, L, T, R, D.clr[i] or 0xffffffff)
+                                                r.ImGui_DrawList_AddCircle(WDL, L, T, D.R[i], D.clr[i] or 0xffffffff)
                                             elseif D.Type[i] == 'circle fill' then
-                                                r.ImGui_DrawList_AddCircleFilled(WDL, L, T, R, D.clr[i] or 0xffffffff)
+                                                r.ImGui_DrawList_AddCircleFilled(WDL, L, T, D.R[i], D.clr[i] or 0xffffffff)
                                             elseif D.Type[i] == 'Text' and D.Txt[i] then
                                                 r.ImGui_DrawList_AddTextEx(WDL, Font_Andale_Mono_12, 12, L, T,
                                                     D.clr[i] or 0xffffffff, D.Txt[i])
@@ -9724,7 +9922,6 @@ function loop()
                                                         _1, _2, _3, _4, _5, _6, _7, _8, D.clr[i] or 0xffffffff)
                                                 end
                                                 -- ImageAngle(ctx, Image, 0, R - L, B - T, L, T)
-                                                -- msg('X = ' .. R - L .. '   Y = ' .. B - T)
                                             end
                                         end
                                     end
@@ -9740,9 +9937,9 @@ function loop()
                                             Win_B, 0x00000055)
                                         --draw grid
 
-                                        if r.ImGui_IsKeyPressed(ctx, 189) then
+                                        if r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_Equal()) then
                                             LE.GridSize = LE.GridSize + 5
-                                        elseif r.ImGui_IsKeyPressed(ctx, 187) then
+                                        elseif r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_Minus()) then
                                             LE.GridSize = LE.GridSize - 5
                                         end
 
@@ -11059,6 +11256,91 @@ function loop()
                                                         ToDef = {}
                                                     end
 
+
+                                                    if FP.Draw then
+                                                        for i, v in ipairs(FP.Draw) do
+                                                            local x, y = r.ImGui_GetItemRectMin(ctx)
+                                                            local x = x + (v.X_Offset or 0) + (Prm.V * (v.X_Offset_VA or 0))
+                                                            local y = y + (v.Y_Offset or 0) + (Prm.V * (v.Y_Offset_VA or 0))
+                                                            local Thick  = (v.Thick or 2 )
+                                                            
+                                                            if v.Thick_VA then Thick = (v.Thick or 2 ) * (v.Thick_VA * Prm.V) end
+                                                            
+                                                            if v.Type == 'Line' or v.Type =='Rect'  or v.Type =='Rect Filled' then
+
+                                                                local w = v.Width or r.ImGui_GetItemRectSize(ctx)
+                                                                local h = v.Height or select(2, r.ImGui_GetItemRectSize(ctx))
+
+                                                                local x2 = x +w
+                                                                local y2 = y +h
+
+                                                                if v.Width_VA and v.Width_VA  ~= 0  then  x2 =  x + (w or 10) * Prm.V * (v.Width_VA ) end 
+                                                                if v.Height_VA and v.Height_VA ~= 0 then  y2 =  y + (h or 10) * Prm.V * (v.Height_VA ) end 
+
+
+                                                                if v.Type == 'Line' then 
+                                                                    r.ImGui_DrawList_AddLine(WDL, x, y,x2, y2,v.Clr or 0xffffffff, Thick)
+                                                                elseif v.Type =='Rect' then 
+                                                                    r.ImGui_DrawList_AddRect(WDL, x,y,x2,y2, v.Clr or 0xffffffff, v.Round, flag ,Thick )
+                                                                elseif v.Type =='Rect Filled' then 
+                                                                    r.ImGui_DrawList_AddRectFilled(WDL, x,y,x2,y2, v.Clr or 0xffffffff, v.Round )
+
+                                                                end
+
+                                                            elseif v.Type == 'Circle' or v.Type =='Circle Filled' then
+                                                                local w, h = r.ImGui_GetItemRectSize(ctx)
+                                                                local Rad = v.Width or w
+                                                                if v.Width_VA then Rad = Rad * Prm.V * v.Width_VA end
+
+                                                                if v.Type == 'Circle' then 
+                                                                    r.ImGui_DrawList_AddCircle(WDL, x + w / 2, y + h / 2, Rad, v.Clr or 0xffffffff,nil,Thick)
+                                                                elseif v.Type == 'Circle Filled' then
+                                                                    r.ImGui_DrawList_AddCircleFilled(WDL, x + w / 2,y + h / 2,Rad ,v.Clr or 0xffffffff)
+                                                                end
+                                                           
+                                                            elseif v.Type == 'Knob Pointer' or v.Type =='Knob Range' or v.Type == 'Knob Image'  then
+                                                                local w, h = r.ImGui_GetItemRectSize(ctx)
+                                                                local x, y = x + w / 2 + (v.X_Offset or 0) , y + h / 2 + (v.Y_Offset or 0)
+                                                                local ANGLE_MIN = 3.141592 * (v.Angle_Min or  0.75)
+                                                                local ANGLE_MAX = 3.141592 * (v.Angle_Max or  2.25)
+                                                                local t = (Prm.V - 0) / (1 - 0)
+                                                                local angle = ANGLE_MIN + (ANGLE_MAX - ANGLE_MIN) * t
+                                                                local angle_cos, angle_sin = math.cos(angle), math.sin(angle)
+                                                                local IN = v.Rad_In or 0 -- modify this for the center begin point
+                                                                local OUT =  v.Rad_Out or 30
+                                                                
+                                                                if v.Type == 'Knob Pointer' then 
+                                                                    r.ImGui_DrawList_AddLine(WDL, x + angle_cos * IN, y + angle_sin *IN, x+ angle_cos * (OUT - Thick), y + angle_sin * (OUT - Thick),v.Clr , Thick)
+                                                                elseif v.Type == 'Knob Range' then 
+
+
+                                                                    --[[ r.ImGui_DrawList_PathArcTo(WDL, x, y, OUT / 2, ANGLE_MAX - ANGLE_MIN, angle)
+                                                                    r.ImGui_DrawList_PathStroke(WDL, v.Clr, nil, OUT * 0.6)
+                                                                    r.ImGui_DrawList_PathClear(WDL) ]]
+
+                                                                    --[[ r.ImGui_DrawList_PathArcTo(WDL, x,y, OUT * 0.75, angle,ANGLE_MIN + (ANGLE_MAX - ANGLE_MIN) * Prm.V)
+                                                                    r.ImGui_DrawList_PathStroke(WDL, v.Clr, nil, OUT * 0.5)
+                                                                    r.ImGui_DrawList_PathClear(WDL) ]]
+                                                                    local Mid = (OUT - IN )/1.5
+
+                                                                    for i= IN, OUT , 1 do 
+                                                                        r.ImGui_DrawList_PathArcTo(WDL,x,y ,i, ANGLE_MIN,SetMinMax(ANGLE_MIN + (ANGLE_MAX - ANGLE_MIN) * Prm.V, ANGLE_MIN, ANGLE_MAX))
+                                                                        r.ImGui_DrawList_PathStroke(WDL, v.Clr, nil, Thick)
+                                                                        r.ImGui_DrawList_PathClear(WDL)    
+                                                                    end
+                                                                end
+                                                            elseif v.Type == 'Image'  and v.Image then 
+                                                                    local w, h = r.ImGui_Image_GetSize (v.Image)
+                                                                    local w,h = (v.Width or w)   , ( v.Height or h)
+                                                                    if v.Width_VA and v.Width_VA~= 0  then w = (v.Width or w) * v.Width_VA * Prm.V end 
+                                                                    if v.Height_VA and v.Height_VA~=0 then h = (v.Height or h) * v.Height_VA * Prm.V end 
+
+                                                                r.ImGui_DrawList_AddImage(WDL,v.Image, x, y, x + w, y + h, 0,0,1,1, v.Clr or nil  )
+
+
+                                                            end
+                                                        end
+                                                    end
                                                     --Try another method: use undo history to detect if user has changed a preset, if so, unlink all params
                                                     --[[ if r.TrackFX_GetOpen(LT_Track, FX_Idx) and focusedFXState==1 and FX_Index_FocusFX==FX_Idx then
 
@@ -11114,6 +11396,9 @@ function loop()
                                                 AdjustPrmWidth = nil
                                             end
                                         end
+
+
+
 
                                         if FX.Round[FxGUID] then r.ImGui_PopStyleVar(ctx) end
                                         if FX.GrbRound[FxGUID] then r.ImGui_PopStyleVar(ctx) end
@@ -12712,10 +12997,13 @@ function loop()
                                         r.ImGui_DrawList_AddRectFilled(WDL, Win_L, Win_T,
                                             Win_R, Win_B, 0x00000088)
                                     end
-
+                                    if r.ImGui_IsWindowHovered(ctx,r.ImGui_HoveredFlags_RootAndChildWindows()) then  DisableScroll = nil else DisableScroll = true end
 
                                     r.ImGui_EndChild(ctx)
+                                
                                 end
+
+                                
                             end
 
 
@@ -12736,6 +13024,7 @@ function loop()
 
 
                             r.ImGui_EndGroup(ctx)
+                            
                         end
                         if BlinkFX == FX_Idx then BlinkFX = BlinkItem(0.2, 2, BlinkFX) end
                     end --of Create fx window function
@@ -12748,6 +13037,9 @@ function loop()
                             local rv, inputPins, outputPins = r.TrackFX_GetIOSize(LT_Track, FX_Idx)
                         end
                         if FX.LayEdit == FXGUID[FX_Idx] then
+                            r.ImGui_PushStyleColor(ctx, r.ImGui_Col_HeaderHovered(), 0xffffff00)
+                            r.ImGui_PushStyleColor(ctx, r.ImGui_Col_HeaderActive(), 0xffffff00)
+
                             --if not ctx then ctx = r.ImGui_CreateContext('Layout Editor') end
                             --r.ImGui_BeginTooltip( ctx)
 
@@ -12759,38 +13051,124 @@ function loop()
                             --r.ImGui_PushStyleColor(ctx, r.ImGui_Col_FrameBg(), 0x191919ff ) ;
                             local FxGUID = FXGUID[FX_Idx]
 
-                            if not CloseLayEdit and r.ImGui_Begin(ctx, 'LayoutEdit Propertiess', true,
-                                    r.ImGui_WindowFlags_MenuBar() + r.ImGui_WindowFlags_NoCollapse() +
-                                    r.ImGui_WindowFlags_NoTitleBar() + r.ImGui_WindowFlags_NoDocking()) then
+                            if not CloseLayEdit and r.ImGui_Begin(ctx, 'LayoutEdit Propertiess', true, r.ImGui_WindowFlags_NoCollapse() +  r.ImGui_WindowFlags_NoTitleBar() + r.ImGui_WindowFlags_NoDocking()) then
                                 --if not CloseLayEdit   then    ----START CHILD WINDOW------
+                                DisableScroll = true 
+                                
+
+
+                                if r.ImGui_Button(ctx, 'Save') then
+                                    SaveLayoutEditings(FX_Name, ID or 1, FXGUID[FX_Idx])
+                                    CloseLayEdit = true; FX.LayEdit = nil
+                                end
+                                SL()
+                                if r.ImGui_Button(ctx, 'Exit##Lay') then
+                                    r.ImGui_OpenPopup(ctx, 'Save Editing?')
+                                end
+                                SL()
+
+                                if LE.Sel_Items[1] then
+                                    local I = FX[FxGUID][LE.Sel_Items[1]]
+                                    if r.ImGui_Button(ctx, 'Delete') then
+                                        local tb = {}
+
+                                        for i, v in pairs(LE.Sel_Items) do
+                                            tb[i] = v
+                                        end
+                                        table.sort(tb)
+
+                                        for i = #tb, 1, -1 do
+                                            DeletePrm(FxGUID, tb[i])
+                                        end
+
+                                        if not FX[FxGUID][1] then FX[FxGUID].AllPrmHasBeenDeleted = true else FX[FxGUID].AllPrmHasBeenDeleted = nil end
+
+
+                                        LE.Sel_Items = {}
+                                    end
+
+                                    SL(nil, 30)
+
+                                    if r.ImGui_Button(ctx, 'Copy Properties') then
+                                        CopyPrm = {}
+                                        CopyPrm = I
+
+                                        for i, v in pairs(LE.Sel_Items) do
+
+                                        end
+                                    end
+
+                                    SL()
+                                    if r.ImGui_Button(ctx, 'Paste Properties') then
+                                        for i, v in pairs(LE.Sel_Items) do
+                                            I.Type        = CopyPrm.Type
+                                            I.Sldr_W      = CopyPrm.Sldr_W
+                                            I.Style       = CopyPrm.Style
+                                            I.V_FontSize  = CopyPrm.V_FontSize
+                                            I.CustomLbl   = CopyPrm.CustomLbl
+                                            I.FontSize    = CopyPrm.FontSize
+                                            I.Sldr_H      = CopyPrm.Sldr_H
+                                            I.BgClr       = CopyPrm.BgClr
+                                            I.GrbClr      = CopyPrm.GrbClr
+                                            I.Lbl_Pos     = CopyPrm.Lbl_Pos
+                                            I.V_Pos       = CopyPrm.V_Pos
+                                            I.Lbl_Clr     = CopyPrm.Lbl_Clr
+                                            I.V_Clr       = CopyPrm.V_Clr
+                                            I.DragDir     = CopyPrm.DragDir
+                                            I.Value_Thick = CopyPrm.Value_Thick
+                                            I.V_Pos_X     = CopyPrm.V_Pos_X
+                                            I.V_Pos_Y     = CopyPrm.V_Pos_Y
+                                            I.ImagePath   = CopyPrm.ImagePath
+                                            if CopyPrm.Draw then
+                                                for i, v in ipairs(CopyPrm.Draw) do
+                                                    I.Draw = CopyPrm.Draw
+                                                end
+                                            end
+                                        end
+                                    end
+                                end
+                                SL(nil, 30)
+
+                                if Draw.DrawMode[FxGUID] then
+                                    if r.ImGui_Button(ctx, 'Exit Draw Mode ') then Draw.DrawMode[FxGUID] = false end
+                                else
+                                    if r.ImGui_Button(ctx, 'Enter Draw Mode ') then
+                                        Draw.DrawMode[FxGUID] = true
+                                        if Draw[FX.Win_Name_S[FX_Idx]] == nil then
+                                            Draw[FX.Win_Name_S[FX_Idx]] = {
+                                                Rect = {},
+                                                clr = {},
+                                                ItemInst = {},
+                                                L = {},
+                                                R = {},
+                                                Y = {},
+                                                T = {},
+                                                B = {},
+                                                Type = {},
+                                                FxGUID = {},
+                                                Txt = {}
+                                            }
+                                        end
+                                    end
+                                end
+
+
+
+
+                                r.ImGui_Separator(ctx)
+
+
+                                local ColorPaletteTop = r.ImGui_GetCursorPosY
+
+
+
+
                                 -- Add Drawings ----
                                 if not LE.Sel_Items[1] then
                                     if Draw.DrawMode[FxGUID] ~= true then
                                         r.ImGui_TextWrapped(ctx, 'Select an item to start editing')
                                         AddSpacing(15)
-
-
-
-                                        if r.ImGui_Button(ctx, 'Enter Draw Mode ') then
-                                            Draw.DrawMode[FxGUID] = true
-                                            if Draw[FX.Win_Name_S[FX_Idx]] == nil then
-                                                Draw[FX.Win_Name_S[FX_Idx]] = {
-                                                    Rect = {},
-                                                    clr = {},
-                                                    ItemInst = {},
-                                                    L = {},
-                                                    R = {},
-                                                    Y = {},
-                                                    T = {},
-                                                    B = {},
-                                                    Type = {},
-                                                    FxGUID = {},
-                                                    Txt = {}
-                                                }
-                                            end
-                                        end
                                     else
-                                        if r.ImGui_Button(ctx, 'Exit Draw Mode ') then Draw.DrawMode[FxGUID] = false end
                                         r.ImGui_Text(ctx, 'Type:')
                                         r.ImGui_SameLine(ctx)
                                         r.ImGui_PushStyleColor(ctx, r.ImGui_Col_FrameBg(), 0x99999933)
@@ -12812,7 +13190,7 @@ function loop()
                                             end
                                             setType('Picture')
                                             setType('line')
-                                            setType('V-Line')
+                                            setType('V-line')
                                             setType('rectangle')
                                             setType('rect fill')
                                             setType('circle')
@@ -12852,7 +13230,7 @@ function loop()
                                                     r.ImGui_Text(ctx, 'Drag and drop files here...')
                                                 else
                                                     r.ImGui_Text(ctx, D[It].FilePath)
-                                                    r.ImGui_SameLine(ctx)
+
                                                     if r.ImGui_SmallButton(ctx, 'Clear') then
 
                                                     end
@@ -12873,13 +13251,9 @@ function loop()
                                                         rv, filename = r.ImGui_GetDragDropPayloadFile(ctx, i)
                                                         D[It].FilePath = filename
 
-                                                        AttachImage = { Path = filename, DrawItemNum = It, }
-                                                        if AttachImage then
-                                                            local FX_Name_Short = ChangeFX_Name(FX_Name)
-                                                            D[It].Image = r.ImGui_CreateImage(AttachImage.Path)
-                                                            r.ImGui_Attach(ctx, D[It].Image)
-                                                            AttachImage = nil
-                                                        end
+                                                        D[It].Image = r.ImGui_CreateImage(filename)
+                                                        r.ImGui_Attach(ctx, D[It].Image)
+
                                                     end
                                                 end
                                                 r.ImGui_EndDragDropTarget(ctx)
@@ -13283,7 +13657,7 @@ function loop()
                                     local DefaultW, MaxW, MinW
                                     if FrstSelItm.Type == 'Knob' then
                                         DefaultW = Df.KnobRadius
-                                        MaxW = 30
+                                        MaxW = 80
                                         MinW = 7.5
                                     elseif FrstSelItm.Type == 'Slider' or FrstSelItm.Type == 'Drag' or not FrstSelItm.Type then
                                         DefaultW = Df.Sldr_W
@@ -13359,10 +13733,7 @@ function loop()
                                         local Itm = LE.Sel_Items[1]
                                         local FP = FX[FxGUID][Itm]
 
-                                        --[[ if not FX[FxGUID][Itm].EditValuesManual then if FX[FxGUID][Itm].ManualValues then FX[FxGUID][Itm].EditValuesManual = true end end
 
-                                            EDIT, FX[FxGUID][Itm].EditValuesManual = r.ImGui_Checkbox( ctx, '##Edit Values Manually'..FxGUID..(Itm or''), FX[FxGUID][Itm].EditValuesManual)
-                                            if FX[FxGUID][Itm].EditValuesManual then    ]]
 
                                         if r.ImGui_TreeNode(ctx, 'Edit Values Manually') then
                                             FX[FxGUID][Itm].ManualValues = FX[FxGUID][Itm].ManualValues or {}
@@ -13393,6 +13764,11 @@ function loop()
                                         end
                                     end
 
+                                    function ToAllSelItm(x,y)
+                                        for i, v in ipairs(LE.Sel_Items) do 
+                                            FX[FxGUID][v][x] = y
+                                        end
+                                    end
 
 
                                     local FLT_MIN, FLT_MAX = r.ImGui_NumericLimits_Float()
@@ -13411,17 +13787,24 @@ function loop()
 
                                     DragDropPics = DragDropPics or {}
 
-                                    if r.ImGui_BeginChildFrame(ctx, '##drop_files', -FLT_MIN, 40) then
+                                    rv , ImgTrashTint = TrashIcon (16, 'Clear',ClrBG , ImgTrashTint)
+                                    if rv  then
+                                        ToAllSelItm('Style', nil)
+                                        ToAllSelItm('ImagePath', nil)
+                                        ToAllSelItm('Image', nil)
+                                    end
+
+
+                                    SL()
+                                    if r.ImGui_BeginChildFrame(ctx, '##drop_files', -R_ofs, 20) then
                                         if not FrstSelItm.ImagePath then
                                             r.ImGui_Text(ctx, 'Drag and drop files here...')
                                         else
-                                            FrstSelItm.Style = 'Custom Image'
+                                            --FrstSelItm.Style = 'Custom Image'
+                                            
                                             r.ImGui_Text(ctx, FrstSelItm.ImagePath)
-                                            r.ImGui_SameLine(ctx)
-                                            if r.ImGui_SmallButton(ctx, 'Clear') then
-                                                FrstSelItm.Style = nil
-                                                FrstSelItm.ImagePath = nil
-                                            end
+
+                                            
                                         end
 
                                         r.ImGui_EndChildFrame(ctx)
@@ -13431,17 +13814,31 @@ function loop()
                                         local rv, count = r.ImGui_AcceptDragDropPayloadFiles(ctx)
                                         if rv then
                                             for i = 0, count - 1 do
+                                                FrstSelItm.Style = 'Custom Image'
                                                 local filename
                                                 rv, filename = r.ImGui_GetDragDropPayloadFile(ctx, i)
-                                                FrstSelItm.ImagePath = filename
 
-                                                AttachImage = { Path = filename, DrawItemNum = It, }
+                                                local index = filename:match '^.*()/'
+                                                local SubFolder = ''
+                                                if FrstSelItm.Type == 'Knob' then
+                                                    SubFolder = 'Knobs'
+                                                end
+
+                                                local NewFileName = r.GetResourcePath() .. '/Scripts/ReaTeam Scripts/FX/BryanChi_FX Devices/Images/' ..  SubFolder .. filename:sub(index)
+                                                CopyFile(filename, NewFileName)
+
+                                                FrstSelItm.ImagePath = NewFileName
+
+
+                                                ToAllSelItm('Image', r.ImGui_CreateImage(FrstSelItm.ImagePath))
+
+                                                --[[  AttachImage = { Path = FrstSelItm.ImagePath, DrawItemNum = It, }
                                                 if AttachImage then
                                                     local FX_Name_Short = ChangeFX_Name(FX_Name)
                                                     FrstSelItm.Image = r.ImGui_CreateImage(AttachImage.Path)
                                                     r.ImGui_Attach(ctx, FrstSelItm.Image)
                                                     AttachImage = nil
-                                                end
+                                                end ]]
                                             end
                                         end
                                         r.ImGui_EndDragDropTarget(ctx)
@@ -13471,31 +13868,76 @@ function loop()
                                     if r.ImGui_BeginPopup(ctx, 'Choose style window') then
                                         r.ImGui_BeginDisabled(ctx)
 
-                                        local function setItmStyle(Style)
+                                        local function setItmStyle(Style, img, ImgPath)
                                             for i, v in pairs(LE.Sel_Items) do
-                                                FX[FxGUID][v].Style = Style; r.ImGui_CloseCurrentPopup(ctx)
+                                                FX[FxGUID][v].Style = Style; 
+                                                if img then 
+                                                    FX[FxGUID][v].Image = img 
+                                                    FX[FxGUID][v].ImagePath = ImgPath
+                                                end 
+
+                                                r.ImGui_CloseCurrentPopup(ctx)
                                             end
                                         end
                                         if FrstSelItm.Type == 'Slider' or (not FrstSelItm.Type and FX.Def_Type[FxGUID] == 'Slider') then -- if all selected itms are Sliders
                                             --AddSlider(ctx, '##'..FrstSelItm.Name , 'Default', 0, 0, 1, v,FX_Idx, FrstSelItm.Num ,Style, FrstSelItm.Sldr_W or FX.Def_Sldr_W[FxGUID]  ,0, Disable, Vertical, GrabSize,     FrstSelItm.Lbl, 8)
                                             --AddSlider(ctx, '##'..FrstSelItm.Name , 'Default', 0, 0, 1, v,FX_Idx, FrstSelItm.Num ,Style, FrstSelItm.Sldr_W or FX.Def_Sldr_W[FxGUID]  ,0, Disable, Vertical, GrabSize, FrstSelItm.Lbl, 8)
                                         end
-
+                                        StyleWinFilter = r.ImGui_CreateTextFilter(FilterText)
                                         if FrstSelItm.Type == 'Knob' or (not FrstSelItm.Type and FX.Def_Type[FxGUID] == 'Knob') then -- if all selected itms are knobs
-                                            local function SetStyle(Name, Style)
-                                                r.ImGui_Text(ctx, Name)
-                                                AddKnob(ctx, '##' .. FrstSelItm.Name, '', 0, 0, 1, FItm, FX_Idx,
-                                                    FrstSelItm.Num, Style, 15, 0, Disabled, 12)
-                                                if HighlightHvredItem() then --if clicked on highlighted itm
-                                                    setItmStyle(Style)
-                                                    r.ImGui_CloseCurrentPopup(ctx)
+                                            StyleWinImg = StyleWinImg or {}
+                                            StyleWinImgName = StyleWinImgName or {}
+                                            local function SetStyle(Name, Style,Img, ImagePath)
+
+                                                
+                                                if r.ImGui_TextFilter_PassFilter(StyleWinFilter, Name) then 
+                                                    r.ImGui_Text(ctx, Name)
+                                                    AddKnob(ctx, '##' .. FrstSelItm.Name, '', 0, 0, 1, FItm, FX_Idx,FrstSelItm.Num, Style, 15, 0, Disabled, 12, Lbl_Pos, V_Pos, Img)
+                                                    if HighlightHvredItem() then --if clicked on highlighted itm
+                                                        setItmStyle(Style, Img,ImagePath)
+                                                        r.ImGui_CloseCurrentPopup(ctx)
+                                                    end
+                                                    AddSpacing(6)
                                                 end
-                                                AddSpacing(6)
                                             end
+
+
+                                            r.ImGui_EndDisabled(ctx)
+                                            if r.ImGui_TextFilter_Draw(StyleWinFilter, ctx, '##StyleWinFilterTxt', -1) then
+                                                FilterText = r.ImGui_TextFilter_Get(StyleWinFilter)
+                                                r.ImGui_TextFilter_Set(StyleWinFilter, FilterText)
+                                            end
+                                            if r.ImGui_IsWindowAppearing(ctx ) then 
+                                                r.ImGui_SetKeyboardFocusHere(ctx)
+                                            end
+
+                                            r.ImGui_BeginDisabled(ctx)
+
 
                                             SetStyle('Default', Style)
                                             SetStyle('Minimalistic', 'Pro C')
                                             SetStyle('Analog 1', 'Analog 1')
+                                            local Dir = r.GetResourcePath() ..'/Scripts/ReaTeam Scripts/FX/BryanChi_FX Devices/Images/Knobs'
+
+                                            if r.ImGui_IsWindowAppearing(ctx) then 
+ 
+                                                StyleWindowImgFiles = scandir (Dir)
+                                                if StyleWindowImgFiles then 
+                                                    for i, v in ipairs( StyleWindowImgFiles) do 
+                                                        StyleWinImg[i] =  r.ImGui_CreateImage (Dir..'/'..v)
+                                                        r.ImGui_Attach(ctx, StyleWinImg[i])
+                                                        StyleWinImgName[i] = v
+                                                    end
+                                                end
+                                            end
+
+                                            for i, v in ipairs(StyleWinImg )do 
+                                                SetStyle(StyleWinImgName[i], 'Custom Image',  StyleWinImg[i], Dir..'/'..StyleWinImgName[i])
+                                            end
+                                            
+
+
+
                                         end
 
                                         if FrstSelItm.Type == 'Selection' then
@@ -13603,11 +14045,8 @@ function loop()
                                         r.ImGui_Text(ctx, 'On Color: ')
                                         r.ImGui_SameLine(ctx)
                                         local DragLbl_Clr_Edited, V_Clr = r.ImGui_ColorEdit4(ctx,
-                                            '##Switch on Clr' .. LE.Sel_Items[1],
-                                            FX[FxGUID][LE.Sel_Items[1] or ''].Switch_On_Clr or
-                                            r.ImGui_GetColor(ctx, r.ImGui_Col_Text()),
-                                            r.ImGui_ColorEditFlags_NoInputs()|    r
-                                            .ImGui_ColorEditFlags_AlphaPreviewHalf()|r.ImGui_ColorEditFlags_AlphaBar())
+                                            '##Switch on Clr' .. LE.Sel_Items[1], FX[FxGUID][LE.Sel_Items[1] or ''].Switch_On_Clr or
+                                            0xffffff55,r.ImGui_ColorEditFlags_NoInputs()|    r.ImGui_ColorEditFlags_AlphaPreviewHalf()|r.ImGui_ColorEditFlags_AlphaBar())
                                         if DragLbl_Clr_Edited then
                                             for i, v in pairs(LE.Sel_Items) do FX[FxGUID][v].Switch_On_Clr = V_Clr end
                                         end
@@ -13774,27 +14213,227 @@ function loop()
                                         end
                                     end
 
-                                    Condition('ConditionPrm', 'ConditionPrm_PID', 'ConditionPrm_V', 'ConditionPrm_V_Norm',
-                                        'Show only if:', 'ShowCondition')
-                                    if FrstSelItm.ConditionPrm then
-                                        Condition('ConditionPrm2', 'ConditionPrm_PID2',
-                                            'ConditionPrm_V2', 'ConditionPrm_V_Norm2', 'And if:', 'ShowCondition2')
-                                    end
-                                    if FrstSelItm.ConditionPrm2 then
-                                        Condition('ConditionPrm3', 'ConditionPrm_PID3',
-                                            'ConditionPrm_V3', 'ConditionPrm_V_Norm3', 'And if:', 'ShowCondition3')
-                                    end
-                                    if FrstSelItm.ConditionPrm3 then
-                                        Condition('ConditionPrm4', 'ConditionPrm_PID4',
-                                            'ConditionPrm_V4', 'ConditionPrm_V_Norm4', 'And if:', 'ShowCondition4')
-                                    end
-                                    if FrstSelItm.ConditionPrm4 then
-                                        Condition('ConditionPrm5', 'ConditionPrm_PID5',
-                                            'ConditionPrm_V5', 'ConditionPrm_V_Norm5', 'And if:', 'ShowCondition5')
+
+
+                                    if r.ImGui_TreeNode(ctx, 'Conditional Parameter') then
+                                        Condition('ConditionPrm', 'ConditionPrm_PID', 'ConditionPrm_V',
+                                            'ConditionPrm_V_Norm',
+                                            'Show only if:', 'ShowCondition')
+                                        if FrstSelItm.ConditionPrm then
+                                            Condition('ConditionPrm2', 'ConditionPrm_PID2',
+                                                'ConditionPrm_V2', 'ConditionPrm_V_Norm2', 'And if:', 'ShowCondition2')
+                                        end
+                                        if FrstSelItm.ConditionPrm2 then
+                                            Condition('ConditionPrm3', 'ConditionPrm_PID3',
+                                                'ConditionPrm_V3', 'ConditionPrm_V_Norm3', 'And if:', 'ShowCondition3')
+                                        end
+                                        if FrstSelItm.ConditionPrm3 then
+                                            Condition('ConditionPrm4', 'ConditionPrm_PID4',
+                                                'ConditionPrm_V4', 'ConditionPrm_V_Norm4', 'And if:', 'ShowCondition4')
+                                        end
+                                        if FrstSelItm.ConditionPrm4 then
+                                            Condition('ConditionPrm5', 'ConditionPrm_PID5',
+                                                'ConditionPrm_V5', 'ConditionPrm_V_Norm5', 'And if:', 'ShowCondition5')
+                                        end
+                                        r.ImGui_TreePop(ctx)
                                     end
 
 
 
+
+
+                                    if r.ImGui_TreeNode(ctx, 'Attach Drawing') then
+                                        FrstSelItm.Draw = FrstSelItm.Draw or {}
+                                        if RemoveDraw then
+                                            table.remove(FrstSelItm.Draw, RemoveDraw)
+                                            RemoveDraw = nil
+                                        end
+
+                                        for i = 1, #FrstSelItm.Draw, 1 do
+                                            local rv = r.ImGui_TreeNode(ctx, 'Drawing ' .. i)
+
+                                            SL()
+                                            if r.ImGui_Button(ctx, 'Delete##' .. i) then
+                                                RemoveDraw = i
+                                            end
+
+
+
+                                            if rv then
+                                                r.ImGui_Text(ctx, 'Drawing Type : ')
+                                                SL()
+                                                r.ImGui_SetNextItemWidth(ctx, 100)
+
+
+                                                local D = FrstSelItm.Draw[i]
+                                                local LBL = FxGUID .. LE.Sel_Items[1] .. i
+                                                local H = Glob.Height
+                                                local W = Win_W
+                                                if r.ImGui_BeginCombo(ctx, '## Combo type' .. LBL, D.Type or '', r.ImGui_ComboFlags_NoArrowButton()) then
+                                                    if r.ImGui_Selectable(ctx, 'Image') then 
+                                                        D.Type = 'Image'
+                                                    elseif r.ImGui_Selectable(ctx, 'Line') then
+                                                        D.Type = 'Line'
+                                                    elseif r.ImGui_Selectable(ctx, 'Circle') then
+                                                        D.Type = 'Circle'
+                                                    elseif r.ImGui_Selectable(ctx, 'Circle Filled') then
+                                                        D.Type = 'Circle Filled'
+                                                    elseif r.ImGui_Selectable(ctx, 'Knob Pointer') then 
+                                                        D.Type = 'Knob Pointer'
+                                                    elseif r.ImGui_Selectable(ctx, 'Knob Range') then 
+                                                        D.Type = 'Knob Range'
+
+                                                    elseif r.ImGui_Selectable(ctx, 'Rect') then 
+                                                        D.Type = 'Rect'
+                                                    elseif r.ImGui_Selectable(ctx, 'Rect Filled') then
+                                                        D.Type = 'Rect Filled'
+                                                    end
+                                                    r.ImGui_EndCombo(ctx)
+                                                end
+
+
+                                                local function AddProp(ShownName, Name, width, sl, defaultV, stepSize, min,max, format)
+                                                    if ShownName then
+                                                        r.ImGui_Text(ctx, ShownName)
+                                                        SL()
+                                                    end
+                                                    if width then r.ImGui_SetNextItemWidth(ctx, width) end
+
+
+                                                    local rv, V = r.ImGui_DragDouble(ctx, '##' .. Name .. LBL,
+                                                        D[Name] or defaultV or 0, stepSize or LE.GridSize, min or -W,
+                                                        max or W - 10, format or '%.0f')
+
+                                                    if rv then D[Name] = V end 
+                                                    if sl then SL() end
+                                                end
+
+                                                local BL_Width = {'Knob Pointer', 'Knob Range'}
+                                                local BL_Height = {'Knob Pointer', 'Knob Range' , 'Circle', 'Circle Filled'}
+                                                local Thick ={'Knob Pointer', 'Line', 'Rect', 'Circle' }
+                                                local Round = {'Rect', 'Rect Filled' }
+
+                                                local DefW, DefH 
+
+                                                local WidthLBL = 'Width: '
+                                                if D.Type =='Circle' or D.Type == 'Cicle Filled' then WidthLBL = 'Size'    end 
+
+
+                                                AddProp('X offset: ', 'X_Offset', 50, 'SL', 0, LE.GridSize, min, max, nil)
+                                                AddProp('Value Affect: ', 'X_Offset_VA', 50)
+                                                AddProp('Y offset: ', 'Y_Offset', 50, 'SL', 0, LE.GridSize, -220, 220, nil)
+                                                AddProp('Value Affect: ', 'Y_Offset_VA', 50)
+                                                if not FindStringInTable(BL_Width, D.Type) then
+                                                    AddProp(WidthLBL, 'Width', 50, 'SL', 10, LE.GridSize, min, max, nil)
+                                                    AddProp('Value Affect: ', 'Width_VA', 50, nil, 0, 0.01, -1, 1, '%.3f')
+                                                end
+
+                                                if not FindStringInTable(BL_Height, D.Type) then
+                                                    AddProp('Height: ', 'Height', 50, 'SL', 10, LE.GridSize, 0, 220, nil)
+                                                    AddProp('Value Affect: ', 'Height_VA', 50, nil, 0, 0.01, -1, 1, '%.3f')
+
+                                                end
+
+                                                local ClrFLG = r.ImGui_ColorEditFlags_NoInputs() +
+                                                    r.ImGui_ColorEditFlags_AlphaPreviewHalf() +
+                                                    r.ImGui_ColorEditFlags_NoLabel() +
+                                                    r.ImGui_ColorEditFlags_AlphaBar()
+
+                                                if D.Type =='Knob Pointer' or D.Type =='Knob Range' then 
+                                                    AddProp('Angle Min: ', 'Angle_Min', 50, nil,  0.75, 0.01, 0, 3.14, '%.3f')
+
+                                                    AddProp('Angle Max: ', 'Angle_Max', 50, nil, 2.25, 0.01, 0, 3.14, '%.3f')
+                                                    AddProp('Radius Inner: ', 'Rad_In', 50, nil, 0, 0.1, 0, 300, '%.3f')
+                                                    AddProp('Radius Outer: ', 'Rad_Out', 50, nil, 30, 0.1, 0, 300, '%.3f')
+
+                                                end
+
+                                                if D.Type =='Image' then 
+
+
+        
+                                                    if r.ImGui_BeginChildFrame(ctx, '##drop_files', -R_ofs, 40) then
+                                                        if not D.FilePath then
+                                                            r.ImGui_Text(ctx, 'Drag and drop files here...')
+                                                        else
+                                                            r.ImGui_Text(ctx,  D.FilePath)
+
+                                                            if r.ImGui_SmallButton(ctx, 'Clear') then
+                                                                D.FilePath = nil
+                                                            end
+                                                        end
+                                                        if D.FilePath then
+                                                            r.ImGui_Bullet(ctx)
+                                                            r.ImGui_TextWrapped(ctx, D.FilePath)
+                                                        end
+                                                        r.ImGui_EndChildFrame(ctx)
+                                                    end
+
+                                                    if r.ImGui_BeginDragDropTarget(ctx) then
+                                                        local rv, count = r.ImGui_AcceptDragDropPayloadFiles(ctx)
+                                                if rv then
+                                                    for i = 0, count - 1 do
+                                                        local filename
+                                                        rv, filename = r.ImGui_GetDragDropPayloadFile(ctx, i)
+                                                        D.FilePath = filename
+
+                                                        D.Image = r.ImGui_CreateImage(D.FilePath)
+                                                            r.ImGui_Attach(ctx, D.Image)
+                                                    end
+                                                end
+                                                        r.ImGui_EndDragDropTarget(ctx)
+                                                    end
+
+
+
+                                                end
+
+                                                if FindStringInTable(Thick,D.Type) then 
+                                                    AddProp('Thickness: ', 'Thick', 50, 'SL', 2, 0.5, 0,60, '%.1f')
+                                                    AddProp('Value Affect: ', 'Thick_VA', 50, nil, 0, 0.01, -1, 1, '%.3f')
+                                                end
+
+                                                if FindStringInTable(Round, D.Type) then 
+                                                    AddProp('Round: ','Round', 50, nil, 0, 0.1, 0, 100, '%.1f')
+                                                end
+
+                                                --[[ if D.Type ~= 'Line' and D.Type ~= 'Circle' then
+                                                    r.ImGui_Text(ctx, 'Fill Color: ')
+                                                    SL()
+
+                                                    _, D.FillClr = r.ImGui_ColorEdit4(ctx, 'Fill Color' .. LBL,
+                                                        D.FillClr or 0xffffffff, ClrFLG)
+                                                    SL()
+                                                end ]]
+
+                                                r.ImGui_Text(ctx, 'Color: ')
+                                                SL()
+                                                _, D.Clr = r.ImGui_ColorEdit4(ctx, 'Color' .. LBL, D.Clr or 0xffffffff,
+                                                    ClrFLG)
+
+
+                                                --[[ if D.Type == 'Knob Pointer' then 
+                                                    AddProp('Angle: ', 'Width', 50, 'SL', 10, LE.GridSize, min, max, nil)
+                                                    AddProp('Value Affect: ', 'Width_VA', 50, nil, 1, 0.01, -1, 1, '%.3f')
+                                                end ]]
+
+
+
+
+                                                r.ImGui_TreePop(ctx)
+                                            end
+                                        end
+
+
+
+
+                                        if r.ImGui_Button(ctx, 'attach a new drawing') then
+                                            table.insert(FrstSelItm.Draw, {})
+                                        end
+
+
+                                        r.ImGui_TreePop(ctx)
+                                    end
 
                                     r.ImGui_PopStyleColor(ctx)
                                 end -------------------- End of Repeat for every selected item
@@ -13844,79 +14483,7 @@ function loop()
 
 
 
-                                if Draw.DrawMode[FxGUID] == true then
-                                    if not CheckIfDrawingHasBeenMade(FX_Idx) then r.ImGui_BeginDisabled(ctx) end
 
-                                    if r.ImGui_Button(ctx, 'Save Drawings') then
-                                        SaveDrawings(FX_Idx, FxGUID)
-                                        Draw.DrawMode[FxGUID] = nil
-                                    end
-
-                                    if not CheckIfDrawingHasBeenMade(FX_Idx) then r.ImGui_EndDisabled(ctx) end
-
-
-
-                                    r.ImGui_SameLine(ctx, nil, 30)
-                                    if r.ImGui_Button(ctx, 'Exit') then
-                                        if CheckIfDrawingHasBeenMade(FX_Idx) then
-                                            local Modalw, Modalh = 300, 80
-                                            r.ImGui_SetNextWindowPos(ctx, VP.x + VP.w / 2 - Modalw / 2,
-                                                VP.y + VP.h / 2 - Modalh / 2)
-                                            r.ImGui_SetNextWindowSize(ctx, Modalw, Modalh)
-                                            r.ImGui_OpenPopup(ctx, 'Save Draw Editing?')
-                                        else
-                                            Draw.DrawMode[FxGUID] = nil
-                                        end
-                                    end
-                                else
-                                    --if not CheckIfLayoutEditHasBeenMade(FxGUID, FX_Name)  then Disabled= true  r.ImGui_BeginDisabled(ctx) end
-
-
-
-
-
-
-
-                                    if r.ImGui_Button(ctx, 'Save') then
-                                        SaveLayoutEditings(FX_Name, ID or 1, FXGUID[FX_Idx])
-                                        CloseLayEdit = true; FX.LayEdit = nil
-                                    end
-
-
-                                    -- if not  CheckIfLayoutEditHasBeenMade(FxGUID, FX_Name) and Disabled  then r.ImGui_EndDisabled(ctx) Disabled=nil  end
-                                    r.ImGui_SameLine(ctx, nil, 30)
-
-                                    if r.ImGui_Button(ctx, 'Exit') then
-                                        --if CheckIfLayoutEditHasBeenMade(FxGUID, FX_Name) then
-                                        local Modalw, Modalh = 300, 80
-                                        r.ImGui_SetNextWindowPos(ctx, VP.x + VP.w / 2 - Modalw / 2,
-                                            VP.y + VP.h / 2 - Modalh / 2)
-                                        r.ImGui_SetNextWindowSize(ctx, Modalw, Modalh)
-                                        r.ImGui_OpenPopup(ctx, 'Save Editing?')
-                                        --[[ else
-                                                CloseLayEdit = true ;FX.LayEdit= nil
-                                            end ]]
-                                    end
-
-                                    r.ImGui_SameLine(ctx, nil, 30)
-                                    if r.ImGui_Button(ctx, 'Delete') then
-                                        local tb = {}
-
-                                        for i, v in pairs(LE.Sel_Items) do
-                                            tb[i] = v
-                                        end
-                                        table.sort(tb)
-
-                                        for i = #tb, 1, -1 do
-                                            DeletePrm(FxGUID, tb[i])
-                                        end
-
-                                        if not FX[FxGUID][1] then FX[FxGUID].AllPrmHasBeenDeleted = true else FX[FxGUID].AllPrmHasBeenDeleted = nil end
-
-
-                                        LE.Sel_Items = {}
-                                    end
-                                end
 
                                 if r.ImGui_BeginPopupModal(ctx, 'Save Editing?') then
                                     SaveEditingPopupModal = true
@@ -13947,13 +14514,20 @@ function loop()
 
                                     r.ImGui_EndPopup(ctx)
                                 end
+
+
+                                local PalletteW = 25
+                                local Pad = 10
                                 if not CloseLayEdit then
                                     w, h = r.ImGui_GetWindowSize(ctx)
-                                    r.ImGui_SetCursorPos(ctx, w - 24, 20)
+                                    r.ImGui_SetCursorPos(ctx, w - PalletteW - Pad, PalletteW + Pad)
                                 end
 
+
+
+
                                 for Pal = 1, NumOfColumns or 1, 1 do
-                                    if not CloseLayEdit and r.ImGui_BeginChildFrame(ctx, 'Color Palette' .. Pal, 30, h - 30, r.ImGui_WindowFlags_NoScrollbar()) then
+                                    if not CloseLayEdit and r.ImGui_BeginChildFrame(ctx, 'Color Palette' .. Pal, PalletteW, h - PalletteW - Pad * 2, r.ImGui_WindowFlags_NoScrollbar()) then
                                         local NumOfPaletteClr = 9
 
                                         for i, v in ipairs(FX[FxGUID]) do
@@ -14059,6 +14633,7 @@ function loop()
                                 r.ImGui_End(ctx)
                                 if CloseLayEdit then
                                     FX.LayEdit = nil
+                                    Draw.DrawMode[FxGUID] = nil
                                 end
                             end
 
@@ -14079,6 +14654,7 @@ function loop()
 
                             -- r.ImGui_PopStyleVar(ctx)
                             --r.ImGui_PopStyleColor(ctx,2 )
+                            PopClr(ctx, 2)
                         end
 
                         if AdjustDrawRectPos and IsLBtnHeld then
@@ -16055,6 +16631,7 @@ function loop()
                             if FxGUID then
                                 for P, v in ipairs(FX[FxGUID]) do
                                     local FP = FX[FxGUID][P]
+                                    FP.ModAMT = FP.ModAMT or {}
                                     if FP.WhichCC then
                                         for m = 1, 8, 1 do
                                             if FP.ModAMT[m] then r.gmem_write(1000 * m + P, FP.ModAMT[m]) end
@@ -16076,12 +16653,13 @@ function loop()
 
 
                 r.ImGui_EndChild(ctx)
-                if HoverOnScrollItem then DisableScroll = true else DisableScroll = nil end
+                if HoverOnScrollItem then DisableScroll = true end
 
                 if AnySplitBandHvred then
                     HintMessage =
                     'Mouse: Alt=Delete All FXs in Layer | Shift=Bypass FXs    Keys: M=mute band   Shift+M=Toggle all muted band | S=solo band  Shift+S=Toggle all solo\'d band'
                 end
+
             end
             Pos_Devices_R, Pos_Devices_B = r.ImGui_GetItemRectMax(ctx)
 
