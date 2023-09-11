@@ -1,7 +1,9 @@
 -- @description ReaNamer (track-item-region-marker renaming utility)
 -- @author amagalma & gianfini
--- @version 1.40
--- @changelog - Added markers support
+-- @version 1.45
+-- @changelog
+--   - All shortcuts working (requires JS_ReaScriptAPI)
+--   - Fixed crashes when adding Regions or Markers
 -- @provides
 --   amagalma_ReaNamer Replace Help.lua
 --   amagalma_ReaNamer utf8data.lua
@@ -16,7 +18,7 @@
 --   - Mode (tracks or items) is automatically chosen when the script starts. Then to change mode click on appropriate button.
 --   - When satisfied with the modifications (which can be previewed in the list), COMMIT button writes the values to tracks/items/regions/markers and creates an Undo point in Reaper's Undo History
 --   - UTF-8 support for case-changing functions
---   - SWS / S&M extension is required
+--   - SWS / S&M extension and JS_ReaScriptAPI are required
 --
 --   Key Shortcuts:
 --    Esc to close script
@@ -46,7 +48,7 @@
 
 -----------------------------------------------------------------------------------------------
 
-local version = "1.40"
+local version = "1.45"
 
 if not reaper.APIExists( "BR_Win32_FindWindowEx" ) then
   reaper.MB( "SWS / S&M extension is required for this script to work", "SWS / S&M extension is not installed!", 0 )
@@ -1433,6 +1435,28 @@ end
 local prev_st, prev_en = reaper.GetSet_LoopTimeRange2( 0, 0, 0, 0, 0, 0 )
 local getchar
 local mousecap
+local key_state
+local last_key_time = reaper.time_precise()
+local keys = {
+  [13] = { [4] = function() commit_btn.onClick() end },
+  [65] = { [16] = function() swap_btn.onClick() end },
+  [67] = { [16] = function() clear_btn.onClick() end },
+  [69] = { [16] = function() trimend_btn.onClick() end },
+  [73] = { [4] = function() Items_btn.onClick() end },
+  [75] = { [16] = function() keep_btn.onClick() end },
+  [76] = { [16] = function() lower_btn.onClick() end },
+  [77] = { [4] = function() Markers_btn.onClick() end },
+  [78] = { [16] = function() number_btn.onClick() end },
+  [80] = { [16] = function() prefix_btn.onClick() end },
+  [82] = { [16] = function() replace_btn.onClick() end, [4] = function() Regions_btn.onClick() end }, 
+  [83] = { [16] = function() trimstart_btn.onClick() end },
+  [84] = { [16] = function() title_btn.onClick() end, [4] = function() Tracks_btn.onClick() end }, 
+  [85] = { [16] = function() upper_btn.onClick() end },
+  [87] = { [16] = function() strip_btn.onClick() end },
+  [88] = { [16] = function() suffix_btn.onClick() end },
+  [90] = { [16] = function() capitalize_btn.onClick() end, [4] = function() undo_btn.onClick() end, [12] = function() redo_btn.onClick() end }
+}
+local key_series = { 13, 65, 67, 69, 73, 75, 76, 77, 78, 80, 82, 83, 84, 85, 87, 88, 90 }
 
 local function main() -- MAIN FUNCTION ---------------------------------------------------------------
   -- Draw buttons
@@ -1525,14 +1549,14 @@ local function main() -- MAIN FUNCTION -----------------------------------------
   if what == "regions" then
     local _, _, num_regions = reaper.CountProjectMarkers( 0 )
     local st, en = reaper.GetSet_LoopTimeRange2( 0, 0, 0, 0, 0, 0 )
-    if st ~= prev_st or en ~= prev_en then
+    if st ~= prev_st or en ~= prev_en or num_regions ~= regionCount then
       init_tables()
       prev_st, prev_en = st, en
     end
   elseif what == "markers" then
-    local _, _, num_markers = reaper.CountProjectMarkers( 0 )
+    local _, num_markers = reaper.CountProjectMarkers( 0 )
     local st, en = reaper.GetSet_LoopTimeRange2( 0, 0, 0, 0, 0, 0 )
-    if st ~= prev_st or en ~= prev_en then
+    if st ~= prev_st or en ~= prev_en or num_markers ~= markerCount then
       init_tables()
       prev_st, prev_en = st, en
     end
@@ -1559,8 +1583,8 @@ local function main() -- MAIN FUNCTION -----------------------------------------
   else
     last_mouse_state = 1
     if not mouse_state_time then mouse_state_time = reaper.time_precise() end
-  end
 
+  end
   -- KEY SHORTCUTS -------------
 
   -- Alt
@@ -1581,64 +1605,6 @@ local function main() -- MAIN FUNCTION -----------------------------------------
     suffix_btn.underline = 6
     capitalize_btn.underline = 9
 
-    -- Alt+A --> swAp case
-    if getchar == 321 then
-     swap_btn.onClick()
-
-    -- Alt+C --> Clear
-    elseif getchar == 323 then
-     clear_btn.onClick()
-
-    -- Alt+E --> trim End
-    elseif getchar == 325 then
-     trimend_btn.onClick()
-
-    -- Alt+K --> Keep
-    elseif getchar == 331 then
-     keep_btn.onClick()
-
-    -- Alt+L --> Lowercase
-    elseif getchar == 332 then
-     lower_btn.onClick()
-
-    -- Alt+N --> Number
-    elseif getchar == 334 then
-     number_btn.onClick()
-
-    -- Alt+P --> Prefix
-    elseif getchar == 336 then
-     prefix_btn.onClick()
-
-    -- Alt+R --> Replace
-    elseif getchar == 338 then
-     replace_btn.onClick()
-
-    -- Alt+S --> trim Start
-    elseif getchar == 339 then
-     trimstart_btn.onClick()
-
-    -- Alt+T --> Titlecase
-    elseif getchar == 340 then
-     title_btn.onClick()
-
-    -- Alt+U --> Uppercase
-    elseif getchar == 341 then
-     upper_btn.onClick()
-
-    -- Alt+W --> strip Whitespaces
-    elseif getchar == 343 then
-     strip_btn.onClick()
-
-    -- Alt+X --> suffiX
-    elseif getchar == 344 then
-     suffix_btn.onClick()
-
-    -- Alt+Z --> capitaliZe
-    elseif getchar == 346 then
-     capitalize_btn.onClick()
-
-    end
-
   else
 
     swap_btn.underline = nil
@@ -1657,39 +1623,20 @@ local function main() -- MAIN FUNCTION -----------------------------------------
     capitalize_btn.underline = nil
 
   end
-
-  -- Ctrl
-  if mousecap == 4 then
-
-    -- Ctrl+Enter to Commit
-    if getchar == 13 then
-      commit_btn.onClick()
-
-    -- Ctrl+T for Tracks
-    elseif getchar == 20 then
-      Tracks_btn.onClick()
-
-    -- Ctrl+R for Regions
-    elseif getchar == 18 then
-      Regions_btn.onClick()
   
-    -- Ctrl+M for Markers -------------------------- BROKEN
-    elseif getchar == 109 then
-      Markers_btn.onClick()
-
-    -- Ctrl+I for Items
-    elseif getchar == 9 then
-      Items_btn.onClick()
-
-    -- Ctrl+Z Undo
-    elseif getchar == 26 then
-      undo_btn.onClick()
+  if mousecap == 4 or mousecap == 16 or mousecap == 12 then
+    key_state = reaper.JS_VKeys_GetState(-0.2)
+    local time = reaper.time_precise()
+    if time - last_key_time > 0.2 then
+      for i = 1, 17 do
+        if key_state:byte(key_series[i]) ~= 0 and keys[key_series[i]] and keys[key_series[i]][mousecap] then
+          --reaper.ShowConsoleMsg( "pressed " .. string.char(key_series[i]) .. "\n")
+          keys[key_series[i]][mousecap]()
+          last_key_time = time
+          break
+        end
+      end
     end
-
-    -- Ctrl+Shift+Z Redo
-  elseif mousecap == 12 and getchar == 26 then
-    redo_btn.onClick()
-
   end
 
   -- KEY SHORTCUTS -------------
