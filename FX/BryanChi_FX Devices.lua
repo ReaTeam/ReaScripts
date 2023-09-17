@@ -1,20 +1,14 @@
 -- @description FX Devices
 -- @author Bryan Chi
--- @version 1.0beta10.3.2
+-- @version 1.0beta10.3.3
 -- @changelog
---   - Add new FX browser that supports browsing FXs that works like the native FX browser. (Huge thanks to Sexan and Suzuki)
---   - Add repeat color for rectangles
---   - Add value affect for colors. ( Thanks for the idea Suzuki! )
---   - Renamed Draw mode into Background edit mode.
---   - Add Text font size for background edit mode.
---   - Increase font size range to 64.
---
---   ---
---
---   Bug Fixes
---
---   - Fix adding FX Layering crashes sometimes
---   - Fix various behaviors regarding fonts and font sizes.
+--   - Allow users to write their own ‘plugin scripts’ for specific FXs.
+--   - Add a new ‘record last touch’ script, which allows you to add the last touched parameter by a hotkey even when you’re focusing on the plugin’s UI.
+--   - Add ‘Add all parameters’ button in the add parameters menu.
+--   - Added gain scale drag for Pro-Q 3.
+--   - Adjust default parameter sizes behaviors so that it’ll show unlimited amount of parameters correctly.
+--   - Allow deleting parameters by alt + double clicking.
+--   - fix Pro-C and Pro-Q not showing up.
 -- @provides
 --   [effect] BryanChi_FX Devices/FXD Macros.jsfx
 --   [effect] BryanChi_FX Devices/FXD ReSpectrum.jsfx
@@ -59,9 +53,14 @@
 --   BryanChi_FX Devices/Images/trash.png
 --   BryanChi_FX Devices/Images/Attached Drawings/LED light.png
 --   BryanChi_FX Devices/Images/Knobs/Bitwig.png
+--   BryanChi_FX Devices/FX Layout Plugin Scripts/Pro C 2.lua
+--   BryanChi_FX Devices/FX Layout Plugin Scripts/Pro Q 3.lua
+--   BryanChi_FX Devices/FXD - Record Last Touch.lua
 -- @about
 --   Please check the forum post for info:
 --   https://forum.cockos.com/showthread.php?t=263622
+
+
 
 --------------------------==  declare Initial Variables & Functions  ------------------------
 VersionNumber = 'V1.0beta10.3.2 '
@@ -83,8 +82,9 @@ end
 
 
 
-
-
+PluginScript = {}
+CAT = {}
+local LAST_USED_FX
 VP = {}
 demo = {}
 app = {}
@@ -112,6 +112,7 @@ Sel_Cross = {}
 ToDef = {}
 DraggingFXs = {}; DraggingFXs_Idx = {}
 DefaultWidth = 200
+GapBtwnPrmColumns = 10
 --Sequencer -----
 StepSEQ_W = 20
 StepSEQ_H = 100
@@ -561,6 +562,10 @@ Array = {}
 dofile(r.GetResourcePath() .. "/UserPlugins/ultraschall_api.lua")
 
 function GeneralFunctions()
+
+    function GetFileExtension(str)
+        return str:match("^.+(%..+)$")
+    end
     function ChangeFX_Name(FX_Name)
         if FX_Name then
             local FX_Name = FX_Name:gsub("%w+%:%s+",
@@ -1003,7 +1008,6 @@ function GeneralFunctions()
     end
 
     --------------ImGUI Related ---------------------
-    
     function HighlightSelectedItem(FillClr, OutlineClr, Padding, L, T, R, B, h, w, H_OutlineSc, V_OutlineSc, GetItemRect,
                                    Foreground, rounding)
         if GetItemRect == 'GetItemRect' then
@@ -1235,7 +1239,7 @@ function GeneralFunctions()
         if WrapPosX then r.ImGui_PopTextWrapPos(ctx) end
     end
 
-    function Add_WetDryKnob(ctx, label, labeltoShow, p_value, v_min, v_max, FX_Idx)
+    function Add_WetDryKnob(ctx, label, labeltoShow, p_value, v_min, v_max, FX_Idx, P_Num)
         r.ImGui_SetNextItemWidth(ctx, 40)
         local radius_outer = 10
         local pos = { reaper.ImGui_GetCursorScreenPos(ctx) }
@@ -1274,7 +1278,7 @@ function GeneralFunctions()
             CircleClr = Change_Clr_A(getClr(r.ImGui_Col_SliderGrabActive()), -0.3)
             value_changed = true
             ActiveAny = true
-            r.TrackFX_SetParamNormalized(LT_Track, FX_Idx, Wet.P_Num[FX_Idx], p_value)
+            r.TrackFX_SetParamNormalized(LT_Track, FX_Idx, P_Num or Wet.P_Num[FX_Idx], p_value)
         elseif is_hovered or p_value ~= 1 then
             lineClr = Change_Clr_A(getClr(r.ImGui_Col_SliderGrabActive()), -0.3)
         else
@@ -1632,6 +1636,32 @@ function GeneralFunctions()
         return F
     end
 
+
+    function IsPrmAlreadyAdded(ShowAlreadyAddedPrm)
+        GetLTParam()
+        local FX_Count = reaper.TrackFX_GetCount(LT_Track); local RptPrmFound
+        local F = FX[LT_FXGUID] or {}
+
+        if F then
+            for i, v in ipairs(F) do
+                if FX[LT_FXGUID][i].Num == LT_ParamNum then
+                    RptPrmFound = true
+
+                    if ShowAlreadyAddedPrm then 
+                    
+                        TryingToAddExistingPrm = i .. LT_FXGUID
+                        TimeNow = r.time_precise()
+                    end
+                end
+            end
+            --[[ if not RptPrmFound and LT_FXGUID then
+                StoreNewParam(LT_FXGUID, LT_ParamName, LT_ParamNum, LT_FXNum, true )
+            end ]]
+        end
+        return RptPrmFound
+
+    end
+
     function RemoveEmptyStr(str)
         if str == '' then return nil else return str end
     end
@@ -1707,10 +1737,10 @@ function LayoutEditorFunctions()
 
         local radius_outer = Radius or Df.KnobRadius;
         local FP = FX[FxGUID][Fx_P]
-
+        local V_Font, Font = Arial_12, Font_Andale_Mono_12
         if LblTextSize ~= 'No Font' then
-            local Font = 'Font_Andale_Mono_' .. roundUp(FP.FontSize or LblTextSize or Knob_DefaultFontSize, 1)
-            local V_Font = 'Font_Andale_Mono_' .. roundUp(FP.V_FontSize or LblTextSize or Knob_DefaultFontSize, 1)
+             Font = 'Font_Andale_Mono_' .. roundUp(FP.FontSize or LblTextSize or Knob_DefaultFontSize, 1)
+            V_Font = 'Arial_' .. roundUp(FP.V_FontSize or LblTextSize or Knob_DefaultFontSize, 1)
             r.ImGui_PushFont(ctx, _G[Font])
         end
         local Radius       = Radius or 0
@@ -1750,7 +1780,7 @@ function LayoutEditorFunctions()
             radius_outer * 2 + line_height + item_inner_spacing[2] + (BtnOffset or 0))
         if V_Pos == 'Free' then
             local Ox, Oy = r.ImGui_GetCursorScreenPos(ctx)
-            r.ImGui_DrawList_AddTextEx(draw_list, Arial, FX[FxGUID][Fx_P].V_FontSize or Knob_DefaultFontSize,
+            r.ImGui_DrawList_AddTextEx(draw_list, _G[V_Font], FX[FxGUID][Fx_P].V_FontSize or Knob_DefaultFontSize,
                 pos[1] + (FP.V_Pos_X or 0), pos[2] + (FP.V_Pos_Y or 0), FX[FxGUID][Fx_P].V_Clr or 0xffffffff, FormatPV,
                 (Radius or 20) * 2)
         end
@@ -2125,12 +2155,10 @@ function LayoutEditorFunctions()
 
             if V_Pos == 'Within' then Y_Offset = radius_outer * 1.2 end
             if is_active or is_hovered then drawlist = Glob.FDL else drawlist = draw_list end
-            if V_Pos ~= 'Free' then
-                r.ImGui_DrawList_AddTextEx(drawlist, Arial, FX[FxGUID][Fx_P].V_FontSize or Knob_DefaultFontSize,
-                    CenteredVPos,
-                    pos[2] + radius_outer * 2 + item_inner_spacing[2] - (Y_Offset or 0),
-                    FX[FxGUID][Fx_P].V_Clr or 0xffffffff,
-                    FormatPV, (Radius or 20) * 2)
+            if V_Pos ~= 'Free' then 
+                
+                r.ImGui_DrawList_AddTextEx(draw_list, _G[V_Font], FX[FxGUID][Fx_P].V_FontSize or Knob_DefaultFontSize,
+                    CenteredVPos, pos[2] + radius_outer * 2 + item_inner_spacing[2] - (Y_Offset or 0), FX[FxGUID][Fx_P].V_Clr or 0xffffffff, FormatPV, (Radius or 20) * 2)
             end
             r.ImGui_PopFont(ctx)
         end
@@ -2140,7 +2168,7 @@ function LayoutEditorFunctions()
             CenteredVPos = pos[1] + Radius - ValueTxtW / 2 + 0.5
             Y_Offset = radius_outer * 1.3 - 1
 
-            r.ImGui_DrawList_AddTextEx(draw_list, Arial, 10, CenteredVPos,
+            r.ImGui_DrawList_AddTextEx(draw_list, _G[V_Font], 10, CenteredVPos,
                 pos[2] + radius_outer * 2 + item_inner_spacing[2] - (Y_Offset or 0), FX[FxGUID][Fx_P].V_Clr or 0xffffff88,
                 labeltoShow, (Radius or 20) * 2)
         end
@@ -2276,6 +2304,7 @@ function LayoutEditorFunctions()
 
         local line_height = reaper.ImGui_GetTextLineHeight(ctx)
         local draw_list = reaper.ImGui_GetWindowDrawList(ctx)
+        
 
 
         local mouse_delta = { reaper.ImGui_GetMouseDelta(ctx) }
@@ -2287,6 +2316,7 @@ function LayoutEditorFunctions()
         local Font = 'Font_Andale_Mono_' .. roundUp(FP.FontSize or LblTextSize or Knob_DefaultFontSize, 1)
 
         local V_Font = 'Arial_' .. roundUp(FP.V_FontSize or LblTextSize or Knob_DefaultFontSize, 1)
+        
 
 
         if FP.Lbl_Pos == 'Left' then
@@ -2346,14 +2376,14 @@ function LayoutEditorFunctions()
                     local w = r.ImGui_CalcTextSize(ctx, labeltoShow or FP.Name)
                     r.ImGui_SetCursorPosX(ctx, CurX - w / 2 + Sldr_Width / 2)
                     --r.ImGui_TextColored(ctx, FP.Lbl_Clr or r.ImGui_GetColor(ctx, r.ImGui_Col_Text())  ,labeltoShow or FP.Name )
-                    MyText(labeltoShow or FP.Name, _G[Font], r.ImGui_GetColor(ctx, r.ImGui_Col_Text()))
+                    MyText(labeltoShow or FP.Name, _G[Font], FP.Lbl_Clr or r.ImGui_GetColor(ctx, r.ImGui_Col_Text()))
                 end
                 if FP.V_Pos == 'Top' then
                     local CurX             = r.ImGui_GetCursorPosX(ctx)
                     local Get, Param_Value = r.TrackFX_GetFormattedParamValue(LT_Track, FX_Idx, P_Num)
                     local w                = r.ImGui_CalcTextSize(ctx, Param_Value)
                     r.ImGui_SetCursorPosX(ctx, CurX - w / 2 + Sldr_Width / 2)
-                    if Get then MyText(Param_Value, _G[V_Font], r.ImGui_GetColor(ctx, r.ImGui_Col_Text())) end
+                    if Get then MyText(Param_Value, _G[V_Font], FP.V_Clr or r.ImGui_GetColor(ctx, r.ImGui_Col_Text())) end
                 end
             end
 
@@ -2403,8 +2433,7 @@ function LayoutEditorFunctions()
             end
 
             if Disable == 'Disabled' then
-                r.ImGui_DrawList_AddRectFilled(draw_list, PosL, PosT, PosL + SldrGrbPos, PosB,
-                    0x000000cc, Rounding)
+                r.ImGui_DrawList_AddRectFilled(draw_list, PosL, PosT, PosL + SldrGrbPos, PosB, 0x000000cc, Rounding)
             end
 
             if is_active then
@@ -2479,8 +2508,8 @@ function LayoutEditorFunctions()
 
                 FX[FxGUID][Fx_P].V = LT_ParamValue
 
-                reaper.ImGui_DrawList_AddRectFilled(draw_list, PosL, PosT, PosR, PosB, 0x99999922, Rounding)
-                reaper.ImGui_DrawList_AddRect(draw_list, PosL, PosT, PosR, PosB, 0x99999966, Rounding)
+                r.ImGui_DrawList_AddRectFilled(draw_list, PosL, PosT, PosR, PosB, 0x99999922, Rounding)
+                r.ImGui_DrawList_AddRect(draw_list, PosL, PosT, PosR, PosB, 0x99999966, Rounding)
 
                 for m = 1, 8, 1 do
                     if AssigningMacro == m then
@@ -2590,8 +2619,11 @@ function LayoutEditorFunctions()
 
 
             local TextW, h = r.ImGui_CalcTextSize(ctx, labeltoShow, nil, nil, true)
-            local TxtClr
-            if Disable == 'Disabled' then TxtClr = 0x111111ff else TxtClr = 0xD6D6D6ff end
+            local V_Clr, LblClr
+            if Disable == 'Disabled' then  
+                    LblClr = 0x111111ff;  V_Clr = 0x111111ff 
+            else    LblClr = FP.Lbl_Clr or 0xD6D6D6ff ; V_Clr = FP.V_Clr or 0xD6D6D6ff 
+            end
 
             local _, Format_P_V = r.TrackFX_GetFormattedParamValue(LT_Track, FX_Idx, P_Num)
             r.ImGui_PushFont(ctx, Arial_11)
@@ -2608,34 +2640,32 @@ function LayoutEditorFunctions()
                     if not FP.Lbl_Pos or FP.Lbl_Pos == 'Bottom' then
                         r.ImGui_DrawList_AddTextEx(draw_list, _G[Font],
                             FP.FontSize or LblTextSize or Knob_DefaultFontSize,
-                            Cx, Cy, TxtClr, labeltoShow or FX[FxGUID][Fx_P].Name, nil, PosL, PosT, SldrR - TextW - 3,
-                            PosB +
-                            20)
+                            Cx, Cy, LblClr, labeltoShow or FX[FxGUID][Fx_P].Name, nil, PosL, PosT, SldrR - TextW - 3,PosB +20)
                     end
                 else -- if vertical
                     if FP.Lbl_Pos == 'Bottom' or not FP.Lbl_Pos then
                         local CurX = r.ImGui_GetCursorPosX(ctx)
                         local w = r.ImGui_CalcTextSize(ctx, labeltoShow or FP.Name)
                         r.ImGui_SetCursorPosX(ctx, CurX - w / 2 + Sldr_Width / 2)
-                        MyText(labeltoShow or FP.Name, _G[Font], r.ImGui_GetColor(ctx, r.ImGui_Col_Text()))
+                        MyText(labeltoShow or FP.Name, _G[Font], LblClr)
                     end
                     if FP.V_Pos == 'Bottom' then
                         local Cx = r.ImGui_GetCursorPosX(ctx)
                         local txtW = r.ImGui_CalcTextSize(ctx, Format_P_V, nil, nil, true)
                         r.ImGui_SetCursorPosX(ctx, Cx + Sldr_Width / 2 - txtW / 2)
-                        MyText(Format_P_V, _G[V_Font], r.ImGui_GetColor(ctx, r.ImGui_Col_Text()))
+                        MyText(Format_P_V, _G[V_Font], FP.V_Clr or LblClr)
                     end
                 end
                 if FP.Lbl_Pos == 'Free' then
                     r.ImGui_DrawList_AddTextEx(draw_list, _G[Font], FP.FontSize or LblTextSize or Knob_DefaultFontSize,
-                        Cx + (FP.Lbl_Pos_X or 0), Cy + (FP.Lbl_Pos_Y or 0), TxtClr, labeltoShow or FX[FxGUID][Fx_P].Name)
+                        Cx + (FP.Lbl_Pos_X or 0), Cy + (FP.Lbl_Pos_Y or 0), FP.Lbl_Clr or LblClr, labeltoShow or FX[FxGUID][Fx_P].Name)
                 end
             end
 
             if FP.V_Pos == 'Free' then
                 local Ox, Oy = r.ImGui_GetCursorScreenPos(ctx)
-                r.ImGui_DrawList_AddTextEx(draw_list, Arial, FP.V_FontSize or Knob_DefaultFontSize,
-                    Ox + Sldr_Width - TextW + (FP.V_Pos_X or 0), Oy + (FP.V_Pos_Y or 0), FP.V_Clr or 0xffffffff,
+                r.ImGui_DrawList_AddTextEx(draw_list, _G[V_Font], FP.V_FontSize or Knob_DefaultFontSize,
+                    Ox + Sldr_Width - TextW + (FP.V_Pos_X or 0), Oy + (FP.V_Pos_Y or 0), V_Clr ,
                     Format_P_V)
             end
 
@@ -2644,7 +2674,7 @@ function LayoutEditorFunctions()
                 r.ImGui_SetCursorScreenPos(ctx, SldrR - TextW, Y)
 
 
-                MyText(Format_P_V, _G[V_Font], 0xD6D6D6ff)
+                MyText(Format_P_V, _G[V_Font], V_Clr )
 
                 r.ImGui_PopFont(ctx)
             end
@@ -3029,10 +3059,14 @@ function LayoutEditorFunctions()
 
     function AddDrag(ctx, label, labeltoShow, p_value, v_min, v_max, Fx_P, FX_Idx, P_Num, Style, Sldr_Width,
                      item_inner_spacing, Disable, Lbl_Clickable, Lbl_Pos, V_Pos, DragDir, AllowInput)
+        
+        FxGUID = FxGUID or r.TrackFX_GetFXGUID(LT_Track, FX_Idx)
+
+        FX[FxGUID][Fx_P] = FX[FxGUID][Fx_P] or {}
+
         local FxGUID = FXGUID[FX_Idx]
         local FP = FX[FxGUID][Fx_P]
 
-        FX[FxGUID][Fx_P] = FX[FxGUID][Fx_P] or {}
 
         if FX[FxGUID].Morph_Value_Edit or (Mods == Alt + Ctrl and is_hovered) then r.ImGui_BeginDisabled(ctx) end
         local radius_outer = 20.0
@@ -3045,9 +3079,10 @@ function LayoutEditorFunctions()
         local F_Tp = FX.Prm.ToTrkPrm[FxGUID .. Fx_P]
 
 
-
         local Font = 'Font_Andale_Mono_' .. roundUp(FP.FontSize or LblTextSize or Knob_DefaultFontSize, 1)
-        local V_Font = 'Font_Andale_Mono_' .. roundUp(FP.V_FontSize or LblTextSize or Knob_DefaultFontSize, 1)
+
+
+        local V_Font = 'Arial_' .. roundUp(FP.V_FontSize or LblTextSize or Knob_DefaultFontSize, 1)
 
         if type(FP) ~= 'table' then
             FX[FxGUID][Fx_P] = {}
@@ -3055,8 +3090,7 @@ function LayoutEditorFunctions()
         end
 
         if item_inner_spacing then
-            r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_ItemSpacing(), item_inner_spacing,
-                item_inner_spacing)
+            r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_ItemSpacing(), item_inner_spacing, item_inner_spacing)
         end
 
         r.ImGui_BeginGroup(ctx)
@@ -3075,8 +3109,8 @@ function LayoutEditorFunctions()
             r.ImGui_SameLine(ctx, nil, 8)
             r.ImGui_AlignTextToFramePadding(ctx)
         elseif Lbl_Pos == 'Free' then
-            r.ImGui_DrawList_AddTextEx(WDL, Arial, FP.FontSize or Knob_DefaultFontSize, pos[1] + (FP.Lbl_Pos_X or 0),
-                pos[2] + (FP.Lbl_Pos_Y or 0), FP.V_Clr or 0xffffffff, labeltoShow)
+            r.ImGui_DrawList_AddTextEx(WDL, _G[Font] , FP.FontSize or Knob_DefaultFontSize, pos[1] + (FP.Lbl_Pos_X or 0),
+                pos[2] + (FP.Lbl_Pos_Y or 0), FP.Lbl_Clr or 0xffffffff, labeltoShow)
         end
         r.ImGui_SetNextItemWidth(ctx, Sldr_Width)
 
@@ -3096,8 +3130,8 @@ function LayoutEditorFunctions()
         local PosL, PosT = r.ImGui_GetItemRectMin(ctx); local PosR, PosB = r.ImGui_GetItemRectMax(ctx)
 
         local value_changed = false
-        local is_active = reaper.ImGui_IsItemActive(ctx)
-        local is_hovered = reaper.ImGui_IsItemHovered(ctx)
+        local is_active = r.ImGui_IsItemActive(ctx)
+        local is_hovered = r.ImGui_IsItemHovered(ctx)
         if is_active == true then Knob_Active = true end
         if Knob_Active == true then
             if IsLBtnHeld == false then Knob_Active = false end
@@ -3199,17 +3233,11 @@ function LayoutEditorFunctions()
         if not SliderStyle then
             if DragDir == 'Right' or DragDir == nil then
                 if is_active then
-                    r.ImGui_DrawList_AddRectFilled(draw_list, PosL, PosT, PosL + SldrGrbPos, PosB,
-                        FP.GrbAct or 0xffffff77,
-                        Rounding)
+                    r.ImGui_DrawList_AddRectFilled(draw_list, PosL, PosT, PosL + SldrGrbPos, PosB, FP.GrbAct or 0xffffff77, Rounding)
                 elseif is_hovered then
-                    r.ImGui_DrawList_AddRectFilled(draw_list, PosL, PosT, PosL + SldrGrbPos, PosB,
-                        FP.GrbHvr or 0xffffff55,
-                        Rounding)
+                    r.ImGui_DrawList_AddRectFilled(draw_list, PosL, PosT, PosL + SldrGrbPos, PosB, FP.GrbHvr or 0xffffff55, Rounding)
                 else
-                    r.ImGui_DrawList_AddRectFilled(draw_list, PosL, PosT, PosL + SldrGrbPos, PosB,
-                        FP.GrbClr or 0xffffff44,
-                        Rounding)
+                    r.ImGui_DrawList_AddRectFilled(draw_list, PosL, PosT, PosL + SldrGrbPos, PosB, FP.GrbClr or 0xffffff44, Rounding)
                 end
             elseif DragDir == 'Left-Right' then
                 local L = math.min(PosL + (PosR - PosL) / 2, PosL + SldrGrbPos); local R = math.max(
@@ -3360,18 +3388,18 @@ function LayoutEditorFunctions()
         if is_active then txtclr = 0xEEEEEEff else txtclr = 0xD6D6D6ff end
 
         if (V_Pos == 'Within' or Lbl_Pos == 'Left') and V_Pos ~= 'None' and V_Pos ~= 'Free' and V_Pos then
-            r.ImGui_DrawList_AddTextEx(draw_list, Arial, FP.V_FontSize or Knob_DefaultFontSize, SldrL + W / 2 - TextW / 2,
-                SldrT + H / 2 - 5, FX[FxGUID][Fx_P].V_Clr or txtclr, Format_P_V)
+            r.ImGui_DrawList_AddTextEx(draw_list, _G[V_Font], FP.V_FontSize or Knob_DefaultFontSize, SldrL + W / 2 - TextW / 2,
+                SldrT + H / 2 - 5, FP.V_Clr or txtclr, Format_P_V)
         elseif FP.V_Pos == 'Free' then
             local X = SldrL + W / 2 - TextW / 2
             local Y = SldrT + H / 2 - 5
             local Ox, Oy = Get
-            r.ImGui_DrawList_AddTextEx(draw_list, Arial, FP.V_FontSize or Knob_DefaultFontSize, X + (FP.V_Pos_X or 0),
+            r.ImGui_DrawList_AddTextEx(draw_list, _G[V_Font], FP.V_FontSize or Knob_DefaultFontSize, X + (FP.V_Pos_X or 0),
                 Y + (FP.V_Pos_Y or 0), FP.V_Clr or 0xffffffff, Format_P_V)
         end
 
         if Lbl_Pos == 'Within-Left' then
-            r.ImGui_DrawList_AddText(draw_list, SldrL, SldrT + H / 2 - 5, FX[FxGUID][Fx_P].V_Clr or txtclr, labeltoShow)
+            r.ImGui_DrawList_AddText(draw_list, SldrL, SldrT + H / 2 - 5, FX[FxGUID][Fx_P].Lbl_Clr or txtclr, labeltoShow)
         end
         if V_Pos == 'Within-Right' then
             r.ImGui_DrawList_AddText(draw_list, SldrR - TextW, SldrT + H / 2 - 5, FX[FxGUID][Fx_P].V_Clr or txtclr,
@@ -3382,22 +3410,21 @@ function LayoutEditorFunctions()
 
         if not Lbl_Pos or Lbl_Pos == 'Bottom' then
             local X, Y = r.ImGui_GetCursorScreenPos(ctx)
-            local TxtClr = FX[FxGUID][Fx_P].V_Clr or getClr(r.ImGui_Col_Text())
-            local TxtDisClr = getClr(r.ImGui_Col_TextDisabled())
+            local TxtClr = FP.Lbl_Clr or getClr(r.ImGui_Col_Text())
+            if Disable == 'Disabled' then TxtClr = getClr(r.ImGui_Col_TextDisabled()) end 
+
             if item_inner_spacing then
                 if item_inner_spacing < 0 then r.ImGui_SetCursorPosY(ctx, r.ImGui_GetCursorPosY(ctx) + item_inner_spacing) end
             end
-            if Disable == 'Disabled' then
-                MyText(labeltoShow, _G[Font], TxtDisClr)
-                if not string.find(FX.Win_Name_S[FX_Idx] or '', 'Pro%-C 2') then r.ImGui_SameLine(ctx) end
-            else
-                MyText(labeltoShow, _G[Font], TxtClr)
-                if not string.find(FX.Win_Name_S[FX_Idx] or '', 'Pro%-C 2') then r.ImGui_SameLine(ctx) end
-            end
+
+            MyText(labeltoShow, _G[Font] or Font_Andale_Mono_12 , TxtClr)
+
+            if not string.find(FX.Win_Name_S[FX_Idx] or '', 'Pro%-C 2') then r.ImGui_SameLine(ctx) end
+
             r.ImGui_SetCursorScreenPos(ctx, SldrR - TextW, Y)
 
             if Style ~= 'Pro C Lookahead' and Style ~= 'Pro C' and (not FX[FxGUID][Fx_P].V_Pos or FX[FxGUID][Fx_P].V_Pos == 'Right') then
-                MyText(Format_P_V, _G[V_Font], TxtClr)
+                MyText(Format_P_V, _G[V_Font], FP.V_Clr or getClr(r.ImGui_Col_Text()))
             end
         end
 
@@ -3505,7 +3532,8 @@ function LayoutEditorFunctions()
         return ChangeBeenMade
     end
 
-    function RetrieveFXsSavedLayout(Sel_Track_FX_Count)
+    function RetrieveFXsSavedLayout(Sel_Track_FX_Count) 
+
         if LT_Track then
             for FX_Idx = 0, Sel_Track_FX_Count - 1, 1 do
                 local PrmInst, Line, FX_Name_Short
@@ -3558,7 +3586,21 @@ function LayoutEditorFunctions()
 
 
                     -------------------------------------Parameters -------------------------------------------------
+                    function attachFont (ctx, var, ft, sz, FP)
+                        if sz > 20 then 
+                            --ChangeFont = FP
 
+                            CF = CF or {}
+
+
+                            ChangeFont_Size = roundUp( sz,1 )
+                            _G[var..'_'..roundUp( sz,1 )] = r.ImGui_CreateFont( ft, roundUp( sz,1 ))
+
+                            r.ImGui_Attach(ctx, _G[var..'_'..roundUp( sz,1 )] )
+                            ChangeFont_Font = var
+
+                        end
+                    end
 
 
                     if --[[ r.GetExtState('FX Devices - '..FX_Name, 'Param Instance') ~= ''  ]] PrmInst then
@@ -3591,7 +3633,7 @@ function LayoutEditorFunctions()
                                 FP.BgClr = RecallInfo(Ct, 'BgClr', Fx_P, 'Num')
                                 FP.GrbClr = RecallInfo(Ct, 'GrbClr', Fx_P, 'Num')
                                 FP.Lbl_Pos = RecallInfo(Ct, 'Label Pos', Fx_P)
-                                FP.V_Pos = RecallInfo(Ct, 'Value Pos', Fx_P)
+                                FP.V_Pos = RecallInfo(Ct, 'Value Pos', Fx_P) 
                                 FP.Lbl_Clr = RecallInfo(Ct, 'Lbl Clr', Fx_P, 'Num')
                                 FP.V_Clr = RecallInfo(Ct, 'V Clr', Fx_P, 'Num')
                                 FP.DragDir = RecallInfo(Ct, 'Drag Direction', Fx_P, 'Num')
@@ -3838,6 +3880,7 @@ function LayoutEditorFunctions()
 
 
         r.SetProjExtState(0, 'FX Devices', 'Prm Count' .. FxGUID, P)
+        r.GetSetMediaTrackInfo_String(LT_Track, 'P_EXT: FXs Prm Count' .. FxGUID, P, true)
 
 
         FX[FxGUID][P] = FX[FxGUID][P] or {}
@@ -4156,7 +4199,6 @@ function LayoutEditorFunctions()
                         WRITE('Y_Repeat_VA', v.Y_Repeat_VA)
                         WRITE('Gap',v.Gap)
                         WRITE('Gap_VA',v.Gap_VA)
-
                         WRITE('X_Gap', v.X_Gap)
                         WRITE('X_Gap_VA', v.X_Gap_VA)
                         WRITE('Y_Gap', v.Y_Gap)
@@ -5752,873 +5794,826 @@ function ThemeEditorFunctions()
 end
 
 
-    -------------------FX List by Sexan--------------------
-    function FXAdderFunctions()
-        local os = r.GetOS()
+local os = r.GetOS()
 
-        function GetFileContext(fp)
-            local str = "\n"
-            -- RETURN ANY STRING JUST FOR SCRIPT NOT TO CRASH IF PATH DOES NOT EXIST
-            if not fp then return str end
-            local f = io.open(fp, 'r')
-            if f then
-                str = f:read('a')
-                f:close()
-            end
-            return str
+function GetFileContext(fp)
+    local str = "\n"
+    -- RETURN ANY STRING JUST FOR SCRIPT NOT TO CRASH IF PATH DOES NOT EXIST
+    if not fp then return str end
+    local f = io.open(fp, 'r')
+    if f then
+        str = f:read('a')
+        f:close()
+    end
+    return str
+end
+
+local CAT = {}
+local LAST_USED_FX
+
+function FindFXIDName(tbl, id, js)
+    for i = 1, #tbl do
+        if js then
+            -- JS PLUGINS CAN HAVE ONLY PART OF IDENTIFIER IN THE STRING
+            if tbl[i].id:find(id) then return tbl[i].name end
+        else
+            if tbl[i].id == id then return tbl[i].name end
         end
-    
-        local CAT = {}
-        local LAST_USED_FX
-    
-        function FindFXIDName(tbl, id, js)
-            for i = 1, #tbl do
-                if js then
-                    -- JS PLUGINS CAN HAVE ONLY PART OF IDENTIFIER IN THE STRING
-                    if tbl[i].id:find(id) then return tbl[i].name end
-                else
-                    if tbl[i].id == id then return tbl[i].name end
+    end
+end
+
+function InTbl(tbl, val)
+    for i = 1, #tbl do
+        if tbl[i].name == val then return tbl[i].fx end
+    end
+end
+
+local os_separator = package.config:sub(1, 1)
+local function GetDirFilesRecursive(dir, tbl)
+    for index = 0, math.huge do
+        local path = r.EnumerateSubdirectories(dir, index)
+        if not path then break end
+        tbl[#tbl + 1] = { dir = path, {} }
+        GetDirFilesRecursive(dir .. os_separator .. path, tbl[#tbl])
+    end
+
+    for index = 0, math.huge do
+        local file = r.EnumerateFiles(dir, index)
+        if not file then break end
+        tbl[#tbl + 1] = file
+    end
+end
+
+local function ParseVST(plugin_list, INSTRUMENTS)
+    local VST_INFO = {}
+    local VST = {}
+    local VSTi = {}
+    local VST3 = {}
+    local VST3i = {}
+    local rename_tbl = {}
+
+    local vst_path
+    local vst_str
+
+    if os == "Win32" or os == "OSX32" then
+        vst_path = r.GetResourcePath() .. "/reaper-vstplugins.ini"
+    elseif os == "Win64" or os == "OSX64" or os == "Other" then
+        vst_path = r.GetResourcePath() .. "/reaper-vstplugins64.ini"
+    elseif os == "macOS-arm64" then
+        vst_path = r.GetResourcePath() .. "/reaper-vstplugins_arm64.ini"
+    end
+
+    local vst_rename_path
+
+    if os == "Win32" or os == "OSX32" then
+        vst_rename_path = r.GetResourcePath() .. "/reaper-vstrenames.ini"
+    elseif os == "Win64" or os == "OSX64" or os == "Other" then
+        vst_rename_path = r.GetResourcePath() .. "reaper-vstrenames64.ini"
+    elseif os == "macOS-arm64" then
+        vst_rename_path = r.GetResourcePath() .. "/reaper-vstpluginsrenames_arm64.ini"
+    end
+
+    if vst_rename_path then
+        local vst_rename_str = GetFileContext(vst_rename_path)
+        for line in vst_rename_str:gmatch('[^\r\n]+') do
+            rename_tbl[#rename_tbl + 1] = line
+        end
+    end
+
+    vst_str = GetFileContext(vst_path)
+
+    for line in vst_str:gmatch('[^\r\n]+') do
+        -- reacast.dll=00EE7DC39FE1D901,1919246691,ReaCast (Cockos)
+        -- MATCH EVERY FIELD SEPARATED BY '=' AND ','
+        local dll, id1, id2, name = line:match('(.-)=(.-),(.-),(.+)')
+        if name and name ~= "<SHELL>" then
+            local instrument = name:match("!!!VSTi")
+            name = name:gsub("!!!VSTi", "")
+            for i = 1, #rename_tbl do
+                local new_id, new_name = rename_tbl[i]:match("(.+)=(.+)")
+                if new_id == dll then
+                    name = new_name
+                end
+            end
+            -- VST3
+            if dll:match("vst3") then
+                local vst3_name = "VST3:" .. name
+                VST_INFO[#VST_INFO + 1] = { id = dll, name = vst3_name }
+                plugin_list[#plugin_list + 1] = vst3_name
+                VST3[#VST3 + 1] = vst3_name
+                -- VST3i
+                if instrument then
+                    VST3i[#VST3i + 1] = vst3_name
+                    INSTRUMENTS[#INSTRUMENTS + 1] = vst3_name
+                end
+            else
+                local vst_name = "VST:" .. name
+                -- VST
+                VST_INFO[#VST_INFO + 1] = { id = dll, name = vst_name }
+                plugin_list[#plugin_list + 1] = vst_name
+                VST[#VST + 1] = vst_name
+                -- VSTi
+                if instrument then
+                    VSTi[#VSTi + 1] = vst_name
+                    INSTRUMENTS[#INSTRUMENTS + 1] = vst_name
                 end
             end
         end
-    
-        function InTbl(tbl, val)
-            for i = 1, #tbl do
-                if tbl[i].name == val then return tbl[i].fx end
+    end
+    return VST_INFO, VST, VSTi, VST3, VST3i
+end
+
+local function ParseJSFX(plugin_list)
+    local JS_INFO   = {}
+    local JS        = {}
+
+    local jsfx_path = r.GetResourcePath() .. "/reaper-jsfx.ini"
+    local jsfx_str  = GetFileContext(jsfx_path)
+
+    for line in jsfx_str:gmatch('[^\r\n]+') do
+        local js_name
+        if line:match("NAME") then
+            -- NAME utility/volume "JS: Volume Adjustment"
+            -- NAME "ReaTeam Scripts/FX/BryanChi_FX Devices/cookdsp/fft-mono-template" "JS: FFT Mono Template"
+            local id, name = line:match('%w+ ["]?(.+)["]? "JS: (.+)"')
+            if name then
+                js_name = "JS:" .. name
+                JS_INFO[#JS_INFO + 1] = { id = id:gsub('"', ''), name = js_name }
             end
         end
-    
-        local os_separator = package.config:sub(1, 1)
-        local function GetDirFilesRecursive(dir, tbl)
-            for index = 0, math.huge do
-                local path = r.EnumerateSubdirectories(dir, index)
-                if not path then break end
-                tbl[#tbl + 1] = { dir = path, {} }
-                GetDirFilesRecursive(dir .. os_separator .. path, tbl[#tbl])
-            end
-    
-            for index = 0, math.huge do
-                local file = r.EnumerateFiles(dir, index)
-                if not file then break end
-                tbl[#tbl + 1] = file
-            end
+        if js_name then
+            plugin_list[#plugin_list + 1] = js_name
+            JS[#JS + 1] = js_name
         end
-    
-        local function ParseVST(plugin_list, INSTRUMENTS)
-            local VST_INFO = {}
-            local VST = {}
-            local VSTi = {}
-            local VST3 = {}
-            local VST3i = {}
-            local rename_tbl = {}
-    
-            local vst_path
-            local vst_str
-    
-            if os == "Win32" or os == "OSX32" then
-                vst_path = r.GetResourcePath() .. "/reaper-vstplugins.ini"
-            elseif os == "Win64" or os == "OSX64" or os == "Other" then
-                vst_path = r.GetResourcePath() .. "/reaper-vstplugins64.ini"
-            elseif os == "macOS-arm64" then
-                vst_path = r.GetResourcePath() .. "/reaper-vstplugins_arm64.ini"
+    end
+    return JS_INFO, JS
+end
+
+local function ParseAU(plugin_list, INSTRUMENTS)
+    local AU_INFO = {}
+    local AU      = {}
+    local AUi     = {}
+
+    local au_path
+    local au_str
+
+    if os == "OSX32" then
+        au_path = r.GetResourcePath() .. "/reaper-auplugins.ini"
+    elseif os == "OSX64" then
+        au_path = r.GetResourcePath() .. "/reaper-auplugins64.ini"
+    elseif os == "macOS-arm64" then
+        au_path = r.GetResourcePath() .. "/reaper-auplugins_arm64.ini"
+    end
+
+    au_str = GetFileContext(au_path)
+
+    for line in au_str:gmatch('[^\r\n]+') do
+        local identifier = line:match("(.+)=<")
+        if identifier then
+            local renamed = line:match("=<.+>(.+)")
+            local is_instrument = line:match("<inst>")
+            local au_name = "AU:" .. (renamed and renamed or identifier)
+            AU[#AU + 1] = au_name
+            AU_INFO[#AU_INFO + 1] = { id = identifier, name = au_name }
+            if is_instrument then
+                AUi[#AUi + 1] = au_name
+                INSTRUMENTS[#INSTRUMENTS + 1] = au_name
             end
-    
-            local vst_rename_path
-    
-            if os == "Win32" or os == "OSX32" then
-                vst_rename_path = r.GetResourcePath() .. "/reaper-vstrenames.ini"
-            elseif os == "Win64" or os == "OSX64" or os == "Other" then
-                vst_rename_path = r.GetResourcePath() .. "reaper-vstrenames64.ini"
-            elseif os == "macOS-arm64" then
-                vst_rename_path = r.GetResourcePath() .. "/reaper-vstpluginsrenames_arm64.ini"
-            end
-    
-            if vst_rename_path then
-                local vst_rename_str = GetFileContext(vst_rename_path)
-                for line in vst_rename_str:gmatch('[^\r\n]+') do
-                    rename_tbl[#rename_tbl + 1] = line
+            plugin_list[#plugin_list + 1] = au_name
+        end
+    end
+
+    return AU_INFO, AU, AUi
+end
+
+local function ParseCLAP(plugin_list, INSTRUMENTS)
+    local CLAP_INFO  = {}
+    local CLAP       = {}
+    local CLAPi      = {}
+
+    local rename_tbl = {}
+
+    local clap_path
+    local clap_str
+
+    if os == "Win64" then
+        clap_path = r.GetResourcePath() .. "/reaper-clap-win64.ini"
+    elseif os == 'OSX64' then
+        clap_path = r.GetResourcePath() .. "/reaper-clap-macos-x86_64.ini"
+    elseif os == "macOS-arm64" then
+        clap_path = r.GetResourcePath() .. "/reaper-clap-macos-arm64.ini"
+    end
+
+    clap_str = GetFileContext(clap_path)
+
+    local clap_rename_path
+    if os == "Win64" then
+        clap_rename_path = r.GetResourcePath() .. "/reaper-clap-rename-win64.ini"
+    elseif os == 'OSX64' then
+        clap_rename_path = r.GetResourcePath() .. "/reaper-clap-rename-macos-x86_64.ini"
+    elseif os == "macOS-arm64" then
+        clap_rename_path = r.GetResourcePath() .. "/reaper-clap-rename-macos-arm64.ini"
+    end
+
+    if clap_rename_path then
+        local clap_rename_str = GetFileContext(clap_rename_path)
+        for line in clap_rename_str:gmatch('[^\r\n]+') do
+            rename_tbl[#rename_tbl + 1] = line
+        end
+    end
+
+    for line in clap_str:gmatch('[^\r\n]+') do
+        --org.surge-synth-team.surge-xt-fx=0|Surge XT Effects (Surge Synth Team)
+        -- SKIP SOME ID/GUID LINE "_=00E3FA30507FD901FD9E7AF993E4D901"
+        if not line:match("_=") then
+            -- GET STRINGS BETWEEN "=0|"
+            local id, name = line:match("(.+)=%d+|(.+)")
+            if name then
+                -- MATCH "fx=0|"
+                local is_instrument = line:match("=1|")
+                local clap_name = "CLAP:" .. name
+                -- CHECK IF PLUGIN IS RENAMED
+                for i = 1, #rename_tbl do
+                    local new_id, new_name = rename_tbl[i]:match("(.+)=%d+|(.+)")
+                    if new_id == id then
+                        clap_name = "CLAP:" .. new_name
+                    end
                 end
+                CLAP_INFO[#CLAP_INFO + 1] = { id = id, name = clap_name }
+                CLAP[#CLAP + 1] = clap_name
+                if is_instrument then
+                    CLAPi[#CLAPi + 1] = clap_name
+                    INSTRUMENTS[#INSTRUMENTS + 1] = clap_name
+                end
+                plugin_list[#plugin_list + 1] = clap_name
             end
-    
-            vst_str = GetFileContext(vst_path)
-    
-            for line in vst_str:gmatch('[^\r\n]+') do
-                -- reacast.dll=00EE7DC39FE1D901,1919246691,ReaCast (Cockos)
-                -- MATCH EVERY FIELD SEPARATED BY '=' AND ','
-                local dll, id1, id2, name = line:match('(.-)=(.-),(.-),(.+)')
-                if name and name ~= "<SHELL>" then
-                    local instrument = name:match("!!!VSTi")
-                    name = name:gsub("!!!VSTi", "")
-                    for i = 1, #rename_tbl do
-                        local new_id, new_name = rename_tbl[i]:match("(.+)=(.+)")
-                        if new_id == dll then
-                            name = new_name
+        end
+    end
+    return CLAP_INFO, CLAP, CLAPi
+end
+
+local function ParseLV2(plugin_list)
+    local LV2_INFO = {}
+    local LV2 = {}
+    local LV2i = {}
+    local LV2_files = {}
+
+    local lv2_path
+    if os == "Win32" or os == "Win64" then
+        lv2_path = "C:/Program Files/Common Files/LV2/"
+    elseif os == "OSX32" or os == "OSX64" or os == "macOS-arm64" then
+        lv2_path = "/Library/Audio/Plug-Ins/LV2/"
+    elseif os == "Other" then
+        lv2_path = "/usr/local/lib/lv2/"
+    end
+
+    GetDirFilesRecursive(lv2_path, LV2_files, "LV2")
+
+    for i = 1, #LV2_files do
+        local plugin_path = lv2_path .. LV2_files[i] .. os_separator
+        local dll_info = GetFileContext(plugin_path .. LV2_files[i]:gsub(".lv2", ".ttl"))
+        local is_instrument
+        local identifier
+        --local mono_stereo
+        local file_name = LV2_files[i]:gsub(".lv2", "")
+        for line in dll_info:gmatch('[^\r\n]+') do
+            --@prefix fil4: <http://gareus.org/oss/lv2/fil4#>
+            if not identifier then identifier = line:match('@prefix .+<(.+' .. file_name .. '#)>') end
+            if not is_instrument then is_instrument = line:match("InstrumentPlugin") end
+            --if not mono_stereo then
+            --    mono_stereo = line:match(file_name .. ':(mono)')
+            --     mono_stereo = mono_stereo and mono_stereo or line:match(file_name .. ':(stereo)')
+            -- end
+
+            local lv2_name = line:match('doap:name "(.+)"')
+            if lv2_name then
+                --local lv2_id = mono_stereo and identifier .. mono_stereo or identifier:gsub("#", '')
+                local lv2_id = identifier:gsub("#", '')
+
+                LV2_INFO[#LV2_INFO + 1] = { id = lv2_id, name = lv2_name }
+                LV2[#LV2 + 1] = lv2_name
+                plugin_list[#plugin_list + 1] = lv2_name
+                if is_instrument then LV2i[#LV2i + 1] = lv2_name end
+                --if mono_stereo then mono_stereo = nil end
+            end
+        end
+    end
+    return LV2_INFO, LV2, LV2i
+end
+
+local function ParseFXTags(VST_INFO, JS_INFO, AU_INFO, CLAP_INFO)
+    -- PARSE CATEGORIES
+    local tags_path = r.GetResourcePath() .. "/reaper-fxtags.ini"
+    local tags_str  = GetFileContext(tags_path)
+
+    for line in tags_str:gmatch('[^\r\n]+') do
+        local category = line:match("%[(.+)%]")
+        -- CATEGORY FOUND
+        if category then
+            CAT[#CAT + 1] = { name = category:upper(), list = {} }
+        end
+        -- PLUGIN FOUND
+        local FX, dev_category = line:match("(.+)=(.+)")
+        if dev_category then
+            local fx_name = FindFXIDName(VST_INFO, FX)
+            fx_name = fx_name and fx_name or FindFXIDName(AU_INFO, FX)
+            fx_name = fx_name and fx_name or FindFXIDName(CLAP_INFO, FX)
+            fx_name = fx_name and fx_name or FindFXIDName(JS_INFO, FX, "JS")
+            --fx_name = fx_name and fx_name or FindFXIDName(LV2_INFO, FX, "JS")
+            -- IF MULTIPLE CATEGORIES SPLIT AT |
+            if dev_category:match("|") then
+                for category_type in dev_category:gmatch('[^%|]+') do
+                    -- TRIM LEADING AND TRAILING WHITESPACES
+                    local dev_tbl = InTbl(CAT[#CAT].list, category_type)
+                    if fx_name then
+                        -- ADD CATEGORY ONLY IF PLUGIN EXISTS
+                        if not dev_tbl then
+                            table.insert(CAT[#CAT].list, { name = category_type, fx = { fx_name } })
+                        else
+                            table.insert(dev_tbl, fx_name)
                         end
                     end
-                    -- VST3
-                    if dll:match("vst3") then
-                        local vst3_name = "VST3:" .. name
-                        VST_INFO[#VST_INFO + 1] = { id = dll, name = vst3_name }
-                        plugin_list[#plugin_list + 1] = vst3_name
-                        VST3[#VST3 + 1] = vst3_name
-                        -- VST3i
-                        if instrument then
-                            VST3i[#VST3i + 1] = vst3_name
-                            INSTRUMENTS[#INSTRUMENTS + 1] = vst3_name
-                        end
+                end
+            else
+                -- ADD SINGLE CATEGORY
+                local dev_tbl = InTbl(CAT[#CAT].list, dev_category)
+                if fx_name then
+                    -- ADD CATEGORY ONLY IF PLUGIN EXISTS
+                    if not dev_tbl then
+                        table.insert(CAT[#CAT].list, { name = dev_category, fx = { fx_name } })
                     else
-                        local vst_name = "VST:" .. name
-                        -- VST
-                        VST_INFO[#VST_INFO + 1] = { id = dll, name = vst_name }
-                        plugin_list[#plugin_list + 1] = vst_name
-                        VST[#VST + 1] = vst_name
-                        -- VSTi
-                        if instrument then
-                            VSTi[#VSTi + 1] = vst_name
-                            INSTRUMENTS[#INSTRUMENTS + 1] = vst_name
-                        end
+                        table.insert(dev_tbl, fx_name)
                     end
                 end
             end
-            return VST_INFO, VST, VSTi, VST3, VST3i
         end
-    
-        local function ParseJSFX(plugin_list)
-            local JS_INFO   = {}
-            local JS        = {}
-    
-            local jsfx_path = r.GetResourcePath() .. "/reaper-jsfx.ini"
-            local jsfx_str  = GetFileContext(jsfx_path)
-    
-            for line in jsfx_str:gmatch('[^\r\n]+') do
-                local js_name
-                if line:match("NAME") then
-                    -- NAME utility/volume "JS: Volume Adjustment"
-                    -- NAME "ReaTeam Scripts/FX/BryanChi_FX Devices/cookdsp/fft-mono-template" "JS: FFT Mono Template"
-                    local id, name = line:match('%w+ ["]?(.+)["]? "JS: (.+)"')
-                    if name then
-                        js_name = "JS:" .. name
-                        JS_INFO[#JS_INFO + 1] = { id = id:gsub('"', ''), name = js_name }
-                    end
-                end
-                if js_name then
-                    plugin_list[#plugin_list + 1] = js_name
-                    JS[#JS + 1] = js_name
-                end
+    end
+end
+
+local function FindCategory(cat)
+    for i = 1, #CAT do
+        if CAT[i].name == cat then return CAT[i].list end
+    end
+end
+
+local function ParseCustomCategories(VST_INFO, JS_INFO, AU_INFO, CLAP_INFO)
+    local fav_path = r.GetResourcePath() .. "/reaper-fxfolders.ini"
+    local fav_str  = GetFileContext(fav_path)
+    local cur_cat_tbl
+
+    for line in fav_str:gmatch('[^\r\n]+') do
+        local category = line:match("%[(.+)%]")
+        if category then
+            if category == "category" then
+                cur_cat_tbl = FindCategory(category:upper())
+            elseif category == "developer" then
+                cur_cat_tbl = FindCategory(category:upper())
+            else
+                cur_cat_tbl = nil
             end
-            return JS_INFO, JS
         end
-    
-        local function ParseAU(plugin_list, INSTRUMENTS)
-            local AU_INFO = {}
-            local AU      = {}
-            local AUi     = {}
-    
-            local au_path
-            local au_str
-    
-            if os == "OSX32" then
-                au_path = r.GetResourcePath() .. "/reaper-auplugins.ini"
-            elseif os == "OSX64" then
-                au_path = r.GetResourcePath() .. "/reaper-auplugins64.ini"
-            elseif os == "macOS-arm64" then
-                au_path = r.GetResourcePath() .. "/reaper-auplugins_arm64.ini"
-            end
-    
-            au_str = GetFileContext(au_path)
-    
-            for line in au_str:gmatch('[^\r\n]+') do
-                local identifier = line:match("(.+)=<")
-                if identifier then
-                    local renamed = line:match("=<.+>(.+)")
-                    local is_instrument = line:match("<inst>")
-                    local au_name = "AU:" .. (renamed and renamed or identifier)
-                    AU[#AU + 1] = au_name
-                    AU_INFO[#AU_INFO + 1] = { id = identifier, name = au_name }
-                    if is_instrument then
-                        AUi[#AUi + 1] = au_name
-                        INSTRUMENTS[#INSTRUMENTS + 1] = au_name
-                    end
-                    plugin_list[#plugin_list + 1] = au_name
-                end
-            end
-    
-            return AU_INFO, AU, AUi
-        end
-    
-        local function ParseCLAP(plugin_list, INSTRUMENTS)
-            local CLAP_INFO  = {}
-            local CLAP       = {}
-            local CLAPi      = {}
-    
-            local rename_tbl = {}
-    
-            local clap_path
-            local clap_str
-    
-            if os == "Win64" then
-                clap_path = r.GetResourcePath() .. "/reaper-clap-win64.ini"
-            elseif os == 'OSX64' then
-                clap_path = r.GetResourcePath() .. "/reaper-clap-macos-x86_64.ini"
-            elseif os == "macOS-arm64" then
-                clap_path = r.GetResourcePath() .. "/reaper-clap-macos-arm64.ini"
-            end
-    
-            clap_str = GetFileContext(clap_path)
-    
-            local clap_rename_path
-            if os == "Win64" then
-                clap_rename_path = r.GetResourcePath() .. "/reaper-clap-rename-win64.ini"
-            elseif os == 'OSX64' then
-                clap_rename_path = r.GetResourcePath() .. "/reaper-clap-rename-macos-x86_64.ini"
-            elseif os == "macOS-arm64" then
-                clap_rename_path = r.GetResourcePath() .. "/reaper-clap-rename-macos-arm64.ini"
-            end
-    
-            if clap_rename_path then
-                local clap_rename_str = GetFileContext(clap_rename_path)
-                for line in clap_rename_str:gmatch('[^\r\n]+') do
-                    rename_tbl[#rename_tbl + 1] = line
-                end
-            end
-    
-            for line in clap_str:gmatch('[^\r\n]+') do
-                --org.surge-synth-team.surge-xt-fx=0|Surge XT Effects (Surge Synth Team)
-                -- SKIP SOME ID/GUID LINE "_=00E3FA30507FD901FD9E7AF993E4D901"
-                if not line:match("_=") then
-                    -- GET STRINGS BETWEEN "=0|"
-                    local id, name = line:match("(.+)=%d+|(.+)")
-                    if name then
-                        -- MATCH "fx=0|"
-                        local is_instrument = line:match("=1|")
-                        local clap_name = "CLAP:" .. name
-                        -- CHECK IF PLUGIN IS RENAMED
-                        for i = 1, #rename_tbl do
-                            local new_id, new_name = rename_tbl[i]:match("(.+)=%d+|(.+)")
-                            if new_id == id then
-                                clap_name = "CLAP:" .. new_name
-                            end
-                        end
-                        CLAP_INFO[#CLAP_INFO + 1] = { id = id, name = clap_name }
-                        CLAP[#CLAP + 1] = clap_name
-                        if is_instrument then
-                            CLAPi[#CLAPi + 1] = clap_name
-                            INSTRUMENTS[#INSTRUMENTS + 1] = clap_name
-                        end
-                        plugin_list[#plugin_list + 1] = clap_name
-                    end
-                end
-            end
-            return CLAP_INFO, CLAP, CLAPi
-        end
-    
-        local function ParseLV2(plugin_list)
-            local LV2_INFO = {}
-            local LV2 = {}
-            local LV2i = {}
-            local LV2_files = {}
-    
-            local lv2_path
-            if os == "Win32" or os == "Win64" then
-                lv2_path = "C:/Program Files/Common Files/LV2/"
-            elseif os == "OSX32" or os == "OSX64" or os == "macOS-arm64" then
-                lv2_path = "/Library/Audio/Plug-Ins/LV2/"
-            elseif os == "Other" then
-                lv2_path = "/usr/local/lib/lv2/"
-            end
-    
-            GetDirFilesRecursive(lv2_path, LV2_files, "LV2")
-    
-            for i = 1, #LV2_files do
-                local plugin_path = lv2_path .. LV2_files[i] .. os_separator
-                local dll_info = GetFileContext(plugin_path .. LV2_files[i]:gsub(".lv2", ".ttl"))
-                local is_instrument
-                local identifier
-                --local mono_stereo
-                local file_name = LV2_files[i]:gsub(".lv2", "")
-                for line in dll_info:gmatch('[^\r\n]+') do
-                    --@prefix fil4: <http://gareus.org/oss/lv2/fil4#>
-                    if not identifier then identifier = line:match('@prefix .+<(.+' .. file_name .. '#)>') end
-                    if not is_instrument then is_instrument = line:match("InstrumentPlugin") end
-                    --if not mono_stereo then
-                    --    mono_stereo = line:match(file_name .. ':(mono)')
-                    --     mono_stereo = mono_stereo and mono_stereo or line:match(file_name .. ':(stereo)')
-                    -- end
-    
-                    local lv2_name = line:match('doap:name "(.+)"')
-                    if lv2_name then
-                        --local lv2_id = mono_stereo and identifier .. mono_stereo or identifier:gsub("#", '')
-                        local lv2_id = identifier:gsub("#", '')
-    
-                        LV2_INFO[#LV2_INFO + 1] = { id = lv2_id, name = lv2_name }
-                        LV2[#LV2 + 1] = lv2_name
-                        plugin_list[#plugin_list + 1] = lv2_name
-                        if is_instrument then LV2i[#LV2i + 1] = lv2_name end
-                        --if mono_stereo then mono_stereo = nil end
-                    end
-                end
-            end
-            return LV2_INFO, LV2, LV2i
-        end
-    
-        local function ParseFXTags(VST_INFO, JS_INFO, AU_INFO, CLAP_INFO)
-            -- PARSE CATEGORIES
-            local tags_path = r.GetResourcePath() .. "/reaper-fxtags.ini"
-            local tags_str  = GetFileContext(tags_path)
-    
-            for line in tags_str:gmatch('[^\r\n]+') do
-                local category = line:match("%[(.+)%]")
-                -- CATEGORY FOUND
-                if category then
-                    CAT[#CAT + 1] = { name = category:upper(), list = {} }
-                end
-                -- PLUGIN FOUND
-                local FX, dev_category = line:match("(.+)=(.+)")
-                if dev_category then
-                    local fx_name = FindFXIDName(VST_INFO, FX)
-                    fx_name = fx_name and fx_name or FindFXIDName(AU_INFO, FX)
-                    fx_name = fx_name and fx_name or FindFXIDName(CLAP_INFO, FX)
-                    fx_name = fx_name and fx_name or FindFXIDName(JS_INFO, FX, "JS")
-                    --fx_name = fx_name and fx_name or FindFXIDName(LV2_INFO, FX, "JS")
-                    -- IF MULTIPLE CATEGORIES SPLIT AT |
-                    if dev_category:match("|") then
-                        for category_type in dev_category:gmatch('[^%|]+') do
-                            -- TRIM LEADING AND TRAILING WHITESPACES
-                            local dev_tbl = InTbl(CAT[#CAT].list, category_type)
-                            if fx_name then
-                                -- ADD CATEGORY ONLY IF PLUGIN EXISTS
-                                if not dev_tbl then
-                                    table.insert(CAT[#CAT].list, { name = category_type, fx = { fx_name } })
-                                else
-                                    table.insert(dev_tbl, fx_name)
-                                end
-                            end
-                        end
-                    else
-                        -- ADD SINGLE CATEGORY
-                        local dev_tbl = InTbl(CAT[#CAT].list, dev_category)
+
+        if cur_cat_tbl then
+            local FX, categories = line:match("(.+)=(.+)")
+            if categories then
+                local fx_name = FindFXIDName(VST_INFO, FX)
+                fx_name = fx_name and fx_name or FindFXIDName(AU_INFO, FX)
+                fx_name = fx_name and fx_name or FindFXIDName(CLAP_INFO, FX)
+                fx_name = fx_name and fx_name or FindFXIDName(JS_INFO, FX, "JS")
+                --fx_name = fx_name and fx_name or FindFXIDName(LV2_INFO, FX, "JS")
+                if categories:match("|") then
+                    for category_type in categories:gmatch('[^%|]+') do
+                        local dev_tbl = InTbl(cur_cat_tbl, category_type)
                         if fx_name then
                             -- ADD CATEGORY ONLY IF PLUGIN EXISTS
                             if not dev_tbl then
-                                table.insert(CAT[#CAT].list, { name = dev_category, fx = { fx_name } })
+                                table.insert(cur_cat_tbl, { name = category_type, fx = { fx_name } })
                             else
                                 table.insert(dev_tbl, fx_name)
                             end
                         end
                     end
-                end
-            end
-        end
-    
-        local function FindCategory(cat)
-            for i = 1, #CAT do
-                if CAT[i].name == cat then return CAT[i].list end
-            end
-        end
-    
-        local function ParseCustomCategories(VST_INFO, JS_INFO, AU_INFO, CLAP_INFO)
-            local fav_path = r.GetResourcePath() .. "/reaper-fxfolders.ini"
-            local fav_str  = GetFileContext(fav_path)
-            local cur_cat_tbl
-    
-            for line in fav_str:gmatch('[^\r\n]+') do
-                local category = line:match("%[(.+)%]")
-                if category then
-                    if category == "category" then
-                        cur_cat_tbl = FindCategory(category:upper())
-                    elseif category == "developer" then
-                        cur_cat_tbl = FindCategory(category:upper())
-                    else
-                        cur_cat_tbl = nil
-                    end
-                end
-    
-                if cur_cat_tbl then
-                    local FX, categories = line:match("(.+)=(.+)")
-                    if categories then
-                        local fx_name = FindFXIDName(VST_INFO, FX)
-                        fx_name = fx_name and fx_name or FindFXIDName(AU_INFO, FX)
-                        fx_name = fx_name and fx_name or FindFXIDName(CLAP_INFO, FX)
-                        fx_name = fx_name and fx_name or FindFXIDName(JS_INFO, FX, "JS")
-                        --fx_name = fx_name and fx_name or FindFXIDName(LV2_INFO, FX, "JS")
-                        if categories:match("|") then
-                            for category_type in categories:gmatch('[^%|]+') do
-                                local dev_tbl = InTbl(cur_cat_tbl, category_type)
-                                if fx_name then
-                                    -- ADD CATEGORY ONLY IF PLUGIN EXISTS
-                                    if not dev_tbl then
-                                        table.insert(cur_cat_tbl, { name = category_type, fx = { fx_name } })
-                                    else
-                                        table.insert(dev_tbl, fx_name)
-                                    end
-                                end
-                            end
-                        else
-                            local dev_tbl = InTbl(cur_cat_tbl, categories)
-                            if fx_name then
-                                -- ADD CATEGORY ONLY IF PLUGIN EXISTS
-                                if not dev_tbl then
-                                    table.insert(cur_cat_tbl, { name = categories, fx = { fx_name } })
-                                else
-                                    table.insert(dev_tbl, fx_name)
-                                end
-                            end
-                        end
-                    end
-                end
-            end
-        end
-    
-        local function ParseFavorites(VST_INFO, JS_INFO, AU_INFO, CLAP_INFO)
-            -- PARSE FAVORITES FOLDER
-            local fav_path = r.GetResourcePath() .. "/reaper-fxfolders.ini"
-            local fav_str  = GetFileContext(fav_path)
-    
-            CAT[#CAT + 1]  = { name = "FOLDERS", list = {} }
-            local current_folder
-            local folder_lvl
-            for line in fav_str:gmatch('[^\r\n]+') do
-                local folder = line:match("%[(Folder%d+)%]")
-    
-                -- GET INITIAL FOLDER NAME "[Folder0]" AND SAVE IF
-                if folder then
-                    --folder_lvl = line:match("%d+") + 1
-                    current_folder = folder
-                end
-    
-                -- GET FOLDER ITEMS "Item0=..."
-                if line:match("Item%d+") then
-                    local item = line:match("Item%d+=(.+)")
-                    local dev_tbl = InTbl(CAT[#CAT].list, current_folder)
-                    if not dev_tbl then
-                        table.insert(CAT[#CAT].list, { name = current_folder, fx = { item } })
-                    else
-                        table.insert(dev_tbl, item)
-                    end
-                end
-    
-                -- RENAME ITEMS BY TYPE TO REAL NAMES "Type0=2"
-                -- 3 = VST, 2 = JS, 7 = CLAP, 1 = LV2
-                if line:match("Type%d+") then
-                    local line_id, fx_type = line:match("(%d+)=(%d+)")
-                    if fx_type == "3" then -- VST
-                        local item = CAT[#CAT].list[#CAT[#CAT].list].fx[line_id + 1]
-                        if item then
-                            local id = os:match("Win") and item:reverse():match("(.-)\\") or item:reverse():match("(.-)/")
-                            if id then
-                                -- NEED TO REPLACE WHITESPACES AND DASH WITH LOWER DASH ALSO (HOW ITS IN VST INI FILE)
-                                id = id:reverse():gsub(" ", "_"):gsub("-", "_")
-                                CAT[#CAT].list[#CAT[#CAT].list].fx[line_id + 1] = FindFXIDName(VST_INFO, id)
-                            end
-                        end
-                    elseif fx_type == "2" then --JSFX
-                        local item = CAT[#CAT].list[#CAT[#CAT].list].fx[line_id + 1]
-                        CAT[#CAT].list[#CAT[#CAT].list].fx[line_id + 1] = FindFXIDName(JS_INFO, item)
-                    elseif fx_type == "7" then -- CLAP
-                        local item = CAT[#CAT].list[#CAT[#CAT].list].fx[line_id + 1]
-                        CAT[#CAT].list[#CAT[#CAT].list].fx[line_id + 1] = FindFXIDName(CLAP_INFO, item)
-                    elseif fx_type == "1" then -- LV2
-                        --local item = CAT[#CAT].list[#CAT[#CAT].list].fx[line_id + 1]
-                        --CAT[#CAT].list[#CAT[#CAT].list].fx[line_id + 1] = FindFXIDName(LV2_INFO, item)
-                    elseif fx_type == "5" then -- AU
-                        local item = CAT[#CAT].list[#CAT[#CAT].list].fx[line_id + 1]
-                        CAT[#CAT].list[#CAT[#CAT].list].fx[line_id + 1] = FindFXIDName(AU_INFO, item)
-                    elseif fx_type == "1048576" then -- SMART FOLDER
-                        CAT[#CAT].list[#CAT[#CAT].list].smart = true
-                    end
-                end
-                -- RENAME ORIGINAL FOLDER NAME "[Folder0]" TO PROPER ID NAME (Name0=Favorites)
-                if line:match("Name%d+=(.+)") then
-                    -- EXTRACT NAME
-                    local folder_name = line:match("Name%d+=(.+)")
-                    local folder_ID = line:match("(%d+)=")
-    
-                    for i = 1, #CAT[#CAT].list do
-                        if CAT[#CAT].list[i].name == "Folder" .. folder_ID then
-                            CAT[#CAT].list[i].name = folder_name
-                        end
-                    end
-                    -- EXTRACT TBL ID
-                    -- RENAME TARGET TBL NAME FROM "Folder0" -> "Favorites" ONLY IF HAS ITEMS
-                    -- if CAT[#CAT].list[folder_ID] then
-                    --   CAT[#CAT].list[folder_ID].name = folder_name
-                    --end
-                end
-            end
-            -- REMOVE SMART FOLDERS FOR NOW
-            for i = 1, #CAT do
-                for j = #CAT[i].list, 1, -1 do
-                    if CAT[i].list[j].smart then table.remove(CAT[i].list, j) end
-                end
-            end
-        end
-    
-        local function ParseFXChains()
-            local fxChainsFolder = r.GetResourcePath() .. "/FXChains"
-            local FX_CHAINS = {}
-            GetDirFilesRecursive(fxChainsFolder, FX_CHAINS)
-            if #FX_CHAINS ~= 0 then
-                --table.sort(FX_CHAINS, function(a, b) if a and b then return a:lower() < b:lower() end end)
-                CAT[#CAT + 1] = { name = "FX CHAINS", list = FX_CHAINS }
-            end
-        end
-    
-        local function AllPluginsCategory(JS, AU, AUi, CLAP, CLAPi, VST, VSTi, VST3, VST3i, INSTRUMENTS)
-            CAT[#CAT + 1] = { name = "ALL PLUGINS", list = {} }
-            if #JS ~= 0 then table.insert(CAT[#CAT].list, { name = "JS", fx = JS }) end
-            if #AU ~= 0 then table.insert(CAT[#CAT].list, { name = "AU", fx = AU }) end
-            if #AUi ~= 0 then table.insert(CAT[#CAT].list, { name = "AUi", fx = AUi }) end
-            if #CLAP ~= 0 then table.insert(CAT[#CAT].list, { name = "CLAP", fx = CLAP }) end
-            if #CLAPi ~= 0 then table.insert(CAT[#CAT].list, { name = "CLAPi", fx = CLAPi }) end
-            if #VST ~= 0 then table.insert(CAT[#CAT].list, { name = "VST", fx = VST }) end
-            if #VSTi ~= 0 then table.insert(CAT[#CAT].list, { name = "VSTi", fx = VSTi }) end
-            if #VST3 ~= 0 then table.insert(CAT[#CAT].list, { name = "VST3", fx = VST3 }) end
-            if #VST3i ~= 0 then table.insert(CAT[#CAT].list, { name = "VST3i", fx = VST3i }) end
-            if #INSTRUMENTS ~= 0 then table.insert(CAT[#CAT].list, { name = "INSTRUMENTS", fx = INSTRUMENTS }) end
-            --if #LV2 ~= 0 then table.insert(CAT[#CAT].list, { name = "LV2", fx = LV2 }) end
-            --if #LV2i ~= 0 then table.insert(CAT[#CAT].list, { name = "LV2i", fx = LV2i }) end
-    
-    
-            -- SORT EVERYTHING ALPHABETICALLY
-            for i = 1, #CAT do
-                table.sort(CAT[i].list, function(a, b) if a.name and b.name then return a.name:lower() < b.name:lower() end end)
-                for j = 1, #CAT[i].list do
-                    if CAT[i].list[j].fx then
-                        table.sort(CAT[i].list[j].fx, function(a, b) if a and b then return a:lower() < b:lower() end end)
-                    end
-                end
-            end
-    
-            table.sort(CAT, function(a, b) if a.name and b.name then return a.name:lower() < b.name:lower() end end)
-        end
-    
-        local function Fill_fx_list()
-            local plugin_list = {}
-            local INSTRUMENTS = {}
-    
-            plugin_list[#plugin_list + 1] = "Container"
-            plugin_list[#plugin_list + 1] = "Video processor"
-    
-            local VST_INFO, VST, VSTi, VST3, VST3i = ParseVST(plugin_list, INSTRUMENTS)
-            local JS_INFO, JS = ParseJSFX(plugin_list)
-            local AU_INFO, AU, AUi = ParseAU(plugin_list, INSTRUMENTS)
-            local CLAP_INFO, CLAP, CLAPi = ParseCLAP(plugin_list, INSTRUMENTS)
-            --local LV2_INFO, LV2, LV2i = ParseLV2(plugin_list)
-            ParseFXTags(VST_INFO, JS_INFO, AU_INFO, CLAP_INFO) -- CATEGORIES
-            ParseCustomCategories(VST_INFO, JS_INFO, AU_INFO, CLAP_INFO)
-            ParseFavorites(VST_INFO, JS_INFO, AU_INFO, CLAP_INFO)
-            ParseFXChains()
-            AllPluginsCategory(JS, AU, AUi, CLAP, CLAPi, VST, VSTi, VST3, VST3i, INSTRUMENTS)
-    
-            return plugin_list
-        end
-    
-        FX_LIST = Fill_fx_list()
-    
-        -- EXAMPLE DRAW (NOTHING TO DO WITH PARSING ALL BELOOW)
-        local function Lead_Trim_ws(s) return s:match '^%s*(.*)' end
-    
-        local function Filter_actions(filter_text)
-            filter_text = Lead_Trim_ws(filter_text)
-            local t = {}
-            if filter_text == "" or not filter_text then return t end
-            for i = 1, #FX_LIST do
-                local action = FX_LIST[i]
-                local name = action:lower()
-                local found = true
-                for word in filter_text:gmatch("%S+") do
-                    if not name:find(word:lower(), 1, true) then
-                        found = false
-                        break
-                    end
-                end
-    
-                if found then t[#t + 1] = action end
-            end
-            return t
-        end
-    
-        local function SetMinMax(Input, Min, Max)
-            if Input >= Max then
-                Input = Max
-            elseif Input <= Min then
-                Input = Min
-            else
-                Input = Input
-            end
-            return Input
-        end
-    
-            
-            function FilterBox(FX_Idx, LyrID, SpaceIsBeforeRackMixer, FxGUID_Container, SpcIsInPre, SpcInPost, SpcIDinPost)
-                local FX_Idx_For_AddFX, close
-                if AddLastSPCinRack then FX_Idx_For_AddFX = FX_Idx - 1 end
-                local MAX_FX_SIZE = 250
-                local FxGUID = FXGUID[FX_Idx_For_AddFX or FX_Idx]
-                r.ImGui_SetNextItemWidth(ctx, 180)
-                _, ADDFX_FILTER = r.ImGui_InputTextWithHint(ctx, '##input', "SEARCH FX", ADDFX_FILTER, r.ImGui_InputTextFlags_AutoSelectAll())
-    
-                if r.ImGui_IsWindowAppearing(ctx) then
-                    local tb = FX_LIST
-                    r.ImGui_SetKeyboardFocusHere(ctx, -1)
-                end
-    
-                local filtered_fx = Filter_actions(ADDFX_FILTER)
-                --r.ImGui_SetNextWindowPos(ctx, r.ImGui_GetItemRectMin(ctx), ({ r.ImGui_GetItemRectMax(ctx) })[2])
-                local filter_h = #filtered_fx == 0 and 2 or (#filtered_fx > 40 and 20 * 17 or (17 * #filtered_fx))
-                local function InsertFX(Name)
-                    local FX_Idx = FX_Idx
-                    --- CLICK INSERT
-                    if SpaceIsBeforeRackMixer == 'End of PreFX' then FX_Idx = FX_Idx + 1 end
-    
-                    r.TrackFX_AddByName(LT_Track, Name, false, -1000 - FX_Idx)
-    
-                    -- if Inserted into Layer
-                    local FxID = r.TrackFX_GetFXGUID(LT_Track, FX_Idx)
-    
-                    if FX.InLyr[FxGUID] == FXGUID_RackMixer and FX.InLyr[FxGUID] then
-                        DropFXtoLayerNoMove(FXGUID_RackMixer, LyrID, FX_Idx)
-                    end
-                    if SpaceIsBeforeRackMixer == 'SpcInBS' then
-                        DropFXintoBS(FxID, FxGUID_Container, FX[FxGUID_Container].Sel_Band, FX_Idx + 1, FX_Idx)
-                    end
-                    if SpcIsInPre then
-                        local inspos = FX_Idx + 1
-                        if SpaceIsBeforeRackMixer == 'End of PreFX' then
-                            table.insert(Trk[TrkID].PreFX, FxID)
-                        else
-                            table.insert(Trk[TrkID].PreFX, FX_Idx + 1, FxID)
-                        end
-                        for i, v in pairs(Trk[TrkID].PreFX) do
-                            r.GetSetMediaTrackInfo_String(LT_Track, 'P_EXT: PreFX ' .. i, v,
-                                true)
-                        end
-                    elseif SpcInPost then
-                        if r.TrackFX_AddByName(LT_Track, 'FXD Macros', 0, 0) == -1 then offset = -1 else offset = 0 end
-                        table.insert(Trk[TrkID].PostFX, SpcIDinPost + offset + 1, FxID)
-                        -- InsertToPost_Src = FX_Idx + offset+2
-                        for i = 1, #Trk[TrkID].PostFX + 1, 1 do
-                            r.GetSetMediaTrackInfo_String(LT_Track, 'P_EXT: PostFX ' .. i, Trk[TrkID].PostFX[i] or '', true)
-                        end
-                    end
-    
-                    ADDFX_FILTER = nil
-                end
-                if ADDFX_FILTER ~= '' and ADDFX_FILTER then
-                    SL()
-                    r.ImGui_SetNextWindowSize(ctx, MAX_FX_SIZE, filter_h + 20)
-                    local x, y = r.ImGui_GetCursorScreenPos(ctx)
-    
-                    ParentWinPos_x, ParentWinPos_y = r.ImGui_GetWindowPos(ctx)
-                    local VP_R = VP.X + VP.w
-                    if x + MAX_FX_SIZE > VP_R then x = ParentWinPos_x - MAX_FX_SIZE end
-    
-                    r.ImGui_SetNextWindowPos(ctx, x, y - filter_h / 2)
-                    if r.ImGui_BeginPopup(ctx, "##popupp", r.ImGui_WindowFlags_NoFocusOnAppearing() --[[ MAX_FX_SIZE, filter_h ]]) then
-                        ADDFX_Sel_Entry = SetMinMax(ADDFX_Sel_Entry or 1, 1, #filtered_fx)
-                        for i = 1, #filtered_fx do
-                            local ShownName
-                            if filtered_fx[i]:find('VST:') then
-                                local fx = filtered_fx[i]
-                                ShownName = fx:sub(5, (fx:find('.vst') or 999) - 1)
-                                local clr = FX_Adder_VST or CustomColorsDefault.FX_Adder_VST
-                                MyText('VST', nil, clr)
-                                SL()
-                                HighlightSelectedItem(nil, clr, 0, L, T, R, B, h, w, 1, 1, 'GetItemRect')
-                            elseif filtered_fx[i]:find('VST3:') then
-                                local fx = filtered_fx[i]
-                                ShownName = fx:sub(6) .. '##vst3'
-                                local clr = FX_Adder_VST3 or CustomColorsDefault.FX_Adder_VST3
-                                MyText('VST3', nil, clr)
-                                SL()
-                                HighlightSelectedItem(nil, clr, 0, L, T, R, B, h, w, 1, 1, 'GetItemRect')
-                            elseif filtered_fx[i]:find('JS:') then
-                                local fx = filtered_fx[i]
-                                ShownName = fx:sub(4)
-                                local clr = FX_Adder_JS or CustomColorsDefault.FX_Adder_JS
-                                MyText('JS', nil, clr)
-                                SL()
-                                HighlightSelectedItem(nil, clr, 0, L, T, R, B, h, w, 1, 1, 'GetItemRect')
-                            elseif filtered_fx[i]:find('AU:') then
-                                local fx = filtered_fx[i]
-                                ShownName = fx:sub(4)
-                                local clr = FX_Adder_AU or CustomColorsDefault.FX_Adder_AU
-                                MyText('AU', nil, clr)
-                                SL()
-                                HighlightSelectedItem(nil, clr, 0, L, T, R, B, h, w, 1, 1, 'GetItemRect')
-                            elseif filtered_fx[i]:find('CLAP:') then
-                                local fx = filtered_fx[i]
-                                ShownName = fx:sub(6)
-                                local clr = FX_Adder_CLAP or CustomColorsDefault.FX_Adder_CLAP
-                                MyText('CLAP', nil, clr)
-                                SL()
-                                HighlightSelectedItem(nil, clr, 0, L, T, R, B, h, w, 1, 1, 'GetItemRect')
-                            end
-    
-                            if r.ImGui_Selectable(ctx, (ShownName or filtered_fx[i]) .. '##emptyName', DRAG_FX == i) then
-                                if filtered_fx[i] then
-                                    InsertFX(filtered_fx[i])
-                                    r.ImGui_CloseCurrentPopup(ctx)
-                                    close = true
-                                end
-                            end
-                            if i == ADDFX_Sel_Entry then
-                                HighlightSelectedItem(0xffffff11, nil, 0, L, T, R, B, h, w, 1, 1, 'GetItemRect')
-                            end
-                            -- DRAG AND DROP
-                            if r.ImGui_IsItemActive(ctx) and r.ImGui_IsMouseDragging(ctx, 0) then
-                                -- HIGHLIGHT DRAGGED FX
-                                DRAG_FX = i
-                                AddFX_Drag(filtered_fx[i])
-                            end
-                        end
-    
-                        if r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_Enter()) then
-                            r.TrackFX_AddByName(TRACK, filtered_fx[ADDFX_Sel_Entry], false, -1000 - r.TrackFX_GetCount(TRACK))
-                            LAST_USED_FX = filtered_fx[filtered_fx[ADDFX_Sel_Entry]]
-                            ADDFX_Sel_Entry = nil
-                            --FILTER = ''
-                            --r.ImGui_CloseCurrentPopup(ctx)
-                        elseif r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_UpArrow()) then
-                            ADDFX_Sel_Entry = ADDFX_Sel_Entry - 1
-                        elseif r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_DownArrow()) then
-                            ADDFX_Sel_Entry = ADDFX_Sel_Entry + 1
-                        end
-                        --r.ImGui_EndChild(ctx)
-                        r.ImGui_EndPopup(ctx)
-                    end
-    
-    
-                    r.ImGui_OpenPopup(ctx, "##popupp")
-                    r.ImGui_NewLine(ctx)
-                end
-    
-    
-                if r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_Escape()) then
-                    r.ImGui_CloseCurrentPopup(ctx)
-                    ADDFX_FILTER = nil
-                end
-                return close
-            end
-    
-            local function DrawChildMenu(tbl, path)
-                path = path or ""
-                for i = 1, #tbl do
-                    if tbl[i].dir then
-                        if r.ImGui_BeginMenu(ctx, tbl[i].dir) then
-                            DrawChildMenu(tbl[i], table.concat({ path, os_separator, tbl[i].dir }))
-                            r.ImGui_EndMenu(ctx)
-                        end
-                    end
-                    if type(tbl[i]) ~= "table" then
-                        if r.ImGui_Selectable(ctx, tbl[i]) then
-                            if TRACK then
-                                --r.ShowConsoleMsg(tbl[i] .. "\n")
-                                -- r.ShowConsoleMsg(path .. os_separator .. tbl[i] .. "\n")
-                                r.TrackFX_AddByName(TRACK, table.concat({ path, os_separator, tbl[i] }), false,
-                                    -1000 - r.TrackFX_GetCount(TRACK))
-                            end
-                        end
-                    end
-                end
-            end
-    
-            function AddFX_Drag(name)
-                if r.ImGui_BeginDragDropSource(ctx, r.ImGui_DragDropFlags_AcceptNoDrawDefaultRect()) then
-                    r.ImGui_SetDragDropPayload(ctx, 'AddFX_Sexan', tostring(name))
-                    r.ImGui_Text(ctx, name)
-                    r.ImGui_EndDragDropSource(ctx)
-                end
-            end
-    
-            function AddFX_drop(FX_Idx)
-                if r.ImGui_BeginDragDropTarget(ctx) then
-                    local ret, payload = r.ImGui_AcceptDragDropPayload(ctx, 'AddFX_Sexan', nil)
-                    r.ImGui_EndDragDropTarget(ctx)
-                    if ret then
-                        local fx_name = payload
-                        r.TrackFX_AddByName(LT_Track, fx_name, false, -1000 - FX_Idx)
-                        DRAG_FX = nil
-                    end
-                end
-            end
-    
-            local function frame()
-                OPEN_FILTER = r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_A())
-    
-                if OPEN_FILTER and not r.ImGui_IsAnyItemActive(ctx) then
-                    OPEN_FILTER = nil
-                    if not r.ImGui_IsPopupOpen(ctx, "FILTER LIST") then
-                        ADDFX_FILTER = ''
-                        r.ImGui_OpenPopup(ctx, "FILTER LIST")
-                    end
-                end
-                -- OPEN FX LIST
-                if r.ImGui_BeginPopup(ctx, "FILTER LIST") then
-                    if FilterBox(FX_Idx) then r.ImGui_CloseCurrentPopup(ctx) end
-                    r.ImGui_EndPopup(ctx)
-                end
-    
-                -- DRAG AND DROP HERE
-                for i = 1, 5 do
-                    reaper.ImGui_Selectable(ctx, "TRACK " .. i, false, nil, 50, size_hIn)
-                    AddFX_drop(i)
-                end
-            end
-    
-
-
-
-
-
-    end
-        -------- End Of FX List
-
-
-
-    function AddFX_Sexan(Dest)
-        dropped, payload = r.ImGui_AcceptDragDropPayload(ctx, 'AddFX_Sexan')
-        Dvdr.Clr[ClrLbl] = r.ImGui_GetStyleColor(ctx, r.ImGui_Col_Button())
-        Dvdr.Width[TblIdxForSpace] = Df.Dvdr_Width
-        if dropped then
-            local FX_Idx = FX_Idx
-            if SpaceIsBeforeRackMixer == 'End of PreFX' then FX_Idx = FX_Idx + 1 end
-            r.TrackFX_AddByName(LT_Track, payload, false, -1000 - FX_Idx, false)
-            local FxID = r.TrackFX_GetFXGUID(LT_Track, FX_Idx)
-            local _, nm = r.TrackFX_GetFXName(LT_Track, FX_Idx)
-
-            --if in layer
-            if FX.InLyr[FXGUID_To_Check_If_InLayer] == FXGUID_RackMixer and SpaceIsBeforeRackMixer == false or AddLastSPCinRack == true then
-                DropFXtoLayerNoMove(FXGUID_RackMixer, LyrID, FX_Idx)
-            end
-            Dvdr.Clr[ClrLbl], Dvdr.Width[TblIdxForSpace] = nil, 0
-
-            if SpcIsInPre then
-                if SpaceIsBeforeRackMixer == 'End of PreFX' then
-                    table.insert(Trk[TrkID].PreFX, FxID)
                 else
-                    table.insert(Trk[TrkID].PreFX, FX_Idx + 1, FxID)
+                    local dev_tbl = InTbl(cur_cat_tbl, categories)
+                    if fx_name then
+                        -- ADD CATEGORY ONLY IF PLUGIN EXISTS
+                        if not dev_tbl then
+                            table.insert(cur_cat_tbl, { name = categories, fx = { fx_name } })
+                        else
+                            table.insert(dev_tbl, fx_name)
+                        end
+                    end
                 end
-                for i, v in pairs(Trk[TrkID].PreFX) do
-                    r.GetSetMediaTrackInfo_String(LT_Track, 'P_EXT: PreFX ' .. i, v,
-                        true)
-                end
-            elseif SpcInPost then
-                if r.TrackFX_AddByName(LT_Track, 'FXD Macros', 0, 0) == -1 then offset = -1 else offset = 0 end
-                table.insert(Trk[TrkID].PostFX, SpcIDinPost + offset + 1, FxID)
-                -- InsertToPost_Src = FX_Idx + offset+2
-                for i = 1, #Trk[TrkID].PostFX + 1, 1 do
-                    r.GetSetMediaTrackInfo_String(LT_Track, 'P_EXT: PostFX ' .. i, Trk[TrkID].PostFX[i] or '', true)
-                end
-            elseif SpaceIsBeforeRackMixer == 'SpcInBS' then
-                DropFXintoBS(FxID, FxGUID_Container, FX[FxGUID_Container].Sel_Band, FX_Idx, Dest + 1)
             end
-
-
-
-            FX_Idx_OpenedPopup = nil
         end
     end
+end
+
+local function ParseFavorites(VST_INFO, JS_INFO, AU_INFO, CLAP_INFO)
+    -- PARSE FAVORITES FOLDER
+    local fav_path = r.GetResourcePath() .. "/reaper-fxfolders.ini"
+    local fav_str  = GetFileContext(fav_path)
+
+    CAT[#CAT + 1]  = { name = "FOLDERS", list = {} }
+    local current_folder
+    local folder_lvl
+    for line in fav_str:gmatch('[^\r\n]+') do
+        local folder = line:match("%[(Folder%d+)%]")
+
+        -- GET INITIAL FOLDER NAME "[Folder0]" AND SAVE IF
+        if folder then
+            --folder_lvl = line:match("%d+") + 1
+            current_folder = folder
+        end
+
+        -- GET FOLDER ITEMS "Item0=..."
+        if line:match("Item%d+") then
+            local item = line:match("Item%d+=(.+)")
+            local dev_tbl = InTbl(CAT[#CAT].list, current_folder)
+            if not dev_tbl then
+                table.insert(CAT[#CAT].list, { name = current_folder, fx = { item } })
+            else
+                table.insert(dev_tbl, item)
+            end
+        end
+
+        -- RENAME ITEMS BY TYPE TO REAL NAMES "Type0=2"
+        -- 3 = VST, 2 = JS, 7 = CLAP, 1 = LV2
+        if line:match("Type%d+") then
+            local line_id, fx_type = line:match("(%d+)=(%d+)")
+            if fx_type == "3" then -- VST
+                local item = CAT[#CAT].list[#CAT[#CAT].list].fx[line_id + 1]
+                if item then
+                    local id = os:match("Win") and item:reverse():match("(.-)\\") or item:reverse():match("(.-)/")
+                    if id then
+                        -- NEED TO REPLACE WHITESPACES AND DASH WITH LOWER DASH ALSO (HOW ITS IN VST INI FILE)
+                        id = id:reverse():gsub(" ", "_"):gsub("-", "_")
+                        CAT[#CAT].list[#CAT[#CAT].list].fx[line_id + 1] = FindFXIDName(VST_INFO, id)
+                    end
+                end
+            elseif fx_type == "2" then --JSFX
+                local item = CAT[#CAT].list[#CAT[#CAT].list].fx[line_id + 1]
+                CAT[#CAT].list[#CAT[#CAT].list].fx[line_id + 1] = FindFXIDName(JS_INFO, item)
+            elseif fx_type == "7" then -- CLAP
+                local item = CAT[#CAT].list[#CAT[#CAT].list].fx[line_id + 1]
+                CAT[#CAT].list[#CAT[#CAT].list].fx[line_id + 1] = FindFXIDName(CLAP_INFO, item)
+            elseif fx_type == "1" then -- LV2
+                --local item = CAT[#CAT].list[#CAT[#CAT].list].fx[line_id + 1]
+                --CAT[#CAT].list[#CAT[#CAT].list].fx[line_id + 1] = FindFXIDName(LV2_INFO, item)
+            elseif fx_type == "5" then -- AU
+                local item = CAT[#CAT].list[#CAT[#CAT].list].fx[line_id + 1]
+                CAT[#CAT].list[#CAT[#CAT].list].fx[line_id + 1] = FindFXIDName(AU_INFO, item)
+            elseif fx_type == "1048576" then -- SMART FOLDER
+                CAT[#CAT].list[#CAT[#CAT].list].smart = true
+            end
+        end
+        -- RENAME ORIGINAL FOLDER NAME "[Folder0]" TO PROPER ID NAME (Name0=Favorites)
+        if line:match("Name%d+=(.+)") then
+            -- EXTRACT NAME
+            local folder_name = line:match("Name%d+=(.+)")
+            local folder_ID = line:match("(%d+)=")
+
+            for i = 1, #CAT[#CAT].list do
+                if CAT[#CAT].list[i].name == "Folder" .. folder_ID then
+                    CAT[#CAT].list[i].name = folder_name
+                end
+            end
+            -- EXTRACT TBL ID
+            -- RENAME TARGET TBL NAME FROM "Folder0" -> "Favorites" ONLY IF HAS ITEMS
+            -- if CAT[#CAT].list[folder_ID] then
+            --   CAT[#CAT].list[folder_ID].name = folder_name
+            --end
+        end
+    end
+    -- REMOVE SMART FOLDERS FOR NOW
+    for i = 1, #CAT do
+        for j = #CAT[i].list, 1, -1 do
+            if CAT[i].list[j].smart then table.remove(CAT[i].list, j) end
+        end
+    end
+end
+
+local function ParseFXChains()
+    local fxChainsFolder = r.GetResourcePath() .. "/FXChains"
+    local FX_CHAINS = {}
+    GetDirFilesRecursive(fxChainsFolder, FX_CHAINS)
+    if #FX_CHAINS ~= 0 then
+        --table.sort(FX_CHAINS, function(a, b) if a and b then return a:lower() < b:lower() end end)
+        CAT[#CAT + 1] = { name = "FX CHAINS", list = FX_CHAINS }
+    end
+end
+
+local function AllPluginsCategory(JS, AU, AUi, CLAP, CLAPi, VST, VSTi, VST3, VST3i, INSTRUMENTS)
+    CAT[#CAT + 1] = { name = "ALL PLUGINS", list = {} }
+    if #JS ~= 0 then table.insert(CAT[#CAT].list, { name = "JS", fx = JS }) end
+    if #AU ~= 0 then table.insert(CAT[#CAT].list, { name = "AU", fx = AU }) end
+    if #AUi ~= 0 then table.insert(CAT[#CAT].list, { name = "AUi", fx = AUi }) end
+    if #CLAP ~= 0 then table.insert(CAT[#CAT].list, { name = "CLAP", fx = CLAP }) end
+    if #CLAPi ~= 0 then table.insert(CAT[#CAT].list, { name = "CLAPi", fx = CLAPi }) end
+    if #VST ~= 0 then table.insert(CAT[#CAT].list, { name = "VST", fx = VST }) end
+    if #VSTi ~= 0 then table.insert(CAT[#CAT].list, { name = "VSTi", fx = VSTi }) end
+    if #VST3 ~= 0 then table.insert(CAT[#CAT].list, { name = "VST3", fx = VST3 }) end
+    if #VST3i ~= 0 then table.insert(CAT[#CAT].list, { name = "VST3i", fx = VST3i }) end
+    if #INSTRUMENTS ~= 0 then table.insert(CAT[#CAT].list, { name = "INSTRUMENTS", fx = INSTRUMENTS }) end
+    --if #LV2 ~= 0 then table.insert(CAT[#CAT].list, { name = "LV2", fx = LV2 }) end
+    --if #LV2i ~= 0 then table.insert(CAT[#CAT].list, { name = "LV2i", fx = LV2i }) end
+
+
+    -- SORT EVERYTHING ALPHABETICALLY
+    for i = 1, #CAT do
+        table.sort(CAT[i].list, function(a, b) if a.name and b.name then return a.name:lower() < b.name:lower() end end)
+        for j = 1, #CAT[i].list do
+            if CAT[i].list[j].fx then
+                table.sort(CAT[i].list[j].fx, function(a, b) if a and b then return a:lower() < b:lower() end end)
+            end
+        end
+    end
+
+    table.sort(CAT, function(a, b) if a.name and b.name then return a.name:lower() < b.name:lower() end end)
+end
+
+local function Fill_fx_list()
+    local plugin_list = {}
+    local INSTRUMENTS = {}
+
+    plugin_list[#plugin_list + 1] = "Container"
+    plugin_list[#plugin_list + 1] = "Video processor"
+
+    local VST_INFO, VST, VSTi, VST3, VST3i = ParseVST(plugin_list, INSTRUMENTS)
+    local JS_INFO, JS = ParseJSFX(plugin_list)
+    local AU_INFO, AU, AUi = ParseAU(plugin_list, INSTRUMENTS)
+    local CLAP_INFO, CLAP, CLAPi = ParseCLAP(plugin_list, INSTRUMENTS)
+    --local LV2_INFO, LV2, LV2i = ParseLV2(plugin_list)
+    ParseFXTags(VST_INFO, JS_INFO, AU_INFO, CLAP_INFO) -- CATEGORIES
+    ParseCustomCategories(VST_INFO, JS_INFO, AU_INFO, CLAP_INFO)
+    ParseFavorites(VST_INFO, JS_INFO, AU_INFO, CLAP_INFO)
+    ParseFXChains()
+    AllPluginsCategory(JS, AU, AUi, CLAP, CLAPi, VST, VSTi, VST3, VST3i, INSTRUMENTS)
+
+    return plugin_list
+end
+
+FX_LIST = Fill_fx_list()
+
+-- EXAMPLE DRAW (NOTHING TO DO WITH PARSING ALL BELOOW)
+local function Lead_Trim_ws(s) return s:match '^%s*(.*)' end
+
+local function Filter_actions(filter_text)
+    filter_text = Lead_Trim_ws(filter_text)
+    local t = {}
+    if filter_text == "" or not filter_text then return t end
+    for i = 1, #FX_LIST do
+        local action = FX_LIST[i]
+        local name = action:lower()
+        local found = true
+        for word in filter_text:gmatch("%S+") do
+            if not name:find(word:lower(), 1, true) then
+                found = false
+                break
+            end
+        end
+
+        if found then t[#t + 1] = action end
+    end
+    return t
+end
+
+local function SetMinMax(Input, Min, Max)
+    if Input >= Max then
+        Input = Max
+    elseif Input <= Min then
+        Input = Min
+    else
+        Input = Input
+    end
+    return Input
+end
+
+    
+function FilterBox(FX_Idx, LyrID, SpaceIsBeforeRackMixer, FxGUID_Container, SpcIsInPre, SpcInPost, SpcIDinPost)
+    local FX_Idx_For_AddFX, close
+    if AddLastSPCinRack then FX_Idx_For_AddFX = FX_Idx - 1 end
+    local MAX_FX_SIZE = 250
+    local FxGUID = FXGUID[FX_Idx_For_AddFX or FX_Idx]
+    r.ImGui_SetNextItemWidth(ctx, 180)
+    _, ADDFX_FILTER = r.ImGui_InputTextWithHint(ctx, '##input', "SEARCH FX", ADDFX_FILTER, r.ImGui_InputTextFlags_AutoSelectAll())
+
+    if r.ImGui_IsWindowAppearing(ctx) then
+        local tb = FX_LIST
+        r.ImGui_SetKeyboardFocusHere(ctx, -1)
+    end
+
+    local filtered_fx = Filter_actions(ADDFX_FILTER)
+    --r.ImGui_SetNextWindowPos(ctx, r.ImGui_GetItemRectMin(ctx), ({ r.ImGui_GetItemRectMax(ctx) })[2])
+    local filter_h = #filtered_fx == 0 and 2 or (#filtered_fx > 40 and 20 * 17 or (17 * #filtered_fx))
+    local function InsertFX(Name)
+        local FX_Idx = FX_Idx
+        --- CLICK INSERT
+        if SpaceIsBeforeRackMixer == 'End of PreFX' then FX_Idx = FX_Idx + 1 end
+
+        r.TrackFX_AddByName(LT_Track, Name, false, -1000 - FX_Idx)
+
+        -- if Inserted into Layer
+        local FxID = r.TrackFX_GetFXGUID(LT_Track, FX_Idx)
+
+        if FX.InLyr[FxGUID] == FXGUID_RackMixer and FX.InLyr[FxGUID] then
+            DropFXtoLayerNoMove(FXGUID_RackMixer, LyrID, FX_Idx)
+        end
+        if SpaceIsBeforeRackMixer == 'SpcInBS' then
+            DropFXintoBS(FxID, FxGUID_Container, FX[FxGUID_Container].Sel_Band, FX_Idx + 1, FX_Idx)
+        end
+        if SpcIsInPre then
+            local inspos = FX_Idx + 1
+            if SpaceIsBeforeRackMixer == 'End of PreFX' then
+                table.insert(Trk[TrkID].PreFX, FxID)
+            else
+                table.insert(Trk[TrkID].PreFX, FX_Idx + 1, FxID)
+            end
+            for i, v in pairs(Trk[TrkID].PreFX) do
+                r.GetSetMediaTrackInfo_String(LT_Track, 'P_EXT: PreFX ' .. i, v,
+                    true)
+            end
+        elseif SpcInPost then
+            if r.TrackFX_AddByName(LT_Track, 'FXD Macros', 0, 0) == -1 then offset = -1 else offset = 0 end
+            table.insert(Trk[TrkID].PostFX, SpcIDinPost + offset + 1, FxID)
+            -- InsertToPost_Src = FX_Idx + offset+2
+            for i = 1, #Trk[TrkID].PostFX + 1, 1 do
+                r.GetSetMediaTrackInfo_String(LT_Track, 'P_EXT: PostFX ' .. i, Trk[TrkID].PostFX[i] or '', true)
+            end
+        end
+
+        ADDFX_FILTER = nil
+    end
+    if ADDFX_FILTER ~= '' and ADDFX_FILTER then
+        SL()
+        r.ImGui_SetNextWindowSize(ctx, MAX_FX_SIZE, filter_h + 20)
+        local x, y = r.ImGui_GetCursorScreenPos(ctx)
+
+        ParentWinPos_x, ParentWinPos_y = r.ImGui_GetWindowPos(ctx)
+        local VP_R = VP.X + VP.w
+        if x + MAX_FX_SIZE > VP_R then x = ParentWinPos_x - MAX_FX_SIZE end
+
+        r.ImGui_SetNextWindowPos(ctx, x, y - filter_h / 2)
+        if r.ImGui_BeginPopup(ctx, "##popupp", r.ImGui_WindowFlags_NoFocusOnAppearing() --[[ MAX_FX_SIZE, filter_h ]]) then
+            ADDFX_Sel_Entry = SetMinMax(ADDFX_Sel_Entry or 1, 1, #filtered_fx)
+            for i = 1, #filtered_fx do
+                local ShownName
+                if filtered_fx[i]:find('VST:') then
+                    local fx = filtered_fx[i]
+                    ShownName = fx:sub(5, (fx:find('.vst') or 999) - 1)
+                    local clr = FX_Adder_VST or CustomColorsDefault.FX_Adder_VST
+                    MyText('VST', nil, clr)
+                    SL()
+                    HighlightSelectedItem(nil, clr, 0, L, T, R, B, h, w, 1, 1, 'GetItemRect')
+                elseif filtered_fx[i]:find('VST3:') then
+                    local fx = filtered_fx[i]
+                    ShownName = fx:sub(6) .. '##vst3'
+                    local clr = FX_Adder_VST3 or CustomColorsDefault.FX_Adder_VST3
+                    MyText('VST3', nil, clr)
+                    SL()
+                    HighlightSelectedItem(nil, clr, 0, L, T, R, B, h, w, 1, 1, 'GetItemRect')
+                elseif filtered_fx[i]:find('JS:') then
+                    local fx = filtered_fx[i]
+                    ShownName = fx:sub(4)
+                    local clr = FX_Adder_JS or CustomColorsDefault.FX_Adder_JS
+                    MyText('JS', nil, clr)
+                    SL()
+                    HighlightSelectedItem(nil, clr, 0, L, T, R, B, h, w, 1, 1, 'GetItemRect')
+                elseif filtered_fx[i]:find('AU:') then
+                    local fx = filtered_fx[i]
+                    ShownName = fx:sub(4)
+                    local clr = FX_Adder_AU or CustomColorsDefault.FX_Adder_AU
+                    MyText('AU', nil, clr)
+                    SL()
+                    HighlightSelectedItem(nil, clr, 0, L, T, R, B, h, w, 1, 1, 'GetItemRect')
+                elseif filtered_fx[i]:find('CLAP:') then
+                    local fx = filtered_fx[i]
+                    ShownName = fx:sub(6)
+                    local clr = FX_Adder_CLAP or CustomColorsDefault.FX_Adder_CLAP
+                    MyText('CLAP', nil, clr)
+                    SL()
+                    HighlightSelectedItem(nil, clr, 0, L, T, R, B, h, w, 1, 1, 'GetItemRect')
+                end
+
+                if r.ImGui_Selectable(ctx, (ShownName or filtered_fx[i]) .. '##emptyName', DRAG_FX == i) then
+                    if filtered_fx[i] then
+                        InsertFX(filtered_fx[i])
+                        r.ImGui_CloseCurrentPopup(ctx)
+                        close = true
+                    end
+                end
+                if i == ADDFX_Sel_Entry then
+                    HighlightSelectedItem(0xffffff11, nil, 0, L, T, R, B, h, w, 1, 1, 'GetItemRect')
+                end
+                -- DRAG AND DROP
+                if r.ImGui_IsItemActive(ctx) and r.ImGui_IsMouseDragging(ctx, 0) then
+                    -- HIGHLIGHT DRAGGED FX
+                    DRAG_FX = i
+                    AddFX_Drag(filtered_fx[i])
+                end
+            end
+
+            if r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_Enter()) then
+                r.TrackFX_AddByName(LT_Track, filtered_fx[ADDFX_Sel_Entry], false, -1000 - FX_Idx)
+                LAST_USED_FX = filtered_fx[filtered_fx[ADDFX_Sel_Entry]]
+                ADDFX_Sel_Entry = nil
+                r.ImGui_CloseCurrentPopup(ctx)
+                close = true
+
+                --FILTER = ''
+                --r.ImGui_CloseCurrentPopup(ctx)
+            elseif r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_UpArrow()) then
+                ADDFX_Sel_Entry = ADDFX_Sel_Entry - 1
+            elseif r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_DownArrow()) then
+                ADDFX_Sel_Entry = ADDFX_Sel_Entry + 1
+            end
+            --r.ImGui_EndChild(ctx)
+            r.ImGui_EndPopup(ctx)
+        end
+
+
+        r.ImGui_OpenPopup(ctx, "##popupp")
+        r.ImGui_NewLine(ctx)
+    end
+
+
+    if r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_Escape()) then
+        r.ImGui_CloseCurrentPopup(ctx)
+        ADDFX_FILTER = nil
+    end
+    return close
+end
+
+local function DrawChildMenu(tbl, path)
+    path = path or ""
+    for i = 1, #tbl do
+        if tbl[i].dir then
+            if r.ImGui_BeginMenu(ctx, tbl[i].dir) then
+                DrawChildMenu(tbl[i], table.concat({ path, os_separator, tbl[i].dir }))
+                r.ImGui_EndMenu(ctx)
+            end
+        end
+        if type(tbl[i]) ~= "table" then
+            if r.ImGui_Selectable(ctx, tbl[i]) then
+                if TRACK then
+
+                    -- r.ShowConsoleMsg(path .. os_separator .. tbl[i] .. "\n")
+                    r.TrackFX_AddByName(TRACK, table.concat({ path, os_separator, tbl[i] }), false,
+                        -1000 -  FX_Idx)
+                end
+            end
+        end
+    end
+end
+
+function AddFX_Drag(name)
+    if r.ImGui_BeginDragDropSource(ctx, r.ImGui_DragDropFlags_AcceptNoDrawDefaultRect()) then
+        r.ImGui_SetDragDropPayload(ctx, 'AddFX_Sexan', tostring(name))
+        r.ImGui_Text(ctx, name)
+        r.ImGui_EndDragDropSource(ctx)
+    end
+end
+
+function AddFX_drop(FX_Idx)
+    if r.ImGui_BeginDragDropTarget(ctx) then
+        local ret, payload = r.ImGui_AcceptDragDropPayload(ctx, 'AddFX_Sexan', nil)
+        r.ImGui_EndDragDropTarget(ctx)
+        if ret then
+            local fx_name = payload
+            r.TrackFX_AddByName(LT_Track, fx_name, false, -1000 - FX_Idx)
+            DRAG_FX = nil
+        end
+    end
+end
+
+local function frame()
+    OPEN_FILTER = r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_A())
+
+    if OPEN_FILTER and not r.ImGui_IsAnyItemActive(ctx) then
+        OPEN_FILTER = nil
+        if not r.ImGui_IsPopupOpen(ctx, "FILTER LIST") then
+            ADDFX_FILTER = ''
+            r.ImGui_OpenPopup(ctx, "FILTER LIST")
+        end
+    end
+    -- OPEN FX LIST
+    if r.ImGui_BeginPopup(ctx, "FILTER LIST") then
+        if FilterBox(FX_Idx) then r.ImGui_CloseCurrentPopup(ctx) end
+        r.ImGui_EndPopup(ctx)
+    end
+
+    -- DRAG AND DROP HERE
+    for i = 1, 5 do
+        reaper.ImGui_Selectable(ctx, "TRACK " .. i, false, nil, 50, size_hIn)
+        AddFX_drop(i)
+    end
+end
+
+
+
+
+
+
 
 
 -- @noindex
@@ -7287,7 +7282,10 @@ LayoutEditorFunctions()
 FXLayeringFunctions()
 ModulationFunctions()
 ThemeEditorFunctions()
+--FXAdderFunctions()
 EQFunctions()
+
+
 
 
 
@@ -7308,7 +7306,19 @@ ctx = r.ImGui_CreateContext('FX Device', r.ImGui_ConfigFlags_DockingEnable())
 
 
 
+----- Get plugin scripts path -------
+local pluginScriptPath = r.GetResourcePath() .. '/Scripts/ReaTeam Scripts/FX/BryanChi_FX Devices/FX Layout Plugin Scripts'
+PluginScripts=  scandir(pluginScriptPath)
+for i, v in ipairs(PluginScripts) do 
 
+    if not v:find('.lua') then 
+
+        PluginScripts[i] = nil 
+    else PluginScripts[i] = v:sub( 0,v:find('.lua') -1)
+    end
+
+
+end
 
 
 
@@ -7371,64 +7381,27 @@ for Track_Idx = 0, NumOfTotalTracks - 1, 1 do
         }
 
 
-        Font_Andale_Mono      = reaper.ImGui_CreateFont('andale mono', 13)
-        Font_Andale_Mono_6    = r.ImGui_CreateFont('andale mono', 6)
-        Font_Andale_Mono_7    = r.ImGui_CreateFont('andale mono', 7)
-        Font_Andale_Mono_8    = reaper.ImGui_CreateFont('andale mono', 8)
-        Font_Andale_Mono_9    = r.ImGui_CreateFont('andale mono', 9)
-        Font_Andale_Mono_10   = reaper.ImGui_CreateFont('andale mono', 10)
-        Font_Andale_Mono_11   = reaper.ImGui_CreateFont('andale mono', 11)
-        Font_Andale_Mono_12   = r.ImGui_CreateFont('andale mono', 12)
-        Font_Andale_Mono_13   = r.ImGui_CreateFont('andale mono', 13)
-        Font_Andale_Mono_14   = r.ImGui_CreateFont('andale mono', 14)
-        Font_Andale_Mono_15   = r.ImGui_CreateFont('andale mono', 15)
-        Font_Andale_Mono_16   = r.ImGui_CreateFont('andale mono', 16)
-        Font_Andale_Mono_20_B = reaper.ImGui_CreateFont('andale mono', 20, r.ImGui_FontFlags_Bold())
-        Font_Andale_Mono_20   = reaper.ImGui_CreateFont('andale mono', 20)
+        for i= 6, 64, 1 do 
+            _G['Font_Andale_Mono_'..i]= r.ImGui_CreateFont('andale mono', i)
+        end
 
 
-        r.ImGui_Attach(ctx, Font_Andale_Mono)
-        r.ImGui_Attach(ctx, Font_Andale_Mono_6)
-        r.ImGui_Attach(ctx, Font_Andale_Mono_7)
-        r.ImGui_Attach(ctx, Font_Andale_Mono_8)
-        r.ImGui_Attach(ctx, Font_Andale_Mono_9)
-        r.ImGui_Attach(ctx, Font_Andale_Mono_10)
-        r.ImGui_Attach(ctx, Font_Andale_Mono_11)
-        r.ImGui_Attach(ctx, Font_Andale_Mono_12)
-        r.ImGui_Attach(ctx, Font_Andale_Mono_13)
-        r.ImGui_Attach(ctx, Font_Andale_Mono_14)
-        r.ImGui_Attach(ctx, Font_Andale_Mono_15)
-        r.ImGui_Attach(ctx, Font_Andale_Mono_16)
+        Font_Andale_Mono_20_B = r.ImGui_CreateFont('andale mono', 20, r.ImGui_FontFlags_Bold())
         r.ImGui_Attach(ctx, Font_Andale_Mono_20_B)
-        r.ImGui_Attach(ctx, Font_Andale_Mono_20)
+        for i= 6, 64, 1 do 
+            r.ImGui_Attach(ctx, _G['Font_Andale_Mono_'..i])
+        end
         r.ImGui_Attach(ctx, FontAwesome)
         r.ImGui_Attach(ctx, Img.Trash)
 
-        Arial = r.ImGui_CreateFont('Arial', 12)
-        Arial_10 = r.ImGui_CreateFont('Arial', 10)
-        Arial_9 = r.ImGui_CreateFont('Arial', 9)
-        Arial_8 = r.ImGui_CreateFont('Arial', 8)
-        Arial_7 = r.ImGui_CreateFont('Arial', 7)
-        Arial_6 = r.ImGui_CreateFont('Arial', 6)
-        Arial_12 = r.ImGui_CreateFont('Arial', 12)
-        Arial_11 = r.ImGui_CreateFont('Arial', 11)
-        Arial_13 = r.ImGui_CreateFont('Arial', 13)
-        Arial_14 = r.ImGui_CreateFont('Arial', 14)
-        Arial_15 = r.ImGui_CreateFont('Arial', 15)
-        Arial_16 = r.ImGui_CreateFont('Arial', 16)
 
-        r.ImGui_Attach(ctx, Arial_6)
-        r.ImGui_Attach(ctx, Arial_7)
-        r.ImGui_Attach(ctx, Arial_8)
-        r.ImGui_Attach(ctx, Arial_9)
-        r.ImGui_Attach(ctx, Arial_10)
-        r.ImGui_Attach(ctx, Arial_11)
-        r.ImGui_Attach(ctx, Arial_12)
-        r.ImGui_Attach(ctx, Arial_13)
-        r.ImGui_Attach(ctx, Arial_14)
-        r.ImGui_Attach(ctx, Arial_15)
-        r.ImGui_Attach(ctx, Arial_16)
-        r.ImGui_Attach(ctx, Arial)
+        for i=6, 64, 1 do 
+            _G['Arial_'..i]= r.ImGui_CreateFont('Arial', i)
+            r.ImGui_Attach(ctx, _G['Arial_'..i])
+        end
+
+        Arial = r.ImGui_CreateFont('Arial', 12)
+
     end
 
     function TrashIcon (size, lbl,ClrBG , ClrTint)
@@ -7710,8 +7683,21 @@ end
 ---------------------------- End For Before GUI ----------------------------
 
 function loop()
+
     GetLT_FX_Num()
     GetLTParam()
+    if ChangeFont  then 
+
+
+
+         r.ImGui_Attach(ctx,  _G[ (ChangeFont_Font or 'Font_Andale_Mono' ).. '_'..(ChangeFont_Size or ChangeFont.FtSize  )] )
+        ChangeFont = nil 
+        ChangeFont_Size =nil
+        ChangeFont_Font=nil
+        ChangeFont_Var=nil
+    end
+    
+    
 
     if Dock_Now then
         r.ImGui_SetNextWindowDockID(ctx, -1)
@@ -7833,8 +7819,11 @@ function loop()
             HintMessage = nil
             GetAllInfoNeededEachLoop()
 
-
-
+            -- if action to record last touch is triggered
+            if r.GetExtState('FXD','Record last touch') ~= '' then 
+                if not IsPrmAlreadyAdded(true ) then StoreNewParam(LT_FXGUID, LT_ParamName, LT_ParamNum, LT_FXNum,true) end 
+                r.SetExtState('FXD','Record last touch', '', false)
+            end
 
 
             ------- Add FX ---------
@@ -7985,12 +7974,15 @@ function loop()
                         r.gmem_write(1000 * m + P, 0)
                     end
                 end
+
                 RetrieveFXsSavedLayout(Sel_Track_FX_Count)
+
                 SyncTrkPrmVtoActualValue()
                 LT_TrackNum = math.floor(r.GetMediaTrackInfo_Value(LT_Track, 'IP_TRACKNUMBER'))
             end
 
             if RepeatTimeForWindows ~= r.TrackFX_GetCount(LT_Track) then
+
                 RetrieveFXsSavedLayout(Sel_Track_FX_Count)
             end
 
@@ -8031,6 +8023,7 @@ function loop()
                 reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Text(), 0x6e6e6eff) --Use Hex + FF in the end
                 reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_SliderGrab(), 0x808080ff)
                 reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_FrameBgActive(), 0x808080ff) ]]
+            
             reaper.ImGui_PushFont(ctx, Font_Andale_Mono)
 
 
@@ -8070,8 +8063,7 @@ function loop()
             ------------------------------
 
             if r.ImGui_Button(ctx, 'Record Last Touch') then
-                GetLTParam()
-                local FX_Count = reaper.TrackFX_GetCount(LT_Track); local RptPrmFound
+                --[[ local FX_Count = reaper.TrackFX_GetCount(LT_Track); local RptPrmFound
                 local F = FX[LT_FXGUID] or {}
 
                 if F then
@@ -8083,10 +8075,14 @@ function loop()
                         end
                     end
                     if not RptPrmFound and LT_FXGUID then
-                        StoreNewParam(LT_FXGUID, LT_ParamName, LT_ParamNum, LT_FXNum,
-                            true --[[ , nil, #F+1  ]])
+                        StoreNewParam(LT_FXGUID, LT_ParamName, LT_ParamNum, LT_FXNum,true)
                     end
-                end
+                end ]]
+
+                if not IsPrmAlreadyAdded(true ) then StoreNewParam(LT_FXGUID, LT_ParamName, LT_ParamNum, LT_FXNum,true) end 
+
+
+
             end
 
 
@@ -8979,8 +8975,7 @@ function loop()
                 end
 
                 if FX_Idx_OpenedPopup == (FX_Idx or 0) .. (tostring(SpaceIsBeforeRackMixer) or '') then
-                    Dvdr.Clr[ClrLbl] =
-                        Clr.Dvdr.Active
+                    Dvdr.Clr[ClrLbl] = Clr.Dvdr.Active
                 else
                     Dvdr.Clr[ClrLbl] = Dvdr.Clr[ClrLbl] or Clr.Dvdr.In_Layer
                 end
@@ -9032,8 +9027,10 @@ function loop()
                         if r.ImGui_BeginPopup(ctx, 'Btwn FX Windows' .. FX_Idx) then
                             FX_Idx_OpenedPopup = FX_Idx .. (tostring(SpaceIsBeforeRackMixer) or '')
 
-                            FilterBox(FX_Idx, LyrID, SpaceIsBeforeRackMixer, FxGUID_Container, SpcIsInPre, SpcInPost,
-                                SpcIDinPost) -- Add FX Window
+                            if FilterBox(FX_Idx, LyrID, SpaceIsBeforeRackMixer, FxGUID_Container, SpcIsInPre, SpcInPost,
+                                SpcIDinPost) then 
+                                    r.ImGui_CloseCurrentPopup(ctx)
+                                end-- Add FX Window
                             if r.ImGui_BeginMenu(ctx, 'FX Browser') then
                                 for i = 1, #CAT do
                                     if r.ImGui_BeginMenu(ctx, CAT[i].name) then
@@ -9048,7 +9045,7 @@ function loop()
                                                             if r.ImGui_Selectable(ctx, CAT[i].list[j].fx[p]) then
                                                                 if TRACK then
                                                                     r.TrackFX_AddByName(TRACK, CAT[i].list[j].fx[p], false,
-                                                                        -1000 - r.TrackFX_GetCount(TRACK))
+                                                                        -1000 - FX_Idx)
                                                                     LAST_USED_FX = CAT[i].list[j].fx[p]
                                                                 end
                                                             end
@@ -9170,6 +9167,7 @@ function loop()
                             --Dvdr.Clr[ClrLbl] = 0x999999ff
 
                             if IsLBtnClicked then FX_Idx_OpenedPopup = nil end
+                            if CloseAddFX_Popup then r.ImGui_CloseCurrentPopup(ctx) CloseAddFX_Popup = nil end 
                             r.ImGui_EndPopup(ctx)
                         else
                             Dvdr.Clr[ClrLbl] = 0x131313ff
@@ -9402,7 +9400,7 @@ function loop()
                             end
                             ----------- Add FX ---------------
                             if Payload_Type == 'AddFX_Sexan' then
-                                AddFX_Sexan()
+                                AddFX_Sexan(nil, ClrLbl)
                             end
 
                             r.ImGui_EndDragDropTarget(ctx)
@@ -9455,7 +9453,7 @@ function loop()
                             end
                             -- Add from Sexan Add FX
                             if Payload_Type == 'AddFX_Sexan' then
-                                AddFX_Sexan(FX_Idx)
+                                AddFX_Sexan(FX_Idx, ClrLbl)
                             end
 
                             r.ImGui_EndDragDropTarget(ctx)
@@ -9608,7 +9606,7 @@ function loop()
                                 end
                             end
                         elseif Payload_Type == 'AddFX_Sexan' then
-                            AddFX_Sexan()
+                            AddFX_Sexan(FX_Idx,ClrLbl)
                             r.ImGui_EndDragDropTarget(ctx)
                         end
                     else
@@ -10207,23 +10205,25 @@ function loop()
                             FX[FxGUID] = FX[FxGUID] or {}
 
                             local PrmCount = tonumber(select(2, r.GetProjExtState(0, 'FX Devices', 'Prm Count' .. FxGUID))) or 0
+
+
                             local Def_Sldr_W = 160
                             if FX.Def_Sldr_W[FxGUID] then Def_Sldr_W = FX.Def_Sldr_W[FxGUID] end
 
                             if FX.Def_Type[FxGUID] == 'Slider' or FX.Def_Type[FxGUID] == 'Drag' or not FX.Def_Type[FxGUID] then
+
                                 local DF = (FX.Def_Sldr_W[FxGUID] or Df.Sldr_W)
-                                if PrmCount < 7 then
-                                    DefaultWidth = DF + 10
-                                elseif PrmCount >= 7 and PrmCount <= 12 then
-                                    DefaultWidth = 10 + DF * 2 + 25
-                                elseif PrmCount >= 13 and PrmCount <= 18 then
-                                    DefaultWidth = 10 + DF * 3 + 25
-                                elseif PrmCount >= 19 and PrmCount <= 24 then
-                                    DefaultWidth = 10 + DF * 4 + 25
-                                else
-                                    DefaultWidth = DF + 10
-                                end
+                                
+                                local Ct = math.max( math.floor ((PrmCount/6-0.01)) +1 , 1)
+
+                                DefaultWidth = (DF+ GapBtwnPrmColumns)* Ct
+
+
                             elseif FX.Def_Type[FxGUID] == 'Knob' then
+
+                                local Ct = math.max( math.floor ((PrmCount/3)-0.1) +1 ,1)  -- need to -0.1 so flooring 3/3 -0.1 will return 0 and 3/4 -0.1 will be 1 
+                                DefaultWidth = Df.KnobSize *Ct + GapBtwnPrmColumns 
+                                --[[ 
                                 if PrmCount <= 6 then
                                     DefaultWidth = Df.KnobSize * 3
                                 elseif PrmCount > 6 and PrmCount <= 9 then
@@ -10236,7 +10236,7 @@ function loop()
                                     DefaultWidth = Df.KnobSize * 6
                                 else
                                     DefaultWidth = Df.Sldr_W + 10
-                                end
+                                end ]]
                             end
 
                             if string.find(FX_Name, 'Pro Q 3') then
@@ -10263,8 +10263,7 @@ function loop()
                                     --[[ CurPosX = r.ImGui_GetCursorPosX(ctx)
                                     r.ImGui_SetCursorPosX(ctx,VP.X+VP.w- (FX[FxGUID].PostWin_SzX or 0)) ]]
                                 end
-
-                                if r.ImGui_BeginChild(ctx, FX_Name .. FX_Idx, FX.WidthCollapse[FxGUID] or FX.Width[FXGUID[FX_Idx]] or DefaultWidth, 220, nil, r.ImGui_WindowFlags_NoScrollWithMouse() |r.ImGui_WindowFlags_NoScrollbar()) and not Hide then ----START CHILD WINDOW------
+                                if r.ImGui_BeginChild(ctx, FX_Name .. FX_Idx, FX.WidthCollapse[FxGUID] or FX.Width[FXGUID[FX_Idx]] or DefaultWidth or 220, 220, nil, r.ImGui_WindowFlags_NoScrollWithMouse() +r.ImGui_WindowFlags_NoScrollbar() ) and not Hide then ----START CHILD WINDOW------
                                     if Draw[FxNameS] ~= nil then
                                         local D = Draw[FxNameS]
                                     end
@@ -10501,9 +10500,8 @@ function loop()
                                                 r.ImGui_DrawList_AddCircle(WDL, L, T, D.R[i], D.clr[i] or 0xffffffff)
                                             elseif D.Type[i] == 'circle fill' then
                                                 r.ImGui_DrawList_AddCircleFilled(WDL, L, T, D.R[i], D.clr[i] or 0xffffffff)
-                                            elseif D.Type[i] == 'Text' and D.Txt[i] then
-                                                r.ImGui_DrawList_AddTextEx(WDL, Font_Andale_Mono_20, 56, L, T,
-                                                    D.clr[i] or 0xffffffff, D.Txt[i])
+                                            elseif D.Type[i] == 'Text' and D.Txt[i] then 
+                                                r.ImGui_DrawList_AddTextEx(WDL, D[i].Font or Font_Andale_Mono_13, D[i].FtSize or 13, L, T, D.clr[i] or 0xffffffff, D.Txt[i])
                                             elseif D.Type[i] == 'Picture'  then
 
                                                 if not D[i].Image then 
@@ -10707,18 +10705,31 @@ function loop()
                                     -- Add Prm popup
                                     PrmFilter = r.ImGui_CreateTextFilter(PrmFilterTxt)
                                     if r.ImGui_BeginPopup(ctx, 'Add Parameter' .. FxGUID, r.ImGui_WindowFlags_AlwaysVerticalScrollbar()) then
+                                        local CheckBox, rv = {}, {}
+                                        if r.ImGui_Button(ctx, 'Add all parameters', -1) then 
+
+                                            for i = 1, r.TrackFX_GetNumParams(LT_Track, FX_Idx), 1 do
+                                                local P_Name = select(2, r.TrackFX_GetParamName(LT_Track, FX_Idx, i - 1))
+                                                CheckBox[i - 1] = true 
+                                                if not IsPrmAlreadyAdded() then
+                                                    StoreNewParam(FxGUID, P_Name, i - 1, FX_Idx, true)
+                                                    SyncTrkPrmVtoActualValue()
+                                                end
+                                            end
+                                        end
+
+
                                         AddPrmPopupOpen = FxGUID
                                         if not PrmFilterTxt then AddPrmWin_W, AddPrmWin_H = r.ImGui_GetWindowSize(ctx) end
                                         r.ImGui_SetWindowSize(ctx, 500, 500, condIn)
 
                                         local Ct = r.TrackFX_GetNumParams(LT_Track, FX_Idx)
-                                        local CheckBox, rv = {}, {}
+                                        
 
                                         r.ImGui_SetNextItemWidth(ctx, 60)
 
                                         if not FX[FxGUID].NotFirstOpenPrmWin then
-                                            r.ImGui_SetKeyboardFocusHere(ctx,
-                                                offsetIn)
+                                            r.ImGui_SetKeyboardFocusHere(ctx,offsetIn)
                                         end
 
                                         if r.ImGui_TextFilter_Draw(PrmFilter, ctx, '##PrmFilterTxt', -1 - (SpaceForBtn or 0)) then
@@ -10735,8 +10746,7 @@ function loop()
                                         for i = 1, Ct, 1 do
                                             local P_Name = select(2, r.TrackFX_GetParamName(LT_Track, FX_Idx, i - 1))
                                             if r.ImGui_TextFilter_PassFilter(PrmFilter, P_Name) then
-                                                rv[i], CheckBox[i - 1] = r.ImGui_Checkbox(ctx, (i - 1) .. '. ' .. P_Name,
-                                                    CheckBox[i - 1])
+                                                rv[i], CheckBox[i - 1] = r.ImGui_Checkbox(ctx, (i - 1) .. '. ' .. P_Name, CheckBox[i - 1])
                                                 if rv[i] then
                                                     local RepeatPrmFound
 
@@ -10986,16 +10996,14 @@ function loop()
                                         if r.ImGui_BeginCombo(ctx, '## P type', FX.Def_Type[FxGUID] or 'Slider', r.ImGui_ComboFlags_NoArrowButton()) then
                                             if r.ImGui_Selectable(ctx, 'Slider') then
                                                 FX.Def_Type[FxGUID] = 'Slider'
-                                                r.SetProjExtState(0, 'FX Devices', 'Default Param type for FX:' .. FxGUID,
-                                                    FX.Def_Type[FxGUID])
+                                                r.SetProjExtState(0, 'FX Devices', 'Default Param type for FX:' .. FxGUID,FX.Def_Type[FxGUID])
                                             elseif r.ImGui_Selectable(ctx, 'Knob') then
                                                 FX.Def_Type[FxGUID] = 'Knob'
                                                 r.SetProjExtState(0, 'FX Devices', 'Default Param type for FX:' .. FxGUID,
                                                     FX.Def_Type[FxGUID])
                                             elseif r.ImGui_Selectable(ctx, 'Drag') then
                                                 FX.Def_Type[FxGUID] = 'Drag'
-                                                r.SetProjExtState(0, 'FX Devices', 'Default Param type for FX:' .. FxGUID,
-                                                    FX.Def_Type[FxGUID])
+                                                r.SetProjExtState(0, 'FX Devices', 'Default Param type for FX:' .. FxGUID, FX.Def_Type[FxGUID])
                                             end
                                             r.ImGui_EndCombo(ctx)
                                         end
@@ -11348,7 +11356,7 @@ function loop()
                                     ------ Collapse Window
                                     ------------------------------------------
 
-                                    if FX_Idx == nil then FX_Idx = 1 end
+                                    FX_Idx = FX_Idx or 1 
 
 
                                     if R_Click_WindowBtnVertical then
@@ -11416,6 +11424,7 @@ function loop()
                                         end
                                     end
 
+
                                     if FindStringInTable(SpecialLayoutFXs, FX_Name) == false then
                                         SyncWetValues()
 
@@ -11430,155 +11439,7 @@ function loop()
                                             end
                                             r.ImGui_EndDragDropTarget(ctx)
                                         end
-                                    elseif string.find(FX_Name, 'Pro Q 3') ~= nil then
-                                        if BandColor == nil then BandColor = 0x69B45D55 end
-                                        _, _, color = determineBandColor(ProQ3.LT_EQBand[FXGUID[FX_Idx]])
-                                        if color == nil then color = 0xffffffff end
-                                        r.ImGui_PushStyleColor(ctx, r.ImGui_Col_Text(), color)
-
-                                        if ProQ3.LT_EQBand[FXGUID[FX_Idx]] ~= nil then
-                                            Freq_LTBandNorm = r.TrackFX_GetParamNormalized(LT_Track, FX_Idx,
-                                                13 * (ProQ3.LT_EQBand[FXGUID[FX_Idx]] - 1) + 2)
-                                            Freq_LTBand = math.floor(x_to_freq(Freq_LTBandNorm * 340)) -- width
-                                            ProQ3['Freq_LTBand - ' .. FXGUID[FX_Idx]] = Freq_LTBand
-                                            local Gain = r.TrackFX_GetParamNormalized(LT_Track, FX_Idx,
-                                                13 * (ProQ3.LT_EQBand[FXGUID[FX_Idx]] - 1) + 3)
-                                            --Gain = tonumber(Gain)
-                                            Gain = -30 + Gain * 60
-                                            FreqValueDrag[FX_Idx] = Freq_LTBandNorm
-                                            if Gain ~= nil then
-                                                ProQ3['Gain_LTBand - ' .. FXGUID[FX_Idx]] = round(Gain, 1)
-                                            end
-                                        end
-
-
-
-                                        r.ImGui_SetNextItemWidth(ctx, 60)
-                                        if ProQ3['Freq_LTBand - ' .. FXGUID[FX_Idx]] ~= nil and ProQ3['Freq_LTBand - ' .. FXGUID[FX_Idx]] < 1000 then
-                                            FreqLbl = ProQ3['Freq_LTBand - ' .. FXGUID[FX_Idx]] .. ' Hz'
-                                        elseif ProQ3['Freq_LTBand - ' .. FXGUID[FX_Idx]] ~= nil and ProQ3['Freq_LTBand - ' .. FXGUID[FX_Idx]] > 1000 then
-                                            FreqLbl = round(ProQ3['Freq_LTBand - ' .. FXGUID[FX_Idx]] / 1000, 2) ..
-                                                ' kHz'
-                                        end
-                                        if ProQ3['Freq_LTBand - ' .. FXGUID[FX_Idx]] ~= nil then
-                                            if Mods == Shift then
-                                                DragSpeed = 0.003
-                                            else
-                                                DragSpeed = 0.008
-                                            end
-                                            FreqDragging, FreqValueDrag[FX_Idx] = r.ImGui_DragDouble(ctx, '##FreqDrag',
-                                                FreqValueDrag[FX_Idx], DragSpeed, -1, 1, FreqLbl)
-                                            ProQ3.FreqDragging = r.ImGui_IsItemActive(ctx)
-                                            if FreqDragging then
-                                                -- r.TrackFX_SetParamNormalized(LT_Track,FX_Idx,13*(ProQ3.LT_EQBand[FXGUID[FX_Idx]]-1) +2,FreqValueDrag[FX_Idx]  )
-                                            end
-                                        end
-
-                                        r.ImGui_SameLine(ctx)
-                                        r.ImGui_SetNextItemWidth(ctx, 60)
-                                        if ProQ3['Gain_LTBand - ' .. FXGUID[FX_Idx]] ~= nil then
-                                            _, ProQ3.GainDrag[FX_Idx] = r.ImGui_DragDouble(ctx, '##GainDrag',
-                                                ProQ3.GainDrag[FX_Idx] or 0, 0.01, 0, 1,
-                                                ProQ3['Gain_LTBand - ' .. FXGUID[FX_Idx]] .. 'dB')
-                                            ProQ3.GainDragging = r.ImGui_IsItemActive(ctx)
-                                        end
-
-                                        r.ImGui_SameLine(ctx, 340 - 50)
-                                        r.ImGui_SetNextItemWidth(ctx, 50)
-                                        if ProQ3['scaleLabel' .. ' ID' .. FXGUID[FX_Idx]] ~= nil then
-                                            DispRangeBtnClicked = r.ImGui_Button(ctx,
-                                                '±' .. ProQ3['scaleLabel' .. ' ID' .. FXGUID[FX_Idx]] .. 'dB##' ..
-                                                FX_Idx, 50, 20)
-                                        end
-                                        if DispRangeBtnClicked then
-                                            r.ImGui_OpenPopup(ctx, 'ProQ Display Range ##' .. FX_Idx)
-                                            local L, T = r.ImGui_GetItemRectMin(ctx)
-                                            local W, H = r.ImGui_GetItemRectSize(ctx)
-                                            r.ImGui_SetNextWindowPos(ctx, L, T + H)
-                                            r.ImGui_SetNextWindowSize(ctx, W, H)
-                                        end
-
-                                        if focusedFXState == 1 and FX_Index_FocusFX == FX_Idx and LT_ParamNum == 331 then
-                                            _, ProQ3.DspRange[FX_Idx] = r.TrackFX_GetFormattedParamValue(LT_Track, FX_Idx,
-                                                331)
-                                            ProQ3.DspRange[FX_Idx] = ProQ3.DspRange[FX_Idx]:gsub('dB', '')
-                                            ProQ3.DspRange[FX_Idx] = tonumber(ProQ3.DspRange[FX_Idx])
-                                            ProQ3['scaleLabel' .. ' ID' .. FXGUID[FX_Idx]] = ProQ3.DspRange[FX_Idx]
-                                            ProQ3['scale' .. ' ID' .. FXGUID[FX_Idx]] = syncProQ_DispRange(ProQ3
-                                                .DspRange[FX_Idx])
-                                        end
-
-
-
-                                        if r.ImGui_BeginPopup(ctx, 'ProQ Display Range ##' .. FX_Idx) then
-                                            if r.ImGui_Selectable(ctx, '±30dB') then
-                                                ProQ3['scale' .. ' ID' .. FXGUID[FX_Idx]] = 1
-                                                r.TrackFX_SetParamNormalized(LT_Track, FX_Idx, 331, 1)
-                                                r.ImGui_CloseCurrentPopup(ctx)
-                                            end
-                                            if r.ImGui_Selectable(ctx, '±12dB') then
-                                                ProQ3['scale' .. ' ID' .. FXGUID[FX_Idx]] = 2.5
-                                                r.TrackFX_SetParam(LT_Track, FX_Idx, 331, 0.7)
-                                                r.ImGui_CloseCurrentPopup(ctx)
-                                            end
-                                            if r.ImGui_Selectable(ctx, '±6 dB') then
-                                                ProQ3['scale' .. ' ID' .. FXGUID[FX_Idx]] = 5
-                                                r.TrackFX_SetParam(LT_Track, FX_Idx, 331, 0.3)
-                                                r.ImGui_CloseCurrentPopup(ctx)
-                                            end
-                                            if r.ImGui_Selectable(ctx, '±3 dB') then
-                                                ProQ3['scale' .. ' ID' .. FXGUID[FX_Idx]] = 10
-                                                r.TrackFX_SetParamNormalized(LT_Track, FX_Idx, 331, 0)
-                                                r.ImGui_CloseCurrentPopup(ctx)
-                                            end
-
-                                            reaper.ImGui_EndPopup(ctx)
-                                        end
-                                        if ProQ3['scale' .. ' ID' .. FXGUID[FX_Idx]] == 1 then
-                                            ProQ3['scaleLabel' .. ' ID' .. FXGUID[FX_Idx]] = 30
-                                        elseif ProQ3['scale' .. ' ID' .. FXGUID[FX_Idx]] == 2.5 then
-                                            ProQ3['scaleLabel' .. ' ID' .. FXGUID[FX_Idx]] = 12
-                                        elseif ProQ3['scale' .. ' ID' .. FXGUID[FX_Idx]] == 5 then
-                                            ProQ3['scaleLabel' .. ' ID' .. FXGUID[FX_Idx]] = 6
-                                        elseif ProQ3['scale' .. ' ID' .. FXGUID[FX_Idx]] == 10 then
-                                            ProQ3['scaleLabel' .. ' ID' .. FXGUID[FX_Idx]] = 3
-                                        else
-                                            ProQ3['scaleLabel' .. ' ID' .. FXGUID[FX_Idx]] = 12
-                                        end
-
-
-
-                                        r.ImGui_PopStyleColor(ctx)
-                                    elseif string.find(FX_Name, 'Pro C 2') ~= nil then
-                                        Rounding = 3
-                                        r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_FrameRounding(), Rounding)
-                                        if not FX[FXGUID[FX_Idx]].Collapse then
-                                            if not OverSampleValue then
-                                                _, OverSampleValue = r
-                                                    .TrackFX_GetFormattedParamValue(LT_Track, FX_Idx, 40)
-                                            end
-                                            r.ImGui_SetNextItemWidth(ctx, 10)
-                                            r.ImGui_PushFont(ctx, Font_Andale_Mono_10)
-                                            MyText('Over:', nil, 0x818181ff)
-
-
-                                            r.ImGui_SameLine(ctx, 96, nil)
-                                            r.ImGui_SetNextItemWidth(ctx, 27)
-                                            local Oversampling_Options = { 'Off', '2x', '4x' }
-                                            local OS_V = { 0, 0.5, 1 }
-                                            AddCombo(ctx, LT_Track, FX_Idx, 'OverSample##', 40, Oversampling_Options, 18,
-                                                'Pro C 2', FxGUID, Fx_P or 1, OS_V)
-                                            --r.ImGui_SameLine(ctx)
-                                            --AddDrag(ctx,'##'..12,  Trk.Prm.V[F_Tp(12,FXGUID[FX_Idx])..TrkID] or '', Trk.Prm.V[F_Tp(12,FXGUID[FX_Idx])..TrkID] or 0, 0, 1, 12,FX_Idx, 34, 'style', 10)
-
-                                            reaper.ImGui_PopFont(ctx)
-                                            r.ImGui_SameLine(ctx, ProC.Width - 25)
-
-                                            SyncWetValues()
-                                            Wet.ActiveAny, Wet.Active, Wet.Val[FX_Idx] = Add_WetDryKnob(ctx, 'a', '',
-                                                Wet.Val[FX_Idx] or 0, 0, 1, FX_Idx)
-                                        end
-                                        r.ImGui_PopStyleVar(ctx)
+                                      
                                     end
                                     -- r.ImGui_PopStyleVar(ctx) --StyleVar#4  POP (Things in the header of FX window)
 
@@ -11640,42 +11501,21 @@ function loop()
                                             ----Default Layouts
                                             if not FP.PosX and not FP.PosY then
                                                 if FP.Type == 'Slider' or (not FP.Type and not FX.Def_Type[FxGUID]) or FX.Def_Type[FxGUID] == 'Slider' or FP.Type == 'Drag' or (FX.Def_Type[FxGUID] == 'Drag' and FP.Type == nil) then
-                                                    if Fx_P < 7 then
-                                                        r.ImGui_SetCursorPos(ctx, 0, 30 * Fx_P)
-                                                    elseif Fx_P > 6 and Fx_P <= 12 then
-                                                        r.ImGui_SetCursorPos(ctx,
-                                                            10 +
-                                                            (FX[FxGUID][Fx_P - 6].Sldr_W or FX.Def_Sldr_W[FxGUID] or 160),
-                                                            30 * (Fx_P - 6))
-                                                    elseif Fx_P > 12 and Fx_P <= 18 then
-                                                        r.ImGui_SetCursorPos(ctx,
-                                                            20 +
-                                                            (FX[FxGUID][Fx_P - 6].Sldr_W or FX.Def_Sldr_W[FxGUID] or 160) *
-                                                            2, 30 * (Fx_P - 12))
-                                                    elseif Fx_P > 18 then
-                                                        r.ImGui_SetCursorPos(ctx,
-                                                            30 +
-                                                            (FX[FxGUID][Fx_P - 6].Sldr_W or FX.Def_Sldr_W[FxGUID] or 160) *
-                                                            3, 30 * (Fx_P - 18))
-                                                    end
+                                                    local Column = math.floor((Fx_P/6)-0.01)
+                                                    local W = ((FX[FxGUID][Fx_P - Column * 6].Sldr_W or FX.Def_Sldr_W[FxGUID] or 160)+ GapBtwnPrmColumns) * Column
+                                                    local Y = 30 * (Fx_P - (Column * 6))
+                                                    r.ImGui_SetCursorPos(ctx, W,Y)
+
                                                 elseif FP.Type == 'V-Slider' or (FX.Def_Type[FxGUID] == 'V-Slider' and FP.Type == nil) then
+
                                                     r.ImGui_SetCursorPos(ctx, 17 * (Fx_P - 1), 30)
+
                                                 elseif FP.Type == 'Knob' or (FX.Def_Type[FxGUID] == 'Knob' and FP.Type == nil) then
                                                     local KSz = Df.KnobSize
                                                     local G = 15
-                                                    if Fx_P <= 3 then
-                                                        r.ImGui_SetCursorPos(ctx, 0, 26 + (KSz + G) * (Fx_P - 1))
-                                                    elseif Fx_P > 3 and Fx_P <= 6 then
-                                                        r.ImGui_SetCursorPos(ctx, KSz, (26 + (KSz + G) * (Fx_P - 4)))
-                                                    elseif Fx_P > 6 and Fx_P <= 9 then
-                                                        r.ImGui_SetCursorPos(ctx, KSz * 2, 26 + (KSz + G) * (Fx_P - 7))
-                                                    elseif Fx_P > 9 and Fx_P <= 12 then
-                                                        r.ImGui_SetCursorPos(ctx, KSz * 3, 26 + (KSz + G) * (Fx_P - 10))
-                                                    elseif Fx_P > 12 and Fx_P <= 15 then
-                                                        r.ImGui_SetCursorPos(ctx, KSz * 4, 26 + KSz * (Fx_P - 13))
-                                                    elseif Fx_P > 15 and Fx_P <= 18 then
-                                                        r.ImGui_SetCursorPos(ctx, KSz * 5, 26 + KSz * (Fx_P - 16))
-                                                    end
+                                                    local Column = math.floor (Fx_P/3 - 0.1) 
+
+                                                    r.ImGui_SetCursorPos(ctx,KSz * (Column) , 26 + (KSz + G) * (Fx_P -( Column*3) -1))
                                                 end
                                             end
 
@@ -11776,17 +11616,15 @@ function loop()
 
 
                                                 if Prm then
-                                                    Spltr = r.ImGui_CreateDrawListSplitter(WDL)
-                                                    r.ImGui_DrawListSplitter_Split(Spltr , 2)
-                                                    r.ImGui_DrawListSplitter_SetCurrentChannel( Spltr, 1 )
+                                                    DL_SPLITER = r.ImGui_CreateDrawListSplitter(WDL)
+                                                    r.ImGui_DrawListSplitter_Split(DL_SPLITER , 2)
+                                                    r.ImGui_DrawListSplitter_SetCurrentChannel( DL_SPLITER, 1 )
 
                                                     --Prm.V = Prm.V or r.TrackFX_GetParamNormalized(LT_Track, FX_Idx, Prm.Num)
                                                     --- Add Parameter controls ---------
                                                     if Prm.Type == 'Slider' or (not Prm.Type and not FX.Def_Type[FxGUID]) or FX.Def_Type[FxGUID] == 'Slider' then
                                                         AddSlider(ctx, '##' .. (Prm.Name or Fx_P), Prm.CustomLbl,
-                                                            Prm.V or 0, 0, 1, Fx_P, FX_Idx, Prm.Num, Style,
-                                                            Prm.Sldr_W or FX.Def_Sldr_W[FxGUID], 0, Disable, Vertical,
-                                                            GrabSize, Prm.Lbl, 8)
+                                                            Prm.V or 0, 0, 1, Fx_P, FX_Idx, Prm.Num, Style, Prm.Sldr_W or FX.Def_Sldr_W[FxGUID], 0, Disable, Vertical, GrabSize, Prm.Lbl, 8)
                                                         MakeItemEditable(FxGUID, Fx_P, Prm.Sldr_W, 'Sldr', curX, CurY)
                                                     elseif FP.Type == 'Knob' or (FX.Def_Type[FxGUID] == 'Knob' and Prm.Type == nil) then
                                                         AddKnob(ctx, '##' .. Prm.Name, Prm.CustomLbl, Prm.V, 0, 1, Fx_P,
@@ -11817,25 +11655,32 @@ function loop()
                                                             CurY)
                                                     end
 
-                                                    if r.ImGui_IsItemClicked(ctx) and LBtnDC then
-                                                        local dir_path = ConcatPath(r.GetResourcePath(), 'Scripts',
-                                                            'ReaTeam Scripts', 'FX', 'BryanChi_FX Devices')
-                                                        local file_path = ConcatPath(dir_path, 'FX Default Values.ini')
-                                                        local file = io.open(file_path, 'r')
+                                                    if r.ImGui_IsItemClicked(ctx) and LBtnDC  then
+                                                        if Mods == 0  then 
+                                                            local dir_path = ConcatPath(r.GetResourcePath(), 'Scripts',
+                                                                'ReaTeam Scripts', 'FX', 'BryanChi_FX Devices')
+                                                            local file_path = ConcatPath(dir_path, 'FX Default Values.ini')
+                                                            local file = io.open(file_path, 'r')
 
-                                                        if file then
-                                                            local FX_Name = ChangeFX_Name(FX_Name)
-                                                            Content = file:read('*a')
-                                                            local Ct = Content
-                                                            local P_Num = Prm.Num
-                                                            local _, P_Nm = r.TrackFX_GetParamName(LT_Track, FX_Idx,
-                                                                P_Num)
-                                                            local Df = RecallGlobInfo(Ct, P_Num .. '. ' .. P_Nm .. ' = ',
-                                                                'Num')
-                                                            if Df then
-                                                                r.TrackFX_SetParamNormalized(LT_Track, FX_Idx, P_Num, Df)
-                                                                ToDef = { ID = FX_Idx, P = P_Num, V = Df }
+                                                            if file then
+                                                                local FX_Name = ChangeFX_Name(FX_Name)
+                                                                Content = file:read('*a')
+                                                                local Ct = Content
+                                                                local P_Num = Prm.Num
+                                                                local _, P_Nm = r.TrackFX_GetParamName(LT_Track, FX_Idx,
+                                                                    P_Num)
+                                                                local Df = RecallGlobInfo(Ct, P_Num .. '. ' .. P_Nm .. ' = ', 'Num')
+                                                                if Df then
+                                                                    r.TrackFX_SetParamNormalized(LT_Track, FX_Idx, P_Num, Df)
+                                                                    ToDef = { ID = FX_Idx, P = P_Num, V = Df }
+                                                                end
                                                             end
+                                                        elseif Mods == Alt then 
+                                                            if Prm.Deletable then 
+                                                                DeletePrm(FxGUID, Fx_P, FX_Idx)
+                                                            end
+
+
                                                         end
                                                     end
 
@@ -11868,7 +11713,7 @@ function loop()
                                                     if FP.Draw then 
 
                                                         
-                                                        r.ImGui_DrawListSplitter_SetCurrentChannel( Spltr, 0 )
+                                                        r.ImGui_DrawListSplitter_SetCurrentChannel( DL_SPLITER, 0 )
 
                                                         local function Repeat(rpt, va, Xgap, Ygap, func,  Gap, RPTClr, CLR)
                                                             if rpt and rpt ~= 0 then 
@@ -11898,6 +11743,8 @@ function loop()
                                                             local y = y + (v.Y_Offset or 0) + (Prm.V * (v.Y_Offset_VA or 0))
                                                             local Thick  = (v.Thick or 2 )
                                                             local Gap,X_Gap ,Y_Gap = v.Gap, v.X_Gap, v.Y_Gap
+                                                            local Clr_VA
+                                                            if v.Clr_VA then Clr_VA =  BlendColors(v.Clr or 0xffffffff, v.Clr_VA,  Prm.V) end
 
 
 
@@ -11935,23 +11782,23 @@ function loop()
 
 
                                                                     local function Addline(Xg, Yg , none, RptClr)
-                                                                        r.ImGui_DrawList_AddLine(WDL, x + (Xg or 0), y + (Yg or 0) ,x2+(Xg or 0), y2 + (Yg or 0), RptClr or v.Clr or 0xffffffff, Thick)
+                                                                        r.ImGui_DrawList_AddLine(WDL, x + (Xg or 0), y + (Yg or 0) ,x2+(Xg or 0), y2 + (Yg or 0), RptClr or Clr_VA or v.Clr or 0xffffffff, Thick)
                                                                     end
 
                                                                     Repeat(v.Repeat, v.Repeat_VA, X_Gap , Y_Gap, Addline, nil, v.RPT_Clr, v.Clr )
 
 
                                                                 elseif v.Type =='Rect' then 
-                                                                    local function AddRect(Xg, Yg)
-                                                                        r.ImGui_DrawList_AddRect(WDL, x+ (Xg or 0),y+ (Yg or 0),x2+ (Xg or 0),y2+ (Yg or 0), v.Clr or 0xffffffff, v.Round, flag ,Thick )
+                                                                    local function AddRect(Xg, Yg , none , RptClr)
+                                                                        r.ImGui_DrawList_AddRect(WDL, x+ (Xg or 0),y+ (Yg or 0),x2+ (Xg or 0),y2+ (Yg or 0), RptClr or Clr_VA or v.Clr or 0xffffffff, v.Round, flag ,Thick )
                                                                     end
-                                                                    Repeat(v.Repeat, v.Repeat_VA, X_Gap , Y_Gap, AddRect)
+                                                                    Repeat(v.Repeat, v.Repeat_VA, X_Gap , Y_Gap, AddRect,nil, v.RPT_Clr, v.Clr )
 
                                                                 elseif v.Type =='Rect Filled' then 
-                                                                    local function AddRectFill(Xg, Yg)
-                                                                        r.ImGui_DrawList_AddRectFilled(WDL, x+ (Xg or 0),y+ (Yg or 0),x2+ (Xg or 0),y2+ (Yg or 0), v.Clr or 0xffffff99, v.Round )
+                                                                    local function AddRectFill(Xg, Yg, none , RptClr)
+                                                                        r.ImGui_DrawList_AddRectFilled(WDL, x+ (Xg or 0),y+ (Yg or 0),x2+ (Xg or 0),y2+ (Yg or 0), RptClr or Clr_VA or v.Clr or 0xffffffff, v.Round )
                                                                     end
-                                                                    Repeat(v.Repeat, v.Repeat_VA, X_Gap , Y_Gap, AddRectFill)
+                                                                    Repeat(v.Repeat, v.Repeat_VA, X_Gap , Y_Gap, AddRectFill,nil, v.RPT_Clr, v.Clr )
 
                                                                 end
 
@@ -11968,10 +11815,10 @@ function loop()
                                                                 if v.Width_VA and v.Width_VA~= 0 then Rad = Rad * Prm.V * v.Width_VA end
 
                                                                 local function AddCircle (X_Gap, Y_Gap, Gap, RptClr)
-                                                                    r.ImGui_DrawList_AddCircle(WDL, x + w / 2 + (X_Gap or 0)  , y + w / 2 + (Y_Gap or 0) , Rad+(Gap or 0), RptClr or v.Clr or 0xffffffff,nil,Thick)
+                                                                    r.ImGui_DrawList_AddCircle(WDL, x + w / 2 + (X_Gap or 0)  , y + w / 2 + (Y_Gap or 0) , Rad+(Gap or 0), RptClr or Clr_VA or v.Clr or 0xffffffff,nil,Thick)
                                                                 end
                                                                 local function AddCircleFill(X_Gap, Y_Gap, Gap, RptClr)
-                                                                    r.ImGui_DrawList_AddCircleFilled(WDL, x + w / 2 + (X_Gap or 0)  , y + w / 2 + (Y_Gap or 0) , Rad+(Gap or 0), RptClr or v.Clr or 0xffffffff)
+                                                                    r.ImGui_DrawList_AddCircleFilled(WDL, x + w / 2 + (X_Gap or 0)  , y + w / 2 + (Y_Gap or 0) , Rad+(Gap or 0), RptClr or Clr_VA or v.Clr or 0xffffffff)
                                                                 end
 
 
@@ -12001,7 +11848,7 @@ function loop()
                                                                 local OUT =  v.Rad_Out or 30
                                                                 
                                                                 if v.Type == 'Knob Pointer' then 
-                                                                    r.ImGui_DrawList_AddLine(WDL, x + angle_cos * IN, y + angle_sin *IN, x+ angle_cos * (OUT - Thick), y + angle_sin * (OUT - Thick),v.Clr or 0x999999aa , Thick)
+                                                                    r.ImGui_DrawList_AddLine(WDL, x + angle_cos * IN, y + angle_sin *IN, x+ angle_cos * (OUT - Thick), y + angle_sin * (OUT - Thick), Clr_VA or v.Clr or 0x999999aa , Thick)
                                                                 elseif v.Type == 'Knob Range' then 
 
 
@@ -12010,7 +11857,7 @@ function loop()
                                                                         for i= IN, OUT , (1 + (v.Gap or 0)) do 
 
                                                                             r.ImGui_DrawList_PathArcTo(WDL,x,y ,i, ANGLE_MIN,SetMinMax(ANGLE_MIN + (ANGLE_MAX - ANGLE_MIN) * Prm.V, ANGLE_MIN, ANGLE_MAX))
-                                                                            r.ImGui_DrawList_PathStroke(WDL, v.Clr or 0xffffff99, nil, Thick)
+                                                                            r.ImGui_DrawList_PathStroke(WDL, Clr_VA or v.Clr or 0x999999aa, nil, Thick)
                                                                             r.ImGui_DrawList_PathClear(WDL)    
                                                                         end
                                                                     end
@@ -12018,12 +11865,12 @@ function loop()
 
                                                                     Repeat(1, 0, X_Gap  , X_Gap, AddRange)
                                                                 elseif v.Type =='Knob Circle' then
-                                                                    r.ImGui_DrawList_AddCircle(WDL, x + angle_cos * IN, y + angle_sin *IN, v.Width,v.Clr or 0x999999aa , nil, Thick)
+                                                                    r.ImGui_DrawList_AddCircle(WDL, x + angle_cos * IN, y + angle_sin *IN, v.Width, Clr_VA or v.Clr or 0x999999aa , nil, Thick)
 
 
                                                                 elseif v.Type =='Knob Image' and v.Image then
                                                                     local X ,Y = x + angle_cos * IN, y + angle_sin *IN
-                                                                    r.ImGui_DrawList_AddImage(WDL,v.Image, X,Y, X+ v.Width, Y+v.Width, nil,nil,nil,nil,v.Clr or 0x999999aa )
+                                                                    r.ImGui_DrawList_AddImage(WDL,v.Image, X,Y, X+ v.Width, Y+v.Width, nil,nil,nil,nil, Clr_VA or v.Clr or 0x999999aa )
 
                                                                 end
 
@@ -12043,7 +11890,7 @@ function loop()
                                                                     if v.Width_VA and v.Width_VA~= 0  then w = (v.Width or w) * v.Width_VA * Prm.V end 
                                                                     if v.Height_VA and v.Height_VA~=0 then h = (v.Height or h) * v.Height_VA * Prm.V end 
                                                                 local function AddImage (X_Gap, Y_Gap, none,  RptClr)
-                                                                    r.ImGui_DrawList_AddImage(WDL,v.Image, x +X_Gap, y+(Y_Gap or 0) , x + w+X_Gap, y + h+(Y_Gap or 0) , 0,0,1,1, RptClr or v.Clr or nil  )
+                                                                    r.ImGui_DrawList_AddImage(WDL,v.Image, x +X_Gap, y+(Y_Gap or 0) , x + w+X_Gap, y + h+(Y_Gap or 0) , 0,0,1,1, RptClr or Clr_VA or v.Clr   )
                                                                 end
 
 
@@ -12057,7 +11904,7 @@ function loop()
 
                                                         
                                                     end
-                                                    r.ImGui_DrawListSplitter_Merge(Spltr)
+                                                    r.ImGui_DrawListSplitter_Merge(DL_SPLITER)
                                                     --Try another method: use undo history to detect if user has changed a preset, if so, unlink all params
                                                     --[[ if r.TrackFX_GetOpen(LT_Track, FX_Idx) and focusedFXState==1 and FX_Index_FocusFX==FX_Idx then
 
@@ -12131,1594 +11978,29 @@ function loop()
                                         
                                     end 
 
-
-                                    r.ImGui_Dummy( ctx, FX.Width[FXGUID[FX_Idx]] or DefaultWidth, 220)
-
-
-                                    --------------------------------------------------------------------------------------
-                                    --------------------------------------Pro C --------------------------------------
-                                    --------------------------------------------------------------------------------------
-                                    if string.find(FX_Name, 'Pro C 2') and not FX[FxGUID].Collapse then
-                                        if Prm.InstAdded[FXGUID[FX_Idx]] ~= true and FX.Win_Name[FX_Idx]:find('Pro%-C 2') then
-                                            --- number in green represents FX Prm Index
-                                            StoreNewParam(FXGUID[FX_Idx], 'Knee', 3, FX_Idx, false, 'AddingFromExtState',
-                                                1, FX_Idx)                       --1. Knee
-                                            StoreNewParam(FXGUID[FX_Idx], 'Range', 4, FX_Idx, false, 'AddingFromExtState',
-                                                2, FX_Idx)                       --2. Range
-                                            StoreNewParam(FXGUID[FX_Idx], 'Lookahead', 8, FX_Idx, false,
-                                                'AddingFromExtState', 3, FX_Idx) --3. Lookahead
-                                            StoreNewParam(FXGUID[FX_Idx], 'Hold', 9, FX_Idx, false, 'AddingFromExtState',
-                                                4, FX_Idx)                       --4. Hold
-
-                                            StoreNewParam(FXGUID[FX_Idx], 'Ratio', 2, FX_Idx, false, 'AddingFromExtState',
-                                                5, FX_Idx)                       --5. Ratio
-                                            StoreNewParam(FXGUID[FX_Idx], 'Attack', 5, FX_Idx, false,
-                                                'AddingFromExtState', 6, FX_Idx) --6. Attack
-                                            StoreNewParam(FXGUID[FX_Idx], 'Release', 6, FX_Idx, false,
-                                                'AddingFromExtState', 7, FX_Idx) --7. release
-
-                                            StoreNewParam(FXGUID[FX_Idx], 'Gain', 10, FX_Idx, false, 'AddingFromExtState',
-                                                8, FX_Idx)                        --8. Gain
-                                            StoreNewParam(FXGUID[FX_Idx], 'Dry', 12, FX_Idx, false, 'AddingFromExtState',
-                                                9, FX_Idx)                        --9. Dry Gain
-                                            StoreNewParam(FXGUID[FX_Idx], 'Thresh', 1, FX_Idx, false,
-                                                'AddingFromExtState', 10, FX_Idx) -- 10. Thresh
-
-                                            StoreNewParam(FXGUID[FX_Idx], 'Mix', 34, FX_Idx, false, 'AddingFromExtState',
-                                                11, FX_Idx)                       -- 11. Mix
-                                            StoreNewParam(FXGUID[FX_Idx], 'Input Gain', 35, FX_Idx, false,
-                                                'AddingFromExtState', 12, FX_Idx) -- 12. Input Gain
-                                            StoreNewParam(FXGUID[FX_Idx], 'Output Gain', 37, FX_Idx, false,
-                                                'AddingFromExtState', 13, FX_Idx) -- 13. Output Gain
+                                    
 
 
-
-                                            Prm.InstAdded[FXGUID[FX_Idx]] = true
-                                            r.SetProjExtState(0, 'FX Devices', 'FX' .. FXGUID[FX_Idx] .. 'Params Added',
-                                                'true')
+                                    for i, v in pairs(PluginScripts ) do 
+                                        if FX_Name:find(v) then 
+                                            r.SetExtState('FXD', 'Plugin Script FX_Id', FX_Idx, false )
+                                            PluginScript.FX_Idx = FX_Idx
+                                            PluginScript.Guid = FXGUID[FX_Idx]
+                                            if Prm.InstAdded[FXGUID[FX_Idx]] ~= true and FX.Win_Name[FX_Idx]:find('Pro%-C 2') then
+                                                --- number in green represents FX Prm Index
+                                            end
+                                            dofile(pluginScriptPath .. '/'.. v..'.lua')
                                         end
-                                        function F_Tp(FX_P)
-                                            return FX.Prm.ToTrkPrm[FxGUID .. FX_P]
-                                        end
-
-                                        if FX[FxGUID][1].Num and FX[FxGUID][8] then
-                                            r.ImGui_Indent(ctx, 20)
-
-                                            Rounding = 3
-                                            r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_FrameRounding(), Rounding)
-                                            r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_GrabMinSize(), 0)
-                                            r.ImGui_PushFont(ctx, Font_Andale_Mono_10)
-                                            IIS = 2
-                                            reaper.gmem_attach('CompReductionScope')
-                                            local SpX, SpY = r.ImGui_GetCursorScreenPos(ctx)
-                                            local SpY = SpY - 9; local C = SpY + 50; local B = SpY + 100
-
-                                            local Drawlist = r.ImGui_GetWindowDrawList(ctx)
-                                            DspScale = { 2, 4, 6 }; --2=3dB, 4=6dB, 6=9dB, 8=12dB
-                                            --
-                                            if Sel_Scale == 1 then
-                                                ScaleLbl = '± 3dB'
-                                            elseif Sel_Scale == 2 then
-                                                ScaleLbl = '± 6dB'
-                                            elseif Sel_Scale == 3 then
-                                                ScaleLbl = '± 9dB'
-                                            end
-
-                                            r.ImGui_PushStyleColor(ctx, r.ImGui_Col_FrameBg(), 0x444444ff)
-                                            r.ImGui_PushStyleColor(ctx, r.ImGui_Col_Text(), 0xffffffff)
-                                            r.ImGui_SetNextItemWidth(ctx, 30)
-                                            if r.ImGui_BeginCombo(ctx, '##' .. tostring(Label), ScaleLbl, r.ImGui_ComboFlags_NoArrowButton()) then
-                                                r.ImGui_PushStyleColor(ctx, r.ImGui_Col_Header(), 0x44444433)
-                                                local AccentClr = reaper.ImGui_GetColor(ctx,
-                                                    reaper.ImGui_Col_SliderGrabActive())
-                                                r.ImGui_PushStyleColor(ctx, r.ImGui_Col_HeaderHovered(), AccentClr)
-                                                r.ImGui_PushStyleColor(ctx, r.ImGui_Col_Text(), 0xbbbbbbff)
-
-
-                                                if r.ImGui_Selectable(ctx, '± 3dB', i) then
-                                                    Sel_Scale = 1
-                                                end
-                                                if r.ImGui_Selectable(ctx, '± 6dB', i) then
-                                                    Sel_Scale = 2
-                                                end
-                                                if r.ImGui_Selectable(ctx, '± 9dB', i) then
-                                                    Sel_Scale = 3
-                                                end
-
-
-
-                                                r.ImGui_PopStyleColor(ctx, 3)
-
-                                                ScaleActive = true
-                                                r.ImGui_EndCombo(ctx)
-                                                local L, T = r.ImGui_GetItemRectMin(ctx); local R, B = r
-                                                    .ImGui_GetItemRectMax(ctx)
-                                                local lineheight = reaper.ImGui_GetTextLineHeight(ctx)
-                                                local drawlist = r.ImGui_GetForegroundDrawList(ctx)
-
-                                                r.ImGui_DrawList_AddRectFilled(drawlist, L, T + lineheight / 8, R,
-                                                    B - lineheight / 8, 0x88888844, Rounding)
-                                                r.ImGui_DrawList_AddRect(drawlist, L, T + lineheight / 8, R,
-                                                    B - lineheight / 8, 0x88888877, Rounding)
-                                            else
-                                                ScaleActive = nil
-                                            end
-                                            r.ImGui_PopStyleColor(ctx, 2)
-                                            local HvrOnScale = r.ImGui_IsItemHovered(ctx)
-
-                                            if not Sel_Scale then Sel_Scale = 3 end
-
-                                            if LT_ParamNum == 41 then
-                                                Lookahead = r.TrackFX_GetParamNormalized(LT_Track,
-                                                    FX_Idx, 41)
-                                            end
-
-
-
-                                            MousePosX, MousePosY = r.ImGui_GetMousePos(ctx)
-
-
-
-
-
-                                            r.ImGui_SameLine(ctx)
-
-                                            ---Gain Reduction Spectrum------
-                                            for i = 1, 180, 1 do -- do once for each pixel
-                                                local Clr = 0xFF8181cc
-                                                ProC.Pt.L.m[i] = r.gmem_read(i)
-                                                ProC.Pt.L.M[i] = r.gmem_read(i + 200 + 10000 * FX_Idx)
-
-                                                ProC.Pt.L.M[i + 1] = r.gmem_read(i + 201 + 10000 * FX_Idx)
-                                                local Min = ProC.Pt.L.m[i]
-                                                local Max = (ProC.Pt.L.M[i] - 347) / DspScale[Sel_Scale] + 50
-                                                local MaxNext = (ProC.Pt.L.M[i + 1] - 347) / DspScale[Sel_Scale] + 50
-
-
-
-
-                                                --r.ImGui_DrawList_AddLine(Drawlist, SpX+i, math.min(math.max(B-Max,SpY),B)+1 , SpX+i-1, math.min(math.max(B-Max,SpY),B), Clr,2)
-                                                r.ImGui_DrawList_AddLine(Drawlist, SpX + i,
-                                                    math.min(math.max(B - Max, SpY), B), SpX + i + 1,
-                                                    math.min(math.max(B - MaxNext, SpY), B), 0xFF8181cc, 2)
-                                                if B - Max <= SpY or B - Max >= B then
-                                                    r.ImGui_DrawList_AddLine(Drawlist, SpX + i,
-                                                        math.min(math.max(B - Max, SpY), B), SpX + i + 1,
-                                                        math.min(math.max(B - MaxNext, SpY), B), 0xff4517cc, 2)
-                                                end
-                                            end
-
-
-
-                                            -- Change Display scale if mouseclick on spectrum
-
-                                            MouseX, MouseY = r.ImGui_GetMousePos(ctx)
-
-                                            if MouseX > SpX and MouseX < SpX + 180 and MouseY > SpY and MouseY < SpY + 100 and not HvrOnScale and not ScaleActive then
-                                                r.ImGui_DrawList_AddRectFilled(Drawlist, SpX, SpY, SpX + 180, SpY + 100,
-                                                    0x88888810, nil)
-                                                local AnyActive = reaper.ImGui_IsAnyItemActive(ctx)
-
-                                                if IsLBtnClicked and AnyActive == false and not ProC.ChoosingStyle then
-                                                    r.ImGui_DrawList_AddRectFilled(Drawlist, SpX, SpY, SpX + 180, SpY +
-                                                        100, 0x88888866, nil)
-                                                    ShowDpRange = true
-                                                    TimeNow = r.time_precise()
-                                                    Sel_Scale = math.max(Sel_Scale - 1, 1)
-                                                end
-                                                if IsRBtnClicked then
-                                                    r.ImGui_DrawList_AddRectFilled(Drawlist, SpX, SpY, SpX + 180, SpY +
-                                                        100, 0x88888866, nil)
-                                                    ShowDpRange = true
-                                                    TimeNow = r.time_precise()
-                                                    Sel_Scale = math.min(Sel_Scale + 1, 3)
-                                                end
-
-
-                                                if Wheel_V ~= 0 then
-                                                    HoverOnScrollItem = true
-                                                    r.ImGui_SetScrollX(ctx, 0)
-                                                    local OV = r.TrackFX_GetParamNormalized(LT_Track, FX_Idx + 1, 0)
-                                                    r.TrackFX_SetParamNormalized(LT_Track, FX_Idx + 1, 0, OV + Wheel_V /
-                                                        50)
-                                                    TimeNow = r.time_precise()
-                                                    FX[FxGUID].ShowMsecRange = true
-                                                    FX[FxGUID].MsecRange = tonumber(select(2,
-                                                        r.TrackFX_GetFormattedParamValue(LT_Track, FX_Idx + 1, 0)))
-                                                    if FX[FxGUID].MsecRange then
-                                                        if FX[FxGUID].MsecRange > 999 then
-                                                            FX[FxGUID].MsecRange = round((FX[FxGUID].MsecRange / 1000), 2) ..
-                                                                's'
-                                                        else
-                                                            FX[FxGUID].MsecRange = math.floor(FX[FxGUID].MsecRange) ..
-                                                                'ms'
-                                                        end
-                                                    end
-                                                end
-                                            end
-                                            if ShowDpRange then
-                                                TimeAfter = r.time_precise()
-                                                if TimeAfter < TimeNow + 0.5 then
-                                                    r.ImGui_DrawList_AddTextEx(Drawlist, Font_Andale_Mono_20_B, 20,
-                                                        SpX + 90, SpY + 40, 0xffffffff, '±' .. Sel_Scale * 3)
-                                                else
-                                                    ShowDpRange = false
-                                                end
-                                            elseif FX[FxGUID].ShowMsecRange then
-                                                TimeAfter = r.time_precise()
-                                                if TimeAfter < TimeNow + 0.5 then
-                                                    r.ImGui_DrawList_AddTextEx(Drawlist, Font_Andale_Mono_20_B, 20,
-                                                        SpX + 70, SpY + 40, 0xffffffff, FX[FxGUID].MsecRange)
-                                                else
-                                                    FX[FxGUID].ShowMsecRange = false
-                                                end
-                                            end
-
-
-                                            -- Draw Grid
-                                            r.ImGui_DrawList_AddLine(Drawlist, SpX, SpY + 95, SpX + 180, SpY + 95,
-                                                0x99999955, 1) --- -3dB
-                                            r.ImGui_DrawList_AddText(Drawlist, SpX + 185, SpY + 90, 0x999999bb,
-                                                '-' .. 3 * Sel_Scale)
-                                            r.ImGui_DrawList_AddLine(Drawlist, SpX, SpY + 72, SpX + 180, SpY + 72,
-                                                0x99999933, 1) --- -1.5dB
-                                            r.ImGui_DrawList_AddText(Drawlist, SpX + 185, SpY + 70, 0x999999aa,
-                                                '-' .. 1.5 * Sel_Scale)
-
-                                            r.ImGui_DrawList_AddLine(Drawlist, SpX, SpY + 50, SpX + 180, SpY + 50,
-                                                0x99999955, 1) --- 0dB
-                                            r.ImGui_DrawList_AddText(Drawlist, SpX + 185, SpY + 45, 0x999999bb, ' 0')
-
-                                            r.ImGui_DrawList_AddLine(Drawlist, SpX, SpY + 27, SpX + 180, SpY + 27,
-                                                0x99999933, 1) --- -1.5dB
-                                            r.ImGui_DrawList_AddText(Drawlist, SpX + 185, SpY + 20, 0x999999aa,
-                                                '+' .. 1.5 * Sel_Scale)
-
-                                            r.ImGui_DrawList_AddLine(Drawlist, SpX, SpY + 4, SpX + 180, SpY + 4,
-                                                0x99999955, 1) --- +3dB
-                                            r.ImGui_DrawList_AddText(Drawlist, SpX + 185, SpY - 5, 0x999999bb,
-                                                '+' .. 3 * Sel_Scale)
-
-                                            -- r.ImGui_DrawList_PathStroke(Drawlist,0xFF8181cc)
-
-
-                                            r.ImGui_SameLine(ctx)
-
-
-
-                                            local Fx_P = 1
-                                            --for i=1, 13, 1 do FX[FxGUID][i]=FX[FxGUID][i] or {} end
-
-
-                                            reaper.ImGui_Indent(ctx, 210)
-                                            AddKnob(ctx, '##Gain', 'Gain', FX[FxGUID][8].V or 0, 0, 1, 8, FX_Idx, 10,
-                                                'Pro C', 15, IIS, Disabled, LblTextSize, 'Bottom')
-                                            AddKnob(ctx, '##Dry', 'Dry', FX[FxGUID][9].V or 0, 0, 1, 9, FX_Idx, 12,
-                                                'Pro C', 15, IIS, Disabled, LblTextSize, 'Bottom')
-                                            local OrigPosX, OrigPosY = r.ImGui_GetCursorPos(ctx)
-                                            r.ImGui_SetCursorScreenPos(ctx, SpX - 20, SpY + 20)
-                                            AddSlider(ctx, '##Threshold', ' ', FX[FxGUID][10].V or 0, 0, 1, 10, FX_Idx, 1,
-                                                'Pro C Thresh', 18, IIS, nil, 'Vert', 4, nil, nil, 180)
-                                            r.ImGui_SetCursorPos(ctx, OrigPosX, OrigPosY)
-
-                                            ---Meter on the right-----
-                                            r.gmem_attach('CompReductionScope')
-
-                                            local MtrPreL = r.gmem_read(1002); if not MtrPreL then MtrPreL = 0 end
-                                            local MtrPreR = r.gmem_read(1003); if not MtrPreR then MtrPreR = 0 end
-                                            local MtrPoL = r.gmem_read(1001); if not MtrPoL then MtrPoL = 0 end
-                                            local MtrPoR = r.gmem_read(1000); if not MtrPoR then MtrPoR = 0 end
-                                            local MtrB = SpY + 190; local MtrT = SpY + 20
-                                            local SegL = 0 * ((MtrB - MtrT) / 30)
-                                            local MtrW = 5;
-
-                                            --r.ImGui_DrawList_AddRectFilled(Drawlist, SpX+249, MtrT, SpX+267, MtrB , 0x55555544)
-
-                                            local HowManySeg = 63
-                                            for i = 0, HowManySeg, 1 do --do once for every pixel so you can get different color
-                                                local SegL = i * ((MtrB - MtrT) / HowManySeg); local Clr
-
-                                                local RR, GG, BB = r.ImGui_ColorConvertHSVtoRGB(0.4 - (0.3 / HowManySeg) * i, 0.6, 0.5)
-                                                local MtrClr = r.ImGui_ColorConvertDouble4ToU32(RR, GG, BB, 1)
-                                                local MtrClrDim = r.ImGui_ColorConvertDouble4ToU32(RR, GG, BB, 0.4)
-
-                                                if MtrT - (20 * MtrPreL) < MtrB - SegL then
-                                                    r.ImGui_DrawList_AddLine(
-                                                        Drawlist, SpX - 15, MtrB - SegL, SpX - 15, MtrB - SegL - 1,
-                                                        MtrClr,
-                                                        MtrW)
-                                                end
-                                                if MtrT - (20 * MtrPreR) < MtrB - SegL then
-                                                    r.ImGui_DrawList_AddLine(
-                                                        Drawlist, SpX - 15 + MtrW + 2, MtrB - SegL, SpX - 15 + MtrW + 2,
-                                                        MtrB - SegL - 1, MtrClr, MtrW)
-                                                end
-                                                if MtrT - (20 * MtrPoL) < MtrB - SegL then
-                                                    r.ImGui_DrawList_AddLine(
-                                                        Drawlist, SpX + 250, MtrB - SegL, SpX + 250, MtrB - SegL - 1,
-                                                        MtrClr,
-                                                        MtrW)
-                                                end
-                                                if MtrT - (20 * MtrPoR) < MtrB - SegL then
-                                                    r.ImGui_DrawList_AddLine(
-                                                        Drawlist, SpX + 250 + MtrW + 2, MtrB - SegL, SpX + 250 + MtrW + 2,
-                                                        MtrB - SegL - 1, MtrClr, MtrW)
-                                                end
-
-                                                r.ImGui_DrawList_AddLine(Drawlist, SpX - 15, MtrB - SegL, SpX - 15,
-                                                    MtrB - SegL - 1, MtrClrDim, MtrW)
-                                                r.ImGui_DrawList_AddLine(Drawlist, SpX - 15 + MtrW + 2, MtrB - SegL,
-                                                    SpX - 15 + MtrW + 2, MtrB - SegL - 1, MtrClrDim, MtrW)
-                                                r.ImGui_DrawList_AddLine(Drawlist, SpX + 250, MtrB - SegL, SpX + 250,
-                                                    MtrB - SegL - 1, MtrClrDim, MtrW)
-                                                r.ImGui_DrawList_AddLine(Drawlist, SpX + 250 + MtrW + 2, MtrB - SegL,
-                                                    SpX + 250 + MtrW + 2, MtrB - SegL - 1, MtrClrDim, MtrW)
-                                            end
-
-                                            if MtrPreL > 0 then
-                                                PreLPeak = true; PlayStateWhenPeak = r.GetPlayState()
-                                            end
-                                            if MtrPreR > 0 then
-                                                PreRPeak = true; PlayStateWhenPeak = r.GetPlayState()
-                                            end
-                                            if MtrPoL > 0 then
-                                                PoLPeak = true; PlayStateWhenPeak = r.GetPlayState()
-                                            end
-                                            if MtrPoR > 0 then
-                                                PoRPeak = true; PlayStateWhenPeak = r.GetPlayState()
-                                            end
-
-                                            if PreLPeak then
-                                                r.ImGui_DrawList_AddRectFilled(Drawlist, SpX - 16, MtrT - 2,
-                                                    SpX - 13, MtrT + 3, 0xf20000ff)
-                                            end
-                                            if PreRPeak then
-                                                r.ImGui_DrawList_AddRectFilled(Drawlist, SpX + 250 + MtrW +
-                                                    2, MtrT - 2, SpX + 250 + MtrW + 5, MtrT + 3, 0xf20000ff)
-                                            end
-                                            if PoLPeak then
-                                                r.ImGui_DrawList_AddRectFilled(Drawlist, SpX + 250 + MtrW * 3 +
-                                                    12, MtrT - 2, SpX + 250 + MtrW * 3 + 15, MtrT + 3, 0xf20000ff)
-                                            end
-                                            if PoRPeak then
-                                                r.ImGui_DrawList_AddRectFilled(Drawlist, SpX + 250 + MtrW * 4 +
-                                                    14, MtrT - 2, SpX + 250 + MtrW * 4 + 17, MtrT + 3, 0xf20000ff)
-                                            end
-
-
-
-                                            if PreLPeak or PreRPeak or PoLPeak or PoRPeak then
-                                                if r.GetPlayState() == 0 then StoppedPlyaing = true end
-                                                if StoppedPlyaing and r.GetPlayState() ~= 0 then
-                                                    PreLPeak = nil; PreRPeak = nil; PoLPeak = nil; PoRPeak = nil; StoppedPlyaing = nil;
-                                                end
-                                            end
-                                            -------- End of Meter
-
-
-
-
-
-                                            r.ImGui_Unindent(ctx, 210)
-                                            reaper.ImGui_Indent(ctx, 5)
-
-
-                                            AddKnob(ctx, '##Ratio', 'RATIO', FX[FxGUID][5].V or 0, 0, 1, 5, FX_Idx, 2,
-                                                'Pro C', 20, IIS, 'Pro C Ratio Disabled', LblTextSize, 'Bottom')
-                                            local KneePosX, KneePosY = r.ImGui_GetCursorPos(ctx)
-
-                                            r.ImGui_SameLine(ctx)
-                                            local X, Y = r.ImGui_GetCursorPos(ctx)
-
-                                            StyleOptions = { 'Clean', 'Classic', 'Opto', 'Vocal', 'Master', 'Bus',
-                                                'Punch', 'Pump' }
-                                            r.ImGui_SetCursorPos(ctx, X + 25, Y + 15)
-
-                                            AddCombo(ctx, LT_Track, FX_Idx, 'CompStyle##', 0, StyleOptions, 40, 'Pro C 2',
-                                                FxGUID, Fx_P)
-                                            r.ImGui_SetCursorPos(ctx, X + 25, Y + 35)
-
-                                            MyText('STYLE', nil, 0xbbbbbbff)
-
-
-                                            r.ImGui_SetCursorPos(ctx, X + 90, Y)
-
-
-                                            AddKnob(ctx, 'Attack##Attack', 'Attack', FX[FxGUID][6].V or 0, 0, 1, 6,
-                                                FX_Idx, 5, 'Pro C', 20, IIS, Disabled, LblTextSize, 'Bottom')
-
-
-                                            r.ImGui_SetCursorPos(ctx, X + 145, Y)
-                                            AddKnob(ctx, '##Release', 'Release', FX[FxGUID][7].V or 0, 0, 1, 7, FX_Idx, 6,
-                                                'Pro C', 20, IIS, Disabled, 2, 'Bottom')
-
-
-
-                                            r.ImGui_SetCursorPos(ctx, KneePosX - 3, KneePosY + 4)
-                                            for Fx_p = 1, 4, 1 do
-                                                r.ImGui_SetCursorPosY(ctx, KneePosY + 4)
-                                                local F_Tp = FX.Prm.ToTrkPrm[FxGUID .. Fx_p]
-                                                local P_Num = FX[FxGUID][Fx_p].Num
-                                                SliderStyle = 'Pro C'
-                                                if FX[FxGUID][Fx_P].V == nil then
-                                                    FX[FxGUID][Fx_P].V = r
-                                                        .TrackFX_GetParamNormalized(LT_Track, FX_Idx, P_Num)
-                                                end
-
-                                                if P_Num == 8 then
-                                                    if Lookahead == 0 then
-                                                        AddDrag(ctx, '##' .. Fx_p, FX[FxGUID][3].Name,
-                                                            FX[FxGUID][Fx_p].V or 0, 0, 1, Fx_p, FX_Idx, P_Num,
-                                                            'Pro C Lookahead', (ProC.Width - 60) / 4, IIS, 'Disabled',
-                                                            'Lbl_Clickable')
-                                                    else
-                                                        AddDrag(ctx, '##' .. Fx_p, FX[FxGUID][3].Name,
-                                                            FX[FxGUID][Fx_p].V or 0, 0, 1, Fx_p, FX_Idx, P_Num,
-                                                            'Pro C Lookahead', (ProC.Width - 60) / 4, IIS, nil,
-                                                            'Lbl_Clickable')
-                                                    end
-                                                else
-                                                    AddDrag(ctx, '##' .. Fx_p, FX[FxGUID][Fx_p].Name,
-                                                        FX[FxGUID][Fx_p].V or 0, 0, 1, Fx_p, FX_Idx, P_Num, 'Pro C',
-                                                        (ProC.Width - 60) / 4, IIS, nil)
-                                                    --r.ImGui_SameLine(ctx)
-                                                end
-                                                r.ImGui_SameLine(ctx)
-                                            end
-                                            r.ImGui_PopFont(ctx)
-                                            r.ImGui_PopStyleVar(ctx, 2)
-
-
-                                            if not FX.Win_Name[math.max(FX_Idx - 1, 0)]:find('JS: FXD Split to 4 channels') and not tablefind(Trk[TrkID].PreFX, FxGUID) and not tablefind(Trk[TrkID].PostFX, FxGUID) then
-                                                table.insert(AddFX.Pos, FX_Idx)
-                                                table.insert(AddFX.Name, 'FXD Split to 4 channels')
-                                                if r.GetMediaTrackInfo_Value(LT_Track, 'I_NCHAN') < 4 then
-                                                    rv = r.SetMediaTrackInfo_Value(LT_Track, 'I_NCHAN', 4)
-                                                end
-                                            else
-                                                r.TrackFX_Show(LT_Track, FX_Idx - 1, 2)
-                                            end
-                                            -- r.TrackFX_Show( LT_Track, FX_Idx-1, 2 ) --hide fx window
-
-                                            local _, NextFX = r.TrackFX_GetFXName(LT_Track, FX_Idx + 1)
-
-                                            if not NextFX:find('JS: FXD Gain Reduction Scope') and not tablefind(Trk[TrkID].PreFX, FxGUID) and not tablefind(Trk[TrkID].PostFX, FxGUID) then
-                                                table.insert(AddFX.Pos, FX_Idx + 1)
-                                                table.insert(AddFX.Name, 'FXD Gain Reduction Scope')
-                                                ProC.GainSc_FXGUID = FxGUID
-
-                                                function WriteGmemToGainReductionScope(FxGUID)
-
-                                                end
-
-                                                if not GainReductionWait then GainReductionWait = 0 end
-                                                GainReductionWait = GainReductionWait + 1
-                                                --[[ if GainReductionWait> FX_Add_Del_WaitTime then
-                                                    FX[FxGUID] = FX[FxGUID] or {}
-                                                    FX[FxGUID].ProC_ID =  math.random(1000000, 9999999 )
-                                                    r.gmem_attach('CompReductionScope')
-                                                    r.gmem_write(2002, FX[FxGUID].ProC_ID)
-                                                    r.gmem_write(FX[FxGUID].ProC_ID, FX_Idx)
-                                                    r.gmem_write(2000, PM.DIY_TrkID[TrkID])
-                                                    r.GetSetMediaTrackInfo_String(LT_Track, 'P_EXT: ProC_ID '..FxGUID, FX[FxGUID].ProC_ID, true)
-                                                    AddFX_HideWindow(LT_Track,'FXD Gain Reduction Scope.jsfx',-1000-FX_Idx-1)
-
-                                                    GainReductionWait = nil
-                                                end ]]
-                                            else
-                                                r.TrackFX_Show(LT_Track, FX_Idx + 1, 2)
-                                                SyncAnalyzerPinWithFX(FX_Idx + 1, FX_Idx)
-                                            end
-                                        end
-                                        r.gmem_attach('CompReductionScope'); r.gmem_write(2000, PM.DIY_TrkID[TrkID])
                                     end
-
-
-
-                                    --------------------------------------------------------------------------------------
-                                    --------------------------------------Pro Q --------------------------------------
-                                    --------------------------------------------------------------------------------------
-                                    if string.find(FX_Name, 'Pro Q 3') ~= nil and FX[FxGUID].Collapse ~= true then -- ==  Pro Q Graph
-                                        r.gmem_attach('gmemReEQ_Spectrum')
-
-
-
-
-                                        if FirstLoop == true then
-                                            _, ProQ3.DspRange[FX_Idx] = r.TrackFX_GetFormattedParamValue(LT_Track, FX_Idx,
-                                                331)
-                                            ProQ3['scaleLabel' .. ' ID' .. FXGUID[FX_Idx]] = ProQ3.DspRange[FX_Idx]
-                                            ProQ3['scale' .. ' ID' .. FXGUID[FX_Idx]] = syncProQ_DispRange(ProQ3
-                                                .DspRange[FX_Idx])
-                                        end
-
-                                        _, ProQ3.Format = r.TrackFX_GetNamedConfigParm(LT_Track, FX_Idx, 'fx_type')
-
-                                        r.ImGui_PushStyleColor(ctx, r.ImGui_Col_FrameBg(), 0x090909ff)
-
-                                        ProQ3.H = 200
-
-                                        r.ImGui_SetNextWindowPos(ctx, ProQ_TitlePosX_L, ProQ_TitlePosY_B)
-
-
-                                        if r.ImGui_BeginChildFrame(ctx, '##EQ Spectrum' .. FX_Idx, ProQ3.Width, ProQ3.H, nil) then
-                                            if ProQ3['scale' .. ' ID' .. FXGUID[FX_Idx]] == nil then ProQ3['scale' .. ' ID' .. FXGUID[FX_Idx]] = 2.5 end
-                                            if ProQ3['scale' .. ' ID' .. FXGUID[FX_Idx]] == 10 then
-                                                ProQ3['DragGainScale' .. ' ID' .. FXGUID[FX_Idx]] = 100
-                                            elseif ProQ3['scale' .. ' ID' .. FXGUID[FX_Idx]] == 5 then
-                                                ProQ3['DragGainScale' .. ' ID' .. FXGUID[FX_Idx]] = 20
-                                            elseif ProQ3['scale' .. ' ID' .. FXGUID[FX_Idx]] == 2.5 then
-                                                ProQ3['DragGainScale' .. ' ID' .. FXGUID[FX_Idx]] = 5
-                                            elseif ProQ3['scale' .. ' ID' .. FXGUID[FX_Idx]] == 1 then
-                                                ProQ3['DragGainScale' .. ' ID' .. FXGUID[FX_Idx]] = 1
-                                            end
-                                            --   10 = 3dB | 5 = 6dB | 2.5 = 12 dB | 1 = 30 dB
-
-                                            --DragGain
-                                            ---THIS SETS THE SCALE
-                                            --- Need to also scale nodes dragging
-                                            local ShelfGain_Node = 0
-                                            local Q_Node = {}
-                                            local E = 2.71828182845904523
-                                            ProQ_Xpos_L, ProQ_Ypos_T = reaper.ImGui_GetItemRectMin(ctx)
-                                            ProQ_Xpos_R, ProQ_Ypos_B = reaper.ImGui_GetItemRectMax(ctx)
-                                            --ProQ_Ypos_B= ProQ_Ypos_T+340
-                                            local B = ProQ_Ypos_B + 340
-                                            floor = -80; ly = 0; lx = -1;
-
-                                            sc = (ProQ3.Width - 20) * 20 /
-                                                (floor * math.log(10)) --      200 = width of window
-                                            Foreground = r.ImGui_GetWindowDrawList(ctx)
-                                            SpectrumX = 0
-                                            SpectrumY = 0
-                                            r.gmem_attach('gmemReEQ_Spectrum')
-                                            if FX[FxGUID].ProQ_ID then
-                                                r.gmem_write(FX[FxGUID].ProQ_ID, FX_Idx)
-                                            end
-
-                                            ----Get spectrum info
-                                            -- attach a DIYFXGUID to each PRO Q and use that for spectrums
-                                            if TrkID ~= TrkID_End then
-                                                for i = 2, 249, 1 do
-                                                    r.gmem_write(i + ((FX_Idx + 1) * 1000), 0)
-                                                    r.gmem_write(i + 300 + ((FX_Idx + 1) * 1000), 0)
-                                                end
-                                            end
-
-
-                                            for i = 2, 249, 1 do
-                                                BinY = r.gmem_read(i + ((FX_Idx + 1) * 1000))
-                                                tx = r.gmem_read(i + 300 + ((FX_Idx + 1) * 1000))
-
-
-
-
-                                                tx = freq_to_x_MyOwn(tx)
-
-                                                ty = spectrum1_to_y(BinY)
-                                                ty = ProQ_Ypos_T + ty
-
-                                                tx = tx + ProQ_Xpos_L
-                                                if lx == nil then lx = tx end
-
-                                                tx = round(tx, 0)
-
-
-                                                if lx ~= tx and i ~= 2 then
-                                                    r.ImGui_DrawList_AddQuadFilled(Foreground, lx, B, lx, ly, tx, ty, tx,
-                                                        B, 0x003535ff)
-                                                elseif i == 2 then
-                                                    r.ImGui_DrawList_AddQuadFilled(Foreground, lx, B, lx, ty, tx, ty, tx,
-                                                        B, 0x003535ff)
-                                                end
-
-                                                lx = tx; ly = ty;
-                                            end
-
-
-
-                                            Freq = {}
-                                            Gain = {}
-                                            Q = {}
-                                            Slope = {}
-                                            Band_Used = {}
-                                            pts = {}
-
-                                            local Band_Enabled = {}
-                                            local Y_Mid = ProQ_Ypos_B + ProQ3.H / 2
-                                            local y = Y_Mid
-
-
-                                            FXGUID_ProQ = r.TrackFX_GetFXGUID(LT_Track, FX_Idx)
-
-                                            for Band = 1, 24, 1 do
-                                                paramOfUsed = 13 * (Band - 1)
-                                                paramOfEnabled = 13 * (Band - 1) + 1
-                                                if FXGUID_ProQ == nil then FXGUID_ProQ = 0 end
-                                                ProQ3.Band_UseState[Band] = r.TrackFX_GetParamNormalized(LT_Track, FX_Idx,
-                                                    paramOfUsed)
-                                                Band_Enabled[Band .. FXGUID_ProQ] = r.TrackFX_GetParamNormalized(
-                                                    LT_Track, FX_Idx, paramOfEnabled)
-                                                local x = ProQ_Xpos_L
-                                                local y = Y_Mid
-                                                if ProQ3.Band_UseState[Band] == 1 then
-                                                    Freq[Band] = r.TrackFX_GetParamNormalized(LT_Track, FX_Idx,
-                                                        paramOfUsed + 2)
-                                                    Slope[Band] = r.TrackFX_GetParamNormalized(LT_Track, FX_Idx,
-                                                        9 + 13 * (Band - 1))
-                                                    Gain[Band] = r.TrackFX_GetParamNormalized(LT_Track, FX_Idx,
-                                                        paramOfUsed + 3)
-                                                    _, ProQ3['Shape of Band' .. Band .. 'ID' .. FXGUID_ProQ] = r
-                                                        .TrackFX_GetFormattedParamValue(LT_Track, FX_Idx, paramOfUsed + 8)
-                                                    NodeFreq['B-' .. Band .. 'GUID-' .. FXGUID_ProQ] = x_to_freq(Freq
-                                                        [Band] * ProQ3.Width)
-                                                    if ProQ3['Shape of Band' .. Band .. 'ID' .. FXGUID_ProQ] == 'Low Shelf' or ProQ3['Shape of Band' .. Band .. 'ID' .. FXGUID_ProQ] == 'High Shelf' then
-                                                        Gain[Band] = -30 + Gain[Band] * 60
-                                                        ShelfGain_Node = Gain[Band] * 1.3
-
-
-                                                        Gain[Band] = db_to_gain(Gain[Band])
-                                                    else
-                                                        Gain[Band] = -30 + Gain[Band] * 60
-                                                    end
-                                                    FreqToActualFreq = x_to_freq((Freq[Band] * ProQ3.Width))
-
-
-
-                                                    if ProQ3.Format == 'AU' then
-                                                        Q[Band] = r.TrackFX_GetParamNormalized(LT_Track, FX_Idx,
-                                                            paramOfUsed + 7)
-                                                    else
-                                                        if ProQ3['Shape of Band' .. Band .. 'ID' .. FXGUID_ProQ] == 'Low Cut' or ProQ3['Shape of Band' .. Band .. 'ID' .. FXGUID_ProQ] == 'High Cut' then
-                                                            _, Q[Band] = r.TrackFX_GetFormattedParamValue(LT_Track,
-                                                                FX_Idx, paramOfUsed + 7)
-                                                        else
-                                                            Q[Band] = r.TrackFX_GetParamNormalized(LT_Track, FX_Idx,
-                                                                paramOfUsed + 7)
-                                                        end
-                                                    end
-
-                                                    Q_Node[Band] = r.TrackFX_GetParamNormalized(LT_Track, FX_Idx,
-                                                        paramOfUsed + 7)
-                                                    Q_Node[Band] = (-1 + Q_Node[Band] * 2) * 50
-
-                                                    if Q_Node[Band] > 37 then
-                                                        Q_Node[Band] = 37
-                                                    elseif Q_Node[Band] < -37 then
-                                                        Q_Node[Band] = -37
-                                                    end
-                                                end
-
-                                                function FillClr_LT_Band(iteration, y1)
-                                                    if ProQ3.LT_EQBand[FXGUID_ProQ] == Band then
-                                                        X2 = x + 2
-                                                        BandColor = determineBandColor(ProQ3.LT_EQBand[FXGUID_ProQ])
-                                                        i = iteration
-                                                        if i ~= 1 then
-                                                            r.ImGui_DrawList_AddLine(Foreground, x, y1, X2,
-                                                                Y_Mid - pts[i .. 'B-' .. Band .. FXGUID_ProQ], BandColor,
-                                                                1.7)
-                                                        end
-                                                        x = X2
-                                                    end
-                                                end
-
-                                                function TiltShelf(Minimum_Q, Maximum_Q, Q_range, Q_Value)
-                                                    Min_Q = Minimum_Q
-                                                    Max_Q = Maximum_Q
-                                                    Q[Band] = per_to_q(Q[Band] * Q_range, 100)
-                                                    --local Gain = db_to_gain(Gain[Band] )
-                                                    local gain = Gain[Band]
-                                                    if Q_Value ~= nil then Q[Band] = Q_Value end
-
-                                                    svf_st(FreqToActualFreq, Q[Band], gain)
-
-                                                    local x = ProQ_Xpos_L
-                                                    local y = Y_Mid
-                                                    if Band_Enabled[Band .. FXGUID_ProQ] == 1 then
-                                                        for i = 1, ProQ3.Width, 1 do -- do 340 times
-                                                            iToFreq = x_to_freq(i)
-                                                            mag = zdf_magnitude(iToFreq)
-                                                            mag = 20 * math.log(mag, 10)
-                                                            mag = db_to_y(mag)
-                                                            pts[i .. 'B-' .. Band .. FXGUID_ProQ] = mag
-                                                        end
-                                                    end
-
-                                                    --[[  local Gain2 = 10^(-(gain) / 21);
-                                                    local Gain2 = 1 ]]
-
-                                                    local x = ProQ_Xpos_L
-                                                    local y = Y_Mid
-                                                    if Band_Enabled[Band .. FXGUID_ProQ] == 1 then
-                                                        for i = 1, ProQ3.Width, 2 do -- do 340 times
-                                                            iToFreq = x_to_freq(i)
-                                                            mag = zdf_magnitude(iToFreq)
-                                                            mag = 20 * math.log(mag, 10)
-                                                            mag = db_to_y(mag)
-                                                            pts[i .. 'B-' .. Band .. FXGUID_ProQ] = ((pts[i .. 'B-' .. Band .. FXGUID_ProQ] + mag) / 2) *
-                                                                ProQ3['scale' .. ' ID' .. FXGUID[FX_Idx]]
-                                                            FillClr_LT_Band(i, y)
-                                                            if ProQ3.LT_EQBand[FXGUID_ProQ] == Band then
-                                                                X2 = x + 2
-                                                                BandColor = determineBandColor(ProQ3.LT_EQBand
-                                                                    [FXGUID_ProQ])
-                                                                if i ~= 1 then
-                                                                    r.ImGui_DrawList_AddLine(Foreground, x,
-                                                                        Y_Mid, X2, Y_Mid -
-                                                                        pts[i .. 'B-' .. Band .. FXGUID_ProQ], BandColor,
-                                                                        1.7)
-                                                                end
-                                                                x = X2
-                                                            end
-                                                        end
-                                                    end
-                                                end
-
-                                                ---------------------
-                                                -- BELL
-                                                ---------------------
-                                                if ProQ3.Band_UseState[Band] == 1.0 and ProQ3['Shape of Band' .. Band .. 'ID' .. FXGUID_ProQ] == 'Bell' then
-                                                    Freq_Math = Freq[Band] * ProQ3.Width
-                                                    Gain_Math = (Gain[Band] * (ProQ3.H / 2)) / 30
-
-                                                    if Band_Enabled[Band .. FXGUID_ProQ] == 1 then
-                                                        for i = 1, ProQ3.Width, 2 do
-                                                            local xscale                          = 800 /
-                                                                (ProQ3.Width - 4);
-                                                            Q_Math                                = ((Q[Band] ^ 3.2) * 0.55) /
-                                                                2 + 0.005
-                                                            pts[i .. 'B-' .. Band .. FXGUID_ProQ] = (Gain_Math * Euler ^ -(Q_Math * (i - Freq_Math)) ^ 2) *
-                                                                ProQ3['scale' .. ' ID' .. FXGUID[FX_Idx]]
-                                                            FillClr_LT_Band(i, Y_Mid)
-                                                        end
-
-                                                        reaper.ImGui_DrawList_PathFillConvex(Foreground, 0xffffffff)
-                                                    end
-                                                elseif ProQ3.Band_UseState[Band] == 1.0 and ProQ3['Shape of Band' .. Band .. 'ID' .. FXGUID_ProQ] == 'High Cut' then
-                                                    if Slope[Band] < 0.2 then
-                                                        MIN_Q = 0.1; MAX_Q = 200
-                                                    elseif Slope[Band] > 0.2 and Slope[Band] < 0.3 then
-                                                        MIN_Q = 0.1; MAX_Q = 120
-                                                    elseif Slope[Band] > 0.3 and Slope[Band] < 0.4 then
-                                                        MIN_Q = 0.1; MAX_Q = 40
-                                                    elseif Slope[Band] > 0.4 and Slope[Band] < 0.5 then
-                                                        MIN_Q = 0.1; MAX_Q = 21
-                                                    elseif Slope[Band] > 0.5 and Slope[Band] < 0.6 then
-                                                        MIN_Q = 0.26; MAX_Q = 7
-                                                    elseif Slope[Band] > 0.6 and Slope[Band] < 0.7 then
-                                                        MIN_Q = 0.3; MAX_Q = 5
-                                                    elseif Slope[Band] > 0.7 and Slope[Band] < 0.8 then
-                                                        MIN_Q = 0.5; MAX_Q = 2.6
-                                                    elseif Slope[Band] > 0.8 and Slope[Band] < 0.9 then
-                                                        MIN_Q = 0.4; MAX_Q = 2.7
-                                                    elseif Slope[Band] == 1 then
-                                                        MIN_Q = 0.7; MAX_Q = 0.7
-                                                    end
-                                                    Slope_HighCut = Slope[Band] * 20
-
-                                                    Q[Band]       = Q[Band] * 100
-                                                    Q_HC          = per_to_q(Q[Band], 100)
-
-                                                    if ProQ3.Format == 'VST' or ProQ3.Format == 'VST3' then
-                                                        Q_HC = Q[Band] / 100 / 1.4
-                                                    else
-                                                    end
-
-                                                    local x = ProQ_Xpos_L
-                                                    local y = Y_Mid
-
-
-                                                    zdf_lp(FreqToActualFreq, Q_HC, Slope_HighCut)
-
-                                                    for i = 1, ProQ3.Width, 2 do -- do 340 times
-                                                        iToFreq = x_to_freq(i)
-                                                        local mag = zdf_magnitude(iToFreq)
-
-                                                        mag = 20 * math.log(mag, 10)
-                                                        mag = db_to_y(mag)
-
-                                                        if Band_Enabled[Band .. FXGUID_ProQ] == 1 then
-                                                            if Slope[Band] ~= 1 then
-                                                                pts[i .. 'B-' .. Band .. FXGUID_ProQ] = mag *
-                                                                    ProQ3['scale' .. ' ID' .. FXGUID[FX_Idx]]
-                                                            elseif Slope[Band] == 1 then --if Slope = brickwall
-                                                                if iToFreq > FreqToActualFreq then
-                                                                    magForBrickwall = db_to_y(-100)
-                                                                elseif iToFreq < FreqToActualFreq then
-                                                                    magForBrickwall = db_to_y(0)
-                                                                end
-                                                                pts[i .. 'B-' .. Band .. FXGUID_ProQ] = magForBrickwall
-                                                            end
-
-                                                            if ProQ3.LT_EQBand[FXGUID_ProQ] == Band then
-                                                                BandColor = determineBandColor(ProQ3.LT_EQBand
-                                                                    [FXGUID_ProQ])
-                                                                local X2 = x + 2
-                                                                if i ~= 1 then
-                                                                    r.ImGui_DrawList_AddLine(Foreground, x,
-                                                                        Y_Mid + 100, X2,
-                                                                        Y_Mid - pts[i .. 'B-' .. Band .. FXGUID_ProQ],
-                                                                        BandColor, 2)
-                                                                end
-                                                                x = X2
-                                                            end
-                                                        end
-                                                    end
-                                                elseif ProQ3.Band_UseState[Band] == 1.0 and ProQ3['Shape of Band' .. Band .. 'ID' .. FXGUID_ProQ] == 'Low Cut' then
-                                                    if Slope[Band] < 0.2 then
-                                                        MIN_Q = 0.1; MAX_Q = 200
-                                                    elseif Slope[Band] > 0.2 and Slope[Band] < 0.3 then
-                                                        MIN_Q = 0.1; MAX_Q = 120
-                                                    elseif Slope[Band] > 0.3 and Slope[Band] < 0.4 then
-                                                        MIN_Q = 0.1; MAX_Q = 40
-                                                    elseif Slope[Band] > 0.4 and Slope[Band] < 0.5 then
-                                                        MIN_Q = 0.1; MAX_Q = 21
-                                                    elseif Slope[Band] > 0.5 and Slope[Band] < 0.6 then
-                                                        MIN_Q = 0.26; MAX_Q = 7
-                                                    elseif Slope[Band] > 0.6 and Slope[Band] < 0.7 then
-                                                        MIN_Q = 0.3; MAX_Q = 6
-                                                    elseif Slope[Band] > 0.7 and Slope[Band] < 0.8 then
-                                                        MIN_Q = 0.5; MAX_Q = 2.6
-                                                    elseif Slope[Band] > 0.8 and Slope[Band] < 0.9 then
-                                                        MIN_Q = 0.4; MAX_Q = 2.7
-                                                    elseif Slope[Band] == 1 then
-                                                        MIN_Q = 0.7; MAX_Q = 0.7
-                                                    end
-
-
-
-                                                    Q[Band] = Q[Band] * 100
-                                                    if ProQ3.Format == 'VST' or ProQ3.Format == 'VST3' then
-                                                        Q_LC = Q[Band] / 100 / 1.4
-                                                    elseif ProQ3.Format == 'AU' then
-                                                        Q_LC = per_to_q(Q[Band], 100)
-                                                    end
-
-
-                                                    ProQ3['Slope' .. ' FXID-' .. FXGUID[FX_Idx]] = Slope[Band] * 20
-                                                    svf_hp(FreqToActualFreq, Q_LC,
-                                                        ProQ3['Slope' .. ' FXID-' .. FXGUID[FX_Idx]])
-
-                                                    local x = ProQ_Xpos_L
-                                                    local y = Y_Mid
-                                                    if Band_Enabled[Band .. FXGUID_ProQ] == 1 then
-                                                        for i = 1, ProQ3.Width, 1 do -- do 340 times
-                                                            iToFreq = x_to_freq(i)
-                                                            local mag = zdf_magnitude(iToFreq)
-                                                            mag = 20 * math.log(mag, 10)
-                                                            mag = db_to_y(mag)
-
-                                                            if Slope[Band] ~= 1 then
-                                                                pts[i .. 'B-' .. Band .. FXGUID_ProQ] = mag *
-                                                                    ProQ3['scale' .. ' ID' .. FXGUID[FX_Idx]]
-                                                            elseif Slope[Band] == 1 then --if Slope = brickwall
-                                                                local magForBrickwall;
-                                                                if iToFreq > FreqToActualFreq then
-                                                                    magForBrickwall = db_to_y(0)
-                                                                elseif iToFreq < FreqToActualFreq then
-                                                                    magForBrickwall = db_to_y(-100)
-                                                                end
-                                                                pts[i .. 'B-' .. Band .. FXGUID_ProQ] = magForBrickwall
-                                                            end
-
-                                                            if ProQ3.LT_EQBand[FXGUID_ProQ] == Band then
-                                                                BandColor = determineBandColor(ProQ3.LT_EQBand
-                                                                    [FXGUID_ProQ])
-                                                                local X2 = x + 1
-                                                                if i ~= 1 then
-                                                                    r.ImGui_DrawList_AddLine(Foreground, x,
-                                                                        Y_Mid + 100, X2,
-                                                                        Y_Mid - pts[i .. 'B-' .. Band .. FXGUID_ProQ],
-                                                                        BandColor, 2)
-                                                                end
-                                                                x = X2
-                                                            end
-                                                        end
-                                                    end
-                                                elseif ProQ3.Band_UseState[Band] == 1.0 and ProQ3['Shape of Band' .. Band .. 'ID' .. FXGUID_ProQ] == 'Low Shelf' then --@todo Pro Q -- No support for different slopes
-                                                    MIN_Q = 0.1; MAX_Q = 100
-                                                    Q[Band] = per_to_q(Q[Band] * 100, 100)
-
-
-
-                                                    svf_ls(FreqToActualFreq, Q[Band], Gain[Band])
-                                                    local x = ProQ_Xpos_L
-                                                    local y = Y_Mid
-                                                    if Band_Enabled[Band .. FXGUID_ProQ] == 1 then
-                                                        for i = 1, ProQ3.Width, 1 do -- do 340 times
-                                                            iToFreq = x_to_freq(i)
-                                                            mag = zdf_magnitude(iToFreq)
-                                                            mag = 20 * math.log(mag, 10)
-                                                            mag = db_to_y(mag)
-                                                            pts[i .. 'B-' .. Band .. FXGUID_ProQ] = mag *
-                                                                ProQ3['scale' .. ' ID' .. FXGUID[FX_Idx]]
-
-                                                            if ProQ3.LT_EQBand[FXGUID_ProQ] == Band then
-                                                                local X2 = x + 1
-                                                                BandColor = determineBandColor(ProQ3.LT_EQBand
-                                                                    [FXGUID_ProQ])
-                                                                if i ~= 1 then
-                                                                    r.ImGui_DrawList_AddLine(Foreground, x, y,
-                                                                        X2, Y_Mid - pts
-                                                                        [i .. 'B-' .. Band .. FXGUID_ProQ],
-                                                                        BandColor)
-                                                                end
-                                                                x = X2
-                                                            end
-                                                        end
-                                                    end
-                                                elseif ProQ3.Band_UseState[Band] == 1.0 and ProQ3['Shape of Band' .. Band .. 'ID' .. FXGUID_ProQ] == 'High Shelf' then
-                                                    MIN_Q = 0.1; MAX_Q = 100
-                                                    Q[Band] = per_to_q(Q[Band] * 100, 100)
-
-                                                    svf_hs(FreqToActualFreq, Q[Band], Gain[Band])
-                                                    local x = ProQ_Xpos_L
-                                                    local y = Y_Mid
-                                                    if Band_Enabled[Band .. FXGUID_ProQ] == 1 then
-                                                        for i = 1, ProQ3.Width, 1 do -- do 340 times
-                                                            iToFreq = x_to_freq(i)
-                                                            mag = zdf_magnitude(iToFreq)
-                                                            mag = 20 * math.log(mag, 10)
-                                                            mag = db_to_y(mag)
-                                                            pts[i .. 'B-' .. Band .. FXGUID_ProQ] = mag *
-                                                                ProQ3['scale' .. ' ID' .. FXGUID[FX_Idx]]
-                                                            if ProQ3.LT_EQBand[FXGUID_ProQ] == Band then
-                                                                local X2 = x + 1
-                                                                BandColor = determineBandColor(ProQ3.LT_EQBand
-                                                                    [FXGUID_ProQ])
-                                                                if i ~= 1 then
-                                                                    r.ImGui_DrawList_AddLine(Foreground, x, y,
-                                                                        X2, Y_Mid - pts
-                                                                        [i .. 'B-' .. Band .. FXGUID_ProQ],
-                                                                        BandColor)
-                                                                end
-                                                                x = X2
-                                                            end
-                                                        end
-                                                    end
-                                                elseif ProQ3.Band_UseState[Band] == 1.0 and ProQ3['Shape of Band' .. Band .. 'ID' .. FXGUID_ProQ] == 'Band Pass' then
-                                                    MIN_Q = 0.04; MAX_Q = 3000
-                                                    Q[Band] = per_to_q(Q[Band] * 100, 100)
-                                                    svf_bp(FreqToActualFreq, Q[Band])
-                                                    local x = ProQ_Xpos_L
-                                                    local y = Y_Mid
-                                                    if Band_Enabled[Band .. FXGUID_ProQ] == 1 then
-                                                        for i = 1, ProQ3.Width, 1 do -- do 340 times
-                                                            iToFreq = x_to_freq(i)
-                                                            mag = zdf_magnitude(iToFreq)
-                                                            mag = 20 * math.log(mag, 10)
-                                                            mag = db_to_y(mag)
-                                                            pts[i .. 'B-' .. Band .. FXGUID_ProQ] = mag *
-                                                                ProQ3['scale' .. ' ID' .. FXGUID[FX_Idx]]
-                                                            if ProQ3.LT_EQBand[FXGUID_ProQ] == Band then
-                                                                local X2 = x + 1
-                                                                BandColor = determineBandColor(ProQ3.LT_EQBand
-                                                                    [FXGUID_ProQ])
-                                                                if i ~= 1 then
-                                                                    r.ImGui_DrawList_AddLine(Foreground, x,
-                                                                        Y_Mid + 100, X2,
-                                                                        Y_Mid - pts[i .. 'B-' .. Band .. FXGUID_ProQ],
-                                                                        BandColor)
-                                                                end
-                                                                x = X2
-                                                            end
-                                                        end
-                                                    end
-                                                elseif ProQ3.Band_UseState[Band] == 1.0 and ProQ3['Shape of Band' .. Band .. 'ID' .. FXGUID_ProQ] == 'Notch' then
-                                                    MIN_Q = 0.005; MAX_Q = 400
-                                                    Q[Band] = per_to_q(Q[Band] * 100, 100)
-                                                    svf_bs(FreqToActualFreq, Q[Band])
-                                                    local x = ProQ_Xpos_L
-                                                    local y = Y_Mid
-                                                    if Band_Enabled[Band .. FXGUID_ProQ] == 1 then
-                                                        for i = 1, ProQ3.Width, 2 do -- do 340 times
-                                                            iToFreq = x_to_freq(i)
-                                                            mag = zdf_magnitude(iToFreq)
-                                                            mag = 20 * math.log(mag, 10)
-                                                            mag = db_to_y(mag)
-                                                            pts[i .. 'B-' .. Band .. FXGUID_ProQ] = mag *
-                                                                ProQ3['scale' .. ' ID' .. FXGUID[FX_Idx]]
-                                                            if ProQ3.LT_EQBand[FXGUID_ProQ] == Band then
-                                                                local X2 = x + 2
-                                                                BandColor = determineBandColor(ProQ3.LT_EQBand
-                                                                    [FXGUID_ProQ])
-                                                                if i ~= 1 then
-                                                                    r.ImGui_DrawList_AddLine(Foreground, x, y,
-                                                                        X2, Y_Mid - pts
-                                                                        [i .. 'B-' .. Band .. FXGUID_ProQ],
-                                                                        BandColor)
-                                                                end
-                                                                x = X2
-                                                            end
-                                                        end
-                                                    end
-                                                elseif ProQ3.Band_UseState[Band] == 1.0 and ProQ3['Shape of Band' .. Band .. 'ID' .. FXGUID_ProQ] == 'Tilt Shelf' then
-                                                    TiltShelf(0.1, 100, 77)
-                                                elseif ProQ3.Band_UseState[Band] == 1.0 and ProQ3['Shape of Band' .. Band .. 'ID' .. FXGUID_ProQ] == 'Flat Tilt' then
-                                                    TiltShelf(0.000001, 0.0001, 100, 0.08)
-                                                end
-                                            end
-
-
-
-                                            ----------------------
-                                            --==Draw Sum of all EQ
-                                            ----------------------
-                                            local x = ProQ_Xpos_L
-                                            for i = 1, ProQ3.Width, 2 do
-                                                pts[i .. FXGUID_ProQ] = 0
-                                                for Band = 1, 24, 1 do --Add up the sum of all eq
-                                                    if ProQ3.Band_UseState[Band] == 1 then
-                                                        if pts[i .. 'B-' .. Band .. FXGUID_ProQ] ~= nil and Band_Enabled[Band .. FXGUID_ProQ] == 1 then
-                                                            pts[i .. FXGUID_ProQ] = pts[i .. FXGUID_ProQ] +
-                                                                pts[i .. 'B-' .. Band .. FXGUID_ProQ]
-                                                        end
-                                                    end
-                                                end
-                                                pts[i .. FXGUID_ProQ] = pts[i .. FXGUID_ProQ]
-                                                local X2 = x + 2
-                                                if i ~= 1 then
-                                                    r.ImGui_DrawList_AddLine(Foreground, x, y, X2,
-                                                        Y_Mid - pts[i .. FXGUID_ProQ], 0xFFC43488, 2.5)
-                                                end
-
-
-                                                local Y_Mid = (ProQ_Ypos_T + ProQ3.H / 2)
-                                                y = Y_Mid - pts[i .. FXGUID_ProQ]
-                                                x = X2
-                                            end
-
-
-
-                                            r.ImGui_DrawList_AddTextEx(Foreground, Font_Andale_Mono, 9.5,
-                                                ProQ_Xpos_L + iPos50 - 3, Y_Mid + 86, 0x78787899, '50')
-                                            r.ImGui_DrawList_AddTextEx(Foreground, Font_Andale_Mono, 9.5,
-                                                ProQ_Xpos_L + iPos100 - 5, Y_Mid + 86, 0x78787899, '100')
-                                            r.ImGui_DrawList_AddTextEx(Foreground, Font_Andale_Mono, 9.5,
-                                                ProQ_Xpos_L + iPos200 - 5, Y_Mid + 86, 0x78787899, '200')
-                                            r.ImGui_DrawList_AddTextEx(Foreground, Font_Andale_Mono, 9.5,
-                                                ProQ_Xpos_L + iPos500 - 5, Y_Mid + 86, 0x78787899, '500')
-                                            r.ImGui_DrawList_AddTextEx(Foreground, Font_Andale_Mono, 9.5,
-                                                ProQ_Xpos_L + iPos1k - 5, Y_Mid + 86, 0x78787899, '1k')
-                                            r.ImGui_DrawList_AddTextEx(Foreground, Font_Andale_Mono, 9.5,
-                                                ProQ_Xpos_L + iPos2k - 5, Y_Mid + 86, 0x78787899, '2k')
-                                            r.ImGui_DrawList_AddTextEx(Foreground, Font_Andale_Mono, 9.5,
-                                                ProQ_Xpos_L + iPos5k - 5, Y_Mid + 86, 0x78787899, '5k')
-                                            r.ImGui_DrawList_AddTextEx(Foreground, Font_Andale_Mono, 9.5,
-                                                ProQ_Xpos_L + iPos10k - 5, Y_Mid + 86, 0x78787899, '10k')
-
-                                            r.ImGui_DrawList_AddLine(Foreground, ProQ_Xpos_L + iPos50, ProQ_Ypos_B,
-                                                ProQ_Xpos_L + iPos50, ProQ_Ypos_T + 300, 0x78787822)
-                                            r.ImGui_DrawList_AddLine(Foreground, ProQ_Xpos_L + iPos100, ProQ_Ypos_B,
-                                                ProQ_Xpos_L + iPos100, ProQ_Ypos_T + 300, 0x78787844)
-                                            r.ImGui_DrawList_AddLine(Foreground, ProQ_Xpos_L + iPos200, ProQ_Ypos_B,
-                                                ProQ_Xpos_L + iPos200, ProQ_Ypos_T + 300, 0x78787822)
-                                            r.ImGui_DrawList_AddLine(Foreground, ProQ_Xpos_L + iPos500, ProQ_Ypos_B,
-                                                ProQ_Xpos_L + iPos500, ProQ_Ypos_T + 300, 0x78787822)
-                                            r.ImGui_DrawList_AddLine(Foreground, ProQ_Xpos_L + iPos1k, ProQ_Ypos_B,
-                                                ProQ_Xpos_L + iPos1k, ProQ_Ypos_T + 300, 0x78787844)
-                                            r.ImGui_DrawList_AddLine(Foreground, ProQ_Xpos_L + iPos2k, ProQ_Ypos_B,
-                                                ProQ_Xpos_L + iPos2k, ProQ_Ypos_T + 300, 0x78787822)
-                                            r.ImGui_DrawList_AddLine(Foreground, ProQ_Xpos_L + iPos5k, ProQ_Ypos_B,
-                                                ProQ_Xpos_L + iPos5k, ProQ_Ypos_T + 300, 0x78787822)
-                                            r.ImGui_DrawList_AddLine(Foreground, ProQ_Xpos_L + iPos10k, ProQ_Ypos_B,
-                                                ProQ_Xpos_L + iPos10k, ProQ_Ypos_T + 300, 0x78787844)
-
-                                            r.ImGui_DrawList_AddLine(Foreground, ProQ_Xpos_L, Y_Mid, ProQ_Xpos_R, Y_Mid,
-                                                0x78787844)
-
-                                            if ProQ3['scaleLabel' .. ' ID' .. FXGUID[FX_Idx]] == 30 or ProQ3['scaleLabel' .. ' ID' .. FXGUID[FX_Idx]] == 3 then
-                                                local Gain10 = Y_Mid + (ProQ_Ypos_T - Y_Mid) / 3
-                                                local Gain20 = Y_Mid + ((ProQ_Ypos_T - Y_Mid) / 3) * 2
-                                                local GainMinus10 = Y_Mid - (ProQ_Ypos_T - Y_Mid) / 3
-                                                local GainMinus20 = Y_Mid - ((ProQ_Ypos_T - Y_Mid) / 3) * 2
-
-                                                r.ImGui_DrawList_AddLine(Foreground, ProQ_Xpos_L, Gain10, ProQ_Xpos_R,
-                                                    Gain10, 0x78787822)
-                                                r.ImGui_DrawList_AddLine(Foreground, ProQ_Xpos_L, Gain20, ProQ_Xpos_R,
-                                                    Gain20, 0x78787822)
-                                                r.ImGui_DrawList_AddLine(Foreground, ProQ_Xpos_L, GainMinus10,
-                                                    ProQ_Xpos_R, GainMinus10, 0x78787822)
-                                                r.ImGui_DrawList_AddLine(Foreground, ProQ_Xpos_L, GainMinus20,
-                                                    ProQ_Xpos_R, GainMinus20, 0x78787822)
-                                            elseif ProQ3['scaleLabel' .. ' ID' .. FXGUID[FX_Idx]] == 12 then
-                                                local Gain3 = (ProQ_Ypos_T - Y_Mid) / 4
-                                                local Gain6 = ((ProQ_Ypos_T - Y_Mid) / 4) * 2
-                                                local Gain9 = ((ProQ_Ypos_T - Y_Mid) / 4) * 3
-
-                                                r.ImGui_DrawList_AddLine(Foreground, ProQ_Xpos_L, Y_Mid + Gain3,
-                                                    ProQ_Xpos_R, Y_Mid + Gain3, 0x78787822)
-                                                r.ImGui_DrawList_AddLine(Foreground, ProQ_Xpos_L, Y_Mid + Gain6,
-                                                    ProQ_Xpos_R, Y_Mid + Gain6, 0x78787822)
-                                                r.ImGui_DrawList_AddLine(Foreground, ProQ_Xpos_L, Y_Mid + Gain9,
-                                                    ProQ_Xpos_R, Y_Mid + Gain9, 0x78787822)
-                                                r.ImGui_DrawList_AddLine(Foreground, ProQ_Xpos_L, Y_Mid - Gain3,
-                                                    ProQ_Xpos_R, Y_Mid - Gain3, 0x78787822)
-                                                r.ImGui_DrawList_AddLine(Foreground, ProQ_Xpos_L, Y_Mid - Gain6,
-                                                    ProQ_Xpos_R, Y_Mid - Gain6, 0x78787822)
-                                                r.ImGui_DrawList_AddLine(Foreground, ProQ_Xpos_L, Y_Mid - Gain9,
-                                                    ProQ_Xpos_R, Y_Mid - Gain9, 0x78787822)
-                                            elseif ProQ3['scaleLabel' .. ' ID' .. FXGUID[FX_Idx]] == 6 then
-                                                local Gain1 = (ProQ_Ypos_T - Y_Mid) / 6
-                                                local Gain2 = Gain1 * 2
-                                                local Gain3 = Gain1 * 3
-                                                local Gain4 = Gain1 * 4
-                                                local Gain5 = Gain1 * 5
-
-                                                r.ImGui_DrawList_AddLine(Foreground, ProQ_Xpos_L, Y_Mid + Gain1,
-                                                    ProQ_Xpos_R, Y_Mid + Gain1, 0x78787822)
-                                                r.ImGui_DrawList_AddLine(Foreground, ProQ_Xpos_L, Y_Mid + Gain2,
-                                                    ProQ_Xpos_R, Y_Mid + Gain2, 0x78787822)
-                                                r.ImGui_DrawList_AddLine(Foreground, ProQ_Xpos_L, Y_Mid + Gain3,
-                                                    ProQ_Xpos_R, Y_Mid + Gain3, 0x78787822)
-                                                r.ImGui_DrawList_AddLine(Foreground, ProQ_Xpos_L, Y_Mid + Gain4,
-                                                    ProQ_Xpos_R, Y_Mid + Gain4, 0x78787822)
-                                                r.ImGui_DrawList_AddLine(Foreground, ProQ_Xpos_L, Y_Mid + Gain5,
-                                                    ProQ_Xpos_R, Y_Mid + Gain5, 0x78787822)
-
-
-                                                r.ImGui_DrawList_AddLine(Foreground, ProQ_Xpos_L, Y_Mid - Gain1,
-                                                    ProQ_Xpos_R, Y_Mid - Gain1, 0x78787822)
-                                                r.ImGui_DrawList_AddLine(Foreground, ProQ_Xpos_L, Y_Mid - Gain2,
-                                                    ProQ_Xpos_R, Y_Mid - Gain2, 0x78787822)
-                                                r.ImGui_DrawList_AddLine(Foreground, ProQ_Xpos_L, Y_Mid - Gain3,
-                                                    ProQ_Xpos_R, Y_Mid - Gain3, 0x78787822)
-                                                r.ImGui_DrawList_AddLine(Foreground, ProQ_Xpos_L, Y_Mid - Gain4,
-                                                    ProQ_Xpos_R, Y_Mid - Gain4, 0x78787822)
-                                                r.ImGui_DrawList_AddLine(Foreground, ProQ_Xpos_L, Y_Mid - Gain5,
-                                                    ProQ_Xpos_R, Y_Mid - Gain5, 0x78787822)
-                                            end
-
-
-                                            ----------------------
-                                            --Draw Nodes
-                                            ----------------------
-                                            NodeY_Pos = {}
-                                            NodeHvr = {}
-                                            NodeHasbeenHovered = nil
-                                            MousePosX, MousePosY = r.ImGui_GetMousePos(ctx)
-
-                                            for Band = 1, 24, 1 do
-                                                if ProQ3.Band_UseState[Band] == 1 then
-                                                    NodeFreq['B-' .. Band .. 'GUID-' .. FXGUID_ProQ] = x_to_freq(Freq
-                                                        [Band] * ProQ3.Width)
-                                                    XposNode[Band] = freq_to_scx(NodeFreq
-                                                        ['B-' .. Band .. 'GUID-' .. FXGUID_ProQ])
-                                                    _, ProQ3['Shape of Band' .. Band .. 'ID' .. FXGUID_ProQ] = r
-                                                        .TrackFX_GetFormattedParamValue(LT_Track, FX_Idx,
-                                                            8 + 13 * (Band - 1))
-
-                                                    determineBandColor(Band)
-                                                    if ProQ3['Shape of Band' .. Band .. 'ID' .. FXGUID_ProQ] == 'Bell' then
-                                                        NodeY_Pos[Band] = Y_Mid -
-                                                            (Gain[Band] * 3.2) *
-                                                            ProQ3['scale' .. ' ID' .. FXGUID[FX_Idx]];
-                                                    elseif ProQ3['Shape of Band' .. Band .. 'ID' .. FXGUID_ProQ] == 'Low Cut' then
-                                                        NodeY_Pos[Band] = Y_Mid -
-                                                            (Q_Node[Band]) * ProQ3['scale' .. ' ID' .. FXGUID[FX_Idx]]
-                                                    elseif ProQ3['Shape of Band' .. Band .. 'ID' .. FXGUID_ProQ] == 'High Cut' then
-                                                        NodeY_Pos[Band] = Y_Mid -
-                                                            (Q_Node[Band]) * ProQ3['scale' .. ' ID' .. FXGUID[FX_Idx]]
-                                                    elseif ProQ3['Shape of Band' .. Band .. 'ID' .. FXGUID_ProQ] == 'Low Shelf' then
-                                                        NodeY_Pos[Band] = Y_Mid -
-                                                            (ShelfGain_Node) * ProQ3['scale' .. ' ID' .. FXGUID[FX_Idx]]
-                                                    elseif ProQ3['Shape of Band' .. Band .. 'ID' .. FXGUID_ProQ] == 'High Shelf' then
-                                                        NodeY_Pos[Band] = Y_Mid -
-                                                            (ShelfGain_Node) * ProQ3['scale' .. ' ID' .. FXGUID[FX_Idx]]
-                                                    elseif ProQ3['Shape of Band' .. Band .. 'ID' .. FXGUID_ProQ] == 'Band Pass' then
-                                                        NodeY_Pos[Band] = Y_Mid
-                                                    elseif ProQ3['Shape of Band' .. Band .. 'ID' .. FXGUID_ProQ] == 'Notch' then
-                                                        NodeY_Pos[Band] = Y_Mid
-                                                    elseif ProQ3['Shape of Band' .. Band .. 'ID' .. FXGUID_ProQ] == 'Tilt Shelf' then
-                                                        NodeY_Pos[Band] = Y_Mid -
-                                                            (Gain[Band] * 1.4) *
-                                                            ProQ3['scale' .. ' ID' .. FXGUID[FX_Idx]]
-                                                    elseif ProQ3['Shape of Band' .. Band .. 'ID' .. FXGUID_ProQ] == 'Flat Tilt' then
-                                                        NodeY_Pos[Band] = Y_Mid -
-                                                            (0.08 * 1.4) * ProQ3['scale' .. ' ID' .. FXGUID[FX_Idx]]
-                                                    end
-
-
-                                                    if Band_Enabled[Band .. FXGUID_ProQ] == 1 then
-                                                        r.ImGui_DrawList_AddCircleFilled(Foreground,
-                                                            ProQ_Xpos_L + XposNode[Band], NodeY_Pos[Band], 6,
-                                                            Clr_FullAlpha)
-                                                    else
-                                                        r.ImGui_DrawList_AddCircleFilled(Foreground,
-                                                            ProQ_Xpos_L + (XposNode[Band] or 0), NodeY_Pos[Band] or 0, 6,
-                                                            Clr_HalfAlpha)
-                                                    end
-                                                    if ProQ_Xpos_L and XposNode[Band] and NodeY_Pos[Band] then
-                                                        if Band <= 9 then
-                                                            r.ImGui_DrawList_AddTextEx(Foreground,
-                                                                Font_Andale_Mono, 12, ProQ_Xpos_L + XposNode[Band] - 2.5,
-                                                                NodeY_Pos[Band] - 4.5, 0x000000ff, Band)
-                                                        end
-                                                        if Band > 9 then
-                                                            r.ImGui_DrawList_AddTextEx(Foreground,
-                                                                Font_Andale_Mono, 10, ProQ_Xpos_L + XposNode[Band] - 5,
-                                                                NodeY_Pos[Band] - 4, 0x000000ff, Band)
-                                                        end
-                                                    end
-
-                                                    local NodeHoverArea = 10
-                                                    if MousePosX > ProQ_Xpos_L + XposNode[Band] - NodeHoverArea and MousePosX < ProQ_Xpos_L + XposNode[Band] + NodeHoverArea and MousePosY > NodeY_Pos[Band] - NodeHoverArea and MousePosY < NodeY_Pos[Band] + NodeHoverArea then
-                                                        ProQ3['NodeHvr' .. Band .. 'FXID-' .. FXGUID[FX_Idx]] = true
-                                                        HvringNode = Band
-                                                    else
-                                                        ProQ3['NodeHvr' .. Band .. 'FXID-' .. FXGUID[FX_Idx]] = false
-                                                    end
-
-                                                    if ProQ3['NodeHvr' .. Band .. 'FXID-' .. FXGUID[FX_Idx]] == true then
-                                                        NodeHasbeenHovered = true
-                                                        FX_DeviceWindow_NoScroll = r.ImGui_WindowFlags_NoScrollWithMouse()
-                                                        r.ImGui_DrawList_AddCircle(Foreground, ProQ_Xpos_L +
-                                                            XposNode[Band], NodeY_Pos[Band], 7.7, 0xf0f0f0ff)
-                                                        if IsLBtnHeld then
-                                                            r.ImGui_DrawList_AddCircleFilled(Foreground,
-                                                                ProQ_Xpos_L + XposNode[Band], NodeY_Pos[Band], 7.7,
-                                                                Clr_HalfAlpha)
-                                                            if IsLBtnClicked then ProQ3['NodeDrag' .. Band .. ' ID-' .. FXGUID[FX_Idx]] = true end
-                                                        end
-
-                                                        local QQ = r.TrackFX_GetParamNormalized(LT_Track, FX_Idx,
-                                                            ((Band - 1) * 13) + 7)
-                                                        if Wheel_V ~= 0 then --if wheel is moved
-                                                            HoverOnScrollItem = true
-                                                            MousePosX_AdjustingQ, Y = reaper.GetMousePosition()
-                                                            ProQ3['AdjustingQ' .. FXGUID[FX_Idx]] = true
-                                                            BandforQadjusting = Band
-                                                        end
-                                                        if IsLBtnClicked and Mods == Alt then -- delete node
-                                                            r.TrackFX_SetParamNormalized(LT_Track, FX_Idx,
-                                                                ((Band - 1) * 13),
-                                                                0)
-                                                            ProQ3['NodeHvr' .. Band .. 'FXID-' .. FXGUID[FX_Idx]] = false
-                                                            HvringNode = nil
-                                                        end
-
-                                                        if LBtnClickCount == 2 then
-                                                            local OnOff = r.TrackFX_GetParamNormalized(LT_Track, FX_Idx,
-                                                                ((Band - 1) * 13) + 1)
-
-                                                            if OnOff == 1 then
-                                                                r.TrackFX_SetParamNormalized(LT_Track, FX_Idx,
-                                                                    ((Band - 1) * 13) + 1, 0)
-                                                            else
-                                                                r.TrackFX_SetParamNormalized(LT_Track, FX_Idx,
-                                                                    ((Band - 1) * 13) + 1, 1)
-                                                            end
-                                                        end
-                                                        if IsRBtnClicked == true then
-                                                            r.ImGui_OpenPopup(ctx, 'Pro-Q R Click')
-                                                        end
-                                                    else
-                                                        FX_DeviceWindow_NoScroll = 0
-                                                    end
-
-
-
-
-                                                    if ProQ3['AdjustingQ' .. FXGUID[FX_Idx]] then
-                                                        local MousePosX_AdjustingQ_CheckXpos, Y = reaper
-                                                            .GetMousePosition()
-                                                        if Mods == Shift then
-                                                            WheelQFineAdj = 20
-                                                        else
-                                                            WheelQFineAdj = 1
-                                                        end
-                                                        if MousePosX_AdjustingQ_CheckXpos < MousePosX_AdjustingQ + 7 and MousePosX_AdjustingQ_CheckXpos > MousePosX_AdjustingQ - 7 then
-                                                            local QQ = r.TrackFX_GetParamNormalized(LT_Track, FX_Idx,
-                                                                ((BandforQadjusting - 1) * 13) + 7)
-
-                                                            Q_Output = SetMinMax(QQ - ((Wheel_V / 50) / WheelQFineAdj), 0,
-                                                                1)
-
-                                                            r.TrackFX_SetParamNormalized(LT_Track, FX_Idx,
-                                                                ((BandforQadjusting - 1) * 13) + 7, Q_Output)
-                                                        else
-                                                            ProQ3['AdjustingQ' .. FXGUID[FX_Idx]] = false
-                                                        end
-                                                    end
-
-
-                                                    if ProQ3['NodeDrag' .. Band .. ' ID-' .. FXGUID[FX_Idx]] == true then
-                                                        MouseDeltaX, MouseDeltaY = r.ImGui_GetMouseDelta(ctx)
-                                                        local Freq = r.TrackFX_GetParamNormalized(LT_Track, FX_Idx,
-                                                            ((Band - 1) * 13) + 2)
-                                                        local Gain = r.TrackFX_GetParamNormalized(LT_Track, FX_Idx,
-                                                            ((Band - 1) * 13) + 3)
-                                                        local Q = r.TrackFX_GetParamNormalized(LT_Track, FX_Idx,
-                                                            ((Band - 1) * 13) + 7)
-
-                                                        if IsLBtnHeld == false then
-                                                            ProQ3['NodeDrag' .. Band .. ' ID-' .. FXGUID[FX_Idx]] = false
-                                                        end
-                                                        -- finetune if shift is held
-                                                        if Mods == Shift then
-                                                            HorizDragScale = 1000
-                                                        else
-                                                            HorizDragScale = 400
-                                                        end
-                                                        if Mods == Shift then
-                                                            QDragScale = 400
-                                                        else
-                                                            QDragScale = 120
-                                                        end
-
-                                                        if ProQ3['Shape of Band' .. Band .. 'ID' .. FXGUID_ProQ] == 'Low Cut' or ProQ3['Shape of Band' .. Band .. 'ID' .. FXGUID_ProQ] == 'High Cut' then
-                                                            Q_Output = Q +
-                                                                (-MouseDeltaY / QDragScale) *
-                                                                (ProQ3['scale' .. ' ID' .. FXGUID[FX_Idx]] / ProQ3['DragGainScale' .. ' ID' .. FXGUID[FX_Idx]])
-                                                            r.TrackFX_SetParamNormalized(LT_Track, FX_Idx,
-                                                                ((Band - 1) * 13) + 7, Q_Output)
-
-                                                            if Freq > 1 and MouseDeltaX > 0 then
-                                                                FreqOutput = 1
-                                                            elseif Freq < 0 and MouseDeltaX < 0 then
-                                                                FreqOutput = 0
-                                                            else
-                                                                FreqOutput = Freq + MouseDeltaX / HorizDragScale
-                                                            end
-                                                            r.TrackFX_SetParamNormalized(LT_Track, FX_Idx,
-                                                                ((Band - 1) * 13) + 2, FreqOutput)
-                                                        else
-                                                            if Gain > 1 and MouseDeltaY < 0 then
-                                                                GainOutput = 1
-                                                            elseif Gain < 0 and MouseDeltaY > 0 then
-                                                                GainOutput = 0
-                                                            else
-                                                                GainOutput = Gain +
-                                                                    (-MouseDeltaY / 270) *
-                                                                    (ProQ3['scale' .. ' ID' .. FXGUID[FX_Idx]] / ProQ3['DragGainScale' .. ' ID' .. FXGUID[FX_Idx]])
-                                                            end
-
-                                                            if Freq > 1 and MouseDeltaX > 0 then
-                                                                FreqOutput = 1
-                                                            elseif Freq < 0 and MouseDeltaX < 0 then
-                                                                FreqOutput = 0
-                                                            else
-                                                                FreqOutput = Freq + MouseDeltaX / HorizDragScale
-                                                            end
-
-                                                            r.TrackFX_SetParamNormalized(LT_Track, FX_Idx,
-                                                                ((Band - 1) * 13) + 2, FreqOutput)
-                                                            r.TrackFX_SetParamNormalized(LT_Track, FX_Idx,
-                                                                ((Band - 1) * 13) + 3, GainOutput)
-                                                        end
-                                                    end
-
-
-
-
-
-
-
-                                                    -- if i == iPos10k then r.ImGui_DrawList_AddTextEx(Foreground, Font_Andale_Mono, 12, ProQ_Xpos_L+XposNode[Band],  Y_Mid- (Gain[B]*3.2)  , 0x78787899, '10K') end
-                                                    if LT_ParamNum ~= nil then
-                                                        local m = m;
-                                                        _, tracknumber, fxnumber, paramnumber = reaper.GetLastTouchedFX()
-                                                        proQ_LT_GUID = reaper.TrackFX_GetFXGUID(LT_Track, fxnumber)
-
-                                                        for i = 1, RepeatTimeForWindows, 1 do
-                                                            GUIDtoCompare = reaper.TrackFX_GetFXGUID(LT_Track, fxnumber)
-                                                            if proQ_LT_GUID == GUIDtoCompare and proQ_LT_GUID ~= nil then
-                                                                for i = 1, 24, 1 do
-                                                                    if LT_ParamNum > 13 * (i - 1) and LT_ParamNum < 13 * i then
-                                                                        ProQ3.LT_EQBand[proQ_LT_GUID] = i
-                                                                    end
-                                                                end
-                                                            end
-                                                        end
-                                                        if ProQ3.GainDragging == true then
-                                                            MouseDeltaX, MouseDeltaY = r.ImGui_GetMouseDelta(ctx)
-
-                                                            local Gain = r.TrackFX_GetParamNormalized(LT_Track, FX_Idx,
-                                                                ((ProQ3.LT_EQBand[proQ_LT_GUID] - 1) * 13) + 3)
-
-                                                            if Gain > 1 and MouseDeltaY < 0 then
-                                                                GainOutput = 1
-                                                            elseif Gain < 0 and MouseDeltaY > 0 then
-                                                                GainOutput = 0
-                                                            else
-                                                                GainOutput = Gain +
-                                                                    (-MouseDeltaY / 270) *
-                                                                    (ProQ3['scale' .. ' ID' .. FXGUID[FX_Idx]] / ProQ3['DragGainScale' .. ' ID' .. FXGUID[FX_Idx]])
-                                                            end
-                                                            r.TrackFX_SetParamNormalized(LT_Track, FX_Idx,
-                                                                ((ProQ3.LT_EQBand[proQ_LT_GUID] - 1) * 13) + 3,
-                                                                GainOutput)
-                                                        end
-                                                        if ProQ3.FreqDragging == true then
-                                                            MouseDeltaX, MouseDeltaY = r.ImGui_GetMouseDelta(ctx)
-                                                            if Mods == Shift then
-                                                                HorizDragScale = 1300
-                                                            else
-                                                                HorizDragScale = 400
-                                                            end
-                                                            local Freq = r.TrackFX_GetParamNormalized(LT_Track, FX_Idx,
-                                                                ((ProQ3.LT_EQBand[proQ_LT_GUID] - 1) * 13) + 2)
-
-                                                            if Freq > 1 and MouseDeltaX > 0 then
-                                                                FreqOutput = 1
-                                                            elseif Freq < 0 and MouseDeltaX < 0 then
-                                                                FreqOutput = 0
-                                                            else
-                                                                FreqOutput = Freq + MouseDeltaX / HorizDragScale
-                                                            end
-                                                            r.TrackFX_SetParamNormalized(LT_Track, FX_Idx,
-                                                                ((ProQ3.LT_EQBand[proQ_LT_GUID] - 1) * 13) + 2,
-                                                                FreqOutput)
-                                                        end
-                                                    end
-                                                end --end for repeat every active  band
-                                            end     --end for repeat every band
-                                            if NodeHasbeenHovered then HoverOnScrollItem = true end
-
-
-
-                                            if r.ImGui_BeginPopup(ctx, 'Pro-Q R Click') then
-                                                local LTBand = ProQ3.LT_EQBand[FXGUID[FX_Idx]]
-                                                if r.ImGui_Button(ctx, 'Bell') then
-                                                    r.TrackFX_SetParamNormalized(LT_Track, FX_Idx, 13 * (LTBand - 1) + 8,
-                                                        0)
-                                                    r.ImGui_CloseCurrentPopup(ctx)
-                                                end
-                                                if r.ImGui_Button(ctx, 'Low Shelf') then
-                                                    r.TrackFX_SetParamNormalized(LT_Track, FX_Idx, 13 * (LTBand - 1) + 8,
-                                                        0.11)
-                                                    r.ImGui_CloseCurrentPopup(ctx)
-                                                end
-                                                if r.ImGui_Button(ctx, 'Low Cut') then
-                                                    r.TrackFX_SetParamNormalized(LT_Track, FX_Idx, 13 * (LTBand - 1) + 8,
-                                                        0.22)
-                                                    r.ImGui_CloseCurrentPopup(ctx)
-                                                end
-                                                if r.ImGui_Button(ctx, 'High Shelf') then
-                                                    r.TrackFX_SetParamNormalized(LT_Track, FX_Idx, 13 * (LTBand - 1) + 8,
-                                                        0.33)
-                                                    r.ImGui_CloseCurrentPopup(ctx)
-                                                end
-                                                if r.ImGui_Button(ctx, 'High Cut') then
-                                                    r.TrackFX_SetParamNormalized(LT_Track, FX_Idx, 13 * (LTBand - 1) + 8,
-                                                        0.44)
-                                                    r.ImGui_CloseCurrentPopup(ctx)
-                                                end
-                                                if r.ImGui_Button(ctx, 'Notch') then
-                                                    r.TrackFX_SetParam(LT_Track, FX_Idx, 13 * (LTBand - 1) + 8, 0.60)
-                                                    r.ImGui_CloseCurrentPopup(ctx)
-                                                end
-                                                if r.ImGui_Button(ctx, 'Band Pass') then
-                                                    r.TrackFX_SetParam(LT_Track, FX_Idx, 13 * (LTBand - 1) + 8, 0.72)
-                                                    r.ImGui_CloseCurrentPopup(ctx)
-                                                end
-                                                if r.ImGui_Button(ctx, 'Tilt Shelf') then
-                                                    r.TrackFX_SetParam(LT_Track, FX_Idx, 13 * (LTBand - 1) + 8, 0.86)
-                                                    r.ImGui_CloseCurrentPopup(ctx)
-                                                end
-                                                if r.ImGui_Button(ctx, 'Flat Tilt') then
-                                                    r.TrackFX_SetParam(LT_Track, FX_Idx, 13 * (LTBand - 1) + 8, 1)
-                                                    r.ImGui_CloseCurrentPopup(ctx)
-                                                end
-                                                reaper.ImGui_EndPopup(ctx)
-                                            end
-
-
-                                            ------------------------------------------
-                                            --Add new node by double click
-                                            ------------------------------------------
-
-                                            if ProQ3['HvrGUI' .. FXGUID[FX_Idx]] and LBtnClickCount == 2 then
-                                                if HvringNode == nil or ProQ3['NodeHvr' .. HvringNode .. 'FXID-' .. FXGUID[FX_Idx]] ~= true then
-                                                    UnusedBandFound = false
-                                                    local Band = 1
-                                                    while (UnusedBandFound == false) do
-                                                        if ProQ3.Band_UseState[Band] ~= 1 then
-                                                            UnusedBandFound = true
-                                                            BandNotInUse = Band
-                                                        end
-                                                        Band = Band + 1
-                                                    end
-                                                    reaper.TrackFX_SetParamNormalized(LT_Track, FX_Idx,
-                                                        13 * (BandNotInUse - 1), 1)
-                                                    MouseX_AddNode, MouseY_AddNode = reaper.ImGui_GetMousePos(ctx)
-
-                                                    local FreqToAddNode = (MouseX_AddNode - ProQ_Xpos_L) / ProQ3.Width
-                                                    reaper.TrackFX_SetParamNormalized(LT_Track, FX_Idx,
-                                                        13 * (BandNotInUse - 1) + 2, FreqToAddNode)
-                                                    local GainToAddNode = ((((Y_Mid - MouseY_AddNode) - 100) / 100 + 1) / ProQ3['scale' .. ' ID' .. FXGUID[FX_Idx]] + 1) /
-                                                        2
-                                                    reaper.TrackFX_SetParamNormalized(LT_Track, FX_Idx,
-                                                        13 * (BandNotInUse - 1) + 3, GainToAddNode)
-                                                    if FreqToAddNode > 0.9 then
-                                                        reaper.TrackFX_SetParamNormalized(LT_Track, FX_Idx,
-                                                            13 * (BandNotInUse - 1) + 8, 0.5)
-                                                    elseif FreqToAddNode < 0.1 then
-                                                        reaper.TrackFX_SetParamNormalized(LT_Track, FX_Idx,
-                                                            13 * (BandNotInUse - 1) + 8, 0.25)
-                                                    else
-                                                        reaper.TrackFX_SetParamNormalized(LT_Track, FX_Idx,
-                                                            13 * (BandNotInUse - 1) + 8, 0.02)
-                                                    end
-                                                end
-                                            end
-
-                                            stopp = true
-
-                                            step = ProQ3.Width / 200
-
-                                            r.ImGui_DrawList_PathStroke(Foreground, 0x99999988, nil, 3)
-
-
-
-                                            r.ImGui_EndChildFrame(ctx)
-                                        end ---- End of if begin pro-Q frame then
-
-                                        ProQ3['HvrGUI' .. FXGUID[FX_Idx]] = reaper.ImGui_IsItemHovered(ctx)
-                                        --if ProQ3['HvrGUI'..FXGUID[FX_Idx]] then FX_DeviceWindow_NoScroll= 0--[[ r.ImGui_WindowFlags_NoScrollWithMouse() ]] end
-
-                                        r.ImGui_PopStyleColor(ctx, 1)
-
-                                        if FX.Enable[FX_Idx] == false then
-                                            local drawlist = reaper.ImGui_GetForegroundDrawList(ctx)
-                                            r.ImGui_DrawList_AddRectFilled(drawlist, ProQ_Xpos_L, ProQ_Ypos_T - 20,
-                                                ProQ_Xpos_L + ProQ3.Width, ProQ_Ypos_T + ProQ3.H, 0x00000077)
-                                        end
-
-
-                                        if FX.Win_Name[math.max(FX_Idx - 1, 0)]:find('FXD ReSpectrum') then
-                                            r.TrackFX_Show(LT_Track, FX_Idx - 1, 2)
-                                            if tablefind(Trk[TrkID].PreFX, FxGUID) then
-                                                r.TrackFX_Delete(LT_Track,
-                                                    FX_Idx - 1)
-                                            end
-                                            SyncAnalyzerPinWithFX(FX_Idx - 1, FX_Idx,
-                                                FX.Win_Name[math.max(FX_Idx - 1, 0)])
-                                        else -- if no spectrum is before pro-Q 3
-                                            FX[FxGUID].AddEQSpectrumWait = (FX[FxGUID].AddEQSpectrumWait or 0) + 1
-                                            if FX[FxGUID].AddEQSpectrumWait > FX_Add_Del_WaitTime then
-                                                r.gmem_attach('gmemReEQ_Spectrum')
-                                                r.gmem_write(1, PM.DIY_TrkID[TrkID])
-                                                FX[FxGUID].ProQ_ID = FX[FxGUID].ProQ_ID or math.random(1000000, 9999999)
-                                                r.GetSetMediaTrackInfo_String(LT_Track, 'P_EXT: ProQ_ID ' .. FxGUID,
-                                                    FX[FxGUID].ProQ_ID, true)
-                                                r.gmem_write(2, FX[FxGUID].ProQ_ID)
-                                                local AnyPopupOpen
-                                                if r.ImGui_IsPopupOpen(ctx, 'Delete FX Layer ', r.ImGui_PopupFlags_AnyPopupId() + r.ImGui_PopupFlags_AnyPopupLevel()) then AnyPopupOpen = true end
-
-                                                if not tablefind(Trk[TrkID].PostFX, FxGUID) and not tablefind(Trk[TrkID].PreFX, FxGUID) and not AnyPopupOpen then
-                                                    r.gmem_attach('gmemReEQ_Spectrum')
-                                                    r.gmem_write(1, PM.DIY_TrkID[TrkID])
-                                                    FX[FxGUID].ProQ_ID = FX[FxGUID].ProQ_ID or
-                                                        math.random(1000000, 9999999)
-                                                    r.GetSetMediaTrackInfo_String(LT_Track, 'P_EXT: ProQ_ID ' .. FxGUID,
-                                                        FX[FxGUID].ProQ_ID, true)
-                                                    r.gmem_write(2, FX[FxGUID].ProQ_ID)
-                                                    rv = r.TrackFX_AddByName(LT_Track, 'FXD ReSpectrum', 0, -1000 -
-                                                        FX_Idx)
-                                                end
-                                                FX[FxGUID].AddEQSpectrumWait = 0
-                                                r.TrackFX_Show(LT_Track, FX_Idx - 1, 2)
-                                                for i = 0, 16, 1 do
-                                                    --r.TrackFX_SetPinMappings(LT_Track, FX_Idx, 0, i,0,0)
-                                                    r.TrackFX_SetPinMappings(LT_Track, FX_Idx, 1, i, 0, 0)
-                                                end
-                                            end
-                                        end
-
-                                        r.gmem_attach('gmemReEQ_Spectrum')
-                                        r.gmem_write(1, PM.DIY_TrkID[TrkID])
-                                        --  r.gmem_write(0, FX_Idx)
-                                    end --------------- End of Pro - Q
 
 
                                     if FX.Enable[FX_Idx] == false then
-                                        r.ImGui_DrawList_AddRectFilled(WDL, Win_L, Win_T,
-                                            Win_R, Win_B, 0x00000088)
+                                        r.ImGui_DrawList_AddRectFilled(WDL, Win_L, Win_T,Win_R, Win_B, 0x00000088)
                                     end
-                                    if r.ImGui_IsWindowHovered(ctx,r.ImGui_HoveredFlags_RootAndChildWindows()) then  DisableScroll = nil else DisableScroll = true end
 
+                                    if r.ImGui_IsWindowHovered(ctx,r.ImGui_HoveredFlags_RootAndChildWindows()) then  DisableScroll = nil else DisableScroll = true end
+                                   
+                                    r.ImGui_Dummy( ctx, FX.Width[FXGUID[FX_Idx]] or DefaultWidth, 220)
                                     r.ImGui_EndChild(ctx)
                                 
                                 end
@@ -13857,9 +12139,9 @@ function loop()
                                 SL(nil, 30)
 
                                 if Draw.DrawMode[FxGUID] then
-                                    if r.ImGui_Button(ctx, 'Exit Draw Mode ') then Draw.DrawMode[FxGUID] = false end
+                                    if r.ImGui_Button(ctx, 'Exit Background Edit') then Draw.DrawMode[FxGUID] = false end
                                 else
-                                    if r.ImGui_Button(ctx, 'Enter Draw Mode ') then
+                                    if r.ImGui_Button(ctx, 'Enter Background Edit') then
                                         Draw.DrawMode[FxGUID] = true
                                         if Draw[FX.Win_Name_S[FX_Idx]] == nil then
                                             Draw[FX.Win_Name_S[FX_Idx]] = {
@@ -14037,9 +12319,21 @@ function loop()
                                             if D.Type[It] == 'Text' then
                                                 r.ImGui_Text(ctx, 'Text:')
                                                 r.ImGui_SameLine(ctx)
-                                                r.ImGui_SetNextItemWidth(ctx, FullWidth)
 
                                                 _, D.Txt[It] = r.ImGui_InputText(ctx, '##' .. It .. 'Txt', D.Txt[It])
+
+                                                SL()
+                                                r.ImGui_Text(ctx, 'Font Size:')
+                                                local rv, Sz = r.ImGui_InputInt(ctx, '## font size '.. It , D[It].FtSize or 12)
+                                                if rv then 
+                                                    D[It].FtSize  = Sz 
+                                                    if not _G['Font_Andale_Mono' .. '_'..Sz] then
+                                                        _G['Font_Andale_Mono' .. '_'..Sz] = r.ImGui_CreateFont('andale mono', Sz) 
+                                                        ChangeFont = D[It] 
+                                                    else D[It].Font = _G['Font_Andale_Mono' .. '_'..Sz]
+                                                    end
+
+                                                end
                                             end
                                         end
 
@@ -14314,8 +12608,7 @@ function loop()
                                             FX[FxGUID][LE.Sel_Items[1]].SwitchBaseV or 0, 0.05, 0, 1, '%.2f')
                                         if Drag then
                                             for i, v in pairs(LE.Sel_Items) do
-                                                FX[FxGUID][LE.Sel_Items[1]].SwitchBaseV =
-                                                    Bv
+                                                FX[FxGUID][LE.Sel_Items[1]].SwitchBaseV =Bv
                                             end
                                         end
                                         r.ImGui_Text(ctx, 'Target Value: ')
@@ -14345,10 +12638,15 @@ function loop()
 
                                     r.ImGui_Text(ctx, 'Label Font Size: '); r.ImGui_SameLine(ctx)
                                     r.ImGui_SetNextItemWidth(ctx, 50)
-                                    Drag, ft = r.ImGui_DragDouble(ctx, '##EditFontSize' .. FxGUID ..
-                                        (LE.Sel_Items[1] or ''),
-                                        FX[FxGUID][LE.Sel_Items[1]].FontSize or Knob_DefaultFontSize, 0.25, 6, 16, '%.2f')
+                                    local Drag, ft = r.ImGui_DragDouble(ctx, '##EditFontSize' .. FxGUID ..(LE.Sel_Items[1] or ''),FrstSelItm.FontSize or Knob_DefaultFontSize, 0.25, 6, 64, '%.2f')
                                     if Drag then
+                                        local sz = roundUp( ft , 1)
+                                        if not _G['Font_Andale_Mono' .. '_'..sz] then
+                                            _G['Font_Andale_Mono' .. '_'..sz] = r.ImGui_CreateFont('andale mono', sz) 
+                                            ChangeFont = FrstSelItm
+                                            ChangeFont_Size = sz
+                                        end
+
                                         for i, v in pairs(LE.Sel_Items) do
                                             FX[FxGUID][v].FontSize = ft
                                         end
@@ -14362,11 +12660,15 @@ function loop()
                                     SL()
                                     r.ImGui_Text(ctx, 'Value Font Size: '); r.ImGui_SameLine(ctx)
                                     r.ImGui_SetNextItemWidth(ctx, 50)
-                                    local Drag, ft = r.ImGui_DragDouble(ctx,
-                                        '##EditV_FontSize' .. FxGUID .. (LE.Sel_Items[1] or ''),
-                                        FX[FxGUID][LE.Sel_Items[1]].V_FontSize or Knob_DefaultFontSize, 0.25, 6, 16,
-                                        '%.2f')
+                                    local Drag, ft = r.ImGui_DragDouble(ctx,'##EditV_FontSize' .. FxGUID .. (LE.Sel_Items[1] or ''),FX[FxGUID][LE.Sel_Items[1]].V_FontSize or Knob_DefaultFontSize, 0.25, 6, 64,'%.2f')
                                     if Drag then
+                                        local sz = roundUp( ft , 1)
+                                        if not _G['Arial' .. '_'..sz] then
+                                            _G['Arial' .. '_'..sz] = r.ImGui_CreateFont('Arial', sz) 
+                                            ChangeFont = FrstSelItm
+                                            ChangeFont_Size = sz
+                                            ChangeFont_Font = 'Arial'
+                                        end
                                         for i, v in pairs(LE.Sel_Items) do
                                             FX[FxGUID][v].V_FontSize = ft
                                         end
@@ -14896,7 +13198,7 @@ function loop()
                                                 --!!!!!! LE.Sel_Items[1] = Fx_P -1 !!!!!! --
                                                 Value_Selected, V_Formatted = AddCombo(ctx, LT_Track, FX_Idx,
                                                     'ConditionPrm'..FP.ConditionPrm .. (PrmName or '') .. '1## CP', FX[FxGUID][P][ConditionPrm] or 0,
-                                                    FX[FxGUID][PID].ManualValuesFormat or 'Get Options', nil, Style, FxGUID,PID, FX[FxGUID][PID].ManualValues,
+                                                    FX[FxGUID][PID].ManualValuesFormat or 'Get Options', -R_ofs, Style, FxGUID,PID, FX[FxGUID][PID].ManualValues,
                                                     FX[FxGUID][P][ConditionPrm_V][1] or 'Unassigned', nil, 'No Lbl')
 
                                                 if Value_Selected then
@@ -15243,14 +13545,22 @@ function loop()
                                                     SetRowName('Color')    
                                                     r.ImGui_TableSetColumnIndex(ctx, 1)
 
-                                                    _, D.Clr = r.ImGui_ColorEdit4(ctx, 'Color' .. LBL, D.Clr or 0xffffffff,  ClrFLG)        
+                                                    local rv, Clr = r.ImGui_ColorEdit4(ctx, 'Color' .. LBL, D.Clr or 0xffffffff,  ClrFLG) 
+                                                    if rv then   D.Clr = Clr end      
+
+                                                    r.ImGui_TableSetColumnIndex(ctx, 2)
+                                                    local rv, Clr_VA = r.ImGui_ColorEdit4(ctx, 'Color_VA' .. LBL, D.Clr_VA or 0xffffffff,  ClrFLG)   
+                                                    if rv then D.Clr_VA = Clr_VA end      
+
+
                                                     r.ImGui_TableNextRow(ctx)
 
                                                     if D.Repeat and D.Repeat ~= 0 then 
                                                         SetRowName('Last Repeat\'s Color')  
                                                         r.ImGui_TableSetColumnIndex(ctx, 1)    
 
-                                                        _, D.RPT_Clr = r.ImGui_ColorEdit4(ctx, 'Repeat Color' .. LBL, D.RPT_Clr or 0xffffffff,ClrFLG)
+                                                        local rv, Clr = r.ImGui_ColorEdit4(ctx, 'Repeat Color' .. LBL, D.RPT_Clr or 0xffffffff,ClrFLG)
+                                                        if rv then D.RPT_Clr = Clr end 
                                                         r.ImGui_TableNextRow(ctx)
                                                     end
 
