@@ -1,6 +1,9 @@
 -- @description Snapshooter
 -- @author tilr
--- @version 1.0
+-- @version 1.1
+-- @changelog
+--   Transitions are now written to time selection when available
+--   Added transition controls to preserve edges, invert transition, curve points tension and shape
 -- @provides
 --   tilr_Snapshooter/rtk.lua
 --   [main] tilr_Snapshooter/tilr_Snapshooter apply snap 1.lua
@@ -30,11 +33,13 @@
 --     * Writes only changed params by diffing the current state and selected snapshot
 --     * Transition snapshots using tween and ease functions
 --     * Tested with hundreds of params with minimal overhead
+--     * Writes transitions from current state to snapshot into time selection
 --
 --   Tips:
+--     * Use time selection to write transitions from current state to snapshot
 --     * Set global automation to _READ_ to save current song snapshot
 --     * Set global automation to other value than _READ_ to save snapshots from mixer state
---     * If params are not writing make sure they have a different current value from the snapshot
+--     * If params are not writing make sure they have a different current value from the snapshots
 
 function log(t)
   reaper.ShowConsoleMsg(t .. '\n')
@@ -52,6 +57,12 @@ globals = {
   ui_checkbox_pan = true,
   ui_checkbox_mute = true,
   ui_checkbox_sends = true,
+  ui_checkbox_fx = true,
+  write_transition = true,
+  preserve_edges = false,
+  invert_transition = false,
+  points_shape = 0,
+  points_tension = 0,
   tween = 'none',
   ease = 'linear'
 }
@@ -67,10 +78,20 @@ local exists, mute = reaper.GetProjExtState(0, 'snapshooter', 'ui_checkbox_mute'
 if exists ~= 0 then globals.ui_checkbox_mute = mute == 'true' end
 local exists, sends = reaper.GetProjExtState(0, 'snapshooter', 'ui_checkbox_sends')
 if exists ~= 0 then globals.ui_checkbox_sends = sends == 'true' end
+local exists, fx = reaper.GetProjExtState(0, 'snapshooter', 'ui_checkbox_fx')
+if exists ~= 0 then globals.ui_checkbox_fx = fx == 'true' end
+local exists, edges = reaper.GetProjExtState(0, 'snapshooter', 'preserve_edges')
+if exists ~= 0 then globals.preserve_edges = edges == 'true' end
 local exists, tween = reaper.GetProjExtState(0, 'snapshooter', 'ui_tween_menu')
 if exists ~= 0 then globals.tween = tween end
 local exists, ease = reaper.GetProjExtState(0, 'snapshooter', 'ui_ease_menu')
 if exists ~= 0 then globals.ease = ease end
+local exists, shape = reaper.GetProjExtState(0, 'snapshooter', 'points_shape')
+if exists ~= 0 then globals.points_shape = tonumber(shape) end
+local exists, tension = reaper.GetProjExtState(0, 'snapshooter', 'points_tension')
+if exists ~= 0 then globals.points_tension = tonumber(tension) end
+local exists, invert = reaper.GetProjExtState(0, 'snapshooter', 'invert_transition')
+if exists ~= 0 then globals.invert_transition = invert == 'true' end
 
 function makesnap()
   local numtracks = reaper.GetNumTracks()
@@ -176,7 +197,7 @@ function parse(snapstr)
   return lines
 end
 
-function insertSendEnvelopePoint(track, key, count, value, type)
+function insertSendEnvelopePoint(track, key, cnt, value, type, shape, tension)
   local count = 0
   local cursor = reaper.GetCursorPosition()
   for send = 0, reaper.GetTrackNumSends(track, 0) do
@@ -187,9 +208,9 @@ function insertSendEnvelopePoint(track, key, count, value, type)
       if count == cnt then
         local envelope = reaper.GetTrackSendInfo_Value(track, 0, send, 'P_ENV:<'..type)
         local scaling = reaper.GetEnvelopeScalingMode(envelope)
-        reaper.InsertEnvelopePoint(envelope, cursor, reaper.ScaleToEnvelopeMode(scaling, value), 0, 0, true)
+        reaper.InsertEnvelopePoint(envelope, cursor, reaper.ScaleToEnvelopeMode(scaling, value), shape, tension, true)
         br_env = reaper.BR_EnvAlloc(envelope, false)
-        active, visible, armed, inLane, laneHeight, defaultShape, minValue, maxValue, centerValue, type, faderScaling = reaper.BR_EnvGetProperties(br_env)
+        active, visible, armed, inLane, laneHeight, defaultShape, minValue, maxValue, centerValue, _, faderScaling = reaper.BR_EnvGetProperties(br_env)
         reaper.BR_EnvSetProperties(br_env, true, true, true, inLane, laneHeight, defaultShape, faderScaling)
         reaper.BR_EnvFree(br_env, 1)
       end
@@ -219,6 +240,8 @@ end
 
 -- apply snapshot to params or write to timeline
 function applydiff(diff, write, tween)
+  local points_shape = globals.invert_transition and globals.points_shape or 0
+  local points_tension = globals.invert_transition and globals.points_tension or 0
   local numtracks = reaper.GetNumTracks()
   local cursor = reaper.GetCursorPosition()
   -- tracks hashmap
@@ -267,7 +290,7 @@ function applydiff(diff, write, tween)
               env = reaper.GetTrackEnvelopeByName(track, param)
               if param == 'Volume' then
                 local scaling = reaper.GetEnvelopeScalingMode(env)
-                reaper.InsertEnvelopePoint(env, cursor, reaper.ScaleToEnvelopeMode(scaling, value), 0, 0, true)
+                reaper.InsertEnvelopePoint(env, cursor, reaper.ScaleToEnvelopeMode(scaling, value), points_shape, points_tension, true)
               else
                 -- FIX flip mute value before writting to playlist
                 if param == 'Mute' and value == 1 then value = 0
@@ -275,7 +298,7 @@ function applydiff(diff, write, tween)
                 -- FIX flip pan value before writting to playlist
                 if param == 'Pan' then value = -value end
                 --
-                reaper.InsertEnvelopePoint(env, cursor, value, 0, 0, true)
+                reaper.InsertEnvelopePoint(env, cursor, value, points_shape, points_tension, true)
               end
             elseif line[2] == 'Volume' then
               if tween then
@@ -302,7 +325,7 @@ function applydiff(diff, write, tween)
           if fxid ~= nil then
             if write then
               env = reaper.GetFXEnvelope(track, fxid, param, true)
-              reaper.InsertEnvelopePoint(env, cursor, value, 0, 0, true)
+              reaper.InsertEnvelopePoint(env, cursor, value, points_shape, points_tension, true)
             else
               if tween then
                 local val = reaper.TrackFX_GetParam(track, fxid, param)
@@ -315,7 +338,7 @@ function applydiff(diff, write, tween)
             log('fx not found '..tostring(line))
             logtable(line)
           end
-        elseif #line == 7 then -- sends
+        elseif #line == 7 and globals.ui_checkbox_fx then -- sends
           local key = line[4]
           local count = line[3]
           send = sends[key..count]
@@ -326,7 +349,7 @@ function applydiff(diff, write, tween)
             pan = line[6]
             mut = line[7]
             if vol ~= 'unchanged' then
-              if write then insertSendEnvelopePoint(track, key, cnt, tonumber(vol), 'VOLENV')
+              if write then insertSendEnvelopePoint(track, key, cnt, tonumber(vol), 'VOLENV', points_shape, points_tension)
               else
                 if tween then
                   local ret, svol, span = reaper.GetTrackSendUIVolPan(track, send)
@@ -339,7 +362,7 @@ function applydiff(diff, write, tween)
             if pan ~= 'unchanged' then
               if write then
                 pan = -pan -- FIX flip pan before writting to playlist
-                insertSendEnvelopePoint(track, key, cnt, tonumber(pan), 'PANENV')
+                insertSendEnvelopePoint(track, key, cnt, tonumber(pan), 'PANENV', points_shape, points_tension)
               else
                 if tween then
                   local ret, svol, span = reaper.GetTrackSendUIVolPan(track, send)
@@ -362,6 +385,106 @@ function applydiff(diff, write, tween)
   end
 end
 
+function clearEnvelopesAndAddStartingPoint(diff, starttime, endtime)
+  if globals.preserve_edges then
+    _starttime = starttime + 0.000000001
+    _endtime = endtime - 0.000000001
+  else
+  _starttime = starttime - 0.000000001
+  _endtime = endtime + 0.000000001
+  end
+  if globals.invert_transition then
+    starttime = endtime -- writes points to endtime instead
+  end
+  points_shape = not globals.invert_transition and globals.points_shape or 0
+  points_tension = not globals.invert_transition and globals.points_tension or 0
+  -- tracks hashmap
+  local tracks = {}
+  local numtracks = reaper.GetNumTracks()
+  for i = 0, numtracks - 1 do
+    tracks[tostring(reaper.GetTrack(0, i))] = i
+  end
+  -- fxs hashmap
+  local fxs = {}
+  for guid, tr in pairs(tracks) do
+    track = reaper.GetTrack(0, tr)
+    fxcount = reaper.TrackFX_GetCount(track)
+    for j = 0, fxcount - 1 do
+      fxs[reaper.TrackFX_GetFXGUID(track, j)] = j
+    end
+  end
+
+  for i,line in ipairs(diff) do
+    local track = tracks[tostring(line[1])]
+    if track ~= null then
+      track = reaper.GetTrack(0, track)
+      local env_count = reaper.CountTrackEnvelopes(track)
+      if not globals.ui_checkbox_seltracks or reaper.IsTrackSelected(track) then
+        if #line == 3 then -- vol/pan/mute
+          local param = line[2]
+          if param == 'Volume' and globals.ui_checkbox_volume or
+            param == 'Pan' and globals.ui_checkbox_pan or
+            param == 'Mute' and globals.ui_checkbox_mute
+          then
+            showTrackEnvelopes(track, param)
+            env = reaper.GetTrackEnvelopeByName(track, param)
+            if param == 'Volume' then
+              _, value, _ = reaper.GetTrackUIVolPan(track)
+            elseif param == 'Pan' then
+              _, _, value = reaper.GetTrackUIVolPan(track)
+              value = -value
+            elseif param == 'Mute' then
+              _, value =  reaper.GetTrackUIMute(track)
+              if value then value = 0
+              else value = 1
+              end
+            end
+            local scaling = reaper.GetEnvelopeScalingMode(env)
+            reaper.DeleteEnvelopePointRange(env, _starttime, _endtime)
+            reaper.InsertEnvelopePoint(env, starttime, reaper.ScaleToEnvelopeMode(scaling, value), points_shape, points_tension, true)
+          end
+        elseif #line == 4 and globals.ui_checkbox_fx then -- params
+          fxid = fxs[tostring(line[2])]
+          param = tonumber(line[3])
+          env = reaper.GetFXEnvelope(track, fxid, param, true)
+          value = reaper.TrackFX_GetParam(track, fxid, param)
+          reaper.DeleteEnvelopePointRange(env, _starttime, _endtime)
+          reaper.InsertEnvelopePoint(env, starttime, value, points_shape, points_tension, true)
+        elseif #line == 7 and globals.ui_checkbox_sends then -- sends
+          local cnt = tonumber(line[3])
+          local count = 0
+          for send = 0, reaper.GetTrackNumSends(track, 0) do
+            src = reaper.GetTrackSendInfo_Value(track, 0, send, 'P_SRCTRACK')
+            dst = reaper.GetTrackSendInfo_Value(track, 0, send, 'P_DESTTRACK')
+            if tostring(src)..tostring(dst) == line[4] then
+              count = count + 1
+              if count == cnt then
+                vol = line[5]
+                pan = line[6]
+                mut = line[7]
+                if vol ~= 'unchanged' then
+                  env = reaper.GetTrackSendInfo_Value(track, 0, send, 'P_ENV:<VOLENV')
+                  local _, value, _ = reaper.GetTrackSendUIVolPan(track, send)
+                  local scaling = reaper.GetEnvelopeScalingMode(env)
+                  reaper.DeleteEnvelopePointRange(env, _starttime, _endtime)
+                  reaper.InsertEnvelopePoint(env, starttime, reaper.ScaleToEnvelopeMode(scaling, value), points_shape, points_tension, true)
+                end
+                if pan ~= 'unchanged' then
+                  env = reaper.GetTrackSendInfo_Value(track, 0, send, 'P_ENV:<PANENV')
+                  local _, _, value = reaper.GetTrackSendUIVolPan(track, send)
+                  local scaling = reaper.GetEnvelopeScalingMode(env)
+                  reaper.DeleteEnvelopePointRange(env, _starttime, _endtime)
+                  reaper.InsertEnvelopePoint(env, starttime, reaper.ScaleToEnvelopeMode(scaling, -value), points_shape, points_tension, true)
+                end
+              end
+            end
+          end
+        end
+      end
+    end
+  end
+end
+
 function savesnap(slot)
   slot = slot or 1
   snap = makesnap()
@@ -376,8 +499,6 @@ function applysnap(slot, write)
   for i = 0, reaper.CountSelectedTracks(0) do
     table.insert(seltracks, reaper.GetSelectedTrack(0, i))
   end
-  -- local globaloverride = reaper.GetGlobalAutomationOverride()
-  -- reaper.SetGlobalAutomationOverride(6)
   exists, snap1 = reaper.GetProjExtState(0, 'snapshooter', 'snap'..slot)
   if exists then
     snap2 = makesnap()
@@ -387,7 +508,24 @@ function applysnap(slot, write)
     if use_tween then
       params_to_tween = {}
     end
+
+    local cursor = reaper.GetCursorPosition()
+    start_loop, end_loop = reaper.GetSet_LoopTimeRange2(0, false, false, 0, 0, false)
+    write_transition = globals.write_transition and write and start_loop ~= end_loop
+    if write_transition then
+      clearEnvelopesAndAddStartingPoint(diff, start_loop, end_loop)
+      if globals.invert_transition then
+        reaper.SetEditCurPos(start_loop, false, false)
+      else
+        reaper.SetEditCurPos(end_loop, false, false)
+      end
+    end
+
     applydiff(diff, write, use_tween)
+
+    if write_transition then
+      reaper.SetEditCurPos(cursor, false, false)
+    end
     reaper.defer(reaper.UpdateArrange)
     if use_tween then
       bpm, bpi = reaper.GetProjectTimeSignature()
@@ -409,7 +547,6 @@ function applysnap(slot, write)
   for i, track in ipairs(seltracks) do
     reaper.SetTrackSelected(track, 1) -- restore selected tracks
   end
-  -- reaper.SetGlobalAutomationOverride(globaloverride)
   reaper.PreventUIRefresh(-1)
   reaper.Undo_EndBlock('apply snapshot', 0)
 end
@@ -509,7 +646,7 @@ function ui_start()
   local sep = package.config:sub(1, 1)
   local script_folder = debug.getinfo(1).source:match("@?(.*[\\|/])")
   local rtk = dofile(script_folder .. 'tilr_Snapshooter' .. sep .. 'rtk.lua')
-  local window = rtk.Window{w=470, h=425}
+  local window = rtk.Window{w=470, h=550}
   window:open{align='center'}
   local box = window:add(rtk.VBox{margin=10})
   box:add(rtk.Heading{'Snapshooter', bmargin=10})
@@ -542,12 +679,13 @@ function ui_start()
   end
 
   -- checkboxes
-  local row = box:add(rtk.HBox{tmargin=10})
+  local row = box:add(rtk.HBox{tmargin=10, spacing=10})
   local ui_checkbox_seltracks = row:add(rtk.CheckBox{'Selected tracks'})
-  local ui_checkbox_volume = row:add(rtk.CheckBox{'Vol', lmargin=15})
-  local ui_checkbox_pan = row:add(rtk.CheckBox{'Pan',lmargin=15})
-  local ui_checkbox_mute = row:add(rtk.CheckBox{'Mute', lmargin=15})
-  local ui_checkbox_sends = row:add(rtk.CheckBox{'Sends', lmargin=15})
+  local ui_checkbox_volume = row:add(rtk.CheckBox{'Vol'})
+  local ui_checkbox_pan = row:add(rtk.CheckBox{'Pan'})
+  local ui_checkbox_mute = row:add(rtk.CheckBox{'Mute'})
+  local ui_checkbox_fx = row:add(rtk.CheckBox{'FX'})
+  local ui_checkbox_sends = row:add(rtk.CheckBox{'Sends'})
 
   if globals.ui_checkbox_seltracks then
     ui_checkbox_seltracks:toggle()
@@ -563,6 +701,9 @@ function ui_start()
   end
   if globals.ui_checkbox_sends then
     ui_checkbox_sends:toggle()
+  end
+  if globals.ui_checkbox_fx then
+    ui_checkbox_fx:toggle()
   end
 
   ui_checkbox_seltracks.onchange = function(self)
@@ -585,8 +726,61 @@ function ui_start()
     reaper.SetProjExtState(0, 'snapshooter', 'ui_checkbox_sends', tostring(self.value))
     globals.ui_checkbox_sends = self.value
   end
+  ui_checkbox_fx.onchange = function(self)
+    reaper.SetProjExtState(0, 'snapshooter', 'ui_checkbox_fx', tostring(self.value))
+    globals.ui_checkbox_fx = self.value
+  end
 
-  -- tweening controls
+  -- Transition controls
+  row = box:add(rtk.HBox{tmargin=10, bmargin=10})
+  row:add(rtk.Text{'Write settings', color=0x777777})
+  row = box:add(rtk.HBox{tmargin=5, spacing=10})
+
+  local ui_checkbox_preserve_edges = row:add(rtk.CheckBox{'Preserve edges'})
+  if globals.preserve_edges then
+    ui_checkbox_preserve_edges:toggle()
+  end
+  ui_checkbox_preserve_edges.onchange = function(self)
+    reaper.SetProjExtState(0, 'snapshooter', 'preserve_edges', tostring(self.value))
+    globals.preserve_edges = self.value
+  end
+  local ui_checkbox_invert = row:add(rtk.CheckBox{'Invert'})
+  if globals.invert_transition then
+    ui_checkbox_invert:toggle()
+  end
+  ui_checkbox_invert.onchange = function(self)
+    reaper.SetProjExtState(0, 'snapshooter', 'invert_transition', tostring(self.value))
+    globals.invert_transition = self.value
+  end
+
+  row = box:add(rtk.HBox{tmargin=5, spacing=10})
+  row:add(rtk.Text{'Points shape', tmargin=5})
+  local shape_menu = row:add(rtk.OptionMenu{
+    menu = {
+        { 'Linear' },
+        { 'Square' },
+        { 'Slow start/end' },
+        { 'Fast start' },
+        { 'Fast end' },
+        { 'Bezier' },
+    }
+  })
+  shape_menu:select(globals.points_shape + 1)
+  shape_menu.onchange = function (self)
+    reaper.SetProjExtState(0, 'snapshooter', 'points_shape', self.selected - 1)
+    globals.points_shape = self.selected - 1
+  end
+
+  row:add(rtk.Text{'Tension', tmargin=5})
+  tension_slider = row:add(rtk.Slider{min=-1, max=1, tmargin=8, value=globals.points_tension})
+  tension_slider.onchange = function (self)
+    reaper.SetProjExtState(0, 'snapshooter', 'points_tension', self.value)
+    globals.points_tension = self.value
+  end
+
+  -- Tweening controls
+  row = box:add(rtk.HBox{tmargin=10})
+  row:add(rtk.Text{'Apply settings', color=0x777777})
   row = box:add(rtk.HBox{tmargin=10})
   row:add(rtk.Text{'Tween', rmargin=5, tmargin=5})
   local tween_menu = row:add(rtk.OptionMenu{
