@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="eabbf6950d1fc1dbb3c347a9a11a7431bd8079e3" name="ReaTeam Scripts">
+<index version="1" commit="6f7b0e0bfddfd353de28703a7708d76c7ce7ace3" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -17882,36 +17882,6 @@ Updated to only list stretch markers within item time and format time as standar
     </reapack>
   </category>
   <category name="Takes Properties">
-    <reapack name="amagalma_Draw Spectral Edits Tool.lua" type="script" desc="Draw Spectral Edits Tool">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 Draw Spectral Edits Tool\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 What it is: A tool for easy drawing spectral edits directly on items.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Supports: a) items with more than one takes, b) multi-channel items, c) display modes with \u8220"freq log\u8221" different than zero (thanks Justin for the help!).\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Use: Just run the script and draw edits as needed (drawn spectral edits will have the default settings*). When finished, run the script again to disable drawing mode. A tooltip is shown near the mouse cursor to remind you that you are in drawing mode.\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab For drawing with settings saved in presets and for maximum speed, functionality and user experience, it is recommended to use the \u8220"Draw Spectral Edits Tool \u8211- Preset System\u8221" companion script, which is offered separately with a small fee.\sa180\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Requirements: JS_ReaScriptAPI, SWS Extension\par}
-}
-]]></description>
-        <link rel="website">https://forum.cockos.com/showthread.php?t=257188</link>
-        <link rel="screenshot">https://www.youtube.com/watch?v=cFXMku0jtqM</link>
-        <link rel="donation">https://www.paypal.me/amagalma</link>
-      </metadata>
-      <version name="1.0" author="amagalma" time="2021-09-04T17:11:12Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/dac604f105a39d5313e6939bf5196ca8119a0d42/Takes%20Properties/amagalma_Draw%20Spectral%20Edits%20Tool.lua</source>
-      </version>
-      <version name="1.01" author="amagalma" time="2021-09-08T14:19:14Z">
-        <changelog><![CDATA[- correctly restore "Pass through to item drag context" for Media item bottom half left drag mouse context]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ac37ed378f427cd7ce4774dd282a89e3efb4237a/Takes%20Properties/amagalma_Draw%20Spectral%20Edits%20Tool.lua</source>
-      </version>
-      <version name="1.02" author="amagalma" time="2021-09-08T17:02:57Z">
-        <changelog><![CDATA[- fix: script works even if the "freq log" slider in "View: Show peaks display settings" has not ever been used]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f94c4307a1974294a1d482c51455d7a8726c06f5/Takes%20Properties/amagalma_Draw%20Spectral%20Edits%20Tool.lua</source>
-      </version>
-    </reapack>
     <reapack name="amagalma_Set all take markers' color for selected items in time selection.lua" type="script" desc="Set all take markers' color for selected items in time selection">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
