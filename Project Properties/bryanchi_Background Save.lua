@@ -1,4 +1,4 @@
--- @description Background Save
+-- @description Background AutoSave Project
 -- @author Bryan Chi
 -- @version 0.9
 -- @changelog first release
