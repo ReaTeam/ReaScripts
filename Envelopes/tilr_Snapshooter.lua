@@ -1,7 +1,12 @@
 -- @description Snapshooter
 -- @author tilr
--- @version 1.1
+-- @version 1.2
 -- @changelog
+--   1.2
+--   Allow snapshot renaming
+--   Added control for custom tween duration
+--   Window now recalls position
+--   1.1
 --   Transitions are now written to time selection when available
 --   Added transition controls to preserve edges, invert transition, curve points tension and shape
 -- @provides
@@ -52,6 +57,8 @@ function logtable(table, indent)
 end
 
 globals = {
+  win_x = null,
+  win_y = null,
   ui_checkbox_seltracks = false,
   ui_checkbox_volume = true,
   ui_checkbox_pan = true,
@@ -63,11 +70,16 @@ globals = {
   invert_transition = false,
   points_shape = 0,
   points_tension = 0,
+  tween_custom_duration = 1000,
   tween = 'none',
   ease = 'linear'
 }
 
 -- init globals from project config
+local exists, win_x = reaper.GetProjExtState(0, 'snapshooter', 'win_x')
+if exists ~= 0 then globals.win_x = tonumber(win_x) end
+local exists, win_y = reaper.GetProjExtState(0, 'snapshooter', 'win_y')
+if exists ~= 0 then globals.win_y = tonumber(win_y) end
 local exists, seltracks = reaper.GetProjExtState(0, 'snapshooter', 'ui_checkbox_seltracks')
 if exists ~= 0 then globals.ui_checkbox_seltracks = seltracks == 'true' end
 local exists, volume = reaper.GetProjExtState(0, 'snapshooter', 'ui_checkbox_volume')
@@ -88,6 +100,8 @@ local exists, ease = reaper.GetProjExtState(0, 'snapshooter', 'ui_ease_menu')
 if exists ~= 0 then globals.ease = ease end
 local exists, shape = reaper.GetProjExtState(0, 'snapshooter', 'points_shape')
 if exists ~= 0 then globals.points_shape = tonumber(shape) end
+local exists, duration = reaper.GetProjExtState(0, 'snapshooter', 'tween_custom_duration')
+if exists ~= 0 then globals.tween_custom_duration = tonumber(duration) end
 local exists, tension = reaper.GetProjExtState(0, 'snapshooter', 'points_tension')
 if exists ~= 0 then globals.points_tension = tonumber(tension) end
 local exists, invert = reaper.GetProjExtState(0, 'snapshooter', 'invert_transition')
@@ -170,33 +184,6 @@ function difference (s1, s2)
   return diff
 end
 
--- stringify/parse snapshot for mem storage
-function stringify(snap)
-  local entries = {}
-  for i, line in ipairs(snap) do
-    for j, col in ipairs(line) do
-      line[j] = tostring(col)
-    end
-    table.insert(entries, table.concat(line, ','))
-  end
-  return table.concat(entries, '\n')
-end
-
-function parse(snapstr)
-  function splitline(line)
-    local split = {}
-    for word in string.gmatch(line, '([^,]+)') do
-      table.insert(split, word)
-    end
-    return split
-  end
-  local lines = {}
-  for line in string.gmatch(snapstr, '([^\n]+)') do
-    table.insert(lines, splitline(line))
-  end
-  return lines
-end
-
 function insertSendEnvelopePoint(track, key, cnt, value, type, shape, tension)
   local count = 0
   local cursor = reaper.GetCursorPosition()
@@ -238,7 +225,7 @@ function showTrackEnvelopes(track, envtype)
   end
 end
 
--- apply snapshot to params or write to timeline
+-- apply snapshot to params or write diff points to cursor
 function applydiff(diff, write, tween)
   local points_shape = globals.invert_transition and globals.points_shape or 0
   local points_tension = globals.invert_transition and globals.points_tension or 0
@@ -385,6 +372,7 @@ function applydiff(diff, write, tween)
   end
 end
 
+-- Writes current state points to beggining of time selection
 function clearEnvelopesAndAddStartingPoint(diff, starttime, endtime)
   if globals.preserve_edges then
     _starttime = starttime + 0.000000001
@@ -485,13 +473,6 @@ function clearEnvelopesAndAddStartingPoint(diff, starttime, endtime)
   end
 end
 
-function savesnap(slot)
-  slot = slot or 1
-  snap = makesnap()
-  reaper.SetProjExtState(0, 'snapshooter', 'snap'..slot, stringify(snap))
-  reaper.SetProjExtState(0, 'snapshooter', 'snapdate'..slot, os.date('%c'))
-end
-
 function applysnap(slot, write)
   reaper.Undo_BeginBlock()
   reaper.PreventUIRefresh(1)
@@ -534,6 +515,7 @@ function applysnap(slot, write)
       if (globals.tween == '1/2bar') then duration = duration / 2 end
       if (globals.tween == '2bar') then duration = duration * 2 end
       if (globals.tween == '4bar') then duration = duration * 4 end
+      if (globals.tween == 'custom') then duration = globals.tween_custom_duration / 1000 end
       ease_fn = tween_fns.linear
       if (globals.ease == 'easein') then ease_fn = tween_fns.ease_in end
       if (globals.ease == 'easeout') then ease_fn = tween_fns.ease_out end
@@ -551,9 +533,54 @@ function applysnap(slot, write)
   reaper.Undo_EndBlock('apply snapshot', 0)
 end
 
+function savesnap(slot)
+  slot = slot or 1
+  snap = makesnap()
+  isNewsnap = reaper.GetProjExtState(0, 'snapshooter', 'snap'..slot) == 0
+  if isNewsnap then
+    reaper.SetProjExtState(0, 'snapshooter', 'snapname'..slot, os.date('%c'))
+  else
+    _, snapname = reaper.GetProjExtState(0, 'snapshooter', 'snapname'..slot)
+    _, snapdate = reaper.GetProjExtState(0, 'snapshooter', 'snapdate'..slot)
+    if (snapname == snapdate or snapname == '') then
+      reaper.SetProjExtState(0, 'snapshooter', 'snapname'..slot, os.date('%c'))
+    end
+  end
+  reaper.SetProjExtState(0, 'snapshooter', 'snap'..slot, stringify(snap))
+  reaper.SetProjExtState(0, 'snapshooter', 'snapdate'..slot, os.date('%c'))
+end
+
 function clearsnap(slot)
   reaper.SetProjExtState(0, 'snapshooter', 'snap'..slot, '')
+  reaper.SetProjExtState(0, 'snapshooter', 'snapname'..slot, '')
   reaper.SetProjExtState(0, 'snapshooter', 'snapdate'..slot, '')
+end
+
+-- stringify/parse snapshot for mem storage
+function stringify(snap)
+  local entries = {}
+  for i, line in ipairs(snap) do
+    for j, col in ipairs(line) do
+      line[j] = tostring(col)
+    end
+    table.insert(entries, table.concat(line, ','))
+  end
+  return table.concat(entries, '\n')
+end
+
+function parse(snapstr)
+  function splitline(line)
+    local split = {}
+    for word in string.gmatch(line, '([^,]+)') do
+      table.insert(split, word)
+    end
+    return split
+  end
+  local lines = {}
+  for line in string.gmatch(snapstr, '([^\n]+)') do
+    table.insert(lines, splitline(line))
+  end
+  return lines
 end
 
 --------------------------------------------------------------------------------
@@ -627,7 +654,7 @@ function ui_refresh_buttons()
   for i, row in ipairs(ui_snaprows) do
     hassnap = reaper.GetProjExtState(0, 'snapshooter', 'snap'..i) ~= 0
     row.children[1][1]:attr('color', hassnap and 0x99BD13 or 0x999999) -- savebtn
-    row.children[2][1]:attr('color', hassnap and 0xffffff or 0x777777) -- savetxt
+    row.children[2][1]:attr('textcolor', hassnap and 0xffffff or 0x777777) -- savetxt
     row.children[3][1]:attr('color', hassnap and 0x999999 or 0x555555) -- applybtn
     row.children[4][1]:attr('color', hassnap and 0xffffff or 0x777777) -- applytxt
     row.children[5][1]:attr('color', hassnap and 0x999999 or 0x555555) -- writebtn
@@ -635,26 +662,46 @@ function ui_refresh_buttons()
     row.children[7][1]:attr('color', hassnap and 0x999999 or 0x555555) -- delbtn
     row.children[8][1]:attr('color', hassnap and 0xffffff or 0x777777) -- deltxt
 
-    status, datestr = reaper.GetProjExtState(0, 'snapshooter', 'snapdate'..i)
-    row.children[2][1]:attr('text', hassnap and ' '..datestr or ' Empty')
+    _, snapname = reaper.GetProjExtState(0, 'snapshooter', 'snapname'..i)
+    row.children[2][1]:attr('value', hassnap and snapname or 'Empty')
   end
 end
 
 function ui_start()
-  -- package.path = reaper.GetResourcePath() .. '/Scripts/rtk/1/?.lua'
-  -- local rtk = require('rtk')
   local sep = package.config:sub(1, 1)
   local script_folder = debug.getinfo(1).source:match("@?(.*[\\|/])")
   local rtk = dofile(script_folder .. 'tilr_Snapshooter' .. sep .. 'rtk.lua')
-  local window = rtk.Window{w=470, h=550}
+  local window = rtk.Window{ w=470, h=553, title='Snapshooter'}
+  window.onmove = function (self)
+    reaper.SetProjExtState(0, 'snapshooter', 'win_x', self.x)
+    reaper.SetProjExtState(0, 'snapshooter', 'win_y', self.y)
+  end
   window:open{align='center'}
-  local box = window:add(rtk.VBox{margin=10})
-  box:add(rtk.Heading{'Snapshooter', bmargin=10})
+  if globals.win_x and globals.win_y then
+    window:attr('x', globals.win_x)
+    window:attr('y', globals.win_y)
+  end
+
+  local box = rtk.VBox{padding=10, tpadding=50}
+  local vp = rtk.Viewport{box, smoothscroll=true,  scrollbar_size=3}
+  window:add(vp)
+
+  local toolbar = box:add(rtk.HBox({ tmargin=-40, bmargin=10 }))
+  toolbar:add(rtk.Heading{'Snapshooter'})
+  toolbar:add(rtk.Box.FLEXSPACE)
+
+  -- box:add(rtk.Heading{'Snapshooter', tmargin=-30, bmargin=10})
 
   for i = 1, 12 do
     local row = box:add(rtk.HBox{bmargin=5})
     local button = row:add(rtk.Button{circular=true})
-    local text = row:add(rtk.Text{string.format("%02d",i)..' Empty', w=230, textalign='center', lmargin=10})
+    local inputtext = row:add(rtk.Entry{value='Empty', w=230, bmargin=-5, tmargin=-2, lmargin=10, lpadding=0, bg=0x333333, border_hover='#333333', border_focused='#333333'})
+    inputtext.onchange = function (self)
+      hassnap = reaper.GetProjExtState(0, 'snapshooter', 'snap'..i) ~= 0
+      if hassnap then
+        reaper.SetProjExtState(0, 'snapshooter', 'snapname'..i, self.value)
+      end
+    end
     button.onclick = function ()
       savesnap(i)
       ui_refresh_buttons()
@@ -790,18 +837,14 @@ function ui_start()
         { 'None', id='none' },
         { '1/4 Bar', id='1/4bar' },
         { '1/2 Bar', id='1/2bar' },
-        { '1 Bar', id='1bar'},
-        { '2 Bar', id='2bar'},
-        { '4 Bar', id='4bar'},
+        { '1 Bar', id='1bar' },
+        { '2 Bar', id='2bar' },
+        { '4 Bar', id='4bar' },
+        { 'Custom', id='custom' }
     }
   })
-  tween_menu:select(globals.tween)
-  tween_menu.onchange = function (self)
-    reaper.SetProjExtState(0, 'snapshooter', 'ui_tween_menu', self.selected)
-    globals.tween = self.selected
-  end
 
-  row:add(rtk.Text{'Ease', lmargin=20, rmargin=5, tmargin=5})
+  row:add(rtk.Text{'Ease', lmargin=10, rmargin=5, tmargin=5})
   local ease_menu = row:add(rtk.OptionMenu{
     menu = {
         { 'Linear', id='linear' },
@@ -816,6 +859,23 @@ function ui_start()
     globals.ease = self.selected
   end
 
+  local duration_text = row:add(rtk.Text{'Duration', lmargin=10, tmargin=5})
+  local duration_entry = row:add(rtk.Entry{value=globals.tween_custom_duration, lmargin=10, w=70})
+
+  duration_entry.onchange = function (self)
+    local value = tonumber(self.value) or 0
+    globals.tween_custom_duration = value
+    reaper.SetProjExtState(0, 'snapshooter', 'tween_custom_duration', value)
+  end
+
+  tween_menu.onchange = function (self)
+    reaper.SetProjExtState(0, 'snapshooter', 'ui_tween_menu', self.selected)
+    globals.tween = self.selected
+    duration_text:attr('visible', self.selected == 'custom')
+    duration_entry:attr('visible', self.selected == 'custom')
+  end
+  tween_menu:select(globals.tween)
+
   ui_refresh_buttons()
 end
 
@@ -827,7 +887,3 @@ return {
   savesnap = savesnap,
   applysnap = applysnap
 }
--- interactive dev:
-  -- reaper.showConsoleMsg(¨chars¨) // show console output
-  -- reaper.NamedCommandLookup('_RSad7acd2e5dbd41ab15aa68ffdb01c4c5fc82c446',0)
-  -- reaper.Main_OnCommand(55863, 0)
