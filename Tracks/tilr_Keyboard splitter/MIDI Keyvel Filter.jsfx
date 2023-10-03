@@ -1,0 +1,46 @@
+noindex: true
+
+desc:MIDI Keyvel Filter
+
+slider1:0<0, 127, 1>Note min
+slider2:127<0, 127, 1>Note max
+slider3:0<0, 127, 1>Vel min
+slider4:127<0, 127, 1>Vel max
+slider5:0<-60,60,1>Transpose
+
+@init
+NOTE_ON = $x90;
+NOTE_OFF = $x80;
+
+@slider
+slider1 > slider2 ? slider2 = slider1;
+slider3 > slider4 ? slider3 = slider4;
+noteMin = slider1;
+noteMax = slider2;
+velMin = slider3;
+velMax = slider4;
+transpose = slider5;
+
+@block
+
+while
+(
+  midirecv(offset,msg1,note,vel) ?
+  (
+    status = msg1 & $xF0;
+    channel = msg1 & $x0F;
+
+    status == NOTE_ON || status == NOTE_OFF ?
+    (
+      (note >= slider1 && note <= slider2 && vel >= slider3 && vel <= slider4) || status == NOTE_OFF ?
+      (
+        note += transpose;
+        note < 0 ? note = 0; note > 127 ? note = 127;
+        midisend(offset, msg1, note, vel);
+      );
+    ) : (
+      midisend(offset, msg1, note, vel);
+    );
+    1; // Force loop to continue until all messages have been processed
+  );
+);
