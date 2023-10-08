@@ -1,7 +1,10 @@
 -- @description ReaLauncher
 -- @author solger
--- @version 2.5.2
--- @changelog + Recent Projects: Bugfix for updating the list after using the 'remove entries' or 'clear list' functions
+-- @version 2.5.3
+-- @changelog
+--   + General: Added right-click menu to Tabstrip as additional option to select another tab
+--   + General: Fixed a listbox selection bug on mouseup events in Help and Options tab
+--   + Project Templates: Updated the Reaper version number check to determine which template load logic is supported
 -- @screenshot https://forum.cockos.com/showthread.php?t=208697
 -- @about
 --   # ReaLauncher
@@ -69,7 +72,7 @@ local ConfigFlags = {
 -------------------------------------
 local lib_path = reaper.GetExtState("Lokasenna_GUI", "lib_path_v2")
   if not reaper.file_exists(lib_path .. "Core.lua") or not lib_path or lib_path == "" then
-    reaper.MB("Couldn't load the Lokasenna_GUI library.\n\n1) Please install 'Lokasenna's GUI library v2 for Lua', available on ReaPack\n\n2) Then run the 'Set Lokasenna_GUI v2 library path.lua' script in your Action List", "Whoops!", 0)
+    reaper.MB("Couldn't load Lokasenna_GUI library.\n\n1) Please install 'Lokasenna's GUI library v2 for Lua' via ReaPack\n\n2) Then run the 'Set Lokasenna_GUI v2 library path.lua' script in the Action List", "Whoops!", 0)
   return
 end
 
@@ -1639,7 +1642,7 @@ end
 
 local function Global_ProjectTemplateLoadBase(template)
   if template ~= nil then
-    if reaperversion ~= nil and #reaperversion > 1 and ((reaperversion:match("6.")) or reaperversion:match("5.99") or reaperversion:match("5.98[3-9]")) then
+    if RL.isNewTemplateLoadLogicSupported then
       -- logic for Reaper versions 5.983 or higher
       if RL.projectTemplateLoadMode == 1 then reaper.Main_openProject("template:" .. template) -- load as template
       else reaper.Main_openProject(template) end -- open template file for editing
@@ -2778,6 +2781,7 @@ RL = {
   dialogKeyMode = false,
   fontSizes = { 30, 18, 14, 14, 14, 12 },
   forceRescan = false,
+  isNewTemplateLoadLogicSupported = false,
   keyInputActive = true,
   lastFolderPath = "",
   listboxFontSize = 14,
@@ -2816,6 +2820,18 @@ if RL.showButtonPanel then
   if RL.tabSelectorStyle == 1 then RL.minHeight = 370 else RL.minHeight = 349 end
 else
   RL.minWidth, RL.minHeight = 420, 228
+end
+
+-- check if the Reaper version number is 5.983 or higher (where the new template load logic is supported)
+if IsNotNullOrEmpty(reaperversion) then 
+  local majorVersionNumber = reaperversion:match("[^.]+")
+  if tonumber(majorVersionNumber) and tonumber(majorVersionNumber) >= 6 then
+    RL.isNewTemplateLoadLogicSupported = true
+  elseif (reaperversion:match("5.99") or reaperversion:match("5.98[3-9]")) then
+    RL.isNewTemplateLoadLogicSupported = true
+  else
+    RL.isNewTemplateLoadLogicSupported = false
+  end
 end
 
 -- SWS block begin
@@ -2991,9 +3007,9 @@ GUI.Draw_Version = function()
   GUI.color("txt")
 
   if not GUI.version then return 0 end
-  str = "RL 2.5.2 | Lokasenna_GUI " .. GUI.version
+  str = "RL 2.5.3 | Lokasenna_GUI " .. GUI.version
   str_w, str_h = gfx.measurestr(str)
-  if osversion:find("Win") then gfx.x = GUI.w - (238 * RL.scaleFactor) else gfx.x = GUI.w - (250 * RL.scaleFactor) end
+  if osversion:find("OSX") then gfx.x = GUI.w - (255 * RL.scaleFactor) else gfx.x = GUI.w - (260 * RL.scaleFactor) end
   gfx.y = GUI.h - (15.5 * RL.scaleFactor)
   gfx.drawstr(str)
 end
@@ -3552,6 +3568,12 @@ local function RL_Draw_Main()
         GUI.Val("main_menuTabSelector", GUI.elms.main_tabs.state)
         RL_SetFocusedTab(GUI.elms.main_tabs.state)
       end
+    end
+    function GUI.elms.main_tabs:onmouser_down()
+      GUI.Tabs.onmouser_down(self)
+      gfx.x, gfx.y = gfx.mouse_x, gfx.mouse_y
+      local RMBmenu = gfx.showmenu(table.concat(MainLabels, "|"))
+      if RMBmenu >= 1 and RMBmenu <= #MainLabels then RL_SetFocusedTab(RMBmenu) end
     end
   else -- dropdown style
     GUI.New("main_tabs", "Tabs", LayerIndex.Main, 0, 0, 95 * RL.scaleFactor, 20 * RL.scaleFactor, " , , , , , , , , , , , , , ", 16)
@@ -5927,11 +5949,20 @@ local function RL_Draw_TabOptions()
   if RL.tabSelectorStyle == 2 then GUI.New("tab_options_listbox", "Listbox", LayerIndex.OptionsMenu, pad_left, listbox_top, 90 * RL.scaleFactor, listbox_h, OptionLabels, true)
   else GUI.New("tab_options_listbox", "Listbox", LayerIndex.OptionsMenu, pad_left, pad_top, 85 * RL.scaleFactor, listbox_h, OptionLabels, true) end
   
+  GUI.elms.tab_options_listbox.multi = false
+
   function GUI.elms.tab_options_listbox:onmousedown()
     TabSelectionIndex[TabID.Options] = self:getitem(GUI.mouse.y)
     reaper.SetExtState(appname, "window_optionfocus", tostring(TabSelectionIndex[TabID.Options]), 1)
     RL_SetFocusedTab(TabID.Help + TabSelectionIndex[TabID.Options])
     GUI.Listbox.onmousedown(self)
+  end
+
+  function GUI.elms.tab_options_listbox:onmouseup()
+    TabSelectionIndex[TabID.Options] = self:getitem(GUI.mouse.y)
+    reaper.SetExtState(appname, "window_optionfocus", tostring(TabSelectionIndex[TabID.Options]), 1)
+    RL_SetFocusedTab(TabID.Help + TabSelectionIndex[TabID.Options])
+    GUI.Listbox.onmouseup(self)
   end
   
   if RL.tabSelectorStyle == 2 then GUI.New("options_frame_top", "Frame", LayerIndex.Options, 0, listbox_top, GUI.w, 2 * RL.scaleFactor, false, true) end
@@ -6313,10 +6344,15 @@ local function RL_Draw_TabHelp()
     reaper.SetExtState(appname, "window_helpfocus", tostring(selectedMenuIndex), 1)
   end
 
-   function GUI.elms.tab_help_listbox:onmousedown()
-     GUI.Listbox.onmouseup(self)
-     RL_Draw_HelpFrames()
-   end
+  function GUI.elms.tab_help_listbox:onmousedown()
+    GUI.Listbox.onmousedown(self)
+    RL_Draw_HelpFrames()
+  end
+  
+  function GUI.elms.tab_help_listbox:onmouseup()
+    GUI.Listbox.onmouseup(self)
+    RL_Draw_HelpFrames()
+  end
 
    GUI.Val("tab_help_listbox", {[1] = true})
    if reaper.GetExtState(appname, "window_helpfocus") ~= "" then GUI.Val("tab_help_listbox", {[tonumber(reaper.GetExtState(appname, "window_helpfocus"))] = true}) end
