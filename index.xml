@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="14fc1c8db3d3c1d65ee0278f76a907e64dc3afc3" name="ReaTeam Scripts">
+<index version="1" commit="99fbc8f76df7369a7c08dce5592ec560a407ca03" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -14783,6 +14783,12 @@ Replace GetLastWord func with quicker solution (Thanks: Mespotine[t=233393]).]]>
       <version name="2.5.2" author="solger" time="2023-01-17T17:21:13Z">
         <changelog><![CDATA[+ Recent Projects: Bugfix for updating the list after using the 'remove entries' or 'clear list' functions]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/34860be1002e6a78c42f24dfa84d2d33c3bece4a/Project%20Properties/solger_ReaLauncher.lua</source>
+      </version>
+      <version name="2.5.3" author="solger" time="2023-10-08T17:10:47Z">
+        <changelog><![CDATA[+ General: Added right-click menu to Tabstrip as additional option to select another tab
++ General: Fixed a listbox selection bug on mouseup events in Help and Options tab
++ Project Templates: Updated the Reaper version number check to determine which template load logic is supported]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/99fbc8f76df7369a7c08dce5592ec560a407ca03/Project%20Properties/solger_ReaLauncher.lua</source>
       </version>
     </reapack>
   </category>
