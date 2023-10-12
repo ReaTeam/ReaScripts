@@ -1,6 +1,7 @@
 -- @description Lua profiler
 -- @author cfillion
 -- @version 1.0
+-- @provides [nomain] .
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=283461
 -- @screenshot https://i.imgur.com/cCe6fBB.png
 -- @donation https://reapack.com/donate
