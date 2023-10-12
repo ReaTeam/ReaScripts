@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="99fbc8f76df7369a7c08dce5592ec560a407ca03" name="ReaTeam Scripts">
+<index version="1" commit="ddc6d4d11d698023d992588a597e3bb68390b86e" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -761,6 +761,27 @@ Fix display glitch when pasting tab characters]]></changelog>
       </metadata>
       <version name="1.0" author="cfillion" time="2023-02-22T07:03:08Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ec48c4ab9f3bf8aac3ef1dc66382ac7fc013f5a7/Development/cfillion_Joystick%20inspector.lua</source>
+      </version>
+    </reapack>
+    <reapack name="cfillion_Lua profiler.lua" type="script" desc="Lua profiler">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Lua profiler\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This is a library for helping the development of Lua ReaScript. See the {\field{\*\fldinst{HYPERLINK "https://forum.cockos.com/showthread.php?t=283461"}}{\fldrslt{\ul
+forum thread
+}}}
+ for usage information. A summary of the provided API is at the top of the source code.\par}
+}
+]]></description>
+        <link rel="website" href="https://forum.cockos.com/showthread.php?t=283461">Forum thread</link>
+        <link rel="screenshot">https://i.imgur.com/cCe6fBB.png</link>
+        <link rel="donation">https://reapack.com/donate</link>
+      </metadata>
+      <version name="1.0" author="cfillion" time="2023-10-12T20:33:00Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ddc6d4d11d698023d992588a597e3bb68390b86e/Development/cfillion_Lua%20profiler.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Search action by command ID or name.lua" type="script" desc="Search action by command ID or name">
