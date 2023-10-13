@@ -1,7 +1,7 @@
 -- @description Toggle track FX bypass by name
 -- @author cfillion
--- @version 1.2
--- @changelog Add a "create action" script for creating bypass actions without user input
+-- @version 1.3
+-- @changelog Search in the master track too [cfillion/reascripts#5]
 -- @provides
 --   .
 --   [main] . > cfillion_Toggle track FX bypass by name (create action).lua
@@ -104,8 +104,8 @@ end
 
 reaper.Undo_BeginBlock()
 
-for ti=0,reaper.CountTracks()-1 do
-  local track = reaper.GetTrack(0, ti)
+for ti=0,reaper.CountTracks() do
+  local track = reaper.CSurf_TrackFromID(ti, false)
 
   if matchTrack(track, track_filter) then
     for fi=0,reaper.TrackFX_GetCount(track)-1 do
