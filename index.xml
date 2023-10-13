@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="78e0d3c4fa0e9f7b4e448014f22fe85913597d8a" name="ReaTeam Scripts">
+<index version="1" commit="1a47dbaf8f388f37b2d2ed66585efc78cdd297f8" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -17173,6 +17173,11 @@ Select tracks down the folder hierarchy (obeying parent send)]]></changelog>
         <changelog><![CDATA[Add a "create action" script for creating bypass actions without user input]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f5571cd460cc11806d3371403072246884ccaeae/Tracks%20Properties/cfillion_Toggle%20track%20FX%20bypass%20by%20name.lua</source>
         <source main="main" file="cfillion_Toggle track FX bypass by name (create action).lua">https://github.com/ReaTeam/ReaScripts/raw/f5571cd460cc11806d3371403072246884ccaeae/Tracks%20Properties/cfillion_Toggle%20track%20FX%20bypass%20by%20name.lua</source>
+      </version>
+      <version name="1.3" author="cfillion" time="2023-10-13T03:13:43Z">
+        <changelog><![CDATA[Search in the master track too and add '/master' filter [cfillion/reascripts#5]]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/1a47dbaf8f388f37b2d2ed66585efc78cdd297f8/Tracks%20Properties/cfillion_Toggle%20track%20FX%20bypass%20by%20name.lua</source>
+        <source main="main" file="cfillion_Toggle track FX bypass by name (create action).lua">https://github.com/ReaTeam/ReaScripts/raw/1a47dbaf8f388f37b2d2ed66585efc78cdd297f8/Tracks%20Properties/cfillion_Toggle%20track%20FX%20bypass%20by%20name.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Toggle visibility of empty non-folder tracks.lua" type="script" desc="Toggle visibility of empty non-folder tracks">
