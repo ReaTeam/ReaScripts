@@ -1,7 +1,7 @@
 -- @description Toggle track FX bypass by name
 -- @author cfillion
 -- @version 1.3
--- @changelog Search in the master track too [cfillion/reascripts#5]
+-- @changelog Search in the master track too and add '/master' filter [cfillion/reascripts#5]
 -- @provides
 --   .
 --   [main] . > cfillion_Toggle track FX bypass by name (create action).lua
@@ -29,6 +29,8 @@ end
 local function matchTrack(track, filter)
   if filter == '/selected' then
     return reaper.IsTrackSelected(track)
+  elseif filter == '/master' then
+    return reaper.GetMasterTrack(nil) == track
   else
     local _, name = reaper.GetTrackName(track, '')
     return name:lower():find(filter)
@@ -42,7 +44,7 @@ local function prompt()
   end
 
   local ok, csv = reaper.GetUserInputs(script_name, 2,
-    "Toggle track FX bypass matching:,On tracks (name or /selected):,extrawidth=100",
+    "Toggle track FX bypass matching:,On tracks (name, /selected or /master):,extrawidth=100",
     ',' .. default_track_filter)
   if not ok or csv:len() <= 1 then return end
 
