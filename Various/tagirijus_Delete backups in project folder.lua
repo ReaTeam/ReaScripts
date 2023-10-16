@@ -1,10 +1,11 @@
 -- @description Delete backups in project folder
 -- @author Tagirijus
--- @version 1.0
+-- @version 2.0
+-- @changelog - Since v2.0 a "Backups" folder in the project folder now will also be cleared
 -- @about
 --   # Description
 --
---   This little script will delete all the \*.rpp-bak files in the active project folder.
+--   This little script will delete all the \*.rpp-bak files in the active project folder. In v2.0 it now also looks into the Backups-folder and removes the files in there as well.
 
 
 function debugMsg(msg)
@@ -56,8 +57,34 @@ function DeleteBackupsInProjectFolder()
 end
 
 
+function DeleteBackupsInBackupFolder()
+
+	-- DELETE BACKUPS
+	retval, proj_path = reaper.EnumProjects( -1 )
+	if proj_path == "" then
+		return false
+	end
+	folder, proj_name, proj_ext = SplitFileName(proj_path)
+	folder = folder .. 'Backups\\'
+
+	local success = true
+	local files = EnumerateFiles( folder )
+	for i, file in ipairs( files ) do
+		if file:find( '%.rpp%-bak' ) then
+			success = os.remove(folder .. file)
+			if success == false then
+				debugMsg('Something went wrong during backup moving. "tagirijus_Delete backups in project folder.lua" in line 54.')
+				return false
+			end
+		end
+	end
+
+end
+
+
 function main()
 	DeleteBackupsInProjectFolder()
+	DeleteBackupsInBackupFolder()
 end
 
 main()
