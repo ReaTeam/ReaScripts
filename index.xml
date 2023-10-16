@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="1a47dbaf8f388f37b2d2ed66585efc78cdd297f8" name="ReaTeam Scripts">
+<index version="1" commit="9c1b9e27fb8ddb3109a24b575aabc17bc42a9470" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -23701,12 +23701,16 @@ Fix SWS Startup / Lokasenna Radial Menu bug]]></changelog>
 \widowctrl\hyphauto
 
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Description\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 This little script will delete all the *.rpp-bak files in the active project folder.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This little script will delete all the *.rpp-bak files in the active project folder. In v2.0 it now also looks into the Backups-folder and removes the files in there as well.\par}
 }
 ]]></description>
       </metadata>
       <version name="1.0" author="Tagirijus" time="2022-10-06T15:59:52Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/827174d658b4d737d9f29ef4fe380696d113faf0/Various/tagirijus_Delete%20backups%20in%20project%20folder.lua</source>
+      </version>
+      <version name="2.0" author="Tagirijus" time="2023-10-16T23:38:44Z">
+        <changelog><![CDATA[- Since v2.0 a "Backups" folder in the project folder now will also be cleared]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/9c1b9e27fb8ddb3109a24b575aabc17bc42a9470/Various/tagirijus_Delete%20backups%20in%20project%20folder.lua</source>
       </version>
     </reapack>
     <reapack name="tagirijus_Prevent item extend on record.lua" type="script" desc="Prevent item extend on record">
