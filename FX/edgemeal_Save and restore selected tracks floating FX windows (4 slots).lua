@@ -14,5 +14,3 @@
 --   [main] edgemeal_Save and restore selected tracks floating FX windows (4 slots)/edgemeal_Restore tracks floating FX windows.lua > edgemeal_Save and restore selected tracks floating FX windows (4 slots)/edgemeal_Restore tracks floating FX windows from slot 4.lua
 -- @link Forum thread https://forum.cockos.com/showpost.php?p=2349852&postcount=2196
 -- @donation https://www.paypal.me/Edgemeal
--- @about Support FX in Container (REAPER v7.00)
-
