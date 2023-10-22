@@ -1,6 +1,9 @@
 -- @description RS5K Mapper
 -- @author tilr
--- @version 1.0
+-- @version 1.1
+-- @changelog
+--   Region shortcuts
+--   Colored pitch key
 -- @provides tilr_RS5K Mapper/rtk.lua
 -- @screenshot https://raw.githubusercontent.com/tiagolr/rs5kmapper/master/doc/rs5kmapper.gif
 -- @about
@@ -35,7 +38,7 @@ globals = {
   win_x = nil,
   win_y = nil,
   win_w = 768,
-  win_h = 385,
+  win_h = 370,
   key_h = 30,
   key_w = 6,
   region_h = 254,
@@ -94,6 +97,7 @@ function make_region(keymin, keymax, velmin, velmax)
     selected = false,
     updated = false,
     track = 0,
+    nfx = 0,
     fxid = '',
     file = '',
   }
@@ -121,12 +125,35 @@ end
 function draw_pitch_key()
   for _, reg in ipairs(regions) do
     if reg.selected then
-      gfx.set(1, .5, 0, 1)
+      local red, green, blue, _ = rtk.color.rgba(colors[(reg.track % #colors) + 1])
+      gfx.set(red, green, blue, 1)
       key = reg.keymin - reg.pitch
       if key < 0 or key > 127 then
         return
       end
       gfx.rect(key * g.key_w, g.win_h - g.key_h, g.key_w, g.key_h)
+    end
+  end
+end
+
+function draw_region_shortcuts()
+  local regs = {}
+  for _, reg in ipairs(regions) do table.insert(regs, reg) end
+  table.sort(regs, function (a,b)
+    return a.track == b.track and a.nfx < b.nfx or a.track < b.track
+  end)
+  for i, reg in ipairs(regs) do
+    local red, green, blue, _ = rtk.color.rgba(colors[(reg.track % #colors) + 1])
+    gfx.set(red, green, blue, reg.selected and 0.75 or 0.5)
+    local w = math.max(math.min(18, math.floor(g.win_w / #regs)), 3)
+    local h = 18
+    local x = (i - 1) * w
+    local y = g.win_h - g.key_h - g.region_h - h
+    gfx.rect(x, y, w, h, 1)
+    gfx.set(red, green, blue, reg.selected and 1 or 0)
+    gfx.rect(x, y, w, h, 0)
+    if mouse.toggled and rtk.point_in_box(rtk.mouse.x, rtk.mouse.y, x, y, w, h) then
+      select_region(reg)
     end
   end
 end
@@ -220,6 +247,7 @@ function create_region_from_fx(track, nfx, ntrack)
   reg.track = ntrack
   reg.file = file
   reg.fxid = fxid
+  reg.nfx = nfx
   reg.pitch = tonumber(pitch)
   return reg
 end
@@ -490,6 +518,7 @@ function draw()
   draw_pitch_key()
   draw_guides()
   draw_regions()
+  draw_region_shortcuts()
   draw_ui()
   update_widget_drag()
   if mouse.toggled then
