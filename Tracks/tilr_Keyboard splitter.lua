@@ -1,6 +1,10 @@
 -- @description Keyboard splitter
 -- @author tilr
--- @version 1.0
+-- @version 1.1
+-- @changelog
+--   Region shortcuts
+--   Colored pitch key
+--   Pitch key follows note transpose
 -- @provides
 --   tilr_Keyboard splitter/rtk.lua
 --   [effect] tilr_Keyboard splitter/MIDI Keyvel Filter.jsfx
@@ -35,7 +39,7 @@ globals = {
   win_x = nil,
   win_y = nil,
   win_w = 768,
-  win_h = 385,
+  win_h = 370,
   key_h = 30,
   key_w = 6,
   region_h = 254,
@@ -118,8 +122,9 @@ end
 
 function draw_pitch_key()
   for _, reg in ipairs(regions) do
-    gfx.set(1, .5, 0, 1)
-    gfx.rect(reg.keymin * g.key_w, g.win_h - g.key_h, g.key_w, g.key_h)
+    local red, green, blue, _ = rtk.color.rgba(colors[(reg.track % #colors) + 1])
+    gfx.set(red, green, blue, 1)
+    gfx.rect(reg.keymin * g.key_w + (reg.transpose * g.key_w), g.win_h - g.key_h, g.key_w, g.key_h)
   end
 end
 
@@ -146,6 +151,27 @@ function draw_regions()
       gfx.rect(reg.x + reg.w - helper_w, reg.y + reg.h / 2 - helper_w / 2, helper_w, helper_w, 1) -- right
       gfx.rect(reg.x + reg.w / 2 - helper_w / 2, reg.y, helper_w, helper_w, 1) -- top
       gfx.rect(reg.x + reg.w / 2 - helper_w / 2, reg.y + reg.h - helper_w, helper_w, helper_w, 1) -- bottom
+    end
+  end
+end
+
+function draw_region_shortcuts()
+  local regs = {}
+  for _, reg in ipairs(regions) do table.insert(regs, reg) end
+  table.sort(regs, function (a,b)
+    return a.track < b.track
+  end)
+  for i, reg in ipairs(regs) do
+    local red, green, blue, _ = rtk.color.rgba(colors[(reg.track % #colors) + 1])
+    gfx.set(red, green, blue, reg.selected and 0.75 or 0.5)
+    local w = 18
+    local x = (i - 1) * w
+    local y = g.win_h - g.key_h - g.region_h - w
+    gfx.rect(x, y, w, w, 1)
+    gfx.set(red, green, blue, reg.selected and 1 or 0)
+    gfx.rect(x, y, w, w, 0)
+    if mouse.toggled and rtk.point_in_box(rtk.mouse.x, rtk.mouse.y, x, y, w, w) then
+      select_region(reg)
     end
   end
 end
@@ -198,7 +224,7 @@ function create_regions ()
       local fxi = reaper.TrackFX_AddByName(track, 'MIDI Keyvel Filter', false, -1000)
       if fxi == -1 then
         reaper.PreventUIRefresh(-1)
-        reaper.MB('MIDI Keyvel Filter JSFX is missing. Make sure you install it via ReaPack.', '', 0)
+        reaper.MB('MIDI Keyvel Filter JSFX is missing. Please reinstall this package.', '', 0)
         reaper.Undo_EndBlock('keysplitter - create_regions', 0)
         return
       end
@@ -516,6 +542,7 @@ function draw()
   draw_pitch_key()
   draw_guides()
   draw_regions()
+  draw_region_shortcuts()
   draw_ui()
   update_widget_drag()
   if mouse.toggled then
@@ -592,7 +619,6 @@ function init()
   ui_hbox:add(rtk.Text{'Transpose'})
   ui_transpose = ui_hbox:add(rtk.Text{'', w=60, cursor=rtk.mouse.cursors.SIZE_NS })
   ui_transpose.onmousedown = function () start_widget_drag('transpose') end
-
 
   ui_helpbox = window:add(rtk.Text{'No region selected', padding=10})
 
