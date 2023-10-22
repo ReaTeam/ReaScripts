@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="44bdd825637db35d2bd1fd59d597520e35c35d3d" name="ReaTeam Scripts">
+<index version="1" commit="2f8a40a6243b203060f2f89f3cc2872f3750937c" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -4798,6 +4798,12 @@ v1.01 ( 2022-06-15 )
       <version name="1.0" author="tilr" time="2023-10-03T17:58:33Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/14fc1c8db3d3c1d65ee0278f76a907e64dc3afc3/FX/tilr_RS5K%20Mapper.lua</source>
         <source file="tilr_RS5K Mapper/rtk.lua">https://github.com/ReaTeam/ReaScripts/raw/14fc1c8db3d3c1d65ee0278f76a907e64dc3afc3/FX/tilr_RS5K%20Mapper/rtk.lua</source>
+      </version>
+      <version name="1.1" author="tilr" time="2023-10-22T12:50:13Z">
+        <changelog><![CDATA[Region shortcuts
+Colored pitch key]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/2f8a40a6243b203060f2f89f3cc2872f3750937c/FX/tilr_RS5K%20Mapper.lua</source>
+        <source file="tilr_RS5K Mapper/rtk.lua">https://github.com/ReaTeam/ReaScripts/raw/2f8a40a6243b203060f2f89f3cc2872f3750937c/FX/tilr_RS5K%20Mapper/rtk.lua</source>
       </version>
     </reapack>
     <reapack name="tompad_FX chain AB.lua" type="script" desc="FX chain A-B">
@@ -16487,6 +16493,14 @@ is off-screen. Reaper issue, should be fixed soon.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a69519ad6d31bf1adc2dc0ed5a7f486791148d67/Tracks/tilr_Keyboard%20splitter.lua</source>
         <source file="tilr_Keyboard splitter/rtk.lua">https://github.com/ReaTeam/ReaScripts/raw/a69519ad6d31bf1adc2dc0ed5a7f486791148d67/Tracks/tilr_Keyboard%20splitter/rtk.lua</source>
         <source type="effect" file="tilr_Keyboard splitter/MIDI Keyvel Filter.jsfx">https://github.com/ReaTeam/ReaScripts/raw/a69519ad6d31bf1adc2dc0ed5a7f486791148d67/Tracks/tilr_Keyboard%20splitter/MIDI%20Keyvel%20Filter.jsfx</source>
+      </version>
+      <version name="1.1" author="tilr" time="2023-10-22T12:49:51Z">
+        <changelog><![CDATA[Region shortcuts
+Colored pitch key
+Pitch key follows note transpose]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d857a9e46512781e66cb7aa7567ede51512d4529/Tracks/tilr_Keyboard%20splitter.lua</source>
+        <source file="tilr_Keyboard splitter/rtk.lua">https://github.com/ReaTeam/ReaScripts/raw/d857a9e46512781e66cb7aa7567ede51512d4529/Tracks/tilr_Keyboard%20splitter/rtk.lua</source>
+        <source type="effect" file="tilr_Keyboard splitter/MIDI Keyvel Filter.jsfx">https://github.com/ReaTeam/ReaScripts/raw/d857a9e46512781e66cb7aa7567ede51512d4529/Tracks/tilr_Keyboard%20splitter/MIDI%20Keyvel%20Filter.jsfx</source>
       </version>
     </reapack>
   </category>
