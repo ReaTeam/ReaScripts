@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="2f8a40a6243b203060f2f89f3cc2872f3750937c" name="ReaTeam Scripts">
+<index version="1" commit="40c415b88158892511fbf4cb171b8a6858ed31e5" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -18069,6 +18069,44 @@ uc_track_name_abbreviations = \{"O-Out", "O-MID"\}\par}
       </version>
       <version name="1.0.1" author="SPK77, SeXan" time="2021-05-08T09:03:27Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/9a3a6faaa008b76c06849bf56c1c691e0a76908d/Tracks%20Properties/spk77_Sexan_Folder%20Record%20and%20Monitor%20Arm%20To%20Children.lua</source>
+      </version>
+    </reapack>
+    <reapack name="talagan_Track color layouts.lua" type="script" desc="Track color layouts">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Purpose\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 REAPER is by default limited to one color per track. What if we were able to define multiple colors for each track, each color tied to a configuration (or layout), and switch between those layouts in an instant to recolorize the whole project set of tracks ?\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 For example you could have one track color layout for composing, one for mixing, etc. Depending on the workflow, you could quickly switch from a color scheme to another.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This is what this small extension tries to achieve.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 How to use\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Simply call the action "talagan_Track Color Layout N" to switch to Layout number N. That's all ! Now, the current Track Color Layout is N, and all track color modifications will be done in the current layout. Then call "talagan_Track Color Layout M" to switch to Layout number M. And so on.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The default, active layout is Layout 1 (for new projects or projects that have not used layouts yet).\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Saving features\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 All color pieces of information are stored directly on each track. Saving your project will thus also save your color layouts. They are also saved inside track templates too !\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 More layouts\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The install is limited to 4 layouts, but you can duplicate the script and change the number at the end to use another layout. You can virtually have as many layouts as you desire.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Known bugs / limitations\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 When importing a track template, the new tracks will have the color they had at export time, and the corresponding layout at that time may not match the current project layout (ex : they were saved while being on layout 1, and your current project is currently using layout 2, so they will thus appear with the colors of layout 1 whereas they should appear with the colors of layout 2). There's a security in the script that prevents those new tracks colors from being squashed due to this incoherency and lose their layout configs. To resynchronize these new tracks with the rest of the project, just switch the layout once after import.\par}
+}
+]]></description>
+        <link rel="screenshot" href="https://i.imgur.com/KlOdiwy.gif">Standard use case</link>
+        <link rel="screenshot" href="https://i.imgur.com/LD8x61n.gif">The tool in action</link>
+        <link rel="donation">https://www.paypal.com/donate/?business=3YEZMY9D6U8NC&amp;no_recurring=1&amp;currency_code=EUR</link>
+      </metadata>
+      <version name="1.0.0" author="Ben 'Talagan' Babut" time="2023-10-29T09:21:52Z">
+        <changelog><![CDATA[Initial Version]]></changelog>
+        <source file="talagan_Track color layouts/talagan_Track color layouts lib.lua">https://github.com/ReaTeam/ReaScripts/raw/40c415b88158892511fbf4cb171b8a6858ed31e5/Tracks%20Properties/talagan_Track%20color%20layouts/talagan_Track%20color%20layouts%20lib.lua</source>
+        <source main="main midi_editor" file="talagan_Track color layout 1.lua">https://github.com/ReaTeam/ReaScripts/raw/40c415b88158892511fbf4cb171b8a6858ed31e5/Tracks%20Properties/talagan_Track%20color%20layouts.lua</source>
+        <source main="main midi_editor" file="talagan_Track color layout 2.lua">https://github.com/ReaTeam/ReaScripts/raw/40c415b88158892511fbf4cb171b8a6858ed31e5/Tracks%20Properties/talagan_Track%20color%20layouts.lua</source>
+        <source main="main midi_editor" file="talagan_Track color layout 3.lua">https://github.com/ReaTeam/ReaScripts/raw/40c415b88158892511fbf4cb171b8a6858ed31e5/Tracks%20Properties/talagan_Track%20color%20layouts.lua</source>
+        <source main="main midi_editor" file="talagan_Track color layout 4.lua">https://github.com/ReaTeam/ReaScripts/raw/40c415b88158892511fbf4cb171b8a6858ed31e5/Tracks%20Properties/talagan_Track%20color%20layouts.lua</source>
+        <source type="data" file="toolbar_icons/toolbar_talagan_track_color_layout_1.png">https://github.com/ReaTeam/ReaScripts/raw/40c415b88158892511fbf4cb171b8a6858ed31e5/Tracks%20Properties/talagan_Track%20color%20layouts/toolbar_talagan_track_color_layout_1.png</source>
+        <source type="data" file="toolbar_icons/toolbar_talagan_track_color_layout_2.png">https://github.com/ReaTeam/ReaScripts/raw/40c415b88158892511fbf4cb171b8a6858ed31e5/Tracks%20Properties/talagan_Track%20color%20layouts/toolbar_talagan_track_color_layout_2.png</source>
+        <source type="data" file="toolbar_icons/toolbar_talagan_track_color_layout_3.png">https://github.com/ReaTeam/ReaScripts/raw/40c415b88158892511fbf4cb171b8a6858ed31e5/Tracks%20Properties/talagan_Track%20color%20layouts/toolbar_talagan_track_color_layout_3.png</source>
+        <source type="data" file="toolbar_icons/toolbar_talagan_track_color_layout_4.png">https://github.com/ReaTeam/ReaScripts/raw/40c415b88158892511fbf4cb171b8a6858ed31e5/Tracks%20Properties/talagan_Track%20color%20layouts/toolbar_talagan_track_color_layout_4.png</source>
       </version>
     </reapack>
     <reapack name="tm_Set hardware outputs of selected tracks to post-fader.lua" type="script" desc="Set hardware outputs of selected tracks to post-fader">
