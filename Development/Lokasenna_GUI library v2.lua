@@ -1,25 +1,36 @@
---[[
-Description: Lokasenna's GUI library v2 for Lua
-Version: 2.16.12
-Changelog:
-    Add: Flag for GUI.tab_to_next to go to the previous element
-Author: Lokasenna
-Provides:
-    [main]   Lokasenna_GUI v2/Library/Set Lokasenna_GUI v2 library path.lua
-    [nomain] Lokasenna_GUI v2/Library/{Core,Classes/*,Modules/*}.lua
-Metapackage: true
-Donation: https://paypal.me/Lokasenna
-Links:
-    Forum Thread https://forum.cockos.com/showthread.php?t=177772
-    Lokasenna's Website http://forum.cockos.com/member.php?u=10417
-About:
-    Provides a framework allowing Lua scripts to use a graphical interface, since Reaper
-    has no ability to do so natively.
-
-    INSTALLATION: After installing this package, you must tell Reaper where to find the
-    library. In the Action List, find and run:
-
-    "Script: Set Lokasenna_GUI v2 library path.lua"
---]]
+-- @description Lokasenna's GUI library v2 for Lua
+-- @author Lokasenna
+-- @version 2.16.12
+-- @changelog Add: Flag for GUI.tab_to_next to go to the previous element
+-- @metapackage
+-- @provides
+--   [main] Lokasenna_GUI v2/Library/Set Lokasenna_GUI v2 library path.lua
+--   Lokasenna_GUI v2/Library/Classes/Class - Button.lua
+--   Lokasenna_GUI v2/Library/Classes/Class - Frame.lua
+--   Lokasenna_GUI v2/Library/Classes/Class - Knob.lua
+--   Lokasenna_GUI v2/Library/Classes/Class - Label.lua
+--   Lokasenna_GUI v2/Library/Classes/Class - Listbox.lua
+--   Lokasenna_GUI v2/Library/Classes/Class - Menubar.lua
+--   Lokasenna_GUI v2/Library/Classes/Class - Menubox.lua
+--   Lokasenna_GUI v2/Library/Classes/Class - Options.lua
+--   Lokasenna_GUI v2/Library/Classes/Class - Slider.lua
+--   Lokasenna_GUI v2/Library/Classes/Class - Tabs.lua
+--   Lokasenna_GUI v2/Library/Classes/Class - TextEditor.lua
+--   Lokasenna_GUI v2/Library/Classes/Class - Textbox.lua
+--   Lokasenna_GUI v2/Library/Classes/Class - Window.lua
+--   Lokasenna_GUI v2/Library/Core.lua
+--   Lokasenna_GUI v2/Library/Modules/Window - GetUserInputs.lua
+-- @link
+--   Forum Thread https://forum.cockos.com/showthread.php?t=177772
+--   Lokasenna's Website http://forum.cockos.com/member.php?u=10417
+-- @donation https://paypal.me/Lokasenna
+-- @about
+--   Provides a framework allowing Lua scripts to use a graphical interface, since Reaper
+--   has no ability to do so natively.
+--
+--   INSTALLATION: After installing this package, you must tell Reaper where to find the
+--   library. In the Action List, find and run:
+--
+--   "Script: Set Lokasenna_GUI v2 library path.lua"
 
 -- Licensed under the GNU GPL v3

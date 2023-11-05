@@ -1,6 +1,5 @@
--- NoIndex: true
---[[	Lokasenna_GUI - GetUserInputs window
-	
+-- @noindex
+
     This module emulates the native reaper.GetUserInputs() dialog, offering a dialog that matches
     the GUI theme, input and output values in tables rather than CSVs, and a function hook for
     getting the returned values into your script.

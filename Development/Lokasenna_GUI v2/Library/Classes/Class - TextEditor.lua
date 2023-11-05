@@ -1,4 +1,4 @@
--- NoIndex: true
+-- @noindex
 
 --[[	Lokasenna_GUI - TextEditor class
 
