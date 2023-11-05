@@ -1,0 +1,532 @@
+// @description Reduce interactively the number of events in Midi CC lanes
+// @author rig
+// @version 1.0.1
+// @changelog Doc changes
+// @provides [main=main] .
+// @about
+//   # rig-trimCCs
+//
+//    Reduce iteratively the number of CC events (points) in the selected MIDI editor lane.
+//
+//    Only CC lanes are supported (e.g. velocity or Channel pressure/aftertouch won't work).
+//
+//   ## Usage
+//
+//   - Define a MIDI Editor *action* for the script (actions > New action... > Load ReaScript...).
+//       For convenience you can associate it to a shortcut or a button in a toolbar.
+//   - **Run the action** from within Reaper's Midi Editor -> the **script window** is displayed.
+//   - **Select a CC lane** by clicking on it. The script window shows the number of events (points) present and
+//      how many points can be trimmed in this iteration. If a **selection** of points exists, the script will
+//      only process them (in case of multiple disjoint selection ranges, only the first selection range will be processed).
+//   - **Click on the "Trim events" button** and see directly the effect on the curve (be patient if the number of points
+//      is large). The script windows displays the new number of events after the trim and the number of possible
+//      trims on the next iteration. 
+//
+//     **TIP**: if you press the SHIFT key while clicking on the Trim button (recommended), the SHAPE of all remaining CC
+//              points after the trim will be set to BEZIER (which will smooth the curve). Likewise, pressing CTRL
+//              while clicking on the Trim button will set the shape of the remaining points to SLOW START/END.
+//   - Keep clicking until you are satisfied or no further trimming is possible ("Trimmable events: 0").
+//   - Use Ctrl (or Cmd)-Z to **undo** the last change. Do **not** directly use the Undo/Redo options in Reaper's Edit menu.
+//   - Exit the program by closing the script window, or by hitting ESC.
+//
+//   ## How it works 
+//
+//   This script simplifies the CC event curve using the
+//    ([ Ramer-Douglas-Peucker algorithm](https://en.wikipedia.org/wiki/Ramer%E2%80%93Douglas%E2%80%93Peucker_algorithm)).
+//
+//   The amount of points (CC events) removed ("trimmed") depends on the value of epsilon, the distance dimension (>0).
+//   In order to trim progressively the curve, the script starts with a low value of epsilon (EPSILON_INIT).
+//   After each  trimming it increases the value of epsilon by EPSILON_INCR, which potentially adds new candidate points
+//   for trimming. Conversely when UNDOing operations (Ctrl/Cmd+Z), the previous value of epsilon is restored.
+//
+//   ### Notes
+//
+//   - This script can process a maximum of POINTS_SIZE  (200000 by default) CC events. Extra events are ignored.
+//   - It attaches a "pin on top" button to the script window if Reaper 6.24+ and js_reascriptAPI extension installed.
+//   - To smooth the effects of trimming points I suggest you assign "CC curve shape = bezier (or slow start/end )"
+//      to your selection (or press SHIFT when clicking on the "Trim events" button, see above).
+//   - Based loosely on spk77's script: spk77_Remove_redundant_CCs.eel, itself adapted from JSFX script by DarkStar.
+//   - See also the [thin MIDI CC Events](https://forums.cockos.com/showthread.php?t=272820) lua scripts by sockmonkey72
+//     which offers a series of individual actions rather than an interactive process.
+//   - Licence: GPL v3
+
+SCRIPT_NAME = "Trim CCs";
+true = 1;  false = 0;
+
+///// USER TWEEKABLE SETTINGS:  ////////////////////////////////////////////////////////////////////////////////////
+EPSILON_INIT = 0.02;    // Initial value of epsilon
+EPSILON_INCR = 0.03;    // added to epsilon after each trim. Substracted on Ctrl/Cmd-Z (Undo).
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+epsilon = EPSILON_INIT;             // distance dimension (>0)  for Ramer-Douglas-Peucker algorithm
+last_unselected_epsilon = epsilon;  // epsilon value for the last selected set of points.
+points_checksum = 
+last_after_trim_checksum = -1;      // (undefined)
+has_selection = false;              // Whether there are points currently selected in the target CC lane
+undo_cnt = 0;
+
+CC_SHAPE_LINEAR = 1;           // Reaper API CC shape values
+CC_SHAPE_SLOW_START_END = 2;
+CC_SHAPE_FAST_START = 3;
+CC_SHAPE_FAST_END = 4;
+CC_SHAPE_BEZIER = 5;
+
+take;                   // current take
+
+points = 0;             // Table of points (CC events), starting at offset +0 in memory.
+POINT_SIZE = 4;         // Each point has 4 fields:
+OFF_INDEX = +0;         //   Index in Reaper's CC events
+OFF_VALUE = Y_OFFSET = +1; //   CC value (0-127) - Used as point Y coordinate
+OFF_TIME = X_OFFSET = +2;  //   Time (either PPQ or project time) - Used as point X coordinate
+OFF_KEPT = +3;          //   true if the point must be kept
+POINTS_SIZE = 200000;   // table dimension in points
+
+point_cnt = 0;  // current length of table points
+
+// Table points helpers (thanks EEL2 ;-):
+
+function clear_points() (
+    point_cnt = 0;
+);
+
+function append_point(index, value, time, kept)  local(p) (
+
+    point_cnt < POINTS_SIZE ? (
+        p = point_cnt * POINT_SIZE;
+        p[OFF_INDEX] = index;
+        p[OFF_VALUE] = value;
+        p[OFF_TIME] = time;
+        p[OFF_KEPT] = kept;
+        point_cnt += 1;
+        true;
+    ) : (
+        false;
+    );  
+);
+
+function set_point_kept(i, kept) (
+    points[i*POINT_SIZE + OFF_KEPT] = kept;
+);
+
+// Our stack for emulation of recursive calls (since EEL2 doesn't support them):
+
+stack = points + (POINTS_SIZE * POINT_SIZE);    // start address in memory
+push_cnt = 0;
+
+function push(v) (
+    stack[push_cnt] = v;
+    push_cnt += 1;
+);
+
+function pop() (
+    push_cnt > 0 ? (
+        push_cnt -= 1;
+        stack[push_cnt];
+    ) : 0;
+);
+
+
+function set_default_colors()
+(
+    gfx_r = 0.5;
+    gfx_g = 0.8;  
+    gfx_b = 0.5;
+);
+
+
+// Copies CC events for the target lane (either all events or only selected ones if there is a selection)
+// to our table points[]. All events/points are marked as "not kept" by default.
+// The table points[] will be empty if there is no MIDI editor window active or no active lane.
+// On return:
+//   has_selection: true if there is a selection.
+//   points_checksum: checksum of all points to take into account (regardless of has_selection)
+
+function copy_ccs_to_points()   local(first_selected_idx, stop, cc_idx, selectedOut, mutedOut, startppqpos,
+                                      chanmsgOut, chanOut, msg2Out, event_value, midiEditor, selection_checksum,
+                                      project_time, shape, bezier_tension) (
+    
+    clear_points();
+    has_selection = false;
+    points_checksum = 0;
+    
+    midiEditor = MIDIEditor_GetActive();
+    (take = MIDIEditor_GetTake(midiEditor)) ? (
+
+        last_clicked_cc_lane = MIDIEditor_GetSetting_int(midiEditor, "last_clicked_cc_lane");
+        MIDIEditor_GetSetting_str(midiEditor, "last_clicked_cc_lane", #lane_name) == 0 ? #lane_name = "";
+
+        last_clicked_cc_lane >= 0 && last_clicked_cc_lane <= 127 ? (
+
+            // if a selection exists, trim it only (and start looking up from 1st selected):
+            first_selected_idx = MIDI_EnumSelCC(take, -1);
+            has_selection = (first_selected_idx != -1);
+            cc_idx = (has_selection ? first_selected_idx : 0);
+            stop = false;
+            
+            while (!stop  &&  MIDI_GetCC(take, cc_idx, selectedOut, mutedOut, startppqpos, chanmsgOut, chanOut, msg2Out, event_value)) (
+                
+                msg2Out == last_clicked_cc_lane ? (             // target CC           
+                    (has_selection && !selectedOut) ? (         // end of first selection area
+                        stop = true;
+                    ) : ( 
+                        project_time = MIDI_GetProjTimeFromPPQPos(take, startppqpos);
+                        append_point(cc_idx, event_value, project_time, false);
+                        points_checksum += (project_time + event_value);  // Dumb checksum calculation!
+                    );
+                );
+                cc_idx += 1;
+            );
+            
+            (!has_selection || points_checksum != last_after_trim_checksum) ? 
+                epsilon = last_unselected_epsilon;
+        );
+    );
+);
+  
+
+// Returns the distance from point p to the line between p1 and p2.
+// p, p1, p2 are (start) indexes in points[].
+function perpendicular_distance(p, p1, p2) local(dx, dy, d) (
+
+    dx = p2[X_OFFSET] - p1[X_OFFSET];
+    dy = p2[Y_OFFSET] - p1[Y_OFFSET];
+    d = (p[X_OFFSET] * dy) - (p[Y_OFFSET] * dx) + (p2[X_OFFSET] * p1[Y_OFFSET]) - (p2[Y_OFFSET] * p1[X_OFFSET]);
+    abs(d) / sqrt(dx*dx + dy*dy);
+);
+
+
+// Simplifies the target CC lane event curve using Ramer-Douglas-Peucker algorithm.
+// On return CCs are in points[] (point_cnt x points), with those to be kept having their 'kept' flag true.
+
+function ramer_douglas_peucker()    local(max_dist, idx_max_dist, i, dist, begin, end)  (
+
+    // Copy target CC events from reaper to points[]. 
+    copy_ccs_to_points();
+
+    // Process points:
+    
+    point_cnt > 0 ? set_point_kept(0, true);   // 1st point always kept  
+    point_cnt >= 2  ? (
+        
+        set_point_kept(point_cnt - 1, true);    //last point always kept
+        
+        point_cnt > 2  &&  epsilon > 0 ? (
+        
+            // <=> ramer_douglas_peucker(0, point_cnt - 1);
+            push(0);
+            push(point_cnt - 1); 
+            
+            // One iteration is equivalent to one recursive call to ramer_douglas_peucker():
+            
+            while (push_cnt > 0) ( 
+               
+                end = pop();
+                begin = pop();
+
+                // Finds the point with max perpendicular distance to a line [begin..end]:
+                
+                max_dist = 0;
+                idx_max_dist = -1;
+                i = begin + 1;
+                while(i < end) (
+                    dist = perpendicular_distance(points + (i * POINT_SIZE), points + (begin * POINT_SIZE), points + (end * POINT_SIZE));
+                    dist > max_dist ? (
+                        max_dist = dist;
+                        idx_max_dist = i;
+                    );
+                    i += 1;
+                );
+                
+                // If the max distance is over epsilon, simplify the two half segments:
+                max_dist > epsilon ? (
+                     
+                    set_point_kept(idx_max_dist, true);
+                    
+                    (end - idx_max_dist) >= 2  ? (
+                        // <=> ramer_douglas_peucker(idx_max_dist, end);
+                        push(idx_max_dist);
+                        push(end);  
+                    );
+                                
+                    (idx_max_dist - begin) >= 2  ? (
+                        // <=> ramer_douglas_peucker(begin, idx_max_dist);
+                        push(begin);
+                        push(idx_max_dist);
+                    );
+                ) ;
+                // Otherwise (max_dist <= epsilon) all examined points can potentially be 
+                // erased unless marked as to be kept otherwise
+
+            ); // while
+        );
+    );
+);
+
+
+function push_state() (
+        
+        stack_push(epsilon);
+        stack_push(last_unselected_epsilon);
+        stack_push(last_after_trim_checksum);
+
+);
+
+function pop_state()  (
+
+        last_after_trim_checksum = stack_pop();
+        last_unselected_epsilon = stack_pop();
+        epsilon = stack_pop();
+);
+
+
+// Trims events (if do_trim >0), or just counts trimmable events and updates display.
+// If do_trim == 3 or 5 also sets the shape of remaining points to Bezier or Slow start/end.
+// Returns the number of events trimmed.
+
+function trim(do_trim)     local(i, p, new_checksum, trimmed_cnt, shape, new_shape, bezier_tension) (
+
+    // Get a list of CC events in points[], with those to keep specially marked:
+    
+    ramer_douglas_peucker();
+    
+    // Count and delete (if requested) the trimmable events:
+    
+    trimmed_cnt = 0;
+    
+    do_trim ? (
+        // Save current state for future UNDO:
+        push_state();
+        MIDI_DisableSort(take);  // speed up deletions!
+    );
+    
+    trimmable_event_cnt = new_checksum = 0;
+    i = point_cnt - 1;  // proceed backwards because deletion affects reaper indexes
+    while (i >= 0) (    
+        p = points + (i * POINT_SIZE);  // ptr
+        !p[OFF_KEPT] ? (
+            trimmable_event_cnt += 1;
+            do_trim ? (
+                MIDI_DeleteCC(take, p[OFF_INDEX]);
+                trimmed_cnt += 1;
+            );  
+        ) : (   
+            new_checksum += (p[OFF_TIME] + p[OFF_VALUE]); // Dumb checksum calculation!           
+        );
+        
+        // Set the shape of kept point if requested:
+        do_trim > 1  &&  p[OFF_KEPT]  &&  MIDI_GetCCShape(take, p[OFF_INDEX], shape, bezier_tension) ? (
+            new_shape = (do_trim == 3 ? CC_SHAPE_BEZIER : CC_SHAPE_SLOW_START_END);     // +SHIFT -> Bezier; +CTRL -> Slow start/end
+            new_shape != shape ?        
+                MIDI_SetCCShape(take, p[OFF_INDEX], new_shape, bezier_tension, true);
+        );
+
+        i -= 1;
+    );               
+
+    do_trim ? (
+        MIDI_Sort(take);
+              
+        // Increment epsilon so to trim more points (if possible) next time:
+        (has_selection ? epsilon : last_unselected_epsilon) += EPSILON_INCR;
+        
+        // Calculate new checksum after trimming:
+        last_after_trim_checksum = new_checksum;        
+    ) : (
+        // [No trim] Just update the UI:
+        
+        gfx_x = draw_start_x;
+        gfx_y = draw_start_y + gfx_texth;
+        set_default_colors();
+        gfx_a = 1;
+        gfx_drawstr("Events: ");
+        gfx_r = 0.8;
+        gfx_b = 1;
+        gfx_g = 0.8;
+        gfx_printf("%d", point_cnt);
+        set_default_colors();
+        gfx_y += gfx_texth;
+        gfx_x = draw_start_x;
+
+        gfx_drawstr("Trimmable events: ");
+        gfx_r = 0.8;
+        gfx_b = 1;
+        gfx_g = 0.8;
+        gfx_printf("%d", trimmable_event_cnt);
+    ); 
+    
+    trimmed_cnt;
+);
+
+
+ function check_cc_lane() local (cc_info_w, cc_info_h, lane_name_w, lane_name_h)
+( 
+    gfx_a = 1;
+    gfx_r = 0.8;
+    gfx_g = 1;
+    gfx_b = 0.8;
+    #cc_info = "";
+    last_clicked_cc_lane == -1 || last_clicked_cc_lane > 287 ? (
+        #cc_info = "Select a CC lane";
+    ) : last_clicked_cc_lane > 127 && last_clicked_cc_lane <= 287 ? (
+        #cc_info = "14-bit values not supported";
+    ) : (
+        #cc_info = "CC";
+        #cc_info += sprintf(#, "%d", last_clicked_cc_lane);
+        #cc_info += " ";
+        #cc_info += #lane_name;
+        gfx_measurestr(#cc_info, cc_info_w, cc_info_h);
+    );
+    gfx_x = draw_start_x;
+    gfx_y = draw_start_y;
+    gfx_measurestr(#cc_info, cc_info_w, cc_info_h);
+    gfx_drawstr(#cc_info);
+);
+
+
+// Checks whether the Trim button is depressed.
+// return: 0: not depressed
+//         1: depressed
+//         3: depressed and SHIFT key depressed
+//         5: depressed and CTRL key depressed.
+
+function check_trim_btn(x, y, w, h, r)  local(trim_requested)
+( 
+    gfx_x = x; gfx_y = y;
+    trimmable_event_cnt == 0 ? gfx_a = 0.4;
+    set_default_colors();    
+    gfx_roundrect(gfx_x - 6, gfx_y - 3, w + 12, h + 6, r);
+    gfx_printf("Trim events");
+    
+    trim_requested = 0;
+    
+    (mouse_x >= x) && (mouse_x <= x + w) && (mouse_y >= y) && (mouse_y <= y + h) &&
+                   !lmb_click_outside_window && (trimmable_event_cnt > 0) ? (   // click on button
+        gfx_r += 0.2;
+        gfx_g += 0.2;
+        gfx_b += 0.2;
+        mouse_cap & 0x01 && !lmb_down ? (
+            lmb_down = true;
+            trim_requested = 1;
+            mouse_cap & 0x08 ? (  // SHIFT key depressed
+                trim_requested = 3;
+            ) : mouse_cap & 0x04 ? (    // CTRL key depressed
+                trim_requested = 5;
+            );
+        );
+    );
+    
+    trim_requested;
+);
+
+
+function run()  local(trim_requested, trimmed_cnt, c)
+(
+    set_default_colors();
+    gfx_a = 1;
+
+    draw_end_x = gfx_w - 22;
+    draw_end_y = gfx_h - 80;
+    gfx_x = draw_start_x;
+    
+    gfx_y = draw_start_y;
+
+    center_x = floor(draw_start_x + (draw_end_x - draw_start_x) / 2 + 0.5);
+    center_y = floor(draw_start_y + (draw_end_y - draw_start_y) / 2 + 0.5);
+
+    gfx_w != last_w ? (
+        center_x = floor(draw_start_x + (draw_end_x - draw_start_x) / 2 + 0.5);
+        slider_last_x = center_x;
+        last_w = gfx_w;
+    );
+
+    // Check if lmb down and mouse cursor outside window
+    mouse_cap >= 1 && (mouse_x <= 0 || mouse_x >= gfx_w || mouse_y < 2 || mouse_y >= gfx_h) ? (
+        lmb_click_outside_window = true;
+    ) : mouse_cap == 0 ? (
+            lmb_click_outside_window = false;
+    );
+
+    check_cc_lane();
+    
+    gfx_x = center_x - floor(s_w_trim / 2 + 0.5);   // centered
+    //gfx_x = draw_start_x;                         // left aligned
+    trim_requested = check_trim_btn(gfx_x, draw_start_y + (6 * gfx_texth), s_w_trim, s_h_trim, 12);
+
+    trimmed_cnt = trim(trim_requested);  //  Do it!
+
+    // add "undo point" if necessary:
+    trimmed_cnt > 0 ? (
+        Undo_OnStateChange(sprintf(#, "Trim CC%d events (x%d)", last_clicked_cc_lane, trimmed_cnt));
+        undo_cnt += 1;
+    );
+
+    c = gfx_getchar();
+    
+    // ESC: exit
+    c == 27 ? gfx_quit();
+    
+    // ctrl+Z: Undo
+    c == 26  &&  ((mouse_cap & 0x38)==0) ? (
+    
+      #undo_desc = "";
+      Undo_CanUndo2(#undo_desc, 0) ? (                   
+          Undo_DoUndo2(0);	// -> non zero if done
+          //Main_OnCommand(40029, 0); // undo
+
+            // If this was one of OUR undos then restore our state as well.
+          (strncmp(#undo_desc, "Trim CC", 7) == 0)  &&  (undo_cnt > 0) ? (
+                last_after_trim_checksum = stack_pop();
+                last_unselected_epsilon = stack_pop();
+                epsilon = stack_pop();
+                undo_cnt -= 1;
+            );
+         );
+    );
+
+    mouse_cap == 0 ? (
+        lmb_down = false;
+    );
+
+    last_h = gfx_h;
+    last_w = gfx_w;
+    gfx_update();
+    
+    // Loop unless graphics windows closed: 
+    c != -1 ? (
+        defer("run();");
+    );
+);
+
+
+function init()
+(
+    gfx_init(SCRIPT_NAME, 230, 170);      // show script window
+    
+    // Attach "pin on top" button (if Reaper 6.24+ with JS extension installed):
+    // FIXME: works randomly when script launched from toolbar!!
+    //GetAppVersion(#reaper_version);
+    //strnicmp(#reaper_version, "6.24", 4) >=0  &&  APIExists("JS_Window_Find")  ? (
+    (APIExists("JS_Window_Find") && APIExists("JS_Window_AttachTopmostPin"))  ? (
+        JS_Window_AttachTopmostPin(JS_Window_Find(SCRIPT_NAME, true));
+    );
+
+    last_w = gfx_w;
+    last_h = gfx_h;
+
+    draw_start_x = 22;
+    draw_end_x = gfx_w - 22;
+    draw_start_y = 30;
+    draw_end_y = gfx_h - 80;
+    center_x = floor(draw_start_x + (draw_end_x - draw_start_x) / 2 + 0.5);
+    center_y = floor(draw_start_y + (draw_end_y - draw_start_y) / 2 + 0.5);
+
+    gfx_setfont(1, "Verdana", 14, '');
+    gfx_measurestr("Trim events", s_w_trim, s_h_trim);
+    slider_last_x = draw_start_x;
+    lmb_click_outside_window = 0;
+  
+  last_clicked_cc_lane == -1;
+);
+
+init();
+run();
