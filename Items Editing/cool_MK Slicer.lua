@@ -1,10 +1,20 @@
 -- @description MK Slicer
 -- @author cool
--- @version 3.05
+-- @version 3.10
 -- @changelog
---   + Fixed a bug (typo) in the function of changing the grid step with the mouse wheel.
---   + Fixed bugs for compatibility with the new version of Lua (Reaper 7)
---   + Added an item to the theme for the correct display of the bracket when Random+Q is active.
+--   +Snap Area: added an experimental option for pre-listening via MIDI input (from a Virtual MIDI Keyboard or an external MIDI controller).
+--   +Sampler: The NoteOff option now affects MIDI preview, simulating the behavior of a sampler.
+--   +Sampler: All rs5k instances are now created inside a Container.
+--   +Sampler: added options for creating a track: create MIDI item only (as before), track with active recording/inputs only, and both options.
+--   +Sampler: fixed default values for Attack and Release sliders.
+--   +Theme: The maximum possible script window size limit has been increased.
+--   +Theme: Added "Large Font Size" option (Options - User Settings (Advanced)), which increases the font size when the window size is large.
+--   +Theme: Added two new themes. Spring - light and Fall (Dark) - dark.
+--   +Theme: The appearance of the sliders has been changed, some sliders have become frameless. New elements have been added to the themes: Slider Background and CheckBox Body.
+--   +Theme: The Random+Q bracket color has been added to themes for its correct display.
+--   +Theme: Fixed Swing slider transparency bug.
+--   +Fixed a bug: now the script does not close with an error when switching between Grid and Transients modes.
+--   +Code cleaning (MIDI Sampler, visual elements).
 -- @link Forum Thread https://forum.cockos.com/showthread.php?t=232672
 -- @screenshot MK_Slicer 3 https://i.imgur.com/L7WnvoO.jpg
 -- @donation
@@ -61,7 +71,7 @@
 --   Sometimes a script applies glue to items. For example, when several items are selected and when a MIDI is created in a sampler mode.
 
 --[[
-MK Slicer v3.05 by Maxim Kokarev 
+MK Slicer v3.10 by Maxim Kokarev 
 https://forum.cockos.com/member.php?u=121750
 
 Co-Author of the compilation - MyDaw
@@ -128,8 +138,9 @@ local TH = {}
 function Theming(Theme)
 
       if Theme == nil then Theme = 1 end 
-      if Theme < 0 then Theme = 1 elseif Theme >= 10 then Theme = 10 end 
+      if Theme < 0 then Theme = 1 elseif Theme >= 12 then Theme = 12 end 
 
+---------------TH[described element] = {red, green, blue, alpha}----------------
 
       if Theme == 1 then 
       -------------------------Prime------------------------------
@@ -176,17 +187,21 @@ function Theming(Theme)
       TH[27] = {0.2, 0.2 ,0.2 ,1} -- Button Body
       TH[28] = {0.2, 0.2 ,0.2 ,1} -- Button Frames
       
-      TH[29] = {0.23, 0.25, 0.25,1} -- Slider Frames
+      TH[29] = {0.23, 0.25, 0.25,0} -- Slider Frames
       TH[30] = {0.23, 0.25, 0.25,1} -- Slider Body
       
       TH[31] = {0.32, 0.34, 0.34, 1} -- Slider Frames (Top, Loop and Swing)
       TH[32] = {0.32, 0.34, 0.34, 1} -- Slider Body (Top, Loop and Swing)
+
+      TH[45] = { 0.23, 0.25, 0.25, 0.4 } -- Slider Background
+
+      TH[46] = { 0.205, 0.225, 0.225, 1 } -- CheckBox Body
       
       --------------Text--------------------
       TH[33] = { 0.61, 0.61, 0.61, 1 } -- Text Main
       TH[34] = { 1, 0.5, 0.3, 1 } -- Text Warn (Small "Processing, wait...")
       TH[35] = { 0.45, 0.45, 0.45, 1 } -- Txt Greyed (BPM)
-      TH[36] = { 0.55, 0.55, 0.55, 1 } -- Txt Greyed (Presets, Mode)      
+      TH[36] = { 0.6, 0.6, 0.6, 1 } -- Txt Greyed (Presets, Mode)      
       TH[37] = -0.1 -- an additional value is added to the brightness of the BPM digits. Can be negative.
       TH[38] = 0.9 -- BPM digits transparency
 
@@ -194,7 +209,7 @@ function Theming(Theme)
       TH[39] =  { 0.1, 0.8, 0.4, 1 } -- Green tops elements (Loop triangles, Buttons Leds)
       TH[40] = { 0.60, 0.60, 0.60, 0.4 } -- Txt Brackets
       TH[41] = { 0.60, 0.60, 0.60, 0.4 } -- Main Separators
-      TH[42] = 0.7 -- Leds Transparency (Controls Body)
+      TH[42] = 0.8 -- Leds Transparency (Controls Body)
       TH[43] = 0.1 -- Waveform Peaks Thickness (Transparency) - 0 = normal peaks, 1 - thick peaks, 0.5 or something = like a blur/antialiasing
       TH[44] = { 0.1, 0.8, 0.4, 0.75 } -- Random+Q Bracket Color
       --------------------------------------------------------------
@@ -245,11 +260,15 @@ function Theming(Theme)
       TH[27] = {0.3, 0.31 ,0.32 ,1} -- Button Body
       TH[28] = {0.3, 0.31 ,0.32 ,1} -- Button Frames
       
-      TH[29] = {0.28235, 0.32941, 0.34118,1} -- Slider Frames
+      TH[29] = {0.28235, 0.32941, 0.34118,0} -- Slider Frames
       TH[30] = {0.28235, 0.32941, 0.34118,1} -- Slider Body
       
-      TH[31] = {0.33235, 0.37941, 0.39118,1} -- Slider Frames (Top, Loop and Swing)
+      TH[31] = {0.33235, 0.37941, 0.39118,0} -- Slider Frames (Top, Loop and Swing)
       TH[32] = {0.33235, 0.37941, 0.39118,1} -- Slider Body (Top, Loop and Swing)
+
+      TH[45] = { 0.28235, 0.32941, 0.34118, 0.3 } -- Slider Background
+
+      TH[46] = { 0.31235, 0.33941, 0.35118, 1 } -- CheckBox Body
       
       --------------Text--------------------     
       TH[33] = { 0.7, 0.7, 0.7, 1 } -- Text Main
@@ -262,7 +281,7 @@ function Theming(Theme)
       -----------Elements------------------
       TH[39] =  { 0.0, 0.81176, 0.41176, 1 } -- Green tops elements (Loop triangles, Buttons Leds)
       TH[40] = { 0.4, 0.4, 0.4, 0.5 } -- Txt Brackets
-      TH[41] = { 0.4, 0.4, 0.4, 0.5 } -- Main Separators
+      TH[41] = { 0.4, 0.4, 0.4, 0.3 } -- Main Separators
       TH[42] = 0.9 -- Leds Transparency (Controls Body)
       TH[43] = 0.15 -- Waveform Peaks Thickness (Transparency) - 0 = normal peaks, 1 - thick peaks, 0.5 or something = like a blur/antialiasing
       TH[44] = { 0.906, 0.463, 0.0, 0.9 } -- Random+Q Bracket Color
@@ -319,6 +338,10 @@ function Theming(Theme)
       
       TH[31] = {0.32, 0.33, 0.33, 1} -- Slider Frames (Top, Loop and Swing)
       TH[32] = {0.32, 0.33, 0.33, 1} -- Slider Body (Top, Loop and Swing)
+
+      TH[45] = { 0.24, 0.25, 0.25, 0.15 } -- Slider Background
+
+      TH[46] = { 0.26, 0.28, 0.28, 1 } -- CheckBox Body
       
       --------------Text--------------------
       TH[33] = { 0.9, 0.9, 0.9, 0.7 } -- Text Main
@@ -388,6 +411,10 @@ function Theming(Theme)
       
       TH[31] = {0.204, 0.27, 0.329, 1} -- Slider Frames (Top, Loop and Swing)
       TH[32] = {0.204, 0.27, 0.329, 1} -- Slider Body (Top, Loop and Swing)
+
+      TH[45] = { 0.165, 0.165, 0.165, 0.3 } -- Slider Background
+
+      TH[46] = { 0.229, 0.305, 0.335, 1 } -- CheckBox Body
       
       --------------Text--------------------      
       TH[33] = { 0.65, 0.65, 0.65, 1 } -- Text Main
@@ -406,13 +433,84 @@ function Theming(Theme)
       TH[44] = { 0.906, 0.463, 0.0, 0.9 } -- Random+Q Bracket Color
       --------------------------------------------------------------
 
-
       elseif Theme == 5 then 
+      -------------------------Fall (Dark)------------------------------
+      theme_name = "Fall (Dark)"
+      -------Backgrounds and Frames-----------------
+      TH[1] = {0.063, 0.063, 0.067,1} -- Waveform, Background Box
+      TH[2] = {0.063, 0.063, 0.067,1} -- Waveform, Frame
+      TH[3] = {0.171, 0.171, 0.171} -- Main Background
+      TH[4] = { 0.241, 0.241, 0.241, 1 } -- Controls Body
+      TH[5] = { 0.778, 0.778, 0.778, 0 } -- Controls Frame
+
+      -----------Waveforms---------------
+      TH[6] = {0.945, 0.565, 0.0,1} -- Waveform, Filtered 
+      TH[7] = {0.1, 0.1, 0.1,1} -- Waveform, Original 
+      TH[8] = { 0.294, 0.239, 0.192 ,1 } -- Waveform, Draw original Only
+
+      --------Waveform Lines--------------
+      TH[9] = { 0.7, 0.7, 0.8, 1 } -- Ruler
+      TH[10] = 0 -- Ruler Gradient Width (0 = off)
+      TH[11] = 0.05 --Ruler Gradient Transparency
+
+      TH[12] = { 0.11, 0.78, 0.863, 0.4 } -- Threshold Lines
+      TH[13] = { 0.11, 0.78, 0.863, 0.9 } -- Transient Markers
+      TH[14] = 5 -- Transient Markers Gradient Width (if Selected)
+      TH[15] = 0.3 --Transient Markers Gradient Transparency (if Selected)
+      TH[16] = 0 -- Transient Markers Gradient Width (0 - off)
+      TH[17] = 0 --Transient Markers Gradient Transparency
+
+      TH[18] = { 0.11, 0.78, 0.863, 0.12 } -- Sample Area if enabled
+
+      TH[19] = { 0.278, 0.604, 0.435, 1 } -- Grid Markers
+      
+      TH[20] = { 1.0, 0.9, 0.9, 1 } -- Edit Cursor
+      TH[21] = 5 -- Edit Cursor Gradient Width
+      TH[22] = 0.2 --Edit Cursor Gradient Transparency
+
+      TH[23] = { 0.7, 0.7, 0.7, 1 } -- Play Cursor
+      TH[24] = 5 -- Play Cursor Gradient Width
+      TH[25] = 0.2 --Play Cursor Gradient Transparency
+
+      TH[26] = { 0.9, 0.9, 1, 0.5 } -- Aim Assist Cursor
+      
+      -------Buttons and Sliders ---------      
+      TH[27] = {0.11, 0.11, 0.11 ,1} -- Button Body
+      TH[28] = {0.11, 0.11, 0.11 ,1} -- Button Frames
+      
+      TH[29] = {0.078, 0.078, 0.078,1} -- Slider Frames
+      TH[30] = {0.1, 0.424, 0.455,1} -- Slider Body
+      
+      TH[31] = {0.1, 0.424, 0.455,1} -- Slider Frames (Top, Loop and Swing)
+      TH[32] = {0.1, 0.424, 0.455,1} -- Slider Body (Top, Loop and Swing)
+      
+      TH[45] = { 0.165, 0.165, 0.165, 1 } -- Slider Background
+
+      TH[46] = { 0.1, 0.424, 0.455,1 } -- CheckBox Body
+
+      --------------Text--------------------      
+      TH[33] = { 0.8, 0.8, 0.8, 1 } -- Text Main
+      TH[34] = { 0.906, 0.524, 0.229, 1 } -- Text Warn (Small "Processing, wait...")
+      TH[35] = { 0.4, 0.4, 0.4, 0.7 } -- Txt Greyed (BPM)
+      TH[36] = { 0.8, 0.8, 0.8, 0.5 } -- Txt Greyed (Presets, Mode)
+      TH[37] = 0 -- an additional value is added to the brightness of the BPM digits. Can be negative.
+      TH[38] = 0.9 -- BPM digits transparency
+
+      -----------Elements------------------      
+      TH[39] =  {0.941, 0.565, 0.0, 1 } -- Green tops elements (Loop triangles, Buttons Leds)
+      TH[40] = { 0.778, 0.778, 0.778, 0.3 } -- Txt Brackets
+      TH[41] = { 0.078, 0.078, 0.078, 0.4 } -- Main Separators
+      TH[42] = 0.7 -- Leds Transparency (Controls Body)
+      TH[43] = 0 -- Waveform Peaks Thickness (Transparency) - 0 = normal peaks, 1 - thick peaks, 0.5 or something = like a blur/antialiasing
+      TH[44] = { 0.778, 0.778, 0.778, 0.5 } -- Random+Q Bracket Color
+      --------------------------------------------------------------
+
+      elseif Theme == 6 then 
       -------------------------Fall------------------------------
       theme_name = "Fall"
       -------Backgrounds and Frames-----------------
-      TH[1] = {0.169, 0.169, 0.169,1} -- Waveform, Background Box
-      TH[2] = {0.172, 0.20, 0.215,1} -- Waveform, Frame
+      TH[1] = {0.16, 0.16, 0.16,1} -- Waveform, Background Box
+      TH[2] = {0.16, 0.16, 0.16,1} -- Waveform, Frame
       TH[3] = { 0.533, 0.537, 0.537} -- Main Background
       TH[4] = { 0.651, 0.651, 0.651, 1 } -- Controls Body
       TH[5] = { 0.22, 0.22, 0.22, 0 } -- Controls Frame
@@ -457,12 +555,16 @@ function Theming(Theme)
       
       TH[31] = {0.32, 0.32, 0.32,1} -- Slider Frames (Top, Loop and Swing)
       TH[32] = {0.32, 0.32, 0.32,1} -- Slider Body (Top, Loop and Swing)
+
+      TH[45] = { 0.165, 0.165, 0.165, 0.07 } -- Slider Background
+
+      TH[46] = { 0.879, 0.454, 0.141, 1 } -- CheckBox Body
       
       --------------Text--------------------      
       TH[33] = { 0.078, 0.078, 0.078, 1 } -- Text Main
       TH[34] = { 0.906, 0.524, 0.229, 1 } -- Text Warn (Small "Processing, wait...")
       TH[35] = { 0.4, 0.4, 0.4, 0.7 } -- Txt Greyed (BPM)
-      TH[36] = { 0.2, 0.2, 0.2, 0.7 } -- Txt Greyed (Presets, Mode)
+      TH[36] = { 0.2, 0.2, 0.2, 0.85 } -- Txt Greyed (Presets, Mode)
       TH[37] = -0.32 -- an additional value is added to the brightness of the BPM digits. Can be negative.
       TH[38] = 0.8 -- BPM digits transparency
 
@@ -470,13 +572,13 @@ function Theming(Theme)
       TH[39] =  {0.9, 0.4, 0.1, 1 } -- Green tops elements (Loop triangles, Buttons Leds)
       TH[40] = { 0.3, 0.3, 0.3, 1 } -- Txt Brackets
       TH[41] = { 0.3, 0.3, 0.3, 1 } -- Main Separators
-      TH[42] = 0.7 -- Leds Transparency (Controls Body)
+      TH[42] = 0.9 -- Leds Transparency (Controls Body)
       TH[43] = 0 -- Waveform Peaks Thickness (Transparency) - 0 = normal peaks, 1 - thick peaks, 0.5 or something = like a blur/antialiasing
       TH[44] = { 0.20, 0.20, 0.20, 1 } -- Random+Q Bracket Color
       --------------------------------------------------------------
 
 
-      elseif Theme == 6 then 
+      elseif Theme == 7 then 
       -------------------------Soft Dark--------------------------
       theme_name = "Soft Dark"
       -------Backgrounds and Frames-----------------
@@ -526,6 +628,10 @@ function Theming(Theme)
       
       TH[31] = {0.32, 0.34, 0.34, 1} -- Slider Frames (Top, Loop and Swing)
       TH[32] = {0.32, 0.34, 0.34, 1} -- Slider Body (Top, Loop and Swing)
+
+      TH[45] = { 0.165, 0.165, 0.165, 0 } -- Slider Background
+
+      TH[46] = { 0.21, 0.21, 0.21, 1 } -- CheckBox Body
       
       --------------Text--------------------
       TH[33] = { 0.55, 0.55, 0.55, 1 } -- Text Main
@@ -545,7 +651,7 @@ function Theming(Theme)
       --------------------------------------------------------------
 
 
-elseif Theme == 7 then 
+elseif Theme == 8 then 
       --------------------------Graphite-------------------------------
       theme_name = "Graphite"
       -------Backgrounds and Frames-----------------
@@ -595,6 +701,10 @@ elseif Theme == 7 then
       
       TH[31] = {0.48, 0.49, 0.5, 0.7} -- Slider Frames (Top, Loop and Swing)
       TH[32] = {0.45, 0.47, 0.48,1} -- Slider Body (Top, Loop and Swing)
+
+      TH[45] = { 0.50, 0.52, 0.53, 0.15 } -- Slider Background
+
+      TH[46] = { 0.60, 0.62, 0.63, 1 } -- CheckBox Body
       
       --------------Text--------------------      
       TH[33] = { 0.16, 0.16, 0.19, 1 } -- Text Main
@@ -613,8 +723,79 @@ elseif Theme == 7 then
       TH[44] = { 0.20, 0.20, 0.20, 1 } -- Random+Q Bracket Color
       --------------------------------------------------------------
 
+      elseif Theme == 9 then 
+     ------------------------------Spring---------------------------
+      theme_name = "Spring"
+      -------Backgrounds and Frames-----------------
+      TH[1] = {0.812, 0.816, 0.804,1} -- Waveform, Background Box
+      TH[2] = {0.812, 0.816, 0.804,1} -- Waveform, Frame
+      TH[3] = { 0.827, 0.831, 0.82} -- Main Background
+      TH[4] = { 0.843, 0.851, 0.847, 1 } -- Controls Body
+      TH[5] = { 0.843, 0.851, 0.847, 0 } -- Controls Frame
 
-elseif Theme == 8 then 
+      -----------Waveforms---------------
+      TH[6] = {0.847, 0.451, 0.349,1} -- Waveform, Filtered 
+      TH[7] = {0.747, 0.767, 0.775,1} -- Waveform, Original 
+      TH[8] = { 0.847, 0.867, 0.875 ,1 } -- Waveform, Draw original Only
+
+      --------Waveform Lines--------------
+      TH[9] = { 0.094, 0.09, 0.082, 1 } -- Ruler
+      TH[10] = 0 -- Ruler Gradient Width (0 = off)
+      TH[11] = 0.12 --Ruler Gradient Transparency
+
+      TH[12] = { 0.161, 0.478, 0.922, 0.3 } -- Threshold Lines
+      TH[13] = { 0.161, 0.478, 0.922, 0.9 } -- Transient Markers
+      TH[14] = 7 -- Transient Markers Gradient Width (if Selected)
+      TH[15] = 0.15 --Transient Markers Gradient Transparency (if Selected)
+      TH[16] = 0 -- Transient Markers Gradient Width (0 - off)
+      TH[17] = 0.1 --Transient Markers Gradient Transparency
+
+      TH[18] = { 0.161, 0.478, 0.922, 0.12 } -- Sample Area if enabled
+
+      TH[19] = { 0.0, 0.5, 0.2, 0.5 } -- Grid Markers
+      
+      TH[20] = { 0.28, 0.114, 0.284, 1 } -- Edit Cursor
+      TH[21] = 5 -- Edit Cursor Gradient Width
+      TH[22] = 0.1 --Edit Cursor Gradient Transparency
+
+      TH[23] = { 0.141, 0.68, 0.69, 1 } -- Play Cursor
+      TH[24] = 5 -- Play Cursor Gradient Width
+      TH[25] = 0.1 --Play Cursor Gradient Transparency
+
+      TH[26] = { 0.0, 0.5, 0.2, 0.5 } -- Aim Assist Cursor
+      
+      -------Buttons and Sliders ---------
+      TH[27] = {0.706, 0.706, 0.702 ,1} -- Button Body
+      TH[28] = {0.706, 0.706, 0.702 ,1} -- Button Frames
+      
+      TH[29] = {0.765, 0.765, 0.765,1} -- Slider Frames
+      TH[30] = {0.765, 0.765, 0.765,1} -- Slider Body
+      
+      TH[31] = {0.706, 0.706, 0.702,1} -- Slider Frames (Top, Loop and Swing)
+      TH[32] = {0.706, 0.706, 0.702,1} -- Slider Body (Top, Loop and Swing)
+
+      TH[45] = { 0.165, 0.165, 0.165, 0 } -- Slider Background
+
+      TH[46] = { 0.735, 0.735, 0.735, 1 } -- CheckBox Body
+      
+      --------------Text--------------------     
+      TH[33] = { 0.298, 0.29, 0.282, 1 } -- Text Main
+      TH[34] = { 0.8, 0.3, 0.1, 1 } -- Text Warn (Small "Processing, wait...")
+      TH[35] = { 0.4, 0.4, 0.4, 0.5 } -- Txt Greyed (BPM)
+      TH[36] = { 0.298, 0.29, 0.282, 0.5 } -- Txt Greyed (Presets, Mode)
+      TH[37] = -0.5 -- an additional value is added to the brightness of the BPM digits. Can be negative.
+      TH[38] = 1 -- BPM digits transparency
+    
+      -----------Elements------------------
+      TH[39] =  { 0.216, 0.467, 0.922, 1 } -- Green tops elements (Loop triangles, Buttons Leds)
+      TH[40] = { 0.298, 0.29, 0.282, 0.4 } -- Txt Brackets
+      TH[41] = { 0.718, 0.714, 0.694, 1 } -- Main Separators
+      TH[42] = 1 -- Leds Transparency (Controls Body)
+      TH[43] = 0 -- Waveform Peaks Thickness (Transparency) - 0 = normal peaks, 1 - thick peaks, 0.5 or something = like a blur/antialiasing
+      TH[44] = { 0.906, 0.463, 0.0, 0.9 } -- Random+Q Bracket Color
+      --------------------------------------------------------------
+
+elseif Theme == 10 then 
       -------------------------Clean------------------------------
       theme_name = "Clean"
       -------Backgrounds and Frames-----------------
@@ -659,11 +840,15 @@ elseif Theme == 8 then
       TH[27] = {0.337, 0.643, 0.792 ,0.8} -- Button Body
       TH[28] = {0.337, 0.643, 0.792 ,0.8} -- Button Frames
       
-      TH[29] = {0.953, 0.533, 0.267,0.8} -- Slider Frames
+      TH[29] = {0.953, 0.533, 0.267,0} -- Slider Frames
       TH[30] = {0.953, 0.533, 0.267,0.8} -- Slider Body
       
-      TH[31] = {0.923, 0.503, 0.237, 0.8} -- Slider Frames (Top, Loop and Swing)
+      TH[31] = {0.923, 0.503, 0.237, 0} -- Slider Frames (Top, Loop and Swing)
       TH[32] = {0.923, 0.503, 0.237, 0.8} -- Slider Body (Top, Loop and Swing)
+
+      TH[45] = { 0.953, 0.533, 0.267, 0.2 } -- Slider Background
+
+      TH[46] = { 0.923, 0.503, 0.237, 0.9 } -- CheckBox Body
       
       --------------Text--------------------      
       TH[33] = { 0.2, 0.2, 0.2, 1 } -- Text Main
@@ -682,7 +867,7 @@ elseif Theme == 8 then
       TH[44] = { 0.20, 0.20, 0.20, 1 } -- Random+Q Bracket Color
       --------------------------------------------------------------
 
-elseif Theme == 9 then 
+elseif Theme == 11 then 
       -------------------------Ink------------------------------
       theme_name = "Ink"
       -------Backgrounds and Frames-----------------
@@ -732,6 +917,10 @@ elseif Theme == 9 then
       
       TH[31] = {0.565, 0.565, 0.565, 1} -- Slider Frames (Top, Loop and Swing)
       TH[32] = {0.735, 0.743, 0.739, 1} -- Slider Body (Top, Loop and Swing)
+
+      TH[45] = { 0.835, 0.843, 0.839, 0.15 } -- Slider Background
+
+      TH[46] = { 0.023, 0.103, 0.437, 0.1 } -- CheckBox Body
       
       --------------Text--------------------      
       TH[33] = { 0.142, 0.111, 0.566, 0.9 } -- Text Main
@@ -750,7 +939,7 @@ elseif Theme == 9 then
       TH[44] = { 0.20, 0.20, 0.20, 0.7 } -- Random+Q Bracket Color
       --------------------------------------------------------------
 
-      elseif Theme == 10 then 
+      elseif Theme == 12 then 
       ------------------Slicer Classic---------------------------------
       theme_name = "Classic"
       -------Backgrounds and Frames-----------------
@@ -800,6 +989,10 @@ elseif Theme == 9 then
       
       TH[31] = {0.28,0.4,0.7,0.8} -- Slider Frames (Top, Loop and Swing)
       TH[32] = {0.28,0.4,0.7,0.8} -- Slider Body (Top, Loop and Swing)
+
+      TH[45] = { 0.28,0.4,0.7, 0.07 } -- Slider Background
+
+      TH[46] = { 0.28,0.4,0.7,0.8 } -- CheckBox Body
       
       --------------Text--------------------      
       TH[33] = { 0.8, 0.8, 0.8, 0.9 } -- Text Color
@@ -881,6 +1074,8 @@ BPMButtonStatus2 = 0
 Markers_BPM_Reset_Status = 0
 Slice_BPM_Reset_Status = 0
 Drag = 0
+MIDITooLow = 0
+MIDITooHigh = 0
 -----------------------------------States and UA  protection-----------------------------
 Docked = tonumber(r.GetExtState('MK_Slicer_3','Docked'))or 0;
 EscToExit = tonumber(r.GetExtState('MK_Slicer_3','EscToExit'))or 1;
@@ -888,6 +1083,7 @@ MIDISamplerCopyFX = tonumber(r.GetExtState('MK_Slicer_3','MIDISamplerCopyFX'))or
 MIDISamplerCopyRouting = tonumber(r.GetExtState('MK_Slicer_3','MIDISamplerCopyRouting'))or 1;
 MIDI_Mode = tonumber(r.GetExtState('MK_Slicer_3','Midi_Sampler.norm_val'))or 1;
 RS_ObeyNoteOff_state = tonumber(r.GetExtState('MK_Slicer_3','RS_ObeyNoteOff.norm_val'))or 1; 
+RS_SamplerMode_state = tonumber(r.GetExtState('MK_Slicer_3','RS_SamplerMode.norm_val'))or 2; 
 Create_Replace_state = tonumber(r.GetExtState('MK_Slicer_3','Create_Replace.norm_val'))or 1; 
 Create_Replace_state2 = tonumber(r.GetExtState('MK_Slicer_3','Create_Replace2.norm_val'))or 1; 
 Set_Rate_Feel_state = tonumber(r.GetExtState('MK_Slicer_3','Set_Rate_Feel.norm_val'))or 1; 
@@ -913,6 +1109,9 @@ ObeyingTheSelection = tonumber(r.GetExtState('MK_Slicer_3','ObeyingTheSelection'
 ObeyingItemSelection = tonumber(r.GetExtState('MK_Slicer_3','ObeyingItemSelection'))or 1;
 XFadeOff = tonumber(r.GetExtState('MK_Slicer_3','XFadeOff'))or 0;
 FontAntiAliasing = tonumber(r.GetExtState('MK_Slicer_3','FontAntiAliasing'))or 0;
+MaxFontSizeSt = tonumber(r.GetExtState('MK_Slicer_3','MaxFontSizeSt'))or 0;
+if MaxFontSizeSt == 1 then MaxFontSize = 24 else MaxFontSize = 18 end
+Control_via_MIDI = tonumber(r.GetExtState('MK_Slicer_3','Control_via_MIDI'))or 0;
 Guides_mode = tonumber(r.GetExtState('MK_Slicer_3','Guides.norm_val'))or 1;
 
 OutNote_State = tonumber(r.GetExtState('MK_Slicer_3','OutNote.norm_val'))or 1;
@@ -1545,8 +1744,8 @@ r.Main_OnCommand(r.NamedCommandLookup('_SWS_RESTORESEL'), 0)  -- Restore track s
 
 if RememberLast == 1 then
 CrossfadeTime = tonumber(r.GetExtState('MK_Slicer_3','CrossfadeTime'))or 15;
-DefaultAttTime = tonumber(r.GetExtState('MK_Slicer_3','DefaultAttTime'))or 1;
-DefaultRelTime = tonumber(r.GetExtState('MK_Slicer_3','DefaultRelTime'))or 1;
+DefaultAttTime = tonumber(r.GetExtState('MK_Slicer_3','DefaultAttTime'))or 0.01;
+DefaultRelTime = tonumber(r.GetExtState('MK_Slicer_3','DefaultRelTime'))or 0.01;
 PitchDetect = tonumber(r.GetExtState('MK_Slicer_3','PitchDetect'))or 5;
 QuantizeStrength = tonumber(r.GetExtState('MK_Slicer_3','QuantizeStrength'))or 100;
 Offs_Slider = tonumber(r.GetExtState('MK_Slicer_3','Offs_Slider'))or 0.5;
@@ -2142,10 +2341,17 @@ function Element:draw_frame()
   gfx.rect(x, y, w, h, false)            -- frame1      
 end
 
+function Element:draw_frame_sld()
+  local x,y,w,h  = self.x,self.y,self.w,self.h
+    local r,g,b,a  = self.r,self.g,self.b,self.a
+  gfx.set(TH[45][1],TH[45][2],TH[45][3],TH[45][4]) -- sliders backgrounds
+  gfx.rect(x, y, w, h, true)            -- frame1      
+end
+
 function Element:draw_frame_sw()
   local x,y,w,h  = self.x,self.y,self.w,self.h
     local r,g,b,a  = self.r,self.g,self.b,self.a
-    local an = TH[29][4]
+    local an = TH[31][4]
     if self:mouseIN() then an=an+0.1 end
     if self:mouseDown() then an=an+0.1 end
   gfx.set(TH[31][1],TH[31][2],TH[31][3],an) -- swing slider borders
@@ -2316,7 +2522,7 @@ function Button_small:draw()
     local r,g,b,a  = self.r,self.g,self.b,self.a
     local fnt,fnt_sz = self.fnt, self.fnt_sz*(Z_h/1.2)
     if fnt_sz <= 9 then fnt_sz = 9 end
-    if fnt_sz >= 17 then fnt_sz = 17 end
+    if fnt_sz >= MaxFontSize-1 then fnt_sz = MaxFontSize-1 end
     -- Get mouse state ---------
           -- in element --------
           if self:mouseIN() then a=a+0.3 end
@@ -2351,7 +2557,7 @@ function Button:draw()
     local r,g,b,a  = self.r,self.g,self.b,self.a
     local fnt,fnt_sz = self.fnt, self.fnt_sz*(Z_h*1.05)
     if fnt_sz <= 12 then fnt_sz = 12 end
-    if fnt_sz >= 18 then fnt_sz = 18 end
+    if fnt_sz >= MaxFontSize then fnt_sz = MaxFontSize end
     -- Get mouse state ---------
           -- in element --------
           if self:mouseIN() then a=a+0.3 end
@@ -2390,7 +2596,7 @@ function Button_top:draw()
     local r,g,b,a  = self.r,self.g,self.b,self.a
     local fnt,fnt_sz = self.fnt, self.fnt_sz*(Z_h*1.05)
     if fnt_sz <= 10 then fnt_sz = 10 end
-    if fnt_sz >= 18 then fnt_sz = 18 end
+    if fnt_sz >= MaxFontSize then fnt_sz = MaxFontSize end
     -- Get mouse state ---------
           -- in element --------
           if self:mouseIN() then a=a+0.3 end
@@ -2476,7 +2682,7 @@ function Txt2:draw()
     local r,g,b,a  = self.r,self.g,self.b,self.a
     local fnt,fnt_sz = self.fnt, self.fnt_sz*(Z_h*1.05)
     if fnt_sz <= 12 then fnt_sz = 12 end
-    if fnt_sz >= 17 then fnt_sz = 17 end
+    if fnt_sz >= MaxFontSize-1 then fnt_sz = MaxFontSize-1 end
     fnt_sz = fnt_sz-1
 
     local x,y,w,h  = self.x,self.y,self.w,self.h
@@ -3173,7 +3379,7 @@ function Slider_small:draw()
     local r,g,b,a  = self.r,self.g,self.b,self.a
     local fnt,fnt_sz = self.fnt, self.fnt_sz*(Z_h*1.05)
     if fnt_sz <= 12 then fnt_sz = 12 end
-    if fnt_sz >= 17 then fnt_sz = 17 end
+    if fnt_sz >= MaxFontSize-1 then fnt_sz = MaxFontSize-1 end
     fnt_sz = fnt_sz-1
     -- Get mouse state ---------
           -- in element(and get mouswheel) --
@@ -3197,6 +3403,7 @@ function Slider_small:draw()
              mouse_ox, mouse_oy = -1, -1 -- reset after self.onUp()
           end    
     -- Draw sldr body, frame ---
+    self:draw_frame_sld() -- frame background
     gfx.set(r,g,b,a)  -- set body,frame color
     self:draw_body()  -- body
     self:draw_frame() -- frame
@@ -3213,7 +3420,7 @@ function Slider:draw()
     local r,g,b,a  = self.r,self.g,self.b,self.a
     local fnt,fnt_sz = self.fnt, self.fnt_sz*(Z_h*1.05)
     if fnt_sz <= 12 then fnt_sz = 12 end
-    if fnt_sz >= 18 then fnt_sz = 18 end
+    if fnt_sz >= MaxFontSize then fnt_sz = MaxFontSize end
     -- Get mouse state ---------
           -- in element(and get mouswheel) --
 
@@ -3265,6 +3472,7 @@ function Slider:draw()
              Slider_Status = 0 
           end    
     -- Draw sldr body, frame ---
+    self:draw_frame_sld() -- frame background
     gfx.set(r,g,b,a)  -- set body,frame color
     self:draw_body()  -- body
     self:draw_frame() -- frame
@@ -3281,7 +3489,7 @@ function Slider_simple:draw() -- slider without waveform and markers redraw
     local r,g,b,a  = self.r,self.g,self.b,self.a
     local fnt,fnt_sz = self.fnt, self.fnt_sz*(Z_h*1.05)
     if fnt_sz <= 12 then fnt_sz = 12 end
-    if fnt_sz >= 18 then fnt_sz = 18 end
+    if fnt_sz >= MaxFontSize then fnt_sz = MaxFontSize end
     -- Get mouse state ---------
           -- in element(and get mouswheel) --
           if self:mouseIN() then a=a+0.2
@@ -3304,6 +3512,7 @@ function Slider_simple:draw() -- slider without waveform and markers redraw
              mouse_ox, mouse_oy = -1, -1 -- reset after self.onUp()
           end    
     -- Draw sldr body, frame ---
+    self:draw_frame_sld() -- frame background
     gfx.set(r,g,b,a)  -- set body,frame color
     self:draw_body()  -- body
     self:draw_frame() -- frame
@@ -3320,7 +3529,7 @@ function Slider_Fine:draw() -- Offset slider with fine tuning and additional lin
     local r,g,b,a  = self.r,self.g,self.b,self.a
     local fnt,fnt_sz = self.fnt, self.fnt_sz*(Z_h*1.05)
     if fnt_sz <= 12 then fnt_sz = 12 end
-if fnt_sz >= 18 then fnt_sz = 18 end
+if fnt_sz >= MaxFontSize then fnt_sz = MaxFontSize end
     -- Get mouse state ---------
           -- in element(and get mouswheel) --
           if self:mouseIN() then a=a+0.2
@@ -3371,6 +3580,7 @@ if fnt_sz >= 18 then fnt_sz = 18 end
              Slider_Status = 0 
           end    
     -- Draw sldr body, frame ---
+    self:draw_frame_sld() -- frame background
     gfx.set(r,g,b,a)  -- set body,frame color
     self:draw_body()  -- body
     self:draw_frame() -- frame
@@ -3388,7 +3598,7 @@ function Slider_Swing:draw() -- Swing slider
     local r,g,b,a  = self.r,self.g,self.b,self.a
     local fnt,fnt_sz = self.fnt, self.fnt_sz*(Z_h*1.05)
     if fnt_sz <= 12 then fnt_sz = 12 end
-    if fnt_sz >= 18 then fnt_sz = 18 end
+    if fnt_sz >= MaxFontSize then fnt_sz = MaxFontSize end
     -- Get mouse state ---------
           -- in element(and get mouswheel) --
           if self:mouseIN() then a=a+0.2
@@ -3418,6 +3628,7 @@ function Slider_Swing:draw() -- Swing slider
              Slider_Status = 0 
           end    
     -- Draw sldr body, frame ---
+    self:draw_frame_sld() -- frame background
     gfx.set(r,g,b,a)  -- set body,frame color
     self:draw_body()  -- body
     self:draw_frame_sw() -- frame
@@ -3434,7 +3645,7 @@ function Slider_complex:draw() -- slider with full waveform and markers redraw
     local r,g,b,a  = self.r,self.g,self.b,self.a
     local fnt,fnt_sz = self.fnt, self.fnt_sz*(Z_h*1.05)
     if fnt_sz <= 12 then fnt_sz = 12 end
-    if fnt_sz >= 18 then fnt_sz = 18 end
+    if fnt_sz >= MaxFontSize then fnt_sz = MaxFontSize end
     -- Get mouse state ---------
           -- in element(and get mouswheel) --
           if self:mouseIN() then a=a+0.2
@@ -3485,6 +3696,7 @@ function Slider_complex:draw() -- slider with full waveform and markers redraw
              Slider_Status = 0
           end    
     -- Draw sldr body, frame ---
+    self:draw_frame_sld() -- frame background
     gfx.set(r,g,b,a)  -- set body,frame color
     self:draw_body()  -- body
     self:draw_frame() -- frame
@@ -3500,7 +3712,7 @@ function Slider_fgain:draw() -- filter slider without waveform processing
     local r,g,b,a  = self.r,self.g,self.b,self.a
     local fnt,fnt_sz = self.fnt, self.fnt_sz*(Z_h*1.05)
     if fnt_sz <= 12 then fnt_sz = 12 end
-    if fnt_sz >= 18 then fnt_sz = 18 end
+    if fnt_sz >= MaxFontSize then fnt_sz = MaxFontSize end
     -- Get mouse state ---------
           -- in element(and get mouswheel) --
           if self:mouseIN() then a=a+0.2
@@ -3549,6 +3761,7 @@ function Slider_fgain:draw() -- filter slider without waveform processing
              mouse_ox, mouse_oy = -1, -1 -- reset after self.onUp()
           end    
     -- Draw sldr body, frame ---
+    self:draw_frame_sld() -- frame background
     gfx.set(r,g,b,a)  -- set body,frame color
     self:draw_body()  -- body
     self:draw_frame() -- frame
@@ -3704,7 +3917,7 @@ function Rng_Slider:draw()
     local r,g,b,a  = self.r,self.g,self.b,self.a
     local fnt,fnt_sz = self.fnt, self.fnt_sz*(Z_h*1.05)
     if fnt_sz <= 12 then fnt_sz = 12 end
-    if fnt_sz >= 18 then fnt_sz = 18 end
+    if fnt_sz >= MaxFontSize then fnt_sz = MaxFontSize end
     -- set additional coordinates --
     self.sb_w  = self.w//10 -- sidebuttons width(change it if need)
     self.rng_x = self.x + self.sb_w    -- range streak min x
@@ -3743,6 +3956,7 @@ function Rng_Slider:draw()
              mouse_ox, mouse_oy = -1, -1 -- reset after self.onUp()
           end
     -- Draw sldr body, frame, sidebuttons --
+    self:draw_frame_sld() -- frame background
     gfx.set(r,g,b,a)  -- set color
     self:draw_body()  -- body
     self:draw_frame_rng() -- frame
@@ -3902,7 +4116,7 @@ function Loop_Slider:draw()
     local r,g,b,a  = self.r,self.g,self.b,self.a
     local fnt,fnt_sz = self.fnt, self.fnt_sz*(Z_h*1.05)
     if fnt_sz <= 10 then fnt_sz = 10 end
-    if fnt_sz >= 17 then fnt_sz = 17 end
+    if fnt_sz >= MaxFontSize-1 then fnt_sz = MaxFontSize-1 end
     -- set additional coordinates --
     self.sb_w  = h
 --    self.sb_w  = floor(self.w/120) -- sidebuttons width(change it if need)
@@ -4012,7 +4226,7 @@ function CheckBox:draw()
     local r,g,b,a  = self.r,self.g,self.b,self.a
     local fnt,fnt_sz = self.fnt, self.fnt_sz*(Z_h*1.05)
     if fnt_sz <= 12 then fnt_sz = 12 end
-if fnt_sz >= 18 then fnt_sz = 18 end
+if fnt_sz >= MaxFontSize then fnt_sz = MaxFontSize end
     -- Get mouse state ---------
           -- in element --------
           if self:mouseIN() then a=a+0.2
@@ -4028,7 +4242,7 @@ if fnt_sz >= 18 then fnt_sz = 18 end
              if self:mouseClick() and self.onClick then self.onClick() end
           end
     -- Draw ch_box body, frame -
-    gfx.set(r,g,b,a)    -- set body color
+    gfx.set(TH[46][1],TH[46][2],TH[46][3],TH[46][4])    -- set body color
     self:draw_body()    -- body
     self:draw_frame()   -- frame
     -- Draw label --------------
@@ -4088,7 +4302,7 @@ function CheckBox_simple:draw()
     local r,g,b,a  = self.r,self.g,self.b,self.a
     local fnt,fnt_sz = self.fnt, self.fnt_sz*(Z_h*1.05)
     if fnt_sz <= 12 then fnt_sz = 12 end
-if fnt_sz >= 18 then fnt_sz = 18 end
+if fnt_sz >= MaxFontSize then fnt_sz = MaxFontSize end
     -- Get mouse state ---------
           -- in element --------
           if self:mouseIN() then a=a+0.2
@@ -4103,7 +4317,7 @@ if fnt_sz >= 18 then fnt_sz = 18 end
              if self:mouseClick() and self.onClick then self.onClick() end
           end
     -- Draw ch_box body, frame -
-    gfx.set(r,g,b,a)    -- set body color
+    gfx.set(TH[46][1],TH[46][2],TH[46][3],TH[46][4])    -- set body color
     self:draw_body()    -- body
     self:draw_frame()   -- frame
     -- Draw label --------------
@@ -4164,7 +4378,7 @@ function CheckBox_Show:draw()
     local r,g,b,a  = self.r,self.g,self.b,self.a
     local fnt,fnt_sz = self.fnt, self.fnt_sz*(Z_h*1.05)
     if fnt_sz <= 12 then fnt_sz = 12 end
-if fnt_sz >= 18 then fnt_sz = 18 end
+if fnt_sz >= MaxFontSize then fnt_sz = MaxFontSize end
     -- Get mouse state ---------
           -- in element --------
           a=a-0.6
@@ -4284,7 +4498,7 @@ local Gate_Gl  = {}
 ---  Create Frames ------------------------------------------
 ---------------------------------------------------------------
 ------local tables to reduce locals (avoid 200 locals limits)-------
-local elm_table = {Fltr_Frame, Gate_Frame, Mode_Frame, Mode_Frame_filled, Gate_Frame_filled, Random_Setup_Frame_filled, Random_Setup_Frame, Grid1_Led, Grid2_Led, Grid4_Led, Grid8_Led, Grid16_Led, Grid32_Led, Grid64_Led, GridT_Led, Swing_Led, MIDI_Divider_Line, MIDI_Divider_Line2, BPM_Divider_Line, BPM_Divider_Line2, Frame}
+local elm_table = {}
 
 elm_table[1] = Frame_body:new(10, 385,1024,100) --Main_Frame_body
 
@@ -4315,10 +4529,12 @@ elm_table[20] = Line2:new(dl3_pos+1,380+corrY,4,88, TH[4][1],TH[4][2],TH[4][3],T
 
 elm_table[21] = Frame:new(10, 385,1024,100) --Main_Frame
 
-local leds_table = {Frame_byGrid, Frame_byGrid2, Light_Loop_on, Light_Loop_off, Light_Snap_on, Light_Snap_off, Rand_Mode_Color1, Rand_Mode_Color2, Rand_Mode_Color3, Rand_Mode_Color4, Rand_Mode_Color5, Rand_Mode_Color6, Rand_Mode_Color7, Rand_Button_Color1, Rand_Button_Color2, Rand_Button_Color3, Rand_Button_Color4, Rand_Button_Color5, Rand_Button_Color6, Rand_Button_Color7, MIDIMode1, MIDIMode2, MIDIMode3, Light_Aim_on, Light_Aim_off}
+local leds_table = {}
 
-leds_table[1] = Colored_Rect:new(577+c_pos,410+corrY,2,18,  0.1,0.7,0.6,TH[42] ) -- Frame_byGrid (Blue indicator)
-leds_table[2] = Colored_Rect:new(577+c_pos,410+corrY,2,18,  0.7,0.7,0.0,TH[42] ) -- Frame_byGrid2 (Yellow indicator)
+if TH[29][4] == 0 then fr_marg = 1; fr_marg2 = 2 else fr_marg = 0; fr_marg2 = 0 end -- if no frames, then add led size correction
+
+leds_table[1] = Colored_Rect:new(576+c_pos,410+corrY+fr_marg,3,18-fr_marg2,  0.1,0.7,0.6,TH[42] ) -- Frame_byGrid (Blue indicator)
+leds_table[2] = Colored_Rect:new(576+c_pos,410+corrY+fr_marg,3,18-fr_marg2,  0.7,0.7,0.0,TH[42] ) -- Frame_byGrid2 (Yellow indicator)
 
 leds_table[3] = Colored_Rect_top:new(983,5,2,20,  TH[39][1],TH[39][2],TH[39][3],TH[39][4] ) -- Light_Loop_on
 leds_table[4] = Colored_Rect_top:new(983,5,2,20,  0.5,0.5,0.5,0.5 ) -- Light_Loop_off
@@ -4342,14 +4558,14 @@ leds_table[18] = Colored_Rect:new(633+c_pos,426+corrY,9,2,  0.2,0.5,1,TH[42] ) -
 leds_table[19] = Colored_Rect:new(623+c_pos,426+corrY,9,2,  0.8,0.1,0.8,TH[42] ) --  Rand_Button_Color6
 leds_table[20] = Colored_Rect:new(643+c_pos,426+corrY,8,2,  0.1,0.7,0.6,TH[42] ) --  Rand_Button_Color7
 
-leds_table[21] = Colored_Rect:new(761+d_pos,410+corrY,2,18,  0.69,0.17,0.17,TH[42] ) -- MIDIMode1
-leds_table[22] = Colored_Rect:new(761+d_pos,410+corrY,2,18,  0.69,0.32,0.05,TH[42] ) -- MIDIMode2
-leds_table[23] = Colored_Rect:new(761+d_pos,410+corrY,2,18,  0.54,0.14,1,TH[42] ) -- MIDIMode3
+leds_table[21] = Colored_Rect:new(760+d_pos,410+corrY+fr_marg,3,18-fr_marg2,  0.69,0.17,0.17,TH[42] ) -- MIDIMode1
+leds_table[22] = Colored_Rect:new(760+d_pos,410+corrY+fr_marg,3,18-fr_marg2,  0.69,0.32,0.05,TH[42] ) -- MIDIMode2
+leds_table[23] = Colored_Rect:new(760+d_pos,410+corrY+fr_marg,3,18-fr_marg2,  0.54,0.14,1,TH[42] ) -- MIDIMode3
 
 leds_table[25] = Colored_Rect_top:new(917,5,2,20,  TH[39][1],TH[39][2],TH[39][3],TH[39][4] ) -- Light_Aim_on
 leds_table[26] = Colored_Rect_top:new(917,5,2,20,  0.5,0.5,0.5,0.5 ) -- Light_Aim_off
 
-local others_table = {Triangle, RandText, Q_Rnd_Linked, Q_Rnd_Linked2, Line, Line2, Loop_Dis, Ruler, Preset, Velocity, Mode, Mode2, ModeText, Line3, Line4, RS5k_Settings}
+local others_table = {}
 
 others_table[1] = Txt2:new(628+c_pos,408+corrY,55,18, TH[36][1],TH[36][2],TH[36][3],TH[36][4], ">","Arial",20) --Triangle
 others_table[2] = Txt2:new(735+c_pos,377,55,18, TH[36][1],TH[36][2],TH[36][3],TH[36][4], "Intensity","Arial",10) --RandText
@@ -4372,6 +4588,9 @@ others_table[13] = Txt:new(868+d_pos,384+corrY,52,18, TH[36][1],TH[36][2],TH[36]
 others_table[14] = Line:new(781+d_pos,404+corrY,146,5) --Line (RS5k_Settings Bracket)
 others_table[15] = Line2:new(780+d_pos,407+corrY,148,3,  TH[4][1],TH[4][2],TH[4][3],TH[4][4])--Line2 (RS5k_Settings Bracket fill)
 others_table[16] = Txt:new(828+d_pos,384+corrY,52,18, TH[36][1],TH[36][2],TH[36][3],TH[36][4], "RS5k_Settings","Arial",22) -- Mode Text
+
+others_table[17] = Colored_Rect_top:new(64+d_pos,35+corrY,5,335, TH[13][1],TH[13][2],TH[13][3],0.4, ">>","Arial",22) -- MIDITriangle1
+others_table[18] = Colored_Rect_top:new(1096+d_pos,35+corrY,5,335, TH[13][1],TH[13][2],TH[13][3],0.4, "<<","Arial",22) -- MIDITriangle2
 
 
 local Frame_Snap_TB = {leds_table[5]}
@@ -4413,9 +4632,9 @@ local Rand_Button_Color5_TB = {leds_table[18]}
 local Rand_Button_Color6_TB = {leds_table[19]}
 local Rand_Button_Color7_TB = {leds_table[20]}
 
-local Triangle_TB = {others_table[1]}
-local RandText_TB = {others_table[2]}
-local Ruler_TB = {others_table[8]}
+--local Triangle_TB = {others_table[1]}
+local RandText_TB = {others_table[2], others_table[1]}
+--local Ruler_TB = {others_table[8]}
 local Preset_TB = {others_table[9]}  
 local Preset_TB2 = {others_table[14], others_table[15], others_table[16]}  
 
@@ -4423,9 +4642,12 @@ local MIDI_Mode_Color1_TB = {leds_table[21]}
 local MIDI_Mode_Color2_TB = {leds_table[22]}
 local MIDI_Mode_Color3_TB = {leds_table[23]}
 
+local MIDITriangle1_TB = {others_table[17]}
+local MIDITriangle2_TB = {others_table[18]}
 
 
-local Midi_Sampler = CheckBox_simple:new(670+d_pos,410+corrY,91,18, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "","Arial",16,  MIDI_Mode,
+
+local Midi_Sampler = CheckBox_simple:new(670+d_pos,410+corrY,90,18, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "","Arial",16,  MIDI_Mode,
                               {"Sampler","Trigger","Pitch Detect"} )
 
                               if Midi_Sampler.norm_val == 3 and RebuildPeaksOnStart == 1 then
@@ -4434,6 +4656,9 @@ local Midi_Sampler = CheckBox_simple:new(670+d_pos,410+corrY,91,18, TH[30][1],TH
 
 local RS_ObeyNoteOff = CheckBox_simple:new(670+d_pos,430+corrY,93,18, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "","Arial",16,  RS_ObeyNoteOff_state,
                               {"NoteOff: Yes","NoteOff: No"} )
+
+local RS_SamplerMode = CheckBox_simple:new(670+d_pos,450+corrY,93,18, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "","Arial",16,  RS_SamplerMode_state,
+                              {"Play/Record","Create MIDI", "Both"} )
 
 local Pitch_Preset = CheckBox_simple:new(765+d_pos,410+corrY,85,18, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "","Arial",16,  PitchDetect,
                               {"Drums","Drums 2", "Percussion", "Bass","Default","Melodic","Complex"} )
@@ -6598,7 +6823,7 @@ end
 local Loop_TB = {LoopScale}
 local LoopBtn_TB = {Loop_Btn, Aim_Btn, Snap_Btn, GrBtnT[9]}
 
-local Checkbox_TB_preset = {RS_Att_Sld, RS_Rel_Sld, PitchOffset_Sld, RS_PitchBend_Sld, RS_ObeyNoteOff}
+local Checkbox_TB_preset = {RS_Att_Sld, RS_Rel_Sld, PitchOffset_Sld, RS_PitchBend_Sld, RS_ObeyNoteOff, RS_SamplerMode}
 
 local Button_TB = {Get_Sel_Button, Settings, Just_Slice, Quantize_Slices, Add_Markers, Quantize_Markers, Random, Reset_All, Random_SetupB, Set_Rate}
 local Button_TB2 = {Create_MIDI, Midi_Sampler}
@@ -6612,7 +6837,7 @@ local Random_Setup_TB2 = {elm_table[6], elm_table[7], sbtbl[1], sbtbl[2], sbtbl[
 --- CheckBoxes ---------------------------------------------------------------------
 -------------------------------------------------------------------------------------
 
-local Guides  = CheckBox:new(400+c_pos,410+corrY,177,18, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "","Arial",16,  Guides_mode,
+local Guides  = CheckBox:new(400+c_pos,410+corrY,176,18, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "","Arial",16,  Guides_mode,
                               {"Guides By Transients","Guides By Grid"} )
 
 Guides.onClick = 
@@ -7500,14 +7725,15 @@ function Wave:BPM_Numbers()
     local fnt_sz = 15
     fnt_sz = fnt_sz*(Z_h*1.25)
     local fnt = self.fnt
+    local FontSizeCorr = abs(MaxFontSize - 18)/2
 
     if fnt_sz then
        if gfx.ext_retina == 1 then
           if fnt_sz <= 15 then fnt_sz = 15 end
-          if fnt_sz >= 36 then fnt_sz = 36 end
+          if fnt_sz >= 36+FontSizeCorr then fnt_sz = 36+FontSizeCorr end -- default 36
           else
           if fnt_sz <= 12 then fnt_sz = 12 end
-          if fnt_sz >= 30 then fnt_sz = 30 end
+          if fnt_sz >= 30+FontSizeCorr then fnt_sz = 30+FontSizeCorr end -- default 30 
        end
     end 
 
@@ -8729,41 +8955,45 @@ end
 RS_Att = RS_Att/2000
 RS_Rel = RS_Rel/2000
 
-function ExportItemToRS5K_defaults(data,conf,refresh,note,filepath, start_offs, end_offs, track)
-    local rs5k_pos = r.TrackFX_AddByName( track, 'ReaSamplomatic5000', false, -1 )
-                               r.TrackFX_Show( track, rs5k_pos, 2) -- Hide Plugins Windows
-    r.TrackFX_SetNamedConfigParm(  track, rs5k_pos, 'FILE0', filepath)
-    r.TrackFX_SetNamedConfigParm(  track, rs5k_pos, 'DONE', '')      
-    r.TrackFX_SetParamNormalized( track, rs5k_pos, 0, 0.63) -- gain for min vel
-    r.TrackFX_SetParamNormalized( track, rs5k_pos, 2, 0) -- gain for min vel
-    r.TrackFX_SetParamNormalized( track, rs5k_pos, 3, note/127 ) -- note range start
-    r.TrackFX_SetParamNormalized( track, rs5k_pos, 4, note/127 ) -- note range end
-    r.TrackFX_SetParamNormalized( track, rs5k_pos, 5, 0.5 ) -- pitch for start
-    r.TrackFX_SetParamNormalized( track, rs5k_pos, 6, 0.5 ) -- pitch for end
-    r.TrackFX_SetParamNormalized( track, rs5k_pos, 8, 0 ) -- max voices = 0
-    r.TrackFX_SetParamNormalized( track, rs5k_pos, 9, RS_Att ) -- attack
-    r.TrackFX_SetParamNormalized( track, rs5k_pos, 10, RS_Rel ) -- Release
-    r.TrackFX_SetParamNormalized( track, rs5k_pos, 11, obeynoteoff_default ) -- obey note offs
-    if start_offs and end_offs then
-      r.TrackFX_SetParamNormalized( track, rs5k_pos, 13, start_offs ) -- attack
-      r.TrackFX_SetParamNormalized( track, rs5k_pos, 14, end_offs )   
-      r.TrackFX_SetParamNormalized( track, rs5k_pos, 15, 0.5+((0.075/12)*RS_PitchOffset) ) -- pitch offset
-        if ForcePitchBend == 1 then
-              r.TrackFX_SetParamNormalized( track, rs5k_pos, 16, (1/12)*RS_PitchBend ) -- pitch bend
-        end
-    end  
-  end
 
 
-function ExportItemToRS5K(data,conf,refresh,note,filepath, start_offs, end_offs)
+function ExportItemToRS5K(note,filepath, start_offs, end_offs, track)
  
-    if not note or not filepath then return end
+      if not note or not filepath then return end
+  
+      if note > 127 then return end
 
-     if note > 127 then return end
-       ExportItemToRS5K_defaults(data,conf,refresh,note,filepath, start_offs, end_offs, track)
-       return 1
+      local position_of_FX_in_container = select(2, r.TrackFX_GetNamedConfigParm(track, 0, 'container_count')) + 1
+      local parent_FX_count = r.TrackFX_GetCount(track)
+      local position_of_container = 1
+      
+      local insert_position = 0x2000000 + position_of_FX_in_container * (parent_FX_count + 1) + position_of_container
+
+      local rs5k_pos = r.TrackFX_AddByName( track, 'ReaSamplomatic5000', false, insert_position )
+                                 r.TrackFX_Show( track, insert_position, 2) -- Hide Plugins Windows
+      r.TrackFX_SetNamedConfigParm(  track, insert_position, 'FILE0', filepath)
+      r.TrackFX_SetNamedConfigParm(  track, insert_position, 'DONE', '')      
+      r.TrackFX_SetParamNormalized( track, insert_position, 0, 0.63) -- gain for min vel
+      r.TrackFX_SetParamNormalized( track, insert_position, 2, 0) -- gain for min vel
+      r.TrackFX_SetParamNormalized( track, insert_position, 3, note/127 ) -- note range start
+      r.TrackFX_SetParamNormalized( track, insert_position, 4, note/127 ) -- note range end
+      r.TrackFX_SetParamNormalized( track, insert_position, 5, 0.5 ) -- pitch for start
+      r.TrackFX_SetParamNormalized( track, insert_position, 6, 0.5 ) -- pitch for end
+      r.TrackFX_SetParamNormalized( track, insert_position, 8, 0 ) -- max voices = 0
+      r.TrackFX_SetParamNormalized( track, insert_position, 9, RS_Att ) -- attack
+      r.TrackFX_SetParamNormalized( track, insert_position, 10, RS_Rel ) -- Release
+      r.TrackFX_SetParamNormalized( track, insert_position, 11, obeynoteoff_default ) -- obey note offs
+      if start_offs and end_offs then
+        r.TrackFX_SetParamNormalized( track, insert_position, 13, start_offs ) -- attack
+        r.TrackFX_SetParamNormalized( track, insert_position, 14, end_offs )   
+        r.TrackFX_SetParamNormalized( track, insert_position, 15, 0.5+((0.075/12)*RS_PitchOffset) ) -- pitch offset
+          if ForcePitchBend == 1 then
+                r.TrackFX_SetParamNormalized( track, insert_position, 16, (1/12)*RS_PitchBend ) -- pitch bend
+          end
+      end  
 
   end
+
 
  function ExportSelItemsToRs5k_FormMIDItake_data()
     local MIDI = {}
@@ -8825,6 +9055,9 @@ function Load()
                r.InsertTrackAtIndex(0,false);
                track = r.GetTrack(0,0);
                 if not track then return end        
+
+                r.TrackFX_AddByName(track, 'Container', false, 1)
+
               -- item check
                 local item = r.GetSelectedMediaItem(0,0)
                 if not item then return true end  
@@ -8847,16 +9080,18 @@ function Load()
                   local src_len =r.GetMediaSourceLength( tk_src )
                   local filepath = r.GetMediaSourceFileName( tk_src, '' )
                   --msg(s_offs/src_len)
-                  ExportItemToRS5K(data,conf,refresh,base_pitch + i-1,filepath, s_offs/src_len, (s_offs+it_len)/src_len)
+                  ExportItemToRS5K(base_pitch + i-1,filepath, s_offs/src_len, (s_offs+it_len)/src_len, track)
                   r.SetTrackMIDINoteNameEx( 0, track, base_pitch-1 + i, 0, "Slice " .. 0+i) -- renaming notes in ME
                   ::skip_to_next_item::
                 end
-                   
+            
                    r.Main_OnCommand(40548,0)--Item: Heal Splits   
-                   r.Main_OnCommand(40719,0)--Item: Mute items     
+                   r.Main_OnCommand(40719,0)--Item: Mute items  
+ 
+         if RS_SamplerMode.norm_val == 2 or RS_SamplerMode.norm_val == 3 then 
               -- add MIDI
                 if proceed_MIDI then ExportSelItemsToRs5k_AddMIDI(track, MIDI,base_pitch) end  
-
+         end      
 
             r.GetSetMediaTrackInfo_String(track, "P_NAME", "Sliced item", true) -- New Track Name
 
@@ -8867,10 +9102,15 @@ function Load()
             r.SetMediaTrackInfo_Value(track, "D_WIDTH", width_) -- Paste Width
             r.SetMediaTrackInfo_Value(track, "I_RECMON", 1) -- Set Monitoring
 
+if RS_SamplerMode.norm_val == 1 or RS_SamplerMode.norm_val == 3 then
+            r.SetMediaTrackInfo_Value(track, "I_RECARM", 1) -- Set Recording
+            r.SetMediaTrackInfo_Value(track, "I_RECMODE", 0) -- Set Recording Mode
+            r.SetMediaTrackInfo_Value(track, "I_RECINPUT", 4096+2016) -- Set (All MIDI) Inputs
+end
 
         track = r.GetSelectedTrack(0, 0)
         r.Main_OnCommand(40297,0) -- Unselect All Tracks
-  first_track = r.GetTrack(0, 0)
+        first_track = r.GetTrack(0, 0)
           if first_track then
         r.SetTrackSelected(first_track, true)
         end
@@ -9919,6 +10159,46 @@ end
 --------------------------------------------------------------------------------------------------------------------------------
 ---------------------------------------------------SnapArea------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------------------------------------
+
+  function midi_loop() -- check midi input
+
+  midi_play = 0
+  local Buf_1x = Buf_1
+
+     local retval,  buf,  ts, devIdx
+     retval,  buf,  ts,  devIdx = reaper.MIDI_GetRecentInputEvent(0)
+
+     Buf_1 =  string.byte(buf,1)
+     Midi_Note =  string.byte(buf,2)
+     Buf_3 =  string.byte(buf,3)
+
+     if Control_via_MIDI ~= 1 then Buf_1 = nil; Buf_1x = nil end
+
+     if Wave.State and Snap_on == 1 then
+        if Buf_1 ~= Buf_1x and Buf_1 == 144 then  midi_play = 1
+
+             if r.GetPlayState()&1 == 1 and Midi_Note == Midi_Note then
+             r.OnStopButton();
+             midi_play = 0 
+             end
+
+             if r.GetPlayState()&1 == 0 and Loop_on == 0 then
+             r.OnPlayButton();
+             --midi_play = 0 
+             end
+
+        end
+        if Buf_1 ~= 144 and Buf_1 ~= Buf_1x and r.GetPlayState()&1 == 1 then 
+                if RS_ObeyNoteOff.norm_val == 1 then
+                   r.OnStopButton(); 
+                end  
+                midi_play = 0 
+        end
+     end
+
+  end
+--------------------------------------------------------------------------------------------
+
 function GetItemParams()
      local lastitem = r.GetExtState('_Slicer_', 'ItemToSlice')
      local item =  r.BR_GetMediaItemByGUID( 0, lastitem )
@@ -9933,7 +10213,7 @@ SelAreaTable = {play_start_id, play_length_id}
 
 function Gate_Gl:SnapAreaTables()
 
-   local MousePnts= {} -- collect transients only
+   MousePnts = {} -- collect transients only
    local TrTable = {}
 
              local sPcount = #self.Res_Points
@@ -9957,6 +10237,40 @@ function Gate_Gl:SnapAreaTables()
                 table.insert(TrTable, val - prev_val)
              end
 
+     ------------------------------------------------------------------------------
+          Midi_Note_Table = {}
+          
+          if Midi_Note == nil then Midi_Note = #MousePnts-2 end
+          MIDI_Base_Oct = tonumber(r.GetExtState('MK_Slicer_3','MIDI_Base_Oct'))or 2;
+          Midi_Note = Midi_Note+2-(MIDI_Base_Oct*12)
+          if Midi_Note > #MousePnts-2 then Midi_Note = #MousePnts-2; MIDITooHigh = 1 end
+          if Midi_Note > 127 then Midi_Note = 127 end
+          if Midi_Note < 2 then Midi_Note = 2; MIDITooLow = 1 end
+          
+          for i = Midi_Note, Midi_Note do -- one (two?) cell table
+            local num = i
+            local num2 = i+1
+            local val = MousePnts[i]
+            local val2 = MousePnts[i+1]
+            table.insert(Midi_Note_Table, num)
+            table.insert(Midi_Note_Table, val)
+            table.insert(Midi_Note_Table, num2)
+            table.insert(Midi_Note_Table, val2)
+          end
+          
+          local key, min = 1, Midi_Note_Table[1]
+          for k, v in ipairs(Midi_Note_Table) do
+             play_position = Midi_Note_Table[k-2] 
+             play_position2 = Midi_Note_Table[k] 
+                if play_position2 and play_position then
+                   play_length_2 = play_position2 - play_position
+                end
+          end
+          
+          if play_position == nil then play_position = play_position2 end
+     ---------------------------------------------------------------------------------
+
+
 St = 0
 if TrTable ~= nil and Snap_on == 1 then
 
@@ -9972,10 +10286,42 @@ if TrTable ~= nil and Snap_on == 1 then
 
               if l_next_posx ~= nil and item_end ~= nil and item_pos ~= nil then
    
+
+
+                     if Buf_1 == 144 then -- delay
+                             time_start = reaper.time_precise()       
+                             local function Main_mid()     
+                                 local elapsedmid = reaper.time_precise() - time_start       
+                                 if elapsedmid >= 0.1 then
+                                   Buf_1_timer = 0 -- snap area condition
+                                   runcheck_mid = 0
+                                     return
+                                 else
+                                   Buf_1_timer = 1 -- snap area condition
+                                   runcheck_mid = 1
+                                     reaper.defer(Main_mid)
+                                 end           
+                             end
+                             
+                             if runcheck_mid ~= 1 then
+                                Main_mid()
+                             end
+                     end
+
+
+
+            if Buf_1_timer == 1 then
+                   l_start_pos = ((play_position)/srate)+item_pos
+                   l_end_pos = ((play_position)/srate)+((play_length_2)/srate)+item_pos
+                   l_length = ((play_length_2)/srate)+item_pos
+                else
                    l_start_pos = ((l_start_posx)/srate)+item_pos
                    l_end_pos = ((l_start_posx)/srate)+((l_lengthx)/srate)+item_pos
                    l_length = ((l_lengthx)/srate)+item_pos
+             end
+
                    l_next = ((l_next_posx)/srate)+item_pos
+
    
                    local edit_cur_pos = r.GetCursorPosition()
 
@@ -9998,29 +10344,31 @@ if TrTable ~= nil and Snap_on == 1 then
                          end               
                     end
 
-                   if  ( Wave:mouseClick() or Wave:mouseRClick() or Slider_Status == 1 ) and St == 0 then  --   or self:mouseRClick() -- self:mouseUp() -- self:mouseClick()
+                   if  ( Wave:mouseClick() or Wave:mouseRClick() or Slider_Status == 1 or (midi_play == 1 and Snap_on == 1) ) and St == 0 then  --   or self:mouseRClick() -- self:mouseUp() -- self:mouseClick()
 
-                        if play_start_id ~= nil and play_length_id ~= nil and (mouse_pos_height > 380) then -- mouse hover imitation: if mouse on controls and controls changed, snap area stay in focus
+                        if SelAreaTable.play_start_id ~= nil and SelAreaTable.play_length_id ~= nil and (mouse_pos_height > 380) then -- mouse hover imitation: if mouse on controls and controls changed, snap area stay in focus
                            mouse_pos1 = SelAreaTable.play_start_id+(SelAreaTable.play_length_id/8) -- or /2
                            mouse_pos2 = mouse_pos1
                         end
 
                         if mouse_pos1 == nil or mouse_pos2 == nil then mouse_pos1 = mouse_pos; mouse_pos2 = mouse_pos end
 
-                        if play_start <= mouse_pos1 and l_next >= mouse_pos2 then -- if mouse between two transients
+                        if (play_start <= mouse_pos1 and l_next >= mouse_pos2) or (midi_play == 1 and Snap_on == 1)  then -- if mouse between two transients
    
-                                if r.GetPlayState()&1 == 1 and Wave:mouseClick() then -- autoplay by click while playback
+                                if r.GetPlayState()&1 == 1 and (Wave:mouseClick()) then -- autoplay by click while playback
                                    r.SetEditCurPos(l_start_pos, false, true)
                                 end
   
                                 r.SetEditCurPos((l_start_pos), false, false)    -- true-seekplay(false-no seekplay) 
   
-                                if Snap_AutoPlay == 1 and (mouse_pos_height < 355 and mouse_pos_height > 45) and not Wave:mouseRClick() and Drag == 0 then
+                                if (Snap_AutoPlay == 1 and (mouse_pos_height < 355 and mouse_pos_height > 45) and not Wave:mouseRClick() and Drag == 0) or (midi_play == 1 and Snap_on == 1) then
                                     if r.GetPlayState()&1 == 0 then
                                        r.OnPlayButton()
                                        else
                                           if edit_cur_pos == l_start_pos then
-                                              r.OnStopButton()
+            --    if RS_ObeyNoteOff.norm_val == 1 then
+                                    --          r.OnStopButton()
+           --     end
                                               else
                                               r.OnPlayButton()
                                           end
@@ -10033,10 +10381,12 @@ if TrTable ~= nil and Snap_on == 1 then
                                    
                                play_start_id = play_start  
                                play_length_id = play_length   
+
                                 SelAreaTable = {
                                       play_start_id = play_start_id,
                                       play_length_id = play_length_id
                                       }
+
                                St = 1
 
                         end
@@ -10282,6 +10632,11 @@ function Wave:from_gfxBuffer()
 end  
 
 function Wave:CursorTop()
+
+if r.GetPlayState()&1 == 0 then
+   MIDITooLow = 0
+   MIDITooHigh = 0
+end
 
      if self.sel_start ~= nil and Wave.State then
          local insrc_Ecx3 = (r.GetCursorPosition() - self.sel_start) * srate * self.X_scale    -- cursor in source!
@@ -10601,7 +10956,7 @@ end
 
         for key,btn    in pairs(Random_Setup_TB2)   do btn:draw()    end 
 
-        for key,frame  in pairs(Triangle_TB)    do frame:draw()  end 
+    --    for key,frame  in pairs(Triangle_TB)    do frame:draw()  end 
 
        if Random_Order == 1 then
           for key,frame  in pairs(Rand_Mode_Color1_TB)    do frame:draw()  end 
@@ -10648,6 +11003,15 @@ Wave:CursorTop()
 
     if not Wave.State then  
           Wave:show_help()      -- else show help
+    end
+
+    if Wave.State then
+        if MIDITooLow == 1 then
+           for key,frame  in pairs(MIDITriangle1_TB)    do frame:draw()  end 
+        end
+        if MIDITooHigh == 1 then
+           for key,frame   in pairs(MIDITriangle2_TB)   do frame:draw()   end
+       end
     end
 
 end
@@ -11001,6 +11365,7 @@ function store_settings2() --store sliders/checkboxes
         r.SetExtState('MK_Slicer_3','OutNote.norm_val',OutNote.norm_val,true);
         r.SetExtState('MK_Slicer_3','Midi_Sampler.norm_val',Midi_Sampler.norm_val,true);
         r.SetExtState('MK_Slicer_3','RS_ObeyNoteOff.norm_val',RS_ObeyNoteOff.norm_val,true);
+        r.SetExtState('MK_Slicer_3','RS_SamplerMode.norm_val',RS_SamplerMode.norm_val,true);
         r.SetExtState('MK_Slicer_3','Create_Replace.norm_val',Create_Replace.norm_val,true);
         r.SetExtState('MK_Slicer_3','Create_Replace2.norm_val',Create_Replace2.norm_val,true);
         r.SetExtState('MK_Slicer_3','Set_Rate_Feel.norm_val',Set_Rate_Feel.norm_val,true);
@@ -11054,7 +11419,7 @@ function Init()
     -- Some gfx Wnd Default Values ---------------
     local R,G,B = ceil(TH[3][1]*255),ceil(TH[3][2]*255),ceil(TH[3][3]*255)             -- 0...255 format -- цвет основного окна
     local Wnd_bgd = R + G*256 + B*65536 -- red+green*256+blue*65536  
-    local Wnd_Title = "MK Slicer v3.05" .. " " .. theme_name .. " " .. RG_status .. ""
+    local Wnd_Title = "MK Slicer v3.10" .. " " .. theme_name .. " " .. RG_status .. ""
     local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
 
      -- set init fonts/size
@@ -11105,7 +11470,7 @@ local Guides_norm_val = Guides.norm_val
     Z_w, Z_h = gfx.w/Wnd_WZ, gfx.h/Wnd_HZ
     gfx_width = gfx.w
     if Z_w<0.63 then Z_w = 0.63 elseif Z_w>4 then Z_w = 4 end --2.2
-    if Z_h<0.63 then Z_h = 0.63 elseif Z_h>2.2 then Z_h = 2.2 end 
+    if Z_h<0.63 then Z_h = 0.63 elseif Z_h>4 then Z_h = 4 end  --2.2
 
     -- mouse and modkeys --
 
@@ -11225,6 +11590,9 @@ local Guides_norm_val = Guides.norm_val
          else 
         Wave:Destroy_Track_Accessor()
      end     -- defer  
+
+
+midi_loop()
 
     -----------  
     gfx.update()
@@ -11438,7 +11806,7 @@ item5.command = function()
                           gfx.dock(dock_pos)
                           xpos = 400
                           ypos = 320
-                          local Wnd_Title = "MK Slicer v3.05"
+                          local Wnd_Title = "MK Slicer v3.10"
                           local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
                           gfx.init( Wnd_Title, Wnd_W,Wnd_H, Wnd_Dock, Wnd_X,Wnd_Y )
 
@@ -11450,7 +11818,7 @@ item5.command = function()
                          dock_pos = 0
                          xpos = tonumber(r.GetExtState("MK_Slicer_3", "window_x")) or 400
                          ypos = tonumber(r.GetExtState("MK_Slicer_3", "window_y")) or 320
-                         local Wnd_Title = "MK Slicer v3.05"
+                         local Wnd_Title = "MK Slicer v3.10"
                          local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
                          if Wnd_Y == (nil or 0) then Wnd_Y = Wnd_Y+25 end -- correction for window header visibility
                          gfx.init( Wnd_Title, Wnd_W,Wnd_H, Wnd_Dock, Wnd_X,Wnd_Y )
@@ -11462,8 +11830,8 @@ item5.command = function()
                       
                          Z_w, Z_h = gfx.w/Wnd_WZ, gfx.h/Wnd_HZ
                       
-                         if Z_w<0.63 then Z_w = 0.63 elseif Z_w>2.2 then Z_w = 2.2 end 
-                         if Z_h<0.63 then Z_h = 0.63 elseif Z_h>2.2 then Z_h = 2.2 end 
+                         if Z_w<0.63 then Z_w = 0.63 elseif Z_w>4 then Z_w = 4 end --2.2
+                         if Z_h<0.63 then Z_h = 0.63 elseif Z_h>4 then Z_h = 4 end 
                      end
           r.SetExtState('MK_Slicer_3','Docked',Docked,true);
 end
@@ -11528,6 +11896,19 @@ item35.command = function()
           r.SetExtState('MK_Slicer_3','Snap_AutoPlay',Snap_AutoPlay,true);
 end
 
+if Control_via_MIDI == 1 then
+           item39 = context_menu:add_item({label = "Snap Area: Control via MIDI input", toggleable = true, selected = true, active = true})
+           else
+           item39 = context_menu:add_item({label = "Snap Area: Control via MIDI input", toggleable = true, selected = false, active = true})
+end
+item39.command = function()
+                     if item39.selected == true then 
+                     Control_via_MIDI = 1
+                     else
+                     Control_via_MIDI = 0
+                     end
+          r.SetExtState('MK_Slicer_3','Control_via_MIDI',Control_via_MIDI,true);
+end
 
 if Loop_on == 1 then
 item9 = context_menu:add_item({label = "Loop is Enabled when the Script Starts", toggleable = true, selected = true})
@@ -11716,14 +12097,28 @@ item36.command = function()
           r.SetExtState('MK_Slicer_3','FontAntiAliasing',FontAntiAliasing,true);
 end
 
+if MaxFontSizeSt == 1 then
+           item38 = context_menu:add_item({label = "Large Font Size (Restart required)", toggleable = true, selected = true, active = true})
+           else
+           item38 = context_menu:add_item({label = "Large Font Size (Restart required)", toggleable = true, selected = false, active = true})
+end
+item38.command = function()
+                     if item38.selected == true then 
+                     MaxFontSizeSt = 1
+                     else
+                     MaxFontSizeSt = 0
+                     end
+          r.SetExtState('MK_Slicer_3','MaxFontSizeSt',MaxFontSizeSt,true);
+end
+
 
 item21 = context_menu:add_item({label = "|Reset Controls to User Defaults (Restart required)|<", toggleable = false})
 item21.command = function()
 Reset_to_def = 1
   --sliders--
       DefaultXFadeTime = tonumber(r.GetExtState('MK_Slicer_3','DefaultXFadeTime'))or 15;
-      DefaultAttTime = tonumber(r.GetExtState('MK_Slicer_3','DefaultAttTime'))or 15;
-      DefaultRelTime = tonumber(r.GetExtState('MK_Slicer_3','DefaultRelTime'))or 15;
+      DefaultAttTime = tonumber(r.GetExtState('MK_Slicer_3','DefaultAttTime'))or 0.01;
+      DefaultRelTime = tonumber(r.GetExtState('MK_Slicer_3','DefaultRelTime'))or 0.01;
       DefaultP_Slider = tonumber(r.GetExtState('MK_Slicer_3','DefaultP_Slider'))or 5;
       DefaultQStrength = tonumber(r.GetExtState('MK_Slicer_3','DefaultQStrength'))or 100;
       DefaultHP = tonumber(r.GetExtState('MK_Slicer_3','DefaultHP'))or 0.3312;
@@ -11733,6 +12128,7 @@ Reset_to_def = 1
   --sheckboxes--
      DefMIDI_Mode =  1;
      DefSampler_preset_state =  1;
+     DefSampler_mode_state =  2;
      DefCreate_Replace_state =  1
      DefCreate_Replace_state2 =  1
      DefPitch_Det_Options_state =  1;
@@ -11757,6 +12153,7 @@ Reset_to_def = 1
       r.SetExtState('MK_Slicer_3','OutNote.norm_val',DefOutNote_State,true);
       r.SetExtState('MK_Slicer_3','Midi_Sampler.norm_val',DefMIDI_Mode,true);
       r.SetExtState('MK_Slicer_3','RS_ObeyNoteOff.norm_val',DefSampler_preset_state,true);
+      r.SetExtState('MK_Slicer_3','RS_SamplerMode.norm_val',DefSampler_mode_state,true);
       r.SetExtState('MK_Slicer_3','Create_Replace.norm_val',DefCreate_Replace_state,true);
       r.SetExtState('MK_Slicer_3','Create_Replace.norm_val',DefCreate_Replace_state2,true);
       r.SetExtState('MK_Slicer_3','Pitch_Det_Options.norm_val',DefPitch_Det_Options_state,true);
@@ -11820,67 +12217,89 @@ item24.command = function()
 end
 
 if ThemeSel == 5 then
-item27 = context_menu:add_item({label = "Fall", toggleable = true, selected = true})
+item41 = context_menu:add_item({label = "Fall (Dark)", toggleable = true, selected = true})
 else
-item27 = context_menu:add_item({label = "Fall", toggleable = true, selected = false})
+item41 = context_menu:add_item({label = "Fall (Dark)", toggleable = true, selected = false})
 end
-item27.command = function()
+item41.command = function()
                    ThemeSel = 5
                    r.SetExtState('MK_Slicer_3','ThemeSel',ThemeSel,true);
                    gfx.quit()
 end
 
 if ThemeSel == 6 then
-item28 = context_menu:add_item({label = "Soft Dark", toggleable = true, selected = true})
+item27 = context_menu:add_item({label = "Fall", toggleable = true, selected = true})
 else
-item28 = context_menu:add_item({label = "Soft Dark", toggleable = true, selected = false})
+item27 = context_menu:add_item({label = "Fall", toggleable = true, selected = false})
 end
-item28.command = function()
+item27.command = function()
                    ThemeSel = 6
                    r.SetExtState('MK_Slicer_3','ThemeSel',ThemeSel,true);
                    gfx.quit()
 end
 
 if ThemeSel == 7 then
-item29 = context_menu:add_item({label = "Graphite", toggleable = true, selected = true})
+item28 = context_menu:add_item({label = "Soft Dark", toggleable = true, selected = true})
 else
-item29 = context_menu:add_item({label = "Graphite", toggleable = true, selected = false})
+item28 = context_menu:add_item({label = "Soft Dark", toggleable = true, selected = false})
 end
-item29.command = function()
+item28.command = function()
                    ThemeSel = 7
                    r.SetExtState('MK_Slicer_3','ThemeSel',ThemeSel,true);
                    gfx.quit()
 end
 
 if ThemeSel == 8 then
-item30 = context_menu:add_item({label = "Clean", toggleable = true, selected = true})
+item29 = context_menu:add_item({label = "Graphite", toggleable = true, selected = true})
 else
-item30 = context_menu:add_item({label = "Clean", toggleable = true, selected = false})
+item29 = context_menu:add_item({label = "Graphite", toggleable = true, selected = false})
 end
-item30.command = function()
+item29.command = function()
                    ThemeSel = 8
                    r.SetExtState('MK_Slicer_3','ThemeSel',ThemeSel,true);
                    gfx.quit()
 end
 
 if ThemeSel == 9 then
-item31 = context_menu:add_item({label = "Ink", toggleable = true, selected = true})
+item40 = context_menu:add_item({label = "Spring", toggleable = true, selected = true})
 else
-item31 = context_menu:add_item({label = "Ink", toggleable = true, selected = false})
+item40 = context_menu:add_item({label = "Spring", toggleable = true, selected = false})
 end
-item31.command = function()
+item40.command = function()
                    ThemeSel = 9
                    r.SetExtState('MK_Slicer_3','ThemeSel',ThemeSel,true);
                    gfx.quit()
 end
 
 if ThemeSel == 10 then
+item30 = context_menu:add_item({label = "Clean", toggleable = true, selected = true})
+else
+item30 = context_menu:add_item({label = "Clean", toggleable = true, selected = false})
+end
+item30.command = function()
+                   ThemeSel = 10
+                   r.SetExtState('MK_Slicer_3','ThemeSel',ThemeSel,true);
+                   gfx.quit()
+end
+
+if ThemeSel == 11 then
+item31 = context_menu:add_item({label = "Ink", toggleable = true, selected = true})
+else
+item31 = context_menu:add_item({label = "Ink", toggleable = true, selected = false})
+end
+item31.command = function()
+                   ThemeSel = 11
+                   r.SetExtState('MK_Slicer_3','ThemeSel',ThemeSel,true);
+                   gfx.quit()
+end
+
+if ThemeSel == 12 then
 item32 = context_menu:add_item({label = "Classic|<", toggleable = true, selected = true})
 else
 item32 = context_menu:add_item({label = "Classic|<", toggleable = true, selected = false})
 end
 item32.command = function()
-                   ThemeSel = 10
+                   ThemeSel = 12
                    r.SetExtState('MK_Slicer_3','ThemeSel',ThemeSel,true);
                    gfx.quit()
 end
@@ -11908,8 +12327,8 @@ end
 function user_defaults()
 ::first_string::
 DefaultXFadeTime = tonumber(r.GetExtState('MK_Slicer_3','DefaultXFadeTime'))or 15;
-DefaultAttTime = tonumber(r.GetExtState('MK_Slicer_3','DefaultAttTime'))or 15;
-DefaultRelTime = tonumber(r.GetExtState('MK_Slicer_3','DefaultRelTime'))or 15;
+DefaultAttTime = tonumber(r.GetExtState('MK_Slicer_3','DefaultAttTime'))or 0.01;
+DefaultRelTime = tonumber(r.GetExtState('MK_Slicer_3','DefaultRelTime'))or 0.01;
 DefaultP_Slider = tonumber(r.GetExtState('MK_Slicer_3','DefaultP_Slider'))or 5;
 DefaultQStrength = tonumber(r.GetExtState('MK_Slicer_3','DefaultQStrength'))or 100;
 DefaultHP = tonumber(r.GetExtState('MK_Slicer_3','DefaultHP'))or 0.3312;
