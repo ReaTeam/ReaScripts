@@ -490,7 +490,7 @@ function Theming(Theme)
 
       TH[46] = { 0.1, 0.424, 0.455,1 } -- CheckBox Body
 
-      --------------Text--------------------      
+      --------------Text--------------------     
       TH[33] = { 0.85, 0.85, 0.85, 1 } -- Text Main
       TH[34] = { 0.906, 0.524, 0.229, 1 } -- Text Warn (Small "Processing, wait...")
       TH[35] = { 0.4, 0.4, 0.4, 0.7 } -- Txt Greyed (BPM)
@@ -2363,6 +2363,13 @@ function Element:draw_frame()
   gfx.set(TH[29][1],TH[29][2],TH[29][3],an) -- sliders and checkboxes borders
   gfx.rect(x, y, w, h, false)            -- frame1      
  if ThickFrames == 1 then gfx.rect(x+1, y+1, w-2, h-2, false)  end          -- frame1 
+end
+
+function Element:draw_frame_sld()
+  local x,y,w,h  = self.x,self.y,self.w,self.h
+    local r,g,b,a  = self.r,self.g,self.b,self.a
+  gfx.set(TH[45][1],TH[45][2],TH[45][3],TH[45][4]) -- sliders backgrounds
+  gfx.rect(x, y, w, h, true)            -- frame1      
 end
 
 function Element:draw_frame_sld()
@@ -11444,7 +11451,7 @@ function Init()
 
     -- Some gfx Wnd Default Values ---------------
     local R,G,B = ceil(TH[3][1]*255),ceil(TH[3][2]*255),ceil(TH[3][3]*255)             -- 0...255 format -- цвет основного окна
-    local Wnd_bgd = R + G*256 + B*65536 -- red+green*256+blue*65536  
+    local Wnd_bgd = R + G*256 + B*65536 -- red+green*256+blue*65536
     local Wnd_Title = "MK Slicer v3.11" .. " " .. theme_name .. " " .. RG_status .. ""
     local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
 
