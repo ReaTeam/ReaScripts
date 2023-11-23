@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="965b955604773fe8f750cb0fdb9b635d09462497" name="ReaTeam Scripts">
+<index version="1" commit="464a101015f711866a466b255d13ae7f17a3f10f" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -6769,6 +6769,22 @@ Override Reaper option "Toggle enable/disable default fadein/fadeout" (on/off)]]
 + Fixed bugs for compatibility with the new version of Lua (Reaper 7)
 + Added an item to the theme for the correct display of the bracket when Random+Q is active.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/40f23576d3eaa84a847464a2ab2f89bbe973bde1/Items%20Editing/cool_MK%20Slicer.lua</source>
+      </version>
+      <version name="3.10" author="cool" time="2023-11-23T04:03:49Z">
+        <changelog><![CDATA[+Snap Area: added an experimental option for pre-listening via MIDI input (from a Virtual MIDI Keyboard or an external MIDI controller).
++Sampler: The NoteOff option now affects MIDI preview, simulating the behavior of a sampler.
++Sampler: All rs5k instances are now created inside a Container.
++Sampler: added options for creating a track: create MIDI item only (as before), track with active recording/inputs only, and both options.
++Sampler: fixed default values for Attack and Release sliders.
++Theme: The maximum possible script window size limit has been increased.
++Theme: Added "Large Font Size" option (Options - User Settings (Advanced)), which increases the font size when the window size is large.
++Theme: Added two new themes. Spring - light and Fall (Dark) - dark.
++Theme: The appearance of the sliders has been changed, some sliders have become frameless. New elements have been added to the themes: Slider Background and CheckBox Body.
++Theme: The Random+Q bracket color has been added to themes for its correct display.
++Theme: Fixed Swing slider transparency bug.
++Fixed a bug: now the script does not close with an error when switching between Grid and Transients modes.
++Code cleaning (MIDI Sampler, visual elements).]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/464a101015f711866a466b255d13ae7f17a3f10f/Items%20Editing/cool_MK%20Slicer.lua</source>
       </version>
     </reapack>
     <reapack name="Demoji_Next Variation.lua" type="script" desc="Next Variation">
