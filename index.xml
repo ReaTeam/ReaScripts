@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="464a101015f711866a466b255d13ae7f17a3f10f" name="ReaTeam Scripts">
+<index version="1" commit="112b080be64c17fb91219394f5f730e723dad569" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -6785,6 +6785,10 @@ Override Reaper option "Toggle enable/disable default fadein/fadeout" (on/off)]]
 +Fixed a bug: now the script does not close with an error when switching between Grid and Transients modes.
 +Code cleaning (MIDI Sampler, visual elements).]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/464a101015f711866a466b255d13ae7f17a3f10f/Items%20Editing/cool_MK%20Slicer.lua</source>
+      </version>
+      <version name="3.11" author="cool" time="2023-11-23T04:14:13Z">
+        <changelog><![CDATA[+Themes: added the "Frame Thickness" parameter]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/112b080be64c17fb91219394f5f730e723dad569/Items%20Editing/cool_MK%20Slicer.lua</source>
       </version>
     </reapack>
     <reapack name="Demoji_Next Variation.lua" type="script" desc="Next Variation">
