@@ -1,20 +1,7 @@
 -- @description MK Slicer
 -- @author cool
--- @version 3.10
--- @changelog
---   +Snap Area: added an experimental option for pre-listening via MIDI input (from a Virtual MIDI Keyboard or an external MIDI controller).
---   +Sampler: The NoteOff option now affects MIDI preview, simulating the behavior of a sampler.
---   +Sampler: All rs5k instances are now created inside a Container.
---   +Sampler: added options for creating a track: create MIDI item only (as before), track with active recording/inputs only, and both options.
---   +Sampler: fixed default values for Attack and Release sliders.
---   +Theme: The maximum possible script window size limit has been increased.
---   +Theme: Added "Large Font Size" option (Options - User Settings (Advanced)), which increases the font size when the window size is large.
---   +Theme: Added two new themes. Spring - light and Fall (Dark) - dark.
---   +Theme: The appearance of the sliders has been changed, some sliders have become frameless. New elements have been added to the themes: Slider Background and CheckBox Body.
---   +Theme: The Random+Q bracket color has been added to themes for its correct display.
---   +Theme: Fixed Swing slider transparency bug.
---   +Fixed a bug: now the script does not close with an error when switching between Grid and Transients modes.
---   +Code cleaning (MIDI Sampler, visual elements).
+-- @version 3.11
+-- @changelog +Themes: added the "Frame Thickness" parameter
 -- @link Forum Thread https://forum.cockos.com/showthread.php?t=232672
 -- @screenshot MK_Slicer 3 https://i.imgur.com/L7WnvoO.jpg
 -- @donation
@@ -71,7 +58,7 @@
 --   Sometimes a script applies glue to items. For example, when several items are selected and when a MIDI is created in a sampler mode.
 
 --[[
-MK Slicer v3.10 by Maxim Kokarev 
+MK Slicer v3.11 by Maxim Kokarev 
 https://forum.cockos.com/member.php?u=121750
 
 Co-Author of the compilation - MyDaw
@@ -186,12 +173,15 @@ function Theming(Theme)
       -------Buttons and Sliders ---------
       TH[27] = {0.2, 0.2 ,0.2 ,1} -- Button Body
       TH[28] = {0.2, 0.2 ,0.2 ,1} -- Button Frames
+      ThickBFrames = 0 -- Thickness - 0 = normal, 1 - thick frames
       
       TH[29] = {0.23, 0.25, 0.25,0} -- Slider Frames
       TH[30] = {0.23, 0.25, 0.25,1} -- Slider Body
+      ThickFrames = 0 -- Thickness - 0 = normal, 1 - thick frames
       
       TH[31] = {0.32, 0.34, 0.34, 1} -- Slider Frames (Top, Loop and Swing)
       TH[32] = {0.32, 0.34, 0.34, 1} -- Slider Body (Top, Loop and Swing)
+      ThickSwFrames = 0 -- Thickness - 0 = normal, 1 - thick frames
 
       TH[45] = { 0.23, 0.25, 0.25, 0.4 } -- Slider Background
 
@@ -259,12 +249,15 @@ function Theming(Theme)
       -------Buttons and Sliders ---------
       TH[27] = {0.3, 0.31 ,0.32 ,1} -- Button Body
       TH[28] = {0.3, 0.31 ,0.32 ,1} -- Button Frames
+      ThickBFrames = 0 -- Thickness - 0 = normal, 1 - thick frames
       
       TH[29] = {0.28235, 0.32941, 0.34118,0} -- Slider Frames
       TH[30] = {0.28235, 0.32941, 0.34118,1} -- Slider Body
+      ThickFrames = 0 -- Thickness - 0 = normal, 1 - thick frames
       
       TH[31] = {0.33235, 0.37941, 0.39118,0} -- Slider Frames (Top, Loop and Swing)
       TH[32] = {0.33235, 0.37941, 0.39118,1} -- Slider Body (Top, Loop and Swing)
+      ThickSwFrames = 0 -- Thickness - 0 = normal, 1 - thick frames
 
       TH[45] = { 0.28235, 0.32941, 0.34118, 0.3 } -- Slider Background
 
@@ -332,12 +325,15 @@ function Theming(Theme)
       -------Buttons and Sliders ---------
       TH[27] = {0.3, 0.305, 0.31 ,1} -- Button Body
       TH[28] = {0.3, 0.305, 0.31 ,1} -- Button Frames
+      ThickBFrames = 1 -- Thickness - 0 = normal, 1 - thick frames
       
       TH[29] = {0.24, 0.25, 0.25,1} -- Slider Frames
       TH[30] = {0.24, 0.25, 0.25,1} -- Slider Body
+      ThickFrames = 1 -- Thickness - 0 = normal, 1 - thick frames
       
       TH[31] = {0.32, 0.33, 0.33, 1} -- Slider Frames (Top, Loop and Swing)
       TH[32] = {0.32, 0.33, 0.33, 1} -- Slider Body (Top, Loop and Swing)
+      ThickSwFrames = 1 -- Thickness - 0 = normal, 1 - thick frames
 
       TH[45] = { 0.24, 0.25, 0.25, 0.15 } -- Slider Background
 
@@ -405,12 +401,15 @@ function Theming(Theme)
       -------Buttons and Sliders ---------      
       TH[27] = {0.234, 0.32, 0.339 ,1} -- Button Body
       TH[28] = {0.234, 0.32, 0.339 ,1} -- Button Frames
+      ThickBFrames = 1 -- Thickness - 0 = normal, 1 - thick frames
       
       TH[29] = {0.224, 0.29, 0.329,1} -- Slider Frames
       TH[30] = {0.224, 0.29, 0.329,1} -- Slider Body
+      ThickFrames = 1 -- Thickness - 0 = normal, 1 - thick frames
       
       TH[31] = {0.204, 0.27, 0.329, 1} -- Slider Frames (Top, Loop and Swing)
       TH[32] = {0.204, 0.27, 0.329, 1} -- Slider Body (Top, Loop and Swing)
+      ThickSwFrames = 1 -- Thickness - 0 = normal, 1 - thick frames
 
       TH[45] = { 0.165, 0.165, 0.165, 0.3 } -- Slider Background
 
@@ -477,19 +476,22 @@ function Theming(Theme)
       -------Buttons and Sliders ---------      
       TH[27] = {0.11, 0.11, 0.11 ,1} -- Button Body
       TH[28] = {0.11, 0.11, 0.11 ,1} -- Button Frames
+      ThickBFrames = 0 -- Thickness - 0 = normal, 1 - thick frames
       
       TH[29] = {0.078, 0.078, 0.078,1} -- Slider Frames
       TH[30] = {0.1, 0.424, 0.455,1} -- Slider Body
+      ThickFrames = 1 -- Thickness - 0 = normal, 1 - thick frames
       
       TH[31] = {0.1, 0.424, 0.455,1} -- Slider Frames (Top, Loop and Swing)
       TH[32] = {0.1, 0.424, 0.455,1} -- Slider Body (Top, Loop and Swing)
+      ThickSwFrames = 1 -- Thickness - 0 = normal, 1 - thick frames
       
       TH[45] = { 0.165, 0.165, 0.165, 1 } -- Slider Background
 
       TH[46] = { 0.1, 0.424, 0.455,1 } -- CheckBox Body
 
-      --------------Text--------------------      
-      TH[33] = { 0.8, 0.8, 0.8, 1 } -- Text Main
+      --------------Text--------------------     
+      TH[33] = { 0.85, 0.85, 0.85, 1 } -- Text Main
       TH[34] = { 0.906, 0.524, 0.229, 1 } -- Text Warn (Small "Processing, wait...")
       TH[35] = { 0.4, 0.4, 0.4, 0.7 } -- Txt Greyed (BPM)
       TH[36] = { 0.8, 0.8, 0.8, 0.5 } -- Txt Greyed (Presets, Mode)
@@ -549,12 +551,15 @@ function Theming(Theme)
       -------Buttons and Sliders ---------      
       TH[27] = {0.3, 0.31 ,0.32 ,0} -- Button Body
       TH[28] = {0.15, 0.15, 0.15 ,1} -- Button Frames
+      ThickBFrames = 0 -- Thickness - 0 = normal, 1 - thick frames
       
       TH[29] = {0.28235, 0.32941, 0.34118,1} -- Slider Frames
       TH[30] = {0.859, 0.494, 0.161,1} -- Slider Body
+      ThickFrames = 0 -- Thickness - 0 = normal, 1 - thick frames
       
       TH[31] = {0.32, 0.32, 0.32,1} -- Slider Frames (Top, Loop and Swing)
       TH[32] = {0.32, 0.32, 0.32,1} -- Slider Body (Top, Loop and Swing)
+      ThickSwFrames = 0 -- Thickness - 0 = normal, 1 - thick frames
 
       TH[45] = { 0.165, 0.165, 0.165, 0.07 } -- Slider Background
 
@@ -622,12 +627,15 @@ function Theming(Theme)
       -------Buttons and Sliders ---------
       TH[27] = {0.2, 0.2 ,0.2 ,1} -- Button Body
       TH[28] = {0.2, 0.2 ,0.2 ,1} -- Button Frames
+      ThickBFrames = 0 -- Thickness - 0 = normal, 1 - thick frames
       
       TH[29] = {0.22, 0.22, 0.22,1} -- Slider Frames
       TH[30] = {0.22, 0.22, 0.22,1} -- Slider Body
+      ThickFrames = 0 -- Thickness - 0 = normal, 1 - thick frames
       
       TH[31] = {0.32, 0.34, 0.34, 1} -- Slider Frames (Top, Loop and Swing)
       TH[32] = {0.32, 0.34, 0.34, 1} -- Slider Body (Top, Loop and Swing)
+      ThickSwFrames = 0 -- Thickness - 0 = normal, 1 - thick frames
 
       TH[45] = { 0.165, 0.165, 0.165, 0 } -- Slider Background
 
@@ -695,12 +703,15 @@ elseif Theme == 8 then
       -------Buttons and Sliders ---------      
       TH[27] = {0.3, 0.31 ,0.32 ,0} -- Button Body
       TH[28] = {0.15, 0.15, 0.15 ,0.7} -- Button Frames
+      ThickBFrames = 0 -- Thickness - 0 = normal, 1 - thick frames
       
       TH[29] = {0.48, 0.49, 0.5, 0.7} -- Slider Frames
       TH[30] = {0.50, 0.52, 0.53,1} -- Slider Body
+      ThickFrames = 0 -- Thickness - 0 = normal, 1 - thick frames
       
       TH[31] = {0.48, 0.49, 0.5, 0.7} -- Slider Frames (Top, Loop and Swing)
       TH[32] = {0.45, 0.47, 0.48,1} -- Slider Body (Top, Loop and Swing)
+      ThickSwFrames = 0 -- Thickness - 0 = normal, 1 - thick frames
 
       TH[45] = { 0.50, 0.52, 0.53, 0.15 } -- Slider Background
 
@@ -767,12 +778,15 @@ elseif Theme == 8 then
       -------Buttons and Sliders ---------
       TH[27] = {0.706, 0.706, 0.702 ,1} -- Button Body
       TH[28] = {0.706, 0.706, 0.702 ,1} -- Button Frames
+      ThickBFrames = 0 -- Thickness - 0 = normal, 1 - thick frames
       
       TH[29] = {0.765, 0.765, 0.765,1} -- Slider Frames
       TH[30] = {0.765, 0.765, 0.765,1} -- Slider Body
+      ThickFrames = 0 -- Thickness - 0 = normal, 1 - thick frames
       
       TH[31] = {0.706, 0.706, 0.702,1} -- Slider Frames (Top, Loop and Swing)
       TH[32] = {0.706, 0.706, 0.702,1} -- Slider Body (Top, Loop and Swing)
+      ThickSwFrames = 0 -- Thickness - 0 = normal, 1 - thick frames
 
       TH[45] = { 0.165, 0.165, 0.165, 0 } -- Slider Background
 
@@ -784,7 +798,7 @@ elseif Theme == 8 then
       TH[35] = { 0.4, 0.4, 0.4, 0.5 } -- Txt Greyed (BPM)
       TH[36] = { 0.298, 0.29, 0.282, 0.5 } -- Txt Greyed (Presets, Mode)
       TH[37] = -0.5 -- an additional value is added to the brightness of the BPM digits. Can be negative.
-      TH[38] = 1 -- BPM digits transparency
+      TH[38] = 0.9 -- BPM digits transparency
     
       -----------Elements------------------
       TH[39] =  { 0.216, 0.467, 0.922, 1 } -- Green tops elements (Loop triangles, Buttons Leds)
@@ -838,13 +852,16 @@ elseif Theme == 10 then
       
       -------Buttons and Sliders ---------      
       TH[27] = {0.337, 0.643, 0.792 ,0.8} -- Button Body
-      TH[28] = {0.337, 0.643, 0.792 ,0.8} -- Button Frames
+      TH[28] = {0.337, 0.643, 0.792 ,0.75} -- Button Frames
+      ThickBFrames = 0 -- Thickness - 0 = normal, 1 - thick frames
       
       TH[29] = {0.953, 0.533, 0.267,0} -- Slider Frames
       TH[30] = {0.953, 0.533, 0.267,0.8} -- Slider Body
+      ThickFrames = 0 -- Thickness - 0 = normal, 1 - thick frames
       
       TH[31] = {0.923, 0.503, 0.237, 0} -- Slider Frames (Top, Loop and Swing)
       TH[32] = {0.923, 0.503, 0.237, 0.8} -- Slider Body (Top, Loop and Swing)
+      ThickSwFrames = 0 -- Thickness - 0 = normal, 1 - thick frames
 
       TH[45] = { 0.953, 0.533, 0.267, 0.2 } -- Slider Background
 
@@ -911,12 +928,15 @@ elseif Theme == 11 then
       -------Buttons and Sliders ---------      
       TH[27] = {0.835, 0.843, 0.839 ,1} -- Button Body
       TH[28] = {0.565, 0.565, 0.565 ,1} -- Button Frames
+      ThickBFrames = 0 -- Thickness - 0 = normal, 1 - thick frames
       
       TH[29] = {0.565, 0.565, 0.565,1} -- Slider Frames
       TH[30] = {0.835, 0.843, 0.839,1} -- Slider Body
+      ThickFrames = 0 -- Thickness - 0 = normal, 1 - thick frames
       
       TH[31] = {0.565, 0.565, 0.565, 1} -- Slider Frames (Top, Loop and Swing)
       TH[32] = {0.735, 0.743, 0.739, 1} -- Slider Body (Top, Loop and Swing)
+      ThickSwFrames = 0 -- Thickness - 0 = normal, 1 - thick frames
 
       TH[45] = { 0.835, 0.843, 0.839, 0.15 } -- Slider Background
 
@@ -983,12 +1003,15 @@ elseif Theme == 11 then
       -------Buttons and Sliders ---------      
       TH[27] = { 0.3, 0.3 ,0.3 ,1 } -- Button Body
       TH[28] = { 0.3, 0.3, 0.3 ,1 } -- Button Frames
+      ThickBFrames = 0 -- Thickness - 0 = normal, 1 - thick frames
       
       TH[29] = {0.28,0.4,0.7,0.8} -- Slider Frames
       TH[30] = {0.28,0.4,0.7,0.8} -- Slider Body
+      ThickFrames = 0 -- Thickness - 0 = normal, 1 - thick frames
       
       TH[31] = {0.28,0.4,0.7,0.8} -- Slider Frames (Top, Loop and Swing)
       TH[32] = {0.28,0.4,0.7,0.8} -- Slider Body (Top, Loop and Swing)
+      ThickSwFrames = 0 -- Thickness - 0 = normal, 1 - thick frames
 
       TH[45] = { 0.28,0.4,0.7, 0.07 } -- Slider Background
 
@@ -2339,6 +2362,14 @@ function Element:draw_frame()
     if self:mouseDown() then an=an+0.1 end
   gfx.set(TH[29][1],TH[29][2],TH[29][3],an) -- sliders and checkboxes borders
   gfx.rect(x, y, w, h, false)            -- frame1      
+ if ThickFrames == 1 then gfx.rect(x+1, y+1, w-2, h-2, false)  end          -- frame1 
+end
+
+function Element:draw_frame_sld()
+  local x,y,w,h  = self.x,self.y,self.w,self.h
+    local r,g,b,a  = self.r,self.g,self.b,self.a
+  gfx.set(TH[45][1],TH[45][2],TH[45][3],TH[45][4]) -- sliders backgrounds
+  gfx.rect(x, y, w, h, true)            -- frame1      
 end
 
 function Element:draw_frame_sld()
@@ -2355,7 +2386,8 @@ function Element:draw_frame_sw()
     if self:mouseIN() then an=an+0.1 end
     if self:mouseDown() then an=an+0.1 end
   gfx.set(TH[31][1],TH[31][2],TH[31][3],an) -- swing slider borders
-  gfx.rect(x, y, w, h, false)            -- frame1      
+  gfx.rect(x, y, w, h, false)            -- frame1    
+ if ThickSwFrames == 1 then gfx.rect(x+1, y+1, w-2, h-2, false)  end          -- frame1  
 end
 
 function Element:draw_frame_rng() -- range slider
@@ -2399,7 +2431,8 @@ function Element:draw_frame3()
   local x,y,w,h  = self.x,self.y,self.w,self.h
     local r,g,b,a  = self.r,self.g,self.b,self.a
   gfx.set(TH[28][1],TH[28][2],TH[28][3],TH[28][4]) -- waveform window and buttons frames
-  gfx.rect(x, y, w, h, false)            -- frame1      
+  gfx.rect(x, y, w, h, false)            -- frame1 
+ if ThickBFrames == 1 then gfx.rect(x+1, y+1, w-2, h-2, false)  end          -- frame1   
 end
 
 function Element:draw_frame4()
@@ -11418,8 +11451,8 @@ function Init()
 
     -- Some gfx Wnd Default Values ---------------
     local R,G,B = ceil(TH[3][1]*255),ceil(TH[3][2]*255),ceil(TH[3][3]*255)             -- 0...255 format -- цвет основного окна
-    local Wnd_bgd = R + G*256 + B*65536 -- red+green*256+blue*65536  
-    local Wnd_Title = "MK Slicer v3.10" .. " " .. theme_name .. " " .. RG_status .. ""
+    local Wnd_bgd = R + G*256 + B*65536 -- red+green*256+blue*65536
+    local Wnd_Title = "MK Slicer v3.11" .. " " .. theme_name .. " " .. RG_status .. ""
     local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
 
      -- set init fonts/size
@@ -11806,7 +11839,7 @@ item5.command = function()
                           gfx.dock(dock_pos)
                           xpos = 400
                           ypos = 320
-                          local Wnd_Title = "MK Slicer v3.10"
+                          local Wnd_Title = "MK Slicer v3.11"
                           local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
                           gfx.init( Wnd_Title, Wnd_W,Wnd_H, Wnd_Dock, Wnd_X,Wnd_Y )
 
@@ -11818,7 +11851,7 @@ item5.command = function()
                          dock_pos = 0
                          xpos = tonumber(r.GetExtState("MK_Slicer_3", "window_x")) or 400
                          ypos = tonumber(r.GetExtState("MK_Slicer_3", "window_y")) or 320
-                         local Wnd_Title = "MK Slicer v3.10"
+                         local Wnd_Title = "MK Slicer v3.11"
                          local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
                          if Wnd_Y == (nil or 0) then Wnd_Y = Wnd_Y+25 end -- correction for window header visibility
                          gfx.init( Wnd_Title, Wnd_W,Wnd_H, Wnd_Dock, Wnd_X,Wnd_Y )
