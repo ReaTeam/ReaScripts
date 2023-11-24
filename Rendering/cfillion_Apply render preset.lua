@@ -729,7 +729,10 @@ local function postprocessCell(ctx, preset)
 
     ImGui.EndTooltip(ctx)
   end
-  boolText(ctx, (postprocess & (NORMALIZE_ENABLE | BRICKWALL_ENABLE)) ~= 0)
+
+  local enable_mask =
+    NORMALIZE_ENABLE | BRICKWALL_ENABLE | FADEIN_ENABLE | FADEOUT_ENABLE
+  boolText(ctx, (postprocess & enable_mask) ~= 0)
 end
 
 local function sourceCell(ctx, preset)
