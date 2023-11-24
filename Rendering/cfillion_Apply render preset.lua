@@ -2,6 +2,7 @@
 -- @author cfillion
 -- @version 2.1
 -- @changelog
+--   Add support for 'Only render channels that are sent to parent' and 'Render stems pre-fader'
 --   Add support for post-processing fade-in and fade-out
 --   Add support for rendering metadata [p=2736401]
 --   Add support for tail length
@@ -55,7 +56,7 @@ end
 
 local REAPER_BEFORE_V6 = tonumber(r.GetAppVersion():match('^%d+')) < 6
 local SETTINGS_SOURCE_MASK  = 0x10EB
-local SETTINGS_OPTIONS_MASK = 0x0F14
+local SETTINGS_OPTIONS_MASK = 0x6F14
 local KNOWN_METADATA_TAGS = {
   ['Title'] = {
     'APE:Title', 'ASWG:project', 'CAFINFO:title', 'CART:Title',
@@ -784,6 +785,10 @@ local function optionsCell(ctx, preset)
       preset.RENDER_SETTINGS, 16)
     ImGui.CheckboxFlags(ctx, 'Multichannel tracks to multichannel files',
       preset.RENDER_SETTINGS, 4)
+    ImGui.CheckboxFlags(ctx, 'Only render channels that are sent to parent',
+      preset.RENDER_SETTINGS, 16384)
+    ImGui.CheckboxFlags(ctx, 'Render stems pre-fader',
+      preset.RENDER_SETTINGS, 8192)
 
     ImGui.AlignTextToFramePadding(ctx)
     ImGui.Text(ctx, 'Embed:')
