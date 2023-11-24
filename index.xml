@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="1e97cb4ce2a2f6550fe602523b20897c3e7d1dce" name="ReaTeam Scripts">
+<index version="1" commit="a519785bcb6286833cc6dffcdde2f595e3ef8666" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -15615,6 +15615,11 @@ Add support for rendering metadata [p=2736401]
 Add support for tail length]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/1e97cb4ce2a2f6550fe602523b20897c3e7d1dce/Rendering/cfillion_Apply%20render%20preset.lua</source>
         <source main="main" file="cfillion_Apply render preset (create action).lua">https://github.com/ReaTeam/ReaScripts/raw/1e97cb4ce2a2f6550fe602523b20897c3e7d1dce/Rendering/cfillion_Apply%20render%20preset.lua</source>
+      </version>
+      <version name="2.1.1" author="cfillion" time="2023-11-24T16:16:33Z">
+        <changelog><![CDATA[Fix regression from v2.1 that broke parsing of secondary output format [p=2736541]]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a519785bcb6286833cc6dffcdde2f595e3ef8666/Rendering/cfillion_Apply%20render%20preset.lua</source>
+        <source main="main" file="cfillion_Apply render preset (create action).lua">https://github.com/ReaTeam/ReaScripts/raw/a519785bcb6286833cc6dffcdde2f595e3ef8666/Rendering/cfillion_Apply%20render%20preset.lua</source>
       </version>
     </reapack>
     <reapack name="DSG_Render time selection to new track.lua" type="script" desc="Render time selection to new track">
