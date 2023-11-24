@@ -1,11 +1,7 @@
 -- @description Apply render preset
 -- @author cfillion
--- @version 2.1
--- @changelog
---   Add support for 'Only render channels that are sent to parent' and 'Render stems pre-fader'
---   Add support for post-processing fade-in and fade-out
---   Add support for rendering metadata [p=2736401]
---   Add support for tail length
+-- @version 2.1.1
+-- @changelog Fix regression from v2.1 that broke parsing of secondary output format [p=2736541]
 -- @provides
 --   .
 --   [main] . > cfillion_Apply render preset (create action).lua
@@ -368,7 +364,7 @@ function parseFormatPreset(presets, file, tokens)
 end
 
 function parseFormatPreset2(presets, file, tokens)
-  local ok, err = checkTokenCount(file, tokens, 1)
+  local ok, err = checkTokenCount(file, tokens, 2)
   if not ok then return nil, err end
 
   local preset = insertPreset(presets, tokens[2])
