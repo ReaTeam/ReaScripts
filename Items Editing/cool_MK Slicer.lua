@@ -1,7 +1,7 @@
 -- @description MK Slicer
 -- @author cool
--- @version 3.11
--- @changelog +Themes: added the "Frame Thickness" parameter
+-- @version 3.12
+-- @changelog +Fixed a compatibility issue: now the script does not crash when using the Sampler mode in Reaper versions older than 7.0
 -- @link Forum Thread https://forum.cockos.com/showthread.php?t=232672
 -- @screenshot MK_Slicer 3 https://i.imgur.com/L7WnvoO.jpg
 -- @donation
@@ -58,7 +58,7 @@
 --   Sometimes a script applies glue to items. For example, when several items are selected and when a MIDI is created in a sampler mode.
 
 --[[
-MK Slicer v3.11 by Maxim Kokarev 
+MK Slicer v3.12 by Maxim Kokarev 
 https://forum.cockos.com/member.php?u=121750
 
 Co-Author of the compilation - MyDaw
@@ -490,7 +490,7 @@ function Theming(Theme)
 
       TH[46] = { 0.1, 0.424, 0.455,1 } -- CheckBox Body
 
-      --------------Text--------------------     
+      --------------Text--------------------      
       TH[33] = { 0.85, 0.85, 0.85, 1 } -- Text Main
       TH[34] = { 0.906, 0.524, 0.229, 1 } -- Text Warn (Small "Processing, wait...")
       TH[35] = { 0.4, 0.4, 0.4, 0.7 } -- Txt Greyed (BPM)
@@ -2363,13 +2363,6 @@ function Element:draw_frame()
   gfx.set(TH[29][1],TH[29][2],TH[29][3],an) -- sliders and checkboxes borders
   gfx.rect(x, y, w, h, false)            -- frame1      
  if ThickFrames == 1 then gfx.rect(x+1, y+1, w-2, h-2, false)  end          -- frame1 
-end
-
-function Element:draw_frame_sld()
-  local x,y,w,h  = self.x,self.y,self.w,self.h
-    local r,g,b,a  = self.r,self.g,self.b,self.a
-  gfx.set(TH[45][1],TH[45][2],TH[45][3],TH[45][4]) -- sliders backgrounds
-  gfx.rect(x, y, w, h, true)            -- frame1      
 end
 
 function Element:draw_frame_sld()
@@ -8992,38 +8985,45 @@ RS_Rel = RS_Rel/2000
 
 function ExportItemToRS5K(note,filepath, start_offs, end_offs, track)
  
+local version, position_of_FX_in_container, parent_FX_count, position_of_container, insert_position, insert_position2
+
       if not note or not filepath then return end
   
       if note > 127 then return end
 
-      local position_of_FX_in_container = select(2, r.TrackFX_GetNamedConfigParm(track, 0, 'container_count')) + 1
-      local parent_FX_count = r.TrackFX_GetCount(track)
-      local position_of_container = 1
-      
-      local insert_position = 0x2000000 + position_of_FX_in_container * (parent_FX_count + 1) + position_of_container
+version = tonumber(reaper.GetAppVersion():match('[%d.]+'))
+   if version >= 7 then -- check Reaper version
+      position_of_FX_in_container = select(2, r.TrackFX_GetNamedConfigParm(track, 0, 'container_count')) + 1
+      parent_FX_count = r.TrackFX_GetCount(track)
+      position_of_container = 1     
+      insert_position = 0x2000000 + position_of_FX_in_container * (parent_FX_count + 1) + position_of_container
+      else
+      insert_position = -1
+   end
 
       local rs5k_pos = r.TrackFX_AddByName( track, 'ReaSamplomatic5000', false, insert_position )
-                                 r.TrackFX_Show( track, insert_position, 2) -- Hide Plugins Windows
-      r.TrackFX_SetNamedConfigParm(  track, insert_position, 'FILE0', filepath)
-      r.TrackFX_SetNamedConfigParm(  track, insert_position, 'DONE', '')      
-      r.TrackFX_SetParamNormalized( track, insert_position, 0, 0.63) -- gain for min vel
-      r.TrackFX_SetParamNormalized( track, insert_position, 2, 0) -- gain for min vel
-      r.TrackFX_SetParamNormalized( track, insert_position, 3, note/127 ) -- note range start
-      r.TrackFX_SetParamNormalized( track, insert_position, 4, note/127 ) -- note range end
-      r.TrackFX_SetParamNormalized( track, insert_position, 5, 0.5 ) -- pitch for start
-      r.TrackFX_SetParamNormalized( track, insert_position, 6, 0.5 ) -- pitch for end
-      r.TrackFX_SetParamNormalized( track, insert_position, 8, 0 ) -- max voices = 0
-      r.TrackFX_SetParamNormalized( track, insert_position, 9, RS_Att ) -- attack
-      r.TrackFX_SetParamNormalized( track, insert_position, 10, RS_Rel ) -- Release
-      r.TrackFX_SetParamNormalized( track, insert_position, 11, obeynoteoff_default ) -- obey note offs
+      if version >= 7 then insert_position2 =insert_position else insert_position2 = rs5k_pos end
+                                 r.TrackFX_Show( track, insert_position2, 2) -- Hide Plugins Windows
+      r.TrackFX_SetNamedConfigParm(  track, insert_position2, 'FILE0', filepath)
+      r.TrackFX_SetNamedConfigParm(  track, insert_position2, 'DONE', '')      
+      r.TrackFX_SetParamNormalized( track, insert_position2, 0, 0.63) -- gain for min vel
+      r.TrackFX_SetParamNormalized( track, insert_position2, 2, 0) -- gain for min vel
+      r.TrackFX_SetParamNormalized( track, insert_position2, 3, note/127 ) -- note range start
+      r.TrackFX_SetParamNormalized( track, insert_position2, 4, note/127 ) -- note range end
+      r.TrackFX_SetParamNormalized( track, insert_position2, 5, 0.5 ) -- pitch for start
+      r.TrackFX_SetParamNormalized( track, insert_position2, 6, 0.5 ) -- pitch for end
+      r.TrackFX_SetParamNormalized( track, insert_position2, 8, 0 ) -- max voices = 0
+      r.TrackFX_SetParamNormalized( track, insert_position2, 9, RS_Att ) -- attack
+      r.TrackFX_SetParamNormalized( track, insert_position2, 10, RS_Rel ) -- Release
+      r.TrackFX_SetParamNormalized( track, insert_position2, 11, obeynoteoff_default ) -- obey note offs
       if start_offs and end_offs then
-        r.TrackFX_SetParamNormalized( track, insert_position, 13, start_offs ) -- attack
-        r.TrackFX_SetParamNormalized( track, insert_position, 14, end_offs )   
-        r.TrackFX_SetParamNormalized( track, insert_position, 15, 0.5+((0.075/12)*RS_PitchOffset) ) -- pitch offset
+        r.TrackFX_SetParamNormalized( track, insert_position2, 13, start_offs ) -- attack
+        r.TrackFX_SetParamNormalized( track, insert_position2, 14, end_offs )   
+        r.TrackFX_SetParamNormalized( track, insert_position2, 15, 0.5+((0.075/12)*RS_PitchOffset) ) -- pitch offset
           if ForcePitchBend == 1 then
-                r.TrackFX_SetParamNormalized( track, insert_position, 16, (1/12)*RS_PitchBend ) -- pitch bend
+                r.TrackFX_SetParamNormalized( track, insert_position2, 16, (1/12)*RS_PitchBend ) -- pitch bend
           end
-      end  
+      end 
 
   end
 
@@ -11451,8 +11451,8 @@ function Init()
 
     -- Some gfx Wnd Default Values ---------------
     local R,G,B = ceil(TH[3][1]*255),ceil(TH[3][2]*255),ceil(TH[3][3]*255)             -- 0...255 format -- цвет основного окна
-    local Wnd_bgd = R + G*256 + B*65536 -- red+green*256+blue*65536
-    local Wnd_Title = "MK Slicer v3.11" .. " " .. theme_name .. " " .. RG_status .. ""
+    local Wnd_bgd = R + G*256 + B*65536 -- red+green*256+blue*65536  
+    local Wnd_Title = "MK Slicer v3.12" .. " " .. theme_name .. " " .. RG_status .. ""
     local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
 
      -- set init fonts/size
@@ -11839,7 +11839,7 @@ item5.command = function()
                           gfx.dock(dock_pos)
                           xpos = 400
                           ypos = 320
-                          local Wnd_Title = "MK Slicer v3.11"
+                          local Wnd_Title = "MK Slicer v3.12"
                           local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
                           gfx.init( Wnd_Title, Wnd_W,Wnd_H, Wnd_Dock, Wnd_X,Wnd_Y )
 
@@ -11851,7 +11851,7 @@ item5.command = function()
                          dock_pos = 0
                          xpos = tonumber(r.GetExtState("MK_Slicer_3", "window_x")) or 400
                          ypos = tonumber(r.GetExtState("MK_Slicer_3", "window_y")) or 320
-                         local Wnd_Title = "MK Slicer v3.11"
+                         local Wnd_Title = "MK Slicer v3.12"
                          local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
                          if Wnd_Y == (nil or 0) then Wnd_Y = Wnd_Y+25 end -- correction for window header visibility
                          gfx.init( Wnd_Title, Wnd_W,Wnd_H, Wnd_Dock, Wnd_X,Wnd_Y )
