@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="a519785bcb6286833cc6dffcdde2f595e3ef8666" name="ReaTeam Scripts">
+<index version="1" commit="ab34b889717002bd5f2bbf96b22dc8e0e3112b58" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -6789,6 +6789,10 @@ Override Reaper option "Toggle enable/disable default fadein/fadeout" (on/off)]]
       <version name="3.11" author="cool" time="2023-11-23T04:14:13Z">
         <changelog><![CDATA[+Themes: added the "Frame Thickness" parameter]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/112b080be64c17fb91219394f5f730e723dad569/Items%20Editing/cool_MK%20Slicer.lua</source>
+      </version>
+      <version name="3.12" author="cool" time="2023-11-26T18:08:50Z">
+        <changelog><![CDATA[+Fixed a compatibility issue: now the script does not crash when using the Sampler mode in Reaper versions older than 7.0]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ab34b889717002bd5f2bbf96b22dc8e0e3112b58/Items%20Editing/cool_MK%20Slicer.lua</source>
       </version>
     </reapack>
     <reapack name="Demoji_Next Variation.lua" type="script" desc="Next Variation">
