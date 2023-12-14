@@ -1,7 +1,10 @@
 -- @description MK Slicer
 -- @author cool
--- @version 3.12
--- @changelog +Fixed a compatibility issue: now the script does not crash when using the Sampler mode in Reaper versions older than 7.0
+-- @version 3.20
+-- @changelog
+--   + Added the "Sampler: White Keys Only" option, which allows you to assign only white keys to the Sampler.
+--   + Improved behavior of MIDI preview when transitioning between notes and holding down two keys.
+--   + A new module has been added to the Random function: Glitch
 -- @link Forum Thread https://forum.cockos.com/showthread.php?t=232672
 -- @screenshot MK_Slicer 3 https://i.imgur.com/L7WnvoO.jpg
 -- @donation
@@ -58,7 +61,7 @@
 --   Sometimes a script applies glue to items. For example, when several items are selected and when a MIDI is created in a sampler mode.
 
 --[[
-MK Slicer v3.12 by Maxim Kokarev 
+MK Slicer v3.20 by Maxim Kokarev 
 https://forum.cockos.com/member.php?u=121750
 
 Co-Author of the compilation - MyDaw
@@ -1102,6 +1105,7 @@ MIDITooHigh = 0
 -----------------------------------States and UA  protection-----------------------------
 Docked = tonumber(r.GetExtState('MK_Slicer_3','Docked'))or 0;
 EscToExit = tonumber(r.GetExtState('MK_Slicer_3','EscToExit'))or 1;
+WhiteKeysOnly = tonumber(r.GetExtState('MK_Slicer_3','WhiteKeysOnly'))or 0;
 MIDISamplerCopyFX = tonumber(r.GetExtState('MK_Slicer_3','MIDISamplerCopyFX'))or 1;
 MIDISamplerCopyRouting = tonumber(r.GetExtState('MK_Slicer_3','MIDISamplerCopyRouting'))or 1;
 MIDI_Mode = tonumber(r.GetExtState('MK_Slicer_3','Midi_Sampler.norm_val'))or 1;
@@ -1148,11 +1152,13 @@ Random_Pitch = tonumber(r.GetExtState('MK_Slicer_3','Random_Pitch'))or 0;
 Random_Mute = tonumber(r.GetExtState('MK_Slicer_3','Random_Mute'))or 0;
 Random_Position = tonumber(r.GetExtState('MK_Slicer_3','Random_Position'))or 0;
 Random_Reverse = tonumber(r.GetExtState('MK_Slicer_3','Random_Reverse'))or 0;
+R_Glitch = tonumber(r.GetExtState('MK_Slicer_3','R_Glitch'))or 0;
 RandV = tonumber(r.GetExtState('MK_Slicer_3','RandV_Sld.norm_val'))or 0.5;
 RandPan = tonumber(r.GetExtState('MK_Slicer_3','RandPan_Sld.norm_val'))or 1;
 RandPtch = tonumber(r.GetExtState('MK_Slicer_3','RandPtch_Sld.norm_val'))or 0.5;
 RandPos = tonumber(r.GetExtState('MK_Slicer_3','RandPos_Sld.norm_val'))or 0.2;
 RandRev = tonumber(r.GetExtState('MK_Slicer_3','RandRev_Sld.norm_val'))or 0.5;
+RandGlitch = tonumber(r.GetExtState('MK_Slicer_3','R_Glitch_Sld.norm_val'))or 0.5;
 
 if AutoXFadesOnSplitOverride == nil then AutoXFadesOnSplitOverride = 1 end 
 if AutoXFadesOnSplitOverride <= 0 then AutoXFadesOnSplitOverride = 0 elseif AutoXFadesOnSplitOverride >= 1 then AutoXFadesOnSplitOverride = 1 end 
@@ -2233,6 +2239,9 @@ e_pos = -60 -- global shift only
 
 ----------Global Vertical Correction-------
 corrY = 10 -- global shift only
+
+----------Random Setup Vertical Correction-------
+f_pos = 20
 
 --------------------------------------------------------------------------------
 ---------------------Retina Check---------------------------------------------
@@ -4534,8 +4543,8 @@ elm_table[3] = Line2:new(dl1_pos+1,380+corrY,4,88, TH[4][1],TH[4][2],TH[4][3],TH
 elm_table[4] = Frame_filled:new(669+d_pos,380+corrY,279,69,  TH[4][1],TH[4][2],TH[4][3],TH[4][4]-0.4 ) --Mode_Frame_filled
 elm_table[5] = Frame_filled:new(b_pos,380+corrY,160,89,  TH[4][1],TH[4][2],TH[4][3],TH[4][4]-0.4 ) --Gate_Frame_filled
 
-elm_table[6] = Frame_filled:new(656+c_pos,376,147,112,  TH[4][1],TH[4][2],TH[4][3],TH[4][4] ) --Random_Setup_Frame_filled
-elm_table[7] = Line:new(656+c_pos,376,147,112,  TH[5][1],TH[5][2],TH[5][3],TH[5][4] ) --Random_Setup_Frame
+elm_table[6] = Frame_filled:new(656+c_pos,376-f_pos,147,112+f_pos,  TH[4][1],TH[4][2],TH[4][3],TH[4][4] ) --Random_Setup_Frame_filled
+elm_table[7] = Line:new(656+c_pos,376-f_pos,147,112+f_pos,  TH[5][1],TH[5][2],TH[5][3],TH[5][4] ) --Random_Setup_Frame
 
 elm_table[8] = Colored_Rect_top:new(50,24,40,2,  TH[39][1],TH[39][2],TH[39][3],TH[39][4] ) -- Grid1_Led
 elm_table[9] = Colored_Rect_top:new(92,24,40,2,  TH[39][1],TH[39][2],TH[39][3],TH[39][4] ) -- Grid2_Led
@@ -4568,21 +4577,23 @@ leds_table[4] = Colored_Rect_top:new(983,5,2,20,  0.5,0.5,0.5,0.5 ) -- Light_Loo
 leds_table[5] = Colored_Rect_top:new(950,5,2,20,  TH[39][1],TH[39][2],TH[39][3],TH[39][4] ) -- Light_Snap_on
 leds_table[6] = Colored_Rect_top:new(950,5,2,20,  0.5,0.5,0.5,0.5 ) -- Light_Snap_off
 
-leds_table[7] = Colored_Rect:new(661+c_pos,380,2,14,  0.1,0.8,0.2,TH[42] ) --  Rand_Mode_Color1
-leds_table[8] = Colored_Rect:new(661+c_pos,395,2,14,  0.7,0.7,0.0,TH[42] ) --  Rand_Mode_Color2
-leds_table[9] = Colored_Rect:new(661+c_pos,410,2,14,  0.8,0.4,0.1,TH[42] ) --  Rand_Mode_Color3
-leds_table[10] = Colored_Rect:new(661+c_pos,425,2,14,  0.7,0.0,0.0,TH[42] ) --  Rand_Mode_Color4
-leds_table[11] = Colored_Rect:new(661+c_pos,455,2,14,  0.2,0.5,1,TH[42] ) --  Rand_Mode_Color5
-leds_table[12] = Colored_Rect:new(661+c_pos,440,2,14,  0.8,0.1,0.8,TH[42] ) --  Rand_Mode_Color6
-leds_table[13] = Colored_Rect:new(661+c_pos,470,2,14,  0.1,0.7,0.6,TH[42] ) --  Rand_Mode_Color7
+leds_table[7] = Colored_Rect:new(661+c_pos,380-f_pos,2,14,  0.1,0.8,0.2,TH[42] ) --  Rand_Mode_Color1
+leds_table[8] = Colored_Rect:new(661+c_pos,395-f_pos,2,14,  0.7,0.7,0.0,TH[42] ) --  Rand_Mode_Color2
+leds_table[9] = Colored_Rect:new(661+c_pos,410-f_pos,2,14,  0.8,0.4,0.1,TH[42] ) --  Rand_Mode_Color3
+leds_table[10] = Colored_Rect:new(661+c_pos,425-f_pos,2,14,  0.7,0.0,0.0,TH[42] ) --  Rand_Mode_Color4
+leds_table[11] = Colored_Rect:new(661+c_pos,455-f_pos,2,14,  0.2,0.5,1,TH[42] ) --  Rand_Mode_Color5
+leds_table[12] = Colored_Rect:new(661+c_pos,440-f_pos,2,14,  0.8,0.1,0.8,TH[42] ) --  Rand_Mode_Color6
+leds_table[13] = Colored_Rect:new(661+c_pos,465,2,14,  0.7,0.7,0.7,TH[42] ) --  Rand_Mode_Color7
+leds_table[27] = Colored_Rect:new(661+c_pos,470-f_pos,2,14,  0.1,0.7,0.6,TH[42] ) --  Rand_Mode_Color8
 
 leds_table[14] = Colored_Rect:new(584+c_pos,426+corrY,8,2,  0.1,0.8,0.2,TH[42] ) --  Rand_Button_Color1
-leds_table[15] = Colored_Rect:new(593+c_pos,426+corrY,9,2,  0.7,0.7,0.0,TH[42] ) --  Rand_Button_Color2
-leds_table[16] = Colored_Rect:new(603+c_pos,426+corrY,9,2,  0.8,0.4,0.1,TH[42] ) --  Rand_Button_Color3
-leds_table[17] = Colored_Rect:new(613+c_pos,426+corrY,9,2,  0.7,0.0,0.0,TH[42] ) --  Rand_Button_Color4
-leds_table[18] = Colored_Rect:new(633+c_pos,426+corrY,9,2,  0.2,0.5,1,TH[42] ) --  Rand_Button_Color5
-leds_table[19] = Colored_Rect:new(623+c_pos,426+corrY,9,2,  0.8,0.1,0.8,TH[42] ) --  Rand_Button_Color6
-leds_table[20] = Colored_Rect:new(643+c_pos,426+corrY,8,2,  0.1,0.7,0.6,TH[42] ) --  Rand_Button_Color7
+leds_table[15] = Colored_Rect:new(593+c_pos,426+corrY,8,2,  0.7,0.7,0.0,TH[42] ) --  Rand_Button_Color2
+leds_table[16] = Colored_Rect:new(602+c_pos,426+corrY,7,2,  0.8,0.4,0.1,TH[42] ) --  Rand_Button_Color3
+leds_table[17] = Colored_Rect:new(610+c_pos,426+corrY,7,2,  0.7,0.1,0.1,TH[42] ) --  Rand_Button_Color4
+leds_table[18] = Colored_Rect:new(626+c_pos,426+corrY,7,2,  0.2,0.5,1,TH[42] ) --  Rand_Button_Color5
+leds_table[19] = Colored_Rect:new(618+c_pos,426+corrY,7,2,  0.8,0.1,0.8,TH[42] ) --  Rand_Button_Color6
+leds_table[20] = Colored_Rect:new(643+c_pos,426+corrY,8,2,  0.7,0.7,0.7,TH[42] ) --  Rand_Button_Color7
+leds_table[28] = Colored_Rect:new(634+c_pos,426+corrY,8,2,  0.1,0.7,0.6,TH[42] ) --  Rand_Button_Color8
 
 leds_table[21] = Colored_Rect:new(760+d_pos,410+corrY+fr_marg,3,18-fr_marg2,  0.69,0.17,0.17,TH[42] ) -- MIDIMode1
 leds_table[22] = Colored_Rect:new(760+d_pos,410+corrY+fr_marg,3,18-fr_marg2,  0.69,0.32,0.05,TH[42] ) -- MIDIMode2
@@ -4594,7 +4605,7 @@ leds_table[26] = Colored_Rect_top:new(917,5,2,20,  0.5,0.5,0.5,0.5 ) -- Light_Ai
 local others_table = {}
 
 others_table[1] = Txt2:new(628+c_pos,408+corrY,55,18, TH[36][1],TH[36][2],TH[36][3],TH[36][4], ">","Arial",20) --Triangle
-others_table[2] = Txt2:new(735+c_pos,377,55,18, TH[36][1],TH[36][2],TH[36][3],TH[36][4], "Intensity","Arial",10) --RandText
+others_table[2] = Txt2:new(735+c_pos,377-f_pos,55,18, TH[36][1],TH[36][2],TH[36][3],TH[36][4], "Intensity","Arial",10) --RandText
 
 others_table[3] = Line3:new(474+c_pos,375+corrY,145,18) --| Q_Rnd_Linked (Bracket)
 others_table[4] = Line2:new(472+c_pos,380+corrY,149,18,  TH[4][1],TH[4][2],TH[4][3],TH[4][4])--| Q_Rnd_Linked2 (Bracket fill)
@@ -4619,57 +4630,7 @@ others_table[17] = Colored_Rect_top:new(64+d_pos,35+corrY,5,335, TH[13][1],TH[13
 others_table[18] = Colored_Rect_top:new(1096+d_pos,35+corrY,5,335, TH[13][1],TH[13][2],TH[13][3],0.4, "<<","Arial",22) -- MIDITriangle2
 
 
-local Frame_Snap_TB = {leds_table[5]}
-local Frame_Snap_TB2 = {leds_table[6]}
-local Frame_Aim_TB = {leds_table[25]}
-local Frame_Aim_TB2 = {leds_table[26]}
-local Frame_Loop_TB = {leds_table[3]}
-local Frame_Loop_TB2 = {leds_table[4], others_table[7]}
-local Frame_TB = {elm_table[1], elm_table[2], elm_table[3], elm_table[17], elm_table[18], elm_table[19], elm_table[20], elm_table[21]} 
-local FrameR_TB = {others_table[5], others_table[6]}
-local FrameQR_Link_TB = {others_table[3],others_table[4]}
-local Frame_TB1 = {leds_table[2]}
-local Frame_TB2 = {elm_table[5], leds_table[1]} -- Grid mode
-local Frame_TB2_Trigg = {elm_table[4]}
 
-local Grid1_Led_TB = {elm_table[8]}
-local Grid2_Led_TB = {elm_table[9]}
-local Grid4_Led_TB = {elm_table[10]}
-local Grid8_Led_TB = {elm_table[11]}
-local Grid16_Led_TB = {elm_table[12]}
-local Grid32_Led_TB = {elm_table[13]}
-local Grid64_Led_TB = {elm_table[14]}
-local GridT_Led_TB = {elm_table[15]}
-local Swing_Led_TB = {elm_table[16]}
-
-local Rand_Mode_Color1_TB = {leds_table[7]}
-local Rand_Mode_Color2_TB = {leds_table[8]}
-local Rand_Mode_Color3_TB = {leds_table[9]}
-local Rand_Mode_Color4_TB = {leds_table[10]}
-local Rand_Mode_Color5_TB = {leds_table[11]}
-local Rand_Mode_Color6_TB = {leds_table[12]}
-local Rand_Mode_Color7_TB = {leds_table[13]}
-
-local Rand_Button_Color1_TB = {leds_table[14]}
-local Rand_Button_Color2_TB = {leds_table[15]}
-local Rand_Button_Color3_TB = {leds_table[16]}
-local Rand_Button_Color4_TB = {leds_table[17]}
-local Rand_Button_Color5_TB = {leds_table[18]}
-local Rand_Button_Color6_TB = {leds_table[19]}
-local Rand_Button_Color7_TB = {leds_table[20]}
-
---local Triangle_TB = {others_table[1]}
-local RandText_TB = {others_table[2], others_table[1]}
---local Ruler_TB = {others_table[8]}
-local Preset_TB = {others_table[9]}  
-local Preset_TB2 = {others_table[14], others_table[15], others_table[16]}  
-
-local MIDI_Mode_Color1_TB = {leds_table[21]}
-local MIDI_Mode_Color2_TB = {leds_table[22]}
-local MIDI_Mode_Color3_TB = {leds_table[23]}
-
-local MIDITriangle1_TB = {others_table[17]}
-local MIDITriangle2_TB = {others_table[18]}
 
 
 
@@ -5163,7 +5124,7 @@ end
 
 
 -- RandV_Sld ------------------------------ 
-local RandV_Sld = H_Slider:new(723+c_pos,395,75,14, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "","Arial",16, RandV )
+local RandV_Sld = H_Slider:new(723+c_pos,395-f_pos,75,14, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "","Arial",16, RandV )
 function RandV_Sld:draw_val()
   self.form_val = (self.norm_val)*100       -- form_val
   local x,y,w,h  = self.x,self.y,self.w,self.h
@@ -5181,7 +5142,7 @@ end
 if RandVval == nil then RandVval = RandV*100 end
 
 -- RandPan_Sld ------------------------------ 
-local RandPan_Sld = H_Slider:new(723+c_pos,410,75,14, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "","Arial",16, RandPan )
+local RandPan_Sld = H_Slider:new(723+c_pos,410-f_pos,75,14, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "","Arial",16, RandPan )
 function RandPan_Sld:draw_val()
   self.form_val = (self.norm_val)*100       -- form_val
   local x,y,w,h  = self.x,self.y,self.w,self.h
@@ -5199,7 +5160,7 @@ end
 if RandPanval == nil then RandPanval = RandPan*100 end
 
 -- RandPtch_Sld ------------------------------ 
-local RandPtch_Sld = H_Slider:new(723+c_pos,425,75,14, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "","Arial",16, RandPtch )
+local RandPtch_Sld = H_Slider:new(723+c_pos,425-f_pos,75,14, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "","Arial",16, RandPtch )
 function RandPtch_Sld:draw_val()
   self.form_val = (self.norm_val)*100       -- form_val
   local x,y,w,h  = self.x,self.y,self.w,self.h
@@ -5217,7 +5178,7 @@ end
 if RandPtchval == nil then RandPtchval = RandPtch*12 end
 
 -- RandPos_Sld ------------------------------ 
-local RandPos_Sld = H_Slider:new(723+c_pos,440,75,14, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "","Arial",16, RandPos )
+local RandPos_Sld = H_Slider:new(723+c_pos,440-f_pos,75,14, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "","Arial",16, RandPos )
 function RandPos_Sld:draw_val()
   self.form_val = (self.norm_val)*100       -- form_val
   local x,y,w,h  = self.x,self.y,self.w,self.h
@@ -5236,7 +5197,7 @@ end
 if RandPosval == nil then RandPosval = RandPos*100 end
 
 -- RandRev_Sld ------------------------------ 
-local RandRev_Sld = H_Slider:new(723+c_pos,455,75,14, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "","Arial",16, RandRev )
+local RandRev_Sld = H_Slider:new(723+c_pos,455-f_pos,75,14, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "","Arial",16, RandRev )
 function RandRev_Sld:draw_val()
   self.form_val = (self.norm_val)*100       -- form_val
   local x,y,w,h  = self.x,self.y,self.w,self.h
@@ -5255,6 +5216,26 @@ function()
 end
 if RandRevVal == nil then RandRevVal = ceil((((logx((RandRev*100)+1))*21.63)*-1)+100) end
 
+
+-- R_Glitch_Sld ------------------------------ 
+local R_Glitch_Sld = H_Slider:new(723+c_pos,470-f_pos,75,14, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "","Arial",16, RandGlitch )
+function R_Glitch_Sld:draw_val()
+  self.form_val = (self.norm_val)*100       -- form_val
+  local x,y,w,h  = self.x,self.y,self.w,self.h
+  local val = string.format("%.0f", self.form_val).."%"
+  local val_w, val_h = gfx.measurestr(val)
+  gfx.x = x+w-val_w-3
+  gfx.y = y+(h-val_h)/2
+  gfx.drawstr(val)--draw Slider Value
+
+  glsld =       (logx(R_Glitch_Sld.form_val+1))*21.63     
+  R_GlitchVal =  ceil(glsld*-1)+100
+end
+R_Glitch_Sld.onUp =
+function() 
+
+end
+if R_GlitchVal == nil then R_GlitchVal = ceil((((logx((RandGlitch*100)+1))*21.63)*-1)+100) end
 
 ---------------------------------RS5K--------------------------------------------------------------------------
 
@@ -5697,28 +5678,6 @@ local OutNote2  = CheckBox_simple:new(670+d_pos,430+corrY,93,18, TH[30][1],TH[30
                               )
 
 -------------------------
-
-
-----------------------------------------
-
-local Slider_TB = {HP_Freq,LP_Freq,Fltr_Gain,Gate_Thresh,Gate_Sensitivity,Gate_Retrig,Gate_ReducePoints,Offset_Sld,QStrength_Sld,Project,Set_Rate_Mode, Set_Rate_Feel}
-
-local Sliders_Grid_TB = {GrBtnT[1], GrBtnT[2], GrBtnT[3], GrBtnT[4], GrBtnT[5], GrBtnT[6], GrBtnT[7], GrBtnT[8]}
-
-local Slider_Swing_TB = {Swing_Sld}
-
-local Slider_TB_Trigger = {Gate_VeloScale, VeloMode,OutNote, others_table[10]}
-
-local Slider_TB_Trigger_notes = {Gate_VeloScale, VeloMode,OutNote2, others_table[10]}
-
-local XFade_TB = {XFade_Sld}
-local XFade_TB_Off = {XFade_Sld_Off}
-
-local SliderRandV_TB = {RandV_Sld}
-local SliderRandPan_TB = {RandPan_Sld}
-local SliderRandPtch_TB = {RandPtch_Sld}
-local SliderRand_TBPos = {RandPos_Sld}
-local SliderRand_TBM = {RandRev_Sld}
 
 -------------------------------------------------------------------------------------
 --- Buttons -------------------------------------------------------------------------
@@ -6374,8 +6333,209 @@ function Randomizer()
              end
      
      RestoreSelItems()
-     
-     ----------------------------------------------------------------------------------------
+
+      -----------------------------------------------------------------------------------------------------------
+      --------------------------------------Glitch-------------------------------------- 
+      ----------------------------------------------------------------------------------
+          Ritem = r.GetSelectedMediaItem(0,0)
+          Ritem_to_slice = r.BR_GetMediaItemGUID(Ritem)
+      
+             r.SetExtState('_Slicer_', 'RItemToSlice', Ritem_to_slice, 0)
+            Rlastitem = r.GetExtState('_Slicer_', 'RItemToSlice')
+            itemInit =  r.BR_GetMediaItemByGUID( 0, Rlastitem )
+            if itemInit == nil then return end
+            Init_position = r.GetMediaItemInfo_Value(itemInit, "D_POSITION")
+      
+             init_item_cnt = r.CountSelectedMediaItems(0)
+            Ritem2 = r.GetSelectedMediaItem(0,init_item_cnt-1)
+      
+            Ritem_to_slice2 = r.BR_GetMediaItemGUID(Ritem2)
+      
+             r.SetExtState('_Slicer_', 'RItemToSlice', Ritem_to_slice2, 0)
+            Rlastitem = r.GetExtState('_Slicer_', 'RItemToSlice')
+            itemLast =  r.BR_GetMediaItemByGUID( 0, Rlastitem )
+            Last_position = r.GetMediaItemInfo_Value(itemLast, "D_POSITION")
+      
+      
+       local t = {}
+      
+      --------------------------------------------------------------------------------------------
+           
+           function random_numbers_less_than(x)
+             local t, t_res = {},{}
+             local e = 0
+             local d = 0
+             for i = 1, x do 
+                e = e + 1
+                t[e] = i 
+             end
+             shuffle(t)
+             local max = x//((R_GlitchVal/10)+1)
+             for i = 1, max do 
+               d = d + 1
+               t_res[d] = t[i] 
+             end
+             return t_res
+           end
+      
+      function Rnd_Sel()  
+           local items = r.CountSelectedMediaItems()
+           if items == 0 then return end
+           
+           local f = 0
+           for i = 0, items-1 do
+             local it = r.GetSelectedMediaItem(0,i)
+             f = f + 1
+             t[f] = it
+           end
+           
+           local t_nums = random_numbers_less_than(items)
+              
+           r.SelectAllMediaItems(0, 0) -- unselect all items
+           for i = 1, #t_nums-1 do
+             local it = t[t_nums[i]]
+             if it then
+                r.SetMediaItemSelected(it,1)
+             end
+           end
+      end
+      
+      
+      function SplitItemByGrid()
+            local item =  r.GetSelectedMediaItem(0, 0)
+            local position = r.GetMediaItemInfo_Value(item, "D_POSITION")
+            local length = position + r.GetMediaItemInfo_Value(item, "D_LENGTH")
+      
+              if item then --collect grid points
+                  Grid_Points_G ={}       
+                  local b = 0    
+                  local blueline = position 
+                      while (blueline <= length) do           
+                           blueline = beatc(blueline)           
+                           b = b + 1
+                           Grid_Points_G[b] = (((blueline - position)*srate)//1)
+                      end 
+               end 
+      
+            for i=#Grid_Points_G, 1, -1  do
+      
+                    local _, division, swingmode, swingamt = r.GetSetProjectGrid(0, 0) -- swing
+                        if swingamt ~= 0 then
+                              sw_shift = swingamt*(1-abs(division-1))
+                              if IsEven(i) == false and swingmode == 1 then 
+                                 sw_shift = sw_shift
+                                   else
+                                 sw_shift = 0
+                              end
+                           else
+                             sw_shift = 0
+                         end
+         
+                  r.SplitMediaItem(item, position+(Grid_Points_G[i]/srate)+sw_shift)
+      
+             end
+      end
+      
+      ----------------------------------GlitchMain-------------------------------------------
+      function Repeater()
+            local sel_item = {}
+             item_cnt = r.CountSelectedMediaItems(0)
+              for i = 1, item_cnt do
+                local item = r.GetSelectedMediaItem(0, 0)
+                sel_item[i] = item
+                r.SetMediaItemSelected(item, false)
+              end
+            
+            local it_table = #sel_item
+            
+              for i = 1, it_table do
+            
+                r.SetMediaItemSelected(sel_item[i], true)
+      
+                       SplitItemByGrid()
+                       
+                       items = r.CountSelectedMediaItems(0)
+                       
+                       for k=0, items-1 do
+                       item = r.GetSelectedMediaItem(0, k)
+                            if item then
+                                  local take = r.GetActiveTake( item )
+                                  local position = r.GetMediaItemInfo_Value(item, "D_POSITION")
+                                  local length = r.GetMediaItemInfo_Value(item, "D_LENGTH")
+                                  if k == 0 then -- get first item
+                                     init_offset = r.GetMediaItemTakeInfo_Value(take, "D_STARTOFFS", position-length)
+                                  end
+                                      if take and init_offset then
+                                           r.SetMediaItemTakeInfo_Value(take, "D_STARTOFFS", init_offset)
+                                      end
+                              end
+                       end
+         --   Overlap(Crossfade);
+            r.Main_OnCommand(40289, 0) -- Item: Unselect all items
+            end
+      end
+      
+      
+      
+      
+      function Rnd_Main()
+      
+                    local   _, division, swingmode, swingamt = r.GetSetProjectGrid(0, 0) -- swing
+          
+                    local sel_item = {}
+                    local item_cnt = r.CountSelectedMediaItems(0)
+                      --------------------------------------------------
+                      for i = 1, item_cnt do
+                        local item = r.GetSelectedMediaItem(0, 0)
+                        sel_item[i] = item
+                        r.SetMediaItemSelected(item, false)
+                      end
+                    
+                      local it_table = #sel_item  
+                      for i = 1, it_table-1 do
+                        local item = sel_item[i]
+                                    if r.GetMediaItemInfo_Value(item, 'B_MUTE') == 1 then  -- skip muted items
+                                         r.SetMediaItemSelected(item, false)  
+                                            else
+                                         r.SetMediaItemSelected(item, true)
+                                    end
+                                  r.GetSetProjectGrid(0, true, ((division/random(1, random(2, 4)))/random(1, 3)), swingmode, swingamt)  
+                                      Repeater()   
+                                  r.SetMediaItemSelected(item, false)   
+                                  r.GetSetProjectGrid(0, true, (division), swingmode, swingamt)
+                       end
+        
+      end
+      
+          if R_Glitch == 1 then
+      
+                sel_tracks_items()
+      
+                Rnd_Sel()  
+      
+                Rnd_Main()
+                
+                 if itemInit then r.SetMediaItemSelected(itemInit, 1) end
+                
+                 if itemLast then r.SetMediaItemSelected(itemLast, 1) end
+                
+                
+                Rtrck = r.GetSelectedTrack(0, 0)
+                for j = 0, r.CountMediaItems(0)-1 do 
+                    RItems = r.GetTrackMediaItem(Rtrck,j) 
+                      if RItems then
+                          RItems_position = r.GetMediaItemInfo_Value(RItems, "D_POSITION")
+                           if Init_position < Last_position and Init_position <  RItems_position and RItems_position < Last_position then
+                           r.SetMediaItemSelected(RItems, 1)
+                           end
+                      end
+                
+                end
+      
+          end
+
+
+     -----------------------------Mute-----------------------------------------------------------
      local t = {}
      local sel_items = {}
      local function SaveSelItems()
@@ -6390,20 +6550,7 @@ function Randomizer()
          if item then r.SetMediaItemSelected(item, 1) end
        end
      end
-     
-     function swap(array, index1, index2)
-       array[index1], array[index2] = array[index2], array[index1]
-     end
-     
-     function shuffle(array)
-       local counter = #array
-       while counter > 1 do
-         local index = random(counter)
-         swap(array, index, counter)
-         counter = counter - 1
-       end
-     end
-     
+
      function random_numbers_less_than(x)
        local t, t_res = {},{}
        local e = 0
@@ -6439,7 +6586,7 @@ function Randomizer()
      for i = 1, #t_nums-1 do
        local it = t[t_nums[i]]
        if it and IsEven(i) == true then
-          r.SetMediaItemSelected(it,1)
+          r.SetMediaItemSelected(it, random(1))
        end
      end
              if Random_Mute == 1 then
@@ -6470,7 +6617,7 @@ function()
      end
 end
 
-local sbtbl = {Random_OrderB, Random_VolB, Random_PanB, Random_PitchB, Random_PositionB, Random_ReverseB, Random_MuteB, Random_SetupClearB}
+local sbtbl = {}
 
 -- Random_Clear Button ----------------------------
 sbtbl[8] = Button_small:new(758+c_pos,470,40,14, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "Clear",    "Arial",16 )
@@ -6483,6 +6630,7 @@ Random_Pitch = 0
 Random_Position = 0
 Random_Mute = 0 
 Random_Reverse = 0
+R_Glitch = 0
 r.SetExtState('MK_Slicer_3','Random_Order',Random_Order,true);
 r.SetExtState('MK_Slicer_3','Random_Vol',Random_Vol,true);
 r.SetExtState('MK_Slicer_3','Random_Pan',Random_Pan,true);
@@ -6491,10 +6639,11 @@ r.SetExtState('MK_Slicer_3','Random_Position',Random_Position,true);
 r.SetExtState('MK_Slicer_3','Random_Position',Random_Position,true);
 r.SetExtState('MK_Slicer_3','Random_Mute',Random_Mute,true);
 r.SetExtState('MK_Slicer_3','Random_Reverse',Random_Reverse,true);
+r.SetExtState('MK_Slicer_3','R_Glitch',R_Glitch,true);
 end
 
 -- Random_Order Button ----------------------------
-sbtbl[1] = Button_small:new(661+c_pos,380,60,14, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "Order",    "Arial",5 )
+sbtbl[1] = Button_small:new(661+c_pos,380-f_pos,60,14, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "Order",    "Arial",5 )
 sbtbl[1].onClick = 
 function()
      if Random_Order ~= 1 then
@@ -6506,7 +6655,7 @@ function()
 end
 
 -- Random_Vol Button ----------------------------
-sbtbl[2] = Button_small:new(661+c_pos,395,60,14, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "Volume",    "Arial",5 )
+sbtbl[2] = Button_small:new(661+c_pos,395-f_pos,60,14, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "Volume",    "Arial",5 )
 sbtbl[2].onClick = 
 function()
      if Random_Vol ~= 1 then
@@ -6518,7 +6667,7 @@ function()
 end
 
 -- Random_Pan Button ----------------------------
-sbtbl[3] = Button_small:new(661+c_pos,410,60,14, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "Pan",    "Arial",5 )
+sbtbl[3] = Button_small:new(661+c_pos,410-f_pos,60,14, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "Pan",    "Arial",5 )
 sbtbl[3].onClick = 
 function()
      if Random_Pan ~= 1 then
@@ -6530,7 +6679,7 @@ function()
 end
 
 -- Random_Pitch Button ----------------------------
-sbtbl[4] = Button_small:new(661+c_pos,425,60,14, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "Pitch",    "Arial",5 )
+sbtbl[4] = Button_small:new(661+c_pos,425-f_pos,60,14, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "Pitch",    "Arial",5 )
 sbtbl[4].onClick = 
 function()
      if Random_Pitch ~= 1 then
@@ -6542,7 +6691,7 @@ function()
 end
 
 -- Random_Position Button ----------------------------
-sbtbl[5] = Button_small:new(661+c_pos,440,60,14, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "Position",    "Arial",5 )
+sbtbl[5] = Button_small:new(661+c_pos,440-f_pos,60,14, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "Position",    "Arial",5 )
 sbtbl[5].onClick = 
 function()
      if Random_Position ~= 1 then
@@ -6554,7 +6703,7 @@ function()
 end
 
 -- Random_Reverse Button ----------------------------
-sbtbl[6] = Button_small:new(661+c_pos,455,60,14, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "Reverse",    "Arial",5 )
+sbtbl[6] = Button_small:new(661+c_pos,455-f_pos,60,14, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "Reverse",    "Arial",5 )
 sbtbl[6].onClick = 
 function()
      if Random_Reverse ~= 1 then
@@ -6565,8 +6714,20 @@ function()
           r.SetExtState('MK_Slicer_3','Random_Reverse',Random_Reverse,true);
 end
 
+-- R_Glitch Button ----------------------------
+sbtbl[9] = Button_small:new(661+c_pos,470-f_pos,60,14, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "Glitch",    "Arial",5 )
+sbtbl[9].onClick = 
+function()
+     if R_Glitch ~= 1 then
+            R_Glitch = 1 
+        else
+            R_Glitch = 0 
+     end
+          r.SetExtState('MK_Slicer_3','R_Glitch',R_Glitch,true);
+end
+
 -- Random_Mute Button ----------------------------
-sbtbl[7] = Button_small:new(661+c_pos,470,60,14, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "Mute",    "Arial",5 )
+sbtbl[7] = Button_small:new(661+c_pos,465,60,14, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "Mute",    "Arial",5 )
 sbtbl[7].onClick = 
 function()
      if Random_Mute ~= 1 then
@@ -6583,7 +6744,7 @@ local Random = Button:new(584+c_pos,380+corrY,67,25, TH[27][1],TH[27][2],TH[27][
 Random.onClick = 
 function()
 if Wave.State then 
-    if Random_Order ~= 1 and Random_Reverse ~= 1 and Random_Mute ~= 1 and Random_Position ~= 1 and Random_Pitch ~= 1 and Random_Pan ~= 1 and Random_Vol ~= 1 then 
+    if Random_Order ~= 1 and Random_Reverse ~= 1 and Random_Mute ~= 1 and Random_Position ~= 1 and Random_Pitch ~= 1 and Random_Pan ~= 1 and Random_Vol ~= 1 and R_Glitch ~= 1 then 
       
         ------------------------------------------Error Message-----------------------------------------        
          local timer = 2 -- Time in seconds
@@ -6843,21 +7004,7 @@ pitch_and_rate_check()
   end 
   end
 end
-----------------------------------------
---- Button_TB --------------------------
-----------------------------------------
-local Loop_TB = {LoopScale}
-local LoopBtn_TB = {Loop_Btn, Aim_Btn, Snap_Btn, GrBtnT[9]}
 
-local Checkbox_TB_preset = {RS_Att_Sld, RS_Rel_Sld, PitchOffset_Sld, RS_PitchBend_Sld, RS_ObeyNoteOff, RS_SamplerMode}
-
-local Button_TB = {Get_Sel_Button, Settings, Just_Slice, Quantize_Slices, Add_Markers, Quantize_Markers, Random, Reset_All, Random_SetupB, Set_Rate}
-local Button_TB2 = {Create_MIDI, Midi_Sampler}
-local Pitch_Det_Options_TB = {Pitch_Det_Options, Pitch_Det_Options2, Pitch_Preset}
-local  Create_Replace_TB = {others_table[11], others_table[12], others_table[13]}
-local  Create_Replace_TB2 = {Create_Replace} --trigger
-local  Create_Replace_TB3 = {Create_Replace2} --pitch detection
-local Random_Setup_TB2 = {elm_table[6], elm_table[7], sbtbl[1], sbtbl[2], sbtbl[3], sbtbl[4], sbtbl[5], sbtbl[6], sbtbl[7], sbtbl[8]}
  
 -------------------------------------------------------------------------------------
 --- CheckBoxes ---------------------------------------------------------------------
@@ -6884,10 +7031,6 @@ function()
    if Wave.State then Wave:Redraw() end 
 end
 
------------------------------------
---- CheckBox_TB -------------------
------------------------------------
-local CheckBox_TB = {ViewMode, Guides}
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -9028,6 +9171,78 @@ version = tonumber(reaper.GetAppVersion():match('[%d.]+'))
   end
 
 
+
+function MIDI_ReMap(i,base_pitch)
+
+        if base_pitch+i-1 == 1 then base_pitch = base_pitch+1 end -- Oct-1
+        if base_pitch+i-1 == 3 then base_pitch = base_pitch+1 end
+        if base_pitch+i-1 == 6 then base_pitch = base_pitch+1 end
+        if base_pitch+i-1 == 8 then base_pitch = base_pitch+1 end
+        if base_pitch+i-1 == 10 then base_pitch = base_pitch+1 end
+
+        if base_pitch+i-1 == 13 then base_pitch = base_pitch+1 end -- Oct0
+        if base_pitch+i-1 == 15 then base_pitch = base_pitch+1 end
+        if base_pitch+i-1 == 18 then base_pitch = base_pitch+1 end
+        if base_pitch+i-1 == 20 then base_pitch = base_pitch+1 end
+        if base_pitch+i-1 == 22 then base_pitch = base_pitch+1  end
+
+        if base_pitch+i-1 == 25 then base_pitch = base_pitch+1 end -- Oct1
+        if base_pitch+i-1 == 27 then base_pitch = base_pitch+1 end
+        if base_pitch+i-1 == 30 then base_pitch = base_pitch+1 end
+        if base_pitch+i-1 == 32 then base_pitch = base_pitch+1 end
+        if base_pitch+i-1 == 34 then base_pitch = base_pitch+1 end
+
+        if base_pitch+i-1 == 37 then base_pitch = base_pitch+1 end -- Oct2
+        if base_pitch+i-1 == 39 then base_pitch = base_pitch+1 end
+        if base_pitch+i-1 == 42 then base_pitch = base_pitch+1 end
+        if base_pitch+i-1 == 44 then base_pitch = base_pitch+1 end
+        if base_pitch+i-1 == 46 then base_pitch = base_pitch+1 end
+
+        if base_pitch+i-1 == 49 then base_pitch = base_pitch+1 end -- Oct3
+        if base_pitch+i-1 == 51 then base_pitch = base_pitch+1 end
+        if base_pitch+i-1 == 54 then base_pitch = base_pitch+1 end
+        if base_pitch+i-1 == 56 then base_pitch = base_pitch+1 end
+        if base_pitch+i-1 == 58 then base_pitch = base_pitch+1 end
+
+        if base_pitch+i-1 == 61 then base_pitch = base_pitch+1 end -- Oct4
+        if base_pitch+i-1 == 63 then base_pitch = base_pitch+1 end
+        if base_pitch+i-1 == 66 then base_pitch = base_pitch+1 end
+        if base_pitch+i-1 == 68 then base_pitch = base_pitch+1 end
+        if base_pitch+i-1 == 70 then base_pitch = base_pitch+1 end
+
+        if base_pitch+i-1 == 73 then base_pitch = base_pitch+1 end -- Oct5
+        if base_pitch+i-1 == 75 then base_pitch = base_pitch+1 end
+        if base_pitch+i-1 == 78 then base_pitch = base_pitch+1 end
+        if base_pitch+i-1 == 80 then base_pitch = base_pitch+1 end
+        if base_pitch+i-1 == 82 then base_pitch = base_pitch+1 end
+
+        if base_pitch+i-1 == 85 then base_pitch = base_pitch+1 end -- Oct6
+        if base_pitch+i-1 == 87 then base_pitch = base_pitch+1 end
+        if base_pitch+i-1 == 90 then base_pitch = base_pitch+1 end
+        if base_pitch+i-1 == 92 then base_pitch = base_pitch+1 end
+        if base_pitch+i-1 == 94 then base_pitch = base_pitch+1 end
+
+        if base_pitch+i-1 == 97 then base_pitch = base_pitch+1 end -- Oct7
+        if base_pitch+i-1 == 99 then base_pitch = base_pitch+1 end
+        if base_pitch+i-1 == 102 then base_pitch = base_pitch+1 end
+        if base_pitch+i-1 == 104 then base_pitch = base_pitch+1 end
+        if base_pitch+i-1 == 106 then base_pitch = base_pitch+1 end
+
+        if base_pitch+i-1 == 109 then base_pitch = base_pitch+1 end -- Oct8
+        if base_pitch+i-1 == 111 then base_pitch = base_pitch+1 end
+        if base_pitch+i-1 == 114 then base_pitch = base_pitch+1 end
+        if base_pitch+i-1 == 116 then base_pitch = base_pitch+1 end
+        if base_pitch+i-1 == 118 then base_pitch = base_pitch+1 end
+
+        if base_pitch+i-1 == 121 then base_pitch = base_pitch+1 end -- Oct9
+        if base_pitch+i-1 == 123 then base_pitch = base_pitch+1 end
+        if base_pitch+i-1 == 126 then base_pitch = base_pitch+1 end
+
+return base_pitch
+end
+
+
+
  function ExportSelItemsToRs5k_FormMIDItake_data()
     local MIDI = {}
     -- check for same track/get items info
@@ -9052,11 +9267,14 @@ version = tonumber(reaper.GetAppVersion():match('[%d.]+'))
     return proceed_MIDI, MIDI
   end
   -------------------------------------------------------------------------------    
-  function ExportSelItemsToRs5k_AddMIDI(track, MIDI, base_pitch)    
+  function ExportSelItemsToRs5k_AddMIDI(track, MIDI, base_pitch) 
     if not MIDI then return end
       local new_it = r.CreateNewMIDIItemInProj( track, MIDI.it_pos, self.sel_end )
       new_tk = r.GetActiveTake( new_it )
       for i = 1, #MIDI do
+
+        if WhiteKeysOnly == 1 then base_pitch = MIDI_ReMap(i,base_pitch) end
+
         local startppqpos =  r.MIDI_GetPPQPosFromProjTime( new_tk, MIDI[i].pos )
         local endppqpos =  r.MIDI_GetPPQPosFromProjTime( new_tk, MIDI[i].end_pos )
         local ret = r.MIDI_InsertNote( new_tk, 
@@ -9068,6 +9286,7 @@ version = tonumber(reaper.GetAppVersion():match('[%d.]+'))
             base_pitch+i-1, 
             100, 
             true)--noSortInOptional )
+
         if base_pitch+i-1 == 127 then return end
       end
       r.MIDI_Sort( new_tk )
@@ -9097,6 +9316,7 @@ function Load()
               -- get base pitch
                 MIDI_Base_Oct = tonumber(r.GetExtState('MK_Slicer_3','MIDI_Base_Oct'))or 2;
                 base_pitch = MIDI_Base_Oct*12 
+                base_pitch2 = MIDI_Base_Oct*12 -- WhiteKeysOnly hack. Don't touch.
               -- get info for new midi take
                 local proceed_MIDI, MIDI = ExportSelItemsToRs5k_FormMIDItake_data()        
               -- export to RS5k
@@ -9113,6 +9333,9 @@ function Load()
                   local src_len =r.GetMediaSourceLength( tk_src )
                   local filepath = r.GetMediaSourceFileName( tk_src, '' )
                   --msg(s_offs/src_len)
+
+                  if WhiteKeysOnly == 1 then base_pitch = MIDI_ReMap(i,base_pitch) end
+
                   ExportItemToRS5K(base_pitch + i-1,filepath, s_offs/src_len, (s_offs+it_len)/src_len, track)
                   r.SetTrackMIDINoteNameEx( 0, track, base_pitch-1 + i, 0, "Slice " .. 0+i) -- renaming notes in ME
                   ::skip_to_next_item::
@@ -9123,7 +9346,7 @@ function Load()
  
          if RS_SamplerMode.norm_val == 2 or RS_SamplerMode.norm_val == 3 then 
               -- add MIDI
-                if proceed_MIDI then ExportSelItemsToRs5k_AddMIDI(track, MIDI,base_pitch) end  
+                if proceed_MIDI then ExportSelItemsToRs5k_AddMIDI(track, MIDI, base_pitch2) end  
          end      
 
             r.GetSetMediaTrackInfo_String(track, "P_NAME", "Sliced item", true) -- New Track Name
@@ -10194,16 +10417,19 @@ end
 --------------------------------------------------------------------------------------------------------------------------------
 
   function midi_loop() -- check midi input
-
+Buf_4 = 0
   midi_play = 0
   local Buf_1x = Buf_1
-
+  local Buf_2x = Buf_2 
      local retval,  buf,  ts, devIdx
      retval,  buf,  ts,  devIdx = reaper.MIDI_GetRecentInputEvent(0)
 
      Buf_1 =  string.byte(buf,1)
-     Midi_Note =  string.byte(buf,2)
+     Buf_2 =  string.byte(buf,2)
      Buf_3 =  string.byte(buf,3)
+     Midi_Note = Buf_2 
+
+if Buf_2 ~= Buf_2x and Buf_1 == 144 then  Buf_4 = 1 end
 
      if Control_via_MIDI ~= 1 then Buf_1 = nil; Buf_1x = nil end
 
@@ -10216,7 +10442,7 @@ end
              end
 
              if r.GetPlayState()&1 == 0 and Loop_on == 0 then
-             r.OnPlayButton();
+        --     r.OnPlayButton();
              --midi_play = 0 
              end
 
@@ -10274,9 +10500,127 @@ function Gate_Gl:SnapAreaTables()
           Midi_Note_Table = {}
           
           if Midi_Note == nil then Midi_Note = #MousePnts-2 end
+
           MIDI_Base_Oct = tonumber(r.GetExtState('MK_Slicer_3','MIDI_Base_Oct'))or 2;
+
+       blck_ky = 0
+
+          if WhiteKeysOnly == 1 then
+
+               if Midi_Note == 1 or Midi_Note == 1+12 or Midi_Note == 1+24 then midi_play = 0; blck_ky = 1  -- disable all black keys
+               elseif Midi_Note == 3 or Midi_Note == 3+12 or Midi_Note == 3+24 then midi_play = 0 ; blck_ky = 1 
+               elseif Midi_Note == 6 or Midi_Note == 6+12 or Midi_Note == 6+24 then midi_play = 0; blck_ky = 1  
+               elseif Midi_Note == 8 or Midi_Note == 8+12 or Midi_Note == 8+24 then midi_play = 0 ; blck_ky = 1 
+               elseif Midi_Note == 10 or Midi_Note == 10+12 or Midi_Note == 10+24  then midi_play = 0; blck_ky = 1  end
+       
+               if Midi_Note == 1+36 or Midi_Note == 1+48 or Midi_Note == 1+60 or Midi_Note == 1+72 then midi_play = 0; blck_ky = 1   
+               elseif Midi_Note == 3+36 or Midi_Note == 3+48 or Midi_Note == 3+60 or Midi_Note == 3+72 then midi_play = 0 ; blck_ky = 1 
+               elseif Midi_Note == 6+36 or Midi_Note == 6+48 or Midi_Note == 6+60 or Midi_Note == 6+72 then midi_play = 0 ; blck_ky = 1 
+               elseif Midi_Note == 8+36 or Midi_Note == 8+48 or Midi_Note == 8+60 or Midi_Note == 8+72 then midi_play = 0 ; blck_ky = 1 
+               elseif Midi_Note == 10+36 or Midi_Note == 10+48 or Midi_Note == 10+60 or Midi_Note == 10+72 then midi_play = 0; blck_ky = 1  end
+       
+               if Midi_Note == 1+84 or Midi_Note == 1+96 or Midi_Note == 1+108 or Midi_Note == 1+120 then midi_play = 0 ; blck_ky = 1  
+               elseif Midi_Note == 3+84 or Midi_Note == 3+96 or Midi_Note == 3+108 or Midi_Note == 3+120 then midi_play = 0 ; blck_ky = 1 
+               elseif Midi_Note == 6+84 or Midi_Note == 6+96 or Midi_Note == 6+108 or Midi_Note == 6+120 then midi_play = 0 ; blck_ky = 1 
+               elseif Midi_Note == 8+84 or Midi_Note == 8+96 or Midi_Note == 8+108 or Midi_Note == 8+120 then midi_play = 0 ; blck_ky = 1 
+               elseif Midi_Note == 10+84 or Midi_Note == 10+96 or Midi_Note == 10+108 or Midi_Note == 10+120 then midi_play = 0; blck_ky = 1  end
+
+
+               if Midi_Note == 0 then Midi_Note = 0 -- convert all keys to whites
+                   elseif Midi_Note == 2 then Midi_Note = 1
+                   elseif Midi_Note == 4 then Midi_Note = 2
+                   elseif Midi_Note == 5 then Midi_Note = 3
+                   elseif Midi_Note == 7 then Midi_Note = 4
+                   elseif Midi_Note == 9 then Midi_Note = 5
+                   elseif Midi_Note == 11 then Midi_Note = 6
+                   
+                   elseif Midi_Note == 12 then Midi_Note = 7
+                   elseif Midi_Note == 14 then Midi_Note = 8
+                   elseif Midi_Note == 16 then Midi_Note = 9
+                   elseif Midi_Note == 17 then Midi_Note = 10
+                   elseif Midi_Note == 19 then Midi_Note = 11
+                   elseif Midi_Note == 21 then Midi_Note = 12
+                   elseif Midi_Note == 23 then Midi_Note = 13
+                   
+                   elseif Midi_Note == 24 then Midi_Note = 14
+                   elseif Midi_Note == 26 then Midi_Note = 15
+                   elseif Midi_Note == 28 then Midi_Note = 16
+                   elseif Midi_Note == 29 then Midi_Note = 17
+                   elseif Midi_Note == 31 then Midi_Note = 18
+                   elseif Midi_Note == 33 then Midi_Note = 19
+                   elseif Midi_Note == 35 then Midi_Note = 20
+                   
+                   elseif Midi_Note == 36 then Midi_Note = 21
+                   elseif Midi_Note == 38 then Midi_Note = 22
+                   elseif Midi_Note == 40 then Midi_Note = 23
+                   elseif Midi_Note == 41 then Midi_Note = 24
+                   elseif Midi_Note == 43 then Midi_Note = 25
+                   elseif Midi_Note == 45 then Midi_Note = 26
+                   elseif Midi_Note == 47 then Midi_Note = 27
+                   
+                   elseif Midi_Note == 48 then Midi_Note = 28
+                   elseif Midi_Note == 50 then Midi_Note = 29
+                   elseif Midi_Note == 52 then Midi_Note = 30
+                   elseif Midi_Note == 53 then Midi_Note = 31
+                   elseif Midi_Note == 55 then Midi_Note = 32
+                   elseif Midi_Note == 57 then Midi_Note = 33
+                   elseif Midi_Note == 59 then Midi_Note = 34
+                   
+                   elseif Midi_Note == 60 then Midi_Note = 35
+                   elseif Midi_Note == 62 then Midi_Note = 36
+                   elseif Midi_Note == 64 then Midi_Note = 37
+                   elseif Midi_Note == 65 then Midi_Note = 38
+                   elseif Midi_Note == 67 then Midi_Note = 39
+                   elseif Midi_Note == 69 then Midi_Note = 40
+                   elseif Midi_Note == 71 then Midi_Note = 41
+                   
+                   elseif Midi_Note == 72 then Midi_Note = 42
+                   elseif Midi_Note == 74 then Midi_Note = 43
+                   elseif Midi_Note == 76 then Midi_Note = 44
+                   elseif Midi_Note == 77 then Midi_Note = 45
+                   elseif Midi_Note == 79 then Midi_Note = 46
+                   elseif Midi_Note == 81 then Midi_Note = 47
+                   elseif Midi_Note == 83 then Midi_Note = 48
+                   
+                   elseif Midi_Note == 84 then Midi_Note = 49
+                   elseif Midi_Note == 86 then Midi_Note = 50
+                   elseif Midi_Note == 88 then Midi_Note = 51
+                   elseif Midi_Note == 89 then Midi_Note = 52
+                   elseif Midi_Note == 91 then Midi_Note = 53
+                   elseif Midi_Note == 93 then Midi_Note = 54
+                   elseif Midi_Note == 95 then Midi_Note = 55
+                   
+                   elseif Midi_Note == 96 then Midi_Note = 56
+                   elseif Midi_Note == 98 then Midi_Note = 57
+                   elseif Midi_Note == 100 then Midi_Note = 58
+                   elseif Midi_Note == 101 then Midi_Note = 59
+                   elseif Midi_Note == 103 then Midi_Note = 60
+                   elseif Midi_Note == 105 then Midi_Note = 61
+                   elseif Midi_Note == 107 then Midi_Note = 62
+                   
+                   elseif Midi_Note == 108 then Midi_Note = 63
+                   elseif Midi_Note == 110 then Midi_Note = 64
+                   elseif Midi_Note == 112 then Midi_Note = 65
+                   elseif Midi_Note == 113 then Midi_Note = 66
+                   elseif Midi_Note == 115 then Midi_Note = 67
+                   elseif Midi_Note == 117 then Midi_Note = 68
+                   elseif Midi_Note == 119 then Midi_Note = 69
+                   
+                   elseif Midi_Note == 120 then Midi_Note = 70
+                   elseif Midi_Note == 122 then Midi_Note = 71
+                   elseif Midi_Note == 124 then Midi_Note = 72
+                   elseif Midi_Note == 125 then Midi_Note = 73
+                   elseif Midi_Note == 127 then Midi_Note = 74
+               end
+                 
+               Midi_Note = Midi_Note+(MIDI_Base_Oct*5)
+          
+          end
+
+
           Midi_Note = Midi_Note+2-(MIDI_Base_Oct*12)
           if Midi_Note > #MousePnts-2 then Midi_Note = #MousePnts-2; MIDITooHigh = 1 end
+
           if Midi_Note > 127 then Midi_Note = 127 end
           if Midi_Note < 2 then Midi_Note = 2; MIDITooLow = 1 end
           
@@ -10301,6 +10645,7 @@ function Gate_Gl:SnapAreaTables()
           end
           
           if play_position == nil then play_position = play_position2 end
+
      ---------------------------------------------------------------------------------
 
 
@@ -10355,6 +10700,10 @@ if TrTable ~= nil and Snap_on == 1 then
 
                    l_next = ((l_next_posx)/srate)+item_pos
 
+     if  Buf_4 == 1 and blck_ky == 0 then 
+    --midi_play = 0
+    midi_play = 1
+    end
    
                    local edit_cur_pos = r.GetCursorPosition()
 
@@ -10388,7 +10737,7 @@ if TrTable ~= nil and Snap_on == 1 then
 
                         if (play_start <= mouse_pos1 and l_next >= mouse_pos2) or (midi_play == 1 and Snap_on == 1)  then -- if mouse between two transients
    
-                                if r.GetPlayState()&1 == 1 and (Wave:mouseClick()) then -- autoplay by click while playback
+                                if (r.GetPlayState()&1 == 1 and (Wave:mouseClick())) then -- autoplay by click while playback
                                    r.SetEditCurPos(l_start_pos, false, true)
                                 end
   
@@ -10403,6 +10752,7 @@ if TrTable ~= nil and Snap_on == 1 then
                                     --          r.OnStopButton()
            --     end
                                               else
+
                                               r.OnPlayButton()
                                           end
                                     end
@@ -10787,6 +11137,102 @@ end
 ----------------------------------------------------------------------------------------------------
 function MAIN()
 
+
+local Frame_Snap_TB = {leds_table[5]}
+local Frame_Snap_TB2 = {leds_table[6]}
+local Frame_Aim_TB = {leds_table[25]}
+local Frame_Aim_TB2 = {leds_table[26]}
+local Frame_Loop_TB = {leds_table[3]}
+local Frame_Loop_TB2 = {leds_table[4], others_table[7]}
+local Frame_TB = {elm_table[1], elm_table[2], elm_table[3], elm_table[17], elm_table[18], elm_table[19], elm_table[20], elm_table[21]} 
+local FrameR_TB = {others_table[5], others_table[6]}
+local FrameQR_Link_TB = {others_table[3],others_table[4]}
+local Frame_TB1 = {leds_table[2]}
+local Frame_TB2 = {elm_table[5], leds_table[1]} -- Grid mode
+local Frame_TB2_Trigg = {elm_table[4]}
+
+local Grid1_Led_TB = {elm_table[8]}
+local Grid2_Led_TB = {elm_table[9]}
+local Grid4_Led_TB = {elm_table[10]}
+local Grid8_Led_TB = {elm_table[11]}
+local Grid16_Led_TB = {elm_table[12]}
+local Grid32_Led_TB = {elm_table[13]}
+local Grid64_Led_TB = {elm_table[14]}
+local GridT_Led_TB = {elm_table[15]}
+local Swing_Led_TB = {elm_table[16]}
+
+local Rand_Mode_Color1_TB = {leds_table[7]}
+local Rand_Mode_Color2_TB = {leds_table[8]}
+local Rand_Mode_Color3_TB = {leds_table[9]}
+local Rand_Mode_Color4_TB = {leds_table[10]}
+local Rand_Mode_Color5_TB = {leds_table[11]}
+local Rand_Mode_Color6_TB = {leds_table[12]}
+local Rand_Mode_Color7_TB = {leds_table[13]}
+local Rand_Mode_Color8_TB = {leds_table[27]}
+
+local Rand_Button_Color1_TB = {leds_table[14]}
+local Rand_Button_Color2_TB = {leds_table[15]}
+local Rand_Button_Color3_TB = {leds_table[16]}
+local Rand_Button_Color4_TB = {leds_table[17]}
+local Rand_Button_Color5_TB = {leds_table[18]}
+local Rand_Button_Color6_TB = {leds_table[19]}
+local Rand_Button_Color7_TB = {leds_table[20]}
+local Rand_Button_Color8_TB = {leds_table[28]}
+
+--local Triangle_TB = {others_table[1]}
+local RandText_TB = {others_table[2], others_table[1]}
+--local Ruler_TB = {others_table[8]}
+local Preset_TB = {others_table[9]}  
+local Preset_TB2 = {others_table[14], others_table[15], others_table[16]}  
+
+local MIDI_Mode_Color1_TB = {leds_table[21]}
+local MIDI_Mode_Color2_TB = {leds_table[22]}
+local MIDI_Mode_Color3_TB = {leds_table[23]}
+
+local MIDITriangle1_TB = {others_table[17]}
+local MIDITriangle2_TB = {others_table[18]}
+
+----------------- Sliders ------------------------
+local Slider_TB = {HP_Freq,LP_Freq,Fltr_Gain,Gate_Thresh,Gate_Sensitivity,Gate_Retrig,Gate_ReducePoints,Offset_Sld,QStrength_Sld,Project,Set_Rate_Mode, Set_Rate_Feel}
+
+local Sliders_Grid_TB = {GrBtnT[1], GrBtnT[2], GrBtnT[3], GrBtnT[4], GrBtnT[5], GrBtnT[6], GrBtnT[7], GrBtnT[8]}
+
+local Slider_Swing_TB = {Swing_Sld}
+
+local Slider_TB_Trigger = {Gate_VeloScale, VeloMode,OutNote, others_table[10]}
+
+local Slider_TB_Trigger_notes = {Gate_VeloScale, VeloMode,OutNote2, others_table[10]}
+
+local XFade_TB = {XFade_Sld}
+local XFade_TB_Off = {XFade_Sld_Off}
+
+local SliderRandV_TB = {RandV_Sld}
+local SliderRandPan_TB = {RandPan_Sld}
+local SliderRandPtch_TB = {RandPtch_Sld}
+local SliderRand_TBPos = {RandPos_Sld}
+local SliderRand_TBM = {RandRev_Sld} 
+local SliderGlitch_TBM = {R_Glitch_Sld} 
+----------------------------------------
+--- Button_TB --------------------------
+----------------------------------------
+local Loop_TB = {LoopScale}
+local LoopBtn_TB = {Loop_Btn, Aim_Btn, Snap_Btn, GrBtnT[9]}
+
+local Checkbox_TB_preset = {RS_Att_Sld, RS_Rel_Sld, PitchOffset_Sld, RS_PitchBend_Sld, RS_ObeyNoteOff, RS_SamplerMode}
+
+local Button_TB = {Get_Sel_Button, Settings, Just_Slice, Quantize_Slices, Add_Markers, Quantize_Markers, Random, Reset_All, Random_SetupB, Set_Rate}
+local Button_TB2 = {Create_MIDI, Midi_Sampler}
+local Pitch_Det_Options_TB = {Pitch_Det_Options, Pitch_Det_Options2, Pitch_Preset}
+local  Create_Replace_TB = {others_table[11], others_table[12], others_table[13]}
+local  Create_Replace_TB2 = {Create_Replace} --trigger
+local  Create_Replace_TB3 = {Create_Replace2} --pitch detection
+local Random_Setup_TB2 = {elm_table[6], elm_table[7], sbtbl[1], sbtbl[2], sbtbl[3], sbtbl[4], sbtbl[5], sbtbl[6], sbtbl[7], sbtbl[8], sbtbl[9]}
+-----------------------------------
+--- CheckBox_TB -------------------
+-----------------------------------
+local CheckBox_TB = {ViewMode, Guides}
+
+
   -- Draw Wave, lines etc ------
     if Wave.State then   
    
@@ -10925,6 +11371,9 @@ function MAIN()
       if Random_Reverse == 1 then
          for key,frame  in pairs(Rand_Button_Color5_TB)    do frame:draw()  end 
      end
+      if R_Glitch == 1 then
+         for key,frame  in pairs(Rand_Button_Color8_TB)    do frame:draw()  end 
+     end
 
 if  Random_Setup ~= 1 then
       if (Midi_Sampler.norm_val == 1)  then
@@ -11016,6 +11465,10 @@ end
        if Random_Reverse == 1 then
           for key,frame  in pairs(Rand_Mode_Color5_TB)    do frame:draw()  end 
           for key,sldr   in pairs(SliderRand_TBM)   do sldr:draw()   end
+      end
+       if R_Glitch == 1 then
+          for key,frame  in pairs(Rand_Mode_Color8_TB)    do frame:draw()  end 
+          for key,sldr   in pairs(SliderGlitch_TBM)   do sldr:draw()   end
       end
 
          for key,frame  in pairs(RandText_TB)    do frame:draw()  end 
@@ -11423,7 +11876,8 @@ function store_settings2() --store sliders/checkboxes
         r.SetExtState('MK_Slicer_3','RandPan_Sld.norm_val',RandPan_Sld.norm_val,true);
         r.SetExtState('MK_Slicer_3','RandPtch_Sld.norm_val',RandPtch_Sld.norm_val,true);
         r.SetExtState('MK_Slicer_3','RandPos_Sld.norm_val',RandPos_Sld.norm_val,true);
-        r.SetExtState('MK_Slicer_3','RandRev_Sld.norm_val',RandRev_Sld.norm_val,true);
+        r.SetExtState('MK_Slicer_3','RandRev_Sld.norm_val',RandRev_Sld.norm_val,true); 
+        r.SetExtState('MK_Slicer_3','R_Glitch_Sld.norm_val',R_Glitch_Sld.norm_val,true);
 
           r.SetExtState('MK_Slicer_3','Snap_on',Snap_on,true);
           r.SetExtState('MK_Slicer_3','Aim_on',Aim_on,true);
@@ -11452,7 +11906,7 @@ function Init()
     -- Some gfx Wnd Default Values ---------------
     local R,G,B = ceil(TH[3][1]*255),ceil(TH[3][2]*255),ceil(TH[3][3]*255)             -- 0...255 format -- цвет основного окна
     local Wnd_bgd = R + G*256 + B*65536 -- red+green*256+blue*65536  
-    local Wnd_Title = "MK Slicer v3.12" .. " " .. theme_name .. " " .. RG_status .. ""
+    local Wnd_Title = "MK Slicer v3.20" .. " " .. theme_name .. " " .. RG_status .. ""
     local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
 
      -- set init fonts/size
@@ -11839,7 +12293,7 @@ item5.command = function()
                           gfx.dock(dock_pos)
                           xpos = 400
                           ypos = 320
-                          local Wnd_Title = "MK Slicer v3.12"
+                          local Wnd_Title = "MK Slicer v3.20"
                           local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
                           gfx.init( Wnd_Title, Wnd_W,Wnd_H, Wnd_Dock, Wnd_X,Wnd_Y )
 
@@ -11851,7 +12305,7 @@ item5.command = function()
                          dock_pos = 0
                          xpos = tonumber(r.GetExtState("MK_Slicer_3", "window_x")) or 400
                          ypos = tonumber(r.GetExtState("MK_Slicer_3", "window_y")) or 320
-                         local Wnd_Title = "MK Slicer v3.12"
+                         local Wnd_Title = "MK Slicer v3.20"
                          local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
                          if Wnd_Y == (nil or 0) then Wnd_Y = Wnd_Y+25 end -- correction for window header visibility
                          gfx.init( Wnd_Title, Wnd_W,Wnd_H, Wnd_Dock, Wnd_X,Wnd_Y )
@@ -12000,6 +12454,21 @@ item11.command = function()
                      end
           r.SetExtState('MK_Slicer_3','ItemFadesOverride',ItemFadesOverride,true);
 end
+
+
+if WhiteKeysOnly == 1 then
+item42 = context_menu:add_item({label = "Sampler: White Keys Only", toggleable = true, selected = true})
+else
+item42 = context_menu:add_item({label = "Sampler: White Keys Only", toggleable = true, selected = false})
+end
+item42.command = function()
+                     if item42.selected == true then 
+                     WhiteKeysOnly = 1
+                     else
+                     WhiteKeysOnly = 0
+                     end
+          r.SetExtState('MK_Slicer_3','WhiteKeysOnly',WhiteKeysOnly,true);
+end 
 
 
 if MIDISamplerCopyFX == 1 then
