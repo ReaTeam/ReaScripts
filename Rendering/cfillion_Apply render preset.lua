@@ -1,7 +1,7 @@
 -- @description Apply render preset
 -- @author cfillion
--- @version 2.1.1
--- @changelog Fix regression from v2.1 that broke parsing of secondary output format [p=2736541]
+-- @version 2.1.2
+-- @changelog Add support for the Directory field (thanks odedd)
 -- @provides
 --   .
 --   [main] . > cfillion_Apply render preset (create action).lua
@@ -391,7 +391,7 @@ function parseOutputPreset(presets, file, tokens)
   preset.RENDER_PATTERN    = tostring(tokens[8]) -- file name
   preset.RENDER_TAILFLAG   = tonumber(tokens[9]) == 0 and 0 or 0xFF
   if tokens[10] ~= nil then
-    -- directory field = tokens[10] -- v6.43, not accessible via API
+    preset.RENDER_FILE = tokens[10] -- v6.43, not accessible via API
   end
   if tokens[11] ~= nil then
     preset.RENDER_TAILMS = tonumber(tokens[11]) -- v6.62
@@ -964,6 +964,7 @@ local function presetRow(ctx, name, preset)
         ImGui.Text(ctx, (' (%d ms)'):format(preset.RENDER_TAILMS))
       end
     end,
+    'RENDER_FILE',    -- directory
     'RENDER_PATTERN', -- file name
     optionsCell,
     metadataCell,
@@ -1053,7 +1054,7 @@ local function popup()
   local hiddenColFlags =
     ImGui.TableColumnFlags_DefaultHide()
 
-  if not ImGui.BeginTable(ctx, 'Presets', 15, tableFlags) then return end
+  if not ImGui.BeginTable(ctx, 'Presets', 16, tableFlags) then return end
   ImGui.TableSetupColumn(ctx, 'Name')
   ImGui.TableSetupColumn(ctx, 'Format')
   ImGui.TableSetupColumn(ctx, 'Format (secondary)', hiddenColFlags)
@@ -1066,6 +1067,7 @@ local function popup()
   ImGui.TableSetupColumn(ctx, 'Source', hiddenColFlags)
   ImGui.TableSetupColumn(ctx, 'Bounds', hiddenColFlags)
   ImGui.TableSetupColumn(ctx, 'Tail', hiddenColFlags)
+  ImGui.TableSetupColumn(ctx, 'Directory', hiddenColFlags)
   ImGui.TableSetupColumn(ctx, 'File name', hiddenColFlags)
   ImGui.TableSetupColumn(ctx, 'Options', hiddenColFlags)
   ImGui.TableSetupColumn(ctx, 'Metadata', hiddenColFlags)
