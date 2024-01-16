@@ -8,17 +8,14 @@
 --   As the title suggests, this script deselects the odd-numbered items of multiple selected items.
 --   Please select multiple items and execute. (machine translate)
 
-selectedItemsNum = reaper.CountSelectedMediaItems(0);
-selectedItemsArray = {};
+local UNDO_STATE_ITEMS = 4
 
-for i = 0, selectedItemsNum, 1 do
-  selectedItemsArray[#selectedItemsArray + 1] = reaper.GetSelectedMediaItem(0, i);
+reaper.Undo_BeginBlock()
+reaper.PreventUIRefresh(1)
+for i = reaper.CountSelectedMediaItems(nil) - 1 & ~1, 0, -2 do
+  local item = reaper.GetSelectedMediaItem(nil, i)
+  reaper.SetMediaItemSelected(item, false)
 end
-
-for i = 1, #selectedItemsArray, 2 do
-  if selectedItemsArray[i] == nil then
-    break
-  end
-  reaper.SetMediaItemSelected(selectedItemsArray[i], false);
-  reaper.ThemeLayout_RefreshAll();
-end
+reaper.UpdateArrange()
+reaper.PreventUIRefresh(-1)
+reaper.Undo_EndBlock('Deselect odd-numbered items from selected items', UNDO_STATE_ITEMS)
