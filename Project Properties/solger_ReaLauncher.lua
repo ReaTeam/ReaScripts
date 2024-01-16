@@ -1,10 +1,11 @@
 -- @description ReaLauncher
 -- @author solger
--- @version 2.5.3
+-- @version 2.5.4
 -- @changelog
---   + General: Added right-click menu to Tabstrip as additional option to select another tab
---   + General: Fixed a listbox selection bug on mouseup events in Help and Options tab
---   + Project Templates: Updated the Reaper version number check to determine which template load logic is supported
+--   + General: Changed the default double click behavior setting for new installs from 'Show prompt' to 'Load'
+--   + Project Lists: Bugfix to consider file extensions in both upper and lower case when accessing files (.rpl and .RPL) 
+--   + Tabs: Bugfix for using the mousewheel to scroll through the tabs
+--   + UI: Improvements in the display of some label texts
 -- @screenshot https://forum.cockos.com/showthread.php?t=208697
 -- @about
 --   # ReaLauncher
@@ -51,7 +52,7 @@ local ConfigFlags = {
   showDebugMessages = false,          -- enables/disables console debug messages      (true | false)
   listFilesInDebugMessages = false,   -- list scanned files in debug messages         (true | false)
 ----------------------------------------------------------------------------------------------------
-  enableAutoRefresh = true,           -- skips the automatic refresh in all tabs      (true | false)
+  enableAutoRefresh = true,           -- enables/disables automatic tab refresh       (true | false)
   setfirstTabToLoad = 0,              -- the id of the tab to focus at launch          (0 = default)
   resetFiltersAtLaunch = false,       -- reset filter entries in all tabs at launch   (true | false)
   resetListDisplayAtLaunch = false,   -- reset date and paths display at launch       (true | false)
@@ -1409,6 +1410,9 @@ local function RPL_ParseRPLFile(selected, listInReverse)
   ProjectLists.projectItems, ProjectLists.display = {}, {}
   for i = 1, #selected do
     local file = io.open(ProjectLists.rplPaths[selected[i]] .. pathSeparator .. ProjectLists.rplFiles[selected[i]] .. FileTypes.rpl, "r")
+    if not file then
+      file = io.open(ProjectLists.rplPaths[selected[i]] .. pathSeparator .. ProjectLists.rplFiles[selected[i]] .. string.upper(FileTypes.rpl), "r")
+    end
     if not file then return nil end
     for line in file:lines() do
       if #line > 1 then
@@ -1714,7 +1718,8 @@ if SWSinstalled then
   
   function FillLastActiveProjects(listInReverse)
     RL_SetFocusedTab(TabID.RecentProjects)
-    GUI.elms.tab_recentProjects_btnLastActiveProject.col_txt = FilterColor.active
+    GUI.elms.tab_recentProjects_btnLastActiveProject.color = FilterColor.active
+    GUI.elms.tab_recentProjects_btnLastActiveProject:init()
     RecentProjects.items, RecentProjects.display = {}, {}
     local e = 0;
 
@@ -1996,7 +2001,8 @@ local function Filter_RecentProject_Apply()
   local searchList, searchStr = {}, GUI.Val("tab_recentProjects_txtFilter")
   if #searchStr > 0 then
     FilterActive.RecentProjects = true
-    GUI.elms.tab_recentProjects_txtFilter.color, GUI.elms.tab_recentProjects_btnFilterClear.col_txt = FilterColor.active, FilterColor.active
+    GUI.elms.tab_recentProjects_txtFilter.color, GUI.elms.tab_recentProjects_btnFilterClear.color = FilterColor.active, FilterColor.active
+    GUI.elms.tab_recentProjects_btnFilterClear:init()
 
     if #RecentProjects.display > 0 then searchList = RecentProjects.display
     else if RL.showFullPaths then searchList = GetSubTableByPathKey(RecentProjects.items) else searchList = GetSubTableByNameKey(RecentProjects.items) end end
@@ -2017,7 +2023,8 @@ local function Filter_RecentProject_Apply()
     end
   else
     FilterActive.RecentProjects = false
-    GUI.elms.tab_recentProjects_txtFilter.color, GUI.elms.tab_recentProjects_btnFilterClear.col_txt = FilterColor.inactive, FilterColor.inactive
+    GUI.elms.tab_recentProjects_txtFilter.color, GUI.elms.tab_recentProjects_btnFilterClear.color = FilterColor.inactive, FilterColor.inactive
+    GUI.elms.tab_recentProjects_btnFilterClear:init()
   end
   Global_UpdateListDisplay()
   ShowFileCount()
@@ -2038,7 +2045,8 @@ local function Filter_ProjectTemplate_Apply()
   local searchList, searchStr = {}, GUI.Val("tab_projectTemplates_txtFilter")
   if #searchStr > 0 then
     FilterActive.ProjectTemplates = true
-    GUI.elms.tab_projectTemplates_txtFilter.color, GUI.elms.tab_projectTemplates_btnFilterClear.col_txt = FilterColor.active, FilterColor.active
+    GUI.elms.tab_projectTemplates_txtFilter.color, GUI.elms.tab_projectTemplates_btnFilterClear.color = FilterColor.active, FilterColor.active
+    GUI.elms.tab_projectTemplates_btnFilterClear:init()
     
     if #ProjectTemplates.display > 0 then searchList = ProjectTemplates.display
     else if RL.showFullPaths then searchList = GetSubTableByPathKey(ProjectTemplates.items) else searchList = GetSubTableByNameKey(ProjectTemplates.items) end end
@@ -2059,7 +2067,8 @@ local function Filter_ProjectTemplate_Apply()
     end
   else
     FilterActive.ProjectTemplates = false
-    GUI.elms.tab_projectTemplates_txtFilter.color, GUI.elms.tab_projectTemplates_btnFilterClear.col_txt = FilterColor.inactive, FilterColor.inactive
+    GUI.elms.tab_projectTemplates_txtFilter.color, GUI.elms.tab_projectTemplates_btnFilterClear.color = FilterColor.inactive, FilterColor.inactive
+    GUI.elms.tab_projectTemplates_btnFilterClear:init()
   end
   Global_UpdateListDisplay()
   ShowFileCount()
@@ -2080,7 +2089,8 @@ local function Filter_TrackTemplate_Apply()
   local searchList, searchStr = {}, GUI.Val("tab_trackTemplates_txtFilter")
   if #searchStr > 0 then
     FilterActive.TrackTemplates = true
-    GUI.elms.tab_trackTemplates_txtFilter.color, GUI.elms.tab_trackTemplates_btnFilterClear.col_txt = FilterColor.active, FilterColor.active
+    GUI.elms.tab_trackTemplates_txtFilter.color, GUI.elms.tab_trackTemplates_btnFilterClear.color = FilterColor.active, FilterColor.active
+    GUI.elms.tab_trackTemplates_btnFilterClear:init()
 
     if #TrackTemplates.display > 0 then searchList = TrackTemplates.display
     else if RL.showFullPaths then searchList = GetSubTableByPathKey(TrackTemplates.items) else searchList = GetSubTableByNameKey(TrackTemplates.items) end end
@@ -2101,7 +2111,8 @@ local function Filter_TrackTemplate_Apply()
     end
   else
     FilterActive.TrackTemplates = false
-    GUI.elms.tab_trackTemplates_txtFilter.color, GUI.elms.tab_trackTemplates_btnFilterClear.col_txt = FilterColor.inactive, FilterColor.inactive
+    GUI.elms.tab_trackTemplates_txtFilter.color, GUI.elms.tab_trackTemplates_btnFilterClear.color = FilterColor.inactive, FilterColor.inactive
+    GUI.elms.tab_trackTemplates_btnFilterClear:init()
   end
   Global_UpdateListDisplay()
   ShowFileCount()
@@ -2122,7 +2133,8 @@ local function Filter_CustomProjects_Apply()
   local searchList, searchStr = {}, GUI.Val("tab_customProjects_txtFilter")
   if #searchStr > 0 then
     FilterActive.CustomProjects = true
-    GUI.elms.tab_customProjects_txtFilter.color, GUI.elms.tab_customProjects_btnFilterClear.col_txt = FilterColor.active, FilterColor.active
+    GUI.elms.tab_customProjects_txtFilter.color, GUI.elms.tab_customProjects_btnFilterClear.color = FilterColor.active, FilterColor.active
+    GUI.elms.tab_customProjects_btnFilterClear:init()
 
     if #CustomProjects.display > 0 then searchList = CustomProjects.display
     else if RL.showFullPaths then searchList = GetSubTableByPathKey(CustomProjects.items) else searchList = GetSubTableByNameKey(CustomProjects.items) end end
@@ -2143,7 +2155,8 @@ local function Filter_CustomProjects_Apply()
     end
   else
     FilterActive.CustomProjects = false
-    GUI.elms.tab_customProjects_txtFilter.color, GUI.elms.tab_customProjects_btnFilterClear.col_txt = FilterColor.inactive, FilterColor.inactive
+    GUI.elms.tab_customProjects_txtFilter.color, GUI.elms.tab_customProjects_btnFilterClear.color = FilterColor.inactive, FilterColor.inactive
+    GUI.elms.tab_customProjects_btnFilterClear:init()
   end
   Global_UpdateListDisplay()
   ShowFileCount()
@@ -2164,7 +2177,8 @@ local function Filter_ProjectLists_Apply()
   local searchList, searchStr = {}, GUI.Val("tab_projectLists_txtFilter")
   if #searchStr > 0 then
     FilterActive.ProjectLists = true
-    GUI.elms.tab_projectLists_txtFilter.color, GUI.elms.tab_projectLists_btnFilterClear.col_tx = FilterColor.active, FilterColor.active
+    GUI.elms.tab_projectLists_txtFilter.color, GUI.elms.tab_projectLists_btnFilterClear.color = FilterColor.active, FilterColor.active
+    GUI.elms.tab_projectLists_btnFilterClear:init()
     
     if #ProjectLists.display > 0 then searchList = ProjectLists.display
     else if RL.showFullPaths then searchList = GetSubTableByPathKey(ProjectLists.projectItems) else searchList = GetSubTableByNameKey(ProjectLists.projectItems) end end
@@ -2184,7 +2198,8 @@ local function Filter_ProjectLists_Apply()
     end
   else
     FilterActive.ProjectLists = false
-    GUI.elms.tab_projectLists_txtFilter.color, GUI.elms.tab_projectLists_btnFilterClear.col_txt = FilterColor.inactive, FilterColor.inactive
+    GUI.elms.tab_projectLists_txtFilter.color, GUI.elms.tab_projectLists_btnFilterClear.color = FilterColor.inactive, FilterColor.inactive
+    GUI.elms.tab_projectLists_btnFilterClear:init()
   end
   Global_UpdateListDisplay()
   ShowFileCount()
@@ -2205,7 +2220,8 @@ local function Filter_Backups_Apply()
   local searchList, searchStr = {}, GUI.Val("tab_backups_txtFilter")
   if #searchStr > 0 then
     FilterActive.Backups = true
-    GUI.elms.tab_backups_txtFilter.color, GUI.elms.tab_backups_btnFilterClear.col_txt = FilterColor.active, FilterColor.active
+    GUI.elms.tab_backups_txtFilter.color, GUI.elms.tab_backups_btnFilterClear.color = FilterColor.active, FilterColor.active
+    GUI.elms.tab_backups_btnFilterClear:init()
 
     if #Backups.display > 0 then searchList = Backups.display
     else if RL.showFullPaths then searchList = GetSubTableByPathKey(Backups.items) else searchList = GetSubTableByNameKey(Backups.items) end end
@@ -2226,7 +2242,8 @@ local function Filter_Backups_Apply()
     end
   else
     FilterActive.Backups = false
-    GUI.elms.tab_backups_txtFilter.color, GUI.elms.tab_backups_btnFilterClear.col_txt = FilterColor.inactive, FilterColor.inactive
+    GUI.elms.tab_backups_txtFilter.color, GUI.elms.tab_backups_btnFilterClear.color = FilterColor.inactive, FilterColor.inactive
+    GUI.elms.tab_backups_btnFilterClear:init()
   end
   Global_UpdateListDisplay()
   ShowFileCount()
@@ -2247,7 +2264,8 @@ local function Filter_Docs_Apply()
   local searchList, searchStr = {}, GUI.Val("tab_docs_txtFilter")
   if #searchStr > 0 then
     FilterActive.Docs = true
-    GUI.elms.tab_docs_txtFilter.color, GUI.elms.tab_docs_btnFilterClear.col_txt = FilterColor.active, FilterColor.active
+    GUI.elms.tab_docs_txtFilter.color, GUI.elms.tab_docs_btnFilterClear.color = FilterColor.active, FilterColor.active
+    GUI.elms.tab_docs_btnFilterClear:init()
 
     if #Docs.display > 0 then searchList = Docs.display
     else if RL.showFullPaths then searchList = GetSubTableByPathKey(Docs.items) else searchList = GetSubTableByNameKey(Docs.items) end end
@@ -2268,7 +2286,8 @@ local function Filter_Docs_Apply()
     end
   else
     FilterActive.Docs = false
-    GUI.elms.tab_docs_txtFilter.color, GUI.elms.tab_docs_btnFilterClear.col_txt = FilterColor.inactive, FilterColor.inactive
+    GUI.elms.tab_docs_txtFilter.color, GUI.elms.tab_docs_btnFilterClear.color = FilterColor.inactive, FilterColor.inactive
+    GUI.elms.tab_docs_btnFilterClear:init()
   end
   Global_UpdateListDisplay()
   ShowFileCount()
@@ -2289,7 +2308,8 @@ local function Filter_Favorites_Apply()
   local searchList, searchStr = {}, GUI.Val("tab_favorites_txtFilter")
   if #searchStr > 0 then
     FilterActive.Favorites = true
-    GUI.elms.tab_favorites_txtFilter.color, GUI.elms.tab_favorites_btnFilterClear.col_txt = FilterColor.active, FilterColor.active
+    GUI.elms.tab_favorites_txtFilter.color, GUI.elms.tab_favorites_btnFilterClear.color = FilterColor.active, FilterColor.active
+    GUI.elms.tab_favorites_btnFilterClear:init()
     
     if #Favorites.display > 0 then searchList = Favorites.display
     else if RL.showFullPaths then searchList = GetSubTableByPathKey(Favorites.items) else searchList = GetSubTableByNameKey(Favorites.items) end end
@@ -2310,7 +2330,8 @@ local function Filter_Favorites_Apply()
     end
   else
     FilterActive.Favorites = false
-    GUI.elms.tab_favorites_txtFilter.color, GUI.elms.tab_favorites_btnFilterClear.col_txt = FilterColor.inactive, FilterColor.inactive
+    GUI.elms.tab_favorites_txtFilter.color, GUI.elms.tab_favorites_btnFilterClear.color = FilterColor.inactive, FilterColor.inactive
+    GUI.elms.tab_favorites_btnFilterClear:init()
   end
   Global_UpdateListDisplay()
   ShowFileCount()
@@ -2362,8 +2383,9 @@ end
 function RefreshRecentProjects(listInReverse)
   RL.showLastActiveProjects = false
   if SWSinstalled then
-    GUI.elms.tab_recentProjects_btnLastActiveProject.col_txt = FilterColor.inactive
+    GUI.elms.tab_recentProjects_btnLastActiveProject.color = FilterColor.inactive
     GUI.elms.tab_recentProjects_btnLastActiveProject:redraw()
+    GUI.elms.tab_recentProjects_btnLastActiveProject:init()
     if listInReverse then 
       MsgDebug("\nRefresh Recent Projects - oldest first")
       FillRecentProjectsListbox(false)
@@ -2849,23 +2871,24 @@ end
     end
 
     local function ThemeSlot_Load()
-      themeslot = GUI.Val("main_themeslot")
+      themeslot = GUI.Val("main_menuThemeslot")
       if themeslot < 5 then reaper.Main_OnCommand(reaper.NamedCommandLookup("_S&M_LOAD_THEME" .. themeslot - 1), 0) -- SWS/S&M: Resources - Load theme, slot#
       else reaper.Main_OnCommand(reaper.NamedCommandLookup("_S&M_LOAD_THEMEl"), 0) end 
     end
 
     function RL_Draw_ThemeSlotSelector(alignment)
       if RL.showButtonPanel then 
-        GUI.New("main_themeslot", "Menubox", LayerIndex.Global, GUI.w - (60 * RL.scaleFactor) + (RL.scaleFactor * 10), footerY + (2 * RL.scaleFactor), 34 * RL.scaleFactor, 15 * RL.scaleFactor, "Reaper Theme", ThemeSlots.items, 8)
-        GUI.elms.main_themeslot.tooltip = "Set up and switch between different Reaper Theme Slots\n\nSlot number and descriptions can be set in\n[Layout / Colors]"
-        GUI.elms.main_themeslot.align = alignment
+        GUI.New("main_lblThemeslot", "Label", LayerIndex.Global, GUI.w - (140 * RL.scaleFactor) + (RL.scaleFactor * 11), footerY + (2 * RL.scaleFactor), "Reaper Theme", false, 3)
+        GUI.New("main_menuThemeslot", "Menubox", LayerIndex.Global, GUI.w - (60 * RL.scaleFactor) + (RL.scaleFactor * 10), footerY + (2 * RL.scaleFactor), 34 * RL.scaleFactor, 15 * RL.scaleFactor, "", ThemeSlots.items, 8)
+        GUI.elms.main_menuThemeslot.tooltip = "Set up and switch between different Reaper Theme Slots\n\nSlot number and descriptions can be set in\n[Layout / Colors]"
+        GUI.elms.main_menuThemeslot.align = alignment
         
-        function GUI.elms.main_themeslot:onmousedown()
+        function GUI.elms.main_menuThemeslot:onmousedown()
           GUI.Menubox.onmouseup(self)
           ThemeSlot_Load()
         end
         
-        function GUI.elms.main_themeslot:onwheel()
+        function GUI.elms.main_menuThemeslot:onwheel()
           GUI.Menubox.onwheel(self)
           ThemeSlot_Load()
         end
@@ -3007,33 +3030,11 @@ GUI.Draw_Version = function()
   GUI.color("txt")
 
   if not GUI.version then return 0 end
-  str = "RL 2.5.3 | Lokasenna_GUI " .. GUI.version
+  str = "RL 2.5.4 | Lokasenna_GUI " .. GUI.version
   str_w, str_h = gfx.measurestr(str)
   if osversion:find("OSX") then gfx.x = GUI.w - (255 * RL.scaleFactor) else gfx.x = GUI.w - (260 * RL.scaleFactor) end
   gfx.y = GUI.h - (15.5 * RL.scaleFactor)
   gfx.drawstr(str)
-end
-
-----------------
--- Label buttons
-----------------
-function GUI.Button:init()
-  self.buff = self.buff or GUI.GetBuffer()
-  gfx.dest = self.buff
-  gfx.setimgdim(self.buff, -1, -1)
-  gfx.setimgdim(self.buff, 2*self.w + 4, self.h + 2)
-
-  if not self.isLabelButton then
-    GUI.color(self.col_fill)
-    GUI.roundrect(1, 1, self.w, self.h, 4, 1, 1)
-    GUI.color("elm_outline")
-    GUI.roundrect(1, 1, self.w, self.h, 4, 1, 0)
-
-    local r, g, b, a = table.unpack(GUI.colors["shadow"])
-    gfx.set(r, g, b, 1)
-    GUI.roundrect(self.w + 2, 1, self.w, self.h, 4, 1, 1)
-    gfx.muladdrect(self.w + 2, 1, self.w + 2, self.h + 2, 1, 1, 1, a, 0, 0, 0, 0)
-  end
 end
 
 -----------------------------------------------------------------------------
@@ -3534,15 +3535,16 @@ end
 function RL_ToggleTooltips()
   RL.showTooltips = not RL.showTooltips
   if RL.showTooltips then
-    GUI.elms.main_btnToggleTooltips.col_txt = FilterColor.active
+    GUI.elms.main_btnToggleTooltips.color = FilterColor.active
     reaper.SetExtState(appname, "window_showtooltips", "true", 1)
     MsgStatusBar("Tooltips ON")
   else 
-    GUI.elms.main_btnToggleTooltips.col_txt = FilterColor.inactive
+    GUI.elms.main_btnToggleTooltips.color = FilterColor.inactive
     reaper.SetExtState(appname, "window_showtooltips", "false", 1)
     MsgStatusBar("Tooltips OFF")
   end
   GUI.elms.main_btnToggleTooltips:redraw()
+  GUI.elms.main_btnToggleTooltips:init()
 end
 
 ----------------
@@ -3563,7 +3565,7 @@ local function RL_Draw_Main()
     end
     function GUI.elms.main_tabs:onwheel()
       GUI.Tabs.onwheel(self)
-      if (self.retval > TabID.Options) then RL_SetFocusedTab(TabID.Options)
+      if (self.retval > TabID.Favorites) then RL_SetFocusedTab(TabID.Favorites)
       else
         GUI.Val("main_menuTabSelector", GUI.elms.main_tabs.state)
         RL_SetFocusedTab(GUI.elms.main_tabs.state)
@@ -3602,11 +3604,12 @@ local function RL_Draw_Main()
       [TabID.Actions] = { LayerIndex.Overlay, LayerIndex.VersionInfo, LayerIndex.OptionsMenu, LayerIndex.Actions },
       [TabID.Layout] = { LayerIndex.Overlay, LayerIndex.VersionInfo, LayerIndex.OptionsMenu, LayerIndex.Layout }
     })
-    
-  GUI.New("main_statusbar", "Label", LayerIndex.Overlay, pad_left, GUI.h - (16 * RL.scaleFactor), "", true, 4)
+
+  GUI.New("main_statusbar", "Label", LayerIndex.Overlay, pad_left, GUI.h - (16 * RL.scaleFactor), "", false, 4)
 
   GUI.New("main_lblPaths", "Label", LayerIndex.Global, 3.65 * pathX + (RL.scaleFactor * 5), footerY + (2.85 * RL.scaleFactor), "Paths", false, 3)
   GUI.New("main_checklistPaths", "Checklist", LayerIndex.Global, 4.25 * pathX + (RL.scaleFactor * 8), footerY + (3 * RL.scaleFactor), 15 * RL.scaleFactor, 15 * RL.scaleFactor, "", "", "", 0)
+  GUI.elms.main_checklistPaths.shadow = false
   GUI.elms.main_checklistPaths.opt_size = 15 * RL.scaleFactor
   GUI.elms.main_checklistPaths:init()
 
@@ -3634,6 +3637,7 @@ local function RL_Draw_Main()
   end
 
   GUI.New("main_checklistWindowPin", "Checklist", LayerIndex.Global, GUI.w - (24 * RL.scaleFactor) + (RL.scaleFactor * 5), topY + (1.2 * RL.scaleFactor) + ((RL.tabSelectorStyle - 1) * (0.2 * btn_main_pad)), 15 * RL.scaleFactor, 15 * RL.scaleFactor, "", "", "h", 0)
+  GUI.elms.main_checklistWindowPin.shadow = false
   GUI.elms.main_checklistWindowPin.opt_size = 15 * RL.scaleFactor
   GUI.elms.main_checklistWindowPin:init()
 
@@ -3651,6 +3655,7 @@ local function RL_Draw_Main()
 
     GUI.New("main_lblSaveNewVersion", "Label", LayerIndex.SaveAsNewVersion, GUI.w - (144 * RL.scaleFactor) + (RL.scaleFactor * 11), (255 + btn_main_pad) * RL.scaleFactor, "Save as New Version", false, 3)
     GUI.New("main_checklistSaveAsNewVersion", "Checklist", LayerIndex.SaveAsNewVersion, GUI.w - (34 * RL.scaleFactor) + (RL.scaleFactor * 10), (252 + btn_main_pad) * RL.scaleFactor + (RL.scaleFactor * 2), 15 * RL.scaleFactor, 15 * RL.scaleFactor, "", "", "h", 0)
+    GUI.elms.main_checklistSaveAsNewVersion.shadow = false
     GUI.elms.main_checklistSaveAsNewVersion.opt_size = 15 * RL.scaleFactor
     GUI.elms.main_checklistSaveAsNewVersion:init()
   
@@ -3665,64 +3670,59 @@ local function RL_Draw_Main()
 
   function Global_ShowHelpTab() RL_SetFocusedTab(TabID.Help) end
   GUI.New("main_frame_footervertical_2", "Frame", LayerIndex.Global, GUI.w - (216 * RL.scaleFactor), GUI.h - (16 * RL.scaleFactor), 1.5 * RL.scaleFactor, 14 * RL.scaleFactor, false, false)
-  GUI.New("main_btnHelp", "Button", LayerIndex.Global, GUI.w - (207.5 * RL.scaleFactor), GUI.h - (16.5 * RL.scaleFactor), refreshW * 0.4, refreshH, "Help", Global_ShowHelpTab)
-  GUI.elms.main_btnHelp.isLabelButton = true
+  GUI.New("main_btnHelp", "Label", LayerIndex.Global, GUI.w - (211 * RL.scaleFactor), GUI.h - (16 * RL.scaleFactor), "Help", false, 3)
+  function GUI.elms.main_btnHelp:onmouseup() GUI.Label.onmouseup(self) Global_ShowHelpTab() end
   
   function Global_ShowOptionsTab() RL_SetFocusedTab(TabID.Help + TabSelectionIndex[TabID.Options]) end
   GUI.New("main_frame_footervertical_3", "Frame", LayerIndex.Global, GUI.w - (184.5 * RL.scaleFactor), GUI.h - (16 * RL.scaleFactor), 1.5 * RL.scaleFactor, 14 * RL.scaleFactor, false, false)
-  GUI.New("main_btnOptions", "Button", LayerIndex.Global, GUI.w - (180.5 * RL.scaleFactor), GUI.h - (16.5 * RL.scaleFactor), refreshW, refreshH, "Options", Global_ShowOptionsTab)
-  GUI.elms.main_btnOptions.isLabelButton = true
+  GUI.New("main_btnOptions", "Label", LayerIndex.Global, GUI.w - (178.5 * RL.scaleFactor), GUI.h - (16 * RL.scaleFactor), "Options", false, 3)
+  function GUI.elms.main_btnOptions:onmouseup() GUI.Label.onmouseup(self) Global_ShowOptionsTab() end
 
   GUI.New("main_frame_footervertical_4", "Frame", LayerIndex.Global, GUI.w - (136 * RL.scaleFactor), GUI.h - (16 * RL.scaleFactor), 1.5 * RL.scaleFactor, 14 * RL.scaleFactor, false, false)
 
   function ButtonScaleFontDown() RL_ScaleListboxFontSizeDown() end
-  function ButtonScaleFontUp() RL_ScaleListboxFontSizeUp() end
-  GUI.New("main_scaleFontDown", "Button", LayerIndex.Global, GUI.w - (136 * RL.scaleFactor), GUI.h - (16 * RL.scaleFactor), refreshW * 0.4, refreshH, "A", ButtonScaleFontDown)
-  GUI.New("main_scaleFontUp", "Button", LayerIndex.Global, GUI.w - (118 * RL.scaleFactor), GUI.h - (17 * RL.scaleFactor), refreshW * 0.4, refreshH, "A", ButtonScaleFontUp)
-  GUI.elms.main_scaleFontDown.isLabelButton, GUI.elms.main_scaleFontUp.isLabelButton = true, true
-  GUI.elms.main_scaleFontUp.font = GUI.fonts[2]
+  GUI.New("main_scaleFontDown", "Label", LayerIndex.Global, GUI.w - (130 * RL.scaleFactor), GUI.h - (15.5 * RL.scaleFactor), "A", false, 3)
+  function GUI.elms.main_scaleFontDown:onmouseup() GUI.Label.onmouseup(self) ButtonScaleFontDown() end
   
+  function ButtonScaleFontUp() RL_ScaleListboxFontSizeUp() end
+  GUI.New("main_scaleFontUp", "Label", LayerIndex.Global, GUI.w - (116 * RL.scaleFactor), GUI.h - (18.5 * RL.scaleFactor), "A", false, 2)
+  function GUI.elms.main_scaleFontUp:onmouseup() GUI.Label.onmouseup(self) ButtonScaleFontUp() end
+
   GUI.New("main_frame_footervertical_5", "Frame", LayerIndex.Main, GUI.w - (100 * RL.scaleFactor), GUI.h - (16 * RL.scaleFactor), 1.5 * RL.scaleFactor, 14 * RL.scaleFactor, false, false)
 
-  function ButtonScaleUp() RL_ScaleInterfaceUp() end
-  function ButtonScaleToggle() RL_ScaleInterfaceToggle() end
   function ButtonScaleDown() RL_ScaleInterfaceDown() end
+  GUI.New("main_scaleInterfaceDown", "Label", LayerIndex.Main, GUI.w - (92 * RL.scaleFactor), GUI.h - (16.5 * RL.scaleFactor), "-", false, 3)
+  function GUI.elms.main_scaleInterfaceDown:onmouseup() GUI.Label.onmouseup(self) ButtonScaleDown() end
+  
+  function ButtonScaleToggle() RL_ScaleInterfaceToggle() end
+  GUI.New("main_scaleInterfaceToggle", "Label", LayerIndex.Main, GUI.w - (80.5 * RL.scaleFactor), GUI.h - (16.5 * RL.scaleFactor), "[  ]", false, 3)
+  function GUI.elms.main_scaleInterfaceToggle:onmouseup() GUI.Label.onmouseup(self) ButtonScaleToggle() end
 
-  GUI.New("main_scaleInterfaceDown", "Button", LayerIndex.Main, GUI.w - (100 * RL.scaleFactor), GUI.h - (17.5 * RL.scaleFactor), refreshW * 0.4, refreshH, "-", ButtonScaleDown)
-  GUI.New("main_scaleInterfaceToggle", "Button", LayerIndex.Main, GUI.w - (82 * RL.scaleFactor), GUI.h - (17.5 * RL.scaleFactor), refreshW * 0.4, refreshH, "[  ]", ButtonScaleToggle)
-  GUI.New("main_scaleInterfaceUp", "Button", LayerIndex.Main, GUI.w - (64 * RL.scaleFactor), GUI.h - (17.5 * RL.scaleFactor), refreshW * 0.4, refreshH, "+", ButtonScaleUp)
-  GUI.elms.main_scaleInterfaceDown.isLabelButton, GUI.elms.main_scaleInterfaceToggle.isLabelButton, GUI.elms.main_scaleInterfaceUp.isLabelButton = true, true, true
-  GUI.elms.main_scaleInterfaceDown.font, GUI.elms.main_scaleInterfaceToggle.font, GUI.elms.main_scaleInterfaceUp.font = GUI.fonts[2], GUI.fonts[2], GUI.fonts[2]
+  function ButtonScaleUp() RL_ScaleInterfaceUp() end
+  GUI.New("main_scaleInterfaceUp", "Label", LayerIndex.Main, GUI.w - (60 * RL.scaleFactor), GUI.h - (16.5 * RL.scaleFactor), "+", false, 3)
+  function GUI.elms.main_scaleInterfaceUp:onmouseup() GUI.Label.onmouseup(self) ButtonScaleUp() end
   
   GUI.New("main_frame_footervertical_6", "Frame", LayerIndex.Main, GUI.w - (46 * RL.scaleFactor), GUI.h - (16 * RL.scaleFactor), 1.5 * RL.scaleFactor, 14 * RL.scaleFactor, false, false)
 
-  GUI.New("main_btnToggleTooltips", "Button", LayerIndex.Main, GUI.w - (31 * RL.scaleFactor), GUI.h - (16.5 * RL.scaleFactor), refreshW * 0.4, refreshH, "Tooltips", RL_ToggleTooltips)
-  GUI.elms.main_btnToggleTooltips.isLabelButton = true
+  GUI.New("main_btnToggleTooltips", "Label", LayerIndex.Main, GUI.w - (41.5 * RL.scaleFactor), GUI.h - (16 * RL.scaleFactor), "Tooltips", false, 3)
+  function GUI.elms.main_btnToggleTooltips:onmouseup() GUI.Label.onmouseup(self) RL_ToggleTooltips() end
   
   if JSAPIinstalled then
     RL_Draw_PreviewSection()
 
     GUI.New("main_lblDates", "Label", LayerIndex.Global, 2.6 * pathX + (RL.scaleFactor * 5), footerY + (2.85 * RL.scaleFactor), "Date", false, 3)
     GUI.New("main_checklistDate", "Checklist", LayerIndex.Global, 3.1 * pathX + (RL.scaleFactor * 8), footerY + (3 * RL.scaleFactor), 15 * RL.scaleFactor, 15 * RL.scaleFactor, "", "", "", 0)
+    GUI.elms.main_checklistDate.shadow = false
     GUI.elms.main_checklistDate.opt_size = 15 * RL.scaleFactor
     GUI.elms.main_checklistDate:init()
-    
-    function GUI.elms.main_checklistDate:onmouseup()
-      GUI.Checklist.onmouseup(self)
-      Global_UpdateListDisplay()
-    end
+    function GUI.elms.main_checklistDate:onmouseup() GUI.Checklist.onmouseup(self) Global_UpdateListDisplay() end
   end
 
   if SWSinstalled then
     RL_Draw_ThemeSlotSelector(0)
-    
     GUI.New("main_frame_footervertical_1", "Frame", LayerIndex.Global, GUI.w - (278 * RL.scaleFactor), GUI.h - (16 * RL.scaleFactor), 1.5 * RL.scaleFactor, 14 * RL.scaleFactor, false, false)
-    GUI.New("tab_recentProjects_btnLastActiveProject", "Button", LayerIndex.Global, GUI.w - (282 * RL.scaleFactor) + (RL.scaleFactor * 5), GUI.h - (16.5 * RL.scaleFactor), refreshW * 1.5, refreshH, "Last Active")
-    GUI.elms.tab_recentProjects_btnLastActiveProject.isLabelButton = true
-
-    function GUI.elms.tab_recentProjects_btnLastActiveProject:onmouseup()
-      GUI.Button.onmouseup(self)
-      RL_Context_LastActiveProjects()
+    GUI.New("tab_recentProjects_btnLastActiveProject", "Label", LayerIndex.Global, GUI.w - (277.5 * RL.scaleFactor) + (RL.scaleFactor * 5), GUI.h - (16 * RL.scaleFactor), "Last Active", false, 3)
+    function GUI.elms.tab_recentProjects_btnLastActiveProject:onmouseup() GUI.Label.onmouseup(self) RL_Context_LastActiveProjects()
     end
   end
 end
@@ -3934,8 +3934,8 @@ local function RL_Draw_TabRecentProjects()
   GUI.New("tab_recentProjects_btnRefresh", "Button", LayerIndex.RecentProjects, refreshX, refreshY, refreshW, refreshH, "Refresh", RefreshRecentProjects)
   GUI.New("tab_recentProjects_txtFilter", "Textbox", LayerIndex.RecentProjects, filterX, filterY, filterW, filterH, "", 8)
   GUI.elms.tab_recentProjects_txtFilter.tab_idx = 1
-  GUI.New("tab_recentProjects_btnFilterClear", "Button", LayerIndex.RecentProjects, filterX + filterW + 2, filterY + (filterH * 0.25), refreshW * 0.2, refreshH * 0.6, "x", Filter_RecentProject_Clear)
-  GUI.elms.tab_recentProjects_btnFilterClear.isLabelButton = true
+  GUI.New("tab_recentProjects_btnFilterClear", "Label", LayerIndex.RecentProjects, filterX + filterW + 10, filterY + (filterH * 0.1), "x", false, 3)
+  function GUI.elms.tab_recentProjects_btnFilterClear:onmouseup() GUI.Label.onmouseup(self) Filter_RecentProject_Clear() end
 
   GUI.New("tab_recentProjects_listbox", "Listbox", LayerIndex.RecentProjects, pad_left, listbox_top, listbox_w, listbox_h, "", true)
   GUI.elms.tab_recentProjects_listbox.tab_idx = 2
@@ -4013,8 +4013,8 @@ local function RL_Draw_TabProjectTemplates()
   GUI.New("tab_projectTemplates_btnRefresh", "Button", LayerIndex.ProjectTemplates, refreshX, refreshY, refreshW, refreshH, "Refresh", RebuildCache)
   GUI.New("tab_projectTemplates_txtFilter", "Textbox", LayerIndex.ProjectTemplates, filterX, filterY, filterW, filterH, "", 8)
   GUI.elms.tab_projectTemplates_txtFilter.tab_idx = 1
-  GUI.New("tab_projectTemplates_btnFilterClear", "Button", LayerIndex.ProjectTemplates, filterX + filterW + 2, filterY + (filterH * 0.25), refreshW * 0.2, refreshH * 0.6, "x", Filter_ProjectTemplate_Clear)
-  GUI.elms.tab_projectTemplates_btnFilterClear.isLabelButton = true
+  GUI.New("tab_projectTemplates_btnFilterClear", "Label", LayerIndex.ProjectTemplates, filterX + filterW + 10, filterY + (filterH * 0.1), "x", false, 3)
+  function GUI.elms.tab_projectTemplates_btnFilterClear:onmouseup() GUI.Label.onmouseup(self) Filter_ProjectTemplate_Clear() end
 
   function GUI.elms.tab_projectTemplates_btnRefresh:onmouser_up()
     GUI.Button.onmouser_up(self)
@@ -4032,6 +4032,7 @@ local function RL_Draw_TabProjectTemplates()
 
     GUI.New("tab_projectTemplates_lblEditMode", "Label", LayerIndex.ProjectTemplates, GUI.w - (140 * RL.scaleFactor) + (RL.scaleFactor * 10), (255 + btn_main_pad) * RL.scaleFactor, "Edit Template Mode", false, 3)
     GUI.New("tab_projectTemplates_checklistEditMode", "Checklist", LayerIndex.ProjectTemplates, GUI.w - (38 * RL.scaleFactor) + (RL.scaleFactor * 10), (252 + btn_main_pad) * RL.scaleFactor + (RL.scaleFactor * 2), 15 * RL.scaleFactor, 15 * RL.scaleFactor, "", "", "h", 0)
+    GUI.elms.tab_projectTemplates_checklistEditMode.shadow = false
     GUI.elms.tab_projectTemplates_checklistEditMode.opt_size = 15 * RL.scaleFactor
     GUI.elms.tab_projectTemplates_checklistEditMode:init()
 
@@ -4118,8 +4119,8 @@ local function RL_Draw_TabTrackTemplates()
   GUI.New("tab_trackTemplates_btnRefresh", "Button", LayerIndex.TrackTemplates, refreshX, refreshY, refreshW, refreshH, "Refresh", RebuildCache)
   GUI.New("tab_trackTemplates_txtFilter", "Textbox", LayerIndex.TrackTemplates, filterX, filterY, filterW, filterH, "", 8)
   GUI.elms.tab_trackTemplates_txtFilter.tab_idx = 1
-  GUI.New("tab_trackTemplates_btnFilterClear", "Button", LayerIndex.TrackTemplates, filterX + filterW + 2, filterY + (filterH * 0.25), refreshW * 0.2, refreshH * 0.6, "x", Filter_TrackTemplate_Clear)
-  GUI.elms.tab_trackTemplates_btnFilterClear.isLabelButton = true
+  GUI.New("tab_trackTemplates_btnFilterClear", "Label", LayerIndex.TrackTemplates, filterX + filterW + 10, filterY + (filterH * 0.1), "x", false, 3)
+  function GUI.elms.tab_trackTemplates_btnFilterClear:onmouseup() GUI.Label.onmouseup(self) Filter_TrackTemplate_Clear() end
   
   function GUI.elms.tab_trackTemplates_btnRefresh:onmouser_up()
     GUI.Button.onmouser_up(self)
@@ -4211,8 +4212,8 @@ local function RL_Draw_TabCustomProjects()
   GUI.New("tab_customProjects_btnRefresh", "Button", LayerIndex.CustomProjects, refreshX, refreshY, refreshW, refreshH, "Refresh", RebuildCache)
   GUI.New("tab_customProjects_txtFilter", "Textbox", LayerIndex.CustomProjects, filterX, filterY, filterW, filterH, "", 8)
   GUI.elms.tab_customProjects_txtFilter.tab_idx = 1
-  GUI.New("tab_customProjects_btnFilterClear", "Button", LayerIndex.CustomProjects, filterX + filterW + 2, filterY + (filterH * 0.25), refreshW * 0.2, refreshH * 0.6, "x", Filter_CustomProjects_Clear)
-  GUI.elms.tab_customProjects_btnFilterClear.isLabelButton = true
+  GUI.New("tab_customProjects_btnFilterClear", "Label", LayerIndex.CustomProjects, filterX + filterW + 10, filterY + (filterH * 0.1), "x", false, 3)
+  function GUI.elms.tab_customProjects_btnFilterClear:onmouseup() GUI.Label.onmouseup(self) Filter_CustomProjects_Clear() end
 
   function GUI.elms.tab_customProjects_btnRefresh:onmouser_up()
     GUI.Button.onmouser_up(self)
@@ -4314,8 +4315,8 @@ local function RL_Draw_TabProjectLists()
   GUI.New("tab_projectLists_btnRefresh", "Button", LayerIndex.ProjectLists, refreshX, refreshY, refreshW, refreshH, "Refresh", RebuildCache)
   GUI.New("tab_projectLists_txtFilter", "Textbox", LayerIndex.ProjectLists, filterX, filterY, filterW, filterH, "", 8)
   GUI.elms.tab_projectLists_txtFilter.tab_idx = 1
-  GUI.New("tab_projectLists_btnFilterClear", "Button", LayerIndex.ProjectLists, filterX + filterW + 2, filterY + (filterH * 0.25), refreshW * 0.2, refreshH * 0.6, "x", Filter_ProjectLists_Clear)
-  GUI.elms.tab_projectLists_btnFilterClear.isLabelButton = true
+  GUI.New("tab_projectLists_btnFilterClear", "Label", LayerIndex.ProjectLists, filterX + filterW + 10, filterY + (filterH * 0.1), "x", false, 3)
+  function GUI.elms.tab_projectLists_btnFilterClear:onmouseup() GUI.Label.onmouseup(self) Filter_ProjectLists_Clear() end
 
   function GUI.elms.tab_projectLists_btnRefresh:onmouser_up()
     GUI.Button.onmouser_up(self)
@@ -4426,8 +4427,8 @@ local function RL_Draw_TabBackups()
   GUI.New("tab_backups_btnRefresh", "Button", LayerIndex.Backups, refreshX, refreshY, refreshW, refreshH, "Refresh", RebuildCache)
   GUI.New("tab_backups_txtFilter", "Textbox", LayerIndex.Backups, filterX, filterY, filterW, filterH, "", 8)
   GUI.elms.tab_backups_txtFilter.tab_idx = 1
-  GUI.New("tab_backups_btnFilterClear", "Button", LayerIndex.Backups, filterX + filterW + 2, filterY + (filterH * 0.25), refreshW * 0.2, refreshH * 0.6, "x", Filter_Backups_Clear)
-  GUI.elms.tab_backups_btnFilterClear.isLabelButton = true
+  GUI.New("tab_backups_btnFilterClear", "Label", LayerIndex.Backups, filterX + filterW + 10, filterY + (filterH * 0.1), "x", false, 3)
+  function GUI.elms.tab_backups_btnFilterClear:onmouseup() GUI.Label.onmouseup(self) Filter_Backups_Clear() end
 
   function GUI.elms.tab_backups_btnRefresh:onmouser_up()
     GUI.Button.onmouser_up(self)
@@ -4544,8 +4545,8 @@ local function RL_Draw_TabDocs()
   GUI.New("tab_docs_btnRefresh", "Button", LayerIndex.Docs, refreshX, refreshY, refreshW, refreshH, "Refresh", RebuildCache)
   GUI.New("tab_docs_txtFilter", "Textbox", LayerIndex.Docs, filterX, filterY, filterW, filterH, "", 8)
   GUI.elms.tab_docs_txtFilter.tab_idx = 1
-  GUI.New("tab_docs_btnFilterClear", "Button", LayerIndex.Docs, filterX + filterW + 2, filterY + (filterH * 0.25), refreshW * 0.2, refreshH * 0.6, "x", Filter_Docs_Clear)
-  GUI.elms.tab_docs_btnFilterClear.isLabelButton = true
+  GUI.New("tab_docs_btnFilterClear", "Label", LayerIndex.Docs, filterX + filterW + 10, filterY + (filterH * 0.1), "x", false, 3)
+  function GUI.elms.tab_docs_btnFilterClear:onmouseup() GUI.Label.onmouseup(self) Filter_Docs_Clear() end
 
   function GUI.elms.tab_docs_btnRefresh:onmouser_up()
     GUI.Button.onmouser_up(self)
@@ -4747,6 +4748,7 @@ function RL_Draw_FavoritesButtons()
     if RL.showButtonPanel then 
       GUI.New("tab_favorites_lblEditMode", "Label", LayerIndex.Favorites, GUI.w - (140 * RL.scaleFactor) + (RL.scaleFactor * 10), (254 + btn_main_pad) * RL.scaleFactor, "Edit Template Mode", false, 3)
       GUI.New("tab_favorites_checklistEditMode", "Checklist", LayerIndex.Favorites, GUI.w - (38 * RL.scaleFactor) + (RL.scaleFactor * 10), (252 + btn_main_pad) * RL.scaleFactor + (RL.scaleFactor * 2), 15 * RL.scaleFactor, 15 * RL.scaleFactor, "", "", "h", 0)
+      GUI.elms.tab_favorites_checklistEditMode.shadow = false
       GUI.elms.tab_favorites_checklistEditMode.opt_size = 15 * RL.scaleFactor
       GUI.elms.tab_favorites_checklistEditMode:init()
       
@@ -4760,6 +4762,7 @@ function RL_Draw_FavoritesButtons()
     if RL.showButtonPanel then 
       GUI.New("tab_favorites_lblSaveNewVersion", "Label", LayerIndex.Favorites, GUI.w - (144 * RL.scaleFactor) + (RL.scaleFactor * 11), (255 + btn_main_pad) * RL.scaleFactor, "Save as New Version", false, 3)
       GUI.New("tab_favorites_checklistSaveAsNewVersion", "Checklist", LayerIndex.Favorites, GUI.w - (34 * RL.scaleFactor) + (RL.scaleFactor * 10), (252 + btn_main_pad) * RL.scaleFactor + (RL.scaleFactor * 2), 15 * RL.scaleFactor, 15 * RL.scaleFactor, "", "", "h", 0)
+      GUI.elms.tab_favorites_checklistSaveAsNewVersion.shadow = false
       GUI.elms.tab_favorites_checklistSaveAsNewVersion.opt_size = 15 * RL.scaleFactor
       GUI.elms.tab_favorites_checklistSaveAsNewVersion:init()
     else
@@ -4778,8 +4781,8 @@ local function RL_Draw_TabFavorites()
   GUI.New("tab_favorites_btnRefresh", "Button", LayerIndex.Favorites, refreshX, refreshY, refreshW, refreshH, "Refresh", RefreshFavorites)
   GUI.New("tab_favorites_txtFilter", "Textbox", LayerIndex.Favorites, filterX, filterY, filterW, filterH, "", 8)
   GUI.elms.tab_favorites_txtFilter.tab_idx = 1
-  GUI.New("tab_favorites_btnFilterClear", "Button", LayerIndex.Favorites, filterX + filterW + 2, filterY + (filterH * 0.25), refreshW * 0.2, refreshH * 0.6, "x", Filter_Favorites_Clear)
-  GUI.elms.tab_favorites_btnFilterClear.isLabelButton = true
+  GUI.New("tab_favorites_btnFilterClear", "Label", LayerIndex.Favorites, filterX + filterW + 10, filterY + (filterH * 0.1), "x", false, 3)
+  function GUI.elms.tab_favorites_btnFilterClear:onmouseup() GUI.Label.onmouseup(self) Filter_Favorites_Clear() end
 
   GUI.New("tab_favorites_categories", "Listbox", LayerIndex.Favorites, pad_left, listbox_top, listbox_w/3, listbox_h, "", true)
   GUI.elms.tab_favorites_categories.multi = false
@@ -5229,6 +5232,7 @@ local function RL_Draw_TabLayout()
   
   GUI.New("layout_lblShowSubfolderPanel", "Label", LayerIndex.Layout, 1.6 * optionspad_left, tabSelectorPadding + 1.35 * 70 * RL.scaleFactor, "Show (left) Sub Panels", false, 3)
   GUI.New("layout_checklistShowSubfolderPanel", "Checklist", LayerIndex.Layout, 1.6 * optionspad_left, tabSelectorPadding + 1.6 * 70 * RL.scaleFactor, 126 * RL.scaleFactor, 106 * RL.scaleFactor, "", "Project Templates,Track Templates,Projects,Project Lists,Backups,Docs", "v", 5)
+  GUI.elms.layout_checklistShowSubfolderPanel.shadow = false
   GUI.elms.layout_checklistShowSubfolderPanel.opt_size = 15 * RL.scaleFactor
   GUI.elms.layout_checklistShowSubfolderPanel.font_a = GUI.fonts[4]
   GUI.Val("layout_checklistShowSubfolderPanel", RL.activeSubPanels)
@@ -5930,6 +5934,7 @@ end
 ----------------
 function RL_Draw_SavePromptOption()
   GUI.New("options_checklistPromptToSave", "Checklist", LayerIndex.Options, 1.6 * optionspad_left, tabSelectorPadding + 10 + (2.40 * 50 - 18) * RL.scaleFactor, 15 * RL.scaleFactor, 15 * RL.scaleFactor, "", "Prompt to save on new project", "v", 0)
+  GUI.elms.options_checklistPromptToSave.shadow = false
   GUI.elms.options_checklistPromptToSave.opt_size = 15 * RL.scaleFactor
   GUI.elms.options_checklistPromptToSave:init()
   GUI.elms.options_checklistPromptToSave.tooltip = "Toggles the 'Prompt to save on new project' option under Preferences > Project"
@@ -6013,6 +6018,7 @@ local function RL_Draw_TabOptions()
 
   GUI.New("layout_lblShowPathsInStatusbar", "Label", LayerIndex.Options, 1.95 * optionspad_left, tabSelectorPadding + 10 + (1.9 * 50 - 18) * RL.scaleFactor, "Show paths in status bar", false, 3)
   GUI.New("options_checklistShowPathsInStatusbar", "Checklist", LayerIndex.Options, 1.6 * optionspad_left, tabSelectorPadding + 10 + (1.9 * 50 - 18) * RL.scaleFactor, 15 * RL.scaleFactor, 15 * RL.scaleFactor, "", "", "v", 0)
+  GUI.elms.options_checklistShowPathsInStatusbar.shadow = false
   GUI.elms.options_checklistShowPathsInStatusbar.opt_size = 15 * RL.scaleFactor
   GUI.elms.options_checklistShowPathsInStatusbar:init()
 
@@ -6034,10 +6040,12 @@ local function RL_Draw_TabOptions()
   end
 
   GUI.New("options_checklistOpenPropertiesOnNewProject", "Checklist", LayerIndex.Options, 1.6 * optionspad_left, tabSelectorPadding + 10 + (2.80 * 50 - 18) * RL.scaleFactor, 15 * RL.scaleFactor, 15 * RL.scaleFactor, "", "Open properties on new project", "v", 0)
+  GUI.elms.options_checklistOpenPropertiesOnNewProject.shadow = false
   GUI.elms.options_checklistOpenPropertiesOnNewProject.opt_size = 15 * RL.scaleFactor
   GUI.elms.options_checklistOpenPropertiesOnNewProject:init()
 
   GUI.New("options_checklistWindowToggle", "Checklist", LayerIndex.Options, 1.6 * optionspad_left, tabSelectorPadding + 10 + (3.35 * 50 - 18) * RL.scaleFactor, 15 * RL.scaleFactor, 15 * RL.scaleFactor, "", "Enable window toggle key", "v", 0)
+  GUI.elms.options_checklistWindowToggle.shadow = false
   GUI.elms.options_checklistWindowToggle.opt_size = 15 * RL.scaleFactor
   GUI.elms.options_checklistWindowToggle:init()
 
@@ -6052,7 +6060,7 @@ local function RL_Draw_TabOptions()
     GUI.Textbox.lostfocus(self)
   end
 
-  GUI.New("options_btnWindowToggleSet", "Button", LayerIndex.Options, 4.6 * optionspad_left, tabSelectorPadding + 10 + (3.35 * 50 - 18) * RL.scaleFactor, 30 * RL.scaleFactor, 16 * RL.scaleFactor, "Set", SetWindowToggleShortcut)
+  GUI.New("options_btnSetWindowToggleShortcut", "Button", LayerIndex.Options, 4.6 * optionspad_left, tabSelectorPadding + 10 + (3.35 * 50 - 18) * RL.scaleFactor, 30 * RL.scaleFactor, 16 * RL.scaleFactor, "Set", SetWindowToggleShortcut)
 
   if SWSinstalled then RL_Draw_SavePromptOption() end
 end
@@ -6494,24 +6502,16 @@ end
 --------------------------
 function RL_Init_Colors_Button()
   local buttonElements = {
-    GUI.elms.tab_recentProjects_btnRefresh, GUI.elms.tab_recentProjects_btnFilterClear,
-    GUI.elms.tab_projectTemplates_btnRefresh, GUI.elms.tab_projectTemplates_btnFilterClear,
-    GUI.elms.tab_trackTemplates_btnRefresh, GUI.elms.tab_trackTemplates_btnFilterClear,
-    GUI.elms.tab_customProjects_btnRefresh, GUI.elms.tab_customProjects_btnFilterClear,
-    GUI.elms.tab_projectLists_btnRefresh, GUI.elms.tab_projectLists_btnFilterClear,
-    GUI.elms.tab_backups_btnRefresh, GUI.elms.tab_backups_btnFilterClear,
-    GUI.elms.tab_docs_btnRefresh, GUI.elms.tab_docs_btnFilterClear,
-    GUI.elms.tab_favorites_btnRefresh, GUI.elms.tab_favorites_btnFilterClear,
+    GUI.elms.tab_recentProjects_btnRefresh, GUI.elms.tab_projectTemplates_btnRefresh, GUI.elms.tab_trackTemplates_btnRefresh, GUI.elms.tab_customProjects_btnRefresh,
+    GUI.elms.tab_projectLists_btnRefresh, GUI.elms.tab_backups_btnRefresh, GUI.elms.tab_docs_btnRefresh, GUI.elms.tab_favorites_btnRefresh, 
     GUI.elms.paths_btnProjectTemplatesSet, GUI.elms.paths_btnTrackTemplatesSet, GUI.elms.paths_btnCustomProjectsSet,
     GUI.elms.paths_btnProjectListsSet, GUI.elms.paths_btnBackupsSet, GUI.elms.paths_btnDocsSet,
     GUI.elms.scansettings_btnProjectTemplates, GUI.elms.scansettings_btnTrackTemplates, GUI.elms.scansettings_btnCustomProjects,
     GUI.elms.scansettings_btnProjectLists, GUI.elms.scansettings_btnBackups, GUI.elms.scansettings_btnDocs,
     GUI.elms.actions_btnFollowAction_NewProject, GUI.elms.actions_btnFollowAction_NewTab,
     GUI.elms.actions_btnFollowAction_LoadProject, GUI.elms.actions_btnFollowAction_LoadProjectInTab,
-    GUI.elms.actions_btnFollowAction_LoadProjectTemplate, GUI.elms.actions_btnFollowAction_InsertTrackTemplate,
-    GUI.elms.main_scaleInterfaceDown, GUI.elms.main_scaleInterfaceToggle, GUI.elms.main_scaleInterfaceUp,
-    GUI.elms.main_scaleFontDown, GUI.elms.main_scaleFontUp, GUI.elms.paths_btnRescanAllPaths,
-    GUI.elms.options_btnWindowToggleSet, GUI.elms.main_btnOptions, GUI.elms.main_btnHelp, GUI.elms.main_btnToggleTooltips
+    GUI.elms.actions_btnFollowAction_LoadProjectTemplate, GUI.elms.actions_btnFollowAction_InsertTrackTemplate, GUI.elms.paths_btnRescanAllPaths,
+    GUI.elms.options_btnSetWindowToggleShortcut
   }
 
   if RL.showButtonPanel then
@@ -6552,7 +6552,6 @@ function RL_Init_Colors_Button()
     buttonElements[#buttonElements + 1] = GUI.elms.help_btnThread
     buttonElements[#buttonElements + 1] = GUI.elms.layout_themeslot_Setup
     buttonElements[#buttonElements + 1] = GUI.elms.layout_themeslot_Save
-    buttonElements[#buttonElements + 1] = GUI.elms.tab_recentProjects_btnLastActiveProject
   end
 
   for b = 1, #buttonElements do
@@ -6579,11 +6578,14 @@ end
 
 function RL_Init_Colors_TextElements()
   local textElements = {
-    GUI.elms.main_statusbar, GUI.elms.main_lblPaths,
-    GUI.elms.colors_lbl_elmFill, GUI.elms.colors_lbl_txt, GUI.elms.colors_lbl_elmBg, GUI.elms.colors_lbl_wndBg, GUI.elms.colors_lbl_infotext,
+    GUI.elms.tab_recentProjects_btnFilterClear, GUI.elms.tab_projectTemplates_btnFilterClear, GUI.elms.tab_trackTemplates_btnFilterClear, GUI.elms.tab_customProjects_btnFilterClear,
+    GUI.elms.tab_projectLists_btnFilterClear, GUI.elms.tab_backups_btnFilterClear, GUI.elms.tab_docs_btnFilterClear,GUI.elms.tab_favorites_btnFilterClear,
+    GUI.elms.main_statusbar, GUI.elms.main_lblPaths, GUI.elms.colors_lbl_elmFill, GUI.elms.colors_lbl_txt, GUI.elms.colors_lbl_elmBg, GUI.elms.colors_lbl_wndBg, GUI.elms.colors_lbl_infotext,
     GUI.elms.layout_lblStartTab, GUI.elms.layout_lblDoubleClick, GUI.elms.layout_lblShowPathsInStatusbar,
     GUI.elms.layout_lblTabSelectorStyle, GUI.elms.layout_lblButtonPanelStyle, GUI.elms.layout_lblShowSubfolderPanel,
-    GUI.elms.scansettings_lblExcludedFolders, GUI.elms.actions_lblActionsHeader, GUI.elms.paths_lblInfo
+    GUI.elms.scansettings_lblExcludedFolders, GUI.elms.actions_lblActionsHeader, GUI.elms.paths_lblInfo,
+    GUI.elms.main_btnHelp, GUI.elms.main_btnOptions, GUI.elms.main_scaleFontDown, GUI.elms.main_scaleFontUp,
+    GUI.elms.main_scaleInterfaceDown, GUI.elms.main_scaleInterfaceToggle, GUI.elms.main_scaleInterfaceUp, GUI.elms.main_btnToggleTooltips
   }
 
   if RL.showButtonPanel then
@@ -6592,6 +6594,11 @@ function RL_Init_Colors_TextElements()
     textElements[#textElements + 1] = GUI.elms.tab_projectTemplates_lblEditMode
     textElements[#textElements + 1] = GUI.elms.tab_favorites_lblEditMode
     textElements[#textElements + 1] = GUI.elms.tab_favorites_lblSaveNewVersion
+  end
+
+  if SWSinstalled then
+    textElements[#textElements + 1] = GUI.elms.main_lblThemeslots
+    textElements[#textElements + 1] = GUI.elms.tab_recentProjects_btnLastActiveProject
   end
 
   if JSAPIinstalled then
@@ -6641,7 +6648,7 @@ function RL_Init_Colors_ElementBackground()
 
   if SWSinstalled then
     inputElements[#inputElements + 1] = GUI.elms.layout_themeslot_number
-    inputElements[#inputElements + 1] = GUI.elms.main_themeslot
+    inputElements[#inputElements + 1] = GUI.elms.main_menuThemeslot
   end 
 
   if JSAPIinstalled then inputElements[#inputElements + 1] = GUI.elms.main_previewChannels end 
@@ -6761,7 +6768,8 @@ local function RL_ExtStates_Load(operationMode)
   GUI.Val("main_checklistWindowPin", {(reaper.GetExtState(appname, "window_pin") == "true" and true or false)}) 
   
   if (reaper.GetExtState(appname, "window_showtooltips") == "true" and true or false) then
-    GUI.elms.main_btnToggleTooltips.col_txt = FilterColor.active
+    GUI.elms.main_btnToggleTooltips.color = FilterColor.active
+    GUI.elms.main_btnToggleTooltips:init()
     RL.showTooltips = true
   end
 
@@ -6785,8 +6793,8 @@ local function RL_ExtStates_Load(operationMode)
   end
   
   local mouseDoubleClick = reaper.GetExtState(appname, "mouse_doubleclick")
-  if mouseDoubleClick == "" then mouseDoubleClick = 1 end
-  if mouseDoubleClick == "4" and not JSAPIinstalled then mouseDoubleClick = 1 end
+  if mouseDoubleClick == "" then mouseDoubleClick = 2 end
+  if mouseDoubleClick == "4" and not JSAPIinstalled then mouseDoubleClick = 2 end
   GUI.Val("options_menuDoubleClick", mouseDoubleClick)
 
   GUI.Val("options_checklistOpenPropertiesOnNewProject", {(reaper.GetExtState(appname, "project_showproperties") == "true" and true or false)}) 
