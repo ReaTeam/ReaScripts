@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="99cfd53192599af796502bc8a46eb6c7c032dbdf" name="ReaTeam Scripts">
+<index version="1" commit="d908e000a0b72ac3a185e9ca9aaa5702ca582de3" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -14857,6 +14857,13 @@ Replace GetLastWord func with quicker solution (Thanks: Mespotine[t=233393]).]]>
 + General: Fixed a listbox selection bug on mouseup events in Help and Options tab
 + Project Templates: Updated the Reaper version number check to determine which template load logic is supported]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/99fbc8f76df7369a7c08dce5592ec560a407ca03/Project%20Properties/solger_ReaLauncher.lua</source>
+      </version>
+      <version name="2.5.4" author="solger" time="2024-01-16T10:03:09Z">
+        <changelog><![CDATA[+ General: Changed the default double click behavior setting for new installs from 'Show prompt' to 'Load'
++ Project Lists: Bugfix to consider file extensions in both upper and lower case when accessing files (.rpl and .RPL) 
++ Tabs: Bugfix for using the mousewheel to scroll through the tabs
++ UI: Improvements in the display of some label texts]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d908e000a0b72ac3a185e9ca9aaa5702ca582de3/Project%20Properties/solger_ReaLauncher.lua</source>
       </version>
     </reapack>
   </category>
