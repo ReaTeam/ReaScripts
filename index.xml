@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="d908e000a0b72ac3a185e9ca9aaa5702ca582de3" name="ReaTeam Scripts">
+<index version="1" commit="43405e72a835eceb5f23ea526a542e8be8f08fde" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -20760,6 +20760,26 @@ Web Interface: restore the previous locked state on load]]></changelog>
         <source type="webinterface" file="song_switcher.html">https://github.com/ReaTeam/ReaScripts/raw/7c852f9c73cf5537e2c8e3a12011db7e1c53fce0/Various/cfillion_Song%20switcher/song_switcher.html</source>
         <source main="main" file="cfillion_Song switcher/cfillion_Song switcher - Switch to queued song.lua">https://github.com/ReaTeam/ReaScripts/raw/7c852f9c73cf5537e2c8e3a12011db7e1c53fce0/Various/cfillion_Song%20switcher/cfillion_Song%20switcher%20-%20Switch%20to%20queued%20song.lua</source>
         <source main="main" file="cfillion_Song switcher/cfillion_Song switcher - Switch song by MIDI CC.lua">https://github.com/ReaTeam/ReaScripts/raw/7c852f9c73cf5537e2c8e3a12011db7e1c53fce0/Various/cfillion_Song%20switcher/cfillion_Song%20switcher%20-%20Switch%20song%20by%20MIDI%20CC.lua</source>
+      </version>
+    </reapack>
+    <reapack name="cool_MK ReSampler.lua" type="script" desc="MK ReSampler">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 MK ReSampler A simple tool for quick pre-listening, sampling and sound design.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 To work, you need js_ReaScriptAPI from ReaPak and the latest version of SWS from this page: https://www.sws-extension.org/download/pre-release/ Important: this is not a plugin. The script does not have audio/MIDI inputs and outputs, does not process sound, does not store samples in its memory and is not saved in projects. It only manages existing Reaper functions and third party APIs.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Highlights: -Instant playback of a selected item or file from Media Explorer. -Several pitch and playback speed algorithms: from non-destructive stretching to changing the sound beyond recognition. -Automatic pitch adjustment to always stay in tune. -No settings for inputs and outputs: the script accepts MIDI data from any sources, including Virtual MIDI Keyboard. -Sound playback occurs through any selected track. -Possibility of recording.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 How it works? Just select any Item in the project or File in the Media Explorer and play it using a MIDI keyboard or VMK.\par}
+}
+]]></description>
+        <link rel="website" href="https://forum.cockos.com/showthread.php?t=287293">Forum Thread</link>
+        <link rel="screenshot" href="https://i.ibb.co/gRr8RvF/MK-Re-Sampler.jpg">Main View and VMK</link>
+      </metadata>
+      <version name="0.9" author="cool" time="2024-01-16T10:08:24Z">
+        <changelog><![CDATA[Initial]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/43405e72a835eceb5f23ea526a542e8be8f08fde/Various/cool_MK%20ReSampler.lua</source>
       </version>
     </reapack>
     <reapack name="Dfk_Project map navigator.lua" type="script" desc="Project map navigator">
