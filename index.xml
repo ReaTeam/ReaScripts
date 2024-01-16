@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="43405e72a835eceb5f23ea526a542e8be8f08fde" name="ReaTeam Scripts">
+<index version="1" commit="ea4bc1614be597c33bf364a15dd3e30ab90161f7" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -7096,6 +7096,21 @@ Override Reaper option "Toggle enable/disable default fadein/fadeout" (on/off)]]
       <version name="0.92" author="juliansader" time="2018-09-25T09:24:44Z">
         <changelog><![CDATA[+ Apply track FX.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/32dec992f9869818b43b6c6d47f66fb4363a7f16/Items%20Editing/js_Render%20items%20INTO%20next%20take%20(apply%20track%20FX%20and%20toggle%20freeze%20active%20take%20FX).lua</source>
+      </version>
+    </reapack>
+    <reapack name="kkkanten_Deselect odd-numbered items from selected items.lua" type="script" desc="Deselect odd-numbered items from selected items">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \u12479?\u12452?\u12488?\u12523?\u12398?\u36890?\u12426?\u12289?\u35079?\u25968?\u36984?\u25246?\u12375?\u12383?\u12450?\u12452?\u12486?\u12512?\u12398?\u22855?\u25968?\u30058?\u30446?\u12398?\u36984?\u25246?\u12434?\u35299?\u38500?\u12377?\u12427?\u12473?\u12463?\u12522?\u12503?\u12488?\u12391?\u12377?\u12290? \u12450?\u12452?\u12486?\u12512?\u12434?\u35079?\u25968?\u36984?\u25246?\u12375?\u12289?\u23455?\u34892?\u12375?\u12390?\u12367?\u12384?\u12373?\u12356?\u12290?\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 As the title suggests, this script deselects the odd-numbered items of multiple selected items. Please select multiple items and execute. (machine translate)\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="KKKANTEN" time="2024-01-16T12:04:35Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ea4bc1614be597c33bf364a15dd3e30ab90161f7/Items%20Editing/kkkanten_Deselect%20odd-numbered%20items%20from%20selected%20items.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Fill selected MIDI item with notes... .lua" type="script" desc="Fill selected MIDI item with notes...">
