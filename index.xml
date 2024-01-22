@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="ea4bc1614be597c33bf364a15dd3e30ab90161f7" name="ReaTeam Scripts">
+<index version="1" commit="5220235023874a28f1ffbff26dd197ae2c336f15" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -6799,6 +6799,18 @@ Override Reaper option "Toggle enable/disable default fadein/fadeout" (on/off)]]
 + Improved behavior of MIDI preview when transitioning between notes and holding down two keys.
 + A new module has been added to the Random function: Glitch]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e3cbff9afbe7b972faeec3504ca4b15acbdbcd45/Items%20Editing/cool_MK%20Slicer.lua</source>
+      </version>
+      <version name="3.21" author="cool" time="2024-01-22T14:43:56Z">
+        <changelog><![CDATA[+ Theme: Checkboxes (operating mode switches) gets a color tint that reflects the active mode.
++ Theme: The toggle buttons at the top are now colored when turned on.
++ Theme: Now the top panel and BPM indicator have a customizable background.
++ Theme: Symbols on the Settings and Snap buttons have been replaced with graphics.
++ Fixed a bug: now, when the Velocity Range slider is in extreme positions, the velocity points do not go beyond the boundaries of the window.
++ Fixed a bug: now BPM is not displayed if an unrealistically large value is calculated.
++ Fixed a bug: now the DestroyAudioAccessor function works correctly.
++ Now the script can receive MIDI from any channel, not just the first.
++ Fixed typo: RealmGUI -> ReaimGUI]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/5220235023874a28f1ffbff26dd197ae2c336f15/Items%20Editing/cool_MK%20Slicer.lua</source>
       </version>
     </reapack>
     <reapack name="Demoji_Next Variation.lua" type="script" desc="Next Variation">
