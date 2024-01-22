@@ -1,10 +1,16 @@
 -- @description MK Slicer
 -- @author cool
--- @version 3.20
+-- @version 3.21
 -- @changelog
---   + Added the "Sampler: White Keys Only" option, which allows you to assign only white keys to the Sampler.
---   + Improved behavior of MIDI preview when transitioning between notes and holding down two keys.
---   + A new module has been added to the Random function: Glitch
+--   + Theme: Checkboxes (operating mode switches) gets a color tint that reflects the active mode.
+--   + Theme: The toggle buttons at the top are now colored when turned on.
+--   + Theme: Now the top panel and BPM indicator have a customizable background.
+--   + Theme: Symbols on the Settings and Snap buttons have been replaced with graphics.
+--   + Fixed a bug: now, when the Velocity Range slider is in extreme positions, the velocity points do not go beyond the boundaries of the window.
+--   + Fixed a bug: now BPM is not displayed if an unrealistically large value is calculated.
+--   + Fixed a bug: now the DestroyAudioAccessor function works correctly.
+--   + Now the script can receive MIDI from any channel, not just the first.
+--   + Fixed typo: RealmGUI -> ReaimGUI
 -- @link Forum Thread https://forum.cockos.com/showthread.php?t=232672
 -- @screenshot MK_Slicer 3 https://i.imgur.com/L7WnvoO.jpg
 -- @donation
@@ -61,7 +67,7 @@
 --   Sometimes a script applies glue to items. For example, when several items are selected and when a MIDI is created in a sampler mode.
 
 --[[
-MK Slicer v3.20 by Maxim Kokarev 
+MK Slicer v3.21 by Maxim Kokarev 
 https://forum.cockos.com/member.php?u=121750
 
 Co-Author of the compilation - MyDaw
@@ -177,6 +183,9 @@ function Theming(Theme)
       TH[27] = {0.2, 0.2 ,0.2 ,1} -- Button Body
       TH[28] = {0.2, 0.2 ,0.2 ,1} -- Button Frames
       ThickBFrames = 0 -- Thickness - 0 = normal, 1 - thick frames
+
+      Tint_d = 1   -- Active Button Tint Coloring Mode: 1 - darker than Green tops elements, 0 - lighter than Green tops elements (best for light themes).
+      Tint_a = 0.1 -- Active Button Tint Transparency
       
       TH[29] = {0.23, 0.25, 0.25,0} -- Slider Frames
       TH[30] = {0.23, 0.25, 0.25,1} -- Slider Body
@@ -189,6 +198,7 @@ function Theming(Theme)
       TH[45] = { 0.23, 0.25, 0.25, 0.4 } -- Slider Background
 
       TH[46] = { 0.205, 0.225, 0.225, 1 } -- CheckBox Body
+      TH[47] = 0.05 -- CheckBox Tint Transparency
       
       --------------Text--------------------
       TH[33] = { 0.61, 0.61, 0.61, 1 } -- Text Main
@@ -197,6 +207,8 @@ function Theming(Theme)
       TH[36] = { 0.6, 0.6, 0.6, 1 } -- Txt Greyed (Presets, Mode)      
       TH[37] = -0.1 -- an additional value is added to the brightness of the BPM digits. Can be negative.
       TH[38] = 0.9 -- BPM digits transparency
+      TH[48] = {0.23, 0.25, 0.25,0.25} -- BPM Background
+      TH[49] = {1, 1, 1, 0.03} -- Status Bar Background
 
       -----------Elements------------------
       TH[39] =  { 0.1, 0.8, 0.4, 1 } -- Green tops elements (Loop triangles, Buttons Leds)
@@ -253,6 +265,9 @@ function Theming(Theme)
       TH[27] = {0.3, 0.31 ,0.32 ,1} -- Button Body
       TH[28] = {0.3, 0.31 ,0.32 ,1} -- Button Frames
       ThickBFrames = 0 -- Thickness - 0 = normal, 1 - thick frames
+
+      Tint_d = 1   -- Active Button Tint Coloring Mode: 1 - darker than Green tops elements, 0 - lighter than Green tops elements (best for light themes).
+      Tint_a = 0.12 -- Active Button Tint Transparency
       
       TH[29] = {0.28235, 0.32941, 0.34118,0} -- Slider Frames
       TH[30] = {0.28235, 0.32941, 0.34118,1} -- Slider Body
@@ -265,7 +280,8 @@ function Theming(Theme)
       TH[45] = { 0.28235, 0.32941, 0.34118, 0.3 } -- Slider Background
 
       TH[46] = { 0.31235, 0.33941, 0.35118, 1 } -- CheckBox Body
-      
+      TH[47] = 0.05 -- CheckBox Tint Transparency      
+
       --------------Text--------------------     
       TH[33] = { 0.7, 0.7, 0.7, 1 } -- Text Main
       TH[34] = { 1, 0.5, 0.3, 1 } -- Text Warn (Small "Processing, wait...")
@@ -273,6 +289,8 @@ function Theming(Theme)
       TH[36] = { 0.5, 0.5, 0.5, 0.5 } -- Txt Greyed (Presets, Mode)
       TH[37] = 0 -- an additional value is added to the brightness of the BPM digits. Can be negative.
       TH[38] = 0.9 -- BPM digits transparency
+      TH[48] = {0.23, 0.25, 0.25,0} -- BPM Background
+      TH[49] = {0, 0, 0, 0.05} -- Status Bar Background
     
       -----------Elements------------------
       TH[39] =  { 0.0, 0.81176, 0.41176, 1 } -- Green tops elements (Loop triangles, Buttons Leds)
@@ -329,6 +347,9 @@ function Theming(Theme)
       TH[27] = {0.3, 0.305, 0.31 ,1} -- Button Body
       TH[28] = {0.3, 0.305, 0.31 ,1} -- Button Frames
       ThickBFrames = 1 -- Thickness - 0 = normal, 1 - thick frames
+
+      Tint_d = 1   -- Active Button Tint Coloring Mode: 1 - darker than Green tops elements, 0 - lighter than Green tops elements (best for light themes).
+      Tint_a = 0.14 -- Active Button Tint Transparency
       
       TH[29] = {0.24, 0.25, 0.25,1} -- Slider Frames
       TH[30] = {0.24, 0.25, 0.25,1} -- Slider Body
@@ -341,6 +362,7 @@ function Theming(Theme)
       TH[45] = { 0.24, 0.25, 0.25, 0.15 } -- Slider Background
 
       TH[46] = { 0.26, 0.28, 0.28, 1 } -- CheckBox Body
+      TH[47] = 0.05 -- CheckBox Tint Transparency
       
       --------------Text--------------------
       TH[33] = { 0.9, 0.9, 0.9, 0.7 } -- Text Main
@@ -349,6 +371,8 @@ function Theming(Theme)
       TH[36] = { 0.55, 0.55, 0.55, 1 } -- Txt Greyed (Presets, Mode)      
       TH[37] = -0.1 -- an additional value is added to the brightness of the BPM digits. Can be negative.
       TH[38] = 0.9 -- BPM digits transparency
+      TH[48] = {0, 0, 0,0.05} -- BPM Background
+      TH[49] = {0, 0, 0, 0.05} -- Status Bar Background
 
       -----------Elements------------------
       TH[39] =  { 0.808, 0.525, 0.098, 1 } -- Green tops elements (Loop triangles, Buttons Leds)
@@ -405,6 +429,9 @@ function Theming(Theme)
       TH[27] = {0.234, 0.32, 0.339 ,1} -- Button Body
       TH[28] = {0.234, 0.32, 0.339 ,1} -- Button Frames
       ThickBFrames = 1 -- Thickness - 0 = normal, 1 - thick frames
+
+      Tint_d = 1   -- Active Button Tint Coloring Mode: 1 - darker than Green tops elements, 0 - lighter than Green tops elements (best for light themes).
+      Tint_a = 0.1 -- Active Button Tint Transparency
       
       TH[29] = {0.224, 0.29, 0.329,1} -- Slider Frames
       TH[30] = {0.224, 0.29, 0.329,1} -- Slider Body
@@ -417,6 +444,7 @@ function Theming(Theme)
       TH[45] = { 0.165, 0.165, 0.165, 0.3 } -- Slider Background
 
       TH[46] = { 0.229, 0.305, 0.335, 1 } -- CheckBox Body
+      TH[47] = 0.05 -- CheckBox Tint Transparency
       
       --------------Text--------------------      
       TH[33] = { 0.65, 0.65, 0.65, 1 } -- Text Main
@@ -425,6 +453,8 @@ function Theming(Theme)
       TH[36] = { 0.45, 0.45, 0.45, 1 } -- Txt Greyed (Presets, Mode)
       TH[37] = 0 -- an additional value is added to the brightness of the BPM digits. Can be negative.
       TH[38] = 0.9 -- BPM digits transparency
+      TH[48] = {0, 0.1, 0.1,0.15} -- BPM Background
+      TH[49] = {0, 0, 0, 0} -- Status Bar Background
      
       -----------Elements------------------
       TH[39] =  { 0.98, 0.788, 0.008, 1 } -- Green tops elements (Loop triangles, Buttons Leds)
@@ -480,6 +510,9 @@ function Theming(Theme)
       TH[27] = {0.11, 0.11, 0.11 ,1} -- Button Body
       TH[28] = {0.11, 0.11, 0.11 ,1} -- Button Frames
       ThickBFrames = 0 -- Thickness - 0 = normal, 1 - thick frames
+
+      Tint_d = 1   -- Active Button Tint Coloring Mode: 1 - darker than Green tops elements, 0 - lighter than Green tops elements (best for light themes).
+      Tint_a = 0.1 -- Active Button Tint Transparency
       
       TH[29] = {0.078, 0.078, 0.078,1} -- Slider Frames
       TH[30] = {0.1, 0.424, 0.455,1} -- Slider Body
@@ -492,6 +525,7 @@ function Theming(Theme)
       TH[45] = { 0.165, 0.165, 0.165, 1 } -- Slider Background
 
       TH[46] = { 0.1, 0.424, 0.455,1 } -- CheckBox Body
+      TH[47] = 0 -- CheckBox Tint Transparency
 
       --------------Text--------------------      
       TH[33] = { 0.85, 0.85, 0.85, 1 } -- Text Main
@@ -500,6 +534,8 @@ function Theming(Theme)
       TH[36] = { 0.8, 0.8, 0.8, 0.5 } -- Txt Greyed (Presets, Mode)
       TH[37] = 0 -- an additional value is added to the brightness of the BPM digits. Can be negative.
       TH[38] = 0.9 -- BPM digits transparency
+      TH[48] = {0, 0, 0,0.2} -- BPM Background
+      TH[49] = {1, 1, 1, 0.05} -- Status Bar Background
 
       -----------Elements------------------      
       TH[39] =  {0.941, 0.565, 0.0, 1 } -- Green tops elements (Loop triangles, Buttons Leds)
@@ -555,6 +591,9 @@ function Theming(Theme)
       TH[27] = {0.3, 0.31 ,0.32 ,0} -- Button Body
       TH[28] = {0.15, 0.15, 0.15 ,1} -- Button Frames
       ThickBFrames = 0 -- Thickness - 0 = normal, 1 - thick frames
+
+      Tint_d = 1   -- Active Button Tint Coloring Mode: 1 - darker than Green tops elements, 0 - lighter than Green tops elements (best for light themes).
+      Tint_a = 0.15 -- Active Button Tint Transparency
       
       TH[29] = {0.28235, 0.32941, 0.34118,1} -- Slider Frames
       TH[30] = {0.859, 0.494, 0.161,1} -- Slider Body
@@ -567,6 +606,7 @@ function Theming(Theme)
       TH[45] = { 0.165, 0.165, 0.165, 0.07 } -- Slider Background
 
       TH[46] = { 0.879, 0.454, 0.141, 1 } -- CheckBox Body
+      TH[47] = 0 -- CheckBox Tint Transparency
       
       --------------Text--------------------      
       TH[33] = { 0.078, 0.078, 0.078, 1 } -- Text Main
@@ -575,6 +615,8 @@ function Theming(Theme)
       TH[36] = { 0.2, 0.2, 0.2, 0.85 } -- Txt Greyed (Presets, Mode)
       TH[37] = -0.32 -- an additional value is added to the brightness of the BPM digits. Can be negative.
       TH[38] = 0.8 -- BPM digits transparency
+      TH[48] = {1, 1, 1,0.1} -- BPM Background
+      TH[49] = {1, 1, 1, 0.05} -- Status Bar Background
 
       -----------Elements------------------      
       TH[39] =  {0.9, 0.4, 0.1, 1 } -- Green tops elements (Loop triangles, Buttons Leds)
@@ -631,6 +673,9 @@ function Theming(Theme)
       TH[27] = {0.2, 0.2 ,0.2 ,1} -- Button Body
       TH[28] = {0.2, 0.2 ,0.2 ,1} -- Button Frames
       ThickBFrames = 0 -- Thickness - 0 = normal, 1 - thick frames
+
+      Tint_d = 1   -- Active Button Tint Coloring Mode: 1 - darker than Green tops elements, 0 - lighter than Green tops elements (best for light themes).
+      Tint_a = 0.15 -- Active Button Tint Transparency
       
       TH[29] = {0.22, 0.22, 0.22,1} -- Slider Frames
       TH[30] = {0.22, 0.22, 0.22,1} -- Slider Body
@@ -643,6 +688,7 @@ function Theming(Theme)
       TH[45] = { 0.165, 0.165, 0.165, 0 } -- Slider Background
 
       TH[46] = { 0.21, 0.21, 0.21, 1 } -- CheckBox Body
+      TH[47] = 0.05 -- CheckBox Tint Transparency
       
       --------------Text--------------------
       TH[33] = { 0.55, 0.55, 0.55, 1 } -- Text Main
@@ -651,6 +697,8 @@ function Theming(Theme)
       TH[36] = { 0.45, 0.45, 0.45, 1 } -- Txt Greyed (Presets, Mode)
       TH[37] = -0.1 -- an additional value is added to the brightness of the BPM digits. Can be negative.
       TH[38] = 0.7 -- BPM digits transparency
+      TH[48] = {0.23, 0.25, 0.25,0.25} -- BPM Background
+      TH[49] = {1, 1, 1, 0.02} -- Status Bar Background
 
       -----------Elements------------------
       TH[39] =  { 0.451, 0.596, 0.906, 0.7 } -- Green tops elements (Loop triangles, Buttons Leds)
@@ -707,6 +755,9 @@ elseif Theme == 8 then
       TH[27] = {0.3, 0.31 ,0.32 ,0} -- Button Body
       TH[28] = {0.15, 0.15, 0.15 ,0.7} -- Button Frames
       ThickBFrames = 0 -- Thickness - 0 = normal, 1 - thick frames
+
+      Tint_d = 0   -- Active Button Tint Coloring Mode: 1 - darker than Green tops elements, 0 - lighter than Green tops elements (best for light themes).
+      Tint_a = 0.1 -- Active Button Tint Transparency
       
       TH[29] = {0.48, 0.49, 0.5, 0.7} -- Slider Frames
       TH[30] = {0.50, 0.52, 0.53,1} -- Slider Body
@@ -719,6 +770,7 @@ elseif Theme == 8 then
       TH[45] = { 0.50, 0.52, 0.53, 0.15 } -- Slider Background
 
       TH[46] = { 0.60, 0.62, 0.63, 1 } -- CheckBox Body
+      TH[47] = 0.1 -- CheckBox Tint Transparency
       
       --------------Text--------------------      
       TH[33] = { 0.16, 0.16, 0.19, 1 } -- Text Main
@@ -727,6 +779,8 @@ elseif Theme == 8 then
       TH[36] = { 0.45, 0.45, 0.45, 1 } -- Txt Greyed (Presets, Mode)
       TH[37] = -0.3 -- an additional value is added to the brightness of the BPM digits. Can be negative.
       TH[38] = 0.8 -- BPM digits transparency
+      TH[48] = {1, 1, 1,0} -- BPM Background
+      TH[49] = {1, 1, 1, 0} -- Status Bar Background
      
       -----------Elements------------------
       TH[39] =  {0.257, 0.167, 0.524 ,1 } -- Green tops elements (Loop triangles, Buttons Leds)
@@ -782,6 +836,9 @@ elseif Theme == 8 then
       TH[27] = {0.706, 0.706, 0.702 ,1} -- Button Body
       TH[28] = {0.706, 0.706, 0.702 ,1} -- Button Frames
       ThickBFrames = 0 -- Thickness - 0 = normal, 1 - thick frames
+
+      Tint_d = 0   -- Active Button Tint Coloring Mode: 1 - darker than Green tops elements, 0 - lighter than Green tops elements (best for light themes).
+      Tint_a = 0.1 -- Active Button Tint Transparency
       
       TH[29] = {0.765, 0.765, 0.765,1} -- Slider Frames
       TH[30] = {0.765, 0.765, 0.765,1} -- Slider Body
@@ -794,6 +851,7 @@ elseif Theme == 8 then
       TH[45] = { 0.165, 0.165, 0.165, 0 } -- Slider Background
 
       TH[46] = { 0.735, 0.735, 0.735, 1 } -- CheckBox Body
+      TH[47] = 0.1 -- CheckBox Tint Transparency
       
       --------------Text--------------------     
       TH[33] = { 0.298, 0.29, 0.282, 1 } -- Text Main
@@ -802,6 +860,8 @@ elseif Theme == 8 then
       TH[36] = { 0.298, 0.29, 0.282, 0.5 } -- Txt Greyed (Presets, Mode)
       TH[37] = -0.5 -- an additional value is added to the brightness of the BPM digits. Can be negative.
       TH[38] = 0.9 -- BPM digits transparency
+      TH[48] = {1, 1, 1,0.1} -- BPM Background
+      TH[49] = {1, 1, 1, 0.05} -- Status Bar Background
     
       -----------Elements------------------
       TH[39] =  { 0.216, 0.467, 0.922, 1 } -- Green tops elements (Loop triangles, Buttons Leds)
@@ -857,6 +917,9 @@ elseif Theme == 10 then
       TH[27] = {0.337, 0.643, 0.792 ,0.8} -- Button Body
       TH[28] = {0.337, 0.643, 0.792 ,0.75} -- Button Frames
       ThickBFrames = 0 -- Thickness - 0 = normal, 1 - thick frames
+
+      Tint_d = 0   -- Active Button Tint Coloring Mode: 1 - darker than Green tops elements, 0 - lighter than Green tops elements (best for light themes).
+      Tint_a = 0.4 -- Active Button Tint Transparency
       
       TH[29] = {0.953, 0.533, 0.267,0} -- Slider Frames
       TH[30] = {0.953, 0.533, 0.267,0.8} -- Slider Body
@@ -869,6 +932,7 @@ elseif Theme == 10 then
       TH[45] = { 0.953, 0.533, 0.267, 0.2 } -- Slider Background
 
       TH[46] = { 0.923, 0.503, 0.237, 0.9 } -- CheckBox Body
+      TH[47] = 0 -- CheckBox Tint Transparency
       
       --------------Text--------------------      
       TH[33] = { 0.2, 0.2, 0.2, 1 } -- Text Main
@@ -877,6 +941,8 @@ elseif Theme == 10 then
       TH[36] = { 0.40, 0.40, 0.40, 0.6 } -- Txt Greyed (Presets, Mode)
       TH[37] = -0.2 -- an additional value is added to the brightness of the BPM digits. Can be negative.
       TH[38] = 0.7 -- BPM digits transparency
+      TH[48] = {1, 1, 1,0.1} -- BPM Background
+      TH[49] = {1, 1, 1, 0.05} -- Status Bar Background
      
       -----------Elements------------------
       TH[39] =  { 0.337, 0.451, 0.671, 1 } -- Green tops elements (Loop triangles, Buttons Leds)
@@ -932,6 +998,9 @@ elseif Theme == 11 then
       TH[27] = {0.835, 0.843, 0.839 ,1} -- Button Body
       TH[28] = {0.565, 0.565, 0.565 ,1} -- Button Frames
       ThickBFrames = 0 -- Thickness - 0 = normal, 1 - thick frames
+
+      Tint_d = 0   -- Active Button Tint Coloring Mode: 1 - darker than Green tops elements, 0 - lighter than Green tops elements (best for light themes).
+      Tint_a = 0.15 -- Active Button Tint Transparency
       
       TH[29] = {0.565, 0.565, 0.565,1} -- Slider Frames
       TH[30] = {0.835, 0.843, 0.839,1} -- Slider Body
@@ -944,6 +1013,7 @@ elseif Theme == 11 then
       TH[45] = { 0.835, 0.843, 0.839, 0.15 } -- Slider Background
 
       TH[46] = { 0.023, 0.103, 0.437, 0.1 } -- CheckBox Body
+      TH[47] = 0.15 -- CheckBox Tint Transparency
       
       --------------Text--------------------      
       TH[33] = { 0.142, 0.111, 0.566, 0.9 } -- Text Main
@@ -952,6 +1022,8 @@ elseif Theme == 11 then
       TH[36] = { 0.45, 0.45, 0.45, 0.7 } -- Txt Greyed (Presets, Mode)
       TH[37] = -0.32 -- an additional value is added to the brightness of the BPM digits. Can be negative.
       TH[38] = 0.7 -- BPM digits transparency
+      TH[48] = {1, 1, 1,0.1} -- BPM Background
+      TH[49] = {1, 1, 1, 0.1} -- Status Bar Background
      
       -----------Elements------------------
       TH[39] =  { 0.149, 0.145, 0.624, 1 } -- Green tops elements (Loop triangles, Buttons Leds)
@@ -1007,6 +1079,9 @@ elseif Theme == 11 then
       TH[27] = { 0.3, 0.3 ,0.3 ,1 } -- Button Body
       TH[28] = { 0.3, 0.3, 0.3 ,1 } -- Button Frames
       ThickBFrames = 0 -- Thickness - 0 = normal, 1 - thick frames
+
+      Tint_d = 1   -- Active Button Tint Coloring Mode: 1 - darker than Green tops elements, 0 - lighter than Green tops elements (best for light themes).
+      Tint_a = 0.1 -- Active Button Tint Transparency
       
       TH[29] = {0.28,0.4,0.7,0.8} -- Slider Frames
       TH[30] = {0.28,0.4,0.7,0.8} -- Slider Body
@@ -1019,6 +1094,7 @@ elseif Theme == 11 then
       TH[45] = { 0.28,0.4,0.7, 0.07 } -- Slider Background
 
       TH[46] = { 0.28,0.4,0.7,0.8 } -- CheckBox Body
+      TH[47] = 0 -- CheckBox Tint Transparency
       
       --------------Text--------------------      
       TH[33] = { 0.8, 0.8, 0.8, 0.9 } -- Text Color
@@ -1027,6 +1103,8 @@ elseif Theme == 11 then
       TH[36] = { 1, 1, 1, 0.25 } -- Txt Greyed (Presets, Mode)
       TH[37] = 0 -- an additional value is added to the brightness of the BPM digits. Can be negative.
       TH[38] = 0.9 -- BPM digits transparency
+      TH[48] = {0.23, 0.25, 0.25, 0} -- BPM Background
+      TH[49] = {0, 0, 0, 0} -- Status Bar Background
     
       -----------Elements------------------
       TH[39] =  { 0.0, 0.7, 0.0, 1 } -- Green tops elements (Loop triangles, Buttons Leds)
@@ -1221,9 +1299,9 @@ if FontAntiAliasing == 1 then
     gfx2imgui_path = gfx2imgui_path:gsub( "/", os_sep )
     if reaper.file_exists( gfx2imgui_path ) then
        gfx = dofile(reaper.GetResourcePath() .. '/Scripts/ReaTeam Extensions/API/gfx2imgui.lua')
-       RG_status = "(RealmGUI)"
+       RG_status = "(ReaimGUI)"
        else
-       RG_status = "(RealmGUI not installed)"
+       RG_status = "(ReaimGUI not installed)"
     end
 else
 RG_status = ""
@@ -2485,10 +2563,12 @@ end
 ----------------------------------------------------------------------------------------------------
 ---   Create Element Child Classes(Button,Slider,Knob)   ----------------------------------------
 ----------------------------------------------------------------------------------------------------
-  local Button, Button_small, Button_top, Button_Settings, Slider, Slider_small, Slider_simple, Slider_complex, Slider_Fine, Slider_Swing, Slider_fgain, Rng_Slider, Knob, CheckBox, CheckBox_simple, CheckBox_Show, Frame_body, Frame, Colored_Rect, Colored_Rect_top, Frame_filled, ErrMsg, SysMsg, Txt, Txt2, Line, Line_colored, Line2, Line3, Ruler = {},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}
+  local Button, Button_small, Button_top, Button_top_txt, Button_top_snap_symb, Button_Settings, Slider, Slider_small, Slider_simple, Slider_complex, Slider_Fine, Slider_Swing, Slider_fgain, Rng_Slider, Knob, CheckBox, CheckBox_simple, CheckBox_simple_tntd, CheckBox_Show, Frame_body, Frame, Colored_Rect, Colored_Rect_top, Frame_filled, ErrMsg, SysMsg, Txt, Txt2, Line, Line_colored, Line2, Line3, Ruler = {},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}
   extended(Button,     Element)
   extended(Button_small,     Element)
   extended(Button_top,     Element)
+  extended(Button_top_txt,     Element)
+  extended(Button_top_snap_symb,     Element)
   extended(Button_Settings,     Element)
   extended(Knob,       Element)
   extended(Slider,     Element)
@@ -2536,6 +2616,7 @@ end
   extended(Frame_filled,      Element)
   extended(CheckBox,   Element)
   extended(CheckBox_simple,   Element)
+  extended(CheckBox_simple_tntd,   Element)
   extended(CheckBox_Show,   Element)
  
 --------------------------------------------------------------------------------
@@ -2615,8 +2696,17 @@ end
 function Button_top:draw_body()
     gfx.rect(self.x+1,self.y+1,self.w-2,self.h-2,true) -- draw btn body
 end
+
+function Button_top_snap_symb:draw_snap_rect()
+   -- set body color
+   gfx.rect(self.x+1,self.y+1,(self.w-2)/8,(self.h-1)/8,true) -- draw btn body
+end
+
+function Button_top_snap_symb:draw_snap_frame()
+    gfx.rect(self.x+1,self.y+1,(self.w-2)/8,(self.h-2)/8,false) -- draw btn body
+end
 --------
-function Button_top:draw_lbl()
+function Button_top_txt:draw_lbl()
     local x,y,w,h  = self.x,self.y,self.w,self.h
     local lbl_w, lbl_h = gfx.measurestr(self.lbl)
     gfx.x = x+(w-lbl_w)/2; gfx.y = y+(h-lbl_h)/2
@@ -2642,16 +2732,57 @@ function Button_top:draw()
     -- Draw btn body, frame ----
     gfx.set(r,g,b,a)    -- set body color
     self:draw_body()    -- body
-    self:draw_frame3()   -- frame
+    if TH[27][4] ~= 0 then
+        self:draw_frame3()   -- frame
+    end
+
+end
+
+function Button_top_txt:draw()
+  if not Z_w or not Z_h then return end -- return if zoom not defined
+  self.x, self.w = (self.def_xywh[1]* Z_w) , (self.def_xywh[3]* Z_w) -- upd x,w
+  self.y, self.h = (self.def_xywh[2]* Z_h) , (self.def_xywh[4]* Z_h) -- upd y,h
+    local x,y,w,h  = self.x,self.y,self.w,self.h
+    local r,g,b,a  = self.r,self.g,self.b,self.a
+    local fnt,fnt_sz = self.fnt, self.fnt_sz*(Z_h*1.05)
+    if fnt_sz <= 10 then fnt_sz = 10 end
+    if fnt_sz >= MaxFontSize then fnt_sz = MaxFontSize end
     -- Draw label --------------
     gfx.set(table.unpack(self.fnt_rgba))   -- set label color
     gfx.setfont(1, fnt, fnt_sz) -- set label fnt
-    self:draw_lbl()             -- draw lbl
+   self:draw_lbl()             -- draw lbl
+
+    gfx.set(r,g,b,a)    -- set body color
+
+    if TH[27][4] == 0 then
+        self:draw_frame3()   -- frame
+    end
+end
+
+function Button_top_snap_symb:draw()
+  if not Z_w or not Z_h then return end -- return if zoom not defined
+  self.x, self.w = (self.def_xywh[1]* Z_w) , (self.def_xywh[3]* Z_w) -- upd x,w
+  self.y, self.h = (self.def_xywh[2]* Z_h) , (self.def_xywh[4]* Z_h) -- upd y,h
+    local x,y,w,h  = self.x,self.y,self.w,self.h
+    local r,g,b,a  = self.r,self.g,self.b,self.a
+
+    gfx.set(r,g,b,a)
+    self:draw_snap_frame()
+
+  --  gfx.set(TH[18][1],TH[18][2],TH[18][3], gfx.imgui and TH[18][4]%1 or TH[18][4]) -- snap area color          
+    self:draw_snap_rect()   -- 
+
 end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 function Button_Settings:draw_body()
     gfx.rect(self.x,self.y,self.w,self.h, true) -- draw btn body
+end
+
+function Button_Settings:draw_symb()
+    gfx.rect(self.x*2.1,(self.y*2)/1.049,self.w/2,self.h/10, true) -- draw btn body
+    gfx.rect(self.x*2.1,(self.y*3)/1.049,self.w/2,self.h/10, true) -- draw btn body
+    gfx.rect(self.x*2.1,(self.y*4)/1.049,self.w/2,self.h/10, true) -- draw btn body
 end
 --------
 function Button_Settings:draw_lbl()
@@ -2697,7 +2828,8 @@ function Button_Settings:draw()
     -- Draw label --------------
     gfx.set(table.unpack(self.fnt_rgba))   -- set label color
     gfx.setfont(1, fnt, fnt_sz) -- set label fnt
-    self:draw_lbl()             -- draw lbl
+ --   self:draw_lbl()             -- draw lbl
+self:draw_symb()
 end
 
 --------------------------------------------------------------------------------
@@ -4240,6 +4372,9 @@ end
 function CheckBox:draw_body()
     gfx.rect(self.x+1,self.y+1,self.w-2,self.h-2, true) -- draw checkbox body
 end
+
+
+
 --------    gfx.rect(x+1,y+1, val-2, h-2, true) 
 function CheckBox:draw_lbl()
     local x,y,w,h  = self.x,self.y,self.w,self.h
@@ -4280,6 +4415,7 @@ if fnt_sz >= MaxFontSize then fnt_sz = MaxFontSize end
     gfx.set(TH[46][1],TH[46][2],TH[46][3],TH[46][4])    -- set body color
     self:draw_body()    -- body
     self:draw_frame()   -- frame
+    self:draw_tint()
     -- Draw label --------------
     gfx.set(table.unpack(self.fnt_rgba))   -- set label,val color
     gfx.setfont(1, fnt, fnt_sz) -- set label,val fnt
@@ -4355,6 +4491,82 @@ if fnt_sz >= MaxFontSize then fnt_sz = MaxFontSize end
     gfx.set(TH[46][1],TH[46][2],TH[46][3],TH[46][4])    -- set body color
     self:draw_body()    -- body
     self:draw_frame()   -- frame
+    -- Draw label --------------
+    gfx.set(table.unpack(self.fnt_rgba))   -- set label,val color
+    gfx.setfont(1, fnt, fnt_sz) -- set label,val fnt
+    self:draw_lbl()             -- draw lbl
+    self:draw_val()             -- draw val
+end
+--------------------------------------------------------------------------------
+function CheckBox_simple_tntd:set_norm_val_m_wheel()
+    if gfx.mouse_wheel == 0 then return false end  -- return if m_wheel = 0
+    if gfx.mouse_wheel > 0 then self.norm_val = self.norm_val-1 end
+    if gfx.mouse_wheel < 0 then self.norm_val = self.norm_val+1 end
+    -- note! check = self.norm_val, checkbox table = self.norm_val2 --
+    if self.norm_val> #self.norm_val2 then self.norm_val=1
+    elseif self.norm_val<1 then self.norm_val= #self.norm_val2
+    end
+    return true
+end
+--------
+function CheckBox_simple_tntd:set_norm_val()
+    local x,y,w,h  = self.x,self.y,self.w,self.h
+    local val = self.norm_val      -- current value,check
+    local menu_tb = self.norm_val2 -- checkbox table
+    local menu_str = ""
+       for i=1, #menu_tb,1 do
+         if i~=val then menu_str = menu_str..menu_tb[i].."|"
+                   else menu_str = menu_str.."!"..menu_tb[i].."|" -- add check
+         end
+       end
+    gfx.x = self.x; gfx.y = self.y + self.h
+    local new_val = gfx.showmenu(menu_str)        -- show checkbox menu
+    if new_val>0 then self.norm_val = new_val end -- change check(!)
+end
+--------
+function CheckBox_simple_tntd:draw_body()
+    gfx.rect(self.x+1,self.y+1,self.w-2,self.h-2, true) -- draw checkbox body
+end
+--------
+function CheckBox_simple_tntd:draw_lbl()
+    local x,y,w,h  = self.x,self.y,self.w,self.h
+    local lbl_w, lbl_h = gfx.measurestr(self.lbl)
+    gfx.x = x-lbl_w-5; gfx.y = y+(h-lbl_h)/2
+    gfx.drawstr(self.lbl) -- draw checkbox label
+end
+--------
+function CheckBox_simple_tntd:draw_val()
+    local x,y,w,h  = self.x,self.y,self.w,self.h
+    local val = self.norm_val2[self.norm_val]
+    local val_w, val_h = gfx.measurestr(val)
+    gfx.x = x+3; gfx.y = y+(h-val_h)/2
+    gfx.drawstr(val) -- draw checkbox val
+end
+------------------------
+function CheckBox_simple_tntd:draw()
+    self:update_xywh() -- Update xywh(if wind changed)
+    local r,g,b,a  = self.r,self.g,self.b,self.a
+    local fnt,fnt_sz = self.fnt, self.fnt_sz*(Z_h*1.05)
+    if fnt_sz <= 12 then fnt_sz = 12 end
+if fnt_sz >= MaxFontSize then fnt_sz = MaxFontSize end
+    -- Get mouse state ---------
+          -- in element --------
+          if self:mouseIN() then a=a+0.2
+             if self:set_norm_val_m_wheel() then -- use if need
+                if self.onMove then self.onMove() end   
+            end  
+          end          
+          -- in elm L_down -----
+          if self:mouseDown() then a=a+0.3 end
+          -- in elm L_up(released and was previously pressed) --
+          if self:mouseClick() then self:set_norm_val()
+             if self:mouseClick() and self.onClick then self.onClick() end
+          end
+    -- Draw ch_box body, frame -
+    gfx.set(TH[46][1],TH[46][2],TH[46][3],TH[46][4])    -- set body color
+    self:draw_body()    -- body
+    self:draw_frame()   -- frame
+    self:draw_tint()
     -- Draw label --------------
     gfx.set(table.unpack(self.fnt_rgba))   -- set label,val color
     gfx.setfont(1, fnt, fnt_sz) -- set label,val fnt
@@ -4564,6 +4776,31 @@ elm_table[20] = Line2:new(dl3_pos+1,380+corrY,4,88, TH[4][1],TH[4][2],TH[4][3],T
 
 elm_table[21] = Frame:new(10, 385,1024,100) --Main_Frame
 
+if Tint_d == 1 then
+   TH39_1 = TH[39][1]/2
+   TH39_2 = TH[39][2]/2
+   TH39_3 = TH[39][3]/2
+   else
+   TH39_1 = TH[39][1]*2
+   TH39_2 = TH[39][2]*2
+   TH39_3 = TH[39][3]*2
+end
+if TH39_1 < 0 then TH39_1 = 0 elseif TH39_1 > 1 then TH39_1 = 1 end
+if TH39_2 < 0 then TH39_2 = 0 elseif TH39_2 > 1 then TH39_2 = 1 end
+if TH39_3 < 0 then TH39_3 = 0 elseif TH39_3 > 1 then TH39_3 = 1 end
+elm_table[22] = Colored_Rect_top:new(50,5,40,19,  TH39_1,TH39_2,TH39_3, Tint_a ) -- Tint_Grid1_Led
+elm_table[23] = Colored_Rect_top:new(92,5,40,19,  TH39_1,TH39_2,TH39_3, Tint_a ) -- Tint_Grid2_Led
+elm_table[24] = Colored_Rect_top:new(134,5,40,19,  TH39_1,TH39_2,TH39_3, Tint_a ) -- Tint_Grid4_Led
+elm_table[25] = Colored_Rect_top:new(176,5,40,19,  TH39_1,TH39_2,TH39_3, Tint_a ) -- Tint_Grid8_Led
+elm_table[26] = Colored_Rect_top:new(218,5,40,19,  TH39_1,TH39_2,TH39_3, Tint_a ) -- Tint_Grid16_Led
+elm_table[27] = Colored_Rect_top:new(260,5,40,19,  TH39_1,TH39_2,TH39_3, Tint_a ) -- Tint_Grid32_Led
+elm_table[28] = Colored_Rect_top:new(302,5,40,19,  TH39_1,TH39_2,TH39_3, Tint_a ) -- Tint_Grid64_Led
+elm_table[29] = Colored_Rect_top:new(344,5,40,19,  TH39_1,TH39_2,TH39_3, Tint_a ) -- Tint_GridT_Led
+elm_table[30] = Colored_Rect_top:new(391,5,50,19,  TH39_1,TH39_2,TH39_3, Tint_a ) -- Tint_Swing_Led
+
+elm_table[31] = Frame_filled:new(973,380+corrY,55,64,  TH[48][1],TH[48][2],TH[48][3],TH[48][4] ) --BPM_Frame_filled
+elm_table[32] = Colored_Rect_top:new(0,0,1045,28,  TH[49][1],TH[49][2],TH[49][3],TH[49][4] ) --Status Bar_Frame_filled
+
 local leds_table = {}
 
 if TH[29][4] == 0 then fr_marg = 1; fr_marg2 = 2 else fr_marg = 0; fr_marg2 = 0 end -- if no frames, then add led size correction
@@ -4602,6 +4839,10 @@ leds_table[23] = Colored_Rect:new(760+d_pos,410+corrY+fr_marg,3,18-fr_marg2,  0.
 leds_table[25] = Colored_Rect_top:new(917,5,2,20,  TH[39][1],TH[39][2],TH[39][3],TH[39][4] ) -- Light_Aim_on
 leds_table[26] = Colored_Rect_top:new(917,5,2,20,  0.5,0.5,0.5,0.5 ) -- Light_Aim_off
 
+leds_table[29] = Colored_Rect_top:new(920,5,27,20,  TH39_1,TH39_2,TH39_3, Tint_a ) -- Tint_Light_Aim_on
+leds_table[30] = Colored_Rect_top:new(953,5,27,20,  TH39_1,TH39_2,TH39_3, Tint_a ) -- Tint_Light_Snap_on
+leds_table[31] = Colored_Rect_top:new(986,5,48,20,  TH39_1,TH39_2,TH39_3, Tint_a ) -- Tint_Light_Loop_on
+
 local others_table = {}
 
 others_table[1] = Txt2:new(628+c_pos,408+corrY,55,18, TH[36][1],TH[36][2],TH[36][3],TH[36][4], ">","Arial",20) --Triangle
@@ -4631,10 +4872,7 @@ others_table[18] = Colored_Rect_top:new(1096+d_pos,35+corrY,5,335, TH[13][1],TH[
 
 
 
-
-
-
-local Midi_Sampler = CheckBox_simple:new(670+d_pos,410+corrY,90,18, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "","Arial",16,  MIDI_Mode,
+local Midi_Sampler = CheckBox_simple_tntd:new(670+d_pos,410+corrY,90,18, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "","Arial",16,  MIDI_Mode,
                               {"Sampler","Trigger","Pitch Detect"} )
 
                               if Midi_Sampler.norm_val == 3 and RebuildPeaksOnStart == 1 then
@@ -5370,9 +5608,10 @@ end
               if rng1 == nil then rng1 = 0 end
               if rng2 == nil then rng2 = 1 end
 
-local GrBtnT = {Grid1_Btn,Grid2_Btn,Grid4_Btn,Grid8_Btn,Grid16_Btn,Grid32_Btn,Grid64_Btn,GridT_Btn,Swing_Btn}
+local GrBtnT = {}
 -- Swing Button ----------------------------
 GrBtnT[9] = Button_top:new(391,5,50,19, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "Swing",    "Arial",16 )
+GrBtnT[10] = Button_top_txt:new(391,5,50,19, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "Swing",    "Arial",16 )
 GrBtnT[9].onClick = 
 function()
    if Wave.State then 
@@ -5392,6 +5631,7 @@ triplets = 2
 
 -- Grid Button T----------------------------
 GrBtnT[8] = Button_top:new(344,5,40,19, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "T",    "Arial",16 )
+GrBtnT[11] = Button_top_txt:new(344,5,40,19, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "T",    "Arial",16 )
 GrBtnT[8].onClick = 
 function()
    if Wave.State then 
@@ -5412,6 +5652,7 @@ end
 
 -- Grid Button 1----------------------------
 GrBtnT[1] = Button_top:new(50,5,40,19, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "1",    "Arial",16 )
+GrBtnT[12] = Button_top_txt:new(50,5,40,19, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "1",    "Arial",16 )
 GrBtnT[1].onClick = 
 function()
 
@@ -5440,6 +5681,7 @@ end
 
 -- Grid Button 1/2----------------------------
 GrBtnT[2] = Button_top:new(92,5,40,19, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "1/2",    "Arial",16 )
+GrBtnT[13] = Button_top_txt:new(92,5,40,19, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "1/2",    "Arial",16 )
 GrBtnT[2].onClick = 
 function()
    if Wave.State then 
@@ -5467,6 +5709,7 @@ end
 
 -- Grid Button 1/4----------------------------
 GrBtnT[3] = Button_top:new(134,5,40,19, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "1/4",    "Arial",16 )
+GrBtnT[14] = Button_top_txt:new(134,5,40,19, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "1/4",    "Arial",16 )
 GrBtnT[3].onClick = 
 function()
    if Wave.State then 
@@ -5494,6 +5737,7 @@ end
 
 -- Grid Button 1/8----------------------------
 GrBtnT[4] = Button_top:new(176,5,40,19, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "1/8",    "Arial",16 )
+GrBtnT[15] = Button_top_txt:new(176,5,40,19, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "1/8",    "Arial",16 )
 GrBtnT[4].onClick = 
 function()
    if Wave.State then 
@@ -5521,6 +5765,7 @@ end
 
 -- Grid Button 1/16----------------------------
 GrBtnT[5] = Button_top:new(218,5,40,19, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "1/16",    "Arial",16 )
+GrBtnT[16] = Button_top_txt:new(218,5,40,19, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "1/16",    "Arial",16 )
 GrBtnT[5].onClick = 
 function()
    if Wave.State then 
@@ -5548,6 +5793,7 @@ end
 
 -- Grid Button 1/32----------------------------
 GrBtnT[6] = Button_top:new(260,5,40,19, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "1/32",    "Arial",16 )
+GrBtnT[17] = Button_top_txt:new(260,5,40,19, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "1/32",    "Arial",16 )
 GrBtnT[6].onClick = 
 function()
    if Wave.State then 
@@ -5575,6 +5821,7 @@ end
 
 -- Grid Button 1/64----------------------------
 GrBtnT[7] = Button_top:new(302,5,40,19, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "1/64",    "Arial",16 )
+GrBtnT[18] = Button_top_txt:new(302,5,40,19, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "1/64",    "Arial",16 )
 GrBtnT[7].onClick = 
 function()
    if Wave.State then 
@@ -5685,6 +5932,7 @@ local OutNote2  = CheckBox_simple:new(670+d_pos,430+corrY,93,18, TH[30][1],TH[30
 
 -- Create Loop  Button ----------------------------
 local Loop_Btn = Button_top:new(986,5,48,20, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "Loop",    "Arial",16 )
+local Loop_Btn_Tnt = Button_top_txt:new(986,5,48,20, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "Loop",    "Arial",16 )
 Loop_Btn.onClick = 
 function()
    if Wave.State then 
@@ -5699,6 +5947,7 @@ end
 
 -- Aim Button ----------------------------
 local Aim_Btn = Button_top:new(920,5,27,20, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "I",    "Arial",16 )
+local Aim_Btn_Tnt = Button_top_txt:new(920,5,27,20, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "I",    "Arial",16 )
 Aim_Btn.onClick = 
 function()
    if Wave.State then 
@@ -5711,7 +5960,9 @@ function()
 end 
 
 -- Create Snap Button ----------------------------
-local Snap_Btn = Button_top:new(953,5,27,20, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "Ll",    "Arial",16 )
+local Snap_Btn = Button_top:new(953,5,27,20, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "",    "Arial",16 )
+local Snap_Btn_Txt = Button_top_txt:new(953,5,27,20, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "",    "Arial",16 )
+local Snap_Btn_Tnt = Button_top_snap_symb:new(963,9,42,84, TH[33][1],TH[33][2],TH[33][3],TH[33][4]-0.1, "",    "Arial",16 )
 Snap_Btn.onClick = 
 function()
    if Wave.State then 
@@ -6073,7 +6324,7 @@ end
 
 
 -- Create Settings Button ----------------------------
-local Settings = Button_Settings:new(9,10,40,40, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "=",    "Arial",20 )
+local Settings = Button_Settings:new(9,10,40,40, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "",    "Arial",20 )
 Settings.onClick = 
 function()
    Wave:Settings()
@@ -7255,6 +7506,7 @@ function Gate_Gl:draw_Lines()
     mouse_pos_height =  gfx.mouse_y/Z_h 
     mouse_pos_width =  gfx.mouse_x/Z_w
 
+
  if (Guides.norm_val == 1) then 
 
     -- Draw, capture trig lines ----------------------------
@@ -7266,7 +7518,9 @@ function Gate_Gl:draw_Lines()
            line_x = Wave.x + (self.Res_Points[i] - self.start_smpl) * self.Xsc  -- line x coord
 
            if (Midi_Sampler.norm_val == 2) then
-                 velo_y = (self.Yop-vel_point_lowest) -  self.Res_Points[i+1][mode] * (self.Ysc-vel_point_lowest)  -- velo y coord       
+                 velo_y = (self.Yop-vel_point_lowest) -  self.Res_Points[i+1][mode] * (self.Ysc-vel_point_lowest)  -- velo y coord   
+                 if velo_y <= Wave.y then  velo_y = Wave.y end   
+                 if velo_y >= (Wave.y + Wave.h)-vel_point_lowest then  velo_y = (Wave.y + Wave.h)-vel_point_lowest end   
            end
         ------------------------
         -- draw line, velo -----
@@ -7952,9 +8206,7 @@ function Wave:BPM_Numbers()
       end
 
       bpm4c2 = bpm4c
-      if bpm4c2 == nil then bpm4c2 = "BPM" end
-      if bpm2c == nil then bpm2c = "" end
-      if bpm8c == nil then bpm8c = "" end
+      if bpm4c2 == nil or bpm4c2 >= 500 then gfx.set(TH[35][1], TH[35][2], TH[35][3], TH[35][4]-0.05); bpm4c2 = "BPM"; bpm2c = ""; bpm8c = "" end
 
       gfx.x = x+((w/1.030)-lbl_h)-(fnt_sz/2)
       gfx.y = y+(h*1.125)
@@ -10020,11 +10272,11 @@ end
 
 function Wave:Destroy_Track_Accessor()
    
-if getitem == 0 then
+--if getitem == 0 then
     if self.AA then r.DestroyAudioAccessor(self.AA) 
        self.buffer.clear()
     end
- end
+ --end
 end
 
 --------
@@ -10417,24 +10669,26 @@ end
 --------------------------------------------------------------------------------------------------------------------------------
 
   function midi_loop() -- check midi input
-Buf_4 = 0
+  Buf_4 = 0
   midi_play = 0
   local Buf_1x = Buf_1
   local Buf_2x = Buf_2 
      local retval,  buf,  ts, devIdx
      retval,  buf,  ts,  devIdx = reaper.MIDI_GetRecentInputEvent(0)
 
-     Buf_1 =  string.byte(buf,1)
-     Buf_2 =  string.byte(buf,2)
-     Buf_3 =  string.byte(buf,3)
+     Buf1 =  string.byte(buf,1) or 128
+     Buf_1 = Buf1+(Buf1&0x0/2) or 128
+     Buf_2 =  string.byte(buf,2) or 0
+     Buf_3 =  string.byte(buf,3) or 0
+     NtOn = 144+(Buf1&0x0F) or 128
      Midi_Note = Buf_2 
 
-if Buf_2 ~= Buf_2x and Buf_1 == 144 then  Buf_4 = 1 end
+if Buf_2 ~= Buf_2x and Buf_1 == NtOn then  Buf_4 = 1 end
 
      if Control_via_MIDI ~= 1 then Buf_1 = nil; Buf_1x = nil end
 
      if Wave.State and Snap_on == 1 then
-        if Buf_1 ~= Buf_1x and Buf_1 == 144 then  midi_play = 1
+        if Buf_1 ~= Buf_1x and Buf_1 == NtOn then  midi_play = 1
 
              if r.GetPlayState()&1 == 1 and Midi_Note == Midi_Note then
              r.OnStopButton();
@@ -10447,7 +10701,7 @@ if Buf_2 ~= Buf_2x and Buf_1 == 144 then  Buf_4 = 1 end
              end
 
         end
-        if Buf_1 ~= 144 and Buf_1 ~= Buf_1x and r.GetPlayState()&1 == 1 then 
+        if Buf_1 ~= NtOn and Buf_1 ~= Buf_1x and r.GetPlayState()&1 == 1 then 
                 if RS_ObeyNoteOff.norm_val == 1 then
                    r.OnStopButton(); 
                 end  
@@ -10666,7 +10920,7 @@ if TrTable ~= nil and Snap_on == 1 then
    
 
 
-                     if Buf_1 == 144 then -- delay
+                     if Buf_1 == NtOn then -- delay
                              time_start = reaper.time_precise()       
                              local function Main_mid()     
                                  local elapsedmid = reaper.time_precise() - time_start       
@@ -11009,6 +11263,8 @@ function Wave:from_gfxBuffer()
          SelAreaTable = {} -- reset table
        end
 
+       Gate_Gl:draw_Lines()  -- Draw Gate trig-lines
+
        -- Get Mouse -------------------------
        self:Get_Mouse()     -- get mouse(for zoom, move etc) 
 
@@ -11144,12 +11400,19 @@ local Frame_Aim_TB = {leds_table[25]}
 local Frame_Aim_TB2 = {leds_table[26]}
 local Frame_Loop_TB = {leds_table[3]}
 local Frame_Loop_TB2 = {leds_table[4], others_table[7]}
+
+local Frame_Tint_Aim_TB = {leds_table[29]}
+local Frame_Tint_Snap_TB = {leds_table[30]}
+local Frame_Tint_Loop_TB = {leds_table[31]}
+
 local Frame_TB = {elm_table[1], elm_table[2], elm_table[3], elm_table[17], elm_table[18], elm_table[19], elm_table[20], elm_table[21]} 
 local FrameR_TB = {others_table[5], others_table[6]}
 local FrameQR_Link_TB = {others_table[3],others_table[4]}
 local Frame_TB1 = {leds_table[2]}
 local Frame_TB2 = {elm_table[5], leds_table[1]} -- Grid mode
 local Frame_TB2_Trigg = {elm_table[4]}
+local BPM_Bck_TB = {elm_table[31]}
+local StatusBar_Bck_TB = {elm_table[32]}
 
 local Grid1_Led_TB = {elm_table[8]}
 local Grid2_Led_TB = {elm_table[9]}
@@ -11160,6 +11423,16 @@ local Grid32_Led_TB = {elm_table[13]}
 local Grid64_Led_TB = {elm_table[14]}
 local GridT_Led_TB = {elm_table[15]}
 local Swing_Led_TB = {elm_table[16]}
+
+local Grid1_Tint_Led_TB = {elm_table[22]}
+local Grid2_Tint_Led_TB = {elm_table[23]}
+local Grid4_Tint_Led_TB = {elm_table[24]}
+local Grid8_Tint_Led_TB = {elm_table[25]}
+local Grid16_Tint_Led_TB = {elm_table[26]}
+local Grid32_Tint_Led_TB = {elm_table[27]}
+local Grid64_Tint_Led_TB = {elm_table[28]}
+local GridT_Tint_Led_TB = {elm_table[29]}
+local Swing_Tint_Led_TB = {elm_table[30]}
 
 local Rand_Mode_Color1_TB = {leds_table[7]}
 local Rand_Mode_Color2_TB = {leds_table[8]}
@@ -11217,6 +11490,8 @@ local SliderGlitch_TBM = {R_Glitch_Sld}
 ----------------------------------------
 local Loop_TB = {LoopScale}
 local LoopBtn_TB = {Loop_Btn, Aim_Btn, Snap_Btn, GrBtnT[9]}
+local Btn_Txt_TB2 = {Loop_Btn_Tnt, Aim_Btn_Tnt, Snap_Btn_Txt, Snap_Btn_Tnt}
+
 
 local Checkbox_TB_preset = {RS_Att_Sld, RS_Rel_Sld, PitchOffset_Sld, RS_PitchBend_Sld, RS_ObeyNoteOff, RS_SamplerMode}
 
@@ -11231,17 +11506,47 @@ local Random_Setup_TB2 = {elm_table[6], elm_table[7], sbtbl[1], sbtbl[2], sbtbl[
 --- CheckBox_TB -------------------
 -----------------------------------
 local CheckBox_TB = {ViewMode, Guides}
+local Btn_Txt_TB = {GrBtnT[10],GrBtnT[11],GrBtnT[12],GrBtnT[13],GrBtnT[14],GrBtnT[15],GrBtnT[16],GrBtnT[17],GrBtnT[18]}
+
+     function CheckBox:draw_tint()
+         if TH[47] ~= 0 then
+                if Guides and (Guides.norm_val == 1) then 
+                     gfx.set(0.7,0.7,0.0,TH[47]) -- Frame_byGrid2 (Yellow indicator)
+                       else
+                     gfx.set(0.1,0.7,0.6,TH[47] ) -- Frame_byGrid (Blue indicator)
+                 end
+             else
+                gfx.set(0,0,0,0 )
+             end
+         gfx.rect(self.x+1,self.y+1,self.w-2,self.h-2, true) -- draw checkbox body
+     end
+     
+     function CheckBox_simple_tntd:draw_tint()
+         if TH[47] ~= 0 then
+                if Midi_Sampler and (Midi_Sampler.norm_val == 1) then 
+                     gfx.set(0.69,0.17,0.17,TH[47]  + 0.02) -- MIDIMode1 red
+                  elseif (Midi_Sampler.norm_val == 2) then
+                     gfx.set(0.69,0.32,0.05,TH[47] + 0.04) -- MIDIMode2 orange
+                  elseif (Midi_Sampler.norm_val == 3) then
+                     gfx.set(0.54,0.14,1,TH[47] ) -- MIDIMode3 purple
+                 end
+             else
+                gfx.set(0,0,0,0 )
+             end
+         gfx.rect(self.x+1,self.y+1,self.w-2,self.h-2, true) -- draw checkbox body
+     end
 
 
   -- Draw Wave, lines etc ------
     if Wave.State then   
    
           Wave:from_gfxBuffer() -- Wave from gfx buffer
-          Gate_Gl:draw_Lines()  -- Draw Gate trig-lines
+
 
       --       for key,btn    in pairs(Ruler_TB)   do btn:draw()    end   -- Draw Ruler Background
          if ShowRuler == 1 then Gate_Gl:draw_Ruler() end -- Draw Ruler lines
 
+        for key,btn    in pairs(StatusBar_Bck_TB)   do btn:draw()    end -- Status Bar Background
 
         local _, division, swing, _ = r.GetSetProjectGrid(0,false)
 
@@ -11348,6 +11653,70 @@ local CheckBox_TB = {ViewMode, Guides}
     for key,btn    in pairs(Button_TB)   do btn:draw()    end 
     for key,sldr   in pairs(Slider_TB)   do sldr:draw()   end
     for key,ch_box in pairs(CheckBox_TB) do ch_box:draw() end
+
+
+
+    if Wave.State then 
+
+        local _, division, swing, _ = r.GetSetProjectGrid(0,false)
+-------------------------------------------------------------------------------------------------------
+
+        if division < 0.0078125 then division = 0.0078125 end --128th
+-----------------------------Grid Buttons Leds-------------------------------------------------------
+        if division == 1 or division == 2/3 then
+                 for key,frame  in pairs(Grid1_Tint_Led_TB)    do frame:draw()  end  
+        Grid1_on = 0
+        end
+        if division == 0.5 or division == 1/3 then
+                 for key,frame  in pairs(Grid2_Tint_Led_TB)    do frame:draw()  end  
+        Grid2_on = 0
+        end
+        if division == 0.25 or division == 0.5/3 then
+                 for key,frame  in pairs(Grid4_Tint_Led_TB)    do frame:draw()  end  
+        Grid4_on = 0
+        end
+        if division == 0.125 or division == 0.25/3 then
+                 for key,frame  in pairs(Grid8_Tint_Led_TB)    do frame:draw()  end  
+        Grid8_on = 0
+        end
+        if division == 0.0625 or division == 0.125/3 then
+                 for key,frame  in pairs(Grid16_Tint_Led_TB)    do frame:draw()  end  
+        Grid16_on = 0
+        end
+        if division == 0.03125 or division == 0.0625/3 then
+                 for key,frame  in pairs(Grid32_Tint_Led_TB)    do frame:draw()  end 
+        Grid32_on = 0 
+        end
+        if division == 0.015625 or division == 0.03125/3 then
+                 for key,frame  in pairs(Grid64_Tint_Led_TB)    do frame:draw()  end  
+        Grid64_on = 0
+        end
+           if (1//division) % 3 == 0 then Trplts = true else Trplts = false end;
+        if GridT_on == 1 or Trplts == true then
+                 for key,frame  in pairs(GridT_Tint_Led_TB)    do frame:draw()  end  
+        end
+        if Swing_on == 1 then
+                for key,frame  in pairs(Swing_Tint_Led_TB)    do frame:draw()  end  
+        end
+
+
+           if Aim_on == 1 then
+              for key,btn    in pairs(Frame_Tint_Aim_TB)   do btn:draw()    end 
+          end
+
+           if Snap_on == 1 then
+              for key,btn    in pairs(Frame_Tint_Snap_TB)   do btn:draw()    end 
+          end
+
+          if Loop_on == 1 then
+              for key,btn    in pairs(Frame_Tint_Loop_TB)   do btn:draw()    end 
+          end
+
+
+        for key,ch_box in pairs(Btn_Txt_TB2) do ch_box:draw() end -- aim, snap, loop text layer
+        for key,ch_box in pairs(Btn_Txt_TB) do ch_box:draw() end -- grid text layer
+   end
+
 
 
       if Random_Order == 1 then
@@ -11478,6 +11847,8 @@ end
            for key,frame  in pairs(Frame_TB2_Trigg)    do frame:draw()  end -- mode fill
      end
 
+
+        for key,btn    in pairs(BPM_Bck_TB)   do btn:draw()    end 
         Wave:BPM_Numbers()
 
      if ErrMsg_Status == 0 and Random_Setup ~= 1 then
@@ -11906,7 +12277,7 @@ function Init()
     -- Some gfx Wnd Default Values ---------------
     local R,G,B = ceil(TH[3][1]*255),ceil(TH[3][2]*255),ceil(TH[3][3]*255)             -- 0...255 format -- цвет основного окна
     local Wnd_bgd = R + G*256 + B*65536 -- red+green*256+blue*65536  
-    local Wnd_Title = "MK Slicer v3.20" .. " " .. theme_name .. " " .. RG_status .. ""
+    local Wnd_Title = "MK Slicer v3.21" .. " " .. theme_name .. " " .. RG_status .. ""
     local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
 
      -- set init fonts/size
@@ -12293,7 +12664,7 @@ item5.command = function()
                           gfx.dock(dock_pos)
                           xpos = 400
                           ypos = 320
-                          local Wnd_Title = "MK Slicer v3.20"
+                          local Wnd_Title = "MK Slicer v3.21"
                           local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
                           gfx.init( Wnd_Title, Wnd_W,Wnd_H, Wnd_Dock, Wnd_X,Wnd_Y )
 
@@ -12305,7 +12676,7 @@ item5.command = function()
                          dock_pos = 0
                          xpos = tonumber(r.GetExtState("MK_Slicer_3", "window_x")) or 400
                          ypos = tonumber(r.GetExtState("MK_Slicer_3", "window_y")) or 320
-                         local Wnd_Title = "MK Slicer v3.20"
+                         local Wnd_Title = "MK Slicer v3.21"
                          local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
                          if Wnd_Y == (nil or 0) then Wnd_Y = Wnd_Y+25 end -- correction for window header visibility
                          gfx.init( Wnd_Title, Wnd_W,Wnd_H, Wnd_Dock, Wnd_X,Wnd_Y )
@@ -12586,9 +12957,9 @@ end
 
 
 if FontAntiAliasing == 1 then
-           item36 = context_menu:add_item({label = "Font AntiAliasing (Need RealmGUI, Restart required)", toggleable = true, selected = true, active = true})
+           item36 = context_menu:add_item({label = "Font AntiAliasing (Need ReaimGUI, Restart required)", toggleable = true, selected = true, active = true})
            else
-           item36 = context_menu:add_item({label = "Font AntiAliasing (Need RealmGUI, Restart required)", toggleable = true, selected = false, active = true})
+           item36 = context_menu:add_item({label = "Font AntiAliasing (Need ReaimGUI, Restart required)", toggleable = true, selected = false, active = true})
 end
 item36.command = function()
                      if item36.selected == true then 
