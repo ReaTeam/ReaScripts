@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="b5f8207e73048fd2fcc6259d5175aa55d0b162be" name="ReaTeam Scripts">
+<index version="1" commit="ae3e5004528686a8b5efdd17d4907f78347b2d2c" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -20837,10 +20837,30 @@ Web Interface: restore the previous locked state on load]]></changelog>
 ]]></description>
         <link rel="website" href="https://forum.cockos.com/showthread.php?t=287293">Forum Thread</link>
         <link rel="screenshot" href="https://i.ibb.co/gRr8RvF/MK-Re-Sampler.jpg">Main View and VMK</link>
+        <link rel="donation" href="https://www.buymeacoffee.com/MaximKokarev">Donate via BuyMeACoffee</link>
       </metadata>
       <version name="0.9" author="cool" time="2024-01-16T10:08:24Z">
         <changelog><![CDATA[Initial]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/43405e72a835eceb5f23ea526a542e8be8f08fde/Various/cool_MK%20ReSampler.lua</source>
+      </version>
+      <version name="0.9.1" author="cool" time="2024-01-22T19:22:26Z">
+        <changelog><![CDATA[+ Added Fine slider for fine-tuning the frequency in cents.
++ Added Reverse function: play files backwards.
++ The waveform now displays Reverse if the function is active.
++ Now the script can receive MIDI from any channel, not just the first.
++ Fixed a bug: now play cursor correctly changes position if the zoom of the waveform is changed.
++ Fixed a bug: now the script does not give an error when working with Reversed items (but also does not work with them).
++ Fixed a bug: now the script does not crash with an error if the recording was activated from daw, but was stopped by the script button.
++ Fixed a bug: now the script does not crash with an error when pressing the keyboard arrows.
++ Now zoom, when you press the keyboard arrows, focuses approximately around the area of the start and end markers.
++ Added a condition for correct work with Muted items.
++ Improved display of the initial screen when launching on long items.
++ Now clicking on a sample in the Media Explorer resets the selection of items, shifting the focus of the script to the Media Explorer.
++ All menus that have only two items have been replaced with switch buttons with indication.
++ Increased the maximum deviation of Random Pitch to +-50 cents.
++ Changed the position of some controls.
++ Fixed typo: RealmGUI -> ReaimGUI.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ae3e5004528686a8b5efdd17d4907f78347b2d2c/Various/cool_MK%20ReSampler.lua</source>
       </version>
     </reapack>
     <reapack name="Dfk_Project map navigator.lua" type="script" desc="Project map navigator">
