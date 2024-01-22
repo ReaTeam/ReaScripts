@@ -1,9 +1,26 @@
 -- @description MK ReSampler
 -- @author cool
--- @version 0.9
--- @changelog Initial
+-- @version 0.91
+-- @changelog
+--   + Added Fine slider for fine-tuning the frequency in cents.
+--   + Added Reverse function: play files backwards.
+--   + The waveform now displays Reverse if the function is active.
+--   + Now the script can receive MIDI from any channel, not just the first.
+--   + Fixed a bug: now play cursor correctly changes position if the zoom of the waveform is changed.
+--   + Fixed a bug: now the script does not give an error when working with Reversed items (but also does not work with them).
+--   + Fixed a bug: now the script does not crash with an error if the recording was activated from daw, but was stopped by the script button.
+--   + Fixed a bug: now the script does not crash with an error when pressing the keyboard arrows.
+--   + Now zoom, when you press the keyboard arrows, focuses approximately around the area of the start and end markers.
+--   + Added a condition for correct work with Muted items.
+--   + Improved display of the initial screen when launching on long items.
+--   + Now clicking on a sample in the Media Explorer resets the selection of items, shifting the focus of the script to the Media Explorer.
+--   + All menus that have only two items have been replaced with switch buttons with indication.
+--   + Increased the maximum deviation of Random Pitch to +-50 cents.
+--   + Changed the position of some controls.
+--   + Fixed typo: RealmGUI -> ReaimGUI.
 -- @link Forum Thread https://forum.cockos.com/showthread.php?t=287293
 -- @screenshot Main View and VMK https://i.ibb.co/gRr8RvF/MK-Re-Sampler.jpg
+-- @donation Donate via BuyMeACoffee https://www.buymeacoffee.com/MaximKokarev
 -- @about
 --   MK ReSampler
 --   A simple tool for quick pre-listening, sampling and sound design.
@@ -23,7 +40,7 @@
 --   Just select any Item in the project or File in the Media Explorer and play it using a MIDI keyboard or VMK.
 
 --[[
-MK ReSampler v0.9 by Maxim Kokarev 
+MK ReSampler v0.91 by Maxim Kokarev 
 https://forum.cockos.com/member.php?u=121750
 
 Based on CF_Preview_Play API by cfillion
@@ -1057,6 +1074,7 @@ local logx = math.log
 local huge = math.huge      
 local random = math.random
 local fmod = math.fmod
+local rad = math.rad
 -----------------------------------------------------------------------------
 
 Take_Check = 0
@@ -1069,10 +1087,12 @@ ResetZoom = 0
 -----------------------------------States and UA  protection-----------------------------
 Docked = tonumber(r.GetExtState('MK_ReSampler','Docked'))or 0;
 EscToExit = tonumber(r.GetExtState('MK_ReSampler','EscToExit'))or 1;
-RS_ObeyNoteOff_state = tonumber(r.GetExtState('MK_ReSampler','RS_ObeyNoteOff.norm_val'))or 1; 
 RS_SamplerMode_state = tonumber(r.GetExtState('MK_ReSampler','RS_SamplerMode.norm_val'))or 2; 
-Loop_ReSampler_state = tonumber(r.GetExtState('MK_ReSampler','Loop_Sampler.norm_val'))or 1; 
 Vel_Det_Options_state = tonumber(r.GetExtState('MK_ReSampler','Vel_Det_Options.norm_val'))or 1;
+ReverseBtn_on = tonumber(r.GetExtState('MK_ReSampler','ReverseBtn_on'))or 0; 
+NoteOffBtn_on = tonumber(r.GetExtState('MK_ReSampler','NoteOffBtn_on'))or 1; 
+MonoBtn_on = tonumber(r.GetExtState('MK_ReSampler','MonoBtn_on'))or 0; 
+LoopBtn_on = tonumber(r.GetExtState('MK_ReSampler','LoopBtn_on'))or 0; 
 
 FontAntiAliasing = tonumber(r.GetExtState('MK_ReSampler','FontAntiAliasing'))or 0;
 MaxFontSizeSt = tonumber(r.GetExtState('MK_ReSampler','MaxFontSizeSt'))or 0;
@@ -1082,7 +1102,7 @@ RS_Att_Sld_state = tonumber(r.GetExtState('MK_ReSampler','RS_Att_Sld.norm_val'))
 RS_Rel_Sld_state = tonumber(r.GetExtState('MK_ReSampler','RS_Rel_Sld.norm_val'))or 0;     
 RandomPitch_Sld_state = tonumber(r.GetExtState('MK_ReSampler','RandomPitch_Sld.norm_val'))or 0;  
 BaseOctave_state = tonumber(r.GetExtState('MK_ReSampler','BaseOctave.norm_val'))or 4;
-SingleVoice_state = tonumber(r.GetExtState('MK_ReSampler','SingleVoice.norm_val'))or 2;
+--SingleVoice_state = tonumber(r.GetExtState('MK_ReSampler','SingleVoice.norm_val'))or 2;
 Speed_state = tonumber(r.GetExtState('MK_ReSampler','Speed.norm_val'))or 4;
 Notes_On = tonumber(r.GetExtState('MK_ReSampler','Notes_On'))or 1;
 
@@ -1154,9 +1174,9 @@ if FontAntiAliasing == 1 then
     gfx2imgui_path = gfx2imgui_path:gsub( "/", os_sep )
     if r.file_exists( gfx2imgui_path ) then
        gfx = dofile(r.GetResourcePath() .. '/Scripts/ReaTeam Extensions/API/gfx2imgui.lua')
-       RG_status = "(RealmGUI)"
+       RG_status = "(ReaimGUI)"
        else
-       RG_status = "(RealmGUI not installed)"
+       RG_status = "(ReaimGUI not installed)"
     end
 else
 RG_status = ""
@@ -2100,7 +2120,7 @@ end
 ----------------------------------------------------------------------------------------------------
 ---   Create Element Child Classes(Button,Slider,Knob)   ----------------------------------------
 ----------------------------------------------------------------------------------------------------
-  local Button, Button_top, Button_top_txt, Button_top_rec_symb, Button_Settings, Slider_simple, Knob, CheckBox_simple, CheckBox_simple_tntd, Frame_body, Frame, Colored_Rect, Colored_Rect_top, Frame_filled, ErrMsg, SysMsg, Txt, Txt2, Line, Line_colored, Line2, Line3, Ruler = {},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}
+  local Button, Button_top, Button_top_txt, Button_top_rec_symb, Button_Settings, Slider_simple, Slider_Fine, Knob, CheckBox_simple, CheckBox_simple_tntd, Frame_body, Frame, Colored_Rect, Colored_Rect_top, Frame_filled, ErrMsg, SysMsg, Txt, Txt2, Line, Line_colored, Line2, Line3, Ruler = {},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}
   extended(Button,     Element)
   extended(Button_top,     Element)
   extended(Button_top_txt,     Element)
@@ -2108,6 +2128,7 @@ end
   extended(Button_Settings,     Element)
   extended(Knob,       Element)
   extended(Slider_simple,     Element)
+  extended(Slider_Fine,     Element)
   extended(ErrMsg,     Element)
   extended(SysMsg,     Element)
   extended(Txt,     Element)
@@ -2118,9 +2139,10 @@ end
   extended(Line3,     Element)
   extended(Ruler,     Element)
     -- Create Slider Child Classes --
-  local Slider_Att, Slider_Rel = {},{}
+  local Slider_Att, Slider_Rel, F_Slider = {},{},{}
     extended(Slider_Att, Slider_simple)
     extended(Slider_Rel, Slider_simple)
+    extended(F_Slider, Slider_Fine)
     ---------------------------------
   extended(Frame_body,      Element)
   extended(Frame,      Element)
@@ -2142,7 +2164,7 @@ end
 function Button:draw_lbl()
     local x,y,w,h  = self.x,self.y,self.w,self.h
     local lbl_w, lbl_h = gfx.measurestr(self.lbl)
-    gfx.x = x+(w-lbl_w)/2; gfx.y = y+(h-lbl_h)/2+1
+    gfx.x = x+(w-lbl_w)/2; gfx.y = y+(h-lbl_h)/2
     gfx.drawstr(self.lbl)
 end
 ------------------------
@@ -2453,6 +2475,18 @@ function Slider_simple:set_norm_val_m_wheel()
     return true
 end
 
+function Slider_Fine:set_norm_val_m_wheel()
+  if Shift == true then
+  Mult_S = 0.0005 -- Set step
+  else
+  Mult_S = 0.005 -- Set step
+  end
+  local Step = Mult_S
+  if gfx.mouse_wheel == 0 then Slider_Status = 0; return false end  -- return if m_wheel = 0
+  if gfx.mouse_wheel > 0 then self.norm_val = min(self.norm_val+Step, 1); Slider_Status = 1 end
+  if gfx.mouse_wheel < 0 then self.norm_val = max(self.norm_val-Step, 0); Slider_Status = 1 end
+  return true
+end
 -------------------------------------------------------------------------------------
 
 function Slider_Att:set_norm_val()
@@ -2477,6 +2511,16 @@ function Slider_Rel:set_norm_val()
     self.norm_val=VAL
 end
 
+function F_Slider:set_norm_val()
+  local x, w = self.x, self.w
+  local VAL,K = 0,10 -- VAL=temp value;K=coefficient(when Ctrl pressed)
+  if Shift then VAL = self.norm_val + ((gfx.mouse_x-last_x)/(w*K))
+     else VAL = (gfx.mouse_x-x)/w end
+  if VAL<0 then VAL=0 elseif VAL>1 then VAL=1 end
+  DefaultOffset = 0.5
+  if MCtrl then VAL = DefaultOffset end --set default value by Ctrl+LMB
+  self.norm_val=VAL
+end
 -----------------------------------------------------------------------------
 function Slider_Att:draw_body()
     local x,y,w,h  = self.x,self.y,self.w,self.h
@@ -2487,6 +2531,11 @@ function Slider_Rel:draw_body()
     local x,y,w,h  = self.x,self.y,self.w,self.h
     local val = w * self.norm_val
     gfx.rect(x+1,y+1, val-2, h-2, true)  -- draw Slider_Rel body
+end
+function F_Slider:draw_body()
+  local x,y,w,h  = self.x,self.y,self.w,self.h
+  local val = w * self.norm_val
+  gfx.rect(x+1,y+1, val-2, h-2, true)  -- draw F_Slider body
 end
 --------------------------------------------------------------
 function Slider_Att:draw_lbl()
@@ -2500,6 +2549,12 @@ function Slider_Rel:draw_lbl()
     local lbl_w, lbl_h = gfx.measurestr(self.lbl)
     gfx.x = x+3; gfx.y = y+(h-lbl_h)/2;
     gfx.drawstr(self.lbl) -- draw Slider_Rel label
+end
+function F_Slider:draw_lbl()
+  local x,y,w,h  = self.x,self.y,self.w,self.h
+  local lbl_w, lbl_h = gfx.measurestr(self.lbl)
+  gfx.x = x+3; gfx.y = y+(h-lbl_h)/2;
+  gfx.drawstr(self.lbl) -- draw F_Slider label
 end
 ---------------------------------------------------------------
 function Slider_Att:draw_val()
@@ -2515,6 +2570,13 @@ function Slider_Rel:draw_val()
     local val_w, val_h = gfx.measurestr(val)
     gfx.x = x+w-val_w-5; gfx.y = y+(h-val_h)/2;
     gfx.drawstr(val) -- draw Slider_Rel Value
+end
+function F_Slider:draw_val()
+  local x,y,w,h  = self.x,self.y,self.w,self.h
+  local val = string.format("%.2f", self.norm_val)
+  local val_w, val_h = gfx.measurestr(val)
+  gfx.x = x+w-val_w-5; gfx.y = y+(h-val_h)/2;
+  gfx.drawstr(val) -- draw F_Slider Value
 end
 ----------------------------------------------------------------
 ---------------------------------------------------------------------------------------
@@ -2557,7 +2619,46 @@ function Slider_simple:draw() -- slider without waveform and markers redraw
     self:draw_val()   -- draw value
 end
 --------------------------------------------------------------------------------
-
+function Slider_Fine:draw() -- Offset slider with fine tuning and additional line redrawing
+  self:update_xywh() -- Update xywh(if wind changed)
+  local r,g,b,a  = self.r,self.g,self.b,self.a
+  local fnt,fnt_sz = self.fnt, self.fnt_sz*(Z_h*1.05)
+  if fnt_sz <= 12 then fnt_sz = 12 end
+if fnt_sz >= MaxFontSize then fnt_sz = MaxFontSize end
+  -- Get mouse state ---------
+        -- in element(and get mouswheel) --
+        if self:mouseIN() then a=a+0.2
+           if self:set_norm_val_m_wheel() then 
+              if gfx.mouse_wheel == 0 then 
+                  if self.onMove then self.onMove() end 
+              end
+           end  
+        end
+        -- in elm L_down -----
+        if self:mouseDown() then a=a+0.3 
+           self:set_norm_val()
+           if self.onMove then self.onMove() end 
+           Slider_Status = 1 
+        end
+        --in elm L_up(released and was previously pressed)--
+        --if self:mouseClick() then --[[self.onClick()]] end
+        -- L_up released(and was previously pressed in elm)--
+        if self:mouseUp() and self.onUp then self.onUp()
+           MouseUpX = 1
+           mouse_ox, mouse_oy = -1, -1 -- reset after self.onUp()
+           Slider_Status = 0 
+        end    
+  -- Draw sldr body, frame ---
+  self:draw_frame_sld() -- frame background
+  gfx.set(r,g,b,a)  -- set body,frame color
+  self:draw_body()  -- body
+  self:draw_frame() -- frame
+  -- Draw label,value --------
+  gfx.set(table.unpack(self.fnt_rgba))   -- set lbl,val color
+  gfx.setfont(1, fnt, fnt_sz) -- set lbl,val fnt
+  self:draw_lbl()   -- draw lbl
+  self:draw_val()   -- draw value
+end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 ---   CheckBox Class Methods   ----------------------------------------------
@@ -2840,26 +2941,35 @@ if TH39_3 < 0 then TH39_3 = 0 elseif TH39_3 > 1 then TH39_3 = 1 end
 
 if TH[28][4] == 0 then fr_marg = 1; fr_marg2 = 2 else fr_marg = 0; fr_marg2 = 0 end -- if no frames, then add led size correction
 
-leds_table[1] = Colored_Rect:new(928,380+corrY+fr_marg,3,22-fr_marg2,  0.1,0.7,0.2,TH[42] ) -- (Kybd on)
-leds_table[2] = Colored_Rect:new(928,380+corrY+fr_marg,3,22-fr_marg2,  0.3,0.3,0.3,TH[42] ) -- (Kybd off)
+leds_table[1] = Colored_Rect:new(927,380+corrY+fr_marg,3,22-fr_marg2,  0.1,0.7,0.2,TH[42] ) -- (Kybd on)
+leds_table[2] = Colored_Rect:new(927,380+corrY+fr_marg,3,22-fr_marg2,  0.3,0.3,0.3,TH[42] ) -- (Kybd off)
 
-leds_table[3] = Colored_Rect_top:new(983,5,2,20,  TH[39][1],TH[39][2],TH[39][3],TH[39][4] ) -- Light_Loop_on
-leds_table[4] = Colored_Rect_top:new(983,5,2,20,  0.5,0.5,0.5,0.5 ) -- Light_Loop_off
+leds_table[3] = Colored_Rect:new(908+d_pos,410+corrY,3,18,  0.1,0.7,0.2,TH[42] ) -- Light_Reverse_on
+leds_table[4] = Colored_Rect:new(908+d_pos,410+corrY,3,18,  0.3,0.3,0.3,TH[42] ) -- Light_Reverse_off
 
-leds_table[5] = Colored_Rect_top:new(998,5,2,20,  TH[39][1],TH[39][2],TH[39][3],TH[39][4] ) -- Light_Rec_on
-leds_table[6] = Colored_Rect_top:new(998,5,2,20,  0.5,0.5,0.5,0.5 ) -- Light_Rec_off
+leds_table[5] = Colored_Rect_top:new(997,5,3,20,  TH[39][1],TH[39][2],TH[39][3],TH[39][4] ) -- Light_Rec_on
+leds_table[6] = Colored_Rect_top:new(997,5,3,20,  0.5,0.5,0.5,0.5 ) -- Light_Rec_off
 
 leds_table[7] = Colored_Rect_top:new(1000,5,35,20,  TH39_1,TH39_2,TH39_3, Tint_a ) -- Tint_Light_Rec_on
 
 elm_table[8] = Colored_Rect_top:new(0,0,1045,28,  TH[49][1],TH[49][2],TH[49][3],TH[49][4] ) --Status Bar_Frame_filled
 
+leds_table[9] = Colored_Rect:new(737+d_pos,410+corrY,3,18,  0.1,0.7,0.2,TH[42] ) -- Light_NoteOff_on
+leds_table[10] = Colored_Rect:new(737+d_pos,410+corrY,3,18,  0.3,0.3,0.3,TH[42] ) -- Light_NoteOff_off
+
+leds_table[11] = Colored_Rect:new(737+d_pos,430+corrY,3,18,  0.1,0.7,0.2,TH[42] ) -- Light_Mono_on
+leds_table[12] = Colored_Rect:new(737+d_pos,430+corrY,3,18,  0.3,0.3,0.3,TH[42] ) -- Light_Mono_off
+
+leds_table[13] = Colored_Rect:new(737+d_pos,450+corrY,3,18,  0.1,0.7,0.2,TH[42] ) -- Light_Loop_on
+leds_table[14] = Colored_Rect:new(737+d_pos,450+corrY,3,18,  0.3,0.3,0.3,TH[42] ) -- Light_Loop_off
+
 local others_table = {}
 
 others_table[1] = Txt:new(130+d_pos,384+corrY,55,18, TH[36][1],TH[36][2],TH[36][3],TH[36][4], "Amp","Arial",22)
-others_table[2] = Txt:new(300+d_pos,384+corrY,55,18, TH[36][1],TH[36][2],TH[36][3],TH[36][4], "Play","Arial",22)
+others_table[2] = Txt:new(300+d_pos,384+corrY,55,18, TH[36][1],TH[36][2],TH[36][3],TH[36][4], "Pitch","Arial",22)
 
-others_table[3] = Txt:new(470+d_pos,384+corrY,55,18, TH[36][1],TH[36][2],TH[36][3],TH[36][4], "Pitch","Arial",22)
-others_table[4] = Txt:new(640+d_pos,384+corrY,55,18, TH[36][1],TH[36][2],TH[36][3],TH[36][4], "Transpose","Arial",22)
+others_table[3] = Txt:new(470+d_pos,384+corrY,55,18, TH[36][1],TH[36][2],TH[36][3],TH[36][4], "Transpose","Arial",22)
+others_table[4] = Txt:new(640+d_pos,384+corrY,55,18, TH[36][1],TH[36][2],TH[36][3],TH[36][4], "Play Options","Arial",22)
 
 others_table[5] = Line:new(100+d_pos,404+corrY,110,6) --Line (Amp Bracket)
 others_table[6] = Line2:new(100+d_pos,407+corrY,110,4,  TH[4][1],TH[4][2],TH[4][3],TH[4][4])--Line2 (Amp Bracket fill)
@@ -2875,33 +2985,20 @@ others_table[12] = Line2:new(610+d_pos,407+corrY,110,4,  TH[4][1],TH[4][2],TH[4]
 
 
 
-
-
-
-local SingleVoice = CheckBox_simple:new(250+d_pos,430+corrY,150,18, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "","Arial",16,  SingleVoice_state,
-                              {"Mono On","Mono Off"} )
-
-local RS_ObeyNoteOff = CheckBox_simple:new(250+d_pos,410+corrY,150,18, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "","Arial",16,  RS_ObeyNoteOff_state,
-                              {"NoteOff: Yes","NoteOff: No"} )
-
 local Vel_Det_Options = CheckBox_simple:new(80+d_pos,450+corrY,150,18, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "","Arial",16,  Vel_Det_Options_state,
                               {"Velocity On","Velocity 50%", "Velocity Off"} )
 
-local RS_SamplerMode = CheckBox_simple:new(420+d_pos,410+corrY,150,18, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "","Arial",16,  RS_SamplerMode_state,
+local RS_SamplerMode = CheckBox_simple:new(250+d_pos,410+corrY,150,18, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "","Arial",16,  RS_SamplerMode_state,
                               {"Off", "HQ: Stretch", "HQ: Attack", "HQ: Sustain", "LQ: Crispy", "LQ: Smooth", "Rrreeeaaa"} )
 
-local Loop_Sampler = CheckBox_simple:new(250+d_pos,450+corrY,150,18, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "","Arial",16,  Loop_ReSampler_state,
-                              {"Loop Off","Loop On"} )
-
-local Speed = CheckBox_simple:new(420+d_pos,450+corrY,150,18, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "","Arial",16,  Speed_state,
+local Speed = CheckBox_simple:new(250+d_pos,450+corrY,150,18, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "","Arial",16,  Speed_state,
                               {"Speed: x8", "Speed: x4", "Speed: x2", "Speed: x1", "Speed: x0.5", "Speed: x0.25", "Speed: x0.125"} )
 
-local BaseOctave  = CheckBox_simple:new(590+d_pos,410+corrY,150,18, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "","Arial",16,  BaseOctave_state,
+local BaseOctave  = CheckBox_simple:new(420+d_pos,410+corrY,150,18, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "","Arial",16,  BaseOctave_state,
                                            {"Octave: +3","Octave: +2","Octave: +1","Octave: 0","Octave: -1","Octave: -2","Octave: -3"} )
 
-local BasePitch  = CheckBox_simple:new(590+d_pos,430+corrY,150,18, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "","Arial",16,  13,
+local BasePitch  = CheckBox_simple:new(420+d_pos,430+corrY,150,18, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "","Arial",16,  13,
                                            {"Pitch: +12","Pitch: +11","Pitch: +10","Pitch: +9","Pitch: +8","Pitch: +7","Pitch: +6","Pitch: +5","Pitch: +4","Pitch: +3","Pitch: +2","Pitch: +1","Pitch: 0","Pitch: -1","Pitch: -2","Pitch: -3","Pitch: -4","Pitch: -5","Pitch: -6","Pitch: -7","Pitch: -8","Pitch: -9","Pitch: -10","Pitch: -11","Pitch: -12"} )
-
 
 
 -- Create Settings Button ----------------------------
@@ -2933,7 +3030,7 @@ end
 function SetTrackRecordingMode(RecMode, RecArm)
   local tr
    tr = r.GetSelectedTrack(0, 0)
-   if not tr then return end
+   if not tr or not RecMode or not RecArm then return end
    r.SetMediaTrackInfo_Value( tr, "I_RECMODE", RecMode )
    r.SetMediaTrackInfo_Value( tr, "I_RECARM", RecArm )
 end
@@ -2967,6 +3064,63 @@ function()
    end 
 end 
 
+
+
+
+-- NoteOffBtn Button ----------------------------
+local NoteOffBtn = Button:new(590+d_pos,410+corrY,150,18, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "NoteOff",    "Arial",16 )
+NoteOffBtn.onClick = 
+function()
+    if Wave.State then 
+        if NoteOffBtn_on == 0 then 
+           NoteOffBtn_on = 1
+            else
+           NoteOffBtn_on = 0
+        end
+    end 
+end
+
+-- MonoBtn Button ----------------------------
+local MonoBtn = Button:new(590+d_pos,430+corrY,150,18, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "Mono",    "Arial",16 )
+MonoBtn.onClick = 
+function()
+    if Wave.State then 
+        if MonoBtn_on == 0 then 
+           MonoBtn_on = 1
+            else
+           MonoBtn_on = 0
+        end
+    end 
+end
+
+-- LoopBtn Button ----------------------------
+local LoopBtn = Button:new(590+d_pos,450+corrY,150,18, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "Loop",    "Arial",16 )
+LoopBtn.onClick = 
+function()
+    if Wave.State then 
+        if LoopBtn_on == 0 then 
+           LoopBtn_on = 1
+            else
+           LoopBtn_on = 0
+        end
+    end 
+end
+
+
+ReverseBtn_ResetZoom = 0
+-- ReverseBtn Button ----------------------------
+local ReverseBtn = Button:new(760+d_pos,410+corrY,150,18, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "Reverse",    "Arial",16 )
+ReverseBtn.onClick = 
+function()
+    if Wave.State then 
+      ReverseBtn_ResetZoom = 1 -- reset zoom and markers position on click only
+        if ReverseBtn_on == 0 then 
+           ReverseBtn_on = 1
+            else
+           ReverseBtn_on = 0
+        end
+    end 
+end
 
 
 -- Open_Kybd Button ----------------------------
@@ -3057,7 +3211,7 @@ end
 
 
 -- RandomPitch_Sld ------------------------------ 
-local RandomPitch_Sld = Slider_Rel:new(420+d_pos,430+corrY,150,18, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "Rnd. Pitch","Arial",16, RandomPitch_Sld_state ) --DefaultRelTime
+local RandomPitch_Sld = Slider_Rel:new(250+d_pos,430+corrY,150,18, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "Rnd. Pitch","Arial",16, RandomPitch_Sld_state ) --DefaultRelTime
 function RandomPitch_Sld:draw_val()
  -- self.form_val = logx((self.norm_val-1)*-1)*25*-1   -- form_val
   self.form_val = (self.norm_val)*100   -- form_val
@@ -3074,6 +3228,36 @@ RandomPitch = (19+(self.form_val-1)*-1)+100
 end
 RandomPitch_Sld.onUp =
 function() 
+
+end
+
+
+-- PitchOffset_Sld ------------------------------ 
+local PitchOffset_Sld = F_Slider:new(420+d_pos,450+corrY,150,18, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "Fine","Arial",16, 0.5 )
+function PitchOffset_Sld:draw_val()
+
+  self.form_val  = floor(100-self.norm_val * 200)*( -1)     -- form_val
+
+  function fixzero()
+  FixMunus = self.form_val
+  if (FixMunus== 0.0)then FixMunus = 0
+  end
+
+  end
+  fixzero()  
+  local x,y,w,h  = self.x,self.y,self.w,self.h
+  local val = string.format("%.0f", FixMunus).."c"
+  local val_w, val_h = gfx.measurestr(val)
+  gfx.x = x+w-val_w-3
+  gfx.drawstr(val)--draw Slider Value
+
+RS_PitchOffset = self.form_val/100
+
+  end
+PitchOffset_Sld.onUp =
+function() 
+
+      fixzero() 
 
 end
 
@@ -3330,6 +3514,22 @@ end
 ]]--
 
 
+function UnselectItemsIfMEFocused()
+ local mouse = r.JS_Mouse_GetState (1) -- 1 - lmb, 2 - rmb
+    if mouse == nil then return end
+    if mouse == 1 or mouse == 2 then
+        -- Get Control ID under mouse
+       local x,y = r.GetMousePosition()
+       local  hwnd = r.JS_Window_FromPoint(x,y)
+       if reaper.JS_Window_GetTitle(reaper.JS_Window_GetParent(hwnd)) == "Media Explorer" then
+          local pth = reaper.JS_Window_GetTitle(hwnd)
+          if pth == 'List1' then
+            reaper.Main_OnCommand(40289, 0) -- Item: Unselect (clear selection of) all items
+          end
+      end
+   end
+end
+
 
 TableLength = {}
 
@@ -3339,7 +3539,6 @@ local length, length_it, offset, mrkr_lngth, mrkr_offset, mode, submode
   PlayStat = 0
   Buf_0 = 0
   Buf_4 = 0
-  Buf_5 = 0
   local Buf_1x = Buf_1
   local Buf_2x = Buf_2 
   local filepathx = filepath
@@ -3347,10 +3546,14 @@ local length, length_it, offset, mrkr_lngth, mrkr_offset, mode, submode
   local filex = file 
 
      local retval,  buf,  ts,  devIdx = r.MIDI_GetRecentInputEvent(0)
- 
-     Buf_1 =  string.byte(buf,1) or 0
+
+     Buf1 =  string.byte(buf,1) or 128
+     Buf_1 = Buf1+(Buf1&0x0/2) or 128
      Buf_2 =  string.byte(buf,2) or 0
      Buf_3 =  string.byte(buf,3) or 0
+     NtOn = 144+(Buf1&0x0F) or 128
+
+    -- Ch = Buf1&0x0F -- MIDI Channel-1
 
 if Vel_Det_Options.norm_val == 1 then
     VelToVol = ((Buf_3/127)*Buf_3)/130
@@ -3362,13 +3565,11 @@ end
 
 if (Buf_1 ~= Buf_1x) then  Buf_0 = 1 end -- if note triggered
 
-if Buf_2 ~= Buf_2x and Buf_1 == 144 then  Buf_4 = 1 end -- if note pressed and changed
+if Buf_2 ~= Buf_2x and Buf_1 == NtOn then  Buf_4 = 1 end -- if note pressed and changed
 
-if Buf_2x and Buf_2 <= Buf_2x then  Buf_5 = 1 end -- if next note lower
-
-if ((Buf_1 ~= Buf_1x and Buf_1 == 144) or Buf_4 == 1) then 
+if ((Buf_1 ~= Buf_1x and Buf_1 == NtOn) or Buf_4 == 1) then 
    PlayStat = 1; 
-   if SingleVoice.norm_val == 1 then 
+   if MonoBtn_on == 1 then 
       if  Buf_1 == Buf_1x then
         RS_Rel = 0; 
       end
@@ -3476,7 +3677,7 @@ if BasePitch.norm_val == 1 then BPitch = 12
 end
 
 Oct = Oct or 36
-NoteToNote = (Buf_2-Oct)+(GetPitchFromFileName(filepath) or 0)+BPitch
+NoteToNote = (Buf_2-Oct)+(GetPitchFromFileName(filepath) or 0)+BPitch+(RS_PitchOffset or 0)
 
 if RS_SamplerMode.norm_val == 1 then NoteToNote = 0 end
 
@@ -3499,11 +3700,12 @@ if item == nil then
    length = (length - ((length/1024)*StartOffsPos2))-mrkr_lngth
 end
 
+if ReverseBtn_on == 1 then rvrs = 1; offset =  mrkr_lngth else rvrs = 0 end
 
 local source  = r.PCM_Source_CreateFromFile(filepath)
 if not source then return end
 local section = r.PCM_Source_CreateFromType('SECTION')
-r.CF_PCM_Source_SetSectionInfo(section, source, offset, length+RS_Rel, 0)
+r.CF_PCM_Source_SetSectionInfo(section, source, offset, length+RS_Rel, rvrs)
 r.PCM_Source_Destroy(source)
 local preview = r.CF_CreatePreview(section)
 r.PCM_Source_Destroy(section)
@@ -3513,8 +3715,8 @@ r.PCM_Source_Destroy(section)
             r.CF_Preview_SetValue(preview, "D_FADEOUTLEN", RS_Rel or 0)
 
           if (Buf_1 ~= Buf_1x) and RandomPitch ~= 120 then
-              random_pitch = (random(14)-7)/RandomPitch
-              random_pitch2 = random_pitch/15
+              random_pitch = (random(28)-14)/RandomPitch
+              random_pitch2 = random_pitch/6
               else
               random_pitch = 0
               random_pitch2 = 0
@@ -3522,14 +3724,14 @@ r.PCM_Source_Destroy(section)
 
        if RS_SamplerMode.norm_val == 1 or RS_SamplerMode.norm_val == 2 then -- stretch
             r.CF_Preview_SetValue(preview, "B_PPITCH", 0)
-            r.CF_Preview_SetValue(preview, "D_PLAYRATE", (random_pitch2+(2^(NoteToNote/12))))
+            r.CF_Preview_SetValue(preview, "D_PLAYRATE", (random_pitch2+(2^(NoteToNote/12))) + 0.001)
 
            else -- pitch 
 
                --mode = -- 10- élastique 3.3.3 Efficient, 0 - SoundTouch, 2 - Simple Windowed, 144 - Rubber Band, 14 - Reeeeaaaa, 15 - ReaReaRea
                --submode = -- 0 - Default
-               --pitch_add = 0.001 -- algorithm trigger
-               if RS_SamplerMode.norm_val == 3 then mode = 10; submode = 0; pitch_add = 0
+               --pitch_add = 0.001 -- algorithm trigger (temporary?)
+               if RS_SamplerMode.norm_val == 3 then mode = 10; submode = 0; pitch_add = 0.001
                   elseif RS_SamplerMode.norm_val == 4 then mode = 144; submode = 0; pitch_add = 0.001
                   elseif RS_SamplerMode.norm_val == 5 then mode = 15; submode = 0; pitch_add = 0.001
                   elseif RS_SamplerMode.norm_val == 6 then mode = 2; submode = 0; pitch_add = 0.001
@@ -3550,7 +3752,7 @@ r.PCM_Source_Destroy(section)
             r.CF_Preview_SetValue(preview, "D_PITCH", NoteToNote+pitch_add+random_pitch)
         end
 
-            if Loop_Sampler.norm_val == 2 then -- 
+            if LoopBtn_on == 1 then -- 
                 r.CF_Preview_SetValue(preview, "B_LOOP", 1)
             end
 
@@ -3565,8 +3767,8 @@ r.PCM_Source_Destroy(section)
 
  --if  Buf_3 == 0   then  r.CF_Preview_Stop(preview);  end -- 
 
-    if RS_ObeyNoteOff.norm_val == 1 then
-      if (Buf_1 ~= 144 and Buf_1 ~= Buf_1x) then PlayStat = 0; r.CF_Preview_StopAll() end -- 
+    if NoteOffBtn_on == 1 then
+      if (Buf_1 ~= NtOn and Buf_1 ~= Buf_1x) then PlayStat = 0; r.CF_Preview_StopAll() end -- 
     end
 
 end
@@ -3859,12 +4061,9 @@ function Wave:Processing()
 end 
 
 
-
 LoopOn = 0
---RS_ObeyNoteOff_state2 = 0
 ----------------------------------------------------------------------------------------------------
-----------------------------------------------------------------------------------------------------
----  Wave - Get - Set Cursors  --------------------------------------------------------------------
+---  Wave - Get - Set Cursors  ------------------------------------------------------------------
 ----------------------------------------------------------------------------------------------------
 function Wave:Get_Cursor() 
 
@@ -3876,7 +4075,7 @@ function Wave:Get_Cursor()
      if Speed_Rate == 0 or RS_SamplerMode.norm_val == 1 then Speed_Rate = 1 end
   ---play cursor ---
 
-  if RS_ObeyNoteOff.norm_val == 1 then -- stop audio when note off = on
+  if NoteOffBtn_on == 1 then -- stop audio when note off = on
     if RS_ObeyNoteOff_state2 == 0 then
     r.CF_Preview_StopAll();
     RS_ObeyNoteOff_state2 = 1
@@ -3885,8 +4084,8 @@ function Wave:Get_Cursor()
     RS_ObeyNoteOff_state2 = 0
   end
 
-  if ((Loop_Sampler.norm_val == 2 and RS_ObeyNoteOff.norm_val == 2) or RS_ObeyNoteOff.norm_val == 2) then
-        if (Buf_0 == 1 and Buf_1 == 144) then
+  if ((LoopBtn_on == 1 and NoteOffBtn_on == 0) or NoteOffBtn_on == 0) then
+        if (Buf_0 == 1 and Buf_1 == NtOn) then
           counter = 0
           LoopOn = 1
         end
@@ -3895,7 +4094,7 @@ function Wave:Get_Cursor()
    end
 
 
-    if (Buf_1 == 144 and Buf_4 ~= 1) or (LoopOn == 1) then 
+    if (Buf_1 == NtOn and Buf_4 ~= 1) or (LoopOn == 1) then 
       counter = (counter + 1) 
       else
       counter = 0
@@ -3915,7 +4114,7 @@ function Wave:Get_Cursor()
    --  self.PcxEnd = self.Pcx + (EndOffsPos) -- + end marker correction
      StartOffsPos2 = ((StartOffsPos/Z_w)+(self.Pos*self.Zoom))/self.Zoom -- start marker gui-independent value for offset
      EndOffsPos2 = ((EndOffsPos/Z_w)+(self.Pos*self.Zoom))/self.Zoom -- end marker gui-independent value for length
-      if Loop_Sampler.norm_val == 2 and (self.Pcx >= self.w or self.Pcx >= EndOffsPos ) then counter = 0 end
+     if LoopBtn_on == 1 and (self.Pcx >= self.w*self.Zoom or self.Pcx >= EndOffsPos ) then counter = 0 end
      if counter ~= 0 and (self.Pcx >= 0 and self.Pcx <= self.w and self.Pcx <= EndOffsPos) then gfx.set(TH[23][1],TH[23][2],TH[23][3],TH[23][4]) -- play cursor color  -- цвет плэй курсора
         gfx.line(self.x + self.Pcx, self.y, self.x + self.Pcx, self.y+self.h -1 )
           if not self:mouseDown() then
@@ -3924,7 +4123,6 @@ function Wave:Get_Cursor()
              gfx.gradrect((self.x-1) + self.Pcx, self.y, grad_w2, self.h,        TH[23][1],TH[23][2],TH[23][3], TH[25],    0, 0, 0, -TH[25] / grad_w2) -- grad ahead
           end
       end
-
 end 
 
 counter = 0
@@ -3934,39 +4132,47 @@ counter = 0
 ----------------------------------------------------------------------------------------------------
 function Wave:Get_Mouse()
     -----------------------------
-local true_position = (gfx.mouse_x-self.x)/Z_w  --  waveform borders correction
-local pos_margin = gfx.mouse_x-self.x
-if true_position < 24 then pos_margin = 0 end
-if true_position > 1000 then pos_margin = gfx.mouse_x end
-self.insrc_mx_zoom = self.Pos + (pos_margin)/(self.Zoom*Z_w) -- its current mouse position in source!
-
-if SnapToStart == 1 then
-local true_position = (gfx.mouse_x-self.x)/Z_w  --  cursor snap correction
-local pos_margin = gfx.mouse_x-self.x
-   if true_position < 12 then pos_margin = 0 end
-    self.insrc_mx = self.Pos + (pos_margin)/(self.Zoom*Z_w) 
-else
-    self.insrc_mx = self.Pos + (gfx.mouse_x-self.x)/(self.Zoom*Z_w) -- old behavior
+insrc_Ecx_k = insrc_Ecx_k or 512
+local gfx_mouse_x
+if ReverseBtn_on == 1 then
+  gfx_mouse_x = (self.w-gfx.mouse_x)+(20*Z_w)
+  --gfx_mouse_x = gfx.mouse_x
+  else
+  gfx_mouse_x = gfx.mouse_x
 end
 
-    ----------------------------- 
+local true_position = (gfx_mouse_x-self.x)/Z_w  --  waveform borders correction
+local pos_margin = gfx_mouse_x-self.x
+if true_position < 24 then pos_margin = 0 end
+if true_position > 1000 then pos_margin = gfx_mouse_x end
+self.insrc_mx_zoom = self.Pos + (pos_margin)/(self.Zoom*Z_w) -- its current mouse position in source!
+selfinsrc_mx_zoom = self.insrc_mx_zoom
+self.insrc_mx = self.x-(self.Pos - (gfx.mouse_x-self.x))/(Z_w) -- zoom focus to mouse position
+
     --- Wave get-set Cursors ----
     self:Get_Cursor()
-  --  self:Set_Cursor()   
 
---self.insrc_mx_zoom_k = self.Pos + (insrc_Ecx_k-self.x)/(self.Zoom*Z_w) -- its current cursor position in source!
+self.insrc_mx_zoom_k = self.Pos + (insrc_Ecx_k-self.x)/(self.Zoom*Z_w) -- for keyboard arrows
     -----------------------------------------
     --- Wave Zoom(horizontal) ---------------
     if self:mouseIN() and gfx.mouse_wheel~=0 and not(Ctrl or Shift) then 
     local M_Wheel = gfx.mouse_wheel
       -------------------
-      if     M_Wheel>0 then self.Zoom = min(self.Zoom*1.25, self.max_Zoom)   
-      elseif M_Wheel<0 then self.Zoom = max(self.Zoom*0.75, 1)
-      end                 
+      if ReverseBtn_on == 0 then
+          if     M_Wheel>0 then self.Zoom = min(self.Zoom*1.25, self.max_Zoom)   
+          elseif M_Wheel<0 then self.Zoom = max(self.Zoom*0.75, 1)
+          end      
+      end
       -- correction Wave Position from src --
-      self.Pos = self.insrc_mx_zoom - (gfx.mouse_x-self.x)/(self.Zoom*Z_w)
+      self.Pos = self.insrc_mx_zoom - (gfx_mouse_x-self.x)/(self.Zoom*Z_w) 
+
       self.Pos = max(self.Pos, 0)
-      self.Pos = min(self.Pos, (self.w - self.w/self.Zoom)/Z_w )
+      self.Pos = min(self.Pos, (self.w - self.w/self.Zoom)/Z_w )  
+   
+      self.Pos2 = self.Pos2 or 0
+      self.Pos2 = self.insrc_mx_zoom - (gfx_mouse_x-self.x)/(self.Zoom*Z_w)
+      self.Pos2 = max(self.Pos2, 0)
+      self.Pos2 = min(self.Pos2, (self.w - self.w/self.Zoom)/Z_w )
       -------------------
       Wave:Redraw() -- redraw after horizontal zoom
     end
@@ -3987,9 +4193,20 @@ end
     --- Wave Move ---------------------------
     if (self:mouseDown() or self:mouseM_Down()) and not Shift and not Ctrl and (mouse_pos_height <= mphMin) then 
       Cursor_Status = 1
-      self.Pos = self.Pos + (last_x - gfx.mouse_x)/(self.Zoom*Z_w)
+      if ReverseBtn_on == 1 then
+        self.Pos = self.Pos - (last_x - gfx.mouse_x)/(self.Zoom*Z_w)
+        else
+        self.Pos = self.Pos + (last_x - gfx.mouse_x)/(self.Zoom*Z_w)
+      end
+
       self.Pos = max(self.Pos, 0)
       self.Pos = min(self.Pos, (self.w - self.w/self.Zoom)/Z_w )
+      
+      self.Pos2 = self.Pos2 or 0
+      self.Pos2 = self.Pos2 + (last_x - gfx.mouse_x)/(self.Zoom*Z_w)
+      self.Pos2 = max(self.Pos2, 0)
+      self.Pos2 = min(self.Pos2, (self.w - self.w/self.Zoom)/Z_w )
+      
       --------------------
       Wave:Redraw() -- redraw after move view
     end
@@ -4033,12 +4250,13 @@ end
      --------------------------------------------------------------------------------
 local KeyUP, KeyDWN, KeyL, KeyR
 
-    if char==30064 then KeyUP = 1 else KeyUP = 0 end -- up
-    if char==1685026670 then KeyDWN = 1 else KeyDWN = 0 end -- down
-    if char==1818584692 then KeyL = 1 else KeyL = 0 end -- left
-    if char==1919379572 then KeyR = 1 else KeyR = 0 end -- right
+    if char==30064 and (Shift or Ctrl) then KeyUP = 1 else KeyUP = 0 end -- up
+    if char==1685026670 and (Shift or Ctrl) then KeyDWN = 1 else KeyDWN = 0 end -- down
+    if char==1818584692 and (Shift or Ctrl) then KeyL = 1 else KeyL = 0 end -- left
+    if char==1919379572 and (Shift or Ctrl) then KeyR = 1 else KeyR = 0 end -- right
 
 -------------------------------horizontal----------------------------------------
+if ReverseBtn_on == 0 then
      if  KeyR == 1 then self.Zoom = min(self.Zoom*1.2, self.max_vertZoom+138)   
 
       self.Pos = self.insrc_mx_zoom_k - (insrc_Ecx_k-(self.x*1.2))/(self.Zoom*Z_w)
@@ -4055,7 +4273,7 @@ local KeyUP, KeyDWN, KeyL, KeyR
 
      Wave:Redraw() -- redraw after horizontal zoom
      end  
-
+ end
 -------------------------------vertical-------------------------------------------
      if  KeyUP == 1 then self.vertZoom = min(self.vertZoom*1.5, self.max_vertZoom)   
      Wave:Redraw() -- redraw after vertical zoom
@@ -4064,8 +4282,21 @@ local KeyUP, KeyDWN, KeyL, KeyR
      Wave:Redraw() -- redraw after vertical zoom
      end   
 
-end
+     if ReverseBtn_on == 1 then -- reset and lock zoom if reversed.
+      self.Pos = 0
+      self.Pos2 = 0
+      self.Zoom = 1  
+    else
+      self.Pos = self.Pos
+      self.Pos2 = self.Pos2
+      self.Zoom = self.Zoom  
+    end
 
+    a_Pos = self.Pos
+    a_Pos2 = self.Pos2
+    a_Zoom = self.Zoom  
+
+end
 
 
 --------------------------------------------------------------------------------
@@ -4075,7 +4306,6 @@ function Gate_Gl:Apply_toFiltered()
  Res_Points = {0}
  Res_Points2 = {1024}
 end
-
 
 --------------------------------------------------------------------------------
 -- Gate -  manual_Correction ---------------------------------------------------
@@ -4093,7 +4323,14 @@ function Gate_Gl:draw_Lines()
     local DragStart = 0
     local DragEnd = 0
     -- Pos, X, Y scale in gfx  ---------
-    self.start_smpl = Wave.Pos/Wave.X_scale    -- Стартовая позиция отрисовки в семплах!
+
+if ReverseBtn_on == 1 then
+  WavePos = Wave.Pos2 or 0
+  else
+  WavePos = Wave.Pos or 0
+end
+
+    self.start_smpl = WavePos/Wave.X_scale    -- Стартовая позиция отрисовки в семплах!
     self.Xsc = Wave.X_scale * Wave.Zoom * Z_w  -- x scale(regard zoom) for trigg lines
     const = 1.11 -- triangle, vertical position
     triangle_size = 50*((Z_w/10)+(Wave.Zoom/20))
@@ -4116,7 +4353,7 @@ function Gate_Gl:draw_Lines()
 ------------------------------------- Start Marker--------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------------
     for i=1, #Res_Points, 2 do 
-           line_x = Wave.x + (Res_Points[i]-Wave.Pos)*Wave.Zoom*Z_w  -- line x coord
+           line_x = Wave.x + (Res_Points[i]-WavePos)*Wave.Zoom*Z_w  -- line x coord
 --if line_x2 and line_x>=line_x2-(10-Wave.Pos*Wave.Zoom*Z_w) and DragEnd == 0 then line_x = line_x2-(10-Wave.Pos*Wave.Zoom*Z_w); self.cap_ln = false end
         ------------------------
         -- draw line-----
@@ -4172,7 +4409,7 @@ function Gate_Gl:draw_Lines()
                       DragStart = 1
                       local curs_x = min(max(gfx.mouse_x, Wave.x), Wave.x + Wave.w) -- x coord
                       --------------------
-                      Res_Points[self.cap_ln] = ((curs_x-Wave.x)/Wave.Zoom/Z_w)+Wave.Pos -- Set New Position
+                      Res_Points[self.cap_ln] = ((curs_x-Wave.x)/Wave.Zoom/Z_w)+WavePos -- Set New Position
                   end
               end
        -- Update captured state if mouse released -------------
@@ -4183,7 +4420,7 @@ function Gate_Gl:draw_Lines()
   -----------------------------------------------------------------------------------------------------------------------------
   if not Res_Points2 then return end -- return if no lines
      for i=1, #Res_Points2, 2 do 
-           line_x2 = Wave.x + (Res_Points2[i]-Wave.Pos)*Wave.Zoom*Z_w  -- line x coord
+           line_x2 = Wave.x + (Res_Points2[i]-WavePos)*Wave.Zoom*Z_w  -- line x coord
 --if line_x2<=line_x+(10-Wave.Pos*Wave.Zoom*Z_w) and DragEnd == 0 then line_x2 = line_x+(10-Wave.Pos*Wave.Zoom*Z_w); self.cap_ln2 = false end
         ------------------------
         -- draw line -----
@@ -4239,13 +4476,14 @@ function Gate_Gl:draw_Lines()
                       DragEnd = 1
                       local curs_x2 = min(max(gfx.mouse_x, Wave.x), Wave.x + Wave.w) -- x coord
                       --------------------
-                      Res_Points2[self.cap_ln2] = ((curs_x2-Wave.x)/Wave.Zoom/Z_w)+Wave.Pos -- Set New Position
+                      Res_Points2[self.cap_ln2] = ((curs_x2-Wave.x)/Wave.Zoom/Z_w)+WavePos -- Set New Position
           
                   end
               end
        -- Update captured state if mouse released -------------
        if self.cap_ln2 and Wave:mouseUp() then self.cap_ln2 = false end     
 
+       insrc_Ecx_k = StartOffsPos+(EndOffsPos - StartOffsPos)/2
 
      --------------------------------------------------------
      ------Reset Markers X Button------------
@@ -4269,6 +4507,7 @@ function Gate_Gl:draw_Lines()
     gfx.drawstr("X", Wave.w, Wave.h) -- (End Marker text)
 
 
+
 end -- function Gate_Gl:draw_Lines()
 
 
@@ -4287,15 +4526,38 @@ function Wave:from_gfxBuffer()
      -- Insert Wave from gfx buffer1 ------
     gfx.a = 1 -- gfx.a for blit
     local srcw, srch = Wave.def_xywh[3], Wave.def_xywh[4] -- its always def values 
-    if WFiltering == 0 then gfx.mode = 4 end
-    gfx.blit(1, 1, 0, 0, 0, srcw, srch,  self.x, self.y, self.w, self.h)
 
-       -- Get Mouse -------------------------
+    ---------------------------Waveform Reverse Animation------------------------------
+    angleR = Wave.w 
+
+    if ReverseBtn_on == 1 then 
+      if angle_counter ~= angleR then
+          angle_counter = angle_counter+200*Z_w 
+          if angle_counter >= angleR then angle_counter = angleR end
+      end
+     else 
+      angle = 0 
+      if angle_counter ~= angle then
+          angle_counter = angle_counter-200*Z_w 
+          if angle_counter <= angle then angle_counter = angle end
+      end
+    end
+
+    if angle_counter > angleR*2  then
+      angle2 = rad(180)
+      else
+      angle2 = rad(0)
+    end
+    ------------------------------------------------------------------------------------------
+
+    if WFiltering == 0 then gfx.mode = 4 end
+    gfx.blit(1, 1, angle2, 0, 0, srcw, srch,  self.x+angle_counter, self.y, self.w-(angle_counter*2), self.h)
+
        self:Get_Mouse()     -- get mouse(for zoom, move etc) 
 
        Gate_Gl:draw_Lines()  -- Draw Start and End lines
 end  
-
+angle_counter = 0
 
 
 --------------------------------------------------------------------------------
@@ -4342,20 +4604,21 @@ function Wave:show_process_wait()
              ErrMsg_Status = 1
                   for key,btn    in pairs(ErrMsg_TB)   do btn:draw()    
              end           
-       else           
+       else         
+        ErrMsg_Status = 1  
              local fnt_sz = 100
              if gfx.ext_retina == 1 then
-              fnt_sz = max(14,  fnt_sz* (Z_h)/2)
+              fnt_sz = max(24,  fnt_sz* (Z_h)/2)
               fnt_sz = min(80, fnt_sz* Z_h)
              else
-              fnt_sz = max(17,  fnt_sz* (Z_h)/2)
+              fnt_sz = max(32,  fnt_sz* (Z_h)/2)
               fnt_sz = min(96, fnt_sz* Z_h)
              end
 
               gfx.setfont(1, "Arial", fnt_sz)
               gfx.set(TH[33][1], TH[33][2], TH[33][3], TH[33][4]) -- цвет текста инфо
               local ZH_correction = Z_h*40
-              gfx.x, gfx.y = self.x+23 * (Z_w+Z_h)-ZH_correction, (self.y+1*(Z_h*3))+60
+              gfx.x, gfx.y = self.x+23 * (Z_w+Z_h)-ZH_correction, (self.y+1*(Z_h*3))+(100*Z_h)
              
               gfx.drawstr("Processing, wait...", 1, gfx.w, gfx.h)
        end
@@ -4365,7 +4628,7 @@ end
 ---------------------------Get Track Number and Item Name to table----------------------------
 function InitTrackItemName()
 
-     local track, track_num, item, take
+     local track, track_num, item, take, source, src_parent
      
      TableTI = {}
      
@@ -4381,11 +4644,25 @@ function InitTrackItemName()
       if filepath == nil then return end
       local  filepath = filepath:gsub("\\", "/")
    
-      local source  = r.PCM_Source_CreateFromFile('' .. filepath .. '')
-      TableTI.item = r.GetMediaSourceFileName(source, "")
-      local _, _, TableTI_length, _ = r.PCM_Source_GetSectionInfo(source)
-TableTI.length = TableTI_length
-return TableTI.track, TableTI.item, TableTI.length
+      item = reaper.GetSelectedMediaItem(0, 0)
+
+      if item then
+        take = reaper.GetActiveTake(item)
+        if take then
+        source = reaper.GetMediaItemTake_Source(take)
+        src_parent = r.GetMediaSourceParent(source)
+        if src_parent ~= nil then TableTI_item = 'Reversed (not supported)'; goto item_rev end
+        end
+        else
+        source  = r.PCM_Source_CreateFromFile('' .. filepath .. '')
+      end
+
+        TableTI_item = r.GetMediaSourceFileName(source or src_parent, "")
+        ::item_rev::
+        TableTI.item = TableTI_item:gsub("\\", "/")
+      local _, _, TableTI_length, _ = r.PCM_Source_GetSectionInfo(source or src_parent)
+  TableTI.length = TableTI_length
+  return TableTI.track, TableTI.item, TableTI.length
 
 end
 
@@ -4419,6 +4696,8 @@ end
 
 function MAIN()
 
+UnselectItemsIfMEFocused()
+
 Wave:Sampler()
 
 if Rec_on == 1 and r.GetPlayState()&1 == 0 then -- if Rec stopped from DAW transport
@@ -4426,6 +4705,15 @@ if Rec_on == 1 and r.GetPlayState()&1 == 0 then -- if Rec stopped from DAW trans
      OnRecordStop()
  end
 
+local Frame_NoteOff_TB = {leds_table[9]}
+local Frame_NoteOff_TB2 = {leds_table[10]}
+local Frame_Mono_TB = {leds_table[11]}
+local Frame_Mono_TB2 = {leds_table[12]}
+local Frame_Loop_TB = {leds_table[13]}
+local Frame_Loop_TB2 = {leds_table[14]}
+
+local Frame_Reverse_TB = {leds_table[3]}
+local Frame_Reverse_TB2 = {leds_table[4]}
 local Frame_Rec_TB = {leds_table[5]}
 local Frame_Rec_TB2 = {leds_table[6]}
 local Frame_Tint_Rec_TB = {leds_table[7]}
@@ -4439,49 +4727,42 @@ local Text_TB = {others_table[1], others_table[2], others_table[3], others_table
 local Btn_TB = {Rec_Btn } -- top swing button: GrBtnT[9]
 local Btn_Txt_TB2 = {Rec_Btn_Txt, Rec_Btn_Tnt}
 
-local Checkbox_TB_preset = {RS_Att_Sld, RS_Rel_Sld, PitchOffset_Sld, RS_PitchBend_Sld, RS_ObeyNoteOff, RS_SamplerMode, Vel_Det_Options, SingleVoice, BaseOctave,BasePitch,RandomPitch_Sld}
+local Checkbox_TB_preset = {RS_Att_Sld, RS_Rel_Sld, PitchOffset_Sld, RS_PitchBend_Sld, RS_ObeyNoteOff, RS_SamplerMode, Vel_Det_Options, SingleVoice, BaseOctave,BasePitch,RandomPitch_Sld, Reverse, Reset_All, ReverseBtn,NoteOffBtn,MonoBtn,LoopBtn}
 local Checkbox_TB_speed = {Speed}
 local Frame_TB1 = {leds_table[2]}
 local Frame_TB2 = {leds_table[1]} -- 
 
 local SysMsg_TB = {Get_Sel_SysMsg}
-local Button_TB = {Get_Sel_Button, Settings, Just_Slice, Quantize_Slices, Add_Markers, Quantize_Markers, Random, Reset_All, Random_SetupB, Open_Kybd, Pad}
+local Button_TB = {Settings, Open_Kybd, Pad}
 local  Loop_ReSampler_TB2 = {Loop_Sampler} --trigger
 
 -----------------------------------
 --- CheckBox_TB -------------------
 -----------------------------------
-
+for key,btn    in pairs(Frame_TB)   do btn:draw()    end 
   -- Draw Wave, lines etc ------
     if Wave.State then   
    
-          Wave:from_gfxBuffer() -- Wave from gfx buffer
+        Wave:from_gfxBuffer() -- Wave from gfx buffer
+
 
 
         for key,btn    in pairs(StatusBar_Bck_TB)   do btn:draw()    end -- Status Bar Background
 
           -----------------------------Top Buttons-------------------------------
-
            if Rec_on == 1 then
               for key,btn    in pairs(Frame_Rec_TB)   do btn:draw()    end 
               else
               for key,btn    in pairs(Frame_Rec_TB2)   do btn:draw()    end 
           end
 
-              for key,btn    in pairs(Btn_TB)   do btn:draw()    end 
-
-    end
+        for key,btn    in pairs(Btn_TB)   do btn:draw()    end 
 
           -- Draw sldrs, btns etc ------
-            for key,btn    in pairs(Frame_TB)   do btn:draw()    end 
-            for key,btn    in pairs(Button_TB)   do btn:draw()    end 
-
-    if Wave.State then 
-
--------------------------------------------------------------------------------------------------------
 
 
-          for key,ch_box in pairs(Btn_Txt_TB2) do ch_box:draw() end -- aim, snap, loop text layer
+
+        for key,ch_box in pairs(Btn_Txt_TB2) do ch_box:draw() end -- aim, snap, loop text layer
 
         for key,btn    in pairs(Text_TB)   do btn:draw()    end -- Status Bar Background
 
@@ -4500,18 +4781,44 @@ local  Loop_ReSampler_TB2 = {Loop_Sampler} --trigger
             for key,btn    in pairs(Frame_Tint_Rec_TB)   do btn:draw()    end 
         end
 
-    end
+          if NoteOffBtn_on == 1 then
+            for key,btn    in pairs(Frame_NoteOff_TB)   do btn:draw()    end 
+            else
+            for key,btn    in pairs(Frame_NoteOff_TB2)   do btn:draw()    end 
+        end
+
+          if MonoBtn_on == 1 then
+            for key,btn    in pairs(Frame_Mono_TB)   do btn:draw()    end 
+            else
+            for key,btn    in pairs(Frame_Mono_TB2)   do btn:draw()    end 
+        end
+
+          if LoopBtn_on == 1 then
+            for key,btn    in pairs(Frame_Loop_TB)   do btn:draw()    end 
+            else
+            for key,btn    in pairs(Frame_Loop_TB2)   do btn:draw()    end 
+        end
+
+         if ReverseBtn_on == 1 then
+              for key,btn    in pairs(Frame_Reverse_TB)   do btn:draw()    end 
+              else
+              for key,btn    in pairs(Frame_Reverse_TB2)   do btn:draw()    end 
+          end
+
+      end
+
+      for key,btn    in pairs(Button_TB)   do btn:draw()    end -- open kybd, settings and pad buttons
+
+        if r.GetToggleCommandStateEx(0, 40377) == 1 then -- View: Show virtual MIDI keyboard
+          for key,btn    in pairs(Frame_TB2)   do btn:draw()    end -- 
+          else
+          for key,btn    in pairs(Frame_TB1)   do btn:draw()    end -- 
+         end
 
           if not Wave.State and ErrMsg_Status == 0 then  
               Wave:show_help()      -- else show help
           end
  
-      if r.GetToggleCommandStateEx(0, 40377) == 1 then -- View: Show virtual MIDI keyboard
-              for key,btn    in pairs(Frame_TB2)   do btn:draw()    end -- 
-      else
-              for key,btn    in pairs(Frame_TB1)   do btn:draw()    end -- 
-      end
-
 end
 
 ------------------------------------------------------------------------------------
@@ -4523,11 +4830,12 @@ end
 function store_settings2() --store sliders/checkboxes
      if RememberLast == 1 then 
         r.SetExtState('MK_ReSampler','BaseOctave.norm_val',BaseOctave.norm_val,true);
-        r.SetExtState('MK_ReSampler','SingleVoice.norm_val',SingleVoice.norm_val,true);
         r.SetExtState('MK_ReSampler','Speed.norm_val',Speed.norm_val,true);
-        r.SetExtState('MK_ReSampler','RS_ObeyNoteOff.norm_val',RS_ObeyNoteOff.norm_val,true);
+        r.SetExtState('MK_ReSampler','ReverseBtn_on',ReverseBtn_on,true);
+        r.SetExtState('MK_ReSampler','NoteOffBtn_on',NoteOffBtn_on,true);
+        r.SetExtState('MK_ReSampler','MonoBtn_on',MonoBtn_on,true);
+        r.SetExtState('MK_ReSampler','LoopBtn_on',LoopBtn_on,true);
         r.SetExtState('MK_ReSampler','RS_SamplerMode.norm_val',RS_SamplerMode.norm_val,true);
-        r.SetExtState('MK_ReSampler','Loop_Sampler.norm_val',Loop_Sampler.norm_val,true);
         r.SetExtState('MK_ReSampler','Vel_Det_Options.norm_val',Vel_Det_Options.norm_val,true);
         r.SetExtState('MK_ReSampler','RS_Att_Sld.norm_val',RS_Att_Sld.norm_val,true);
         r.SetExtState('MK_ReSampler','RS_Rel_Sld.norm_val',RS_Rel_Sld.norm_val,true);
@@ -4558,7 +4866,7 @@ function Init()
     -- Some gfx Wnd Default Values ---------------
     local R,G,B = ceil(TH[3][1]*255),ceil(TH[3][2]*255),ceil(TH[3][3]*255)             -- 0...255 format -- цвет основного окна
     local Wnd_bgd = R + G*256 + B*65536 -- red+green*256+blue*65536  
-    local Wnd_Title = "MK ReSampler v0.9" .. " " .. theme_name .. " " .. RG_status .. ""
+    local Wnd_Title = "MK ReSampler v0.91" .. " " .. theme_name .. " " .. RG_status .. ""
     local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
 
      -- set init fonts/size
@@ -4599,6 +4907,13 @@ end
 --   Mainloop   ------------------------
 ---------------------------------------
 function mainloop()
+
+  if ReverseBtn_ResetZoom == 1 then -- reset and lock zoom if reversed.
+    ResetZoom = 1 
+    Gate_Gl:Apply_toFiltered()
+    ReverseBtn_ResetZoom = 0
+  end
+
 
     -- zoom level -- 
     Wnd_WZ = tonumber(r.GetExtState("MK_ReSampler", "zoomWZ")) or 1044
@@ -4707,7 +5022,7 @@ function getitem()
      time_start = reaper.time_precise()       
         local function Main()     
             local elapsed = reaper.time_precise() - time_start       
-            if elapsed >= 0.01 then
+            if elapsed >= 0.05 then
                  ErrMsg_Status = 0
             ----------------------------------------------------------------
                         r.Undo_BeginBlock() 
@@ -4719,12 +5034,12 @@ function getitem()
                         end
                         
                         ----------------------------
+                           Init_Srate() -- Project Samplerate
                            Wave:Destroy_Track_Accessor() -- Destroy previos AA(освобождает память etc)
                            Wave.State = false -- reset Wave.State
                            if Wave:Create_Track_Accessor() then Wave:Processing()
                               if Wave.State then
                                  Wave:Redraw()
-
                               end
                            end
                         ----------------------------------
@@ -4754,6 +5069,15 @@ end
 
 
 function getitem_fast()
+-------------------------
+  collect_itemtake_param()
+  Muted = 0
+  if number_of_takes == 1 and mute_check == 1 then 
+    r.Undo_BeginBlock() 
+    r.PreventUIRefresh(1)
+    r.Main_OnCommand(40175, 0) 
+    Muted = 1
+  end
         ----------------------------
            Init_Srate() -- Project Samplerate
            Wave:Destroy_Track_Accessor() -- Destroy previos AA(освобождает память etc)
@@ -4761,10 +5085,15 @@ function getitem_fast()
            if Wave:Create_Track_Accessor() then Wave:Processing()
               if Wave.State then
                  Wave:Redraw()
-
               end
            end
         ----------------------------------
+  if Muted == 1 then
+    r.Main_OnCommand(40175, 0) 
+    r.PreventUIRefresh(-1)
+    r.Undo_EndBlock("Toggle Item Mute", -1) 
+  end
+---------------------------
 end
 
 -----------------------------------------------------------------------------------
@@ -4856,7 +5185,7 @@ item5.command = function()
                           gfx.dock(dock_pos)
                           xpos = 400
                           ypos = 320
-                          local Wnd_Title = "MK ReSampler v0.9"
+                          local Wnd_Title = "MK ReSampler v0.91"
                           local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
                           gfx.init( Wnd_Title, Wnd_W,Wnd_H, Wnd_Dock, Wnd_X,Wnd_Y )
 
@@ -4868,7 +5197,7 @@ item5.command = function()
                          dock_pos = 0
                          xpos = tonumber(r.GetExtState("MK_ReSampler", "window_x")) or 400
                          ypos = tonumber(r.GetExtState("MK_ReSampler", "window_y")) or 320
-                         local Wnd_Title = "MK ReSampler v0.9"
+                         local Wnd_Title = "MK ReSampler v0.91"
                          local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
                          if Wnd_Y == (nil or 0) then Wnd_Y = Wnd_Y+25 end -- correction for window header visibility
                          gfx.init( Wnd_Title, Wnd_W,Wnd_H, Wnd_Dock, Wnd_X,Wnd_Y )
@@ -4912,9 +5241,9 @@ end
 
 
 if FontAntiAliasing == 1 then
-           item36 = context_menu:add_item({label = "Font AntiAliasing (Need RealmGUI, Restart required)", toggleable = true, selected = true, active = true})
+           item36 = context_menu:add_item({label = "Font AntiAliasing (Need ReaimGUI, Restart required)", toggleable = true, selected = true, active = true})
            else
-           item36 = context_menu:add_item({label = "Font AntiAliasing (Need RealmGUI, Restart required)", toggleable = true, selected = false, active = true})
+           item36 = context_menu:add_item({label = "Font AntiAliasing (Need ReaimGUI, Restart required)", toggleable = true, selected = false, active = true})
 end
 item36.command = function()
                      if item36.selected == true then 
@@ -4949,27 +5278,27 @@ Reset_to_def = 1
      DefSampler_mode_state =  2;
      DefLoop_ReSampler_state =  1;
      DefVel_Det_Options_state =  1;
-     DefSingleVoice_state =  2;
      DefBaseOctave_State =  4;
-     DefGate_VeloScale =  1;
-     DefGate_VeloScale2 =  1;
      DefSpeed_state = 4;
      DefDefaultAttTime = 0
      DefDefaultRelTime = 0
+     DefReverseBtn_on = 0
+     DefNoteOffBtn_on = 1
+     DefMonoBtn_on = 0
+     DefLoopBtn_on = 0
   --sliders--
       r.SetExtState('MK_ReSampler','DefaultAttTime',DefDefaultAttTime,true);
       r.SetExtState('MK_ReSampler','DefaultRelTime',DefDefaultRelTime,true);
 
   --sheckboxes--
       r.SetExtState('MK_ReSampler','Speed.norm_val',DefSpeed_state,true);
-      r.SetExtState('MK_ReSampler','SingleVoice.norm_val',DefSingleVoice_state,true);
       r.SetExtState('MK_ReSampler','BaseOctave.norm_val',DefBaseOctave_State,true);
-      r.SetExtState('MK_ReSampler','RS_ObeyNoteOff.norm_val',DefSampler_preset_state,true);
+      r.SetExtState('MK_ReSampler','ReverseBtn_on',DefReverseBtn_on,true);
+      r.SetExtState('MK_ReSampler','NoteOffBtn_on',DefNoteOffBtn_on,true);
+      r.SetExtState('MK_ReSampler','MonoBtn_on',DefMonoBtn_on,true);
+      r.SetExtState('MK_ReSampler','LoopBtn_on',DefLoopBtn_on,true);
       r.SetExtState('MK_ReSampler','RS_SamplerMode.norm_val',DefSampler_mode_state,true);
-      r.SetExtState('MK_ReSampler','Loop_Sampler.norm_val',DefLoop_ReSampler_state,true);
       r.SetExtState('MK_ReSampler','Vel_Det_Options.norm_val',DefVel_Det_Options_state,true);
-      r.SetExtState('MK_ReSampler','Gate_VeloScale.norm_val',DefGate_VeloScale,true);
-      r.SetExtState('MK_ReSampler','Gate_VeloScale.norm_val2',DefGate_VeloScale2,true);
 
 end
 
