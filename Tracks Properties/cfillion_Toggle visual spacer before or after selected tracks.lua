@@ -18,11 +18,10 @@ for i = 0, reaper.CountSelectedTracks(nil) - 1 do
   if MODE_AFTER then
     local id = reaper.GetMediaTrackInfo_Value(track, 'IP_TRACKNUMBER')
     track = reaper.GetTrack(nil, id)
+    if not track then break end
   end
-  if track then
-    local spacer = reaper.GetMediaTrackInfo_Value(track, 'I_SPACER')
-    reaper.SetMediaTrackInfo_Value(track, 'I_SPACER', spacer ~ 1)
-  end
+  local spacer = reaper.GetMediaTrackInfo_Value(track, 'I_SPACER')
+  reaper.SetMediaTrackInfo_Value(track, 'I_SPACER', spacer ~ 1)
 end
 reaper.Undo_EndBlock(SCRIPT_NAME, UNDO_STATE_TRACKCFG)
 reaper.PreventUIRefresh(-1)
