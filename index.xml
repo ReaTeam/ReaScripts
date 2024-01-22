@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="5220235023874a28f1ffbff26dd197ae2c336f15" name="ReaTeam Scripts">
+<index version="1" commit="b5f8207e73048fd2fcc6259d5175aa55d0b162be" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -2542,7 +2542,7 @@ Remember the window position, size and dock state]]></changelog>
 ]]></description>
         <link rel="website" href="https://forum.cockos.com/showthread.php?t=254081">Forum Thread</link>
         <link rel="screenshot" href="https://i.imgur.com/DAe0EY7.jpg">Main View</link>
-        <link rel="donation" href="https://www.paypal.me/MKokarev">Donate via Paypal</link>
+        <link rel="donation" href="https://www.buymeacoffee.com/MaximKokarev">Donate via BuyMeACoffee</link>
       </metadata>
       <version name="1.0" author="cool" time="2021-06-02T16:46:43Z">
         <changelog><![CDATA[Initial Release]]></changelog>
@@ -2554,6 +2554,40 @@ Remember the window position, size and dock state]]></changelog>
 + os.execute replaced with CF_ShellExecute for better performance and Linux compatibility.
 + Added a hidden option to force Sync to be enabled every time the script is run.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/84036c48e0f1e9961ad0e936f62362de4b2150e1/Envelopes/cool_MK%20ShaperStutter.lua</source>
+      </version>
+      <version name="1.20" author="cool" time="2024-01-22T19:08:22Z">
+        <changelog><![CDATA[+ Added Razor Edit.
++ Now the script can manage any selected envelopes. If the envelope is not selected before running the script, the script will create a volume envelope by default.
++ The name of the active Envelope is now displayed in the script interface.
++ Added envelope selector for Items (Volume, Pan, Pitch).
++ Rise and Fall for the Pan envelope have been adjusted. The Gain control changes the range.
++ The range has been increased and the principle of operation of the Gain regulator has been changed.
++ Added "Soft Attack" option.
++ Significantly improved script performance when processing Selected Area.
++ Reset now correctly removes multitrack envelopes and selected areas.
++ True Stutter mode: When the Shape control is at maximum, the envelope takes on a rectangular shape.
++ Fixed a bug: sometimes in item envelope mode the points were not placed correctly if the item had a changed ratio.
++ Fixed a bug: now changing the Shift option does not cause the script to crash if this is done before pressing the Shape button.
++ Fixed a bug: flickering and incorrect position of item envelope points in Rise and Fall modes.
++ Fixed a bug: points were not placed correctly if the item was placed at the start of the project.
++ Fixed a bug: now the script does not crash when trying to process Empty Items.
++ Fixed a bug: now the point of the first transient is drawn correctly if it is not at the start of the item.
++ Fixed a bug that slowed down the update of the script window when Loop was running.
++ Fixed a bug: now the DestroyAudioAccessor function works correctly.
++ Now loop selection is captured by the script only when controlled from the script interface.
++ The minimum grid and ruler resolution has been limited: now long items and small grid resolutions do not overload the processor.
++ Optimization in general: now the script starts instantly. CPU load reduced by 50% when idle.
++ Controls have been streamlined for more intuitive operation.
++ Work without items: if there are no items in the selected area, the script will run in Grid and Track Envelope mode.
++ Now, when working with midi items and without items, the script runs almost instantly, without wasting resources on processing.
++ Added the option to manage all envelopes at once. When disabled, the script controls only the selected one.
++ Now, when zooming horizontally using the keyboard keys, the waveform is centered on the edit cursor.
++ The minimum HPF value turns off the filter, completely removing filtering artifacts.
++ Increased the maximum waveform window width and main window size limits for better display on large screens.
++ Theme: Added the option "Large Font Size" (Options - User Settings (Advanced)), which increases the font size when the window size is large.
++ Undo Points are now created during envelope generation.
++ Donate service has been changed to valid.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b5f8207e73048fd2fcc6259d5175aa55d0b162be/Envelopes/cool_MK%20ShaperStutter.lua</source>
       </version>
     </reapack>
     <reapack name="edgemeal_Scroll last touched track FX envelope into view.lua" type="script" desc="Scroll last touched track FX envelope into view">
