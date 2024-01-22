@@ -1,14 +1,41 @@
 -- @description MK Shaper/Stutter
 -- @author cool
--- @version 1.01
+-- @version 1.20
 -- @changelog
---   + Fixed: now Shift works correctly if the tempo is different from 120.
---   + Now the combination Ctrl+S works when the script window is active.
---   + os.execute replaced with CF_ShellExecute for better performance and Linux compatibility.
---   + Added a hidden option to force Sync to be enabled every time the script is run.
+--   + Added Razor Edit.
+--   + Now the script can manage any selected envelopes. If the envelope is not selected before running the script, the script will create a volume envelope by default.
+--   + The name of the active Envelope is now displayed in the script interface.
+--   + Added envelope selector for Items (Volume, Pan, Pitch).
+--   + Rise and Fall for the Pan envelope have been adjusted. The Gain control changes the range.
+--   + The range has been increased and the principle of operation of the Gain regulator has been changed.
+--   + Added "Soft Attack" option.
+--   + Significantly improved script performance when processing Selected Area.
+--   + Reset now correctly removes multitrack envelopes and selected areas.
+--   + True Stutter mode: When the Shape control is at maximum, the envelope takes on a rectangular shape.
+--   + Fixed a bug: sometimes in item envelope mode the points were not placed correctly if the item had a changed ratio.
+--   + Fixed a bug: now changing the Shift option does not cause the script to crash if this is done before pressing the Shape button.
+--   + Fixed a bug: flickering and incorrect position of item envelope points in Rise and Fall modes.
+--   + Fixed a bug: points were not placed correctly if the item was placed at the start of the project.
+--   + Fixed a bug: now the script does not crash when trying to process Empty Items.
+--   + Fixed a bug: now the point of the first transient is drawn correctly if it is not at the start of the item.
+--   + Fixed a bug that slowed down the update of the script window when Loop was running.
+--   + Fixed a bug: now the DestroyAudioAccessor function works correctly.
+--   + Now loop selection is captured by the script only when controlled from the script interface.
+--   + The minimum grid and ruler resolution has been limited: now long items and small grid resolutions do not overload the processor.
+--   + Optimization in general: now the script starts instantly. CPU load reduced by 50% when idle.
+--   + Controls have been streamlined for more intuitive operation.
+--   + Work without items: if there are no items in the selected area, the script will run in Grid and Track Envelope mode.
+--   + Now, when working with midi items and without items, the script runs almost instantly, without wasting resources on processing.
+--   + Added the option to manage all envelopes at once. When disabled, the script controls only the selected one.
+--   + Now, when zooming horizontally using the keyboard keys, the waveform is centered on the edit cursor.
+--   + The minimum HPF value turns off the filter, completely removing filtering artifacts.
+--   + Increased the maximum waveform window width and main window size limits for better display on large screens.
+--   + Theme: Added the option "Large Font Size" (Options - User Settings (Advanced)), which increases the font size when the window size is large.
+--   + Undo Points are now created during envelope generation.
+--   + Donate service has been changed to valid.
 -- @link Forum Thread https://forum.cockos.com/showthread.php?t=254081
 -- @screenshot Main View https://i.imgur.com/DAe0EY7.jpg
--- @donation Donate via Paypal https://www.paypal.me/MKokarev
+-- @donation Donate via BuyMeACoffee https://www.buymeacoffee.com/MaximKokarev
 -- @about
 --   MK Shaper/Stutter is a script for quick envelope operations based on transients or rhythm grid.
 --
@@ -27,7 +54,7 @@
 --   Also, after running the script, you can select the track on which you want to form an envelope and click "Shape".
 
 --[[
-MK Shaper/Stutter v1.01 by Maxim Kokarev 
+MK Shaper/Stutter v1.20 by Maxim Kokarev 
 https://forum.cockos.com/member.php?u=121750
 
 Thanks to Anton (MyDaw)
@@ -43,6 +70,9 @@ https://forum.cockos.com/member.php?u=2949
 
 Based on "Drums to MIDI(beta version)" script by eugen2777
 http://forum.cockos.com/member.php?u=50462  
+
+Razor Edit functions by Juliansander
+https://forum.cockos.com/showthread.php?t=241604
 ]]
 
 ----------------------------------------------------------------------------
@@ -89,7 +119,9 @@ GridT_on = 0
 Gate_on = 0
 Gate_on2 = 0
 Midi_Check = 0
-
+WaveCheck = 0
+Undo_Permit = 0
+Show_process_wait_is_active = 0
 ----------------------------Advanced Settings-------------------------------------------
 
 RememberLast = 1            -- (Remember some sliders positions from last session. 1 - On, 0 - Off)
@@ -99,6 +131,7 @@ ShowRuler = 1 -- (Show Project Grid Green Markers. 1 - On, 0 - Off)
 ShowInfoLine = 0 -- (Show Project Info Line. 1 - On, 0 - Off)
 Markers_Btns = 0  -- (Show MK_Slicer's Markers Operation Controls. 1 - On, 0 - Off)
 ForceSync = 0 -- (force Sync On on the script starts: 1 - On (Always On), 0 - Off (Default, Save Previous State))
+Pitch_Range = 24 -- (Pitch Envelope Range, Half Tones: default 24)
 
 ------------------------End of Advanced Settings----------------------------------------
 
@@ -123,8 +156,10 @@ Loop_on = tonumber(r.GetExtState('cool_MK_Shaper/Stutter.lua','Loop_on'))or 1;
 Sync_on = tonumber(r.GetExtState('cool_MK_Shaper/Stutter.lua','Sync_on'))or 0;
 TrackEnv = tonumber(r.GetExtState('cool_MK_Shaper/Stutter.lua','TrackEnv'))or 1;
 VolPreFX = tonumber(r.GetExtState('cool_MK_Shaper/Stutter.lua','VolPreFX'))or 1;
-ObeyingTheSelection = tonumber(r.GetExtState('cool_MK_Shaper/Stutter.lua','ObeyingTheSelection'))or 0;
+SelectedEnvOnly = tonumber(r.GetExtState('cool_MK_Shaper/Stutter.lua','SelectedEnvOnly'))or 0;
 ObeyingItemSelection = tonumber(r.GetExtState('cool_MK_Shaper/Stutter.lua','ObeyingItemSelection'))or 0;
+MaxFontSizeSt = tonumber(r.GetExtState('MK_Slicer_3','MaxFontSizeSt'))or 0;
+if MaxFontSizeSt == 1 then MaxFontSize = 24 else MaxFontSize = 18 end
 XFadeOff = tonumber(r.GetExtState('cool_MK_Shaper/Stutter.lua','XFadeOff'))or 0;
 Guides_mode = tonumber(r.GetExtState('cool_MK_Shaper/Stutter.lua','Guides.norm_val'))or 1;
 OutNote_State = tonumber(r.GetExtState('cool_MK_Shaper/Stutter.lua','OutNote.norm_val'))or 1;
@@ -140,6 +175,48 @@ if WFiltering <= 0 then WFiltering = 0 elseif WFiltering >= 1 then WFiltering = 
     r.Undo_BeginBlock() 
 r.PreventUIRefresh(1)
 
+
+left, right = huge, -huge
+for t = 0, reaper.CountTracks(0)-1 do
+    local track = reaper.GetTrack(0, t)
+    local tR = {}
+    local razorOK, razorStr = reaper.GetSetMediaTrackInfo_String(track, "P_RAZOREDITS", "", false)
+    if razorOK and #razorStr ~= 0 then
+        for razorLeft, razorRight, envGuid in razorStr:gmatch([[([%d%.]+) ([%d%.]+) "([^"]*)"]]) do
+            if envGuid == "" then
+                local razorLeft, razorRight = tonumber(razorLeft), tonumber(razorRight)
+            if razorLeft  < left  then left  = razorLeft end
+            if razorRight > right then right = razorRight end
+                table.insert(tR, {left = razorLeft, right = razorRight})
+            end
+        end
+
+       if razorOK and #razorStr ~= 0 then
+           reaper.Main_OnCommand(40297,0)
+           reaper.SetTrackSelected(track, true)
+       else
+           reaper.SetTrackSelected(track, false)
+       end
+
+    end
+    for i = 0, reaper.CountTrackMediaItems(track)-1 do
+        local item = reaper.GetTrackMediaItem(track, i)
+  --      reaper.SetMediaItemSelected(item, false)
+        local left = reaper.GetMediaItemInfo_Value(item, "D_POSITION")
+        local right = left + reaper.GetMediaItemInfo_Value(item, "D_LENGTH")
+        for _, r in ipairs(tR) do
+            if left < r.right and right > r.left then
+                reaper.SetMediaItemSelected(item, true)
+            end
+        end
+    end
+end
+if left <= right then
+    reaper.GetSet_LoopTimeRange2(0, true, false, left, right, false)
+end
+reaper.UpdateArrange()
+
+
  loopcheck = 0
 local cursorpos = r.GetCursorPosition()
 ----loopcheck------
@@ -152,6 +229,26 @@ else
      r.Main_OnCommand(40718, 0) -- Item: Select all items on selected tracks in current time selection
 end
 
+NoItems = 0
+if r.CountSelectedMediaItems(0) == 0 and r.CountSelectedTracks(0) == 1 then -- if no items, create new-----
+
+     Table = {}
+     Table2 = {}
+
+     track = r.GetSelectedTrack(0, 0)
+     if loopcheckstart ~= loopcheckending then
+       midiItem = r.CreateNewMIDIItemInProj(track, loopcheckstart, loopcheckending, false) -- loopcheckstart+0.0001
+       new_tk = r.GetActiveTake(midiItem)
+       r.SetMediaItemInfo_Value(midiItem, "B_UISEL", 1) -- select item
+       r.SetMediaItemInfo_Value(midiItem, "I_CUSTOMCOLOR",r.ColorToNative(25,25,25)|0x1000000)
+       r.GetSetMediaItemTakeInfo_String(new_tk, 'P_NAME', 'Temporary item. Will be deleted automatically after closing the script.', 1)
+       Table[track] = track
+       Table2[midiItem] = midiItem
+       NoItems = 1
+     end
+
+end ----------------------------------------------------------------
+
 if loopcheckstart == loopcheckending and loopcheckstart and loopcheckending then 
      loopcheck = 0
        else
@@ -159,17 +256,34 @@ if loopcheckstart == loopcheckending and loopcheckstart and loopcheckending then
 end
 r.SetEditCurPos(cursorpos,0,0) 
 
+function GetLoopTimeRange()
+start, ending = r.GetSet_LoopTimeRange( 0, 0, 0, 0, 0 )
+end
+
 ------------------------------Detect MIDI takes-------------------------------------------
 
 function midi_check()
+
 local i=0;
 while(true) do;
   i=i+1;
   local item = r.GetSelectedMediaItem(0,i-1);
   if item then;
   active_take = r.GetActiveTake(item)  -- active take in item
-    if r.TakeIsMIDI(active_take) then 
-    Midi_Check = 1 end
+    if active_take then 
+       take_pcm_source2 = r.GetMediaItemTake_Source(active_take)
+       take_source_sample_rate = r.GetMediaSourceSampleRate(take_pcm_source2)
+
+            if take_source_sample_rate ~= 0 then 
+                 WaveCheck = 1 
+            end
+
+            if r.TakeIsMIDI(active_take) then
+                 Midi_Check = 1 
+            end
+
+     end
+
   else;
     break;
   end;
@@ -192,18 +306,15 @@ function collect_itemtake_param()    -- collect parameter on sel item and active
    if number_of_takes == 0 then return end
    sel_item = r.GetSelectedMediaItem(0, 0)    -- get selected item 
    active_take = r.GetActiveTake(sel_item)  -- active take in item
-   src = r.GetMediaItemTake_Source(active_take)
-   srate =  r.GetMediaSourceSampleRate(src) -- take samplerate (simple wave/MIDI detection)
    mute_check = r.GetMediaItemInfo_Value(sel_item, "B_MUTE")
  end
- 
 
    collect_itemtake_param()              -- get bunch of parameters about this item
 
 if selected_tracks_count > 1 then 
-gfx.quit() 
-r.ShowConsoleMsg("Only single track items, please. User manual: https://forum.cockos.com/showthread.php?t=232672")
-return 
+--gfx.quit() 
+--r.ShowConsoleMsg("Only single track items, please. User manual: https://forum.cockos.com/showthread.php?t=232672")
+--return 
 end -- не запускать, если айтемы находятся на разных треках.
 
 ----------------------------------Get States from last session-----------------------------
@@ -230,72 +341,60 @@ end
 function getsomerms()
 
 r.Undo_BeginBlock(); r.PreventUIRefresh(1)
- 
+
 local itemproc = r.GetSelectedMediaItem(0,0)
 
- if itemproc and Midi_Check ~= 1 then
+ if itemproc  then
    local tk = r.GetActiveTake(itemproc)
 
  function get_average_rms(take, adj_for_take_vol, adj_for_item_vol)
    local RMS_t = {}
    if take == nil then return end
-   
    local item = r.GetMediaItemTake_Item(take) -- Get parent item
    if item == nil then return end
 
-   -- Get media source of media item take
-   local take_pcm_source = r.GetMediaItemTake_Source(take)
-   if take_pcm_source == nil then return end
-   
-   -- Create take audio accessor
    local aa = r.CreateTakeAudioAccessor(take)
    if aa == nil then return end
    
-   -- Get the start time of the audio that can be returned from this accessor
    local aa_start = r.GetAudioAccessorStartTime(aa)
-   -- Get the end time of the audio that can be returned from this accessor
    local aa_end = r.GetAudioAccessorEndTime(aa)
-   local a_length = (aa_end - aa_start)/25
-      if a_length <= 1 then a_length = 1 elseif a_length > 20 then a_length = 20
-end
-            
-   -- Get the number of channels in the source media.
-   local take_source_num_channels =  r.GetMediaSourceNumChannels(take_pcm_source)
-          if take_source_num_channels > 2 then take_source_num_channels = 2 end
+   local a_length = (aa_end - aa_start)/5
+
+   local take_pcm_source = r.GetMediaItemTake_Source(take)
+   if take_pcm_source == nil then 
+      take_source_num_channels = 2
+      take_source_sample_rate = 44100
+       else
+      take_source_num_channels =  r.GetMediaSourceNumChannels(take_pcm_source)
+      take_source_sample_rate = r.GetMediaSourceSampleRate(take_pcm_source)
+    end
+ 
+if take_source_sample_rate == 0 then take_source_sample_rate = 44100 end -- if MIDI item, create fake samplerate           
+
+   if take_source_num_channels > 2 then take_source_num_channels = 2 end
    local channel_data = {} -- channel data is collected to this table
-   -- Initialize channel_data table
+
    for i=1, take_source_num_channels do
     channel_data[i] = {
                          rms = 0,
                          sum_squares = 0 -- (for calculating RMS per channel)
                        }
    end
-     
-   -- Get the sample rate. MIDI source media will return zero.
-   local take_source_sample_rate = r.GetMediaSourceSampleRate(take_pcm_source)
- 
-   -- How many samples are taken from audio accessor and put in the buffer
+
    local samples_per_channel = take_source_sample_rate/10
    
-   -- Samples are collected to this buffer
    local buffer = r.new_array(samples_per_channel * take_source_num_channels)
-   
+   buffer.clear()
    local total_samples = (aa_end - aa_start) * (take_source_sample_rate/a_length)
    
    if total_samples < 1 then return end
 
    local sample_count = 0
    local offs = aa_start
-   
    local log10 = function(x) return logx(x, 10) end
 
-   -- Loop through samples
    while sample_count < total_samples do
- 
-     -- Get a block of samples from the audio accessor.
-     -- Samples are extracted immediately pre-FX,
-     -- and returned interleaved (first sample of first channel, 
-     -- first sample of second channel...). Returns 0 if no audio, 1 if audio, -1 on error.
+
      local aa_ret =  r.GetAudioAccessorSamples(
                                              aa,                       -- AudioAccessor accessor
                                              take_source_sample_rate,  -- integer samplerate
@@ -306,9 +405,9 @@ end
                                            )
        
      if aa_ret == 1 then
-       for i=1, #buffer, take_source_num_channels do
+      local buffer_l = #buffer
+       for i=1, buffer_l, take_source_num_channels do
          if sample_count == total_samples then
-           audio_end_reached = true
            break
          end
          for j=1, take_source_num_channels do
@@ -329,7 +428,6 @@ end
    
    r.DestroyAudioAccessor(aa)
     
-   -- Calculate corrections for take/item volume
    adjust_vol = 1
    
    if adj_for_take_vol then
@@ -341,7 +439,6 @@ end
      adjust_vol = adjust_vol * r.GetMediaItemInfo_Value(item, "D_VOL")
    end
    
-   -- Calculate RMS for each channel
    for i=1, take_source_num_channels do
      local curr_ch = channel_data[i]
      curr_ch.rms = sqrt(curr_ch.sum_squares/total_samples) * adjust_vol
@@ -349,9 +446,13 @@ end
    end
    return RMS_t
  end
- 
- local getrms = get_average_rms( tk, 0, 0, 0, 0)
 
+local getrms
+       if tk ~= nil and Take_Check == 0 then  
+           getrms = get_average_rms( tk, 0, 0)
+             else
+           getrms = {-20}
+       end
  ----------------------------------------------------------------------------------
  
 local inf = 1/0
@@ -360,7 +461,8 @@ local inf = 1/0
  rms = ceil(getrms[i])
  end
 
-if rms == -inf then rms = -17 end
+if rms <= -30 then rms = -30 end
+if rms == -inf then rms = -20 end
 
 local rmsresult = string.sub(rms,1,string.find(rms,'.')+5)
 
@@ -380,7 +482,12 @@ end
 orig_gain = out_gain*1200
 
 end
-  
+
+if tk == nil then 
+   readrms = 0.65
+   out_gain = 0.15
+end
+
 getsomerms()     
      
 function ClearExState()
@@ -403,6 +510,7 @@ getitem = 1
 
 function GetTempo()
     tempo = r.Master_GetTempo()
+    tempo_corr = 1/(r.Master_GetTempo()/120)
     retoffset = (60000/tempo)/16 - 20
     retrigms = retoffset*0.00493 or 0.0555
 end
@@ -415,12 +523,12 @@ GetTempo()
     if swng_on == 1 then 
        Swing_on = 1 
      end
-r.PreventUIRefresh(-1); r.Undo_EndBlock('Slicer', -1)
+r.PreventUIRefresh(-1); r.Undo_EndBlock('Shaper/Stutter Start', -1)
 
 --------------------------------------------------------------------------------
 ---------------------Retina Check-----------------------------------------------
 --------------------------------------------------------------------------------
-local retval, dpi = reaper.ThemeLayout_GetLayout("mcp", -3) -- get the current dpi
+local retval, dpi = r.ThemeLayout_GetLayout("mcp", -3) -- get the current dpi
 --Now we need to tell the gfx-functions, that Retina/HiDPI is available(512)
 if dpi == "512" then -- if dpi==retina, set the gfx.ext_retina to 1, else to 0
   gfx.ext_retina=1 -- Retina
@@ -470,10 +578,10 @@ end
 --------------------------------------------------------------
 function Element:update_xywh()
   if not Z_w or not Z_h then return end -- return if zoom not defined
-  local zoom_coeff =   (gfx_width/1000)+1
+  local zoom_coeff =   (gfx_width/1200)+1
   if zoom_coeff <= 2.044 then zoom_coeff = 2.044 end 
   self.x, self.w = (self.def_xywh[1]* Z_w/zoom_coeff)*2.045, (self.def_xywh[3]* Z_w/zoom_coeff)*2.045-- upd x,w
-  self.x = self.x+(zoom_coeff-2.044)*270 -- auto slide to right whem woom
+  self.x = self.x+(zoom_coeff-2.044)*380 -- auto slide to right when zoom
   self.x = math_round(self.x,2)
   self.w = math_round(self.w,2)
   self.y, self.h = (self.def_xywh[2]* Z_h) , (self.def_xywh[4]* Z_h) -- upd y,h
@@ -700,7 +808,7 @@ function Button_small:draw()
     local r,g,b,a  = self.r,self.g,self.b,self.a
     local fnt,fnt_sz = self.fnt, self.fnt_sz*(Z_h/1.2)
     if fnt_sz <= 9 then fnt_sz = 9 end
-if fnt_sz >= 17 then fnt_sz = 17 end
+    if fnt_sz >= MaxFontSize-1 then fnt_sz = MaxFontSize-1 end
     -- Get mouse state ---------
           -- in element --------
           if self:mouseIN() then a=a+0.3 end
@@ -735,7 +843,7 @@ function Button:draw()
     local r,g,b,a  = self.r,self.g,self.b,self.a
     local fnt,fnt_sz = self.fnt, self.fnt_sz*(Z_h*1.05)
     if fnt_sz <= 12 then fnt_sz = 12 end
-if fnt_sz >= 18 then fnt_sz = 18 end
+    if fnt_sz >= MaxFontSize then fnt_sz = MaxFontSize end
     -- Get mouse state ---------
           -- in element --------
           if self:mouseIN() then a=a+0.3 end
@@ -774,7 +882,7 @@ function Button_top:draw()
     local r,g,b,a  = self.r,self.g,self.b,self.a
     local fnt,fnt_sz = self.fnt, self.fnt_sz*(Z_h*1.05)
     if fnt_sz <= 10 then fnt_sz = 10 end
-    if fnt_sz >= 18 then fnt_sz = 18 end
+    if fnt_sz >= MaxFontSize then fnt_sz = MaxFontSize end
     -- Get mouse state ---------
           -- in element --------
           if self:mouseIN() then a=a+0.3 end
@@ -934,9 +1042,9 @@ end
 
 function Slider_simple:set_norm_val_m_wheel()
     if Shift == true then
-    Mult_S = 0.01 -- Set step
+    Mult_S = 0.005 -- Set step
     else
-    Mult_S = 0.1 -- Set step
+    Mult_S = 0.05 -- Set step
     end
     local Step = Mult_S
     if gfx.mouse_wheel == 0 then return false end  -- return if m_wheel = 0
@@ -1247,7 +1355,7 @@ function X_Slider:set_norm_val()
        else VAL = (gfx.mouse_x-x)/w end
     if VAL<0 then VAL=0 elseif VAL>1 then VAL=1 end
     DefaultXFadeTime = tonumber(r.GetExtState('cool_MK_Shaper/Stutter.lua','DefaultXFadeTime'))or 15;
-    if MCtrl then VAL = DefaultXFadeTime*0.02 end --set default value by Ctrl+LMB
+    if MCtrl then VAL = 0.5 end --set default value by Ctrl+LMB
     self.norm_val=VAL
     
 if RememberLast == 0 then 
@@ -1601,7 +1709,7 @@ function Slider_small:draw()
     local r,g,b,a  = self.r,self.g,self.b,self.a
     local fnt,fnt_sz = self.fnt, self.fnt_sz*(Z_h*1.05)
     if fnt_sz <= 12 then fnt_sz = 12 end
-if fnt_sz >= 17 then fnt_sz = 17 end
+    if fnt_sz >= MaxFontSize-1 then fnt_sz = MaxFontSize-1 end
 fnt_sz = fnt_sz-1
     -- Get mouse state ---------
           -- in element(and get mouswheel) --
@@ -1641,7 +1749,7 @@ function Slider:draw()
     local r,g,b,a  = self.r,self.g,self.b,self.a
     local fnt,fnt_sz = self.fnt, self.fnt_sz*(Z_h*1.05)
     if fnt_sz <= 12 then fnt_sz = 12 end
-if fnt_sz >= 18 then fnt_sz = 18 end
+    if fnt_sz >= MaxFontSize then fnt_sz = MaxFontSize end
     -- Get mouse state ---------
           -- in element(and get mouswheel) --
 
@@ -1707,7 +1815,7 @@ function Slider_simple:draw() -- slider without waveform and markers redraw
     local r,g,b,a  = self.r,self.g,self.b,self.a
     local fnt,fnt_sz = self.fnt, self.fnt_sz*(Z_h*1.05)
     if fnt_sz <= 12 then fnt_sz = 12 end
-if fnt_sz >= 18 then fnt_sz = 18 end
+    if fnt_sz >= MaxFontSize then fnt_sz = MaxFontSize end
     -- Get mouse state ---------
           -- in element(and get mouswheel) --
           if self:mouseIN() then a=a+0.2
@@ -1746,7 +1854,7 @@ function Slider_simple_r:draw() -- slider without waveform and markers redraw
     local r,g,b,a  = self.r,self.g,self.b,self.a
     local fnt,fnt_sz = self.fnt, self.fnt_sz*(Z_h*1.05)
     if fnt_sz <= 12 then fnt_sz = 12 end
-if fnt_sz >= 18 then fnt_sz = 18 end
+    if fnt_sz >= MaxFontSize then fnt_sz = MaxFontSize end
     -- Get mouse state ---------
           -- in element(and get mouswheel) --
           if self:mouseIN() then a=a+0.2
@@ -1784,7 +1892,7 @@ function Slider_simple_g:draw() -- slider without waveform and markers redraw
     local r,g,b,a  = self.r,self.g,self.b,self.a
     local fnt,fnt_sz = self.fnt, self.fnt_sz*(Z_h*1.05)
     if fnt_sz <= 12 then fnt_sz = 12 end
-if fnt_sz >= 18 then fnt_sz = 18 end
+    if fnt_sz >= MaxFontSize then fnt_sz = MaxFontSize end
     -- Get mouse state ---------
           -- in element(and get mouswheel) --
           if self:mouseIN() then a=a+0.2
@@ -1822,7 +1930,7 @@ function Slider_simple_g_bias:draw() -- slider without waveform and markers redr
     local r,g,b,a  = self.r,self.g,self.b,self.a
     local fnt,fnt_sz = self.fnt, self.fnt_sz*(Z_h*1.05)
     if fnt_sz <= 12 then fnt_sz = 12 end
-if fnt_sz >= 18 then fnt_sz = 18 end
+    if fnt_sz >= MaxFontSize then fnt_sz = MaxFontSize end
     -- Get mouse state ---------
           -- in element(and get mouswheel) --
           if self:mouseIN() then a=a+0.2
@@ -1860,7 +1968,7 @@ function Slider_simple_v:draw() -- slider without waveform and markers redraw
     local r,g,b,a  = self.r,self.g,self.b,self.a
     local fnt,fnt_sz = self.fnt, self.fnt_sz*(Z_h*1.05)
     if fnt_sz <= 12 then fnt_sz = 12 end
-if fnt_sz >= 18 then fnt_sz = 18 end
+    if fnt_sz >= MaxFontSize then fnt_sz = MaxFontSize end
     -- Get mouse state ---------
           -- in element(and get mouswheel) --
           if self:mouseIN() then a=a+0.2
@@ -1899,7 +2007,7 @@ function Slider_Fine:draw() -- Offset slider with fine tuning and additional lin
     local r,g,b,a  = self.r,self.g,self.b,self.a
     local fnt,fnt_sz = self.fnt, self.fnt_sz*(Z_h*1.05)
     if fnt_sz <= 12 then fnt_sz = 12 end
-if fnt_sz >= 18 then fnt_sz = 18 end
+    if fnt_sz >= MaxFontSize then fnt_sz = MaxFontSize end
     -- Get mouse state ---------
           -- in element(and get mouswheel) --
           if self:mouseIN() then a=a+0.2
@@ -1965,7 +2073,7 @@ function Slider_Swing:draw() -- Offset slider with fine tuning and additional li
     local r,g,b,a  = self.r,self.g,self.b,self.a
     local fnt,fnt_sz = self.fnt, self.fnt_sz*(Z_h*1.05)
     if fnt_sz <= 12 then fnt_sz = 12 end
-if fnt_sz >= 18 then fnt_sz = 18 end
+    if fnt_sz >= MaxFontSize then fnt_sz = MaxFontSize end
     -- Get mouse state ---------
           -- in element(and get mouswheel) --
           if self:mouseIN() then a=a+0.2
@@ -2009,7 +2117,7 @@ function Slider_complex:draw() -- slider with full waveform and markers redraw
     local r,g,b,a  = self.r,self.g,self.b,self.a
     local fnt,fnt_sz = self.fnt, self.fnt_sz*(Z_h*1.05)
     if fnt_sz <= 12 then fnt_sz = 12 end
-if fnt_sz >= 18 then fnt_sz = 18 end
+    if fnt_sz >= MaxFontSize then fnt_sz = MaxFontSize end
     -- Get mouse state ---------
           -- in element(and get mouswheel) --
           if self:mouseIN() then a=a+0.2
@@ -2073,7 +2181,7 @@ function Slider_fgain:draw() -- filter slider without waveform processing
     local r,g,b,a  = self.r,self.g,self.b,self.a
     local fnt,fnt_sz = self.fnt, self.fnt_sz*(Z_h*1.05)
     if fnt_sz <= 12 then fnt_sz = 12 end
-if fnt_sz >= 18 then fnt_sz = 18 end
+    if fnt_sz >= MaxFontSize then fnt_sz = MaxFontSize end
     -- Get mouse state ---------
           -- in element(and get mouswheel) --
           if self:mouseIN() then a=a+0.2
@@ -2277,7 +2385,7 @@ function Rng_Slider:draw()
     local r,g,b,a  = self.r,self.g,self.b,self.a
     local fnt,fnt_sz = self.fnt, self.fnt_sz*(Z_h*1.05)
     if fnt_sz <= 12 then fnt_sz = 12 end
-if fnt_sz >= 18 then fnt_sz = 18 end
+    if fnt_sz >= MaxFontSize then fnt_sz = MaxFontSize end
     -- set additional coordinates --
  --   self.sb_w  = h-5
  --   self.sb_w  = floor(self.w/17) -- sidebuttons width(change it if need)
@@ -2587,7 +2695,7 @@ function CheckBox:draw()
     local r,g,b,a  = self.r,self.g,self.b,self.a
     local fnt,fnt_sz = self.fnt, self.fnt_sz*(Z_h*1.05)
     if fnt_sz <= 12 then fnt_sz = 12 end
-if fnt_sz >= 18 then fnt_sz = 18 end
+    if fnt_sz >= MaxFontSize then fnt_sz = MaxFontSize end
     -- Get mouse state ---------
           -- in element --------
           if self:mouseIN() then a=a+0.2
@@ -2664,7 +2772,7 @@ function CheckBox_simple:draw()
     local r,g,b,a  = self.r,self.g,self.b,self.a
     local fnt,fnt_sz = self.fnt, self.fnt_sz*(Z_h*1.05)
     if fnt_sz <= 12 then fnt_sz = 12 end
-if fnt_sz >= 18 then fnt_sz = 18 end
+    if fnt_sz >= MaxFontSize then fnt_sz = MaxFontSize end
     -- Get mouse state ---------
           -- in element --------
           if self:mouseIN() then a=a+0.2
@@ -2740,7 +2848,7 @@ function CheckBox_Red:draw()
     local r,g,b,a  = self.r,self.g,self.b,self.a
     local fnt,fnt_sz = self.fnt, self.fnt_sz*(Z_h*1.05)
     if fnt_sz <= 12 then fnt_sz = 12 end
-if fnt_sz >= 18 then fnt_sz = 18 end
+    if fnt_sz >= MaxFontSize then fnt_sz = MaxFontSize end
     -- Get mouse state ---------
           -- in element --------
           if self:mouseIN() then a=a+0.2
@@ -2816,7 +2924,7 @@ function CheckBox_Green:draw()
     local r,g,b,a  = self.r,self.g,self.b,self.a
     local fnt,fnt_sz = self.fnt, self.fnt_sz*(Z_h*1.05)
     if fnt_sz <= 12 then fnt_sz = 12 end
-if fnt_sz >= 18 then fnt_sz = 18 end
+    if fnt_sz >= MaxFontSize then fnt_sz = MaxFontSize end
     -- Get mouse state ---------
           -- in element --------
           if self:mouseIN() then a=a+0.2
@@ -2892,7 +3000,7 @@ function CheckBox_Show:draw()
     local r,g,b,a  = self.r,self.g,self.b,self.a
     local fnt,fnt_sz = self.fnt, self.fnt_sz*(Z_h*1.05)
     if fnt_sz <= 12 then fnt_sz = 12 end
-if fnt_sz >= 18 then fnt_sz = 18 end
+    if fnt_sz >= MaxFontSize then fnt_sz = MaxFontSize end
     -- Get mouse state ---------
           -- in element --------
           if self:mouseIN() then a=a+0.2
@@ -2969,17 +3077,17 @@ local init_item = r.GetSelectedMediaItem(0,0)
 
  if init_item  then
        local init_take = r.GetActiveTake(init_item)
+   if init_take == nil then return end
        local item = r.GetMediaItemTake_Item(init_take) -- Get parent item
-   if item == nil then
-     return
-   end
+   if item == nil then return end
 
    -- Get media source of media item take
    local take_pcm_source = r.GetMediaItemTake_Source(init_take)
-   if take_pcm_source == nil then
-     return
+   if take_pcm_source == nil then 
+      local srate = 44100
+   else
+      local srate = r.GetMediaSourceSampleRate(take_pcm_source)
    end
-   local srate = r.GetMediaSourceSampleRate(take_pcm_source)
 end
 
    if srate then
@@ -2994,16 +3102,13 @@ Init_Srate() -- Project Samplerate
 
 
 if HiPrecision_On == 1 then
-   bsdiv = 1
-   bsdiv2 = 4
+   bsdiv = 2; bsdiv2 = 4
     else
-   bsdiv = 16
-   bsdiv2 = 16
+   bsdiv = 16; bsdiv2 = 16
 end
-
+if NoItems == 0 and WaveCheck == 1 then mlt2 = 1 else mlt2 = 4 end
 local block_size = 1024*bsdiv -- размер блока(для фильтра и тп) , don't change it!
-local time_limit = 5*60    -- limit maximum time, change, if need.
-local defPPQ = 960         -- change, if need.
+local time_limit = 5*60*mlt2    -- limit maximum time, change, if need.
 ----------------------------------------------------------------------------------------------------
 ---  Create main objects(Wave,Gate) ----------------------------------------------------------------
 ----------------------------------------------------------------------------------------------------
@@ -3023,8 +3128,8 @@ local elm_table = {Fltr_Frame, Gate_Frame, Mode_Frame, Mode_Frame_filled, Gate_F
 elm_table[1] = Frame:new(10, 375+corrY,180,100) --Fltr_Frame
 elm_table[2] = Frame:new(200,375+corrY,180,100) --Gate_Frame
 elm_table[3] = Frame:new(390,375+corrY,645,100) --Mode_Frame
-elm_table[4] = Frame_filled:new(673,380+corrY,91,69,  0.2,0.2,0.2,0.5 ) --Mode_Frame_filled
-elm_table[5] = Frame_filled:new(210,380+corrY,160,89,  0.2,0.2,0.2,0.5 ) --Gate_Frame_filled
+elm_table[4] = Frame_filled:new(673,409+corrY,91,40,  0.18,0.18,0.18,0.7 ) --Mode_Frame_filled
+elm_table[5] = Frame_filled:new(210,380+corrY,160,89,  0.18,0.18,0.18,0.7 ) --Gate_Frame_filled
 
 elm_table[6] = Frame_filled:new(670,373+corrY2,147,112,  0.15,0.15,0.15,1 ) --Random_Setup_Frame_filled
 elm_table[7] = Frame:new(670,373+corrY2,147,112,  0.15,0.15,0.15,1 ) --Random_Setup_Frame
@@ -3039,8 +3144,8 @@ elm_table[14] = Colored_Rect_top:new(302,24,40,2,  0.0,0.7,0.0,1 ) -- Grid64_Led
 elm_table[15] = Colored_Rect_top:new(344,24,40,2,  0.0,0.7,0.0,1 ) -- GridT_Led
 elm_table[16] = Colored_Rect_top:new(391,24,50,2,  0.0,0.7,0.0,1 ) -- Swing_Led
 
-elm_table[17] = Frame_filled:new(767,430+corrY,71,19,  0.2,0.2,0.2,0.5 ) --Offbeat_Frame_filled
-elm_table[18] = Frame_filled:new(596,450+corrY,74,19,  0.2,0.2,0.2,0.5 ) --BiasThr_Frame_filled
+elm_table[17] = Frame_filled:new(767,430+corrY,71,19,  0.18,0.18,0.18,0.7 ) --Offbeat_Frame_filled
+elm_table[18] = Frame_filled:new(498,450+corrY,171,19,  0.18,0.18,0.18,0.7 ) --BiasThr_Frame_filled
 
 local leds_table = {Frame_byGrid, Frame_byGrid2, Light_Loop_on, Light_Loop_off, Light_Sync_on, Light_Sync_off, Rand_Mode_Color1, Rand_Mode_Color2, Rand_Mode_Color3, Rand_Mode_Color4, Rand_Mode_Color5, Rand_Mode_Color6, Rand_Mode_Color7, Rand_Button_Color1, Rand_Button_Color2, Rand_Button_Color3, Rand_Button_Color4, Rand_Button_Color5, Rand_Button_Color6, Rand_Button_Color7, InverseEnv_On, InverseEnv_Off}
 
@@ -3056,7 +3161,7 @@ leds_table[6] = Colored_Rect_top:new(921,5,2,20,  0.5,0.5,0.5,0.5 ) -- Light_Syn
 leds_table[21] = Colored_Rect:new(571,410+corrY,2,18,  0.0,0.7,0.0,1 ) -- InverseEnv_On (Green indicator)
 leds_table[22] = Colored_Rect:new(571,410+corrY,2,18,  0.5,0.5,0.5,0.5 ) -- InverseEnv_Off (Grey indicator)
 
-local others_table = {Triangle, RandText, Q_Rnd_Linked, Q_Rnd_Linked2, Line, Line2, Loop_Dis}
+local others_table = {Triangle, RandText, Q_Rnd_Linked, Q_Rnd_Linked2, Line, Line2, Loop_Dis, Volume, VolumeFill, Attack, AttackFill, Release, ReleaseFill}
 
 others_table[1] = Txt2:new(642,415+corrY2,55,18, 0.4,0.4,0.4,1, ">","Arial",20) --Triangle
 others_table[2] = Txt2:new(749,374+corrY2,55,18, 0.4,0.4,0.4,1, "Intensity","Arial",10) --RandText
@@ -3070,12 +3175,21 @@ others_table[7] = Colored_Rect_top:new(10,28,1024,15,  0.23,0.23,0.23,0.5)--Loop
 others_table[8] = Line:new(771,404+corrY,61,6) --Line (Mode Bracket)
 others_table[9] = Line2:new(771,407+corrY,61,4,  0.177,0.177,0.177,1)--Line2 (Mode Bracket fill)
 
+others_table[10] = Line:new(846,404+corrY,61,6) --Line (Volume Bracket)
+others_table[11] = Line2:new(846,407+corrY,61,4,  0.177,0.177,0.177,1)--Line2 (Volume Bracket fill)
+
+others_table[12] = Line:new(503,404+corrY,82,6) --Line (Attack Bracket)
+others_table[13] = Line2:new(503,407+corrY,82,4,  0.177,0.177,0.177,1)--Line2 (Attack Bracket fill)
+
+others_table[14] = Line:new(601,404+corrY,61,6) --Line (Release Bracket)
+others_table[15] = Line2:new(601,407+corrY,61,4,  0.177,0.177,0.177,1)--Line2 (Release Bracket fill)
+
 local Frame_Sync_TB = {leds_table[5]}
 local Frame_Sync_TB2 = {leds_table[6]}
 local Frame_Loop_TB = {leds_table[3]}
 local Frame_Loop_TB2 = {leds_table[4], others_table[7]}
 local Frame_TB = {elm_table[1], elm_table[2], elm_table[3]} 
-local FrameR_TB = {others_table[5], others_table[6], others_table[8], others_table[9]}
+local FrameR_TB = {others_table[5], others_table[6], others_table[8], others_table[9], others_table[10], others_table[11], others_table[12], others_table[13], others_table[14], others_table[15]}
 local FrameQR_Link_TB = {others_table[3],others_table[4]}
 local Frame_TB1 = {leds_table[2]}
 local Frame_TB2 = {elm_table[5], leds_table[1]} -- Grid mode
@@ -3101,7 +3215,7 @@ local Transient_Fill_TB = {elm_table[17]}
 local Grid_Fill_TB = {elm_table[18]}
 
 ---------------------------------------------------------------
----  Create Menu Settings   -----------------------------
+---  Create Menu Settings   ------------------------------------
 ---------------------------------------------------------------
 ---------------
 -- Menu class --
@@ -3111,163 +3225,217 @@ local Grid_Fill_TB = {elm_table[18]}
 -- class.lua
 -- Compatible with Lua 5.1 (not 5.0).
 function class(base, init)
-   local c = {}    -- a new class instance
-   if not init and type(base) == 'function' then
-      init = base
-      base = nil
-   elseif type(base) == 'table' then
-    -- our new class is a shallow copy of the base class!
-      for i,v in pairs(base) do
-         c[i] = v
-      end
-      c._base = base
-   end
-   -- the class will be the metatable for all its objects,
-   -- and they will look up their methods in it.
-   c.__index = c
+  local c = {}    -- a new class instance
+  if not init and type(base) == 'function' then
+     init = base
+     base = nil
+  elseif type(base) == 'table' then
+   -- our new class is a shallow copy of the base class!
+     for i,v in pairs(base) do
+        c[i] = v
+     end
+     c._base = base
+  end
+  -- the class will be the metatable for all its objects,
+  -- and they will look up their methods in it.
+  c.__index = c
 
-   -- expose a constructor which can be called by <classname>(<args>)
-   local mt = {}
-   mt.__call = function(class_tbl, ...)
-   local obj = {}
-   setmetatable(obj,c)
-   if init then
-      init(obj,...)
-   else 
-      -- make sure that any stuff from the base class is initialized!
-      if base and base.init then
-      base.init(obj, ...)
-      end
-   end
-   return obj
-   end
-   c.init = init
-   c.is_a = function(self, klass)
-      local m = getmetatable(self)
-      while m do 
-         if m == klass then return true end
-         m = m._base
-      end
-      return false
-   end
-   setmetatable(c, mt)
-   return c
+  -- expose a constructor which can be called by <classname>(<args>)
+  local mt = {}
+  mt.__call = function(class_tbl, ...)
+  local obj = {}
+  setmetatable(obj,c)
+  if init then
+     init(obj,...)
+  else 
+     -- make sure that any stuff from the base class is initialized!
+     if base and base.init then
+     base.init(obj, ...)
+     end
+  end
+  return obj
+  end
+  c.init = init
+  c.is_a = function(self, klass)
+     local m = getmetatable(self)
+     while m do 
+        if m == klass then return true end
+        m = m._base
+     end
+     return false
+  end
+  setmetatable(c, mt)
+  return c
 end
+
 ----------------
 -- Menu class --
 ----------------
-
 -- To create a new menu instance, call this function like this:
 --   menu_name = Menu("menu_name")
 local Menu = 
-  class(
-    function(menu, id)
-      menu.id = id    
-      menu.items = {} -- Menu items are collected to this table
-    end
-  )
+ class(
+   function(menu, id)
+     menu.id = id    
+     menu.items = {}       -- Menu items are collected to this table
+     menu.items_str = ""
+     menu.curr_item_pos = 1
+   end
+ )
 
 ------------------
 -- Menu methods --
 ------------------
+-- Returns "menu item table" (or false if "id" not found)
+function Menu:get_item_from_id(id)
+ for i=1, #self.items do
+   if self.items[i].id == id then
+     return self.items[i]
+   end
+ end
+ return false
+end
+
+-- Updates "menu item type" variables (_has_submenu, _last_item_in_submenu etc.)
+function Menu:update_item(item_table)
+ local t = item_table
+ t._has_submenu = false
+ t._last_item_in_submenu = false
+ t.id = self.curr_item_pos
+ 
+ if string.sub(t.label, 1, 1) == ">" or
+    string.sub(t.label, 1, 2) == "<>" or
+    string.sub(t.label, 1, 2) == "><" then
+   t._has_submenu = true
+   t.id = -1
+   self.curr_item_pos = self.curr_item_pos - 1
+
+ elseif string.sub(t.label, 1, 1) == "<" then
+   t._has_submenu = false
+   t._last_item_in_submenu = true
+ end
+ --t.id = self.curr_item_pos
+ self.curr_item_pos = self.curr_item_pos + 1
+end
+
 -- Returns the created table and table index in "menu_obj.items"
 function Menu:add_item(...)
-  t = ... or {}
-  self.items[#self.items+1] = t -- add new menu item at the end of menu
-  -- Parse arguments
-  for i,v in pairs(t) do
-    if i == "label" then
-      t.label = v
-    elseif i == "selected" then
-      t.selected = v
-    elseif i == "active" then
-      t.active = v
-    elseif i == "toggleable" then
-      t.toggleable = v
-    elseif i == "command" then
-      t.command = v
-    end
-  end
-  
-  -- Default values for menu items
-  -- Edit these
-  if t.label == nil or t.label == "" then
-    t.label = tostring(#self.items) -- if label is nil or "" -> label is set to "table index in menu_obj.items"
-  end
-  
-  if t.selected == nil then t.selected = false end 
-  if t.active == nil then t.active = true  end 
-  if t.toggleable == nil then t.toggleable = false end
-  if t.command == nil then
-    t.command = function() return end
-  end
-  return t, #self.items
+ local t = ... or {}
+ self.items[#self.items+1] = t -- add new menu item at the end of menu
+ 
+ -- Parse arguments
+ for i,v in pairs(t) do
+   --msg(i .. " = " .. tostring(v))
+   if i == "label" then
+     t.label = v
+   elseif i == "selected" then
+     t.selected = v
+   elseif i == "active" then
+     t.active = v
+   elseif i == "toggleable" then
+     t.toggleable = v
+   elseif i == "command" then
+     t.command = v
+   end
+ end
+ 
+ -- Default values for menu items
+ -- (Edit these)
+ if t.label == nil or t.label == "" then
+   t.label = tostring(#self.items) -- if label is nil or "" -> label is set to "table index in menu_obj.items"
+ end
+ 
+ if t.selected == nil then
+   t.selected = false   -- edit
+ end
+ 
+ if t.active == nil then
+   t.active = true      -- edit
+ end
+ 
+ if t.toggleable == nil then
+   t.toggleable = false -- edit
+ end
+
+ return t, #self.items
 end
 
 -- Get menu item table at index
 function Menu:get_item(index)
-  if self.items[index] == nil then
-    return false
-  end
-  return self.items[index]
+ if self.items[index] == nil then
+   return false
+ end
+ return self.items[index]
 end
 
 -- Show menu at mx, my
 function Menu:show(mx, my)
-  gfx.x = mx
-  gfx.y = my
-  self.items_str = self:table_to_string() or ""
-  self.val = gfx.showmenu(self.items_str)
-  if self.val > 0 then
-    self:update(self.val)
-  end
+ gfx.x = mx
+ gfx.y = my
+ 
+ -- Check which items has a function to call when a menu is about to be shown
+ for i=1, #self.items do
+   if self.items[i].on_menu_show ~= nil then
+     self.items[i].on_menu_show()
+   end
+   -- Update item
+   self:update_item(self.items[i])
+ end
+ 
+ -- Convert menu item tables to string
+ self.items_str = self:table_to_string() or ""
+ self.val = gfx.showmenu(self.items_str)
+ if self.val > 0 then
+   self:update(self.val)
+ end
+ self.curr_item_pos = 1 -- set "menu item position counter" back to the initial value
 end
 
 function Menu:update(menu_item_index)
-  local i = menu_item_index 
-  if self.items[i].toggleable then
-    self.items[i].selected = not self.items[i].selected
-  end
-  if self.items[i].command ~= nil then
-    self.items[i].command()
-  end
+ -- check which "menu item id" matches with "menu_item_index"
+ for i=1, #self.items do
+   if self.items[i].id == menu_item_index then
+     menu_item_index = i
+     break
+   end
+ end
+ local i = menu_item_index 
+ -- if menu item is "toggleable" then toggle "selected" state
+ if self.items[i].toggleable then
+   self.items[i].selected = not self.items[i].selected
+ end
+ -- if menu item has a "command" (function), then call that function
+ if self.items[i].command ~= nil then
+   self.items[i].command()
+ end
 end
 
 -- Convert "Menu_obj.items" to string
 function Menu:table_to_string()
-  if self.items == nil then
-    return
-  end
-  self.items_str = ""
-  
-  for i=1, #self.items do
-    s = ""
-    local menu_item = self.items[i]
-    if menu_item.selected then
-      s = "!"
-    end
-    
-    if not menu_item.active then
-      s = s .. "#"
-    end
-    
-    if #menu_item > 0 then
-      --self.items[i]
-      s = s .. ">"
-    end
-    
-    if menu_item.label ~= "" then
-      s = s .. menu_item.label .. "|"
-    end
-    
-    if i < #self.items then
-    --  s = s .. "|"
-    end
-    --aas = self
-    self.items_str = self.items_str .. s
-  end
-  
-  return self.items_str
+ if self.items == nil then
+   return
+ end
+ self.items_str = ""
+ 
+ for i=1, #self.items do
+   local temp_str = ""
+   local menu_item = self.items[i]
+   if menu_item.selected then
+     temp_str = "!"
+   end
+   
+   if not menu_item.active then
+     temp_str = temp_str .. "#"
+   end
+   
+   if menu_item.label ~= "" then
+     temp_str = temp_str .. menu_item.label .. "|"
+   end
+
+   self.items_str = self.items_str .. temp_str
+ end
+ 
+ return self.items_str
 end
 
 --END of Menu class----------------------------------------------------
@@ -3294,12 +3462,15 @@ if LP_Freq.norm_val >= 1 then LP_Freq.norm_val = 1 end
 if LP_Freq.norm_val <= 0 then LP_Freq.norm_val = 0 end
   local sx = 16+(self.norm_val*100)*1.20103
   self.form_val = floor(exp(sx*logx(1.059))*8.17742) -- form val
+
+if self.form_val > 20000 then self.form_val = 20000 end
   -------------
   local x,y,w,h  = self.x,self.y,self.w,self.h
   local val = string.format("%d", self.form_val) .." Hz"
   local val_w, val_h = gfx.measurestr(val)
   gfx.x = x+w-val_w-3
   gfx.drawstr(val) -- draw Slider Value
+  if self.form_val == 20 then self.form_val = 0 end -- filter off
 end
 -------------------------
 function LP_Freq:draw_val()
@@ -3438,7 +3609,7 @@ Gate_Retrig.onUp    = Floor_Sldrs_onUp
 local Offset_Sld = O_Slider:new(400,430+corrY,94,18, 0.28,0.4,0.7,0.8, "Offset","Arial",16, Offs_Slider )
 function Offset_Sld:draw_val()
 
-  self.form_val  = (20- self.norm_val * 40)*( -1)     -- form_val
+  self.form_val  = (50- self.norm_val * 100)*( -1)     -- form_val
 
   function fixzero()
   FixMunus = self.form_val
@@ -3452,20 +3623,19 @@ function Offset_Sld:draw_val()
   local val_w, val_h = gfx.measurestr(val)
   gfx.x = x+w-val_w-3
   gfx.drawstr(val)--draw Slider Value
-  
+  Offset_Sld.form_val = Offset_Sld.form_val-0.5 -- correction
   end
 Offset_Sld.onUp =
 function() 
    if Wave.State then
-      Gate_Gl:Apply_toFiltered()
-      DrawGridGuides()
+     Offset_Sld_DoIt()
       fixzero() 
 Gate_on2 = 1
    end 
 end
 
 -----------------HBiasSlider Slider------------------------ 
-local HBiasSlider = Q_Slider_Green:new(400,450+corrY,94,18, 0.218,0.542,0.45,0.8, "Bias","Arial",16, 0.5 )
+local HBiasSlider = Q_Slider_Green:new(596,410+corrY,73,18, 0.218,0.542,0.45,0.8, "Rel","Arial",16, 0.5 )
 function HBiasSlider:draw_val()
 
   self.form_val  = (self.norm_val * 200)-100     -- form_val
@@ -3476,12 +3646,11 @@ function HBiasSlider:draw_val()
   end
   fixzero()  
   local x,y,w,h  = self.x,self.y,self.w,self.h
-  local val = string.format("%.0f", self_form_val).."%"
+  local val = string.format("%.0f", self_form_val)..""
   local val_w, val_h = gfx.measurestr(val)
   gfx.x = x+w-val_w-3
   gfx.drawstr(val)--draw Slider Value
   HBiasSlider = self_form_val/100
-  HBiasSliderAdd = self_form_val/100
   HBS_rev = ((self_form_val-100)+100)*-1
    HBiasSlider2 = ((exp(HBS_rev/50))+1)*-1 --reverse slider
   HBS_rev2 = (self.norm_val-1)*-1
@@ -3523,17 +3692,24 @@ function()
 end
 
 -- Gain slider ------------------------------ 
-local XFade_Sld = X_Slider:new(841,410+corrY,73,18, 0.28,0.4,0.7,0.8, "Gain","Arial",16, 0 )
+local XFade_Sld = X_Slider:new(841,410+corrY,73,18, 0.28,0.4,0.7,0.8, "Gain","Arial",16, 0.5 )
 function XFade_Sld:draw_val()
-  self.form_val = (self.norm_val)*12       -- form_val
+  self.form_val = (self.norm_val*200) - 100       -- form_val
   local x,y,w,h  = self.x,self.y,self.w,self.h
-  local val = string.format("%.0f", self.form_val).." dB"
+  local val = string.format("%.0f", self.form_val)..""
   local val_w, val_h = gfx.measurestr(val)
   gfx.x = x+w-val_w-3
   gfx.drawstr(val)--draw Slider Value
-  EnvGainSld =  exp(XFade_Sld.form_val/8.686)
- -- EnvGainSld2 = exp(XFade_Sld.form_val/12)-1
-EnvGainSld2 =  ((((XFade_Sld.form_val/12)*100)*(((XFade_Sld.form_val/12)*100)*40))/50000)/8
+  self.form_val =   self.form_val +100
+  EnvGainSld = ((XFade_Sld.form_val*(XFade_Sld.form_val*40))/50000)/8 --  exp(XFade_Sld.form_val/8.686)
+  EnvGainSld_p = (self.norm_val)*4
+  EnvGainSld2 =  (((XFade_Sld.form_val*(XFade_Sld.form_val*40))/50000)/8 )
+  PanWidth =  (((XFade_Sld.form_val)-112)/12*-1)
+  PanWidth2 =  (((XFade_Sld.form_val)-100)/100*-1)+1
+  PanWidth3 =  (exp((XFade_Sld.form_val*-1)/24.04491734815))*64
+      if PanWidth3 <= 1 then PanWidth3 = 1 end
+      if PanWidth2 < 0.01 then PanWidth2 = 0.01 end
+      if PanWidth < 1 then PanWidth = PanWidth2 end
 end
 XFade_Sld.onUp =
 function() 
@@ -3542,7 +3718,7 @@ end
 
 
 -- Floor slider ------------------------------ 
-local Floor_Sld = Q_Slider_Red:new(498,410+corrY,94,18, 0.564,0.261,0.221,0.8, "Floor","Arial",16, 0 )
+local Floor_Sld = Q_Slider_Red:new(841,430+corrY,73,18, 0.564,0.261,0.221,0.8, "Floor","Arial",16, 0 )
 function Floor_Sld:draw_val()
   self.form_val = (self.norm_val)*100       -- form_val
   local x,y,w,h  = self.x,self.y,self.w,self.h
@@ -3550,7 +3726,9 @@ function Floor_Sld:draw_val()
   local val_w, val_h = gfx.measurestr(val)
   gfx.x = x+w-val_w-3
   gfx.drawstr(val)--draw Slider Value
+Floor_Sld.form_val = Floor_Sld.form_val/2
 FloorVal = ((Floor_Sld.form_val*(Floor_Sld.form_val*40))/50000)/8
+FloorVal_p = ((self.norm_val-1)*-1)/4
 FloorVal_inv = (exp(((Floor_Sld.form_val)-100)/100*-1)-1)/1.75
 end
 Floor_Sld.onUp =
@@ -3559,7 +3737,7 @@ Gate_on2 = 1
 end
 
 -- Attack slider ------------------------------ 
-local Attack_Sld = Q_Slider_Violet:new(498,430+corrY,94,18, 0.419,0.281,0.716,0.8, "Attack","Arial",16, 0.3  )
+local Attack_Sld = Q_Slider_Violet:new(498,410+corrY,94,18, 0.419,0.281,0.716,0.8, "Att","Arial",16, 0.3  )
 function Attack_Sld:draw_val()
   self.form_val = (self.norm_val)*100       -- form_val
   local x,y,w,h  = self.x,self.y,self.w,self.h
@@ -3576,7 +3754,7 @@ Gate_on2 = 1
 end
 
 -- Shape slider ------------------------------ 
-local Shape_Sld = Q_Slider_Green:new(498,450+corrY,94,18, 0.218,0.542,0.45,0.8, "Shape","Arial",16, 0.5 )
+local Shape_Sld = Q_Slider_Green:new(596,430+corrY,73,18, 0.218,0.542,0.45,0.8, "Shape","Arial",16, 0.5 )
 function Shape_Sld:draw_val()
   self.form_val = (self.norm_val)*100       -- form_val
   local x,y,w,h  = self.x,self.y,self.w,self.h
@@ -3592,7 +3770,7 @@ Gate_on2 = 1
 end
 
 -- BiasThr slider ------------------------------ 
-local BiasThr_Sld = Q_Slider_Green_Bias:new(596,450+corrY,73,18, 0.218,0.542,0.45,0.8, "BiasThr","Arial",16, 1 )
+local BiasThr_Sld = Q_Slider_Green_Bias:new(596,450+corrY,73,18, 0.218,0.542,0.45,0.8, "Rel.Thr","Arial",16, 1 )
 function BiasThr_Sld:draw_val()
    self_norm_val = self.norm_val*1.4
 
@@ -3960,10 +4138,51 @@ Trigg_Status = 0
 Reset_Status = 0
 Midi_sampler_offs_stat = 0
 Midi_Check = 0
-
+WaveCheck = 0
 
     r.Undo_BeginBlock() 
 r.PreventUIRefresh(1)
+
+
+left, right = huge, -huge
+for t = 0, reaper.CountTracks(0)-1 do
+    local track = reaper.GetTrack(0, t)
+    local tR = {}
+    local razorOK, razorStr = reaper.GetSetMediaTrackInfo_String(track, "P_RAZOREDITS", "", false)
+    if razorOK and #razorStr ~= 0 then
+        for razorLeft, razorRight, envGuid in razorStr:gmatch([[([%d%.]+) ([%d%.]+) "([^"]*)"]]) do
+            if envGuid == "" then
+                local razorLeft, razorRight = tonumber(razorLeft), tonumber(razorRight)
+            if razorLeft  < left  then left  = razorLeft end
+            if razorRight > right then right = razorRight end
+                table.insert(tR, {left = razorLeft, right = razorRight})
+            end
+        end
+
+    if razorOK and #razorStr ~= 0 then
+        reaper.Main_OnCommand(40297,0)
+        reaper.SetTrackSelected(track, true)
+    else
+        reaper.SetTrackSelected(track, false)
+    end
+
+    end
+    for i = 0, reaper.CountTrackMediaItems(track)-1 do
+        local item = reaper.GetTrackMediaItem(track, i)
+  --      reaper.SetMediaItemSelected(item, false)
+        local left = reaper.GetMediaItemInfo_Value(item, "D_POSITION")
+        local right = left + reaper.GetMediaItemInfo_Value(item, "D_LENGTH")
+        for _, r in ipairs(tR) do
+            if left < r.right and right > r.left then
+                reaper.SetMediaItemSelected(item, true)
+            end
+        end
+    end
+end
+if left <= right then
+    reaper.GetSet_LoopTimeRange2(0, true, false, left, right, false)
+end
+reaper.UpdateArrange()
 
 
  loopcheck = 0
@@ -3977,6 +4196,40 @@ if loopcheckstart == loopcheckending then
 else
      r.Main_OnCommand(40718, 0) -- Item: Select all items on selected tracks in current time selection
 end
+
+----------- Delete Created Item --------------
+if NoItems == 1 then
+    for tr, trck in pairs(Table) do
+        if trck then 
+             for it, del_it in pairs(Table2) do
+                if del_it then 
+                   reaper.DeleteTrackMediaItem(tr, it)
+                   reaper.UpdateArrange()
+                   NoItems = 0
+                end
+             end    
+        end
+    end
+end
+------------------------------------
+
+NoItems = 0
+if r.CountSelectedMediaItems(0) == 0 and r.CountSelectedTracks(0) == 1 then -- if no items, create -----
+
+     Table = {}
+     Table2 = {}
+
+     track = r.GetSelectedTrack(0, 0)
+     if loopcheckstart ~= loopcheckending then
+       midiItem = r.CreateNewMIDIItemInProj(track, loopcheckstart, loopcheckending, false) -- 0.0001
+       reaper.SetMediaItemInfo_Value(midiItem, "B_UISEL", 1)
+       reaper.SetMediaItemInfo_Value( midiItem, "I_CUSTOMCOLOR",reaper.ColorToNative(25,25,25)|0x1000000 )
+       Table[track] = track
+       Table2[midiItem] = midiItem
+       NoItems = 1
+     end
+
+end ----------------------------------------------------------------
 
 if loopcheckstart == loopcheckending and loopcheckstart and loopcheckending then 
      loopcheck = 0
@@ -4090,13 +4343,6 @@ local Reset_All = Button:new(970,445+corrY,55,25, 0.3,0.3,0.3,1, "Reset",    "Ar
 Reset_All.onClick = 
 function()
 r.PreventUIRefresh(1)
-       local tracks = r.CountSelectedTracks()
-       for i = 0, tracks-1 do
-
-           j = 0
-           local track = reaper.GetSelectedTrack(0, i) -- Get selected track i
-           env = reaper.GetTrackEnvelope(track, j)
-           reaper.SetCursorContext(2, env)
 
    if Wave.State then 
     --        r.Main_OnCommand(40635, 0)     -- Remove Selection
@@ -4126,19 +4372,53 @@ r.PreventUIRefresh(1)
 
        if TrackEnv == 1 then
 
-             r.Main_OnCommand(r.NamedCommandLookup("_SWS_SAVETIME1"),0)   --SWS: Save time selection, slot 1
-             local sel_startx, sel_endx = r.GetSet_LoopTimeRange( 0, 0, 0, 0, 0 )  --Get Loop
-             r.GetSet_LoopTimeRange2( 0, 1, 0, sel_startx-(1/srate), sel_endx+(7/srate), 0 )  --Set new sel Loop
+               r.PreventUIRefresh(1)
+               r.Undo_BeginBlock()
+               
+               tracks = r.CountSelectedTracks(0)
 
-              if VolPreFX == 1 then
-                  r.Main_OnCommand(41865,0)--Envelope: select Vol Pre-FX
-                   else
-                  r.Main_OnCommand(41866,0)--Envelope: select Vol
-              end
+               for i=0, tracks-1 do
+               local track = r.GetSelectedTrack(0, i)
+               local envs = r.CountTrackEnvelopes(track)
+                      if track then
+                            for j = 0, envs-1 do
+                                 envelope = r.GetTrackEnvelope( track, j )
+                 
+                                  if SelectedEnvOnly == 1 then
+                                         envelope = r.GetSelectedEnvelope( 0 )
+                                   end
+                 
+                                   if envelope then
+                                        _, EnvName = r.GetEnvelopeName(envelope)
+                                        env = r.GetTrackEnvelopeByName(track, EnvName)
+                                        if env then
+      --       r.SetCursorContext(2, env)
+                                            loop_n_points = r.CountEnvelopePoints(env)
+                                            GetLoopTimeRange()
+                     
+                                            for i = 1, loop_n_points do
+                                              r.DeleteEnvelopePointRange( env, (start), (ending+1/srate) )
+                                            end
+                                        end
+                                   end
+                             end
+                        end
+               end
 
-                r.Main_OnCommand(40089,0)--Envelope: Delete all points in time selection
-
-              r.Main_OnCommand(r.NamedCommandLookup("_SWS_RESTTIME1"),0)  --SWS: Restore time selection
+              if tracks == 0 or (tracks ~= 0 and (loop_n_points == 1 or loop_n_points == nil)) then
+                       envelope2 = r.GetSelectedEnvelope( 0 )
+                       if envelope2 then
+                           loop_n_points2 = r.CountEnvelopePoints(envelope2)
+                           start2, ending2 = r.GetSet_LoopTimeRange( 0, 0, 0, 0, 0 )
+                           for i = 1, loop_n_points2 do
+                              r.DeleteEnvelopePointRange( envelope2, (start2), (ending2+1/srate) )
+                           end
+                       end
+               end
+               
+               r.Undo_EndBlock('Delete Points (Track)', 0)
+               r.PreventUIRefresh(-1)
+               r.UpdateArrange()
 
        else
               DelTakeEnv()
@@ -4149,19 +4429,16 @@ r.PreventUIRefresh(1)
             Markers_Status = 0
         end
 
-end
+
 end --  for i = 0, tracks-1 do
 r.PreventUIRefresh(-1)
 
 
--- Create Midi Button ----------------------------
-local Create_MIDI = Button:new(670,380+corrY,98,25, 0.3,0.3,0.3,1, "MIDI",    "Arial",16 )
-Create_MIDI.onClick = 
-
-function()
-
+local ItemEnvMode = CheckBox_Show:new(970,400+corrY,55,18,  0.28,0.4,0.7,0.8, "Env: ","Arial",16,  1,
+                              { "Volume", "Pan", "Pitch" } )
+ItemEnvMode.onClick = 
+function() 
 end
-
 
 
 -- Gate Button ----------------------------
@@ -4171,23 +4448,25 @@ function()
    if Wave.State then 
 midi_check()
            if TrackEnv == 0 and Midi_Check == 0 then 
-                 r.Main_OnCommand(r.NamedCommandLookup("_S&M_TAKEENVSHOW1"),0)
+                 if ItemEnvMode.norm_val == 1 then
+                     r.Main_OnCommand(r.NamedCommandLookup("_S&M_TAKEENVSHOW1"),0) -- show Vol
+                 elseif ItemEnvMode.norm_val == 2 then
+                     r.Main_OnCommand(r.NamedCommandLookup("_S&M_TAKEENVSHOW2"),0) -- show Pan
+                  elseif ItemEnvMode.norm_val == 3 then
+                     r.Main_OnCommand(r.NamedCommandLookup("_S&M_TAKEENVSHOW7"),0) -- show Pitch
+                 end
            end
-       if Slice_Status == 1 then
 
-       end
-
-    Gate_on2 = 1
-
-  if Gate_on == 0 then 
-       Gate_on = 1
-  end
+         Gate_on2 = 1
+   
+         Undo_Permit = 1
+   
+         if Gate_on == 0 then 
+              Gate_on = 1
+         end
 
    end 
 end 
-
-
-
 
 
 ----------------------------------------
@@ -4213,6 +4492,7 @@ function()
     Gate_on2 = 1
 end
 
+if NoItems == 0 and WaveCheck == 1 then Guides_mode = Guides_mode else Guides_mode = 2 end --if no items, script starts in Grid mode
 local Guides  = CheckBox:new(400,410+corrY,91,18, 0.28,0.4,0.7,0.8, "","Arial",16,  Guides_mode,
                               {"Transients","Grid"} )
 
@@ -4228,19 +4508,31 @@ end
 -- View Checkboxes -------------------------------
 -------------------------
 
-local Floor_State = CheckBox_Red:new(596,410+corrY,73,18, 0.564,0.261,0.221,0.8, "","Arial",16,  1,
+local Floor_State = CheckBox_Red:new(917,430+corrY,45,18, 0.564,0.261,0.221,0.8, "","Arial",16,  1,
                               {"Flat","Rise","Fall"} )
+Floor_State.onClick = 
+function() 
+MW_doit_slider_Swing()
+end
 
-local Velocity = Txt:new(691,384+corrY,55,18, 0.8,0.8,0.8,0.8, "Velocity","Arial",22)
+local AttackTxt = Txt:new(522,384+corrY,55,18, 0.8,0.8,0.8,0.8, "Attack","Arial",22)
 
-local Mode = Txt:new(775,384+corrY,55,18, 0.8,0.8,0.8,0.8, "Mode","Arial",22)
+local ReleaseTxt = Txt:new(605,384+corrY,55,18, 0.8,0.8,0.8,0.8, "Release","Arial",22)
 
-local ViewMode = CheckBox_Show:new(970,380+corrY,55,18,  0.28,0.4,0.7,0.8, "Show: ","Arial",16,  1,
-                              { "All", "Original", "Filtered" } )
+local VelocityTxt = Txt:new(691,384+corrY,55,18, 0.8,0.8,0.8,0.8, "Velocity","Arial",22)
+
+local ModeTxt = Txt:new(775,384+corrY,55,18, 0.8,0.8,0.8,0.8, "Mode","Arial",22)
+
+local LevelsTxt = Txt:new(850,384+corrY,55,18, 0.8,0.8,0.8,0.8, "Levels","Arial",22)
+
+local ViewMode = CheckBox_Show:new(970,380+corrY,55,18,  0.28,0.4,0.7,0.8, "","Arial",16,  1,
+                              { "View All", "Original", "Filtered" } )
 ViewMode.onClick = 
 function() 
    if Wave.State then Wave:Redraw() end 
 end
+
+
 
 local EnvMode = CheckBox:new(767,410+corrY,70,18,  0.28,0.4,0.7,0.8, "","Arial",16,  InvOnByDefault,
                               { "Invert on", "Invert off" } )
@@ -4256,17 +4548,24 @@ DrawGridGuides()
 Gate_on2 = 1
 end
 
-local AttMode = CheckBox_simple:new(596,430+corrY,73,18, 0.419,0.281,0.716,0.8, "","Arial",16,  1,
-                              { "Fixed", "By Vel", "By Vel Inv."} )
+local AttMode = CheckBox_simple:new(498,450+corrY,94,18, 0.419,0.281,0.716,0.8, "","Arial",16,  1,
+                              { "Fixed", "By Velocity", "By Vel Inv."} )
 AttMode.onClick = 
+function() 
+end
+
+local AttSoft = CheckBox_simple:new(498,430+corrY,94,18, 0.419,0.281,0.716,0.8, "","Arial",16,  1,
+                              { "Normal", "Soft"} )
+AttSoft.onClick = 
 function() 
 end
 
 -----------------------------------
 --- CheckBox_TB -------------------
 -----------------------------------
-local CheckBox_TB = {ViewMode, Guides, EnvMode, OffBeatP, AttMode}
-local Slider_TB_Trigger = {Gate_VeloScale, VeloMode, Velocity, Mode}
+local CheckBox_TB = {ViewMode, Guides, EnvMode, OffBeatP, AttMode, AttSoft}
+local CheckBoxItem_TB = {ItemEnvMode}
+local Slider_TB_Trigger = {Gate_VeloScale, VeloMode, AttackTxt, ReleaseTxt, VelocityTxt, ModeTxt, LevelsTxt}
 
 ----------------------------------------
 
@@ -4429,9 +4728,6 @@ function Gate_Gl:Reduce_Points() -- Надо допилить!!!
     
  self.Res_Points = {}
 
-
-
-
 -----------------------Last point of last Item------------------------------------
   local s_start, s_end = r.GetSet_LoopTimeRange( 0, 0, 0, 0, 0 )
   local items = reaper.CountSelectedMediaItems(0)
@@ -4443,15 +4739,13 @@ function Gate_Gl:Reduce_Points() -- Надо допилить!!!
     p0sition    = reaper.GetMediaItemInfo_Value(item, "D_POSITION")
     l3ngth = (reaper.GetMediaItemInfo_Value(item, "D_LENGTH")+p0sition-p0sition_first)*srate
       if l3ngth< s_end*srate then l3ngth = (s_end-s_start)*srate end
-    rateIt = r.GetMediaItemTakeInfo_Value(take,'D_PLAYRATE');
-  
+      if take then
+          rateIt = r.GetMediaItemTakeInfo_Value(take,'D_PLAYRATE');
+      end  
           table.insert(self.State_Points, l3ngth) 
           table.insert(self.State_Points, {0, 0})
   end
 --------------------------------------------------------------------------------------
-
-
-
 
     for i=1, #self.State_Points, 2 do
        -- В результирующую таблицу копируются значения, входящие в диапазон --
@@ -4466,44 +4760,30 @@ function Gate_Gl:Reduce_Points() -- Надо допилить!!!
 -------------------------------------------------------------------------------
 ------------------------------View "Grid by" Lines------------------------------
 -------------------------------------------------------------------------------
+
+local Grid_Points_r
+
 function DrawGridGuides()
 
 local lastitem = r.GetExtState('_Slicer_', 'ItemToSlice')
      
      local item =  r.BR_GetMediaItemByGUID( 0, lastitem )
                 if item then 
--------------------------------SAVE GRID-----------------------------
---local _, division, swingmode, swingamt = r.GetSetProjectGrid(0, 0)
 
---local ext_sec, ext_key = 'savegrid', 'grid'
---r.SetExtState(ext_sec, ext_key, division..','..swingmode..','..swingamt, 0)
 ---------------------------SET NEWGRID-------------------------------------
-if  Guides.norm_val == 2 then  
---[[
-     if Guides == 0 then r.Main_OnCommand(40781, 0) --1
-          elseif Guides == 1 then r.Main_OnCommand(42007, 0)
-          elseif Guides == 2 then r.Main_OnCommand(40780, 0) --2
-          elseif Guides == 3 then r.Main_OnCommand(42000, 0)
-          elseif Guides == 4 then r.Main_OnCommand(40779, 0) -- 4
-          elseif Guides == 5 then r.Main_OnCommand(41214, 0)  
-          elseif Guides == 6 then r.Main_OnCommand(40778, 0) --8 
-          elseif Guides == 7 then r.Main_OnCommand(40777, 0)
-          elseif Guides == 8 then r.Main_OnCommand(40776, 0) --16
-          elseif Guides == 9 then r.Main_OnCommand(41213, 0)
-          elseif Guides == 10 then r.Main_OnCommand(40775, 0)-- 32
-          elseif Guides == 11 then r.Main_OnCommand(41212, 0)
-          elseif Guides == 12 then r.Main_OnCommand(40774, 0) -- 64
-     end
-]]--
-end
+
  Grid_Points_r ={}
  Grid_Points = {}
 local p = 0
 local b = 0
 
+if loop_start == nil then loop_start = 0 end
+if loop_end == nil then loop_end = 0 end
+if srate == nil then return end
 
 if OffBeatP.norm_val == 1 then
    local _, offbeat_division, _, _ = r.GetSetProjectGrid(0,false)
+  if tempo_corr == nil then tempo_corr = 1 end
   offbeat = offbeat_division*tempo_corr
     else
   offbeat = 0
@@ -4526,53 +4806,14 @@ blueline = beatc(blueline)
     
         b = b + 1
         Grid_Points_r[b] = floor((blueline - loop_start)*srate)+(Offset_Sld.form_val/1000*srate)
-   --         table.insert(Grid_Points_r, loop_start*srate)           -- First Grid Point Blue Marker
+      --      table.insert(Grid_Points_r, ((loop_start-p0sition)*srate)+(Offset_Sld.form_val/1000*srate))           -- First Grid Point Blue Marker
    end 
 
 table.sort(Grid_Points)
 table.sort(Grid_Points_r)
 
  end 
-------------------------------------RESTORE GRID----------------------------
--- local ext_sec, ext_key = 'savegrid', 'grid'
- --local str = r.GetExtState(ext_sec, ext_key)
- --if not str or str == '' then return end
- 
- --local division, swingmode, swingamt = str:match'(.*),(.*),(.*)'
- --if not (division and swingmode and swingamt) then return end
- 
- --r.GetSetProjectGrid(0, 1, division, swingmode, swingamt)
-end
 
--------------------------------------------------------------------------------
-------------------------View Main (Project) Grid--------------------------------
--------------------------------------------------------------------------------
-function DrawGridGuides2() 
-local lastitem = r.GetExtState('_Slicer_', 'ItemToSlice')    
-    local  item =  r.BR_GetMediaItemByGUID( 0, lastitem )
-                if item then                               
--------------------------------SAVE GRID-----------------------------
- local _, division, swingmode, swingamt = r.GetSetProjectGrid(0, 0)
----------------------------SET NEWGRID-------------------------------
-Grid_Points_Ruler ={}
-local d = 0
-local grinline2 = loop_start 
-   while (grinline2 <= loop_end) do
-
-function beatc(beatpos)
-   local retval, measures, cml, fullbeats, cdenom = r.TimeMap2_timeToBeats(0, beatpos)
-   local _, division, _, _ = r.GetSetProjectGrid(0,false)
-   beatpos = r.TimeMap2_beatsToTime(0, fullbeats +(division*4))
-   return beatpos
-end
-grinline2 = beatc(grinline2)
-
-        d = d + 1
-        Grid_Points_Ruler[d] = floor((grinline2 - loop_start)*srate)
-   end 
- end 
---------------------------------RESTORE GRID-------------------------
- r.GetSetProjectGrid(0, 1, division, swingmode, swingamt)
 end
 
 -----------------------------------------------------------------------
@@ -4631,7 +4872,6 @@ gfx.set(0, 0.7, 0.7, 0.7) -- gate line, point color -- цвет маркеров
 
 local Grid_Points_r = Grid_Points_r or {};     
 local _, division, swingmode, swingamt = r.GetSetProjectGrid(0, 0)
-local tempo_corr = 1/(r.Master_GetTempo()/120)
 local lnt_corr = (loop_length/tempo_corr)/8
    for i=1, #Grid_Points_r  do
 
@@ -4642,7 +4882,9 @@ local lnt_corr = (loop_length/tempo_corr)/8
          sw_shift = 0
          end
 
-         local line_x  = Wave.x+sw_shift + (Grid_Points_r[i] - self.start_smpl) * self.Xsc  -- line x coord
+         if 0.00007 > self.Xsc*division then self.Xsc = 0.00007/division end
+         OffsSldCorrG = 0.5/1000*srate
+         local line_x  = Wave.x+sw_shift + (Grid_Points_r[i] - self.start_smpl+OffsSldCorrG) * self.Xsc  -- line x coord
 
          --------------------
          -- draw line 8 -----
@@ -4684,34 +4926,10 @@ function Gate_Gl:draw_Ruler()
     -- Draw Project Grid lines ("Ruler") ----------------------------
 -------------------------------------------------------------------------------------------------------------
 
-local Grid_Points_Ruler = Grid_Points_Ruler or {};     
+local Grid_Points_Ruler = Grid_Points_r or {};     
 local _, division, swingmode, swingamt = r.GetSetProjectGrid(0, 0)
-local tempo_corr = 1/(r.Master_GetTempo()/120)
 local lnt_corr = (loop_length/tempo_corr)/8
-
-gfx.set(0, 0, 0, 0.8) -- gate line, point color background
-
- for i=1, #Grid_Points_Ruler  do
-
-         sw_shift = swingamt*(1-abs(division-1))
-         if IsEven(i) == false and swingmode == 1 then 
-           sw_shift = (sw_shift*128*Wave.Zoom*Z_w)/lnt_corr
-             else
-           sw_shift = 0
-         end
-
-         local line_x  = Wave.x+sw_shift + (Grid_Points_Ruler[i] - self.start_smpl) * self.Xsc  -- line x coord
-         --------------------
-         -- draw line -----
-         ----------------------      
-         if line_x>=Wave.x and line_x<=Wave.x+Wave.w then -- Verify line range
-          gfx.line(line_x-1, (Wave.y*1.17), line_x-1, Wave.y-2+(Wave.h/300))  -- Draw Trig Line Left
-          gfx.line(line_x, (Wave.y*1.18), line_x, Wave.y-2+(Wave.h/300))  -- Draw Trig Line Center
-          gfx.line(line_x+1, (Wave.y*1.17), line_x+1, Wave.y-2+(Wave.h/300))  -- Draw Trig Line Right
-         end
-end  
-
-gfx.set(0.1, 1, 0.1, 1) -- gate line, point color -- цвет линий сетки проекта
+local ruler_recolor, p_corr = 0, 1
 
  for i=1, #Grid_Points_Ruler  do
 
@@ -4722,13 +4940,32 @@ gfx.set(0.1, 1, 0.1, 1) -- gate line, point color -- цвет линий сет�
             sw_shift = 0
          end
 
-         local line_x  = Wave.x+sw_shift + (Grid_Points_Ruler[i] - self.start_smpl) * self.Xsc  -- line x coord
+         if 0.00007 > self.Xsc*division then self.Xsc = 0.00007/division; ruler_recolor = 1 end
+         if OffsSldCorr == nil then OffsSldCorr = Offset_Sld.form_val/1000*srate end
+         local line_x  = Wave.x+sw_shift + (Grid_Points_Ruler[i] - self.start_smpl-OffsSldCorr) * self.Xsc  -- line x coord
+
          --------------------
          -- draw line -----
          ----------------------      
          if line_x>=Wave.x and line_x<=Wave.x+Wave.w then -- Verify line range
+
+             if ruler_recolor == 0 then
+                 gfx.set(0, 0, 0, 0.8) -- ruler black background
+                 p_corr = 1
+               else
+                 gfx.set(0.1, 1, 0.1, 0.4) -- ruler green background ("grid too small")
+                 p_corr = 2
+             end
+
+            gfx.line(line_x-p_corr, (Wave.y*1.17), line_x-p_corr, Wave.y-2+(Wave.h/300))  -- Draw Trig Line Left
+            gfx.line(line_x, (Wave.y*1.18), line_x, Wave.y-2+(Wave.h/300))  -- Draw Trig Line Center
+            gfx.line(line_x+p_corr, (Wave.y*1.17), line_x+p_corr, Wave.y-2+(Wave.h/300))  -- Draw Trig Line Right
+
+            gfx.set(0.1, 1, 0.1, 1) -- ruler green short line, point color -- цвет линий сетки проекта
             gfx.line(line_x, (Wave.y*1.17), line_x, Wave.y-1+(Wave.h/300))  -- Draw Trig Line
-         end
+
+        end
+
    end  
 end
 
@@ -4805,10 +5042,6 @@ function Wave:Settings()
 end
 
 
-function Wave:Just_Slice()
-
-end
-
 -------------------------------------------------------------------------------------------------------------
 
 function Wave:Quantize_Slices()
@@ -4875,7 +5108,6 @@ r.PreventUIRefresh(1)
      else -- Add Markers by Grid
 
     local _, division, swingmode, swingamt = r.GetSetProjectGrid(0, 0)
-    local tempo_corr = 1/(r.Master_GetTempo()/120)
       for i=1, #Grid_Points do
 
          sw_shift = swingamt*(1-abs(division-1))
@@ -4940,6 +5172,29 @@ r.PreventUIRefresh(1)
 local i=0;
 
     r.Undo_BeginBlock();
+
+if r.GetToggleCommandState(r.NamedCommandLookup('_BR_OPTIONS_SNAP_FOLLOW_GRID_VIS'), 0) == 1 then
+      grid_opt = 1
+  else
+      grid_opt = 0
+      r.Main_OnCommand(r.NamedCommandLookup('_BR_OPTIONS_SNAP_FOLLOW_GRID_VIS'), 0)
+end
+
+if r.GetToggleCommandState(1157) == 1 then
+      snap = 1
+  else
+      snap = 0
+      r.Main_OnCommand(1157, 0)
+end
+
+if r.GetToggleCommandState(40145) == 1 then
+      grid = 1
+  else
+      grid = 0
+      r.Main_OnCommand(40145, 0)
+end
+
+
 while(true) do;
   i=i+1;
   local item = r.GetSelectedMediaItem(0,i-1);
@@ -4950,22 +5205,28 @@ while(true) do;
     if item then;
         local posIt = r.GetMediaItemInfo_Value(item,"D_POSITION");
         local take = r.GetActiveTake(item); 
-        local rateIt = r.GetMediaItemTakeInfo_Value(take,'D_PLAYRATE');
-        ---
-        local countStrMar = r.GetTakeNumStretchMarkers(take);
-        for i = 1,countStrMar do;
-            local pos = ({r.GetTakeStretchMarker(take,i-1)})[2]/rateIt+posIt;
-            local posGrid = Arc_GetClosestGridDivision(pos);
-            if q_force < 0 then q_force = 0 elseif q_force > 100 then q_force = 100 end;
-            local new_pos = (((posGrid-pos)/100*q_force)+pos)-posIt; 
-            r.SetTakeStretchMarker(take,i-1,new_pos*rateIt);
-        end;
+        if take then
+            local rateIt = r.GetMediaItemTakeInfo_Value(take,'D_PLAYRATE');
+            ---
+            local countStrMar = r.GetTakeNumStretchMarkers(take);
+            for i = 1,countStrMar do;
+                local pos = ({r.GetTakeStretchMarker(take,i-1)})[2]/rateIt+posIt;
+                local posGrid = Arc_GetClosestGridDivision(pos);
+                if q_force < 0 then q_force = 0 elseif q_force > 100 then q_force = 100 end;
+                local new_pos = (((posGrid-pos)/100*q_force)+pos)-posIt; 
+                r.SetTakeStretchMarker(take,i-1,new_pos*rateIt);
+            end;
+        end
         r.UpdateItemInProject(item);
     end;
   else;
     break;
   end;
 end;
+
+ if  grid_opt == 0 then r.Main_OnCommand(r.NamedCommandLookup('_BR_OPTIONS_SNAP_FOLLOW_GRID_VIS'), 0) end
+ if  snap == 0 then r.Main_OnCommand(1157, 0) end
+ if  grid == 0 then r.Main_OnCommand(40145, 0) end
 
     r.Undo_EndBlock("MarkersQ",-1);
 
@@ -5003,14 +5264,9 @@ function Wave:Create_Track_Accessor()
       local tk = r.GetActiveTake(item)
       if tk then
 
-      r.GetMediaItemTake_Track(tk)  
-    
     self.track = r.GetMediaItemTake_Track(tk)
     if self.track then self.AA = r.CreateTrackAudioAccessor(self.track)
 
-         self.AA_Hash  = r.GetAudioAccessorHash(self.AA, "")
-         self.AA_start = r.GetAudioAccessorStartTime(self.AA)
-         self.AA_end   = r.GetAudioAccessorEndTime(self.AA)
          self.buffer   = r.new_array(block_size)-- main block-buffer
          self.buffer.clear()
          return true
@@ -5023,17 +5279,15 @@ end
 
 function Wave:Destroy_Track_Accessor()
    
-if getitem == 0 then
+--if getitem == 0 then
     if self.AA then r.DestroyAudioAccessor(self.AA) 
        self.buffer.clear()
     end
- end
+ --end
 end
 
 --------
 function Wave:Get_TimeSelection()
- --   r.Main_OnCommand(41039, 0) -- Loop points: Set loop points to items
- --  r.Main_OnCommand(40290, 0) -- Set Selection to Items
      r.Main_OnCommand(40718, 0) -- Item: Select all items on selected tracks in current time selection
 
       local sel_start, sel_end = r.GetSet_LoopTimeRange( 0, 0, 0, 0, 0 )
@@ -5060,26 +5314,64 @@ end
 
 
 function DelTakeEnv()
-       reaper.PreventUIRefresh(1)
+
        
-       reaper.Undo_BeginBlock()
+if sel_area == 1 then
+
+       r.PreventUIRefresh(1)
+       r.Undo_BeginBlock()
        
-       selItemCount = reaper.CountSelectedMediaItems(pProj)
+       items = r.CountSelectedMediaItems(0)
+       
+       for i=0, items-1 do
+       local item = r.GetSelectedMediaItem(0, i)
+              if item then
+                     take = r.GetActiveTake( item )
+                     p0sition    = r.GetMediaItemInfo_Value(item, "D_POSITION")
+                     l3ngth = r.GetMediaItemInfo_Value(item, "D_LENGTH")
+                     rateIt = r.GetMediaItemTakeInfo_Value(take,'D_PLAYRATE');
+                     env = r.GetTakeEnvelope( take, 0 )
+                         if env then
+                              loop_n_points = r.CountEnvelopePoints(env)
+                              GetLoopTimeRange()
+                               if start == ending then
+                                 start = p0sition
+                                 ending = p0sition+l3ngth
+                               end
+                          
+                               for i = 1, loop_n_points do
+                                 r.DeleteEnvelopePointRange( env, (start-p0sition)*rateIt, (ending-p0sition)*rateIt )
+                               end
+                         end
+                end
+       end
+       
+       r.Undo_EndBlock('Delete Points (Item)', 0)
+       r.PreventUIRefresh(-1)
+       r.UpdateArrange()
+
+else
+
+       r.PreventUIRefresh(1)
+       
+       r.Undo_BeginBlock()
+
+       selItemCount = r.CountSelectedMediaItems(pProj)
        i = 0
        while i < selItemCount do
-           pItem = reaper.GetSelectedMediaItem(pProj, i)
-           pTake = reaper.GetMediaItemTake(pItem, 0)
-           
+           pItem = r.GetSelectedMediaItem(pProj, i)
+           pTake = r.GetMediaItemTake(pItem, 0)
+         if pTake then
            itemchunk = "";
            envchunk = ""
-           result, itemchunk = reaper.GetItemStateChunk(pItem, itemchunk, 1)
+           result, itemchunk = r.GetItemStateChunk(pItem, itemchunk, 1)
                
-           envCount = reaper.CountTakeEnvelopes(pTake)
+           envCount = r.CountTakeEnvelopes(pTake)
            e = 0
            while e < envCount do
-               pEnv = reaper.GetTakeEnvelope(pTake, e)          
+               pEnv = r.GetTakeEnvelope(pTake, e)          
        
-               result, envchunk = reaper.GetEnvelopeStateChunk(pEnv, envchunk, 1)
+               result, envchunk = r.GetEnvelopeStateChunk(pEnv, envchunk, 1)
                
                x, y = string.find(itemchunk, envchunk, 0, 0)
                
@@ -5087,107 +5379,240 @@ function DelTakeEnv()
                    itemchunk = string.sub(itemchunk, 0, x - 1) .. string.sub(itemchunk, y , 0)
                end
                
-               --reaper.ShowConsoleMsg(itemchunk)
+               --r.ShowConsoleMsg(itemchunk)
                    
                e = e + 1
            end
            
-           reaper.SetItemStateChunk(pItem, itemchunk, 1);
+           r.SetItemStateChunk(pItem, itemchunk, 1);
                
-           reaper.UpdateItemInProject(pItem)
+           r.UpdateItemInProject(pItem)
            
            i = i + 1
+           else 
+             break
+         end
        end
        
-       reaper.Undo_EndBlock("Delete selected items active take envelopes", -1)
-       
-       reaper.UpdateArrange()
-       reaper.UpdateTimeline()
-       
-       reaper.PreventUIRefresh(-1)
+       r.Undo_EndBlock("Delete selected items active take envelopes", -1)    
+       r.UpdateArrange()
+       r.PreventUIRefresh(-1)
+end
 
 end
 
+
+-- SelectedEnvOnly = 0 -- On - process only selected envelope, Off - process all envelopes on a selected tracks.
 
 ------------------------------------------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------------------------
 ------------------------  Create Envelope ------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------------------------
-
+envs_status2 = 0
+envs_status3 = 0
 function Wave:Create_Envelope()
 
 midi_check()
 if Midi_Check == 1 then  -- If MIDI item, then PostFX Track Vol 
    TrackEnv = 1
-   VolPreFX = 0
+         if NoItems == 0 then
+             VolPreFX = 0
+               else
+             VolPreFX = VolPreFX
+         end
      else 
    TrackEnv = TrackEnv
    VolPreFX = VolPreFX
 end
 
-local items = reaper.CountSelectedMediaItems(0)
+local items = r.CountSelectedMediaItems(0)
 for i=0, items-1 do
- local item = reaper.GetSelectedMediaItem(0, i)
-  take        = reaper.GetActiveTake(item)
-  p0sition    = reaper.GetMediaItemInfo_Value(item, "D_POSITION")
-  l3ngth = reaper.GetMediaItemInfo_Value(item, "D_LENGTH")
-  rateIt = r.GetMediaItemTakeInfo_Value(take,'D_PLAYRATE');
-  envelope    = reaper.GetTakeEnvelope(take, 0) -- take envelope
+ local item = r.GetSelectedMediaItem(0, i)
+  take        = r.GetActiveTake(item)
+  p0sition    = r.GetMediaItemInfo_Value(item, "D_POSITION")
+  p0sition2    = r.GetMediaItemInfo_Value(item, "D_POSITION")
+  l3ngth = r.GetMediaItemInfo_Value(item, "D_LENGTH")
+
+  if take then 
+      rateIt = r.GetMediaItemTakeInfo_Value(take,'D_PLAYRATE');
+         else
+      return
+  end
+
+      if i<1 then p0sition_b = p0sition2 end -- takes into account multiple items
+      ending_b = p0sition2+l3ngth
+ 
+      if self.sel_start ~= p0sition_b or self.sel_end ~= ending_b then --if selected part of item
+         sel_area = 1
+          else
+         sel_area = 0
+      end
+ 
+      if self.sel_start == p0sition_b then --if selection equal start of item
+         sel_equal_pos = 1
+          else
+         sel_equal_pos = 0
+      end
+
+           if ItemEnvMode.norm_val == 1 then
+               envelope    = r.GetTakeEnvelopeByName(take, "Volume") -- take envelope
+                    elseif ItemEnvMode.norm_val == 2 then
+               envelope    = r.GetTakeEnvelopeByName(take, "Pan") -- take envelope
+                    elseif ItemEnvMode.norm_val == 3 then
+               envelope    = r.GetTakeEnvelopeByName(take, "Pitch") -- take envelope
+           end
 
        local tracks = r.CountSelectedTracks()
        for i = 0, tracks-1 do
         local  track = r.GetSelectedTrack(0, i)
+        local envs = r.CountTrackEnvelopes(track)
+
+        if envs == 0 and TrackEnv == 1 then -- if no track envelopes, adds it 
+              r.TrackList_AdjustWindows(true)
+
+              if envs_status2 == 0 then
+                  if VolPreFX == 1 then
+                    r.Main_OnCommand(40050, 0) -- Active Pre-FX Vol Env --
+                    envelope = r.GetTrackEnvelopeByName(track,"Volume (Pre-FX)")
+                    envs_status2 = 1
+                      else
+                    r.Main_OnCommand(40052, 0) -- Active Vol Env --
+                    envelope = r.GetTrackEnvelopeByName(track,"Volume")
+                    envs_status2 = 1
+                  end
+              end
+         else
+              if TrackEnv ~= 1 then
+                  envs = 1
+              else
+            end
+        end
+
+
+
+              if envs ~= 0  and TrackEnv == 1 then -- if envs exist
+                    -----------------------------------------------------
+                    if envs_status3 == 0 then
+                      i_envelope_pre = r.GetTrackEnvelopeByName(track,"Volume (Pre-FX)") -- check
+                      i_envelope_vol = r.GetTrackEnvelopeByName(track,"Volume")
+                          if i_envelope_pre == nil and i_envelope_vol == nil then -- if no eny vol envs, skip it
+                            envs_status3 = 1
+                          else
+
+                                if VolPreFX == 1 then 
+                                  i_envelope = r.GetTrackEnvelopeByName(track,"Volume (Pre-FX)") -- check
+                                      if i_envelope == nil then -- if nil - create and focus
+                                          r.Main_OnCommand(40050, 0) -- Active Pre-FX Vol Env --
+                                          envelope = r.GetTrackEnvelopeByName(track,"Volume (Pre-FX)")
+                                          else -- if exist - focus
+                                          envelope = r.GetTrackEnvelopeByName(track,"Volume (Pre-FX)")      
+                                      end
+                                  envs_status3 = 1
+                                    else
+                                  i_envelope = r.GetTrackEnvelopeByName(track,"Volume")
+                                      if i_envelope == nil then 
+                                          r.Main_OnCommand(40052, 0) -- Active Vol Env --
+                                          envelope = r.GetTrackEnvelopeByName(track,"Volume")
+                                          else
+                                          envelope = r.GetTrackEnvelopeByName(track,"Volume")
+                                      end
+                                  envs_status3 = 1
+                                end
+
+                          end      
+                    end
+                  -----------------------------------------------------
+               end
+
+
+
+  local envs_status = 1
+
+  if not r.GetSelectedEnvelope(0) then --if no selected envelopes, change status for select first one
+      envs_status = 0
+  end
+
+
+for j = 0, envs-1 do
 
 if TrackEnv == 1 then -- track envelope
 
-            if VolPreFX == 1 then
-               envelope = reaper.GetTrackEnvelopeByName(track,"Volume (Pre-FX)")
-               else
-               envelope = reaper.GetTrackEnvelopeByName(track,"Volume")
-            end
+if envs_status == 0 then
+     TrackEnvelope = r.GetTrackEnvelope( track, j ) -- all envelopes
+--     envs_status = 1
+else
+     TrackEnvelope = r.GetTrackEnvelope( track, j ) -- all envelopes
+     if SelectedEnvOnly == 1 then
+         TrackEnvelope = r.GetSelectedEnvelope(0) -- only selected envelopes
+     end
+end
 
-        if not envelope then
-
-           reaper.TrackList_AdjustWindows(true)
-
-                  if VolPreFX == 1 then
-                     reaper.Main_OnCommand(40050, 0) -- Active Pre-FX Vol Env --
-                     envelope = reaper.GetTrackEnvelopeByName(track,"Volume (Pre-FX)")
-                     else
-                     reaper.Main_OnCommand(40052, 0) -- Active Vol Env --
-                     envelope = reaper.GetTrackEnvelopeByName(track,"Volume")
+      if   TrackEnvelope then    
+               _, EnvName = r.GetEnvelopeName(TrackEnvelope)
+               envelope = r.GetTrackEnvelopeByName(track, EnvName)
+                  if envs_status == 0 then
+                        r.SetCursorContext(2, envelope) -- select the envelope 
+                       envs_status = 1
                   end
-        end
+      end
+
+
 
      p0sition = 0
      rateIt = 1
 
 end
 
-
     local _, division, swingmode, swingamt = r.GetSetProjectGrid(0, 0)
-    tempo_corr = 1/(r.Master_GetTempo()/120)
     tempo_corr2 = (r.Master_GetTempo()/120)
     aatempo_corr2 = (math.log(r.Master_GetTempo()/120))*1.45
 
+    if r.Master_GetTempo() >= 120 then
+       tempo_corr3 = tempo_corr2
+         else
+       tempo_corr3 = tempo_corr
+    end
+
       local shape, tens, sel, nosort = 5, CurveVal, 1, 1
+      if CurveVal == 1 then tens = 0 else tens = CurveVal end -- resets CurveVal when rectangle
       local PreAttack = 0.004
       OneSpl = 1/srate
 
+  --- Del old points in sel range --
+if envelope then
+   r.DeleteEnvelopePointRange( envelope, (self.sel_start-p0sition)*rateIt, (self.sel_start + self.sel_len+OneSpl)*rateIt)
+end
+
 if envelope and self.sel_start then
 
-    local Gain =  (FloorVal) -- Env_Gain.scal_val
+if ItemEnvMode.norm_val == 3 then EnvGainSld = EnvGainSld_p end -- pitch mode 
+if ItemEnvMode.norm_val == 3 then FloorVal = FloorVal_p end -- pitch mode
+if (EnvName == "Pan" or EnvName == "Pan (Pre-FX)" or ItemEnvMode.norm_val == 2) then EnvGainSld = 1 else EnvGainSld = EnvGainSld end
+if not (EnvName == "Pan" or EnvName == "Pan (Pre-FX)" or ItemEnvMode.norm_val == 2) then PanWidth3 = 1 else PanWidth3 = PanWidth3 end
 
-          EnvGcorr =  EnvGainSld2*((exp(Gain)-1)*2.5) -- gain boost correction
+    Gain =  (FloorVal) -- Env_Gain.scal_val
+   if ((EnvName == "Pan" or EnvName == "Pan (Pre-FX)") or ItemEnvMode.norm_val == 2) then Gain = (Gain*0.96)-0.24 else Gain = Gain end  -- gain correction on the pan envelope
+          if ItemEnvMode.norm_val == 3 then -- gain correction on the pitch envelope
+                 Gain = ((Gain*0.96)-0.24)*(Pitch_Range)
+                 EnvGainSld = EnvGainSld*(Pitch_Range/4)
+                 EnvGainSld2 = EnvGainSld2*(Pitch_Range/4)
+              else
+                 Gain = Gain
+                 EnvGainSld = EnvGainSld           
+                 EnvGainSld2 = EnvGainSld2
+           end
 
+          EnvGcorr =  (EnvGainSld2/0.8)*((exp(Gain)-1)*(EnvGainSld+1.11)) -- gain boost correction
     ----------------------------------------------------
-    local mode = reaper.GetEnvelopeScalingMode(envelope)
-          Gain = reaper.ScaleToEnvelopeMode(mode,  Gain+EnvGcorr)
-          G_1 = reaper.ScaleToEnvelopeMode(mode, EnvGainSld)     -- 1 - gain
-          ZeroGain = reaper.ScaleToEnvelopeMode(mode, 1)
-          _, ZeroGain2, _, _, _ = reaper.Envelope_Evaluate(envelope, self.sel_end+(2/srate), 0, 0) -- initial envelope gain (selection start)
-          _, ZeroGain, _, _, _ = reaper.Envelope_Evaluate(envelope, self.sel_start-OneSpl, 0, 0) -- initial envelope gain (selection end)
+    local mode = r.GetEnvelopeScalingMode(envelope)
+    if  EnvName == "Volume (Pre-FX)" or EnvName == "Volume" or (ItemEnvMode.norm_val == 1 and TrackEnv == 0) then EnvGcorr = EnvGcorr else EnvGcorr = Gain*3.2 end -- boost correction off if no vol envelope
+          Gain = r.ScaleToEnvelopeMode(mode,  Gain+EnvGcorr)
+          if EnvGainSld < 1 and Floor_State.norm_val ~= 1 then EnvGainSld = 1 end -- limit gain slider when rise or fall
+          G_1 = max(Gain, r.ScaleToEnvelopeMode(mode, EnvGainSld))     -- 1 - gain
+          ZeroGain = r.ScaleToEnvelopeMode(mode, 1)
+          _, ZeroGain2, _, _, _ = r.Envelope_Evaluate(envelope, self.sel_end+(2/srate), 0, 0) -- initial envelope gain (selection start)
+          _, ZeroGain, _, _, _ = r.Envelope_Evaluate(envelope, self.sel_start-OneSpl, 0, 0) -- initial envelope gain (selection end)
           FlCmp = ZeroGain-G_1 -- rise/fall floor compensation when gain sld
 
          if EnvMode.norm_val == 1 then  --inverted
@@ -5198,18 +5623,10 @@ if envelope and self.sel_start then
             Gx2 = G_1
          end
 
-  --- Del old points in sel range --
-  reaper.DeleteEnvelopePointRange( envelope, (self.sel_start-p0sition-OneSpl)*rateIt, (self.sel_start + self.sel_len+(2/srate))*rateIt)
+ if ItemEnvMode.norm_val == 3 then Gx1 = math_round(Gx1,0) end -- if Pitch, rounding to half tone
+ if ItemEnvMode.norm_val == 3 then Gx2 = math_round(Gx2,0) end
 
--------------------------------------------------Start and end points ---------------------------------------------------
-
-    if TrackEnv == 1 then
-        reaper.InsertEnvelopePoint(envelope, (self.sel_start-(1/srate))*rateIt, ZeroGain, shape, tens, 0, nosort) -- sel_start
-        reaper.InsertEnvelopePoint(envelope, (self.sel_end+(2/srate))*rateIt, ZeroGain2, shape, tens, 0, nosort) -- sel_end
-         else
- --       reaper.InsertEnvelopePoint(envelope, (0+(1/srate))*rateIt, ZeroGain, shape, tens, 0, nosort) -- sel_start
- --       reaper.InsertEnvelopePoint(envelope, (l3ngth+(2/srate))*rateIt, ZeroGain, shape, tens, 0, nosort) -- sel_end
-     end
+    ppqp0s_Status = 0
 
 if (Guides.norm_val == 1) then  ----------------- Add Markers by Transients -----------------------------------
 
@@ -5219,41 +5636,73 @@ if (Guides.norm_val == 1) then  ----------------- Add Markers by Transients ----
 
     local points_cnt = #Gate_Gl.Res_Points
       for i=1, points_cnt, 2 do
+
               if Gate_Gl.Res_Points[i] then 
                  if startppqp0s then next_startppqp0s3 = startppqp0s end
                  if i<points_cnt then startppqp0s = (self.sel_start + Gate_Gl.Res_Points[i]/srate )*rateIt end
                  if i<points_cnt-2 then next_startppqp0s = (self.sel_start + Gate_Gl.Res_Points[i+2]/srate )*rateIt end
                  vel = floor(velo_offset + Gate_Gl.Res_Points[i+1][mode] * velo_scale)
 
+-----------------------Limiters for Selected Area
+if startppqp0s <= (self.sel_start+(1/srate))*rateIt then startppqp0s = (self.sel_start+(1/srate))*rateIt end
 
-       if Floor_State.norm_val == 1 then --Flat
-               move2 = Gx1
-               move = Gx1
-               move3 = Gx2
+if startppqp0s >= (self.sel_end-(1/srate))*rateIt then startppqp0s = (self.sel_end-(1/srate))*rateIt end
+-----------------------------------------------
+
+       if Floor_State.norm_val == 1 or ItemEnvMode.norm_val == 3 then --Flat if flat or pitch
+               move2 = Gx1/PanWidth3
+               move = Gx1/PanWidth3
+               move3 = Gx2/PanWidth3
                move2_last = move2
             elseif Floor_State.norm_val == 2 then --Rise
                 if EnvMode.norm_val == 1 then -- inverse
+                  if  ItemEnvMode.norm_val == 2 or (EnvName == "Pan" or EnvName == "Pan (Pre-FX)") then -- Pan
+                      move2 = (i/points_cnt)/PanWidth
+                      move = ((i+1)/points_cnt)/PanWidth
+                      move3 = (1-((i+1)/points_cnt)-1)/PanWidth
+                   else
                       move2 = Gx1
                       move = Gx1
-                      move3 = min((0)+((i/points_cnt)*(ZeroGain)), Gx1)-FlCmp -- -- move up inv
+                      move3 = min(((i/points_cnt)*(ZeroGain)), Gx1)-FlCmp -- -- move up inv
                       move2_last = move2
+                   end
+
                         else
+
+                  if  ItemEnvMode.norm_val == 2 or (EnvName == "Pan" or EnvName == "Pan (Pre-FX)") then -- Pan 
+                      move3 = (i/points_cnt)/PanWidth
+                      move2 = (1-(i/points_cnt)-1)/PanWidth
+                      move = (1-((i+1)/points_cnt)-1)/PanWidth
+                  else
                       move3 = Gx2
-                      move2 = min((0)+(((i-2)/points_cnt)*(ZeroGain)),Gx2)-FlCmp  -- move up
-                      move = min((0)+((i/points_cnt)*(ZeroGain)),Gx2)-FlCmp  -- move up
+                      move2 = min((((i-2)/points_cnt)*(ZeroGain)),Gx2)-FlCmp  -- move up
+                      move = min(((i/points_cnt)*(ZeroGain)),Gx2)-FlCmp  -- move up
                       move2_last = ZeroGain-FlCmp
+                  end
                end
             elseif Floor_State.norm_val == 3 then -- Fall
                 if EnvMode.norm_val == 1 then -- inverse
+                  if  ItemEnvMode.norm_val == 2 or (EnvName == "Pan" or EnvName == "Pan (Pre-FX)") then -- Pan 
+                      move2 = (1-(i/points_cnt))/PanWidth
+                      move =  (1-((i+1)/points_cnt))/PanWidth
+                      move3 = (((i+1)/points_cnt)-1)/PanWidth
+                   else
                       move2 = Gx1
                       move = Gx1
                       move3 = min((Gx1)-((i/points_cnt)*(ZeroGain)), Gx1)  -- move down inv
                       move2_last = move2
+                   end
                          else
+                  if  ItemEnvMode.norm_val == 2 or (EnvName == "Pan" or EnvName == "Pan (Pre-FX)") then -- Pan          
+                      move3 = (1-(i/points_cnt))/PanWidth
+                      move2 = ((i/points_cnt)-1)/PanWidth
+                      move = (((i+1)/points_cnt)-1)/PanWidth
+                   else
                       move3 = Gx2
                       move2 = min((Gx2)-(((i-2)/points_cnt)*(ZeroGain)),Gx2) -- move down
                       move = min((Gx2)-((i/points_cnt)*(ZeroGain)),Gx2) -- move down
                       move2_last = 0-FlCmp
+                   end
                end
         end
 
@@ -5261,36 +5710,41 @@ if (Guides.norm_val == 1) then  ----------------- Add Markers by Transients ----
           if TrackEnv == 1 then
                posz = self.sel_end
                posn = self.sel_start
+               pos_n = self.sel_start
                else
-               posz = l3ngth*rateIt
+               posz = ((p0sition+l3ngth)*rateIt)*tempo_corr2 -- (p0sition+l3ngth)*rateIt
                posn = 0
+                  if sel_area == 1 then
+                     pos_n = (p0sition+(self.sel_start-p0sition))*rateIt
+                       else
+                     pos_n = p0sition
+                  end
           end
 
+
+        if i ==1 and startppqp0s > pos_n+0.004 then -- adaptive first point (gone if too close to start)
+           ppqp0s_Status = 1
+        end
 
 if  next_startppqp0s3 then -- 
 
      if TrackEnv == 1 then
 
-             if i<=3 and i > points_cnt-1 and startppqp0s-PreAttack > (self.sel_start)-0.001*rateIt  then -- first point
-                              reaper.InsertEnvelopePoint(envelope, max(min((next_startppqp0s3)-(p0sition*rateIt)-(OneSpl), posz), posn-OneSpl),  move2, 0, tens, sel, nosort) --pre-attack
+             if i<=3 and ppqp0s_Status == 1 then -- first point -- and i > points_cnt-1 and startppqp0s3-PreAttack > (self.sel_start)-0.001*rateIt
+                              r.InsertEnvelopePoint(envelope, max(min((next_startppqp0s3)-(p0sition*rateIt)-PreAttack, posz), posn-OneSpl),  move2, shape, tens, sel, nosort) --pre-attack
              elseif i>3 and startppqp0s-PreAttack > (self.sel_start)-0.001*rateIt then -- other points
-                              reaper.InsertEnvelopePoint(envelope, max(min((next_startppqp0s3)-(p0sition*rateIt)-PreAttack, posz), posn-OneSpl),  move2, 0, tens, sel, nosort) --pre-attack
+                              r.InsertEnvelopePoint(envelope, max(min((next_startppqp0s3)-(p0sition*rateIt)-PreAttack, posz), posn-OneSpl),  move2, shape, tens, sel, nosort) --pre-attack
              end
 
        else -- item env
 
-             if i<=1 and i > points_cnt-1  and startppqp0s-PreAttack > (0)-0.001*rateIt then -- last point
-                              reaper.InsertEnvelopePoint(envelope, max(min((next_startppqp0s3)-(p0sition*rateIt)-(OneSpl), posz), posn-OneSpl),  move2, 0, tens, sel, nosort) --pre-attack
-             elseif i>1 then 
-                              reaper.InsertEnvelopePoint(envelope, max(min((next_startppqp0s3)-(p0sition*rateIt)-PreAttack, posz), posn-OneSpl),  move2, 0, tens, sel, nosort) --pre-attack
+             if i<=3 and ppqp0s_Status == 1 then -- first point -- and i > points_cnt-1 and startppqp0s3-PreAttack > (self.sel_start)-0.001*rateIt
+                       --       r.InsertEnvelopePoint(envelope, max(min((next_startppqp0s3)-(p0sition*rateIt)-PreAttack, posz), posn-OneSpl),  move2, shape, tens, sel, nosort) --pre-attack last point
+             elseif i>3 then 
+                              r.InsertEnvelopePoint(envelope, max(min((next_startppqp0s3)-(p0sition*rateIt)-PreAttack, posz), posn-OneSpl),  move2, shape, tens, sel, nosort) --pre-attack
                       end
 
       end
-
-
-    if i == points_cnt-1  and startppqp0s-PreAttack > (self.sel_start)-0.001*rateIt then -- last pre-att point
-                     --             reaper.InsertEnvelopePoint(envelope, max(min((startppqp0s)-(p0sition*rateIt)-PreAttack, posz), posn),  move2_last, 0, tens, sel, nosort) --pre-attack last transient
-                 end
 
 
                          if AttMode.norm_val == 1 then
@@ -5301,25 +5755,26 @@ if  next_startppqp0s3 then --
                             vel = (vel-127)*-1 --inverse vel
                             aa = vel/2000*tempo_corr
                          end
+aaa = HBiasSlider
 
-
-                         if  i > 1 and HBiasSliderAdd ~= 1 then
+                         if  i > 1 then 
                              ax = (startppqp0s/HBiasSlider2)-(next_startppqp0s3/HBiasSlider2)
 
-                                   if startppqp0s-next_startppqp0s3 >= HlvLngth then
+                                   if startppqp0s-next_startppqp0s3 >= HlvLngth and (HBiasSlider ~= 1.0 or CurveVal == 1.0 ) then
                                              if startppqp0s-next_startppqp0s3 >= 7 and startppqp0s-next_startppqp0s3 < 15 then ax = ax/2 --release too long? divide him!
                                                  elseif startppqp0s-next_startppqp0s3 >= 15 and startppqp0s-next_startppqp0s3 < 31 then ax = ax/4 
                                                  elseif startppqp0s-next_startppqp0s3 >= 31 then ax = ax/8 
                                                  else ax = ax 
                                              end
-                                         reaper.InsertEnvelopePoint(envelope, max(min((next_startppqp0s3)-(p0sition*rateIt)-(ax), posz), posn-OneSpl),  move, 0, tens, sel, nosort) -- adaptive shift -- linear shape (0)
+                                         r.InsertEnvelopePoint(envelope, max(min((next_startppqp0s3)-(p0sition*rateIt)-(ax), posz), posn-OneSpl),  move, 0, tens, sel, nosort) -- adaptive shift -- linear shape (0)
                                    end
                          end
 
 
-        if aa and aa >= 0.01 and AttVal <= 28 then
+        if aa and (AttVal <= 29 or AttSoft.norm_val ~= 1) then
                                 AttValz = AttVal*HBS_corr -- BiasSlider reduces the AttVal
                                 AttValx = AttVal*(HBS_corr/2) -- BiasSlider reduces the AttVal
+
                       if AttMode.norm_val == 1 then
 
                                 ab = (0.1/AttValz)*tempo_corr
@@ -5330,37 +5785,64 @@ if  next_startppqp0s3 then --
                       end
 
 
+                    if CurveVal ~= 1.0 then 
+                       skip_point_tr = 1
+                         else
+                       skip_point_tr = 0
+                    end
+
+
      if TrackEnv == 1 then
 
-                  if i<=2 and startppqp0s > (self.sel_start)-ab*rateIt  then -- 
-                                   reaper.InsertEnvelopePoint(envelope, max(min((startppqp0s)-(p0sition*rateIt)+(ab), posz), posn-OneSpl), move3, shape, tens, sel, nosort) --attack
-                  elseif i>2 and i < points_cnt-1 then -- other points
-                                   reaper.InsertEnvelopePoint(envelope, max(min((startppqp0s)-(p0sition*rateIt)+(ab), posz), posn-OneSpl), move3, shape, tens, sel, nosort) --attack
+                  if i<=2 and startppqp0s > (self.sel_start)-ab*rateIt  and ax then -- 
+                               if CurveVal ~= 1.0 then -- when attack max, attack = halved - pre-attack (rectangle shaped)
+                                    r.InsertEnvelopePoint(envelope, max(min((startppqp0s)-(p0sition*rateIt)+(ab), posz), posn-OneSpl), move3, shape, tens, sel, nosort) --attack
+                                  else
+                                    r.InsertEnvelopePoint(envelope, max(min((next_startppqp0s3)-(p0sition*rateIt)-(ax)-PreAttack, posz), posn-OneSpl), move3, shape, tens, sel, nosort) --attack
+                               end
+                  elseif i>2 and i < points_cnt-skip_point_tr then -- other points
+                               if CurveVal ~= 1.0 then -- when attack max, attack = halved - pre-attack (rectangle shaped)
+                                   r.InsertEnvelopePoint(envelope, max(min((startppqp0s)-(p0sition*rateIt)+(ab), posz), posn-OneSpl), move3, shape, tens, sel, nosort) --attack
+                                  else
+                                    r.InsertEnvelopePoint(envelope, max(min((next_startppqp0s3)-(p0sition*rateIt)-(ax)-PreAttack, posz), posn-OneSpl), move3, shape, tens, sel, nosort) --attack
+                               end
                   end
 
       else -- item env
 
-                      if i < points_cnt-1 then -- if not last point
-                                   reaper.InsertEnvelopePoint(envelope, max(min((startppqp0s)-(p0sition*rateIt)+(ab), posz), posn-OneSpl), move3, shape, tens, sel, nosort) --attack
-                      end
+
+                               if CurveVal ~= 1.0 then -- when attack max, attack = halved - pre-attack (rectangle shaped)
+                                        if i < points_cnt-1 then -- if not last point
+                                              r.InsertEnvelopePoint(envelope, max(min((startppqp0s)-(p0sition*rateIt)+(ab), posz), posn-OneSpl), move3, shape, tens, sel, nosort) --attack
+                                        end
+                                   else
+                                        if i > 2 then -- if not last point
+                                              r.InsertEnvelopePoint(envelope, max(min((next_startppqp0s3)-(p0sition*rateIt)-(ax)-PreAttack, posz), posn-OneSpl), move3, shape, tens, sel, nosort) --attack
+                                        end
+                               end
       end
 
      end
 
-     if TrackEnv == 1 then
+    if AttSoft.norm_val == 1 or CurveVal == 1.0 then
 
-                    if i<=2 and startppqp0s > (self.sel_start)-0.001*rateIt  then -- 
-                                 reaper.InsertEnvelopePoint(envelope, max(min((startppqp0s)-(p0sition*rateIt), posz), posn-OneSpl), move3, shape, tens, sel, nosort) -- main, transients
-                    elseif i>2 and i < points_cnt-1  then -- other points
-                                 reaper.InsertEnvelopePoint(envelope, max(min((startppqp0s)-(p0sition*rateIt), posz), posn-OneSpl), move3, shape, tens, sel, nosort)
-                    end
-      else -- item env
+         if TrackEnv == 1 then
+    
+                        if i<=2 and startppqp0s > (self.sel_start)-0.001*rateIt  then -- 
+                                     r.InsertEnvelopePoint(envelope, max(min((startppqp0s)-(p0sition*rateIt), posz), posn-OneSpl), move3, shape, tens, sel, nosort) -- main, transients
+                        elseif i>2 and i < points_cnt-1  then -- other points
+                                     r.InsertEnvelopePoint(envelope, max(min((startppqp0s)-(p0sition*rateIt), posz), posn-OneSpl), move3, shape, tens, sel, nosort)
+                        end
 
-                  if i < points_cnt-1 then -- if not last point
-                                reaper.InsertEnvelopePoint(envelope, max(min((startppqp0s)-(p0sition*rateIt), posz), posn-OneSpl), move3, shape, tens, sel, nosort) -- main, transients
-                  end
-
-      end
+          else -- item env
+    
+                      if i < points_cnt-1 then -- if not last point
+                                    r.InsertEnvelopePoint(envelope, max(min((startppqp0s)-(p0sition*rateIt), posz), posn-OneSpl), move3, shape, tens, sel, nosort) -- main, transients
+                      end
+    
+          end --TrackEnv
+    
+    end -- AttSoft
 
 end
 
@@ -5371,20 +5853,45 @@ end
 
   aex = ((1/division)*1.3125)/tempo_corr
   tempo_to_binary = (math.log(r.Master_GetTempo()/120))*1.45
-  HBiasSliderx = ((HBiasSlider-(tempo_to_binary))/(aex))
+  HBiasSliderx = (HBiasSlider-(tempo_to_binary))/(aex)
   AddCorr = (min(HBiasSlider, 0)*-1)+0.4
-            ACorr = (min(division*64, 8))/2
-            AttVal3 = ((((AttVal2)*(division*ACorr)))/AddCorr)*tempo_corr 
+            ACorr = (min(division*64, 8))/1.3
+            AttVal3 = (((AttVal2)*(division*ACorr))/AddCorr)*tempo_corr 
 
-  reaper.DeleteEnvelopePointRange( envelope, (self.sel_start), (self.sel_start + self.sel_len+OneSpl))
+if envelope then
+  r.DeleteEnvelopePointRange( envelope, (self.sel_start), (self.sel_start + self.sel_len))
+end
 
           if TrackEnv == 1 then
-               posx = self.sel_start
-               posn = self.sel_start
+               posy = (self.sel_start-OneSpl)+self.sel_len
+               posx = self.sel_start-OneSpl
+               posn = self.sel_start+OneSpl
                else
-               posx = (p0sition)*rateIt
-               posn = 0
+                 if sel_area == 1 then
+                    local rateIt2
+                    if rateIt <= 1 then  rateIt2 = 1 else rateIt2 = rateIt end
+                    posy = (p0sition+(self.sel_end-p0sition))*rateIt2
+                    posx = p0sition*rateIt
+                    posn = 0+OneSpl
+                 else
+                    local rateIt2
+                    if rateIt <= 1 then  rateIt2 = 1 else rateIt2 = rateIt end
+                    posy = ((p0sition+(self.sel_end-p0sition))*rateIt2)-OneSpl
+                    posx = p0sition*rateIt
+                    posn = 0+OneSpl
+                 end
           end
+
+
+---------Temp testing Del-------------
+local rateIt2
+if rateIt <= 1 then  rateIt2 = 1 else rateIt2 = rateIt end
+                    
+aa1 = (p0sition+(self.sel_end-p0sition))*rateIt2
+aa2 = (p0sition+(l3ngth+self.sel_len))*rateIt2
+
+---------------------------------------------
+
 
     local points_cnt2  = #Grid_Points
       for i=1, points_cnt2 do
@@ -5404,172 +5911,480 @@ end
                  if i<points_cnt2 then startppqp0s = ((posn+Grid_Points[i]/srate)+sw_shift)*rateIt end
                  if i<points_cnt2 then startppqp0s_halved = ((posn+(Grid_Points[i]+(division*srate))/srate)+sw_shift)*rateIt end
 
-        if Floor_State.norm_val == 1 then -- Flat
-               move2 = Gx1
-               move = Gx1
-               move3 = Gx2
+-----------------------Limiters for Selected Area
+if startppqp0s <= self.sel_start*rateIt then startppqp0s = self.sel_start*rateIt end
+if startppqp0s_halved <= self.sel_start*rateIt then startppqp0s_halved = self.sel_start*rateIt end
+
+aag = (posn+self.sel_end+PreAttack)*tempo_corr3 -- Track Env End
+aaf = (((p0sition+(self.sel_end-p0sition))*rateIt)*tempo_corr3)-OneSpl -- Item Env End
+
+       if TrackEnv == 1 then --if track env
+           if startppqp0s >= aag then startppqp0s = aag end
+           if startppqp0s_halved >= aag then startppqp0s_halved = aag end
+           else
+           if startppqp0s >= aaf then startppqp0s = aaf end
+           if startppqp0s_halved >= aaf then startppqp0s_halved = aaf end
+       end
+
+if i==points_cnt2 then aa3 = startppqp0s-OneSpl end
+if i==points_cnt2 then aa4 = startppqp0s_halved-OneSpl end
+-----------------------------------------------
+
+        if Floor_State.norm_val == 1 or ItemEnvMode.norm_val == 3 then -- Flat if flat or pitch
+               move2 = Gx1/PanWidth3
+               move = Gx1/PanWidth3
+               move3 = Gx2/PanWidth3
             elseif Floor_State.norm_val == 2 then --Rise
                 if EnvMode.norm_val == 1 then -- inverse
+                  if  ItemEnvMode.norm_val == 2 or (EnvName == "Pan" or EnvName == "Pan (Pre-FX)") then -- Pan
+                      move2 = (i/points_cnt2)/PanWidth
+                      move = ((i+1)/points_cnt2)/PanWidth
+                      move3 = (1-((i+1)/points_cnt2)-1)/PanWidth
+                   else -- Vol
                       move2 = Gx1
                       move = Gx1
-                      move3 = min((0)+((i/points_cnt2)*(ZeroGain)),Gx1)-FlCmp -- move up inv
-                          else    
+                      move3 = min(((i/points_cnt2)*(ZeroGain)),Gx1)-FlCmp -- move up inv
+                   end
+
+                          else    -- non inverse Rise
+  
+                  if  ItemEnvMode.norm_val == 2 or (EnvName == "Pan" or EnvName == "Pan (Pre-FX)") then -- Pan 
+                      move3 = (i/points_cnt2)/PanWidth
+                      move2 = (1-(i/points_cnt2)-1)/PanWidth
+                      move = (1-((i+1)/points_cnt2)-1)/PanWidth
+                  else --Vol
                       move3 = Gx2
-                      move2 = min(0+((i/points_cnt2)*(ZeroGain)),Gx2)-FlCmp-- move up 
-                      move = min(0+(((i+1)/points_cnt2)*(ZeroGain)),Gx2)-FlCmp -- move up -
+                      move2 = min(((i/points_cnt2)*(ZeroGain)),Gx2)-FlCmp-- move up 
+                      move = min((((i+1)/points_cnt2)*(ZeroGain)),Gx2)-FlCmp -- move up -
+                  end
                 end
             elseif Floor_State.norm_val == 3 then --Fall
-                if EnvMode.norm_val == 1 then 
+                if EnvMode.norm_val == 1 then  -- inverse
+                  if  ItemEnvMode.norm_val == 2 or (EnvName == "Pan" or EnvName == "Pan (Pre-FX)") then -- Pan 
+                      move2 = (1-(i/points_cnt2))/PanWidth
+                      move =  (1-((i+1)/points_cnt2))/PanWidth
+                      move3 = (((i+1)/points_cnt2)-1)/PanWidth
+                   else -- Vol
                       move2 = Gx1
                       move = Gx1
                       move3 = min((Gx1)-((i/points_cnt2)*(ZeroGain)),Gx1) -- move down inv
-                          else             
-                      move3 = Gx2
+                   end
+
+                          else    -- non inverse 
+
+                  if  ItemEnvMode.norm_val == 2 or (EnvName == "Pan" or EnvName == "Pan (Pre-FX)") then -- Pan          
+                      move3 = (1-(i/points_cnt2))/PanWidth
+                      move2 = ((i/points_cnt2)-1)/PanWidth
+                      move = (((i+1)/points_cnt2)-1)/PanWidth
+                   else -- Vol
+                      move3 = Gx2 
                       move2 = min(Gx2-((i/points_cnt2)*(ZeroGain)),Gx2) --+EnvGcorr -- move down
                       move = min(Gx2-(((i+1)/points_cnt2)*(ZeroGain)),Gx2) --+EnvGcorr -- move down
+                   end
                 end
         end
 
 
-             if i<=1 and startppqp0s-PreAttack > (self.sel_start*2)+OneSpl  then -- first point
-                   if OffBeatP.norm_val == 2 or Guides.norm_val == 1 then 
-                        reaper.InsertEnvelopePoint(envelope, max(min((startppqp0s)-(posx)-(PreAttack/4), posx+self.sel_len-OneSpl), posn),  move2, shape, 0, sel, nosort) --pre attack
-                   end
-             elseif i>1  then -- other points
-                   reaper.InsertEnvelopePoint(envelope, max(min((startppqp0s)-(posx)-PreAttack, posx+self.sel_len-OneSpl), posn),  move2, shape, 0, sel, nosort) --pre attack
-             end
-
-
-                   if OffBeatP.norm_val == 1 then 
-                      skip_point = 1
-                        else
-                      skip_point = 0
-                   end
-
-         if i > skip_point and i < points_cnt2 and HBiasSliderAdd ~= 1 then -- skip first
-                       if IsEven(i) == true then
-                             reaper.InsertEnvelopePoint(envelope, max(min((startppqp0s_halved+HBiasSliderx-(HB*tempo_corr2))-(posx), posx+self.sel_len-OneSpl), posn),  move, 0, tens, sel, nosort) -- adaptive shift -- linear shape (0)
-                                    else
-                             reaper.InsertEnvelopePoint(envelope, max(min((startppqp0s_halved+HBiasSliderx+(HB))-(posx), posx+self.sel_len-OneSpl), posn),  move, 0, tens, sel, nosort) -- adaptive shift -- linear shape (0)
-                       end
-          end
-
-       if TrackEnv == 1 then
-
-                            if i<=1 and startppqp0s-PreAttack > (self.sel_start*2)-AttVal3  then -- first point
-                                   if OffBeatP.norm_val == 2 or Guides.norm_val == 1 then 
-                                        reaper.InsertEnvelopePoint(envelope, max(min((startppqp0s)-(posx)+(AttVal3), posx+self.sel_len-OneSpl), posn), move3, shape, tens, sel, nosort) -- attack
-                                   end
-                            elseif i>1 then -- other points
-                                        reaper.InsertEnvelopePoint(envelope, max(min((startppqp0s)-(posx)+(AttVal3), posx+self.sel_len-OneSpl), posn), move3, shape, tens, sel, nosort) -- attack
-                          end
-               
-               
-                            if i<=1 and startppqp0s-PreAttack > (self.sel_start*2)+OneSpl-PreAttack  then -- first point
-                                   if OffBeatP.norm_val == 2 or Guides.norm_val == 1 then 
-                                        reaper.InsertEnvelopePoint(envelope, max(min((startppqp0s)-(posx), posx+self.sel_len-OneSpl), posn), move3, shape, tens, sel, nosort)
-                                   end
-                            elseif i>1  then -- other points
-                                        reaper.InsertEnvelopePoint(envelope, max(min((startppqp0s)-(posx), posx+self.sel_len-OneSpl), posn), move3, shape, tens, sel, nosort)
-                          end
-
-              else
-                         if OffBeatP.norm_val == 1  then
-                                 if i>1 then --skip first
-                                         reaper.InsertEnvelopePoint(envelope, max(min((startppqp0s)-(posx)+(AttVal3), posx+self.sel_len-OneSpl), posn), move3, shape, tens, sel, nosort) -- attack
-                                         reaper.InsertEnvelopePoint(envelope, max(min((startppqp0s)-(posx)-OneSpl, posx+self.sel_len-OneSpl), posn), move3, shape, tens, sel, nosort)
-                                 end
-                                     else
-                                 reaper.InsertEnvelopePoint(envelope, max(min((startppqp0s)-(posx)+(AttVal3), posx+self.sel_len-OneSpl), posn), move3, shape, tens, sel, nosort) -- attack
-                                 reaper.InsertEnvelopePoint(envelope, max(min((startppqp0s)-(posx)-OneSpl, posx+self.sel_len-OneSpl), posn), move3, shape, tens, sel, nosort)
-                         end
-
+ if TrackEnv == 1 then
+       if Offset_Sld.form_val >= 0 then -- end point correction
+           bnd_corr = (posn+self.sel_end)+(Offset_Sld.form_val/1000*srate)*tempo_corr3 
+           else
+           bnd_corr = (posn+self.sel_end)*tempo_corr3 
        end
+
+       ad_tr = self.sel_start*2
+       ad_ts = ((posn+self.sel_end)*tempo_corr3)+OneSpl 
+       ad_corr = OneSpl
+    else
+       bnd_corr = (self.sel_end*rateIt)-(HBiasSliderx*tempo_corr3)
+       ad_corr = AttVal3
+       if sel_area == 1 then
+          ad_tr = (p0sition+(self.sel_start-p0sition))*rateIt
+          ad_ts = ((p0sition+(self.sel_end-p0sition))*rateIt)
+          else
+          ad_tr = p0sition*rateIt
+          ad_ts = (p0sition+l3ngth)*rateIt*tempo_corr2
+       end
+end
+
+      if  startppqp0s+ad_corr <= ad_ts-OneSpl then -- TrackEnv == 1 or
+        skip_point_last = 0
+          else
+        skip_point_last = 0 -- 1
+     end
+     
+              if i<=1 and startppqp0s-PreAttack > ad_tr  then -- first point
+            --        if OffBeatP.norm_val == 2 or Guides.norm_val == 1 then 
+                            r.InsertEnvelopePoint(envelope, max(min((startppqp0s)-(posx)-(PreAttack/4), (posy)*rateIt), posn),  move2, shape, 0, sel, nosort) --pre attack
+              --      end
+              elseif i>1 and i < points_cnt2-skip_point_last then -- other points
+                    r.InsertEnvelopePoint(envelope, max(min((startppqp0s)-(posx)-PreAttack, (posy)*rateIt), posn),  move2, shape, 0, sel, nosort) --pre attack
+              end
+
+
+                    if OffBeatP.norm_val == 1 then 
+                       skip_point = 1 -- 1
+                         else
+                       skip_point = 0
+                    end
+a0 = 0
+                    if sel_area == 1 or (Floor_State.norm_val == 2 or Floor_State.norm_val == 3) then
+a0 = 1
+                        skip_point2 = 0 -- 1
+                          else
+                        skip_point2 = 0
+
+                    end
+
+
+
+ if bnd_corr and startppqp0s_halved-OneSpl < bnd_corr and (HBiasSlider ~= 1 or CurveVal == 1.0) then
+
+          if i > skip_point and i < points_cnt2 then -- skip first -- and HBiasSlider ~= 1
+                        if IsEven(i) == true then
+                              r.InsertEnvelopePoint(envelope, max(min((startppqp0s_halved+HBiasSliderx*rateIt-(HB*tempo_corr2))-(posx), (posy)), posn),  move, shape, tens, sel, nosort) -- adaptive shift -- linear shape (0)
+                                     else
+                              r.InsertEnvelopePoint(envelope, max(min((startppqp0s_halved+HBiasSliderx*rateIt+(HB))-(posx), (posy)), posn),  move, shape, tens, sel, nosort) -- adaptive shift -- linear shape (0)
+                        end
+           end
+ end
+ 
+
+        if TrackEnv == 1 then
+ 
+                             if i<=1  then -- first point  --  and startppqp0s-PreAttack > (self.sel_start*2)-AttVal3
+                                    if OffBeatP.norm_val == 2 or Guides.norm_val == 1 then 
+                                    if CurveVal ~= 1.0 then -- when attack max, attack = halved - pre-attack (rectangle shaped)
+                                         r.InsertEnvelopePoint(envelope, max(min((startppqp0s)-(posx)+(AttVal3), posy), posn), move3, shape, tens, sel, nosort) -- attack
+                                        else
+                                           if IsEven(i) == true then
+                                                      r.InsertEnvelopePoint(envelope, max(min((startppqp0s_halved+HBiasSliderx-(HB*tempo_corr2))-(posx)-(PreAttack), (posy)*rateIt), posn), move3, shape, tens, sel, nosort) -- attack max
+                                                         else
+                                                      r.InsertEnvelopePoint(envelope, max(min((startppqp0s_halved+HBiasSliderx+(HB))-(posx)-(PreAttack), (posy)*rateIt), posn), move3, shape, tens, sel, nosort) -- attack max
+                                            end
+                                    end
+ 
+                                    end
+                             elseif i>1 and i < points_cnt2 then -- other points
+                                    if CurveVal ~= 1.0 then -- when attack max, attack = halved - pre-attack ()
+                                         r.InsertEnvelopePoint(envelope, max(min((startppqp0s)-(posx)+(AttVal3), posy), posn), move3, shape, tens, sel, nosort) -- attack
+                                        else
+                                           if IsEven(i) == true then
+                                                      r.InsertEnvelopePoint(envelope, max(min((startppqp0s_halved+HBiasSliderx-(HB*tempo_corr2))-(posx)-(PreAttack), (posy)*rateIt), posn), move3, shape, tens, sel, nosort) -- attack max
+                                                         else
+                                                      r.InsertEnvelopePoint(envelope, max(min((startppqp0s_halved+HBiasSliderx+(HB))-(posx)-(PreAttack), (posy)*rateIt), posn), move3, shape, tens, sel, nosort) -- attack max
+                                            end
+                                    end
+                           end
+  
+                    if i < points_cnt2 and (AttSoft.norm_val == 1 or CurveVal == 1.0) then              
+                
+                             if i<=1 and startppqp0s-PreAttack > (self.sel_start*2)-PreAttack  then -- first point
+                                    if OffBeatP.norm_val == 2 or Guides.norm_val == 1 then 
+                                         r.InsertEnvelopePoint(envelope, max(min((startppqp0s)-(posx), posy), posn), move3, shape, tens, sel, nosort)
+                                    end
+                             elseif i>1  then -- other points
+                                         r.InsertEnvelopePoint(envelope, max(min((startppqp0s)-(posx), posy), posn), move3, shape, tens, sel, nosort)
+                           end
+ 
+                     end  -- AttSoft.norm_val 
+ 
+             else
+ 
+                          if OffBeatP.norm_val == 1  then
+                                  if i>1 and  i < points_cnt2-skip_point_last then --skip first
+                                     if CurveVal ~= 1.0 then -- when attack max, attack = halved - pre-attack ()
+                                         r.InsertEnvelopePoint(envelope, max(min((startppqp0s)-(posx)+(AttVal3), (posy)*rateIt), posn), move3, shape, tens, sel, nosort) -- attack
+                                         else
+                                            if IsEven(i) == true then
+                                                       r.InsertEnvelopePoint(envelope, max(min((startppqp0s_halved+HBiasSliderx*rateIt-(HB*tempo_corr2))-(posx)-(PreAttack), (posy)*rateIt), posn), move3, shape, tens, sel, nosort) -- attack max
+                                                          else
+                                                       r.InsertEnvelopePoint(envelope, max(min((startppqp0s_halved+HBiasSliderx*rateIt+(HB))-(posx)-(PreAttack), (posy)*rateIt), posn), move3, shape, tens, sel, nosort) -- attack max
+                                             end
+                                     end
+                                         if AttSoft.norm_val == 1 or CurveVal == 1.0 then  
+                                                              r.InsertEnvelopePoint(envelope, max(min((startppqp0s)-(posx), (posy)*rateIt), posn), move3, shape, tens, sel, nosort)
+                                         end  -- AttSoft.norm_val 
+                                  end
+                         else
+
+                                  if i < points_cnt2-skip_point2-skip_point_last then
+                                             if CurveVal ~= 1.0 then -- when attack max, attack = halved - pre-attack ()
+                                                 r.InsertEnvelopePoint(envelope, max(min((startppqp0s+OneSpl)-(posx)+(AttVal3), (posy)*rateIt), posn), move3, shape, tens, sel, nosort) -- attack
+                                                 else
+                                                    if IsEven(i) == true then
+                                                               r.InsertEnvelopePoint(envelope, max(min((startppqp0s_halved+HBiasSliderx*rateIt-(HB*tempo_corr2))-(posx)-(PreAttack), (posy)*rateIt), posn), move3, shape, tens, sel, nosort) -- attack max
+                                                                  else
+                                                               r.InsertEnvelopePoint(envelope, max(min((startppqp0s_halved+HBiasSliderx*rateIt+(HB))-(posx)-(PreAttack), (posy)*rateIt), posn), move3, shape, tens, sel, nosort) -- attack max
+                                                     end
+                                             end
+         
+                                         if i < points_cnt2-skip_point2-skip_point_last and (AttSoft.norm_val == 1 or CurveVal == 1.0) then  
+                                                     r.InsertEnvelopePoint(envelope, max(min((startppqp0s+OneSpl)-(posx), (posy)*rateIt), posn), move3, shape, tens, sel, nosort)
+                                         end  -- AttSoft.norm_val  
+                                   end
+                      end
+        end
+
+
 
               end
       end
        
 end   
 
-------------------------------------------------------------------------------
+-------------------------------------------------Start and end points ---------------------------------------------------
+
+StartEndPointsIsOn = 1 -- all additional points on/off. 0 - Debug/testing purpose only.
+
+ab1 = 0
+ab2 = 0
+ab3 = 0
+
+if StartEndPointsIsOn == 1 then
 
           if TrackEnv == 1 then
-               posl = (self.sel_end)-0.001
+               posl = (self.sel_end)
                posf = (self.sel_start)+OneSpl 
                  else
-               posl = ((l3ngth)*rateIt)-(OneSpl*4)
-               posf = (0)+OneSpl 
+                   if sel_area == 0 then
+                       posl = ((l3ngth)*rateIt)-(OneSpl*4)
+                       posf = (0)+OneSpl
+                        else
+                       posl = ((l3ngth)*rateIt)-(OneSpl*4)
+                       posf = ((self.sel_start-p0sition)*rateIt)+(OneSpl*2)
+                   end
           end
 
          if EnvMode.norm_val == 1 then --inverted
                  Gx3 = Gx1
                  Gx4 = Gx1
          elseif EnvMode.norm_val == 2 then 
+ab1 = 1
             if OffBeatP.norm_val == 2 or Guides.norm_val == 1 then
+ab2 = 1
                  Gx3 = Gx2
                      else
+ab3 = 1
                  Gx3 = Gx1
             end
                  Gx4 = Gx1
          end
+ab4 = EnvMode.norm_val
+ab5 = OffBeatP.norm_val
 
----------------------------------------------------by Transients--------------------------------------------------------------------------
-       if Floor_State.norm_val ~= 3 then
-               reaper.InsertEnvelopePoint(envelope, posf-OneSpl, Gx3, shape, tens, sel, true) --firstest point
-       end
+if EnvMode.norm_val == 1 and OffBeatP.norm_val == 2 and EnvName == "Pan" then Gx3 = Gx2 end
+--if EnvMode.norm_val == 1 and OffBeatP.norm_val == 1 then Gx3 = Gx1 end
+if EnvMode.norm_val == 1 and OffBeatP.norm_val ~= 1 and TrackEnv == 1 then Gx3 = Gx2 end
+if EnvMode.norm_val == 2 and OffBeatP.norm_val == 2 and TrackEnv == 0 then Gx3 = Gx2 end
+if TrackEnv == 0 and OffBeatP.norm_val == 1 and Floor_State.norm_val == 3 then Gx3 = Gx2 end
 
-       if Floor_State.norm_val ~= 3 then
-                      if Offset_Sld.form_val > 0.0 and EnvMode.norm_val == 2 then
-                                   reaper.InsertEnvelopePoint(envelope, posf, Gain, shape, tens, sel, true) --firstest point pre att
-                      elseif Offset_Sld.form_val <= 0.0 and EnvMode.norm_val == 1 then
-                               if OffBeatP.norm_val == 2 then
-                                    reaper.InsertEnvelopePoint(envelope, posf, Gain, shape, tens, sel, true) --firstest point pre att
-                               end
-                      end
-       end
+if ItemEnvMode.norm_val == 1 or OffBeatP.norm_val ~= 2 then
+   PanWidth2 = 1
+     else
+   PanWidth2 = PanWidth
+end
 
+a1 = 0
+a2 = 0
+a3 = 0
+a4 = 0
+a5 = 0
+a6 = 0
+a7 = 0
+a8 = 0
+a9 = 0
+a10 = 0
+a11 = 0
+a12 = 0
+a13 = 0
+a13a = 0
+a14 = 0
+a14a = 0
+a14b = 0
+a15 = 0
+a16 = 0
+a17 = 0
+a18 = 0
+a19 = 0
 
-         if Floor_State.norm_val == 3 or Floor_State.norm_val == 1 then -- Fall or Flat
-            FlCmp2 = 0
-             else
-            FlCmp2 = FlCmp
+    if TrackEnv == 1 then
+a1 = 1
+        r.InsertEnvelopePoint(envelope, (self.sel_start-(0))*rateIt, ZeroGain, shape, tens, 0, nosort) -- sel_start
+        r.InsertEnvelopePoint(envelope, (self.sel_end+(0))*rateIt, ZeroGain2, shape, tens, 0, nosort) -- sel_end
+         else
+         if sel_area == 1 then --if selected part of item
+a2 = 1
+                 r.InsertEnvelopePoint(envelope, ((self.sel_start-p0sition)*rateIt)+OneSpl, ZeroGain2, shape, tens, 0, nosort) -- sel_start
+    --          if EnvMode.norm_val ~= 1 then
+a3 = 1
+                 r.InsertEnvelopePoint(envelope, ((self.sel_end-p0sition)*rateIt)-OneSpl, Gx1, shape, tens, 0, nosort) -- sel_end_pre att
+                 r.InsertEnvelopePoint(envelope, ((self.sel_end-p0sition)*rateIt)-OneSpl, ZeroGain2, shape, tens, 0, nosort) -- sel_end
+  --            end
          end
-        
-          if Floor_State.norm_val == 1 then -- Flat
-            FlCmp3 = 0
-             else
-            FlCmp3 = FlCmp
-            Gx4 = 0
-         end
+     end
 
-         if Floor_State.norm_val == 3 then --inverted and Fall
-              if  EnvMode.norm_val == 1  then
-                 FlCmp3 = FlCmp
-                 Gx4 = ZeroGain2
-                 else
-                 FlCmp3 = 0
+---------------------------------------------------Additional Firstest and Lastest points--------------------------------------------------------------------------
+
+             if sel_area == 1 and (EnvMode.norm_val == 2 and OffBeatP.norm_val == 1) then
+                  if Floor_State.norm_val ~= 3 then
+a4 = 1
+                      r.InsertEnvelopePoint(envelope, posf+OneSpl, Gx3/PanWidth2, 0, tens, sel, true) --first point
+                  end
+             end
+
+             if sel_area == 0 and (OffBeatP.norm_val ~= 2 and EnvMode.norm_val ~=1) then
+                  if not (Floor_State.norm_val == 2 and (EnvName == "Pan" or EnvName == "Pan (Pre-FX)" or ItemEnvMode.norm_val == 2)) then
+a5 = 1
+                     r.InsertEnvelopePoint(envelope, posf+OneSpl+OneSpl, Gx3/PanWidth2, 0, tens, sel, true) --first point -- Gx1/PanWidth2
+                  end
+             end
+
+             if sel_area == 1 and (ItemEnvMode.norm_val ~= 2 and OffBeatP.norm_val ~= 2) then
+                  if not (Floor_State.norm_val == 2 and (EnvName == "Pan" or EnvName == "Pan (Pre-FX)" or ItemEnvMode.norm_val == 2)) then
+a6 = 1
+                     r.InsertEnvelopePoint(envelope, posf+OneSpl, Gx3/PanWidth2, 0, tens, sel, true) --first point sel, inv and shift --Gx1/PanWidth2
+                  end
+             end
+      
+             if Floor_State.norm_val == 3 and (ItemEnvMode.norm_val == 2 and OffBeatP.norm_val ~= 2) then  --Fall and Pan
+a7 = 1
+                     r.InsertEnvelopePoint(envelope, posf+OneSpl, Gx1/PanWidth, shape, tens, sel, true) --first point
+             end
+      
+             if Floor_State.norm_val == 2 and (ItemEnvMode.norm_val == 2 and OffBeatP.norm_val ~= 2) then --Rise and Pan
+a8 = 1
+                     r.InsertEnvelopePoint(envelope, posf+OneSpl, 0, shape, tens, sel, true) --first point
+             end
+      
+      
+             if Guides.norm_val == 1 then -- adaptive first transient (Transients)
+
+                          if Floor_State.norm_val ~= 3 and ItemEnvMode.norm_val ~= 2 and not (EnvName == "Pan" or EnvName == "Pan (Pre-FX)") then  -- if not Fall and not Pan
+                                         if ( ppqp0s_Status == 1) and EnvMode.norm_val == 2 then
+             a9 = 1
+                                                      r.InsertEnvelopePoint(envelope, posf+OneSpl, Gain, shape, tens, sel, true) --firstest point pre att
+                                         elseif  EnvMode.norm_val == 1 then
+                                                  if OffBeatP.norm_val == 2 and ItemEnvMode.norm_val ~= 1 then
+             a10 = 1
+                                                       r.InsertEnvelopePoint(envelope, posf+OneSpl, Gx1/PanWidth2, shape, tens, sel, true) --firstest point pre att
+                                                  end
+                                         end
+                          end
+
+               else -- adaptive first transient (Grid)
+
+                          if sel_equal_pos == 0 and Floor_State.norm_val ~= 3 and ItemEnvMode.norm_val ~= 2 and not (EnvName == "Pan" or EnvName == "Pan (Pre-FX)") then
+                                         if Offset_Sld.form_val > 0.0 and EnvMode.norm_val == 2 then
+             a11 = 1
+                                                      r.InsertEnvelopePoint(envelope, posf+OneSpl, Gain, shape, tens, sel, true) --firstest point pre att
+                                         elseif Offset_Sld.form_val <= 0.0 and EnvMode.norm_val == 1 then
+                                                  if OffBeatP.norm_val == 2 then
+             a12 = 1
+                                                       r.InsertEnvelopePoint(envelope, posf+OneSpl, Gain, shape, tens, sel, true) --firstest point pre att
+                                                  end
+                                         end
+                          end
+
+               end ------------------------------
+
+ --     if TrackEnv == 1 then
+
+               if (Offset_Sld.form_val > 0.0 and EnvMode.norm_val ~= 2) or Offset_Sld.form_val > 0.0 then -- Offset slider + and invert, first point
+ a13 = 1
+                                    r.InsertEnvelopePoint(envelope, posf+OneSpl+OneSpl, Gx1/PanWidth2, shape, tens, sel, true) --first point -- Gx1/PanWidth2
               end
-         end
 
-          if TrackEnv == 1 then
-               reaper.InsertEnvelopePoint(envelope, posl+0.00099, ZeroGain2-FlCmp2, shape, tens, sel, true) --lastest point (Gx3)
-          end
+               if (Offset_Sld.form_val <= 0.0 and EnvMode.norm_val ~= 1) or Offset_Sld.form_val <= 0.0 then -- Offset slider - and not invert, first point
+ a13a = 1
+                                    if Guides.norm_val == 1  then 
 
-        if Floor_State.norm_val == 1 or Floor_State.norm_val == 3 then
-                       reaper.InsertEnvelopePoint(envelope, posl+0.0007, Gx4-FlCmp3, shape, tens, sel, true) --last point pre att
-        end
+                                              if EnvMode.norm_val == 1 then
+ a14 = 1   
+                                                 r.InsertEnvelopePoint(envelope, posf+OneSpl+OneSpl, Gx1/PanWidth2, shape, tens, sel, true) --first point -- Gx1/PanWidth2
+                                              end
+                                            else
+ a14a = 1
+                                         if (ItemEnvMode.norm_val ~= 2 and OffBeatP.norm_val == 2) then
+ a14b = 1
+                                             r.InsertEnvelopePoint(envelope, posf+OneSpl+OneSpl, Gx3/PanWidth2, shape, tens, sel, true) --first point -- Gx1/PanWidth2
+                                         end
+                                    end
+               end
+    --  end
+
+               if Floor_State.norm_val == 3 or Floor_State.norm_val == 1 then -- Fall or Flat
+                  FlCmp2 = 0
+                   else
+                  FlCmp2 = FlCmp
+               end
+              
+                if Floor_State.norm_val == 1 then -- Flat
+                  FlCmp3 = 0
+                   else
+                  FlCmp3 = FlCmp
+                  Gx4 = 0
+               end
+      
+               if Floor_State.norm_val == 3 then --inverted and Fall
+                    if  EnvMode.norm_val == 1  then
+                       FlCmp3 = FlCmp
+                       Gx4 = ZeroGain2
+                       else
+                       FlCmp3 = 0
+                    end
+               end
+      
+
+                if TrackEnv == 1 then
+                   if sel_area == 1 then 
+                          if EnvMode.norm_val ~= 1 and (Floor_State.norm_val == 1 and OffBeatP.norm_val ~= 2) or (Floor_State.norm_val == 3 and OffBeatP.norm_val ~= 2) then --not inverted
+                             if  (EnvMode.norm_val ~= 1 and Floor_State.norm_val ~= 3)    then
+a15 = 1
+                                 r.InsertEnvelopePoint(envelope, posl-OneSpl, 0, shape, tens, sel, true) --lastest point (Gx3)
+                             end
+                          end
+                     else 
+a16 = 1
+                --     r.InsertEnvelopePoint(envelope, posl, ZeroGain2-FlCmp2, shape, tens, sel, true) --lastest point (Gx3)
+                   end
+                end
+      
+              if TrackEnv == 1 and (Floor_State.norm_val == 1 or Floor_State.norm_val == 3) and ItemEnvMode.norm_val ~= 2 and not (EnvName == "Pan" or EnvName == "Pan (Pre-FX)") then
+a17 = 1
+                             r.InsertEnvelopePoint(envelope, posl-OneSpl, Gx1-FlCmp3, shape, tens, sel, true) --last point pre att +0.0007 -- Gx4-FlCmp3
+              end
+
+
+       if Guides.norm_val == 1 and sel_area == 1 then -- Transients and sel area
+a18 = 1
+                     if sel_equal_pos == 1 then
+a19 = 1
+                           r.InsertEnvelopePoint(envelope, posf+OneSpl+OneSpl, Gx3/PanWidth2, 0, tens, sel, true) --first point -- Gx1/PanWidth2
+                     end
+
+                --     r.InsertEnvelopePoint(envelope, posl-OneSpl, Gx1-FlCmp2, shape, tens, sel, true) --lastest point (Gx3)
+
+                     if (EnvName == "Pan" or EnvName == "Pan (Pre-FX)") then
+                             --             r.InsertEnvelopePoint(envelope, posl-OneSpl, Gx1/PanWidth2, shape, tens, sel, true) --lastest point (Gx3)
+                     end
+
+       end
+
+end -- StartEndPointsIsOn
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    reaper.Envelope_SortPoints(envelope)
+    r.Envelope_SortPoints(envelope)
 
 end --for i=0, items-1 do
 
-    reaper.UpdateArrange()
+
 
 end
 end
 end --  for i = 0, tracks-1 do
-
+    r.UpdateArrange()
+end
 
 
 
@@ -5697,11 +6512,16 @@ function Wave:Set_Values()
     -- Get Selection ----------------
     if not self:Get_TimeSelection() then return end    -- Get time sel start,end,lenght
     ---------------------------------
+if NoItems == 0 and WaveCheck == 1 then mlt = 1 else mlt = 16 end
     -- Calculate some values --------
     self.sel_len    = min(self.sel_len,time_limit)     -- limit lenght(deliberate restriction) 
-    self.selSamples = floor(self.sel_len*srate)        -- time selection lenght to samples
+    self.selSamples = floor(self.sel_len*srate)/mlt        -- time selection lenght to samples
     -- init Horizontal --------------
-    self.max_Zoom = 150 -- maximum zoom level(желательно ок.150-200,но зав. от длины выдел.(нужно поправить в созд. пиков!))
+
+    local MaxZoom = 5*self.sel_len
+    if MaxZoom > 150 then MaxZoom = 150 end
+    self.max_Zoom = MaxZoom -- maximum zoom level(желательно ок.150-200,но зав. от длины выдел.(нужно поправить в созд. пиков!))
+
     self.Zoom = self.Zoom or 1  -- init Zoom 
     self.Pos  = self.Pos  or 0  -- init src position
     -- init Vertical ---------------- 
@@ -5709,9 +6529,9 @@ function Wave:Set_Values()
     self.vertZoom = self.vertZoom or 1  -- init vertical Zoom 
     ---------------------------------
     -- pix_dens - нужно выбрать оптимум или оптимальную зависимость от sel_len!!!
-    self.pix_dens = 8            -- 2^(4-1) 4-default. 1-учесть все семплы для прорисовки(max кач-во),2-через один и тд.
+    self.pix_dens = 4            -- 2^(4-1) 4-default. 1-учесть все семплы для прорисовки(max кач-во),2-через один и тд.
     self.X, self.Y  = x, h/2                           -- waveform position(X,Y axis)
-    self.X_scale    = w/self.selSamples                -- X_scale = w/lenght in samples
+    self.X_scale    = (w/self.selSamples)/mlt                -- X_scale = w/lenght in samples
     self.Y_scale    = h/2.5                            -- Y_scale for waveform drawing
     ---------------------------------
     -- Some other values ------------
@@ -5815,6 +6635,7 @@ function Wave:Processing()
     -------------------------------------------------------------------------
     self.State = true -- Change State
     -------------------------
+   collectgarbage() -- collectgarbage(подметает память) 
 end 
 
 
@@ -5826,11 +6647,12 @@ function Wave:Get_Cursor()
   local E_Curs = r.GetCursorPosition()
   --- edit cursor ---
   local insrc_Ecx = (E_Curs - self.sel_start) * srate * self.X_scale    -- cursor in source!
+     insrc_Ecx_k = insrc_Ecx
      self.Ecx = (insrc_Ecx - self.Pos) * self.Zoom*Z_w                  -- Edit cursor
      if self.Ecx >= 0 and self.Ecx <= self.w then gfx.set(0.7,0.8,0.9,1) -- main edit cursor color
         gfx.line(self.x + self.Ecx, self.y, self.x + self.Ecx, self.y+self.h -1 )
      end
-     if self.Ecx >= 0 and self.Ecx <= self.w then gfx.set(0.9,0.9,0.9,1) -- loop edit cursor color 
+     if self.Ecx >= 0 and self.Ecx <= self.w then gfx.set(1,1,1,1) -- loop edit cursor color 
         gfx.line(self.x + self.Ecx, self.y/1.5, self.x + self.Ecx, (self.y+self.h)/9.3 )
      end
   --- play cursor ---
@@ -5884,14 +6706,14 @@ end
 ----------------------------------------------------------------------------------------------------
 function Wave:Get_Mouse()
     -----------------------------
-local true_position = (gfx.mouse_x-self.x)/Z_w  -- корректировка для захвата краёв waveform
+local true_position = (gfx.mouse_x-self.x)/Z_w  --  waveform borders correction
 local pos_margin = gfx.mouse_x-self.x
 if true_position < 24 then pos_margin = 0 end
 if true_position > 1000 then pos_margin = gfx.mouse_x end
 self.insrc_mx_zoom = self.Pos + (pos_margin)/(self.Zoom*Z_w) -- its current mouse position in source!
 
 if SnapToStart == 1 then
-local true_position = (gfx.mouse_x-self.x)/Z_w  -- корректировка для cursor snap
+local true_position = (gfx.mouse_x-self.x)/Z_w  --  cursor snap correction
 local pos_margin = gfx.mouse_x-self.x
    if true_position < 12 then pos_margin = 0 end
     self.insrc_mx = self.Pos + (pos_margin)/(self.Zoom*Z_w) 
@@ -5903,9 +6725,12 @@ end
     --- Wave get-set Cursors ----
     self:Get_Cursor()
     self:Set_Cursor()   
+
+self.insrc_mx_zoom_k = self.Pos + (insrc_Ecx_k-self.x)/(self.Zoom*Z_w) -- its current cursor position in source!
     -----------------------------------------
     --- Wave Zoom(horizontal) ---------------
     if self:mouseIN() and gfx.mouse_wheel~=0 and not(Ctrl or Shift) then 
+DrawGridGuides()
     local M_Wheel = gfx.mouse_wheel
       -------------------
       if     M_Wheel>0 then self.Zoom = min(self.Zoom*1.25, self.max_Zoom)   
@@ -5918,8 +6743,6 @@ end
 self_Zoom = self.Zoom --refresh loop by mw
       -------------------
       Wave:Redraw() -- redraw after horizontal zoom
-DrawGridGuides()
-Gate_on2 = 1
     end
     -----------------------------------------
     --- Wave Zoom(Vertical) -----------------
@@ -5999,6 +6822,7 @@ end
     if Ctrl and self:mouseM_Down() then 
       self.Pos = 0
       self.Zoom = 1   
+      Wave:Redraw() -- redraw after zoom reset
       --------------------
     end
 
@@ -6011,10 +6835,7 @@ end
      --------------------------------------------------------------------------------
      -- Zoom by Arrow Keys
      --------------------------------------------------------------------------------
-local KeyUP
-local KeyDWN
-local KeyL
-local KeyR
+local KeyUP, KeyDWN, KeyL, KeyR
 
     if char==30064 then KeyUP = 1 else KeyUP = 0 end -- up
     if char==1685026670 then KeyDWN = 1 else KeyDWN = 0 end -- down
@@ -6024,33 +6845,27 @@ local KeyR
 -------------------------------horizontal----------------------------------------
      if  KeyR == 1 then self.Zoom = min(self.Zoom*1.2, self.max_vertZoom+138)   
 
-      self.Pos = self.insrc_mx_zoom - (gfx.mouse_x-self.x)/(self.Zoom*Z_w)
+      self.Pos = self.insrc_mx_zoom_k - (insrc_Ecx_k-(self.x*1.2))/(self.Zoom*Z_w)
       self.Pos = max(self.Pos, 0)
       self.Pos = min(self.Pos, (self.w - self.w/self.Zoom)/Z_w )
 
      Wave:Redraw() -- redraw after horizontal zoom
-     else
-     end   
+        
+     elseif  KeyL == 1 then self.Zoom = max(self.Zoom*0.8, 1)
 
-     if  KeyL == 1 then self.Zoom = max(self.Zoom*0.8, 1)
-
-      self.Pos = self.insrc_mx_zoom - (gfx.mouse_x-self.x)/(self.Zoom*Z_w)
+      self.Pos = self.insrc_mx_zoom_k - (insrc_Ecx_k-(self.x*0.8))/(self.Zoom*Z_w)
       self.Pos = max(self.Pos, 0)
       self.Pos = min(self.Pos, (self.w - self.w/self.Zoom)/Z_w )
 
      Wave:Redraw() -- redraw after horizontal zoom
-     else
      end   
 
 -------------------------------vertical-------------------------------------------
      if  KeyUP == 1 then self.vertZoom = min(self.vertZoom*1.2, self.max_vertZoom)   
      Wave:Redraw() -- redraw after vertical zoom
-     else
-     end   
 
-     if  KeyDWN == 1 then self.vertZoom = max(self.vertZoom*0.8, 1)
+     elseif  KeyDWN == 1 then self.vertZoom = max(self.vertZoom*0.8, 1)
      Wave:Redraw() -- redraw after vertical zoom
-     else
      end   
 
 end
@@ -6063,19 +6878,19 @@ function Wave:from_gfxBuffer()
   if not Z_w or not Z_h then return end -- return if zoom not defined
   self.x, self.w = (self.def_xywh[1]* Z_w) , (self.def_xywh[3]* Z_w) -- upd x,w
   self.y, self.h = (self.def_xywh[2]* Z_h) , (self.def_xywh[4]* Z_h) -- upd y,h
+--[[
   if self.fnt_sz then --fix it!--
      self.fnt_sz = max(16,self.def_xywh[5]* (Z_w+Z_h)/1.9)
      self.fnt_sz = min(22,self.fnt_sz* Z_h)
   end 
+]]--
   -- draw Wave frame, axis -------------
   self:draw_rect()
 
    -- Insert Wave from gfx buffer1 ------
   gfx.a = 1 -- gfx.a for blit
   local srcw, srch = Wave.def_xywh[3], Wave.def_xywh[4] -- its always def values 
-    if WFiltering == 0 then
-        gfx.mode = 4
-    end
+    if WFiltering == 0 then gfx.mode = 4 end
   gfx.blit(1, 1, 0, 0, 0, srcw, srch,  self.x, self.y, self.w, self.h)
 
   -- Get Mouse -------------------------
@@ -6108,7 +6923,7 @@ end
     Shift+Drag/Mousewheel - fine tune,
     Ctrl+Left Click - reset value to default,
     Space - Play. 
-    Esc - Close Slicer.
+    Esc - Close Shaper/Stutter
     ----------------
     On Waveform Area:
     Mouswheel or Left/Right keys - Horizontal Zoom,
@@ -6124,12 +6939,105 @@ end
 end
 
 
---Gate_on3 = 0
+function Wave:show_env_name()
+  if not Z_w or not Z_h then return end -- return if zoom not defined
+  self.x, self.w = (self.def_xywh[1]* Z_w) , (self.def_xywh[3]* Z_w) -- upd x,w
+  self.y, self.h = (self.def_xywh[2]* Z_h) , (self.def_xywh[4]* Z_h) -- upd y,h
+local fnt_sz
+    local r,g,b,a  = self.r,self.g,self.b,self.a
+    local x,y,w,h  = self.x,self.y/6,self.w,self.h
+    local lbl_w, lbl_h = gfx.measurestr(self.lbl)
+    gfx.x = x+(w-lbl_w)/3.5
+    gfx.y = y+(h-lbl_h)/500
+
+    if fnt_sz then
+           fnt_sz = fnt_sz*(Z_h*1.05)
+        if fnt_sz <= 12 then fnt_sz = 12 end
+        if fnt_sz >= MaxFontSize-1 then fnt_sz = MaxFontSize-1 end
+        fnt_sz = fnt_sz-1
+        gfx.setfont(1, "Arial", fnt_sz)
+    end
+    gfx.set(0.6, 0.6, 0.6, 1) -- цвет текста 
+
+ local Selected_tracks  = reaper.CountSelectedTracks(0)
+
+  if Selected_tracks == 0 then
+      gfx.set(0.8, 0.4, 0.4, 1) -- цвет текста ошибки
+  end
+
+     TEnv = reaper.GetSelectedEnvelope(0)
+        if TEnv then
+               _, EnvNameText = reaper.GetEnvelopeName(TEnv)
+        end
+
+    if TrackEnv == 1 then --if track env
+
+          if EnvNameText then
+               if SelectedEnvOnly == 1 then
+                     if Selected_tracks == 0 then
+                         gfx.drawstr("No Track(s) Selected", 1, gfx.w, gfx.h)
+                         else
+                         gfx.drawstr(EnvNameText, 1, gfx.w, gfx.h)
+                     end
+                  else
+                     if Selected_tracks == 0 then
+                         gfx.drawstr("No Track(s) Selected", 1, gfx.w, gfx.h)
+                         else
+                         gfx.drawstr("All Envelopes On "..Selected_tracks.." Selected Tracks", 1, gfx.w, gfx.h)
+                     end
+               end
+          end
+
+        else -- if item envelope
+
+           if ItemEnvMode.norm_val == 1 then
+               ItEnvNm = "Volume"
+           elseif ItemEnvMode.norm_val == 2 then
+               ItEnvNm = "Pan"
+            elseif ItemEnvMode.norm_val == 3 then
+               ItEnvNm = "Pitch"
+           end
+
+           if ItEnvNm then
+                gfx.drawstr("Item Envelope: "..ItEnvNm, 1, gfx.w, gfx.h)
+           end
+    end
+end
 
 
+function Wave:show_process_wait()
+    if not Z_w or not Z_h then return end -- return if zoom not defined
+    self.x, self.w = (self.def_xywh[1]* Z_w) , (self.def_xywh[3]* Z_w) -- upd x,w
+    self.y, self.h = (self.def_xywh[2]* Z_h) , (self.def_xywh[4]* Z_h) -- upd y,h
+    local fnt_sz
+    local r,g,b,a  = self.r,self.g,self.b,self.a
+    local x,y,w,h  = self.x,self.y/6,self.w,self.h
+    local lbl_w, lbl_h = gfx.measurestr(self.lbl)
+    gfx.x = x+(w-lbl_w)/10
+    gfx.y = y+(h-lbl_h)/2.2
+    
+     if Wave.State then -- if the wave is loaded, place small text upside down
+         gfx.x = x+(w-lbl_w)/3.5
+         gfx.y = y+(h-lbl_h)/500
+         fnt_sz = fnt_sz
+         sz_mult = 1
+            else
+         fnt_sz = 50
+         sz_mult = 3
+     end
 
+    if fnt_sz then
+        if fnt_sz <= 12 then fnt_sz = 12 end
+        if fnt_sz >= MaxFontSize+1 then fnt_sz = MaxFontSize+1 end
+        fnt_sz = fnt_sz*(Z_h)*sz_mult
+        gfx.setfont(1, "Arial", fnt_sz)
+    end
+    gfx.set(0.6, 0.6, 0.6, 1) -- цвет текста 
 
-
+    if reaper.CountSelectedMediaItems(0) > 0 then
+       gfx.drawstr("Processing, wait...", 1, gfx.w, gfx.h)
+    end
+end
 
 ----------------------------------------------------------------------------------------------------
 ---   MAIN   ---------------------------------------------------------------------------------------
@@ -6159,10 +7067,19 @@ end
 
 
 if Gate_on3 == 1 then
+
+    if Undo_Permit == 1 then
+        r.Undo_BeginBlock() 
+    end
+
     Wave:Create_Envelope()
+
+    if Undo_Permit == 1 then
+        r.Undo_EndBlock("Slicer/Shaper: Create Envelope", -1) 
+        Undo_Permit = 0
+    end
+
 end
-
-
 
 
 
@@ -6170,7 +7087,10 @@ end
     if Wave.State then      
           Wave:from_gfxBuffer() -- Wave from gfx buffer
           Gate_Gl:draw_Lines()  -- Draw Gate trig-lines
-          Gate_Gl:draw_Ruler() -- Draw Ruler lines
+         if ShowRuler == 1 then
+               Gate_Gl:draw_Ruler() -- Draw Ruler lines
+         end
+
 
         local _, division, swing, _ = r.GetSetProjectGrid(0,false)
 -----------------------------Grid Buttons Leds-------------------------------------------------------
@@ -6232,9 +7152,11 @@ end
               for key,btn    in pairs(Frame_Loop_TB2)   do btn:draw()    end 
               for key,btn    in pairs(LoopBtn_TB)   do btn:draw()    end 
           end
+           if Show_process_wait_is_active == 0 then Wave:show_env_name() end
       else 
           Wave:show_help()      -- else show help
     end
+
 
   -- Draw sldrs, btns etc ------
     for key,btn    in pairs(Frame_TB)   do btn:draw()    end 
@@ -6253,9 +7175,9 @@ end
        for key,sldr   in pairs(Slider_TB_Trigger)   do sldr:draw()   end
 
 
-
-
-
+     if TrackEnv == 0 then
+       for key,ch_box in pairs(CheckBoxItem_TB) do ch_box:draw() end
+     end
 
 
      if EnvMode.norm_val == 1  then
@@ -6306,10 +7228,10 @@ end
 
 function MW_doit_slider_Fine()
       if Wave.State then
-            Gate_Gl:Apply_toFiltered() -- redraw transient markers
-            DrawGridGuides()
+     OffsSldCorr = (Offset_Sld.form_val/1000*srate)
+             Gate_Gl:Apply_toFiltered()
+             DrawGridGuides()
             Slice_Status = 1
-Gate_on2 = 1
       end
 end
 
@@ -6379,6 +7301,13 @@ function Glue_protection() -- не клеит, если Guides активны
 end 
 end
 
+function Offset_Sld_DoIt()
+    if Wave.State then
+       OffsSldCorr = (Offset_Sld.form_val/1000*srate)
+       Gate_Gl:Apply_toFiltered()
+       DrawGridGuides()
+    end
+end
 
 ------------------------------------------------------------------------------------
 
@@ -6427,7 +7356,7 @@ function Init()
     -- Some gfx Wnd Default Values ---------------
     local R,G,B = 45,45,45              -- 0...255 format -- цвет основного окна
     local Wnd_bgd = R + G*256 + B*65536 -- red+green*256+blue*65536  
-    local Wnd_Title = "MK Shaper/Stutter v1.01"
+    local Wnd_Title = "MK Shaper/Stutter v1.20"
     local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
  --   Wnd_W,Wnd_H = 1044,490 -- global values(used for define zoom level)
 
@@ -6493,6 +7422,11 @@ end
 
 function mainloop()
 
+local rng1x = rng1
+local rng2x = rng2
+
+local Loop_onx = Loop_on
+
     -- zoom level -- 
     Wnd_WZ = r.GetExtState("cool_MK_Shaper/Stutter.lua", "zoomWZ") or 1044
     Wnd_HZ = r.GetExtState("cool_MK_Shaper/Stutter.lua", "zoomHZ") or 490
@@ -6501,8 +7435,8 @@ function mainloop()
 
     Z_w, Z_h = gfx.w/Wnd_WZ, gfx.h/Wnd_HZ
     gfx_width = gfx.w
-    if Z_w<0.63 then Z_w = 0.63 elseif Z_w>2.2 then Z_w = 2.2 end 
-    if Z_h<0.63 then Z_h = 0.63 elseif Z_h>2.2 then Z_h = 2.2 end 
+    if Z_w<0.63 then Z_w = 0.63 elseif Z_w>4 then Z_w = 4 end --2.2
+    if Z_h<0.63 then Z_h = 0.63 elseif Z_h>4 then Z_h = 4 end  --2.2
 
     -- mouse and modkeys --
     if gfx.mouse_cap&2==0 then mouseR_Up_status = 1 end
@@ -6527,20 +7461,20 @@ function mainloop()
     -------------------------
     MAIN() -- main function
     -------------------------
-    if ShowRuler == 1 then
-        DrawGridGuides2()
-    end
 
     if Loop_on == 1 then
        isloop = true
          else
        isloop = false
-     --       if loopcheck == 0 then
-                r.GetSet_LoopTimeRange(true, true, 0, 0, false)
-      --      end
     end
 
-    if loop_start then
+
+if Loop_onx ~= Loop_on then
+                r.GetSet_LoopTimeRange(true, true, 0, 0, false) -- loop off when Loop_on == 0
+end
+
+
+    if loop_start and Wave.State and (rng1x ~= rng1 or rng2x ~= rng2) or Loop_onx ~= Loop_on then
         r.GetSet_LoopTimeRange(isloop, true, rng1, rng2, false)
     end
 
@@ -6556,7 +7490,7 @@ function mainloop()
               if rng3 == nil then rng3 = 0 end
               if rng4 == nil then rng4 = 1 end
 
-         reaper.GetSet_ArrangeView2( 0,1,0,0,rng3, rng4 )
+         r.GetSet_ArrangeView2( 0,1,0,0,rng3, rng4 )
 
     end
 
@@ -6620,32 +7554,53 @@ end
 
 function getitem()
 
-    r.Undo_BeginBlock() 
-r.PreventUIRefresh(1)
-Muted = 0
-if number_of_takes == 1 and mute_check == 1 then 
-r.Main_OnCommand(40175, 0) 
-Muted = 1
-end
 
-----------------------------------------------------------------
-   Wave:Destroy_Track_Accessor() -- Destroy previos AA(освобождает память etc)
-   Wave.State = false -- reset Wave.State
-   if Wave:Create_Track_Accessor() then Wave:Processing()
-      if Wave.State then
-         Wave:Redraw()
-         Gate_Gl:Apply_toFiltered() 
-         DrawGridGuides()
-        -- DrawGridGuides2()
-      end
-   end
------------------------------------------------------------------
+     time_start = reaper.time_precise()       
+        local function Main()     
+            local elapsed = reaper.time_precise() - time_start       
+            if elapsed >= 0.01 then
+               Show_process_wait_is_active = 0
+            ----------------------------------------------------------------
+                 r.Undo_BeginBlock() 
+                 r.PreventUIRefresh(1)
+                 Muted = 0
+                 if number_of_takes == 1 and mute_check == 1 then 
+                 r.Main_OnCommand(40175, 0) 
+                 Muted = 1
+                 end
 
-if Muted == 1 then
-r.Main_OnCommand(40175, 0) 
-end
-r.PreventUIRefresh(-1)
-    r.Undo_EndBlock("Toggle Item Mute", -1) 
+                 ----------------------------------------------------------------
+                    Wave:Destroy_Track_Accessor() -- Destroy previos AA(освобождает память etc)
+                    Wave.State = false -- reset Wave.State
+                    if Wave:Create_Track_Accessor() then Wave:Processing()
+                       if Wave.State then
+                          Wave:Redraw()
+                          Gate_Gl:Apply_toFiltered() 
+                          DrawGridGuides()
+                         -- DrawGridGuides2()
+                       end
+                    end
+                 -----------------------------------------------------------------
+                 
+                 if Muted == 1 then
+                 r.Main_OnCommand(40175, 0) 
+                 end
+                 r.PreventUIRefresh(-1)
+                 r.Undo_EndBlock("Toggle Item Mute", -1) 
+             ------------------------------------------------------------------
+              runcheck = 0
+                return
+            else
+            Wave:show_process_wait()
+            Show_process_wait_is_active = 1
+              runcheck = 1
+                reaper.defer(Main)
+            end           
+        end
+        
+        if runcheck ~= 1 then
+           Main()
+        end
 
 end
 
@@ -6704,9 +7659,9 @@ context_menu = Menu("context_menu")
 
 item1 = context_menu:add_item({label = "Links|", active = false})
 
-item2 = context_menu:add_item({label = "Donate (PayPal)", toggleable = false})
+item2 = context_menu:add_item({label = "Donate (ByMeACoffee)", toggleable = false})
 item2.command = function()
-                     r.CF_ShellExecute('https://paypal.me/MKokarev')
+                     r.CF_ShellExecute('https://www.buymeacoffee.com/MaximKokarev')
 end
 
 item3 = context_menu:add_item({label = "User Manual and Support (Forum Thread)|", toggleable = false})
@@ -6739,7 +7694,7 @@ gfx.quit()
      dock_pos = dock_pos or 1025
      xpos = 400
      ypos = 320
-     local Wnd_Title = "MK Shaper/Stutter v1.01"
+     local Wnd_Title = "MK Shaper/Stutter v1.20"
      local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
      gfx.init( Wnd_Title, Wnd_W,Wnd_H, Wnd_Dock, Wnd_X,Wnd_Y )
 
@@ -6751,7 +7706,7 @@ gfx.quit()
     dock_pos = 0
     xpos = r.GetExtState("cool_MK_Shaper/Stutter.lua", "window_x") or 400
     ypos = r.GetExtState("cool_MK_Shaper/Stutter.lua", "window_y") or 320
-    local Wnd_Title = "MK Shaper/Stutter v1.01"
+    local Wnd_Title = "MK Shaper/Stutter v1.20"
     local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
     gfx.init( Wnd_Title, Wnd_W,Wnd_H, Wnd_Dock, Wnd_X,Wnd_Y )
  
@@ -6762,8 +7717,8 @@ gfx.quit()
  
     Z_w, Z_h = gfx.w/Wnd_WZ, gfx.h/Wnd_HZ
  
-    if Z_w<0.63 then Z_w = 0.63 elseif Z_w>2.2 then Z_w = 2.2 end 
-    if Z_h<0.63 then Z_h = 0.63 elseif Z_h>2.2 then Z_h = 2.2 end 
+    if Z_w<0.63 then Z_w = 0.63 elseif Z_w>4 then Z_w = 4 end --2.2
+    if Z_h<0.63 then Z_h = 0.63 elseif Z_h>4 then Z_h = 4 end  --2.2
                      end
           r.SetExtState('cool_MK_Shaper/Stutter.lua','Docked',Docked,true);
 end
@@ -6904,18 +7859,18 @@ item14.command = function()
 end 
 
 
-if ObeyingTheSelection == 1 then
-item15 = context_menu:add_item({label = "--Reserved--", toggleable = true, selected = true})
+if SelectedEnvOnly == 1 then
+item15 = context_menu:add_item({label = "Process Only Selected Envelope", toggleable = true, selected = true})
 else
-item15 = context_menu:add_item({label = "--Reserved--", toggleable = true, selected = false})
+item15 = context_menu:add_item({label = "Process Only Selected Envelope", toggleable = true, selected = false})
 end
 item15.command = function()
                      if item15.selected == true then 
-                     ObeyingTheSelection = 1
+                     SelectedEnvOnly = 1
                      else
-                     ObeyingTheSelection = 0
+                     SelectedEnvOnly = 0
                      end
-          r.SetExtState('cool_MK_Shaper/Stutter.lua','ObeyingTheSelection',ObeyingTheSelection,true);
+          r.SetExtState('cool_MK_Shaper/Stutter.lua','SelectedEnvOnly',SelectedEnvOnly,true);
 end
 
 
@@ -6942,12 +7897,12 @@ end
 
 
 item18 = context_menu:add_item({label = "Set User Defaults", toggleable = false})
-item17.command = function()
+item18.command = function()
 user_defaults()
 end
 
 
-item19 = context_menu:add_item({label = "Reset All Setted User Defaults", toggleable = false})
+item19 = context_menu:add_item({label = "Reset All Setted User Defaults|", toggleable = false})
 item18.command = function()
 
       r.SetExtState('cool_MK_Shaper/Stutter.lua','DefaultXFadeTime',15,true);
@@ -6962,17 +7917,23 @@ item18.command = function()
 end
 
 
-item20 = context_menu:add_item({label = "|--Reserved--", toggleable = false})
-item19.command = function()
- if XFadeOff == 1 then XFadeOff = 0
-elseif XFadeOff == 0 then XFadeOff = 1
+if MaxFontSizeSt == 1 then
+  item38 = context_menu:add_item({label = "Large Font Size (Restart required)", toggleable = true, selected = true, active = true})
+  else
+  item38 = context_menu:add_item({label = "Large Font Size (Restart required)", toggleable = true, selected = false, active = true})
 end
-      r.SetExtState('cool_MK_Shaper/Stutter.lua','XFadeOff',XFadeOff,true);
+item38.command = function()
+            if item38.selected == true then 
+            MaxFontSizeSt = 1
+            else
+            MaxFontSizeSt = 0
+            end
+ r.SetExtState('MK_Slicer_3','MaxFontSizeSt',MaxFontSizeSt,true);
 end
 
 
 item21 = context_menu:add_item({label = "|Reset Controls to User Defaults (Restart required)|<", toggleable = false})
-item20.command = function()
+item21.command = function()
 Reset_to_def = 1
   --sliders--
       DefaultXFadeTime = tonumber(r.GetExtState('cool_MK_Shaper/Stutter.lua','DefaultXFadeTime'))or 15;
@@ -7011,7 +7972,7 @@ end
 
 
 item22 = context_menu:add_item({label = "|Reset Window Size", toggleable = false})
-item21.command = function()
+item22.command = function()
 store_window()
            xpos = r.GetExtState("cool_MK_Shaper/Stutter.lua", "window_x") or 400
            ypos = r.GetExtState("cool_MK_Shaper/Stutter.lua", "window_y") or 320
@@ -7121,6 +8082,21 @@ end
 -----------------------end of User Defaults form--------------------------------
 
 function ClearExState() 
+----------- Delete Created Item --------------
+if NoItems == 1 then
+    for tr, trck in pairs(Table) do
+        if trck then 
+             for it, del_it in pairs(Table2) do
+                if del_it then 
+                   reaper.DeleteTrackMediaItem(tr, it)
+                   reaper.UpdateArrange()
+                   NoItems = 0
+                end
+             end    
+        end
+    end
+end
+------------------------------------
 r.DeleteExtState('_Slicer_', 'ItemToSlice', 0)
 r.DeleteExtState('_Slicer_', 'TrackForSlice', 0)
 r.SetExtState('_Slicer_', 'GetItemState', 'ItemNotLoaded', 0)
