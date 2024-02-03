@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="e69995cd6349c24ac362d4fbc29a7e9ee2544655" name="ReaTeam Scripts">
+<index version="1" commit="7b041984bc8303179cf26f412940a99a723f6a16" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -23605,6 +23605,10 @@ Fix SWS Startup / Lokasenna Radial Menu bug]]></changelog>
       </metadata>
       <version name="1.0" author="Eric Czichy" time="2023-10-19T04:20:41Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/44bdd825637db35d2bd1fd59d597520e35c35d3d/Various/SampleSamurai.lua</source>
+      </version>
+      <version name="1.0.1" author="Eric Czichy" time="2024-02-03T16:02:10Z">
+        <changelog><![CDATA[The help window now contains some further links]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/7b041984bc8303179cf26f412940a99a723f6a16/Various/SampleSamurai.lua</source>
       </version>
     </reapack>
     <reapack name="sexan_Project time counter.lua" type="script" desc="Project Time Counter with AFK mode">
