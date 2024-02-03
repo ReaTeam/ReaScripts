@@ -88,7 +88,7 @@ local function outputSelect()
     local chan = outputChan & 1023
     local monoFlag = (outputChan & 1024)
     local skip = monoFlag == 0 and 2 or 1
-    for i = 0, reaper.GetNumAudioOutputs()-1, skip do
+    for i = 0, reaper.GetNumAudioOutputs() - 1, skip do
       if ImGui.Selectable(ctx, formatChan(i | monoFlag), chan == i) then
         outputChan = i | monoFlag
         outToTrack = false
