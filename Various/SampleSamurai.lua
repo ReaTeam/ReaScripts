@@ -1,6 +1,7 @@
 -- @description SampleSamurai
 -- @author Eric Czichy
--- @version 1.0
+-- @version 1.0.1
+-- @changelog The help window now contains some further links
 -- @about
 --   # SampleSamurai 
 --
@@ -154,9 +155,36 @@ helpButton.onclick = function()
   9. Hit "start" button
   10. Wait until SampleSamurai has recorded all of the notes
   11. Individual items will be named with midi note values and note names
-  12. If you need multiple velocity layers, just transfer the items into a new track and repeat the process with different velocity values]]
-    displayText(text)
+  12. If you need multiple velocity layers, just transfer the items into a new track and repeat the process with different velocity values
+]]
+
+  local helpWrapper = rtk.VBox()
+  helpWrapper:add(rtk.Text{text, wrap = rtk.Text.WRAP_BREAK_WORD, spacing = 1})
+  local helpWrapperButtons = helpWrapper:add(rtk.HBox())
+  helpWrapperButtons:add(rtk.Button{
+    label = 'Video', 
+    onclick = function ()
+      rtk.open_url("https://www.youtube.com/watch?v=2-a7UDW9ZHQ")
+    end
+  })
+  helpWrapperButtons:add(rtk.Button{
+    label = 'Feedback', 
+    onclick = function ()
+      rtk.open_url("https://forum.cockos.com/showthread.php?t=287934&referrerid=200450")
+    end
+  })
+  helpWrapperButtons:add(rtk.Button{
+    label = '<3', 
+    onclick = function ()
+      rtk.open_url("https://www.paypal.com/paypalme/eczi?country.x=DE&locale.x=de_DE")
+    end
+  })
+  local popup = rtk.Popup{
+    child = helpWrapper,
+  }
+  popup:open()
  end
+
 -- exit Button
 local exitButton = rtk.Button{label = 'X', bpadding = 2, lpadding = 8, font = 'arial', fontsize = 25, w = 30, h = 30, halign = 'left', valign = 'bottom'}
   exitButton.onclick = function()
