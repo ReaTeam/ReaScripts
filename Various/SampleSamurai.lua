@@ -1,6 +1,6 @@
 -- @description SampleSamurai
 -- @author Eric Czichy
--- @version 1.0
+-- @version 1.0.1
 -- @changelog The help window now contains some further links
 -- @about
 --   # SampleSamurai 
