@@ -1,10 +1,10 @@
 -- @description SWS CF_Preview API demo
 -- @author cfillion
--- @version 1.0
+-- @version 1.0.1
+-- @changelog Fix display of the first peak channel
 -- @donation https://reapack.com/donate
 
-dofile(reaper.GetResourcePath() ..
-       '/Scripts/ReaTeam Extensions/API/imgui.lua')
+dofile(reaper.GetResourcePath() .. '/Scripts/ReaTeam Extensions/API/imgui.lua')
   ('0.8.5')
 
 local ImGui = {}
@@ -13,7 +13,7 @@ for name, func in pairs(reaper) do
   if name then ImGui[name] = func end
 end
 
-local SCRIPT_NAME = select(2, reaper.get_action_context()):match("([^/\\_]+)%.lua$")
+local SCRIPT_NAME = 'SWS CF_Preview API demo'
 local FLT_MIN, FLT_MAX = ImGui.NumericLimits_Float()
 local ctx = ImGui.CreateContext(SCRIPT_NAME)
 local sans_serif = ImGui.CreateFont('sans-serif', 13)
@@ -88,7 +88,7 @@ local function outputSelect()
     local chan = outputChan & 1023
     local monoFlag = (outputChan & 1024)
     local skip = monoFlag == 0 and 2 or 1
-    for i = 0, reaper.GetNumAudioOutputs()-1, skip do
+    for i = 0, reaper.GetNumAudioOutputs() - 1, skip do
       if ImGui.Selectable(ctx, formatChan(i | monoFlag), chan == i) then
         outputChan = i | monoFlag
         outToTrack = false
@@ -297,7 +297,7 @@ local function window()
   local avail_w, avail_h = ImGui.GetContentRegionAvail(ctx)
   local spacing_x, spacing_h = ImGui.GetStyleVar(ctx, ImGui.StyleVar_ItemSpacing())
   local meter_h = math.max(spacing_h, ((avail_h + spacing_h) / peakChans) - spacing_h)
-  for i = 1, peakChans do
+  for i = 0, peakChans - 1 do
     local peak = select(2, reaper.CF_Preview_GetPeak(preview, i))
     ImGui.ProgressBar(ctx, peak, -FLT_MIN, meter_h, ' ')
   end
