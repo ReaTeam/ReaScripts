@@ -297,7 +297,7 @@ local function window()
   local avail_w, avail_h = ImGui.GetContentRegionAvail(ctx)
   local spacing_x, spacing_h = ImGui.GetStyleVar(ctx, ImGui.StyleVar_ItemSpacing())
   local meter_h = math.max(spacing_h, ((avail_h + spacing_h) / peakChans) - spacing_h)
-  for i = 0, peakChans do
+  for i = 0, peakChans - 1 do
     local peak = select(2, reaper.CF_Preview_GetPeak(preview, i))
     ImGui.ProgressBar(ctx, peak, -FLT_MIN, meter_h, ' ')
   end
