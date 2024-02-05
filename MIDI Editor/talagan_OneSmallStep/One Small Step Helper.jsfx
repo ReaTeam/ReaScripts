@@ -1,0 +1,256 @@
+noindex: true
+desc: One Small Step Helper
+version: 0.1
+
+slider1:0<0,3153600000,0.001>Sustain Pedal Activity
+slider2:0<0,127,1>Notes in buffer
+
+slider10:<0,127,1>Note 0 Pitch
+slider11:<0,15,1> Note 0 Channel
+slider12:<0,127,1>Note 0 Velocity
+
+slider13:<0,127,1>Note 1 Pitch
+slider14:<0,15,1> Note 1 Channel
+slider15:<0,127,1>Note 1 Velocity
+
+slider16:<0,127,1>Note 2 Pitch
+slider17:<0,15,1> Note 2 Channel
+slider18:<0,127,1>Note 2 Velocity
+
+slider19:<0,127,1>Note 3 Pitch
+slider20:<0,15,1> Note 3 Channel
+slider21:<0,127,1>Note 3 Velocity
+
+slider22:<0,127,1>Note 4 Pitch
+slider23:<0,15,1> Note 4 Channel
+slider24:<0,127,1>Note 4 Velocity
+
+slider25:<0,127,1>Note 5 Pitch
+slider26:<0,15,1> Note 5 Channel
+slider27:<0,127,1>Note 5 Velocity
+
+slider28:<0,127,1>Note 6 Pitch
+slider29:<0,15,1> Note 6 Channel
+slider30:<0,127,1>Note 6 Velocity
+
+slider31:<0,127,1>Note 7 Pitch
+slider32:<0,15,1> Note 7 Channel
+slider33:<0,127,1>Note 7 Velocity
+
+slider34:<0,127,1>Note 8 Pitch
+slider35:<0,15,1> Note 8 Channel
+slider36:<0,127,1>Note 8 Velocity
+
+slider37:<0,127,1>Note 9 Pitch
+slider38:<0,15,1> Note 9 Channel
+slider39:<0,127,1>Note 9 Velocity
+
+slider40:<0,127,1>Note 10 Pitch
+slider41:<0,15,1> Note 10 Channel
+slider42:<0,127,1>Note 10 Velocity
+
+slider43:<0,127,1>Note 11 Pitch
+slider44:<0,15,1> Note 11 Channel
+slider45:<0,127,1>Note 11 Velocity
+
+slider46:<0,127,1>Note 12 Pitch
+slider47:<0,15,1> Note 12 Channel
+slider48:<0,127,1>Note 12 Velocity
+
+slider49:<0,127,1>Note 13 Pitch
+slider50:<0,15,1> Note 13 Channel
+slider51:<0,127,1>Note 13 Velocity
+
+slider52:<0,127,1>Note 14 Pitch
+slider53:<0,15,1> Note 14 Channel
+slider54:<0,127,1>Note 14 Velocity
+
+slider55:<0,127,1>Note 15 Pitch
+slider56:<0,15,1> Note 15 Channel
+slider57:<0,127,1>Note 15 Velocity
+
+slider58:<0,127,1>Note 16 Pitch
+slider59:<0,15,1> Note 16 Channel
+slider60:<0,127,1>Note 16 Velocity
+
+slider61:<0,127,1>Note 17 Pitch
+slider62:<0,15,1> Note 17 Channel
+slider63:<0,127,1>Note 17 Velocity
+
+slider64:<0,127,1>Note 18 Pitch
+slider65:<0,15,1> Note 18 Channel
+slider66:<0,127,1>Note 18 Velocity
+
+slider67:<0,127,1>Note 19 Pitch
+slider68:<0,15,1> Note 19 Channel
+slider69:<0,127,1>Note 19 Velocity
+
+slider70:<0,127,1>Note 20 Pitch
+slider71:<0,15,1> Note 20 Channel
+slider72:<0,127,1>Note 20 Velocity
+
+slider73:<0,127,1>Note 21 Pitch
+slider74:<0,15,1> Note 21 Channel
+slider75:<0,127,1>Note 21 Velocity
+
+slider76:<0,127,1>Note 22 Pitch
+slider77:<0,15,1> Note 22 Channel
+slider78:<0,127,1>Note 22 Velocity
+
+slider79:<0,127,1>Note 23 Pitch
+slider80:<0,15,1> Note 23 Channel
+slider81:<0,127,1>Note 23 Velocity
+
+slider82:<0,127,1>Note 24 Pitch
+slider83:<0,15,1> Note 24 Channel
+slider84:<0,127,1>Note 24 Velocity
+
+slider85:<0,127,1>Note 25 Pitch
+slider86:<0,15,1> Note 25 Channel
+slider87:<0,127,1>Note 25 Velocity
+
+slider88:<0,127,1>Note 26 Pitch
+slider89:<0,15,1> Note 26 Channel
+slider90:<0,127,1>Note 26 Velocity
+
+slider91:<0,127,1>Note 27 Pitch
+slider92:<0,15,1> Note 27 Channel
+slider93:<0,127,1>Note 27 Velocity
+
+slider94:<0,127,1>Note 28 Pitch
+slider95:<0,15,1> Note 28 Channel
+slider96:<0,127,1>Note 28 Velocity
+
+slider97:<0,127,1>Note 29 Pitch
+slider98:<0,15,1> Note 29 Channel
+slider99:<0,127,1>Note 29 Velocity
+
+slider100:<0,127,1>Note 30 Pitch
+slider101:<0,15,1> Note 30 Channel
+slider102:<0,127,1>Note 30 Velocity
+
+slider103:<0,127,1>Note 31 Pitch
+slider104:<0,15,1> Note 31 Channel
+slider105:<0,127,1>Note 31 Velocity
+
+@init
+
+last_slider_update = 0;
+
+// Use a buffer to retain note states, and update sliders in @block
+// Instead of updating sliders directly.
+// This avoid glitches due to undo operations that could restore FX params
+// And we don't want that
+
+MAX_NOTE        = 32;
+note_buf        = 0;
+note_cnt        = 0;
+
+function spitch(note_num) ( (10 + 3*note_num + 0) );
+function schan(note_num)  ( (10 + 3*note_num + 1) );
+function svel(note_num)   ( (10 + 3*note_num + 2) );
+
+// Only note_buf is used so free the memory after it.
+freembuf(32 * 3 + 1);
+
+function addRemoveNoteFromBuffer(m1,m2,m3)
+  local(s,c,n,v,t,i,j,init_buflen)
+(
+  init_buflen = note_cnt;
+
+  s = m1&$xF0;
+  n = m2;     // note
+  c = m1&$xF; // channel
+  v = m3;     // velocity
+
+  i = -1;
+  while // look for this note|channel already in the buffer
+  (
+    i = i+1;
+    i < note_cnt && i < MAX_NOTE && (notebuf[3*i]|0 != n || notebuf[3*i + 1]|0 != c);
+  );
+
+  (i == MAX_NOTE)?(
+    -1;
+  ):(
+
+    (s == $x90 && v > 0) ?
+    (
+
+      // note-on, add to buffer
+    notebuf[3*i+0]  = n;
+    notebuf[3*i+1]  = c;
+    notebuf[3*i+2]  = v;
+
+      i == note_cnt ? note_cnt = note_cnt+1;
+    ):
+    (
+
+      // note-off, remove from buffer
+      i < note_cnt ?
+      (
+        j = i;
+        while(j < note_cnt)
+        (
+          // Shift all sliders to delete current entry
+          notebuf[3*j+0]  = notebuf[3*(j+1)+0];
+          notebuf[3*j+1]  = notebuf[3*(j+1)+1];
+          notebuf[3*j+2]  = notebuf[3*(j+1)+2];
+          j = j + 1;
+        );
+        while(j < MAX_NOTE)
+        (
+          notebuf[3*j+0] = 0;
+          notebuf[3*j+1] = 0;
+          notebuf[3*j+2] = 0;
+          j = j + 1;
+        );
+
+        note_cnt = note_cnt - 1;
+      );
+    );
+  );
+
+  note_cnt==init_buflen ? -1; //return value for nothing added/removed
+);
+
+@block
+
+function updateSliders() (
+  i = 0;
+  while(i < MAX_NOTE) (
+    slider(spitch(i)) = note_buf[3*i+0];
+    slider(schan(i))  = note_buf[3*i+1];
+    slider(svel(i))   = note_buf[3*i+2];
+    i = i+1;
+  );
+  slider2 = note_cnt;
+);
+
+function main()
+  local(offset,msg1,msg2,msg3)
+(
+  while (midirecv(offset,msg1,msg2,msg3))
+  (
+    (msg1&$xF0==$x90) ?
+      addRemoveNoteFromBuffer(msg1,msg2,msg3);
+
+    (msg1&$xF0==$x80) ?
+      addRemoveNoteFromBuffer(msg1,msg2,msg3);
+
+    (msg1&$xF0==$xB0 && msg2 == 64 && msg3 > 0) ?
+      slider1 = time_precise();
+
+    (msg1&$xF0==$xB0 && msg2 == 64 && msg3 == 0) ?
+      slider1 = 0;
+
+    midisend(offset,msg1,msg2,msg3);
+  )
+);
+
+main();
+t = time_precise();
+(t - last_slider_update > 0.05)?(
+  updateSliders();
+  last_slider_update = t;
+);
