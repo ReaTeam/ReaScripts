@@ -11,13 +11,13 @@
   [main=main,midi_editor] talagan_OneSmallStep Toggle note len modifier - Dotted.lua
   [main=main,midi_editor] talagan_OneSmallStep Increase note len.lua
   [main=main,midi_editor] talagan_OneSmallStep Decrease note len.lua
-  [main=main,midi_editor] talagan_OneSmallStep Change note len - 1_64.lua
-  [main=main,midi_editor] talagan_OneSmallStep Change note len - 1_32.lua
-  [main=main,midi_editor] talagan_OneSmallStep Change note len - 1_16.lua
-  [main=main,midi_editor] talagan_OneSmallStep Change note len - 1_8.lua
-  [main=main,midi_editor] talagan_OneSmallStep Change note len - 1_4.lua
-  [main=main,midi_editor] talagan_OneSmallStep Change note len - 1_2.lua
-  [main=main,midi_editor] talagan_OneSmallStep Change note len - 1.lua
+  [main=main,midi_editor] talagan_OneSmallStep Change note len.lua > talagan_OneSmallStep Change note len - 1_64.lua
+  [main=main,midi_editor] talagan_OneSmallStep Change note len.lua > talagan_OneSmallStep Change note len - 1_32.lua
+  [main=main,midi_editor] talagan_OneSmallStep Change note len.lua > talagan_OneSmallStep Change note len - 1_16.lua
+  [main=main,midi_editor] talagan_OneSmallStep Change note len.lua > talagan_OneSmallStep Change note len - 1_8.lua
+  [main=main,midi_editor] talagan_OneSmallStep Change note len.lua > talagan_OneSmallStep Change note len - 1_4.lua
+  [main=main,midi_editor] talagan_OneSmallStep Change note len.lua > talagan_OneSmallStep Change note len - 1_2.lua
+  [main=main,midi_editor] talagan_OneSmallStep Change note len.lua > talagan_OneSmallStep Change note len - 1.lua
   [main=main,midi_editor] talagan_OneSmallStep Cleanup helper JSFXs.lua
   [main=main,midi_editor] talagan_OneSmallStep Commit.lua
   [nomain] talagan_OneSmallStep/images/*.lua
@@ -91,7 +91,7 @@
 
 --]]
 
--------------------------
+--------------------------------
 
 --[[
 # Ruby script to convert from png > lua to load binary img for ReaImGui
@@ -107,13 +107,13 @@ png_to_lua("triplet.png")
 
 --]]
 
--------------------------
+-------------------------------
 -- Path and modules
 
 package.path      = debug.getinfo(1,"S").source:match[[^@?(.*[\/])[^\/]-$]] .."?.lua;".. package.path
-local engine_lib = require "talagan_OneSmallStep/talagan_OneSmallStep Engine lib";
+local engine_lib  = require "talagan_OneSmallStep/talagan_OneSmallStep Engine lib";
 
---------------------------
+-------------------------------
 -- Check dependencies
 
 if not reaper.APIExists("JS_ReaScriptAPI_Version") then
@@ -128,7 +128,12 @@ if not reaper.APIExists("ImGui_CreateContext") then
   return
 end
 
---------------------
+-------------------------------
+-- ImGui Backward compatibility
+
+dofile(reaper.GetResourcePath() .. '/Scripts/ReaTeam Extensions/API/imgui.lua')('0.8.7')
+
+-------------------------------
 
 local images = {};
 
@@ -140,7 +145,7 @@ function getImage(image_name)
   return images[image_name];
 end
 
--------
+-------------------------------
 
 local ctx                   = reaper.ImGui_CreateContext('One Small Step');
 local bigfont               = reaper.ImGui_CreateFont("sans-serif", 16);
@@ -149,7 +154,7 @@ local bigfontbold           = reaper.ImGui_CreateFont("sans-serif", 16, reaper.I
 reaper.ImGui_Attach(ctx,bigfont);
 reaper.ImGui_Attach(ctx,bigfontbold);
 
--------
+------------------------------
 
 _DEBUG=true
 function DBG(txt)
@@ -353,7 +358,6 @@ function ui_loop()
   end
 
   reaper.ImGui_PopStyleVar(ctx);
-
 
   if open then
     reaper.defer(loop)
