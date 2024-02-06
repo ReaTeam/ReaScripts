@@ -6,7 +6,7 @@
 --   - A lot of options stored in user config
 --   - Options window
 --   - Many new features and bug fixes
--- @provides [main] az_Smart split items by mouse cursor/Open options for AZ_Smart split items by mouse cursor.lua
+-- @provides [main] az_Smart split items by mouse cursor/az_Open options for az_Smart split items by mouse cursor.lua
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=259751
 -- @donation Donate via PayPal https://www.paypal.me/AZsound
 -- @about
