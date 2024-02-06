@@ -6,9 +6,9 @@
 @metapackage
 @provides
   [main=main,midi_editor] .
-  [main=main,midi_editor] talagan_OneSmallStep Toggle note len modifier - Triplet.lua
-  [main=main,midi_editor] talagan_OneSmallStep Toggle note len modifier - Straight.lua
-  [main=main,midi_editor] talagan_OneSmallStep Toggle note len modifier - Dotted.lua
+  [main=main,midi_editor] talagan_OneSmallStep Change note len modifier.lua > talagan_OneSmallStep Change note len modifier - Triplet.lua
+  [main=main,midi_editor] talagan_OneSmallStep Change note len modifier.lua > talagan_OneSmallStep Change note len modifier - Straight.lua
+  [main=main,midi_editor] talagan_OneSmallStep Change note len modifier.lua > talagan_OneSmallStep Change note len modifier - Dotted.lua
   [main=main,midi_editor] talagan_OneSmallStep Increase note len.lua
   [main=main,midi_editor] talagan_OneSmallStep Decrease note len.lua
   [main=main,midi_editor] talagan_OneSmallStep Change note len.lua > talagan_OneSmallStep Change note len - 1_64.lua
