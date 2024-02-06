@@ -3,17 +3,6 @@
 -- @license MIT
 -- @description This is part of One Small Step
 
---[[
--- Ruby script to generate note FX params
-def putn(note)
-  puts "slider#{3*note     + 10}<0,127,1>Note #{note} Pitch"
-  puts "slider#{3*note + 1 + 10}<0,15,1> Note #{note} Channel"
-  puts "slider#{3*note + 2 + 10}<0,127,1>Note #{note} Velocity"
-  puts ""
-end
-(0..31).each{ |i| putn i }
-]]--
-
 -- Largely inspired by tenfour's version
 -- However, I prefer using an extensive list of JS params
 -- To avoid having REAPER creating undo points when polling for notes
