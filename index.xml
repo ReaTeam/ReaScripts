@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="d47571a3c4a2a0db80db030b89149a61b63c3d9a" name="ReaTeam Scripts">
+<index version="1" commit="cd233da8191045c13712ea02f0a76ea854f47c0e" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -16245,6 +16245,24 @@ Updated to only list stretch markers within item time and format time as standar
     </reapack>
   </category>
   <category name="Time Selection">
+    <reapack name="az_Link time selection to arrange view.lua" type="script" desc="Link time selection to arrange view">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 #Link time selection to arrange view\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Useful for looping visible arrange area while editing.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Set this script in autorun section to preserve it's ON state.\par}
+}
+]]></description>
+        <link rel="website" href="https://forum.cockos.com/showthread.php?t=288069">Forum thread</link>
+        <link rel="donation" href="https://www.paypal.me/AZsound">Donate via PayPal</link>
+      </metadata>
+      <version name="1.0" author="AZ" time="2024-02-08T13:08:54Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/cd233da8191045c13712ea02f0a76ea854f47c0e/Time%20Selection/az_Link%20time%20selection%20to%20arrange%20view.lua</source>
+      </version>
+    </reapack>
     <reapack name="BuyOne_Create time selection between two marked points from the closest to cursor on the left (guide inside).lua" type="script" desc="Create time selection between two marked points from the closest to cursor on the left">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
