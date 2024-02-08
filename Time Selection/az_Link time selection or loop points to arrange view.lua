@@ -1,10 +1,11 @@
--- @description Link time selection to arrange view
+-- @description Link time selection or loop points to arrange view
 -- @author AZ
--- @version 1.0
+-- @version 1.1
+-- @changelog - Fixed dependency on option "Loop points linked to time selection"
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=288069
 -- @donation Donate via PayPal https://www.paypal.me/AZsound
 -- @about
---   #Link time selection to arrange view
+--   # Link time selection or loop points to arrange view
 --
 --   Useful for looping visible arrange area while editing.
 --
@@ -55,7 +56,7 @@ function main()
 
     end
     
-    local _, _ = reaper.GetSet_LoopTimeRange2( 0, true, false, startTSgrid, endTSgrid, false )
+    local _, _ = reaper.GetSet_LoopTimeRange2( 0, true, true, startTSgrid, endTSgrid, false )
     
     local playState = reaper.GetPlayStateEx(0)
     local curPos
