@@ -1,16 +1,14 @@
 -- @description MK Slicer
 -- @author cool
--- @version 3.21
+-- @version 3.22
 -- @changelog
---   + Theme: Checkboxes (operating mode switches) gets a color tint that reflects the active mode.
---   + Theme: The toggle buttons at the top are now colored when turned on.
---   + Theme: Now the top panel and BPM indicator have a customizable background.
---   + Theme: Symbols on the Settings and Snap buttons have been replaced with graphics.
---   + Fixed a bug: now, when the Velocity Range slider is in extreme positions, the velocity points do not go beyond the boundaries of the window.
---   + Fixed a bug: now BPM is not displayed if an unrealistically large value is calculated.
---   + Fixed a bug: now the DestroyAudioAccessor function works correctly.
---   + Now the script can receive MIDI from any channel, not just the first.
---   + Fixed typo: RealmGUI -> ReaimGUI
+--   + Improved zoning for selecting and grabbing the first marker if it is located at the left edge of the window.
+--   + The area where markers are held during capture has been expanded.
+--   + Fixed a bug: now the first marker cannot take a negative value and is always visible.
+--   + Fixed a bug: now the Range slider changes appearance when switching themes.
+--   + Fixed a bug: the script grid responds to changing the grid size in Reaper.
+--   + Fixed a bug: now the Triplet Grid status is not reset when switching the grid with the mouse wheel.
+--   + Fixed a bug: now the script does not close with an error if launched in Reaper older than v6.39
 -- @link Forum Thread https://forum.cockos.com/showthread.php?t=232672
 -- @screenshot MK_Slicer 3 https://i.imgur.com/L7WnvoO.jpg
 -- @donation
@@ -67,7 +65,7 @@
 --   Sometimes a script applies glue to items. For example, when several items are selected and when a MIDI is created in a sampler mode.
 
 --[[
-MK Slicer v3.21 by Maxim Kokarev 
+MK Slicer v3.22 by Maxim Kokarev 
 https://forum.cockos.com/member.php?u=121750
 
 Co-Author of the compilation - MyDaw
@@ -1312,6 +1310,8 @@ function GetLoopTimeRange()
   start, ending = r.GetSet_LoopTimeRange( 0, 0, 0, 0, 0 )
 end
 
+---------------------------------------Check Reaper Version----------------------------------------------------------
+Rpr_version = tonumber(reaper.GetAppVersion():match('[%d.]+'))
 
 -------------------------------Save and Restore Initial Rate and Length--------------------------------------------
 
@@ -2473,7 +2473,7 @@ end
 function Element:draw_frame_rng() -- range slider
   local x,y,w,h  = self.x,self.y,self.w,self.h
     local r,g,b,a  = self.r,self.g,self.b,self.a
-    local an = TH[30][4]
+    local an = TH[29][4]
     local rn = TH[30][1]
     local gn = TH[30][2]
     local bn = TH[30][3]
@@ -2491,6 +2491,7 @@ bn = 0.35
 end
   gfx.set(rn,gn,bn,an) -- sliders and checkboxes borders
   gfx.rect(x, y, w, h, false)            -- frame1      
+  if ThickFrames == 1 then gfx.rect(x+1, y+1, w-2, h-2, false)  end          -- frame1 
 end
 
 function Element:draw_frame_loop()
@@ -7436,6 +7437,7 @@ function Gate_Gl:Reduce_Points() -- Надо допилить!!!
        if self.State_Points[i+1][mode]>= reduce_val then
             local p = #self.Res_Points+1
             self.Res_Points[p]   = self.State_Points[i]+(Offset_Sld.form_val/1000*srate)
+            if self.Res_Points[p] < 0 then self.Res_Points[p] = 0 end
             self.Res_Points[p+1] = {self.State_Points[i+1][1], self.State_Points[i+1][2]}
 
         end
@@ -7506,6 +7508,12 @@ function Gate_Gl:draw_Lines()
     mouse_pos_height =  gfx.mouse_y/Z_h 
     mouse_pos_width =  gfx.mouse_x/Z_w
 
+    mphMin = 355
+    mphMax = 480
+
+    if aMrkrCaptured == 1 then
+      mphMin = 45
+    end
 
  if (Guides.norm_val == 1) then 
 
@@ -7547,10 +7555,10 @@ function Gate_Gl:draw_Lines()
 
             grab_corr = 50*((Z_w/10)+(Wave.Zoom/20)) --14*(Z_w/4)
             if grab_corr >= 15  then grab_corr = 15 end
-            if not self.cap_ln and line_x_mouse_x < (grab_corr) then -- здесь grab_corr - величина окна захвата маркера.
+            if not self.cap_ln and line_x_mouse_x < (grab_corr) and gfx.mouse_x > (10*Z_w) then -- здесь grab_corr - величина окна захвата маркера.
                 if Wave:mouseDown() or Wave:mouseR_Down() then self.cap_ln = i end
                    TrMrkrHover = 1
-                   if not Ctrl and mouse_pos_height >= 355 and mouse_pos_height <= 380 then  
+                   if not Ctrl and mouse_pos_height >= mphMin and mouse_pos_height <= mphMax-100 then  
                        if TH[14] > 0 then
                           grad_w = TH[14]*(0.7+Z_w/2) -- selected marker gradient
                           gfx.gradrect((line_x+1)-grad_w, Wave.y, grad_w, Wave.h,        TH[13][1],TH[13][2],TH[13][3], 0.0,    0, 0, 0, TH[15] / grad_w) -- grad back
@@ -8237,7 +8245,7 @@ function Gate_Gl:manual_Correction()
     -- Change Velo, Move, Del Line ---------------
     if self.cap_ln and (Guides.norm_val == 1) then
         -- Change Velo ---------------------------
-        if Ctrl and Midi_Sampler.norm_val == 2 and mouse_pos_height < 355 then
+        if Ctrl and Midi_Sampler.norm_val == 2 and mouse_pos_height < mphMin then
             local curs_x = Wave.x + (self.Res_Points[self.cap_ln] - self.start_smpl) * self.Xsc  -- x coord
             local curs_y = min(max(gfx.mouse_y, Wave.y), Wave.y+Wave.h)                            -- y coord
             gfx.set(1, 1, 1, 0.8) -- cursor color -- цвет курсора
@@ -8272,7 +8280,7 @@ function Gate_Gl:manual_Correction()
         end
 
         -- Move Line -----------------------------
-        if not Ctrl and (mouse_pos_height >= 355 and mouse_pos_height <= 390)then 
+        if not Ctrl and (mouse_pos_height >= mphMin and mouse_pos_height <= mphMax+10)then 
             local curs_x = min(max(gfx.mouse_x, Wave.x), Wave.x + Wave.w) -- x coord
             --------------------
             self.Res_Points[self.cap_ln] = self.start_smpl + (curs_x-Wave.x) / self.Xsc -- Set New Position
@@ -8332,7 +8340,8 @@ function Gate_Gl:manual_Correction()
     if Snap_on == 1 then
         Gate_Gl:SnapAreaTables()
     end
-
+    if self.cap_ln and Wave:mouseDown() and not Ctrl and (mouse_pos_height >= mphMin and mouse_pos_height <= mphMax+10) then aMrkrCaptured = 1 end
+    if Wave:mouseUp() then aMrkrCaptured =  0 end
 end
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -10655,9 +10664,9 @@ end
 
 --------------------------
 function Wave:Set_Cursor()
-  if SButton == 0 and self:mouseDown() and not(Ctrl or Shift) then  
+  if SButton == 0 and self:mouseDown() and not(Ctrl or Shift) and aMrkrCaptured == 0 then  
     if self.insrc_mx then local New_Pos = self.sel_start + (self.insrc_mx/self.X_scale )/srate
-       if (Snap_on == 0 or Guides.norm_val == 2) and mouse_pos_height <=355 then  
+       if (Snap_on == 0 or Guides.norm_val == 2) and mouse_pos_height <=mphMin then  
           r.SetEditCurPos(New_Pos, false, false)    -- true-seekplay(false-no seekplay) 
        end
     end
@@ -10674,7 +10683,12 @@ end
   local Buf_1x = Buf_1
   local Buf_2x = Buf_2 
      local retval,  buf,  ts, devIdx
-     retval,  buf,  ts,  devIdx = reaper.MIDI_GetRecentInputEvent(0)
+
+     if Rpr_version < 6.39 then
+        retval,  buf,  ts,  devIdx = 0,0,0,0
+        else
+        retval,  buf,  ts,  devIdx = reaper.MIDI_GetRecentInputEvent(0)
+     end
 
      Buf1 =  string.byte(buf,1) or 128
      Buf_1 = Buf1+(Buf1&0x0/2) or 128
@@ -11096,7 +11110,7 @@ self_Zoom = self.Zoom --refresh loop by mw
     -----------------------------------------
       Cursor_Status = 0
     --- Wave Move ---------------------------
-    if (self:mouseDown() or self:mouseM_Down()) and not Shift and not Ctrl and (mouse_pos_height <= 355) then 
+    if (self:mouseDown() or self:mouseM_Down()) and not Shift and not Ctrl and (mouse_pos_height <= mphMin) and aMrkrCaptured == 0 then 
       Cursor_Status = 1
       self.Pos = self.Pos + (last_x - gfx.mouse_x)/(self.Zoom*Z_w)
       self.Pos = max(self.Pos, 0)
@@ -11392,7 +11406,7 @@ end
 ---   MAIN   ---------------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------------------------
 function MAIN()
-
+local  divisionx = division
 
 local Frame_Snap_TB = {leds_table[5]}
 local Frame_Snap_TB2 = {leds_table[6]}
@@ -11548,26 +11562,26 @@ local Btn_Txt_TB = {GrBtnT[10],GrBtnT[11],GrBtnT[12],GrBtnT[13],GrBtnT[14],GrBtn
 
         for key,btn    in pairs(StatusBar_Bck_TB)   do btn:draw()    end -- Status Bar Background
 
-        local _, division, swing, _ = r.GetSetProjectGrid(0,false)
-
+        _, division, swing, _ = r.GetSetProjectGrid(0,false)
+        if divisionx ~= division then Wave:DrawGridGuides() end
 ------------------------------------MouseWheelOverTheButtons---------------------------------------
        if gfx.mouse_wheel ~= 0 and (mouse_pos_height >= 5 and mouse_pos_height <= 25 and mouse_pos_width >= 50 and  mouse_pos_width <= 342) then  
            if gfx.mouse_wheel < 0 then 
                  _, division, swing, _ = r.GetSetProjectGrid(0,false)
                 division = division*2 
-               if division >= 1 then division = 1 end
+                if division >= 2/triplets then division = 2/triplets end
                 r.GetSetProjectGrid(0,true,division, swing)
            end
            if gfx.mouse_wheel > 0 then 
                 _, division, swing, _ = r.GetSetProjectGrid(0,false)
                division = division/2 
-               if division <= 0.015625 then division = 0.015625 end
+               if division <= 0.03125/triplets then division = 0.03125/triplets end
                r.GetSetProjectGrid(0,true,division, swing)
            end
        Wave:DrawGridGuides()
        end
 --------------------------------------------------------------------------------------------------------
-
+        Trplts  =  reaper.GetToggleCommandStateEx(0, reaper.NamedCommandLookup('_SWS_AWTOGGLETRIPLET'))
         if division < 0.0078125 then division = 0.0078125 end --128th
 -----------------------------Grid Buttons Leds-------------------------------------------------------
         if division == 1 or division == 2/3 then
@@ -11598,8 +11612,7 @@ local Btn_Txt_TB = {GrBtnT[10],GrBtnT[11],GrBtnT[12],GrBtnT[13],GrBtnT[14],GrBtn
                  for key,frame  in pairs(Grid64_Led_TB)    do frame:draw()  end  
         Grid64_on = 0
         end
-           if (1//division) % 3 == 0 then Trplts = true else Trplts = false end;
-        if GridT_on == 1 or Trplts == true then
+        if GridT_on == 1 or Trplts == 1 then
                  for key,frame  in pairs(GridT_Led_TB)    do frame:draw()  end  
         end
         if Swing_on == 1 then
@@ -11655,12 +11668,8 @@ local Btn_Txt_TB = {GrBtnT[10],GrBtnT[11],GrBtnT[12],GrBtnT[13],GrBtnT[14],GrBtn
     for key,ch_box in pairs(CheckBox_TB) do ch_box:draw() end
 
 
-
     if Wave.State then 
-
-        local _, division, swing, _ = r.GetSetProjectGrid(0,false)
 -------------------------------------------------------------------------------------------------------
-
         if division < 0.0078125 then division = 0.0078125 end --128th
 -----------------------------Grid Buttons Leds-------------------------------------------------------
         if division == 1 or division == 2/3 then
@@ -11691,8 +11700,7 @@ local Btn_Txt_TB = {GrBtnT[10],GrBtnT[11],GrBtnT[12],GrBtnT[13],GrBtnT[14],GrBtn
                  for key,frame  in pairs(Grid64_Tint_Led_TB)    do frame:draw()  end  
         Grid64_on = 0
         end
-           if (1//division) % 3 == 0 then Trplts = true else Trplts = false end;
-        if GridT_on == 1 or Trplts == true then
+        if GridT_on == 1 or Trplts == 1 then
                  for key,frame  in pairs(GridT_Tint_Led_TB)    do frame:draw()  end  
         end
         if Swing_on == 1 then
@@ -12277,7 +12285,7 @@ function Init()
     -- Some gfx Wnd Default Values ---------------
     local R,G,B = ceil(TH[3][1]*255),ceil(TH[3][2]*255),ceil(TH[3][3]*255)             -- 0...255 format -- цвет основного окна
     local Wnd_bgd = R + G*256 + B*65536 -- red+green*256+blue*65536  
-    local Wnd_Title = "MK Slicer v3.21" .. " " .. theme_name .. " " .. RG_status .. ""
+    local Wnd_Title = "MK Slicer v3.22" .. " " .. theme_name .. " " .. RG_status .. ""
     local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
 
      -- set init fonts/size
@@ -12664,7 +12672,7 @@ item5.command = function()
                           gfx.dock(dock_pos)
                           xpos = 400
                           ypos = 320
-                          local Wnd_Title = "MK Slicer v3.21"
+                          local Wnd_Title = "MK Slicer v3.22"
                           local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
                           gfx.init( Wnd_Title, Wnd_W,Wnd_H, Wnd_Dock, Wnd_X,Wnd_Y )
 
@@ -12676,7 +12684,7 @@ item5.command = function()
                          dock_pos = 0
                          xpos = tonumber(r.GetExtState("MK_Slicer_3", "window_x")) or 400
                          ypos = tonumber(r.GetExtState("MK_Slicer_3", "window_y")) or 320
-                         local Wnd_Title = "MK Slicer v3.21"
+                         local Wnd_Title = "MK Slicer v3.22"
                          local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
                          if Wnd_Y == (nil or 0) then Wnd_Y = Wnd_Y+25 end -- correction for window header visibility
                          gfx.init( Wnd_Title, Wnd_W,Wnd_H, Wnd_Dock, Wnd_X,Wnd_Y )
