@@ -1,40 +1,31 @@
 -- @description MK Shaper/Stutter
 -- @author cool
--- @version 1.20
+-- @version 1.30
 -- @changelog
---   + Added Razor Edit.
---   + Now the script can manage any selected envelopes. If the envelope is not selected before running the script, the script will create a volume envelope by default.
---   + The name of the active Envelope is now displayed in the script interface.
---   + Added envelope selector for Items (Volume, Pan, Pitch).
---   + Rise and Fall for the Pan envelope have been adjusted. The Gain control changes the range.
---   + The range has been increased and the principle of operation of the Gain regulator has been changed.
---   + Added "Soft Attack" option.
---   + Significantly improved script performance when processing Selected Area.
---   + Reset now correctly removes multitrack envelopes and selected areas.
---   + True Stutter mode: When the Shape control is at maximum, the envelope takes on a rectangular shape.
---   + Fixed a bug: sometimes in item envelope mode the points were not placed correctly if the item had a changed ratio.
---   + Fixed a bug: now changing the Shift option does not cause the script to crash if this is done before pressing the Shape button.
---   + Fixed a bug: flickering and incorrect position of item envelope points in Rise and Fall modes.
---   + Fixed a bug: points were not placed correctly if the item was placed at the start of the project.
---   + Fixed a bug: now the script does not crash when trying to process Empty Items.
---   + Fixed a bug: now the point of the first transient is drawn correctly if it is not at the start of the item.
---   + Fixed a bug that slowed down the update of the script window when Loop was running.
---   + Fixed a bug: now the DestroyAudioAccessor function works correctly.
---   + Now loop selection is captured by the script only when controlled from the script interface.
---   + The minimum grid and ruler resolution has been limited: now long items and small grid resolutions do not overload the processor.
---   + Optimization in general: now the script starts instantly. CPU load reduced by 50% when idle.
---   + Controls have been streamlined for more intuitive operation.
---   + Work without items: if there are no items in the selected area, the script will run in Grid and Track Envelope mode.
---   + Now, when working with midi items and without items, the script runs almost instantly, without wasting resources on processing.
---   + Added the option to manage all envelopes at once. When disabled, the script controls only the selected one.
---   + Now, when zooming horizontally using the keyboard keys, the waveform is centered on the edit cursor.
---   + The minimum HPF value turns off the filter, completely removing filtering artifacts.
---   + Increased the maximum waveform window width and main window size limits for better display on large screens.
---   + Theme: Added the option "Large Font Size" (Options - User Settings (Advanced)), which increases the font size when the window size is large.
---   + Undo Points are now created during envelope generation.
---   + Donate service has been changed to valid.
+--   + Added the ability to set markers manually.
+--   + Added 4, 2 and Dotted Grid buttons to the Grid selector.
+--   + Added marker checkboxes for easy mouse dragging without using hotkeys.
+--   + Interactive Markers: The active marker is now highlighted on mouseover.
+--   + Theme: New color design, 11 new themes added.
+--   + Theme: The appearance of the sliders has been changed, some sliders have become frameless.
+--   + The mouse wheel now resizes the grid when the cursor is over the grid resolution buttons.
+--   + Now the Sensitivity slider has a conventional scale from 1 to 10 and works more logically: 1 is the minimum sensitivity, 10 is the maximum.
+--   + The range of Retrig values has been expanded, now the value is not related to tempo.
+--   + Improved marker capture zoning depending on window size and zoom.
+--   + Improved zoning for selecting and grabbing the first marker if it is located at the left edge of the window.
+--   + The area where markers are held during capture has been expanded.
+--   + Improved location of points at the start and end of an item/selected area of an item.
+--   + Fixed a bug: now the first marker cannot take a negative value and is always visible.
+--   + Fixed a bug: the script grid responds to changing the grid size in Reaper.
+--   + Fixed a bug: now the Triplet Grid status is not reset when switching the grid with the mouse wheel.
+--   + Added experimental font smoothing option (requires ReaimGUI installation).
+--   + Sync View option is now in the main menu.
+--   + Now, if, when running a script, an item or area is not selected, the script does not switch to Grid mode.
+--   + The Track/Item Envelope switch is now on the control panel.
+--   + For compatibility and correct operation, extstate data is now written under a new header.
+--   + Set the correct default value for the Rel.Thr slider.
 -- @link Forum Thread https://forum.cockos.com/showthread.php?t=254081
--- @screenshot Main View https://i.imgur.com/DAe0EY7.jpg
+-- @screenshot Main View https://i.ibb.co/m5rJ0tb/image.png
 -- @donation Donate via BuyMeACoffee https://www.buymeacoffee.com/MaximKokarev
 -- @about
 --   MK Shaper/Stutter is a script for quick envelope operations based on transients or rhythm grid.
@@ -54,7 +45,7 @@
 --   Also, after running the script, you can select the track on which you want to form an envelope and click "Shape".
 
 --[[
-MK Shaper/Stutter v1.20 by Maxim Kokarev 
+MK Shaper/Stutter v1.30 by Maxim Kokarev 
 https://forum.cockos.com/member.php?u=121750
 
 Thanks to Anton (MyDaw)
@@ -74,6 +65,1141 @@ http://forum.cockos.com/member.php?u=50462
 Razor Edit functions by Juliansander
 https://forum.cockos.com/showthread.php?t=241604
 ]]
+
+----------------------------Advanced Settings-------------------------------------------
+
+RememberLast = 1            -- (Remember some sliders positions from last session. 1 - On, 0 - Off)
+SnapToStart = 1 --(Snap Play Cursor to Waveform Start. 1 - On, 0 - Off)
+WFiltering = 0 -- (Waveform Visual Filtering while Window Scaling. 1 - On, 0 - Off)
+ShowRuler = 1 -- (Show Project Grid Green Markers. 1 - On, 0 - Off)
+Markers_Btns = 0  -- (Show MK_Slicer's Markers Operation Controls. 1 - On, 0 - Off)
+ForceSync = 0 -- (force Sync On on the script starts: 1 - On (Always On), 0 - Off (Default, Save Previous State))
+Pitch_Range = 24 -- (Pitch Envelope Range, Half Tones: default 24)
+
+--------------------------------Themes----------------------------------------------
+local TH = {}
+function Theming(Theme)
+
+      if Theme == nil then Theme = 1 end 
+      if Theme < 0 then Theme = 1 elseif Theme >= 12 then Theme = 12 end 
+
+---------------TH[described element] = {red, green, blue, alpha}----------------
+
+      if Theme == 1 then 
+      -------------------------Prime------------------------------
+      theme_name = "Prime"
+      -------Backgrounds and Frames-----------------
+      TH[1] = {0.172, 0.20, 0.215,1} -- Waveform, Background Box
+      TH[2] = {0.172, 0.20, 0.215,1} -- Waveform, Frame
+      TH[3] = { 0.208, 0.243, 0.251} -- Main Background
+      TH[4] = { 0.32, 0.34, 0.34, 1 } -- Controls Body
+      TH[5] = { 0.22, 0.24, 0.24, 0 } -- Controls Frame
+
+      -----------Waveforms---------------
+      TH[6] = { 0.078, 0.58, 0.725,1 } -- Waveform, Filtered 
+      TH[7] = {0.16, 0.14, 0.14,1} -- Waveform, Original 
+      TH[8] = { 0.12, 0.10, 0.10,1 } -- Waveform, Draw original Only
+
+      --------Waveform Lines--------------
+      TH[9] = { 0.1, 0.8, 0.4, 1 } -- Ruler 
+      TH[10] = 4 -- Ruler Gradient Width (0 = off)
+      TH[11] = 0.05 --Ruler Gradient Transparency
+
+      TH[12] = { 1, 1, 1, 0.1 } -- Threshold Lines
+      TH[13] = { 0.906, 0.463, 0.0, 0.9 } -- Transient Markers
+      TH[14] = 5 -- Transient Markers Gradient Width (if Selected)
+      TH[15] = 0.3 --Transient Markers Gradient Transparency (if Selected)
+      TH[16] = 0 -- Transient Markers Gradient Width (0 - off)
+      TH[17] = 0 --Transient Markers Gradient Transparency
+
+      TH[18] = { 0.906, 0.463, 0.0, 0.1 } -- Sample Area if enabled
+
+      TH[19] = { 0.82, 0.294, 0.0, 0.7 } -- Grid Markers
+
+      TH[20] = { 0.8, 0.8, 0.8, 1 } -- Edit Cursor
+      TH[21] = 5 -- Edit Cursor Gradient Width
+      TH[22] = 0.2 --Edit Cursor Gradient Transparency
+
+      TH[23] = { 0.031, 0.604, 0.765, 1 } -- Play Cursor
+      TH[24] = 5 -- Play Cursor Gradient Width
+      TH[25] = 0.2 --Play Cursor Gradient Transparency
+
+      TH[26] = { 0.2, 1, 0.5, 0.5 } -- Aim Assist Cursor
+
+      -------Buttons and Sliders ---------
+      TH[27] = {0.2, 0.2 ,0.2 ,1} -- Button Body
+      TH[28] = {0.2, 0.2 ,0.2 ,1} -- Button Frames
+      ThickBFrames = 0 -- Thickness - 0 = normal, 1 - thick frames
+
+      Tint_d = 1   -- Active Button Tint Coloring Mode: 1 - darker than Green tops elements, 0 - lighter than Green tops elements (best for light themes).
+      Tint_a = 0.1 -- Active Button Tint Transparency
+      
+      TH[29] = {0.23, 0.25, 0.25, 0} -- Slider Frames
+      TH[30] = {0.23, 0.25, 0.25,1} -- Slider Body
+      ThickFrames = 0 -- Thickness - 0 = normal, 1 - thick frames
+      
+      TH[31] = {0.32, 0.34, 0.34, 1} -- Slider Frames (Top, Loop and Swing)
+      TH[32] = {0.32, 0.34, 0.34, 1} -- Slider Body (Top, Loop and Swing)
+      ThickSwFrames = 0 -- Thickness - 0 = normal, 1 - thick frames
+
+      TH[45] = { 0.23, 0.25, 0.25, 0.4 } -- Slider Background
+
+      TH[46] = { 0.205, 0.225, 0.225, 1 } -- CheckBox Body
+      TH[47] = 0.05 -- CheckBox Tint Transparency
+
+      TH[50] = { 0.251, 0.239, 0.282,1 } -- Violet Controls Body
+      TH[53] = { 0.251, 0.239, 0.282,0 } -- Violet Controls Frames
+      TH[51] = { 0.216, 0.259, 0.255,1 } -- Green Controls Body
+      TH[54] = { 0.216, 0.259, 0.255,0 } -- Green Controls Frames
+      TH[52] = { 0.278, 0.251, 0.255,1 } -- Red Controls Body
+      TH[55] = { 0.278, 0.251, 0.255,0 } -- Red Controls Frames
+
+      TH[56] = { 0.298, 0.286, 0.333,0.6 } -- Violet Slider Background
+      TH[57] = { 0.247, 0.306, 0.298,0.6 } -- Green Slider Background
+      TH[58] = { 0.314, 0.275, 0.286,0.6 } -- Red Slider Background
+      
+      --------------Text--------------------
+      TH[33] = { 0.61, 0.61, 0.61, 1 } -- Text Main
+      TH[34] = { 1, 0.5, 0.3, 1 } -- Text Warn (Small "Processing, wait...")
+      TH[35] = { 0.45, 0.45, 0.45, 1 } -- Txt Greyed (BPM)
+      TH[36] = { 0.6, 0.6, 0.6, 1 } -- Txt Greyed (Presets, Mode)      
+      TH[37] = -0.1 -- an additional value is added to the brightness of the BPM digits. Can be negative.
+      TH[38] = 0.9 -- BPM digits transparency
+      TH[48] = {0.23, 0.25, 0.25,0.25} -- BPM Background
+      TH[49] = {1, 1, 1, 0.03} -- Status Bar Background
+
+      -----------Elements------------------
+      TH[39] =  { 0.1, 0.8, 0.4, 1 } -- Green tops elements (Loop triangles, Buttons Leds)
+      TH[40] = { 0.60, 0.60, 0.60, 0.4 } -- Txt Brackets
+      TH[41] = { 0.60, 0.60, 0.60, 0.4 } -- Main Separators
+      TH[42] = 0.8 -- Leds Transparency (Controls Body)
+      TH[43] = 0.1 -- Waveform Peaks Thickness (Transparency) - 0 = normal peaks, 1 - thick peaks, 0.5 or something = like a blur/antialiasing
+      TH[44] = { 0.1, 0.8, 0.4, 0.75 } -- Random+Q Bracket Color
+      --------------------------------------------------------------
+
+
+      elseif Theme == 2 then 
+     ------------------------------Neon---------------------------
+      theme_name = "Neon"
+      -------Backgrounds and Frames-----------------
+      TH[1] = {0.12157, 0.14118, 0.16471,1} -- Waveform, Background Box
+      TH[2] = {0.172, 0.20, 0.215,1} -- Waveform, Frame
+      TH[3] = { 0.20922, 0.22882, 0.26804} -- Main Background
+      TH[4] = { 0.18, 0.19, 0.22, 1 } -- Controls Body
+      TH[5] = { 0.22, 0.22, 0.22, 0 } -- Controls Frame
+
+      -----------Waveforms---------------
+      TH[6] = {0.875, 0.525, 0.098,1} -- Waveform, Filtered 
+      TH[7] = {0.24,0.23,0.21,1} -- Waveform, Original 
+      TH[8] = { 0.37, 0.33, 0.28 ,1 } -- Waveform, Draw original Only
+
+      --------Waveform Lines--------------
+      TH[9] = { 0.0, 0.97647, 0.49804, 1 } -- Ruler
+      TH[10] = 4 -- Ruler Gradient Width (0 = off)
+      TH[11] = 0.12 --Ruler Gradient Transparency
+
+      TH[12] = { 0.027, 0.624, 0.749, 0.3 } -- Threshold Lines
+      TH[13] = { 0.035, 0.604, 0.718, 0.9 } -- Transient Markers
+      TH[14] = 7 -- Transient Markers Gradient Width (if Selected)
+      TH[15] = 0.3 --Transient Markers Gradient Transparency (if Selected)
+      TH[16] = 7 -- Transient Markers Gradient Width (0 - off)
+      TH[17] = 0.1 --Transient Markers Gradient Transparency
+
+      TH[18] = { 0.035, 0.604, 0.718, 0.12 } -- Sample Area if enabled
+
+      TH[19] = { 0, 0.7, 0.7, 0.7 } -- Grid Markers
+      
+      TH[20] = { 0.98, 0.114, 0.984, 1 } -- Edit Cursor
+      TH[21] = 5 -- Edit Cursor Gradient Width
+      TH[22] = 0.2 --Edit Cursor Gradient Transparency
+
+      TH[23] = { 0.141, 0.98, 0.69, 1 } -- Play Cursor
+      TH[24] = 5 -- Play Cursor Gradient Width
+      TH[25] = 0.2 --Play Cursor Gradient Transparency
+
+      TH[26] = { 0.0, 1, 0.5, 0.5 } -- Aim Assist Cursor
+      
+      -------Buttons and Sliders ---------
+      TH[27] = {0.3, 0.31 ,0.32 ,1} -- Button Body
+      TH[28] = {0.3, 0.31 ,0.32 ,1} -- Button Frames
+      ThickBFrames = 0 -- Thickness - 0 = normal, 1 - thick frames
+
+      Tint_d = 1   -- Active Button Tint Coloring Mode: 1 - darker than Green tops elements, 0 - lighter than Green tops elements (best for light themes).
+      Tint_a = 0.12 -- Active Button Tint Transparency
+      
+      TH[29] = {0.28235, 0.32941, 0.34118,0} -- Slider Frames
+      TH[30] = {0.28235, 0.32941, 0.34118,1} -- Slider Body
+      ThickFrames = 0 -- Thickness - 0 = normal, 1 - thick frames
+      
+      TH[31] = {0.33235, 0.37941, 0.39118,0} -- Slider Frames (Top, Loop and Swing)
+      TH[32] = {0.33235, 0.37941, 0.39118,1} -- Slider Body (Top, Loop and Swing)
+      ThickSwFrames = 0 -- Thickness - 0 = normal, 1 - thick frames
+
+      TH[45] = { 0.28235, 0.32941, 0.34118, 0.3 } -- Slider Background
+
+      TH[46] = { 0.31235, 0.33941, 0.35118, 1 } -- CheckBox Body
+      TH[47] = 0.05 -- CheckBox Tint Transparency      
+
+      TH[50] = { 0.329, 0.231, 0.459,1 } -- Violet Controls Body
+      TH[53] = { 0.329, 0.231, 0.459,0 } -- Violet Controls Frames
+      TH[51] = { 0.114, 0.318, 0.318,1 } -- Green Controls Body
+      TH[54] = { 0.114, 0.318, 0.318,0 } -- Green Controls Frames
+      TH[52] = { 0.38, 0.196, 0.216,1 } -- Red Controls Body
+      TH[55] = { 0.38, 0.196, 0.216,0 } -- Red Controls Frames
+
+      TH[56] = { 0.231, 0.216, 0.243,1 } -- Violet Slider Background
+      TH[57] = { 0.184, 0.227, 0.227,1 } -- Green Slider Background
+      TH[58] = { 0.231, 0.216, 0.212,1 } -- Red Slider Background
+
+      --------------Text--------------------     
+      TH[33] = { 0.7, 0.7, 0.7, 1 } -- Text Main
+      TH[34] = { 1, 0.5, 0.3, 1 } -- Text Warn (Small "Processing, wait...")
+      TH[35] = { 0.4, 0.4, 0.4, 0.5 } -- Txt Greyed (BPM)
+      TH[36] = { 0.5, 0.5, 0.5, 0.5 } -- Txt Greyed (Presets, Mode)
+      TH[37] = 0 -- an additional value is added to the brightness of the BPM digits. Can be negative.
+      TH[38] = 0.9 -- BPM digits transparency
+      TH[48] = {0.23, 0.25, 0.25,0} -- BPM Background
+      TH[49] = {0, 0, 0, 0.05} -- Status Bar Background
+    
+      -----------Elements------------------
+      TH[39] =  { 0.0, 0.81176, 0.41176, 1 } -- Green tops elements (Loop triangles, Buttons Leds)
+      TH[40] = { 0.4, 0.4, 0.4, 0.5 } -- Txt Brackets
+      TH[41] = { 0.4, 0.4, 0.4, 0.3 } -- Main Separators
+      TH[42] = 0.9 -- Leds Transparency (Controls Body)
+      TH[43] = 0.15 -- Waveform Peaks Thickness (Transparency) - 0 = normal peaks, 1 - thick peaks, 0.5 or something = like a blur/antialiasing
+      TH[44] = { 0.906, 0.463, 0.0, 0.9 } -- Random+Q Bracket Color
+      --------------------------------------------------------------
+
+
+      elseif Theme == 3 then 
+       -------------------------Black------------------------------
+      theme_name = "Black"
+      -------Backgrounds and Frames-----------------
+      TH[1] = {0.188, 0.196, 0.2,1} -- Waveform, Background Box
+      TH[2] = {0.172, 0.20, 0.215,1} -- Waveform, Frame
+      TH[3] = { 0.166, 0.174, 0.177} -- Main Background
+      TH[4] = { 0.157, 0.157, 0.157, 1 } -- Controls Body
+      TH[5] = { 0.22, 0.22, 0.22, 0 } -- Controls Frame
+
+      -----------Waveforms---------------
+      TH[6] = { 0.078, 0.725, 0.725,1 } -- Waveform, Filtered 
+      TH[7] = {0.16, 0.14, 0.14,1} -- Waveform, Original 
+      TH[8] = { 0.12, 0.10, 0.10,1 } -- Waveform, Draw original Only
+
+      --------Waveform Lines--------------
+      TH[9] = { 0.9, 0.9, 0.9, 1 } -- Ruler 
+      TH[10] = 4 -- Ruler Gradient Width (0 = off)
+      TH[11] = 0.05 --Ruler Gradient Transparency
+
+      TH[12] = { 0.9, 0.9, 0.9, 0.2 } -- Threshold Lines
+      TH[13] = { 0.906, 0.463, 0.0, 0.9 } -- Transient Markers
+      TH[14] = 5 -- Transient Markers Gradient Width (if Selected)
+      TH[15] = 0.3 --Transient Markers Gradient Transparency (if Selected)
+      TH[16] = 0 -- Transient Markers Gradient Width (0 - off)
+      TH[17] = 0 --Transient Markers Gradient Transparency
+
+      TH[18] = { 0.906, 0.463, 0.0, 0.1 } -- Sample Area if enabled
+
+      TH[19] = { 0.906, 0.463, 0.0, 0.9 } -- Grid Markers
+
+      TH[20] = { 0.8, 0.8, 0.8, 1 } -- Edit Cursor
+      TH[21] = 4 -- Edit Cursor Gradient Width
+      TH[22] = 0.1 --Edit Cursor Gradient Transparency
+
+      TH[23] = { 0.031, 0.604, 0.765, 1 } -- Play Cursor
+      TH[24] = 4 -- Play Cursor Gradient Width
+      TH[25] = 0.1 --Play Cursor Gradient Transparency
+
+      TH[26] = { 0.97, 0.97, 0, 0.5 } -- Aim Assist Cursor
+
+      -------Buttons and Sliders ---------
+      TH[27] = {0.3, 0.305, 0.31 ,1} -- Button Body
+      TH[28] = {0.3, 0.305, 0.31 ,1} -- Button Frames
+      ThickBFrames = 1 -- Thickness - 0 = normal, 1 - thick frames
+
+      Tint_d = 1   -- Active Button Tint Coloring Mode: 1 - darker than Green tops elements, 0 - lighter than Green tops elements (best for light themes).
+      Tint_a = 0.14 -- Active Button Tint Transparency
+      
+      TH[29] = {0.24, 0.25, 0.25,1} -- Slider Frames
+      TH[30] = {0.24, 0.25, 0.25,1} -- Slider Body
+      ThickFrames = 1 -- Thickness - 0 = normal, 1 - thick frames
+      
+      TH[31] = {0.32, 0.33, 0.33, 1} -- Slider Frames (Top, Loop and Swing)
+      TH[32] = {0.32, 0.33, 0.33, 1} -- Slider Body (Top, Loop and Swing)
+      ThickSwFrames = 1 -- Thickness - 0 = normal, 1 - thick frames
+
+      TH[45] = { 0.24, 0.25, 0.25, 0.15 } -- Slider Background
+
+      TH[46] = { 0.26, 0.28, 0.28, 1 } -- CheckBox Body
+      TH[47] = 0.05 -- CheckBox Tint Transparency
+
+      TH[50] = { 0.251, 0.227, 0.424,1 } -- Violet Controls Body
+      TH[53] = { 0.251, 0.227, 0.424,1 } -- Violet Controls Frames
+      TH[51] = { 0.137, 0.275, 0.263,1 } -- Green Controls Body
+      TH[54] = { 0.137, 0.275, 0.263,1 } -- Green Controls Frames
+      TH[52] = { 0.329, 0.2, 0.235,1 } -- Red Controls Body
+      TH[55] = { 0.329, 0.2, 0.235,1 } -- Red Controls Frames
+
+      TH[56] = { 0.251, 0.227, 0.443,0.15 } -- Violet Slider Background
+      TH[57] = { 0.141, 0.306, 0.271,0.15 } -- Green Slider Background
+      TH[58] = { 0.337, 0.188, 0.255,0.15 } -- Red Slider Background
+      
+      --------------Text--------------------
+      TH[33] = { 0.9, 0.9, 0.9, 0.7 } -- Text Main
+      TH[34] = { 1, 0.5, 0.3, 1 } -- Text Warn (Small "Processing, wait...")
+      TH[35] = { 0.45, 0.45, 0.45, 1 } -- Txt Greyed (BPM)
+      TH[36] = { 0.55, 0.55, 0.55, 1 } -- Txt Greyed (Presets, Mode)      
+      TH[37] = -0.1 -- an additional value is added to the brightness of the BPM digits. Can be negative.
+      TH[38] = 0.9 -- BPM digits transparency
+      TH[48] = {0, 0, 0,0.05} -- BPM Background
+      TH[49] = {0, 0, 0, 0.05} -- Status Bar Background
+
+      -----------Elements------------------
+      TH[39] =  { 0.808, 0.525, 0.098, 1 } -- Green tops elements (Loop triangles, Buttons Leds)
+      TH[40] = { 0.22, 0.23, 0.23, 0.7 } -- Txt Brackets
+      TH[41] = { 0.22, 0.23, 0.23, 0.7 } -- Main Separators
+      TH[42] = 0.9 -- Leds Transparency (Controls Body)
+      TH[43] = 0 -- Waveform Peaks Thickness (Transparency) - 0 = normal peaks, 1 - thick peaks, 0.5 or something = like a blur/antialiasing
+      TH[44] = { 0.60, 0.60, 0.60, 0.6 } -- Random+Q Bracket Color
+      --------------------------------------------------------------
+
+
+      elseif Theme == 4 then 
+      -------------------------Blue Lake------------------------------
+      theme_name = "Blue Lake"
+      -------Backgrounds and Frames-----------------
+      TH[1] = {0.071, 0.227, 0.369,1} -- Waveform, Background Box
+      TH[2] = {0.071, 0.227, 0.369,1} -- Waveform, Frame
+      TH[3] = { 0.035, 0.137, 0.231} -- Main Background
+      TH[4] = { 0.153, 0.216, 0.267, 1 } -- Controls Body
+      TH[5] = { 0.22, 0.22, 0.22, 0 } -- Controls Frame
+
+      -----------Waveforms---------------
+      TH[6] = { 0.231, 0.62, 0.992,1 } -- Waveform, Filtered 
+      TH[7] = {0.008, 0.188, 0.349,1} -- Waveform, Original 
+      TH[8] = { 0.008, 0.188, 0.349,1 } -- Waveform, Draw original Only
+
+      --------Waveform Lines--------------
+      TH[9] = { 0.104, 0.731, 1.0, 1 } -- Ruler
+      TH[10] = 4 -- Ruler Gradient Width (0 = off)
+      TH[11] = 0.1 --Ruler Gradient Transparency
+
+      TH[12] = { 0.98, 0.788, 0.008, 0.5 } -- Threshold Lines
+      TH[13] = { 0.98, 0.788, 0.008, 0.9 } -- Transient Markers
+      TH[14] = 5 -- Transient Markers Gradient Width (if Selected)
+      TH[15] = 0.3 --Transient Markers Gradient Transparency (if Selected)
+      TH[16] = 5 -- Transient Markers Gradient Width (0 - off)
+      TH[17] = 0.05 --Transient Markers Gradient Transparency
+
+      TH[18] = { 0.98, 0.788, 0.008, 0.12 } -- Sample Area if enabled
+
+      TH[19] = { 0.98, 0.788, 0.008, 0.7 } -- Grid Markers
+      
+      TH[20] = { 0.8, 0.2, 0.2, 1 } -- Edit Cursor
+      TH[21] = 5 -- Edit Cursor Gradient Width
+      TH[22] = 0.4 --Edit Cursor Gradient Transparency
+
+      TH[23] = { 0.5, 0.89608, 0.82941, 1 } -- Play Cursor
+      TH[24] = 5 -- Play Cursor Gradient Width
+      TH[25] = 0.2 --Play Cursor Gradient Transparency
+
+      TH[26] = { 1, 1, 1, 0.5 } -- Aim Assist Cursor
+      
+      -------Buttons and Sliders ---------      
+      TH[27] = {0.234, 0.32, 0.339 ,1} -- Button Body
+      TH[28] = {0.234, 0.32, 0.339 ,1} -- Button Frames
+      ThickBFrames = 1 -- Thickness - 0 = normal, 1 - thick frames
+
+      Tint_d = 1   -- Active Button Tint Coloring Mode: 1 - darker than Green tops elements, 0 - lighter than Green tops elements (best for light themes).
+      Tint_a = 0.1 -- Active Button Tint Transparency
+      
+      TH[29] = {0.224, 0.29, 0.329,1} -- Slider Frames
+      TH[30] = {0.224, 0.29, 0.329,1} -- Slider Body
+      ThickFrames = 1 -- Thickness - 0 = normal, 1 - thick frames
+      
+      TH[31] = {0.204, 0.27, 0.329, 1} -- Slider Frames (Top, Loop and Swing)
+      TH[32] = {0.204, 0.27, 0.329, 1} -- Slider Body (Top, Loop and Swing)
+      ThickSwFrames = 1 -- Thickness - 0 = normal, 1 - thick frames
+
+      TH[45] = { 0.165, 0.165, 0.165, 0.3 } -- Slider Background
+
+      TH[46] = { 0.229, 0.305, 0.335, 1 } -- CheckBox Body
+      TH[47] = 0.05 -- CheckBox Tint Transparency
+
+      TH[50] = { 0.298, 0.247, 0.475,1 } -- Violet Controls Body
+      TH[53] = { 0.298, 0.247, 0.475,1 } -- Violet Controls Frames
+      TH[51] = { 0.137, 0.329, 0.314,1 } -- Green Controls Body
+      TH[54] = { 0.137, 0.329, 0.314,1 } -- Green Controls Frames
+      TH[52] = { 0.376, 0.22, 0.267,1 } -- Red Controls Body
+      TH[55] = { 0.376, 0.22, 0.267,1 } -- Red Controls Frames
+
+      TH[56] = { 0.145, 0.192, 0.271,1 } -- Violet Slider Background
+      TH[57] = { 0.122, 0.2, 0.247,1 } -- Green Slider Background
+      TH[58] = { 0.157, 0.184, 0.239,1 } -- Red Slider Background
+
+      --------------Text--------------------      
+      TH[33] = { 0.65, 0.65, 0.65, 1 } -- Text Main
+      TH[34] = { 0.894, 0.737, 0.235, 1 } -- Text Warn (Small "Processing, wait...")
+      TH[35] = { 0.45, 0.45, 0.45, 1 } -- Txt Greyed (BPM)
+      TH[36] = { 0.45, 0.45, 0.45, 1 } -- Txt Greyed (Presets, Mode)
+      TH[37] = 0 -- an additional value is added to the brightness of the BPM digits. Can be negative.
+      TH[38] = 0.9 -- BPM digits transparency
+      TH[48] = {0, 0.1, 0.1,0.15} -- BPM Background
+      TH[49] = {0, 0, 0, 0} -- Status Bar Background
+     
+      -----------Elements------------------
+      TH[39] =  { 0.98, 0.788, 0.008, 1 } -- Green tops elements (Loop triangles, Buttons Leds)
+      TH[40] = { 0.45, 0.45, 0.45, 0.5 } -- Txt Brackets
+      TH[41] = { 0.45, 0.45, 0.45, 0.5 } -- Main Separators
+      TH[42] = 0.9 -- Leds Transparency (Controls Body)
+      TH[43] = 0.1 -- Waveform Peaks Thickness (Transparency) - 0 = normal peaks, 1 - thick peaks, 0.5 or something = like a blur/antialiasing
+      TH[44] = { 0.906, 0.463, 0.0, 0.9 } -- Random+Q Bracket Color
+      --------------------------------------------------------------
+
+      elseif Theme == 5 then 
+      -------------------------Fall (Dark)------------------------------
+      theme_name = "Fall (Dark)"
+      -------Backgrounds and Frames-----------------
+      TH[1] = {0.063, 0.063, 0.067,1} -- Waveform, Background Box
+      TH[2] = {0.063, 0.063, 0.067,1} -- Waveform, Frame
+      TH[3] = {0.171, 0.171, 0.171} -- Main Background
+      TH[4] = { 0.241, 0.241, 0.241, 1 } -- Controls Body
+      TH[5] = { 0.778, 0.778, 0.778, 0 } -- Controls Frame
+
+      -----------Waveforms---------------
+      TH[6] = {0.945, 0.565, 0.0,1} -- Waveform, Filtered 
+      TH[7] = {0.1, 0.1, 0.1,1} -- Waveform, Original 
+      TH[8] = { 0.294, 0.239, 0.192 ,1 } -- Waveform, Draw original Only
+
+      --------Waveform Lines--------------
+      TH[9] = { 0.7, 0.7, 0.8, 1 } -- Ruler
+      TH[10] = 0 -- Ruler Gradient Width (0 = off)
+      TH[11] = 0.05 --Ruler Gradient Transparency
+
+      TH[12] = { 0.11, 0.78, 0.863, 0.4 } -- Threshold Lines
+      TH[13] = { 0.11, 0.78, 0.863, 0.9 } -- Transient Markers
+      TH[14] = 5 -- Transient Markers Gradient Width (if Selected)
+      TH[15] = 0.3 --Transient Markers Gradient Transparency (if Selected)
+      TH[16] = 0 -- Transient Markers Gradient Width (0 - off)
+      TH[17] = 0 --Transient Markers Gradient Transparency
+
+      TH[18] = { 0.11, 0.78, 0.863, 0.12 } -- Sample Area if enabled
+
+      TH[19] = { 0.278, 0.604, 0.435, 1 } -- Grid Markers
+      
+      TH[20] = { 1.0, 0.9, 0.9, 1 } -- Edit Cursor
+      TH[21] = 5 -- Edit Cursor Gradient Width
+      TH[22] = 0.2 --Edit Cursor Gradient Transparency
+
+      TH[23] = { 0.7, 0.7, 0.7, 1 } -- Play Cursor
+      TH[24] = 5 -- Play Cursor Gradient Width
+      TH[25] = 0.2 --Play Cursor Gradient Transparency
+
+      TH[26] = { 0.9, 0.9, 1, 0.5 } -- Aim Assist Cursor
+      
+      -------Buttons and Sliders ---------      
+      TH[27] = {0.11, 0.11, 0.11 ,1} -- Button Body
+      TH[28] = {0.11, 0.11, 0.11 ,1} -- Button Frames
+      ThickBFrames = 0 -- Thickness - 0 = normal, 1 - thick frames
+
+      Tint_d = 1   -- Active Button Tint Coloring Mode: 1 - darker than Green tops elements, 0 - lighter than Green tops elements (best for light themes).
+      Tint_a = 0.1 -- Active Button Tint Transparency
+      
+      TH[29] = {0.078, 0.078, 0.078,1} -- Slider Frames
+      TH[30] = {0.1, 0.424, 0.455,1} -- Slider Body
+      ThickFrames = 1 -- Thickness - 0 = normal, 1 - thick frames
+      
+      TH[31] = {0.1, 0.424, 0.455,1} -- Slider Frames (Top, Loop and Swing)
+      TH[32] = {0.1, 0.424, 0.455,1} -- Slider Body (Top, Loop and Swing)
+      ThickSwFrames = 1 -- Thickness - 0 = normal, 1 - thick frames
+      
+      TH[45] = { 0.165, 0.165, 0.165, 1 } -- Slider Background
+
+      TH[46] = { 0.1, 0.424, 0.455,1 } -- CheckBox Body
+      TH[47] = 0 -- CheckBox Tint Transparency
+
+      TH[50] = { 0.286, 0.227, 0.549,1 } -- Violet Controls Body
+      TH[53] = { 0.078, 0.078, 0.078,1 } -- Violet Controls Frames
+      TH[51] = { 0.0, 0.333, 0.224,1 } -- Green Controls Body
+      TH[54] = { 0.078, 0.078, 0.078,1 } -- Green Controls Frames
+      TH[52] = { 0.388, 0.161, 0.243,1 } -- Red Controls Body
+      TH[55] = { 0.078, 0.078, 0.078,1 } -- Red Controls Frames
+
+      TH[56] = { 0.153, 0.141, 0.188,1 } -- Violet Slider Background
+      TH[57] = { 0.141, 0.161, 0.161,1 } -- Green Slider Background
+      TH[58] = { 0.157, 0.145, 0.149,1 } -- Red Slider Background
+
+      --------------Text--------------------      
+      TH[33] = { 0.85, 0.85, 0.85, 1 } -- Text Main
+      TH[34] = { 0.906, 0.524, 0.229, 1 } -- Text Warn (Small "Processing, wait...")
+      TH[35] = { 0.4, 0.4, 0.4, 0.7 } -- Txt Greyed (BPM)
+      TH[36] = { 0.8, 0.8, 0.8, 0.5 } -- Txt Greyed (Presets, Mode)
+      TH[37] = 0 -- an additional value is added to the brightness of the BPM digits. Can be negative.
+      TH[38] = 0.9 -- BPM digits transparency
+      TH[48] = {0, 0, 0,0.2} -- BPM Background
+      TH[49] = {1, 1, 1, 0.05} -- Status Bar Background
+
+      -----------Elements------------------      
+      TH[39] =  {0.941, 0.565, 0.0, 1 } -- Green tops elements (Loop triangles, Buttons Leds)
+      TH[40] = { 0.778, 0.778, 0.778, 0.3 } -- Txt Brackets
+      TH[41] = { 0.078, 0.078, 0.078, 0.4 } -- Main Separators
+      TH[42] = 0.7 -- Leds Transparency (Controls Body)
+      TH[43] = 0 -- Waveform Peaks Thickness (Transparency) - 0 = normal peaks, 1 - thick peaks, 0.5 or something = like a blur/antialiasing
+      TH[44] = { 0.778, 0.778, 0.778, 0.5 } -- Random+Q Bracket Color
+      --------------------------------------------------------------
+
+      elseif Theme == 6 then 
+      -------------------------Fall------------------------------
+      theme_name = "Fall"
+      -------Backgrounds and Frames-----------------
+      TH[1] = {0.16, 0.16, 0.16,1} -- Waveform, Background Box
+      TH[2] = {0.16, 0.16, 0.16,1} -- Waveform, Frame
+      TH[3] = { 0.533, 0.537, 0.537} -- Main Background
+      TH[4] = { 0.651, 0.651, 0.651, 1 } -- Controls Body
+      TH[5] = { 0.22, 0.22, 0.22, 0 } -- Controls Frame
+
+      -----------Waveforms---------------
+      TH[6] = {0.224, 0.62, 0.808,1} -- Waveform, Filtered 
+      TH[7] = {0.19, 0.19, 0.19,1} -- Waveform, Original 
+      TH[8] = { 0.294, 0.239, 0.192 ,1 } -- Waveform, Draw original Only
+
+      --------Waveform Lines--------------
+      TH[9] = { 0.7, 0.7, 0.8, 1 } -- Ruler
+      TH[10] = 4 -- Ruler Gradient Width (0 = off)
+      TH[11] = 0.05 --Ruler Gradient Transparency
+
+      TH[12] = { 0.7, 0.7, 0.7, 0.4 } -- Threshold Lines
+      TH[13] = { 0.9, 0.4, 0.1, 0.9 } -- Transient Markers
+      TH[14] = 5 -- Transient Markers Gradient Width (if Selected)
+      TH[15] = 0.3 --Transient Markers Gradient Transparency (if Selected)
+      TH[16] = 0 -- Transient Markers Gradient Width (0 - off)
+      TH[17] = 0 --Transient Markers Gradient Transparency
+
+      TH[18] = { 0.9, 0.4, 0.1, 0.12 } -- Sample Area if enabled
+
+      TH[19] = { 0.7, 0.7, 0.8, 0.7 } -- Grid Markers
+      
+      TH[20] = { 1.0, 0.9, 0.9, 1 } -- Edit Cursor
+      TH[21] = 5 -- Edit Cursor Gradient Width
+      TH[22] = 0.2 --Edit Cursor Gradient Transparency
+
+      TH[23] = { 0.7, 0.7, 0.7, 1 } -- Play Cursor
+      TH[24] = 5 -- Play Cursor Gradient Width
+      TH[25] = 0.2 --Play Cursor Gradient Transparency
+
+      TH[26] = { 0.9, 0.9, 1, 0.5 } -- Aim Assist Cursor
+      
+      -------Buttons and Sliders ---------      
+      TH[27] = {0.3, 0.31 ,0.32 ,0} -- Button Body
+      TH[28] = {0.15, 0.15, 0.15 ,1} -- Button Frames
+      ThickBFrames = 0 -- Thickness - 0 = normal, 1 - thick frames
+
+      Tint_d = 1   -- Active Button Tint Coloring Mode: 1 - darker than Green tops elements, 0 - lighter than Green tops elements (best for light themes).
+      Tint_a = 0.15 -- Active Button Tint Transparency
+      
+      TH[29] = {0.28235, 0.32941, 0.34118,1} -- Slider Frames
+      TH[30] = {0.859, 0.494, 0.161,1} -- Slider Body
+      ThickFrames = 0 -- Thickness - 0 = normal, 1 - thick frames
+      
+      TH[31] = {0.32, 0.32, 0.32,1} -- Slider Frames (Top, Loop and Swing)
+      TH[32] = {0.32, 0.32, 0.32,1} -- Slider Body (Top, Loop and Swing)
+      ThickSwFrames = 0 -- Thickness - 0 = normal, 1 - thick frames
+
+      TH[45] = { 0.165, 0.165, 0.165, 0.07 } -- Slider Background
+
+      TH[46] = { 0.879, 0.454, 0.141, 1 } -- CheckBox Body
+      TH[47] = 0 -- CheckBox Tint Transparency
+
+      TH[50] = { 0.392, 0.502, 0.898,1 } -- Violet Controls Body
+      TH[53] = { 0.28235, 0.32941, 0.34118,1 } -- Violet Controls Frames
+      TH[51] = { 0.22, 0.627, 0.576,1 } -- Green Controls Body
+      TH[54] = { 0.28235, 0.32941, 0.34118,1 } -- Green Controls Frames
+      TH[52] = { 0.627, 0.337, 0.624,1 } -- Red Controls Body
+      TH[55] = { 0.28235, 0.32941, 0.34118,1 } -- Red Controls Frames
+
+      TH[56] = { 0.165, 0.165, 0.165, 0.07 } -- Violet Slider Background
+      TH[57] = { 0.165, 0.165, 0.165, 0.07 } -- Green Slider Background
+      TH[58] = { 0.165, 0.165, 0.165, 0.07 } -- Red Slider Background
+      
+      --------------Text--------------------      
+      TH[33] = { 0.078, 0.078, 0.078, 1 } -- Text Main
+      TH[34] = { 0.906, 0.524, 0.229, 1 } -- Text Warn (Small "Processing, wait...")
+      TH[35] = { 0.4, 0.4, 0.4, 0.7 } -- Txt Greyed (BPM)
+      TH[36] = { 0.2, 0.2, 0.2, 0.85 } -- Txt Greyed (Presets, Mode)
+      TH[37] = -0.32 -- an additional value is added to the brightness of the BPM digits. Can be negative.
+      TH[38] = 0.8 -- BPM digits transparency
+      TH[48] = {1, 1, 1,0.1} -- BPM Background
+      TH[49] = {1, 1, 1, 0.05} -- Status Bar Background
+
+      -----------Elements------------------      
+      TH[39] =  {0.9, 0.4, 0.1, 1 } -- Green tops elements (Loop triangles, Buttons Leds)
+      TH[40] = { 0.3, 0.3, 0.3, 1 } -- Txt Brackets
+      TH[41] = { 0.3, 0.3, 0.3, 1 } -- Main Separators
+      TH[42] = 0.9 -- Leds Transparency (Controls Body)
+      TH[43] = 0 -- Waveform Peaks Thickness (Transparency) - 0 = normal peaks, 1 - thick peaks, 0.5 or something = like a blur/antialiasing
+      TH[44] = { 0.20, 0.20, 0.20, 1 } -- Random+Q Bracket Color
+      --------------------------------------------------------------
+
+
+      elseif Theme == 7 then 
+      -------------------------Soft Dark--------------------------
+      theme_name = "Soft Dark"
+      -------Backgrounds and Frames-----------------
+      TH[1] = {0.267, 0.267, 0.267,1} -- Waveform, Background Box
+      TH[2] = {0.267, 0.267, 0.267,1} -- Waveform, Frame
+      TH[3] = { 0.227, 0.227, 0.227} -- Main Background
+      TH[4] = { 0.267, 0.267, 0.267, 1 } -- Controls Body
+      TH[5] = { 0.28, 0.28, 0.28, 1 } -- Controls Frame
+
+      -----------Waveforms---------------
+      TH[6] = { 0.894, 0.447, 0.6,1 } -- Waveform, Filtered 
+      TH[7] = {0.217, 0.217, 0.217,1} -- Waveform, Original 
+      TH[8] = { 0.17, 0.17, 0.17,1 } -- Waveform, Draw original Only
+
+      --------Waveform Lines--------------
+      TH[9] = { 0.551, 0.696, 1, 1 } -- Ruler
+      TH[10] = 4 -- Ruler Gradient Width (0 = off)
+      TH[11] = 0.07 --Ruler Gradient Transparency
+
+      TH[12] = { 0.882, 0.89, 0.447, 0.3 } -- Threshold Lines
+      TH[13] = { 0.882, 0.89, 0.447, 0.8 } -- Transient Markers
+      TH[14] = 5 -- Transient Markers Gradient Width (if Selected)
+      TH[15] = 0.3 --Transient Markers Gradient Transparency (if Selected)
+      TH[16] = 0 -- Transient Markers Gradient Width (0 - off)
+      TH[17] = 0 --Transient Markers Gradient Transparency
+
+      TH[18] = { 0.882, 0.89, 0.447, 0.12 } -- Sample Area if enabled
+
+      TH[19] = { 0.2, 1, 0.5, 0.5 } -- Grid Markers
+
+      TH[20] = { 0.8, 0.8, 0.8, 1 } -- Edit Cursor
+      TH[21] = 5 -- Edit Cursor Gradient Width
+      TH[22] = 0.2 --Edit Cursor Gradient Transparency
+
+      TH[23] = { 0.451, 0.596, 0.906, 1 } -- Play Cursor
+      TH[24] = 5 -- Play Cursor Gradient Width
+      TH[25] = 0.2 --Play Cursor Gradient Transparency
+
+      TH[26] = { 0.2, 1, 0.5, 0.5 } -- Aim Assist Cursor
+
+      -------Buttons and Sliders ---------
+      TH[27] = {0.2, 0.2 ,0.2 ,1} -- Button Body
+      TH[28] = {0.2, 0.2 ,0.2 ,1} -- Button Frames
+      ThickBFrames = 0 -- Thickness - 0 = normal, 1 - thick frames
+
+      Tint_d = 1   -- Active Button Tint Coloring Mode: 1 - darker than Green tops elements, 0 - lighter than Green tops elements (best for light themes).
+      Tint_a = 0.15 -- Active Button Tint Transparency
+      
+      TH[29] = {0.22, 0.22, 0.22,1} -- Slider Frames
+      TH[30] = {0.22, 0.22, 0.22,1} -- Slider Body
+      ThickFrames = 0 -- Thickness - 0 = normal, 1 - thick frames
+      
+      TH[31] = {0.32, 0.34, 0.34, 1} -- Slider Frames (Top, Loop and Swing)
+      TH[32] = {0.32, 0.34, 0.34, 1} -- Slider Body (Top, Loop and Swing)
+      ThickSwFrames = 0 -- Thickness - 0 = normal, 1 - thick frames
+
+      TH[45] = { 0.165, 0.165, 0.165, 0 } -- Slider Background
+
+      TH[46] = { 0.21, 0.21, 0.21, 1 } -- CheckBox Body
+      TH[47] = 0.02 -- CheckBox Tint Transparency
+
+      TH[50] = { 0.188, 0.2, 0.247,1 } -- Violet Controls Body
+      TH[53] = { 0.22, 0.22, 0.22,1 } -- Violet Controls Frames
+      TH[51] = { 0.184, 0.212, 0.208,1 } -- Green Controls Body
+      TH[54] = { 0.22, 0.22, 0.22,1 } -- Green Controls Frames
+      TH[52] = { 0.231, 0.204, 0.224,1 } -- Red Controls Body
+      TH[55] = { 0.22, 0.22, 0.22,1 } -- Red Controls Frames
+
+      TH[56] = { 0.165, 0.165, 0.165, 0 } -- Violet Slider Background
+      TH[57] = { 0.165, 0.165, 0.165, 0 } -- Green Slider Background
+      TH[58] = { 0.165, 0.165, 0.165, 0 } -- Red Slider Background
+      
+      --------------Text--------------------
+      TH[33] = { 0.55, 0.55, 0.55, 1 } -- Text Main
+      TH[34] = { 0.551, 0.696, 1, 1 } -- Text Warn (Small "Processing, wait...")
+      TH[35] = { 0.45, 0.45, 0.45, 1 } -- Txt Greyed (BPM)
+      TH[36] = { 0.45, 0.45, 0.45, 1 } -- Txt Greyed (Presets, Mode)
+      TH[37] = -0.1 -- an additional value is added to the brightness of the BPM digits. Can be negative.
+      TH[38] = 0.7 -- BPM digits transparency
+      TH[48] = {0.23, 0.25, 0.25,0.25} -- BPM Background
+      TH[49] = {1, 1, 1, 0.02} -- Status Bar Background
+
+      -----------Elements------------------
+      TH[39] =  { 0.451, 0.596, 0.906, 0.7 } -- Green tops elements (Loop triangles, Buttons Leds)
+      TH[40] = { 0.9, 0.9, 0.9, 0.12 } -- Txt Brackets
+      TH[41] = { 0.2, 0.2, 0.2, 0.7 } -- Main Separators
+      TH[42] = 0.7 -- Leds Transparency (Controls Body)
+      TH[43] = 0 -- Waveform Peaks Thickness (Transparency) - 0 = normal peaks, 1 - thick peaks, 0.5 or something = like a blur/antialiasing
+      TH[44] = { 0.551, 0.696, 1, 0.6 } -- Random+Q Bracket Color
+      --------------------------------------------------------------
+
+
+elseif Theme == 8 then 
+      --------------------------Graphite-------------------------------
+      theme_name = "Graphite"
+      -------Backgrounds and Frames-----------------
+      TH[1] = {0.73, 0.75, 0.75,1} -- Waveform, Background Box
+      TH[2] = {0.63, 0.65, 0.65,1} -- Waveform, Frame
+      TH[3] = { 0.73, 0.75, 0.75} -- Main Background
+      TH[4] = { 0.73, 0.75, 0.75, 1 } -- Controls Body
+      TH[5] = { 0.22, 0.22, 0.22, 0 } -- Controls Frame
+
+      -----------Waveforms---------------
+      TH[6] = { 0.4, 0.306, 0.675 ,1 } -- Waveform, Filtered 
+      TH[7] = {0.62,0.64,0.64,1} -- Waveform, Original 
+      TH[8] = { 0.55, 0.57, 0.57 ,1 } -- Waveform, Draw original Only
+
+      --------Waveform Lines--------------
+      TH[9] = { 0.357, 0.267, 0.624, 1 } -- Ruler
+      TH[10] = 4 -- Ruler Gradient Width (0 = off)
+      TH[11] = 0.1 --Ruler Gradient Transparency
+
+      TH[12] = { 0.1, 0.1, 0.1, 0.3 } -- Threshold Lines
+      TH[13] = { 0.094, 0.094, 0.094, 0.7 } -- Transient Markers
+      TH[14] = 5 -- Transient Markers Gradient Width (if Selected)
+      TH[15] = 0.2 --Transient Markers Gradient Transparency (if Selected)
+      TH[16] = 5 -- Transient Markers Gradient Width (0 - off)
+      TH[17] = 0.05 --Transient Markers Gradient Transparency
+
+      TH[18] = { 0.094, 0.094, 0.094, 0.12 } -- Sample Area if enabled
+
+      TH[19] = { 0.1, 0.1, 0.1, 0.7 } -- Grid Markers
+      
+      TH[20] = { 0.82, 0.1, 0.0, 1 } -- Edit Cursor
+      TH[21] = 4 -- Edit Cursor Gradient Width
+      TH[22] = 0.1 --Edit Cursor Gradient Transparency
+
+      TH[23] = { 0.82, 0.294, 0.0, 1 } -- Play Cursor
+      TH[24] = 4 -- Play Cursor Gradient Width
+      TH[25] = 0.1 --Play Cursor Gradient Transparency
+
+      TH[26] = { 1, 1, 1, 0.75 } -- Aim Assist Cursor
+      
+      -------Buttons and Sliders ---------      
+      TH[27] = {0.3, 0.31 ,0.32 ,0} -- Button Body
+      TH[28] = {0.15, 0.15, 0.15 ,0.7} -- Button Frames
+      ThickBFrames = 0 -- Thickness - 0 = normal, 1 - thick frames
+
+      Tint_d = 0   -- Active Button Tint Coloring Mode: 1 - darker than Green tops elements, 0 - lighter than Green tops elements (best for light themes).
+      Tint_a = 0.1 -- Active Button Tint Transparency
+      
+      TH[29] = {0.48, 0.49, 0.5, 0.7} -- Slider Frames
+      TH[30] = {0.50, 0.52, 0.53,1} -- Slider Body
+      ThickFrames = 0 -- Thickness - 0 = normal, 1 - thick frames
+      
+      TH[31] = {0.48, 0.49, 0.5, 0.7} -- Slider Frames (Top, Loop and Swing)
+      TH[32] = {0.45, 0.47, 0.48,1} -- Slider Body (Top, Loop and Swing)
+      ThickSwFrames = 0 -- Thickness - 0 = normal, 1 - thick frames
+
+      TH[45] = { 0.50, 0.52, 0.53, 0.15 } -- Slider Background
+
+      TH[46] = { 0.60, 0.62, 0.63, 1 } -- CheckBox Body
+      TH[47] = 0.1 -- CheckBox Tint Transparency
+
+      TH[50] = { 0.494, 0.478, 0.584,1 } -- Violet Controls Body
+      TH[53] = { 0.494, 0.478, 0.584,1 } -- Violet Controls Frames
+      TH[51] = { 0.475, 0.549, 0.545,1 } -- Green Controls Body
+      TH[54] = { 0.475, 0.549, 0.545,1 } -- Green Controls Frames
+      TH[52] = { 0.514, 0.455, 0.475,1 } -- Red Controls Body
+      TH[55] = { 0.514, 0.455, 0.475,1 } -- Red Controls Frames
+
+      TH[56] = { 0.251, 0.227, 0.443,0.15 } -- Violet Slider Background
+      TH[57] = { 0.141, 0.306, 0.271,0.15 } -- Green Slider Background
+      TH[58] = { 0.337, 0.188, 0.255,0.15 } -- Red Slider Background
+      
+      --------------Text--------------------      
+      TH[33] = { 0.16, 0.16, 0.19, 1 } -- Text Main
+      TH[34] = { 0.3, 0.2, 0.3, 1 } -- Text Warn (Small "Processing, wait...")
+      TH[35] = { 0.45, 0.45, 0.45, 1 } -- Txt Greyed (BPM)
+      TH[36] = { 0.45, 0.45, 0.45, 1 } -- Txt Greyed (Presets, Mode)
+      TH[37] = -0.3 -- an additional value is added to the brightness of the BPM digits. Can be negative.
+      TH[38] = 0.8 -- BPM digits transparency
+      TH[48] = {1, 1, 1,0} -- BPM Background
+      TH[49] = {1, 1, 1, 0} -- Status Bar Background
+     
+      -----------Elements------------------
+      TH[39] =  {0.257, 0.167, 0.524 ,1 } -- Green tops elements (Loop triangles, Buttons Leds)
+      TH[40] = { 0.15, 0.15, 0.15 ,0.7 } -- Txt Brackets
+      TH[41] = { 0.15, 0.15, 0.15 ,0.7 } -- Main Separators
+      TH[42] = 0.7 -- Leds Transparency (Controls Body)
+      TH[43] = 1 -- Waveform Peaks Thickness (Transparency) - 0 = normal peaks, 1 - thick peaks, 0.5 or something = like a blur/antialiasing
+      TH[44] = { 0.20, 0.20, 0.20, 1 } -- Random+Q Bracket Color
+      --------------------------------------------------------------
+
+      elseif Theme == 9 then 
+     ------------------------------Spring---------------------------
+      theme_name = "Spring"
+      -------Backgrounds and Frames-----------------
+      TH[1] = {0.812, 0.816, 0.804,1} -- Waveform, Background Box
+      TH[2] = {0.812, 0.816, 0.804,1} -- Waveform, Frame
+      TH[3] = { 0.827, 0.831, 0.82} -- Main Background
+      TH[4] = { 0.843, 0.851, 0.847, 1 } -- Controls Body
+      TH[5] = { 0.843, 0.851, 0.847, 0 } -- Controls Frame
+
+      -----------Waveforms---------------
+      TH[6] = {0.847, 0.451, 0.349,1} -- Waveform, Filtered 
+      TH[7] = {0.747, 0.767, 0.775,1} -- Waveform, Original 
+      TH[8] = { 0.847, 0.867, 0.875 ,1 } -- Waveform, Draw original Only
+
+      --------Waveform Lines--------------
+      TH[9] = { 0.094, 0.09, 0.082, 1 } -- Ruler
+      TH[10] = 0 -- Ruler Gradient Width (0 = off)
+      TH[11] = 0.12 --Ruler Gradient Transparency
+
+      TH[12] = { 0.161, 0.478, 0.922, 0.3 } -- Threshold Lines
+      TH[13] = { 0.161, 0.478, 0.922, 0.9 } -- Transient Markers
+      TH[14] = 7 -- Transient Markers Gradient Width (if Selected)
+      TH[15] = 0.15 --Transient Markers Gradient Transparency (if Selected)
+      TH[16] = 0 -- Transient Markers Gradient Width (0 - off)
+      TH[17] = 0.1 --Transient Markers Gradient Transparency
+
+      TH[18] = { 0.161, 0.478, 0.922, 0.12 } -- Sample Area if enabled
+
+      TH[19] = { 0.0, 0.5, 0.2, 0.5 } -- Grid Markers
+      
+      TH[20] = { 0.28, 0.114, 0.284, 1 } -- Edit Cursor
+      TH[21] = 5 -- Edit Cursor Gradient Width
+      TH[22] = 0.1 --Edit Cursor Gradient Transparency
+
+      TH[23] = { 0.141, 0.68, 0.69, 1 } -- Play Cursor
+      TH[24] = 5 -- Play Cursor Gradient Width
+      TH[25] = 0.1 --Play Cursor Gradient Transparency
+
+      TH[26] = { 0.0, 0.5, 0.2, 0.5 } -- Aim Assist Cursor
+      
+      -------Buttons and Sliders ---------
+      TH[27] = {0.706, 0.706, 0.702 ,1} -- Button Body
+      TH[28] = {0.706, 0.706, 0.702 ,1} -- Button Frames
+      ThickBFrames = 0 -- Thickness - 0 = normal, 1 - thick frames
+
+      Tint_d = 0   -- Active Button Tint Coloring Mode: 1 - darker than Green tops elements, 0 - lighter than Green tops elements (best for light themes).
+      Tint_a = 0.1 -- Active Button Tint Transparency
+      
+      TH[29] = {0.765, 0.765, 0.765,1} -- Slider Frames
+      TH[30] = {0.765, 0.765, 0.765,1} -- Slider Body
+      ThickFrames = 0 -- Thickness - 0 = normal, 1 - thick frames
+      
+      TH[31] = {0.706, 0.706, 0.702,1} -- Slider Frames (Top, Loop and Swing)
+      TH[32] = {0.706, 0.706, 0.702,1} -- Slider Body (Top, Loop and Swing)
+      ThickSwFrames = 0 -- Thickness - 0 = normal, 1 - thick frames
+
+      TH[45] = { 0.165, 0.165, 0.165, 0 } -- Slider Background
+
+      TH[46] = { 0.735, 0.735, 0.735, 1 } -- CheckBox Body
+      TH[47] = 0.1 -- CheckBox Tint Transparency
+
+      TH[50] = { 0.678, 0.694, 0.745,1 } -- Violet Controls Body
+      TH[53] = { 0.678, 0.694, 0.745,1 } -- Violet Controls Frames
+      TH[51] = { 0.675, 0.722, 0.702,1 } -- Green Controls Body
+      TH[54] = { 0.675, 0.722, 0.702,1 } -- Green Controls Frames
+      TH[52] = { 0.694, 0.663, 0.694,1 } -- Red Controls Body
+      TH[55] = { 0.694, 0.663, 0.694,1 } -- Red Controls Frames
+
+      TH[56] = { 0.251, 0.227, 0.443,0.05 } -- Violet Slider Background
+      TH[57] = { 0.141, 0.306, 0.271,0.05 } -- Green Slider Background
+      TH[58] = { 0.337, 0.188, 0.255,0.05 } -- Red Slider Background
+      
+      --------------Text--------------------     
+      TH[33] = { 0.298, 0.29, 0.282, 1 } -- Text Main
+      TH[34] = { 0.8, 0.3, 0.1, 1 } -- Text Warn (Small "Processing, wait...")
+      TH[35] = { 0.4, 0.4, 0.4, 0.5 } -- Txt Greyed (BPM)
+      TH[36] = { 0.298, 0.29, 0.282, 0.5 } -- Txt Greyed (Presets, Mode)
+      TH[37] = -0.5 -- an additional value is added to the brightness of the BPM digits. Can be negative.
+      TH[38] = 0.9 -- BPM digits transparency
+      TH[48] = {1, 1, 1,0.1} -- BPM Background
+      TH[49] = {1, 1, 1, 0.05} -- Status Bar Background
+    
+      -----------Elements------------------
+      TH[39] =  { 0.216, 0.467, 0.922, 1 } -- Green tops elements (Loop triangles, Buttons Leds)
+      TH[40] = { 0.298, 0.29, 0.282, 0.4 } -- Txt Brackets
+      TH[41] = { 0.718, 0.714, 0.694, 1 } -- Main Separators
+      TH[42] = 1 -- Leds Transparency (Controls Body)
+      TH[43] = 0 -- Waveform Peaks Thickness (Transparency) - 0 = normal peaks, 1 - thick peaks, 0.5 or something = like a blur/antialiasing
+      TH[44] = { 0.906, 0.463, 0.0, 0.9 } -- Random+Q Bracket Color
+      --------------------------------------------------------------
+
+elseif Theme == 10 then 
+      -------------------------Clean------------------------------
+      theme_name = "Clean"
+      -------Backgrounds and Frames-----------------
+      TH[1] = {0.95, 0.95, 0.95,1} -- Waveform, Background Box
+      TH[2] = {0.071, 0.227, 0.369,0} -- Waveform, Frame
+      TH[3] = { 0.835, 0.843, 0.839} -- Main Background
+      TH[4] = { 0.941, 0.941, 0.941, 1 } -- Controls Body
+      TH[5] = { 0.922, 0.91, 0.404, 0 } -- Controls Frame
+
+      -----------Waveforms---------------
+      TH[6] = { 0.349, 0.745, 0.302,1 } -- Waveform, Filtered 
+      TH[7] = {0.90, 0.90, 0.90,0.07} -- Waveform, Original 
+      TH[8] = { 0.843, 0.851, 0.961,1 } -- Waveform, Draw original Only
+
+      --------Waveform Lines--------------
+      TH[9] = { 0.1, 0.1, 0.1, 1 } -- Ruler
+      TH[10] = 0 -- Ruler Gradient Width (0 = off)
+      TH[11] = 0 --Ruler Gradient Transparency
+
+      TH[12] = { 0.1, 0.1, 0.1, 0.15 } -- Threshold Lines
+      TH[13] = { 0.1, 0.1, 0.1, 0.6 } -- Transient Markers
+      TH[14] = 6 -- Transient Markers Gradient Width (if Selected)
+      TH[15] = 0.12 --Transient Markers Gradient Transparency (if Selected)
+      TH[16] = 0 -- Transient Markers Gradient Width (0 - off)
+      TH[17] = 0 --Transient Markers Gradient Transparency
+
+      TH[18] = { 0.1, 0.1, 0.1, 0.1 } -- Sample Area if enabled
+
+      TH[19] = { 0.071, 0.451, 0.635, 0.7 } -- Grid Markers
+      
+      TH[20] = { 0.765, 0.384, 0.78, 0.7 } -- Edit Cursor
+      TH[21] = 5 -- Edit Cursor Gradient Width
+      TH[22] = 0.1 --Edit Cursor Gradient Transparency
+
+      TH[23] = { 0.3, 0.78, 0.7, 0.7 } -- Play Cursor
+      TH[24] = 5 -- Play Cursor Gradient Width
+      TH[25] = 0.1 --Play Cursor Gradient Transparency
+
+      TH[26] = {  0.337, 0.643, 0.792 ,1 } -- Aim Assist Cursor
+      
+      -------Buttons and Sliders ---------      
+      TH[27] = {0.337, 0.643, 0.792 ,0.8} -- Button Body
+      TH[28] = {0.337, 0.643, 0.792 ,0.75} -- Button Frames
+      ThickBFrames = 0 -- Thickness - 0 = normal, 1 - thick frames
+
+      Tint_d = 0   -- Active Button Tint Coloring Mode: 1 - darker than Green tops elements, 0 - lighter than Green tops elements (best for light themes).
+      Tint_a = 0.4 -- Active Button Tint Transparency
+      
+      TH[29] = {0.953, 0.533, 0.267,0} -- Slider Frames
+      TH[30] = {0.953, 0.533, 0.267,0.8} -- Slider Body
+      ThickFrames = 0 -- Thickness - 0 = normal, 1 - thick frames
+      
+      TH[31] = {0.923, 0.503, 0.237, 0} -- Slider Frames (Top, Loop and Swing)
+      TH[32] = {0.923, 0.503, 0.237, 0.8} -- Slider Body (Top, Loop and Swing)
+      ThickSwFrames = 0 -- Thickness - 0 = normal, 1 - thick frames
+
+      TH[45] = { 0.953, 0.533, 0.267, 0.2 } -- Slider Background
+
+      TH[46] = { 0.923, 0.503, 0.237, 0.9 } -- CheckBox Body
+      TH[47] = 0 -- CheckBox Tint Transparency
+
+      TH[50] = { 0.482, 0.659, 0.863,1 } -- Violet Controls Body
+      TH[53] = { 0.482, 0.659, 0.863,0 } -- Violet Controls Frames
+      TH[51] = { 0.416, 0.639, 0.451,1 } -- Green Controls Body
+      TH[54] = { 0.416, 0.639, 0.451,0 } -- Green Controls Frames
+      TH[52] = { 0.576, 0.502, 0.773,1 } -- Red Controls Body
+      TH[55] = { 0.576, 0.502, 0.773,0 } -- Red Controls Frames
+
+      TH[56] = { 0.482, 0.659, 0.863, 0.25 } -- Violet Slider Background
+      TH[57] = { 0.416, 0.639, 0.451, 0.2 } -- Green Slider Background
+      TH[58] = { 0.576, 0.502, 0.773, 0.25 } -- Red Slider Background
+      
+      --------------Text--------------------      
+      TH[33] = { 0.2, 0.2, 0.2, 1 } -- Text Main
+      TH[34] = { 0.922, 0.502, 0.235, 1 } -- Text Warn (Small "Processing, wait...")
+      TH[35] = { 0.45, 0.45, 0.45, 0.6 } -- Txt Greyed (BPM)
+      TH[36] = { 0.40, 0.40, 0.40, 0.6 } -- Txt Greyed (Presets, Mode)
+      TH[37] = -0.2 -- an additional value is added to the brightness of the BPM digits. Can be negative.
+      TH[38] = 0.7 -- BPM digits transparency
+      TH[48] = {1, 1, 1,0.1} -- BPM Background
+      TH[49] = {1, 1, 1, 0.05} -- Status Bar Background
+     
+      -----------Elements------------------
+      TH[39] =  { 0.337, 0.451, 0.671, 1 } -- Green tops elements (Loop triangles, Buttons Leds)
+      TH[40] = { 0.2, 0.2, 0.2, 0.2 } -- Txt Brackets
+      TH[41] = { 0.2, 0.2, 0.2, 0.2 } -- Main Separators
+      TH[42] = 0.7 -- Leds Transparency (Controls Body)
+      TH[43] = 0 -- Waveform Peaks Thickness (Transparency) - 0 = normal peaks, 1 - thick peaks, 0.5 or something = like a blur/antialiasing
+      TH[44] = { 0.20, 0.20, 0.20, 1 } -- Random+Q Bracket Color
+      --------------------------------------------------------------
+
+elseif Theme == 11 then 
+      -------------------------Ink------------------------------
+      theme_name = "Ink"
+      -------Backgrounds and Frames-----------------
+      TH[1] = {0.95, 0.95, 0.95,1} -- Waveform, Background Box
+      TH[2] = {0.071, 0.227, 0.369,0} -- Waveform, Frame
+      TH[3] = { 0.835, 0.843, 0.839} -- Main Background
+      TH[4] = { 0.941, 0.941, 0.941, 1 } -- Controls Body
+      TH[5] = { 0.922, 0.91, 0.404, 0 } -- Controls Frame
+
+      -----------Waveforms---------------
+      TH[6] = { 0.1, 0.1, 0.4,1 } -- Waveform, Filtered 
+      TH[7] = {0.90, 0.90, 0.90,0.08} -- Waveform, Original 
+      TH[8] = { 0.843, 0.851, 0.961,1 } -- Waveform, Draw original Only
+
+      --------Waveform Lines--------------
+      TH[9] = { 0.149, 0.145, 0.624, 1 } -- Ruler
+      TH[10] = 0 -- Ruler Gradient Width (0 = off)
+      TH[11] = 0 --Ruler Gradient Transparency
+
+      TH[12] = { 0.1, 0.1, 0.1, 0.5 } -- Threshold Lines
+      TH[13] = { 0.5, 0.5, 0.5, 1.5 } -- Transient Markers
+      TH[14] = 5 -- Transient Markers Gradient Width (if Selected)
+      TH[15] = 0.2 --Transient Markers Gradient Transparency (if Selected)
+      TH[16] = 0 -- Transient Markers Gradient Width (0 - off)
+      TH[17] = 0 --Transient Markers Gradient Transparency
+
+      TH[18] = { 0.1, 0.1, 0.1, 1.35 } -- Sample Area if enabled
+
+      TH[19] = { 0.965, 0.1, 0.1, 0.7 } -- Grid Markers
+      
+      TH[20] = { 0.965, 0.384, 0.98, 1 } -- Edit Cursor
+      TH[21] = 5 -- Edit Cursor Gradient Width
+      TH[22] = 0.1 --Edit Cursor Gradient Transparency
+
+      TH[23] = { 0.3, 0.38, 0.3, 1 } -- Play Cursor
+      TH[24] = 5 -- Play Cursor Gradient Width
+      TH[25] = 0.1 --Play Cursor Gradient Transparency
+
+      TH[26] = {  0.4, 0.4, 0.9, 1.5 } -- Aim Assist Cursor
+      
+      -------Buttons and Sliders ---------      
+      TH[27] = {0.835, 0.843, 0.839 ,1} -- Button Body
+      TH[28] = {0.565, 0.565, 0.565 ,1} -- Button Frames
+      ThickBFrames = 0 -- Thickness - 0 = normal, 1 - thick frames
+
+      Tint_d = 0   -- Active Button Tint Coloring Mode: 1 - darker than Green tops elements, 0 - lighter than Green tops elements (best for light themes).
+      Tint_a = 0.15 -- Active Button Tint Transparency
+      
+      TH[29] = {0.565, 0.565, 0.565,1} -- Slider Frames
+      TH[30] = {0.835, 0.843, 0.839,1} -- Slider Body
+      ThickFrames = 0 -- Thickness - 0 = normal, 1 - thick frames
+      
+      TH[31] = {0.565, 0.565, 0.565, 1} -- Slider Frames (Top, Loop and Swing)
+      TH[32] = {0.735, 0.743, 0.739, 1} -- Slider Body (Top, Loop and Swing)
+      ThickSwFrames = 0 -- Thickness - 0 = normal, 1 - thick frames
+
+      TH[45] = { 0.835, 0.843, 0.839, 0.15 } -- Slider Background
+
+      TH[46] = { 0.023, 0.103, 0.437, 0.1 } -- CheckBox Body
+      TH[47] = 0.15 -- CheckBox Tint Transparency
+
+      TH[50] = { 0.678, 0.694, 0.745,0.7 } -- Violet Controls Body
+      TH[53] = { 0.678, 0.694, 0.745,0.7 } -- Violet Controls Frames
+      TH[51] = { 0.675, 0.722, 0.702,0.7 } -- Green Controls Body
+      TH[54] = { 0.675, 0.722, 0.702,0.7 } -- Green Controls Frames
+      TH[52] = { 0.694, 0.663, 0.694,0.7 } -- Red Controls Body
+      TH[55] = { 0.694, 0.663, 0.694,0.7 } -- Red Controls Frames
+
+      TH[56] = { 0.678, 0.694, 0.745,0.15 } -- Violet Slider Background
+      TH[57] = { 0.675, 0.722, 0.702,0.15 } -- Green Slider Background
+      TH[58] = { 0.694, 0.663, 0.694,0.15 } -- Red Slider Background
+      
+      --------------Text--------------------      
+      TH[33] = { 0.142, 0.111, 0.566, 0.9 } -- Text Main
+      TH[34] = { 0.604, 0.184, 0.545, 0.9 } -- Text Warn (Small "Processing, wait...")
+      TH[35] = { 0.45, 0.45, 0.45, 0.7 } -- Txt Greyed (BPM)
+      TH[36] = { 0.45, 0.45, 0.45, 0.7 } -- Txt Greyed (Presets, Mode)
+      TH[37] = -0.32 -- an additional value is added to the brightness of the BPM digits. Can be negative.
+      TH[38] = 0.7 -- BPM digits transparency
+      TH[48] = {1, 1, 1,0.1} -- BPM Background
+      TH[49] = {1, 1, 1, 0.1} -- Status Bar Background
+     
+      -----------Elements------------------
+      TH[39] =  { 0.149, 0.145, 0.624, 1 } -- Green tops elements (Loop triangles, Buttons Leds)
+      TH[40] = { 0.2, 0.2, 0.2, 0.5 } -- Txt Brackets
+      TH[41] = { 0.2, 0.2, 0.2, 0.5 } -- Main Separators
+      TH[42] = 0.7 -- Leds Transparency (Controls Body)
+      TH[43] = 0 -- Waveform Peaks Thickness (Transparency) - 0 = normal peaks, 1 - thick peaks, 0.5 or something = like a blur/antialiasing
+      TH[44] = { 0.20, 0.20, 0.20, 0.7 } -- Random+Q Bracket Color
+      --------------------------------------------------------------
+
+      elseif Theme == 12 then 
+      ------------------Slicer Classic---------------------------------
+      theme_name = "Classic"
+      -------Backgrounds and Frames-----------------
+      TH[1] = { 0.122, 0.122, 0.122, 1 } -- Waveform, Background
+      TH[2] = { 0, 0, 0, 0 } -- Waveform, Frame
+      TH[3] = { 0.17647, 0.17647, 0.17647} -- Main Background
+      TH[4] = { 0.17647, 0.17647, 0.17647, 1 } -- Controls Body
+      TH[5] = { 0.4, 0.4, 0.4, 0.3 } -- Controls Frame
+
+      -----------Waveforms---------------
+      TH[6] = { 0.718, 0.267, 0.271, 1 } -- Waveform, Only filtered 
+      TH[7] = { 0.114, 0.294, 0.522, 1 } -- Waveform, Only original 
+      TH[8] = { 0.14, 0.34, 0.59, 1 } -- Waveform, Draw original Only
+
+      --------Waveform Lines--------------
+      TH[9] = { 0.1, 1, 0.1, 1 } -- Ruler 
+      TH[10] = 0 -- Ruler Gradient Width (0 = off)
+      TH[11] = 0 --Ruler Gradient Transparency
+
+      TH[12] = { 0.7, 0.7, 0.7, 0.3 } -- Threshold Lines
+      TH[13] = { 0.8, 0.8, 0, 0.95 } -- Transient Markers
+      TH[14] = 5 -- Transient Markers Gradient Width (if Selected)
+      TH[15] = 0.2 --Transient Markers Gradient Transparency (if Selected)
+      TH[16] = 0 -- Transient Markers Gradient Width (0 - off)
+      TH[17] = 0 --Transient Markers Gradient Transparency
+
+      TH[18] = { 0.8, 0.8, 0, 0.1 } -- Sample Area if enabled
+
+      TH[19] = { 0, 0.7, 0.7, 0.7 } -- Grid Markers
+
+      TH[20] = { 0.7, 0.8, 0.9, 1 } -- Edit Cursor
+      TH[21] = 5 -- Edit Cursor Gradient Width
+      TH[22] = 0.2 --Edit Cursor Gradient Transparency
+
+      TH[23] = { 0.5, 0.5, 1, 1 } -- Play Cursor
+      TH[24] = 5 -- Play Cursor Gradient Width
+      TH[25] = 0.2 --Play Cursor Gradient Transparency
+
+      TH[26] = { 0.2, 1, 0.2, 0.7 } -- Aim Assist Cursor
+      
+      -------Buttons and Sliders ---------      
+      TH[27] = { 0.3, 0.3 ,0.3 ,1 } -- Button Body
+      TH[28] = { 0.3, 0.3, 0.3 ,1 } -- Button Frames
+      ThickBFrames = 0 -- Thickness - 0 = normal, 1 - thick frames
+
+      Tint_d = 1   -- Active Button Tint Coloring Mode: 1 - darker than Green tops elements, 0 - lighter than Green tops elements (best for light themes).
+      Tint_a = 0.1 -- Active Button Tint Transparency
+      
+      TH[29] = {0.28,0.4,0.7,0.8} -- Slider Frames
+      TH[30] = {0.28,0.4,0.7,0.8} -- Slider Body
+      ThickFrames = 0 -- Thickness - 0 = normal, 1 - thick frames
+      
+      TH[31] = {0.28,0.4,0.7,0.8} -- Slider Frames (Top, Loop and Swing)
+      TH[32] = {0.28,0.4,0.7,0.8} -- Slider Body (Top, Loop and Swing)
+      ThickSwFrames = 0 -- Thickness - 0 = normal, 1 - thick frames
+
+      TH[45] = { 0.28,0.4,0.7, 0.07 } -- Slider Background
+
+      TH[46] = {0.28,0.4,0.7,0.8 } -- CheckBox Body
+      TH[47] = 0 -- CheckBox Tint Transparency
+
+      TH[50] = { 0.345, 0.255, 0.608,1 } -- Violet Controls Body
+      TH[53] = { 0.345, 0.255, 0.608,1 } -- Violet Controls Frames
+      TH[51] = { 0.2, 0.431, 0.376,1 } -- Green Controls Body
+      TH[54] = { 0.2, 0.431, 0.376,1 } -- Green Controls Frames
+      TH[52] = { 0.482, 0.259, 0.259,1 } -- Red Controls Body
+      TH[55] = { 0.482, 0.259, 0.259,1 } -- Red Controls Frames
+
+      TH[56] = { 0.31, 0.239, 0.592,0.07 } -- Violet Slider Background
+      TH[57] = { 0.106, 0.318, 0.29,0.07 } -- Green Slider Background
+      TH[58] = { 0.373, 0.204, 0.271,0.07 } -- Red Slider Background
+      
+      --------------Text--------------------      
+      TH[33] = { 0.8, 0.8, 0.8, 0.9 } -- Text Color
+      TH[34] = { 1, 0.5, 0.3, 1 } -- Text Warn (Small "Processing, wait...")
+      TH[35] = { 1, 1, 1, 0.2 } -- Txt Greyed (BPM)
+      TH[36] = { 0.5, 0.5, 0.5, 0.8 } -- Txt Greyed (Presets, Mode)
+      TH[37] = 0 -- an additional value is added to the brightness of the BPM digits. Can be negative.
+      TH[38] = 0.9 -- BPM digits transparency
+      TH[48] = {0.23, 0.25, 0.25, 0} -- BPM Background
+      TH[49] = {0, 0, 0, 0} -- Status Bar Background
+    
+      -----------Elements------------------
+      TH[39] =  { 0.0, 0.7, 0.0, 1 } -- Green tops elements (Loop triangles, Buttons Leds)
+      TH[40] = { 0.4, 0.4, 0.4, 0.7 } -- Txt Brackets
+      TH[41] = { 0.4, 0.4, 0.4, 0.3 } -- Main Separators
+      TH[42] = 1 -- Leds Transparency (Controls Body)
+      TH[43] = 0 -- Waveform Peaks Thickness (Transparency) - 0 = normal peaks, 1 - thick peaks, 0.5 or something = like a blur/antialiasing
+      TH[44] = { 0.906, 0.463, 0.0, 0.9 } -- Random+Q Bracket Color
+      --------------------------------------------------------------
+      end
+end
+
+ThemeSel = tonumber(reaper.GetExtState('MK_Shaper/Stutter','ThemeSel'))or 12;
+Theming(ThemeSel)
+
+--------------------------------End of Advanced User Settings------------------------------------------
 
 ----------------------------------------------------------------------------
 -- Some functions(local functions work faster in big cicles(~30%)) ------------
@@ -108,6 +1234,7 @@ Midi_sampler_offs_stat = 0
 Reset_to_def = 0
 RE_Status = 0
 Swing_on = 0
+Grid0_on = 0
 Grid1_on = 0
 Grid2_on = 0
 Grid4_on = 0
@@ -116,56 +1243,45 @@ Grid16_on = 0
 Grid32_on = 0
 Grid64_on = 0
 GridT_on = 0
+GridD_on = 0
 Gate_on = 0
 Gate_on2 = 0
 Midi_Check = 0
 WaveCheck = 0
 Undo_Permit = 0
 Show_process_wait_is_active = 0
-----------------------------Advanced Settings-------------------------------------------
-
-RememberLast = 1            -- (Remember some sliders positions from last session. 1 - On, 0 - Off)
-SnapToStart = 1 --(Snap Play Cursor to Waveform Start. 1 - On, 0 - Off)
-WFiltering = 0 -- (Waveform Visual Filtering while Window Scaling. 1 - On, 0 - Off)
-ShowRuler = 1 -- (Show Project Grid Green Markers. 1 - On, 0 - Off)
-ShowInfoLine = 0 -- (Show Project Info Line. 1 - On, 0 - Off)
-Markers_Btns = 0  -- (Show MK_Slicer's Markers Operation Controls. 1 - On, 0 - Off)
-ForceSync = 0 -- (force Sync On on the script starts: 1 - On (Always On), 0 - Off (Default, Save Previous State))
-Pitch_Range = 24 -- (Pitch Envelope Range, Half Tones: default 24)
-
-------------------------End of Advanced Settings----------------------------------------
 
 -----------------------------------States and UA  protection-----------------------------
 
-Docked = tonumber(r.GetExtState('cool_MK_Shaper/Stutter.lua','Docked'))or 0;
-EscToExit = tonumber(r.GetExtState('cool_MK_Shaper/Stutter.lua','EscToExit'))or 1;
-InvOnByDefault = tonumber(r.GetExtState('cool_MK_Shaper/Stutter.lua','InvOnByDefault'))or 2;
-EnvItemOnClose = tonumber(r.GetExtState('cool_MK_Shaper/Stutter.lua','EnvItemOnClose'))or 0;
-MIDI_Mode = tonumber(r.GetExtState('cool_MK_Shaper/Stutter.lua','Midi_Sampler.norm_val'))or 1;
-Sampler_preset_state = tonumber(r.GetExtState('cool_MK_Shaper/Stutter.lua','Sampler_preset.norm_val'))or 1;
-AutoScroll = tonumber(r.GetExtState('cool_MK_Shaper/Stutter.lua','AutoScroll'))or 0;
-PlayMode = tonumber(r.GetExtState('cool_MK_Shaper/Stutter.lua','PlayMode'))or 0;
-Loop_on = tonumber(r.GetExtState('cool_MK_Shaper/Stutter.lua','Loop_on'))or 1;
+Docked = tonumber(r.GetExtState('MK_Shaper/Stutter','Docked'))or 0;
+EscToExit = tonumber(r.GetExtState('MK_Shaper/Stutter','EscToExit'))or 1;
+InvOnByDefault = tonumber(r.GetExtState('MK_Shaper/Stutter','InvOnByDefault'))or 2;
+EnvItemOnClose = tonumber(r.GetExtState('MK_Shaper/Stutter','EnvItemOnClose'))or 0;
+MIDI_Mode = tonumber(r.GetExtState('MK_Shaper/Stutter','Midi_Sampler.norm_val'))or 1;
+Sampler_preset_state = tonumber(r.GetExtState('MK_Shaper/Stutter','Sampler_preset.norm_val'))or 1;
+AutoScroll = tonumber(r.GetExtState('MK_Shaper/Stutter','AutoScroll'))or 0;
+PlayMode = tonumber(r.GetExtState('MK_Shaper/Stutter','PlayMode'))or 0;
+Loop_on = tonumber(r.GetExtState('MK_Shaper/Stutter','Loop_on'))or 1;
 
    if ForceSync == 1 then
        Sync_on = 1
          else
-       Sync_on = tonumber(r.GetExtState('cool_MK Slicer.lua','Sync_on'))or 0;
+       Sync_on = tonumber(r.GetExtState('MK_Shaper/Stutter','Sync_on'))or 0;
    end
 
-Sync_on = tonumber(r.GetExtState('cool_MK_Shaper/Stutter.lua','Sync_on'))or 0;
-TrackEnv = tonumber(r.GetExtState('cool_MK_Shaper/Stutter.lua','TrackEnv'))or 1;
-VolPreFX = tonumber(r.GetExtState('cool_MK_Shaper/Stutter.lua','VolPreFX'))or 1;
-SelectedEnvOnly = tonumber(r.GetExtState('cool_MK_Shaper/Stutter.lua','SelectedEnvOnly'))or 0;
-ObeyingItemSelection = tonumber(r.GetExtState('cool_MK_Shaper/Stutter.lua','ObeyingItemSelection'))or 0;
-MaxFontSizeSt = tonumber(r.GetExtState('MK_Slicer_3','MaxFontSizeSt'))or 0;
+TrackEnvByDefault = tonumber(r.GetExtState('MK_Shaper/Stutter','TrackEnvByDefault'))or 1;
+VolPreFX = tonumber(r.GetExtState('MK_Shaper/Stutter','VolPreFX'))or 1;
+SelectedEnvOnly = tonumber(r.GetExtState('MK_Shaper/Stutter','SelectedEnvOnly'))or 0;
+ObeyingItemSelection = tonumber(r.GetExtState('MK_Shaper/Stutter','ObeyingItemSelection'))or 0;
+FontAntiAliasing = tonumber(r.GetExtState('MK_Shaper/Stutter','FontAntiAliasing'))or 0;
+MaxFontSizeSt = tonumber(r.GetExtState('MK_Shaper/Stutter','MaxFontSizeSt'))or 0;
 if MaxFontSizeSt == 1 then MaxFontSize = 24 else MaxFontSize = 18 end
-XFadeOff = tonumber(r.GetExtState('cool_MK_Shaper/Stutter.lua','XFadeOff'))or 0;
-Guides_mode = tonumber(r.GetExtState('cool_MK_Shaper/Stutter.lua','Guides.norm_val'))or 1;
-OutNote_State = tonumber(r.GetExtState('cool_MK_Shaper/Stutter.lua','OutNote.norm_val'))or 1;
-HiPrecision_On = tonumber(r.GetExtState('cool_MK_Shaper/Stutter.lua','HiPrecision_On'))or 0;
-VeloRng = tonumber(r.GetExtState('cool_MK_Shaper/Stutter.lua','Gate_VeloScale.norm_val'))or 0.231;
-VeloRng2 = tonumber(r.GetExtState('cool_MK_Shaper/Stutter.lua','Gate_VeloScale.norm_val2'))or 1;
+XFadeOff = tonumber(r.GetExtState('MK_Shaper/Stutter','XFadeOff'))or 0;
+Guides_mode = tonumber(r.GetExtState('MK_Shaper/Stutter','Guides.norm_val'))or 1;
+OutNote_State = tonumber(r.GetExtState('MK_Shaper/Stutter','OutNote.norm_val'))or 1;
+HiPrecision_On = tonumber(r.GetExtState('MK_Shaper/Stutter','HiPrecision_On'))or 0;
+VeloRng = tonumber(r.GetExtState('MK_Shaper/Stutter','Gate_VeloScale.norm_val'))or 0.231;
+VeloRng2 = tonumber(r.GetExtState('MK_Shaper/Stutter','Gate_VeloScale.norm_val2'))or 1;
 
 if RememberLast == nil then RememberLast = 1 end 
 if RememberLast <= 0 then RememberLast = 0 elseif RememberLast >= 1 then RememberLast = 1 end 
@@ -229,6 +1345,22 @@ else
      r.Main_OnCommand(40718, 0) -- Item: Select all items on selected tracks in current time selection
 end
 
+if FontAntiAliasing == 1 then
+  GFX2IMGUI_NO_LOG = true
+  GFX2IMGUI_MAX_DRAW_CALLS = 1<<16
+  local gfx2imgui_path = reaper.GetResourcePath() .. '/Scripts/ReaTeam Extensions/API/gfx2imgui.lua'
+  local os_sep = package.config:sub(1,1)
+  gfx2imgui_path = gfx2imgui_path:gsub( "/", os_sep )
+  if reaper.file_exists( gfx2imgui_path ) then
+     gfx = dofile(reaper.GetResourcePath() .. '/Scripts/ReaTeam Extensions/API/gfx2imgui.lua')
+     RG_status = "(ReaimGUI)"
+     else
+     RG_status = "(ReaimGUI not installed)"
+  end
+else
+RG_status = ""
+end
+
 NoItems = 0
 if r.CountSelectedMediaItems(0) == 0 and r.CountSelectedTracks(0) == 1 then -- if no items, create new-----
 
@@ -244,9 +1376,9 @@ if r.CountSelectedMediaItems(0) == 0 and r.CountSelectedTracks(0) == 1 then -- i
        r.GetSetMediaItemTakeInfo_String(new_tk, 'P_NAME', 'Temporary item. Will be deleted automatically after closing the script.', 1)
        Table[track] = track
        Table2[midiItem] = midiItem
-       NoItems = 1
-     end
 
+     end
+     NoItems = 1
 end ----------------------------------------------------------------
 
 if loopcheckstart == loopcheckending and loopcheckstart and loopcheckending then 
@@ -320,181 +1452,191 @@ end -- не запускать, если айтемы находятся на р
 ----------------------------------Get States from last session-----------------------------
 
 if RememberLast == 1 then
-CrossfadeTime = tonumber(r.GetExtState('cool_MK_Shaper/Stutter.lua','CrossfadeTime'))or 15;
-QuantizeStrength = tonumber(r.GetExtState('cool_MK_Shaper/Stutter.lua','QuantizeStrength'))or 100;
-Offs_Slider = tonumber(r.GetExtState('cool_MK_Shaper/Stutter.lua','Offs_Slider'))or 0.5;
-HF_Slider = tonumber(r.GetExtState('cool_MK_Shaper/Stutter.lua','HF_Slider'))or 0.3312;
-LF_Slider = tonumber(r.GetExtState('cool_MK_Shaper/Stutter.lua','LF_Slider'))or 1;
-Sens_Slider = tonumber(r.GetExtState('cool_MK_Shaper/Stutter.lua','Sens_Slider'))or 0.375;
+CrossfadeTime = tonumber(r.GetExtState('MK_Shaper/Stutter','CrossfadeTime'))or 15;
+QuantizeStrength = tonumber(r.GetExtState('MK_Shaper/Stutter','QuantizeStrength'))or 50;
+DefaultRThrStrength = tonumber(r.GetExtState('MK_Shaper/Stutter','DefaultRThrStrength'))or 100;
+Offs_Slider = tonumber(r.GetExtState('MK_Shaper/Stutter','Offs_Slider'))or 0.5;
+HF_Slider = tonumber(r.GetExtState('MK_Shaper/Stutter','HF_Slider'))or 0.3312;
+LF_Slider = tonumber(r.GetExtState('MK_Shaper/Stutter','LF_Slider'))or 1;
+Sens_Slider = tonumber(r.GetExtState('MK_Shaper/Stutter','Sens_Slider'))or 0.63;
 else
 CrossfadeTime = DefaultXFadeTime or 15;
 QuantizeStrength = DefaultQStrength or 100;
 Offs_Slider = DefaultOffset or 0.5;
 HF_Slider = DefaultHP or 0.3312;
 LF_Slider = DefaultLP or 1;
-Sens_Slider = DefaultSens or 0.375;
+Sens_Slider = DefaultSens or 0.63;
 end
 
 
 --------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------
+function beatc(beatpos)
+  local retval, measures, cml, fullbeats, cdenom = r.TimeMap2_timeToBeats(0, beatpos)
+  local _, division, _, _ = r.GetSetProjectGrid(0,false)
+  if division < 0.0078125 then division = 0.0078125 end
+  beatpos = r.TimeMap2_beatsToTime(0, fullbeats +(division*4))
+  return beatpos
+end
+--------------------------------------------------------------------------------------------
 
 function getsomerms()
 
-r.Undo_BeginBlock(); r.PreventUIRefresh(1)
-
-local itemproc = r.GetSelectedMediaItem(0,0)
-
- if itemproc  then
-   local tk = r.GetActiveTake(itemproc)
-
- function get_average_rms(take, adj_for_take_vol, adj_for_item_vol)
-   local RMS_t = {}
-   if take == nil then return end
-   local item = r.GetMediaItemTake_Item(take) -- Get parent item
-   if item == nil then return end
-
-   local aa = r.CreateTakeAudioAccessor(take)
-   if aa == nil then return end
+  r.Undo_BeginBlock(); r.PreventUIRefresh(1)
+  
+  local itemproc = r.GetSelectedMediaItem(0,0)
+  
+   if itemproc  then
+     local tk = r.GetActiveTake(itemproc)
+  
+   function get_average_rms(take, adj_for_take_vol, adj_for_item_vol)
+     local RMS_t = {}
+     if take == nil then return end
+     local item = r.GetMediaItemTake_Item(take) -- Get parent item
+     if item == nil then return end
+  
+     local aa = r.CreateTakeAudioAccessor(take)
+     if aa == nil then return end
+     
+     local aa_start = r.GetAudioAccessorStartTime(aa)
+     local aa_end = r.GetAudioAccessorEndTime(aa)
+     local a_length = (aa_end - aa_start)/5
+  
+     local take_pcm_source = r.GetMediaItemTake_Source(take)
+     if take_pcm_source == nil then 
+        take_source_num_channels = 2
+        take_source_sample_rate = 44100
+         else
+        take_source_num_channels =  r.GetMediaSourceNumChannels(take_pcm_source)
+        take_source_sample_rate = r.GetMediaSourceSampleRate(take_pcm_source)
+      end
    
-   local aa_start = r.GetAudioAccessorStartTime(aa)
-   local aa_end = r.GetAudioAccessorEndTime(aa)
-   local a_length = (aa_end - aa_start)/5
-
-   local take_pcm_source = r.GetMediaItemTake_Source(take)
-   if take_pcm_source == nil then 
-      take_source_num_channels = 2
-      take_source_sample_rate = 44100
+  if take_source_sample_rate  < 22050 then take_source_sample_rate = 44100 end -- if MIDI item, create fake samplerate           
+  
+     if take_source_num_channels > 2 then take_source_num_channels = 2 end
+     local channel_data = {} -- channel data is collected to this table
+  
+     for i=1, take_source_num_channels do
+      channel_data[i] = {
+                           rms = 0,
+                           sum_squares = 0 -- (for calculating RMS per channel)
+                         }
+     end
+  
+     local samples_per_channel = take_source_sample_rate/10
+     
+     local buffer = r.new_array(samples_per_channel * take_source_num_channels)
+     buffer.clear()
+     local total_samples = (aa_end - aa_start) * (take_source_sample_rate/a_length)
+     
+     if total_samples < 1 then return end
+  
+     local sample_count = 0
+     local offs = aa_start
+     local log10 = function(x) return logx(x, 10) end
+  
+     while sample_count < total_samples do
+  
+       local aa_ret =  r.GetAudioAccessorSamples(
+                                               aa,                       -- AudioAccessor accessor
+                                               take_source_sample_rate,  -- integer samplerate
+                                               take_source_num_channels, -- integer numchannels
+                                               offs,                     -- number starttime_sec
+                                               samples_per_channel,      -- integer numsamplesperchannel
+                                               buffer                    -- r.array samplebuffer
+                                             )
+         
+       if aa_ret == 1 then
+        local buffer_l = #buffer
+         for i=1, buffer_l, take_source_num_channels do
+           if sample_count == total_samples then
+             break
+           end
+           for j=1, take_source_num_channels do
+             local buf_pos = i+j-1
+             local spl = buffer[buf_pos]
+             channel_data[j].sum_squares = channel_data[j].sum_squares + spl*spl
+           end
+           sample_count = sample_count + 1
+         end
+       elseif aa_ret == 0 then -- no audio in current buffer
+         sample_count = sample_count + samples_per_channel
        else
-      take_source_num_channels =  r.GetMediaSourceNumChannels(take_pcm_source)
-      take_source_sample_rate = r.GetMediaSourceSampleRate(take_pcm_source)
-    end
- 
-if take_source_sample_rate == 0 then take_source_sample_rate = 44100 end -- if MIDI item, create fake samplerate           
-
-   if take_source_num_channels > 2 then take_source_num_channels = 2 end
-   local channel_data = {} -- channel data is collected to this table
-
-   for i=1, take_source_num_channels do
-    channel_data[i] = {
-                         rms = 0,
-                         sum_squares = 0 -- (for calculating RMS per channel)
-                       }
-   end
-
-   local samples_per_channel = take_source_sample_rate/10
-   
-   local buffer = r.new_array(samples_per_channel * take_source_num_channels)
-   buffer.clear()
-   local total_samples = (aa_end - aa_start) * (take_source_sample_rate/a_length)
-   
-   if total_samples < 1 then return end
-
-   local sample_count = 0
-   local offs = aa_start
-   local log10 = function(x) return logx(x, 10) end
-
-   while sample_count < total_samples do
-
-     local aa_ret =  r.GetAudioAccessorSamples(
-                                             aa,                       -- AudioAccessor accessor
-                                             take_source_sample_rate,  -- integer samplerate
-                                             take_source_num_channels, -- integer numchannels
-                                             offs,                     -- number starttime_sec
-                                             samples_per_channel,      -- integer numsamplesperchannel
-                                             buffer                    -- r.array samplebuffer
-                                           )
-       
-     if aa_ret == 1 then
-      local buffer_l = #buffer
-       for i=1, buffer_l, take_source_num_channels do
-         if sample_count == total_samples then
-           break
-         end
-         for j=1, take_source_num_channels do
-           local buf_pos = i+j-1
-           local spl = buffer[buf_pos]
-           channel_data[j].sum_squares = channel_data[j].sum_squares + spl*spl
-         end
-         sample_count = sample_count + 1
+         return
        end
-     elseif aa_ret == 0 then -- no audio in current buffer
-       sample_count = sample_count + samples_per_channel
-     else
-       return
+       
+       offs = offs + samples_per_channel / take_source_sample_rate -- new offset in take source (seconds)
+     end -- end of while loop
+     
+     r.DestroyAudioAccessor(aa)
+      
+     adjust_vol = 1
+     
+     if adj_for_take_vol then
+       adjust_vol = adjust_vol * r.GetMediaItemTakeInfo_Value(take, "D_VOL")
+       if adjust_vol < 0 then adjust_vol = (adjust_vol * -1) end -- if phase is inverted
      end
      
-     offs = offs + samples_per_channel / take_source_sample_rate -- new offset in take source (seconds)
-   end -- end of while loop
-   
-   r.DestroyAudioAccessor(aa)
-    
-   adjust_vol = 1
-   
-   if adj_for_take_vol then
-     adjust_vol = adjust_vol * r.GetMediaItemTakeInfo_Value(take, "D_VOL")
-     if adjust_vol < 0 then adjust_vol = (adjust_vol * -1) end -- if phase is inverted
+     if adj_for_item_vol then
+       adjust_vol = adjust_vol * r.GetMediaItemInfo_Value(item, "D_VOL")
+     end
+     
+     for i=1, take_source_num_channels do
+       local curr_ch = channel_data[i]
+       curr_ch.rms = sqrt(curr_ch.sum_squares/total_samples) * adjust_vol
+         RMS_t[i] = 20*log10(curr_ch.rms)
+     end
+     return RMS_t
    end
+  
+  local getrms
+         if tk ~= nil and Take_Check == 0 then  
+             getrms = get_average_rms( tk, 0, 0)
+               else
+             getrms = {-20}
+         end
+   ----------------------------------------------------------------------------------
    
-   if adj_for_item_vol then
-     adjust_vol = adjust_vol * r.GetMediaItemInfo_Value(item, "D_VOL")
+  local inf = 1/0
+  
+   for i=1, #getrms do
+   rms = ceil(getrms[i])
    end
-   
-   for i=1, take_source_num_channels do
-     local curr_ch = channel_data[i]
-     curr_ch.rms = sqrt(curr_ch.sum_squares/total_samples) * adjust_vol
-       RMS_t[i] = 20*log10(curr_ch.rms)
-   end
-   return RMS_t
- end
-
-local getrms
-       if tk ~= nil and Take_Check == 0 then  
-           getrms = get_average_rms( tk, 0, 0)
-             else
-           getrms = {-20}
-       end
- ----------------------------------------------------------------------------------
- 
-local inf = 1/0
-
- for i=1, #getrms do
- rms = ceil(getrms[i])
- end
-
-if rms <= -30 then rms = -30 end
-if rms == -inf then rms = -20 end
-
-local rmsresult = string.sub(rms,1,string.find(rms,'.')+5)
-
-readrms = 1-(rmsresult*-0.015)
-out_gain = (rmsresult+12)*-0.03
-
-if readrms > 1 then readrms = 1 elseif readrms < 0 then readrms = 0 end
-if out_gain > 1 then out_gain = 1 elseif out_gain < 0 then out_gain = 0 end
-
-else
-
-readrms = 0.65
-out_gain = 0.15
-
-end
-
-orig_gain = out_gain*1200
-
-end
-
-if tk == nil then 
-   readrms = 0.65
-   out_gain = 0.15
-end
-
-getsomerms()     
+  
+  if rms <= -30 then rms = -30 end
+  if rms == -inf then rms = -20 end
+  
+  local rmsresult = string.sub(rms,1,string.find(rms,'.')+5)
+  
+  readrms = 1-(rmsresult*-0.015)
+  out_gain = (rmsresult+12)*-0.03
+  
+  if readrms > 1 then readrms = 1 elseif readrms < 0 then readrms = 0 end
+  if out_gain > 1 then out_gain = 1 elseif out_gain < 0 then out_gain = 0 end
+  
+  else
+  
+  readrms = 0.65
+  out_gain = 0.15
+  
+  end
+  
+  orig_gain = out_gain*1200
+  
+  end
+  
+  if tk == nil then 
+     readrms = 0.65
+     out_gain = 0.15
+  end
+  
+  getsomerms()      
      
 function ClearExState()
 
-r.DeleteExtState('_Slicer_', 'ItemToSlice', 0)
-r.DeleteExtState('_Slicer_', 'TrackForSlice', 0)
-r.SetExtState('_Slicer_', 'GetItemState', 'ItemNotLoaded', 0)
+r.DeleteExtState('_Shaper_', 'ItemToSlice', 0)
+r.DeleteExtState('_Shaper_', 'TrackForSlice', 0)
+r.SetExtState('_Shaper_', 'GetItemState', 'ItemNotLoaded', 0)
 
 end
 
@@ -509,10 +1651,9 @@ end
 getitem = 1
 
 function GetTempo()
-    tempo = r.Master_GetTempo()
-    tempo_corr = 1/(r.Master_GetTempo()/120)
-    retoffset = (60000/tempo)/16 - 20
-    retrigms = retoffset*0.00493 or 0.0555
+  tempo = r.Master_GetTempo()
+  tempo_corr = 1/(r.Master_GetTempo()/120)
+  retrigms = 0.1703 -- 30ms retrig
 end
 GetTempo()
 ---------------------Initial Swing Set---------------------------------------------
@@ -558,7 +1699,7 @@ function Element:new(x,y,w,h, r,g,b,a, lbl,fnt,fnt_sz, norm_val,norm_val2, fnt_r
     elm.x, elm.y, elm.w, elm.h = x, y, w, h
     elm.r, elm.g, elm.b, elm.a = r, g, b, a
     elm.lbl, elm.fnt, elm.fnt_sz = lbl, fnt, fnt_sz
-    elm.fnt_rgba = fnt_rgba or {0.8, 0.8, 0.8, 0.9} --цвет текста кнопок, фреймов и слайдеров
+    elm.fnt_rgba = fnt_rgba or {TH[33][1], TH[33][2], TH[33][3], TH[33][4]} --цвет текста кнопок, фреймов и слайдеров
     elm.norm_val = norm_val
     elm.norm_val2 = norm_val2
     ------
@@ -631,91 +1772,158 @@ end
 function Element:draw_frame()
   local x,y,w,h  = self.x,self.y,self.w,self.h
     local r,g,b,a  = self.r,self.g,self.b,self.a
-    local an = 1.02
-    if self:mouseIN() then an=an+0.25 end
-    if self:mouseDown() then an=an+0.35 end
-  gfx.set(0.259,0.357,0.592,an) -- sliders and checkboxes borders
+    local an = TH[29][4]
+    if self:mouseIN() then an=an+0.1 end
+    if self:mouseDown() then an=an+0.1 end
+  gfx.set(TH[29][1],TH[29][2],TH[29][3],an) -- sliders and checkboxes borders
   gfx.rect(x, y, w, h, false)            -- frame1      
+ if ThickFrames == 1 then gfx.rect(x+1, y+1, w-2, h-2, false)  end          -- frame1 
+end
+
+function Element:draw_frame_sld()
+  local x,y,w,h  = self.x,self.y,self.w,self.h
+    local r,g,b,a  = self.r,self.g,self.b,self.a
+  gfx.set(TH[45][1],TH[45][2],TH[45][3],TH[45][4]) -- sliders backgrounds
+  gfx.rect(x, y, w, h, true)            -- frame1      
+end
+
+function Element:draw_frame_sld_v()
+  local x,y,w,h  = self.x,self.y,self.w,self.h
+    local r,g,b,a  = self.r,self.g,self.b,self.a
+  gfx.set(TH[56][1],TH[56][2],TH[56][3],TH[56][4]) -- sliders backgrounds
+  gfx.rect(x, y, w, h, true)            -- frame1      
+end
+
+function Element:draw_frame_sld_g()
+  local x,y,w,h  = self.x,self.y,self.w,self.h
+    local r,g,b,a  = self.r,self.g,self.b,self.a
+  gfx.set(TH[57][1],TH[57][2],TH[57][3],TH[57][4]) -- sliders backgrounds
+  gfx.rect(x, y, w, h, true)            -- frame1      
+end
+
+function Element:draw_frame_sld_r()
+  local x,y,w,h  = self.x,self.y,self.w,self.h
+    local r,g,b,a  = self.r,self.g,self.b,self.a
+  gfx.set(TH[58][1],TH[58][2],TH[58][3],TH[58][4]) -- sliders backgrounds
+  gfx.rect(x, y, w, h, true)            -- frame1      
+end
+
+function Element:draw_frame_sw()
+  local x,y,w,h  = self.x,self.y,self.w,self.h
+    local r,g,b,a  = self.r,self.g,self.b,self.a
+    local an = TH[31][4]
+    if self:mouseIN() then an=an+0.1 end
+    if self:mouseDown() then an=an+0.1 end
+  gfx.set(TH[31][1],TH[31][2],TH[31][3],an) -- swing slider borders
+  gfx.rect(x, y, w, h, false)            -- frame1    
+ if ThickSwFrames == 1 then gfx.rect(x+1, y+1, w-2, h-2, false)  end          -- frame1  
 end
 
 function Element:draw_frame_g()
   local x,y,w,h  = self.x,self.y,self.w,self.h
     local r,g,b,a  = self.r,self.g,self.b,self.a
-    local an = 1.02
-    if self:mouseIN() then an=an+0.25 end
-    if self:mouseDown() then an=an+0.35 end
-  gfx.set(0.2,0.47,0.39,an) -- sliders and checkboxes borders
-  gfx.rect(x, y, w, h, false)            -- frame1      
+    local an = TH[54][4]
+    if self:mouseIN() then an=an+0.1 end
+    if self:mouseDown() then an=an+0.1 end
+  gfx.set(TH[54][1],TH[54][2],TH[54][3],an) -- sliders and checkboxes borders
+  gfx.rect(x, y, w, h, false)            -- frame1     
+  if ThickFrames == 1 then gfx.rect(x+1, y+1, w-2, h-2, false)  end          -- frame1  
 end
 
 function Element:draw_frame_r()
   local x,y,w,h  = self.x,self.y,self.w,self.h
     local r,g,b,a  = self.r,self.g,self.b,self.a
-    local an = 1.02
-    if self:mouseIN() then an=an+0.25 end
-    if self:mouseDown() then an=an+0.35 end
-  gfx.set(0.484,0.244,0.214,an) -- sliders and checkboxes borders
-  gfx.rect(x, y, w, h, false)            -- frame1      
+    local an = TH[55][4]
+    if self:mouseIN() then an=an+0.1 end
+    if self:mouseDown() then an=an+0.1 end
+  gfx.set(TH[55][1],TH[55][2],TH[55][3],an) -- sliders and checkboxes borders
+  gfx.rect(x, y, w, h, false)            -- frame1     
+  if ThickFrames == 1 then gfx.rect(x+1, y+1, w-2, h-2, false)  end          -- frame1  
 end
 
 function Element:draw_frame_v()
   local x,y,w,h  = self.x,self.y,self.w,self.h
     local r,g,b,a  = self.r,self.g,self.b,self.a
-    local an = 1.02
-    if self:mouseIN() then an=an+0.25 end
-    if self:mouseDown() then an=an+0.35 end
-  gfx.set(0.37,0.26,0.6,an) -- sliders and checkboxes borders
-  gfx.rect(x, y, w, h, false)            -- frame1      
+    local an = TH[53][4]
+    if self:mouseIN() then an=an+0.1 end
+    if self:mouseDown() then an=an+0.1 end
+  gfx.set(TH[53][1],TH[53][2],TH[53][3],an) -- sliders and checkboxes borders
+  gfx.rect(x, y, w, h, false)            -- frame1    
+  if ThickFrames == 1 then gfx.rect(x+1, y+1, w-2, h-2, false)  end          -- frame1   
 end
 
-function Element:draw_frame_rng()
+function Element:draw_frame_rng() -- range slider
   local x,y,w,h  = self.x,self.y,self.w,self.h
     local r,g,b,a  = self.r,self.g,self.b,self.a
-    local an = 1.02
-    local rn = 0.259
-    local gn = 0.357
-    local bn = 0.592
+    local an = TH[29][4]
+    local rn = TH[30][1]
+    local gn = TH[30][2]
+    local bn = TH[30][3]
     if self:mouseIN() then 
-an=an+0.25 
+an=an+0.1 
 rn = 0.29
 gn = 0.29
 bn = 0.34
 end
     if self:mouseDown() then 
-an=an+0.35 
+an=an+0.1 
 rn = 0.30
 gn = 0.30
 bn = 0.35
 end
-  gfx.set(rn,gn,bn,an) -- sliders and checkboxes borders
-  gfx.rect(x, y, w, h, false)            -- frame1      
+
+gfx.set(TH[29][1],TH[29][2],TH[29][3],an) -- sliders and checkboxes borders
+  gfx.rect(x, y, w, h, false)            -- frame1     
+  if ThickFrames == 1 then gfx.rect(x+1, y+1, w-2, h-2, false)  end          -- frame1  
 end
 
 function Element:draw_frame_loop()
   local x,y,w,h  = self.x,self.y,self.w,self.h*24
     local r,g,b,a  = self.r,self.g,self.b,self.a
-  gfx.set(0.3,0.3,0.35,0.2) -- sliders and checkboxes borders
+  gfx.set(0.3,0.3,0.35,0.2) -- loop slider background
   gfx.rect(x, y, w, h, true)            -- frame1      
 end
 
 function Element:draw_frame2()
   local x,y,w,h  = self.x,self.y,self.w,self.h
     local r,g,b,a  = self.r,self.g,self.b,self.a
-  gfx.set(0.3,0.3,0.3,1) -- main frames
+  gfx.set(TH[40][1],TH[40][2],TH[40][3],TH[40][4]) -- brackets
   gfx.rect(x, y, w, h, false)            -- frame1      
 end
 
 function Element:draw_frame3()
   local x,y,w,h  = self.x,self.y,self.w,self.h
- --   local r,g,b,a  = self.r,self.g,self.b,self.a
---  gfx.set(0.25,0.25,0.25,1) -- waveform window and buttons frames
-  gfx.rect(x, y, w, h, false)            -- frame1      
+    local r,g,b,a  = self.r,self.g,self.b,self.a
+  gfx.set(TH[28][1],TH[28][2],TH[28][3],TH[28][4]) -- waveform window and buttons frames
+  gfx.rect(x, y, w, h, false)            -- frame1 
+ if ThickBFrames == 1 then gfx.rect(x+1, y+1, w-2, h-2, false)  end          -- frame1   
 end
 
 function Element:draw_frame4()
   local x,y,w,h  = self.x,self.y,self.w,self.h
     local r,g,b,a  = self.r,self.g,self.b,self.a
-  gfx.set(0.22,0.22,0.22,1) -- main frames
+  gfx.set(TH[4][1],TH[4][2],TH[4][3],TH[4][4]) -- main frame body
+  gfx.rect(x, y, w, h, true)            -- frame1   
+end
+
+function Element:draw_frame5()
+  local x,y,w,h  = self.x,self.y,self.w,self.h
+    local r,g,b,a  = self.r,self.g,self.b,self.a
+  gfx.set(TH[5][1],TH[5][2],TH[5][3],TH[5][4]) -- main frame
+  gfx.rect(x, y, w, h, false)            -- frame1     
+end
+
+function Element:draw_frame_rnd_q()
+  local x,y,w,h  = self.x,self.y,self.w,self.h
+    local r,g,b,a  = self.r,self.g,self.b,self.a
+  gfx.set(TH[44][1],TH[44][2],TH[44][3],TH[44][4]) -- brackets
+  gfx.rect(x, y, w, h, false)            -- frame1      
+end
+
+function Element:draw_frame_waveform()
+  local x,y,w,h  = self.x,self.y,self.w,self.h
+    local r,g,b,a  = self.r,self.g,self.b,self.a
+  gfx.set(TH[2][1],TH[2][2],TH[2][3],TH[2][4]) -- main frame
   gfx.rect(x, y, w, h, false)            -- frame1     
 end
 
@@ -726,17 +1934,24 @@ end
 
 function Element:draw_rect()
   local x,y,w,h  = self.x,self.y,self.w,self.h
-  gfx.set(0,0,0,0.3) -- цвет фона окна waveform
+  gfx.set(TH[1][1],TH[1][2],TH[1][3],TH[1][4]) -- цвет фона окна waveform
+  gfx.rect(x, y, w, h, true)            -- frame1      
+end
+
+function Element:draw_rect_ruler()
+  local x,y,w,h  = self.x,self.y,self.w,self.h
+  gfx.set(0.122,0.122,0.122,0.3) -- 
   gfx.rect(x, y, w, h, true)            -- frame1      
 end
 
 ----------------------------------------------------------------------------------------------------
 ---   Create Element Child Classes(Button,Slider,Knob)   -------------------------------------------
 ----------------------------------------------------------------------------------------------------
-  local Button, Button_small, Button_top, Button_Settings, Slider, Slider_small, Slider_simple, Slider_simple_r, Slider_simple_g, Slider_simple_g_bias, Slider_simple_v, Slider_complex, Slider_Fine, Slider_Swing, Slider_fgain, Rng_Slider, Knob, CheckBox, CheckBox_simple, CheckBox_Show, CheckBox_Red, CheckBox_Green, Frame, Colored_Rect, Colored_Rect_top, Frame_filled, ErrMsg, Txt, Txt2, Line, Line_colored, Line2 = {},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}
+  local Button, Button_small, Button_top, Button_top_txt, Button_Settings, Slider, Slider_small, Slider_simple, Slider_simple_r, Slider_simple_g, Slider_simple_g_bias, Slider_simple_v, Slider_complex, Slider_Fine, Slider_Swing, Slider_fgain, Rng_Slider, Knob, CheckBox, CheckBox_simple, CheckBox_Show, CheckBox_Red, CheckBox_Green, Frame, Frame_body, Colored_Rect, Colored_Rect_top, Frame_filled, ErrMsg, Txt, Txt2, Line, Line_colored, Line2 = {},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}
   extended(Button,     Element)
   extended(Button_small,     Element)
   extended(Button_top,     Element)
+  extended(Button_top_txt,     Element)
   extended(Button_Settings,     Element)
   extended(Knob,       Element)
   extended(Slider,     Element)
@@ -781,6 +1996,7 @@ end
   extended(Rng_Slider, Element)
   extended(Loop_Slider, Element)
   extended(Frame,      Element)
+  extended(Frame_body,      Element)
   extended(Colored_Rect,      Element)
   extended(Colored_Rect_top,      Element)
   extended(Frame_filled,      Element)
@@ -789,214 +2005,244 @@ end
   extended(CheckBox_Show,   Element)
   extended(CheckBox_Red,   Element)
   extended(CheckBox_Green,   Element)
+
 --------------------------------------------------------------------------------
----   Buttons Class Methods   ---------------------------------------------------
+---   Buttons Class Methods   ------------------------------------------------
 --------------------------------------------------------------------------------
 function Button_small:draw_body()
-    gfx.rect(self.x+1,self.y+1,self.w-2,self.h-2,true) -- draw btn body
+  gfx.rect(self.x+1,self.y+1,self.w-2,self.h-2,true) -- draw btn body
 end
 --------
 function Button_small:draw_lbl()
-    local x,y,w,h  = self.x,self.y,self.w,self.h
-    local lbl_w, lbl_h = gfx.measurestr(self.lbl)
-    gfx.x = x+(w-lbl_w)/2; gfx.y = y+(h-lbl_h)/2
-    gfx.drawstr(self.lbl)
+  local x,y,w,h  = self.x,self.y,self.w,self.h
+  local lbl_w, lbl_h = gfx.measurestr(self.lbl)
+  gfx.x = x+(w-lbl_w)/2; gfx.y = y+(h-lbl_h)/2
+  gfx.drawstr(self.lbl)
 end
 ------------------------
 function Button_small:draw()
-    self:update_xywh() -- Update xywh(if wind changed)
-    local r,g,b,a  = self.r,self.g,self.b,self.a
-    local fnt,fnt_sz = self.fnt, self.fnt_sz*(Z_h/1.2)
-    if fnt_sz <= 9 then fnt_sz = 9 end
-    if fnt_sz >= MaxFontSize-1 then fnt_sz = MaxFontSize-1 end
-    -- Get mouse state ---------
-          -- in element --------
-          if self:mouseIN() then a=a+0.3 end
-          -- in elm L_down -----
-          if self:mouseDown() then a=a-0.5 end
-          -- in elm L_up(released and was previously pressed) --
-          if self:mouseClick() and self.onClick then self.onClick() end
-    -- Draw btn body, frame ----
-    gfx.set(r,g,b,a)    -- set body color
-    self:draw_body()    -- body
-    self:draw_frame3()   -- frame
-    -- Draw label --------------
-    gfx.set(table.unpack(self.fnt_rgba))   -- set label color
-    gfx.setfont(1, fnt, fnt_sz) -- set label fnt
-    self:draw_lbl()             -- draw lbl
+  self:update_xywh() -- Update xywh(if wind changed)
+  local r,g,b,a  = self.r,self.g,self.b,self.a
+  local fnt,fnt_sz = self.fnt, self.fnt_sz*(Z_h/1.2)
+  if fnt_sz <= 9 then fnt_sz = 9 end
+  if fnt_sz >= MaxFontSize-1 then fnt_sz = MaxFontSize-1 end
+  -- Get mouse state ---------
+        -- in element --------
+        if self:mouseIN() then a=a+0.3 end
+        -- in elm L_down -----
+        if self:mouseDown() then a=a-0.5 end
+        -- in elm L_up(released and was previously pressed) --
+        if self:mouseClick() and self.onClick then self.onClick() end
+  -- Draw btn body, frame ----
+  gfx.set(r,g,b,a)    -- set body color
+  self:draw_body()    -- body
+  self:draw_frame3()   -- frame
+  -- Draw label --------------
+  gfx.set(table.unpack(self.fnt_rgba))   -- set label color
+  gfx.setfont(1, fnt, fnt_sz) -- set label fnt
+  self:draw_lbl()             -- draw lbl
 end
 
 --------------------------------------------------------------------------------
 function Button:draw_body()
-    gfx.rect(self.x+1,self.y+1,self.w-2,self.h-2,true) -- draw btn body
+  gfx.rect(self.x+1,self.y+1,self.w-2,self.h-2,true) -- draw btn body
 end
 --------
 function Button:draw_lbl()
-    local x,y,w,h  = self.x,self.y,self.w,self.h
-    local lbl_w, lbl_h = gfx.measurestr(self.lbl)
-    gfx.x = x+(w-lbl_w)/2; gfx.y = y+(h-lbl_h)/2+1
-    gfx.drawstr(self.lbl)
+  local x,y,w,h  = self.x,self.y,self.w,self.h
+  local lbl_w, lbl_h = gfx.measurestr(self.lbl)
+  gfx.x = x+(w-lbl_w)/2; gfx.y = y+(h-lbl_h)/2+1
+  gfx.drawstr(self.lbl)
 end
 ------------------------
 function Button:draw()
-    self:update_xywh() -- Update xywh(if wind changed)
-    local r,g,b,a  = self.r,self.g,self.b,self.a
-    local fnt,fnt_sz = self.fnt, self.fnt_sz*(Z_h*1.05)
-    if fnt_sz <= 12 then fnt_sz = 12 end
-    if fnt_sz >= MaxFontSize then fnt_sz = MaxFontSize end
-    -- Get mouse state ---------
-          -- in element --------
-          if self:mouseIN() then a=a+0.3 end
-          -- in elm L_down -----
-          if self:mouseDown() then a=a-0.5 end
-          -- in elm L_up(released and was previously pressed) --
-          if self:mouseClick() and self.onClick then self.onClick() end
-    -- Draw btn body, frame ----
-    gfx.set(r,g,b,a)    -- set body color
-    self:draw_body()    -- body
-    self:draw_frame3()   -- frame
-    -- Draw label --------------
-    gfx.set(table.unpack(self.fnt_rgba))   -- set label color
-    gfx.setfont(1, fnt, fnt_sz) -- set label fnt
-    self:draw_lbl()             -- draw lbl
+  self:update_xywh() -- Update xywh(if wind changed)
+  local r,g,b,a  = self.r,self.g,self.b,self.a
+  local fnt,fnt_sz = self.fnt, self.fnt_sz*(Z_h*1.05)
+  if fnt_sz <= 12 then fnt_sz = 12 end
+  if fnt_sz >= MaxFontSize then fnt_sz = MaxFontSize end
+  -- Get mouse state ---------
+        -- in element --------
+        if self:mouseIN() then a=a+0.3 end
+        -- in elm L_down -----
+        if self:mouseDown() then a=a-0.5 end
+        -- in elm L_up(released and was previously pressed) --
+        if self:mouseClick() and self.onClick then self.onClick() end
+  -- Draw btn body, frame ----
+  gfx.set(r,g,b,a)    -- set body color
+  self:draw_body()    -- body
+  self:draw_frame3()   -- frame
+  -- Draw label --------------
+  gfx.set(table.unpack(self.fnt_rgba))   -- set label color
+  gfx.setfont(1, fnt, fnt_sz) -- set label fnt
+  self:draw_lbl()             -- draw lbl
 end
 
 --------------------------------------------------------------------------------
 
 function Button_top:draw_body()
-    gfx.rect(self.x+1,self.y+1,self.w-2,self.h-2,true) -- draw btn body
+  gfx.rect(self.x+1,self.y+1,self.w-2,self.h-2,true) -- draw btn body
 end
+
 --------
-function Button_top:draw_lbl()
-    local x,y,w,h  = self.x,self.y,self.w,self.h
-    local lbl_w, lbl_h = gfx.measurestr(self.lbl)
-    gfx.x = x+(w-lbl_w)/2; gfx.y = y+(h-lbl_h)/2
-    gfx.drawstr(self.lbl)
+function Button_top_txt:draw_lbl()
+  local x,y,w,h  = self.x,self.y,self.w,self.h
+  local lbl_w, lbl_h = gfx.measurestr(self.lbl)
+  gfx.x = x+(w-lbl_w)/2; gfx.y = y+(h-lbl_h)/2
+  gfx.drawstr(self.lbl)
 end
 ------------------------
 function Button_top:draw()
-  if not Z_w or not Z_h then return end -- return if zoom not defined
-  self.x, self.w = (self.def_xywh[1]* Z_w) , (self.def_xywh[3]* Z_w) -- upd x,w
-  self.y, self.h = (self.def_xywh[2]* Z_h) , (self.def_xywh[4]* Z_h) -- upd y,h
-    local x,y,w,h  = self.x,self.y,self.w,self.h
-    local r,g,b,a  = self.r,self.g,self.b,self.a
-    local fnt,fnt_sz = self.fnt, self.fnt_sz*(Z_h*1.05)
-    if fnt_sz <= 10 then fnt_sz = 10 end
-    if fnt_sz >= MaxFontSize then fnt_sz = MaxFontSize end
-    -- Get mouse state ---------
-          -- in element --------
-          if self:mouseIN() then a=a+0.3 end
-          -- in elm L_down -----
-          if self:mouseDown() then a=a-0.5 end
-          -- in elm L_up(released and was previously pressed) --
-          if self:mouseClick() and self.onClick then self.onClick() end
-    -- Draw btn body, frame ----
-    gfx.set(r,g,b,a)    -- set body color
-    self:draw_body()    -- body
-    self:draw_frame3()   -- frame
-    -- Draw label --------------
-    gfx.set(table.unpack(self.fnt_rgba))   -- set label color
-    gfx.setfont(1, fnt, fnt_sz) -- set label fnt
-    self:draw_lbl()             -- draw lbl
+if not Z_w or not Z_h then return end -- return if zoom not defined
+self.x, self.w = (self.def_xywh[1]* Z_w) , (self.def_xywh[3]* Z_w) -- upd x,w
+self.y, self.h = (self.def_xywh[2]* Z_h) , (self.def_xywh[4]* Z_h) -- upd y,h
+  local x,y,w,h  = self.x,self.y,self.w,self.h
+  local r,g,b,a  = self.r,self.g,self.b,self.a
+  local fnt,fnt_sz = self.fnt, self.fnt_sz*(Z_h*1.05)
+  if fnt_sz <= 10 then fnt_sz = 10 end
+  if fnt_sz >= MaxFontSize then fnt_sz = MaxFontSize end
+  -- Get mouse state ---------
+        -- in element --------
+        if self:mouseIN() then a=a+0.3 end
+        -- in elm L_down -----
+        if self:mouseDown() then a=a-0.5 end
+        -- in elm L_up(released and was previously pressed) --
+        if self:mouseClick() and self.onClick then self.onClick() end
+  -- Draw btn body, frame ----
+  gfx.set(r,g,b,a)    -- set body color
+  self:draw_body()    -- body
+  if TH[27][4] ~= 0 then
+      self:draw_frame3()   -- frame
+  end
+
 end
+
+function Button_top_txt:draw()
+if not Z_w or not Z_h then return end -- return if zoom not defined
+self.x, self.w = (self.def_xywh[1]* Z_w) , (self.def_xywh[3]* Z_w) -- upd x,w
+self.y, self.h = (self.def_xywh[2]* Z_h) , (self.def_xywh[4]* Z_h) -- upd y,h
+  local x,y,w,h  = self.x,self.y,self.w,self.h
+  local r,g,b,a  = self.r,self.g,self.b,self.a
+  local fnt,fnt_sz = self.fnt, self.fnt_sz*(Z_h*1.05)
+  if fnt_sz <= 10 then fnt_sz = 10 end
+  if fnt_sz >= MaxFontSize then fnt_sz = MaxFontSize end
+  -- Draw label --------------
+  gfx.set(table.unpack(self.fnt_rgba))   -- set label color
+  gfx.setfont(1, fnt, fnt_sz) -- set label fnt
+ self:draw_lbl()             -- draw lbl
+
+  gfx.set(r,g,b,a)    -- set body color
+
+  if TH[27][4] == 0 then
+      self:draw_frame3()   -- frame
+  end
+end
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 function Button_Settings:draw_body()
-    gfx.rect(self.x,self.y,self.w,self.h, true) -- draw btn body
+  gfx.rect(self.x,self.y,self.w,self.h, true) -- draw btn body
+end
+
+function Button_Settings:draw_symb()
+  gfx.rect(self.x*2.1,(self.y*2)/1.049,self.w/2,self.h/10, true) -- draw btn body
+  gfx.rect(self.x*2.1,(self.y*3)/1.049,self.w/2,self.h/10, true) -- draw btn body
+  gfx.rect(self.x*2.1,(self.y*4)/1.049,self.w/2,self.h/10, true) -- draw btn body
 end
 --------
 function Button_Settings:draw_lbl()
-    local x,y,w,h  = self.x,self.y,self.w,self.h
-    local lbl_w, lbl_h = gfx.measurestr(self.lbl)
-    gfx.x = x+(w-lbl_w)/2; gfx.y = y+(h-lbl_h)/2+1
-    gfx.drawstr(self.lbl)
+  local x,y,w,h  = self.x,self.y,self.w,self.h
+  local lbl_w, lbl_h = gfx.measurestr(self.lbl)
+  gfx.x = x+(w-lbl_w)/2; gfx.y = y+(h-lbl_h)/2+1
+  gfx.drawstr(self.lbl)
 end
 ------------------------
 function Button_Settings:draw()
-  if not Z_w or not Z_h then return end -- return if zoom not defined
-  self.x, self.w = (self.def_xywh[1]* (Z_w/2)) , (self.def_xywh[3]* (Z_w/2)) -- upd x,w
-  self.y, self.h = (self.def_xywh[2]* (Z_h/2)) , (self.def_xywh[4]* (Z_h/2)) -- upd y,h
-  if self.fnt_sz then --fix it!--
-     self.fnt_sz = max(16,self.def_xywh[5]* (Z_w+Z_h)/2)
-     self.fnt_sz = min(26,self.fnt_sz* Z_h)
-  end    
-    local r,g,b,a  = self.r,self.g,self.b,self.a
-    local fnt,fnt_sz = self.fnt, self.fnt_sz
-    if fnt_sz <= 12 then fnt_sz = 12 end
+if not Z_w or not Z_h then return end -- return if zoom not defined
+self.x, self.w = (self.def_xywh[1]* (Z_w/2)) , (self.def_xywh[3]* (Z_w/2)) -- upd x,w
+self.y, self.h = (self.def_xywh[2]* (Z_h/2)) , (self.def_xywh[4]* (Z_h/2)) -- upd y,h
+if self.fnt_sz then --fix it!--
+   self.fnt_sz = max(16,self.def_xywh[5]* (Z_w+Z_h)/2)
+   self.fnt_sz = min(26,self.fnt_sz* Z_h)
+end    
+  local r,g,b,a  = self.r,self.g,self.b,self.a
+  local fnt,fnt_sz = self.fnt, self.fnt_sz
+  if fnt_sz <= 12 then fnt_sz = 12 end
 
-    -- Get mouse state ---------
-          -- in element --------
-          SButton = 0
-          MenuCall = 0
-          if self:mouseIN() then 
-          a=a+0.4 
-          SButton = 1
-          end
-          -- in elm L_down -----
-          if self:mouseDown() then 
-          a=a-0.2 
-          SButton = 1
-          MenuCall = 1
-          end
-          -- in elm L_up(released and was previously pressed) --
-          if self:mouseClick() and self.onClick then self.onClick() end
+  -- Get mouse state ---------
+        -- in element --------
+        SButton = 0
+        MenuCall = 0
+        if self:mouseIN() then 
+        a=a+0.4 
+        SButton = 1
+        end
+        -- in elm L_down -----
+        if self:mouseDown() then 
+        a=a-0.2 
+        SButton = 1
+        MenuCall = 1
+        end
+        -- in elm L_up(released and was previously pressed) --
+        if self:mouseClick() and self.onClick then self.onClick() end
 
-    -- Draw btn body, frame ----
-    gfx.set(r,g,b,a)    -- set body color
-    self:draw_body()    -- body
+  -- Draw btn body, frame ----
+  gfx.set(r,g,b,a)    -- set body color
+  self:draw_body()    -- body
 --    self:draw_frame3()   -- frame
-    -- Draw label --------------
-    gfx.set(table.unpack(self.fnt_rgba))   -- set label color
-    gfx.setfont(1, fnt, fnt_sz) -- set label fnt
-    self:draw_lbl()             -- draw lbl
+  -- Draw label --------------
+  gfx.set(table.unpack(self.fnt_rgba))   -- set label color
+  gfx.setfont(1, fnt, fnt_sz) -- set label fnt
+--   self:draw_lbl()             -- draw lbl
+self:draw_symb()
 end
 
 --------------------------------------------------------------------------------
 ---   Txt Class Methods   ---------------------------------------------------
 --------------------------------------------------------------------------------
 function Txt:draw()
-    self:update_xywh() -- Update xywh(if wind changed)
-    local x,y,w,h  = self.x,self.y,self.w,self.h
-    local lbl_w, lbl_h = gfx.measurestr(self.lbl)
-    gfx.x = x+(w-lbl_w)/2; gfx.y = y+(h-lbl_h)/2
-    gfx.set(1,1,1,0.4)    -- set body color
-    gfx.drawstr(self.lbl)
+  self:update_xywh() -- Update xywh(if wind changed)
+  local x,y,w,h  = self.x,self.y,self.w,self.h
+  local lbl_w, lbl_h = gfx.measurestr(self.lbl)
+  gfx.x = x+(w-lbl_w)/2; gfx.y = y+(h-lbl_h)/2
+  gfx.set(TH[36][1],TH[36][2],TH[36][3],TH[36][4])    -- set body color
+  gfx.drawstr(self.lbl)
 end
 
 function Txt2:draw()
-    self:update_xywh() -- Update xywh(if wind changed)
-    local r,g,b,a  = self.r,self.g,self.b,self.a
-    local fnt,fnt_sz = self.fnt, self.fnt_sz*(Z_h*1.05)
-    if fnt_sz <= 12 then fnt_sz = 12 end
-    if fnt_sz >= 17 then fnt_sz = 17 end
-    fnt_sz = fnt_sz-1
+  self:update_xywh() -- Update xywh(if wind changed)
+  local r,g,b,a  = self.r,self.g,self.b,self.a
+  local fnt,fnt_sz = self.fnt, self.fnt_sz*(Z_h*1.05)
+  if fnt_sz <= 12 then fnt_sz = 12 end
+  if fnt_sz >= MaxFontSize-1 then fnt_sz = MaxFontSize-1 end
+  fnt_sz = fnt_sz-1
 
-    local x,y,w,h  = self.x,self.y,self.w,self.h
-    local lbl_w, lbl_h = gfx.measurestr(self.lbl)
-    gfx.x = x+(w-lbl_w)/2; gfx.y = y+(h-lbl_h)/2
-    gfx.set(r,g,b,a)  -- set body,frame color
-    gfx.setfont(1, fnt, fnt_sz) -- set lbl,val fnt
-    gfx.drawstr(self.lbl)
+  local x,y,w,h  = self.x,self.y,self.w,self.h
+  local lbl_w, lbl_h = gfx.measurestr(self.lbl)
+  gfx.x = x+(w-lbl_w)/2; gfx.y = y+(h-lbl_h)/2
+  gfx.set(r,g,b,a)  -- set body,frame color
+  gfx.setfont(1, fnt, fnt_sz) -- set lbl,val fnt
+  gfx.drawstr(self.lbl)
 end
 
 function Line:draw()
-   self:update_xywh() -- Update xywh(if wind changed)
-   local r,g,b,a  = self.r,self.g,self.b,self.a
-   self:draw_frame2()  -- draw frame
+ self:update_xywh() -- Update xywh(if wind changed)
+ local r,g,b,a  = self.r,self.g,self.b,self.a
+ self:draw_frame2()  -- draw frame
 end
 
 function Line_colored:draw()
-   self:update_xywh() -- Update xywh(if wind changed)
-   local r,g,b,a  = self.r,self.g,self.b,self.a
-   gfx.set(r,g,b,a)   -- set frame color -- цвет рамок
-   self:draw_frame3()  -- draw frame
+ self:update_xywh() -- Update xywh(if wind changed)
+ local r,g,b,a  = self.r,self.g,self.b,self.a
+ gfx.set(r,g,b,a)   -- set frame color -- цвет рамок
+ self:draw_frame3()  -- draw frame
 end
 
 function Line2:draw()
-   self:update_xywh() -- Update xywh(if wind changed)
-   local r,g,b,a  = self.r,self.g,self.b,self.a
-   gfx.set(r,g,b,a)   -- set frame color -- цвет рамок
-   self:draw_frame_filled()  -- draw frame
+ self:update_xywh() -- Update xywh(if wind changed)
+ local r,g,b,a  = self.r,self.g,self.b,self.a
+ gfx.set(r,g,b,a)   -- set frame color -- цвет рамок
+ self:draw_frame_filled()  -- draw frame
 end
 
 --------------------------------------------------------------------------------
@@ -1007,7 +2253,7 @@ function ErrMsg:draw()
     local x,y,w,h  = self.x,self.y,self.w,self.h
     local lbl_w, lbl_h = gfx.measurestr(self.lbl)
     gfx.x = x+(w-lbl_w)/2; gfx.y = y+(h-lbl_h)/2
-    gfx.set(0.8, 0.3, 0.3, 1)   -- set label color
+    gfx.set(TH[34][1], TH[34][2], TH[34][3], TH[34][4])   -- set label color
     gfx.drawstr(self.lbl)
 end
 
@@ -1190,7 +2436,7 @@ function HP_Slider:set_norm_val()
     if Shift then VAL = self.norm_val + ((gfx.mouse_x-last_x)/(w*K))
        else VAL = (gfx.mouse_x-x)/w end
     if VAL<0 then VAL=0 elseif VAL>1 then VAL=1 end
-    DefaultHP = tonumber(r.GetExtState('cool_MK_Shaper/Stutter.lua','DefaultHP'))or 0.3312;
+    DefaultHP = tonumber(r.GetExtState('MK_Shaper/Stutter','DefaultHP'))or 0.3312;
     if MCtrl then VAL = DefaultHP end --set default value by Ctrl+LMB
     self.norm_val=VAL
 
@@ -1204,7 +2450,7 @@ function LP_Slider:set_norm_val()
     if Shift then VAL = self.norm_val + ((gfx.mouse_x-last_x)/(w*K))
        else VAL = (gfx.mouse_x-x)/w end
     if VAL<0 then VAL=0 elseif VAL>1 then VAL=1 end
-    DefaultLP = tonumber(r.GetExtState('cool_MK_Shaper/Stutter.lua','DefaultLP'))or 1;
+    DefaultLP = tonumber(r.GetExtState('MK_Shaper/Stutter','DefaultLP'))or 1;
     if MCtrl then VAL = DefaultLP end --set default value by Ctrl+LMB
     self.norm_val=VAL
 
@@ -1227,7 +2473,7 @@ function S_Slider:set_norm_val()
     if Shift then VAL = self.norm_val + ((gfx.mouse_x-last_x)/(w*K))
        else VAL = (gfx.mouse_x-x)/w end
     if VAL<0 then VAL=0 elseif VAL>1 then VAL=1 end
-    DefaultSens = tonumber(r.GetExtState('cool_MK_Shaper/Stutter.lua','DefaultSens'))or 0.375;
+    DefaultSens = tonumber(r.GetExtState('MK_Shaper/Stutter','DefaultSens'))or 0.63;
     if MCtrl then VAL = DefaultSens end --set default value by Ctrl+LMB
     self.norm_val=VAL
 
@@ -1260,7 +2506,7 @@ function O_Slider:set_norm_val()
     if Shift then VAL = self.norm_val + ((gfx.mouse_x-last_x)/(w*K))
        else VAL = (gfx.mouse_x-x)/w end
     if VAL<0 then VAL=0 elseif VAL>1 then VAL=1 end
-    DefaultOffset = tonumber(r.GetExtState('cool_MK_Shaper/Stutter.lua','DefaultOffset'))or 0.5;
+    DefaultOffset = tonumber(r.GetExtState('MK_Shaper/Stutter','DefaultOffset'))or 0.5;
     if MCtrl then VAL = DefaultOffset end --set default value by Ctrl+LMB
     self.norm_val=VAL
 
@@ -1284,7 +2530,7 @@ function Q_Slider:set_norm_val()
     if Shift then VAL = self.norm_val + ((gfx.mouse_x-last_x)/(w*K))
        else VAL = (gfx.mouse_x-x)/w end
     if VAL<0 then VAL=0 elseif VAL>1 then VAL=1 end
-    DefaultQStrength = tonumber(r.GetExtState('cool_MK_Shaper/Stutter.lua','DefaultQStrength'))or 100;
+    DefaultQStrength = tonumber(r.GetExtState('MK_Shaper/Stutter','DefaultQStrength'))or 100;
     if MCtrl then VAL = DefaultQStrength*0.01 end --set default value by Ctrl+LMB
     self.norm_val=VAL
 
@@ -1298,7 +2544,7 @@ function Q_Slider_Red:set_norm_val()
     if Shift then VAL = self.norm_val + ((gfx.mouse_x-last_x)/(w*K))
        else VAL = (gfx.mouse_x-x)/w end
     if VAL<0 then VAL=0 elseif VAL>1 then VAL=1 end
-    DefaultQStrength = tonumber(r.GetExtState('cool_MK_Shaper/Stutter.lua','DefaultQStrength'))or 0;
+    DefaultQStrength = tonumber(r.GetExtState('MK_Shaper/Stutter','DefaultQStrength'))or 0;
     if MCtrl then VAL = 0 end --set default value by Ctrl+LMB
     self.norm_val=VAL
 
@@ -1312,7 +2558,7 @@ function Q_Slider_Green:set_norm_val()
     if Shift then VAL = self.norm_val + ((gfx.mouse_x-last_x)/(w*K))
        else VAL = (gfx.mouse_x-x)/w end
     if VAL<0 then VAL=0 elseif VAL>1 then VAL=1 end
-    DefaultQStrength = tonumber(r.GetExtState('cool_MK_Shaper/Stutter.lua','DefaultQStrength'))or 50;
+    DefaultQStrength = tonumber(r.GetExtState('MK_Shaper/Stutter','DefaultQStrength'))or 50;
     if MCtrl then VAL = 0.5 end --set default value by Ctrl+LMB
     self.norm_val=VAL
 
@@ -1326,8 +2572,8 @@ function Q_Slider_Green_Bias:set_norm_val()
     if Shift then VAL = self.norm_val + ((gfx.mouse_x-last_x)/(w*K))
        else VAL = (gfx.mouse_x-x)/w end
     if VAL<0 then VAL=0 elseif VAL>1 then VAL=1 end
-    DefaultQStrength = tonumber(r.GetExtState('cool_MK_Shaper/Stutter.lua','DefaultQStrength'))or 50;
-    if MCtrl then VAL = 0.5 end --set default value by Ctrl+LMB
+    DefaultRThrStrength = tonumber(r.GetExtState('MK_Shaper/Stutter','DefaultRThrStrength'))or 100;
+    if MCtrl then VAL = 1 end --set default value by Ctrl+LMB
     self.norm_val=VAL
 
 if RememberLast == 0 then 
@@ -1340,7 +2586,7 @@ function Q_Slider_Violet:set_norm_val()
     if Shift then VAL = self.norm_val + ((gfx.mouse_x-last_x)/(w*K))
        else VAL = (gfx.mouse_x-x)/w end
     if VAL<0 then VAL=0 elseif VAL>1 then VAL=1 end
-    DefaultQStrength = tonumber(r.GetExtState('cool_MK_Shaper/Stutter.lua','DefaultQStrength'))or 30;
+    DefaultQStrength = tonumber(r.GetExtState('MK_Shaper/Stutter','DefaultQStrength'))or 30;
     if MCtrl then VAL = 0.3 end --set default value by Ctrl+LMB
     self.norm_val=VAL
 
@@ -1354,7 +2600,7 @@ function X_Slider:set_norm_val()
     if Shift then VAL = self.norm_val + ((gfx.mouse_x-last_x)/(w*K))
        else VAL = (gfx.mouse_x-x)/w end
     if VAL<0 then VAL=0 elseif VAL>1 then VAL=1 end
-    DefaultXFadeTime = tonumber(r.GetExtState('cool_MK_Shaper/Stutter.lua','DefaultXFadeTime'))or 15;
+    DefaultXFadeTime = tonumber(r.GetExtState('MK_Shaper/Stutter','DefaultXFadeTime'))or 15;
     if MCtrl then VAL = 0.5 end --set default value by Ctrl+LMB
     self.norm_val=VAL
     
@@ -1733,6 +2979,7 @@ fnt_sz = fnt_sz-1
              mouse_ox, mouse_oy = -1, -1 -- reset after self.onUp()
           end    
     -- Draw sldr body, frame ---
+    self:draw_frame_sld() -- frame background
     gfx.set(r,g,b,a)  -- set body,frame color
     self:draw_body()  -- body
     self:draw_frame() -- frame
@@ -1799,6 +3046,7 @@ function Slider:draw()
              mouse_ox, mouse_oy = -1, -1 -- reset after self.onUp()
           end    
     -- Draw sldr body, frame ---
+    self:draw_frame_sld() -- frame background
     gfx.set(r,g,b,a)  -- set body,frame color
     self:draw_body()  -- body
     self:draw_frame() -- frame
@@ -1810,7 +3058,7 @@ function Slider:draw()
 end
 ---------------------------------------------------------------------------------------
 
-function Slider_simple:draw() -- slider without waveform and markers redraw
+function Slider_simple:draw() -- RED slider without waveform and markers redraw
     self:update_xywh() -- Update xywh(if wind changed)
     local r,g,b,a  = self.r,self.g,self.b,self.a
     local fnt,fnt_sz = self.fnt, self.fnt_sz*(Z_h*1.05)
@@ -1838,9 +3086,10 @@ function Slider_simple:draw() -- slider without waveform and markers redraw
              mouse_ox, mouse_oy = -1, -1 -- reset after self.onUp()
           end    
     -- Draw sldr body, frame ---
+    self:draw_frame_sld_r() -- frame background
     gfx.set(r,g,b,a)  -- set body,frame color
     self:draw_body()  -- body
-    self:draw_frame() -- frame
+    self:draw_frame_r() -- frame
     -- Draw label,value --------
     gfx.set(table.unpack(self.fnt_rgba))   -- set lbl,val color
     gfx.setfont(1, fnt, fnt_sz) -- set lbl,val fnt
@@ -1877,6 +3126,7 @@ function Slider_simple_r:draw() -- slider without waveform and markers redraw
              mouse_ox, mouse_oy = -1, -1 -- reset after self.onUp()
           end    
     -- Draw sldr body, frame ---
+    self:draw_frame_sld_r() -- frame background
     gfx.set(r,g,b,a)  -- set body,frame color
     self:draw_body()  -- body
     self:draw_frame_r() -- frame
@@ -1915,6 +3165,7 @@ function Slider_simple_g:draw() -- slider without waveform and markers redraw
              mouse_ox, mouse_oy = -1, -1 -- reset after self.onUp()
           end    
     -- Draw sldr body, frame ---
+    self:draw_frame_sld_g() -- frame background
     gfx.set(r,g,b,a)  -- set body,frame color
     self:draw_body()  -- body
     self:draw_frame_g() -- frame
@@ -1953,6 +3204,7 @@ function Slider_simple_g_bias:draw() -- slider without waveform and markers redr
              mouse_ox, mouse_oy = -1, -1 -- reset after self.onUp()
           end    
     -- Draw sldr body, frame ---
+    self:draw_frame_sld_g() -- frame background
     gfx.set(r,g,b,a)  -- set body,frame color
     self:draw_body()  -- body
     self:draw_frame_g() -- frame
@@ -1991,6 +3243,7 @@ function Slider_simple_v:draw() -- slider without waveform and markers redraw
              mouse_ox, mouse_oy = -1, -1 -- reset after self.onUp()
           end    
     -- Draw sldr body, frame ---
+    self:draw_frame_sld_v() -- frame background
     gfx.set(r,g,b,a)  -- set body,frame color
     self:draw_body()  -- body
     self:draw_frame_v() -- frame
@@ -2056,6 +3309,7 @@ function Slider_Fine:draw() -- Offset slider with fine tuning and additional lin
              mouse_ox, mouse_oy = -1, -1 -- reset after self.onUp()
           end    
     -- Draw sldr body, frame ---
+    self:draw_frame_sld() -- frame background
     gfx.set(r,g,b,a)  -- set body,frame color
     self:draw_body()  -- body
     self:draw_frame() -- frame
@@ -2101,9 +3355,10 @@ function Slider_Swing:draw() -- Offset slider with fine tuning and additional li
              mouse_ox, mouse_oy = -1, -1 -- reset after self.onUp()
           end    
     -- Draw sldr body, frame ---
+    self:draw_frame_sld() -- frame background
     gfx.set(r,g,b,a)  -- set body,frame color
     self:draw_body()  -- body
-    self:draw_frame() -- frame
+    self:draw_frame_sw() -- frame
     -- Draw label,value --------
     gfx.set(table.unpack(self.fnt_rgba))   -- set lbl,val color
     gfx.setfont(1, fnt, fnt_sz) -- set lbl,val fnt
@@ -2166,6 +3421,7 @@ function Slider_complex:draw() -- slider with full waveform and markers redraw
              mouse_ox, mouse_oy = -1, -1 -- reset after self.onUp()
           end    
     -- Draw sldr body, frame ---
+    self:draw_frame_sld() -- frame background
     gfx.set(r,g,b,a)  -- set body,frame color
     self:draw_body()  -- body
     self:draw_frame() -- frame
@@ -2230,6 +3486,7 @@ function Slider_fgain:draw() -- filter slider without waveform processing
              mouse_ox, mouse_oy = -1, -1 -- reset after self.onUp()
           end    
     -- Draw sldr body, frame ---
+    self:draw_frame_sld() -- frame background
     gfx.set(r,g,b,a)  -- set body,frame color
     self:draw_body()  -- body
     self:draw_frame() -- frame
@@ -2241,200 +3498,199 @@ function Slider_fgain:draw() -- filter slider without waveform processing
 end
 
 --------------------------------------------------------------------------------
----   Rng_Slider Class Methods   -----------------------------------------------
+---   Rng_Slider Class Methods   ---------------------------------------------
 --------------------------------------------------------------------------------
 function Rng_Slider:set_norm_val_m_wheel()
-    if Shift == true then
-    Mult_S = 0.005 -- Set step
-    else
-    Mult_S = 0.05 -- Set step
-    end
-    local Step = Mult_S
-    if gfx.mouse_wheel == 0 then return false end  -- return if m_wheel = 0
-    if gfx.mouse_wheel > 0 then self.norm_val = min(self.norm_val+Step, 1);    Gate_on2 = 1 end
-    if gfx.mouse_wheel < 0 then self.norm_val = max(self.norm_val-Step, 0);    Gate_on2 = 1 end
-    if self.norm_val >= self.norm_val2 then self.norm_val = self.norm_val2 end
-    return true
+  if Shift == true then
+  Mult_S = 0.005 -- Set step
+  else
+  Mult_S = 0.05 -- Set step
+  end
+  local Step = Mult_S
+  if gfx.mouse_wheel == 0 then return false end  -- return if m_wheel = 0
+  if gfx.mouse_wheel > 0 then self.norm_val = min(self.norm_val+Step, 1) end
+  if gfx.mouse_wheel < 0 then self.norm_val = max(self.norm_val-Step, 0) end
+  if self.norm_val >= self.norm_val2 then self.norm_val = self.norm_val2 end
+  return true
 end
 
 function Rng_Slider:pointIN_Ls(p_x, p_y)
-  local x, w, sb_w = self.rng_x, self.rng_w, self.sb_w
-  local val = w * self.norm_val
-  x = (x+val-sb_w)+4 -- left sbtn x; x-10 extend mouse zone to the left(more comfortable) 
-  return p_x >= x-5 and p_x <= x + sb_w and p_y >= self.y and p_y <= self.y + self.h
+local x, w, sb_w = self.rng_x, self.rng_w, self.sb_w
+local val = w * self.norm_val
+x = (x+val-sb_w)+4 -- left sbtn x; x-10 extend mouse zone to the left(more comfortable) 
+return p_x >= x-5 and p_x <= x + sb_w and p_y >= self.y and p_y <= self.y + self.h
 end
 --------
 function Rng_Slider:pointIN_Rs(p_x, p_y)
-  local x, w, sb_w = self.rng_x, self.rng_w, self.sb_w
-  local val = w * self.norm_val2
-  x = (x+val)-4 -- right sbtn x; x+10 extend mouse zone to the right(more comfortable)
-  return p_x >= x and p_x <= x+5 + sb_w and p_y >= self.y and p_y <= self.y + self.h
+local x, w, sb_w = self.rng_x, self.rng_w, self.sb_w
+local val = w * self.norm_val2
+x = (x+val)-4 -- right sbtn x; x+10 extend mouse zone to the right(more comfortable)
+return p_x >= x and p_x <= x+5 + sb_w and p_y >= self.y and p_y <= self.y + self.h
 end
 --------
 function Rng_Slider:pointIN_rng(p_x, p_y)
-  local x  = self.rng_x + self.rng_w * self.norm_val  -- start rng
-  local x2 = self.rng_x + self.rng_w * self.norm_val2 -- end rng
-  return p_x >= x+5 and p_x <= x2-5 and p_y >= self.y and p_y <= self.y + self.h
+local x  = self.rng_x + self.rng_w * self.norm_val  -- start rng
+local x2 = self.rng_x + self.rng_w * self.norm_val2 -- end rng
+return p_x >= x+5 and p_x <= x2-5 and p_y >= self.y and p_y <= self.y + self.h
 end
 ------------------------
 function Rng_Slider:mouseIN_Ls()
-  return gfx.mouse_cap&1==0 and self:pointIN_Ls(gfx.mouse_x,gfx.mouse_y)
+return gfx.mouse_cap&1==0 and self:pointIN_Ls(gfx.mouse_x,gfx.mouse_y)
 end
 --------
 function Rng_Slider:mouseIN_Rs()
-  return gfx.mouse_cap&1==0 and self:pointIN_Rs(gfx.mouse_x,gfx.mouse_y)
+return gfx.mouse_cap&1==0 and self:pointIN_Rs(gfx.mouse_x,gfx.mouse_y)
 end
 --------
 function Rng_Slider:mouseIN_rng()
-  return gfx.mouse_cap&1==0 and self:pointIN_rng(gfx.mouse_x,gfx.mouse_y)
+return gfx.mouse_cap&1==0 and self:pointIN_rng(gfx.mouse_x,gfx.mouse_y)
 end
 ------------------------
 function Rng_Slider:mouseDown_Ls()
-  return gfx.mouse_cap&1==1 and last_mouse_cap&1==0 and self:pointIN_Ls(mouse_ox,mouse_oy)
+return gfx.mouse_cap&1==1 and last_mouse_cap&1==0 and self:pointIN_Ls(mouse_ox,mouse_oy)
 end
 --------
 function Rng_Slider:mouseDown_Rs()
-  return gfx.mouse_cap&1==1 and last_mouse_cap&1==0 and self:pointIN_Rs(mouse_ox,mouse_oy)
+return gfx.mouse_cap&1==1 and last_mouse_cap&1==0 and self:pointIN_Rs(mouse_ox,mouse_oy)
 end
 --------
 function Rng_Slider:mouseDown_rng()
-  return gfx.mouse_cap&1==1 and last_mouse_cap&1==0 and self:pointIN_rng(mouse_ox,mouse_oy)
+return gfx.mouse_cap&1==1 and last_mouse_cap&1==0 and self:pointIN_rng(mouse_ox,mouse_oy)
 end
 --------------------------------
 function Rng_Slider:set_norm_val()
-    local x, w = self.rng_x, self.rng_w
-    local VAL,K = 0,10 -- VAL=temp value;K=coefficient(when Ctrl pressed)
-    if Shift then VAL = self.norm_val + ((gfx.mouse_x-last_x)/(w*K))
-       else VAL = (gfx.mouse_x-x)/w end
-    -- valid val --
-    if VAL<0 then VAL=0 elseif VAL>self.norm_val2 then VAL=self.norm_val2 end
-    if MCtrl then VAL = 0.231 end --set default value by Ctrl+LMB
-    self.norm_val=VAL
+  local x, w = self.rng_x, self.rng_w
+  local VAL,K = 0,10 -- VAL=temp value;K=coefficient(when Ctrl pressed)
+  if Shift then VAL = self.norm_val + ((gfx.mouse_x-last_x)/(w*K))
+     else VAL = (gfx.mouse_x-x)/w end
+  -- valid val --
+  if VAL<0 then VAL=0 elseif VAL>self.norm_val2 then VAL=self.norm_val2 end
+  if MCtrl then VAL = 0.231 end --set default value by Ctrl+LMB
+  self.norm_val=VAL
 end
 --------
 function Rng_Slider:set_norm_val2()
-    local x, w = self.rng_x, self.rng_w
-    local VAL,K = 0,10 -- VAL=temp value;K=coefficient(when Ctrl pressed)
-    if Shift then VAL = self.norm_val2 + ((gfx.mouse_x-last_x)/(w*K))
-       else VAL = (gfx.mouse_x-x)/w end
-    -- valid val2 --
-    if VAL<self.norm_val then VAL=self.norm_val elseif VAL>1 then VAL=1 end
-    if MCtrl then VAL = 1 end --set default value by Ctrl+LMB
-    self.norm_val2=VAL
+  local x, w = self.rng_x, self.rng_w
+  local VAL,K = 0,10 -- VAL=temp value;K=coefficient(when Ctrl pressed)
+  if Shift then VAL = self.norm_val2 + ((gfx.mouse_x-last_x)/(w*K))
+     else VAL = (gfx.mouse_x-x)/w end
+  -- valid val2 --
+  if VAL<self.norm_val then VAL=self.norm_val elseif VAL>1 then VAL=1 end
+  if MCtrl then VAL = 1 end --set default value by Ctrl+LMB
+  self.norm_val2=VAL
 end
 --------
 function Rng_Slider:set_norm_val_both()
-    local x, w = self.x, self.w
-    local diff = self.norm_val2 - self.norm_val -- values difference
-    local K = 1           -- K = coefficient
-    if Shift then K=10 end -- when Ctrl pressed
-    local VAL  = self.norm_val  + (gfx.mouse_x-last_x)/(w*K)
-    -- valid values --
-    if VAL<0 then VAL = 0 elseif VAL>1-diff then VAL = 1-diff end
-    self.norm_val  = VAL
-    self.norm_val2 = VAL + diff
+  local x, w = self.x, self.w
+  local diff = self.norm_val2 - self.norm_val -- values difference
+  local K = 1           -- K = coefficient
+  if Shift then K=10 end -- when Ctrl pressed
+  local VAL  = self.norm_val  + (gfx.mouse_x-last_x)/(w*K)
+  -- valid values --
+  if VAL<0 then VAL = 0 elseif VAL>1-diff then VAL = 1-diff end
+  self.norm_val  = VAL
+  self.norm_val2 = VAL + diff
 end
 --------------------------------
 function Rng_Slider:draw_body()
-    local x,y,w,h  = self.rng_x+1,self.y+1,self.rng_w-2,self.h-2
-    local sb_w = self.sb_w 
-    local val  = w * self.norm_val
-    local val2 = w * self.norm_val2
-    gfx.rect(x+val-sb_w, y, val2-val+sb_w*2, h, true) -- draw body
+  local x,y,w,h  = self.rng_x+1,self.y+1,self.rng_w-2,self.h-2
+  local sb_w = self.sb_w 
+  local val  = w * self.norm_val
+  local val2 = w * self.norm_val2
+  gfx.rect(x+val-sb_w, y, val2-val+sb_w*2, h, true) -- draw body
 end
 --------
 function Rng_Slider:draw_sbtns()
-    local r,g,b,a  = self.r,self.g,self.b,self.a
-    local x,y,w,h  = self.rng_x+1,self.y+1,self.rng_w-1,self.h-2
-    local sb_w = self.sb_w
-    local val  = w * self.norm_val
-    local val2 = w * self.norm_val2-1
-    gfx.set(1,1,1,0.15)  -- sbtns body color
-    gfx.rect(x+val-sb_w, y, sb_w+1, h, true)   -- sbtn1 body
-    gfx.rect(x+val2-1,     y, sb_w+1, h, true) -- sbtn2 body
-    
+  local r,g,b,a  = self.r,self.g,self.b,self.a
+  local x,y,w,h  = self.rng_x+1,self.y+1,self.rng_w-1,self.h-2
+  local sb_w = self.sb_w
+  local val  = w * self.norm_val
+  local val2 = w * self.norm_val2-1
+  gfx.set(TH[30][1]/1.2,TH[30][2]/1.2,TH[30][3]/1.2,TH[30][4])  -- sbtns body color
+  gfx.rect(x+val-sb_w, y, sb_w+1, h, true)   -- sbtn1 body
+  gfx.rect(x+val2-1,     y, sb_w+1, h, true) -- sbtn2 body
+  
 end
 --------------------------------
 function Rng_Slider:draw_val() -- variant 2
-    local x,y,w,h  = self.x,self.y,self.w,self.h
-    local val  = string.format("%.2f", self.norm_val)
-    local val2 = string.format("%.2f", self.norm_val2)
-    local val_w,  val_h  = gfx.measurestr(val)
-    local val2_w, val2_h = gfx.measurestr(val2)
-      local T = 0 -- set T = 0 or T = h (var1, var2 text position) 
-      gfx.x = x+5
-      gfx.y = y+(h-val_h)/2 + T
-      gfx.drawstr(val)  -- draw value 1
-      gfx.x = x+w-val2_w-5
-      gfx.y = y+(h-val2_h)/2 + T
-      gfx.drawstr(val2) -- draw value 2
+  local x,y,w,h  = self.x,self.y,self.w,self.h
+  local val  = string.format("%.2f", self.norm_val)
+  local val2 = string.format("%.2f", self.norm_val2)
+  local val_w,  val_h  = gfx.measurestr(val)
+  local val2_w, val2_h = gfx.measurestr(val2)
+    local T = 0 -- set T = 0 or T = h (var1, var2 text position) 
+    gfx.x = x+5
+    gfx.y = y+(h-val_h)/2 + T
+    gfx.drawstr(val)  -- draw value 1
+    gfx.x = x+w-val2_w-5
+    gfx.y = y+(h-val2_h)/2 + T
+    gfx.drawstr(val2) -- draw value 2
 end
 --------
 function Rng_Slider:draw_lbl()
-    local x,y,w,h  = self.x,self.y,self.w,self.h
-    local lbl_w, lbl_h = gfx.measurestr(self.lbl)
-      local T = 0 -- set T = 0 or T = h (var1, var2 text position)
-      gfx.x = x+(w-lbl_w)/2
-      gfx.y = y+(h-lbl_h)/2 + T
-      gfx.drawstr(self.lbl)
+  local x,y,w,h  = self.x,self.y,self.w,self.h
+  local lbl_w, lbl_h = gfx.measurestr(self.lbl)
+    local T = 0 -- set T = 0 or T = h (var1, var2 text position)
+    gfx.x = x+(w-lbl_w)/2
+    gfx.y = y+(h-lbl_h)/2 + T
+    gfx.drawstr(self.lbl)
 end
 --------------------------------
 function Rng_Slider:draw()
-    self:update_xywh() -- Update xywh(if wind changed)
-    local x,y,w,h  = self.x,self.y,self.w,self.h
-    local r,g,b,a  = self.r,self.g,self.b,self.a
-    local fnt,fnt_sz = self.fnt, self.fnt_sz*(Z_h*1.05)
-    if fnt_sz <= 12 then fnt_sz = 12 end
-    if fnt_sz >= MaxFontSize then fnt_sz = MaxFontSize end
-    -- set additional coordinates --
- --   self.sb_w  = h-5
- --   self.sb_w  = floor(self.w/17) -- sidebuttons width(change it if need)
-    self.sb_w  = floor(self.w/10) -- sidebuttons width(change it if need)
-    self.rng_x = self.x + self.sb_w    -- range streak min x
-    self.rng_w = self.w - self.sb_w*2  -- range streak max w
-    -- Get mouse state -------------
-          -- Reset Ls,Rs states --
-          if gfx.mouse_cap&1==0 then self.Ls_state, self.Rs_state, self.rng_state = false,false,false end
-          -- in element --
-          if self:mouseIN_Ls() then g=g+0.15; b=b-0.1 end
-          if  self:mouseIN_Rs() then r=r+0.3 end
-          if  self:mouseIN_rng() then a=a+0.2 end
-          if  self:mouseIN() then 
-             if self:set_norm_val_m_wheel() then 
-                 if gfx.mouse_wheel == 0 then 
-                    if self.onMove then self.onMove() end 
-                 end 
-             end  
-          end
-          -- in elm L_down --
-          if self:mouseDown_Ls()  then self.Ls_state = true end
-          if self:mouseDown_Rs()  then self.Rs_state = true end
-          if self:mouseDown_rng() then self.rng_state = true end
+  self:update_xywh() -- Update xywh(if wind changed)
+  local x,y,w,h  = self.x,self.y,self.w,self.h
+  local r,g,b,a  = self.r,self.g,self.b,self.a
+  local fnt,fnt_sz = self.fnt, self.fnt_sz*(Z_h*1.05)
+  if fnt_sz <= 12 then fnt_sz = 12 end
+  if fnt_sz >= MaxFontSize then fnt_sz = MaxFontSize end
+  -- set additional coordinates --
+  self.sb_w  = self.w//10 -- sidebuttons width(change it if need)
+  self.rng_x = self.x + self.sb_w    -- range streak min x
+  self.rng_w = self.w - self.sb_w*2  -- range streak max w
+  -- Get mouse state -------------
+        -- Reset Ls,Rs states --
+        if gfx.mouse_cap&1==0 then self.Ls_state, self.Rs_state, self.rng_state = false,false,false end
+        -- in element --
+        if self:mouseIN_Ls() then g=g+0.15; b=b-0.1 end
+        if  self:mouseIN_Rs() then r=r+0.3 end
+        if  self:mouseIN_rng() then a=a+0.2 end
+        if  self:mouseIN() then 
+           if self:set_norm_val_m_wheel() then 
+               if gfx.mouse_wheel == 0 then 
+                  if self.onMove then self.onMove() end 
+               end 
+           end  
+        end
+        -- in elm L_down --
+        if self:mouseDown_Ls()  then self.Ls_state = true end
+        if self:mouseDown_Rs()  then self.Rs_state = true end
+        if self:mouseDown_rng() then self.rng_state = true end
 
-          if MCtrl and self:mouseDown()  then       -- Ctrl+Click on empty rng area set defaults
-          self.norm_val = 0.234   
-          self.norm_val2 = 1   
-          end
-          --------------
-          if self.Ls_state  == true then g=g+0.2; b=b-0.1; self:set_norm_val()      end
-          if self.Rs_state  == true then r=r+0.35; self:set_norm_val2()     end
-          if self.rng_state == true then a=a+0.3; self:set_norm_val_both() end
-          if (self.Ls_state or self.Rs_state or self.rng_state) and self.onMove then self.onMove() end
-          -- in elm L_up(released and was previously pressed) --
-           if self:mouseClick() and self.onClick then self.onClick() end
-          if self:mouseUp() and self.onUp then self.onUp()
-             mouse_ox, mouse_oy = -1, -1 -- reset after self.onUp()
-          end
-    -- Draw sldr body, frame, sidebuttons --
-    gfx.set(r,g,b,a)  -- set color
-    self:draw_body()  -- body
-    self:draw_frame_rng() -- frame
-    self:draw_sbtns() -- draw L,R sidebuttons
-    -- Draw label,values --
-    gfx.set(table.unpack(self.fnt_rgba)) -- set label color
-    gfx.setfont(1, fnt, fnt_sz)          -- set lbl,val fnt
-    self:draw_lbl() -- draw lbl
-    self:draw_val() -- draw value
+        if MCtrl and self:mouseDown()  then       -- Ctrl+Click on empty rng area set defaults
+        self.norm_val = 0.234   
+        self.norm_val2 = 1   
+        end
+        --------------
+        if self.Ls_state  == true then g=g+0.2; b=b-0.1; self:set_norm_val()      end
+        if self.Rs_state  == true then r=r+0.35; self:set_norm_val2()     end
+        if self.rng_state == true then a=a+0.3; self:set_norm_val_both() end
+        if (self.Ls_state or self.Rs_state or self.rng_state) and self.onMove then self.onMove() end
+        -- in elm L_up(released and was previously pressed) --
+         if self:mouseClick() and self.onClick then self.onClick() end
+        if self:mouseUp() and self.onUp then self.onUp()
+           mouse_ox, mouse_oy = -1, -1 -- reset after self.onUp()
+        end
+  -- Draw sldr body, frame, sidebuttons --
+  self:draw_frame_sld() -- frame background
+  gfx.set(r,g,b,a)  -- set color
+  self:draw_body()  -- body
+  self:draw_frame_rng() -- frame
+  self:draw_sbtns() -- draw L,R sidebuttons
+  -- Draw label,values --
+  gfx.set(table.unpack(self.fnt_rgba)) -- set label color
+  gfx.setfont(1, fnt, fnt_sz)          -- set lbl,val fnt
+  self:draw_lbl() -- draw lbl
+  self:draw_val() -- draw value
 end
 
 --------------------------------------------------------------------------------
@@ -2501,144 +3757,144 @@ function Loop_Slider:mouseDown_rng()
 end
 --------------------------------
 function Loop_Slider:set_norm_val()
-    local x, w = self.rng_x, self.rng_w
-    local VAL,K = 0,10 -- VAL=temp value;K=coefficient(when Ctrl pressed)
-    if Shift then VAL = self.norm_val + ((gfx.mouse_x-last_x)/(w*K))
-       else VAL = (gfx.mouse_x-x)/w end
-    -- valid val --
-    if VAL<=0 then VAL=0 elseif VAL>=self.norm_val2-0.05 then VAL=self.norm_val2-0.05 end
-    if MCtrl then VAL = 0 end --set default value by Ctrl+LMB
-    self.norm_val=VAL
+  local x, w = self.rng_x, self.rng_w
+  local VAL,K = 0,10 -- VAL=temp value;K=coefficient(when Ctrl pressed)
+  if Shift then VAL = self.norm_val + ((gfx.mouse_x-last_x)/(w*K))
+     else VAL = (gfx.mouse_x-x)/w end
+  -- valid val --
+  if VAL<=0 then VAL=0 elseif VAL>=self.norm_val2-0.05 then VAL=self.norm_val2-0.05 end
+  if MCtrl then VAL = 0 end --set default value by Ctrl+LMB
+  self.norm_val=VAL
 end
 
 --------
 function Loop_Slider:set_norm_val2()
-    local x, w = self.rng_x, self.rng_w
-    local VAL,K = 0,10 -- VAL=temp value;K=coefficient(when Ctrl pressed)
-    if Shift then VAL = self.norm_val2 + ((gfx.mouse_x-last_x)/(w*K))
-       else VAL = (gfx.mouse_x-x)/w end
-    -- valid val2 --
-    if VAL<=self.norm_val+0.05 then VAL=self.norm_val+0.05 elseif VAL>=1 then VAL=1 end
-    if MCtrl then VAL = 1 end --set default value by Ctrl+LMB
-    self.norm_val2=VAL
+  local x, w = self.rng_x, self.rng_w
+  local VAL,K = 0,10 -- VAL=temp value;K=coefficient(when Ctrl pressed)
+  if Shift then VAL = self.norm_val2 + ((gfx.mouse_x-last_x)/(w*K))
+     else VAL = (gfx.mouse_x-x)/w end
+  -- valid val2 --
+  if VAL<=self.norm_val+0.05 then VAL=self.norm_val+0.05 elseif VAL>=1 then VAL=1 end
+  if MCtrl then VAL = 1 end --set default value by Ctrl+LMB
+  self.norm_val2=VAL
 end
 --------
 function Loop_Slider:set_norm_val_both()
-    local x, w = self.x, self.w
-    local diff = self.norm_val2 - self.norm_val -- values difference
-    local K = 1           -- K = coefficient
-    if Shift then K=10 end -- when Ctrl pressed
-    local VAL  = self.norm_val  + (gfx.mouse_x-last_x)/(w*K)
-    -- valid values --
-    if VAL<=0 then VAL = 0 elseif VAL>=1-diff then VAL = 1-diff end
+  local x, w = self.x, self.w
+  local diff = self.norm_val2 - self.norm_val -- values difference
+  local K = 1           -- K = coefficient
+  if Shift then K=10 end -- when Ctrl pressed
+  local VAL  = self.norm_val  + (gfx.mouse_x-last_x)/(w*K)
+  -- valid values --
+  if VAL<=0 then VAL = 0 elseif VAL>=1-diff then VAL = 1-diff end
 
-    self.norm_val  = VAL
-    self.norm_val2 = VAL + diff
+  self.norm_val  = VAL
+  self.norm_val2 = VAL + diff
 end
 --------------------------------
 function Loop_Slider:draw_body()
-    local x,y,w,h  = self.rng_x,self.y,self.rng_w,self.h*24
-    local sb_w = self.sb_w
-    local val  = w * self.norm_val
-    local val2 = w * self.norm_val2
-    gfx.rect(x+val-sb_w, y, val2-val+sb_w*2, h, true) -- draw body
+  local x,y,w,h  = self.rng_x,self.y,self.rng_w,self.h*24
+  local sb_w = self.sb_w
+  local val  = w * self.norm_val
+  local val2 = w * self.norm_val2
+  gfx.rect(x+val-sb_w, y, val2-val+sb_w*2, h, true) -- draw body
 end
 --------
 function Loop_Slider:draw_sbtns()
-    local r,g,b,a  = self.r,self.g,self.b,self.a
-    local x,y,w,h  = self.rng_x,self.y,self.rng_w,self.h
-    local sb_w = self.sb_w
-    local val  = w * self.norm_val
-    local val2 = w * self.norm_val2+1
-    gfx.set(0,0.7,0,1)  -- sbtns body color
-    gfx.triangle(x+val-sb_w, y, x+val-sb_w, y*1.5, x+val-sb_w+15, y)
-    gfx.triangle(x+val2+sb_w-1, y, x+val2+sb_w-1, y*1.5, x+val2+sb_w-1-15, y)  
+  local r,g,b,a  = self.r,self.g,self.b,self.a
+  local x,y,w,h  = self.rng_x,self.y,self.rng_w,self.h
+  local sb_w = self.sb_w
+  local val  = w * self.norm_val
+  local val2 = w * self.norm_val2+1
+  gfx.set(TH[39][1],TH[39][2],TH[39][3],TH[39][4])  -- sbtns body color
+  gfx.triangle(x+val-sb_w, y, x+val-sb_w, y*1.5, x+val-sb_w+15, y)
+  gfx.triangle(x+val2+sb_w-1, y, x+val2+sb_w-1, y*1.5, x+val2+sb_w-1-15, y)  
 end
 --------------------------------
 function Loop_Slider:draw_val() -- variant 2
-    local x,y,w,h  = self.x,self.y,self.w,self.h
-    local val  = string.format("%.2f", self.norm_val)
-    local val2 = string.format("%.2f", self.norm_val2)
-    local val_w,  val_h  = gfx.measurestr(val)
-    local val2_w, val2_h = gfx.measurestr(val2)
-      gfx.x = x+5
-      gfx.y = y+(h-val_h)/2
-      gfx.drawstr(val)  -- draw value 1
-      gfx.x = x+w-val2_w-5
-      gfx.y = y+(h-val2_h)/2
-      gfx.drawstr(val2) -- draw value 2
+  local x,y,w,h  = self.x,self.y,self.w,self.h
+  local val  = string.format("%.2f", self.norm_val)
+  local val2 = string.format("%.2f", self.norm_val2)
+  local val_w,  val_h  = gfx.measurestr(val)
+  local val2_w, val2_h = gfx.measurestr(val2)
+    gfx.x = x+5
+    gfx.y = y+(h-val_h)/2
+    gfx.drawstr(val)  -- draw value 1
+    gfx.x = x+w-val2_w-5
+    gfx.y = y+(h-val2_h)/2
+    gfx.drawstr(val2) -- draw value 2
 end
 --------
 function Loop_Slider:draw_lbl()
-    local x,y,w,h  = self.x,self.y,self.w,self.h
-    local lbl_w, lbl_h = gfx.measurestr(self.lbl)
-      gfx.x = x+(w-lbl_w)/2
-      gfx.y = (y+(h-lbl_h)/2)*1.25
-      gfx.drawstr(self.lbl)
+  local x,y,w,h  = self.x,self.y,self.w,self.h
+  local lbl_w, lbl_h = gfx.measurestr(self.lbl)
+    gfx.x = x+(w-lbl_w)/2
+    gfx.y = (y+(h-lbl_h)/2)*1.25
+    gfx.drawstr(self.lbl)
 end
 --------------------------------
 function Loop_Slider:draw()
-  if not Z_w or not Z_h then return end -- return if zoom not defined
-  self.x, self.w = (self.def_xywh[1]* Z_w) , (self.def_xywh[3]* Z_w) -- upd x,w
-  self.y, self.h = (self.def_xywh[2]* Z_h) , (self.def_xywh[4]* (Z_h/32)) -- upd y,h
-    local x,y,w,h  = self.x,self.y,self.w,self.h
-    local r,g,b,a  = self.r,self.g,self.b,self.a
-    local fnt,fnt_sz = self.fnt, self.fnt_sz*(Z_h*1.05)
-    if fnt_sz <= 10 then fnt_sz = 10 end
-    if fnt_sz >= 17 then fnt_sz = 17 end
-    -- set additional coordinates --
-    self.sb_w  = h
+if not Z_w or not Z_h then return end -- return if zoom not defined
+self.x, self.w = (self.def_xywh[1]* Z_w) , (self.def_xywh[3]* Z_w) -- upd x,w
+self.y, self.h = (self.def_xywh[2]* Z_h) , (self.def_xywh[4]* (Z_h/32)) -- upd y,h
+  local x,y,w,h  = self.x,self.y,self.w,self.h
+  local r,g,b,a  = self.r,self.g,self.b,self.a
+  local fnt,fnt_sz = self.fnt, self.fnt_sz*(Z_h*1.05)
+  if fnt_sz <= 10 then fnt_sz = 10 end
+  if fnt_sz >= MaxFontSize-1 then fnt_sz = MaxFontSize-1 end
+  -- set additional coordinates --
+  self.sb_w  = h
 --    self.sb_w  = floor(self.w/120) -- sidebuttons width(change it if need)
-    self.rng_x = self.x + self.sb_w    -- range streak min x
-    self.rng_w = self.w - self.sb_w*2  -- range streak max w
-    -- Get mouse state -------------
-          -- Reset Ls,Rs states --
-          if gfx.mouse_cap&1==0 then self.Ls_state, self.Rs_state, self.rng_state = false,false,false end
-          -- in element --
-          if self:mouseIN_Ls() then g=g+0.15; b=b-0.1 end
-          if  self:mouseIN_Rs() then r=r+0.3 end
-          if  self:mouseIN_rng() then a=a+0.2 end
-    self.h = (self.def_xywh[4]* (Z_h/1.2)) -- upd y,h -- mw caption area height correction
-    local h  = self.h
-          if  self:mouseIN() then 
-             if self:set_norm_val_m_wheel() then 
-                 if gfx.mouse_wheel == 0 then 
-                    if self.onMove then self.onMove() end 
-                 end 
-             end  
-          end
-          if MCtrl and self:mouseDown()  then       -- Ctrl+Click on empty loop area set defaults
-          self.norm_val = 0   
-          self.norm_val2 = 1   
-          end
-    self.h = (self.def_xywh[4]* (Z_h/32)) -- upd y,h -- revert height
-    local h  = self.h
-          -- in elm L_down --
-          if self:mouseDown_Ls()  then self.Ls_state = true end
-          if self:mouseDown_Rs()  then self.Rs_state = true end
-          if self:mouseDown_rng() then self.rng_state = true end
-          --------------
-          if self.Ls_state  == true then g=g+0.2; b=b-0.1; self:set_norm_val()      end
-          if self.Rs_state  == true then r=r+0.35; self:set_norm_val2()     end
-          if self.rng_state == true then a=a+0.3; self:set_norm_val_both() end
-          if (self.Ls_state or self.Rs_state or self.rng_state) and self.onMove then self.onMove() end
-          -- in elm L_up(released and was previously pressed) --
-           if self:mouseClick() and self.onClick then self.onClick() end
-          if self:mouseUp() and self.onUp then self.onUp()
-             mouse_ox, mouse_oy = -1, -1 -- reset after self.onUp()
-          end
+  self.rng_x = self.x + self.sb_w    -- range streak min x
+  self.rng_w = self.w - self.sb_w*2  -- range streak max w
+  -- Get mouse state -------------
+        -- Reset Ls,Rs states --
+        if gfx.mouse_cap&1==0 then self.Ls_state, self.Rs_state, self.rng_state = false,false,false end
+        -- in element --
+        if self:mouseIN_Ls() then g=g+0.15; b=b-0.1 end
+        if  self:mouseIN_Rs() then r=r+0.3 end
+        if  self:mouseIN_rng() then a=a+0.2 end
+  self.h = (self.def_xywh[4]* (Z_h/1.2)) -- upd y,h -- mw caption area height correction
+  local h  = self.h
+        if  self:mouseIN() then 
+           if self:set_norm_val_m_wheel() then 
+               if gfx.mouse_wheel == 0 then 
+                  if self.onMove then self.onMove() end 
+               end 
+           end  
+        end
+        if MCtrl and self:mouseDown()  then       -- Ctrl+Click on empty loop area set defaults
+        self.norm_val = 0   
+        self.norm_val2 = 1   
+        end
+  self.h = (self.def_xywh[4]* (Z_h/32)) -- upd y,h -- revert height
+  local h  = self.h
+        -- in elm L_down --
+        if self:mouseDown_Ls()  then self.Ls_state = true end
+        if self:mouseDown_Rs()  then self.Rs_state = true end
+        if self:mouseDown_rng() then self.rng_state = true end
+        --------------
+        if self.Ls_state  == true then g=g+0.2; b=b-0.1; self:set_norm_val()      end
+        if self.Rs_state  == true then r=r+0.35; self:set_norm_val2()     end
+        if self.rng_state == true then a=a+0.3; self:set_norm_val_both() end
+        if (self.Ls_state or self.Rs_state or self.rng_state) and self.onMove then self.onMove() end
+        -- in elm L_up(released and was previously pressed) --
+         if self:mouseClick() and self.onClick then self.onClick() end
+        if self:mouseUp() and self.onUp then self.onUp()
+           mouse_ox, mouse_oy = -1, -1 -- reset after self.onUp()
+        end
 
-    -- Draw sldr body, frame, sidebuttons --
-    gfx.set(r,g,b,a)  -- set color
-    self:draw_body()  -- body
-    self:draw_frame_loop() -- frame
-    self:draw_sbtns() -- draw L,R sidebuttons
-    -- Draw label,values --
-    gfx.set(table.unpack(self.fnt_rgba)) -- set label color
-    gfx.setfont(1, fnt, fnt_sz)          -- set lbl,val fnt
-    gfx.set(1,1,1,0.5)  -- set color
-    self:draw_lbl() -- draw lbl
-    self:draw_val() -- draw value
+  -- Draw sldr body, frame, sidebuttons --
+  gfx.set(r,g,b,a)  -- set color
+  self:draw_body()  -- body
+  self:draw_frame_loop() -- frame
+  self:draw_sbtns() -- draw L,R sidebuttons
+  -- Draw label,values --
+  gfx.set(table.unpack(self.fnt_rgba)) -- set label color
+  gfx.setfont(1, fnt, fnt_sz)          -- set lbl,val fnt
+  gfx.set(1,1,1,0.5)  -- set color
+  self:draw_lbl() -- draw lbl
+  self:draw_val() -- draw value
 end
 
 --------------------------------------------------------------------------------
@@ -2712,9 +3968,10 @@ function CheckBox:draw()
              if self:mouseClick() and self.onClick then self.onClick() end
           end
     -- Draw ch_box body, frame -
-    gfx.set(r,g,b,a)    -- set body color
+    gfx.set(TH[46][1],TH[46][2],TH[46][3],TH[46][4])    -- set body color
     self:draw_body()    -- body
     self:draw_frame()   -- frame
+    self:draw_tint()
     -- Draw label --------------
     gfx.set(table.unpack(self.fnt_rgba))   -- set label,val color
     gfx.setfont(1, fnt, fnt_sz) -- set label,val fnt
@@ -2787,7 +4044,7 @@ function CheckBox_simple:draw()
              if self:mouseClick() and self.onClick then self.onClick() end
           end
     -- Draw ch_box body, frame -
-    gfx.set(r,g,b,a)    -- set body color
+    gfx.set(r,g,b,a)  -- set color
     self:draw_body()    -- body
     self:draw_frame_v()   -- frame
     -- Draw label --------------
@@ -2863,7 +4120,7 @@ function CheckBox_Red:draw()
              if self:mouseClick() and self.onClick then self.onClick() end
           end
     -- Draw ch_box body, frame -
-    gfx.set(r,g,b,a)    -- set body color
+    gfx.set(TH[52][1],TH[52][2],TH[52][3],TH[52][4])    -- set body color
     self:draw_body()    -- body
     self:draw_frame_r()   -- frame
     -- Draw label --------------
@@ -2939,7 +4196,7 @@ function CheckBox_Green:draw()
              if self:mouseClick() and self.onClick then self.onClick() end
           end
     -- Draw ch_box body, frame -
-    gfx.set(r,g,b,a)    -- set body color
+    gfx.set(TH[46][1],TH[46][2],TH[46][3],TH[46][4])    -- set body color
     self:draw_body()    -- body
     self:draw_frame_g()   -- frame
     -- Draw label --------------
@@ -3007,7 +4264,6 @@ function CheckBox_Show:draw()
              if self:set_norm_val_m_wheel() then -- use if need
                 if self.onMove then self.onMove() end   
                       MW_doit_checkbox_show()
-                      DrawGridGuides()
             end  
           end          
           -- in elm L_down -----
@@ -3017,24 +4273,33 @@ function CheckBox_Show:draw()
              if self:mouseClick() and self.onClick then self.onClick() end
           end
     -- Draw ch_box body, frame -
-    gfx.set(r,g,b,a)    -- set body color
+    gfx.set(TH[46][1],TH[46][2],TH[46][3],TH[46][4])    -- set body color
     self:draw_body()    -- body
     self:draw_frame()   -- frame
     -- Draw label --------------
     gfx.set(table.unpack(self.fnt_rgba))   -- set label,val color
     gfx.setfont(1, fnt, fnt_sz) -- set label,val fnt
-    self:draw_lbl()             -- draw lbl
     self:draw_val()             -- draw val
+    gfx.set(TH[36][1],TH[36][2],TH[36][3],TH[36][4])    -- set lable color
+    self:draw_lbl()             -- draw lbl
+
 end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
----   Frame Class Methods  -----------------------------------------------------
+---   Frame Class Methods  --------------------------------------------------
 --------------------------------------------------------------------------------
+function Frame_body:draw()
+  self:update_xywh() -- Update xywh(if wind changed)
+  local r,g,b,a  = self.r,self.g,self.b,self.a
+  gfx.set(r,g,b,a)   -- set frame color -- цвет рамок
+  self:draw_frame4()  -- draw frame body
+end
+
 function Frame:draw()
-   self:update_xywh() -- Update xywh(if wind changed)
-   local r,g,b,a  = self.r,self.g,self.b,self.a
-   gfx.set(r,g,b,a)   -- set frame color -- цвет рамок
-   self:draw_frame4()  -- draw frame
+  self:update_xywh() -- Update xywh(if wind changed)
+  local r,g,b,a  = self.r,self.g,self.b,self.a
+  gfx.set(r,g,b,a)   -- set frame color -- цвет рамок
+  self:draw_frame5()  -- draw frame
 end
 
 --------------------------------------------------------------------------------
@@ -3123,96 +4388,193 @@ corrY2 = 3 -- Random_Setup menu correction
 ---  Create Frames   ------------------------------------------
 ---------------------------------------------------------------
 ------local tables to reduce locals (avoid 200 locals limits)-------
-local elm_table = {Fltr_Frame, Gate_Frame, Mode_Frame, Mode_Frame_filled, Gate_Frame_filled, Random_Setup_Frame_filled, Random_Setup_Frame, Grid1_Led, Grid2_Led, Grid4_Led, Grid8_Led, Grid16_Led, Grid32_Led, Grid64_Led, GridT_Led, Swing_Led, Offbeat_Frame_filled, BiasThr_Frame_filled}
+local elm_table = {}
 
-elm_table[1] = Frame:new(10, 375+corrY,180,100) --Fltr_Frame
-elm_table[2] = Frame:new(200,375+corrY,180,100) --Gate_Frame
-elm_table[3] = Frame:new(390,375+corrY,645,100) --Mode_Frame
-elm_table[4] = Frame_filled:new(673,409+corrY,91,40,  0.18,0.18,0.18,0.7 ) --Mode_Frame_filled
-elm_table[5] = Frame_filled:new(210,380+corrY,160,89,  0.18,0.18,0.18,0.7 ) --Gate_Frame_filled
+elm_table[1] = Frame_body:new(10, 385,1024,100) --Main_Frame_body
 
-elm_table[6] = Frame_filled:new(670,373+corrY2,147,112,  0.15,0.15,0.15,1 ) --Random_Setup_Frame_filled
-elm_table[7] = Frame:new(670,373+corrY2,147,112,  0.15,0.15,0.15,1 ) --Random_Setup_Frame
+elm_table[2] = Line2:new(374,380+corrY,4,88, TH[41][1],TH[41][2],TH[41][3],TH[41][4]) -- Vertical Line
+elm_table[3] = Line2:new(375,380+corrY,4,88, TH[4][1],TH[4][2],TH[4][3],TH[4][4])--| fill
 
-elm_table[8] = Colored_Rect_top:new(50,24,40,2,  0.0,0.7,0.0,1 ) -- Grid1_Led
-elm_table[9] = Colored_Rect_top:new(92,24,40,2,  0.0,0.7,0.0,1 ) -- Grid2_Led
-elm_table[10] = Colored_Rect_top:new(134,24,40,2,  0.0,0.7,0.0,1 ) -- Grid4_Led
-elm_table[11] = Colored_Rect_top:new(176,24,40,2,  0.0,0.7,0.0,1 ) -- Grid8_Led
-elm_table[12] = Colored_Rect_top:new(218,24,40,2,  0.0,0.7,0.0,1 ) -- Grid16_Led
-elm_table[13] = Colored_Rect_top:new(260,24,40,2,  0.0,0.7,0.0,1 ) -- Grid32_Led
-elm_table[14] = Colored_Rect_top:new(302,24,40,2,  0.0,0.7,0.0,1 ) -- Grid64_Led
-elm_table[15] = Colored_Rect_top:new(344,24,40,2,  0.0,0.7,0.0,1 ) -- GridT_Led
-elm_table[16] = Colored_Rect_top:new(391,24,50,2,  0.0,0.7,0.0,1 ) -- Swing_Led
+elm_table[4] = Frame_filled:new(673,409+corrY,91,40,  TH[4][1],TH[4][2],TH[4][3],TH[4][4]-0.4 ) --Mode_Frame_filled
+elm_table[5] = Frame_filled:new(199,380+corrY,160,89,  TH[4][1],TH[4][2],TH[4][3],TH[4][4]-0.4 ) --Gate_Frame_filled
 
-elm_table[17] = Frame_filled:new(767,430+corrY,71,19,  0.18,0.18,0.18,0.7 ) --Offbeat_Frame_filled
-elm_table[18] = Frame_filled:new(498,450+corrY,171,19,  0.18,0.18,0.18,0.7 ) --BiasThr_Frame_filled
+elm_table[6] = Frame_filled:new(670,373+corrY2,147,112,  TH[4][1],TH[4][2],TH[4][3],TH[4][4] ) --Random_Setup_Frame_filled
+elm_table[7] = Frame:new(670,373+corrY2,147,112,  TH[5][1],TH[5][2],TH[5][3],TH[5][4] ) --Random_Setup_Frame
 
-local leds_table = {Frame_byGrid, Frame_byGrid2, Light_Loop_on, Light_Loop_off, Light_Sync_on, Light_Sync_off, Rand_Mode_Color1, Rand_Mode_Color2, Rand_Mode_Color3, Rand_Mode_Color4, Rand_Mode_Color5, Rand_Mode_Color6, Rand_Mode_Color7, Rand_Button_Color1, Rand_Button_Color2, Rand_Button_Color3, Rand_Button_Color4, Rand_Button_Color5, Rand_Button_Color6, Rand_Button_Color7, InverseEnv_On, InverseEnv_Off}
+elm_table[19] = Colored_Rect_top:new(34,24,36,2,  TH[39][1],TH[39][2],TH[39][3],TH[39][4] ) -- Grid0_Led
+elm_table[8] = Colored_Rect_top:new(73,24,36,2,  TH[39][1],TH[39][2],TH[39][3],TH[39][4] ) -- Grid1_Led
+elm_table[9] = Colored_Rect_top:new(112,24,36,2,  TH[39][1],TH[39][2],TH[39][3],TH[39][4] ) -- Grid2_Led
+elm_table[10] = Colored_Rect_top:new(151,24,36,2,  TH[39][1],TH[39][2],TH[39][3],TH[39][4] ) -- Grid4_Led
+elm_table[11] = Colored_Rect_top:new(190,24,36,2,  TH[39][1],TH[39][2],TH[39][3],TH[39][4] ) -- Grid8_Led
+elm_table[12] = Colored_Rect_top:new(229,24,36,2,  TH[39][1],TH[39][2],TH[39][3],TH[39][4] ) -- Grid16_Led
+elm_table[13] = Colored_Rect_top:new(268,24,36,2,  TH[39][1],TH[39][2],TH[39][3],TH[39][4] ) -- Grid32_Led
+elm_table[14] = Colored_Rect_top:new(307,24,36,2,  TH[39][1],TH[39][2],TH[39][3],TH[39][4] ) -- Grid64_Led
+elm_table[15] = Colored_Rect_top:new(346,24,25,2,  TH[39][1],TH[39][2],TH[39][3],TH[39][4] ) -- GridT_Led
+elm_table[16] = Colored_Rect_top:new(396,24,50,2,  TH[39][1],TH[39][2],TH[39][3],TH[39][4] ) -- Swing_Led
+elm_table[20] = Colored_Rect_top:new(373,24,20,2,  TH[39][1],TH[39][2],TH[39][3],TH[39][4] ) -- GridD_Led
 
-leds_table[1] = Colored_Rect:new(492,410+corrY,2,18,  0.1,0.7,0.6,1 ) -- Frame_byGrid (Blue indicator)
-leds_table[2] = Colored_Rect:new(492,410+corrY,2,18,  0.7,0.7,0.0,1 ) -- Frame_byGrid2 (Yellow indicator)
+elm_table[21] = Frame:new(10, 385,1024,100) --Main_Frame
 
-leds_table[3] = Colored_Rect_top:new(981,5,2,20,  0.0,0.7,0.0,1 ) -- Light_Loop_on
-leds_table[4] = Colored_Rect_top:new(981,5,2,20,  0.5,0.5,0.5,0.5 ) -- Light_Loop_off
+if Tint_d == 1 then
+   TH39_1 = TH[39][1]/2
+   TH39_2 = TH[39][2]/2
+   TH39_3 = TH[39][3]/2
+   else
+   TH39_1 = TH[39][1]*2
+   TH39_2 = TH[39][2]*2
+   TH39_3 = TH[39][3]*2
+end
+if TH39_1 < 0 then TH39_1 = 0 elseif TH39_1 > 1 then TH39_1 = 1 end
+if TH39_2 < 0 then TH39_2 = 0 elseif TH39_2 > 1 then TH39_2 = 1 end
+if TH39_3 < 0 then TH39_3 = 0 elseif TH39_3 > 1 then TH39_3 = 1 end
+elm_table[31] = Colored_Rect_top:new(34,5,36,19,  TH39_1,TH39_2,TH39_3, Tint_a ) -- Tint_Grid0_Led
+elm_table[22] = Colored_Rect_top:new(73,5,36,19,  TH39_1,TH39_2,TH39_3, Tint_a ) -- Tint_Grid1_Led
+elm_table[23] = Colored_Rect_top:new(112,5,36,19,  TH39_1,TH39_2,TH39_3, Tint_a ) -- Tint_Grid2_Led
+elm_table[24] = Colored_Rect_top:new(151,5,36,19,  TH39_1,TH39_2,TH39_3, Tint_a ) -- Tint_Grid4_Led
+elm_table[25] = Colored_Rect_top:new(190,5,36,19,  TH39_1,TH39_2,TH39_3, Tint_a ) -- Tint_Grid8_Led
+elm_table[26] = Colored_Rect_top:new(229,5,36,19,  TH39_1,TH39_2,TH39_3, Tint_a ) -- Tint_Grid16_Led
+elm_table[27] = Colored_Rect_top:new(268,5,36,19,  TH39_1,TH39_2,TH39_3, Tint_a ) -- Tint_Grid32_Led
+elm_table[28] = Colored_Rect_top:new(307,5,36,19,  TH39_1,TH39_2,TH39_3, Tint_a ) -- Tint_Grid64_Led
+elm_table[29] = Colored_Rect_top:new(346,5,25,19,  TH39_1,TH39_2,TH39_3, Tint_a ) -- Tint_GridT_Led
+elm_table[30] = Colored_Rect_top:new(396,5,50,19,  TH39_1,TH39_2,TH39_3, Tint_a ) -- Tint_Swing_Led
+elm_table[33] = Colored_Rect_top:new(373,5,20,19,  TH39_1,TH39_2,TH39_3, Tint_a ) -- Tint_GridD_Led
 
-leds_table[5] = Colored_Rect_top:new(921,5,2,20,  0.0,0.7,0.0,1 ) -- Light_Sync_on
+elm_table[17] = Frame_filled:new(767,430+corrY,71,19,  TH[4][1],TH[4][2],TH[4][3],TH[4][4]-0.4 ) --Offbeat_Frame_filled
+elm_table[18] = Frame_filled:new(498,450+corrY,171,19,  TH[4][1],TH[4][2],TH[4][3],TH[4][4]-0.4 ) --BiasThr_Frame_filled
+
+elm_table[32] = Colored_Rect_top:new(0,0,1045,28,  TH[49][1],TH[49][2],TH[49][3],TH[49][4] ) --Status Bar_Frame_filled
+
+local leds_table = {}
+
+if TH[29][4] == 0 then fr_marg = 1; fr_marg2 = 2 else fr_marg = 0; fr_marg2 = 0 end -- if no frames, then add led size correction
+
+leds_table[1] = Colored_Rect:new(491,410+corrY+fr_marg,3,18-fr_marg2,  0.1,0.7,0.6,TH[42] ) -- Frame_byGrid (Blue indicator)
+leds_table[2] = Colored_Rect:new(491,410+corrY+fr_marg,3,18-fr_marg2,  0.7,0.7,0.0,TH[42] ) -- Frame_byGrid2 (Yellow indicator)
+
+leds_table[3] = Colored_Rect_top:new(983,5,2,20,  TH[39][1],TH[39][2],TH[39][3],TH[39][4] ) -- Light_Loop_on
+leds_table[4] = Colored_Rect_top:new(983,5,2,20,  0.5,0.5,0.5,0.5 ) -- Light_Loop_off
+
+leds_table[5] = Colored_Rect_top:new(921,5,2,20,  TH[39][1],TH[39][2],TH[39][3],TH[39][4] ) -- Light_Sync_on
 leds_table[6] = Colored_Rect_top:new(921,5,2,20,  0.5,0.5,0.5,0.5 ) -- Light_Sync_off
 
-leds_table[21] = Colored_Rect:new(571,410+corrY,2,18,  0.0,0.7,0.0,1 ) -- InverseEnv_On (Green indicator)
+leds_table[7] = Colored_Rect_top:new(986,5,48,20,  TH39_1,TH39_2,TH39_3, Tint_a ) -- Tint_Light_Loop_on
+
+leds_table[21] = Colored_Rect:new(571,410+corrY,2,18,  TH[39][1],TH[39][2],TH[39][3],TH[39][4] ) -- InverseEnv_On (Green indicator)
 leds_table[22] = Colored_Rect:new(571,410+corrY,2,18,  0.5,0.5,0.5,0.5 ) -- InverseEnv_Off (Grey indicator)
 
-local others_table = {Triangle, RandText, Q_Rnd_Linked, Q_Rnd_Linked2, Line, Line2, Loop_Dis, Volume, VolumeFill, Attack, AttackFill, Release, ReleaseFill}
+local others_table = {}
 
 others_table[1] = Txt2:new(642,415+corrY2,55,18, 0.4,0.4,0.4,1, ">","Arial",20) --Triangle
 others_table[2] = Txt2:new(749,374+corrY2,55,18, 0.4,0.4,0.4,1, "Intensity","Arial",10) --RandText
 
 others_table[3] = Line_colored:new(482,375+corrY,152,18,  0.7,0.5,0.1,1) --| Q_Rnd_Linked (Bracket)
-others_table[4] = Line2:new(480,380+corrY,156,18,  0.177,0.177,0.177,1)--| Q_Rnd_Linked2 (Bracket fill)
+others_table[4] = Line2:new(480,380+corrY,156,18,  TH[4][1],TH[4][2],TH[4][3],TH[4][4])--| Q_Rnd_Linked2 (Bracket fill)
 
 others_table[5] = Line:new(677,404+corrY,82,6) --Line (Preset/Velocity Bracket)
-others_table[6] = Line2:new(677,407+corrY,82,4,  0.177,0.177,0.177,1)--Line2 (Preset/Velocity Bracket fill)
+others_table[6] = Line2:new(677,407+corrY,82,4,  TH[4][1],TH[4][2],TH[4][3],TH[4][4])--Line2 (Preset/Velocity Bracket fill)
 others_table[7] = Colored_Rect_top:new(10,28,1024,15,  0.23,0.23,0.23,0.5)--Loop_Dis (Loop Disable fill)
 others_table[8] = Line:new(771,404+corrY,61,6) --Line (Mode Bracket)
-others_table[9] = Line2:new(771,407+corrY,61,4,  0.177,0.177,0.177,1)--Line2 (Mode Bracket fill)
+others_table[9] = Line2:new(771,407+corrY,61,4,  TH[4][1],TH[4][2],TH[4][3],TH[4][4])--Line2 (Mode Bracket fill)
 
 others_table[10] = Line:new(846,404+corrY,61,6) --Line (Volume Bracket)
-others_table[11] = Line2:new(846,407+corrY,61,4,  0.177,0.177,0.177,1)--Line2 (Volume Bracket fill)
+others_table[11] = Line2:new(846,407+corrY,61,4,  TH[4][1],TH[4][2],TH[4][3],TH[4][4])--Line2 (Volume Bracket fill)
 
-others_table[12] = Line:new(503,404+corrY,82,6) --Line (Attack Bracket)
-others_table[13] = Line2:new(503,407+corrY,82,4,  0.177,0.177,0.177,1)--Line2 (Attack Bracket fill)
+others_table[12] = Line:new(502,404+corrY,75,6) --Line (Attack Bracket)
+others_table[13] = Line2:new(502,407+corrY,75,4,  TH[4][1],TH[4][2],TH[4][3],TH[4][4])--Line2 (Attack Bracket fill)
 
-others_table[14] = Line:new(601,404+corrY,61,6) --Line (Release Bracket)
-others_table[15] = Line2:new(601,407+corrY,61,4,  0.177,0.177,0.177,1)--Line2 (Release Bracket fill)
+others_table[14] = Line:new(589,404+corrY,76,6) --Line (Release Bracket)
+others_table[15] = Line2:new(589,407+corrY,76,4,  TH[4][1],TH[4][2],TH[4][3],TH[4][4])--Line2 (Release Bracket fill)
 
-local Frame_Sync_TB = {leds_table[5]}
-local Frame_Sync_TB2 = {leds_table[6]}
-local Frame_Loop_TB = {leds_table[3]}
-local Frame_Loop_TB2 = {leds_table[4], others_table[7]}
-local Frame_TB = {elm_table[1], elm_table[2], elm_table[3]} 
-local FrameR_TB = {others_table[5], others_table[6], others_table[8], others_table[9], others_table[10], others_table[11], others_table[12], others_table[13], others_table[14], others_table[15]}
-local FrameQR_Link_TB = {others_table[3],others_table[4]}
-local Frame_TB1 = {leds_table[2]}
-local Frame_TB2 = {elm_table[5], leds_table[1]} -- Grid mode
-local Frame_TB2_Trigg = {elm_table[4]}
 
-local Grid1_Led_TB = {elm_table[8]}
-local Grid2_Led_TB = {elm_table[9]}
-local Grid4_Led_TB = {elm_table[10]}
-local Grid8_Led_TB = {elm_table[11]}
-local Grid16_Led_TB = {elm_table[12]}
-local Grid32_Led_TB = {elm_table[13]}
-local Grid64_Led_TB = {elm_table[14]}
-local GridT_Led_TB = {elm_table[15]}
-local Swing_Led_TB = {elm_table[16]}
 
-local Triangle_TB = {others_table[1]}
-local RandText_TB = {others_table[2]}
+------------------------------------------------------------------------------------
+--- CheckBoxes ---------------------------------------------------------------------
+-------------------------------------------------------------------------------------
 
-local InvertEnvOn_TB = {} --leds_table[21]
-local InvertEnvOff_TB = {} --leds_table[22]
+-------------------------
+local VeloMode = CheckBox:new(673,410+corrY,90,18, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "","Arial",16,  2, -------velodaw
+                              {"Use RMS","Use Peak"} )
 
-local Transient_Fill_TB = {elm_table[17]}
-local Grid_Fill_TB = {elm_table[18]}
+VeloMode.onClick = 
+function()
+    Gate_on2 = 1
+end
+
+if (NoItems == 0 and WaveCheck == 1) or (loopcheck == 0 and NoItems == 1) then Guides_mode = Guides_mode else Guides_mode = 2 end --if no items, script starts in Grid mode
+local Guides  = CheckBox:new(390,410+corrY,101,18, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "","Arial",16,  Guides_mode,
+                              {"Transients","Grid"} )
+
+Guides.onClick = 
+function() 
+   if Wave.State then
+      Wave:Reset_All()
+      Wave:DrawGridGuides()
+   end 
+end
+
+--------------------------------------------------
+-- View Checkboxes -------------------------------
+-------------------------
+
+local Floor_State = CheckBox_Red:new(917,430+corrY,45,18, TH[52][1],TH[52][2],TH[52][3],TH[52][4], "","Arial",16,  1,
+                              {"Flat","Rise","Fall"} )
+Floor_State.onClick = 
+function() 
+MW_doit_slider_Swing()
+end
+
+local AttackTxt = Txt:new(514,384+corrY,55,18, TH[36][1],TH[36][2],TH[36][3],TH[36][4], "Attack","Arial",22)
+
+local ReleaseTxt = Txt:new(601,384+corrY,55,18, TH[36][1],TH[36][2],TH[36][3],TH[36][4], "Release","Arial",22)
+
+local VelocityTxt = Txt:new(691,384+corrY,55,18, TH[36][1],TH[36][2],TH[36][3],TH[36][4], "Velocity","Arial",22)
+
+local ModeTxt = Txt:new(775,384+corrY,55,18, TH[36][1],TH[36][2],TH[36][3],TH[36][4], "Mode","Arial",22)
+
+local LevelsTxt = Txt:new(850,384+corrY,55,18, TH[36][1],TH[36][2],TH[36][3],TH[36][4], "Levels","Arial",22)
+
+local ViewMode = CheckBox_Show:new(970,380+corrY,55,18,  TH[30][1],TH[30][2],TH[30][3],TH[30][4], "","Arial",16,  1,
+                              { "View All", "Original", "Filtered" } )
+ViewMode.onClick = 
+function() 
+   if Wave.State then Wave:Redraw() end 
+end
+
+
+local TrackEnv_Chbx = CheckBox:new(390,450+corrY,104,18,  TH[30][1],TH[30][2],TH[30][3],TH[30][4], "","Arial",16,  TrackEnvByDefault,
+                              { "Track", "Item" } )
+TrackEnv_Chbx.onClick = 
+function() 
+end
+
+local EnvMode = CheckBox:new(767,410+corrY,70,18,  TH[30][1],TH[30][2],TH[30][3],TH[30][4], "","Arial",16,  InvOnByDefault,
+                              { "Invert on", "Invert off" } )
+EnvMode.onClick = 
+function() 
+end
+
+local OffBeatP = CheckBox:new(767,430+corrY,70,18,  TH[30][1],TH[30][2],TH[30][3],TH[30][4], "","Arial",16,  2,
+                              { "Shift on", "Shift off" } )
+OffBeatP.onClick = 
+function() 
+  Wave:DrawGridGuides()
+Gate_on2 = 1
+end
+
+local AttMode = CheckBox_simple:new(498,450+corrY,83,18, TH[50][1],TH[50][2],TH[50][3],TH[50][4], "","Arial",16,  1,
+                              { "Fixed", "By Velocity", "By Vel Inv."} )
+AttMode.onClick = 
+function() 
+end
+
+local AttSoft = CheckBox_simple:new(498,430+corrY,83,18, TH[50][1],TH[50][2],TH[50][3],TH[50][4], "","Arial",16,  1,
+                              { "Normal", "Soft"} )
+AttSoft.onClick = 
+function() 
+end
+
+
+
 
 ---------------------------------------------------------------
 ---  Create Menu Settings   ------------------------------------
@@ -3448,9 +4810,9 @@ end
 --- Filter Sliders ------------------------------------------------------------------
 -------------------------------------------------------------------------------------
 -- Filter HP_Freq --------------------------------
-local HP_Freq = HP_Slider:new(20,410+corrY,160,18, 0.28,0.4,0.7,0.8, "Low Cut","Arial",16, HF_Slider )
+local HP_Freq = HP_Slider:new(20,410+corrY,160,18, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "Low Cut","Arial",16, HF_Slider )
 -- Filter LP_Freq --------------------------------
-local LP_Freq = LP_Slider:new(20,430+corrY,160,18, 0.28,0.4,0.7,0.8, "High Cut","Arial",16, LF_Slider )
+local LP_Freq = LP_Slider:new(20,430+corrY,160,18, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "High Cut","Arial",16, LF_Slider )
 --------------------------------------------------
 -- Filter Freq Sliders draw_val function ---------
 --------------------------------------------------
@@ -3487,7 +4849,7 @@ end
 
 
 -- Filter Gain -----------------------------------
-local Fltr_Gain = G_Slider:new(20,450+corrY,160,18,  0.28,0.4,0.7,0.8, "Filtered Gain","Arial",16, out_gain )
+local Fltr_Gain = G_Slider:new(20,450+corrY,160,18,  TH[30][1],TH[30][2],TH[30][3],TH[30][4], "Filtered Gain","Arial",16, out_gain )
 function Fltr_Gain:draw_val()
   self.form_val = self.norm_val*30  -- form value
   local x,y,w,h  = self.x,self.y,self.w,self.h
@@ -3531,7 +4893,7 @@ end
 -------------------------------------------------------------------------------------
 -- Threshold -------------------------------------
 -------------------------------------------------
-local Gate_Thresh = T_Slider:new(210,380+corrY,160,18, 0.28,0.4,0.7,0.8, "Threshold","Arial",16, readrms )
+local Gate_Thresh = T_Slider:new(199,380+corrY,160,18, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "Threshold","Arial",16, readrms )
 function Gate_Thresh:draw_val()
   self.form_val = (self.norm_val-1)*57-3
   local x,y,w,h  = self.x,self.y,self.w,self.h
@@ -3546,7 +4908,7 @@ end
 -- Gate Threshold-lines function -----------------
 -------------------------------------------------- 
 function Gate_Thresh:draw_val_line()
-  if Wave.State then gfx.set(0.7,0.7,0.7,0.3) --цвет линий treshold
+  if Wave.State and (Guides.norm_val == 1) then gfx.set(TH[12][1],TH[12][2],TH[12][3],TH[12][4]) --цвет линий treshold
     local val = (10^(self.form_val/20)) * Wave.Y_scale * Wave.vertZoom * Z_h -- value in gfx
     if val>Wave.h/2 then return end            -- don't draw lines if value out of range
     local val_line1 = Wave.y + Wave.h/2 - val  -- line1 y coord
@@ -3557,19 +4919,21 @@ function Gate_Thresh:draw_val_line()
 end
 
 -- Sensitivity -------------------------------------
-local Gate_Sensitivity = S_Slider:new(210,400+corrY,160,18, 0.28,0.4,0.7,0.8, "Sensitivity","Arial",16, Sens_Slider )
+local Gate_Sensitivity = S_Slider:new(199,400+corrY,160,18, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "Sensitivity","Arial",16, Sens_Slider )
 function Gate_Sensitivity:draw_val()
-  self.form_val = 2+(self.norm_val)*8       -- form_val
+  sens_val = ((self.norm_val+0.125)*9)-0.125
+  self.form_val = 2+(abs(self.norm_val-1))*8       -- form_val
   local x,y,w,h  = self.x,self.y,self.w,self.h
-  local val = string.format("%.1f", self.form_val).." dB"
+  local val = string.format("%.1f", sens_val)..""
   local val_w, val_h = gfx.measurestr(val)
   gfx.x = x+w-val_w-3
   gfx.drawstr(val)--draw Slider Value
 end
 -- Retrig ----------------------------------------
-local Gate_Retrig = Rtg_Slider:new(210,420+corrY,160,18, 0.28,0.4,0.7,0.8, "Retrig","Arial",16, retrigms )
+local Gate_Retrig = Rtg_Slider:new(199,420+corrY,160,18, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "Retrig","Arial",16, retrigms )
 function Gate_Retrig:draw_val()
-  self.form_val  = 20+ self.norm_val * 180   -- form_val
+  custom_log = (self.norm_val*(self.norm_val/2))*2
+  self.form_val  = 10 + custom_log * 690   -- form_val
   local x,y,w,h  = self.x,self.y,self.w,self.h
   local val = string.format("%.1f", self.form_val).." ms"
   local val_w, val_h = gfx.measurestr(val)
@@ -3577,7 +4941,7 @@ function Gate_Retrig:draw_val()
   gfx.drawstr(val)--draw Slider Value
 end
 -- Reduce points slider -------------------------- 
-local Gate_ReducePoints = Rdc_Slider:new(210,450+corrY,160,18, 0.28,0.4,0.7,0.8, "Reduce","Arial",16, 1 )
+local Gate_ReducePoints = Rdc_Slider:new(199,450+corrY,160,18, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "Reduce","Arial",16, 1 )
 function Gate_ReducePoints:draw_val()
   self.cur_max   = self.cur_max or 0 -- current points max
   self.form_val  = ceil(self.norm_val * self.cur_max) -- form_val
@@ -3606,7 +4970,7 @@ Gate_Sensitivity.onUp = Floor_Sldrs_onUp
 Gate_Retrig.onUp    = Floor_Sldrs_onUp
 
 -----------------Offset Slider------------------------ 
-local Offset_Sld = O_Slider:new(400,430+corrY,94,18, 0.28,0.4,0.7,0.8, "Offset","Arial",16, Offs_Slider )
+local Offset_Sld = O_Slider:new(390,430+corrY,104,18, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "Offset","Arial",16, Offs_Slider )
 function Offset_Sld:draw_val()
 
   self.form_val  = (50- self.norm_val * 100)*( -1)     -- form_val
@@ -3634,8 +4998,8 @@ Gate_on2 = 1
    end 
 end
 
------------------HBiasSlider Slider------------------------ 
-local HBiasSlider = Q_Slider_Green:new(596,410+corrY,73,18, 0.218,0.542,0.45,0.8, "Rel","Arial",16, 0.5 )
+-----------------HBiasSlider Slider(Release)------------------------ 
+local HBiasSlider = Q_Slider_Green:new(585,410+corrY,84,18, TH[51][1],TH[51][2],TH[51][3],TH[51][4], "Rel","Arial",16, 0.5 )
 function HBiasSlider:draw_val()
 
   self.form_val  = (self.norm_val * 200)-100     -- form_val
@@ -3676,7 +5040,7 @@ Gate_on2 = 1
 end
 
 -- QStrength slider ------------------------------ 
-local QStrength_Sld = Q_Slider:new(596,387+corrY,73,18, 0.28,0.4,0.7,0.8, "QStr","Arial",16, QuantizeStrength*0.01 )
+local QStrength_Sld = Q_Slider:new(596,387+corrY,73,18, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "QStr","Arial",16, QuantizeStrength*0.01 )
 function QStrength_Sld:draw_val()
   self.form_val = (self.norm_val)*100       -- form_val
   local x,y,w,h  = self.x,self.y,self.w,self.h
@@ -3692,7 +5056,7 @@ function()
 end
 
 -- Gain slider ------------------------------ 
-local XFade_Sld = X_Slider:new(841,410+corrY,73,18, 0.28,0.4,0.7,0.8, "Gain","Arial",16, 0.5 )
+local XFade_Sld = X_Slider:new(841,410+corrY,73,18, TH[52][1],TH[52][2],TH[52][3],TH[52][4], "Gain","Arial",16, 0.5 )
 function XFade_Sld:draw_val()
   self.form_val = (self.norm_val*200) - 100       -- form_val
   local x,y,w,h  = self.x,self.y,self.w,self.h
@@ -3718,7 +5082,7 @@ end
 
 
 -- Floor slider ------------------------------ 
-local Floor_Sld = Q_Slider_Red:new(841,430+corrY,73,18, 0.564,0.261,0.221,0.8, "Floor","Arial",16, 0 )
+local Floor_Sld = Q_Slider_Red:new(841,430+corrY,73,18, TH[52][1],TH[52][2],TH[52][3],TH[52][4], "Floor","Arial",16, 0 )
 function Floor_Sld:draw_val()
   self.form_val = (self.norm_val)*100       -- form_val
   local x,y,w,h  = self.x,self.y,self.w,self.h
@@ -3737,7 +5101,7 @@ Gate_on2 = 1
 end
 
 -- Attack slider ------------------------------ 
-local Attack_Sld = Q_Slider_Violet:new(498,410+corrY,94,18, 0.419,0.281,0.716,0.8, "Att","Arial",16, 0.3  )
+local Attack_Sld = Q_Slider_Violet:new(498,410+corrY,83,18, TH[50][1],TH[50][2],TH[50][3],TH[50][4], "Att","Arial",16, 0.3  )
 function Attack_Sld:draw_val()
   self.form_val = (self.norm_val)*100       -- form_val
   local x,y,w,h  = self.x,self.y,self.w,self.h
@@ -3754,7 +5118,7 @@ Gate_on2 = 1
 end
 
 -- Shape slider ------------------------------ 
-local Shape_Sld = Q_Slider_Green:new(596,430+corrY,73,18, 0.218,0.542,0.45,0.8, "Shape","Arial",16, 0.5 )
+local Shape_Sld = Q_Slider_Green:new(585,430+corrY,84,18, TH[51][1],TH[51][2],TH[51][3],TH[51][4], "Shape","Arial",16, 0.5 )
 function Shape_Sld:draw_val()
   self.form_val = (self.norm_val)*100       -- form_val
   local x,y,w,h  = self.x,self.y,self.w,self.h
@@ -3770,7 +5134,7 @@ Gate_on2 = 1
 end
 
 -- BiasThr slider ------------------------------ 
-local BiasThr_Sld = Q_Slider_Green_Bias:new(596,450+corrY,73,18, 0.218,0.542,0.45,0.8, "Rel.Thr","Arial",16, 1 )
+local BiasThr_Sld = Q_Slider_Green_Bias:new(585,450+corrY,84,18, TH[51][1],TH[51][2],TH[51][3],TH[51][4], "Rel.Thr","Arial",16, 1 )
 function BiasThr_Sld:draw_val()
    self_norm_val = self.norm_val*1.4
 
@@ -3814,7 +5178,7 @@ end
 -------------------------------------------------------------------------------------
 --- Range Slider --------------------------------------------------------------------
 -------------------------------------------------------------------------------------
-local Gate_VeloScale = Rng_Slider:new(673,430+corrY,90,18, 0.28,0.4,0.7,0.8, "Range","Arial",16, VeloRng, VeloRng2 )---velodaw 
+local Gate_VeloScale = Rng_Slider:new(673,430+corrY,90,18, TH[30][1],TH[30][2],TH[30][3],TH[30][4], "Range","Arial",16, VeloRng, VeloRng2 )---velodaw 
 function Gate_VeloScale:draw_val()
 
   self.form_val  = floor(1+ self.norm_val * 126)  -- form_val
@@ -3842,7 +5206,7 @@ end
 -------------------------------------------------------------------------------------
 --- Loop Slider --------------------------------------------------------------------
 -------------------------------------------------------------------------------------
-local LoopScale = Loop_Slider:new(10,29,1024,18, 0.28,0.4,0.7,0.8, "","Arial",16, 0,1 ) -- Play Loop Range
+local LoopScale = Loop_Slider:new(10,29,1024,18, TH[32][1],TH[32][2],TH[32][3],TH[32][4], "","Arial",16, 0,1 ) -- Play Loop Range
 
 function LoopScale:draw_val()
 
@@ -3856,10 +5220,12 @@ end
 
               if rng1 == nil then rng1 = 0 end
               if rng2 == nil then rng2 = 1 end
-
+              
+local GrBtnT = {}
 -- Swing Button ----------------------------
-local Swing_Btn = Button_top:new(391,5,50,19, 0.3,0.3,0.3,1, "Swing",    "Arial",16 )
-Swing_Btn.onClick = 
+GrBtnT[9] = Button_top:new(396,5,50,19, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "Swing",    "Arial",16 )
+GrBtnT[10] = Button_top_txt:new(396,5,50,19, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "Swing",    "Arial",16 )
+GrBtnT[9].onClick = 
 function()
    if Wave.State then 
 Gate_on2 = 1
@@ -3871,19 +5237,30 @@ Gate_on2 = 1
              Swing_on = 0
     r.GetSetProjectGrid(0, true, division, 0)
         end
-DrawGridGuides()
+        Wave:DrawGridGuides()
    end 
 end 
 
 triplets = 2
+dttd = 1
+
 
 -- Grid Button T----------------------------
-local GridT_Btn = Button_top:new(344,5,40,19, 0.3,0.3,0.3,1, "T",    "Arial",16 )
-GridT_Btn.onClick = 
+GrBtnT[8] = Button_top:new(346,5,25,19, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "T",    "Arial",16 )
+GrBtnT[11] = Button_top_txt:new(346,5,25,19, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "T",    "Arial",16 )
+GrBtnT[8].onClick = 
 function()
    if Wave.State then 
 Gate_on2 = 1
         if GridT_on == 0 then 
+
+       if   GridD_on == 1 then 
+            GridD_on = 0
+            dttd = 1
+            local _, division, _, _ = r.GetSetProjectGrid(0,false)
+            r.GetSetProjectGrid(0, true, division/1.5, swing_mode, swingamt)
+       end
+
              GridT_on = 1
              triplets = 3
     local _, division, _, _ = r.GetSetProjectGrid(0,false)
@@ -3894,18 +5271,77 @@ Gate_on2 = 1
     local _, division, _, _ = r.GetSetProjectGrid(0,false)
     r.GetSetProjectGrid(0, true, division+division/2, swing_mode, swingamt)
         end
-DrawGridGuides()
+        Wave:DrawGridGuides()
    end 
 end 
 
--- Grid Button 1----------------------------
-local Grid1_Btn = Button_top:new(50,5,40,19, 0.3,0.3,0.3,1, "1",    "Arial",16 )
-Grid1_Btn.onClick = 
+
+-- Grid Button Dot----------------------------
+GrBtnT[21] = Button_top:new(373,5,20,19, TH[27][1],TH[27][2],TH[27][3],TH[27][4], ".",    "Arial",16 )
+GrBtnT[22] = Button_top_txt:new(373,5,20,19, TH[27][1],TH[27][2],TH[27][3],TH[27][4], ".",    "Arial",16 )
+GrBtnT[21].onClick = 
+function()
+   if Wave.State then 
+Gate_on2 = 1
+        if GridD_on == 0 then 
+
+         if GridT_on == 1 then
+             GridT_on = 0
+             triplets = 2
+              local _, division, _, _ = r.GetSetProjectGrid(0,false)
+              r.GetSetProjectGrid(0, true, division+division/2, swing_mode, swingamt)
+         end
+
+             GridD_on = 1
+             dttd = 1.5
+    local _, division, _, _ = r.GetSetProjectGrid(0,false)
+    r.GetSetProjectGrid(0, true, division*1.5, swing_mode, swingamt)
+               else
+             GridD_on = 0
+             dttd = 1
+    local _, division, _, _ = r.GetSetProjectGrid(0,false)
+    r.GetSetProjectGrid(0, true, division/1.5, swing_mode, swingamt)
+        end
+        Wave:DrawGridGuides()
+   end 
+end 
+
+
+-- Grid Button 4----------------------------
+GrBtnT[19] = Button_top:new(34,5,36,19, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "4",    "Arial",16 )
+GrBtnT[20] = Button_top_txt:new(34,5,36,19, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "4",    "Arial",16 )
+GrBtnT[19].onClick = 
+function()
+   if Wave.State then 
+Gate_on2 = 1
+    local _, division, _, _ = r.GetSetProjectGrid(0,false)
+        if Grid0_on == 0 then 
+             Grid0_on = 1
+             Grid1_on = 0
+             Grid2_on = 0
+             Grid4_on = 0
+             Grid8_on = 0
+             Grid16_on = 0
+             Grid32_on = 0
+             Grid64_on = 0
+    r.GetSetProjectGrid(0, true, (8/triplets)*dttd, swing_mode, swingamt)
+               else
+             Grid0_on = 0
+        end
+        Wave:DrawGridGuides()
+   end 
+end 
+
+-- Grid Button 2----------------------------
+GrBtnT[1] = Button_top:new(73,5,36,19, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "2",    "Arial",16 )
+GrBtnT[12] = Button_top_txt:new(73,5,36,19, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "2",    "Arial",16 )
+GrBtnT[1].onClick = 
 function()
    if Wave.State then 
 Gate_on2 = 1
     local _, division, _, _ = r.GetSetProjectGrid(0,false)
         if Grid1_on == 0 then 
+             Grid0_on = 0
              Grid1_on = 1
              Grid2_on = 0
              Grid4_on = 0
@@ -3913,22 +5349,24 @@ Gate_on2 = 1
              Grid16_on = 0
              Grid32_on = 0
              Grid64_on = 0
-    r.GetSetProjectGrid(0, true, 2/triplets, swing_mode, swingamt)
+    r.GetSetProjectGrid(0, true, (4/triplets)*dttd, swing_mode, swingamt)
                else
              Grid1_on = 0
         end
-DrawGridGuides()
+        Wave:DrawGridGuides()
    end 
 end 
 
--- Grid Button 1/2----------------------------
-local Grid2_Btn = Button_top:new(92,5,40,19, 0.3,0.3,0.3,1, "1/2",    "Arial",16 )
-Grid2_Btn.onClick = 
+-- Grid Button 1----------------------------
+GrBtnT[2] = Button_top:new(112,5,36,19, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "1",    "Arial",16 )
+GrBtnT[13] = Button_top_txt:new(112,5,36,19, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "1",    "Arial",16 )
+GrBtnT[2].onClick = 
 function()
    if Wave.State then 
 Gate_on2 = 1
     local _, division, _, _ = r.GetSetProjectGrid(0,false)
         if Grid2_on == 0 then 
+             Grid0_on = 0
              Grid1_on = 0
              Grid2_on = 1
              Grid4_on = 0
@@ -3936,22 +5374,24 @@ Gate_on2 = 1
              Grid16_on = 0
              Grid32_on = 0
              Grid64_on = 0
-    r.GetSetProjectGrid(0, true, 1/triplets, swing_mode, swingamt)
+    r.GetSetProjectGrid(0, true, (2/triplets)*dttd, swing_mode, swingamt)
                else
              Grid2_on = 0
         end
-DrawGridGuides()
+        Wave:DrawGridGuides()
    end 
 end 
 
--- Grid Button 1/4----------------------------
-local Grid4_Btn = Button_top:new(134,5,40,19, 0.3,0.3,0.3,1, "1/4",    "Arial",16 )
-Grid4_Btn.onClick = 
+-- Grid Button 1/2----------------------------
+GrBtnT[3] = Button_top:new(151,5,36,19, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "1/2",    "Arial",16 )
+GrBtnT[14] = Button_top_txt:new(151,5,36,19, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "1/2",    "Arial",16 )
+GrBtnT[3].onClick = 
 function()
    if Wave.State then 
 Gate_on2 = 1
     local _, division, _, _ = r.GetSetProjectGrid(0,false)
         if Grid4_on == 0 then 
+             Grid0_on = 0
              Grid1_on = 0
              Grid2_on = 0
              Grid4_on = 1
@@ -3959,22 +5399,24 @@ Gate_on2 = 1
              Grid16_on = 0
              Grid32_on = 0
              Grid64_on = 0
-    r.GetSetProjectGrid(0, true, 0.5/triplets, swing_mode, swingamt)
+    r.GetSetProjectGrid(0, true, (1/triplets)*dttd, swing_mode, swingamt)
                else
              Grid4_on = 0
         end
-DrawGridGuides()
+        Wave:DrawGridGuides()
    end 
 end 
 
--- Grid Button 1/8----------------------------
-local Grid8_Btn = Button_top:new(176,5,40,19, 0.3,0.3,0.3,1, "1/8",    "Arial",16 )
-Grid8_Btn.onClick = 
+-- Grid Button 1/4----------------------------
+GrBtnT[4] = Button_top:new(190,5,36,19, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "1/4",    "Arial",16 )
+GrBtnT[15] = Button_top_txt:new(190,5,36,19, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "1/4",    "Arial",16 )
+GrBtnT[4].onClick = 
 function()
    if Wave.State then 
 Gate_on2 = 1
     local _, division, _, _ = r.GetSetProjectGrid(0,false)
         if Grid8_on == 0 then 
+             Grid0_on = 0
              Grid1_on = 0
              Grid2_on = 0
              Grid4_on = 0
@@ -3982,22 +5424,24 @@ Gate_on2 = 1
              Grid16_on = 0
              Grid32_on = 0
              Grid64_on = 0
-    r.GetSetProjectGrid(0, true, 0.25/triplets, swing_mode, swingamt)
+    r.GetSetProjectGrid(0, true, (0.5/triplets)*dttd, swing_mode, swingamt)
                else
              Grid8_on = 0
         end
-DrawGridGuides()
+        Wave:DrawGridGuides()
    end 
 end 
 
--- Grid Button 1/16----------------------------
-local Grid16_Btn = Button_top:new(218,5,40,19, 0.3,0.3,0.3,1, "1/16",    "Arial",16 )
-Grid16_Btn.onClick = 
+-- Grid Button 1/8----------------------------
+GrBtnT[5] = Button_top:new(229,5,36,19, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "1/8",    "Arial",16 )
+GrBtnT[16] = Button_top_txt:new(229,5,36,19, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "1/8",    "Arial",16 )
+GrBtnT[5].onClick = 
 function()
    if Wave.State then 
 Gate_on2 = 1
     local _, division, _, _ = r.GetSetProjectGrid(0,false)
         if Grid16_on == 0 then 
+             Grid0_on = 0
              Grid1_on = 0
              Grid2_on = 0
              Grid4_on = 0
@@ -4005,22 +5449,24 @@ Gate_on2 = 1
              Grid16_on = 1
              Grid32_on = 0
              Grid64_on = 0
-    r.GetSetProjectGrid(0, true, 0.125/triplets, swing_mode, swingamt)
+    r.GetSetProjectGrid(0, true,  (0.25/triplets)*dttd, swing_mode, swingamt)
                else
              Grid16_on = 0
         end
-DrawGridGuides()
+        Wave:DrawGridGuides()
    end 
 end 
 
--- Grid Button 1/32----------------------------
-local Grid32_Btn = Button_top:new(260,5,40,19, 0.3,0.3,0.3,1, "1/32",    "Arial",16 )
-Grid32_Btn.onClick = 
+-- Grid Button 1/16----------------------------
+GrBtnT[6] = Button_top:new(268,5,36,19, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "1/16",    "Arial",16 )
+GrBtnT[17] = Button_top_txt:new(268,5,36,19, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "1/16",    "Arial",16 )
+GrBtnT[6].onClick = 
 function()
    if Wave.State then 
 Gate_on2 = 1
     local _, division, _, _ = r.GetSetProjectGrid(0,false)
         if Grid32_on == 0 then 
+             Grid0_on = 0
              Grid1_on = 0
              Grid2_on = 0
              Grid4_on = 0
@@ -4028,22 +5474,24 @@ Gate_on2 = 1
              Grid16_on = 0
              Grid32_on = 1
              Grid64_on = 0
-    r.GetSetProjectGrid(0, true, 0.0625/triplets, swing_mode, swingamt)
+    r.GetSetProjectGrid(0, true, (0.125/triplets)*dttd, swing_mode, swingamt)
                else
              Grid32_on = 0
         end
-DrawGridGuides()
+        Wave:DrawGridGuides()
    end 
 end 
 
--- Grid Button 1/64----------------------------
-local Grid64_Btn = Button_top:new(302,5,40,19, 0.3,0.3,0.3,1, "1/64",    "Arial",16 )
-Grid64_Btn.onClick = 
+-- Grid Button 1/32----------------------------
+GrBtnT[7] = Button_top:new(307,5,36,19, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "1/32",    "Arial",16 )
+GrBtnT[18] = Button_top_txt:new(307,5,36,19, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "1/32",    "Arial",16 )
+GrBtnT[7].onClick = 
 function()
    if Wave.State then 
 Gate_on2 = 1
     local _, division, _, _ = r.GetSetProjectGrid(0,false)
         if Grid64_on == 0 then 
+             Grid0_on = 0
              Grid1_on = 0
              Grid2_on = 0
              Grid4_on = 0
@@ -4051,11 +5499,11 @@ Gate_on2 = 1
              Grid16_on = 0
              Grid32_on = 0
              Grid64_on = 1
-    r.GetSetProjectGrid(0, true, 0.03125/triplets, swing_mode, swingamt)
+    r.GetSetProjectGrid(0, true, (0.0625/triplets)*dttd, swing_mode, swingamt)
                else
              Grid64_on = 0
         end
-DrawGridGuides()
+        Wave:DrawGridGuides()
    end 
 end 
 
@@ -4063,7 +5511,7 @@ end
 -----------------Swing Slider-----------------------------------------------------
 -------------------------------------------------------------------------------------
 
-local Swing_Sld = Sw_Slider:new(443,5,100,20, 0.28,0.4,0.7,0.8, " ","Arial",16, swngdefamt )
+local Swing_Sld = Sw_Slider:new(448,5,100,20, TH[32][1],TH[32][2],TH[32][3],TH[32][4], " ","Arial",16, swngdefamt )
 function Swing_Sld:draw_val()
 
   self.form_val  = ((100- self.norm_val * 200)*( -1))     -- form_val
@@ -4095,20 +5543,23 @@ end
 -------------------------------------------------------------------------------------
 
 -- Create Loop  Button ----------------------------
-local Loop_Btn = Button_top:new(984,5,50,20, 0.3,0.3,0.3,1, "Loop",    "Arial",16 )
+local Loop_Btn = Button_top:new(986,5,48,20, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "Loop",    "Arial",16 )
+local Loop_Btn_Tnt = Button_top_txt:new(986,5,48,20, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "Loop",    "Arial",16 )
 Loop_Btn.onClick = 
 function()
    if Wave.State then 
+        SetLoop = 0
         if Loop_on == 0 then 
-             Loop_on = 1
+                  Loop_on = 1
                else
-             Loop_on = 0
+                  Loop_on = 0
         end
    end 
 end 
 
+--[[
 -- Create Sync Button ----------------------------
-local Sync_Btn = Button_top:new(924,5,50,20, 0.3,0.3,0.3,1, "Sync",    "Arial",16 )
+local Sync_Btn = Button_top:new(924,5,50,20, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "Sync",    "Arial",16 )
 Sync_Btn.onClick = 
 function()
    if Wave.State then 
@@ -4119,9 +5570,10 @@ function()
         end
    end 
 end 
+]]
 
 -- Get Selection button --------------------------
-local Get_Sel_Button = Button:new(20,380+corrY,160,25, 0.3,0.3,0.3,1, "Get Selection",    "Arial",16 )
+local Get_Sel_Button = Button:new(20,380+corrY,160,25, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "Get Selection",    "Arial",16 )
 Get_Sel_Button.onClick = 
 
 function()
@@ -4308,7 +5760,7 @@ getitem()
 
 if Wave.State then
 --      Wave:Reset_All() --Reset item to Init before the "Get Selection"
-      DrawGridGuides()
+      Wave:DrawGridGuides()
 end
 
 ::zzz::
@@ -4317,21 +5769,21 @@ end
 
 
 -- Create Settings Button ----------------------------
-local Settings = Button_Settings:new(9,10,40,40, 0.3, 0.3, 0.3, 1, ">",    "Arial",20 )
+local Settings = Button_Settings:new(9,10,40,40, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "",    "Arial",20 )
 Settings.onClick = 
 function()
    Wave:Settings()
 end 
 
 -- Create Add Markers Button ----------------------------
-local Add_Markers = Button:new(498,380+corrY,67,25, 0.3,0.3,0.3,1, "Markers",    "Arial",16 )
+local Add_Markers = Button:new(498,380+corrY,67,25, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "Markers",    "Arial",16 )
 Add_Markers.onClick = 
 function()
    if Wave.State then Wave:Add_Markers() end 
 end 
 
 -- Create Quantize Markers Button ----------------------------
-local Quantize_Markers = Button:new(567,380+corrY,25,25, 0.3,0.3,0.3,1, "Q",    "Arial",16 )
+local Quantize_Markers = Button:new(567,380+corrY,25,25, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "Q",    "Arial",16 )
 Quantize_Markers.onClick = 
 function()
    if Wave.State then Wave:Quantize_Markers() end 
@@ -4339,7 +5791,7 @@ end
 
 
 -- Reset All Button ----------------------------
-local Reset_All = Button:new(970,445+corrY,55,25, 0.3,0.3,0.3,1, "Reset",    "Arial",16 )
+local Reset_All = Button:new(970,445+corrY,55,25, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "Reset",    "Arial",16 )
 Reset_All.onClick = 
 function()
 r.PreventUIRefresh(1)
@@ -4434,7 +5886,7 @@ end --  for i = 0, tracks-1 do
 r.PreventUIRefresh(-1)
 
 
-local ItemEnvMode = CheckBox_Show:new(970,400+corrY,55,18,  0.28,0.4,0.7,0.8, "Env: ","Arial",16,  1,
+local ItemEnvMode = CheckBox_Show:new(970,400+corrY,55,18,  TH[30][1],TH[30][2],TH[30][3],TH[30][4], "Env: ","Arial",16,  1,
                               { "Volume", "Pan", "Pitch" } )
 ItemEnvMode.onClick = 
 function() 
@@ -4442,7 +5894,7 @@ end
 
 
 -- Gate Button ----------------------------
-local Gate_Btn = Button:new(400,390,94,25, 0.3,0.3,0.3,1, "Shape",    "Arial",16 )
+local Gate_Btn = Button:new(390,390,104,25, TH[27][1],TH[27][2],TH[27][3],TH[27][4], "Shape",    "Arial",16 )
 Gate_Btn.onClick = 
 function()
    if Wave.State then 
@@ -4478,92 +5930,11 @@ local LoopBtn_TB = {Loop_Btn, Sync_Btn, Swing_Btn}
 local Button_TB = {Get_Sel_Button, Settings, Reset_All}
 local Markers_TB = {Add_Markers, Quantize_Markers, QStrength_Sld}
 local Button_TB2 = {Gate_Btn} --Create_MIDI, Midi_Sampler, 
- 
--------------------------------------------------------------------------------------
---- CheckBoxes ---------------------------------------------------------------------
--------------------------------------------------------------------------------------
 
--------------------------
-local VeloMode = CheckBox:new(673,410+corrY,90,18, 0.28,0.4,0.7,0.8, "","Arial",16,  2, -------velodaw
-                              {"Use RMS","Use Peak"} )
-
-VeloMode.onClick = 
-function()
-    Gate_on2 = 1
-end
-
-if NoItems == 0 and WaveCheck == 1 then Guides_mode = Guides_mode else Guides_mode = 2 end --if no items, script starts in Grid mode
-local Guides  = CheckBox:new(400,410+corrY,91,18, 0.28,0.4,0.7,0.8, "","Arial",16,  Guides_mode,
-                              {"Transients","Grid"} )
-
-Guides.onClick = 
-function() 
-   if Wave.State then
-      Wave:Reset_All()
-      DrawGridGuides()
-   end 
-end
-
---------------------------------------------------
--- View Checkboxes -------------------------------
--------------------------
-
-local Floor_State = CheckBox_Red:new(917,430+corrY,45,18, 0.564,0.261,0.221,0.8, "","Arial",16,  1,
-                              {"Flat","Rise","Fall"} )
-Floor_State.onClick = 
-function() 
-MW_doit_slider_Swing()
-end
-
-local AttackTxt = Txt:new(522,384+corrY,55,18, 0.8,0.8,0.8,0.8, "Attack","Arial",22)
-
-local ReleaseTxt = Txt:new(605,384+corrY,55,18, 0.8,0.8,0.8,0.8, "Release","Arial",22)
-
-local VelocityTxt = Txt:new(691,384+corrY,55,18, 0.8,0.8,0.8,0.8, "Velocity","Arial",22)
-
-local ModeTxt = Txt:new(775,384+corrY,55,18, 0.8,0.8,0.8,0.8, "Mode","Arial",22)
-
-local LevelsTxt = Txt:new(850,384+corrY,55,18, 0.8,0.8,0.8,0.8, "Levels","Arial",22)
-
-local ViewMode = CheckBox_Show:new(970,380+corrY,55,18,  0.28,0.4,0.7,0.8, "","Arial",16,  1,
-                              { "View All", "Original", "Filtered" } )
-ViewMode.onClick = 
-function() 
-   if Wave.State then Wave:Redraw() end 
-end
-
-
-
-local EnvMode = CheckBox:new(767,410+corrY,70,18,  0.28,0.4,0.7,0.8, "","Arial",16,  InvOnByDefault,
-                              { "Invert on", "Invert off" } )
-EnvMode.onClick = 
-function() 
-end
-
-local OffBeatP = CheckBox:new(767,430+corrY,70,18,  0.28,0.4,0.7,0.8, "","Arial",16,  2,
-                              { "Shift on", "Shift off" } )
-OffBeatP.onClick = 
-function() 
-DrawGridGuides()
-Gate_on2 = 1
-end
-
-local AttMode = CheckBox_simple:new(498,450+corrY,94,18, 0.419,0.281,0.716,0.8, "","Arial",16,  1,
-                              { "Fixed", "By Velocity", "By Vel Inv."} )
-AttMode.onClick = 
-function() 
-end
-
-local AttSoft = CheckBox_simple:new(498,430+corrY,94,18, 0.419,0.281,0.716,0.8, "","Arial",16,  1,
-                              { "Normal", "Soft"} )
-AttSoft.onClick = 
-function() 
-end
-
------------------------------------
+----------------------------------
 --- CheckBox_TB -------------------
 -----------------------------------
-local CheckBox_TB = {ViewMode, Guides, EnvMode, OffBeatP, AttMode, AttSoft}
+local CheckBox_TB = {ViewMode, Guides, EnvMode, OffBeatP, AttMode, AttSoft, TrackEnv_Chbx}
 local CheckBoxItem_TB = {ItemEnvMode}
 local Slider_TB_Trigger = {Gate_VeloScale, VeloMode, AttackTxt, ReleaseTxt, VelocityTxt, ModeTxt, LevelsTxt}
 
@@ -4571,7 +5942,7 @@ local Slider_TB_Trigger = {Gate_VeloScale, VeloMode, AttackTxt, ReleaseTxt, Velo
 
 local Slider_TB = {HP_Freq,LP_Freq,Fltr_Gain, Gate_Thresh,Gate_Sensitivity,Gate_Retrig,Gate_ReducePoints,Offset_Sld,Project, HBiasSlider, Floor_State}
 
-local Sliders_Grid_TB = {Grid1_Btn, Grid2_Btn, Grid4_Btn, Grid8_Btn, Grid16_Btn, Grid32_Btn, Grid64_Btn, GridT_Btn}
+local Sliders_Grid_TB = {Grid0_Btn, Grid1_Btn, Grid2_Btn, Grid4_Btn, Grid8_Btn, Grid16_Btn, Grid32_Btn, Grid64_Btn, GridT_Btn}
 
 local Slider_Swing_TB = {Swing_Sld}
 
@@ -4752,6 +6123,7 @@ function Gate_Gl:Reduce_Points() -- Надо допилить!!!
        if self.State_Points[i+1][mode]>= reduce_val then
          local p = #self.Res_Points+1
          self.Res_Points[p]   = self.State_Points[i]+(Offset_Sld.form_val/1000*srate)
+         if self.Res_Points[p] < 0 then self.Res_Points[p] = 0 end
          self.Res_Points[p+1] = {self.State_Points[i+1][1], self.State_Points[i+1][2]}
        
         end
@@ -4761,70 +6133,66 @@ function Gate_Gl:Reduce_Points() -- Надо допилить!!!
 ------------------------------View "Grid by" Lines------------------------------
 -------------------------------------------------------------------------------
 
-local Grid_Points_r
+  function Wave:DrawGridGuides()
+-- local start_time = reaper.time_precise()
+  local lastitem = r.GetExtState('_Shaper_', 'ItemToSlice')
+       
+       local item =  r.BR_GetMediaItemByGUID( 0, lastitem )
+                  if item then 
+  
+  ---------------------------SET NEWGRID-------------------------------------
 
-function DrawGridGuides()
+   Grid_Points = {}
+   Grid_Points_r = {}
+  local p = 0
 
-local lastitem = r.GetExtState('_Slicer_', 'ItemToSlice')
-     
-     local item =  r.BR_GetMediaItemByGUID( 0, lastitem )
-                if item then 
+  if loop_start == nil then loop_start = 0 end
+  if loop_end == nil then loop_end = 0 end
+  if srate == nil then return end
+  
+  if OffBeatP.norm_val == 1 then
+     local _, offbeat_division, _, _ = r.GetSetProjectGrid(0,false)
+    if tempo_corr == nil then tempo_corr = 1 end
+    offbeat = offbeat_division*tempo_corr
+      else
+    offbeat = 0
+  end
+  
+  local blueline = loop_start-offbeat 
+     while (blueline <= loop_end) do
+  
+  function beatc(beatpos)
+     local retval, measures, cml, fullbeats, cdenom = r.TimeMap2_timeToBeats(0, beatpos)
+     local _, division, _, _ = r.GetSetProjectGrid(0,false)
+     beatpos = r.TimeMap2_beatsToTime(0, fullbeats +(division*4))
+     return beatpos
+  end
+  blueline = beatc(blueline)
+      
+      p = p + 1
+      Grid_Points[p] = floor(blueline*srate)+(Offset_Sld.form_val/1000*srate)
+              table.insert(Grid_Points, (loop_start*srate)+(Offset_Sld.form_val/1000*srate))           -- First Grid Point
 
----------------------------SET NEWGRID-------------------------------------
+              Grid_Points_r[p] = (((blueline - loop_start)*srate)//1)+(Offset_Sld.form_val/1000*srate)         
+     end 
+  
+  table.sort(Grid_Points)
 
- Grid_Points_r ={}
- Grid_Points = {}
-local p = 0
-local b = 0
-
-if loop_start == nil then loop_start = 0 end
-if loop_end == nil then loop_end = 0 end
-if srate == nil then return end
-
-if OffBeatP.norm_val == 1 then
-   local _, offbeat_division, _, _ = r.GetSetProjectGrid(0,false)
-  if tempo_corr == nil then tempo_corr = 1 end
-  offbeat = offbeat_division*tempo_corr
-    else
-  offbeat = 0
-end
-
-local blueline = loop_start-offbeat 
-   while (blueline <= loop_end) do
-
-function beatc(beatpos)
-   local retval, measures, cml, fullbeats, cdenom = r.TimeMap2_timeToBeats(0, beatpos)
-   local _, division, _, _ = r.GetSetProjectGrid(0,false)
-   beatpos = r.TimeMap2_beatsToTime(0, fullbeats +(division*4))
-   return beatpos
-end
-blueline = beatc(blueline)
-    
-    p = p + 1
-    Grid_Points[p] = floor(blueline*srate)+(Offset_Sld.form_val/1000*srate)
-            table.insert(Grid_Points, (loop_start*srate)+(Offset_Sld.form_val/1000*srate))           -- First Grid Point
-    
-        b = b + 1
-        Grid_Points_r[b] = floor((blueline - loop_start)*srate)+(Offset_Sld.form_val/1000*srate)
-      --      table.insert(Grid_Points_r, ((loop_start-p0sition)*srate)+(Offset_Sld.form_val/1000*srate))           -- First Grid Point Blue Marker
    end 
-
-table.sort(Grid_Points)
-table.sort(Grid_Points_r)
-
- end 
-
-end
+ --  reaper.ShowConsoleMsg("Full Process time = " .. reaper.time_precise()-start_time .. '\n') -- time test 
+  end
 
 -----------------------------------------------------------------------
 ---  Gate - Draw Gate Lines  -------------------------------------------
 -----------------------------------------------------------------------
 function Gate_Gl:draw_Lines()
-  --if not self.Res_Points or #self.Res_Points==0 then return end -- return if no lines
   if not self.Res_Points then return end -- return if no lines
     --------------------------------------------------------
     -- Set values ------------------------------------------
     --------------------------------------------------------
+    TrMrkrHover = 0
+    local sw_shift = 0
+    local velo_y, line_x_mouse_x, line_x
     local mode = VeloMode.norm_val
     local offset = Wave.h * Gate_VeloScale.norm_val
     self.scale = Gate_VeloScale.norm_val2 - Gate_VeloScale.norm_val
@@ -4833,140 +6201,170 @@ function Gate_Gl:draw_Lines()
     self.Xsc = Wave.X_scale * Wave.Zoom * Z_w  -- x scale(regard zoom) for trigg lines
     self.Yop = Wave.y + Wave.h - offset        -- y start wave coord for velo points
     self.Ysc = Wave.h * self.scale             -- y scale for velo points 
+    vel_point_lowest = 30 -- vel point bottom line
+    const = 1.132 -- triangle, vertical position
+
+    triangle_size = 40*((Z_w/10)+(Wave.Zoom/20))
+    if triangle_size > 14 then triangle_size = 14 end
     --------------------------------------------------------
- 
+    mouse_pos_height =  gfx.mouse_y/Z_h 
+    mouse_pos_width =  gfx.mouse_x/Z_w
+
+    mphMin = 355
+    mphMax = 480
+
+    if aMrkrCaptured == 1 then
+      mphMin = 45
+    end
+
  if (Guides.norm_val == 1) then 
-   
+
     -- Draw, capture trig lines ----------------------------
     --------------------------------------------------------
-    gfx.set(0.9, 0.9, 0, 0.7) -- gate line, point color -- цвет маркеров транзиентов
+    gfx.set(TH[13][1],TH[13][2],TH[13][3],TH[13][4]) -- gate line, point color -- цвет маркеров транзиентов
     ----------------------------
    
     for i=1, #self.Res_Points, 2 do
-        local line_x = Wave.x + (self.Res_Points[i] - self.start_smpl) * self.Xsc  -- line x coord
-        local velo_y = self.Yop -  self.Res_Points[i+1][mode] * self.Ysc           -- velo y coord    
-   
-    ------------------------
+        line_x = Wave.x + (self.Res_Points[i] - self.start_smpl) * self.Xsc  -- line x coord
+
+        velo_y = (self.Yop-vel_point_lowest) -  self.Res_Points[i+1][mode] * (self.Ysc-vel_point_lowest)  -- velo y coord   
+        if velo_y <= Wave.y then  velo_y = Wave.y end   
+        if velo_y >= (Wave.y + Wave.h)-vel_point_lowest then  velo_y = (Wave.y + Wave.h)-vel_point_lowest end   
+        ------------------------
         -- draw line, velo -----
         ------------------------
-        if line_x>=Wave.x and line_x<=Wave.x+Wave.w and i<#self.Res_Points-1 then -- Verify line range
-           gfx.line(line_x, Wave.y, line_x, Wave.y+Wave.h-1)  -- Draw Trig Line
-           
-
+        if line_x>=Wave.x and line_x<=Wave.x+Wave.w and i < #self.Res_Points-1 then -- Verify line range. Dont show last marker
+           gfx.line(line_x, Wave.y+2, line_x, Wave.y+Wave.h-1)  -- Draw Trig Line
+           if TH[16] > 0 then
+               grad_w2 = TH[16]*(0.7+Z_w/2)
+               gfx.gradrect((line_x+1)-grad_w2, Wave.y, grad_w2, Wave.h,        TH[13][1],TH[13][2],TH[13][3], 0.0,    0, 0, 0, TH[17] / grad_w2) -- grad back
+               gfx.gradrect(line_x-1, Wave.y, grad_w2, Wave.h,        TH[13][1],TH[13][2],TH[13][3], TH[17],    0, 0, 0, -TH[17] / grad_w2) -- grad ahead
+           end
+           gfx.triangle(line_x+1, Wave.h*const, line_x+1, (Wave.h*const)-triangle_size, line_x+triangle_size+1, Wave.h*const) -- Triangle (Transient Small Flag)
            gfx.circle(line_x, velo_y, 3,1,1)             -- Draw Velocity point
 
-        end
+         end
         
             ------------------------
             -- Get mouse -----------
             ------------------------
-            if not self.cap_ln and abs(line_x-gfx.mouse_x)< (10*Z_w) then -- здесь 10*Z_w - величина окна захвата маркера.
-               if Wave:mouseDown() or Wave:mouseR_Down() then self.cap_ln = i end
+            line_x_mouse_x = line_x-gfx.mouse_x
+            if line_x_mouse_x < 0 then line_x_mouse_x = line_x_mouse_x*-1 end
+
+            grab_corr = 50*((Z_w/10)+(Wave.Zoom/20)) --14*(Z_w/4)
+            if grab_corr >= 15  then grab_corr = 15 end
+            if not self.cap_ln and line_x_mouse_x < (grab_corr) and gfx.mouse_x > (10*Z_w) and i < #self.Res_Points-1  then -- здесь grab_corr - величина окна захвата маркера. Dont show last marker
+                if Wave:mouseDown() or Wave:mouseR_Down() then self.cap_ln = i end
+                   TrMrkrHover = 1
+                   if not Ctrl and mouse_pos_height >= mphMin and mouse_pos_height <= mphMax-100 then  
+                       if TH[14] > 0 then
+                          grad_w = TH[14]*(0.7+Z_w/2) -- selected marker gradient
+                          gfx.gradrect((line_x+1)-grad_w, Wave.y, grad_w, Wave.h,        TH[13][1],TH[13][2],TH[13][3], 0.0,    0, 0, 0, TH[15] / grad_w) -- grad back
+                          gfx.gradrect(line_x-1, Wave.y, grad_w, Wave.h,        TH[13][1],TH[13][2],TH[13][3], TH[15],    0, 0, 0, -TH[15] / grad_w) -- grad ahead
+                        end
+                   end
             end
-        end
-------------------------------------------------------------------------------------------------------------
+       end
 
- else       
+       --------------------------------------------------------
+       -- Operations with captured lines(if exist) ------------
+       --------------------------------------------------------
+       Gate_Gl:manual_Correction()
+       -- Update captured state if mouse released -------------
+       if self.cap_ln and Wave:mouseUp() then self.cap_ln = false  
+       end     
 
-gfx.set(0, 0.7, 0.7, 0.7) -- gate line, point color -- цвет маркеров при отображении сетки
+ else  ------------------------------------------------------------------------------------------------------------     
 
-local Grid_Points_r = Grid_Points_r or {};     
+gfx.set(TH[19][1],TH[19][2],TH[19][3],TH[19][4]) -- grid line, point color -- цвет маркеров при отображении сетки
+
+local Grid_Points = Grid_Points_r or {};     
 local _, division, swingmode, swingamt = r.GetSetProjectGrid(0, 0)
+if division < 0.0078125 then division = 0.0078125 end
 local lnt_corr = (loop_length/tempo_corr)/8
-   for i=1, #Grid_Points_r  do
+if 0.00007 > self.Xsc*division then self.Xsc = 0.00007/division end
 
-         sw_shift = swingamt*(1-abs(division-1))
-         if IsEven(i) == false and swingmode == 1 then 
-         sw_shift = (sw_shift*128*Wave.Zoom*Z_w)/lnt_corr
-         else
-         sw_shift = 0
-         end
+   for i=1, #Grid_Points  do
 
-         if 0.00007 > self.Xsc*division then self.Xsc = 0.00007/division end
-         OffsSldCorrG = 0.5/1000*srate
-         local line_x  = Wave.x+sw_shift + (Grid_Points_r[i] - self.start_smpl+OffsSldCorrG) * self.Xsc  -- line x coord
-
-         --------------------
-         -- draw line 8 -----
-         ----------------------
-       
-         if line_x>=Wave.x and line_x<=Wave.x+Wave.w then -- Verify line range
-            gfx.line(line_x, Wave.y, line_x, Wave.y+Wave.h-1)  -- Draw Trig Line
-         end
-
-          ------------------------
-          -- Get mouse -----------
-          ------------------------
-          if not self.cap_ln and abs(line_x-gfx.mouse_x)<10 then 
-             if Wave:mouseDown() or Wave:mouseR_Down() then self.cap_ln = i end
-          end
-      end  
-end   
-    --------------------------------------------------------
-    -- Operations with captured lines(if exist) ------------
-    --------------------------------------------------------
-    Gate_Gl:manual_Correction()
-    -- Update captured state if mouse released -------------
-    if self.cap_ln and Wave:mouseUp() then self.cap_ln = false  
-    end     
-end
-----------------------------------------------------------------------------------------------------------------------
-
-function Gate_Gl:draw_Ruler()
-  --if not self.Res_Points or #self.Res_Points==0 then return end -- return if no lines
-  if not self.Res_Points then return end -- return if no lines
-    --------------------------------------------------------
-    -- Set values ------------------------------------------
-    --------------------------------------------------------
-    -- Pos, X, Y scale in gfx  ---------
-    self.start_smpl = Wave.Pos/Wave.X_scale    -- Стартовая позиция отрисовки в семплах!
-    self.Xsc = Wave.X_scale * Wave.Zoom * Z_w  -- x scale(regard zoom) for trigg lines
-    --------------------------------------------------------
-  
-    -- Draw Project Grid lines ("Ruler") ----------------------------
--------------------------------------------------------------------------------------------------------------
-
-local Grid_Points_Ruler = Grid_Points_r or {};     
-local _, division, swingmode, swingamt = r.GetSetProjectGrid(0, 0)
-local lnt_corr = (loop_length/tempo_corr)/8
-local ruler_recolor, p_corr = 0, 1
-
- for i=1, #Grid_Points_Ruler  do
-
+   if Swing_on == 1 and swing_slider_amont ~= 0 then
          sw_shift = swingamt*(1-abs(division-1))
          if IsEven(i) == false and swingmode == 1 then 
             sw_shift = (sw_shift*128*Wave.Zoom*Z_w)/lnt_corr
               else
             sw_shift = 0
          end
+    end
+         OffsSldCorrG = 0.5/1000*srate
+         line_x  = Wave.x+sw_shift + (Grid_Points[i] - self.start_smpl+OffsSldCorrG) * self.Xsc  -- line x coord
 
-         if 0.00007 > self.Xsc*division then self.Xsc = 0.00007/division; ruler_recolor = 1 end
-         if OffsSldCorr == nil then OffsSldCorr = Offset_Sld.form_val/1000*srate end
-         local line_x  = Wave.x+sw_shift + (Grid_Points_Ruler[i] - self.start_smpl-OffsSldCorr) * self.Xsc  -- line x coord
-
-         --------------------
-         -- draw line -----
-         ----------------------      
          if line_x>=Wave.x and line_x<=Wave.x+Wave.w then -- Verify line range
+            gfx.line(line_x, Wave.y, line_x, Wave.y+Wave.h-2)  -- Draw Trig Line
+         end
 
-             if ruler_recolor == 0 then
-                 gfx.set(0, 0, 0, 0.8) -- ruler black background
-                 p_corr = 1
-               else
-                 gfx.set(0.1, 1, 0.1, 0.4) -- ruler green background ("grid too small")
-                 p_corr = 2
-             end
+      end  
 
-            gfx.line(line_x-p_corr, (Wave.y*1.17), line_x-p_corr, Wave.y-2+(Wave.h/300))  -- Draw Trig Line Left
-            gfx.line(line_x, (Wave.y*1.18), line_x, Wave.y-2+(Wave.h/300))  -- Draw Trig Line Center
-            gfx.line(line_x+p_corr, (Wave.y*1.17), line_x+p_corr, Wave.y-2+(Wave.h/300))  -- Draw Trig Line Right
+end   
 
-            gfx.set(0.1, 1, 0.1, 1) -- ruler green short line, point color -- цвет линий сетки проекта
-            gfx.line(line_x, (Wave.y*1.17), line_x, Wave.y-1+(Wave.h/300))  -- Draw Trig Line
+end -- function Gate_Gl:draw_Lines()
 
-        end
+function Gate_Gl:draw_Ruler()
+  --------------------------------------------------------
+  -- Set values ------------------------------------------
+  --------------------------------------------------------
+  -- Pos, X, Y scale in gfx  ---------
+  self.start_smpl = Wave.Pos/Wave.X_scale    -- Стартовая позиция отрисовки в семплах!
+  self.Xsc = Wave.X_scale * Wave.Zoom * Z_w  -- x scale(regard zoom) for trigg lines
+  --------------------------------------------------------
 
-   end  
+  -- Draw Project Grid lines ("Ruler") ----------------------------
+-------------------------------------------------------------------------------------------------------------
+local Grid_Points_Ruler = Grid_Points_r or {};     
+local _, division, swingmode, swingamt = r.GetSetProjectGrid(0, 0)
+if division < 0.0078125 then division = 0.0078125 end
+local lnt_corr = (loop_length/tempo_corr)/8
+local ruler_recolor, p_corr, sw_shift = 0, 1, 0
+if 0.00007 > self.Xsc*division then self.Xsc = 0.00007/division; ruler_recolor = 1 end
+local grad_w3, grad_a3
+
+for i=1, #Grid_Points_Ruler  do
+
+ if Swing_on == 1 and swing_slider_amont ~= 0 then
+       sw_shift = swingamt*(1-abs(division-1))
+       if IsEven(i) == false and swingmode == 1 then 
+          sw_shift = (sw_shift*128*Wave.Zoom*Z_w)/lnt_corr
+            else
+          sw_shift = 0
+       end
+  end
+
+       if OffsSldCorr == nil then OffsSldCorr = Offset_Sld.form_val/1000*srate end
+       local line_x  = Wave.x+sw_shift + (Grid_Points_Ruler[i] - self.start_smpl-OffsSldCorr) * self.Xsc  -- line x coord
+
+       --------------------
+       -- draw line -----
+       ----------------------      
+       if line_x>=Wave.x and line_x<=Wave.x+Wave.w then -- Verify line range
+
+
+           if ruler_recolor == 0 then
+               gfx.set(TH[1][1],TH[1][2],TH[1][3],TH[1][4]) -- ruler black background
+               gfx.rect(line_x-1,(Wave.y*1.02), 3, 3+(Wave.h/50), true) -- draw body
+               grad_w3 = TH[10]*(0.7+Z_w/2)
+               grad_a3 = TH[11]
+             else
+                 grad_w3 = 5*(0.7+Z_w/2)
+                 grad_a3 = 0.4
+           end
+
+          gfx.set(TH[9][1], TH[9][2], TH[9][3], TH[9][4]) -- ruler green short line, point color -- цвет линий сетки проекта
+          gfx.line(line_x, (Wave.y*1.17), line_x, Wave.y-1+(Wave.h/300))  -- Draw Trig Line
+            if TH[10] ~= 0 then -- ruler gradient. 0 = off
+               gfx.gradrect((line_x+1)-grad_w3, (Wave.y*1.01), grad_w3, (Wave.h/38),        TH[9][1], TH[9][2], TH[9][3], 0.0,    0, 0, 0, grad_a3 / grad_w3) -- grad back
+               gfx.gradrect(line_x-1, (Wave.y*1.01), grad_w3, (Wave.h/38),        TH[9][1], TH[9][2], TH[9][3], grad_a3,    0, 0, 0, -grad_a3 / grad_w3) -- grad ahead
+            end
+      end
+ end  
+
 end
 
 --------------------------------------------------------------------------------
@@ -4976,41 +6374,57 @@ function Gate_Gl:manual_Correction()
     -- Change Velo, Move, Del Line ---------------
     if self.cap_ln and (Guides.norm_val == 1) then
         -- Change Velo ---------------------------
-        if Ctrl then
-            local curs_x = Wave.x + (self.Res_Points[self.cap_ln] - self.start_smpl) * self.Xsc  -- x coord
-            local curs_y = min(max(gfx.mouse_y, Wave.y), Wave.y+Wave.h)                            -- y coord
-            gfx.set(1, 1, 1, 0.8) -- cursor color -- цвет курсора
-            gfx.line(curs_x-12, curs_y, curs_x+12, curs_y) -- cursor line
-            gfx.line(curs_x, curs_y-12, curs_x, curs_y+12) -- cursor line
-            gfx.circle(curs_x, curs_y, 3, 0, 1)            -- cursor point
-            --------------------
-            local newVelo = (self.Yop - curs_y)/(Wave.h*self.scale) -- velo from mouse y pos
-            newVelo   = min(max(newVelo,0),1)
-            --------------------
-            self.Res_Points[self.cap_ln+1] = {newVelo, newVelo}   -- veloRMS, veloPeak from mouse y
-            Gate_on2 = 1
-        end
-        -- Move Line -----------------------------
-        if Shift then 
-            local curs_x = min(max(gfx.mouse_x, Wave.x), Wave.x + Wave.w) -- x coord
-            local curs_y = min(max(gfx.mouse_y, Wave.y), self.Yop)        -- y coord
-            gfx.set(1, 1, 1, 0.8) -- cursor color -- цвет курсора
-            gfx.line(curs_x-12, curs_y, curs_x+12, curs_y) -- cursor line
-            gfx.line(curs_x, curs_y-12, curs_x, curs_y+12) -- cursor line
-            gfx.circle(curs_x, curs_y, 3, 0, 1)            -- cursor point
-            --------------------
-            self.Res_Points[self.cap_ln] = self.start_smpl + (curs_x-Wave.x) / self.Xsc -- Set New Position
+        if Ctrl and mouse_pos_height < mphMin then
+          local curs_x = Wave.x + (self.Res_Points[self.cap_ln] - self.start_smpl) * self.Xsc  -- x coord
+          local curs_y = min(max(gfx.mouse_y, Wave.y), Wave.y+Wave.h)                            -- y coord
+          gfx.set(1, 1, 1, 0.8) -- cursor color -- цвет курсора
+          gfx.line(curs_x-12, curs_y, curs_x+12, curs_y) -- cursor line
+          gfx.line(curs_x, curs_y-12, curs_x, curs_y+12) -- cursor line
+          gfx.circle(curs_x, curs_y, 3, 0, 1)            -- cursor point
+          --------------------
+          local newVelo = (self.Yop-vel_point_lowest - curs_y)/((Wave.h*self.scale)-vel_point_lowest) -- velo from mouse y pos
+          newVelo   = min(max(newVelo,0),1)
+          --------------Edit Velocity Text---------------
+          true_velocity = ceil(127*(Gate_VeloScale.norm_val+newVelo*self.scale))
+          if true_velocity <= 0 then true_velocity = 1 end
+
+           local fnt_sz = 60
+           if gfx.ext_retina == 1 then
+            fnt_sz = max(10,  fnt_sz* (Z_h)/2)
+            fnt_sz = min(60, fnt_sz* Z_h)
+           else
+            fnt_sz = max(12,  fnt_sz* (Z_h)/2)
+            fnt_sz = min(72, fnt_sz* Z_h)
+           end
+           
+            gfx.setfont(1, "Arial", fnt_sz)
+            gfx.set(TH[1][1],TH[1][2],TH[1][3],TH[1][4]) -- background color
+            gfx.x = curs_x+10
+            gfx.y = Wave.y*1.2
+            gfx.rect(gfx.x,gfx.y,  0.14*gfx.h, 0.07* gfx.h, true)
+            gfx.set(TH[13][1],TH[13][2],TH[13][3],TH[13][4]) -- velocity text color 
+            gfx.drawstr("" .. true_velocity .. "", 1|4, (curs_x+(0.005*gfx.w))+(0.14*gfx.h), (0.19*gfx.h)-10)
+          --------------------
+          self.Res_Points[self.cap_ln+1] = {newVelo, newVelo}   -- veloRMS, veloPeak from mouse y
             Gate_on2 = 1
         end
 
+        -- Move Line -----------------------------
+        if not Ctrl and (mouse_pos_height >= mphMin and mouse_pos_height <= mphMax+10)then 
+          local curs_x = min(max(gfx.mouse_x, Wave.x), Wave.x + Wave.w) -- x coord
+          --------------------
+          self.Res_Points[self.cap_ln] = self.start_smpl + (curs_x-Wave.x) / self.Xsc -- Set New Position
+          Gate_on2 = 1 
+      end
+
         -- Delete Line ---------------------------
         if SButton == 0 and Wave:mouseR_Down() then gfx.x, gfx.y  = mouse_ox, mouse_oy
-            if mouseR_Up_status == 1 and not Wave:mouseDown() then
-               table.remove(self.Res_Points,self.cap_ln) -- Del self.cap_ln - Элементы смещаются влево!
-               table.remove(self.Res_Points,self.cap_ln) -- Поэтому, опять тот же индекс(а не self.cap_ln+1)
-                    mouseR_Up_status = 0
-                    MouseUpX = 1
-                    Gate_on2 = 1
+            if mouseR_Up_status == 1 and not Wave:mouseDown() and self.cap_ln+1 ~= #self.Res_Points then
+                  table.remove(self.Res_Points,self.cap_ln) -- Del self.cap_ln - Элементы смещаются влево!
+                  table.remove(self.Res_Points,self.cap_ln) -- Поэтому, опять тот же индекс(а не self.cap_ln+1)
+                        mouseR_Up_status = 0
+                        MouseUpX = 1
+                        Gate_on2 = 1 
             end
         end       
     end
@@ -5022,16 +6436,27 @@ function Gate_Gl:manual_Correction()
             --------------------
             local newVelo = (self.Yop - mouse_oy)/(Wave.h*self.scale) -- velo from mouse y pos
             newVelo = min(max(newVelo,0),1)
-            --------------------             disabled ---- not working w/o sorting------------
-  --          table.insert(self.Res_Points, line_pos)           -- В конец таблицы
-    --        table.insert(self.Res_Points, {newVelo, newVelo}) -- В конец таблицы
-            --------------------
-            self.cap_ln = #self.Res_Points
+            -------------------- insert marker on specific position------------
+            for i = 1, #self.Res_Points, 2 do
+              local val = self.Res_Points[i]
+              local val2 = self.Res_Points[i+2]
+                if val and val<line_pos and val2 and val2>line_pos then
+                    table.insert(self.Res_Points, i+2, line_pos)
+                    table.insert(self.Res_Points, i+3, {newVelo, newVelo})   
+                  elseif i == 1 and val and line_pos<val then -- if no first point
+                    table.insert(self.Res_Points, 1, line_pos)
+                    table.insert(self.Res_Points, 2, {newVelo, newVelo})
+                end
+          end
+                    self.cap_ln = #self.Res_Points
+                    --------------------
                     mouseR_Up_status = 0
                     MouseUpX = 1
                     Gate_on2 = 1
         end
     end 
+    if self.cap_ln and Wave:mouseDown() and not Ctrl and (mouse_pos_height >= mphMin and mouse_pos_height <= mphMax+10) then aMrkrCaptured = 1 end
+    if Wave:mouseUp() then aMrkrCaptured =  0 end
 end
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -5069,7 +6494,7 @@ local cursorpos = r.GetCursorPosition()
  r.Undo_BeginBlock() 
 r.PreventUIRefresh(1)
    -------------------------------------------
-    lastitem = r.GetExtState('_Slicer_', 'ItemToSlice')
+    lastitem = r.GetExtState('_Shaper_', 'ItemToSlice')
    
     item =  r.BR_GetMediaItemByGUID( 0, lastitem )
                if item then
@@ -5258,9 +6683,9 @@ function Wave:Create_Track_Accessor()
     if item then
     item_to_slice = r.BR_GetMediaItemGUID(item)
    
-       r.DeleteExtState('_Slicer_', 'ItemToSlice', 0)
-       r.SetExtState('_Slicer_', 'ItemToSlice', item_to_slice, 0)
-       r.SetExtState('_Slicer_', 'GetItemState', 'ItemLoaded', 0)
+       r.DeleteExtState('_Shaper_', 'ItemToSlice', 0)
+       r.SetExtState('_Shaper_', 'ItemToSlice', item_to_slice, 0)
+       r.SetExtState('_Shaper_', 'GetItemState', 'ItemLoaded', 0)
       local tk = r.GetActiveTake(item)
       if tk then
 
@@ -5677,7 +7102,7 @@ if startppqp0s >= (self.sel_end-(1/srate))*rateIt then startppqp0s = (self.sel_e
                       move3 = Gx2
                       move2 = min((((i-2)/points_cnt)*(ZeroGain)),Gx2)-FlCmp  -- move up
                       move = min(((i/points_cnt)*(ZeroGain)),Gx2)-FlCmp  -- move up
-                      move2_last = ZeroGain-FlCmp
+                      move2_last = 0-FlCmp
                   end
                end
             elseif Floor_State.norm_val == 3 then -- Fall
@@ -5701,7 +7126,7 @@ if startppqp0s >= (self.sel_end-(1/srate))*rateIt then startppqp0s = (self.sel_e
                       move3 = Gx2
                       move2 = min((Gx2)-(((i-2)/points_cnt)*(ZeroGain)),Gx2) -- move down
                       move = min((Gx2)-((i/points_cnt)*(ZeroGain)),Gx2) -- move down
-                      move2_last = 0-FlCmp
+                      move2_last = ZeroGain-FlCmp
                    end
                end
         end
@@ -5717,32 +7142,44 @@ if startppqp0s >= (self.sel_end-(1/srate))*rateIt then startppqp0s = (self.sel_e
                   if sel_area == 1 then
                      pos_n = (p0sition+(self.sel_start-p0sition))*rateIt
                        else
-                     pos_n = p0sition
+                     pos_n = (p0sition+(self.sel_start-p0sition))*rateIt -- testing -- "p0sition" by default
                   end
           end
 
 
-        if i ==1 and startppqp0s > pos_n+0.004 then -- adaptive first point (gone if too close to start)
+        if i ==1 and startppqp0s > pos_n+PreAttack then -- adaptive first point (gone if too close to start)
            ppqp0s_Status = 1
         end
 
 if  next_startppqp0s3 then -- 
-
+     if  AttSoft.norm_val == 2 then shape2 = shape; tens2 = tens else shape2 = 0; tens2 = 0 end
      if TrackEnv == 1 then
 
              if i<=3 and ppqp0s_Status == 1 then -- first point -- and i > points_cnt-1 and startppqp0s3-PreAttack > (self.sel_start)-0.001*rateIt
-                              r.InsertEnvelopePoint(envelope, max(min((next_startppqp0s3)-(p0sition*rateIt)-PreAttack, posz), posn-OneSpl),  move2, shape, tens, sel, nosort) --pre-attack
+                     --     if AttSoft.norm_val == 1 then
+                              r.InsertEnvelopePoint(envelope, max(min((next_startppqp0s3)-(p0sition*rateIt)-PreAttack, posz), posn-OneSpl),  move2, shape2, tens2, sel, nosort) --pre-attack
+                     --     end
              elseif i>3 and startppqp0s-PreAttack > (self.sel_start)-0.001*rateIt then -- other points
-                              r.InsertEnvelopePoint(envelope, max(min((next_startppqp0s3)-(p0sition*rateIt)-PreAttack, posz), posn-OneSpl),  move2, shape, tens, sel, nosort) --pre-attack
+                              r.InsertEnvelopePoint(envelope, max(min((next_startppqp0s3)-(p0sition*rateIt)-PreAttack, posz), posn-OneSpl),  move2, shape2, tens2, sel, nosort) --pre-attack
              end
 
        else -- item env
 
-             if i<=3 and ppqp0s_Status == 1 then -- first point -- and i > points_cnt-1 and startppqp0s3-PreAttack > (self.sel_start)-0.001*rateIt
-                       --       r.InsertEnvelopePoint(envelope, max(min((next_startppqp0s3)-(p0sition*rateIt)-PreAttack, posz), posn-OneSpl),  move2, shape, tens, sel, nosort) --pre-attack last point
-             elseif i>3 then 
-                              r.InsertEnvelopePoint(envelope, max(min((next_startppqp0s3)-(p0sition*rateIt)-PreAttack, posz), posn-OneSpl),  move2, shape, tens, sel, nosort) --pre-attack
-                      end
+
+            if  i<=3 and ppqp0s_Status == 1 then -- first point -- and i > points_cnt-1 and startppqp0s3-PreAttack > (self.sel_start)-0.001*rateIt
+              --     if  Floor_State.norm_val ~= 1  then
+                        r.InsertEnvelopePoint(envelope, max(min((next_startppqp0s3)-(p0sition*rateIt)-PreAttack, posz), posn),  move2, shape2, tens2, sel, nosort) --pre-attack
+              --    end
+            end        
+
+
+              if ppqp0s_Status == 1 and i == points_cnt-1 then -- first point -- and i > points_cnt-1 and startppqp0s3-PreAttack > (self.sel_start)-0.001*rateIt
+                  --        r.InsertEnvelopePoint(envelope, max(min((next_startppqp0s)-(p0sition*rateIt)-PreAttack-OneSpl, posz), posn),  move, shape2, tens2, sel, nosort) --pre-attack last point
+              end   
+
+             if i>3 and i <= points_cnt-1 then 
+                     r.InsertEnvelopePoint(envelope, max(min((next_startppqp0s3)-(p0sition*rateIt)-PreAttack, posz), posn),  move2, shape2, tens2, sel, nosort) --pre-attack
+             end
 
       end
 
@@ -5755,7 +7192,6 @@ if  next_startppqp0s3 then --
                             vel = (vel-127)*-1 --inverse vel
                             aa = vel/2000*tempo_corr
                          end
-aaa = HBiasSlider
 
                          if  i > 1 then 
                              ax = (startppqp0s/HBiasSlider2)-(next_startppqp0s3/HBiasSlider2)
@@ -5795,13 +7231,13 @@ aaa = HBiasSlider
      if TrackEnv == 1 then
 
                   if i<=2 and startppqp0s > (self.sel_start)-ab*rateIt  and ax then -- 
-                               if CurveVal ~= 1.0 then -- when attack max, attack = halved - pre-attack (rectangle shaped)
+                               if CurveVal ~= 1.0 then -- when shape max, attack = halved - pre-attack (rectangle shaped)
                                     r.InsertEnvelopePoint(envelope, max(min((startppqp0s)-(p0sition*rateIt)+(ab), posz), posn-OneSpl), move3, shape, tens, sel, nosort) --attack
                                   else
                                     r.InsertEnvelopePoint(envelope, max(min((next_startppqp0s3)-(p0sition*rateIt)-(ax)-PreAttack, posz), posn-OneSpl), move3, shape, tens, sel, nosort) --attack
                                end
                   elseif i>2 and i < points_cnt-skip_point_tr then -- other points
-                               if CurveVal ~= 1.0 then -- when attack max, attack = halved - pre-attack (rectangle shaped)
+                               if CurveVal ~= 1.0 then -- when shape max, attack = halved - pre-attack (rectangle shaped)
                                    r.InsertEnvelopePoint(envelope, max(min((startppqp0s)-(p0sition*rateIt)+(ab), posz), posn-OneSpl), move3, shape, tens, sel, nosort) --attack
                                   else
                                     r.InsertEnvelopePoint(envelope, max(min((next_startppqp0s3)-(p0sition*rateIt)-(ax)-PreAttack, posz), posn-OneSpl), move3, shape, tens, sel, nosort) --attack
@@ -5811,12 +7247,12 @@ aaa = HBiasSlider
       else -- item env
 
 
-                               if CurveVal ~= 1.0 then -- when attack max, attack = halved - pre-attack (rectangle shaped)
+                               if CurveVal ~= 1.0 then -- when shape max, attack = halved - pre-attack (rectangle shaped)
                                         if i < points_cnt-1 then -- if not last point
                                               r.InsertEnvelopePoint(envelope, max(min((startppqp0s)-(p0sition*rateIt)+(ab), posz), posn-OneSpl), move3, shape, tens, sel, nosort) --attack
                                         end
                                    else
-                                        if i > 2 then -- if not last point
+                                        if i > 2 then -- if not first point
                                               r.InsertEnvelopePoint(envelope, max(min((next_startppqp0s3)-(p0sition*rateIt)-(ax)-PreAttack, posz), posn-OneSpl), move3, shape, tens, sel, nosort) --attack
                                         end
                                end
@@ -5829,14 +7265,16 @@ aaa = HBiasSlider
          if TrackEnv == 1 then
     
                         if i<=2 and startppqp0s > (self.sel_start)-0.001*rateIt  then -- 
-                                     r.InsertEnvelopePoint(envelope, max(min((startppqp0s)-(p0sition*rateIt), posz), posn-OneSpl), move3, shape, tens, sel, nosort) -- main, transients
+                                     r.InsertEnvelopePoint(envelope, max(min((startppqp0s)-(p0sition*rateIt)+(OneSpl*3), posz), posn-OneSpl), move3, shape, tens, sel, nosort) -- main, transients
                         elseif i>2 and i < points_cnt-1  then -- other points
                                      r.InsertEnvelopePoint(envelope, max(min((startppqp0s)-(p0sition*rateIt), posz), posn-OneSpl), move3, shape, tens, sel, nosort)
                         end
 
           else -- item env
     
-                      if i < points_cnt-1 then -- if not last point
+                      if  i<=2  then -- if not last point
+                                    r.InsertEnvelopePoint(envelope, max(min((startppqp0s)-(p0sition*rateIt)+(OneSpl*3), posz), posn-OneSpl), move3, shape, tens, sel, nosort) -- main, transients
+                      elseif  i>2 and  i < points_cnt-1 then -- if not last point
                                     r.InsertEnvelopePoint(envelope, max(min((startppqp0s)-(p0sition*rateIt), posz), posn-OneSpl), move3, shape, tens, sel, nosort) -- main, transients
                       end
     
@@ -5847,6 +7285,7 @@ aaa = HBiasSlider
 end
 
               end
+
       end
 
     else   -------------------------------- Add Markers by Grid ----------------------------------------------------------------------------
@@ -5883,15 +7322,6 @@ end
           end
 
 
----------Temp testing Del-------------
-local rateIt2
-if rateIt <= 1 then  rateIt2 = 1 else rateIt2 = rateIt end
-                    
-aa1 = (p0sition+(self.sel_end-p0sition))*rateIt2
-aa2 = (p0sition+(l3ngth+self.sel_len))*rateIt2
-
----------------------------------------------
-
 
     local points_cnt2  = #Grid_Points
       for i=1, points_cnt2 do
@@ -5926,8 +7356,6 @@ aaf = (((p0sition+(self.sel_end-p0sition))*rateIt)*tempo_corr3)-OneSpl -- Item E
            if startppqp0s_halved >= aaf then startppqp0s_halved = aaf end
        end
 
-if i==points_cnt2 then aa3 = startppqp0s-OneSpl end
-if i==points_cnt2 then aa4 = startppqp0s_halved-OneSpl end
 -----------------------------------------------
 
         if Floor_State.norm_val == 1 or ItemEnvMode.norm_val == 3 then -- Flat if flat or pitch
@@ -6013,7 +7441,7 @@ end
         skip_point_last = 0 -- 1
      end
      
-              if i<=1 and startppqp0s-PreAttack > ad_tr  then -- first point
+              if i<=1 and (startppqp0s-PreAttack > ad_tr or AttSoft.norm_val ~= 1) then -- first point
             --        if OffBeatP.norm_val == 2 or Guides.norm_val == 1 then 
                             r.InsertEnvelopePoint(envelope, max(min((startppqp0s)-(posx)-(PreAttack/4), (posy)*rateIt), posn),  move2, shape, 0, sel, nosort) --pre attack
               --      end
@@ -6028,9 +7456,9 @@ end
                        skip_point = 0
                     end
 a0 = 0
-                    if sel_area == 1 or (Floor_State.norm_val == 2 or Floor_State.norm_val == 3) then
+                    if (sel_area == 1) or (Floor_State.norm_val == 2 or Floor_State.norm_val == 3) then
 a0 = 1
-                        skip_point2 = 0 -- 1
+                        skip_point2 = 1 -- 1
                           else
                         skip_point2 = 0
 
@@ -6039,8 +7467,8 @@ a0 = 1
 
 
  if bnd_corr and startppqp0s_halved-OneSpl < bnd_corr and (HBiasSlider ~= 1 or CurveVal == 1.0) then
-
-          if i > skip_point and i < points_cnt2 then -- skip first -- and HBiasSlider ~= 1
+          if TrackEnv == 1 then skip_point_last2 = 0 else skip_point_last2 = 1 end -- skip last half_point if items
+          if i > skip_point and i < points_cnt2-skip_point_last2 then -- skip first -- and HBiasSlider ~= 1
                         if IsEven(i) == true then
                               r.InsertEnvelopePoint(envelope, max(min((startppqp0s_halved+HBiasSliderx*rateIt-(HB*tempo_corr2))-(posx), (posy)), posn),  move, shape, tens, sel, nosort) -- adaptive shift -- linear shape (0)
                                      else
@@ -6120,7 +7548,7 @@ a0 = 1
                                              end
          
                                          if i < points_cnt2-skip_point2-skip_point_last and (AttSoft.norm_val == 1 or CurveVal == 1.0) then  
-                                                     r.InsertEnvelopePoint(envelope, max(min((startppqp0s+OneSpl)-(posx), (posy)*rateIt), posn), move3, shape, tens, sel, nosort)
+                                                     r.InsertEnvelopePoint(envelope, max(min((startppqp0s+OneSpl)-(posx)+OneSpl, (posy)*rateIt), posn), move3, shape, tens, sel, nosort) -- points main (grid)
                                          end  -- AttSoft.norm_val  
                                    end
                       end
@@ -6148,11 +7576,11 @@ if StartEndPointsIsOn == 1 then
                posf = (self.sel_start)+OneSpl 
                  else
                    if sel_area == 0 then
-                       posl = ((l3ngth)*rateIt)-(OneSpl*4)
+                       posl = ((l3ngth)*rateIt)-(OneSpl*2)
                        posf = (0)+OneSpl
                         else
-                       posl = ((l3ngth)*rateIt)-(OneSpl*4)
-                       posf = ((self.sel_start-p0sition)*rateIt)+(OneSpl*2)
+                       posl =  (self.sel_end)-(OneSpl*2)                           -- ((l3ngth)*rateIt)-(OneSpl*2)
+                       posf = ((self.sel_start-p0sition)*rateIt)+(OneSpl*1)
                    end
           end
 
@@ -6217,8 +7645,12 @@ a1 = 1
 a2 = 1
                  r.InsertEnvelopePoint(envelope, ((self.sel_start-p0sition)*rateIt)+OneSpl, ZeroGain2, shape, tens, 0, nosort) -- sel_start
     --          if EnvMode.norm_val ~= 1 then
-a3 = 1
+
+           if  Floor_State.norm_val ~= 2 then
+a3 = 1            
                  r.InsertEnvelopePoint(envelope, ((self.sel_end-p0sition)*rateIt)-OneSpl, Gx1, shape, tens, 0, nosort) -- sel_end_pre att
+          end
+
                  r.InsertEnvelopePoint(envelope, ((self.sel_end-p0sition)*rateIt)-OneSpl, ZeroGain2, shape, tens, 0, nosort) -- sel_end
   --            end
          end
@@ -6261,9 +7693,14 @@ a8 = 1
              if Guides.norm_val == 1 then -- adaptive first transient (Transients)
 
                           if Floor_State.norm_val ~= 3 and ItemEnvMode.norm_val ~= 2 and not (EnvName == "Pan" or EnvName == "Pan (Pre-FX)") then  -- if not Fall and not Pan
-                                         if ( ppqp0s_Status == 1) and EnvMode.norm_val == 2 then
-             a9 = 1
+                                         if ( ppqp0s_Status == 1) and EnvMode.norm_val == 2  then
+             a9 = 1                                
+                                                 if AttSoft.norm_val == 1 then
+                                                      r.InsertEnvelopePoint(envelope, posf, Gain, shape, tens, sel, true) --firstest point pre att
+                                                      else
                                                       r.InsertEnvelopePoint(envelope, posf+OneSpl, Gain, shape, tens, sel, true) --firstest point pre att
+                                                 end
+                                                 
                                          elseif  EnvMode.norm_val == 1 then
                                                   if OffBeatP.norm_val == 2 and ItemEnvMode.norm_val ~= 1 then
              a10 = 1
@@ -6288,9 +7725,8 @@ a8 = 1
 
                end ------------------------------
 
- --     if TrackEnv == 1 then
 
-               if (Offset_Sld.form_val > 0.0 and EnvMode.norm_val ~= 2) or Offset_Sld.form_val > 0.0 then -- Offset slider + and invert, first point
+               if EnvMode.norm_val ~= 2 then -- Offset slider + and invert, first point
  a13 = 1
                                     r.InsertEnvelopePoint(envelope, posf+OneSpl+OneSpl, Gx1/PanWidth2, shape, tens, sel, true) --first point -- Gx1/PanWidth2
               end
@@ -6298,20 +7734,22 @@ a8 = 1
                if (Offset_Sld.form_val <= 0.0 and EnvMode.norm_val ~= 1) or Offset_Sld.form_val <= 0.0 then -- Offset slider - and not invert, first point
  a13a = 1
                                     if Guides.norm_val == 1  then 
-
+                                        if AttSoft.norm_val == 2 and EnvMode.norm_val ~= 1 then
+                                              r.InsertEnvelopePoint(envelope, posf+OneSpl+OneSpl, Gx4/PanWidth2, shape, tens, sel, true) --first point -- Gx1/PanWidth2
+                                        end
                                               if EnvMode.norm_val == 1 then
  a14 = 1   
                                                  r.InsertEnvelopePoint(envelope, posf+OneSpl+OneSpl, Gx1/PanWidth2, shape, tens, sel, true) --first point -- Gx1/PanWidth2
                                               end
                                             else
  a14a = 1
-                                         if (ItemEnvMode.norm_val ~= 2 and OffBeatP.norm_val == 2) then
+                                         if (ItemEnvMode.norm_val ~= 2 and OffBeatP.norm_val == 2) and AttSoft.norm_val == 1 then
  a14b = 1
                                              r.InsertEnvelopePoint(envelope, posf+OneSpl+OneSpl, Gx3/PanWidth2, shape, tens, sel, true) --first point -- Gx1/PanWidth2
                                          end
                                     end
                end
-    --  end
+
 
                if Floor_State.norm_val == 3 or Floor_State.norm_val == 1 then -- Fall or Flat
                   FlCmp2 = 0
@@ -6363,7 +7801,7 @@ a19 = 1
                            r.InsertEnvelopePoint(envelope, posf+OneSpl+OneSpl, Gx3/PanWidth2, 0, tens, sel, true) --first point -- Gx1/PanWidth2
                      end
 
-                --     r.InsertEnvelopePoint(envelope, posl-OneSpl, Gx1-FlCmp2, shape, tens, sel, true) --lastest point (Gx3)
+               --      r.InsertEnvelopePoint(envelope, posl-OneSpl, Gx1-FlCmp2, shape, tens, sel, true) --lastest point (Gx3)
 
                      if (EnvName == "Pan" or EnvName == "Pan (Pre-FX)") then
                              --             r.InsertEnvelopePoint(envelope, posl-OneSpl, Gx1/PanWidth2, shape, tens, sel, true) --lastest point (Gx3)
@@ -6371,6 +7809,10 @@ a19 = 1
 
        end
 
+     if Guides.norm_val == 2 and TrackEnv ~= 1 and sel_area == 0 then    
+       r.InsertEnvelopePoint(envelope, posl-OneSpl, Gx1-FlCmp2, shape, tens, sel, true) --lastest point (Gx3)
+     end
+  
 end -- StartEndPointsIsOn
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -6408,10 +7850,10 @@ function Wave:Redraw()
     gfx.setimgdim(1,-1,-1) -- clear buf1(Wave)
     gfx.setimgdim(1,w,h)   -- set gfx buffer w,h
     ---------------
-      if ViewMode.norm_val == 1 then self:draw_waveform(1,  0.12,0.32,0.57,0.95) -- Draw Original(1, r,g,b,a) -- цвет оригинальной и фильтрованной waveform
-                                                  self:draw_waveform(2,  0.75,0.2,0.25,1) -- Draw Filtered(2, r,g,b,a)
-        elseif ViewMode.norm_val == 2 then self:draw_waveform(1,  0.14,0.34,0.59,1) -- Only original 
-        elseif ViewMode.norm_val == 3 then self:draw_waveform(2,  0.7,0.2,0.25,1) -- Only filtered 
+      if ViewMode.norm_val == 1 then self:draw_waveform(1,  TH[7][1],TH[7][2],TH[7][3],TH[7][4]) -- Draw Original(1, r,g,b,a) -- цвет оригинальной и фильтрованной waveform
+                                                  self:draw_waveform(2,  TH[6][1],TH[6][2],TH[6][3],TH[6][4]) -- Draw Filtered(2, r,g,b,a)
+        elseif ViewMode.norm_val == 2 then self:draw_waveform(1, TH[8][1],TH[8][2],TH[8][3],TH[8][4]) -- Only original 
+        elseif ViewMode.norm_val == 3 then self:draw_waveform(2,  TH[6][1],TH[6][2],TH[6][3],TH[6][4]) -- Only filtered 
       end
     ---------------
     gfx.dest = -1          -- set main gfx dest buffer
@@ -6449,10 +7891,17 @@ function Wave:draw_waveform(mode, r,g,b,a)
               peak = Peak_TB[p][2]
               max_peak = max(max_peak, peak)
           end
-        curr = ceil(next)
-        local y, y2 = Y - min_peak *Ysc, Y - max_peak *Ysc 
-        gfx.line(i,y, i,y2) -- здесь всегда x=i
-    end  
+          curr = ceil(next)
+          local y, y2 = Y - min_peak *Ysc, Y - max_peak *Ysc 
+          gfx.set(r,g,b,a)   
+          gfx.line(i,y, i,y2) -- peaks
+  
+          if TH[43] > 0 then
+             gfx.set(r,g,b,TH[43]) 
+             gfx.line(i+1,y-1, i+1,y2+1) -- additional peaks (blur/thickness)
+             gfx.line(i-1,y-1, i-1,y2+1) -- 
+          end
+        end     
     ----------------------------
 end
 
@@ -6521,7 +7970,6 @@ if NoItems == 0 and WaveCheck == 1 then mlt = 1 else mlt = 16 end
     local MaxZoom = 5*self.sel_len
     if MaxZoom > 150 then MaxZoom = 150 end
     self.max_Zoom = MaxZoom -- maximum zoom level(желательно ок.150-200,но зав. от длины выдел.(нужно поправить в созд. пиков!))
-
     self.Zoom = self.Zoom or 1  -- init Zoom 
     self.Pos  = self.Pos  or 0  -- init src position
     -- init Vertical ---------------- 
@@ -6649,54 +8097,63 @@ function Wave:Get_Cursor()
   local insrc_Ecx = (E_Curs - self.sel_start) * srate * self.X_scale    -- cursor in source!
      insrc_Ecx_k = insrc_Ecx
      self.Ecx = (insrc_Ecx - self.Pos) * self.Zoom*Z_w                  -- Edit cursor
-     if self.Ecx >= 0 and self.Ecx <= self.w then gfx.set(0.7,0.8,0.9,1) -- main edit cursor color
-        gfx.line(self.x + self.Ecx, self.y, self.x + self.Ecx, self.y+self.h -1 )
+     if (self.Ecx >= 0 and self.Ecx <= self.w) then gfx.set(TH[20][1],TH[20][2],TH[20][3],TH[20][4]) -- main edit cursor color
+        gfx.line(self.x + self.Ecx, self.y+2, self.x + self.Ecx, self.y+self.h -2 )
      end
-     if self.Ecx >= 0 and self.Ecx <= self.w then gfx.set(1,1,1,1) -- loop edit cursor color 
-        gfx.line(self.x + self.Ecx, self.y/1.5, self.x + self.Ecx, (self.y+self.h)/9.3 )
+     if self.Ecx >= 0 and self.Ecx <= self.w then gfx.set(1,1,1,1)
+             grad_w1 = TH[21]*(0.7+Z_w/2)
+             gfx.gradrect(((self.x+1) + self.Ecx)-grad_w1, self.y, grad_w1, self.h,        TH[20][1],TH[20][2],TH[20][3], 0.0,    0, 0, 0, TH[22] / grad_w1) -- grad back
+             gfx.gradrect((self.x-1) + self.Ecx, self.y, grad_w1, self.h,        TH[20][1],TH[20][2],TH[20][3], TH[22],    0, 0, 0, -TH[22] / grad_w1) -- grad ahead
      end
+
   --- play cursor ---
   if r.GetPlayState()&1 == 1 then local P_Curs = r.GetPlayPosition()
      local insrc_Pcx = (P_Curs - self.sel_start) * srate * self.X_scale -- cursor in source!
      self.Pcx = (insrc_Pcx - self.Pos) * self.Zoom*Z_w                  -- Play cursor
-     if self.Pcx >= 0 and self.Pcx <= self.w then gfx.set(0.5,0.5,1,1) -- play cursor color  -- цвет плэй курсора
+     if self.Pcx >= 0 and self.Pcx <= self.w then gfx.set(TH[23][1],TH[23][2],TH[23][3],TH[23][4]) -- play cursor color  -- цвет плэй курсора
         gfx.line(self.x + self.Pcx, self.y, self.x + self.Pcx, self.y+self.h -1 )
+          if not self:mouseDown() then
+             grad_w2 = TH[24]*(0.7+Z_w/2)
+             gfx.gradrect(((self.x+1) + self.Pcx)-grad_w2, self.y, grad_w2, self.h,        TH[23][1],TH[23][2],TH[23][3], 0.0,    0, 0, 0, TH[25] / grad_w2) -- grad back
+             gfx.gradrect((self.x-1) + self.Pcx, self.y, grad_w2, self.h,        TH[23][1],TH[23][2],TH[23][3], TH[25],    0, 0, 0, -TH[25] / grad_w2) -- grad ahead
+          end
      end
 
---------------------Auto-Scroll------------------------------------------------
-
-if AutoScroll == 1 or PlayMode == 1 then
-         if PlayMode == 0 then -- disable correction when Spacebar to Pause
-               if self.Pcx < 0 then mouseAutScrl_status = 1 end
-               
-               if char==32 and mouseAutScrl_status == 1 then -- cursor focus behavior
-               mouseAutScrl_status = 0
-               local corr = r.GetCursorPosition() - self.sel_start-0.02 --pos_cor
-                     if corr < 0 then corr = 0 end
-                     self.Pos =  (corr) * srate * self.X_scale
-                     self.Pos = max(self.Pos, 0)
-                     self.Pos = min(self.Pos, (self.w - self.w/self.Zoom)/Z_w )
-                     --------------------
-                     Wave:Redraw() -- redraw after move view
+      --------------------Auto-Scroll------------------------------------------------   
+      if AutoScroll == 1 or PlayMode == 1 then
+               if PlayMode == 0 then -- disable correction when Spacebar to Pause
+                     if self.Pcx < 0 then mouseAutScrl_status = 1 end
+                     
+                     if char==32 and mouseAutScrl_status == 1 then -- cursor focus behavior
+                     mouseAutScrl_status = 0
+                     local corr = r.GetCursorPosition() - self.sel_start-0.02 --pos_cor
+                           if corr < 0 then corr = 0 end
+                           self.Pos =  (corr) * srate * self.X_scale
+                           self.Pos = max(self.Pos, 0)
+                           self.Pos = min(self.Pos, (self.w - self.w/self.Zoom)/Z_w )
+                           --------------------
+                           Wave:Redraw() -- redraw after move view
+                     end
                end
-         end
-   if self.Pcx > self.w then 
-      mouseAutScrl_status = 1
-      self.Pos = self.Pos + self.w/(self.Zoom*Z_w)
-      self.Pos = max(self.Pos, 0)
-      self.Pos = min(self.Pos, (self.w - self.w/self.Zoom)/Z_w )
-      Wave:Redraw()
-   end 
-end
-------------------------------------------------------------------------------
+         if self.Pcx > self.w then 
+            mouseAutScrl_status = 1
+            self.Pos = self.Pos + self.w/(self.Zoom*Z_w)
+            self.Pos = max(self.Pos, 0)
+            self.Pos = min(self.Pos, (self.w - self.w/self.Zoom)/Z_w )
+            Wave:Redraw()
+         end 
+      end
+      ------------------------------------------------------------------------------
   end
 end 
 
 --------------------------
 function Wave:Set_Cursor()
-  if SButton == 0 and self:mouseDown() and not(Ctrl or Shift) then  
+  if SButton == 0 and self:mouseDown() and not(Ctrl or Shift) and aMrkrCaptured == 0 then  
     if self.insrc_mx then local New_Pos = self.sel_start + (self.insrc_mx/self.X_scale )/srate
-       r.SetEditCurPos(New_Pos, false, true)    -- true-seekplay(false-no seekplay) 
+       if mouse_pos_height <=mphMin then  
+          r.SetEditCurPos(New_Pos, false, false)    -- true-seekplay(false-no seekplay) 
+       end
     end
   end
 end 
@@ -6706,167 +8163,168 @@ end
 ----------------------------------------------------------------------------------------------------
 function Wave:Get_Mouse()
     -----------------------------
-local true_position = (gfx.mouse_x-self.x)/Z_w  --  waveform borders correction
-local pos_margin = gfx.mouse_x-self.x
-if true_position < 24 then pos_margin = 0 end
-if true_position > 1000 then pos_margin = gfx.mouse_x end
-self.insrc_mx_zoom = self.Pos + (pos_margin)/(self.Zoom*Z_w) -- its current mouse position in source!
-
-if SnapToStart == 1 then
-local true_position = (gfx.mouse_x-self.x)/Z_w  --  cursor snap correction
-local pos_margin = gfx.mouse_x-self.x
-   if true_position < 12 then pos_margin = 0 end
-    self.insrc_mx = self.Pos + (pos_margin)/(self.Zoom*Z_w) 
-else
-    self.insrc_mx = self.Pos + (gfx.mouse_x-self.x)/(self.Zoom*Z_w) -- old behavior
-end
-
-    ----------------------------- 
-    --- Wave get-set Cursors ----
-    self:Get_Cursor()
-    self:Set_Cursor()   
-
-self.insrc_mx_zoom_k = self.Pos + (insrc_Ecx_k-self.x)/(self.Zoom*Z_w) -- its current cursor position in source!
-    -----------------------------------------
-    --- Wave Zoom(horizontal) ---------------
-    if self:mouseIN() and gfx.mouse_wheel~=0 and not(Ctrl or Shift) then 
-DrawGridGuides()
-    local M_Wheel = gfx.mouse_wheel
-      -------------------
-      if     M_Wheel>0 then self.Zoom = min(self.Zoom*1.25, self.max_Zoom)   
-      elseif M_Wheel<0 then self.Zoom = max(self.Zoom*0.75, 1)
-      end                 
-      -- correction Wave Position from src --
-      self.Pos = self.insrc_mx_zoom - (gfx.mouse_x-self.x)/(self.Zoom*Z_w)
-      self.Pos = max(self.Pos, 0)
-      self.Pos = min(self.Pos, (self.w - self.w/self.Zoom)/Z_w )
-self_Zoom = self.Zoom --refresh loop by mw
-      -------------------
-      Wave:Redraw() -- redraw after horizontal zoom
+    local true_position = (gfx.mouse_x-self.x)/Z_w  --  waveform borders correction
+    local pos_margin = gfx.mouse_x-self.x
+    if true_position < 24 then pos_margin = 0 end
+    if true_position > 1000 then pos_margin = gfx.mouse_x end
+    self.insrc_mx_zoom = self.Pos + (pos_margin)/(self.Zoom*Z_w) -- its current mouse position in source!
+    
+    if SnapToStart == 1 then
+    local true_position = (gfx.mouse_x-self.x)/Z_w  --  cursor snap correction
+    local pos_margin = gfx.mouse_x-self.x
+       if true_position < 12 then pos_margin = 0 end
+        self.insrc_mx = self.Pos + (pos_margin)/(self.Zoom*Z_w) 
+    else
+        self.insrc_mx = self.Pos + (gfx.mouse_x-self.x)/(self.Zoom*Z_w) -- old behavior
     end
-    -----------------------------------------
-    --- Wave Zoom(Vertical) -----------------
-    if self:mouseIN() and gfx.mouse_wheel~=0 and (Ctrl or Shift) then 
-    local  M_Wheel = gfx.mouse_wheel
-
-------------------------------------------------------------------------------------------------------
-     if     M_Wheel>0 then self.vertZoom = min(self.vertZoom*1.2, self.max_vertZoom)   
-     elseif M_Wheel<0 then self.vertZoom = max(self.vertZoom*0.8, 1)
-     end                 
-     -------------------
-     Wave:Redraw() -- redraw after vertical zoom
+    
+        ----------------------------- 
+        --- Wave get-set Cursors ----
+        self:Get_Cursor()
+        self:Set_Cursor()   
+    
+    self.insrc_mx_zoom_k = self.Pos + (insrc_Ecx_k-self.x)/(self.Zoom*Z_w) -- its current cursor position in source!
+        -----------------------------------------
+        --- Wave Zoom(horizontal) ---------------
+        if self:mouseIN() and gfx.mouse_wheel~=0 and not(Ctrl or Shift) then 
+    Wave:DrawGridGuides()
+        local M_Wheel = gfx.mouse_wheel
+          -------------------
+          if     M_Wheel>0 then self.Zoom = min(self.Zoom*1.25, self.max_Zoom)   
+          elseif M_Wheel<0 then self.Zoom = max(self.Zoom*0.75, 1)
+          end                 
+          -- correction Wave Position from src --
+          self.Pos = self.insrc_mx_zoom - (gfx.mouse_x-self.x)/(self.Zoom*Z_w)
+          self.Pos = max(self.Pos, 0)
+          self.Pos = min(self.Pos, (self.w - self.w/self.Zoom)/Z_w )
+    self_Zoom = self.Zoom --refresh loop by mw
+          -------------------
+          Wave:Redraw() -- redraw after horizontal zoom
+        end
+        -----------------------------------------
+        --- Wave Zoom(Vertical) -----------------
+        if self:mouseIN() and gfx.mouse_wheel~=0 and (Ctrl or Shift) then 
+        local  M_Wheel = gfx.mouse_wheel
+    
+    ------------------------------------------------------------------------------------------------------
+         if     M_Wheel>0 then self.vertZoom = min(self.vertZoom*1.2, self.max_vertZoom)   
+         elseif M_Wheel<0 then self.vertZoom = max(self.vertZoom*0.8, 1)
+         end                 
+         -------------------
+         Wave:Redraw() -- redraw after vertical zoom
+        end
+        -----------------------------------------
+          Cursor_Status = 0
+        --- Wave Move ---------------------------
+        if (self:mouseDown() or self:mouseM_Down()) and not Shift and not Ctrl and (mouse_pos_height <= mphMin) and aMrkrCaptured == 0 then 
+          Cursor_Status = 1
+          self.Pos = self.Pos + (last_x - gfx.mouse_x)/(self.Zoom*Z_w)
+          self.Pos = max(self.Pos, 0)
+          self.Pos = min(self.Pos, (self.w - self.w/self.Zoom)/Z_w )
+          --------------------
+    self_Zoom = self.Zoom --refresh loop by mw middle click
+          self_Pos = self.Pos
+          Wave:Redraw() -- redraw after move view
+        end
+    
+    if Cursor_Status == 1 and (last_x - gfx.mouse_x) ~= 0.0 then -- set and delay new cursor
+    
+            time_start = reaper.time_precise()       
+            local function Main()     
+                local elapsed = reaper.time_precise() - time_start       
+                if elapsed >= 0.17 then
+                  gfx.setcursor(32512)  --set "arrow" cursor
+                  Drag = 0 -- snap area condition
+                  runcheck = 0
+                    return
+                else
+                  gfx.setcursor(32644, 1) --set "hand" cursor
+                  Drag = 1 -- snap area condition
+                  runcheck = 1
+                    reaper.defer(Main)
+                end           
+            end
+            
+            if runcheck ~= 1 then
+               Main()
+            end
+    
     end
-    -----------------------------------------
-      Cursor_Status = 0
-    --- Wave Move ---------------------------
-    if (self:mouseDown() or self:mouseM_Down()) and not Shift and not Ctrl then 
-      Cursor_Status = 1
-      self.Pos = self.Pos + (last_x - gfx.mouse_x)/(self.Zoom*Z_w)
-      self.Pos = max(self.Pos, 0)
-      self.Pos = min(self.Pos, (self.w - self.w/self.Zoom)/Z_w )
-      --------------------
-self_Zoom = self.Zoom --refresh loop by mw middle click
-      self_Pos = self.Pos
-      Wave:Redraw() -- redraw after move view
-    end
-
-
-if Cursor_Status == 1 and (last_x - gfx.mouse_x) ~= 0.0 then -- set and delay new cursor
-
-        time_start = reaper.time_precise()       
-        local function Main()     
-            local elapsed = reaper.time_precise() - time_start       
-            if elapsed >= 0.1 then
-              gfx.setcursor(32512)  --set "arrow" cursor
-              runcheck = 0
-                return
-            else
-              gfx.setcursor(429, 1) --set "hand" cursor
-              runcheck = 1
-                reaper.defer(Main)
-            end           
+    
+         MouseAct = 0
+         if ((last_x - gfx.mouse_x) ~= 0.0) and (self:mouseDown() or self:mouseM_Down()) then MouseAct = 1 end
+    
+         if Sync_on == 1 and ((self:mouseIN() and gfx.mouse_wheel ~= 0) or MouseAct == 1) then -- sync_on by mousewheel only
+         
+                 time_startx = reaper.time_precise()       
+          local  function Mainx()     
+                     local elapsedx = reaper.time_precise() - time_startx      
+                     if elapsedx >= 0.2 then
+                       Sync_on2 = 0
+                       runcheckx = 0
+                         return
+                     else
+                      Sync_on2 = 1
+                       runcheckx = 1
+                         reaper.defer(Mainx)
+                     end           
+                 end
+                 
+                 if runcheckx ~= 1 then
+                    Mainx()
+                 end
+         end
+    
+        --------------------------------------------
+        --- Reset Zoom by Middle Mouse Button------
+        if Ctrl and self:mouseM_Down() then 
+          self.Pos = 0
+          self.Zoom = 1   
+          Wave:Redraw() -- redraw after zoom reset
+          --------------------
         end
-        
-        if runcheck ~= 1 then
-           Main()
-        end
-
-end
-
-MouseAct = 0
-if ((last_x - gfx.mouse_x) ~= 0.0) and (self:mouseDown() or self:mouseM_Down()) then MouseAct = 1 end
-
-if Sync_on == 1 and ((self:mouseIN() and gfx.mouse_wheel ~= 0) or MouseAct == 1) then -- sync_on by mousewheel only
-
-        time_startx = reaper.time_precise()       
- local  function Mainx()     
-            local elapsedx = reaper.time_precise() - time_startx      
-            if elapsedx >= 0.2 then
-              Sync_on2 = 0
-              runcheckx = 0
-                return
-            else
-             Sync_on2 = 1
-              runcheckx = 1
-                reaper.defer(Mainx)
-            end           
-        end
-        
-        if runcheckx ~= 1 then
-           Mainx()
-        end
-end
-
-    --------------------------------------------
-    --- Reset Zoom by Middle Mouse Button------
-    if Ctrl and self:mouseM_Down() then 
-      self.Pos = 0
-      self.Zoom = 1   
-      Wave:Redraw() -- redraw after zoom reset
-      --------------------
-    end
-
-              -- loop correction for rng1 and rng2--
-      self.Pos3 = self.Pos + (last_x - gfx.mouse_x)/(self.Zoom*Z_w)
-      self.Pos3 = max(self.Pos, 0)
-      self.Pos3 = min(self.Pos, (self.w - self.w/self.Zoom)/Z_w )
-      shift_Pos = self.Pos3
-
-     --------------------------------------------------------------------------------
-     -- Zoom by Arrow Keys
-     --------------------------------------------------------------------------------
-local KeyUP, KeyDWN, KeyL, KeyR
-
-    if char==30064 then KeyUP = 1 else KeyUP = 0 end -- up
-    if char==1685026670 then KeyDWN = 1 else KeyDWN = 0 end -- down
-    if char==1818584692 then KeyL = 1 else KeyL = 0 end -- left
-    if char==1919379572 then KeyR = 1 else KeyR = 0 end -- right
-
--------------------------------horizontal----------------------------------------
-     if  KeyR == 1 then self.Zoom = min(self.Zoom*1.2, self.max_vertZoom+138)   
-
-      self.Pos = self.insrc_mx_zoom_k - (insrc_Ecx_k-(self.x*1.2))/(self.Zoom*Z_w)
-      self.Pos = max(self.Pos, 0)
-      self.Pos = min(self.Pos, (self.w - self.w/self.Zoom)/Z_w )
-
-     Wave:Redraw() -- redraw after horizontal zoom
-        
-     elseif  KeyL == 1 then self.Zoom = max(self.Zoom*0.8, 1)
-
-      self.Pos = self.insrc_mx_zoom_k - (insrc_Ecx_k-(self.x*0.8))/(self.Zoom*Z_w)
-      self.Pos = max(self.Pos, 0)
-      self.Pos = min(self.Pos, (self.w - self.w/self.Zoom)/Z_w )
-
-     Wave:Redraw() -- redraw after horizontal zoom
-     end   
-
--------------------------------vertical-------------------------------------------
-     if  KeyUP == 1 then self.vertZoom = min(self.vertZoom*1.2, self.max_vertZoom)   
-     Wave:Redraw() -- redraw after vertical zoom
-
-     elseif  KeyDWN == 1 then self.vertZoom = max(self.vertZoom*0.8, 1)
-     Wave:Redraw() -- redraw after vertical zoom
-     end   
+    
+                  -- loop correction for rng1 and rng2--
+          self.Pos3 = self.Pos + (last_x - gfx.mouse_x)/(self.Zoom*Z_w)
+          self.Pos3 = max(self.Pos, 0)
+          self.Pos3 = min(self.Pos, (self.w - self.w/self.Zoom)/Z_w )
+          shift_Pos = self.Pos3
+    
+         --------------------------------------------------------------------------------
+         -- Zoom by Arrow Keys
+         --------------------------------------------------------------------------------
+    local KeyUP, KeyDWN, KeyL, KeyR
+    
+        if char==30064 then KeyUP = 1 else KeyUP = 0 end -- up
+        if char==1685026670 then KeyDWN = 1 else KeyDWN = 0 end -- down
+        if char==1818584692 then KeyL = 1 else KeyL = 0 end -- left
+        if char==1919379572 then KeyR = 1 else KeyR = 0 end -- right
+    
+    -------------------------------horizontal----------------------------------------
+         if  KeyR == 1 then self.Zoom = min(self.Zoom*1.2, self.max_vertZoom+138)   
+    
+          self.Pos = self.insrc_mx_zoom_k - (insrc_Ecx_k-(self.x*1.2))/(self.Zoom*Z_w)
+          self.Pos = max(self.Pos, 0)
+          self.Pos = min(self.Pos, (self.w - self.w/self.Zoom)/Z_w )
+    
+         Wave:Redraw() -- redraw after horizontal zoom
+            
+         elseif  KeyL == 1 then self.Zoom = max(self.Zoom*0.8, 1)
+    
+          self.Pos = self.insrc_mx_zoom_k - (insrc_Ecx_k-(self.x*0.8))/(self.Zoom*Z_w)
+          self.Pos = max(self.Pos, 0)
+          self.Pos = min(self.Pos, (self.w - self.w/self.Zoom)/Z_w )
+    
+         Wave:Redraw() -- redraw after horizontal zoom
+         end   
+    
+    -------------------------------vertical-------------------------------------------
+         if  KeyUP == 1 then self.vertZoom = min(self.vertZoom*1.2, self.max_vertZoom)   
+         Wave:Redraw() -- redraw after vertical zoom
+    
+         elseif  KeyDWN == 1 then self.vertZoom = max(self.vertZoom*0.8, 1)
+         Wave:Redraw() -- redraw after vertical zoom
+         end   
 
 end
 
@@ -6878,46 +8336,73 @@ function Wave:from_gfxBuffer()
   if not Z_w or not Z_h then return end -- return if zoom not defined
   self.x, self.w = (self.def_xywh[1]* Z_w) , (self.def_xywh[3]* Z_w) -- upd x,w
   self.y, self.h = (self.def_xywh[2]* Z_h) , (self.def_xywh[4]* Z_h) -- upd y,h
---[[
-  if self.fnt_sz then --fix it!--
-     self.fnt_sz = max(16,self.def_xywh[5]* (Z_w+Z_h)/1.9)
-     self.fnt_sz = min(22,self.fnt_sz* Z_h)
-  end 
-]]--
+
   -- draw Wave frame, axis -------------
   self:draw_rect()
-
+  self:draw_frame_waveform()
    -- Insert Wave from gfx buffer1 ------
   gfx.a = 1 -- gfx.a for blit
   local srcw, srch = Wave.def_xywh[3], Wave.def_xywh[4] -- its always def values 
     if WFiltering == 0 then gfx.mode = 4 end
   gfx.blit(1, 1, 0, 0, 0, srcw, srch,  self.x, self.y, self.w, self.h)
 
+  Gate_Gl:draw_Lines()  -- Draw Gate trig-lines
+
   -- Get Mouse -------------------------
   self:Get_Mouse()     -- get mouse(for zoom, move etc) 
 end  
+
+function Wave:CursorTop()
+       if self.sel_start ~= nil and Wave.State then
+           local insrc_Ecx3 = (r.GetCursorPosition() - self.sel_start) * srate * self.X_scale    -- cursor in source!
+           self.Ecx3 = (insrc_Ecx3 - self.Pos) * self.Zoom*Z_w                  -- Edit cursor
+           if self.Ecx3 >= 0 and self.Ecx3 <= self.w then gfx.set(0.9,0.9,0.9,0.7) -- loop edit cursor color 
+              gfx.line(self.x + self.Ecx3, self.y/1.5, self.x + self.Ecx3, (self.y+self.h)/9.3 )
+           end
+       
+           if r.GetPlayState()&1 == 1 then
+                local insrc_Pcx2 = (r.GetPlayPosition() - self.sel_start) * srate * self.X_scale -- cursor in source!
+                self.Pcx2 = (insrc_Pcx2 - self.Pos) * self.Zoom*Z_w                  -- Play cursor
+                if self.Pcx2 >= 0 and self.Pcx2 <= self.w then gfx.set(0.9,0.9,0.9,0.4) -- play cursor color  -- цвет плэй курсора
+                       gfx.line(self.x + self.Pcx2, self.y/1.5, self.x + self.Pcx2, (self.y+self.h)/9.3 )
+                end
+           end
+       end
+  end
+  
+  function Wave:ForegroundBorders()
+    if not Z_w or not Z_h then return end -- return if zoom not defined
+    self.x, self.w = (self.def_xywh[1]* Z_w) , (self.def_xywh[3]* Z_w) -- upd x,w
+    self.y, self.h = (self.def_xywh[2]* Z_h) , (self.def_xywh[4]* Z_h) -- upd y,h
+  --------------left and right borders-----------------------------------
+      gfx.set(TH[3][1],TH[3][2],TH[3][3],1)
+      gfx.rect(0, self.y,self.x, self.h,true) -- left
+  
+      gfx.set(TH[3][1],TH[3][2],TH[3][3],1)
+      gfx.rect(self.x+1024*Z_w, self.y,self.x+2, self.h+2,true) -- right
+  end
 
 --------------------------------------------------------------------------------
 ---  Wave - show_help, info ----------------------------------------------------
 --------------------------------------------------------------------------------
 function Wave:show_help()
- local fnt_sz = 15
-if gfx.ext_retina == 1 then
- fnt_sz = max(14,  fnt_sz* (Z_h)/2)
- fnt_sz = min(20, fnt_sz* Z_h)
-else
- fnt_sz = max(17,  fnt_sz* (Z_h)/2)
- fnt_sz = min(24, fnt_sz* Z_h)
-end
-
- gfx.setfont(1, "Arial", fnt_sz)
- gfx.set(0.6, 0.6, 0.6, 1) -- цвет текста инфо
- local ZH_correction = Z_h*40
- gfx.x, gfx.y = self.x+23 * (Z_w+Z_h)-ZH_correction, (self.y+1*(Z_h*3))-15
+  local fnt_sz = 15
+  if gfx.ext_retina == 1 then
+   fnt_sz = max(14,  fnt_sz* (Z_h)/2)
+   fnt_sz = min(20, fnt_sz* Z_h)
+  else
+   fnt_sz = max(17,  fnt_sz* (Z_h)/2)
+   fnt_sz = min(24, fnt_sz* Z_h)
+  end
+  
+   gfx.setfont(1, "Arial", fnt_sz)
+   gfx.set(TH[33][1], TH[33][2], TH[33][3], TH[33][4]) -- цвет текста инфо
+   local ZH_correction = Z_h*40
+   gfx.x, gfx.y = self.x+23 * (Z_w+Z_h)-ZH_correction, (self.y+1*(Z_h*3))-15
  gfx.drawstr(
   [[
-    Select an item (max 300s).
-    It is better not to use items longer than 60s.
+    Select an item or area (max 300sec).
+    It is better to use items shorter than 60sec.
     Press "Get Selection" button.
     Use sliders to change detection setting.
     Shift+Drag/Mousewheel - fine tune,
@@ -6928,11 +8413,10 @@ end
     On Waveform Area:
     Mouswheel or Left/Right keys - Horizontal Zoom,
     Ctrl(Shift)+Mouswheel or Up/Down keys - Vertical Zoom, 
-    Middle Drag - Move View (Scroll),
+    Left or Middle Drag - Move View (Horizontal Scroll),
     Left Click - Set Edit Cursor,
-    Shift+Left Drag - Move Marker,
+    Left Drag Small Flag - Move Marker,
     Ctrl+Left Drag - Change Velocity,
-    Shift+Ctrl+Left Drag - Move Marker and Change Velocity,
     Right Click on Marker - Delete Marker,
     Right Click on Empty Space - Insert Marker.
   ]]) 
@@ -7043,6 +8527,81 @@ end
 ---   MAIN   ---------------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------------------------
 function MAIN()
+local  divisionx = division
+
+if TrackEnv_Chbx.norm_val == 1 then
+    TrackEnv = 1
+  elseif TrackEnv_Chbx.norm_val == 2 then 
+    TrackEnv = 0
+end
+
+  local Frame_Sync_TB = {leds_table[5]}
+  local Frame_Sync_TB2 = {leds_table[6]}
+  local Frame_Loop_TB = {leds_table[3]}
+  local Frame_Loop_TB2 = {leds_table[4], others_table[7]}
+
+  local Frame_Tint_Loop_TB = {leds_table[7]}
+
+  local Frame_TB = {elm_table[1], elm_table[2], elm_table[3], elm_table[21]} 
+  local FrameR_TB = {others_table[5], others_table[6], others_table[8], others_table[9], others_table[10], others_table[11], others_table[12], others_table[13], others_table[14], others_table[15]}
+  local FrameQR_Link_TB = {others_table[3],others_table[4]}
+  local Frame_TB1 = {leds_table[2]}
+  local Frame_TB2 = {elm_table[5], leds_table[1]} -- Grid mode
+  local Frame_TB2_Trigg = {elm_table[4]}
+  local StatusBar_Bck_TB = {elm_table[32]}
+  
+  local Grid0_Led_TB = {elm_table[19]}
+  local Grid1_Led_TB = {elm_table[8]}
+  local Grid2_Led_TB = {elm_table[9]}
+  local Grid4_Led_TB = {elm_table[10]}
+  local Grid8_Led_TB = {elm_table[11]}
+  local Grid16_Led_TB = {elm_table[12]}
+  local Grid32_Led_TB = {elm_table[13]}
+  local Grid64_Led_TB = {elm_table[14]}
+  local GridT_Led_TB = {elm_table[15]}
+  local Swing_Led_TB = {elm_table[16]}
+  local GridD_Led_TB = {elm_table[20]}
+  
+  local Grid0_Tint_Led_TB = {elm_table[31]}
+  local Grid1_Tint_Led_TB = {elm_table[22]}
+  local Grid2_Tint_Led_TB = {elm_table[23]}
+  local Grid4_Tint_Led_TB = {elm_table[24]}
+  local Grid8_Tint_Led_TB = {elm_table[25]}
+  local Grid16_Tint_Led_TB = {elm_table[26]}
+  local Grid32_Tint_Led_TB = {elm_table[27]}
+  local Grid64_Tint_Led_TB = {elm_table[28]}
+  local GridT_Tint_Led_TB = {elm_table[29]}
+  local Swing_Tint_Led_TB = {elm_table[30]}
+  local GridD_Tint_Led_TB = {elm_table[33]}
+
+  local Triangle_TB = {others_table[1]}
+  local RandText_TB = {others_table[2]}
+  
+  local InvertEnvOn_TB = {} --leds_table[21]
+  local InvertEnvOff_TB = {} --leds_table[22]
+  
+  local Transient_Fill_TB = {elm_table[17]}
+  local Grid_Fill_TB = {elm_table[18]}
+
+local LoopBtn_TB = {Loop_Btn, Aim_Btn, Snap_Btn, GrBtnT[9]}
+local Btn_Txt_TB2 = {Loop_Btn_Tnt, Aim_Btn_Tnt, Snap_Btn_Txt, Snap_Btn_Tnt}
+
+  local Sliders_Grid_TB = {GrBtnT[21],GrBtnT[19], GrBtnT[1], GrBtnT[2], GrBtnT[3], GrBtnT[4], GrBtnT[5], GrBtnT[6], GrBtnT[7], GrBtnT[8]}
+  local Btn_Txt_TB = {GrBtnT[22],GrBtnT[20],GrBtnT[10],GrBtnT[11],GrBtnT[12],GrBtnT[13],GrBtnT[14],GrBtnT[15],GrBtnT[16],GrBtnT[17],GrBtnT[18]}
+
+  function CheckBox:draw_tint()
+    if TH[47] ~= 0 then
+           if Guides and (Guides.norm_val == 1) then 
+                gfx.set(0.7,0.7,0.0,TH[47]) -- Frame_byGrid2 (Yellow indicator)
+                  else
+                gfx.set(0.1,0.7,0.6,TH[47] ) -- Frame_byGrid (Blue indicator)
+            end
+        else
+           gfx.set(0,0,0,0 )
+        end
+    gfx.rect(self.x+1,self.y+1,self.w-2,self.h-2, true) -- draw checkbox body
+end
+
 
 if Gate_on == 1 and Gate_on2 == 1 then 
         time_startf = reaper.time_precise()       
@@ -7078,7 +8637,7 @@ if Gate_on3 == 1 then
         r.Undo_EndBlock("Slicer/Shaper: Create Envelope", -1) 
         Undo_Permit = 0
     end
-
+    Gate_on2 = 0
 end
 
 
@@ -7086,45 +8645,76 @@ end
   -- Draw Wave, lines etc ------
     if Wave.State then      
           Wave:from_gfxBuffer() -- Wave from gfx buffer
-          Gate_Gl:draw_Lines()  -- Draw Gate trig-lines
+
          if ShowRuler == 1 then
                Gate_Gl:draw_Ruler() -- Draw Ruler lines
          end
 
+         for key,btn    in pairs(StatusBar_Bck_TB)   do btn:draw()    end -- Status Bar Background
 
-        local _, division, swing, _ = r.GetSetProjectGrid(0,false)
+         Trplts  =  reaper.GetToggleCommandStateEx(0, reaper.NamedCommandLookup('_SWS_AWTOGGLETRIPLET'))
+         Dttd =   reaper.GetToggleCommandStateEx(0, reaper.NamedCommandLookup('_SWS_AWTOGGLEDOTTED'))
+
+        _, division, swing, _ = r.GetSetProjectGrid(0,false)
+        if divisionx ~= division then Wave:DrawGridGuides() end
+         ------------------------------------MouseWheelOverTheButtons---------------------------------------
+                if gfx.mouse_wheel ~= 0 and (mouse_pos_height >= 5 and mouse_pos_height <= 25 and mouse_pos_width >= 50 and  mouse_pos_width <= 342) then  
+                    if gfx.mouse_wheel < 0 then 
+                          _, division, swing, _ = r.GetSetProjectGrid(0,false)
+                         division = division*2 
+                        if division >= (8/triplets)*dttd then division = (8/triplets)*dttd end
+                         r.GetSetProjectGrid(0,true,division, swing)
+                    end
+                    if gfx.mouse_wheel > 0 then 
+                         _, division, swing, _ = r.GetSetProjectGrid(0,false)
+                        division = division/2 
+                        if division <= (0.0625/triplets)*dttd then division = (0.0625/triplets)*dttd end
+                        r.GetSetProjectGrid(0,true,division, swing)
+                    end
+                    if Guides.norm_val == 2 then Gate_on2 = 1 end         
+                    Wave:DrawGridGuides()
+                end
+         --------------------------------------------------------------------------------------------------------
+
+         if division < 0.0078125 then division = 0.0078125 end --128th
 -----------------------------Grid Buttons Leds-------------------------------------------------------
-        if division == 1 or division == 2/3 then
+        if division == 4 or division == 8/3 or division == 4*1.5 then
+                 for key,frame  in pairs(Grid0_Led_TB)    do frame:draw()  end  
+        Grid0_on = 0
+        end
+        if division == 2 or division == 4/3 or division == 2*1.5 then
                  for key,frame  in pairs(Grid1_Led_TB)    do frame:draw()  end  
         Grid1_on = 0
         end
-        if division == 0.5 or division == 1/3 then
+        if division == 1 or division == 2/3 or division == 1*1.5 then
                  for key,frame  in pairs(Grid2_Led_TB)    do frame:draw()  end  
         Grid2_on = 0
         end
-        if division == 0.25 or division == 0.5/3 then
+        if division == 0.5 or division == 1/3 or division == 0.5*1.5 then
                  for key,frame  in pairs(Grid4_Led_TB)    do frame:draw()  end  
         Grid4_on = 0
         end
-        if division == 0.125 or division == 0.25/3 then
+        if division == 0.25 or division == 0.5/3 or division == 0.25*1.5 then
                  for key,frame  in pairs(Grid8_Led_TB)    do frame:draw()  end  
         Grid8_on = 0
         end
-        if division == 0.0625 or division == 0.125/3 then
+        if division == 0.125 or division == 0.25/3 or division == 0.125*1.5 then
                  for key,frame  in pairs(Grid16_Led_TB)    do frame:draw()  end  
         Grid16_on = 0
         end
-        if division == 0.03125 or division == 0.0625/3 then
+        if division == 0.0625 or division == 0.125/3 or division == 0.0625*1.5 then
                  for key,frame  in pairs(Grid32_Led_TB)    do frame:draw()  end 
         Grid32_on = 0 
         end
-        if division == 0.015625 or division == 0.03125/3 then
+        if division == 0.03125 or division == 0.0625/3 or division == 0.03125*1.5 then
                  for key,frame  in pairs(Grid64_Led_TB)    do frame:draw()  end  
         Grid64_on = 0
         end
-           if ((floor(1/division+.5)) % 3) == 0 then Trplts = true else Trplts = false end;
-        if GridT_on == 1 or Trplts == true then
+        if (GridT_on == 1 or Trplts == 1)  then
                  for key,frame  in pairs(GridT_Led_TB)    do frame:draw()  end  
+        end
+        if (GridD_on == 1 or Dttd == 1) then
+          for key,frame  in pairs(GridD_Led_TB)    do frame:draw()  end  
         end
         if Swing_on == 1 then
                  for key,frame  in pairs(Swing_Led_TB)    do frame:draw()  end  
@@ -7139,9 +8729,9 @@ end
           end
 
            if Sync_on == 1 then
-              for key,btn    in pairs(Frame_Sync_TB)   do btn:draw()    end 
+        --      for key,btn    in pairs(Frame_Sync_TB)   do btn:draw()    end 
               else
-              for key,btn    in pairs(Frame_Sync_TB2)   do btn:draw()    end 
+        --      for key,btn    in pairs(Frame_Sync_TB2)   do btn:draw()    end 
           end
 
           if Loop_on == 1 then
@@ -7175,6 +8765,70 @@ end
        for key,sldr   in pairs(Slider_TB_Trigger)   do sldr:draw()   end
 
 
+
+
+   if Wave.State then  
+       -------------------------------------------------------------------------------------------------------
+       
+               if division < 0.0078125 then division = 0.0078125 end --128th
+       -----------------------------Grid Buttons Leds-------------------------------------------------------
+                if division == 4 or division == 8/3 or division == 4*1.5 then
+                        for key,frame  in pairs(Grid0_Tint_Led_TB)    do frame:draw()  end  
+                Grid0_on = 0
+                end
+               if division == 2 or division == 4/3 or division == 2*1.5 then
+                        for key,frame  in pairs(Grid1_Tint_Led_TB)    do frame:draw()  end  
+               Grid1_on = 0
+               end
+               if division == 1 or division == 2/3 or division == 1*1.5 then
+                        for key,frame  in pairs(Grid2_Tint_Led_TB)    do frame:draw()  end  
+               Grid2_on = 0
+               end
+               if division == 0.5 or division == 1/3 or division == 0.5*1.5 then
+                        for key,frame  in pairs(Grid4_Tint_Led_TB)    do frame:draw()  end  
+               Grid4_on = 0
+               end
+               if division == 0.25 or division == 0.5/3 or division == 0.25*1.5 then
+                        for key,frame  in pairs(Grid8_Tint_Led_TB)    do frame:draw()  end  
+               Grid8_on = 0
+               end
+               if division == 0.125 or division == 0.25/3 or division == 0.125*1.5 then
+                        for key,frame  in pairs(Grid16_Tint_Led_TB)    do frame:draw()  end  
+               Grid16_on = 0
+               end
+               if division == 0.0625 or division == 0.125/3 or division == 0.0625*1.5 then
+                        for key,frame  in pairs(Grid32_Tint_Led_TB)    do frame:draw()  end 
+               Grid32_on = 0 
+               end
+               if division == 0.03125 or division == 0.0625/3 or division == 0.03125*1.5 then
+                        for key,frame  in pairs(Grid64_Tint_Led_TB)    do frame:draw()  end  
+               Grid64_on = 0
+               end
+               if (GridT_on == 1 or Trplts == 1)  then
+                        for key,frame  in pairs(GridT_Tint_Led_TB)    do frame:draw()  end  
+               end
+               if (GridD_on == 1 or Dttd == 1) then
+                for key,frame  in pairs(GridD_Tint_Led_TB)    do frame:draw()  end  
+              end
+               if Swing_on == 1 then
+                       for key,frame  in pairs(Swing_Tint_Led_TB)    do frame:draw()  end  
+               end
+       
+       
+                  if Aim_on == 1 then
+         --            for key,btn    in pairs(Frame_Tint_Aim_TB)   do btn:draw()    end 
+                 end
+       
+                 if Loop_on == 1 then
+                     for key,btn    in pairs(Frame_Tint_Loop_TB)   do btn:draw()    end 
+                 end
+           
+               for key,ch_box in pairs(Btn_Txt_TB2) do ch_box:draw() end -- aim, snap, loop text layer
+               for key,ch_box in pairs(Btn_Txt_TB) do ch_box:draw() end -- grid text layer
+        end
+
+
+
      if TrackEnv == 0 then
        for key,ch_box in pairs(CheckBoxItem_TB) do ch_box:draw() end
      end
@@ -7201,9 +8855,6 @@ end
 
                  for key,sldr   in pairs(SliderGate_TB)   do sldr:draw()   end
 
-    if ShowInfoLine == 1 and Random_Setup ~= 1 then
-        Info_Line()
-    end
 
          if Guides.norm_val == 2 then
                for key,frame  in pairs(Frame_TB2_Trigg)    do frame:draw()  end 
@@ -7211,6 +8862,9 @@ end
                    else
                for key,frame  in pairs(Transient_Fill_TB)    do frame:draw()  end 
          end
+
+Wave:ForegroundBorders()
+Wave:CursorTop()
 
 end
 
@@ -7230,7 +8884,7 @@ function MW_doit_slider_Fine()
       if Wave.State then
      OffsSldCorr = (Offset_Sld.form_val/1000*srate)
              Gate_Gl:Apply_toFiltered()
-             DrawGridGuides()
+             Wave:DrawGridGuides()
             Slice_Status = 1
       end
 end
@@ -7278,7 +8932,7 @@ end
 function MW_doit_checkbox()
       if Wave.State then
          Wave.Reset_All()
-         DrawGridGuides()
+         Wave:DrawGridGuides()
 Gate_on2 = 1
       end
 end
@@ -7286,54 +8940,39 @@ end
 function MW_doit_checkbox_show()
       if Wave.State then
          Wave:Redraw()
+         Wave:DrawGridGuides()
       end
-end
-
-function Heal_protection() -- не клеит, если Guides активны
-   if Guides.norm_val == 1 then
---r.Main_OnCommand(40548, 0)  -- Heal Splits -- (если больше одного айтема и не миди айтем, то клей, попытка не деструктивно склеить).
-end 
-end
-
-function Glue_protection() -- не клеит, если Guides активны
-   if Guides.norm_val == 1 then
--- r.Main_OnCommand(41588, 0) -- glue (если изменены rate, pitch, больше одного айтема и не миди айтем, то клей. Требуется для корректной работы кнопки MIDI).
-end 
 end
 
 function Offset_Sld_DoIt()
     if Wave.State then
        OffsSldCorr = (Offset_Sld.form_val/1000*srate)
        Gate_Gl:Apply_toFiltered()
-       DrawGridGuides()
+       Wave:DrawGridGuides()
     end
 end
 
 ------------------------------------------------------------------------------------
 
 function store_settings() --store dock position
-   r.SetExtState("cool_MK_Shaper/Stutter.lua", "dock", gfx.dock(-1), true)
+   r.SetExtState("MK_Shaper/Stutter", "dock", gfx.dock(-1), true)
 end
 
 function store_settings2() --store sliders/checkboxes
      if RememberLast == 1 then 
-        r.SetExtState('cool_MK_Shaper/Stutter.lua','Guides.norm_val',Guides.norm_val,true);
-   --     if HiPrecision_On == 1 then OutNote.norm_val = OutNote2.norm_val end
-  --      r.SetExtState('cool_MK_Shaper/Stutter.lua','OutNote.norm_val',OutNote.norm_val,true);
- --       r.SetExtState('cool_MK_Shaper/Stutter.lua','Midi_Sampler.norm_val',Midi_Sampler.norm_val,true);
-  --      r.SetExtState('cool_MK_Shaper/Stutter.lua','Sampler_preset.norm_val',Sampler_preset.norm_val,true);
-  --      r.SetExtState('cool_MK_Shaper/Stutter.lua','QuantizeStrength',QStrength_Sld.form_val,true);
-        r.SetExtState('cool_MK_Shaper/Stutter.lua','HF_Slider',HP_Freq.norm_val,true);
-        r.SetExtState('cool_MK_Shaper/Stutter.lua','LF_Slider',LP_Freq.norm_val,true);
-        r.SetExtState('cool_MK_Shaper/Stutter.lua','Sens_Slider',Gate_Sensitivity.norm_val,true);
-        r.SetExtState('cool_MK_Shaper/Stutter.lua','Offs_Slider',Offset_Sld.norm_val,true);
+        r.SetExtState('MK_Shaper/Stutter','Guides.norm_val',Guides.norm_val,true);
+        r.SetExtState('MK_Shaper/Stutter','HF_Slider',HP_Freq.norm_val,true);
+        r.SetExtState('MK_Shaper/Stutter','LF_Slider',LP_Freq.norm_val,true);
+        r.SetExtState('MK_Shaper/Stutter','Sens_Slider',Gate_Sensitivity.norm_val,true);
+        r.SetExtState('MK_Shaper/Stutter','Offs_Slider',Offset_Sld.norm_val,true);
+        r.SetExtState('MK_Shaper/Stutter','TrackEnvByDefault',TrackEnv_Chbx.norm_val,true);
         if XFadeOff == 0 then
-           r.SetExtState('cool_MK_Shaper/Stutter.lua','CrossfadeTime',XFade_Sld.form_val,true);
+           r.SetExtState('MK_Shaper/Stutter','CrossfadeTime',XFade_Sld.form_val,true);
         end
-        r.SetExtState('cool_MK_Shaper/Stutter.lua','Gate_VeloScale.norm_val',Gate_VeloScale.norm_val,true);
-        r.SetExtState('cool_MK_Shaper/Stutter.lua','Gate_VeloScale.norm_val2',Gate_VeloScale.norm_val2,true);
+        r.SetExtState('MK_Shaper/Stutter','Gate_VeloScale.norm_val',Gate_VeloScale.norm_val,true);
+        r.SetExtState('MK_Shaper/Stutter','Gate_VeloScale.norm_val2',Gate_VeloScale.norm_val2,true);
 
-          r.SetExtState('cool_MK_Shaper/Stutter.lua','Sync_on',Sync_on,true);
+        r.SetExtState('MK_Shaper/Stutter','Sync_on',Sync_on,true);
      end
 end
 
@@ -7341,7 +8980,7 @@ end
 --   INIT   --------------------------------------------------------------------
 -------------------------------------------------------------------------------
 function Init()
-   dock_pos = r.GetExtState("cool_MK_Shaper/Stutter.lua", "dock")
+   dock_pos = r.GetExtState("MK_Shaper/Stutter", "dock")
        if Docked == 1 then
          if dock_pos == "0.0" then dock_pos = 1025 end
            dock_pos = dock_pos or 1025
@@ -7349,25 +8988,37 @@ function Init()
            ypos = 320
            else
            dock_pos = 0
-           xpos = r.GetExtState("cool_MK_Shaper/Stutter.lua", "window_x") or 400
-           ypos = r.GetExtState("cool_MK_Shaper/Stutter.lua", "window_y") or 320
+           xpos = r.GetExtState("MK_Shaper/Stutter", "window_x") or 400
+           ypos = r.GetExtState("MK_Shaper/Stutter", "window_y") or 320
         end
 
     -- Some gfx Wnd Default Values ---------------
-    local R,G,B = 45,45,45              -- 0...255 format -- цвет основного окна
+    local R,G,B = ceil(TH[3][1]*255),ceil(TH[3][2]*255),ceil(TH[3][3]*255)             -- 0...255 format -- цвет основного окна
     local Wnd_bgd = R + G*256 + B*65536 -- red+green*256+blue*65536  
-    local Wnd_Title = "MK Shaper/Stutter v1.20"
+    local Wnd_Title = "MK Shaper/Stutter v1.30" .. " " .. theme_name .. " " .. RG_status .. ""
     local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
+
+     -- set init fonts/size
+     gfx.setfont(1, "Arial", 12)
+     gfx.setfont(2, "Arial", 14)
+     gfx.setfont(3, "Arial", 16)
+     gfx.setfont(4, "Arial", 18)
+     gfx.setfont(5, "Arial", 20)
+     gfx.setfont(6, "Arial", 22)
+     gfx.setfont(7, "Arial", 36)
+     gfx.setfont(8, "Arial", 40)
+     gfx.setfont(9, "Arial", 72)
+     gfx.setfont(10, "Arial", 80)
+
  --   Wnd_W,Wnd_H = 1044,490 -- global values(used for define zoom level)
 
-       Wnd_W = r.GetExtState("cool_MK_Shaper/Stutter.lua", "zoomW") or 1044
-       Wnd_H = r.GetExtState("cool_MK_Shaper/Stutter.lua", "zoomH") or 490
-       if Wnd_W == (nil or "") then Wnd_W = 1044 end
-       if Wnd_H == (nil or "") then Wnd_H = 490 end
+       Wnd_W = tonumber(r.GetExtState("MK_Shaper/Stutter", "zoomW")) or 1044
+       Wnd_H = tonumber(r.GetExtState("MK_Shaper/Stutter", "zoomH")) or 490
+       if Wnd_W == (nil or 0) then Wnd_W = 1044 end
+       if Wnd_H == (nil or 0) then Wnd_H = 490 end
     -- Init window ------
     gfx.clear = Wnd_bgd         
     gfx.init( Wnd_Title, Wnd_W,Wnd_H, Wnd_Dock, Wnd_X,Wnd_Y )
-
 
     -- Init mouse last --
     last_mouse_cap = 0
@@ -7375,47 +9026,6 @@ function Init()
     mouse_ox, mouse_oy = -1, -1
 end
 
-
-function Info_Line()
-       -- Draw out_gain value
-   if ErrMsg_Ststus == 1 or not Z_w or not Z_h then return end -- return if zoom not defined
-       gfx.set(1,1,1,0.4)    -- set body color
-       gfx.x = gfx.x+(Z_w*64)
-       gfx.y = gfx.y+3
-   local _, division, swing, swingamt = r.GetSetProjectGrid(0,false)
-   if swingamt then
-       swngamt = math_round((swingamt*100),0)
-       swngamt = string.format("%d", swngamt)
-
----------------------Grid---------------------------------
-        division = tonumber(division);
-        if not tonumber(division) then return false end;
-        local i,T,str1,str2,str3,str4;
-    if  division >= 0.6 and division <= 0.7 then divisi = division/2
-    else divisi = division end
-        fraction = floor(1/divisi+.5)
-        str1 = (string.format("%.0f",1).."/"..string.format("%.0f",fraction)):gsub("/%s-1$","");
-        if division >= 1 then str2 = string.format("%.3f",division):gsub("[0.]-$","") else str2 = str1 end;
-        if (fraction % 3) == 0 then T = true else T = false end;
-        if T == true then tripl = "T" else tripl = "" end
-        if T then str3=string.format("%.0f",1).."/"..string.format("%.0f",fraction-(fraction/3)).."T"else str3=str1 end;
-        if T then;
-            if division>=0.6666 then str4=string.format("%.3f",(division/2)+division):gsub("[0.]-$","").."T"else str4=str3;end;
-            elseif division >= 1 then str4=str2 else str4=str1;
-        end;
-
-       gfx.printf("Project: Grid " .. tostring(str4) .. "  ")
-
-   if swing == 0 then 
-   swngamt = "Off" 
-          gfx.printf("Swing " .. tostring(swngamt) .. "")
-   else 
-   swngamt = swngamt 
-          gfx.printf("Swing " .. tostring(swngamt) .. "%%")
-   end
-  end
-
-end
 ---------------------------------------
 --   Mainloop   ------------------------
 ---------------------------------------
@@ -7428,8 +9038,8 @@ local rng2x = rng2
 local Loop_onx = Loop_on
 
     -- zoom level -- 
-    Wnd_WZ = r.GetExtState("cool_MK_Shaper/Stutter.lua", "zoomWZ") or 1044
-    Wnd_HZ = r.GetExtState("cool_MK_Shaper/Stutter.lua", "zoomHZ") or 490
+    Wnd_WZ = r.GetExtState("MK_Shaper/Stutter", "zoomWZ") or 1044
+    Wnd_HZ = r.GetExtState("MK_Shaper/Stutter", "zoomHZ") or 490
     if Wnd_WZ == (nil or "") then Wnd_WZ = 1044 end
     if Wnd_HZ == (nil or "") then Wnd_HZ = 490 end
 
@@ -7544,12 +9154,12 @@ end
 
 function store_window() -- store window dock state/position/size
   local _, xpos, ypos, Wnd_W, Wnd_H = gfx.dock(-1, 0, 0, 0, 0)
-    r.SetExtState("cool_MK_Shaper/Stutter.lua", "window_x", xpos, true)
-    r.SetExtState("cool_MK_Shaper/Stutter.lua", "window_y", ypos, true)
-    r.SetExtState("cool_MK_Shaper/Stutter.lua", "zoomW", Wnd_W, true)
-    r.SetExtState("cool_MK_Shaper/Stutter.lua", "zoomH", Wnd_H, true)
-    r.SetExtState("cool_MK_Shaper/Stutter.lua", "zoomWZ", Wnd_WZ, true)
-    r.SetExtState("cool_MK_Shaper/Stutter.lua", "zoomHZ", Wnd_HZ, true)
+    r.SetExtState("MK_Shaper/Stutter", "window_x", xpos, true)
+    r.SetExtState("MK_Shaper/Stutter", "window_y", ypos, true)
+    r.SetExtState("MK_Shaper/Stutter", "zoomW", Wnd_W, true)
+    r.SetExtState("MK_Shaper/Stutter", "zoomH", Wnd_H, true)
+    r.SetExtState("MK_Shaper/Stutter", "zoomWZ", Wnd_WZ, true)
+    r.SetExtState("MK_Shaper/Stutter", "zoomHZ", Wnd_HZ, true)
 end
 
 function getitem()
@@ -7576,7 +9186,7 @@ function getitem()
                        if Wave.State then
                           Wave:Redraw()
                           Gate_Gl:Apply_toFiltered() 
-                          DrawGridGuides()
+                          Wave:DrawGridGuides()
                          -- DrawGridGuides2()
                        end
                     end
@@ -7680,38 +9290,38 @@ end
 item5.command = function()
                      if item5.selected == true then 
   local _, xpos, ypos, Wnd_W, Wnd_H = gfx.dock(-1, 0, 0, 0, 0)
-    r.SetExtState("cool_MK_Shaper/Stutter.lua", "window_x", xpos, true)
-    r.SetExtState("cool_MK_Shaper/Stutter.lua", "window_y", ypos, true)
-    r.SetExtState("cool_MK_Shaper/Stutter.lua", "zoomW", Wnd_W, true)
-    r.SetExtState("cool_MK_Shaper/Stutter.lua", "zoomH", Wnd_H, true)
-    r.SetExtState("cool_MK_Shaper/Stutter.lua", "zoomWZ", Wnd_WZ, true)
-    r.SetExtState("cool_MK_Shaper/Stutter.lua", "zoomHZ", Wnd_HZ, true)
+    r.SetExtState("MK_Shaper/Stutter", "window_x", xpos, true)
+    r.SetExtState("MK_Shaper/Stutter", "window_y", ypos, true)
+    r.SetExtState("MK_Shaper/Stutter", "zoomW", Wnd_W, true)
+    r.SetExtState("MK_Shaper/Stutter", "zoomH", Wnd_H, true)
+    r.SetExtState("MK_Shaper/Stutter", "zoomWZ", Wnd_WZ, true)
+    r.SetExtState("MK_Shaper/Stutter", "zoomHZ", Wnd_HZ, true)
 
 gfx.quit()
      Docked = 1
-     dock_pos = r.GetExtState("cool_MK_Shaper/Stutter.lua", "dock")
+     dock_pos = r.GetExtState("MK_Shaper/Stutter", "dock")
      if dock_pos == "0.0" then dock_pos = 1025 end
      dock_pos = dock_pos or 1025
      xpos = 400
      ypos = 320
-     local Wnd_Title = "MK Shaper/Stutter v1.20"
+     local Wnd_Title = "MK Shaper/Stutter v1.30"
      local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
      gfx.init( Wnd_Title, Wnd_W,Wnd_H, Wnd_Dock, Wnd_X,Wnd_Y )
 
                      else
 
-    r.SetExtState("cool_MK_Shaper/Stutter.lua", "dock", gfx.dock(-1), true)
+    r.SetExtState("MK_Shaper/Stutter", "dock", gfx.dock(-1), true)
 gfx.quit()
     Docked = 0
     dock_pos = 0
-    xpos = r.GetExtState("cool_MK_Shaper/Stutter.lua", "window_x") or 400
-    ypos = r.GetExtState("cool_MK_Shaper/Stutter.lua", "window_y") or 320
-    local Wnd_Title = "MK Shaper/Stutter v1.20"
+    xpos = r.GetExtState("MK_Shaper/Stutter", "window_x") or 400
+    ypos = r.GetExtState("MK_Shaper/Stutter", "window_y") or 320
+    local Wnd_Title = "MK Shaper/Stutter v1.30"
     local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
     gfx.init( Wnd_Title, Wnd_W,Wnd_H, Wnd_Dock, Wnd_X,Wnd_Y )
  
-    Wnd_WZ = r.GetExtState("cool_MK_Shaper/Stutter.lua", "zoomWZ") or 1044
-    Wnd_HZ = r.GetExtState("cool_MK_Shaper/Stutter.lua", "zoomHZ") or 490
+    Wnd_WZ = r.GetExtState("MK_Shaper/Stutter", "zoomWZ") or 1044
+    Wnd_HZ = r.GetExtState("MK_Shaper/Stutter", "zoomHZ") or 490
     if Wnd_WZ == (nil or "") then Wnd_WZ = 1044 end
     if Wnd_HZ == (nil or "") then Wnd_HZ = 490 end
  
@@ -7720,7 +9330,7 @@ gfx.quit()
     if Z_w<0.63 then Z_w = 0.63 elseif Z_w>4 then Z_w = 4 end --2.2
     if Z_h<0.63 then Z_h = 0.63 elseif Z_h>4 then Z_h = 4 end  --2.2
                      end
-          r.SetExtState('cool_MK_Shaper/Stutter.lua','Docked',Docked,true);
+          r.SetExtState('MK_Shaper/Stutter','Docked',Docked,true);
 end
 
 
@@ -7735,7 +9345,7 @@ item6.command = function()
                      else
                      EscToExit = 0
                      end
-          r.SetExtState('cool_MK_Shaper/Stutter.lua','EscToExit',EscToExit,true);
+          r.SetExtState('MK_Shaper/Stutter','EscToExit',EscToExit,true);
 end
 
 
@@ -7750,7 +9360,7 @@ item7.command = function()
                      else
                      AutoScroll = 0
                      end
-          r.SetExtState('cool_MK_Shaper/Stutter.lua','AutoScroll',AutoScroll,true);
+          r.SetExtState('MK_Shaper/Stutter','AutoScroll',AutoScroll,true);
 end
 
 
@@ -7765,14 +9375,14 @@ item8.command = function()
                      else
                      PlayMode = 0
                      end
-          r.SetExtState('cool_MK_Shaper/Stutter.lua','PlayMode',PlayMode,true);
+          r.SetExtState('MK_Shaper/Stutter','PlayMode',PlayMode,true);
 end
 
 
 if Loop_on == 1 then
-item9 = context_menu:add_item({label = "Loop is Enabled when the Script Starts|", toggleable = true, selected = true})
+item9 = context_menu:add_item({label = "Loop is Enabled when the Script Starts", toggleable = true, selected = true})
 else
-item9 = context_menu:add_item({label = "Loop is Enabled when the Script Starts|", toggleable = true, selected = false})
+item9 = context_menu:add_item({label = "Loop is Enabled when the Script Starts", toggleable = true, selected = false})
 end
 item9.command = function()
                      if item9.selected == true then 
@@ -7780,23 +9390,23 @@ item9.command = function()
                      else
                      Loop_on = 0
                      end
-          r.SetExtState('cool_MK_Shaper/Stutter.lua','Loop_on',Loop_on,true);
+          r.SetExtState('MK_Shaper/Stutter','Loop_on',Loop_on,true);
 end
 
 
-if TrackEnv == 1 then
-item10 = context_menu:add_item({label = "Track Envelope", toggleable = true, selected = true})
-else
-item10 = context_menu:add_item({label = "Track Envelope", toggleable = true, selected = false})
-end
-item10.command = function()
-                     if item10.selected == true then 
-                     TrackEnv = 1
-                     else
-                     TrackEnv = 0
-                     end
-          r.SetExtState('cool_MK_Shaper/Stutter.lua','TrackEnv',TrackEnv,true);
-end
+if Sync_on == 1 then
+  item37 = context_menu:add_item({label = "Sync Waveform and Arrange View|", toggleable = true, selected = true})
+  else
+  item37 = context_menu:add_item({label = "Sync Waveform and Arrange View|", toggleable = true, selected = false})
+  end
+  item37.command = function()
+                       if item37.selected == true then 
+                       Sync_on = 1
+                       else
+                       Sync_on = 0
+                       end
+            r.SetExtState('MK_Shaper/Stutter','Sync_on',Sync_on,true);
+  end
 
 
 if VolPreFX == 0 then
@@ -7810,7 +9420,7 @@ item11.command = function()
                      else
                      VolPreFX = 1
                      end
-          r.SetExtState('cool_MK_Shaper/Stutter.lua','VolPreFX',VolPreFX,true);
+          r.SetExtState('MK_Shaper/Stutter','VolPreFX',VolPreFX,true);
 end
 
 
@@ -7825,7 +9435,7 @@ item12.command = function()
                      else
                      InvOnByDefault = 2
                      end
-          r.SetExtState('cool_MK_Shaper/Stutter.lua','InvOnByDefault',InvOnByDefault,true);
+          r.SetExtState('MK_Shaper/Stutter','InvOnByDefault',InvOnByDefault,true);
 end 
 
 
@@ -7840,7 +9450,7 @@ item13.command = function()
                      else
                      EnvItemOnClose = 0
                      end
-          r.SetExtState('cool_MK_Shaper/Stutter.lua','EnvItemOnClose',EnvItemOnClose,true);
+          r.SetExtState('MK_Shaper/Stutter','EnvItemOnClose',EnvItemOnClose,true);
 end
 
 
@@ -7855,7 +9465,7 @@ item14.command = function()
                      else
                      HiPrecision_On = 0
                      end
-          r.SetExtState('cool_MK_Shaper/Stutter.lua','HiPrecision_On',HiPrecision_On,true);
+          r.SetExtState('MK_Shaper/Stutter','HiPrecision_On',HiPrecision_On,true);
 end 
 
 
@@ -7870,7 +9480,7 @@ item15.command = function()
                      else
                      SelectedEnvOnly = 0
                      end
-          r.SetExtState('cool_MK_Shaper/Stutter.lua','SelectedEnvOnly',SelectedEnvOnly,true);
+          r.SetExtState('MK_Shaper/Stutter','SelectedEnvOnly',SelectedEnvOnly,true);
 end
 
 
@@ -7885,7 +9495,7 @@ item16.command = function()
                      else
                      ObeyingItemSelection = 0
                      end
-          r.SetExtState('cool_MK_Shaper/Stutter.lua','ObeyingItemSelection',ObeyingItemSelection,true);
+          r.SetExtState('MK_Shaper/Stutter','ObeyingItemSelection',ObeyingItemSelection,true);
 
 end
 
@@ -7905,43 +9515,58 @@ end
 item19 = context_menu:add_item({label = "Reset All Setted User Defaults|", toggleable = false})
 item18.command = function()
 
-      r.SetExtState('cool_MK_Shaper/Stutter.lua','DefaultXFadeTime',15,true);
-      r.SetExtState('cool_MK_Shaper/Stutter.lua','DefaultQStrength',100,true);
-      r.SetExtState('cool_MK_Shaper/Stutter.lua','DefaultLP',1,true);
-      r.SetExtState('cool_MK_Shaper/Stutter.lua','DefaultHP',0.3312,true);
-      r.SetExtState('cool_MK_Shaper/Stutter.lua','DefaultSens',0.375,true);
-      r.SetExtState('cool_MK_Shaper/Stutter.lua','DefaultOffset',0.5,true);
-      r.SetExtState('cool_MK_Shaper/Stutter.lua','MIDI_Base_Oct',2,true);
- --     r.SetExtState('cool_MK_Shaper/Stutter.lua','Trigger_Oct_Shift',0,true);
+      r.SetExtState('MK_Shaper/Stutter','DefaultXFadeTime',15,true);
+      r.SetExtState('MK_Shaper/Stutter','DefaultQStrength',50,true); 
+      r.SetExtState('MK_Shaper/Stutter','DefaultRThrStrength',100,true); 
+      r.SetExtState('MK_Shaper/Stutter','DefaultLP',1,true);
+      r.SetExtState('MK_Shaper/Stutter','DefaultHP',0.3312,true);
+      r.SetExtState('MK_Shaper/Stutter','DefaultSens',0.63,true);
+      r.SetExtState('MK_Shaper/Stutter','DefaultOffset',0.5,true);
+      r.SetExtState('MK_Shaper/Stutter','MIDI_Base_Oct',2,true);
+ --     r.SetExtState('MK_Shaper/Stutter','Trigger_Oct_Shift',0,true);
 
 end
 
+if FontAntiAliasing == 1 then
+  item20 = context_menu:add_item({label = "Font AntiAliasing (Need ReaimGUI, Restart required)", toggleable = true, selected = true, active = true})
+  else
+    item20 = context_menu:add_item({label = "Font AntiAliasing (Need ReaimGUI, Restart required)", toggleable = true, selected = false, active = true})
+end
+item20.command = function()
+            if item20.selected == true then 
+            FontAntiAliasing = 1
+            else
+            FontAntiAliasing = 0
+            end
+ r.SetExtState('MK_Shaper/Stutter','FontAntiAliasing',FontAntiAliasing,true);
+end
 
 if MaxFontSizeSt == 1 then
-  item38 = context_menu:add_item({label = "Large Font Size (Restart required)", toggleable = true, selected = true, active = true})
+  item21 = context_menu:add_item({label = "Large Font Size (Restart required)", toggleable = true, selected = true, active = true})
   else
-  item38 = context_menu:add_item({label = "Large Font Size (Restart required)", toggleable = true, selected = false, active = true})
+    item21 = context_menu:add_item({label = "Large Font Size (Restart required)", toggleable = true, selected = false, active = true})
 end
-item38.command = function()
-            if item38.selected == true then 
+item21.command = function()
+            if item21.selected == true then 
             MaxFontSizeSt = 1
             else
             MaxFontSizeSt = 0
             end
- r.SetExtState('MK_Slicer_3','MaxFontSizeSt',MaxFontSizeSt,true);
+ r.SetExtState('MK_Shaper/Stutter','MaxFontSizeSt',MaxFontSizeSt,true);
 end
 
 
-item21 = context_menu:add_item({label = "|Reset Controls to User Defaults (Restart required)|<", toggleable = false})
-item21.command = function()
+item22 = context_menu:add_item({label = "|Reset Controls to User Defaults (Restart required)|<", toggleable = false})
+item22.command = function()
 Reset_to_def = 1
   --sliders--
-      DefaultXFadeTime = tonumber(r.GetExtState('cool_MK_Shaper/Stutter.lua','DefaultXFadeTime'))or 15;
-      DefaultQStrength = tonumber(r.GetExtState('cool_MK_Shaper/Stutter.lua','DefaultQStrength'))or 100;
-      DefaultHP = tonumber(r.GetExtState('cool_MK_Shaper/Stutter.lua','DefaultHP'))or 0.3312;
-      DefaultLP = tonumber(r.GetExtState('cool_MK_Shaper/Stutter.lua','DefaultLP'))or 1;
-      DefaultSens = tonumber(r.GetExtState('cool_MK_Shaper/Stutter.lua','DefaultSens'))or 0.375;
-      DefaultOffset = tonumber(r.GetExtState('cool_MK_Shaper/Stutter.lua','DefaultOffset'))or 0.5;
+      DefaultXFadeTime = tonumber(r.GetExtState('MK_Shaper/Stutter','DefaultXFadeTime'))or 15;
+      DefaultQStrength = tonumber(r.GetExtState('MK_Shaper/Stutter','DefaultQStrength'))or 50;
+      DefaultRThrStrength = tonumber(r.GetExtState('MK_Shaper/Stutter','DefaultRThrStrength'))or 100;
+      DefaultHP = tonumber(r.GetExtState('MK_Shaper/Stutter','DefaultHP'))or 0.3312;
+      DefaultLP = tonumber(r.GetExtState('MK_Shaper/Stutter','DefaultLP'))or 1;
+      DefaultSens = tonumber(r.GetExtState('MK_Shaper/Stutter','DefaultSens'))or 0.63;
+      DefaultOffset = tonumber(r.GetExtState('MK_Shaper/Stutter','DefaultOffset'))or 0.5;
   --sheckboxes--
      DefMIDI_Mode =  1;
      DefSampler_preset_state =  1;
@@ -7952,30 +9577,167 @@ Reset_to_def = 1
      DefXFadeOff = 0
 
   --sliders--
-      r.SetExtState('cool_MK_Shaper/Stutter.lua','CrossfadeTime',DefaultXFadeTime,true);
-      r.SetExtState('cool_MK_Shaper/Stutter.lua','QuantizeStrength',DefaultQStrength,true);
-      r.SetExtState('cool_MK_Shaper/Stutter.lua','Offs_Slider',DefaultOffset,true);
-      r.SetExtState('cool_MK_Shaper/Stutter.lua','HF_Slider',DefaultHP,true);
-      r.SetExtState('cool_MK_Shaper/Stutter.lua','LF_Slider',DefaultLP,true);
-      r.SetExtState('cool_MK_Shaper/Stutter.lua','Sens_Slider',DefaultSens,true);
+      r.SetExtState('MK_Shaper/Stutter','CrossfadeTime',DefaultXFadeTime,true);
+      r.SetExtState('MK_Shaper/Stutter','QuantizeStrength',DefaultQStrength,true);
+      r.SetExtState('MK_Shaper/Stutter','Offs_Slider',DefaultOffset,true);
+      r.SetExtState('MK_Shaper/Stutter','HF_Slider',DefaultHP,true);
+      r.SetExtState('MK_Shaper/Stutter','LF_Slider',DefaultLP,true);
+      r.SetExtState('MK_Shaper/Stutter','Sens_Slider',DefaultSens,true);
   --sheckboxes--
-      r.SetExtState('cool_MK_Shaper/Stutter.lua','Guides.norm_val',DefGuides_mode,true);
+      r.SetExtState('MK_Shaper/Stutter','Guides.norm_val',DefGuides_mode,true);
 --      if HiPrecision_On == 1 then OutNote.norm_val = OutNote2.norm_val end
- --     r.SetExtState('cool_MK_Shaper/Stutter.lua','OutNote.norm_val',DefOutNote_State,true);
-      r.SetExtState('cool_MK_Shaper/Stutter.lua','Midi_Sampler.norm_val',DefMIDI_Mode,true);
-      r.SetExtState('cool_MK_Shaper/Stutter.lua','Sampler_preset.norm_val',DefSampler_preset_state,true);
-      r.SetExtState('cool_MK_Shaper/Stutter.lua','XFadeOff',DefXFadeOff,true);
-      r.SetExtState('cool_MK_Shaper/Stutter.lua','Gate_VeloScale.norm_val',DefGate_VeloScale,true);
-      r.SetExtState('cool_MK_Shaper/Stutter.lua','Gate_VeloScale.norm_val2',DefGate_VeloScale2,true);
+ --     r.SetExtState('MK_Shaper/Stutter','OutNote.norm_val',DefOutNote_State,true);
+      r.SetExtState('MK_Shaper/Stutter','Midi_Sampler.norm_val',DefMIDI_Mode,true);
+      r.SetExtState('MK_Shaper/Stutter','Sampler_preset.norm_val',DefSampler_preset_state,true);
+      r.SetExtState('MK_Shaper/Stutter','XFadeOff',DefXFadeOff,true);
+      r.SetExtState('MK_Shaper/Stutter','Gate_VeloScale.norm_val',DefGate_VeloScale,true);
+      r.SetExtState('MK_Shaper/Stutter','Gate_VeloScale.norm_val2',DefGate_VeloScale2,true);
 
 end
 
+item23 = context_menu:add_item({label = ">Select Theme (Script will close. Re-open required)"})
+item23.command = function()
+end
 
-item22 = context_menu:add_item({label = "|Reset Window Size", toggleable = false})
-item22.command = function()
+
+if ThemeSel == 1 then
+item24 = context_menu:add_item({label = "Prime", toggleable = true, selected = true})
+else
+item24 = context_menu:add_item({label = "Prime", toggleable = true, selected = false})
+end
+item24.command = function()
+                   ThemeSel = 1
+                   r.SetExtState('MK_Shaper/Stutter','ThemeSel',ThemeSel,true);
+                   gfx.quit()
+end
+
+
+if ThemeSel == 2 then
+item25 = context_menu:add_item({label = "Neon", toggleable = true, selected = true})
+else
+item25 = context_menu:add_item({label = "Neon", toggleable = true, selected = false})
+end
+item25.command = function()
+                   ThemeSel = 2
+                   r.SetExtState('MK_Shaper/Stutter','ThemeSel',ThemeSel,true);
+                   gfx.quit()
+end
+
+if ThemeSel == 3 then
+item26 = context_menu:add_item({label = "Black", toggleable = true, selected = true})
+else
+item26 = context_menu:add_item({label = "Black", toggleable = true, selected = false})
+end
+item26.command = function()
+                   ThemeSel = 3
+                   r.SetExtState('MK_Shaper/Stutter','ThemeSel',ThemeSel,true);
+                   gfx.quit()
+end
+
+if ThemeSel == 4 then
+item27 = context_menu:add_item({label = "Blue Lake", toggleable = true, selected = true})
+else
+item27 = context_menu:add_item({label = "Blue Lake", toggleable = true, selected = false})
+end
+item27.command = function()
+                   ThemeSel = 4
+                   r.SetExtState('MK_Shaper/Stutter','ThemeSel',ThemeSel,true);
+                   gfx.quit()
+end
+
+if ThemeSel == 5 then
+item28 = context_menu:add_item({label = "Fall (Dark)", toggleable = true, selected = true})
+else
+  item28 = context_menu:add_item({label = "Fall (Dark)", toggleable = true, selected = false})
+end
+item28.command = function()
+                   ThemeSel = 5
+                   r.SetExtState('MK_Shaper/Stutter','ThemeSel',ThemeSel,true);
+                   gfx.quit()
+end
+
+if ThemeSel == 6 then
+item29 = context_menu:add_item({label = "Fall", toggleable = true, selected = true})
+else
+item29 = context_menu:add_item({label = "Fall", toggleable = true, selected = false})
+end
+item29.command = function()
+                   ThemeSel = 6
+                   r.SetExtState('MK_Shaper/Stutter','ThemeSel',ThemeSel,true);
+                   gfx.quit()
+end
+
+if ThemeSel == 7 then
+item30 = context_menu:add_item({label = "Soft Dark", toggleable = true, selected = true})
+else
+  item30 = context_menu:add_item({label = "Soft Dark", toggleable = true, selected = false})
+end
+item30.command = function()
+                   ThemeSel = 7
+                   r.SetExtState('MK_Shaper/Stutter','ThemeSel',ThemeSel,true);
+                   gfx.quit()
+end
+
+if ThemeSel == 8 then
+item31 = context_menu:add_item({label = "Graphite", toggleable = true, selected = true})
+else
+  item31 = context_menu:add_item({label = "Graphite", toggleable = true, selected = false})
+end
+item31.command = function()
+                   ThemeSel = 8
+                   r.SetExtState('MK_Shaper/Stutter','ThemeSel',ThemeSel,true);
+                   gfx.quit()
+end
+
+if ThemeSel == 9 then
+item32 = context_menu:add_item({label = "Spring", toggleable = true, selected = true})
+else
+  item32 = context_menu:add_item({label = "Spring", toggleable = true, selected = false})
+end
+item32.command = function()
+                   ThemeSel = 9
+                   r.SetExtState('MK_Shaper/Stutter','ThemeSel',ThemeSel,true);
+                   gfx.quit()
+end
+
+if ThemeSel == 10 then
+item33 = context_menu:add_item({label = "Clean", toggleable = true, selected = true})
+else
+item33 = context_menu:add_item({label = "Clean", toggleable = true, selected = false})
+end
+item33.command = function()
+                   ThemeSel = 10
+                   r.SetExtState('MK_Shaper/Stutter','ThemeSel',ThemeSel,true);
+                   gfx.quit()
+end
+
+if ThemeSel == 11 then
+item34 = context_menu:add_item({label = "Ink", toggleable = true, selected = true})
+else
+item34 = context_menu:add_item({label = "Ink", toggleable = true, selected = false})
+end
+item34.command = function()
+                   ThemeSel = 11
+                   r.SetExtState('MK_Shaper/Stutter','ThemeSel',ThemeSel,true);
+                   gfx.quit()
+end
+
+if ThemeSel == 12 then
+item35 = context_menu:add_item({label = "Classic|<", toggleable = true, selected = true})
+else
+item35 = context_menu:add_item({label = "Classic|<", toggleable = true, selected = false})
+end
+item35.command = function()
+                   ThemeSel = 12
+                   r.SetExtState('MK_Shaper/Stutter','ThemeSel',ThemeSel,true);
+                   gfx.quit()
+end
+
+item36 = context_menu:add_item({label = "|Reset Window Size", toggleable = false})
+item36.command = function()
 store_window()
-           xpos = r.GetExtState("cool_MK_Shaper/Stutter.lua", "window_x") or 400
-           ypos = r.GetExtState("cool_MK_Shaper/Stutter.lua", "window_y") or 320
+           xpos = r.GetExtState("MK_Shaper/Stutter", "window_x") or 400
+           ypos = r.GetExtState("MK_Shaper/Stutter", "window_y") or 320
     local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
     Wnd_W,Wnd_H = 1044,490 -- global values(used for define zoom level)
     -- Re-Init window ------
@@ -7991,14 +9753,15 @@ end
 ------------------------------User Defaults form--------------------------------
 function user_defaults()
 ::first_string::
-DefaultXFadeTime = tonumber(r.GetExtState('cool_MK_Shaper/Stutter.lua','DefaultXFadeTime'))or 15;
-DefaultQStrength = tonumber(r.GetExtState('cool_MK_Shaper/Stutter.lua','DefaultQStrength'))or 100;
-DefaultHP = tonumber(r.GetExtState('cool_MK_Shaper/Stutter.lua','DefaultHP'))or 0.3312;
-DefaultLP = tonumber(r.GetExtState('cool_MK_Shaper/Stutter.lua','DefaultLP'))or 1;
-DefaultSens = tonumber(r.GetExtState('cool_MK_Shaper/Stutter.lua','DefaultSens'))or 0.375;
-DefaultOffset = tonumber(r.GetExtState('cool_MK_Shaper/Stutter.lua','DefaultOffset'))or 0.5;
-MIDI_Base_Oct = tonumber(r.GetExtState('cool_MK_Shaper/Stutter.lua','MIDI_Base_Oct'))or 2;
-Trigger_Oct_Shift  = tonumber(r.GetExtState('cool_MK_Shaper/Stutter.lua','Trigger_Oct_Shift'))or 0;
+DefaultXFadeTime = tonumber(r.GetExtState('MK_Shaper/Stutter','DefaultXFadeTime'))or 15;
+DefaultQStrength = tonumber(r.GetExtState('MK_Shaper/Stutter','DefaultQStrength'))or 50;
+DefaultRThrStrength = tonumber(r.GetExtState('MK_Shaper/Stutter','DefaultRThrStrength'))or 100;
+DefaultHP = tonumber(r.GetExtState('MK_Shaper/Stutter','DefaultHP'))or 0.3312;
+DefaultLP = tonumber(r.GetExtState('MK_Shaper/Stutter','DefaultLP'))or 1;
+DefaultSens = tonumber(r.GetExtState('MK_Shaper/Stutter','DefaultSens'))or 0.63;
+DefaultOffset = tonumber(r.GetExtState('MK_Shaper/Stutter','DefaultOffset'))or 0.5;
+MIDI_Base_Oct = tonumber(r.GetExtState('MK_Shaper/Stutter','MIDI_Base_Oct'))or 2;
+Trigger_Oct_Shift  = tonumber(r.GetExtState('MK_Shaper/Stutter','Trigger_Oct_Shift'))or 0;
 
 function toHertz(val) --  val to hz
   local sxx = 16+(val*100)*1.20103
@@ -8068,14 +9831,14 @@ DefaultHP2 = fromHertz(DefaultHP2)
 DefaultSens2 = (DefaultSens2-2)/8
 DefaultOffset2 = ((DefaultOffset2/100)+1)/2
 
-          r.SetExtState('cool_MK_Shaper/Stutter.lua','DefaultXFadeTime',DefaultXFadeTime2,true);
-          r.SetExtState('cool_MK_Shaper/Stutter.lua','DefaultQStrength',DefaultQStrength2,true);
-          r.SetExtState('cool_MK_Shaper/Stutter.lua','DefaultLP',DefaultLP2,true);
-          r.SetExtState('cool_MK_Shaper/Stutter.lua','DefaultHP',DefaultHP2,true);
-          r.SetExtState('cool_MK_Shaper/Stutter.lua','DefaultSens',DefaultSens2,true);
-          r.SetExtState('cool_MK_Shaper/Stutter.lua','DefaultOffset',DefaultOffset2,true);
-          r.SetExtState('cool_MK_Shaper/Stutter.lua','MIDI_Base_Oct',MIDI_Base_Oct2,true);
-  --        r.SetExtState('cool_MK_Shaper/Stutter.lua','Trigger_Oct_Shift',Trigger_Oct_Shift2,true);
+          r.SetExtState('MK_Shaper/Stutter','DefaultXFadeTime',DefaultXFadeTime2,true);
+          r.SetExtState('MK_Shaper/Stutter','DefaultQStrength',DefaultQStrength2,true);
+          r.SetExtState('MK_Shaper/Stutter','DefaultLP',DefaultLP2,true);
+          r.SetExtState('MK_Shaper/Stutter','DefaultHP',DefaultHP2,true);
+          r.SetExtState('MK_Shaper/Stutter','DefaultSens',DefaultSens2,true);
+          r.SetExtState('MK_Shaper/Stutter','DefaultOffset',DefaultOffset2,true);
+          r.SetExtState('MK_Shaper/Stutter','MIDI_Base_Oct',MIDI_Base_Oct2,true);
+  --        r.SetExtState('MK_Shaper/Stutter','Trigger_Oct_Shift',Trigger_Oct_Shift2,true);
 
 end
 end
@@ -8097,9 +9860,9 @@ if NoItems == 1 then
     end
 end
 ------------------------------------
-r.DeleteExtState('_Slicer_', 'ItemToSlice', 0)
-r.DeleteExtState('_Slicer_', 'TrackForSlice', 0)
-r.SetExtState('_Slicer_', 'GetItemState', 'ItemNotLoaded', 0)
+r.DeleteExtState('_Shaper_', 'ItemToSlice', 0)
+r.DeleteExtState('_Shaper_', 'TrackForSlice', 0)
+r.SetExtState('_Shaper_', 'GetItemState', 'ItemNotLoaded', 0)
 store_settings()
   if loopcheck == 0 then
       r.GetSet_LoopTimeRange(true, true, 0, 0, false)
