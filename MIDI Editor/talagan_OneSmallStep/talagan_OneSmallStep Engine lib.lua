@@ -21,6 +21,12 @@ local noteLenLookup = {
   ["1_64"]  = {next="1_32", prec="1_64",  qn=0.0625 }
 };
 
+local NoteLenMode = {
+  OSS=0,
+  ProjectGrid=1,
+  ItemConf=2
+}
+
 local InputMode = {
   None=0,
   Pedal=1,
@@ -31,13 +37,16 @@ local InputMode = {
 local NoteLenModifier = {
   Straight=0,
   Dotted=1,
-  Triplet=2
+  Triplet=2,
+  Tuplet=3
 }
 
 
 local function DBG(m)
   --reaper.ShowConsoleMsg(m .. "\n");
 end
+
+-----------
 
 local function setMode(m)
   reaper.SetExtState("OneSmallStep", "Mode", tostring(m), true)
@@ -46,8 +55,27 @@ local function getMode()
   return tonumber(reaper.GetExtState("OneSmallStep", "Mode")) or 0;
 end
 
+-----------
+
+local function setNoteLenMode(m)
+  reaper.SetExtState("OneSmallStep", "NoteLenMode", tostring(m), true)
+end
+local function getNoteLenMode()
+  return tonumber(reaper.GetExtState("OneSmallStep", "NoteLenMode")) or 0;
+end
+
+-----------
+
+local function setTupletDivision(m)
+  reaper.SetExtState("OneSmallStep", "TupletDivision", tostring(m), true)
+end
+local function getTupletDivision()
+  return tonumber(reaper.GetExtState("OneSmallStep", "TupletDivision")) or 4;
+end
+
+-----------
+
 local function setNoteLen(str)
-  -- Persist the param
   reaper.SetExtState("OneSmallStep", "NoteLen", str, true);
 end
 local function getNoteLen()
@@ -58,6 +86,8 @@ local function getNoteLen()
   return nl;
 end
 
+-----------
+
 local function setNoteLenModifier(m)
   reaper.SetExtState("OneSmallStep", "NoteLenModifier", tostring(m), true);
 end
@@ -65,6 +95,7 @@ local function getNoteLenModifier()
   return tonumber(reaper.GetExtState("OneSmallStep", "NoteLenModifier"));
 end
 local function getNoteLenModifierFactor()
+
   local m = getNoteLenModifier();
 
   if m == NoteLenModifier.Straight then
@@ -73,6 +104,9 @@ local function getNoteLenModifierFactor()
     return 1.5;
   elseif m == NoteLenModifier.Triplet then
     return 2/3.0;
+  elseif m == NoteLenModifier.Tuplet then
+    local div = getTupletDivision();
+    return 2.0/div;
   end
 
   return 1.0;
@@ -89,7 +123,8 @@ local function decreaseNoteLen()
 end
 
 local function getNoteLenQN()
-  local nl = getNoteLen();
+  local nl  = getNoteLen();
+
   return noteLenLookup[nl].qn;
 end
 
@@ -170,18 +205,44 @@ local function TakeForEdition()
   return nil
 end
 
+
+local function resolveNoteLenQN(take)
+
+  local nlm = getNoteLenMode();
+
+  if nlm == NoteLenMode.OSS then
+    return getNoteLenQN() * getNoteLenModifierFactor();
+  elseif nlm == NoteLenMode.ProjectGrid then
+
+    local _, qn, swing, _ = reaper.GetSetProjectGrid(0, false);
+
+    if swing == 3 then
+      -- Project Grid is set to "measure"
+      local pos   = reaper.GetCursorPosition();
+      local posqn = reaper.TimeMap2_timeToQN(0, pos);
+      local posm  = reaper.TimeMap_QNToMeasures(0, posqn);
+
+      local _, measureStart, measureEnd = reaper.TimeMap_GetMeasureInfo(0, posm - 1);
+      return measureEnd - measureStart;
+    else
+      return qn * 4;
+    end
+
+  else
+    local grid_len, swing, note_len = reaper.MIDI_GetGrid(take);
+
+    if note_len == 0 then
+      note_len = grid_len;
+    end
+
+    return note_len;
+  end
+end
+
 -- Commits the currently held notes into the take
 local function commit(take, notes)
 
-  --[[
-  local grid_len, swing, note_len = reaper.MIDI_GetGrid(take);
-
-  if note_len == 0 then
-    note_len = grid_len;
-  end
-  ]]--
-
-  local note_len                  = getNoteLenQN() * getNoteLenModifierFactor();
+  local note_len                  = resolveNoteLenQN(take);
 
   local noteStartTime             = reaper.GetCursorPosition()
   local noteStartQN               = reaper.TimeMap2_timeToQN(0, noteStartTime)
@@ -203,6 +264,20 @@ local function commit(take, notes)
   reaper.UpdateItemInProject(mediaItem)
   reaper.SetEditCurPos(noteEndTime, false, false);
   reaper.MarkTrackItemsDirty(track, mediaItem)
+
+  -- Grow the midi item
+  local itemStartTime = reaper.GetMediaItemInfo_Value(mediaItem, "D_POSITION")
+  local itemLength    = reaper.GetMediaItemInfo_Value(mediaItem, "D_LENGTH")
+  local itemEndTime   = itemStartTime + itemLength;
+
+  if(itemEndTime >= noteEndTime) then
+    return
+  end
+
+  local itemStartQN = reaper.TimeMap2_timeToQN(0, itemStartTime)
+  local itemEndQN   = reaper.TimeMap2_timeToQN(0, noteEndTime)
+
+  reaper.MIDI_SetItemExtents(mediaItem, itemStartQN, itemEndQN)
 end
 
 --------------------------------------------------------------------
@@ -316,8 +391,7 @@ local function listenToEvents(called_from_action)
   local oss_state = helper_lib.oneSmallStepState(track);
 
   if mode == InputMode.Pedal then
-    if oss_state.pedalActivity > 0 then
-
+    if oss_state.pedalActivity > 0 or called_from_action then
       -- Pedal event, commit new notes
       reaper.Undo_BeginBlock();
       -- Acknowledge the pedal
@@ -325,6 +399,7 @@ local function listenToEvents(called_from_action)
       commit(take, oss_state.pitches);
       reaper.Undo_EndBlock("One Small Step - Add notes on pedal event",-1);
     end
+
   elseif mode == InputMode.Action then
     if called_from_action then
       reaper.Undo_BeginBlock();
@@ -351,14 +426,11 @@ local function listenToEvents(called_from_action)
       end
     end
 
-    if oss_state.pedalActivity > 0 then
-      -- Allow the use of the pedal in keyboard mode
-      -- To insert rests
+    -- Allow the use of the action, but only insert rests
+    if called_from_action then
       reaper.Undo_BeginBlock();
-      -- Acknowledge the pedal
-      helper_lib.resetPedalActivity(track);
-      commit(take, {} );
-      reaper.Undo_EndBlock("One Small Step - Add rest on pedal event",-1);
+      commit(take, {}) ;
+      reaper.Undo_EndBlock("One Small Step - Add rest on action",-1);
     end
   end
 
@@ -394,11 +466,18 @@ end
 return {
   -- Enums
   InputMode                     = InputMode,
+  NoteLenMode                   = NoteLenMode,
   NoteLenModifier               = NoteLenModifier,
 
   --Functions
   setMode                       = setMode,
   getMode                       = getMode,
+
+  setNoteLenMode                = setNoteLenMode,
+  getNoteLenMode                = getNoteLenMode,
+
+  setTupletDivision             = setTupletDivision,
+  getTupletDivision             = getTupletDivision,
 
   getNoteLenModifier            = getNoteLenModifier,
   setNoteLenModifier            = setNoteLenModifier,

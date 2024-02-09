@@ -16,4 +16,6 @@ elseif modifier == 'Dotted' then
   engine_lib.setNoteLenModifier(engine_lib.NoteLenModifier.Dotted);
 elseif modifier == 'Straight' then
   engine_lib.setNoteLenModifier(engine_lib.NoteLenModifier.Straight);
+elseif modifier == 'Tuplet' then
+  engine_lib.setNoteLenModifier(engine_lib.NoteLenModifier.Tuplet);
 end
