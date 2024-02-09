@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="047d5775e1026a11e5141f4d30da057f1131b63b" name="ReaTeam Scripts">
+<index version="1" commit="56a1e8d249d6ce18b210f30dd8992477d1ef7204" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -2553,7 +2553,7 @@ Remember the window position, size and dock state]]></changelog>
 }
 ]]></description>
         <link rel="website" href="https://forum.cockos.com/showthread.php?t=254081">Forum Thread</link>
-        <link rel="screenshot" href="https://i.imgur.com/DAe0EY7.jpg">Main View</link>
+        <link rel="screenshot" href="https://i.ibb.co/m5rJ0tb/image.png">Main View</link>
         <link rel="donation" href="https://www.buymeacoffee.com/MaximKokarev">Donate via BuyMeACoffee</link>
       </metadata>
       <version name="1.0" author="cool" time="2021-06-02T16:46:43Z">
@@ -2600,6 +2600,31 @@ Remember the window position, size and dock state]]></changelog>
 + Undo Points are now created during envelope generation.
 + Donate service has been changed to valid.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b5f8207e73048fd2fcc6259d5175aa55d0b162be/Envelopes/cool_MK%20ShaperStutter.lua</source>
+      </version>
+      <version name="1.30" author="cool" time="2024-02-09T13:12:20Z">
+        <changelog><![CDATA[+ Added the ability to set markers manually.
++ Added 4, 2 and Dotted Grid buttons to the Grid selector.
++ Added marker checkboxes for easy mouse dragging without using hotkeys.
++ Interactive Markers: The active marker is now highlighted on mouseover.
++ Theme: New color design, 11 new themes added.
++ Theme: The appearance of the sliders has been changed, some sliders have become frameless.
++ The mouse wheel now resizes the grid when the cursor is over the grid resolution buttons.
++ Now the Sensitivity slider has a conventional scale from 1 to 10 and works more logically: 1 is the minimum sensitivity, 10 is the maximum.
++ The range of Retrig values has been expanded, now the value is not related to tempo.
++ Improved marker capture zoning depending on window size and zoom.
++ Improved zoning for selecting and grabbing the first marker if it is located at the left edge of the window.
++ The area where markers are held during capture has been expanded.
++ Improved location of points at the start and end of an item/selected area of an item.
++ Fixed a bug: now the first marker cannot take a negative value and is always visible.
++ Fixed a bug: the script grid responds to changing the grid size in Reaper.
++ Fixed a bug: now the Triplet Grid status is not reset when switching the grid with the mouse wheel.
++ Added experimental font smoothing option (requires ReaimGUI installation).
++ Sync View option is now in the main menu.
++ Now, if, when running a script, an item or area is not selected, the script does not switch to Grid mode.
++ The Track/Item Envelope switch is now on the control panel.
++ For compatibility and correct operation, extstate data is now written under a new header.
++ Set the correct default value for the Rel.Thr slider.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/56a1e8d249d6ce18b210f30dd8992477d1ef7204/Envelopes/cool_MK%20ShaperStutter.lua</source>
       </version>
     </reapack>
     <reapack name="edgemeal_Scroll last touched track FX envelope into view.lua" type="script" desc="Scroll last touched track FX envelope into view">
@@ -6861,6 +6886,16 @@ Override Reaper option "Toggle enable/disable default fadein/fadeout" (on/off)]]
 + Now the script can receive MIDI from any channel, not just the first.
 + Fixed typo: RealmGUI -> ReaimGUI]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/5220235023874a28f1ffbff26dd197ae2c336f15/Items%20Editing/cool_MK%20Slicer.lua</source>
+      </version>
+      <version name="3.22" author="cool" time="2024-02-09T13:11:22Z">
+        <changelog><![CDATA[+ Improved zoning for selecting and grabbing the first marker if it is located at the left edge of the window.
++ The area where markers are held during capture has been expanded.
++ Fixed a bug: now the first marker cannot take a negative value and is always visible.
++ Fixed a bug: now the Range slider changes appearance when switching themes.
++ Fixed a bug: the script grid responds to changing the grid size in Reaper.
++ Fixed a bug: now the Triplet Grid status is not reset when switching the grid with the mouse wheel.
++ Fixed a bug: now the script does not close with an error if launched in Reaper older than v6.39]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/33a9171284894bfb91f925407c31ecad9b76e7f4/Items%20Editing/cool_MK%20Slicer.lua</source>
       </version>
     </reapack>
     <reapack name="Demoji_Next Variation.lua" type="script" desc="Next Variation">
