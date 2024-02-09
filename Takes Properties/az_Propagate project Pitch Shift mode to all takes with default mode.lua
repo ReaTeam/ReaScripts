@@ -1,9 +1,11 @@
 -- @description Propagate project Pitch Shift mode to all takes with default mode
 -- @author AZ
--- @version 1.1
--- @changelog Fixed major bug with multiply items changing
+-- @version 1.2
+-- @changelog Fixed bug with incorrect stretch marker mode
+-- @link Forum thread https://forum.cockos.com/showthread.php?t=288069
+-- @donation Donate via PayPal https://www.paypal.me/AZsound
 -- @about
---   #Propagate project Pitch Shift mode to all takes with default mode
+--   # Propagate project Pitch Shift mode to all takes with default mode
 --
 --   Useful for copying content to other projects.
 --
@@ -11,8 +13,8 @@
 --
 --   NOTE: Project has to be saved in file to let the script access to its actual settings.
 
---Version 1.0
---Date 06.03.2023
+--Version 1.2
+--Date 08.02.2023
 
 --FUNCTIONS--
 
@@ -27,13 +29,16 @@ function SetMode(item)
     local prj, projfn = reaper.EnumProjects( -1 )
     --msg(projfn)
 
-    if (PrjSaved==nil)and (reaper.IsProjectDirty(0)==1 or projfn == '') then
+    if (PrjSaved==nil) and (reaper.IsProjectDirty(0)==1 or projfn == '') then
       PrjSaved = reaper.ShowMessageBox
       ("The project has to be saved before action.\nDo you want to save the project?","Set pitch shift mode",4)
       if PrjSaved == 6 then
         reaper.Main_SaveProject(0, false)
         prj, projfn = reaper.EnumProjects( -1 )
-      else return false end
+      else
+        EditsCount = nil
+        return false
+      end
     end
     
     if projfn ~= '' then
@@ -71,7 +76,13 @@ function SetMode(item)
           EditsCount = EditsCount+1 --just for statistics
         end
         if tonumber(PLAYRATE[5]) < 0 then PLAYRATE[5] = PrjMode.pitch end
-        if tonumber(PLAYRATE[6]) == 0 then PLAYRATE[6] = PrjMode.stretch end
+        if tonumber(PLAYRATE[6]) == 0 then
+          if tonumber(PrjMode.stretch) < 2 then
+            PLAYRATE[6] = tonumber(PrjMode.stretch)+1
+          else
+            PLAYRATE[6] = tonumber(PrjMode.stretch)+2
+          end
+        end
         
         line = table.concat(PLAYRATE,' ')
         --msg(line)
@@ -103,7 +114,9 @@ function main()
     for t=0, takeCount-1 do
       local take = reaper.GetTake(item,t)
       local mode = reaper.GetMediaItemTakeInfo_Value(take,'I_PITCHMODE')
-      if mode < 0 then
+      local strflgs = reaper.GetMediaItemTakeInfo_Value(take,'I_STRETCHFLAGS')
+      
+      if mode < 0 or strflgs == 0 then
         if SetMode(item) == true then break
         else goto exit end
       end
@@ -119,10 +132,16 @@ reaper.PreventUIRefresh(1)
 reaper.Undo_BeginBlock()
 
 main()
-if EditsCount>0 then
-  UndoString = 'Propagate project pitch mode to takes'
-  reaper.ShowMessageBox('Takes were adopted: '..EditsCount,"Done",0)
+
+if EditsCount ~= nil then
+  if EditsCount>0 then
+    UndoString = 'Propagate project pitch mode to takes'
+    reaper.ShowMessageBox('Done!\n  Takes were adopted: '..EditsCount,"Propagate Pitch shift mode",0)
+  else
+    reaper.ShowMessageBox('There is nothing to change',"Propagate Pitch shift mode",0)
+  end
 end
+
 if UndoString then
   reaper.Undo_EndBlock2(0, UndoString, -1)
   reaper.UpdateArrange()
