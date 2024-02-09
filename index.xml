@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="c80b4d5d5b9cfd9490fd958cef724bcac9359937" name="ReaTeam Scripts">
+<index version="1" commit="047d5775e1026a11e5141f4d30da057f1131b63b" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -16032,12 +16032,14 @@ Updated to only list stretch markers within item time and format time as standar
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 #Propagate project Pitch Shift mode to all takes with default mode\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Propagate project Pitch Shift mode to all takes with default mode\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Useful for copying content to other projects.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Just select items and run the script.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 NOTE: Project has to be saved in file to let the script access to its actual settings.\par}
 }
 ]]></description>
+        <link rel="website" href="https://forum.cockos.com/showthread.php?t=288069">Forum thread</link>
+        <link rel="donation" href="https://www.paypal.me/AZsound">Donate via PayPal</link>
       </metadata>
       <version name="1.0" author="AZ" time="2023-03-12T15:49:10Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e2ef17cb1c7627069f29225fafb578257cdf00ee/Takes%20Properties/az_Propagate%20project%20Pitch%20Shift%20mode%20to%20all%20takes%20with%20default%20mode.lua</source>
@@ -16045,6 +16047,10 @@ Updated to only list stretch markers within item time and format time as standar
       <version name="1.1" author="AZ" time="2023-04-20T11:26:33Z">
         <changelog><![CDATA[Fixed major bug with multiply items changing]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/feccd3f6605787d771b349a27a582dd0edebb6b1/Takes%20Properties/az_Propagate%20project%20Pitch%20Shift%20mode%20to%20all%20takes%20with%20default%20mode.lua</source>
+      </version>
+      <version name="1.2" author="AZ" time="2024-02-09T02:49:16Z">
+        <changelog><![CDATA[Fixed bug with incorrect stretch marker mode]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/00f9a83b943aac249a88764c1fae41b0bd334ad4/Takes%20Properties/az_Propagate%20project%20Pitch%20Shift%20mode%20to%20all%20takes%20with%20default%20mode.lua</source>
       </version>
     </reapack>
     <reapack name="BuyOne_Randomize active take in items (settings inside).lua" type="script" desc="Randomize active take in items">
@@ -16264,13 +16270,13 @@ Updated to only list stretch markers within item time and format time as standar
     </reapack>
   </category>
   <category name="Time Selection">
-    <reapack name="az_Link time selection to arrange view.lua" type="script" desc="Link time selection to arrange view">
+    <reapack name="az_Link time selection or loop points to arrange view.lua" type="script" desc="Link time selection or loop points to arrange view">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 #Link time selection to arrange view\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Link time selection or loop points to arrange view\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Useful for looping visible arrange area while editing.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Set this script in autorun section to preserve it's ON state.\par}
 }
@@ -16278,8 +16284,9 @@ Updated to only list stretch markers within item time and format time as standar
         <link rel="website" href="https://forum.cockos.com/showthread.php?t=288069">Forum thread</link>
         <link rel="donation" href="https://www.paypal.me/AZsound">Donate via PayPal</link>
       </metadata>
-      <version name="1.0" author="AZ" time="2024-02-08T13:08:54Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/cd233da8191045c13712ea02f0a76ea854f47c0e/Time%20Selection/az_Link%20time%20selection%20to%20arrange%20view.lua</source>
+      <version name="1.1" author="AZ" time="2024-02-09T02:50:04Z">
+        <changelog><![CDATA[- Fixed dependency on option "Loop points linked to time selection"]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/047d5775e1026a11e5141f4d30da057f1131b63b/Time%20Selection/az_Link%20time%20selection%20or%20loop%20points%20to%20arrange%20view.lua</source>
       </version>
     </reapack>
     <reapack name="BuyOne_Create time selection between two marked points from the closest to cursor on the left (guide inside).lua" type="script" desc="Create time selection between two marked points from the closest to cursor on the left">
