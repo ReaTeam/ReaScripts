@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="56a1e8d249d6ce18b210f30dd8992477d1ef7204" name="ReaTeam Scripts">
+<index version="1" commit="d154d1903b907069c957911d34d6653188b923ab" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -13857,7 +13857,7 @@ Made by Mordi, Jan 2016]]></changelog>
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Install Notes\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 This script also needs the JS_ReaScriptAPI api by Julian Sander and the ReaImGui library by Christian Fillion to work. Please install them alongside (OSS will remind you to do so anyway).\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Reaper forum thread\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 The forum thread does not exist yet (at release time). Please search "One Small Step" on reaper forums for now (until a new version is released and the doc is updated).\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The official discussion thread is located here : https://forum.cockos.com/showthread.php?t=288076\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 How to use\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Launch the action called 'OneSmallStep' (other actions are provided but we'll get on this later). You should now see OSS's main dialog - One Small Step is active (it is active as long as this dialog is visible). At the top of it, the name of the target MIDI track / item / take will be displayed if there's one eligible that matches your current selection. It is important to note that the track should be armed for record (OSS will give you an indication if you forgot to arm the recording). If everyhing's ready, a red circle will glow, meaning that in this configuration, OneSmallStep is able to do its job (listen to MIDI events, and step input/patch the current MIDI item).\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Input modes\par}
@@ -13865,15 +13865,21 @@ Made by Mordi, Jan 2016]]></changelog>
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs28 Off mode\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Does nothing. It just allows to keep the window open and play with the params without the risk to edit something.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs28 Keyboard\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Notes are added to the MIDI item at the current position, when the keys are released.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Notes are added to the MIDI item at the current position, when the keys are released. Rests can also be inserted in this mode, by calling the 'OneSmallStep Commit' action.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs28 Sustain Pedal\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Hold keys on your MIDI controller, then press the sustain pedal to validate them. This is convenient when playing with chords for example.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Hold keys on your MIDI controller, then press the sustain pedal to validate them. This is convenient when playing with chords for example. In this mode, the 'OneSmallStep Commit' action will behave like the sustain pedal.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs28 Action\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 It's the same thing as with the sustain pedal, except that held notes are validated with a REAPER action. This action is the one called 'OneSmallStep Commit'. You can assign a shortcut to it, and your shortcut will take the role of the sustain pedal for validation.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Note length\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 You can adjust the length of the input notes here.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Three sources for determining the input note length are proposed.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs28 One Small Step\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Note length parameters are global and configured in OSS, with the buttons aside.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs28 Project Grid\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 One Small Step will use the grid parameters of the project to determine the length of the notes to insert\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs28 MIDI Item's conf\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 One Small Step will use the note parameters specific to the edited MIDI item to determine the length of the notes to insert. Those parameters are located at the bottom of the MIDI Editor (the combo boxes right of the 'Notes' label).\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Other actions\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 To speed up your flow, multiple actions are provided to quickly change OSS parameters, so that you can assign shortcuts to them. Those are the "Change note len", "Decrease/Increase note len", "Toggle note len modifier" actions, whose names should be safe explanatory. The "Cleanup helper JSFXs" is here for cleaniness, to remove the Helper JSFXs that are installed automatically on the input FX chain of your tracks when OSS is running (it could have been done automatically when closing the tool, but it adds an entry in the undo stack, which is annoying, and I don't have a solution for this yet).\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 To speed up your flow, multiple actions are provided to quickly change OSS parameters, so that you can assign shortcuts to them. Those are the "Change note len", "Decrease/Increase note len", "Change note len modifier", "Change note len mode" actions, whose names should be self explanatory. The "Cleanup helper JSFXs" is here for cleaniness, to remove the Helper JSFXs that are installed automatically on the input FX chain of your tracks when OSS is running (it could have been done automatically when closing the tool, but it adds an entry in the undo stack, which is annoying, and I don't have a solution for this yet).\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Toolbar icons\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Two toolbar icons are provided with OSS, one icon for launching OSS ('toolbar_one_small_step'), and one for launching the cleanup script ('toolbar_one_small_step_cleanup').\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Credits\par}
@@ -13913,6 +13919,51 @@ Made by Mordi, Jan 2016]]></changelog>
         <source type="effect" file="talagan_OneSmallStep/One Small Step Helper.jsfx">https://github.com/ReaTeam/ReaScripts/raw/d47571a3c4a2a0db80db030b89149a61b63c3d9a/MIDI%20Editor/talagan_OneSmallStep/One%20Small%20Step%20Helper.jsfx</source>
         <source type="data" file="toolbar_icons/toolbar_one_small_step.png">https://github.com/ReaTeam/ReaScripts/raw/d47571a3c4a2a0db80db030b89149a61b63c3d9a/MIDI%20Editor/talagan_OneSmallStep/toolbar_icons/toolbar_one_small_step.png</source>
         <source type="data" file="toolbar_icons/toolbar_one_small_step_cleanup.png">https://github.com/ReaTeam/ReaScripts/raw/d47571a3c4a2a0db80db030b89149a61b63c3d9a/MIDI%20Editor/talagan_OneSmallStep/toolbar_icons/toolbar_one_small_step_cleanup.png</source>
+      </version>
+      <version name="0.8" author="Ben 'Talagan' Babut" time="2024-02-10T06:35:23Z">
+        <changelog><![CDATA[- MIDI Items are now extended if the input notes overflow
+- Allow the use of the commit action in keyboard mode to insert rests
+- Allow the use of the commit action in pedal mode to act as the sustain pedal
+- Added Project Grid and MIDI Item conf modes to change the source for the note length
+- Added support for n-tuplets
+- Bug Fix : When launched from a toolbar button, update the button to OFF state when crashing or being terminated by REAPER]]></changelog>
+        <source main="main midi_editor">https://github.com/ReaTeam/ReaScripts/raw/d154d1903b907069c957911d34d6653188b923ab/MIDI%20Editor/talagan_OneSmallStep.lua</source>
+        <source main="main midi_editor" file="talagan_OneSmallStep Change note len modifier - OSS.lua">https://github.com/ReaTeam/ReaScripts/raw/d154d1903b907069c957911d34d6653188b923ab/MIDI%20Editor/talagan_OneSmallStep%20Change%20note%20len%20mode.lua</source>
+        <source main="main midi_editor" file="talagan_OneSmallStep Change note len modifier - ItemConf.lua">https://github.com/ReaTeam/ReaScripts/raw/d154d1903b907069c957911d34d6653188b923ab/MIDI%20Editor/talagan_OneSmallStep%20Change%20note%20len%20mode.lua</source>
+        <source main="main midi_editor" file="talagan_OneSmallStep Change note len modifier - ProjectGrid.lua">https://github.com/ReaTeam/ReaScripts/raw/d154d1903b907069c957911d34d6653188b923ab/MIDI%20Editor/talagan_OneSmallStep%20Change%20note%20len%20mode.lua</source>
+        <source main="main midi_editor" file="talagan_OneSmallStep Change note len modifier - Triplet.lua">https://github.com/ReaTeam/ReaScripts/raw/d154d1903b907069c957911d34d6653188b923ab/MIDI%20Editor/talagan_OneSmallStep%20Change%20note%20len%20modifier.lua</source>
+        <source main="main midi_editor" file="talagan_OneSmallStep Change note len modifier - Straight.lua">https://github.com/ReaTeam/ReaScripts/raw/d154d1903b907069c957911d34d6653188b923ab/MIDI%20Editor/talagan_OneSmallStep%20Change%20note%20len%20modifier.lua</source>
+        <source main="main midi_editor" file="talagan_OneSmallStep Change note len modifier - Dotted.lua">https://github.com/ReaTeam/ReaScripts/raw/d154d1903b907069c957911d34d6653188b923ab/MIDI%20Editor/talagan_OneSmallStep%20Change%20note%20len%20modifier.lua</source>
+        <source main="main midi_editor" file="talagan_OneSmallStep Change note len modifier - Tuplet.lua">https://github.com/ReaTeam/ReaScripts/raw/d154d1903b907069c957911d34d6653188b923ab/MIDI%20Editor/talagan_OneSmallStep%20Change%20note%20len%20modifier.lua</source>
+        <source main="main midi_editor" file="talagan_OneSmallStep Increase note len.lua">https://github.com/ReaTeam/ReaScripts/raw/d154d1903b907069c957911d34d6653188b923ab/MIDI%20Editor/talagan_OneSmallStep%20Increase%20note%20len.lua</source>
+        <source main="main midi_editor" file="talagan_OneSmallStep Decrease note len.lua">https://github.com/ReaTeam/ReaScripts/raw/d154d1903b907069c957911d34d6653188b923ab/MIDI%20Editor/talagan_OneSmallStep%20Decrease%20note%20len.lua</source>
+        <source main="main midi_editor" file="talagan_OneSmallStep Change note len - 1_64.lua">https://github.com/ReaTeam/ReaScripts/raw/d154d1903b907069c957911d34d6653188b923ab/MIDI%20Editor/talagan_OneSmallStep%20Change%20note%20len.lua</source>
+        <source main="main midi_editor" file="talagan_OneSmallStep Change note len - 1_32.lua">https://github.com/ReaTeam/ReaScripts/raw/d154d1903b907069c957911d34d6653188b923ab/MIDI%20Editor/talagan_OneSmallStep%20Change%20note%20len.lua</source>
+        <source main="main midi_editor" file="talagan_OneSmallStep Change note len - 1_16.lua">https://github.com/ReaTeam/ReaScripts/raw/d154d1903b907069c957911d34d6653188b923ab/MIDI%20Editor/talagan_OneSmallStep%20Change%20note%20len.lua</source>
+        <source main="main midi_editor" file="talagan_OneSmallStep Change note len - 1_8.lua">https://github.com/ReaTeam/ReaScripts/raw/d154d1903b907069c957911d34d6653188b923ab/MIDI%20Editor/talagan_OneSmallStep%20Change%20note%20len.lua</source>
+        <source main="main midi_editor" file="talagan_OneSmallStep Change note len - 1_4.lua">https://github.com/ReaTeam/ReaScripts/raw/d154d1903b907069c957911d34d6653188b923ab/MIDI%20Editor/talagan_OneSmallStep%20Change%20note%20len.lua</source>
+        <source main="main midi_editor" file="talagan_OneSmallStep Change note len - 1_2.lua">https://github.com/ReaTeam/ReaScripts/raw/d154d1903b907069c957911d34d6653188b923ab/MIDI%20Editor/talagan_OneSmallStep%20Change%20note%20len.lua</source>
+        <source main="main midi_editor" file="talagan_OneSmallStep Change note len - 1.lua">https://github.com/ReaTeam/ReaScripts/raw/d154d1903b907069c957911d34d6653188b923ab/MIDI%20Editor/talagan_OneSmallStep%20Change%20note%20len.lua</source>
+        <source main="main midi_editor" file="talagan_OneSmallStep Cleanup helper JSFXs.lua">https://github.com/ReaTeam/ReaScripts/raw/d154d1903b907069c957911d34d6653188b923ab/MIDI%20Editor/talagan_OneSmallStep%20Cleanup%20helper%20JSFXs.lua</source>
+        <source main="main midi_editor" file="talagan_OneSmallStep Commit.lua">https://github.com/ReaTeam/ReaScripts/raw/d154d1903b907069c957911d34d6653188b923ab/MIDI%20Editor/talagan_OneSmallStep%20Commit.lua</source>
+        <source file="talagan_OneSmallStep/images/note_1.lua">https://github.com/ReaTeam/ReaScripts/raw/d154d1903b907069c957911d34d6653188b923ab/MIDI%20Editor/talagan_OneSmallStep/images/note_1.lua</source>
+        <source file="talagan_OneSmallStep/images/note_1_16.lua">https://github.com/ReaTeam/ReaScripts/raw/d154d1903b907069c957911d34d6653188b923ab/MIDI%20Editor/talagan_OneSmallStep/images/note_1_16.lua</source>
+        <source file="talagan_OneSmallStep/images/note_1_2.lua">https://github.com/ReaTeam/ReaScripts/raw/d154d1903b907069c957911d34d6653188b923ab/MIDI%20Editor/talagan_OneSmallStep/images/note_1_2.lua</source>
+        <source file="talagan_OneSmallStep/images/note_1_32.lua">https://github.com/ReaTeam/ReaScripts/raw/d154d1903b907069c957911d34d6653188b923ab/MIDI%20Editor/talagan_OneSmallStep/images/note_1_32.lua</source>
+        <source file="talagan_OneSmallStep/images/note_1_4.lua">https://github.com/ReaTeam/ReaScripts/raw/d154d1903b907069c957911d34d6653188b923ab/MIDI%20Editor/talagan_OneSmallStep/images/note_1_4.lua</source>
+        <source file="talagan_OneSmallStep/images/note_1_64.lua">https://github.com/ReaTeam/ReaScripts/raw/d154d1903b907069c957911d34d6653188b923ab/MIDI%20Editor/talagan_OneSmallStep/images/note_1_64.lua</source>
+        <source file="talagan_OneSmallStep/images/note_1_8.lua">https://github.com/ReaTeam/ReaScripts/raw/d154d1903b907069c957911d34d6653188b923ab/MIDI%20Editor/talagan_OneSmallStep/images/note_1_8.lua</source>
+        <source file="talagan_OneSmallStep/images/note_dotted.lua">https://github.com/ReaTeam/ReaScripts/raw/d154d1903b907069c957911d34d6653188b923ab/MIDI%20Editor/talagan_OneSmallStep/images/note_dotted.lua</source>
+        <source file="talagan_OneSmallStep/images/note_len_mode_igrid.lua">https://github.com/ReaTeam/ReaScripts/raw/d154d1903b907069c957911d34d6653188b923ab/MIDI%20Editor/talagan_OneSmallStep/images/note_len_mode_igrid.lua</source>
+        <source file="talagan_OneSmallStep/images/note_len_mode_oss.lua">https://github.com/ReaTeam/ReaScripts/raw/d154d1903b907069c957911d34d6653188b923ab/MIDI%20Editor/talagan_OneSmallStep/images/note_len_mode_oss.lua</source>
+        <source file="talagan_OneSmallStep/images/note_len_mode_pgrid.lua">https://github.com/ReaTeam/ReaScripts/raw/d154d1903b907069c957911d34d6653188b923ab/MIDI%20Editor/talagan_OneSmallStep/images/note_len_mode_pgrid.lua</source>
+        <source file="talagan_OneSmallStep/images/note_triplet.lua">https://github.com/ReaTeam/ReaScripts/raw/d154d1903b907069c957911d34d6653188b923ab/MIDI%20Editor/talagan_OneSmallStep/images/note_triplet.lua</source>
+        <source file="talagan_OneSmallStep/images/note_tuplet.lua">https://github.com/ReaTeam/ReaScripts/raw/d154d1903b907069c957911d34d6653188b923ab/MIDI%20Editor/talagan_OneSmallStep/images/note_tuplet.lua</source>
+        <source file="talagan_OneSmallStep/talagan_OneSmallStep Engine lib.lua">https://github.com/ReaTeam/ReaScripts/raw/d154d1903b907069c957911d34d6653188b923ab/MIDI%20Editor/talagan_OneSmallStep/talagan_OneSmallStep%20Engine%20lib.lua</source>
+        <source file="talagan_OneSmallStep/talagan_OneSmallStep Helper lib.lua">https://github.com/ReaTeam/ReaScripts/raw/d154d1903b907069c957911d34d6653188b923ab/MIDI%20Editor/talagan_OneSmallStep/talagan_OneSmallStep%20Helper%20lib.lua</source>
+        <source type="effect" file="talagan_OneSmallStep/One Small Step Helper.jsfx">https://github.com/ReaTeam/ReaScripts/raw/d154d1903b907069c957911d34d6653188b923ab/MIDI%20Editor/talagan_OneSmallStep/One%20Small%20Step%20Helper.jsfx</source>
+        <source type="data" file="toolbar_icons/toolbar_one_small_step.png">https://github.com/ReaTeam/ReaScripts/raw/d154d1903b907069c957911d34d6653188b923ab/MIDI%20Editor/talagan_OneSmallStep/toolbar_icons/toolbar_one_small_step.png</source>
+        <source type="data" file="toolbar_icons/toolbar_one_small_step_cleanup.png">https://github.com/ReaTeam/ReaScripts/raw/d154d1903b907069c957911d34d6653188b923ab/MIDI%20Editor/talagan_OneSmallStep/toolbar_icons/toolbar_one_small_step_cleanup.png</source>
       </version>
     </reapack>
     <reapack name="timtam_AccessiChords.lua" type="script" desc="AccessiChords">
