@@ -1,18 +1,23 @@
 -- @description Route selected tracks to new Channel Selector track above them
 -- @author amagalma
--- @version 1.0
+-- @version 1.1
+-- @changelog
+--   - Fix: remove the channel selector track when action is run with only that track selected
+--   - Fix: no JSFX file is left over if the channel selector track is removed manually
+--   - SWS not required any more
+-- @donation https://www.paypal.me/amagalma
 -- @about
 --   # Routes the selected tracks to a new track above them so you can A/B between them
 --   - A custom JSFX is added with the names of the routed tracks
 --   - Smooth audio transition between tracks (code by geraintluff)
 --   - If track is deleted or JSFX is removed from the channel, then the initially selected tracks return to their initial state
 --   - If script is run with only the channel selector track selected, then it gets removed and everything gets back to initial state
-
--- JSFX code for the JS smooth channel selector by geraintluff - thanks!! :)
+--   - If you are prompted by Reaper when running the script, choose New Istance and Remember
+--    
+--   JSFX code for the JS smooth channel selector by geraintluff - thanks!! :)
 
 --------------------------------------------------------------------------------------------------
 
-local reaper = reaper
 local sep = reaper.GetOS():find("Win") and "\\" or "/"
 local path
 local _, projfn = reaper.EnumProjects( -1, "" )
@@ -27,18 +32,25 @@ end
 --------------------------------------------------------------------------------------------------
 
 local tr_cnt = reaper.CountSelectedTracks( 0 )
+local sel_track = reaper.GetSelectedTrack( 0, 0 )
+local SelectorTrack
 
 if tr_cnt == 1 then
-
   -- remove channel selector if exists
-  local sel_track = reaper.GetSelectedTrack( 0, 0 )
-  if sel_track then
-    local index = reaper.TrackFX_GetByName( sel_track, "Custom channel selector", false )
-    if index >= 0 then
+  local ok, tr_name = reaper.GetTrackName( sel_track )
+  local selector_nr
+  
+  if ok and tr_name == "Channel selector" then
+    for fx = 0,  reaper.TrackFX_GetCount( sel_track )-1 do
+      local ok, name = reaper.TrackFX_GetFXName( sel_track, fx )
+      if ok then
+        selector_nr = name:match("^Custom channel selector(%d*)")
+        break
+      end
+    end
+    if selector_nr then
       reaper.Undo_BeginBlock2( 0 )
-      local _, number = reaper.TrackFX_GetFXName( sel_track, index, "" )
-      number = number:match("%d+$")
-      local filepath = path .. sep .. "chan_select" .. number
+      local filepath = path .. sep .. "chan_select" .. selector_nr
       if reaper.file_exists( filepath ) then
         os.remove(filepath)
       end
@@ -51,6 +63,8 @@ if tr_cnt == 1 then
       reaper.DeleteTrack( sel_track )
       reaper.Undo_EndBlock2( 0, "Remove channel selector" , 1|2 )
     end
+  else
+    return reaper.defer(function() end)
   end
   
 elseif tr_cnt > 1 then
@@ -71,9 +85,10 @@ elseif tr_cnt > 1 then
     sel_tr_names[#sel_tr_names+1] = name
     reaper.SetMediaTrackInfo_Value( tr, 'B_MAINSEND', 0 )
   end
-  reaper.Main_OnCommand( reaper.NamedCommandLookup( "_SWS_INSRTTRKABOVE" ), 0) -- SWS: Insert track above selected tracks
-  reaper.TrackList_AdjustWindows( true )
-  local SelectorTrack = reaper.GetSelectedTrack(0,0)
+  local first_track_id = reaper.GetMediaTrackInfo_Value( sel_track, "IP_TRACKNUMBER" )
+  reaper.InsertTrackAtIndex(  first_track_id - 1, false )
+  SelectorTrack = reaper.GetTrack( 0, first_track_id-1 )
+  reaper.SetOnlyTrackSelected( SelectorTrack )
   for i = 1, #sel_tr do
     reaper.CreateTrackSend( sel_tr[i], SelectorTrack )
   end
@@ -197,49 +212,47 @@ FLOAT ]] .. Xpos .. " " .. Ypos .. " 505 120\n>\n>"
   chunk = chunk .. fxchunk
   reaper.SetTrackStateChunk( SelectorTrack, chunk )
   
-  local function ReenableMainSends()
-    for i = 0, reaper.GetNumTracks()-1 do
-      local track = reaper.GetTrack( 0, i )
-      if sel_tr_guid[reaper.GetTrackGUID(track)] then -- track still exists
-        reaper.SetMediaTrackInfo_Value( track, 'B_MAINSEND', 1 )
-        reaper.SetMediaTrackInfo_Value( track, 'I_SELECTED', 1 )
+      local function ReenableMainSends()
+        for i = 0, reaper.GetNumTracks()-1 do
+          local track = reaper.GetTrack( 0, i )
+          if sel_tr_guid[reaper.GetTrackGUID(track)] then -- track still exists
+            reaper.SetMediaTrackInfo_Value( track, 'B_MAINSEND', 1 )
+            reaper.SetMediaTrackInfo_Value( track, 'I_SELECTED', 1 )
+          end
+        end
       end
-    end
-  end
+
+  local NAME = "Custom channel selector" .. number
   
-  local function main()
-    local existSelectorTrack
-    for i = 0, reaper.GetNumTracks()-1 do
-      local track = reaper.GetTrack( 0, i )
-      if track == SelectorTrack then
-        existSelectorTrack = track
-        break
+      local function main()
+        if not reaper.ValidatePtr2( 0, SelectorTrack, "MediaTrack*" ) then
+          -- track was deleted
+          ReenableMainSends()
+          os.remove(path .. sep .. JSFX_name)
+          return
+        elseif reaper.TrackFX_GetByName( SelectorTrack, NAME, false ) < 0 then
+          -- FX was deleted
+          reaper.Undo_BeginBlock2( 0 )
+          reaper.PreventUIRefresh( 1 )
+          reaper.DeleteTrack( SelectorTrack )
+          ReenableMainSends()
+          reaper.PreventUIRefresh( -1 )
+          reaper.Undo_EndBlock2( 0, "Remove channel selector" , 1|2 )
+          os.remove(path .. sep .. JSFX_name)
+          return
+        else
+          reaper.defer( main )
+        end
       end
-    end
-    if not existSelectorTrack then
-      ReenableMainSends()
-      return
-    elseif reaper.TrackFX_GetByName( existSelectorTrack, "Custom channel selector" .. number, false ) < 0 then
-      reaper.Undo_BeginBlock2( 0 )
-      reaper.PreventUIRefresh( 1 )
-      reaper.DeleteTrack( existSelectorTrack )
-      ReenableMainSends()
-      reaper.PreventUIRefresh( -1 )
-      reaper.Undo_EndBlock2( 0, "Remove channel selector" , 1|2 )
-      os.remove(path .. sep .. JSFX_name)
-      return
-    else
-      reaper.defer( main )
-    end
-  end
   
   reaper.PreventUIRefresh( -1 )
+  reaper.TrackList_AdjustWindows( true )
   reaper.Undo_EndBlock2( 0, "Add channel selector" , 1|2 )
   main()
   
 else
 
   -- do nothing
-  reaper.defer(function () end)
+  return reaper.defer(function() end)
   
 end
