@@ -1,13 +1,13 @@
 -- @description amagalma_Toggle wet 0-100% (or current value) for focused FX
 -- @author amagalma
--- @version 1.1
+-- @version 1.11
 -- @changelog
 --   - Support for FX Containers
 --   - Requires Reaper v7.06+
+--   - Fix bugs of v1.10
 -- @donation https://www.paypal.me/amagalma
 -- @about
 --   # Toggles wet from 0% to current value (or 100%) for the FX in focus
-
 
 local v1, v2 = reaper.GetAppVersion():match("(%d+)%.(%d+)")
 if tonumber(v1) < 7 or tonumber(v2) < 6 then
@@ -18,7 +18,7 @@ end
 local floor, ceil = math.floor, math.ceil
 
 local retval, track, item, take, fx, parm = reaper.GetTouchedOrFocusedFX( 1 )
-if not retval or parm ~= 1 then return reaper.defer(function () end) end
+if not retval then return reaper.defer(function () end) end
 
 local function round(num, numDecimalPlaces)
   local mult = 10^(numDecimalPlaces or 0)
@@ -55,7 +55,7 @@ if item == -1 then --------------- TRACK FX ---------------
         val = 1
       end
       reaper.TrackFX_SetParam( track, fx, wetparam, val )
-      reaper.SetProjExtState( 0, "ToggleWet", fxguid, nil )
+      reaper.SetProjExtState( 0, "ToggleWet", fxguid, "" )
       val = round (val * 100)
       reaper.Undo_OnStateChangeEx( "Set " .. name .. " to " .. val .. "% wet", 2, -1 )
     end    
@@ -91,7 +91,7 @@ else --------------- TAKE FX ---------------
         val = 1
       end
       reaper.TakeFX_SetParam( take, fx, wetparam, val )
-      reaper.SetProjExtState( 0, "ToggleWet", fxguid, nil )
+      reaper.SetProjExtState( 0, "ToggleWet", fxguid, "" )
       val = round (val * 100)
       reaper.Undo_OnStateChangeEx( "Set " .. name .. " to " .. val .. "% wet", 4, -1 )
     end
