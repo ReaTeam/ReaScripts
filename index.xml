@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="a828ca8dc0d031ded9f1fb885b31d1272dae8481" name="ReaTeam Scripts">
+<index version="1" commit="47fb055713f2e21def65fa37756c1578d6e1275e" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -16999,12 +16999,21 @@ Removed first run warning message.]]></changelog>
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab A custom JSFX is added with the names of the routed tracks\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Smooth audio transition between tracks (code by geraintluff)\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab If track is deleted or JSFX is removed from the channel, then the initially selected tracks return to their initial state\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab If script is run with only the channel selector track selected, then it gets removed and everything gets back to initial state\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab If script is run with only the channel selector track selected, then it gets removed and everything gets back to initial state\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab If you are prompted by Reaper when running the script, choose New Istance and Remember\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 JSFX code for the JS smooth channel selector by geraintluff - thanks!! :)\par}
 }
 ]]></description>
+        <link rel="donation">https://www.paypal.me/amagalma</link>
       </metadata>
       <version name="1.0" author="amagalma" time="2020-05-08T19:19:16Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f15195149dafef64e58ddc12a56b3815efc4ce30/Tracks%20Properties/amagalma_Route%20selected%20tracks%20to%20new%20Channel%20Selector%20track%20above%20them.lua</source>
+      </version>
+      <version name="1.1" author="amagalma" time="2024-02-12T18:36:52Z">
+        <changelog><![CDATA[- Fix: remove the channel selector track when action is run with only that track selected
+- Fix: no JSFX file is left over if the channel selector track is removed manually
+- SWS not required any more]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/47fb055713f2e21def65fa37756c1578d6e1275e/Tracks%20Properties/amagalma_Route%20selected%20tracks%20to%20new%20Channel%20Selector%20track%20above%20them.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Smart track layout picker (categories with sub-menus).lua" type="script" desc="Smart track layout picker (categories with sub-menus)">
