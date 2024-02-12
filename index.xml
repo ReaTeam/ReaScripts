@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="47fb055713f2e21def65fa37756c1578d6e1275e" name="ReaTeam Scripts">
+<index version="1" commit="8970ecca7f9e681614d4846730e8500cd3b3a274" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -3752,6 +3752,12 @@ Fix a potential infinite loop]]></changelog>
       <version name="1.01" author="amagalma" time="2021-10-16T12:27:17Z">
         <changelog><![CDATA[Update to work with v6.37+]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/086f5af344dd2105ea1337626ee268f46851eef0/FX/amagalma_Toggle%20wet%200-100%25%20(or%20current%20value)%20for%20focused%20FX.lua</source>
+      </version>
+      <version name="1.11" author="amagalma" time="2024-02-12T21:08:40Z">
+        <changelog><![CDATA[- Support for FX Containers
+- Requires Reaper v7.06+
+- Fix bugs of v1.10]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/8970ecca7f9e681614d4846730e8500cd3b3a274/FX/amagalma_Toggle%20wet%200-100%25%20(or%20current%20value)%20for%20focused%20FX.lua</source>
       </version>
     </reapack>
     <reapack name="BuyOne_(Un)Tag FX with (in)active envelopes (settings inside).lua" type="script" desc="(Un)Tag FX with (in)active envelopes">
