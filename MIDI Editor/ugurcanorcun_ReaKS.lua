@@ -2,8 +2,7 @@
 -- @author Ugurcan Orcun
 -- @version 0.1
 -- @changelog First commit
-
---This is a ReaScript plugin that autorenames MIDI notes from a file that contains a list of note names and their corresponding MIDI note numbers.
+-- @about This is a ReaScript plugin that autorenames MIDI notes from a file that contains a list of note names and their corresponding MIDI note numbers.
 
 ActiveMidiEditor = nil
 PreviousMidiEditor = nil
