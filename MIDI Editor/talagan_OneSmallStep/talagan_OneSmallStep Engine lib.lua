@@ -11,15 +11,54 @@ package.path      = scriptDir .."?.lua;".. package.path
 local helper_lib  = require "talagan_OneSmallStep Helper lib";
 
 -- Defines
-local noteLenLookup = {
-  ["1"]     = {next="1",    prec="1_2",   qn=4      },
-  ["1_2"]   = {next="1",    prec="1_4",   qn=2      },
-  ["1_4"]   = {next="1_2",  prec="1_8",   qn=1      },
-  ["1_8"]   = {next="1_4",  prec="1_16",  qn=0.5    },
-  ["1_16"]  = {next="1_8",  prec="1_32",  qn=0.25   },
-  ["1_32"]  = {next="1_16", prec="1_64",  qn=0.125  },
-  ["1_64"]  = {next="1_32", prec="1_64",  qn=0.0625 }
+local NoteLenDefs = {
+  { id = "1",    next = "1",    prec = "1_2",   qn = 4      },
+  { id = "1_2",  next = "1",    prec = "1_4",   qn = 2      },
+  { id = "1_4",  next = "1_2",  prec = "1_8",   qn = 1      },
+  { id = "1_8",  next = "1_4",  prec = "1_16",  qn = 0.5    },
+  { id = "1_16", next = "1_8",  prec = "1_32",  qn = 0.25   },
+  { id = "1_32", next = "1_16", prec = "1_64",  qn = 0.125  },
+  { id = "1_64", next = "1_32", prec = "1_64",  qn = 0.0625 }
 };
+local AugmentedDiminishedDefs = {
+  { id = '1/2', mod = 1 / 2.0 },
+  { id = '1/3', mod = 1 / 3.0 },
+  { id = '2/3', mod = 2 / 3.0 },
+  { id = '1/4', mod = 1 / 4.0 },
+  { id = '3/4', mod = 3 / 4.0 },
+  { id = '1/5', mod = 1 / 5.0 },
+  { id = '2/5', mod = 2 / 5.0 },
+  { id = '3/5', mod = 3 / 5.0 },
+  { id = '4/5', mod = 4 / 5.0 },
+  { id = '1/6', mod = 1 / 6.0 },
+  { id = '5/6', mod = 5 / 6.0 },
+  { id = '1/7', mod = 1 / 7.0 },
+  { id = '2/7', mod = 2 / 7.0 },
+  { id = '3/7', mod = 3 / 7.0 },
+  { id = '4/7', mod = 4 / 7.0 },
+  { id = '5/7', mod = 5 / 7.0 },
+  { id = '6/7', mod = 6 / 7.0 },
+  { id = '1/8', mod = 1 / 8.0 },
+  { id = '3/8', mod = 3 / 8.0 },
+  { id = '5/8', mod = 5 / 8.0 },
+  { id = '7/8', mod = 7 / 8.0 },
+  { id = '1/9', mod = 1 / 9.0 },
+  { id = '2/9', mod = 2 / 9.0 },
+  { id = '4/9', mod = 4 / 9.0 },
+  { id = '5/9', mod = 5 / 9.0 },
+  { id = '7/9', mod = 7 / 9.0 },
+  { id = '8/9', mod = 8 / 9.0 }
+}
+
+local NoteLenLookup = {};
+for i,v in ipairs(NoteLenDefs) do
+  NoteLenLookup[v.id] = v;
+end
+
+local AugmentedDiminishedLookup = {};
+for i,v in ipairs(AugmentedDiminishedDefs) do
+  AugmentedDiminishedLookup[v.id] = v;
+end
 
 local NoteLenMode = {
   OSS=0,
@@ -38,21 +77,17 @@ local NoteLenModifier = {
   Straight=0,
   Dotted=1,
   Triplet=2,
-  Tuplet=3
+  Tuplet=3,
+  Modified=4
 }
-
-
-local function DBG(m)
-  --reaper.ShowConsoleMsg(m .. "\n");
-end
 
 -----------
 
-local function setMode(m)
+local function setInputMode(m)
   reaper.SetExtState("OneSmallStep", "Mode", tostring(m), true)
 end
-local function getMode()
-  return tonumber(reaper.GetExtState("OneSmallStep", "Mode")) or 0;
+local function getInputMode()
+  return tonumber(reaper.GetExtState("OneSmallStep", "Mode")) or InputMode.Keyboard;
 end
 
 -----------
@@ -62,6 +97,24 @@ local function setNoteLenMode(m)
 end
 local function getNoteLenMode()
   return tonumber(reaper.GetExtState("OneSmallStep", "NoteLenMode")) or 0;
+end
+
+-----------
+
+local function setNoteADSign(plus_or_minus)
+  reaper.SetExtState("OneSmallStep", "NoteLenADSign", plus_or_minus, true)
+end
+local function getNoteADSign()
+  return reaper.GetExtState("OneSmallStep", "NoteLenADSign") or "+";
+end
+
+-----------
+
+local function setNoteADFactor(fraction_string)
+  reaper.SetExtState("OneSmallStep", "NoteADFactor", fraction_string, true)
+end
+local function getNoteADFactor()
+  return reaper.GetExtState("OneSmallStep", "NoteADFactor") or "1/2";
 end
 
 -----------
@@ -94,6 +147,9 @@ end
 local function getNoteLenModifier()
   return tonumber(reaper.GetExtState("OneSmallStep", "NoteLenModifier"));
 end
+
+-----------
+
 local function getNoteLenModifierFactor()
 
   local m = getNoteLenModifier();
@@ -104,6 +160,11 @@ local function getNoteLenModifierFactor()
     return 1.5;
   elseif m == NoteLenModifier.Triplet then
     return 2/3.0;
+  elseif m == NoteLenModifier.Modified then
+    local sign    = getNoteADSign();
+    local factor  = AugmentedDiminishedLookup[getNoteADFactor()].mod;
+
+    return 1 + (sign == '+' and 1 or -1) * factor;
   elseif m == NoteLenModifier.Tuplet then
     local div = getTupletDivision();
     return 2.0/div;
@@ -114,18 +175,18 @@ end
 
 local function increaseNoteLen()
   local l = getNoteLen();
-  setNoteLen(noteLenLookup[l].next);
+  setNoteLen(NoteLenLookup[l].next);
 end
 
 local function decreaseNoteLen()
   local l = getNoteLen();
-  setNoteLen(noteLenLookup[l].prec);
+  setNoteLen(NoteLenLookup[l].prec);
 end
 
 local function getNoteLenQN()
   local nl  = getNoteLen();
 
-  return noteLenLookup[nl].qn;
+  return NoteLenLookup[nl].qn;
 end
 
 
@@ -287,7 +348,7 @@ end
 -- Table to keep track of key activities
 -- With inertia, to avoid losing events for chords
 -- When releasing keys (the release events may not be totally synchronized)
-local trackKeyActivity  = {};
+local trackKeyActivity  = {}; -- trackid -> { "chan,note" -> { :note, :chan, :velocity, :ts } }
 local keyInertia        = 0.2;
 
 local function keepTrackOfKeysForTrack(track, pressed_keys)
@@ -301,10 +362,10 @@ local function keepTrackOfKeysForTrack(track, pressed_keys)
   for _, v in pairs(pressed_keys) do
     local k = tostring(math.floor(v.chan+0.5)) .. "," .. tostring(math.floor(v.note+0.5))
     trackKeyActivity[trackid][k] = {
-      note=v.note,
-      chan=v.chan,
-      velocity=v.velocity,
-      ts=t
+      note     = v.note,
+      chan     = v.chan,
+      velocity = v.velocity,
+      ts       = t
     };
   end
 end
@@ -316,8 +377,6 @@ local function keyActivityForTrack(track)
   if track_activity == nil then
     return {}
   end
-
-  ttta = track_activity;
 
   local ret = {};
   for _, v in pairs(track_activity) do
@@ -339,6 +398,8 @@ local function clearOutdatedTrackActivity()
   for guid, track_activity in pairs(trackKeyActivity) do
     local torem = {};
     for k, note_info in pairs(track_activity) do
+      -- The key is not held anymore, for more than the inertia time
+      -- Remove it
       if t - note_info.ts > keyInertia then
         torem[#torem+1] = k
       end
@@ -356,7 +417,7 @@ end
 -- Listen to events from instrumented tracks that have the JSFX companion effect installed (or install it if not present)
 local function listenToEvents(called_from_action)
 
-  local mode = getMode();
+  local mode = getInputMode();
 
   -- Input mode should be engaged
   if mode == InputMode.None then
@@ -391,10 +452,10 @@ local function listenToEvents(called_from_action)
   local oss_state = helper_lib.oneSmallStepState(track);
 
   if mode == InputMode.Pedal then
+
     if oss_state.pedalActivity > 0 or called_from_action then
       -- Pedal event, commit new notes
       reaper.Undo_BeginBlock();
-      -- Acknowledge the pedal
       helper_lib.resetPedalActivity(track);
       commit(take, oss_state.pitches);
       reaper.Undo_EndBlock("One Small Step - Add notes on pedal event",-1);
@@ -426,11 +487,12 @@ local function listenToEvents(called_from_action)
       end
     end
 
-    -- Allow the use of the action, but only insert rests
-    if called_from_action then
+    -- Allow the use of the action or pedal, but only insert rests
+    if oss_state.pedalActivity > 0 or called_from_action then
       reaper.Undo_BeginBlock();
+      helper_lib.resetPedalActivity(track);
       commit(take, {}) ;
-      reaper.Undo_EndBlock("One Small Step - Add rest on action",-1);
+      reaper.Undo_EndBlock("One Small Step - Add rest",-1);
     end
   end
 
@@ -440,22 +502,24 @@ function reaperActionCommit()
   listenToEvents(true);
 end
 
+function cleanupCompanionFXs()
+  reaper.Undo_BeginBlock()
+  helper_lib.cleanupAllTrackFXs();
+  reaper.Undo_EndBlock("One Small Step - Cleanup companion JSFXs",-1);
+end
+
 function atStart()
   -- Do some cleanup at engine start
   -- But this adds an undo entry point ...
   -- So rely on the user instead to cleanup the JSFXs using the relevant action
   -- If there's one day a way to prevent reaper from creating Undo points
   -- Then we can uncomment this automatic cleanup
-  --reaper.Undo_BeginBlock()
-  --helper_lib.cleanupAllTrackFXs();
-  --reaper.Undo_EndBlock("One Small Step - Cleanup companion JSFXs",-1);
+  -- cleanupCompanionFXs();
 end
 
 function atExit()
   -- See comment in atStart
-  --reaper.Undo_BeginBlock()
-  --helper_lib.cleanupAllTrackFXs();
-  --reaper.Undo_EndBlock("One Small Step - Cleanup companion JSFXs",-1);
+  -- cleanupCompanionFXs();
 end
 
 function atLoop()
@@ -469,15 +533,24 @@ return {
   NoteLenMode                   = NoteLenMode,
   NoteLenModifier               = NoteLenModifier,
 
+  NoteLenDefs                   = NoteLenDefs,
+  AugmentedDiminishedDefs       = AugmentedDiminishedDefs,
+
   --Functions
-  setMode                       = setMode,
-  getMode                       = getMode,
+  setInputMode                  = setInputMode,
+  getInputMode                  = getInputMode,
 
   setNoteLenMode                = setNoteLenMode,
   getNoteLenMode                = getNoteLenMode,
 
   setTupletDivision             = setTupletDivision,
   getTupletDivision             = getTupletDivision,
+
+  getNoteADFactor               = getNoteADFactor,
+  setNoteADFactor               = setNoteADFactor,
+
+  getNoteADSign                 = getNoteADSign,
+  setNoteADSign                 = setNoteADSign,
 
   getNoteLenModifier            = getNoteLenModifier,
   setNoteLenModifier            = setNoteLenModifier,
