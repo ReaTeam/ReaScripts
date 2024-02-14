@@ -1,14 +1,17 @@
--- @description ReaKS
+-- @description ReaKS - Keyswitch Articulation Manager
 -- @author Ugurcan Orcun
 -- @version 0.1
 -- @changelog First commit
--- @about This is a ReaScript plugin that autorenames MIDI notes from a file that contains a list of note names and their corresponding MIDI note numbers.
+-- @about A small MIDI Editor tool for auto-inserting KeySwitch midi notes and managing note/cc names.
+
+dofile(reaper.GetResourcePath() .. '/Scripts/ReaTeam Extensions/API/imgui.lua')('0.8.7')
 
 ActiveMidiEditor = nil
 PreviousMidiEditor = nil
 ActiveTake = nil
 ActiveTrack = nil
 Articulations = {}
+CC = {}
 ActivatedArticulations = {}
 
 Setting_AutoupdateTextEvent = true
@@ -25,7 +28,9 @@ function UpdateActiveTargets()
 
     if ActiveTake ~= nil and ActiveTake ~= PreviousTake then
         Articulations = {}
+        CC = {}
         ParseNoteNamesFromTrack()
+        ParseCCNamesFromTrack()
     end
 
     PreviousTake = ActiveTake
@@ -55,8 +60,10 @@ end
 
 function LoadNoteNames()
     Articulations = {}
+    CC = {}
     reaper.MIDIEditor_LastFocused_OnCommand(40409, false)    
     ParseNoteNamesFromTrack()
+    ParseCCNamesFromTrack()
 end
 
 function ParseNoteNamesFromTrack()
@@ -69,6 +76,20 @@ function ParseNoteNamesFromTrack()
     end
 end
 
+function ParseCCNamesFromTrack()
+    if ActiveTake == nil then return end
+    for i = 128, 255 do
+        local ccname = reaper.GetTrackMIDINoteNameEx(0, ActiveTrack, i, 0)
+        if ccname ~= nil then
+            CC[i] = ccname
+        end
+    end
+end
+
+function FocusToCCLane(i)
+    reaper.BR_MIDI_CCLaneReplace(ActiveMidiEditor, 0, i)
+end
+
 function SaveNoteNames()
     reaper.MIDIEditor_LastFocused_OnCommand(40410, false)    
 end
@@ -76,6 +97,7 @@ end
 function ClearNoteNames()
     reaper.MIDIEditor_LastFocused_OnCommand(40412, false)
     Articulations = {}
+    CC = {}
 end
 
 function ToggleNote(noteNumber)
@@ -160,12 +182,12 @@ local function loop()
         reaper.ImGui_SameLine(ctx)
         if reaper.ImGui_Button(ctx, "Clear") then ClearNoteNames() end
         reaper.ImGui_SameLine(ctx)
-        if reaper.ImGui_Button(ctx, "Refresh Text Values") then UpdateTextEvents() end
+        if reaper.ImGui_Button(ctx, "Refresh") then UpdateTextEvents() ParseNoteNamesFromTrack() ParseCCNamesFromTrack()end
         reaper.ImGui_SameLine(ctx)
         if reaper.ImGui_Button(ctx, "Settings") then Modal_Settings = not Modal_Settings end
         reaper.ImGui_EndGroup(ctx)
 
-        if ActiveTake == nil then
+        if ActiveTake == nil and Articulations ~= nil then
             reaper.ImGui_Text(ctx, "No active MIDI take is open in the MIDI editor.")
         else
             reaper.ImGui_SeparatorText(ctx, "Articulations")
@@ -185,6 +207,15 @@ local function loop()
 
             reaper.ImGui_EndTable(ctx)
 
+        end
+
+        if ActiveTake ~= nil and CC ~= nil then
+            reaper.ImGui_SeparatorText(ctx, "Focus CC Lane")
+            for i = 128, 255 do
+                if CC[i] ~= nil then
+                    if reaper.ImGui_Button(ctx, CC[i] .. " (CC" .. i - 128 .. ")") then FocusToCCLane(i-128) end
+                end
+            end
         end
 
         reaper.ImGui_End(ctx)
