@@ -67,6 +67,7 @@ local function cleanupAllTrackFXs()
   end
 end
 
+
 -- Poll the JSFX state from a track
 local function oneSmallStepState(track)
 
@@ -85,14 +86,18 @@ local function oneSmallStepState(track)
 
   local pitches = {}
   local pedalActivity = reaper.TrackFX_GetParam(track, iHelper, jsfx.paramIndex_PedalActivity);
-  local heldNoteCount = reaper.TrackFX_GetParam(track, iHelper, jsfx.paramIndex_NotesInBuffer)
+  local heldNoteCount = reaper.TrackFX_GetParam(track, iHelper, jsfx.paramIndex_NotesInBuffer);
 
   for i = 1, heldNoteCount, 1 do
     -- now the plugin updates its sliders to give us the values for this index.
-    pitches[#pitches+1] = {}
-    pitches[#pitches].note        = reaper.TrackFX_GetParam(track, iHelper, jsfx.paramIndex_NoteStart + 3*(i-1) + 0)
-    pitches[#pitches].chan        = reaper.TrackFX_GetParam(track, iHelper, jsfx.paramIndex_NoteStart + 3*(i-1) + 1)
-    pitches[#pitches].velocity    = reaper.TrackFX_GetParam(track, iHelper, jsfx.paramIndex_NoteStart + 3*(i-1) + 2)
+    local evt = {
+      note        = reaper.TrackFX_GetParam(track, iHelper, jsfx.paramIndex_NoteStart + 4*(i-1) + 0),
+      chan        = reaper.TrackFX_GetParam(track, iHelper, jsfx.paramIndex_NoteStart + 4*(i-1) + 1),
+      velocity    = reaper.TrackFX_GetParam(track, iHelper, jsfx.paramIndex_NoteStart + 4*(i-1) + 2),
+      timestamp   = reaper.TrackFX_GetParam(track, iHelper, jsfx.paramIndex_NoteStart + 4*(i-1) + 3)
+    }
+
+    pitches[#pitches+1] = evt;
   end
 
   return {
