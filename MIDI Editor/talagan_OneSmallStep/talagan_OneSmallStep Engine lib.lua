@@ -8,7 +8,9 @@ local upperDir  = scriptDir:match( "((.*)[\\/](.+)[\\/])(.+)$" );
 
 package.path      = scriptDir .."?.lua;".. package.path
 
-local helper_lib  = require "talagan_OneSmallStep Helper lib";
+local helper_lib                = require "talagan_OneSmallStep Helper lib";
+local KeyReleaseActivityManager = require "classes/KeyReleaseActivityManager";
+local KeyPressActivityManager   = require "classes/KeyPressActivityManager";
 
 -- Defines
 local NoteLenDefs = {
@@ -60,7 +62,7 @@ for i,v in ipairs(AugmentedDiminishedDefs) do
   AugmentedDiminishedLookup[v.id] = v;
 end
 
-local NoteLenMode = {
+local NoteLenParamSource = {
   OSS=0,
   ProjectGrid=1,
   ItemConf=2
@@ -70,7 +72,8 @@ local InputMode = {
   None=0,
   Pedal=1,
   Keyboard=2,
-  Action=3
+  Action=3,
+  KeyboardMelodic=4
 }
 
 local NoteLenModifier = {
@@ -81,7 +84,22 @@ local NoteLenModifier = {
   Modified=4
 }
 
+------------
+
+-- Our manager for the Key Release input mode
+local KRActivityManager = KeyReleaseActivityManager:new();
+
+-- Our manager for the Key Press input mode
+local KPActivityManager = KeyPressActivityManager:new();
+
 -----------
+
+local function setPlaybackMeasureCount(c)
+  reaper.SetExtState("OneSmallStep", "PlaybackMeasureCount", c, true);
+end
+local function getPlaybackMeasureCount()
+  return tonumber(reaper.GetExtState("OneSmallStep", "PlaybackMeasureCount")) or -1; -- -1 is marker mode
+end
 
 local function setInputMode(m)
   reaper.SetExtState("OneSmallStep", "Mode", tostring(m), true)
@@ -90,16 +108,12 @@ local function getInputMode()
   return tonumber(reaper.GetExtState("OneSmallStep", "Mode")) or InputMode.Keyboard;
 end
 
------------
-
-local function setNoteLenMode(m)
-  reaper.SetExtState("OneSmallStep", "NoteLenMode", tostring(m), true)
+local function setNoteLenParamSource(m)
+  reaper.SetExtState("OneSmallStep", "NoteLenParamSource", tostring(m), true)
 end
-local function getNoteLenMode()
-  return tonumber(reaper.GetExtState("OneSmallStep", "NoteLenMode")) or 0;
+local function getNoteLenParamSource()
+  return tonumber(reaper.GetExtState("OneSmallStep", "NoteLenParamSource")) or 0;
 end
-
------------
 
 local function setNoteADSign(plus_or_minus)
   reaper.SetExtState("OneSmallStep", "NoteLenADSign", plus_or_minus, true)
@@ -108,8 +122,6 @@ local function getNoteADSign()
   return reaper.GetExtState("OneSmallStep", "NoteLenADSign") or "+";
 end
 
------------
-
 local function setNoteADFactor(fraction_string)
   reaper.SetExtState("OneSmallStep", "NoteADFactor", fraction_string, true)
 end
@@ -117,16 +129,12 @@ local function getNoteADFactor()
   return reaper.GetExtState("OneSmallStep", "NoteADFactor") or "1/2";
 end
 
------------
-
 local function setTupletDivision(m)
   reaper.SetExtState("OneSmallStep", "TupletDivision", tostring(m), true)
 end
 local function getTupletDivision()
   return tonumber(reaper.GetExtState("OneSmallStep", "TupletDivision")) or 4;
 end
-
------------
 
 local function setNoteLen(str)
   reaper.SetExtState("OneSmallStep", "NoteLen", str, true);
@@ -139,8 +147,6 @@ local function getNoteLen()
   return nl;
 end
 
------------
-
 local function setNoteLenModifier(m)
   reaper.SetExtState("OneSmallStep", "NoteLenModifier", tostring(m), true);
 end
@@ -149,6 +155,35 @@ local function getNoteLenModifier()
 end
 
 -----------
+
+function findPlaybackMarker()
+  local mc = reaper.CountProjectMarkers(0);
+  for i=0, mc, 1 do
+    local retval, isrgn, pos, rgnend, name, markrgnindexnumber, color = reaper.EnumProjectMarkers3(0, i);
+    if name == "OSS Playback" then
+      return i, pos;
+    end
+  end
+  return nil;
+end
+
+function setPlaybackMarkerAtCurrentPos()
+
+  local pos       = reaper.GetCursorPosition();
+
+  local id, mpos  = findPlaybackMarker();
+
+  reaper.Undo_BeginBlock();
+  if not (id == nil) then
+    reaper.DeleteProjectMarkerByIndex(0, id);
+  end
+
+  if (mpos == nil) or math.abs(pos - mpos) > 0.001 then
+    reaper.AddProjectMarker2(0, false, pos, 0, "OSS Playback", -1, reaper.ColorToNative(0,200,255)|0x1000000);
+  end
+  reaper.Undo_EndBlock("One Small Step - Set playback cursor", -1);
+
+end
 
 local function getNoteLenModifierFactor()
 
@@ -269,11 +304,11 @@ end
 
 local function resolveNoteLenQN(take)
 
-  local nlm = getNoteLenMode();
+  local nlm = getNoteLenParamSource();
 
-  if nlm == NoteLenMode.OSS then
+  if nlm == NoteLenParamSource.OSS then
     return getNoteLenQN() * getNoteLenModifierFactor();
-  elseif nlm == NoteLenMode.ProjectGrid then
+  elseif nlm == NoteLenParamSource.ProjectGrid then
 
     local _, qn, swing, _ = reaper.GetSetProjectGrid(0, false);
 
@@ -326,7 +361,7 @@ local function commit(take, notes)
   reaper.SetEditCurPos(noteEndTime, false, false);
   reaper.MarkTrackItemsDirty(track, mediaItem)
 
-  -- Grow the midi item
+  -- Grow the midi item if needed
   local itemStartTime = reaper.GetMediaItemInfo_Value(mediaItem, "D_POSITION")
   local itemLength    = reaper.GetMediaItemInfo_Value(mediaItem, "D_LENGTH")
   local itemEndTime   = itemStartTime + itemLength;
@@ -341,78 +376,6 @@ local function commit(take, notes)
   reaper.MIDI_SetItemExtents(mediaItem, itemStartQN, itemEndQN)
 end
 
---------------------------------------------------------------------
----------------------------------------------------------------------
-
--- The next functions are used to manage a
--- Table to keep track of key activities
--- With inertia, to avoid losing events for chords
--- When releasing keys (the release events may not be totally synchronized)
-local trackKeyActivity  = {}; -- trackid -> { "chan,note" -> { :note, :chan, :velocity, :ts } }
-local keyInertia        = 0.2;
-
-local function keepTrackOfKeysForTrack(track, pressed_keys)
-  local trackid   = reaper.GetTrackGUID(track);
-  local t         = reaper.time_precise();
-
-  if trackKeyActivity[trackid] == nil then
-    trackKeyActivity[trackid] = { }
-  end
-
-  for _, v in pairs(pressed_keys) do
-    local k = tostring(math.floor(v.chan+0.5)) .. "," .. tostring(math.floor(v.note+0.5))
-    trackKeyActivity[trackid][k] = {
-      note     = v.note,
-      chan     = v.chan,
-      velocity = v.velocity,
-      ts       = t
-    };
-  end
-end
-
-local function keyActivityForTrack(track)
-  local trackid        = reaper.GetTrackGUID(track);
-  local track_activity = trackKeyActivity[trackid];
-
-  if track_activity == nil then
-    return {}
-  end
-
-  local ret = {};
-  for _, v in pairs(track_activity) do
-   ret[#ret+1] = v;
-  end
-
-  return ret
-end
-
-local function clearTrackActivityForTrack(track)
-  local trackid = reaper.GetTrackGUID(track);
-  trackKeyActivity[trackid] = {};
-end
-
-local function clearOutdatedTrackActivity()
-  local t         = reaper.time_precise();
-
-  -- Do some cleanup
-  for guid, track_activity in pairs(trackKeyActivity) do
-    local torem = {};
-    for k, note_info in pairs(track_activity) do
-      -- The key is not held anymore, for more than the inertia time
-      -- Remove it
-      if t - note_info.ts > keyInertia then
-        torem[#torem+1] = k
-      end
-    end
-
-    for k,v in pairs(torem) do
-      track_activity[v] = nil;
-    end
-  end
-end
-
---------------------------------------------------------------------
----------------------------------------------------------------------
 
 -- Listen to events from instrumented tracks that have the JSFX companion effect installed (or install it if not present)
 local function listenToEvents(called_from_action)
@@ -462,17 +425,20 @@ local function listenToEvents(called_from_action)
     end
 
   elseif mode == InputMode.Action then
+
     if called_from_action then
       reaper.Undo_BeginBlock();
       commit(take, oss_state.pitches);
       reaper.Undo_EndBlock("One Small Step - Add notes on action",-1);
     end
-  elseif mode == InputMode.Keyboard then
-    clearOutdatedTrackActivity();
-    keepTrackOfKeysForTrack(track, oss_state.pitches)
 
-    local trackid   = reaper.GetTrackGUID(track);
-    local lastKnown = keyActivityForTrack(track);
+  elseif mode == InputMode.Keyboard then
+    -- Remove old events that are not relevant (cleanup)
+    KRActivityManager:clearOutdatedTrackActivity();
+    -- Commit new key state
+    KRActivityManager:keepTrackOfKeysForTrack(track, oss_state.pitches)
+
+    local lastKnown = KRActivityManager:keyActivityForTrack(track);
 
     if lastKnown then
       -- We had some notes in our memory
@@ -481,10 +447,33 @@ local function listenToEvents(called_from_action)
       if #lastKnown ~= 0 and #oss_state.pitches == 0 then
         reaper.Undo_BeginBlock();
         commit(take, lastKnown);
-        -- Acknowledge note activity.
-        clearTrackActivityForTrack(track);
+        -- Acknowledge note activity, full cleanup.
+        KRActivityManager:clearTrackActivityForTrack(track);
         reaper.Undo_EndBlock("One Small Step - Add notes on key(s) release",-1);
       end
+    end
+
+    -- Allow the use of the action or pedal, but only insert rests
+    if oss_state.pedalActivity > 0 or called_from_action then
+      reaper.Undo_BeginBlock();
+      helper_lib.resetPedalActivity(track);
+      commit(take, {}) ;
+      reaper.Undo_EndBlock("One Small Step - Add rest",-1);
+    end
+
+  elseif mode == InputMode.KeyboardMelodic then
+    -- Remove old events that are not relevant (cleanup)
+    KPActivityManager:clearOutdatedTrackActivity();
+
+    -- Commit new key state
+    KPActivityManager:keepTrackOfKeysForTrack(track, oss_state.pitches);
+
+    local toCommit  = KPActivityManager:pullNotesToCommitForTrack(track);
+
+    if #toCommit > 0 then
+      reaper.Undo_BeginBlock();
+      commit(take, toCommit);
+      reaper.Undo_EndBlock("One Small Step - Add notes on key(s) press",-1);
     end
 
     -- Allow the use of the action or pedal, but only insert rests
@@ -530,7 +519,7 @@ end
 return {
   -- Enums
   InputMode                     = InputMode,
-  NoteLenMode                   = NoteLenMode,
+  NoteLenParamSource            = NoteLenParamSource,
   NoteLenModifier               = NoteLenModifier,
 
   NoteLenDefs                   = NoteLenDefs,
@@ -540,8 +529,11 @@ return {
   setInputMode                  = setInputMode,
   getInputMode                  = getInputMode,
 
-  setNoteLenMode                = setNoteLenMode,
-  getNoteLenMode                = getNoteLenMode,
+  setNoteLenParamSource         = setNoteLenParamSource,
+  getNoteLenParamSource         = getNoteLenParamSource,
+
+  setPlaybackMeasureCount       = setPlaybackMeasureCount,
+  getPlaybackMeasureCount       = getPlaybackMeasureCount,
 
   setTupletDivision             = setTupletDivision,
   getTupletDivision             = getTupletDivision,
@@ -562,6 +554,9 @@ return {
 
   increaseNoteLen               = increaseNoteLen,
   decreaseNoteLen               = decreaseNoteLen,
+
+  findPlaybackMarker            = findPlaybackMarker,
+  setPlaybackMarkerAtCurrentPos = setPlaybackMarkerAtCurrentPos,
 
   atStart                       = atStart,
   atExit                        = atExit,

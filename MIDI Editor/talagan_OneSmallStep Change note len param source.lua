@@ -9,11 +9,10 @@ local mode   = select(2, reaper.get_action_context()):match("%- ([^%s]*)%.lua$")
 
 local engine_lib = require "talagan_OneSmallStep/talagan_OneSmallStep Engine lib";
 
-
 if mode == 'OSS' then
-  engine_lib.setNoteLenMode(engine_lib.NoteLenMode.OSS);
+  engine_lib.setNoteLenParamSource(engine_lib.NoteLenParamSource.OSS);
 elseif mode == 'ItemConf' then
-  engine_lib.setNoteLenMode(engine_lib.NoteLenMode.ItemConf);
+  engine_lib.setNoteLenParamSource(engine_lib.NoteLenParamSource.ItemConf);
 elseif mode == 'ProjectGrid' then
-  engine_lib.setNoteLenMode(engine_lib.NoteLenMode.ProjectGrid);
+  engine_lib.setNoteLenParamSource(engine_lib.NoteLenParamSource.ProjectGrid);
 end

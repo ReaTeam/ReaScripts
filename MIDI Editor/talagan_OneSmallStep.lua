@@ -1,6 +1,6 @@
 --[[
 @description One Small Step : Alternative Step Input
-@version 0.9
+@version 0.9.1
 @author Ben 'Talagan' Babut
 @license MIT
 @metapackage
@@ -25,6 +25,7 @@
   [main=main,midi_editor] talagan_OneSmallStep Change note len.lua > talagan_OneSmallStep Change note len - 1.lua
   [main=main,midi_editor] talagan_OneSmallStep Cleanup helper JSFXs.lua
   [main=main,midi_editor] talagan_OneSmallStep Commit.lua
+  [nomain] talagan_OneSmallStep/classes/*.lua
   [nomain] talagan_OneSmallStep/images/*.lua
   [nomain] talagan_OneSmallStep/talagan_OneSmallStep Engine lib.lua
   [nomain] talagan_OneSmallStep/talagan_OneSmallStep Helper lib.lua
@@ -32,13 +33,11 @@
   [data] talagan_OneSmallStep/toolbar_icons/toolbar_one_small_step.png > toolbar_icons/toolbar_one_small_step.png
   [data] talagan_OneSmallStep/toolbar_icons/toolbar_one_small_step_cleanup.png > toolbar_icons/toolbar_one_small_step_cleanup.png
 @screenshot
-  https://stash.reaper.fm/48161/One%20Small%20Step%200.1.png
+  https://stash.reaper.fm/48222/OSS%200.9.1.png
 @changelog
-  - Added support for complex note length modification (+/- fractions between 0 and 1)
-  - More compact UI (save space)
-  - Removed OFF mode : Redundant with closing OSS
-  - Bug Fix : "change note len param source" actions where called "change note len modifier" instead
-  - Big code refactoring
+  - [Feature] Added playback (rewind and play) action (n measures)
+  - [Feature] Added playback marker support
+  - [Feature] Added Keyboard Press mode
 @about
   # Purpose
 
@@ -52,7 +51,7 @@
 
   # Install Notes
 
-    This script also needs the JS_ReaScriptAPI api by Julian Sander and the ReaImGui library by Christian Fillion to work. Please install them alongside (OSS will remind you to do so anyway). A restart of Reaper is needed after install.
+    This script also needs the JS_ReaScriptAPI api by Julian Sader and the ReaImGui library by Christian Fillion to work. Please install them alongside (OSS will remind you to do so anyway). A restart of Reaper is needed after install.
 
   # Reaper forum thread
 
@@ -66,21 +65,43 @@
 
     You can then select your input mode between Keyboard / Sustain Pedal / Action. For each Input Mode, two triggers may be used to validate notes and rests : the sustain pedal and the 'OneSmallStep Commit' Action, to which you may consider giving a shortcut. Inserting held notes and/or rests depends on the chosen mode. You can use the tooltip by hovering over each mode's button as a reminder of their role.
 
-  ### Keyboard
+  ### Keyboard Release (Grope Mode)
 
     Notes are added to the MIDI item at the current position, when the keys are released.
-    Rests can also be inserted in this mode, by calling the 'OneSmallStep Commit' action or pressing the sustain pedal.
+
+    Suitable for inputing notes at a low pace, correcting things by ear, especially for chords. This mode is error tolerant, but tends to aggregate and skip notes easily when playing fast.
+
+    This is pretty much the same as Reaper's default step input mode.
+
+    - The sustain pedal advances (=inserts rests)
+    - The Commit action advances (=inserts rests)
+
+  ### Keyboard Press (Fast Mode)
+
+    Notes are added on keyboard key press events.
+
+    Suitable for inputing notes at a high pace. It is not error tolerant (you get what you play), but will only aggregate chords if keys are pressed simultaneously.
+
+    - The sustain pedal advances (=inserts rests)
+    - The Commit action advances (=inserts rests)
 
   ### Sustain Pedal
 
-    Hold keys on your MIDI controller, then press the sustain pedal to validate them. This is convenient when playing with chords for example.
-    In this mode, the 'OneSmallStep Commit' action will behave like the sustain pedal.
+    Hold some keyboard keys, and then press the sustain pedal to validate and add notes.
+
+    Useful when testing chords.
+
+    - The sustain pedal commits held notes (or advances)
+    - The Commit action commits held notes (or advances)
 
   ### Action
 
-    It's the same thing as with the sustain pedal, except that held notes are validated with the REAPER action. In this mode, the sustain pedal will only insert rests.
+    Hold some keyboard keys, and then call the Commit action from Reaper to validate and add notes.
 
-  ## Note length
+    - The sustain pedal advances (=inserts rests)
+    - The Commit action commits held notes (or advances)
+
+  ## Note length parameter source
 
     Three sources for determining the input note length are proposed.
 
@@ -96,7 +117,11 @@
 
     One Small Step will use the note parameters specific to the edited MIDI item to determine the length of the notes to insert. Those parameters are located at the bottom of the MIDI Editor (the combo boxes right of the 'Notes' label).
 
-  ## Other actions
+  ## Step input playback
+
+    One Small Step provides a convenient playback widget, which is a way to ear what you've just written, without losing the position of the edit cursor, so that you can work faster. The playback button will replay the last N measures (N is settable, and the result is rounded to the start of the matching measure). You can chose Mk instead of a number of measures, and instead, the start point will be the 'OSS Playback' marker (if it is set, else, only the current measure will be played as when N=0). You can set/remove it using the marker button on the right.
+
+  ## Other Reaper actions
 
     To speed up your flow, multiple actions are provided to quickly change OSS parameters, so that you can assign shortcuts to them. Those are the "Change note len", "Decrease/Increase note len", "Change note len modifier", "Change note len param source" actions, whose names should be self explanatory. The "Cleanup helper JSFXs" is here for cleaniness, to remove the Helper JSFXs that are installed automatically on the input FX chain of your tracks when OSS is running (it could have been done automatically when closing the tool, but it adds an entry in the undo stack, which is annoying, and I don't have a solution for this yet).
 
@@ -129,6 +154,12 @@ end
 png_to_lua("triplet.png")
 
 --]]
+
+-- Tell the script to be terminated if relaunched.
+-- Check the existence of the function for sanity (added in v 7.03)
+if reaper.set_action_options ~= nil then
+  reaper.set_action_options(1);
+end
 
 -------------------------------
 -- Path and modules
@@ -174,41 +205,17 @@ local ctx                   = reaper.ImGui_CreateContext('One Small Step');
 
 -------------------------------
 
-function ButtonGroupImageButton(image_name, is_on, callback, corner)
-  reaper.ImGui_SetCursorPosY(ctx,  reaper.ImGui_GetCursorPosY(ctx));
-  reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Button(), is_on and 0x5080FFFF or 0x203040FF);
-
-  if corner == nil then
-    corner = 0.1
-  end
-
-  if reaper.ImGui_ImageButton(ctx, image_name, getImage(image_name), 20, 20, corner, corner, 1 - corner, 1 - corner, 0, 0xFFFFFFFF) then
-    callback();
-  end
-
-  reaper.ImGui_PopStyleColor(ctx);
+function SL()
   reaper.ImGui_SameLine(ctx);
 end
 
-function ImGui_NoteLenImg(context, image_name, triplet, divider)
-  reaper.ImGui_SetCursorPosY(ctx,reaper.ImGui_GetCursorPosY(ctx));
-  reaper.ImGui_Image(ctx, getImage(image_name), 20, 20, 0.1, 0.1, 0.9, 0.9);
-
-  if triplet then
-    reaper.ImGui_SameLine(ctx);
-    reaper.ImGui_SetCursorPosX(ctx, reaper.ImGui_GetCursorPosX(ctx) - 20);
-    reaper.ImGui_SetCursorPosY(ctx, reaper.ImGui_GetCursorPosY(ctx) - 10);
-    ImGui_NoteLenImg(ctx, "note_triplet");
-  end
-
-  if divider then
-    reaper.ImGui_SameLine(ctx);
-    reaper.ImGui_SetCursorPosY(ctx,reaper.ImGui_GetCursorPosY(ctx) + 3);
-    reaper.ImGui_TextColored(ctx, 0xC0C0C0FF, divider);
+function TT(str)
+  if reaper.ImGui_IsItemHovered(ctx, reaper.ImGui_HoveredFlags_DelayNormal()) then
+    reaper.ImGui_SetTooltip(ctx, str)
   end
 end
 
-local function to_frac(num)
+function to_frac(num)
    local W = math.floor(num)
    local F = num - W
    local pn, n, N = 0, 1
@@ -309,16 +316,105 @@ function ImGui_ItemGridLabel(ctx,take)
   reaper.ImGui_PopStyleVar(ctx,1);
 end
 
+function ButtonGroupImageButton(image_name, is_on, callback, corner, is_green)
+
+  reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_FramePadding(), 0, 0);
+
+  if is_green then
+    PushGreenButtonColors(is_on);
+  else
+    PushBlueButtonColors(is_on);
+  end
+
+  if corner == nil then
+    corner = 0.1
+  end
+
+  if reaper.ImGui_ImageButton(ctx, image_name, getImage(image_name), 20, 20, corner, corner, 1 - corner, 1 - corner, 0, 0xFFFFFFFF) then
+    callback();
+  end
+
+  if is_green then
+    PopGreenButtonColors();
+  else
+    PopBlueButtonColors();
+  end
+
+  reaper.ImGui_PopStyleVar(ctx,1);
+end
+
+function PushBlueButtonColors(is_on)
+  local on_col  = 0x5080FFFF;
+  local off_col = 0x203040FF;
+  local hov_col = 0x60A0FFFF;
+  local act_col = 0x60A0FFFF;
+
+  reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Button(), is_on and on_col or off_col);
+  reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_ButtonHovered(),hov_col );
+  reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_ButtonActive(), act_col );
+end
+
+function PopBlueButtonColors()
+  reaper.ImGui_PopStyleColor(ctx,3);
+end
+
+function PushGreenButtonColors(is_on)
+
+  local on_col  = 0x008000FF;
+  local off_col = 0x006000FF;
+  local hov_col = 0x00C000FF;
+  local act_col = 0x00C000FF;
+
+  reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Button(), is_on and on_col or off_col);
+  reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_ButtonHovered(),hov_col );
+  reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_ButtonActive(), act_col );
+end
+
+function PopGreenButtonColors()
+  reaper.ImGui_PopStyleColor(ctx,3);
+end
+
+function ButtonGroupTextButton(text, is_on, callback)
+
+  if reaper.ImGui_Button(ctx, text) then
+    callback();
+  end;
+
+end
+
+function ImGui_NoteLenImg(context, image_name, triplet, divider)
+  reaper.ImGui_SetCursorPosY(ctx,reaper.ImGui_GetCursorPosY(ctx));
+  reaper.ImGui_Image(ctx, getImage(image_name), 20, 20, 0.1, 0.1, 0.9, 0.9);
+
+  if triplet then
+    SL();
+    reaper.ImGui_SetCursorPosX(ctx, reaper.ImGui_GetCursorPosX(ctx) - 20);
+    reaper.ImGui_SetCursorPosY(ctx, reaper.ImGui_GetCursorPosY(ctx) - 10);
+    ImGui_NoteLenImg(ctx, "note_triplet");
+  end
+
+  if divider then
+    SL();
+    reaper.ImGui_SetCursorPosY(ctx,reaper.ImGui_GetCursorPosY(ctx) + 3);
+    reaper.ImGui_TextColored(ctx, 0xC0C0C0FF, divider);
+  end
+end
+
 function ImGui_VerticalSpacer(context, height)
   reaper.ImGui_PushStyleVar(context, reaper.ImGui_StyleVar_ItemSpacing(),0,0)
   reaper.ImGui_Dummy(context, 10, height);
   reaper.ImGui_PopStyleVar(context,1);
 end
 
-function MiniBarSeparator()
-  reaper.ImGui_SameLine(ctx);
-  reaper.ImGui_Dummy(ctx,10,0);
-  reaper.ImGui_SameLine(ctx);
+function MiniBarSeparator(dst)
+  dst = ((dst == nil) and 6 or dst);
+
+  reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_FramePadding(),0,0);
+  reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacing(),0,0);
+  reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_ItemInnerSpacing(),0,0)
+  reaper.ImGui_Dummy(ctx, dst, 0);
+  reaper.ImGui_PopStyleVar(ctx,3);
+
 end
 
 -- Current take info label and indicators
@@ -329,11 +425,11 @@ function TakeInfo(take)
   local recarmed      = reaper.GetMediaTrackInfo_Value(track, "I_RECARM");
   local playState     = reaper.GetPlayState();
 
-  reaper.ImGui_TextColored(ctx, 0xA0A0FFFF, track_name .. " / " .. take_name)
+  reaper.ImGui_TextColored(ctx, 0xA0A0FFFF, track_name .. " / " .. take_name);
 
   -- Glowing indicator
-  reaper.ImGui_SameLine(ctx);
-  reaper.ImGui_SetCursorPosY(ctx, reaper.ImGui_GetCursorPosY(ctx) - 3);
+  SL();
+  reaper.ImGui_SetCursorPosY(ctx, reaper.ImGui_GetCursorPosY(ctx)+1);
 
   if (recarmed == 1) and not (engine_lib.getInputMode() == engine_lib.InputMode.None) and playState == 0 then
     local alpha = math.sin(reaper.time_precise()*4);
@@ -355,8 +451,9 @@ function TakeInfo(take)
   reaper.ImGui_PopStyleColor(ctx, 4);
 
   -- Target issues debug text
-  reaper.ImGui_SameLine(ctx);
-  reaper.ImGui_SetCursorPosY(ctx, reaper.ImGui_GetCursorPosY(ctx) - 3);
+  SL();
+
+  reaper.ImGui_SetCursorPosY(ctx, reaper.ImGui_GetCursorPosY(ctx));
   if not (recarmed == 1) then
     reaper.ImGui_TextColored(ctx, 0x808080FF, '[Track not armed]');
   elseif engine_lib.getInputMode() == engine_lib.InputMode.None then
@@ -372,46 +469,75 @@ end
 function InputModeMiniBar()
   local mode      = engine_lib.getInputMode();
 
-  ButtonGroupImageButton('input_mode_keyboard', mode == engine_lib.InputMode.Keyboard, function()engine_lib.setInputMode(engine_lib.InputMode.Keyboard); end);
-  if reaper.ImGui_IsItemHovered(ctx, reaper.ImGui_HoveredFlags_DelayNormal()) then
-    reaper.ImGui_SetTooltip(ctx, 'Input Mode : Keyboard\n\nNotes are added on keyboard key\nrelease events.\n\nThis is pretty much the same as\nReaper\'s default step input mode.\n\n- The sustain pedal inserts rests\n- The Commit action inserts rests')
-  end
+  ButtonGroupImageButton('input_mode_keyboard_release', mode == engine_lib.InputMode.Keyboard, function()engine_lib.setInputMode(engine_lib.InputMode.Keyboard); end, 0);
+  TT("Input Mode : Keyboard Release (Grope mode)\n\z
+      \n\z
+      Notes are added on keyboard key release events.\n\z
+      \n\z
+      Suitable for inputing notes at a low pace, correcting\n\z
+      things by ear, especially for chords. This mode is error\n\z
+      tolerant, but tends to aggregate and skip notes easily\n\z
+      when playing fast.\n\z
+      \n\z
+      This is pretty much the same as Reaper\'s default\nstep input mode.\n\n\z
+      - The sustain pedal advances (=inserts rests)\n\z
+      - The Commit action advances (=inserts rests)");
+  SL();
+
+  ButtonGroupImageButton('input_mode_keyboard_press', mode == engine_lib.InputMode.KeyboardMelodic, function()engine_lib.setInputMode(engine_lib.InputMode.KeyboardMelodic); end, 0);
+  TT("Input Mode : Keyboard Press (Fast mode)\n\z
+      \n\z
+      Notes are added on keyboard key press events.\n\z
+      \n\z
+      Suitable for inputing notes at a high pace. It is not error\n\z
+      tolerant (you get what you play), but will only aggregate \n\z
+      chords if keys are pressed simultaneously.\n\z
+      \n\z
+      - The sustain pedal advances (=inserts rests)\n\z
+      - The Commit action advances (=inserts rests)");
+  SL();
 
   ButtonGroupImageButton('input_mode_pedal', mode == engine_lib.InputMode.Pedal, function()engine_lib.setInputMode(engine_lib.InputMode.Pedal); end,0);
-  if reaper.ImGui_IsItemHovered(ctx, reaper.ImGui_HoveredFlags_DelayNormal()) then
-    reaper.ImGui_SetTooltip(ctx, 'Input Mode : Pedal\n\nHold some keyboard keys, and\nthen press the sustain pedal\nto validate and add notes.\n\nUseful when testing chords.\n\n- The sustain pedal commits held notes\n- The Commit action commits held notes')
-  end
+  TT('Input Mode : Pedal\n\z
+      \n\z
+      Hold some keyboard keys, and then press the sustain\n\z
+      pedal to validate and add notes.\n\z
+      \n\z
+      Useful when testing chords.\n\n\z
+      - The sustain pedal commits held notes (or advances)\n\z
+      - The Commit action commits held notes (or advances)');
+  SL();
 
-  ButtonGroupImageButton('input_mode_action', mode == engine_lib.InputMode.Action, function()engine_lib.setInputMode(engine_lib.InputMode.Action); end);
-  if reaper.ImGui_IsItemHovered(ctx, reaper.ImGui_HoveredFlags_DelayNormal()) then
-    reaper.ImGui_SetTooltip(ctx, 'Input Mode : Action\n\nHold some keyboard keys, and then\ncall the \'OneSmallStep Commit\'\naction from Reaper to validate\nand add notes.\n\n- The sustain pedal inserts rests\n- The Commit action commits held notes')
-  end
+  ButtonGroupImageButton('input_mode_action', mode == engine_lib.InputMode.Action, function()engine_lib.setInputMode(engine_lib.InputMode.Action); end,0);
+  TT('Input Mode : Action\n\z
+      \n\z
+      Hold some keyboard keys, and then call the Commit\n\z
+      action from Reaper to validate and add notes.\n\z
+      \n\z
+      - The sustain pedal advances (=inserts rests)\n\z
+      - The Commit action commits held notes (or advances)');
 end
 
 -- MINIBAR : Conf source
 function ConfSourceMiniBar()
-  local nlm = engine_lib.getNoteLenMode();
+  local nlm = engine_lib.getNoteLenParamSource();
 
-  ButtonGroupImageButton('note_len_mode_oss', nlm == engine_lib.NoteLenMode.OSS, function() engine_lib.setNoteLenMode(engine_lib.NoteLenMode.OSS) end, 0);
-  if reaper.ImGui_IsItemHovered(ctx, reaper.ImGui_HoveredFlags_DelayNormal()) then
-    reaper.ImGui_SetTooltip(ctx, 'Note Length conf : One Small Step\n\nUse the params aside.')
-  end
+  ButtonGroupImageButton('note_len_mode_oss', nlm == engine_lib.NoteLenParamSource.OSS, function() engine_lib.setNoteLenParamSource(engine_lib.NoteLenParamSource.OSS) end, 0);
+  TT('Note Length conf : One Small Step\n\nUse the params aside.');
+  SL();
+  ButtonGroupImageButton('note_len_mode_pgrid', nlm == engine_lib.NoteLenParamSource.ProjectGrid, function() engine_lib.setNoteLenParamSource(engine_lib.NoteLenParamSource.ProjectGrid) end);
+  TT( "Note Length conf : Project\n\nUse the project's grid conf.");
+  SL();
+  ButtonGroupImageButton('note_len_mode_igrid', nlm == engine_lib.NoteLenParamSource.ItemConf, function() engine_lib.setNoteLenParamSource(engine_lib.NoteLenParamSource.ItemConf) end);
+  TT( "Note Length conf : MIDI Item\n\nUse the MIDI item's own conf.\n\n('Notes' at the bottom of the MIDI editor)");
 
-  ButtonGroupImageButton('note_len_mode_pgrid', nlm == engine_lib.NoteLenMode.ProjectGrid, function() engine_lib.setNoteLenMode(engine_lib.NoteLenMode.ProjectGrid) end);
-  if reaper.ImGui_IsItemHovered(ctx, reaper.ImGui_HoveredFlags_DelayNormal()) then
-    reaper.ImGui_SetTooltip(ctx, "Note Length conf : Project\n\nUse the project's grid conf.")
-  end
-
-  ButtonGroupImageButton('note_len_mode_igrid', nlm == engine_lib.NoteLenMode.ItemConf, function() engine_lib.setNoteLenMode(engine_lib.NoteLenMode.ItemConf) end);
-  if reaper.ImGui_IsItemHovered(ctx, reaper.ImGui_HoveredFlags_DelayNormal()) then
-    reaper.ImGui_SetTooltip(ctx, "Note Length conf : MIDI Item\n\nUse the MIDI item's own conf.\n\n('Notes' at the bottom of the MIDI editor)")
-  end
 end
 
 -- MINIBAR : Note length
 function NoteLenMiniBar()
   local nl = engine_lib.getNoteLen();
   for i,v in ipairs(engine_lib.NoteLenDefs) do
+    SL();
     ButtonGroupImageButton('note_'.. v.id , nl == v.id,
       function()
         engine_lib.setNoteLen(v.id)
@@ -433,10 +559,8 @@ function NoteLenModifierMiniBar()
       end
     end
   );
-  if reaper.ImGui_IsItemHovered(ctx, reaper.ImGui_HoveredFlags_DelayNormal()) then
-    reaper.ImGui_SetTooltip(ctx, "Dotted")
-  end
-
+  TT("Dotted");
+  SL();
   ButtonGroupImageButton('note_triplet', nmod == engine_lib.NoteLenModifier.Triplet, function()
       if nmod == engine_lib.NoteLenModifier.Triplet then
         engine_lib.setNoteLenModifier(engine_lib.NoteLenModifier.Straight);
@@ -445,10 +569,8 @@ function NoteLenModifierMiniBar()
       end
     end
   );
-  if reaper.ImGui_IsItemHovered(ctx, reaper.ImGui_HoveredFlags_DelayNormal()) then
-    reaper.ImGui_SetTooltip(ctx, "Triplet")
-  end
-
+  TT("Triplet");
+  SL();
   ButtonGroupImageButton('note_modified', nmod == engine_lib.NoteLenModifier.Modified, function()
       if nmod == engine_lib.NoteLenModifier.Modified then
         engine_lib.setNoteLenModifier(engine_lib.NoteLenModifier.Straight);
@@ -457,10 +579,8 @@ function NoteLenModifierMiniBar()
       end
     end
   );
-  if reaper.ImGui_IsItemHovered(ctx, reaper.ImGui_HoveredFlags_DelayNormal()) then
-    reaper.ImGui_SetTooltip(ctx, "Modified length")
-  end
-
+  TT("Modified length");
+  SL();
   ButtonGroupImageButton('note_tuplet', nmod == engine_lib.NoteLenModifier.Tuplet, function()
       if nmod == engine_lib.NoteLenModifier.Tuplet then
         engine_lib.setNoteLenModifier(engine_lib.NoteLenModifier.Straight);
@@ -469,9 +589,7 @@ function NoteLenModifierMiniBar()
       end
     end
   );
-  if reaper.ImGui_IsItemHovered(ctx, reaper.ImGui_HoveredFlags_DelayNormal()) then
-    reaper.ImGui_SetTooltip(ctx, "N-tuplet")
-  end
+  TT("N-tuplet");
 end
 
 -- Sub-params : N-tuplet
@@ -557,15 +675,115 @@ end
 -- Note AD
 function AugmentedDiminishedMiniBars()
   NoteADSignComboBox();
+  SL();
   MiniBarSeparator();
+  SL();
   NoteADFactorComboBox();
 end
 
+function PlayBackMeasureCountComboBox()
+
+  reaper.ImGui_PushID(ctx, "playback_measure_count");
+  reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_FrameBg(),        0x006000FF);
+  reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_FrameBgHovered(), 0x00A000FF);
+  reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_FrameBgActive(),  0x00C000FF);
+  reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Button(),         0x008000FF);
+  reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_ButtonHovered(),  0x008000FF);
+  reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_PopupBg(),        0x006000FF);
+  reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Header(),         0x00C000FF);
+  reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_HeaderHovered(),  0x00C000FF);
+
+  reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_FramePadding(), 5, 4);
+  local curm = engine_lib.getPlaybackMeasureCount();
+
+  local function label(mnum)
+    return ((mnum == -1) and "Mk" or mnum);
+  end
+
+  reaper.ImGui_SetNextItemWidth(ctx,45);
+  if reaper.ImGui_BeginCombo(ctx, '', label(curm)) then
+    for i=-1,16,1 do
+      local is_selected = (curm == i);
+
+      if reaper.ImGui_Selectable(ctx, label(i), is_selected) then
+        engine_lib.setPlaybackMeasureCount(i);
+      end
+      if is_selected then
+        reaper.ImGui_SetItemDefaultFocus(ctx)
+      end
+      if i == -1 then
+        TT("Use OSS marker as start point for playback");
+      end
+    end
+    reaper.ImGui_EndCombo(ctx)
+  end
+  reaper.ImGui_PopStyleVar(ctx,1);
+  reaper.ImGui_PopStyleColor(ctx,8);
+  reaper.ImGui_PopID(ctx);
+
+  TT("Number of measures to rewind, rounded at measure start.\n\n\z
+      'Mk' stands for Marker mode, the playback will start at the\n\z
+      'OSS Playback' marker instead. you can set/move/remove it\n\z
+      it with the button on the right.\z
+    ");
+
+end
+
+function PlaybackButton()
+  reaper.ImGui_PushID(ctx, "playback");
+  ButtonGroupImageButton("playback", false, function()
+      local id = reaper.NamedCommandLookup("_RSb38bb99e06254b3b6e60fc7755e7af02d54341b4");
+      reaper.Main_OnCommand(id, 0);
+    end, 0, true
+  );
+  reaper.ImGui_PopID(ctx);
+  TT("Playback");
+end
+
+function PlaybackSetMarkerButton()
+  reaper.ImGui_PushID(ctx, "playback_marker");
+  reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_FramePadding(), 8, 4);
+  ButtonGroupImageButton("marker", false, function()
+      engine_lib.setPlaybackMarkerAtCurrentPos();
+    end, 0, true, false
+  );
+  reaper.ImGui_PopStyleVar(ctx,1);
+  reaper.ImGui_PopID(ctx);
+  TT("Sets/Moves/Removes the playback marker");
+end
+
+function PlaybackWidget()
+
+  reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacing(),       2, 4);
+  reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_ItemInnerSpacing(),  0, 0);
+
+  PlaybackButton();
+  SL();
+  PlayBackMeasureCountComboBox();
+  SL();
+  PlaybackSetMarkerButton();
+
+  reaper.ImGui_PopStyleVar(ctx,2);
+end
+
+function TargetLine(take)
+  PlaybackWidget();
+  SL();
+  MiniBarSeparator(0);
+  SL();
+
+  if not take then
+    reaper.ImGui_TextColored(ctx, 0xA0A0A0FF, "No target item. Please select one.");
+    ImGui_VerticalSpacer(ctx,0);
+  else
+    TakeInfo(take);
+  end
+end
 
 function ui_loop()
 
   reaper.ImGui_PushStyleVar(ctx,reaper.ImGui_StyleVar_WindowPadding(),10,10);
-  --
+
   local flags   = reaper.ImGui_WindowFlags_NoDocking() |
     reaper.ImGui_WindowFlags_NoCollapse() |
     reaper.ImGui_WindowFlags_AlwaysAutoResize() |
@@ -573,7 +791,7 @@ function ui_loop()
 
   -- Since we use a trick to give back the focus to reaper, we don't want the window to glitch.
   reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_TitleBgActive(), 0x0A0A0AFF);
-  local visible, open = reaper.ImGui_Begin(ctx, 'One Small Step v0.9', true, flags);
+  local visible, open = reaper.ImGui_Begin(ctx, 'One Small Step v0.9.1', true, flags);
   reaper.ImGui_PopStyleColor(ctx,1);
 
   if visible then
@@ -581,12 +799,8 @@ function ui_loop()
 
     -- Target display line
     local take = engine_lib.TakeForEdition();
-    if not take then
-      reaper.ImGui_TextColored(ctx, 0xA0A0A0FF, "No target item. Please select one.");
-      ImGui_VerticalSpacer(ctx,3);
-    else
-      TakeInfo(take);
-    end
+
+    TargetLine(take);
 
     -- Separator
     ImGui_VerticalSpacer(ctx,10);
@@ -595,31 +809,42 @@ function ui_loop()
     reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacing(),       2, 4);
     reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_ItemInnerSpacing(),  0, 0);
 
-    local nlm   = engine_lib.getNoteLenMode();
+    local nlm   = engine_lib.getNoteLenParamSource();
     local nlmod = engine_lib.getNoteLenModifier();
 
     InputModeMiniBar();
+    SL();
     MiniBarSeparator();
+    SL();
     ConfSourceMiniBar();
+    SL();
     MiniBarSeparator();
 
-    if nlm == engine_lib.NoteLenMode.OSS then
+    if nlm == engine_lib.NoteLenParamSource.OSS then
 
       NoteLenMiniBar();
+      SL();
       MiniBarSeparator();
+      SL();
       NoteLenModifierMiniBar();
 
       if nlmod == engine_lib.NoteLenModifier.Tuplet then
+        SL();
         MiniBarSeparator();
+        SL();
         NTupletComboBox();
       elseif nlmod == engine_lib.NoteLenModifier.Modified then
+        SL();
         MiniBarSeparator();
+        SL();
         AugmentedDiminishedMiniBars();
       end
 
-    elseif nlm == engine_lib.NoteLenMode.ProjectGrid then
+    elseif nlm == engine_lib.NoteLenParamSource.ProjectGrid then
+      SL();
       ImGui_ProjectGridLabel(ctx);
-    elseif nlm == engine_lib.NoteLenMode.ItemConf then
+    elseif nlm == engine_lib.NoteLenParamSource.ItemConf then
+      SL();
       ImGui_ItemGridLabel(ctx,take);
     end
 
@@ -647,12 +872,11 @@ function ui_loop()
   reaper.ImGui_PopStyleVar(ctx);
 
   if open then
-    reaper.defer(loop)
+    reaper.defer(main_loop)
   else
     stop();
   end
 end
-
 
 function updateToolbarButtonState(v)
   local _,_,sectionID,cmdID,_,_,_ = reaper.get_action_context();
@@ -660,7 +884,7 @@ function updateToolbarButtonState(v)
   reaper.RefreshToolbar2(sectionID, cmdID);
 end
 
-function loop()
+function main_loop()
 
   local engine_ret = engine_lib.atLoop();
 
@@ -685,7 +909,7 @@ function start()
   updateToolbarButtonState(1);
   engine_lib.atStart();
   reaper.atexit(onReaperExit);
-  reaper.defer(loop);
+  reaper.defer(main_loop);
 end
 
 start();
