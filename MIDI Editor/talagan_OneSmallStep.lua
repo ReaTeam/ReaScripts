@@ -1,6 +1,6 @@
 --[[
 @description One Small Step : Alternative Step Input
-@version 0.9.1
+@version 0.9.2
 @author Ben 'Talagan' Babut
 @license MIT
 @metapackage
@@ -25,6 +25,7 @@
   [main=main,midi_editor] talagan_OneSmallStep Change note len.lua > talagan_OneSmallStep Change note len - 1.lua
   [main=main,midi_editor] talagan_OneSmallStep Cleanup helper JSFXs.lua
   [main=main,midi_editor] talagan_OneSmallStep Commit.lua
+  [main=main,midi_editor] talagan_OneSmallStep Playback.lua
   [nomain] talagan_OneSmallStep/classes/*.lua
   [nomain] talagan_OneSmallStep/images/*.lua
   [nomain] talagan_OneSmallStep/talagan_OneSmallStep Engine lib.lua
@@ -35,9 +36,7 @@
 @screenshot
   https://stash.reaper.fm/48222/OSS%200.9.1.png
 @changelog
-  - [Feature] Added playback (rewind and play) action (n measures)
-  - [Feature] Added playback marker support
-  - [Feature] Added Keyboard Press mode
+  [Bug fix] The Playback script was not indexed
 @about
   # Purpose
 
@@ -791,7 +790,7 @@ function ui_loop()
 
   -- Since we use a trick to give back the focus to reaper, we don't want the window to glitch.
   reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_TitleBgActive(), 0x0A0A0AFF);
-  local visible, open = reaper.ImGui_Begin(ctx, 'One Small Step v0.9.1', true, flags);
+  local visible, open = reaper.ImGui_Begin(ctx, 'One Small Step v0.9.2', true, flags);
   reaper.ImGui_PopStyleColor(ctx,1);
 
   if visible then
