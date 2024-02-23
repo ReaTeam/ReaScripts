@@ -89,9 +89,9 @@ function waitEndOfPlayback()
 
   local ps          = reaper.GetPlayState();
   local curtime     = reaper.GetPlayPosition();
-  local antiglitch  = 0.05;
+  local antiglitch  = 0.1;
 
-  if curtime < pos - antiglitch and ps == 1 then
+  if (curtime < pos - antiglitch) and (ps == 1) then
     reaper.defer(waitEndOfPlayback);
   else
     return;

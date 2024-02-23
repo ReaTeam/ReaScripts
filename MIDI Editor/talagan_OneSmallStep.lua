@@ -1,11 +1,14 @@
 --[[
 @description One Small Step : Alternative Step Input
-@version 0.9.2
+@version 0.9.3
 @author Ben 'Talagan' Babut
 @license MIT
 @metapackage
 @provides
   [main=main,midi_editor] .
+  [main=main,midi_editor] talagan_OneSmallStep Change input mode.lua > talagan_OneSmallStep Change input mode - KeyboardPress.lua
+  [main=main,midi_editor] talagan_OneSmallStep Change input mode.lua > talagan_OneSmallStep Change input mode - KeyboardRelease.lua
+  [main=main,midi_editor] talagan_OneSmallStep Change input mode.lua > talagan_OneSmallStep Change input mode - Punch.lua
   [main=main,midi_editor] talagan_OneSmallStep Change note len param source.lua > talagan_OneSmallStep Change note len param source - OSS.lua
   [main=main,midi_editor] talagan_OneSmallStep Change note len param source.lua > talagan_OneSmallStep Change note len param source - ItemConf.lua
   [main=main,midi_editor] talagan_OneSmallStep Change note len param source.lua > talagan_OneSmallStep Change note len param source - ProjectGrid.lua
@@ -24,7 +27,9 @@
   [main=main,midi_editor] talagan_OneSmallStep Change note len.lua > talagan_OneSmallStep Change note len - 1_2.lua
   [main=main,midi_editor] talagan_OneSmallStep Change note len.lua > talagan_OneSmallStep Change note len - 1.lua
   [main=main,midi_editor] talagan_OneSmallStep Cleanup helper JSFXs.lua
+  [main=main,midi_editor] talagan_OneSmallStep Commit back.lua
   [main=main,midi_editor] talagan_OneSmallStep Commit.lua
+  [main=main,midi_editor] talagan_OneSmallStep Set or remove playback marker.lua
   [main=main,midi_editor] talagan_OneSmallStep Playback.lua
   [nomain] talagan_OneSmallStep/classes/*.lua
   [nomain] talagan_OneSmallStep/images/*.lua
@@ -36,69 +41,85 @@
 @screenshot
   https://stash.reaper.fm/48222/OSS%200.9.1.png
 @changelog
-  [Bug fix] The Playback script was not indexed
+  - [Feature] The commit action/sustain pedal now extend notes if they were already held before (thanks @henu, @MartinTL)
+  - [Feature] Added Commit Back action to "do things" backward (shorten/remove notes) (thanks @hipox)
+  - [Feature] Added a modifier key setting (ctrl, shift, etc), to use in conjunction with the sustain pedal to trigger the commit back action (lol)
+  - [Feature] Added settings panel
+  - [Feature] Added setting to allow targetting items even if they are not selected (but the track is, and the cursor is contained by an item)
+  - [Feature] Added setting to allow the automatic creation of MIOI items if none is selected
+  - [Feature] It is possible to chose if the playback marker should be deleted, kept, or backed up for later when quitting OSS
+    [Feature] Added independent scripts to change the input mode
+  - [Bug Fix] The helper JSFX window no longer pops up when it is added to a track and the "plugins > autofloat newly added JSFX windows" option is on (thanks @daodan)
+  - [Bug Fix] The pedal reset + undo could mess up the state of the plugin (now, the plugin does not touch the JSFX params anymore)
+  - [Bug Fix] After opening OSS, the plugin would periodically trigger a refocus event on the Reaper main window. This now happen only once when needed.
+  - [Bug Fix] Forgot to index the standalone set/remove playback marker action
+  - [Rework] Better behaviour when changing focus between window, arrange view and midi editor
+  - [Rework] Removed action mode (merged it with the Pedal Mode, they are actually the same)
+  - [Rework] Input mode icons redesign
+  - [Rework] Code src/architecture rework
 @about
   # Purpose
 
     One Small Step is a tool for performing MIDI note step input in REAPER. It is an alternative to the standard step input, and it tries to address some issues with certain workflows, as well as to propose different input modes, like validating held notes with the sustain pedal or a REAPER action (obviously linked to a custom keyboard shortcut). It will also work outside of the MIDI editor (in the arrange view), as long as you've selected a MIDI item and set the cursor at the right position ; this offers additional comfort and can speed up your workflow.
 
-  # More detail
+  # On MIDI issues with Reaper's standard step input flow
 
     REAPER's step input tool uses the MIDI control path. While it has some advantages, one of the main issue you may have encountered is that when step inputing, MIDI events will not go through the input FX chain of the track you're working on. If you are performing MIDI processing there (like channel routing, note transposition, note dropping, velocity processing, etc), everything will be ignored because REAPER does not use the result of the FX input chain, but the raw MIDI note events. This leads to strange behaviours, e.g. the MIDI editor piano roll not being in coherency with the input notes (so what you see on the piano roll is not what you'll get), but worse, you will not get the same result as if you were recording.
 
     To address this, One Small Step installs a JSFX at the end of the track input chain to watch for note events AFTER they've been processed by the FX input chain, and performs the patching of the MIDI item by itself.
 
-  # Install Notes
-
-    This script also needs the JS_ReaScriptAPI api by Julian Sader and the ReaImGui library by Christian Fillion to work. Please install them alongside (OSS will remind you to do so anyway). A restart of Reaper is needed after install.
-
   # Reaper forum thread
 
     The official discussion thread is located here : https://forum.cockos.com/showthread.php?t=288076
 
+  # Install Notes
+
+    This script also needs the JS_ReaScriptAPI api by Julian Sader and the ReaImGui library by Christian Fillion to work. Please install them alongside (OSS will remind you to do so anyway). A restart of Reaper is needed after install.
+
   # How to use
 
-    Launch the action called 'OneSmallStep' (other actions are provided but we'll get on this later). You should now see OSS's main dialog - One Small Step is active (it is active as long as this dialog is visible). At the top of it, the name of the target MIDI track / item / take will be displayed if there's one eligible that matches your current selection. It is important to note that the track should be armed for record (OSS will give you an indication if you forgot to arm the recording) and the MIDI source should be chosen (exactly like you would when recording). If everyhing's ready, a red circle will glow, meaning that in this configuration, OneSmallStep is able to do its job (listen to MIDI events, and step input/patch the current MIDI item).
+    Launch the action called 'OneSmallStep' (other actions are provided but we'll get on this later). You should now see OSS's main dialog - One Small Step is active (it is active as long as this dialog is visible). At the top of it, the name of the target MIDI track / item / take will be displayed if there's one eligible that matches your current selection / cursor position.
+
+    It is important to note that the track should be armed for record (OSS will give you an indication if you forgot to arm the recording) and the MIDI source should be chosen (exactly like you would when recording). If everyhing's ready, a red circle will glow, meaning that in this configuration, OneSmallStep is able to do its job (listen to MIDI events, and step input/patch the current MIDI item).
 
   ## Input modes
 
-    You can then select your input mode between Keyboard / Sustain Pedal / Action. For each Input Mode, two triggers may be used to validate notes and rests : the sustain pedal and the 'OneSmallStep Commit' Action, to which you may consider giving a shortcut. Inserting held notes and/or rests depends on the chosen mode. You can use the tooltip by hovering over each mode's button as a reminder of their role.
+    You can then select your input mode between **Keyboard Press** Mode, **Punch** Mode, and **Keyboard Release** Mode.
 
-  ### Keyboard Release (Grope Mode)
+    For each Input Mode, two triggers may be used to validate notes and rests : the Commit action, and the Commit Back action, to which you may consider giving shortcuts. The effect of each action will be different if the notes were already held or not (creation, extension, shortening, removal ...). Those two actions may also be triggered by the Sustain Pedal (for the Commit) or a modifier key (shift, ctrl, etc) + Sustain Pedal (for the Commit Back action). That way, you may
 
-    Notes are added to the MIDI item at the current position, when the keys are released.
-
-    Suitable for inputing notes at a low pace, correcting things by ear, especially for chords. This mode is error tolerant, but tends to aggregate and skip notes easily when playing fast.
-
-    This is pretty much the same as Reaper's default step input mode.
-
-    - The sustain pedal advances (=inserts rests)
-    - The Commit action advances (=inserts rests)
-
-  ### Keyboard Press (Fast Mode)
+  ### Keyboard Press Mode (Fast Mode)
 
     Notes are added on keyboard key press events.
 
     Suitable for inputing notes at a high pace. It is not error tolerant (you get what you play), but will only aggregate chords if keys are pressed simultaneously.
 
-    - The sustain pedal advances (=inserts rests)
-    - The Commit action advances (=inserts rests)
+  ### Punch Mode
 
-  ### Sustain Pedal
+    Notes are NOT added on keyboard key press/release events. Only the sustain pedal or commit action add notes.
 
-    Hold some keyboard keys, and then press the sustain pedal to validate and add notes.
+    Suitable for validating everything by ear before input. Useful when testing chords or melodic ideas.
 
-    Useful when testing chords.
+  ### Keyboard Release Mode (Grope Mode)
 
-    - The sustain pedal commits held notes (or advances)
-    - The Commit action commits held notes (or advances)
+    Notes are added on keyboard key release events.
 
-  ### Action
+    Suitable for inputing notes at a low pace, correcting things by ear, especially for chords. This mode is error tolerant, but tends to aggregate and skip notes easily when playing fast.
 
-    Hold some keyboard keys, and then call the Commit action from Reaper to validate and add notes.
+    This is pretty much the same as Reaper's default step input mode.
 
-    - The sustain pedal advances (=inserts rests)
-    - The Commit action commits held notes (or advances)
+  ### Effect of the sustain pedal / actions
+
+    For all modes, the sustain pedal and the commit action :
+
+    - Insert held notes
+    - Extend already committed and still held notes
+    - Insert rests if no notes are held
+
+    The modifier key + the sustain pedal and the commit back action :
+
+    - Erase back held notes if they match the cursor
+    - Step back if no notes are held
 
   ## Note length parameter source
 
@@ -120,13 +141,24 @@
 
     One Small Step provides a convenient playback widget, which is a way to ear what you've just written, without losing the position of the edit cursor, so that you can work faster. The playback button will replay the last N measures (N is settable, and the result is rounded to the start of the matching measure). You can chose Mk instead of a number of measures, and instead, the start point will be the 'OSS Playback' marker (if it is set, else, only the current measure will be played as when N=0). You can set/remove it using the marker button on the right.
 
+    Both the "set/move/remove marker" and "playback" actions are available independently so you can also use them without the UI if you need them in other workflows.
+
   ## Other Reaper actions
 
-    To speed up your flow, multiple actions are provided to quickly change OSS parameters, so that you can assign shortcuts to them. Those are the "Change note len", "Decrease/Increase note len", "Change note len modifier", "Change note len param source" actions, whose names should be self explanatory. The "Cleanup helper JSFXs" is here for cleaniness, to remove the Helper JSFXs that are installed automatically on the input FX chain of your tracks when OSS is running (it could have been done automatically when closing the tool, but it adds an entry in the undo stack, which is annoying, and I don't have a solution for this yet).
+    To speed up your flow, multiple actions are provided to quickly change OSS parameters, so that you can assign shortcuts to them. Those are :
+
+    - **Change input mode**
+    - **Change note len**
+    - **Decrease/Increase note len**
+    - **Change note len modifier**
+    - **Change note len param source**
+    - **Cleanup helper JSFXs**
+
+    actions, whose names should be self explanatory. The **Cleanup helper JSFXs** is here for cleaniness, to remove the Helper JSFXs that are installed automatically on the input FX chain of your tracks when OSS is running (it could have been done automatically when closing the tool, but it adds an entry in the undo stack, which is annoying, and I don't have a solution for this yet).
 
   # Calling One Small Step from a Reaper toolbar button
 
-    The most logical way to summon OSS is to create a togglable toolbar button in Reaper by assigning it the 'talagan_OneSmallStep.lua' action. OSS handles the color of the button dependending on its state. However, the first time you try to close OSS by re-clicking the toolbar button, Reaper will ask if you want to open another instance of OSS or terminate the current one. Tick 'remember my answer for this script' and click 'Terminate Instances'. Now, the button should be fully togglable.
+    The most logical way to summon OSS is to create a togglable toolbar button in Reaper by assigning it the 'talagan_OneSmallStep.lua' action. You should be good to go : OSS will handle the color of the button dependending on its state, and you can close OSS either by clicking on the cross in the top right corner of the window, or by re-clicking the toolbar button.
 
   # Toolbar icons
 
@@ -135,6 +167,10 @@
   # Credits
 
     This tool takes a lot of inspiration in tenfour's "tenfour-step" scripts. Epic hail to tenfour for opening the way !
+
+    Thanks to @cfillion for the precious pieces of advice when reviewing this source !
+
+    A lot of thanks to all donators, and forum members that help this tool to get better ! @stevie, @hipox, @MartinTL, @henu, @Thonex, @smandrap, @SoaSchas, @daodan, @inthevoid, @dahya, @User41, @Spookye, @R.Cato
 
 --]]
 
@@ -203,6 +239,12 @@ end
 local ctx                   = reaper.ImGui_CreateContext('One Small Step');
 
 -------------------------------
+-- Other global variables
+
+local focustimer        = nil;
+local showsettings      = nil;
+
+------------------------------
 
 function SL()
   reaper.ImGui_SameLine(ctx);
@@ -416,18 +458,10 @@ function MiniBarSeparator(dst)
 
 end
 
--- Current take info label and indicators
-function TakeInfo(take)
-  local track         = reaper.GetMediaItemTake_Track(take);
-  local _, track_name = reaper.GetTrackName(track);
-  local take_name     = reaper.GetTakeName(take);
+function RecordBadge(track)
   local recarmed      = reaper.GetMediaTrackInfo_Value(track, "I_RECARM");
   local playState     = reaper.GetPlayState();
 
-  reaper.ImGui_TextColored(ctx, 0xA0A0FFFF, track_name .. " / " .. take_name);
-
-  -- Glowing indicator
-  SL();
   reaper.ImGui_SetCursorPosY(ctx, reaper.ImGui_GetCursorPosY(ctx)+1);
 
   if (recarmed == 1) and not (engine_lib.getInputMode() == engine_lib.InputMode.None) and playState == 0 then
@@ -448,9 +482,11 @@ function TakeInfo(take)
 
   reaper.ImGui_RadioButton(ctx, '##', true);
   reaper.ImGui_PopStyleColor(ctx, 4);
+end
 
-  -- Target issues debug text
-  SL();
+function RecordIssues(track)
+  local recarmed      = reaper.GetMediaTrackInfo_Value(track, "I_RECARM");
+  local playState     = reaper.GetPlayState();
 
   reaper.ImGui_SetCursorPosY(ctx, reaper.ImGui_GetCursorPosY(ctx));
   if not (recarmed == 1) then
@@ -464,11 +500,84 @@ function TakeInfo(take)
   end
 end
 
+-- Current take info label and indicators
+function TakeInfo(take)
+  local track         = reaper.GetMediaItemTake_Track(take);
+  local _, track_name = reaper.GetTrackName(track);
+  local take_name     = reaper.GetTakeName(take);
+
+  reaper.ImGui_TextColored(ctx, 0xA0A0FFFF, track_name .. " / " .. take_name);
+
+  -- Glowing indicator
+  SL();
+  RecordBadge(track);
+  SL();
+  RecordIssues(track);
+end
+
+-- Current track info label and indicators (if no take)
+function TrackInfo(track)
+  local _, track_name = reaper.GetTrackName(track);
+
+  reaper.ImGui_TextColored(ctx, 0xA0A0FFFF, track_name .. " /");
+  SL();
+  reaper.ImGui_TextColored(ctx, 0xFFA0A0FF, "No Item");
+
+  SL();
+  RecordBadge(track);
+  SL();
+  RecordIssues(track);
+end
+
+
+
 -- MINIBAR : Input Mode
 function InputModeMiniBar()
   local mode      = engine_lib.getInputMode();
+  local modifkey  = engine_lib.getSustainPedalModifierKey().name or "";
 
-  ButtonGroupImageButton('input_mode_keyboard_release', mode == engine_lib.InputMode.Keyboard, function()engine_lib.setInputMode(engine_lib.InputMode.Keyboard); end, 0);
+  local pedalmanual = "\z
+    The sustain pedal and the commit action :\n\n\z
+    \32 - Insert held notes\n\z
+    \32 - Extend already committed and still held notes\n\z
+    \32 - Insert rests if no notes are held\n\z
+    \n\z
+    " .. modifkey .. " + the sustain pedal and the commit back action :\n\n\z
+    \32 - Erase back held notes if they match the cursor\n\z
+    \32 - Step back if no notes are held";
+
+  ButtonGroupImageButton('input_mode_keyboard_press', mode == engine_lib.InputMode.KeyboardPress, function()
+      engine_lib.setInputMode(engine_lib.InputMode.KeyboardPress);
+    end, 0);
+
+  TT("Input Mode : Keyboard Press (Fast mode)\n\z
+      \n\z
+      Notes are added on keyboard key press events.\n\z
+      \n\z
+      Suitable for inputing notes at a high pace. It is not error\n\z
+      tolerant (you get what you play), but will only aggregate \n\z
+      chords if keys are pressed simultaneously.\n\z
+      \n\z" .. pedalmanual);
+  SL();
+
+  ButtonGroupImageButton('input_mode_pedal', mode == engine_lib.InputMode.Punch, function()
+      engine_lib.setInputMode(engine_lib.InputMode.Punch);
+    end,0);
+
+  TT("Input Mode : Punch (Check mode)\n\z
+      \n\z
+      Notes are NOT added on keyboard key press/release events.\n\z
+      Only the sustain pedal or commit action add notes.\n\z
+      \n\z
+      Suitable for validating everything by ear before input.\n\z
+      Useful when testing chords or melodic ideas.\n\z
+      \n\z" .. pedalmanual);
+  SL();
+
+  ButtonGroupImageButton('input_mode_keyboard_release', mode == engine_lib.InputMode.KeyboardRelease, function()
+      engine_lib.setInputMode(engine_lib.InputMode.KeyboardRelease);
+    end, 0);
+
   TT("Input Mode : Keyboard Release (Grope mode)\n\z
       \n\z
       Notes are added on keyboard key release events.\n\z
@@ -477,44 +586,9 @@ function InputModeMiniBar()
       things by ear, especially for chords. This mode is error\n\z
       tolerant, but tends to aggregate and skip notes easily\n\z
       when playing fast.\n\z
-      \n\z
-      This is pretty much the same as Reaper\'s default\nstep input mode.\n\n\z
-      - The sustain pedal advances (=inserts rests)\n\z
-      - The Commit action advances (=inserts rests)");
+      \n\z" .. pedalmanual);
   SL();
 
-  ButtonGroupImageButton('input_mode_keyboard_press', mode == engine_lib.InputMode.KeyboardMelodic, function()engine_lib.setInputMode(engine_lib.InputMode.KeyboardMelodic); end, 0);
-  TT("Input Mode : Keyboard Press (Fast mode)\n\z
-      \n\z
-      Notes are added on keyboard key press events.\n\z
-      \n\z
-      Suitable for inputing notes at a high pace. It is not error\n\z
-      tolerant (you get what you play), but will only aggregate \n\z
-      chords if keys are pressed simultaneously.\n\z
-      \n\z
-      - The sustain pedal advances (=inserts rests)\n\z
-      - The Commit action advances (=inserts rests)");
-  SL();
-
-  ButtonGroupImageButton('input_mode_pedal', mode == engine_lib.InputMode.Pedal, function()engine_lib.setInputMode(engine_lib.InputMode.Pedal); end,0);
-  TT('Input Mode : Pedal\n\z
-      \n\z
-      Hold some keyboard keys, and then press the sustain\n\z
-      pedal to validate and add notes.\n\z
-      \n\z
-      Useful when testing chords.\n\n\z
-      - The sustain pedal commits held notes (or advances)\n\z
-      - The Commit action commits held notes (or advances)');
-  SL();
-
-  ButtonGroupImageButton('input_mode_action', mode == engine_lib.InputMode.Action, function()engine_lib.setInputMode(engine_lib.InputMode.Action); end,0);
-  TT('Input Mode : Action\n\z
-      \n\z
-      Hold some keyboard keys, and then call the Commit\n\z
-      action from Reaper to validate and add notes.\n\z
-      \n\z
-      - The sustain pedal advances (=inserts rests)\n\z
-      - The Commit action commits held notes (or advances)');
 end
 
 -- MINIBAR : Conf source
@@ -671,6 +745,7 @@ function NoteADFactorComboBox()
   reaper.ImGui_PopStyleVar(ctx,1);
 end
 
+
 -- Note AD
 function AugmentedDiminishedMiniBars()
   NoteADSignComboBox();
@@ -772,14 +847,145 @@ function TargetLine(take)
   SL();
 
   if not take then
-    reaper.ImGui_TextColored(ctx, 0xA0A0A0FF, "No target item. Please select one.");
+    if engine_lib.getSetting("AllowCreateItem") then
+      local track = engine_lib.TrackForEditionIfNoItemFound();
+      if track then
+        TrackInfo(track);
+      else
+        reaper.ImGui_TextColored(ctx, 0xA0A0A0FF, "No target item or track.");
+      end
+    else
+      reaper.ImGui_TextColored(ctx, 0xA0A0A0FF, "No target item. Please select one.");
+    end
     ImGui_VerticalSpacer(ctx,0);
   else
     TakeInfo(take);
   end
 end
 
+-- MINIBAR : Settings
+function SettingsMiniBar()
+  ButtonGroupImageButton('settings', false,
+    function()
+      showsettings = not showsettings;
+    end,
+  0);
+end
+
+function PlaybackMarkerSettingComboBox()
+
+  local combo_items = { 'Hide/Restore', 'Keep visible', 'Remove' }
+  local curval      = engine_lib.getSetting("PlaybackMarkerPolicyWhenClosed");
+
+  reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_FramePadding(), 5, 4);
+  reaper.ImGui_SetCursorPosY(ctx, reaper.ImGui_GetCursorPosY(ctx));
+  reaper.ImGui_PushID(ctx, "playback_marker_policy");
+
+  reaper.ImGui_SetNextItemWidth(ctx, 120);
+  if reaper.ImGui_BeginCombo(ctx, '', curval) then
+    for i,v in ipairs(combo_items) do
+      local is_selected = (curval == v);
+      if reaper.ImGui_Selectable(ctx, combo_items[i], is_selected) then
+        engine_lib.setSetting("PlaybackMarkerPolicyWhenClosed", v);
+      end
+      if is_selected then
+        reaper.ImGui_SetItemDefaultFocus(ctx)
+      end
+    end
+    reaper.ImGui_EndCombo(ctx)
+  end
+  reaper.ImGui_PopStyleVar(ctx,1);
+  reaper.ImGui_PopID(ctx);
+
+  SL();
+
+  reaper.ImGui_Text(ctx, "playback marker when closing");
+end
+
+function StepBackSustainPedalModifierKeyComboBox()
+  local combo_items = engine_lib.ModifierKeys;
+  local setting     = "StepBackSustainPedalModifierKey";
+  local modkey      = engine_lib.getSustainPedalModifierKey() or {};
+  local label       = modkey.name or "";
+  local curval      = modkey.vkey or 0;
+
+  reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_FramePadding(), 5, 4);
+  reaper.ImGui_SetCursorPosY(ctx, reaper.ImGui_GetCursorPosY(ctx));
+  reaper.ImGui_PushID(ctx, setting);
+
+  reaper.ImGui_SetNextItemWidth(ctx, 70);
+  if reaper.ImGui_BeginCombo(ctx, '', label) then
+    for i,v in ipairs(combo_items) do
+      local is_selected = (curval == v.vkey);
+      if reaper.ImGui_Selectable(ctx, v.name, is_selected) then
+        engine_lib.setSetting("StepBackSustainPedalModifierKey", v.vkey);
+      end
+      if is_selected then
+        reaper.ImGui_SetItemDefaultFocus(ctx)
+      end
+    end
+    reaper.ImGui_EndCombo(ctx)
+  end
+  reaper.ImGui_PopStyleVar(ctx,1);
+  reaper.ImGui_PopID(ctx);
+
+  SL();
+
+  reaper.ImGui_Text(ctx, "+ sustain pedal : performs step back action");
+end
+
+function SettingsPanel()
+  if reaper.ImGui_BeginTabBar(ctx, 'settings_tab_bar', reaper.ImGui_TabBarFlags_None()) then
+    reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Tab(),        0x00000000);
+    reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_TabHovered(), 0x00000000);
+    if reaper.ImGui_TabItemButton(ctx, 'Settings', reaper.ImGui_TabItemFlags_Leading() | reaper.ImGui_TabItemFlags_NoTooltip()) then
+    end
+    reaper.ImGui_PopStyleColor(ctx, 2);
+
+    if reaper.ImGui_BeginTabItem(ctx, 'General') then
+
+      ImGui_VerticalSpacer(ctx,5);
+
+      local curval = nil;
+
+      curval = engine_lib.getSetting("AllowTargetingFocusedMidiEditors");
+      if reaper.ImGui_Checkbox(ctx, "Allow targeting items open in focused MIDI Editors", curval) then
+        engine_lib.setSetting("AllowTargetingFocusedMidiEditors", not curval);
+      end
+
+      curval = engine_lib.getSetting("AllowTargetingNonSelectedItemsUnderCursor");
+      if reaper.ImGui_Checkbox(ctx, "Allow targeting items on selected tracks if no item is selected", curval) then
+        engine_lib.setSetting("AllowTargetingNonSelectedItemsUnderCursor", not curval);
+      end
+
+      curval = engine_lib.getSetting("AllowCreateItem");
+      if reaper.ImGui_Checkbox(ctx, "Allow creating new items if needed", engine_lib.getSetting("AllowCreateItem")) then
+        engine_lib.setSetting("AllowCreateItem", not curval);
+      end
+
+      reaper.ImGui_EndTabItem(ctx)
+    end
+
+    if reaper.ImGui_BeginTabItem(ctx, 'Controls') then
+      ImGui_VerticalSpacer(ctx,5);
+      StepBackSustainPedalModifierKeyComboBox();
+      reaper.ImGui_EndTabItem(ctx)
+    end
+
+    if reaper.ImGui_BeginTabItem(ctx, 'Playback') then
+
+      ImGui_VerticalSpacer(ctx,5);
+      PlaybackMarkerSettingComboBox();
+      reaper.ImGui_EndTabItem(ctx)
+    end
+
+    reaper.ImGui_EndTabBar(ctx)
+  end
+end
+
 function ui_loop()
+
+  engine_lib.TrackFocus();
 
   reaper.ImGui_PushStyleVar(ctx,reaper.ImGui_StyleVar_WindowPadding(),10,10);
 
@@ -790,7 +996,7 @@ function ui_loop()
 
   -- Since we use a trick to give back the focus to reaper, we don't want the window to glitch.
   reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_TitleBgActive(), 0x0A0A0AFF);
-  local visible, open = reaper.ImGui_Begin(ctx, 'One Small Step v0.9.2', true, flags);
+  local visible, open = reaper.ImGui_Begin(ctx, 'One Small Step v0.9.3', true, flags);
   reaper.ImGui_PopStyleColor(ctx,1);
 
   if visible then
@@ -811,6 +1017,10 @@ function ui_loop()
     local nlm   = engine_lib.getNoteLenParamSource();
     local nlmod = engine_lib.getNoteLenModifier();
 
+    SettingsMiniBar();
+    SL();
+    MiniBarSeparator();
+    SL();
     InputModeMiniBar();
     SL();
     MiniBarSeparator();
@@ -849,15 +1059,19 @@ function ui_loop()
 
     reaper.ImGui_PopStyleVar(ctx,3);
 
+    if showsettings then
+      ImGui_VerticalSpacer(ctx,10);
+      SettingsPanel();
+    end
+
     if reaper.ImGui_IsWindowFocused(ctx) then
       if not focustimer or reaper.ImGui_IsAnyMouseDown(ctx) then
         -- create or reset the timer when there's activity in the window
         focustimer = reaper.time_precise();
       end
 
-      if reaper.time_precise() - focustimer > 0.5 then
-        local hwnd = reaper.GetMainHwnd();
-        reaper.JS_Window_SetFocus(hwnd)
+      if (reaper.time_precise() - focustimer > 0.5) then
+        engine_lib.RestoreFocus();
       end
     else
       focustimer = nil;
@@ -865,7 +1079,6 @@ function ui_loop()
 
     -- End
     reaper.ImGui_End(ctx);
-
   end
 
   reaper.ImGui_PopStyleVar(ctx);
@@ -897,14 +1110,15 @@ end
 
 function onReaperExit()
   updateToolbarButtonState(0);
+  engine_lib.atExit();
 end
 
 function stop()
   reaper.ImGui_DestroyContext(ctx);
-  engine_lib.atExit();
 end
 
 function start()
+  focustimer    = 0; -- Will force a focus restore
   updateToolbarButtonState(1);
   engine_lib.atStart();
   reaper.atexit(onReaperExit);
