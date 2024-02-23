@@ -18,16 +18,24 @@ jsfx.paramIndex_NoteStart       = 2
 -- Add the given fx to the given track.
 local function getOrAddInputFx(track, fx)
 
-  local idx = reaper.TrackFX_AddByName(track, fx.name, true, 1)
+  -- Check first.
+  local idx = reaper.TrackFX_AddByName(track, fx.name, true, 0);
 
   if idx == -1 or idx == nil then
-    return -1
+    -- Try to add it.
+    idx         = reaper.TrackFX_AddByName(track, fx.name, true, 1);
+
+    if idx == -1 or idx == nil then
+      return -1
+    end
+
+    -- Hide it, in case the option to pop up new added FXs is checked
+    reaper.TrackFX_SetOpen(track, idx|0x1000000, false);
   end
 
   -- Use 0x1000000 as flag for input fx chain
-  idx = idx|0x1000000
 
-  return idx
+  return idx|0x1000000
 end
 
 -- Remove the given fx from the given track
@@ -106,15 +114,9 @@ local function oneSmallStepState(track)
   }
 end
 
-local function resetPedalActivity(track)
-  local iHelper       = getOrAddInputFx(track, jsfx, true)
-  reaper.TrackFX_SetParam(track, iHelper, jsfx.paramIndex_PedalActivity, 0);
-end
-
 return {
   getOrInstallHelperFx  = getOrInstallHelperFx,
   removeHelperFx        = removeHelperFx,
   cleanupAllTrackFXs    = cleanupAllTrackFXs,
-  oneSmallStepState     = oneSmallStepState,
-  resetPedalActivity    = resetPedalActivity
+  oneSmallStepState     = oneSmallStepState
 };
