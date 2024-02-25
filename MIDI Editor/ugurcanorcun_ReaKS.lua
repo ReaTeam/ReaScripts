@@ -1,7 +1,8 @@
 -- @description ReaKS - Keyswitch Articulation Manager
 -- @author Ugurcan Orcun
--- @version 0.1
--- @changelog First commit
+-- @version 0.3
+-- @changelog Added CC Renaming Helper /n Settings now saved between sessions /n Added ReaStash link to find more note names /n Minor layout changes
+-- @link Forum Thread https://forum.cockos.com/showthread.php?t=288344
 -- @about A small MIDI Editor tool for auto-inserting KeySwitch midi notes and managing note/cc names.
 
 dofile(reaper.GetResourcePath() .. '/Scripts/ReaTeam Extensions/API/imgui.lua')('0.8.7')
@@ -21,6 +22,20 @@ Modal_Settings = false
 
 PPQ = reaper.SNM_GetIntConfigVar("miditicksperbeat", 960)
 
+function SaveSettings()
+    reaper.SetExtState("ReaKS", "Setting_AutoupdateTextEvent", tostring(Setting_AutoupdateTextEvent), true)
+    reaper.SetExtState("ReaKS", "Setting_MaxColumns", tostring(Setting_MaxColumns), true)
+end
+
+function LoadSettings()
+    local val
+    val = reaper.GetExtState("ReaKS", "Setting_AutoupdateTextEvent")
+    if val ~= "" then Setting_AutoupdateTextEvent = val == "true" end
+
+    val = reaper.GetExtState("ReaKS", "Setting_MaxColumns")
+    if val ~= "" then Setting_MaxColumns = tonumber(val) end    
+end
+
 function UpdateActiveTargets()
     ActiveMidiEditor = reaper.MIDIEditor_GetActive() or nil
     ActiveTake = reaper.MIDIEditor_GetTake(ActiveMidiEditor) or nil
@@ -29,8 +44,7 @@ function UpdateActiveTargets()
     if ActiveTake ~= nil and ActiveTake ~= PreviousTake then
         Articulations = {}
         CC = {}
-        ParseNoteNamesFromTrack()
-        ParseCCNamesFromTrack()
+        RefreshGUI()
     end
 
     PreviousTake = ActiveTake
@@ -62,8 +76,7 @@ function LoadNoteNames()
     Articulations = {}
     CC = {}
     reaper.MIDIEditor_LastFocused_OnCommand(40409, false)    
-    ParseNoteNamesFromTrack()
-    ParseCCNamesFromTrack()
+    RefreshGUI()
 end
 
 function ParseNoteNamesFromTrack()
@@ -88,6 +101,11 @@ end
 
 function FocusToCCLane(i)
     reaper.BR_MIDI_CCLaneReplace(ActiveMidiEditor, 0, i)
+end
+
+function RenameAliasCCLane()
+    reaper.MIDIEditor_LastFocused_OnCommand(40416, false)
+    RefreshGUI()
 end
 
 function SaveNoteNames()
@@ -157,35 +175,86 @@ function GetActiveArticulationsAtPlayheadPosition()
         end
 end
 
+function GetActiveArticulationsAtNoteSelection()
+    if ActiveTake == nil then return end
+
+    ActivatedArticulations = {}
+    local earliestStartTime = math.huge
+    local latestEndTime = 0
+
+    local note = -2
+	while note ~= -1 do
+		note = reaper.MIDI_EnumSelNotes(ActiveTake, note)
+
+        local _, _, _, startppqpos, endppqpos, _, pitch, _ = reaper.MIDI_GetNote(ActiveTake, note)
+        if Articulations[pitch] ~= nil then
+            if startppqpos < earliestStartTime then earliestStartTime = startppqpos end
+            if endppqpos > latestEndTime then latestEndTime = endppqpos end 
+        end
+	end
+
+    --check all notes if it's an Articulation and if it's in the selected time range. If so, add it to the ActivatedArticulations list.
+    local midiNoteCount = reaper.FNG_CountMidiNotes(ActiveTake)
+
+    for i = 0, midiNoteCount - 1 do
+        local _, _, _, startppqpos, endppqpos, _, pitch, _ = reaper.MIDI_GetNote(ActiveTake, i)
+
+        if startppqpos <= latestEndTime and endppqpos >= earliestStartTime then
+            if Articulations[pitch] ~= nil then
+                ActivatedArticulations[pitch] = i
+            end
+        end
+    end
+end
+
+function RefreshGUI()
+    UpdateTextEvents()
+    ParseNoteNamesFromTrack()
+    ParseCCNamesFromTrack()
+end
+
 -- UI Part
 local ctx = reaper.ImGui_CreateContext('ReaKS')
 local function loop()
     local visible, open = reaper.ImGui_Begin(ctx, 'ReaKS', true)    
     if visible then
-        --TODO Make the settings modal
-        if Modal_Settings then
-            local val
-            
-            reaper.ImGui_BeginGroup(ctx)
-            reaper.ImGui_SeparatorText(ctx, "Settings")
-            if reaper.ImGui_Checkbox(ctx, "Autorefresh Text Values", Setting_AutoupdateTextEvent) then Setting_AutoupdateTextEvent = not Setting_AutoupdateTextEvent end
-            _, val = reaper.ImGui_SliderInt(ctx, "Max Rows", Setting_MaxColumns, 1, 10)
-            Setting_MaxColumns = val
-            reaper.ImGui_EndGroup(ctx)
-        end
 
         reaper.ImGui_BeginGroup(ctx)
-        reaper.ImGui_SeparatorText(ctx, "Note Names")
+        reaper.ImGui_SeparatorText(ctx, "Note Name Maps")
         if reaper.ImGui_Button(ctx, "Load") then LoadNoteNames() end
         reaper.ImGui_SameLine(ctx)
         if reaper.ImGui_Button(ctx, "Save") then SaveNoteNames() end
         reaper.ImGui_SameLine(ctx)
         if reaper.ImGui_Button(ctx, "Clear") then ClearNoteNames() end
         reaper.ImGui_SameLine(ctx)
-        if reaper.ImGui_Button(ctx, "Refresh") then UpdateTextEvents() ParseNoteNamesFromTrack() ParseCCNamesFromTrack()end
+        if reaper.ImGui_Button(ctx, "Refresh") then RefreshGUI()end
         reaper.ImGui_SameLine(ctx)
         if reaper.ImGui_Button(ctx, "Settings") then Modal_Settings = not Modal_Settings end
         reaper.ImGui_EndGroup(ctx)
+
+        --TODO Make the settings modal
+        if Modal_Settings then
+            local val
+            
+            reaper.ImGui_BeginGroup(ctx)
+            reaper.ImGui_SeparatorText(ctx, "Settings")
+
+            if reaper.ImGui_Checkbox(ctx, "Autorefresh Text Events", Setting_AutoupdateTextEvent) then 
+                Setting_AutoupdateTextEvent = not Setting_AutoupdateTextEvent 
+                SaveSettings()
+            end
+
+            _, val = reaper.ImGui_SliderInt(ctx, "Max Rows", Setting_MaxColumns, 1, 10)
+            if val ~= Setting_MaxColumns then
+                Setting_MaxColumns = val
+                SaveSettings()
+            end
+
+            if reaper.ImGui_Button(ctx, "Rename Last Clicked CC Lane") then RenameAliasCCLane() end
+            if reaper.ImGui_Button(ctx, "Find More Note Names >>>") then reaper.CF_ShellExecute("https://stash.reaper.fm/tag/Key-Maps") end
+            
+            reaper.ImGui_EndGroup(ctx)
+        end
 
         if ActiveTake == nil and Articulations ~= nil then
             reaper.ImGui_Text(ctx, "No active MIDI take is open in the MIDI editor.")
@@ -204,9 +273,7 @@ local function loop()
                     end
                 end
             end
-
             reaper.ImGui_EndTable(ctx)
-
         end
 
         if ActiveTake ~= nil and CC ~= nil then
@@ -217,6 +284,8 @@ local function loop()
                 end
             end
         end
+
+        -- if reaper.ImGui_Button(ctx, "Test") then GetActiveArticulationsAtNoteSelection() end
 
         reaper.ImGui_End(ctx)
     end
@@ -229,4 +298,5 @@ local function loop()
     end
 end
 
+LoadSettings()
 reaper.defer(loop)
