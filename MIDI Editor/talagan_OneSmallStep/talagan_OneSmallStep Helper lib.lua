@@ -15,6 +15,7 @@ jsfx.paramIndex_PedalActivity   = 0
 jsfx.paramIndex_NotesInBuffer   = 1
 jsfx.paramIndex_NoteStart       = 2
 
+
 -- Add the given fx to the given track.
 local function getOrAddInputFx(track, fx)
 
@@ -22,19 +23,23 @@ local function getOrAddInputFx(track, fx)
   local idx = reaper.TrackFX_AddByName(track, fx.name, true, 0);
 
   if idx == -1 or idx == nil then
+    reaper.Undo_BeginBlock();
+
+    local _, tname  = reaper.GetTrackName(track);
     -- Try to add it.
-    idx         = reaper.TrackFX_AddByName(track, fx.name, true, 1);
+    idx             = reaper.TrackFX_AddByName(track, fx.name, true, 1);
 
     if idx == -1 or idx == nil then
-      return -1
+      reaper.Undo_EndBlock("One Small Step : Add companion JSFX on track " .. tname,-1);
+      return -1;
+    else
+      -- It worked, hide it ide it, in case the option to pop up new added FXs is checked
+      reaper.TrackFX_SetOpen(track, idx|0x1000000, false);
+      reaper.Undo_EndBlock("One Small Step : Add companion JSFX on track " .. tname,-1);
     end
-
-    -- Hide it, in case the option to pop up new added FXs is checked
-    reaper.TrackFX_SetOpen(track, idx|0x1000000, false);
   end
 
   -- Use 0x1000000 as flag for input fx chain
-
   return idx|0x1000000
 end
 

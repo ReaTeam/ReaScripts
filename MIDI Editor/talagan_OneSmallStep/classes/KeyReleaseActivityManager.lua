@@ -9,7 +9,7 @@ local KeyActivityManager   = require "classes/KeyActivityManager";
 KeyReleaseActivityManager = KeyActivityManager:new();
 
 function KeyReleaseActivityManager:inertia()
-  return 0.2;
+  return EngineLib.getSetting("KeyReleaseModeForgetTime");
 end
 
 -- We need to override the default cleanup because we want to keep track of
@@ -62,7 +62,7 @@ function KeyReleaseActivityManager:tryAdvancedCommitForTrack(track, commit_callb
   -- Perform the commit of released keys
   if #candidates > 0 then
     if commit_callback then
-      commit_callback(candidates)
+      commit_callback(candidates, {})
     end
   end
 

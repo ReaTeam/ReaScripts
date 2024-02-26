@@ -114,20 +114,30 @@ local NoteLenModifier = {
 -- Settings
 
 local SettingDefs = {
-  PlaybackMeasureCount                        = { type = "int",     default = -1 }, -- -1 is marker mode
-  Mode                                        = { type = "int",     default = InputMode.KeyboardRelease },
-  NoteLenParamSource                          = { type = "int",     default = NoteLenParamSource.OSS },
-  NoteLenADSign                               = { type = "string",  default = "+" },
-  NoteADFactor                                = { type = "string",  default = "1/2" },
-  TupletDivision                              = { type = "int",     default = 4 },
-  NoteLen                                     = { type = "string",  default = "1_4"},
-  NoteLenModifier                             = { type = "int",     default = NoteLenModifier.Straight },
+  PlaybackMeasureCount                                      = { type = "int",     default = -1 }, -- -1 is marker mode
+  Mode                                                      = { type = "int",     default = InputMode.KeyboardRelease },
+  NoteLenParamSource                                        = { type = "int",     default = NoteLenParamSource.OSS },
+  NoteLenADSign                                             = { type = "string",  default = "+" },
+  NoteADFactor                                              = { type = "string",  default = "1/2" },
+  TupletDivision                                            = { type = "int",     default = 4 },
+  NoteLen                                                   = { type = "string",  default = "1_4"},
+  NoteLenModifier                                           = { type = "int",     default = NoteLenModifier.Straight },
   ------
-  AllowTargetingFocusedMidiEditors            = { type = "bool",    default = true },
-  AllowTargetingNonSelectedItemsUnderCursor   = { type = "bool",    default = false },
-  AllowCreateItem                             = { type = "bool",    default = false },
-  PlaybackMarkerPolicyWhenClosed              = { type = "string",  default = "Keep visible" },
-  StepBackSustainPedalModifierKey             = { type = "int",     default = 16 }
+  AllowTargetingFocusedMidiEditors                          = { type = "bool",    default = true },
+  AllowTargetingNonSelectedItemsUnderCursor                 = { type = "bool",    default = false },
+  AllowCreateItem                                           = { type = "bool",    default = false },
+  AllowErasingWhenNoteEndDoesNotMatchCursor                 = { type = "bool",    default = true },
+  PlaybackMarkerPolicyWhenClosed                            = { type = "string",  default = "Keep visible" },
+  StepBackSustainPedalModifierKey                           = { type = "int",     default = 16 },
+  PreventAddingNotesIfModifierKeyIsPressed                  = { type = "bool",    default = true},
+  CleanupJsfxAtClosing                                      = { type = "bool",    default = true},
+  SelectInputNotes                                          = { type = "bool",    default = true},
+  ------
+  KeyPressModeAggregationTime                               = { type = "double",  default = 0.05 },
+  KeyPressModeInertiaTime                                   = { type = "double",  default = 0.5  },
+  KeyPressModeInertiaEnabled                                = { type = "bool",    default = true},
+
+  KeyReleaseModeForgetTime                             = { type = "double",  default = 0.200 },
 };
 
 local function unsafestr(str)
@@ -153,6 +163,8 @@ local function getSetting(setting)
       val = (val == "true");
     elseif spec.type == 'int' then
       val = tonumber(val);
+    elseif spec.type == 'double' then
+      val = tonumber(val);
     elseif spec.type == 'string' then
       -- No conversion needed
     end
@@ -173,11 +185,16 @@ local function setSetting(setting, val)
       val = (val == true) and "true" or "false";
     elseif spec.type == 'int' then
       val = tostring(val);
+    elseif spec.type == 'double' then
+      val = tostring(val);
     elseif spec.type == "string" then
       -- No conversion needed
     end
     reaper.SetExtState("OneSmallStep", setting, val, true);
   end
+end
+local function resetSetting(setting)
+  setSetting(setting, SettingDefs[setting].default)
 end
 
 local function setPlaybackMeasureCount(c)         return setSetting("PlaybackMeasureCount", c)  end
@@ -592,16 +609,15 @@ end
 local function commit(take, notes_to_add, notes_to_extend)
 
   local note_len                  = resolveNoteLenQN(take);
-
-  local noteStartTime             = reaper.GetCursorPosition()
-  local noteStartQN               = reaper.TimeMap2_timeToQN(0, noteStartTime)
-  local noteEndTime               = reaper.TimeMap2_QNToTime(0, noteStartQN + note_len)
-
   local mediaItem                 = reaper.GetMediaItemTake_Item(take)
   local track                     = reaper.GetMediaItemTake_Track(take)
 
-  local noteStartPPQ              = reaper.MIDI_GetPPQPosFromProjTime(take, noteStartTime)
-  local noteEndPPQ                = reaper.MIDI_GetPPQPosFromProjTime(take, noteEndTime)
+  local cursorTime                = reaper.GetCursorPosition()
+  local cursorQN                  = reaper.TimeMap2_timeToQN(0, cursorTime)
+  local advanceTime               = reaper.TimeMap2_QNToTime(0, cursorQN + note_len)
+
+  local cursorPPQ                 = reaper.MIDI_GetPPQPosFromProjTime(take, cursorTime)
+  local advancePPQ                = reaper.MIDI_GetPPQPosFromProjTime(take, advanceTime)
 
   local extcount = 0;
   local addcount = 0;
@@ -620,11 +636,13 @@ local function commit(take, notes_to_add, notes_to_extend)
 
       while (ni < notecnt) do
 
-        local _, _, _, _, endppqpos, chan, pitch, _ = reaper.MIDI_GetNote(take, ni);
+        local _, _, _, _, endPPQ, chan, pitch, _ = reaper.MIDI_GetNote(take, ni);
+
+        local endsMatchesCursor = (math.abs(endPPQ - cursorPPQ) < 1.0)
 
         -- Extend the note if found
-        if (math.abs(endppqpos - noteStartPPQ) < 0.02) and chan == exnote.chan and pitch == exnote.note then
-          reaper.MIDI_SetNote(take, ni, nil, nil, nil, noteEndPPQ, nil, nil, nil, nil);
+        if endsMatchesCursor and chan == exnote.chan and pitch == exnote.note then
+          reaper.MIDI_SetNote(take, ni, nil, nil, nil, advancePPQ, nil, nil, nil, nil);
           extcount = extcount + 1;
           found = true
         end
@@ -642,28 +660,31 @@ local function commit(take, notes_to_add, notes_to_extend)
 
   -- Add new notes
   for k,v in pairs(notes_to_add) do
-    reaper.MIDI_InsertNote(take, true, false, noteStartPPQ, noteEndPPQ, v.chan, v.note, v.velocity)
+    reaper.MIDI_InsertNote(take, getSetting("SelectInputNotes"), false, cursorPPQ, advancePPQ, v.chan, v.note, v.velocity)
     addcount = addcount + 1;
   end
 
   -- Advance and mark dirty
   reaper.UpdateItemInProject(mediaItem)
-  reaper.SetEditCurPos(noteEndTime, false, false);
-  reaper.MarkTrackItemsDirty(track, mediaItem)
+  reaper.SetEditCurPos(advanceTime, false, false);
 
   -- Grow the midi item if needed
   local itemStartTime = reaper.GetMediaItemInfo_Value(mediaItem, "D_POSITION")
   local itemLength    = reaper.GetMediaItemInfo_Value(mediaItem, "D_LENGTH")
   local itemEndTime   = itemStartTime + itemLength;
 
-  if(itemEndTime >= noteEndTime) then
+  if(itemEndTime >= advanceTime) then
     -- Cool, the item is big enough
   else
     local itemStartQN = reaper.TimeMap2_timeToQN(0, itemStartTime)
-    local itemEndQN   = reaper.TimeMap2_timeToQN(0, noteEndTime)
+    local itemEndQN   = reaper.TimeMap2_timeToQN(0, advanceTime)
 
     reaper.MIDI_SetItemExtents(mediaItem, itemStartQN, itemEndQN)
+    reaper.UpdateItemInProject(mediaItem);
   end
+
+  -- Mark item as dirty
+  reaper.MarkTrackItemsDirty(track, mediaItem)
 
   local description = "";
 
@@ -719,10 +740,15 @@ local function commitBack(take, notes_to_shorten)
 
       -- Compare to what we have in our shorten list
       for _, shnote in pairs(notes_to_shorten) do
-        if (math.abs(endPPQ - cursorPPQ) < 0.02) and chan == shnote.chan and pitch == shnote.note then
+
+        local endsMatchesCursor           = (math.abs(endPPQ - cursorPPQ) < 1.0)
+        local endsBetweenRewindAndcursor  = (rewindPPQ < endPPQ) and (endPPQ < cursorPPQ)
+        local shortenable = endsMatchesCursor or (getSetting("AllowErasingWhenNoteEndDoesNotMatchCursor") and endsBetweenRewindAndcursor);
+
+        if shortenable and chan == shnote.chan and pitch == shnote.note then
           reaper.MIDI_SetNote(take, ni, nil, nil, nil, rewindPPQ, nil, nil, nil, nil);
 
-          if rewindPPQ <= (startPPQ + 0.02) then
+          if rewindPPQ <= (startPPQ + 1.0) then
             torem[#torem+1] = ni;
             remcount = remcount + 1
           else
@@ -805,8 +831,10 @@ local function listenToEvents()
     return;
   end
 
+
   -- Add helper FX if it is missing
   local helper_status = helper_lib.getOrInstallHelperFx(track);
+
   if helper_status == -1 then
     return -42;
   end
@@ -824,20 +852,27 @@ local function listenToEvents()
   end
 
   -- Update manager with new info from the helper JSFX
-  manager:clearOutdatedActivity();
   manager:updateActivity(track, oss_state);
 
+  local spmod                   = IsSustainPedalModifierKeyPressed();
+  local pedal                   = manager:pullPedalTriggerForTrack(track);
+  local preventcommitwhenspmod  = getSetting("PreventAddingNotesIfModifierKeyIsPressed");
+
   -- Try to commit with advanced behaviours (key press, key release)
-  manager:tryAdvancedCommitForTrack(track, function(candidates)
-      if take == nil and #candidates > 0 then
-        take = CreateItemIfMissing(track);
+  manager:tryAdvancedCommitForTrack(track, function(candidates, held_candidates)
+    -- The next condition is used specifically to prevent notes
+    -- From being added in KeyboardPress mode when the modifier key is down
+    -- This is going to happen when a user wants to step back
+    -- and first presses the key of the note to erase ...
+    -- Without this condition this would first re-add the note in question
+    if (not spmod) or (spmod and not preventcommitwhenspmod) then
+        if take == nil and #candidates > 0 then
+          take = CreateItemIfMissing(track);
+        end
+        commit(take, candidates, held_candidates);
       end
-      commit(take, candidates, {});
     end
   );
-
-  local spmod = IsSustainPedalModifierKeyPressed();
-  local pedal = manager:pullPedalTriggerForTrack(track);
 
   -- Allow the use of the action or pedal
   if (pedal and not spmod) or getCommitActionTrigger() then
@@ -864,6 +899,7 @@ local function listenToEvents()
       end
     );
   end
+  manager:clearOutdatedActivity();
 
 end
 
@@ -930,7 +966,10 @@ end
 
 function atExit()
   -- See comment in atStart
-  -- cleanupCompanionFXs();
+
+  if getSetting("CleanupJsfxAtClosing") then
+    cleanupCompanionFXs();
+  end
 
   handlePlaybackMarkerOnExit();
 end
@@ -939,7 +978,7 @@ function atLoop()
   return listenToEvents();
 end
 
-return {
+EngineLib = {
   -- Enums
   InputMode                     = InputMode,
   NoteLenParamSource            = NoteLenParamSource,
@@ -990,6 +1029,7 @@ return {
 
   getSetting                    = getSetting,
   setSetting                    = setSetting,
+  resetSetting                  = resetSetting,
 
   reaperActionCommit            = reaperActionCommit,
   reaperActionCommitBack        = reaperActionCommitBack,
@@ -1000,3 +1040,5 @@ return {
   TrackFocus                    = TrackFocus,
   RestoreFocus                  = RestoreFocus,
 }
+
+return EngineLib;
