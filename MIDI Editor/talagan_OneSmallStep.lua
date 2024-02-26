@@ -1,6 +1,6 @@
 --[[
 @description One Small Step : Alternative Step Input
-@version 0.9.3
+@version 0.9.4
 @author Ben 'Talagan' Babut
 @license MIT
 @metapackage
@@ -39,24 +39,16 @@
   [data] talagan_OneSmallStep/toolbar_icons/toolbar_one_small_step.png > toolbar_icons/toolbar_one_small_step.png
   [data] talagan_OneSmallStep/toolbar_icons/toolbar_one_small_step_cleanup.png > toolbar_icons/toolbar_one_small_step_cleanup.png
 @screenshot
-  https://stash.reaper.fm/48222/OSS%200.9.1.png
+  https://stash.reaper.fm/48269/oss_094.png
 @changelog
-  - [Feature] The commit action/sustain pedal now extend notes if they were already held before (thanks @henu, @MartinTL)
-  - [Feature] Added Commit Back action to "do things" backward (shorten/remove notes) (thanks @hipox)
-  - [Feature] Added a modifier key setting (ctrl, shift, etc), to use in conjunction with the sustain pedal to trigger the commit back action (lol)
-  - [Feature] Added settings panel
-  - [Feature] Added setting to allow targetting items even if they are not selected (but the track is, and the cursor is contained by an item)
-  - [Feature] Added setting to allow the automatic creation of MIOI items if none is selected
-  - [Feature] It is possible to chose if the playback marker should be deleted, kept, or backed up for later when quitting OSS
-    [Feature] Added independent scripts to change the input mode
-  - [Bug Fix] The helper JSFX window no longer pops up when it is added to a track and the "plugins > autofloat newly added JSFX windows" option is on (thanks @daodan)
-  - [Bug Fix] The pedal reset + undo could mess up the state of the plugin (now, the plugin does not touch the JSFX params anymore)
-  - [Bug Fix] After opening OSS, the plugin would periodically trigger a refocus event on the Reaper main window. This now happen only once when needed.
-  - [Bug Fix] Forgot to index the standalone set/remove playback marker action
-  - [Rework] Better behaviour when changing focus between window, arrange view and midi editor
-  - [Rework] Removed action mode (merged it with the Pedal Mode, they are actually the same)
-  - [Rework] Input mode icons redesign
-  - [Rework] Code src/architecture rework
+  - [Feature] Added option to allow erasing note endings that do not match cursor when steping back
+  - [Feature] Keypress Mode : Added Sustain Inertia to detect held keys when pressing other keys
+  - [Feature] Added options to tweak Key Release / Key Press reaction times
+  - [Feature] Added option to choose if input notes are selected or not
+  - [Feature] Added option to automatically cleanup JSFXs on closing (thanks @stevie !)
+  - [Feature] Added an option to prevent notes from being inserted if the sustain pedal modifier key is pressed (this blocks insertion, useful in KP mode when starting an erase operation)
+  - [Bug Fix] Project boundaries were not updated if the edited item was the last one and was extended (thanks @daodan !)
+  - [Bug Fix] Reduced intensive CPU usage when OSS is runing due to unuseful calls to Undo_Begin/End
 @about
   # Purpose
 
@@ -86,7 +78,7 @@
 
     You can then select your input mode between **Keyboard Press** Mode, **Punch** Mode, and **Keyboard Release** Mode.
 
-    For each Input Mode, two triggers may be used to validate notes and rests : the Commit action, and the Commit Back action, to which you may consider giving shortcuts. The effect of each action will be different if the notes were already held or not (creation, extension, shortening, removal ...). Those two actions may also be triggered by the Sustain Pedal (for the Commit) or a modifier key (shift, ctrl, etc) + Sustain Pedal (for the Commit Back action). That way, you may
+    For each Input Mode, two triggers may be used to validate notes and rests : the Commit action, and the Commit Back action, to which you may consider giving shortcuts. The effect of each action will be different if the notes were already held or not (creation, extension, shortening, removal ...). Those two actions may also be triggered by the Sustain Pedal (for the Commit) or a modifier key (shift, ctrl, etc) + Sustain Pedal (for the Commit Back action).
 
   ### Keyboard Press Mode (Fast Mode)
 
@@ -959,16 +951,108 @@ function SettingsPanel()
       end
 
       curval = engine_lib.getSetting("AllowCreateItem");
-      if reaper.ImGui_Checkbox(ctx, "Allow creating new items if needed", engine_lib.getSetting("AllowCreateItem")) then
+      if reaper.ImGui_Checkbox(ctx, "Allow creating new items if needed", curval) then
         engine_lib.setSetting("AllowCreateItem", not curval);
+      end
+
+      curval = engine_lib.getSetting("SelectInputNotes");
+      if reaper.ImGui_Checkbox(ctx, "Select input notes", curval) then
+        engine_lib.setSetting("SelectInputNotes", not curval);
+      end
+
+      curval = engine_lib.getSetting("CleanupJsfxAtClosing");
+      if reaper.ImGui_Checkbox(ctx, "Cleanup helper JSFXs when closing OSS", curval) then
+        engine_lib.setSetting("CleanupJsfxAtClosing", not curval);
       end
 
       reaper.ImGui_EndTabItem(ctx)
     end
 
-    if reaper.ImGui_BeginTabItem(ctx, 'Controls') then
+    if reaper.ImGui_BeginTabItem(ctx, 'Step Back') then
       ImGui_VerticalSpacer(ctx,5);
       StepBackSustainPedalModifierKeyComboBox();
+
+      curval = engine_lib.getSetting("PreventAddingNotesIfModifierKeyIsPressed");
+      if reaper.ImGui_Checkbox(ctx, "Do not add notes if the step back modifier key is pressed", curval) then
+        engine_lib.setSetting("PreventAddingNotesIfModifierKeyIsPressed", not curval);
+      end
+
+      curval = engine_lib.getSetting("AllowErasingWhenNoteEndDoesNotMatchCursor");
+      if reaper.ImGui_Checkbox(ctx, "Erase note ends even if they do not align on cursor", curval) then
+        engine_lib.setSetting("AllowErasingWhenNoteEndDoesNotMatchCursor", not curval);
+      end
+
+      reaper.ImGui_EndTabItem(ctx)
+    end
+
+    if reaper.ImGui_BeginTabItem(ctx, 'KP Mode') then
+      ImGui_VerticalSpacer(ctx,5);
+
+      ------------
+      reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacing(), 2, 0);
+      if reaper.ImGui_Button(ctx,"rst##KPM_CA_rst") then
+        engine_lib.resetSetting("KeyPressModeAggregationTime")
+      end
+      SL();
+      reaper.ImGui_PopStyleVar(ctx);
+
+      local change, v1 = reaper.ImGui_SliderDouble(ctx, "Chord Aggregation##keypress", engine_lib.getSetting("KeyPressModeAggregationTime"), 0, 0.1, "%.3f seconds", reaper.ImGui_SliderFlags_NoInput())
+      if change then
+        engine_lib.setSetting("KeyPressModeAggregationTime", v1);
+      end
+      SL();
+      reaper.ImGui_TextColored(ctx, 0xB0B0B0FF, "(?)");
+      TT("Key press events happening within this time\nwindow are aggregated as a chord")
+
+      ------------
+      reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacing(), 2, 0);
+      if reaper.ImGui_Button(ctx,"rst##KPM_HI_rst") then
+         engine_lib.resetSetting("KeyPressModeInertiaTime")
+      end
+      SL();
+      reaper.ImGui_PopStyleVar(ctx);
+
+      ------------
+      change, v1 = reaper.ImGui_SliderDouble(ctx, "Sustain inertia##keypress", engine_lib.getSetting("KeyPressModeInertiaTime"), 0.2, 1.0, "%.3f seconds", reaper.ImGui_SliderFlags_NoInput())
+      if change then
+         engine_lib.setSetting("KeyPressModeInertiaTime", v1)
+      end
+      SL();
+      reaper.ImGui_TextColored(ctx, 0xB0B0B0FF, "(?)");
+      TT("If key A is pressed, and then key B is pressed but\nkey A was still held for more than this time,\nthen A is considered sustained and not released.\n\n\z
+        This setting allows to enter new notes overlapping sustained notes.")
+      SL();
+
+      curval = engine_lib.getSetting("KeyPressModeInertiaEnabled");
+      if reaper.ImGui_Checkbox(ctx, "Enabled##kp_inertia", curval) then
+        engine_lib.setSetting("KeyPressModeInertiaEnabled", not curval);
+      end
+
+      ------------
+      reaper.ImGui_EndTabItem(ctx)
+    end
+
+    if reaper.ImGui_BeginTabItem(ctx, 'KR Mode') then
+      ImGui_VerticalSpacer(ctx,5);
+
+      reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacing(), 2, 0);
+      if reaper.ImGui_Button(ctx,"rst##KRM_CA_rst") then
+        engine_lib.resetSetting("KeyReleaseModeForgetTime")
+      end
+      SL();
+      reaper.ImGui_PopStyleVar(ctx);
+      local change, v1 = reaper.ImGui_SliderDouble(ctx, "Forget time",  engine_lib.getSetting("KeyReleaseModeForgetTime"), 0.05, 0.4, "%.3f s", reaper.ImGui_SliderFlags_NoInput())
+      if change then
+        engine_lib.setSetting("KeyReleaseModeForgetTime", v1);
+      end
+      SL();
+      reaper.ImGui_TextColored(ctx, 0xB0B0B0FF, "(?)");
+      TT("How long a key should be remembered after release,\n\z
+          if other keys are still pressed.\n\n\z
+          This is used to know if a note should be forgotten/trashed\n\z
+          or used as part of the input chord.")
+      SL();
+
       reaper.ImGui_EndTabItem(ctx)
     end
 
@@ -996,7 +1080,7 @@ function ui_loop()
 
   -- Since we use a trick to give back the focus to reaper, we don't want the window to glitch.
   reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_TitleBgActive(), 0x0A0A0AFF);
-  local visible, open = reaper.ImGui_Begin(ctx, 'One Small Step v0.9.3', true, flags);
+  local visible, open = reaper.ImGui_Begin(ctx, 'One Small Step v0.9.4', true, flags);
   reaper.ImGui_PopStyleColor(ctx,1);
 
   if visible then
