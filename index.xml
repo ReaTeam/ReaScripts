@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="7da1fc9276314d3e8bfbf08a494810d1df0a114d" name="ReaTeam Scripts">
+<index version="1" commit="194a413b86e34d66e942e184ad353b6d76e06bd0" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -14479,7 +14479,7 @@ fixed chords being too long when "set length of next inserted note" was used]]><
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 A small MIDI Editor tool for auto-inserting KeySwitch midi notes and managing note/cc names.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 A small MIDI Editor tool for auto-inserting KeySwitch midi notes and managing note/cc names. Find more info and example note name files at the forum thread.\par}
 }
 ]]></description>
         <link rel="website" href="https://forum.cockos.com/showthread.php?t=288344">Forum Thread</link>
@@ -14491,6 +14491,15 @@ fixed chords being too long when "set length of next inserted note" was used]]><
       <version name="0.3" author="Ugurcan Orcun" time="2024-02-25T12:48:33Z">
         <changelog><![CDATA[Added CC Renaming Helper /n Settings now saved between sessions /n Added ReaStash link to find more note names /n Minor layout changes]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/8c0c376eded4c433a4854c3f252b2d469cbc6e60/MIDI%20Editor/ugurcanorcun_ReaKS.lua</source>
+      </version>
+      <version name="0.5" author="Ugurcan Orcun" time="2024-02-27T22:38:47Z">
+        <changelog><![CDATA[Added focused Track/Take name display
+Added basic styling 
+Settings now saved between sessions 
+Refresh button fixed
+Added cursor automove option
+Minor layout changes]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/194a413b86e34d66e942e184ad353b6d76e06bd0/MIDI%20Editor/ugurcanorcun_ReaKS.lua</source>
       </version>
     </reapack>
   </category>
