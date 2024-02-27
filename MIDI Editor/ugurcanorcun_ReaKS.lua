@@ -76,8 +76,12 @@ function UpdateActiveTargets()
 
     PreviousTake = ActiveTake
 
-    ActiveTakeName = reaper.GetTakeName(ActiveTake)
-    _, ActiveTrackName = reaper.GetTrackName(ActiveTrack)
+    if ActiveTake ~= nil then
+        ActiveTakeName = reaper.GetTakeName(ActiveTake)
+        _, ActiveTrackName = reaper.GetTrackName(ActiveTrack)
+    else 
+        ActiveTakeName = "No Take Selected"
+    end
     
 --[[     ActiveTrackColor = reaper.GetTrackColor(ActiveTrack)
     if ActiveTrackColor == 0 then ActiveTrackColor = 0xFFFFFFFF
