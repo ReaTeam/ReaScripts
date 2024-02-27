@@ -8,36 +8,48 @@ local KeyActivityManager   = require "classes/KeyActivityManager";
 -- Inherit from generic KeyActivityManager
 KeyPressActivityManager = KeyActivityManager:new();
 
+function KeyPressActivityManager:aggregation()
+  return EngineLib.getSetting("KeyPressModeAggregationTime");
+end
+
 function KeyPressActivityManager:inertia()
-  return 0.050;
+  return EngineLib.getSetting("KeyPressModeInertiaTime");
 end
 
 function KeyPressActivityManager:tryAdvancedCommitForTrack(track, commit_callback)
+
   local trackid         = reaper.GetTrackGUID(track);
   local track_activity  = self.activity[trackid];
   local note_activity   = track_activity.notes;
+  local time            = reaper.time_precise();
 
-  local candidates = {}
+  local candidates      = {}
+  local held_candidates = {}
 
   local most_recent_ts = nil;
   for _, v in pairs(note_activity) do
     if (v.committed == nil) then
       -- Everything that is not committed yet is a candidate
+      -- The second condition
       candidates[#candidates+1] = v;
       if (most_recent_ts == nil) or (most_recent_ts < v.first_ts) then
         most_recent_ts = v.first_ts;
       end
     end
+
+    if EngineLib.getSetting("KeyPressModeInertiaEnabled") and (v.committed == true) and (time - v.first_ts > self:inertia()) then
+      held_candidates[#held_candidates+1] = v;
+    end
   end
 
   -- No keys pressed recently, we passed the aggregation window, set as committed and return candidates
-  if (#candidates > 0) and ((reaper.time_precise() - most_recent_ts) > self:inertia()) then
+  if (#candidates > 0) and ((time - most_recent_ts) > self:aggregation()) then
     for i, candidate in ipairs(candidates) do
       candidate.committed = true;
     end
 
     if commit_callback then
-      commit_callback(candidates)
+      commit_callback(candidates, held_candidates)
     end
 
     return candidates;
