@@ -1,9 +1,17 @@
 -- @description ReaKS - Keyswitch Articulation Manager
 -- @author Ugurcan Orcun
--- @version 0.3
--- @changelog Added CC Renaming Helper /n Settings now saved between sessions /n Added ReaStash link to find more note names /n Minor layout changes
+-- @version 0.5
+-- @changelog 
+--  Added focused Track/Take name display
+--  Added basic styling 
+--  Settings now saved between sessions 
+--  Refresh button fixed
+--  Added cursor automove option
+--  Minor layout changes
 -- @link Forum Thread https://forum.cockos.com/showthread.php?t=288344
--- @about A small MIDI Editor tool for auto-inserting KeySwitch midi notes and managing note/cc names.
+-- @about 
+--  A small MIDI Editor tool for auto-inserting KeySwitch midi notes and managing note/cc names.
+--  Find more info and example note name files at the forum thread.
 
 dofile(reaper.GetResourcePath() .. '/Scripts/ReaTeam Extensions/API/imgui.lua')('0.8.7')
 
@@ -15,7 +23,22 @@ Articulations = {}
 CC = {}
 ActivatedArticulations = {}
 
+
+EnumThemeColors = {
+    -- Curiosity_Killed by Miaka on ColourLovers
+    E = 0x99173Cff,
+    D = 0x2E2633ff,
+    C = 0x555152ff,
+    B = 0xDCE9BEff,
+    A = 0xEFFFCDff
+}
+
+ActiveTakeName = nil
+ActiveTrackName = nil
+ActiveTrackColor = 0xFFFFFFFF
+
 Setting_AutoupdateTextEvent = true
+Setting_MoveEditCursor = true
 Setting_MaxColumns = 2
 
 Modal_Settings = false
@@ -25,6 +48,7 @@ PPQ = reaper.SNM_GetIntConfigVar("miditicksperbeat", 960)
 function SaveSettings()
     reaper.SetExtState("ReaKS", "Setting_AutoupdateTextEvent", tostring(Setting_AutoupdateTextEvent), true)
     reaper.SetExtState("ReaKS", "Setting_MaxColumns", tostring(Setting_MaxColumns), true)
+    reaper.SetExtState("ReaKS", "Setting_MoveEditCursor", tostring(Setting_MoveEditCursor), true)
 end
 
 function LoadSettings()
@@ -34,6 +58,9 @@ function LoadSettings()
 
     val = reaper.GetExtState("ReaKS", "Setting_MaxColumns")
     if val ~= "" then Setting_MaxColumns = tonumber(val) end    
+
+    val = reaper.GetExtState("ReaKS", "Setting_MoveEditCursor")
+    if val ~= "" then Setting_MoveEditCursor = val == "true" end
 end
 
 function UpdateActiveTargets()
@@ -48,6 +75,19 @@ function UpdateActiveTargets()
     end
 
     PreviousTake = ActiveTake
+
+    if ActiveTake ~= nil then
+        ActiveTakeName = reaper.GetTakeName(ActiveTake)
+        _, ActiveTrackName = reaper.GetTrackName(ActiveTrack)
+    else 
+        ActiveTakeName = "No Take Selected"
+    end
+    
+--[[     ActiveTrackColor = reaper.GetTrackColor(ActiveTrack)
+    if ActiveTrackColor == 0 then ActiveTrackColor = 0xFFFFFFFF
+    else
+        ActiveTrackColor = reaper.ImGui_ColorConvertNative(ActiveTrackColor)
+    end ]]    
 end
 
 function UpdateTextEvents()
@@ -79,8 +119,20 @@ function LoadNoteNames()
     RefreshGUI()
 end
 
-function ParseNoteNamesFromTrack()
+function SaveNoteNames()
+    reaper.MIDIEditor_LastFocused_OnCommand(40410, false)    
+end
+
+function ClearNoteNames()
+    reaper.MIDIEditor_LastFocused_OnCommand(40412, false)
+    Articulations = {}
+    CC = {}
+end
+
+function ParseNoteNamesFromTake()
     if ActiveTake == nil then return end
+
+    Articulations = {}
     for i = 0, 127 do
         local notename = reaper.GetTrackMIDINoteNameEx(0, ActiveTrack, i, 0)
         if notename ~= nil then
@@ -89,8 +141,10 @@ function ParseNoteNamesFromTrack()
     end
 end
 
-function ParseCCNamesFromTrack()
+function ParseCCNamesFromTake()
     if ActiveTake == nil then return end
+
+    CC = {}
     for i = 128, 255 do
         local ccname = reaper.GetTrackMIDINoteNameEx(0, ActiveTrack, i, 0)
         if ccname ~= nil then
@@ -108,21 +162,10 @@ function RenameAliasCCLane()
     RefreshGUI()
 end
 
-function SaveNoteNames()
-    reaper.MIDIEditor_LastFocused_OnCommand(40410, false)    
-end
-
-function ClearNoteNames()
-    reaper.MIDIEditor_LastFocused_OnCommand(40412, false)
-    Articulations = {}
-    CC = {}
-end
-
 function ToggleNote(noteNumber)
-    --Delete articulation if exists
-    if(ActivatedArticulations[noteNumber]) then
+    if(ActivatedArticulations[noteNumber]) then --Delete articulation if exists
         reaper.MIDI_DeleteNote(ActiveTake, ActivatedArticulations[noteNumber])
-    else
+    else --Or insert articulation
         --Check if any midi notes are selected. Get earliest start time and latest end time if any selected notes.
         local _, noteCount = reaper.MIDI_CountEvts(ActiveTake)
         local earliestStartTime = math.huge
@@ -138,7 +181,7 @@ function ToggleNote(noteNumber)
             end
         end
 
-        -- Start time -1 because giving time to Reaper to process the note
+        -- Start time offsetted by -1 ppq to activate the articulation before the note
         if earliestStartTime == math.huge then
             --Add articulation to playhead position
             local playheadPosition = reaper.GetCursorPosition()
@@ -148,7 +191,8 @@ function ToggleNote(noteNumber)
         else
             --Add articulation to selected notes
             reaper.MIDI_InsertNote(ActiveTake, false, false, earliestStartTime - 1, latestEndTime, 0, noteNumber, 100, false)
-        end
+            reaper.SetEditCurPos(reaper.MIDI_GetProjTimeFromPPQPos(ActiveTake, earliestStartTime), Setting_MoveEditCursor, false)
+        end        
     end
 
     if Setting_AutoupdateTextEvent then UpdateTextEvents() end
@@ -157,51 +201,19 @@ end
 function GetActiveArticulationsAtPlayheadPosition()
     if ActiveTake == nil then return end
 
-        ActivatedArticulations = {}
-        local playheadPosition
-
-        playheadPosition = reaper.GetPlayState() == 1 and reaper.GetPlayPosition() or reaper.GetCursorPosition()
-        playheadPosition = reaper.MIDI_GetPPQPosFromProjTime(ActiveTake, playheadPosition)
-        
-        local _, noteCount = reaper.MIDI_CountEvts(ActiveTake)
-        
-        for noteID = 1, noteCount do
-            local _, _, _, startppqpos, endppqpos, _, pitch, _ = reaper.MIDI_GetNote(ActiveTake, noteID - 1)
-            if startppqpos <= playheadPosition and endppqpos >= playheadPosition then                
-                if Articulations[pitch] ~= nil then
-                        ActivatedArticulations[pitch] = noteID - 1
-                end
-            end
-        end
-end
-
-function GetActiveArticulationsAtNoteSelection()
-    if ActiveTake == nil then return end
-
     ActivatedArticulations = {}
-    local earliestStartTime = math.huge
-    local latestEndTime = 0
+    local playheadPosition
 
-    local note = -2
-	while note ~= -1 do
-		note = reaper.MIDI_EnumSelNotes(ActiveTake, note)
-
-        local _, _, _, startppqpos, endppqpos, _, pitch, _ = reaper.MIDI_GetNote(ActiveTake, note)
-        if Articulations[pitch] ~= nil then
-            if startppqpos < earliestStartTime then earliestStartTime = startppqpos end
-            if endppqpos > latestEndTime then latestEndTime = endppqpos end 
-        end
-	end
-
-    --check all notes if it's an Articulation and if it's in the selected time range. If so, add it to the ActivatedArticulations list.
-    local midiNoteCount = reaper.FNG_CountMidiNotes(ActiveTake)
-
-    for i = 0, midiNoteCount - 1 do
-        local _, _, _, startppqpos, endppqpos, _, pitch, _ = reaper.MIDI_GetNote(ActiveTake, i)
-
-        if startppqpos <= latestEndTime and endppqpos >= earliestStartTime then
+    playheadPosition = reaper.GetPlayState() == 1 and reaper.GetPlayPosition() or reaper.GetCursorPosition()
+    playheadPosition = reaper.MIDI_GetPPQPosFromProjTime(ActiveTake, playheadPosition)
+    
+    local _, noteCount = reaper.MIDI_CountEvts(ActiveTake)
+    
+    for noteID = 1, noteCount do
+        local _, _, _, startppqpos, endppqpos, _, pitch, _ = reaper.MIDI_GetNote(ActiveTake, noteID - 1)
+        if startppqpos <= playheadPosition and endppqpos >= playheadPosition then                
             if Articulations[pitch] ~= nil then
-                ActivatedArticulations[pitch] = i
+                    ActivatedArticulations[pitch] = noteID - 1
             end
         end
     end
@@ -209,8 +221,24 @@ end
 
 function RefreshGUI()
     UpdateTextEvents()
-    ParseNoteNamesFromTrack()
-    ParseCCNamesFromTrack()
+    ParseNoteNamesFromTake()
+    ParseCCNamesFromTake()
+end
+
+function StylingStart(ctx)
+    reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_WindowBg(), EnumThemeColors.D)
+
+    reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Button(), EnumThemeColors.C)
+    reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_ButtonActive(), EnumThemeColors.B)
+    reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_ButtonHovered(), EnumThemeColors.E)
+
+    reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_FrameBg(), EnumThemeColors.C)
+    reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_FrameBgActive(), EnumThemeColors.B)
+    reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_FrameBgHovered(), EnumThemeColors.A)
+end
+
+function StylingEnd(ctx)
+    reaper.ImGui_PopStyleColor(ctx, 7)
 end
 
 -- UI Part
@@ -218,6 +246,14 @@ local ctx = reaper.ImGui_CreateContext('ReaKS')
 local function loop()
     local visible, open = reaper.ImGui_Begin(ctx, 'ReaKS', true)    
     if visible then
+
+        --StylingStart(ctx)
+
+        if (ActiveTakeName ~= nil and ActiveTrackName ~= nil) then
+            --[[ reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Text(), ActiveTrackColor) ]]
+            reaper.ImGui_Text(ctx, ActiveTrackName .. " - " .. ActiveTakeName)
+            --[[ reaper.ImGui_PopStyleColor(ctx, 1) ]]
+        end
 
         reaper.ImGui_BeginGroup(ctx)
         reaper.ImGui_SeparatorText(ctx, "Note Name Maps")
@@ -244,6 +280,11 @@ local function loop()
                 SaveSettings()
             end
 
+            if reaper.ImGui_Checkbox(ctx, "Automove Cursor ", Setting_MoveEditCursor) then 
+                Setting_MoveEditCursor = not Setting_MoveEditCursor 
+                SaveSettings()
+            end
+
             _, val = reaper.ImGui_SliderInt(ctx, "Max Rows", Setting_MaxColumns, 1, 10)
             if val ~= Setting_MaxColumns then
                 Setting_MaxColumns = val
@@ -257,6 +298,7 @@ local function loop()
         end
 
         if ActiveTake == nil and Articulations ~= nil then
+            reaper.ImGui_Separator(ctx)
             reaper.ImGui_Text(ctx, "No active MIDI take is open in the MIDI editor.")
         else
             reaper.ImGui_SeparatorText(ctx, "Articulations")
@@ -275,7 +317,7 @@ local function loop()
             end
             reaper.ImGui_EndTable(ctx)
         end
-
+ 
         if ActiveTake ~= nil and CC ~= nil then
             reaper.ImGui_SeparatorText(ctx, "Focus CC Lane")
             for i = 128, 255 do
@@ -285,8 +327,7 @@ local function loop()
             end
         end
 
-        -- if reaper.ImGui_Button(ctx, "Test") then GetActiveArticulationsAtNoteSelection() end
-
+--StylingEnd(ctx)
         reaper.ImGui_End(ctx)
     end
     
