@@ -8,11 +8,11 @@ local upperDir  = scriptDir:match( "((.*)[\\/](.+)[\\/])(.+)$" );
 
 package.path      = scriptDir .."?.lua;".. package.path
 
-local helper_lib                = require "talagan_OneSmallStep Helper lib";
+local helper_lib                = require "helper_lib";
 
-local KeyActivityManager        = require "classes/KeyActivityManager";
-local KeyReleaseActivityManager = require "classes/KeyReleaseActivityManager";
-local KeyPressActivityManager   = require "classes/KeyPressActivityManager";
+local KeyActivityManager        = require "KeyActivityManager";
+local KeyReleaseActivityManager = require "KeyReleaseActivityManager";
+local KeyPressActivityManager   = require "KeyPressActivityManager";
 
 local launchTime                = reaper.time_precise();
 

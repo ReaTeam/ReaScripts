@@ -3,7 +3,7 @@
 -- @license MIT
 -- @description This is part of One Small Step
 
-local KeyActivityManager   = require "classes/KeyActivityManager";
+local KeyActivityManager   = require "KeyActivityManager";
 
 -- Inherit from generic KeyActivityManager
 KeyReleaseActivityManager = KeyActivityManager:new();

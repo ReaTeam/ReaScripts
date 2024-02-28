@@ -6,37 +6,35 @@
 @metapackage
 @provides
   [main=main,midi_editor] .
-  [main=main,midi_editor] talagan_OneSmallStep Change input mode.lua > talagan_OneSmallStep Change input mode - KeyboardPress.lua
-  [main=main,midi_editor] talagan_OneSmallStep Change input mode.lua > talagan_OneSmallStep Change input mode - KeyboardRelease.lua
-  [main=main,midi_editor] talagan_OneSmallStep Change input mode.lua > talagan_OneSmallStep Change input mode - Punch.lua
-  [main=main,midi_editor] talagan_OneSmallStep Change note len param source.lua > talagan_OneSmallStep Change note len param source - OSS.lua
-  [main=main,midi_editor] talagan_OneSmallStep Change note len param source.lua > talagan_OneSmallStep Change note len param source - ItemConf.lua
-  [main=main,midi_editor] talagan_OneSmallStep Change note len param source.lua > talagan_OneSmallStep Change note len param source - ProjectGrid.lua
-  [main=main,midi_editor] talagan_OneSmallStep Change note len modifier.lua > talagan_OneSmallStep Change note len modifier - Straight.lua
-  [main=main,midi_editor] talagan_OneSmallStep Change note len modifier.lua > talagan_OneSmallStep Change note len modifier - Triplet.lua
-  [main=main,midi_editor] talagan_OneSmallStep Change note len modifier.lua > talagan_OneSmallStep Change note len modifier - Dotted.lua
-  [main=main,midi_editor] talagan_OneSmallStep Change note len modifier.lua > talagan_OneSmallStep Change note len modifier - Modified.lua
-  [main=main,midi_editor] talagan_OneSmallStep Change note len modifier.lua > talagan_OneSmallStep Change note len modifier - Tuplet.lua
-  [main=main,midi_editor] talagan_OneSmallStep Increase note len.lua
-  [main=main,midi_editor] talagan_OneSmallStep Decrease note len.lua
-  [main=main,midi_editor] talagan_OneSmallStep Change note len.lua > talagan_OneSmallStep Change note len - 1_64.lua
-  [main=main,midi_editor] talagan_OneSmallStep Change note len.lua > talagan_OneSmallStep Change note len - 1_32.lua
-  [main=main,midi_editor] talagan_OneSmallStep Change note len.lua > talagan_OneSmallStep Change note len - 1_16.lua
-  [main=main,midi_editor] talagan_OneSmallStep Change note len.lua > talagan_OneSmallStep Change note len - 1_8.lua
-  [main=main,midi_editor] talagan_OneSmallStep Change note len.lua > talagan_OneSmallStep Change note len - 1_4.lua
-  [main=main,midi_editor] talagan_OneSmallStep Change note len.lua > talagan_OneSmallStep Change note len - 1_2.lua
-  [main=main,midi_editor] talagan_OneSmallStep Change note len.lua > talagan_OneSmallStep Change note len - 1.lua
-  [main=main,midi_editor] talagan_OneSmallStep Cleanup helper JSFXs.lua
-  [main=main,midi_editor] talagan_OneSmallStep Commit back.lua
-  [main=main,midi_editor] talagan_OneSmallStep Commit.lua
-  [main=main,midi_editor] talagan_OneSmallStep Insert Commit back.lua
-  [main=main,midi_editor] talagan_OneSmallStep Insert Commit.lua
-  [main=main,midi_editor] talagan_OneSmallStep Set or remove playback marker.lua
-  [main=main,midi_editor] talagan_OneSmallStep Playback.lua
+  [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Change input mode.lua             > talagan_OneSmallStep/actions/talagan_OneSmallStep Change input mode - KeyboardPress.lua
+  [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Change input mode.lua             > talagan_OneSmallStep/actions/talagan_OneSmallStep Change input mode - KeyboardRelease.lua
+  [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Change input mode.lua             > talagan_OneSmallStep/actions/talagan_OneSmallStep Change input mode - Punch.lua
+  [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Change note len param source.lua  > talagan_OneSmallStep/actions/talagan_OneSmallStep Change note len param source - OSS.lua
+  [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Change note len param source.lua  > talagan_OneSmallStep/actions/talagan_OneSmallStep Change note len param source - ItemConf.lua
+  [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Change note len param source.lua  > talagan_OneSmallStep/actions/talagan_OneSmallStep Change note len param source - ProjectGrid.lua
+  [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Change note len modifier.lua      > talagan_OneSmallStep/actions/talagan_OneSmallStep Change note len modifier - Straight.lua
+  [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Change note len modifier.lua      > talagan_OneSmallStep/actions/talagan_OneSmallStep Change note len modifier - Triplet.lua
+  [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Change note len modifier.lua      > talagan_OneSmallStep/actions/talagan_OneSmallStep Change note len modifier - Dotted.lua
+  [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Change note len modifier.lua      > talagan_OneSmallStep/actions/talagan_OneSmallStep Change note len modifier - Modified.lua
+  [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Change note len modifier.lua      > talagan_OneSmallStep/actions/talagan_OneSmallStep Change note len modifier - Tuplet.lua
+  [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Change note len.lua               > talagan_OneSmallStep/actions/talagan_OneSmallStep Change note len - 1_64.lua
+  [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Change note len.lua               > talagan_OneSmallStep/actions/talagan_OneSmallStep Change note len - 1_32.lua
+  [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Change note len.lua               > talagan_OneSmallStep/actions/talagan_OneSmallStep Change note len - 1_16.lua
+  [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Change note len.lua               > talagan_OneSmallStep/actions/talagan_OneSmallStep Change note len - 1_8.lua
+  [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Change note len.lua               > talagan_OneSmallStep/actions/talagan_OneSmallStep Change note len - 1_4.lua
+  [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Change note len.lua               > talagan_OneSmallStep/actions/talagan_OneSmallStep Change note len - 1_2.lua
+  [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Change note len.lua               > talagan_OneSmallStep/actions/talagan_OneSmallStep Change note len - 1.lua
+  [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Increase note len.lua
+  [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Decrease note len.lua
+  [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Cleanup helper JSFXs.lua
+  [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Commit back.lua
+  [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Commit.lua
+  [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Insert Commit back.lua
+  [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Insert Commit.lua
+  [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Set or remove playback marker.lua
+  [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Playback.lua
   [nomain] talagan_OneSmallStep/classes/*.lua
   [nomain] talagan_OneSmallStep/images/*.lua
-  [nomain] talagan_OneSmallStep/talagan_OneSmallStep Engine lib.lua
-  [nomain] talagan_OneSmallStep/talagan_OneSmallStep Helper lib.lua
   [effect] talagan_OneSmallStep/One Small Step Helper.jsfx
   [data] talagan_OneSmallStep/toolbar_icons/toolbar_one_small_step.png > toolbar_icons/toolbar_one_small_step.png
   [data] talagan_OneSmallStep/toolbar_icons/toolbar_one_small_step_cleanup.png > toolbar_icons/toolbar_one_small_step_cleanup.png
@@ -46,6 +44,7 @@
   - [Feature] Added insert/cursor mode (inserts + move things forward, deletes backwards)
   - [Feature] Added pedal repeater
   - [UI] Aded status icons for modifier modes/keys (insert / backward / insert+backward)
+  - [Rework] Changed folder structure
 @about
   # Purpose
 
@@ -189,7 +188,7 @@ end
 -- Path and modules
 
 package.path      = debug.getinfo(1,"S").source:match[[^@?(.*[\/])[^\/]-$]] .."?.lua;".. package.path
-local engine_lib  = require "talagan_OneSmallStep/talagan_OneSmallStep Engine lib";
+local engine_lib  = require "talagan_OneSmallStep/classes/engine_lib";
 
 -------------------------------
 -- Check dependencies
@@ -793,7 +792,7 @@ end
 function PlaybackButton()
   reaper.ImGui_PushID(ctx, "playback");
   ButtonGroupImageButton("playback", false, function()
-      local id = reaper.NamedCommandLookup("_RSb38bb99e06254b3b6e60fc7755e7af02d54341b4");
+      local id = reaper.NamedCommandLookup("_RS0bbcbcb0cb7174a2406403352d006c0573c4c8b4");
       reaper.Main_OnCommand(id, 0);
     end, 0, true
   );
