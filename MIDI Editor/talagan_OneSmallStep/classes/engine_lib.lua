@@ -8,11 +8,11 @@ local upperDir  = scriptDir:match( "((.*)[\\/](.+)[\\/])(.+)$" );
 
 package.path      = scriptDir .."?.lua;".. package.path
 
-local helper_lib                = require "talagan_OneSmallStep Helper lib";
+local helper_lib                = require "helper_lib";
 
-local KeyActivityManager        = require "classes/KeyActivityManager";
-local KeyReleaseActivityManager = require "classes/KeyReleaseActivityManager";
-local KeyPressActivityManager   = require "classes/KeyPressActivityManager";
+local KeyActivityManager        = require "KeyActivityManager";
+local KeyReleaseActivityManager = require "KeyReleaseActivityManager";
+local KeyPressActivityManager   = require "KeyPressActivityManager";
 
 local launchTime                = reaper.time_precise();
 
@@ -71,7 +71,8 @@ local OtherOSModifierKeys = {
   { vkey = 18, name = 'Alt' }
 };
 
-local ModifierKeys = (reaper.GetOS():find('OSX') ~= nil) and MacOSModifierKeys or OtherOSModifierKeys;
+local IsMacos         = (reaper.GetOS():find('OSX') ~= nil);
+local ModifierKeys    = IsMacos and MacOSModifierKeys or OtherOSModifierKeys;
 
 local NoteLenLookup = {};
 for i,v in ipairs(NoteLenDefs) do
@@ -129,15 +130,20 @@ local SettingDefs = {
   AllowErasingWhenNoteEndDoesNotMatchCursor                 = { type = "bool",    default = true },
   PlaybackMarkerPolicyWhenClosed                            = { type = "string",  default = "Keep visible" },
   StepBackSustainPedalModifierKey                           = { type = "int",     default = 16 },
+  InsertModeSustainPedalModifierKey                         = { type = "int",     default = 17 },
   PreventAddingNotesIfModifierKeyIsPressed                  = { type = "bool",    default = true},
   CleanupJsfxAtClosing                                      = { type = "bool",    default = true},
   SelectInputNotes                                          = { type = "bool",    default = true},
   ------
-  KeyPressModeAggregationTime                               = { type = "double",  default = 0.05 },
-  KeyPressModeInertiaTime                                   = { type = "double",  default = 0.5  },
+  KeyPressModeAggregationTime                               = { type = "double",  default = 0.05, min = 0,   max = 0.1 },
+  KeyPressModeInertiaTime                                   = { type = "double",  default = 0.5,  min = 0.2, max = 1.0 },
   KeyPressModeInertiaEnabled                                = { type = "bool",    default = true},
 
-  KeyReleaseModeForgetTime                             = { type = "double",  default = 0.200 },
+  KeyReleaseModeForgetTime                                  = { type = "double",  default = 0.200, min = 0.05, max = 0.4},
+
+  PedalRepeatEnabled                                        = { type = "bool" ,   default = true },
+  PedalRepeatTime                                           = { type = "double",  default = 0.200, min = 0.05, max = 0.5 },
+  PedalRepeatFirstHitMultiplier                             = { type = "int",     default = 4, min = 1, max = 10 }
 };
 
 local function unsafestr(str)
@@ -195,6 +201,9 @@ local function setSetting(setting, val)
 end
 local function resetSetting(setting)
   setSetting(setting, SettingDefs[setting].default)
+end
+local function getSettingSpec(setting)
+  return SettingDefs[setting]
 end
 
 local function setPlaybackMeasureCount(c)         return setSetting("PlaybackMeasureCount", c)  end
@@ -280,13 +289,21 @@ local function clearActionTrigger(action_name)
   reaper.DeleteExtState("OneSmallStep", action_name, true);
 end
 
-local function setCommitActionTrigger()       return setActionTrigger(   "CommitActionTrigger") end
-local function getCommitActionTrigger()       return getActionTrigger(   "CommitActionTrigger") end
-local function clearCommitActionTrigger()     return clearActionTrigger( "CommitActionTrigger") end
+local function setCommitActionTrigger()         return setActionTrigger(   "CommitActionTrigger") end
+local function getCommitActionTrigger()         return getActionTrigger(   "CommitActionTrigger") end
+local function clearCommitActionTrigger()       return clearActionTrigger( "CommitActionTrigger") end
 
-local function setCommitBackActionTrigger()   return setActionTrigger(   "CommitBackActionTrigger") end
-local function getCommitBackActionTrigger()   return getActionTrigger(   "CommitBackActionTrigger") end
-local function clearCommitBackActionTrigger() return clearActionTrigger( "CommitBackActionTrigger") end
+local function setCommitBackActionTrigger()     return setActionTrigger(   "CommitBackActionTrigger") end
+local function getCommitBackActionTrigger()     return getActionTrigger(   "CommitBackActionTrigger") end
+local function clearCommitBackActionTrigger()   return clearActionTrigger( "CommitBackActionTrigger") end
+
+local function setInsertActionTrigger()         return setActionTrigger(   "InsertActionTrigger") end
+local function getInsertActionTrigger()         return getActionTrigger(   "InsertActionTrigger") end
+local function clearInsertActionTrigger()       return clearActionTrigger( "InsertActionTrigger") end
+
+local function setInsertBackActionTrigger()     return setActionTrigger(   "InsertBackActionTrigger") end
+local function getInsertBackActionTrigger()     return getActionTrigger(   "InsertBackActionTrigger") end
+local function clearInsertBackActionTrigger()   return clearActionTrigger( "InsertBackActionTrigger") end
 
 ------------
 
@@ -342,16 +359,26 @@ end
 
 ------------------
 
-local function IsSustainPedalModifierKeyPressed()
+local function IsSPStepBackModifierKeyPressed()
   -- Avoid inconsistencies and only follow events during the lifetime of the plugin, so use launchTime
   -- This will prevent bugs from a session to another (when for example the plugin crashes)
   local keys = reaper.JS_VKeys_GetState(launchTime);
   local c1 = keys:byte(getSetting("StepBackSustainPedalModifierKey"));
   return (c1 == 1);
 end
-
-local function getSustainPedalModifierKey()
+local function getSPStepBackModifierKey()
   return ModifierKeyLookup[getSetting("StepBackSustainPedalModifierKey")];
+end
+
+local function IsSPInsertModifierKeyPressed()
+  -- Avoid inconsistencies and only follow events during the lifetime of the plugin, so use launchTime
+  -- This will prevent bugs from a session to another (when for example the plugin crashes)
+  local keys = reaper.JS_VKeys_GetState(launchTime);
+  local c1 = keys:byte(getSetting("InsertModeSustainPedalModifierKey"));
+  return (c1 == 1);
+end
+local function getSPInsertModifierKey()
+  return ModifierKeyLookup[getSetting("InsertModeSustainPedalModifierKey")];
 end
 
 -----------------
@@ -396,7 +423,6 @@ local function getNoteLenQN()
 end
 
 -------------------
-
 
 local function MediaItemContainsCursor(mediaItem, cusorPos)
   local pos       = reaper.GetMediaItemInfo_Value(mediaItem, "D_POSITION")
@@ -605,8 +631,30 @@ local function CreateItemIfMissing(track)
   return take;
 end
 
+
+local function GetNote(take, ni)
+  local _, selected, muted, startPPQ, endPPQ, chan, pitch, vel = reaper.MIDI_GetNote(take, ni);
+  return  {
+    selected = selected,
+    muted = muted,
+    pitch = pitch,
+    startPPQ = startPPQ,
+    endPPQ = endPPQ,
+    chan = chan,
+    pitch = pitch,
+    vel = vel,
+    index = ni
+  };
+end
+
+local function SetNote(take, n, nosort)
+  reaper.MIDI_SetNote(take, n.index, n.selected, n.muted, n.startPPQ, n.endPPQ, n.chan, n.pitch, n.vel, nosort)
+end
+
 -- Commits the currently held notes into the take
 local function commit(take, notes_to_add, notes_to_extend)
+
+  local insertModeOn              = IsSPInsertModifierKeyPressed() or getInsertActionTrigger();
 
   local note_len                  = resolveNoteLenQN(take);
   local mediaItem                 = reaper.GetMediaItemTake_Item(take)
@@ -614,15 +662,46 @@ local function commit(take, notes_to_add, notes_to_extend)
 
   local cursorTime                = reaper.GetCursorPosition()
   local cursorQN                  = reaper.TimeMap2_timeToQN(0, cursorTime)
-  local advanceTime               = reaper.TimeMap2_QNToTime(0, cursorQN + note_len)
+  local advanceQN                 = cursorQN + note_len;
+  local advanceTime               = reaper.TimeMap2_QNToTime(0, advanceQN)
 
   local cursorPPQ                 = reaper.MIDI_GetPPQPosFromProjTime(take, cursorTime)
   local advancePPQ                = reaper.MIDI_GetPPQPosFromProjTime(take, advanceTime)
+
+  local newMaxQN                  = advanceQN
 
   local extcount = 0;
   local addcount = 0;
 
   reaper.Undo_BeginBlock();
+
+  -- First, move some notes if insert mode is on
+  if insertModeOn then
+    local _, notecnt, _, _ = reaper.MIDI_CountEvts(take)
+    local ni = 0
+
+    while (ni < notecnt) do
+      local n                 = GetNote(take, ni);
+      local startsAfterCursor = (cursorPPQ - 1 < n.startPPQ)
+
+      if startsAfterCursor then
+        local startQN = reaper.MIDI_GetProjQNFromPPQPos(take, n.startPPQ) + note_len
+        local endQN   = reaper.MIDI_GetProjQNFromPPQPos(take, n.endPPQ) + note_len
+
+        reaper.MIDI_SetNote(take, ni, nil, nil,
+          reaper.MIDI_GetPPQPosFromProjQN(take, startQN),
+          reaper.MIDI_GetPPQPosFromProjQN(take, endQN),
+          nil, nil, nil, true)
+
+        -- For updating item extents
+        if endQN > newMaxQN then
+          newMaxQN = endQN
+        end
+      end
+
+      ni = ni + 1
+    end
+  end
 
   -- Try to extend existing notes
   if #notes_to_extend > 0 then
@@ -642,7 +721,7 @@ local function commit(take, notes_to_add, notes_to_extend)
 
         -- Extend the note if found
         if endsMatchesCursor and chan == exnote.chan and pitch == exnote.note then
-          reaper.MIDI_SetNote(take, ni, nil, nil, nil, advancePPQ, nil, nil, nil, nil);
+          reaper.MIDI_SetNote(take, ni, nil, nil, nil, advancePPQ, nil, nil, nil, true);
           extcount = extcount + 1;
           found = true
         end
@@ -665,6 +744,7 @@ local function commit(take, notes_to_add, notes_to_extend)
   end
 
   -- Advance and mark dirty
+  reaper.MIDI_Sort(take)
   reaper.UpdateItemInProject(mediaItem)
   reaper.SetEditCurPos(advanceTime, false, false);
 
@@ -672,12 +752,13 @@ local function commit(take, notes_to_add, notes_to_extend)
   local itemStartTime = reaper.GetMediaItemInfo_Value(mediaItem, "D_POSITION")
   local itemLength    = reaper.GetMediaItemInfo_Value(mediaItem, "D_LENGTH")
   local itemEndTime   = itemStartTime + itemLength;
+  local newMaxTime    = reaper.TimeMap2_QNToTime(0, newMaxQN)
 
-  if(itemEndTime >= advanceTime) then
+  if(itemEndTime >= newMaxTime) then
     -- Cool, the item is big enough
   else
     local itemStartQN = reaper.TimeMap2_timeToQN(0, itemStartTime)
-    local itemEndQN   = reaper.TimeMap2_timeToQN(0, advanceTime)
+    local itemEndQN   = reaper.TimeMap2_timeToQN(0, newMaxTime)
 
     reaper.MIDI_SetItemExtents(mediaItem, itemStartQN, itemEndQN)
     reaper.UpdateItemInProject(mediaItem);
@@ -706,9 +787,135 @@ local function commit(take, notes_to_add, notes_to_extend)
 end
 
 
+local function deleteMoveBack(take)
+  local mediaItem     = reaper.GetMediaItemTake_Item(take)
+  local track         = reaper.GetMediaItemTake_Track(take)
+
+  local note_len      = resolveNoteLenQN(take);
+
+  local cursorTime    = reaper.GetCursorPosition()
+  local cursorQN      = reaper.TimeMap2_timeToQN(0, cursorTime)
+  local rewindTime    = reaper.TimeMap2_QNToTime(0, cursorQN - note_len)
+
+  local cursorPPQ     = reaper.MIDI_GetPPQPosFromProjTime(take, cursorTime)
+  local rewindPPQ     = reaper.MIDI_GetPPQPosFromProjTime(take, rewindTime)
+
+  local shcount = 0
+  local remcount = 0
+  local mvcount = 0
+
+  reaper.Undo_BeginBlock();
+
+  -- Try to extend existing notes
+  local torem   = {}
+  local tomove  = {}
+
+  local _, notecnt, _, _ = reaper.MIDI_CountEvts(take);
+
+  local ni = 0;
+  while (ni < notecnt) do
+
+    -- Examine each note in item
+    local n = GetNote(take, ni);
+
+    local startsBetweenRewindAndCursor  = (rewindPPQ-1 < n.startPPQ) and (n.startPPQ < cursorPPQ+1)
+    local endsBetweenRewindAndcursor    = (rewindPPQ-1 < n.endPPQ)   and (n.endPPQ < cursorPPQ+1)
+    local endsMatchesCursor             = (math.abs(n.endPPQ - cursorPPQ) < 1.0)
+    local shortenable                   = endsBetweenRewindAndcursor or endsMatchesCursor
+    local startsAfterCursor             = (cursorPPQ-1 < n.startPPQ)
+
+    if startsBetweenRewindAndCursor then
+
+      if endsBetweenRewindAndcursor then
+        torem[#torem+1] = n
+      else
+        local startQN = reaper.MIDI_GetProjQNFromPPQPos(take, cursorPPQ) - note_len
+        local endQN   = reaper.MIDI_GetProjQNFromPPQPos(take, n.endPPQ) - note_len
+
+        n.startPPQ = reaper.MIDI_GetPPQPosFromProjQN(take, startQN)
+        n.endPPQ   = reaper.MIDI_GetPPQPosFromProjQN(take, endQN)
+
+        tomove[#tomove+1]   = n
+        torem[#torem+1]     = n
+
+        remcount            = remcount + 1
+      end
+
+    elseif shortenable then
+
+      if rewindPPQ <= (n.startPPQ + 1.0) then
+        torem[#torem+1] = n
+        remcount  = remcount + 1
+      else
+        shcount   = shcount + 1
+        n.endPPQ  = rewindPPQ
+        SetNote(take, n, true)
+      end
+
+    elseif startsAfterCursor then
+      -- Has to be moved. When moving multiple notes at once, they should be removed and re-inserted ... (says the doc)
+      -- Move back
+      local startQN = reaper.MIDI_GetProjQNFromPPQPos(take, n.startPPQ) - note_len
+      local endQN   = reaper.MIDI_GetProjQNFromPPQPos(take, n.endPPQ) - note_len
+
+      n.startPPQ = reaper.MIDI_GetPPQPosFromProjQN(take, startQN)
+      n.endPPQ   = reaper.MIDI_GetPPQPosFromProjQN(take, endQN)
+
+      tomove[#tomove+1]   = n
+      torem[#torem+1]     = n
+
+      remcount = remcount + 1
+    end
+
+    ni = ni + 1;
+  end
+
+  -- Delete notes that were shorten too much
+  -- Do this in reverse order to be sure that indices are descending
+  for ri = #torem, 1, -1 do
+    reaper.MIDI_DeleteNote(take, torem[ri].index);
+  end
+
+  -- Reinsert moved notes
+  for ri = 1, #tomove, 1 do
+    local n = tomove[ri]
+    reaper.MIDI_InsertNote(take, n.selected, n.muted, n.startPPQ, n.endPPQ, n.chan, n.pitch, n.vel, true )
+  end
+
+  -- Rewind and mark dirty
+  reaper.MIDI_Sort(take);
+  reaper.UpdateItemInProject(mediaItem)
+  reaper.SetEditCurPos(rewindTime, false, false);
+  reaper.MarkTrackItemsDirty(track, mediaItem)
+
+  local description = "";
+
+  if shcount == 0 then
+    if remcount == 0 then
+      description = "One Small Step: Stepping back"
+    else
+      description = "One Small Step: Removed " .. remcount .. " notes."
+    end
+  else
+    if remcount == 0 then
+      description = "One Small Step: Shortened " .. shcount .. " notes."
+    else
+      description = "One Small Step: Removed " .. remcount .. " notes, and shortened " .. shcount .. " notes."
+    end
+  end
+
+  reaper.Undo_EndBlock("One Small Step: " .. description,-1);
+end
+
 
 -- Commits the currently held notes into the take
 local function commitBack(take, notes_to_shorten)
+
+  local insertModeOn = IsSPInsertModifierKeyPressed() or getInsertBackActionTrigger();
+
+  if insertModeOn then
+    return deleteMoveBack(take)
+  end
 
   local mediaItem     = reaper.GetMediaItemTake_Item(take)
   local track         = reaper.GetMediaItemTake_Track(take)
@@ -746,21 +953,20 @@ local function commitBack(take, notes_to_shorten)
         local shortenable = endsMatchesCursor or (getSetting("AllowErasingWhenNoteEndDoesNotMatchCursor") and endsBetweenRewindAndcursor);
 
         if shortenable and chan == shnote.chan and pitch == shnote.note then
-          reaper.MIDI_SetNote(take, ni, nil, nil, nil, rewindPPQ, nil, nil, nil, nil);
-
           if rewindPPQ <= (startPPQ + 1.0) then
             torem[#torem+1] = ni;
             remcount = remcount + 1
           else
             shcount = shcount + 1
           end
+
+          reaper.MIDI_SetNote(take, ni, nil, nil, nil, rewindPPQ, nil, nil, nil, true);
         end
       end
 
       ni = ni + 1;
     end
   end
-
 
   -- Delete notes that were shorten too much
   -- Do this in reverse order to be sure that indices are descending
@@ -769,6 +975,7 @@ local function commitBack(take, notes_to_shorten)
   end
 
   -- Rewind and mark dirty
+  reaper.MIDI_Sort(take);
   reaper.UpdateItemInProject(mediaItem)
   reaper.SetEditCurPos(rewindTime, false, false);
   reaper.MarkTrackItemsDirty(track, mediaItem)
@@ -854,7 +1061,7 @@ local function listenToEvents()
   -- Update manager with new info from the helper JSFX
   manager:updateActivity(track, oss_state);
 
-  local spmod                   = IsSustainPedalModifierKeyPressed();
+  local spmod                   = IsSPStepBackModifierKeyPressed();
   local pedal                   = manager:pullPedalTriggerForTrack(track);
   local preventcommitwhenspmod  = getSetting("PreventAddingNotesIfModifierKeyIsPressed");
 
@@ -875,9 +1082,7 @@ local function listenToEvents()
   );
 
   -- Allow the use of the action or pedal
-  if (pedal and not spmod) or getCommitActionTrigger() then
-    clearCommitActionTrigger();
-
+  if (pedal and not spmod) or getCommitActionTrigger() or getInsertActionTrigger() then
     manager:simpleCommit(track, function(commit_candidates, extend_candidates)
         if take == nil then
           -- The condition is very large, because it may be a rest insertion
@@ -886,10 +1091,12 @@ local function listenToEvents()
         commit(take, commit_candidates, extend_candidates);
       end
     );
+
+    clearCommitActionTrigger()
+    clearInsertActionTrigger()
   end
 
-  if (pedal and spmod) or getCommitBackActionTrigger() then
-    clearCommitBackActionTrigger();
+  if (pedal and spmod) or getCommitBackActionTrigger() or getInsertBackActionTrigger() then
     manager:simpleCommitBack(track, function(shorten_candidates)
         if (take == nil) then
           justStepBack();
@@ -898,22 +1105,35 @@ local function listenToEvents()
         end
       end
     );
-  end
-  manager:clearOutdatedActivity();
 
+    clearCommitBackActionTrigger()
+    clearInsertBackActionTrigger()
+  end
+  manager:clearOutdatedActivity()
+
+  -- Clear Insert action triggers
+
+  clearInsertBackActionTrigger()
+
+  if getSetting("PedalRepeatEnabled") then
+    manager:forgetPedalTriggerForTrack(track, getSetting("PedalRepeatTime"), getSetting("PedalRepeatFirstHitMultiplier"))
+  end
 end
 
 -- To be called from companion action script
 function reaperActionCommit()
   setCommitActionTrigger();
 end
-
--- To be called from companion action script
 function reaperActionCommitBack()
   setCommitBackActionTrigger()
 end
+function reaperActionInsert()
+  setInsertActionTrigger()
+end
+function reaperActionInsertBack()
+  setInsertBackActionTrigger()
+end
 
--- To be called from companion action script
 function cleanupCompanionFXs()
   reaper.Undo_BeginBlock()
   helper_lib.cleanupAllTrackFXs();
@@ -960,7 +1180,11 @@ function atStart()
   -- Then we can uncomment this automatic cleanup
   -- cleanupCompanionFXs();
 
-  clearCommitActionTrigger();
+  clearCommitActionTrigger()
+  clearInsertActionTrigger()
+  clearCommitBackActionTrigger()
+  clearInsertBackActionTrigger()
+
   mayRestorePlaybackMarkerOnStart();
 end
 
@@ -979,13 +1203,19 @@ function atLoop()
 end
 
 EngineLib = {
+
+  IsSPStepBackModifierKeyPressed = IsSPStepBackModifierKeyPressed,
+  IsSPInsertModifierKeyPressed   = IsSPInsertModifierKeyPressed,
+
   -- Enums
   InputMode                     = InputMode,
   NoteLenParamSource            = NoteLenParamSource,
   NoteLenModifier               = NoteLenModifier,
 
   ModifierKeys                  = ModifierKeys,
-  getSustainPedalModifierKey    = getSustainPedalModifierKey,
+  ModifierKeyLookup             = ModifierKeyLookup,
+  getSPStepBackModifierKey      = getSPStepBackModifierKey,
+  getSPInsertModifierKey        = getSPInsertModifierKey,
 
   NoteLenDefs                   = NoteLenDefs,
   AugmentedDiminishedDefs       = AugmentedDiminishedDefs,
@@ -1030,9 +1260,12 @@ EngineLib = {
   getSetting                    = getSetting,
   setSetting                    = setSetting,
   resetSetting                  = resetSetting,
+  getSettingSpec                = getSettingSpec,
 
   reaperActionCommit            = reaperActionCommit,
   reaperActionCommitBack        = reaperActionCommitBack,
+  reaperActionInsert            = reaperActionInsert,
+  reaperActionInsertBack        = reaperActionInsertBack,
 
   TakeForEdition                = TakeForEdition,
   TrackForEditionIfNoItemFound  = TrackForEditionIfNoItemFound,
