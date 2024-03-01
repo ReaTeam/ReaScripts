@@ -1,13 +1,10 @@
 -- @description ReaKS - Keyswitch Articulation Manager
 -- @author Ugurcan Orcun
--- @version 0.5
+-- @version 0.6
 -- @changelog 
---  Added focused Track/Take name display
---  Added basic styling 
---  Settings now saved between sessions 
---  Refresh button fixed
---  Added cursor automove option
---  Minor layout changes
+--  Updated styling
+--  Changed CC pane layout
+--  Added Velocity/Pitch focus buttons
 -- @link Forum Thread https://forum.cockos.com/showthread.php?t=288344
 -- @about 
 --  A small MIDI Editor tool for auto-inserting KeySwitch midi notes and managing note/cc names.
@@ -25,13 +22,16 @@ ActivatedArticulations = {}
 
 
 EnumThemeColors = {
-    -- Curiosity_Killed by Miaka on ColourLovers
-    E = 0x99173Cff,
-    D = 0x2E2633ff,
-    C = 0x555152ff,
-    B = 0xDCE9BEff,
-    A = 0xEFFFCDff
+    A = 0x0c1017ff, -- Background
+    B = 0x212226FF, -- Default
+    C = 0xa4adceFF, -- Active
+    D = 0x636672FF, -- Hovered    
+    E = 0xa7a8abff, -- HeaderText
+    F = 0xFFFFFFFF -- Text
 }
+
+FontTitle = reaper.ImGui_CreateFont('sans-serif', 24, reaper.ImGui_FontFlags_Italic())
+Font = reaper.ImGui_CreateFont('sans-serif', 14)
 
 ActiveTakeName = nil
 ActiveTrackName = nil
@@ -40,6 +40,7 @@ ActiveTrackColor = 0xFFFFFFFF
 Setting_AutoupdateTextEvent = true
 Setting_MoveEditCursor = true
 Setting_MaxColumns = 2
+Setting_FontSizeMultiplier = 1
 
 Modal_Settings = false
 
@@ -49,6 +50,7 @@ function SaveSettings()
     reaper.SetExtState("ReaKS", "Setting_AutoupdateTextEvent", tostring(Setting_AutoupdateTextEvent), true)
     reaper.SetExtState("ReaKS", "Setting_MaxColumns", tostring(Setting_MaxColumns), true)
     reaper.SetExtState("ReaKS", "Setting_MoveEditCursor", tostring(Setting_MoveEditCursor), true)
+    reaper.SetExtState("ReaKS", "Setting_FontSizeMultiplier", tostring(Setting_MoveEditCursor), true)
 end
 
 function LoadSettings()
@@ -61,6 +63,9 @@ function LoadSettings()
 
     val = reaper.GetExtState("ReaKS", "Setting_MoveEditCursor")
     if val ~= "" then Setting_MoveEditCursor = val == "true" end
+
+    val = reaper.GetExtState("ReaKS", "Setting_FontSizeMultiplier")
+    if val ~= "" then Setting_FontSizeMultiplier = tonumber(val) end
 end
 
 function UpdateActiveTargets()
@@ -72,22 +77,18 @@ function UpdateActiveTargets()
         Articulations = {}
         CC = {}
         RefreshGUI()
+
+        ActiveTakeName = reaper.GetTakeName(ActiveTake)
+        _, ActiveTrackName = reaper.GetTrackName(ActiveTrack)
+
+        ActiveTrackColor = reaper.GetTrackColor(ActiveTrack)
+        if ActiveTrackColor == 0 then ActiveTrackColor = 0xFFFFFFFF end
+
+        local r, g, b = reaper.ColorFromNative(ActiveTrackColor)
+        ActiveTrackColor = reaper.ImGui_ColorConvertDouble4ToU32(r/255, g/255, b/255, 1)
     end
 
     PreviousTake = ActiveTake
-
-    if ActiveTake ~= nil then
-        ActiveTakeName = reaper.GetTakeName(ActiveTake)
-        _, ActiveTrackName = reaper.GetTrackName(ActiveTrack)
-    else 
-        ActiveTakeName = "No Take Selected"
-    end
-    
---[[     ActiveTrackColor = reaper.GetTrackColor(ActiveTrack)
-    if ActiveTrackColor == 0 then ActiveTrackColor = 0xFFFFFFFF
-    else
-        ActiveTrackColor = reaper.ImGui_ColorConvertNative(ActiveTrackColor)
-    end ]]    
 end
 
 function UpdateTextEvents()
@@ -226,33 +227,41 @@ function RefreshGUI()
 end
 
 function StylingStart(ctx)
-    reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_WindowBg(), EnumThemeColors.D)
+    reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_WindowBg(), EnumThemeColors.A)
 
-    reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Button(), EnumThemeColors.C)
-    reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_ButtonActive(), EnumThemeColors.B)
-    reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_ButtonHovered(), EnumThemeColors.E)
+    reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Button(), EnumThemeColors.B)
+    reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_ButtonActive(), EnumThemeColors.C)
+    reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_ButtonHovered(), EnumThemeColors.D)
 
-    reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_FrameBg(), EnumThemeColors.C)
-    reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_FrameBgActive(), EnumThemeColors.B)
-    reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_FrameBgHovered(), EnumThemeColors.A)
+    reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_FrameBg(), EnumThemeColors.B)
+    reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_FrameBgActive(), EnumThemeColors.C)
+    reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_FrameBgHovered(), EnumThemeColors.D)
+
+    reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Text(), EnumThemeColors.F)
+
+    reaper.ImGui_PushFont(ctx, Font)
 end
 
 function StylingEnd(ctx)
-    reaper.ImGui_PopStyleColor(ctx, 7)
+    reaper.ImGui_PopStyleColor(ctx, 8)
+    reaper.ImGui_PopFont(ctx)
 end
 
 -- UI Part
 local ctx = reaper.ImGui_CreateContext('ReaKS')
+reaper.ImGui_Attach(ctx, Font)
+reaper.ImGui_Attach(ctx, FontTitle)
+
 local function loop()
+    StylingStart(ctx)
+
     local visible, open = reaper.ImGui_Begin(ctx, 'ReaKS', true)    
     if visible then
-
-        --StylingStart(ctx)
-
+        
         if (ActiveTakeName ~= nil and ActiveTrackName ~= nil) then
-            --[[ reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Text(), ActiveTrackColor) ]]
-            reaper.ImGui_Text(ctx, ActiveTrackName .. " - " .. ActiveTakeName)
-            --[[ reaper.ImGui_PopStyleColor(ctx, 1) ]]
+            reaper.ImGui_PushFont(ctx, FontTitle)
+            reaper.ImGui_TextColored(ctx, ActiveTrackColor, ActiveTrackName .. " - " .. ActiveTakeName)
+            reaper.ImGui_PopFont(ctx)
         end
 
         reaper.ImGui_BeginGroup(ctx)
@@ -291,13 +300,12 @@ local function loop()
                 SaveSettings()
             end
 
-            if reaper.ImGui_Button(ctx, "Rename Last Clicked CC Lane") then RenameAliasCCLane() end
             if reaper.ImGui_Button(ctx, "Find More Note Names >>>") then reaper.CF_ShellExecute("https://stash.reaper.fm/tag/Key-Maps") end
             
             reaper.ImGui_EndGroup(ctx)
         end
 
-        if ActiveTake == nil and Articulations ~= nil then
+        if ActiveTake == nil then
             reaper.ImGui_Separator(ctx)
             reaper.ImGui_Text(ctx, "No active MIDI take is open in the MIDI editor.")
         else
@@ -318,16 +326,28 @@ local function loop()
             reaper.ImGui_EndTable(ctx)
         end
  
-        if ActiveTake ~= nil and CC ~= nil then
-            reaper.ImGui_SeparatorText(ctx, "Focus CC Lane")
+        if ActiveTake ~= nil then
+            reaper.ImGui_SeparatorText(ctx, "Focus to CC Lane")
             for i = 128, 255 do
                 if CC[i] ~= nil then
-                    if reaper.ImGui_Button(ctx, CC[i] .. " (CC" .. i - 128 .. ")") then FocusToCCLane(i-128) end
+                    reaper.ImGui_Text(ctx, CC[i] .. " (CC" .. i - 128 .. ")" )
+                    reaper.ImGui_SameLine(ctx, reaper.ImGui_GetWindowWidth(ctx) - (reaper.ImGui_CalcTextSize(ctx, "Focus") * 2))
+                    if reaper.ImGui_Button(ctx, "Focus##"..i) then FocusToCCLane(i-128) end
                 end
             end
+
+            reaper.ImGui_Text(ctx, "Velocity")
+            reaper.ImGui_SameLine(ctx, reaper.ImGui_GetWindowWidth(ctx) - (reaper.ImGui_CalcTextSize(ctx, "Focus") * 2))
+            if reaper.ImGui_Button(ctx, "Focus##velocity") then FocusToCCLane(512) end
+
+            reaper.ImGui_Text(ctx, "Pitch")
+            reaper.ImGui_SameLine(ctx, reaper.ImGui_GetWindowWidth(ctx) - (reaper.ImGui_CalcTextSize(ctx, "Focus") * 2))
+            if reaper.ImGui_Button(ctx, "Focus##pitch") then FocusToCCLane(513) end
+
+            if reaper.ImGui_Button(ctx, "Rename Last Clicked CC Lane...") then RenameAliasCCLane() end
         end
 
---StylingEnd(ctx)
+        StylingEnd(ctx)
         reaper.ImGui_End(ctx)
     end
     
