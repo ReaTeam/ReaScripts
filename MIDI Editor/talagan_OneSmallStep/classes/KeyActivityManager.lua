@@ -45,12 +45,33 @@ function KeyActivityManager:pullPedalTriggerForTrack(track)
   local pedal_activity      = self.activity[trackid].pedal;
 
   if pedal_activity.first_ts and not pedal_activity.committed then
-    pedal_activity.committed = true
-    return true;
+    pedal_activity.committed    = true
+    pedal_activity.last_commit  = reaper.time_precise()
+    pedal_activity.commit_count = (pedal_activity.commit_count or 0) + 1
+    return true
   end
 
-  return false;
+  return false
 end
+
+function KeyActivityManager:forgetPedalTriggerForTrack(track, time, first_hit_multiplier)
+  local trackid             = reaper.GetTrackGUID(track);
+  local pedal_activity      = self.activity[trackid].pedal;
+
+  if not pedal_activity.committed then
+    return
+  end
+
+  if pedal_activity.commit_count == 1 then
+    time = time * first_hit_multiplier -- The first time, take more time
+  end
+
+  if (reaper.time_precise() - pedal_activity.last_commit) > time then
+    -- reset commit flag. The pedal can be pulled again.
+    pedal_activity.committed = nil
+  end
+end
+
 
 function KeyActivityManager:updateActivity(track, oss_state)
 

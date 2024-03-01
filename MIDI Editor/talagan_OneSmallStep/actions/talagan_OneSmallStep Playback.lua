@@ -3,8 +3,8 @@
 -- @license MIT
 -- @description This is part of One Small Step. Will replay the n last measures.
 
-package.path      = debug.getinfo(1,"S").source:match[[^@?(.*[\/])[^\/]-$]] .."?.lua;".. package.path;
-local engine_lib  = require "talagan_OneSmallStep/talagan_OneSmallStep Engine lib";
+package.path      = debug.getinfo(1,"S").source:match[[^@?(.*[\/])actions[\/][^\/]-$]] .."?.lua;".. package.path;
+local engine_lib  = require "classes/engine_lib";
 
 -- Give the possibility to this script to be duplicated and called
 -- With a param at the end of the lua file name (it overrides OSS config)
