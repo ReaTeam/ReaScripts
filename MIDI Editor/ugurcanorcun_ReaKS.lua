@@ -1,10 +1,10 @@
 -- @description ReaKS - Keyswitch Articulation Manager
 -- @author Ugurcan Orcun
--- @version 0.6
+-- @version 0.7
 -- @changelog 
---  Updated styling
---  Changed CC pane layout
---  Added Velocity/Pitch focus buttons
+--  Switched to Collapsing Headers
+--  Automove for Playhead Position Insert
+--  Styling Mismatch Fix
 -- @link Forum Thread https://forum.cockos.com/showthread.php?t=288344
 -- @about 
 --  A small MIDI Editor tool for auto-inserting KeySwitch midi notes and managing note/cc names.
@@ -19,7 +19,6 @@ ActiveTrack = nil
 Articulations = {}
 CC = {}
 ActivatedArticulations = {}
-
 
 EnumThemeColors = {
     A = 0x0c1017ff, -- Background
@@ -189,6 +188,10 @@ function ToggleNote(noteNumber)
             local playheadPosition = reaper.MIDI_GetPPQPosFromProjTime(ActiveTake, playheadPosition)
             local length = playheadPosition + (reaper.MIDI_GetGrid(ActiveTake) * PPQ)
             reaper.MIDI_InsertNote(ActiveTake, false, false, playheadPosition - 1, length, 0, noteNumber, 100, false)
+
+            if Setting_MoveEditCursor then 
+                reaper.SetEditCurPos(reaper.MIDI_GetProjTimeFromPPQPos(ActiveTake, length), Setting_MoveEditCursor, false)
+            end
         else
             --Add articulation to selected notes
             reaper.MIDI_InsertNote(ActiveTake, false, false, earliestStartTime - 1, latestEndTime, 0, noteNumber, 100, false)
@@ -239,11 +242,17 @@ function StylingStart(ctx)
 
     reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Text(), EnumThemeColors.F)
 
+    reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Header(), EnumThemeColors.B)
+    reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_HeaderActive(), EnumThemeColors.C)
+    reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_HeaderHovered(), EnumThemeColors.D)
+
+    reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_CheckMark(), EnumThemeColors.F)
+
     reaper.ImGui_PushFont(ctx, Font)
 end
 
 function StylingEnd(ctx)
-    reaper.ImGui_PopStyleColor(ctx, 8)
+    reaper.ImGui_PopStyleColor(ctx, 12)
     reaper.ImGui_PopFont(ctx)
 end
 
@@ -253,10 +262,10 @@ reaper.ImGui_Attach(ctx, Font)
 reaper.ImGui_Attach(ctx, FontTitle)
 
 local function loop()
-    StylingStart(ctx)
 
     local visible, open = reaper.ImGui_Begin(ctx, 'ReaKS', true)    
     if visible then
+        StylingStart(ctx)
         
         if (ActiveTakeName ~= nil and ActiveTrackName ~= nil) then
             reaper.ImGui_PushFont(ctx, FontTitle)
@@ -309,42 +318,43 @@ local function loop()
             reaper.ImGui_Separator(ctx)
             reaper.ImGui_Text(ctx, "No active MIDI take is open in the MIDI editor.")
         else
-            reaper.ImGui_SeparatorText(ctx, "Articulations")
-            
-            --TODO Make the table upside down
-            reaper.ImGui_BeginTable(ctx, "Articulations", Setting_MaxColumns)
-            
-            for i = 0, 127 do
-                if Articulations[i] ~= nil then
-                    reaper.ImGui_TableNextColumn(ctx)
-                    local articulation = Articulations[i]
-                    if reaper.ImGui_Checkbox(ctx, articulation, ActivatedArticulations[i] ~= nil) then
-                        ToggleNote(i)
+            if reaper.ImGui_CollapsingHeader(ctx, "Articulations", false) then                
+                --TODO Make the table upside down
+                reaper.ImGui_BeginTable(ctx, "Articulations", Setting_MaxColumns)
+                
+                for i = 0, 127 do
+                    if Articulations[i] ~= nil then
+                        reaper.ImGui_TableNextColumn(ctx)
+                        local articulation = Articulations[i]
+                        if reaper.ImGui_Checkbox(ctx, articulation, ActivatedArticulations[i] ~= nil) then
+                            ToggleNote(i)
+                        end
                     end
                 end
+                reaper.ImGui_EndTable(ctx)
             end
-            reaper.ImGui_EndTable(ctx)
         end
  
         if ActiveTake ~= nil then
-            reaper.ImGui_SeparatorText(ctx, "Focus to CC Lane")
-            for i = 128, 255 do
-                if CC[i] ~= nil then
-                    reaper.ImGui_Text(ctx, CC[i] .. " (CC" .. i - 128 .. ")" )
-                    reaper.ImGui_SameLine(ctx, reaper.ImGui_GetWindowWidth(ctx) - (reaper.ImGui_CalcTextSize(ctx, "Focus") * 2))
-                    if reaper.ImGui_Button(ctx, "Focus##"..i) then FocusToCCLane(i-128) end
+            if reaper.ImGui_CollapsingHeader(ctx, "CC Lanes", false) then
+                for i = 128, 255 do
+                    if CC[i] ~= nil then
+                        reaper.ImGui_Text(ctx, CC[i] .. " (CC" .. i - 128 .. ")" )
+                        reaper.ImGui_SameLine(ctx, reaper.ImGui_GetWindowWidth(ctx) - (reaper.ImGui_CalcTextSize(ctx, "Focus") * 2))
+                        if reaper.ImGui_Button(ctx, "Focus##"..i) then FocusToCCLane(i-128) end
+                    end
                 end
+
+                reaper.ImGui_Text(ctx, "Velocity")
+                reaper.ImGui_SameLine(ctx, reaper.ImGui_GetWindowWidth(ctx) - (reaper.ImGui_CalcTextSize(ctx, "Focus") * 2))
+                if reaper.ImGui_Button(ctx, "Focus##velocity") then FocusToCCLane(512) end
+
+                reaper.ImGui_Text(ctx, "Pitch")
+                reaper.ImGui_SameLine(ctx, reaper.ImGui_GetWindowWidth(ctx) - (reaper.ImGui_CalcTextSize(ctx, "Focus") * 2))
+                if reaper.ImGui_Button(ctx, "Focus##pitch") then FocusToCCLane(513) end
+
+                if reaper.ImGui_Button(ctx, "Rename Last Clicked CC Lane...") then RenameAliasCCLane() end
             end
-
-            reaper.ImGui_Text(ctx, "Velocity")
-            reaper.ImGui_SameLine(ctx, reaper.ImGui_GetWindowWidth(ctx) - (reaper.ImGui_CalcTextSize(ctx, "Focus") * 2))
-            if reaper.ImGui_Button(ctx, "Focus##velocity") then FocusToCCLane(512) end
-
-            reaper.ImGui_Text(ctx, "Pitch")
-            reaper.ImGui_SameLine(ctx, reaper.ImGui_GetWindowWidth(ctx) - (reaper.ImGui_CalcTextSize(ctx, "Focus") * 2))
-            if reaper.ImGui_Button(ctx, "Focus##pitch") then FocusToCCLane(513) end
-
-            if reaper.ImGui_Button(ctx, "Rename Last Clicked CC Lane...") then RenameAliasCCLane() end
         end
 
         StylingEnd(ctx)
