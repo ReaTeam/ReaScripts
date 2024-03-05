@@ -33,7 +33,7 @@ local function getOrAddInputFx(track, fx)
       reaper.Undo_EndBlock("One Small Step : Add companion JSFX on track " .. tname,-1);
       return -1;
     else
-      -- It worked, hide it ide it, in case the option to pop up new added FXs is checked
+      -- It worked, hide it in case the option to pop up new added FXs is checked
       reaper.TrackFX_SetOpen(track, idx|0x1000000, false);
       reaper.Undo_EndBlock("One Small Step : Add companion JSFX on track " .. tname,-1);
     end

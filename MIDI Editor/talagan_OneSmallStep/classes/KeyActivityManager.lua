@@ -54,6 +54,11 @@ function KeyActivityManager:pullPedalTriggerForTrack(track)
   return false
 end
 
+function KeyActivityManager:keyActivityForTrack(track)
+  local trackid = reaper.GetTrackGUID(track);
+  return self.activity[trackid];
+end
+
 function KeyActivityManager:forgetPedalTriggerForTrack(track, time, first_hit_multiplier)
   local trackid             = reaper.GetTrackGUID(track);
   local pedal_activity      = self.activity[trackid].pedal;
@@ -70,6 +75,17 @@ function KeyActivityManager:forgetPedalTriggerForTrack(track, time, first_hit_mu
     -- reset commit flag. The pedal can be pulled again.
     pedal_activity.committed = nil
   end
+end
+
+function KeyActivityManager:lockPedalRepeaterTillNextRelease(track)
+  local trackid             = reaper.GetTrackGUID(track);
+  local pedal_activity      = self.activity[trackid].pedal;
+
+  if not pedal_activity.committed then
+    return
+  end
+
+  pedal_activity.last_commit = 1/0 -- inf
 end
 
 
