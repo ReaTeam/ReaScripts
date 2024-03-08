@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="d53a3abfd0259d32e820acda4d96c47c9cb93a59" name="ReaTeam Scripts">
+<index version="1" commit="d195023719c8bf1ec10556e46ab2c0d80b5852a2" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -4931,6 +4931,29 @@ a solution on possible bug in ultraschall.SetFXStateChunk.]]></changelog>
     </reapack>
   </category>
   <category name="Items Editing">
+    <reapack name="80icio_Perfect Timing! - Audio Quantizer.lua" type="script" desc="Perfect Timing! - Audio Quantizer">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 PERFECT TIMING! is a script for quantizing audio with advanced features.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Fast transient analysis with 2 visualization options.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Timesaving Grid Based detection.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Multitrack and Multichannel analysis and editing.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Hipass Lowpass filters and transient design attack.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Super fast quantizing + crossfading .\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Sensitivity and threshold Histogram.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Low CPU consumption\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Multisized GUI\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Works with fixed lanes\sa180\par}
+}
+]]></description>
+      </metadata>
+      <version name="0.21 (Beta)" author="80icio" time="2024-03-08T22:34:53Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/5227b2c094e411457f48d3cc22895345676172e8/Items%20Editing/80icio_Perfect%20Timing!%20-%20Audio%20Quantizer.lua</source>
+      </version>
+    </reapack>
     <reapack name="Add project markers as cue points to selected items and replace source files.lua" type="script" desc="amagalma_Add project markers as cue points to selected items and replace source files">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
@@ -5871,6 +5894,11 @@ Added experimental fixed lanes support]]></changelog>
 - Many new features and bug fixes]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/35f080056c0336ba755a2f4be01e4bde9a5be3b7/Items%20Editing/az_Smart%20split%20items%20by%20mouse%20cursor.lua</source>
         <source main="main" file="az_Smart split items by mouse cursor/az_Open options for az_Smart split items by mouse cursor.lua">https://github.com/ReaTeam/ReaScripts/raw/35f080056c0336ba755a2f4be01e4bde9a5be3b7/Items%20Editing/az_Smart%20split%20items%20by%20mouse%20cursor/az_Open%20options%20for%20az_Smart%20split%20items%20by%20mouse%20cursor.lua</source>
+      </version>
+      <version name="3.1" author="AZ" time="2024-03-08T22:35:17Z">
+        <changelog><![CDATA[- fixed bug when razor area covers envelope]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d195023719c8bf1ec10556e46ab2c0d80b5852a2/Items%20Editing/az_Smart%20split%20items%20by%20mouse%20cursor.lua</source>
+        <source main="main" file="az_Smart split items by mouse cursor/az_Open options for az_Smart split items by mouse cursor.lua">https://github.com/ReaTeam/ReaScripts/raw/d195023719c8bf1ec10556e46ab2c0d80b5852a2/Items%20Editing/az_Smart%20split%20items%20by%20mouse%20cursor/az_Open%20options%20for%20az_Smart%20split%20items%20by%20mouse%20cursor.lua</source>
       </version>
     </reapack>
     <reapack name="az_Trim left, right or both item edges via mouse and razor.lua" type="script" desc="Trim left, right or both item edges via mouse and razor">
