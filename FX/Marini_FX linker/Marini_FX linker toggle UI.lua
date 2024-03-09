@@ -5,6 +5,3 @@ local toggle = reaper.GetToggleCommandState(commandID) == 1
 
 reaper.SetToggleCommandState(0,commandID, toggle and 0 or 1)
 reaper.RefreshToolbar(commandID)
-
-
-

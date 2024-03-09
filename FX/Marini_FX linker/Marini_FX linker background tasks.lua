@@ -1,25 +1,12 @@
 -- @noindex
 
-local count = 0
-function GetActionCommandIDByFilename(searchfilename)
-  for k in io.lines(reaper.GetResourcePath() .. "/reaper-kb.ini") do
-    if k:match("SCR") and k:match(searchfilename) then
-      return "_" .. k:match("SCR %d+ %d+ (%S*) ")
-    end
-  end
-  return nil
-end
-
 local fontSize = 12
 gfx.setfont(1)
 
---local currProject, currProjectName = reaper.EnumProjects(-1)
---reaper.ShowConsoleMsg(currProject)
-local uiToggleCommand = GetActionCommandIDByFilename("Marini_ReaLink_Ui_Toggle.lua")
-local uiToggleCommandId = reaper.NamedCommandLookup(uiToggleCommand)
+local uiToggleCommandId = reaper.NamedCommandLookup("_RS40fae185eceabce107d514cae993cb3d5e7512c0")
 reaper.SetToggleCommandState(0, uiToggleCommandId, 0)
 
-local pluginName = "Marini_ReaLink"
+local pluginName = "Marini FX Linker"
 
 local lastP, lastPName = reaper.EnumProjects(-1)
 
@@ -73,7 +60,6 @@ local function applyDpi(bounds)
   end
 end
 
-
 local function parseTracks(project)
   local allTracks = {}
 
@@ -93,7 +79,7 @@ local function parseTracks(project)
       local masterGUID, slaveGUID = string.match(link, "(%S+),"), string.match(link, ",(%S+)")
 
       local master, slave = allTracks[masterGUID], allTracks[slaveGUID]
-      
+
       --reaper.ShowConsoleMsg(masterGUID .. " ".. slaveGUID .. "\n")
       if master and slave then
         --reaper.ShowConsoleMsg("carico traccia\n")
@@ -105,39 +91,17 @@ local function parseTracks(project)
   return rv
 end
 
-local function parseAllTracks()
-  local p, pname = reaper.EnumProjects(0)
-  local i = 1
-
-  while p do
-    --reaper.ShowConsoleMsg("progetto " .. pname .. "\n")
-    projects[p] = parseTracks(p)
-    p, pname = reaper.EnumProjects(i)
-    i = i + 1
-  end
-
-  linkPairs = projects[reaper.EnumProjects(-1)]
-end
-
-function saveState()
-  --reaper.ShowConsoleMsg( tostring(#linkPairs))
-  --reaper.SetProjExtState(0, pluginName, "nLinks", tostring())
+local function saveState()
   reaper.SetProjExtState(0, pluginName, "", "") --cancella stato
   reaper.SetProjExtState(0, pluginName, "nLinks", tostring(#linkPairs))
   for i, pair in ipairs(linkPairs) do
-    --reaper.ShowConsoleMsg(tostring(i))
 
     reaper.SetProjExtState(0, pluginName, tostring(i),
       reaper.GetTrackGUID(pair[1]) .. "," .. reaper.GetTrackGUID(pair[2]))
-    --reaper.ShowConsoleMsg("{" .. n1 .. "," .. n2 .. "}\n")
   end
-
-
-  --file:close()
-  --reaper.Main_SaveProject(0, false)
 end
 
-function tableView()
+local function tableView()
   tableBounds = { x = padding, y = padding, width = gfx.w - 2 * padding, height = gfx.h - 3 * padding - button1H }
   applyDpi(tableBounds)
 
@@ -232,9 +196,6 @@ function tableView()
   gfx.rect(0, gfx.h - 2 * padding - button1H, gfx.w, 2 * padding + button1H)
 end
 
-local function adjustDpi()
-end
-
 local function buttons()
   local button1x, button1y = gfx.w - padding - button1W, gfx.h - padding - button1H
   local button2x, button2y = button1x - buttonSpacing - button2W, button1y
@@ -266,7 +227,6 @@ local function buttons()
   gfx.drawstr("-", 5, gfx.x + button2W, gfx.y + button2H)
 end
 
-
 local function inBounds(bounds)
   gfx.getchar()
   local x, y = gfx.mouse_x, gfx.mouse_y
@@ -278,7 +238,6 @@ local function inBounds(bounds)
     return (x > bounds.x1 and x < bounds.x2 and y > bounds.y1 and y < bounds.y2)
   end
 end
-
 
 local function addSelectedTracks()
   if reaper.CountSelectedTracks(0) < 2 then
@@ -305,7 +264,6 @@ local function addSelectedTracks()
   saveState()
 end
 
-
 local function removeSelectedLink()
   if tableSelection then
     reaper.MarkProjectDirty()
@@ -318,9 +276,8 @@ local function removeSelectedLink()
   saveState()
 end
 
-
 local prevClick = 0
-function handleMouse()
+local function handleMouse()
   if gfx.mouse_cap == 1 and prevClick == 0
   then
 
@@ -333,14 +290,6 @@ function handleMouse()
       end
     elseif inBounds(b1Bounds) then
       addSelectedTracks()
-      --reaper.ShowConsoleMsg(tostring(reaper.EnumProjects(-1)) .. " " .. tostring(reaper.EnumProjects(1)) .. "\n")
-      --[[
-        reaper.ShowConsoleMsg("\n")
-      for key, value in pairs(projectsHash) do
-        reaper.ShowConsoleMsg(tostring(key) .. "\n")
-      end
-      ]]
-      --
     elseif inBounds(b2Bounds) then
       removeSelectedLink()
     end
@@ -367,14 +316,13 @@ end
 
 local prevToggle = reaper.GetToggleCommandState(uiToggleCommandId)
 local prevChar = gfx.getchar()
-
 local function updateWindowSize()
-    local d, x, y, w, h = gfx.dock(-1, 0, 0, 0, 0)
-    if not (x == 0 and y == 0 and w == 0 and h == 0) then
-      windowSize = { d = d, x = x, y = y, w = w, h = h }
-    else 
-      windowSize = nil
-    end
+  local d, x, y, w, h = gfx.dock(-1, 0, 0, 0, 0)
+  if not (x == 0 and y == 0 and w == 0 and h == 0) then
+    windowSize = { d = d, x = x, y = y, w = w, h = h }
+  else
+    windowSize = nil
+  end
 end
 
 local function checkForToggleUi()
@@ -392,14 +340,14 @@ local function checkForToggleUi()
       firstInit = false
     end
   elseif toggle == 0 and prevToggle == 1 then
-    if not firstInit then 
+    if not firstInit then
       updateWindowSize()
     end
     gfx.quit()
   elseif gfx.getchar() ~= prevChar and gfx.getchar() == -1 then
     reaper.SetToggleCommandState(0, uiToggleCommandId, 0)
     reaper.RefreshToolbar(uiToggleCommandId)
-    if not firstInit then 
+    if not firstInit then
       updateWindowSize()
     end
   end
@@ -410,7 +358,6 @@ end
 
 reaper.SetToggleCommandState(0, uiToggleCommandId, 0)
 local prevIsDirty = reaper.IsProjectDirty(0)
-
 local function checkForSaves()
   local isDirty = reaper.IsProjectDirty(0)
   if (isDirty == 0) and prevIsDirty == 1 then
@@ -420,16 +367,8 @@ local function checkForSaves()
 end
 
 local function quit()
-  --local file = io.open("/Users/mattia/Desktop/prova.txt", "w")
-
-  --reaper.ShowConsoleMsg("1")
-  --reaper.SetToggleCommandState(0, uiToggleCommandId, 0)
-  --reaper.ShowConsoleMsg("\ncarattere:" .. gfx.getchar() .. "\n")
   local d, x, y, w, h = gfx.dock(-1, 0, 0, 0, 0)
   if not (x == 0 and y == 0 and w == 0 and h == 0) then
-    --reaper.ShowConsoleMsg("gui aperta: " .. x .. " " .. y .. " " .. w .. " " .. h .."\n")
-    --file:write("GUI aperta ")
-    --file:write(d,x,y,w,h)
     reaper.SetExtState(pluginName, "dock", d, true)
     reaper.SetExtState(pluginName, "wndx", x, true)
     reaper.SetExtState(pluginName, "wndy", y, true)
@@ -437,74 +376,19 @@ local function quit()
     reaper.SetExtState(pluginName, "wndh", h, true)
     gfx.quit()
   elseif windowSize then
-    --reaper.ShowConsoleMsg("gui chiusa: " .. x .. " " .. y .. " " .. w .. " " .. h .."\n")
-    --reaper.ShowConsoleMsg("3")
-    --file:write("GUI chiusa")
     reaper.SetExtState(pluginName, "dock", windowSize.d, true)
     reaper.SetExtState(pluginName, "wndx", windowSize.x, true)
     reaper.SetExtState(pluginName, "wndy", windowSize.y, true)
     reaper.SetExtState(pluginName, "wndw", windowSize.w, true)
     reaper.SetExtState(pluginName, "wndh", windowSize.h, true)
   end
-  --file:close()
 end
 
-
-function tprint(tbl, indent)
-  if not indent then indent = 0 end
-  local toprint = string.rep(" ", indent) .. "{\r\n"
-  indent = indent + 2
-  for k, v in pairs(tbl) do
-    toprint = toprint .. string.rep(" ", indent)
-    if (type(k) == "number") then
-      toprint = toprint .. "[" .. k .. "] = "
-    elseif (type(k) == "string") then
-      toprint = toprint .. k .. "= "
-    end
-    if (type(v) == "number") then
-      toprint = toprint .. v .. ",\r\n"
-    elseif (type(v) == "string") then
-      toprint = toprint .. "\"" .. v .. "\",\r\n"
-    elseif (type(v) == "table") then
-      toprint = toprint .. tprint(v, indent + 2) .. ",\r\n"
-    else
-      toprint = toprint .. "\"" .. tostring(v) .. "\",\r\n"
-    end
-  end
-  toprint = toprint .. string.rep(" ", indent - 2) .. "}"
-  return toprint
-end
-
-local function copyTable(t)
-  local res = {}
-  --reaper.ShowConsoleMsg("\n")
-  for _, val in ipairs(t) do
-    table.insert(res, { val[1], val[2] })
-    --reaper.ShowConsoleMsg(tostring(val[1]).. " " .. tostring(val[2]) .. "\n")
-  end
-  --reaper.ShowConsoleMsg("\n")
-  return res
-end
-
---[[
-local function printTable(t)
- --reaper.ShowConsoleMsg(#linkPairs .. "\n")
-  for _, val in ipairs(t) do
-    table.insert(res, {val[1], val[2]})
-    --reaper.ShowConsoleMsg("{"..tostring(val[1]) .. ", " .. tostring(val[2]) .. "}")
-  end
-  reaper.ShowConsoleMsg("\n")
-end
-]]
---
-
-
-
-function loadProjects()
+local function loadProjects()
   local p = reaper.EnumProjects(0)
   local i = 1
   while p do
-    projects[p] = {visited = false}
+    projects[p] = { visited = false }
     p = reaper.EnumProjects(i)
     i = i + 1
   end
@@ -512,28 +396,23 @@ end
 
 local function setup()
   gfx.ext_retina = 1
-  --parseAllTracks()
-  --linkPairs=parseTracks(reaper.EnumProjects(-1))
   loadProjects()
-  projects[lastP] = {visited = true, links = parseTracks(lastP)}
+  projects[lastP] = { visited = true, links = parseTracks(lastP) }
   linkPairs = projects[lastP].links
 
-  d = reaper.GetExtState(pluginName, "dock")
-  x, y = tonumber(reaper.GetExtState(pluginName, "wndx")), tonumber(reaper.GetExtState(pluginName, "wndy"))
-  w, h = tonumber(reaper.GetExtState(pluginName, "wndw")), tonumber(reaper.GetExtState(pluginName, "wndh"))
+  local d = reaper.GetExtState(pluginName, "dock")
+  local x, y = tonumber(reaper.GetExtState(pluginName, "wndx")), tonumber(reaper.GetExtState(pluginName, "wndy"))
+  local w, h = tonumber(reaper.GetExtState(pluginName, "wndw")), tonumber(reaper.GetExtState(pluginName, "wndh"))
 
   if d and x and y and w and h then
     windowSize = { d = d, x = x, y = y, w = w, h = h }
-    --reaper.ShowConsoleMsg("loading from ext: " .. x .. " " .. y .. " " .. w .. " " .. h .."\n")
-    --reaper.ShowConsoleMsg("loading: " .. windowSize.x .. " " .. windowSize.y .. " " .. windowSize.w .. " " .. windowSize.h .."\n\n")
   else
     windowSize = nil
   end
   reaper.atexit(quit)
 end
 
-
-function checkForProjectChanges()
+local function checkForProjectChanges()
   local currP, currPName = reaper.EnumProjects(-1)
 
   --++clear closed tabs
@@ -549,70 +428,39 @@ function checkForProjectChanges()
     tableSelection = nil --rimuovo selezione quando cambio prog per evitare selezione di traccia inesistente
     if projects[currP] then
       --tab changed
-      if not projects[currP].visited then 
-        projects[currP] = {visited = true, links = parseTracks(currP)}
+      if not projects[currP].visited then
+        projects[currP] = { visited = true, links = parseTracks(currP) }
       end
-
     else
       --new blank tab opened
-      projects[currP] = {visited = true, links = {}}
+      projects[currP] = { visited = true, links = {} }
     end
 
-    projects[lastP] = {visited = true, links = linkPairs}
+    projects[lastP] = { visited = true, links = linkPairs }
     linkPairs = projects[currP].links
 
-    --reaper.ShowConsoleMsg("\n"..tprint(projects, 2))
 
     lastP = currP
     lastPName = currPName
   elseif currPName ~= lastPName then
     tableSelection = nil --rimuovo selezione quando cambio prog per evitare selezione di traccia inesistente
     --opened new project
-    projects[currP] = {visited = true, links = parseTracks(currP)}
+    projects[currP] = { visited = true, links = parseTracks(currP) }
     linkPairs = projects[currP].links
 
     lastPName = currPName
   end
 end
 
---[[
-local function checkForProjectChanges()
-  local function hashKey(project, name)
-    return tostring(project) .. name
-  end
 
+local function drawLoop()
 
-
-  local newProject, newProjectName = reaper.EnumProjects(-1)
-
-  local currProjectHash = hashKey(currProject, currProjectName)
-  local newProjectHash = hashKey(newProject, newProjectName)
-
-  if currProjectHash ~= newProjectHash then
-    projectsHash[currProjectHash] = copyTable(linkPairs)
-    --reaper.ShowConsoleMsg(tprint(projectsHash))
-
-    if not projectsHash[newProjectHash] then
-      reaper.ShowConsoleMsg("nuovo prog")
-      parseTracks()
-    else
-      linkPairs = projectsHash[newProjectHash]
-    end
-    currProject = newProject
-    currProjectName = newProjectName
-  end
-end
-]]
-   --
-
-function drawLoop()
   checkForProjectChanges()
   tableView()
   buttons()
   handleMouse()
   checkForSaves()
 
-  --reaper.ShowConsoleMsg(reaper.GetProjectStateChangeCount(reaper.EnumProjects(-1)))
   gfx.update()
   checkForToggleUi()
 
