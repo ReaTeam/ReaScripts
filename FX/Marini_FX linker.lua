@@ -1,4 +1,4 @@
-@description Link FX chains of 2 different tracks (GUI)
+@description FX linker: Link FX chains of 2 different tracks (GUI)
 @author Marini Mattia
 @version 1.0
 @metapackage
