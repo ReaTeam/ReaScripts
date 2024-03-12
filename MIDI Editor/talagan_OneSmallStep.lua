@@ -47,6 +47,7 @@
   [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Set or remove playback marker.lua
   [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Playback.lua
   [nomain] talagan_OneSmallStep/classes/*.lua
+  [nomain] talagan_OneSmallStep/classes/lib/*.lua
   [nomain] talagan_OneSmallStep/images/*.lua
   [effect] talagan_OneSmallStep/One Small Step Helper.jsfx
   [data] talagan_OneSmallStep/toolbar_icons/toolbar_one_small_step.png > toolbar_icons/toolbar_one_small_step.png
