@@ -1,6 +1,6 @@
 --[[
 @description One Small Step : Alternative Step Input
-@version 0.9.6
+@version 0.9.7
 @author Ben 'Talagan' Babut
 @license MIT
 @metapackage
@@ -9,6 +9,11 @@
   [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Change input mode.lua             > talagan_OneSmallStep/actions/talagan_OneSmallStep Change input mode - KeyboardPress.lua
   [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Change input mode.lua             > talagan_OneSmallStep/actions/talagan_OneSmallStep Change input mode - KeyboardRelease.lua
   [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Change input mode.lua             > talagan_OneSmallStep/actions/talagan_OneSmallStep Change input mode - Punch.lua
+  [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Change edit mode.lua              > talagan_OneSmallStep/actions/talagan_OneSmallStep Change edit mode - Write.lua
+  [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Change edit mode.lua              > talagan_OneSmallStep/actions/talagan_OneSmallStep Change edit mode - Navigate.lua
+  [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Change edit mode.lua              > talagan_OneSmallStep/actions/talagan_OneSmallStep Change edit mode - Replace.lua
+  [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Change edit mode.lua              > talagan_OneSmallStep/actions/talagan_OneSmallStep Change edit mode - Insert.lua
+  [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Change edit mode.lua              > talagan_OneSmallStep/actions/talagan_OneSmallStep Change edit mode - Repitch.lua
   [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Change note len param source.lua  > talagan_OneSmallStep/actions/talagan_OneSmallStep Change note len param source - OSS.lua
   [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Change note len param source.lua  > talagan_OneSmallStep/actions/talagan_OneSmallStep Change note len param source - ItemConf.lua
   [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Change note len param source.lua  > talagan_OneSmallStep/actions/talagan_OneSmallStep Change note len param source - ProjectGrid.lua
@@ -34,6 +39,8 @@
   [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Edit Action.lua                   > talagan_OneSmallStep/actions/talagan_OneSmallStep Edit Action - ReplaceBack.lua
   [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Edit Action.lua                   > talagan_OneSmallStep/actions/talagan_OneSmallStep Edit Action - Navigate.lua
   [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Edit Action.lua                   > talagan_OneSmallStep/actions/talagan_OneSmallStep Edit Action - NavigateBack.lua
+  [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Edit Action.lua                   > talagan_OneSmallStep/actions/talagan_OneSmallStep Edit Action - Repitch.lua
+  [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Edit Action.lua                   > talagan_OneSmallStep/actions/talagan_OneSmallStep Edit Action - RepitchBack.lua
   [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Increase note len.lua
   [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Decrease note len.lua
   [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Cleanup helper JSFXs.lua
@@ -47,27 +54,12 @@
 @screenshot
   https://stash.reaper.fm/48269/oss_094.png
 @changelog
-  - [Feature] Added Replace mode
-  - [Feature] Added Navigate mode
-  - [Feature] Added auto-scroll arrange view option
-  - [Feature] [All Input Modes] Handle grid size for note length with modifier factor
-  - [Feature] [All Input Modes] Handle swing for grid size note length
-  - [Feature] [Navigate] Snap on project grid (with swing)
-  - [Feature] [Navigate] Snap on item grid (with swing)
-  - [Feature] [Navigate] Snap on note start/ends
-  - [Feature] [Navigate] Snap on item bounds
-  - [Feature] [Navigate] Added option to allow navigation on key events (does not input notes)
-  - [Feature] [Write] Step back delete/shortening now happens on every key press/release event (notes should match keys)
-  - [Feature] [Write] Added option to prevent the cursor from being moved back if step back delete fails (notes don't match keys, the user missed)
-  - [Feature] [Insert] Step back delete can now make holes
-  - [Feature] Added system to engage modes with buttons or with customizable modifiers
-  - [Rework] [Write] Reworked Delete/Step back logic
-  - [Rework] [Insert] Reworked Delete/Step back logic
-  - [Rework] Removed option "do not add notes if step back modifier key is pressed", not pertinent anymore
-  - [Rework] Removed option "erase note ends even if they do not align on cursor", since the eraser does more complex things, it does not fit in the new flow
-  - [Bug Fix] n-tuplets always used a value of 2/n, now using precpow2(n)/n
-  - [Bug Fix] Create new items when advancing only if insert mode is on
-  - [Bug fix] Icons/Images coould be randomly wrong
+  - [Feature] Added repitch (+revel) mode (thanks @smandrap !)
+  - [Fix] Added missing "Change Edit Mode" actions
+  - [Doc] Added help button that redirects to current documentation
+  - [Rework] Re arranged settings panel
+  - [Rework] Reworked some icons and colors
+  - [Rework] Started to use MIDI Utils API by sockmonkey72 instead of default MIDI API
 @about
   # Purpose
 
@@ -83,11 +75,13 @@
 
   # Documentation
 
-    Since the documentation is growing, it is now centralized on the forum thread.
+    The documentation for all versions is located here : https://bentalagan.github.io/onesmallstep-doc/
 
   # Credits
 
     This tool takes a lot of inspiration in tenfour's "tenfour-step" scripts. Epic hail to tenfour for opening the way !
+
+    One Small Step uses Jeremy Bernstein (sockmonkey72)'s MIDIUtils library . Thanks for the precious work !
 
     Thanks to @cfillion for the precious pieces of advice when reviewing this source !
 
@@ -95,21 +89,10 @@
 
 --]]
 
+VERSION = "0.9.7"
+DOC_URL = "https://bentalagan.github.io/onesmallstep-doc/index.html?ver=" .. VERSION
+
 --------------------------------
-
---[[
-# Ruby script to convert from png > lua to load binary img for ReaImGui
-
-def png_to_lua(fname)
-  buf = File.open(fname,"rb").read.unpack("C*").map{ |c| "\\x%02X" % c }.each_slice(40).map{ |s| s.join }.join("\\z\n")
-  buf = "return \"\\z\n" + buf + "\"\n;\n"
-  outname = File.basename(fname,".png") + ".lua"
-  File.open(outname, "wb") { |f| f << buf }
-end
-
-png_to_lua("triplet.png")
-
---]]
 
 -- Tell the script to be terminated if relaunched.
 -- Check the existence of the function for sanity (added in v 7.03)
@@ -121,22 +104,52 @@ end
 -- Path and modules
 
 package.path      = debug.getinfo(1,"S").source:match[[^@?(.*[\/])[^\/]-$]] .."?.lua;".. package.path
-local engine_lib  = require "talagan_OneSmallStep/classes/engine_lib";
 
 -------------------------------
 -- Check dependencies
 
-if not reaper.APIExists("JS_ReaScriptAPI_Version") then
-  local answer = reaper.MB( "You have to install JS_ReaScriptAPI for this script to work. Right-click the entry in the next window and choose to install.", "JS_ReaScriptAPI not installed", 0 )
-  reaper.ReaPack_BrowsePackages( "js_ReaScriptAPI" )
+local function CheckReapack(func_name, api_name, search_string)
+  if not reaper.APIExists(func_name) then
+    local answer = reaper.MB( api_name .. " is required and you need to install it.\z
+      Right-click the entry in the next window and choose to install.",
+      api_name .. " not installed", 0 )
+    reaper.ReaPack_BrowsePackages( search_string )
+    exit(66)
+  end
+end
+
+CheckReapack("JS_ReaScriptAPI_Version",   "JS_ReaScriptAPI",  "js_ReaScriptAPI")
+CheckReapack("ImGui_CreateContext",       "ReaImGUI",         "ReaImGui:")
+CheckReapack("CF_ShellExecute",           "SWS",              "SWS/S&M Extension")
+
+--[[
+
+-- Code for installing sockmonkey72's MIDI Utilis library
+
+-- But ATM we prefer embedding it
+
+--  - for stability reasons
+--  - to avoid depending on another repository
+
+local sm72reponame  = "sockmonkey72 Scripts"
+local sm72repourl   = "https://github.com/jeremybernstein/ReaScripts/raw/main/index.xml"
+
+local repook,  _,  _,  _ = reaper.ReaPack_GetRepositoryInfo(sm72reponame)
+if not repook then
+  reaper.ReaPack_AddSetRepository(sm72reponame, sm72repourl, true, 0)
+  reaper.ReaPack_ProcessQueue(false)
+end
+
+package.path = (reaper.GetResourcePath() .. '/Scripts/' .. sm72reponame .. '/MIDI/' .. "?.lua") .. ";" .. package.path
+if not pcall(require, "MIDIUtils") then
+  local answer = reaper.MB( "MIDI Utils API is required and you need to install it . Right-click the entry in the next window and choose to install.", "MIDI Utils API not installed", 0 )
+  reaper.ReaPack_BrowsePackages( "MIDI Utils API" )
   return
 end
 
-if not reaper.APIExists("ImGui_CreateContext") then
-  local answer = reaper.MB( "You have to install ReaImGui for this script to work. Right-click the entry in the next window and choose to install.", "ReaImGUI not installed", 0 )
-  reaper.ReaPack_BrowsePackages( "ReaImGui:" )
-  return
-end
+]]--
+
+local engine_lib  = require "talagan_OneSmallStep/classes/engine_lib";
 
 -------------------------------
 -- ImGui Backward compatibility
@@ -151,7 +164,7 @@ local ctx                   = reaper.ImGui_CreateContext('One Small Step');
 
 local images = {};
 
-function getImage(image_name)
+local function getImage(image_name)
   if (not images[image_name]) or (not reaper.ImGui_ValidatePtr(images[image_name], 'ImGui_Image*')) then
     local bin = require("./talagan_OneSmallStep/images/" .. image_name)
     images[image_name] = reaper.ImGui_CreateImageFromMem(bin)
@@ -170,6 +183,12 @@ local showsettings      = nil;
 
 function SL()
   reaper.ImGui_SameLine(ctx);
+end
+
+function SEP(txt)
+  reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Text(), 0xA0A0A0FF);
+  reaper.ImGui_SeparatorText(ctx, txt)
+  reaper.ImGui_PopStyleColor(ctx);
 end
 
 function XSeparator()
@@ -360,13 +379,10 @@ function ButtonGroupImageButton(image_name, is_on, options)
 end
 
 
-
 function ButtonGroupTextButton(text, is_on, callback)
-
   if reaper.ImGui_Button(ctx, text) then
     callback();
-  end;
-
+  end
 end
 
 function ImGui_NoteLenImg(context, image_name, triplet, divider)
@@ -608,7 +624,6 @@ function NoteLenModifierMiniBar(with_fracs)
   TT(with_fracs and "1/n" or "N-tuplet");
   SL()
 
-
   if ButtonGroupImageButton('note_modified', nmod == engine_lib.NoteLenModifier.Modified ) then
     if nmod == engine_lib.NoteLenModifier.Modified then
       engine_lib.setNoteLenModifier(engine_lib.NoteLenModifier.Straight);
@@ -708,7 +723,7 @@ function PlayBackMeasureCountComboBox()
   reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_FramePadding(), 5, 3.5);
   local curm = engine_lib.getPlaybackMeasureCount();
 
-  local function label(mnum)
+  local label = function(mnum)
     return ((mnum == -1) and "Mk" or mnum);
   end
 
@@ -740,7 +755,7 @@ function PlayBackMeasureCountComboBox()
 
 end
 
-function PlaybackButton()
+local function PlaybackButton()
   reaper.ImGui_PushID(ctx, "playback");
   if ButtonGroupImageButton("playback", false, { colorset = "Green" } ) then
     local id = reaper.NamedCommandLookup("_RS0bbcbcb0cb7174a2406403352d006c0573c4c8b4");
@@ -751,7 +766,7 @@ function PlaybackButton()
   TT("Playback");
 end
 
-function PlaybackSetMarkerButton()
+local function PlaybackSetMarkerButton()
   reaper.ImGui_PushID(ctx, "playback_marker");
   reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_FramePadding(), 8, 4);
   if ButtonGroupImageButton("marker", false, { colorset = "Green" } ) then
@@ -764,7 +779,7 @@ function PlaybackSetMarkerButton()
 end
 
 
-function MagnetMiniBar()
+local function MagnetMiniBar()
 
   local label   = "##snap"
 
@@ -805,6 +820,7 @@ function EditModeMiniBar()
     { name = engine_lib.EditMode.Write, tt = "Forward  : Add notes\nBackward : Selective delete (remove notes if pressed)" },
     { name = engine_lib.EditMode.Insert, tt = "Forward  : Add notes and shift later ones\nBackward : Delete or shorten notes and shift later ones back"},
     { name = engine_lib.EditMode.Replace, tt = "Forward  : Delete (partially or fully) existing notes, and add new ones instead\nBackward : Delete (partially or fully) existing notes" },
+    { name = engine_lib.EditMode.Repitch, tt = "Forward  : Change the pitch of notes (number of pressed keys should match)\nBackward : Jump back to precedent note start" },
     { name = engine_lib.EditMode.Navigate, tt = "Forward  : Navigate forward (using snap options)\nBackward : Navigate backward (using snap options)" },
   }
 
@@ -901,17 +917,7 @@ function SettingSlider(setting, in_label, out_label, tooltip, use_help_interroga
   end
 end
 
-function TargetLine(take)
-
-  reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacing(),       2, 4);
-  reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_ItemInnerSpacing(),  0, 0);
-
-  PlaybackWidget();   SL()
-  MiniBarSeparator(); SL()
-
-
-  reaper.ImGui_PopStyleVar(ctx,2);
-
+function TargetModeInfo()
   local currentop = engine_lib.resolveOperationMode()
 
   if currentop.mode == "Insert" then
@@ -932,6 +938,12 @@ function TargetLine(take)
     else
       reaper.ImGui_Image(ctx, getImage("indicator_navigate_forward"),20,20); SL(); TT("Navigate forward") SL();
     end
+  elseif currentop.mode == "Repitch" then
+    if currentop.back then
+      reaper.ImGui_Image(ctx, getImage("indicator_repitch_back"),20,20); SL();  TT("Write back (selective delete") SL();
+    else
+      reaper.ImGui_Image(ctx, getImage("indicator_repitch_forward"),20,20); SL();  TT("Write (add notes)") SL();
+    end
   else
     if currentop.back then
       reaper.ImGui_Image(ctx, getImage("indicator_write_back"),20,20); SL();  TT("Write back (selective delete") SL();
@@ -939,7 +951,18 @@ function TargetLine(take)
       reaper.ImGui_Image(ctx, getImage("indicator_write_forward"),20,20); SL();  TT("Write (add notes)") SL();
     end
   end
+end
 
+
+function TargetLine(take)
+
+  reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacing(),       2, 4);
+  reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_ItemInnerSpacing(),  0, 0);
+
+  PlaybackWidget();   SL()
+  MiniBarSeparator(); SL()
+
+  reaper.ImGui_PopStyleVar(ctx,2);
 
   SL();
 
@@ -947,6 +970,7 @@ function TargetLine(take)
     if engine_lib.getSetting("AllowCreateItem") then
       local track = engine_lib.TrackForEditionIfNoItemFound();
       if track then
+        TargetModeInfo()
         TrackInfo(track);
       else
         reaper.ImGui_TextColored(ctx, 0xA0A0A0FF, "No target item or track.");
@@ -956,6 +980,7 @@ function TargetLine(take)
     end
     ImGui_VerticalSpacer(ctx,0);
   else
+    TargetModeInfo()
     TakeInfo(take);
   end
 end
@@ -1014,7 +1039,7 @@ end
 
 function ClearConflictingModifierKeys()
   local sbmk        = engine_lib.getSetting("StepBackModifierKey")
-  local editmodes   = { "Navigate", "Replace", "Insert" }
+  local editmodes   = { "Navigate", "Replace", "Insert", "Repitch" }
 
   for k,v in ipairs(editmodes) do
     local setting = v.."ModifierKeyCombination"
@@ -1107,12 +1132,45 @@ function EditModeComboBox(editModeName, callback)
   reaper.ImGui_Text(ctx, "edit mode")
 end
 
+function RepitchModeComboBox()
+
+  local setting     = "RepitchModeAffects"
+  local combo_items = engine_lib.getSettingSpec("RepitchModeAffects").inclusion
+  local curval      = engine_lib.getSetting("RepitchModeAffects")
+
+  reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_FramePadding(), 5, 3.5)
+  reaper.ImGui_SetCursorPosY(ctx, reaper.ImGui_GetCursorPosY(ctx) + 3)
+
+  reaper.ImGui_Text(ctx, "Repitch mode affects");
+  SL();
+  reaper.ImGui_SetNextItemWidth(ctx, 180);
+  reaper.ImGui_SetCursorPosY(ctx, reaper.ImGui_GetCursorPosY(ctx) - 3)
+
+  reaper.ImGui_PushID(ctx, setting .. "_combo")
+  if reaper.ImGui_BeginCombo(ctx, '', curval) then
+    for i,v in ipairs(combo_items) do
+      local is_selected = (curval == v);
+      if reaper.ImGui_Selectable(ctx, combo_items[i], is_selected) then
+        engine_lib.setSetting(setting, v);
+      end
+      if is_selected then
+        reaper.ImGui_SetItemDefaultFocus(ctx)
+      end
+    end
+    reaper.ImGui_EndCombo(ctx)
+  end
+  reaper.ImGui_PopID(ctx);
+  reaper.ImGui_PopStyleVar(ctx,1);
+--  SL();
+--  reaper.ImGui_SetCursorPosY(ctx, reaper.ImGui_GetCursorPosY(ctx) - 3)
+--  reaper.ImGui_Text(ctx, "");
+end
 
 function SettingsPanel()
   if reaper.ImGui_BeginTabBar(ctx, 'settings_tab_bar', reaper.ImGui_TabBarFlags_None()) then
     reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Tab(),        0x00000000);
     reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_TabHovered(), 0x00000000);
-    if reaper.ImGui_TabItemButton(ctx, 'Settings', reaper.ImGui_TabItemFlags_Leading() | reaper.ImGui_TabItemFlags_NoTooltip()) then
+    if reaper.ImGui_TabItemButton(ctx, 'Settings##settings_tab', reaper.ImGui_TabItemFlags_Leading() | reaper.ImGui_TabItemFlags_NoTooltip()) then
     end
     reaper.ImGui_PopStyleColor(ctx, 2);
 
@@ -1150,64 +1208,9 @@ function SettingsPanel()
       reaper.ImGui_EndTabItem(ctx)
     end
 
-    if reaper.ImGui_BeginTabItem(ctx, 'Controls') then
+    if reaper.ImGui_BeginTabItem(ctx, 'Input') then
       ImGui_VerticalSpacer(ctx,5);
-
-      StepBackModifierKeyComboBox()
-      EditModeComboBox("Write")
-      EditModeComboBox("Navigate")
-      EditModeComboBox("Insert")
-      EditModeComboBox("Replace")
-
-      curval = engine_lib.getSetting("HideEditModeMiniBar");
-      if reaper.ImGui_Checkbox(ctx, "Hide edit mode mini bar", curval) then
-        engine_lib.setSetting("HideEditModeMiniBar", not curval);
-      end
-      SL()
-      reaper.ImGui_TextColored(ctx, 0xB0B0B0FF, "(?)");
-      TT("If you have configured a modifier for all modes,\n\z
-          and you have set a default mode, you may want to\n\z
-          get rid of the edit mode mini bar (still, you could\n\z
-          also want to keep the ability to toggle a mode with a\n\z
-          mouse click). Up to you!")
-
-
-      curval = engine_lib.getSetting("PedalRepeatEnabled");
-      if reaper.ImGui_Checkbox(ctx, "Pedal repeat every", curval) then
-        engine_lib.setSetting("PedalRepeatEnabled", not curval);
-      end
-      SL();
-      SettingSlider("PedalRepeatTime", "%.3f seconds", "and", "Repeat time for the pedal event when pressed", false, 120)
-      SL();
-      SettingSlider("PedalRepeatFirstHitMultiplier", "x %.d", "on first hit", "Multiplication factor for first hit", false, 50)
-
-      reaper.ImGui_EndTabItem(ctx)
-    end
-
-    if reaper.ImGui_BeginTabItem(ctx, 'Stepping') then
-      ImGui_VerticalSpacer(ctx,5);
-
-      curval = engine_lib.getSetting("DoNotRewindOnStepBackIfNothingErased");
-      if reaper.ImGui_Checkbox(ctx, "Do not rewind when trying to erase with some pressed keys but nothing was erased", curval) then
-        engine_lib.setSetting("DoNotRewindOnStepBackIfNothingErased", not curval);
-      end
-
-      curval = engine_lib.getSetting("AllowKeyEventNavigation");
-      if reaper.ImGui_Checkbox(ctx, "Allow navigating on key press/release events", curval) then
-        engine_lib.setSetting("AllowKeyEventNavigation", not curval);
-      end
-
-      curval = engine_lib.getSetting("AutoScrollArrangeView");
-      if reaper.ImGui_Checkbox(ctx, "Auto-scroll arrange view after editing/navigating", curval) then
-        engine_lib.setSetting("AutoScrollArrangeView", not curval);
-      end
-
-
-      reaper.ImGui_EndTabItem(ctx)
-    end
-
-    if reaper.ImGui_BeginTabItem(ctx, 'KP Mode') then
-      ImGui_VerticalSpacer(ctx,5);
+      SEP("Key Press input mode")
 
       SettingSlider("KeyPressModeAggregationTime",
         "%.3f seconds",
@@ -1223,19 +1226,14 @@ function SettingsPanel()
         then A is considered sustained and not released.\n\n\z
         This setting allows to enter new notes overlapping sustained notes.",
         true, nil)
-
-      SL();
-
+      SL()
       curval = engine_lib.getSetting("KeyPressModeInertiaEnabled");
       if reaper.ImGui_Checkbox(ctx, "Enabled##kp_inertia", curval) then
         engine_lib.setSetting("KeyPressModeInertiaEnabled", not curval);
       end
 
-      reaper.ImGui_EndTabItem(ctx)
-    end
-
-    if reaper.ImGui_BeginTabItem(ctx, 'KR Mode') then
       ImGui_VerticalSpacer(ctx,5);
+      SEP("Key Release input mode")
 
       SettingSlider("KeyReleaseModeForgetTime",
         "%.3f seconds",
@@ -1246,6 +1244,79 @@ function SettingsPanel()
         or used as part of the input chord.",
         true, nil)
 
+      ImGui_VerticalSpacer(ctx,5);
+      SEP("Sustain Pedal")
+
+      curval = engine_lib.getSetting("PedalRepeatEnabled");
+      if reaper.ImGui_Checkbox(ctx, "Pedal repeat every", curval) then
+        engine_lib.setSetting("PedalRepeatEnabled", not curval);
+      end
+      SL();
+      SettingSlider("PedalRepeatTime", "%.3f seconds", "and", "Repeat time for the pedal event when pressed", false, 120)
+      SL();
+      SettingSlider("PedalRepeatFirstHitMultiplier", "x %.d", "on first hit", "Multiplication factor for first hit", false, 50)
+
+
+      reaper.ImGui_EndTabItem(ctx)
+    end
+
+    if reaper.ImGui_BeginTabItem(ctx, 'Controls') then
+      ImGui_VerticalSpacer(ctx,5);
+
+      StepBackModifierKeyComboBox()
+      EditModeComboBox("Write")
+      EditModeComboBox("Navigate")
+      EditModeComboBox("Insert")
+      EditModeComboBox("Replace")
+      EditModeComboBox("Repitch")
+
+      curval = engine_lib.getSetting("HideEditModeMiniBar");
+      if reaper.ImGui_Checkbox(ctx, "Hide edit mode mini bar", curval) then
+        engine_lib.setSetting("HideEditModeMiniBar", not curval);
+      end
+      SL()
+      reaper.ImGui_TextColored(ctx, 0xB0B0B0FF, "(?)");
+      TT("If you have configured a modifier for all modes,\n\z
+          and you have set a default mode, you may want to\n\z
+          get rid of the edit mode mini bar (still, you could\n\z
+          also want to keep the ability to toggle a mode with a\n\z
+          mouse click). Up to you!")
+
+      reaper.ImGui_EndTabItem(ctx)
+    end
+
+    if reaper.ImGui_BeginTabItem(ctx, 'Editing') then
+      ImGui_VerticalSpacer(ctx,5);
+      SEP("All edit modes")
+
+      curval = engine_lib.getSetting("AutoScrollArrangeView");
+      if reaper.ImGui_Checkbox(ctx, "Auto-scroll arrange view after editing/navigating", curval) then
+        engine_lib.setSetting("AutoScrollArrangeView", not curval);
+      end
+
+      curval = engine_lib.getSetting("AllowKeyEventNavigation");
+      if reaper.ImGui_Checkbox(ctx, "Allow navigating on controller key press/release", curval) then
+        engine_lib.setSetting("AllowKeyEventNavigation", not curval);
+      end
+
+      ImGui_VerticalSpacer(ctx,5);
+      SEP("Write mode")
+
+      curval = engine_lib.getSetting("DoNotRewindOnStepBackIfNothingErased");
+      if reaper.ImGui_Checkbox(ctx, "Do not rewind on controller key press/release and nothing is erased", curval) then
+        engine_lib.setSetting("DoNotRewindOnStepBackIfNothingErased", not curval);
+      end
+
+      ImGui_VerticalSpacer(ctx,5);
+      SEP("Repitch mode")
+
+      RepitchModeComboBox()
+      SettingSlider("RepitchModeAggregationTime",
+        "%.3f seconds",
+        "Repitch chord aggregation",
+        "Notes that fit in that time window are aggregated as a chord",
+        true, nil)
+
       reaper.ImGui_EndTabItem(ctx)
     end
 
@@ -1254,6 +1325,10 @@ function SettingsPanel()
       ImGui_VerticalSpacer(ctx,5);
       PlaybackMarkerSettingComboBox();
       reaper.ImGui_EndTabItem(ctx)
+    end
+
+    if reaper.ImGui_TabItemButton(ctx, "?##go_to_help") then
+      reaper.CF_ShellExecute(DOC_URL)
     end
 
     reaper.ImGui_EndTabBar(ctx)
@@ -1295,7 +1370,7 @@ function ui_loop()
 
   -- Since we use a trick to give back the focus to reaper, we don't want the window to glitch.
   reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_TitleBgActive(), 0x0A0A0AFF);
-  local visible, open = reaper.ImGui_Begin(ctx, 'One Small Step v0.9.6', true, flags);
+  local visible, open = reaper.ImGui_Begin(ctx, 'One Small Step v' .. VERSION, true, flags);
   reaper.ImGui_PopStyleColor(ctx,1);
 
   if visible then
@@ -1331,28 +1406,20 @@ function ui_loop()
     MagnetMiniBar();    SL()
     MiniBarSeparator(); SL();
 
-      ConfSourceMiniBar(); SL();
-      MiniBarSeparator(); SL();
+    ConfSourceMiniBar(); SL();
+    MiniBarSeparator(); SL();
 
-      if nlm == engine_lib.NoteLenParamSource.OSS then
-
-        NoteLenOptions(false)
-
-      elseif nlm == engine_lib.NoteLenParamSource.ProjectGrid then
-
-        ProjectGridLabel(ctx); SL()
-        XSeparator(); SL();
-        NoteLenOptions(true)
-
-
-      elseif nlm == engine_lib.NoteLenParamSource.ItemConf then
-
-        ItemGridLabel(ctx,take); SL()
-        XSeparator(); SL();
-        NoteLenOptions(true)
-
-      end
-
+    if nlm == engine_lib.NoteLenParamSource.OSS then
+      NoteLenOptions(false)
+    elseif nlm == engine_lib.NoteLenParamSource.ProjectGrid then
+      ProjectGridLabel(ctx); SL()
+      XSeparator(); SL();
+      NoteLenOptions(true)
+    elseif nlm == engine_lib.NoteLenParamSource.ItemConf then
+      ItemGridLabel(ctx,take); SL()
+      XSeparator(); SL();
+      NoteLenOptions(true)
+    end
 
     reaper.ImGui_PopStyleVar(ctx,3);
 
