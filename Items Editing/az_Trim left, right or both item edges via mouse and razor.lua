@@ -104,10 +104,12 @@ end
 ------------------------
 
 function OptionsWindow()
-  if reaper.APIExists( 'ImGui_GetVersion' ) ~= true then
+  local imgui_path = reaper.GetResourcePath() .. '/Scripts/ReaTeam Extensions/API/imgui.lua'
+  if not reaper.file_exists(imgui_path) then
     reaper.ShowMessageBox('Please, install ReaImGui from Reapack!', 'No Imgui library', 0)
     return
   end
+  dofile(imgui_path) '0.7'
   OptionsDefaults()
   GetExtStates()
   local fontSize = 17
