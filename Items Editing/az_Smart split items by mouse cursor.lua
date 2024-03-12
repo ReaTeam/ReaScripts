@@ -1,7 +1,7 @@
 -- @description Smart split items using mouse cursor context (also edit cursor, razor area and time selection)
 -- @author AZ
--- @version 3.1
--- @changelog - fixed bug when razor area covers envelope
+-- @version 3.15
+-- @changelog - fixed one silly bug for new users
 -- @provides [main] az_Smart split items by mouse cursor/az_Open options for az_Smart split items by mouse cursor.lua
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=259751
 -- @donation Donate via PayPal https://www.paypal.me/AZsound
@@ -1714,10 +1714,10 @@ end
 
 ------------------
 -------START------
-CurVers = 3.1
+CurVers = 3.15
 version = tonumber( reaper.GetExtState(ExtStateName, "version") )
 if version ~= CurVers then
-  if version < 3 then
+  if not version or version < 3 then
     updateMSG()
   else reaper.ShowMessageBox('The script was updated to version '..CurVers ,'Smart split',0)
   end
