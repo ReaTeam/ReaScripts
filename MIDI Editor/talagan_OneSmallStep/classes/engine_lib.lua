@@ -861,6 +861,19 @@ local function GetNote(take, ni, use_mu)
   };
 end
 
+local CrossApi = {}
+
+CrossApi.GetNote = GetNote
+
+CrossApi.MIDI_CountEvts = function(take, use_mu)
+  if use_mu then
+    return midi_utils.MIDI_CountEvts(take)
+  else
+    return reaper.MIDI_CountEvts(take)
+  end
+end
+
+
 local function SetNote(take, n, nosort)
   reaper.MIDI_SetNote(take, n.index, n.selected, n.muted, n.startPPQ, n.endPPQ, n.chan, n.pitch, n.vel, nosort)
 end
@@ -1183,6 +1196,20 @@ local function AllowKeyEventNavigation()
   return getSetting("AllowKeyEventNavigation")
 end
 
+local autoOverlap = nil
+local function PushAutoCorrectOverlapOption()
+  autoOverlap = reaper.GetToggleCommandStateEx(32060, 40681)
+  if autoOverlap == 1 then
+    reaper.MIDIEditor_LastFocused_OnCommand(40681, false) -- toggle off
+  end
+end
+
+local function PopAutoCorrectOverlapOption()
+  if autoOverlap == 1 then
+     reaper.MIDIEditor_LastFocused_OnCommand(40681, false) -- toggle back on
+  end
+end
+
 local function repitch(track, take, notes_to_add, notes_to_extend, triggered_by_key_event)
 
   local shcount, remcount, mvcount, addcount, extcount = 0, 0, 0, 0, 0
@@ -1209,10 +1236,14 @@ local function repitch(track, take, notes_to_add, notes_to_extend, triggered_by_
     local itemLength                = reaper.GetMediaItemInfo_Value(mediaItem, "D_LENGTH")
     local itemEndTime               = itemStartTime + itemLength;
 
-    local _, notecnt, _, _          = midi_utils.MIDI_CountEvts(take)
-    local ni                        = 0
+    local useMidiUtils              = true
 
-    midi_utils.MIDI_InitializeTake(take)
+    local _, notecnt, _, _          = CrossApi.MIDI_CountEvts(take, useMidiUtils)
+
+
+    if useMidiUtils then
+      midi_utils.MIDI_InitializeTake(take)
+    end
 
     for _, v in pairs(notes_to_extend) do
       notes_to_add[#notes_to_add+1] = v
@@ -1220,8 +1251,9 @@ local function repitch(track, take, notes_to_add, notes_to_extend, triggered_by_
 
     local tomod = {}
 
+    local ni = 0
     while (ni < notecnt) do
-      local n = GetNote(take, ni, true)
+      local n = GetNote(take, ni, useMidiUtils)
 
       if noteStartsInWindowPPQ(n, cursorPPQ, aggregationPPQ, false) then
         tomod[#tomod + 1] = n
@@ -1248,7 +1280,11 @@ local function repitch(track, take, notes_to_add, notes_to_extend, triggered_by_
           return n1.note < n2.note
         end)
 
-        midi_utils.MIDI_OpenWriteTransaction(take)
+        if useMidiUtils then
+          PushAutoCorrectOverlapOption()
+          midi_utils.MIDI_OpenWriteTransaction(take)
+        end
+
         for k, n in ipairs(tomod) do
           local newvel   = nil
           local newpitch = nil
@@ -1259,18 +1295,30 @@ local function repitch(track, take, notes_to_add, notes_to_extend, triggered_by_
             newpitch = notes_to_add[k].note
           end
 
-          midi_utils.MIDI_SetNote(take, n.index, nil, nil, nil, nil, nil, newpitch, newvel, nil)
+          if useMidiUtils then
+            midi_utils.MIDI_SetNote(take, n.index, nil, nil, nil, nil, nil, newpitch, newvel, nil)
+          else
+            reaper.MIDI_SetNote(take, n.index, nil, nil, nil, nil, nil, newpitch, newvel, false)
+          end
+
           if n.startPPQ > cursorPPQ then
             cursorPPQ = n.startPPQ
           end
         end
-        midi_utils.MIDI_CommitWriteTransaction(take)
+
+        if useMidiUtils then
+          midi_utils.MIDI_CommitWriteTransaction(take)
+          PopAutoCorrectOverlapOption()
+        end
 
         cursorTime = reaper.MIDI_GetProjTimeFromPPQPos(take, cursorPPQ)
       end
     end
 
-    reaper.MIDI_Sort(take)
+    if not useMidiUtils then
+      reaper.MIDI_Sort(take)
+    end
+
     reaper.UpdateItemInProject(mediaItem)
     reaper.MarkTrackItemsDirty(track, mediaItem)
   end
