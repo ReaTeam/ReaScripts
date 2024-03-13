@@ -8,14 +8,17 @@ local upperDir  = scriptDir:match( "((.*)[\\/](.+)[\\/])(.+)$" );
 
 package.path      = scriptDir .."?.lua;".. package.path
 
-local helper_lib                = require "helper_lib";
+-- Using sockmonkey72's library
+local midi_utils                = require 'lib/MIDIUtils'
 
+local helper_lib                = require "helper_lib";
 local KeyActivityManager        = require "KeyActivityManager";
 local KeyReleaseActivityManager = require "KeyReleaseActivityManager";
 local KeyPressActivityManager   = require "KeyPressActivityManager";
 
 local launchTime                = reaper.time_precise();
 local IsMacos                   = (reaper.GetOS():find('OSX') ~= nil);
+
 -------------
 -- Defines
 
@@ -60,6 +63,7 @@ local EditMode = {
   Write     = "Write",
   Navigate  = "Navigate",
   Insert    = "Insert",
+  Repitch   = "Repitch",
   Replace   = "Replace"
 }
 
@@ -71,11 +75,13 @@ local ActionTriggers = {
   Navigate     = { action = "Navigate",     back = false },
   Insert       = { action = "Insert",       back = false },
   Replace      = { action = "Replace",      back = false },
+  Repitch      = { action = "Repitch",      back = false },
 
   WriteBack    = { action = "Write",        back = true },
   NavigateBack = { action = "Navigate",     back = true },
   InsertBack   = { action = "Insert",       back = true },
   ReplaceBack  = { action = "Replace",      back = true },
+  RepitchBack  = { action = "Repitch",      back = true }
 }
 
 local MacOSModifierKeys = {
@@ -111,7 +117,7 @@ end
 for i=1, #ModifierKeys do
   local m1 = ModifierKeys[i]
   for j=i+1, #ModifierKeys do
-    m2 = ModifierKeys[j]
+    local m2 = ModifierKeys[j]
     ModifierKeyCombinations[#ModifierKeyCombinations+1] = { label = m1.name .. "+" .. m2.name, id = "" .. m1.vkey .. "+" .. m2.vkey, vkeys = { m1.vkey, m2.vkey } }
   end
 end
@@ -130,6 +136,7 @@ local SettingDefs = {
   InsertModifierKeyCombination                              = { type = "string",  default = IsMacos and "17" or "17" },
   NavigateModifierKeyCombination                            = { type = "string",  default = IsMacos and "18" or "18" },
   ReplaceModifierKeyCombination                             = { type = "string",  default = IsMacos and "17+18" or "17+18" },
+  RepitchModifierKeyCombination                             = { type = "string",  default = "none" },
 
   HideEditModeMiniBar                                       = { type = "bool",    default = false },
 
@@ -159,6 +166,9 @@ local SettingDefs = {
   KeyPressModeInertiaEnabled                                = { type = "bool",    default = true},
 
   KeyReleaseModeForgetTime                                  = { type = "double",  default = 0.200, min = 0.05, max = 0.4},
+
+  RepitchModeAggregationTime                                = { type = "double",  default = 0.05, min = 0,   max = 0.1 },
+  RepitchModeAffects                                        = { type = "string",  default = "Pitches Only", inclusion = { "Pitches only", "Velocities only", "Pitches + Velocities" } },
 
   PedalRepeatEnabled                                        = { type = "bool" ,   default = true },
   PedalRepeatTime                                           = { type = "double",  default = 0.200, min = 0.05, max = 0.5 },
@@ -594,6 +604,7 @@ local function resolveOperationMode(look_for_action_triggers)
       { name = "Write",     prio = 4 },
       { name = "Navigate",  prio = 3 },
       { name = "Insert",    prio = 2 },
+      { name = "Repitch",   prio = 2.5},
       { name = "Replace",   prio = 1 },
     }
 
@@ -824,8 +835,17 @@ local function CreateItemIfMissing(track)
 end
 
 
-local function GetNote(take, ni)
-  local _, selected, muted, startPPQ, endPPQ, chan, pitch, vel = reaper.MIDI_GetNote(take, ni);
+local function GetNote(take, ni, use_mu)
+
+  local selected, muted, startPPQ, endPPQ, chan, pitch, vel, offvel
+
+  if use_mu then
+    _, selected, muted, startPPQ, endPPQ, chan, pitch, vel, offvel = midi_utils.MIDI_GetNote(take, ni);
+  else
+    _, selected, muted, startPPQ, endPPQ, chan, pitch, vel = reaper.MIDI_GetNote(take, ni);
+    offvel = 0
+  end
+
   return  {
     index     = ni,
     selected  = selected,
@@ -836,7 +856,8 @@ local function GetNote(take, ni)
     startPPQ  = startPPQ,
     startQN   = reaper.MIDI_GetProjQNFromPPQPos(take, startPPQ),
     endPPQ    = endPPQ,
-    endQN     = reaper.MIDI_GetProjQNFromPPQPos(take, endPPQ)
+    endQN     = reaper.MIDI_GetProjQNFromPPQPos(take, endPPQ),
+    offvel    = offvel
   };
 end
 
@@ -849,16 +870,16 @@ local function bool2sign(b)
 end
 
 local function noteStartsAfterPPQ(note, limit, strict)
-  return note.startPPQ > limit + bool2sign(strict) * PPQ_TOLERANCE
+  return note.startPPQ > (limit + bool2sign(strict) * PPQ_TOLERANCE)
 end
 local function noteStartsBeforePPQ(note, limit, strict)
-  return note.startPPQ < limit - bool2sign(strict) * PPQ_TOLERANCE
+  return note.startPPQ < (limit - bool2sign(strict) * PPQ_TOLERANCE)
 end
 local function noteEndsAfterPPQ(note, limit, strict)
-  return note.endPPQ > limit + bool2sign(strict) * PPQ_TOLERANCE
+  return note.endPPQ > (limit + bool2sign(strict) * PPQ_TOLERANCE)
 end
 local function noteEndsBeforePPQ(note, limit, strict)
-  return note.endPPQ < limit - bool2sign(strict) * PPQ_TOLERANCE
+  return note.endPPQ < (limit - bool2sign(strict) * PPQ_TOLERANCE)
 end
 
 local function noteEndsOnPPQ(note, limit)
@@ -867,6 +888,13 @@ end
 
 local function noteStartsOnPPQ(note, limit)
   return math.abs(note.startPPQ - limit) < PPQ_TOLERANCE
+end
+
+local function noteStartsInWindowPPQ(note, left, right, strict)
+  local a = noteStartsAfterPPQ(note, left, strict)
+  local e = noteStartsBeforePPQ(note, right, strict)
+
+  return a and e
 end
 
 local function setNewNoteBounds(note, take, startPPQ, endPPQ, startOffsetQN, endOffsetQN)
@@ -986,7 +1014,7 @@ local function nextSnap(track, direction, reftime, options)
       local itemStartTime    = reaper.GetMediaItemInfo_Value(mediaItem, "D_POSITION")
       local itemEndTime      = itemStartTime + reaper.GetMediaItemInfo_Value(mediaItem, "D_LENGTH")
 
-      if (maxTime ~= nil) or (itemEndTime > maxTime) then
+      if itemEndTime > maxTime then
         maxTime = itemEndTime
       end
 
@@ -1006,7 +1034,7 @@ local function nextSnap(track, direction, reftime, options)
         bestJumpTime = moveComparatorHelper(itemEndTime,    cursorTime, bestJumpTime, direction, "TIME")
       end
 
-      if options.notes or options.itemGrid then
+      if options.noteStart or options.noteEnd or options.itemGrid then
         local takeCount = reaper.GetMediaItemNumTakes(mediaItem)
         local ti        = 0
 
@@ -1019,15 +1047,20 @@ local function nextSnap(track, direction, reftime, options)
           local cursorPPQ       = reaper.MIDI_GetPPQPosFromProjTime(take, cursorTime)
           local bestJumpPPQ     = nil
 
-          if options.notes then
+          if options.noteStart or options.noteEnd then
             local _, notecnt, _, _ = reaper.MIDI_CountEvts(take)
             local ni = 0
 
             while (ni < notecnt) do
               local n = GetNote(take, ni)
 
-              bestJumpPPQ = moveComparatorHelper(n.startPPQ, cursorPPQ, bestJumpPPQ, direction, "PPQ")
-              bestJumpPPQ = moveComparatorHelper(n.endPPQ, cursorPPQ, bestJumpPPQ, direction, "PPQ")
+              if options.noteStart then
+                bestJumpPPQ = moveComparatorHelper(n.startPPQ, cursorPPQ, bestJumpPPQ, direction, "PPQ")
+              end
+
+              if options.noteEnd then
+                bestJumpPPQ = moveComparatorHelper(n.endPPQ, cursorPPQ, bestJumpPPQ, direction, "PPQ")
+              end
 
               ni = ni+1
             end -- end note iteration
@@ -1080,13 +1113,18 @@ local function snapOptions()
   return {
     enabled     = getSetting("Snap"),
     itemBounds  = getSetting("SnapItemBounds"),
-    notes       = getSetting("SnapNotes"),
+    noteStart   = getSetting("SnapNotes"),
+    noteEnd     = getSetting("SnapNotes"),
     itemGrid    = getSetting("SnapItemGrid"),
     projectGrid = getSetting("SnapProjectGrid")
   }
 end
 
 local function nextSnapFromCursor(track, direction)
+  return nextSnap(track, direction, reaper.GetCursorPosition(), snapOptions())
+end
+
+local function nextSnapNote(track)
   return nextSnap(track, direction, reaper.GetCursorPosition(), snapOptions())
 end
 
@@ -1145,6 +1183,131 @@ local function AllowKeyEventNavigation()
   return getSetting("AllowKeyEventNavigation")
 end
 
+local function repitch(track, take, notes_to_add, notes_to_extend, triggered_by_key_event)
+
+  local shcount, remcount, mvcount, addcount, extcount = 0, 0, 0, 0, 0
+
+  local cursorTime                = reaper.GetCursorPosition()
+  local cursorQN                  = reaper.TimeMap2_timeToQN(0, cursorTime)
+
+  local aggregationTime           = cursorTime + getSetting("RepitchModeAggregationTime")
+
+  local useNewVelocities          = string.find(getSetting("RepitchModeAffects"), "Velocities")
+  local useNewPitches             = string.find(getSetting("RepitchModeAffects"), "Pitches")
+
+  local shouldJump                = true
+
+  reaper.Undo_BeginBlock();
+
+  if take then
+    local mediaItem                 = reaper.GetMediaItemTake_Item(take)
+
+    local cursorPPQ                 = reaper.MIDI_GetPPQPosFromProjTime(take, cursorTime)
+    local aggregationPPQ            = reaper.MIDI_GetPPQPosFromProjTime(take, aggregationTime)
+
+    local itemStartTime             = reaper.GetMediaItemInfo_Value(mediaItem, "D_POSITION")
+    local itemLength                = reaper.GetMediaItemInfo_Value(mediaItem, "D_LENGTH")
+    local itemEndTime               = itemStartTime + itemLength;
+
+    local _, notecnt, _, _          = midi_utils.MIDI_CountEvts(take)
+    local ni                        = 0
+
+    midi_utils.MIDI_InitializeTake(take)
+
+    for _, v in pairs(notes_to_extend) do
+      notes_to_add[#notes_to_add+1] = v
+    end
+
+    local tomod = {}
+
+    while (ni < notecnt) do
+      local n = GetNote(take, ni, true)
+
+      if noteStartsInWindowPPQ(n, cursorPPQ, aggregationPPQ, false) then
+        tomod[#tomod + 1] = n
+      end
+
+      ni = ni + 1
+    end
+
+    if #tomod == 0 or #notes_to_add == 0 then
+      -- Just jump
+    else
+      if (#tomod ~= #notes_to_add) then
+        shouldJump = false
+      else
+        -- Apply mote modifications
+
+        -- Sort notes to modify by pitch
+        table.sort(tomod, function(n1, n2)
+          return n1.pitch < n2.pitch
+        end)
+
+        -- Sort notes to add by pitch
+        table.sort(notes_to_add, function(n1, n2)
+          return n1.note < n2.note
+        end)
+
+        midi_utils.MIDI_OpenWriteTransaction(take)
+        for k, n in ipairs(tomod) do
+          local newvel   = nil
+          local newpitch = nil
+          if useNewVelocities then
+            newvel = notes_to_add[k].velocity
+          end
+          if useNewPitches then
+            newpitch = notes_to_add[k].note
+          end
+
+          midi_utils.MIDI_SetNote(take, n.index, nil, nil, nil, nil, nil, newpitch, newvel, nil)
+          if n.startPPQ > cursorPPQ then
+            cursorPPQ = n.startPPQ
+          end
+        end
+        midi_utils.MIDI_CommitWriteTransaction(take)
+
+        cursorTime = reaper.MIDI_GetProjTimeFromPPQPos(take, cursorPPQ)
+      end
+    end
+
+    reaper.MIDI_Sort(take)
+    reaper.UpdateItemInProject(mediaItem)
+    reaper.MarkTrackItemsDirty(track, mediaItem)
+  end
+
+  if shouldJump then
+    local jumpTime  = nextSnap(track, 1, cursorTime, {enabled = true, noteStart = true})
+    jumpTime        = (jumpTime and jumpTime.time) or itemEndTime
+    reaper.SetEditCurPos(jumpTime, false, false)
+
+    if getSetting("AutoScrollArrangeView") then
+      KeepEditCursorOnScreen()
+    end
+  end
+
+  reaper.Undo_EndBlock(commitDescription(1, addcount, remcount, shcount, extcount, mvcount), -1)
+end
+
+local function repitchBack(track, take, notes_to_add, notes_to_extend, triggered_by_key_event)
+
+  local shcount, remcount, mvcount, addcount, extcount = 0, 0, 0, 0, 0
+
+  local cursorTime                = reaper.GetCursorPosition()
+  local cursorQN                  = reaper.TimeMap2_timeToQN(0, cursorTime)
+  local shouldJump                = true
+
+  reaper.Undo_BeginBlock();
+
+  local jumpTime    = nextSnap(track, -1, cursorTime, {enabled = true, noteStart = true})
+  jumpTime          = (jumpTime and jumpTime.time) or itemStartTime
+  reaper.SetEditCurPos(jumpTime, false, false)
+
+  if getSetting("AutoScrollArrangeView") then
+    KeepEditCursorOnScreen()
+  end
+
+  reaper.Undo_EndBlock(commitDescription(1, addcount, remcount, shcount, extcount, mvcount), -1)
+end
 
 -- Commits the currently held notes into the take
 local function commit(track, take, notes_to_add, notes_to_extend, triggered_by_key_event)
@@ -1155,6 +1318,11 @@ local function commit(track, take, notes_to_add, notes_to_extend, triggered_by_k
   local navigateModeOn  = (currentop.mode == "Navigate")
   local insertModeOn    = (currentop.mode == "Insert")
   local replaceModeOn   = (currentop.mode == "Replace")
+  local repitchModeOn   = (currentop.mode == "Repitch")
+
+  if repitchModeOn then
+    return repitch(track, take, notes_to_add, notes_to_extend, triggered_by_key_event)
+  end
 
   if navigateModeOn then
     if (not triggered_by_key_event) or AllowKeyEventNavigation() then
@@ -1444,6 +1612,11 @@ local function commitBack(track, take, notes_to_shorten, triggered_by_key_event)
   local navigateModeOn  = (currentop.mode == "Navigate")
   local insertModeOn    = (currentop.mode == "Insert")
   local replaceModeOn   = (currentop.mode == "Replace")
+  local repitchModeOn   = (currentop.mode == "Repitch")
+
+  if repitchModeOn then
+    return repitchBack(track, take, notes_to_add, notes_to_extend, triggered_by_key_event)
+  end
 
   local fullEraseMode = false
 
