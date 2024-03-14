@@ -1,6 +1,6 @@
 --[[
 @description One Small Step : Alternative Step Input
-@version 0.9.7
+@version 0.9.8
 @author Ben 'Talagan' Babut
 @license MIT
 @metapackage
@@ -54,12 +54,7 @@
 @screenshot
   https://stash.reaper.fm/48269/oss_094.png
 @changelog
-  - [Feature] Added repitch (+revel) mode (thanks @smandrap !)
-  - [Fix] Added missing "Change Edit Mode" actions
-  - [Doc] Added help button that redirects to current documentation
-  - [Rework] Re arranged settings panel
-  - [Rework] Reworked some icons and colors
-  - [Rework] Started to use MIDI Utils API by sockmonkey72 instead of default MIDI API
+  - [Bug Fix] Enhancing behaviour of the repitch mode when Reaper's "Autocorrect overlapping notes" is checked (thanks @smandrap !)
 @about
   # Purpose
 
@@ -89,7 +84,7 @@
 
 --]]
 
-VERSION = "0.9.7"
+VERSION = "0.9.8"
 DOC_URL = "https://bentalagan.github.io/onesmallstep-doc/index.html?ver=" .. VERSION
 
 --------------------------------
@@ -176,8 +171,8 @@ end
 -------------------------------
 -- Other global variables
 
-local focustimer        = nil;
-local showsettings      = nil;
+local focustimer                      = nil
+local showsettings                    = nil
 
 ------------------------------
 
