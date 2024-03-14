@@ -769,8 +769,13 @@ local function MIDI_CommitWriteTransaction(take, refresh, dirty)
   end
   local newMIDIString = ''
   local lastPPQPos = 0
+
+  local comparator = function(t, a, b)
+    return ( (t[a].ppqpos == t[b].ppqpos) and (t[a]:type() == NOTEOFF_TYPE) ) or (t[a].ppqpos < t[b].ppqpos)
+  end
+
   -- iterate sorted to avoid (REAPER Inline MIDI Editor) problems with offset calculation
-  for _, event in spairs(MIDIEvents, function(t, a, b) return t[a].ppqpos < t[b].ppqpos end) do
+  for _, event in spairs(MIDIEvents, comparator) do
     event.offset = math.floor(event.ppqpos - lastPPQPos)
     lastPPQPos = event.ppqpos
     local MIDIStr = event:GetMIDIString()

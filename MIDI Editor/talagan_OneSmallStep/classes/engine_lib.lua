@@ -340,6 +340,27 @@ function clearAllActionTriggers()
   end
 end
 
+local function hasActionTrigger(forward)
+  local res = false
+  for k,v in pairs(ActionTriggers) do
+    local cond = false
+    if forward then
+      cond = not v.back
+    else
+      cond = v.back
+    end
+    if cond then
+      res = (res or getActionTrigger(k))
+    end
+  end
+  return res
+end
+local function hasForwardActionTrigger()
+  return hasActionTrigger(true)
+end
+local function hasBackwardActionTrigger()
+  return hasActionTrigger(false)
+end
 
 ------------
 
@@ -1894,15 +1915,19 @@ local function commitBack(track, take, notes_to_shorten, triggered_by_key_event)
   reaper.UpdateItemInProject(mediaItem)
   reaper.MarkTrackItemsDirty(track, mediaItem)
 
-  local blockRewind       = false
+  local blockRewind           = false
+  local triggeredByBackAction = hasBackwardActionTrigger()
+  local pedalStart            = currentKeyEventManager():keyActivityForTrack(track).pedal.first_ts
 
-  if writeModeON then
+  if writeModeON and (not triggeredByBackAction) then
     -- We block the rewind in certain conditions (when erasing failed, and when during this pedal session, the erasing was blocked)
-    local pedalStart        = currentKeyEventManager():keyActivityForTrack(track).pedal.first_ts
     local hadCandidates     = (#notes_to_shorten > 0)
     local failedToErase     = (hadCandidates and (shcount+remcount == 0))
 
-    blockRewind = (getSetting("DoNotRewindOnStepBackIfNothingErased") and failedToErase) or ((not hadCandidates) and (pedalStart == blockRewindRef))
+    local cond1             = getSetting("DoNotRewindOnStepBackIfNothingErased") and failedToErase
+    local cond2             = (not hadCandidates) and (pedalStart == blockRewindRef)
+
+    blockRewind = cond1 or cond2
   end
 
   if blockRewind then
@@ -1919,21 +1944,6 @@ local function commitBack(track, take, notes_to_shorten, triggered_by_key_event)
   reaper.Undo_EndBlock(commitDescription(-1, addcount, remcount, shcount, extcount, mvcount),-1);
 end
 
-local function hasTrigger(forward)
-  local res = false
-  for k,v in pairs(ActionTriggers) do
-    local cond = false
-    if forward then
-      cond = not v.back
-    else
-      cond = v.back
-    end
-    if cond then
-      res = (res or getActionTrigger(k))
-    end
-  end
-  return res
-end
 
 -- Listen to events from instrumented tracks that have the JSFX companion effect installed (or install it if not present)
 local function listenToEvents()
@@ -2010,14 +2020,14 @@ local function listenToEvents()
   );
 
   -- Allow the use of the action or pedal
-  if (pedal and not spmod) or hasTrigger(true) then
+  if (pedal and not spmod) or hasForwardActionTrigger() then
     manager:simpleCommit(track, function(commit_candidates, held_candidates)
         commit(track, take, commit_candidates, held_candidates, false);
       end
     );
   end
 
-  if (pedal and spmod) or hasTrigger(false) then
+  if (pedal and spmod) or hasBackwardActionTrigger() then
     manager:simpleCommitBack(track, function(shorten_candidates)
         commitBack(track, take, shorten_candidates, false)
       end
