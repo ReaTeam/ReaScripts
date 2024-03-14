@@ -1,6 +1,6 @@
 --[[
 @description One Small Step : Alternative Step Input
-@version 0.9.8
+@version 0.9.9
 @author Ben 'Talagan' Babut
 @license MIT
 @metapackage
@@ -54,7 +54,10 @@
 @screenshot
   https://stash.reaper.fm/48269/oss_094.png
 @changelog
-  - [Bug Fix] Enhancing behaviour of the repitch mode when Reaper's "Autocorrect overlapping notes" is checked (thanks @smandrap !)
+  - [Rework] Changed toolbar icon color
+  - [Bug Fix] [Repitch Mode] Patched MIDIUtils API : successive snapped notes would be borked by the automatic overlap correction option (thanks @smandrap)
+  - [Bug Fix] [Write Mode] CommitBack action would be blocked by sustain pedal blocker if called from action (thanks @hipox !)
+  - [Bug Fix] [Write Mode] Sustain Pedal blocking system when (stepping back + miss) was broken
 @about
   # Purpose
 
@@ -84,7 +87,7 @@
 
 --]]
 
-VERSION = "0.9.8"
+VERSION = "0.9.9"
 DOC_URL = "https://bentalagan.github.io/onesmallstep-doc/index.html?ver=" .. VERSION
 
 --------------------------------
