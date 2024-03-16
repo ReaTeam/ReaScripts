@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="7114ce9fec44e8229300afc2b8982ddc278820af" name="ReaTeam Scripts">
+<index version="1" commit="bcb217ef327cce65e89739407d09898791ab4014" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -4937,11 +4937,12 @@ a solution on possible bug in ultraschall.SetFXStateChunk.]]></changelog>
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 PERFECT TIMING! is a script for quantizing audio with advanced features.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 PERFECT TIMING!\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 is a script for audio quantizing with advanced features.\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Fast transient analysis with 2 visualization options.\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Timesaving Grid Based detection.\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Multitrack and Multichannel analysis and editing.\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Hipass Lowpass filters and transient design attack.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Hipass Lowpass filters and transient attack.\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Super fast quantizing + crossfading .\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Sensitivity and threshold Histogram.\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Low CPU consumption\par}
@@ -4949,9 +4950,18 @@ a solution on possible bug in ultraschall.SetFXStateChunk.]]></changelog>
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Works with fixed lanes\sa180\par}
 }
 ]]></description>
+        <link rel="website" href="https://forum.cockos.com/showthread.php?t=288964">Forum thread</link>
       </metadata>
       <version name="0.21 (Beta)" author="80icio" time="2024-03-08T22:34:53Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/5227b2c094e411457f48d3cc22895345676172e8/Items%20Editing/80icio_Perfect%20Timing!%20-%20Audio%20Quantizer.lua</source>
+      </version>
+      <version name="0.22" author="80icio" time="2024-03-16T10:34:03Z">
+        <changelog><![CDATA[- Added Threshold line, edit and play cursor to Visualizer window
+- fixed Visualizer not resetting zoom setting on new analysis
+- New Error message modal pop up window
+- Re wrote help widgets
+- Code clean up]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/bcb217ef327cce65e89739407d09898791ab4014/Items%20Editing/80icio_Perfect%20Timing!%20-%20Audio%20Quantizer.lua</source>
       </version>
     </reapack>
     <reapack name="Add project markers as cue points to selected items and replace source files.lua" type="script" desc="amagalma_Add project markers as cue points to selected items and replace source files">
