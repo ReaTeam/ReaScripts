@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="bcb217ef327cce65e89739407d09898791ab4014" name="ReaTeam Scripts">
+<index version="1" commit="270fe11a677263714897850061077d6a7fd1d1cb" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -4962,6 +4962,10 @@ a solution on possible bug in ultraschall.SetFXStateChunk.]]></changelog>
 - Re wrote help widgets
 - Code clean up]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/bcb217ef327cce65e89739407d09898791ab4014/Items%20Editing/80icio_Perfect%20Timing!%20-%20Audio%20Quantizer.lua</source>
+      </version>
+      <version name="0.23" author="80icio" time="2024-03-16T14:34:01Z">
+        <changelog><![CDATA[-  Corrected wrong Playback and Edit cursor position on Visualizer window]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/270fe11a677263714897850061077d6a7fd1d1cb/Items%20Editing/80icio_Perfect%20Timing!%20-%20Audio%20Quantizer.lua</source>
       </version>
     </reapack>
     <reapack name="Add project markers as cue points to selected items and replace source files.lua" type="script" desc="amagalma_Add project markers as cue points to selected items and replace source files">
