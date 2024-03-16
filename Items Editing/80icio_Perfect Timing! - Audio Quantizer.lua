@@ -1,18 +1,26 @@
 -- @description Perfect Timing! - Audio Quantizer
 -- @author 80icio
--- @version 0.21 (Beta)
+-- @version 0.22
+-- @changelog
+--   - Added Threshold line, edit and play cursor to Visualizer window
+--   - fixed Visualizer not resetting zoom setting on new analysis
+--   - New Error message modal pop up window
+--   - Re wrote help widgets
+--   - Code clean up
+-- @link Forum thread https://forum.cockos.com/showthread.php?t=288964
 -- @about
---   PERFECT TIMING! is a script for quantizing audio with advanced features.
+--   # PERFECT TIMING! 
+--   is a script for audio quantizing with advanced features.
 --
---   - Fast transient analysis with 2 visualization options.
---   - Timesaving Grid Based detection.
---   - Multitrack and Multichannel analysis and editing.
---   - Hipass Lowpass filters and transient design attack.
---   - Super fast quantizing + crossfading .
---   - Sensitivity and threshold Histogram.
---   - Low CPU consumption
---   - Multisized GUI
---   - Works with fixed lanes
+--   * Fast transient analysis with 2 visualization options.
+--   * Timesaving Grid Based detection.
+--   * Multitrack and Multichannel analysis and editing.
+--   * Hipass Lowpass filters and transient attack.
+--   * Super fast quantizing + crossfading .
+--   * Sensitivity and threshold Histogram.
+--   * Low CPU consumption
+--   * Multisized GUI
+--   * Works with fixed lanes
 
 
 --- This script is a re adaptation and re writing of  @Cool Mk Slicer 2 (80icio Mod)
@@ -39,6 +47,14 @@ end
 ]]--
 
 ------------------------------check estensions---------------------------------
+--[[
+function Reaperversioncheck(str)
+    local digit = str:match("%d")
+    return tonumber(digit)
+end
+
+local reaperversion = Reaperversioncheck(r.GetAppVersion())
+]]--
 
 local imgui_path = r.GetResourcePath() .. '/Scripts/ReaTeam Extensions/API/imgui.lua'
 if not r.file_exists(imgui_path) then
@@ -92,9 +108,6 @@ local thresh_table = {}
 local thresh_histogram_table = {}
 local thresh_moving = 0
 
---local Histogram_H = {}
- 
-
 local edittrack = {}
 local editgroup = {}
 local sens_x, sens_y = 0, 0
@@ -113,6 +126,7 @@ local logx = math.log
 local huge = math.huge
 local tan = math.tan
 local pi = math.pi
+local fmod = math.fmod
 
 local filter_preset = 0
 local page_select = 1
@@ -126,7 +140,6 @@ local waveform_zoom_gain = 1
 local min_visualzer_rangeview = 1
 local Visualizer_mode = 0
 local waveform_zoom_h = 1
---local vis_scroll_v_pos = 0
 local h_zoom_center = 0
 local samplesdifference = 0
 local h_zoom_absolute_center = 0
@@ -159,9 +172,7 @@ local Detect = 1
 local attack_trans = 0
 
 local Help_state = false
---local AutoSens = false
 local AutoColor = true
---local AutoThresh = false
 local GridScan = true
 local visualizer = false
 local filter_on = false
@@ -178,25 +189,25 @@ local min_rms = min_rms_tbl[1]
 local filter_preset_list
 
 local Grid_help = "Control your project Grid settings via the script.\nGrid settings are limited to 1/4 to 1/64."
-local GridScan_help = "Grid Scan will refine your results by choosing only 1 transient per Grid division, by narrowing the research time window around it."
+local GridScan_help = "Grid Scan refines results by selecting only 1 transient per grid division, narrowing the research time window around it."
 local EditTrk_help = "Select single tracks or track groups you want to edit the same as the analyzed audio."
 local LeadingPad_help = "Leading Pad will anticipate the edit cut but leave every grid snap point on the correct position, to prevent editing artifacts and keep your transients far from x fades.\nSPLIT mode only"
 local Xfade_help = "Set automatic Xfade length for smoothing out after split and quantize.\nSPLIT mode only."
 local mode_help = "Split mode is for phase coherent multitrack quantizing like Drum quantizing. Warp is for stretch markers quantizing."
-local Retrig_help = "Re-trigger Time prevents double triggering and re-triggering.\nIt rappresents the minimum amount of time where only a single transient can happen."
-local Qstrength_help = "Quantize Strenght is the percentage of quantization applied to your audio. 100% means ON the grid, lower values means it will be partially quantized towards the closest grid division."
-local linecolor_help = "This setting changes the main window detection lines color. Lines can also be automatically colored for best visibility (see MENU)."
-local Visualizer_help = "Visualizer will draw the analyzed audio and open a new window below the Analyze Button. This option is useful especially when filters are applied and you want to check how the waveform is changing."
-local lowcut_help = "Lowcut / Hipass Filter, useful to remove unwanted frequencies from the analyzed audio."
-local hicut_help = "Hicut / Lowpass Filter, useful to remove unwanted frequencies from the analyzed audio."
-local gain_help = "Filter output gain"
+local Retrig_help = "Re-trigger Time prevents double triggering and re-triggering,\nrepresenting the minimum time where only a single transient can occur."
+local Qstrength_help = "Quantize Strength determines the percentage of quantization applied to your audio. 100% aligns with the grid, lower values apply partial quantization."
+local linecolor_help = "Change the color of detection lines in the main window. Lines can also be automatically colored for better visibility (see MENU)"
+local Visualizer_help = "Visualizer displays the analyzed audio waveform in a new window, particularly useful when applying filters to observe waveform changes."
+local lowcut_help = "Apply a Lowcut/High-pass filter to remove unwanted frequencies from the analyzed audio"
+local hicut_help = "Apply a Hicut/Low-pass filter to remove unwanted frequencies from the analyzed audio"
+local gain_help = "Adjust filter output gain"
 local attack_help = "This setting makes your transients get louder/faster, use it when transients are soft and hard to detect."
-local filter_help = "Engage the filter. Filter will significantly slow down the audio analisys."
+local filter_help = "Engage the filter. Note: This may significantly slow down audio analysis."
 local Crest_help = "Lower values to catch soft dynamics / slow transients.\nHigher values to catch only high dynamics / fast transients."
-local Offset_help = "This setting moves forward or backward the transient detection time."
+local Offset_help = "Adjust the time offset to shift transient detection forward or backward."
 local Threshold_help = "Set threshold to your preference in order to avoid catching to many transients"
 local Sensitivity_help = "Sensitivity Scale is based on loudness data of the detected transients. Higher values means to include softer transients."
-local Visual_Navigation_help = "Click and Drag to zoom and navigate\nMousewheels down = zoom in\nMousewheels up = zoom out .\nUpArrow/DownArrow to zoom peaks in/out\nLeftArrow/RightArrow = Navigate Left and Right"
+local Visual_Navigation_help = "leftClick and Drag to zoom and navigate\nRight Click and Drag for horizontal scroll\nMousewheel down = zoom in\nMousewheel up = zoom out .\nUpArrow/DownArrow = zoom peaks in/out\nLeftArrow/RightArrow = Navigate Left and Right"
 
   
 
@@ -210,13 +221,9 @@ end
 
 function getsettings()
   Visualizer_mode = tonumber(r.GetExtState(scriptname,'Visualizer_mode') ) or 0 
-  --lowcut = tonumber(r.GetExtState(scriptname,'lowcut') ) or 20 
-  --hicut = tonumber(r.GetExtState(scriptname,'hicut') ) or 20000 
-  --AutoSens = str_to_bool(r.GetExtState(scriptname,'AutoSens') ) --or str_to_bool('true')
-  AutoColor = str_to_bool(r.GetExtState(scriptname,'AutoColor') )-- or str_to_bool('true')
+  AutoColor = str_to_bool(r.GetExtState(scriptname,'AutoColor') )
   visualizer = str_to_bool(r.GetExtState(scriptname,'visualizer') )
   Help_state = str_to_bool(r.GetExtState(scriptname,'Help_state') )
-  --AutoThresh = str_to_bool(r.GetExtState(scriptname,'AutoThresh') )
   linecolor_v = tonumber(r.GetExtState(scriptname,'linecolor_v') ) or 0.5
   font_size = tonumber(r.GetExtState(scriptname,'font_size') ) or 16
   EditTrk_mode = tonumber(r.GetExtState(scriptname,'EditTrk_mode') ) or 0
@@ -247,11 +254,7 @@ function initsettings() -----------initialize settings
   filter_preset = 0
   gain_v = 0
   Visualizer_mode = 0; r.SetExtState(scriptname,'Visualizer_mode', 0 ,true)
-  --lowcut = 20 ;  r.SetExtState(scriptname,'lowcut', 20 ,true)
-  --hicut = 20000;  r.SetExtState(scriptname,'hicut', 20000 ,true)
-  --AutoSens = true ; r.SetExtState(scriptname,'AutoSens', tostring(true) ,true)
   AutoColor = true;  r.SetExtState(scriptname,'AutoColor', tostring(true) ,true)
-  --AutoThresh = true ; r.SetExtState(scriptname,'AutoThresh', tostring(true) ,true)
   Rtrig_v = 20;  r.SetExtState(scriptname,'Rtrig_v', 20 ,true)
   linecolor_v = 0.5;  r.SetExtState(scriptname,'linecolor_v', 0.5 ,true)
   font_size = 16;  r.SetExtState(scriptname,'font_size', 16 ,true)
@@ -272,8 +275,6 @@ end
 
 function AlwaysStoreatexit()
   r.SetExtState(scriptname,'AutoColor',tostring(AutoColor),true)
-  --r.SetExtState(scriptname,'AutoSens',tostring(AutoSens),true)
-  --r.SetExtState(scriptname,'AutoThresh',tostring(AutoThresh),true)
   r.SetExtState(scriptname,'visualizer',tostring(visualizer),true)
   r.SetExtState(scriptname,'Visualizer_mode',Visualizer_mode,true)
   r.SetExtState(scriptname,'font_size',font_size,true)
@@ -281,8 +282,6 @@ function AlwaysStoreatexit()
   r.SetExtState(scriptname,'m_window_width',m_window_width,true)
   r.SetExtState(scriptname,'m_window_height',m_window_height,true)
   r.SetExtState(scriptname,'mode', mode,true)
-  --r.SetExtState(scriptname,'Rtrig_v', Rtrig_v,true)
-  --r.SetExtState(scriptname,'Thresh_v', Thresh_v,true)
   r.SetExtState(scriptname,'dockid', dockid,true)
   r.SetExtState(scriptname,'Help_state',tostring(Help_state),true)
 end
@@ -342,7 +341,7 @@ local mode_table = {'Split', 'Warp'}
 --local Time_vs_Peak_mode_table = 'GS Peak Priority\0GS Time Priority\0'
 -----------------------------ERRORS--------------------------------------------
 local error_msg = 0
-local error_msg_table = {'Please unselect midi items', 'Please unmute audio', 'Items length mismatch', 'Sample rate mismatch','Please select 1 Item per track'}
+local error_msg_table = {'Please unselect midi items', 'Please unmute audio', 'Items Position / Length mismatch', 'Sample rate mismatch','Please select 1 Item per track'}
 local first_sel_item_start, first_sel_item_end, first_sel_item_length
 
 -----------------------------all 'bout GRID------------------------------------
@@ -597,14 +596,16 @@ function check_items()
     local item_track = r.GetMediaItemTrack(sel_item)
     local active_take = r.GetActiveTake(first_sel_item)
     local src = r.GetMediaItemTake_Source(active_take)
-    srate =  r.GetMediaSourceSampleRate(src)
+    local srate =  r.GetMediaSourceSampleRate(src)
     local mute_check = r.GetMediaItemInfo_Value(sel_item, "B_MUTE")
-    local _, _, sel_item_length = getselitemedges(sel_item)
+    local sel_item_start, _, sel_item_length = getselitemedges(sel_item)
     if srate == 0 then error_msg=1 ------ check for midi items
+      elseif item_track == itemtrack_store then error_msg=5 ------ check for multiple items on same track
        elseif mute_check == 1 then error_msg=2 ------ check for muted items 
-         elseif tostring(sel_item_length) ~= tostring(first_sel_item_length) then error_msg=3  ------ check for same length (to string because of 3.5527136788005e-15)
-           elseif srate ~= first_srate then error_msg=4------ check for same sample rate CHECK CHECK
-              elseif item_track == itemtrack_store then error_msg=5       
+         elseif tostring(sel_item_start) ~= tostring(first_sel_item_start) then error_msg=3  ------ check for same length (to string because of 3.5527136788005e-15)
+          elseif tostring(sel_item_length) ~= tostring(first_sel_item_length) then error_msg=3
+           elseif srate ~= first_srate then error_msg=4------ check for same sample rate
+                    
     end
     itemtrack_store = item_track
   end
@@ -785,7 +786,8 @@ function Wave:apply_filters_gain()
 end
 
 function Enhanced_transient(attack)
-  
+  --local maxpeakpos = 0
+  --local maxpeakneg = 0
   local b1Env1 = -exp(-30 / first_srate )
   local a0Env1 = 1.0 + b1Env1
   local b1Env2 = -exp(-1250 / first_srate )
@@ -796,8 +798,8 @@ function Enhanced_transient(attack)
   local tmpEnv1 = 0
   local tmpEnv2 = 0
   local tmpEnv3 = 0
-  local fade_in_samples = first_srate//20
-  local fade_in_step = 1/fade_in_samples
+  --local fade_in_samples = first_srate//20
+  --local fade_in_step = 1/fade_in_samples
   
   for i = 1, #Wave.out_buf do 
     local maxSpls = abs(Wave.out_buf[i])
@@ -809,7 +811,13 @@ function Enhanced_transient(attack)
     local env3 = sqrt(tmpEnv3)
     local gain = exp(logx(max(env2/env1,1))*attack)*exp( logx( max(env3/env1,1))*sustain)
     Wave.out_buf[i] = Wave.out_buf[i] * gain
+    if Wave.out_buf[i]>1 then Wave.out_buf[i] = 1 end
+    if Wave.out_buf[i]<-1 then Wave.out_buf[i] = -1 end
+    --if (Wave.out_buf[i])>maxpeakpos then maxpeakpos = Wave.out_buf[i] end
+    --if (Wave.out_buf[i])<maxpeakneg then maxpeakneg = Wave.out_buf[i] end
   end
+  --msg(maxpeakpos)
+  --msg(maxpeakneg)
 end
 
 function Wave:create_threshold_histogram()
@@ -817,9 +825,12 @@ function Wave:create_threshold_histogram()
   local step_res = #self.out_buf//(first_srate//2)
   if step_res == 0 then step_res = 1 end
   for i = 1, #self.out_buf, step_res do 
-    if self.out_buf[i] >= thresh_min  then
-      temp_abs_table[#temp_abs_table+1] = abs(20 * logx((self.out_buf[i]),10))*10
-    end
+  --for i = 1, #self.out_buf do
+  local peakdata = 0
+    if self.out_buf[i]<0 then peakdata = self.out_buf[i]*-1 else peakdata = self.out_buf[i] end
+      if peakdata >= thresh_min  then ---- thresh_min = -60db
+        temp_abs_table[#temp_abs_table+1] = abs(20 * logx(peakdata,10))*10
+      end
   end
   table.sort(temp_abs_table)
   local store_n = 0
@@ -834,23 +845,10 @@ function Wave:create_threshold_histogram()
     store_n = n
     if thresh_table[i]>thresh_table_max then thresh_table_max = thresh_table[i] end
   end
-  --[[
-  if AutoThresh and not noautotresh then
-  local set_thresh = getHighest(thresh_table)
-  
-    if  set_thresh ~= nil then
-      Thresh_v = ((floor(set_thresh/10))*-1)-1
-    else
-      Thresh_v = -60
-    end
-    
-    if Thresh_v < -60 then Thresh_v = -60 end
-  end
-  ]]--
   
   -----------------Normalize threshold table graph --------------------------------
   for i = 1, #thresh_table do
-    thresh_table[i] = thresh_table[i]/thresh_table_max
+    thresh_table[i] = (thresh_table[i]/thresh_table_max)
   end
 end
 
@@ -1011,8 +1009,6 @@ function MoveEdges(item, new_start,new_end)
   local SnOffs = r.GetMediaItemInfo_Value( item,'D_SNAPOFFSET')
   --local rateIt = r.GetMediaItemTakeInfo_Value(take,'D_PLAYRATE')
   local ofSetIt = r.GetMediaItemTakeInfo_Value(take,'D_STARTOFFS')
-
-  --if pos < crossfade_time then crossfade_time = pos end
   r.SetMediaItemInfo_Value(item,'D_POSITION',new_start)
   r.SetMediaItemInfo_Value(item,'D_LENGTH', new_end - new_start)
   r.SetMediaItemTakeInfo_Value(take,'D_STARTOFFS', ofSetIt +  new_start-pos)
@@ -1034,9 +1030,6 @@ end
 
 
 function Split_Quantize_items()
-
---Q_status = 'Splitting Audio'
-
 
 if checkedittracks()==false then 
   return 
@@ -1090,9 +1083,13 @@ for i = 1, tracksN do
        
        local mediaitem = r.GetSelectedMediaItem( 0, c )
        
-         if  r.GetMediaItemInfo_Value( mediaitem, 'I_FIXEDLANE' ) == first_sel_item_lane then
-          items_store_tbl[#items_store_tbl + 1] = mediaitem
-         end
+        -- if reaperversion>=7 then 
+           if  r.GetMediaItemInfo_Value( mediaitem, 'I_FIXEDLANE' ) == first_sel_item_lane then
+            items_store_tbl[#items_store_tbl + 1] = mediaitem
+           end
+        -- else
+        --  items_store_tbl[#items_store_tbl + 1] = mediaitem
+        -- end
        end
     end
     
@@ -1153,7 +1150,6 @@ if check_itm then
       for i = 1, #items_store_tbl do
       local take = r.GetActiveTake(items_store_tbl[i])
       local rateIt = r.GetMediaItemTakeInfo_Value(take,'D_PLAYRATE')
-      --msg(take)
       r.SetTakeStretchMarker( take, -1, 0 ) ---------------put fixed stretch markers on the items edges
       r.SetTakeStretchMarker( take, -1, (first_sel_item_end - first_sel_item_start)*rateIt) ---------------put fixed stretch markers on the items edges
         for c=1, #Gate_Gl.State_Points, 2 do
@@ -1329,7 +1325,6 @@ r.Main_OnCommandEx(r.NamedCommandLookup('_FNG_CLEAN_OVERLAP'),0,0) --- clean ove
       
        local sel_item = r.GetSelectedMediaItem(0,i-1)
        local pos = r.GetMediaItemInfo_Value(sel_item, "D_POSITION")
-       --local Q_pos = r.BR_GetClosestGridDivision(pos)-- 
        local Q_pos = Arc_GetClosestGridDivision(pos)
        local snapoff = r.GetMediaItemInfo_Value(sel_item, "D_SNAPOFFSET")
        local Q_diff = (Q_pos - pos + snapoff )*(Qstrength_v/100)
@@ -1424,7 +1419,7 @@ local temp_points ={}
           
           output[c-1]=input[i-1]
           output[c] = {rms, peak}
-          output[c][1]= input[i][1]--^0.5
+          output[c][1]= input[i][1]
           output[c][2]= input[i][2]
           c = c + 2
           
@@ -1444,12 +1439,6 @@ end
 ----------------------------------------------------------------------
 
 function Gate_Gl:Reduce_Points_by_Power2(input)
-  --[[
-  if cyclecount == 0 and AutoSens then
-  
-    Sensitivity_v = auto_sens(self.store_State_Points)
-  end
-]]--
   local output = {}
   local Reduce_P_v = ((100-Sensitivity_v)/sens_def)
   
@@ -1509,6 +1498,7 @@ function Create_Grid_table()
     local sr_sw_shift = storeswingamt*(1-abs(storediv-1))*(srate/2)
     
     Grid_blocks_Ruler = {}
+    Grid_blocks_Ruler_thickness = {}
     
     local h = 0
     local checkgridstart = r.TimeMap2_timeToQN( 0, first_sel_item_start )
@@ -1529,12 +1519,17 @@ function Create_Grid_table()
                return beatpos
             end
             
-            
             blockline = beatc(blockline)
             
             h = h + 1
             
             Grid_blocks_Ruler[h] = floor(((blockline - first_sel_item_start)*srate))
+            ---msg(blockline)
+            if fmod(blockline,0.5) == 0 then
+            Grid_blocks_Ruler_thickness[h] = 2
+            else
+            Grid_blocks_Ruler_thickness[h] = 1
+            end
             
        end
     
@@ -1640,9 +1635,7 @@ function Gate_Gl:Transient_Detective()
       
       
       local Thresh     = 10^((Thresh_v)/20) -- Threshold
-      --local Thresh     = 10^(Thresh_v/20)/gain_fltr -- Threshold regard gain_fltr
-            --Thresh     = Thresh / (0.5/ block_size)      -- Threshold regard fft_real scale and gain_fltr
-            
+  
       local Sensitivity  = 10^(sens_v/20) -- Gate "Sensitivity", diff between - fast and slow envelopes(in dB)
       -- Attack, Release Time -----------
       local attTime1  = 0.001                          -- Env1 attack(sec)
@@ -1699,7 +1692,6 @@ function Gate_Gl:Transient_Detective()
            --------------------------------------------
            -- Trigger ---------------------------------  
            if retrig>retrig_smpls then
-
               if envOut1>Thresh and (envOut1/envOut2) > Sensitivity then
               
                  Trig = true; smpl_cnt = 0; retrig = 0; rms_sum, peak_smpl = 0, 0 -- set start-values(for capture velo)
@@ -1783,7 +1775,6 @@ local trackview = r.JS_Window_FindChildByID(MainHwnd, 0x3E8)
 
 function CreateBitmap()
   local c = 1
-  --msg(#Gate_Gl.grid_Points * item_n)
   for i = 1, (#Gate_Gl.grid_Points * item_n), 2 do 
     lines[c] = r.JS_LICE_CreateBitmap(true, 1, 1)
     r.JS_LICE_Clear(lines[c], linecolor)
@@ -2118,6 +2109,27 @@ function store_single_settings(parameter, par_name, unit)
 
 end
 
+
+function errormessage(number)
+local w,h = r.ImGui_GetWindowSize(ctx)
+local x,y = r.ImGui_GetWindowPos(ctx)
+    r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_PopupRounding(), 10)
+    r.ImGui_PushStyleVar(ctx,  r.ImGui_StyleVar_SeparatorTextAlign(), 0.5, 0.5)     
+
+      r.ImGui_OpenPopup(ctx, 'Error Message:' )
+      r.ImGui_SetNextWindowSize(ctx, 300, 80)
+      r.ImGui_SetNextWindowPos(ctx, x+(w/2) -150, y+(h/2)-40)
+      if r.ImGui_BeginPopupModal( ctx, 'Error Message:', false,  r.ImGui_WindowFlags_NoScrollbar() | r.ImGui_WindowFlags_NoMove() | r.ImGui_WindowFlags_NoResize()) then
+        r.ImGui_BeginTable(ctx, 'Error', 1 )
+        r.ImGui_TableNextColumn(ctx)
+        r.ImGui_SeparatorText(ctx, error_msg_table[error_msg])
+        r.ImGui_EndTable(ctx)
+        r.ImGui_EndPopup(ctx)
+      end
+    r.ImGui_PopStyleVar(ctx, 2)
+
+end
+
 function Mouse_Init_parameter(parameter, value)
   if r.ImGui_IsItemHovered(ctx) and r.ImGui_IsKeyDown( ctx, 16384 ) and r.ImGui_IsMouseReleased(ctx, 0)  then
       parameter = value
@@ -2157,17 +2169,7 @@ function Menu_Button_Style(hue)
     r.ImGui_PushStyleColor(ctx, r.ImGui_Col_ButtonActive(), HSV(hue, s, v, 1))
     r.ImGui_PushStyleColor(ctx, r.ImGui_Col_ButtonHovered(), HSV(hue, s, v, 1))
 end
---[[
-function Menu_Button_Style_active(hue)
-    local s = 1
-    local v = 0.65
 
-    r.ImGui_PushStyleColor(ctx, r.ImGui_Col_Button(), HSV(hue, s, v, 0.9))
-    r.ImGui_PushStyleColor(ctx, r.ImGui_Col_ButtonActive(), HSV(hue, s, v, 1))
-    r.ImGui_PushStyleColor(ctx, r.ImGui_Col_ButtonHovered(), HSV(hue, s, v, 1))
-end
-
-]]--
 function Waveform_Button_Style(hue)
     local s = 0.5
     local v = 0.2
@@ -2176,9 +2178,6 @@ function Waveform_Button_Style(hue)
     r.ImGui_PushStyleColor(ctx, r.ImGui_Col_ButtonActive(), HSV(hue, s, v, 1))
     r.ImGui_PushStyleColor(ctx, r.ImGui_Col_ButtonHovered(), HSV(hue, s, v, 1))
 end
-
-
-
 
 function mode_center_align (text, size, mode)
 blanks = ''
@@ -2299,7 +2298,7 @@ function waveform_visualizer()
            if r.ImGui_IsMouseDragging( ctx, 0 ) or mouse_wheel_v~=0 or mouse_wheel_h~=0 then -------------------get horizontal zoom value
              h_zoom_dragging = true
              local x_delta, y_delta = r.ImGui_GetMouseDelta( ctx )
-             mouse_wheel_h = (mouse_wheel_h^3)
+             mouse_wheel_h = (mouse_wheel_h^3)*-1
              mouse_wheel_h=min(mouse_wheel_h,600)
              mouse_wheel_h=max(mouse_wheel_h,-600)
              
@@ -2444,9 +2443,12 @@ if visible then
   
   r.ImGui_PopStyleColor(ctx, 1)
   
+  if error_msg~=0 and r.ImGui_GetTime(ctx) < time +3 then
+      errormessage(error_msg)
+  end
   
 -----------------------------------MENU-----------------------------------------------------
-
+    
     Menu_Button_Style(0.5)
     if r.ImGui_BeginTable(ctx, 'menubar', 4, r.ImGui_TableFlags_NoPadOuterX()| r.ImGui_TableFlags_NoPadInnerX() 
     | r.ImGui_TableFlags_PreciseWidths(), m_window_width-r.ImGui_StyleVar_CellPadding(), 20) then
@@ -3019,10 +3021,7 @@ if visible then
        if Histogram[i]~= 0 and Histogram[i]~= nil then
          local height = (sens_h-9)*(Histogram_height[i])
          if  Histogram[i] == 2 then
-           --r.ImGui_DrawList_AddLine( draw_list, sens_x+line_step, sens_y+sens_h-3 , sens_x+line_step , sens_y+6 , -855703399 ,2 )
-           
            r.ImGui_DrawList_AddLine( draw_list, sens_x+line_step, sens_y+sens_h-3 , sens_x+line_step , sens_y+sens_h-3 - height , -855703399 ,2 )
-           
          else
            r.ImGui_DrawList_AddLine( draw_list, sens_x+line_step, sens_y+sens_h-3 , sens_x+line_step , sens_y+sens_h-3 - height , -855703501 ,2 )
          end
@@ -3043,8 +3042,7 @@ if visible then
   r.ImGui_TableNextColumn(ctx)
   r.ImGui_PushItemWidth(ctx, -1)
   
-  _, Thresh_v = r.ImGui_SliderInt(ctx, '##Threshold', Thresh_v, -60, 0, "Threshold: %d db", NoIP)
-  
+  Thresh_rv, Thresh_v = r.ImGui_SliderInt(ctx, '##Threshold', Thresh_v, -60, 0, "Threshold: %d db", NoIP)
   
   if check_itm then
     thresh_histogram()
@@ -3057,7 +3055,10 @@ if visible then
   store_single_settings(Thresh_v, 'Thresh_v', ' db' )
   
   Thresh_edit = r.ImGui_IsItemDeactivatedAfterEdit( ctx )
-  --if Thresh_edit then noautotresh = true end
+  
+  if Thresh_rv or cyclecount == 1 then 
+    display_Thresh = 10^((Thresh_v)/20) 
+  end
   
   
   r.ImGui_EndTable(ctx)  
@@ -3081,14 +3082,15 @@ if visible then
   | r.ImGui_TableFlags_NoPadInnerX() | r.ImGui_TableFlags_NoPadOuterX(), ((m_window_width/4)*3)-r.ImGui_StyleVar_CellPadding()+1)
   r.ImGui_TableNextColumn(ctx)
   
-      if error_msg~=0 and r.ImGui_GetTime(ctx) < time +3 then
-        analyze_bttn = r.ImGui_Button( ctx, error_msg_table[error_msg],-1, 0)
-      else
+      --if error_msg~=0 and r.ImGui_GetTime(ctx) < time +3 then
+       -- analyze_bttn = r.ImGui_Button( ctx, error_msg_table[error_msg],-1, 0)
+     -- else
         analyze_bttn = r.ImGui_Button( ctx, analyze_bttn_state[a_bttn_state],-1, 0)
-      end
+      --end
    
   r.ImGui_EndTable(ctx)
   end
+  
   
   
   if  check_itm and quantize_state == false and not processing then
@@ -3116,7 +3118,6 @@ if visible then
   r.ImGui_PopStyleColor(ctx, 2)
     
   r.ImGui_EndTable(ctx)----------------------------------------------end total table
-  
   
   -------------------------------------------------------------------------------------------------------------
   ---------------------------------------visualizer------------------------------------------------------------
@@ -3151,6 +3152,7 @@ if visible then
       r.ImGui_EndTable(ctx)
 
       local y_center = histo_y - (histo_h/2)
+      
   
       for i = 1, #line_array_pos do -------------------------Draw waveform
         local array_pos = line_array_pos[i]*waveform_zoom_gain
@@ -3178,13 +3180,34 @@ if visible then
         end
       end
 
-      for i=2, #Grid_blocks_Ruler-1, 2 do
+      for i=2, #Grid_blocks_Ruler-1, 2 do ----- Draw grid on Visualizer
         if Grid_blocks_Ruler[i] ~= nil and Grid_blocks_Ruler[i]>=zoom_bounds_L and Grid_blocks_Ruler[i]<=zoom_bounds_L+zoom_bounds_Total then
           local x = ((histo_w)*((Grid_blocks_Ruler[i]-zoom_bounds_L)/zoom_bounds_Total))+histo_x
-          r.ImGui_DrawList_AddLine(draw_list, x, histo_y, x, histo_y-histo_h, 0xFFFFFF10, 1 )
+          r.ImGui_DrawList_AddLine(draw_list, x, histo_y, x, histo_y-histo_h, 0xFFFFFF00+Grid_blocks_Ruler_thickness[i]*10, Grid_blocks_Ruler_thickness[i] )
         end
       end
-  
+      
+      -------------------------Draw threshold
+      
+      local Thresh_ypos = (y_center - display_Thresh*waveform_zoom_gain*((histo_h/2)-3))
+      local Thresh_yneg = (y_center + display_Thresh*waveform_zoom_gain*((histo_h/2)-3))
+      if display_Thresh*waveform_zoom_gain<=1 then
+        r.ImGui_DrawList_AddLine(draw_list, histo_x, Thresh_ypos, histo_x+histo_w, Thresh_ypos, 0xFFFFFF60, 1 )
+        r.ImGui_DrawList_AddLine(draw_list, histo_x, Thresh_yneg, histo_x+histo_w, Thresh_yneg, 0xFFFFFF60, 1 )
+      end
+      
+      -------------------------Draw Playback and edit Cursor
+      local cursorpos
+      if r.GetPlayState() == 1 or r.GetPlayState() == 4 then
+        cursorpos = first_srate*r.GetPlayPositionEx(0)
+      else
+        cursorpos = first_srate*r.GetCursorPositionEx(0)//1
+      end
+      if cursorpos >= zoom_bounds_L and cursorpos <= zoom_bounds_L+zoom_bounds_Total then
+        local relative_pos = (cursorpos-zoom_bounds_L)/zoom_bounds_Total
+        local x_histo_pos = histo_x + histo_w*relative_pos
+        r.ImGui_DrawList_AddLine(draw_list, x_histo_pos, histo_y, x_histo_pos, histo_y-histo_h, 0x00FFFFFF, 1 )
+      end
     else
         visualizer_h = 0
   end -----------------------------------END VISUALIZER IF CYCLE
@@ -3218,7 +3241,8 @@ r.ImGui_PopFont(ctx)
 -------------------------------------------------------------------------------
 
 if analyze_bttn then --or check_itm and ( sensitivity_slider or Thresh_slider) then 
-
+  waveform_zoom_h = 1
+  h_zoom_center = 0
   store_wavesum = {}
   time_gap = r.time_precise()+0.1
   givemetime()
