@@ -1,12 +1,7 @@
 -- @description Perfect Timing! - Audio Quantizer
 -- @author 80icio
--- @version 0.22
--- @changelog
---   - Added Threshold line, edit and play cursor to Visualizer window
---   - fixed Visualizer not resetting zoom setting on new analysis
---   - New Error message modal pop up window
---   - Re wrote help widgets
---   - Code clean up
+-- @version 0.23
+-- @changelog -  Corrected wrong Playback and Edit cursor position on Visualizer window
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=288964
 -- @about
 --   # PERFECT TIMING! 
@@ -3199,9 +3194,9 @@ if visible then
       -------------------------Draw Playback and edit Cursor
       local cursorpos
       if r.GetPlayState() == 1 or r.GetPlayState() == 4 then
-        cursorpos = first_srate*r.GetPlayPositionEx(0)
+        cursorpos = first_srate*(r.GetPlayPositionEx(0)-first_sel_item_start)
       else
-        cursorpos = first_srate*r.GetCursorPositionEx(0)//1
+        cursorpos = (first_srate*(r.GetCursorPositionEx(0)-first_sel_item_start))//1
       end
       if cursorpos >= zoom_bounds_L and cursorpos <= zoom_bounds_L+zoom_bounds_Total then
         local relative_pos = (cursorpos-zoom_bounds_L)/zoom_bounds_Total
