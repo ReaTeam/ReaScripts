@@ -55,7 +55,7 @@ local function removeInputFx(track, fx)
   -- Use 0x1000000 as flag for input fx chain
   idx = idx|0x1000000;
 
-  res = reaper.TrackFX_Delete(track, idx);
+  return reaper.TrackFX_Delete(track, idx);
 end
 
 
@@ -95,7 +95,7 @@ local function oneSmallStepState(track)
   end
 
   -- Make sure helper is installed
-  local iHelper       = getOrAddInputFx(track, jsfx, true)
+  local iHelper       = getOrAddInputFx(track, jsfx)
 
   local pitches = {}
   local pedalActivity = reaper.TrackFX_GetParam(track, iHelper, jsfx.paramIndex_PedalActivity);
@@ -104,9 +104,9 @@ local function oneSmallStepState(track)
   for i = 1, heldNoteCount, 1 do
     -- now the plugin updates its sliders to give us the values for this index.
     local evt = {
-      note        = reaper.TrackFX_GetParam(track, iHelper, jsfx.paramIndex_NoteStart + 4*(i-1) + 0),
+      pitch       = reaper.TrackFX_GetParam(track, iHelper, jsfx.paramIndex_NoteStart + 4*(i-1) + 0),
       chan        = reaper.TrackFX_GetParam(track, iHelper, jsfx.paramIndex_NoteStart + 4*(i-1) + 1),
-      velocity    = reaper.TrackFX_GetParam(track, iHelper, jsfx.paramIndex_NoteStart + 4*(i-1) + 2),
+      vel         = reaper.TrackFX_GetParam(track, iHelper, jsfx.paramIndex_NoteStart + 4*(i-1) + 2),
       timestamp   = reaper.TrackFX_GetParam(track, iHelper, jsfx.paramIndex_NoteStart + 4*(i-1) + 3)
     }
 
@@ -124,4 +124,4 @@ return {
   removeHelperFx        = removeHelperFx,
   cleanupAllTrackFXs    = cleanupAllTrackFXs,
   oneSmallStepState     = oneSmallStepState
-};
+}

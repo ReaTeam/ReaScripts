@@ -1,6 +1,6 @@
 --[[
 @description One Small Step : Alternative Step Input
-@version 0.9.9
+@version 0.9.10
 @author Ben 'Talagan' Babut
 @license MIT
 @metapackage
@@ -44,8 +44,10 @@
   [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Increase note len.lua
   [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Decrease note len.lua
   [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Cleanup helper JSFXs.lua
+  [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Set or remove operation marker.lua
   [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Set or remove playback marker.lua
   [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Playback.lua
+  [nomain] talagan_OneSmallStep/actions/talagan_OneSmallStep Toggle Debugger.lua
   [nomain] talagan_OneSmallStep/classes/**/*.lua
   [nomain] talagan_OneSmallStep/images/*.lua
   [effect] talagan_OneSmallStep/One Small Step Helper.jsfx
@@ -54,10 +56,12 @@
 @screenshot
   https://stash.reaper.fm/48269/oss_094.png
 @changelog
-  - [Rework] Changed toolbar icon color
-  - [Bug Fix] [Repitch Mode] Patched MIDIUtils API : successive snapped notes would be borked by the automatic overlap correction option (thanks @smandrap)
-  - [Bug Fix] [Write Mode] CommitBack action would be blocked by sustain pedal blocker if called from action (thanks @hipox !)
-  - [Bug Fix] [Write Mode] Sustain Pedal blocking system when (stepping back + miss) was broken
+  - [Feature] Compress/Stretch Submode
+  - [Feature] Stuff Submode
+  - [Enhance] Force item bound snapping if item grid snap is on
+  - [Rework] PPQ Precise operations
+  - [Rework] New code architecture and file hierarchy, big code rework
+  - [Rework] Addind debugging support for Visual Studio Code (using mavriq lua sockets, thanks @mavriq)
 @about
   # Purpose
 
@@ -87,8 +91,16 @@
 
 --]]
 
-VERSION = "0.9.9"
+VERSION = "0.9.10"
 DOC_URL = "https://bentalagan.github.io/onesmallstep-doc/index.html?ver=" .. VERSION
+
+PATH    = debug.getinfo(1,"S").source:match[[^@?(.*[\/])[^\/]-$]]
+
+-------------------------------
+-- Path and modules
+
+package.path      =  PATH .. "talagan_OneSmallStep/"         .. "?.lua" .. ";" .. package.path
+package.path      =  PATH .. "talagan_OneSmallStep/classes/" .. "?.lua" .. ";" .. package.path
 
 --------------------------------
 
@@ -99,11 +111,6 @@ if reaper.set_action_options ~= nil then
 end
 
 -------------------------------
--- Path and modules
-
-package.path      = debug.getinfo(1,"S").source:match[[^@?(.*[\/])[^\/]-$]] .."?.lua;".. package.path
-
--------------------------------
 -- Check dependencies
 
 local function CheckReapack(func_name, api_name, search_string)
@@ -112,42 +119,30 @@ local function CheckReapack(func_name, api_name, search_string)
       Right-click the entry in the next window and choose to install.",
       api_name .. " not installed", 0 )
     reaper.ReaPack_BrowsePackages( search_string )
-    exit(66)
+    return false
   end
+  return true
 end
 
-CheckReapack("JS_ReaScriptAPI_Version",   "JS_ReaScriptAPI",  "js_ReaScriptAPI")
-CheckReapack("ImGui_CreateContext",       "ReaImGUI",         "ReaImGui:")
-CheckReapack("CF_ShellExecute",           "SWS",              "SWS/S&M Extension")
+if not CheckReapack("JS_ReaScriptAPI_Version",   "JS_ReaScriptAPI",  "js_ReaScriptAPI")     then return end
+if not CheckReapack("ImGui_CreateContext",       "ReaImGUI",         "ReaImGui:")           then return end
+if not CheckReapack("CF_ShellExecute",           "SWS",              "SWS/S&M Extension")  then return end
 
---[[
+--------------------------------
+-- Inner requirements
 
--- Code for installing sockmonkey72's MIDI Utilis library
+local E   = require "engine_lib"
+local DBG = require "modules/debugger"
 
--- But ATM we prefer embedding it
+local S   = E.S
+local D   = E.D
+local MK  = E.MK
+local TGT = E.TGT
+local F   = E.F
+local ED  = E.ED
 
---  - for stability reasons
---  - to avoid depending on another repository
-
-local sm72reponame  = "sockmonkey72 Scripts"
-local sm72repourl   = "https://github.com/jeremybernstein/ReaScripts/raw/main/index.xml"
-
-local repook,  _,  _,  _ = reaper.ReaPack_GetRepositoryInfo(sm72reponame)
-if not repook then
-  reaper.ReaPack_AddSetRepository(sm72reponame, sm72repourl, true, 0)
-  reaper.ReaPack_ProcessQueue(false)
-end
-
-package.path = (reaper.GetResourcePath() .. '/Scripts/' .. sm72reponame .. '/MIDI/' .. "?.lua") .. ";" .. package.path
-if not pcall(require, "MIDIUtils") then
-  local answer = reaper.MB( "MIDI Utils API is required and you need to install it . Right-click the entry in the next window and choose to install.", "MIDI Utils API not installed", 0 )
-  reaper.ReaPack_BrowsePackages( "MIDI Utils API" )
-  return
-end
-
-]]--
-
-local engine_lib  = require "talagan_OneSmallStep/classes/engine_lib";
+-- Get the debugger setting at launch
+local DEBUGGER_IS_ON = S.getSetting("UseDebugger")
 
 -------------------------------
 -- ImGui Backward compatibility
@@ -164,7 +159,7 @@ local images = {};
 
 local function getImage(image_name)
   if (not images[image_name]) or (not reaper.ImGui_ValidatePtr(images[image_name], 'ImGui_Image*')) then
-    local bin = require("./talagan_OneSmallStep/images/" .. image_name)
+    local bin = require("images/" .. image_name)
     images[image_name] = reaper.ImGui_CreateImageFromMem(bin)
     -- Prevent the GC from freeing this image
     reaper.ImGui_Attach(ctx, images[image_name])
@@ -199,11 +194,11 @@ function TT(str)
   end
 end
 
-function to_frac(num)
+function ToFrac(num)
    local W = math.floor(num)
    local F = num - W
-   local pn, n, N = 0, 1
-   local pd, d, D = 1, 0
+   local pn, n, N = 0, 1, 0
+   local pd, d, D = 1, 0, 0
    local x, err, q, Q
    repeat
       x = x and 1 / (x - q) or F
@@ -251,9 +246,9 @@ local KnownNoteLengthSignatures = {
   ['3/256'] = { icon = "note_1",    triplet = false, modif_label = ". x 1/128" },
 }
 
-function QNToLabel(ctx, qn, swing)
+local function QNToLabel(ctx, qn, swing)
 
-  local n,d,e = to_frac(qn);
+  local n,d,e = ToFrac(qn);
 
   -- Do a reverse conversion to fraction
   -- And then lookup for what we know
@@ -275,7 +270,7 @@ end
 
 
 -- Indicator for the current project grid note len
-function ProjectGridLabel(ctx)
+local function ProjectGridLabel(ctx)
   local _, qn, swingmode, swing = reaper.GetSetProjectGrid(0, false)
   if swingmode ~= 1 then
     swing = 0
@@ -291,7 +286,7 @@ function ProjectGridLabel(ctx)
 end
 
 -- Indicator for the current MIDI item note len
-function ItemGridLabel(ctx,take)
+local function ItemGridLabel(ctx,take)
   if not take then
     return
   end
@@ -427,7 +422,7 @@ function RecordBadge(track)
 
   reaper.ImGui_SetCursorPosY(ctx, reaper.ImGui_GetCursorPosY(ctx));
 
-  if (recarmed == 1) and not (engine_lib.getInputMode() == engine_lib.InputMode.None) and playState == 0 then
+  if (recarmed == 1) and not (S.getInputMode() == D.InputMode.None) and playState == 0 then
     local alpha = math.sin(reaper.time_precise()*4);
     local r1    = 200+math.floor(55 * alpha);
     local r2    = 120+math.floor(55 * alpha);
@@ -454,7 +449,7 @@ function RecordIssues(track)
   reaper.ImGui_SetCursorPosY(ctx, reaper.ImGui_GetCursorPosY(ctx));
   if not (recarmed == 1) then
     reaper.ImGui_TextColored(ctx, 0x808080FF, '[Track not armed]');
-  elseif engine_lib.getInputMode() == engine_lib.InputMode.None then
+  elseif S.getInputMode() == D.InputMode.None then
     reaper.ImGui_TextColored(ctx, 0x808080FF, '[Input Mode is OFF]');
   elseif not (playState == 0) then
     reaper.ImGui_TextColored(ctx, 0x808080FF, '[Reaper not ready]');
@@ -485,16 +480,16 @@ function TrackInfo(track)
   SL();
   reaper.ImGui_TextColored(ctx, 0xA0A0FFFF, track_name .. " /");
   SL();
-  reaper.ImGui_TextColored(ctx, 0xFFA0A0FF, "No Item");
+  reaper.ImGui_TextColored(ctx, 0xFFA0A0FF, "No Item")
   SL();
-  RecordIssues(track);
+  RecordIssues(track)
 end
 
 -- MINIBAR : Input Mode
 function InputModeMiniBar()
-  local mode      = engine_lib.getInputMode();
-  local modifkey  = engine_lib.getSetting("StepBackModifierKey")
-  local mkinfo    = engine_lib.ModifierKeyLookup[modifkey];
+  local mode      = S.getInputMode();
+  local modifkey  = S.getSetting("StepBackModifierKey")
+  local mkinfo    = D.ModifierKeyLookup[modifkey];
 
   local pedalmanual = "\z
     The sustain pedal and the commit action :\n\n\z
@@ -506,8 +501,8 @@ function InputModeMiniBar()
     \32 - Erase back held notes if they match the cursor\n\z
     \32 - Step back if no notes are held";
 
-  if ButtonGroupImageButton('input_mode_keyboard_press', mode == engine_lib.InputMode.KeyboardPress) then
-    engine_lib.setInputMode(engine_lib.InputMode.KeyboardPress);
+  if ButtonGroupImageButton('input_mode_keyboard_press', mode == D.InputMode.KeyboardPress) then
+    S.setInputMode(D.InputMode.KeyboardPress);
   end
 
   TT("Input Mode : Keyboard Press (Fast mode)\n\z
@@ -520,8 +515,8 @@ function InputModeMiniBar()
       \n\z" .. pedalmanual);
   SL();
 
-  if ButtonGroupImageButton('input_mode_pedal', mode == engine_lib.InputMode.Punch) then
-    engine_lib.setInputMode(engine_lib.InputMode.Punch);
+  if ButtonGroupImageButton('input_mode_pedal', mode == D.InputMode.Punch) then
+    S.setInputMode(D.InputMode.Punch);
   end
 
   TT("Input Mode : Punch (Check mode)\n\z
@@ -534,8 +529,8 @@ function InputModeMiniBar()
       \n\z" .. pedalmanual);
   SL();
 
-  if ButtonGroupImageButton('input_mode_keyboard_release', mode == engine_lib.InputMode.KeyboardRelease) then
-    engine_lib.setInputMode(engine_lib.InputMode.KeyboardRelease)
+  if ButtonGroupImageButton('input_mode_keyboard_release', mode == D.InputMode.KeyboardRelease) then
+    S.setInputMode(D.InputMode.KeyboardRelease)
   end
 
   TT("Input Mode : Keyboard Release (Grope mode)\n\z
@@ -553,36 +548,36 @@ end
 
 -- MINIBAR : Conf source
 function ConfSourceMiniBar()
-  local nlm = engine_lib.getNoteLenParamSource();
+  local nlm = S.getNoteLenParamSource();
 
-  if ButtonGroupImageButton('note_len_mode_oss', nlm == engine_lib.NoteLenParamSource.OSS) then
-    engine_lib.setNoteLenParamSource(engine_lib.NoteLenParamSource.OSS)
+  if ButtonGroupImageButton('note_len_mode_oss', nlm == D.NoteLenParamSource.OSS) then
+    S.setNoteLenParamSource(D.NoteLenParamSource.OSS)
   end
   TT('Note Length conf : One Small Step\n\nUse the params aside.');
   SL();
 
-  if ButtonGroupImageButton('note_len_mode_pgrid', nlm == engine_lib.NoteLenParamSource.ProjectGrid) then
-    engine_lib.setNoteLenParamSource(engine_lib.NoteLenParamSource.ProjectGrid)
+  if ButtonGroupImageButton('note_len_mode_pgrid', nlm == D.NoteLenParamSource.ProjectGrid) then
+    S.setNoteLenParamSource(D.NoteLenParamSource.ProjectGrid)
   end
   TT( "Note Length conf : Project\n\nUse the project's grid conf.");
   SL();
 
-  if ButtonGroupImageButton('note_len_mode_inote', nlm == engine_lib.NoteLenParamSource.ItemConf) then
-    engine_lib.setNoteLenParamSource(engine_lib.NoteLenParamSource.ItemConf)
+  if ButtonGroupImageButton('note_len_mode_inote', nlm == D.NoteLenParamSource.ItemConf) then
+    S.setNoteLenParamSource(D.NoteLenParamSource.ItemConf)
   end
   TT( "Note Length conf : MIDI Item\n\nUse the MIDI item's own conf.\n\n('Notes' at the bottom of the MIDI editor)");
 end
 
 -- MINIBAR : Note length
 function NoteLenMiniBar(with_fracs)
-  local nl = engine_lib.getNoteLen();
-  for i,v in ipairs(engine_lib.NoteLenDefs) do
+  local nl = S.getNoteLen();
+  for i,v in ipairs(D.NoteLenDefs) do
     if i > 1 then
       SL()
     end
     local icon = (with_fracs) and ('frac_' .. v.frac) or ('note_' .. v.id)
     if ButtonGroupImageButton(icon, nl == v.id, {corner = (with_fracs and 0 or 0.1)} ) then
-        engine_lib.setNoteLen(v.id)
+        S.setNoteLen(v.id)
     end
   end
 end
@@ -590,43 +585,43 @@ end
 -- MINIBAR : Note length modifier
 function NoteLenModifierMiniBar(with_fracs)
 
-  local nmod = engine_lib.getNoteLenModifier();
+  local nmod = S.getNoteLenModifier();
 
-  if ButtonGroupImageButton(with_fracs and 'frac_3_2' or 'note_dotted', nmod == engine_lib.NoteLenModifier.Dotted, {corner = with_fracs and 0 or 0.1}) then
-    if nmod == engine_lib.NoteLenModifier.Dotted then
-      engine_lib.setNoteLenModifier(engine_lib.NoteLenModifier.Straight);
+  if ButtonGroupImageButton(with_fracs and 'frac_3_2' or 'note_dotted', nmod == D.NoteLenModifier.Dotted, {corner = with_fracs and 0 or 0.1}) then
+    if nmod == D.NoteLenModifier.Dotted then
+      S.setNoteLenModifier(D.NoteLenModifier.Straight);
     else
-      engine_lib.setNoteLenModifier(engine_lib.NoteLenModifier.Dotted);
+      S.setNoteLenModifier(D.NoteLenModifier.Dotted);
     end
   end
   TT(with_fracs and "3/2" or "Dotted");
   SL();
 
-  if ButtonGroupImageButton(with_fracs and 'frac_2_3' or 'note_triplet', nmod == engine_lib.NoteLenModifier.Triplet, {corner = with_fracs and 0 or  0.1}) then
-    if nmod == engine_lib.NoteLenModifier.Triplet then
-      engine_lib.setNoteLenModifier(engine_lib.NoteLenModifier.Straight);
+  if ButtonGroupImageButton(with_fracs and 'frac_2_3' or 'note_triplet', nmod == D.NoteLenModifier.Triplet, {corner = with_fracs and 0 or  0.1}) then
+    if nmod == D.NoteLenModifier.Triplet then
+      S.setNoteLenModifier(D.NoteLenModifier.Straight);
     else
-      engine_lib.setNoteLenModifier(engine_lib.NoteLenModifier.Triplet);
+      S.setNoteLenModifier(D.NoteLenModifier.Triplet);
     end
   end
   TT(with_fracs and "2/3" or "Triplet");
   SL();
 
-  if ButtonGroupImageButton(with_fracs and 'frac_1_n' or 'note_tuplet', nmod == engine_lib.NoteLenModifier.Tuplet, {corner = with_fracs and 0 or  0.1}) then
-    if nmod == engine_lib.NoteLenModifier.Tuplet then
-      engine_lib.setNoteLenModifier(engine_lib.NoteLenModifier.Straight);
+  if ButtonGroupImageButton(with_fracs and 'frac_1_n' or 'note_tuplet', nmod == D.NoteLenModifier.Tuplet, {corner = with_fracs and 0 or  0.1}) then
+    if nmod == D.NoteLenModifier.Tuplet then
+      S.setNoteLenModifier(D.NoteLenModifier.Straight);
     else
-      engine_lib.setNoteLenModifier(engine_lib.NoteLenModifier.Tuplet);
+      S.setNoteLenModifier(D.NoteLenModifier.Tuplet);
     end
   end
   TT(with_fracs and "1/n" or "N-tuplet");
   SL()
 
-  if ButtonGroupImageButton('note_modified', nmod == engine_lib.NoteLenModifier.Modified ) then
-    if nmod == engine_lib.NoteLenModifier.Modified then
-      engine_lib.setNoteLenModifier(engine_lib.NoteLenModifier.Straight);
+  if ButtonGroupImageButton('note_modified', nmod == D.NoteLenModifier.Modified ) then
+    if nmod == D.NoteLenModifier.Modified then
+      S.setNoteLenModifier(D.NoteLenModifier.Straight);
     else
-      engine_lib.setNoteLenModifier(engine_lib.NoteLenModifier.Modified);
+      S.setNoteLenModifier(D.NoteLenModifier.Modified);
     end
   end
   TT(with_fracs and "n/m" or "Modified length");
@@ -640,14 +635,14 @@ function NTupletComboBox()
   reaper.ImGui_SetCursorPosY(ctx, reaper.ImGui_GetCursorPosY(ctx));
   reaper.ImGui_PushID(ctx, "nlet_combo");
 
-  local tuplet = ''..engine_lib.getTupletDivision();
+  local tuplet = '' .. S.getTupletDivision();
 
   reaper.ImGui_SetNextItemWidth(ctx,50);
   if reaper.ImGui_BeginCombo(ctx, '', tuplet) then
     for i,v in ipairs(combo_items) do
       local is_selected = (tuplet == v);
       if reaper.ImGui_Selectable(ctx, combo_items[i], is_selected) then
-        engine_lib.setTupletDivision(tonumber(v));
+        S.setTupletDivision(tonumber(v));
       end
       if is_selected then
         reaper.ImGui_SetItemDefaultFocus(ctx)
@@ -663,7 +658,7 @@ end
 function NoteLenFactorComboBox(role) -- Numerator/Denominator
 
   local setting     = "NoteLenFactor" .. role
-  local curval      = engine_lib.getSetting(setting)
+  local curval      = S.getSetting(setting)
   local combo_items = { }
 
   for i = 1, 32 do
@@ -680,7 +675,7 @@ function NoteLenFactorComboBox(role) -- Numerator/Denominator
 
       local is_selected = (val == curval);
       if reaper.ImGui_Selectable(ctx, "" .. val, is_selected) then
-        engine_lib.setSetting(setting, val);
+        S.setSetting(setting, val);
       end
       if is_selected then
         reaper.ImGui_SetItemDefaultFocus(ctx)
@@ -719,7 +714,7 @@ function PlayBackMeasureCountComboBox()
   reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_HeaderHovered(),  0x00C000FF);
 
   reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_FramePadding(), 5, 3.5);
-  local curm = engine_lib.getPlaybackMeasureCount();
+  local curm = S.getPlaybackMeasureCount();
 
   local label = function(mnum)
     return ((mnum == -1) and "Mk" or mnum);
@@ -731,7 +726,7 @@ function PlayBackMeasureCountComboBox()
       local is_selected = (curm == i);
 
       if reaper.ImGui_Selectable(ctx, label(i), is_selected) then
-        engine_lib.setPlaybackMeasureCount(i);
+        S.setPlaybackMeasureCount(i);
       end
       if is_selected then
         reaper.ImGui_SetItemDefaultFocus(ctx)
@@ -768,7 +763,7 @@ local function PlaybackSetMarkerButton()
   reaper.ImGui_PushID(ctx, "playback_marker");
   reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_FramePadding(), 8, 4);
   if ButtonGroupImageButton("marker", false, { colorset = "Green" } ) then
-    engine_lib.setPlaybackMarkerAtCurrentPos();
+    MK.setPlaybackMarkerAtCurrentPos();
   end
 
   reaper.ImGui_PopStyleVar(ctx,1);
@@ -794,9 +789,9 @@ local function MagnetMiniBar()
   for k,v in ipairs(snapElements) do
     reaper.ImGui_PushID(ctx, "snap_btn_" .. v.setting);
     reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_FramePadding(), 8, 4);
-    local navon = engine_lib.getSetting(v.setting);
+    local navon = S.getSetting(v.setting);
     if ButtonGroupImageButton("snap_btn_" .. v.image, navon, {colorset="Snap"}) then
-      engine_lib.setSetting(v.setting, not navon);
+      S.setSetting(v.setting, not navon);
     end
     TT("Navigation snap to " .. v.tt);
     reaper.ImGui_PopStyleVar(ctx,1);
@@ -811,15 +806,15 @@ end
 
 function EditModeMiniBar()
 
-  local mode  = engine_lib.getSetting("EditMode")
-  local amode = engine_lib.resolveOperationMode().mode
+  local mode  = S.getSetting("EditMode")
+  local amode = ED.ResolveOperationMode().mode
 
   local modes = {
-    { name = engine_lib.EditMode.Write, tt = "Forward  : Add notes\nBackward : Selective delete (remove notes if pressed)" },
-    { name = engine_lib.EditMode.Insert, tt = "Forward  : Add notes and shift later ones\nBackward : Delete or shorten notes and shift later ones back"},
-    { name = engine_lib.EditMode.Replace, tt = "Forward  : Delete (partially or fully) existing notes, and add new ones instead\nBackward : Delete (partially or fully) existing notes" },
-    { name = engine_lib.EditMode.Repitch, tt = "Forward  : Change the pitch of notes (number of pressed keys should match)\nBackward : Jump back to precedent note start" },
-    { name = engine_lib.EditMode.Navigate, tt = "Forward  : Navigate forward (using snap options)\nBackward : Navigate backward (using snap options)" },
+    { name = D.EditMode.Write, tt = "Forward  : Add notes\nBackward : Selective delete (remove notes if pressed)" },
+    { name = D.EditMode.Insert, tt = "Forward  : Add notes and shift later ones\nBackward : Delete or shorten notes and shift later ones back", alt = "Stretch/Compress"},
+    { name = D.EditMode.Replace, tt = "Forward  : Delete (partially or fully) existing notes, and add new ones instead\nBackward : Delete (partially or fully) existing notes", alt = "Stuff/Unstuff"},
+    { name = D.EditMode.Repitch, tt = "Forward  : Change the pitch of notes (number of pressed keys should match)\nBackward : Jump back to precedent note start" },
+    { name = D.EditMode.Navigate, tt = "Forward  : Navigate forward (using snap options)\nBackward : Navigate backward (using snap options)" },
   }
 
   for k,v in pairs(modes) do
@@ -841,9 +836,15 @@ function EditModeMiniBar()
     end
 
     if ButtonGroupImageButton(icon, ison, {colorset = colorset}) then
-      engine_lib.setSetting("EditMode", v.name)
+      S.setSetting("EditMode", v.name)
     end
-    TT(v.name .. " Mode\n\n" .. v.tt)
+    local tt = v.name .. " Mode\n\n" .. v.tt
+
+    if v.alt then
+      tt = tt .. "\n\nClicking on the light indicator sets the operation marker\nand switches to " .. v.alt .. " mode"
+    end
+
+    TT(tt)
 
     if k < #modes then
       SL()
@@ -870,7 +871,7 @@ function SliderReset(setting)
   reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacing(), 2, 0);
   SL();
   if reaper.ImGui_Button(ctx,"R##" .. setting) then
-    engine_lib.resetSetting(setting)
+    S.resetSetting(setting)
   end
   TT("Reset")
   reaper.ImGui_PopStyleVar(ctx);
@@ -882,7 +883,7 @@ function SettingSlider(setting, in_label, out_label, tooltip, use_help_interroga
     reaper.ImGui_SetNextItemWidth(ctx, width)
   end
 
-  local spec = engine_lib.getSettingSpec(setting)
+  local spec = S.getSettingSpec(setting)
 
   local slider_func = nil
   if spec.type == 'int' then
@@ -893,9 +894,9 @@ function SettingSlider(setting, in_label, out_label, tooltip, use_help_interroga
     error("Contact developer, forgot to handle type " .. spec.type)
   end
 
-  local change, v1 = slider_func(ctx, "##slider_" .. setting , engine_lib.getSetting(setting), spec.min, spec.max, in_label, reaper.ImGui_SliderFlags_NoInput())
+  local change, v1 = slider_func(ctx, "##slider_" .. setting , S.getSetting(setting), spec.min, spec.max, in_label, reaper.ImGui_SliderFlags_NoInput())
   if change then
-    engine_lib.setSetting(setting, v1);
+    S.setSetting(setting, v1);
   end
 
   if tooltip and not use_help_interrogation_for_tooltip then
@@ -916,19 +917,45 @@ function SettingSlider(setting, in_label, out_label, tooltip, use_help_interroga
 end
 
 function TargetModeInfo()
-  local currentop = engine_lib.resolveOperationMode()
+  local currentop = ED.ResolveOperationMode()
+
+  local _TT = function(msg, is_alt, alternative)
+    msg = msg .. "\n\n" .. "Click to set/move/remove operation marker\n\n"
+    if is_alt then
+      msg = msg .. "Switches back to " .. alternative .. " Mode"
+    else
+      msg = msg .. "Switches to " .. alternative .. " Mode"
+    end
+    return TT(msg)
+  end
 
   if currentop.mode == "Insert" then
-    if currentop.back  then
-      reaper.ImGui_Image(ctx, getImage("indicator_insert_back"),20,20); TT("Insert back (delete and shift)"); SL();
+    if currentop.use_alt then
+      if currentop.back  then
+        reaper.ImGui_Image(ctx, getImage("indicator_compress"),20,20); _TT("Compress notes between marker and edit cursor", true, "Insert"); SL();
+      else
+        reaper.ImGui_Image(ctx, getImage("indicator_stretch"),20,20); ; _TT("Stretch notes between marker and edit cursor", true, "Insert") SL();
+      end
     else
-      reaper.ImGui_Image(ctx, getImage("indicator_insert_forward"),20,20); ; TT("Insert (add notes and shift)") SL();
+      if currentop.back  then
+        reaper.ImGui_Image(ctx, getImage("indicator_insert_back"),20,20); _TT("Insert back (delete and shift)", false, "Compress"); SL();
+      else
+        reaper.ImGui_Image(ctx, getImage("indicator_insert_forward"),20,20); ; _TT("Insert (add notes and shift)", false, "Stretch") SL();
+      end
     end
   elseif currentop.mode == "Replace" then
-    if currentop.back then
-      reaper.ImGui_Image(ctx, getImage("indicator_replace_back"),20,20); SL();  TT("Replace back (delete)") SL();
+    if currentop.use_alt then
+      if currentop.back  then
+        reaper.ImGui_Image(ctx, getImage("indicator_unstuff"),20,20); _TT("Stuff notes at the end of the zone between marker and edit cursor", true, "Replace"); SL();
+      else
+        reaper.ImGui_Image(ctx, getImage("indicator_stuff"),20,20);   _TT("Unstuff notes at the end of the zone between marker and edit cursor", true, "Replace"); SL();
+      end
     else
-      reaper.ImGui_Image(ctx, getImage("indicator_replace_forward"),20,20); SL();  TT("Replace (add notes and remove/patch existing)") SL();
+      if currentop.back then
+        reaper.ImGui_Image(ctx, getImage("indicator_replace_back"),20,20); SL();  _TT("Replace back (delete)", false, "Untuff"); SL();
+      else
+        reaper.ImGui_Image(ctx, getImage("indicator_replace_forward"),20,20); SL();  _TT("Replace (add notes and remove/patch existing)", false, "Stuff"); SL();
+      end
     end
   elseif currentop.mode == "Navigate" then
     if currentop.back then
@@ -949,6 +976,11 @@ function TargetModeInfo()
       reaper.ImGui_Image(ctx, getImage("indicator_write_forward"),20,20); SL();  TT("Write (add notes)") SL();
     end
   end
+
+  if reaper.ImGui_IsItemClicked(ctx) then
+    MK.setOperationMarkerAtCurrentPos()
+  end
+
 end
 
 
@@ -965,8 +997,8 @@ function TargetLine(take)
   SL();
 
   if not take then
-    if engine_lib.getSetting("AllowCreateItem") then
-      local track = engine_lib.TrackForEditionIfNoItemFound();
+    if S.getSetting("AllowCreateItem") then
+      local track = TGT.TrackForEditionIfNoItemFound();
       if track then
         TargetModeInfo()
         TrackInfo(track);
@@ -976,10 +1008,13 @@ function TargetLine(take)
     else
       reaper.ImGui_TextColored(ctx, 0xA0A0A0FF, "No target item. Please select one.");
     end
-    ImGui_VerticalSpacer(ctx,0);
   else
     TargetModeInfo()
-    TakeInfo(take);
+    TakeInfo(take)
+  end
+
+  if DEBUGGER_IS_ON then
+    SL(); reaper.ImGui_TextColored(ctx, 0xFF7070FF, "[DBG ON]")
   end
 end
 
@@ -990,21 +1025,21 @@ function SettingsMiniBar()
   end
 end
 
-function PlaybackMarkerSettingComboBox()
+function MarkerPolicySettingComboBox(marker_name, policy_setting_name)
 
   local combo_items = { 'Hide/Restore', 'Keep visible', 'Remove' }
-  local curval      = engine_lib.getSetting("PlaybackMarkerPolicyWhenClosed");
+  local curval      = S.getSetting(policy_setting_name)
 
   reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_FramePadding(), 5, 3.5);
   reaper.ImGui_SetCursorPosY(ctx, reaper.ImGui_GetCursorPosY(ctx));
-  reaper.ImGui_PushID(ctx, "playback_marker_policy");
+  reaper.ImGui_PushID(ctx, "playback_marker_policy_" .. policy_setting_name);
 
   reaper.ImGui_SetNextItemWidth(ctx, 120);
   if reaper.ImGui_BeginCombo(ctx, '', curval) then
     for i,v in ipairs(combo_items) do
       local is_selected = (curval == v);
       if reaper.ImGui_Selectable(ctx, combo_items[i], is_selected) then
-        engine_lib.setSetting("PlaybackMarkerPolicyWhenClosed", v);
+        S.setSetting(policy_setting_name, v);
       end
       if is_selected then
         reaper.ImGui_SetItemDefaultFocus(ctx)
@@ -1017,16 +1052,15 @@ function PlaybackMarkerSettingComboBox()
 
   SL();
 
-  reaper.ImGui_Text(ctx, "playback marker when closing");
+  reaper.ImGui_Text(ctx, marker_name .. " when closing");
 end
-
 
 function AllowedModifierKeyCombinationsForEditMode()
   -- All combinations but remove ctrl pedal
-  local modkey      = engine_lib.ModifierKeyLookup[engine_lib.getSetting("StepBackModifierKey")];
+  local modkey      = D.ModifierKeyLookup[S.getSetting("StepBackModifierKey")];
 
   local filtered = {}
-  for k, v in ipairs(engine_lib.ModifierKeyCombinations) do
+  for k, v in ipairs(D.ModifierKeyCombinations) do
     if modkey.vkey ~= v.vkeys[1] and modkey.vkey ~= v.vkeys[2] then
       filtered[#filtered+1] = v
     end
@@ -1036,17 +1070,17 @@ function AllowedModifierKeyCombinationsForEditMode()
 end
 
 function ClearConflictingModifierKeys()
-  local sbmk        = engine_lib.getSetting("StepBackModifierKey")
+  local sbmk        = S.getSetting("StepBackModifierKey")
   local editmodes   = { "Navigate", "Replace", "Insert", "Repitch" }
 
   for k,v in ipairs(editmodes) do
     local setting = v.."ModifierKeyCombination"
-    local modk    = engine_lib.getSetting(setting)
-    local combi   = EngineLib.ModifierKeyCombinationLookup[modk];
+    local modk    = S.getSetting(setting)
+    local combi   = D.ModifierKeyCombinationLookup[modk];
 
     for _, vk in ipairs(combi.vkeys) do
       if sbmk == vk then
-        engine_lib.setSetting(setting, "none")
+        S.setSetting(setting, "none")
       end
     end
   end
@@ -1055,8 +1089,8 @@ end
 function StepBackModifierKeyComboBox(callback)
 
   local setting     = "StepBackModifierKey"
-  local modkey      = engine_lib.ModifierKeyLookup[engine_lib.getSetting(setting)] or {};
-  local combo_items = engine_lib.ModifierKeys;
+  local modkey      = D.ModifierKeyLookup[S.getSetting(setting)] or {};
+  local combo_items = D.ModifierKeys;
   local label       = modkey.name;
   local curval      = modkey.vkey;
 
@@ -1074,7 +1108,7 @@ function StepBackModifierKeyComboBox(callback)
       end
 
       if reaper.ImGui_Selectable(ctx, v.name, is_selected) then
-        engine_lib.setSetting(setting, v.vkey);
+        S.setSetting(setting, v.vkey);
         ClearConflictingModifierKeys()
       end
     end
@@ -1096,8 +1130,8 @@ function EditModeComboBox(editModeName, callback)
 
   local combo_items   = AllowedModifierKeyCombinationsForEditMode()
   local setting       = editModeName .. "ModifierKeyCombination"
-  local current_id    = engine_lib.getSetting(setting)
-  local current_combi = engine_lib.ModifierKeyCombinationLookup[current_id]
+  local current_id    = S.getSetting(setting)
+  local current_combi = D.ModifierKeyCombinationLookup[current_id]
 
   reaper.ImGui_PushStyleVar(ctx,  reaper.ImGui_StyleVar_FramePadding(), 5, 3.5);
   reaper.ImGui_SetCursorPosY(ctx, reaper.ImGui_GetCursorPosY(ctx));
@@ -1113,7 +1147,7 @@ function EditModeComboBox(editModeName, callback)
       end
 
       if reaper.ImGui_Selectable(ctx, v.label, is_selected) then
-        engine_lib.setSetting(setting, v.id);
+        S.setSetting(setting, v.id);
         -- TODO : Reset all collisions
       end
     end
@@ -1133,8 +1167,8 @@ end
 function RepitchModeComboBox()
 
   local setting     = "RepitchModeAffects"
-  local combo_items = engine_lib.getSettingSpec("RepitchModeAffects").inclusion
-  local curval      = engine_lib.getSetting("RepitchModeAffects")
+  local combo_items = S.getSettingSpec("RepitchModeAffects").inclusion
+  local curval      = S.getSetting("RepitchModeAffects")
 
   reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_FramePadding(), 5, 3.5)
   reaper.ImGui_SetCursorPosY(ctx, reaper.ImGui_GetCursorPosY(ctx) + 3)
@@ -1149,7 +1183,7 @@ function RepitchModeComboBox()
     for i,v in ipairs(combo_items) do
       local is_selected = (curval == v);
       if reaper.ImGui_Selectable(ctx, combo_items[i], is_selected) then
-        engine_lib.setSetting(setting, v);
+        S.setSetting(setting, v);
       end
       if is_selected then
         reaper.ImGui_SetItemDefaultFocus(ctx)
@@ -1159,9 +1193,6 @@ function RepitchModeComboBox()
   end
   reaper.ImGui_PopID(ctx);
   reaper.ImGui_PopStyleVar(ctx,1);
---  SL();
---  reaper.ImGui_SetCursorPosY(ctx, reaper.ImGui_GetCursorPosY(ctx) - 3)
---  reaper.ImGui_Text(ctx, "");
 end
 
 function SettingsPanel()
@@ -1178,29 +1209,29 @@ function SettingsPanel()
 
       local curval = nil;
 
-      curval = engine_lib.getSetting("AllowTargetingFocusedMidiEditors");
+      curval = S.getSetting("AllowTargetingFocusedMidiEditors");
       if reaper.ImGui_Checkbox(ctx, "Allow targeting items open in focused MIDI Editors", curval) then
-        engine_lib.setSetting("AllowTargetingFocusedMidiEditors", not curval);
+        S.setSetting("AllowTargetingFocusedMidiEditors", not curval);
       end
 
-      curval = engine_lib.getSetting("AllowTargetingNonSelectedItemsUnderCursor");
+      curval = S.getSetting("AllowTargetingNonSelectedItemsUnderCursor");
       if reaper.ImGui_Checkbox(ctx, "Allow targeting items on selected tracks if no item is selected", curval) then
-        engine_lib.setSetting("AllowTargetingNonSelectedItemsUnderCursor", not curval);
+        S.setSetting("AllowTargetingNonSelectedItemsUnderCursor", not curval);
       end
 
-      curval = engine_lib.getSetting("AllowCreateItem");
+      curval = S.getSetting("AllowCreateItem");
       if reaper.ImGui_Checkbox(ctx, "Allow creating new items if needed", curval) then
-        engine_lib.setSetting("AllowCreateItem", not curval);
+        S.setSetting("AllowCreateItem", not curval);
       end
 
-      curval = engine_lib.getSetting("SelectInputNotes");
+      curval = S.getSetting("SelectInputNotes");
       if reaper.ImGui_Checkbox(ctx, "Select input notes", curval) then
-        engine_lib.setSetting("SelectInputNotes", not curval);
+        S.setSetting("SelectInputNotes", not curval);
       end
 
-      curval = engine_lib.getSetting("CleanupJsfxAtClosing");
+      curval = S.getSetting("CleanupJsfxAtClosing");
       if reaper.ImGui_Checkbox(ctx, "Cleanup helper JSFXs when closing OSS", curval) then
-        engine_lib.setSetting("CleanupJsfxAtClosing", not curval);
+        S.setSetting("CleanupJsfxAtClosing", not curval);
       end
 
       reaper.ImGui_EndTabItem(ctx)
@@ -1225,9 +1256,9 @@ function SettingsPanel()
         This setting allows to enter new notes overlapping sustained notes.",
         true, nil)
       SL()
-      curval = engine_lib.getSetting("KeyPressModeInertiaEnabled");
+      local curval = S.getSetting("KeyPressModeInertiaEnabled");
       if reaper.ImGui_Checkbox(ctx, "Enabled##kp_inertia", curval) then
-        engine_lib.setSetting("KeyPressModeInertiaEnabled", not curval);
+        S.setSetting("KeyPressModeInertiaEnabled", not curval);
       end
 
       ImGui_VerticalSpacer(ctx,5);
@@ -1245,9 +1276,9 @@ function SettingsPanel()
       ImGui_VerticalSpacer(ctx,5);
       SEP("Sustain Pedal")
 
-      curval = engine_lib.getSetting("PedalRepeatEnabled");
+      curval = S.getSetting("PedalRepeatEnabled");
       if reaper.ImGui_Checkbox(ctx, "Pedal repeat every", curval) then
-        engine_lib.setSetting("PedalRepeatEnabled", not curval);
+        S.setSetting("PedalRepeatEnabled", not curval);
       end
       SL();
       SettingSlider("PedalRepeatTime", "%.3f seconds", "and", "Repeat time for the pedal event when pressed", false, 120)
@@ -1268,9 +1299,9 @@ function SettingsPanel()
       EditModeComboBox("Replace")
       EditModeComboBox("Repitch")
 
-      curval = engine_lib.getSetting("HideEditModeMiniBar");
+      local curval = S.getSetting("HideEditModeMiniBar");
       if reaper.ImGui_Checkbox(ctx, "Hide edit mode mini bar", curval) then
-        engine_lib.setSetting("HideEditModeMiniBar", not curval);
+        S.setSetting("HideEditModeMiniBar", not curval);
       end
       SL()
       reaper.ImGui_TextColored(ctx, 0xB0B0B0FF, "(?)");
@@ -1287,22 +1318,24 @@ function SettingsPanel()
       ImGui_VerticalSpacer(ctx,5);
       SEP("All edit modes")
 
-      curval = engine_lib.getSetting("AutoScrollArrangeView");
+      local curval = S.getSetting("AutoScrollArrangeView");
       if reaper.ImGui_Checkbox(ctx, "Auto-scroll arrange view after editing/navigating", curval) then
-        engine_lib.setSetting("AutoScrollArrangeView", not curval);
+        S.setSetting("AutoScrollArrangeView", not curval);
       end
 
-      curval = engine_lib.getSetting("AllowKeyEventNavigation");
+      curval = S.getSetting("AllowKeyEventNavigation");
       if reaper.ImGui_Checkbox(ctx, "Allow navigating on controller key press/release", curval) then
-        engine_lib.setSetting("AllowKeyEventNavigation", not curval);
+        S.setSetting("AllowKeyEventNavigation", not curval);
       end
+
+      MarkerPolicySettingComboBox("operation marker", "OperationMarkerPolicyWhenClosed")
 
       ImGui_VerticalSpacer(ctx,5);
       SEP("Write mode")
 
-      curval = engine_lib.getSetting("DoNotRewindOnStepBackIfNothingErased");
+      curval = S.getSetting("DoNotRewindOnStepBackIfNothingErased");
       if reaper.ImGui_Checkbox(ctx, "Do not rewind on controller key press/release and nothing is erased", curval) then
-        engine_lib.setSetting("DoNotRewindOnStepBackIfNothingErased", not curval);
+        S.setSetting("DoNotRewindOnStepBackIfNothingErased", not curval);
       end
 
       ImGui_VerticalSpacer(ctx,5);
@@ -1319,9 +1352,8 @@ function SettingsPanel()
     end
 
     if reaper.ImGui_BeginTabItem(ctx, 'Playback') then
-
-      ImGui_VerticalSpacer(ctx,5);
-      PlaybackMarkerSettingComboBox();
+      ImGui_VerticalSpacer(ctx,5)
+      MarkerPolicySettingComboBox("playback marker", "PlaybackMarkerPolicyWhenClosed")
       reaper.ImGui_EndTabItem(ctx)
     end
 
@@ -1334,7 +1366,7 @@ function SettingsPanel()
 end
 
 function NoteLenOptions(grid_mode)
-  local nlmod = engine_lib.getNoteLenModifier();
+  local nlmod = S.getNoteLenModifier()
 
   NoteLenMiniBar(grid_mode); SL()
   MiniBarSeparator(); SL()
@@ -1345,19 +1377,23 @@ function NoteLenOptions(grid_mode)
 
   NoteLenModifierMiniBar(grid_mode);
 
-  if nlmod == engine_lib.NoteLenModifier.Tuplet then
+  if nlmod == D.NoteLenModifier.Tuplet then
     SL(); MiniBarSeparator(); SL()
     NTupletComboBox()
-  elseif nlmod == engine_lib.NoteLenModifier.Modified then
+  elseif nlmod == D.NoteLenModifier.Modified then
     SL(); MiniBarSeparator(); SL()
     AugmentedDiminishedMiniBars(not grid_mode)
   end
 end
 
+local function Stop()
+  reaper.ImGui_DestroyContext(ctx);
+end
 
-function ui_loop()
+local MainLoop
+local function UiLoop()
 
-  engine_lib.TrackFocus();
+  F.TrackFocus();
 
   reaper.ImGui_PushStyleVar(ctx,reaper.ImGui_StyleVar_WindowPadding(),10,10);
 
@@ -1367,7 +1403,7 @@ function ui_loop()
     reaper.ImGui_WindowFlags_TopMost();
 
   -- Since we use a trick to give back the focus to reaper, we don't want the window to glitch.
-  reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_TitleBgActive(), 0x0A0A0AFF);
+  reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_TitleBgActive(), (DEBUGGER_IS_ON and 0xFF0000FF or 0x0A0A0AFF))
   local visible, open = reaper.ImGui_Begin(ctx, 'One Small Step v' .. VERSION, true, flags);
   reaper.ImGui_PopStyleColor(ctx,1);
 
@@ -1375,7 +1411,7 @@ function ui_loop()
     reaper.ImGui_SetConfigVar(ctx,reaper.ImGui_ConfigVar_HoverDelayNormal(), 1.0);
 
     -- Target display line
-    local take = engine_lib.TakeForEdition();
+    local take = TGT.TakeForEdition();
 
     TargetLine(take);
 
@@ -1386,9 +1422,10 @@ function ui_loop()
     reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacing(),       2, 4);
     reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_ItemInnerSpacing(),  0, 0);
 
-    local nlm   = engine_lib.getNoteLenParamSource();
-    local amode = engine_lib.getSetting("EditMode")
-    local emode = engine_lib.resolveOperationMode().mode;
+    local nlm     = S.getNoteLenParamSource();
+    local amode   = S.getSetting("EditMode")
+    local opmode  = ED.ResolveOperationMode()
+    local emode   = opmode.mode;
 
     SettingsMiniBar(); SL();
     MiniBarSeparator(); SL();
@@ -1396,7 +1433,7 @@ function ui_loop()
     InputModeMiniBar(); SL();
     MiniBarSeparator(); SL();
 
-    if not engine_lib.getSetting("HideEditModeMiniBar") then
+    if not S.getSetting("HideEditModeMiniBar") then
       EditModeMiniBar(); SL();
       MiniBarSeparator(); SL();
     end
@@ -1407,13 +1444,13 @@ function ui_loop()
     ConfSourceMiniBar(); SL();
     MiniBarSeparator(); SL();
 
-    if nlm == engine_lib.NoteLenParamSource.OSS then
-      NoteLenOptions(false)
-    elseif nlm == engine_lib.NoteLenParamSource.ProjectGrid then
+    if nlm == D.NoteLenParamSource.OSS then
+      NoteLenOptions(emode == "Replace" and opmode.use_alt)
+    elseif nlm == D.NoteLenParamSource.ProjectGrid then
       ProjectGridLabel(ctx); SL()
       XSeparator(); SL();
       NoteLenOptions(true)
-    elseif nlm == engine_lib.NoteLenParamSource.ItemConf then
+    elseif nlm == D.NoteLenParamSource.ItemConf then
       ItemGridLabel(ctx,take); SL()
       XSeparator(); SL();
       NoteLenOptions(true)
@@ -1433,7 +1470,7 @@ function ui_loop()
       end
 
       if (reaper.time_precise() - focustimer > 0.5) then
-        engine_lib.RestoreFocus();
+        F.RestoreFocus();
       end
     else
       focustimer = nil;
@@ -1446,45 +1483,47 @@ function ui_loop()
   reaper.ImGui_PopStyleVar(ctx);
 
   if open then
-    reaper.defer(main_loop)
+    reaper.defer(MainLoop)
   else
-    stop();
+    Stop()
   end
 end
 
-function updateToolbarButtonState(v)
+local function UpdateToolbarButtonState(v)
   local _,_,sectionID,cmdID,_,_,_ = reaper.get_action_context();
   reaper.SetToggleCommandState(sectionID,cmdID,v);
   reaper.RefreshToolbar2(sectionID, cmdID);
 end
 
-function main_loop()
-
-  local engine_ret = engine_lib.atLoop();
+function MainLoop()
+  local engine_ret = E.atLoop();
 
   if engine_ret == -42 then
     reaper.ShowMessageBox("Could not install One Small Step's helper FX on the track.\n\nIf you've just installed One Small Step, please try to restart REAPER to let it refresh its JFSX repository.", "Oops !", 0);
     return;
   end
 
-  ui_loop();
+  UiLoop();
 end
 
-function onReaperExit()
-  updateToolbarButtonState(0);
-  engine_lib.atExit();
+local function onReaperExit()
+  UpdateToolbarButtonState(0);
+  E.atExit();
 end
 
-function stop()
-  reaper.ImGui_DestroyContext(ctx);
-end
-
-function start()
+local function _start()
   focustimer    = 0; -- Will force a focus restore
-  updateToolbarButtonState(1);
-  engine_lib.atStart();
+  UpdateToolbarButtonState(1);
+  E.atStart();
   reaper.atexit(onReaperExit);
-  reaper.defer(main_loop);
+  reaper.defer(MainLoop);
 end
 
-start();
+local function start()
+  -- Defer everything so that we can benefit of the debugger
+  reaper.defer(_start)
+end
+
+DBG.LaunchDebugStubIfNeeded()
+
+start()
