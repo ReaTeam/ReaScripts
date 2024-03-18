@@ -3,17 +3,18 @@
 -- @license MIT
 -- @description This is part of One Small Step
 
-local KeyActivityManager   = require "KeyActivityManager";
+local KeyActivityManager   = require "input_managers/KeyActivityManager";
+local S                    = require "modules/settings"
 
 -- Inherit from generic KeyActivityManager
 KeyPressActivityManager = KeyActivityManager:new();
 
 function KeyPressActivityManager:aggregation()
-  return EngineLib.getSetting("KeyPressModeAggregationTime");
+  return S.getSetting("KeyPressModeAggregationTime");
 end
 
 function KeyPressActivityManager:inertia()
-  return EngineLib.getSetting("KeyPressModeInertiaTime");
+  return S.getSetting("KeyPressModeInertiaTime");
 end
 
 function KeyPressActivityManager:tryAdvancedCommitForTrack(track, commit_callback)
@@ -37,7 +38,7 @@ function KeyPressActivityManager:tryAdvancedCommitForTrack(track, commit_callbac
       end
     end
 
-    if EngineLib.getSetting("KeyPressModeInertiaEnabled") and (v.committed == true) and (time - v.first_ts > self:inertia()) then
+    if S.getSetting("KeyPressModeInertiaEnabled") and (v.committed == true) and (time - v.first_ts > self:inertia()) then
       held_candidates[#held_candidates+1] = v;
     end
   end

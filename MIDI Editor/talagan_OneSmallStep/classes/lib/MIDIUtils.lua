@@ -1,7 +1,7 @@
 -- @noindex
 -- @license MIT
 -- @description MIDI Utils API
--- @version 0.1.13
+-- @version 0.1.18
 -- @author sockmonkey72
 -- @about
 --   # MIDI Utils API
@@ -770,11 +770,18 @@ local function MIDI_CommitWriteTransaction(take, refresh, dirty)
   local newMIDIString = ''
   local lastPPQPos = 0
 
-  local comparator = function(t, a, b)
-    return ( (t[a].ppqpos == t[b].ppqpos) and (t[a]:type() == NOTEOFF_TYPE) ) or (t[a].ppqpos < t[b].ppqpos)
+  -- iterate sorted to avoid (REAPER Inline MIDI Editor) problems with offset calculation
+  local comparator = function(t, a, b) -- thanks Talagan (Ben Babut) for this improvement
+    if (t[a].ppqpos == t[b].ppqpos) then
+      local aprio = (t[a]:type() == NOTEOFF_TYPE) and 0 or 1
+      local bprio = (t[b]:type() == NOTEOFF_TYPE) and 0 or 1
+
+      return aprio < bprio
+    else
+      return (t[a].ppqpos < t[b].ppqpos)
+    end
   end
 
-  -- iterate sorted to avoid (REAPER Inline MIDI Editor) problems with offset calculation
   for _, event in spairs(MIDIEvents, comparator) do
     event.offset = math.floor(event.ppqpos - lastPPQPos)
     lastPPQPos = event.ppqpos
