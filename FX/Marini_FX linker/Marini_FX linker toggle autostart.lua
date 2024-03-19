@@ -37,7 +37,6 @@ local function addAutoStartup()
   local write = io.open(startupFile, "w")
   if not write then return end
   if content:match(pattern) then
-    print("c'è già autostart")
     write:write(content)
     return
   end
