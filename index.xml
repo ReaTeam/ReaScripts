@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="c6b4f7251e541c2690f940f6ae285c48c1050ca0" name="ReaTeam Scripts">
+<index version="1" commit="62f5afc6894817106c02bf950b370f955d0d2ddd" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -20549,6 +20549,22 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
         <changelog><![CDATA[- If settings are the default ones then, the tie button does not lit green
 - User is not prompted to tie if the values are the default ones (except if there are already other tied values)]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/860bdc85cd6a227f7b776f0431e0201f09d05fc9/Various/amagalma_Reaper%20GUI%20color%20controls%20XL.lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Remove all invalid file paths from the Recent Project list.lua" type="script" desc="Remove all invalid file paths from the Recent Project list">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab All files that are not accessible/available/valid, when the script is run, will be removed\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Changes will be visible after a Reaper restart\sa180\par}
+}
+]]></description>
+        <link rel="donation">https://www.paypal.me/amagalma</link>
+      </metadata>
+      <version name="1.00" author="amagalma" time="2024-03-20T19:42:37Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/62f5afc6894817106c02bf950b370f955d0d2ddd/Various/amagalma_Remove%20all%20invalid%20file%20paths%20from%20the%20Recent%20Project%20list.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Ripple recording.lua" type="script" desc="Ripple recording">
