@@ -10,7 +10,7 @@
 --
 --   BugFix
 --
---   - fixed wrong trackcouunt before quantizing if in -Edit Track- mode
+--   - fixed wrong trackcount before quantizing if in -Edit Track- mode
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=288964
 -- @about
 --   # PERFECT TIMING! 
