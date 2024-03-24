@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="62f5afc6894817106c02bf950b370f955d0d2ddd" name="ReaTeam Scripts">
+<index version="1" commit="d0d227721780ed95489ebb6778a82d273a50ca2c" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -4966,6 +4966,18 @@ a solution on possible bug in ultraschall.SetFXStateChunk.]]></changelog>
       <version name="0.23" author="80icio" time="2024-03-16T14:34:01Z">
         <changelog><![CDATA[-  Corrected wrong Playback and Edit cursor position on Visualizer window]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/270fe11a677263714897850061077d6a7fd1d1cb/Items%20Editing/80icio_Perfect%20Timing!%20-%20Audio%20Quantizer.lua</source>
+      </version>
+      <version name="0.24" author="80icio" time="2024-03-24T11:07:46Z">
+        <changelog><![CDATA[New Features
+
+- New Visualizer zoom bounds reference  over tracks on Main window
+- Trigger lines show full quarters with thicker lines and sub divisions with thinner lines
+- Corrected "clipping" Transient attack filter
+
+BugFix
+
+- fixed wrong trackcount before quantizing if in -Edit Track- mode]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d0d227721780ed95489ebb6778a82d273a50ca2c/Items%20Editing/80icio_Perfect%20Timing!%20-%20Audio%20Quantizer.lua</source>
       </version>
     </reapack>
     <reapack name="Add project markers as cue points to selected items and replace source files.lua" type="script" desc="amagalma_Add project markers as cue points to selected items and replace source files">
