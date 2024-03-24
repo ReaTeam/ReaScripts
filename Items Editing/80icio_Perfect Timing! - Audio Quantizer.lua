@@ -1,7 +1,16 @@
 -- @description Perfect Timing! - Audio Quantizer
 -- @author 80icio
--- @version 0.23
--- @changelog -  Corrected wrong Playback and Edit cursor position on Visualizer window
+-- @version 0.24
+-- @changelog
+--   New Features
+--
+--   - New Visualizer zoom bounds reference  over tracks on Main window
+--   - Trigger lines show full quarters with thicker lines and sub divisions with thinner lines
+--   - Corrected "clipping" Transient attack filter
+--
+--   BugFix
+--
+--   - fixed wrong trackcount before quantizing if in -Edit Track- mode
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=288964
 -- @about
 --   # PERFECT TIMING! 
@@ -101,6 +110,7 @@ local Histogram_tbl = {}
 local keeptrue = {}
 local thresh_table = {}
 local thresh_histogram_table = {}
+local visualizer_bounds = {}
 local thresh_moving = 0
 
 local edittrack = {}
@@ -129,6 +139,7 @@ local radio_w_size = 1
 local m_window_width
 local m_window_height
 local visualizer_h = 0
+local zoom_bounds_L, zoom_bounds_Total = 0,0
 local dockid
 local Highsens = 0
 local waveform_zoom_gain = 1
@@ -775,14 +786,14 @@ function Wave:apply_filters_gain()
     if gain_v ~= 0 then
       for i = 1, #self.out_buf do 
         self.out_buf[i] = self.out_buf[i] * (10^((gain_v)/20))
+        if self.out_buf[i]>1 then self.out_buf[i] = 1 end
+        if self.out_buf[i]<-1 then self.out_buf[i] = -1 end
       end
     end
   end
 end
 
 function Enhanced_transient(attack)
-  --local maxpeakpos = 0
-  --local maxpeakneg = 0
   local b1Env1 = -exp(-30 / first_srate )
   local a0Env1 = 1.0 + b1Env1
   local b1Env2 = -exp(-1250 / first_srate )
@@ -793,9 +804,7 @@ function Enhanced_transient(attack)
   local tmpEnv1 = 0
   local tmpEnv2 = 0
   local tmpEnv3 = 0
-  --local fade_in_samples = first_srate//20
-  --local fade_in_step = 1/fade_in_samples
-  
+
   for i = 1, #Wave.out_buf do 
     local maxSpls = abs(Wave.out_buf[i])
     tmpEnv1 = a0Env1*maxSpls - b1Env1*tmpEnv1
@@ -806,13 +815,7 @@ function Enhanced_transient(attack)
     local env3 = sqrt(tmpEnv3)
     local gain = exp(logx(max(env2/env1,1))*attack)*exp( logx( max(env3/env1,1))*sustain)
     Wave.out_buf[i] = Wave.out_buf[i] * gain
-    if Wave.out_buf[i]>1 then Wave.out_buf[i] = 1 end
-    if Wave.out_buf[i]<-1 then Wave.out_buf[i] = -1 end
-    --if (Wave.out_buf[i])>maxpeakpos then maxpeakpos = Wave.out_buf[i] end
-    --if (Wave.out_buf[i])<maxpeakneg then maxpeakneg = Wave.out_buf[i] end
   end
-  --msg(maxpeakpos)
-  --msg(maxpeakneg)
 end
 
 function Wave:create_threshold_histogram()
@@ -820,7 +823,6 @@ function Wave:create_threshold_histogram()
   local step_res = #self.out_buf//(first_srate//2)
   if step_res == 0 then step_res = 1 end
   for i = 1, #self.out_buf, step_res do 
-  --for i = 1, #self.out_buf do
   local peakdata = 0
     if self.out_buf[i]<0 then peakdata = self.out_buf[i]*-1 else peakdata = self.out_buf[i] end
       if peakdata >= thresh_min  then ---- thresh_min = -60db
@@ -976,25 +978,15 @@ function Wave:Multi_Item_Sample_Sum()
   self:create_threshold_histogram()
 
   self.State = true -- Change State
-  --noautotresh = false 
 end
 
 function checkedittracks()----------check if any tracks are true in the edit group, if not it stops the process
-  local c = 1
   local checktracks = false
-  
-    while checktracks == false and c <= #edittrack do
-      checktracks =  edittrack[c]
-      
-      c = c + 1
+    for i = 1, #edittrack do
+      checktracks = edittrack[i]
+      if checktracks then break end
     end
-    
-    if checktracks == false then
-      return false 
-    else
-      return true 
-    end
-  
+    return checktracks
 end
 
 function MoveEdges(item, new_start,new_end)
@@ -1583,12 +1575,11 @@ end
 ----------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------
 function Trig_line_thickness(input)
-
 QN_lineTHICK = {}
 
       for i=1, #input, 2 do
-        local gridcheck =  tonumber(tostring(r.TimeMap2_timeToQN( 0, Arc_GetClosestGridDivision((input[i]/first_srate)+ first_sel_item_start))))
-        if gridcheck == floor(gridcheck) then
+        local gridcheck =  fmod(r.TimeMap2_timeToQN(0,(input[i]/first_srate)+ first_sel_item_start),1)
+        if gridcheck <= (divis*2) then
           QN_lineTHICK[i] = 2
         else
           QN_lineTHICK[i] = 1
@@ -1767,7 +1758,6 @@ end
 
 local MainHwnd = r.GetMainHwnd()
 local trackview = r.JS_Window_FindChildByID(MainHwnd, 0x3E8)
-
 function CreateBitmap()
   local c = 1
   for i = 1, (#Gate_Gl.grid_Points * item_n), 2 do 
@@ -1775,7 +1765,28 @@ function CreateBitmap()
     r.JS_LICE_Clear(lines[c], linecolor)
   c = c + 1
   end
+  if visualizer then
+    for i = 1, item_n do 
+      visualizer_bounds[i] = r.JS_LICE_CreateBitmap(true, 1, 1)
+      r.JS_LICE_Clear(visualizer_bounds[i], 0x40FFFFFF)
+    end
+  end
 end
+
+function DestroyBitmap()
+  if #lines > 0 then
+    for i = 1, #lines do
+      if lines[i] then r.JS_LICE_DestroyBitmap(lines[i]) end
+    end
+  end
+  if #visualizer_bounds > 0 then
+    for i = 1, #visualizer_bounds do
+      if visualizer_bounds[i] then r.JS_LICE_DestroyBitmap(visualizer_bounds[i]) end
+    end
+  end
+  
+end
+
 
 function MW_drawlines()
   if check_itm == true and open and quantize_state == false  then
@@ -1806,11 +1817,25 @@ function MW_drawlines()
             local track_H = r.GetMediaTrackInfo_Value(sel_tr, "I_TCPH")
             local media_H = r.GetMediaItemInfo_Value(item, "I_LASTH" )
             local media_Y = r.GetMediaItemInfo_Value(item, "I_LASTY" )
-
-            movescreen[trck] = r.CSurf_TrackToID( sel_tr, false ) + MWzoom + scrollpos + track_H + media_H + scrollpos_v + itemsn + track_y*2
+            
+            
+            
+            movescreen[trck] =h_zoom_center + zoom_bounds_L + zoom_bounds_Total + r.CSurf_TrackToID( sel_tr, false ) + MWzoom + scrollpos + track_H + media_H + scrollpos_v + itemsn + track_y*2
+            
             if MW_lines_ON and (Gtolerance_slider or r.GetPlayState() ~= 0 or visualizer_rv or Offset or Detect_rv2 or Detect_rv or Visualizer_mode_rv or
             color_button or Sensitivity_slider or Change_grid or movescreen[trck] ~= movescreen_prev[trck]) then --or set_grid_from_script or get_grid_from_proj
-              
+
+            if visualizer then
+            ---------------------------------------------- visualizer ZOOM AREA reference on MW
+            local bounds_start_pos = floor((startT+(zoom_bounds_L/first_srate)) * MWzoom)
+            local bounds_width = floor((zoom_bounds_Total/first_srate) * MWzoom)
+            
+            -- r.JS_Composite(trackview, bounds_start_pos - scrollpos, track_y + media_Y+media_H, bounds_width, 1,visualizer_bounds[trck], 0, 0, 1, 1, true)
+            -- r.JS_Composite(trackview, bounds_start_pos - scrollpos, track_y + media_Y, bounds_width, media_H,visualizer_bounds[trck], 0, 0, 1, 1, true)
+            r.JS_Composite(trackview, bounds_start_pos - scrollpos, track_y , bounds_width, media_Y,visualizer_bounds[trck], 0, 0, 1, 1, true)
+            
+            ----------------------------------------------
+            end
               movescreen_prev[trck] = movescreen[trck]
               local pagesizecheck = (floor(width/pageSize))
               scrollpos = scrollpos*pagesizecheck
@@ -1847,13 +1872,6 @@ function MW_drawlines()
 
 end
 
-function DestroyBitmap()
-  if #lines > 0 then
-    for i = 1, #lines do
-      if lines[i] then r.JS_LICE_DestroyBitmap(lines[i]) end
-    end
-  end
-end
 
 function Triglinesdraw()
   DestroyBitmap()
@@ -2637,6 +2655,7 @@ if visible then
           end
         else
         r.ImGui_TextDisabled( ctx, Tdepth .. tostring(i+1 ..' ' .. Trackname) )
+        edittrack[i+1] = false
         end
       
       end
@@ -2905,8 +2924,6 @@ if visible then
     filter_button = r.ImGui_Button(ctx,filter_on_str,-1)
     
     if filter_button then filter_on = not filter_on end
-
-    
     r.ImGui_PopStyleColor(ctx, 5)
   else -----------------------------------------------------------advanced settings
   r.ImGui_SeparatorText(ctx, 'Time Offset')
