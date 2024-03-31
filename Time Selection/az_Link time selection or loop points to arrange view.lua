@@ -1,7 +1,7 @@
 -- @description Link time selection or loop points to arrange view
 -- @author AZ
--- @version 1.1
--- @changelog - Fixed dependency on option "Loop points linked to time selection"
+-- @version 1.2
+-- @changelog - Fixed edit cursor lost outside of time selection on scrolling
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=288069
 -- @donation Donate via PayPal https://www.paypal.me/AZsound
 -- @about
@@ -59,15 +59,9 @@ function main()
     local _, _ = reaper.GetSet_LoopTimeRange2( 0, true, true, startTSgrid, endTSgrid, false )
     
     local playState = reaper.GetPlayStateEx(0)
-    local curPos
+    local curPos = reaper.GetCursorPosition()
 
     if oldTSstart ~= startTSgrid then
-    
-      if playState == 1 or playState == 5 then
-        curPos = reaper.GetPlayPositionEx(0)
-      else
-        curPos = reaper.GetCursorPosition()
-      end
       
       if curPos < startTSgrid or curPos > endTSgrid then
         local contScroll = reaper.GetToggleCommandState(41817)* -1 +1
@@ -110,5 +104,4 @@ else
   reaper.RefreshToolbar2( sec, cmd )
   reaper.defer(function()end)
 end
-
 
