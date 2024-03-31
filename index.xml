@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="d0d227721780ed95489ebb6778a82d273a50ca2c" name="ReaTeam Scripts">
+<index version="1" commit="da3cd1a53733982e73c0995b10c99df7cd1fb270" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -17401,6 +17401,10 @@ Updated to only list stretch markers within item time and format time as standar
         <changelog><![CDATA[- Fixed dependency on option "Loop points linked to time selection"]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/047d5775e1026a11e5141f4d30da057f1131b63b/Time%20Selection/az_Link%20time%20selection%20or%20loop%20points%20to%20arrange%20view.lua</source>
       </version>
+      <version name="1.2" author="AZ" time="2024-03-31T18:29:20Z">
+        <changelog><![CDATA[- Fixed edit cursor lost outside of time selection on scrolling]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/92caaaf059cefa9b2091d47f3cea872b02537936/Time%20Selection/az_Link%20time%20selection%20or%20loop%20points%20to%20arrange%20view.lua</source>
+      </version>
     </reapack>
     <reapack name="BuyOne_Create time selection between two marked points from the closest to cursor on the left (guide inside).lua" type="script" desc="Create time selection between two marked points from the closest to cursor on the left">
       <metadata>
@@ -25304,6 +25308,11 @@ https://github.com/Timtam/IntelliFreeze
 Added tooltip "Click to copy to clipboard"
 Added flashing green when clicking on ms or Hz label]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/7c81c25217f291ed117450b02b94b0773768c15f/Various/tompad_MusicMath.lua</source>
+      </version>
+      <version name="1.2" author="tompad" time="2024-03-31T18:29:50Z">
+        <changelog><![CDATA[Added buttons for 2/1, 2/1., 2/1t, 4/1,4/1., 4/1t, 8/1, 8/1., 8/1t and 1/64, 1/64., 1/64t, 1/128, 1/128., 1/128t
+Thanks twarch!]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/da3cd1a53733982e73c0995b10c99df7cd1fb270/Various/tompad_MusicMath.lua</source>
       </version>
     </reapack>
     <reapack name="tompad_obliques.lua" type="script" desc="obliques - randomly shows text from Oblique Strategies">
