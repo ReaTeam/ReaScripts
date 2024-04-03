@@ -1,5 +1,3 @@
-
-
 -- @description Chapter marker for audiobooks (ID3 Metatag "CHAP=Chapter_Title")
 -- @author Tormy Van Cool
 -- @version 2.3
