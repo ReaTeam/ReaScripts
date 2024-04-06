@@ -1,6 +1,6 @@
 --[[
 @description One Small Step : Alternative Step Input
-@version 0.9.10
+@version 0.9.11
 @author Ben 'Talagan' Babut
 @license MIT
 @metapackage
@@ -56,12 +56,7 @@
 @screenshot
   https://stash.reaper.fm/48269/oss_094.png
 @changelog
-  - [Feature] Compress/Stretch Submode
-  - [Feature] Stuff Submode
-  - [Enhance] Force item bound snapping if item grid snap is on
-  - [Rework] PPQ Precise operations
-  - [Rework] New code architecture and file hierarchy, big code rework
-  - [Rework] Addind debugging support for Visual Studio Code (using mavriq lua sockets, thanks @mavriq)
+  - [Feature] Velocity limiter
 @about
   # Purpose
 
@@ -91,7 +86,7 @@
 
 --]]
 
-VERSION = "0.9.10"
+VERSION = "0.9.11"
 DOC_URL = "https://bentalagan.github.io/onesmallstep-doc/index.html?ver=" .. VERSION
 
 PATH    = debug.getinfo(1,"S").source:match[[^@?(.*[\/])[^\/]-$]]
@@ -850,7 +845,6 @@ function EditModeMiniBar()
       SL()
     end
   end
-
 end
 
 function PlaybackWidget()
@@ -877,13 +871,18 @@ function SliderReset(setting)
   reaper.ImGui_PopStyleVar(ctx);
 end
 
-function SettingSlider(setting, in_label, out_label, tooltip, use_help_interrogation_for_tooltip, width)
+function SettingSlider(setting, in_label, out_label, tooltip, use_help_interrogation_for_tooltip, options)
+
+  options = options or {};
+
+  local width = options.width
+  local spec  = S.getSettingSpec(setting)
+  local min   = options.min or spec.min
+  local max   = options.max or spec.max
 
   if width then
     reaper.ImGui_SetNextItemWidth(ctx, width)
   end
-
-  local spec = S.getSettingSpec(setting)
 
   local slider_func = nil
   if spec.type == 'int' then
@@ -894,7 +893,7 @@ function SettingSlider(setting, in_label, out_label, tooltip, use_help_interroga
     error("Contact developer, forgot to handle type " .. spec.type)
   end
 
-  local change, v1 = slider_func(ctx, "##slider_" .. setting , S.getSetting(setting), spec.min, spec.max, in_label, reaper.ImGui_SliderFlags_NoInput())
+  local change, v1 = slider_func(ctx, "##slider_" .. setting , S.getSetting(setting), min, max, in_label, reaper.ImGui_SliderFlags_NoInput())
   if change then
     S.setSetting(setting, v1);
   end
@@ -905,15 +904,49 @@ function SettingSlider(setting, in_label, out_label, tooltip, use_help_interroga
 
   SL();
   SliderReset(setting)
-  if out_label then
-    SL();
-    reaper.ImGui_Text(ctx, out_label);
+
+  if out_label and out_label ~= "" then
+    SL()
+    reaper.ImGui_Text(ctx, out_label)
   end
+
   if use_help_interrogation_for_tooltip and tooltip then
     SL()
     reaper.ImGui_TextColored(ctx, 0xB0B0B0FF, "(?)");
     TT(tooltip)
   end
+end
+
+function SettingComboBox(setting, pre_label, tooltip, width)
+
+  local combo_items = S.getSettingSpec(setting).inclusion
+  local curval      = S.getSetting(setting)
+
+  reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_FramePadding(), 5, 3.5)
+
+  if pre_label ~= "" then
+    reaper.ImGui_Text(ctx, pre_label);
+    SL()
+  end
+
+  reaper.ImGui_SetNextItemWidth(ctx, width);
+  reaper.ImGui_PushID(ctx, setting .. "_combo")
+  if reaper.ImGui_BeginCombo(ctx, '', curval) then
+    for i,v in ipairs(combo_items) do
+      local is_selected = (curval == v);
+      if reaper.ImGui_Selectable(ctx, combo_items[i], is_selected) then
+        S.setSetting(setting, v);
+      end
+      if is_selected then
+        reaper.ImGui_SetItemDefaultFocus(ctx)
+      end
+    end
+    reaper.ImGui_EndCombo(ctx)
+  end
+  reaper.ImGui_PopID(ctx);
+  reaper.ImGui_PopStyleVar(ctx,1);
+
+  TT(tooltip)
 end
 
 function TargetModeInfo()
@@ -934,13 +967,13 @@ function TargetModeInfo()
       if currentop.back  then
         reaper.ImGui_Image(ctx, getImage("indicator_compress"),20,20); _TT("Compress notes between marker and edit cursor", true, "Insert"); SL();
       else
-        reaper.ImGui_Image(ctx, getImage("indicator_stretch"),20,20); ; _TT("Stretch notes between marker and edit cursor", true, "Insert") SL();
+        reaper.ImGui_Image(ctx, getImage("indicator_stretch"),20,20); _TT("Stretch notes between marker and edit cursor", true, "Insert"); SL();
       end
     else
       if currentop.back  then
         reaper.ImGui_Image(ctx, getImage("indicator_insert_back"),20,20); _TT("Insert back (delete and shift)", false, "Compress"); SL();
       else
-        reaper.ImGui_Image(ctx, getImage("indicator_insert_forward"),20,20); ; _TT("Insert (add notes and shift)", false, "Stretch") SL();
+        reaper.ImGui_Image(ctx, getImage("indicator_insert_forward"),20,20); ; _TT("Insert (add notes and shift)", false, "Stretch"); SL();
       end
     end
   elseif currentop.mode == "Replace" then
@@ -1245,7 +1278,7 @@ function SettingsPanel()
         "%.3f seconds",
         "Chord Aggregation",
         "Key press events happening within this time\nwindow are aggregated as a chord",
-        true, nil)
+        true)
 
       SettingSlider("KeyPressModeInertiaTime",
         "%.3f seconds",
@@ -1254,7 +1287,7 @@ function SettingsPanel()
         key A was still held for more than this time,\n\z
         then A is considered sustained and not released.\n\n\z
         This setting allows to enter new notes overlapping sustained notes.",
-        true, nil)
+        true)
       SL()
       local curval = S.getSetting("KeyPressModeInertiaEnabled");
       if reaper.ImGui_Checkbox(ctx, "Enabled##kp_inertia", curval) then
@@ -1271,7 +1304,7 @@ function SettingsPanel()
         if other keys are still pressed.\n\n\z
         This is used to know if a note should be forgotten/trashed\n\z
         or used as part of the input chord.",
-        true, nil)
+        true)
 
       ImGui_VerticalSpacer(ctx,5);
       SEP("Sustain Pedal")
@@ -1280,11 +1313,42 @@ function SettingsPanel()
       if reaper.ImGui_Checkbox(ctx, "Pedal repeat every", curval) then
         S.setSetting("PedalRepeatEnabled", not curval);
       end
-      SL();
-      SettingSlider("PedalRepeatTime", "%.3f seconds", "and", "Repeat time for the pedal event when pressed", false, 120)
-      SL();
-      SettingSlider("PedalRepeatFirstHitMultiplier", "x %.d", "on first hit", "Multiplication factor for first hit", false, 50)
+      SL()
+      SettingSlider("PedalRepeatTime",
+        "%.3f seconds", "and", "Repeat time for the pedal event when pressed",
+        false,
+        { width = 120 } )
+      SL()
+      SettingSlider("PedalRepeatFirstHitMultiplier",
+        "x %.d",
+        "on first hit",
+        "Multiplication factor for first hit",
+        false,
+        { width = 50 } )
 
+      ImGui_VerticalSpacer(ctx,5);
+      SEP("Velocity")
+
+      curval = S.getSetting("VelocityLimiterEnabled");
+      if reaper.ImGui_Checkbox(ctx, "Limit velocity between", curval) then
+        S.setSetting("VelocityLimiterEnabled", not curval);
+      end
+      SL()
+      SettingSlider("VelocityLimiterMin",
+        "%d",
+        "and",
+        "Minimum value",
+        false,
+        { width = 127, min = S.getSettingSpec("VelocityLimiterMin").min, max = S.getSetting("VelocityLimiterMax") } )
+      SL()
+      SettingSlider("VelocityLimiterMax",
+        "%d",
+        "",
+        "Maximum value",
+        false,
+        { width = 127, min = S.getSetting("VelocityLimiterMin"), max = S.getSettingSpec("VelocityLimiterMax").max } )
+      SL()
+      SettingComboBox("VelocityLimiterMode", "mode", "Velocity limiting label", 100)
 
       reaper.ImGui_EndTabItem(ctx)
     end
@@ -1346,7 +1410,7 @@ function SettingsPanel()
         "%.3f seconds",
         "Repitch chord aggregation",
         "Notes that fit in that time window are aggregated as a chord",
-        true, nil)
+        true)
 
       reaper.ImGui_EndTabItem(ctx)
     end

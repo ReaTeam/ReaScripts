@@ -61,7 +61,12 @@ local SettingDefs = {
 
   AllowKeyEventNavigation                                   = { type = "bool",    default = false },
 
-  UseDebugger                                               = { type = "bool",    default = false }
+  UseDebugger                                               = { type = "bool",    default = false },
+
+  VelocityLimiterEnabled                                    = { type = "bool",    default = false },
+  VelocityLimiterMin                                        = { type = "int",     default = 0,    min = 0, max = 127 },
+  VelocityLimiterMax                                        = { type = "int",     default = 127,  min = 0, max = 127 },
+  VelocityLimiterMode                                       = { type = "string",  default = "Linear", inclusion = { "Linear", "Clamp"} }
 };
 
 
