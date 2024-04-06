@@ -1,11 +1,7 @@
 -- @description Smart split items using mouse cursor context (also edit cursor, razor area and time selection)
 -- @author AZ
--- @version 3.0
--- @changelog
---   Major update to version 3.0
---   - A lot of options stored in user config
---   - Options window
---   - Many new features and bug fixes
+-- @version 3.15
+-- @changelog - fixed one silly bug for new users
 -- @provides [main] az_Smart split items by mouse cursor/az_Open options for az_Smart split items by mouse cursor.lua
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=259751
 -- @donation Donate via PayPal https://www.paypal.me/AZsound
@@ -678,7 +674,7 @@ function GetRazorEdits()
                 if not isEnvelope then
                 --reaper.ShowConsoleMsg(areaTop.." "..areaBottom.."\n\n")
                     items = GetItemsInRange(track, areaStart, areaEnd, areaTop, areaBottom)
-                    if #items > 0 then AnythingForSplit = true end
+                    if not AnythingForSplit and #items > 0 then AnythingForSplit = true end
                 else
                     envelope = reaper.GetTrackEnvelopeByChunkName(track, GUID:sub(2, -2))
                     local ret, envName = reaper.GetEnvelopeName(envelope)
@@ -687,7 +683,8 @@ function GetRazorEdits()
                     envelopePoints = GetEnvelopePointsInRange(envelope, areaStart, areaEnd)
                 end
 
-                local areaData = {
+                if not isEnvelope then
+                  local areaData = {
                     areaStart = areaStart,
                     areaEnd = areaEnd,
                     areaTop = areaTop,
@@ -702,9 +699,10 @@ function GetRazorEdits()
                     envelopeName = envelopeName,
                     envelopePoints = envelopePoints,
                     GUID = GUID:sub(2, -2)
-                }
+                  }
 
-                table.insert(areaMap, areaData)
+                  table.insert(areaMap, areaData)
+                end
 
                 i=i+1
             end
@@ -738,7 +736,7 @@ function GetRazorEdits()
                 
                 if not isEnvelope then
                     items = GetItemsInRange(track, areaStart, areaEnd)
-                    if #items > 0 then AnythingForSplit = true end
+                    if not AnythingForSplit and #items > 0 then AnythingForSplit = true end
                 else
                     envelope = reaper.GetTrackEnvelopeByChunkName(track, GUID:sub(2, -2))
                     local ret, envName = reaper.GetEnvelopeName(envelope)
@@ -747,7 +745,8 @@ function GetRazorEdits()
                     envelopePoints = GetEnvelopePointsInRange(envelope, areaStart, areaEnd)
                 end
         
-                local areaData = {
+                if not isEnvelope then
+                  local areaData = {
                     areaStart = areaStart,
                     areaEnd = areaEnd,
                     
@@ -760,9 +759,10 @@ function GetRazorEdits()
                     envelopeName = envelopeName,
                     envelopePoints = envelopePoints,
                     GUID = GUID:sub(2, -2)
-                }
+                  }
         
-                table.insert(areaMap, areaData)
+                  table.insert(areaMap, areaData)
+                end
         
                 j = j + 3
             end
@@ -1714,10 +1714,14 @@ end
 
 ------------------
 -------START------
-version = reaper.GetExtState(ExtStateName, "version")
-if version ~= "3.0" then
-  updateMSG()
-  reaper.SetExtState(ExtStateName, "version", "3.0", true)
+CurVers = 3.15
+version = tonumber( reaper.GetExtState(ExtStateName, "version") )
+if version ~= CurVers then
+  if not version or version < 3 then
+    updateMSG()
+  else reaper.ShowMessageBox('The script was updated to version '..CurVers ,'Smart split',0)
+  end
+  reaper.SetExtState(ExtStateName, "version", CurVers, true)
   reaper.defer(function()end)
 else
   if reaper.APIExists( 'BR_GetMouseCursorContext' ) ~= true then

@@ -9,7 +9,7 @@
 KeyActivityManager = { activity = {} };
 
 function KeyActivityManager:new()
-  local o = o or {}
+  local o = {}
   setmetatable(o, self)
   self.__index = self
   self.activity = {};
@@ -17,8 +17,8 @@ function KeyActivityManager:new()
 end
 
 function KeyActivityManager:dbgNote(v)
-  reaper.ShowConsoleMsg("  - " ..  tostring(math.floor(v.chan+0.5)) .. "," .. tostring(math.floor(v.note+0.5)) .. " " ..
-    "(vel: " .. v.velocity .. ") " ..
+  reaper.ShowConsoleMsg("  - " ..  tostring(math.floor(v.chan+0.5)) .. "," .. tostring(math.floor(v.pitch + 0.5)) .. " " ..
+    "(vel: " .. v.vel .. ") " ..
     "(committed : " .. ((v.committed == nil) and 'nil' or 'true') .. ") " ..
     "(released : " ..  ((v.released  == nil) and 'nil' or 'true') .. ") " ..
     "(ts : " .. (v.first_ts or 'nil') .. ") " ..
@@ -54,6 +54,11 @@ function KeyActivityManager:pullPedalTriggerForTrack(track)
   return false
 end
 
+function KeyActivityManager:keyActivityForTrack(track)
+  local trackid = reaper.GetTrackGUID(track);
+  return self.activity[trackid];
+end
+
 function KeyActivityManager:forgetPedalTriggerForTrack(track, time, first_hit_multiplier)
   local trackid             = reaper.GetTrackGUID(track);
   local pedal_activity      = self.activity[trackid].pedal;
@@ -70,6 +75,17 @@ function KeyActivityManager:forgetPedalTriggerForTrack(track, time, first_hit_mu
     -- reset commit flag. The pedal can be pulled again.
     pedal_activity.committed = nil
   end
+end
+
+function KeyActivityManager:lockPedalRepeaterTillNextRelease(track)
+  local trackid             = reaper.GetTrackGUID(track);
+  local pedal_activity      = self.activity[trackid].pedal;
+
+  if not pedal_activity.committed then
+    return
+  end
+
+  pedal_activity.last_commit = 1/0 -- inf
 end
 
 
@@ -101,7 +117,7 @@ function KeyActivityManager:updateActivity(track, oss_state)
       goto continue
     end
 
-    local k = tostring(math.floor(v.chan+0.5)) .. "," .. tostring(math.floor(v.note+0.5))
+    local k = tostring(math.floor(v.chan + 0.5)) .. "," .. tostring(math.floor(v.pitch + 0.5))
 
     note_activity[k] = note_activity[k] or {};
 
@@ -112,9 +128,9 @@ function KeyActivityManager:updateActivity(track, oss_state)
       note_activity[k].released  = nil;
     end
 
-    note_activity[k].note        = v.note;
+    note_activity[k].pitch       = v.pitch;
     note_activity[k].chan        = v.chan;
-    note_activity[k].velocity    = v.velocity;
+    note_activity[k].vel         = v.vel;
     note_activity[k].first_ts    = v.timestamp;
     note_activity[k].latest_ts   = t;
 

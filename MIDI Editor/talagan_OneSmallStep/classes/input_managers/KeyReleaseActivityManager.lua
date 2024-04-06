@@ -3,13 +3,14 @@
 -- @license MIT
 -- @description This is part of One Small Step
 
-local KeyActivityManager   = require "KeyActivityManager";
+local KeyActivityManager   = require "input_managers/KeyActivityManager";
+local S                    = require "modules/settings"
 
 -- Inherit from generic KeyActivityManager
 KeyReleaseActivityManager = KeyActivityManager:new();
 
 function KeyReleaseActivityManager:inertia()
-  return EngineLib.getSetting("KeyReleaseModeForgetTime");
+  return S.getSetting("KeyReleaseModeForgetTime");
 end
 
 -- We need to override the default cleanup because we want to keep track of

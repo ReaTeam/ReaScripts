@@ -3,7 +3,8 @@
 -- @license MIT
 -- @description This is part of One Small Step
 
-package.path      = debug.getinfo(1,"S").source:match[[^@?(.*[\/])actions[\/][^\/]-$]] .."?.lua;".. package.path;
-local engine_lib  = require "classes/engine_lib";
+package.path      = debug.getinfo(1,"S").source:match[[^@?(.*[\/])actions[\/][^\/]-$]] .. "classes/" .. "?.lua;".. package.path
 
-engine_lib.decreaseNoteLen();
+local S           = require "modules/settings"
+
+S.decreaseNoteLen()

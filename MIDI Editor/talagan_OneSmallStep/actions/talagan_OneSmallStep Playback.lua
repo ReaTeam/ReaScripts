@@ -3,8 +3,10 @@
 -- @license MIT
 -- @description This is part of One Small Step. Will replay the n last measures.
 
-package.path      = debug.getinfo(1,"S").source:match[[^@?(.*[\/])actions[\/][^\/]-$]] .."?.lua;".. package.path;
-local engine_lib  = require "classes/engine_lib";
+package.path      = debug.getinfo(1,"S").source:match[[^@?(.*[\/])actions[\/][^\/]-$]] .. "classes/" .. "?.lua;".. package.path
+
+local S           = require "modules/settings"
+local MK          = require "modules/markers"
 
 -- Give the possibility to this script to be duplicated and called
 -- With a param at the end of the lua file name (it overrides OSS config)
@@ -19,20 +21,21 @@ if not (reaper.GetPlayState() == 0) then
   return;
 end
 
-local rewindMeasureCount  = ((param == nil) and engine_lib.getPlaybackMeasureCount() or tonumber(param));
+local rewindMeasureCount  = ((param == nil) and S.getPlaybackMeasureCount() or tonumber(param));
 
-local pos                 = reaper.GetCursorPosition();
-local posqn               = reaper.TimeMap2_timeToQN(0, pos);
-local posm                = reaper.TimeMap_QNToMeasures(0, posqn);
+local pos                 = reaper.GetCursorPosition()
+local posqn               = reaper.TimeMap2_timeToQN(0, pos)
+local posm                = reaper.TimeMap_QNToMeasures(0, posqn)
 
-local timeStart           = 0;
+local timeStart           = 0
 
 if rewindMeasureCount == -1 then
-  local mkid, mkpos = engine_lib.findPlaybackMarker();
+  local mkid, mkpos = MK.findPlaybackMarker()
+
   if mkid == nil then
     rewindMeasureCount = 0
   else
-    timeStart = mkpos;
+    timeStart = mkpos
   end
 end
 
@@ -50,8 +53,6 @@ if rewindMeasureCount >= 0 then
   timeStart = reaper.TimeMap2_QNToTime(0, measureStart);
 end
 
-
-
 -- In OSS manual, I encourage users to a tick the option that
 -- creates an undo point whenever the Edit cursor is moved
 -- This ensures that OSS undo works well (notes are cancelled and the edit cursor moves back to its previous position)
@@ -62,7 +63,8 @@ end
 local SPBA = "OneSmallStep - Start Playback";
 local EPBA = "OneSmallStep - End Playback";
 
-function startPlayback()
+local waitEndOfPlayback
+local function startPlayback()
   -- Move the cursor back and hit play
   reaper.Undo_BeginBlock();
   reaper.SetEditCurPos(timeStart, true, true);
@@ -71,7 +73,7 @@ function startPlayback()
   reaper.defer(waitEndOfPlayback);
 end
 
-function onPlaybackEnd()
+local function onPlaybackEnd()
   reaper.Undo_BeginBlock();
   reaper.SetEditCurPos(pos, false, false);
   reaper.Undo_EndBlock(EPBA,0);
@@ -86,7 +88,6 @@ function onPlaybackEnd()
 end
 
 function waitEndOfPlayback()
-
   local ps          = reaper.GetPlayState();
   local curtime     = reaper.GetPlayPosition();
   local antiglitch  = 0.1;
@@ -96,10 +97,9 @@ function waitEndOfPlayback()
   else
     return;
   end
-
 end
 
-function stopPlayback()
+local function stopPlayback()
   reaper.OnStopButton();
   onPlaybackEnd();
 end
