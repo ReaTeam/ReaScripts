@@ -14,17 +14,17 @@ local KeyActivityManager        = require "input_managers/KeyActivityManager"
 local KeyReleaseActivityManager = require "input_managers/KeyReleaseActivityManager"
 local KeyPressActivityManager   = require "input_managers/KeyPressActivityManager"
 
-local S     = require "modules/settings"
-local D     = require "modules/defines"
-local AT    = require "modules/action_triggers"
-local MK    = require "modules/markers"
-local T     = require "modules/time"
-local SNP   = require "modules/snap"
-local N     = require "modules/notes"
-local TGT   = require "modules/target"
-local F     = require "modules/focus"
-local MOD   = require "modules/modifiers"
-local ED    = require "modules/edition"
+local S         = require "modules/settings"
+local D         = require "modules/defines"
+local AT        = require "modules/action_triggers"
+local MK        = require "modules/markers"
+local T         = require "modules/time"
+local SNP       = require "modules/snap"
+local N         = require "modules/notes"
+local TGT       = require "modules/target"
+local F         = require "modules/focus"
+local MOD       = require "modules/modifiers"
+local ED        = require "modules/edition"
 
 local NAVIGATE  = require "operations/navigate"
 local REPITCH   = require "operations/repitch"
@@ -181,6 +181,30 @@ local function commitBack(track, take, notes_to_shorten, triggered_by_key_event)
   end
 end
 
+local function normalizeVelocities(notes_from_manager)
+  if not S.getSetting("VelocityLimiterEnabled") then
+    return
+  end
+
+  local min   = S.getSetting("VelocityLimiterMin")
+  local max   = S.getSetting("VelocityLimiterMax")
+  local mode  = S.getSetting("VelocityLimiterMode")
+
+  if min > max then
+    min, max = max, min
+  end
+
+  for i=1, #notes_from_manager do
+    local n = notes_from_manager[i]
+    if mode == "Clamp" then
+      n.vel = (n.vel < min) and (min) or (n.vel)
+      n.vel = (n.vel > max) and (max) or (n.vel)
+    elseif mode == "Linear" then
+      n.vel = min + (n.vel/127.0) * (max - min)
+      n.vel = math.floor(n.vel + 0.5) -- This not be an integer, so round
+    end
+  end
+end
 
 -- Listen to events from instrumented tracks that have the JSFX companion effect installed (or install it if not present)
 local function listenToEvents()
@@ -240,6 +264,10 @@ local function listenToEvents()
 
   manager:tryAdvancedCommitForTrack(track,
     function(candidates, held_candidates)
+
+      normalizeVelocities(candidates)
+      normalizeVelocities(held_candidates)
+
       -- The advanced commit is dedicated to key event(s) triggerering
       if not spmod then
         -- Advance
@@ -258,13 +286,19 @@ local function listenToEvents()
   -- Allow the use of the action or pedal
   if (pedal and not spmod) or AT.hasForwardActionTrigger() then
     manager:simpleCommit(track, function(commit_candidates, held_candidates)
+        normalizeVelocities(commit_candidates)
+        normalizeVelocities(held_candidates)
+
         commit(track, take, commit_candidates, held_candidates, false);
       end
     );
   end
 
+  -- Back action pedal
   if (pedal and spmod) or AT.hasBackwardActionTrigger() then
     manager:simpleCommitBack(track, function(shorten_candidates)
+        normalizeVelocities(shorten_candidates)
+
         commitBack(track, take, shorten_candidates, false)
       end
     );
@@ -361,6 +395,8 @@ return {
   F                             = F,
   MOD                           = MOD,
   ED                            = ED,
+  SNP                           = SNP,
+  N                             = N,
 
   atStart                       = atStart,
   atExit                        = atExit,
