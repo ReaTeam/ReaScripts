@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="1c48fe25bb3f104d005e64fed5d591f1ff2141b4" name="ReaTeam Scripts">
+<index version="1" commit="1b50e1234640942b2211e9cd3609221f35d5a735" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -8467,6 +8467,14 @@ Fix bug on Windows]]></changelog>
       </metadata>
       <version name="1.00" author="amagalma" time="2023-03-11T16:40:02Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/1e4398de31f8896fa495d606529c1a470eb8156d/Items%20Properties/amagalma_Paste%20text%20from%20clipboard%20to%20selected%20items'%20notes%20(one%20line%20per%20item).lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Select next item with take FX.lua" type="script" desc="Select next item with take FX">
+      <metadata>
+        <link rel="donation">https://www.paypal.me/amagalma</link>
+      </metadata>
+      <version name="1.00" author="amagalma" time="2024-04-08T22:01:18Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/1b50e1234640942b2211e9cd3609221f35d5a735/Items%20Properties/amagalma_Select%20next%20item%20with%20take%20FX.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Switch unlocked items only to previous or next take bundle.lua" type="script" desc="Switch unlocked items only to previous or next take bundle">
