@@ -23,7 +23,7 @@
 --
 --   Colors are auto-assigned via a random seed based on the model name, so that the color of a given instrumental track will match the color of its corresponding vocal track.
 
-debug = true -- enable or disable diagnostic messages to the console
+debug = false -- enable or disable diagnostic messages to the console
 
 -- Utility functions
 function escapePattern(pattern)
