@@ -1,29 +1,10 @@
--- @description Chapter Marker Updater for Audiobooks
--- @author Tormy Van Cool
--- @version 2.2.2
--- @about
---   # Chapter Marker Updater for Audiobooks
+-- @noindex
 --
---   The script, updates the PROJECT_NAME.SideCar.txt file, when markers are renamed and/or moved.
---   Just calling the script, it remove the old file, with a new updated one.
+-- The script, updates the PROJECT_NAME.SideCar.txt file, when markers are renamed and/or moved.
+-- Just calling the script, it remove the old file, with a new updated one.
 --
---   Once done, it returns a popup window that informs the users, that everything is perfectly done.
--- versions
---[[
-  1.0 Initial release
-  2.0 
-    + Code rewritten from scratch
-  2.1 
-    - removed reaper.ShowConsoleMsg()
-  2.2 
-    # Solved failed update of the marker pointer
-  2.2.1
-    - Debug window still opening
-  2.2.2
-    + Recovering audiobooks: Conversion from imporeted regions to markers
-  2.2.3
-    - Removed Pipe and Pointer from the marker
-]]
+-- Once done, it returns a popup window that informs the users, that everything is perfectly done.
+
 --------------------------------------------------------------------
 -- Gets the project's name and open the SideCr file to be ovewritten
 --------------------------------------------------------------------
