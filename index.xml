@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="9f584d5bcdf4c155bf718c29d03bb47a24065961" name="ReaTeam Scripts">
+<index version="1" commit="485f3afbc0c1762fbd6c1ae50363c6b01f99bf2d" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -17991,6 +17991,32 @@ is off-screen. Reaper issue, should be fixed soon.]]></changelog>
         <source main="main" file="gus-lan_Select folder tracks of depth 3.lua">https://github.com/ReaTeam/ReaScripts/raw/a7051704a53985b8ca279c6075768ba8602769b7/Tracks/gus-lan_Select%20folder%20tracks%20of%20depth%20X.lua</source>
         <source main="main" file="gus-lan_Select folder tracks of depth 4.lua">https://github.com/ReaTeam/ReaScripts/raw/a7051704a53985b8ca279c6075768ba8602769b7/Tracks/gus-lan_Select%20folder%20tracks%20of%20depth%20X.lua</source>
         <source main="main" file="gus-lan_Select folder tracks of depth 5.lua">https://github.com/ReaTeam/ReaScripts/raw/a7051704a53985b8ca279c6075768ba8602769b7/Tracks/gus-lan_Select%20folder%20tracks%20of%20depth%20X.lua</source>
+      </version>
+    </reapack>
+    <reapack name="kaddaok_Import UVR separations into comping lane structure.lua" type="script" desc="Import UVR separations into comping lane structure">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Import UVR Separations Into Comping Lanes\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This script sets up for comping instrumental and/or vocal stems separated using Ultimate Vocal Remover (with the intent of mastering an instrumental & background-vocal version for use in karaoke, but could probably be useful in other scenarios as well).\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 It is recommended to be bound to a toolbar button.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The script prompts for the .FLAC file of the original recording. It assumes the separated stems are present as .FLAC files beside that file in the same folder, and that they were generated using the {\f1 Model Test Mode} checkbox in UVR to provide the applied model name as part of the filename.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 It considers any files ending in {\f1 (Vocals).flac} to be vocal stems, and any ending in {\f1 (Instrumental).flac} to be instrumental stems, with the exception of any that also have the string {\f1 (Vocals)} earlier in the filename, which it interprets as likely being a two-step separation to obtain only background vocals on their own stem.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 It creates three tracks:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab An {\f1 Original} track, with the original file on it, which is muted. This is for reference.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab An {\f1 Instruments} track, with each {\f1 (Instrumental)} file on it in its own fixed lane for comping.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab A {\f1 Vocals} track, with each {\f1 (Vocals)} file or {\f1 (Vocals)...(Instrumental)} file on it in its own fixed lane for comping.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Each item is given the name of the model as found in its filename, with the exception of {\f1 "Original"}, and any vocals-instrumental files which are named {\f1 "bgv only (\{model names\})"}. (But I also cleaned up the names of some models I frequently use to be more pleasant though; YMMV.)\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 If you execute the script again, it will not prompt you for the original file again, but will instead use the {\f1 "Original"} item on the {\f1 "Original"} track, and should only add new lanes for any additional files that have been created since without disrupting any that are already present.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Colors are auto-assigned via a random seed based on the model name, so that the color of a given instrumental track will match the color of its corresponding vocal track.\par}
+}
+]]></description>
+        <link rel="screenshot">https://i.imgur.com/Boqw2CP.png</link>
+      </metadata>
+      <version name="0.1" author="Kadda OK" time="2024-04-15T11:38:30Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/485f3afbc0c1762fbd6c1ae50363c6b01f99bf2d/Tracks/kaddaok_Import%20UVR%20separations%20into%20comping%20lane%20structure.lua</source>
       </version>
     </reapack>
     <reapack name="tilr_Keyboard splitter.lua" type="script" desc="Keyboard splitter">
