@@ -2,6 +2,7 @@
 -- @author Tormy Van Cool
 -- @version 2.3
 -- @screenshot Example: ChapterMarker.lua in action https://github.com/tormyvancool/TormyVanCool_ReaPack_Scripts/ChapterMarker.gif
+-- @provides [main] tormyvancool_Audiobooks chapter marker updater.lua
 -- @about
 --   # Chapter Marker for Audiobooks
 --
