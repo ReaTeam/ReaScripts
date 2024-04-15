@@ -1,10 +1,8 @@
 -- @description ReaKS - Keyswitch Articulation Manager
 -- @author Ugurcan Orcun
--- @version 0.7
+-- @version 0.8
 -- @changelog 
---  Switched to Collapsing Headers
---  Automove for Playhead Position Insert
---  Styling Mismatch Fix
+--  Added Note Names Injector
 -- @link Forum Thread https://forum.cockos.com/showthread.php?t=288344
 -- @about 
 --  A small MIDI Editor tool for auto-inserting KeySwitch midi notes and managing note/cc names.
@@ -42,6 +40,10 @@ Setting_MaxColumns = 2
 Setting_FontSizeMultiplier = 1
 
 Modal_Settings = false
+Modal_NoteNameHelper = false
+
+Injector_NotesList = ""
+Injector_FirstNoteID = 36
 
 PPQ = reaper.SNM_GetIntConfigVar("miditicksperbeat", 960)
 
@@ -127,6 +129,19 @@ function ClearNoteNames()
     reaper.MIDIEditor_LastFocused_OnCommand(40412, false)
     Articulations = {}
     CC = {}
+end
+
+function InjectNoteNames(noteNames, firstNoteID)
+    local noteNameTable = {}
+    for noteName in string.gmatch(noteNames, "([^\n]+)") do
+        table.insert(noteNameTable, noteName)
+    end
+
+    for i, noteName in ipairs(noteNameTable) do
+        reaper.SetTrackMIDINoteNameEx(0, ActiveTrack, firstNoteID + i - 1, 0, noteName)
+    end
+
+    RefreshGUI()
 end
 
 function ParseNoteNamesFromTake()
@@ -281,7 +296,9 @@ local function loop()
         reaper.ImGui_SameLine(ctx)
         if reaper.ImGui_Button(ctx, "Clear") then ClearNoteNames() end
         reaper.ImGui_SameLine(ctx)
-        if reaper.ImGui_Button(ctx, "Refresh") then RefreshGUI()end
+        if reaper.ImGui_Button(ctx, "Refresh") then RefreshGUI() end
+        reaper.ImGui_SameLine(ctx)
+        if reaper.ImGui_Button(ctx, "Inject") then reaper.ImGui_OpenPopup(ctx, "Note Name Injector") end
         reaper.ImGui_SameLine(ctx)
         if reaper.ImGui_Button(ctx, "Settings") then Modal_Settings = not Modal_Settings end
         reaper.ImGui_EndGroup(ctx)
@@ -310,8 +327,18 @@ local function loop()
             end
 
             if reaper.ImGui_Button(ctx, "Find More Note Names >>>") then reaper.CF_ShellExecute("https://stash.reaper.fm/tag/Key-Maps") end
-            
+
             reaper.ImGui_EndGroup(ctx)
+        end
+
+        if reaper.ImGui_BeginPopupModal(ctx, "Note Name Injector", true) then
+            _, Injector_NotesList = reaper.ImGui_InputTextMultiline(ctx, "Note Names", Injector_NotesList, 128, 256)
+            reaper.ImGui_SetNextItemWidth(ctx, 128)
+            _, Injector_FirstNoteID = reaper.ImGui_InputInt(ctx, "Starting Note ID", Injector_FirstNoteID)
+            if reaper.ImGui_Button(ctx, "Inject!") then InjectNoteNames(Injector_NotesList, Injector_FirstNoteID) end
+            reaper.ImGui_SameLine(ctx)
+            if reaper.ImGui_Button(ctx, "Clear") then ClearNoteNames() end
+            reaper.ImGui_EndPopup(ctx)
         end
 
         if ActiveTake == nil then
