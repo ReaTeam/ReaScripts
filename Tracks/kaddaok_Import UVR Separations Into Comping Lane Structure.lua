@@ -1,6 +1,7 @@
 -- @description Import UVR Separations Into Comping Lane Structure
 -- @author Kadda OK
 -- @version 0.1
+-- @screenshot https://i.imgur.com/Boqw2CP.png
 -- @about
 --   # Import UVR Separations Into Comping Lanes
 --
