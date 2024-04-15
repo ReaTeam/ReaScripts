@@ -1,19 +1,14 @@
 -- @description SendBox
--- @author manup
--- @version 1.1
--- @changelog
---   Added track color box to the left of search results
---   Added send position selector (PostFader, PreFader, PostFX)
+-- @author smandrap
+-- @version 1.1.1
+-- @changelog # shim for reaimgui 0.9
 -- @about Allows to create sends/receives using a Cubase-like track Searchbox.
 
--- manup-SendBox 1.1
--- Author : Manup (smandrap)
--- License: GNU GPL v3
--- Thanks to: 
-        -- cfillion for ReaImGui and for helping with code for the track tree, submission to ReaPack, and helping a lot in general.
-        -- X-Raym for helping and giving great ideas
 
 local r = reaper
+
+dofile(reaper.GetResourcePath() ..
+  '/Scripts/ReaTeam Extensions/API/imgui.lua') '0.8'
 
 local function init()
 
