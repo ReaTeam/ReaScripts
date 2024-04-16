@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="485f3afbc0c1762fbd6c1ae50363c6b01f99bf2d" name="ReaTeam Scripts">
+<index version="1" commit="15d0e39ff39444909d03aa66dc2da07346d03124" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -19264,25 +19264,6 @@ Fix: More descriptive error message if valid settings aren't found]]></changelog
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4f93a8a4f1a0b8e057496213b6543d941bb252e2/Tracks%20Properties/Lokasenna_Show%20only%20specified%20tracks.lua</source>
       </version>
     </reapack>
-    <reapack name="manup_SendBox.lua" type="script" desc="SendBox">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 Allows to create sends/receives using a Cubase-like track Searchbox.\par}
-}
-]]></description>
-      </metadata>
-      <version name="1.0" author="manup" time="2022-05-26T16:56:02Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/bc3a794d464fe6b895cc7b7f2a9457f58892ba09/Tracks%20Properties/manup_SendBox.lua</source>
-      </version>
-      <version name="1.1" author="manup" time="2022-05-26T20:33:31Z">
-        <changelog><![CDATA[Added track color box to the left of search results
-Added send position selector (PostFader, PreFader, PostFX)]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/000fb289e77429b85c22db8267d01d43713aa6b7/Tracks%20Properties/manup_SendBox.lua</source>
-      </version>
-    </reapack>
     <reapack name="Mordi_Insert new track (inherit color from parent).lua" type="script" desc="Insert new track (inherit color from parent)">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
@@ -19523,6 +19504,21 @@ uc_track_name_abbreviations = \{"O-Out", "O-MID"\}\par}
       <version name="1.50" author="Rodilab" time="2022-06-25T20:33:40Z">
         <changelog><![CDATA[ReaImGui v0.7 compatibility]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/78632dcd9253b9e784043cb6b3a0ab0d564a1443/Tracks%20Properties/rodilab_Track%20name%20groups.lua</source>
+      </version>
+    </reapack>
+    <reapack name="smandrap_SendBox.lua" type="script" desc="SendBox">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Allows to create sends/receives using a Cubase-like track Searchbox.\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.1.1" author="smandrap" time="2024-04-16T01:04:38Z">
+        <changelog><![CDATA[# shim for reaimgui 0.9]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/15d0e39ff39444909d03aa66dc2da07346d03124/Tracks%20Properties/smandrap_SendBox.lua</source>
       </version>
     </reapack>
     <reapack name="spk77_Adjust all receive volumes on selected track by x dB.eel" type="script" desc="Adjust all receive volumes on selected track by x dB">
