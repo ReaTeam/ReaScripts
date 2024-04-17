@@ -1,79 +1,98 @@
 -- @description Lil FX Slot Homie
 -- @author Sexan
--- @version 1.0
+-- @version 1.2
 -- @link https://forum.cockos.com/showthread.php?p=2680992#post2680992
+-- @changelog
+--  Imgui Shims
+--  Implement FX Browser parser
 
 local SLOT = 1
 
 local r = reaper
+local reaper_path = r.GetResourcePath()
+
+local fx_browser_script_path = reaper_path .. "/Scripts/Sexan_Scripts/FX/Sexan_FX_Browser_ParserV7.lua"
+
+function ThirdPartyDeps()
+    local reapack_process
+    local repos = {
+        { name = "Sexan_Scripts", url = 'https://github.com/GoranKovac/ReaScripts/raw/master/index.xml' },
+    }
+
+    for i = 1, #repos do
+        local retinfo, url, enabled, autoInstall = r.ReaPack_GetRepositoryInfo(repos[i].name)
+        if not retinfo then
+            retval, error = r.ReaPack_AddSetRepository(repos[i].name, repos[i].url, true, 0)
+            reapack_process = true
+        end
+    end
+
+    -- ADD NEEDED REPOSITORIES
+    if reapack_process then
+        --r.ShowMessageBox("Added Third-Party ReaPack Repositories", "ADDING REPACK REPOSITORIES", 0)
+        r.ReaPack_ProcessQueue(true)
+        reapack_process = nil
+    end
+end
+
+local function CheckDeps()
+    ThirdPartyDeps()
+    local deps = {}
+
+    if not r.ImGui_GetVersion then
+        deps[#deps + 1] = '"Dear Imgui"'
+    end
+    if not r.file_exists(fx_browser_script_path) then
+        deps[#deps + 1] = '"FX Browser Parser V7"'
+    end
+    if #deps ~= 0 then
+        r.ShowMessageBox("Need Additional Packages.\nPlease Install it in next window", "MISSING DEPENDENCIES", 0)
+        r.ReaPack_BrowsePackages(table.concat(deps, " OR "))
+        return true
+    end
+end
+if CheckDeps() then return end
+
+dofile(r.GetResourcePath() .. '/Scripts/ReaTeam Extensions/API/imgui.lua')('0.8.7')
+if r.file_exists(fx_browser_script_path) then
+    dofile(fx_browser_script_path)
+end
 
 local ctx = r.ImGui_CreateContext('Lil FX Slot Homie', r.ImGui_ConfigFlags_NavEnableKeyboard())
 
-function FX_NAME(str)
-    local vst_name
-    for name_segment in str:gmatch('[^%,]+') do
-        if name_segment:match("(%S+) ") then
-            if name_segment:match('"(JS: .-)"') then
-                vst_name = name_segment:match('"JS: (.-)"') and "JS:" .. name_segment:match('"JS: (.-)"') or nil
-            else
-                vst_name = name_segment:match("(%S+ .-%))") and "VST:" .. name_segment:match("(%S+ .-%))") or nil
-            end
-        end
-    end
-    if vst_name then return vst_name end
+local FX_LIST = ReadFXFile()
+
+if not FX_LIST then
+    FX_LIST = MakeFXFiles()
 end
 
-function GetFileContext(fp)
-    local str = "\n"
-    local f = io.open(fp, 'r')
-    if f then
-        str = f:read('a')
-        f:close()
-    end
-    return str
-end
-
--- Fill function with desired database
-function Fill_fx_list()
-    local tbl_list   = {}
-    local tbl        = {}
-
-    local vst_path   = r.GetResourcePath() .. "/reaper-vstplugins64.ini"
-    local vst_str    = GetFileContext(vst_path)
-
-    local vst_path32 = r.GetResourcePath() .. "/reaper-vstplugins.ini"
-    local vst_str32  = GetFileContext(vst_path32)
-
-    local jsfx_path  = r.GetResourcePath() .. "/reaper-jsfx.ini"
-    local jsfx_str   = GetFileContext(jsfx_path)
-
-    local au_path    = r.GetResourcePath() .. "/reaper-auplugins64-bc.ini"
-    local au_str     = GetFileContext(au_path)
-
-    local plugins    = vst_str .. vst_str32 .. jsfx_str .. au_str
-
-    for line in plugins:gmatch('[^\r\n]+') do tbl[#tbl + 1] = line end
-
-    -- CREATE NODE LIST
-    for i = 1, #tbl do
-        local fx_name = FX_NAME(tbl[i])
-        if fx_name then
-            tbl_list[#tbl_list + 1] = fx_name
-        end
-    end
-    return tbl_list
-end
-
-local FX_LIST = Fill_fx_list()
 local function Lead_Trim_ws(s) return s:match '^%s*(.*)' end
 
+local tsort = table.sort
+function SortTable(tab, val1, val2)
+    tsort(tab, function(a, b)
+        if (a[val1] < b[val1]) then
+            -- primary sort on position -> a before b
+            return true
+        elseif (a[val1] > b[val1]) then
+            -- primary sort on position -> b before a
+            return false
+        else
+            -- primary sort tied, resolve w secondary sort on rank
+            return a[val2] < b[val2]
+        end
+    end)
+end
+
+local old_t = {}
+local old_filter = ""
 local function Filter_actions(filter_text)
+    if old_filter == filter_text then return old_t end
     filter_text = Lead_Trim_ws(filter_text)
     local t = {}
-    if filter_text == "" then return t end
+    if filter_text == "" or not filter_text then return t end
     for i = 1, #FX_LIST do
-        local action = FX_LIST[i]
-        local name = action:lower()
+        local name = FX_LIST[i]:lower() --:gsub("(%S+:)", "")
         local found = true
         for word in filter_text:gmatch("%S+") do
             if not name:find(word:lower(), 1, true) then
@@ -81,11 +100,28 @@ local function Filter_actions(filter_text)
                 break
             end
         end
-        if found then t[#t + 1] = action end
+        if found then t[#t + 1] = { score = FX_LIST[i]:len() - filter_text:len(), name = FX_LIST[i] } end
     end
+    if #t >= 2 then
+        SortTable(t, "score", "name") -- Sort by key priority
+    end
+    old_t = t
+    old_filter = filter_text
     return t
 end
 
+local function SetMinMax(Input, Min, Max)
+    if Input >= Max then
+        Input = Max
+    elseif Input <= Min then
+        Input = Min
+    else
+        Input = Input
+    end
+    return Input
+end
+
+local FILTER = ''
 local function AddFxToTracks(fx)
     if r.CountTracks(0) == 1 and r.CountSelectedTracks(0) == 0 then
         local track = r.GetTrack(0, 0)
@@ -137,6 +173,10 @@ function FilterBox()
     r.ImGui_SetNextWindowSize(ctx, 0, filter_h)
     if r.ImGui_BeginPopup(ctx, "popup") then
         r.ImGui_Text(ctx, "ADD TO SLOT : " .. (SLOT < 100 and tostring(SLOT) or "LAST"))
+        r.ImGui_SameLine(ctx, 0, 20)
+        if r.ImGui_Selectable(ctx, "RESCAN FX", false, 0, 65) then
+            FX_LIST = MakeFXFiles()
+        end
         r.ImGui_PushItemWidth(ctx, MAX_FX_SIZE)
         if r.ImGui_IsWindowAppearing(ctx) then r.ImGui_SetKeyboardFocusHere(ctx) end
         -- IF KEYBOARD FOCUS IS ON CHILD ITEMS SET IT HERE
@@ -159,8 +199,8 @@ function FilterBox()
             for i = 1, #filtered_fx do
                 AllowChildFocus(i)
                 r.ImGui_PushID(ctx, i)
-                if r.ImGui_Selectable(ctx, filtered_fx[i], true, nil, MAX_FX_SIZE) then
-                    AddFxToTracks(filtered_fx[i])
+                if r.ImGui_Selectable(ctx, filtered_fx[i].name, true, nil, MAX_FX_SIZE) then
+                    AddFxToTracks(filtered_fx[i].name)
                 end
                 r.ImGui_PopID(ctx)
             end
