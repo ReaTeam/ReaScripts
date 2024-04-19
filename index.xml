@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="8a4f5e350ed00a029528991792fc46bf7063e783" name="ReaTeam Scripts">
+<index version="1" commit="e98e13ed437435dd0cdb029acf5c77930fc8ab9c" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -20866,6 +20866,23 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
       <version name="1.02" author="amagalma" time="2022-02-11T23:00:23Z">
         <changelog><![CDATA[Added option to calculate for Selected Items]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/89fa0d0481e15bb211cfa66f369c7789a94f5d3b/Various/amagalma_Show%20menu%20for%20dry%20run%20(calculate%20loudness)%20actions.lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Show offscreen item selection as a tooltip.lua" type="script" desc="Show offscreen item selection as a tooltip">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Shows as a tooltip where offscreen selected items are located. (B = bottom, L = left, R = right, T = top)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Requires SWS and Reaper v7 and above\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Extremely light-weight\sa180\par}
+}
+]]></description>
+        <link rel="donation">https://www.paypal.me/amagalma</link>
+      </metadata>
+      <version name="1.00" author="amagalma" time="2024-04-19T21:20:53Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e98e13ed437435dd0cdb029acf5c77930fc8ab9c/Various/amagalma_Show%20offscreen%20item%20selection%20as%20a%20tooltip.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Show path from list menu (Resource, Selected Item, Project File, Record, Secondary Record, Render).lua" type="script" desc="Show path from list menu (Resource, Selected Item, Project File, Record, Secondary Record, Render)">
