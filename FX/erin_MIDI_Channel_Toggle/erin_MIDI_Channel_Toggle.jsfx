@@ -1,0 +1,50 @@
+noindex: true
+
+desc: MIDI Channel Toggle
+slider1:1<0,1,1{Off,On}>Channel 1
+slider2:1<0,1,1{Off,On}>Channel 2
+slider3:1<0,1,1{Off,On}>Channel 3
+slider4:1<0,1,1{Off,On}>Channel 4
+slider5:1<0,1,1{Off,On}>Channel 5
+slider6:1<0,1,1{Off,On}>Channel 6
+slider7:1<0,1,1{Off,On}>Channel 7
+slider8:1<0,1,1{Off,On}>Channel 8
+slider9:1<0,1,1{Off,On}>Channel 9
+slider10:1<0,1,1{Off,On}>Channel 10
+slider11:1<0,1,1{Off,On}>Channel 11
+slider12:1<0,1,1{Off,On}>Channel 12
+slider13:1<0,1,1{Off,On}>Channel 13
+slider14:1<0,1,1{Off,On}>Channel 14
+slider15:1<0,1,1{Off,On}>Channel 15
+slider16:1<0,1,1{Off,On}>Channel 16
+
+@block
+// Initialize variables
+msg1=0; msg2=0; msg3=0; offset=0;
+
+while(midirecv(offset, msg1, msg2)) (
+    channel = (msg1 & 0xF) + 1; // Determine MIDI channel
+    status = msg1 & 0xF0;       // Get MIDI status message
+
+    // Check if the channel is enabled (sliderX value of 1 means enabled)
+    enabled = 0;
+    enabled += (channel == 1 ? slider1 : 0);
+    enabled += (channel == 2 ? slider2 : 0);
+    enabled += (channel == 3 ? slider3 : 0);
+    enabled += (channel == 4 ? slider4 : 0);
+    enabled += (channel == 5 ? slider5 : 0);
+    enabled += (channel == 6 ? slider6 : 0);
+    enabled += (channel == 7 ? slider7 : 0);
+    enabled += (channel == 8 ? slider8 : 0);
+    enabled += (channel == 9 ? slider9 : 0);
+    enabled += (channel == 10 ? slider10 : 0);
+    enabled += (channel == 11 ? slider11 : 0);
+    enabled += (channel == 12 ? slider12 : 0);
+    enabled += (channel == 13 ? slider13 : 0);
+    enabled += (channel == 14 ? slider14 : 0);
+    enabled += (channel == 15 ? slider15 : 0);
+    enabled += (channel == 16 ? slider16 : 0);
+
+    // If channel is enabled, forward the message
+    (enabled ? midisend(offset, msg1, msg2) : 0);
+)
