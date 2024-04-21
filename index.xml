@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="4c87717743b2db40dc1ed4788e9c4833d9a846c7" name="ReaTeam Scripts">
+<index version="1" commit="379b1761c595632ffe8c48bd2e11a727b330d4b9" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -5142,6 +5142,14 @@ website
       </metadata>
       <version name="1.00" author="amagalma" time="2024-04-21T20:48:24Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4c87717743b2db40dc1ed4788e9c4833d9a846c7/Items%20Editing/amagalma_Convert%20empty%20items%20with%20notes%20to%20dedicated%20video%20processor%20item%20named%20after%20the%20notes.lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Copy - Paste items' edges' positions ( item start and end ).lua" type="script" desc="Copy - Paste items' edges' positions ( item start and end )">
+      <metadata>
+        <link rel="donation">https://www.paypal.me/amagalma</link>
+      </metadata>
+      <version name="1.00" author="amagalma" time="2024-04-21T22:08:52Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/379b1761c595632ffe8c48bd2e11a727b330d4b9/Items%20Editing/amagalma_Copy%20-%20Paste%20items'%20edges'%20positions%20(%20item%20start%20and%20end%20).lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Crossfade any overlapping items (even on different tracks).lua" type="script" desc="Crossfade any overlapping items (even on different tracks)">
