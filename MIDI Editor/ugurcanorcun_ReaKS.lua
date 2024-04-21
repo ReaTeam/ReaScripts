@@ -1,20 +1,17 @@
 -- @description ReaKS - Keyswitch Articulation Manager
 -- @author Ugurcan Orcun
--- @version 0.9
+-- @version 1.0
 -- @changelog 
---  ReaImGui Shim
---  Added 'Single' mode that tries to have only 1 KS active at a time.
---  (You still can switch to 'Multi' mode in 'Settings')
---  Colors now match your Reaper Theme's colors
---  Renamed 'Articulations' to 'KeySwitches' everywhere to lessen confusion
---  Ignoring KS midi notes as 'Selected'
---  Got rid of script termination popup
---  Fixed column order
+--  - Big workflow overhaul: Newly added KS notes will fit themselves in the flow better.
+--  - You can bypass smart insertion with Shift key
+--  - Improved Theme color matching
+--  - Simplified Settings
+--  - Added tooltips and info to Settings view
+--  - Articulations view will highlight the active KS
 -- @link Forum Thread https://forum.cockos.com/showthread.php?t=288344
 -- @about 
 --  A small MIDI Editor tool for auto-inserting KeySwitch midi notes and managing note/cc names.
 --  Find more info and example note name files at the forum thread.
-
 package.path = reaper.ImGui_GetBuiltinPath() .. '/?.lua'
 local ImGui = require 'imgui' '0.9'
 
@@ -22,6 +19,8 @@ ActiveMidiEditor = nil
 PreviousMidiEditor = nil
 ActiveTake = nil
 ActiveTrack = nil
+MIDIHash = nil
+PreviousMIDIHash = nil
 Articulations = {}
 CC = {}
 ActivatedKS = {}
@@ -33,12 +32,13 @@ function ThemeColorToImguiColor(themeColorName)
 end
 
 EnumThemeColors = { -- fetch colors from Reaper theme
-    A = ThemeColorToImguiColor("midi_leftbg"), -- Background
-    B = ThemeColorToImguiColor("midi_pkey2"), -- Default Interactive
-    C = ThemeColorToImguiColor("midi_trackbg1"), -- Active
-    D = ThemeColorToImguiColor("midi_trackbg2"), -- Hovered    
+    A = ThemeColorToImguiColor("col_tracklistbg"), -- Background
+    B = ThemeColorToImguiColor("col_tracklistbg") + 0x111111FF, -- Default Interactive
+    C = ThemeColorToImguiColor("col_tracklistbg") + 0x444444FF, -- Clicked
+    D = ThemeColorToImguiColor("col_tracklistbg") + 0x222222FF, -- Hovered    
     E = ThemeColorToImguiColor("col_tcp_text"), -- HeaderText
-    F = ThemeColorToImguiColor("midi_pkey1") -- Text
+    F = 0xFFFFFFFF, -- Text
+    G = ThemeColorToImguiColor("midi_editcurs") -- Active Articulation
 }
 
 InsertionModes = {
@@ -70,11 +70,11 @@ PPQ = reaper.SNM_GetIntConfigVar("miditicksperbeat", 960)
 
 function SaveSettings()
     reaper.SetExtState("ReaKS", "Setting_AutoupdateTextEvent", tostring(Setting_AutoupdateTextEvent), true)
-    reaper.SetExtState("ReaKS", "Setting_MaxColumns", tostring(Setting_MaxColumns), true) -- Depracated
+    -- reaper.SetExtState("ReaKS", "Setting_MaxColumns", tostring(Setting_MaxColumns), true) -- deprecated
     reaper.SetExtState("ReaKS", "Setting_ItemsPerColumn", tostring(Setting_ItemsPerColumn), true)
-    reaper.SetExtState("ReaKS", "Setting_MoveEditCursor", tostring(Setting_MoveEditCursor), true)
-    reaper.SetExtState("ReaKS", "Setting_FontSizeMultiplier", tostring(Setting_MoveEditCursor), true)
-    reaper.SetExtState("ReaKS", "Setting_InsertionMode", Setting_InsertionMode, true)
+    -- reaper.SetExtState("ReaKS", "Setting_MoveEditCursor", tostring(Setting_MoveEditCursor), true) -- deprecated
+    -- reaper.SetExtState("ReaKS", "Setting_FontSizeMultiplier", tostring(Setting_MoveEditCursor), true) -- deprecated
+    -- reaper.SetExtState("ReaKS", "Setting_InsertionMode", Setting_InsertionMode, true) -- deprecated
 end
 
 function LoadSettings()
@@ -82,20 +82,20 @@ function LoadSettings()
     val = reaper.GetExtState("ReaKS", "Setting_AutoupdateTextEvent")
     if val ~= "" then Setting_AutoupdateTextEvent = val == "true" end
 
-    val = reaper.GetExtState("ReaKS", "Setting_MaxColumns")
-    if val ~= "" then Setting_MaxColumns = tonumber(val) end
+--[[     val = reaper.GetExtState("ReaKS", "Setting_MaxColumns")
+    if val ~= "" then Setting_MaxColumns = tonumber(val) end ]]
 
     val = reaper.GetExtState("ReaKS", "Setting_ItemsPerColumn")
     if val ~= "" then Setting_FontSizeMultiplier = tonumber(val) end
 
-    val = reaper.GetExtState("ReaKS", "Setting_MoveEditCursor")
+--[[     val = reaper.GetExtState("ReaKS", "Setting_MoveEditCursor")
     if val ~= "" then Setting_MoveEditCursor = val == "true" end
 
     val = reaper.GetExtState("ReaKS", "Setting_FontSizeMultiplier")
     if val ~= "" then Setting_FontSizeMultiplier = tonumber(val) end
 
     val = reaper.GetExtState("ReaKS", "Setting_InsertionMode")
-    if val ~= "" then Setting_InsertionMode = val end
+    if val ~= "" then Setting_InsertionMode = val end ]]
 end
 
 function UpdateActiveTargets()
@@ -161,6 +161,7 @@ function ClearNoteNames()
 end
 
 function InjectNoteNames(noteNames, firstNoteID)
+    if ActiveTake == nil then return end
     local noteNameTable = {}
     for noteName in string.gmatch(noteNames, "([^\n]+)") do
         table.insert(noteNameTable, noteName)
@@ -218,66 +219,71 @@ function LinkParameterToCCLane()
 
 end
 
-function InsertKS(noteNumber)
-    --Check if any midi notes are selected. Get earliest start time and latest end time if any selected notes.
-    local _, noteCount = reaper.MIDI_CountEvts(ActiveTake)
-    local earliestStartTime = math.huge
-    local latestEndTime = 0
+function InsertKS2(noteNumber, isShiftHeld)
+    if ActiveTake == nil then return end
 
-    if noteCount ~= 0 then
-        for noteID = 1, noteCount do
-            local _, selected, _, startppqpos, endppqpos, _, pitch, _ = reaper.MIDI_GetNote(ActiveTake, noteID - 1)
-            if selected and ActivatedKS[pitch] ~= nil then
-                if startppqpos < earliestStartTime then earliestStartTime = startppqpos end
-                if endppqpos > latestEndTime then latestEndTime = endppqpos end
+    local newKSStartPPQ = math.huge
+    local newKSEndPPQ = 0
+
+    local selectionMode = false
+
+    local singleGridLength = reaper.MIDI_GetGrid(ActiveTake) * PPQ
+
+    -- Find the earliest start time and latest end time of selected notes, if any
+    if reaper.MIDI_EnumSelNotes(ActiveTake, -1) ~= -1 then
+        selectionMode = true
+
+        local selectedNoteIDX = -1
+        selectedNoteIDX = reaper.MIDI_EnumSelNotes(ActiveTake, selectedNoteIDX)
+
+        while selectedNoteIDX ~= -1 do
+            local _, _, _, selectedNoteStartPPQ, selectedNoteEndPPQ = reaper.MIDI_GetNote(ActiveTake, selectedNoteIDX)         
+
+            newKSStartPPQ = math.min(newKSStartPPQ, selectedNoteStartPPQ)
+            newKSEndPPQ = math.max(newKSEndPPQ, selectedNoteEndPPQ)
+            selectedNoteIDX = reaper.MIDI_EnumSelNotes(ActiveTake, selectedNoteIDX)
+        end
+    -- Find playhead and one exact grid length after it if no notes are selected
+    else
+        newKSStartPPQ = reaper.GetCursorPosition()
+        newKSStartPPQ = reaper.MIDI_GetPPQPosFromProjTime(ActiveTake, newKSStartPPQ)
+        newKSEndPPQ = newKSStartPPQ + singleGridLength
+    end
+
+    -- Operations on other KS notes
+    local _, noteCount = reaper.MIDI_CountEvts(ActiveTake)
+    if not isShiftHeld then
+        for noteID = noteCount, 0, -1 do
+            local _, _, _, startppqpos, endppqpos, _, pitch, _ = reaper.MIDI_GetNote(ActiveTake, noteID)
+            if Articulations[pitch] then
+                -- Delete the KS note if it's start time is the same as the new KS note
+                if newKSStartPPQ == startppqpos then reaper.MIDI_DeleteNote(ActiveTake, noteID) end
+
+                -- Shorten previous overlapping notes
+                if startppqpos < newKSStartPPQ and newKSStartPPQ < endppqpos then reaper.MIDI_SetNote(ActiveTake, noteID, nil, nil, nil, newKSStartPPQ) end
+
+                -- 
+                if selectionMode and startppqpos > newKSStartPPQ and endppqpos > newKSEndPPQ then reaper.MIDI_SetNote(ActiveTake, noteID, nil, nil, newKSEndPPQ, nil) end
+
+                -- Set new end time to the start of the next note
+                if not selectionMode and newKSStartPPQ < startppqpos and newKSEndPPQ > startppqpos then newKSEndPPQ = startppqpos end
+
+                -- In selection mode, remove all KS notes that are within the new KS note
+                if selectionMode and startppqpos > newKSStartPPQ and newKSEndPPQ > endppqpos then reaper.MIDI_DeleteNote(ActiveTake, noteID) end
             end
         end
     end
 
-    -- Start time offsetted by -1 ppq to activate the articulation just before the note
-    if earliestStartTime == math.huge then
-        --Add articulation to playhead position
-        local playheadPosition = reaper.GetCursorPosition()
-        local playheadPosition = reaper.MIDI_GetPPQPosFromProjTime(ActiveTake, playheadPosition)
-        local length = playheadPosition + (reaper.MIDI_GetGrid(ActiveTake) * PPQ)
-        reaper.MIDI_InsertNote(ActiveTake, false, false, playheadPosition - 1, length, 0, noteNumber, 100, false)
+    -- Insert the new KS note
+    reaper.MIDI_InsertNote(ActiveTake, false, false, newKSStartPPQ, newKSEndPPQ, 0, noteNumber, 100, false)
+    
+    -- Move edit cursor to the end of the new note if no notes are selected
+    if reaper.MIDI_EnumSelNotes(ActiveTake, -1) == -1 and not isShiftHeld then reaper.SetEditCurPos(reaper.MIDI_GetProjTimeFromPPQPos(ActiveTake, newKSEndPPQ), Setting_MoveEditCursor, false) end    
 
-        if Setting_MoveEditCursor then 
-            reaper.SetEditCurPos(reaper.MIDI_GetProjTimeFromPPQPos(ActiveTake, length), Setting_MoveEditCursor, false)
-        end
-    else
-        --Add articulation to selected notes
-        reaper.MIDI_InsertNote(ActiveTake, false, false, earliestStartTime - 1, latestEndTime, 0, noteNumber, 100, false)
-        reaper.SetEditCurPos(reaper.MIDI_GetProjTimeFromPPQPos(ActiveTake, earliestStartTime), Setting_MoveEditCursor, false)
-    end
-
+    -- Update text events if the setting is enabled
     if Setting_AutoupdateTextEvent then UpdateTextEvents() end
-end
 
-function ToggleKS(noteNumber)
-    if(ActivatedKS[noteNumber]) then --Delete articulation if exists
-        reaper.MIDI_DeleteNote(ActiveTake, ActivatedKS[noteNumber])
-    else
-        InsertKS(noteNumber)
-    end
-end
-
-function SingleInsertKS(noteNumber)
-    if ActiveTake == nil then return end
-
-    local playheadPosition = reaper.GetCursorPosition()
-    local playheadPosition = reaper.MIDI_GetPPQPosFromProjTime(ActiveTake, playheadPosition)
-
-    for k, v in pairs(ActivatedKS) do
-        local _, isSelected, isMuted, startppq, endppq  = reaper.MIDI_GetNote(ActiveTake, v)
-        if startppq == playheadPosition or startppq == playheadPosition -1 then
-            reaper.MIDI_DeleteNote(ActiveTake, v)
-        elseif endppq >= playheadPosition then
-            reaper.MIDI_SetNote(ActiveTake, v, isSelected, isMuted, startppq, playheadPosition)
-        end
-        reaper.MIDI_Sort(ActiveTake)
-    end
-    InsertKS(noteNumber)
+    reaper.MIDI_Sort(ActiveTake)
 end
 
 function GetActiveKSAtPlayheadPosition()
@@ -310,6 +316,7 @@ end
 function StylingStart(ctx)
     ImGui.PushStyleColor(ctx, ImGui.Col_WindowBg, EnumThemeColors.A)
 
+    ImGui.PushStyleVar(ctx, ImGui.StyleVar_ButtonTextAlign, 0, 0.5)
     ImGui.PushStyleColor(ctx, ImGui.Col_Button, EnumThemeColors.B)
     ImGui.PushStyleColor(ctx, ImGui.Col_ButtonActive, EnumThemeColors.C)
     ImGui.PushStyleColor(ctx, ImGui.Col_ButtonHovered, EnumThemeColors.D)
@@ -331,6 +338,7 @@ end
 
 function StylingEnd(ctx)
     ImGui.PopStyleColor(ctx, 12)
+    ImGui.PopStyleVar(ctx, 1)
     ImGui.PopFont(ctx)
 end
 
@@ -348,7 +356,7 @@ local function loop()
                
         if (ActiveTakeName ~= nil and ActiveTrackName ~= nil) then
             ImGui.PushFont(ctx, FontTitle)
-            ImGui.TextColored(ctx, ActiveTrackColor, ActiveTrackName .. " - " .. ActiveTakeName)
+            ImGui.TextColored(ctx, ActiveTrackColor, ActiveTrackName .. ": " .. ActiveTakeName)
             ImGui.PopFont(ctx)
         end
 
@@ -364,46 +372,33 @@ local function loop()
         ImGui.SameLine(ctx)
         if ImGui.Button(ctx, "Inject") then ImGui.OpenPopup(ctx, "Note Name Injector") end
         ImGui.SameLine(ctx)
-        if ImGui.Button(ctx, "Settings") then Modal_Settings = not Modal_Settings end
+        if ImGui.Button(ctx, "Settings") then ImGui.OpenPopup(ctx, "Settings") end
         ImGui.EndGroup(ctx)
 
         --TODO Make the settings modal
-        if Modal_Settings then
+        if ImGui.BeginPopupModal(ctx, "Settings", true) then
             local val
-            
-            ImGui.BeginGroup(ctx)
-            ImGui.SeparatorText(ctx, "Settings")
 
-            if ImGui.Checkbox(ctx, "Autorefresh Text Events", Setting_AutoupdateTextEvent) then 
+            if ImGui.Checkbox(ctx, "Insert Text Events", Setting_AutoupdateTextEvent) then 
                 Setting_AutoupdateTextEvent = not Setting_AutoupdateTextEvent 
                 SaveSettings()
             end
-
-            if ImGui.Checkbox(ctx, "Automove Cursor ", Setting_MoveEditCursor) then 
-                Setting_MoveEditCursor = not Setting_MoveEditCursor 
-                SaveSettings()
-            end
-
-            if ImGui.BeginCombo(ctx, "Insertion Mode", Setting_InsertionMode) then
-                for i, mode in ipairs(InsertionModes) do
-                    local selected = Setting_InsertionMode == mode
-                    if ImGui.Selectable(ctx, mode, selected) then
-                        Setting_InsertionMode = mode
-                        SaveSettings()
-                    end
-                end
-                ImGui.EndCombo(ctx)
-            end
-
-            _, val = ImGui.SliderInt(ctx, "KS Rows", Setting_ItemsPerColumn, 1, 100)
+            if ImGui.IsItemHovered(ctx) then ImGui.SetTooltip(ctx, "Automatically inserts text events for articulations that's visible on Arrange view. Use [Refresh] button after manual edits to update visuals.") end
+            
+            _, val = ImGui.SliderInt(ctx, "KS per Column", Setting_ItemsPerColumn, 1, 100)
             if val ~= Setting_ItemsPerColumn then
                 Setting_ItemsPerColumn = val
                 SaveSettings()
             end
+            if ImGui.IsItemHovered(ctx) then ImGui.SetTooltip(ctx, "How many KS buttons in a single column.") end
 
-            if ImGui.Button(ctx, "Find More Note Names >>>") then reaper.CF_ShellExecute("https://stash.reaper.fm/tag/Key-Maps") end
+            if ImGui.Button(ctx, ">>> More Info", 200) then reaper.CF_ShellExecute("https://forum.cockos.com/showthread.php?t=288344") end
+            if ImGui.Button(ctx, ">>> Download Note Names", 200) then reaper.CF_ShellExecute("https://stash.reaper.fm/tag/Key-Maps") end            
+            ImGui.Separator(ctx)
+            ImGui.Text(ctx, "Click: Smart Insert KS note at playhead position (grid size) or at the selected notes.")
+            ImGui.Text(ctx, "Shift-Click: Bypass Smart Insertion")
 
-            ImGui.EndGroup(ctx)
+            ImGui.EndPopup(ctx)
         end
 
         if ImGui.BeginPopupModal(ctx, "Note Name Injector", true) then
@@ -416,6 +411,8 @@ local function loop()
             ImGui.EndPopup(ctx)
         end
 
+
+        -- Articulations
         if ActiveTake == nil then
             ImGui.Separator(ctx)
             ImGui.Text(ctx, "No active MIDI take is open in the MIDI editor.")
@@ -428,17 +425,14 @@ local function loop()
                     if Articulations[i] ~= nil then
                         local articulation = Articulations[i]
 
-                        if Setting_InsertionMode == "Multi" then
-                            if ImGui.Checkbox(ctx, articulation, ActivatedKS[i] ~= nil) then
-                                ToggleKS(i)
-                            end                          
+                        if ActivatedKS[i] ~= nil then ImGui.PushStyleColor(ctx, ImGui.Col_Button, EnumThemeColors.G) end
+
+                        if ImGui.Button(ctx, articulation, 100) then
+                            local isShiftHeld = ImGui.IsKeyDown(ctx, ImGui.Key_LeftShift) or ImGui.IsKeyDown(ctx, ImGui.Key_RightShift)
+                            InsertKS2(i, isShiftHeld)
                         end
 
-                        if Setting_InsertionMode == "Single" then
-                            if ImGui.Button(ctx, articulation) then
-                                SingleInsertKS(i)
-                            end
-                        end                        
+                        if ActivatedKS[i] ~= nil then ImGui.PopStyleColor(ctx) end
 
                         itemCount = itemCount + 1
                         if itemCount % Setting_ItemsPerColumn == 0 then
@@ -451,6 +445,8 @@ local function loop()
                 ImGui.EndGroup(ctx)
             end
         end 
+        
+        -- CC
         if ActiveTake ~= nil then
             if ImGui.CollapsingHeader(ctx, "CC Lanes", false) then
                 for i = 128, 255 do
