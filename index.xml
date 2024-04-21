@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="ed9513f9952aa88c45ec478afa15b9072a234070" name="ReaTeam Scripts">
+<index version="1" commit="4c87717743b2db40dc1ed4788e9c4833d9a846c7" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -5134,6 +5134,14 @@ website
       </metadata>
       <version name="1.00" author="amagalma" time="2021-05-27T14:00:47Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e0e211fb472a09421c33e7dfe3f4f6ac810e4c5a/Items%20Editing/amagalma_Close%20gaps%20(remove%20space)%20between%20selected%20items.lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Convert empty items with notes to dedicated video processor item named after the notes.lua" type="script" desc="Convert empty items with notes to dedicated video processor item named after the notes">
+      <metadata>
+        <link rel="donation">https://www.paypal.me/amagalma</link>
+      </metadata>
+      <version name="1.00" author="amagalma" time="2024-04-21T20:48:24Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4c87717743b2db40dc1ed4788e9c4833d9a846c7/Items%20Editing/amagalma_Convert%20empty%20items%20with%20notes%20to%20dedicated%20video%20processor%20item%20named%20after%20the%20notes.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Crossfade any overlapping items (even on different tracks).lua" type="script" desc="Crossfade any overlapping items (even on different tracks)">
