@@ -1,9 +1,8 @@
 -- @description Split item at mouse cursor position ( use defined crossfade and selection settings )
 -- @author amagalma
--- @version 1.02
+-- @version 1.03
 -- @changelog 
---       - Added setting to respect or not the Snapping setting
---       - Fixed code for getting expected crossfade length
+--       - Crossfades are not applicable to empty/midi/dedicated video processor items
 -- @provides [main] amagalma_Split item at mouse cursor position ( use defined crossfade and selection settings )/amagalma_Split item at mouse cursor position ( Define crossfade and selection settings ).lua > amagalma_Split item at mouse cursor position ( Define crossfade and selection settings ).lua
 -- @donation https://www.paypal.me/amagalma
 -- @about
@@ -59,6 +58,17 @@ local mousepos = reaper.GetSet_ArrangeView2( 0, false, left, right ) +
 
 
 local function GetExpectedXFadeLength()
+
+  local take = reaper.GetActiveTake( item_mouse )
+  if not take then -- empty item
+    return 0
+  else
+    local source_type = reaper.GetMediaSourceType( reaper.GetMediaItemTake_Source( take ), "" )
+    if source_type == "MIDI" or source_type == "VIDEOEFFECT" then 
+      return 0
+    end
+  end
+
   local xfadetime = tonumber(({reaper.get_config_var_string( "defsplitxfadelen" )})[2])
   if not xfadetime then
     error('Could not retrieve "defsplitxfadelen" from reaper.ini')
