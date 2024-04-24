@@ -4,6 +4,7 @@
 -- @changelog 
 --  - Added KS Note offset to help trigger Keyswitches just before the note.
 --  - Smashed many bugs related to Single-Line mode.
+--  - Introduced proper undo/redo
 --  - Removed unused config variables
 -- @links
 --   Forum Thread https://forum.cockos.com/showthread.php?t=288344
