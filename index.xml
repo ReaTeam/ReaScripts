@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="0f714d50d1cca25ec0ec51dce3746553fe25d3ac" name="ReaTeam Scripts">
+<index version="1" commit="bd89e8673432f11d107c24539d8227fc82da0627" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -15308,6 +15308,8 @@ fixed chords being too long when "set length of next inserted note" was used]]><
 }
 ]]></description>
         <link rel="website" href="https://forum.cockos.com/showthread.php?t=288344">Forum Thread</link>
+        <link rel="website" href="https://www.youtube.com/watch?v=lP9hRw_j0PY&amp;list=PLJ5Z3ZQ-oB-yXcsq3MXi94QhYVcnlkhVy">Tutorials</link>
+        <link rel="donation">https://kabraxis.itch.io/reaks</link>
       </metadata>
       <version name="0.1" author="Ugurcan Orcun" time="2024-02-14T10:48:33Z">
         <changelog><![CDATA[First commit]]></changelog>
@@ -15361,6 +15363,13 @@ Fixed column order]]></changelog>
 - Added tooltips and info to Settings view
 - Articulations view will highlight the active KS]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/ed9513f9952aa88c45ec478afa15b9072a234070/MIDI%20Editor/ugurcanorcun_ReaKS.lua</source>
+      </version>
+      <version name="1.1" author="Ugurcan Orcun" time="2024-04-24T13:03:42Z">
+        <changelog><![CDATA[- Added KS Note offset to help trigger Keyswitches just before the note.
+- Smashed many bugs related to Single-Line mode.
+- Introduced proper undo/redo
+- Removed unused config variables]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/bd89e8673432f11d107c24539d8227fc82da0627/MIDI%20Editor/ugurcanorcun_ReaKS.lua</source>
       </version>
     </reapack>
   </category>
