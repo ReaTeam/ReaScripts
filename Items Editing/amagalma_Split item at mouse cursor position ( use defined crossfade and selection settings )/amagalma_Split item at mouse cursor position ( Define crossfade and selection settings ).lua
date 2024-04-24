@@ -1,5 +1,5 @@
 -- @noindex
-
+-- @version 1.05
 
 if not reaper.APIExists( "JS_Window_Find" ) then
   reaper.MB( "Please, right-click and install 'js_ReaScriptAPI: API functions for ReaScripts'. Then restart Reaper and run the script again. Thanks!", "You need to install the JS_ReaScriptAPI", 0 )
