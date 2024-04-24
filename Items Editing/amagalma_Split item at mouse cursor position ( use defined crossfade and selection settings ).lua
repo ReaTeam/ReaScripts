@@ -1,8 +1,8 @@
 -- @description Split item at mouse cursor position ( use defined crossfade and selection settings )
 -- @author amagalma
--- @version 1.03
+-- @version 1.04
 -- @changelog 
---       - Crossfades are not applicable to empty/midi/dedicated video processor items
+--       - Fix for selecting on the left side
 -- @provides [main] amagalma_Split item at mouse cursor position ( use defined crossfade and selection settings )/amagalma_Split item at mouse cursor position ( Define crossfade and selection settings ).lua > amagalma_Split item at mouse cursor position ( Define crossfade and selection settings ).lua
 -- @donation https://www.paypal.me/amagalma
 -- @about
@@ -30,28 +30,8 @@ local snaptogrid = tonumber(reaper.GetExtState("amagalma_Split at mouse cursor p
 
 -------------------------
 
-reaper.PreventUIRefresh( 1 )
-reaper.Undo_BeginBlock()
-
-
--- Save selected items
-local sel_items = {}
-for i = 0, reaper.CountSelectedMediaItems( 0 )-1 do
-  sel_items[i+1] = reaper.GetSelectedMediaItem( 0 , i )
-end
-
-
-local cur_pos = reaper.GetCursorPosition()
-
-
-if not reaper.IsMediaItemSelected( item_mouse ) then
-  reaper.SelectAllMediaItems( 0, false )
-  select_item_mouse = true
-  reaper.SetMediaItemSelected( item_mouse, true )
-end
-
 local hzoomlevel = reaper.GetHZoomLevel()
-local arrangeview =  reaper.JS_Window_FindChildByID( reaper.GetMainHwnd(), 1000 )
+local arrangeview = reaper.JS_Window_FindChildByID( reaper.GetMainHwnd(), 1000 )
 local _, left, _, right = reaper.JS_Window_GetClientRect( arrangeview ) -- without scrollbars
 local mousepos = reaper.GetSet_ArrangeView2( 0, false, left, right ) +
                  (x + reaper.JS_Window_ScreenToClient( arrangeview, 0, 0 )) / hzoomlevel
@@ -68,7 +48,7 @@ local function GetExpectedXFadeLength()
       return 0
     end
   end
-
+  
   local xfadetime = tonumber(({reaper.get_config_var_string( "defsplitxfadelen" )})[2])
   if not xfadetime then
     error('Could not retrieve "defsplitxfadelen" from reaper.ini')
@@ -93,19 +73,21 @@ end
 
 -------------------------
 
+if chosen_selection == 2 then -- fix: 40758 crossfades left!
+  xfadeposition = xfadeposition - 1
+end
+
+local cur_pos = reaper.GetCursorPosition()
+
+reaper.PreventUIRefresh( 1 )
+reaper.Undo_BeginBlock()
+
 reaper.SetEditCurPos( (snaptogrid and reaper.SnapToGrid( 0, mousepos ) or mousepos ) - 
                       (xfadeposition * GetExpectedXFadeLength()), false, false )
 reaper.Main_OnCommand( selection[chosen_selection], 0 )
 
-
-if select_item_mouse then
-  reaper.SetMediaItemSelected( item_mouse, false )
-  for i = 1, #sel_items do
-    reaper.SetMediaItemSelected( sel_items[i], true )
-  end
-end
-
 reaper.SetEditCurPos( cur_pos, false, false )
+
 reaper.PreventUIRefresh( -1 )
 reaper.UpdateArrange()
-reaper.Undo_EndBlock( "Split item at mouse cursor position", 4|8 )
+reaper.Undo_EndBlock( "Split items", 4 )
