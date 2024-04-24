@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="4eb4d077568425feaa348f2e7de64c759b72790b" name="ReaTeam Scripts">
+<index version="1" commit="2412d6a49f456c4a5671e35dee496318dbbba243" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -16435,6 +16435,10 @@ Replace GetLastWord func with quicker solution (Thanks: Mespotine[t=233393]).]]>
       </metadata>
       <version name="1.00" author="amagalma" time="2021-08-01T07:57:13Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/9b0ef5bfc03bf2bf7a167f77ce8485ec7481db57/Razor%20Edit/amagalma_Delete%20all%20envelope%20points%20inside%20Razor%20Edit%20areas%20%20(do%20not%20add%20edge%20points).lua</source>
+      </version>
+      <version name="1.01" author="amagalma" time="2024-04-24T18:27:42Z">
+        <changelog><![CDATA[Added support for Master Track]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/2412d6a49f456c4a5671e35dee496318dbbba243/Razor%20Edit/amagalma_Delete%20all%20envelope%20points%20inside%20Razor%20Edit%20areas%20%20(do%20not%20add%20edge%20points).lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Delete razor edit areas' contents moving later items (ripple per track).lua" type="script" desc="Delete razor edit areas' contents moving later items (ripple per track)">
