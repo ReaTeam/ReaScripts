@@ -1,8 +1,8 @@
 -- @description Split item at mouse cursor position ( use defined crossfade and selection settings )
 -- @author amagalma
--- @version 1.06
+-- @version 1.07
 -- @changelog 
---       - Fix for ReaPack
+--       - Fix selection outcome
 -- @provides [main] amagalma_Split item at mouse cursor position ( use defined crossfade and selection settings )/amagalma_Split item at mouse cursor position ( Define crossfade and selection settings ).lua > amagalma_Split item at mouse cursor position ( Define crossfade and selection settings ).lua
 -- @donation https://www.paypal.me/amagalma
 -- @about
@@ -81,23 +81,50 @@ if chosen_selection == 2 then -- fix: 40758 crossfades left!
 end
 
 local cur_pos = reaper.GetCursorPosition()
+local Cut_pos = (snaptogrid and reaper.SnapToGrid( 0, mousepos ) or mousepos ) - 
+                (xfadeposition * GetExpectedXFadeLength())
 
 reaper.PreventUIRefresh( 1 )
 reaper.Undo_BeginBlock()
+
+if not reaper.IsMediaItemSelected( item_mouse ) then
+  fix_selection = chosen_selection == 1
+  local items_out, ito = {}, 0
+  for i = 0, reaper.CountSelectedMediaItems( 0 ) - 1 do
+    local item = reaper.GetSelectedMediaItem( 0, i )
+    local item_st = reaper.GetMediaItemInfo_Value( item, "D_POSITION" )
+    local item_en = reaper.GetMediaItemInfo_Value( item, "D_LENGTH" ) + item_st
+    if item_en <= Cut_pos or item_st >= Cut_pos then
+      ito = ito + 1
+      items_out[ito] = item
+    end
+  end
+  
+  for i = 1, ito do
+    reaper.SetMediaItemSelected( items_out[i], false )
+  end
+  reaper.SetMediaItemSelected( item_mouse, true )
+end
 
 if ignoregrouping and reaper.GetToggleCommandState( 1156 ) == 1 then
   reaper.Main_OnCommand(1156, 0) -- Toggle item grouping and track media/razor edit grouping
   reenable = true
 end
 
-reaper.SetEditCurPos( (snaptogrid and reaper.SnapToGrid( 0, mousepos ) or mousepos ) - 
-                      (xfadeposition * GetExpectedXFadeLength()), false, false )
+reaper.SetEditCurPos( Cut_pos, false, false )
 reaper.Main_OnCommand( selection[chosen_selection], 0 )
 
 reaper.SetEditCurPos( cur_pos, false, false )
 
 if reenable then
   reaper.Main_OnCommand(1156, 0) -- Toggle item grouping and track media/razor edit grouping
+end
+
+if fix_selection then
+  local ip = reaper.GetMediaItemInfo_Value( item_mouse , "IP_ITEMNUMBER" )
+  local next_item = reaper.GetTrackMediaItem( reaper.GetMediaItemTrack( item_mouse ), ip + 1 )
+  reaper.SetMediaItemSelected( next_item, false )
+  reaper.SetMediaItemSelected( item_mouse, false )
 end
 
 reaper.PreventUIRefresh( -1 )
