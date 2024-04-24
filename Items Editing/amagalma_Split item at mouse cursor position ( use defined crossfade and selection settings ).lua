@@ -1,14 +1,16 @@
 -- @description Split item at mouse cursor position ( use defined crossfade and selection settings )
 -- @author amagalma
--- @version 1.04
+-- @version 1.05
 -- @changelog 
---       - Fix for selecting on the left side
+--       - Add ignore grouping setting
 -- @provides [main] amagalma_Split item at mouse cursor position ( use defined crossfade and selection settings )/amagalma_Split item at mouse cursor position ( Define crossfade and selection settings ).lua > amagalma_Split item at mouse cursor position ( Define crossfade and selection settings ).lua
 -- @donation https://www.paypal.me/amagalma
 -- @about
 --   Splits item(s) under mouse cursor at the mouse cursor position according to the settings defined by additional settings script. Settings for:
 --   - Selection: left, right or no change
 --   - Automatic crossfades: to the left, centered or to the right
+--   - Respect or not Snap to Grid
+--   - Respect or not item grouping
 
 
 local x, y = reaper.GetMousePosition()
@@ -27,6 +29,7 @@ local chosen_selection = tonumber(reaper.GetExtState("amagalma_Split at mouse cu
 local xfadeposition = tonumber(reaper.GetExtState("amagalma_Split at mouse cursor position", "xfadeposition")) or 1
 -- xfadeposition : 1 = left, 0.5 = center, 0 = right
 local snaptogrid = tonumber(reaper.GetExtState("amagalma_Split at mouse cursor position", "snaptogrid")) == 1
+local ignoregrouping = tonumber(reaper.GetExtState("amagalma_Split at mouse cursor position", "ignoregrouping")) == 1
 
 -------------------------
 
@@ -48,7 +51,7 @@ local function GetExpectedXFadeLength()
       return 0
     end
   end
-  
+
   local xfadetime = tonumber(({reaper.get_config_var_string( "defsplitxfadelen" )})[2])
   if not xfadetime then
     error('Could not retrieve "defsplitxfadelen" from reaper.ini')
@@ -82,11 +85,20 @@ local cur_pos = reaper.GetCursorPosition()
 reaper.PreventUIRefresh( 1 )
 reaper.Undo_BeginBlock()
 
+if ignoregrouping and reaper.GetToggleCommandState( 1156 ) == 1 then
+  reaper.Main_OnCommand(1156, 0) -- Toggle item grouping and track media/razor edit grouping
+  reenable = true
+end
+
 reaper.SetEditCurPos( (snaptogrid and reaper.SnapToGrid( 0, mousepos ) or mousepos ) - 
                       (xfadeposition * GetExpectedXFadeLength()), false, false )
 reaper.Main_OnCommand( selection[chosen_selection], 0 )
 
 reaper.SetEditCurPos( cur_pos, false, false )
+
+if reenable then
+  reaper.Main_OnCommand(1156, 0) -- Toggle item grouping and track media/razor edit grouping
+end
 
 reaper.PreventUIRefresh( -1 )
 reaper.UpdateArrange()
