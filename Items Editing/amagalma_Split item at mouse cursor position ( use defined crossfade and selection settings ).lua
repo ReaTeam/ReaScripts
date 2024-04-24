@@ -1,8 +1,8 @@
 -- @description Split item at mouse cursor position ( use defined crossfade and selection settings )
 -- @author amagalma
--- @version 1.05
+-- @version 1.06
 -- @changelog 
---       - Add ignore grouping setting
+--       - Fix for ReaPack
 -- @provides [main] amagalma_Split item at mouse cursor position ( use defined crossfade and selection settings )/amagalma_Split item at mouse cursor position ( Define crossfade and selection settings ).lua > amagalma_Split item at mouse cursor position ( Define crossfade and selection settings ).lua
 -- @donation https://www.paypal.me/amagalma
 -- @about
@@ -10,7 +10,7 @@
 --   - Selection: left, right or no change
 --   - Automatic crossfades: to the left, centered or to the right
 --   - Respect or not Snap to Grid
---   - Respect or not item grouping
+--   - Respect or not Item Grouping
 
 
 local x, y = reaper.GetMousePosition()
