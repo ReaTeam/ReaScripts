@@ -1,8 +1,9 @@
 -- @description Toggle show editing guide line on item under mouse cursor in Main Window or in MIDI Editor
 -- @author amagalma
--- @version 1.86
--- @changelog
---    - removed checks for JS_ReaScriptAPI
+-- @version 1.87
+-- @changelog - Slightly improved performance (about 16-17% less CPU)
+-- @link https://forum.cockos.com/showthread.php?t=234369
+-- @screenshot Screenshot https://stash.reaper.fm/38839/amagalma_Toggle%20show%20editing%20guide%20line%20on%20item%20under%20mouse%20cursor%20in%20Main%20Window%20or%20in%20MIDI%20Editor.gif
 -- @donation https://www.paypal.me/amagalma
 -- @about
 --   # Displays a guide line on the item under the mouse cursor for easier editing in the Main Window, or a tall line in the focused MIDI Editor
@@ -13,6 +14,7 @@
 --    - Set minimum/maximum additional line height inside the script
 --    - When prompted by Reaper, choose to "Terminate instance" and to remember your choice
 --    - Requires JS_ReaScriptAPI 1.002 or higher
+--    - Many thanks to juliansader :)
 
 -- Many thanks to juliansader :)
 
@@ -48,14 +50,11 @@ if reaper.APIExists( "JS_ReaScriptAPI_Version") then
     reaper.MB( "Installed JS_ReaScriptAPI version is v" .. version .. "\n\nPlease, update, restart Reaper and run the script again. Thanks!", "Required version: >=1.002", 0 )
     return reaper.defer(function() end)
   end
-else  
+else
   reaper.MB( "Please, install JS_ReaScriptAPI for this script to function. Thanks!", "JS_ReaScriptAPI is not installed", 0 )
   return reaper.defer(function() end)
 end
 
-local function RGB(r,g,b)
-  return (((b)&0xFF)|(((g)&0xFF)<<8)|(((r)&0xFF)<<16)|(0xFF<<24))
-end
 
 -------------------------------------------------------------------
 
@@ -102,12 +101,14 @@ blue = blue and (blue < 0 and 0 or (blue > 255 and 255 or blue)) or 0
 red2 = red2 and (red2 < 0 and 0 or (red2 > 255 and 255 or red2)) or 0
 green2 = green2 and (green2 < 0 and 0 or (green2 > 255 and 255 or green2)) or 0
 blue2 = blue2 and (blue2 < 0 and 0 or (blue2 > 255 and 255 or blue2)) or 0
+local RGB = (((blue)&0xFF)|(((green)&0xFF)<<8)|(((red)&0xFF)<<16)|(0xFF<<24))
+local RGB2 = (((blue2)&0xFF)|(((green2)&0xFF)<<8)|(((red2)&0xFF)<<16)|(0xFF<<24))
 local bm = reaper.JS_LICE_CreateBitmap(true, 1, 1)
-reaper.JS_LICE_Clear(bm, RGB(red, green, blue))
+reaper.JS_LICE_Clear(bm, RGB)
 local bm2
 if timeline_guide then
   bm2 = reaper.JS_LICE_CreateBitmap(true, 1, 1)
-  reaper.JS_LICE_Clear(bm2, RGB(red2, green2, blue2))
+  reaper.JS_LICE_Clear(bm2, RGB2)
 end
 local toggleCmd = reaper.NamedCommandLookup('_RS723f1ed6da61cd868278d4d78b1c1531edc946f4') -- Script: Toggle guide line size 
 local bigLine = reaper.GetToggleCommandState( toggleCmd ) == 1
@@ -141,6 +142,12 @@ local function exit()
   reaper.SetToggleCommandState( section, cmdID, 0 )
   reaper.RefreshToolbar2( section, cmdID )
   reaper.defer(function() end)
+end
+
+local function PositionAtMouseCursor(x, y )
+  local _, left, _, right = reaper.JS_Window_GetClientRect( trackview ) -- without scrollbars
+  return reaper.GetSet_ArrangeView2( 0, false, left, right ) +
+                   (x + reaper.JS_Window_ScreenToClient( trackview, 0, 0 )) / reaper.GetHZoomLevel()
 end
 
 local function visibletracksheight()
@@ -316,7 +323,7 @@ local function main()
     end
 
     if continue then
-      
+
       local grabbing = reaper.JS_Mouse_GetState( 1 ) & 1 == 1
       if not grabbing then
         moving_item, moving_take = reaper.GetItemFromPoint( x, y, true )
@@ -328,9 +335,9 @@ local function main()
         if moving_take and not start_take_offs then
           start_take_offs = reaper.GetMediaItemTakeInfo_Value( moving_take, "D_STARTOFFS" )
         end
-        if not start_x then 
+        if not start_x then
           if snap then
-            local mouse_pos = reaper.BR_PositionAtMouseCursor( false )
+            local mouse_pos = PositionAtMouseCursor( x, y )
             local diff = floor((reaper.SnapToGrid( 0, mouse_pos ) - mouse_pos)*zoom + 0.5)
             start_x = reaper.JS_Window_ScreenToClient(trackview, x, y) + diff
           else
@@ -341,21 +348,21 @@ local function main()
         if start_item_pos then start_item_pos,start_x = false,false end
         if start_take_offs then start_take_offs,start_x = false,false end
       end
-    
+
       if change or (x ~= prev_x or y ~= prev_y) then
         prev_x, prev_y = x, y
         change = false
         zoom = reaper.GetHZoomLevel()
         local x_cl, y_cl = reaper.JS_Window_ScreenToClient(trackview, x, y)
-        
-        
+
+
         if in_arrange(x_cl) and 0 <= y_cl and y_cl <= trackview_h then
           if snap then
-            local mouse_pos = reaper.BR_PositionAtMouseCursor( false )
+            local mouse_pos = PositionAtMouseCursor( x, y )
             local diff = floor((reaper.SnapToGrid( 0, mouse_pos ) - mouse_pos)*zoom + 0.5)
             x_cl = x_cl + diff
           end
-          
+
           local edit, _, flag = reaper.GetItemEditingTime2()
           if edit ~= -666 and start_item_pos then
             if flag == 4 then
@@ -376,7 +383,7 @@ local function main()
               end
             end
           end
-          
+
           if bigLine then
             Msg("draw big line at " .. x_cl .. "\n")
             reaper.JS_Composite(trackview, x_cl, 0, 1, (vis_tracks_h < trackview_h and vis_tracks_h or trackview_h), bm, 0, 0, 1, 1, true)
