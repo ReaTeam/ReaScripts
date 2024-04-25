@@ -1,11 +1,10 @@
 -- @description ReaKS - Keyswitch Articulation Manager
 -- @author Ugurcan Orcun
--- @version 1.1
+-- @version 1.1.5
 -- @changelog 
---  - Added KS Note offset to help trigger Keyswitches just before the note.
---  - Smashed many bugs related to Single-Line mode.
---  - Introduced proper undo/redo
---  - Removed unused config variables
+--  - KS offset fixes
+--  - Added a basic MIDI Toolkit
+--  - Key mod check fix
 -- @links
 --   Forum Thread https://forum.cockos.com/showthread.php?t=288344
 --   Tutorials https://www.youtube.com/watch?v=lP9hRw_j0PY&list=PLJ5Z3ZQ-oB-yXcsq3MXi94QhYVcnlkhVy
@@ -13,6 +12,10 @@
 -- @about 
 --  A small MIDI Editor tool for auto-inserting KeySwitch midi notes and managing note/cc names.
 --  Find more info and example note name files at the forum thread.
+if not reaper.ImGui_GetBuiltinPath then
+    return reaper.MB('ReaImGui is not installed or too old.', 'ReaKS', 0)
+end
+
 package.path = reaper.ImGui_GetBuiltinPath() .. '/?.lua'
 local ImGui = require 'imgui' '0.9'
 
@@ -195,23 +198,13 @@ function RenameAliasCCLane()
     RefreshGUI()
 end
 
-function LinkParameterToCCLane()
-    local _, trackidx, itemidx, takeidx, fxidx, parmidx = reaper.GetTouchedOrFocusedFX(0)
-    local lastTouchedCCLane = reaper.MIDIEditor_GetSetting_int(ActiveMidiEditor, "last_touched_cc_lane")
-
-    local track = reaper.GetTrack(0, trackidx)
-    local parmid = "param."..parmidx.."plink"
-    local value = ""
-    reaper.TrackFX_SetNamedConfigParm(track, fxidx, parmid, value)
-    -- get parameter's name
-
-end
-
 function InsertKS(noteNumber, isShiftHeld)
     if ActiveTake == nil then return end
 
-    local newKSStartPPQ = math.huge
-    local newKSEndPPQ = 0
+    local newKSStartPPQ, newKSEndPPQ
+
+    local insertionRangeStart = math.huge
+    local insertionRangeEnd = 0
     local selectionMode = false
 
     local singleGridLength = reaper.MIDI_GetGrid(ActiveTake) * PPQ
@@ -228,55 +221,47 @@ function InsertKS(noteNumber, isShiftHeld)
         while selectedNoteIDX ~= -1 do
             local _, _, _, selectedNoteStartPPQ, selectedNoteEndPPQ = reaper.MIDI_GetNote(ActiveTake, selectedNoteIDX)         
 
-            newKSStartPPQ = math.min(newKSStartPPQ, selectedNoteStartPPQ)
-            newKSEndPPQ = math.max(newKSEndPPQ, selectedNoteEndPPQ)
+            insertionRangeStart = math.min(insertionRangeStart, selectedNoteStartPPQ)
+            insertionRangeEnd = math.max(insertionRangeEnd, selectedNoteEndPPQ)
             selectedNoteIDX = reaper.MIDI_EnumSelNotes(ActiveTake, selectedNoteIDX)
         end
     -- Find playhead and one exact grid length after it if no notes are selected
     else
-        newKSStartPPQ = reaper.GetCursorPosition()
-        newKSStartPPQ = reaper.MIDI_GetPPQPosFromProjTime(ActiveTake, newKSStartPPQ)
-        newKSEndPPQ = newKSStartPPQ + singleGridLength
+        insertionRangeStart = reaper.GetCursorPosition()
+        insertionRangeStart = reaper.MIDI_GetPPQPosFromProjTime(ActiveTake, insertionRangeStart)
+        insertionRangeEnd = insertionRangeStart + singleGridLength
     end
 
+    newKSStartPPQ = insertionRangeStart + Setting_PPQOffset
+    newKSEndPPQ = insertionRangeEnd + Setting_PPQOffset
+
     -- Operations on other KS notes
-    local _, noteCount = reaper.MIDI_CountEvts(ActiveTake)
+    local _, noteCount = reaper.MIDI_CountEvts(ActiveTake)        
     if not isShiftHeld then
         for noteID = noteCount, 0, -1 do
             local _, _, _, startPosPPQ, endPosPPQ, _, pitch, _ = reaper.MIDI_GetNote(ActiveTake, noteID)
-            startPosPPQ = startPosPPQ
-            endPosPPQ = endPosPPQ
+            newKSStartPPQ = insertionRangeStart + Setting_PPQOffset
+            newKSEndPPQ = insertionRangeEnd + Setting_PPQOffset
 
-            -- Overlapping notes
+            -- Process overlapping notes
             if Articulations[pitch] then
                 if startPosPPQ < newKSStartPPQ and endPosPPQ > newKSStartPPQ then reaper.MIDI_SetNote(ActiveTake, noteID, nil, nil, nil, newKSStartPPQ) end
-                if startPosPPQ < newKSStartPPQ and endPosPPQ > newKSStartPPQ and endPosPPQ < newKSEndPPQ then reaper.MIDI_SetNote(ActiveTake, noteID, nil, nil, nil, newKSStartPPQ + Setting_PPQOffset) end
-                
-                if startPosPPQ >= newKSStartPPQ and startPosPPQ < newKSEndPPQ and endPosPPQ > newKSEndPPQ then 
-                    if selectionMode then
-                        reaper.MIDI_SetNote(ActiveTake, noteID, nil, nil, newKSEndPPQ + Setting_PPQOffset, nil) 
-                    else
-                        newKSEndPPQ = startPosPPQ
-                    end                
-                end
-
+                if startPosPPQ < newKSStartPPQ and endPosPPQ > newKSStartPPQ and endPosPPQ < newKSEndPPQ then reaper.MIDI_SetNote(ActiveTake, noteID, nil, nil, nil, newKSStartPPQ) end
+                if startPosPPQ >= newKSStartPPQ and startPosPPQ < newKSEndPPQ and endPosPPQ > newKSEndPPQ then reaper.MIDI_SetNote(ActiveTake, noteID, nil, nil, newKSEndPPQ, nil) end
                 if startPosPPQ >= newKSStartPPQ and endPosPPQ <= newKSEndPPQ then reaper.MIDI_DeleteNote(ActiveTake, noteID) end
             end
         end
     end
 
-
     reaper.Undo_BeginBlock()
     reaper.MarkTrackItemsDirty(ActiveTrack, ActiveItem)
 
     -- Insert the new KS note
-    local cursorMoveTarget = newKSEndPPQ
-    newKSStartPPQ = newKSStartPPQ + Setting_PPQOffset
-    newKSEndPPQ = newKSEndPPQ + Setting_PPQOffset
+
     reaper.MIDI_InsertNote(ActiveTake, false, false, newKSStartPPQ, newKSEndPPQ, 0, noteNumber, 100, false)
     
     -- Move edit cursor to the end of the new note if no notes are selected
-    if reaper.MIDI_EnumSelNotes(ActiveTake, -1) == -1 and not isShiftHeld then reaper.SetEditCurPos(reaper.MIDI_GetProjTimeFromPPQPos(ActiveTake, cursorMoveTarget), true, false) end    
+    if reaper.MIDI_EnumSelNotes(ActiveTake, -1) == -1 and not isShiftHeld then reaper.SetEditCurPos(reaper.MIDI_GetProjTimeFromPPQPos(ActiveTake, insertionRangeEnd), true, false) end    
 
     -- Update text events if the setting is enabled
     if Setting_AutoupdateTextEvent then UpdateTextEvents() end
@@ -284,6 +269,37 @@ function InsertKS(noteNumber, isShiftHeld)
     reaper.Undo_EndBlock("Insert KS Note", -1)
 
     reaper.MIDI_Sort(ActiveTake)    
+end
+
+function LengthenSelectedNotes(toLeft)
+    if ActiveTake == nil then return end
+
+    local selectedNoteIDX = -1
+    local selectedNotes = {}
+
+    selectedNoteIDX = reaper.MIDI_EnumSelNotes(ActiveTake, selectedNoteIDX)
+    while selectedNoteIDX ~= -1 do
+        table.insert(selectedNotes, selectedNoteIDX)
+        selectedNoteIDX = reaper.MIDI_EnumSelNotes(ActiveTake, selectedNoteIDX)
+    end
+
+    reaper.Undo_BeginBlock()
+    reaper.MarkTrackItemsDirty(ActiveTrack, ActiveItem)
+
+    for _, noteID in pairs(selectedNotes) do
+        local _, _, _, startPosPPQ, endPosPPQ, _, _, _ = reaper.MIDI_GetNote(ActiveTake, noteID)
+        local moveAmount = PPQ / 32
+
+        if toLeft then
+            startPosPPQ = startPosPPQ - moveAmount
+        else
+            endPosPPQ = endPosPPQ + moveAmount
+        end
+
+        reaper.MIDI_SetNote(ActiveTake, noteID, nil, nil, startPosPPQ, endPosPPQ)
+    end
+
+    reaper.Undo_EndBlock("Lengthen Selected Notes", -1)
 end
 
 function GetActiveKSAtPlayheadPosition()
@@ -437,7 +453,7 @@ local function loop()
                         if ActivatedKS[i] ~= nil then ImGui.PushStyleColor(ctx, ImGui.Col_Button, EnumThemeColors.G) end
 
                         if ImGui.Button(ctx, articulation, 100) then
-                            local isShiftHeld = ImGui.IsKeyDown(ctx, ImGui.Key_LeftShift) or ImGui.IsKeyDown(ctx, ImGui.Key_RightShift)
+                            local isShiftHeld = ImGui.GetKeyMods(ctx) == ImGui.Mod_Shift
                             InsertKS(i, isShiftHeld)
                         end
 
@@ -475,11 +491,24 @@ local function loop()
                 if ImGui.Button(ctx, "Focus##pitch") then FocusToCCLane(513) end
 
                 if ImGui.Button(ctx, "Rename Focused CC Lane") then RenameAliasCCLane() end
-                --if ImGui.Button(ctx, "!!! Link Touched Parameter to Focused CC Lane") then LinkParameterToCCLane() end
             end
         end
-        ImGui.End(ctx)
-        
+
+        -- MIDI Toolkit
+        if ActiveTake ~= nil then
+            if ImGui.CollapsingHeader(ctx, "MIDI Toolkit", false) then
+                if ImGui.Button(ctx, "<+") then LengthenSelectedNotes(true) end
+                if ImGui.IsItemHovered(ctx) then ImGui.SetTooltip(ctx, "Stretch selected note starts") end
+                ImGui.SameLine(ctx)
+                if ImGui.Button(ctx, "+>") then LengthenSelectedNotes(false) end
+                if ImGui.IsItemHovered(ctx) then ImGui.SetTooltip(ctx, "Lengthen selected note ends") end
+                ImGui.SameLine(ctx)
+                if ImGui.Button(ctx, "Quick Quantize") then reaper.MIDIEditor_LastFocused_OnCommand(40729, false) end
+                if ImGui.IsItemHovered(ctx) then ImGui.SetTooltip(ctx, "Conform selected notes to grid") end
+            end
+        end
+
+        ImGui.End(ctx)        
     end
 
     StylingEnd(ctx)
