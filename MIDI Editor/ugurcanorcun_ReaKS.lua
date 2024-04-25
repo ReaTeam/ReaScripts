@@ -1,6 +1,6 @@
 -- @description ReaKS - Keyswitch Articulation Manager
 -- @author Ugurcan Orcun
--- @version 1.15
+-- @version 1.1.5
 -- @changelog 
 --  - KS offset fixes
 --  - Added a basic MIDI Toolkit
