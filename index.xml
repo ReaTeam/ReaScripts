@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="998589da431136238f6adae799c8139bb23ef1e2" name="ReaTeam Scripts">
+<index version="1" commit="ec1ec123e90f60fbd3731b6060f9bb69efbb99cf" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -5728,9 +5728,12 @@ website
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Set line colors inside the script (rgb values 0-255)\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Set minimum/maximum additional line height inside the script\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab When prompted by Reaper, choose to "Terminate instance" and to remember your choice\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Requires JS_ReaScriptAPI 1.002 or higher\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Requires JS_ReaScriptAPI 1.002 or higher\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Many thanks to juliansader :)\sa180\par}
 }
 ]]></description>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=234369</link>
+        <link rel="screenshot" href="https://stash.reaper.fm/38839/amagalma_Toggle%20show%20editing%20guide%20line%20on%20item%20under%20mouse%20cursor%20in%20Main%20Window%20or%20in%20MIDI%20Editor.gif">Screenshot</link>
         <link rel="donation">https://www.paypal.me/amagalma</link>
       </metadata>
       <version name="1.20" author="amagalma" time="2020-04-11T18:44:15Z">
@@ -5827,6 +5830,10 @@ website
       <version name="1.86" author="amagalma" time="2021-09-03T18:30:38Z">
         <changelog><![CDATA[- removed checks for JS_ReaScriptAPI]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a4e9025277da5e308429311afed65b7b1c402bb2/Items%20Editing/amagalma_Toggle%20show%20editing%20guide%20line%20on%20item%20under%20mouse%20cursor%20in%20Main%20Window%20or%20in%20MIDI%20Editor.lua</source>
+      </version>
+      <version name="1.87" author="amagalma" time="2024-04-25T13:27:09Z">
+        <changelog><![CDATA[- Slightly improved performance (about 16-17% less CPU)]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ec1ec123e90f60fbd3731b6060f9bb69efbb99cf/Items%20Editing/amagalma_Toggle%20show%20editing%20guide%20line%20on%20item%20under%20mouse%20cursor%20in%20Main%20Window%20or%20in%20MIDI%20Editor.lua</source>
       </version>
     </reapack>
     <reapack name="Argitoth_Select items with color of selected items.eel" type="script" desc="Select items with color of selected items">
