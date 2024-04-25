@@ -453,7 +453,7 @@ local function loop()
                         if ActivatedKS[i] ~= nil then ImGui.PushStyleColor(ctx, ImGui.Col_Button, EnumThemeColors.G) end
 
                         if ImGui.Button(ctx, articulation, 100) then
-                            local isShiftHeld = ImGui.GetKeyMods(ctx) == 8192
+                            local isShiftHeld = ImGui.GetKeyMods(ctx) == ImGui.Mod_Shift
                             InsertKS(i, isShiftHeld)
                         end
 
