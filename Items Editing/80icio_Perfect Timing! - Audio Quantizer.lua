@@ -1,16 +1,7 @@
 -- @description Perfect Timing! - Audio Quantizer
 -- @author 80icio
--- @version 0.24
--- @changelog
---   New Features
---
---   - New Visualizer zoom bounds reference  over tracks on Main window
---   - Trigger lines show full quarters with thicker lines and sub divisions with thinner lines
---   - Corrected "clipping" Transient attack filter
---
---   BugFix
---
---   - fixed wrong trackcount before quantizing if in -Edit Track- mode
+-- @version 0.25
+-- @changelog - updated for Reaimgui 0.9
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=288964
 -- @about
 --   # PERFECT TIMING! 
@@ -59,17 +50,14 @@ end
 
 local reaperversion = Reaperversioncheck(r.GetAppVersion())
 ]]--
-
-local imgui_path = r.GetResourcePath() .. '/Scripts/ReaTeam Extensions/API/imgui.lua'
-if not r.file_exists(imgui_path) then
-  r.ShowMessageBox("Please, install IMGUI extension from REAPACK.\nThanks!", "Ooops!", 0)
+if not reaper.ImGui_GetBuiltinPath then
+  r.ShowMessageBox("Please, install or update IMGUI extension from REAPACK.\nThanks!", "Ooops!", 0)
   r.ReaPack_BrowsePackages('ReaImGui: ReaScript binding for Dear ImGui')
-  return
+  return -- ReaImGui is not present or pre-0.9
 end
 
-dofile(imgui_path) '0.8.3' -- version check + backward compat
-
-
+package.path = r.ImGui_GetBuiltinPath() .. '/?.lua'
+require 'imgui' '0.9'
 
 if r.APIExists( "JS_ReaScriptAPI_Version") then ------checkin JS ---------
   local version = r.JS_ReaScriptAPI_Version()
@@ -1511,7 +1499,6 @@ function Create_Grid_table()
             h = h + 1
             
             Grid_blocks_Ruler[h] = floor(((blockline - first_sel_item_start)*srate))
-            ---msg(blockline)
             if fmod(blockline,0.5) == 0 then
             Grid_blocks_Ruler_thickness[h] = 2
             else
@@ -1576,10 +1563,9 @@ end
 ----------------------------------------------------------------------------------
 function Trig_line_thickness(input)
 QN_lineTHICK = {}
-
       for i=1, #input, 2 do
-        local gridcheck =  fmod(r.TimeMap2_timeToQN(0,(input[i]/first_srate)+ first_sel_item_start),1)
-        if gridcheck <= (divis*2) then
+        local gridcheck =  fmod(r.TimeMap2_timeToQN(0,(input[i]/first_srate)+ first_sel_item_start)+divis*2,1)
+        if gridcheck <= (divis*4) then
           QN_lineTHICK[i] = 2
         else
           QN_lineTHICK[i] = 1
