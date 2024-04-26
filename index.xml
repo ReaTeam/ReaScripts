@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="db418aebca79dd2b0924bf8d20eeea988705b1c7" name="ReaTeam Scripts">
+<index version="1" commit="e64bbc7d017fe8c26d8e90a7c73f38066fab1e97" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -8522,6 +8522,21 @@ Fix bug on Windows]]></changelog>
       </metadata>
       <version name="1.00" author="amagalma" time="2023-03-11T16:40:02Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/1e4398de31f8896fa495d606529c1a470eb8156d/Items%20Properties/amagalma_Paste%20text%20from%20clipboard%20to%20selected%20items'%20notes%20(one%20line%20per%20item).lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Select all items in track that have exactly the same video processors as the selected item.lua" type="script" desc="Select all items in track that have exactly the same video processors as the selected item">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Select just one item. The action will find and select all the other items in the track that have exactly the same video processors as the selected item.\par}
+}
+]]></description>
+        <link rel="donation">https://www.paypal.me/amagalma</link>
+      </metadata>
+      <version name="1.00" author="amagalma" time="2024-04-26T19:02:53Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e64bbc7d017fe8c26d8e90a7c73f38066fab1e97/Items%20Properties/amagalma_Select%20all%20items%20in%20track%20that%20have%20exactly%20the%20same%20video%20processors%20as%20the%20selected%20item.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Select next item with take FX.lua" type="script" desc="Select next item with take FX">
