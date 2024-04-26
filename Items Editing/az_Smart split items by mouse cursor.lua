@@ -1,7 +1,10 @@
 -- @description Smart split items using mouse cursor context (also edit cursor, razor area and time selection)
 -- @author AZ
--- @version 3.15
--- @changelog - fixed one silly bug for new users
+-- @version 3.20
+-- @changelog
+--   - Added TCP context action
+--   - fixed bug with empty takes
+--   - sticked to imgui version 8.7.6 for stable work
 -- @provides [main] az_Smart split items by mouse cursor/az_Open options for az_Smart split items by mouse cursor.lua
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=259751
 -- @donation Donate via PayPal https://www.paypal.me/AZsound
@@ -176,10 +179,12 @@ end
 ------------------------
 
 function OptionsWindow()
-  if reaper.APIExists( 'ImGui_GetVersion' ) ~= true then
+  local imgui_path = reaper.GetResourcePath() .. '/Scripts/ReaTeam Extensions/API/imgui.lua'
+  if not reaper.file_exists(imgui_path) then
     reaper.ShowMessageBox('Please, install ReaImGui from Reapack!', 'No Imgui library', 0)
     return
   end
+  dofile(imgui_path) '0.8.7.6'
   OptionsDefaults()
   GetExtStates()
   local fontSize = 17
@@ -188,6 +193,19 @@ function OptionsWindow()
   local W = fontSize
   local loopcnt = 0
   local _, imgui_version_num, _ = reaper.ImGui_GetVersion()
+  
+  local tcpActIDstr = reaper.GetExtState(ExtStateName, 'TCPaction')
+  local tcpActName = ''
+  local section
+  
+  if tcpActIDstr ~= '' and tcpActIDstr:gsub('%d+', '') == '' then
+    section =  reaper.SectionFromUniqueID( tonumber(tcpActIDstr) )
+    tcpActName = reaper.kbd_getTextFromCmd( tonumber(tcpActIDstr), section )
+  elseif tcpActIDstr ~= '' then
+    section = reaper.SectionFromUniqueID( tonumber(reaper.NamedCommandLookup(tcpActIDstr)) )
+    tcpActName = reaper.kbd_getTextFromCmd
+    ( tonumber(reaper.NamedCommandLookup(tcpActIDstr)), section ) 
+  end
   
   local esc
   local enter
@@ -278,11 +296,7 @@ function OptionsWindow()
         reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Text(), gui_colors.White)
         
         reaper.ImGui_Text(ctx, '' )
-        if imgui_version_num >= 18910 then
-          reaper.ImGui_SeparatorText( ctx, option[1] )
-        else
-          reaper.ImGui_Text(ctx, option[1] )
-        end
+        reaper.ImGui_SeparatorText( ctx, option[1] )
         
         reaper.ImGui_PopStyleColor(ctx, 1)
         reaper.ImGui_PopFont(ctx)
@@ -290,6 +304,12 @@ function OptionsWindow()
       
       OptDefaults[i] = option
     end -- for
+    
+    reaper.ImGui_Text(ctx, '' ) --space
+    
+    reaper.ImGui_PushItemWidth(ctx, fontSize*5 )
+    _, tcpActIDstr = reaper.ImGui_InputText
+    (ctx,'Track Control Panel context action (paste command ID):\n'..tcpActName, tcpActIDstr)
     
     reaper.ImGui_Text(ctx, '' ) --space before buttons
     reaper.ImGui_Text(ctx, '' ) --space before buttons 
@@ -381,13 +401,17 @@ function OptionsWindow()
       
       if ExternalOpen == true then
         space = spaceMouse or reaper.ImGui_IsKeyReleased(ctx, reaper.ImGui_Key_Space()) 
-        if space == true then SetExtStates() end
+        if space == true then
+          SetExtStates()
+          reaper.SetExtState(ExtStateName, 'TCPaction', tcpActIDstr, true)
+        end
       end
       
       if open and esc ~= true and enter ~= true then
           reaper.defer(loop)
       elseif enter == true then
           SetExtStates()
+          reaper.SetExtState(ExtStateName, 'TCPaction', tcpActIDstr, true)
           reaper.ImGui_DestroyContext(ctx)
       else
           reaper.ImGui_DestroyContext(ctx)
@@ -404,13 +428,8 @@ function OptionsWindow()
   end
   font = reaper.ImGui_CreateFont(fontName, fontSize, reaper.ImGui_FontFlags_None()) -- Create the fonts you need
   fontSep = reaper.ImGui_CreateFont(fontName, fontSize-2, reaper.ImGui_FontFlags_Italic())
-  if imgui_version_num >= 18910 then
-    reaper.ImGui_Attach(ctx, font)
-    reaper.ImGui_Attach(ctx, fontSep)
-  else
-    reaper.ImGui_AttachFont(ctx, font)
-    reaper.ImGui_AttachFont(ctx, fontSep)
-  end
+  reaper.ImGui_Attach(ctx, font)
+  reaper.ImGui_Attach(ctx, fontSep)
   
   loop(ctx, font)
 end
@@ -1317,17 +1336,19 @@ function SetItemEdges(item, startTime, endTime)
   local takesN = reaper.CountTakes(item)
   for i = 0, takesN-1 do
     local take = reaper.GetTake(item,i)
-    local offs = reaper.GetMediaItemTakeInfo_Value(take, 'D_STARTOFFS')
-    local rate = reaper.GetMediaItemTakeInfo_Value(take, 'D_PLAYRATE')
-    offs = offs + (startTime-pos)*rate
-    if isloop == 1 then
-      local src = reaper.GetMediaItemTake_Source( take )
-      local length, isQN = reaper.GetMediaSourceLength( src )
-      if offs < 0 then offs = length - math.fmod(-offs, length)
-      elseif offs > length then offs = math.fmod(offs, length)
+    if take then
+      local offs = reaper.GetMediaItemTakeInfo_Value(take, 'D_STARTOFFS')
+      local rate = reaper.GetMediaItemTakeInfo_Value(take, 'D_PLAYRATE')
+      offs = offs + (startTime-pos)*rate
+      if isloop == 1 then
+        local src = reaper.GetMediaItemTake_Source( take )
+        local length, isQN = reaper.GetMediaSourceLength( src )
+        if offs < 0 then offs = length - math.fmod(-offs, length)
+        elseif offs > length then offs = math.fmod(offs, length)
+        end
       end
+      reaper.SetMediaItemTakeInfo_Value(take, 'D_STARTOFFS', offs)
     end
-    reaper.SetMediaItemTakeInfo_Value(take, 'D_STARTOFFS', offs)
   end
 end
 
@@ -1714,7 +1735,7 @@ end
 
 ------------------
 -------START------
-CurVers = 3.15
+CurVers = 3.20
 version = tonumber( reaper.GetExtState(ExtStateName, "version") )
 if version ~= CurVers then
   if not version or version < 3 then
@@ -1728,9 +1749,22 @@ else
     reaper.ShowMessageBox('Please, install SWS extension!', 'No SWS extension', 0)
     return
   end
+  
   Window, Segment, Details = reaper.BR_GetMouseCursorContext()
+  local tcpActIDstr = reaper.GetExtState(ExtStateName, 'TCPaction')
+  local tcpActID
+  
   if Window == 'transport' or Window == 'mcp' then
     OptionsWindow()
+  elseif Window == 'tcp' and tcpActIDstr ~= '' then 
+    if tcpActIDstr:gsub('%d+', '') == '' then
+      --section =  reaper.SectionFromUniqueID( tonumber(tcpActIDstr) )
+      tcpActID = tonumber(tcpActIDstr) 
+    elseif tcpActIDstr ~= '' then
+      --section = reaper.SectionFromUniqueID( tonumber(reaper.NamedCommandLookup(tcpActIDstr)) )
+      tcpActID = tonumber(reaper.NamedCommandLookup(tcpActIDstr))
+    end
+    reaper.Main_OnCommandEx(tcpActID,0,0)
   else
     OptionsDefaults()
     GetExtStates()
