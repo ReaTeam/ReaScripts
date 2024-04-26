@@ -1,6 +1,6 @@
 -- @description Smart split items using mouse cursor context (also edit cursor, razor area and time selection)
 -- @author AZ
--- @version 3.2
+-- @version 3.20
 -- @changelog
 --   - Added TCP context action
 --   - fixed bug with empty takes
@@ -1735,7 +1735,7 @@ end
 
 ------------------
 -------START------
-CurVers = 3.2
+CurVers = 3.20
 version = tonumber( reaper.GetExtState(ExtStateName, "version") )
 if version ~= CurVers then
   if not version or version < 3 then
