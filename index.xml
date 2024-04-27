@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="d036575995741bce60997a0765f8d7ea93ad79be" name="ReaTeam Scripts">
+<index version="1" commit="fecbceae205226e9e63c4392babc8b19c3481ecc" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -3656,6 +3656,24 @@ Fix a potential infinite loop]]></changelog>
       </metadata>
       <version name="1.00" author="amagalma" time="2020-06-21T09:59:23Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4192d1de468a179918afa8415e9be3be6d0a7e61/FX/amagalma_Center%20in%20screen%20the%20floating%20FX%20or%20FX%20Chain.lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Copy - Paste the selected or all the FX from the focused FX chain to all the selected items or tracks.lua" type="script" desc="Copy - Paste the selected or all the FX from the focused FX chain to all the selected items or tracks">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Copies and pastes the selected (or all the FX in chain, if there is not a selection) from the focused FX chain to all the selected items or tracks.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Requires js_ReaScriptAPI and ReaImGui\sa180\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=290715</link>
+        <link rel="screenshot">https://i.ibb.co/SQRQDhw/Show.gif</link>
+        <link rel="donation">https://www.paypal.me/amagalma</link>
+      </metadata>
+      <version name="1.00" author="amagalma" time="2024-04-27T10:24:39Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/fecbceae205226e9e63c4392babc8b19c3481ecc/FX/amagalma_Copy%20-%20Paste%20the%20selected%20or%20all%20the%20FX%20from%20the%20focused%20FX%20chain%20to%20all%20the%20selected%20items%20or%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Float centered exclusively the next FX for the current track.lua" type="script" desc="Float centered exclusively the next FX for the current track">
