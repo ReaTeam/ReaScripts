@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="52f5f1dbe2f798c0bd0d86815a65428f1138887d" name="ReaTeam Scripts">
+<index version="1" commit="d036575995741bce60997a0765f8d7ea93ad79be" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -4983,6 +4983,11 @@ BugFix
 
 - fixed wrong trackcount before quantizing if in -Edit Track- mode]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d0d227721780ed95489ebb6778a82d273a50ca2c/Items%20Editing/80icio_Perfect%20Timing!%20-%20Audio%20Quantizer.lua</source>
+      </version>
+      <version name="0.25" author="80icio" time="2024-04-27T07:40:12Z">
+        <changelog><![CDATA[- updated to reaImgui 0.9
+- multiple code improvements]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d036575995741bce60997a0765f8d7ea93ad79be/Items%20Editing/80icio_Perfect%20Timing!%20-%20Audio%20Quantizer.lua</source>
       </version>
     </reapack>
     <reapack name="Add project markers as cue points to selected items and replace source files.lua" type="script" desc="amagalma_Add project markers as cue points to selected items and replace source files">
