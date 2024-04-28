@@ -1,6 +1,7 @@
 -- @description Select all items in track that have exactly the same video processors as the selected item
 -- @author amagalma
--- @version 1.00
+-- @version 1.01
+-- @changelog Support dedicated video processor items
 -- @donation https://www.paypal.me/amagalma
 -- @about Select just one item. The action will find and select all the other items in the track that have exactly the same video processors as the selected item.
 
@@ -16,6 +17,11 @@ local function GetVideoFX( item )
   if not reaper.GetActiveTake( item ) then return 0, "" end
   local _, chunk = reaper.GetItemStateChunk( item, "", false )
   local video_fx, v = {}, 0
+  local src = chunk:match("<SOURCE VIDEOEFFECT.-CODEPARM .->")
+  if src then
+    v = v + 1
+    video_fx[v] = src
+  end
   for code in chunk:gmatch("<VIDEO_EFFECT.-CODEPARM .->") do
     v = v + 1
     video_fx[v] = code
@@ -44,6 +50,8 @@ for i = 0, reaper.CountTrackMediaItems( track )-1 do
     reaper.SetMediaItemSelected( tr_item, tr_code == code )
   end
 end
+
+reaper.SetMediaItemSelected( item, true )
 
 reaper.PreventUIRefresh( -1 )
 reaper.UpdateArrange()
