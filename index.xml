@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="fecbceae205226e9e63c4392babc8b19c3481ecc" name="ReaTeam Scripts">
+<index version="1" commit="cc8172058d187b3367d718d7a36c80a1ce6cf092" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -8568,6 +8568,10 @@ Fix bug on Windows]]></changelog>
       <version name="1.00" author="amagalma" time="2024-04-26T19:43:54Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/52f5f1dbe2f798c0bd0d86815a65428f1138887d/Items%20Properties/amagalma_Select%20all%20items%20in%20track%20that%20have%20exactly%20the%20same%20video%20processors%20as%20the%20selected%20item%20(unselect%20original%20item).lua</source>
       </version>
+      <version name="1.01" author="amagalma" time="2024-04-28T09:35:33Z">
+        <changelog><![CDATA[Support dedicated video processor items]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/cc8172058d187b3367d718d7a36c80a1ce6cf092/Items%20Properties/amagalma_Select%20all%20items%20in%20track%20that%20have%20exactly%20the%20same%20video%20processors%20as%20the%20selected%20item%20(unselect%20original%20item).lua</source>
+      </version>
     </reapack>
     <reapack name="amagalma_Select all items in track that have exactly the same video processors as the selected item.lua" type="script" desc="Select all items in track that have exactly the same video processors as the selected item">
       <metadata>
@@ -8582,6 +8586,10 @@ Fix bug on Windows]]></changelog>
       </metadata>
       <version name="1.00" author="amagalma" time="2024-04-26T19:02:53Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e64bbc7d017fe8c26d8e90a7c73f38066fab1e97/Items%20Properties/amagalma_Select%20all%20items%20in%20track%20that%20have%20exactly%20the%20same%20video%20processors%20as%20the%20selected%20item.lua</source>
+      </version>
+      <version name="1.01" author="amagalma" time="2024-04-28T09:34:13Z">
+        <changelog><![CDATA[Support dedicated video processor items]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/035c55cc6d1b28fb5581564651274ba263a9aa20/Items%20Properties/amagalma_Select%20all%20items%20in%20track%20that%20have%20exactly%20the%20same%20video%20processors%20as%20the%20selected%20item.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Select next item with take FX.lua" type="script" desc="Select next item with take FX">
