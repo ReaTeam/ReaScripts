@@ -3,6 +3,8 @@
 -- @version 1.0
 -- @metapackage
 -- @provides [main] . > cfillion_Normalize project encoding to NFC.lua
+-- @donate https://reapack.com/donate
+-- @link Request thread https://forum.cockos.com/showthread.php?t=290779
 -- @about
 --   This scripts normalizes the encoding of the current project to Unicode Normalization Form C. The following objects are converted:
 --
