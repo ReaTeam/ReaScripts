@@ -57,5 +57,5 @@ for mi = 0, math.huge do
   reaper.SetProjectMarker(index, isrgn, pos, rgnend, name)
 end
 
-reaper.Undo_EndBlock('Normalize project encoding to NFC', 1|4|8)
+reaper.Undo_EndBlock(SCRIPT_NAME, 1|4|8)
 reaper.PreventUIRefresh(-1)
