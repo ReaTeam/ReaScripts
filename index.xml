@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="cc8172058d187b3367d718d7a36c80a1ce6cf092" name="ReaTeam Scripts">
+<index version="1" commit="42baf9f37c205e3ce39818c262bac95040e6d999" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -16027,6 +16027,27 @@ of project path or file name, if set in Project settings -> Notes]]></changelog>
         <source main="main" file="cfillion_Normalize peaks display gain (scan all items).lua">https://github.com/ReaTeam/ReaScripts/raw/4f7e571d9239abfe19964b400d01070df82ca90b/Project%20Properties/cfillion_Normalize%20peaks%20display%20gain.lua</source>
         <source main="main" file="cfillion_Normalize peaks display gain (scan selected items).lua">https://github.com/ReaTeam/ReaScripts/raw/4f7e571d9239abfe19964b400d01070df82ca90b/Project%20Properties/cfillion_Normalize%20peaks%20display%20gain.lua</source>
         <source main="main" file="cfillion_Normalize peaks display gain (scan selected tracks).lua">https://github.com/ReaTeam/ReaScripts/raw/4f7e571d9239abfe19964b400d01070df82ca90b/Project%20Properties/cfillion_Normalize%20peaks%20display%20gain.lua</source>
+      </version>
+    </reapack>
+    <reapack name="cfillion_Normalize project encoding.lua" type="script" desc="Normalize project encoding">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 This scripts normalizes the encoding of the current project to Unicode Normalization Form C. The following objects are converted:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Project marker names\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Project region names\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Take marker names\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Take names\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Track names\sa180\par}
+}
+]]></description>
+        <link rel="website" href="https://forum.cockos.com/showthread.php?t=290779">Request thread</link>
+        <link rel="donation">https://reapack.com/donate</link>
+      </metadata>
+      <version name="1.0" author="cfillion" time="2024-04-29T15:54:21Z">
+        <source main="main" file="cfillion_Normalize project encoding to NFC.lua">https://github.com/ReaTeam/ReaScripts/raw/42baf9f37c205e3ce39818c262bac95040e6d999/Project%20Properties/cfillion_Normalize%20project%20encoding.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Set master track mono mode to L+R, L, R or L-R.lua" type="script" desc="Set master track mono mode to L+R, L, R or L-R">
