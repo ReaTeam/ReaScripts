@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="42baf9f37c205e3ce39818c262bac95040e6d999" name="ReaTeam Scripts">
+<index version="1" commit="ccc4159378b04e32ad3b32801a227ed8ad13e918" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -22356,10 +22356,10 @@ Fix Editing Behavior > MIDI Editor]]></changelog>
 }
 ]]></description>
         <link rel="website" href="https://forum.cockos.com/showthread.php?t=181159">Forum Thread</link>
-        <link rel="screenshot" href="https://i.imgur.com/4xPMV9J.gif">Docked Mode</link>
-        <link rel="screenshot" href="https://i.imgur.com/KOP2yK3.png">Windowed Mode</link>
-        <link rel="screenshot" href="https://i.imgur.com/DPcRCGh.png">Web Interface</link>
-        <link rel="donation">https://www.paypal.me/cfillion</link>
+        <link rel="screenshot" href="https://i.imgur.com/9tcudKT.png">Windowed mode</link>
+        <link rel="screenshot" href="https://i.imgur.com/4xPMV9J.gif">Docked mode</link>
+        <link rel="screenshot" href="https://i.imgur.com/DPcRCGh.png">Web interface</link>
+        <link rel="donation">https://reapack.com/donate</link>
       </metadata>
       <version name="1.0" author="cfillion" time="2016-09-06T23:07:07Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/9e61b24746de1ea829c1751f0d3c44cd7fddf0fb/Various/cfillion_Song%20Switcher.lua</source>
@@ -22485,6 +22485,21 @@ Web Interface: restore the previous locked state on load]]></changelog>
         <source type="webinterface" file="song_switcher.html">https://github.com/ReaTeam/ReaScripts/raw/7c852f9c73cf5537e2c8e3a12011db7e1c53fce0/Various/cfillion_Song%20switcher/song_switcher.html</source>
         <source main="main" file="cfillion_Song switcher/cfillion_Song switcher - Switch to queued song.lua">https://github.com/ReaTeam/ReaScripts/raw/7c852f9c73cf5537e2c8e3a12011db7e1c53fce0/Various/cfillion_Song%20switcher/cfillion_Song%20switcher%20-%20Switch%20to%20queued%20song.lua</source>
         <source main="main" file="cfillion_Song switcher/cfillion_Song switcher - Switch song by MIDI CC.lua">https://github.com/ReaTeam/ReaScripts/raw/7c852f9c73cf5537e2c8e3a12011db7e1c53fce0/Various/cfillion_Song%20switcher/cfillion_Song%20switcher%20-%20Switch%20song%20by%20MIDI%20CC.lua</source>
+      </version>
+      <version name="1.6" author="cfillion" time="2024-04-30T14:39:26Z">
+        <changelog><![CDATA[add action for queuing songs using a MIDI controller [p=2777472]
+add actions for queuing the next or previous song
+rewrite the user interface using ReaImGui]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ccc4159378b04e32ad3b32801a227ed8ad13e918/Various/cfillion_Song%20switcher.lua</source>
+        <source main="main" file="cfillion_Song switcher/cfillion_Song switcher - Switch to next song.lua">https://github.com/ReaTeam/ReaScripts/raw/ccc4159378b04e32ad3b32801a227ed8ad13e918/Various/cfillion_Song%20switcher/cfillion_Song%20switcher%20-%20Send%20signal.lua</source>
+        <source main="main" file="cfillion_Song switcher/cfillion_Song switcher - Switch to previous song.lua">https://github.com/ReaTeam/ReaScripts/raw/ccc4159378b04e32ad3b32801a227ed8ad13e918/Various/cfillion_Song%20switcher/cfillion_Song%20switcher%20-%20Send%20signal.lua</source>
+        <source main="main" file="cfillion_Song switcher/cfillion_Song switcher - Reset data.lua">https://github.com/ReaTeam/ReaScripts/raw/ccc4159378b04e32ad3b32801a227ed8ad13e918/Various/cfillion_Song%20switcher/cfillion_Song%20switcher%20-%20Send%20signal.lua</source>
+        <source type="webinterface" file="song_switcher.html">https://github.com/ReaTeam/ReaScripts/raw/ccc4159378b04e32ad3b32801a227ed8ad13e918/Various/cfillion_Song%20switcher/song_switcher.html</source>
+        <source main="main" file="cfillion_Song switcher/cfillion_Song switcher - Switch to queued song.lua">https://github.com/ReaTeam/ReaScripts/raw/ccc4159378b04e32ad3b32801a227ed8ad13e918/Various/cfillion_Song%20switcher/cfillion_Song%20switcher%20-%20Send%20signal.lua</source>
+        <source main="main" file="cfillion_Song switcher/cfillion_Song switcher - Switch song by MIDI CC.lua">https://github.com/ReaTeam/ReaScripts/raw/ccc4159378b04e32ad3b32801a227ed8ad13e918/Various/cfillion_Song%20switcher/cfillion_Song%20switcher%20-%20Send%20signal.lua</source>
+        <source main="main" file="cfillion_Song switcher/cfillion_Song switcher - Queue next song.lua">https://github.com/ReaTeam/ReaScripts/raw/ccc4159378b04e32ad3b32801a227ed8ad13e918/Various/cfillion_Song%20switcher/cfillion_Song%20switcher%20-%20Send%20signal.lua</source>
+        <source main="main" file="cfillion_Song switcher/cfillion_Song switcher - Queue previous song.lua">https://github.com/ReaTeam/ReaScripts/raw/ccc4159378b04e32ad3b32801a227ed8ad13e918/Various/cfillion_Song%20switcher/cfillion_Song%20switcher%20-%20Send%20signal.lua</source>
+        <source main="main" file="cfillion_Song switcher/cfillion_Song switcher - Queue song by MIDI CC.lua">https://github.com/ReaTeam/ReaScripts/raw/ccc4159378b04e32ad3b32801a227ed8ad13e918/Various/cfillion_Song%20switcher/cfillion_Song%20switcher%20-%20Send%20signal.lua</source>
       </version>
     </reapack>
     <reapack name="cool_MK ReSampler.lua" type="script" desc="MK ReSampler">
