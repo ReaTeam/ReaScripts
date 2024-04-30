@@ -4,7 +4,6 @@
 
 local CC, ABS_MODE = {}, 0
 local script_name = select(2, reaper.get_action_context()):match('([^/\\_]+)%.lua$')
-script_name = 'cfillion_Song switcher - Queue previous song'
 local action_name = script_name:match(' %- (.-)$')
 local action = ({
   ['Reset data'             ] = {'reset',           'true'},
