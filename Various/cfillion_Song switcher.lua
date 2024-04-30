@@ -9,12 +9,12 @@
 --   [main] cfillion_Song switcher/cfillion_Song switcher - Send signal.lua > cfillion_Song switcher/cfillion_Song switcher - Switch to next song.lua
 --   [main] cfillion_Song switcher/cfillion_Song switcher - Send signal.lua > cfillion_Song switcher/cfillion_Song switcher - Switch to previous song.lua
 --   [main] cfillion_Song switcher/cfillion_Song switcher - Send signal.lua > cfillion_Song switcher/cfillion_Song switcher - Reset data.lua
---   [webinterface] cfillion_Song switcher/song_switcher.html > song_switcher.html
 --   [main] cfillion_Song switcher/cfillion_Song switcher - Send signal.lua > cfillion_Song switcher/cfillion_Song switcher - Switch to queued song.lua
 --   [main] cfillion_Song switcher/cfillion_Song switcher - Send signal.lua > cfillion_Song switcher/cfillion_Song switcher - Switch song by MIDI CC.lua
 --   [main] cfillion_Song switcher/cfillion_Song switcher - Send signal.lua > cfillion_Song switcher/cfillion_Song switcher - Queue next song.lua
 --   [main] cfillion_Song switcher/cfillion_Song switcher - Send signal.lua > cfillion_Song switcher/cfillion_Song switcher - Queue previous song.lua
 --   [main] cfillion_Song switcher/cfillion_Song switcher - Send signal.lua > cfillion_Song switcher/cfillion_Song switcher - Queue song by MIDI CC.lua
+--   [webinterface] cfillion_Song switcher/song_switcher.html > song_switcher.html
 -- @link Forum Thread https://forum.cockos.com/showthread.php?t=181159
 -- @screenshot
 --   Windowed mode https://i.imgur.com/9tcudKT.png
