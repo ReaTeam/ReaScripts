@@ -1,7 +1,7 @@
 -- @description SWS CF_Preview API demo
 -- @author cfillion
 -- @version 1.0.2
--- @changelog Foobar
+-- @changelog No user-facing changes (internal code cleanup)
 -- @donation https://reapack.com/donate
 
 package.path = reaper.ImGui_GetBuiltinPath() .. '/?.lua'
