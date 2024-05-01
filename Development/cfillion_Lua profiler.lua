@@ -4,7 +4,7 @@
 -- @changelog
 --   • Add an optional child_flags parameter to profiler.showProfile()
 --   • Add profiler.runloop (alias of profiler.defer)
---   • Add flame graph view mode (enable in the Profile menu)
+--   • Add a flame graph view mode (enable in the Profile menu)
 --   • Fix view mode and sort options not applying to inactive profiles
 --   • Highlight the entire row on hover in the tree view mode
 --   • Rename profiler.reset() to .clear()
