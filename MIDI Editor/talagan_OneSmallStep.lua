@@ -1,6 +1,6 @@
 --[[
 @description One Small Step : Alternative Step Input
-@version 0.9.11
+@version 0.9.12
 @author Ben 'Talagan' Babut
 @license MIT
 @metapackage
@@ -56,7 +56,10 @@
 @screenshot
   https://stash.reaper.fm/48269/oss_094.png
 @changelog
-  - [Feature] Velocity limiter
+  - [Feature] Added some options to tweak the insert mode behavior when inserting in the middle of existing notes (thanks @samlletas !)
+  - [Bug Fix] Repitch mode would not work for fresh installs (thanks @samlletas !)
+  - [Bug Fix] Navigation mode snap would not work for fresh installs
+  - [Rework] Ported all operation to the 'MIDIUtils' library by @sockmonkey72 (thanks Jeremy !!)
 @about
   # Purpose
 
@@ -76,17 +79,18 @@
 
   # Credits
 
-    This tool takes a lot of inspiration in tenfour's "tenfour-step" scripts. Epic hail to tenfour for opening the way !
+    One Small Step uses Jeremy Bernstein (sockmonkey72)'s MIDIUtils library. Thanks for the precious work !
 
-    One Small Step uses Jeremy Bernstein (sockmonkey72)'s MIDIUtils library . Thanks for the precious work !
+    This tool takes a lot of inspiration in tenfour's "tenfour-step" scripts. Epic hail to tenfour for opening the way !
 
     Thanks to @cfillion for the precious pieces of advice when reviewing this source !
 
-    A lot of thanks to all donators, and forum members that help this tool to get better ! @stevie, @hipox, @MartinTL, @henu, @Thonex, @smandrap, @SoaSchas, @daodan, @inthevoid, @dahya, @User41, @Spookye, @R.Cato
+    A lot of thanks to all donators, and forum members that help this tool to get better !
+    @stevie, @hipox, @MartinTL, @henu, @Thonex, @smandrap, @SoaSchas, @daodan, @inthevoid, @dahya, @User41, @Spookye, @R.Cato, @samlletas
 
 --]]
 
-VERSION = "0.9.11"
+VERSION = "0.9.12"
 DOC_URL = "https://bentalagan.github.io/onesmallstep-doc/index.html?ver=" .. VERSION
 
 PATH    = debug.getinfo(1,"S").source:match[[^@?(.*[\/])[^\/]-$]]
@@ -925,8 +929,11 @@ function SettingComboBox(setting, pre_label, tooltip, width)
   reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_FramePadding(), 5, 3.5)
 
   if pre_label ~= "" then
+    reaper.ImGui_SetCursorPosY(ctx, reaper.ImGui_GetCursorPosY(ctx) + 3)
     reaper.ImGui_Text(ctx, pre_label);
-    SL()
+    SL();
+    reaper.ImGui_SetNextItemWidth(ctx, 180);
+    reaper.ImGui_SetCursorPosY(ctx, reaper.ImGui_GetCursorPosY(ctx) - 3)
   end
 
   reaper.ImGui_SetNextItemWidth(ctx, width);
@@ -1198,7 +1205,6 @@ function EditModeComboBox(editModeName, callback)
 end
 
 function RepitchModeComboBox()
-
   local setting     = "RepitchModeAffects"
   local combo_items = S.getSettingSpec("RepitchModeAffects").inclusion
   local curval      = S.getSetting("RepitchModeAffects")
@@ -1227,6 +1233,8 @@ function RepitchModeComboBox()
   reaper.ImGui_PopID(ctx);
   reaper.ImGui_PopStyleVar(ctx,1);
 end
+
+
 
 function SettingsPanel()
   if reaper.ImGui_BeginTabBar(ctx, 'settings_tab_bar', reaper.ImGui_TabBarFlags_None()) then
@@ -1401,6 +1409,26 @@ function SettingsPanel()
       if reaper.ImGui_Checkbox(ctx, "Do not rewind on controller key press/release and nothing is erased", curval) then
         S.setSetting("DoNotRewindOnStepBackIfNothingErased", not curval);
       end
+
+      ImGui_VerticalSpacer(ctx,5);
+      SEP("Insert mode")
+
+      reaper.ImGui_Text(ctx, "When inserting in the middle of an existing note...")
+      ImGui_VerticalSpacer(ctx,5);
+
+      SettingComboBox("InsertModeInMiddleOfMatchingNotesBehaviour",
+        "  · if a pressed note matches, then",
+        "This option defines OSS's behavior when you try to insert some notes\n\z
+        in the middle of existing notes, if one of the key you are pressing/holding\n\z
+        matches (same pitch) one of the existing notes",
+        220)
+
+      SettingComboBox("InsertModeInMiddleOfNonMatchingNotesBehaviour",
+        "  · if no pressed note matches, then",
+        "This option defines OSS's behavior when you try to insert some notes\n\z
+        in the middle of existing notes, if any of the key you are pressing/holding\n\z
+        does NOT match (same pitch) any existing note",
+        220)
 
       ImGui_VerticalSpacer(ctx,5);
       SEP("Repitch mode")

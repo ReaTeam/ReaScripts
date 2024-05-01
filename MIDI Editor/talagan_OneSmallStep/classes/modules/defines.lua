@@ -73,6 +73,19 @@ local ActionTriggers = {
   StuffBack         = { action = "Unstuff",      back = true    }
 }
 
+local RepitchModeAffects = {
+  PitchesOnly           = "Pitches only",
+  VelocitiesOnly        = "Velocities only",
+  PitchesAndVelocities  = "Pitches + Velocities"
+}
+
+local MiddleInsertBehavior = {
+  LeaveUntouched        = "Leave Untouched",
+  Cut                   = "Cut note",
+  Extend                = "Extend note",
+  CutAndAdd             = "Cut note and insert new one"
+}
+
 local MacOSModifierKeys = {
   { vkey = 16, name = 'Shift' },
   { vkey = 17, name = 'Cmd' },
@@ -124,6 +137,10 @@ return {
   InputMode                     = InputMode,
   EditMode                      = EditMode,
   IsMacOs                       = IsMacOs,
+
+  RepitchModeAffects            = RepitchModeAffects,
+
+  MiddleInsertBehavior          = MiddleInsertBehavior,
 
   ActionTriggers                = ActionTriggers,
 

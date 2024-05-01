@@ -7,8 +7,10 @@ local T   = require "modules/time"
 local S   = require "modules/settings"
 local D   = require "modules/defines"
 local N   = require "modules/notes"
-
 local GEN = require "operations/generic"
+local MU  = require "lib/MIDIUtils"
+
+local USE_MU = true
 
 -- Commits the currently held notes into the take
 local function Replace(km, track, take, notes_to_add, notes_to_extend, triggered_by_key_event)
@@ -17,49 +19,49 @@ local function Replace(km, track, take, notes_to_add, notes_to_extend, triggered
 
   local newMaxQN  = c.advanceQN
 
-  reaper.Undo_BeginBlock();
+  reaper.Undo_BeginBlock()
+
+  MU.MIDI_InitializeTake(take)
+  MU.MIDI_OpenWriteTransaction(take)
+
+  local _, notecnt, _, _  = N.CountEvts(take, USE_MU)
 
   -- Erase forward
-  local _, notecnt, _, _ = reaper.MIDI_CountEvts(take)
-
   local ni = 0;
   while (ni < notecnt) do
 
     -- Examine each note in item
-    local n = N.GetNote(take, ni)
+    local n = N.GetNote(take, ni, USE_MU)
 
     if T.noteStartsAfterPPQ(n, c.advancePPQ, false) then
       -- Note is not in the erasing window
       --
       --     C     A
-      --     |     |
+      --     |     |-
       --     |     | ====
-      --     |     |
+      --     |     |-
       --
     elseif T.noteStartsAfterPPQ(n, c.cursorPPQ, false) then
       if T.noteEndsBeforePPQ(n, c.advancePPQ, false) then
         -- Note should be suppressed
         --
         --     C     A
-        --     |     |
+        --     |-   -|
         --     | === |
-        --     |     |
+        --     |-   -|
         --
-        c.torem[#c.torem+1] = n
-        c.counts.rem        = c.counts.rem + 1
+        MU.MIDI_DeleteNote(take, n.index)
       else
         -- The note should be shortened (removing tail).
         -- Since its start will change, it should be removed and reinserted (see reaper's API doc)
         --
-        --     RC    A
-        --     |     |
+        --     C     A
+        --     |-   -|
         --     |   ==|===
-        --     |     |
+        --     |-   -|
         --
         N.SetNewNoteBounds(n, take, c.advancePPQ, n.endPPQ)
-
-        c.torem[#c.torem+1]   = n
-        c.toadd[#c.toadd+1]   = n
+        N.MUCommitNote(c.take, n)
 
         c.counts.sh = c.counts.sh + 1
         c.counts.mv = c.counts.mv + 1
@@ -74,31 +76,30 @@ local function Replace(km, track, take, notes_to_add, notes_to_extend, triggered
         --     |     |
         --
         if T.noteStartsOnPPQ(n, c.cursorPPQ) then
+          -- Case already handled above, I think ... because note starts after C and ends after A
+          -- This part should probably be removed for clarity
+
           -- The start changes, remove and reinsert
           N.SetNewNoteBounds(n, take, c.advancePPQ, n.endPPQ)
-
-          c.torem[#c.torem+1]   = n
-          c.toadd[#c.toadd+1]   = n
+          N.MUCommitNote(c.take, n)
 
           c.counts.sh = c.counts.sh + 1
           c.counts.mv = c.counts.mv + 1
         else
-          -- Copy note
-          local newn = {}
-          for k,v in pairs(n) do
-            newn[k] = v
-          end
+          -- Clone note
+          local newn = N.CloneNote(n)
 
           -- Shorten the note
           N.SetNewNoteBounds(n, take, n.startPPQ, c.cursorPPQ)
+          N.MUCommitNote(c.take, n)
 
-          c.tomod[#c.tomod+1] = n
           c.counts.sh         = c.counts.sh + 1
 
           if not T.noteEndsOnPPQ(newn, c.advancePPQ) then
             -- Add new note
-            N.SetNewNoteBounds(newn, take, c.advancePPQ, newn.endPPQ);
-            c.toadd[#c.toadd+1] = newn
+            N.SetNewNoteBounds(newn, take, c.advancePPQ, newn.endPPQ)
+            N.MUCommitNote(c.take, newn)
+
             c.counts.add        = c.counts.add + 1
           end
         end
@@ -107,20 +108,21 @@ local function Replace(km, track, take, notes_to_add, notes_to_extend, triggered
         -- Note ending should be erased
         --
         --     C     A
-        --     |     |
+        --     |-    |
         --   ==|===  |
-        --     |     |
+        --     |-    |
         --
         N.SetNewNoteBounds(n, take, n.startPPQ, c.cursorPPQ);
-        c.tomod[#c.tomod+1] = n
+        N.MUCommitNote(c.take, n)
+
         c.counts.sh         = c.counts.sh + 1
       else
         -- Leave untouched
         --
         --     C     A
-        --     |     |
+        --     |-    |
         -- === |     |
-        --     |     |
+        --     |-    |
         --
       end
 
@@ -134,7 +136,6 @@ local function Replace(km, track, take, notes_to_add, notes_to_extend, triggered
 
   reaper.Undo_EndBlock(GEN.OperationSummary(1, c.counts), -1)
 end
-
 
 local function ReplaceBack(km, track, take, notes_to_shorten, triggered_by_key_event)
 
@@ -155,14 +156,16 @@ local function ReplaceBack(km, track, take, notes_to_shorten, triggered_by_key_e
 
   reaper.Undo_BeginBlock();
 
-  GEN.GenericDelete(c, notes_to_shorten)
+  MU.MIDI_InitializeTake(take)
+  MU.MIDI_OpenWriteTransaction(take)
+  GEN.GenericDelete(c, notes_to_shorten, false, false)
   GEN.BackwardOperationFinish(c, c.rewindTime)
 
   reaper.Undo_EndBlock(GEN.OperationSummary(-1, c.counts), -1)
 end
 
 return {
-  Replace = Replace,
+  Replace     = Replace,
   ReplaceBack = ReplaceBack
 }
 
