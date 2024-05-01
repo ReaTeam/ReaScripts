@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="617e640646d88dd39a880273008685570288f7d9" name="ReaTeam Scripts">
+<index version="1" commit="7bf9ab631d34ba683345fa4ba3b7ac0bc1f37360" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -778,10 +778,21 @@ forum thread
 ]]></description>
         <link rel="website" href="https://forum.cockos.com/showthread.php?t=283461">Forum thread</link>
         <link rel="screenshot">https://i.imgur.com/cCe6fBB.png</link>
+        <link rel="screenshot">https://i.imgur.com/FjbZ6VB.gif</link>
         <link rel="donation">https://reapack.com/donate</link>
       </metadata>
       <version name="1.0" author="cfillion" time="2023-10-12T20:33:00Z">
         <source>https://github.com/ReaTeam/ReaScripts/raw/78e0d3c4fa0e9f7b4e448014f22fe85913597d8a/Development/cfillion_Lua%20profiler.lua</source>
+      </version>
+      <version name="1.1" author="cfillion" time="2024-05-01T22:40:20Z">
+        <changelog><![CDATA[• Add an optional child_flags parameter to profiler.showProfile()
+• Add profiler.runloop (alias of profiler.defer)
+• Add a flame graph view mode (enable in the Profile menu)
+• Fix view mode and sort options not applying to inactive profiles
+• Highlight the entire row on hover in the tree view mode
+• Rename profiler.reset() to .clear()
+• Report usage errors at the user's call site]]></changelog>
+        <source>https://github.com/ReaTeam/ReaScripts/raw/7bf9ab631d34ba683345fa4ba3b7ac0bc1f37360/Development/cfillion_Lua%20profiler.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Search action by command ID or name.lua" type="script" desc="Search action by command ID or name">
