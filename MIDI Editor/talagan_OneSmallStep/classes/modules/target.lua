@@ -70,7 +70,7 @@ end
 
 local function TryToGetTakeFromArrangeViewAmongSelectedTracks()
   local cursorPos      = reaper.GetCursorPosition();
-  local trackCount     = reaper.CountSelectedTracks();
+  local trackCount     = reaper.CountSelectedTracks(0);
 
   local candidates  = {};
 
@@ -138,7 +138,7 @@ local function TakeForEdition()
 end
 
 local function TrackForEditionIfNoItemFound()
-  local trackCount     = reaper.CountSelectedTracks();
+  local trackCount     = reaper.CountSelectedTracks(0);
   if trackCount > 0 then
     return reaper.GetSelectedTrack(0, 0);
   end

@@ -7,10 +7,11 @@ local SNP = require "modules/snap"
 local T   = require "modules/time"
 local S   = require "modules/settings"
 local N   = require "modules/notes"
-
+local D   = require "modules/defines"
 local GEN = require "operations/generic"
-
 local MU  = require "lib/MIDIUtils"
+
+local USE_MU = true
 
 -- Trying to disable overlapping note correction ...
 -- Well it does not work. When the autocorrection is reenabled
@@ -38,18 +39,13 @@ local function Repitch(km, track, take, notes_to_add, notes_to_extend, triggered
   c.aggregationPPQ                = reaper.MIDI_GetPPQPosFromProjTime(take, c.aggregationTime)
 
   local affects                   = S.getSetting("RepitchModeAffects")
-  local useNewVelocities          = (affects == "Velocities only") or (affects == "Pitches + Velocities")
-  local useNewPitches             = (affects == "Pitches only")    or (affects == "Pitches + Velocities")
-
-  local useMidiUtils              = true
-
-  local _, notecnt, _, _          = N.CountEvts(take, useMidiUtils)
+  local useNewVelocities          = (affects == D.RepitchModeAffects.VelocitiesOnly) or (affects == D.RepitchModeAffects.PitchesAndVelocities)
+  local useNewPitches             = (affects == D.RepitchModeAffects.PitchesOnly)    or (affects == D.RepitchModeAffects.PitchesAndVelocities)
 
   reaper.Undo_BeginBlock()
 
-  if useMidiUtils then
-    MU.MIDI_InitializeTake(take)
-  end
+  MU.MIDI_InitializeTake(take)
+  local _, notecnt, _, _ = N.CountEvts(take, USE_MU)
 
   -- Since we repitch, there's no notion of holding notes
   for _, v in pairs(notes_to_extend) do
@@ -58,9 +54,10 @@ local function Repitch(km, track, take, notes_to_add, notes_to_extend, triggered
 
   notes_to_extend = {}
 
+  -- Use tomod to memorize notes that are in the window
   local ni = 0
   while (ni < notecnt) do
-    local n = N.GetNote(take, ni, useMidiUtils)
+    local n = N.GetNote(take, ni, USE_MU)
 
     if T.noteStartsInWindowPPQ(n, c.cursorPPQ, c.aggregationPPQ, false) then
       c.tomod[#c.tomod + 1] = n
@@ -90,10 +87,8 @@ local function Repitch(km, track, take, notes_to_add, notes_to_extend, triggered
         return n1.pitch < n2.pitch
       end)
 
-      if useMidiUtils then
-        PushAutoCorrectOverlapOption()
-        MU.MIDI_OpenWriteTransaction(take)
-      end
+      PushAutoCorrectOverlapOption()
+      MU.MIDI_OpenWriteTransaction(take)
 
       for k, n in ipairs(c.tomod) do
         local newvel   = nil
@@ -106,39 +101,26 @@ local function Repitch(km, track, take, notes_to_add, notes_to_extend, triggered
           newpitch = notes_to_add[k].pitch
         end
 
-        if useMidiUtils then
-          MU.MIDI_SetNote(take, n.index, nil, nil, nil, nil, nil, newpitch, newvel, nil)
-        else
-          reaper.MIDI_SetNote(take, n.index, nil, nil, nil, nil, nil, newpitch, newvel, false)
-        end
+        MU.MIDI_SetNote(take, n.index, nil, nil, nil, nil, nil, newpitch, newvel, nil)
 
         if n.startPPQ > jumpRefPPQ then
           jumpRefPPQ = n.startPPQ
         end
       end
 
-      if useMidiUtils then
-        MU.MIDI_CommitWriteTransaction(take)
-      end
-    end
-
-    if not useMidiUtils then
-      reaper.MIDI_Sort(take)
+      MU.MIDI_CommitWriteTransaction(take)
     end
 
     reaper.UpdateItemInProject(c.mediaItem)
     reaper.MarkTrackItemsDirty(track, c.mediaItem)
 
-    if useMidiUtils then
-      PopAutoCorrectOverlapOption()
-    end
-
+    PopAutoCorrectOverlapOption()
   end
 
   if shouldJump then
     local jumpRefTime = reaper.MIDI_GetProjTimeFromPPQPos(take, jumpRefPPQ)
-    local jumpTime  = SNP.nextSnap(track, 1, jumpRefTime, {enabled = true, noteStart = true})
-    jumpTime        = (jumpTime and jumpTime.time)
+    local jumpTimeSnp = SNP.nextSnap(track, 1, jumpRefTime, {enabled = true, noteStart = true})
+    local jumpTime    = (jumpTimeSnp and jumpTimeSnp.time)
 
     if not jumpTime then
       -- If it fails, try with not ends

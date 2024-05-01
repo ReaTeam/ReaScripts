@@ -331,7 +331,7 @@ local function handleMarkerOnExit(policy_setting_name, marker_name)
     -- Need to backup the position
     -- Save on master track to be project dependent
     local id, pos     = MK.findMarker(marker_name)
-    local masterTrack = reaper.GetMasterTrack()
+    local masterTrack = reaper.GetMasterTrack(0)
     local str         = "";
 
     if not (id == nil) then
@@ -349,7 +349,7 @@ end
 local function mayRestoreMarkerOnStart(policy_setting_name, marker_name)
   local setting = S.getSetting("PlaybackMarkerPolicyWhenClosed");
   if setting == "Hide/Restore" then
-    local masterTrack = reaper.GetMasterTrack()
+    local masterTrack = reaper.GetMasterTrack(0)
     local succ, str = reaper.GetSetMediaTrackInfo_String(masterTrack, "P_EXT:OneSmallStep:MarkerBackup:" .. marker_name, '', false);
     if succ and str ~= "" then
       MK.setMarkerAtPos(marker_name, tonumber(str))
