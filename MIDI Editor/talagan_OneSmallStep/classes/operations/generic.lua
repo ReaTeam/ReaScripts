@@ -254,7 +254,7 @@ local function AddAndExtendNotes(c, notes_to_add, notes_to_extend)
   -- Then add some other notes
   for _, v in ipairs(notes_to_add) do
 
-    if not v.ignored then
+    if not v.dont_add then
       local newn = N.BuildFromManager(v, c.take, c.cursorPPQ, c.advancePPQ)
       N.MUCommitNote(c.take, newn)
       c.counts.add = c.counts.add + 1
@@ -266,7 +266,6 @@ local function AddAndExtendNotes(c, notes_to_add, notes_to_extend)
     local _, notecnt, _, _  = N.CountEvts(c.take, USE_MU)
 
     for _, exnote in pairs(notes_to_extend) do
-      if not exnote.ignored then
         -- Search for a note that could be extended (matches all conditions)
         local ni    = 0
         local found = false
@@ -287,7 +286,7 @@ local function AddAndExtendNotes(c, notes_to_add, notes_to_extend)
           ni = ni + 1
         end
 
-        if not found then
+        if not found and not exnote.dont_add then
           -- Could not find a note to extend... create one !
           local newn = N.BuildFromManager(exnote, c.take, c.cursorPPQ, c.advancePPQ)
           N.MUCommitNote(c.take, newn)
@@ -296,7 +295,6 @@ local function AddAndExtendNotes(c, notes_to_add, notes_to_extend)
         end
       end
     end
-  end
 end
 
 local function OperationSummary(direction, counts)

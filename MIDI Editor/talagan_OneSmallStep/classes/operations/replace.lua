@@ -158,6 +158,7 @@ local function ReplaceBack(km, track, take, notes_to_shorten, triggered_by_key_e
 
   MU.MIDI_InitializeTake(take)
   MU.MIDI_OpenWriteTransaction(take)
+
   GEN.GenericDelete(c, notes_to_shorten, false, false)
   GEN.BackwardOperationFinish(c, c.rewindTime)
 
