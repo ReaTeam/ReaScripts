@@ -58,7 +58,7 @@ local function Insert(km, track, take, new_notes, held_notes, triggered_by_key_e
       -- Does a new/held note matches this note ?
       local nn        = NoteMatchesOneOf(n, new_notes)
       local hn        = NoteMatchesOneOf(n, held_notes)
-      local hasMatch  = (nn ~= nil or hn ~= nil)
+      local hasMatch  = (nn ~= nil) or (hn ~= nil)
 
       local behavior = S.getSetting("InsertModeInMiddleOfNonMatchingNotesBehaviour")
 
@@ -99,8 +99,9 @@ local function Insert(km, track, take, new_notes, held_notes, triggered_by_key_e
 
       if hasMatch then
         -- This event has been treated, it will not add a new note in the add loop
-        if nn then nn.ignored = true end
-        if hn then hn.ignored = true end
+        -- Beware, this flag will be set during the whole life of the note as long
+        -- as there's activity on it (until it is released)
+        if nn then nn.dont_add = true end
       end
     end
 

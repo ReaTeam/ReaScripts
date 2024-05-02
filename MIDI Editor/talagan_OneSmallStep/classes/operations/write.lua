@@ -46,6 +46,9 @@ local function WriteBack(km, track, take, notes_to_shorten, triggered_by_key_eve
 
   reaper.Undo_BeginBlock();
 
+  MU.MIDI_InitializeTake(take)
+  MU.MIDI_OpenWriteTransaction(take)
+
   GEN.GenericDelete(c, notes_to_shorten, true, false)
 
   local blockRewind           = false

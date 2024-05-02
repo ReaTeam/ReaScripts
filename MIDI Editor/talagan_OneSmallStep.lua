@@ -1,6 +1,6 @@
 --[[
 @description One Small Step : Alternative Step Input
-@version 0.9.12
+@version 0.9.13
 @author Ben 'Talagan' Babut
 @license MIT
 @metapackage
@@ -56,10 +56,8 @@
 @screenshot
   https://stash.reaper.fm/48269/oss_094.png
 @changelog
-  - [Feature] Added some options to tweak the insert mode behavior when inserting in the middle of existing notes (thanks @samlletas !)
-  - [Bug Fix] Repitch mode would not work for fresh installs (thanks @samlletas !)
-  - [Bug Fix] Navigation mode snap would not work for fresh installs
-  - [Rework] Ported all operation to the 'MIDIUtils' library by @sockmonkey72 (thanks Jeremy !!)
+  - [Bug Fix] [Write Mode] Commit back broken (thanks @samlletas !)
+  - [Bug Fix] [Insert Mode] Cut + Add does not support extending held notes (thanks @samlletas !)
 @about
   # Purpose
 
@@ -90,7 +88,7 @@
 
 --]]
 
-VERSION = "0.9.12"
+VERSION = "0.9.13"
 DOC_URL = "https://bentalagan.github.io/onesmallstep-doc/index.html?ver=" .. VERSION
 
 PATH    = debug.getinfo(1,"S").source:match[[^@?(.*[\/])[^\/]-$]]
