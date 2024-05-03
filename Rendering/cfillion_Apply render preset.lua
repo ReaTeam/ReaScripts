@@ -1012,7 +1012,7 @@ for name, preset in pairs(presets) do
 end
 table.sort(names, function(a, b) return a:lower() < b:lower() end)
 
-if not ImGui.CreateContext then
+if not ImGui then
   local presetName = gfxdo(function()
     if #names == 0 then
       gfx.showmenu('#No render preset found')
