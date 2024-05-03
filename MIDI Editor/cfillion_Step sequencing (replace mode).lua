@@ -1,7 +1,7 @@
 -- @description Step sequencing (replace mode)
 -- @author cfillion
 -- @version 1.1.3
--- @changelog Internal code cleanup (no user-facing changes)
+-- @changelog Internal code cleanup
 -- @provides
 --   .
 --   [main] . > cfillion_Step sequencing (options).lua
