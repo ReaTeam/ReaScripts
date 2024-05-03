@@ -87,8 +87,8 @@ function iniRead(key, n)
     key = ('%s_%d'):format(key, n)
   end
 
-  return tonumber(select(2,
-    r.BR_Win32_GetPrivateProfileString('REAPER', key, '0', iniFile)))
+  return tonumber((select(2,
+    r.BR_Win32_GetPrivateProfileString('REAPER', key, '0', iniFile))))
 end
 
 function boolValue(val, off, on)
