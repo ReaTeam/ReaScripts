@@ -43,6 +43,7 @@ local function matchTrack(track, filter)
 end
 
 local function sanitizeFilename(name)
+  if #name < 1 then return '(any)' end
   -- replace special characters that are reserved on Windows
   return name:gsub("[*\\:<>?/|\"%c]+", '-')
 end
@@ -159,7 +160,7 @@ local function loop()
   if visible then
     ImGui.Text(ctx, 'Toggle bypass of effects matching:')
     if ImGui.IsWindowAppearing(ctx) then ImGui.SetKeyboardFocusHere(ctx) end
-    fx_filter = select(2, ImGui.InputText(ctx, 'FX name', fx_filter))
+    fx_filter = select(2, ImGui.InputText(ctx, 'Effect name', fx_filter))
     ImGui.SameLine(ctx)
     helpTooltip(ctx, 'Search is case-insensitive.')
 
