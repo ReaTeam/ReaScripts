@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="7fd3f170262c138ce683caea442e0381a5f5239f" name="ReaTeam Scripts">
+<index version="1" commit="fded1af53a88bc78c66d93ea83edbc7c0e2ed39f" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -19032,10 +19032,14 @@ Removed first run warning message.]]></changelog>
     <reapack name="cfillion_Remove hardware outputs of selected tracks.lua" type="script" desc="Remove hardware outputs of selected tracks">
       <metadata>
         <link rel="website">http://forum.cockos.com/showthread.php?t=189761</link>
-        <link rel="donation">https://www.paypal.me/cfillion</link>
+        <link rel="donation">https://reapack.com/donate</link>
       </metadata>
       <version name="1.0" author="cfillion" time="2017-03-22T20:54:14Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/cd773a20e9700fcae5112459a30c51ea0f4ce318/Tracks%20Properties/cfillion_Remove%20hardware%20outputs%20of%20selected%20tracks.lua</source>
+      </version>
+      <version name="1.0.1" author="cfillion" time="2024-05-04T00:28:32Z">
+        <changelog><![CDATA[Optimize processing in projects with high track counts]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/fded1af53a88bc78c66d93ea83edbc7c0e2ed39f/Tracks%20Properties/cfillion_Remove%20hardware%20outputs%20of%20selected%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Rename selected tracks from clipboard lines.lua" type="script" desc="Rename selected tracks from clipboard lines">
