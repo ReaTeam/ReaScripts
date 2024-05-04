@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="af586d0ab3a1793c97981c7e6be48787222b94f1" name="ReaTeam Scripts">
+<index version="1" commit="55471734067499fd67a19253db50bc3c2686b72e" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -19249,8 +19249,8 @@ Select tracks down the folder hierarchy (obeying parent send)]]></changelog>
       <version name="2.0" author="cfillion" time="2024-05-04T02:06:53Z">
         <changelog><![CDATA[Add an option to include input and monitoring effects [cfillion/reascripts#6]
 Fix truncated labels by replacing the GetUserInputs prompt with a ReaImGui interface]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/61ab130edf4bf7e0b5d50a39a9ce879813bea84d/Tracks%20Properties/cfillion_Toggle%20track%20FX%20bypass%20by%20name.lua</source>
-        <source main="main" file="cfillion_Toggle track FX bypass by name (create action).lua">https://github.com/ReaTeam/ReaScripts/raw/61ab130edf4bf7e0b5d50a39a9ce879813bea84d/Tracks%20Properties/cfillion_Toggle%20track%20FX%20bypass%20by%20name.lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/55471734067499fd67a19253db50bc3c2686b72e/Tracks%20Properties/cfillion_Toggle%20track%20FX%20bypass%20by%20name.lua</source>
+        <source main="main" file="cfillion_Toggle track FX bypass by name (create action).lua">https://github.com/ReaTeam/ReaScripts/raw/55471734067499fd67a19253db50bc3c2686b72e/Tracks%20Properties/cfillion_Toggle%20track%20FX%20bypass%20by%20name.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Toggle visibility of empty non-folder tracks.lua" type="script" desc="Toggle visibility of empty non-folder tracks">
