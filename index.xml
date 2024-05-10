@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="829b69b2198579cdf533ca407746228e61fb1654" name="ReaTeam Scripts">
+<index version="1" commit="080bd03c5b579f913231ca02e7dee9dfd326d0eb" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -119,7 +119,7 @@
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Moves the edit cursor to the previous grid line that is visible\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Moves the edit cursor to the previous visible grid line or by 1 pixel\par}
 }
 ]]></description>
       </metadata>
@@ -153,6 +153,10 @@
       <version name="1.08" author="amagalma" time="2024-05-10T12:16:34Z">
         <changelog><![CDATA[Fix: freeze if grid lines are not visible]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/829b69b2198579cdf533ca407746228e61fb1654/Cursor/amagalma_Move%20edit%20cursor%20to%20previous%20visible%20grid%20line.lua</source>
+      </version>
+      <version name="1.09" author="amagalma" time="2024-05-10T12:26:57Z">
+        <changelog><![CDATA[If grid not visible, then move by 1 pixel]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/080bd03c5b579f913231ca02e7dee9dfd326d0eb/Cursor/amagalma_Move%20edit%20cursor%20to%20previous%20visible%20grid%20line.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Transport Play from start of arrange view - Stop at play cursor (editing).lua" type="script" desc="Transport Play from start of arrange view / Stop at play cursor (editing)">
