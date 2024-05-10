@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="4daaa09ed838e1471fd16504461d9511dc1aa6eb" name="ReaTeam Scripts">
+<index version="1" commit="829b69b2198579cdf533ca407746228e61fb1654" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -149,6 +149,10 @@
       <version name="1.07" author="amagalma" time="2023-08-08T19:04:42Z">
         <changelog><![CDATA[- Fixed case: edit cursor a bit to the right of a grid line]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/cb8eefc50e944320717588469f408a9819bad696/Cursor/amagalma_Move%20edit%20cursor%20to%20previous%20visible%20grid%20line.lua</source>
+      </version>
+      <version name="1.08" author="amagalma" time="2024-05-10T12:16:34Z">
+        <changelog><![CDATA[Fix: freeze if grid lines are not visible]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/829b69b2198579cdf533ca407746228e61fb1654/Cursor/amagalma_Move%20edit%20cursor%20to%20previous%20visible%20grid%20line.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Transport Play from start of arrange view - Stop at play cursor (editing).lua" type="script" desc="Transport Play from start of arrange view / Stop at play cursor (editing)">
