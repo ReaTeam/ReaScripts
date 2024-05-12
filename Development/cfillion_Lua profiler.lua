@@ -1,14 +1,10 @@
 -- @description Lua profiler
 -- @author cfillion
--- @version 1.1
+-- @version 1.1.1
 -- @changelog
---   • Add an optional child_flags parameter to profiler.showProfile()
---   • Add profiler.runloop (alias of profiler.defer)
---   • Add a flame graph view mode (enable in the Profile menu)
---   • Fix view mode and sort options not applying to inactive profiles
---   • Highlight the entire row on hover in the tree view mode
---   • Rename profiler.reset() to .clear()
---   • Report usage errors at the user's call site
+--   • Preserve the apparent flame graph zoom level when resizing the window
+--   • Increase flame graph mousewheel zoom speed
+--   • Fix undesirable horizontal scrolling when the window is very small
 -- @provides [nomain] .
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=283461
 -- @screenshot
@@ -224,6 +220,7 @@ end
 local function alignGroupRight(ctx, callback)
   local pos_x, right_x = ImGui.GetCursorPosX(ctx), ImGui.GetContentRegionMax(ctx)
 
+  ImGui.SetCursorPosX(ctx, 0)
   ImGui.BeginGroup(ctx)
   ImGui.PushID(ctx, 'width')
   ImGui.PushClipRect(ctx, 0, 0, 1, 1, false)
@@ -232,10 +229,10 @@ local function alignGroupRight(ctx, callback)
   ImGui.PopID(ctx)
   ImGui.EndGroup(ctx)
 
-  local want_pos = right_x - ImGui.GetItemRectSize(ctx)
-  if want_pos >= pos_x then
+  local want_x = right_x - ImGui.GetItemRectSize(ctx)
+  if want_x >= pos_x then
     ImGui.SameLine(ctx)
-    ImGui.SetCursorPosX(ctx, want_pos)
+    ImGui.SetCursorPosX(ctx, want_x)
   end
 
   ImGui.BeginGroup(ctx)
@@ -1111,17 +1108,21 @@ local function setZoom(ctx, zoom, scroll_x, avail_w)
   zoom = math.max(1, math.min(512, zoom))
   if state.zoom == zoom then return end
 
-  local new_w = (avail_w * zoom) // 1
-  state.set_content_size = { new_w, 0 }
+  if avail_w then
+    local new_w = (avail_w * zoom) // 1
+    state.set_content_size = { new_w, 0 }
+  end
 
-  if scroll_x then
+  if type(scroll_x) == 'number' then
     scroll_x = scroll_x * zoom
-  else
+  elseif scroll_x then
     local mouse_x = ImGui.GetMousePos(ctx) -
       ImGui.GetWindowPos(ctx) - ImGui.GetCursorStartPos(ctx)
     scroll_x = ImGui.GetScrollX(ctx) + ((mouse_x * (zoom / state.zoom)) - mouse_x)
   end
-  state.set_scroll = { scroll_x // 1, -1 }
+  if scroll_x then
+    state.set_scroll = { scroll_x // 1, -1 }
+  end
 
   state.zoom = zoom
 end
@@ -1213,6 +1214,17 @@ local function flameGraph(ctx)
   if state.did_set_content_size then avail_w = math.ceil(avail_w / zoom) end
   ImGui.PushStyleColor(ctx, ImGui.Col_Button, 0x23446CFF)
   ImGui.PushStyleVar(ctx, ImGui.StyleVar_ItemSpacing, 0, 0)
+  if state.prev_flame_w and state.prev_flame_w ~= avail_w and state.zoom > 1 then
+    local want_zoom = state.zoom * (state.prev_flame_w / avail_w)
+    setZoom(ctx, want_zoom)
+    zoom = state.zoom
+    if zoom ~= want_zoom then
+      local scroll_x = ImGui.GetScrollX(ctx)
+      local new_scroll = scroll_x * (zoom / want_zoom)
+      ImGui.SetScrollX(ctx, new_scroll) -- unavoidable flicker
+    end
+  end
+  state.prev_flame_w = avail_w
   for i = 1, #profile.report do
     local level = profile.report[i]
     local first_of_line, prev_parent = true, nil
@@ -1288,9 +1300,9 @@ local function flameGraph(ctx)
   ImGui.PopStyleColor(ctx)
 
   if is_zooming and ImGui.IsWindowHovered(ctx) then
-    local mouse_wheel = ImGui.GetMouseWheel(ctx) / 64
+    local mouse_wheel = ImGui.GetMouseWheel(ctx) / 48
     if mouse_wheel ~= 0 then
-      setZoom(ctx, zoom * (1 + mouse_wheel), nil, avail_w)
+      setZoom(ctx, zoom * (1 + mouse_wheel), true, avail_w)
     end
   end
 
