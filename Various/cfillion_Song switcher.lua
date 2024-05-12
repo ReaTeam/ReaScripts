@@ -1,10 +1,9 @@
 -- @description Song switcher (for live use)
 -- @author cfillion
--- @version 1.6
+-- @version 1.6.1
 -- @changelog
---   add action for queuing songs using a MIDI controller [p=2777472]
---   add actions for queuing the next or previous song
---   rewrite the user interface using ReaImGui
+--   disable keyboard input when the filter text box or a context menu has focus
+--   fix the toolbar buttons showing 1 frame early, before the filter text box is hidden
 -- @provides
 --   [main] cfillion_Song switcher/cfillion_Song switcher - Send signal.lua > cfillion_Song switcher/cfillion_Song switcher - Switch to next song.lua
 --   [main] cfillion_Song switcher/cfillion_Song switcher - Send signal.lua > cfillion_Song switcher/cfillion_Song switcher - Switch to previous song.lua
@@ -601,8 +600,9 @@ local function navButtons()
 end
 
 local function keyInput(input)
-  if not ImGui.IsWindowFocused(ctx, ImGui.FocusedFlags_ChildWindows) and
-    not ImGui.IsAnyItemActive(ctx) then return end
+  if not ImGui.IsWindowFocused(ctx,
+    ImGui.FocusedFlags_ChildWindows | ImGui.FocusedFlags_NoPopupHierarchy) or
+    ImGui.IsAnyItemActive(ctx) then return end
 
   if ImGui.IsKeyPressed(ctx, ImGui.Key_UpArrow) or
      ImGui.IsKeyPressed(ctx, ImGui.Key_LeftArrow) then
@@ -677,6 +677,9 @@ local function mainWindow()
   local fullUI = avail_y > 50 and ImGui.GetScrollMaxY(ctx) <= avail_y
 
   filterPrompt = filterPrompt and ImGui.IsWindowFocused(ctx)
+  -- cache to not call toolbar() on the frame when drawFilter() clears it
+  local filterPrompt = filterPrompt
+
   ImGui.PushFont(ctx, fullUI and fonts.large or fonts.huge)
   if filterPrompt then
     drawFilter()
