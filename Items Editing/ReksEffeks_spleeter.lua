@@ -1,0 +1,16 @@
+-- @description Spleeter: Split audio item into stems
+-- @author Rek's Effeks
+-- @version 1.1
+-- @changelog Added tentative Windows support. I have not tested it.
+-- @metapackage
+-- @provides
+--   [main] ReksEffeks_spleeter/Spleeter2.lua
+--   [main] ReksEffeks_spleeter/Spleeter4.lua
+--   [main] ReksEffeks_spleeter/Spleeter5.lua
+-- @link
+--   Spleeter https://github.com/deezer/spleeter
+--   Click here for a Windows/Mac version made by someone else https://forum.cockos.com/showthread.php?t=239365
+-- @about
+--   I saw that someone had made Lua scripts for running Spleeter on MacOS and Windows, but there was no Linux version. This works on Linux, will probably work on MacOS, and might work on Windows.
+--   This script assumes you have Spleeter installed and are able to run it from the command line as documented on the Spleeter Github. I've adapted it from the Windows/Mac-only version made by ReaTrak.
+
