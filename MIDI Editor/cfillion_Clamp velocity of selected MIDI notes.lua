@@ -126,7 +126,7 @@ local function apply()
 end
 
 local function tooltip(text)
-  if ImGui.IsItemHovered(ctx, ImGui.HoveredFlags_DelayShort) and ImGui.BeginTooltip(ctx) then
+  if ImGui.BeginItemTooltip(ctx) then
     ImGui.Text(ctx, text)
     ImGui.EndTooltip(ctx)
   end
