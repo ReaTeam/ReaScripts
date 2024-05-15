@@ -1,7 +1,7 @@
 -- @description Apply render preset
 -- @author cfillion
--- @version 2.1.3
--- @changelog Minor optimization and internal code cleanup
+-- @version 2.1.4
+-- @changelog Fix parsing of mixed quotes in reaper-render2.ini [cfillion/reascripts#7]
 -- @provides
 --   .
 --   [main] . > cfillion_Apply render preset (create action).lua
@@ -259,13 +259,14 @@ local function tokenize(line)
   while pos do
     local tail, eat = nil, 1
 
-    if line:sub(pos, pos) == '"' then
+    local quote = line:sub(pos, pos)
+    if quote == '"' or quote == "'" or quote == '`' then
       pos = pos + 1 -- eat the opening quote
-      tail = line:find('"%s', pos)
+      tail = line:find(quote .. '%s', pos)
       eat = 2
 
       if not tail then
-        if line:sub(-1) == '"' then
+        if line:sub(-1) == quote then
           tail = line:len()
         else
           error('missing closing quote')
