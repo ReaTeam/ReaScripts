@@ -269,7 +269,6 @@ local function tokenize(line)
         if line:sub(-1) == quote then
           tail = line:len()
         else
-          print(line)
           error('missing closing quote')
         end
       end
