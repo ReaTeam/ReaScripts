@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="66b6f119e53cb8306286028d99df9a417ff2cba6" name="ReaTeam Scripts">
+<index version="1" commit="56823e5ed1aa36bc430586690a192e63182d0db5" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -9915,6 +9915,10 @@ Renumber markers and regions when pasting]]></changelog>
       <version name="1.0.3" author="cfillion" time="2023-08-19T02:08:58Z">
         <changelog><![CDATA[Improve display and shortcut management]]></changelog>
         <source main="main midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/80a60334625199a94bdbcc41b1051c4aebce369d/MIDI%20Editor/cfillion_Clamp%20velocity%20of%20selected%20MIDI%20notes.lua</source>
+      </version>
+      <version name="1.0.4" author="cfillion" time="2024-05-15T22:52:51Z">
+        <changelog><![CDATA[Add a "Always on top" option when right-clicking the title bar [p=2782891]]]></changelog>
+        <source main="main midi_editor midi_inlineeditor">https://github.com/ReaTeam/ReaScripts/raw/56823e5ed1aa36bc430586690a192e63182d0db5/MIDI%20Editor/cfillion_Clamp%20velocity%20of%20selected%20MIDI%20notes.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Set space between selected notes from grid size.lua" type="script" desc="Set space between selected notes from grid size">
