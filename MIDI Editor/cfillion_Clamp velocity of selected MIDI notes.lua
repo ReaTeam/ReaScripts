@@ -125,13 +125,6 @@ local function apply()
   reaper.PreventUIRefresh(-1)
 end
 
-local function tooltip(text)
-  if ImGui.BeginItemTooltip(ctx) then
-    ImGui.Text(ctx, text)
-    ImGui.EndTooltip(ctx)
-  end
-end
-
 local function shortcuts(...)
   if had_any_item_active then
     return false
@@ -190,7 +183,7 @@ local function window()
     presetsCombo()
     ImGui.EndCombo(ctx)
   end
-  tooltip('Recent values')
+  ImGui.SetItemTooltip(ctx, 'Recent values')
 
   ImGui.Text(ctx, 'Drag or double-click to enter a specific value')
   ImGui.Spacing(ctx)
