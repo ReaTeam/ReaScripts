@@ -5,8 +5,8 @@
 -- @metapackage
 -- @provides
 --   [main] hemisphera_Zuljeah/Zuljeah_Monitor.lua
---   [main] hemisphera_Zuljeah/Zuljeah_NextSong
---   [main] hemisphera_Zuljeah/Zuljeah_PreviousSong
+--   [main] hemisphera_Zuljeah/Zuljeah_NextSong.lua
+--   [main] hemisphera_Zuljeah/Zuljeah_PreviousSong.lua
 -- @about
 --   # Zuljeah Setlist Player
 --
