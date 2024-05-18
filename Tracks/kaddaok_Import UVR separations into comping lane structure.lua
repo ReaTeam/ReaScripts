@@ -1,17 +1,27 @@
--- @description Import UVR separations into comping lane structure
+-- @description Import UVR or X-Minus separations into comping lane structure
 -- @author Kadda OK
--- @version 0.1
+-- @version 0.2
 -- @screenshot https://i.imgur.com/Boqw2CP.png
 -- @about
 --   # Import UVR Separations Into Comping Lanes
 --
---   This script sets up for comping instrumental and/or vocal stems separated using Ultimate Vocal Remover (with the intent of mastering an instrumental & background-vocal version for use in karaoke, but could probably be useful in other scenarios as well). 
+--   ### New in version 0.2:
+--    - Now includes files in folders below the original FLAC's path as well as beside it.
+--    - Item name parsing now compatible with stems downloaded from X-Minus
+--    - Friendly item name for Mel-Roformer model from May 2024 UVR patch
+--
+--
+--   This script sets up for comping instrumental and/or vocal stems separated using Ultimate Vocal Remover or X-Minus (with the intent of mastering an instrumental & background-vocal version for use in karaoke, but could probably be useful in other scenarios as well). 
 --
 --   It is recommended to be bound to a toolbar button.
 --
---   The script prompts for the .FLAC file of the original recording. It assumes the separated stems are present as .FLAC files beside that file in the same folder, and that they were generated using the `Model Test Mode` checkbox in UVR to provide the applied model name as part of the filename.  
+--   The script prompts for the .FLAC file of the original recording. 
+--   It assumes that: 
+--    - The separated stems are present as .FLAC files either beside that file in the same folder or in subfolders below that folder, and that 
+--    - Their filenames contain their model names, in whatever parts are neither the original's name nor a parenthesized description of which stem they are. 
+--      (In UVR, this is achieved by checking the `Model Test Mode` checkbox).
 --
---   It considers any files ending in `(Vocals).flac` to be vocal stems, and any ending in `(Instrumental).flac` to be instrumental stems, with the exception of any that also have the string `(Vocals)` earlier in the filename, which it interprets as likely being a two-step separation to obtain only background vocals on their own stem.
+--   It considers any filenames containing `(Vocals)` to be vocal stems, and any containing `(*Instrumental*)` to be instrumental stems, with the exception of any that also have the string `(Vocals)` earlier in the filename, which it interprets as likely being a two-step separation to obtain only background vocals on their own stem.
 --
 --   It creates three tracks:
 --    - An `Original` track, with the original file on it, which is muted. This is for reference.
@@ -40,19 +50,19 @@ end
 
 function generateColorValues(inputString, offset)
     offset = offset or 0 -- Default offset is 0 if not provided
-
+    
     local sum = 0
     for i = 1, #inputString do
         sum = sum + inputString:byte(i)
     end
-
+    
     local seed = (sum + offset) % 256
     math.randomseed(seed)
-
+    
     local r = math.random(0, 255)
     local g = math.random(0, 255)
     local b = math.random(0, 255)
-
+    
     return r, g, b
 end
 
@@ -76,7 +86,7 @@ function createTrack(name, count, mute)
     reaper.InsertTrackAtIndex(trackIdx, true)
     local track = reaper.GetTrack(0, trackIdx)
     reaper.GetSetMediaTrackInfo_String(track, "P_NAME", name, true)
-    if count > 1 then
+    if count > 1 then 
         reaper.SetMediaTrackInfo_Value(track, "I_NUMFIXEDLANES", count)
         reaper.SetMediaTrackInfo_Value(track, "I_FREEMODE", 2)
         reaper.SetMediaTrackInfo_Value(track, "C_LANEPLAYS:0", 1)
@@ -86,7 +96,7 @@ function createTrack(name, count, mute)
 end
 
 function addItemToTrack(track, file, name, lane, position)
-  if debug then
+  if debug then 
     reaper.ShowConsoleMsg("AddItemToTrack: " .. name .. ", " .. lane .. "\n") 
   end
   -- Iterate over all items on the track
@@ -97,7 +107,7 @@ function addItemToTrack(track, file, name, lane, position)
     local sourceFile = reaper.GetMediaSourceFileName(source, "")
     -- If an item with the same source file is found, return without adding a new item
     if sourceFile == file then
-        if debug then
+        if debug then 
           reaper.ShowConsoleMsg("  " .. name .. " exists at position " .. i .. "\n") 
         end
       return false
@@ -122,7 +132,7 @@ function addItemToTrack(track, file, name, lane, position)
       emptyLaneFound = true
     end
   end
-
+  
   -- Add the item to the track
   local item = reaper.AddMediaItemToTrack(track)
 
@@ -141,7 +151,7 @@ function addItemToTrack(track, file, name, lane, position)
     local posQN = reaper.TimeMap2_timeToQN(nil, position)
     length = reaper.TimeMap2_QNToTime(nil, posQN + length) - position
   end
-
+  
   if name == nil then name = file end
   reaper.GetSetMediaItemTakeInfo_String(take, "P_NAME", name, true)
 
@@ -173,57 +183,81 @@ function getModelNameLabelFromFile(pathToOriginalFile, fullPath)
     -- Extract the original file name without extension
     local originalFileName = pathToOriginalFile:match("([^\\/]*)%.%w+$")
     local escapedFileName = escapePattern(originalFileName)
-
+    
     -- Find the index of the original file name within the full path
     local index = fullPath:find(escapedFileName)
     if index then
         processed = fullPath:sub(index + #originalFileName)
     end
-
+    
     -- Remove specified strings
-    processed = processed:gsub("%(Instrumental%)", "")
+    processed = processed:gsub("%([^)]*Instrumental[^)]*%)", "")
     processed = processed:gsub("%(Vocals%)", "")
     processed = processed:gsub("model", "")
-
+    
     -- Replace underscores with spaces and remove file extension
     processed = processed:gsub("_", " "):gsub("%.flac$", "")
-
+    
     -- Clean up some stuff to my personal preferences
     processed = processed:gsub(escapePattern("MDX23C-8KFFT-InstVoc HQ"), "MDX23C")
     processed = processed:gsub("bs roformer ep 317 sdr 12.9755", "BS Roformer Viperx 1297")
-    --processed = processed:gsub("UVR MDXNET ", "MDX-")
-
+    processed = processed:gsub("mel band roformer ep 3005 sdr 11.4360", "Mel Roformer Viperx 1143")
+    
     -- Trim leading and trailing spaces
     processed = processed:match("^%s*(.-)%s*$")
+    
+    -- If processed starts with '(' and ends with ')', remove them
+    if processed:sub(1, 1) == "(" and processed:sub(-1) == ")" then
+        processed = processed:sub(2, -2)
+    end
 
     return processed
 end
 
-local function searchFolder(pathToOriginalFile)
-    local instrumentalFiles = {{pathToOriginalFile, "Original"}}
-    local vocalFiles = {}
-    local bgvFiles = {}
-    local fgvFiles = {}
-    local folderPath = string.match(pathToOriginalFile, "(.*)[/\\][^/\\]*$")
+local function searchFolder(pathToOriginalFile, folderPath, instrumentalFiles, vocalFiles, bgvFiles, fgvFiles)
+
+    -- set up stuff if this is the first recursion
+    instrumentalFiles = instrumentalFiles or {{pathToOriginalFile, "Original"}}
+    vocalFiles = vocalFiles or {}
+    bgvFiles = bgvFiles or {}
+    fgvFiles = fgvFiles or {}
+    folderPath = folderPath or string.match(pathToOriginalFile, "(.*)[/\\][^/\\]*$")
+    
+    -- loop over files in the path categorizing the FLACs
     local i = 0
     repeat
         local file = reaper.EnumerateFiles(folderPath, i)
         if file then
             local filePath = folderPath .. package.config:sub(1,1) .. file
             if file:match("%.flac$") then
-                if file:match("%(Vocals%).-%(Instrumental%)%.flac$") then
+                if file:match("%(Vocals%).-%(.*Instrumental.*%).*%.flac$") then
                     table.insert(bgvFiles, {filePath, "bgv only (" .. getModelNameLabelFromFile(pathToOriginalFile, filePath) .. ")"})
-                elseif file:match("%(Vocals%).-%(Vocals%)%.flac$") then
+                elseif file:match("%(Vocals%).-%(Vocals%).*%.flac$") then
                     table.insert(fgvFiles, {filePath, "fgv only (" .. getModelNameLabelFromFile(pathToOriginalFile, filePath) .. ")"})
-                elseif file:match("%(Instrumental%)%.flac$") then
+                elseif file:match("%(.*Instrumental.*%).*%.flac$") then
                     table.insert(instrumentalFiles, {filePath, getModelNameLabelFromFile(pathToOriginalFile, filePath)})
-                elseif file:match("%(Vocals%)%.flac$") then
+                elseif file:match("%(Vocals%).*%.flac$") then
                     table.insert(vocalFiles, {filePath, getModelNameLabelFromFile(pathToOriginalFile, filePath)})
+                else
+                    if debug then
+                        reaper.ShowConsoleMsg("Unmatched file: " .. file .. "\n") 
+                    end
                 end
             end
         end
         i = i + 1
     until not file
+
+    i = 0
+    repeat
+        local dir = reaper.EnumerateSubdirectories(folderPath, i)
+        if dir then
+            local dirPath = folderPath .. package.config:sub(1,1) .. dir
+            searchFolder(pathToOriginalFile, dirPath, instrumentalFiles, vocalFiles, bgvFiles, fgvFiles)
+        end
+        i = i + 1
+    until not dir
+
     return instrumentalFiles, vocalFiles, bgvFiles, fgvFiles
 end
 
