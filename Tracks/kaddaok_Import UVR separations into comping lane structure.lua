@@ -1,15 +1,13 @@
 -- @description Import UVR or X-Minus separations into comping lane structure
 -- @author Kadda OK
 -- @version 0.2
--- @screenshot https://i.imgur.com/Boqw2CP.png
--- @about
---   # Import UVR Separations Into Comping Lanes
---
---   ### New in version 0.2:
+-- @changelog
 --    - Now includes files in folders below the original FLAC's path as well as beside it.
 --    - Item name parsing now compatible with stems downloaded from X-Minus
 --    - Friendly item name for Mel-Roformer model from May 2024 UVR patch
---
+-- @screenshot https://i.imgur.com/Boqw2CP.png
+-- @about
+--   # Import UVR Separations Into Comping Lanes
 --
 --   This script sets up for comping instrumental and/or vocal stems separated using Ultimate Vocal Remover or X-Minus (with the intent of mastering an instrumental & background-vocal version for use in karaoke, but could probably be useful in other scenarios as well). 
 --
