@@ -1,3 +1,5 @@
+-- @noindex
+
 local function collectRegions()
   local regions = {}
   markerCount = reaper.CountProjectMarkers(0)
