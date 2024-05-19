@@ -1,9 +1,9 @@
 -- @description Perfect Timing! - Audio Quantizer
 -- @author 80icio
--- @version 0.25
+-- @version 0.26
 -- @changelog
---   - updated to reaImgui 0.9
---   - multiple code improvements
+--   - Unlocked 1 bar, 1/2 bar Grid and relative triplets Divisions
+--   - Changed layout for Visualizer zoom bounds reference on tracks on Main window
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=288964
 -- @about
 --   # PERFECT TIMING! 
@@ -330,7 +330,7 @@ end
 
 local NoIP = ImGui.SliderFlags_NoInput
 
-local Grid_string = {' 1/4\0 1/8\0 1/16\0 1/32\0 1/64\0', ' 1/6\0 1/12\0 1/24\0 1/48\0' }
+local Grid_string = {'1 bar\0 1/2\0 1/4\0 1/8\0 1/16\0 1/32\0 1/64\0', '2/3 bar\0 1/3\0 1/6\0 1/12\0 1/24\0 1/48\0' }
 local Visualizer_mode_table = 'MW & Visualizer\0MW or Visualizer\0'
 local Grid_table = Grid_string[1]
 local EditTrk_table = 'Edit Tracks \0Edit TrackGroups\0'
@@ -479,17 +479,21 @@ function get_grid_from_proj()
    --if divis == 2 then Grid_mode = 0; r.GetSetProjectGrid(0, true, 1/4, Swing_on, Swing_Slider) ; Triplets = false  end
    --if divis == 1 then Grid_mode = 0; r.GetSetProjectGrid(0, true, 1/4, Swing_on, Swing_Slider) ; Triplets = false  end
    --if divis == 1/2 then Grid_mode = 0 ; r.GetSetProjectGrid(0, true, 1/4, Swing_on, Swing_Slider) ; Triplets = false  end
-   if divis > 1/4 then Grid_mode = 0 ; r.GetSetProjectGrid(0, true, 1/4, Swing_on, Swing_Slider) ; Triplets = false  end
-   if divis == 1/4 then Grid_mode = 0 ; Triplets = false end
-   if divis == 1/6 then Grid_mode = 0 ; Triplets = true end
-   if divis == 1/8 then Grid_mode = 1 ; Triplets = false end
-   if divis == 1/12 then Grid_mode = 1 ; Triplets = true end
-   if divis == 1/16 then Grid_mode = 2 ; Triplets = false end
-   if divis == 1/24 then Grid_mode = 2 ; Triplets = true end
-   if divis == 1/32 then Grid_mode = 3 ; Triplets = false end
-   if divis == 1/48 then Grid_mode = 3 ; Triplets = true end
-   if divis == 1/64 then Grid_mode = 4 ; Triplets = false end
-   if divis < 1/64 then Grid_mode = 4; r.GetSetProjectGrid(0, true, 1/64, Swing_on, Swing_Slider) ; Triplets = false end
+   if divis > 1 then Grid_mode = 0 ; r.GetSetProjectGrid(0, true, 1, Swing_on, Swing_Slider) ; Triplets = false  end
+   if divis == 1 then Grid_mode = 0 ; Triplets = false end
+   if divis == 2/3 then Grid_mode = 0 ; Triplets = true end
+   if divis == 1/2 then Grid_mode = 1 ; Triplets = false end
+   if divis == 1/3 then Grid_mode = 1 ; Triplets = true end
+   if divis == 1/4 then Grid_mode = 2 ; Triplets = false end
+   if divis == 1/6 then Grid_mode = 2 ; Triplets = true end
+   if divis == 1/8 then Grid_mode = 3 ; Triplets = false end
+   if divis == 1/12 then Grid_mode = 3 ; Triplets = true end
+   if divis == 1/16 then Grid_mode = 4 ; Triplets = false end
+   if divis == 1/24 then Grid_mode = 4 ; Triplets = true end
+   if divis == 1/32 then Grid_mode = 5 ; Triplets = false end
+   if divis == 1/48 then Grid_mode = 5 ; Triplets = true end
+   if divis == 1/64 then Grid_mode = 6 ; Triplets = false end
+   if divis < 1/64 then Grid_mode = 6 ; r.GetSetProjectGrid(0, true, 1/64, Swing_on, Swing_Slider) ; Triplets = false end
    if Triplets == true then Grid_table = Grid_string[2] else Grid_table = Grid_string[1] end
    _, divis, Swing_on, Swing_Slider = r.GetSetProjectGrid(0, 0)
    store_divis, store_Swing_on, store_Swing_Slider = divis, Swing_on, Swing_Slider
@@ -497,17 +501,22 @@ function get_grid_from_proj()
 end
 
 function set_grid_from_script()
+
     Swing_Slider = Swing_Slider_adapt/100
-    if Grid_mode == 0 and Triplets == false then r.GetSetProjectGrid(0, true, 1/4, Swing_on, Swing_Slider) end
-    if Grid_mode == 0 and Triplets == true then r.GetSetProjectGrid(0, true, 1/6, Swing_on, Swing_Slider) end
-    if Grid_mode == 1 and Triplets == false then r.GetSetProjectGrid(0, true, 1/8, Swing_on, Swing_Slider) end
-    if Grid_mode == 1 and Triplets == true then r.GetSetProjectGrid(0, true, 1/12, Swing_on, Swing_Slider) end
-    if Grid_mode == 2 and Triplets == false then r.GetSetProjectGrid(0, true, 1/16, Swing_on, Swing_Slider) end
-    if Grid_mode == 2 and Triplets == true then r.GetSetProjectGrid(0, true, 1/24, Swing_on, Swing_Slider) end
-    if Grid_mode == 3 and Triplets == false then r.GetSetProjectGrid(0, true, 1/32, Swing_on, Swing_Slider) end
-    if Grid_mode == 3 and Triplets == true then r.GetSetProjectGrid(0, true, 1/48, Swing_on, Swing_Slider) end
-    if Grid_mode == 4 and Triplets == false then r.GetSetProjectGrid(0, true, 1/64, Swing_on, Swing_Slider) end
-    if Grid_mode == 4 and Triplets == true then r.GetSetProjectGrid(0, true, 1/64, Swing_on, Swing_Slider) ; Triplets = false end
+    if Grid_mode == 0 and Triplets == false then r.GetSetProjectGrid(0, true, 1, Swing_on, Swing_Slider) end
+    if Grid_mode == 0 and Triplets == true then r.GetSetProjectGrid(0, true, 2/3, Swing_on, Swing_Slider) end
+    if Grid_mode == 1 and Triplets == false then r.GetSetProjectGrid(0, true, 1/2, Swing_on, Swing_Slider) end
+    if Grid_mode == 1 and Triplets == true then r.GetSetProjectGrid(0, true, 1/3, Swing_on, Swing_Slider) end
+    if Grid_mode == 2 and Triplets == false then r.GetSetProjectGrid(0, true, 1/4, Swing_on, Swing_Slider) end
+    if Grid_mode == 2 and Triplets == true then r.GetSetProjectGrid(0, true, 1/6, Swing_on, Swing_Slider) end
+    if Grid_mode == 3 and Triplets == false then r.GetSetProjectGrid(0, true, 1/8, Swing_on, Swing_Slider) end
+    if Grid_mode == 3 and Triplets == true then r.GetSetProjectGrid(0, true, 1/12, Swing_on, Swing_Slider) end
+    if Grid_mode == 4 and Triplets == false then r.GetSetProjectGrid(0, true, 1/16, Swing_on, Swing_Slider) end
+    if Grid_mode == 4 and Triplets == true then r.GetSetProjectGrid(0, true, 1/24, Swing_on, Swing_Slider) end
+    if Grid_mode == 5 and Triplets == false then r.GetSetProjectGrid(0, true, 1/32, Swing_on, Swing_Slider) end
+    if Grid_mode == 5 and Triplets == true then r.GetSetProjectGrid(0, true, 1/48, Swing_on, Swing_Slider) end
+    if Grid_mode == 6 and Triplets == false then r.GetSetProjectGrid(0, true, 1/64, Swing_on, Swing_Slider) end
+    if Grid_mode == 6 and Triplets == true then r.GetSetProjectGrid(0, true, 1/64, Swing_on, Swing_Slider) ; Triplets = false end
     if Triplets == true then Grid_table = Grid_string[2] else Grid_table = Grid_string[1] end
     _, divis, Swing_on, Swing_Slider = r.GetSetProjectGrid(0, 0)
     store_divis, store_Swing_on, store_Swing_Slider = divis, Swing_on, Swing_Slider
@@ -1646,8 +1655,9 @@ function Gate_Gl:Transient_Detective()
        
        
        for i = 1, Wave.selSamples do
-       local input = Wave.out_buf[i]
-       if input < 0 then input = input*-1 end
+       
+         local input = Wave.out_buf[i]
+         if input < 0 then input = input*-1 end
            --------------------------------------------
            -- Envelope1(fast) -------------------------
            if envOut1 < input then envOut1 = input + ga1 * (envOut1 - input)
@@ -1684,28 +1694,28 @@ function Gate_Gl:Transient_Detective()
                  smpl_cnt  = smpl_cnt+1 
                  ----------------------------    
                  
-                 else 
+              else 
                  
-                      Trig = false -- reset Trig state !!!
-                      -----------------------
-                      local RMS  = sqrt(rms_sum/det_velo_smpls)  -- calculate RMS
-                      if RMS >1 then RMS = 1 end
-                      
-                      --- Trigg point -------
-                      self.State_Points[st_cnt]   = i - det_velo_smpls  -- Time point(in Samples!) 
-                      self.State_Points[st_cnt+1] = {RMS, peak_smpl}    -- RMS, Peak values
-                    
-                      ----------------------------------------gridblocks selection icio
+                  Trig = false -- reset Trig state !!!
+                  -----------------------
+                  local RMS  = sqrt(rms_sum/det_velo_smpls)  -- calculate RMS
+                  if RMS >1 then RMS = 1 end
+                  
+                  --- Trigg point -------
+                  self.State_Points[st_cnt]   = i - det_velo_smpls  -- Time point(in Samples!) 
+                  self.State_Points[st_cnt+1] = {RMS, peak_smpl}    -- RMS, Peak values
+                
+                  ----------------------------------------gridblocks selection icio
 
-                      minRMS  = min(minRMS, RMS)         -- save minRMS for scaling
-                      minPeak = min(minPeak, peak_smpl)  -- save minPeak for scaling 
-                      maxRMS  = max(maxRMS, RMS)         -- save maxRMS for scaling
-                      maxPeak = max(maxPeak, peak_smpl)  -- save maxPeak for scaling 
-                      
-                      --------
-                      st_cnt = st_cnt+2
-              
-                      -----------------------
+                  minRMS  = min(minRMS, RMS)         -- save minRMS for scaling
+                  minPeak = min(minPeak, peak_smpl)  -- save minPeak for scaling 
+                  maxRMS  = max(maxRMS, RMS)         -- save maxRMS for scaling
+                  maxPeak = max(maxPeak, peak_smpl)  -- save maxPeak for scaling 
+                  
+                  --------
+                  st_cnt = st_cnt+2
+          
+                  -----------------------
               end
            end       
            ----------------------------------   
@@ -1744,19 +1754,23 @@ end
 
 local MainHwnd = r.GetMainHwnd()
 local trackview = r.JS_Window_FindChildByID(MainHwnd, 0x3E8)
+
 function CreateBitmap()
   local c = 1
+  
   for i = 1, (#Gate_Gl.grid_Points * item_n), 2 do 
     lines[c] = r.JS_LICE_CreateBitmap(true, 1, 1)
     r.JS_LICE_Clear(lines[c], linecolor)
-  c = c + 1
+    c = c + 1
   end
+  
   if visualizer then
-    for i = 1, item_n do 
+    for i = 1, item_n*4 do 
       visualizer_bounds[i] = r.JS_LICE_CreateBitmap(true, 1, 1)
-      r.JS_LICE_Clear(visualizer_bounds[i], 0x40FFFFFF)
+      r.JS_LICE_Clear(visualizer_bounds[i], 0x8FFFFFFF)
     end
   end
+  
 end
 
 function DestroyBitmap()
@@ -1782,8 +1796,9 @@ function MW_drawlines()
       for trck = 1, #items_to_analyze  do
 
         local item = items_to_analyze[trck]
-
-        if r.IsMediaItemSelected(item) == false then
+        local media_Hidden = r.GetMediaItemInfo_Value(item, "B_FIXEDLANE_HIDDEN")
+        
+        if r.IsMediaItemSelected(item) == false or media_Hidden == 1 then
           DestroyBitmap()
           reset_param()
           reset_edittracks()
@@ -1793,7 +1808,7 @@ function MW_drawlines()
         local sel_tr = sel_tracks_table[trck]
 
         local media_move_check =   r.GetMediaItemInfo_Value(item, "D_LENGTH" ) - r.GetMediaItemInfo_Value(item, "D_POSITION") 
-
+        
         if media_move_check == first_sel_item_length - first_sel_item_start and sel_tr == r.GetMediaItemTrack(item) then
             local MWzoom = r.GetHZoomLevel()
             local _, scrollpos, pageSize, min, max, trackPos  = r.JS_Window_GetScrollInfo( trackview, "h" )
@@ -1801,41 +1816,50 @@ function MW_drawlines()
             local  _, width = r.JS_Window_GetClientSize( trackview )
             local track_y = r.GetMediaTrackInfo_Value(sel_tr, "I_TCPY") 
             local track_H = r.GetMediaTrackInfo_Value(sel_tr, "I_TCPH")
+            --local track_FL_n = r.GetMediaTrackInfo_Value(sel_tr, "I_NUMFIXEDLANES")
+            
             local media_H = r.GetMediaItemInfo_Value(item, "I_LASTH" )
             local media_Y = r.GetMediaItemInfo_Value(item, "I_LASTY" )
-            
-            
-            
+            --local media_FL_y = r.GetMediaItemInfo_Value(item, "F_FREEMODE_Y")
+           -- local media_FL_h = r.GetMediaItemInfo_Value(item, "F_FREEMODE_H")
+
             movescreen[trck] =h_zoom_center + zoom_bounds_L + zoom_bounds_Total + r.CSurf_TrackToID( sel_tr, false ) + MWzoom + scrollpos + track_H + media_H + scrollpos_v + itemsn + track_y*2
             
             if MW_lines_ON and (Gtolerance_slider or r.GetPlayState() ~= 0 or visualizer_rv or Offset or Detect_rv2 or Detect_rv or Visualizer_mode_rv or
             color_button or Sensitivity_slider or Change_grid or movescreen[trck] ~= movescreen_prev[trck]) then --or set_grid_from_script or get_grid_from_proj
-
-            if visualizer then
-            ---------------------------------------------- visualizer ZOOM AREA reference on MW
-            local bounds_start_pos = floor((startT+(zoom_bounds_L/first_srate)) * MWzoom)
-            local bounds_width = floor((zoom_bounds_Total/first_srate) * MWzoom)
+  
+              if visualizer then
+                ---------------------------------------------- visualizer ZOOM AREA reference on MW
+                local bounds_start_pos = floor((startT+(zoom_bounds_L/first_srate)) * MWzoom)
+                local bounds_width = floor((zoom_bounds_Total/first_srate) * MWzoom)
+                --local composite_Y_start = track_y + (track_H*media_FL_y+0.5)//1
+                --local composite_Y_end = media_Y - (track_H*media_FL_y+0.5)//1
+                local thickness = 3 -- media_H//8
+                r.JS_Composite(trackview, bounds_start_pos - scrollpos, track_y + media_Y , bounds_width, thickness ,visualizer_bounds[trck], 0, 0, 1, 1, true)
+                r.JS_Composite(trackview, bounds_start_pos - scrollpos, track_y + media_Y + media_H - thickness , bounds_width, thickness ,visualizer_bounds[trck+#items_to_analyze], 0, 0, 1, 1, true)
+                r.JS_Composite(trackview, bounds_start_pos - scrollpos, track_y + media_Y + thickness , thickness,  media_H - thickness*2,visualizer_bounds[trck+#items_to_analyze*2], 0, 0, 1, 1, true)
+                r.JS_Composite(trackview, bounds_start_pos - scrollpos + bounds_width - thickness, track_y + media_Y + thickness , thickness , media_H - thickness*2 ,visualizer_bounds[trck+#items_to_analyze*3], 0, 0, 1, 1, true)
+                
+                ----------------------------------------------
+              end
             
-            -- r.JS_Composite(trackview, bounds_start_pos - scrollpos, track_y + media_Y+media_H, bounds_width, 1,visualizer_bounds[trck], 0, 0, 1, 1, true)
-            -- r.JS_Composite(trackview, bounds_start_pos - scrollpos, track_y + media_Y, bounds_width, media_H,visualizer_bounds[trck], 0, 0, 1, 1, true)
-            r.JS_Composite(trackview, bounds_start_pos - scrollpos, track_y , bounds_width, media_Y,visualizer_bounds[trck], 0, 0, 1, 1, true)
-            
-            ----------------------------------------------
-            end
               movescreen_prev[trck] = movescreen[trck]
               local pagesizecheck = (floor(width/pageSize))
               scrollpos = scrollpos*pagesizecheck
               local Reduce_P_v = ((100-Sensitivity_v)/sens_def)
               local c = 1
+              
               for i = 1, #Gate_Gl.grid_Points, 2 do
                 local trig_line_pos = (Gate_Gl.grid_Points[i]/first_srate) + (Offset_v/1000)
                 local item_screen_pos = floor((startT+trig_line_pos) * MWzoom)
-                if pagesizecheck <=4 and  Gate_Gl.grid_Points[i+1][Detect+1] >= Reduce_P_v then --track_y + tr_label_h
-                  r.JS_Composite(trackview, item_screen_pos - scrollpos, track_y + media_Y, QN_lineTHICK[i], media_H, lines[c+((#Gate_Gl.grid_Points/2)*(trck-1))], 0, 0, 1, 1, true)
-                else r.JS_Composite(trackview, item_screen_pos - scrollpos, track_y + media_Y,  0, media_H, lines[c+((#Gate_Gl.grid_Points/2)*(trck-1))], 0, 0, 1, 1, true)
-                end
+                  if pagesizecheck <=4 and  Gate_Gl.grid_Points[i+1][Detect+1] >= Reduce_P_v then --track_y + tr_label_h
+                    r.JS_Composite(trackview, item_screen_pos - scrollpos, track_y + media_Y, QN_lineTHICK[i], media_H, lines[c+((#Gate_Gl.grid_Points/2)*(trck-1))], 0, 0, 1, 1, true)
+                  else 
+                    r.JS_Composite(trackview, item_screen_pos - scrollpos, track_y + media_Y,  0, media_H, lines[c+((#Gate_Gl.grid_Points/2)*(trck-1))], 0, 0, 1, 1, true)
+                  end
                 c = c + 1
               end
+              
             end
  
         else
@@ -2284,6 +2308,7 @@ function waveform_visualizer()
            
            
            if ImGui.IsMouseDragging( ctx, 1 ) then ------right click dragging 
+           -- ImGui.SetMouseCursor( ctx, ImGui.MouseCursor_Hand )
             local x_delta_rc, _ = ImGui.GetMouseDelta( ctx )
             h_zoom_center = h_zoom_center - x_delta_rc/w/waveform_zoom_h
             
