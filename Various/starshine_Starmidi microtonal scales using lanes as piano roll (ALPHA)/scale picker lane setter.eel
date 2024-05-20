@@ -1,0 +1,172 @@
+// @noindex
+
+//@gmem=fakemidi
+
+MAX_TRACK_LANES = 255;
+_tracks_r2_scales = 512;
+
+ctx = ImGui_CreateContext("Rank-2 Scale Selector");
+ImGui_NumericLimits_Float(FLT_MIN, FLT_MAX);
+font = ImGui_CreateFont("sans_serif", 24);
+ImGui_Attach(ctx, font);
+
+color = 0;
+#notes = "";
+_scale_mem = 0;
+SCALE_MAX_LEN = 15;
+_scale_rot_mem = _scale_mem+SCALE_MAX_LEN;
+
+function _track_scale_gmem_ptr(track)(track*MAX_TRACK_LANES+_tracks_r2_scales);
+
+function init_defaults()(
+  d_steps = 7;
+  period = 1200;
+  generator = 490.0;
+  mode = 0;
+);
+
+function LaneNamesLetter(track,track_idx,mos_size,start_char,init_char,start_equave,period)(
+  track_lane_name_ptr=_track_scale_gmem_ptr(track_idx);
+  lane_count=GetMediaTrackInfo_Value(track, "I_NUMFIXEDLANES");
+  lane_idx=lane_count;
+  scale_degree=init_char-start_char;
+  equave=start_equave-1;
+  Loop(lane_count,
+    // cycle through [mos_size] consecutive letters
+    scale_degree%=mos_size;
+    scale_degree==0 ? equave+=1;
+    sprintf(#lane_name,"%c%i",start_char+scale_degree,equave);
+    scale_degree+=1;
+    // update the lanes starting from the bottom
+    sprintf(#P_LANENAME,"%s%i","P_LANENAME:",lane_idx-=1);
+    sprintf(#cents_and_lane,"%.2f %s",_scale_mem[scale_degree-1],#lane_name);
+    GetSetMediaTrackInfo_String(track, #P_LANENAME, #cents_and_lane, 1);
+    
+    GetSetMediaTrackInfo_String(track, "GUID", #GUID, 0);
+    #section="track_lane_tuning_";
+    #section+=#GUID;
+    sprintf(#key,"%i",lane_idx);
+    sprintf(#value,"%f",_scale_mem[scale_degree-1]+(equave*period));
+    SetProjExtState(0, #section, #key, #value);
+  );
+);
+
+function init_scale_mem(scale)(
+  memset(scale,99999,SCALE_MAX_LEN);
+);
+
+function get_chroma(_mos_size,period)(
+  i=0; small=99999; large=0;
+  Loop(_mos_size,
+    (i==_mos_size-1)
+      ? step=period-_scale_mem[i]
+      : step=_scale_mem[i+1]-_scale_mem[i]
+      ;
+     step<small ? small=step;
+     step>large ? large=step;
+     i+=1;
+  );
+large-small);
+
+function RankTwoScale(_mos_size,_period,_generator)(
+    init_scale_mem(_scale_mem);
+    num_gens=0;
+    Loop(_mos_size,
+      scale_note=num_gens*_generator;
+      while(scale_note>_period)(scale_note-=_period);
+      num_gens+=1;
+      insert_pos=-1;
+      while(scale_note>_scale_mem[insert_pos+=1]);
+      mem_insert_shuffle(_scale_mem+insert_pos, SCALE_MAX_LEN-insert_pos, scale_note);
+    );
+    chroma=get_chroma(_mos_size,period);
+);
+
+function scale_mode_rotate(track,_mos_size,_period,rotate)(
+  i=rotate%_mos_size;
+  j=1;
+  _scale_rot_mem[0]=0;
+  Loop(_mos_size-1,
+    next_i = i+1;
+    next_i %= _mos_size;
+    _scale_rot_mem[j] = _scale_mem[next_i]
+                      - _scale_mem[i]
+                      + _scale_rot_mem[j-1];
+    _scale_rot_mem[j] < 0 ? _scale_rot_mem[j]+=_period;
+    i+=1; j+=1;
+    i%=_mos_size;
+  );
+  memcpy(_scale_mem,_scale_rot_mem,_mos_size);
+);
+
+function print_scale_test(num_notes)(
+  #scale = "";
+  i = -1;
+  Loop(num_notes,
+    #scale+=sprintf(#,"%.3f ",_scale_mem[i+=1]);
+  );
+);
+
+function save_track_scale(track,track_idx,d_steps,period,generator,mode)(
+  GetSetMediaTrackInfo_String(track, "GUID", #GUID, 0);
+  #section="track_lane_tuning_";
+  #section+=#GUID;
+  sprintf(#scale_settings,"%i|%f|%f|%i|%f",d_steps,period,generator,mode,chroma);
+  SetProjExtState(0, #section, "vals", #scale_settings);
+);
+
+function load_track_scale(track,track_idx)(
+  GetSetMediaTrackInfo_String(track, "GUID", #GUID, 0);
+  #section="track_lane_tuning_";
+  #section+=#GUID;
+  GetProjExtState(0, #section, "vals", #scale_settings);
+  match("%i|%f|%f|%i|%f",#scale_settings,d_steps,period,generator,mode,chroma);
+);
+
+function frame() (
+  ImGui_TextWrapped(ctx, "Welcome to my scale dojo!");
+  ImGui_Spacing(ctx);
+
+  track = GetSelectedTrack(0, 0);
+  track_idx=GetMediaTrackInfo_Value(track, "IP_TRACKNUMBER")-1;
+
+  track ? (
+    GetTrackGUID(#guid, track);
+    ImGui_PushID(ctx, #guid);
+  ) : (
+    ImGui_BeginDisabled(ctx);
+  );
+  
+  !load_track_scale(track,track_idx) ? init_defaults();
+  
+    ImGui_Spacing(ctx);
+  ImGui_SliderInt(ctx, "diatonic steps", d_steps, 1, 15);
+    ImGui_Spacing(ctx);
+  ImGui_SliderDouble(ctx, "period", period, 0, 1902, "%.3f");
+    ImGui_Spacing(ctx);
+  ImGui_SliderDouble(ctx, "generator", generator, 0, period/2, "%.3f");
+    ImGui_Spacing(ctx);
+  ImGui_SliderInt(ctx, "mode", mode, 0, d_steps-1);
+    ImGui_Spacing(ctx);
+
+  RankTwoScale(d_steps,period,generator);
+  scale_mode_rotate(track,d_steps,period,mode);
+  save_track_scale(track,track_idx,d_steps,period,generator,mode);
+  print_scale_test(d_steps);
+  LaneNamesLetter(track,track_idx,d_steps,'C','C',4,period);
+
+  ImGui_InputTextMultiline(ctx, "track notes", #scale, 0, -FLT_MIN);
+
+  track ? ImGui_PopID(ctx) : ImGui_EndDisabled(ctx);
+);
+
+function loop() (
+  open = 1;
+  ImGui_PushFont(ctx, font);
+  ImGui_SetNextWindowSize(ctx, 500, 420, ImGui_Cond_FirstUseEver());
+  ImGui_Begin(ctx, "Rank-2 Scale Selector", open) ? ( frame(); ImGui_PopFont(ctx); ImGui_End(ctx); );
+  open ? defer("loop()")
+);
+
+defer("loop()");
+

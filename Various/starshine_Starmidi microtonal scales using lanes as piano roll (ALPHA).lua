@@ -1,0 +1,32 @@
+-- @description Starmidi: microtonal scales using lanes as "piano roll" (ALPHA)
+-- @author Starshine
+-- @version 0.1alpha
+-- @changelog initial alpha upload
+-- @metapackage
+-- @provides
+--   [effect] starshine_Starmidi microtonal scales using lanes as piano roll (ALPHA)/starmidi
+--   starshine_Starmidi microtonal scales using lanes as piano roll (ALPHA)/starmicro midi.eel
+--   [main] starshine_Starmidi microtonal scales using lanes as piano roll (ALPHA)/scale picker lane setter.eel
+--   [main] starshine_Starmidi microtonal scales using lanes as piano roll (ALPHA)/flatten.eel
+--   [main] starshine_Starmidi microtonal scales using lanes as piano roll (ALPHA)/sharpen.eel
+-- @about
+--   These scripts and JSFX work in conjunction to do the following:
+--
+--   -Generate a rank-2 microtonal scale for a given track. The notes (in cents) are applied to lane names and saved to the project EXT state.
+--   -Parse empty MIDI objects drawn in lanes on that track into MIDI-like data, saved in gmem
+--   -Playback the notes using dynamically assigned channels and pitchbend
+--
+--   The following setup instructions are needed:
+--
+--   1. Actions > New Action > Load ReaScript. Select "starmicro midi.eel"
+--   2. Create a custom action that runs this script, then does transport: play/stop. Assign it to your play hotkey or similar.
+--   3. Preferences > Mouse Modifiers > Track, left drag > [Default action]: "Draw an empty MIDI item". You may wish to assign this to use a key modifier to avoid disrupting your normal track+left-dag action. Empty MIDI items function as "notes" in this workflow (you will not use the regular MIDI editor ever with this)
+--   4. Actions > New Action > Load ReaScript. Select "flatten.eel", "sharpen.eel", and "scale picker lane setter.eel". Bind "flatten" and "sharpen" to hokeys of your choice, or the mouse wheel. Consider adding the scale picker script to the toolbar, or a hotkey of your choice.
+--   5. Make sure that "starmidi", the jsfx, is in the Reaper/Effects folder. (By default, I believe it will appear in a subfolder). This will allow the main on-play ReaScript to detect and automatically add it to your tracks and set its parameter appropriately. This is admittedly clunky and may be updated in the future for convenience.
+--   6. It is recommended to create actions in the toolbar or on hotkey to add/remove lanes to a track. "Track lanes: insert empty lane at top of track". Tracks must have at least 5 lanes to be parsed for playback. Each lane represents one "white key" note in the given microtonal scale. Between 10-50 lanes may be desired depending on the range of the part you are composing.
+--   7. Add a synth/sampler plugin to each track and make sure the pitch bend range is set to 2. Do not enable MPE.
+--   8. If the synth is not polyphonic, add multiple instances and set to receive MIDI on separate channels
+--   9. Write some crazy microtonal tunes!
+--
+--   Contact me on Discord (Starshine777) with bug reports and questions.
+

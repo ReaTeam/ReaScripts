@@ -1,0 +1,15 @@
+// @noindex
+
+// helper script for starmidi tools
+// modifies item title by adding or removing # or b symbols
+
+GetMousePosition(x,y);
+GetItemFromPoint(x,y,0,take);
+GetSetMediaItemTakeInfo_String(take, "P_NAME", #text, 0);
+//todo: check if item is midi
+
+(len=strlen(#text))==0 ?            #text ="b"  : //case 1: empty. just add a b
+  match("*b*",#text)   ?            #text+="b"  : //case 2: has one or more b. add another
+  match("*#*",#text)   ? str_setlen(#text,len-1); //case 3: has one or more #. remove one.
+
+GetSetMediaItemTakeInfo_String(take, "P_NAME", #text, 1);
