@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="56823e5ed1aa36bc430586690a192e63182d0db5" name="ReaTeam Scripts">
+<index version="1" commit="84d40f0ddb894f38e537ce02002f6fda09686f19" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -5047,6 +5047,11 @@ BugFix
         <changelog><![CDATA[- updated to reaImgui 0.9
 - multiple code improvements]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d036575995741bce60997a0765f8d7ea93ad79be/Items%20Editing/80icio_Perfect%20Timing!%20-%20Audio%20Quantizer.lua</source>
+      </version>
+      <version name="0.26" author="80icio" time="2024-05-20T00:57:09Z">
+        <changelog><![CDATA[- Unlocked 1 bar, 1/2 bar Grid and relative triplets Divisions
+- Changed layout for Visualizer zoom bounds reference on tracks on Main window]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/84d40f0ddb894f38e537ce02002f6fda09686f19/Items%20Editing/80icio_Perfect%20Timing!%20-%20Audio%20Quantizer.lua</source>
       </version>
     </reapack>
     <reapack name="Add project markers as cue points to selected items and replace source files.lua" type="script" desc="amagalma_Add project markers as cue points to selected items and replace source files">
@@ -18515,17 +18520,19 @@ is off-screen. Reaper issue, should be fixed soon.]]></changelog>
         <source main="main" file="gus-lan_Select folder tracks of depth 5.lua">https://github.com/ReaTeam/ReaScripts/raw/a7051704a53985b8ca279c6075768ba8602769b7/Tracks/gus-lan_Select%20folder%20tracks%20of%20depth%20X.lua</source>
       </version>
     </reapack>
-    <reapack name="kaddaok_Import UVR separations into comping lane structure.lua" type="script" desc="Import UVR separations into comping lane structure">
+    <reapack name="kaddaok_Import UVR separations into comping lane structure.lua" type="script" desc="Import UVR or X-Minus separations into comping lane structure">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Import UVR Separations Into Comping Lanes\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 This script sets up for comping instrumental and/or vocal stems separated using Ultimate Vocal Remover (with the intent of mastering an instrumental & background-vocal version for use in karaoke, but could probably be useful in other scenarios as well).\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This script sets up for comping instrumental and/or vocal stems separated using Ultimate Vocal Remover or X-Minus (with the intent of mastering an instrumental & background-vocal version for use in karaoke, but could probably be useful in other scenarios as well).\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 It is recommended to be bound to a toolbar button.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 The script prompts for the .FLAC file of the original recording. It assumes the separated stems are present as .FLAC files beside that file in the same folder, and that they were generated using the {\f1 Model Test Mode} checkbox in UVR to provide the applied model name as part of the filename.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 It considers any files ending in {\f1 (Vocals).flac} to be vocal stems, and any ending in {\f1 (Instrumental).flac} to be instrumental stems, with the exception of any that also have the string {\f1 (Vocals)} earlier in the filename, which it interprets as likely being a two-step separation to obtain only background vocals on their own stem.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The script prompts for the .FLAC file of the original recording. It assumes that:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab The separated stems are present as .FLAC files either beside that file in the same folder or in subfolders below that folder, and that\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Their filenames contain their model names, in whatever parts are neither the original's name nor a parenthesized description of which stem they are. (In UVR, this is achieved by checking the {\f1 Model Test Mode} checkbox).\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 It considers any filenames containing {\f1 (Vocals)} to be vocal stems, and any containing {\f1 (*Instrumental*)} to be instrumental stems, with the exception of any that also have the string {\f1 (Vocals)} earlier in the filename, which it interprets as likely being a two-step separation to obtain only background vocals on their own stem.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 It creates three tracks:\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab An {\f1 Original} track, with the original file on it, which is muted. This is for reference.\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab An {\f1 Instruments} track, with each {\f1 (Instrumental)} file on it in its own fixed lane for comping.\par}
@@ -18539,6 +18546,12 @@ is off-screen. Reaper issue, should be fixed soon.]]></changelog>
       </metadata>
       <version name="0.1" author="Kadda OK" time="2024-04-15T11:38:30Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/485f3afbc0c1762fbd6c1ae50363c6b01f99bf2d/Tracks/kaddaok_Import%20UVR%20separations%20into%20comping%20lane%20structure.lua</source>
+      </version>
+      <version name="0.2" author="Kadda OK" time="2024-05-20T00:56:32Z">
+        <changelog><![CDATA[- Now includes files in folders below the original FLAC's path as well as beside it.
+- Item name parsing now compatible with stems downloaded from X-Minus
+- Friendly item name for Mel-Roformer model from May 2024 UVR patch]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/9a9e73d39709e6dd0fcff89840e03ffb54734edd/Tracks/kaddaok_Import%20UVR%20separations%20into%20comping%20lane%20structure.lua</source>
       </version>
     </reapack>
     <reapack name="tilr_Keyboard splitter.lua" type="script" desc="Keyboard splitter">
