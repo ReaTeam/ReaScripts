@@ -1,10 +1,9 @@
 -- @description ReaKS - Keyswitch Articulation Manager
 -- @author Ugurcan Orcun
--- @version 1.1.5
+-- @version 1.2.0
 -- @changelog 
---  - KS offset fixes
---  - Added a basic MIDI Toolkit
---  - Key mod check fix
+--  - Added Ctrl (Preview) / Shift (Bypass Smart) / Alt (Delete Active KS) modifiers to KS Buttons
+--  - Added Help section
 -- @links
 --   Forum Thread https://forum.cockos.com/showthread.php?t=288344
 --   Tutorials https://www.youtube.com/watch?v=lP9hRw_j0PY&list=PLJ5Z3ZQ-oB-yXcsq3MXi94QhYVcnlkhVy
@@ -12,6 +11,7 @@
 -- @about 
 --  A small MIDI Editor tool for auto-inserting KeySwitch midi notes and managing note/cc names.
 --  Find more info and example note name files at the forum thread.
+
 if not reaper.ImGui_GetBuiltinPath then
     return reaper.MB('ReaImGui is not installed or too old.', 'ReaKS', 0)
 end
@@ -61,6 +61,7 @@ ActiveTrackColor = 0xFFFFFFFF
 Setting_AutoupdateTextEvent = true
 Setting_ItemsPerColumn = 10
 Setting_PPQOffset = -1
+Setting_SendNoteWhenClicked = false
 
 Modal_Settings = false
 Modal_NoteNameHelper = false
@@ -74,6 +75,7 @@ function SaveSettings()
     reaper.SetExtState("ReaKS", "Setting_AutoupdateTextEvent", tostring(Setting_AutoupdateTextEvent), true)
     reaper.SetExtState("ReaKS", "Setting_ItemsPerColumn", tostring(Setting_ItemsPerColumn), true)
     reaper.SetExtState("ReaKS", "Setting_PPQOffset", tostring(Setting_PPQOffset), true)
+    reaper.SetExtState("ReaKS", "Setting_SendNoteWhenClicked", tostring(Setting_SendNoteWhenClicked), true)
 end
 
 function LoadSettings()
@@ -86,6 +88,9 @@ function LoadSettings()
 
     val = reaper.GetExtState("ReaKS", "Setting_PPQOffset")
     if val ~= "" then Setting_PPQOffset = tonumber(val) end
+
+    val = reaper.GetExtState("ReaKS", "Setting_SendNoteWhenClicked")
+    if val ~= "" then Setting_SendNoteWhenClicked = val == "true" end
 end
 
 function UpdateActiveTargets()
@@ -271,6 +276,22 @@ function InsertKS(noteNumber, isShiftHeld)
     reaper.MIDI_Sort(ActiveTake)    
 end
 
+function SendMIDINote(noteNumber)
+    --send a MIDI note to the virtual MIDI keyboard
+    reaper.StuffMIDIMessage(0, 0x90, noteNumber, 100)
+
+    --send note off
+    reaper.StuffMIDIMessage(0, 0x80, noteNumber, 0)
+end
+
+function RemoveKS(noteNumber)
+    if ActiveTake == nil then return end
+
+    if ActivatedKS[noteNumber] ~= nil then
+        reaper.MIDI_DeleteNote(ActiveTake, ActivatedKS[noteNumber])
+    end    
+end
+
 function LengthenSelectedNotes(toLeft)
     if ActiveTake == nil then return end
 
@@ -364,7 +385,6 @@ ImGui.Attach(ctx, Font)
 ImGui.Attach(ctx, FontTitle)
 
 local function loop()
-
     StylingStart(ctx)
 
     local visible, open = ImGui.Begin(ctx, 'ReaKS', true)
@@ -389,6 +409,8 @@ local function loop()
         if ImGui.Button(ctx, "Inject") then ImGui.OpenPopup(ctx, "Note Name Injector") end
         ImGui.SameLine(ctx)
         if ImGui.Button(ctx, "Settings") then ImGui.OpenPopup(ctx, "Settings") end
+        ImGui.SameLine(ctx)
+        if ImGui.Button(ctx, "Help") then ImGui.OpenPopup(ctx, "Help") end
         ImGui.EndGroup(ctx)
 
         --TODO Make the settings modal
@@ -400,7 +422,13 @@ local function loop()
                 SaveSettings()
             end
             if ImGui.IsItemHovered(ctx) then ImGui.SetTooltip(ctx, "Automatically inserts text events for articulations that's visible on Arrange view. Use [Refresh] button after manual edits to update visuals.") end
-            
+
+            if ImGui.Checkbox(ctx, "Send MIDI Note", Setting_SendNoteWhenClicked) then 
+                Setting_SendNoteWhenClicked = not Setting_SendNoteWhenClicked 
+                SaveSettings()
+            end
+            if ImGui.IsItemHovered(ctx) then ImGui.SetTooltip(ctx, "Send a MIDI message when the KS button clicked. Good for previewing keyswitches.") end
+
             _, val = ImGui.SliderInt(ctx, "KS per Column", Setting_ItemsPerColumn, 1, 100)
             if val ~= Setting_ItemsPerColumn then
                 Setting_ItemsPerColumn = val
@@ -414,15 +442,29 @@ local function loop()
                 SaveSettings()
             end
             if ImGui.IsItemHovered(ctx) then ImGui.SetTooltip(ctx, "Negative offset for inserted KS note. Helps with triggering KS just before the note. Default is -1.") end
-            
-            ImGui.Separator(ctx)
+
+            ImGui.EndPopup(ctx)
+        end
+
+        if ImGui.BeginPopupModal(ctx, "Help", true) then
+            ImGui.SeparatorText(ctx, "ReaKS - Key Switcher for REAPER")
+            ImGui.Text(ctx, "Developed by Ugurcan Orcun (Kabraxis)")
+            ImGui.Text(ctx, "Special thanks to cfillon for the ReaImGui library.")
+            ImGui.Text(ctx, "This script is free to use and modify.")
+
+            ImGui.SeparatorText(ctx, "How to Use")
+            ImGui.Text(ctx, "Click: Smart Insert KS note at the selected notes or at playhead position (grid size)")
+            ImGui.Text(ctx, "Shift-Click: Bypass Smart Insertion")
+            ImGui.Text(ctx, "Alt-Click: Remove KS Note")
+            ImGui.Text(ctx, "Ctrl-Click: Preview KeySwitch")
+
+            ImGui.SeparatorText(ctx, "More Info")
+            ImGui.Text(ctx, "Please visit the forum thread for more information.")
             if ImGui.Button(ctx, ">>> More Info (Forum Thread)", 200) then reaper.CF_ShellExecute("https://forum.cockos.com/showthread.php?t=288344") end
+            ImGui.NewLine(ctx)
+            ImGui.Text(ctx, "You can download note names from the links below.")
             if ImGui.Button(ctx, ">>> Download Note Names", 200) then reaper.CF_ShellExecute("https://kabraxis.itch.io/reaks") end
             if ImGui.Button(ctx, ">>> Download Community Note Names", 200) then reaper.CF_ShellExecute("https://stash.reaper.fm/tag/Key-Maps") end
-
-            ImGui.Text(ctx, "Click: Smart Insert KS note at playhead position (grid size) or at the selected notes.")
-            ImGui.Text(ctx, "Shift-Click: Bypass Smart Insertion")
-
             ImGui.EndPopup(ctx)
         end
 
@@ -454,7 +496,17 @@ local function loop()
 
                         if ImGui.Button(ctx, articulation, 100) then
                             local isShiftHeld = ImGui.GetKeyMods(ctx) == ImGui.Mod_Shift
-                            InsertKS(i, isShiftHeld)
+                            local isCtrlHeld = ImGui.GetKeyMods(ctx) == ImGui.Mod_Ctrl
+                            local isAltHeld = ImGui.GetKeyMods(ctx) == ImGui.Mod_Alt
+                            
+                            if isCtrlHeld then 
+                                SendMIDINote(i)
+                            elseif isAltHeld then
+                                RemoveKS(i)
+                            else
+                                InsertKS(i, isShiftHeld)                            
+                                if Setting_SendNoteWhenClicked then SendMIDINote(i) end                                
+                            end
                         end
 
                         if ActivatedKS[i] ~= nil then ImGui.PopStyleColor(ctx) end
@@ -507,7 +559,6 @@ local function loop()
                 if ImGui.IsItemHovered(ctx) then ImGui.SetTooltip(ctx, "Conform selected notes to grid") end
             end
         end
-
         ImGui.End(ctx)        
     end
 
