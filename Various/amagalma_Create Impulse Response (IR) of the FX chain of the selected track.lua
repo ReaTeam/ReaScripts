@@ -1,8 +1,8 @@
 -- @description Create Impulse Response (IR) of the FX Chain of the selected Track
 -- @author amagalma
--- @version 2.14
+-- @version 2.15
 -- @changelog
---   - Improvement when creating IRs from linear phase filters and trimming start and end
+--   - Fix loading IR into Reaverb
 -- @donation https://www.paypal.me/amagalma
 -- @link https://forum.cockos.com/showthread.php?t=234517
 -- @about
@@ -20,7 +20,7 @@
 
 -- Thanks to EUGEN27771, spk77, X-Raym, Lokasenna
 
-local version = "2.14"
+local version = "2.15"
 --------------------------------------------------------------------------------------------
 
 
@@ -60,14 +60,6 @@ local max_pre_ringing_samples_val = floor(samplerate/2) -- samples
 local pre_ringing_threshold = Trim_Silence_Below -- db
 local cur_pos = reaper.GetCursorPosition()
 
--- Check if Channel Tool exists in ReaVerb
-local pre637 = false
-do
-  local big, small = reaper.GetAppVersion():match("(%d+)%.(%d+)")
-  if tonumber(big) < 6 or tonumber(small) < 37 then
-    pre637 = true
-  end
-end
 
 --------------------------------------------------------------------------------------------
 
@@ -668,12 +660,10 @@ function CreateIR()
     -- click
     reaper.JS_WindowMessage_Post(addbutton, "WM_LBUTTONDOWN", 0x0001, 0, 10, 10)
     reaper.JS_WindowMessage_Post(addbutton, "WM_LBUTTONUP", 0x0000, 0, 10, 10)
-    -- two times down arrow
+    -- three times down arrow
     reaper.JS_WindowMessage_Post(addbutton, "WM_KEYDOWN", 0x28, 0, 0, 0)
     reaper.JS_WindowMessage_Post(addbutton, "WM_KEYDOWN", 0x28, 0, 0, 0)
-    if not pre637 then
-      reaper.JS_WindowMessage_Post(addbutton, "WM_KEYDOWN", 0x28, 0, 0, 0)
-    end
+    reaper.JS_WindowMessage_Post(addbutton, "WM_KEYDOWN", 0x28, 0, 0, 0)
     -- return
     reaper.JS_WindowMessage_Post(addbutton, "WM_KEYDOWN", 0x0D, 0, 0, 0)
     local start = reaper.time_precise()
