@@ -1,12 +1,11 @@
-// @description Mini Song Switcher
+// @description Mini song switcher
 // @author mschnell
 // @version 1.0
 // @changelog Initial Release
-// @provides . > mschnell_Song Switcher.eel
 // @about
 //   # Mini Song Switcher
 //    ## Description
-//      The mschnell_Song Switcher is inspired by the cfillion_Song Switcher.
+//      The mschnell_Mini song switcher is inspired by the cfillion_Song switcher.
 //      It is a lot less versatile and only features a single script and no GUI
 //      Other than the cfillion_Song Switcher is does not work on the foreground Project (Tab) but on the first project (Tab) that holds a project with the string _song_ in it's name.
 //      If such is not found, it works on the foreground poject (Tab). Don't forget to enable  all three background project playing options !
