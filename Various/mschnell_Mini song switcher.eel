@@ -3,13 +3,13 @@
 // @version 1.0
 // @changelog Initial Release
 // @about
-//   # Mini Song Switcher
+//   # Mini Song switcher
 //    ## Description
 //      The mschnell_Mini song switcher is inspired by the cfillion_Song switcher.
 //      It is a lot less versatile and only features a single script and no GUI
-//      Other than the cfillion_Song Switcher is does not work on the foreground Project (Tab) but on the first project (Tab) that holds a project with the string _song_ in it's name.
+//      Other than the cfillion_Song switcher is does not work on the foreground Project (Tab) but on the first project (Tab) that holds a project with the string _song_ in it's name.
 //      If such is not found, it works on the foreground poject (Tab). Don't forget to enable  all three background project playing options !
-//      It uses the same track structure as the cfillion_Song Switcher (Description see there)
+//      It uses the same track structure as the cfillion_Song switcher (Description see there)
 //      When a CC action is received, it unmutes the track named according to the CC value (e.g. 1. XYZ or 23. Hello)
 //      It then start playback (from the location of the play cursor) 
 //      When a value of 0 is found or no appropriate track is fond the playback is stopped.
