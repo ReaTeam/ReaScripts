@@ -1,10 +1,12 @@
 -- @description Snapshooter
 -- @author tilr
--- @version 1.2
+-- @version 1.3
 -- @changelog
---   Allow snapshot renaming
---   Added control for custom tween duration
---   Window now recalls position
+--   Increate number of snapshots to 120
+--   Add snapshot pagination
+--   Fix initial vol/pan/mute write if envelopes have not been created yet
+--   Write all parameters function
+--   Last applied snapshot indicator
 -- @provides
 --   tilr_Snapshooter/rtk.lua
 --   [main] tilr_Snapshooter/tilr_Snapshooter apply snap 1.lua
@@ -19,11 +21,11 @@
 --   [main] tilr_Snapshooter/tilr_Snapshooter write snap 2.lua
 --   [main] tilr_Snapshooter/tilr_Snapshooter write snap 3.lua
 --   [main] tilr_Snapshooter/tilr_Snapshooter write snap 4.lua
--- @screenshot https://raw.githubusercontent.com/tiagolr/snapshooter/master/doc/snapshooter.gif
+-- @screenshot https://raw.githubusercontent.com/tiagolr/reaper_scripts/master/doc/snapshooter.gif
 -- @about
 --   # Snapshooter
 --
---   https://github.com/tiagolr/snapshooter
+--   https://github.com/tiagolr/reaper_scripts
 --
 --   Snapshooter allows to create param snapshots and recall or write them to the playlist creating patch morphs.
 --   Different from SWS snapshots, only the params changed are written to the playlist as automation points.
@@ -33,14 +35,14 @@
 --     * Stores and retrieves mixer states for track Volume, Pan, Mute and Sends
 --     * Writes only changed params by diffing the current state and selected snapshot
 --     * Transition snapshots using tween and ease functions
---     * Tested with hundreds of params with minimal overhead
 --     * Writes transitions into time selection from current state to snapshot
 --
 --   Tips:
---     * Set global automation to _READ_ to save current song snapshot
---     * Set global automation to other value than _READ_ to save snapshots from mixer state
+--     * Grab time selections and click write to write transitions into timeline
+--     * Set global automation to READ to write snapshot from current state
+--     * Use global automation BYPASS to write transitions when automation already exists on the playlist
+--     * Snapshots can be written directly into cursor when there is no time selection
 --     * If params are not writing make sure they have a different current value from the snapshot
---     * Use time selections to write transitions into playlist
 
 function log(t)
   reaper.ShowConsoleMsg(t .. '\n')
@@ -61,6 +63,8 @@ globals = {
   ui_checkbox_mute = true,
   ui_checkbox_sends = true,
   ui_checkbox_fx = true,
+  ui_page_index = 1,
+  ui_last_applied = -1, -- last applied snapshot
   write_transition = true,
   preserve_edges = false,
   invert_transition = false,
@@ -88,6 +92,10 @@ local exists, sends = reaper.GetProjExtState(0, 'snapshooter', 'ui_checkbox_send
 if exists ~= 0 then globals.ui_checkbox_sends = sends == 'true' end
 local exists, fx = reaper.GetProjExtState(0, 'snapshooter', 'ui_checkbox_fx')
 if exists ~= 0 then globals.ui_checkbox_fx = fx == 'true' end
+local exists, index = reaper.GetProjExtState(0, 'snapshooter', 'ui_page_index')
+if exists ~= 0 then globals.ui_page_index = tonumber(index) end
+local exists, sindex = reaper.GetProjExtState(0, 'snapshooter', 'ui_last_applied')
+if exists ~= 0 then globals.ui_last_applied = tonumber(sindex) end
 local exists, edges = reaper.GetProjExtState(0, 'snapshooter', 'preserve_edges')
 if exists ~= 0 then globals.preserve_edges = edges == 'true' end
 local exists, tween = reaper.GetProjExtState(0, 'snapshooter', 'ui_tween_menu')
@@ -186,7 +194,7 @@ function insertSendEnvelopePoint(track, key, cnt, value, type, shape, tension)
   for send = 0, reaper.GetTrackNumSends(track, 0) do
     local src = reaper.GetTrackSendInfo_Value(track, 0, send, 'P_SRCTRACK')
     local dst = reaper.GetTrackSendInfo_Value(track, 0, send, 'P_DESTTRACK')
-    if tostring(src)..tostring(dst) == key then
+    if tostring(src)..tostring(dst) == key and key ~= '0.00.0' then
       count = count + 1
       if count == cnt then
         local envelope = reaper.GetTrackSendInfo_Value(track, 0, send, 'P_ENV:<'..type)
@@ -410,8 +418,6 @@ function clearEnvelopesAndAddStartingPoint(diff, starttime, endtime)
             param == 'Pan' and globals.ui_checkbox_pan or
             param == 'Mute' and globals.ui_checkbox_mute
           then
-            showTrackEnvelopes(track, param)
-            env = reaper.GetTrackEnvelopeByName(track, param)
             if param == 'Volume' then
               _, value, _ = reaper.GetTrackUIVolPan(track)
             elseif param == 'Pan' then
@@ -423,6 +429,8 @@ function clearEnvelopesAndAddStartingPoint(diff, starttime, endtime)
               else value = 1
               end
             end
+            showTrackEnvelopes(track, param)
+            env = reaper.GetTrackEnvelopeByName(track, param)
             local scaling = reaper.GetEnvelopeScalingMode(env)
             reaper.DeleteEnvelopePointRange(env, _starttime, _endtime)
             reaper.InsertEnvelopePoint(env, starttime, reaper.ScaleToEnvelopeMode(scaling, value), points_shape, points_tension, true)
@@ -579,6 +587,12 @@ function parse(snapstr)
   return lines
 end
 
+function write_all_params ()
+  local snap = makesnap()
+  snap = parse(stringify(snap)) -- normalize/stringify
+  applydiff(snap, true, false)
+end
+
 --------------------------------------------------------------------------------
 -- Tween
 --------------------------------------------------------------------------------
@@ -645,22 +659,35 @@ end
 -- UI
 --------------------------------------------------------------------------------
 
+ui_nsnaps = 12
 ui_snaprows = {}
+ui_page_text = nil
+
 function ui_refresh_buttons()
   for i, row in ipairs(ui_snaprows) do
-    hassnap = reaper.GetProjExtState(0, 'snapshooter', 'snap'..i) ~= 0
+    local nsnap = i + (globals.ui_page_index - 1) * ui_nsnaps
+    local lapplied = globals.ui_last_applied == nsnap
+    hassnap = reaper.GetProjExtState(0, 'snapshooter', 'snap'..nsnap) ~= 0
     row.children[1][1]:attr('color', hassnap and 0x99BD13 or 0x999999) -- savebtn
     row.children[2][1]:attr('textcolor', hassnap and 0xffffff or 0x777777) -- savetxt
     row.children[3][1]:attr('color', hassnap and 0x999999 or 0x555555) -- applybtn
-    row.children[4][1]:attr('color', hassnap and 0xffffff or 0x777777) -- applytxt
+    row.children[4][1]:attr('color', hassnap and (lapplied and 0x99bd13 or 0xffffff) or 0x777777) -- applytxt
     row.children[5][1]:attr('color', hassnap and 0x999999 or 0x555555) -- writebtn
     row.children[6][1]:attr('color', hassnap and 0xffffff or 0x777777) -- writetxt
     row.children[7][1]:attr('color', hassnap and 0x999999 or 0x555555) -- delbtn
     row.children[8][1]:attr('color', hassnap and 0xffffff or 0x777777) -- deltxt
 
-    _, snapname = reaper.GetProjExtState(0, 'snapshooter', 'snapname'..i)
-    row.children[2][1]:attr('value', hassnap and snapname or 'Empty')
+    _, snapname = reaper.GetProjExtState(0, 'snapshooter', 'snapname'..nsnap)
+    row.children[2][1]:attr('value', hassnap and snapname or 'Slot '..nsnap)
+
+    ui_page_text:attr('text', 'Page '..string.format("%02d", globals.ui_page_index))
   end
+end
+
+function set_page(i)
+  reaper.SetProjExtState(0, 'snapshooter', 'ui_page_index', tostring(i))
+  globals.ui_page_index = i
+  ui_refresh_buttons()
 end
 
 function ui_start()
@@ -686,36 +713,59 @@ function ui_start()
   toolbar:add(rtk.Heading{'Snapshooter'})
   toolbar:add(rtk.Box.FLEXSPACE)
 
+  -- local row = box:add(rtk.HBox{tmargin=10, spacing=0})
+  local button = toolbar:add(rtk.Button{'«', flat=true, textcolor2='#999999'})
+  button.onclick = function () set_page(1) end
+  local button = toolbar:add(rtk.Button{'<', flat=true, textcolor2='#999999'})
+  button.onclick = function () set_page(math.max(1, globals.ui_page_index - 1)) end
+  ui_page_text = toolbar:add(rtk.Text{'Page 01', tmargin=6, w=70, halign='center', color='#999999'})
+  local button = toolbar:add(rtk.Button{'>', flat=true, textcolor2='#999999'})
+  button.onclick = function () set_page(math.min(10, globals.ui_page_index + 1)) end
+  local button = toolbar:add(rtk.Button{'»', flat=true, textcolor2='#999999'})
+  button.onclick = function () set_page(10) end
+
   -- box:add(rtk.Heading{'Snapshooter', tmargin=-30, bmargin=10})
 
-  for i = 1, 12 do
+  for i = 1, ui_nsnaps do
     local row = box:add(rtk.HBox{bmargin=5})
     local button = row:add(rtk.Button{circular=true})
     local inputtext = row:add(rtk.Entry{value='Empty', w=230, bmargin=-5, tmargin=-2, lmargin=10, lpadding=0, bg=0x333333, border_hover='#333333', border_focused='#333333'})
     inputtext.onchange = function (self)
-      hassnap = reaper.GetProjExtState(0, 'snapshooter', 'snap'..i) ~= 0
+      local nsnap = i + (globals.ui_page_index - 1) * ui_nsnaps
+      local hassnap = reaper.GetProjExtState(0, 'snapshooter', 'snap'..nsnap) ~= 0
       if hassnap then
-        reaper.SetProjExtState(0, 'snapshooter', 'snapname'..i, self.value)
+        reaper.SetProjExtState(0, 'snapshooter', 'snapname'..nsnap, self.value)
       end
     end
     button.onclick = function ()
-      savesnap(i)
+      local nsnap = i + (globals.ui_page_index - 1) * ui_nsnaps
+      savesnap(nsnap)
       ui_refresh_buttons()
     end
     local button = row:add(rtk.Button{circular=true, lmargin=5})
     local text = row:add(rtk.Text{'Apply ', lmargin=5})
     button.onclick = function ()
-      applysnap(i, false)
+      local nsnap = i + (globals.ui_page_index - 1) * ui_nsnaps
+      applysnap(nsnap, false)
+      globals.ui_last_applied = nsnap
+      reaper.SetProjExtState(0, 'snapshooter', 'ui_last_applied', tostring(nsnap))
+      ui_refresh_buttons()
     end
     local button = row:add(rtk.Button{circular=true, lmargin=5})
     local text = row:add(rtk.Text{'Write ', lmargin=5})
     button.onclick = function ()
-      applysnap(i, true)
+      local nsnap = i + (globals.ui_page_index - 1) * ui_nsnaps
+      applysnap(nsnap, true)
     end
     local button = row:add(rtk.Button{circular=true, lmargin=5})
-    local text = row:add(rtk.Text{'Del ', lmargin=5, lmargin=5})
+    local text = row:add(rtk.Text{'Del ', lmargin=5})
     button.onclick = function()
-      clearsnap(i)
+      local nsnap = i + (globals.ui_page_index - 1) * ui_nsnaps
+      clearsnap(nsnap)
+      if globals.ui_last_applied == nsnap then
+        reaper.SetProjExtState(0, 'snapshooter', 'ui_last_applied', tostring(-1))
+        globals.ui_last_applied = -1
+      end
       ui_refresh_buttons()
     end
     table.insert(ui_snaprows, row)
@@ -777,6 +827,9 @@ function ui_start()
   -- Transition controls
   row = box:add(rtk.HBox{tmargin=10, bmargin=10})
   row:add(rtk.Text{'Write settings', color=0x777777})
+  row:add(rtk.Box.FLEXSPACE)
+  local button = row:add(rtk.Button{'Write all params', bmargin=-50, tmargin=-5, flat=true, textcolor2='#999999'})
+  button.onclick = write_all_params
   row = box:add(rtk.HBox{tmargin=5, spacing=10})
 
   local ui_checkbox_preserve_edges = row:add(rtk.CheckBox{'Preserve edges'})
