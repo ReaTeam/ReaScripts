@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="aaf2ae393ccf3b305c894b7784346f7ff8d888ec" name="ReaTeam Scripts">
+<index version="1" commit="e4b49f01ef139ffa574a739f80792bf537cce37a" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -24825,6 +24825,30 @@ Will work with ReaScript and custom action IDs now]]></changelog>
       </metadata>
       <version name="1.0" author="Meo-Ada Mespotine" time="2020-04-07T18:39:20Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d504a759d160ae55efcf8e6ce0be82fff5cd68cf/Various/mespotine_Show%20item%20name%20as%20tooltip.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mschnell_Mini song switcher.eel" type="script" desc="Mini song switcher">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Mini Song switcher\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Description\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The mschnell_Mini song switcher is inspired by the cfillion_Song switcher.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 It is a lot less versatile and only features a single script and no GUI\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Other than the cfillion_Song switcher is does not work on the foreground Project (Tab) but on the first project (Tab) that holds a project with the string {\i song} in it's name.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 If such is not found, it works on the foreground poject (Tab). Don't forget to enable all three background project playing options !\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 It uses the same track structure as the cfillion_Song switcher (Description see there)\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 When a CC action is received, it unmutes the track named according to the CC value (e.g. 1. XYZ or 23. Hello)\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 It then start playback (from the location of the play cursor)\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 When a value of 0 is given or no appropriately named track is found, the playback is stopped.\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="mschnell" time="2024-06-05T20:36:38Z">
+        <changelog><![CDATA[Initial Release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e4b49f01ef139ffa574a739f80792bf537cce37a/Various/mschnell_Mini%20song%20switcher.eel</source>
       </version>
     </reapack>
     <reapack name="mschnell_Mute Track X.eel" type="script" desc="Mute or unmute track X (MIDI CC/OSC only)">
