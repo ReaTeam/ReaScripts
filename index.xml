@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="e4b49f01ef139ffa574a739f80792bf537cce37a" name="ReaTeam Scripts">
+<index version="1" commit="e621560f7b1618d06b047a21f8195f46e292aef7" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -24837,7 +24837,7 @@ Will work with ReaScript and custom action IDs now]]></changelog>
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Description\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 The mschnell_Mini song switcher is inspired by the cfillion_Song switcher.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 It is a lot less versatile and only features a single script and no GUI\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Other than the cfillion_Song switcher is does not work on the foreground Project (Tab) but on the first project (Tab) that holds a project with the string {\i song} in it's name.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Other than the cfillion_Song switcher is does not work on the foreground Project (Tab) but on the first project (Tab) that holds a project with the string {\f1 _song_} in it's name.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 If such is not found, it works on the foreground poject (Tab). Don't forget to enable all three background project playing options !\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 It uses the same track structure as the cfillion_Song switcher (Description see there)\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 When a CC action is received, it unmutes the track named according to the CC value (e.g. 1. XYZ or 23. Hello)\par}
@@ -24848,7 +24848,7 @@ Will work with ReaScript and custom action IDs now]]></changelog>
       </metadata>
       <version name="1.0" author="mschnell" time="2024-06-05T20:36:38Z">
         <changelog><![CDATA[Initial Release]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e4b49f01ef139ffa574a739f80792bf537cce37a/Various/mschnell_Mini%20song%20switcher.eel</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e621560f7b1618d06b047a21f8195f46e292aef7/Various/mschnell_Mini%20song%20switcher.eel</source>
       </version>
     </reapack>
     <reapack name="mschnell_Mute Track X.eel" type="script" desc="Mute or unmute track X (MIDI CC/OSC only)">
