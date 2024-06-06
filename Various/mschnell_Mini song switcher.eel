@@ -9,7 +9,7 @@
 //
 //      It is a lot less versatile and only features a single script and no GUI
 //
-//      Other than the cfillion_Song switcher is does not work on the foreground Project (Tab) but on the first project (Tab) that holds a project with the string _song_ in it's name.
+//      Other than the cfillion_Song switcher is does not work on the foreground Project (Tab) but on the first project (Tab) that holds a project with the string `_song_` in it's name.
 //
 //      If such is not found, it works on the foreground poject (Tab). Don't forget to enable  all three background project playing options !
 //
