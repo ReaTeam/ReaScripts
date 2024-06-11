@@ -60,6 +60,10 @@ local SettingDefs = {
 
   AllowKeyEventNavigation                                   = { type = "bool",    default = false },
 
+  Disarmed                                                  = { type = "bool",    default = false },
+  NoteHiglightingDuringPlay                                 = { type = "bool",    default = false },
+
+
   UseDebugger                                               = { type = "bool",    default = false },
 
   VelocityLimiterEnabled                                    = { type = "bool",    default = false },

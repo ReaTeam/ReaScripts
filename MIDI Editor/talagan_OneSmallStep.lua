@@ -1,6 +1,6 @@
 --[[
 @description One Small Step : Alternative Step Input
-@version 0.9.13
+@version 0.9.14
 @author Ben 'Talagan' Babut
 @license MIT
 @metapackage
@@ -47,6 +47,7 @@
   [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Set or remove operation marker.lua
   [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Set or remove playback marker.lua
   [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Playback.lua
+  [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Toggle armed.lua
   [nomain] talagan_OneSmallStep/actions/talagan_OneSmallStep Toggle Debugger.lua
   [nomain] talagan_OneSmallStep/classes/**/*.lua
   [nomain] talagan_OneSmallStep/images/*.lua
@@ -56,8 +57,8 @@
 @screenshot
   https://stash.reaper.fm/48269/oss_094.png
 @changelog
-  - [Bug Fix] [Write Mode] Commit back broken (thanks @samlletas !)
-  - [Bug Fix] [Insert Mode] Cut + Add does not support extending held notes (thanks @samlletas !)
+  - [Feature] Added note highlighting during play
+  - [Feature] Reintroduced "Disarm OSS" mechanism
 @about
   # Purpose
 
@@ -88,7 +89,7 @@
 
 --]]
 
-VERSION = "0.9.13"
+VERSION = "0.9.14"
 DOC_URL = "https://bentalagan.github.io/onesmallstep-doc/index.html?ver=" .. VERSION
 
 PATH    = debug.getinfo(1,"S").source:match[[^@?(.*[\/])[^\/]-$]]
@@ -419,23 +420,36 @@ function RecordBadge(track)
 
   reaper.ImGui_SetCursorPosY(ctx, reaper.ImGui_GetCursorPosY(ctx));
 
-  if (recarmed == 1) and not (S.getInputMode() == D.InputMode.None) and playState == 0 then
+  local tt = ""
+  if (recarmed == 1) and not (S.getSetting("Disarmed")) and not (S.getInputMode() == D.InputMode.None) and playState == 0 then
     local alpha = math.sin(reaper.time_precise()*4);
     local r1    = 200+math.floor(55 * alpha);
     local r2    = 120+math.floor(55 * alpha);
 
+    -- Glowing red
     reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_CheckMark(),      (r1 << 24) | 0x000000FF);
     reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_FrameBg(),        (r2 << 24) | 0x000000FF);
     reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_FrameBgActive(),  (r2 << 24) | 0x000000FF);
     reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_FrameBgHovered(), (r2 << 24) | 0x000000FF);
+
+    tt = "OSS is active. Click to disarm."
   else
+    -- Grey icon
     reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_CheckMark(),      0xCCCCCCFF);
     reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_FrameBg(),        0x808080FF);
     reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_FrameBgActive(),  0x808080FF);
     reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_FrameBgHovered(), 0x808080FF);
+    tt = "OSS is inactive."
+    if  S.getSetting("Disarmed") then
+      tt = tt .. " Click to rearm."
+    end
   end
 
   reaper.ImGui_RadioButton(ctx, '##', true);
+  if recarmed == 1 and playState == 0 and reaper.ImGui_IsItemClicked(ctx) then
+    S.setSetting("Disarmed", not S.getSetting("Disarmed"))
+  end
+  TT(tt)
   reaper.ImGui_PopStyleColor(ctx, 4);
 end
 
@@ -446,6 +460,8 @@ function RecordIssues(track)
   reaper.ImGui_SetCursorPosY(ctx, reaper.ImGui_GetCursorPosY(ctx));
   if not (recarmed == 1) then
     reaper.ImGui_TextColored(ctx, 0x808080FF, '[Track not armed]');
+  elseif S.getSetting("Disarmed") then
+    reaper.ImGui_TextColored(ctx, 0x808080FF, '[OSS is disarmed]');
   elseif S.getInputMode() == D.InputMode.None then
     reaper.ImGui_TextColored(ctx, 0x808080FF, '[Input Mode is OFF]');
   elseif not (playState == 0) then
@@ -768,10 +784,29 @@ local function PlaybackSetMarkerButton()
   TT("Sets/Moves/Removes the playback marker");
 end
 
+local function NoteHighlightingMiniBar()
+
+  reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacing(),       2, 4)
+  reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_ItemInnerSpacing(),  0, 0)
+
+  reaper.ImGui_PushID(ctx, "note_highlightingbutton");
+  reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_FramePadding(), 8, 4)
+
+  local setting = "NoteHiglightingDuringPlay"
+  local hon = S.getSetting(setting);
+  if ButtonGroupImageButton("note_highlighting", hon, {colorset="Snap"}) then
+    S.setSetting(setting, not hon);
+  end
+
+  TT("Highlight notes in MIDI editor during play")
+  reaper.ImGui_PopStyleVar(ctx,1)
+  reaper.ImGui_PopID(ctx)
+
+  SL()
+  reaper.ImGui_PopStyleVar(ctx, 2)
+end
 
 local function MagnetMiniBar()
-
-  local label   = "##snap"
 
   local snapElements = {
     { setting = "SnapNotes",        tt = "Note bounds"   , image = "note",    width = 7 },
@@ -1518,6 +1553,9 @@ local function UiLoop()
     local emode   = opmode.mode;
 
     SettingsMiniBar(); SL();
+    MiniBarSeparator(); SL();
+
+    NoteHighlightingMiniBar(); SL();
     MiniBarSeparator(); SL();
 
     InputModeMiniBar(); SL();

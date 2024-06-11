@@ -119,9 +119,28 @@ local function oneSmallStepState(track)
   }
 end
 
+local function lastPressedPitch(oss_state)
+  if oss_state == nil or #oss_state.pitches == 0 then
+    return -1
+  end
+
+  local pitch = oss_state.pitches[1].pitch
+  local ts    = oss_state.pitches[1].timestamp
+
+  for i = 1, #oss_state.pitches, 1 do
+    if oss_state.pitches[i].timestamp > ts then
+      ts = oss_state.pitches[i].timestamp
+      pitch = oss_state.pitches[i].pitch
+    end
+  end
+
+  return pitch
+end
+
 return {
   getOrInstallHelperFx  = getOrInstallHelperFx,
   removeHelperFx        = removeHelperFx,
   cleanupAllTrackFXs    = cleanupAllTrackFXs,
-  oneSmallStepState     = oneSmallStepState
+  oneSmallStepState     = oneSmallStepState,
+  lastPressedPitch      = lastPressedPitch
 }
