@@ -1,8 +1,8 @@
 -- @description Smart Crossfade
 -- @author amagalma
--- @version 1.61
+-- @version 1.70
 -- @changelog
---   - fix for adjacent items that belong to groups
+--   - support for fixed item lanes
 -- @link https://forum.cockos.com/showthread.php?t=195490
 -- @donation https://www.paypal.me/amagalma
 -- @about
@@ -68,40 +68,49 @@ local began_block = false
 
 for t = 0, track_cnt - 1 do
   local track = reaper.GetTrack(0, t)
-  local _, area = reaper.GetSetMediaTrackInfo_String(track, "P_RAZOREDITS", "", false)
-  if area ~= "" then
-    local areaS, areaE = area:match("(%S+) (%S+)")
-    areaS, areaE = tonumber(areaS), tonumber(areaE)
-    local item_cnt = reaper.CountTrackMediaItems(track)
-    local items = {}
-    local i = 0
-    local continue = true
-    while i ~= item_cnt do
-      local item = reaper.GetTrackMediaItem(track, i)
-      local Start = reaper.GetMediaItemInfo_Value(item, "D_POSITION")
-      local End = Start + reaper.GetMediaItemInfo_Value(item, "D_LENGTH")
-      if (Start >= areaS and Start < areaE) or 
-           (End >= areaS and Start < areaE) or
-          (Start <= areaS and End >= areaE) then
-        items[#items+1] = {item, Start, End}
+  local ok, area = reaper.GetSetMediaTrackInfo_String( track, "P_RAZOREDITS_EXT", "", false )
+  if ok and area ~= "" then
+    local areaS, areaE, env, lanetop, lanebtm = area:match("(%S+) (%S+) (%S+) (%S+) (%S+)")
+    areaS, areaE, lanetop, lanebtm = tonumber(areaS), tonumber(areaE), tonumber(lanetop), tonumber(lanebtm)
+    if env == '""' and areaS and areaE and lanetop and lanebtm then
+      lanetop = lanetop - 0.000001
+      lanebtm = lanebtm + 0.000001
+      local item_cnt = reaper.CountTrackMediaItems(track)
+      local items = {}
+      local i = 0
+      while i ~= item_cnt do
+        local item = reaper.GetTrackMediaItem(track, i)
+        local Start = reaper.GetMediaItemInfo_Value(item, "D_POSITION")
+        local End = Start + reaper.GetMediaItemInfo_Value(item, "D_LENGTH")
+        local item_top = reaper.GetMediaItemInfo_Value( item, "F_FREEMODE_Y" )
+        local item_btm = item_top + reaper.GetMediaItemInfo_Value( item, "F_FREEMODE_H" )
+        if (item_top >= lanetop and item_btm <= lanebtm) and
+           ( 
+            (Start >= areaS and Start < areaE) or 
+             (End >= areaS and Start < areaE) or
+            (Start <= areaS and End >= areaE)
+           )
+        then
+          items[#items+1] = {item, Start, End}
+        end
+        if Start >= areaE or #items > 2 then break end
+        i = i + 1
       end
-      if Start >= areaE or #items > 2 then break end
-      i = i + 1
-    end
-    if #items == 2 then
-      if not began_block then
-        reaper.Undo_BeginBlock()
-        reaper.PreventUIRefresh( 1 )
-        began_block = true
+      if #items == 2 then
+        if not began_block then
+          reaper.Undo_BeginBlock()
+          reaper.PreventUIRefresh( 1 )
+          began_block = true
+        end
+        tr = tr + 1
+        tracks_with_RE[tr] = track
+        reaper.BR_SetItemEdges( items[1][1], items[1][2], areaE )
+        reaper.SetMediaItemInfo_Value( items[1][1], "D_FADEOUTLEN_AUTO", areaE - areaS )
+        reaper.SetMediaItemInfo_Value(items[1][1], "C_FADEOUTSHAPE", xfadeshape)
+        reaper.BR_SetItemEdges( items[2][1], areaS, items[2][3] )
+        reaper.SetMediaItemInfo_Value( items[2][1], "D_FADEINLEN_AUTO", areaE - areaS )
+        reaper.SetMediaItemInfo_Value(items[2][1], "C_FADEINSHAPE", xfadeshape)
       end
-      tr = tr + 1
-      tracks_with_RE[tr] = track
-      reaper.BR_SetItemEdges( items[1][1], items[1][2], areaE )
-      reaper.SetMediaItemInfo_Value( items[1][1], "D_FADEOUTLEN_AUTO", areaE - areaS )
-      reaper.SetMediaItemInfo_Value(items[1][1], "C_FADEOUTSHAPE", xfadeshape)
-      reaper.BR_SetItemEdges( items[2][1], areaS, items[2][3] )
-      reaper.SetMediaItemInfo_Value( items[2][1], "D_FADEINLEN_AUTO", areaE - areaS )
-      reaper.SetMediaItemInfo_Value(items[2][1], "C_FADEINSHAPE", xfadeshape)
     end
   end
 end
@@ -129,10 +138,11 @@ local item_cnt = reaper.CountSelectedMediaItems(0)
 if item_cnt < 2 then return reaper.defer(function() end) end
 
 local abs = math.abs
+local categorized_item = {}
 local sel_item = {}
 local sel_start, sel_end = reaper.GetSet_LoopTimeRange(false, false, 0, 0, false)
 local change = false -- to be used for undo point creation
---local timeselexists
+local timeselexists
 
 local function eq( a, b ) -- equal
   return (abs( a - b ) < 0.00001)
@@ -193,103 +203,125 @@ if trimstate == 1 then
   reaper.Main_OnCommand(41121, 0) -- Options: Disable trim behind items when editing
 end
 
+
 -- Store Selected items
+local track_nr, prev_track = 0, 0
+
 for i = 1, item_cnt do
   local item = reaper.GetSelectedMediaItem(0, 0)
   sel_item[i] = item
+  local track = reaper.GetMediaItemTrack( item )
+  local lane = math.tointeger(reaper.GetMediaItemInfo_Value( item, "I_FIXEDLANE" )) + 1
+  if track ~= prev_track then
+    track_nr = track_nr + 1
+    prev_track = track
+    categorized_item[track_nr] = {}
+  end
+  if not categorized_item[track_nr][lane] then
+    categorized_item[track_nr][lane] = {n = 0}
+  end
+  categorized_item[track_nr][lane].n = categorized_item[track_nr][lane].n + 1
+  categorized_item[track_nr][lane][(categorized_item[track_nr][lane].n)] = item
   reaper.SetMediaItemSelected(item, false)
 end
 
-for i = 2, item_cnt do
-  local item = sel_item[i]
-  local prev_item = sel_item[i-1]
-  -- check if item and previous item are on the same track
-  if reaper.GetMediaItem_Track(item) == reaper.GetMediaItem_Track(prev_item) then
-    local second_start = reaper.GetMediaItemInfo_Value(item, "D_POSITION")
-    local second_end = second_start + reaper.GetMediaItemInfo_Value(item, "D_LENGTH")
-    local first_start = reaper.GetMediaItemInfo_Value(prev_item, "D_POSITION")
-    local first_end = first_start + reaper.GetMediaItemInfo_Value(prev_item, "D_LENGTH")
-    if first_end < second_start - xfadetime and (sel_start == sel_end or (first_end < sel_start and second_start > sel_end)) then
-      -- items do not touch and there is no time selection covering parts of both items
-      -- do nothing
-      Msg("not touch - gap greater than xfadetime")
-    --[[elseif geq( second_start - first_end, xfadetime) then
-    --leq( first_start, second_start) and geq( first_end, second_end) then
-      -- one item encloses the other
-      -- do nothing
-      Msg("enclosure")--]]
-    elseif sel_start ~= sel_end and geq(sel_end, second_start) and leq(sel_end, second_end) and leq(sel_start, first_end) and geq(sel_start, first_start) then
-      -- time selection exists and covers parts of both items
-      Msg("inside time selection")
-      timeselexists = 1
-      local timesel = sel_end - sel_start
-      if not FadeInOK(item, timesel) or not FadeOutOK(prev_item, timesel) then
-        -- previous item
-        reaper.SetMediaItemSelected(prev_item, true)
-        reaper.ApplyNudge(0, 1, 3, 1, sel_end, 0, 0)
-        FadeOut(prev_item, timesel)
-        reaper.SetMediaItemSelected(prev_item, false)
-        -- item
-        reaper.SetMediaItemSelected(item, true)
-        reaper.ApplyNudge(0, 1, 1, 1, sel_start, 0, 0)
-        FadeIn(item, timesel)
-        reaper.SetMediaItemSelected(item, false)
-        change = true
-      end
-    elseif geq(second_start, first_end) and leq(second_start, first_end + xfadetime)
-      then -- items are adjacent (or there is a gap smaller or equal to the crossfade time)
-      Msg("adjacent - gap: " .. second_start - first_end)
-      if not CrossfadeOK(item, prev_item, second_start, first_end) then
-        -- previous item (ensure it ends exactly at the start of the next item)
-        local groupid = reaper.GetMediaItemInfo_Value( prev_item, "I_GROUPID" )
-        if groupid ~= 0 then
-          reaper.SetMediaItemInfo_Value( prev_item, "I_GROUPID", 0 )
-        end
-        reaper.SetMediaItemSelected(prev_item, true)
-        reaper.ApplyNudge(0, 1, 3, 1, second_start, 0, 0)
-        FadeOut(prev_item, xfadetime)
-        reaper.SetMediaItemSelected(prev_item, false)
-        if groupid ~= 0 then
-          reaper.SetMediaItemInfo_Value( prev_item, "I_GROUPID", groupid )
-        end
-        -- item
-        groupid = reaper.GetMediaItemInfo_Value( item, "I_GROUPID" )
-        if groupid ~= 0 then
-          reaper.SetMediaItemInfo_Value( item, "I_GROUPID", 0 )
-        end
-        reaper.SetMediaItemSelected(item, true)
-        reaper.ApplyNudge(0, 1, 1, 1, second_start - xfadetime, 0, 0)
-        Msg(xfadetime)
-        FadeIn(item, xfadetime)
-        reaper.SetMediaItemSelected(item, false)
-        if groupid ~= 0 then
-          reaper.SetMediaItemInfo_Value( item, "I_GROUPID", groupid )
-        end
-        change = true
-      end
-    elseif first_end > second_start then -- items are overlapping
-      local overlap = first_end - second_start
-      Msg("overlap")
-      if overlap > xfadetime then
-        Msg("overlap > xfadetime")
-        if not FadeInOK(item, overlap) or not FadeOutOK(prev_item, overlap) then
-          FadeIn(item, overlap)
-          FadeOut(prev_item, overlap)
-          change = true
-        end
-      else
-        Msg("overlap <= xfadetime")
-        if not CrossfadeOK(item, prev_item, second_start, first_end) then
-          -- previous item (fade out xfadetime)
-          reaper.SetMediaItemSelected(prev_item, true)
-          FadeOut(prev_item, xfadetime)
-          reaper.SetMediaItemSelected(prev_item, false)
-          -- extend second item so that it overlaps with previous one
-          reaper.SetMediaItemSelected(item, true)
-          reaper.ApplyNudge(0, 1, 1, 1, second_start - xfadetime + overlap, 0, 0)
-          FadeIn(item, xfadetime)
-          reaper.SetMediaItemSelected(item, false)
-          change = true
+
+for tr = 1, #categorized_item do -- tracks
+  for lan in pairs(categorized_item[tr]) do -- lanes
+    if categorized_item[tr][lan].n > 1 then -- work on lanes with more than one items
+      for i = 2, categorized_item[tr][lan].n do -- items
+        local item = categorized_item[tr][lan][i]
+        local prev_item = categorized_item[tr][lan][i-1]
+        -- check if item and previous item are on the same track
+        if reaper.GetMediaItem_Track(item) == reaper.GetMediaItem_Track(prev_item) then
+          local second_start = reaper.GetMediaItemInfo_Value(item, "D_POSITION")
+          local second_end = second_start + reaper.GetMediaItemInfo_Value(item, "D_LENGTH")
+          local first_start = reaper.GetMediaItemInfo_Value(prev_item, "D_POSITION")
+          local first_end = first_start + reaper.GetMediaItemInfo_Value(prev_item, "D_LENGTH")
+          if first_end < second_start - xfadetime and (sel_start == sel_end or (first_end < sel_start and second_start > sel_end)) then
+            -- items do not touch and there is no time selection covering parts of both items
+            -- do nothing
+            Msg("not touch - gap greater than xfadetime")
+          --[[elseif geq( second_start - first_end, xfadetime) then
+          --leq( first_start, second_start) and geq( first_end, second_end) then
+            -- one item encloses the other
+            -- do nothing
+            Msg("enclosure")--]]
+          elseif sel_start ~= sel_end and geq(sel_end, second_start) and leq(sel_end, second_end) and leq(sel_start, first_end) and geq(sel_start, first_start) then
+            -- time selection exists and covers parts of both items
+            Msg("inside time selection")
+            timeselexists = 1
+            local timesel = sel_end - sel_start
+            if not FadeInOK(item, timesel) or not FadeOutOK(prev_item, timesel) then
+              -- previous item
+              reaper.SetMediaItemSelected(prev_item, true)
+              reaper.ApplyNudge(0, 1, 3, 1, sel_end, 0, 0)
+              FadeOut(prev_item, timesel)
+              reaper.SetMediaItemSelected(prev_item, false)
+              -- item
+              reaper.SetMediaItemSelected(item, true)
+              reaper.ApplyNudge(0, 1, 1, 1, sel_start, 0, 0)
+              FadeIn(item, timesel)
+              reaper.SetMediaItemSelected(item, false)
+              change = true
+            end
+          elseif geq(second_start, first_end) and leq(second_start, first_end + xfadetime)
+            then -- items are adjacent (or there is a gap smaller or equal to the crossfade time)
+            Msg("adjacent - gap: " .. second_start - first_end)
+            if not CrossfadeOK(item, prev_item, second_start, first_end) then
+              -- previous item (ensure it ends exactly at the start of the next item)
+              local groupid = reaper.GetMediaItemInfo_Value( prev_item, "I_GROUPID" )
+              if groupid ~= 0 then
+                reaper.SetMediaItemInfo_Value( prev_item, "I_GROUPID", 0 )
+              end
+              reaper.SetMediaItemSelected(prev_item, true)
+              reaper.ApplyNudge(0, 1, 3, 1, second_start, 0, 0)
+              FadeOut(prev_item, xfadetime)
+              reaper.SetMediaItemSelected(prev_item, false)
+              if groupid ~= 0 then
+                reaper.SetMediaItemInfo_Value( prev_item, "I_GROUPID", groupid )
+              end
+              -- item
+              groupid = reaper.GetMediaItemInfo_Value( item, "I_GROUPID" )
+              if groupid ~= 0 then
+                reaper.SetMediaItemInfo_Value( item, "I_GROUPID", 0 )
+              end
+              reaper.SetMediaItemSelected(item, true)
+              reaper.ApplyNudge(0, 1, 1, 1, second_start - xfadetime, 0, 0)
+              Msg(xfadetime)
+              FadeIn(item, xfadetime)
+              reaper.SetMediaItemSelected(item, false)
+              if groupid ~= 0 then
+                reaper.SetMediaItemInfo_Value( item, "I_GROUPID", groupid )
+              end
+              change = true
+            end
+          elseif first_end > second_start then -- items are overlapping
+            local overlap = first_end - second_start
+            Msg("overlap")
+            if overlap > xfadetime then
+              Msg("overlap > xfadetime")
+              if not FadeInOK(item, overlap) or not FadeOutOK(prev_item, overlap) then
+                FadeIn(item, overlap)
+                FadeOut(prev_item, overlap)
+                change = true
+              end
+            else
+              Msg("overlap <= xfadetime")
+              if not CrossfadeOK(item, prev_item, second_start, first_end) then
+                -- previous item (fade out xfadetime)
+                reaper.SetMediaItemSelected(prev_item, true)
+                FadeOut(prev_item, xfadetime)
+                reaper.SetMediaItemSelected(prev_item, false)
+                -- extend second item so that it overlaps with previous one
+                reaper.SetMediaItemSelected(item, true)
+                reaper.ApplyNudge(0, 1, 1, 1, second_start - xfadetime + overlap, 0, 0)
+                FadeIn(item, xfadetime)
+                reaper.SetMediaItemSelected(item, false)
+                change = true
+              end
+            end
+          end
         end
       end
     end
@@ -305,7 +337,7 @@ end
 if change then
   Msg("done")
   if keep_selected == 1 then -- keep selected the previously selected items
-    for i = 1, #sel_item do
+    for i = 1, item_cnt do
       reaper.SetMediaItemSelected(sel_item[i], true)
     end
   end
@@ -320,7 +352,7 @@ if change then
 else -- No undo
   Msg("nothing done")
   -- restore item selection
-  for i = 1, #sel_item do
+  for i = 1, item_cnt do
     reaper.SetMediaItemSelected(sel_item[i], true)
   end
   reaper.PreventUIRefresh(-1)
