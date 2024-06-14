@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="c8ee093ec1661c1a832316d1cb173e881cecf94f" name="ReaTeam Scripts">
+<index version="1" commit="f2600f6b425c44022c8529a16a75b8b1a968fc56" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -5690,6 +5690,10 @@ website
       <version name="1.61" author="amagalma" time="2022-02-10T12:40:46Z">
         <changelog><![CDATA[- fix for adjacent items that belong to groups]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6101bb30cec7ef94cc5b81cf3c164f2809657a7e/Items%20Editing/amagalma_Smart%20Crossfade.lua</source>
+      </version>
+      <version name="1.70" author="amagalma" time="2024-06-14T13:46:18Z">
+        <changelog><![CDATA[- support for fixed item lanes]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f2600f6b425c44022c8529a16a75b8b1a968fc56/Items%20Editing/amagalma_Smart%20Crossfade.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Snap MIDI item(s) edges to grid without changing content position.lua" type="script" desc="amagalma_Snap MIDI item(s) edges to grid without changing content position">
