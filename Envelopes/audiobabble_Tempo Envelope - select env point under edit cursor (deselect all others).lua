@@ -1,4 +1,4 @@
--- @description Tempo Envelope - select env point under edit cursor (deselect all others)
+-- @description Tempo Envelope - select env point under edit cursor (deselect others)
 -- @author Audiobabble
 -- @version 1.0
 -- @about Selects the master track tempo envelope point currently under the cursor and deselects all other tempo envelope points, regardless of focus on other envelopes in the project
