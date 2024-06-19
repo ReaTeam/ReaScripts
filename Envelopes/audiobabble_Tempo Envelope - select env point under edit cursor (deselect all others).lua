@@ -1,8 +1,7 @@
 -- @description Tempo Envelope - select env point under edit cursor (deselect all others)
 -- @author Audiobabble
 -- @version 1.0
-
--- Script: Tempo Envelope - select env point under edit cursor (deselect others)
+-- @about Selects the master track tempo envelope point currently under the cursor and deselects all other tempo envelope points, regardless of focus on other envelopes in the project
 
 tr = reaper.GetMasterTrack( 0 )
 env = reaper.GetTrackEnvelopeByName( tr, 'Tempo map' )
