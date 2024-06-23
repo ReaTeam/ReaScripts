@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="f2600f6b425c44022c8529a16a75b8b1a968fc56" name="ReaTeam Scripts">
+<index version="1" commit="4f168fae0f24b40b98e00de45e364d42cb486474" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -6087,6 +6087,12 @@ Added experimental fixed lanes support]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e19fc8c166ba610a075a86a45f933669362b4629/Items%20Editing/az_Smart%20split%20items%20by%20mouse%20cursor.lua</source>
         <source main="main" file="az_Smart split items by mouse cursor/az_Open options for az_Smart split items by mouse cursor.lua">https://github.com/ReaTeam/ReaScripts/raw/e19fc8c166ba610a075a86a45f933669362b4629/Items%20Editing/az_Smart%20split%20items%20by%20mouse%20cursor/az_Open%20options%20for%20az_Smart%20split%20items%20by%20mouse%20cursor.lua</source>
       </version>
+      <version name="3.30" author="AZ" time="2024-06-23T09:48:55Z">
+        <changelog><![CDATA[- fixed bug for media edit groups when smaller items didn't obey the grouping
+- fixed bug when stretch markers were produce incorrect take time offset]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4f168fae0f24b40b98e00de45e364d42cb486474/Items%20Editing/az_Smart%20split%20items%20by%20mouse%20cursor.lua</source>
+        <source main="main" file="az_Smart split items by mouse cursor/az_Open options for az_Smart split items by mouse cursor.lua">https://github.com/ReaTeam/ReaScripts/raw/4f168fae0f24b40b98e00de45e364d42cb486474/Items%20Editing/az_Smart%20split%20items%20by%20mouse%20cursor/az_Open%20options%20for%20az_Smart%20split%20items%20by%20mouse%20cursor.lua</source>
+      </version>
     </reapack>
     <reapack name="az_Trim left, right or both item edges via mouse and razor.lua" type="script" desc="Trim left, right or both item edges via mouse and razor">
       <metadata>
@@ -6114,6 +6120,12 @@ Added experimental fixed lanes support]]></changelog>
 - fixed bug for grouped items on hidden tracks, now they are trimmed]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3c8ae499cd5a32b38d67fd5380f6c1c0e1b99733/Items%20Editing/az_Trim%20left,%20right%20or%20both%20item%20edges%20via%20mouse%20and%20razor.lua</source>
         <source main="main" file="az_Trim left, right or both item edges via mouse and razor/az_Open options for az_Trim left, right or both item edges via mouse and razor.lua">https://github.com/ReaTeam/ReaScripts/raw/3c8ae499cd5a32b38d67fd5380f6c1c0e1b99733/Items%20Editing/az_Trim%20left,%20right%20or%20both%20item%20edges%20via%20mouse%20and%20razor/az_Open%20options%20for%20az_Trim%20left,%20right%20or%20both%20item%20edges%20via%20mouse%20and%20razor.lua</source>
+      </version>
+      <version name="1.3" author="AZ" time="2024-06-23T09:48:29Z">
+        <changelog><![CDATA[- fixed bug when stretch markers were blocking the left trim
+- fixed potential bug with empty takes]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3fc1ab0ae6dd9c7852b04c56ae013136adeca1e3/Items%20Editing/az_Trim%20left,%20right%20or%20both%20item%20edges%20via%20mouse%20and%20razor.lua</source>
+        <source main="main" file="az_Trim left, right or both item edges via mouse and razor/az_Open options for az_Trim left, right or both item edges via mouse and razor.lua">https://github.com/ReaTeam/ReaScripts/raw/3fc1ab0ae6dd9c7852b04c56ae013136adeca1e3/Items%20Editing/az_Trim%20left,%20right%20or%20both%20item%20edges%20via%20mouse%20and%20razor/az_Open%20options%20for%20az_Trim%20left,%20right%20or%20both%20item%20edges%20via%20mouse%20and%20razor.lua</source>
       </version>
     </reapack>
     <reapack name="beaunus_Name item takes by last marker to cut item.lua" type="script" desc="Name item takes by last marker to cut item">
@@ -15971,6 +15983,10 @@ Fixed column order]]></changelog>
 - Added Help section]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/a323f377d92af41ce7d71173aa827f4d21dc3bc0/MIDI%20Editor/ugurcanorcun_ReaKS.lua</source>
       </version>
+      <version name="1.3.0" author="Ugurcan Orcun" time="2024-06-23T09:47:39Z">
+        <changelog><![CDATA[- Added Chase mode: Set new KS length to start of the next KS or MIDI item's end]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/70665bce39b13d3bae7375ce3fce6511aefb4314/MIDI%20Editor/ugurcanorcun_ReaKS.lua</source>
+      </version>
     </reapack>
   </category>
   <category name="MIDI Inline Editor">
@@ -18010,6 +18026,10 @@ Updated to only list stretch markers within item time and format time as standar
       <version name="1.2" author="AZ" time="2024-02-09T02:49:16Z">
         <changelog><![CDATA[Fixed bug with incorrect stretch marker mode]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/00f9a83b943aac249a88764c1fae41b0bd334ad4/Takes%20Properties/az_Propagate%20project%20Pitch%20Shift%20mode%20to%20all%20takes%20with%20default%20mode.lua</source>
+      </version>
+      <version name="1.3" author="AZ" time="2024-06-23T09:47:55Z">
+        <changelog><![CDATA[Fixed potentional bug with empty takes]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/5204b93341e7e5e0152fb3a3531fe3a2d73abd6e/Takes%20Properties/az_Propagate%20project%20Pitch%20Shift%20mode%20to%20all%20takes%20with%20default%20mode.lua</source>
       </version>
     </reapack>
     <reapack name="BuyOne_Randomize active take in items (settings inside).lua" type="script" desc="Randomize active take in items">
