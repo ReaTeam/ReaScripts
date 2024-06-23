@@ -1,9 +1,8 @@
 -- @description ReaKS - Keyswitch Articulation Manager
 -- @author Ugurcan Orcun
--- @version 1.2.0
+-- @version 1.3.0
 -- @changelog 
---  - Added Ctrl (Preview) / Shift (Bypass Smart) / Alt (Delete Active KS) modifiers to KS Buttons
---  - Added Help section
+--  - Added Chase mode: Set new KS length to start of the next KS or MIDI item's end
 -- @links
 --   Forum Thread https://forum.cockos.com/showthread.php?t=288344
 --   Tutorials https://www.youtube.com/watch?v=lP9hRw_j0PY&list=PLJ5Z3ZQ-oB-yXcsq3MXi94QhYVcnlkhVy
@@ -11,7 +10,6 @@
 -- @about 
 --  A small MIDI Editor tool for auto-inserting KeySwitch midi notes and managing note/cc names.
 --  Find more info and example note name files at the forum thread.
-
 if not reaper.ImGui_GetBuiltinPath then
     return reaper.MB('ReaImGui is not installed or too old.', 'ReaKS', 0)
 end
@@ -62,6 +60,7 @@ Setting_AutoupdateTextEvent = true
 Setting_ItemsPerColumn = 10
 Setting_PPQOffset = -1
 Setting_SendNoteWhenClicked = false
+Setting_ChaseMode = false
 
 Modal_Settings = false
 Modal_NoteNameHelper = false
@@ -76,6 +75,7 @@ function SaveSettings()
     reaper.SetExtState("ReaKS", "Setting_ItemsPerColumn", tostring(Setting_ItemsPerColumn), true)
     reaper.SetExtState("ReaKS", "Setting_PPQOffset", tostring(Setting_PPQOffset), true)
     reaper.SetExtState("ReaKS", "Setting_SendNoteWhenClicked", tostring(Setting_SendNoteWhenClicked), true)
+    reaper.SetExtState("ReaKS", "Setting_ChaseMode", tostring(Setting_ChaseMode), true)
 end
 
 function LoadSettings()
@@ -91,6 +91,9 @@ function LoadSettings()
 
     val = reaper.GetExtState("ReaKS", "Setting_SendNoteWhenClicked")
     if val ~= "" then Setting_SendNoteWhenClicked = val == "true" end
+
+    val = reaper.GetExtState("ReaKS", "Setting_ChaseMode")
+    if val ~= "" then Setting_ChaseMode = val == "true" end
 end
 
 function UpdateActiveTargets()
@@ -212,6 +215,8 @@ function InsertKS(noteNumber, isShiftHeld)
     local insertionRangeEnd = 0
     local selectionMode = false
 
+    local MIDIItemEndPPQ = reaper.MIDI_GetPPQPosFromProjTime(ActiveTake, reaper.GetMediaItemInfo_Value(ActiveItem, "D_POSITION") + reaper.GetMediaItemInfo_Value(ActiveItem, "D_LENGTH"))
+
     local singleGridLength = reaper.MIDI_GetGrid(ActiveTake) * PPQ
 
     reaper.MIDI_DisableSort(ActiveTake)
@@ -234,7 +239,12 @@ function InsertKS(noteNumber, isShiftHeld)
     else
         insertionRangeStart = reaper.GetCursorPosition()
         insertionRangeStart = reaper.MIDI_GetPPQPosFromProjTime(ActiveTake, insertionRangeStart)
-        insertionRangeEnd = insertionRangeStart + singleGridLength
+        
+        if Setting_ChaseMode then
+            insertionRangeEnd = MIDIItemEndPPQ
+        else 
+            insertionRangeEnd = insertionRangeStart + singleGridLength
+        end
     end
 
     newKSStartPPQ = insertionRangeStart + Setting_PPQOffset
@@ -266,7 +276,12 @@ function InsertKS(noteNumber, isShiftHeld)
     reaper.MIDI_InsertNote(ActiveTake, false, false, newKSStartPPQ, newKSEndPPQ, 0, noteNumber, 100, false)
     
     -- Move edit cursor to the end of the new note if no notes are selected
-    if reaper.MIDI_EnumSelNotes(ActiveTake, -1) == -1 and not isShiftHeld then reaper.SetEditCurPos(reaper.MIDI_GetProjTimeFromPPQPos(ActiveTake, insertionRangeEnd), true, false) end    
+    if reaper.MIDI_EnumSelNotes(ActiveTake, -1) == -1 and not isShiftHeld then 
+        local mouseMovePos = 0
+        if Setting_ChaseMode then mouseMovePos = insertionRangeStart + singleGridLength else mouseMovePos = insertionRangeEnd end
+
+        reaper.SetEditCurPos(reaper.MIDI_GetProjTimeFromPPQPos(ActiveTake, mouseMovePos), true, false) 
+    end    
 
     -- Update text events if the setting is enabled
     if Setting_AutoupdateTextEvent then UpdateTextEvents() end
@@ -428,6 +443,12 @@ local function loop()
                 SaveSettings()
             end
             if ImGui.IsItemHovered(ctx) then ImGui.SetTooltip(ctx, "Send a MIDI message when the KS button clicked. Good for previewing keyswitches.") end
+
+            if ImGui.Checkbox(ctx, "Chase Mode", Setting_ChaseMode) then 
+                Setting_ChaseMode = not Setting_ChaseMode 
+                SaveSettings()
+            end
+            if ImGui.IsItemHovered(ctx) then ImGui.SetTooltip(ctx, "When enabled, the KS note will be inserted until the end of the MIDI item.") end
 
             _, val = ImGui.SliderInt(ctx, "KS per Column", Setting_ItemsPerColumn, 1, 100)
             if val ~= Setting_ItemsPerColumn then
