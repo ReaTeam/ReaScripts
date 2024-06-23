@@ -1,9 +1,9 @@
 -- @description Trim left, right or both item edges via mouse and razor
 -- @author AZ
--- @version 1.2
+-- @version 1.3
 -- @changelog
---   - options window
---   - fixed bug for grouped items on hidden tracks, now they are trimmed
+--   - fixed bug when stretch markers were blocking the left trim
+--   - fixed potential bug with empty takes
 -- @provides [main] az_Trim left, right or both item edges via mouse and razor/az_Open options for az_Trim left, right or both item edges via mouse and razor.lua
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=288069
 -- @donation Donate via PayPal https://www.paypal.me/AZsound
@@ -76,7 +76,7 @@ function msg(value)
 end
 
 --------------------------
-function rgbToHex(rgba) -- passing a table with percentage like {100, 50, 20, 90}
+function rgbToHex(rgba) -- passing a table with percentage value like {100, 50, 20, 90}
   local hexadecimal = '0X'
 
   for key, value in pairs(rgba) do
@@ -378,17 +378,30 @@ function SetItemEdges(item, startTime, endTime)
   local takesN = reaper.CountTakes(item)
   for i = 0, takesN-1 do
     local take = reaper.GetTake(item,i)
-    local offs = reaper.GetMediaItemTakeInfo_Value(take, 'D_STARTOFFS')
-    local rate = reaper.GetMediaItemTakeInfo_Value(take, 'D_PLAYRATE')
-    offs = offs + (startTime-pos)*rate
-    if isloop == 1 then
-      local src = reaper.GetMediaItemTake_Source( take )
-      local length, isQN = reaper.GetMediaSourceLength( src )
-      if offs < 0 then offs = length - math.fmod(-offs, length)
-      elseif offs > length then offs = math.fmod(offs, length)
+    if take then
+      local offs = reaper.GetMediaItemTakeInfo_Value(take, 'D_STARTOFFS')
+      local rate = reaper.GetMediaItemTakeInfo_Value(take, 'D_PLAYRATE')
+      offs = offs + (startTime-pos)*rate
+      if isloop == 1 then
+        local src = reaper.GetMediaItemTake_Source( take )
+        local length, isQN = reaper.GetMediaSourceLength( src )
+        if offs < 0 then offs = length - math.fmod(-offs, length)
+        elseif offs > length then offs = math.fmod(offs, length)
+        end
       end
+      
+      local strmarksnum = reaper.GetTakeNumStretchMarkers( take )
+      if strmarksnum > 0 then
+        reaper.SetMediaItemTakeInfo_Value(take, 'D_STARTOFFS', offs)
+        for s = 0, strmarksnum -1 do
+          local retval, strpos, srcpos = reaper.GetTakeStretchMarker( take, s   )
+          reaper.SetTakeStretchMarker( take, s, strpos - (startTime-pos)*rate, srcpos )
+        end
+      else
+        reaper.SetMediaItemTakeInfo_Value(take, 'D_STARTOFFS', offs)
+      end
+      
     end
-    reaper.SetMediaItemTakeInfo_Value(take, 'D_STARTOFFS', offs)
   end
 end
 
@@ -966,7 +979,7 @@ end
 --------------------------
 
 -------START------
-CurVers = 1.2
+CurVers = 1.3
 version = tonumber( reaper.GetExtState(ExtStateName, "version") )
 
 if version ~= CurVers then
