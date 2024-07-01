@@ -26,29 +26,6 @@
 //
 //      When a value of 0 is given or no appropriately named track is found, the playback is stopped.
 
-// @description Mini song switcher
-// @author mschnell
-// @version 1.1
-// @changelog Avoid starting play for other than the accessed project (tab)
-// @about
-//   # Mini Song switcher
-//    ## Description
-//      The mschnell_Mini song switcher is inspired by the cfillion_Song switcher.
-//
-//      It is a lot less versatile and only features a single script and no GUI
-//
-//      Other than the cfillion_Song switcher is does not work on the foreground Project (Tab) but on the first project (Tab) that holds a project with the string `_song_` in it's name.
-//
-//      If such is not found, it works on the foreground project (Tab). Don't forget to enable "run  background projects" on the project tab !
-//
-//      It uses the same track structure as the cfillion_Song switcher (Description see there)
-//
-//      When a CC action is received, it unmutes the track named according to the CC value (e.g. 1. XYZ or 23. Hello) and mutes all other appropriately named tracks
-//
-//      It then start playback (from the location of the play cursor) 
-//
-//      When a value of 0 is given or no appropriately named track is found, the playback is stopped.
-
   #tab_name = "_song_";
 
   res = GetExtState(#tab_id, "Mini_Song_Switcher", "tab_id");
