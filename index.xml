@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="312ae971ac1e35e577ff2655ad321fec9bfebf88" name="ReaTeam Scripts">
+<index version="1" commit="0eda42740ba25a3fdb6a30cc1352a1444415ed99" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -25017,6 +25017,11 @@ Will work with ReaScript and custom action IDs now]]></changelog>
 bug fixes]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/312ae971ac1e35e577ff2655ad321fec9bfebf88/Various/mschnell_Mini%20song%20switcher.eel</source>
         <source main="main" file="mschnell_Mini song switcher/mschnell_Mini song switcher project.eel">https://github.com/ReaTeam/ReaScripts/raw/312ae971ac1e35e577ff2655ad321fec9bfebf88/Various/mschnell_Mini%20song%20switcher/mschnell_Mini%20song%20switcher%20project.eel</source>
+      </version>
+      <version name="2.1.1" author="mschnell" time="2024-07-02T18:20:34Z">
+        <changelog><![CDATA[Fix Lua comment in Mini song switcher project.eel]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/0eda42740ba25a3fdb6a30cc1352a1444415ed99/Various/mschnell_Mini%20song%20switcher.eel</source>
+        <source main="main" file="mschnell_Mini song switcher/mschnell_Mini song switcher project.eel">https://github.com/ReaTeam/ReaScripts/raw/0eda42740ba25a3fdb6a30cc1352a1444415ed99/Various/mschnell_Mini%20song%20switcher/mschnell_Mini%20song%20switcher%20project.eel</source>
       </version>
     </reapack>
     <reapack name="mschnell_Mute Track X.eel" type="script" desc="Mute or unmute track X (MIDI CC/OSC only)">
