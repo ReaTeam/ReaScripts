@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="fdddaa548b48c98d8694f2ee3c01afac2c1e3377" name="ReaTeam Scripts">
+<index version="1" commit="312ae971ac1e35e577ff2655ad321fec9bfebf88" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -24993,11 +24993,12 @@ Will work with ReaScript and custom action IDs now]]></changelog>
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Mini Song switcher\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Description\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 The mschnell_Mini song switcher is inspired by the cfillion_Song switcher.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 It is a lot less versatile and only features a single script and no GUI\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Other than the cfillion_Song switcher is does not work on the foreground Project (Tab) but on the first project (Tab) that holds a project with the string {\f1 _song_} in it's name.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 It is a lot less versatile and only features two scripts and no GUI\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Other than the cfillion_Song switcher is does not work on the foreground Project (Tab) but by default on the first project (Tab) that holds a project with the string {\f1 _song_} in it's name.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Optional the {\f1 Mini song switcher project} script can be used to select one of multiple Project Tabs. Now the first project with {\f1 _song_} in it's name is used afterwards when same had been called with value 0 and {\f1 _song_#_} in it's name is used appropriately otherwise (# = 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 ... 99).\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 If such is not found, it works on the foreground project (Tab). Don't forget to enable "run background projects" on the project tab !\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 It uses the same track structure as the cfillion_Song switcher (Description see there)\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 When a CC action is received, it unmutes the track named according to the CC value (e.g. 1. XYZ or 23. Hello) and mutes all other appropriately named tracks\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 When a CC action is received, it unmutes the track named according to the CC value (e.g. 1. XYZ or 23. Hello) and mutes all other appropriately named tracks (allowed numbers are 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 ... 99)\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 It then start playback (from the location of the play cursor)\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 When a value of 0 is given or no appropriately named track is found, the playback is stopped.\par}
 }
@@ -25010,6 +25011,12 @@ Will work with ReaScript and custom action IDs now]]></changelog>
       <version name="1.1" author="mschnell" time="2024-06-23T12:42:36Z">
         <changelog><![CDATA[Avoid starting play for other than the accessed project (tab)]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/fdddaa548b48c98d8694f2ee3c01afac2c1e3377/Various/mschnell_Mini%20song%20switcher.eel</source>
+      </version>
+      <version name="2.1" author="mschnell" time="2024-07-02T14:20:19Z">
+        <changelog><![CDATA[Allow for accessing multiple project tabs
+bug fixes]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/312ae971ac1e35e577ff2655ad321fec9bfebf88/Various/mschnell_Mini%20song%20switcher.eel</source>
+        <source main="main" file="mschnell_Mini song switcher/mschnell_Mini song switcher project.eel">https://github.com/ReaTeam/ReaScripts/raw/312ae971ac1e35e577ff2655ad321fec9bfebf88/Various/mschnell_Mini%20song%20switcher/mschnell_Mini%20song%20switcher%20project.eel</source>
       </version>
     </reapack>
     <reapack name="mschnell_Mute Track X.eel" type="script" desc="Mute or unmute track X (MIDI CC/OSC only)">
