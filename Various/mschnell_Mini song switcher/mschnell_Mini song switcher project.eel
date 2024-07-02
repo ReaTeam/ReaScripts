@@ -1,4 +1,4 @@
--- @noindex
+// @noindex
 
   #tab_id = "  ";
   get_action_context(#filename, sectionID, cmdID, mode, resolution, val) ? (
