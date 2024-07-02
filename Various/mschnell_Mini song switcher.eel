@@ -1,9 +1,7 @@
 // @description Mini song switcher
 // @author mschnell
-// @version 2.1
-// @changelog
-//   Allow for accessing multiple project tabs
-//   bug fixes
+// @version 2.1.1
+// @changelog Fix Lua comment in Mini song switcher project.eel
 // @provides [main] mschnell_Mini song switcher/mschnell_Mini song switcher project.eel
 // @about
 //   # Mini Song switcher
