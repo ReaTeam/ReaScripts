@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="03ef265804521907e5e2bdbb364914c029389fcc" name="ReaTeam Scripts">
+<index version="1" commit="73916df9417b21c0e19717d581bcbfcc0f08ffd6" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -26432,6 +26432,14 @@ Instruction
       </metadata>
       <version name="1.00" author="amagalma" time="2024-07-03T09:35:31Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/03ef265804521907e5e2bdbb364914c029389fcc/Video/amagalma_Copy%20video%20processor%20parameter%20values%20from%20focused%20FX%20or%20first%20selected%20dedicated%20video%20processor%20item.lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Paste video processor parameter values to focused video FX or to all selected items.lua" type="script" desc="Paste video processor parameter values to focused video FX or to all selected items">
+      <metadata>
+        <link rel="donation">https://www.paypal.me/amagalma</link>
+      </metadata>
+      <version name="1.00" author="amagalma" time="2024-07-03T09:38:34Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/73916df9417b21c0e19717d581bcbfcc0f08ffd6/Video/amagalma_Paste%20video%20processor%20parameter%20values%20to%20focused%20video%20FX%20or%20to%20all%20selected%20items.lua</source>
       </version>
     </reapack>
     <reapack name="js_Video - Automatically adjust size of thumbnail items when zooming.lua" type="script" desc="js_Video - Automatically adjust size of thumbnail items when zooming">
