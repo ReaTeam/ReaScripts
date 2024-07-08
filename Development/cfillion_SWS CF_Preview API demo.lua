@@ -1,7 +1,7 @@
 -- @description SWS CF_Preview API demo
 -- @author cfillion
--- @version 1.0.2
--- @changelog No user-facing changes (internal code cleanup)
+-- @version 1.0.3
+-- @changelog Repair "through track" playback mode
 -- @donation https://reapack.com/donate
 
 package.path = reaper.ImGui_GetBuiltinPath() .. '/?.lua'
@@ -171,7 +171,7 @@ local function start()
   if preview then reaper.CF_Preview_Stop(preview) end
   preview = reaper.CF_CreatePreview(source)
   if out_to_track then
-    reaper.CF_Preview_Setoutput_track(preview, output_proj, output_track)
+    reaper.CF_Preview_SetOutputTrack(preview, output_proj, output_track)
   else
     reaper.CF_Preview_SetValue(preview, 'I_OUTCHAN', output_chan)
   end
@@ -224,7 +224,7 @@ local function window()
 
   if outputSelect() then
     if out_to_track then
-      reaper.CF_Preview_Setoutput_track(preview, output_proj, output_track)
+      reaper.CF_Preview_SetOutputTrack(preview, output_proj, output_track)
     else
       reaper.CF_Preview_SetValue(preview, 'I_OUTCHAN', output_chan)
     end
