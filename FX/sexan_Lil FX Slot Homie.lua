@@ -1,6 +1,6 @@
 -- @description Lil FX Slot Homie
 -- @author Sexan
--- @version 1.21
+-- @version 1.2.1
 -- @link https://forum.cockos.com/showthread.php?p=2680992#post2680992
 -- @changelog
 --  Scroll to selected items if they are not in view
