@@ -8,6 +8,10 @@ local T   = require "modules/time"
 local N   = require "modules/notes"
 local MK  = require "modules/markers"
 
+local MU  = require "lib/MIDIUtils"
+
+local USE_MU = true
+
 local function BuildContext(km, track, take)
   local c = {}
 
@@ -72,27 +76,8 @@ end
 
 local function ForwardOperationFinish(c, jumpTime, newMaxQN)
 
-  -- Modify notes
-  for ri = 1, #c.tomod, 1 do
-    local n = c.tomod[ri]
-    reaper.MIDI_SetNote(c.take, n.index, nil, nil, n.startPPQ, n.endPPQ, nil, nil, nil, true )
-  end
+  MU.MIDI_CommitWriteTransaction(c.take)
 
-  -- Delete notes that were shorten too much
-  -- Do this in reverse order to be sure that indices are descending
-  for ri = #c.torem, 1, -1 do
-    local n = c.torem[ri]
-    reaper.MIDI_DeleteNote(c.take, n.index)
-  end
-
-  -- Reinsert moved notes
-  for ri = 1, #c.toadd, 1 do
-    local n = c.toadd[ri]
-    reaper.MIDI_InsertNote(c.take, n.selected, n.muted, n.startPPQ, n.endPPQ, n.chan, n.pitch, n.vel, true )
-  end
-
-  -- Advance and mark dirty
-  reaper.MIDI_Sort(c.take)
   reaper.UpdateItemInProject(c.mediaItem)
 
   -- Grow the midi item if needed
@@ -123,26 +108,9 @@ local function ForwardOperationFinish(c, jumpTime, newMaxQN)
 end
 
 local function BackwardOperationFinish(c, jumpTime)
-  -- Modify notes
-  for ri = 1, #c.tomod, 1 do
-    local n = c.tomod[ri]
-    reaper.MIDI_SetNote(c.take, n.index, nil, nil, n.startPPQ, n.endPPQ, nil, nil, nil, true )
-  end
 
-  -- Delete notes that were shorten too much
-  -- Do this in reverse order to be sure that indices are descending
-  for ri = #c.torem, 1, -1 do
-    reaper.MIDI_DeleteNote(c.take, c.torem[ri].index)
-  end
+  MU.MIDI_CommitWriteTransaction(c.take)
 
-  -- Reinsert moved notes
-  for ri = 1, #c.toadd, 1 do
-    local n = c.toadd[ri]
-    reaper.MIDI_InsertNote(c.take, n.selected, n.muted, n.startPPQ, n.endPPQ, n.chan, n.pitch, n.vel, true )
-  end
-
-  -- Rewind and mark dirty
-  reaper.MIDI_Sort(c.take)
   reaper.UpdateItemInProject(c.mediaItem)
   reaper.MarkTrackItemsDirty(c.track, c.mediaItem)
 
@@ -154,58 +122,14 @@ local function BackwardOperationFinish(c, jumpTime)
   end
 end
 
-
--- This function is used by the write/insert/replace modes
-local function AddAndExtendNotes(c, notes_to_add, notes_to_extend)
-  -- Then add some other notes
-  for _, v in ipairs(notes_to_add) do
-    c.toadd[#c.toadd+1] = N.BuildFromManager(v, c.take, c.cursorPPQ, c.advancePPQ)
-    c.counts.add = c.counts.add + 1
-  end
-
-  -- Then extend notes
-  if #notes_to_extend > 0 then
-    local _, notecnt, _, _ = reaper.MIDI_CountEvts(c.take);
-
-    for _, exnote in pairs(notes_to_extend) do
-
-      -- Search for a note that could be extended (matches all conditions)
-      local ni    = 0
-      local found = false
-
-      while (ni < notecnt) do
-        local n = N.GetNote(c.take, ni)
-
-        -- Extend the note if found
-        if T.noteEndsOnPPQ(n, c.cursorPPQ) and (n.chan == exnote.chan) and (n.pitch == exnote.pitch) then
-
-          c.tomod[#c.tomod + 1] = n
-          N.SetNewNoteBounds(n, c.take, n.startPPQ, c.advancePPQ)
-
-          c.counts.ext = c.counts.ext + 1
-          found = true
-        end
-
-        ni = ni + 1
-      end
-
-      if not found then
-        -- Could not find a note to extend... create one !
-        c.toadd[#c.toadd+1] = N.BuildFromManager(exnote, c.take, c.cursorPPQ, c.advancePPQ)
-        c.counts.add = c.counts.add + 1
-      end
-    end
-  end
-end
-
 local function GenericDelete(c, notes_to_shorten, selectiveErase, shiftMode)
 
-  local _, notecnt, _, _ = reaper.MIDI_CountEvts(c.take);
+  local _, notecnt, _, _  = N.CountEvts(c.take, USE_MU)
   local ni = 0;
   while (ni < notecnt) do
 
     -- Examine each note in item
-    local n = N.GetNote(c.take, ni)
+    local n = N.GetNote(c.take, ni, USE_MU)
 
     local targetable = false
 
@@ -232,9 +156,7 @@ local function GenericDelete(c, notes_to_shorten, selectiveErase, shiftMode)
         if shiftMode then
           -- Move the note back
           N.SetNewNoteBounds(n, c.take, n.startPPQ - c.noteLenPPQ, n.endPPQ - c.noteLenPPQ)
-
-          c.torem[#c.torem+1]   = n -- Remove
-          c.toadd[#c.toadd+1]   = n -- And readd
+          N.MUCommitNote(c.take, n)
 
           c.counts.mv           = c.counts.mv + 1
         end
@@ -247,7 +169,8 @@ local function GenericDelete(c, notes_to_shorten, selectiveErase, shiftMode)
           --     | === |
           --     |     |
           --
-          c.torem[#c.torem+1] = n
+          MU.MIDI_DeleteNote(c.take, n.index)
+
           c.counts.rem        = c.counts.rem + 1
         else
           -- The note should be shortened (removing tail).
@@ -260,9 +183,7 @@ local function GenericDelete(c, notes_to_shorten, selectiveErase, shiftMode)
           --
           local offset = (shiftMode) and (- c.noteLenPPQ) or (0)
           N.SetNewNoteBounds(n, c.take, c.cursorPPQ + offset, n.endPPQ + offset)
-
-          c.torem[#c.torem+1]   = n
-          c.toadd[#c.toadd+1]   = n
+          N.MUCommitNote(c.take, n)
 
           c.counts.sh = c.counts.sh + 1
           c.counts.mv = c.counts.mv + 1
@@ -278,24 +199,23 @@ local function GenericDelete(c, notes_to_shorten, selectiveErase, shiftMode)
           --
           if shiftMode or T.noteEndsOnPPQ(n, c.cursorPPQ) then
             N.SetNewNoteBounds(n, c.take, n.startPPQ, n.endPPQ - c.noteLenPPQ)
+            N.MUCommitNote(c.take, n)
 
-            c.tomod[#c.tomod+1] = n
             c.counts.sh         = c.counts.sh + 1
           else
-            -- Create a hole in the note. Copy note
-            local newn = {}
-            for k,v in pairs(n) do
-              newn[k] = v
-            end
+            -- Create a hole in the note. Clone note
+            local newn = N.CloneNote(n)
 
             -- Shorted remaining note
             N.SetNewNoteBounds(n, c.take, n.startPPQ, c.rewindPPQ);
-            c.tomod[#c.tomod+1] = n
+            N.MUCommitNote(c.take, n)
+
             c.counts.sh         = c.counts.sh + 1
 
             -- Add new note
             N.SetNewNoteBounds(newn, c.take, c.cursorPPQ, newn.endPPQ);
-            c.toadd[#c.toadd+1] = newn
+            N.MUCommitNote(c.take, newn)
+
             c.counts.add        = c.counts.add + 1
           end
 
@@ -308,7 +228,8 @@ local function GenericDelete(c, notes_to_shorten, selectiveErase, shiftMode)
           --     |     |
           --
           N.SetNewNoteBounds(n, c.take, n.startPPQ, c.rewindPPQ)
-          c.tomod[#c.tomod+1] = n
+          N.MUCommitNote(c.take, n)
+
           c.counts.sh         = c.counts.sh + 1
         else
           -- Leave untouched
@@ -324,6 +245,56 @@ local function GenericDelete(c, notes_to_shorten, selectiveErase, shiftMode)
 
     ni = ni + 1;
   end
+end
+
+
+-- This function is used by the write/insert/replace modes
+local function AddAndExtendNotes(c, notes_to_add, notes_to_extend)
+
+  -- Then add some other notes
+  for _, v in ipairs(notes_to_add) do
+
+    if not v.dont_add then
+      local newn = N.BuildFromManager(v, c.take, c.cursorPPQ, c.advancePPQ)
+      N.MUCommitNote(c.take, newn)
+      c.counts.add = c.counts.add + 1
+    end
+  end
+
+  -- Then extend notes
+  if #notes_to_extend > 0 then
+    local _, notecnt, _, _  = N.CountEvts(c.take, USE_MU)
+
+    for _, exnote in pairs(notes_to_extend) do
+        -- Search for a note that could be extended (matches all conditions)
+        local ni    = 0
+        local found = false
+
+        while (ni < notecnt) do
+          local n = N.GetNote(c.take, ni, USE_MU)
+
+          -- Extend the note if found
+          if T.noteEndsOnPPQ(n, c.cursorPPQ) and (n.chan == exnote.chan) and (n.pitch == exnote.pitch) then
+
+            N.SetNewNoteBounds(n, c.take, n.startPPQ, c.advancePPQ)
+            N.MUCommitNote(c.take, n)
+
+            c.counts.ext = c.counts.ext + 1
+            found = true
+          end
+
+          ni = ni + 1
+        end
+
+        if not found and not exnote.dont_add then
+          -- Could not find a note to extend... create one !
+          local newn = N.BuildFromManager(exnote, c.take, c.cursorPPQ, c.advancePPQ)
+          N.MUCommitNote(c.take, newn)
+
+          c.counts.add = c.counts.add + 1
+        end
+      end
+    end
 end
 
 local function OperationSummary(direction, counts)
@@ -355,12 +326,14 @@ local function OperationSummary(direction, counts)
   return "One Small Step: " .. table.concat(description, ", ")
 end
 
+
 return {
   BuildForwardContext     = BuildForwardContext,
   BuildBackwardContext    = BuildBackwardContext,
   OperationSummary        = OperationSummary,
   ForwardOperationFinish  = ForwardOperationFinish,
   BackwardOperationFinish = BackwardOperationFinish,
-  AddAndExtendNotes       = AddAndExtendNotes,
-  GenericDelete           = GenericDelete
+  GenericDelete           = GenericDelete,
+
+  AddAndExtendNotes       = AddAndExtendNotes
 }

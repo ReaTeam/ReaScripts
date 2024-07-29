@@ -45,13 +45,12 @@ local SettingDefs = {
   KeyReleaseModeForgetTime                                  = { type = "double",  default = 0.200, min = 0.05, max = 0.4},
 
   RepitchModeAggregationTime                                = { type = "double",  default = 0.05, min = 0,   max = 0.1 },
-  RepitchModeAffects                                        = { type = "string",  default = "Pitches Only", inclusion = { "Pitches only", "Velocities only", "Pitches + Velocities" } },
+  RepitchModeAffects                                        = { type = "string",  default = D.RepitchModeAffects.PitchesOnly, inclusion = { D.RepitchModeAffects.PitchesOnly, D.RepitchModeAffects.VelocitiesOnly, D.RepitchModeAffects.PitchesAndVelocities } },
 
   PedalRepeatEnabled                                        = { type = "bool" ,   default = true },
   PedalRepeatTime                                           = { type = "double",  default = 0.200, min = 0.05, max = 0.5 },
   PedalRepeatFirstHitMultiplier                             = { type = "int",     default = 4, min = 1, max = 10 },
 
-  Snap                                                      = { type = "bool",    default = false },
   SnapNotes                                                 = { type = "bool",    default = true },
   SnapProjectGrid                                           = { type = "bool",    default = true },
   SnapItemGrid                                              = { type = "bool",    default = true },
@@ -61,12 +60,37 @@ local SettingDefs = {
 
   AllowKeyEventNavigation                                   = { type = "bool",    default = false },
 
+  Disarmed                                                  = { type = "bool",    default = false },
+  NoteHiglightingDuringPlay                                 = { type = "bool",    default = false },
+
+
   UseDebugger                                               = { type = "bool",    default = false },
 
   VelocityLimiterEnabled                                    = { type = "bool",    default = false },
   VelocityLimiterMin                                        = { type = "int",     default = 0,    min = 0, max = 127 },
   VelocityLimiterMax                                        = { type = "int",     default = 127,  min = 0, max = 127 },
-  VelocityLimiterMode                                       = { type = "string",  default = "Linear", inclusion = { "Linear", "Clamp"} }
+  VelocityLimiterMode                                       = { type = "string",  default = "Linear", inclusion = { "Linear", "Clamp"} },
+
+  InsertModeInMiddleOfMatchingNotesBehaviour                = {
+    type = "string",
+    default = D.MiddleInsertBehavior.LeaveUntouched,
+    inclusion = {
+      D.MiddleInsertBehavior.LeaveUntouched,
+      D.MiddleInsertBehavior.Extend,
+      D.MiddleInsertBehavior.Cut,
+      D.MiddleInsertBehavior.CutAndAdd
+    }
+  },
+
+  InsertModeInMiddleOfNonMatchingNotesBehaviour            = {
+    type = "string",
+    default = D.MiddleInsertBehavior.LeaveUntouched,
+    inclusion = {
+      D.MiddleInsertBehavior.LeaveUntouched,
+      D.MiddleInsertBehavior.Extend,
+      D.MiddleInsertBehavior.Cut,
+    }
+  }
 };
 
 

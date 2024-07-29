@@ -1,7 +1,7 @@
 -- @description Project underrun monitor (xrun)
 -- @author cfillion
--- @version 2.1
--- @changelog Add event log feature [t=280171]
+-- @version 2.1.1
+-- @changelog Internal code cleanup
 -- @link
 --   cfillion.ca https://cfillion.ca
 --   Request Thread https://forum.cockos.com/showthread.php?p=1942953
@@ -15,14 +15,16 @@
 --   marker position accuracy is limited by the polling speed of ReaScripts
 --   which is around 30Hz.
 
-dofile(reaper.GetResourcePath() ..
-       '/Scripts/ReaTeam Extensions/API/imgui.lua')('0.8')
+local SCRIPT_NAME = select(2, reaper.get_action_context()):match('([^/\\_]+)%.lua$')
 
-local ImGui = {}
-for name, func in pairs(reaper) do
-  name = name:match('^ImGui_(.+)$')
-  if name then ImGui[name] = func end
+if not reaper.ImGui_GetBuiltinPath then
+  reaper.MB('This script requires ReaImGui. \z
+    Install it from ReaPack > Browse packages.', SCRIPT_NAME, 0)
+  return
 end
+
+package.path = reaper.ImGui_GetBuiltinPath() .. '/?.lua'
+local ImGui = require 'imgui' '0.9'
 
 local EXT_SECTION      = 'cfillion_underrun_monitor'
 local EXT_MARKER_TYPE  = 'marker_type'
@@ -66,7 +68,6 @@ local MARKER_WHEN_MENU = {
 local EVENT_LOG_WAS_AT_BOTTOM    = 1
 local EVENT_LOG_SCROLL_TO_BOTTOM = 2
 
-local script_name = select(2, reaper.get_action_context()):match("([^/\\_]+)%.lua$")
 local prev_audio, prev_media = reaper.GetUnderrunTime()
 local last_project
 local ctx, clipper
@@ -76,6 +77,12 @@ local xruns = {
   [AUDIO_XRUN] = { count = 0, position = nil },
   [MEDIA_XRUN] = { count = 0, position = nil },
 }
+
+local ctx = ImGui.CreateContext(SCRIPT_NAME)
+
+local font = ImGui.CreateFont('sans-serif',
+  reaper.GetAppVersion():match('OSX') and 12 or 14)
+ImGui.Attach(ctx, font)
 
 local function position()
   if reaper.GetPlayState() & 1 == 0 then
@@ -196,7 +203,7 @@ local function drawXrun(name, kind)
   local time = xruns[kind].position
   local disabledCursor = function()
     if not time and ImGui.IsItemHovered(ctx) then
-      ImGui.SetMouseCursor(ctx, ImGui.MouseCursor_NotAllowed())
+      ImGui.SetMouseCursor(ctx, ImGui.MouseCursor_NotAllowed)
     end
   end
 
@@ -205,13 +212,13 @@ local function drawXrun(name, kind)
   ImGui.Text(ctx, ('Last %s xrun position:'):format(name))
   ImGui.SameLine(ctx, 179)
   ImGui.SetNextItemWidth(ctx, 115)
-  ImGui.InputText(ctx, '##time', formatPosition(time), ImGui.InputTextFlags_ReadOnly())
+  ImGui.InputText(ctx, '##time', formatPosition(time), ImGui.InputTextFlags_ReadOnly)
   ImGui.SameLine(ctx)
   if not time then
-    local frameBg = ImGui.GetStyleColor(ctx, ImGui.Col_FrameBg())
-    ImGui.PushStyleColor(ctx, ImGui.Col_Button(),        frameBg)
-    ImGui.PushStyleColor(ctx, ImGui.Col_ButtonActive(),  frameBg)
-    ImGui.PushStyleColor(ctx, ImGui.Col_ButtonHovered(),  frameBg)
+    local frameBg = ImGui.GetStyleColor(ctx, ImGui.Col_FrameBg)
+    ImGui.PushStyleColor(ctx, ImGui.Col_Button,        frameBg)
+    ImGui.PushStyleColor(ctx, ImGui.Col_ButtonActive,  frameBg)
+    ImGui.PushStyleColor(ctx, ImGui.Col_ButtonHovered, frameBg)
   end
   if ImGui.Button(ctx, 'Jump') and time then reaper.SetEditCurPos(time, true, false) end
   disabledCursor()
@@ -225,10 +232,10 @@ local function drawXrun(name, kind)
 end
 
 local function drawEventLog()
-  local table_flags = ImGui.TableFlags_Borders() |
-                      ImGui.TableFlags_RowBg() |
-                      ImGui.TableFlags_SizingStretchSame() |
-                      ImGui.TableFlags_ScrollY()
+  local table_flags = ImGui.TableFlags_Borders |
+                      ImGui.TableFlags_RowBg   |
+                      ImGui.TableFlags_SizingStretchSame |
+                      ImGui.TableFlags_ScrollY
   if not ImGui.BeginTable(ctx, 'Event log', 3, table_flags, 0, 100) then return end
   ImGui.TableSetupScrollFreeze(ctx, 0, 1)
   ImGui.TableSetupColumn(ctx, 'Time')
@@ -236,7 +243,7 @@ local function drawEventLog()
   ImGui.TableSetupColumn(ctx, 'Position')
   ImGui.TableHeadersRow(ctx)
 
-  ImGui.PushStyleVar(ctx, ImGui.StyleVar_ItemSpacing(), 4, 4) -- selectable padding
+  ImGui.PushStyleVar(ctx, ImGui.StyleVar_ItemSpacing, 4, 4) -- selectable padding
 
   if not ImGui.ValidatePtr(clipper, 'ImGui_ListClipper*') then
     clipper = ImGui.CreateListClipper(ctx)
@@ -256,7 +263,7 @@ local function drawEventLog()
         if entry.kind & flag ~= 0 then kinds[#kinds + 1] = info.display_name end
       end
       if ImGui.Selectable(ctx, table.concat(kinds, ', '), event_log_sel == i,
-          ImGui.SelectableFlags_SpanAllColumns()) then
+          ImGui.SelectableFlags_SpanAllColumns) then
         event_log_sel = i
         reaper.SetEditCurPos(entry.position, true, false)
       end
@@ -295,7 +302,7 @@ local function draw()
   ImGui.SameLine(ctx)
   ImGui.SetNextItemWidth(ctx, -FLT_MIN)
   combo(EXT_MARKER_WHEN, MARKER_WHEN_MENU)
-  
+
   if ImGui.CollapsingHeader(ctx, 'Event log') then
     drawEventLog()
 
@@ -319,13 +326,13 @@ local function draw()
 end
 
 local function about()
-  local owner = reaper.ReaPack_GetOwner(select(2, reaper.get_action_context()))
+  local owner = reaper.ReaPack_GetOwner((select(2, reaper.get_action_context())))
 
   if not owner then
     reaper.MB((
       'This feature is unavailable because "%s" \z
        was not installed using ReaPack.'
-    ):format(script_name), script_name, 0)
+    ):format(SCRIPT_NAME), SCRIPT_NAME, 0)
     return
   end
 
@@ -335,8 +342,8 @@ end
 
 local function contextMenu()
   local dock_id = ImGui.GetWindowDockID(ctx)
-  local popup_flags = ImGui.PopupFlags_MouseButtonRight() |
-                      ImGui.PopupFlags_NoOpenOverItems()
+  local popup_flags = ImGui.PopupFlags_MouseButtonRight |
+                      ImGui.PopupFlags_NoOpenOverItems
   if not ImGui.BeginPopupContextWindow(ctx, nil, popup_flags) then return end
   if ImGui.BeginMenu(ctx, 'Dock window') then
     if ImGui.MenuItem(ctx, 'Floating', nil, dock_id == 0) then
@@ -364,35 +371,35 @@ function loop()
   probeUnderruns()
 
   ImGui.PushFont(ctx, font)
-  ImGui.PushStyleColor(ctx, ImGui.Col_ChildBg(),  0xffffffff)
-  ImGui.PushStyleColor(ctx, ImGui.Col_WindowBg(), 0xffffffff)
+  ImGui.PushStyleColor(ctx, ImGui.Col_ChildBg,  0xffffffff)
+  ImGui.PushStyleColor(ctx, ImGui.Col_WindowBg, 0xffffffff)
 
   --ImGui.SetNextWindowSize(ctx, 412, 140)
   if set_dock_id then
     ImGui.SetNextWindowDockID(ctx, set_dock_id)
     set_dock_id = nil
   end
-  local wnd_flags = ImGui.WindowFlags_AlwaysAutoResize()
-  local visible, open = ImGui.Begin(ctx, script_name, true, wnd_flags)
+  local visible, open = ImGui.Begin(ctx, SCRIPT_NAME, true,
+    ImGui.WindowFlags_AlwaysAutoResize)
   if visible then
-    ImGui.PushStyleColor(ctx, ImGui.Col_Border(),           0x2a2a2aff)
-    ImGui.PushStyleColor(ctx, ImGui.Col_Button(),           0xdcdcdcff)
-    ImGui.PushStyleColor(ctx, ImGui.Col_ButtonActive(),     0x787878ff)
-    ImGui.PushStyleColor(ctx, ImGui.Col_ButtonHovered(),    0xdcdcdcff)
-    ImGui.PushStyleColor(ctx, ImGui.Col_FrameBg(),          0xffffffff)
-    ImGui.PushStyleColor(ctx, ImGui.Col_FrameBgHovered(),   0x96afe1ff)
-    ImGui.PushStyleColor(ctx, ImGui.Col_Header(),           0x96afe180)
-    ImGui.PushStyleColor(ctx, ImGui.Col_HeaderHovered(),    0x96afe1ff)
-    ImGui.PushStyleColor(ctx, ImGui.Col_PopupBg(),          0xffffffff)
-    ImGui.PushStyleColor(ctx, ImGui.Col_ScrollbarBg(),      0xacacacff)
-    ImGui.PushStyleColor(ctx, ImGui.Col_TableBorderLight(), 0x999999ff)
-    ImGui.PushStyleColor(ctx, ImGui.Col_TableHeaderBg(),    0xdcdcdcff)
-    ImGui.PushStyleColor(ctx, ImGui.Col_Text(),             0x2a2a2aff)
-    ImGui.PushStyleVar(ctx, ImGui.StyleVar_FrameBorderSize(),  1)
-    ImGui.PushStyleVar(ctx, ImGui.StyleVar_FramePadding(),     7, 4)
-    ImGui.PushStyleVar(ctx, ImGui.StyleVar_ItemSpacing(),      7, 7)
-    ImGui.PushStyleVar(ctx, ImGui.StyleVar_ScrollbarSize(),    12)
-    ImGui.PushStyleVar(ctx, ImGui.StyleVar_WindowPadding(),   10, 10)
+    ImGui.PushStyleColor(ctx, ImGui.Col_Border,           0x2a2a2aff)
+    ImGui.PushStyleColor(ctx, ImGui.Col_Button,           0xdcdcdcff)
+    ImGui.PushStyleColor(ctx, ImGui.Col_ButtonActive,     0x787878ff)
+    ImGui.PushStyleColor(ctx, ImGui.Col_ButtonHovered,    0xdcdcdcff)
+    ImGui.PushStyleColor(ctx, ImGui.Col_FrameBg,          0xffffffff)
+    ImGui.PushStyleColor(ctx, ImGui.Col_FrameBgHovered,   0x96afe1ff)
+    ImGui.PushStyleColor(ctx, ImGui.Col_Header,           0x96afe180)
+    ImGui.PushStyleColor(ctx, ImGui.Col_HeaderHovered,    0x96afe1ff)
+    ImGui.PushStyleColor(ctx, ImGui.Col_PopupBg,          0xffffffff)
+    ImGui.PushStyleColor(ctx, ImGui.Col_ScrollbarBg,      0xacacacff)
+    ImGui.PushStyleColor(ctx, ImGui.Col_TableBorderLight, 0x999999ff)
+    ImGui.PushStyleColor(ctx, ImGui.Col_TableHeaderBg,    0xdcdcdcff)
+    ImGui.PushStyleColor(ctx, ImGui.Col_Text,             0x2a2a2aff)
+    ImGui.PushStyleVar(ctx, ImGui.StyleVar_FrameBorderSize, 1)
+    ImGui.PushStyleVar(ctx, ImGui.StyleVar_FramePadding,    7, 4)
+    ImGui.PushStyleVar(ctx, ImGui.StyleVar_ItemSpacing,     7, 7)
+    ImGui.PushStyleVar(ctx, ImGui.StyleVar_ScrollbarSize,   12)
+    ImGui.PushStyleVar(ctx, ImGui.StyleVar_WindowPadding,  10, 10)
 
     contextMenu()
     draw()
@@ -405,13 +412,11 @@ function loop()
   ImGui.PopStyleColor(ctx, 2)
   ImGui.PopFont(ctx)
 
-  if ImGui.IsKeyPressed(ctx, ImGui.Key_F1()) then about() end
-  if ImGui.IsKeyPressed(ctx, ImGui.Key_Escape()) or exit then open = false end
+  if ImGui.IsKeyPressed(ctx, ImGui.Key_F1) then about() end
+  if ImGui.IsKeyPressed(ctx, ImGui.Key_Escape) or exit then open = false end
 
   if open then
     reaper.defer(loop)
-  else
-    ImGui.DestroyContext(ctx)
   end
 end
 
@@ -421,20 +426,5 @@ for key, default in pairs(DEFAULT_SETTINGS) do
   end
 end
 
-reaper.atexit(function()
-  reset(AUDIO_XRUN|MEDIA_XRUN)
-end)
-
-if not ImGui.CreateContext then
-  reaper.MB('This script requires ReaImGui. \z
-    Install it from ReaPack > Browse packages.', script_name, 0)
-  return
-end
-
-ctx = ImGui.CreateContext(script_name)
-
-local size = reaper.GetAppVersion():match('OSX') and 12 or 14
-font = ImGui.CreateFont('sans-serif', size)
-ImGui.Attach(ctx, font)
-
 reaper.defer(loop)
+reaper.atexit(function() reset(AUDIO_XRUN|MEDIA_XRUN) end)

@@ -1,11 +1,14 @@
 -- @noindex
 -- @license MIT
+
 -- @description MIDI Utils API
--- @version 0.1.18
+-- @version 0.1.28
 -- @author sockmonkey72
+
 -- @about
 --   # MIDI Utils API
 --   Drop-in replacement for REAPER's high-level MIDI API
+
 -- @about2
 --   Third party library by sockmonkey72, used by One Small Step
 --   Only this header was modified for reapack logic
@@ -17,13 +20,17 @@
 
 --]]
 
+
 local r = reaper
 local MIDIUtils = {}
 
 MIDIUtils.ENFORCE_ARGS = true -- turn off for efficiency
 MIDIUtils.CORRECT_OVERLAPS = false
 MIDIUtils.CORRECT_OVERLAPS_FAVOR_SELECTION = false
+MIDIUtils.CORRECT_OVERLAPS_FAVOR_NOTEON = false
 MIDIUtils.ALLNOTESOFF_SNAPS_TO_ITEM_END = true
+MIDIUtils.CLAMP_MIDI_BYTES = false
+MIDIUtils.CORRECT_EXTENTS = false
 
 local NOTE_TYPE = 0
 local NOTEOFF_TYPE = 1
@@ -79,7 +86,8 @@ local function post(...)
   local str = ''
   for i = 1, #args do
     local v = args[i]
-    str = str .. (i ~= 1 and ', ' or '') .. (v ~= nil and tostring(v) or '<nil>')
+    local val = tostring(v)
+    str = str .. (i ~= 1 and ', ' or '') .. (val ~= nil and val or '<nil>')
   end
   str = str .. '\n'
   r.ShowConsoleMsg(str)
@@ -119,6 +127,23 @@ local function ReadREAPERConfigVar_Int(name)
   return nil
 end
 
+local function ensureChannelRange(chan)
+  chan = math.floor(chan + 0.5)
+  if MIDIUtils.CLAMP_MIDI_BYTES then
+    return chan < 0 and 0 or chan > 15 and 15 or chan
+  end
+  return chan & 0xF
+end
+
+local function ensureValueRange(val)
+  val = math.floor(val + 0.5)
+  if MIDIUtils.CLAMP_MIDI_BYTES then
+    return val < 0 and 0 or val > 127 and 127 or val
+  else
+    return val & 0x7F
+  end
+end
+
 -----------------------------------------------------------------------------
 
 MIDIUtils.post = function(...)
@@ -142,7 +167,7 @@ local function tprint (tbl, indent)
     elseif type(v) == 'boolean' then
       post(formatting .. tostring(v))
     else
-      post(formatting .. v)
+      post(formatting .. tostring(v))
     end
   end
 end
@@ -545,6 +570,7 @@ local function Reset()
 end
 
 local function InsertMIDIEvent(event)
+  event.recalcMIDI = true
   if event:is_a(BezierEvent) then -- special case for BezierEvents
     bezTable[event.ccIdx + 1] = event
     ccEvents[event.ccIdx + 1].hasBezier = true
@@ -559,6 +585,19 @@ end
 local function ReplaceMIDIEvent(event, newEvent)
   newEvent.idx = event.idx
   newEvent.MIDIidx = event.MIDIidx
+
+  -- fix note-off connection to note-on
+  newEvent.noteOnIdx = event.noteOnIdx
+  if newEvent.noteOnIdx then
+    MIDIEvents[newEvent.noteOnIdx].endppqpos = newEvent.ppqpos
+  end
+
+  -- fix note-on connection to note-off
+  newEvent.noteOffIdx = event.noteOffIdx
+  if newEvent.noteOffIdx then
+    newEvent.endppqpos = MIDIEvents[newEvent.noteOffIdx].ppqpos
+  end
+
   MIDIEvents[event.MIDIidx] = newEvent
   if newEvent.idx then
     if newEvent:is_a(NoteOnEvent) then noteEvents[newEvent.idx + 1] = newEvent
@@ -573,6 +612,29 @@ local function GetItemEndPPQPos(take)
   local item = r.GetMediaItemTake_Item(take)
   local itempos = r.GetMediaItemInfo_Value(item, 'D_POSITION')
   local itemlen = r.GetMediaItemInfo_Value(item, 'D_LENGTH')
+  local isloopsrc = r.GetMediaItemInfo_Value(item, 'B_LOOPSRC')
+  if isloopsrc ~= 0 then
+    -- this calculation is one of the most annoying in all of REAPER
+    -- there really should be an API for it
+    local mediaSrc = r.GetMediaItemTake_Source(take)
+    if mediaSrc then
+      local takeStartOffset = r.GetMediaItemTakeInfo_Value(take, 'D_STARTOFFS')
+      local takePlayRate = r.GetMediaItemTakeInfo_Value(take, 'D_PLAYRATE')
+      local scaledStartOffsetS = takeStartOffset / takePlayRate
+      local mediaSourceLen, isQN = r.GetMediaSourceLength(mediaSrc)
+      local loopMediaStartPointS = itempos - scaledStartOffsetS
+
+      local nextLoopStartS = 0;
+      if isQN then
+        local loopMediaStartPointQN = r.TimeMap2_timeToQN(0, loopMediaStartPointS)
+        local nextLoopStartQN = loopMediaStartPointQN + (mediaSourceLen / takePlayRate)
+        nextLoopStartS = r.TimeMap2_QNToTime(0, nextLoopStartQN)
+      else
+        nextLoopStartS = loopMediaStartPointS + (mediaSourceLen / takePlayRate);
+      end
+      return r.MIDI_GetPPQPosFromProjTime(take, nextLoopStartS)
+    end
+  end
   return r.MIDI_GetPPQPosFromProjTime(take, itempos + itemlen)
 end
 
@@ -695,12 +757,14 @@ local function CorrectOverlapForEvent(take, testEvent, selectedEvent, favorSelec
   if testEvent.chan == selectedEvent.chan
     and testEvent.msg2 == selectedEvent.msg2
   then
+    local protectNoteOns = MIDIUtils.CORRECT_OVERLAPS_FAVOR_NOTEON
     -- quick test for equality, in which case we should prioritize a selected event over an unselected one
     -- regardless of the overlap selection setting
     if testEvent.ppqpos == selectedEvent.ppqpos and testEvent.endppqpos == selectedEvent.endppqpos then
       local testSel = testEvent:IsSelected()
       local selSel = selectedEvent:IsSelected()
-      if testSel ~= selSel and testSel then selectedEvent.delete = true
+
+      if (testSel ~= selSel and testSel) or selectedEvent.delete then selectedEvent.delete = true
       else testEvent.delete = true
       end
       return true
@@ -708,7 +772,7 @@ local function CorrectOverlapForEvent(take, testEvent, selectedEvent, favorSelec
       MIDIUtils.MIDI_SetNote(take, testEvent.idx, nil, nil, nil, selectedEvent.ppqpos, nil, nil, nil)
       modified = true
     elseif testEvent.ppqpos >= selectedEvent.ppqpos and testEvent.ppqpos <= selectedEvent.endppqpos then
-      if favorSelection then
+      if favorSelection and not (testEvent:IsSelected() and protectNoteOns) then
         MIDIUtils.MIDI_SetNote(take, testEvent.idx, nil, nil, selectedEvent.endppqpos, nil, nil, nil, nil)
       else
         MIDIUtils.MIDI_SetNote(take, selectedEvent.idx, nil, nil, nil, testEvent.ppqpos, nil, nil, nil)
@@ -771,20 +835,77 @@ local function MIDI_CommitWriteTransaction(take, refresh, dirty)
   local lastPPQPos = 0
 
   -- iterate sorted to avoid (REAPER Inline MIDI Editor) problems with offset calculation
-  local comparator = function(t, a, b) -- thanks Talagan (Ben Babut) for this improvement
-    if (t[a].ppqpos == t[b].ppqpos) then
-      local aprio = (t[a]:type() == NOTEOFF_TYPE) and 0 or 1
-      local bprio = (t[b]:type() == NOTEOFF_TYPE) and 0 or 1
+  local comparator = function(t, i, j) -- thanks Talagan (Ben Babut) for this improvement
+    if (t[i].ppqpos == t[j].ppqpos) then
+      local aprio = (t[i]:type() == NOTEOFF_TYPE) and 0 or 1
+      local bprio = (t[j]:type() == NOTEOFF_TYPE) and 0 or 1
 
       return aprio < bprio
     else
-      return (t[a].ppqpos < t[b].ppqpos)
+      return (t[i].ppqpos < t[j].ppqpos)
     end
   end
 
-  for _, event in spairs(MIDIEvents, comparator) do
-    event.offset = math.floor(event.ppqpos - lastPPQPos)
-    lastPPQPos = event.ppqpos
+  local correct = 0
+  for k in spairs(MIDIEvents, comparator) do
+    -- nothing
+  end
+
+  if MIDIUtils.CORRECT_EXTENTS then
+    local item = r.GetMediaItemTake_Item(take)
+    local itemStartTime = r.GetMediaItemInfo_Value(item, 'D_POSITION')
+    local itemEndTime = itemStartTime + r.GetMediaItemInfo_Value(item, 'D_LENGTH')
+
+    local itemStartPPQ = r.MIDI_GetPPQPosFromProjTime(take, itemStartTime)
+    local itemEndPPQ = r.MIDI_GetPPQPosFromProjTime(take, itemEndTime)
+
+    local firstEventPPQ
+    local lastEventPPQ
+
+    if item then
+      -- find the first and last _touched_ events
+      for _, event in ipairs(MIDIEvents) do
+        if event.ppqpos > itemStartPPQ then break end
+        if not event.delete and event.recalcMIDI then
+          if event.ppqpos < itemStartPPQ then
+            firstEventPPQ = event.ppqpos
+            break
+          end
+        end
+      end
+      for i = #MIDIEvents, 1, -1 do
+        local event = MIDIEvents[i]
+        if event.ppqpos < itemEndPPQ then break end
+        if not event.delete and event.recalcMIDI then
+          if event.ppqpos > itemEndPPQ then
+            lastEventPPQ = event.ppqpos
+            break
+          end
+        end
+      end
+
+      if firstEventPPQ or lastEventPPQ then
+        local newItemStartQN, newItemEndQN
+        if firstEventPPQ then
+          newItemStartQN = r.MIDI_GetProjQNFromPPQPos(take, firstEventPPQ)
+        end
+        if lastEventPPQ then
+          newItemEndQN = r.MIDI_GetProjQNFromPPQPos(take, lastEventPPQ)
+        end
+
+        if not newItemStartQN then newItemStartQN = r.TimeMap2_timeToQN(0, itemStartTime) end
+        if not newItemEndQN then newItemEndQN = r.TimeMap2_timeToQN(0, itemEndTime) end
+        -- resize to nearest QN
+        local floorStartTime = math.floor(newItemStartQN)
+        correct = -r.MIDI_GetPPQPosFromProjQN(take, floorStartTime)
+        r.MIDI_SetItemExtents(item, floorStartTime, math.ceil(newItemEndQN))
+      end
+    end
+  end
+
+  for _, event in pairs(MIDIEvents) do
+    event.offset = math.floor(event.ppqpos - lastPPQPos + correct)
+    lastPPQPos = event.ppqpos + correct
     local MIDIStr = event:GetMIDIString()
     if event.delete then
       event.flags = 0
@@ -895,19 +1016,19 @@ local function MIDI_SetNote(take, idx, selected, muted, ppqpos, endppqpos, chan,
       event.endppqpos = noteoff.ppqpos
     end
     if chan then
-      event.chan = chan & 0x0F
+      event.chan = ensureChannelRange(chan)
       AdjustNoteOff(noteoff, 'chan', event.chan)
     end
     if pitch then
-      event.msg2 = pitch & 0x7F
+      event.msg2 = ensureValueRange(pitch)
       AdjustNoteOff(noteoff, 'msg2', event.msg2)
     end
     if vel then
-      event.msg3 = vel & 0x7F
+      event.msg3 = ensureValueRange(vel)
       if event.msg3 < 1 then event.msg3 = 1 end
     end
     if relvel then
-      AdjustNoteOff(noteoff, 'msg3', relvel & 0x7F)
+      AdjustNoteOff(noteoff, 'msg3', ensureValueRange(relvel))
     end
     event.recalcMIDI = true
     rv = true
@@ -922,9 +1043,9 @@ local function MIDI_InsertNote(take, selected, muted, ppqpos, endppqpos, chan, p
                                 ppqpos - lastEventPPQ,
                                 FlagsFromSelMute(selected, muted),
                                 table.concat({
-                                  string.char(0x90 | (chan & 0xF)),
-                                  string.char(pitch & 0x7F),
-                                  string.char(vel & 0x7F)
+                                  string.char(0x90 | ensureChannelRange(chan)),
+                                  string.char(ensureValueRange(pitch)),
+                                  string.char(ensureValueRange(vel))
                                 }))
   newNoteOn.noteOffIdx = -1
   InsertMIDIEvent(newNoteOn)
@@ -935,7 +1056,7 @@ local function MIDI_InsertNote(take, selected, muted, ppqpos, endppqpos, chan, p
                                   table.concat({
                                     string.char(0x80 | newNoteOn.chan),
                                     string.char(newNoteOn.msg2),
-                                    string.char(relvel and (relvel & 0x7F) or 0)
+                                    string.char(relvel and ensureValueRange(relvel) or 0)
                                   }))
   newNoteOn.endppqpos = newNoteOff.ppqpos
   newNoteOff.noteOnIdx = #MIDIEvents
@@ -1110,13 +1231,13 @@ local function MIDI_SetCC(take, idx, selected, muted, ppqpos, chanmsg, chan, msg
       event.chanmsg = chanmsg < 0xA0 or chanmsg >= 0xF0 and 0xB0 or chanmsg & 0xF0
     end
     if chan then
-      event.chan = chan & 0x0F
+      event.chan = ensureChannelRange(chan)
     end
     if msg2 then
-      event.msg2 = msg2 & 0x7F
+      event.msg2 = ensureValueRange(msg2)
     end
     if msg3 then
-      event.msg3 = msg3 & 0x7F
+      event.msg3 = ensureValueRange(msg3)
       if chanmsg == 0xC0 or chanmsg == 0xD0 then event.msg3 = 0 end
     end
     event.recalcMIDI = true
@@ -1170,9 +1291,9 @@ local function MIDI_InsertCC(take, selected, muted, ppqpos, chanmsg, chan, msg2,
                         ppqpos - lastEventPPQ,
                         newFlags,
                         table.concat({
-                          string.char((chanmsg & 0xF0) | (chan & 0xF)),
-                          string.char(msg2 & 0x7F),
-                          string.char(msg3 & 0x7F)
+                          string.char((chanmsg & 0xF0) | ensureChannelRange(chan)),
+                          string.char(ensureValueRange(msg2)),
+                          string.char(ensureValueRange(msg3))
                         }))
   InsertMIDIEvent(newCC)
   return true, newCC.idx
@@ -1842,7 +1963,8 @@ local function MIDI_GetCCValueAtTime(take, chanmsg, chan, msg2, time)
   local val = 0
   local ppqpos = 0
   chanmsg = chanmsg & 0xF0
-  chan = chan & 0xF
+  chan = ensureChannelRange(chan)
+  msg2 = ensureValueRange(msg2)
   local b3 = chanmsg == 0xA0 or chanmsg == 0xB0
   local b2 = chanmsg == 0xC0 or chanmsg == 0xD0
   local pb = chanmsg == 0xE0
@@ -1924,7 +2046,7 @@ end
 local noteNames = { 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B' }
 
 local function MIDI_NoteNumberToNoteName(notenum, names)
-  notenum = math.abs(notenum) % 128
+  notenum = MIDIUtils.CLAMP_MIDI_BYTES and ensureValueRange(notenum) or math.floor(math.abs(notenum) + 0.5) % 128
   names = names or noteNames
   local notename = names[notenum % 12 + 1]
   local octave = math.floor((notenum / 12)) - 1
@@ -1934,6 +2056,32 @@ local function MIDI_NoteNumberToNoteName(notenum, names)
     octave = octave + noteOffset
   end
   return notename..octave
+end
+
+local function MIDI_NoteNameToNoteNumber(notename, names)
+  names = names or noteNames
+  local notenum = 0
+  local noteclass
+  local octave
+  notename = notename:lower()
+
+  for k, v in ipairs(names) do
+    local fs, fe, oct = notename:find('^' .. v:lower() .. '([%-%d]+)')
+    if fs and fe then
+      noteclass = k - 1
+      octave = tonumber(oct)
+      break
+    end
+  end
+  if noteclass then
+    notenum = noteclass
+    if octave then
+      local noteOffset = ReadREAPERConfigVar_Int('midioctoffs') - 1 or nil
+      octave = (octave + 1) - (noteOffset and noteOffset or 0)
+      notenum = noteclass + (12 * octave)
+    end
+  end
+  return notenum
 end
 
 local function MIDI_DebugInfo(take)
@@ -1970,6 +2118,20 @@ local function MIDI_GetPPQ(take)
   return math.floor(r.MIDI_GetPPQPosFromProjQN(take, qn2) - r.MIDI_GetPPQPosFromProjQN(take, qn1))
 end
 
+local function MIDI_SelectAll(take, wantsSelect)
+  if not EnsureTransaction(take) then return false end
+  for _, event in ipairs(MIDIEvents) do
+    if event:IsAllEvt() then
+      local isSelected = event.flags & 1
+      if isSelected ~= wantsSelect then
+        if wantsSelect then event.flags = event.flags | 1
+        else event.flags = event.flags & ~1
+        end
+        event.recalcMIDI = true
+      end
+    end
+  end
+end
 
 MIDIUtils.MIDI_NoteNumberToNoteName = function(notenum, names)
   EnforceArgs(
@@ -1977,6 +2139,14 @@ MIDIUtils.MIDI_NoteNumberToNoteName = function(notenum, names)
     MakeTypedArg(names, 'table', true)
   )
   return select(2, xpcall(MIDI_NoteNumberToNoteName, OnError, notenum, names))
+end
+
+MIDIUtils.MIDI_NoteNameToNoteNumber = function(notename, names)
+  EnforceArgs(
+    MakeTypedArg(notename, 'string'),
+    MakeTypedArg(names, 'table', true)
+  )
+  return select(2, xpcall(MIDI_NoteNameToNoteNumber, OnError, notename, names))
 end
 
 MIDIUtils.MIDI_DebugInfo = function(take)
@@ -1992,6 +2162,16 @@ MIDIUtils.MIDI_GetPPQ = function(take)
   )
   return select(2, xpcall(MIDI_GetPPQ, OnError, take))
 end
+
+MIDIUtils.MIDI_SelectAll = function(take, wantsSelect)
+  EnforceArgs(
+    MakeTypedArg(take, 'userdata', false, 'MediaItem_Take*'),
+    MakeTypedArg(wantsSelect, 'boolean')
+  )
+  return select(2, xpcall(MIDI_SelectAll, OnError, take, wantsSelect))
+end
+
+MIDIUtils.tprint = tprint
 
 -----------------------------------------------------------------------------
 ----------------------------------- EXPORT ----------------------------------

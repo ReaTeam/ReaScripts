@@ -53,6 +53,13 @@ local function noteEndsInWindowPPQ(note, left, right, strict)
   return a and e
 end
 
+local function noteContainsPPQ(note, ppq, strict)
+  local a = noteStartsBeforePPQ(note, ppq, strict)
+  local e = noteEndsAfterPPQ(note, ppq, strict)
+
+  return a and e
+end
+
 local function PPQRound(ppq)
   return math.floor(ppq + 0.5) -- Compensate floating errors
 end
@@ -218,6 +225,7 @@ return {
   noteEndsBeforePPQ     = noteEndsBeforePPQ,
   noteEndsOnPPQ         = noteEndsOnPPQ,
   noteEndsInWindowPPQ   = noteEndsInWindowPPQ,
+  noteContainsPPQ       = noteContainsPPQ,
 
   TimeRoundBasedOnPPQ   = TimeRoundBasedOnPPQ,
 

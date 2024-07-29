@@ -1,7 +1,7 @@
 -- @description Apply render preset
 -- @author cfillion
--- @version 2.1.2
--- @changelog Add support for the Directory field (thanks odedd)
+-- @version 2.1.4
+-- @changelog Fix parsing of mixed quotes in reaper-render2.ini [cfillion/reascripts#7]
 -- @provides
 --   .
 --   [main] . > cfillion_Apply render preset (create action).lua
@@ -39,18 +39,13 @@
 --   - Resample mode
 --   - Use project sample rate for mixing and FX/synth processing
 
-if reaper.ImGui_CreateContext then
-  dofile(reaper.GetResourcePath() ..
-        '/Scripts/ReaTeam Extensions/API/imgui.lua')('0.8')
+local ImGui
+if reaper.ImGui_GetBuiltinPath then
+  package.path = reaper.ImGui_GetBuiltinPath() .. '/?.lua'
+  ImGui = require 'imgui' '0.9'
 end
 
-local r, ImGui = reaper, {}
-for name, func in pairs(r) do
-  name = name:match('^ImGui_(.+)$')
-  if name then ImGui[name] = func end
-end
-
-local REAPER_BEFORE_V6 = tonumber(r.GetAppVersion():match('^%d+')) < 6
+local REAPER_BEFORE_V6 = tonumber(reaper.GetAppVersion():match('^%d+')) < 6
 local SETTINGS_SOURCE_MASK  = 0x10EB
 local SETTINGS_OPTIONS_MASK = 0x6F14
 local KNOWN_METADATA_TAGS = {
@@ -215,7 +210,7 @@ local METADATA_IMAGE_TYPES = {
 }
 
 local function getScriptInfo()
-  local path = ({r.get_action_context()})[2]
+  local path = select(2, reaper.get_action_context())
 
   local isCreate = false
   local first, last = path:find(' %(create action%)')
@@ -264,13 +259,14 @@ local function tokenize(line)
   while pos do
     local tail, eat = nil, 1
 
-    if line:sub(pos, pos) == '"' then
+    local quote = line:sub(pos, pos)
+    if quote == '"' or quote == "'" or quote == '`' then
       pos = pos + 1 -- eat the opening quote
-      tail = line:find('"%s', pos)
+      tail = line:find(quote .. '%s', pos)
       eat = 2
 
       if not tail then
-        if line:sub(-1) == '"' then
+        if line:sub(-1) == quote then
           tail = line:len()
         else
           error('missing closing quote')
@@ -352,6 +348,7 @@ function parseFormatPreset(presets, file, tokens)
   preset.projrenderrateinternal = tonumber(tokens[6]) -- use proj splrate
   preset.projrenderresample     = tonumber(tokens[7])
   preset.RENDER_DITHER          = tonumber(tokens[8])
+  preset.RENDER_FORMAT          = '' -- handle duplicate <RENDERPRESET
   preset.RENDER_FORMAT2         = '' -- reset when no <RENDERPRESET2 node exists
 
   -- Moved from output presets to format presets in v6.0
@@ -477,8 +474,8 @@ function parseMetadataPreset(presets, file, tokens)
 end
 
 local function readRenderPresets(presets, filename)
-  local path = string.format('%s/%s', r.GetResourcePath(), filename)
-  if not r.file_exists(path) then
+  local path = ('%s/%s'):format(reaper.GetResourcePath(), filename)
+  if not reaper.file_exists(path) then
     return presets
   end
 
@@ -486,6 +483,7 @@ local function readRenderPresets(presets, filename)
 
   local parser = parseDefault
   for line in file:lines() do
+    line = line:match('^(.-)\r*$')
     parser = assert(parser(presets, filename, line))
   end
 
@@ -495,15 +493,15 @@ local function readRenderPresets(presets, filename)
 end
 
 local function clearMetadata(project)
-  local tags = select(2, r.GetSetProjectInfo_String(project, 'RENDER_METADATA', '', false))
+  local tags = select(2, reaper.GetSetProjectInfo_String(project, 'RENDER_METADATA', '', false))
   for tag in tags:gmatch('[^;]+') do
-    r.GetSetProjectInfo_String(project, 'RENDER_METADATA', ('%s|'):format(tag), true)
+    reaper.GetSetProjectInfo_String(project, 'RENDER_METADATA', ('%s|'):format(tag), true)
   end
 end
 
 local function applyMetadata(project, tags)
   for i, metadata in ipairs(tags) do
-    r.GetSetProjectInfo_String(project, 'RENDER_METADATA',
+    reaper.GetSetProjectInfo_String(project, 'RENDER_METADATA',
       ('%s|%s'):format(metadata.tag, metadata.value), true)
   end
 end
@@ -515,22 +513,22 @@ local function applyRenderPreset(project, preset)
       clearMetadata(project)
       applyMetadata(project, preset.metadata)
     elseif type(value) == 'string' then
-      r.GetSetProjectInfo_String(project, key, value, true)
+      reaper.GetSetProjectInfo_String(project, key, value, true)
     elseif key:match('^[a-z]') then -- lowercase
-      r.SNM_SetIntConfigVar(key, value)
+      reaper.SNM_SetIntConfigVar(key, value)
     else
       local mask = preset[('_%s_mask'):format(key:lower())]
       if mask then
         value = (value & mask) |
-          (r.GetSetProjectInfo(project, key, 0, false) & ~mask)
+          (reaper.GetSetProjectInfo(project, key, 0, false) & ~mask)
       end
-      r.GetSetProjectInfo(project, key, value, true)
+      reaper.GetSetProjectInfo(project, key, value, true)
     end
   end
 
   if preset.RENDER_FORMAT then
     -- workaround for this REAPER bug: https://forum.cockos.com/showthread.php?t=224539
-    r.GetSetProjectInfo_String(project, 'RENDER_FORMAT', preset.RENDER_FORMAT, true)
+    reaper.GetSetProjectInfo_String(project, 'RENDER_FORMAT', preset.RENDER_FORMAT, true)
   end
 end
 
@@ -541,31 +539,31 @@ end
 
 local function createAction(presetName)
   local fnPresetName = sanitizeFilename(presetName)
-  local actionName = string.format('Apply render preset - %s', fnPresetName)
-  local outputFn = string.format('%s/Scripts/%s.lua',
-    r.GetResourcePath(), actionName)
+  local actionName = ('Apply render preset - %s'):format(fnPresetName)
+  local outputFn = ('%s/Scripts/%s.lua'):format(
+    reaper.GetResourcePath(), actionName)
   local baseName = scriptInfo.path:match('([^/\\]+)$')
-  local relPath = scriptInfo.path:sub(r.GetResourcePath():len() + 2)
+  local relPath = scriptInfo.path:sub(reaper.GetResourcePath():len() + 2)
 
-  local code = string.format([[
+  local code = ([[
 -- This file was created by %s on %s
 
 ApplyPresetByName = %q
-dofile(string.format(%q, reaper.GetResourcePath()))
-]], baseName, os.date('%c'), presetName, '%s/'..relPath)
+dofile((%q):format(reaper.GetResourcePath()))
+]]):format(baseName, os.date('%c'), presetName, '%s/'..relPath)
 
   local file = assert(io.open(outputFn, 'w'))
   file:write(code)
   file:close()
 
-  if r.AddRemoveReaScript(true, 0, outputFn, true) == 0 then
-    r.ShowMessageBox(
+  if reaper.AddRemoveReaScript(true, 0, outputFn, true) == 0 then
+    reaper.ShowMessageBox(
       'Failed to create or register the new action.', scriptInfo.name, 0)
     return
   end
 
-  r.ShowMessageBox(
-    string.format('Created the action "%s".', actionName), scriptInfo.name, 0)
+  reaper.ShowMessageBox(('Created the action "%s".'):format(actionName),
+    scriptInfo.name, 0)
 end
 
 local function main(presetName, preset)
@@ -577,21 +575,21 @@ local function main(presetName, preset)
 end
 
 local function gfxdo(callback)
-  local app = r.GetAppVersion()
+  local app = reaper.GetAppVersion()
   if app:match('OSX') or app:match('linux') then
     return callback()
   end
 
-  local curx, cury = r.GetMousePosition()
+  local curx, cury = reaper.GetMousePosition()
   gfx.init("", 0, 0, 0, curx, cury)
 
-  if r.JS_Window_SetStyle then
-    local window = r.JS_Window_GetFocus()
-    local winx, winy = r.JS_Window_ClientToScreen(window, 0, 0)
+  if reaper.JS_Window_SetStyle then
+    local window = reaper.JS_Window_GetFocus()
+    local winx, winy = reaper.JS_Window_ClientToScreen(window, 0, 0)
     gfx.x = gfx.x - (winx - curx)
     gfx.y = gfx.y - (winy - cury)
-    r.JS_Window_SetStyle(window, "POPUP")
-    r.JS_Window_SetOpacity(window, 'ALPHA', 0)
+    reaper.JS_Window_SetStyle(window, "POPUP")
+    reaper.JS_Window_SetOpacity(window, 'ALPHA', 0)
   end
 
   local value = callback()
@@ -763,8 +761,8 @@ local function boundsCell(ctx, preset)
   if preset.RENDER_BOUNDSFLAG == 0
       and preset.RENDER_STARTPOS and preset.RENDER_ENDPOS then
     ImGui.Text(ctx, ('%s to %s'):format(
-      r.format_timestr(preset.RENDER_STARTPOS, ''),
-      r.format_timestr(preset.RENDER_ENDPOS, '')))
+      reaper.format_timestr(preset.RENDER_STARTPOS, ''),
+      reaper.format_timestr(preset.RENDER_ENDPOS, '')))
   else
     enumCell(ctx, bounds, preset.RENDER_BOUNDSFLAG)
   end
@@ -839,7 +837,7 @@ local function metadataCell(ctx, preset)
     if not preset._metadata_merged then
       preset._metadata_merged = mergeMetadata(preset.metadata)
     end
-    local tableFlags = ImGui.TableFlags_Borders() | ImGui.TableFlags_RowBg()
+    local tableFlags = ImGui.TableFlags_Borders | ImGui.TableFlags_RowBg
     if ImGui.BeginTable(ctx, 'metadata', 3, tableFlags) then
       ImGui.TableSetupColumn(ctx, 'Tag')
       ImGui.TableSetupColumn(ctx, 'Value')
@@ -872,6 +870,10 @@ local function metadataCell(ctx, preset)
 end
 
 function decodeBase64(data)
+  if reaper.NF_Base64_Decode then
+    return select(2, reaper.NF_Base64_Decode(data))
+  end
+
   -- source: https://stackoverflow.com/a/35303321/796375
   local b = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
   data = data:gsub('[^'..b..'=]', '')
@@ -904,7 +906,12 @@ local function formatCell(ctx, preset, key)
   end
   if not preset._format_cache[key] then
     local data = decodeBase64(preset[key])
-    preset._format_cache[key] = string.unpack('c4', data):reverse()
+    if #data >= 4 then
+      data = ('c4'):unpack(data):reverse()
+    else
+      data = '<invalid>'
+    end
+    preset._format_cache[key] = data
   end
 
   local formats = {
@@ -927,7 +934,7 @@ end
 
 local function presetRow(ctx, name, preset)
   ImGui.TableNextColumn(ctx)
-  if ImGui.Selectable(ctx, name, false, ImGui.SelectableFlags_SpanAllColumns()) then
+  if ImGui.Selectable(ctx, name, false, ImGui.SelectableFlags_SpanAllColumns) then
     main(name, preset)
     ImGui.CloseCurrentPopup(ctx)
   end
@@ -981,8 +988,8 @@ local function presetRow(ctx, name, preset)
   end
 end
 
-assert(r.GetSetProjectInfo,   'REAPER v5.975 or newer is required')
-assert(r.SNM_SetIntConfigVar, 'The SWS extension is not installed')
+assert(reaper.GetSetProjectInfo,   'REAPER v5.975 or newer is required')
+assert(reaper.SNM_SetIntConfigVar, 'The SWS extension is not installed')
 
 local presets = {}
 readRenderPresets(presets, 'reaper-render.ini')
@@ -993,8 +1000,8 @@ if ApplyPresetByName then
   if preset then
     applyRenderPreset(nil, preset)
   else
-    r.ShowMessageBox(
-      string.format("Unable to find a render preset named '%s'.", ApplyPresetByName),
+    reaper.ShowMessageBox(
+      ("Unable to find a render preset named '%s'."):format(ApplyPresetByName),
       scriptInfo.name, 0)
   end
   return
@@ -1006,7 +1013,7 @@ for name, preset in pairs(presets) do
 end
 table.sort(names, function(a, b) return a:lower() < b:lower() end)
 
-if not ImGui.CreateContext then
+if not ImGui then
   local presetName = gfxdo(function()
     if #names == 0 then
       gfx.showmenu('#No render preset found')
@@ -1026,9 +1033,9 @@ if not ImGui.CreateContext then
   return
 end
 
-local ctx = ImGui.CreateContext(scriptInfo.name, ImGui.ConfigFlags_NavEnableKeyboard())
+local ctx = ImGui.CreateContext(scriptInfo.name, ImGui.ConfigFlags_NavEnableKeyboard)
 local clipper = ImGui.CreateListClipper(ctx)
-local size = r.GetAppVersion():match('OSX') and 12 or 14
+local size = reaper.GetAppVersion():match('OSX') and 12 or 14
 local font = ImGui.CreateFont('sans-serif', size)
 ImGui.Attach(ctx, font)
 
@@ -1046,13 +1053,13 @@ local function popup()
   ImGui.Spacing(ctx)
 
   local tableFlags  =
-    ImGui.TableFlags_Borders()     |
-    ImGui.TableFlags_Hideable()    |
-    ImGui.TableFlags_Reorderable() |
-    ImGui.TableFlags_Resizable()   |
-    ImGui.TableFlags_RowBg()
+    ImGui.TableFlags_Borders     |
+    ImGui.TableFlags_Hideable    |
+    ImGui.TableFlags_Reorderable |
+    ImGui.TableFlags_Resizable   |
+    ImGui.TableFlags_RowBg
   local hiddenColFlags =
-    ImGui.TableColumnFlags_DefaultHide()
+    ImGui.TableColumnFlags_DefaultHide
 
   if not ImGui.BeginTable(ctx, 'Presets', 16, tableFlags) then return end
   ImGui.TableSetupColumn(ctx, 'Name')
@@ -1092,15 +1099,15 @@ end
 local function loop()
   if ImGui.IsWindowAppearing(ctx) then
     ImGui.SetNextWindowPos(ctx,
-      ImGui.PointConvertNative(ctx, r.GetMousePosition()))
+      ImGui.PointConvertNative(ctx, reaper.GetMousePosition()))
     ImGui.OpenPopup(ctx, scriptInfo.name)
   end
 
   local windowFlags =
-    ImGui.WindowFlags_AlwaysAutoResize() |
-    ImGui.WindowFlags_NoDocking()        |
-    ImGui.WindowFlags_NoTitleBar()       |
-    ImGui.WindowFlags_TopMost()
+    ImGui.WindowFlags_AlwaysAutoResize |
+    ImGui.WindowFlags_NoDocking        |
+    ImGui.WindowFlags_NoTitleBar       |
+    ImGui.WindowFlags_TopMost
 
   if ImGui.IsPopupOpen(ctx, scriptInfo.name) then
     -- HACK: Dirty trick to force the table to save its settings.
@@ -1118,10 +1125,8 @@ local function loop()
     popup()
     ImGui.PopFont(ctx)
     ImGui.EndPopup(ctx)
-    r.defer(loop)
-  else
-    ImGui.DestroyContext(ctx)
+    reaper.defer(loop)
   end
 end
 
-r.defer(loop)
+reaper.defer(loop)

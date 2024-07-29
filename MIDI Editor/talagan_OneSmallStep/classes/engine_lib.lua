@@ -209,13 +209,6 @@ end
 -- Listen to events from instrumented tracks that have the JSFX companion effect installed (or install it if not present)
 local function listenToEvents()
 
-  local mode = S.getInputMode();
-
-  -- Input mode should be engaged
-  if mode == D.InputMode.None then
-    return;
-  end
-
   -- Reaper should not be in play/pause/rec state
   if (not (reaper.GetPlayState()==0)) then
     return;
@@ -237,21 +230,35 @@ local function listenToEvents()
     track = reaper.GetMediaItemTake_Track(take);
   end
 
+  -- If track is not armed for recording, we can't do anything
   local recarmed  = reaper.GetMediaTrackInfo_Value(track, "I_RECARM");
-
-  -- If track is not armed for recording, ignore everything
   if not (recarmed == 1) then
-    return;
+    return
   end
 
   -- Add helper FX if it is missing
-  local helper_status = helper_lib.getOrInstallHelperFx(track);
-
+  local helper_status = helper_lib.getOrInstallHelperFx(track)
   if helper_status == -1 then
-    return -42;
+    return -42
   end
 
-  local oss_state = helper_lib.oneSmallStepState(track);
+  local oss_state = helper_lib.oneSmallStepState(track)
+
+  -- MIDI Editor note highlighting
+  if S.getSetting("NoteHiglightingDuringPlay") then
+    local pitch = helper_lib.lastPressedPitch(oss_state)
+    pitch = (pitch >= 0) and (pitch) or (0)
+    local ed = reaper.MIDIEditor_GetActive()
+    if ed then
+      reaper.MIDIEditor_SetSetting_int(ed, "active_note_row", pitch)
+    end
+  end
+
+  local mode = S.getInputMode();
+  -- Input mode should be engaged
+  if mode == D.InputMode.None or S.getSetting("Disarmed") then
+    return
+  end
 
   -- Get the manager for the current input mode
   local manager = currentKeyEventManager();
@@ -331,7 +338,7 @@ local function handleMarkerOnExit(policy_setting_name, marker_name)
     -- Need to backup the position
     -- Save on master track to be project dependent
     local id, pos     = MK.findMarker(marker_name)
-    local masterTrack = reaper.GetMasterTrack()
+    local masterTrack = reaper.GetMasterTrack(0)
     local str         = "";
 
     if not (id == nil) then
@@ -349,7 +356,7 @@ end
 local function mayRestoreMarkerOnStart(policy_setting_name, marker_name)
   local setting = S.getSetting("PlaybackMarkerPolicyWhenClosed");
   if setting == "Hide/Restore" then
-    local masterTrack = reaper.GetMasterTrack()
+    local masterTrack = reaper.GetMasterTrack(0)
     local succ, str = reaper.GetSetMediaTrackInfo_String(masterTrack, "P_EXT:OneSmallStep:MarkerBackup:" .. marker_name, '', false);
     if succ and str ~= "" then
       MK.setMarkerAtPos(marker_name, tonumber(str))

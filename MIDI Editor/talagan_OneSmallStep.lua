@@ -1,6 +1,6 @@
 --[[
 @description One Small Step : Alternative Step Input
-@version 0.9.11
+@version 0.9.14
 @author Ben 'Talagan' Babut
 @license MIT
 @metapackage
@@ -47,6 +47,7 @@
   [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Set or remove operation marker.lua
   [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Set or remove playback marker.lua
   [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Playback.lua
+  [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Toggle armed.lua
   [nomain] talagan_OneSmallStep/actions/talagan_OneSmallStep Toggle Debugger.lua
   [nomain] talagan_OneSmallStep/classes/**/*.lua
   [nomain] talagan_OneSmallStep/images/*.lua
@@ -56,7 +57,8 @@
 @screenshot
   https://stash.reaper.fm/48269/oss_094.png
 @changelog
-  - [Feature] Velocity limiter
+  - [Feature] Added note highlighting during play
+  - [Feature] Reintroduced "Disarm OSS" mechanism
 @about
   # Purpose
 
@@ -76,17 +78,18 @@
 
   # Credits
 
-    This tool takes a lot of inspiration in tenfour's "tenfour-step" scripts. Epic hail to tenfour for opening the way !
+    One Small Step uses Jeremy Bernstein (sockmonkey72)'s MIDIUtils library. Thanks for the precious work !
 
-    One Small Step uses Jeremy Bernstein (sockmonkey72)'s MIDIUtils library . Thanks for the precious work !
+    This tool takes a lot of inspiration in tenfour's "tenfour-step" scripts. Epic hail to tenfour for opening the way !
 
     Thanks to @cfillion for the precious pieces of advice when reviewing this source !
 
-    A lot of thanks to all donators, and forum members that help this tool to get better ! @stevie, @hipox, @MartinTL, @henu, @Thonex, @smandrap, @SoaSchas, @daodan, @inthevoid, @dahya, @User41, @Spookye, @R.Cato
+    A lot of thanks to all donators, and forum members that help this tool to get better !
+    @stevie, @hipox, @MartinTL, @henu, @Thonex, @smandrap, @SoaSchas, @daodan, @inthevoid, @dahya, @User41, @Spookye, @R.Cato, @samlletas
 
 --]]
 
-VERSION = "0.9.11"
+VERSION = "0.9.14"
 DOC_URL = "https://bentalagan.github.io/onesmallstep-doc/index.html?ver=" .. VERSION
 
 PATH    = debug.getinfo(1,"S").source:match[[^@?(.*[\/])[^\/]-$]]
@@ -417,23 +420,36 @@ function RecordBadge(track)
 
   reaper.ImGui_SetCursorPosY(ctx, reaper.ImGui_GetCursorPosY(ctx));
 
-  if (recarmed == 1) and not (S.getInputMode() == D.InputMode.None) and playState == 0 then
+  local tt = ""
+  if (recarmed == 1) and not (S.getSetting("Disarmed")) and not (S.getInputMode() == D.InputMode.None) and playState == 0 then
     local alpha = math.sin(reaper.time_precise()*4);
     local r1    = 200+math.floor(55 * alpha);
     local r2    = 120+math.floor(55 * alpha);
 
+    -- Glowing red
     reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_CheckMark(),      (r1 << 24) | 0x000000FF);
     reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_FrameBg(),        (r2 << 24) | 0x000000FF);
     reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_FrameBgActive(),  (r2 << 24) | 0x000000FF);
     reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_FrameBgHovered(), (r2 << 24) | 0x000000FF);
+
+    tt = "OSS is active. Click to disarm."
   else
+    -- Grey icon
     reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_CheckMark(),      0xCCCCCCFF);
     reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_FrameBg(),        0x808080FF);
     reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_FrameBgActive(),  0x808080FF);
     reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_FrameBgHovered(), 0x808080FF);
+    tt = "OSS is inactive."
+    if  S.getSetting("Disarmed") then
+      tt = tt .. " Click to rearm."
+    end
   end
 
   reaper.ImGui_RadioButton(ctx, '##', true);
+  if recarmed == 1 and playState == 0 and reaper.ImGui_IsItemClicked(ctx) then
+    S.setSetting("Disarmed", not S.getSetting("Disarmed"))
+  end
+  TT(tt)
   reaper.ImGui_PopStyleColor(ctx, 4);
 end
 
@@ -444,6 +460,8 @@ function RecordIssues(track)
   reaper.ImGui_SetCursorPosY(ctx, reaper.ImGui_GetCursorPosY(ctx));
   if not (recarmed == 1) then
     reaper.ImGui_TextColored(ctx, 0x808080FF, '[Track not armed]');
+  elseif S.getSetting("Disarmed") then
+    reaper.ImGui_TextColored(ctx, 0x808080FF, '[OSS is disarmed]');
   elseif S.getInputMode() == D.InputMode.None then
     reaper.ImGui_TextColored(ctx, 0x808080FF, '[Input Mode is OFF]');
   elseif not (playState == 0) then
@@ -766,10 +784,29 @@ local function PlaybackSetMarkerButton()
   TT("Sets/Moves/Removes the playback marker");
 end
 
+local function NoteHighlightingMiniBar()
+
+  reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacing(),       2, 4)
+  reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_ItemInnerSpacing(),  0, 0)
+
+  reaper.ImGui_PushID(ctx, "note_highlightingbutton");
+  reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_FramePadding(), 8, 4)
+
+  local setting = "NoteHiglightingDuringPlay"
+  local hon = S.getSetting(setting);
+  if ButtonGroupImageButton("note_highlighting", hon, {colorset="Snap"}) then
+    S.setSetting(setting, not hon);
+  end
+
+  TT("Highlight notes in MIDI editor during play")
+  reaper.ImGui_PopStyleVar(ctx,1)
+  reaper.ImGui_PopID(ctx)
+
+  SL()
+  reaper.ImGui_PopStyleVar(ctx, 2)
+end
 
 local function MagnetMiniBar()
-
-  local label   = "##snap"
 
   local snapElements = {
     { setting = "SnapNotes",        tt = "Note bounds"   , image = "note",    width = 7 },
@@ -925,8 +962,11 @@ function SettingComboBox(setting, pre_label, tooltip, width)
   reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_FramePadding(), 5, 3.5)
 
   if pre_label ~= "" then
+    reaper.ImGui_SetCursorPosY(ctx, reaper.ImGui_GetCursorPosY(ctx) + 3)
     reaper.ImGui_Text(ctx, pre_label);
-    SL()
+    SL();
+    reaper.ImGui_SetNextItemWidth(ctx, 180);
+    reaper.ImGui_SetCursorPosY(ctx, reaper.ImGui_GetCursorPosY(ctx) - 3)
   end
 
   reaper.ImGui_SetNextItemWidth(ctx, width);
@@ -1198,7 +1238,6 @@ function EditModeComboBox(editModeName, callback)
 end
 
 function RepitchModeComboBox()
-
   local setting     = "RepitchModeAffects"
   local combo_items = S.getSettingSpec("RepitchModeAffects").inclusion
   local curval      = S.getSetting("RepitchModeAffects")
@@ -1227,6 +1266,8 @@ function RepitchModeComboBox()
   reaper.ImGui_PopID(ctx);
   reaper.ImGui_PopStyleVar(ctx,1);
 end
+
+
 
 function SettingsPanel()
   if reaper.ImGui_BeginTabBar(ctx, 'settings_tab_bar', reaper.ImGui_TabBarFlags_None()) then
@@ -1403,6 +1444,26 @@ function SettingsPanel()
       end
 
       ImGui_VerticalSpacer(ctx,5);
+      SEP("Insert mode")
+
+      reaper.ImGui_Text(ctx, "When inserting in the middle of an existing note...")
+      ImGui_VerticalSpacer(ctx,5);
+
+      SettingComboBox("InsertModeInMiddleOfMatchingNotesBehaviour",
+        "  · if a pressed note matches, then",
+        "This option defines OSS's behavior when you try to insert some notes\n\z
+        in the middle of existing notes, if one of the key you are pressing/holding\n\z
+        matches (same pitch) one of the existing notes",
+        220)
+
+      SettingComboBox("InsertModeInMiddleOfNonMatchingNotesBehaviour",
+        "  · if no pressed note matches, then",
+        "This option defines OSS's behavior when you try to insert some notes\n\z
+        in the middle of existing notes, if any of the key you are pressing/holding\n\z
+        does NOT match (same pitch) any existing note",
+        220)
+
+      ImGui_VerticalSpacer(ctx,5);
       SEP("Repitch mode")
 
       RepitchModeComboBox()
@@ -1492,6 +1553,9 @@ local function UiLoop()
     local emode   = opmode.mode;
 
     SettingsMiniBar(); SL();
+    MiniBarSeparator(); SL();
+
+    NoteHighlightingMiniBar(); SL();
     MiniBarSeparator(); SL();
 
     InputModeMiniBar(); SL();

@@ -1,7 +1,9 @@
 -- @description Smart split items using mouse cursor context (also edit cursor, razor area and time selection)
 -- @author AZ
--- @version 3.15
--- @changelog - fixed one silly bug for new users
+-- @version 3.30
+-- @changelog
+--   - fixed bug for media edit groups when smaller items didn't obey the grouping
+--   - fixed bug when stretch markers were produce incorrect take time offset
 -- @provides [main] az_Smart split items by mouse cursor/az_Open options for az_Smart split items by mouse cursor.lua
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=259751
 -- @donation Donate via PayPal https://www.paypal.me/AZsound
@@ -176,10 +178,12 @@ end
 ------------------------
 
 function OptionsWindow()
-  if reaper.APIExists( 'ImGui_GetVersion' ) ~= true then
+  local imgui_path = reaper.GetResourcePath() .. '/Scripts/ReaTeam Extensions/API/imgui.lua'
+  if not reaper.file_exists(imgui_path) then
     reaper.ShowMessageBox('Please, install ReaImGui from Reapack!', 'No Imgui library', 0)
     return
   end
+  dofile(imgui_path) '0.8.7.6'
   OptionsDefaults()
   GetExtStates()
   local fontSize = 17
@@ -188,6 +192,19 @@ function OptionsWindow()
   local W = fontSize
   local loopcnt = 0
   local _, imgui_version_num, _ = reaper.ImGui_GetVersion()
+  
+  local tcpActIDstr = reaper.GetExtState(ExtStateName, 'TCPaction')
+  local tcpActName = ''
+  local section
+  
+  if tcpActIDstr ~= '' and tcpActIDstr:gsub('%d+', '') == '' then
+    section =  reaper.SectionFromUniqueID( tonumber(tcpActIDstr) )
+    tcpActName = reaper.kbd_getTextFromCmd( tonumber(tcpActIDstr), section )
+  elseif tcpActIDstr ~= '' then
+    section = reaper.SectionFromUniqueID( tonumber(reaper.NamedCommandLookup(tcpActIDstr)) )
+    tcpActName = reaper.kbd_getTextFromCmd
+    ( tonumber(reaper.NamedCommandLookup(tcpActIDstr)), section ) 
+  end
   
   local esc
   local enter
@@ -278,11 +295,7 @@ function OptionsWindow()
         reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Text(), gui_colors.White)
         
         reaper.ImGui_Text(ctx, '' )
-        if imgui_version_num >= 18910 then
-          reaper.ImGui_SeparatorText( ctx, option[1] )
-        else
-          reaper.ImGui_Text(ctx, option[1] )
-        end
+        reaper.ImGui_SeparatorText( ctx, option[1] )
         
         reaper.ImGui_PopStyleColor(ctx, 1)
         reaper.ImGui_PopFont(ctx)
@@ -290,6 +303,12 @@ function OptionsWindow()
       
       OptDefaults[i] = option
     end -- for
+    
+    reaper.ImGui_Text(ctx, '' ) --space
+    
+    reaper.ImGui_PushItemWidth(ctx, fontSize*5 )
+    _, tcpActIDstr = reaper.ImGui_InputText
+    (ctx,'TCP context action (paste command ID):\n'..tcpActName, tcpActIDstr)
     
     reaper.ImGui_Text(ctx, '' ) --space before buttons
     reaper.ImGui_Text(ctx, '' ) --space before buttons 
@@ -381,13 +400,17 @@ function OptionsWindow()
       
       if ExternalOpen == true then
         space = spaceMouse or reaper.ImGui_IsKeyReleased(ctx, reaper.ImGui_Key_Space()) 
-        if space == true then SetExtStates() end
+        if space == true then
+          SetExtStates()
+          reaper.SetExtState(ExtStateName, 'TCPaction', tcpActIDstr, true)
+        end
       end
       
       if open and esc ~= true and enter ~= true then
           reaper.defer(loop)
       elseif enter == true then
           SetExtStates()
+          reaper.SetExtState(ExtStateName, 'TCPaction', tcpActIDstr, true)
           reaper.ImGui_DestroyContext(ctx)
       else
           reaper.ImGui_DestroyContext(ctx)
@@ -404,13 +427,8 @@ function OptionsWindow()
   end
   font = reaper.ImGui_CreateFont(fontName, fontSize, reaper.ImGui_FontFlags_None()) -- Create the fonts you need
   fontSep = reaper.ImGui_CreateFont(fontName, fontSize-2, reaper.ImGui_FontFlags_Italic())
-  if imgui_version_num >= 18910 then
-    reaper.ImGui_Attach(ctx, font)
-    reaper.ImGui_Attach(ctx, fontSep)
-  else
-    reaper.ImGui_AttachFont(ctx, font)
-    reaper.ImGui_AttachFont(ctx, fontSep)
-  end
+  reaper.ImGui_Attach(ctx, font)
+  reaper.ImGui_Attach(ctx, fontSep)
   
   loop(ctx, font)
 end
@@ -817,17 +835,13 @@ function SplitRazorEdits(razorEdits)
     local areaData = razorEdits[i]
     if not areaData.isEnvelope then
       table.move(areaData.items, 1, #areaData.items, #areaData.grItems+1, areaData.grItems)
-      --msg('areaData.items') for j,v in pairs(areaData.items) do msg(v) end
-      --msg('areaData.grItems') for j,v in pairs(areaData.grItems) do msg(v) end
       local sTime, selItems, itemsToRegroup, newItems =
       Split_Items_At_Time(areaData.items, areaData.grItems, {areaData.areaStart}, areaData.prevEdge) 
+      
       table.move(sTime, 1, #sTime, #SplitsT+1, SplitsT)
-      --table.move(newItems, 1, #newItems, #areaData.items+1, areaData.items)
       table.move(newItems, 1, #newItems, #areaData.grItems+1, areaData.grItems)
       razorEdits[i]['itemsToRegroup'] = itemsToRegroup
-      --msg(razorEdits[i]['itemsToRegroup']['SplsGrs'])
-      --msg(itemsToRegroup.SplGrs)
-      --razorEdits[i]['items'] = areaData.items
+
     end
     i=i-1
   end
@@ -852,8 +866,6 @@ function SplitRazorEdits(razorEdits)
   while i > 0 do
     local areaData = razorEdits[i]
     if not areaData.isEnvelope then
-      --msg('areaData.items') for j,v in pairs(areaData.items) do msg(v) end
-      --msg('areaData.grItems') for j,v in pairs(areaData.grItems) do msg(v) end 
       local sTime, selItems, itemsToRegroup = 
       Split_Items_At_Time(areaData.items, areaData.grItems, {areaData.areaEnd}, areaData.areaStart)
       table.move(sTime, 1, #sTime, #SplitsT+1, SplitsT)
@@ -968,11 +980,6 @@ function AddGroupInfo(AreasT)
         AreasT[i] = areaData
     end -- if not isEnvelope
   end -- for AreasT
-  --[[
-  for i = 1, #RegroupAreasIDs do --servise msg
-    local block = RegroupAreasIDs[i]
-    msg(table.concat(block, ' - '))
-  end]]
   
   AreasT.RegroupAreasIDs = RegroupAreasIDs
   return AreasT
@@ -1254,7 +1261,7 @@ function AddGroupedItems(itemsTable, retWithoutInputs) --table, boolean
   if retWithoutInputs == false then
     table.move(itemsTable, 1, #itemsTable, #grItems+1, grItems)
   end
-  
+  --msg(#grItems)
   return grItems
 end
 
@@ -1283,6 +1290,118 @@ function remove_from_table(Table, value)
     if field == value then table.remove(Table,i) end
     i = i-1
   end
+end
+
+-------------------------------
+
+function AddTrMediaEditingGroup(Items, timeT)
+  local GrSelTrs = reaper.GetToggleCommandState(42581) --Track: Automatically group selected tracks for media/razor editing
+  local GrAllTrs = reaper.GetToggleCommandState(42580) --Track: Automatically group all tracks for media/razor editing
+  
+  for t, time in ipairs(timeT) do
+    local Tracks = {}
+    local ItemsH = {}
+    local GrTracks = {}
+    local GrIDsLow = 0
+    local GrIDsHigh = 0 
+    
+    for i, item in ipairs(Items) do
+      local ipos = reaper.GetMediaItemInfo_Value(item, 'D_POSITION')
+      local iend = ipos + reaper.GetMediaItemInfo_Value(item, 'D_LENGTH')
+      local tr = reaper.GetMediaItemTrack(item)
+      if time > ipos and time < iend then
+        FieldMatch(Tracks, tr, true)
+        local mode = reaper.GetMediaTrackInfo_Value(tr, 'I_FREEMODE')
+        local iY = reaper.GetMediaItemInfo_Value(item, 'F_FREEMODE_Y')
+        local iH = reaper.GetMediaItemInfo_Value(item, 'F_FREEMODE_H')
+        local iL = reaper.GetMediaItemInfo_Value(item, 'I_FIXEDLANE')
+        ItemsH[tostring(item)] = {iY, iH, iL, mode}
+      end
+    end
+    
+    for i, tr in ipairs(Tracks) do -- collect gr info for tracks with initially captured items
+      local intlow = reaper.GetSetTrackGroupMembership( tr, "MEDIA_EDIT_LEAD", 0, 0 )
+      local inthigh = reaper.GetSetTrackGroupMembershipHigh( tr, "MEDIA_EDIT_LEAD", 0, 0 ) 
+      GrIDsLow = GrIDsLow | intlow
+      GrIDsHigh = GrIDsHigh | inthigh 
+    end
+    
+    for i = 1, reaper.CountTracks(0) do -- collect all group mappings
+      local tr = reaper.GetTrack(0, i-1)
+      local intlow = reaper.GetSetTrackGroupMembership( tr, "MEDIA_EDIT_LEAD", 0, 0 )
+      local inthigh = reaper.GetSetTrackGroupMembershipHigh( tr, "MEDIA_EDIT_LEAD", 0, 0 )
+      local intlowF = reaper.GetSetTrackGroupMembership( tr, "MEDIA_EDIT_FOLLOW", 0, 0 )
+      local inthighF = reaper.GetSetTrackGroupMembershipHigh( tr, "MEDIA_EDIT_FOLLOW", 0, 0 )
+      
+      if GrIDsLow & intlow ~= 0 or GrIDsLow & intlowF ~= 0 then
+        GrIDsLow = GrIDsLow | intlow
+      end
+      
+      if GrIDsHigh & inthigh ~= 0 or GrIDsHigh & inthighF ~= 0 then
+        GrIDsHigh = GrIDsHigh | inthigh
+      end
+      
+      local sel = reaper.IsTrackSelected(tr)
+      if sel == true and GrSelTrs == 1 then
+        GrIDsLow = GrIDsLow | intlow
+        GrIDsHigh = GrIDsHigh | inthigh
+      end
+    end
+    
+    for i = 1, reaper.CountTracks(0) do -- add corresponding tracks to the table
+      local tr = reaper.GetTrack(0, i-1)
+      if GrAllTrs == 1 then FieldMatch(GrTracks, tr, true)
+      else
+        local intlow = reaper.GetSetTrackGroupMembership( tr, "MEDIA_EDIT_LEAD", 0, 0 )
+        local inthigh = reaper.GetSetTrackGroupMembershipHigh( tr, "MEDIA_EDIT_LEAD", 0, 0 )
+        local intlowF = reaper.GetSetTrackGroupMembership( tr, "MEDIA_EDIT_FOLLOW", 0, 0 )
+        local inthighF = reaper.GetSetTrackGroupMembershipHigh( tr, "MEDIA_EDIT_FOLLOW", 0, 0 )
+        
+        if GrIDsLow & intlow ~= 0 or GrIDsLow & intlowF ~= 0 then
+          table.insert(GrTracks, tr)
+        end
+        
+        if GrIDsHigh & inthigh ~= 0 or GrIDsHigh & inthighF ~= 0 then
+          FieldMatch(GrTracks, tr, true)
+        end
+        
+        local sel = reaper.IsTrackSelected(tr)
+        if sel == true and GrSelTrs == 1 then
+          FieldMatch(GrTracks, tr, true)
+        end
+      end
+    end
+    
+    for i, tr in ipairs(GrTracks) do
+      local mode = reaper.GetMediaTrackInfo_Value(tr, 'I_FREEMODE')
+      for k = 0, reaper.CountTrackMediaItems(tr) -1 do
+        local item = reaper.GetTrackMediaItem(tr, k)
+        local ipos = reaper.GetMediaItemInfo_Value(item, 'D_POSITION')
+        local iend = ipos + reaper.GetMediaItemInfo_Value(item, 'D_LENGTH')
+
+        if time > ipos and time < iend then
+          local iY = reaper.GetMediaItemInfo_Value(item, 'F_FREEMODE_Y')
+          local iH = reaper.GetMediaItemInfo_Value(item, 'F_FREEMODE_H')
+          local iL = reaper.GetMediaItemInfo_Value(item, 'I_FIXEDLANE')
+          
+          for h, refItem in pairs(ItemsH) do
+            if mode == 2 and refItem[4] == mode then
+              if refItem[3] == iL then FieldMatch(Items, item, true)
+              end
+            else 
+              if math.abs(refItem[1] - iY) < math.min(refItem[2], iH)/5
+              and math.max(refItem[2], iH) / math.min(refItem[2], iH) <= 1.5
+              then
+                FieldMatch(Items, item, true)
+              end
+            end
+          end 
+        end --if time > ipos and time < iend
+        
+      end --all items on the track cycle
+    end --cycle through grouped tracks
+    
+  end -- timeT cycle
 end
 
 -------------------------------
@@ -1317,17 +1436,30 @@ function SetItemEdges(item, startTime, endTime)
   local takesN = reaper.CountTakes(item)
   for i = 0, takesN-1 do
     local take = reaper.GetTake(item,i)
-    local offs = reaper.GetMediaItemTakeInfo_Value(take, 'D_STARTOFFS')
-    local rate = reaper.GetMediaItemTakeInfo_Value(take, 'D_PLAYRATE')
-    offs = offs + (startTime-pos)*rate
-    if isloop == 1 then
-      local src = reaper.GetMediaItemTake_Source( take )
-      local length, isQN = reaper.GetMediaSourceLength( src )
-      if offs < 0 then offs = length - math.fmod(-offs, length)
-      elseif offs > length then offs = math.fmod(offs, length)
+    if take then
+      local offs = reaper.GetMediaItemTakeInfo_Value(take, 'D_STARTOFFS')
+      local rate = reaper.GetMediaItemTakeInfo_Value(take, 'D_PLAYRATE')
+      offs = offs + (startTime-pos)*rate
+      if isloop == 1 then
+        local src = reaper.GetMediaItemTake_Source( take )
+        local length, isQN = reaper.GetMediaSourceLength( src )
+        if offs < 0 then offs = length - math.fmod(-offs, length)
+        elseif offs > length then offs = math.fmod(offs, length)
+        end
       end
+      
+      local strmarksnum = reaper.GetTakeNumStretchMarkers( take )
+      if strmarksnum > 0 then
+        reaper.SetMediaItemTakeInfo_Value(take, 'D_STARTOFFS', offs)
+        for s = 0, strmarksnum -1 do
+          local retval, strpos, srcpos = reaper.GetTakeStretchMarker( take, s   )
+          reaper.SetTakeStretchMarker( take, s, strpos - (startTime-pos)*rate, srcpos )
+        end
+      else
+        reaper.SetMediaItemTakeInfo_Value(take, 'D_STARTOFFS', offs)
+      end
+      
     end
-    reaper.SetMediaItemTakeInfo_Value(take, 'D_STARTOFFS', offs)
   end
 end
 
@@ -1342,7 +1474,7 @@ function RegroupItems(Items)
     
     if Items.SplGrs then
       if FieldMatch(Items.SplGrs, itemGroup) == true then
-        if SortedItems[itemGroup] == nil then SortedItems[itemGroup] = {} end
+        if SortedItems[itemGroup] == nil then SortedItems[itemGroup] = {} end 
         table.insert(SortedItems[itemGroup],item)
       end
     else
@@ -1646,6 +1778,10 @@ function Main()
           allItemsForSplit = AddGroupedItems(inisel, false)
         end
         
+        if TogItemGrouping == 1 then
+          AddTrMediaEditingGroup(allItemsForSplit, timeT)
+        end
+        
         local togAutoXfade = reaper.GetToggleCommandState(40912) --Options: Toggle auto-crossfade on split
         local togDefFades = reaper.GetToggleCommandState(41194) --Item: Toggle enable/disable default fadein/fadeout
         local defFadesON
@@ -1714,7 +1850,7 @@ end
 
 ------------------
 -------START------
-CurVers = 3.15
+CurVers = 3.3
 version = tonumber( reaper.GetExtState(ExtStateName, "version") )
 if version ~= CurVers then
   if not version or version < 3 then
@@ -1728,9 +1864,20 @@ else
     reaper.ShowMessageBox('Please, install SWS extension!', 'No SWS extension', 0)
     return
   end
+  
   Window, Segment, Details = reaper.BR_GetMouseCursorContext()
+  local tcpActIDstr = reaper.GetExtState(ExtStateName, 'TCPaction')
+  local tcpActID
+  
   if Window == 'transport' or Window == 'mcp' then
     OptionsWindow()
+  elseif Window == 'tcp' and tcpActIDstr ~= '' then 
+    if tcpActIDstr:gsub('%d+', '') == '' then
+      tcpActID = tonumber(tcpActIDstr) 
+    elseif tcpActIDstr ~= '' then
+      tcpActID = tonumber(reaper.NamedCommandLookup(tcpActIDstr))
+    end
+    reaper.Main_OnCommandEx(tcpActID,0,0)
   else
     OptionsDefaults()
     GetExtStates()

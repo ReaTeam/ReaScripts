@@ -35,6 +35,27 @@ local function GetNote(take, ni, use_mu)
   }
 end
 
+local function CloneNote(n)
+  local newn = {}
+  for k,v in pairs(n) do
+    newn[k] = v
+  end
+  newn.index = nil
+
+  return newn
+end
+
+-- Commits a note in the currently open MidiUtils transaction.
+-- - The note can be new (without index) and this will add it to the transaction.
+-- - The note can already exist (with an index), and this will just modify it.
+local function MUCommitNote(take, n)
+  if n.index then
+    MU.MIDI_SetNote(take, n.index, n.selected, n.muted, n.startPPQ, n.endPPQ, n.chan, n.pitch, n.vel, n.offvel)
+  else
+    MU.MIDI_InsertNote(take, n.selected, n.muted, n.startPPQ, n.endPPQ, n.chan, n.pitch, n.vel, n.offvel)
+  end
+end
+
 local function SetNewNoteBounds(note, take, startPPQ, endPPQ)
   note.startPPQ = T.PPQRound(startPPQ)
   note.endPPQ   = T.PPQRound(endPPQ)
@@ -65,7 +86,9 @@ end
 
 return {
   GetNote           = GetNote,
+  CloneNote         = CloneNote,
   SetNewNoteBounds  = SetNewNoteBounds,
   CountEvts         = CountEvts,
-  BuildFromManager  = BuildFromManager
+  BuildFromManager  = BuildFromManager,
+  MUCommitNote      = MUCommitNote
 }
