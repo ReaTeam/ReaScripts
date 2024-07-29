@@ -1,10 +1,10 @@
 -- @description Lil FX Slot Homie
 -- @author Sexan
--- @version 1.2
+-- @version 1.2.1
 -- @link https://forum.cockos.com/showthread.php?p=2680992#post2680992
 -- @changelog
---  Imgui Shims
---  Implement FX Browser parser
+--  Scroll to selected items if they are not in view
+--  Fix ESC Clear/close script
 
 local SLOT = 1
 
@@ -58,7 +58,7 @@ if r.file_exists(fx_browser_script_path) then
     dofile(fx_browser_script_path)
 end
 
-local ctx = r.ImGui_CreateContext('Lil FX Slot Homie', r.ImGui_ConfigFlags_NavEnableKeyboard())
+local ctx = r.ImGui_CreateContext('Lil FX Slot Homie')
 
 local FX_LIST = ReadFXFile()
 
@@ -121,7 +121,7 @@ local function SetMinMax(Input, Min, Max)
     return Input
 end
 
-local FILTER = ''
+FILTER = ''
 local function AddFxToTracks(fx)
     if r.CountTracks(0) == 1 and r.CountSelectedTracks(0) == 0 then
         local track = r.GetTrack(0, 0)
@@ -166,11 +166,36 @@ local function AllowChildFocus(i)
     end
 end
 
+function SetMinMax(Input, Min, Max)
+    if Input >= Max then
+        Input = Max
+    elseif Input <= Min then
+        Input = Min
+    else
+        Input = Input
+    end
+    return Input
+end
+
+local function scroll(pos)
+    if not reaper.ImGui_IsItemVisible(ctx) then
+      reaper.ImGui_SetScrollHereY(ctx,pos)
+    end
+
+end
+
 local filter_h = 60
 local MAX_FX_SIZE = 300
 function FilterBox()
     CheckKeyNumbers()
     r.ImGui_SetNextWindowSize(ctx, 0, filter_h)
+    if r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_Escape()) then
+      if #FILTER == 0 then
+        CLOSE = true
+      else
+        FOCUS = true
+      end
+    end
     if r.ImGui_BeginPopup(ctx, "popup") then
         r.ImGui_Text(ctx, "ADD TO SLOT : " .. (SLOT < 100 and tostring(SLOT) or "LAST"))
         r.ImGui_SameLine(ctx, 0, 20)
@@ -179,33 +204,42 @@ function FilterBox()
         end
         r.ImGui_PushItemWidth(ctx, MAX_FX_SIZE)
         if r.ImGui_IsWindowAppearing(ctx) then r.ImGui_SetKeyboardFocusHere(ctx) end
-        -- IF KEYBOARD FOCUS IS ON CHILD ITEMS SET IT HERE
-        if r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_Escape()) then r.ImGui_SetKeyboardFocusHere(ctx) end
-        _, FILTER = r.ImGui_InputText(ctx, '##input', FILTER)
-        if r.ImGui_IsItemFocused(ctx) then
-            ALLOW_IN_LIST, PASS_FOCUS = nil, nil
-            -- IF FOCUS IS ALREADY HERE CLOSE POPUP
-            if r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_Escape()) then r.ImGui_CloseCurrentPopup(ctx) end
+        if FOCUS then
+          r.ImGui_SetKeyboardFocusHere(ctx)
+          FOCUS = nil
         end
+        if CLOSE then
+          r.ImGui_CloseCurrentPopup(ctx) 
+        end
+        _, FILTER = r.ImGui_InputText(ctx, '##input', FILTER) 
 
         local filtered_fx = Filter_actions(FILTER)
+        ADDFX_Sel_Entry = SetMinMax(ADDFX_Sel_Entry or 1, 1, #filtered_fx)
         filter_h = #filtered_fx == 0 and 60 or (#filtered_fx > 40 and 20 * 17 or (17 * #filtered_fx) + 55)
-
-        if r.ImGui_BeginChild(ctx, "aaaaa") then
-            -- DANCING AROUND SOME LIMITATIONS OF SELECTING CHILDS
-            if r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_DownArrow()) then
-                if not ALLOW_IN_LIST then ALLOW_IN_LIST = true end
-            end
-            for i = 1, #filtered_fx do
-                AllowChildFocus(i)
-                r.ImGui_PushID(ctx, i)
-                if r.ImGui_Selectable(ctx, filtered_fx[i].name, true, nil, MAX_FX_SIZE) then
-                    AddFxToTracks(filtered_fx[i].name)
-                end
-                r.ImGui_PopID(ctx)
-            end
-            r.ImGui_EndChild(ctx)
-        end
+        
+          if r.ImGui_BeginChild(ctx, "aaaaa") then
+              for i = 1, #filtered_fx do
+                  r.ImGui_PushID(ctx, i)
+                  if r.ImGui_Selectable(ctx, filtered_fx[i].name, i == ADDFX_Sel_Entry, nil, MAX_FX_SIZE) then
+                      AddFxToTracks(filtered_fx[i].name) 
+                  end 
+                  r.ImGui_PopID(ctx)
+                  if i == ADDFX_Sel_Entry then
+                    scroll(scroll_pos)
+                  end
+              end
+              if r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_Enter()) then
+                  AddFxToTracks(filtered_fx[ADDFX_Sel_Entry].name)
+                  ADDFX_Sel_Entry = nil
+              elseif r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_UpArrow()) then
+                  ADDFX_Sel_Entry = ADDFX_Sel_Entry - 1
+              elseif r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_DownArrow()) then
+                  ADDFX_Sel_Entry = ADDFX_Sel_Entry + 1
+              end
+              r.ImGui_EndChild(ctx)
+          end
+       
+        
         r.ImGui_EndPopup(ctx)
         r.defer(FilterBox)
     end
