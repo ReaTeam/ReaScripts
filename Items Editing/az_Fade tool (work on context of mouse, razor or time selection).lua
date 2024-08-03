@@ -1,11 +1,8 @@
 -- @description Fade tool (works on context of mouse, razor or time selection)
 -- @author AZ
--- @version 2.0
+-- @version 2.1
 -- @changelog
---   - Adjusting crossfades with mouse cursor
---   - Envelope editing improvements
---   - Options improvements
---   - Bug fixies
+--   repair compatibility that affects batch fades/crossfades
 -- @provides
 --   az_Fade tool (work on context of mouse, razor or time selection)/az_Options window for az_Fade tool.lua
 --   [main] az_Fade tool (work on context of mouse, razor or time selection)/az_Open options for az_Fade tool.lua
@@ -65,12 +62,30 @@ function GetExtStates(OptionsTable)
       local state = reaper.GetExtState(ExtStateName, option[2])
       
       if state ~= "" then
+        local wrong
         local stateType = type(option[3])
         if stateType == 'number' then state = tonumber(state) end
         if stateType == 'boolean' then
           if state == 'true' then state = true else state = false end
         end
-        OptionsTable[i][3] = state
+        if stateType == 'string' then
+          wrong = true
+          
+          for i = 1, #option[4] do
+            local var = option[4][i]
+            if state == var then
+              break
+              wrong = false
+            end
+          end
+          
+        end
+        
+        if wrong == true then
+          reaper.SetExtState(ExtStateName, option[2], tostring(option[3]), true)
+        else
+          OptionsTable[i][3] = state
+        end
       else
         reaper.SetExtState(ExtStateName, option[2], tostring(option[3]), true)
       end
@@ -2192,14 +2207,13 @@ end
 
 ---------------------------
 -----------START-----------
-CurVers = 2.0
+CurVers = 2.1
 version = tonumber( reaper.GetExtState(ExtStateName, "version") )
 if version ~= CurVers then
   if not version or version < 2.0 then
-    --updateMSG()
-  --else reaper.ShowMessageBox('The script was updated to version '..CurVers ,'Fade tool',0)
+    HelloMessage()
+  else reaper.ShowMessageBox('The script was updated to version '..CurVers ,'Fade tool',0)
   end
-  HelloMessage()
   reaper.SetExtState(ExtStateName, "version", CurVers, true)
   reaper.defer(function()end)
 else
