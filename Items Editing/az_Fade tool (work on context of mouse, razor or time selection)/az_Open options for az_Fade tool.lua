@@ -1,6 +1,6 @@
 -- @noindex
 
-ScriptName = 'test fades'
+ScriptName = 'az_Fade tool (work on context of mouse, razor or time selection)'
 GUIName = 'az_Options window for az_Fade tool'
 
 function msg(s) reaper.ShowConsoleMsg(tostring(s)..'\n') end
