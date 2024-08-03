@@ -2,7 +2,7 @@
 -- @author AZ
 -- @version 2.1
 -- @changelog
---   2.1 - repair compatibility that affects batch fades/crossfades
+--   repair compatibility that affects batch fades/crossfades
 --
 --   - Adjusting crossfades with mouse cursor
 --   - Envelope editing improvements
