@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="4747fa0091bf61a50a1e47b35584826fe71087b3" name="ReaTeam Scripts">
+<index version="1" commit="b3c4cb6b4a3500487095f55dbc96ebb735f9e90e" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -22111,6 +22111,25 @@ v1.1
 v1.0
 + Initial release]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6506bc2ef7528a9090651d91e20ff44607c7e6c7/Various/ausbaxter_Render%20item%20columns.lua</source>
+      </version>
+    </reapack>
+    <reapack name="az_Auto-send all inputs to the virtual midi keyboard (VKB) if mouse is in empty track space or recording is running (Background).lua" type="script" desc="Auto-send all inputs to the virtual midi keyboard (VKB) if mouse is in empty track space or recording is running (Background)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Auto-send all inputs to the virtual midi keyboard (VKB) if mouse is in empty track space or recording is running (Background)\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The script is useful to release keyboard for the editing shortcuts in arrange while you use virtual midi keyboard. So you can use one-button shortcuts when mouse cursor placed on items or envelopes. Move mouse to the empty track space and you are ready to use computer keyboard for the virtual midi keyboard.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Place this script into startup section and forget about extra toggling. (look for SWS startup action as example)\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Choose Terminate and save if it asks on first closing the script.\par}
+}
+]]></description>
+        <link rel="website" href="https://forum.cockos.com/showthread.php?t=288069">Forum thread</link>
+        <link rel="donation" href="https://www.paypal.me/AZsound">Donate via PayPal</link>
+      </metadata>
+      <version name="1.0" author="AZ" time="2024-08-03T08:55:51Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b3c4cb6b4a3500487095f55dbc96ebb735f9e90e/Various/az_Auto-send%20all%20inputs%20to%20the%20virtual%20midi%20keyboard%20(VKB)%20if%20mouse%20is%20in%20empty%20track%20space%20or%20recording%20is%20running%20(Background).lua</source>
       </version>
     </reapack>
     <reapack name="beaunus_Import_clip_splicer_specification_json.py" type="script" desc="Import Clip Splicer JSON file">
