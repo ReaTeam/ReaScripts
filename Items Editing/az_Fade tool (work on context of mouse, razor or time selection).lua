@@ -1,8 +1,7 @@
 -- @description Fade tool (works on context of mouse, razor or time selection)
 -- @author AZ
--- @version 2.1
--- @changelog
---   repair compatibility that affects batch fades/crossfades
+-- @version 2.11
+-- @changelog repair saving of text field options
 -- @provides
 --   az_Fade tool (work on context of mouse, razor or time selection)/az_Options window for az_Fade tool.lua
 --   [main] az_Fade tool (work on context of mouse, razor or time selection)/az_Open options for az_Fade tool.lua
@@ -74,8 +73,8 @@ function GetExtStates(OptionsTable)
           for i = 1, #option[4] do
             local var = option[4][i]
             if state == var then
-              break
               wrong = false
+              break              
             end
           end
           
@@ -2207,7 +2206,7 @@ end
 
 ---------------------------
 -----------START-----------
-CurVers = 2.1
+CurVers = 2.11
 version = tonumber( reaper.GetExtState(ExtStateName, "version") )
 if version ~= CurVers then
   if not version or version < 2.0 then
