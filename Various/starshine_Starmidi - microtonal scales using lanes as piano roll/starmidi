@@ -1,0 +1,156 @@
+desc:starmidi
+options:gmem=fakemidi
+//@gmem=fakemidi
+// reads "midi events" from gmem by partner reascript
+// partner reascript reads items in lanes into gmem
+// TODO: handle incoming events on the same bus? for purpose of reassigning channel
+
+slider1:1<1,32,1>track num
+// TODO: handle dynamic scale change -- bigger jump, let's get it working the easy way first.
+
+@init
+
+// MIDI command constants
+NOTE_OFF_MSG    = 0x80;
+NOTE_ON_MSG     = 0x90;
+CHANNEL_MSG     = 0xB0;
+CHANNEL_STFU    = 0x7B;
+PITCHBEND       = 0xE0;
+
+// gmem data offsets
+MEM_PER_TRACK   = 196608;
+_TR_GMEM_START  = 65536;
+EVT_WIDTH       = 8;
+TRACK_COUNT     = 32;         // about as many tracks as we can support at once
+EVT_LENGTH      = 16384;
+_track_evt_counter = 8192;
+PLAYBACK_OKAY = 8000000;
+
+// local memory offsets
+_MIDI_EVENTS    = 65536; // must match _source_array in reascript
+_CHANNELS       = 0;
+
+// column reference constants for 2D array _MIDI_EVENTS
+EventTime       = 0;
+EventType       = 1;
+MidiNote        = 2;
+Velocity        = 3;
+PitchbendAmount = 4;
+ChannelPointer  = 5;
+
+last_play_pos=0;
+last_play_state=0;
+
+function _track_evts_gmem_ptr(track_num)(track_num*MEM_PER_TRACK+_TR_GMEM_START);
+
+// the 2D array structure used, array[row][col], depends on doing this
+function copy_gmem_to_local()(
+  _gmem_ptr  = _track_evts_gmem_ptr(slider1-1)-1;
+  _local_ptr = -1;
+  Loop(EVT_WIDTH*EVT_LENGTH,
+    _MIDI_EVENTS[_local_ptr+=1] = gmem[_gmem_ptr+=1];
+  );
+);
+
+
+// unreserve playing channels and turn off every note
+function clear_channels()(
+  ch=-1;
+  Loop(16,
+    _CHANNELS[ch+=1]=0;
+    midisend(0,CHANNEL_MSG|ch, CHANNEL_STFU);
+  );
+);
+
+// scan through sorted events to catch up to current play position
+function scan_to_start()(
+  _play_ptr=-1; t=0;
+  while( (t<play_position)&&(t>-1) )(
+    t = _MIDI_EVENTS[_play_ptr+=1][EventTime];
+  );
+);
+
+copy_gmem_to_local();
+clear_channels();
+scan_to_start();
+
+@slider
+slider_show(slider1,0);
+
+@block
+
+@sample
+
+function ANO_if_stopped_or_looping()(
+  !play_state && last_play_state                ? (clear_channels(); scan_to_start(); _play_ptr-=1);
+  (play_position < last_play_pos) && play_state ? (clear_channels(); scan_to_start(); _play_ptr-=1);
+  last_play_state = play_state;
+  last_play_pos   = play_position;
+);
+
+function scan_to_start_on_play()(
+  play_state &&  !last_play_state2 ? (clear_channels(); scan_to_start());
+  last_play_state2 = play_state;
+);
+
+// dynamically obtain an available channel and mark as in-use
+function get_free_channel()(
+  ch=-1; return_ch=-1;
+  while((return_ch<0) && (ch < 16))
+  ( _CHANNELS[ch+=1] == 0
+      ? ( return_ch = ch;
+          _CHANNELS[ch] = 1;
+        ); 
+  );
+return_ch);
+
+
+// sends midi pitchbend and note-on. also writes channel for note-off event to use later
+function note_on(_ptr)(
+  chan      = get_free_channel();
+  _chan_ptr = _MIDI_EVENTS[_ptr][ChannelPointer];
+  _MIDI_EVENTS[_chan_ptr] = chan;
+  midisend(0, PITCHBEND|chan, _MIDI_EVENTS[_ptr][PitchbendAmount]);
+  midisend(0,   NOTE_ON_MSG|chan, _MIDI_EVENTS[_ptr][MidiNote], _MIDI_EVENTS[_ptr][Velocity]);
+);
+
+
+// sends note-off and frees channel
+function note_off(_ptr)(
+  _chan_ptr = _MIDI_EVENTS[_ptr][ChannelPointer];
+  chan      = _MIDI_EVENTS[_chan_ptr];
+  _CHANNELS[chan] = 0;
+  midisend(0, NOTE_OFF_MSG|chan, _MIDI_EVENTS[_ptr][MidiNote], 0);
+);
+
+
+function play_scan()(
+  while( (t<play_position)&&(t>-1) )(
+    event = _MIDI_EVENTS[_play_ptr][EventType];
+    event == NOTE_ON_MSG  ?  note_on(_play_ptr);
+    event == NOTE_OFF_MSG ? note_off(_play_ptr);
+        t = _MIDI_EVENTS[_play_ptr+=1][EventTime];
+  );
+);
+
+function playback_okay()(gmem[PLAYBACK_OKAY+slider1-1]);
+
+ANO_if_stopped_or_looping();
+
+scan_to_start_on_play();
+
+play_state && playback_okay() ? play_scan();
+
+
+
+
+
+
+
+
+
+
+
+
+
+

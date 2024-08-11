@@ -1,0 +1,56 @@
+-- @description Starmidi - microtonal scales using lanes as piano roll
+-- @author Starshine
+-- @version 1.0-beta-1
+-- @metapackage
+-- @provides
+--   [main] starshine_Starmidi - microtonal scales using lanes as piano roll/starshine_starmidi_flatten.eel
+--   [main] starshine_Starmidi - microtonal scales using lanes as piano roll/starshine_starmidi_sharpen.eel
+--   [main] starshine_Starmidi - microtonal scales using lanes as piano roll/starshine_starmidi_small_step_down.eel
+--   [main] starshine_Starmidi - microtonal scales using lanes as piano roll/starshine_starmidi_small_step_up.eel
+--   [main] starshine_Starmidi - microtonal scales using lanes as piano roll/starshine_starmidi_parser.eel
+--   [main] starshine_Starmidi - microtonal scales using lanes as piano roll/starshine_starmidi_UI.eel
+--   [effect] starshine_Starmidi - microtonal scales using lanes as piano roll/starmidi
+-- @about
+--   # Starmidi - microtonal scales using lanes as piano roll
+--
+--   This program seeks to solve several problems for microtonal music producers while streamlining the workflow:
+--
+--   1. Microtonal scales may contain far more than 12 notes per octave, and this quickly makes working in the conventional chromatic piano roll cumbersome or even limiting to the instrument's range.
+--
+--   *This script package and plugin solve this by using an adjustable number of "fixed item lanes" that act as the "piano white key notes" for the given microtonal scale, with other pitches accessible by means of accidentals*
+--
+--   2. Different synthesizers and samplers have different ways of loading microtonal scales, sometimes requiring different file formats, inconsistent behavior, timbre warping, and more.
+--
+--   *These scripts solve this issue by finding the closest MIDI note and applying a pitchbend amount of no more than 50 cents. It's tested working with Vital, Surge XT, and Pianoteq and should work with most synths and samplers.
+--
+--   To achieve microtonal polyphony, the jsfx plugin (which handles generating the MIDI events from data in gmem) dynamically assigns new notes to free channels. Up to 16 simultaneous and independently tuned notes can be played this way.*
+--
+--   ### Setup/Usage
+--
+--   1. ReaImGui is required
+--
+--   2. Preferences > Track Send Defaults > Fixed Lane Defaults > **Uncheck "Automatically delete empty lanes at bottom of track"**
+--
+--   I strongly recommend selecting "Small lanes" here as well.
+--
+--   3. Launch the script "Starshine_starmidi_UI.eel".
+--
+--   4. Drag the # of Lanes slider to add 15+ lanes to a track.
+--
+--   5. It is beyond the scope of this package documentation to explain microtonal scale theory. If you are interested in learning more, please consider joining the Xenharmonic Alliance discord at https://discord.gg/uxvw5Vzj
+--
+--   Setting the following combinations for [# of Scale Steps], [Equal Divisions], and [n\EDX as Generator] should yield interesting results. 7\16edo means to select 16 [Equal Divisions] and 7 for [n\EDX as Generator]
+--
+--   * 7 steps, 7\16edo
+--   * 8 steps, 10\27edo
+--   * 9 steps, 4\19edo
+--   * 7 steps, 13\31edo, mode 5 (this is like a regular major scale but more in tune. roughly "quarter-comma meantone")
+--
+--   6. Insert/draw empty MIDI items in lanes. These function as notes. Optionally, you may set a mouse modifier to draw MIDI items so that it functions like the standard piano roll for inserting notes.
+--
+--   7. Add a synth to the FX chain; do not enable MPE. Leave pitch bend range at 2 semitones.
+--
+--   8. You must click Play from this interface; this runs the parsing script prior to playback. (The script will also auto-add and configure the jsfx.)
+--
+--   *Optionally, you may create a custom action that runs "starshine_starmidi_parser.eel" and then the Transport: Play/Stop action*
+

@@ -1,0 +1,320 @@
+// @noindex
+
+//upgrade gmem to 8,388,608 slots by naming it. next line is read by compiler and must stay near the top
+//@gmem=fakemidi
+
+// author:  Starshine777
+// purpose: read midi items (and text thereupon) in lanes as notes. like piano roll but better
+//          put data into global memory to be interpreted by accompanying jsfx
+//
+//          this version ONLY works with the accompanying ReaImGui scale selector script, which is somewhat primitive yet.
+//         (A separate version of this script for JI processing exists. they have been separated to reduce development complexity)
+
+/////////////////////////////////////////////////////////////////////////////////
+// initialization and memory [mis]management
+/////////////////////////////////////////////////////////////////////////////////
+
+// treat any track with at least this many lanes as "fakemidi"
+MIN_LANES_TO_PROCESS = 5;
+function yes_parse_this_track(track)(GetMediaTrackInfo_Value(track, "I_NUMFIXEDLANES") >= MIN_LANES_TO_PROCESS);
+
+// constants
+NOTE_OFF        = 0x80;
+NOTE_ON         = 0x90;
+PB_FACTOR_DOWN  = 0x2000;
+PB_FACTOR_UP    = 0x1FFF;
+#empty_string="";
+
+// local memory regions
+_tracks_root_shifts = 0;
+_tracks_relabs_mode = 128;
+_source_array = 65536;
+_L            = 212984;
+_R            = 360432;
+
+// data structure defs
+EVT_WIDTH       = 8;
+TRACK_COUNT     = 32;
+MAX_TRACK_LANES = 255;
+EVT_LENGTH      = 16384;
+MEM_PER_TRACK   = 196608;
+EVT_LINK_OFFSET = 131072;
+
+// global memory regions
+_TRACKS_R2_SCALES = 512;
+_TR_GMEM_START  = 65536;
+PLAYBACK_OKAY = 8000000;
+
+// some counters that make sense as global
+item_count_MIDI = 0;
+
+// for getting the track-specific locations in memory
+function _track_evts_gmem_ptr(track_idx)(track_idx*MEM_PER_TRACK+_TR_GMEM_START);
+function _track_scale_gmem_ptr(track_idx)(track_idx*MAX_TRACK_LANES+_TRACKS_R2_SCALES);
+
+// clean the slates before use
+function gmem_init()(i=65535; Loop(8323072, gmem[i+=1]=-1));
+function base_cents_init()(i=-1; Loop(16, _tracks_root_shifts[i+=1]=0;););
+function array_2d_init(start)(
+  i=-1; _data_ptr=start+EVT_LENGTH-EVT_WIDTH;
+  Loop(EVT_LENGTH,
+    memset(start[i+=1]=(_data_ptr+=EVT_WIDTH),-1,EVT_WIDTH);
+  );
+);
+
+// note: can't use memcpy because it doesn't work on gmem
+function copy_evts_to_gmem(track_idx)(
+  _gmem_ptr  = _track_evts_gmem_ptr(track_idx)-1;
+  _local_ptr = -1;
+  Loop(EVT_WIDTH*EVT_LENGTH,
+    gmem[_gmem_ptr+=1] = _source_array[_local_ptr+=1];
+  );
+);
+
+// this is intended to load the jsfx and set the param that tells it where to look in gmem
+function load_track_jsfx()(
+  track_idx = -1;
+  Loop(CountTracks(0),
+    track = GetTrack(0, track_idx+=1);
+    yes_parse_this_track(track)
+    ? ( pos = TrackFX_AddByName(track, "starmidi", 0, 0);
+        pos<0 ? TrackFX_AddByName(track, "starmidi", 0, -1000);
+        TrackFX_SetParam(track, 0, 0, track_idx+1); // +1 for 1-based track number
+    );
+  );
+);
+
+/////////////////////////////////////////////////////////////////////////////////
+// load scale data from project EXT. set by partner script
+/////////////////////////////////////////////////////////////////////////////////
+
+function load_track_chroma(track)(
+  GetSetMediaTrackInfo_String(track, "P_EXT:scale_settings", #scale_settings, 0);
+  match("%i|%f|%f|%i|%f|%f|%f|%i",#scale_settings,d_steps,period,generator,mode,chroma,small,edo,edo_steps);
+);
+
+function load_track_scale(track,track_idx)(
+  lane_idx=-1;
+  GetSetMediaTrackInfo_String(track, "GUID", #GUID, 0);
+  #section="track_lane_tuning_";
+  #section+=#GUID;
+  _track_scale_gmem_ptr = _track_scale_gmem_ptr(track_idx);
+  Loop(GetMediaTrackInfo_Value(track, "I_NUMFIXEDLANES"),
+    sprintf(#key,"P_EXT:lane_pitch%i",lane_idx+=1);
+    GetSetMediaTrackInfo_String(track, #key, #value, 0)
+    ? ( match("%f",#value,lane_cents);
+        _track_scale_gmem_ptr[lane_idx]=lane_cents;
+    );
+  );
+  load_track_chroma(track);
+);
+
+/////////////////////////////////////////////////////////////////////////////////
+// merge sort functions
+/////////////////////////////////////////////////////////////////////////////////
+
+// helper function for mergeSort. merges second dimension
+function merge(array, low, mid, high, width, col)(
+    n1=mid-low+1; n2=high-mid;
+    // Copy data to temporary arrays L[] and R[]
+    i=-1; loop(n1, memcpy(_L[i+=1], array[low+i],   width););
+    j=-1; loop(n2, memcpy(_R[j+=1], array[mid+j+1], width););
+    // Merge the temporary arrays back into arr[low..high]
+    i=0; j=0; k=low;
+    while(i<n1 && j<n2)(
+      ( _L[i][col] <= _R[j][col]
+        )?( memcpy(array[k], _L[i], width); i+=1;
+        ):( memcpy(array[k], _R[j], width); j+=1;
+    ); k+=1; );
+    // Copy the remaining elements of L[] and R[], if there are any
+    while(i<n1)(memcpy(array[k], _L[i], width); i+=1; k+=1;);
+    while(j<n2)(memcpy(array[k], _R[j], width); j+=1; k+=1;);
+);
+
+// used to sort events by type and then by timestamp
+function mergeSort(array, length, width, col)(
+  array_2d_init(_L);
+  array_2d_init(_R);
+  cur_length=1;
+  while(cur_length<length)(
+    left=0;
+     while(left<length-1)(
+       center = min(left+   cur_length -1, length-1);
+       right  = min(left+(2*cur_length)-1, length-1);
+       merge(array, left, center, right, width, col);
+       left += (2*cur_length);
+  ); cur_length*=2; );
+);
+
+/////////////////////////////////////////////////////////////////////////////////
+//        tuning calcuation functions
+/////////////////////////////////////////////////////////////////////////////////
+
+function round(value)(floor(value+0.5));
+
+// currently just # or b chroma
+function get_accidental_cents(text)(
+  ret_cents = 0; char_pos=-1;
+  Loop(strlen(text),
+    char=str_getchar(text,char_pos+=1);
+    char=='#' ? ret_cents+=chroma;
+    char=='b' ? ret_cents-=chroma;
+    char=='^' ? ret_cents+=small;
+    char=='v' ? ret_cents-=small;
+  );
+ret_cents);
+
+// case 1: JI ratio like 3/2
+// case 2: edo step like 3\22
+// case 3: edx step like 3\13ed3
+// case 4:    cents like 234.567
+// case 5: accidentals like b, #, d, t, +, -
+function text_to_cents(text)(
+base_cents=0;
+    match("%d/%d", text, num, denom) 
+      ?  ( base_cents = log(num/denom)/log(2)*1200.0)
+  : match("%d\\%d", text, edo_step, edo)
+      ?  ( base_cents = 1200/edo*edo_step)
+  : match("%d\\%ded%d", text, ed_step, ediv, ed)
+      ?  ( ed_cents = log(ed) / log(2) * 1200.0;
+           base_cents = ed_cents/ediv*ed_step)
+  : match("%f", text, possible_float)
+      ?    base_cents = possible_float
+  : match("%s", text)
+      ?    base_cents=get_accidental_cents(text) //hack it till you mac n cheese it
+  ;
+base_cents);
+
+// for precise use of MIDI 1 for tuning, we need the closest MIDI note
+function calc_midi_note_num_unrounded(base_cents,track_idx)(
+    _tracks_relabs_mode[track_idx] ? _tracks_root_shifts[track_idx] += base_cents;
+    semitones = (base_cents+_tracks_root_shifts[track_idx])/100.0;
+); // returns unrounded to use in next step
+
+// and from there, get the pitchbend
+function st_to_pitchbend(semitones)(
+  remain_st =  semitones-round(semitones);
+  pb_factor = (remain_st>0 ? PB_FACTOR_UP : PB_FACTOR_DOWN)/2;
+  pb_amount =  round(remain_st * pb_factor + 0x2000);
+  // flip endianness to store and send as a single value, i.e. midisend(0,0xE_,LSB+(MSB*256))
+  pb_msg23_value = pb_amount & 0x7F | ((pb_amount >> 7 & 0x7F) << 8);
+);
+
+function get_note_base_cents(track_idx,color,lane)(
+    base_cents =_track_scale_gmem_ptr[lane];
+    base_cents+= get_accidental_cents(#note_text);
+base_cents);
+
+
+/////////////////////////////////////////////////////////////////////////////////
+//        track data collection functions
+/////////////////////////////////////////////////////////////////////////////////
+
+function write_note_data(track_idx,take,pos,len,color,lane,velocity)(
+
+    // wipe default-named MIDI obejcts for clarity
+    match("*MIDI*",#note_text) ? GetSetMediaItemTakeInfo_String(take, "P_NAME", #empty_string, 1);
+    
+    // tune it
+    base_cents = get_note_base_cents(track_idx,color,lane);
+    semitones = calc_midi_note_num_unrounded(base_cents,track_idx);
+    midi_note_num = round(semitones);
+    pb_value = st_to_pitchbend(semitones);
+    
+    _gmem_ptr = _track_evts_gmem_ptr(track_idx);
+    
+    // note-on
+    _source_array[evt_idx][0] = pos;
+    _source_array[evt_idx][1] = NOTE_ON;
+    _source_array[evt_idx][2] = midi_note_num;
+    _source_array[evt_idx][3] = velocity;
+    _source_array[evt_idx][4] = pb_value;
+    _source_array[evt_idx][5] = _gmem_ptr + evt_idx + EVT_LINK_OFFSET;
+    _source_array[evt_idx][6] = base_cents;
+    _source_array[evt_idx][7] = track_idx;
+    
+    evt_idx+=1;
+    
+    // note-off
+    _source_array[evt_idx][0] = pos+len-0.005; // the MIDI event bus is slow, and not doing this causes problems
+    _source_array[evt_idx][1] = NOTE_OFF;
+    _source_array[evt_idx][2] = midi_note_num;
+    _source_array[evt_idx][3] = 0;
+    //           [evt_idx][4] = 0; (no pitch bend for note-off)
+    _source_array[evt_idx][5] = _gmem_ptr + evt_idx-1 + EVT_LINK_OFFSET;
+    _source_array[evt_idx][7] = track_idx;
+
+    evt_idx+=1;
+);
+
+function do_track_command(track_idx)(
+    match("! %{#command}s",#note_text);
+    // !strcmp(#command,"ABSOLUTE") ? _tracks_relabs_mode[track_idx] = 0;
+    // !strcmp(#command,"RELATIVE") ? _tracks_relabs_mode[track_idx] = 1;
+    match("%{#r1}s=%{#r2}s",#command) ? (
+      r1 = text_to_cents(#r1);
+      r2 = text_to_cents(#r2);
+      _tracks_root_shifts[track_idx] += r2-r1;
+    );
+);
+
+function parse_item(track_idx,item)(
+  take = GetMediaItemTake(item, 0);
+  source = GetMediaItemTake_Source(take);
+  GetMediaSourceType(source, #item_type);
+  GetTakeName(#note_text, take);
+  GetSetMediaItemTakeInfo_String(take, "P_NAME", #note_text, 0);
+  color = GetMediaItemInfo_Value(item, "I_CUSTOMCOLOR");
+  lane  = GetMediaItemInfo_Value(item, "I_FIXEDLANE");
+  muted = GetMediaItemInfo_Value(item, "B_MUTE");
+  
+  ! strcmp(#item_type,"MIDI") && !muted // item *is* MIDI and not muted
+  ? ( pos   = GetMediaItemInfo_Value(item, "D_POSITION");
+      len   = GetMediaItemInfo_Value(item, "D_LENGTH");
+      vel   = GetMediaItemInfo_Value(item, "D_VOL") * 0x7F; // knob is a multiplier w/ default=1.0
+      str_getchar(#note_text,0) == '!'
+      ?   do_track_command(track_idx)
+      : ( write_note_data(track_idx,take,pos,len,color,lane,vel);
+          item_count_MIDI+=2;
+          gmem[PLAYBACK_OKAY+track_idx] = 1; //signal jsfx that processing has occurred and there is at least one note
+        );
+    );
+);
+
+function parse_tracks()(
+  track_idx = -1;
+  Loop(CountTracks(0),
+    track = GetTrack(0, track_idx+=1);
+    evt_idx = 0;
+    item_count_MIDI = 0;
+    yes_parse_this_track(track)
+    ? ( load_track_scale(track,track_idx); // load rank-2 notes if present
+        item_idx = -1; 
+        num_items = CountTrackMediaItems(track);
+        array_2d_init(_source_array);
+        Loop(num_items,
+            item = GetTrackMediaItem(track, item_idx+=1);
+            parse_item(track_idx,item);
+        );
+        mergeSort(_source_array, item_count_MIDI, EVT_WIDTH, 1); // sort on event type
+        mergeSort(_source_array, item_count_MIDI, EVT_WIDTH, 0); // sort on event time
+        copy_evts_to_gmem(track_idx);
+    );
+  );
+);
+
+
+/////////////////////////////////////////////////////////////////////////////////
+// do the things
+/////////////////////////////////////////////////////////////////////////////////
+
+function reload()(
+  Undo_BeginBlock();
+  gmem_init();
+  base_cents_init();
+  load_track_jsfx();
+  parse_tracks();
+  Undo_EndBlock("starmidi processing",0);
+);
+
+reload();
