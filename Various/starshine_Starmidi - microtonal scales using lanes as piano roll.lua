@@ -3,12 +3,12 @@
 -- @version 1.0-beta-1
 -- @metapackage
 -- @provides
---   [main] starshine_Starmidi - microtonal scales using lanes as piano roll/starshine_starmidi_flatten.eel
---   [main] starshine_Starmidi - microtonal scales using lanes as piano roll/starshine_starmidi_sharpen.eel
---   [main] starshine_Starmidi - microtonal scales using lanes as piano roll/starshine_starmidi_small_step_down.eel
---   [main] starshine_Starmidi - microtonal scales using lanes as piano roll/starshine_starmidi_small_step_up.eel
---   [main] starshine_Starmidi - microtonal scales using lanes as piano roll/starshine_starmidi_parser.eel
---   [main] starshine_Starmidi - microtonal scales using lanes as piano roll/starshine_starmidi_UI.eel
+--   [main] starshine_Starmidi - microtonal scales using lanes as piano roll/starshine_Starmidi - Flatten.eel
+--   [main] starshine_Starmidi - microtonal scales using lanes as piano roll/starshine_Starmidi - Sharpen.eel
+--   [main] starshine_Starmidi - microtonal scales using lanes as piano roll/starshine_Starmidi - Small step down.eel
+--   [main] starshine_Starmidi - microtonal scales using lanes as piano roll/starshine_Starmidi - Small step up.eel
+--   [main] starshine_Starmidi - microtonal scales using lanes as piano roll/starshine_Starmidi - Parser.eel
+--   [main] starshine_Starmidi - microtonal scales using lanes as piano roll/starshine_Starmidi - UI.eel
 --   [effect] starshine_Starmidi - microtonal scales using lanes as piano roll/starmidi
 -- @about
 --   # Starmidi - microtonal scales using lanes as piano roll
