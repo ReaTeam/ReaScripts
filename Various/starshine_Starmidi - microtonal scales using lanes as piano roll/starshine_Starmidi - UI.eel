@@ -213,13 +213,13 @@ function create_sliders()(
 function action_buttons()(
   ImGui_Spacing(ctx); 
   ImGui_Button(ctx, "Play/Stop")   
-    ? ( Main_OnCommand(NamedCommandLookup("_RS9f8f7a76d19005e1543e849b599281e333641d1c"),0);
+    ? ( Main_OnCommand(NamedCommandLookup("_RS4f0401222eb33809e4e04b9693bcd14ca7d99b0f"),0);
         Main_OnCommand(40044,0);
       );
-  ImGui_SameLine(ctx); ImGui_Button(ctx, " b ")    ? Main_OnCommand(NamedCommandLookup("_RS61a6904e98722c69f0b0fe92ca51917efd94531d"),0);
-  ImGui_SameLine(ctx); ImGui_Button(ctx, " # ")    ? Main_OnCommand(NamedCommandLookup("_RS12a51082fecd1ec07a98cb5b2f1197d17ae667cd"),0);
-  ImGui_SameLine(ctx); ImGui_Button(ctx, " v ")    ? Main_OnCommand(NamedCommandLookup("_RS0b0a5cb4d539aab23cc5589539851569ed80294d"),0);
-  ImGui_SameLine(ctx); ImGui_Button(ctx, " ^ ")    ? Main_OnCommand(NamedCommandLookup("_RS68a98efd0fb49d8e6aa4da619064fbc729e3cafb"),0);
+  ImGui_SameLine(ctx); ImGui_Button(ctx, " b ")    ? Main_OnCommand(NamedCommandLookup("_RS71b7cfc777a450acc4930c2719c38a437a3f33d9"),0);
+  ImGui_SameLine(ctx); ImGui_Button(ctx, " # ")    ? Main_OnCommand(NamedCommandLookup("_RS366fe3883adb723dde13b90b44be99e4a9cc5207"),0);
+  ImGui_SameLine(ctx); ImGui_Button(ctx, " v ")    ? Main_OnCommand(NamedCommandLookup("_RS2dbc76ff1464140d969d92fc52228d6399df2cf0"),0);
+  ImGui_SameLine(ctx); ImGui_Button(ctx, " ^ ")    ? Main_OnCommand(NamedCommandLookup("_RSb11a8b54723ca6d7df691a1525ce2656dcbf1b7e"),0);
 );
 
 
