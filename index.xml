@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="6a1226b235c52dd4d2c6a62c780352782749409d" name="ReaTeam Scripts">
+<index version="1" commit="a274a7044d05135934ca1ca1415ee1097c9f9880" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -22163,6 +22163,22 @@ v1.0
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b3c4cb6b4a3500487095f55dbc96ebb735f9e90e/Various/az_Auto-send%20all%20inputs%20to%20the%20virtual%20midi%20keyboard%20(VKB)%20if%20mouse%20is%20in%20empty%20track%20space%20or%20recording%20is%20running%20(Background).lua</source>
       </version>
     </reapack>
+    <reapack name="az_Simple project reconform.lua" type="script" desc="Simple project reconform">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Simple Project Reconform\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The script is under development, but you can try to use it. Read more: https://forum.cockos.com/showthread.php?t=288069\par}
+}
+]]></description>
+        <link rel="website" href="https://forum.cockos.com/showthread.php?t=288069">Forum thread</link>
+      </metadata>
+      <version name="0.5" author="AZ" time="2024-08-14T19:59:23Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a274a7044d05135934ca1ca1415ee1097c9f9880/Various/az_Simple%20project%20reconform.lua</source>
+      </version>
+    </reapack>
     <reapack name="beaunus_Import_clip_splicer_specification_json.py" type="script" desc="Import Clip Splicer JSON file">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
@@ -26215,6 +26231,48 @@ Fix SWS Startup / Lokasenna Radial Menu bug]]></changelog>
 - Layout: fix overlapping elements. Thanks todoublez!
 - Items in hidden tracks: (Fix) unselect items when they are hid by the script]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/1e3fa40657aaea838cc724c15f99562add85e37f/Various/spk77_Track%20Tags.lua</source>
+      </version>
+    </reapack>
+    <reapack name="starshine_Starmidi - microtonal scales using lanes as piano roll.lua" type="script" desc="Starmidi - microtonal scales using lanes as piano roll">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Starmidi - microtonal scales using lanes as piano roll\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This program seeks to solve several problems for microtonal music producers while streamlining the workflow:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 1.\tx360\tab Microtonal scales may contain far more than 12 notes per octave, and this quickly makes working in the conventional chromatic piano roll cumbersome or even limiting to the instrument's range.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 {\i This script package and plugin solve this by using an adjustable number of "fixed item lanes" that act as the "piano white key notes" for the given microtonal scale, with other pitches accessible by means of accidentals}\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 2.\tx360\tab Different synthesizers and samplers have different ways of loading microtonal scales, sometimes requiring different file formats, inconsistent behavior, timbre warping, and more.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 *These scripts solve this issue by finding the closest MIDI note and applying a pitchbend amount of no more than 50 cents. It's tested working with Vital, Surge XT, and Pianoteq and should work with most synths and samplers.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 To achieve microtonal polyphony, the jsfx plugin (which handles generating the MIDI events from data in gmem) dynamically assigns new notes to free channels. Up to 16 simultaneous and independently tuned notes can be played this way.*\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs28 Setup/Usage\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 1.\tx360\tab ReaImGui is required\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 2.\tx360\tab Preferences > Track Send Defaults > Fixed Lane Defaults > {\b Uncheck "Automatically delete empty lanes at bottom of track"}\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 I strongly recommend selecting "Small lanes" here as well.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 3.\tx360\tab Launch the script "Starshine_starmidi_UI.eel".\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 4.\tx360\tab Drag the # of Lanes slider to add 15+ lanes to a track.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 5.\tx360\tab It is beyond the scope of this package documentation to explain microtonal scale theory. If you are interested in learning more, please consider joining the Xenharmonic Alliance discord at https://discord.gg/uxvw5Vzj\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Setting the following combinations for [# of Scale Steps], [Equal Divisions], and [n\\EDX as Generator] should yield interesting results. 7\\16edo means to select 16 [Equal Divisions] and 7 for [n\\EDX as Generator]\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab 7 steps, 7\\16edo\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab 8 steps, 10\\27edo\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab 9 steps, 4\\19edo\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab 7 steps, 13\\31edo, mode 5 (this is like a regular major scale but more in tune. roughly "quarter-comma meantone")\sa180\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 6.\tx360\tab Insert/draw empty MIDI items in lanes. These function as notes. Optionally, you may set a mouse modifier to draw MIDI items so that it functions like the standard piano roll for inserting notes.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 7.\tx360\tab Add a synth to the FX chain; do not enable MPE. Leave pitch bend range at 2 semitones.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 8.\tx360\tab You must click Play from this interface; this runs the parsing script prior to playback. (The script will also auto-add and configure the jsfx.)\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 {\i Optionally, you may create a custom action that runs "starshine_starmidi_parser.eel" and then the Transport: Play/Stop action}\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0-beta-1" author="Starshine" time="2024-08-14T19:59:02Z">
+        <source main="main" file="starshine_Starmidi - microtonal scales using lanes as piano roll/starshine_Starmidi - Flatten.eel">https://github.com/ReaTeam/ReaScripts/raw/3908802c4082d34fa7280d651827e406123fa75c/Various/starshine_Starmidi%20-%20microtonal%20scales%20using%20lanes%20as%20piano%20roll/starshine_Starmidi%20-%20Flatten.eel</source>
+        <source main="main" file="starshine_Starmidi - microtonal scales using lanes as piano roll/starshine_Starmidi - Sharpen.eel">https://github.com/ReaTeam/ReaScripts/raw/3908802c4082d34fa7280d651827e406123fa75c/Various/starshine_Starmidi%20-%20microtonal%20scales%20using%20lanes%20as%20piano%20roll/starshine_Starmidi%20-%20Sharpen.eel</source>
+        <source main="main" file="starshine_Starmidi - microtonal scales using lanes as piano roll/starshine_Starmidi - Small step down.eel">https://github.com/ReaTeam/ReaScripts/raw/3908802c4082d34fa7280d651827e406123fa75c/Various/starshine_Starmidi%20-%20microtonal%20scales%20using%20lanes%20as%20piano%20roll/starshine_Starmidi%20-%20Small%20step%20down.eel</source>
+        <source main="main" file="starshine_Starmidi - microtonal scales using lanes as piano roll/starshine_Starmidi - Small step up.eel">https://github.com/ReaTeam/ReaScripts/raw/3908802c4082d34fa7280d651827e406123fa75c/Various/starshine_Starmidi%20-%20microtonal%20scales%20using%20lanes%20as%20piano%20roll/starshine_Starmidi%20-%20Small%20step%20up.eel</source>
+        <source main="main" file="starshine_Starmidi - microtonal scales using lanes as piano roll/starshine_Starmidi - Parser.eel">https://github.com/ReaTeam/ReaScripts/raw/3908802c4082d34fa7280d651827e406123fa75c/Various/starshine_Starmidi%20-%20microtonal%20scales%20using%20lanes%20as%20piano%20roll/starshine_Starmidi%20-%20Parser.eel</source>
+        <source main="main" file="starshine_Starmidi - microtonal scales using lanes as piano roll/starshine_Starmidi - UI.eel">https://github.com/ReaTeam/ReaScripts/raw/3908802c4082d34fa7280d651827e406123fa75c/Various/starshine_Starmidi%20-%20microtonal%20scales%20using%20lanes%20as%20piano%20roll/starshine_Starmidi%20-%20UI.eel</source>
+        <source type="effect" file="starshine_Starmidi - microtonal scales using lanes as piano roll/starmidi">https://github.com/ReaTeam/ReaScripts/raw/3908802c4082d34fa7280d651827e406123fa75c/Various/starshine_Starmidi%20-%20microtonal%20scales%20using%20lanes%20as%20piano%20roll/starmidi</source>
       </version>
     </reapack>
     <reapack name="tagirijus_Delete backups in project folder.lua" type="script" desc="Delete backups in project folder">
