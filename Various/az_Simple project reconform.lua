@@ -1,4 +1,4 @@
--- @description Simple Project Reconform
+-- @description Simple project reconform
 -- @author AZ
 -- @version 0.5
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=288069
