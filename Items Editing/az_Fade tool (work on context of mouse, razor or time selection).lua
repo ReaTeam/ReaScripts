@@ -1,7 +1,11 @@
 -- @description Fade tool (works on context of mouse, razor or time selection)
 -- @author AZ
--- @version 2.1.1
--- @changelog repair saving of text field options
+-- @version 2.1.2
+-- @changelog
+--   - New option: Use default shape instead of linear when cutting envelopes
+--   - fixed clothest/farthest fade option
+--   - fixed bezier point insertion
+--   - fixed some bugs with crossfades mirroring to envelope
 -- @provides
 --   az_Fade tool (work on context of mouse, razor or time selection)/az_Options window for az_Fade tool.lua
 --   [main] az_Fade tool (work on context of mouse, razor or time selection)/az_Open options for az_Fade tool.lua
@@ -74,7 +78,7 @@ function GetExtStates(OptionsTable)
             local var = option[4][i]
             if state == var then
               wrong = false
-              break              
+              break 
             end
           end
           
@@ -133,6 +137,9 @@ function OptionsDefaults(NamedTable)
   table.insert(NamedTable, {text, 'LRdefine', 'Left/Right fade', {
                                                       'Left/Right fade',
                                                       'Closest/Farthest fade' } })
+  
+  text = 'Use default shape instead of linear when cutting envelopes'
+  table.insert(NamedTable, {text, 'CutShapeUseDef', false })
   
   
   text = 'Batch fades/crossfades defaults'
@@ -1049,6 +1056,8 @@ function CutEnv(env,pointsTable,areaEdge1,areaEdge2)
   if pointsNumber == 0 then return false end
   
   local cutShape = 0
+  if Opt.CutShapeUseDef == true then cutShape = tonumber(ExtractDefPointShape(env)) end
+  
   local inBordRet, inBordVal, _,_,_ = reaper.Envelope_Evaluate( env, areaStart, 192000, 1 )
   local outBordRet, outBordVal, _,_,_ = reaper.Envelope_Evaluate( env, areaEnd, 192000, 1 )
 
@@ -1086,20 +1095,58 @@ end
 -----------------------
 
 function GetFadeMouse(item)
+  local mpos = reaper.BR_PositionAtMouseCursor(false)
   local ipos =  reaper.GetMediaItemInfo_Value( item,'D_POSITION' )
   local iend = ipos +  reaper.GetMediaItemInfo_Value( item, 'D_LENGTH' )
   local finlen =  reaper.GetMediaItemInfo_Value( item,'D_FADEINLEN' )
   local foutlen =  reaper.GetMediaItemInfo_Value( item, 'D_FADEOUTLEN' )
+  local finlenAuto =  reaper.GetMediaItemInfo_Value( item,'D_FADEINLEN_AUTO' )
+  local foutlenAuto =  reaper.GetMediaItemInfo_Value( item, 'D_FADEOUTLEN_AUTO' )
   local finshape =  reaper.GetMediaItemInfo_Value( item,'C_FADEINSHAPE' )
   local foutshape =  reaper.GetMediaItemInfo_Value( item,'C_FADEOUTSHAPE' )
-  local window, segment, details = reaper.BR_GetMouseCursorContext()
-  local mouse_pos = reaper.BR_GetMouseCursorContext_Position()
-
-  if MouseCUR:match('left')=='left' then
+  
+  if finlenAuto > 0 then finlen = finlenAuto end
+  if foutlenAuto > 0 then foutlen = foutlenAuto end
+  
+  local fadeType
+  if mpos < iend - foutlen then
+    if MouseCUR:match('left') then
+      fadeType = "L"
+    elseif MouseCUR:match('right') then
+      fadeType = "R"
+      local leftItem = FindXfadedNeigbourItem(item, ipos, iend, -1)
+      
+      local lipos =  reaper.GetMediaItemInfo_Value( leftItem,'D_POSITION' )
+      iend = lipos +  reaper.GetMediaItemInfo_Value( leftItem, 'D_LENGTH' )
+      foutlen =  reaper.GetMediaItemInfo_Value( leftItem, 'D_FADEOUTLEN' )
+      foutlenAuto =  reaper.GetMediaItemInfo_Value( leftItem, 'D_FADEOUTLEN_AUTO' )
+      foutshape =  reaper.GetMediaItemInfo_Value( leftItem,'C_FADEOUTSHAPE' )
+    end
+  elseif mpos >= iend - foutlen then
+    if MouseCUR:match('right') then
+      fadeType = "R"
+    elseif MouseCUR:match('left') then
+      fadeType = "L"
+      local rightItem = FindXfadedNeigbourItem(item, ipos, iend, 1)
+      
+      ipos =  reaper.GetMediaItemInfo_Value( rightItem,'D_POSITION' )
+      finlen =  reaper.GetMediaItemInfo_Value( item,'D_FADEINLEN' )
+      finlenAuto =  reaper.GetMediaItemInfo_Value( item,'D_FADEINLEN_AUTO' )
+      finshape =  reaper.GetMediaItemInfo_Value( item,'C_FADEINSHAPE' )
+    end
+  end
+  
+  if finlenAuto > 0 then finlen = finlenAuto end
+  if foutlenAuto > 0 then foutlen = foutlenAuto end
+  
+  if finshape == 7 then finshape = 1 end
+  if foutshape == 7 then foutshape = 1 end
+  
+  if fadeType == "L" then
     local fT = {0,3,4,3,4,2,2}
     finshape = fT[finshape+1]
     return finshape, ipos, ipos + finlen
-  elseif MouseCUR:match('right')=='right' then
+  elseif fadeType == "R" then
     local fT = {0,4,3,4,3,2,2}
     foutshape = fT[foutshape+1]
     return foutshape, iend - foutlen, iend
@@ -1109,9 +1156,10 @@ end
 -------------------
 
 function ItemFadeToEnv(env,pointsNumber,pointsTable,areaStart,areaEnd)
-  local item_mouse = reaper.BR_GetMouseCursorContext_Item()
+  local x, y = reaper.GetMousePosition()
+  local item_mouse = reaper.GetItemFromPoint(x,y, true)
   local fShape, fStart, fEnd = GetFadeMouse(item_mouse)
-
+  
   if areaStart < fEnd and fStart < areaEnd then
     local _, infVal, _,_,_ = reaper.Envelope_Evaluate( env, areaStart, 192000, 1 )
     local _, outfVal, _,_,_ = reaper.Envelope_Evaluate( env, areaEnd, 192000, 1 )
@@ -1740,18 +1788,18 @@ end
 
 ----------------------------
 
-function WhatFade(half, i_pos, i_end, mPos)
+function WhatFade(half, leftF, rightF, mPos)
   local f_type
   
   if Opt.LRdefine == 'Closest/Farthest fade' then --cross define
     if half == "top" then
-      if (i_end - mPos) <= (mPos - i_pos) then
+      if (rightF - mPos) <= (mPos - leftF) then
         f_type = "out"
       else
         f_type = "in"
       end
     elseif half == "bottom" then
-      if (i_end - mPos) > (mPos - i_pos) then
+      if (rightF - mPos) > (mPos - leftF) then
         f_type = "out"
       else
         f_type = "in"
@@ -1764,6 +1812,7 @@ function WhatFade(half, i_pos, i_end, mPos)
       f_type = "out"
     end
   end
+  
   return f_type
 end
 
@@ -1773,7 +1822,7 @@ function FadeToMouse(item, itemHalf) --returns table of fades start position
   local ilock = reaper.GetMediaItemInfo_Value( item, "C_LOCK" )
   if ilock == 1 and Opt.IgnoreLockingMouse == false then return end
 
-  local mPos = reaper.BR_GetMouseCursorContext_Position()
+  local mPos = reaper.BR_PositionAtMouseCursor(false)
   local mPosSnapped
   
   if Opt.RespSnapItems == true then mPosSnapped = reaper.SnapToGrid(0,mPos)
@@ -1782,7 +1831,15 @@ function FadeToMouse(item, itemHalf) --returns table of fades start position
   
   local fadeStartT = {}
   local fadeStartEdge
-  
+  --[[
+  if reaper.IsMediaItemSelected(item) == false then
+    
+  else
+    for i=0, reaper.CountSelectedMediaItems(0) - 1 do
+      local selItem = reaper.GetSelectedMediaItem(0,i)
+    end
+  end
+  ]]
   local i_pos = reaper.GetMediaItemInfo_Value(item, "D_POSITION")
   local i_end = i_pos + reaper.GetMediaItemInfo_Value(item, "D_LENGTH")
   
@@ -1798,7 +1855,7 @@ function FadeToMouse(item, itemHalf) --returns table of fades start position
   local leftIlock, rightIlock
   
   if i_autoFin ~= 0 then fLeftpos = i_pos + i_autoFin else fLeftpos = i_pos + i_Fin end
-  if i_autoFout ~= 0 then fRightpos = i_end - i_autoFout else fRightpos = i_end + i_Fout end
+  if i_autoFout ~= 0 then fRightpos = i_end - i_autoFout else fRightpos = i_end - i_Fout end
   
   if i_autoFin ~= 0 then
     leftItem = FindXfadedNeigbourItem(item, i_pos, i_end, -1)
@@ -1858,16 +1915,16 @@ function FadeToMouse(item, itemHalf) --returns table of fades start position
   end
   
   local reverse
-  if leftItem and mPosSnapped < fLeftpos then
-    f_type = WhatFade(itemHalf, i_pos, fLeftpos, mPosSnapped)
+  if leftItem and mPos < fLeftpos then
+    f_type = WhatFade(itemHalf, i_pos, fLeftpos, mPos)
     reverse = false
     if f_type == 'out' then
       rightItem = item
       item = leftItem
       reverse = true
     end
-  elseif rightItem and mPosSnapped > fRightpos then
-    f_type = WhatFade(itemHalf, fRightpos, i_end, mPosSnapped)
+  elseif rightItem and mPos > fRightpos then
+    f_type = WhatFade(itemHalf, fRightpos, i_end, mPos)
     reverse = false
     if f_type == 'in' then
       leftItem = item
@@ -1875,7 +1932,7 @@ function FadeToMouse(item, itemHalf) --returns table of fades start position
       reverse = true
     end
   else
-    f_type = WhatFade(itemHalf, fLeftpos, fRightpos, mPosSnapped)
+    f_type = WhatFade(itemHalf, fLeftpos, fRightpos, mPos)
   end
   
   if f_type == 'in' then
@@ -1900,11 +1957,11 @@ function FadeToMouse(item, itemHalf) --returns table of fades start position
     end
     fadeStartEdge = SetCrossfade(leftItem,item,areaData)
   elseif f_type == 'out' and rightItem then --change cdrossfade
-  if Opt.IgnoreLockingMouse == false
-  and ((edgesLock == 1 and globalLock == 1) or rightIlock == 1) then
-    return
-  end
-  
+    if Opt.IgnoreLockingMouse == false
+    and ((edgesLock == 1 and globalLock == 1) or rightIlock == 1) then
+      return
+    end
+    
     local areaData 
     if reverse == true then
       areaData = {areaStart = i_pos, areaEnd = mPosSnapped} 
@@ -1976,6 +2033,18 @@ end
 
 -----------------------------------------
 
+function ExtractDefPointShape(env)
+  local ret, chunk = reaper.GetEnvelopeStateChunk(env, '', false)
+  for line in chunk:gmatch("[^\n]+") do
+    if line:match('DEFSHAPE') then
+      local value = line:match('%d')
+      return value
+    end
+  end
+end
+
+-----------------------------------------
+
 function MovePoint(env, time, item, pointPos)
 --pointPos should be 'left' or 'right' relative to time
   if pointPos == 'right' then pointPos = 1 else pointPos = 0 end
@@ -2014,8 +2083,9 @@ function MovePoint(env, time, item, pointPos)
   else
       UnselectEnvPoints(env, -1)
       _, pValue, _, _, _ = reaper.Envelope_Evaluate( env, timeSnap, 192000, 1 )
-      pShape = GetPrefs('defenvs') >> 16
-      reaper.InsertEnvelopePointEx( env, -1, timeSnap, pValue, pShape, _, true, false )
+      --pShape = GetPrefs('defenvs') >> 16 
+      pShape = tonumber(ExtractDefPointShape(env))
+      reaper.InsertEnvelopePointEx( env, -1, timeSnap, pValue, pShape, 0, true, false )
       UndoString = 'FadeTool - create point'
   end
   
@@ -2071,7 +2141,7 @@ function PointToMouse(env) --return time table with single point value
      else --env in separate lane
        local test_y = math.floor( y + (envH/2 + envPad)*OScoeff )
        
-       local track, info = reaper.GetThingFromPoint(x,y)
+       local track, info = reaper.GetThingFromPoint(x,y) 
        if info:match('envelope') == 'envelope' then
          mouseEnv = reaper.GetTrackEnvelope(track, info:match('%d+'))
        end
@@ -2206,7 +2276,7 @@ end
 
 ---------------------------
 -----------START-----------
-CurVers = 2.11
+CurVers = 2.12
 version = tonumber( reaper.GetExtState(ExtStateName, "version") )
 if version ~= CurVers then
   if not version or version < 2.0 then
