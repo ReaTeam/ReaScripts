@@ -47,6 +47,10 @@ function OptionsWindow(OptTable, windowName)
   local tcpActName = ''
   local section
   
+  local savedFontSize = tonumber(reaper.GetExtState(ExtStateName, 'FontSize'))
+  if type(savedFontSize) == 'number' then fontSize = savedFontSize end
+  if not savedFontSize then savedFontSize = fontSize end
+  
   if tcpActIDstr ~= '' and tcpActIDstr:gsub('%d+', '') == '' then
     section =  reaper.SectionFromUniqueID( tonumber(tcpActIDstr) )
     tcpActName = reaper.kbd_getTextFromCmd( tonumber(tcpActIDstr), section )
@@ -77,13 +81,7 @@ function OptionsWindow(OptTable, windowName)
       Hovered = rgbToHex({35,40,45,80}),
       Active = rgbToHex({42,42,37,100}), 
     },
-    --[[
-    Input = {
-      Background = rgbToHex({50,50,50,100}),
-      Hover = rgbToHex({10,10,90,100}),
-      Text = rgbToHex({90,90,80,100}),
-      Label = rgbToHex({90,80,90,100}),
-    },]]
+    
     Button = {
       Default = rgbToHex({25,30,30,100}),
       Hovered = rgbToHex({35,40,45,100}),
@@ -172,10 +170,13 @@ function OptionsWindow(OptTable, windowName)
       reaper.ImGui_PushItemWidth(ctx, fontSize*5 )
       _, tcpActIDstr = reaper.ImGui_InputText
       (ctx,'TCP context action (paste command ID):\n'..tcpActName, tcpActIDstr)
+    
+      _, savedFontSize = reaper.ImGui_InputInt
+      (ctx, 'Font size for the window (default is 17)', savedFontSize)
     end
     
     reaper.ImGui_Text(ctx, '' ) --space before buttons
-    reaper.ImGui_Text(ctx, '' ) --space before buttons 
+    reaper.ImGui_Text(ctx, '' ) --space before buttons
     
     --Esc button
     reaper.ImGui_SameLine(ctx, fontSize*2, fontSize)
@@ -269,6 +270,7 @@ function OptionsWindow(OptTable, windowName)
         if space == true then
           SetExtStates(OptTable)
           reaper.SetExtState(ExtStateName, 'TCPaction', tcpActIDstr, true)
+          reaper.SetExtState(ExtStateName, 'FontSize', savedFontSize, true)
         end
       end
       
@@ -281,6 +283,7 @@ function OptionsWindow(OptTable, windowName)
           else
             SetExtStates(OptTable)
             reaper.SetExtState(ExtStateName, 'TCPaction', tcpActIDstr, true)
+            reaper.SetExtState(ExtStateName, 'FontSize', savedFontSize, true)
             reaper.ImGui_DestroyContext(ctx)
           end
       else

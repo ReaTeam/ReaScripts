@@ -1,11 +1,10 @@
 -- @description Fade tool (works on context of mouse, razor or time selection)
 -- @author AZ
--- @version 2.1.2
+-- @version 2.2
 -- @changelog
---   - New option: Use default shape instead of linear when cutting envelopes
---   - fixed clothest/farthest fade option
---   - fixed bezier point insertion
---   - fixed some bugs with crossfades mirroring to envelope
+--   - support adjusting fades/crossfades via mouse for vertical aligned selected items and grouped items
+--   - new option: ms or frames for batch feature
+--   - changeable font size for options window
 -- @provides
 --   az_Fade tool (work on context of mouse, razor or time selection)/az_Options window for az_Fade tool.lua
 --   [main] az_Fade tool (work on context of mouse, razor or time selection)/az_Open options for az_Fade tool.lua
@@ -145,15 +144,20 @@ function OptionsDefaults(NamedTable)
   text = 'Batch fades/crossfades defaults'
   table.insert(NamedTable, {text, 'Separator', nil})
   
-  text = 'Fade-in in ms'
+  text = 'Fade-in'
   table.insert(NamedTable, {text, 'DefaultFadeIn', 30, "%.0f"})
   
-  text = 'Fade-out in ms'
+  text = 'Fade-out'
   table.insert(NamedTable, {text, 'DefaultFadeOut', 30, "%.0f"})
   
-  text = 'Crossfade in ms'
+  text = 'Crossfade'
   table.insert(NamedTable, {text, 'DefaultCrossFade', 30, "%.0f"})
   
+  
+  text = 'Values'
+  table.insert(NamedTable, {text, 'ValueType', 'milliseconds', {
+                                                      'milliseconds',
+                                                      'frames' } })
   
   text = 'Crossfade type'
   table.insert(NamedTable, {text, 'DefCrossType', 'Left', {
@@ -196,14 +200,19 @@ end
 function BatchDefaults(NamedTable)
   local text
   
-  text = 'Fade-in in ms'
+  text = 'Fade-in'
   table.insert(NamedTable, {text, 'DefaultFadeIn', 30, "%.0f"})
   
-  text = 'Fade-out in ms'
+  text = 'Fade-out'
   table.insert(NamedTable, {text, 'DefaultFadeOut', 30, "%.0f"})
   
-  text = 'Crossfade in ms'
+  text = 'Crossfade'
   table.insert(NamedTable, {text, 'DefaultCrossFade', 30, "%.0f"})
+  
+  text = 'Values'
+  table.insert(NamedTable, {text, 'ValueType', 'milliseconds', {
+                                                      'milliseconds',
+                                                      'frames' } })
   
   
   text = 'Crossfade type'
@@ -881,6 +890,13 @@ function BatchFades()
     end
   end
   
+  local typeValueCoeff
+  if BOpt.ValueType == "milliseconds" then
+    typeValueCoeff = 0.001
+  elseif BOpt.ValueType == "frames" then
+    typeValueCoeff = reaper.parse_timestr_pos( "00:00:00:01", 5 )
+  end
+  
   for i = 1, #RazorEditsBatch do
     local areaData = RazorEditsBatch[i]
     if not areaData.isEnvelope then
@@ -898,14 +914,14 @@ function BatchFades()
         if BOpt.RespectExistingFades == false then iFin = 0 iFout = 0 end
         
         if iPos >= areaData.areaStart then 
-          if PrevEnd and math.abs(iPos - PrevEnd) < 0.0002 then 
+          if PrevEnd and math.abs(iPos - PrevEnd) < 0.0002 then
             local crossStart, crossEnd
             if BOpt.DefCrossType == 'Left' then
-              crossStart = iPos - BOpt.DefaultCrossFade/1000
+              crossStart = iPos - BOpt.DefaultCrossFade * typeValueCoeff
               crossEnd = iPos
             elseif BOpt.DefCrossType == 'Centered' then
-              crossStart = iPos - BOpt.DefaultCrossFade/2000
-              crossEnd = iPos + BOpt.DefaultCrossFade/2000
+              crossStart = iPos - BOpt.DefaultCrossFade/2 * typeValueCoeff
+              crossEnd = iPos + BOpt.DefaultCrossFade/2 * typeValueCoeff
             end
             
             local crossData = {
@@ -917,27 +933,27 @@ function BatchFades()
               SetCrossfade(items[i-1],item, crossData)
               AnyEdit = 1
             elseif PrevFout == 0 then
-              SetFade(items[i-1], "out", BOpt.DefaultFadeOut/1000)
+              SetFade(items[i-1], "out", BOpt.DefaultFadeOut * typeValueCoeff)
               AnyEdit = 1
             elseif iFin == 0 then
-              SetFade(item, "in", BOpt.DefaultFadeIn/1000)
+              SetFade(item, "in", BOpt.DefaultFadeIn * typeValueCoeff)
               AnyEdit = 1
             end
             
           elseif not PrevEnd or iPos > PrevEnd then
             if iFin == 0 then
-              SetFade(item, "in", BOpt.DefaultFadeIn/1000)
+              SetFade(item, "in", BOpt.DefaultFadeIn * typeValueCoeff)
               AnyEdit = 1
             end
             if PrevFout == 0 then
-              SetFade(items[i-1], "out", BOpt.DefaultFadeOut/1000)
+              SetFade(items[i-1], "out", BOpt.DefaultFadeOut * typeValueCoeff)
               AnyEdit = 1
             end
           end
           
           if i == #items and iFout == 0 and iEnd <= areaData.areaEnd then
           --fadeout for the last item
-            SetFade(item, "out", BOpt.DefaultFadeOut/1000)
+            SetFade(item, "out", BOpt.DefaultFadeOut * typeValueCoeff)
             AnyEdit = 1
           end
         end
@@ -1678,8 +1694,6 @@ function SetFade(item, f_type, f_size, shape ) -- returns fadeStartEdge
     local iPos = reaper.GetMediaItemInfo_Value( item, "D_POSITION" )
     local iLock = reaper.GetMediaItemInfo_Value( item, "C_LOCK" )
     local i_autoFin = reaper.GetMediaItemInfo_Value(item, "D_FADEINLEN_AUTO")
-    --local i_autoFout = reaper.GetMediaItemInfo_Value(item, "D_FADEOUTLEN_AUTO")
-    --if i_autoFout ~= 0 then InitOutFade = i_autoFout end
     
     if (iLock == 0 and fadesLock == 0) or Opt.IgnoreLockingMouse == true
     or RespectLockingBatch == false then
@@ -1818,6 +1832,97 @@ end
 
 ----------------------------
 
+function SortSelItems(Items, ref_item, ref_leftItem, ref_rightItem, reverseFlag)
+  local ret
+  local ref_i_pos, ref_i_end, ref_fLeftpos, ref_fRightpos
+  ref_i_pos = reaper.GetMediaItemInfo_Value(ref_item, "D_POSITION")
+  ref_i_end = ref_i_pos + reaper.GetMediaItemInfo_Value(ref_item, "D_LENGTH")
+  local ref_i_autoFin = reaper.GetMediaItemInfo_Value(ref_item, "D_FADEINLEN_AUTO")
+  local ref_i_autoFout = reaper.GetMediaItemInfo_Value(ref_item, "D_FADEOUTLEN_AUTO")
+  local ref_i_Fin = reaper.GetMediaItemInfo_Value(ref_item, "D_FADEINLEN")
+  local ref_i_Fout = reaper.GetMediaItemInfo_Value(ref_item, "D_FADEOUTLEN")
+  
+  if ref_i_autoFin ~= 0 then
+    ref_fLeftpos = ref_i_pos + ref_i_autoFin
+  else ref_fLeftpos = ref_i_pos + ref_i_Fin
+  end
+  if ref_i_autoFout ~= 0 then
+    ref_fRightpos = ref_i_end - ref_i_autoFout
+  else ref_fRightpos = ref_i_end - ref_i_Fout
+  end
+  
+  for i=0, reaper.CountSelectedMediaItems(0) - 1 do
+    local item = reaper.GetSelectedMediaItem(0,i)
+    local itemLock = reaper.GetMediaItemInfo_Value( item, "C_LOCK" )
+    
+    if itemLock == 0 or (Opt.IgnoreLockingMouse == true and item == ref_item) then
+      local i_pos = reaper.GetMediaItemInfo_Value(item, "D_POSITION")
+      local i_end = i_pos + reaper.GetMediaItemInfo_Value(item, "D_LENGTH")
+      
+      local fLeftpos, fRightpos
+      local leftItem, rightItem
+      local leftIlock, rightIlock
+      
+      local i_autoFin = reaper.GetMediaItemInfo_Value(item, "D_FADEINLEN_AUTO")
+      local i_autoFout = reaper.GetMediaItemInfo_Value(item, "D_FADEOUTLEN_AUTO")
+      local i_Fin = reaper.GetMediaItemInfo_Value(item, "D_FADEINLEN")
+      local i_Fout = reaper.GetMediaItemInfo_Value(item, "D_FADEOUTLEN")
+      
+      if i_autoFin ~= 0 then fLeftpos = i_pos + i_autoFin else fLeftpos = i_pos + i_Fin end
+      if i_autoFout ~= 0 then fRightpos = i_end - i_autoFout else fRightpos = i_end - i_Fout end
+      
+      if i_autoFin ~= 0 then
+        leftItem = FindXfadedNeigbourItem(item, i_pos, i_end, -1)
+        leftIlock = reaper.GetMediaItemInfo_Value( leftItem, "C_LOCK" )
+      end
+      
+      if i_autoFout ~= 0 then
+        rightItem = FindXfadedNeigbourItem(item, i_pos, i_end, 1)
+        rightIlock = reaper.GetMediaItemInfo_Value( rightItem, "C_LOCK" )
+      end
+      
+      if leftIlock == 1 and Opt.IgnoreLockingMouse == false then leftItem = nil end
+      if rightIlock == 1 and Opt.IgnoreLockingMouse == false then rightItem = nil end
+      
+      local ItemData = {}
+      ItemData.item = item
+      ItemData.i_pos = i_pos
+      ItemData.i_end = i_end
+      ItemData.fLeftpos = fLeftpos
+      ItemData.fRightpos = fRightpos
+      ItemData.leftItem = leftItem
+      ItemData.rightItem = rightItem
+      
+      ---Sort items--- 
+      if math.abs(i_pos - ref_i_pos) < 0.0002 and math.abs(fLeftpos - ref_fLeftpos) < 0.0002
+      and leftItem and ref_leftItem then
+        if reverseFlag == true then table.insert(Items.Vert.R, ItemData) ret = true
+        else table.insert(Items.Vert.L, ItemData) ret = true
+        end
+      end
+      
+      if math.abs(i_end - ref_i_end) < 0.0002 and math.abs(fRightpos - ref_fRightpos) < 0.0002
+      and rightItem and ref_rightItem then
+        if reverseFlag == true then table.insert(Items.Vert.L, ItemData) ret = true
+        else table.insert(Items.Vert.R, ItemData) ret = true
+        end
+      end
+      
+      if not ref_leftItem and not leftItem then
+        table.insert(Items.Horiz.L, ItemData) ret = true
+      end
+      
+      if not ref_rightItem and not rightItem then
+        table.insert(Items.Horiz.R, ItemData) ret = true
+      end
+      
+    end
+  end
+  return ret
+end
+
+----------------------------
+
 function FadeToMouse(item, itemHalf) --returns table of fades start position
   local ilock = reaper.GetMediaItemInfo_Value( item, "C_LOCK" )
   if ilock == 1 and Opt.IgnoreLockingMouse == false then return end
@@ -1829,17 +1934,13 @@ function FadeToMouse(item, itemHalf) --returns table of fades start position
   else mPosSnapped = mPos
   end
   
+  local Items = {Vert = {L = {}, R ={} },
+                 Horiz = {L = {}, R ={} }
+                 }
+                 
   local fadeStartT = {}
   local fadeStartEdge
-  --[[
-  if reaper.IsMediaItemSelected(item) == false then
-    
-  else
-    for i=0, reaper.CountSelectedMediaItems(0) - 1 do
-      local selItem = reaper.GetSelectedMediaItem(0,i)
-    end
-  end
-  ]]
+  
   local i_pos = reaper.GetMediaItemInfo_Value(item, "D_POSITION")
   local i_end = i_pos + reaper.GetMediaItemInfo_Value(item, "D_LENGTH")
   
@@ -1859,59 +1960,16 @@ function FadeToMouse(item, itemHalf) --returns table of fades start position
   
   if i_autoFin ~= 0 then
     leftItem = FindXfadedNeigbourItem(item, i_pos, i_end, -1)
-    leftIlock = reaper.GetMediaItemInfo_Value( leftItem, "C_LOCK" )
+    if leftItem then
+      leftIlock = reaper.GetMediaItemInfo_Value( leftItem, "C_LOCK" )
+    end
   end
   
   if i_autoFout ~= 0 then
     rightItem = FindXfadedNeigbourItem(item, i_pos, i_end, 1)
-    rightIlock = reaper.GetMediaItemInfo_Value( rightItem, "C_LOCK" )
-  end
-  
-  if mPos > i_pos and mPos < fLeftpos then
-    if mPosSnapped > fLeftpos or mPosSnapped < i_pos then
-      mPosSnapped = mPos
-    end 
-  elseif mPos > fRightpos and mPos < i_end then
-    if mPosSnapped < fRightpos or mPosSnapped > i_end then
-      mPosSnapped = mPos 
+    if rightItem then
+      rightIlock = reaper.GetMediaItemInfo_Value( rightItem, "C_LOCK" )
     end
-  end
-  
-  if itemHalf == 'header' then --MOVE CLOSEST XFADE TO MOUSE
-    if Opt.IgnoreLockingMouse == false and (edgesLock == 1 and globalLock == 1) then
-      return
-    end
-    
-    if leftIlock == 1 and Opt.IgnoreLockingMouse == false then leftItem = nil end
-    if rightIlock == 1 and Opt.IgnoreLockingMouse == false then rightItem = nil end
-    
-    local areaData = {areaStart, areaEnd}
-    local ret
-    if leftItem and rightItem then
-      if mPos - fLeftpos < fRightpos - mPos then
-        areaData.areaStart = mPosSnapped - i_autoFin/2
-        areaData.areaEnd = mPosSnapped + i_autoFin/2
-        ret = SetCrossfade(leftItem,item,areaData)
-      else
-        areaData.areaStart = mPosSnapped - i_autoFout/2
-        areaData.areaEnd = mPosSnapped + i_autoFout/2
-        ret = SetCrossfade(item,rightItem,areaData)
-      end
-    elseif leftItem then
-      areaData.areaStart = mPosSnapped - i_autoFin/2
-      areaData.areaEnd = mPosSnapped + i_autoFin/2
-      ret = SetCrossfade(leftItem,item,areaData) 
-    elseif rightItem then
-      areaData.areaStart = mPosSnapped - i_autoFout/2
-      areaData.areaEnd = mPosSnapped + i_autoFout/2
-      ret = SetCrossfade(item,rightItem,areaData)
-    end
-    
-    if ret then
-      UndoString = 'FadeTool - move closest xfade to mouse'
-      table.insert(fadeStartT, ret)
-    end
-    return  fadeStartT
   end
   
   local reverse
@@ -1935,6 +1993,145 @@ function FadeToMouse(item, itemHalf) --returns table of fades start position
     f_type = WhatFade(itemHalf, fLeftpos, fRightpos, mPos)
   end
   
+  if Grouping == 1 then
+    SaveSelItems()
+    local group = reaper.GetMediaItemInfo_Value( item, "I_GROUPID" )
+    if reaper.IsMediaItemSelected(item) == false and group ~= 0 then
+      reaper.SetMediaItemSelected(item, true)
+    end
+    reaper.Main_OnCommandEx(40034,0,0) --Item grouping: Select all items in groups
+  end
+  
+  local LeftSelFlag, RightSelFlag
+  local sortSuccess
+  if reaper.IsMediaItemSelected(item) == true then
+    sortSuccess = SortSelItems(Items, item, leftItem, rightItem, false)
+  else
+    if leftItem and reaper.IsMediaItemSelected(leftItem) == true
+    and (f_type == 'in' or itemHalf == 'header') then
+      LeftSelFlag = true
+      sortSuccess = SortSelItems(Items, leftItem, nil, item, true)
+    end
+    if rightItem and reaper.IsMediaItemSelected(rightItem) == true and reverse ~= false
+    and (f_type == 'out' or itemHalf == 'header') then
+      RightSelFlag = true
+      sortSuccess = SortSelItems(Items, rightItem, item, nil, true)
+    end
+    if sortSuccess ~= true then
+      local ItemData = {}
+      ItemData.item = item
+      ItemData.i_pos = i_pos
+      ItemData.i_end = i_end
+      ItemData.fLeftpos = fLeftpos
+      ItemData.fRightpos = fRightpos
+      ItemData.leftItem = leftItem
+      ItemData.rightItem = rightItem
+      
+      table.insert(Items.Vert.L, ItemData)
+      table.insert(Items.Vert.R, ItemData)
+      table.insert(Items.Horiz.L, ItemData)
+      table.insert(Items.Horiz.R, ItemData)
+    end
+  end
+  
+  
+  if mPos > i_pos and mPos < fLeftpos then
+    if mPosSnapped > fLeftpos or mPosSnapped < i_pos then
+      mPosSnapped = mPos
+    end 
+  elseif mPos > fRightpos and mPos < i_end then
+    if mPosSnapped < fRightpos or mPosSnapped > i_end then
+      mPosSnapped = mPos 
+    end
+  end
+  
+  if itemHalf == 'header' then --MOVE CLOSEST XFADE TO MOUSE
+    if Opt.IgnoreLockingMouse == false and (edgesLock == 1 and globalLock == 1) then
+      return
+    end
+    
+    if leftIlock == 1 and Opt.IgnoreLockingMouse == false then leftItem = nil end
+    if rightIlock == 1 and Opt.IgnoreLockingMouse == false then rightItem = nil end
+    
+    local areaData = {areaStart, areaEnd}
+    local ret
+    if leftItem and rightItem then
+      if mPos - fLeftpos < fRightpos - mPos then -- left xfade
+        areaData.areaStart = mPosSnapped - i_autoFin/2
+        areaData.areaEnd = mPosSnapped + i_autoFin/2
+        for i, itemData in ipairs(Items.Vert.L) do
+          local Litem, Ritem
+          if LeftSelFlag == true then
+            Litem = itemData.item
+            Ritem = itemData.rightItem
+          elseif RightSelFlag == true then
+            Litem = leftItem
+            Ritem = item
+          else
+            Litem = itemData.leftItem
+            Ritem = itemData.item
+          end
+          ret = SetCrossfade(Litem, Ritem, areaData)
+        end
+      else -- right xfade
+        areaData.areaStart = mPosSnapped - i_autoFout/2
+        areaData.areaEnd = mPosSnapped + i_autoFout/2
+        for i, itemData in ipairs(Items.Vert.R) do
+          local Litem, Ritem
+          if RightSelFlag == true then
+            Litem = itemData.leftItem
+            Ritem = itemData.item
+          else
+            Litem = itemData.item
+            Ritem = itemData.rightItem
+          end
+          ret = SetCrossfade(Litem, Ritem, areaData)
+        end
+      end
+    elseif leftItem then --left xfade
+      areaData.areaStart = mPosSnapped - i_autoFin/2
+      areaData.areaEnd = mPosSnapped + i_autoFin/2
+      for i, itemData in ipairs(Items.Vert.L) do
+        local Litem, Ritem
+        if LeftSelFlag == true then
+          Litem = itemData.item
+          Ritem = itemData.rightItem
+        elseif RightSelFlag == true then
+          Litem = leftItem
+          Ritem = item
+        else
+          Litem = itemData.leftItem
+          Ritem = itemData.item
+        end
+        ret = SetCrossfade(Litem, Ritem, areaData)
+      end 
+    elseif rightItem then -- right xfade
+      areaData.areaStart = mPosSnapped - i_autoFout/2
+      areaData.areaEnd = mPosSnapped + i_autoFout/2 
+      for i, itemData in ipairs(Items.Vert.R) do
+        local Litem, Ritem
+        if LeftSelFlag == true then
+          Litem = item
+          Ritem = rightItem
+        elseif RightSelFlag == true then
+          Litem = itemData.leftItem
+          Ritem = itemData.item
+        else
+          Litem = itemData.item
+          Ritem = itemData.rightItem
+        end
+        ret = SetCrossfade(Litem, Ritem, areaData)
+      end
+    end
+    
+    if ret then
+      UndoString = 'FadeTool - move closest xfade to mouse'
+      table.insert(fadeStartT, ret)
+    end
+    return  fadeStartT
+  end
+  ------------------------
+  
   if f_type == 'in' then
     f_size = mPosSnapped - i_pos
   elseif f_type == 'out' then
@@ -1955,29 +2152,57 @@ function FadeToMouse(item, itemHalf) --returns table of fades start position
     else
       areaData = {areaStart = i_pos, areaEnd = mPosSnapped}
     end
-    fadeStartEdge = SetCrossfade(leftItem,item,areaData)
+    
+    for i, itemData in ipairs(Items.Vert.L) do
+      local Litem, Ritem
+      if LeftSelFlag == true then
+        Litem = itemData.item
+        Ritem = itemData.rightItem
+      elseif RightSelFlag == true then
+        Litem = leftItem
+        Ritem = item
+      else
+        Litem = itemData.leftItem
+        Ritem = itemData.item
+      end
+      fadeStartEdge = SetCrossfade(Litem, Ritem, areaData)
+    end
+    
   elseif f_type == 'out' and rightItem then --change cdrossfade
     if Opt.IgnoreLockingMouse == false
     and ((edgesLock == 1 and globalLock == 1) or rightIlock == 1) then
       return
     end
     
-    local areaData 
+    local areaData
     if reverse == true then
-      areaData = {areaStart = i_pos, areaEnd = mPosSnapped} 
+      areaData = {areaStart = i_pos, areaEnd = mPosSnapped}
     elseif reverse == false then --msg('right item selected, move Right edge of xfade')
       areaData = {areaStart = fRightpos, areaEnd = mPosSnapped}
     else
       areaData = {areaStart = mPosSnapped, areaEnd = i_end}
     end
-    fadeStartEdge = SetCrossfade(item,rightItem,areaData) 
+    
+    for i, itemData in ipairs(Items.Vert.R) do
+      local Litem, Ritem
+      if RightSelFlag == true then
+        Litem = itemData.leftItem
+        Ritem = itemData.item
+      else
+        Litem = itemData.item
+        Ritem = itemData.rightItem
+      end
+      fadeStartEdge = SetCrossfade(Litem, Ritem, areaData)
+    end
+    
   else --change fade
-    if reaper.IsMediaItemSelected(item) == false then
-      fadeStartEdge = SetFade(item, f_type, f_size) -- item, "in"/"out" f_type, f_size, (shape)
-    else
-      for i=0, reaper.CountSelectedMediaItems(0) - 1 do
-        local selItem = reaper.GetSelectedMediaItem(0,i)
-        fadeStartEdge = SetFade(selItem, f_type, f_size) -- item, "in"/"out" f_type, f_size, (shape)
+    if f_type == "in" then
+      for i, itemData in ipairs(Items.Horiz.L) do
+        fadeStartEdge = SetFade(itemData.item, f_type, f_size) -- item, "in"/"out" f_type, f_size, (shape)
+      end
+    elseif f_type == "out" then
+      for i, itemData in ipairs(Items.Horiz.R) do
+        fadeStartEdge = SetFade(itemData.item, f_type, f_size) -- item, "in"/"out" f_type, f_size, (shape)
       end
     end
   end
@@ -2006,12 +2231,10 @@ end
 -----------------------------------------
 
 function RestoreLockedItems()
-  --if Opt.IgnoreLockingMouse == true and #LOCKEDitems > 0 then
-    for i=1, #LOCKEDitems do
-    local item = LOCKEDitems[i]
-    reaper.SetMediaItemInfo_Value( item, "C_LOCK", 1 )
-    end
-  --end
+  for i=1, #LOCKEDitems do
+  local item = LOCKEDitems[i]
+  reaper.SetMediaItemInfo_Value( item, "C_LOCK", 1 )
+  end
 end
 
 -----------------------------------------
@@ -2201,6 +2424,7 @@ fulliLock = reaper.GetToggleCommandState(40576) --Locking: Toggle full item lock
 globalLock = reaper.GetToggleCommandState(1135) --Options: Toggle locking
 
 trimContBehItems = reaper.GetToggleCommandState(41117) --Options: Trim content behind media items when editing
+Grouping = reaper.GetToggleCommandState(1156) --Options: Toggle item grouping and track media/razor edit grouping
 
 if trimContBehItems == 1 then
   reaper.Main_OnCommandEx(41121,0,0) --Options: Disable trim content behind media items when editing
@@ -2245,6 +2469,8 @@ else
       reaper.Undo_BeginBlock2( 0 )
       reaper.PreventUIRefresh( 1 )
       sTime = FadeToMouse(item_mouse, itemHalf)
+      if Grouping == 1 then RestoreSelItems() end
+      RestoreLockedItems()
       if UndoString then return UndoString end
     else
       local x,y = reaper.GetMousePosition()
@@ -2276,7 +2502,7 @@ end
 
 ---------------------------
 -----------START-----------
-CurVers = 2.12
+CurVers = 2.2
 version = tonumber( reaper.GetExtState(ExtStateName, "version") )
 if version ~= CurVers then
   if not version or version < 2.0 then
