@@ -1006,9 +1006,9 @@ end
 -----------------------
 
 function MouseOverWhat(razorEdits)
-  if not reaper.APIExists("reaper.JS_Mouse_GetCursor") then
+  if not reaper.APIExists("JS_Mouse_GetCursor") then
     reaper.ShowMessageBox('Missing API!\nInstall js_ReaScriptAPI from ReaPack', 'Fade tool',0)
-    reaper.defer(function()end)
+    return
   end
   local currentcur =  reaper.JS_Mouse_GetCursor()
   local fadeid = {105,184, 529}
