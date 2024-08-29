@@ -6,6 +6,7 @@
 --   - Collapsed and resizeable options window
 --   - fixed bug for splitting at time selection if there is one selected item in the project
 --   - fixed bug when media editing group of selected tracks obeys any unselected track
+--   - fixed bug for take envelopes
 -- @provides [main] az_Smart split items by mouse cursor/az_Open options for az_Smart split items by mouse cursor.lua
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=259751
 -- @donation Donate via PayPal https://www.paypal.me/AZsound
@@ -1509,6 +1510,19 @@ function SetItemEdges(item, startTime, endTime)
         end
       else
         reaper.SetMediaItemTakeInfo_Value(take, 'D_STARTOFFS', offs)
+      end
+
+      local takeenvs = reaper.CountTakeEnvelopes(take)
+      for e = 0, takeenvs -1 do
+        local env = reaper.GetTakeEnvelope( take, e )
+        for p = 0, reaper.CountEnvelopePoints( env ) -1 do
+          local ret, time, value, shape, tens, sel = reaper.GetEnvelopePoint( env, p )
+          if ret then
+            time = time - (startTime-pos)*rate
+            reaper.SetEnvelopePoint( env, p, time, value, shape, tens, sel, true )
+          end
+        end
+        reaper.Envelope_SortPoints( env )
       end
       
     end
