@@ -4,6 +4,7 @@
 -- @changelog
 --   - ignore snapping for certain cases
 --   - apply font resizing immediately
+--   - fixed regression with mouse fade on selected item
 -- @provides
 --   az_Fade tool (work on context of mouse, razor or time selection)/az_Options window for az_Fade tool.lua
 --   [main] az_Fade tool (work on context of mouse, razor or time selection)/az_Open options for az_Fade tool.lua
@@ -1876,12 +1877,12 @@ function SortSelItems(Items, ref_item, ref_leftItem, ref_rightItem, reverseFlag)
       
       if i_autoFin ~= 0 then
         leftItem = FindXfadedNeigbourItem(item, i_pos, i_end, -1)
-        leftIlock = reaper.GetMediaItemInfo_Value( leftItem, "C_LOCK" )
+        if leftItem then leftIlock = reaper.GetMediaItemInfo_Value( leftItem, "C_LOCK" ) end
       end
       
       if i_autoFout ~= 0 then
         rightItem = FindXfadedNeigbourItem(item, i_pos, i_end, 1)
-        rightIlock = reaper.GetMediaItemInfo_Value( rightItem, "C_LOCK" )
+        if rightItem then rightIlock = reaper.GetMediaItemInfo_Value( rightItem, "C_LOCK" ) end
       end
       
       if leftIlock == 1 and Opt.IgnoreLockingMouse == false then leftItem = nil end
