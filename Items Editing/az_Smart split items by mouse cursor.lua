@@ -1,9 +1,12 @@
 -- @description Smart split items using mouse cursor context (also edit cursor, razor area and time selection)
 -- @author AZ
--- @version 3.30
+-- @version 3.40
 -- @changelog
---   - fixed bug for media edit groups when smaller items didn't obey the grouping
---   - fixed bug when stretch markers were produce incorrect take time offset
+--   - New option for splitting unselected item under mouse at time selection
+--   - Collapsed and resizeable options window
+--   - fixed bug for splitting at time selection if there is one selected item in the project
+--   - fixed bug when media editing group of selected tracks obeys any unselected track
+--   - fixed bug for take envelopes
 -- @provides [main] az_Smart split items by mouse cursor/az_Open options for az_Smart split items by mouse cursor.lua
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=259751
 -- @donation Donate via PayPal https://www.paypal.me/AZsound
@@ -16,7 +19,7 @@
 --
 --   There are a lot of options. To open options window place mouse on the transport panel or mixer panel and press assigned shortcut.
 --
---   By design it should be assigned to keyboard shortcut, not to a mouse modifier.
+--   By design it should be assigned to a keyboard shortcut, not to a mouse modifier.
 
 --[[
 TO MODIFY SCRIPT OPTIONS
@@ -79,6 +82,9 @@ function OptionsDefaults()
   text = 'Use time selection for split selected items'
   table.insert(OptDefaults, {text, 'UseTSselItems', true})
   
+  text = 'Allow split unselected items under mouse at time selection'
+  table.insert(OptDefaults, {text, 'AllowTSunsel', false})
+  
   text = 'Use time selection at all'
   table.insert(OptDefaults, {text, 'UseTSall', true})
   
@@ -110,7 +116,7 @@ function OptionsDefaults()
   table.insert(OptDefaults, {text, 'eCurPriority', false})    -- Edit cursor have piority against mouse on selected item.
   
   
-  text = 'Move Edit Cursor with Offset is useful for immediate listening in context'
+  text = 'Move Edit Cursor with Offset  (useful for immediate listening in context)'
   table.insert(OptDefaults, {text, 'Separator', nil})
   
    text = 'Move cursor after split if mouse is over item and not recording'
@@ -197,6 +203,10 @@ function OptionsWindow()
   local tcpActName = ''
   local section
   
+  local savedFontSize = tonumber(reaper.GetExtState(ExtStateName, 'FontSize'))
+  if type(savedFontSize) == 'number' then fontSize = savedFontSize end
+  if not savedFontSize then savedFontSize = fontSize end
+  
   if tcpActIDstr ~= '' and tcpActIDstr:gsub('%d+', '') == '' then
     section =  reaper.SectionFromUniqueID( tonumber(tcpActIDstr) )
     tcpActName = reaper.kbd_getTextFromCmd( tonumber(tcpActIDstr), section )
@@ -240,66 +250,83 @@ function OptionsWindow()
       Active = rgbToHex({42,42,37,100}), 
     }
   }
+  ---------
+  
+  local fontName
+  ctx = reaper.ImGui_CreateContext('Smart Split Options') -- Add VERSION TODO
+  if reaper.GetOS():match("^Win") == nil then
+    reaper.ImGui_SetConfigVar(ctx, reaper.ImGui_ConfigVar_ViewportsNoDecoration(), 0)
+    fontName = 'sans-serif'
+  else
+    fontName = 'Calibri'
+  end
+  
   --------------
   function frame()
     reaper.ImGui_PushFont(ctx, font) 
+    local Headers = {}
     
     for i, v in ipairs(OptDefaults) do
       local option = v
-      
-      if type(option[3]) == 'boolean' then
-        local _, newval = reaper.ImGui_Checkbox(ctx, option[1], option[3])
-        option[3] = newval
-      end
-      
-      if type(option[3]) == 'number' then 
-        reaper.ImGui_PushItemWidth(ctx, fontSize*3 )
-        local _, newval =
-        reaper.ImGui_InputDouble(ctx, option[1], option[3], nil, nil, option[4]) 
-        
-        option[3] = newval
-      end
-      
-      if type(option[3]) == 'string' then
-        local choice 
-        for k = 1, #option[4] do 
-          if option[4][k] == option[3] then choice = k end 
-        end
-        
-        reaper.ImGui_Text(ctx, option[1])
-        reaper.ImGui_SameLine(ctx, nil, nil)
-        
-        reaper.ImGui_PushItemWidth(ctx, fontSize*10.3 )
-        --reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Text(), gui_colors.activeText)
-        if reaper.ImGui_BeginCombo(ctx, '##'..i, option[3], nil) then
-          for k,f in ipairs(option[4]) do
-            local is_selected = choice == k
-            if reaper.ImGui_Selectable(ctx, option[4][k], is_selected) then
-              choice = k
-            end
-        
-            -- Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
-            if is_selected then
-              reaper.ImGui_SetItemDefaultFocus(ctx)
-            end
-          end
-          reaper.ImGui_EndCombo(ctx)
-        end
-        --reaper.ImGui_PopStyleColor(ctx)
-        
-        option[3] = option[4][choice]
-      end
       
       if type(option[3]) == 'nil' then
         reaper.ImGui_PushFont(ctx, fontSep)
         reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Text(), gui_colors.White)
         
         reaper.ImGui_Text(ctx, '' )
-        reaper.ImGui_SeparatorText( ctx, option[1] )
+        --reaper.ImGui_SeparatorText( ctx, option[1] )
+        local ret = reaper.ImGui_CollapsingHeader(ctx, option[1])
+        table.insert(Headers, ret)
         
         reaper.ImGui_PopStyleColor(ctx, 1)
-        reaper.ImGui_PopFont(ctx)
+        reaper.ImGui_PopFont(ctx) 
       end
+      
+      if Headers[#Headers] == true or #Headers == 0 then
+        if type(option[3]) == 'boolean' then
+          local _, newval = reaper.ImGui_Checkbox(ctx, option[1], option[3])
+          option[3] = newval
+        end
+        
+        if type(option[3]) == 'number' then 
+          reaper.ImGui_PushItemWidth(ctx, fontSize*3 )
+          local _, newval =
+          reaper.ImGui_InputDouble(ctx, option[1], option[3], nil, nil, option[4]) 
+          
+          option[3] = newval
+        end
+        
+        if type(option[3]) == 'string' then
+          local choice 
+          for k = 1, #option[4] do 
+            if option[4][k] == option[3] then choice = k end 
+          end
+          
+          reaper.ImGui_Text(ctx, option[1])
+          reaper.ImGui_SameLine(ctx, nil, nil)
+          
+          reaper.ImGui_PushItemWidth(ctx, fontSize*10.3 )
+          --reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Text(), gui_colors.activeText)
+          if reaper.ImGui_BeginCombo(ctx, '##'..i, option[3], nil) then
+            for k,f in ipairs(option[4]) do
+              local is_selected = choice == k
+              if reaper.ImGui_Selectable(ctx, option[4][k], is_selected) then
+                choice = k
+              end
+          
+              -- Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+              if is_selected then
+                reaper.ImGui_SetItemDefaultFocus(ctx)
+              end
+            end
+            reaper.ImGui_EndCombo(ctx)
+          end
+          --reaper.ImGui_PopStyleColor(ctx)
+          
+          option[3] = option[4][choice]
+        end
+      end --if ret
+      
       
       OptDefaults[i] = option
     end -- for
@@ -309,6 +336,9 @@ function OptionsWindow()
     reaper.ImGui_PushItemWidth(ctx, fontSize*5 )
     _, tcpActIDstr = reaper.ImGui_InputText
     (ctx,'TCP context action (paste command ID):\n'..tcpActName, tcpActIDstr)
+    
+    _, savedFontSize = reaper.ImGui_InputInt
+    (ctx, 'Font size for the window (default is 17)', savedFontSize)
     
     reaper.ImGui_Text(ctx, '' ) --space before buttons
     reaper.ImGui_Text(ctx, '' ) --space before buttons 
@@ -354,7 +384,18 @@ function OptionsWindow()
   end
   
   --------------
-  function loop()
+  function loop() 
+    if not font or savedFontSize ~= fontSize then
+      reaper.SetExtState(ExtStateName, 'FontSize', savedFontSize, true)
+      fontSize = savedFontSize
+      if font then reaper.ImGui_Detach(ctx, font) end
+      if fontSep then reaper.ImGui_Detach(ctx, fontSep) end
+      font = reaper.ImGui_CreateFont(fontName, fontSize, reaper.ImGui_FontFlags_None()) -- Create the fonts you need
+      fontSep = reaper.ImGui_CreateFont(fontName, fontSize-2, reaper.ImGui_FontFlags_Italic())
+      reaper.ImGui_Attach(ctx, font)
+      reaper.ImGui_Attach(ctx, fontSep)
+    end
+    
     esc = reaper.ImGui_IsKeyPressed(ctx, reaper.ImGui_Key_Escape())
     enter = reaper.ImGui_IsKeyPressed(ctx, reaper.ImGui_Key_Enter())
     space = reaper.ImGui_IsKeyPressed(ctx, reaper.ImGui_Key_Space())
@@ -387,8 +428,9 @@ function OptionsWindow()
       reaper.ImGui_PopStyleColor(ctx, 1)
       
       if visible then
-          frame() 
-          if loopcnt == 0 then reaper.ImGui_SetWindowSize(ctx, 0, 0, nil ) end
+          frame()
+          reaper.ImGui_SetWindowSize(ctx, 0, 0, nil )
+          --if loopcnt == 0 then reaper.ImGui_SetWindowSize(ctx, 0, 0, nil ) end
           reaper.ImGui_End(ctx)
       end
       
@@ -418,17 +460,6 @@ function OptionsWindow()
     loopcnt = loopcnt+1
   end
   -----------------
-  local fontName
-  ctx = reaper.ImGui_CreateContext('Smart Split Options') -- Add VERSION TODO
-  if reaper.GetOS():match("^Win") == nil then
-    reaper.ImGui_SetConfigVar(ctx, reaper.ImGui_ConfigVar_ViewportsNoDecoration(), 0)
-    fontName = 'sans-serif'
-  else fontName = 'Calibri'
-  end
-  font = reaper.ImGui_CreateFont(fontName, fontSize, reaper.ImGui_FontFlags_None()) -- Create the fonts you need
-  fontSep = reaper.ImGui_CreateFont(fontName, fontSize-2, reaper.ImGui_FontFlags_Italic())
-  reaper.ImGui_Attach(ctx, font)
-  reaper.ImGui_Attach(ctx, fontSep)
   
   loop(ctx, font)
 end
@@ -474,8 +505,8 @@ function PixelDistance()
     local zoom = reaper.GetHZoomLevel()
     if Mcur_pos ~= nil then
       
-      if (math.abs(MouseSnapped - startTS)*zoom <= distance)
-      or (math.abs(MouseSnapped - endTS)*zoom <= distance) then
+      if math.abs(MouseSnapped - startTS)*zoom <= distance
+      or math.abs(MouseSnapped - endTS)*zoom <= distance then
          return 'close'
       else return 'far'
       end
@@ -835,13 +866,17 @@ function SplitRazorEdits(razorEdits)
     local areaData = razorEdits[i]
     if not areaData.isEnvelope then
       table.move(areaData.items, 1, #areaData.items, #areaData.grItems+1, areaData.grItems)
+      --msg('areaData.items') for j,v in pairs(areaData.items) do msg(v) end
+      --msg('areaData.grItems') for j,v in pairs(areaData.grItems) do msg(v) end
       local sTime, selItems, itemsToRegroup, newItems =
       Split_Items_At_Time(areaData.items, areaData.grItems, {areaData.areaStart}, areaData.prevEdge) 
-      
       table.move(sTime, 1, #sTime, #SplitsT+1, SplitsT)
+      --table.move(newItems, 1, #newItems, #areaData.items+1, areaData.items)
       table.move(newItems, 1, #newItems, #areaData.grItems+1, areaData.grItems)
       razorEdits[i]['itemsToRegroup'] = itemsToRegroup
-
+      --msg(razorEdits[i]['itemsToRegroup']['SplsGrs'])
+      --msg(itemsToRegroup.SplGrs)
+      --razorEdits[i]['items'] = areaData.items
     end
     i=i-1
   end
@@ -866,6 +901,8 @@ function SplitRazorEdits(razorEdits)
   while i > 0 do
     local areaData = razorEdits[i]
     if not areaData.isEnvelope then
+      --msg('areaData.items') for j,v in pairs(areaData.items) do msg(v) end
+      --msg('areaData.grItems') for j,v in pairs(areaData.grItems) do msg(v) end 
       local sTime, selItems, itemsToRegroup = 
       Split_Items_At_Time(areaData.items, areaData.grItems, {areaData.areaEnd}, areaData.areaStart)
       table.move(sTime, 1, #sTime, #SplitsT+1, SplitsT)
@@ -980,6 +1017,11 @@ function AddGroupInfo(AreasT)
         AreasT[i] = areaData
     end -- if not isEnvelope
   end -- for AreasT
+  --[[
+  for i = 1, #RegroupAreasIDs do --servise msg
+    local block = RegroupAreasIDs[i]
+    msg(table.concat(block, ' - '))
+  end]]
   
   AreasT.RegroupAreasIDs = RegroupAreasIDs
   return AreasT
@@ -1303,7 +1345,8 @@ function AddTrMediaEditingGroup(Items, timeT)
     local ItemsH = {}
     local GrTracks = {}
     local GrIDsLow = 0
-    local GrIDsHigh = 0 
+    local GrIDsHigh = 0
+    local SelState = 0
     
     for i, item in ipairs(Items) do
       local ipos = reaper.GetMediaItemInfo_Value(item, 'D_POSITION')
@@ -1321,54 +1364,64 @@ function AddTrMediaEditingGroup(Items, timeT)
     
     for i, tr in ipairs(Tracks) do -- collect gr info for tracks with initially captured items
       local intlow = reaper.GetSetTrackGroupMembership( tr, "MEDIA_EDIT_LEAD", 0, 0 )
-      local inthigh = reaper.GetSetTrackGroupMembershipHigh( tr, "MEDIA_EDIT_LEAD", 0, 0 ) 
+      local inthigh = reaper.GetSetTrackGroupMembershipHigh( tr, "MEDIA_EDIT_LEAD", 0, 0 )
+      local intSel = reaper.GetMediaTrackInfo_Value(tr, 'I_SELECTED')
       GrIDsLow = GrIDsLow | intlow
-      GrIDsHigh = GrIDsHigh | inthigh 
+      GrIDsHigh = GrIDsHigh | inthigh
+      SelState = SelState | intSel
     end
     
-    for i = 1, reaper.CountTracks(0) do -- collect all group mappings
+    
+    for i = 1, reaper.CountTracks(0) do -- collect all matching group mappings
       local tr = reaper.GetTrack(0, i-1)
       local intlow = reaper.GetSetTrackGroupMembership( tr, "MEDIA_EDIT_LEAD", 0, 0 )
       local inthigh = reaper.GetSetTrackGroupMembershipHigh( tr, "MEDIA_EDIT_LEAD", 0, 0 )
       local intlowF = reaper.GetSetTrackGroupMembership( tr, "MEDIA_EDIT_FOLLOW", 0, 0 )
       local inthighF = reaper.GetSetTrackGroupMembershipHigh( tr, "MEDIA_EDIT_FOLLOW", 0, 0 )
       
-      if GrIDsLow & intlow ~= 0 or GrIDsLow & intlowF ~= 0 then
-        GrIDsLow = GrIDsLow | intlow
+      local intSel = reaper.GetMediaTrackInfo_Value(tr, 'I_SELECTED')
+      
+      if GrIDsLow & intlow ~= 0 or GrIDsLow & intlowF ~= 0 or SelState & intSel ~= 0 then
+        GrIDsLow = GrIDsLow | intlow 
       end
       
-      if GrIDsHigh & inthigh ~= 0 or GrIDsHigh & inthighF ~= 0 then
-        GrIDsHigh = GrIDsHigh | inthigh
+      if GrIDsHigh & inthigh ~= 0 or GrIDsHigh & inthighF ~= 0 or SelState & intSel ~= 0 then
+        GrIDsHigh = GrIDsHigh | inthigh 
       end
-      
-      local sel = reaper.IsTrackSelected(tr)
-      if sel == true and GrSelTrs == 1 then
+      --[[ 
+      if reaper.IsTrackSelected(tr) == true and GrSelTrs == 1 then
+      --and FieldMatch(Tracks, tr) == true then
         GrIDsLow = GrIDsLow | intlow
         GrIDsHigh = GrIDsHigh | inthigh
+        msg('addSel')
       end
+      ]]
     end
     
     for i = 1, reaper.CountTracks(0) do -- add corresponding tracks to the table
       local tr = reaper.GetTrack(0, i-1)
-      if GrAllTrs == 1 then FieldMatch(GrTracks, tr, true)
+      if GrAllTrs == 1 then
+        FieldMatch(GrTracks, tr, true)
       else
         local intlow = reaper.GetSetTrackGroupMembership( tr, "MEDIA_EDIT_LEAD", 0, 0 )
         local inthigh = reaper.GetSetTrackGroupMembershipHigh( tr, "MEDIA_EDIT_LEAD", 0, 0 )
         local intlowF = reaper.GetSetTrackGroupMembership( tr, "MEDIA_EDIT_FOLLOW", 0, 0 )
         local inthighF = reaper.GetSetTrackGroupMembershipHigh( tr, "MEDIA_EDIT_FOLLOW", 0, 0 )
         
-        if GrIDsLow & intlow ~= 0 or GrIDsLow & intlowF ~= 0 then
+        local intSel = reaper.GetMediaTrackInfo_Value(tr, 'I_SELECTED')
+        
+        if GrIDsLow & intlow ~= 0 or GrIDsLow & intlowF ~= 0 or SelState & intSel ~= 0 then
           table.insert(GrTracks, tr)
         end
         
-        if GrIDsHigh & inthigh ~= 0 or GrIDsHigh & inthighF ~= 0 then
+        if GrIDsHigh & inthigh ~= 0 or GrIDsHigh & inthighF ~= 0 or SelState & intSel ~= 0 then
           FieldMatch(GrTracks, tr, true)
         end
-        
-        local sel = reaper.IsTrackSelected(tr)
-        if sel == true and GrSelTrs == 1 then
+        --[[ 
+        if reaper.IsTrackSelected(tr) == true and GrSelTrs == 1 then
+        --and FieldMatch(Tracks, tr) == true then
           FieldMatch(GrTracks, tr, true)
-        end
+        end]]
       end
     end
     
@@ -1457,6 +1510,19 @@ function SetItemEdges(item, startTime, endTime)
         end
       else
         reaper.SetMediaItemTakeInfo_Value(take, 'D_STARTOFFS', offs)
+      end
+
+      local takeenvs = reaper.CountTakeEnvelopes(take)
+      for e = 0, takeenvs -1 do
+        local env = reaper.GetTakeEnvelope( take, e )
+        for p = 0, reaper.CountEnvelopePoints( env ) -1 do
+          local ret, time, value, shape, tens, sel = reaper.GetEnvelopePoint( env, p )
+          if ret then
+            time = time - (startTime-pos)*rate
+            reaper.SetEnvelopePoint( env, p, time, value, shape, tens, sel, true )
+          end
+        end
+        reaper.Envelope_SortPoints( env )
       end
       
     end
@@ -1650,7 +1716,7 @@ function Main()
     
     if Opt.defSelSide then SelSide = Opt.defSelSide end
     
-    TSstart, TSend = reaper.GetSet_LoopTimeRange2( 0, false, false, 0, 0, 0 ) 
+    TSstart, TSend = reaper.GetSet_LoopTimeRange2( 0, false, false, 0, 0, 0 )
     --calculations for big zoom
     local startArrange, endArrange = reaper.GetSet_ArrangeView2( 0, false, 0, 0, 0, 0 )
     local distance = (endArrange - startArrange)/4
@@ -1662,7 +1728,8 @@ function Main()
     end  --end of calculations for big zoom
     
     if TSstart == TSend or Opt.UseTSall == false then TSexist = false
-    else TSexist = true end
+    else TSexist = true
+    end
     if Opt.UseTSdistance == true then
       if PixelDistance() == 'far' then TSexist = false end
     end
@@ -1683,8 +1750,7 @@ function Main()
       
       
       if #SelectedItems > 0 then
-        inisel = SelectedItems
-        if Opt.UseTSselItems == false then TSexist = false end
+        inisel = SelectedItems 
       elseif MouseOnItem == true then
         inisel = {Item_mouse} 
       else
@@ -1700,59 +1766,66 @@ function Main()
         if Opt.RespLock ~= 0
         and reaper.GetMediaItemInfo_Value(Item_mouse, 'C_LOCK') ~= 0 then
           return --no undo
-        else
-        
-          if Opt.SnapMouseEcur ~= 0 then
-            local zoom = reaper.GetHZoomLevel()
-            local distance = Opt.SnapMouseEcur / zoom
-            if math.abs(Ecur_pos - Mcur_pos) <= distance then Opt.SnapMouseEcur = true end
-          end
-          
-          timeT = { MouseSnapped } 
-          UndoString = 'Smart split at mouse cursor'
-          
-          if Opt['MouseT/B'] == 'left/right crossfade' then
-            if Half == 'top' then Opt.CrossType = 'Left'
-            elseif Half == 'bottom' then Opt.CrossType = 'Right'
-            end
-          elseif Opt['MouseT/B'] == 'select left/right item' then
-            if Half == 'top' then SelSide = 'Left'
-            elseif Half == 'bottom' then SelSide = 'Right'
-            end
-          end
-          
-          if reaper.IsMediaItemSelected( Item_mouse ) == false then 
-            SelectAllMediaItems(0, false)
-            inisel = {Item_mouse}
-          elseif Opt.eCurPriority == true then 
-            if isItemsForSplit(inisel, Ecur_pos) == true then
-              timeT = {Ecur_pos}
-              UndoString = nil
-              if Opt.DontMoveECurSplit == true then Opt.MoveEditCursor = false end
-            end 
-          end
-          
-          if Opt.SnapMouseEcur == true then
-            if isItemsForSplit(inisel, Ecur_pos) == true then
-              timeT = {Ecur_pos}
-              UndoString = nil
-              if Opt.DontMoveECurSplit == true then Opt.MoveEditCursor = false end
-            end 
-          end
-
         end --if item under mouse is not locked
+        
+        if Opt.SnapMouseEcur ~= 0 then
+          local zoom = reaper.GetHZoomLevel()
+          local distance = Opt.SnapMouseEcur / zoom
+          if math.abs(Ecur_pos - Mcur_pos) <= distance then Opt.SnapMouseEcur = true end
+        end
+        
+        timeT = { MouseSnapped }
+        UndoString = 'Smart split at mouse cursor'
+        
+        if Opt['MouseT/B'] == 'left/right crossfade' then
+          if Half == 'top' then Opt.CrossType = 'Left'
+          elseif Half == 'bottom' then Opt.CrossType = 'Right'
+          end
+        elseif Opt['MouseT/B'] == 'select left/right item' then
+          if Half == 'top' then SelSide = 'Left'
+          elseif Half == 'bottom' then SelSide = 'Right'
+          end
+        end
+        
+        if reaper.IsMediaItemSelected( Item_mouse ) == false then
+          SelectedItems = {}
+          if Opt.AllowTSunsel == false then TSexist = false end
+          SelectAllMediaItems(0, false)
+          inisel = {Item_mouse} 
+        elseif Opt.eCurPriority == true then 
+          if isItemsForSplit(inisel, Ecur_pos) == true then
+            timeT = {Ecur_pos}
+            UndoString = nil
+            if Opt.DontMoveECurSplit == true then Opt.MoveEditCursor = false end
+          end 
+        end
+        
+        if Opt.SnapMouseEcur == true then
+          if isItemsForSplit(inisel, Ecur_pos) == true then
+            timeT = {Ecur_pos}
+            UndoString = nil
+            if Opt.DontMoveECurSplit == true then Opt.MoveEditCursor = false end
+          end 
+        end
         
       else --if mouse is not over item
         timeT = {Ecur_pos} 
       end
       
       
-      if TSexist == true and #SelectedItems > 0 then --TS can't split unselected item under mouse
+      if TSexist == true
+      and (#SelectedItems > 0 or Opt.AllowTSunsel == true) then --TS can't split unselected item under mouse
+        if #SelectedItems > 0 and Opt.UseTSselItems == false then
+          goto skip
+        end
+        
         if isItemsForSplit(inisel, TSstart) == true
-        or isItemsForSplit(inisel, TSend) == true then
+        or isItemsForSplit(inisel, TSend) == true then 
           timeT = {TSstart, TSend}
           UndoString = 'Smart split at time selection'
-        end 
+        end
+        ::skip::
+        
       elseif UndoString == nil then
         if isItemsForSplit(inisel, Ecur_pos) == true then
           UndoString = 'Smart split at edit cursor'
@@ -1767,6 +1840,7 @@ function Main()
         end
       end
       
+      if #SelectedItems > 0 and Opt.UseTSselItems == false then TSexist = false end
       
       if UndoString ~= nil then
         if GlobalSplit ~= true then
@@ -1850,7 +1924,7 @@ end
 
 ------------------
 -------START------
-CurVers = 3.3
+CurVers = 3.4
 version = tonumber( reaper.GetExtState(ExtStateName, "version") )
 if version ~= CurVers then
   if not version or version < 3 then
@@ -1872,9 +1946,9 @@ else
   if Window == 'transport' or Window == 'mcp' then
     OptionsWindow()
   elseif Window == 'tcp' and tcpActIDstr ~= '' then 
-    if tcpActIDstr:gsub('%d+', '') == '' then
+    if tcpActIDstr:gsub('%d+', '') == '' then 
       tcpActID = tonumber(tcpActIDstr) 
-    elseif tcpActIDstr ~= '' then
+    elseif tcpActIDstr ~= '' then 
       tcpActID = tonumber(reaper.NamedCommandLookup(tcpActIDstr))
     end
     reaper.Main_OnCommandEx(tcpActID,0,0)
