@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="d7d2c113af92e141785b807a4e63979aad58eb26" name="ReaTeam Scripts">
+<index version="1" commit="0abc962f62ba35d99591a4f131213f141f396a2d" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -3699,6 +3699,10 @@ Fix a potential infinite loop]]></changelog>
       <version name="1.0" author="80icio" time="2023-01-17T23:20:07Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/278a6624b820f53acf55f9541f14dbb663c57f56/FX/80icio_Floating%20FX%20bypass%20toggle.lua</source>
       </version>
+      <version name="1.1" author="80icio" time="2024-09-08T13:52:34Z">
+        <changelog><![CDATA[- Added toggle wet knob function]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/0abc962f62ba35d99591a4f131213f141f396a2d/FX/80icio_Floating%20FX%20bypass%20toggle.lua</source>
+      </version>
     </reapack>
     <reapack name="amagalma_Calculate difference in LUFS for selected or all FX of focused FX chain.lua" type="script" desc="Calculate difference in LUFS for selected or all FX of focused FX chain">
       <metadata>
@@ -5098,6 +5102,11 @@ BugFix
         <changelog><![CDATA[- Unlocked 1 bar, 1/2 bar Grid and relative triplets Divisions
 - Changed layout for Visualizer zoom bounds reference on tracks on Main window]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/84d40f0ddb894f38e537ce02002f6fda09686f19/Items%20Editing/80icio_Perfect%20Timing!%20-%20Audio%20Quantizer.lua</source>
+      </version>
+      <version name="0.27" author="80icio" time="2024-09-08T13:52:12Z">
+        <changelog><![CDATA[- Fixed graphic issue between mouse position indication vertical line and arrange window trigger lines
+- Fixed arrange window trigger lines behaviour when tracks disappear in folder]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f5b35d9a55fa132cac6469fa3f7ad76f9f0d308e/Items%20Editing/80icio_Perfect%20Timing!%20-%20Audio%20Quantizer.lua</source>
       </version>
     </reapack>
     <reapack name="Add project markers as cue points to selected items and replace source files.lua" type="script" desc="amagalma_Add project markers as cue points to selected items and replace source files">
