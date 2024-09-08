@@ -81,7 +81,13 @@ function OptionsWindow(OptTable, windowName)
       Hovered = rgbToHex({35,40,45,80}),
       Active = rgbToHex({42,42,37,100}), 
     },
-    
+    --[[
+    Input = {
+      Background = rgbToHex({50,50,50,100}),
+      Hover = rgbToHex({10,10,90,100}),
+      Text = rgbToHex({90,90,80,100}),
+      Label = rgbToHex({90,80,90,100}),
+    },]]
     Button = {
       Default = rgbToHex({25,30,30,100}),
       Hovered = rgbToHex({35,40,45,100}),
@@ -95,13 +101,10 @@ function OptionsWindow(OptTable, windowName)
   if reaper.GetOS():match("^Win") == nil then
     reaper.ImGui_SetConfigVar(ctx, reaper.ImGui_ConfigVar_ViewportsNoDecoration(), 0)
     fontName = 'sans-serif'
-  else fontName = 'Calibri'
+  else
+    fontName = 'Calibri'
   end
-  font = reaper.ImGui_CreateFont(fontName, fontSize, reaper.ImGui_FontFlags_None()) -- Create the fonts you need
-  fontSep = reaper.ImGui_CreateFont(fontName, fontSize-2, reaper.ImGui_FontFlags_Italic())
-  reaper.ImGui_Attach(ctx, font)
-  reaper.ImGui_Attach(ctx, fontSep) 
-  
+
   --------------
   function frame()
     reaper.ImGui_PushFont(ctx, font) 
@@ -222,6 +225,17 @@ function OptionsWindow(OptTable, windowName)
   
   --------------
   function loop()
+    if not font or savedFontSize ~= fontSize then
+      reaper.SetExtState(ExtStateName, 'FontSize', savedFontSize, true)
+      fontSize = savedFontSize
+      if font then reaper.ImGui_Detach(ctx, font) end
+      if fontSep then reaper.ImGui_Detach(ctx, fontSep) end
+      font = reaper.ImGui_CreateFont(fontName, fontSize, reaper.ImGui_FontFlags_None()) -- Create the fonts you need
+      fontSep = reaper.ImGui_CreateFont(fontName, fontSize-2, reaper.ImGui_FontFlags_Italic())
+      reaper.ImGui_Attach(ctx, font)
+      reaper.ImGui_Attach(ctx, fontSep)
+    end
+    
     esc = reaper.ImGui_IsKeyPressed(ctx, reaper.ImGui_Key_Escape())
     enter = reaper.ImGui_IsKeyPressed(ctx, reaper.ImGui_Key_Enter())
     space = reaper.ImGui_IsKeyPressed(ctx, reaper.ImGui_Key_Space())
@@ -254,8 +268,9 @@ function OptionsWindow(OptTable, windowName)
       reaper.ImGui_PopStyleColor(ctx, 1)
       
       if visible then
-          frame() 
-          if loopcnt == 0 then reaper.ImGui_SetWindowSize(ctx, 0, 0, nil ) end
+          frame()
+          reaper.ImGui_SetWindowSize(ctx, 0, 0, nil )
+          --if loopcnt == 0 then reaper.ImGui_SetWindowSize(ctx, 0, 0, nil ) end
           reaper.ImGui_End(ctx)
       end
       
@@ -269,8 +284,7 @@ function OptionsWindow(OptTable, windowName)
         space = spaceMouse or reaper.ImGui_IsKeyReleased(ctx, reaper.ImGui_Key_Space()) 
         if space == true then
           SetExtStates(OptTable)
-          reaper.SetExtState(ExtStateName, 'TCPaction', tcpActIDstr, true)
-          reaper.SetExtState(ExtStateName, 'FontSize', savedFontSize, true)
+          reaper.SetExtState(ExtStateName, 'TCPaction', tcpActIDstr, true) 
         end
       end
       
@@ -282,8 +296,7 @@ function OptionsWindow(OptTable, windowName)
             BatchFades()
           else
             SetExtStates(OptTable)
-            reaper.SetExtState(ExtStateName, 'TCPaction', tcpActIDstr, true)
-            reaper.SetExtState(ExtStateName, 'FontSize', savedFontSize, true)
+            reaper.SetExtState(ExtStateName, 'TCPaction', tcpActIDstr, true) 
             reaper.ImGui_DestroyContext(ctx)
           end
       else

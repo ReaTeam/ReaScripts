@@ -1,10 +1,10 @@
 -- @description Fade tool (works on context of mouse, razor or time selection)
 -- @author AZ
--- @version 2.2
+-- @version 2.2.1
 -- @changelog
---   - support adjusting fades/crossfades via mouse for vertical aligned selected items and grouped items
---   - new option: ms or frames for batch feature
---   - changeable font size for options window
+--   - ignore snapping for certain cases
+--   - apply font resizing immediately
+--   - fixed regression with mouse fade on selected item
 -- @provides
 --   az_Fade tool (work on context of mouse, razor or time selection)/az_Options window for az_Fade tool.lua
 --   [main] az_Fade tool (work on context of mouse, razor or time selection)/az_Open options for az_Fade tool.lua
@@ -1007,6 +1007,10 @@ end
 -----------------------
 
 function MouseOverWhat(razorEdits)
+  if not reaper.APIExists("JS_Mouse_GetCursor") then
+    reaper.ShowMessageBox('Missing API!\nInstall js_ReaScriptAPI from ReaPack', 'Fade tool',0)
+    return
+  end
   local currentcur =  reaper.JS_Mouse_GetCursor()
   local fadeid = {105,184, 529}
   for id=202, 204 do
@@ -1873,12 +1877,12 @@ function SortSelItems(Items, ref_item, ref_leftItem, ref_rightItem, reverseFlag)
       
       if i_autoFin ~= 0 then
         leftItem = FindXfadedNeigbourItem(item, i_pos, i_end, -1)
-        leftIlock = reaper.GetMediaItemInfo_Value( leftItem, "C_LOCK" )
+        if leftItem then leftIlock = reaper.GetMediaItemInfo_Value( leftItem, "C_LOCK" ) end
       end
       
       if i_autoFout ~= 0 then
         rightItem = FindXfadedNeigbourItem(item, i_pos, i_end, 1)
-        rightIlock = reaper.GetMediaItemInfo_Value( rightItem, "C_LOCK" )
+        if rightItem then rightIlock = reaper.GetMediaItemInfo_Value( rightItem, "C_LOCK" ) end
       end
       
       if leftIlock == 1 and Opt.IgnoreLockingMouse == false then leftItem = nil end
@@ -2133,8 +2137,10 @@ function FadeToMouse(item, itemHalf) --returns table of fades start position
   ------------------------
   
   if f_type == 'in' then
+    if mPosSnapped <= i_pos + 0.0002 then mPosSnapped = mPos end
     f_size = mPosSnapped - i_pos
   elseif f_type == 'out' then
+    if mPosSnapped >= i_end - 0.0002 then mPosSnapped = mPos end
     f_size = i_end - mPosSnapped
   end
   
@@ -2465,7 +2471,7 @@ else
   if UndoString == nil then
     local item_mouse, itemHalf = GetTopBottomItemHalf()
     
-    if item_mouse then --and (Opt.IgnoreLockingMouse == true or fadesLock == 0) then
+    if item_mouse then
       reaper.Undo_BeginBlock2( 0 )
       reaper.PreventUIRefresh( 1 )
       sTime = FadeToMouse(item_mouse, itemHalf)
@@ -2502,7 +2508,7 @@ end
 
 ---------------------------
 -----------START-----------
-CurVers = 2.2
+CurVers = 2.21
 version = tonumber( reaper.GetExtState(ExtStateName, "version") )
 if version ~= CurVers then
   if not version or version < 2.0 then
