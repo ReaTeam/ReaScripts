@@ -1,10 +1,9 @@
--- @description Playback reverse from Starkovsky
+-- @description Preview item from Starkovsky
 -- @author mrtnz
 -- @version 1.0
--- @provides . > Reverse preview item from mouse cursor (perform until shortcut released) from Starkovsky.lua
--- @screenshot https://imgur.com/YFmQuAq
+-- @provides . > mrtnz_Reverse preview item from mouse cursor (perform until shortcut released) from Starkovsky.lua
+-- @screenshot https://i.imgur.com/YFmQuAq.gif
 -- @about # Playback reverse from Starkovsky
-
 
 local r = reaper
 local reverse = true
