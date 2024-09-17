@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="dd31a331bc54ce325ffb3715261db5f63143111d" name="ReaTeam Scripts">
+<index version="1" commit="446dc379abe2987cfea4912bf9bd5c85e71c42f3" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -21223,6 +21223,12 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ba2734d57564b37be35e1659fbe535c278da85bc/Various/amagalma_gianfini_ReaNamer%20(track-item-region-marker%20renaming%20utility).lua</source>
         <source file="amagalma_ReaNamer Replace Help.lua">https://github.com/ReaTeam/ReaScripts/raw/ba2734d57564b37be35e1659fbe535c278da85bc/Various/amagalma_ReaNamer%20Replace%20Help.lua</source>
         <source file="amagalma_ReaNamer utf8data.lua">https://github.com/ReaTeam/ReaScripts/raw/ba2734d57564b37be35e1659fbe535c278da85bc/Various/amagalma_ReaNamer%20utf8data.lua</source>
+      </version>
+      <version name="1.47" author="amagalma &amp; gianfini" time="2024-09-17T11:45:01Z">
+        <changelog><![CDATA[- Fixed bugs in Markers or Regions mode and time selection present]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/446dc379abe2987cfea4912bf9bd5c85e71c42f3/Various/amagalma_gianfini_ReaNamer%20(track-item-region-marker%20renaming%20utility).lua</source>
+        <source file="amagalma_ReaNamer Replace Help.lua">https://github.com/ReaTeam/ReaScripts/raw/446dc379abe2987cfea4912bf9bd5c85e71c42f3/Various/amagalma_ReaNamer%20Replace%20Help.lua</source>
+        <source file="amagalma_ReaNamer utf8data.lua">https://github.com/ReaTeam/ReaScripts/raw/446dc379abe2987cfea4912bf9bd5c85e71c42f3/Various/amagalma_ReaNamer%20utf8data.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Go to track (mousewheel only) reverse.eel" type="script" desc="amagalma_Go to track (mousewheel only) reverse">
