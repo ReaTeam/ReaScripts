@@ -1,9 +1,8 @@
 -- @description ReaNamer (track-item-region-marker renaming utility)
 -- @author amagalma & gianfini
--- @version 1.45
+-- @version 1.47
 -- @changelog
---   - All shortcuts working (requires JS_ReaScriptAPI)
---   - Fixed crashes when adding Regions or Markers
+--   - Fixed bugs in Markers or Regions mode and time selection present
 -- @provides
 --   amagalma_ReaNamer Replace Help.lua
 --   amagalma_ReaNamer utf8data.lua
@@ -48,7 +47,7 @@
 
 -----------------------------------------------------------------------------------------------
 
-local version = "1.45"
+local version = "1.47"
 
 if not reaper.APIExists( "BR_Win32_FindWindowEx" ) then
   reaper.MB( "SWS / S&M extension is required for this script to work", "SWS / S&M extension is not installed!", 0 )
@@ -454,8 +453,8 @@ utf8_lc_uc, utf8_uc_lc = nil, nil
 -- Global variables
 local has_changed, what, trackCount, indexed_track, scroll_line_selected, itemCount, indexed_item
 local undo_stack, ToBeTrackNames, OriginalTrackNames, ToBeItemNames, OriginalItemNames, redo_stack
-local regionCount, ToBeRegionNames, OriginalRegionNames = 0
-local markerCount, ToBeMarkerNames, OriginalMarkerNames = 0
+local TotalRegionCount, regionCount, ToBeRegionNames, OriginalRegionNames = 0, 0
+local TotalMarkerCount, markerCount, ToBeMarkerNames, OriginalMarkerNames = 0, 0
 local mod_stack_name, mod_stack_parm1, mod_stack_parm2 = {}, {}, {} -- management of modifiers' undo stack
 local scroll_list_x, scroll_list_y, scroll_list_w, scroll_list_h, scroll_line_selected
 local matchCase = "y"
@@ -630,7 +629,7 @@ local function AllRegionNames() -- in Time Selection
   else
     st, en = st+.01, en-.01 -- exclude adjacent regions
   end
-  local marker_cnt = reaper.CountProjectMarkers( 0 )
+  local marker_cnt, _, regions = reaper.CountProjectMarkers( 0 )
   local table = {}
   local table2 = {}
   local count = 0
@@ -646,7 +645,7 @@ local function AllRegionNames() -- in Time Selection
       end
     end
   end
-  return table, table2
+  return table, table2, (regions and regions or 0)
 end
 
 local function AllMarkerNames() -- in Time Selection
@@ -654,7 +653,7 @@ local function AllMarkerNames() -- in Time Selection
   if st == en then
     st, en = -math.huge, math.huge
   end
-  local marker_cnt = reaper.CountProjectMarkers( 0 )
+  local marker_cnt, markers = reaper.CountProjectMarkers( 0 )
   local table = {}
   local table2 = {}
   local count = 0
@@ -668,7 +667,7 @@ local function AllMarkerNames() -- in Time Selection
       end
     end
   end
-  return table, table2
+  return table, table2, (markers and markers or 0)
 end
 
 -- Replace button Help if "amagalma_ReaNamer Replace Help.lua" cannot be loaded
@@ -1376,9 +1375,11 @@ local function init_tables()
     ToBeRegionNames, RegionNamesIndex = nil, nil
     OriginalRegionNames = nil
     indexed_region = nil
+    TotalRegionCount = 0
     ToBeMarkerNames, MarkerNamesIndex = nil, nil
     OriginalMarkerNames = nil
     indexed_marker = nil
+    TotalMarkerCount = 0
   elseif what == "items" then
     ToBeItemNames = AllItemNames()
     OriginalItemNames = AllItemNames()
@@ -1392,11 +1393,13 @@ local function init_tables()
     ToBeRegionNames, RegionNamesIndex = nil, nil
     OriginalRegionNames = nil
     indexed_region = nil
+    TotalRegionCount = 0
     ToBeMarkerNames, MarkerNamesIndex = nil, nil
     OriginalMarkerNames = nil
     indexed_marker = nil
+    TotalMarkerCount = 0
   elseif what == "regions" then
-    ToBeRegionNames, RegionNamesIndex = AllRegionNames()
+    ToBeRegionNames, RegionNamesIndex, TotalRegionCount = AllRegionNames()
     OriginalRegionNames = AllRegionNames()
     indexed_region = 1
     undo_stack = 0
@@ -1411,8 +1414,9 @@ local function init_tables()
     ToBeMarkerNames, MarkerNamesIndex = nil, nil
     OriginalMarkerNames = nil
     indexed_marker = nil
+    TotalMarkerCount = 0
   elseif what == "markers" then
-    ToBeMarkerNames, MarkerNamesIndex = AllMarkerNames()
+    ToBeMarkerNames, MarkerNamesIndex, TotalMarkerCount = AllMarkerNames()
     OriginalMarkerNames = AllMarkerNames()
     indexed_marker = 1
     undo_stack = 0
@@ -1427,6 +1431,7 @@ local function init_tables()
     ToBeRegionNames, RegionNamesIndex = nil, nil
     OriginalRegionNames = nil
     indexed_region = nil
+    TotalRegionCount = 0
   end
   btn_DOWN_can_move = 0
 end
@@ -1545,18 +1550,18 @@ local function main() -- MAIN FUNCTION -----------------------------------------
   else
     DOWN_btn:set_color_updown()
   end
-
+---HERE
   if what == "regions" then
-    local _, _, num_regions = reaper.CountProjectMarkers( 0 )
+    local _, _, num_regions = reaper.CountProjectMarkers(0)
     local st, en = reaper.GetSet_LoopTimeRange2( 0, 0, 0, 0, 0, 0 )
-    if st ~= prev_st or en ~= prev_en or num_regions ~= regionCount then
+    if st ~= prev_st or en ~= prev_en or num_regions ~= TotalRegionCount then
       init_tables()
       prev_st, prev_en = st, en
     end
   elseif what == "markers" then
     local _, num_markers = reaper.CountProjectMarkers( 0 )
     local st, en = reaper.GetSet_LoopTimeRange2( 0, 0, 0, 0, 0, 0 )
-    if st ~= prev_st or en ~= prev_en or num_markers ~= markerCount then
+    if st ~= prev_st or en ~= prev_en or num_markers ~= TotalMarkerCount then
       init_tables()
       prev_st, prev_en = st, en
     end
