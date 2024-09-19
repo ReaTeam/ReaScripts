@@ -1,0 +1,14 @@
+-- @description Social Media Time Selection Utility
+-- @author Weaver Audio
+-- @version 1.0
+-- @changelog * Added commands for 15, 30 and 60 second selections
+-- @metapackage
+-- @provides
+--   [main] weaveraudio_Social Media Time Selection Utility/WA_15selSec.lua
+--   weaveraudio_Social Media Time Selection Utility/WA_30selSec.lua
+--   weaveraudio_Social Media Time Selection Utility/WA_60selSec.lua
+-- @about
+--   # SOCIAL MEDIA TIME SELECTION UTILITY
+--
+--   Creates 15, 30 and 60 second time selections from you last play position,for cutting social media shorts and cutdowns.
+
