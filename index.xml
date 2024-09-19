@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="446dc379abe2987cfea4912bf9bd5c85e71c42f3" name="ReaTeam Scripts">
+<index version="1" commit="e6d097c8bf2131d1fc0e0b5d6e3af96f312f3bbb" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -18850,6 +18850,35 @@ is off-screen. Reaper issue, should be fixed soon.]]></changelog>
 - Item name parsing now compatible with stems downloaded from X-Minus
 - Friendly item name for Mel-Roformer model from May 2024 UVR patch]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/9a9e73d39709e6dd0fcff89840e03ffb54734edd/Tracks/kaddaok_Import%20UVR%20separations%20into%20comping%20lane%20structure.lua</source>
+      </version>
+    </reapack>
+    <reapack name="reapertips_Track icon selector.lua" type="script" desc="Track icon selector">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Track Icon Selector\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Created by Reapertips and Sexan\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The Track Icon Selector is a tool designed to streamline the process of applying custom icons to your tracks in REAPER. By scanning REAPER's "track_icons" folder, the script automatically populates a user-friendly interface with icons and their categories.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Key Features:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Intuitive Interface: Quickly browse and select icons from a visually appealing interface.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Instant Search: Efficiently find specific icons using the built-in search function.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Categorization: Organize icons into categories for easy navigation.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Customizable Icons: Resize icons to fit your preferences and customize their appearance.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Sidebar Preferences: Control whether the sidebar opens automatically on script launch\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Dockable Window: Conveniently dock the script window to the left of your tracks for easy access.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Yellow Outline Around Used Icons: Instantly identify tracks that already have icons applied.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Creating and Modifying Categories:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 To create or modify categories for your icons, navigate to the following REAPER folder:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 REAPER Folder > Data > track_icons Within this folder, create or modify folders to represent your desired categories. The script will automatically recognize these folders as categories in the sidebar, allowing you to filter icons based on their assigned categories.\par}
+}
+]]></description>
+        <link rel="screenshot">https://i.imgur.com/bFK2HYk.png</link>
+        <link rel="screenshot">https://i.imgur.com/MabMOW1.png</link>
+      </metadata>
+      <version name="1.0" author="Reapertips &amp; Sexan" time="2024-09-19T22:31:52Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e6d097c8bf2131d1fc0e0b5d6e3af96f312f3bbb/Tracks/reapertips_Track%20icon%20selector.lua</source>
       </version>
     </reapack>
     <reapack name="tilr_Keyboard splitter.lua" type="script" desc="Keyboard splitter">
