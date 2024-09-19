@@ -1,4 +1,4 @@
--- @description Track Icon Selector
+-- @description Track icon selector
 -- @author Reapertips & Sexan
 -- @version 1.0
 -- @screenshot
@@ -27,33 +27,19 @@
 --   REAPER Folder > Data > track_icons
 --   Within this folder, create or modify folders to represent your desired categories. The script will automatically recognize these folders as categories in the sidebar, allowing you to filter icons based on their assigned categories.
 
--- @description Track Icon Selector
--- @author Sexan
 -- @license GPL v3
--- @version 1.0
--- @changelog
---  Initial release
+
+if not reaper.ImGui_GetBuiltinPath then
+    reaper.ShowMessageBox("Script needs ReaImGui.\nPlease Install it in next window", "MISSING DEPENDENCIES", 0)
+    reaper.ReaPack_BrowsePackages('^ReaImGui:')
+    return
+end
 
 local r                = reaper
 package.path           = r.ImGui_GetBuiltinPath() .. '/?.lua'
 local os_separator     = package.config:sub(1, 1)
-
 local imgui            = require "imgui" "0.9.1"
 local reaper_path      = r.GetResourcePath()
-
-local function NeedDeps()
-    local deps = {}
-
-    if not r.ImGui_GetVersion then
-        deps[#deps + 1] = '"Dear Imgui"'
-    end
-    if #deps ~= 0 then
-        r.ShowMessageBox("Script needs ReaImGui.\nPlease Install it in next window", "MISSING DEPENDENCIES", 0)
-        r.ReaPack_BrowsePackages(table.concat(deps, " OR "))
-        return true
-    end
-end
-if NeedDeps() then return end
 
 local COLORS           = {
     ["win_bg"] = 0x282828ff,
@@ -104,7 +90,7 @@ local icon_size = 32
 
 r.set_action_options(1)
 
-local ctx = imgui.CreateContext('Track Icons', imgui.ConfigFlags_DockingEnable)
+local ctx = imgui.CreateContext('Track icon selector')
 local WND_W, WND_H = 500, 500
 local FLT_MIN, FLT_MAX = imgui.NumericLimits_Float()
 
