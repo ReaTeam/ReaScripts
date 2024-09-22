@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="e6d097c8bf2131d1fc0e0b5d6e3af96f312f3bbb" name="ReaTeam Scripts">
+<index version="1" commit="ae5efc8dd2cc95757b026dc2eabb2355b9d42a58" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -5728,6 +5728,10 @@ website
       <version name="1.70" author="amagalma" time="2024-06-14T13:46:18Z">
         <changelog><![CDATA[- support for fixed item lanes]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f2600f6b425c44022c8529a16a75b8b1a968fc56/Items%20Editing/amagalma_Smart%20Crossfade.lua</source>
+      </version>
+      <version name="1.71" author="amagalma" time="2024-09-22T08:39:41Z">
+        <changelog><![CDATA[- fixed bug with Razor Area and enabled option "Trim content behind media items when editing"]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ae5efc8dd2cc95757b026dc2eabb2355b9d42a58/Items%20Editing/amagalma_Smart%20Crossfade.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Snap MIDI item(s) edges to grid without changing content position.lua" type="script" desc="amagalma_Snap MIDI item(s) edges to grid without changing content position">
