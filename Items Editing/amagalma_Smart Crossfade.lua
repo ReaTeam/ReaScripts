@@ -1,8 +1,8 @@
 -- @description Smart Crossfade
 -- @author amagalma
--- @version 1.70
+-- @version 1.71
 -- @changelog
---   - support for fixed item lanes
+--   - fixed bug with Razor Area and enabled option "Trim content behind media items when editing"
 -- @link https://forum.cockos.com/showthread.php?t=195490
 -- @donation https://www.paypal.me/amagalma
 -- @about
@@ -65,6 +65,7 @@ if track_cnt == 0 then return reaper.defer(function() end) end
 local tracks_with_RE, tr = {}, 0
 
 local began_block = false
+local reenableTrim = false
 
 for t = 0, track_cnt - 1 do
   local track = reaper.GetTrack(0, t)
@@ -101,6 +102,10 @@ for t = 0, track_cnt - 1 do
           reaper.Undo_BeginBlock()
           reaper.PreventUIRefresh( 1 )
           began_block = true
+          if reaper.GetToggleCommandState( 41117 ) == 1 then
+            reaper.Main_OnCommand(41117, 0) -- Trim content behind media items when editing
+            reenableTrim = true
+          end
         end
         tr = tr + 1
         tracks_with_RE[tr] = track
@@ -126,6 +131,9 @@ if began_block then
   reaper.PreventUIRefresh( -1 )
   reaper.UpdateArrange()
   reaper.Undo_EndBlock( "Smart crossfade items in RE area", (remove_RE_area and 1 or 0)|4 )
+  if reenableTrim then
+    reaper.Main_OnCommand(41117, 0) -- Trim content behind media items when editing
+  end
   return
 end
 
