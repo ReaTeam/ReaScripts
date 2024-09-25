@@ -1,6 +1,6 @@
 --[[
 @description One Small Step : Alternative Step Input
-@version 0.9.14
+@version 0.9.15
 @author Ben 'Talagan' Babut
 @license MIT
 @metapackage
@@ -57,8 +57,7 @@
 @screenshot
   https://stash.reaper.fm/48269/oss_094.png
 @changelog
-  - [Feature] Added note highlighting during play
-  - [Feature] Reintroduced "Disarm OSS" mechanism
+  - [Feature] [Experimental] Markup Articulation Manager
 @about
   # Purpose
 
@@ -89,7 +88,7 @@
 
 --]]
 
-VERSION = "0.9.14"
+VERSION = "0.9.15"
 DOC_URL = "https://bentalagan.github.io/onesmallstep-doc/index.html?ver=" .. VERSION
 
 PATH    = debug.getinfo(1,"S").source:match[[^@?(.*[\/])[^\/]-$]]
@@ -138,6 +137,7 @@ local MK  = E.MK
 local TGT = E.TGT
 local F   = E.F
 local ED  = E.ED
+local ART = E.ART
 
 -- Get the debugger setting at launch
 local DEBUGGER_IS_ON = S.getSetting("UseDebugger")
@@ -1482,6 +1482,55 @@ function SettingsPanel()
       reaper.ImGui_EndTabItem(ctx)
     end
 
+    if reaper.ImGui_BeginTabItem(ctx, 'Articulations') then
+      ImGui_VerticalSpacer(ctx,5)
+
+      local track   = nil;
+      local take    = TGT.TakeForEdition()
+
+      if take then
+        track = reaper.GetMediaItemTake_Track(take)
+      else
+        track = TGT.TrackForEditionIfNoItemFound()
+      end
+
+      local help = "The articulation markup manager is an experimental feature that will create text events\n\z
+      in the \"Text Events\" CC Lane automatically to match notes that are KeySwitches.\n\z
+      Basically, it aims to translate KeySwitches from a note representation to a more\n\z
+      compact/friendly/readable horizontal representation.\n\z
+      \n\z
+      Those events will be created/synced after each note input, but also when OSS is running and\n\z
+      and you're mouse editing the notes in the MIDI Editor (a background task is watching those changes\n\z
+      and automatically converts them to the \"Text Events\" CC Lane).\n\z
+      \n\z
+      Inversely, notes that are suppressed will see their corresponding text events disappear.\n\z
+      \n\z
+      The condition for creating such a text event is that a note name is attached to the note/key\n\z
+      that was pressed/modified. For this to work, you need to load a Note Name map file on your track's\n\z
+      piano roll (note that this can be done per channel).\n\z"
+
+      if track then
+        local curval = S.getTrackSetting(track, "OSSArticulationManagerEnabled")
+
+        if reaper.ImGui_Checkbox(ctx, "Use articulation markup manager", curval) then
+          S.setTrackSetting(track, "OSSArticulationManagerEnabled", not curval);
+        end
+
+        SL();
+        reaper.ImGui_TextColored(ctx, 0xB0B0B0FF, "(?)");
+        TT(help)
+        SL();
+        reaper.ImGui_TextColored(ctx, 0x00EEFFFF, "[Per track setting]")
+      else
+        reaper.ImGui_TextColored(ctx, 0x00EEFFFF, "Please select a track to access the articulation manager")
+        SL();
+        reaper.ImGui_TextColored(ctx, 0xB0B0B0FF, "(?)");
+        TT(help)
+      end
+
+      reaper.ImGui_EndTabItem(ctx)
+    end
+
     if reaper.ImGui_TabItemButton(ctx, "?##go_to_help") then
       reaper.CF_ShellExecute(DOC_URL)
     end
@@ -1623,7 +1672,45 @@ local function UpdateToolbarButtonState(v)
   reaper.RefreshToolbar2(sectionID, cmdID);
 end
 
+
+local lastArtUpdateProjState  = nil;
+local lastArtUpdateTake       = nil;
+local lastArtUpdateWatch      = nil;
+
+local function WatchForArticulationsToUpdate()
+  if not lastArtUpdateWatch or reaper.time_precise() - lastArtUpdateWatch > 0.1 then
+    lastArtUpdateWatch = reaper.time_precise();
+
+    local take  = TGT.TakeForEdition();
+
+    if not take then
+      return
+    end
+
+    local track = reaper.GetMediaItemTake_Track(take)
+
+    if not S.getTrackSetting(track, "OSSArticulationManagerEnabled") then
+      -- Nothing to do, but reset stuff
+      lastArtUpdateTake = nil
+      return
+    end
+
+    local pscc  = reaper.GetProjectStateChangeCount();
+
+    if take ~= lastArtUpdateTake or pscc ~= lastArtUpdateProjState then
+      lastArtUpdateTake       = take;
+      lastArtUpdateProjState  = pscc;
+
+      ART.UpdateArticulationTextEventsIfNeeded(track, take)
+    end
+
+  end
+end
+
 function MainLoop()
+
+  WatchForArticulationsToUpdate();
+
   local engine_ret = E.atLoop();
 
   if engine_ret == -42 then

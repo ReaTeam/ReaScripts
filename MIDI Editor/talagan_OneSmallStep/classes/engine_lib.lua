@@ -25,6 +25,7 @@ local TGT       = require "modules/target"
 local F         = require "modules/focus"
 local MOD       = require "modules/modifiers"
 local ED        = require "modules/edition"
+local ART       = require "modules/articulations"
 
 local NAVIGATE  = require "operations/navigate"
 local REPITCH   = require "operations/repitch"
@@ -404,6 +405,7 @@ return {
   ED                            = ED,
   SNP                           = SNP,
   N                             = N,
+  ART                           = ART,
 
   atStart                       = atStart,
   atExit                        = atExit,

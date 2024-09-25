@@ -8,6 +8,8 @@ local S   = require "modules/settings"
 local D   = require "modules/defines"
 local N   = require "modules/notes"
 local MK  = require "modules/markers"
+local ART = require "modules/articulations"
+
 local GEN = require "operations/generic"
 local MU  = require "lib/MIDIUtils"
 
@@ -191,6 +193,8 @@ local function Stuff(km, track, take, notes_to_add, notes_to_extend, triggered_b
   -- Pass nil as jump time, we don't want to jump in stuff mode
   GEN.ForwardOperationFinish(c, nil, newMaxQN)
 
+  ART.UpdateArticulationTextEventsIfNeeded(track, take);
+
   reaper.Undo_EndBlock(GEN.OperationSummary(1, c.counts),-1);
 end
 
@@ -355,6 +359,8 @@ local function StuffBack(km, track, take, notes_to_shorten, triggered_by_key_eve
   end
 
   GEN.BackwardOperationFinish(c, nil)
+
+  ART.UpdateArticulationTextEventsIfNeeded(track, take);
 
   reaper.Undo_EndBlock(GEN.OperationSummary(-1, c.counts),-1);
 end

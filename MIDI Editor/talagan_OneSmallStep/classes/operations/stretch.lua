@@ -7,6 +7,8 @@ local T   = require "modules/time"
 local D   = require "modules/defines"
 local N   = require "modules/notes"
 local MK  = require "modules/markers"
+local ART = require "modules/articulations"
+
 local MU  = require "lib/MIDIUtils"
 local GEN = require "operations/generic"
 
@@ -125,6 +127,8 @@ local function Stretch(km, track, take, notes_to_add, notes_to_extend, triggered
 
   GEN.ForwardOperationFinish(c, c.advanceTime, newMaxQN)
 
+  ART.UpdateArticulationTextEventsIfNeeded(track, take);
+
   reaper.Undo_EndBlock(GEN.OperationSummary(-1, c.counts), -1)
 end
 
@@ -240,6 +244,8 @@ function StretchBack(km, track, take, notes_to_shorten, triggered_by_key_event)
   end
 
   GEN.BackwardOperationFinish(c, c.rewindTime)
+
+  ART.UpdateArticulationTextEventsIfNeeded(track, take);
 
   reaper.Undo_EndBlock(GEN.OperationSummary(-1, c.counts), -1)
 end

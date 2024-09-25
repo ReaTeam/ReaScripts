@@ -7,6 +7,8 @@ local T   = require "modules/time"
 local S   = require "modules/settings"
 local D   = require "modules/defines"
 local N   = require "modules/notes"
+local ART = require "modules/articulations"
+
 local GEN = require "operations/generic"
 local MU  = require "lib/MIDIUtils"
 
@@ -134,6 +136,8 @@ local function Replace(km, track, take, notes_to_add, notes_to_extend, triggered
   GEN.AddAndExtendNotes(c, notes_to_add, notes_to_extend)
   GEN.ForwardOperationFinish(c, c.advanceTime, newMaxQN)
 
+  ART.UpdateArticulationTextEventsIfNeeded(track, take);
+
   reaper.Undo_EndBlock(GEN.OperationSummary(1, c.counts), -1)
 end
 
@@ -161,6 +165,8 @@ local function ReplaceBack(km, track, take, notes_to_shorten, triggered_by_key_e
 
   GEN.GenericDelete(c, notes_to_shorten, false, false)
   GEN.BackwardOperationFinish(c, c.rewindTime)
+
+  ART.UpdateArticulationTextEventsIfNeeded(track, take);
 
   reaper.Undo_EndBlock(GEN.OperationSummary(-1, c.counts), -1)
 end

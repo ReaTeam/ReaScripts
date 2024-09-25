@@ -6,6 +6,7 @@
 local SNP = require "modules/snap"
 local T   = require "modules/time"
 local S   = require "modules/settings"
+local ART = require "modules/articulations"
 
 local function Navigate(track, direction)
   local ns = SNP.nextSnapFromCursor(track, direction)
