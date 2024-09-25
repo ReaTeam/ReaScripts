@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="2b699f19926837c71ac56dd53a043e60da03e19a" name="ReaTeam Scripts">
+<index version="1" commit="181c4d64496e364dd3466755ac7746560250b0a9" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -5736,6 +5736,10 @@ website
       <version name="1.72" author="amagalma" time="2024-09-25T11:26:57Z">
         <changelog><![CDATA[- added User Setting (inside the script) for maximum gap allowance between two selected items that will crossfade (fill-in gaps)]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/2b699f19926837c71ac56dd53a043e60da03e19a/Items%20Editing/amagalma_Smart%20Crossfade.lua</source>
+      </version>
+      <version name="1.73" author="amagalma" time="2024-09-25T11:32:47Z">
+        <changelog><![CDATA[- set default for User Setting for maximum gap allowance between two selected items that will crossfade (fill-in gaps) to the default split crossfade length]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/181c4d64496e364dd3466755ac7746560250b0a9/Items%20Editing/amagalma_Smart%20Crossfade.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Snap MIDI item(s) edges to grid without changing content position.lua" type="script" desc="amagalma_Snap MIDI item(s) edges to grid without changing content position">
