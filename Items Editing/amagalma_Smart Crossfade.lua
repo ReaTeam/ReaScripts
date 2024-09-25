@@ -1,8 +1,8 @@
 -- @description Smart Crossfade
 -- @author amagalma
--- @version 1.72
+-- @version 1.73
 -- @changelog
---   - added User Setting (inside the script) for maximum gap allowance between two selected items that will crossfade (fill-in gaps)
+--   - set default for User Setting for maximum gap allowance between two selected items that will crossfade (fill-in gaps) to the default split crossfade length
 -- @link https://forum.cockos.com/showthread.php?t=195490
 -- @donation https://www.paypal.me/amagalma
 -- @about
@@ -34,7 +34,7 @@ local remove_RE_area = 1 -- Set to 1 if you want to remove the Razor Edit area (
                                                                                                  --
 -- Maximum gap between two selected items (not in time selection or RE area) that can crossfade  --
 -- (set it to -1, if you want it to be equal to the default split crossfade length)              --
-local maximum_gap = 125 -- ms.                                                                   --
+local maximum_gap = -1  -- in ms.                                                                --
                                                                                                  --
 ---------------------------------------------------------------------------------------------------
 
@@ -58,8 +58,7 @@ if xfadeshape < 0 or xfadeshape > 7 then
   xfadeshape = tonumber(({reaper.get_config_var_string( "defxfadeshape" )})[2]) or 7
 end
 
-maximum_gap = maximum_gap/1000
-maximum_gap = maximum_gap > -1 and maximum_gap or xfadetime
+maximum_gap = maximum_gap > -1 and maximum_gap/1000 or xfadetime
 
 
 -- Razor Edit
