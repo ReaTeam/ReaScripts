@@ -5,6 +5,10 @@
 
 local D = require "modules/defines"
 
+local TrackSettingDefs = {
+  OSSArticulationManagerEnabled = { type = "bool", default = false }
+}
+
 local SettingDefs = {
   StepBackModifierKey                                       = { type = "int",     default = D.IsMacOs and 16 or 16 },
 
@@ -63,7 +67,6 @@ local SettingDefs = {
   Disarmed                                                  = { type = "bool",    default = false },
   NoteHiglightingDuringPlay                                 = { type = "bool",    default = false },
 
-
   UseDebugger                                               = { type = "bool",    default = false },
 
   VelocityLimiterEnabled                                    = { type = "bool",    default = false },
@@ -101,14 +104,8 @@ local function unsafestr(str)
   return str
 end
 
-local function getSetting(setting)
-  local spec  = SettingDefs[setting];
-
-  if spec == nil then
-    error("Trying to get unknown setting " .. setting);
-  end
-
-  local val = unsafestr(reaper.GetExtState("OneSmallStep", setting));
+local function serializedStringToValue(str, spec)
+  local val = unsafestr(str);
 
   if val == nil then
     val = spec.default;
@@ -123,8 +120,37 @@ local function getSetting(setting)
       -- No conversion needed
     end
   end
-  return val;
+
+  return val
 end
+
+local function valueToSerializedString(val, spec)
+  local str = ''
+  if spec.type == 'bool' then
+    str = (val == true) and "true" or "false";
+  elseif spec.type == 'int' then
+    str = tostring(val);
+  elseif spec.type == 'double' then
+    str = tostring(val);
+  elseif spec.type == "string" then
+    -- No conversion needed
+    str = val
+  end
+  return str
+end
+
+local function getSetting(setting)
+  local spec  = SettingDefs[setting];
+
+  if spec == nil then
+    error("Trying to get unknown setting " .. setting);
+  end
+
+  local str = reaper.GetExtState("OneSmallStep", setting)
+
+  return serializedStringToValue(str, spec)
+end
+
 local function setSetting(setting, val)
   local spec  = SettingDefs[setting];
 
@@ -135,18 +161,41 @@ local function setSetting(setting, val)
   if val == nil then
     reaper.DeleteExtState("OneSmallStep", setting, true);
   else
-    if spec.type == 'bool' then
-      val = (val == true) and "true" or "false";
-    elseif spec.type == 'int' then
-      val = tostring(val);
-    elseif spec.type == 'double' then
-      val = tostring(val);
-    elseif spec.type == "string" then
-      -- No conversion needed
-    end
-    reaper.SetExtState("OneSmallStep", setting, val, true);
+    local str = valueToSerializedString(val, spec);
+    reaper.SetExtState("OneSmallStep", setting, str, true);
   end
 end
+
+local function getTrackSetting(track, setting)
+  local spec  = TrackSettingDefs[setting];
+
+  if track == nil then
+    error("Trying to get setting " .. setting .. " from nil track ")
+  end
+
+  if spec == nil then
+    error("Trying to get unknown track setting " .. setting);
+  end
+
+  local succ, str = reaper.GetSetMediaTrackInfo_String(track, "P_EXT:OneSmallStep:" .. setting, '', false);
+
+  return serializedStringToValue(str or '', spec)
+end
+
+local function setTrackSetting(track, setting, val)
+  local spec  = TrackSettingDefs[setting];
+
+  if track == nil then
+    error("Trying to set setting " .. setting .. " to nil track ")
+  end
+  if spec == nil then
+    error("Trying to set unknown track setting " .. setting);
+  end
+
+  local str = valueToSerializedString(val, spec);
+  reaper.GetSetMediaTrackInfo_String(track, "P_EXT:OneSmallStep:" .. setting, str, true)
+end
+
 local function resetSetting(setting)
   setSetting(setting, SettingDefs[setting].default)
 end
@@ -241,6 +290,9 @@ return {
   setSetting                  = setSetting,
   resetSetting                = resetSetting,
   getSettingSpec              = getSettingSpec,
+
+  getTrackSetting             = getTrackSetting,
+  setTrackSetting             = setTrackSetting,
 
   setPlaybackMeasureCount     = setPlaybackMeasureCount,
   getPlaybackMeasureCount     = getPlaybackMeasureCount,
