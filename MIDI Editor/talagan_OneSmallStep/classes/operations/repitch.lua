@@ -8,6 +8,8 @@ local T   = require "modules/time"
 local S   = require "modules/settings"
 local N   = require "modules/notes"
 local D   = require "modules/defines"
+local ART = require "modules/articulations"
+
 local GEN = require "operations/generic"
 local MU  = require "lib/MIDIUtils"
 
@@ -140,6 +142,8 @@ local function Repitch(km, track, take, notes_to_add, notes_to_extend, triggered
     end
   end
 
+  ART.UpdateArticulationTextEventsIfNeeded(track, take);
+
   reaper.Undo_EndBlock(GEN.OperationSummary(1, c.counts), -1)
 end
 
@@ -161,6 +165,8 @@ local function RepitchBack(km, track, take, notes_to_add, notes_to_extend, trigg
   if S.getSetting("AutoScrollArrangeView") then
     T.KeepEditCursorOnScreen()
   end
+
+  ART.UpdateArticulationTextEventsIfNeeded(track, take);
 
   reaper.Undo_EndBlock(GEN.OperationSummary(1, c.counts), -1)
 end

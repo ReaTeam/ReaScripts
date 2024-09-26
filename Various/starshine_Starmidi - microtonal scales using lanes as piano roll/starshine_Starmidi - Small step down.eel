@@ -1,0 +1,45 @@
+// @noindex
+
+// helper script for starmidi tools
+// modifies item title by adding or removing # or b symbols
+
+function apply_accidental(take)(
+  GetSetMediaItemTakeInfo_String(take, "P_NAME", #text, 0);
+  //todo: check if item is midi
+  
+  (len=strlen(#text))==0 ?            #text ="v"  : //case 1: empty. just add a b
+    match("*v*",#text)   ?            #text+="v"  : //case 2: has one or more b. add another
+    match("*^*",#text)   ? str_setlen(#text,len-1); //case 3: has one or more #. remove one.
+  
+  GetSetMediaItemTakeInfo_String(take, "P_NAME", #text, 1);
+  
+  // count the number of b or # to apply colors
+  pos=-1; r=1; g=1; b=1;
+  
+  char = str_getchar(#text,0);
+  (char == 'v') ? (g-=0.125; r-=0.2;);
+  (char == '^') ? (g-=0.2; b-=0.125;);
+  
+  Loop(strlen(#text),
+    char = str_getchar(#text,pos+=1);
+    char == 'v' ? (g-=0.125; r-=0.2;);
+    char == '^' ? (g-=0.2; b-=0.125;);
+  );
+  
+  r*=255; b*=255; g*=255;
+  SetMediaItemTakeInfo_Value(take, "I_CUSTOMCOLOR", ColorToNative(r,g,b)|0x1000000);
+);
+
+function loop_selected()(
+  item_idx = -1;
+  Loop(CountSelectedMediaItems(0),
+    item = GetSelectedMediaItem(0,item_idx+=1);
+    take = GetMediaItemTake(item,0);
+    apply_accidental(take);
+  );
+);
+
+GetMousePosition(x,y);
+GetItemFromPoint(x,y,0,take);
+!take ? loop_selected() : apply_accidental(take);
+

@@ -1,9 +1,9 @@
 -- @description Perfect Timing! - Audio Quantizer
 -- @author 80icio
--- @version 0.26
+-- @version 0.27
 -- @changelog
---   - Unlocked 1 bar, 1/2 bar Grid and relative triplets Divisions
---   - Changed layout for Visualizer zoom bounds reference on tracks on Main window
+--   - Fixed graphic issue between mouse position indication vertical line and arrange window trigger lines
+--   - Fixed arrange window trigger lines behaviour when tracks disappear in folder
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=288964
 -- @about
 --   # PERFECT TIMING! 
@@ -1789,6 +1789,8 @@ end
 
 
 function MW_drawlines()
+  local mouse_vert_line_on_arrange_window = false
+
   if check_itm == true and open and quantize_state == false  then
 
      local itemsn = r.CountSelectedMediaItems(0)
@@ -1808,24 +1810,42 @@ function MW_drawlines()
         local sel_tr = sel_tracks_table[trck]
 
         local media_move_check =   r.GetMediaItemInfo_Value(item, "D_LENGTH" ) - r.GetMediaItemInfo_Value(item, "D_POSITION") 
+        local track_H = r.GetMediaTrackInfo_Value(sel_tr, "I_TCPH")
         
         if media_move_check == first_sel_item_length - first_sel_item_start and sel_tr == r.GetMediaItemTrack(item) then
+            
             local MWzoom = r.GetHZoomLevel()
             local _, scrollpos, pageSize, min, max, trackPos  = r.JS_Window_GetScrollInfo( trackview, "h" )
             local _, scrollpos_v = r.JS_Window_GetScrollInfo( trackview, "v" )
             local  _, width = r.JS_Window_GetClientSize( trackview )
             local track_y = r.GetMediaTrackInfo_Value(sel_tr, "I_TCPY") 
             local track_H = r.GetMediaTrackInfo_Value(sel_tr, "I_TCPH")
+      
             --local track_FL_n = r.GetMediaTrackInfo_Value(sel_tr, "I_NUMFIXEDLANES")
             
-            local media_H = r.GetMediaItemInfo_Value(item, "I_LASTH" )
+            if r.GetToggleCommandState(43194) then
+             local window, _, _ = r.BR_GetMouseCursorContext() 
+             if window == "arrange" then
+              mouse_vert_line_on_arrange_window = true
+             else
+              mouse_vert_line_on_arrange_window = false
+             end
+            end
+            
+            local media_H = 0
+            
+            if track_H ~= 0 then
+               media_H = r.GetMediaItemInfo_Value(item, "I_LASTH" )
+            end
+            
             local media_Y = r.GetMediaItemInfo_Value(item, "I_LASTY" )
+         
             --local media_FL_y = r.GetMediaItemInfo_Value(item, "F_FREEMODE_Y")
            -- local media_FL_h = r.GetMediaItemInfo_Value(item, "F_FREEMODE_H")
 
             movescreen[trck] =h_zoom_center + zoom_bounds_L + zoom_bounds_Total + r.CSurf_TrackToID( sel_tr, false ) + MWzoom + scrollpos + track_H + media_H + scrollpos_v + itemsn + track_y*2
             
-            if MW_lines_ON and (Gtolerance_slider or r.GetPlayState() ~= 0 or visualizer_rv or Offset or Detect_rv2 or Detect_rv or Visualizer_mode_rv or
+            if MW_lines_ON and (Gtolerance_slider or r.GetPlayState() ~= 0 or mouse_vert_line_on_arrange_window or visualizer_rv or Offset or Detect_rv2 or Detect_rv or Visualizer_mode_rv or
             color_button or Sensitivity_slider or Change_grid or movescreen[trck] ~= movescreen_prev[trck]) then --or set_grid_from_script or get_grid_from_proj
   
               if visualizer then

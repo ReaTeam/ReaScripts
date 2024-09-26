@@ -1,8 +1,8 @@
 -- @description Smart Crossfade
 -- @author amagalma
--- @version 1.70
+-- @version 1.73
 -- @changelog
---   - support for fixed item lanes
+--   - set default for User Setting for maximum gap allowance between two selected items that will crossfade (fill-in gaps) to the default split crossfade length
 -- @link https://forum.cockos.com/showthread.php?t=195490
 -- @donation https://www.paypal.me/amagalma
 -- @about
@@ -32,6 +32,10 @@ local remove_timesel = 1 -- Set to 1 if you want to remove the time selection (e
 -- Razor Edit area settings                                                                      --
 local remove_RE_area = 1 -- Set to 1 if you want to remove the Razor Edit area (else keep it)    --
                                                                                                  --
+-- Maximum gap between two selected items (not in time selection or RE area) that can crossfade  --
+-- (set it to -1, if you want it to be equal to the default split crossfade length)              --
+local maximum_gap = -1  -- in ms.                                                                --
+                                                                                                 --
 ---------------------------------------------------------------------------------------------------
 
 
@@ -54,6 +58,8 @@ if xfadeshape < 0 or xfadeshape > 7 then
   xfadeshape = tonumber(({reaper.get_config_var_string( "defxfadeshape" )})[2]) or 7
 end
 
+maximum_gap = maximum_gap > -1 and maximum_gap/1000 or xfadetime
+
 
 -- Razor Edit
 --------------------------------
@@ -65,6 +71,7 @@ if track_cnt == 0 then return reaper.defer(function() end) end
 local tracks_with_RE, tr = {}, 0
 
 local began_block = false
+local reenableTrim = false
 
 for t = 0, track_cnt - 1 do
   local track = reaper.GetTrack(0, t)
@@ -101,6 +108,10 @@ for t = 0, track_cnt - 1 do
           reaper.Undo_BeginBlock()
           reaper.PreventUIRefresh( 1 )
           began_block = true
+          if reaper.GetToggleCommandState( 41117 ) == 1 then
+            reaper.Main_OnCommand(41117, 0) -- Trim content behind media items when editing
+            reenableTrim = true
+          end
         end
         tr = tr + 1
         tracks_with_RE[tr] = track
@@ -126,6 +137,9 @@ if began_block then
   reaper.PreventUIRefresh( -1 )
   reaper.UpdateArrange()
   reaper.Undo_EndBlock( "Smart crossfade items in RE area", (remove_RE_area and 1 or 0)|4 )
+  if reenableTrim then
+    reaper.Main_OnCommand(41117, 0) -- Trim content behind media items when editing
+  end
   return
 end
 
@@ -238,10 +252,11 @@ for tr = 1, #categorized_item do -- tracks
           local second_end = second_start + reaper.GetMediaItemInfo_Value(item, "D_LENGTH")
           local first_start = reaper.GetMediaItemInfo_Value(prev_item, "D_POSITION")
           local first_end = first_start + reaper.GetMediaItemInfo_Value(prev_item, "D_LENGTH")
-          if first_end < second_start - xfadetime and (sel_start == sel_end or (first_end < sel_start and second_start > sel_end)) then
+          if first_end < second_start - maximum_gap and (sel_start == sel_end or (first_end < sel_start and second_start > sel_end)) then
             -- items do not touch and there is no time selection covering parts of both items
             -- do nothing
-            Msg("not touch - gap greater than xfadetime")
+            Msg("not touch - gap greater than maximum_gap")
+            Msg(string.format("Gap is %f seconds", second_start - first_end))
           --[[elseif geq( second_start - first_end, xfadetime) then
           --leq( first_start, second_start) and geq( first_end, second_end) then
             -- one item encloses the other
@@ -265,7 +280,7 @@ for tr = 1, #categorized_item do -- tracks
               reaper.SetMediaItemSelected(item, false)
               change = true
             end
-          elseif geq(second_start, first_end) and leq(second_start, first_end + xfadetime)
+          elseif geq(second_start, first_end) and leq(second_start, first_end + maximum_gap)
             then -- items are adjacent (or there is a gap smaller or equal to the crossfade time)
             Msg("adjacent - gap: " .. second_start - first_end)
             if not CrossfadeOK(item, prev_item, second_start, first_end) then
@@ -276,7 +291,7 @@ for tr = 1, #categorized_item do -- tracks
               end
               reaper.SetMediaItemSelected(prev_item, true)
               reaper.ApplyNudge(0, 1, 3, 1, second_start, 0, 0)
-              FadeOut(prev_item, xfadetime)
+              FadeOut(prev_item, maximum_gap)
               reaper.SetMediaItemSelected(prev_item, false)
               if groupid ~= 0 then
                 reaper.SetMediaItemInfo_Value( prev_item, "I_GROUPID", groupid )
@@ -287,9 +302,9 @@ for tr = 1, #categorized_item do -- tracks
                 reaper.SetMediaItemInfo_Value( item, "I_GROUPID", 0 )
               end
               reaper.SetMediaItemSelected(item, true)
-              reaper.ApplyNudge(0, 1, 1, 1, second_start - xfadetime, 0, 0)
-              Msg(xfadetime)
-              FadeIn(item, xfadetime)
+              reaper.ApplyNudge(0, 1, 1, 1, second_start - maximum_gap, 0, 0)
+              Msg(maximum_gap)
+              FadeIn(item, maximum_gap)
               reaper.SetMediaItemSelected(item, false)
               if groupid ~= 0 then
                 reaper.SetMediaItemInfo_Value( item, "I_GROUPID", groupid )
