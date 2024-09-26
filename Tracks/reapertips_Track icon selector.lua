@@ -1,6 +1,8 @@
 -- @description Track icon selector
 -- @author Reapertips & Sexan
--- @version 1.0
+-- @version 1.01
+-- @changelog
+--  Removed IsRectVisible optiomization (not doing much but introduceds other problems)
 -- @screenshot
 --   https://i.imgur.com/bFK2HYk.png
 --   https://i.imgur.com/MabMOW1.png
@@ -283,33 +285,29 @@ local function PngSelector(button_size)
             local xx, yy = imgui.GetCursorPos(ctx)
 
             imgui.PushID(ctx, n)
-            imgui.Dummy(ctx, button_size, button_size) -- PLACE HOLDER
-            
-            local minx, miny = imgui.GetItemRectMin(ctx)
-            local maxx, maxy = imgui.GetItemRectMax(ctx)
-            if imgui.IsRectVisibleEx(ctx, minx, miny, maxx, maxy) then
-                if not imgui.ValidatePtr(FILTERED_PNG[n + 1].img_obj, 'ImGui_Image*') then
-                    FILTERED_PNG[n + 1].img_obj = imgui.CreateImage(image)
-                end
-
-                imgui.SetCursorPos(ctx, xx, yy)
-
-                if imgui.ImageButton(ctx, "##png_select", FILTERED_PNG[n + 1].img_obj, button_size, button_size, 0, 0, 1, 1) then
-                    for i = 1, #TRACKS do
-                        r.GetSetMediaTrackInfo_String(TRACKS[i], "P_ICON", image, true)
-                    end
-                    if QUIT_ON_SELECT then
-                        WANT_CLOSE = true
-                    end
-                    LAST_ICON = image
-                    CUR_ICON = image
-                end
-
-                if imgui.IsItemHovered(ctx) and TOOLTIPS then
-                    DrawTooltips(stripped_name)
-                end
+            if not imgui.ValidatePtr(FILTERED_PNG[n + 1].img_obj, 'ImGui_Image*') then
+                FILTERED_PNG[n + 1].img_obj = imgui.CreateImage(image)
             end
 
+            imgui.SetCursorPos(ctx, xx, yy)
+
+            if imgui.ImageButton(ctx, "##png_select", FILTERED_PNG[n + 1].img_obj, button_size, button_size, 0, 0, 1, 1) then
+                for i = 1, #TRACKS do
+                    r.GetSetMediaTrackInfo_String(TRACKS[i], "P_ICON", image, true)
+                end
+                if QUIT_ON_SELECT then
+                    WANT_CLOSE = true
+                end
+                LAST_ICON = image
+                CUR_ICON = image
+            end
+
+            if imgui.IsItemHovered(ctx) and TOOLTIPS then
+                DrawTooltips(stripped_name)
+            end
+
+            local minx, miny = imgui.GetItemRectMin(ctx)
+            local maxx, maxy = imgui.GetItemRectMax(ctx)    
             if CUR_ICON == image then
                 if LAST_ICON ~= CUR_ICON then
                     SCROLL_TO_IMG = true
