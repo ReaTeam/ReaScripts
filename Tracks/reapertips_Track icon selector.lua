@@ -1,8 +1,8 @@
 -- @description Track icon selector
 -- @author Reapertips & Sexan
--- @version 1.01
+-- @version 1.02
 -- @changelog
---  Removed IsRectVisible optiomization (not doing much but introduceds other problems)
+--  Fix highlighted button draw oversized width and height
 -- @screenshot
 --   https://i.imgur.com/bFK2HYk.png
 --   https://i.imgur.com/MabMOW1.png
@@ -282,14 +282,11 @@ local function PngSelector(button_size)
         for n = 0, #FILTERED_PNG - 1 do
             local image = FILTERED_PNG[n + 1].name
             local stripped_name = FILTERED_PNG[n + 1].short_name
-            local xx, yy = imgui.GetCursorPos(ctx)
 
             imgui.PushID(ctx, n)
             if not imgui.ValidatePtr(FILTERED_PNG[n + 1].img_obj, 'ImGui_Image*') then
                 FILTERED_PNG[n + 1].img_obj = imgui.CreateImage(image)
             end
-
-            imgui.SetCursorPos(ctx, xx, yy)
 
             if imgui.ImageButton(ctx, "##png_select", FILTERED_PNG[n + 1].img_obj, button_size, button_size, 0, 0, 1, 1) then
                 for i = 1, #TRACKS do
@@ -313,7 +310,7 @@ local function PngSelector(button_size)
                     SCROLL_TO_IMG = true
                     LAST_ICON = CUR_ICON
                 end
-                imgui.DrawList_AddRect(DRAW_LIST, minx, miny, maxx + (padding*2), maxy + padding*2, COLORS["outline_col"], 0, 0, 2)
+                imgui.DrawList_AddRect(DRAW_LIST, minx, miny, maxx, maxy, COLORS["outline_col"], 0, 0, 2)
                 if SCROLL_TO_IMG then
                     SCROLL_TO_IMG = nil
                     imgui.SetScrollHereY(ctx)
