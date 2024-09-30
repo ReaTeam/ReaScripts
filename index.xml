@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="ff2a9eeac2a26689397a8a4cf711a95b15ffe809" name="ReaTeam Scripts">
+<index version="1" commit="f1467063e285a53a075bfef6f5cefd7104b5bc49" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -19028,6 +19028,10 @@ is off-screen. Reaper issue, should be fixed soon.]]></changelog>
       <version name="1.01" author="Reapertips &amp; Sexan" time="2024-09-26T09:27:57Z">
         <changelog><![CDATA[Removed IsRectVisible optiomization (not doing much but introduceds other problems)]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ff2a9eeac2a26689397a8a4cf711a95b15ffe809/Tracks/reapertips_Track%20icon%20selector.lua</source>
+      </version>
+      <version name="1.02" author="Reapertips &amp; Sexan" time="2024-09-27T18:06:09Z">
+        <changelog><![CDATA[Fix highlighted button draw oversized width and height]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f1467063e285a53a075bfef6f5cefd7104b5bc49/Tracks/reapertips_Track%20icon%20selector.lua</source>
       </version>
     </reapack>
     <reapack name="tilr_Keyboard splitter.lua" type="script" desc="Keyboard splitter">
