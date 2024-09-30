@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="f1467063e285a53a075bfef6f5cefd7104b5bc49" name="ReaTeam Scripts">
+<index version="1" commit="9592f5b54cea8221cec2edc0d2df211acfd50d21" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -19032,6 +19032,24 @@ is off-screen. Reaper issue, should be fixed soon.]]></changelog>
       <version name="1.02" author="Reapertips &amp; Sexan" time="2024-09-27T18:06:09Z">
         <changelog><![CDATA[Fix highlighted button draw oversized width and height]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f1467063e285a53a075bfef6f5cefd7104b5bc49/Tracks/reapertips_Track%20icon%20selector.lua</source>
+      </version>
+      <version name="1.03" author="Reapertips &amp; Sexan" time="2024-09-30T19:37:36Z">
+        <changelog><![CDATA[Add dir entry to table 0 index (All icons)
+Tweak Panel All Icons position a bit
+Panel size is determined by largest folder name
+Rework/Optimize size slider (cpu was hitting 10% while slider was held)
+Show all icons if no track is selected
+Focus search input on script start
+Fix path issue on linux (double slashes)
+Store current size into exstate
+Add option to close the script when ESC is released (on by default)
+Added images/icons for Panel/Menu, Reset/Remove icon from track
+Added Drag and drop support (can only be single track TCP or MCP)
+Added Undo Points on icon change/remove
+Added CTRL+Z shortcut passthrough to reaper]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/9592f5b54cea8221cec2edc0d2df211acfd50d21/Tracks/reapertips_Track%20icon%20selector.lua</source>
+        <source file="reatips_Track icon selector/Menu.png">https://github.com/ReaTeam/ReaScripts/raw/9592f5b54cea8221cec2edc0d2df211acfd50d21/Tracks/reatips_Track%20icon%20selector/Menu.png</source>
+        <source file="reatips_Track icon selector/Reset.png">https://github.com/ReaTeam/ReaScripts/raw/9592f5b54cea8221cec2edc0d2df211acfd50d21/Tracks/reatips_Track%20icon%20selector/Reset.png</source>
       </version>
     </reapack>
     <reapack name="tilr_Keyboard splitter.lua" type="script" desc="Keyboard splitter">
