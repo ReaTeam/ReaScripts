@@ -1,8 +1,22 @@
 -- @description Track icon selector
 -- @author Reapertips & Sexan
--- @version 1.02
+-- @version 1.03
 -- @changelog
---  Fix highlighted button draw oversized width and height
+--  Add dir entry to table 0 index (All icons)
+--  Tweak Panel All Icons position a bit
+--  Panel size is determined by largest folder name
+--  Rework/Optimize size slider (cpu was hitting 10% while slider was held)
+--  Show all icons if no track is selected
+--  Focus search input on script start
+--  Fix path issue on linux (double slashes)
+--  Store current size into exstate
+--  Add option to close the script when ESC is released (on by default)
+--  Added images/icons for Panel/Menu, Reset/Remove icon from track
+--  Added Drag and drop support (can only be single track TCP or MCP)
+--  Added Undo Points on icon change/remove
+--  Added CTRL+Z shortcut passthrough to reaper
+-- @provides
+--   reatips_Track icon selector/*.png
 -- @screenshot
 --   https://i.imgur.com/bFK2HYk.png
 --   https://i.imgur.com/MabMOW1.png
@@ -37,13 +51,15 @@ if not reaper.ImGui_GetBuiltinPath then
     return
 end
 
-local r                = reaper
-package.path           = r.ImGui_GetBuiltinPath() .. '/?.lua'
-local os_separator     = package.config:sub(1, 1)
-local imgui            = require "imgui" "0.9.1"
-local reaper_path      = r.GetResourcePath()
+local r                      = reaper
+package.path                 = reaper.ImGui_GetBuiltinPath() .. '/?.lua'
+local getinfo                = debug.getinfo(1, 'S');
+local script_path            = getinfo.source:match [[^@?(.*[\/])[^\/]-$]];
+local os_separator           = package.config:sub(1, 1)
+local imgui                  = require "imgui" "0.9.3"
+local reaper_path            = r.GetResourcePath()
 
-local COLORS           = {
+local COLORS                 = {
     ["win_bg"] = 0x282828ff,
     ["sidebar_col"] = 0x2c2c2cff,
     ["hover_col"] = 0x3c6191ff,
@@ -55,7 +71,10 @@ local COLORS           = {
 local ALWAYS_SHOW_CATEGORIES = false
 local QUIT_ON_SELECT         = false
 local TOOLTIPS               = true
-local SIDE_WIDTH = 100
+local ESC_TO_QUIT            = true
+local CURRENT_ZOOM           = 1
+local WANT_FOCUS             = true
+
 
 function StringToTable(str)
     local f, err = load("return " .. str)
@@ -75,8 +94,9 @@ if r.HasExtState("TRACK_ICONS4", "STORED_DATA") then
             COLORS["outline_col"] = storedTable.outline_col
             ALWAYS_SHOW_CATEGORIES = storedTable.ALWAYS_SHOW_CATEGORIES
             QUIT_ON_SELECT = storedTable.QUIT_ON_SELECT
+            ESC_TO_QUIT = storedTable.ESC_TO_QUIT ~= nil and storedTable.ESC_TO_QUIT or ESC_TO_QUIT
             TOOLTIPS = storedTable.TOOLTIPS
-            SIDE_WIDTH = storedTable.SIDE_WIDTH
+            CURRENT_ZOOM = storedTable.CURRENT_ZOOM ~= nil and tonumber(storedTable.CURRENT_ZOOM) or CURRENT_ZOOM
         end
     end
 end
@@ -84,7 +104,7 @@ end
 local OPEN_CATEGORIES = ALWAYS_SHOW_CATEGORIES
 
 local MAIN_PNG_TBL = {
-    [0] = {}
+    [0] = { dir = "All Icons" }
 }
 local FILTERED_PNG
 
@@ -99,7 +119,14 @@ local FLT_MIN, FLT_MAX = imgui.NumericLimits_Float()
 local SYSTEM_FONT_FACTORY = imgui.CreateFont('sans-serif', 12, imgui.FontFlags_Bold)
 imgui.Attach(ctx, SYSTEM_FONT_FACTORY)
 
-local png_path_track_icons = "/Data/track_icons/"
+local menu_png_path = script_path .. "/reatips_Track icon selector/Menu.png"
+local rest_png_path = script_path .. "/reatips_Track icon selector/Reset.png"
+local menu_icon = imgui.CreateImage(menu_png_path)
+local reset_icon = imgui.CreateImage(rest_png_path)
+imgui.Attach(ctx, menu_icon)
+imgui.Attach(ctx, reset_icon)
+
+local png_path_track_icons = "/Data/track_icons"
 
 function SerializeTable(val, name, skipnewlines, depth)
     skipnewlines = skipnewlines or false
@@ -141,7 +168,10 @@ local function GetDirFilesRecursive(dir, tbl, filter)
         local path = r.EnumerateSubdirectories(dir, index)
         if not path then break end
         tbl[#tbl + 1] = { dir = path, {} }
-        GetDirFilesRecursive(dir .. path, tbl[#tbl], filter)
+        GetDirFilesRecursive(dir .. os_separator .. path, tbl[#tbl], filter)
+        if #tbl[#tbl] == 0 then
+            tbl[#tbl] = nil
+        end
     end
 
     for index = 0, math.huge do
@@ -149,14 +179,23 @@ local function GetDirFilesRecursive(dir, tbl, filter)
         if not file then break end
         if file:find(filter, nil, true) then
             tbl[#tbl + 1] = { name = dir .. os_separator .. file, short_name = file }
-            table.insert(MAIN_PNG_TBL[0], { name = dir .. os_separator .. file, short_name = file})
+            table.insert(MAIN_PNG_TBL[0], { name = dir .. os_separator .. file, short_name = file })
         end
     end
 end
 
 GetDirFilesRecursive(reaper_path .. png_path_track_icons, MAIN_PNG_TBL, ".png")
+local largest_name = 0
 for i = 0, #MAIN_PNG_TBL do
-    table.sort(MAIN_PNG_TBL[i], function(a, b) if a.name and b.name then return a.name:lower() < b.name:lower() end end)
+    if MAIN_PNG_TBL[i].dir then
+        local cur_size = imgui.CalcTextSize(ctx, MAIN_PNG_TBL[i].dir)
+        largest_name = cur_size > largest_name and cur_size or largest_name
+    end
+    table.sort(MAIN_PNG_TBL[i],
+        function(a, b)
+            if a.name and b.name then return a.name:lower() < b.name:lower() end
+            return false
+        end)
 end
 
 local function RefreshImgObj()
@@ -194,15 +233,6 @@ local function FilterActions(actions, filter_text)
     return t
 end
 
-local function SteppedSliderDouble(label, val, v_min, v_max, step, format, flags)
-    local changed, value = imgui.SliderDouble(ctx, label, val, v_min, v_max, format, flags)
-    if changed then
-        value = math.floor((value / step) + 0.5) * step
-        NEED_REFRESH = true
-    end
-    return changed, value
-end
-
 local function DrawTooltips(str)
     if imgui.BeginTooltip(ctx) then
         imgui.Text(ctx, str)
@@ -212,10 +242,8 @@ end
 
 local PNG_FILTER = ''
 local cur_category = 0
-local sl_val = 1
 local function PngSelector(button_size)
     local ww = imgui.GetWindowSize(ctx)
-    local padding = imgui.GetStyleVar(ctx, imgui.StyleVar_FramePadding)
 
     imgui.PushStyleColor(ctx, imgui.Col_Text, COLORS["text_active"])
     imgui.PushStyleColor(ctx, imgui.Col_ChildBg, COLORS["win_bg"])
@@ -223,11 +251,12 @@ local function PngSelector(button_size)
     imgui.PushStyleColor(ctx, imgui.Col_FrameBg, COLORS["sidebar_col"])
 
     imgui.BeginGroup(ctx)
-    if imgui.Button(ctx, "||") then
+    if imgui.ImageButton(ctx, "menu_icon", menu_icon, 12, 12) then
         OPEN_CATEGORIES = not OPEN_CATEGORIES
     end
 
-    if imgui.IsPopupOpen(ctx,"R_CTX") then
+    imgui.SameLine(ctx)
+    if imgui.IsPopupOpen(ctx, "R_CTX") then
         local minx, miny = imgui.GetItemRectMin(ctx)
         local maxx, maxy = imgui.GetItemRectMax(ctx)
         imgui.DrawList_AddRect(DRAW_LIST, minx, miny, maxx, maxy, COLORS["outline_col"], 0, 0, 2)
@@ -239,19 +268,39 @@ local function PngSelector(button_size)
             imgui.OpenPopup(ctx, "R_CTX")
         end
     end
+    if imgui.ImageButton(ctx, "reset_icon", reset_icon, 12, 12) then
+        if #TRACKS > 0 then
+            r.Undo_BeginBlock2(nil)
+            for i = 1, #TRACKS do
+                r.GetSetMediaTrackInfo_String(TRACKS[i], "P_ICON", "", true)
+            end
+            r.Undo_EndBlock2(nil, "Removed Track Icon", 1)
+        end
+    end
+
+    if imgui.IsItemHovered(ctx) then
+        DrawTooltips("Remove Track Icon")
+    end
     imgui.SameLine(ctx)
     imgui.SetNextItemWidth(ctx, 50)
-    RV_SLD, sl_val = SteppedSliderDouble("Size  ", sl_val, 1, 3, 0.25, "")
-    button_size = button_size * sl_val
+    RV_SLD, CURRENT_ZOOM = imgui.SliderInt(ctx, "Size\t", CURRENT_ZOOM, 1, 5, "")
+    if RV_SLD then
+        SaveSettings()
+    end
+    button_size = button_size * (CURRENT_ZOOM == 1 and 1 or CURRENT_ZOOM / 1.5)
 
     if imgui.IsItemHovered(ctx) and not imgui.IsItemActive(ctx) then
         DrawTooltips("Increase/Decrease Icon Size")
     end
 
-    if not OPEN_CATEGORIES and ww > 250 or (OPEN_CATEGORIES and ww > (SIDE_WIDTH+250)) then
+    if not OPEN_CATEGORIES and ww > largest_name or (OPEN_CATEGORIES and ww > (largest_name)) then
         imgui.SameLine(ctx, 0, 0)
     end
     imgui.SetNextItemWidth(ctx, -FLT_MIN - 15)
+    if WANT_FOCUS then
+        imgui.SetKeyboardFocusHere(ctx)
+        WANT_FOCUS = nil
+    end
     RV_F, PNG_FILTER = imgui.InputTextWithHint(ctx, "##input2", "Search Icons", PNG_FILTER)
     imgui.SameLine(ctx, 0, 0)
 
@@ -289,14 +338,23 @@ local function PngSelector(button_size)
             end
 
             if imgui.ImageButton(ctx, "##png_select", FILTERED_PNG[n + 1].img_obj, button_size, button_size, 0, 0, 1, 1) then
-                for i = 1, #TRACKS do
-                    r.GetSetMediaTrackInfo_String(TRACKS[i], "P_ICON", image, true)
+                if #TRACKS > 0 then
+                    r.Undo_BeginBlock2(nil)
+                    for i = 1, #TRACKS do
+                        r.GetSetMediaTrackInfo_String(TRACKS[i], "P_ICON", image, true)
+                    end
+                    r.Undo_EndBlock2(nil, "Changed Track Icon", 1)
+                    if QUIT_ON_SELECT then
+                        WANT_CLOSE = true
+                    end
+                    LAST_ICON = image
+                    CUR_ICON = image
                 end
-                if QUIT_ON_SELECT then
-                    WANT_CLOSE = true
-                end
-                LAST_ICON = image
-                CUR_ICON = image
+            end
+            if imgui.IsItemActive(ctx) and imgui.IsMouseDragging(ctx, 0) and imgui.BeginDragDropSource(ctx) then
+                imgui.Image(ctx, FILTERED_PNG[n + 1].img_obj, button_size, button_size)
+                dnd_image = image
+                imgui.EndDragDropSource(ctx)
             end
 
             if imgui.IsItemHovered(ctx) and TOOLTIPS then
@@ -304,7 +362,7 @@ local function PngSelector(button_size)
             end
 
             local minx, miny = imgui.GetItemRectMin(ctx)
-            local maxx, maxy = imgui.GetItemRectMax(ctx)    
+            local maxx, maxy = imgui.GetItemRectMax(ctx)
             if CUR_ICON == image then
                 if LAST_ICON ~= CUR_ICON then
                     SCROLL_TO_IMG = true
@@ -316,6 +374,7 @@ local function PngSelector(button_size)
                     imgui.SetScrollHereY(ctx)
                 end
             end
+
 
             local next_button_x2 = maxx + item_spacing_x + button_size
 
@@ -330,14 +389,25 @@ local function PngSelector(button_size)
     imgui.PopStyleVar(ctx)
     imgui.PopStyleColor(ctx, 5)
     imgui.EndGroup(ctx)
+
+    if imgui.IsMouseReleased(ctx, 0) and dnd_image then
+        local rv_track, info = r.GetThingFromPoint(r.GetMousePosition())
+        if rv_track and info:find("tcp") or info:find("mcp") then
+            r.Undo_BeginBlock2(nil)
+            r.GetSetMediaTrackInfo_String(rv_track, "P_ICON", dnd_image, true)
+            r.Undo_EndBlock2(nil, "Changed Track Icon", 1)
+        end
+        dnd_image = nil
+    end
 end
 
 local function Categories()
     local item_spacing_x = imgui.GetStyleVar(ctx, imgui.StyleVar_ItemSpacing)
-
+    --local padding = imgui.GetStyleVar(ctx, imgui.StyleVar_FramePadding)
     imgui.PushStyleVar(ctx, imgui.StyleVar_ItemSpacing, item_spacing_x, 20)
     imgui.PushStyleColor(ctx, imgui.Col_ChildBg, COLORS["sidebar_col"])
-    if imgui.BeginChild(ctx, "PM_INSPECTOR", SIDE_WIDTH) then
+    if imgui.BeginChild(ctx, "PM_INSPECTOR", largest_name) then
+        imgui.SetCursorPosY(ctx, imgui.GetCursorPosY(ctx) + 8)
         for i = 0, #MAIN_PNG_TBL do
             if i ~= PREV_CATEGORY then
                 if MAIN_PNG_TBL[i].sel then
@@ -348,20 +418,11 @@ local function Categories()
             else
                 imgui.PushStyleColor(ctx, imgui.Col_Text, COLORS["text_active"])
             end
-            if i == 0 then
-                imgui.SetCursorPosY(ctx, imgui.GetCursorPosY(ctx) + 10)
-                if imgui.Selectable(ctx, "  All Icons", cur_category == 0, nil) then
-                    cur_category = 0
+            if MAIN_PNG_TBL[i].dir then
+                if imgui.Selectable(ctx, "  " .. MAIN_PNG_TBL[i].dir, cur_category == i, nil) then
+                    cur_category = i
                     NEED_REFRESH = true
                     old_filter = nil
-                end
-            else
-                if MAIN_PNG_TBL[i].dir then
-                    if imgui.Selectable(ctx, "  " .. MAIN_PNG_TBL[i].dir, cur_category == i, nil) then
-                        cur_category = i
-                        NEED_REFRESH = true
-                        old_filter = nil
-                    end
                 end
             end
             if imgui.IsItemHovered(ctx) then
@@ -388,7 +449,7 @@ local function Categories()
     imgui.PopStyleColor(ctx)
 end
 
-local function SaveSettings()
+function SaveSettings()
     local data = TableToString({
         win_col = COLORS["win_bg"],
         win_col_alt = COLORS["win_bg_alt"],
@@ -399,8 +460,9 @@ local function SaveSettings()
         text_inactive = COLORS["text_inactive"],
         ALWAYS_SHOW_CATEGORIES = ALWAYS_SHOW_CATEGORIES,
         QUIT_ON_SELECT = QUIT_ON_SELECT,
+        ESC_TO_QUIT = ESC_TO_QUIT,
         TOOLTIPS = TOOLTIPS,
-        SIDE_WIDTH = SIDE_WIDTH,
+        CURRENT_ZOOM = CURRENT_ZOOM
     })
     r.SetExtState("TRACK_ICONS4", "STORED_DATA", data, true)
 end
@@ -409,20 +471,19 @@ local function DrawRClickCtx()
     if imgui.BeginPopup(ctx, "R_CTX") then
         if imgui.BeginMenu(ctx, "Customize") then
             local RV_UPDATED
-            RV_COL1, COLORS["win_bg"] = r.ImGui_ColorEdit4(ctx, "Primary background color", COLORS["win_bg"],
-                r.ImGui_ColorEditFlags_NoInputs())
-            RV_COL2, COLORS["sidebar_col"] = r.ImGui_ColorEdit4(ctx, "Secondary background color", COLORS["sidebar_col"],
-            r.ImGui_ColorEditFlags_NoInputs())
-            RV_COL3, COLORS["hover_col"] = r.ImGui_ColorEdit4(ctx, "Hover icon color", COLORS["hover_col"],
-            r.ImGui_ColorEditFlags_NoInputs())
-            RV_COL4, COLORS["outline_col"] = r.ImGui_ColorEdit4(ctx, "Selected outline color", COLORS["outline_col"],
-            r.ImGui_ColorEditFlags_NoInputs())
-            RV_COL5, COLORS["text_active"] = r.ImGui_ColorEdit4(ctx, "Text active color", COLORS["text_active"],
-            r.ImGui_ColorEditFlags_NoInputs())
-            RV_COL6, COLORS["text_inactive"] = r.ImGui_ColorEdit4(ctx, "Text Inactive color", COLORS["text_inactive"],
-            r.ImGui_ColorEditFlags_NoInputs())
-            RV_COL7, SIDE_WIDTH = imgui.SliderInt( ctx, "Side panel width", SIDE_WIDTH, 80, 200)
-            if RV_COL1 or RV_COL2 or RV_COL3 or RV_COL4 or RV_COL5 or RV_COL6 or RV_COL7 then
+            RV_COL1, COLORS["win_bg"] = imgui.ColorEdit4(ctx, "Primary background color", COLORS["win_bg"],
+                imgui.ColorEditFlags_NoInputs)
+            RV_COL2, COLORS["sidebar_col"] = imgui.ColorEdit4(ctx, "Secondary background color", COLORS["sidebar_col"],
+                imgui.ColorEditFlags_NoInputs)
+            RV_COL3, COLORS["hover_col"] = imgui.ColorEdit4(ctx, "Hover icon color", COLORS["hover_col"],
+                imgui.ColorEditFlags_NoInputs)
+            RV_COL4, COLORS["outline_col"] = imgui.ColorEdit4(ctx, "Selected outline color", COLORS["outline_col"],
+                imgui.ColorEditFlags_NoInputs)
+            RV_COL5, COLORS["text_active"] = imgui.ColorEdit4(ctx, "Text active color", COLORS["text_active"],
+                imgui.ColorEditFlags_NoInputs)
+            RV_COL6, COLORS["text_inactive"] = imgui.ColorEdit4(ctx, "Text Inactive color", COLORS["text_inactive"],
+                imgui.ColorEditFlags_NoInputs)
+            if RV_COL1 or RV_COL2 or RV_COL3 or RV_COL4 or RV_COL5 or RV_COL6 then
                 RV_UPDATED = true
             end
             if imgui.MenuItem(ctx, "Reset to Default", nil) then
@@ -432,7 +493,6 @@ local function DrawRClickCtx()
                 COLORS["outline_col"] = 0xffcb40ff
                 COLORS["text_active"] = 0xf1f2f2ff
                 COLORS["text_inactive"] = 0x999B9Fff
-                SIDE_WIDTH = 100
                 SaveSettings()
             end
             if RV_UPDATED then
@@ -447,6 +507,10 @@ local function DrawRClickCtx()
             end
             if imgui.MenuItem(ctx, "Quit after applying icon", nil, QUIT_ON_SELECT == true) then
                 QUIT_ON_SELECT = not QUIT_ON_SELECT
+                SaveSettings()
+            end
+            if imgui.MenuItem(ctx, "Quit after pressing ESC", nil, ESC_TO_QUIT == true) then
+                ESC_TO_QUIT = not ESC_TO_QUIT
                 SaveSettings()
             end
             if imgui.MenuItem(ctx, "Show file name on icon hover", nil, TOOLTIPS == true) then
@@ -471,6 +535,16 @@ local function PushTheme()
     imgui.PushStyleColor(ctx, imgui.Col_ScrollbarBg, COLORS["win_bg"])
 end
 
+local function CheckKeys()
+    ESC = imgui.IsKeyReleased(ctx, imgui.Key_Escape)
+    CTRL = imgui.GetKeyMods(ctx) == imgui.Mod_Ctrl
+    Z = imgui.IsKeyPressed(ctx, imgui.Key_Z)
+    if ESC and ESC_TO_QUIT then WANT_CLOSE = true end
+    if CTRL and Z then
+        r.Main_OnCommand(40029, 0)
+    end
+end
+
 imgui.SetNextWindowSizeConstraints(ctx, WND_H, WND_W, FLT_MAX, FLT_MAX)
 local function main()
     if SET_DOCK_ID then
@@ -487,26 +561,21 @@ local function main()
     local visible, p_open = imgui.Begin(ctx, 'Track Icons', true)
     imgui.PopStyleColor(ctx, 2)
     if visible then
+        CheckKeys()
         imgui.PushFont(ctx, SYSTEM_FONT_FACTORY)
         PushTheme()
         DRAW_LIST = imgui.GetWindowDrawList(ctx)
-        if #TRACKS ~= 0 then
-            if #TRACKS == 1 then
-                RV_I, CUR_ICON = r.GetSetMediaTrackInfo_String(TRACKS[1], "P_ICON", "", false)
-            else
-                CUR_ICON = nil
-            end
-            if OPEN_CATEGORIES then
-                Categories()
-                imgui.SameLine(ctx)
-            end
-            PngSelector(icon_size)
-            DrawRClickCtx()
+        if #TRACKS == 1 then
+            RV_I, CUR_ICON = r.GetSetMediaTrackInfo_String(TRACKS[1], "P_ICON", "", false)
         else
-            LAST_ICON = nil
-            NEED_REFRESH = true
-            imgui.Text(ctx, "SELECT TRACK")
+            CUR_ICON = nil
         end
+        if OPEN_CATEGORIES then
+            Categories()
+            imgui.SameLine(ctx)
+        end
+        PngSelector(icon_size)
+        DrawRClickCtx()
         imgui.PopStyleColor(ctx, 3)
         imgui.PopFont(ctx)
         imgui.End(ctx)
