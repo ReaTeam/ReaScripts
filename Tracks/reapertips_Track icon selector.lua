@@ -1,20 +1,8 @@
 -- @description Track icon selector
 -- @author Reapertips & Sexan
--- @version 1.03
+-- @version 1.04
 -- @changelog
---  Add dir entry to table 0 index (All icons)
---  Tweak Panel All Icons position a bit
---  Panel size is determined by largest folder name
---  Rework/Optimize size slider (cpu was hitting 10% while slider was held)
---  Show all icons if no track is selected
---  Focus search input on script start
---  Fix path issue on linux (double slashes)
---  Store current size into exstate
---  Add option to close the script when ESC is released (on by default)
---  Added images/icons for Panel/Menu, Reset/Remove icon from track
---  Added Drag and drop support (can only be single track TCP or MCP)
---  Added Undo Points on icon change/remove
---  Added CTRL+Z shortcut passthrough to reaper
+--  Push custom font before calculating longest folder name (fixes panel size getting werid widths because of wrong font)
 -- @provides
 --   reatips_Track icon selector/*.png
 -- @screenshot
@@ -186,6 +174,7 @@ end
 
 GetDirFilesRecursive(reaper_path .. png_path_track_icons, MAIN_PNG_TBL, ".png")
 local largest_name = 0
+imgui.PushFont(ctx, SYSTEM_FONT_FACTORY)
 for i = 0, #MAIN_PNG_TBL do
     if MAIN_PNG_TBL[i].dir then
         local cur_size = imgui.CalcTextSize(ctx, MAIN_PNG_TBL[i].dir)
@@ -197,6 +186,8 @@ for i = 0, #MAIN_PNG_TBL do
             return false
         end)
 end
+largest_name = largest_name + imgui.GetStyleVar(ctx, imgui.StyleVar_FramePadding) * 2
+imgui.PopFont(ctx)
 
 local function RefreshImgObj()
     for i = 1, #FILTERED_PNG do
