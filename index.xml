@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="9592f5b54cea8221cec2edc0d2df211acfd50d21" name="ReaTeam Scripts">
+<index version="1" commit="07c2bdc5637d0e24166272d4a044ee63628a9f47" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -19050,6 +19050,12 @@ Added CTRL+Z shortcut passthrough to reaper]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/9592f5b54cea8221cec2edc0d2df211acfd50d21/Tracks/reapertips_Track%20icon%20selector.lua</source>
         <source file="reatips_Track icon selector/Menu.png">https://github.com/ReaTeam/ReaScripts/raw/9592f5b54cea8221cec2edc0d2df211acfd50d21/Tracks/reatips_Track%20icon%20selector/Menu.png</source>
         <source file="reatips_Track icon selector/Reset.png">https://github.com/ReaTeam/ReaScripts/raw/9592f5b54cea8221cec2edc0d2df211acfd50d21/Tracks/reatips_Track%20icon%20selector/Reset.png</source>
+      </version>
+      <version name="1.04" author="Reapertips &amp; Sexan" time="2024-09-30T23:39:43Z">
+        <changelog><![CDATA[Push custom font before calculating longest folder name (fixes panel size getting werid widths because of wrong font)]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/07c2bdc5637d0e24166272d4a044ee63628a9f47/Tracks/reapertips_Track%20icon%20selector.lua</source>
+        <source file="reatips_Track icon selector/Menu.png">https://github.com/ReaTeam/ReaScripts/raw/07c2bdc5637d0e24166272d4a044ee63628a9f47/Tracks/reatips_Track%20icon%20selector/Menu.png</source>
+        <source file="reatips_Track icon selector/Reset.png">https://github.com/ReaTeam/ReaScripts/raw/07c2bdc5637d0e24166272d4a044ee63628a9f47/Tracks/reatips_Track%20icon%20selector/Reset.png</source>
       </version>
     </reapack>
     <reapack name="tilr_Keyboard splitter.lua" type="script" desc="Keyboard splitter">
