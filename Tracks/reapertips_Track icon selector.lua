@@ -1,9 +1,8 @@
 -- @description Track icon selector
 -- @author Reapertips & Sexan
--- @version 1.05
+-- @version 1.06
 -- @changelog
---  Add root level images to "root" table (needed to make sorting work)
---  Sort categories alphabetically
+--  Account master track in selections
 -- @provides
 --   reatips_Track icon selector/*.png
 -- @screenshot
@@ -556,8 +555,8 @@ local function main()
     end
 
     TRACKS = {}
-    for i = 1, r.CountSelectedTracks(nil) do
-        TRACKS[#TRACKS + 1] = r.GetSelectedTrack(nil, i - 1)
+    for i = 1, r.CountSelectedTracks2(nil, true) do
+        TRACKS[#TRACKS + 1] = r.GetSelectedTrack2(nil, i - 1, true)
     end
     imgui.PushStyleColor(ctx, imgui.Col_WindowBg, COLORS["win_bg"])
     imgui.PushStyleColor(ctx, imgui.Col_TitleBgActive, COLORS["win_bg"])
