@@ -1,8 +1,9 @@
 -- @description Track icon selector
 -- @author Reapertips & Sexan
--- @version 1.04
+-- @version 1.05
 -- @changelog
---  Push custom font before calculating longest folder name (fixes panel size getting werid widths because of wrong font)
+--  Add root level images to "root" table (needed to make sorting work)
+--  Sort categories alphabetically
 -- @provides
 --   reatips_Track icon selector/*.png
 -- @screenshot
@@ -92,6 +93,7 @@ end
 local OPEN_CATEGORIES = ALWAYS_SHOW_CATEGORIES
 
 local MAIN_PNG_TBL = {
+    [-1] = { dir = "Root" },
     [0] = { dir = "All Icons" }
 }
 local FILTERED_PNG
@@ -166,16 +168,27 @@ local function GetDirFilesRecursive(dir, tbl, filter)
         local file = r.EnumerateFiles(dir, index)
         if not file then break end
         if file:find(filter, nil, true) then
-            tbl[#tbl + 1] = { name = dir .. os_separator .. file, short_name = file }
+            if dir == reaper_path .. png_path_track_icons then
+                table.insert(MAIN_PNG_TBL[-1], { name = dir .. os_separator .. file, short_name = file })
+            else
+                tbl[#tbl + 1] = { name = dir .. os_separator .. file, short_name = file }
+            end
             table.insert(MAIN_PNG_TBL[0], { name = dir .. os_separator .. file, short_name = file })
         end
     end
 end
 
 GetDirFilesRecursive(reaper_path .. png_path_track_icons, MAIN_PNG_TBL, ".png")
+
+table.sort(MAIN_PNG_TBL,
+function(a, b)
+        if a.dir and b.dir then return a.dir:lower() < b.dir:lower() end
+        return false
+    end)
+
 local largest_name = 0
 imgui.PushFont(ctx, SYSTEM_FONT_FACTORY)
-for i = 0, #MAIN_PNG_TBL do
+for i = -1, #MAIN_PNG_TBL do
     if MAIN_PNG_TBL[i].dir then
         local cur_size = imgui.CalcTextSize(ctx, MAIN_PNG_TBL[i].dir)
         largest_name = cur_size > largest_name and cur_size or largest_name
@@ -394,7 +407,6 @@ end
 
 local function Categories()
     local item_spacing_x = imgui.GetStyleVar(ctx, imgui.StyleVar_ItemSpacing)
-    --local padding = imgui.GetStyleVar(ctx, imgui.StyleVar_FramePadding)
     imgui.PushStyleVar(ctx, imgui.StyleVar_ItemSpacing, item_spacing_x, 20)
     imgui.PushStyleColor(ctx, imgui.Col_ChildBg, COLORS["sidebar_col"])
     if imgui.BeginChild(ctx, "PM_INSPECTOR", largest_name) then
