@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="07c2bdc5637d0e24166272d4a044ee63628a9f47" name="ReaTeam Scripts">
+<index version="1" commit="45bbc022e1a09918a2b870adde077ebb37e1228f" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -19056,6 +19056,14 @@ Added CTRL+Z shortcut passthrough to reaper]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/07c2bdc5637d0e24166272d4a044ee63628a9f47/Tracks/reapertips_Track%20icon%20selector.lua</source>
         <source file="reatips_Track icon selector/Menu.png">https://github.com/ReaTeam/ReaScripts/raw/07c2bdc5637d0e24166272d4a044ee63628a9f47/Tracks/reatips_Track%20icon%20selector/Menu.png</source>
         <source file="reatips_Track icon selector/Reset.png">https://github.com/ReaTeam/ReaScripts/raw/07c2bdc5637d0e24166272d4a044ee63628a9f47/Tracks/reatips_Track%20icon%20selector/Reset.png</source>
+      </version>
+      <version name="1.05" author="Reapertips &amp; Sexan" time="2024-10-01T16:50:29Z">
+        <changelog><![CDATA[-  Add root level images to "root" table (needed to make sorting work)
+-  Sort categories alphabetically
+-  Account master track in selections]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/45bbc022e1a09918a2b870adde077ebb37e1228f/Tracks/reapertips_Track%20icon%20selector.lua</source>
+        <source file="reatips_Track icon selector/Menu.png">https://github.com/ReaTeam/ReaScripts/raw/45bbc022e1a09918a2b870adde077ebb37e1228f/Tracks/reatips_Track%20icon%20selector/Menu.png</source>
+        <source file="reatips_Track icon selector/Reset.png">https://github.com/ReaTeam/ReaScripts/raw/45bbc022e1a09918a2b870adde077ebb37e1228f/Tracks/reatips_Track%20icon%20selector/Reset.png</source>
       </version>
     </reapack>
     <reapack name="tilr_Keyboard splitter.lua" type="script" desc="Keyboard splitter">
