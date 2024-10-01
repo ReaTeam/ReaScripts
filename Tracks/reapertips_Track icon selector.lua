@@ -1,8 +1,9 @@
 -- @description Track icon selector
 -- @author Reapertips & Sexan
--- @version 1.06
+-- @version 1.07
 -- @changelog
---  Account master track in selections
+--  Allow keyboard navigation (up,down,left,right,enter)
+--  Clicking on any icon sets keyboard focus there
 -- @provides
 --   reatips_Track icon selector/*.png
 -- @screenshot
@@ -101,7 +102,7 @@ local icon_size = 32
 
 r.set_action_options(1)
 
-local ctx = imgui.CreateContext('Track icon selector')
+local ctx = imgui.CreateContext('Track icon selector', imgui.ConfigFlags_NavEnableKeyboard)
 local WND_W, WND_H = 500, 500
 local FLT_MIN, FLT_MAX = imgui.NumericLimits_Float()
 
@@ -328,9 +329,8 @@ local function PngSelector(button_size)
     local buttons_count = #FILTERED_PNG
     local window_visible_x2 = ({ imgui.GetWindowPos(ctx) })[1] +
         ({ imgui.GetWindowContentRegionMax(ctx) })[1]
-    imgui.PushStyleColor(ctx, imgui.Col_Button, COLORS["win_bg"])
-
-    if imgui.BeginChild(ctx, "filtered_pngs_list", 0, 0) then
+    imgui.PushStyleColor(ctx, imgui.Col_Button, COLORS["win_bg"])    
+    if imgui.BeginChild(ctx, "filtered_pngs_list", 0, 0) then        
         for n = 0, #FILTERED_PNG - 1 do
             local image = FILTERED_PNG[n + 1].name
             local stripped_name = FILTERED_PNG[n + 1].short_name
@@ -341,6 +341,7 @@ local function PngSelector(button_size)
             end
 
             if imgui.ImageButton(ctx, "##png_select", FILTERED_PNG[n + 1].img_obj, button_size, button_size, 0, 0, 1, 1) then
+                imgui.SetKeyboardFocusHere( ctx ,-1)
                 if #TRACKS > 0 then
                     r.Undo_BeginBlock2(nil)
                     for i = 1, #TRACKS do
