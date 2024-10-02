@@ -1,10 +1,9 @@
 -- @description Track icon selector
 -- @author Reapertips & Sexan
--- @version 1.05
+-- @version 1.06
 -- @changelog
---   -  Add root level images to "root" table (needed to make sorting work)
---   -  Sort categories alphabetically
---   -  Account master track in selections
+--   Add traceback report
+--   Add padding whitespaces into name size calculation (to keep UI as it was)
 -- @provides
 --   reatips_Track icon selector/Menu.png
 --   reatips_Track icon selector/Reset.png
@@ -66,6 +65,30 @@ local ESC_TO_QUIT            = true
 local CURRENT_ZOOM           = 1
 local WANT_FOCUS             = true
 
+local function PrintTraceback(err)
+    local byLine = "([^\r\n]*)\r?\n?"
+    local trimPath = "[\\/]([^\\/]-:%d+:.+)$"
+    local stack = {}
+    for line in string.gmatch(err, byLine) do
+        local str = string.match(line, trimPath) or line
+        stack[#stack + 1] = str
+    end
+    r.ShowConsoleMsg(
+        "Error: " .. stack[1] .. "\n\n" ..
+        "Stack traceback:\n\t" .. table.concat(stack, "\n\t", 3) .. "\n\n" ..
+        "Reaper:       \t" .. r.GetAppVersion() .. "\n" ..
+        "Platform:     \t" .. r.GetOS()
+    )
+end
+
+local function PDefer(func)
+    r.defer(function()
+        local status, err = xpcall(func, debug.traceback)
+        if not status then
+            PrintTraceback(err)
+        end
+    end)
+end
 
 function StringToTable(str)
     local f, err = load("return " .. str)
@@ -192,7 +215,7 @@ local largest_name = 0
 imgui.PushFont(ctx, SYSTEM_FONT_FACTORY)
 for i = -1, #MAIN_PNG_TBL do
     if MAIN_PNG_TBL[i].dir then
-        local cur_size = imgui.CalcTextSize(ctx, MAIN_PNG_TBL[i].dir)
+        local cur_size = imgui.CalcTextSize(ctx, "  " .. MAIN_PNG_TBL[i].dir)
         largest_name = cur_size > largest_name and cur_size or largest_name
     end
     table.sort(MAIN_PNG_TBL[i],
@@ -587,8 +610,8 @@ local function main()
     end
     if WANT_CLOSE then p_open = false end
     if p_open then
-        r.defer(main)
+        PDefer(main)
     end
 end
 
-r.defer(main)
+PDefer(main)
