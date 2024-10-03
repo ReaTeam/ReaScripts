@@ -1,9 +1,8 @@
 -- @description Track icon selector
 -- @author Reapertips & Sexan
--- @version 1.06
+-- @version 1.07
 -- @changelog
---   Add traceback report
---   Add padding whitespaces into name size calculation (to keep UI as it was)
+--   Show Console message with unsupported image path
 -- @provides
 --   reatips_Track icon selector/Menu.png
 --   reatips_Track icon selector/Reset.png
@@ -363,7 +362,9 @@ local function PngSelector(button_size)
 
             imgui.PushID(ctx, n)
             if not imgui.ValidatePtr(FILTERED_PNG[n + 1].img_obj, 'ImGui_Image*') then
-                FILTERED_PNG[n + 1].img_obj = imgui.CreateImage(image)
+                if not pcall(function() FILTERED_PNG[n + 1].img_obj = imgui.CreateImage(image) end) then  
+                    r.ShowConsoleMsg("Unsupported image : " .. image .. "\n\n")
+               end
             end
 
             if imgui.ImageButton(ctx, "##png_select", FILTERED_PNG[n + 1].img_obj, button_size, button_size, 0, 0, 1, 1) then
