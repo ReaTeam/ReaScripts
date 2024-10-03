@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="d8ec6da39d46e189965920f7c58f17253fb91070" name="ReaTeam Scripts">
+<index version="1" commit="0e570647f4f6efa88132e13718e546556211f7f8" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -19071,6 +19071,12 @@ Add padding whitespaces into name size calculation (to keep UI as it was)]]></ch
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d8ec6da39d46e189965920f7c58f17253fb91070/Tracks/reapertips_Track%20icon%20selector.lua</source>
         <source file="reatips_Track icon selector/Menu.png">https://github.com/ReaTeam/ReaScripts/raw/d8ec6da39d46e189965920f7c58f17253fb91070/Tracks/reatips_Track%20icon%20selector/Menu.png</source>
         <source file="reatips_Track icon selector/Reset.png">https://github.com/ReaTeam/ReaScripts/raw/d8ec6da39d46e189965920f7c58f17253fb91070/Tracks/reatips_Track%20icon%20selector/Reset.png</source>
+      </version>
+      <version name="1.07" author="Reapertips &amp; Sexan" time="2024-10-03T18:35:06Z">
+        <changelog><![CDATA[Show Console message with unsupported image path]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/0e570647f4f6efa88132e13718e546556211f7f8/Tracks/reapertips_Track%20icon%20selector.lua</source>
+        <source file="reatips_Track icon selector/Menu.png">https://github.com/ReaTeam/ReaScripts/raw/0e570647f4f6efa88132e13718e546556211f7f8/Tracks/reatips_Track%20icon%20selector/Menu.png</source>
+        <source file="reatips_Track icon selector/Reset.png">https://github.com/ReaTeam/ReaScripts/raw/0e570647f4f6efa88132e13718e546556211f7f8/Tracks/reatips_Track%20icon%20selector/Reset.png</source>
       </version>
     </reapack>
     <reapack name="tilr_Keyboard splitter.lua" type="script" desc="Keyboard splitter">
