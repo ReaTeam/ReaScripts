@@ -1,8 +1,8 @@
 -- @description Create Impulse Response (IR) of the FX Chain of the selected Track
 -- @author amagalma
--- @version 2.15
+-- @version 2.16
 -- @changelog
---   - Fix loading IR into Reaverb
+--   - Show the correct path in "IR Name" tooltip
 -- @donation https://www.paypal.me/amagalma
 -- @link https://forum.cockos.com/showthread.php?t=234517
 -- @about
@@ -20,7 +20,7 @@
 
 -- Thanks to EUGEN27771, spk77, X-Raym, Lokasenna
 
-local version = "2.15"
+local version = "2.16"
 --------------------------------------------------------------------------------------------
 
 
@@ -748,6 +748,7 @@ function BrowseForFile()
   "Save Impulse Response as :", IR_Path, GUI.Val("Name"), "Wave Audio files (*.WAV)\0*.wav\0\0" )
   if ok == 1 then
     IR_Path, IR_name = retval:match("(.+[\\/])(.+)")
+    GUI.elms.Name.tooltip = "Enter IR name. The current path is:\n" .. IR_Path .. "\nUse the 'Browse for File' button to change path."
     IR_name = IR_name:find("%.wav$") and IR_name or IR_name .. ".wav"
     Msg("Path from function: " .. retval)
     Msg("IR_path: " .. IR_Path )
