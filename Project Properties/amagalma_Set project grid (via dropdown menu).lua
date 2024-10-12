@@ -1,25 +1,17 @@
 -- @description Set project grid (via dropdown menu)
 -- @author amagalma
--- @version 1.04
+-- @version 1.10
 -- @changelog
---   - Fix menu placement for OSX
+--   - Swapped JS_ReaScriptAPI dependency for SWS
+--   - Added Frame, Measure and Metronome options
 -- @link https://forum.cockos.com/showthread.php?t=239556
 -- @donation https://www.paypal.com/paypalme/amagalma
 -- @about
 --   # Set project grid (via dropdown menu)
 --
 --   - Displays a dropdown menu at mouse cursor position where you can choose a grid setting
---   - Requires JS_ReaScriptAPI
+--   - Requires SWS Extensions
 
-
-if not reaper.APIExists( "JS_Window_Find" ) then
-  reaper.MB( "Please, right-click and install 'js_ReaScriptAPI: API functions for ReaScripts'. Then restart Reaper and run the script again. Thanks!", "You need to install the JS_ReaScriptAPI", 0 )
-  local ok, err = reaper.ReaPack_AddSetRepository( "ReaTeam Extensions", "https://github.com/ReaTeam/Extensions/raw/master/index.xml", true, 1 )
-  if ok then reaper.ReaPack_BrowsePackages( "js_ReaScriptAPI" )
-  else reaper.MB( err, "Something went wrong...", 0)
-  end
-  return reaper.defer(function() end)
-end
 
 local m =
 {
@@ -50,6 +42,19 @@ local m =
   {3/128, "<3/128  -  dotted sixty-fourth note"},
 }
 
+local projgridframe = reaper.SNM_GetIntConfigVar( "projgridframe", -8888 )
+local metronome_grid = projgridframe & 256 == 256
+local frame_grid = reaper.GetToggleCommandState( 41885 ) == 1
+local measure_grid = reaper.GetToggleCommandState( 40725 ) == 1
+local other_grid_not_set = not (metronome_grid or frame_grid or measure_grid)
+
+local m2 = {
+  (frame_grid and "!" or "") .. "Frame",
+  (measure_grid and "!" or "") .. "Measure",
+  (metronome_grid and "!" or "") .. "Metronome"
+}
+
+
 local _, division = reaper.GetSetProjectGrid( 0, 0, 0, 0, 0 )
 -- check if Use the same grid division in arrange view and MIDI editor
 local mode = reaper.GetToggleCommandState( 42010 )
@@ -60,33 +65,41 @@ for i = 1, #m do
   local togglestate
   if m[i][1] < 0 then
     local d = -m[i][1]
-    if d * 1.5 == division or division == d * (2/3) or d == division then
+    if other_grid_not_set and (d * 1.5 == division or division == d * (2/3) or d == division) then
       togglestate = "!"
     else
       togglestate = ""
     end
   else
-    togglestate = m[i][1] == division and "!" or ""
+    togglestate = (other_grid_not_set and m[i][1] == division) and "!" or ""
   end
   menu = menu .. togglestate .. m[i][2] .. "|"
 end
+menu = menu .. table.concat(m2, "|")
 
-local title = "hidden " .. reaper.genGuid()
-gfx.init( title, 0, 0, 0, 0, 0 )
-local hwnd = reaper.JS_Window_Find( title, true )
-if hwnd then
-  reaper.JS_Window_Show( hwnd, "HIDE" )
-end
+
 gfx.x, gfx.y = gfx.mouse_x-40, gfx.mouse_y-40
 local selection = gfx.showmenu(menu)
 gfx.quit()
 
+
 if selection > 0 then
-  if selection < 3 then
-    selection = 1
+  if selection == 21 then
+    reaper.Main_OnCommand(40904, 0) -- Set framerate grid
+  elseif selection == 22 then
+    reaper.Main_OnCommand(40923, 0) -- Set measure grid
+  elseif selection == 23 then
+    reaper.SNM_SetIntConfigVar( "projgridframe", (projgridframe & ~(1 | (1 << 6))) | (1 << 8) )
   else
-    selection = selection + math.floor(selection/3) - 1
+    if selection < 3 then
+      selection = 1
+    else
+      selection = selection + math.floor(selection/3) - 1
+    end
+    if not other_grid_not_set then
+      reaper.SNM_SetIntConfigVar( "projgridframe", projgridframe & (~(1 | (1 << 6) | (1 << 8))) )
+    end
+    reaper.SetProjectGrid( 0, m[selection][1] )
   end
-  reaper.SetProjectGrid( 0, m[selection][1] )
 end
 reaper.defer(function() end)
