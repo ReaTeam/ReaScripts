@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="0e570647f4f6efa88132e13718e546556211f7f8" name="ReaTeam Scripts">
+<index version="1" commit="ad48adb46694cc4525b941ac053ca3c25b801b81" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -16442,13 +16442,13 @@ enter or a = Exit and apply changes\par}
     </reapack>
     <reapack name="amagalma_Set project grid (via dropdown menu).lua" type="script" desc="Set project grid (via dropdown menu)">
       <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Set project grid (via dropdown menu)\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel0 \b \fs36 Set project grid (via dropdown menu)\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Displays a dropdown menu at mouse cursor position where you can choose a grid setting\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Requires JS_ReaScriptAPI\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Requires SWS Extensions\sa180\par}
 }
 ]]></description>
         <link rel="website">https://forum.cockos.com/showthread.php?t=239556</link>
@@ -16469,6 +16469,11 @@ enter or a = Exit and apply changes\par}
       <version name="1.04" author="amagalma" time="2021-11-28T12:47:02Z">
         <changelog><![CDATA[- Fix menu placement for OSX]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6817dbf13b65d504f447d664f3c53c5cb7cecd61/Project%20Properties/amagalma_Set%20project%20grid%20(via%20dropdown%20menu).lua</source>
+      </version>
+      <version name="1.10" author="amagalma" time="2024-10-12T11:03:08Z">
+        <changelog><![CDATA[- Swapped JS_ReaScriptAPI dependency for SWS
+- Added Frame, Measure and Metronome options]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ad48adb46694cc4525b941ac053ca3c25b801b81/Project%20Properties/amagalma_Set%20project%20grid%20(via%20dropdown%20menu).lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Set project length limit to edit cursor position.lua" type="script" desc="Set project length limit to edit cursor position">
@@ -26982,17 +26987,17 @@ Streamable link
     </reapack>
   </category>
   <metadata>
-    <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+    <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 ReaTeam Scripts Repository\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel0 \b \fs36 ReaTeam Scripts Repository\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 {\cf1 [image: https://github.com/ReaTeam/ReaScripts/workflows/check/badge.svg]\cf0}\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Community-maintained collection of scripts for REAPER.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Installation\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel1 \b \fs32 Installation\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Copy and paste this URL in Extensions > ReaPack > Import a repository:\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \f1 https://github.com/ReaTeam/ReaScripts/raw/master/index.xml\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Contributing\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel1 \b \fs32 Contributing\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Use {\field{\*\fldinst{HYPERLINK "https://reapack.com/upload/reascript"}}{\fldrslt{\ul
 https://reapack.com/upload/reascript
 }}}
