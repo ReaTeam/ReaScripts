@@ -1,7 +1,7 @@
 -- @description Song switcher (for live use)
 -- @author cfillion
 -- @version 1.7
--- @changelog run action markers from take markers in the current song's primary track (REAPER v6+)
+-- @changelog run action markers from take markers in the current song's folder track (REAPER v6+)
 -- @provides
 --   [main] cfillion_Song switcher/cfillion_Song switcher - Send signal.lua > cfillion_Song switcher/cfillion_Song switcher - Switch to next song.lua
 --   [main] cfillion_Song switcher/cfillion_Song switcher - Send signal.lua > cfillion_Song switcher/cfillion_Song switcher - Switch to previous song.lua
@@ -45,6 +45,8 @@
 --   - cfillion_Song switcher - Switch song by MIDI CC.lua
 --   - cfillion_Song switcher - Switch to queued song.lua
 --   - cfillion_Song switcher - Reset data.lua
+--
+--   Take markers starting with a `!` within the current song's folder track are treated as action markers.
 --
 --   A web browser interface is also installed as **song_switcher.html** for
 --   remote use (this feature requires REAPER v5.30+ and ReaPack v1.1+).
