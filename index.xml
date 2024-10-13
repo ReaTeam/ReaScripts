@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="32c93a7d630e69eeeceb7b5b5163acc8bb019cee" name="ReaTeam Scripts">
+<index version="1" commit="599dd8d4ede7446a597b087d72843f8b3c57b20d" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -23273,13 +23273,13 @@ Fix Editing Behavior > MIDI Editor]]></changelog>
     </reapack>
     <reapack name="cfillion_Song switcher.lua" type="script" desc="Song switcher (for live use)">
       <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Song switcher\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel0 \b \fs36 Song switcher\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 The purpose of this script is to quickly switch between songs in a single project during live shows. It is a replacement for the slow SWS Snapshots (visibility + mute).\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Usage\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel1 \b \fs32 Usage\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Each song must be in a top-level folder track named "#. Song Name" ("#" being any number).\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 After selecting a song, Song switcher mutes and hides all songs in the project except for the current one. Other tracks/folders that are not part of a song's top-level folder are left untouched.\line Song switcher can also optionally stop playback and/or seek to the first item in the song when switching.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 This script works best with REAPER settings "{\b Do not process muted tracks}" and "{\b Track mute fade}" enabled.\par}
@@ -23289,6 +23289,7 @@ Fix Editing Behavior > MIDI Editor]]></changelog>
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab cfillion_Song switcher - Switch song by MIDI CC.lua\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab cfillion_Song switcher - Switch to queued song.lua\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab cfillion_Song switcher - Reset data.lua\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Take markers starting with a {\f1 !} within the current song's folder track are treated as action markers.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 A web browser interface is also installed as {\b song_switcher.html} for remote use (this feature requires REAPER v5.30+ and ReaPack v1.1+). Note that the timecode displayed in the web interface always starts at 00:00 for convenience. This means that a song spanning from 7:45 to 9:12 in the project is displayed as 00:00 to 01:26 on the web interface.\par}
 }
 ]]></description>
@@ -23451,6 +23452,19 @@ fix the toolbar buttons showing 1 frame early, before the filter text box is hid
         <source main="main" file="cfillion_Song switcher/cfillion_Song switcher - Queue previous song.lua">https://github.com/ReaTeam/ReaScripts/raw/1e9da9dee3720938fd68b552c1f215a1ea41848f/Various/cfillion_Song%20switcher/cfillion_Song%20switcher%20-%20Send%20signal.lua</source>
         <source main="main" file="cfillion_Song switcher/cfillion_Song switcher - Queue song by MIDI CC.lua">https://github.com/ReaTeam/ReaScripts/raw/1e9da9dee3720938fd68b552c1f215a1ea41848f/Various/cfillion_Song%20switcher/cfillion_Song%20switcher%20-%20Send%20signal.lua</source>
         <source type="webinterface" file="song_switcher.html">https://github.com/ReaTeam/ReaScripts/raw/1e9da9dee3720938fd68b552c1f215a1ea41848f/Various/cfillion_Song%20switcher/song_switcher.html</source>
+      </version>
+      <version name="1.7" author="cfillion" time="2024-10-13T03:21:18Z">
+        <changelog><![CDATA[run action markers from take markers in the current song's folder track (REAPER v6+)]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/599dd8d4ede7446a597b087d72843f8b3c57b20d/Various/cfillion_Song%20switcher.lua</source>
+        <source main="main" file="cfillion_Song switcher/cfillion_Song switcher - Switch to next song.lua">https://github.com/ReaTeam/ReaScripts/raw/599dd8d4ede7446a597b087d72843f8b3c57b20d/Various/cfillion_Song%20switcher/cfillion_Song%20switcher%20-%20Send%20signal.lua</source>
+        <source main="main" file="cfillion_Song switcher/cfillion_Song switcher - Switch to previous song.lua">https://github.com/ReaTeam/ReaScripts/raw/599dd8d4ede7446a597b087d72843f8b3c57b20d/Various/cfillion_Song%20switcher/cfillion_Song%20switcher%20-%20Send%20signal.lua</source>
+        <source main="main" file="cfillion_Song switcher/cfillion_Song switcher - Reset data.lua">https://github.com/ReaTeam/ReaScripts/raw/599dd8d4ede7446a597b087d72843f8b3c57b20d/Various/cfillion_Song%20switcher/cfillion_Song%20switcher%20-%20Send%20signal.lua</source>
+        <source main="main" file="cfillion_Song switcher/cfillion_Song switcher - Switch to queued song.lua">https://github.com/ReaTeam/ReaScripts/raw/599dd8d4ede7446a597b087d72843f8b3c57b20d/Various/cfillion_Song%20switcher/cfillion_Song%20switcher%20-%20Send%20signal.lua</source>
+        <source main="main" file="cfillion_Song switcher/cfillion_Song switcher - Switch song by MIDI CC.lua">https://github.com/ReaTeam/ReaScripts/raw/599dd8d4ede7446a597b087d72843f8b3c57b20d/Various/cfillion_Song%20switcher/cfillion_Song%20switcher%20-%20Send%20signal.lua</source>
+        <source main="main" file="cfillion_Song switcher/cfillion_Song switcher - Queue next song.lua">https://github.com/ReaTeam/ReaScripts/raw/599dd8d4ede7446a597b087d72843f8b3c57b20d/Various/cfillion_Song%20switcher/cfillion_Song%20switcher%20-%20Send%20signal.lua</source>
+        <source main="main" file="cfillion_Song switcher/cfillion_Song switcher - Queue previous song.lua">https://github.com/ReaTeam/ReaScripts/raw/599dd8d4ede7446a597b087d72843f8b3c57b20d/Various/cfillion_Song%20switcher/cfillion_Song%20switcher%20-%20Send%20signal.lua</source>
+        <source main="main" file="cfillion_Song switcher/cfillion_Song switcher - Queue song by MIDI CC.lua">https://github.com/ReaTeam/ReaScripts/raw/599dd8d4ede7446a597b087d72843f8b3c57b20d/Various/cfillion_Song%20switcher/cfillion_Song%20switcher%20-%20Send%20signal.lua</source>
+        <source type="webinterface" file="song_switcher.html">https://github.com/ReaTeam/ReaScripts/raw/599dd8d4ede7446a597b087d72843f8b3c57b20d/Various/cfillion_Song%20switcher/song_switcher.html</source>
       </version>
     </reapack>
     <reapack name="cool_MK ReSampler.lua" type="script" desc="MK ReSampler">
