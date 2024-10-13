@@ -160,24 +160,6 @@ local function loadTracks()
   return songs
 end
 
-local function getParentProject(track)
-  local search = reaper.GetMediaTrackInfo_Value(track, 'P_PROJECT')
-
-  if reaper.JS_Window_HandleFromAddress then
-    return reaper.JS_Window_HandleFromAddress(search)
-  end
-
-  for i = 0, math.huge do
-    local project = reaper.EnumProjects(i)
-    if not project then break end
-
-    local master = reaper.GetMasterTrack(project)
-    if search == reaper.GetMediaTrackInfo_Value(master, 'P_PROJECT') then
-      return project
-    end
-  end
-end
-
 local function isSongValid(song)
   for _,track in ipairs(song.tracks) do
     if not pcall(reaper.GetTrackNumMediaItems, track) then
@@ -399,6 +381,24 @@ local function execRemoteActions()
       local value = reaper.GetExtState(EXT_SECTION, signal)
       reaper.DeleteExtState(EXT_SECTION, signal, false);
       handler(value)
+    end
+  end
+end
+
+local function getParentProject(track)
+  local search = reaper.GetMediaTrackInfo_Value(track, 'P_PROJECT')
+
+  if reaper.JS_Window_HandleFromAddress then
+    return reaper.JS_Window_HandleFromAddress(search)
+  end
+
+  for i = 0, math.huge do
+    local project = reaper.EnumProjects(i)
+    if not project then break end
+
+    local master = reaper.GetMasterTrack(project)
+    if search == reaper.GetMediaTrackInfo_Value(master, 'P_PROJECT') then
+      return project
     end
   end
 end
