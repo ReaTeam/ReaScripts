@@ -6,6 +6,7 @@
 --   # Set time selection to envelope points (selected or around mouse cursor)
 --
 --   It works for regular envelopes, automation items and take envelopes.
+--   Selected points outside of visible arrange area will be ignored.
 --
 --   But if there are  several automation items at the same time, the most right of them will be used.
 --   It's a limitation of Reaper, it's impossible to find exact automation item under mouse.
