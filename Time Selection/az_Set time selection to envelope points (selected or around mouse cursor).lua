@@ -1,9 +1,9 @@
--- @description Set time selection to selected envelope points or a pair of points around mouse cursor
+-- @description Set time selection to envelope points (selected or around mouse cursor)
 -- @author AZ
 -- @version 1.0
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=288069
 -- @about
---   # Set time selection to selected envelope points or a pair of points around mouse cursor
+--   # Set time selection to envelope points (selected or around mouse cursor)
 --
 --   It works for regular envelopes, automation items and take envelopes.
 --
