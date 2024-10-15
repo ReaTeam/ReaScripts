@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="599dd8d4ede7446a597b087d72843f8b3c57b20d" name="ReaTeam Scripts">
+<index version="1" commit="ca179e9b7b03c7269183b9bff3aa460dd64d83bf" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -18530,6 +18530,23 @@ Updated to only list stretch markers within item time and format time as standar
       <version name="1.2" author="AZ" time="2024-03-31T18:29:20Z">
         <changelog><![CDATA[- Fixed edit cursor lost outside of time selection on scrolling]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/92caaaf059cefa9b2091d47f3cea872b02537936/Time%20Selection/az_Link%20time%20selection%20or%20loop%20points%20to%20arrange%20view.lua</source>
+      </version>
+    </reapack>
+    <reapack name="az_Set time selection to envelope points (selected or around mouse cursor).lua" type="script" desc="Set time selection to envelope points (selected or around mouse cursor)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel0 \b \fs36 Set time selection to envelope points (selected or around mouse cursor)\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 It works for regular envelopes, automation items and take envelopes. Selected points outside of visible arrange area will be ignored.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 But if there are several automation items at the same time, the most right of them will be used. It's a limitation of Reaper, it's impossible to find exact automation item under mouse.\par}
+}
+]]></description>
+        <link rel="website" href="https://forum.cockos.com/showthread.php?t=288069">Forum thread</link>
+      </metadata>
+      <version name="1.0" author="AZ" time="2024-10-15T04:14:25Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ca179e9b7b03c7269183b9bff3aa460dd64d83bf/Time%20Selection/az_Set%20time%20selection%20to%20envelope%20points%20(selected%20or%20around%20mouse%20cursor).lua</source>
       </version>
     </reapack>
     <reapack name="BuyOne_Create time selection between two marked points from the closest to cursor on the left (guide inside).lua" type="script" desc="Create time selection between two marked points from the closest to cursor on the left">
