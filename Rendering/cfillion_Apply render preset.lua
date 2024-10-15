@@ -1,7 +1,7 @@
 -- @description Apply render preset
 -- @author cfillion
--- @version 2.1.4
--- @changelog Fix parsing of mixed quotes in reaper-render2.ini [cfillion/reascripts#7]
+-- @version 2.1.5
+-- @changelog Display REAPER v7.23's new normalization options
 -- @provides
 --   .
 --   [main] . > cfillion_Apply render preset (create action).lua
@@ -45,6 +45,7 @@ if reaper.ImGui_GetBuiltinPath then
   ImGui = require 'imgui' '0.9'
 end
 
+local FLT_MIN, FLT_MAX = ImGui.NumericLimits_Float()
 local REAPER_BEFORE_V6 = tonumber(reaper.GetAppVersion():match('^%d+')) < 6
 local SETTINGS_SOURCE_MASK  = 0x10EB
 local SETTINGS_OPTIONS_MASK = 0x6F14
@@ -669,13 +670,14 @@ local function VAL2DB(x)
 end
 
 local function postprocessCell(ctx, preset)
-  local NORMALIZE_ENABLE = 1
-  local NORMALIZE_MASTER = 1<<5
-  local BRICKWALL_ENABLE = 1<<6
+  local NORMALIZE_ENABLE    = 1
+  local NORMALIZE_TOO_LOUD  = 1<<8
+  local NORMALIZE_TOO_QUIET = 1<<11
+  local NORMALIZE_MODE_BITS = {5, 12}
+  local BRICKWALL_ENABLE    = 1<<6
   -- local BRICKWALL_TPEAK  = 1<<7
-  local NORMAL_TOO_LOUD  = 1<<8
-  local FADEIN_ENABLE    = 1<<9
-  local FADEOUT_ENABLE   = 1<<10
+  local FADEIN_ENABLE       = 1<<9
+  local FADEOUT_ENABLE      = 1<<10
 
   local postprocess = preset.RENDER_NORMALIZE
   if not postprocess then return end
@@ -717,10 +719,24 @@ local function postprocessCell(ctx, preset)
     end
     ImGui.Separator(ctx)
 
-    ImGui.CheckboxFlags(ctx, 'Only normalize files that are too loud',
-      postprocess, NORMAL_TOO_LOUD)
-    ImGui.CheckboxFlags(ctx, 'Normalize/limit master mix, common gain to stems',
-      postprocess, NORMALIZE_MASTER)
+    ImGui.AlignTextToFramePadding(ctx)
+    ImGui.Text(ctx, 'Only normalize files that are')
+    ImGui.SameLine(ctx)
+    ImGui.CheckboxFlags(ctx, 'too loud', postprocess, NORMALIZE_TOO_LOUD)
+    ImGui.SameLine(ctx)
+    ImGui.CheckboxFlags(ctx, 'too quiet', postprocess, NORMALIZE_TOO_QUIET)
+
+    local mode = 0
+    for i, bit in ipairs(NORMALIZE_MODE_BITS) do
+      mode = mode | ((postprocess >> bit & 1) << (i - 1))
+    end
+    local modes =
+      'Normalize each file separately\0\z
+       Normalize all files to master mix\0\z
+       Normalize to loudest file\0\z
+       Normalize as if one long file\0'
+    ImGui.SetNextItemWidth(ctx, -FLT_MIN)
+    ImGui.Combo(ctx, '##mode', mode, modes)
 
     ImGui.EndTooltip(ctx)
   end
@@ -950,7 +966,6 @@ local function presetRow(ctx, name, preset)
     'Fast (IIR + Linear Interpolation)', 'Fast (IIRx2 + Linear Interpolation)',
     'Fast (16pt Sinc)', 'HQ (512 pt)', 'Extreme HQ (768pt HQ Sinc)',
   }
-
 
   local cells = {
     function() formatCell(ctx, preset, 'RENDER_FORMAT') end,
