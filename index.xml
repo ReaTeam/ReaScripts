@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="7250e6a24d813a76b04136b87a46136834bf47c7" name="ReaTeam Scripts">
+<index version="1" commit="29b9e5fee0876ec9d865938cff74386c09f9fc50" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -23295,13 +23295,13 @@ Fix Editing Behavior > MIDI Editor]]></changelog>
     </reapack>
     <reapack name="cfillion_Song switcher.lua" type="script" desc="Song switcher (for live use)">
       <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel0 \b \fs36 Song switcher\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Song switcher\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 The purpose of this script is to quickly switch between songs in a single project during live shows. It is a replacement for the slow SWS Snapshots (visibility + mute).\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel1 \b \fs32 Usage\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Usage\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Each song must be in a top-level folder track named "#. Song Name" ("#" being any number).\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 After selecting a song, Song switcher mutes and hides all songs in the project except for the current one. Other tracks/folders that are not part of a song's top-level folder are left untouched.\line Song switcher can also optionally stop playback and/or seek to the first item in the song when switching.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 This script works best with REAPER settings "{\b Do not process muted tracks}" and "{\b Track mute fade}" enabled.\par}
@@ -23487,6 +23487,19 @@ fix the toolbar buttons showing 1 frame early, before the filter text box is hid
         <source main="main" file="cfillion_Song switcher/cfillion_Song switcher - Queue previous song.lua">https://github.com/ReaTeam/ReaScripts/raw/599dd8d4ede7446a597b087d72843f8b3c57b20d/Various/cfillion_Song%20switcher/cfillion_Song%20switcher%20-%20Send%20signal.lua</source>
         <source main="main" file="cfillion_Song switcher/cfillion_Song switcher - Queue song by MIDI CC.lua">https://github.com/ReaTeam/ReaScripts/raw/599dd8d4ede7446a597b087d72843f8b3c57b20d/Various/cfillion_Song%20switcher/cfillion_Song%20switcher%20-%20Send%20signal.lua</source>
         <source type="webinterface" file="song_switcher.html">https://github.com/ReaTeam/ReaScripts/raw/599dd8d4ede7446a597b087d72843f8b3c57b20d/Various/cfillion_Song%20switcher/song_switcher.html</source>
+      </version>
+      <version name="1.7.1" author="cfillion" time="2024-10-17T09:51:57Z">
+        <changelog><![CDATA[fix validation of song tracks when the project tab is inactive]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/29b9e5fee0876ec9d865938cff74386c09f9fc50/Various/cfillion_Song%20switcher.lua</source>
+        <source main="main" file="cfillion_Song switcher/cfillion_Song switcher - Switch to next song.lua">https://github.com/ReaTeam/ReaScripts/raw/29b9e5fee0876ec9d865938cff74386c09f9fc50/Various/cfillion_Song%20switcher/cfillion_Song%20switcher%20-%20Send%20signal.lua</source>
+        <source main="main" file="cfillion_Song switcher/cfillion_Song switcher - Switch to previous song.lua">https://github.com/ReaTeam/ReaScripts/raw/29b9e5fee0876ec9d865938cff74386c09f9fc50/Various/cfillion_Song%20switcher/cfillion_Song%20switcher%20-%20Send%20signal.lua</source>
+        <source main="main" file="cfillion_Song switcher/cfillion_Song switcher - Reset data.lua">https://github.com/ReaTeam/ReaScripts/raw/29b9e5fee0876ec9d865938cff74386c09f9fc50/Various/cfillion_Song%20switcher/cfillion_Song%20switcher%20-%20Send%20signal.lua</source>
+        <source main="main" file="cfillion_Song switcher/cfillion_Song switcher - Switch to queued song.lua">https://github.com/ReaTeam/ReaScripts/raw/29b9e5fee0876ec9d865938cff74386c09f9fc50/Various/cfillion_Song%20switcher/cfillion_Song%20switcher%20-%20Send%20signal.lua</source>
+        <source main="main" file="cfillion_Song switcher/cfillion_Song switcher - Switch song by MIDI CC.lua">https://github.com/ReaTeam/ReaScripts/raw/29b9e5fee0876ec9d865938cff74386c09f9fc50/Various/cfillion_Song%20switcher/cfillion_Song%20switcher%20-%20Send%20signal.lua</source>
+        <source main="main" file="cfillion_Song switcher/cfillion_Song switcher - Queue next song.lua">https://github.com/ReaTeam/ReaScripts/raw/29b9e5fee0876ec9d865938cff74386c09f9fc50/Various/cfillion_Song%20switcher/cfillion_Song%20switcher%20-%20Send%20signal.lua</source>
+        <source main="main" file="cfillion_Song switcher/cfillion_Song switcher - Queue previous song.lua">https://github.com/ReaTeam/ReaScripts/raw/29b9e5fee0876ec9d865938cff74386c09f9fc50/Various/cfillion_Song%20switcher/cfillion_Song%20switcher%20-%20Send%20signal.lua</source>
+        <source main="main" file="cfillion_Song switcher/cfillion_Song switcher - Queue song by MIDI CC.lua">https://github.com/ReaTeam/ReaScripts/raw/29b9e5fee0876ec9d865938cff74386c09f9fc50/Various/cfillion_Song%20switcher/cfillion_Song%20switcher%20-%20Send%20signal.lua</source>
+        <source type="webinterface" file="song_switcher.html">https://github.com/ReaTeam/ReaScripts/raw/29b9e5fee0876ec9d865938cff74386c09f9fc50/Various/cfillion_Song%20switcher/song_switcher.html</source>
       </version>
     </reapack>
     <reapack name="cool_MK ReSampler.lua" type="script" desc="MK ReSampler">
@@ -27027,17 +27040,17 @@ Streamable link
     </reapack>
   </category>
   <metadata>
-    <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
+    <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel0 \b \fs36 ReaTeam Scripts Repository\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 ReaTeam Scripts Repository\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 {\cf1 [image: https://github.com/ReaTeam/ReaScripts/workflows/check/badge.svg]\cf0}\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Community-maintained collection of scripts for REAPER.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel1 \b \fs32 Installation\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Installation\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Copy and paste this URL in Extensions > ReaPack > Import a repository:\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \f1 https://github.com/ReaTeam/ReaScripts/raw/master/index.xml\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel1 \b \fs32 Contributing\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Contributing\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Use {\field{\*\fldinst{HYPERLINK "https://reapack.com/upload/reascript"}}{\fldrslt{\ul
 https://reapack.com/upload/reascript
 }}}
