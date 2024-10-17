@@ -1,7 +1,7 @@
 -- @description Song switcher (for live use)
 -- @author cfillion
--- @version 1.7
--- @changelog run action markers from take markers in the current song's folder track (REAPER v6+)
+-- @version 1.7.1
+-- @changelog fix validation of song tracks when the project tab is inactive
 -- @provides
 --   [main] cfillion_Song switcher/cfillion_Song switcher - Send signal.lua > cfillion_Song switcher/cfillion_Song switcher - Switch to next song.lua
 --   [main] cfillion_Song switcher/cfillion_Song switcher - Send signal.lua > cfillion_Song switcher/cfillion_Song switcher - Switch to previous song.lua
@@ -162,7 +162,7 @@ end
 
 local function isSongValid(song)
   for _,track in ipairs(song.tracks) do
-    if not reaper.ValidatePtr(track, 'MediaTrack*') then
+    if not pcall(reaper.GetTrackNumMediaItems, track) then
       return false
     end
   end
