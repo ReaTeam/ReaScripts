@@ -1,17 +1,31 @@
 -- @description Play lanes in time selection
 -- @author Edgemeal
--- @version 1.00
+-- @version 1.01
+-- @changelog
+--   * Auto-terminate on relaunch, simplify toolbar highlight code.
+--   * Indent/center Radio Buttons.
+--   * Check if REAPER version is >= 7.03.
+--   * Check if ReaImGui installed.
 -- @link Forum Thread https://forum.cockos.com/showthread.php?t=295370
 -- @screenshot Example https://stash.reaper.fm/49429/Play%20Lanes%20v1.00.gif
 -- @donation Donate via PayPal https://www.paypal.me/Edgemeal
 -- @about
 --   Play fixed track lanes in time selection, Auto advances to next lane...
 --
---   Requires: REAPER v7 and ReaImGui v0.9.3.1
+--   Requires: REAPER v7.03 and ReaImGui v0.9.3.1
 --   * Fixed Lane Track must have two or more lanes.
 --   * Comp lane names must start with "C" (REAPER default: C1, C2, C3, etc...).
 --   * In 'comp lane' mode, if user deletes all comps, play stops/script exits.
 --   * In 'skip comp' mode, if user deletes all non-comps, play stops/script exits.
+
+local rea_ver = tonumber(reaper.GetAppVersion():match('[%d.]+'))
+if rea_ver < 7.03 then reaper.MB("This script requires REAPER v7.0+", "ERROR", 0) return end
+
+if not reaper.APIExists('ImGui_Begin') then
+  reaper.MB('Please install ReaImGui extension from ReaPack.', 'ERROR', 0)
+  reaper.ReaPack_BrowsePackages("ReaImGui")
+  return
+end
 
 package.path = reaper.ImGui_GetBuiltinPath() .. '/?.lua'
 local ImGui = require 'imgui' '0.9.3.1'
@@ -31,12 +45,6 @@ function SetAction(action, state)
   if r.GetToggleCommandState(action) == 1 ~= state then
     r.Main_OnCommand(action, 0)
   end
-end
-
-function ToolbarButton(enable)
-  local _, _, section_id, command_id = r.get_action_context()
-  r.SetToggleCommandState(section_id, command_id, enable)
-  r.RefreshToolbar2(section_id, command_id)
 end
 
 function GetComps()
@@ -107,19 +115,19 @@ function ImGui_Loop()
   ImGui.SetNextWindowPos(ctx, x, y, ImGui.Cond_FirstUseEver, 0.5, 0.5) -- center window @ mouse pos.
   ui_vis, ui_open = ImGui.Begin(ctx, title, true, ImGui.WindowFlags_TopMost | ImGui.WindowFlags_NoResize | ImGui.WindowFlags_NoMove | ImGui.WindowFlags_NoCollapse )
   if ui_vis then
-    -- play_all_lanes
+    ImGui.SameLine(ctx, 48)
     if ImGui.RadioButton(ctx,"Play all lanes", play_all) then
       play_all = true
       skip_comps = false
       only_comps = false
     end
-    -- skip_comp_lanes
+    ImGui.NewLine(ctx) ImGui.SameLine(ctx, 48)
     if ImGui.RadioButton(ctx,"Skip comp lanes", skip_comps) then
       skip_comps = true
       play_all = false
       only_comps = false
     end
-    -- play_only_comp_lanes
+    ImGui.NewLine(ctx) ImGui.SameLine(ctx, 48)
     if ImGui.RadioButton(ctx,"Play only comps", only_comps) then
       only_comps = true
       play_all  = false
@@ -154,7 +162,6 @@ function ImGui_Loop()
         comp_ndx = Int_Comp(lane+1)-- selected/next comp
         ui_open = false            -- close UI
         r.Main_OnCommand(1016, 0)  -- Transport: Stop
-        ToolbarButton(1)           -- highlight toolbar button
         r.Main_OnCommand(40630, 0) -- Go to start of time selection
         SetAction(1068,true)       -- Enable Repeat
         r.Main_OnCommand(40044, 0) -- Transport: Play (/stop)
@@ -173,10 +180,11 @@ end
 function Exit()
   r.Main_OnCommand(1016, 0) -- Transport: Stop
   SetAction(1068,repeatOn)  -- restore user repeat mode setting
-  ToolbarButton(0)          -- unhighlight toolbar button
+  reaper.set_action_options(8)
 end
 r.atexit(Exit)
 
+r.set_action_options(1|4)
 -- get mouse pos (app will be centered @ mouse)
 x, y = r.GetMousePosition()
 r.defer(ImGui_Loop)
