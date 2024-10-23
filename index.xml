@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="b4aeefd20894953e5108996118c6a97e71546ed9" name="ReaTeam Scripts">
+<index version="1" commit="f208bfd7a7d606973492dbd9e6f7432d329f1b91" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -18977,7 +18977,7 @@ is off-screen. Reaper issue, should be fixed soon.]]></changelog>
 \widowctrl\hyphauto
 
 {\pard \ql \f0 \sa180 \li0 \fi0 Play fixed track lanes in time selection, Auto advances to next lane...\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Requires: REAPER v7 and ReaImGui v0.9.3.1\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Requires: REAPER v7.03 and ReaImGui v0.9.3.1\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Fixed Lane Track must have two or more lanes.\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Comp lane names must start with "C" (REAPER default: C1, C2, C3, etc...).\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab In 'comp lane' mode, if user deletes all comps, play stops/script exits.\par}
@@ -18990,6 +18990,13 @@ is off-screen. Reaper issue, should be fixed soon.]]></changelog>
       </metadata>
       <version name="1.00" author="Edgemeal" time="2024-10-23T15:04:25Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b4aeefd20894953e5108996118c6a97e71546ed9/Tracks/edgemeal_Play%20lanes%20in%20time%20selection.lua</source>
+      </version>
+      <version name="1.01" author="Edgemeal" time="2024-10-23T17:52:25Z">
+        <changelog><![CDATA[* Auto-terminate on relaunch, simplify toolbar highlight code.
+* Indent/center Radio Buttons.
+* Check if REAPER version is >= 7.03.
+* Check if ReaImGui installed.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f208bfd7a7d606973492dbd9e6f7432d329f1b91/Tracks/edgemeal_Play%20lanes%20in%20time%20selection.lua</source>
       </version>
     </reapack>
     <reapack name="gus-lan_Select folder tracks of depth X.lua" type="script" desc="Select folder tracks of depth X">
