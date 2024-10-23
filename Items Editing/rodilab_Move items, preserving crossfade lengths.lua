@@ -1,0 +1,13 @@
+-- @description Move items, preserving crossfade lengths
+-- @author Rodilab
+-- @version 1.0
+-- @metapackage
+-- @provides
+--   [main] rodilab_Move items, preserving crossfade lengths/Move items left, preserving crossfade lengths.lua
+--   [main] rodilab_Move items, preserving crossfade lengths/Move items right, preserving crossfade lengths.lua
+-- @about
+--   Moves selected items left/right (1 pixel), preserving crossfade lengths.
+--   If "Move envelope points with media items" is enable, moves envelope points to.
+--
+--   by Rodrigo Diaz (aka Rodilab)
+

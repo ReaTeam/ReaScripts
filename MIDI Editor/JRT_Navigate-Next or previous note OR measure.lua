@@ -1,0 +1,8 @@
+-- @description Navigate-Next or previous note OR measure
+-- @author JRTaylorMusic
+-- @version 1.0
+-- @metapackage
+-- @provides
+--   [main] JRT_Navigate-Next or previous note OR measure/JRT_Navigate-Next note OR measure.lua
+--   [main] JRT_Navigate-Next or previous note OR measure/JRT_Navigate-Previous note OR measure.lua
+-- @about MIDI Editor Navigation; If note(s) selected, move cursor to (and select only) next or previous note; If no note selected, move cursor to next/previous measure.

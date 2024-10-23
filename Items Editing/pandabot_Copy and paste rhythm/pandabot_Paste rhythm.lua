@@ -271,12 +271,31 @@ local function getNearestSetOfNotePitches(existingNotes, rhythmStartingPosition)
 		local existingNoteStartingPosition = existingNote[1]
 		local existingNotePitches = existingNote[4]
 
-		local ppqDelta = math.abs(rhythmStartingPosition-existingNoteStartingPosition)
+		local ppqDelta = rhythmStartingPosition-existingNoteStartingPosition
 
-		if ppqDelta <= minimumPpqDelta then
+		if ppqDelta >= 0 and ppqDelta <= minimumPpqDelta then
 			nearestSetOfNotePitches = existingNotePitches
 			minimumPpqDelta = ppqDelta
 		end
+	end
+
+	if nearestSetOfNotePitches == nil then
+
+		for i = 1, #existingNotes do
+
+			local existingNote = existingNotes[i]
+
+			local existingNoteStartingPosition = existingNote[1]
+			local existingNotePitches = existingNote[4]
+
+			local ppqDelta = math.abs(rhythmStartingPosition-existingNoteStartingPosition)
+
+			if ppqDelta <= minimumPpqDelta then
+				nearestSetOfNotePitches = existingNotePitches
+				minimumPpqDelta = ppqDelta
+			end
+		end
+
 	end
 
 	return nearestSetOfNotePitches
@@ -294,12 +313,31 @@ local function getNearestSetOfNoteChannels(existingNotes, rhythmStartingPosition
 		local existingNoteStartingPosition = existingNote[1]
 		local existingNoteChannels = existingNote[2]
 
-		local ppqDelta = math.abs(rhythmStartingPosition-existingNoteStartingPosition)
+		local ppqDelta = rhythmStartingPosition-existingNoteStartingPosition
 
-		if ppqDelta <= minimumPpqDelta then
+		if ppqDelta >= 0 and ppqDelta <= minimumPpqDelta then
 			nearestSetOfNoteChannels = existingNoteChannels
 			minimumPpqDelta = ppqDelta
 		end
+	end
+
+	if nearestSetOfNoteChannels == nil then
+
+		for i = 1, #existingNotes do
+
+			local existingNote = existingNotes[i]
+
+			local existingNoteStartingPosition = existingNote[1]
+			local existingNoteChannels = existingNote[2]
+
+			local ppqDelta = math.abs(rhythmStartingPosition-existingNoteStartingPosition)
+
+			if ppqDelta <= minimumPpqDelta then
+				nearestSetOfNoteChannels = existingNoteChannels
+				minimumPpqDelta = ppqDelta
+			end
+		end
+
 	end
 
 	return nearestSetOfNoteChannels

@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Envelope LFO generator and shaper.lua
-Version: 2.04
+Version: 2.17
 Author: juliansader / Xenakios
 Website: http://forum.cockos.com/showthread.php?t=177437
 Screenshot: http://stash.reaper.fm/27661/LFO%20shaper.gif
@@ -114,6 +114,15 @@ About:
     + Fix bug with pooled AIs.
   * v2.04 (2018-12-28)
     + Fix bug when right-clicking on node to set value.
+  * v2.10 (2019-05-02)
+    + If REAPER v5.976 or later is installed, Automation Item LFOs will be recalled even after copying without pooling.
+  * v2.15 (2022-02-23)
+    + If Pitch envelope has custom envelope range, use full range.
+    + Show envelope name in UI.
+  * v2.16 (2022-02-23)
+    + Fixed regression: Take envelope time range.
+  * v2.17 (2022-02-26)
+    + Use default Pitch range in Preferences.
 ]]
 -- The archive of the full changelog is at the end of the script.
 
@@ -664,7 +673,7 @@ function draw_envelope(env) --,enabled)
     if env.type~="Envelope" then return end
     local title=env.slider.name
     setColor(textColor)
-    title = "Envelope: " .. title
+    title = (envName or "Envelope") .. ": " .. title
     gfx.x = gfx.w/2 - gfx.measurestr(title)/2
     gfx.y = gfx.h - 23
     gfx.drawstr(title)
@@ -985,12 +994,22 @@ function MAIN_CalculateAndInsertPoints()
     --------------------------------------------------
     -- AUTOMATION ITEM?  TRY TO LOAD SAVED CURVE
     -- If newly selected AI, check if any saved curves
-    if isNewSelection and selectedAutoItem ~= -1 and selectedAutoItemID then
-        local OK, savedCurve = reaper.GetProjExtState(0, "LFO Generator", selectedAutoItemID)
-        if OK and type(savedCurve) == "string" and #savedCurve > 50 then
-            LoadCurveFromString(savedCurve)
-            DrawGUI()
+    if isNewSelection and selectedAutoItem ~= -1 then
+        local OK, savedCurve = reaper.GetSetAutomationItemInfo_String(env, selectedAutoItem, "P_POOL_EXT:js_LFO Generator", "", false)
+        if OK and type(savedCurve) == "string" and #savedCurve > 50 then goto gotSavedCurve end
+        
+        if selectedAutoItemID then 
+            OK, savedCurve = reaper.GetProjExtState(0, "LFO Generator", selectedAutoItemID)
+            if OK and type(savedCurve) == "string" and #savedCurve > 50 then goto gotSavedCurve end
         end
+        
+        goto noSavedCurve
+        
+        ::gotSavedCurve::
+        LoadCurveFromString(savedCurve)
+        DrawGUI()
+        
+        ::noSavedCurve::
     end
             
         
@@ -1004,13 +1023,30 @@ function MAIN_CalculateAndInsertPoints()
     -- The project's own time offset in seconds (Project settings -> 
     --    Project start time) does not appear to have an effect - but must still
     --    make sure about this...
-    local BRenv = reaper.BR_EnvAlloc(env, true)
-    local envTake = reaper.BR_EnvGetParentTake(BRenv)
-    _, _, _, _, _, _, BRenvMinValue, BRenvMaxValue, _, _, _ = reaper.BR_EnvGetProperties(BRenv)
-    reaper.BR_EnvFree(BRenv, false)
+    if envName:match("Pitch") then
+        local range = -1 -- I'm not sure what the difference is between -1 and 0 in DEFSHAPE. Both seem to mean "use default range".
+        -- First try to get per-envelope pitch range
+        local OK, chunk = reaper.GetEnvelopeStateChunk(env, "", false)
+        if OK and chunk then
+            range = tonumber(chunk:match("\nDEFSHAPE %S+ (%S+)")) or -1
+        end
+        -- If no per-envelope setting, try to get global Preferences
+        if range <= 0 then 
+            OK, range = reaper.get_config_var_string("pitchenvrange")
+            range = tonumber(range) or -1
+        end
+        if range <= 0 then range = 3 end -- Couldn't get setting. Standard values for envelopes seem to be 3.
+        BRenvMinValue, BRenvMaxValue = -range, range
+    else
+        local BRenv = reaper.BR_EnvAlloc(env, true)
+        --local envTake = reaper.BR_EnvGetParentTake(BRenv)
+        _, _, _, _, _, _, BRenvMinValue, BRenvMaxValue, _, _, _ = reaper.BR_EnvGetProperties(BRenv)
+        reaper.BR_EnvFree(BRenv, false)
+    end
     local envscalingmode = reaper.GetEnvelopeScalingMode(env)
     
-    if envTake ~= nil then -- Envelope is take envelope
+    local envTake = reaper.GetEnvelopeInfo_Value(env, "P_TAKE")
+    if type(envTake) == "userdata" and reaper.ValidatePtr2(0, envTake, "MediaItem_Take*") then -- Envelope is take envelope
         local envItem = reaper.GetMediaItemTake_Item(envTake)
         local envItemOffset = reaper.GetMediaItemInfo_Value(envItem, "D_POSITION")
         --envItemLength = reaper.GetMediaItemInfo_Value(envItem, "D_LENGTH")
@@ -1438,8 +1474,8 @@ function MAIN_CalculateAndInsertPoints()
 
     -- SAVE CURVE
     -- After each update, save AI curve
-    if selectedAutoItem ~= -1 and selectedAutoItemID then
-        reaper.SetProjExtState(0, "LFO Generator", selectedAutoItemID, SaveCurveToString(selectedAutoItemID))
+    if selectedAutoItem ~= -1 then --selectedAutoItemID then
+        reaper.GetSetAutomationItemInfo_String(env, selectedAutoItem, "P_POOL_EXT:js_LFO Generator", SaveCurveToString(selectedAutoItem), true)
     end
     --
 end -- MAIN_CalculateAndInsertPoints
@@ -2181,7 +2217,7 @@ end -- function getSavedCurvesAndNames()
 -----------------------------------
 
 function SaveCurveToString(curveName)
-    local saveString = curveName
+    local saveString = tostring(curveName)
     for i = 1, #egsliders do
         if type(egsliders[i]) ~= "table" then -- skip
         --elseif egsliders[i].name == "LFO shape?" then saveString = saveString .. ",LFO shape?," .. tostring(egsliders[i].value)

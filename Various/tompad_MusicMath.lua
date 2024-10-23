@@ -1,10 +1,9 @@
 -- @description MusicMath - bpm/pitch to ms/Hz converter
 -- @author tompad
--- @version 1.1
+-- @version 1.2
 -- @changelog
---   Added coverter pitch to Hz
---   Added tooltip "Click to copy to clipboard"
---   Added flashing green when clicking on ms or Hz label
+--   Added buttons for 2/1, 2/1., 2/1t, 4/1,4/1., 4/1t, 8/1, 8/1., 8/1t and 1/64, 1/64., 1/64t, 1/128, 1/128., 1/128t
+--   Thanks twarch!
 -- @about
 --   tompad_MusicMath is a reascript to get ms from bpm and Hz from pitch in a Reaperproject.
 --
@@ -19,7 +18,7 @@
 
 local lib_path = reaper.GetExtState("Lokasenna_GUI", "lib_path_v2")
 if not lib_path or lib_path == "" then
-  reaper.MB("Couldn't load the Lokasenna_GUI library. Please run 'Set Lokasenna_GUI v2 library path.lua' in the Lokasenna_GUI folder.", "Whoops!", 0)
+  reaper.MB("Couldn't load the Lokasenna_GUI library. Please install 'Lokasenna's GUI library v2 for Lua', available on ReaPack, then run the 'Set Lokasenna_GUI v2 library path.lua' script in your Action List.", "Whoops!", 0)
   return
 end
 loadfile(lib_path .. "Core.lua")()
@@ -36,7 +35,7 @@ GUI.req("Classes/Class - Menubox.lua")()
 if missing_lib then return 0 end
 
 GUI.name = "MusicMath"
-GUI.x, GUI.y, GUI.w, GUI.h = 0, 0, 210, 470
+GUI.x, GUI.y, GUI.w, GUI.h = 0, 0, 210, 724
 GUI.anchor, GUI.corner = "mouse", "C"
 
 
@@ -68,12 +67,132 @@ GUI.New("bpm_label", "Label", {
 })
 
 
+-- <hide-code desc='8/1'>
+
+GUI.New("btn_8_1", "Button", {
+  z = 2,
+  x = 26.0,
+  y = 76.0,
+  w = 48,
+  h = 48,
+  caption = "8/1",
+  font = 2,
+  col_txt = "txt",
+  col_fill = "elm_frame"
+})
+
+GUI.New("btn_8_1dot", "Button", {
+  z = 2,
+  x = 80.0,
+  y = 76.0,
+  w = 48,
+  h = 48,
+  caption = "8/1.",
+  font = 2,
+  col_txt = "txt",
+  col_fill = "elm_frame"
+})
+
+GUI.New("btn_8_1t", "Button", {
+  z = 2,
+  x = 134.0,
+  y = 76.0,
+  w = 48,
+  h = 48,
+  caption = "8/1t",
+  font = 2,
+  col_txt = "txt",
+  col_fill = "elm_frame"
+})
+
+-- </hide-code>
+
+-- <hide-code desc='4/1'>
+
+GUI.New("btn_4_1", "Button", {
+  z = 2,
+  x = 26.0,
+  y = 130.0,
+  w = 48,
+  h = 48,
+  caption = "4/1",
+  font = 2,
+  col_txt = "txt",
+  col_fill = "elm_frame"
+})
+
+GUI.New("btn_4_1dot", "Button", {
+  z = 2,
+  x = 80.0,
+  y = 130.0,
+  w = 48,
+  h = 48,
+  caption = "4/1.",
+  font = 2,
+  col_txt = "txt",
+  col_fill = "elm_frame"
+})
+
+GUI.New("btn_4_1t", "Button", {
+  z = 2,
+  x = 134.0,
+  y = 130.0,
+  w = 48,
+  h = 48,
+  caption = "4/1t",
+  font = 2,
+  col_txt = "txt",
+  col_fill = "elm_frame"
+})
+
+-- </hide-code>
+
+-- <hide-code desc='2/1'>
+
+GUI.New("btn_2_1", "Button", {
+  z = 2,
+  x = 26.0,
+  y = 184.0,
+  w = 48,
+  h = 48,
+  caption = "2/1",
+  font = 2,
+  col_txt = "txt",
+  col_fill = "elm_frame"
+})
+
+GUI.New("btn_2_1dot", "Button", {
+  z = 2,
+  x = 80.0,
+  y = 184.0,
+  w = 48,
+  h = 48,
+  caption = "2/1.",
+  font = 2,
+  col_txt = "txt",
+  col_fill = "elm_frame"
+})
+
+GUI.New("btn_2_1t", "Button", {
+  z = 2,
+  x = 134.0,
+  y = 184.0,
+  w = 48,
+  h = 48,
+  caption = "2/1t",
+  font = 2,
+  col_txt = "txt",
+  col_fill = "elm_frame"
+})
+
+-- </hide-code>
+
 -- <hide-code desc='1/1'>
 
 GUI.New("btn_1_1", "Button", {
   z = 2,
   x = 26.0,
-  y = 76.0,
+  y = 238.0,
   w = 48,
   h = 48,
   caption = "1/1",
@@ -85,7 +204,7 @@ GUI.New("btn_1_1", "Button", {
 GUI.New("btn_1_1dot", "Button", {
   z = 2,
   x = 80.0,
-  y = 76.0,
+  y = 238.0,
   w = 48,
   h = 48,
   caption = "1/1.",
@@ -97,7 +216,7 @@ GUI.New("btn_1_1dot", "Button", {
 GUI.New("btn_1_1t", "Button", {
   z = 2,
   x = 134.0,
-  y = 76.0,
+  y = 238.0,
   w = 48,
   h = 48,
   caption = "1/1t",
@@ -113,7 +232,7 @@ GUI.New("btn_1_1t", "Button", {
 GUI.New("btn_1_2", "Button", {
   z = 2,
   x = 26.0,
-  y = 130.0,
+  y = 292.0,
   w = 48,
   h = 48,
   caption = "1/2",
@@ -125,7 +244,7 @@ GUI.New("btn_1_2", "Button", {
 GUI.New("btn_1_2dot", "Button", {
   z = 2,
   x = 80.0,
-  y = 130.0,
+  y = 292.0,
   w = 48,
   h = 48,
   caption = "1/2.",
@@ -137,7 +256,7 @@ GUI.New("btn_1_2dot", "Button", {
 GUI.New("btn_1_2t", "Button", {
   z = 2,
   x = 134.0,
-  y = 130.0,
+  y = 292.0,
   w = 48,
   h = 48,
   caption = "1/2t",
@@ -152,7 +271,7 @@ GUI.New("btn_1_2t", "Button", {
 GUI.New("btn_1_4", "Button", {
   z = 2,
   x = 26.0,
-  y = 184.0,
+  y = 346.0,
   w = 48,
   h = 48,
   caption = "1/4",
@@ -164,7 +283,7 @@ GUI.New("btn_1_4", "Button", {
 GUI.New("btn_1_4dot", "Button", {
   z = 2,
   x = 80.0,
-  y = 184.0,
+  y = 346.0,
   w = 48,
   h = 48,
   caption = "1/4.",
@@ -176,7 +295,7 @@ GUI.New("btn_1_4dot", "Button", {
 GUI.New("btn_1_4t", "Button", {
   z = 2,
   x = 134.0,
-  y = 184.0,
+  y = 346.0,
   w = 48,
   h = 48,
   caption = "1/4t",
@@ -192,7 +311,7 @@ GUI.New("btn_1_4t", "Button", {
 GUI.New("btn_1_8", "Button", {
   z = 2,
   x = 26.0,
-  y = 238.0,
+  y = 400.0,
   w = 48,
   h = 48,
   caption = "1/8",
@@ -204,7 +323,7 @@ GUI.New("btn_1_8", "Button", {
 GUI.New("btn_1_8dot", "Button", {
   z = 2,
   x = 80.0,
-  y = 238.0,
+  y = 400.0,
   w = 48,
   h = 48,
   caption = "1/8.",
@@ -216,7 +335,7 @@ GUI.New("btn_1_8dot", "Button", {
 GUI.New("btn_1_8t", "Button", {
   z = 2,
   x = 134.0,
-  y = 238.0,
+  y = 400.0,
   w = 48,
   h = 48,
   caption = "1/8t",
@@ -231,7 +350,7 @@ GUI.New("btn_1_8t", "Button", {
 GUI.New("btn_1_16", "Button", {
   z = 2,
   x = 26.0,
-  y = 292.0,
+  y = 454.0,
   w = 48,
   h = 48,
   caption = "1/16",
@@ -243,7 +362,7 @@ GUI.New("btn_1_16", "Button", {
 GUI.New("btn_1_16dot", "Button", {
   z = 2,
   x = 80.0,
-  y = 292.0,
+  y = 454.0,
   w = 48,
   h = 48,
   caption = "1/16.",
@@ -255,7 +374,7 @@ GUI.New("btn_1_16dot", "Button", {
 GUI.New("btn_1_16t", "Button", {
   z = 2,
   x = 134.0,
-  y = 292.0,
+  y = 454.0,
   w = 48,
   h = 48,
   caption = "1/16t",
@@ -271,7 +390,7 @@ GUI.New("btn_1_16t", "Button", {
 GUI.New("btn_1_32", "Button", {
   z = 2,
   x = 26.0,
-  y = 346.0,
+  y = 508.0,
   w = 48,
   h = 48,
   caption = "1/32",
@@ -283,7 +402,7 @@ GUI.New("btn_1_32", "Button", {
 GUI.New("btn_1_32dot", "Button", {
   z = 2,
   x = 80.0,
-  y = 346.0,
+  y = 508.0,
   w = 48,
   h = 48,
   caption = "1/32.",
@@ -295,7 +414,7 @@ GUI.New("btn_1_32dot", "Button", {
 GUI.New("btn_1_32t", "Button", {
   z = 2,
   x = 134.0,
-  y = 346.0,
+  y = 508.0,
   w = 48,
   h = 48,
   caption = "1/32t",
@@ -305,10 +424,88 @@ GUI.New("btn_1_32t", "Button", {
 })
 -- </hide-code>
 
+-- <hide-code desc='1/64'>
+
+GUI.New("btn_1_64", "Button", {
+  z = 2,
+  x = 26.0,
+  y = 562.0,
+  w = 48,
+  h = 48,
+  caption = "1/64",
+  font = 2,
+  col_txt = "txt",
+  col_fill = "elm_frame"
+})
+
+GUI.New("btn_1_64dot", "Button", {
+  z = 2,
+  x = 80.0,
+  y = 562.0,
+  w = 48,
+  h = 48,
+  caption = "1/64.",
+  font = 2,
+  col_txt = "txt",
+  col_fill = "elm_frame"
+})
+
+GUI.New("btn_1_64t", "Button", {
+  z = 2,
+  x = 134.0,
+  y = 562.0,
+  w = 48,
+  h = 48,
+  caption = "1/64t",
+  font = 2,
+  col_txt = "txt",
+  col_fill = "elm_frame"
+})
+-- </hide-code>
+
+-- <hide-code desc='1/128'>
+
+GUI.New("btn_1_128", "Button", {
+  z = 2,
+  x = 26.0,
+  y = 616.0,
+  w = 48,
+  h = 48,
+  caption = "1/128",
+  font = 2,
+  col_txt = "txt",
+  col_fill = "elm_frame"
+})
+
+GUI.New("btn_1_128dot", "Button", {
+  z = 2,
+  x = 80.0,
+  y = 616.0,
+  w = 48,
+  h = 48,
+  caption = "1/128.",
+  font = 2,
+  col_txt = "txt",
+  col_fill = "elm_frame"
+})
+
+GUI.New("btn_1_128t", "Button", {
+  z = 2,
+  x = 134.0,
+  y = 616.0,
+  w = 48,
+  h = 48,
+  caption = "1/128t",
+  font = 2,
+  col_txt = "txt",
+  col_fill = "elm_frame"
+})
+-- </hide-code>
+
 GUI.New("ms_label", "Label", {
   z = 2,
   x = 105,
-  y = 410,
+  y = 670,
   caption = "0 ms",
   font = 1,
   color = "txt",
@@ -349,24 +546,87 @@ function GUI.elms.ms_label:onmouseup()
 
 end
 
--- <hide-code desc='btn_1_1'>
+-- <hide-code desc='btn_8/1'>
 
-function GUI.elms.btn_1_1dot:onmouseup()
+function GUI.elms.btn_8_1dot:onmouseup()
   GUI.Button.onmouseup(self)
   local tempo = check_Tempo()
   check_ms(tempo, 1)
 end
 
-function GUI.elms.btn_1_1:onmouseup()
+function GUI.elms.btn_8_1:onmouseup()
   GUI.Button.onmouseup(self)
   local tempo = check_Tempo()
   check_ms(tempo, 2)
 end
 
-function GUI.elms.btn_1_1t:onmouseup()
+function GUI.elms.btn_8_1t:onmouseup()
   GUI.Button.onmouseup(self)
   local tempo = check_Tempo()
   check_ms(tempo, 3)
+end
+-- </hide-code>
+
+-- <hide-code desc='btn_4/1'>
+
+function GUI.elms.btn_4_1dot:onmouseup()
+  GUI.Button.onmouseup(self)
+  local tempo = check_Tempo()
+  check_ms(tempo, 4)
+end
+
+function GUI.elms.btn_4_1:onmouseup()
+  GUI.Button.onmouseup(self)
+  local tempo = check_Tempo()
+  check_ms(tempo, 5)
+end
+
+function GUI.elms.btn_4_1t:onmouseup()
+  GUI.Button.onmouseup(self)
+  local tempo = check_Tempo()
+  check_ms(tempo, 6)
+end
+-- </hide-code>
+
+-- <hide-code desc='btn_2/1'>
+
+function GUI.elms.btn_2_1dot:onmouseup()
+  GUI.Button.onmouseup(self)
+  local tempo = check_Tempo()
+  check_ms(tempo, 7)
+end
+
+function GUI.elms.btn_2_1:onmouseup()
+  GUI.Button.onmouseup(self)
+  local tempo = check_Tempo()
+  check_ms(tempo, 8)
+end
+
+function GUI.elms.btn_2_1t:onmouseup()
+  GUI.Button.onmouseup(self)
+  local tempo = check_Tempo()
+  check_ms(tempo, 9)
+end
+-- </hide-code>
+
+-- <hide-code desc='btn_1_1'>
+
+function GUI.elms.btn_1_1dot:onmouseup()
+  GUI.Button.onmouseup(self)
+  local tempo = check_Tempo()
+  check_ms(tempo, 10)
+end
+
+function GUI.elms.btn_1_1:onmouseup()
+  GUI.Button.onmouseup(self)
+  local tempo = check_Tempo()
+  check_ms(tempo, 11)
+end
+
+function GUI.elms.btn_1_1t:onmouseup()
+  GUI.Button.onmouseup(self)
+  local tempo = check_Tempo()
+  check_ms(tempo, 12)
 end
 -- </hide-code>
 
@@ -375,19 +635,19 @@ end
 function GUI.elms.btn_1_2dot:onmouseup()
   GUI.Button.onmouseup(self)
   local tempo = check_Tempo()
-  check_ms(tempo, 4)
+  check_ms(tempo, 13)
 end
 
 function GUI.elms.btn_1_2:onmouseup()
   GUI.Button.onmouseup(self)
   local tempo = check_Tempo()
-  check_ms(tempo, 5)
+  check_ms(tempo, 14)
 end
 
 function GUI.elms.btn_1_2t:onmouseup()
   GUI.Button.onmouseup(self)
   local tempo = check_Tempo()
-  check_ms(tempo, 6)
+  check_ms(tempo, 15)
 end
 -- </hide-code>
 
@@ -396,19 +656,19 @@ end
 function GUI.elms.btn_1_4dot:onmouseup()
   GUI.Button.onmouseup(self)
   local tempo = check_Tempo()
-  check_ms(tempo, 7)
+  check_ms(tempo, 16)
 end
 
 function GUI.elms.btn_1_4:onmouseup()
   GUI.Button.onmouseup(self)
   local tempo = check_Tempo()
-  check_ms(tempo, 8)
+  check_ms(tempo, 17)
 end
 
 function GUI.elms.btn_1_4t:onmouseup()
   GUI.Button.onmouseup(self)
   local tempo = check_Tempo()
-  check_ms(tempo, 9)
+  check_ms(tempo, 18)
 end
 -- </hide-code>
 
@@ -417,19 +677,19 @@ end
 function GUI.elms.btn_1_8dot:onmouseup()
   GUI.Button.onmouseup(self)
   local tempo = check_Tempo()
-  check_ms(tempo, 10)
+  check_ms(tempo, 19)
 end
 
 function GUI.elms.btn_1_8:onmouseup()
   GUI.Button.onmouseup(self)
   local tempo = check_Tempo()
-  check_ms(tempo, 11)
+  check_ms(tempo, 20)
 end
 
 function GUI.elms.btn_1_8t:onmouseup()
   GUI.Button.onmouseup(self)
   local tempo = check_Tempo()
-  check_ms(tempo, 12)
+  check_ms(tempo, 21)
 end
 -- </hide-code>
 
@@ -438,19 +698,19 @@ end
 function GUI.elms.btn_1_16dot:onmouseup()
   GUI.Button.onmouseup(self)
   local tempo = check_Tempo()
-  check_ms(tempo, 13)
+  check_ms(tempo, 22)
 end
 
 function GUI.elms.btn_1_16:onmouseup()
   GUI.Button.onmouseup(self)
   local tempo = check_Tempo()
-  check_ms(tempo, 14)
+  check_ms(tempo, 23)
 end
 
 function GUI.elms.btn_1_16t:onmouseup()
   GUI.Button.onmouseup(self)
   local tempo = check_Tempo()
-  check_ms(tempo, 15)
+  check_ms(tempo, 24)
 end
 -- </hide-code>
 
@@ -459,61 +719,136 @@ end
 function GUI.elms.btn_1_32dot:onmouseup()
   GUI.Button.onmouseup(self)
   local tempo = check_Tempo()
-  check_ms(tempo, 16)
+  check_ms(tempo, 25)
 end
 
 function GUI.elms.btn_1_32:onmouseup()
   GUI.Button.onmouseup(self)
   local tempo = check_Tempo()
-  check_ms(tempo, 17)
+  check_ms(tempo, 26)
 end
 
 function GUI.elms.btn_1_32t:onmouseup()
   GUI.Button.onmouseup(self)
   local tempo = check_Tempo()
-  check_ms(tempo, 18)
+  check_ms(tempo, 27)
+end
+-- </hide-code>
+
+-- <hide-code desc='1/64'>
+
+function GUI.elms.btn_1_64dot:onmouseup()
+  GUI.Button.onmouseup(self)
+  local tempo = check_Tempo()
+  check_ms(tempo, 28)
+end
+
+function GUI.elms.btn_1_64:onmouseup()
+  GUI.Button.onmouseup(self)
+  local tempo = check_Tempo()
+  check_ms(tempo, 29)
+end
+
+function GUI.elms.btn_1_64t:onmouseup()
+  GUI.Button.onmouseup(self)
+  local tempo = check_Tempo()
+  check_ms(tempo, 30)
+end
+-- </hide-code>
+
+-- <hide-code desc='1/128'>
+
+function GUI.elms.btn_1_128dot:onmouseup()
+  GUI.Button.onmouseup(self)
+  local tempo = check_Tempo()
+  check_ms(tempo, 31)
+end
+
+function GUI.elms.btn_1_128:onmouseup()
+  GUI.Button.onmouseup(self)
+  local tempo = check_Tempo()
+  check_ms(tempo, 32)
+end
+
+function GUI.elms.btn_1_128t:onmouseup()
+  GUI.Button.onmouseup(self)
+  local tempo = check_Tempo()
+  check_ms(tempo, 33)
 end
 -- </hide-code>
 
 function check_ms (bpm, notvarde)
   local mSeconds = 60000 / bpm
 
+  
   if notvarde == 1 then
-    value_ms = mSeconds * 6 --1/1.
+    value_ms = mSeconds * 48 --8/1.
   elseif notvarde == 2 then
-    value_ms = mSeconds * 4 -- 1/1
+    value_ms = mSeconds * 32 -- 8/1
   elseif notvarde == 3 then
-    value_ms = mSeconds * 2.666 -- 1/1T
+    value_ms = mSeconds * 21.328 -- 8/1T	
   elseif notvarde == 4 then
-    value_ms = mSeconds * 3 -- 1/2.
+    value_ms = mSeconds * 24 --4/1.
   elseif notvarde == 5 then
-    value_ms = mSeconds * 2 -- 1/2
+    value_ms = mSeconds * 16 -- 4/1
   elseif notvarde == 6 then
-    value_ms = mSeconds * 1.333 -- 1/2T
+    value_ms = mSeconds * 10.664 -- 4/1T	
   elseif notvarde == 7 then
-    value_ms = mSeconds * 1.5 -- 1/4.
+    value_ms = mSeconds * 12 --2/1.
   elseif notvarde == 8 then
-    value_ms = mSeconds * 1 -- 1/4
+    value_ms = mSeconds * 8 -- 2/1
   elseif notvarde == 9 then
-    value_ms = mSeconds * 0.666 -- 1/4T
+    value_ms = mSeconds * 5.332 -- 2/1T	
   elseif notvarde == 10 then
-    value_ms = mSeconds * 0.75 -- 1/8.
+    value_ms = mSeconds * 6 --1/1.
   elseif notvarde == 11 then
-    value_ms = mSeconds * 0.5 -- 1/8
+    value_ms = mSeconds * 4 -- 1/1
   elseif notvarde == 12 then
-    value_ms = mSeconds * 0.333 -- 1/8T
+    value_ms = mSeconds * 2.666 -- 1/1T
   elseif notvarde == 13 then
-    value_ms = mSeconds * 0.375 --1/16.
+    value_ms = mSeconds * 3 -- 1/2.
   elseif notvarde == 14 then
-    value_ms = mSeconds * 0.25 --1/16
+    value_ms = mSeconds * 2 -- 1/2
   elseif notvarde == 15 then
-    value_ms = mSeconds * 0.1665 --1/16T
+    value_ms = mSeconds * 1.333 -- 1/2T
   elseif notvarde == 16 then
-    value_ms = mSeconds * 0.1875 --1/32.
+    value_ms = mSeconds * 1.5 -- 1/4.
   elseif notvarde == 17 then
-    value_ms = mSeconds * 0.125 -- 1/32
+    value_ms = mSeconds * 1 -- 1/4
   elseif notvarde == 18 then
+    value_ms = mSeconds * 0.666 -- 1/4T
+  elseif notvarde == 19 then
+    value_ms = mSeconds * 0.75 -- 1/8.
+  elseif notvarde == 20 then
+    value_ms = mSeconds * 0.5 -- 1/8
+  elseif notvarde == 21 then
+    value_ms = mSeconds * 0.333 -- 1/8T
+  elseif notvarde == 22 then
+    value_ms = mSeconds * 0.375 --1/16.
+  elseif notvarde == 23 then
+    value_ms = mSeconds * 0.25 --1/16
+  elseif notvarde == 24 then
+    value_ms = mSeconds * 0.1665 --1/16T
+  elseif notvarde == 25 then
+    value_ms = mSeconds * 0.1875 --1/32.
+  elseif notvarde == 26 then
+    value_ms = mSeconds * 0.125 -- 1/32
+  elseif notvarde == 27 then
     value_ms = mSeconds * 0.08325 -- 1/32T
+  elseif notvarde == 28 then
+    value_ms = mSeconds * 0.09375 --1/64.
+  elseif notvarde == 29 then
+    value_ms = mSeconds * 0.0625 -- 1/64
+  elseif notvarde == 30 then
+    value_ms = mSeconds * 0.041625 -- 1/64T
+	
+  elseif notvarde == 31 then
+    value_ms = mSeconds * 0.046875 --1/64.
+  elseif notvarde == 32 then
+    value_ms = mSeconds * 0.03125 -- 1/64
+  elseif notvarde == 33 then
+    value_ms = mSeconds * 0.0208125 -- 1/64T
+
   end
 
   local ms_str = round(value_ms, 3) .." ms"

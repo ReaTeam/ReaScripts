@@ -1,0 +1,10 @@
+// @noindex
+
+  #tab_id = "  ";
+  get_action_context(#filename, sectionID, cmdID, mode, resolution, val) ? (
+    c0 = (val / 10) | 0;
+    c1 = (val % 10) | 0;
+    str_setchar(#tab_id, 0, c0+'0');
+    str_setchar(#tab_id, 1, c1+'0');
+  );
+  SetExtState("Mini_Song_Switcher", "tab_id", #tab_id, 0);

@@ -226,7 +226,7 @@ function GUI.Textbox:ontype()
 
         local shift = GUI.mouse.cap & 8 == 8
 
-        if shift and not self.sel then
+        if shift and not self.sel_s then
             self.sel_s = self.caret
         end
 

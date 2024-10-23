@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Select and deselect MIDI notes by step pattern.lua
-Version: 1.21
+Version: 1.30
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Screenshot: http://stash.reaper.fm/30964/js_Select%20and%20deselect%20MIDI%20notes%20by%20step%20pattern%20-%20Measure%20divisions%20mode.gif
@@ -72,6 +72,8 @@ About:
     + Notes do not need to be reloaded after editing velocities or CCs in the MIDI editor.
   * v1.21 (2017-08-26)
     + Compatible with muted notes.
+  * v1.30 (2019-02-09)
+    + If ReaScriptAPI extension is installed, automatically add pin-on-top button to GUI.
 ]]
 
 
@@ -754,6 +756,12 @@ else
 end
 gfx.setfont(1, fontFace, fontSize, 'b')
 drawGUI()
+
+-- New in v1.30: Add pin-on-top button:
+if reaper.JS_Window_FindEx then
+    hwnd = reaper.JS_Window_Find("Note selector", true)
+    if hwnd then reaper.JS_Window_AttachTopmostPin(hwnd) end
+end
 
 
 ------------------

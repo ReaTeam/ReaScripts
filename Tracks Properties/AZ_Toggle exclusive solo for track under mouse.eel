@@ -1,0 +1,29 @@
+// @description Toggle exclusive solo for track under mouse
+// @author AZ
+// @version 1.1
+// @changelog Fixed wrong behavior if several tracks are soloed.
+// @about
+//   # Toggle exclusive solo for track under mouse
+//
+//   The script changes selection of track and toggles solo in exclusive mode.
+
+ 
+function solo() (
+  Main_OnCommandEx(41110, 0, 0 ); //select track under mouse
+  x=GetMediaTrackInfo_Value ( GetSelectedTrack(0, 0), "I_SOLO");
+  x!=0 ? ( //if any solo mode
+  Main_OnCommandEx(40340, 1, 0 ); //unsolo all tracks
+  );
+                    
+  x==0 ? (
+  Main_OnCommandEx(40340, 1, 0 ); //unsolo all tracks
+  SetMediaTrackInfo_Value(GetSelectedTrack(0, 0), "I_SOLO", 2);
+  );
+);
+
+
+Undo_BeginBlock();
+PreventUIRefresh(1);
+solo();
+PreventUIRefresh(-1);
+Undo_EndBlock("Solo exclusive tracks under mouse", -1);

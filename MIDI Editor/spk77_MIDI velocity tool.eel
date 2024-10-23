@@ -4,19 +4,18 @@
    * Author: spk77
    * Author URI: http://forum.cockos.com/member.php?u=49553
    * Licence: GPL v3
-   * Version: 1.0
+   * Version: 1.01
 */
   
-  // "MIDI velocity tool" ((c) spk77 and Breeder)
-// Version: 0.2014.9.11
+// "MIDI velocity tool" ((c) spk77 and Breeder)
+// Version: 0.2020.2.08
 // Changelog:
-//   - support for 14bit lanes, pitch, aftertouch and program lanes (anything that's drawable)
-//   - when in CC mode, user is still able to edit velocity by clicking it's lane
-//   - ctrl+click target fader sets it to the middle
-//   - preserve settings through REAPER or script restarts(mode, compressor weight and target, dialog dimensions)
-//
+//   - remember screen position
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // *CHANGELOG*:
+//
+// 08.2.2020 (by amagalma)
+//   - remember screen position
 //
 // 11.9.2014 (by Breeder):
 //   - support for 14bit lanes, pitch, aftertouch and program lanes (anything that's drawable)
@@ -817,6 +816,9 @@ function save_data ()
   SetExtState("spk77_velocity_tool", "mode",   sprintf(#, "%d", mode == "Velocity" ? 0 : 1), 1);
   SetExtState("spk77_velocity_tool", "w",      sprintf(#, "%d", gfx_w),                      1);
   SetExtState("spk77_velocity_tool", "h",      sprintf(#, "%d", gfx_h),                      1);
+  gfx_dock(-1,wx,wy,0,0 );
+  SetExtState("spk77_velocity_tool", "x",      sprintf(#, "%d", wx),                         1);
+  SetExtState("spk77_velocity_tool", "y",      sprintf(#, "%d", wy),                         1);
   SetExtState("spk77_velocity_tool", "target", sprintf(#, "%d", compr_target_knob_last_x),   1);
   SetExtState("spk77_velocity_tool", "weight", sprintf(#, "%d", compr_weight_knob_last_x),   1);
 );
@@ -831,10 +833,12 @@ function restore_data () local (savedMode, savedW, savedH)
     GetExtState(#tmp, "spk77_velocity_tool", "mode");   !match("%d", #tmp, savedMode)   ? savedMode      = 0;
     GetExtState(#tmp, "spk77_velocity_tool", "w");      !match("%d", #tmp, savedW)      ? savedW         = 280;
     GetExtState(#tmp, "spk77_velocity_tool", "h");      !match("%d", #tmp, savedH)      ? savedH         = 280;
+    GetExtState(#tmp, "spk77_velocity_tool", "x");      !match("%d", #tmp, savedX)      ? savedX         = 0;
+    GetExtState(#tmp, "spk77_velocity_tool", "y");      !match("%d", #tmp, savedY)      ? savedY         = 0;
   );
 
   mode = (savedMode == 0) ? "Velocity" : "CC";
-  gfx_init("MIDI Velocity/CC tool", savedW, savedH);
+  gfx_init("MIDI Velocity/CC tool", savedW, savedH, 0, savedX, savedY );
 );
 
 function restore_comp_data () local (savedTarget, savedWeight)

@@ -1,0 +1,265 @@
+// @noindex
+
+//@gmem=fakemidi
+
+// Author: Starshine777
+// This ImGui interface allows the user to create a rank-2 scale and add track lanes
+// It operates on the selected track
+// The data saved to the project file is loaded and used by starmicro_midi.EEL
+//
+// Note on coding style: many variables are being passed implicitly; use caution when
+// modifying. This may be cleaned up in a future revision.
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+// init
+/////////////////////////////////////////////////////////////////////////////////////////////
+FONT_SIZE = 16;
+SCALE_MAX_LEN = 46;
+MAX_TRACK_LANES = 255;
+_tracks_r2_scales = 512;
+color_stack_count = 0;
+color = 0;
+#notes = "";
+_scale_mem = 0;
+ctx = ImGui_CreateContext("Scale Selector");
+ImGui_NumericLimits_Float(FLT_MIN, FLT_MAX);
+font = ImGui_CreateFont("sans_serif", FONT_SIZE);
+ImGui_Attach(ctx, font);
+
+function init_defaults()(
+  edo = 22;
+  edo_steps = 3;
+  d_steps = 7;
+  period = 1200;
+  mode = 0;
+  init_done = 1;
+);
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+// functions for scale construction and drawing the GUI
+/////////////////////////////////////////////////////////////////////////////////////////////
+function hsv(h,s,v,a)(
+  ImGui_ColorConvertHSVtoRGB(h,s,v,r,g,b);
+  ImGui_ColorConvertDouble4ToU32(r,g,b,a|1);
+);
+
+function _track_scale_gmem_ptr(track)(track*MAX_TRACK_LANES+_tracks_r2_scales);
+
+function save_lane_data(track,track_idx,mos_size,start_char,init_char,start_equave,period)(
+  track_lane_name_ptr=_track_scale_gmem_ptr(track_idx);
+  lane_count=GetMediaTrackInfo_Value(track, "I_NUMFIXEDLANES");
+  lane_idx=lane_count;
+  scale_degree=init_char-start_char;
+  equave=start_equave-1;
+  Loop(lane_count,
+    scale_degree%=mos_size;
+    scale_degree==0 
+      ? ( equave+=1;
+          sprintf(#lane_name,"%s%i%s","==== [",equave-1,"]");
+        )
+      : sprintf(#lane_name,"%s%i%s","[",equave-1,"]");
+    scale_degree+=1;
+    
+    // update the lanes starting from the bottom
+    sprintf(#P_LANENAME,"%s%i","P_LANENAME:",lane_idx-=1);
+    sprintf(#cents_and_lane,"%.1f %s",_scale_mem[scale_degree-1],#lane_name);
+    GetSetMediaTrackInfo_String(track, #P_LANENAME, #cents_and_lane, 1);
+    
+    // update the pitch data for each lane
+    sprintf(#key,"P_EXT:lane_pitch%i",lane_idx);
+    sprintf(#value,"%f",_scale_mem[scale_degree-1]+(equave*period));
+    GetSetMediaTrackInfo_String(track, #key, #value, 1);
+    
+    //make sure all lanes play
+    sprintf(#LANEPLAYS,"%s%i","C_LANEPLAYS:",lane_idx);
+    SetMediaTrackInfo_Value(track, #LANEPLAYS, 2);
+  );
+);
+
+function init_scale_mem(scale)(
+  memset(scale,99999,SCALE_MAX_LEN);
+);
+
+function get_chroma(_mos_size,period)(
+  i=0; small=99999; large=0;
+  Loop(_mos_size,
+    (i==_mos_size-1)
+      ? step=period-_scale_mem[i]
+      : step=_scale_mem[i+1]-_scale_mem[i]
+      ;
+     step<small ? small=step;
+     step>large ? large=step;
+     i+=1;
+  );
+large-small);
+
+function construct_scale(_mos_size,_period,_generator,mode)(
+    init_scale_mem(_scale_mem);
+    num_gens=-mode;
+    Loop(_mos_size,
+      scale_note=num_gens*_generator;
+      while(scale_note > _period)(scale_note-=_period);
+      while(scale_note < 0      )(scale_note+=_period);
+      num_gens+=1;
+      insert_pos=-1;
+      while(scale_note>_scale_mem[insert_pos+=1]);
+      mem_insert_shuffle(_scale_mem+insert_pos, SCALE_MAX_LEN-insert_pos, scale_note);
+    );
+    chroma=get_chroma(_mos_size,period);
+);
+
+function print_scale_test(num_notes)(
+  #scale = "";
+  i = -1;
+  Loop(num_notes,
+    #scale+=sprintf(#,"%.2f\n",_scale_mem[i+=1]);
+  );
+);
+
+function save_track_scale(track,track_idx,d_steps,period,generator,mode,small,edo,edo_steps)(
+  sprintf(#scale_settings,"%i|%f|%f|%i|%f|%f|%f|%i",d_steps,period,generator,mode,chroma,small,edo,edo_steps); //TODO must add EDO settings
+  GetSetMediaTrackInfo_String(track, "P_EXT:scale_settings", #scale_settings, 1);
+);
+
+function load_track_scale(track,track_idx)(
+  GetSetMediaTrackInfo_String(track, "P_EXT:scale_settings", #scale_settings, 0);
+  ! match("%i|%f|%f|%i|%f|%f|%f|%i",#scale_settings,d_steps,period,generator,mode,chroma,small,edo,edo_steps)
+  ? init_defaults();
+);
+
+function item_shift_on_lane_count_change(track,amount)(
+  item_idx = -1;
+  Loop(CountTrackMediaItems(track),
+      item = GetTrackMediaItem(track, item_idx+=1);
+      current_lane = GetMediaItemInfo_Value(item,"I_FIXEDLANE");
+      new_lane = current_lane + amount;
+      SetMediaItemInfo_Value(item,"I_FIXEDLANE",new_lane);
+  );
+);
+
+function is_edo_slider_changed()(
+  (last_edo != edo) || (last_edo_steps != edo_steps) || (last_period != period)
+);
+
+function edo_slider_check_update()(
+  last_edo = edo;
+  last_edo_steps = edo_steps;
+  last_period = period;
+);
+
+function update_generator()(
+  generator = 1200/edo*edo_steps;
+);
+
+function change_slider_colors(ctx,h,s,v)(
+  ImGui_PushStyleColor(ctx,ImGui_Col_FrameBg(),hsv(h,s,v,1));
+  ImGui_PushStyleColor(ctx,ImGui_Col_SliderGrab(),hsv(h-0.05,s+0.3,v+0.4,1));
+  color_stack_count+=2;
+);
+
+function pop_colors(ctx)(
+  ImGui_PopStyleColor(ctx, color_stack_count);
+  color_stack_count=0;
+);
+
+function frame_init()(
+  ImGui_PushFont(ctx, font);
+  ImGui_TextWrapped(ctx, "Welcome to my scale dojo! Ctrl+Click to type exact values.");
+  ImGui_Spacing(ctx);
+  
+  track = GetSelectedTrack(0, 0);
+  track_idx=GetMediaTrackInfo_Value(track, "IP_TRACKNUMBER")-1;
+  
+  track ? (
+    GetTrackGUID(#guid, track);
+    ImGui_PushID(ctx, #guid);
+  ) : (
+    ImGui_BeginDisabled(ctx);
+  );
+);
+
+function create_sliders()(
+  // # of lanes
+  lane_count=GetMediaTrackInfo_Value(track, "I_NUMFIXEDLANES");
+  last_lane_count = lane_count;
+  ImGui_Spacing(ctx); ImGui_SliderInt(ctx, "# of Track Lanes", lane_count, 5, 255,"%i",ImGui_SliderFlags_Logarithmic());
+  last_lane_count != lane_count ? (
+    SetMediaTrackInfo_Value(track, "I_NUMFIXEDLANES", lane_count);
+    item_shift_on_lane_count_change(track,lane_count-last_lane_count);
+  );
+  
+  ImGui_Spacing(ctx); ImGui_Spacing(ctx);
+  
+  // # of scale steps
+  change_slider_colors(ctx,0.133,0.6,0.6);
+  ImGui_Spacing(ctx); ImGui_SliderInt(ctx, "# of Scale Steps", d_steps, 1, SCALE_MAX_LEN);
+  
+  // period
+  change_slider_colors(ctx,0.8,0.6,0.35);
+  ImGui_Spacing(ctx); ImGui_SliderDouble(ctx, "Period (cents)", period, 0, 1901.955, "%.2f");
+  
+  // ED
+  change_slider_colors(ctx,0.95,0.6,0.6);
+  ImGui_Spacing(ctx); ImGui_SliderInt(ctx, "Equal Divisions (of Period)", edo, 5, 311,"%i",ImGui_SliderFlags_Logarithmic());  
+  ImGui_Spacing(ctx); ImGui_SliderInt(ctx, "n\\EDX as Generator", edo_steps, 1, edo);
+  
+  // generator
+  is_edo_slider_changed() ? update_generator();
+  change_slider_colors(ctx,0.45,0.6,0.4);
+  ImGui_Spacing(ctx); ImGui_SliderDouble(ctx, "Generator (cents)", generator, 0, period/2, "%.2f");
+  ImGui_Spacing(ctx); ImGui_SliderInt(ctx, "Mode", mode, 0, d_steps-1);
+);
+
+function action_buttons()(
+  ImGui_Spacing(ctx); 
+  ImGui_Button(ctx, "Play/Stop")   
+    ? ( Main_OnCommand(NamedCommandLookup("_RS4f0401222eb33809e4e04b9693bcd14ca7d99b0f"),0);
+        Main_OnCommand(40044,0);
+      );
+  ImGui_SameLine(ctx); ImGui_Button(ctx, " b ")    ? Main_OnCommand(NamedCommandLookup("_RS71b7cfc777a450acc4930c2719c38a437a3f33d9"),0);
+  ImGui_SameLine(ctx); ImGui_Button(ctx, " # ")    ? Main_OnCommand(NamedCommandLookup("_RS366fe3883adb723dde13b90b44be99e4a9cc5207"),0);
+  ImGui_SameLine(ctx); ImGui_Button(ctx, " v ")    ? Main_OnCommand(NamedCommandLookup("_RS2dbc76ff1464140d969d92fc52228d6399df2cf0"),0);
+  ImGui_SameLine(ctx); ImGui_Button(ctx, " ^ ")    ? Main_OnCommand(NamedCommandLookup("_RSb11a8b54723ca6d7df691a1525ce2656dcbf1b7e"),0);
+);
+
+
+function create_and_store_scale()(
+  construct_scale(d_steps,period,generator,mode);
+  save_track_scale(track,track_idx,d_steps,period,generator,mode,small,edo,edo_steps);
+  print_scale_test(d_steps);
+  save_lane_data(track,track_idx,d_steps,'A','A',4,period);
+  edo_slider_check_update();
+  change_slider_colors(ctx,0.55,0,0.2);
+  ImGui_Spacing(ctx); ImGui_InputTextMultiline(ctx, "Scale Preview", #scale, 0, 240);
+);
+
+function frame_cleanup()(
+  pop_colors(ctx);
+  track ? ImGui_PopID(ctx) : ImGui_EndDisabled(ctx);
+  ImGui_PopFont(ctx);
+  ImGui_End(ctx);
+);
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+// main loop
+/////////////////////////////////////////////////////////////////////////////////////////////
+function frame()(
+  frame_init();
+  load_track_scale(track,track_idx);
+  create_sliders();
+  create_and_store_scale();
+  action_buttons();
+  UpdateItemLanes(0);
+  UpdateArrange();
+  frame_cleanup();
+);
+
+function loop() (
+  open = 1;
+  ImGui_SetNextWindowSize(ctx, 960, 540, ImGui_Cond_FirstUseEver());
+  ImGui_Begin(ctx, "Scale Selector", open) ? frame(); 
+  open ? defer("loop()");
+);
+
+defer("loop()");
+

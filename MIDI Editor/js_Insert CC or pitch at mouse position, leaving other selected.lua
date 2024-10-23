@@ -1,11 +1,9 @@
 --[[
 ReaScript name: js_Insert CC or pitch at mouse position, leaving other selected.lua
-Version: 2.31
+Version: 3.00
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Screenshot: https://stash.reaper.fm/27602/Insert%20CC%20or%20pitch%20at%20mouse%20position%2C%20leaving%20others%20selected.gif
-REAPER version: 5.32 or later
-Extensions: SWS/S&M 2.9 or later
 Donation: https://www.paypal.me/juliansader
 Provides: [main=midi_editor,midi_inlineeditor] .
 About:
@@ -60,6 +58,8 @@ About:
     + Use active channel of Inline MIDI editor.
   * v2.31 (2018-05-29)
     + Return focus to MIDI editor after arming button in floating toolbar.
+  * v3.00 (2019-02-03)
+    + Works in looped items.
 ]]
 
 
@@ -70,64 +70,74 @@ local _, editor, take, details, mouseLane, mouseTime, mousePPQpos, startQN, PPQ,
     
 -----------------------------------------------------------------------------------------------
 -- Set this script as the armed command that will be called by "js_Run the js action..." script
-function setAsNewArmedToolbarAction()
-
-    local tablePrevIDs, prevCommandIDs, prevSeparatorPos, nextSeparatorPos, prevID
+--#############################################################################################
+-----------------------------------------------------------------------------------------------
+-- Set this script as the armed command that will be called by "js_Run the js action..." script
+function ArmToolbarButton()
     
-    _, _, sectionID, ownCommandID, _, _, _ = reaper.get_action_context()
+    local _, _, sectionID, ownCommandID = reaper.get_action_context()
     if sectionID == nil or ownCommandID == nil or sectionID == -1 or ownCommandID == -1 then
         return(false)
+    end    
+    
+    prevCommandIDs = reaper.GetExtState("js_Mouse actions", "Previous commandIDs") or ""
+    
+    for prevCommandID in prevCommandIDs:gmatch("%d+") do
+        prevCommandID = tonumber(prevCommandID)
+        if prevCommandID == ownCommandID then
+            alreadyGotOwnCommand = true
+        else
+            reaper.SetToggleCommandState(sectionID, prevCommandID, 0)
+            reaper.RefreshToolbar2(sectionID, prevCommandID)
+        end
+    end
+    if not alreadyGotOwnCommand then
+        prevCommandIDs = prevCommandIDs .. tostring(ownCommandID) .. "|"
+        reaper.SetExtState("js_Mouse actions", "Previous commandIDs", prevCommandIDs, false)
     end
     
-    tablePrevIDs = {}
-    
+    reaper.SetExtState("js_Mouse actions", "Armed commandID", tostring(ownCommandID), false)
     reaper.SetToggleCommandState(sectionID, ownCommandID, 1)
     reaper.RefreshToolbar2(sectionID, ownCommandID)
     
-    if reaper.HasExtState("js_Mouse actions", "Previous commandIDs") then
-        prevCommandIDs = reaper.GetExtState("js_Mouse actions", "Previous commandIDs")
-        if type(prevCommandIDs) ~= "string" then
-            reaper.DeleteExtState("js_Mouse actions", "Previous commandIDs", true)
-        else
-            prevSeparatorPos = 0
-            repeat
-                nextSeparatorPos = prevCommandIDs:find("|", prevSeparatorPos+1)
-                if nextSeparatorPos ~= nil then
-                    prevID = tonumber(prevCommandIDs:sub(prevSeparatorPos+1, nextSeparatorPos-1))
-                    -- Is the stored number a valid (integer) commandID, and not own ID?
-                    if type(prevID) == "number" and prevID%1 == 0 and prevID ~= ownCommandID then
-                        table.insert(tablePrevIDs, prevID)
-                    end
-                    prevSeparatorPos = nextSeparatorPos
-                end
-            until nextSeparatorPos == nil
-            for i = 1, #tablePrevIDs do
-                reaper.SetToggleCommandState(sectionID, tablePrevIDs[i], 0)
-                reaper.RefreshToolbar2(sectionID, tablePrevIDs[i])
-            end
-        end
+    Tooltip("Armed: Insert CC")
+
+end -- ArmToolbarButton()
+
+
+--######################
+------------------------
+local tooltipTime = 0
+local tooltipText = ""
+function Tooltip(text)
+    if text then -- New tooltip text
+        tooltipTime = reaper.time_precise()
+        tooltipText = text
+        mouseX, mouseY = reaper.GetMousePosition()
+        reaper.TrackCtl_SetToolTip(tooltipText, mouseX+10, mouseY+10, true)
+        reaper.defer(Tooltip)
+    elseif reaper.time_precise() < tooltipTime+0.5 then
+        mouseX, mouseY = reaper.GetMousePosition()
+        reaper.TrackCtl_SetToolTip(tooltipText, mouseX+10, mouseY+10, true)
+        reaper.defer(Tooltip)
+    else
+        reaper.TrackCtl_SetToolTip("", 0, 0, false)
+        return
     end
-    
-    prevCommandIDs = tostring(ownCommandID) .. "|"
-    for i = 1, #tablePrevIDs do
-        prevCommandIDs = prevCommandIDs .. tostring(tablePrevIDs[i]) .. "|"
-    end
-    reaper.SetExtState("js_Mouse actions", "Previous commandIDs", prevCommandIDs, false)
-    
-    reaper.SetExtState("js_Mouse actions", "Armed commandID", tostring(ownCommandID), false)
 end
+
 
 --------------------------------------------------------------
 -- Here the code execution starts
 --------------------------------------------------------------
 function main()
 
-    if not reaper.APIExists("SN_FocusMIDIEditor") then -- Old versions of SWS have bug in BR_GetMouseCursorContext function
+    if not reaper.SN_FocusMIDIEditor then -- Old versions of SWS have bug in BR_GetMouseCursorContext function
         reaper.ShowMessageBox("This script requires an up-to-date version of the SWS/S&M extension."
                               .."\n\nThe SWS/S&M extension can be downloaded from www.sws-extension.org."
                               , "ERROR", 0)
         return(false)
-    elseif reaper.GetExtState("js_Mouse actions", "Status") == "Running" then
+    elseif (reaper.GetExtState("js_Mouse actions", "Status") or "") ~= "" then
         return(false)
     end
     
@@ -168,6 +178,9 @@ function main()
     mouseTime = reaper.BR_GetMouseCursorContext_Position()
     mouseSnapGrid = reaper.SnapToGrid(0, mouseTime)
     mousePPQpos = reaper.MIDI_GetPPQPosFromProjTime(take, mouseTime)
+    sourceLengthTicks = reaper.BR_GetMidiSourceLenPPQ(take)
+    loopStartPPQPos = (mousePPQpos // sourceLengthTicks) * sourceLengthTicks
+    mousePPQpos = mousePPQpos - loopStartPPQPos  
     
     ------------------------------------------------------------------------------------
     -- If snapping is enabled, get the PPQ position of closest grid BEFORE mouse position
@@ -255,6 +268,6 @@ end
 --------------------------------------------------
 reaper.defer(function() end) -- Avoid automatic creation of undo point
 mainOK = main()
-if mainOK == false and reaper.APIExists("SN_FocusMIDIEditor") then reaper.SN_FocusMIDIEditor() end
+if mainOK == false and not isInline and reaper.SN_FocusMIDIEditor then reaper.SN_FocusMIDIEditor() end
   
 

@@ -1,15 +1,12 @@
-// @description amagalma_Toggle Select all tracks/items/envelope points under mouse (smart select all)
+// @description amagalma_Toggle Select all tracks, items or envelope points under mouse (smart select all)
 // @author amagalma
-// @version 1.1
+// @version 1.11
+// @changelog Fix for latest SWS update
+// @link https://forum.cockos.com/showthread.php?t=188418
+// @donation https://www.paypal.me/amagalma
 // @about
-//   # Toggle select/unselect all tracks/items/envelope points depending on what is under mouse
-//
+//   # Toggle select/unselect all tracks/items/envelope points depending on what is under mouse cursor
 
-/*
- * Changelog:
- * v1.1 (2017-04-13)
-  + Increased the scope of the action. Now it works in more places (like empty tcp, empty arrange etc)
-*/
 
 function Tracks()
 (
@@ -42,7 +39,7 @@ function Main()
 (
   Undo_BeginBlock();
   // Get details for what is under mouse cursor
-  extension_api("BR_GetMouseCursorContext", #window, #segment, #details, 128)
+  extension_api("BR_GetMouseCursorContext", #window, #segment, #details)
   ;
 ////////////////// TRACKS ////////////////////////////////////////////////////
   // Mouse is over TCP track, or

@@ -80,6 +80,97 @@ chords = {
     pattern = '10000010'
   },
 }
+
+function mouseIsHoveringOver(element)
+
+	local x = gfx.mouse_x
+	local y = gfx.mouse_y
+
+	local isInHorizontalRegion = (x >= element.x and x < element.x+element.width)
+	local isInVerticalRegion = (y >= element.y and y < element.y+element.height)
+	return isInHorizontalRegion and isInVerticalRegion
+end
+
+function setPositionAtMouseCursor()
+
+  gfx.x = gfx.mouse_x
+  gfx.y = gfx.mouse_y
+end
+
+function leftMouseButtonIsHeldDown()
+  return gfx.mouse_cap & 1 == 1
+end
+
+function leftMouseButtonIsNotHeldDown()
+  return gfx.mouse_cap & 1 ~= 1
+end
+
+function rightMouseButtonIsHeldDown()
+  return gfx.mouse_cap & 2 == 2
+end
+
+function clearConsoleWindow()
+  reaper.ShowConsoleMsg("")
+end
+
+function print(arg)
+  reaper.ShowConsoleMsg(tostring(arg) .. "\n")
+end
+
+function getScreenWidth()
+	local _, _, screenWidth, _ = reaper.my_getViewport(0, 0, 0, 0, 0, 0, 0, 0, true)
+	return screenWidth
+end
+
+function getScreenHeight()
+	local _, _, _, screenHeight = reaper.my_getViewport(0, 0, 0, 0, 0, 0, 0, 0, true)
+	return screenHeight
+end
+
+function windowIsDocked()
+	return gfx.dock(-1) > 0
+end
+
+function windowIsNotDocked()
+	return not windowIsDocked()
+end
+
+function notesAreSelected()
+
+	local activeMidiEditor = reaper.MIDIEditor_GetActive()
+	local activeTake = reaper.MIDIEditor_GetTake(activeMidiEditor)
+
+	local noteIndex = 0
+	local noteExists = true
+	local noteIsSelected = false
+
+	while noteExists do
+
+		noteExists, noteIsSelected = reaper.MIDI_GetNote(activeTake, noteIndex)
+
+		if noteIsSelected then
+			return true
+		end
+	
+		noteIndex = noteIndex + 1
+	end
+
+	return false
+end
+
+function startUndoBlock()
+	reaper.Undo_BeginBlock()
+end
+
+function endUndoBlock(actionDescription)
+	reaper.Undo_OnStateChange(actionDescription)
+	reaper.Undo_EndBlock(actionDescription, -1)
+end
+
+function emptyFunctionToPreventAutomaticCreationOfUndoPoint()
+end
+
+
 local workingDirectory = reaper.GetResourcePath() .. "/Scripts/ChordGun/src"
 
 defaultScaleTonicNoteValue = 1
@@ -103,6 +194,23 @@ defaultScaleNoteNames = {'C', 'D', 'E', 'F', 'G', 'A', 'B'}
 defaultScaleDegreeHeaders = {'I', 'ii', 'iii', 'IV', 'V', 'vi', 'viio'}
 
 defaultNotesThatArePlaying = {}
+defaultDockState = 0x0201
+defaultWindowShouldBeDocked = tostring(false)
+
+interfaceWidth = 775
+interfaceHeight = 620
+
+function defaultInterfaceXPosition()
+
+  local screenWidth = getScreenWidth()
+  return screenWidth/2 - interfaceWidth/2
+end
+
+function defaultInterfaceYPosition()
+
+  local screenHeight = getScreenHeight()
+  return screenHeight/2 - interfaceHeight/2
+end
 local workingDirectory = reaper.GetResourcePath() .. "/Scripts/ChordGun/src"
 
 local activeProjectIndex = 0
@@ -120,6 +228,9 @@ local scaleNoteNamesKey = "scaleNoteNames"
 local scaleDegreeHeadersKey = "scaleDegreeHeaders"
 local notesThatArePlayingKey = "notesThatArePlaying"
 local dockStateKey = "dockState"
+local windowShouldBeDockedKey = "shouldBeDocked"
+local interfaceXPositionKey = "interfaceXPosition"
+local interfaceYPositionKey = "interfaceYPosition"
 
 --
 
@@ -360,103 +471,36 @@ end
 --
 
 function getDockState()
-  return getTableValue(dockStateKey, defaultNotesThatArePlaying)
+  return getValue(dockStateKey, defaultDockState)
 end
 
 function setDockState(arg)
-  setTableValue(dockStateKey, arg)
+  setValue(dockStateKey, arg)
 end
 
-function mouseIsHoveringOver(element)
-
-	local x = gfx.mouse_x
-	local y = gfx.mouse_y
-
-	local isInHorizontalRegion = (x >= element.x and x < element.x+element.width)
-	local isInVerticalRegion = (y >= element.y and y < element.y+element.height)
-	return isInHorizontalRegion and isInVerticalRegion
+function windowShouldBeDocked()
+  return getValue(windowShouldBeDockedKey, defaultWindowShouldBeDocked) == tostring(true)
 end
 
-function setPositionAtMouseCursor()
-
-  gfx.x = gfx.mouse_x
-  gfx.y = gfx.mouse_y
+function setWindowShouldBeDocked(arg)
+  setValue(windowShouldBeDockedKey, tostring(arg))
 end
 
-function leftMouseButtonIsHeldDown()
-  return gfx.mouse_cap & 1 == 1
+function getInterfaceXPosition()
+  return getValue(interfaceXPositionKey, defaultInterfaceXPosition())
 end
 
-function leftMouseButtonIsNotHeldDown()
-  return gfx.mouse_cap & 1 ~= 1
+function setInterfaceXPosition(arg)
+  setValue(interfaceXPositionKey, arg)
 end
 
-function rightMouseButtonIsHeldDown()
-  return gfx.mouse_cap & 2 == 2
+function getInterfaceYPosition()
+  return getValue(interfaceYPositionKey, defaultInterfaceYPosition())
 end
 
-function clearConsoleWindow()
-  reaper.ShowConsoleMsg("")
+function setInterfaceYPosition(arg)
+  setValue(interfaceYPositionKey, arg)
 end
-
-function print(arg)
-  reaper.ShowConsoleMsg(tostring(arg) .. "\n")
-end
-
-function getScreenWidth()
-	local _, _, screenWidth, _ = reaper.my_getViewport(0, 0, 0, 0, 0, 0, 0, 0, true)
-	return screenWidth
-end
-
-function getScreenHeight()
-	local _, _, _, screenHeight = reaper.my_getViewport(0, 0, 0, 0, 0, 0, 0, 0, true)
-	return screenHeight
-end
-
-function windowIsDocked()
-	return gfx.dock(-1) > 0
-end
-
-function windowIsNotDocked()
-	return not windowIsDocked()
-end
-
-function notesAreSelected()
-
-	local activeMidiEditor = reaper.MIDIEditor_GetActive()
-	local activeTake = reaper.MIDIEditor_GetTake(activeMidiEditor)
-
-	local noteIndex = 0
-	local noteExists = true
-	local noteIsSelected = false
-
-	while noteExists do
-
-		noteExists, noteIsSelected = reaper.MIDI_GetNote(activeTake, noteIndex)
-
-		if noteIsSelected then
-			return true
-		end
-	
-		noteIndex = noteIndex + 1
-	end
-
-	return false
-end
-
-function startUndoBlock()
-	reaper.Undo_BeginBlock()
-end
-
-function endUndoBlock(actionDescription)
-	reaper.Undo_OnStateChange(actionDescription)
-	reaper.Undo_EndBlock(actionDescription, -1)
-end
-
-function emptyFunctionToPreventAutomaticCreationOfUndoPoint()
-end
-
-
 
 Timer = {}
 Timer.__index = Timer
@@ -754,8 +798,20 @@ function activeMediaItem()
   return reaper.GetMediaItemTake_Item(activeTake())
 end
 
-local function mediaItemStartPosition()
+function activeTrack()
+  return reaper.GetMediaItemTake_Track(activeTake())
+end
+
+function mediaItemStartPosition()
   return reaper.GetMediaItemInfo_Value(activeMediaItem(), "D_POSITION")
+end
+
+function mediaItemStartPositionPPQ()
+  return reaper.MIDI_GetPPQPosFromProjTime(activeTake(), mediaItemStartPosition())
+end
+
+function mediaItemStartPositionQN()
+  return reaper.MIDI_GetProjQNFromPPQPos(activeTake(), mediaItemStartPositionPPQ())
 end
 
 local function mediaItemLength()
@@ -782,12 +838,18 @@ local function loopEndPosition()
   return loopEndPosition
 end
 
-local function noteLength()
+local function noteLengthOld()
 
   local noteLengthQN = getNoteLengthQN()
   local noteLengthPPQ = reaper.MIDI_GetPPQPosFromProjQN(activeTake(), noteLengthQN)
   return reaper.MIDI_GetProjTimeFromPPQPos(activeTake(), noteLengthPPQ)
 end
+
+local function noteLength()
+
+  return gridUnitLength()
+end
+
 
 function notCurrentlyRecording()
   
@@ -795,7 +857,7 @@ function notCurrentlyRecording()
   return reaper.GetPlayStateEx(activeProjectIndex) & 4 ~= 4
 end
 
-local function setEditCursorPosition(arg)
+function setEditCursorPosition(arg)
 
   local activeProjectIndex = 0
   local moveView = false
@@ -834,42 +896,89 @@ local function loopIsActive()
   end
 end
 
-function moveCursor()
+function moveCursor(keepNotesSelected, selectedChord)
 
-  if loopIsActive() and loopEndPosition() < mediaItemEndPosition() then
+  if keepNotesSelected then
 
-    if cursorPosition() + noteLength() >= loopEndPosition() - tolerance then
+    local noteEndPositionInProjTime = reaper.MIDI_GetProjTimeFromPPQPos(activeTake(), selectedChord.longestEndPosition)
+    local noteLengthOfSelectedNote = noteEndPositionInProjTime-cursorPosition()
 
-      if loopStartPosition() > mediaItemStartPosition() then
-        setEditCursorPosition(loopStartPosition())
+    if loopIsActive() and loopEndPosition() < mediaItemEndPosition() then
+
+      if cursorPosition() + noteLengthOfSelectedNote >= loopEndPosition() - tolerance then
+
+        if loopStartPosition() > mediaItemStartPosition() then
+          setEditCursorPosition(loopStartPosition())
+        else
+          setEditCursorPosition(mediaItemStartPosition())
+        end
+
       else
-        setEditCursorPosition(mediaItemStartPosition())
+        
+        moveEditCursorPosition(noteLengthOfSelectedNote)  
       end
 
-    else
-      moveEditCursorPosition(noteLength())
-    end
+    elseif loopIsActive() and mediaItemEndPosition() <= loopEndPosition() then 
 
-  elseif loopIsActive() and mediaItemEndPosition() <= loopEndPosition() then 
+      if cursorPosition() + noteLengthOfSelectedNote >= mediaItemEndPosition() - tolerance then
 
-    if cursorPosition() + noteLength() >= mediaItemEndPosition() - tolerance then
+        if loopStartPosition() > mediaItemStartPosition() then
+          setEditCursorPosition(loopStartPosition())
+        else
+          setEditCursorPosition(mediaItemStartPosition())
+        end
 
-      if loopStartPosition() > mediaItemStartPosition() then
-        setEditCursorPosition(loopStartPosition())
       else
-        setEditCursorPosition(mediaItemStartPosition())
+      
+        moveEditCursorPosition(noteLengthOfSelectedNote)
       end
 
-    else
-      moveEditCursorPosition(noteLength())
-    end
-
-  elseif cursorPosition() + noteLength() >= mediaItemEndPosition() - tolerance then
+    elseif cursorPosition() + noteLengthOfSelectedNote >= mediaItemEndPosition() - tolerance then
       setEditCursorPosition(mediaItemStartPosition())
+    else
+
+      moveEditCursorPosition(noteLengthOfSelectedNote)
+    end
+
   else
 
-    moveEditCursorPosition(noteLength())
+    if loopIsActive() and loopEndPosition() < mediaItemEndPosition() then
+
+      if cursorPosition() + noteLength() >= loopEndPosition() - tolerance then
+
+        if loopStartPosition() > mediaItemStartPosition() then
+          setEditCursorPosition(loopStartPosition())
+        else
+          setEditCursorPosition(mediaItemStartPosition())
+        end
+
+      else
+        moveEditCursorPosition(noteLength())
+      end
+
+    elseif loopIsActive() and mediaItemEndPosition() <= loopEndPosition() then 
+
+      if cursorPosition() + noteLength() >= mediaItemEndPosition() - tolerance then
+
+        if loopStartPosition() > mediaItemStartPosition() then
+          setEditCursorPosition(loopStartPosition())
+        else
+          setEditCursorPosition(mediaItemStartPosition())
+        end
+
+      else
+        moveEditCursorPosition(noteLength())
+      end
+
+    elseif cursorPosition() + noteLength() >= mediaItemEndPosition() - tolerance then
+        setEditCursorPosition(mediaItemStartPosition())
+    else
+
+      moveEditCursorPosition(noteLength())
+    end
+
   end
+
 end
 
 --
@@ -888,11 +997,20 @@ function getNoteLengthQN()
   return gridLength
 end
 
+function gridUnitLength()
+
+  local gridLengthQN = reaper.MIDI_GetGrid(activeTake())
+  local mediaItemPlusGridLengthPPQ = reaper.MIDI_GetPPQPosFromProjQN(activeTake(), mediaItemStartPositionQN() + gridLengthQN)
+  local mediaItemPlusGridLength = reaper.MIDI_GetProjTimeFromPPQPos(activeTake(), mediaItemPlusGridLengthPPQ)
+  return mediaItemPlusGridLength - mediaItemStartPosition()
+end
+
 function getMidiEndPositionPPQ()
 
-  local noteLength = getNoteLengthQN()
-  local startPosition = getCursorPositionQN()
-  return reaper.MIDI_GetPPQPosFromProjQN(activeTake(), startPosition + noteLength)
+  local startPosition = reaper.GetCursorPosition()
+  local startPositionPPQ = reaper.MIDI_GetPPQPosFromProjTime(activeTake(), startPosition)
+  local endPositionPPQ = reaper.MIDI_GetPPQPosFromProjTime(activeTake(), startPosition+gridUnitLength())
+  return endPositionPPQ
 end
 
 function deselectAllNotes()
@@ -901,7 +1019,11 @@ function deselectAllNotes()
   reaper.MIDI_SelectAll(activeTake(), selectAllNotes)
 end
 
-function getCurrentNoteChannel()
+function getCurrentNoteChannel(channelArg)
+
+  if channelArg ~= nil then
+    return channelArg
+  end
 
   if activeMidiEditor() == nil then
     return 0
@@ -984,10 +1106,17 @@ end
 
 --
 
-function deleteExistingNotesInNextInsertionTimePeriod()
+function deleteExistingNotesInNextInsertionTimePeriod(keepNotesSelected, selectedChord)
 
   local insertionStartTime = cursorPosition()
-  local insertionEndTime = insertionStartTime + noteLength()
+
+  local insertionEndTime = nil
+  
+  if keepNotesSelected then
+    insertionEndTime = reaper.MIDI_GetProjTimeFromPPQPos(activeTake(), selectedChord.longestEndPosition)
+  else
+    insertionEndTime = insertionStartTime + noteLength()
+  end
 
   local numberOfNotes = getNumberOfNotes()
 
@@ -1095,17 +1224,41 @@ function getChordNotesArray(root, chord, octave)
 end
 local workingDirectory = reaper.GetResourcePath() .. "/Scripts/ChordGun/src"
 
-function insertMidiNote(note, keepNotesSelected)
+function insertMidiNote(note, keepNotesSelected, selectedChord, noteIndex)
 
-	local noteIsMuted = false
 	local startPosition = getCursorPositionPPQ()
-	local endPosition = getMidiEndPositionPPQ()
 
-	local channel = getCurrentNoteChannel()
-	local velocity = getCurrentVelocity()
+	local endPosition = nil
+	local velocity = nil
+	local channel = nil
+	local muteState = nil
+	
+	if keepNotesSelected then
+
+		local numberOfSelectedNotes = #selectedChord.selectedNotes
+
+		if noteIndex > numberOfSelectedNotes then
+			endPosition = selectedChord.selectedNotes[numberOfSelectedNotes].endPosition
+			velocity = selectedChord.selectedNotes[numberOfSelectedNotes].velocity
+			channel = selectedChord.selectedNotes[numberOfSelectedNotes].channel
+			muteState = selectedChord.selectedNotes[numberOfSelectedNotes].muteState
+		else
+			endPosition = selectedChord.selectedNotes[noteIndex].endPosition
+			velocity = selectedChord.selectedNotes[noteIndex].velocity
+			channel = selectedChord.selectedNotes[noteIndex].channel
+			muteState = selectedChord.selectedNotes[noteIndex].muteState
+		end
+		
+	else
+		endPosition = getMidiEndPositionPPQ()
+		velocity = getCurrentVelocity()
+		channel = getCurrentNoteChannel()
+		muteState = false
+	end
+
 	local noSort = false
 
-	reaper.MIDI_InsertNote(activeTake(), keepNotesSelected, noteIsMuted, startPosition, endPosition, channel, note, velocity, noSort)
+	reaper.MIDI_InsertNote(activeTake(), keepNotesSelected, muteState, startPosition, endPosition, channel, note, velocity, noSort)
 end
 local workingDirectory = reaper.GetResourcePath() .. "/Scripts/ChordGun/src"
 
@@ -1113,22 +1266,36 @@ local function playScaleChord(chordNotesArray)
 
   stopNotesFromPlaying()
   
-  for note = 1, #chordNotesArray do
-    playMidiNote(chordNotesArray[note])
+  for noteIndex = 1, #chordNotesArray do
+    playMidiNote(chordNotesArray[noteIndex])
   end
 
   setNotesThatArePlaying(chordNotesArray) 
 end
 
-function insertScaleChord(chordNotesArray, keepNotesSelected)
+function previewScaleChord()
 
-  deleteExistingNotesInNextInsertionTimePeriod()
+  local scaleNoteIndex = getSelectedScaleNote()
+  local chordTypeIndex = getSelectedChordType(scaleNoteIndex)
 
-  for note = 1, #chordNotesArray do
-    insertMidiNote(chordNotesArray[note], keepNotesSelected)
+  local root = scaleNotes[scaleNoteIndex]
+  local chord = scaleChords[scaleNoteIndex][chordTypeIndex]
+  local octave = getOctave()
+
+  local chordNotesArray = getChordNotesArray(root, chord, octave)
+  playScaleChord(chordNotesArray)
+  updateChordText(root, chord, chordNotesArray)
+end
+
+function insertScaleChord(chordNotesArray, keepNotesSelected, selectedChord)
+
+  deleteExistingNotesInNextInsertionTimePeriod(keepNotesSelected, selectedChord)
+
+  for noteIndex = 1, #chordNotesArray do
+    insertMidiNote(chordNotesArray[noteIndex], keepNotesSelected, selectedChord, noteIndex)
   end
 
-  moveCursor()
+  moveCursor(keepNotesSelected, selectedChord)
 end
 
 function playOrInsertScaleChord(actionDescription)
@@ -1170,11 +1337,24 @@ local function playScaleNote(noteValue)
 end
 
 
-function insertScaleNote(noteValue, keepNotesSelected)
+function insertScaleNote(noteValue, keepNotesSelected, selectedChord)
 
-	deleteExistingNotesInNextInsertionTimePeriod()
-	insertMidiNote(noteValue, keepNotesSelected)
-	moveCursor()
+	deleteExistingNotesInNextInsertionTimePeriod(keepNotesSelected, selectedChord)
+
+	local noteIndex = 1
+	insertMidiNote(noteValue, keepNotesSelected, selectedChord, noteIndex)
+	moveCursor(keepNotesSelected, selectedChord)
+end
+
+function previewScaleNote(octaveAdjustment)
+
+  local scaleNoteIndex = getSelectedScaleNote()
+
+  local root = scaleNotes[scaleNoteIndex]
+  local octave = getOctave()
+  local noteValue = root + ((octave+1+octaveAdjustment) * 12) - 1
+
+  playScaleNote(noteValue)
 end
 
 function playOrInsertScaleNote(octaveAdjustment, actionDescription)
@@ -1202,27 +1382,92 @@ function playOrInsertScaleNote(octaveAdjustment, actionDescription)
 end
 local workingDirectory = reaper.GetResourcePath() .. "/Scripts/ChordGun/src"
 
-local function getNoteStartingPositions()
+SelectedNote = {}
+SelectedNote.__index = SelectedNote
 
-	local numberOfNotes = getNumberOfNotes()
-	local previousNoteStartPositionPPQ = -1
-	local noteStartingPositions = {}
+function SelectedNote:new(endPosition, velocity, channel, muteState, pitch)
+  local self = {}
+  setmetatable(self, SelectedNote)
 
-	for noteIndex = 0, numberOfNotes-1 do
+  self.endPosition = endPosition
+  self.velocity = velocity
+  self.channel = channel
+  self.muteState = muteState
+  self.pitch = pitch
 
-		local _, noteIsSelected, noteIsMuted, noteStartPositionPPQ, noteEndPositionPPQ = reaper.MIDI_GetNote(activeTake(), noteIndex)
-	
-		if noteIsSelected then
+  return self
+end
 
-			if noteStartPositionPPQ ~= previousNoteStartPositionPPQ then
-				table.insert(noteStartingPositions, noteStartPositionPPQ)
-			end
+SelectedChord = {}
+SelectedChord.__index = SelectedChord
 
-			previousNoteStartPositionPPQ = noteStartPositionPPQ
+function SelectedChord:new(startPosition, endPosition, velocity, channel, muteState, pitch)
+  local self = {}
+  setmetatable(self, SelectedChord)
+
+  self.startPosition = startPosition
+  self.longestEndPosition = endPosition
+
+  self.selectedNotes = {}
+  table.insert(self.selectedNotes, SelectedNote:new(endPosition, velocity, channel, muteState, pitch))
+
+  return self
+end
+
+
+
+local function noteStartPositionDoesNotExist(selectedChords, startPositionArg)
+
+	for index, selectedChord in pairs(selectedChords) do
+
+		if selectedChord.startPosition == startPositionArg then
+			return false
 		end
 	end
 
-	return noteStartingPositions
+	return true
+end
+
+local function updateSelectedChord(selectedChords, startPositionArg, endPositionArg, velocityArg, channelArg, muteStateArg, pitchArg)
+
+	for index, selectedChord in pairs(selectedChords) do
+
+		if selectedChord.startPosition == startPositionArg then
+
+			table.insert(selectedChord.selectedNotes, SelectedNote:new(endPositionArg, velocityArg, channelArg, muteStateArg, pitchArg))
+
+			if endPositionArg > selectedChord.longestEndPosition then
+				selectedChord.longestEndPosition = endPositionArg
+			end
+
+		end
+	end
+end
+
+local function getSelectedChords()
+
+	local numberOfNotes = getNumberOfNotes()
+	local selectedChords = {}
+
+	for noteIndex = 0, numberOfNotes-1 do
+
+		local _, noteIsSelected, muteState, noteStartPositionPPQ, noteEndPositionPPQ, channel, pitch, velocity = reaper.MIDI_GetNote(activeTake(), noteIndex)
+
+		if noteIsSelected then
+
+			if noteStartPositionDoesNotExist(selectedChords, noteStartPositionPPQ) then
+				table.insert(selectedChords, SelectedChord:new(noteStartPositionPPQ, noteEndPositionPPQ, velocity, channel, muteState, pitch))
+			else
+				updateSelectedChord(selectedChords, noteStartPositionPPQ, noteEndPositionPPQ, velocity, channel, muteState, pitch)
+			end
+		end
+	end
+
+	for selectedChordIndex = 1, #selectedChords do
+		table.sort(selectedChords[selectedChordIndex].selectedNotes, function(a,b) return a.pitch < b.pitch end)
+	end
+
+	return selectedChords
 end
 
 local function deleteSelectedNotes()
@@ -1247,23 +1492,23 @@ end
 
 function changeSelectedNotesToScaleChords(chordNotesArray)
 
-	local noteStartingPositions = getNoteStartingPositions()
+	local selectedChords = getSelectedChords()
 	deleteSelectedNotes()
 	
-	for i = 1, #noteStartingPositions do
-		setEditCursorTo(noteStartingPositions[i])
-		insertScaleChord(chordNotesArray, true)
+	for i = 1, #selectedChords do
+		setEditCursorTo(selectedChords[i].startPosition)
+		insertScaleChord(chordNotesArray, true, selectedChords[i])
 	end
 end
 
 function changeSelectedNotesToScaleNotes(noteValue)
 
-	local noteStartingPositions = getNoteStartingPositions()
+	local selectedChords = getSelectedChords()
 	deleteSelectedNotes()
 
-	for i = 1, #noteStartingPositions do
-		setEditCursorTo(noteStartingPositions[i])
-		insertScaleNote(noteValue, true)
+	for i = 1, #selectedChords do
+		setEditCursorTo(selectedChords[i].startPosition)
+		insertScaleNote(noteValue, true, selectedChords[i])
 	end
 end
 local workingDirectory = reaper.GetResourcePath() .. "/Scripts/ChordGun/src"
@@ -1497,12 +1742,12 @@ local function transposeSelectedNotes(numberOfSemitones)
 
   for noteIndex = numberOfNotes-1, 0, -1 do
 
-    local _, noteIsSelected, noteIsMuted, noteStartPositionPPQ, noteEndPositionPPQ, channel, pitch, velocity = reaper.MIDI_GetNote(activeTake(), noteIndex)
+    local _, noteIsSelected, muteState, noteStartPositionPPQ, noteEndPositionPPQ, channel, pitch, velocity = reaper.MIDI_GetNote(activeTake(), noteIndex)
   
     if noteIsSelected then
       deleteNote(noteIndex)
       local noSort = false
-      reaper.MIDI_InsertNote(activeTake(), noteIsSelected, noteIsMuted, noteStartPositionPPQ, noteEndPositionPPQ, channel, pitch+numberOfSemitones, velocity, noSort)
+      reaper.MIDI_InsertNote(activeTake(), noteIsSelected, muteState, noteStartPositionPPQ, noteEndPositionPPQ, channel, pitch+numberOfSemitones, velocity, noSort)
     end
   end
 end
@@ -1534,7 +1779,12 @@ function decrementChordInversionAction()
 
 	local actionDescription = "decrement chord inversion"
 	decrementChordInversion()
-	playOrInsertScaleChord(actionDescription)
+
+	if thereAreNotesSelected() then
+		playOrInsertScaleChord(actionDescription)
+	else
+		previewScaleChord()
+	end
 end
 
 --
@@ -1558,7 +1808,12 @@ function incrementChordInversionAction()
 
 	local actionDescription = "increment chord inversion"
 	incrementChordInversion()
-	playOrInsertScaleChord(actionDescription)
+
+	if thereAreNotesSelected() then
+		playOrInsertScaleChord(actionDescription)
+	else
+		previewScaleChord()
+	end
 end
 
 --
@@ -1579,7 +1834,12 @@ function decrementChordTypeAction()
 
 	local actionDescription = "decrement chord type"
 	decrementChordType()
-	playOrInsertScaleChord(actionDescription)
+
+	if thereAreNotesSelected() then
+		playOrInsertScaleChord(actionDescription)
+	else
+		previewScaleChord()
+	end
 end
 
 --
@@ -1600,7 +1860,12 @@ function incrementChordTypeAction()
 
 	local actionDescription = "increment chord type"
 	incrementChordType()
-	playOrInsertScaleChord(actionDescription)
+
+	if thereAreNotesSelected() then
+		playOrInsertScaleChord(actionDescription)
+	else
+		previewScaleChord()
+	end
 end
 
 --
@@ -1773,7 +2038,19 @@ end
 
 ----
 
+local function scaleIsPentatonic()
+
+	local scaleType = getScaleType()
+	local scaleTypeName = string.lower(scales[scaleType].name)
+	return string.match(scaleTypeName, "pentatonic")
+end
+
+
 function scaleChordAction(scaleNoteIndex)
+
+	if scaleIsPentatonic() and scaleNoteIndex > 5 then
+		return
+	end
 
 	setSelectedScaleNote(scaleNoteIndex)
 
@@ -1784,9 +2061,23 @@ function scaleChordAction(scaleNoteIndex)
 	playOrInsertScaleChord(actionDescription)
 end
 
+function previewScaleChordAction(scaleNoteIndex)
+
+	if scaleIsPentatonic() and scaleNoteIndex > 5 then
+		return
+	end
+
+	setSelectedScaleNote(scaleNoteIndex)
+	previewScaleChord()
+end
+
 --
 
 function scaleNoteAction(scaleNoteIndex)
+
+	if scaleIsPentatonic() and scaleNoteIndex > 5 then
+		return
+	end
 
 	setSelectedScaleNote(scaleNoteIndex)
 	local actionDescription = "scale note " .. scaleNoteIndex
@@ -1796,6 +2087,10 @@ end
 --
 
 function lowerScaleNoteAction(scaleNoteIndex)
+
+	if scaleIsPentatonic() and scaleNoteIndex > 5 then
+		return
+	end
 
   if getOctave() <= getOctaveMin() then
     return
@@ -1810,6 +2105,10 @@ end
 
 function higherScaleNoteAction(scaleNoteIndex)
 
+	if scaleIsPentatonic() and scaleNoteIndex > 5 then
+		return
+	end
+
   if getOctave() >= getOctaveMax() then
     return
   end
@@ -1818,53 +2117,124 @@ function higherScaleNoteAction(scaleNoteIndex)
 	local actionDescription = "higher scale note " .. scaleNoteIndex
 	playOrInsertScaleNote(1, actionDescription)
 end
+
+
+--
+
+function previewScaleNoteAction(scaleNoteIndex)
+
+	if scaleIsPentatonic() and scaleNoteIndex > 5 then
+		return
+	end
+
+	setSelectedScaleNote(scaleNoteIndex)
+	previewScaleNote(0)
+end
+
+function previewLowerScaleNoteAction(scaleNoteIndex)
+
+	if scaleIsPentatonic() and scaleNoteIndex > 5 then
+		return
+	end
+
+	if getOctave() <= getOctaveMin() then
+		return
+	end
+
+	setSelectedScaleNote(scaleNoteIndex)
+	previewScaleNote(-1)
+end
+
+function previewHigherScaleNoteAction(scaleNoteIndex)
+
+	if scaleIsPentatonic() and scaleNoteIndex > 5 then
+		return
+	end
+
+	if getOctave() >= getOctaveMax() then
+		return
+	end
+
+	setSelectedScaleNote(scaleNoteIndex)
+	previewScaleNote(1)
+end
 function drawDropdownIcon()
 
     local xOffset = gfx.x
     local yOffset = gfx.y
+    gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
     gfx.x = 1 + xOffset
+    gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
     gfx.y = 1 + yOffset
+    gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
+    gfx.x = xOffset
     gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
     gfx.x = 1 + xOffset
     gfx.y = 2 + yOffset
     gfx.setpixel(0.36470588235294, 0.39607843137255, 0.38823529411765)
+    gfx.x = xOffset
+    gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
     gfx.x = 1 + xOffset
     gfx.y = 3 + yOffset
+    gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
+    gfx.x = xOffset
     gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
     gfx.x = 1 + xOffset
     gfx.y = 4 + yOffset
     gfx.setpixel(0.36470588235294, 0.39607843137255, 0.3843137254902)
+    gfx.x = xOffset
+    gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
     gfx.x = 1 + xOffset
     gfx.y = 5 + yOffset
     gfx.setpixel(0.36078431372549, 0.39607843137255, 0.3843137254902)
+    gfx.x = xOffset
+    gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
     gfx.x = 1 + xOffset
     gfx.y = 6 + yOffset
+    gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
+    gfx.x = xOffset
     gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
     gfx.x = 1 + xOffset
     gfx.y = 7 + yOffset
     gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
+    gfx.x = xOffset
+    gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
     gfx.x = 1 + xOffset
     gfx.y = 8 + yOffset
+    gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
+    gfx.x = xOffset
     gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
     gfx.x = 1 + xOffset
     gfx.y = 9 + yOffset
     gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
+    gfx.x = xOffset
+    gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
     gfx.x = 1 + xOffset
     gfx.y = 10 + yOffset
+    gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
+    gfx.x = xOffset
     gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
     gfx.x = 1 + xOffset
     gfx.y = 11 + yOffset
     gfx.setpixel(0.36470588235294, 0.39607843137255, 0.3843137254902)
+    gfx.x = xOffset
+    gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
     gfx.x = 1 + xOffset
     gfx.y = 12 + yOffset
+    gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
+    gfx.x = xOffset
     gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
     gfx.x = 1 + xOffset
     gfx.y = 13 + yOffset
     gfx.setpixel(0.34901960784314, 0.37647058823529, 0.36470588235294)
+    gfx.x = xOffset
+    gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
     gfx.x = 1 + xOffset
     gfx.y = 14 + yOffset
     gfx.setpixel(0.0, 0.0, 0.0)
     gfx.x = 2 + xOffset
+    gfx.y = yOffset
+    gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
     gfx.y = 1 + yOffset
     gfx.setpixel(0.36470588235294, 0.39607843137255, 0.3843137254902)
     gfx.x = 2 + xOffset
@@ -1907,6 +2277,8 @@ function drawDropdownIcon()
     gfx.y = 14 + yOffset
     gfx.setpixel(0.0, 0.0, 0.0)
     gfx.x = 3 + xOffset
+    gfx.y = yOffset
+    gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
     gfx.y = 1 + yOffset
     gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
     gfx.x = 3 + xOffset
@@ -1949,6 +2321,8 @@ function drawDropdownIcon()
     gfx.y = 14 + yOffset
     gfx.setpixel(0.0, 0.0, 0.0)
     gfx.x = 4 + xOffset
+    gfx.y = yOffset
+    gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
     gfx.y = 1 + yOffset
     gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
     gfx.x = 4 + xOffset
@@ -1991,6 +2365,8 @@ function drawDropdownIcon()
     gfx.y = 14 + yOffset
     gfx.setpixel(0.0, 0.0, 0.0)
     gfx.x = 5 + xOffset
+    gfx.y = yOffset
+    gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
     gfx.y = 1 + yOffset
     gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
     gfx.x = 5 + xOffset
@@ -2033,6 +2409,8 @@ function drawDropdownIcon()
     gfx.y = 14 + yOffset
     gfx.setpixel(0.0, 0.0, 0.0)
     gfx.x = 6 + xOffset
+    gfx.y = yOffset
+    gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
     gfx.y = 1 + yOffset
     gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
     gfx.x = 6 + xOffset
@@ -2075,6 +2453,8 @@ function drawDropdownIcon()
     gfx.y = 14 + yOffset
     gfx.setpixel(0.0, 0.0, 0.0)
     gfx.x = 7 + xOffset
+    gfx.y = yOffset
+    gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
     gfx.y = 1 + yOffset
     gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
     gfx.x = 7 + xOffset
@@ -2117,6 +2497,8 @@ function drawDropdownIcon()
     gfx.y = 14 + yOffset
     gfx.setpixel(0.0, 0.0, 0.0)
     gfx.x = 8 + xOffset
+    gfx.y = yOffset
+    gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
     gfx.y = 1 + yOffset
     gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
     gfx.x = 8 + xOffset
@@ -2159,6 +2541,8 @@ function drawDropdownIcon()
     gfx.y = 14 + yOffset
     gfx.setpixel(0.0, 0.0, 0.0)
     gfx.x = 9 + xOffset
+    gfx.y = yOffset
+    gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
     gfx.y = 1 + yOffset
     gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
     gfx.x = 9 + xOffset
@@ -2201,6 +2585,8 @@ function drawDropdownIcon()
     gfx.y = 14 + yOffset
     gfx.setpixel(0.0, 0.0, 0.0)
     gfx.x = 10 + xOffset
+    gfx.y = yOffset
+    gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
     gfx.y = 1 + yOffset
     gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
     gfx.x = 10 + xOffset
@@ -2243,6 +2629,8 @@ function drawDropdownIcon()
     gfx.y = 14 + yOffset
     gfx.setpixel(0.0, 0.0, 0.0)
     gfx.x = 11 + xOffset
+    gfx.y = yOffset
+    gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
     gfx.y = 1 + yOffset
     gfx.setpixel(0.36470588235294, 0.39607843137255, 0.3843137254902)
     gfx.x = 11 + xOffset
@@ -2285,6 +2673,8 @@ function drawDropdownIcon()
     gfx.y = 14 + yOffset
     gfx.setpixel(0.0, 0.0, 0.0)
     gfx.x = 12 + xOffset
+    gfx.y = yOffset
+    gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
     gfx.y = 1 + yOffset
     gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
     gfx.x = 12 + xOffset
@@ -2327,6 +2717,8 @@ function drawDropdownIcon()
     gfx.y = 14 + yOffset
     gfx.setpixel(0.0, 0.0, 0.0)
     gfx.x = 13 + xOffset
+    gfx.y = yOffset
+    gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
     gfx.y = 1 + yOffset
     gfx.setpixel(0.34901960784314, 0.38039215686275, 0.36862745098039)
     gfx.x = 13 + xOffset
@@ -3113,8 +3505,10 @@ end
 
 local function dockWindow()
 
-  local windowAtBottom = 0x0201
-  gfx.dock(windowAtBottom)
+  local dockState = getDockState()
+  gfx.dock(dockState)
+  setWindowShouldBeDocked(true)
+
   guiShouldBeUpdated = true
 end
 
@@ -3133,6 +3527,7 @@ end
 
 local function undockWindow()
 
+  setWindowShouldBeDocked(false)
   gfx.dock(0)
   guiShouldBeUpdated = true
 end
@@ -3631,6 +4026,28 @@ local function rightButtonHasBeenClicked(valueBox)
   return mouseIsHoveringOver(hitArea) and leftMouseButtonIsHeldDown()
 end
 
+local function shiftModifierIsHeldDown()
+  return gfx.mouse_cap & 8 == 8
+end
+
+function ChordInversionValueBox:onLeftButtonPress()
+  decrementChordInversion()
+  previewScaleChord()
+end
+
+function ChordInversionValueBox:onLeftButtonShiftPress()
+  decrementChordInversionAction()
+end
+
+function ChordInversionValueBox:onRightButtonPress()
+  incrementChordInversion()
+  previewScaleChord()
+end
+
+function ChordInversionValueBox:onRightButtonShiftPress()
+  incrementChordInversionAction()
+end
+
 function ChordInversionValueBox:update()
 
   self:drawRectangles()
@@ -3638,12 +4055,22 @@ function ChordInversionValueBox:update()
 
   if mouseButtonIsNotPressedDown and leftButtonHasBeenClicked(self) then
     mouseButtonIsNotPressedDown = false
-    decrementChordInversionAction()
+
+    if shiftModifierIsHeldDown() then
+      self:onLeftButtonShiftPress()
+    else
+      self:onLeftButtonPress()
+    end
   end
 
   if mouseButtonIsNotPressedDown and rightButtonHasBeenClicked(self) then
     mouseButtonIsNotPressedDown = false
-    incrementChordInversionAction()
+
+    if shiftModifierIsHeldDown() then
+      self:onRightButtonShiftPress()
+    else
+      self:onRightButtonPress()
+    end
   end
 
   self:drawText()
@@ -3783,10 +4210,10 @@ end
 
 function ChordButton:onPress()
 
-	mouseButtonIsNotPressedDown = false
+	previewScaleChord()
+end
 
-	setSelectedScaleNote(self.scaleNoteIndex)
-	setSelectedChordType(self.scaleNoteIndex, self.chordTypeIndex)
+function ChordButton:onShiftPress()
 
 	local chord = scaleChords[self.scaleNoteIndex][self.chordTypeIndex]
 	local actionDescription = "scale chord " .. self.scaleNoteIndex .. "  (" .. chord.code .. ")"
@@ -3799,7 +4226,17 @@ function ChordButton:update()
 	self:drawText()
 
 	if mouseButtonIsNotPressedDown and buttonHasBeenClicked(self) then
-		self:onPress()
+
+		mouseButtonIsNotPressedDown = false
+
+		setSelectedScaleNote(self.scaleNoteIndex)
+		setSelectedChordType(self.scaleNoteIndex, self.chordTypeIndex)
+
+		if shiftModifierIsHeldDown() then
+			self:onShiftPress()
+		else
+			self:onPress()
+		end		
 	end
 end
 
@@ -3881,42 +4318,109 @@ inputCharacters[","] = 44
 inputCharacters["."] = 46
 inputCharacters["<"] = 60
 inputCharacters[">"] = 62
+
+inputCharacters["ESC"] = 27
+
+inputCharacters["LEFTARROW"] = 1818584692
+inputCharacters["RIGHTARROW"] = 1919379572
 local workingDirectory = reaper.GetResourcePath() .. "/Scripts/ChordGun/src"
 
 
+local function moveEditCursorLeftByGrid()
+	local commandId = 40047
+	reaper.MIDIEditor_OnCommand(activeMidiEditor(), commandId)
+end
+
+local function moveEditCursorRightByGrid()
+	local commandId = 40048
+	reaper.MIDIEditor_OnCommand(activeMidiEditor(), commandId)
+end
+
 function handleInput()
 
-	inputCharacter = gfx.getchar()
+	local operatingSystem = string.lower(reaper.GetOS())
 
-	if inputCharacter == inputCharacters["0"] then
+	inputCharacter = gfx.getchar()
+	
+	if inputCharacter == inputCharacters["ESC"] then
+		gfx.quit()
+	end
+
+	if inputCharacter == inputCharacters["LEFTARROW"] then
+		moveEditCursorLeftByGrid()
+	end
+
+	if inputCharacter == inputCharacters["RIGHTARROW"] then
+		moveEditCursorRightByGrid()
+	end
+
+
+	local function middleMouseButtonIsHeldDown()
+		return gfx.mouse_cap & 64 == 64
+	end
+
+	if inputCharacter == inputCharacters["0"] or middleMouseButtonIsHeldDown() then
 		stopAllNotesFromPlaying()
 	end
 
+	--
+
 	if inputCharacter == inputCharacters["1"] then
-		scaleChordAction(1)
+		previewScaleChordAction(1)
 	end
 
 	if inputCharacter == inputCharacters["2"] then
-		scaleChordAction(2)
+		previewScaleChordAction(2)
 	end
 
 	if inputCharacter == inputCharacters["3"] then
-		scaleChordAction(3)
+		previewScaleChordAction(3)
 	end
 
 	if inputCharacter == inputCharacters["4"] then
-		scaleChordAction(4)
+		previewScaleChordAction(4)
 	end
 
 	if inputCharacter == inputCharacters["5"] then
-		scaleChordAction(5)
+		previewScaleChordAction(5)
 	end
 
 	if inputCharacter == inputCharacters["6"] then
-		scaleChordAction(6)
+		previewScaleChordAction(6)
 	end
 
 	if inputCharacter == inputCharacters["7"] then
+		previewScaleChordAction(7)
+	end
+
+	--
+
+
+	if inputCharacter == inputCharacters["!"] then
+		scaleChordAction(1)
+	end
+
+	if inputCharacter == inputCharacters["@"] then
+		scaleChordAction(2)
+	end
+
+	if inputCharacter == inputCharacters["#"] then
+		scaleChordAction(3)
+	end
+
+	if inputCharacter == inputCharacters["$"] then
+		scaleChordAction(4)
+	end
+
+	if inputCharacter == inputCharacters["%"] then
+		scaleChordAction(5)
+	end
+
+	if inputCharacter == inputCharacters["^"] then
+		scaleChordAction(6)
+	end
+
+	if inputCharacter == inputCharacters["&"] then
 		scaleChordAction(7)
 	end
 
@@ -3924,100 +4428,193 @@ function handleInput()
 
 
 	if inputCharacter == inputCharacters["q"] then
-		higherScaleNoteAction(1)
+		previewHigherScaleNoteAction(1)
 	end
 
 	if inputCharacter == inputCharacters["w"] then
-		higherScaleNoteAction(2)
+		previewHigherScaleNoteAction(2)
 	end
 
 	if inputCharacter == inputCharacters["e"] then
-		higherScaleNoteAction(3)
+		previewHigherScaleNoteAction(3)
 	end
 
 	if inputCharacter == inputCharacters["r"] then
-		higherScaleNoteAction(4)
+		previewHigherScaleNoteAction(4)
 	end
 
 	if inputCharacter == inputCharacters["t"] then
-		higherScaleNoteAction(5)
+		previewHigherScaleNoteAction(5)
 	end
 
 	if inputCharacter == inputCharacters["y"] then
-		higherScaleNoteAction(6)
+		previewHigherScaleNoteAction(6)
 	end
 
 	if inputCharacter == inputCharacters["u"] then
-		higherScaleNoteAction(7)
+		previewHigherScaleNoteAction(7)
 	end
 
 	--
 
 	if inputCharacter == inputCharacters["a"] then
-		scaleNoteAction(1)
+		previewScaleNoteAction(1)
 	end
 
 	if inputCharacter == inputCharacters["s"] then
-		scaleNoteAction(2)
+		previewScaleNoteAction(2)
 	end
 
 	if inputCharacter == inputCharacters["d"] then
-		scaleNoteAction(3)
+		previewScaleNoteAction(3)
 	end
 
 	if inputCharacter == inputCharacters["f"] then
-		scaleNoteAction(4)
+		previewScaleNoteAction(4)
 	end
 
 	if inputCharacter == inputCharacters["g"] then
-		scaleNoteAction(5)
+		previewScaleNoteAction(5)
 	end
 
 	if inputCharacter == inputCharacters["h"] then
-		scaleNoteAction(6)
+		previewScaleNoteAction(6)
 	end
 
 	if inputCharacter == inputCharacters["j"] then
-		scaleNoteAction(7)
+		previewScaleNoteAction(7)
 	end
 
 	--
 
 	if inputCharacter == inputCharacters["z"] then
-		lowerScaleNoteAction(1)
+		previewLowerScaleNoteAction(1)
 	end
 
 	if inputCharacter == inputCharacters["x"] then
-		lowerScaleNoteAction(2)
+		previewLowerScaleNoteAction(2)
 	end
 
 	if inputCharacter == inputCharacters["c"] then
-		lowerScaleNoteAction(3)
+		previewLowerScaleNoteAction(3)
 	end
 
 	if inputCharacter == inputCharacters["v"] then
-		lowerScaleNoteAction(4)
+		previewLowerScaleNoteAction(4)
 	end
 
 	if inputCharacter == inputCharacters["b"] then
-		lowerScaleNoteAction(5)
+		previewLowerScaleNoteAction(5)
 	end
 
 	if inputCharacter == inputCharacters["n"] then
-		lowerScaleNoteAction(6)
+		previewLowerScaleNoteAction(6)
 	end
 
 	if inputCharacter == inputCharacters["m"] then
+		previewLowerScaleNoteAction(7)
+	end
+
+
+
+	--
+
+
+	if inputCharacter == inputCharacters["Q"] then
+		higherScaleNoteAction(1)
+	end
+
+	if inputCharacter == inputCharacters["W"] then
+		higherScaleNoteAction(2)
+	end
+
+	if inputCharacter == inputCharacters["E"] then
+		higherScaleNoteAction(3)
+	end
+
+	if inputCharacter == inputCharacters["R"] then
+		higherScaleNoteAction(4)
+	end
+
+	if inputCharacter == inputCharacters["T"] then
+		higherScaleNoteAction(5)
+	end
+
+	if inputCharacter == inputCharacters["Y"] then
+		higherScaleNoteAction(6)
+	end
+
+	if inputCharacter == inputCharacters["U"] then
+		higherScaleNoteAction(7)
+	end
+
+	--
+
+	if inputCharacter == inputCharacters["A"] then
+		scaleNoteAction(1)
+	end
+
+	if inputCharacter == inputCharacters["S"] then
+		scaleNoteAction(2)
+	end
+
+	if inputCharacter == inputCharacters["D"] then
+		scaleNoteAction(3)
+	end
+
+	if inputCharacter == inputCharacters["F"] then
+		scaleNoteAction(4)
+	end
+
+	if inputCharacter == inputCharacters["G"] then
+		scaleNoteAction(5)
+	end
+
+	if inputCharacter == inputCharacters["H"] then
+		scaleNoteAction(6)
+	end
+
+	if inputCharacter == inputCharacters["J"] then
+		scaleNoteAction(7)
+	end
+
+	--
+
+	if inputCharacter == inputCharacters["Z"] then
+		lowerScaleNoteAction(1)
+	end
+
+	if inputCharacter == inputCharacters["X"] then
+		lowerScaleNoteAction(2)
+	end
+
+	if inputCharacter == inputCharacters["C"] then
+		lowerScaleNoteAction(3)
+	end
+
+	if inputCharacter == inputCharacters["V"] then
+		lowerScaleNoteAction(4)
+	end
+
+	if inputCharacter == inputCharacters["B"] then
+		lowerScaleNoteAction(5)
+	end
+
+	if inputCharacter == inputCharacters["N"] then
+		lowerScaleNoteAction(6)
+	end
+
+	if inputCharacter == inputCharacters["M"] then
 		lowerScaleNoteAction(7)
 	end
 
 -----------------
 
---[[
+
 	local function shiftKeyIsHeldDown()
 		return gfx.mouse_cap & 8 == 8
 	end
-]]--
+
 	local function controlKeyIsHeldDown()
 		return gfx.mouse_cap & 32 == 32 
 	end
@@ -4032,11 +4629,9 @@ function handleInput()
 
 	--
 
---[[
 	local function shiftKeyIsNotHeldDown()
 		return gfx.mouse_cap & 8 ~= 8
 	end
-]]--
 
 	local function controlKeyIsNotHeldDown()
 		return gfx.mouse_cap & 32 ~= 32
@@ -4051,12 +4646,6 @@ function handleInput()
 	end
 
 	--
-
---[[
-	local function shiftModifierIsActive()
-		return shiftKeyIsHeldDown() and controlKeyIsNotHeldDown() and optionKeyIsNotHeldDown() and commandKeyIsNotHeldDown()
-	end
-]]--
 
 	local function controlModifierIsActive()
 		return controlKeyIsHeldDown() and optionKeyIsNotHeldDown() and commandKeyIsNotHeldDown()
@@ -4088,57 +4677,84 @@ function handleInput()
 		incrementScaleTypeAction()
 	end
 
-	if inputCharacter == inputCharacters[","] and optionModifierIsActive() then
-		halveGridSize()
-	end
 
-	if inputCharacter == inputCharacters["."] and optionModifierIsActive() then
-		doubleGridSize()
-	end
+	if operatingSystem == "win64" or operatingSystem == "win32" then
 
-	if inputCharacter == inputCharacters["<"] and optionModifierIsActive() then
-		decrementOctaveAction()
-	end
+		if inputCharacter == inputCharacters[","] and shiftKeyIsNotHeldDown() and optionModifierIsActive() then
+			halveGridSize()
+		end
 
-	if inputCharacter == inputCharacters[">"] and optionModifierIsActive() then
-		incrementOctaveAction()
-	end
+		if inputCharacter == inputCharacters["."] and shiftKeyIsNotHeldDown() and optionModifierIsActive() then
+			doubleGridSize()
+		end
 
-	if inputCharacter == inputCharacters[","] and commandModifierIsActive() then
-		decrementChordTypeAction()
-	end
+		if inputCharacter == inputCharacters[","] and shiftKeyIsHeldDown() and optionModifierIsActive() then
+			decrementOctaveAction()
+		end
 
-	if inputCharacter == inputCharacters["."] and commandModifierIsActive() then
-		incrementChordTypeAction()
-	end
+		if inputCharacter == inputCharacters["."] and shiftKeyIsHeldDown() and optionModifierIsActive() then
+			incrementOctaveAction()
+		end
 
-	if inputCharacter == inputCharacters["<"] and commandModifierIsActive() then
-		decrementChordInversionAction()
-	end
+		--
 
-	if inputCharacter == inputCharacters[">"] and commandModifierIsActive() then
-		incrementChordInversionAction()
+		if inputCharacter == inputCharacters[","] and shiftKeyIsNotHeldDown() and commandModifierIsActive() then
+			decrementChordTypeAction()
+		end
+
+		if inputCharacter == inputCharacters["."] and shiftKeyIsNotHeldDown() and commandModifierIsActive() then
+			incrementChordTypeAction()
+		end
+
+		if inputCharacter == inputCharacters[","] and shiftKeyIsHeldDown() and commandModifierIsActive() then
+			decrementChordInversionAction()
+		end
+
+		if inputCharacter == inputCharacters["."] and shiftKeyIsHeldDown() and commandModifierIsActive() then
+			incrementChordInversionAction()
+		end
+
+	else
+
+		if inputCharacter == inputCharacters[","] and optionModifierIsActive() then
+			halveGridSize()
+		end
+
+		if inputCharacter == inputCharacters["."] and optionModifierIsActive() then
+			doubleGridSize()
+		end
+
+		if inputCharacter == inputCharacters["<"] and optionModifierIsActive() then
+			decrementOctaveAction()
+		end
+
+		if inputCharacter == inputCharacters[">"] and optionModifierIsActive() then
+			incrementOctaveAction()
+		end
+
+		--
+
+		if inputCharacter == inputCharacters[","] and commandModifierIsActive() then
+			decrementChordTypeAction()
+		end
+
+		if inputCharacter == inputCharacters["."] and commandModifierIsActive() then
+			incrementChordTypeAction()
+		end
+
+		if inputCharacter == inputCharacters["<"] and commandModifierIsActive() then
+			decrementChordInversionAction()
+		end
+
+		if inputCharacter == inputCharacters[">"] and commandModifierIsActive() then
+			incrementChordInversionAction()
+		end
 	end
 end
 local workingDirectory = reaper.GetResourcePath() .. "/Scripts/ChordGun/src"
 
 Interface = {}
 Interface.__index = Interface
-
-local interfaceWidth = 775
-local interfaceHeight = 620
-
-local function getInterfaceXPos()
-
-	local screenWidth = getScreenWidth()
-	return screenWidth/2 - interfaceWidth/2
-end
-
-local function getInterfaceYPos()
-
-	local screenHeight = getScreenHeight()
-	return screenHeight/2 - interfaceHeight/2
-end
 
 local dockerXPadding = 0
 local dockerYPadding = 0
@@ -4149,8 +4765,8 @@ function Interface:init(name)
   setmetatable(self, Interface)
 
   self.name = name
-  self.x = getInterfaceXPos()
-  self.y = getInterfaceYPos()
+  self.x = getInterfaceXPosition()
+  self.y = getInterfaceYPosition()
   self.width = interfaceWidth
   self.height = interfaceHeight
 
@@ -4187,7 +4803,13 @@ end
 function Interface:addMainWindow()
 
 	gfx.clear = reaper.ColorToNative(36, 36, 36)
-	local dockState = gfx.dock(-1)
+
+	local dockState = 0
+
+  if windowShouldBeDocked() then
+    dockState = getDockState()
+  end
+  
 	gfx.init(self.name, self.width, self.height, dockState, self.x, self.y)
 end
 
@@ -4276,6 +4898,15 @@ function Interface:update()
 		self:restartGui()
 		guiShouldBeUpdated = false
 	end
+
+  if windowIsDocked() and (getDockState() ~= gfx.dock(-1)) then
+    setDockState(gfx.dock(-1))
+  end
+
+	local _, xpos, ypos, _, _ = gfx.dock(-1,0,0,0,0)
+	setInterfaceXPosition(xpos)
+	setInterfaceYPosition(ypos)
+
 end
 
 local workingDirectory = reaper.GetResourcePath() .. "/Scripts/ChordGun/src"
@@ -4519,3 +5150,19 @@ local function main()
 end
 
 main()
+
+
+-- If you want the ChordGun window to always be on top then do the following things:
+--
+-- 1. install julian sader extension https://forum.cockos.com/showthread.php?t=212174
+--
+-- 2. uncomment the following code:
+--
+-- 		if (reaper.JS_Window_Find) then
+-- 			local hwnd = reaper.JS_Window_Find("ChordGun", true)
+-- 			reaper.JS_Window_SetZOrder(hwnd, "TOPMOST", hwnd)
+-- 		end
+--
+--
+--
+-- Note that this only works on Windows machines

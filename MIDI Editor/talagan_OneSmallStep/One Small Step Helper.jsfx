@@ -1,0 +1,147 @@
+noindex: true
+desc: One Small Step Helper
+version: 0.2
+author: Ben 'Talagan' Babut
+
+<? 
+  note_buffer_size    = 32; // MAX number of simultaneously held notes
+  note_slider_offset  = 10; // Offset for note sliders (start at)
+  DBG                 = 0;  // Show / Hide sliders in the JSFX window
+?>
+
+<?
+  dbg = (DBG == 1)?(""):("-");
+
+  printf("slider1:0<0,1,0.001>  %sSustain Pedal Activity\n", dbg);
+  printf("slider2:0<0,127,1>    %sHeld note count\n", dbg);
+
+  ni = 0;
+  while(ni < note_buffer_size) (
+    
+    // Generate sliders for held notes
+    printf("slider%d:<0,127,1>    %sNote %d Pitch\n",     note_slider_offset + 4*ni + 0, dbg, ni);
+    printf("slider%d:<0,15,1>     %sNote %d Channel\n",   note_slider_offset + 4*ni + 1, dbg, ni);
+    printf("slider%d:<0,127,1>    %sNote %d Velocity\n",  note_slider_offset + 4*ni + 2, dbg, ni);
+    printf("slider%d:<0,1,0.001>  %sNote %d Timestamp\n", note_slider_offset + 4*ni + 3, dbg, ni);
+
+    ni += 1;
+  );
+?>
+
+@init
+
+MAX_NOTE            = <? printf("%d", note_buffer_size) ?>;
+NOTE_SLIDER_OFFSET  = <? printf("%d", note_slider_offset) ?>;
+note_cnt            = 0;
+
+function spitch(note_num)       ( (NOTE_SLIDER_OFFSET + 4*note_num + 0) );
+function schan(note_num)        ( (NOTE_SLIDER_OFFSET + 4*note_num + 1) );
+function svel(note_num)         ( (NOTE_SLIDER_OFFSET + 4*note_num + 2) );
+function stimestamp(note_num)   ( (NOTE_SLIDER_OFFSET + 4*note_num + 3) );
+
+// Only note_buf is used so free the memory after it.
+freembuf(0);
+
+function setNoteSliders(i, n, c, v, ts)
+(
+  slider(spitch(i))       = n;
+  slider(schan(i))        = c;
+  slider(svel(i))         = v;
+  slider(stimestamp(i))   = ts;
+);
+
+function copyNoteSliders(dst, src)
+(
+  setNoteSliders(dst,
+    slider(spitch(src)),
+    slider(schan(src)),
+    slider(svel(src)),
+    slider(stimestamp(src))
+  );
+);
+
+
+function addRemoveNoteFromBuffer(m1,m2,m3)
+  local(s,c,n,v,t,i,j,init_buflen)
+(
+  init_buflen = note_cnt;
+
+  s = m1&$xF0;
+  n = m2;     // note
+  c = m1&$xF; // channel
+  v = m3;     // velocity
+  ts = time_precise();
+
+  i = -1;
+  while
+  (
+    // look for this note|channel already in ON state among the sliders
+    i = i+1;
+    i < note_cnt && i < MAX_NOTE && (slider(spitch(i))|0 != n || slider(schan(i))|0 != c);
+  );
+
+  (i == MAX_NOTE)?(
+    // Overflow
+    -1;
+  ):(
+
+    (s == $x90 && v > 0) ? (
+
+      // note-on, add to buffer
+      setNoteSliders(i,n,c,v,ts);
+
+      // New slot ?
+      i == note_cnt ? note_cnt = note_cnt+1;
+    
+    ):(
+      
+      // note-off, remove from buffer
+      i < note_cnt ?
+      (
+        j = i;
+        while(j < note_cnt)
+        (
+          // Shift all sliders to delete current entry
+          copyNoteSliders(j, j+1);
+          j = j + 1;
+        );
+        while(j < MAX_NOTE)
+        (
+          // Clear remaining sliders
+          setNoteSliders(j,0,0,0,0);
+          j = j + 1;
+        );
+
+        note_cnt = note_cnt - 1;
+      );
+    );
+  );
+
+  // Update note count
+  slider2 = note_cnt;
+);
+
+@block
+
+function main()
+  local(offset,msg1,msg2,msg3)
+(
+  while (midirecv(offset,msg1,msg2,msg3))
+  (
+    (msg1&$xF0==$x90) ?
+      addRemoveNoteFromBuffer(msg1,msg2,msg3);
+
+    (msg1&$xF0==$x80) ?
+      addRemoveNoteFromBuffer(msg1,msg2,msg3);
+
+    (msg1&$xF0==$xB0 && msg2 == 64 && msg3 > 0) ?
+      slider1 = time_precise();
+
+    (msg1&$xF0==$xB0 && msg2 == 64 && msg3 == 0) ?
+      slider1 = 0;
+
+    midisend(offset,msg1,msg2,msg3);
+  )
+);
+
+main();

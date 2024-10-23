@@ -1,14 +1,14 @@
 --[[
     Description: Add real-life timestamps
-    Version: 1.0.3
+    Version: 1.0.4
     Author: Lokasenna
     Donation: https://paypal.me/Lokasenna
     Changelog:
-        Fix: Compatibility with font changes in GUI library
+        Fix: Expand error message when the library is missing
     Links:
         Lokasenna's Website http://forum.cockos.com/member.php?u=10417
     About:
-        Fills a project with real (i.e. 11:45:01 PM) timestamps, with 
+        Fills a project with real (i.e. 11:45:01 PM) timestamps, with
         a variety of user options.
 
     Donation: https://www.paypal.me/Lokasenna
@@ -21,7 +21,7 @@
 
 local lib_path = reaper.GetExtState("Lokasenna_GUI", "lib_path_v2")
 if not lib_path or lib_path == "" then
-    reaper.MB("Couldn't load the Lokasenna_GUI library. Please run 'Set Lokasenna_GUI v2 library path.lua' in the Lokasenna_GUI folder.", "Whoops!", 0)
+    reaper.MB("Couldn't load the Lokasenna_GUI library. Please install 'Lokasenna's GUI library v2 for Lua', available on ReaPack, then run the 'Set Lokasenna_GUI v2 library path.lua' script in your Action List.", "Whoops!", 0)
     return
 end
 loadfile(lib_path .. "Core.lua")()
@@ -89,7 +89,7 @@ local function timeToString(t, twelve)
     if twelve then
 
         suff = (h > 11 and " PM" or " AM")
-        if h > 12 then 
+        if h > 12 then
             h = h - 12
         elseif h == 0 then
             h = 12
@@ -120,7 +120,7 @@ local function stringToTime(str)
 
     local h, m, s = str:mmatch("(%d+)")
     if not (h and m and s) then return end
-    
+
     dMsg("stringToTime: " .. str)
     dMsg("\th, m, s = " .. h .. ", " .. m .. ", " .. s)
     dMsg("\treturning " .. h*3600+m*60+s.."\n")
@@ -133,9 +133,9 @@ local function parseSettings()
     --  Parse settings
     local mults = {1, 60, 3600}
     settings.interval = GUI.Val("txt_interval")
-    if not tonumber(settings.interval) then 
+    if not tonumber(settings.interval) then
         reaper.MB("Please enter a valid interval.", "Whoops!", 0)
-        return 
+        return
     end
 
     settings.interval = settings.interval * mults[GUI.Val("mnu_interval")]
@@ -143,7 +143,7 @@ local function parseSettings()
     settings.start = stringToTime( GUI.Val("txt_start") )
     if not settings.start then
         reaper.MB("Please enter a valid start time. (HH:MM:SS)", "Whoops!", 0)
-        return 
+        return
     end
 
     settings.format = GUI.Val("mnu_format")
@@ -195,7 +195,7 @@ local function doMarkerLoop()
     elseif settings.range == RANGE_PROJ then
         s = 0
         e = reaper.GetProjectLength(0)
-    
+
         --reaper.GetProjectLength( proj )
         -- reaper.GetProjectTimeOffset( proj, rndframe )
 
@@ -215,7 +215,7 @@ local function doMarkerLoop()
         local elapsed = (pos - s) + settings.start
         local str = timeToString(elapsed, settings.format ~= 3)
 
-    -- reaper.AddProjectMarker( proj, isrgn, pos, rgnend, name, wantidx )        
+    -- reaper.AddProjectMarker( proj, isrgn, pos, rgnend, name, wantidx )
         reaper.AddProjectMarker(
             0, -- proj
             (settings.insert == INSERT_REGIONS), -- isrgn
@@ -235,7 +235,7 @@ end
 local function btn_go()
 
     if parseSettings() then doMarkerLoop() end
-    
+
 end
 
 

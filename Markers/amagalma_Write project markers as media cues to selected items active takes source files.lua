@@ -1,25 +1,27 @@
--- @description amagalma_Write project markers as media cues to selected items' active takes' source files (WAV only)
+-- @description Write project markers as media cues to selected items' active takes' source files (WAV only)
 -- @author amagalma
--- @version 1.01
+-- @version 1.03
+-- @changelog
+--   - Fix not writting Markers if Regions are present before them in the project
+--   - Updated Reapack info
+-- @link https://forum.cockos.com/showthread.php?t=214609
+-- @donation https://www.paypal.me/amagalma
 -- @about
 --   # Writes the project markers that cross the selected items as media cues of the selected items' active takes' source files
 --   - Overwrites the files
 --   - Issues warning if markers are going to appear to other items in the project that share the same source file
 --   - To erase an existing media cue, place an unnamed project marker at the position of the cue
--- @changelog
---  # Supports files with samplerate different to that of the project
 
 --------------------------------------------------------------------------------------------------
 
-local reaper = reaper
 local projsrate
-if reaper.SNM_GetIntConfigVar( "projsrateuse", 0 ) == 1 then 
+local projoffset = reaper.GetProjectTimeOffset( 0, false )
+if reaper.SNM_GetIntConfigVar( "projsrateuse", 0 ) == 1 then
   projsrate = reaper.SNM_GetIntConfigVar( "projsrate", 0 )
 else
   _, projsrate = reaper.GetAudioDeviceInfo( "SRATE", "" )
   projsrate = tonumber(projsrate)
 end
-
 local function escape_lua_pattern(s)
   local matches =
   {
@@ -75,7 +77,7 @@ end
 local warning = false
 local continue = 6
 local item_cnt = reaper.CountSelectedMediaItems( 0 )
-local _, num_markers = reaper.CountProjectMarkers( 0 )
+local total_markers, num_markers = reaper.CountProjectMarkers( 0 )
 -- check there are enough selected items
 if item_cnt < 1 then
   reaper.MB( "No items selected!", "Action aborted", 0 )
@@ -83,7 +85,7 @@ if item_cnt < 1 then
   return
 end
 -- check there are enough project markers
-if num_markers < 1 then
+if total_markers == 0 or num_markers == 0 then
   reaper.MB( "No project markers present!", "Action aborted", 0 )
   reaper.defer(function () end)
   return
@@ -108,8 +110,8 @@ for i = 0, item_cnt-1 do
       -- find which markers are inside the visible source file portion
       local markers_inside = {}
       local marker_cnt = 0
-      local item_start = reaper.GetMediaItemInfo_Value( item, "D_POSITION"  )
-      local item_end = item_start + reaper.GetMediaItemInfo_Value( item, "D_LENGTH"  )
+      local item_start = reaper.GetMediaItemInfo_Value( item, "D_POSITION" ) + projoffset
+      local item_end = item_start + reaper.GetMediaItemInfo_Value( item, "D_LENGTH" )
       local take_offset = reaper.GetMediaItemTakeInfo_Value( take, "D_STARTOFFS" )
       local source_start = item_start - take_offset
       local source_end = source_start + reaper.GetMediaSourceLength( source )
@@ -121,7 +123,7 @@ for i = 0, item_cnt-1 do
         vis_source_start = source_start
       end
       if source_end > item_end then
-        vis_source_end = item_end 
+        vis_source_end = item_end
       else
         vis_source_end = source_end
       end
@@ -224,30 +226,44 @@ for i = 0, item_cnt-1 do
       -- find which markers are inside the visible source start and length
       local max_mrk_pos, min_mrk_pos = 0, false
       local new_item_markers = 0
-      for m = 0, num_markers-1 do
-        local _, _, marker_pos, _, marker_name = reaper.EnumProjectMarkers( m )
-        if marker_pos >= vis_source_start and marker_pos <= vis_source_end then
-          local pos = sample_pos((marker_pos-source_start)*(samplerate/projsrate)) -- position in samples
-          -- it's inside, check if it is new
-          if not markers_inside[pos] then
-            -- new marker, add
-            markers_inside[pos] = marker_name
-            markers_to_write = markers_to_write + 1
-            new_item_markers = new_item_markers + 1
-            marker_cnt = marker_cnt + 1
-            -- store min & max position of markers
-            if not min_mrk_pos then
-              min_mrk_pos, max_mrk_pos = pos, pos
-            elseif pos > max_mrk_pos then
-              max_mrk_pos = pos
-            end
-          else
-            -- exists, check if it brings a new name. If blank then erase
-            if marker_name ~= "" then
-              if markers_inside[pos] ~= marker_name then
-                markers_inside[pos] = marker_name
+      for m = 0, total_markers-1 do
+        local _, isrgn, marker_pos, _, marker_name = reaper.EnumProjectMarkers( m )
+        if not isrgn then
+          marker_pos = marker_pos + projoffset
+          if marker_pos >= vis_source_start and marker_pos <= vis_source_end then
+            local pos = sample_pos((marker_pos-source_start)*(samplerate/projsrate)) - projoffset*projsrate-- position in samples
+            -- it's inside, check if it is new
+            if not markers_inside[pos] then
+              -- new marker, add
+              markers_inside[pos] = marker_name
+              markers_to_write = markers_to_write + 1
+              new_item_markers = new_item_markers + 1
+              marker_cnt = marker_cnt + 1
+              -- store min & max position of markers
+              if not min_mrk_pos then
+                min_mrk_pos, max_mrk_pos = pos, pos
+              elseif pos > max_mrk_pos then
+                max_mrk_pos = pos
+              end
+            else
+              -- exists, check if it brings a new name. If blank then erase
+              if marker_name ~= "" then
+                if markers_inside[pos] ~= marker_name then
+                  markers_inside[pos] = marker_name
+                  markers_to_write = markers_to_write + 1
+                  new_item_markers = new_item_markers + 1
+                  -- store min & max position of markers
+                  if not min_mrk_pos then
+                    min_mrk_pos, max_mrk_pos = pos, pos
+                  elseif pos > max_mrk_pos then
+                    max_mrk_pos = pos
+                  end
+                end
+              else -- erase marker
+                markers_inside[pos] = nil
                 markers_to_write = markers_to_write + 1
                 new_item_markers = new_item_markers + 1
+                marker_cnt = marker_cnt - 1
                 -- store min & max position of markers
                 if not min_mrk_pos then
                   min_mrk_pos, max_mrk_pos = pos, pos
@@ -255,24 +271,13 @@ for i = 0, item_cnt-1 do
                   max_mrk_pos = pos
                 end
               end
-            else -- erase marker
-              markers_inside[pos] = nil
-              markers_to_write = markers_to_write + 1
-              new_item_markers = new_item_markers + 1
-              marker_cnt = marker_cnt - 1
-              -- store min & max position of markers
-              if not min_mrk_pos then
-                min_mrk_pos, max_mrk_pos = pos, pos
-              elseif pos > max_mrk_pos then
-                max_mrk_pos = pos
-              end
             end
           end
         end
       end
       -- add information to table of items that have changes
       if new_item_markers > 0 then
-        items[#items+1] = 
+        items[#items+1] =
         {
         src = source,
         marker = markers_inside,
@@ -350,7 +355,7 @@ if not warning then
           vis_source_start = source_start
         end
         if source_end > item_end then
-          vis_source_end = item_end 
+          vis_source_end = item_end
         else
           vis_source_end = source_end
         end
@@ -361,10 +366,10 @@ if not warning then
         or (sel_item_vis_src[filename].max >= vis_source_start and sel_item_vis_src[filename].max <= vis_source_end)
         then
           warning = true
-          break        
+          break
         end
       end
-    end  
+    end
   end
 end
 if warning then

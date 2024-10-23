@@ -1,7 +1,7 @@
 -- @description Select source tracks of selected tracks receives recursively
--- @version 1.0.2
+-- @version 1.2.1
 -- @author cfillion
--- @changelog Simpler packaging using new ReaPack features (no other code changes).
+-- @changelog Fix crash when encountering feedback routings
 -- @donation https://www.paypal.me/cfillion
 -- @metapackage
 -- @provides

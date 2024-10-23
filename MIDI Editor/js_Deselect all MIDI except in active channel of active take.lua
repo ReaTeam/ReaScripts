@@ -1,9 +1,26 @@
 --[[
 ReaScript name: js_Deselect all MIDI except in active channel of active take.lua
-Version: 1.00
+Version: 2.10
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
-REAPER version: 5.30
+Donation: https://www.paypal.me/juliansader
+Provides: [main=midi_editor,midi_inlineeditor] .
+About:
+  # DESCRIPTION
+  
+  When working with multi-channel MIDI items, it is often necessary to limit selection and editing to events in a single MIDI channel.
+  
+  Somme -- but not all -- of REAPER's native selection functions (such as right-drag marquee select) have been updated to select only 
+      events in the MIDI editor's active channel, if a channel is selected in the editor's "Channel" dropdown list.
+      
+  In all other cases, this script can be used to deselect unwanted events.
+  
+  If the mouse is over an inline editor in the arrange view when the script is run (from a keyboard shortcut), the inline editor will affected.
+  Otherwise, the script will affect the last-used MIDI editor.
+  
+  Sysex and meta events do not carry channel info, so will always be deselected.
+  
+  TIP: REAPER's inline editor does not provide a native function for selecting the active MIDI channel.  The script "js_Select channel for new events for MIDI editor under mouse.lua" can be used instead.
 ]]
 
 --[[
@@ -12,6 +29,12 @@ REAPER version: 5.30
     + Initial beta release
   * v1.00 (2016-12-04)
     + Faster execution, using REAPER v5.30's new API functions.
+  * v2.00 (2020-04-29)
+    + Works in inline editor under mouse (and automatically installs in inline editor context).
+  * v2.01 (2020-04-29)
+    + Small improvement.
+  * v2.10 (2020-05-15)
+    + Fix MediaItem_Take expected error.
 ]]
 
 ----------------------------------------------------------------------------
@@ -26,30 +49,70 @@ REAPER version: 5.30
 -- Little trick to prevent REAPER from automatically creating an undo point:
 --    simply 'defer' any function.
 --[[function preventUndo()
-end
-reaper.defer(preventUndo)
 ]]
+
+reaper.defer(function() end)
+
 -- Check whether the required version of REAPER is available
-if not reaper.APIExists("MIDI_GetAllEvts") then
-    reaper.ShowMessageBox("This script requires REAPER v5.30 or higher.", "ERROR", 0)
-    return(false) 
+if not reaper.GetItemFromPoint then
+    reaper.ShowMessageBox("This script requires REAPER v6.00 or higher.", "ERROR", 0)
+    return false 
+end
+if not reaper.BR_IsMidiOpenInInlineEditor then
+    reaper.ShowMessageBox("This script requires the SWS/S&M extension.", "ERROR", 0)
+    return false 
 end
 
--- Check whether an active MIDI editor is available
-local editor = reaper.MIDIEditor_GetActive()
-if editor == nil then 
-    reaper.ShowMessageBox("Could not find any active MIDI editors.", "ERROR", 0)
-    return
+-- Find MIDI take. If mouse is over arrange view item, then inline editor, else main editor
+x, y = reaper.GetMousePosition()
+activeItem, activeTake = reaper.GetItemFromPoint(x, y, false)
+-- INLINE EDITOR
+if activeTake then
+    isInline = true
+    if not (reaper.ValidatePtr2(0, activeTake, "MediaItem_Take*") and reaper.BR_IsMidiOpenInInlineEditor(activeTake)) then
+        reaper.ShowMessageBox("No inline editor could be found under the mouse.", "ERROR", 0)
+        return false
+    end
+    -- First, get the active take's part of the item's chunk.
+    -- In the item chunk, each take's data is separate, and in the same order as the take numbers.
+    local chunkOK, chunk = reaper.GetItemStateChunk(activeItem, "", false)
+        if not chunkOK then 
+            reaper.MB("Could not get the state chunk of the active item.", "ERROR", 0) 
+            return false
+        end
+    local takeNum = reaper.GetMediaItemTakeInfo_Value(activeTake, "IP_TAKENUMBER")
+    local takeChunkStartPos = 1
+    for t = 1, takeNum do
+        takeChunkStartPos = chunk:find("\nTAKE[^\n]-\nNAME", takeChunkStartPos+1)
+        if not takeChunkStartPos then 
+            reaper.MB("Could not find the active take's part of the item state chunk.", "ERROR", 0) 
+            return false
+        end
+    end
+    local takeChunkEndPos = chunk:find("\nTAKE[^\n]-\nNAME", takeChunkStartPos+1)
+    activeTakeChunk = chunk:sub(takeChunkStartPos, takeChunkEndPos)   
+   
+    activeChannel = activeTakeChunk:match("\nCFGEDIT %S+ %S+ %S+ %S+ %S+ %S+ %S+ %S+ (%S+)")
+    if not activeChannel then 
+        reaper.MB("Could not determine the active channel from the item state chunk.", "ERROR", 0) 
+        return false
+    end
+    activeChannel = tonumber(activeChannel)-1 -- Chunk stores MIDI channel as 1-16 instead of 0-15
+-- MIDI EDITOR
+else
+    editor = reaper.MIDIEditor_GetActive()
+    if editor == nil then 
+        reaper.ShowMessageBox("Could not find any active MIDI editors.", "ERROR", 0)
+        return
+    end
+    -- Check whether an active take is available - note the GetTake is buggy and may return a non-nil but invalid pointer, so must check validity.
+    activeTake = reaper.MIDIEditor_GetTake(editor)
+    if not reaper.ValidatePtr2(0, activeTake, "MediaItem_Take*") then 
+        reaper.ShowMessageBox("Could not find any active take for the MIDI editor.", "ERROR", 0)
+        return
+    end
+    activeChannel = reaper.MIDIEditor_GetSetting_int(editor, "default_note_chan")
 end
-
--- Check whether an active take is available - note the GetTake is buggy and may return a non-nil but invalid pointer, so must check validity.
-local activeTake = reaper.MIDIEditor_GetTake(editor)
-if not reaper.ValidatePtr2(0, activeTake, "MediaItem_Take*") then 
-    reaper.ShowMessageBox("Could not find any active take.", "ERROR", 0)
-    return
-end
-
-local activeChannel = reaper.MIDIEditor_GetSetting_int(editor, "default_note_chan")
  
 -- This script does not use the standard MIDI API functions such as MIDI_SetCC, since these
 --    functions are far too slow when dealing with thousands of events.
@@ -87,7 +150,7 @@ else
         mustDeselect = false
         if flags&1 == 1 then -- First bit in flags is selection status
             -- Sysex and meta events do not carry channel info, so will always be deselected
-            -- No need to worry about selected notes with notation: REAPER's notation text events are always unselected, even if the corresponding note is selected.
+            -- No need to worrqy about selected notes with notation: REAPER's notation text events are always unselected, even if the corresponding note is selected.
             if (msg:byte(1))&0xF0 == 0xF0 then
                 mustDeselect = true
             -- Non-sysex, non-meta events always include channel in lowest 'nibble' of status byte
@@ -115,9 +178,11 @@ else
     -- Finally, going to make changes to the project, so create undo block.
     reaper.Undo_BeginBlock2(0)
     -- Deselect all MIDI in editable takes
-    reaper.MIDIEditor_OnCommand(editor, 40214) -- Edit: Unselect all
+    if editor then reaper.MIDIEditor_OnCommand(editor, 40214) end -- Edit: Unselect all
     -- Upload new MIDI string into active take
     reaper.MIDI_SetAllEvts(activeTake, table.concat(tableEvents))
+    -- Make sure inline editor is redrawn on screen
+    if isInline then reaper.UpdateItemInProject(activeItem) end
     -- Use flag=4 to limit undo to items, which is much faster than unnecessarily including everything
     reaper.Undo_EndBlock2(0, "Deselect all MIDI except in active channel of active take", 4)
     

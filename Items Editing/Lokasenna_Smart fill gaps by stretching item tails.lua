@@ -1,11 +1,10 @@
 --[[
   Description: Smart fill gaps by stretching item tails
-  Version: 1.2
+  Version: 1.3.2
   Author: Lokasenna
   Donation: https://paypal.me/Lokasenna
   Changelog:
-    Complete rewrite of audio processing logic, should fix issues with stereo
-    items being skipped.
+    Fix: Expand error message when the library is missing
   Links:
     Forum Thread https://forum.cockos.com/showthread.php?p=2046085
     Lokasenna's Website http://forum.cockos.com/member.php?u=10417
@@ -73,7 +72,6 @@ end
 
 local iterated_items = 0
 
-
 ------------------------------------
 -------- GUI Library ---------------
 ------------------------------------
@@ -81,7 +79,7 @@ local iterated_items = 0
 
 local lib_path = reaper.GetExtState("Lokasenna_GUI", "lib_path_v2")
 if not lib_path or lib_path == "" then
-    reaper.MB("Couldn't load the Lokasenna_GUI library. Please run 'Set Lokasenna_GUI v2 library path.lua' in the Lokasenna_GUI folder.", "Whoops!", 0)
+    reaper.MB("Couldn't load the Lokasenna_GUI library. Please install 'Lokasenna's GUI library v2 for Lua', available on ReaPack, then run the 'Set Lokasenna_GUI v2 library path.lua' script in your Action List.", "Whoops!", 0)
     return
 end
 loadfile(lib_path .. "Core.lua")()
@@ -139,6 +137,9 @@ function audio.ValFromdB(dB_val) return 10^(dB_val/20) end
             Note: This process is read-only. The function can't do anything to
             the samples.
 
+    start_pos
+            Starting time to loop from
+
     window  Maximum length of time in the item to examine
 
     reverse Boolean. If true, starts from the end and works backwards. The
@@ -150,7 +151,7 @@ function audio.ValFromdB(dB_val) return 10^(dB_val/20) end
     "Create stretch markers at transients" EEL script and then tidied/expanded.
 
 ]]--
-function audio.iterateSamples(item, func, window, reverse)
+function audio.iterateSamples(item, func, start, window, reverse)
 
     if not (item and func) then return end
 
@@ -162,6 +163,8 @@ function audio.iterateSamples(item, func, window, reverse)
     local PCM_source = reaper.GetMediaItemTake_Source(take)
     local samplerate = reaper.GetMediaSourceSampleRate(PCM_source)
 
+    dMsg("\t\tsamplerate: " .. samplerate)
+
     if not samplerate then
         reaper.MB("Couldn't access the item. Maybe it's not audio?", "Oops", 0)
         return nil
@@ -172,7 +175,7 @@ function audio.iterateSamples(item, func, window, reverse)
     -- Math is much easier if we convert to playrate == 1
     -- Don't worry, we'll put everything back afterward
     local playrate = reaper.GetMediaItemTakeInfo_Value(take, "D_PLAYRATE")
-    local new_len = item_len * playrate
+    -- local new_len = item_len * playrate
 
     if playrate ~= 1 then
         reaper.SetMediaItemTakeInfo_Value(take, "D_PLAYRATE", 1)
@@ -184,7 +187,11 @@ function audio.iterateSamples(item, func, window, reverse)
     -- Define the time range w.r.t the original playrate
 
     local range_len = window and math.min(window, new_len) or new_len
-    local range_start = reverse and item_len - range_len or 0
+    local range_start = reverse
+      and (start and (start - range_len) or 0)
+      or  (start and start or 0)
+
+    if range_start < 0 then range_start = 0 end
 
     --dMsg("\tchecking window: " .. range_start .. " to " .. range_start + range_len)
 
@@ -219,10 +226,11 @@ function audio.iterateSamples(item, func, window, reverse)
     -- Loop through the audio, one block at a time
     local time_start =
         --reverse   and (range_end - ((extra_spls * n_channels) / samplerate))
-        reverse   and (range_end - extra_spls / samplerate)
+        -- reverse   and (range_end - extra_spls / samplerate)
+        reverse    and range_end
                    or  0
 
-    time_start = 0
+    dMsg("\t\ttime_start: " .. time_start)
 
     local time_offset = ((block_size * n_channels) / samplerate) * (reverse and -1 or 1)
 
@@ -235,7 +243,7 @@ function audio.iterateSamples(item, func, window, reverse)
         samplebuffer.clear()
 
         -- Loads 'samplebuffer' with the next block
-        GetSamples(audio, samplerate, n_channels, time_start, block_size, samplebuffer)
+        GetSamples(audio, samplerate, n_channels, (reverse and (time_start - (block_size / samplerate)) or time_start), block_size, samplebuffer)
 
         dMsg("getting block: " .. block_size .. " samples")
         dMsg("starting @: " .. time_start)
@@ -286,13 +294,16 @@ function audio.iterateSamples(item, func, window, reverse)
           step = 1
         end
 
+        dMsg("\t\t\tspl_start: " .. spl_start)
+        dMsg("\t\t\tspl_end: " .. spl_end)
+
         for i = spl_start, spl_end, step do
 
           iterated_samples = iterated_samples + 1
 
           local val = samplebuffer[i]
           local chan = (i - 1) % n_channels + 1
-          local pos = math.modf((i - 1) / n_channels) / samplerate
+          local pos = math.modf((i - 1) / n_channels) / samplerate + range_start
 
           val_out = func(val, pos, chan)
           if val_out then
@@ -402,6 +413,7 @@ end
 function Item:doSplit()
 
     local split, err
+    dMsg(self.splitpos)
     if self.splitpos then
         split = self.splitpos
     else
@@ -509,11 +521,19 @@ function Item:getSplitPos()
     local pos_left = self:posProtectLeft() or 0
     local pos_stretch = self:posAtStretchLimit()
 
-    local window = self:getEnd() - pos_left - settings.crossfade_left
     local start = pos_stretch - self.pos
+    local window = pos_stretch - pos_left - settings.crossfade_left
+
+    dMsg("pos_left: " .. pos_left ..
+      " | pos_stretch: " .. pos_stretch ..
+      " | self.pos: " .. self.pos ..
+      " | end: " .. self:getEnd() ..
+      " | crossfade_left: " .. settings.crossfade_left ..
+      " | window is from: " .. (pos_left) .. " to " .. (pos_left + window) .. " (" .. window .. ")"
+    )
 
     local pos_thresh =
-      (window > 0 and start >= 0) and self:lastPosAboveThreshold(window, start)
+      (window > 0 and start >= 0) and self:lastPosAboveThreshold(window, pos_stretch - self.pos)
 
     if pos_thresh then
         return pos_thresh
@@ -572,8 +592,8 @@ function Item:lastPosAboveThreshold(window, start_pos)
     -- Yay efficiency
     local sqrt = math.sqrt
 
-
-
+    local positions = {}
+    local passed_start = false
     -- Will be passed to iterateSamples
     local function check_sample(spl, pos, chan)
 
@@ -581,6 +601,8 @@ function Item:lastPosAboveThreshold(window, start_pos)
       if rms_window > 1 then
 
           rms_tracking[chan][#rms_tracking[chan] + 1] = spl^2
+
+          -- dMsg(spl .. ", " .. pos .. ", " .. chan)
 
           rms_tracking[chan].square_sum =
             rms_tracking[chan].square_sum + rms_tracking[chan][#rms_tracking[chan]]
@@ -597,15 +619,21 @@ function Item:lastPosAboveThreshold(window, start_pos)
           rms = math.abs(spl)
       end
 
+      if not passed_start then
+        dMsg("passed start at " .. pos .. " (" .. (self.pos + pos) .. ")")
+        passed_start = true
+      end
 
       if rms and rms >= thresh and rms_tracking[chan].last_zero_pos then
-          dMsg("\trms over threshold at " .. pos)
+          dMsg("\t\treturning rms over threshold at " .. pos .. " (" .. (self.pos + pos) .. ")")
           return rms_tracking[chan].last_zero_pos
 
       elseif (pos <= start_pos) then
+        passed_start = true
 
         if spl == 0 then
           rms_tracking[chan].last_zero_pos = pos
+          -- dMsg("\t\tzero crossing at " .. pos .. " (" .. (self.pos + pos) .. "), rms is " .. tostring(rms))
         elseif rms_tracking[chan].last_spl and (rms_tracking[chan].last_spl * spl < 0) then
 
           -- pos was occasionally negative... not sure why
@@ -626,11 +654,13 @@ function Item:lastPosAboveThreshold(window, start_pos)
 
     dMsg("\titerateSamples...")
 
-    local splitpos = audio.iterateSamples(self.item, check_sample, window, true)
+    local splitpos = audio.iterateSamples(self.item, check_sample, start_pos, window, true)
     dMsg("\titerateSamples returned a zero-crossing at: " .. tostring(splitpos))
     splitpos = splitpos or last_zero_pos
     dMsg("\tusing a zero-crossing of: " .. tostring(splitpos))
     dMsg("\tlastposAboveThreshold returning: " .. (splitpos and (self.pos + splitpos) or "No split, no zero-crossing"))
+
+    dMsg("------\npositions:\n" .. table.concat(positions, "\n") .. "\n-------")
     return splitpos and (self.pos + splitpos)
 
 end
@@ -794,19 +824,24 @@ local function processItems(items_by_pos)
     -- the remaining items rather than scanning them too.
     for pos, items in GUI.kpairs(items_by_pos) do
 
-        dMsg("\nItem begins...")
+        dMsg("\nPosition " .. pos .. " has " .. #items .. " items\n")
 
+        dMsg("Item 1")
         local first = Item.new(items[1])
         first:doWorkflow()
 
         local cur
         for i = 2, #items do
+            dMsg("\nItem " .. i)
             cur = Item.new(items[i])
-            cur.splitpos = first.splitpos
+
+            if settings.use_first then
+              if not first.splitpos then break end
+              cur.splitpos = first.splitpos
+            end
+
             cur:doWorkflow()
         end
-
-        dMsg("Item ends...")
 
     end
 
@@ -893,11 +928,12 @@ local function settingsFromGUI()
 
         if name == "S_markers" then
             settings.add_split_markers,
-                settings.add_skip_markers = table.unpack(elm:val())
+            settings.add_skip_markers = table.unpack(elm:val())
 
         elseif name == "S_opts" then
             settings.trim_items,
-                settings.step_markers = table.unpack(elm:val())
+            settings.step_markers,
+            settings.use_first = table.unpack(elm:val())
         else
             settings[name:match("S_(.+)")] = elm:val()
         end
@@ -981,8 +1017,8 @@ local function settingsToGUI()
     GUI.Val("S_markers", {settings.add_split_markers, settings.add_skip_markers})
     settings.add_split_markers, settings.add_skip_markers = nil, nil,
 
-    GUI.Val("S_opts", {settings.trim_items, settings.step_markers})
-    settings.trim_items, settings.step_markers = nil, nil
+    GUI.Val("S_opts", {settings.trim_items, settings.step_markers, settings.use_first})
+    settings.trim_items, settings.step_markers, settings.use_first = nil, nil, nil
 
     GUI.Val("S_thresh_db", settings.thresh_db + 60)
     settings.thresh_db = nil
@@ -1030,7 +1066,7 @@ end
 
 
 GUI.name = "Split and stretch item tails"
-GUI.x, GUI.y, GUI.w, GUI.h = 0, 0, 336, 560
+GUI.x, GUI.y, GUI.w, GUI.h = 0, 0, 336, 600
 GUI.anchor, GUI.corner = "screen", "C"
 
 
@@ -1223,9 +1259,9 @@ GUI.New("S_opts", "Checklist", {
     x = 48,
     y = 392,
     w = 208,
-    h = 56,
+    h = 84,
     caption = "",
-    optarray = {"Trim ends of overlapping items","Step through markers afterward"},
+    optarray = {"Trim ends of overlapping items","Step through markers afterward","Match the first item at each position"},
     frame = false
 })
 
@@ -1292,7 +1328,7 @@ GUI.New("lbl_unit4", "Label", {
 GUI.New("btn_go", "Button", {
     z = 11,
     x = 144,
-    y = 472,
+    y = 480,
     w = 48,
     h = 24,
     caption = "Go!",

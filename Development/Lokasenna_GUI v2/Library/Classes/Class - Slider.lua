@@ -47,26 +47,24 @@ function GUI.Slider:new(name, z, x, y, w, caption, min, max, defaults, inc, dir)
   Slider.col_hnd = Slider.col_hnd or "elm_frame"
   Slider.col_fill = Slider.col_fill or "elm_fill"
 
-
-
-    if Slider.show_handles == nil then
-        Slider.show_handles = true
-    end
-    if Slider.show_values == nil then
-        Slider.show_values = true
-    end
+  if Slider.show_handles == nil then
+      Slider.show_handles = true
+  end
+  if Slider.show_values == nil then
+      Slider.show_values = true
+  end
 
   Slider.cap_x = Slider.cap_x or 0
   Slider.cap_y = Slider.cap_y or 0
 
-    local min = Slider.min or min
-    local max = Slider.max or max
+  local min = Slider.min or min
+  local max = Slider.max or max
 
-    if min > max then
-        min, max = max, min
-    elseif min == max then
-        max = max + 1
-    end
+  if min > max then
+      min, max = max, min
+  elseif min == max then
+      max = max + 1
+  end
 
   if Slider.dir == "v" then
     min, max = max, min
@@ -75,50 +73,48 @@ function GUI.Slider:new(name, z, x, y, w, caption, min, max, defaults, inc, dir)
   Slider.align_values = Slider.align_values or 0
 
   Slider.min, Slider.max = min, max
-    Slider.inc = inc or 1
+  Slider.inc = Slider.inc or inc or 1
 
-    function Slider:formatretval(val)
+  function Slider:formatretval(val)
 
-        local decimal = tonumber(string.match(val, "%.(.*)") or 0)
-        local places = decimal ~= 0 and string.len( decimal) or 0
-        return string.format("%." .. places .. "f", val)
+      local decimal = tonumber(string.match(val, "%.(.*)") or 0)
+      local places = decimal ~= 0 and string.len( decimal) or 0
+      return string.format("%." .. places .. "f", val)
 
-    end
+  end
 
-    Slider.defaults = Slider.defaults or defaults
+  Slider.defaults = Slider.defaults or defaults
 
   -- If the user only asked for one handle
   if type(Slider.defaults) == "number" then Slider.defaults = {Slider.defaults} end
 
+  function Slider:init_handles()
 
+    self.steps = math.abs(self.max - self.min) / self.inc
 
-    function Slider:init_handles()
+      -- Make sure the handles are all valid
+      for i = 1, #self.defaults do
+          self.defaults[i] = math.floor( GUI.clamp(0, tonumber(self.defaults[i]), self.steps) )
+      end
 
-      self.steps = math.abs(self.max - self.min) / self.inc
+      self.handles = {}
+      local step
+      for i = 1, #self.defaults do
 
-        -- Make sure the handles are all valid
-        for i = 1, #self.defaults do
-            self.defaults[i] = math.floor( GUI.clamp(0, tonumber(self.defaults[i]), self.steps) )
-        end
+          step = self.defaults[i]
 
-        self.handles = {}
-        local step
-        for i = 1, #self.defaults do
+          self.handles[i] = {}
+          self.handles[i].default = (self.dir ~= "v" and step or (self.steps - step))
+          self.handles[i].curstep = step
+          self.handles[i].curval = step / self.steps
+          self.handles[i].retval = self:formatretval( ((self.max - self.min) / self.steps)
+                                                      * step + self.min)
 
-            step = self.defaults[i]
+      end
 
-            self.handles[i] = {}
-            self.handles[i].default = (self.dir ~= "v" and step or (self.steps - step))
-            self.handles[i].curstep = step
-            self.handles[i].curval = step / self.steps
-            self.handles[i].retval = self:formatretval( ((self.max - self.min) / self.steps)
-                                                        * step + self.min)
+  end
 
-        end
-
-    end
-
-    Slider:init_handles(defaults)
+  Slider:init_handles(defaults)
 
   GUI.redraw_z[Slider.z] = true
 

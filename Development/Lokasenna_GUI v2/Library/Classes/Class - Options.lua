@@ -334,7 +334,7 @@ end
 
 function GUI.Radio:val(newval)
 
-	if newval then
+	if newval ~= nil then
 		self.retval = newval
 		self.state = newval
 		self:redraw()
@@ -471,7 +471,7 @@ end
 
 function GUI.Checklist:val(newval)
 
-	if newval then
+	if newval ~= nil then
 		if type(newval) == "table" then
 			for k, v in pairs(newval) do
 				self.optsel[tonumber(k)] = v

@@ -1,12 +1,12 @@
 -- @description Project underrun monitor (xrun)
--- @version 1.1
 -- @author cfillion
--- @changelog Add context menu with docking, about/help and close actions
--- @website
+-- @version 2.1.1
+-- @changelog Internal code cleanup
+-- @link
 --   cfillion.ca https://cfillion.ca
 --   Request Thread https://forum.cockos.com/showthread.php?p=1942953
--- @screenshot https://i.imgur.com/ECoEWks.gif
--- @donate https://www.paypal.com/cgi-bin/webscr?business=T3DEWBQJAV7WL&cmd=_donations&currency_code=CAD&item_name=ReaScript%3A+Project+underrun+monitor+(xrun)
+-- @screenshot https://i.imgur.com/DBHf0w0.gif
+-- @donation https://reapack.com/donate
 -- @about
 --   # Project underrun monitor
 --
@@ -15,54 +15,76 @@
 --   marker position accuracy is limited by the polling speed of ReaScripts
 --   which is around 30Hz.
 
+local SCRIPT_NAME = select(2, reaper.get_action_context()):match('([^/\\_]+)%.lua$')
+
+if not reaper.ImGui_GetBuiltinPath then
+  reaper.MB('This script requires ReaImGui. \z
+    Install it from ReaPack > Browse packages.', SCRIPT_NAME, 0)
+  return
+end
+
+package.path = reaper.ImGui_GetBuiltinPath() .. '/?.lua'
+local ImGui = require 'imgui' '0.9'
+
 local EXT_SECTION      = 'cfillion_underrun_monitor'
-local EXT_WINDOW_STATE = 'window_state'
-local EXT_LAST_DOCK    = 'last_dock'
 local EXT_MARKER_TYPE  = 'marker_type'
 local EXT_MARKER_WHEN  = 'marker_when'
 
-local WIN_PADDING = 10
-local BOX_PADDING = 7
-local LINE_HEIGHT = 28
-local TIME_WIDTH  = 100
-
-local KEY_ESCAPE = 0x1b
-local KEY_F1     = 0x6631
+local FLT_MIN, FLT_MAX = ImGui.NumericLimits_Float()
 
 local AUDIO_XRUN = 1
 local MEDIA_XRUN = 2
 
-local AUDIO_MARKER = 'audio xrun'
-local MEDIA_MARKER = 'media xrun'
-
-local AUDIO_COLOR = reaper.ColorToNative(255, 0, 0)|0x1000000
-local MEDIA_COLOR = reaper.ColorToNative(255, 255, 0)|0x1000000
+local KIND_MAP = {
+  [AUDIO_XRUN] = {
+    display_name = 'Audio',
+    marker_name  = 'audio xrun',
+    marker_color = ImGui.ColorConvertNative(0x1ff0000),
+  },
+  [MEDIA_XRUN] = {
+    display_name = 'Media',
+    marker_name  = 'media xrun',
+    marker_color = ImGui.ColorConvertNative(0x1ffff00),
+  }
+}
 
 local DEFAULT_SETTINGS = {
-  [EXT_MARKER_TYPE]=AUDIO_XRUN|MEDIA_XRUN,
-  [EXT_MARKER_WHEN]=4,
+  [EXT_MARKER_TYPE] = AUDIO_XRUN|MEDIA_XRUN,
+  [EXT_MARKER_WHEN] = 4,
 }
 
 local MARKER_TYPE_MENU = {
-  {str='(off)',      val=0},
-  {str='any',        val=AUDIO_XRUN|MEDIA_XRUN},
-  {str='audio',      val=AUDIO_XRUN},
-  {str='media',      val=MEDIA_XRUN},
+  {str = '(off)', val = 0 },
+  {str = 'any',   val = AUDIO_XRUN|MEDIA_XRUN },
+  {str = 'audio', val = AUDIO_XRUN },
+  {str = 'media', val = MEDIA_XRUN },
 }
 
 local MARKER_WHEN_MENU = {
-  {str='play or record',val=1|4},
-  {str='playing',       val=1},
-  {str='recording ',    val=4},
+  { str = 'play or record', val = 1|4 },
+  { str = 'playing',        val = 1   },
+  { str = 'recording ',     val = 4   },
+}
+local EVENT_LOG_WAS_AT_BOTTOM    = 1
+local EVENT_LOG_SCROLL_TO_BOTTOM = 2
+
+local prev_audio, prev_media = reaper.GetUnderrunTime()
+local last_project
+local ctx, clipper
+local event_log, event_log_flags, event_log_sel = {}, EVENT_LOG_WAS_AT_BOTTOM
+
+local xruns = {
+  [AUDIO_XRUN] = { count = 0, position = nil },
+  [MEDIA_XRUN] = { count = 0, position = nil },
 }
 
-local mouseDown  = false
-local mouseClick = false
-local scriptName = ({reaper.get_action_context()})[2]:match("([^/\\_]+)%.lua$")
-local prev_audio, prev_media = reaper.GetUnderrunTime()
-local audio_time, media_time, last_project
+local ctx = ImGui.CreateContext(SCRIPT_NAME)
 
-function position()
+local font = ImGui.CreateFont('sans-serif',
+  reaper.GetAppVersion():match('OSX') and 12 or 14)
+ImGui.Attach(ctx, font)
+
+local function position()
   if reaper.GetPlayState() & 1 == 0 then
     return reaper.GetCursorPosition()
   else
@@ -70,7 +92,7 @@ function position()
   end
 end
 
-function markerSettings()
+local function markerSettings()
   local playbackState = reaper.GetPlayState()
   local markerWhen = tonumber(reaper.GetExtState(EXT_SECTION, EXT_MARKER_WHEN))
 
@@ -81,30 +103,38 @@ function markerSettings()
   end
 end
 
-function probeUnderruns()
-  local markerType = markerSettings()
+local function addXrun(kind)
+  local xrun = xruns[kind]
+  xrun.count = xrun.count + 1
+  xrun.position = position()
+
+  local kind_info = KIND_MAP[kind]
+  if markerSettings() & kind ~= 0 then
+    reaper.AddProjectMarker2(nil, false, xrun.position, 0,
+      kind_info.marker_name, -1, kind_info.marker_color)
+  end
+
+  event_log[#event_log + 1] = { kind=kind, position=xrun.position, time=os.time() }
+  if event_log_flags & EVENT_LOG_WAS_AT_BOTTOM ~= 0 then
+    event_log_flags = event_log_flags | EVENT_LOG_SCROLL_TO_BOTTOM
+  end
+end
+
+local function probeUnderruns()
   local audio_xrun, media_xrun, curtime = reaper.GetUnderrunTime()
 
   if audio_xrun > 0 and audio_xrun ~= prev_audio then
     prev_audio = audio_xrun
-    audio_time = position()
-
-    if markerType & AUDIO_XRUN ~= 0 then
-      reaper.AddProjectMarker2(0, 0, audio_time, 0, AUDIO_MARKER, -1, AUDIO_COLOR)
-    end
+    addXrun(AUDIO_XRUN)
   end
 
   if media_xrun > 0 and media_xrun ~= prev_media then
     prev_media = media_xrun
-    media_time = position()
-
-    if markerType & MEDIA_XRUN ~= 0 then
-      reaper.AddProjectMarker2(0, 0, media_time, 0, MEDIA_MARKER, -1, MEDIA_COLOR)
-    end
+    addXrun(MEDIA_XRUN)
   end
 end
 
-function eraseMarkers(name)
+local function eraseMarkers(kind)
   if not last_project or not reaper.ValidatePtr(last_project, 'ReaProject*') then return end
 
   local index  = 0
@@ -114,7 +144,7 @@ function eraseMarkers(name)
     local marker = {reaper.EnumProjectMarkers2(last_project, index)}
     if marker[1] < 1 then break end
 
-    if not marker[2] and marker[5] == name then
+    if not marker[2] and marker[5] == kind.marker_name then
       reaper.DeleteProjectMarkerByIndex(last_project, index)
     else
       index = index + 1
@@ -122,19 +152,16 @@ function eraseMarkers(name)
   end
 end
 
-function reset(xrunType)
-  if xrunType & AUDIO_XRUN ~= 0 then
-    audio_time = nil
-    eraseMarkers(AUDIO_MARKER)
-  end
-
-  if xrunType & MEDIA_XRUN ~= 1 then
-    media_time = nil
-    eraseMarkers(MEDIA_MARKER)
+local function reset(xrunType)
+  for kind, info in pairs(KIND_MAP) do
+    if xrunType & kind ~= 0 then
+      xruns[kind].position = nil
+      eraseMarkers(info)
+    end
   end
 end
 
-function detectProjectChange()
+local function detectProjectChange()
   local current_project = reaper.EnumProjects(-1, '')
 
   if last_project ~= current_project then
@@ -143,7 +170,7 @@ function detectProjectChange()
   end
 end
 
-function formatTime(time)
+local function formatPosition(time)
   if time then
     return reaper.format_timestr(time, '')
   else
@@ -151,217 +178,246 @@ function formatTime(time)
   end
 end
 
-function boxRect(box)
-  local x, y = gfx.x, gfx.y
-  local w, h = gfx.measurestr(box.text)
+local function combo(key, choices)
+  local value = tonumber(reaper.GetExtState(EXT_SECTION, key))
+  local label = ''
 
-  w = w + (BOX_PADDING * 2)
-  h = h + BOX_PADDING
-
-  if box.w then w = box.w end
-  if box.h then h = box.h end
-
-  return {x=x, y=y, w=w, h=h}
-end
-
-function drawBox(box)
-  if not box.color then box.color = {255, 255, 255} end
-
-  setColor(box.color)
-  gfx.rect(box.rect.x + 1, box.rect.y + 1, box.rect.w - 2, box.rect.h - 2, true)
-
-  gfx.x = box.rect.x
-  setColor({42, 42, 42})
-  if not box.noborder then
-    gfx.rect(box.rect.x, box.rect.y, box.rect.w, box.rect.h, false)
-  end
-
-  gfx.x = box.rect.x + BOX_PADDING
-  gfx.drawstr(box.text, 4, gfx.x + box.rect.w - (BOX_PADDING * 2), gfx.y + box.rect.h + 2)
-
-  gfx.x = box.rect.x + box.rect.w + BOX_PADDING
-end
-
-function box(box)
-  if box.menu then menu(box) end
-  if not box.rect then box.rect = boxRect(box) end
-  if box.callback then button(box) end
-  drawBox(box)
-end
-
-function menu(box)
-  local value = tonumber(reaper.GetExtState(EXT_SECTION, box.key))
-  local menustr = ''
-
-  for _, item in ipairs(box.menu) do
-    if menustr:len() > 0 then menustr = menustr .. '|' end
-
-    if value == item.val then
-      box.text = item.str
-      menustr = menustr .. '!'
-    end
-
-    menustr = menustr .. item.str
-  end
-
-  if not box.rect then box.rect = boxRect(box) end
-
-  box.callback = function()
-    local oldY = gfx.y
-    gfx.y = gfx.y + box.rect.h
-    local index = gfx.showmenu(menustr)
-    gfx.y = oldY
-
-    if index > 0 then
-      reaper.SetExtState(EXT_SECTION, box.key, box.menu[index].val, true)
-    end
-  end
-end
-
-function button(box)
-  local underMouse =
-    gfx.mouse_x >= box.rect.x and
-    gfx.mouse_x < box.rect.x + box.rect.w and
-    gfx.mouse_y >= box.rect.y and
-    gfx.mouse_y < box.rect.y + box.rect.h
-
-  if mouseClick and underMouse then
-    box.callback()
-
-    if box.active ~= nil then
-      box.active = true
+  for _, choice in ipairs(choices) do
+    if value == choice.val then
+      label = choice.str
+      break
     end
   end
 
-  if box.active then
-    box.color = {150, 175, 225}
-  elseif (underMouse and mouseDown) or kbTrigger then
-    box.color = {120, 120, 120}
-  else
-    box.color = {220, 220, 220}
-  end
-
-  drawBox(box)
-end
-
-function setColor(color)
-  gfx.r = color[1] / 255.0
-  gfx.g = color[2] / 255.0
-  gfx.b = color[3] / 255.0
-end
-
-function draw()
-  gfx.x, gfx.y = WIN_PADDING, WIN_PADDING
-
-  box({w=170, text='Last audio xrun position:', noborder=true})
-  box({w=100, text=formatTime(audio_time)})
-  box({text="Jump", callback=audio_time and function()
-    reaper.SetEditCurPos(audio_time, true, false)
-  end})
-  box({text="Reset", callback=audio_time and function() reset(AUDIO_XRUN) end})
-
-  gfx.x, gfx.y = WIN_PADDING, (WIN_PADDING+LINE_HEIGHT)
-
-  box({w=170, text='Last media xrun position:', noborder=true})
-  box({w=100, text=formatTime(media_time)})
-  box({text="Jump", callback=media_time and function()
-    reaper.SetEditCurPos(media_time, true, false)
-  end})
-  box({text="Reset", callback=media_time and function() reset(MEDIA_XRUN) end})
-
-  gfx.x, gfx.y = WIN_PADDING, (WIN_PADDING+LINE_HEIGHT)*2
-  box({text='Create markers on', noborder=true})
-  box({w=60, menu=MARKER_TYPE_MENU, key=EXT_MARKER_TYPE})
-  box({text='xruns, when', noborder=true})
-  box({w=107, menu=MARKER_WHEN_MENU, key=EXT_MARKER_WHEN})
-end
-
-function mouseInput()
-  if mouseClick then
-    mouseClick = false
-  elseif gfx.mouse_cap == 1 then
-    mouseDown = true
-  elseif gfx.mouse_cap == 2 then
-    contextMenu()
-  elseif mouseDown then
-    mouseClick = true
-    mouseDown = false
-  elseif mouseClick then
-    mouseClick = false
-  end
-end
-
-function contextMenu()
-  local dockState = gfx.dock(-1)
-
-  local menu = string.format(
-    '%sDock window||%sAbout/help (F1)|Close (Escape)',
-    dockState > 0 and '!' or '', reaper.ReaPack_GetOwner and '' or '#'
-  )
-
-  local actions = {
-    function()
-      if dockState == 0 then
-        local lastDock = tonumber(reaper.GetExtState(EXT_SECTION, EXT_LAST_DOCK))
-        if not lastDock or lastDock < 1 then lastDock = 1 end
-
-        gfx.dock(lastDock)
-      else
-        reaper.SetExtState(EXT_SECTION, EXT_LAST_DOCK, tostring(dockState), true)
-        gfx.dock(0)
+  if ImGui.BeginCombo(ctx, '##' .. key, label) then
+    for _, choice in ipairs(choices) do
+      if ImGui.Selectable(ctx, choice.str, value == choice.val) then
+        reaper.SetExtState(EXT_SECTION, key, choice.val, true)
       end
-    end,
-    about,
-    gfx.quit,
-  }
-
-  gfx.x, gfx.y = gfx.mouse_x, gfx.mouse_y
-  local index = gfx.showmenu(menu)
-  if actions[index] then actions[index]() end
+    end
+    ImGui.EndCombo(ctx)
+  end
 end
 
-function about()
-  local owner = reaper.ReaPack_GetOwner(({reaper.get_action_context()})[2])
+local function drawXrun(name, kind)
+  local time = xruns[kind].position
+  local disabledCursor = function()
+    if not time and ImGui.IsItemHovered(ctx) then
+      ImGui.SetMouseCursor(ctx, ImGui.MouseCursor_NotAllowed)
+    end
+  end
+
+  ImGui.PushID(ctx, kind)
+  ImGui.AlignTextToFramePadding(ctx)
+  ImGui.Text(ctx, ('Last %s xrun position:'):format(name))
+  ImGui.SameLine(ctx, 179)
+  ImGui.SetNextItemWidth(ctx, 115)
+  ImGui.InputText(ctx, '##time', formatPosition(time), ImGui.InputTextFlags_ReadOnly)
+  ImGui.SameLine(ctx)
+  if not time then
+    local frameBg = ImGui.GetStyleColor(ctx, ImGui.Col_FrameBg)
+    ImGui.PushStyleColor(ctx, ImGui.Col_Button,        frameBg)
+    ImGui.PushStyleColor(ctx, ImGui.Col_ButtonActive,  frameBg)
+    ImGui.PushStyleColor(ctx, ImGui.Col_ButtonHovered, frameBg)
+  end
+  if ImGui.Button(ctx, 'Jump') and time then reaper.SetEditCurPos(time, true, false) end
+  disabledCursor()
+  ImGui.SameLine(ctx)
+  if ImGui.Button(ctx, 'Reset') and time then reset(kind) end
+  disabledCursor()
+  if not time then
+    ImGui.PopStyleColor(ctx, 3)
+  end
+  ImGui.PopID(ctx)
+end
+
+local function drawEventLog()
+  local table_flags = ImGui.TableFlags_Borders |
+                      ImGui.TableFlags_RowBg   |
+                      ImGui.TableFlags_SizingStretchSame |
+                      ImGui.TableFlags_ScrollY
+  if not ImGui.BeginTable(ctx, 'Event log', 3, table_flags, 0, 100) then return end
+  ImGui.TableSetupScrollFreeze(ctx, 0, 1)
+  ImGui.TableSetupColumn(ctx, 'Time')
+  ImGui.TableSetupColumn(ctx, 'Kind')
+  ImGui.TableSetupColumn(ctx, 'Position')
+  ImGui.TableHeadersRow(ctx)
+
+  ImGui.PushStyleVar(ctx, ImGui.StyleVar_ItemSpacing, 4, 4) -- selectable padding
+
+  if not ImGui.ValidatePtr(clipper, 'ImGui_ListClipper*') then
+    clipper = ImGui.CreateListClipper(ctx)
+  end
+  ImGui.ListClipper_Begin(clipper, #event_log)
+  while ImGui.ListClipper_Step(clipper) do
+    local display_start, display_end = ImGui.ListClipper_GetDisplayRange(clipper)
+    for i = display_start, display_end - 1 do
+      ImGui.PushID(ctx, i)
+      local entry = event_log[i + 1]
+      ImGui.TableNextRow(ctx)
+      ImGui.TableNextColumn(ctx)
+      ImGui.Text(ctx, os.date('%Y-%m-%d %H:%M:%S', entry.time))
+      ImGui.TableNextColumn(ctx)
+      local kinds = {}
+      for flag, info in pairs(KIND_MAP) do
+        if entry.kind & flag ~= 0 then kinds[#kinds + 1] = info.display_name end
+      end
+      if ImGui.Selectable(ctx, table.concat(kinds, ', '), event_log_sel == i,
+          ImGui.SelectableFlags_SpanAllColumns) then
+        event_log_sel = i
+        reaper.SetEditCurPos(entry.position, true, false)
+      end
+      ImGui.TableNextColumn(ctx)
+      ImGui.Text(ctx, formatPosition(entry.position))
+      ImGui.PopID(ctx)
+    end
+  end
+
+  if event_log_flags & EVENT_LOG_SCROLL_TO_BOTTOM ~= 0 then
+    ImGui.SetScrollHereY(ctx)
+    event_log_flags = event_log_flags & ~EVENT_LOG_SCROLL_TO_BOTTOM
+  end
+  if ImGui.GetScrollY(ctx) >= ImGui.GetScrollMaxY(ctx) then
+    event_log_flags = event_log_flags | EVENT_LOG_WAS_AT_BOTTOM
+  else
+    event_log_flags = event_log_flags & ~EVENT_LOG_WAS_AT_BOTTOM
+  end
+
+  ImGui.PopStyleVar(ctx)
+  ImGui.EndTable(ctx)
+end
+
+local function draw()
+  drawXrun('audio', AUDIO_XRUN)
+  drawXrun('media', MEDIA_XRUN)
+  ImGui.Spacing(ctx)
+
+  ImGui.AlignTextToFramePadding(ctx)
+  ImGui.Text(ctx, 'Create markers on')
+  ImGui.SameLine(ctx)
+  ImGui.SetNextItemWidth(ctx, 80)
+  combo(EXT_MARKER_TYPE, MARKER_TYPE_MENU)
+  ImGui.SameLine(ctx)
+  ImGui.Text(ctx, 'xruns, when')
+  ImGui.SameLine(ctx)
+  ImGui.SetNextItemWidth(ctx, -FLT_MIN)
+  combo(EXT_MARKER_WHEN, MARKER_WHEN_MENU)
+
+  if ImGui.CollapsingHeader(ctx, 'Event log') then
+    drawEventLog()
+
+    local no_events = #event_log < 1
+    if no_events then
+      ImGui.BeginDisabled(ctx)
+    end
+    if ImGui.Button(ctx, 'Clear') then
+      event_log, event_log_flags, event_log_sel = {}, EVENT_LOG_WAS_AT_BOTTOM
+      for k, v in pairs(xruns) do xruns[k].count = 0 end
+    end
+    ImGui.SameLine(ctx)
+    if no_events then
+      ImGui.Text(ctx, 'No audio or media xrun events recorded')
+      ImGui.EndDisabled(ctx)
+    else
+      ImGui.Text(ctx, ('%d xrun events recorded (%d audio, %d media)')
+        :format(#event_log, xruns[AUDIO_XRUN].count, xruns[MEDIA_XRUN].count))
+    end
+  end
+end
+
+local function about()
+  local owner = reaper.ReaPack_GetOwner((select(2, reaper.get_action_context())))
+
+  if not owner then
+    reaper.MB((
+      'This feature is unavailable because "%s" \z
+       was not installed using ReaPack.'
+    ):format(SCRIPT_NAME), SCRIPT_NAME, 0)
+    return
+  end
+
   reaper.ReaPack_AboutInstalledPackage(owner)
   reaper.ReaPack_FreeEntry(owner)
+end
+
+local function contextMenu()
+  local dock_id = ImGui.GetWindowDockID(ctx)
+  local popup_flags = ImGui.PopupFlags_MouseButtonRight |
+                      ImGui.PopupFlags_NoOpenOverItems
+  if not ImGui.BeginPopupContextWindow(ctx, nil, popup_flags) then return end
+  if ImGui.BeginMenu(ctx, 'Dock window') then
+    if ImGui.MenuItem(ctx, 'Floating', nil, dock_id == 0) then
+      set_dock_id = 0
+    end
+    for i = 0, 15 do
+      if ImGui.MenuItem(ctx, ('Docker %d'):format(i + 1), nil, dock_id == ~i) then
+        set_dock_id = ~i
+      end
+    end
+    ImGui.EndMenu(ctx)
+  end
+  ImGui.Separator(ctx)
+  if ImGui.MenuItem(ctx, 'About/help', 'F1', false, reaper.ReaPack_GetOwner ~= nil) then
+    about()
+  end
+  if ImGui.MenuItem(ctx, 'Close', 'Escape') then
+    exit = true
+  end
+  ImGui.EndPopup(ctx)
 end
 
 function loop()
   detectProjectChange()
   probeUnderruns()
-  mouseInput()
 
-  gfx.clear = 16777215
-  draw()
-  gfx.update()
+  ImGui.PushFont(ctx, font)
+  ImGui.PushStyleColor(ctx, ImGui.Col_ChildBg,  0xffffffff)
+  ImGui.PushStyleColor(ctx, ImGui.Col_WindowBg, 0xffffffff)
 
-  local key = gfx.getchar()
+  --ImGui.SetNextWindowSize(ctx, 412, 140)
+  if set_dock_id then
+    ImGui.SetNextWindowDockID(ctx, set_dock_id)
+    set_dock_id = nil
+  end
+  local visible, open = ImGui.Begin(ctx, SCRIPT_NAME, true,
+    ImGui.WindowFlags_AlwaysAutoResize)
+  if visible then
+    ImGui.PushStyleColor(ctx, ImGui.Col_Border,           0x2a2a2aff)
+    ImGui.PushStyleColor(ctx, ImGui.Col_Button,           0xdcdcdcff)
+    ImGui.PushStyleColor(ctx, ImGui.Col_ButtonActive,     0x787878ff)
+    ImGui.PushStyleColor(ctx, ImGui.Col_ButtonHovered,    0xdcdcdcff)
+    ImGui.PushStyleColor(ctx, ImGui.Col_FrameBg,          0xffffffff)
+    ImGui.PushStyleColor(ctx, ImGui.Col_FrameBgHovered,   0x96afe1ff)
+    ImGui.PushStyleColor(ctx, ImGui.Col_Header,           0x96afe180)
+    ImGui.PushStyleColor(ctx, ImGui.Col_HeaderHovered,    0x96afe1ff)
+    ImGui.PushStyleColor(ctx, ImGui.Col_PopupBg,          0xffffffff)
+    ImGui.PushStyleColor(ctx, ImGui.Col_ScrollbarBg,      0xacacacff)
+    ImGui.PushStyleColor(ctx, ImGui.Col_TableBorderLight, 0x999999ff)
+    ImGui.PushStyleColor(ctx, ImGui.Col_TableHeaderBg,    0xdcdcdcff)
+    ImGui.PushStyleColor(ctx, ImGui.Col_Text,             0x2a2a2aff)
+    ImGui.PushStyleVar(ctx, ImGui.StyleVar_FrameBorderSize, 1)
+    ImGui.PushStyleVar(ctx, ImGui.StyleVar_FramePadding,    7, 4)
+    ImGui.PushStyleVar(ctx, ImGui.StyleVar_ItemSpacing,     7, 7)
+    ImGui.PushStyleVar(ctx, ImGui.StyleVar_ScrollbarSize,   12)
+    ImGui.PushStyleVar(ctx, ImGui.StyleVar_WindowPadding,  10, 10)
 
-  if key < 0 then
-    return
-  elseif key == KEY_F1 then
-    about()
-  elseif key == KEY_ESCAPE then
-    gfx.quit()
-  else
+    contextMenu()
+    draw()
+
+    ImGui.PopStyleVar(ctx, 5)
+    ImGui.PopStyleColor(ctx, 13)
+    ImGui.End(ctx)
+  end
+
+  ImGui.PopStyleColor(ctx, 2)
+  ImGui.PopFont(ctx)
+
+  if ImGui.IsKeyPressed(ctx, ImGui.Key_F1) then about() end
+  if ImGui.IsKeyPressed(ctx, ImGui.Key_Escape) or exit then open = false end
+
+  if open then
     reaper.defer(loop)
   end
-end
-
-function previousWindowState()
-  local state = tostring(reaper.GetExtState(EXT_SECTION, EXT_WINDOW_STATE))
-  return state:match("^(%d+) (%d+) (%d+) (-?%d+) (-?%d+)$")
-end
-
-function saveWindowState()
-  local dockState, xpos, ypos = gfx.dock(-1, 0, 0, 0, 0)
-  local w, h = gfx.w, gfx.h
-  if dockState > 0 then
-    w, h = previousWindowState()
-  end
-
-  reaper.SetExtState(EXT_SECTION, EXT_WINDOW_STATE,
-    string.format("%d %d %d %d %d", w, h, dockState, xpos, ypos), true)
 end
 
 for key, default in pairs(DEFAULT_SETTINGS) do
@@ -370,23 +426,5 @@ for key, default in pairs(DEFAULT_SETTINGS) do
   end
 end
 
-local w, h, dockState, x, y = previousWindowState()
-
-if w then
-  gfx.init(scriptName, w, h, dockState, x, y)
-else
-  gfx.init(scriptName, 406, 107)
-end
-
-if reaper.GetAppVersion():match('OSX') then
-  gfx.setfont(1, 'sans-serif', 12)
-else
-  gfx.setfont(1, 'sans-serif', 15)
-end
-
-reaper.atexit(function()
-  saveWindowState()
-  reset(AUDIO_XRUN|MEDIA_XRUN)
-end)
-
-loop()
+reaper.defer(loop)
+reaper.atexit(function() reset(AUDIO_XRUN|MEDIA_XRUN) end)

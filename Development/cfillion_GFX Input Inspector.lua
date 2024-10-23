@@ -1,17 +1,12 @@
--- @description GFX Input Inspector
+-- @description GFX input inspector
 -- @author cfillion
--- @version 2.0
--- @changelog
---   Previously named "GFX Keyboard Inspector"
---
---   - Added mouse button analysis.
---   - Display values in hexadecimal
---   - Enhance data presentation
+-- @version 2.1
+-- @changelog Add REAPER 6.65's gfx.char second return value
 
-last_char = 0
-ismacos = reaper.GetOS():find('OSX') ~= nil
+local last_char, last_codepoint, last_printchar = 0, 0, ''
+local ismacos = reaper.GetOS():find('OSX') ~= nil
 
-function modifiers()
+local function modifiers()
   local mods = {}
 
   if gfx.mouse_cap & 4 ~= 0 then
@@ -38,7 +33,7 @@ function modifiers()
   return table.concat(mods, '+')
 end
 
-function buttons()
+local function buttons()
   local btns = {}
 
   if gfx.mouse_cap & 1 ~= 0 then
@@ -54,38 +49,44 @@ function buttons()
   return table.concat(btns, '+')
 end
 
-function drawline(str)
+local function nl()
+  gfx.y = gfx.y + 15
+end
+
+local function drawline(str)
   gfx.x = 10
   gfx.drawstr(str)
   nl()
 end
 
-function nl()
-  gfx.y = gfx.y + 15
-end
-
-function loop()
-  local char = gfx.getchar()
+local function loop()
+  local char, codepoint = gfx.getchar()
 
   if char < 0 then
     gfx.quit()
     return
-  elseif char > 0 then
+  end
+
+  if char > 0 then
     last_char = char
+  end
+  if codepoint and codepoint > 0 then
+    last_codepoint = codepoint
+    last_printchar = utf8.char(codepoint)
   end
 
   gfx.y = 10
 
-  drawline(string.format("gfx.mouse_cap => 0x%02x (%d)",
-    gfx.mouse_cap, gfx.mouse_cap))
-  drawline(string.format("    modifiers => %s",   modifiers()))
-  drawline(string.format("      buttons => %s",   buttons()))
+  drawline(('gfx.mouse_cap => 0x%02x (%d)'):format(gfx.mouse_cap, gfx.mouse_cap))
+  drawline(('    modifiers => %s'):format(modifiers()))
+  drawline(('      buttons => %s'):format(buttons()))
   nl()
-  drawline(string.format("gfx.getchar() => 0x%08x", last_char))
+  drawline(('gfx.getchar() => 0x%08x'):format(last_char))
+  drawline(("              => 0x%08x ('%s')"):format(last_codepoint, last_printchar))
 
   gfx.update()
   reaper.defer(loop)
 end
 
-gfx.init("GFX Input Inspector", 320, 100)
+gfx.init('GFX input inspector', 320, 110)
 reaper.defer(loop)

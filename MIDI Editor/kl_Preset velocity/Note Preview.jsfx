@@ -1,0 +1,19 @@
+noindex: true
+
+version: 0.1
+author: KL
+# Preset Velocity
+desc: Note Preview
+ 
+options:gmem=ddddddddddddddddddsgd334f3e_____________________gh
+@init
+ 
+@slider
+
+@block
+
+while (midirecv(offset,msg1,msg2,msg3)) (
+    (play_state==0)&&(msg1&$xF0==$x90)&&(msg3!==0)?(
+      midisend(offset, msg1,msg2, gmem[0]); ):(midisend(offset, msg1,msg2,msg3);
+ );
+);

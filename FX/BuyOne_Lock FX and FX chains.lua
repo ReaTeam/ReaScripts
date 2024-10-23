@@ -1,0 +1,14 @@
+-- @description Lock FX and FX chains + Append or remove lock tag
+-- @author BuyOne
+-- @website https://forum.cockos.com/member.php?u=134058
+-- @version 1.3
+-- @changelog
+--  # A minor update of relational operator
+-- @metapackage
+-- @provides
+--   [main] BuyOne_Lock FX and FX chains/BuyOne_Lock FX and FX chains (guide inside).lua
+--   [main] BuyOne_Lock FX and FX chains/BuyOne_Lock FX and FX chains - append or remove lock tag (guide inside).lua
+-- @about
+--  Locks individual tagged FX in the focused FX chain or the entire FX chain to prevent inadvertent change of FX order.
+--  Another script automates the task of appending and removing lock tags.
+--  Instructions are provided inside the script files.

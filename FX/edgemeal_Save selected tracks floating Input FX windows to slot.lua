@@ -1,0 +1,16 @@
+-- @description Save selected tracks floating Input FX windows to slot
+-- @author Edgemeal
+-- @version 1.00
+-- @metapackage
+-- @provides
+--   [main] edgemeal_Save selected tracks floating Input FX windows to slot/edgemeal_Save selected tracks floating input FX windows to slot 1.lua
+--   [main] edgemeal_Save selected tracks floating Input FX windows to slot/edgemeal_Save selected tracks floating input FX windows to slot 1.lua > edgemeal_Save selected tracks floating Input FX windows to slot/edgemeal_Save selected tracks floating input FX windows to slot 2.lua
+--   [main] edgemeal_Save selected tracks floating Input FX windows to slot/edgemeal_Save selected tracks floating input FX windows to slot 1.lua > edgemeal_Save selected tracks floating Input FX windows to slot/edgemeal_Save selected tracks floating input FX windows to slot 3.lua
+--   [main] edgemeal_Save selected tracks floating Input FX windows to slot/edgemeal_Save selected tracks floating input FX windows to slot 1.lua > edgemeal_Save selected tracks floating Input FX windows to slot/edgemeal_Save selected tracks floating input FX windows to slot 4.lua
+--   [main] edgemeal_Save selected tracks floating Input FX windows to slot/edgemeal_Restore tracks floating Input fx windows from slot 1.lua
+--   [main] edgemeal_Save selected tracks floating Input FX windows to slot/edgemeal_Restore tracks floating Input fx windows from slot 1.lua > edgemeal_Save selected tracks floating Input FX windows to slot/edgemeal_Restore tracks floating Input fx windows from slot 2.lua
+--   [main] edgemeal_Save selected tracks floating Input FX windows to slot/edgemeal_Restore tracks floating Input fx windows from slot 1.lua > edgemeal_Save selected tracks floating Input FX windows to slot/edgemeal_Restore tracks floating Input fx windows from slot 3.lua
+--   [main] edgemeal_Save selected tracks floating Input FX windows to slot/edgemeal_Restore tracks floating Input fx windows from slot 1.lua > edgemeal_Save selected tracks floating Input FX windows to slot/edgemeal_Restore tracks floating Input fx windows from slot 4.lua
+-- @link Thread https://forum.cockos.com/showthread.php?t=277748
+-- @donation Donate https://www.paypal.me/Edgemeal
+
