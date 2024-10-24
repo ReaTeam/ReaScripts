@@ -1,7 +1,7 @@
 -- @description Trim left, right or both item edges via mouse and razor
 -- @author AZ
--- @version 1.4
--- @changelog - fixed bug with take envelopes
+-- @version 1.4.1
+-- @changelog - fixed bug with getting Reaper preferences
 -- @provides [main] az_Trim left, right or both item edges via mouse and razor/az_Open options for az_Trim left, right or both item edges via mouse and razor.lua
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=288069
 -- @donation Donate via PayPal https://www.paypal.me/AZsound
@@ -655,7 +655,7 @@ function GetRazorEdits()
                 i=i+1
             end
           end
-        else
+        else  
         
         ---OLD WAY for backward compatibility-------
         
@@ -858,24 +858,10 @@ end
 
 ----------------------------
 
-function GetDefFades()
-  local iniPath = reaper.get_ini_file()
-  local fadeLen
-  local fadeShape
-  
-  for line in io.lines(iniPath) do 
-    if line:match('deffadelen') then 
-      fadeLen = tonumber(line:gsub('deffadelen=',''):format("%.5f"))
-    end
-    
-    if line:match('deffadeshape') then 
-      fadeShape = tonumber(line:gsub('deffadeshape=',''):format("%.5f"))
-    end
-    
-    if fadeLen and fadeShape then return fadeLen, fadeShape end
-  end
+function GetPrefs(key) -- key need to be a string as in Reaper ini file
+  local retval, buf = reaper.get_config_var_string( key )
+  if retval == true then return tonumber(buf) end
 end
-
 
 -----------------------------------------
 --------------------------------------------
@@ -885,7 +871,8 @@ function trim_sel_items(side, trimTime) --side is 'left' or 'right'
 local undoDesc
 local iCount = reaper.CountSelectedMediaItems(0)
 
-local defFlen, defFshape = GetDefFades()
+local defFlen = GetPrefs('deffadelen')
+local defFshape = GetPrefs('deffadeshape')
 
 for i=0, iCount-1 do
   local item = reaper.GetSelectedMediaItem(0,i)
@@ -922,6 +909,7 @@ for i=0, iCount-1 do
         --^^--Item: Toggle enable/disable default fadein/fadeout
         reaper.SetMediaItemInfo_Value(item,'D_FADEINLEN', fIn)
         reaper.SetMediaItemInfo_Value(item,'C_FADEINSHAPE', defFshape)
+        --reaper.SetMediaItemInfo_Value(item,'D_FADEINDIR', defFshape)
       end
       
     elseif side == 'right' then
@@ -930,7 +918,7 @@ for i=0, iCount-1 do
       
       if trimTime > iEnd-fOut then
         local param = 'D_FADEOUTLEN'
-        if fOutA ~= 0 then param = 'D_FADEOUTLEN_AUTO' end
+        if fOutA~= 0 then param = 'D_FADEOUTLEN_AUTO' end
         reaper.SetMediaItemInfo_Value(item, param, fOut-(iEnd-trimTime))
         reaper.SetMediaItemInfo_Value(item,'C_FADEOUTSHAPE', fOutShape)
         reaper.SetMediaItemInfo_Value(item,'D_FADEOUTDIR', fOutCurv)
@@ -939,6 +927,7 @@ for i=0, iCount-1 do
         --^^--Item: Toggle enable/disable default fadein/fadeout
         reaper.SetMediaItemInfo_Value(item,'D_FADEOUTLEN', fOut)
         reaper.SetMediaItemInfo_Value(item,'C_FADEOUTSHAPE', defFshape)
+        --reaper.SetMediaItemInfo_Value(item,'D_FADEOUTDIR', defFshape)
       end
     end --left/right
     
@@ -998,7 +987,7 @@ end
 --------------------------
 
 -------START------
-CurVers = 1.4
+CurVers = 1.41
 version = tonumber( reaper.GetExtState(ExtStateName, "version") )
 
 if version ~= CurVers then
