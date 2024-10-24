@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="f208bfd7a7d606973492dbd9e6f7432d329f1b91" name="ReaTeam Scripts">
+<index version="1" commit="1d8d0974b2ee3926fd42d7ff337af2aeebc89c7a" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -6233,6 +6233,11 @@ Added experimental fixed lanes support]]></changelog>
         <changelog><![CDATA[- fixed bug with take envelopes]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3c182bdb84ee7d1797e55029637548035c08f633/Items%20Editing/az_Trim%20left,%20right%20or%20both%20item%20edges%20via%20mouse%20and%20razor.lua</source>
         <source main="main" file="az_Trim left, right or both item edges via mouse and razor/az_Open options for az_Trim left, right or both item edges via mouse and razor.lua">https://github.com/ReaTeam/ReaScripts/raw/3c182bdb84ee7d1797e55029637548035c08f633/Items%20Editing/az_Trim%20left,%20right%20or%20both%20item%20edges%20via%20mouse%20and%20razor/az_Open%20options%20for%20az_Trim%20left,%20right%20or%20both%20item%20edges%20via%20mouse%20and%20razor.lua</source>
+      </version>
+      <version name="1.4.1" author="AZ" time="2024-10-24T20:36:32Z">
+        <changelog><![CDATA[- fixed bug with getting Reaper preferences]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/1d8d0974b2ee3926fd42d7ff337af2aeebc89c7a/Items%20Editing/az_Trim%20left,%20right%20or%20both%20item%20edges%20via%20mouse%20and%20razor.lua</source>
+        <source main="main" file="az_Trim left, right or both item edges via mouse and razor/az_Open options for az_Trim left, right or both item edges via mouse and razor.lua">https://github.com/ReaTeam/ReaScripts/raw/1d8d0974b2ee3926fd42d7ff337af2aeebc89c7a/Items%20Editing/az_Trim%20left,%20right%20or%20both%20item%20edges%20via%20mouse%20and%20razor/az_Open%20options%20for%20az_Trim%20left,%20right%20or%20both%20item%20edges%20via%20mouse%20and%20razor.lua</source>
       </version>
     </reapack>
     <reapack name="beaunus_Name item takes by last marker to cut item.lua" type="script" desc="Name item takes by last marker to cut item">
