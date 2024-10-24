@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="1d8d0974b2ee3926fd42d7ff337af2aeebc89c7a" name="ReaTeam Scripts">
+<index version="1" commit="0d678e5e6dc0a73d1bc89afceb4cd34bfbf2d19a" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -19002,6 +19002,13 @@ is off-screen. Reaper issue, should be fixed soon.]]></changelog>
 * Check if REAPER version is >= 7.03.
 * Check if ReaImGui installed.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f208bfd7a7d606973492dbd9e6f7432d329f1b91/Tracks/edgemeal_Play%20lanes%20in%20time%20selection.lua</source>
+      </version>
+      <version name="1.02" author="Edgemeal" time="2024-10-24T22:24:30Z">
+        <changelog><![CDATA[* Add option to disable track buffering and anticipative FX.
+* Remember user option settings for current session.
+* Use 'ImGui_GetBuiltinPath' to detect if ReaImGui installed.
+* Update REAPER versioning message to v7.03.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/0d678e5e6dc0a73d1bc89afceb4cd34bfbf2d19a/Tracks/edgemeal_Play%20lanes%20in%20time%20selection.lua</source>
       </version>
     </reapack>
     <reapack name="gus-lan_Select folder tracks of depth X.lua" type="script" desc="Select folder tracks of depth X">
