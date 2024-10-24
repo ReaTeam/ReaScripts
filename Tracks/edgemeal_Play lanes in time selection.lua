@@ -1,11 +1,11 @@
 -- @description Play lanes in time selection
 -- @author Edgemeal
--- @version 1.01
+-- @version 1.02
 -- @changelog
---   * Auto-terminate on relaunch, simplify toolbar highlight code.
---   * Indent/center Radio Buttons.
---   * Check if REAPER version is >= 7.03.
---   * Check if ReaImGui installed.
+--   * Add option to disable track buffering and anticipative FX.
+--   * Remember user option settings for current session.
+--   * Use 'ImGui_GetBuiltinPath' to detect if ReaImGui installed.
+--   * Update REAPER versioning message to v7.03.
 -- @link Forum Thread https://forum.cockos.com/showthread.php?t=295370
 -- @screenshot Example https://stash.reaper.fm/49429/Play%20Lanes%20v1.00.gif
 -- @donation Donate via PayPal https://www.paypal.me/Edgemeal
@@ -19,27 +19,43 @@
 --   * In 'skip comp' mode, if user deletes all non-comps, play stops/script exits.
 
 local rea_ver = tonumber(reaper.GetAppVersion():match('[%d.]+'))
-if rea_ver < 7.03 then reaper.MB("This script requires REAPER v7.0+", "ERROR", 0) return end
+if rea_ver < 7.03 then reaper.MB("This script requires REAPER v7.03+", "ERROR", 0) return end
 
-if not reaper.APIExists('ImGui_Begin') then
+if not reaper.ImGui_GetBuiltinPath then
   reaper.MB('Please install ReaImGui extension from ReaPack.', 'ERROR', 0)
-  reaper.ReaPack_BrowsePackages("ReaImGui")
+  if reaper.APIExists("ReaPack_BrowsePackages") then reaper.ReaPack_BrowsePackages("ReaImGui") end
   return
 end
 
 package.path = reaper.ImGui_GetBuiltinPath() .. '/?.lua'
 local ImGui = require 'imgui' '0.9.3.1'
-
 local r = reaper
 local repeatOn = r.GetToggleCommandState(1068) == 1 -- save users repeat mode setting
 local title = 'Play lanes in time selection'
 local ctx = ImGui.CreateContext(title, ImGui.ConfigFlags_NoSavedSettings)
 local start_butn_colr = 0x00FF0080 -- green
-
-local track, ui_vis, ui_open, x, y
-local play_all, skip_comps, only_comps = true, false, false
+local track, prev_track, PERFFLAGS, ui_vis, ui_open, x, y
+local no_buf, play_all, skip_comps, only_comps = true,true,false,false
 local pp, prev_pp, lane_cnt, comp_ndx, lane = 0,0,0,0,-1
 local comps = {}
+
+function bn(num) return num and "1" or "0" end -- boolean to string
+function nb(str) if str == "1" then return true else return false end end -- string to boolean
+
+function SaveValues(a,b,c,d)
+  local t = {bn(a),bn(b),bn(c),bn(d)}
+  reaper.SetExtState("Edgemeal", "play_lanes", table.concat(t,","), false)
+end
+
+function LoadValues()
+  local values = reaper.GetExtState("Edgemeal", "play_lanes")
+  local i, a, b, c, d = 1
+  for v in values:gmatch("[^,]+") do
+    if i == 1 then a = nb(v) elseif i == 2 then b = nb(v) elseif i == 3 then c = nb(v) elseif i == 4 then d = nb(v) end
+    i=i+1
+  end
+  return a, b, c, d
+end
 
 function SetAction(action, state)
   if r.GetToggleCommandState(action) == 1 ~= state then
@@ -67,6 +83,7 @@ end
 function PlayLanes()
   track = r.GetSelectedTrack(0,0)
   if track == nil then return end
+  if no_buf and prev_track ~= track then return end
   if (r.GetPlayState() & 1 == 1) then
     pp = r.GetPlayPosition2()
     if pp < prev_pp then
@@ -133,6 +150,8 @@ function ImGui_Loop()
       play_all  = false
       skip_comps = false
     end
+    ImGui.NewLine(ctx) ImGui.NewLine(ctx) ImGui.SameLine(ctx, 36)
+    _, no_buf = ImGui.Checkbox(ctx, "No track buffing \n or anticipative FX", no_buf)
     -- start button
     ImGui.NewLine(ctx)
     ImGui.PushStyleColor(ctx, ImGui.Col_Button, start_butn_colr)
@@ -158,6 +177,11 @@ function ImGui_Loop()
     else
       start_butn_colr = 0x00FF0080 -- green
       if ImGui.Button(ctx, "Start", 220, 24) then
+        if no_buf then
+          PERFFLAGS = r.GetMediaTrackInfo_Value(track, "I_PERFFLAGS")  -- save users media buffer setting
+          prev_track = track
+          r.SetMediaTrackInfo_Value(track, "I_PERFFLAGS", 1|2)         -- &1=no media buffering, &2=no anticipative FX
+        end
         lane = Int_Lane()          -- selected lane
         comp_ndx = Int_Comp(lane+1)-- selected/next comp
         ui_open = false            -- close UI
@@ -169,7 +193,6 @@ function ImGui_Loop()
         r.defer(PlayLanes)
       end
     end
-
     ImGui.PopStyleColor(ctx, 1)
     ImGui.End(ctx)  -- ui done --
   end
@@ -178,13 +201,17 @@ end
 
 -- exit
 function Exit()
-  r.Main_OnCommand(1016, 0) -- Transport: Stop
-  SetAction(1068,repeatOn)  -- restore user repeat mode setting
-  reaper.set_action_options(8)
+  r.Main_OnCommand(1016, 0)    -- Transport: Stop
+  SetAction(1068,repeatOn)     -- restore user repeat mode setting
+  reaper.set_action_options(8) -- disables toolbar highlight
+  if no_buf ~= nil then SaveValues(no_buf, play_all, skip_comps, only_comps) end -- save app settings (this session only)
+  if track and PERFFLAGS then r.SetMediaTrackInfo_Value(track, "I_PERFFLAGS", PERFFLAGS) end -- restore users buffering setting
 end
-r.atexit(Exit)
 
+r.atexit(Exit)
 r.set_action_options(1|4)
+if reaper.HasExtState("Edgemeal", "play_lanes") then no_buf, play_all, skip_comps, only_comps = LoadValues() end -- load usres previous settings (this session only)
 -- get mouse pos (app will be centered @ mouse)
 x, y = r.GetMousePosition()
+
 r.defer(ImGui_Loop)
