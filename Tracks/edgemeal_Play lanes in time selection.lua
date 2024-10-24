@@ -205,7 +205,7 @@ function Exit()
   SetAction(1068,repeatOn)     -- restore user repeat mode setting
   reaper.set_action_options(8) -- disables toolbar highlight
   if no_buf ~= nil then SaveValues(no_buf, play_all, skip_comps, only_comps) end -- save app settings (this session only)
-  if track and PERFFLAGS then r.SetMediaTrackInfo_Value(track, "I_PERFFLAGS", PERFFLAGS) end -- restore users buffering setting
+  if prev_track and PERFFLAGS then r.SetMediaTrackInfo_Value(prev_track, "I_PERFFLAGS", PERFFLAGS) end -- restore users buffering setting
 end
 
 r.atexit(Exit)
