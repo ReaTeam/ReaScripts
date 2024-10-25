@@ -1,8 +1,9 @@
 -- @description Create Impulse Response (IR) of the FX Chain of the selected Track
 -- @author amagalma
--- @version 2.16
+-- @version 2.18
 -- @changelog
---   - Show the correct path in "IR Name" tooltip
+--   - Take track's PDC value into acount
+--   - Added more debugging information
 -- @donation https://www.paypal.me/amagalma
 -- @link https://forum.cockos.com/showthread.php?t=234517
 -- @about
@@ -20,7 +21,7 @@
 
 -- Thanks to EUGEN27771, spk77, X-Raym, Lokasenna
 
-local version = "2.16"
+local version = "2.18"
 --------------------------------------------------------------------------------------------
 
 
@@ -43,7 +44,7 @@ local Load_in_Reaverb = 1 -- (1 = yes, 0 = no)
 local reaper = reaper
 local debug = false
 local problems = 0
-local floor, min, log = math.floor, math.min, math.log
+local floor, min, log, ceil = math.floor, math.min, math.log, math.ceil
 local sep = package.config:sub(1,1)
 
 -- Get project samplerate and path
@@ -56,7 +57,7 @@ local IR_name = "IR"
 local IR_FullPath = IR_Path .. IR_name
 local IR_len, peak_normalize = Max_IR_Length, Normalize_Peak
 local trim, channels = Trim_Silence_Below, Number_of_Channels
-local max_pre_ringing_samples_val = floor(samplerate/2) -- samples
+local max_pre_ringing_samples_val = 0 -- samples
 local pre_ringing_threshold = Trim_Silence_Below -- db
 local cur_pos = reaper.GetCursorPosition()
 
@@ -136,23 +137,22 @@ if fx_enabled == 0 then
   return Exit( "FX Chain is bypassed!" )
 end
 local enabled_fx_cnt = 0
-local pdc_exists = false
+local total_latency = 0
 for fx = 0, fx_cnt-1 do
   if reaper.TrackFX_GetEnabled( track, fx ) and not reaper.TrackFX_GetOffline( track, fx ) then
     enabled_fx_cnt = enabled_fx_cnt + 1
     -- Check if there is PDC on track (denotes possibly linear phase)
-    if not pdc_exists then
-      if tonumber(({reaper.TrackFX_GetNamedConfigParm(track, fx, "pdc")})[2]) > 0 then
-        pdc_exists = true
-      end
-    end
+    total_latency = total_latency + tonumber(({reaper.TrackFX_GetNamedConfigParm(track, fx, "pdc")})[2])
   end
 end
 if enabled_fx_cnt == 0 then
   return Exit( "All FX in Chain are either disabled or offline!" )
 end
-
-max_pre_ringing_samples_val = pdc_exists and max_pre_ringing_samples_val or 0
+if total_latency > 0 then -- round to blocksize
+  local blocksize = tonumber(({reaper.GetAudioDeviceInfo("BSIZE")})[2]) or 1
+  total_latency = ceil(total_latency / blocksize) * blocksize
+end
+max_pre_ringing_samples_val = total_latency
 
 
 local _, tr_name = reaper.GetSetMediaTrackInfo_String( track, "P_NAME", "", false )
@@ -165,13 +165,13 @@ tr_name = tr_name ~= "" and tr_name .. " IR" or "IR"
 
 -- FUNCTIONS
 
-
 local function Msg(string)
   if not string then return end
   if debug then
     reaper.ShowConsoleMsg(tostring(string) .. "\n")
   end
 end
+
 
 -- X-Raym conversion functions
 local function dBFromVal(val) return 20*log(val, 10) end
@@ -390,19 +390,20 @@ local function trim_silence_below_threshold(item, threshold) -- threshold in dB
         -- do not let impulse smaller than 20ms
         if item_len-position < 0.02 then
           position = item_len - 0.02
-          --Msg("new position : " .. position)
+          Msg("Moved trimming position, so that impulse isn't less than 20ms")
         end
           reaper.BR_SetItemEdges( item, item_pos, item_end - position )
-        return true
+        return "OK"
       else
-        return false
+        return "Did not trim, as trim is <5ms"
       end
     else -- trim start
       reaper.BR_SetItemEdges( item, item_pos + position - 2/samplerate, item_end )
       -- 2 samples offset in order to bring "trim start" in accordance to "trim end" with linear phase
+      return "OK"
     end
   else
-    return false
+    return "No suitable trim position has been found"
   end
 end
 
@@ -452,6 +453,7 @@ function CreateIR()
   if Locate_In_Explorer then Msg("Locate in Explorer enabled") end
   if Insert_In_Project then Msg("Insert in Project enabled") end
   if Load_in_Reaverb then Msg("Load in Reaverb enabled") end
+  Msg("Enabled FX in chain have a total of " .. max_pre_ringing_samples_val .. " samples of PDC latency")
   Msg("========================\n")
   
   -- Start IR Creation
@@ -474,6 +476,7 @@ function CreateIR()
   -- Create Dirac
   reaper.SelectAllMediaItems( 0, false )
   local dirac_path = IR_Path .. string.match(reaper.time_precise()*100, "(%d+)%.") .. ".wav"
+  Msg("Dirac path is: " .. dirac_path)
   local ok = Create_Dirac(dirac_path, channels, IR_len )
   if not ok then 
     Msg("Create Dirac failed. Aborted.\n\n")
@@ -515,22 +518,12 @@ function CreateIR()
   -- Trim silence at the end
   if Trim_Silence_Enable then
     local ok = trim_silence_below_threshold(item, trim)
-    if ok then
-      Msg("Trim Silence succeeded")
-    else
-      problems = problems+1
-      Msg(problems .. ") Trim Silence failed")
-    end
+    Msg("End trim: " .. ok)
   end
   
   -- Trim silence at start
   local ok_trim = trim_silence_below_threshold(item)
-  if ok_trim then
-    Msg("Trim Silence at start succeeded")
-  else
-    problems = problems+1
-    Msg(problems .. ") Trim Silence at start failed")
-  end
+  Msg("Start trim: " .. tostring(ok))
   
   -- Glue changes
   reaper.Main_OnCommand(40362, 0) -- Item: Glue items, ignoring time selection
@@ -544,10 +537,11 @@ function CreateIR()
 
   -- Rename resulting IR
   local filename = string.gsub(render_path, ".wav$", "-glued.wav")
+  Msg("Expected glued filename is: ".. filename)
   if reaper.file_exists( filename ) then
     reaper.Main_OnCommand(40440, 0) -- Item: Set selected media offline
     if reaper.file_exists(IR_FullPath) then
-      -- There is already a file with the same filename and path
+      Msg("There is already a file with the same filename and path")
       local ok = os.remove(IR_FullPath)
       if ok then
         -- File removed to be replaced
@@ -559,11 +553,12 @@ function CreateIR()
           Msg(problems .. ") Failed to rename " .. filename .. " TO " .. IR_FullPath)
         end
       else
-        -- Didn't manage to remove. Change the name
+        Msg("Didn't manage to remove. Trying to change the name")
         IR_FullPath = IR_Path .. os.date("%H-%M-%S ") .. IR_name
-        os.rename(filename, IR_FullPath)
+        local ok3 = os.rename(filename, IR_FullPath)
         problems = problems+1
-        Msg(problems .. ") Specified file is in use by Reaper. Renamed " .. filename .. " TO " .. IR_FullPath)
+        Msg(problems .. ") Specified file is in use by Reaper.")
+        Msg("Trying to rename " .. filename .. " TO " .. IR_FullPath .. "  : " .. (ok3 and "succeded" or "failed"))
       end
     else
       -- No same file. Proceed with the renaming
@@ -583,27 +578,29 @@ function CreateIR()
   -- Delete unneeded files
   ok = os.remove(dirac_path)
   if ok then
-    Msg("Deleted ".. dirac_path)
+    Msg("Deleted dirac in path: ".. dirac_path)
   else
     problems = problems+1
-    Msg(problems .. ") Failed to delete ".. dirac_path)
+    Msg(problems .. ") Failed to delete dirac in path: ".. dirac_path)
   end
   local reapeak_file = dirac_path .. ".reapeaks"
   if reaper.file_exists(reapeak_file) then
     ok = os.remove(reapeak_file)
     if ok then
-      Msg("Deleted ".. reapeak_file)
+      Msg("Deleted reapeak file in: ".. reapeak_file)
     else
       problems = problems+1
-      Msg(problems .. ") Failed to delete ".. reapeak_file)
+      Msg(problems .. ") Failed to delete reapeak file in: ".. reapeak_file)
     end
+  else
+    Msg("Didn't delete reapeak file as it is somewhere else located")
   end
   ok = os.remove(render_path)
   if ok then
-    Msg("Deleted ".. render_path)
+    Msg("Deleted render_path: ".. render_path)
   else
     problems = problems+1
-    Msg(problems .. ") Failed to delete ".. render_path)
+    Msg(problems .. ") Failed to delete render_path: ".. render_path)
   end
   
   -- Re-enable auto-fades if needed
@@ -623,12 +620,15 @@ function CreateIR()
     if reaper.file_exists( IR_FullPath ) then
       local take = reaper.GetActiveTake( item )
       reaper.BR_SetTakeSourceFromFile( take, IR_FullPath, false )
+      reaper.Main_OnCommand(40439, 0) -- Item: Set selected media online
+      reaper.Main_OnCommand(41858, 0) -- Item: Set item name from active take filename
+      reaper.Main_OnCommand(40441, 0) -- Peaks: Rebuild peaks for selected items
+      reaper.SetMediaItemInfo_Value( item, "D_POSITION", cur_pos )
+      Msg("IR was inserted in Project")
+    else
+      problems = problems+1
+      Msg(problems .. ") Couldn't insert the file into the project")
     end
-    reaper.Main_OnCommand(40439, 0) -- Item: Set selected media online
-    reaper.Main_OnCommand(41858, 0) -- Item: Set item name from active take filename
-    reaper.Main_OnCommand(40441, 0) -- Peaks: Rebuild peaks for selected items
-    reaper.SetMediaItemInfo_Value( item, "D_POSITION", cur_pos )
-    Msg("IR was inserted in Project")
   else
     local ok = reaper.DeleteTrackMediaItem( track, item )
     if not ok then Msg("Failed to remove the item from the Project") end
@@ -750,7 +750,7 @@ function BrowseForFile()
     IR_Path, IR_name = retval:match("(.+[\\/])(.+)")
     GUI.elms.Name.tooltip = "Enter IR name. The current path is:\n" .. IR_Path .. "\nUse the 'Browse for File' button to change path."
     IR_name = IR_name:find("%.wav$") and IR_name or IR_name .. ".wav"
-    Msg("Path from function: " .. retval)
+    Msg("Path from BrowseForFile function: " .. retval)
     Msg("IR_path: " .. IR_Path )
     Msg("IR_name: " .. IR_name )
     IR_FullPath = IR_Path .. IR_name
