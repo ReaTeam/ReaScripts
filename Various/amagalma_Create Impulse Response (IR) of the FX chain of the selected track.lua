@@ -1,8 +1,8 @@
 -- @description Create Impulse Response (IR) of the FX Chain of the selected Track
 -- @author amagalma
--- @version 2.19
+-- @version 2.20
 -- @changelog
---   - Work properly with localized Reaper
+--   - Delete all unnecessary peak files
 -- @donation https://www.paypal.me/amagalma
 -- @link https://forum.cockos.com/showthread.php?t=234517
 -- @about
@@ -20,7 +20,7 @@
 
 -- Thanks to EUGEN27771, spk77, X-Raym, Lokasenna
 
-local version = "2.19"
+local version = "2.20"
 --------------------------------------------------------------------------------------------
 
 
@@ -582,18 +582,21 @@ function CreateIR()
     problems = problems+1
     Msg(problems .. ") Failed to delete dirac in path: ".. dirac_path)
   end
-  local reapeak_file = dirac_path .. ".reapeaks"
-  if reaper.file_exists(reapeak_file) then
-    ok = os.remove(reapeak_file)
+  -- Dirac peakfile
+  local dirac_path_peakfile = reaper.GetPeakFileName( dirac_path )
+  if reaper.file_exists(dirac_path_peakfile) then
+    ok = os.remove(dirac_path_peakfile)
     if ok then
-      Msg("Deleted reapeak file in: ".. reapeak_file)
+      Msg("Deleted dirac reapeak file: ".. dirac_path_peakfile)
     else
       problems = problems+1
-      Msg(problems .. ") Failed to delete reapeak file in: ".. reapeak_file)
+      Msg(problems .. ") Failed to delete dirac reapeak file: ".. dirac_path_peakfile)
     end
   else
-    Msg("Didn't delete reapeak file as it is somewhere else located")
+    problems = problems+1
+    Msg(problems .. ") Didn't delete dirac reapeak file as it is somewhere else located")
   end
+  -- Render file
   ok = os.remove(render_path)
   if ok then
     Msg("Deleted render_path: ".. render_path)
@@ -601,6 +604,35 @@ function CreateIR()
     problems = problems+1
     Msg(problems .. ") Failed to delete render_path: ".. render_path)
   end
+  -- Render peakfile
+  local render_path_peakfile = reaper.GetPeakFileName( render_path )
+  if reaper.file_exists(render_path_peakfile) then
+    ok = os.remove(render_path_peakfile)
+    if ok then
+      Msg("Deleted rendered reapeak file: ".. render_path_peakfile)
+    else
+      problems = problems+1
+      Msg(problems .. ") Failed to delete rendered reapeak file: ".. render_path_peakfile)
+    end
+  else
+    problems = problems+1
+    Msg(problems .. ") Didn't delete rendered reapeak file as it is somewhere else located")
+  end
+  -- Glued peakfile
+  local glued_filename_peakfile = reaper.GetPeakFileName( filename )
+  if reaper.file_exists(glued_filename_peakfile) then
+    ok = os.remove(glued_filename_peakfile)
+    if ok then
+      Msg("Deleted glued reapeak file: ".. glued_filename_peakfile)
+    else
+      problems = problems+1
+      Msg(problems .. ") Failed to delete glued reapeak file: ".. glued_filename_peakfile)
+    end
+  else
+    problems = problems+1
+    Msg(problems .. ") Didn't delete glued reapeak file as it is somewhere else located")
+  end
+  
   
   -- Re-enable auto-fades if needed
   if autofade_state == 1 then
