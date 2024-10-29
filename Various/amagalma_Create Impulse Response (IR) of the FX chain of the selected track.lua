@@ -1,9 +1,8 @@
 -- @description Create Impulse Response (IR) of the FX Chain of the selected Track
 -- @author amagalma
--- @version 2.18
+-- @version 2.19
 -- @changelog
---   - Take track's PDC value into acount
---   - Added more debugging information
+--   - Work properly with localized Reaper
 -- @donation https://www.paypal.me/amagalma
 -- @link https://forum.cockos.com/showthread.php?t=234517
 -- @about
@@ -21,7 +20,7 @@
 
 -- Thanks to EUGEN27771, spk77, X-Raym, Lokasenna
 
-local version = "2.18"
+local version = "2.19"
 --------------------------------------------------------------------------------------------
 
 
@@ -536,7 +535,7 @@ function CreateIR()
   end
 
   -- Rename resulting IR
-  local filename = string.gsub(render_path, ".wav$", "-glued.wav")
+  local filename = string.gsub(render_path, ".wav$", "-"..reaper.LocalizeString("glued", "glue", 0)..".wav")
   Msg("Expected glued filename is: ".. filename)
   if reaper.file_exists( filename ) then
     reaper.Main_OnCommand(40440, 0) -- Item: Set selected media offline
