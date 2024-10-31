@@ -1,7 +1,7 @@
 -- @description Step sequencing (replace mode)
 -- @author cfillion
--- @version 1.1.2
--- @changelog Enable ReaImGui's backward compatibility shims
+-- @version 1.1.3
+-- @changelog Internal code cleanup
 -- @provides
 --   .
 --   [main] . > cfillion_Step sequencing (options).lua
@@ -9,7 +9,7 @@
 -- @screenshot
 --   Inserting and replacing notes https://i.imgur.com/4azf7CN.gif
 --   Options menu https://i.imgur.com/YFHLRWM.png
--- @donation https://paypal.me/cfillion
+-- @donation https://reapack.com/donate
 -- @about
 --   ## Step sequencing (replace mode)
 --
@@ -19,9 +19,10 @@
 --
 --   Note that this script automatically inserts and removes an helper JSFX in the active track's input FX chain in order to receive live MIDI input.
 
-if reaper.ImGui_CreateContext then
-  dofile(reaper.GetResourcePath() ..
-        '/Scripts/ReaTeam Extensions/API/imgui.lua')('0.7')
+local ImGui
+if reaper.ImGui_GetBuiltinPath then
+  package.path = reaper.ImGui_GetBuiltinPath() .. '/?.lua'
+  ImGui = require 'imgui' '0.9'
 end
 
 local MB_OK = 0
@@ -42,9 +43,8 @@ local UNDO_STATE_ITEMS = 1<<2
 
 local jsfx
 local jsfxName = 'ReaTeam Scripts/MIDI Editor/cfillion_Step sequencing (replace mode).jsfx'
-local scriptName = ({reaper.get_action_context()})[2]:match("([^/\\_]+)%.lua$")
-local scriptSection = ({reaper.get_action_context()})[3]
-local scriptId = ({reaper.get_action_context()})[4]
+local scriptName, scriptSection, scriptId = select(2, reaper.get_action_context())
+scriptName = scriptName:match("([^/\\_]+)%.lua$")
 local debug = false
 
 local function printf(...)
@@ -385,39 +385,36 @@ local function gfxdo(callback)
 end
 
 local function optionsMenu(mode, items)
-  local ctx = reaper.ImGui_CreateContext(scriptName,
-    reaper.ImGui_ConfigFlags_NavEnableKeyboard() |
-    reaper.ImGui_ConfigFlags_NoSavedSettings())
+  local ctx = ImGui.CreateContext(scriptName,
+    ImGui.ConfigFlags_NavEnableKeyboard | ImGui.ConfigFlags_NoSavedSettings)
 
   local size = reaper.GetAppVersion():match('OSX') and 12 or 14
-  local font = reaper.ImGui_CreateFont('sans-serif', size)
-  reaper.ImGui_AttachFont(ctx, font)
+  local font = ImGui.CreateFont('sans-serif', size)
+  ImGui.Attach(ctx, font)
 
   local function loop()
-    if reaper.ImGui_IsWindowAppearing(ctx) then
-      reaper.ImGui_SetNextWindowPos(ctx,
-        reaper.ImGui_PointConvertNative(ctx, reaper.GetMousePosition()))
-      reaper.ImGui_OpenPopup(ctx, scriptName)
+    if ImGui.IsWindowAppearing(ctx) then
+      ImGui.SetNextWindowPos(ctx,
+        ImGui.PointConvertNative(ctx, reaper.GetMousePosition()))
+      ImGui.OpenPopup(ctx, scriptName)
     end
 
-    if reaper.ImGui_BeginPopup(ctx, scriptName, reaper.ImGui_WindowFlags_TopMost()) then
-      reaper.ImGui_PushFont(ctx, font)
+    if ImGui.BeginPopup(ctx, scriptName, ImGui.WindowFlags_TopMost) then
+      ImGui.PushFont(ctx, font)
 
       for id, item in ipairs(items) do
         if type(item) == 'table' then
-          if reaper.ImGui_MenuItem(ctx, item[2], nil, mode & item[1]) then
+          if ImGui.MenuItem(ctx, item[2], nil, mode & item[1]) then
             mode = mode ~ item[1]
             reaper.SetExtState(EXT_SECTION, EXT_MODE_KEY, mode, true)
           end
         else
-          reaper.ImGui_Separator(ctx)
+          ImGui.Separator(ctx)
         end
       end
-      reaper.ImGui_PopFont(ctx)
-      reaper.ImGui_EndPopup(ctx)
+      ImGui.PopFont(ctx)
+      ImGui.EndPopup(ctx)
       reaper.defer(loop)
-    else
-      reaper.ImGui_DestroyContext(ctx)
     end
   end
 
@@ -452,7 +449,7 @@ if scriptName:match('%(options%)') then
     {MODE_SEL,   'Skip unselected notes'},
   }
 
-  if reaper.ImGui_CreateContext then
+  if ImGui then
     optionsMenu(mode, items)
   else
     gfxdo(function() legacyOptionsMenu(mode, items) end)

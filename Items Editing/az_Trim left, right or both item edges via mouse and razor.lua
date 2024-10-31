@@ -1,9 +1,7 @@
 -- @description Trim left, right or both item edges via mouse and razor
 -- @author AZ
--- @version 1.2
--- @changelog
---   - options window
---   - fixed bug for grouped items on hidden tracks, now they are trimmed
+-- @version 1.4.1
+-- @changelog - fixed bug with getting Reaper preferences
 -- @provides [main] az_Trim left, right or both item edges via mouse and razor/az_Open options for az_Trim left, right or both item edges via mouse and razor.lua
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=288069
 -- @donation Donate via PayPal https://www.paypal.me/AZsound
@@ -76,7 +74,7 @@ function msg(value)
 end
 
 --------------------------
-function rgbToHex(rgba) -- passing a table with percentage like {100, 50, 20, 90}
+function rgbToHex(rgba) -- passing a table with percentage value like {100, 50, 20, 90}
   local hexadecimal = '0X'
 
   for key, value in pairs(rgba) do
@@ -378,17 +376,43 @@ function SetItemEdges(item, startTime, endTime)
   local takesN = reaper.CountTakes(item)
   for i = 0, takesN-1 do
     local take = reaper.GetTake(item,i)
-    local offs = reaper.GetMediaItemTakeInfo_Value(take, 'D_STARTOFFS')
-    local rate = reaper.GetMediaItemTakeInfo_Value(take, 'D_PLAYRATE')
-    offs = offs + (startTime-pos)*rate
-    if isloop == 1 then
-      local src = reaper.GetMediaItemTake_Source( take )
-      local length, isQN = reaper.GetMediaSourceLength( src )
-      if offs < 0 then offs = length - math.fmod(-offs, length)
-      elseif offs > length then offs = math.fmod(offs, length)
+    if take then
+      local offs = reaper.GetMediaItemTakeInfo_Value(take, 'D_STARTOFFS')
+      local rate = reaper.GetMediaItemTakeInfo_Value(take, 'D_PLAYRATE')
+      offs = offs + (startTime-pos)*rate
+      if isloop == 1 then
+        local src = reaper.GetMediaItemTake_Source( take )
+        local length, isQN = reaper.GetMediaSourceLength( src )
+        if offs < 0 then offs = length - math.fmod(-offs, length)
+        elseif offs > length then offs = math.fmod(offs, length)
+        end
       end
+      
+      local strmarksnum = reaper.GetTakeNumStretchMarkers( take )
+      if strmarksnum > 0 then
+        reaper.SetMediaItemTakeInfo_Value(take, 'D_STARTOFFS', offs)
+        for s = 0, strmarksnum -1 do
+          local retval, strpos, srcpos = reaper.GetTakeStretchMarker( take, s )
+          reaper.SetTakeStretchMarker( take, s, strpos - (startTime-pos)*rate, srcpos )
+        end
+      else
+        reaper.SetMediaItemTakeInfo_Value(take, 'D_STARTOFFS', offs)
+      end
+      
+      local takeenvs = reaper.CountTakeEnvelopes(take)
+      for e = 0, takeenvs -1 do
+        local env = reaper.GetTakeEnvelope( take, e )
+        for p = 0, reaper.CountEnvelopePoints( env ) -1 do
+          local ret, time, value, shape, tens, sel = reaper.GetEnvelopePoint( env, p )
+          if ret then
+            time = time - (startTime-pos)*rate
+            reaper.SetEnvelopePoint( env, p, time, value, shape, tens, sel, true )
+          end
+        end
+        reaper.Envelope_SortPoints( env )
+      end
+      
     end
-    reaper.SetMediaItemTakeInfo_Value(take, 'D_STARTOFFS', offs)
   end
 end
 
@@ -834,34 +858,21 @@ end
 
 ----------------------------
 
-function GetDefFades()
-  local iniPath = reaper.get_ini_file()
-  local fadeLen
-  local fadeShape
-  
-  for line in io.lines(iniPath) do 
-    if line:match('deffadelen') then 
-      fadeLen = tonumber(line:gsub('deffadelen=',''):format("%.5f"))
-    end
-    
-    if line:match('deffadeshape') then 
-      fadeShape = tonumber(line:gsub('deffadeshape=',''):format("%.5f"))
-    end
-    
-    if fadeLen and fadeShape then return fadeLen, fadeShape end
-  end
+function GetPrefs(key) -- key need to be a string as in Reaper ini file
+  local retval, buf = reaper.get_config_var_string( key )
+  if retval == true then return tonumber(buf) end
 end
-
 
 -----------------------------------------
 --------------------------------------------
 
 
-function trim_sel_items(side, trimTime)
+function trim_sel_items(side, trimTime) --side is 'left' or 'right'
 local undoDesc
 local iCount = reaper.CountSelectedMediaItems(0)
 
-local defFlen, defFshape = GetDefFades()
+local defFlen = GetPrefs('deffadelen')
+local defFshape = GetPrefs('deffadeshape')
 
 for i=0, iCount-1 do
   local item = reaper.GetSelectedMediaItem(0,i)
@@ -870,10 +881,16 @@ for i=0, iCount-1 do
   local iEnd = iPos + reaper.GetMediaItemInfo_Value(item,'D_LENGTH')
   local fIn = reaper.GetMediaItemInfo_Value(item,'D_FADEINLEN')
   local fOut = reaper.GetMediaItemInfo_Value(item,'D_FADEOUTLEN')
+  local fInA = reaper.GetMediaItemInfo_Value(item,'D_FADEINLEN_AUTO')
+  local fOutA = reaper.GetMediaItemInfo_Value(item,'D_FADEOUTLEN_AUTO')
+  
   local fInShape = reaper.GetMediaItemInfo_Value(item,'C_FADEINSHAPE')
   local fOutShape = reaper.GetMediaItemInfo_Value(item,'C_FADEOUTSHAPE')
   local fInCurv = reaper.GetMediaItemInfo_Value(item,'D_FADEINDIR')
   local fOutCurv = reaper.GetMediaItemInfo_Value(item,'D_FADEOUTDIR')
+  
+  if fInA ~= 0 then fIn = fInA end
+  if fOutA~= 0 then fOut = fOutA end
   
   if iPos < trimTime and trimTime < iEnd then
   
@@ -882,7 +899,9 @@ for i=0, iCount-1 do
       undoDesc = 'left'
       
       if trimTime < iPos+fIn then
-        reaper.SetMediaItemInfo_Value(item,'D_FADEINLEN', fIn-(trimTime-iPos))
+        local param = 'D_FADEINLEN'
+        if fInA ~= 0 then param = 'D_FADEINLEN_AUTO' end
+        reaper.SetMediaItemInfo_Value(item, param, fIn-(trimTime-iPos))
         reaper.SetMediaItemInfo_Value(item,'C_FADEINSHAPE', fInShape)
         reaper.SetMediaItemInfo_Value(item,'D_FADEINDIR', fInCurv)
       else
@@ -898,7 +917,9 @@ for i=0, iCount-1 do
       undoDesc = 'right'
       
       if trimTime > iEnd-fOut then
-        reaper.SetMediaItemInfo_Value(item,'D_FADEOUTLEN', fOut-(iEnd-trimTime))
+        local param = 'D_FADEOUTLEN'
+        if fOutA~= 0 then param = 'D_FADEOUTLEN_AUTO' end
+        reaper.SetMediaItemInfo_Value(item, param, fOut-(iEnd-trimTime))
         reaper.SetMediaItemInfo_Value(item,'C_FADEOUTSHAPE', fOutShape)
         reaper.SetMediaItemInfo_Value(item,'D_FADEOUTDIR', fOutCurv)
       else
@@ -966,7 +987,7 @@ end
 --------------------------
 
 -------START------
-CurVers = 1.2
+CurVers = 1.41
 version = tonumber( reaper.GetExtState(ExtStateName, "version") )
 
 if version ~= CurVers then

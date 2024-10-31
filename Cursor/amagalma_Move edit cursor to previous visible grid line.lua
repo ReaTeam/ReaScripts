@@ -1,12 +1,16 @@
 -- @description Move edit cursor to previous visible grid line
 -- @author amagalma
--- @version 1.07
--- @changelog
---   - Fixed case: edit cursor a bit to the right of a grid line
+-- @version 1.09
+-- @changelog If grid not visible, then move by 1 pixel
 -- @about
---   # Moves the edit cursor to the previous grid line that is visible
+--   # Moves the edit cursor to the previous visible grid line or by 1 pixel
 
 
+if reaper.GetToggleCommandState(40145) == 0 then 
+  reaper.Main_OnCommand(40104, 0) -- View: Move cursor left one pixel
+  return reaper.defer(function() end)
+end
+reaper.PreventUIRefresh( 1 )
 reaper.Main_OnCommand(40755, 0) -- Snapping: Save snap state
 reaper.Main_OnCommand(40754, 0) -- Snapping: Enable snap
 local cursorpos = reaper.GetCursorPosition()
@@ -44,4 +48,5 @@ if cursorpos > 0 then
   reaper.SetEditCurPos(grid,1,1)
 end
 reaper.Main_OnCommand(40756, 0) -- Snapping: Restore snap state
+reaper.PreventUIRefresh( -1 )
 reaper.defer(function() end)

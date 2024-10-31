@@ -1,8 +1,8 @@
 -- @description Clamp velocity of selected MIDI notes
 -- @author cfillion
--- @version 1.0.3
--- @changelog Improve display and shortcut management
--- @provides [main=main,midi_editor,midi_inlineeditor] .
+-- @version 1.0.4
+-- @changelog Add a "Always on top" option when right-clicking the title bar [p=2782891]
+-- @provides [main=main,midi_inlineeditor,midi_editor] .
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=281810
 -- @screenshot https://i.imgur.com/SPKgPo1.gif
 -- @donation https://reapack.com/donate
@@ -13,17 +13,14 @@
 --
 --   The last few applied velocity ranges are saved and may be recalled via a menu.
 
-dofile(reaper.GetResourcePath() ..
-       '/Scripts/ReaTeam Extensions/API/imgui.lua')('0.8')
+if not reaper.ImGui_GetBuiltinPath then
+  error('ReaImGui is required')
+end
+package.path = reaper.ImGui_GetBuiltinPath() .. '/?.lua'
+local ImGui = require 'imgui' '0.9'
 
 if not reaper.NF_Base64_Decode then
   error('SWS v2.13.2 or newer is required')
-end
-
-local ImGui = {}
-for name, func in pairs(reaper) do
-  name = name:match('^ImGui_(.+)$')
-  if name then ImGui[name] = func end
 end
 
 local script_name = 'Clamp velocity of selected MIDI notes'
@@ -33,6 +30,7 @@ ImGui.Attach(ctx, sans_serif)
 
 local PRESETS_MAX = 8
 local vel_min, vel_max = 0, 127
+local topmost = reaper.GetExtState(script_name, 'topmost') == 'true'
 
 function math.clamp(v, min, max)
   return v > max and max or v < min and min or v
@@ -127,13 +125,6 @@ local function apply()
   reaper.PreventUIRefresh(-1)
 end
 
-local function tooltip(text)
-  if ImGui.IsItemHovered(ctx, ImGui.HoveredFlags_DelayShort()) and ImGui.BeginTooltip(ctx) then
-    ImGui.Text(ctx, text)
-    ImGui.EndTooltip(ctx)
-  end
-end
-
 local function shortcuts(...)
   if had_any_item_active then
     return false
@@ -164,7 +155,7 @@ local function presetsCombo()
     ImGui.TableNextColumn(ctx)
     if ImGui.Selectable(ctx, ('Min: %d'):format(preset_min),
         vel_min == preset_min and vel_max == preset_max,
-        ImGui.SelectableFlags_SpanAllColumns()) then
+        ImGui.SelectableFlags_SpanAllColumns) then
       vel_min, vel_max = preset_min, preset_max
     end
     ImGui.TableNextColumn(ctx)
@@ -176,23 +167,31 @@ local function presetsCombo()
 end
 
 local function window()
+  if ImGui.BeginPopupContextItem(ctx) then
+    if ImGui.MenuItem(ctx, 'Always on top', nil, topmost) then
+      topmost = not topmost
+      reaper.SetExtState(script_name, 'topmost', tostring(topmost), true)
+    end
+    ImGui.EndPopup(ctx)
+  end
+
   ImGui.SetNextItemWidth(ctx, 255)
   vel_min, vel_max = select(2, ImGui.DragIntRange2(ctx, 'Value range', vel_min, vel_max,
-    nil, 0, 0x7f, 'Min: %d', 'Max: %d', ImGui.SliderFlags_AlwaysClamp()))
+    nil, 0, 0x7f, 'Min: %d', 'Max: %d', ImGui.SliderFlags_AlwaysClamp))
   ImGui.SameLine(ctx)
-  if ImGui.BeginCombo(ctx, '##preset', '', ImGui.ComboFlags_NoPreview()) then
+  if ImGui.BeginCombo(ctx, '##preset', '', ImGui.ComboFlags_NoPreview) then
     presetsCombo()
     ImGui.EndCombo(ctx)
   end
-  tooltip('Recent values')
+  ImGui.SetItemTooltip(ctx, 'Recent values')
 
   ImGui.Text(ctx, 'Drag or double-click to enter a specific value')
   ImGui.Spacing(ctx)
 
-  ImGui.PushStyleVar(ctx, ImGui.StyleVar_ItemSpacing(), 5, 0)
+  ImGui.PushStyleVar(ctx, ImGui.StyleVar_ItemSpacing, 5, 0)
   local keep_open = true
   if ImGui.Button(ctx, 'OK') or
-      shortcuts(ImGui.Key_Enter(), ImGui.Key_KeypadEnter()) then
+      shortcuts(ImGui.Key_Enter, ImGui.Key_KeypadEnter) then
     apply()
     keep_open = false
   end
@@ -201,7 +200,7 @@ local function window()
     apply()
   end
   ImGui.SameLine(ctx)
-  if ImGui.Button(ctx, 'Cancel') or shortcuts(ImGui.Key_Escape()) then
+  if ImGui.Button(ctx, 'Cancel') or shortcuts(ImGui.Key_Escape) then
     keep_open = false
   end
   ImGui.SameLine(ctx)
@@ -212,8 +211,11 @@ local function window()
 end
 
 local function loop()
+  local flags = ImGui.WindowFlags_AlwaysAutoResize
+  if topmost then flags = flags | ImGui.WindowFlags_TopMost end
+
   ImGui.PushFont(ctx, sans_serif)
-  local visible, open = ImGui.Begin(ctx, script_name, true, ImGui.WindowFlags_AlwaysAutoResize())
+  local visible, open = ImGui.Begin(ctx, script_name, true, flags)
   if visible then
     update()
     if not window() then open = false end

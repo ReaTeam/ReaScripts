@@ -7,8 +7,12 @@ local T   = require "modules/time"
 local S   = require "modules/settings"
 local D   = require "modules/defines"
 local AT  = require "modules/action_triggers"
+local ART = require "modules/articulations"
 
+local MU  = require "lib/MIDIUtils"
 local GEN = require "operations/generic"
+
+local USE_MU = true
 
 -- Commits the currently held notes into the take
 local function Write(km, track, take, notes_to_add, notes_to_extend, triggered_by_key_event)
@@ -18,8 +22,13 @@ local function Write(km, track, take, notes_to_add, notes_to_extend, triggered_b
 
   reaper.Undo_BeginBlock();
 
+  MU.MIDI_InitializeTake(take)
+  MU.MIDI_OpenWriteTransaction(take)
+
   GEN.AddAndExtendNotes(c, notes_to_add, notes_to_extend)
   GEN.ForwardOperationFinish(c, c.advanceTime, newMaxQN)
+
+  ART.UpdateArticulationTextEventsIfNeeded(track, take);
 
   reaper.Undo_EndBlock(GEN.OperationSummary(1, c.counts), -1);
 end
@@ -41,6 +50,9 @@ local function WriteBack(km, track, take, notes_to_shorten, triggered_by_key_eve
   end
 
   reaper.Undo_BeginBlock();
+
+  MU.MIDI_InitializeTake(take)
+  MU.MIDI_OpenWriteTransaction(take)
 
   GEN.GenericDelete(c, notes_to_shorten, true, false)
 
@@ -69,6 +81,8 @@ local function WriteBack(km, track, take, notes_to_shorten, triggered_by_key_eve
   end
 
   GEN.BackwardOperationFinish(c, jumpTime)
+
+  ART.UpdateArticulationTextEventsIfNeeded(track, take);
 
   reaper.Undo_EndBlock(GEN.OperationSummary(-1, c.counts), -1)
 end

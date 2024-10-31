@@ -1,6 +1,7 @@
 -- @description Select next item with take FX
 -- @author amagalma
--- @version 1.00
+-- @version 1.01
+-- @changelog Scroll to item if needed
 -- @donation https://www.paypal.me/amagalma
 
 
@@ -48,6 +49,15 @@ if change then
       reaper.SetMediaItemSelected( item, i == info[1] )
     end
   end
+
+-- Scroll arrange
+  local item = reaper.GetSelectedMediaItem( 0, 0 )
+  local ar_st, ar_en = reaper.GetSet_ArrangeView2( 0, false, 0, 0, 0, 0 )
+  local it_st = reaper.GetMediaItemInfo_Value( item, "D_POSITION" )
+  if it_st >= ar_en then
+    reaper.GetSet_ArrangeView2( 0, true, 0, 0, it_st, it_st+(ar_en-ar_st) )
+  end
+  
   reaper.UpdateArrange()
   reaper.PreventUIRefresh( -1 )
   reaper.Undo_EndBlock( "Select next Item with TakeFX", 4 )

@@ -7,8 +7,12 @@ local T   = require "modules/time"
 local D   = require "modules/defines"
 local N   = require "modules/notes"
 local MK  = require "modules/markers"
+local ART = require "modules/articulations"
 
+local MU  = require "lib/MIDIUtils"
 local GEN = require "operations/generic"
+
+local USE_MU = true
 
 local function Stretch(km, track, take, notes_to_add, notes_to_extend, triggered_by_key_event)
 
@@ -32,8 +36,12 @@ local function Stretch(km, track, take, notes_to_add, notes_to_extend, triggered
 
   reaper.Undo_BeginBlock();
 
+  MU.MIDI_InitializeTake(take)
+  MU.MIDI_OpenWriteTransaction(take)
+
+  local _, notecnt, _, _  = N.CountEvts(take, USE_MU)
+
   -- Erase forward
-  local _, notecnt, _, _  = reaper.MIDI_CountEvts(take);
   local ni                = 0;
   while (ni < notecnt) do
 
@@ -48,8 +56,8 @@ local function Stretch(km, track, take, notes_to_add, notes_to_extend, triggered
       --     |     |
       --
       N.SetNewNoteBounds(n, take, n.startPPQ + c.noteLenPPQ, n.endPPQ + c.noteLenPPQ)
-      c.torem[#c.torem+1]   = n
-      c.toadd[#c.toadd+1]   = n
+      N.MUCommitNote(c.take, n)
+
       c.counts.ext = c.counts.ext + 1
     elseif T.noteStartsAfterPPQ(n, c.markerPPQ, false) then
       if T.noteEndsBeforePPQ(n, c.cursorPPQ, false) then
@@ -60,8 +68,8 @@ local function Stretch(km, track, take, notes_to_add, notes_to_extend, triggered
         --     |     |
         --
         N.SetNewNoteBounds(n, take, _stretch(n.startPPQ), _stretch(n.endPPQ))
-        c.torem[#c.torem+1]   = n
-        c.toadd[#c.toadd+1]   = n
+        N.MUCommitNote(c.take, n)
+
         c.counts.ext = c.counts.ext + 1
       else
         --
@@ -71,8 +79,8 @@ local function Stretch(km, track, take, notes_to_add, notes_to_extend, triggered
         --     |     |
         --
         N.SetNewNoteBounds(n, take, _stretch(n.startPPQ), n.endPPQ + c.noteLenPPQ)
-        c.torem[#c.torem+1]   = n
-        c.toadd[#c.toadd+1]   = n
+        N.MUCommitNote(c.take, n)
+
         c.counts.ext = c.counts.ext + 1
       end
     else
@@ -84,7 +92,8 @@ local function Stretch(km, track, take, notes_to_add, notes_to_extend, triggered
         --     |     |
         --
         N.SetNewNoteBounds(n, take, n.startPPQ, n.endPPQ + c.noteLenPPQ)
-        c.tomod[#c.tomod+1] = n
+        N.MUCommitNote(c.take, n)
+
         c.counts.ext = c.counts.ext + 1
       elseif T.noteEndsAfterPPQ(n, c.markerPPQ, true) then
         -- Note ending should be erased
@@ -95,7 +104,8 @@ local function Stretch(km, track, take, notes_to_add, notes_to_extend, triggered
         --     |     |
         --
         N.SetNewNoteBounds(n, take, n.startPPQ, _stretch(n.endPPQ))
-        c.tomod[#c.tomod+1] = n
+        N.MUCommitNote(c.take, n)
+
         c.counts.ext = c.counts.ext + 1
       else
         -- Leave untouched
@@ -117,6 +127,8 @@ local function Stretch(km, track, take, notes_to_add, notes_to_extend, triggered
 
   GEN.ForwardOperationFinish(c, c.advanceTime, newMaxQN)
 
+  ART.UpdateArticulationTextEventsIfNeeded(track, take);
+
   reaper.Undo_EndBlock(GEN.OperationSummary(-1, c.counts), -1)
 end
 
@@ -136,8 +148,6 @@ function StretchBack(km, track, take, notes_to_shorten, triggered_by_key_event)
     return
   end
 
-  reaper.Undo_BeginBlock();
-
   -- Compress
   local compFactor = (c.rewindTime - c.markerTime)/(c.cursorTime - c.markerTime)
 
@@ -145,7 +155,13 @@ function StretchBack(km, track, take, notes_to_shorten, triggered_by_key_event)
     return c.markerPPQ + compFactor * (ppq - c.markerPPQ)
   end
 
-  local _, notecnt, _, _ = reaper.MIDI_CountEvts(take);
+  reaper.Undo_BeginBlock();
+
+  MU.MIDI_InitializeTake(take)
+  MU.MIDI_OpenWriteTransaction(take)
+
+  local _, notecnt, _, _  = N.CountEvts(take, USE_MU)
+
   local ni = 0;
   while (ni < notecnt) do
 
@@ -161,9 +177,8 @@ function StretchBack(km, track, take, notes_to_shorten, triggered_by_key_event)
       --
       -- Move the note back
       N.SetNewNoteBounds(n, take, n.startPPQ - c.noteLenPPQ, n.endPPQ - c.noteLenPPQ)
+      N.MUCommitNote(c.take, n)
 
-      c.torem[#c.torem+1]   = n -- Remove
-      c.toadd[#c.toadd+1]   = n -- And readd
       c.counts.mv           = c.counts.mv + 1
     elseif T.noteStartsAfterPPQ(n, c.markerPPQ, false) then
       if T.noteEndsBeforePPQ(n, c.cursorPPQ, false) then
@@ -174,9 +189,8 @@ function StretchBack(km, track, take, notes_to_shorten, triggered_by_key_event)
         --     |     |
         --
         N.SetNewNoteBounds(n, take, _comp(n.startPPQ), _comp(n.endPPQ))
+        N.MUCommitNote(c.take, n)
 
-        c.torem[#c.torem+1]   = n -- Remove
-        c.toadd[#c.toadd+1]   = n -- And readd
         c.counts.sh           = c.counts.sh + 1
         c.counts.mv           = c.counts.mv + 1
       else
@@ -187,9 +201,8 @@ function StretchBack(km, track, take, notes_to_shorten, triggered_by_key_event)
         --     |     |
         --
         N.SetNewNoteBounds(n, take, _comp(n.startPPQ), n.endPPQ - c.noteLenPPQ)
+        N.MUCommitNote(c.take, n)
 
-        c.torem[#c.torem+1]   = n
-        c.toadd[#c.toadd+1]   = n
         c.counts.sh           = c.counts.sh + 1
         c.counts.mv           = c.counts.mv + 1
       end
@@ -202,7 +215,8 @@ function StretchBack(km, track, take, notes_to_shorten, triggered_by_key_event)
         --     |     |
         --
         N.SetNewNoteBounds(n, take, n.startPPQ, n.endPPQ - c.noteLenPPQ)
-        c.tomod[#c.tomod+1] = n
+        N.MUCommitNote(c.take, n)
+
         c.counts.sh         = c.counts.sh + 1
       elseif T.noteEndsAfterPPQ(n, c.markerPPQ, true) then
         --
@@ -212,7 +226,8 @@ function StretchBack(km, track, take, notes_to_shorten, triggered_by_key_event)
         --     |     |
         --
         N.SetNewNoteBounds(n, take, n.startPPQ, _comp(n.endPPQ))
-        c.tomod[#c.tomod+1] = n
+        N.MUCommitNote(c.take, n)
+
         c.counts.sh         = c.counts.sh + 1
       else
         -- Leave untouched
@@ -229,6 +244,8 @@ function StretchBack(km, track, take, notes_to_shorten, triggered_by_key_event)
   end
 
   GEN.BackwardOperationFinish(c, c.rewindTime)
+
+  ART.UpdateArticulationTextEventsIfNeeded(track, take);
 
   reaper.Undo_EndBlock(GEN.OperationSummary(-1, c.counts), -1)
 end

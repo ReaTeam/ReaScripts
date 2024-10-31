@@ -1,17 +1,11 @@
 -- @description SWS CF_Preview API demo
 -- @author cfillion
--- @version 1.0.1
--- @changelog Fix display of the first peak channel
+-- @version 1.0.3
+-- @changelog Repair "through track" playback mode
 -- @donation https://reapack.com/donate
 
-dofile(reaper.GetResourcePath() .. '/Scripts/ReaTeam Extensions/API/imgui.lua')
-  ('0.8.5')
-
-local ImGui = {}
-for name, func in pairs(reaper) do
-  name = name:match('^ImGui_(.+)$')
-  if name then ImGui[name] = func end
-end
+package.path = reaper.ImGui_GetBuiltinPath() .. '/?.lua'
+local ImGui = require 'imgui' '0.9'
 
 local SCRIPT_NAME = 'SWS CF_Preview API demo'
 local FLT_MIN, FLT_MAX = ImGui.NumericLimits_Float()
@@ -21,29 +15,25 @@ ImGui.Attach(ctx, sans_serif)
 
 local preview
 local file = reaper.GetExtState('sws_test', 'preview_file')
-local volume, pan, fadeInLen, fadeOutLen, loop, reverse = 1, 0, 0, 0, false, false
-local outputChan, outputProj, outputTrack, outToTrack = 0, nil, nil, false
-local playRate, pitch, preservePitch, measureAlign, seekPos = 1, 0, true, 0, 0
-local psMode, psModes, psSubMode, psSubModes = 1, {{v=-1, n='Project default'}}, 1
-local peakChans = 2
+local volume, pan, fadein_len, fadeout_len, loop, reverse = 1, 0, 0, 0, false, false
+local output_chan, output_proj, output_track, out_to_track = 0, nil, nil, false
+local play_rate, pitch, preserve_pitch, measure_align, seek_pos = 1, 0, true, 0, nil
+local ps_mode, ps_modes, ps_sub_mode, ps_sub_modes = 1, {{v=-1, n='Project default'}}, 1
+local peak_chans = 2
 
 local function updatePitchShiftSubmodes()
-  psSubModes = {}
-  local i = 0
-  while true do
-    local mode = reaper.EnumPitchShiftSubModes(psModes[psMode].v, i)
+  ps_sub_modes = {}
+  for i = 0, math.huge do
+    local mode = reaper.EnumPitchShiftSubModes(ps_modes[ps_mode].v, i)
     if not mode then break end
-    psSubModes[#psSubModes + 1] = mode
-    i = i + 1
+    ps_sub_modes[#ps_sub_modes + 1] = mode
   end
 end
 
-local i = 0
-while true do
+for i = 0, math.huge do
   local rv, mode = reaper.EnumPitchShiftModes(i)
   if not rv then break end
-  if mode then psModes[#psModes + 1] = {v=i, n=mode} end
-  i = i + 1
+  if mode then ps_modes[#ps_modes + 1] = {v=i, n=mode} end
 end
 updatePitchShiftSubmodes()
 
@@ -65,65 +55,65 @@ local function formatChan(chan)
 end
 
 local function pitchMode()
-  if psModes[psMode].v == -1 then
+  if ps_modes[ps_mode].v == -1 then
     return -1
   else
-    return (psModes[psMode].v << 16) | (psSubMode - 1)
+    return (ps_modes[ps_mode].v << 16) | (ps_sub_mode - 1)
   end
 end
 
 local function outputSelect()
   local rv = false
-  if ImGui.RadioButton(ctx, 'Hardware output', not outToTrack) then
-    outToTrack = false
+  if ImGui.RadioButton(ctx, 'Hardware output', not out_to_track) then
+    out_to_track = false
     rv = true
   end
   ImGui.SameLine(ctx)
   ImGui.SetNextItemWidth(ctx, 110)
-  if ImGui.BeginCombo(ctx, '##chan', formatChan(outputChan)) then
-    local monoChanged
-    monoChanged, outputChan = ImGui.CheckboxFlags(ctx, 'Mono', outputChan, 1024)
-    if monoChanged then rv = true end
+  if ImGui.BeginCombo(ctx, '##chan', formatChan(output_chan)) then
+    local mono_changed
+    mono_changed, output_chan = ImGui.CheckboxFlags(ctx, 'Mono', output_chan, 1024)
+    if mono_changed then rv = true end
     ImGui.Spacing(ctx)
-    local chan = outputChan & 1023
-    local monoFlag = (outputChan & 1024)
-    local skip = monoFlag == 0 and 2 or 1
+    local chan = output_chan & 1023
+    local mono_flag = (output_chan & 1024)
+    local skip = mono_flag == 0 and 2 or 1
     for i = 0, reaper.GetNumAudioOutputs() - 1, skip do
-      if ImGui.Selectable(ctx, formatChan(i | monoFlag), chan == i) then
-        outputChan = i | monoFlag
-        outToTrack = false
+      if ImGui.Selectable(ctx, formatChan(i | mono_flag), chan == i) then
+        output_chan = i | mono_flag
+        out_to_track = false
         rv = true
       end
     end
     ImGui.EndCombo(ctx)
   end
 
-  local numTracks = reaper.GetNumTracks()
-  if not reaper.ValidatePtr(outputProj, 'ReaProject*') or
-     not reaper.ValidatePtr2(outputProj, outputTrack, 'MediaTrack*') then
-    outToTrack = false
-    outputTrack = reaper.GetTrack(nil, 0)
-    outputProj = reaper.EnumProjects(-1)
+  local num_tracks = reaper.GetNumTracks()
+  if not reaper.ValidatePtr(output_proj, 'ReaProject*') or
+     not reaper.ValidatePtr2(output_proj, output_track, 'MediaTrack*') then
+    out_to_track = false
+    output_track = reaper.GetTrack(nil, 0)
+    output_proj = reaper.EnumProjects(-1)
     rv = true
   end
-  ImGui.BeginDisabled(ctx, not outputTrack and numTracks == 0)
+  ImGui.BeginDisabled(ctx, not output_track and num_tracks == 0)
   ImGui.SameLine(ctx)
-  if ImGui.RadioButton(ctx, 'Through track', outToTrack) then
-    outToTrack = true
+  if ImGui.RadioButton(ctx, 'Through track', out_to_track) then
+    out_to_track = true
     rv = true
   end
   ImGui.SameLine(ctx)
   ImGui.SetNextItemWidth(ctx, -FLT_MIN)
   local trackName = '<no track>'
-  if outputTrack then trackName = select(2, reaper.GetTrackName(outputTrack)) end
+  if output_track then trackName = select(2, reaper.GetTrackName(output_track)) end
   if ImGui.BeginCombo(ctx, '##track', trackName) then
-    for i = 0, numTracks - 1 do
+    for i = 0, num_tracks - 1 do
       local track = reaper.GetTrack(nil, i)
       trackName = select(2, reaper.GetTrackName(track))
-      if ImGui.Selectable(ctx, trackName, track == outputTrack) then
-        outputTrack = track
-        outputProj = reaper.EnumProjects(-1)
-        outToTrack = true
+      if ImGui.Selectable(ctx, trackName, track == output_track) then
+        output_track = track
+        output_proj = reaper.EnumProjects(-1)
+        out_to_track = true
         rv = true
       end
     end
@@ -138,11 +128,11 @@ local function pitchShiftSelect()
   local rv = false
 
   ImGui.SetNextItemWidth(ctx, 200)
-  if ImGui.BeginCombo(ctx, 'Pitch shift mode', psModes[psMode].n) then
-    for i, mode in ipairs(psModes) do
-      if ImGui.Selectable(ctx, mode.n, psMode == i) then
-        psMode = i
-        psSubMode = 1
+  if ImGui.BeginCombo(ctx, 'Pitch shift mode', ps_modes[ps_mode].n) then
+    for i, mode in ipairs(ps_modes) do
+      if ImGui.Selectable(ctx, mode.n, ps_mode == i) then
+        ps_mode = i
+        ps_sub_mode = 1
         updatePitchShiftSubmodes()
         rv = true
       end
@@ -151,12 +141,12 @@ local function pitchShiftSelect()
   end
 
   ImGui.SameLine(ctx)
-  ImGui.BeginDisabled(ctx, #psSubModes == 0)
+  ImGui.BeginDisabled(ctx, #ps_sub_modes == 0)
   ImGui.SetNextItemWidth(ctx, -62)
-  if ImGui.BeginCombo(ctx, 'Submode', psSubModes[psSubMode] or '') then
-    for i, submode in ipairs(psSubModes) do
-      if ImGui.Selectable(ctx, submode, psSubMode == i) then
-        psSubMode = i
+  if ImGui.BeginCombo(ctx, 'Submode', ps_sub_modes[ps_sub_mode] or '') then
+    for i, submode in ipairs(ps_sub_modes) do
+      if ImGui.Selectable(ctx, submode, ps_sub_mode == i) then
+        ps_sub_mode = i
         rv = true
       end
     end
@@ -180,22 +170,22 @@ local function start()
 
   if preview then reaper.CF_Preview_Stop(preview) end
   preview = reaper.CF_CreatePreview(source)
-  if outToTrack then
-    reaper.CF_Preview_SetOutputTrack(preview, outputProj, outputTrack)
+  if out_to_track then
+    reaper.CF_Preview_SetOutputTrack(preview, output_proj, output_track)
   else
-    reaper.CF_Preview_SetValue(preview, 'I_OUTCHAN', outputChan)
+    reaper.CF_Preview_SetValue(preview, 'I_OUTCHAN', output_chan)
   end
   -- reaper.CF_Preview_SetValue(preview, 'D_POSITION', position)
   reaper.CF_Preview_SetValue(preview, 'B_LOOP', loop and 1 or 0)
   reaper.CF_Preview_SetValue(preview, 'D_VOLUME', volume)
   reaper.CF_Preview_SetValue(preview, 'D_PAN', pan)
-  reaper.CF_Preview_SetValue(preview, 'D_MEASUREALIGN', measureAlign)
-  reaper.CF_Preview_SetValue(preview, 'D_PLAYRATE', playRate)
+  reaper.CF_Preview_SetValue(preview, 'D_MEASUREALIGN', measure_align)
+  reaper.CF_Preview_SetValue(preview, 'D_PLAYRATE', play_rate)
   reaper.CF_Preview_SetValue(preview, 'D_PITCH', pitch)
-  reaper.CF_Preview_SetValue(preview, 'B_PPITCH', preservePitch and 1 or 0)
+  reaper.CF_Preview_SetValue(preview, 'B_PPITCH', preserve_pitch and 1 or 0)
   reaper.CF_Preview_SetValue(preview, 'I_PITCHMODE', pitchMode())
-  reaper.CF_Preview_SetValue(preview, 'D_FADEINLEN', fadeInLen)
-  reaper.CF_Preview_SetValue(preview, 'D_FADEOUTLEN', fadeOutLen)
+  reaper.CF_Preview_SetValue(preview, 'D_FADEINLEN', fadein_len)
+  reaper.CF_Preview_SetValue(preview, 'D_fadeout_len', fadeout_len)
   reaper.CF_Preview_Play(preview)
   reaper.PCM_Source_Destroy(source)
 end
@@ -212,37 +202,37 @@ local function window()
   rv, file = ImGui.InputText(ctx, '##path', file)
   ImGui.SameLine(ctx)
   if ImGui.Button(ctx, 'Browse...') then
-    local rv, newFile = reaper.JS_Dialog_BrowseForOpenFiles('Select audio file', '', file, '', false)
-    if rv and newFile:len() > 0 then
-      file = newFile
+    local rv, new_file = reaper.JS_Dialog_BrowseForOpenFiles('Select audio file', '', file, '', false)
+    if rv and new_file:len() > 0 then
+      file = new_file
       reaper.SetExtState('sws_test', 'preview_file', file, false)
     end
   end
 
-  local time = ('%s / %s'):format(
-    reaper.format_timestr(position, ''),
-    reaper.format_timestr(length, ''))
-  rv, seekPos = ImGui.SliderDouble(ctx, '##position', seekPos or position, 0, length, time)
+  local time, want_pos = ('%s / %s'):format(
+    reaper.format_timestr(position, ''), reaper.format_timestr(length, ''))
+  rv, want_pos = ImGui.SliderDouble(ctx, '##position', seek_pos or position, 0, length, time)
   if ImGui.IsItemDeactivatedAfterEdit(ctx) then
-    reaper.CF_Preview_SetValue(preview, 'D_POSITION', seekPos)
-  elseif not ImGui.IsItemActive(ctx) then
-    seekPos = position
+    reaper.CF_Preview_SetValue(preview, 'D_POSITION', seek_pos)
+    seek_pos = nil
+  elseif rv then
+    seek_pos = want_pos
   end
   ImGui.SameLine(ctx)
   rv, loop = ImGui.Checkbox(ctx, 'Loop', loop)
   if rv and active then reaper.CF_Preview_SetValue(preview, 'B_LOOP', loop and 1 or 0) end
 
   if outputSelect() then
-    if outToTrack then
-      reaper.CF_Preview_SetOutputTrack(preview, outputProj, outputTrack)
+    if out_to_track then
+      reaper.CF_Preview_SetOutputTrack(preview, output_proj, output_track)
     else
-      reaper.CF_Preview_SetValue(preview, 'I_OUTCHAN', outputChan)
+      reaper.CF_Preview_SetValue(preview, 'I_OUTCHAN', output_chan)
     end
   end
 
   ImGui.SetNextItemWidth(ctx, -340)
   rv, volume = ImGui.SliderDouble(ctx, 'Volume', volume, 0, 2,
-    ('%.2fdB'):format(VAL2DB(volume)), ImGui.SliderFlags_Logarithmic())
+    ('%.2fdB'):format(VAL2DB(volume)), ImGui.SliderFlags_Logarithmic)
   if rv and active then reaper.CF_Preview_SetValue(preview, 'D_VOLUME', volume) end
   ImGui.SameLine(ctx)
   ImGui.SetNextItemWidth(ctx, 55)
@@ -250,23 +240,23 @@ local function window()
   if rv and active then reaper.CF_Preview_SetValue(preview, 'D_PAN', pan) end
   ImGui.SameLine(ctx)
   local avail_w = ImGui.PushItemWidth(ctx, 40)
-  rv, fadeInLen = ImGui.InputDouble(ctx, 'Fade in', fadeInLen)
-  if rv and active then reaper.CF_Preview_SetValue(preview, 'D_FADEINLEN', fadeInLen) end
+  rv, fadein_len = ImGui.InputDouble(ctx, 'Fade in', fadein_len)
+  if rv and active then reaper.CF_Preview_SetValue(preview, 'D_FADEINLEN', fadein_len) end
   ImGui.SameLine(ctx)
-  rv, fadeOutLen = ImGui.InputDouble(ctx, 'Fade out', fadeOutLen)
-  if rv and active then reaper.CF_Preview_SetValue(preview, 'D_FADEOUTLEN', fadeOutLen) end
+  rv, fadeout_len = ImGui.InputDouble(ctx, 'Fade out', fadeout_len)
+  if rv and active then reaper.CF_Preview_SetValue(preview, 'D_fadeout_len', fadeout_len) end
   ImGui.PopItemWidth(ctx)
 
   ImGui.PushItemWidth(ctx, 50)
-  rv, playRate = ImGui.InputDouble(ctx, 'Playback rate', playRate)
-  if rv and active then reaper.CF_Preview_SetValue(preview, 'D_PLAYRATE', playRate) end
+  rv, play_rate = ImGui.InputDouble(ctx, 'Playback rate', play_rate)
+  if rv and active then reaper.CF_Preview_SetValue(preview, 'D_PLAYRATE', play_rate) end
   ImGui.SameLine(ctx)
   rv, pitch = ImGui.InputDouble(ctx, 'Pitch adjust (semitones)', pitch)
   if rv and active then reaper.CF_Preview_SetValue(preview, 'D_PITCH', pitch) end
   ImGui.PopItemWidth(ctx)
   ImGui.SameLine(ctx)
-  rv, preservePitch = ImGui.Checkbox(ctx, 'Preserve pitch when changing rate', preservePitch)
-  if rv and active then reaper.CF_Preview_SetValue(preview, 'B_PPITCH', preservePitch and 1 or 0) end
+  rv, preserve_pitch = ImGui.Checkbox(ctx, 'Preserve pitch when changing rate', preserve_pitch)
+  if rv and active then reaper.CF_Preview_SetValue(preview, 'B_PPITCH', preserve_pitch and 1 or 0) end
 
   rv = pitchShiftSelect()
   if rv and active then
@@ -284,20 +274,20 @@ local function window()
   ImGui.EndDisabled(ctx)
   ImGui.SameLine(ctx, nil, 20)
   ImGui.SetNextItemWidth(ctx, 72)
-  rv, measureAlign = ImGui.InputInt(ctx, 'Align to measure', measureAlign)
-  if rv and measureAlign < 0 then measureAlign = 0 end
+  rv, measure_align = ImGui.InputInt(ctx, 'Align to measure', measure_align)
+  if rv and measure_align < 0 then measure_align = 0 end
   ImGui.SameLine(ctx, nil, 20)
   rv, reverse = ImGui.Checkbox(ctx, 'Reverse', reverse)
   ImGui.SameLine(ctx, nil, 20)
   ImGui.SetNextItemWidth(ctx, -62)
-  rv, peakChans = ImGui.InputInt(ctx, 'Peaks', peakChans, 1, 1)
-  if rv then peakChans = math.max(2, math.min(128, peakChans)) end
+  rv, peak_chans = ImGui.InputInt(ctx, 'Peaks', peak_chans, 1, 1)
+  if rv then peak_chans = math.max(2, math.min(128, peak_chans)) end
 
   ImGui.Spacing(ctx)
   local avail_w, avail_h = ImGui.GetContentRegionAvail(ctx)
-  local spacing_x, spacing_h = ImGui.GetStyleVar(ctx, ImGui.StyleVar_ItemSpacing())
-  local meter_h = math.max(spacing_h, ((avail_h + spacing_h) / peakChans) - spacing_h)
-  for i = 0, peakChans - 1 do
+  local spacing_x, spacing_h = ImGui.GetStyleVar(ctx, ImGui.StyleVar_ItemSpacing)
+  local meter_h = math.max(spacing_h, ((avail_h + spacing_h) / peak_chans) - spacing_h)
+  for i = 0, peak_chans - 1 do
     local valid, peak = reaper.CF_Preview_GetPeak(preview, i)
     ImGui.BeginDisabled(ctx, not valid)
     ImGui.ProgressBar(ctx, peak, -FLT_MIN, meter_h, ' ')

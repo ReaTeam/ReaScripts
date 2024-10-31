@@ -103,7 +103,10 @@ local function nextSnap(track, direction, reftime, options)
   local bestJumpTime    = nil
   local maxTime         = 0
 
-  if options.enabled and track then
+  -- If one of these options is on, we need to do a full dig of items
+  local snapItemThings  = options.itemGrid or options.itemBounds or options.noteStart or options.noteEnd
+
+  if snapItemThings and track then
 
     -- Force Item Bounds when we have item grid on, that's usefule outside items
     if options.itemGrid then
@@ -216,11 +219,12 @@ end
 
 local function snapOptions()
   return {
-    enabled       = S.getSetting("Snap"),
-    itemBounds    = S.getSetting("SnapItemBounds"),
+    -- Item related
     noteStart     = S.getSetting("SnapNotes"),
     noteEnd       = S.getSetting("SnapNotes"),
     itemGrid      = S.getSetting("SnapItemGrid"),
+    itemBounds    = S.getSetting("SnapItemBounds"),
+    -- Larger
     projectGrid   = S.getSetting("SnapProjectGrid"),
     projectBounds = true
   }

@@ -1,16 +1,9 @@
 -- @description Perfect Timing! - Audio Quantizer
 -- @author 80icio
--- @version 0.24
+-- @version 0.27
 -- @changelog
---   New Features
---
---   - New Visualizer zoom bounds reference  over tracks on Main window
---   - Trigger lines show full quarters with thicker lines and sub divisions with thinner lines
---   - Corrected "clipping" Transient attack filter
---
---   BugFix
---
---   - fixed wrong trackcount before quantizing if in -Edit Track- mode
+--   - Fixed graphic issue between mouse position indication vertical line and arrange window trigger lines
+--   - Fixed arrange window trigger lines behaviour when tracks disappear in folder
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=288964
 -- @about
 --   # PERFECT TIMING! 
@@ -25,7 +18,6 @@
 --   * Low CPU consumption
 --   * Multisized GUI
 --   * Works with fixed lanes
-
 
 --- This script is a re adaptation and re writing of  @Cool Mk Slicer 2 (80icio Mod)
 --- Thanks to Cool for Mk Slicer, I mainly learnt coding LUA from his script
@@ -60,16 +52,15 @@ end
 local reaperversion = Reaperversioncheck(r.GetAppVersion())
 ]]--
 
-local imgui_path = r.GetResourcePath() .. '/Scripts/ReaTeam Extensions/API/imgui.lua'
-if not r.file_exists(imgui_path) then
-  r.ShowMessageBox("Please, install IMGUI extension from REAPACK.\nThanks!", "Ooops!", 0)
+if not r.ImGui_GetBuiltinPath then
+  r.ShowMessageBox("Please, install or update IMGUI extension from REAPACK.\nThanks!", "Ooops!", 0)
   r.ReaPack_BrowsePackages('ReaImGui: ReaScript binding for Dear ImGui')
-  return
+  return -- ReaImGui is not present or pre-0.9
 end
 
-dofile(imgui_path) '0.8.3' -- version check + backward compat
+package.path = r.ImGui_GetBuiltinPath() .. '/?.lua'
 
-
+local ImGui = require 'imgui' '0.9'
 
 if r.APIExists( "JS_ReaScriptAPI_Version") then ------checkin JS ---------
   local version = r.JS_ReaScriptAPI_Version()
@@ -93,7 +84,7 @@ end
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
-local ctx = r.ImGui_CreateContext(scriptname)
+local ctx = ImGui.CreateContext(scriptname)
 local font_type = 'Arial'
 
 local cyclecount = 0
@@ -295,16 +286,16 @@ end
 getsettings()---------get settings or initialize them
 
 function RGBlinecolor(linecolor_v)
-  local red, green, blue = r.ImGui_ColorConvertHSVtoRGB(linecolor_v, 1, 1 )
+  local red, green, blue = ImGui.ColorConvertHSVtoRGB(linecolor_v, 1, 1 )
   linecolor = RGB(floor(red*255),floor(green*255) ,floor(blue*255) )
   return linecolor
 end
 
-local my_font = r.ImGui_CreateFont(font_type, font_size)
-r.ImGui_Attach(ctx, my_font)
+local my_font = ImGui.CreateFont(font_type, font_size)
+ImGui.Attach(ctx, my_font)
 
-local my_font2 = r.ImGui_CreateFont(font_type, font_size -2)
-r.ImGui_Attach(ctx, my_font2)
+local my_font2 = ImGui.CreateFont(font_type, font_size -2)
+ImGui.Attach(ctx, my_font2)
 
 local Grid_mode
 local grid_dist
@@ -337,9 +328,9 @@ function reset_param()
   sel_tracks_table = {}
 end
 
-local NoIP = r.ImGui_SliderFlags_NoInput()
+local NoIP = ImGui.SliderFlags_NoInput
 
-local Grid_string = {' 1/4\0 1/8\0 1/16\0 1/32\0 1/64\0', ' 1/6\0 1/12\0 1/24\0 1/48\0' }
+local Grid_string = {'1 bar\0 1/2\0 1/4\0 1/8\0 1/16\0 1/32\0 1/64\0', '2/3 bar\0 1/3\0 1/6\0 1/12\0 1/24\0 1/48\0' }
 local Visualizer_mode_table = 'MW & Visualizer\0MW or Visualizer\0'
 local Grid_table = Grid_string[1]
 local EditTrk_table = 'Edit Tracks \0Edit TrackGroups\0'
@@ -385,12 +376,7 @@ function givemetime2()
 end
       
 function OpenURL(url)
-  local OS = r.GetOS()
-  if OS == "OSX32" or OS == "OSX64" then
-    os.execute('open "" "' .. url .. '"')
-  else
-    os.execute('start "" "' .. url .. '"')
-  end
+  r.CF_ShellExecute(url)
 end
 
 function IsEven(num)
@@ -434,8 +420,8 @@ local ADDpreset = count_string_pattern(filter_preset_list,'\0')
 --------------------color converters-----------------------
 
 function HSV(h, s, v, a)
-  local red, green, blue = r.ImGui_ColorConvertHSVtoRGB(h, s, v)
-  return r.ImGui_ColorConvertDouble4ToU32(red, green, blue, a or 1.0)
+  local red, green, blue = ImGui.ColorConvertHSVtoRGB(h, s, v)
+  return ImGui.ColorConvertDouble4ToU32(red, green, blue, a or 1.0)
 end
 
 function RGB(red,green,blue)
@@ -493,17 +479,21 @@ function get_grid_from_proj()
    --if divis == 2 then Grid_mode = 0; r.GetSetProjectGrid(0, true, 1/4, Swing_on, Swing_Slider) ; Triplets = false  end
    --if divis == 1 then Grid_mode = 0; r.GetSetProjectGrid(0, true, 1/4, Swing_on, Swing_Slider) ; Triplets = false  end
    --if divis == 1/2 then Grid_mode = 0 ; r.GetSetProjectGrid(0, true, 1/4, Swing_on, Swing_Slider) ; Triplets = false  end
-   if divis > 1/4 then Grid_mode = 0 ; r.GetSetProjectGrid(0, true, 1/4, Swing_on, Swing_Slider) ; Triplets = false  end
-   if divis == 1/4 then Grid_mode = 0 ; Triplets = false end
-   if divis == 1/6 then Grid_mode = 0 ; Triplets = true end
-   if divis == 1/8 then Grid_mode = 1 ; Triplets = false end
-   if divis == 1/12 then Grid_mode = 1 ; Triplets = true end
-   if divis == 1/16 then Grid_mode = 2 ; Triplets = false end
-   if divis == 1/24 then Grid_mode = 2 ; Triplets = true end
-   if divis == 1/32 then Grid_mode = 3 ; Triplets = false end
-   if divis == 1/48 then Grid_mode = 3 ; Triplets = true end
-   if divis == 1/64 then Grid_mode = 4 ; Triplets = false end
-   if divis < 1/64 then Grid_mode = 4; r.GetSetProjectGrid(0, true, 1/64, Swing_on, Swing_Slider) ; Triplets = false end
+   if divis > 1 then Grid_mode = 0 ; r.GetSetProjectGrid(0, true, 1, Swing_on, Swing_Slider) ; Triplets = false  end
+   if divis == 1 then Grid_mode = 0 ; Triplets = false end
+   if divis == 2/3 then Grid_mode = 0 ; Triplets = true end
+   if divis == 1/2 then Grid_mode = 1 ; Triplets = false end
+   if divis == 1/3 then Grid_mode = 1 ; Triplets = true end
+   if divis == 1/4 then Grid_mode = 2 ; Triplets = false end
+   if divis == 1/6 then Grid_mode = 2 ; Triplets = true end
+   if divis == 1/8 then Grid_mode = 3 ; Triplets = false end
+   if divis == 1/12 then Grid_mode = 3 ; Triplets = true end
+   if divis == 1/16 then Grid_mode = 4 ; Triplets = false end
+   if divis == 1/24 then Grid_mode = 4 ; Triplets = true end
+   if divis == 1/32 then Grid_mode = 5 ; Triplets = false end
+   if divis == 1/48 then Grid_mode = 5 ; Triplets = true end
+   if divis == 1/64 then Grid_mode = 6 ; Triplets = false end
+   if divis < 1/64 then Grid_mode = 6 ; r.GetSetProjectGrid(0, true, 1/64, Swing_on, Swing_Slider) ; Triplets = false end
    if Triplets == true then Grid_table = Grid_string[2] else Grid_table = Grid_string[1] end
    _, divis, Swing_on, Swing_Slider = r.GetSetProjectGrid(0, 0)
    store_divis, store_Swing_on, store_Swing_Slider = divis, Swing_on, Swing_Slider
@@ -511,17 +501,22 @@ function get_grid_from_proj()
 end
 
 function set_grid_from_script()
+
     Swing_Slider = Swing_Slider_adapt/100
-    if Grid_mode == 0 and Triplets == false then r.GetSetProjectGrid(0, true, 1/4, Swing_on, Swing_Slider) end
-    if Grid_mode == 0 and Triplets == true then r.GetSetProjectGrid(0, true, 1/6, Swing_on, Swing_Slider) end
-    if Grid_mode == 1 and Triplets == false then r.GetSetProjectGrid(0, true, 1/8, Swing_on, Swing_Slider) end
-    if Grid_mode == 1 and Triplets == true then r.GetSetProjectGrid(0, true, 1/12, Swing_on, Swing_Slider) end
-    if Grid_mode == 2 and Triplets == false then r.GetSetProjectGrid(0, true, 1/16, Swing_on, Swing_Slider) end
-    if Grid_mode == 2 and Triplets == true then r.GetSetProjectGrid(0, true, 1/24, Swing_on, Swing_Slider) end
-    if Grid_mode == 3 and Triplets == false then r.GetSetProjectGrid(0, true, 1/32, Swing_on, Swing_Slider) end
-    if Grid_mode == 3 and Triplets == true then r.GetSetProjectGrid(0, true, 1/48, Swing_on, Swing_Slider) end
-    if Grid_mode == 4 and Triplets == false then r.GetSetProjectGrid(0, true, 1/64, Swing_on, Swing_Slider) end
-    if Grid_mode == 4 and Triplets == true then r.GetSetProjectGrid(0, true, 1/64, Swing_on, Swing_Slider) ; Triplets = false end
+    if Grid_mode == 0 and Triplets == false then r.GetSetProjectGrid(0, true, 1, Swing_on, Swing_Slider) end
+    if Grid_mode == 0 and Triplets == true then r.GetSetProjectGrid(0, true, 2/3, Swing_on, Swing_Slider) end
+    if Grid_mode == 1 and Triplets == false then r.GetSetProjectGrid(0, true, 1/2, Swing_on, Swing_Slider) end
+    if Grid_mode == 1 and Triplets == true then r.GetSetProjectGrid(0, true, 1/3, Swing_on, Swing_Slider) end
+    if Grid_mode == 2 and Triplets == false then r.GetSetProjectGrid(0, true, 1/4, Swing_on, Swing_Slider) end
+    if Grid_mode == 2 and Triplets == true then r.GetSetProjectGrid(0, true, 1/6, Swing_on, Swing_Slider) end
+    if Grid_mode == 3 and Triplets == false then r.GetSetProjectGrid(0, true, 1/8, Swing_on, Swing_Slider) end
+    if Grid_mode == 3 and Triplets == true then r.GetSetProjectGrid(0, true, 1/12, Swing_on, Swing_Slider) end
+    if Grid_mode == 4 and Triplets == false then r.GetSetProjectGrid(0, true, 1/16, Swing_on, Swing_Slider) end
+    if Grid_mode == 4 and Triplets == true then r.GetSetProjectGrid(0, true, 1/24, Swing_on, Swing_Slider) end
+    if Grid_mode == 5 and Triplets == false then r.GetSetProjectGrid(0, true, 1/32, Swing_on, Swing_Slider) end
+    if Grid_mode == 5 and Triplets == true then r.GetSetProjectGrid(0, true, 1/48, Swing_on, Swing_Slider) end
+    if Grid_mode == 6 and Triplets == false then r.GetSetProjectGrid(0, true, 1/64, Swing_on, Swing_Slider) end
+    if Grid_mode == 6 and Triplets == true then r.GetSetProjectGrid(0, true, 1/64, Swing_on, Swing_Slider) ; Triplets = false end
     if Triplets == true then Grid_table = Grid_string[2] else Grid_table = Grid_string[1] end
     _, divis, Swing_on, Swing_Slider = r.GetSetProjectGrid(0, 0)
     store_divis, store_Swing_on, store_Swing_Slider = divis, Swing_on, Swing_Slider
@@ -585,10 +580,10 @@ function collect_param()
    item_color_r, item_color_g, item_color_b = r.ColorFromNative(item_color)
    local red, green, blue = (255 - item_color_r), (255 - item_color_g), (255 - item_color_b )
    linecolor =  RGB(red, green, blue)
-   linecolor_v,_,_ = r.ImGui_ColorConvertRGBtoHSV(red/255, green/255, blue/255 )
-   red, green, blue = r.ImGui_ColorConvertHSVtoRGB(linecolor_v, 1, 1 )
+   linecolor_v,_,_ = ImGui.ColorConvertRGBtoHSV(red/255, green/255, blue/255 )
+   red, green, blue = ImGui.ColorConvertHSVtoRGB(linecolor_v, 1, 1 )
    linecolor = RGB(floor(red*255),floor(green*255) ,floor(blue*255) )
-   linecolor_v,_,_ = r.ImGui_ColorConvertRGBtoHSV(red, green, blue)
+   linecolor_v,_,_ = ImGui.ColorConvertRGBtoHSV(red, green, blue)
   end
 end
 
@@ -1038,7 +1033,7 @@ end
 
 local storegroupediting
 
-time = r.ImGui_GetTime(ctx)
+time = ImGui.GetTime(ctx)
 
 sel_tracks = 0
 
@@ -1660,8 +1655,9 @@ function Gate_Gl:Transient_Detective()
        
        
        for i = 1, Wave.selSamples do
-       local input = Wave.out_buf[i]
-       if input < 0 then input = input*-1 end
+       
+         local input = Wave.out_buf[i]
+         if input < 0 then input = input*-1 end
            --------------------------------------------
            -- Envelope1(fast) -------------------------
            if envOut1 < input then envOut1 = input + ga1 * (envOut1 - input)
@@ -1698,28 +1694,28 @@ function Gate_Gl:Transient_Detective()
                  smpl_cnt  = smpl_cnt+1 
                  ----------------------------    
                  
-                 else 
+              else 
                  
-                      Trig = false -- reset Trig state !!!
-                      -----------------------
-                      local RMS  = sqrt(rms_sum/det_velo_smpls)  -- calculate RMS
-                      if RMS >1 then RMS = 1 end
-                      
-                      --- Trigg point -------
-                      self.State_Points[st_cnt]   = i - det_velo_smpls  -- Time point(in Samples!) 
-                      self.State_Points[st_cnt+1] = {RMS, peak_smpl}    -- RMS, Peak values
-                    
-                      ----------------------------------------gridblocks selection icio
+                  Trig = false -- reset Trig state !!!
+                  -----------------------
+                  local RMS  = sqrt(rms_sum/det_velo_smpls)  -- calculate RMS
+                  if RMS >1 then RMS = 1 end
+                  
+                  --- Trigg point -------
+                  self.State_Points[st_cnt]   = i - det_velo_smpls  -- Time point(in Samples!) 
+                  self.State_Points[st_cnt+1] = {RMS, peak_smpl}    -- RMS, Peak values
+                
+                  ----------------------------------------gridblocks selection icio
 
-                      minRMS  = min(minRMS, RMS)         -- save minRMS for scaling
-                      minPeak = min(minPeak, peak_smpl)  -- save minPeak for scaling 
-                      maxRMS  = max(maxRMS, RMS)         -- save maxRMS for scaling
-                      maxPeak = max(maxPeak, peak_smpl)  -- save maxPeak for scaling 
-                      
-                      --------
-                      st_cnt = st_cnt+2
-              
-                      -----------------------
+                  minRMS  = min(minRMS, RMS)         -- save minRMS for scaling
+                  minPeak = min(minPeak, peak_smpl)  -- save minPeak for scaling 
+                  maxRMS  = max(maxRMS, RMS)         -- save maxRMS for scaling
+                  maxPeak = max(maxPeak, peak_smpl)  -- save maxPeak for scaling 
+                  
+                  --------
+                  st_cnt = st_cnt+2
+          
+                  -----------------------
               end
            end       
            ----------------------------------   
@@ -1758,19 +1754,23 @@ end
 
 local MainHwnd = r.GetMainHwnd()
 local trackview = r.JS_Window_FindChildByID(MainHwnd, 0x3E8)
+
 function CreateBitmap()
   local c = 1
+  
   for i = 1, (#Gate_Gl.grid_Points * item_n), 2 do 
     lines[c] = r.JS_LICE_CreateBitmap(true, 1, 1)
     r.JS_LICE_Clear(lines[c], linecolor)
-  c = c + 1
+    c = c + 1
   end
+  
   if visualizer then
-    for i = 1, item_n do 
+    for i = 1, item_n*4 do 
       visualizer_bounds[i] = r.JS_LICE_CreateBitmap(true, 1, 1)
-      r.JS_LICE_Clear(visualizer_bounds[i], 0x40FFFFFF)
+      r.JS_LICE_Clear(visualizer_bounds[i], 0x8FFFFFFF)
     end
   end
+  
 end
 
 function DestroyBitmap()
@@ -1789,6 +1789,8 @@ end
 
 
 function MW_drawlines()
+  local mouse_vert_line_on_arrange_window = false
+
   if check_itm == true and open and quantize_state == false  then
 
      local itemsn = r.CountSelectedMediaItems(0)
@@ -1796,8 +1798,9 @@ function MW_drawlines()
       for trck = 1, #items_to_analyze  do
 
         local item = items_to_analyze[trck]
-
-        if r.IsMediaItemSelected(item) == false then
+        local media_Hidden = r.GetMediaItemInfo_Value(item, "B_FIXEDLANE_HIDDEN")
+        
+        if r.IsMediaItemSelected(item) == false or media_Hidden == 1 then
           DestroyBitmap()
           reset_param()
           reset_edittracks()
@@ -1807,49 +1810,76 @@ function MW_drawlines()
         local sel_tr = sel_tracks_table[trck]
 
         local media_move_check =   r.GetMediaItemInfo_Value(item, "D_LENGTH" ) - r.GetMediaItemInfo_Value(item, "D_POSITION") 
-
+        local track_H = r.GetMediaTrackInfo_Value(sel_tr, "I_TCPH")
+        
         if media_move_check == first_sel_item_length - first_sel_item_start and sel_tr == r.GetMediaItemTrack(item) then
+            
             local MWzoom = r.GetHZoomLevel()
             local _, scrollpos, pageSize, min, max, trackPos  = r.JS_Window_GetScrollInfo( trackview, "h" )
             local _, scrollpos_v = r.JS_Window_GetScrollInfo( trackview, "v" )
             local  _, width = r.JS_Window_GetClientSize( trackview )
             local track_y = r.GetMediaTrackInfo_Value(sel_tr, "I_TCPY") 
             local track_H = r.GetMediaTrackInfo_Value(sel_tr, "I_TCPH")
-            local media_H = r.GetMediaItemInfo_Value(item, "I_LASTH" )
+      
+            --local track_FL_n = r.GetMediaTrackInfo_Value(sel_tr, "I_NUMFIXEDLANES")
+            
+            if r.GetToggleCommandState(43194) then
+             local window, _, _ = r.BR_GetMouseCursorContext() 
+             if window == "arrange" then
+              mouse_vert_line_on_arrange_window = true
+             else
+              mouse_vert_line_on_arrange_window = false
+             end
+            end
+            
+            local media_H = 0
+            
+            if track_H ~= 0 then
+               media_H = r.GetMediaItemInfo_Value(item, "I_LASTH" )
+            end
+            
             local media_Y = r.GetMediaItemInfo_Value(item, "I_LASTY" )
-            
-            
-            
+         
+            --local media_FL_y = r.GetMediaItemInfo_Value(item, "F_FREEMODE_Y")
+           -- local media_FL_h = r.GetMediaItemInfo_Value(item, "F_FREEMODE_H")
+
             movescreen[trck] =h_zoom_center + zoom_bounds_L + zoom_bounds_Total + r.CSurf_TrackToID( sel_tr, false ) + MWzoom + scrollpos + track_H + media_H + scrollpos_v + itemsn + track_y*2
             
-            if MW_lines_ON and (Gtolerance_slider or r.GetPlayState() ~= 0 or visualizer_rv or Offset or Detect_rv2 or Detect_rv or Visualizer_mode_rv or
+            if MW_lines_ON and (Gtolerance_slider or r.GetPlayState() ~= 0 or mouse_vert_line_on_arrange_window or visualizer_rv or Offset or Detect_rv2 or Detect_rv or Visualizer_mode_rv or
             color_button or Sensitivity_slider or Change_grid or movescreen[trck] ~= movescreen_prev[trck]) then --or set_grid_from_script or get_grid_from_proj
-
-            if visualizer then
-            ---------------------------------------------- visualizer ZOOM AREA reference on MW
-            local bounds_start_pos = floor((startT+(zoom_bounds_L/first_srate)) * MWzoom)
-            local bounds_width = floor((zoom_bounds_Total/first_srate) * MWzoom)
+  
+              if visualizer then
+                ---------------------------------------------- visualizer ZOOM AREA reference on MW
+                local bounds_start_pos = floor((startT+(zoom_bounds_L/first_srate)) * MWzoom)
+                local bounds_width = floor((zoom_bounds_Total/first_srate) * MWzoom)
+                --local composite_Y_start = track_y + (track_H*media_FL_y+0.5)//1
+                --local composite_Y_end = media_Y - (track_H*media_FL_y+0.5)//1
+                local thickness = 3 -- media_H//8
+                r.JS_Composite(trackview, bounds_start_pos - scrollpos, track_y + media_Y , bounds_width, thickness ,visualizer_bounds[trck], 0, 0, 1, 1, true)
+                r.JS_Composite(trackview, bounds_start_pos - scrollpos, track_y + media_Y + media_H - thickness , bounds_width, thickness ,visualizer_bounds[trck+#items_to_analyze], 0, 0, 1, 1, true)
+                r.JS_Composite(trackview, bounds_start_pos - scrollpos, track_y + media_Y + thickness , thickness,  media_H - thickness*2,visualizer_bounds[trck+#items_to_analyze*2], 0, 0, 1, 1, true)
+                r.JS_Composite(trackview, bounds_start_pos - scrollpos + bounds_width - thickness, track_y + media_Y + thickness , thickness , media_H - thickness*2 ,visualizer_bounds[trck+#items_to_analyze*3], 0, 0, 1, 1, true)
+                
+                ----------------------------------------------
+              end
             
-            -- r.JS_Composite(trackview, bounds_start_pos - scrollpos, track_y + media_Y+media_H, bounds_width, 1,visualizer_bounds[trck], 0, 0, 1, 1, true)
-            -- r.JS_Composite(trackview, bounds_start_pos - scrollpos, track_y + media_Y, bounds_width, media_H,visualizer_bounds[trck], 0, 0, 1, 1, true)
-            r.JS_Composite(trackview, bounds_start_pos - scrollpos, track_y , bounds_width, media_Y,visualizer_bounds[trck], 0, 0, 1, 1, true)
-            
-            ----------------------------------------------
-            end
               movescreen_prev[trck] = movescreen[trck]
               local pagesizecheck = (floor(width/pageSize))
               scrollpos = scrollpos*pagesizecheck
               local Reduce_P_v = ((100-Sensitivity_v)/sens_def)
               local c = 1
+              
               for i = 1, #Gate_Gl.grid_Points, 2 do
                 local trig_line_pos = (Gate_Gl.grid_Points[i]/first_srate) + (Offset_v/1000)
                 local item_screen_pos = floor((startT+trig_line_pos) * MWzoom)
-                if pagesizecheck <=4 and  Gate_Gl.grid_Points[i+1][Detect+1] >= Reduce_P_v then --track_y + tr_label_h
-                  r.JS_Composite(trackview, item_screen_pos - scrollpos, track_y + media_Y, QN_lineTHICK[i], media_H, lines[c+((#Gate_Gl.grid_Points/2)*(trck-1))], 0, 0, 1, 1, true)
-                else r.JS_Composite(trackview, item_screen_pos - scrollpos, track_y + media_Y,  0, media_H, lines[c+((#Gate_Gl.grid_Points/2)*(trck-1))], 0, 0, 1, 1, true)
-                end
+                  if pagesizecheck <=4 and  Gate_Gl.grid_Points[i+1][Detect+1] >= Reduce_P_v then --track_y + tr_label_h
+                    r.JS_Composite(trackview, item_screen_pos - scrollpos, track_y + media_Y, QN_lineTHICK[i], media_H, lines[c+((#Gate_Gl.grid_Points/2)*(trck-1))], 0, 0, 1, 1, true)
+                  else 
+                    r.JS_Composite(trackview, item_screen_pos - scrollpos, track_y + media_Y,  0, media_H, lines[c+((#Gate_Gl.grid_Points/2)*(trck-1))], 0, 0, 1, 1, true)
+                  end
                 c = c + 1
               end
+              
             end
  
         else
@@ -1899,7 +1929,7 @@ function getitem()
   --profiler.start()
   cyclecount = 0
   quantize_state = false
-  time = r.ImGui_GetTime(ctx)
+  time = ImGui.GetTime(ctx)
   DestroyBitmap()
   reset_param()
 
@@ -1956,20 +1986,20 @@ end
 -----------------------------imgui functions-----------------------------------
 
 function filter_add_preset()
-  r.ImGui_OpenPopup(ctx, 'FilterAddPreset')
-  r.ImGui_SetNextWindowPos( ctx, main_x+(main_w/2)-100, main_y+(main_h/2)-50 )
-  r.ImGui_SetNextWindowSize( ctx, 200, 100 )
+  ImGui.OpenPopup(ctx, 'FilterAddPreset')
+  ImGui.SetNextWindowPos( ctx, main_x+(main_w/2)-100, main_y+(main_h/2)-50 )
+  ImGui.SetNextWindowSize( ctx, 200, 100 )
   
-  if r.ImGui_BeginPopupModal(ctx, 'FilterAddPreset', _,  r.ImGui_WindowFlags_NoMove() | r.ImGui_WindowFlags_NoDecoration() ) then
-   r.ImGui_SeparatorText(ctx, 'Store Preset')
-   r.ImGui_PushItemWidth(ctx, -1)
+  if ImGui.BeginPopupModal(ctx, 'FilterAddPreset', _,  ImGui.WindowFlags_NoMove | ImGui.WindowFlags_NoDecoration ) then
+   ImGui.SeparatorText(ctx, 'Store Preset')
+   ImGui.PushItemWidth(ctx, -1)
 
-   if not r.ImGui_IsAnyItemActive(ctx) then r.ImGui_SetKeyboardFocusHere( ctx ) end
-   _, newpresetname = r.ImGui_InputTextWithHint( ctx, '##newpresetname_input', '--Preset-Name--', newpresetname, r.ImGui_InputTextFlags_AutoSelectAll() )
-   -- _, newpresetname =r.ImGui_InputText(ctx,'##newpresetname_input', newpresetname,  reaper.ImGui_InputTextFlags_AutoSelectAll())
-   r.ImGui_PushItemWidth(ctx, -1)
+   if not ImGui.IsAnyItemActive(ctx) then ImGui.SetKeyboardFocusHere( ctx ) end
+   _, newpresetname = ImGui.InputTextWithHint( ctx, '##newpresetname_input', '--Preset-Name--', newpresetname, ImGui.InputTextFlags_AutoSelectAll )
+   -- _, newpresetname =ImGui.InputText(ctx,'##newpresetname_input', newpresetname,  ImGui.InputTextFlags_AutoSelectAll)
+   ImGui.PushItemWidth(ctx, -1)
   
-   if  r.ImGui_Button(ctx, 'Add', 87) then 
+   if  ImGui.Button(ctx, 'Add', 87) then 
    local rv, pos = findValue(filter_preset_list,newpresetname)
     if rv then
       r.SetExtState(scriptname, 'Filter Preset' .. pos, tostring(lowcut..','.. hicut ..','.. gain_v ..','.. attack_trans),true)
@@ -1985,9 +2015,9 @@ function filter_add_preset()
       r.SetExtState(scriptname, 'Filter Preset' .. filter_preset, tostring(lowcut..','.. hicut ..','.. gain_v ..','.. attack_trans),true)
     end
    end
-   r.ImGui_SameLine(ctx)
-   if  r.ImGui_Button(ctx, 'Cancel', 87) then filter_preset = store_filter_preset or 0; ADDpreset = 0 end
-   r.ImGui_EndPopup(ctx)
+   ImGui.SameLine(ctx)
+   if  ImGui.Button(ctx, 'Cancel', 87) then filter_preset = store_filter_preset or 0; ADDpreset = 0 end
+   ImGui.EndPopup(ctx)
   end
 end
 
@@ -2046,23 +2076,23 @@ function filter_get_preset(filter_preset)
 end
 
 function help_widget(string, zero_parameter, storequery)
-  if r.ImGui_IsItemHovered(ctx, r.ImGui_HoveredFlags_DelayNormal()) and Help_state == true then
-    r.ImGui_BeginTooltip(ctx)
-    r.ImGui_PushTextWrapPos(ctx, r.ImGui_GetFontSize(ctx) * 25.0)
+  if Help_state == true and ImGui.BeginItemTooltip(ctx) then
+    
+    ImGui.PushTextWrapPos(ctx, ImGui.GetFontSize(ctx) * 25.0)
   
-    r.ImGui_Text(ctx, string )
+    ImGui.Text(ctx, string )
     
     if zero_parameter~=nil then 
       if not storequery then
-      r.ImGui_Text(ctx, 'ALT Click => Set to '..zero_parameter )
-      r.ImGui_Text(ctx, 'Right Click => Store as Default Query ' )
-     -- r.ImGui_Text(ctx, 'Alt - Double Click => Set to ' .. zero_parameter)
+      ImGui.Text(ctx, 'ALT Click => Set to '..zero_parameter )
+      ImGui.Text(ctx, 'Right Click => Store as Default Query ' )
+     -- ImGui.Text(ctx, 'Alt - Double Click => Set to ' .. zero_parameter)
       else
-      r.ImGui_Text(ctx, 'ALT Click => Set to '..zero_parameter )
+      ImGui.Text(ctx, 'ALT Click => Set to '..zero_parameter )
       end
     end
-    r.ImGui_PopTextWrapPos(ctx)
-    r.ImGui_EndTooltip(ctx)
+    ImGui.PopTextWrapPos(ctx)
+    ImGui.EndTooltip(ctx)
   end
 end
 
@@ -2074,81 +2104,83 @@ function store_single_settings(parameter, par_name, unit)
 
     if Store_Par_Window[par_name] == nil then Store_Par_Window[par_name] = false end
     
-    if r.ImGui_IsMouseClicked( ctx, 1 ) and Store_Par_Window[par_name] == true then
+    if ImGui.IsMouseClicked( ctx, 1 ) and Store_Par_Window[par_name] == true then
       Store_Par_Window[par_name] = false
     end
-    if r.ImGui_IsItemClicked(ctx, 1) then
+    if ImGui.IsItemClicked(ctx, 1) then
       Store_Par_Window[par_name] = true
     end
     
     
 
     if Store_Par_Window[par_name]  then
-    r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_PopupRounding(), 10)
+    ImGui.PushStyleVar(ctx, ImGui.StyleVar_PopupRounding, 10)
           
     Button_Style(0.6)
     
-      r.ImGui_OpenPopup(ctx, 'StoreDefault'..par_name )
-      x, y = r.ImGui_GetMouseClickedPos( ctx, 1 )
-      r.ImGui_SetNextWindowPos( ctx, x-20 , y-15)
+      ImGui.OpenPopup(ctx, 'StoreDefault'..par_name )
+      x, y = ImGui.GetMouseClickedPos( ctx, 1 )
+      ImGui.SetNextWindowPos( ctx, x-20 , y-15)
       
-      if r.ImGui_BeginPopup( ctx, 'StoreDefault'..par_name, r.ImGui_WindowFlags_NoScrollbar() | r.ImGui_WindowFlags_NoMove()) then
+      if ImGui.BeginPopup( ctx, 'StoreDefault'..par_name, ImGui.WindowFlags_NoScrollbar | ImGui.WindowFlags_NoMove) then
       
-        r.ImGui_Text(ctx, 'Store')
-        r.ImGui_SameLine(ctx)
-        r.ImGui_TextColored( ctx, 0xFFFF00FF, parameter .. unit )
-        r.ImGui_SameLine(ctx)
-        r.ImGui_Text(ctx, 'as Default?')
+        ImGui.Text(ctx, 'Store')
+        ImGui.SameLine(ctx)
+        ImGui.TextColored( ctx, 0xFFFF00FF, parameter .. unit )
+        ImGui.SameLine(ctx)
+        ImGui.Text(ctx, 'as Default?')
         
-        r.ImGui_BeginTable(ctx, 'store', 2,   r.ImGui_TableFlags_SizingStretchSame() )
-        r.ImGui_TableNextColumn(ctx)
-        if r.ImGui_Button( ctx, 'Yes', -1) then
+        if ImGui.BeginTable(ctx, 'store', 2,   ImGui.TableFlags_SizingStretchSame ) then
+        ImGui.TableNextColumn(ctx)
+        if ImGui.Button( ctx, 'Yes', -1) then
           r.SetExtState(scriptname,par_name,parameter,true)
           Store_Par_Window[par_name] = false
         end
 
-        r.ImGui_TableNextColumn(ctx)
+        ImGui.TableNextColumn(ctx)
 
-        if r.ImGui_Button( ctx, 'No', -1) then
+        if ImGui.Button( ctx, 'No', -1) then
           Store_Par_Window[par_name] = false
         end
         
-        r.ImGui_EndTable(ctx)
-        r.ImGui_EndPopup(ctx)
+        ImGui.EndTable(ctx)
+        end
+        ImGui.EndPopup(ctx)
       end
-    r.ImGui_PopStyleColor(ctx, 3)
-    r.ImGui_PopStyleVar(ctx)
+    ImGui.PopStyleColor(ctx, 3)
+    ImGui.PopStyleVar(ctx)
     end
 
 end
 
 
 function errormessage(number)
-local w,h = r.ImGui_GetWindowSize(ctx)
-local x,y = r.ImGui_GetWindowPos(ctx)
-    r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_PopupRounding(), 10)
-    r.ImGui_PushStyleVar(ctx,  r.ImGui_StyleVar_SeparatorTextAlign(), 0.5, 0.5)     
+local w,h = ImGui.GetWindowSize(ctx)
+local x,y = ImGui.GetWindowPos(ctx)
+    ImGui.PushStyleVar(ctx, ImGui.StyleVar_PopupRounding, 10)
+    ImGui.PushStyleVar(ctx,  ImGui.StyleVar_SeparatorTextAlign, 0.5, 0.5)     
 
-      r.ImGui_OpenPopup(ctx, 'Error Message:' )
-      r.ImGui_SetNextWindowSize(ctx, 300, 80)
-      r.ImGui_SetNextWindowPos(ctx, x+(w/2) -150, y+(h/2)-40)
-      if r.ImGui_BeginPopupModal( ctx, 'Error Message:', false,  r.ImGui_WindowFlags_NoScrollbar() | r.ImGui_WindowFlags_NoMove() | r.ImGui_WindowFlags_NoResize()) then
-        r.ImGui_BeginTable(ctx, 'Error', 1 )
-        r.ImGui_TableNextColumn(ctx)
-        r.ImGui_SeparatorText(ctx, error_msg_table[error_msg])
-        r.ImGui_EndTable(ctx)
-        r.ImGui_EndPopup(ctx)
+      ImGui.OpenPopup(ctx, 'Error Message:' )
+      ImGui.SetNextWindowSize(ctx, 300, 80)
+      ImGui.SetNextWindowPos(ctx, x+(w/2) -150, y+(h/2)-40)
+      if ImGui.BeginPopupModal( ctx, 'Error Message:', false,  ImGui.WindowFlags_NoScrollbar | ImGui.WindowFlags_NoMove | ImGui.WindowFlags_NoResize) then
+        if ImGui.BeginTable(ctx, 'Error', 1 ) then
+          ImGui.TableNextColumn(ctx)
+          ImGui.SeparatorText(ctx, error_msg_table[error_msg])
+          ImGui.EndTable(ctx)
+        end
+        ImGui.EndPopup(ctx)
       end
-    r.ImGui_PopStyleVar(ctx, 2)
+    ImGui.PopStyleVar(ctx, 2)
 
 end
 
 function Mouse_Init_parameter(parameter, value)
-  if r.ImGui_IsItemHovered(ctx) and r.ImGui_IsKeyDown( ctx, 16384 ) and r.ImGui_IsMouseReleased(ctx, 0)  then
+  if ImGui.IsItemHovered(ctx) and (ImGui.IsKeyDown( ctx, ImGui.Key_RightAlt ) or ImGui.IsKeyDown( ctx, ImGui.Key_LeftAlt )) and ImGui.IsMouseReleased(ctx, 0)  then
       parameter = value
   end
   --[[
-  if r.ImGui_IsItemHovered(ctx) and r.ImGui_IsKeyDown( ctx, 16384 ) and r.ImGui_IsMouseDoubleClicked(ctx, 0) then
+  if ImGui.IsItemHovered(ctx) and ImGui.IsKeyDown( ctx, 16384 ) and ImGui.IsMouseDoubleClicked(ctx, 0) then
       parameter = value2 or 0
   end
   ]]--
@@ -2158,43 +2190,43 @@ end
 function Slider_Style(hue)
      local s = 0.8
      local v = 0.9
-     r.ImGui_PushStyleColor(ctx, r.ImGui_Col_FrameBg(), HSV(hue, s, v, 0.40))
-     r.ImGui_PushStyleColor(ctx, r.ImGui_Col_FrameBgHovered(), HSV(hue, s, v, 0.6))
-     r.ImGui_PushStyleColor(ctx, r.ImGui_Col_FrameBgActive(), HSV(hue, s, v, 0.6))
-     r.ImGui_PushStyleColor(ctx, r.ImGui_Col_SliderGrab(), HSV(hue+0.07, s, v, 0.8))
-     r.ImGui_PushStyleColor(ctx, r.ImGui_Col_SliderGrabActive(), HSV(hue+0.07, s, v, 0.8))
+     ImGui.PushStyleColor(ctx, ImGui.Col_FrameBg, HSV(hue, s, v, 0.40))
+     ImGui.PushStyleColor(ctx, ImGui.Col_FrameBgHovered, HSV(hue, s, v, 0.6))
+     ImGui.PushStyleColor(ctx, ImGui.Col_FrameBgActive, HSV(hue, s, v, 0.6))
+     ImGui.PushStyleColor(ctx, ImGui.Col_SliderGrab, HSV(hue+0.07, s, v, 0.8))
+     ImGui.PushStyleColor(ctx, ImGui.Col_SliderGrabActive, HSV(hue+0.07, s, v, 0.8))
 end
 
 function Button_Style(hue)
     local s = 0.8
     local v = 0.9
 
-    r.ImGui_PushStyleColor(ctx, r.ImGui_Col_Button(), HSV(hue, s, v, 0.5))
-    r.ImGui_PushStyleColor(ctx, r.ImGui_Col_ButtonActive(), HSV(hue, s, v, 1))
-    r.ImGui_PushStyleColor(ctx, r.ImGui_Col_ButtonHovered(), HSV(hue, s, v, 0.8))
+    ImGui.PushStyleColor(ctx, ImGui.Col_Button, HSV(hue, s, v, 0.5))
+    ImGui.PushStyleColor(ctx, ImGui.Col_ButtonActive, HSV(hue, s, v, 1))
+    ImGui.PushStyleColor(ctx, ImGui.Col_ButtonHovered, HSV(hue, s, v, 0.8))
 end
 
 function Menu_Button_Style(hue)
     local s = 0.5
     local v = 0.2
 
-    r.ImGui_PushStyleColor(ctx, r.ImGui_Col_Button(), HSV(hue, s, v, 0.5))
-    r.ImGui_PushStyleColor(ctx, r.ImGui_Col_ButtonActive(), HSV(hue, s, v, 1))
-    r.ImGui_PushStyleColor(ctx, r.ImGui_Col_ButtonHovered(), HSV(hue, s, v, 1))
+    ImGui.PushStyleColor(ctx, ImGui.Col_Button, HSV(hue, s, v, 0.5))
+    ImGui.PushStyleColor(ctx, ImGui.Col_ButtonActive, HSV(hue, s, v, 1))
+    ImGui.PushStyleColor(ctx, ImGui.Col_ButtonHovered, HSV(hue, s, v, 1))
 end
 
 function Waveform_Button_Style(hue)
     local s = 0.5
     local v = 0.2
 
-    r.ImGui_PushStyleColor(ctx, r.ImGui_Col_Button(), HSV(hue, s, v, 0.5))
-    r.ImGui_PushStyleColor(ctx, r.ImGui_Col_ButtonActive(), HSV(hue, s, v, 1))
-    r.ImGui_PushStyleColor(ctx, r.ImGui_Col_ButtonHovered(), HSV(hue, s, v, 1))
+    ImGui.PushStyleColor(ctx, ImGui.Col_Button, HSV(hue, s, v, 0.5))
+    ImGui.PushStyleColor(ctx, ImGui.Col_ButtonActive, HSV(hue, s, v, 1))
+    ImGui.PushStyleColor(ctx, ImGui.Col_ButtonHovered, HSV(hue, s, v, 1))
 end
 
 function mode_center_align (text, size, mode)
 blanks = ''
-    emply_text_w , _ = r.ImGui_CalcTextSize( ctx, ' ' , emply_text_w , emply_text_h)
+    emply_text_w , _ = ImGui.CalcTextSize( ctx, ' ' , emply_text_w , emply_text_h)
     totalblanks = floor(size/emply_text_w)
     text_len = string.len(text)
     
@@ -2208,9 +2240,9 @@ blanks = ''
 end
 
 function thresh_histogram() ---------- draw Threshold PEAK Histogram
-  local th_max_x, th_max_y =  r.ImGui_GetItemRectMax(ctx)
+  local th_max_x, th_max_y =  ImGui.GetItemRectMax(ctx)
     if  quantize_state == false then
-    local th_w, th_h = r.ImGui_GetItemRectSize(ctx)
+    local th_w, th_h = ImGui.GetItemRectSize(ctx)
 
      if thresh_moving ~= th_max_x+th_max_y or cyclecount== 1 then
 
@@ -2233,7 +2265,7 @@ function thresh_histogram() ---------- draw Threshold PEAK Histogram
 
         if thresh_histogram_table[i]~= 0 then
         
-          r.ImGui_DrawList_AddLine( draw_list, thresh_histogram_table[i][1], th_max_y, thresh_histogram_table[i][1] , thresh_histogram_table[i][2], 0xFFFF0030,1 )
+          ImGui.DrawList_AddLine( draw_list, thresh_histogram_table[i][1], th_max_y, thresh_histogram_table[i][1] , thresh_histogram_table[i][2], 0xFFFF0030,1 )
         end
       end 
     thresh_moving = th_max_x+th_max_y
@@ -2243,31 +2275,31 @@ end
 local LRarrow = 0
 function waveform_visualizer()
       
-         local w = m_window_width - r.ImGui_StyleVar_CellPadding()-2
+         local w = m_window_width - ImGui.StyleVar_CellPadding-2
          local y_pos = 0
          local y_neg = 0
          local max_zoom_h = floor(#Wave.out_buf/(m_window_width*2))
 
          local i_array = 1
          
-         if  r.ImGui_IsKeyPressed( ctx,  r.ImGui_Key_DownArrow() ) then -------- down arrow for waveform zooming 
+         if  ImGui.IsKeyPressed( ctx,  ImGui.Key_DownArrow ) then -------- down arrow for waveform zooming 
           waveform_zoom_gain = waveform_zoom_gain-1
          end
          
-         if  r.ImGui_IsKeyPressed( ctx,  r.ImGui_Key_UpArrow() ) then -------- up arrow for waveform zooming
+         if  ImGui.IsKeyPressed( ctx,  ImGui.Key_UpArrow ) then -------- up arrow for waveform zooming
           waveform_zoom_gain = waveform_zoom_gain+1
          end
          if waveform_zoom_gain<1 then waveform_zoom_gain=1 end -----------min waveform zoom is 1
          if waveform_zoom_gain>14 then waveform_zoom_gain=14 end -----------max waveform zoom is 14
          
          
-         if  r.ImGui_IsKeyPressed( ctx,   r.ImGui_Key_LeftArrow() ) or r.ImGui_IsKeyPressed( ctx,   r.ImGui_Key_RightArrow() ) then -------- left arrow for navigating
+         if  ImGui.IsKeyPressed( ctx,   ImGui.Key_LeftArrow ) or ImGui.IsKeyPressed( ctx,   ImGui.Key_RightArrow ) then -------- left arrow for navigating
           
-          if  r.ImGui_IsKeyPressed( ctx,   r.ImGui_Key_LeftArrow() ) then 
+          if  ImGui.IsKeyPressed( ctx,   ImGui.Key_LeftArrow ) then 
             h_zoom_center = h_zoom_center + -0.1/waveform_zoom_h
             LRarrow = 1
           end
-          if  r.ImGui_IsKeyPressed( ctx,   r.ImGui_Key_RightArrow() ) then  
+          if  ImGui.IsKeyPressed( ctx,   ImGui.Key_RightArrow ) then  
             h_zoom_center = h_zoom_center + 0.1/waveform_zoom_h
             LRarrow = 1
           end
@@ -2275,12 +2307,12 @@ function waveform_visualizer()
           LRarrow = 0
          end
          
-         if r.ImGui_IsItemHovered(ctx) then ------- if hovered change mouse cursor
-         r.ImGui_SetMouseCursor( ctx, r.ImGui_MouseCursor_ResizeAll() )
+         if ImGui.IsItemHovered(ctx) then ------- if hovered change mouse cursor
+         ImGui.SetMouseCursor( ctx, ImGui.MouseCursor_ResizeAll )
          
-         local mouse_wheel_v, mouse_wheel_h = r.ImGui_GetMouseWheel( ctx )
+         local mouse_wheel_v, mouse_wheel_h = ImGui.GetMouseWheel( ctx )
          
-           if r.ImGui_IsMouseClicked( ctx, 0 ) or mouse_wheel_v~=0 or mouse_wheel_h~=0 then -------- zoom when click left
+           if ImGui.IsMouseClicked( ctx, 0 ) or mouse_wheel_v~=0 or mouse_wheel_h~=0 then -------- zoom when click left
            new_zoom_pos_range = (1/waveform_zoom_h)
            new_zoom_pos_start = (startsample/#Wave.out_buf)
              local x_mouse, _ = r.GetMousePosition(ctx)
@@ -2295,8 +2327,9 @@ function waveform_visualizer()
            end
            
            
-           if r.ImGui_IsMouseDragging( ctx, 1 ) then ------right click dragging 
-            local x_delta_rc, _ = r.ImGui_GetMouseDelta( ctx )
+           if ImGui.IsMouseDragging( ctx, 1 ) then ------right click dragging 
+           -- ImGui.SetMouseCursor( ctx, ImGui.MouseCursor_Hand )
+            local x_delta_rc, _ = ImGui.GetMouseDelta( ctx )
             h_zoom_center = h_zoom_center - x_delta_rc/w/waveform_zoom_h
             
             right_click_dragging = true
@@ -2308,9 +2341,9 @@ function waveform_visualizer()
            if h_zoom_center<0 then h_zoom_center = 0 end
            
            
-           if r.ImGui_IsMouseDragging( ctx, 0 ) or mouse_wheel_v~=0 or mouse_wheel_h~=0 then -------------------get horizontal zoom value
+           if ImGui.IsMouseDragging( ctx, 0 ) or mouse_wheel_v~=0 or mouse_wheel_h~=0 then -------------------get horizontal zoom value
              h_zoom_dragging = true
-             local x_delta, y_delta = r.ImGui_GetMouseDelta( ctx )
+             local x_delta, y_delta = ImGui.GetMouseDelta( ctx )
              mouse_wheel_h = (mouse_wheel_h^3)*-1
              mouse_wheel_h=min(mouse_wheel_h,600)
              mouse_wheel_h=max(mouse_wheel_h,-600)
@@ -2331,7 +2364,7 @@ function waveform_visualizer()
            
            
          else
-           r.ImGui_SetMouseCursor( ctx, r.ImGui_MouseCursor_Arrow() )
+           ImGui.SetMouseCursor( ctx, ImGui.MouseCursor_Arrow )
          end
 
            if w_check ~= w or cyclecount==1 or h_zoom_dragging or LRarrow~=0 or right_click_dragging then ---or v_zoom_dragging then
@@ -2390,47 +2423,48 @@ end ---------------------- end Visualizer
 
 function Main_loop()
 
-draw_list = r.ImGui_GetWindowDrawList(ctx)
-
 if cyclecount < 2 then
   cyclecount = cyclecount+1
 end
 
   if font_size_slider or initfont then
-    my_font = r.ImGui_CreateFont(font_type, font_size)
-    r.ImGui_Attach(ctx, my_font)
-    my_font2 = r.ImGui_CreateFont(font_type, font_size -2)
-    r.ImGui_Attach(ctx, my_font2)
+    my_font = ImGui.CreateFont(font_type, font_size)
+    ImGui.Attach(ctx, my_font)
+    my_font2 = ImGui.CreateFont(font_type, font_size -2)
+    ImGui.Attach(ctx, my_font2)
     
-    --r.ImGui_Attach(ctx, my_font3)
+    --ImGui.Attach(ctx, my_font3)
     initfont = false
   end
   
   main_win_h_adapt = floor((m_window_height/16)*(font_size)*((16/font_size)^0.45))+visualizer_h
   
-  r.ImGui_PushFont(ctx, my_font)
+  ImGui.PushFont(ctx, my_font)
   
-  r.ImGui_SetNextWindowSize( ctx, m_window_width, main_win_h_adapt )
-  r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_WindowTitleAlign(), 0.5, 0.5)
-  r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_WindowRounding(), 10)
-  r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_WindowBorderSize(), 0)
+  ImGui.SetNextWindowSize( ctx, m_window_width, main_win_h_adapt )
+  ImGui.PushStyleVar(ctx, ImGui.StyleVar_WindowTitleAlign, 0.5, 0.5)
+  ImGui.PushStyleVar(ctx, ImGui.StyleVar_WindowRounding, 10)
+  ImGui.PushStyleVar(ctx, ImGui.StyleVar_WindowBorderSize, 0)
   
-  r.ImGui_PushStyleColor( ctx, r.ImGui_Col_WindowBg(), HSV(0, 0, 0.15, 1) )
+  ImGui.PushStyleColor( ctx, ImGui.Col_WindowBg, HSV(0, 0, 0.15, 1) )
   
   if dockid~=0 and cyclecount == 1 then
-    r.ImGui_SetNextWindowDockID( ctx, dockid)
+    ImGui.SetNextWindowDockID( ctx, dockid)
   end
   
-    visible, open = r.ImGui_Begin(ctx, scriptname, true,  r.ImGui_WindowFlags_NoResize() | r.ImGui_WindowFlags_NoScrollbar())
+    visible, open = ImGui.Begin(ctx, scriptname, true,  ImGui.WindowFlags_NoResize | ImGui.WindowFlags_NoScrollbar)
 
   
-docked = r.ImGui_IsWindowDocked( ctx )
-dockid = r.ImGui_GetWindowDockID( ctx )
+docked = ImGui.IsWindowDocked( ctx )
+dockid = ImGui.GetWindowDockID( ctx )
 
 if visible then
+  
+  draw_list = ImGui.GetWindowDrawList(ctx)
+  
   MW_lines_ON = ((Visualizer_mode == 1 and not visualizer) or Visualizer_mode == 0) 
-  main_x ,main_y = r.ImGui_GetWindowPos( ctx )
-  main_w, main_h = r.ImGui_GetWindowSize( ctx )
+  main_x ,main_y = ImGui.GetWindowPos( ctx )
+  main_w, main_h = ImGui.GetWindowSize( ctx )
    
   if m_window_width == 720 then 
   radio_w_size = 0 
@@ -2454,186 +2488,193 @@ if visible then
   end
   
   
-  r.ImGui_PopStyleColor(ctx, 1)
+  ImGui.PopStyleColor(ctx, 1)
   
-  if error_msg~=0 and r.ImGui_GetTime(ctx) < time +3 then
+  if error_msg~=0 and ImGui.GetTime(ctx) < time +3 then
       errormessage(error_msg)
   end
   
 -----------------------------------MENU-----------------------------------------------------
     
     Menu_Button_Style(0.5)
-    if r.ImGui_BeginTable(ctx, 'menubar', 4, r.ImGui_TableFlags_NoPadOuterX()| r.ImGui_TableFlags_NoPadInnerX() 
-    | r.ImGui_TableFlags_PreciseWidths(), m_window_width-r.ImGui_StyleVar_CellPadding(), 20) then
+    if ImGui.BeginTable(ctx, 'menubar', 4, ImGui.TableFlags_NoPadOuterX| ImGui.TableFlags_NoPadInnerX 
+    | ImGui.TableFlags_PreciseWidths, m_window_width-ImGui.StyleVar_CellPadding, 20) then
     
-      r.ImGui_TableNextColumn(ctx)
-      r.ImGui_PushStyleColor( ctx, r.ImGui_Col_PopupBg(), HSV(0, 0, 0.15, 1) )
+      ImGui.TableNextColumn(ctx)
+      ImGui.PushStyleColor( ctx, ImGui.Col_PopupBg, HSV(0, 0, 0.15, 1) )
       
       
-      if r.ImGui_Button(ctx, 'Menu', (m_window_width/13)+(m_window_width-720)/6, 0) then
-         _, ymenu = r.ImGui_GetItemRectMin( ctx )
-         r.ImGui_OpenPopup(ctx, '##menulist')
+      if ImGui.Button(ctx, 'Menu', (m_window_width/13)+(m_window_width-720)/6, 0) then
+         _, ymenu = ImGui.GetItemRectMin( ctx )
+         ImGui.OpenPopup(ctx, '##menulist')
   
-         r.ImGui_SetNextWindowPos( ctx, main_x + r.ImGui_StyleVar_FramePadding() - r.ImGui_StyleVar_WindowPadding(), ymenu)
-         r.ImGui_SetNextWindowSize( ctx, floor(m_window_width/4) - r.ImGui_StyleVar_FramePadding(), main_h - ymenu + main_y - r.ImGui_StyleVar_WindowPadding() )
+         ImGui.SetNextWindowPos( ctx, main_x + ImGui.StyleVar_FramePadding - ImGui.StyleVar_WindowPadding, ymenu)
+         ImGui.SetNextWindowSize( ctx, floor(m_window_width/4) - ImGui.StyleVar_FramePadding, main_h - ymenu + main_y - ImGui.StyleVar_WindowPadding )
       end 
       
-      r.ImGui_SameLine(ctx)
-      visualizer_rv, visualizer = r.ImGui_Checkbox( ctx, 'Visualizer', visualizer )
+      ImGui.SameLine(ctx)
+      visualizer_rv, visualizer = ImGui.Checkbox( ctx, 'Visualizer', visualizer )
       
-      r.ImGui_PushFont(ctx, my_font2)
+      ImGui.PushFont(ctx, my_font2)
       
-      if r.ImGui_BeginPopupModal(ctx, '##menulist', _,  r.ImGui_WindowFlags_NoMove() | r.ImGui_WindowFlags_NoDecoration() ) then
+      if ImGui.BeginPopupModal(ctx, '##menulist', _,  ImGui.WindowFlags_NoMove | ImGui.WindowFlags_NoDecoration ) then
         
-         r.ImGui_SetWindowSize( ctx, floor(m_window_width/2) - r.ImGui_StyleVar_FramePadding(), -1 )
+         ImGui.SetWindowSize( ctx, floor(m_window_width/2) - ImGui.StyleVar_FramePadding, -1 )
          
-         r.ImGui_MenuItem( ctx, '<<< Back')
-         r.ImGui_Separator(ctx)
+         ImGui.MenuItem( ctx, '<<< Back')
+         ImGui.Separator(ctx)
          
-         r.ImGui_BeginTable(ctx, 'settings', 2,  r.ImGui_TableFlags_BordersInnerV()  |   r.ImGui_TableFlags_PreciseWidths(), -1, -1)
-         r.ImGui_TableNextColumn(ctx)
+         if ImGui.BeginTable(ctx, 'menusettings', 2,  ImGui.TableFlags_BordersInnerV  |   ImGui.TableFlags_PreciseWidths, -1, -1)
+         then
          
-         if r.ImGui_MenuItem( ctx, 'Init Settings') then 
+         ImGui.TableNextColumn(ctx)
+         
+         if ImGui.MenuItem( ctx, 'Init Settings') then 
            initsettings() 
            initfont = true
          end
          
-         r.ImGui_Separator(ctx)
+         ImGui.Separator(ctx)
          
-         _, Help_state = r.ImGui_Checkbox(ctx,  'Help Widgets', Help_state)
+         _, Help_state = ImGui.Checkbox(ctx,  'Help Widgets', Help_state)
          
         if docked == false then
         
-        r.ImGui_AlignTextToFramePadding( ctx )
-        r.ImGui_Text( ctx, 'GUI size' )
-        r.ImGui_SameLine(ctx)
+        ImGui.AlignTextToFramePadding( ctx )
+        ImGui.Text( ctx, 'GUI size' )
+        ImGui.SameLine(ctx)
         
-          w_size_rvS, radio_w_size = r.ImGui_RadioButtonEx(ctx, 'S', radio_w_size, 0)
-          r.ImGui_SameLine(ctx)
-          w_size_rvL, radio_w_size = r.ImGui_RadioButtonEx(ctx, 'L', radio_w_size, 1)
+          w_size_rvS, radio_w_size = ImGui.RadioButtonEx(ctx, 'S', radio_w_size, 0)
+          ImGui.SameLine(ctx)
+          w_size_rvL, radio_w_size = ImGui.RadioButtonEx(ctx, 'L', radio_w_size, 1)
           
           if w_size_rvS then m_window_width = 720 end
           if w_size_rvL then m_window_width = 1000 end
           
         end
          
-        r.ImGui_PushItemWidth(ctx, -1)
-        font_size_slider, font_size = r.ImGui_SliderInt(ctx, '##font_size', font_size, 16, 19, "FontSize: %d", NoIP)
+        ImGui.PushItemWidth(ctx, -1)
+        font_size_slider, font_size = ImGui.SliderInt(ctx, '##font_size', font_size, 16, 19, "FontSize: %d", NoIP)
   
-         r.ImGui_Separator(ctx)  
-         if r.ImGui_MenuItem( ctx, 'Forum Page') then OpenURL('https://forum.cockos.com/showthread.php?p=2764162#post2764162') end
-         if r.ImGui_MenuItem( ctx, 'Tip Me!') then OpenURL('https://paypal.me/80icio') end
+         ImGui.Separator(ctx)  
+         if ImGui.MenuItem( ctx, 'Forum Page') then OpenURL('https://forum.cockos.com/showthread.php?p=2764162#post2764162') end
+         if ImGui.MenuItem( ctx, 'Tip Me!') then OpenURL('https://paypal.me/80icio') end
          
-         r.ImGui_TableNextColumn(ctx)----------------------second menu column
+         ImGui.TableNextColumn(ctx)----------------------second menu column
          
-         r.ImGui_SeparatorText(ctx,'TRGLine Options')
-         r.ImGui_PushItemWidth(ctx, -1)
+         ImGui.SeparatorText(ctx,'TRGLine Options')
+         ImGui.PushItemWidth(ctx, -1)
          
-         Visualizer_mode_rv, Visualizer_mode = r.ImGui_Combo(ctx, '##Visualizer_mode', Visualizer_mode, Visualizer_mode_table)
+         Visualizer_mode_rv, Visualizer_mode = ImGui.Combo(ctx, '##Visualizer_mode', Visualizer_mode, Visualizer_mode_table)
   
-         r.ImGui_PushItemWidth(ctx, -1)
+         ImGui.PushItemWidth(ctx, -1)
          --[[
-         _, AutoThresh = r.ImGui_Checkbox( ctx, 'Auto Threshold', AutoThresh )
-         _, AutoSens = r.ImGui_Checkbox( ctx, 'Auto Sensitivity', AutoSens )
+         _, AutoThresh = ImGui.Checkbox( ctx, 'Auto Threshold', AutoThresh )
+         _, AutoSens = ImGui.Checkbox( ctx, 'Auto Sensitivity', AutoSens )
          ]]--
-         _, AutoColor = r.ImGui_Checkbox( ctx, 'AutoColor', AutoColor )
+         _, AutoColor = ImGui.Checkbox( ctx, 'AutoColor', AutoColor )
          
-         r.ImGui_EndTable(ctx)
-         r.ImGui_EndPopup(ctx) ---------------------- MENU
+         
+         ImGui.EndTable(ctx) -------- end 'menusettings'
+         end
+         
+      ImGui.EndPopup(ctx) ---------------------- end MENU pop up
+         
     end
 
-    r.ImGui_PopStyleColor(ctx, 1)
-    r.ImGui_PopFont(ctx)
-    r.ImGui_TableNextColumn(ctx)
-    r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_FrameRounding(), 10)
+    ImGui.PopStyleColor(ctx, 1)
+    ImGui.PopFont(ctx)
+    ImGui.TableNextColumn(ctx)
+    ImGui.PushStyleVar(ctx, ImGui.StyleVar_FrameRounding, 10)
     
     if page_select == 1 then
-      r.ImGui_PushStyleVar( ctx,  r.ImGui_StyleVar_FrameBorderSize(), 2 )
-      r.ImGui_Button(ctx, '/// Main Settings',-1)
-      r.ImGui_PopStyleVar(ctx,1)
+      ImGui.PushStyleVar( ctx,  ImGui.StyleVar_FrameBorderSize, 2 )
+      ImGui.Button(ctx, '/// Main Settings',-1)
+      ImGui.PopStyleVar(ctx,1)
     else
-      if r.ImGui_Button(ctx, '/// Main Settings',-1) then page_select = 1 end
+      if ImGui.Button(ctx, '/// Main Settings',-1) then page_select = 1 end
     end
     
-    r.ImGui_TableNextColumn(ctx)
+    ImGui.TableNextColumn(ctx)
     
     if filter_on then
-      r.ImGui_PushStyleColor(ctx, r.ImGui_Col_Text(), 0xFFFF00FF)
+      ImGui.PushStyleColor(ctx, ImGui.Col_Text, 0xFFFF00FF)
   
       if page_select == 2 then
         
-        r.ImGui_PushStyleVar( ctx,  r.ImGui_StyleVar_FrameBorderSize(), 2 )
-        r.ImGui_Button(ctx, '/// Filters', -1) 
-        r.ImGui_PopStyleVar(ctx,1)
+        ImGui.PushStyleVar( ctx,  ImGui.StyleVar_FrameBorderSize, 2 )
+        ImGui.Button(ctx, '/// Filters', -1) 
+        ImGui.PopStyleVar(ctx,1)
       else
-        if r.ImGui_Button(ctx, '/// Filters', -1) then page_select = 2 end
+        if ImGui.Button(ctx, '/// Filters', -1) then page_select = 2 end
       end
     
-      r.ImGui_PopStyleColor(ctx, 1)
+      ImGui.PopStyleColor(ctx, 1)
       
       else
       
       if page_select == 2 then
         
-        r.ImGui_PushStyleVar( ctx,  r.ImGui_StyleVar_FrameBorderSize(), 2 )
-        r.ImGui_Button(ctx, '/// Filters', -1) 
-        r.ImGui_PopStyleVar(ctx,1)
+        ImGui.PushStyleVar( ctx,  ImGui.StyleVar_FrameBorderSize, 2 )
+        ImGui.Button(ctx, '/// Filters', -1) 
+        ImGui.PopStyleVar(ctx,1)
       else
-        if r.ImGui_Button(ctx, '/// Filters', -1) then page_select = 2 end
+        if ImGui.Button(ctx, '/// Filters', -1) then page_select = 2 end
       end
     end
-    r.ImGui_TableNextColumn(ctx)
+    ImGui.TableNextColumn(ctx)
     
     
     if page_select == 3 then
-      r.ImGui_PushStyleVar( ctx,  r.ImGui_StyleVar_FrameBorderSize(), 2 )
-      r.ImGui_Button(ctx, '/// Advanced Settings',-1)
-      r.ImGui_PopStyleVar(ctx,1)
+      ImGui.PushStyleVar( ctx,  ImGui.StyleVar_FrameBorderSize, 2 )
+      ImGui.Button(ctx, '/// Advanced Settings',-1)
+      ImGui.PopStyleVar(ctx,1)
     else
-      if r.ImGui_Button(ctx, '/// Advanced Settings',-1) then page_select = 3 end
+      if ImGui.Button(ctx, '/// Advanced Settings',-1) then page_select = 3 end
     end
 
-      r.ImGui_PopStyleVar(ctx,1)
-      r.ImGui_PopStyleColor(ctx, 3)
-      r.ImGui_EndTable(ctx)
+      ImGui.PopStyleVar(ctx,1)
+      ImGui.PopStyleColor(ctx, 3)
+      ImGui.EndTable(ctx)
     end
    
 ---------------------------------TOTAL TABLE-----------------------------------------------------
-  r.ImGui_BeginTable(ctx, 'total', 2, r.ImGui_TableFlags_SizingFixedFit())
-  r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_FrameRounding(), 3)
-  r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_GrabMinSize(), 5)
-  r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_GrabRounding(), 3)  
+  if ImGui.BeginTable(ctx, 'total', 2, ImGui.TableFlags_SizingFixedFit) then
+  ImGui.PushStyleVar(ctx, ImGui.StyleVar_FrameRounding, 3)
+  ImGui.PushStyleVar(ctx, ImGui.StyleVar_GrabMinSize, 5)
+  ImGui.PushStyleVar(ctx, ImGui.StyleVar_GrabRounding, 3)  
   
   
-  r.ImGui_TableNextColumn(ctx)---------------------------Edit Tracks--total table left-----------------------
+  ImGui.TableNextColumn(ctx)---------------------------Edit Tracks--total table left-----------------------
   
   
  
-  local edittracks_w = floor(m_window_width/4) - r.ImGui_StyleVar_FramePadding()
-    r.ImGui_BeginTable(ctx, 'leftcolumn', 1,r.ImGui_WindowFlags_NoResize(),edittracks_w, -1)
-    r.ImGui_TableNextColumn(ctx)
-    r.ImGui_PushItemWidth(ctx,edittracks_w)
-  EditTrk, EditTrk_mode = r.ImGui_Combo(ctx, '##Edit', EditTrk_mode, EditTrk_table)
-  _, y_EditTrk = r.ImGui_GetItemRectMax(ctx)
+  local edittracks_w = floor(m_window_width/4) - ImGui.StyleVar_FramePadding
+    if ImGui.BeginTable(ctx, 'leftcolumn', 1,ImGui.WindowFlags_NoResize,edittracks_w, -1) then
+    
+    ImGui.TableNextColumn(ctx)
+    ImGui.PushItemWidth(ctx,edittracks_w)
+  EditTrk, EditTrk_mode = ImGui.Combo(ctx, '##Edit', EditTrk_mode, EditTrk_table)
+  _, y_EditTrk = ImGui.GetItemRectMax(ctx)
   help_widget(EditTrk_help)
   
   
   
-  r.ImGui_PushStyleColor(ctx, r.ImGui_Col_ScrollbarBg(), HSV(0, 0, 0.15, 1) )
-  r.ImGui_PushFont(ctx, my_font2)
+  ImGui.PushStyleColor(ctx, ImGui.Col_ScrollbarBg, HSV(0, 0, 0.15, 1) )
+  ImGui.PushFont(ctx, my_font2)
 
-  if r.ImGui_BeginTable(ctx, 'tracklist', 1,  r.ImGui_TableFlags_ScrollY() 
-  | r.ImGui_TableFlags_Borders(), edittracks_w, 129*(font_size/19)+(19-font_size)*3) then
+  if ImGui.BeginTable(ctx, 'tracklist', 1,  ImGui.TableFlags_ScrollY 
+  | ImGui.TableFlags_Borders, edittracks_w, 129*(font_size/19)+(19-font_size)*3) then
   
-    r.ImGui_TableNextColumn(ctx)
+    ImGui.TableNextColumn(ctx)
  
     if not check_itm or EditTrk then reset_edittracks() end --;reset_trkgroups() end
 
     if EditTrk_mode == 0 then------------------------------- Sel Tracks Edit--------------------------------------
       for i = 0, r.CountTracks(0)-1 do
       
-        r.ImGui_TableNextRow( ctx )
-        r.ImGui_TableSetColumnIndex(ctx, 0)
+        ImGui.TableNextRow( ctx )
+        ImGui.TableSetColumnIndex(ctx, 0)
         local trk = r.GetTrack( 0, i )
         _, Trackname = r.GetTrackName( trk )
         local Tdepth = ""
@@ -2644,17 +2685,17 @@ if visible then
         if r.CountTrackMediaItems( trk )>=1 then
 
           if keeptrue[i+1] then
-            r.ImGui_PushStyleColor(ctx, r.ImGui_Col_Text(), 0xFFFF00FF)
-            _, edittrack[i+1] = r.ImGui_Selectable( ctx, Tdepth..tostring(i+1 ..' ' .. Trackname),true )
-            r.ImGui_PopStyleColor(ctx)
+            ImGui.PushStyleColor(ctx, ImGui.Col_Text, 0xFFFF00FF)
+            _, edittrack[i+1] = ImGui.Selectable( ctx, Tdepth..tostring(i+1 ..' ' .. Trackname),true )
+            ImGui.PopStyleColor(ctx)
 
           else
 
-          _, edittrack[i+1] = r.ImGui_Selectable( ctx, Tdepth .. tostring(i+1 ..' ' .. Trackname), edittrack[i+1] )
+          _, edittrack[i+1] = ImGui.Selectable( ctx, Tdepth .. tostring(i+1 ..' ' .. Trackname), edittrack[i+1] )
 
           end
         else
-        r.ImGui_TextDisabled( ctx, Tdepth .. tostring(i+1 ..' ' .. Trackname) )
+        ImGui.TextDisabled( ctx, Tdepth .. tostring(i+1 ..' ' .. Trackname) )
         edittrack[i+1] = false
         end
       
@@ -2663,12 +2704,12 @@ if visible then
     end
     
     if EditTrk_mode ~= 1 and check_itm and cyclecount == 1 then -------autoscroll edittrack mode table
-      local scrollMAX = r.ImGui_GetScrollMaxY( ctx )
-      r.ImGui_SetScrollY( ctx, (scrollMAX/r.CountTracks(0))*(r.CSurf_TrackToID(first_sel_track, false)) )
+      local scrollMAX = ImGui.GetScrollMaxY( ctx )
+      ImGui.SetScrollY( ctx, (scrollMAX/r.CountTracks(0))*(r.CSurf_TrackToID(first_sel_track, false)) )
     end
     
     if EditTrk and EditTrk_mode == 1 then
-      r.ImGui_SetScrollY( ctx, 0 )
+      ImGui.SetScrollY( ctx, 0 )
     end
     
     
@@ -2679,9 +2720,9 @@ if visible then
       local selgrp
       
       for i = 1, #group_names_lst do
-        r.ImGui_TableNextRow( ctx )
-        r.ImGui_TableSetColumnIndex(ctx, 0)
-        editcheck, editgroup[i] = r.ImGui_Selectable( ctx, tostring('Grp '.. i ..' ' .. group_names_lst[i]), editgroup[i] )
+        ImGui.TableNextRow( ctx )
+        ImGui.TableSetColumnIndex(ctx, 0)
+        editcheck, editgroup[i] = ImGui.Selectable( ctx, tostring('Grp '.. i ..' ' .. group_names_lst[i]), editgroup[i] )
         
         if editcheck then
         r.Main_OnCommandEx( 40297, 0, 0 )-- Track: Unselect (clear selection of) all tracks
@@ -2711,67 +2752,67 @@ if visible then
       
     end --------------------end trackgroups
     
-    r.ImGui_EndTable(ctx)
+    ImGui.EndTable(ctx) -------- end tracklist
     
   end
-  r.ImGui_PopStyleColor(ctx, 1)
+  ImGui.PopStyleColor(ctx, 1)
+  ImGui.PopFont(ctx)
+  ImGui.EndTable(ctx) -------- end leftcolumn
+  end
   
-  r.ImGui_EndTable(ctx)
-  r.ImGui_PopFont(ctx)
-  
-  r.ImGui_TableNextColumn(ctx)--------------------------total table right
+  ImGui.TableNextColumn(ctx)--------------------------total table right
   
   -------------------------------------------------------All Parameters-------------------------
   -------------------------------------------------------All Parameters-------------------------
   -------------------------------------------------------All Parameters-------------------------
   
-   r.ImGui_BeginTable(ctx, 'Settings', 3, r.ImGui_TableFlags_SizingStretchSame() |   r.ImGui_TableFlags_PreciseWidths()
-   , floor((m_window_width/4)*3)-r.ImGui_StyleVar_CellPadding(), 0)
-  
+   if ImGui.BeginTable(ctx, 'Settings', 3, ImGui.TableFlags_SizingStretchSame |   ImGui.TableFlags_PreciseWidths
+   , floor((m_window_width/4)*3)-ImGui.StyleVar_CellPadding, 0)
+  then
   --------------------------------------------------------------------------------------------
   -----------------------------------COLUMN 1-------------------------------------------------
   --------------------------------------------------------------------------------------------
   
-   r.ImGui_TableNextColumn(ctx)
+   ImGui.TableNextColumn(ctx)
    
    if page_select == 1 then ----------------------------Grid settings
    
      Slider_Style(0)
-     r.ImGui_PushItemWidth(ctx, m_window_width/4-100)
-     Grid, Grid_mode = r.ImGui_Combo(ctx, '##Grid', Grid_mode, Grid_table)
+     ImGui.PushItemWidth(ctx, m_window_width/4-100)
+     Grid, Grid_mode = ImGui.Combo(ctx, '##Grid', Grid_mode, Grid_table)
      
      help_widget(Grid_help)
  
-     r.ImGui_SameLine(ctx)
+     ImGui.SameLine(ctx)
      
       
      if Triplets == true then 
        Button_Style(0)
-       Triplets_rv, _ = r.ImGui_Button(ctx, '3', 30, 0)
-       r.ImGui_PopStyleColor(ctx, 3)
+       Triplets_rv, _ = ImGui.Button(ctx, '3', 30, 0)
+       ImGui.PopStyleColor(ctx, 3)
      else
-        r.ImGui_PushStyleVar( ctx,  r.ImGui_StyleVar_FrameBorderSize(), 2 )
+        ImGui.PushStyleVar( ctx,  ImGui.StyleVar_FrameBorderSize, 2 )
         Menu_Button_Style(0.5)
-        Triplets_rv, _ = r.ImGui_Button(ctx, '3', 30, 0 )
-        r.ImGui_PopStyleColor(ctx, 3)
-        r.ImGui_PopStyleVar(ctx)
+        Triplets_rv, _ = ImGui.Button(ctx, '3', 30, 0 )
+        ImGui.PopStyleColor(ctx, 3)
+        ImGui.PopStyleVar(ctx)
      end
      
      if Triplets_rv then
       if Triplets or not Triplets then Triplets = not Triplets end
      end
      
-     r.ImGui_SameLine(ctx)
+     ImGui.SameLine(ctx)
      if Dotted == 1 then 
        Button_Style(0)
-       Dotted_rv, _ = r.ImGui_Button(ctx, 'Dot', 42, 0)
-       r.ImGui_PopStyleColor(ctx, 3)
+       Dotted_rv, _ = ImGui.Button(ctx, 'Dot', 42, 0)
+       ImGui.PopStyleColor(ctx, 3)
      else
-        r.ImGui_PushStyleVar( ctx,  r.ImGui_StyleVar_FrameBorderSize(), 2 )
+        ImGui.PushStyleVar( ctx,  ImGui.StyleVar_FrameBorderSize, 2 )
         Menu_Button_Style(0.5)
-        Dotted_rv, _ = r.ImGui_Button(ctx, 'Dot', 42, 0 )
-        r.ImGui_PopStyleColor(ctx, 3)
-        r.ImGui_PopStyleVar(ctx)
+        Dotted_rv, _ = ImGui.Button(ctx, 'Dot', 42, 0 )
+        ImGui.PopStyleColor(ctx, 3)
+        ImGui.PopStyleVar(ctx)
      end
      
      if Dotted_rv then
@@ -2779,31 +2820,31 @@ if visible then
      end
      
      
-     r.ImGui_PushItemWidth(ctx,-1)
-     Swing_toggle, Swing_on = r.ImGui_Checkbox(ctx, '##swingtoggle', Swing_on)
+     ImGui.PushItemWidth(ctx,-1)
+     Swing_toggle, Swing_on = ImGui.Checkbox(ctx, '##swingtoggle', Swing_on)
      
      
      if Swing_on == true then
-       r.ImGui_SameLine(ctx) 
-       Swing, Swing_Slider_adapt = r.ImGui_SliderInt(ctx, '##Swing', Swing_Slider_adapt, -100, 100, "Swing ON: %d %%", NoIP)
+       ImGui.SameLine(ctx) 
+       Swing, Swing_Slider_adapt = ImGui.SliderInt(ctx, '##Swing', Swing_Slider_adapt, -100, 100, "Swing ON: %d %%", NoIP)
      else
-       r.ImGui_SameLine(ctx)
-       r.ImGui_PushStyleColor(ctx,  r.ImGui_Col_Text(), 0xFFFFFF50)
-       r.ImGui_Text(ctx, 'Swing OFF')
-       r.ImGui_PopStyleColor(ctx, 1)
+       ImGui.SameLine(ctx)
+       ImGui.PushStyleColor(ctx,  ImGui.Col_Text, 0xFFFFFF50)
+       ImGui.Text(ctx, 'Swing OFF')
+       ImGui.PopStyleColor(ctx, 1)
      end
      
      if Swing_on == true then Swing_on = 1 else Swing_on = 0 end
      
-     GridScan_rv, GridScan = r.ImGui_Checkbox( ctx, '##GridScan', GridScan )
-     r.ImGui_SameLine(ctx)
+     GridScan_rv, GridScan = ImGui.Checkbox( ctx, '##GridScan', GridScan )
+     ImGui.SameLine(ctx)
      
      if GridScan then
-      Gtolerance_slider, Gtolerance_v = r.ImGui_SliderInt(ctx, '##Gtolerance_v', Gtolerance_v, 10, 200, "GrdScan: %d ms", NoIP)
+      Gtolerance_slider, Gtolerance_v = ImGui.SliderInt(ctx, '##Gtolerance_v', Gtolerance_v, 10, 200, "GrdScan: %d ms", NoIP)
      else
-      r.ImGui_PushStyleColor(ctx,  r.ImGui_Col_Text(), 0xFFFFFF30)
-      Gtolerance_slider, Gtolerance_v = r.ImGui_SliderInt(ctx, '##Gtolerance_v', Gtolerance_v, 50, 200, "Grid Scan: %d ms", NoIP)
-      r.ImGui_PopStyleColor(ctx, 1)
+      ImGui.PushStyleColor(ctx,  ImGui.Col_Text, 0xFFFFFF30)
+      Gtolerance_slider, Gtolerance_v = ImGui.SliderInt(ctx, '##Gtolerance_v', Gtolerance_v, 50, 200, "Grid Scan: %d ms", NoIP)
+      ImGui.PopStyleColor(ctx, 1)
      end
      store_single_settings(Gtolerance_v, 'Gtolerance_v', ' ms' )
      
@@ -2811,41 +2852,41 @@ if visible then
 
      help_widget(GridScan_help, 'Default')
    
-   r.ImGui_PopStyleColor(ctx, 5)
+   ImGui.PopStyleColor(ctx, 5)
    
    elseif page_select == 2 then ---------------------------- Filters
    
    Slider_Style(0.4)
-     r.ImGui_PushItemWidth(ctx,-1)
+     ImGui.PushItemWidth(ctx,-1)
      
-     lowcut_rv, lowcut = r.ImGui_SliderInt( ctx, '##LowCut', lowcut, 20, 20000, "LowCut: %d Hz", NoIP |  reaper.ImGui_SliderFlags_Logarithmic())
+     lowcut_rv, lowcut = ImGui.SliderInt( ctx, '##LowCut', lowcut, 20, 20000, "LowCut: %d Hz", NoIP |  ImGui.SliderFlags_Logarithmic)
 
      lowcut = Mouse_Init_parameter(lowcut, 20 )
-     lowcut_edit = r.ImGui_IsItemDeactivatedAfterEdit( ctx )
+     lowcut_edit = ImGui.IsItemDeactivatedAfterEdit( ctx )
      
      help_widget(lowcut_help, '20 Hz', true)
      
      
-     r.ImGui_PushItemWidth(ctx,-1)
-     hicut_rv, hicut = r.ImGui_SliderInt( ctx, '##hiCut', hicut, 20, 20000, "HiCut: %d Hz", NoIP |  reaper.ImGui_SliderFlags_Logarithmic())
+     ImGui.PushItemWidth(ctx,-1)
+     hicut_rv, hicut = ImGui.SliderInt( ctx, '##hiCut', hicut, 20, 20000, "HiCut: %d Hz", NoIP |  ImGui.SliderFlags_Logarithmic)
      hicut = Mouse_Init_parameter(hicut, 20000 )
-     hicut_edit = r.ImGui_IsItemDeactivatedAfterEdit( ctx )
+     hicut_edit = ImGui.IsItemDeactivatedAfterEdit( ctx )
      help_widget(hicut_help, '20000 Hz', true)
      
      if hicut_rv and hicut < lowcut then lowcut = hicut end
      if lowcut_rv and lowcut > hicut then hicut = lowcut end
      
      
-     r.ImGui_PushItemWidth(ctx, -1)
-     _, gain_v = r.ImGui_SliderInt(ctx, '##gain', gain_v, -30, 30, "Gain: %d db", NoIP)
+     ImGui.PushItemWidth(ctx, -1)
+     _, gain_v = ImGui.SliderInt(ctx, '##gain', gain_v, -30, 30, "Gain: %d db", NoIP)
      
-     gain_edit = r.ImGui_IsItemDeactivatedAfterEdit( ctx )
+     gain_edit = ImGui.IsItemDeactivatedAfterEdit( ctx )
      help_widget(gain_help, '0 db', true)
      
      gain_v = Mouse_Init_parameter(gain_v, 0 )
-     r.ImGui_PopStyleColor(ctx, 5)
+     ImGui.PopStyleColor(ctx, 5)
    else ----------------------------------------------------advanced settings
-   r.ImGui_SeparatorText(ctx, 'Global Presets')
+   ImGui.SeparatorText(ctx, 'Global Presets')
    
     
    end
@@ -2853,20 +2894,20 @@ if visible then
    -----------------------------------COLUMN 2-------------------------------------------------
    --------------------------------------------------------------------------------------------
    
-   r.ImGui_TableNextColumn(ctx)
+   ImGui.TableNextColumn(ctx)
    
    if page_select == 1 then---------------------------- Lpad Xfade mode
    
    Slider_Style(0.1)
-   r.ImGui_PushItemWidth(ctx,-1)
+   ImGui.PushItemWidth(ctx,-1)
  
 
      if mode == 1 and LeadP_v >0 then --------deactivated slider if warp mode
-      LeadingPad, LeadP_v = r.ImGui_SliderInt(ctx, '##2', LeadP_v, 0, 50, "Leading Pad: %d ms", NoIP)
+      LeadingPad, LeadP_v = ImGui.SliderInt(ctx, '##2', LeadP_v, 0, 50, "Leading Pad: %d ms", NoIP)
      else
-      r.ImGui_PushStyleColor(ctx,  r.ImGui_Col_Text(), 0xFFFFFF30)
-      LeadingPad, LeadP_v = r.ImGui_SliderInt(ctx, '##2', LeadP_v, 0, 50, "Leading Pad: OFF", NoIP)
-      r.ImGui_PopStyleColor(ctx, 1)
+      ImGui.PushStyleColor(ctx,  ImGui.Col_Text, 0xFFFFFF30)
+      LeadingPad, LeadP_v = ImGui.SliderInt(ctx, '##2', LeadP_v, 0, 50, "Leading Pad: OFF", NoIP)
+      ImGui.PopStyleColor(ctx, 1)
      end
      store_single_settings(LeadP_v, 'LeadP_v', ' ms' )
      LeadP_v = Mouse_Init_parameter(LeadP_v, tonumber(r.GetExtState(scriptname,'LeadP_v') ) or 10)
@@ -2874,21 +2915,21 @@ if visible then
      help_widget(LeadingPad_help, 'Default')
      
      if mode == 1 and Xfade_v>0 then --------deactivated slider if warp mode
-      Xfade, Xfade_v = r.ImGui_SliderInt(ctx, '##3', Xfade_v, 0, 50, "X Fade: %d ms", NoIP)
+      Xfade, Xfade_v = ImGui.SliderInt(ctx, '##3', Xfade_v, 0, 50, "X Fade: %d ms", NoIP)
      else
-      r.ImGui_PushStyleColor(ctx,  r.ImGui_Col_Text(), 0xFFFFFF30)
-      Xfade, Xfade_v = r.ImGui_SliderInt(ctx, '##3', Xfade_v, 0, 50, "X Fade: OFF", NoIP)
-      r.ImGui_PopStyleColor(ctx, 1)
+      ImGui.PushStyleColor(ctx,  ImGui.Col_Text, 0xFFFFFF30)
+      Xfade, Xfade_v = ImGui.SliderInt(ctx, '##3', Xfade_v, 0, 50, "X Fade: OFF", NoIP)
+      ImGui.PopStyleColor(ctx, 1)
      end
      store_single_settings(Xfade_v, 'Xfade_v', ' ms')
      Xfade_v = Mouse_Init_parameter(Xfade_v, tonumber(r.GetExtState(scriptname,'Xfade_v') ) or 10)
      help_widget(Xfade_help, 'Default')
      
-     r.ImGui_PushStyleColor(ctx, r.ImGui_Col_Text(), 0x000000FF)
+     ImGui.PushStyleColor(ctx, ImGui.Col_Text, 0x000000FF)
      
-     mode_switch, mode = r.ImGui_SliderInt(ctx, '##mode', mode, 1, 2, mode_string, NoIP)
+     mode_switch, mode = ImGui.SliderInt(ctx, '##mode', mode, 1, 2, mode_string, NoIP)
      
-       mode_w, _ = r.ImGui_GetItemRectSize(ctx)
+       mode_w, _ = ImGui.GetItemRectSize(ctx)
        
        mode_center = mode_center_align(mode_table[mode], mode_w)
   
@@ -2900,18 +2941,18 @@ if visible then
      
 
      
-     r.ImGui_PopStyleColor(ctx)    
+     ImGui.PopStyleColor(ctx)    
      help_widget(mode_help)
 
-  r.ImGui_PopStyleColor(ctx, 5)
+  ImGui.PopStyleColor(ctx, 5)
   
   elseif page_select == 2 then ------------------------------------transient design
 
   Slider_Style(0.65)
     
-    r.ImGui_PushItemWidth(ctx,-1)
-    _, attack_trans = r.ImGui_SliderDouble( ctx, '##attack', attack_trans, 0, 6, "Attack: %.1f", NoIP)
-    transient_rv = r.ImGui_IsItemDeactivatedAfterEdit(ctx)
+    ImGui.PushItemWidth(ctx,-1)
+    _, attack_trans = ImGui.SliderDouble( ctx, '##attack', attack_trans, 0, 6, "Attack: %.1f", NoIP)
+    transient_rv = ImGui.IsItemDeactivatedAfterEdit(ctx)
     attack_trans = Mouse_Init_parameter(attack_trans, 0.0)
     help_widget(attack_help, '0.0', true)
 
@@ -2921,20 +2962,20 @@ if visible then
       filter_on_str = 'Filter OFF' 
     end
     
-    filter_button = r.ImGui_Button(ctx,filter_on_str,-1)
+    filter_button = ImGui.Button(ctx,filter_on_str,-1)
     
     if filter_button then filter_on = not filter_on end
-    r.ImGui_PopStyleColor(ctx, 5)
+    ImGui.PopStyleColor(ctx, 5)
   else -----------------------------------------------------------advanced settings
-  r.ImGui_SeparatorText(ctx, 'Time Offset')
-  --r.ImGui_SeparatorText(ctx, 'Sensitivity Slope')
-  --r.ImGui_PushItemWidth(ctx, -1)
+  ImGui.SeparatorText(ctx, 'Time Offset')
+  --ImGui.SeparatorText(ctx, 'Sensitivity Slope')
+  --ImGui.PushItemWidth(ctx, -1)
   
-  --Time_vs_Peak_mode_edit, Time_vs_Peak_mode = r.ImGui_Combo(ctx, '##TvsP', Time_vs_Peak_mode, Time_vs_Peak_mode_table)
+  --Time_vs_Peak_mode_edit, Time_vs_Peak_mode = ImGui.Combo(ctx, '##TvsP', Time_vs_Peak_mode, Time_vs_Peak_mode_table)
 
-  r.ImGui_PushItemWidth(ctx,-1)
+  ImGui.PushItemWidth(ctx,-1)
   
-  Offset, Offset_v = r.ImGui_SliderDouble(ctx, '##Oset', Offset_v, -20, 20, "%.1f ms", NoIP)
+  Offset, Offset_v = ImGui.SliderDouble(ctx, '##Oset', Offset_v, -20, 20, "%.1f ms", NoIP)
   store_single_settings(Offset_v, 'Offset_v', ' ms' )
   Offset_v = Mouse_Init_parameter(Offset_v, tonumber(r.GetExtState(scriptname,'Offset_v') ) or -0.1)
   
@@ -2947,21 +2988,21 @@ if visible then
   -----------------------------------COLUMN 3-------------------------------------------------
   --------------------------------------------------------------------------------------------
        
-  r.ImGui_TableNextColumn(ctx) 
+  ImGui.TableNextColumn(ctx) 
   
   if page_select == 1 then---------------------------- Retrig Qstrength LineColor
   
   Slider_Style(0.7)
   
-  r.ImGui_PushItemWidth(ctx,-1)
-  _, Rtrig_v = r.ImGui_SliderInt( ctx, '##Retrig Time', Rtrig_v,1, 200, "Retrig: %d ms", NoIP )
-  Rtrig_edit = r.ImGui_IsItemDeactivatedAfterEdit( ctx )
+  ImGui.PushItemWidth(ctx,-1)
+  _, Rtrig_v = ImGui.SliderInt( ctx, '##Retrig Time', Rtrig_v,1, 200, "Retrig: %d ms", NoIP )
+  Rtrig_edit = ImGui.IsItemDeactivatedAfterEdit( ctx )
   store_single_settings(Rtrig_v, 'Rtrig_v', ' ms' )
   Rtrig_v = Mouse_Init_parameter(Rtrig_v, tonumber(r.GetExtState(scriptname,'Rtrig_v') ) or 20)
   help_widget(Retrig_help, 'Default')
   
 
-    Qstrength, Qstrength_v = r.ImGui_SliderInt(ctx, '##4', Qstrength_v, 0, 100, Qstrength_label, NoIP)
+    Qstrength, Qstrength_v = ImGui.SliderInt(ctx, '##4', Qstrength_v, 0, 100, Qstrength_label, NoIP)
     if Qstrength_v > 0 then
       Qstrength_label = "Q Strength: %d %%"
     else
@@ -2971,17 +3012,17 @@ if visible then
     Qstrength_v = Mouse_Init_parameter(Qstrength_v, tonumber(r.GetExtState(scriptname,'Qstrength_v') ) or 100)
     help_widget(Qstrength_help, 'Split Only')
     
-    color_button, linecolor_v = r.ImGui_SliderDouble(ctx, '##linecolor', linecolor_v, 0, 1, "Line Color: %.1f", NoIP)
+    color_button, linecolor_v = ImGui.SliderDouble(ctx, '##linecolor', linecolor_v, 0, 1, "Line Color: %.1f", NoIP)
     store_single_settings(linecolor_v, 'linecolor_v', '' )
     linecolor_v = Mouse_Init_parameter(linecolor_v, tonumber(r.GetExtState(scriptname,'linecolor_v') ) or 0.5)
     help_widget(linecolor_help, '0,5')
     
-    r.ImGui_PopStyleColor(ctx, 5)
+    ImGui.PopStyleColor(ctx, 5)
   
   elseif page_select == 2 then
-  r.ImGui_SeparatorText(ctx, 'Filter Presets')
-  r.ImGui_PushItemWidth(ctx,-1)
-  filter_preset_rv, filter_preset = r.ImGui_Combo(ctx,'Filter Presets',filter_preset, filter_preset_list)
+  ImGui.SeparatorText(ctx, 'Filter Presets')
+  ImGui.PushItemWidth(ctx,-1)
+  filter_preset_rv, filter_preset = ImGui.Combo(ctx,'Filter Presets',filter_preset, filter_preset_list)
   if filter_preset_rv then 
     ADDpreset = count_string_pattern(filter_preset_list,'\0')
     if filter_preset ~= ADDpreset-1 then 
@@ -2995,28 +3036,31 @@ if visible then
   end
   ---------------------------
   else  ------------------------------------------------------advanced settings 3
-    r.ImGui_SeparatorText(ctx, 'Sensitivity Scale')
-    r.ImGui_AlignTextToFramePadding( ctx )
-    Detect_rv2, Detect = r.ImGui_RadioButtonEx(ctx, 'Peak', Detect, 1)
-    r.ImGui_SameLine(ctx)
-    Detect_rv, Detect = r.ImGui_RadioButtonEx(ctx, 'RMS', Detect, 0)
-    normalize_sens_scale_rv, normalize_sens_scale = r.ImGui_Checkbox(ctx, 'Scale Normalize', normalize_sens_scale)
+    ImGui.SeparatorText(ctx, 'Sensitivity Scale')
+    ImGui.AlignTextToFramePadding( ctx )
+    Detect_rv2, Detect = ImGui.RadioButtonEx(ctx, 'Peak', Detect, 1)
+    ImGui.SameLine(ctx)
+    Detect_rv, Detect = ImGui.RadioButtonEx(ctx, 'RMS', Detect, 0)
+    normalize_sens_scale_rv, normalize_sens_scale = ImGui.Checkbox(ctx, 'Scale Normalize', normalize_sens_scale)
   end
   
-  r.ImGui_EndTable(ctx)
+  ImGui.EndTable(ctx) ------- end Settings
+  end
   --------------------------------------------------------------------------------------------
   -----------------------------------Settings Table END---------------------------------------
   --------------------------------------------------------------------------------------------
   
   -----------------------------------sens slider
   
-  r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_FramePadding(), 0, 8)
-  r.ImGui_BeginTable(ctx, 'sensitivityandthreshold', 3 , r.ImGui_TableFlags_SizingStretchSame() |   r.ImGui_TableFlags_PreciseWidths()
-  , floor((m_window_width/4)*3)-r.ImGui_StyleVar_CellPadding(), 0)
-  --r.ImGui_TableSetupColumn( ctx, 'senscolumn',  r.ImGui_TableColumnFlags_None(), 1 )
-  r.ImGui_TableNextColumn(ctx)
-  r.ImGui_PushItemWidth(ctx,-1)
-  Sensitivity_slider, Sensitivity_v = r.ImGui_SliderInt(ctx, '##Sensitivity', Sensitivity_v, 0, 100, "Sensitivity: %d %%", NoIP)
+  ImGui.PushStyleVar(ctx, ImGui.StyleVar_FramePadding, 0, 8)
+  if ImGui.BeginTable(ctx, 'sensitivityandthreshold', 3 , ImGui.TableFlags_SizingStretchSame |   ImGui.TableFlags_PreciseWidths
+  , floor((m_window_width/4)*3)-ImGui.StyleVar_CellPadding, 0)
+  then
+  
+  --ImGui.TableSetupColumn( ctx, 'senscolumn',  ImGui.TableColumnFlags_None, 1 )
+  ImGui.TableNextColumn(ctx)
+  ImGui.PushItemWidth(ctx,-1)
+  Sensitivity_slider, Sensitivity_v = ImGui.SliderInt(ctx, '##Sensitivity', Sensitivity_v, 0, 100, "Sensitivity: %d %%", NoIP)
   
   store_single_settings(Sensitivity_v, 'Sensitivity_v', ' %' )
   Sensitivity_v = Mouse_Init_parameter(Sensitivity_v, tonumber(r.GetExtState(scriptname,'Sensitivity_v') ) or 100)
@@ -3024,8 +3068,8 @@ if visible then
   
   if  quantize_state == false then
   
-  local sens_x, sens_y = r.ImGui_GetItemRectMin( ctx )
-  local sens_w, sens_h = r.ImGui_GetItemRectSize( ctx )
+  local sens_x, sens_y = ImGui.GetItemRectMin( ctx )
+  local sens_w, sens_h = ImGui.GetItemRectSize( ctx )
 
     for i=1, #Histogram do ------------------------sens histogram---------------------------------------
       
@@ -3033,28 +3077,28 @@ if visible then
        if Histogram[i]~= 0 and Histogram[i]~= nil then
          local height = (sens_h-9)*(Histogram_height[i])
          if  Histogram[i] == 2 then
-           r.ImGui_DrawList_AddLine( draw_list, sens_x+line_step, sens_y+sens_h-3 , sens_x+line_step , sens_y+sens_h-3 - height , -855703399 ,2 )
+           ImGui.DrawList_AddLine( draw_list, sens_x+line_step, sens_y+sens_h-3 , sens_x+line_step , sens_y+sens_h-3 - height , -855703399 ,2 )
          else
-           r.ImGui_DrawList_AddLine( draw_list, sens_x+line_step, sens_y+sens_h-3 , sens_x+line_step , sens_y+sens_h-3 - height , -855703501 ,2 )
+           ImGui.DrawList_AddLine( draw_list, sens_x+line_step, sens_y+sens_h-3 , sens_x+line_step , sens_y+sens_h-3 - height , -855703501 ,2 )
          end
        end
     end
 
   end
-  r.ImGui_TableNextColumn(ctx)
-  r.ImGui_PushItemWidth(ctx, -1)
+  ImGui.TableNextColumn(ctx)
+  ImGui.PushItemWidth(ctx, -1)
   
-  _, sens_v = r.ImGui_SliderDouble(ctx, '##sens_v', sens_v, 1, 10, "Crest: %.1f dB", NoIP)
-    sens_v_rv = r.ImGui_IsItemDeactivatedAfterEdit(ctx)
+  _, sens_v = ImGui.SliderDouble(ctx, '##sens_v', sens_v, 1, 10, "Crest: %.1f dB", NoIP)
+    sens_v_rv = ImGui.IsItemDeactivatedAfterEdit(ctx)
     help_widget(Crest_help, 'Default')
     
   store_single_settings(sens_v, 'sens_v', ' dB' )
   sens_v = Mouse_Init_parameter(sens_v, tonumber(r.GetExtState(scriptname,'sens_v') ) or 5)
   
-  r.ImGui_TableNextColumn(ctx)
-  r.ImGui_PushItemWidth(ctx, -1)
+  ImGui.TableNextColumn(ctx)
+  ImGui.PushItemWidth(ctx, -1)
   
-  Thresh_rv, Thresh_v = r.ImGui_SliderInt(ctx, '##Threshold', Thresh_v, -60, 0, "Threshold: %d db", NoIP)
+  Thresh_rv, Thresh_v = ImGui.SliderInt(ctx, '##Threshold', Thresh_v, -60, 0, "Threshold: %d db", NoIP)
   
   if check_itm then
     thresh_histogram()
@@ -3066,15 +3110,16 @@ if visible then
   
   store_single_settings(Thresh_v, 'Thresh_v', ' db' )
   
-  Thresh_edit = r.ImGui_IsItemDeactivatedAfterEdit( ctx )
+  Thresh_edit = ImGui.IsItemDeactivatedAfterEdit( ctx )
   
   if Thresh_rv or cyclecount == 1 then 
     display_Thresh = 10^((Thresh_v)/20) 
   end
   
   
-  r.ImGui_EndTable(ctx)  
-  r.ImGui_PopStyleVar( ctx, 1)
+  ImGui.EndTable(ctx)  ------- end sensitivityandthreshold
+  end 
+  ImGui.PopStyleVar( ctx, 1)
   
   --------------------------------------------Analyze and Quantize buttons
 
@@ -3090,79 +3135,84 @@ if visible then
   end
   
   if  check_itm == false or quantize_state == true or processing  then
-  r.ImGui_BeginTable(ctx, 'buttons', 1, r.ImGui_TableFlags_SizingStretchSame() | r.ImGui_TableFlags_PreciseWidths()
-  | r.ImGui_TableFlags_NoPadInnerX() | r.ImGui_TableFlags_NoPadOuterX(), ((m_window_width/4)*3)-r.ImGui_StyleVar_CellPadding()+1)
-  r.ImGui_TableNextColumn(ctx)
-  
-      --if error_msg~=0 and r.ImGui_GetTime(ctx) < time +3 then
-       -- analyze_bttn = r.ImGui_Button( ctx, error_msg_table[error_msg],-1, 0)
-     -- else
-        analyze_bttn = r.ImGui_Button( ctx, analyze_bttn_state[a_bttn_state],-1, 0)
-      --end
-   
-  r.ImGui_EndTable(ctx)
+  if ImGui.BeginTable(ctx, 'buttons', 1, ImGui.TableFlags_SizingStretchSame | ImGui.TableFlags_PreciseWidths
+  | ImGui.TableFlags_NoPadInnerX | ImGui.TableFlags_NoPadOuterX, ((m_window_width/4)*3)-ImGui.StyleVar_CellPadding+1)
+  then
+    ImGui.TableNextColumn(ctx)
+    
+        --if error_msg~=0 and ImGui.GetTime(ctx) < time +3 then
+         -- analyze_bttn = ImGui.Button( ctx, error_msg_table[error_msg],-1, 0)
+       -- else
+          analyze_bttn = ImGui.Button( ctx, analyze_bttn_state[a_bttn_state],-1, 0)
+        --end
+     
+    ImGui.EndTable(ctx)
+  end
   end
   
   
   
   if  check_itm and quantize_state == false and not processing then
   
-  r.ImGui_BeginTable(ctx, 'buttons', 2, r.ImGui_TableFlags_SizingStretchSame() | r.ImGui_TableFlags_PreciseWidths(), ((m_window_width/4)*3)-r.ImGui_StyleVar_CellPadding()+1)
+    if ImGui.BeginTable(ctx, 'buttons', 2, ImGui.TableFlags_SizingStretchSame | ImGui.TableFlags_PreciseWidths, ((m_window_width/4)*3)-ImGui.StyleVar_CellPadding+1)
+    then
   
-
-    r.ImGui_TableNextColumn(ctx)
-
-      analyze_bttn = r.ImGui_Button( ctx, analyze_bttn_state[a_bttn_state],-1, 0.0)
-    
-    r.ImGui_TableNextColumn(ctx)
-      if Qstrength_v > 0 then
-       Q_bttn = r.ImGui_Button( ctx, 'Quantize', -1, 0.0) 
-      else
-       if mode == 1 then
-        Q_bttn = r.ImGui_Button( ctx, 'Split', -1, 0.0) 
-       else
-        Q_bttn = r.ImGui_Button( ctx, 'Add Stretch Markers', -1, 0.0) 
-       end
-      end
-
-  r.ImGui_EndTable(ctx)  
+      ImGui.TableNextColumn(ctx)
+  
+        analyze_bttn = ImGui.Button( ctx, analyze_bttn_state[a_bttn_state],-1, 0.0)
+      
+      ImGui.TableNextColumn(ctx)
+        if Qstrength_v > 0 then
+         Q_bttn = ImGui.Button( ctx, 'Quantize', -1, 0.0) 
+        else
+         if mode == 1 then
+          Q_bttn = ImGui.Button( ctx, 'Split', -1, 0.0) 
+         else
+          Q_bttn = ImGui.Button( ctx, 'Add Stretch Markers', -1, 0.0) 
+         end
+        end
+  
+    ImGui.EndTable(ctx) ------- end buttons
+    end
   end  
-  r.ImGui_PopStyleColor(ctx, 2)
+  ImGui.PopStyleColor(ctx, 2)
     
-  r.ImGui_EndTable(ctx)----------------------------------------------end total table
-  
+  ImGui.EndTable(ctx)----------------------------------------------end total table
+  end
   -------------------------------------------------------------------------------------------------------------
   ---------------------------------------visualizer------------------------------------------------------------
   -------------------------------------------------------------------------------------------------------------
 
     if check_itm and not quantize_state and visualizer  then ----------------------------------START VISUALIZER IF CYCLE
       visualizer_h = 80
-      r.ImGui_BeginTable(ctx, 'Visualizertable', 1,  r.ImGui_TableFlags_SizingStretchProp(), m_window_width-r.ImGui_StyleVar_CellPadding()-2)
-  
-      r.ImGui_TableNextColumn(ctx)
+      if ImGui.BeginTable(ctx, 'Visualizertable', 1,  ImGui.TableFlags_SizingStretchProp, m_window_width-ImGui.StyleVar_CellPadding-2)
+      then
+      
+      ImGui.TableNextColumn(ctx)
       --[[
-      r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_ItemSpacing(), 8, 6)
-      r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_FramePadding(), 4, 0)
-      r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_GrabMinSize(), ( m_window_width-r.ImGui_StyleVar_CellPadding()-2)*new_zoom_pos_range)
-      r.ImGui_PushItemWidth(ctx, -1)
-      _, vis_scroll_v_pos =r.ImGui_SliderDouble(ctx, '##h_scrollbar',vis_scroll_v_pos,new_zoom_pos_range,1)
-      r.ImGui_PopStyleVar(ctx, 3)
+      ImGui.PushStyleVar(ctx, ImGui.StyleVar_ItemSpacing, 8, 6)
+      ImGui.PushStyleVar(ctx, ImGui.StyleVar_FramePadding, 4, 0)
+      ImGui.PushStyleVar(ctx, ImGui.StyleVar_GrabMinSize, ( m_window_width-ImGui.StyleVar_CellPadding-2)*new_zoom_pos_range)
+      ImGui.PushItemWidth(ctx, -1)
+      _, vis_scroll_v_pos =ImGui.SliderDouble(ctx, '##h_scrollbar',vis_scroll_v_pos,new_zoom_pos_range,1)
+      ImGui.PopStyleVar(ctx, 3)
       ]]--
       ----------waveform background---------------------------------
       Waveform_Button_Style(0.5)
-      r.ImGui_Button( ctx, '##Visualizerbutton',-1, -1-2)
+      ImGui.Button( ctx, '##Visualizerbutton',-1, -1-2)
       help_widget(Visual_Navigation_help)
-      r.ImGui_PopStyleColor(ctx, 3)
+      ImGui.PopStyleColor(ctx, 3)
       ----------waveform background---------------------------------
 
-      histo_w, histo_h = r.ImGui_GetItemRectSize(ctx)
-      histo_x, _ = r.ImGui_GetItemRectMin(ctx)
-      _, histo_y = r.ImGui_GetItemRectMax(ctx)
+      histo_w, histo_h = ImGui.GetItemRectSize(ctx)
+      histo_x, _ = ImGui.GetItemRectMin(ctx)
+      _, histo_y = ImGui.GetItemRectMax(ctx)
     
       zoom_bounds_L, zoom_bounds_Total = waveform_visualizer()
 
-      r.ImGui_EndTable(ctx)
-
+      ImGui.EndTable(ctx) ---------- Visualizertable
+      end 
+      
       local y_center = histo_y - (histo_h/2)
       
   
@@ -3174,7 +3224,7 @@ if visible then
         local ypos = (y_center - array_pos*((histo_h/2)-3))
         local yneg = (y_center - array_neg*((histo_h/2)-3))
         local x = histo_x + i -1
-        r.ImGui_DrawList_AddLine(draw_list, x, yneg, x, ypos, 0xFF0000FF, 1 ) ---0xFFFF00FF
+        ImGui.DrawList_AddLine(draw_list, x, yneg, x, ypos, 0xFF0000FF, 1 ) ---0xFFFF00FF
       end
       
       local Reduce_P_v = ((100-Sensitivity_v)/sens_def)
@@ -3184,18 +3234,18 @@ if visible then
         if vis_trig_line_pos>=zoom_bounds_L and vis_trig_line_pos<=zoom_bounds_L+zoom_bounds_Total and Gate_Gl.grid_Points[i+1][Detect+1] >= Reduce_P_v then
           local x = ((histo_w)*((vis_trig_line_pos-zoom_bounds_L)/zoom_bounds_Total))+histo_x
           --if r.GetMousePosition(ctx) < x+5 and r.GetMousePosition(ctx) > x-5 then
-          --  r.ImGui_SetMouseCursor( ctx, r.ImGui_MouseCursor_Hand() )
+          --  ImGui.SetMouseCursor( ctx, ImGui.MouseCursor_Hand )
           --end
           local h = histo_h*Gate_Gl.grid_Points[i+1][Detect+1]
           local h2 = (histo_h-h)/2
-          r.ImGui_DrawList_AddLine(draw_list, x, histo_y-h2, x, histo_y-h-h2, 0xFFFF00FF, QN_lineTHICK[i] )
+          ImGui.DrawList_AddLine(draw_list, x, histo_y-h2, x, histo_y-h-h2, 0xFFFF00FF, QN_lineTHICK[i] )
         end
       end
 
       for i=2, #Grid_blocks_Ruler-1, 2 do ----- Draw grid on Visualizer
         if Grid_blocks_Ruler[i] ~= nil and Grid_blocks_Ruler[i]>=zoom_bounds_L and Grid_blocks_Ruler[i]<=zoom_bounds_L+zoom_bounds_Total then
           local x = ((histo_w)*((Grid_blocks_Ruler[i]-zoom_bounds_L)/zoom_bounds_Total))+histo_x
-          r.ImGui_DrawList_AddLine(draw_list, x, histo_y, x, histo_y-histo_h, 0xFFFFFF00+Grid_blocks_Ruler_thickness[i]*10, Grid_blocks_Ruler_thickness[i] )
+          ImGui.DrawList_AddLine(draw_list, x, histo_y, x, histo_y-histo_h, 0xFFFFFF00+Grid_blocks_Ruler_thickness[i]*10, Grid_blocks_Ruler_thickness[i] )
         end
       end
       
@@ -3204,8 +3254,8 @@ if visible then
       local Thresh_ypos = (y_center - display_Thresh*waveform_zoom_gain*((histo_h/2)-3))
       local Thresh_yneg = (y_center + display_Thresh*waveform_zoom_gain*((histo_h/2)-3))
       if display_Thresh*waveform_zoom_gain<=1 then
-        r.ImGui_DrawList_AddLine(draw_list, histo_x, Thresh_ypos, histo_x+histo_w, Thresh_ypos, 0xFFFFFF60, 1 )
-        r.ImGui_DrawList_AddLine(draw_list, histo_x, Thresh_yneg, histo_x+histo_w, Thresh_yneg, 0xFFFFFF60, 1 )
+        ImGui.DrawList_AddLine(draw_list, histo_x, Thresh_ypos, histo_x+histo_w, Thresh_ypos, 0xFFFFFF60, 1 )
+        ImGui.DrawList_AddLine(draw_list, histo_x, Thresh_yneg, histo_x+histo_w, Thresh_yneg, 0xFFFFFF60, 1 )
       end
       
       -------------------------Draw Playback and edit Cursor
@@ -3218,7 +3268,7 @@ if visible then
       if cursorpos >= zoom_bounds_L and cursorpos <= zoom_bounds_L+zoom_bounds_Total then
         local relative_pos = (cursorpos-zoom_bounds_L)/zoom_bounds_Total
         local x_histo_pos = histo_x + histo_w*relative_pos
-        r.ImGui_DrawList_AddLine(draw_list, x_histo_pos, histo_y, x_histo_pos, histo_y-histo_h, 0x00FFFFFF, 1 )
+        ImGui.DrawList_AddLine(draw_list, x_histo_pos, histo_y, x_histo_pos, histo_y-histo_h, 0x00FFFFFF, 1 )
       end
     else
         visualizer_h = 0
@@ -3242,13 +3292,13 @@ if visible then
     
 
   
-    r.ImGui_PopStyleVar( ctx, 3)
+    ImGui.PopStyleVar( ctx, 3)
     
-r.ImGui_End(ctx)
+ImGui.End(ctx)
 end ----------------end if visible
-r.ImGui_PopStyleColor(ctx,1)
-r.ImGui_PopStyleVar( ctx, 3)
-r.ImGui_PopFont(ctx)
+ImGui.PopStyleColor(ctx,1)
+ImGui.PopStyleVar( ctx, 3)
+ImGui.PopFont(ctx)
 -----------------------------END LAYOUT----------------------------------------
 -------------------------------------------------------------------------------
 
@@ -3290,7 +3340,7 @@ if check_itm and Gtolerance_slider then
 end
 
 if  check_itm and color_button then
-    local red, green, blue = r.ImGui_ColorConvertHSVtoRGB(linecolor_v, 1, 1 )
+    local red, green, blue = ImGui.ColorConvertHSVtoRGB(linecolor_v, 1, 1 )
     linecolor = RGB(floor(red*255),floor(green*255) ,floor(blue*255) )
     Triglinesdraw()
 end
@@ -3324,11 +3374,11 @@ if divis ~= store_divis or Swing_on ~= store_Swing_on or Swing_Slider ~= store_S
   Change_grid = false
 end
 
-if r.ImGui_IsKeyPressed(ctx, 524) then -----keep transport playstop even when focusing the script
+if ImGui.IsKeyPressed(ctx, ImGui.Key_Space) then -----keep transport playstop even when focusing the script
   r.Main_OnCommandEx(40044, 0, 0)
 end
 
-if open and not r.ImGui_IsKeyPressed(ctx, 526) then -------------------exit script with ESC
+if open and not ImGui.IsKeyPressed(ctx, ImGui.Key_Escape) then -------------------exit script with ESC
   r.defer(Main_loop)
 else
   exit()

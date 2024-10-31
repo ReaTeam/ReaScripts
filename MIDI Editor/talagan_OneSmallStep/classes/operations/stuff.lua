@@ -8,11 +8,16 @@ local S   = require "modules/settings"
 local D   = require "modules/defines"
 local N   = require "modules/notes"
 local MK  = require "modules/markers"
+local ART = require "modules/articulations"
 
 local GEN = require "operations/generic"
+local MU  = require "lib/MIDIUtils"
+
+local USE_MU = true
 
 local function getStuffingBaseLength(take, markerPPQ, cursorPPQ)
-  local _, notecnt, _, _  = reaper.MIDI_CountEvts(take)
+
+  local _, notecnt, _, _  = N.CountEvts(take, USE_MU)
 
   local ret = nil
 
@@ -39,7 +44,7 @@ local function getStuffingBaseLength(take, markerPPQ, cursorPPQ)
   local firstone = nil
   local ni = 0
   while ni < notecnt do
-    local n = N.GetNote(take, ni)
+    local n = N.GetNote(take, ni, USE_MU)
 
     if T.noteStartsAfterPPQ(n, markerPPQ, false) and T.noteEndsBeforePPQ(n, cursorPPQ, false) then
       if not firstone or n.startPPQ < firstone.startPPQ then
@@ -68,6 +73,9 @@ local function Stuff(km, track, take, notes_to_add, notes_to_extend, triggered_b
   end
 
   reaper.Undo_BeginBlock();
+
+  MU.MIDI_InitializeTake(take)
+  MU.MIDI_OpenWriteTransaction(take)
 
   local sbl               = getStuffingBaseLength(take, c.markerPPQ, c.cursorPPQ) * S.getNoteLenQN() * S.getNoteLenModifierFactor()
   local compFactor        = (c.cursorPPQ - c.markerPPQ) / (sbl + (c.cursorPPQ - c.markerPPQ))
@@ -121,8 +129,8 @@ local function Stuff(km, track, take, notes_to_add, notes_to_extend, triggered_b
         end
 
         N.SetNewNoteBounds(n, take, _comp(n.startPPQ), _comp(n.endPPQ) + offset)
-        c.torem[#c.torem+1]   = n
-        c.toadd[#c.toadd+1]   = n
+        N.MUCommitNote(take, n)
+
         c.counts.ext = c.counts.ext + 1
       else
         --
@@ -132,8 +140,8 @@ local function Stuff(km, track, take, notes_to_add, notes_to_extend, triggered_b
         --     |     |
         --
         N.SetNewNoteBounds(n, take, _comp(n.startPPQ), n.endPPQ)
-        c.torem[#c.torem+1]   = n
-        c.toadd[#c.toadd+1]   = n
+        N.MUCommitNote(take, n)
+
         c.counts.ext = c.counts.ext + 1
       end
     else
@@ -152,7 +160,8 @@ local function Stuff(km, track, take, notes_to_add, notes_to_extend, triggered_b
         --     |     |
         --
         N.SetNewNoteBounds(n, take, n.startPPQ, _comp(n.endPPQ))
-        c.tomod[#c.tomod+1] = n
+        N.MUCommitNote(take, n)
+
         c.counts.ext = c.counts.ext + 1
       else
         --
@@ -174,12 +183,17 @@ local function Stuff(km, track, take, notes_to_add, notes_to_extend, triggered_b
   end
 
   for i=1,#notes_to_add do
-    c.toadd[#c.toadd+1] = N.BuildFromManager(notes_to_add[i], c.take, _comp(c.cursorPPQ), c.cursorPPQ)
+    local newn = N.BuildFromManager(notes_to_add[i], c.take, _comp(c.cursorPPQ), c.cursorPPQ)
+
+    N.MUCommitNote(take, newn)
+
     c.counts.add = c.counts.add + 1
   end
 
   -- Pass nil as jump time, we don't want to jump in stuff mode
   GEN.ForwardOperationFinish(c, nil, newMaxQN)
+
+  ART.UpdateArticulationTextEventsIfNeeded(track, take);
 
   reaper.Undo_EndBlock(GEN.OperationSummary(1, c.counts),-1);
 end
@@ -189,7 +203,7 @@ local function getStuffingBackLength(take, markerPPQ, cursorPPQ)
   local ret   = cursorPPQ - markerPPQ
   local found = false
 
-  local _, notecnt, _, _  = reaper.MIDI_CountEvts(take)
+  local _, notecnt, _, _  = N.CountEvts(take, USE_MU)
   local ni = 0
 
   -- Look for notes ending on the and starting in the window
@@ -263,12 +277,15 @@ local function StuffBack(km, track, take, notes_to_shorten, triggered_by_key_eve
 
   reaper.Undo_BeginBlock();
 
-  local _, notecnt, _, _ = reaper.MIDI_CountEvts(take);
-  local ni = 0;
+  MU.MIDI_InitializeTake(take)
+  MU.MIDI_OpenWriteTransaction(take)
+
+  local _, notecnt, _, _  = N.CountEvts(take, USE_MU)
+  local ni = 0
   while (ni < notecnt) do
 
     -- Examine each note in item
-    local n = N.GetNote(take, ni);
+    local n = N.GetNote(take, ni, USE_MU);
 
     if T.noteStartsAfterPPQ(n, c.cursorPPQ, false) then
       --
@@ -287,12 +304,13 @@ local function StuffBack(km, track, take, notes_to_shorten, triggered_by_key_eve
         --     |     |
         --
         if T.PPQIsAfterPPQ(_stretch(n.startPPQ), c.cursorPPQ, false) then
-          c.torem[#c.torem+1] = n
+          MU.MIDI_DeleteNote(take, n.index)
+
           c.counts.rem = c.counts.rem + 1
         else
           N.SetNewNoteBounds(n, take, _stretch(n.startPPQ), _stretch(n.endPPQ))
-          c.torem[#c.torem+1] = n
-          c.toadd[#c.toadd+1] = n
+          N.MUCommitNote(take, n)
+
           c.counts.ext = c.counts.ext + 1
         end
       else
@@ -303,8 +321,8 @@ local function StuffBack(km, track, take, notes_to_shorten, triggered_by_key_eve
         --     |     |
         --
         N.SetNewNoteBounds(n, take, _stretch(n.startPPQ), n.endPPQ)
-        c.torem[#c.torem+1]   = n
-        c.toadd[#c.toadd+1]   = n
+        N.MUCommitNote(take, n)
+
         c.counts.ext = c.counts.ext + 1
       end
     else
@@ -323,7 +341,8 @@ local function StuffBack(km, track, take, notes_to_shorten, triggered_by_key_eve
         --     |     |
         --
         N.SetNewNoteBounds(n, take, n.startPPQ, _stretch(n.endPPQ))
-        c.tomod[#c.tomod+1]   = n
+        N.MUCommitNote(take, n)
+
         c.counts.ext = c.counts.ext + 1
       else
         -- Leave untouched
@@ -340,6 +359,8 @@ local function StuffBack(km, track, take, notes_to_shorten, triggered_by_key_eve
   end
 
   GEN.BackwardOperationFinish(c, nil)
+
+  ART.UpdateArticulationTextEventsIfNeeded(track, take);
 
   reaper.Undo_EndBlock(GEN.OperationSummary(-1, c.counts),-1);
 end

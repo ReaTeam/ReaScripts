@@ -1,0 +1,115 @@
+// @description Mini song switcher
+// @author mschnell
+// @version 2.1.1
+// @changelog Fix Lua comment in Mini song switcher project.eel
+// @provides [main] mschnell_Mini song switcher/mschnell_Mini song switcher project.eel
+// @about
+//   # Mini Song switcher
+//    ## Description
+//      The mschnell_Mini song switcher is inspired by the cfillion_Song switcher.
+//
+//      It is a lot less versatile and only features two scripts and no GUI
+//
+//      Other than the cfillion_Song switcher is does not work on the foreground Project (Tab) but by default on the first project (Tab) that holds a project with the string `_song_` in it's name.
+//
+//      Optional the `Mini song switcher project` script can be used to select one of multiple Project Tabs. Now the first project with `_song_` in it's name is used afterwards when same had been called with value 0 and `_song_#_` in it's name  is used appropriately otherwise (# = 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 ... 99).
+//
+//      If such is not found, it works on the foreground project (Tab). Don't forget to enable "run  background projects" on the project tab !
+//
+//      It uses the same track structure as the cfillion_Song switcher (Description see there)
+//
+//      When a CC action is received, it unmutes the track named according to the CC value (e.g. 1. XYZ or 23. Hello) and mutes all other appropriately named tracks (allowed numbers are 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 ... 99)
+//
+//      It then start playback (from the location of the play cursor) 
+//
+//      When a value of 0 is given or no appropriately named track is found, the playback is stopped.
+
+  #tab_name = "_song_";
+
+  res = GetExtState(#tab_id, "Mini_Song_Switcher", "tab_id");
+  tab_no = 0;
+  res == 1 ? (
+    c0 = str_getchar(#tab_id, 0);
+    c1 = str_getchar(#tab_id, 1);
+    (c0 >= '0') && (c0 <= '9') && (c1 >= '0') && (c1 <= '9') ? (
+      tab_no = (c0 - '0') * 10 + (c1 -'0');
+    );
+    c0 == '0' ? (
+      strcpy_from(#tab_id, #tab_id, 1);
+    );
+  );
+  tab_no ? (
+    #tab_name += #tab_id;
+    #tab_name += "_";
+  );
+  #tab_name1 = "*";
+  #tab_name1 += #tab_name;
+  #tab_name1 += "*";
+
+ 
+  get_action_context(#filename, sectionID, cmdID, mode, resolution, val);
+  tab = 0;
+  while (
+    proj = EnumProjects(tab, #proj_name);
+    p = proj;
+    n = match(#tab_name1, #proj_name);
+    n ? (
+      p = 0;
+    );
+    tab += 1;
+    p;
+  );
+  running = GetPlayStateEx(proj);
+  val != 0  ? (
+    track_count = CountTracks(proj);
+    song_found = 0;
+    track_index = 0;
+    loop (track_count,
+      track = GetTrack(proj, track_index);
+      has_name = GetTrackName(track, #track_name);
+      has_name ? (
+        c0 = str_getchar(#track_name, 0);
+        c1 = str_getchar(#track_name, 1);
+        c2 = str_getchar(#track_name, 2);
+        song_no = -1;
+        c1 == '.' ? (
+          (c0 >= '0') && (c0 <= '9') ? song_no = c0 - '0';
+        );
+        c2 == '.' ? (
+          (c0 >= '0') && (c0 <= '9') && (c1 >= '0') && (c1 <= '9') ? (
+             song_no = (c0 - '0') * 10 + (c1 -'0');
+          );
+        );
+        song_no != -1 ? (
+          song_no == val ? (
+            mute = 0;
+            song_found = 1;
+            #play_name = #track_name;
+           ) : (
+            mute = 1;
+          );
+          SetMediaTrackInfo_Value(track, "B_MUTE", mute);        // set mute / unmute 
+        );
+      );
+      track_index += 1;
+    );
+    stop_cmd_id = 1016;
+    Main_OnCommandEx(stop_cmd_id, 0, proj);
+    song_found != 0 ? (
+      play_cmd_id = 1007;
+      Main_OnCommandEx(play_cmd_id, 0, proj);
+      sprintf(#s, "Song Started: %s in project %s\r\n", #play_name, #tab_name1);
+      ShowConsoleMsg(#s);
+     ) : (
+      sprintf(#s, "Song does not exist: %d in project %s\r\n", val, #tab_name1);
+      ShowConsoleMsg(#s);
+    )
+   ) : (
+    running ? (
+      stop_cmd_id = 1016;
+      Main_OnCommandEx(stop_cmd_id, 0, proj);
+      sprintf(#s, "Song Stopped in project %s\r\n", #tab_name1);
+      ShowConsoleMsg(#s);
+    );
+  )
+

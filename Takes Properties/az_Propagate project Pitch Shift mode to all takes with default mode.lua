@@ -1,7 +1,7 @@
 -- @description Propagate project Pitch Shift mode to all takes with default mode
 -- @author AZ
--- @version 1.2
--- @changelog Fixed bug with incorrect stretch marker mode
+-- @version 1.3
+-- @changelog Fixed potentional bug with empty takes
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=288069
 -- @donation Donate via PayPal https://www.paypal.me/AZsound
 -- @about
@@ -12,9 +12,6 @@
 --   Just select items and run the script.
 --
 --   NOTE: Project has to be saved in file to let the script access to its actual settings.
-
---Version 1.2
---Date 08.02.2023
 
 --FUNCTIONS--
 
@@ -113,12 +110,14 @@ function main()
     
     for t=0, takeCount-1 do
       local take = reaper.GetTake(item,t)
-      local mode = reaper.GetMediaItemTakeInfo_Value(take,'I_PITCHMODE')
-      local strflgs = reaper.GetMediaItemTakeInfo_Value(take,'I_STRETCHFLAGS')
-      
-      if mode < 0 or strflgs == 0 then
-        if SetMode(item) == true then break
-        else goto exit end
+      if take then
+        local mode = reaper.GetMediaItemTakeInfo_Value(take,'I_PITCHMODE')
+        local strflgs = reaper.GetMediaItemTakeInfo_Value(take,'I_STRETCHFLAGS')
+        
+        if mode < 0 or strflgs == 0 then
+          if SetMode(item) == true then break
+          else goto exit end
+        end
       end
     end --takes cycle
     

@@ -5,6 +5,10 @@
 
 local D = require "modules/defines"
 
+local TrackSettingDefs = {
+  OSSArticulationManagerEnabled = { type = "bool", default = false }
+}
+
 local SettingDefs = {
   StepBackModifierKey                                       = { type = "int",     default = D.IsMacOs and 16 or 16 },
 
@@ -45,13 +49,12 @@ local SettingDefs = {
   KeyReleaseModeForgetTime                                  = { type = "double",  default = 0.200, min = 0.05, max = 0.4},
 
   RepitchModeAggregationTime                                = { type = "double",  default = 0.05, min = 0,   max = 0.1 },
-  RepitchModeAffects                                        = { type = "string",  default = "Pitches Only", inclusion = { "Pitches only", "Velocities only", "Pitches + Velocities" } },
+  RepitchModeAffects                                        = { type = "string",  default = D.RepitchModeAffects.PitchesOnly, inclusion = { D.RepitchModeAffects.PitchesOnly, D.RepitchModeAffects.VelocitiesOnly, D.RepitchModeAffects.PitchesAndVelocities } },
 
   PedalRepeatEnabled                                        = { type = "bool" ,   default = true },
   PedalRepeatTime                                           = { type = "double",  default = 0.200, min = 0.05, max = 0.5 },
   PedalRepeatFirstHitMultiplier                             = { type = "int",     default = 4, min = 1, max = 10 },
 
-  Snap                                                      = { type = "bool",    default = false },
   SnapNotes                                                 = { type = "bool",    default = true },
   SnapProjectGrid                                           = { type = "bool",    default = true },
   SnapItemGrid                                              = { type = "bool",    default = true },
@@ -61,12 +64,36 @@ local SettingDefs = {
 
   AllowKeyEventNavigation                                   = { type = "bool",    default = false },
 
+  Disarmed                                                  = { type = "bool",    default = false },
+  NoteHiglightingDuringPlay                                 = { type = "bool",    default = false },
+
   UseDebugger                                               = { type = "bool",    default = false },
 
   VelocityLimiterEnabled                                    = { type = "bool",    default = false },
   VelocityLimiterMin                                        = { type = "int",     default = 0,    min = 0, max = 127 },
   VelocityLimiterMax                                        = { type = "int",     default = 127,  min = 0, max = 127 },
-  VelocityLimiterMode                                       = { type = "string",  default = "Linear", inclusion = { "Linear", "Clamp"} }
+  VelocityLimiterMode                                       = { type = "string",  default = "Linear", inclusion = { "Linear", "Clamp"} },
+
+  InsertModeInMiddleOfMatchingNotesBehaviour                = {
+    type = "string",
+    default = D.MiddleInsertBehavior.LeaveUntouched,
+    inclusion = {
+      D.MiddleInsertBehavior.LeaveUntouched,
+      D.MiddleInsertBehavior.Extend,
+      D.MiddleInsertBehavior.Cut,
+      D.MiddleInsertBehavior.CutAndAdd
+    }
+  },
+
+  InsertModeInMiddleOfNonMatchingNotesBehaviour            = {
+    type = "string",
+    default = D.MiddleInsertBehavior.LeaveUntouched,
+    inclusion = {
+      D.MiddleInsertBehavior.LeaveUntouched,
+      D.MiddleInsertBehavior.Extend,
+      D.MiddleInsertBehavior.Cut,
+    }
+  }
 };
 
 
@@ -77,14 +104,8 @@ local function unsafestr(str)
   return str
 end
 
-local function getSetting(setting)
-  local spec  = SettingDefs[setting];
-
-  if spec == nil then
-    error("Trying to get unknown setting " .. setting);
-  end
-
-  local val = unsafestr(reaper.GetExtState("OneSmallStep", setting));
+local function serializedStringToValue(str, spec)
+  local val = unsafestr(str);
 
   if val == nil then
     val = spec.default;
@@ -99,8 +120,37 @@ local function getSetting(setting)
       -- No conversion needed
     end
   end
-  return val;
+
+  return val
 end
+
+local function valueToSerializedString(val, spec)
+  local str = ''
+  if spec.type == 'bool' then
+    str = (val == true) and "true" or "false";
+  elseif spec.type == 'int' then
+    str = tostring(val);
+  elseif spec.type == 'double' then
+    str = tostring(val);
+  elseif spec.type == "string" then
+    -- No conversion needed
+    str = val
+  end
+  return str
+end
+
+local function getSetting(setting)
+  local spec  = SettingDefs[setting];
+
+  if spec == nil then
+    error("Trying to get unknown setting " .. setting);
+  end
+
+  local str = reaper.GetExtState("OneSmallStep", setting)
+
+  return serializedStringToValue(str, spec)
+end
+
 local function setSetting(setting, val)
   local spec  = SettingDefs[setting];
 
@@ -111,18 +161,41 @@ local function setSetting(setting, val)
   if val == nil then
     reaper.DeleteExtState("OneSmallStep", setting, true);
   else
-    if spec.type == 'bool' then
-      val = (val == true) and "true" or "false";
-    elseif spec.type == 'int' then
-      val = tostring(val);
-    elseif spec.type == 'double' then
-      val = tostring(val);
-    elseif spec.type == "string" then
-      -- No conversion needed
-    end
-    reaper.SetExtState("OneSmallStep", setting, val, true);
+    local str = valueToSerializedString(val, spec);
+    reaper.SetExtState("OneSmallStep", setting, str, true);
   end
 end
+
+local function getTrackSetting(track, setting)
+  local spec  = TrackSettingDefs[setting];
+
+  if track == nil then
+    error("Trying to get setting " .. setting .. " from nil track ")
+  end
+
+  if spec == nil then
+    error("Trying to get unknown track setting " .. setting);
+  end
+
+  local succ, str = reaper.GetSetMediaTrackInfo_String(track, "P_EXT:OneSmallStep:" .. setting, '', false);
+
+  return serializedStringToValue(str or '', spec)
+end
+
+local function setTrackSetting(track, setting, val)
+  local spec  = TrackSettingDefs[setting];
+
+  if track == nil then
+    error("Trying to set setting " .. setting .. " to nil track ")
+  end
+  if spec == nil then
+    error("Trying to set unknown track setting " .. setting);
+  end
+
+  local str = valueToSerializedString(val, spec);
+  reaper.GetSetMediaTrackInfo_String(track, "P_EXT:OneSmallStep:" .. setting, str, true)
+end
+
 local function resetSetting(setting)
   setSetting(setting, SettingDefs[setting].default)
 end
@@ -217,6 +290,9 @@ return {
   setSetting                  = setSetting,
   resetSetting                = resetSetting,
   getSettingSpec              = getSettingSpec,
+
+  getTrackSetting             = getTrackSetting,
+  setTrackSetting             = setTrackSetting,
 
   setPlaybackMeasureCount     = setPlaybackMeasureCount,
   getPlaybackMeasureCount     = getPlaybackMeasureCount,
