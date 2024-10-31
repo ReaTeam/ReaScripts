@@ -2,8 +2,7 @@
 -- @author Tormy Van Cool
 -- @version 3.1 FERRETS
 -- @screenshot ENGLISH https://www.youtube.com/watch?v=J5Ko4uIya9w ITALIAN https://www.youtube.com/watch?v=OqNFQt3hOC8
--- @changelog
--- v1.0 (30 May 2021)
+-- @changelog v1.0 (30 May 2021)
 --   + Initial release
 -- v1.1 (31 May 2021)
 --   + Save status of HTML File
