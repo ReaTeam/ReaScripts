@@ -4,7 +4,7 @@
 -- @screenshot
 --  English https://www.youtube.com/watch?v=J5Ko4uIya9w
 --  Italian https://www.youtube.com/watch?v=OqNFQt3hOC8
--- @about Extracts and exports VSTs and VSTIs from reaper-vstplugins64.ini, in HTML and CSV format on a Project Folder
+-- @about Extracts and exports VSTs and VSTIs AUs and CLAPs in HTML and CSV format on a Project Folder
 -- @changelog:
 -- v1.0 (30 May 2021)
 --   + Initial release
@@ -55,9 +55,10 @@
 -- v3.1 FERRETS (19 August 2023)
 --   # Corrected bug: if no 64bit or not 32bit plugins where installed, an error was displayed.
 --   + Close file CLAP
+-- v3.1 Stable release
 
 reaper.ShowConsoleMsg('')
-local version = "3.1 FERRETS"
+local version = "3.1"
 local REAPER_path = reaper.GetResourcePath()
 local path = reaper.GetResourcePath()..'/reaper-vstplugins64.ini'
 local path32 = reaper.GetResourcePath()..'/reaper-vstplugins.ini'
