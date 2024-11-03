@@ -1,11 +1,7 @@
 -- @description Play lanes in time selection
 -- @author Edgemeal
--- @version 1.02
--- @changelog
---   * Add option to disable track buffering and anticipative FX.
---   * Remember user option settings for current session.
---   * Use 'ImGui_GetBuiltinPath' to detect if ReaImGui installed.
---   * Update REAPER versioning message to v7.03.
+-- @version 1.03
+-- @changelog * Fix window positioning
 -- @link Forum Thread https://forum.cockos.com/showthread.php?t=295370
 -- @screenshot Example https://stash.reaper.fm/49429/Play%20Lanes%20v1.00.gif
 -- @donation Donate via PayPal https://www.paypal.me/Edgemeal
@@ -213,5 +209,6 @@ r.set_action_options(1|4)
 if reaper.HasExtState("Edgemeal", "play_lanes") then no_buf, play_all, skip_comps, only_comps = LoadValues() end -- load usres previous settings (this session only)
 -- get mouse pos (app will be centered @ mouse)
 x, y = r.GetMousePosition()
+x, y = ImGui.PointConvertNative(ctx, x, y, true)
 
 r.defer(ImGui_Loop)
