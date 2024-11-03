@@ -20,6 +20,19 @@
   (scroll, resize, fit, etc).
 --]]
 
+local function CheckReapack(func_name, api_name, search_string)
+  if not reaper.APIExists(func_name) then
+    local answer = reaper.MB( api_name .. " is required and you need to install it.\z
+      Right-click the entry in the next window and choose to install.",
+      api_name .. " not installed", 0 )
+    reaper.ReaPack_BrowsePackages( search_string )
+    return false
+  end
+  return true
+end
+
+if not CheckReapack("JS_ReaScriptAPI_Version",   "JS_ReaScriptAPI",  "js_ReaScriptAPI")     then return end
+
 
 -- Using X-Raym's X-Raym_Scroll vertically to first selected track.lua
 -- Thanks Raymond !
