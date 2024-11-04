@@ -1,11 +1,9 @@
 -- @description Play lanes in time selection
 -- @author Edgemeal
--- @version 1.02
+-- @version 1.03
 -- @changelog
---   * Add option to disable track buffering and anticipative FX.
---   * Remember user option settings for current session.
---   * Use 'ImGui_GetBuiltinPath' to detect if ReaImGui installed.
---   * Update REAPER versioning message to v7.03.
+--   Fix window positioning
+--   Allow user to move window with mouse
 -- @link Forum Thread https://forum.cockos.com/showthread.php?t=295370
 -- @screenshot Example https://stash.reaper.fm/49429/Play%20Lanes%20v1.00.gif
 -- @donation Donate via PayPal https://www.paypal.me/Edgemeal
@@ -130,7 +128,7 @@ end
 
 function ImGui_Loop()
   ImGui.SetNextWindowPos(ctx, x, y, ImGui.Cond_FirstUseEver, 0.5, 0.5) -- center window @ mouse pos.
-  ui_vis, ui_open = ImGui.Begin(ctx, title, true, ImGui.WindowFlags_TopMost | ImGui.WindowFlags_NoResize | ImGui.WindowFlags_NoMove | ImGui.WindowFlags_NoCollapse )
+  ui_vis, ui_open = ImGui.Begin(ctx, title, true, ImGui.WindowFlags_TopMost | ImGui.WindowFlags_NoResize | ImGui.WindowFlags_NoCollapse )
   if ui_vis then
     ImGui.SameLine(ctx, 48)
     if ImGui.RadioButton(ctx,"Play all lanes", play_all) then
@@ -213,5 +211,6 @@ r.set_action_options(1|4)
 if reaper.HasExtState("Edgemeal", "play_lanes") then no_buf, play_all, skip_comps, only_comps = LoadValues() end -- load usres previous settings (this session only)
 -- get mouse pos (app will be centered @ mouse)
 x, y = r.GetMousePosition()
+x, y = ImGui.PointConvertNative(ctx, x, y, false)
 
 r.defer(ImGui_Loop)
