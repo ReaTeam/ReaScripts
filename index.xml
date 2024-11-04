@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="60103e6afcf3287bd81140cac24c62a2bb6f96ef" name="ReaTeam Scripts">
+<index version="1" commit="964718138d603344ef8635f1ded50405c1478e76" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -19038,6 +19038,11 @@ is off-screen. Reaper issue, should be fixed soon.]]></changelog>
 * Use 'ImGui_GetBuiltinPath' to detect if ReaImGui installed.
 * Update REAPER versioning message to v7.03.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/0d678e5e6dc0a73d1bc89afceb4cd34bfbf2d19a/Tracks/edgemeal_Play%20lanes%20in%20time%20selection.lua</source>
+      </version>
+      <version name="1.03" author="Edgemeal" time="2024-11-04T17:24:27Z">
+        <changelog><![CDATA[Fix window positioning
+Allow user to move window with mouse]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/964718138d603344ef8635f1ded50405c1478e76/Tracks/edgemeal_Play%20lanes%20in%20time%20selection.lua</source>
       </version>
     </reapack>
     <reapack name="gus-lan_Select folder tracks of depth X.lua" type="script" desc="Select folder tracks of depth X">
