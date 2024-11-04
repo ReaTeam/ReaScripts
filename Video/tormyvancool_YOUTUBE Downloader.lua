@@ -1,81 +1,88 @@
 -- @description YOUTUBE Downloader
+-- @about Import VIDEOs directly in TimeLine from YouTUBE, VIMEO, PATREONS and thousand other ones.
 -- @author Tormy Van Cool
--- @version 2.4
--- @changelog
---   2.4 2024-29-10 # Adjusted header style for production
---   1.0 2024-26-10
---       # First Release
---   1.1 2024-26-10
---       + Processes Notifications
---       - /Video/
---       + /Videos/
---   1.2 2024-26-10
---       - --merge-output-format mp4
---       + -S vcodec:h264,res,acodec:aac
---   1.3 2024-26-10
---       - 10
---       + 2
---   1.4 2024-26-10
---       - 2
---       + 5
---   1.5 2024-26-10
---       - 5
---       + 1
---       # Unified Update
---   1.6 2024-26-10 - 1
---       + 2
---       + Version
---   1.7 2024-27-10
---       - 'start "" "' from all O.S.s
---       + 'start "UPDATE & DOWNLOAD" "' Win
---   1.8 2024-27-10
---       - Start = ''
---       - 1
---       + Start = '"'
---       + 2
---   1.9 2024-27-10
---       + Check saved project
---       - 1
---       + 2
---   2.0 2024-27-10
---       - "chmod +x " ..  MainPath
---       + 'chmod +x "' ..  MainPath .. '"'
---       # Ordered Variables
---       - 2
---       + 1
---       + Apple Trial
---   2.3 2024-27-10
---       # Linux execution correction
---       + Credits
---       # 2.1 and 2.2 just trials due issues with Linux and Apple
---   2.31 2024-28-10
---       # Binaries directly form the source
---   2.32 2024-28-10
---       - yt-dlp
---       + yt-dlp_linux
---   2.4 2024-29-10
---       # Adjusted header style for production
+-- @version 2.5
+-- @Changelog:
+-- 2.4 2024-29-10 # Adjusted header style for production
+-- 1.0 2024-26-10
+--     # First Release
+-- 1.1 2024-26-10
+--     + Processes Notifications
+--     - /Video/
+--     + /Videos/
+-- 1.2 2024-26-10
+--     - --merge-output-format mp4
+--     + -S vcodec:h264,res,acodec:aac
+-- 1.3 2024-26-10
+--     - 10
+--     + 2
+-- 1.4 2024-26-10
+--     - 2
+--     + 5
+-- 1.5 2024-26-10
+--     - 5
+--     + 1
+--     # Unified Update
+-- 1.6 2024-26-10 - 1
+--     + 2
+--     + Version
+-- 1.7 2024-27-10
+--     - 'start "" "' from all O.S.s
+--     + 'start "UPDATE & DOWNLOAD" "' Win
+-- 1.8 2024-27-10
+--     - Start = ''
+--     - 1
+--     + Start = '"'
+--     + 2
+-- 1.9 2024-27-10
+--     + Check saved project
+--     - 1
+--     + 2
+-- 2.0 2024-27-10
+--     - "chmod +x " ..  MainPath
+--     + 'chmod +x "' ..  MainPath .. '"'
+--     # Ordered Variables
+--     - 2
+--     + 1
+--     + Apple Trial
+-- 2.3 2024-27-10
+--     # Linux execution correction
+--     + Credits
+--     # 2.1 and 2.2 just trials due issues with Linux and Apple
+-- 2.31 2024-28-10
+--     # Binaries directly form the source
+-- 2.32 2024-28-10
+--     - yt-dlp
+--     + yt-dlp_linux
+-- 2.4 2024-29-10
+--     # Adjusted header style for production
+-- 2.5 2024-11-04
+--     - Various 
+--     + VideoPath = 'Video'
+-- @about:
+-- # Import VIDEOs directly in TimeLine from YouTUBE, VIMEO, PATREONS and thousand other ones.
+-- 
+--    Key Features:
+-- 
+--    - 4 click operation: Start the script, enter the URL, give a title, click on OK
+--    - Import any Video in TimeLine by giving just the URL
+--    - Videos are saved into the project folder under the dedicated /Videos/ folder
+--    - Videos are imported into a new track, having the given name, and at the cursor position
+--    - Auto-update of the binaries "yt-dlp" each time the script is invoked, to ensure top quality at each use
+--    - Compatible with about thousand platforms included:
+--    - YouTUBE
+--    - Vimeo
+--    - Patreons
+--    and several other ones ...
+-- 
+--   [Full list here](https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md)
+-- @Credits:
+--    Stefano marcantoni and Talagan - to have helped for MAC implementation
+--    Paolo Saggese - to have helped for Linux implementation
 -- @provides
 --   [windows] yt-dlp/yt-dlp.exe https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe
 --   [linux] yt-dlp/yt-dlp_linux https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp
 --   [darwin] yt-dlp/yt-dlp_macos https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_macos
--- @about
---   # Import VIDEOs directly in TimeLine from YouTUBE, VIMEO, PATREONS and thousand other ones.
--- 
---       Key Features:
--- 
---       - 4 click operation: Start the script, enter the URL, give a title, click on OK
---       - Import any Video in TimeLine by giving just the URL
---       - Videos are saved into the project folder under the dedicated /Videos/ folder
---       - Videos are imported into a new track, having the given name, and at the cursor position
---       - Auto-update of the binaries "yt-dlp" each time the script is invoked, to ensure top quality at each use
---       - Compatible with about thousand platforms included:
---       - YouTUBE
---       - Vimeo
---       - Patreons
---       and several other ones ...
--- 
---      [Full list here](https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md)
 
 reaper.ClearConsole()
 
@@ -89,7 +96,7 @@ local quote = '"'
 local clock = os.clock
 local debug = false
 local zzz = 1
-local ver = 2.4
+local ver = 2.5
 local InputVariable = ""
 local dlpWin = 'yt-dlp.exe'
 local dlpMac = 'yt-dlp_macos'
@@ -98,7 +105,8 @@ local version = reaper.GetAppVersion()
 local pj_name_ = reaper.GetProjectName(0, "")
 local ProjDir = reaper.GetProjectPathEx(0)
 local ResourcePATH = reaper.GetResourcePath()
-local CallPath = ResourcePATH .. '/Scripts/Tormy Van Cool ReaPack Scripts/Various/yt-dlp/' -- Get FullPath to yt-dlp
+local VideoPath = 'Video'
+local CallPath = ResourcePATH .. '/Scripts/Tormy Van Cool ReaPack Scripts/' .. VideoPath .. '/yt-dlp/' -- Get FullPath to yt-dlp
 
 ---------------------------------------------
 -- FUNCTIONS
@@ -116,7 +124,7 @@ local CallPath = ResourcePATH .. '/Scripts/Tormy Van Cool ReaPack Scripts/Variou
         local a = {}
         local MainPath = ''
         if OS == "Win32" or OS == "Win64" then
-          MainPath = '"' .. ResourcePATH .. '/Scripts/Tormy Van Cool ReaPack Scripts/Various/yt-dlp/' .. dlpWin .. '"'
+          MainPath = '"' .. ResourcePATH .. '/Scripts/Tormy Van Cool ReaPack Scripts/' .. VideoPath .. '/yt-dlp/' .. dlpWin .. '"'
           Start = 'start "UPDATE & DOWNLOAD" '
         end
         if OS == "OSX32" or OS == "OSX64" or OS == "macOS-arm64" then
@@ -128,7 +136,7 @@ local CallPath = ResourcePATH .. '/Scripts/Tormy Van Cool ReaPack Scripts/Variou
          -- MainPath = ResourcePATH .. '/Scripts/Tormy Van Cool ReaPack Scripts/Various/yt-dlp/' .. dlpLnx .. '"'
          -- Start = '"'
          -- os.execute('chmod +x "' ..  MainPath .. '"')
-          MainPath = '"' .. ResourcePATH .. '/Scripts/Tormy Van Cool ReaPack Scripts/Various/yt-dlp/' .. dlpLnx .. '"'
+          MainPath = '"' .. ResourcePATH .. '/Scripts/Tormy Van Cool ReaPack Scripts/' .. VideoPath .. '/yt-dlp/' .. dlpLnx .. '"'
           Start = ''
           os.execute('chmod +x ' ..  MainPath)
         end
