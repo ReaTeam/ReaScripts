@@ -211,6 +211,6 @@ r.set_action_options(1|4)
 if reaper.HasExtState("Edgemeal", "play_lanes") then no_buf, play_all, skip_comps, only_comps = LoadValues() end -- load usres previous settings (this session only)
 -- get mouse pos (app will be centered @ mouse)
 x, y = r.GetMousePosition()
-x, y = ImGui.PointConvertNative(ctx, x, y, true)
+x, y = ImGui.PointConvertNative(ctx, x, y, false)
 
 r.defer(ImGui_Loop)
