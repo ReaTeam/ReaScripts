@@ -1,86 +1,75 @@
--- @description amagalma_Delete crossfade under mouse cursor
+-- @description Delete crossfade under mouse cursor
 -- @author amagalma
--- @version 1.0
+-- @version 2.00
+-- @changelog
+--   - Complete re-write
+--   - Support for items in lanes
+--   - SWS dependency
+-- @donation https://www.paypal.me/amagalma
 -- @about
 --   # Deletes the crossfade (if any) under the mouse cursor
 --   - creates undo only if a crossfade was deleted
 --   - does not work for multiple selected or grouped items atm
+--   - requires SWS
 
-------------------------------------------------------------------------------------------
 
-local reaper = reaper
 local ok = false
-
-------------------------------------------------------------------------------------------
-
-local retval, segment, details = reaper.BR_GetMouseCursorContext()
-if retval == "arrange" and segment == "track" and details == "item" then
-  local item = reaper.BR_GetMouseCursorContext_Item()
-  local pos = reaper.BR_GetMouseCursorContext_Position()
-  local track = reaper.BR_GetMouseCursorContext_Track()
-  local item_cnt = reaper.CountTrackMediaItems( track )
-  local itemstart = reaper.GetMediaItemInfo_Value(item, "D_POSITION")
-  local itemend = itemstart + reaper.GetMediaItemInfo_Value(item, "D_LENGTH")
-  local FadeOutStart = itemend - reaper.GetMediaItemInfo_Value(item, "D_FADEOUTLEN")
-  local FadeOutAutoStart = itemend - reaper.GetMediaItemInfo_Value(item, "D_FADEOUTLEN_AUTO")
-  local FadeInEnd = itemstart + reaper.GetMediaItemInfo_Value(item, "D_FADEINLEN")
-  local FadeInAutoEnd = itemstart + reaper.GetMediaItemInfo_Value(item, "D_FADEINLEN_AUTO")
-  local item2, what
-  if pos > itemstart and (pos < FadeInEnd or pos < FadeInAutoEnd) then
-    -- mouse is over the FadeIn of the item
-    for i = 0, item_cnt do -- find the previous item
-      local item_chk = reaper.GetTrackMediaItem( track, i )
-      if item_chk == item then
-        item2 = reaper.GetTrackMediaItem( track, i-1 )
-        what = "itemFadeIn"
+local x, y = reaper.GetMousePosition()
+local time = reaper.BR_PositionAtMouseCursor( false )
+local item = {ptr = reaper.GetItemFromPoint(x, y, true)}
+if item.ptr and time ~= -1 then
+  reaper.PreventUIRefresh(1)
+  local tolerance = 7/reaper.GetHZoomLevel()
+  tolerance = tolerance > 0.02 and 0.02 or tolerance
+  item.pos = reaper.GetMediaItemInfo_Value(item.ptr, "D_POSITION")
+  item.len = reaper.GetMediaItemInfo_Value(item.ptr, "D_LENGTH")
+  item.en = item.pos + item.len
+  item.fadein_len = reaper.GetMediaItemInfo_Value( item.ptr, "D_FADEINLEN_AUTO" )
+  item.fadeout_len = reaper.GetMediaItemInfo_Value( item.ptr, "D_FADEOUTLEN_AUTO" )
+  item.lane = reaper.GetMediaItemInfo_Value( item.ptr, "I_FIXEDLANE" )
+  item.track = reaper.GetMediaItemTrack( item.ptr )
+  item.id = reaper.GetMediaItemInfo_Value( item.ptr, "IP_ITEMNUMBER" )
+  if item.fadein_len > 0 and time >= item.pos and time <= item.pos + item.fadein_len + tolerance then
+    for i = item.id-1 , 0, -1 do
+      local itm = reaper.GetTrackMediaItem( item.track, i )
+      local lane = reaper.GetMediaItemInfo_Value( itm, "I_FIXEDLANE" )
+      if lane == item.lane then
+        local fadeout_len = reaper.GetMediaItemInfo_Value( itm, "D_FADEOUTLEN_AUTO" )
+        if math.abs(fadeout_len - item.fadein_len) < 0.00001 then
+          reaper.SetMediaItemInfo_Value( item.ptr, "D_FADEINLEN_AUTO", 0 )
+          reaper.SetMediaItemInfo_Value( item.ptr, "D_FADEINLEN", 0 )
+          reaper.SetMediaItemInfo_Value( itm, "D_FADEOUTLEN_AUTO", 0 )
+          reaper.SetMediaItemInfo_Value( itm, "D_FADEOUTLEN", 0 )
+          ok = true
+        end
         break
       end
     end
-  elseif pos < itemend and (pos > FadeOutStart or pos > FadeOutAutoStart) then
-    -- mouse is over the FadeOut of the item
-    for i = 0, item_cnt do -- find the next item
-      local item_chk = reaper.GetTrackMediaItem( track, i )
-      if item_chk == item then
-        item2 = reaper.GetTrackMediaItem( track, i+1 )
-        what = "itemFadeOut"
+  elseif item.fadeout_len > 0 and time <= item.en and time >= item.en - item.fadeout_len - tolerance then
+    for i = item.id+1, reaper.CountTrackMediaItems( item.track)-1 do
+      local itm = reaper.GetTrackMediaItem( item.track, i )
+      local lane = reaper.GetMediaItemInfo_Value( itm, "I_FIXEDLANE" )
+      if lane == item.lane then
+        local fadein_len = reaper.GetMediaItemInfo_Value( itm, "D_FADEINLEN_AUTO" )
+        if math.abs(fadein_len - item.fadeout_len) < 0.00001 then
+          reaper.SetMediaItemInfo_Value( itm, "D_FADEINLEN_AUTO", 0 )
+          reaper.SetMediaItemInfo_Value( itm, "D_FADEINLEN", 0 )
+          reaper.SetMediaItemInfo_Value( item.ptr, "D_FADEOUTLEN_AUTO", 0 )
+          reaper.SetMediaItemInfo_Value( item.ptr, "D_FADEOUTLEN", 0 )
+          ok = true
+        end
         break
       end
     end
   end
-  if item2 then
-    local item2start = reaper.GetMediaItemInfo_Value(item2, "D_POSITION")
-    local item2end = item2start + reaper.GetMediaItemInfo_Value(item2, "D_LENGTH")
-    local FadeOut2Start = item2end - reaper.GetMediaItemInfo_Value(item2, "D_FADEOUTLEN")
-    local FadeOutAuto2Start = item2end - reaper.GetMediaItemInfo_Value(item2, "D_FADEOUTLEN_AUTO")
-    local FadeIn2End = item2start + reaper.GetMediaItemInfo_Value(item2, "D_FADEINLEN")
-    local FadeInAuto2End = item2start + reaper.GetMediaItemInfo_Value(item2, "D_FADEINLEN_AUTO")
-    if (pos > item2start and (pos < FadeIn2End or pos < FadeInAuto2End))
-    or (pos < item2end and (pos > FadeOut2Start or pos > FadeOutAuto2Start))
-    then
-      ok = true
-    end
-  end
-  if ok then -- clear crossfade
-    if what == "itemFadeIn" then
-      reaper.SetMediaItemInfo_Value(item, "D_FADEINLEN_AUTO", 0)
-      reaper.SetMediaItemInfo_Value(item, "D_FADEINLEN", 0)
-      reaper.SetMediaItemInfo_Value(item2, "D_FADEOUTLEN_AUTO", 0)
-      reaper.SetMediaItemInfo_Value(item2, "D_FADEOUTLEN", 0)  
-    elseif what == "itemFadeOut" then
-      reaper.SetMediaItemInfo_Value(item2, "D_FADEINLEN_AUTO", 0)
-      reaper.SetMediaItemInfo_Value(item2, "D_FADEINLEN", 0)
-      reaper.SetMediaItemInfo_Value(item, "D_FADEOUTLEN_AUTO", 0)
-      reaper.SetMediaItemInfo_Value(item, "D_FADEOUTLEN", 0)
-    end
-    reaper.UpdateArrange()
-  end
+  reaper.PreventUIRefresh(-1)
 end
 
 -- Undo point creation -------------------------------------------------------------------
 
 if ok then
+  reaper.UpdateArrange()
   reaper.Undo_OnStateChange2( 0, "Delete crossfade under mouse cursor" )
 else
-  function NoUndoPoint() end 
-  reaper.defer(NoUndoPoint)
+  reaper.defer(function() end)
 end
