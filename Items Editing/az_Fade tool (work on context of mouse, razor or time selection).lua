@@ -1,10 +1,7 @@
 -- @description Fade tool (works on context of mouse, razor or time selection)
 -- @author AZ
--- @version 2.2.1
--- @changelog
---   - ignore snapping for certain cases
---   - apply font resizing immediately
---   - fixed regression with mouse fade on selected item
+-- @version 2.2.2
+-- @changelog - fixed the case when there is selected item outside of time selection and nothing happened
 -- @provides
 --   az_Fade tool (work on context of mouse, razor or time selection)/az_Options window for az_Fade tool.lua
 --   [main] az_Fade tool (work on context of mouse, razor or time selection)/az_Open options for az_Fade tool.lua
@@ -1367,7 +1364,7 @@ function FadeRazorEdits(razorEdits, needBatch) --get areaMap table and batch fla
     end
     
     if needBatch == true then
-      if fulliLock == 0 then 
+      if fulliLock == 0 then
         BatchFadesWindow(razorEdits)
       end
     else
@@ -1484,7 +1481,7 @@ function FadeRazorEdits(razorEdits, needBatch) --get areaMap table and batch fla
         i = i-1
       end -- end cycle through areas
       
-      if #fadeStartT == 0 and UndoString ~= 'FadeTool - Batch fades/crossfades' then UndoString = nil
+      if #fadeStartT == 0 and UndoString ~= 'FadeTool - Batch fades/crossfades' then UndoString = nil 
       else
         if DONTremoveRazor ~= true then
           reaper.Main_OnCommandEx(42406, 0, 0)  --Clear RE area
@@ -1601,7 +1598,7 @@ function GetTSandItems(start_TS, end_TS) --returns areaMap and needBatch
         
         table.insert(areaMap, areaData)
       end
-      
+      --[[
       if #SI == 0 then
         local areaData = {
             areaStart = start_TS,
@@ -1612,7 +1609,7 @@ function GetTSandItems(start_TS, end_TS) --returns areaMap and needBatch
         }
         
         table.insert(areaMap, areaData)
-      end
+      end]]
     end
   else --if not 2 items selected
     SI, needBatch = SaveSelItemsByTracks(start_TS, end_TS)
@@ -1630,7 +1627,7 @@ function GetTSandItems(start_TS, end_TS) --returns areaMap and needBatch
       
       table.insert(areaMap, areaData)
     end
-    
+    --[[
     if #SI == 0 then
       local areaData = {
           areaStart = start_TS,
@@ -1641,7 +1638,7 @@ function GetTSandItems(start_TS, end_TS) --returns areaMap and needBatch
       }
       
       table.insert(areaMap, areaData)
-    end
+    end]]
   end
   
   return areaMap, needBatch
@@ -2461,17 +2458,17 @@ else
     reaper.PreventUIRefresh( 1 )
     sTime = FadeRazorEdits(GetTSandItems(start_TS, end_TS))
     if not RunBatch then RestoreLockedItems() end
-    if UndoString ~= 'FadeTool - Batch fades/crossfades' then
+    if UndoString ~= 'FadeTool - Batch fades/crossfades' and #sTime > 0 then
       UndoString = "FadeTool - time selection"
-    end
-    return UndoString
+      return UndoString
+    end 
     
   end
   
   if UndoString == nil then
     local item_mouse, itemHalf = GetTopBottomItemHalf()
     
-    if item_mouse then
+    if item_mouse then --and (Opt.IgnoreLockingMouse == true or fadesLock == 0) then
       reaper.Undo_BeginBlock2( 0 )
       reaper.PreventUIRefresh( 1 )
       sTime = FadeToMouse(item_mouse, itemHalf)
@@ -2508,7 +2505,7 @@ end
 
 ---------------------------
 -----------START-----------
-CurVers = 2.21
+CurVers = 2.22
 version = tonumber( reaper.GetExtState(ExtStateName, "version") )
 if version ~= CurVers then
   if not version or version < 2.0 then
