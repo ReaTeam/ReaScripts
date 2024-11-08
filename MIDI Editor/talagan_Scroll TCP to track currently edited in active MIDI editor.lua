@@ -4,7 +4,6 @@
 @author Ben 'Talagan' Babut
 @donation https://www.paypal.com/donate/?business=3YEZMY9D6U8NC&no_recurring=1&currency_code=EUR
 @license MIT
-@metapackage
 @provides
   [main=main,midi_editor] .
 @changelog
