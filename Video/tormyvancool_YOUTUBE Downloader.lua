@@ -1,73 +1,95 @@
 -- @description YOUTUBE Downloader
 -- @author Tormy Van Cool
 -- @version 2.9
--- @changelog
---   1.0 2024-26-10
---       # First Release
---   1.1 2024-26-10
---       + Processes Notifications
---       - /Video/
---       + /Videos/
---   1.2 2024-26-10
---       - --merge-output-format mp4
---       + -S vcodec:h264,res,acodec:aac
---   1.3 2024-26-10
---       - 10
---       + 2
---   1.4 2024-26-10
---       - 2
---       + 5
---   1.5 2024-26-10
---       - 5
---       + 1
---       # Unified Update
---   1.6 2024-26-10 - 1
---       + 2
---       + Version
---   1.7 2024-27-10
---       - 'start "" "' from all O.S.s
---       + 'start "UPDATE & DOWNLOAD" "' Win
---   1.8 2024-27-10
---       - GGGGG = ''
---       - 1
---       + Start = '"'
---       + 2
---   1.9 2024-27-10
---       + Check saved project
---       - 1
---       + 2
---   2.0 2024-27-10
---       - "chmod +x " ..  MainPath
---       + 'chmod +x "' ..  MainPath .. '"'
---       # Ordered Variables
---       - 2
---       + 1
---       + Apple Trial
---   2.3 2024-27-10
---       # Linux execution correction
---       + Credits
---       # 2.1 and 2.2 just trials due issues with Linux and Apple
---   2.31 2024-28-10
---       # Binaries directly form the source
---   2.32 2024-28-10
---       - yt-dlp
---       + yt-dlp_linux
---   2.4 2024-29-10
---       # Adjusted header style for production
---   2.5 2024-11-04
---       - Various 
---       + VideoPath = 'Video'
---   2.6 2024-11-05
---       + check for temrination of temporary file upfrotn import the video
---   2.7 2024-11-05
---       - Check Routine
---   2.8 2024-11-06
---       + Detects Nework Interruptions during download
---       + Removes leftovers
---       + URLs as filename: forbidden
---       + Limitation to only alphanumerical characters
---   2.9 2024-11-06
---       + Check IfFileExists: Overwrite, Newname, Exit
+-- @Changelog:
+-- 1.0 2024-26-10
+--     # First Release
+-- 1.1 2024-26-10
+--     + Processes Notifications
+--     - /Video/
+--     + /Videos/
+-- 1.2 2024-26-10
+--     - --merge-output-format mp4
+--     + -S vcodec:h264,res,acodec:aac
+-- 1.3 2024-26-10
+--     - 10
+--     + 2
+-- 1.4 2024-26-10
+--     - 2
+--     + 5
+-- 1.5 2024-26-10
+--     - 5
+--     + 1
+--     # Unified Update
+-- 1.6 2024-26-10 - 1
+--     + 2
+--     + Version
+-- 1.7 2024-27-10
+--     - 'start "" "' from all O.S.s
+--     + 'start "UPDATE & DOWNLOAD" "' Win
+-- 1.8 2024-27-10
+--     - GGGGG = ''
+--     - 1
+--     + Start = '"'
+--     + 2
+-- 1.9 2024-27-10
+--     + Check saved project
+--     - 1
+--     + 2
+-- 2.0 2024-27-10
+--     - "chmod +x " ..  MainPath
+--     + 'chmod +x "' ..  MainPath .. '"'
+--     # Ordered Variables
+--     - 2
+--     + 1
+--     + Apple Trial
+-- 2.3 2024-27-10
+--     # Linux execution correction
+--     + Credits
+--     # 2.1 and 2.2 just trials due issues with Linux and Apple
+-- 2.31 2024-28-10
+--     # Binaries directly form the source
+-- 2.32 2024-28-10
+--     - yt-dlp
+--     + yt-dlp_linux
+-- 2.4 2024-29-10
+--     # Adjusted header style for production
+-- 2.5 2024-11-04
+--     - Various 
+--     + VideoPath = 'Video'
+-- 2.6 2024-11-05
+--     + check for temrination of temporary file upfrotn import the video
+-- 2.7 2024-11-05
+--     - Check Routine
+-- 2.8 2024-11-06
+--     + Detects Nework Interruptions during download
+--     + Removes leftovers
+--     + URLs as filename: forbidden
+--     + Limitation to only alphanumerical characters
+-- 2.9 2024-11-06
+--     + Check IfFileExists: Overwrite, Newname, Exit
+-- @about:
+-- # Import VIDEOs directly in TimeLine from YouTUBE, VIMEO, PATREONS and thousand other ones.
+--  
+--    Key Features:
+-- 
+--    - 4 click operation: Start the script, enter the URL, give a title, click on OK
+--    - Import any Video in TimeLine by giving just the URL
+--    - Videos are saved into the project folder under the dedicated /Videos/ folder
+--    - Videos are imported into a new track, having the given name, and at the cursor position
+--    - Auto-update of the binaries "yt-dlp" each time the script is invoked, to ensure top quality at each use
+--    - Compatible with about thousand platforms included:
+--    - YouTUBE
+--    - Vimeo
+--    - Patreons
+--    and several other ones ...
+-- 
+--   [Full list here](https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md)
+--
+-- Credits:
+--    Stefano marcantoni and Ben Talagan - to have helped for MAC implementation
+--    Paolo Saggese PMS67 - to have helped for Linux implementation
+--    cfillion - for his support during general debug
 -- @provides
 --   [win64] yt-dlp/yt-dlp.exe https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe
 --   [linux] yt-dlp/yt-dlp_linux https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp
@@ -77,28 +99,6 @@
 --   [linux]        .
 --   [darwin64]     .
 --   [darwin-arm64] .
--- @donation Pay me a drink https://bit.ly/Pay_Me_a_Drink
--- @about
---   # Import VIDEOs directly in TimeLine from YouTUBE, VIMEO, PATREONS and thousand other ones.
---  
---       Key Features:
--- 
---       - 4 click operation: Start the script, enter the URL, give a title, click on OK
---       - Import any Video in TimeLine by giving just the URL
---       - Videos are saved into the project folder under the dedicated /Videos/ folder
---       - Videos are imported into a new track, having the given name, and at the cursor position
---       - Auto-update of the binaries "yt-dlp" each time the script is invoked, to ensure top quality at each use
---       - Compatible with about thousand platforms included:
---       - YouTUBE
---       - Vimeo
---       - Patreons
---       and several other ones ...
--- 
---      [Full list here](https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md)
---
---   #Credits:
---       Stefano marcantoni and Talagan - to have helped for MAC implementation
---       Paolo Saggese - to have helped for Linux implementation
 
 reaper.ClearConsole()
 
@@ -280,8 +280,6 @@ local CallPath = ResourcePATH .. '/Scripts/Tormy Van Cool ReaPack Scripts/' .. V
       Destination = Destination:gsub('\\','/')
       
 
---cd ~/Library/"Application Support"/REAPER/Scripts/Tormy\ Van\ Cool\ ReaPack\ Scripts/Various/yt-dlp/ && ./yt-dlp_macos
-
 ---------------------------------------------
 -- UPDATE AND IMPORT VIDEO
 ---------------------------------------------
@@ -320,35 +318,24 @@ local CallPath = ResourcePATH .. '/Scripts/Tormy Van Cool ReaPack Scripts/' .. V
           -- NETWORK DISRUPTION
           ---------------------------------------------
           
-          -- GET RESIDUAL FILES
-          local ResFiles
-          if OpSys == 2 or OpSys == 3 then
-              ResFiles = "ls -a " .. ProjDir .."/Videos/*.mp4.part"
-              ResDel = 'rm "' .. ProjDir .. '\\Videos\\*.mp4.part"'
-          elseif OpSys == 1 then
-              ResFiles = 'dir /b "' .. ProjDir .. '\\Videos\\*.mp4.part"'
-              ResDel = 'del "' .. ProjDir .. '\\Videos\\*.mp4.part"' 
-          end
-  
-          local handle = io.popen(ResFiles)
-          
-          if handle == nil then
-              return
-          end
-          local stdout = handle:read("*all")
-          success = handle:close()
-          
-          -- REMOVE RESIDUAL FILES
-          if success then
-              if debug == true then reaper.ShowConsoleMsg('output is: \n' .. tostring(stdout) .. "\n") end
-              local retQuery = reaper.MB("Due a Network Error, the video was not properly downloaded.\nBY CLICKING OK THESE LEFTOVERS WILL BE REMOVED\n\nLeftovers:\n\n" .. tostring(stdout), "NETWORK ERROR", 0)
-              if retQuery == 1 then
-                handle = io.popen(ResDel)
-                success = handle:close()
-              end
+          -- GET RESIDUAL FILES AND REMOVE THEM
+          local ResFiles ="" 
+          a=0
+          test = ""
+          repeat
+            if test:find(".mp4.part") then
+              returned = test
+            end
+            test = reaper.EnumerateFiles( ProjDir .. "/Videos", a)
+            a = a + 1
+          until(test == nil)
+          if returned ~= nil then
+            local retQuery = reaper.MB("Due a Network Error, the video was not properly downloaded.\nBY CLICKING OK THESE LEFTOVERS WILL BE REMOVED\n\nLeftovers:\n\n" .. returned, "NETWORK ERROR", 0)
+            if retQuery == 1 then
+            os.remove(ProjDir .. "/Videos/" .. returned)
+            end
           else
-              if debug == true then reaper.ShowConsoleMsg('error when executing command' .. ResFiles) end
-              reaper.InsertMedia(Destination, 1)
+            reaper.InsertMedia(Destination, 1)
           end
 
           if debug == true then 
