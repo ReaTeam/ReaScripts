@@ -161,7 +161,7 @@ local CallPath = ScriptPath .. 'yt-dlp/' -- Get FullPath to yt-dlp
         local a = {}
         local MainPath = ''
         if OS == "Win32" or OS == "Win64" then
-          MainPath = '"' .. ResourcePATH .. '/Scripts/Tormy Van Cool ReaPack Scripts/' .. VideoPath .. '/yt-dlp/' .. dlpWin .. '"'
+          MainPath = '"' ..CallPath .. dlpWin .. '"'
           Start = 'start /b /wait "UPDATE & DOWNLOAD" '
           OpSys = 1
         end
@@ -172,17 +172,15 @@ local CallPath = ScriptPath .. 'yt-dlp/' -- Get FullPath to yt-dlp
           OpSys = 2
         end
         if OS == "Other" then
-         -- MainPath = ResourcePATH .. '/Scripts/Tormy Van Cool ReaPack Scripts/Various/yt-dlp/' .. dlpLnx .. '"'
-         -- Start = '"'
-         -- os.execute('chmod +x "' ..  MainPath .. '"')
-          MainPath = '"' .. ResourcePATH .. '/Scripts/Tormy Van Cool ReaPack Scripts/' .. VideoPath .. '/yt-dlp/' .. dlpLnx .. '"'
+          MainPath = '"' ..CallPath .. dlpLnx .. '"'
           Start = ''
           os.execute('chmod +x ' ..  MainPath)
           OpSys = 3
         end
         return MainPath
       end
-      
+
+
       -- GET FILE SIZE
       function get_file_size(filename)
           local file = io.open(filename, "rb")
