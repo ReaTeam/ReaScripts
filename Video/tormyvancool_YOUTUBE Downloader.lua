@@ -68,6 +68,7 @@
 --     + Limitation to only alphanumerical characters
 -- 2.9 2024-11-06
 --     + Check IfFileExists: Overwrite, Newname, Exit
+--     + check if the subdir for yt-dlp exists. if not it warns the user and stops the script
 -- @about:
 -- # Import VIDEOs directly in TimeLine from YouTUBE, VIMEO, PATREONS and thousand other ones.
 --  
@@ -85,11 +86,11 @@
 --    and several other ones ...
 -- 
 --   [Full list here](https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md)
---
--- Credits:
+-- @Credits:
 --    Stefano marcantoni and Ben Talagan - to have helped for MAC implementation
 --    Paolo Saggese PMS67 - to have helped for Linux implementation
 --    cfillion - for his support during general debug
+--    smandrap - for his key suggestoin to that helped to improve the reliability. Topic https://forum.cockos.com/showthread.php?t=96087
 -- @provides
 --   [win64] yt-dlp/yt-dlp.exe https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe
 --   [linux] yt-dlp/yt-dlp_linux https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp
@@ -123,8 +124,27 @@ local pj_name_ = reaper.GetProjectName(0, "")
 local ProjDir = reaper.GetProjectPathEx(0)
 local ResourcePATH = reaper.GetResourcePath()
 local VideoPath = 'Video'
-local CallPath = ResourcePATH .. '/Scripts/Tormy Van Cool ReaPack Scripts/' .. VideoPath .. '/yt-dlp/' -- Get FullPath to yt-dlp
+_,ScriptName = reaper.get_action_context()
+local ScriptPath = ScriptName:match('^.+[\\/]') -- Script Path
+local CallPath = ScriptPath .. 'yt-dlp/' -- Get FullPath to yt-dlp
 
+      -- CHECK IF YT-DLP FOLDER IS CREATED BY REAPACK AS EXPECTED
+      a=0
+      CheckForDir = ""
+      repeat
+        if CheckForDir == "yt-dlp" then
+          returnedDir = CheckForDir
+        end
+        CheckForDir = reaper.EnumerateSubdirectories( ScriptPath, a)
+        a = a + 1
+      until(CheckForDir == nil)
+      if returnedDir == nil then
+        local retQuery = reaper.MB("This script must be isntalled from a Reapack Repository.\n\nClick \"OK\", remove it and install it as it should!\n", "INSTALLATION ERROR", 0)
+        if retQuery == 1 then
+          goto done 
+        end
+      end
+      
 ---------------------------------------------
 -- FUNCTIONS
 ---------------------------------------------
