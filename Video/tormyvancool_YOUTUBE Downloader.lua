@@ -125,7 +125,7 @@ local ProjDir = reaper.GetProjectPathEx(0)
 local ResourcePATH = reaper.GetResourcePath()
 local VideoPath = 'Video'
 _,ScriptName = reaper.get_action_context()
-local ScriptPath = ScriptName:match('^.+[\\/]') -- Script Path
+local ScriptPath = ScriptName:match('^.+' .. package.config:sub(1, 1)) -- Script Path
 local CallPath = ScriptPath .. 'yt-dlp/' -- Get FullPath to yt-dlp
 
       -- CHECK IF YT-DLP FOLDER IS CREATED BY REAPACK AS EXPECTED
@@ -148,7 +148,8 @@ local CallPath = ScriptPath .. 'yt-dlp/' -- Get FullPath to yt-dlp
 ---------------------------------------------
 -- FUNCTIONS
 ---------------------------------------------
-      
+
+
       -- SLEEP(SECONDS)
       function sleep(n)
         local t0 = clock()
