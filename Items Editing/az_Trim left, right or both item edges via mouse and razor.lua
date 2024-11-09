@@ -1,17 +1,21 @@
 -- @description Trim left, right or both item edges via mouse and razor
 -- @author AZ
--- @version 1.4.1
--- @changelog - fixed bug with getting Reaper preferences
+-- @version 1.5
+-- @changelog
+--   - added option for trimming nearest/farthest edge of item as in the Fade tool script
+--   - added TCP user action
+--   - added font scaling for options window
 -- @provides [main] az_Trim left, right or both item edges via mouse and razor/az_Open options for az_Trim left, right or both item edges via mouse and razor.lua
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=288069
 -- @donation Donate via PayPal https://www.paypal.me/AZsound
 -- @about
 --   # Trim left, right or both item edges via mouse and razor
 --
---   Use vertical mouse position to trim left or right (top/bottom item half)
+--   Use vertical mouse position to trim left or right edge (top/bottom item half) or closest/farthest edge.
 --   Use razor to trim items at both sides.
 --
 --   To open options window place mouse on transport or mixer panel and press assigned shortcut.
+--   Or use a dedicated script from the package.
 
 --[[
 TO MODIFY SCRIPT OPTIONS
@@ -55,6 +59,9 @@ function OptionsDefaults()
   OptDefaults = {}
   local text
   
+  text = 'Respect snap for mouse trim'
+  table.insert(OptDefaults, {text, 'RespSnapItems', true })
+  
   text = 'Respect item grouping'
   table.insert(OptDefaults, {text, 'RespGrouping', true })
   
@@ -63,6 +70,11 @@ function OptionsDefaults()
   
   text = 'Select items after trimming by razor'
   table.insert(OptDefaults, {text, 'SelectItemsAfterRazorTrim', false })
+  
+  text = 'Mouse top / bottom placement on item is used for'
+  table.insert(OptDefaults, {text, 'LRdefine', 'Left/Right edge trim', {
+                                                      'Left/Right edge trim',
+                                                      'Closest/Farthest edge trim' } })
   
 end
 
@@ -116,6 +128,23 @@ function OptionsWindow()
   local W = fontSize
   local loopcnt = 0
   local _, imgui_version_num, _ = reaper.ImGui_GetVersion()
+  
+  local tcpActIDstr = reaper.GetExtState(ExtStateName, 'TCPaction')
+  local tcpActName = ''
+  local section
+  
+  local savedFontSize = tonumber(reaper.GetExtState(ExtStateName, 'FontSize'))
+  if type(savedFontSize) == 'number' then fontSize = savedFontSize end
+  if not savedFontSize then savedFontSize = fontSize end
+  
+  if tcpActIDstr ~= '' and tcpActIDstr:gsub('%d+', '') == '' then
+    section =  reaper.SectionFromUniqueID( tonumber(tcpActIDstr) )
+    tcpActName = reaper.kbd_getTextFromCmd( tonumber(tcpActIDstr), section )
+  elseif tcpActIDstr ~= '' then
+    section = reaper.SectionFromUniqueID( tonumber(reaper.NamedCommandLookup(tcpActIDstr)) )
+    tcpActName = reaper.kbd_getTextFromCmd
+    ( tonumber(reaper.NamedCommandLookup(tcpActIDstr)), section ) 
+  end
   
   local esc
   local enter
@@ -219,8 +248,17 @@ function OptionsWindow()
       OptDefaults[i] = option
     end -- for
     
+    reaper.ImGui_Text(ctx, '' ) --space
+    
+    reaper.ImGui_PushItemWidth(ctx, fontSize*5 )
+    _, tcpActIDstr = reaper.ImGui_InputText
+    (ctx,'TCP context action (paste command ID):\n'..tcpActName, tcpActIDstr)
+    
+    _, savedFontSize = reaper.ImGui_InputInt
+    (ctx, 'Font size for the window (default is 17)', savedFontSize)
+    
     reaper.ImGui_Text(ctx, '' ) --space before buttons
-    reaper.ImGui_Text(ctx, '' ) --space before buttons 
+    reaper.ImGui_Text(ctx, '' ) --space before buttons
     
     --Esc button
     reaper.ImGui_SameLine(ctx, fontSize*2, fontSize)
@@ -264,6 +302,17 @@ function OptionsWindow()
   
   --------------
   function loop()
+    if not font or savedFontSize ~= fontSize then
+      reaper.SetExtState(ExtStateName, 'FontSize', savedFontSize, true)
+      fontSize = savedFontSize
+      if font then reaper.ImGui_Detach(ctx, font) end
+      if fontSep then reaper.ImGui_Detach(ctx, fontSep) end
+      font = reaper.ImGui_CreateFont(fontName, fontSize, reaper.ImGui_FontFlags_None()) -- Create the fonts you need
+      fontSep = reaper.ImGui_CreateFont(fontName, fontSize-2, reaper.ImGui_FontFlags_Italic())
+      reaper.ImGui_Attach(ctx, font)
+      reaper.ImGui_Attach(ctx, fontSep)
+    end
+    
     esc = reaper.ImGui_IsKeyPressed(ctx, reaper.ImGui_Key_Escape())
     enter = reaper.ImGui_IsKeyPressed(ctx, reaper.ImGui_Key_Enter())
     space = reaper.ImGui_IsKeyPressed(ctx, reaper.ImGui_Key_Space())
@@ -296,8 +345,9 @@ function OptionsWindow()
       reaper.ImGui_PopStyleColor(ctx, 1)
       
       if visible then
-          frame() 
-          if loopcnt == 0 then reaper.ImGui_SetWindowSize(ctx, 0, 0, nil ) end
+          frame()
+          reaper.ImGui_SetWindowSize(ctx, 0, 0, nil )
+          --if loopcnt == 0 then reaper.ImGui_SetWindowSize(ctx, 0, 0, nil ) end
           reaper.ImGui_End(ctx)
       end
       
@@ -941,6 +991,37 @@ end
 -----------------------------------------
 --------------------------------------------
 
+function WhatTrim(half, leftF, rightF, mPos)
+  local f_type
+  
+  if Opt.LRdefine == 'Closest/Farthest edge trim' then --cross define
+    if half == "top" then
+      if (rightF - mPos) <= (mPos - leftF) then
+        f_type = "right"
+      else
+        f_type = "left"
+      end
+    elseif half == "bottom" then
+      if (rightF - mPos) > (mPos - leftF) then
+        f_type = "right"
+      else
+        f_type = "left"
+      end
+    end
+  elseif Opt.LRdefine == 'Left/Right edge trim' then
+    if half == "top" then
+      f_type = "left"
+    elseif half == "bottom" then
+      f_type = "right"
+    end
+  end
+  
+  return f_type
+end
+
+-----------------------------------------
+-----------------------------------------
+
 function MouseTrim()
  
   local item, half = GetTopBottomItemHalf()
@@ -953,8 +1034,13 @@ function MouseTrim()
     reaper.Undo_BeginBlock2( 0 )
     reaper.PreventUIRefresh( 1 )
     
-    _, _, _ = reaper.BR_GetMouseCursorContext()
-    local trimTime = reaper.SnapToGrid(0,reaper.BR_GetMouseCursorContext_Position())
+    local mPos = reaper.BR_PositionAtMouseCursor(false) 
+    local trimTime
+    if Opt.RespSnapItems == true then
+      trimTime = reaper.SnapToGrid(0,mPos)
+    else trimTime = mPos
+    end
+    
     GroupEnabled = reaper.GetToggleCommandState(1156) --Options: Toggle item grouping override
     
     SaveSelItems()
@@ -968,8 +1054,10 @@ function MouseTrim()
       reaper.Main_OnCommandEx(40034,0,0) --Item grouping: Select all items in groups
     end
     
-    local side
-    if half == 'top' then side = 'left' elseif half == 'bottom' then side = 'right' end
+    local iPos = reaper.GetMediaItemInfo_Value(item,'D_POSITION')
+    local iEnd = iPos + reaper.GetMediaItemInfo_Value(item,'D_LENGTH')
+    
+    local side = WhatTrim(half, iPos, iEnd, mPos)
     
     undoType = trim_sel_items(side, trimTime)
     
@@ -987,7 +1075,7 @@ end
 --------------------------
 
 -------START------
-CurVers = 1.41
+CurVers = 1.5
 version = tonumber( reaper.GetExtState(ExtStateName, "version") )
 
 if version ~= CurVers then
