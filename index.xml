@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="30d7d01e0d6ec1517cac7418e1554e0e115faad4" name="ReaTeam Scripts">
+<index version="1" commit="041e7c6f7f16e89af70d575f327768a5361c83d8" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -5428,6 +5428,26 @@ website
       <version name="1.10" author="amagalma" time="2022-02-07T00:33:57Z">
         <changelog><![CDATA[- Don't create empty tracks when the selected items have empty take lanes]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/cf0073295e5dc5d5d1b7998afe0a1cddfdc332e4/Items%20Editing/amagalma_Explode%20takes%20of%20items%20across%20tracks%20(according%20to%20source%20files).lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Explode video items to separate audio and video items in separate tracks.lua" type="script" desc="Explode video items to separate audio and video items in separate tracks">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Explodes each selected item into separate items for the video and the audio part. Original items are turned into video-only items, and the new audio--only items are placed in a new track underneath.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Inside the script you can specify:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 1)\tx360\tab the name for the new audio-only tracks\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 2)\tx360\tab the suffix for the video-only items\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 3)\tx360\tab the suffix for the audio-only items\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 4)\tx360\tab whether to group video-only and audio-only items together\sa180\par}
+}
+]]></description>
+        <link rel="donation">https://www.paypal.me/amagalma</link>
+      </metadata>
+      <version name="1.00" author="amagalma" time="2024-11-11T13:21:39Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/041e7c6f7f16e89af70d575f327768a5361c83d8/Items%20Editing/amagalma_Explode%20video%20items%20to%20separate%20audio%20and%20video%20items%20in%20separate%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Fill space between selected items with empty items.lua" type="script" desc="Fill space between selected items with empty items">
