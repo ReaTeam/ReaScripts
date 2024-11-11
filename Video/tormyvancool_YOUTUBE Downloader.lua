@@ -67,8 +67,9 @@
 --     + URLs as filename: forbidden
 --     + Limitation to only alphanumerical characters
 -- 2.9 2024-11-06
---     + Check IfFileExists: Overwrite, Newname, Exit
---     + check if the subdir for yt-dlp exists. if not it warns the user and stops the script
+--     + Checks IfFileExists: Overwrite, Newname, Exit
+--     + Checks if the subdir for yt-dlp exists. if not it warns the user and stops the script
+--     + If the video wasn't downloaded or the donloaded file is 0 bytes size, the script stops and doesn't generate any new track
 -- @about:
 -- # Import VIDEOs directly in TimeLine from YouTUBE, VIMEO, PATREONS and thousand other ones.
 --  
@@ -139,7 +140,7 @@ local CallPath = ScriptPath .. 'yt-dlp/' -- Get FullPath to yt-dlp
         a = a + 1
       until(CheckForDir == nil)
       if returnedDir == nil then
-        local retQuery = reaper.MB("This script must be isntalled from a Reapack Repository.\n\nClick \"OK\", remove it and install it as it should!\n", "INSTALLATION ERROR", 0)
+        local retQuery = reaper.MB('This script must be isntalled from a Reapack Repository.\n\nClick \"OK\", remove it and install it as it should!\n', 'INSTALLATION ERROR', 0)
         if retQuery == 1 then
           goto done 
         end
@@ -220,13 +221,13 @@ local CallPath = ScriptPath .. 'yt-dlp/' -- Get FullPath to yt-dlp
 
       -- CHECK WHETHER PROJECT IS SAVED
       if pj_name_ == "" then 
-        reaper.MB("YOU MUST SAVE THE PROJECT FIRST! Then relaunch this script!",'WARNING',0)
+        reaper.MB('YOU MUST SAVE THE PROJECT FIRST! Then relaunch this script!','WARNING',0)
         return
       end
 
       -- GET URL
       repeat
-      retval, url=reaper.GetUserInputs("DOWNLOAD VIDEO", 1, "Paste URL,extrawidth=400", InputVariable)
+      retval, url=reaper.GetUserInputs('DOWNLOAD VIDEO: URL', 1, "Paste URL,extrawidth=400", InputVariable)
       if retval==false then return end
       if retval then
         t = {}
@@ -248,7 +249,7 @@ local CallPath = ScriptPath .. 'yt-dlp/' -- Get FullPath to yt-dlp
       -- GET FILENAME
       ::getfilename::
       repeat
-      retval_1, FileName=reaper.GetUserInputs("DOWNLOAD VIDEO", 1, "Insert FILE NAME,extrawidth=400", InputVariable)
+      retval_1, FileName=reaper.GetUserInputs('DOWNLOAD VIDEO:TITLE', 1, "Insert FILE NAME,extrawidth=400", InputVariable)
       FileName = GetRid(GetRid(GetRid(GetRid(GetRid(FileName, pipe), colon), quote), slash), backslash) -- No reserved characters can be written
       FileName = FileName:gsub("http", "")
 
@@ -264,12 +265,12 @@ local CallPath = ScriptPath .. 'yt-dlp/' -- Get FullPath to yt-dlp
       
       -- NO EMPTY TITLE ADMITTED
       if t[1]== "" then
-        reaper.MB("VIDEO TITLE is MANDATORY","ERROR",0,0)
+        reaper.MB('VIDEO TITLE is MANDATORY','ERROR',0,0)
       end
       
       -- NO URLS AND NOT ALPHANUMERICAL CHARACTERS ADMITTED
       if t[1]:match("[^%w%s]") then
-        reaper.MB("ONLY ALPHANUMERIC CHARACTERS ADMITTED","ERROR",0,0)
+        reaper.MB('ONLY ALPHANUMERIC CHARACTERS ADMITTED','ERROR',0,0)
         t[1]=""
       end
       until( t[1] ~= "")
@@ -314,7 +315,7 @@ local CallPath = ScriptPath .. 'yt-dlp/' -- Get FullPath to yt-dlp
           local checkfile = reaper.file_exists(Destination)
           local answer = nil
           if checkfile == true then
-            answer = reaper.MB("A file with the same filename exists\nWould you want to overwrite it?\n\nYES => Go on\nNO => Rewrite the filname\nCANCEL => Exit",'WARNING: FILENAME EXISTS',3)
+            answer = reaper.MB('A file with the same filename exists\nWould you want to overwrite it?\n\nYES => Go on\nNO => Rewrite the filname\nCANCEL => Exit','WARNING: FILENAME EXISTS',3)
           end
           if answer == 7 then 
             goto getfilename 
@@ -349,12 +350,19 @@ local CallPath = ScriptPath .. 'yt-dlp/' -- Get FullPath to yt-dlp
             a = a + 1
           until(test == nil)
           if returned ~= nil then
-            local retQuery = reaper.MB("Due a Network Error, the video was not properly downloaded.\nBY CLICKING OK THESE LEFTOVERS WILL BE REMOVED\n\nLeftovers:\n\n" .. returned, "NETWORK ERROR", 0)
+            local retQuery = reaper.MB('Due a Network Error, the video was not properly downloaded.\nBY CLICKING OK THESE LEFTOVERS WILL BE REMOVED\n\nLeftovers:\n\n' .. returned, 'NETWORK ERROR', 0)
             if retQuery == 1 then
             os.remove(ProjDir .. "/Videos/" .. returned)
             end
           else
-            reaper.InsertMedia(Destination, 1)
+            if not reaper.file_exists(Destination) or get_file_size(Destination) == 0 then
+              local retQuery = reaper.MB('Something went wrong during the download of this video.\nNo video were downloaded.\n\nBy clicking on \"OK\" the script will stop.', 'AN ERROR OCCURRED', 0)
+              if retQuery == 1 then
+              goto done
+              end
+            else
+              reaper.InsertMedia(Destination, 1)
+            end
           end
 
           if debug == true then 
