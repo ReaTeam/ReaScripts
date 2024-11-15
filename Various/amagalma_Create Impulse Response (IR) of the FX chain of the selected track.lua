@@ -1,8 +1,8 @@
 -- @description Create Impulse Response (IR) of the FX Chain of the selected Track
 -- @author amagalma
--- @version 2.20
+-- @version 2.21
 -- @changelog
---   - Delete all unnecessary peak files
+--   - Removed hack to load IR in ReaVerb and used proper API (that did not exist back then)
 -- @donation https://www.paypal.me/amagalma
 -- @link https://forum.cockos.com/showthread.php?t=234517
 -- @about
@@ -20,7 +20,7 @@
 
 -- Thanks to EUGEN27771, spk77, X-Raym, Lokasenna
 
-local version = "2.20"
+local version = "2.21"
 --------------------------------------------------------------------------------------------
 
 
@@ -673,53 +673,15 @@ function CreateIR()
       reaper.TrackFX_SetEnabled( track, i, false )
     end
     local pos = reaper.TrackFX_AddByName( track, "ReaVerb (Cockos)", false, -1 )
-    reaper.TrackFX_Show( track, pos, 3 )
-    local rv, window_name = reaper.TrackFX_GetFXName( track, pos, "" )
-    local window_name = rv and window_name or "ReaVerb (Cockos)"
-    local fxhwnd = reaper.JS_Window_Find( window_name, false )
-    local _, list = reaper.JS_Window_ListAllChild( fxhwnd )
-    local addbutton
-    for address in list:gmatch("[^,]+") do
-      local hwnd = reaper.JS_Window_HandleFromAddress( address )
-      local title = reaper.JS_Window_GetTitle( hwnd )
-      local class = reaper.JS_Window_GetClassName( hwnd )
-      if title == "Add" and class == "Button" then
-        addbutton = hwnd
-      end
+    local ok = reaper.TrackFX_SetNamedConfigParm(track, pos, "ITEM0", 'FILELDR "'..IR_FullPath..'" 60')
+    local ok2 = reaper.TrackFX_SetNamedConfigParm(track, pos, "DONE", "")
+    if ok and ok2 then
+      Msg("IR was loaded in ReaVerb")
+    else
+      problems = problems+1
+      Msg(problems .. ") Failed to load the IR in ReaVerb")
     end
-    local _, left, top, right, bottom = reaper.BR_Win32_GetWindowRect( addbutton )
-    -- click
-    reaper.JS_WindowMessage_Post(addbutton, "WM_LBUTTONDOWN", 0x0001, 0, 10, 10)
-    reaper.JS_WindowMessage_Post(addbutton, "WM_LBUTTONUP", 0x0000, 0, 10, 10)
-    -- three times down arrow
-    reaper.JS_WindowMessage_Post(addbutton, "WM_KEYDOWN", 0x28, 0, 0, 0)
-    reaper.JS_WindowMessage_Post(addbutton, "WM_KEYDOWN", 0x28, 0, 0, 0)
-    reaper.JS_WindowMessage_Post(addbutton, "WM_KEYDOWN", 0x28, 0, 0, 0)
-    -- return
-    reaper.JS_WindowMessage_Post(addbutton, "WM_KEYDOWN", 0x0D, 0, 0, 0)
-    local start = reaper.time_precise()
-    function waitdialog()
-      if reaper.time_precise() - start >= 0.5 then
-        local openfile = reaper.JS_Window_Find( "Open media file:", true )
-        local _, list = reaper.JS_Window_ListAllChild( openfile )
-        for address in list:gmatch("[^,]+") do
-          local hwnd = reaper.JS_Window_HandleFromAddress( address )
-          local class = reaper.JS_Window_GetClassName( hwnd )
-          if class == "ComboBox" then
-            local editwindow = reaper.JS_Window_FindChildByID( hwnd, 1148 )
-            if editwindow then 
-              reaper.JS_Window_SetTitle( editwindow, IR_FullPath )
-              -- return
-              reaper.JS_WindowMessage_Post(editwindow, "WM_KEYDOWN", 0x0D, 0, 0, 0)
-              break
-            end
-          end
-        end
-        return
-      end
-      reaper.defer(waitdialog)
-    end
-    waitdialog()
+    reaper.TrackFX_Show( track, pos, 1 )
   end
   
   -- Create Undo
