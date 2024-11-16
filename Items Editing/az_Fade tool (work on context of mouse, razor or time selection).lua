@@ -1,7 +1,7 @@
 -- @description Fade tool (works on context of mouse, razor or time selection)
 -- @author AZ
--- @version 2.2.2
--- @changelog - fixed the case when there is selected item outside of time selection and nothing happened
+-- @version 2.2.3
+-- @changelog - to avoid simultaneous work of Batch fade tool and changing fade under the mouse - ignore TS if one of it's edges is out of arrange view and the mouse is over an item.
 -- @provides
 --   az_Fade tool (work on context of mouse, razor or time selection)/az_Options window for az_Fade tool.lua
 --   [main] az_Fade tool (work on context of mouse, razor or time selection)/az_Open options for az_Fade tool.lua
@@ -2445,13 +2445,19 @@ if RazorEditSelectionExists() == true then
   if UndoString then return UndoString end
 else
   local env = reaper.GetSelectedEnvelope(0) 
-  start_TS, end_TS = reaper.GetSet_LoopTimeRange2( 0, false, false, 0, 0, 0 )
+  
   if env then
     reaper.Undo_BeginBlock2( 0 )
     reaper.PreventUIRefresh( 1 )
     sTime = PointToMouse(env)
   end
   if UndoString then return UndoString end
+  
+  local item_mouse, itemHalf = GetTopBottomItemHalf()
+  start_TS, end_TS = reaper.GetSet_LoopTimeRange2( 0, false, false, 0, 0, 0 )
+  local startArrange, endArrange = reaper.GetSet_ArrangeView2( 0, false, 0, 0, 0, 0 )
+  
+  if item_mouse and (start_TS <= startArrange or end_TS >= endArrange) then start_TS = end_TS end
   
   if start_TS ~= end_TS and reaper.CountSelectedMediaItems(0)> 0 and UndoString == nil then
     reaper.Undo_BeginBlock2( 0 )
@@ -2462,11 +2468,9 @@ else
       UndoString = "FadeTool - time selection"
       return UndoString
     end 
-    
   end
   
   if UndoString == nil then
-    local item_mouse, itemHalf = GetTopBottomItemHalf()
     
     if item_mouse then --and (Opt.IgnoreLockingMouse == true or fadesLock == 0) then
       reaper.Undo_BeginBlock2( 0 )
@@ -2505,7 +2509,7 @@ end
 
 ---------------------------
 -----------START-----------
-CurVers = 2.22
+CurVers = 2.23
 version = tonumber( reaper.GetExtState(ExtStateName, "version") )
 if version ~= CurVers then
   if not version or version < 2.0 then
