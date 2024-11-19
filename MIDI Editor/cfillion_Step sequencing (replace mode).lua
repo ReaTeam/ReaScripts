@@ -422,8 +422,7 @@ local function optionsMenu(mode, items)
 end
 
 local function legacyOptionsMenu(mode, items)
-  local menu = {}
-  local values = {}
+  local menu, values = {}, {}
 
   for id, item in ipairs(items) do
     if type(item) == 'table' then
