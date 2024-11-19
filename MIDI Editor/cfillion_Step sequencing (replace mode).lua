@@ -446,7 +446,7 @@ if scriptName:match('%(options%)') then
     {MODE_CHAN,  'Replace channel'},
     {MODE_PITCH, 'Replace pitch'},
     {MODE_VEL,   'Replace velocity'},
-    '|',
+    '',
     {MODE_SEL,   'Skip unselected notes'},
   }
 
