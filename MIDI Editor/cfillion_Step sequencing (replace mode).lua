@@ -1,7 +1,7 @@
 -- @description Step sequencing (replace mode)
 -- @author cfillion
--- @version 1.1.3
--- @changelog Internal code cleanup
+-- @version 1.1.4
+-- @changelog Fix toggling "Skip unselected notes" in the legacy (non-ReaImGui) options menu [p=2823664]
 -- @provides
 --   .
 --   [main] . > cfillion_Step sequencing (options).lua
@@ -423,20 +423,22 @@ end
 
 local function legacyOptionsMenu(mode, items)
   local menu = {}
+  local values = {}
 
   for id, item in ipairs(items) do
     if type(item) == 'table' then
       local checkbox = mode & item[1] ~= 0 and '!' or ''
       table.insert(menu, checkbox .. item[2])
+      table.insert(values, item[1])
     else
       table.insert(menu, item)
     end
   end
 
   local choice = gfx.showmenu(table.concat(menu, '|'))
-  if not items[choice] then return end
+  if not values[choice] then return end
 
-  mode = mode ~ items[choice][1]
+  mode = mode ~ values[choice]
   reaper.SetExtState(EXT_SECTION, EXT_MODE_KEY, mode, true)
 end
 
@@ -454,6 +456,7 @@ if scriptName:match('%(options%)') then
   else
     gfxdo(function() legacyOptionsMenu(mode, items) end)
   end
+
   return
 end
 
