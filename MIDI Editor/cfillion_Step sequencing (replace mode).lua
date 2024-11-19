@@ -428,8 +428,8 @@ local function legacyOptionsMenu(mode, items)
   for id, item in ipairs(items) do
     if type(item) == 'table' then
       local checkbox = mode & item[1] ~= 0 and '!' or ''
-      table.insert(menu, checkbox .. item[2])
       table.insert(values, item[1])
+      table.insert(menu, checkbox .. item[2])
     else
       table.insert(menu, item)
     end
