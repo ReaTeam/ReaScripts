@@ -1,7 +1,7 @@
 -- @description Step sequencing (replace mode)
 -- @author cfillion
 -- @version 1.1.4
--- @changelog Fix toggling "Skip unselected notes" in the legacy (non-ReaImGui) options menu [p=2823664]
+-- @changelog Fix toggling "Skip unselected notes" in the fallback (non-ReaImGui) options menu [p=2823664]
 -- @provides
 --   .
 --   [main] . > cfillion_Step sequencing (options).lua
