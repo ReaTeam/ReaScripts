@@ -21,4 +21,6 @@
   These actions are meant to be small bricks of bigger custom actions where you perform a reorganisation of the UI (e.g. use FTC's scrolling scripts for the MIDI editor).
 
   You can copy / paste the "... (500).lua" action files and modify their name to put a custom height instead of 500.
+
+  Thanks to @edgemeal for the technical advice and windows support !
 --]]

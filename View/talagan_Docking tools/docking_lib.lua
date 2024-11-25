@@ -3,6 +3,26 @@
 -- @license MIT
 -- @description This is part of Talagan Docking Tools
 
+local function CheckReapack(func_name, api_name, search_string)
+  if not reaper.APIExists(func_name) then
+    local answer = reaper.MB( api_name .. " is required and you need to install it.\z
+      Right-click the entry in the next window and choose to install.",
+      api_name .. " not installed", 0 )
+    reaper.ReaPack_BrowsePackages( search_string )
+    return false
+  end
+  return true
+end
+
+local function CheckDependencies()
+  if not CheckReapack("JS_ReaScriptAPI_Version",   "JS_ReaScriptAPI",  "js_ReaScriptAPI")     then return false end
+
+  return true
+end
+
+
+------------------------
+
 DOCK_BOTTOM   = 0
 DOCK_FLOATING = 4
 
@@ -205,6 +225,7 @@ local function minimizeBottommostDock()  resizeBottommostDock(0)      end
 
 
 return {
+  CheckDependencies=CheckDependencies,
   setTimeout=setTimeout,
 
   resizeMidiDock=resizeMidiDock,
