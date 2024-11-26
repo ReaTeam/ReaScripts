@@ -22,5 +22,5 @@
 
   You can copy / paste the "... (500).lua" action files and modify their name to put a custom height instead of 500.
 
-  Thanks to @edgemeal for the technical advice and windows support !
+  Thanks to @edgemeal for the technical advice / windows support and @X-raym for the code review!
 --]]
