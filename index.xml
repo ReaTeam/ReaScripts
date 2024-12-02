@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="4df6b821c03dbc1fbd5b68e9882355b3d6b3a7b9" name="ReaTeam Scripts">
+<index version="1" commit="cfb453fa5de6332b7ad52495cfd51314782c00bb" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -3133,6 +3133,25 @@ Last applied snapshot indicator]]></changelog>
         <source main="main" file="tilr_Snapshooter/tilr_Snapshooter write snap 2.lua">https://github.com/ReaTeam/ReaScripts/raw/aaf2ae393ccf3b305c894b7784346f7ff8d888ec/Envelopes/tilr_Snapshooter/tilr_Snapshooter%20write%20snap%202.lua</source>
         <source main="main" file="tilr_Snapshooter/tilr_Snapshooter write snap 3.lua">https://github.com/ReaTeam/ReaScripts/raw/aaf2ae393ccf3b305c894b7784346f7ff8d888ec/Envelopes/tilr_Snapshooter/tilr_Snapshooter%20write%20snap%203.lua</source>
         <source main="main" file="tilr_Snapshooter/tilr_Snapshooter write snap 4.lua">https://github.com/ReaTeam/ReaScripts/raw/aaf2ae393ccf3b305c894b7784346f7ff8d888ec/Envelopes/tilr_Snapshooter/tilr_Snapshooter%20write%20snap%204.lua</source>
+      </version>
+      <version name="1.4" author="tilr" time="2024-12-02T21:53:10Z">
+        <changelog><![CDATA[Fix nasty bug where snapshots tracks were identified by userdata.
+This caused failure to find the tracks on reaper restart.
+Fixed by using tracks GUID instead.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/cfb453fa5de6332b7ad52495cfd51314782c00bb/Envelopes/tilr_Snapshooter.lua</source>
+        <source file="tilr_Snapshooter/rtk.lua">https://github.com/ReaTeam/ReaScripts/raw/cfb453fa5de6332b7ad52495cfd51314782c00bb/Envelopes/tilr_Snapshooter/rtk.lua</source>
+        <source main="main" file="tilr_Snapshooter/tilr_Snapshooter apply snap 1.lua">https://github.com/ReaTeam/ReaScripts/raw/cfb453fa5de6332b7ad52495cfd51314782c00bb/Envelopes/tilr_Snapshooter/tilr_Snapshooter%20apply%20snap%201.lua</source>
+        <source main="main" file="tilr_Snapshooter/tilr_Snapshooter apply snap 2.lua">https://github.com/ReaTeam/ReaScripts/raw/cfb453fa5de6332b7ad52495cfd51314782c00bb/Envelopes/tilr_Snapshooter/tilr_Snapshooter%20apply%20snap%202.lua</source>
+        <source main="main" file="tilr_Snapshooter/tilr_Snapshooter apply snap 3.lua">https://github.com/ReaTeam/ReaScripts/raw/cfb453fa5de6332b7ad52495cfd51314782c00bb/Envelopes/tilr_Snapshooter/tilr_Snapshooter%20apply%20snap%203.lua</source>
+        <source main="main" file="tilr_Snapshooter/tilr_Snapshooter apply snap 4.lua">https://github.com/ReaTeam/ReaScripts/raw/cfb453fa5de6332b7ad52495cfd51314782c00bb/Envelopes/tilr_Snapshooter/tilr_Snapshooter%20apply%20snap%204.lua</source>
+        <source main="main" file="tilr_Snapshooter/tilr_Snapshooter save snap 1.lua">https://github.com/ReaTeam/ReaScripts/raw/cfb453fa5de6332b7ad52495cfd51314782c00bb/Envelopes/tilr_Snapshooter/tilr_Snapshooter%20save%20snap%201.lua</source>
+        <source main="main" file="tilr_Snapshooter/tilr_Snapshooter save snap 2.lua">https://github.com/ReaTeam/ReaScripts/raw/cfb453fa5de6332b7ad52495cfd51314782c00bb/Envelopes/tilr_Snapshooter/tilr_Snapshooter%20save%20snap%202.lua</source>
+        <source main="main" file="tilr_Snapshooter/tilr_Snapshooter save snap 3.lua">https://github.com/ReaTeam/ReaScripts/raw/cfb453fa5de6332b7ad52495cfd51314782c00bb/Envelopes/tilr_Snapshooter/tilr_Snapshooter%20save%20snap%203.lua</source>
+        <source main="main" file="tilr_Snapshooter/tilr_Snapshooter save snap 4.lua">https://github.com/ReaTeam/ReaScripts/raw/cfb453fa5de6332b7ad52495cfd51314782c00bb/Envelopes/tilr_Snapshooter/tilr_Snapshooter%20save%20snap%204.lua</source>
+        <source main="main" file="tilr_Snapshooter/tilr_Snapshooter write snap 1.lua">https://github.com/ReaTeam/ReaScripts/raw/cfb453fa5de6332b7ad52495cfd51314782c00bb/Envelopes/tilr_Snapshooter/tilr_Snapshooter%20write%20snap%201.lua</source>
+        <source main="main" file="tilr_Snapshooter/tilr_Snapshooter write snap 2.lua">https://github.com/ReaTeam/ReaScripts/raw/cfb453fa5de6332b7ad52495cfd51314782c00bb/Envelopes/tilr_Snapshooter/tilr_Snapshooter%20write%20snap%202.lua</source>
+        <source main="main" file="tilr_Snapshooter/tilr_Snapshooter write snap 3.lua">https://github.com/ReaTeam/ReaScripts/raw/cfb453fa5de6332b7ad52495cfd51314782c00bb/Envelopes/tilr_Snapshooter/tilr_Snapshooter%20write%20snap%203.lua</source>
+        <source main="main" file="tilr_Snapshooter/tilr_Snapshooter write snap 4.lua">https://github.com/ReaTeam/ReaScripts/raw/cfb453fa5de6332b7ad52495cfd51314782c00bb/Envelopes/tilr_Snapshooter/tilr_Snapshooter%20write%20snap%204.lua</source>
       </version>
     </reapack>
   </category>
