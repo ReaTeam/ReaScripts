@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="00497704efdfdbd2300091c785d10d1dd215d84f" name="ReaTeam Scripts">
+<index version="1" commit="bdc7579272df4910256c0f8cc193dec109126859" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -14413,6 +14413,26 @@ Made by Mordi, Jan 2016]]></changelog>
         <source main="main midi_editor" file="talagan_Distribute MIDI notes evenly (dialog).lua">https://github.com/ReaTeam/ReaScripts/raw/53473b40b99ad33f4e4e24857577a8faefb69656/MIDI%20Editor/talagan_Distribute%20MIDI%20notes%20evenly%20action.lua</source>
         <source main="main midi_editor" file="talagan_Distribute MIDI notes evenly (dialog+).lua">https://github.com/ReaTeam/ReaScripts/raw/53473b40b99ad33f4e4e24857577a8faefb69656/MIDI%20Editor/talagan_Distribute%20MIDI%20notes%20evenly%20action.lua</source>
         <source main="main midi_editor" file="talagan_Distribute MIDI notes evenly (last param).lua">https://github.com/ReaTeam/ReaScripts/raw/53473b40b99ad33f4e4e24857577a8faefb69656/MIDI%20Editor/talagan_Distribute%20MIDI%20notes%20evenly%20action.lua</source>
+      </version>
+    </reapack>
+    <reapack name="talagan_Find overlapping notes.lua" type="script" desc="Find overlapping notes in project / active take">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Simple scripts to detect overlapping notes. Currently comes in two actions :\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab One to search in the whole project, that will give you a report per track+item if some overlapping notes were found\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab One to launch with a MIDI Editor open, it will select problematic notes if found\sa180\par}
+}
+]]></description>
+        <link rel="donation">https://www.paypal.com/donate/?business=3YEZMY9D6U8NC&amp;no_recurring=1&amp;currency_code=EUR</link>
+      </metadata>
+      <version name="0.5" author="Ben 'Talagan' Babut" time="2024-12-02T22:06:27Z">
+        <changelog><![CDATA[- Initial Release]]></changelog>
+        <source main="main midi_editor" file="./talagan_Find overlapping notes in active take and select them.lua">https://github.com/ReaTeam/ReaScripts/raw/bdc7579272df4910256c0f8cc193dec109126859/MIDI%20Editor/talagan_Find%20overlapping%20notes/actions/talagan_Find%20overlapping%20notes%20in%20active%20take%20and%20select%20them.lua</source>
+        <source main="main midi_editor" file="./talagan_Find overlapping notes in project and report items.lua">https://github.com/ReaTeam/ReaScripts/raw/bdc7579272df4910256c0f8cc193dec109126859/MIDI%20Editor/talagan_Find%20overlapping%20notes/actions/talagan_Find%20overlapping%20notes%20in%20project%20and%20report%20items.lua</source>
+        <source file="talagan_Find overlapping notes/overlapping_lib.lua">https://github.com/ReaTeam/ReaScripts/raw/bdc7579272df4910256c0f8cc193dec109126859/MIDI%20Editor/talagan_Find%20overlapping%20notes/overlapping_lib.lua</source>
       </version>
     </reapack>
     <reapack name="talagan_OneSmallStep.lua" type="script" desc="One Small Step : Alternative Step Input">
