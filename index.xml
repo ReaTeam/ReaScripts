@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="bdc7579272df4910256c0f8cc193dec109126859" name="ReaTeam Scripts">
+<index version="1" commit="be7f5689e9a2671d9c5f18fec872e055b09bf423" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -4621,6 +4621,9 @@ Alternative FX browser fixes]]></changelog>
       <version name="1.0" author="Eugen2777, DarkStar, Kawa" time="2018-09-07T07:55:54Z">
         <changelog><![CDATA[# Reapack Release by X-Raym from version c01]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a22bb49688a60e84c8c29f6f951e06342f517650/FX/kawa_TrackFXs_Routing_Matrix_DS_KW.lua</source>
+      </version>
+      <version name="1.0.1" author="Eugen2777, DarkStar, Kawa" time="2024-12-07T16:28:14Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/be7f5689e9a2671d9c5f18fec872e055b09bf423/FX/kawa_TrackFXs_Routing_Matrix_DS_KW.lua</source>
       </version>
     </reapack>
     <reapack name="larryseyer_Live keys scripts.lua" type="script" desc="Live keys scripts">
