@@ -8,13 +8,15 @@
  * Author URI: http://kawa.works
  * Repository: ReaTeam ReaScripts
  * Licence: GPL v3
- * Version: 1.0
+ * Version: 1.0.1
 --]]
 
 --[[
  * Changelog:
+ * v1.0.1 (2024-12-07)
+  # Fix arrows by Silgm (https://forum.cockos.com/showpost.php?p=2578491&postcount=100)
  * v1.0 (2018-09-07)
-	# Reapack Release by X-Raym from version c01
+  # Reapack Release by X-Raym from version c01
 --]]
 
 --====================================================================
@@ -586,12 +588,12 @@ function draw_FX_ID_addSub(target,fxid, x,y, w, h,modeName,isRight)
             local i=1;
             local fxChainState = ""
             --========================================================
-            for title,word,d in string.gmatch(chunk, "(<FXCHAIN\n)(.-)(WAK %d+\n>\n)") 
+            for title,word,d in string.gmatch(chunk, "(<FXCHAIN\n)(.-)(WAK %d+ %d+\n>\n)") 
             do 
                 fxChainState = title..word..d;
             end
             --========================================================
-            for title,word,d in string.gmatch(fxChainState, "(BYPASS)(.-)(WAK %d+\n)") 
+            for title,word,d in string.gmatch(fxChainState, "(BYPASS)(.-)(WAK %d+ %d+\n)") 
             do 
                 local fxStateChunk ={};
                 fxStateChunk.index = fxCount;
@@ -639,7 +641,7 @@ function draw_FX_ID_addSub(target,fxid, x,y, w, h,modeName,isRight)
             --========================================================
             
             --========================================================
-            local newStateChunk = string.gsub(chunk, "<FXCHAIN(.-)WAK %d+\n>\n",newFXStateChunk)
+            local newStateChunk = string.gsub(chunk, "<FXCHAIN(.-)WAK %d+ %d+\n>\n",newFXStateChunk)
             reaper.SetTrackStateChunk(target, newStateChunk,false);
             --========================================================
         elseif(modeName == "take")
@@ -654,12 +656,12 @@ function draw_FX_ID_addSub(target,fxid, x,y, w, h,modeName,isRight)
             --========================================================
             local fxChainState = ""
             --========================================================
-            for title,word,d in string.gmatch(chunk, "(<TAKEFX\n)(.-)(WAK %d+\n>\n)") 
+            for title,word,d in string.gmatch(chunk, "(<TAKEFX\n)(.-)(WAK %d+ %d+\n>\n)") 
             do 
                 fxChainState = title..word..d;
             end
             --========================================================
-            for title,word,d in string.gmatch(fxChainState, "(BYPASS)(.-)(WAK %d+\n)") 
+            for title,word,d in string.gmatch(fxChainState, "(BYPASS)(.-)(WAK %d+ %d+\n)") 
             do 
                 local fxStateChunk ={};
                 fxStateChunk.index = fxCount;
@@ -705,7 +707,7 @@ function draw_FX_ID_addSub(target,fxid, x,y, w, h,modeName,isRight)
             end
             newFXStateChunk = newFXStateChunk ..">\n";
             --========================================================
-            local newStateChunk = string.gsub(chunk, "<TAKEFX(.-)WAK %d+\n>\n",newFXStateChunk)
+            local newStateChunk = string.gsub(chunk, "<TAKEFX(.-)WAK %d+ %d+\n>\n",newFXStateChunk)
             --========================================================
             reaper.SetItemStateChunk(item, newStateChunk,true)
             --========================================================
@@ -1128,13 +1130,13 @@ function draw_track_chan_add_sub(target,chans, x,y,w,h,modeName)
                     channels = 2;
                     local fxChainState = ""
                     --================================================
-                    for title,word,d in string.gmatch(chunk, "(<TAKEFX\n)(.-)(WAK %d+\n>\n)") 
+                    for title,word,d in string.gmatch(chunk, "(<TAKEFX\n)(.-)(WAK %d+ %d+\n>\n)") 
                     do 
                         fxChainState = title..word..d;
                     end
                     --================================================
                     newChunk = string.gsub( chunk
-                                          , "<TAKEFX(.-)WAK %d+\n>\n"
+                                          , "<TAKEFX(.-)WAK %d+ %d+\n>\n"
                                           ,fxChainState .."TAKEFX_NCH 4" 
                                           );
                     --================================================
@@ -1200,7 +1202,7 @@ function draw_track_chan_add_sub(target,chans, x,y,w,h,modeName)
                     channels = 2;
                     local fxChainState = ""
                     --================================================
-                    for title,word,d in string.gmatch(takeChunkTable[takeIdx+1].text, "(<TAKEFX\n)(.-)(WAK %d+\n>\n)") 
+                    for title,word,d in string.gmatch(takeChunkTable[takeIdx+1].text, "(<TAKEFX\n)(.-)(WAK %d+ %d+\n>\n)") 
                     do 
                         fxChainState = title..word..d;
                     end
