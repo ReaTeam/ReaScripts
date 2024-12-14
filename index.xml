@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="93d24e43ce8710c92f18b5e44b4047f426279599" name="ReaTeam Scripts">
+<index version="1" commit="0132f32368edf0dec3d554df65027a198439d4cf" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -580,6 +580,15 @@
       </version>
       <version name="1.1" author="amagalma, X-Raym" time="2022-07-18T16:49:45Z">
         <source>https://github.com/ReaTeam/ReaScripts/raw/32e7b53f799d110200db4415957a3f20549683c0/Development/amagalma_Theme%20variable%20descriptions.lua</source>
+      </version>
+    </reapack>
+    <reapack name="cfillion_Color inspector.lua" type="script" desc="Color inspector">
+      <metadata>
+        <link rel="screenshot">https://i.imgur.com/GVoBSUs.gif</link>
+        <link rel="donation">https://reapack.com/donate</link>
+      </metadata>
+      <version name="1.0" author="cfillion" time="2024-12-14T01:12:15Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/0132f32368edf0dec3d554df65027a198439d4cf/Development/cfillion_Color%20inspector.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Dump file to string literal.lua" type="script" desc="Dump file to string literal">
