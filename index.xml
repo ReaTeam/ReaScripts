@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="73fbb0e6e31b937e9c7ca09f246ef841ac5f0204" name="ReaTeam Scripts">
+<index version="1" commit="33073dcb6d7fda593defdd5c0755c8086dda946d" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -21723,11 +21723,11 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
     </reapack>
     <reapack name="amagalma_gianfini_ReaNamer (track-item-region-marker renaming utility).lua" type="script" desc="ReaNamer (track-item-region-marker renaming utility)">
       <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Utility to manipulate track, item, region or marker names\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel0 \b \fs36 Utility to manipulate track, item, region or marker names\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Manipulate track/item/region/marker names (prefix/suffix, trim start/end, keep, clear, uppercase/lowercase, swap case/capitalize/titlecase, replace, strip leading & trailing whitespaces).\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Mode (tracks or items) is automatically chosen when the script starts. Then to change mode click on appropriate button.\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab When satisfied with the modifications (which can be previewed in the list), COMMIT button writes the values to tracks/items/regions/markers and creates an Undo point in Reaper's Undo History\par}
@@ -21752,6 +21752,12 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/446dc379abe2987cfea4912bf9bd5c85e71c42f3/Various/amagalma_gianfini_ReaNamer%20(track-item-region-marker%20renaming%20utility).lua</source>
         <source file="amagalma_ReaNamer Replace Help.lua">https://github.com/ReaTeam/ReaScripts/raw/446dc379abe2987cfea4912bf9bd5c85e71c42f3/Various/amagalma_ReaNamer%20Replace%20Help.lua</source>
         <source file="amagalma_ReaNamer utf8data.lua">https://github.com/ReaTeam/ReaScripts/raw/446dc379abe2987cfea4912bf9bd5c85e71c42f3/Various/amagalma_ReaNamer%20utf8data.lua</source>
+      </version>
+      <version name="1.48" author="amagalma &amp; gianfini" time="2024-12-15T12:41:59Z">
+        <changelog><![CDATA[- Fixed trim end dialog box name]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/33073dcb6d7fda593defdd5c0755c8086dda946d/Various/amagalma_gianfini_ReaNamer%20(track-item-region-marker%20renaming%20utility).lua</source>
+        <source file="amagalma_ReaNamer Replace Help.lua">https://github.com/ReaTeam/ReaScripts/raw/33073dcb6d7fda593defdd5c0755c8086dda946d/Various/amagalma_ReaNamer%20Replace%20Help.lua</source>
+        <source file="amagalma_ReaNamer utf8data.lua">https://github.com/ReaTeam/ReaScripts/raw/33073dcb6d7fda593defdd5c0755c8086dda946d/Various/amagalma_ReaNamer%20utf8data.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Go to track (mousewheel only) reverse.eel" type="script" desc="amagalma_Go to track (mousewheel only) reverse">
