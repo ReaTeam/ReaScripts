@@ -1,8 +1,8 @@
 -- @description ReaNamer (track-item-region-marker renaming utility)
 -- @author amagalma & gianfini
--- @version 1.47
+-- @version 1.48
 -- @changelog
---   - Fixed bugs in Markers or Regions mode and time selection present
+--   - Fixed trim end dialog box name
 -- @provides
 --   amagalma_ReaNamer Replace Help.lua
 --   amagalma_ReaNamer utf8data.lua
@@ -2037,7 +2037,7 @@ local function init() -- INITIALIZATION ----------------------------------------
 
   function trimend_btn.onClick()
     if not Check() then return end
-    local ok, number = reaper.GetUserInputs("Trim start", 1, "Insert number of characters:", "")
+    local ok, number = reaper.GetUserInputs("Trim end", 1, "Insert number of characters:", "")
     GiveBackFocus()
     if ok then
       if tonumber(number) ~= nil then
