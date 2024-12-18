@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="33073dcb6d7fda593defdd5c0755c8086dda946d" name="ReaTeam Scripts">
+<index version="1" commit="018279a29c20ca7a482b950445decc99931eb3f9" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -27327,16 +27327,53 @@ Streamable link
     </reapack>
     <reapack name="talagan_Docking tools.lua" type="script" desc="Docking tools : actions to resize docks">
       <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 This package provide actions to quickly resize the MIDI dock and the bottommost dock (maximize, minimize, or set to custom height).\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This package provide actions to quickly resize the docks in REAPER.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 These actions are meant to be small bricks of bigger custom actions where you perform a reorganisation of the UI (e.g. use FTC's scrolling scripts for the MIDI editor).\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 You can copy / paste the "... (500).lua" action files and modify their name to put a custom height instead of 500.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Thanks to @edgemeal for the technical advice / windows support and @X-raym for the code review!\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 All actions in this package are duplicates of the same one, with a different name that will decide of it's behaviour. The syntax of the name should be one of the following :\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Maximize A_DOCK.lua\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Minimize A_DOCK.lua\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Set A_DOCK size (SIZES).lua\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 A_DOCK can be either :\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab DIRMOST dock\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab dock containing A_WIDGET\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 DIRMOST can be one of the following :\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab leftmost\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab rightmost\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab bottommost\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab topmost\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 A_WIDGET can be one of the following :\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab active MIDI Editor\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Mixer\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Project Bay\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Media Explorer\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Track Manager\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Track Group Manager\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Take Properties\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Undo History\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Envelope Manager\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Routing Matrix\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Track Grouping Matrix\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Track Wiring Diagram\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Region Render Matrix\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab FX Browser\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Navigator\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Big Clock\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Performance Meter\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Finally SIZES syntax is one of the following\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab T,R,B,L\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab DIM\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 T,R,B,L and DIM are either pixel sizes, or "min" or "max"\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 If using the first syntax, each value T,R,B or L applies conditionally to the dock depending on its position (top, right, bottom or left). That way you may write, for example, your own "set to big" function that will use custom sizes for you desired "biggest" dock config, wherever the dock is.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Various actions using this syntax are installed with this package and may be used as an example.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 If you want to add your own custom behaviours, just duplicate one (copy-paste the corresponding file {\b in the same directory}) and rename it to your will.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Thanks to @Edgemeal for the technical advice / windows support and @X-raym for the code review!\par}
 }
 ]]></description>
+        <link rel="website" href="https://forum.cockos.com/showthread.php?t=296531">Forum Thread</link>
         <link rel="donation">https://www.paypal.com/donate/?business=3YEZMY9D6U8NC&amp;no_recurring=1&amp;currency_code=EUR</link>
       </metadata>
       <version name="0.1" author="Ben 'Talagan' Babut" time="2024-12-02T21:54:54Z">
@@ -27348,6 +27385,32 @@ Streamable link
         <source main="main midi_editor" file="talagan_Minimize dock containing active MIDI Editor.lua">https://github.com/ReaTeam/ReaScripts/raw/00497704efdfdbd2300091c785d10d1dd215d84f/View/talagan_Docking%20tools/actions/talagan_Minimize%20dock%20containing%20active%20MIDI%20Editor.lua</source>
         <source main="main midi_editor" file="talagan_Set dock containing active MIDI Editor height (500).lua">https://github.com/ReaTeam/ReaScripts/raw/00497704efdfdbd2300091c785d10d1dd215d84f/View/talagan_Docking%20tools/actions/talagan_Set%20dock%20containing%20active%20MIDI%20Editor%20height%20(500).lua</source>
         <source file="talagan_Docking tools/docking_lib.lua">https://github.com/ReaTeam/ReaScripts/raw/00497704efdfdbd2300091c785d10d1dd215d84f/View/talagan_Docking%20tools/docking_lib.lua</source>
+      </version>
+      <version name="0.2" author="Ben 'Talagan' Babut" time="2024-12-18T14:47:03Z">
+        <changelog><![CDATA[- Added support for all dock positions (left/top/bottom/right)
+- New syntax for duplicated action names allow to define conditional heights depending on the dock position
+- New syntax for duplicated action names allow to target other widgets than the active MIDI Editor]]></changelog>
+        <source main="main" file="talagan_Set bottommost dock height (500).lua">https://github.com/ReaTeam/ReaScripts/raw/018279a29c20ca7a482b950445decc99931eb3f9/View/talagan_Docking%20tools/actions/talagan_Generic%20dock%20resize%20action.lua</source>
+        <source main="main" file="talagan_Set dock containing active MIDI Editor height (500).lua">https://github.com/ReaTeam/ReaScripts/raw/018279a29c20ca7a482b950445decc99931eb3f9/View/talagan_Docking%20tools/actions/talagan_Generic%20dock%20resize%20action.lua</source>
+        <source main="main" file="talagan_Maximize dock containing project bay.lua">https://github.com/ReaTeam/ReaScripts/raw/018279a29c20ca7a482b950445decc99931eb3f9/View/talagan_Docking%20tools/actions/talagan_Generic%20dock%20resize%20action.lua</source>
+        <source main="main" file="talagan_Minimize dock containing project bay.lua">https://github.com/ReaTeam/ReaScripts/raw/018279a29c20ca7a482b950445decc99931eb3f9/View/talagan_Docking%20tools/actions/talagan_Generic%20dock%20resize%20action.lua</source>
+        <source main="main" file="talagan_Set dock containing project bay size (500,700,500,700).lua">https://github.com/ReaTeam/ReaScripts/raw/018279a29c20ca7a482b950445decc99931eb3f9/View/talagan_Docking%20tools/actions/talagan_Generic%20dock%20resize%20action.lua</source>
+        <source main="main" file="talagan_Maximize bottommost dock.lua">https://github.com/ReaTeam/ReaScripts/raw/018279a29c20ca7a482b950445decc99931eb3f9/View/talagan_Docking%20tools/actions/talagan_Generic%20dock%20resize%20action.lua</source>
+        <source main="main" file="talagan_Minimize bottommost dock.lua">https://github.com/ReaTeam/ReaScripts/raw/018279a29c20ca7a482b950445decc99931eb3f9/View/talagan_Docking%20tools/actions/talagan_Generic%20dock%20resize%20action.lua</source>
+        <source main="main" file="talagan_Set bottommost dock size (500).lua">https://github.com/ReaTeam/ReaScripts/raw/018279a29c20ca7a482b950445decc99931eb3f9/View/talagan_Docking%20tools/actions/talagan_Generic%20dock%20resize%20action.lua</source>
+        <source main="main" file="talagan_Maximize topmost dock.lua">https://github.com/ReaTeam/ReaScripts/raw/018279a29c20ca7a482b950445decc99931eb3f9/View/talagan_Docking%20tools/actions/talagan_Generic%20dock%20resize%20action.lua</source>
+        <source main="main" file="talagan_Minimize topmost dock.lua">https://github.com/ReaTeam/ReaScripts/raw/018279a29c20ca7a482b950445decc99931eb3f9/View/talagan_Docking%20tools/actions/talagan_Generic%20dock%20resize%20action.lua</source>
+        <source main="main" file="talagan_Set topmost dock size (500).lua">https://github.com/ReaTeam/ReaScripts/raw/018279a29c20ca7a482b950445decc99931eb3f9/View/talagan_Docking%20tools/actions/talagan_Generic%20dock%20resize%20action.lua</source>
+        <source main="main" file="talagan_Maximize rightmost dock.lua">https://github.com/ReaTeam/ReaScripts/raw/018279a29c20ca7a482b950445decc99931eb3f9/View/talagan_Docking%20tools/actions/talagan_Generic%20dock%20resize%20action.lua</source>
+        <source main="main" file="talagan_Minimize rightmost dock.lua">https://github.com/ReaTeam/ReaScripts/raw/018279a29c20ca7a482b950445decc99931eb3f9/View/talagan_Docking%20tools/actions/talagan_Generic%20dock%20resize%20action.lua</source>
+        <source main="main" file="talagan_Set rightmost dock size (500).lua">https://github.com/ReaTeam/ReaScripts/raw/018279a29c20ca7a482b950445decc99931eb3f9/View/talagan_Docking%20tools/actions/talagan_Generic%20dock%20resize%20action.lua</source>
+        <source main="main" file="talagan_Maximize leftmost dock.lua">https://github.com/ReaTeam/ReaScripts/raw/018279a29c20ca7a482b950445decc99931eb3f9/View/talagan_Docking%20tools/actions/talagan_Generic%20dock%20resize%20action.lua</source>
+        <source main="main" file="talagan_Minimize leftmost dock.lua">https://github.com/ReaTeam/ReaScripts/raw/018279a29c20ca7a482b950445decc99931eb3f9/View/talagan_Docking%20tools/actions/talagan_Generic%20dock%20resize%20action.lua</source>
+        <source main="main" file="talagan_Set leftmost dock size (500).lua">https://github.com/ReaTeam/ReaScripts/raw/018279a29c20ca7a482b950445decc99931eb3f9/View/talagan_Docking%20tools/actions/talagan_Generic%20dock%20resize%20action.lua</source>
+        <source main="main midi_editor" file="talagan_Maximize dock containing active MIDI Editor.lua">https://github.com/ReaTeam/ReaScripts/raw/018279a29c20ca7a482b950445decc99931eb3f9/View/talagan_Docking%20tools/actions/talagan_Generic%20dock%20resize%20action.lua</source>
+        <source main="main midi_editor" file="talagan_Minimize dock containing active MIDI Editor.lua">https://github.com/ReaTeam/ReaScripts/raw/018279a29c20ca7a482b950445decc99931eb3f9/View/talagan_Docking%20tools/actions/talagan_Generic%20dock%20resize%20action.lua</source>
+        <source main="main midi_editor" file="talagan_Set dock containing active MIDI Editor size (500).lua">https://github.com/ReaTeam/ReaScripts/raw/018279a29c20ca7a482b950445decc99931eb3f9/View/talagan_Docking%20tools/actions/talagan_Generic%20dock%20resize%20action.lua</source>
+        <source file="talagan_Docking tools/docking_lib.lua">https://github.com/ReaTeam/ReaScripts/raw/018279a29c20ca7a482b950445decc99931eb3f9/View/talagan_Docking%20tools/docking_lib.lua</source>
       </version>
     </reapack>
   </category>
