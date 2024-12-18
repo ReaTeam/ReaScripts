@@ -13,4 +13,5 @@ end
 
 if not docking_lib.CheckDependencies() then return end
 
-docking_lib.maximizeBottommostDock()
+docking_lib.resizeDockFromActionName(debug.getinfo(1,"S").source)
+
