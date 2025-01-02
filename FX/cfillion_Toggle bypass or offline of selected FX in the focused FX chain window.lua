@@ -15,6 +15,7 @@ local what = script_name:match('bypass') and 'Enabled' or 'Offline'
 reaper.Undo_BeginBlock();
 (function()
   local rv, track_id, item_id, take_id, fx_id, parm = reaper.GetTouchedOrFocusedFX(1)
+  fx_id = fx_id & ~0xFFFFFF
   if not rv then return end
   local track = reaper.CSurf_TrackFromID(track_id + 1, false)
   local get, set, obj
@@ -25,7 +26,7 @@ reaper.Undo_BeginBlock();
     local take = reaper.GetMediaItemTake(item, take_id)
     which, obj = 'Take', take
   end
-
+  
   local get = reaper[which..'FX_Get'..what]
   local set = reaper[which..'FX_Set'..what]
   local chain = reaper.CF_GetFocusedFXChain()
@@ -34,7 +35,7 @@ reaper.Undo_BeginBlock();
   while true do
     i = reaper.CF_EnumSelectedFX(chain, i)
     if i < 0 then break end
-    set(obj, i, not get(obj, i))
+    set(obj, fx_id|i, not get(obj, fx_id|i))
   end
 end)()
 reaper.Undo_EndBlock(script_name, 0)
