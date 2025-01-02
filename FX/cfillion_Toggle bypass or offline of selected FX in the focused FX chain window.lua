@@ -26,7 +26,7 @@ reaper.Undo_BeginBlock();
     local take = reaper.GetMediaItemTake(item, take_id)
     which, obj = 'Take', take
   end
-  
+
   local get = reaper[which..'FX_Get'..what]
   local set = reaper[which..'FX_Set'..what]
   local chain = reaper.CF_GetFocusedFXChain()
