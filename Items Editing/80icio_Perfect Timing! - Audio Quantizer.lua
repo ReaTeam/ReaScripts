@@ -1,9 +1,7 @@
 -- @description Perfect Timing! - Audio Quantizer
 -- @author 80icio
--- @version 0.27
--- @changelog
---   - Fixed graphic issue between mouse position indication vertical line and arrange window trigger lines
---   - Fixed arrange window trigger lines behaviour when tracks disappear in folder
+-- @version 0.28
+-- @changelog - Fixed warp quantize not working randomly
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=288964
 -- @about
 --   # PERFECT TIMING! 
@@ -1210,26 +1208,34 @@ if check_itm then
         
       --------------------------quantize stretch markers------------------------------
     add_stretch_markers()
+    
+    function warpquantize()
+    local table_stretch_m = {}
           local i = 0
             while(true) do
               i=i+1
               local item = r.GetSelectedMediaItem(0,i-1)
               if item then
-            
                 local q_force = Qstrength_v or 100
               
                 if item then
                     local posIt = r.GetMediaItemInfo_Value(item,"D_POSITION")
                     local take = r.GetActiveTake(item); 
                     local rateIt = r.GetMediaItemTakeInfo_Value(take,'D_PLAYRATE')
-                  
+                    --reaper.Main_OnCommand(41846, 0)
                     local countStrMar = r.GetTakeNumStretchMarkers(take);
-                    for i = 2,countStrMar-1 do;
-                        local pos = ({r.GetTakeStretchMarker(take,i-1)})[2]/rateIt+posIt
-                        local posGrid = Arc_GetClosestGridDivision(pos)
+                    
+                    for c = 2,countStrMar-1 do
+                      local pos = ({r.GetTakeStretchMarker(take,c-1)})[2]/rateIt+posIt
+                      table_stretch_m[c] = pos
+                    end
+                    r.Main_OnCommand(41846, 0)
+                    for c = 2,countStrMar-1 do
+                        local posGrid = ({r.GetTakeStretchMarker(take,c-1)})[2]/rateIt+posIt
+                        local pos = table_stretch_m[c]
                         if q_force < 0 then q_force = 0 elseif q_force > 100 then q_force = 100 end
                         local new_pos = (((posGrid-pos)/100*q_force)+pos)-posIt;
-                        r.SetTakeStretchMarker(take,i-1,new_pos*rateIt)
+                        r.SetTakeStretchMarker(take,c-1,new_pos*rateIt)
                     end;
                     r.UpdateItemInProject(item);
                 end
@@ -1237,7 +1243,9 @@ if check_itm then
                 break
               end
             end
-            
+      end
+      
+      warpquantize()    
     
       r.UpdateArrange()
       
