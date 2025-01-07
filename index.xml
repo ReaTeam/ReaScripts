@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="af4ff8f2a602793c0b79c41a91776a9399b87d34" name="ReaTeam Scripts">
+<index version="1" commit="b3045d3a007cd942b47e17ecc30b2f88574bce78" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -5073,11 +5073,11 @@ Colored pitch key]]></changelog>
     </reapack>
     <reapack name="tompad_FX chain AB.lua" type="script" desc="FX chain A-B">
       <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 tompad_FX_chain_AB\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel0 \b \fs36 tompad_FX_chain_AB\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Reascript for A/B-ing FX chains in Reaper DAW\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Use tompad_FX_chain_AB to compare different fx chains you create on a track.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 How to use:\par}
@@ -5111,6 +5111,10 @@ Added target platform: All (tested on Windows and Ubuntu linux)
 Removed in description about copying to another track - waiting for 
 a solution on possible bug in ultraschall.SetFXStateChunk.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/116e2b2f93f3e04527080dc04caadd5106470e60/FX/tompad_FX%20chain%20AB.lua</source>
+      </version>
+      <version name="1.04" author="Thomas Dahl" time="2025-01-07T17:45:39Z">
+        <changelog><![CDATA[Added support for use on master track also.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b3045d3a007cd942b47e17ecc30b2f88574bce78/FX/tompad_FX%20chain%20AB.lua</source>
       </version>
     </reapack>
   </category>
