@@ -1,12 +1,7 @@
 -- @description FX chain A-B
 -- @author Thomas Dahl
--- @version 1.03
--- @changelog
---   Added visual feedback on loaded A and B buttons (white border)
---   Added target platform: All (tested on Windows and Ubuntu linux)
---
---   Removed in description about copying to another track - waiting for 
---   a solution on possible bug in ultraschall.SetFXStateChunk.
+-- @version 1.04
+-- @changelog Added support for use on master track also.
 -- @about
 --   # tompad_FX_chain_AB
 --   Reascript for A/B-ing FX chains in Reaper DAW 
@@ -144,7 +139,7 @@ local hbox2 = window:add(rtk.HBox{spacing=40, tmargin=170, lmargin=30})
  
 -- Save the current FX chain to a string variable (Inject)
 function saveFXChain()
-    local track = reaper.GetSelectedTrack(0, 0)  
+    local track = reaper.GetSelectedTrack2(0, 0, true)  
     local retval1,StateChunk = reaper.GetTrackStateChunk(track,"",false)
     local fx_chain, linenumber = ultraschall.GetFXStateChunk(StateChunk)
     local count_of_fx= ultraschall.CountFXFromFXStateChunk(fx_chain)
@@ -157,7 +152,7 @@ end
 
 -- Load an FX chain from a string variable
 function loadFXChain(fx_chain)
-    local track = reaper.GetSelectedTrack(0, 0)  
+    local track = reaper.GetSelectedTrack2(0, 0, true)  
     local retval1,StateChunk = reaper.GetTrackStateChunk(track,"",false)
     local retval2, newStateChunk = ultraschall.SetFXStateChunk(StateChunk, fx_chain)
      reaper.SetTrackStateChunk(track, newStateChunk, false) 
@@ -165,7 +160,7 @@ end
 
 -- Save the current FX chain to fx_chain1 variable
 function saveFXChain1()
-    local antalTrack = reaper.CountSelectedTracks(0)
+    local antalTrack = reaper.CountSelectedTracks2(0,true)
     if antalTrack == 1 then
         fx_chain1 = saveFXChain()
     else
@@ -175,7 +170,7 @@ end
 
 -- Save the current FX chain to fx_chain2 variable
 function saveFXChain2()
- local antalTrack = reaper.CountSelectedTracks(0)
+ local antalTrack = reaper.CountSelectedTracks2(0,true)
     if antalTrack == 1 then
         fx_chain2 = saveFXChain()
     else
@@ -185,7 +180,7 @@ end
 
 -- Load the first FX chain
 function loadFXChain1()
- local antalTrack = reaper.CountSelectedTracks(0)
+ local antalTrack = reaper.CountSelectedTracks2(0, true)
    if antalTrack == 1 then
         if fx_chain1 == nil then
              reaper.ShowMessageBox( "You need to inject a FX chain in A before you can load it!", "Error", 0)
@@ -199,7 +194,7 @@ end
 
 -- Load the second FX chain
 function loadFXChain2()
- local antalTrack = reaper.CountSelectedTracks(0)
+ local antalTrack = reaper.CountSelectedTracks2(0, true)
   if antalTrack == 1 then
     if fx_chain2 == nil then
         reaper.ShowMessageBox( "You need to inject a FX chain in B before you can load it!", "Error", 0)
