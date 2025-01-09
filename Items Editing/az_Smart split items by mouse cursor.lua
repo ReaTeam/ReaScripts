@@ -1,12 +1,10 @@
 -- @description Smart split items using mouse cursor context (also edit cursor, razor area and time selection)
 -- @author AZ
--- @version 3.40
+-- @version 3.41
 -- @changelog
---   - New option for splitting unselected item under mouse at time selection
---   - Collapsed and resizeable options window
---   - fixed bug for splitting at time selection if there is one selected item in the project
---   - fixed bug when media editing group of selected tracks obeys any unselected track
---   - fixed bug for take envelopes
+--   - New option to preserve razor area selection
+--   - New options to preserve or clear item selection after splitting
+--   - Fixed bug when single grouped item was stayed in the same group with other it's parts
 -- @provides [main] az_Smart split items by mouse cursor/az_Open options for az_Smart split items by mouse cursor.lua
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=259751
 -- @donation Donate via PayPal https://www.paypal.me/AZsound
@@ -15,7 +13,7 @@
 --
 --   Forum thread: https://forum.cockos.com/showthread.php?t=259751
 --
---   Split items respect grouping, depend on context of mouse cursor, split at razor edit area or time selection if exist, split at mouse or edit cursor otherwise.
+--   Split items respect grouping, depends on context of mouse cursor, split at razor edit area or time selection if they exist, split at mouse or edit cursor otherwise.
 --
 --   There are a lot of options. To open options window place mouse on the transport panel or mixer panel and press assigned shortcut.
 --
@@ -51,7 +49,7 @@ end
 ---------------------
 
 function SetExtStates()
-  for i, option in ipairs(OptDefaults) do 
+  for i, option in ipairs(OptDefaults) do
     if option[3] ~= nil then
       reaper.SetExtState(ExtStateName, option[2], tostring(option[3]), true)
     end
@@ -119,7 +117,7 @@ function OptionsDefaults()
   text = 'Move Edit Cursor with Offset  (useful for immediate listening in context)'
   table.insert(OptDefaults, {text, 'Separator', nil})
   
-   text = 'Move cursor after split if mouse is over item and not recording'
+  text = 'Move cursor after split if mouse is over item and not recording'
   table.insert(OptDefaults, {text, 'MoveEditCursor', true}) -- moves cursor after splitting if mouse is on item and not recording
   
   text = "Don't move edit cursor after split at Edit Cursor\n even mouse is over item"
@@ -136,8 +134,17 @@ function OptionsDefaults()
   text = 'Additional options'
   table.insert(OptDefaults, {text, 'Separator', nil})
   
-   text = 'Allow select by razor only one item of group to split them all'
+  text = 'Allow select by razor only one item of group to split them all'
   table.insert(OptDefaults, {text, 'RazRespItemGroup', false})
+  
+  text = 'Preserve selected razor area after split'
+  table.insert(OptDefaults, {text, 'RazPreserveSelection', false})
+  
+  text = 'Item selection after split'
+  table.insert(OptDefaults, {text, 'ItemPostSelecton', 'select new items', {
+                                                            'select new items',
+                                                            'preserve initial selection',
+                                                            'clear all selections'} })
   
   text = 'Respect locked items'
   table.insert(OptDefaults, {text, 'RespLock', true})
@@ -825,9 +832,9 @@ end
 -----------------------------------
 
 function SplitRazorEdits(razorEdits)
-    local areaItems = {} 
-    local SplitsT = {}
-    local ItemsToRegroup = {}
+  local areaItems = {}
+  local SplitsT = {}
+  local ItemsToRegroup = {}
     
   local togAutoXfade = reaper.GetToggleCommandState(40912) --Options: Toggle auto-crossfade on split
   local togDefFades = reaper.GetToggleCommandState(41194) --Item: Toggle enable/disable default fadein/fadeout
@@ -884,13 +891,11 @@ function SplitRazorEdits(razorEdits)
   --Collect items and regroup using razorEdits.RegroupAreasIDs
   for b = 1, #razorEdits.RegroupAreasIDs do
     local ItemsToRegroup = {}
-    --ItemsToRegroup.SplGrs = {}
     local block = razorEdits.RegroupAreasIDs[b]
     for i = 1, #block do
       local id = block[i]
       local items = razorEdits[id]['itemsToRegroup'] 
       table.move(items, 1, #items, #ItemsToRegroup+1, ItemsToRegroup)
-      --table.move(items.SplsGrs, 1, #items.SplsGrs, #ItemsToRegroup.SplGrs+1 ,ItemsToRegroup.SplGrs)
     end
     RegroupItems(ItemsToRegroup)
   end
@@ -923,24 +928,26 @@ function SplitRazorEdits(razorEdits)
     end
     RegroupItems(ItemsToRegroup)
   end
-
-    
+  
+  
   return areaItems, SplitsT
 end
 
 -----------------------------------
 
 function CombineTables(A, B)
+  local C = {}
+  table.move(B, 1, #B, 1, C)
   local aN = #A
-  local bN = #B
+  local cN = #C
   for a = 1, aN do
     local add = true
-    for b = 1, bN do
-      if A[a] == B[b] then add = false end
+    for c = 1, cN do
+      if A[a] == C[c] then add = false end
     end
-    if add == true then table.insert(B,A[a]) end
+    if add == true then table.insert(C,A[a]) end
   end
-  return B
+  return C
 end
 
 -----------------------------------
@@ -955,6 +962,10 @@ function AddGroupInfo(AreasT)
         reaper.Main_OnCommandEx(40034, 0,0) -- Item grouping: Select all items in groups
         SelectItems(areaData.items,false, true)
         areaData.grItems = CollectSelectedItems()
+        if #areaData.grItems == 0 then
+          areaData.grItems = {}
+          for k, item in ipairs(areaData.items) do table.insert(areaData.grItems, item) end
+        end
         
         local k = i
         repeat
@@ -979,7 +990,7 @@ function AddGroupInfo(AreasT)
         until areaData.prevEdge ~= nil
         
         if #areaData.grItems > 0 then
-          for c = 1, #AreasT do 
+          for c = 1, #AreasT do -- collect areas with overlapped time
             local compareArea = AreasT[c]
             if compareArea.areaStart < areaData.areaEnd
             and compareArea.areaEnd > areaData.areaStart then
@@ -1006,12 +1017,11 @@ function AddGroupInfo(AreasT)
             
             
             if AddNewGroup == false then
-              RegroupAreasIDs[subtableID] = CombineTables(RegroupAreasIDs[subtableID], areasIDs)
-              --break
+              RegroupAreasIDs[subtableID] = CombineTables(RegroupAreasIDs[subtableID], areasIDs) 
             else table.insert(RegroupAreasIDs, areasIDs)
             end
             
-          end --if #RegroupAreasIDs == 0
+          end --if RegroupAreasIDs has subtables
         end
         
         AreasT[i] = areaData
@@ -1030,6 +1040,11 @@ end
 -----------------------------------
 
 function split_byRE_andSel()
+  local SelectedBeforeSplit = {}
+  if Opt.ItemPostSelecton == 'preserve initial selection' then
+    SelectedBeforeSplit = CollectSelectedItems()
+  end
+  
   local selections = GetRazorEdits()
   local items, SplitsT = {}
   if AnythingForSplit == true then
@@ -1040,8 +1055,18 @@ function split_byRE_andSel()
   end
   
   if #items > 0 then
-    SelectItems(items, true, true)
-    reaper.Main_OnCommandEx(42406, 0, 0) --Razor edit: Clear all areas
+  
+    if Opt.ItemPostSelecton == 'preserve initial selection' then 
+      SelectItems(SelectedBeforeSplit, true, true)
+    elseif Opt.ItemPostSelecton == 'clear all selections' then
+      SelectAllMediaItems(0,false)
+    else
+      SelectItems(items, true, true)
+    end
+    
+    if Opt.RazPreserveSelection ~= true then
+      reaper.Main_OnCommandEx(42406, 0, 0) --Razor edit: Clear all areas
+    end
     STime = SplitsT 
     UndoString = "Smart split at razor area"
   else
@@ -1511,7 +1536,7 @@ function SetItemEdges(item, startTime, endTime)
       else
         reaper.SetMediaItemTakeInfo_Value(take, 'D_STARTOFFS', offs)
       end
-
+      
       local takeenvs = reaper.CountTakeEnvelopes(take)
       for e = 0, takeenvs -1 do
         local env = reaper.GetTakeEnvelope( take, e )
@@ -1562,7 +1587,7 @@ end
 ------------------------------
 ------------------------------
 
-function Split_Items_At_Time(SelItems, ItemsToSplit, TimeTable, RazPrevEdge) --returns SplitsTable, SelItems, (ItemsToRegroup)
+function Split_Items_At_Time(SelItems, ItemsToSplit, TimeTable, RazPrevEdge) --returns SplitsTable, SelItems, ItemsToRegroup, newItems
   table.sort(TimeTable)
   local newItems = {}
   local SplitsTable = {}
@@ -1744,6 +1769,12 @@ function Main()
     else --If likely there is no intention to split AIs--
       
       local SelectedItems = CollectSelectedItems()
+      
+      local SelectedBeforeSplit = {}
+      if Opt.ItemPostSelecton == 'preserve initial selection' then
+        SelectedBeforeSplit = table.move(SelectedItems, 1, #SelectedItems, 1, SelectedBeforeSplit)
+      end
+      
       local inisel= {}
       local allItemsForSplit = {}
       local timeT = {}
@@ -1766,8 +1797,8 @@ function Main()
         if Opt.RespLock ~= 0
         and reaper.GetMediaItemInfo_Value(Item_mouse, 'C_LOCK') ~= 0 then
           return --no undo
-        end --if item under mouse is not locked
-        
+        end
+         
         if Opt.SnapMouseEcur ~= 0 then
           local zoom = reaper.GetHZoomLevel()
           local distance = Opt.SnapMouseEcur / zoom
@@ -1895,9 +1926,18 @@ function Main()
           reaper.Main_OnCommandEx(41194,0,0)  --Item: Toggle enable/disable default fadein/fadeout
         end
         
-        local SelItems
-        STime, SelItems = Split_Items_At_Time(inisel, allItemsForSplit, timeT)
-        SelectItems(SelItems, true, true)
+        local SelItems, NewItems
+        STime, SelItems, _, NewItems = Split_Items_At_Time(inisel, allItemsForSplit, timeT)
+        
+        if Opt.ItemPostSelecton == 'preserve initial selection' then
+          --table.move(NewItems, 1, #NewItems, #SelectedItems+1, SelectedItems)
+          SelectItems(SelectedBeforeSplit, true, true)
+        elseif Opt.ItemPostSelecton == 'clear all selections' then
+          SelectAllMediaItems(0,false)
+        else
+          SelectItems(SelItems, true, true)
+        end
+        
         unsel_automation_Items()
         
         if togAutoXfade == 1 and XfadeON == false then
@@ -1924,7 +1964,7 @@ end
 
 ------------------
 -------START------
-CurVers = 3.4
+CurVers = 3.41
 version = tonumber( reaper.GetExtState(ExtStateName, "version") )
 if version ~= CurVers then
   if not version or version < 3 then
