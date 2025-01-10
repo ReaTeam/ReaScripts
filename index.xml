@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="6bdceb6fbd136a8f4400cc0d1ed83a13f387e59f" name="ReaTeam Scripts">
+<index version="1" commit="b82d4d86d862ce7d9bd6cc8033ec83644b92484f" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -9490,6 +9490,21 @@ Added replacement with /clear; erases entire name of matching markers/regions.]]
       <version name="1.03" author="amagalma" time="2021-11-28T12:43:53Z">
         <changelog><![CDATA[Fix menu placement for OSX (again)]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/eb6644c54ee35db3da43a0d952b35804ed741dfb/Markers/amagalma_Go%20to%20marker%20(choose%20from%20menu%20list).lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Insert time signature changes Tool.lua" type="script" desc="Insert time signature changes Tool">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Inserts a time signature change at the closest start of measure position to the edit cursor\par}
+}
+]]></description>
+        <link rel="donation">https://www.paypal.me/amagalma</link>
+      </metadata>
+      <version name="1.00" author="amagalma" time="2025-01-10T07:50:44Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b82d4d86d862ce7d9bd6cc8033ec83644b92484f/Markers/amagalma_Insert%20time%20signature%20changes%20Tool.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Rename region at edit cursor after the first selected item.lua" type="script" desc="Rename region at edit cursor after the first selected item">
