@@ -3,7 +3,7 @@
 -- @version 1.0
 -- @metapackage
 -- @provides
---   [main] daodan_Resample Notes/Resample Notes Main.lua
+--   [main] daodan_Resample Notes/daodan_Resample Notes Main.lua
 --   [main=main,midi_editor] daodan_Resample Notes/Resample Notes GUI.lua
 --   daodan_Resample Notes/Resample Notes Presets/Dulpicate notes octave up (with fx).lua
 --   daodan_Resample Notes/Resample Notes Presets/Dulpicate notes octave up.lua
