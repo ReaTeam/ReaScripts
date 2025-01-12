@@ -79,7 +79,7 @@ function get_dir_files(dir_path)
 end
 
 function getDefaultSettingsFromMain()
-  local mainScript = "Resample Notes Main.lua"
+  local mainScript = "daodan_Resample Notes Main.lua"
   
   externalRun = nil
   wasRunToGetPresetFromGUI=true
@@ -130,7 +130,7 @@ end
 
 function run()
   --RUN MAIN SCRIPT-----------------------
-  local mainScript = "Resample Notes Main.lua"
+  local mainScript = "daodan_Resample Notes Main.lua"
   wasRunToGetPresetFromGUI = false
   externalRun = 'GUI'
   dofile(dir..mainScript)
@@ -229,7 +229,7 @@ function writePresetToFile()
 --and insert root note in the corresponding possition. 
 --Basically. There are several options here so you can change the behavior to suit your needs. See [USER SETTINGS] section below.
 
---This is a preset script. Can run main script (Resample Notes Main.lua) with [USER SETTINGS]. 
+--This is a preset script. Can run main script (daodan_Resample Notes Main.lua) with [USER SETTINGS]. 
 --Can be used to load preset from GUI script.
 
 --Please keep list of variables in user setting section same as in main script 
@@ -294,7 +294,7 @@ if wasRunToGetPresetFromGUI then return end --exit after loading user settings i
 --RUN MAIN SCRIPT-----------------------
 local dir = ({reaper.get_action_context()})[2]:match("^(.*[/\\])")
 local goback = "..\\"
-local mainScript = "Resample Notes Main.lua"
+local mainScript = "daodan_Resample Notes Main.lua"
 externalRun = 'preset script'
 
 dofile(dir..goback..mainScript)
