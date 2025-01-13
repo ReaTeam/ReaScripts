@@ -30,16 +30,12 @@ for line in io.lines(file) do
   if add == true then scriptPart = scriptPart ..line ..'\n' end
   if line:match('--End load file') then break end
 end
---msg(scriptPart)
+
 local func = load(scriptPart)
 
 if func then
-  func()
-  
-  OptDefaults = {}
-  OptionsDefaults(OptDefaults)
-  GetExtStates(OptDefaults)
-  
-  ExternalOpen = true
-  OptionsWindow(OptDefaults, 'Fade Tool Options')
+  if func() ~= false then
+    ExternalOpen = true
+    OptionsWindow(OptDefaults, 'Fade Tool Options', BDefaults, BPrjDefaults)
+  end
 end

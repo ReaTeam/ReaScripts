@@ -28,14 +28,14 @@ function rgbToHex(rgba) -- passing a table with percentage like {100, 50, 20, 90
 end
 ------------------------
 
-function OptionsWindow(OptTable, windowName)
+function OptionsWindow(MainTable, windowName, BatchTable, BatchPrjTable)
   local imgui_path = reaper.GetResourcePath() .. '/Scripts/ReaTeam Extensions/API/imgui.lua'
   if not reaper.file_exists(imgui_path) then
     reaper.ShowMessageBox('Please, install ReaImGui from Reapack!', 'No Imgui library', 0)
     return
   end
   dofile(imgui_path) '0.8.7.6'
-
+  
   local fontSize = 17
   local ctx, font, fontSep
   local H = fontSize
@@ -46,7 +46,7 @@ function OptionsWindow(OptTable, windowName)
   local tcpActIDstr = reaper.GetExtState(ExtStateName, 'TCPaction')
   local tcpActName = ''
   local section
-  
+   
   local savedFontSize = tonumber(reaper.GetExtState(ExtStateName, 'FontSize'))
   if type(savedFontSize) == 'number' then fontSize = savedFontSize end
   if not savedFontSize then savedFontSize = fontSize end
@@ -76,18 +76,13 @@ function OptionsWindow(OptTable, windowName)
     Background = rgbToHex({11,14,14,95}),
     Text = rgbToHex({92,92,81.5,100}),
     activeText = rgbToHex({50,95,80,100}),
+    
     ComboBox = {
       Default = rgbToHex({20,25,30,100}),
       Hovered = rgbToHex({35,40,45,80}),
       Active = rgbToHex({42,42,37,100}), 
     },
-    --[[
-    Input = {
-      Background = rgbToHex({50,50,50,100}),
-      Hover = rgbToHex({10,10,90,100}),
-      Text = rgbToHex({90,90,80,100}),
-      Label = rgbToHex({90,80,90,100}),
-    },]]
+    
     Button = {
       Default = rgbToHex({25,30,30,100}),
       Hovered = rgbToHex({35,40,45,100}),
@@ -106,9 +101,7 @@ function OptionsWindow(OptTable, windowName)
   end
 
   --------------
-  function frame()
-    reaper.ImGui_PushFont(ctx, font) 
-    
+  function populateOptions(OptTable)
     for i, v in ipairs(OptTable) do
       local option = v
       
@@ -167,9 +160,41 @@ function OptionsWindow(OptTable, windowName)
       
       OptTable[i] = option
     end -- for
+  end
+
+  --------------
+  function frame()
+    reaper.ImGui_PushFont(ctx, font)
+    
+    if MainTable then
+      populateOptions(MainTable)
+      
+      for i, option in pairs(MainTable) do
+        if option[2] == 'SilentProcessBatch' and option[3] == true then
+          SaveLastBatchPrj = true
+        end
+      end
+    end
+    
+    reaper.ImGui_NewLine(ctx) reaper.ImGui_SameLine(ctx, fontSize*2)
+    _, SaveLastBatchPrj = reaper.ImGui_Checkbox(ctx, 'Use last project settings instead of global defaults', SaveLastBatchPrj)
+    
+    local batchTextInform = 'Global defaults:' 
+    local GlobOrPrjTable
+    
+    if SaveLastBatchPrj == true then
+      GlobOrPrjTable = BatchPrjTable
+      batchTextInform = 'Last in-project values:'
+    else
+      GlobOrPrjTable = BatchTable
+    end
+    
+    reaper.ImGui_Text(ctx, batchTextInform )
+    populateOptions(GlobOrPrjTable)
+    
     
     if RunBatch == nil then
-      reaper.ImGui_Text(ctx, '' ) --space 
+      reaper.ImGui_Text(ctx, '' ) --space
       reaper.ImGui_PushItemWidth(ctx, fontSize*5 )
       _, tcpActIDstr = reaper.ImGui_InputText
       (ctx,'TCP context action (paste command ID):\n'..tcpActName, tcpActIDstr)
@@ -263,14 +288,13 @@ function OptionsWindow(OptTable, windowName)
       local window_flags = reaper.ImGui_WindowFlags_MenuBar()
       reaper.ImGui_SetNextWindowSize(ctx, W, H, reaper.ImGui_Cond_Once()) -- Set the size of the windows.  Use in the 4th argument reaper.ImGui_Cond_FirstUseEver() to just apply at the first user run, so ImGUI remembers user resize s2
       
-      reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Text(), gui_colors.White) 
+      reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Text(), gui_colors.White)
       local visible, open = reaper.ImGui_Begin(ctx, windowName, true, window_flags)
       reaper.ImGui_PopStyleColor(ctx, 1)
       
       if visible then
           frame()
           reaper.ImGui_SetWindowSize(ctx, 0, 0, nil )
-          --if loopcnt == 0 then reaper.ImGui_SetWindowSize(ctx, 0, 0, nil ) end
           reaper.ImGui_End(ctx)
       end
       
@@ -281,21 +305,25 @@ function OptionsWindow(OptTable, windowName)
       enter = enterMouse or reaper.ImGui_IsKeyReleased(ctx, reaper.ImGui_Key_Enter())
       
       if ExternalOpen == true then
-        space = spaceMouse or reaper.ImGui_IsKeyReleased(ctx, reaper.ImGui_Key_Space()) 
+        space = spaceMouse or reaper.ImGui_IsKeyReleased(ctx, reaper.ImGui_Key_Space())
         if space == true then
-          SetExtStates(OptTable)
+          SetExtStates(MainTable)
+          GetSetBatchExtStates(BatchTable, BatchPrjTable, true)
           reaper.SetExtState(ExtStateName, 'TCPaction', tcpActIDstr, true) 
+          reaper.SetExtState(ExtStateName, 'SaveLastBatchPrj', tostring(SaveLastBatchPrj), true)
         end
       end
       
       if open and esc ~= true and enter ~= true then
         reaper.defer(loop) 
       elseif enter == true then
+          reaper.SetExtState(ExtStateName, 'SaveLastBatchPrj', tostring(SaveLastBatchPrj), true)
           if RunBatch == true then 
             reaper.ImGui_DestroyContext(ctx)
             BatchFades()
           else
-            SetExtStates(OptTable)
+            SetExtStates(MainTable)
+            GetSetBatchExtStates(BatchTable, BatchPrjTable, true)
             reaper.SetExtState(ExtStateName, 'TCPaction', tcpActIDstr, true) 
             reaper.ImGui_DestroyContext(ctx)
           end
