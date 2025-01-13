@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="b82d4d86d862ce7d9bd6cc8033ec83644b92484f" name="ReaTeam Scripts">
+<index version="1" commit="3272dbf8025552435edcd5d5f816e536324c6475" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -22257,12 +22257,11 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
     </reapack>
     <reapack name="amagalma_Show menu for dry run (calculate loudness) actions.lua" type="script" desc="Show menu for dry run (calculate loudness) actions">
       <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Shows a menu with all the dry run actions at the mouse cursor\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Requires JS_ReaScriptAPI\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel0 \b \fs36 Shows a menu with all the dry run actions at the mouse cursor\par}
 }
 ]]></description>
         <link rel="website">https://forum.cockos.com/showthread.php?t=239556</link>
@@ -22279,6 +22278,10 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
       <version name="1.02" author="amagalma" time="2022-02-11T23:00:23Z">
         <changelog><![CDATA[Added option to calculate for Selected Items]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/89fa0d0481e15bb211cfa66f369c7789a94f5d3b/Various/amagalma_Show%20menu%20for%20dry%20run%20(calculate%20loudness)%20actions.lua</source>
+      </version>
+      <version name="1.03" author="amagalma" time="2025-01-13T12:01:39Z">
+        <changelog><![CDATA[No JS_ReaScriptAPI dependency]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3272dbf8025552435edcd5d5f816e536324c6475/Various/amagalma_Show%20menu%20for%20dry%20run%20(calculate%20loudness)%20actions.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Show offscreen item selection as a tooltip.lua" type="script" desc="Show offscreen item selection as a tooltip">
