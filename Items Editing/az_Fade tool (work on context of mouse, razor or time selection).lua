@@ -1,7 +1,10 @@
 -- @description Fade tool (works on context of mouse, razor or time selection)
 -- @author AZ
--- @version 2.2.3
--- @changelog - to avoid simultaneous work of Batch fade tool and changing fade under the mouse - ignore TS if one of it's edges is out of arrange view and the mouse is over an item.
+-- @version 2.2.4
+-- @changelog
+--   - Improved behavior for batch fades/crossfades options
+--   - Added option for immediate applying actual batch settings without dialog
+--   - added workaround for some math inaccuracy related to razor area
 -- @provides
 --   az_Fade tool (work on context of mouse, razor or time selection)/az_Options window for az_Fade tool.lua
 --   [main] az_Fade tool (work on context of mouse, razor or time selection)/az_Open options for az_Fade tool.lua
@@ -50,10 +53,37 @@ OPEN THE OPTIONS WINDOW BY RUNNING THE SCRIPT WITH MOUSE ON TRANSPORT OR MIXER P
 ]]
 
 ---------------------------------
---------Options functions--------
+
 --Start load file
 
+function msg(value)
+  reaper.ShowConsoleMsg(tostring(value)..'\n')
+end
+
+-------------------------
+
 ExtStateName = 'AZ_FadeTool'
+CurVers = 2.24
+
+SaveLastBatchPrj = reaper.GetExtState(ExtStateName, 'SaveLastBatchPrj') 
+if SaveLastBatchPrj == 'false' then SaveLastBatchPrj = false
+else SaveLastBatchPrj = true
+end
+
+-------------------------
+
+function copy(tbl)
+  if type(tbl) ~= "table" then
+    return tbl
+  end
+  local result = {}
+  for k, v in pairs(tbl) do 
+    result[k] = copy(v)
+  end
+  return result
+end
+
+------------------------------
 
 function GetExtStates(OptionsTable)
   for i, option in ipairs(OptionsTable) do
@@ -83,7 +113,7 @@ function GetExtStates(OptionsTable)
         if wrong == true then
           reaper.SetExtState(ExtStateName, option[2], tostring(option[3]), true)
         else
-          OptionsTable[i][3] = state
+          option[3] = state
         end
       else
         reaper.SetExtState(ExtStateName, option[2], tostring(option[3]), true)
@@ -141,38 +171,9 @@ function OptionsDefaults(NamedTable)
   text = 'Batch fades/crossfades defaults'
   table.insert(NamedTable, {text, 'Separator', nil})
   
-  text = 'Fade-in'
-  table.insert(NamedTable, {text, 'DefaultFadeIn', 30, "%.0f"})
-  
-  text = 'Fade-out'
-  table.insert(NamedTable, {text, 'DefaultFadeOut', 30, "%.0f"})
-  
-  text = 'Crossfade'
-  table.insert(NamedTable, {text, 'DefaultCrossFade', 30, "%.0f"})
-  
-  
-  text = 'Values'
-  table.insert(NamedTable, {text, 'ValueType', 'milliseconds', {
-                                                      'milliseconds',
-                                                      'frames' } })
-  
-  text = 'Crossfade type'
-  table.insert(NamedTable, {text, 'DefCrossType', 'Left', {
-                                                      'Left',
-                                                      'Centered' } })
-  
-  text = 'Respect existing fades'
-  table.insert(NamedTable, {text, 'RespectExistingFades', true})
-  
-  text = 'Respect locking'
-  table.insert(NamedTable, {text, 'RespectLockingBatch', true})
-  
-  text = 'Other options'
-  table.insert(NamedTable, {text, 'Separator', nil})
-  
-  text = 'Save and use last batch settings in project'
-  table.insert(NamedTable, {text, 'SaveLastBatchPrj', true})
-  
+  text = "Don't ask values for batch process"
+  table.insert(NamedTable, {text, 'SilentProcessBatch', false})
+
 end
 
 
@@ -185,15 +186,8 @@ function SetOptGlobals(NamedTable, OptionsTable)
   end
 end
 
--------------------------
---End load file
--------------------------
-
-function msg(value)
-  reaper.ShowConsoleMsg(tostring(value)..'\n')
-end
-
 ------------------------------
+
 function BatchDefaults(NamedTable)
   local text
   
@@ -225,13 +219,98 @@ function BatchDefaults(NamedTable)
   
 end
 
--------------------------
+-----------------------
 
+function GetSetBatchExtStates(DefT, LastPrjT, getset) -- set == true, get == false
+  local Mtrack = reaper.GetMasterTrack(0)
+  local parname = "P_EXT:"..'AZ_Ftool_Batch '
+  
+  if getset == true then -- set
+  
+    local GlobOrPrjTable
+    if SaveLastBatchPrj == true then GlobOrPrjTable = LastPrjT
+    else GlobOrPrjTable = DefT
+    end
+    
+    if RunBatch == true or SaveLastBatchPrj == true then
+      for i, option in pairs(GlobOrPrjTable) do
+        if option[3] ~= nil then
+          local ret, str = reaper.GetSetMediaTrackInfo_String
+          ( Mtrack, parname..option[2], tostring(option[3]), getset )
+        end
+      end
+    end
+    
+    if not RunBatch and SaveLastBatchPrj == false then
+      for i, option in ipairs(DefT) do
+        if option[3] ~= nil then
+          reaper.SetExtState(ExtStateName, option[2], tostring(option[3]), true)
+        end
+      end
+    end
+    
+  elseif getset == false then -- get
+    
+    GetExtStates(DefT)
+     
+    for i, option in pairs(LastPrjT) do
+      if option[3] ~= nil then
+        local state
+        local ret, str = reaper.GetSetMediaTrackInfo_String
+        ( Mtrack, parname..option[2], '', getset )
+        if str ~= "" and ret ~= false then
+          state = str
+          local stateType = type(option[3])
+          if stateType == 'number' then state = tonumber(str) end
+          if stateType == 'boolean' then
+            if str == 'true' then state = true else state = false end
+          end
+          option[3] = state 
+        else
+          Opt.SilentProcessBatch = false
+          option[3] = DefT[i][3]
+        end
+      end 
+    end -- for
+     
+  end --if getset == false
+  
+end
+
+-----------START-----------
+if reaper.APIExists( 'BR_GetMouseCursorContext' ) ~= true then
+  reaper.ShowMessageBox('Please, install SWS extension!', 'No SWS extension', 0)
+  return false
+end
+
+version = tonumber( reaper.GetExtState(ExtStateName, "version") )
+if version ~= CurVers then
+  if not version or version < 2.0 then
+    HelloMessage()
+  else reaper.ShowMessageBox('The script was updated to version '..CurVers ,'Fade tool',0)
+  end
+  reaper.SetExtState(ExtStateName, "version", CurVers, true)
+  reaper.defer(function()end)
+  return false
+end
+
+OptDefaults = {}
+BDefaults = {}
+OptionsDefaults(OptDefaults)
+BatchDefaults(BDefaults)
+BPrjDefaults = copy(BDefaults)
+GetExtStates(OptDefaults)
+  
+Opt = {}
+SetOptGlobals(Opt, OptDefaults)
+  
+GetSetBatchExtStates(BDefaults, BPrjDefaults, false)
+--------------------------
 
 function HelloMessage()
   local text = 'Hello friend! It seems you have updated script "az_Fade tool".'
   ..'\n\n'..'The script now has new GUI and more thoughtfull behavior.'
-  ..'\n'..'Explore all of them including envelope editing, look here: '
+  ..'\n'..'Explore all possibilities including envelope editing, look here: '
   ..'\n'..'https://forum.cockos.com/showthread.php?t=293335'
   ..'\n\n'..'Please, check the options if they were changed.'
   ..'\n'..'Just press assigned hotkey when mouse placed on the transport or mixer area.'
@@ -239,9 +318,9 @@ function HelloMessage()
   reaper.ShowMessageBox(text,'Fade tool - Hello!',0)
 end
 
----------------------------------
------------Work functions--------
----------------------------------
+-------------------------
+--End load file
+-------------------------
 
 function RazorEditSelectionExists()
 
@@ -810,60 +889,12 @@ end
 
 -----------------------
 -----------------------
-
-function GetSetBatchExtStates(DefT, getset) -- set == true, get == false
-  local Mtrack = reaper.GetMasterTrack(0)
-  local parname = "P_EXT:"..'AZ_Ftool_Batch '
-  if getset == true then
-    
-    for i, option in pairs(DefT) do
-      if option[3] ~= nil then
-        local ret, str = reaper.GetSetMediaTrackInfo_String
-        ( Mtrack, parname..option[2], tostring(option[3]), getset )
-      end
-    end
-
-  elseif getset == false then
-    
-    for i, option in pairs(DefT) do
-      if option[3] ~= nil then
-        local state
-        local ret, str = reaper.GetSetMediaTrackInfo_String
-        ( Mtrack, parname..option[2], '', getset )
-        if str ~= "" and ret ~= false and Opt.SaveLastBatchPrj == true then
-          state = str
-          local stateType = type(option[3])
-          if stateType == 'number' then state = tonumber(str) end
-          if stateType == 'boolean' then
-            if str == 'true' then state = true else state = false end 
-          end
-          DefT[i][3] = state
-        else
-          DefT[i][3] = Opt[option[2]]
-        end 
-      end
-      
-    end -- for
-    
-  end --if getset == false
-
-end
-
------------------------
------------------------
-function BatchFadesWindow(razorEdits)
-  BDefaults = {}
-  BatchDefaults(BDefaults)
-  GetSetBatchExtStates(BDefaults, false)
-  RunBatch = true
-  RazorEditsBatch = razorEdits
-  --look for additional file
-  local script_path = get_script_path() 
+function BatchFadesWindow()
+  local script_path = get_script_path()
   local file = script_path .. 'az_Fade tool (work on context of mouse, razor or time selection)/'
   ..'az_Options window for az_Fade tool.lua'
   dofile(file)
-  OptionsWindow(BDefaults, 'Batch fades/crossfades - Fade Tool')
-  
+  OptionsWindow( nil, 'Batch fades/crossfades - Fade Tool', BDefaults, BPrjDefaults)
 end
 
 -----------------------
@@ -874,8 +905,14 @@ function BatchFades()
   reaper.PreventUIRefresh( 1 )
   local AnyEdit
   BOpt = {}
-  SetOptGlobals(BOpt, BDefaults)
-  GetSetBatchExtStates(BDefaults, true)
+  local GlobOrPrjTable
+  if SaveLastBatchPrj == true then
+    GlobOrPrjTable = BPrjDefaults
+  else
+    GlobOrPrjTable = BDefaults
+  end
+  SetOptGlobals(BOpt, GlobOrPrjTable)
+  GetSetBatchExtStates(BDefaults, BPrjDefaults, true)
   
   if BOpt.RespectLockingBatch == false then
     RespectLockingBatch = false
@@ -883,7 +920,7 @@ function BatchFades()
     if start_TS ~= end_TS then
       RazorEditsBatch = GetTSandItems(start_TS, end_TS)
     else 
-      RazorEditsBatch = GetRazorEdits()
+      RazorEditsBatch = GetRazorEdits() 
     end
   end
   
@@ -1365,7 +1402,13 @@ function FadeRazorEdits(razorEdits, needBatch) --get areaMap table and batch fla
     
     if needBatch == true then
       if fulliLock == 0 then
-        BatchFadesWindow(razorEdits)
+        RunBatch = true
+        RazorEditsBatch = razorEdits
+        if Opt.SilentProcessBatch == false then
+          BatchFadesWindow()
+        else
+          BatchFades()
+        end
       end
     else
       
@@ -1409,9 +1452,9 @@ function FadeRazorEdits(razorEdits, needBatch) --get areaMap table and batch fla
             local iPos_1 = reaper.GetMediaItemInfo_Value(item_1, "D_POSITION")
             local itemEndPos_1 = iPos_1+reaper.GetMediaItemInfo_Value(item_1, "D_LENGTH")
             if (iPos_1 <= areaData.areaStart and itemEndPos_1 < areaData.areaEnd) or
-            (iPos_1 < areaData.areaStart and itemEndPos_1 <= areaData.areaEnd)then
+            (iPos_1 < areaData.areaStart and itemEndPos_1 - 0.0002 <= areaData.areaEnd)then
               Litem = item_1
-            elseif (iPos_1 >= areaData.areaStart and itemEndPos_1 > areaData.areaEnd) or
+            elseif (iPos_1 + 0.0002 >= areaData.areaStart and itemEndPos_1 > areaData.areaEnd) or
             (iPos_1 > areaData.areaStart and itemEndPos_1 >= areaData.areaEnd)then
               Ritem = item_1
             end
@@ -1598,18 +1641,7 @@ function GetTSandItems(start_TS, end_TS) --returns areaMap and needBatch
         
         table.insert(areaMap, areaData)
       end
-      --[[
-      if #SI == 0 then
-        local areaData = {
-            areaStart = start_TS,
-            areaEnd = end_TS,
-            
-            track,
-            items = {},
-        }
-        
-        table.insert(areaMap, areaData)
-      end]]
+
     end
   else --if not 2 items selected
     SI, needBatch = SaveSelItemsByTracks(start_TS, end_TS)
@@ -1627,18 +1659,7 @@ function GetTSandItems(start_TS, end_TS) --returns areaMap and needBatch
       
       table.insert(areaMap, areaData)
     end
-    --[[
-    if #SI == 0 then
-      local areaData = {
-          areaStart = start_TS,
-          areaEnd = end_TS,
-          
-          track,
-          items = {},
-      }
-      
-      table.insert(areaMap, areaData)
-    end]]
+
   end
   
   return areaMap, needBatch
@@ -2308,8 +2329,7 @@ function MovePoint(env, time, item, pointPos)
       UndoString = 'FadeTool - move point'
   else
       UnselectEnvPoints(env, -1)
-      _, pValue, _, _, _ = reaper.Envelope_Evaluate( env, timeSnap, 192000, 1 )
-      --pShape = GetPrefs('defenvs') >> 16 
+      _, pValue, _, _, _ = reaper.Envelope_Evaluate( env, timeSnap, 192000, 1 ) 
       pShape = tonumber(ExtractDefPointShape(env))
       reaper.InsertEnvelopePointEx( env, -1, timeSnap, pValue, pShape, 0, true, false )
       UndoString = 'FadeTool - create point'
@@ -2509,48 +2529,27 @@ end
 
 ---------------------------
 -----------START-----------
-CurVers = 2.23
-version = tonumber( reaper.GetExtState(ExtStateName, "version") )
-if version ~= CurVers then
-  if not version or version < 2.0 then
-    HelloMessage()
-  else reaper.ShowMessageBox('The script was updated to version '..CurVers ,'Fade tool',0)
-  end
-  reaper.SetExtState(ExtStateName, "version", CurVers, true)
-  reaper.defer(function()end)
-else
-  if reaper.APIExists( 'BR_GetMouseCursorContext' ) ~= true then
-    reaper.ShowMessageBox('Please, install SWS extension!', 'No SWS extension', 0)
-    return
-  end
-  
   window, segment, details = reaper.BR_GetMouseCursorContext()
   --msg(window) msg(segment) msg(details)
   local tcpActIDstr = reaper.GetExtState(ExtStateName, 'TCPaction')
   local tcpActID
   
-  OptDefaults = {}
-  OptionsDefaults(OptDefaults)
-  GetExtStates(OptDefaults)
-  
-  if window == 'transport' or window == 'mcp' then 
+  if window == 'transport' or window == 'mcp' then
   --look for additional file
-    local script_path = get_script_path() 
+    local script_path = get_script_path()
     local file = script_path .. 'az_Fade tool (work on context of mouse, razor or time selection)/'
     ..'az_Options window for az_Fade tool.lua'
     dofile(file)
-    --ExternalOpen = true
-    OptionsWindow(OptDefaults, 'Fade Tool Options')
+    
+    OptionsWindow(OptDefaults, 'Fade Tool Options', BDefaults, BPrjDefaults)
   elseif window == 'tcp' and tcpActIDstr ~= '' then
     if tcpActIDstr:gsub('%d+', '') == '' then
-      tcpActID = tonumber(tcpActIDstr) 
+      tcpActID = tonumber(tcpActIDstr)
     elseif tcpActIDstr ~= '' then
       tcpActID = tonumber(reaper.NamedCommandLookup(tcpActIDstr))
     end
     reaper.Main_OnCommandEx(tcpActID,0,0)
   else
-    Opt = {}
-    SetOptGlobals(Opt, OptDefaults)
     UndoString = Main()
     
     if globalLock == 1 and not RunBatch then 
@@ -2568,5 +2567,3 @@ else
       reaper.defer(function()end)
     end
   end
-  
-end
