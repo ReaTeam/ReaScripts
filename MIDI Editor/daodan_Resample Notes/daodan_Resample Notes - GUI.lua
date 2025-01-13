@@ -1,18 +1,16 @@
--- @noindex
-
 if not reaper.ImGui_GetBuiltinPath then
-  return reaper.MB('ReaImGui is not installed or too old.', 'Resample Notes GUI', 0)
+  return reaper.MB('ReaImGui is not installed or too old.', 'Resample notes GUI', 0)
 end
 
 package.path = reaper.ImGui_GetBuiltinPath() .. '/?.lua'
 local ImGui = require 'imgui' '0.9.3'
-local ctx = ImGui.CreateContext('Resample Notes GUI')
+local ctx = ImGui.CreateContext('Resample notes GUI')
 
 local runButColI = 0
-
-local GUIPrefsFile = "Resample Notes GUI [prefs].lua"
+local mainScript = "daodan_Resample notes.lua"
+local GUIPrefsFile = "Resample notes - GUI [prefs].lua"
 local dir = ({reaper.get_action_context()})[2]:match("^(.*[/\\])")
---reaper.ShowConsoleMsg(dir)
+
 local presetsFolder = "Resample Notes Presets"
 newPresetNameDef = 'new preset - no name.lua'
 newPresetName = newPresetNameDef
@@ -79,7 +77,6 @@ function get_dir_files(dir_path)
 end
 
 function getDefaultSettingsFromMain()
-  local mainScript = "daodan_Resample Notes Main.lua"
   
   externalRun = nil
   wasRunToGetPresetFromGUI=true
@@ -92,19 +89,13 @@ function getDefaultSettingsFromMain()
     dofile(dir..mainScript)
     return 1
   else
-    reaper.ShowMessageBox('The main script ['..mainScript..'] not found.\nPlease, place it here: '..dir,'Resample Notes GUI',0)
+    reaper.ShowMessageBox('The main script ['..mainScript..'] not found.\nPlease, place it here: '..dir,'Resample notes GUI',0)
     return
   end
 end
 
 function getPresets()
   presetsList = get_dir_files(dir..presetsFolder)
-  --presetsNamesList = {}
-  --reaper.ClearConsole()
-  --for i=1, #presetsList do
-    --presetsNamesList[i] = string.gsub(presetsList[i], dir, ""); -- replace dir with nothing to get name from full path
-    --reaper.ShowConsoleMsg('\n'..presetsList[i])
-  --end
 end
 
 function setGUIprefs()
@@ -130,7 +121,7 @@ end
 
 function run()
   --RUN MAIN SCRIPT-----------------------
-  local mainScript = "daodan_Resample Notes Main.lua"
+  
   wasRunToGetPresetFromGUI = false
   externalRun = 'GUI'
   dofile(dir..mainScript)
@@ -215,12 +206,12 @@ function writeGUIPrefsFile()
   local file = assert(io.open(dir..GUIPrefsFile, 'w'))
   file:write(settingsString)
   file:close()
-  --reaper.ShowConsoleMsg('prefs saved to:' ..dir..GUIPrefsFile)
+  
 end
 
 function writePresetToFile()
   --write current settings to preset
-  --reaper.ShowConsoleMsg('assss')
+  
   presetFileStringCode = ([[
 --Resample Notes - render selected MIDI notes, load sample to ReaSamplOmatic5000
 
@@ -229,7 +220,7 @@ function writePresetToFile()
 --and insert root note in the corresponding possition. 
 --Basically. There are several options here so you can change the behavior to suit your needs. See [USER SETTINGS] section below.
 
---This is a preset script. Can run main script (daodan_Resample Notes Main.lua) with [USER SETTINGS]. 
+--This is a preset script. Can run main script (daodan_Resample notes.lua) with [USER SETTINGS]. 
 --Can be used to load preset from GUI script.
 
 --Please keep list of variables in user setting section same as in main script 
@@ -294,7 +285,7 @@ if wasRunToGetPresetFromGUI then return end --exit after loading user settings i
 --RUN MAIN SCRIPT-----------------------
 local dir = ({reaper.get_action_context()})[2]:match("^(.*[/\\])")
 local goback = "..\\"
-local mainScript = "daodan_Resample Notes Main.lua"
+local mainScript = "daodan_Resample notes.lua"
 externalRun = 'preset script'
 
 dofile(dir..goback..mainScript)
@@ -309,10 +300,8 @@ dofile(dir..goback..mainScript)
   postProcAction,postProcActionID)
   
   --write settings to preset script
-  --reaper.ShowConsoleMsg('\n'..presetFileStringCode)
-  --local newPresetName = 'ZEBOBO01.lua'
   local fullNewPrestPath = dir..presetsFolder..'\\'..newPresetName
-  --if resavePreset == true then newPresetName = curentPresetName что то типа того сделать?
+  
   local file = assert(io.open(fullNewPrestPath, 'w'))
   file:write(presetFileStringCode)
   file:close()
@@ -327,19 +316,11 @@ dofile(dir..goback..mainScript)
   
   varsChanged = false
   
-  --reaper.ShowConsoleMsg(fullNewPrestPath)
 end
 
 function SetAsDefaultPreset()
-  --for i=1, #presetsList do
-    --presetsNamesList[i] = string.gsub(presetsList[i], dir, ""); -- replace dir with nothing to get name from full path
-    --reaper.ShowConsoleMsg('\n'..presetsList[i])
-  --end
-  --current_item_preset
-  --reaper.ShowMessageBox('does it work?'..current_item_preset,'',0)
   if current_item_preset then
     if current_item_preset > 0 then
-      --reaper.ShowMessageBox('does it work? current_item_preset = '..current_item_preset,'',0)
       defaultPreset=presetsList[current_item_preset]
     else
       defaultPreset=nil
@@ -347,11 +328,9 @@ function SetAsDefaultPreset()
   else
     defaultPreset=nil
   end
-  --reaper.ShowMessageBox('defaultPreset = '..tostring(defaultPreset),'',0)
 end
 
 function onClose()
-  --reaper.ShowMessageBox('closed','end',0)
   writeGUIPrefsFile()
 end
 
@@ -391,7 +370,6 @@ function loadRS5kPresets()
     local resourcePatch = reaper.GetResourcePath()
     local presetFile = resourcePatch..rs5kPresetFile
     local file = io.open(presetFile, "r")
-    --reaper.ShowConsoleMsg(presetFile)
     if not file then
         return  -- Could not open the file, exit the function
     end
@@ -403,13 +381,11 @@ function loadRS5kPresets()
         elseif presetFound and line:match("^Name=") then
             -- Extract the preset name
             presetName = line:match("^Name=(.+)$")
-            --reaper.ShowConsoleMsg('\n'..presetName)
             table.insert(rs5kPresetsNames_T, presetName)
         end
     end
     
     file:close()
-    --reaper.ShowConsoleMsg('\n'..rs5kPresetsNames_T[1])
 end
 
 function initSamplerPresetComboBox()
@@ -455,15 +431,6 @@ local function myWindow()
     
     ImGui.EndPopup(ctx)
   end
-  
-  --[[scroll substitute
-  local canWheelScroll = ImGui.IsWindowHovered(ctx) and not ImGui.IsAnyItemHovered(ctx) 
-  local wheelDeltaY, wheelDeltaX = ImGui.GetMouseWheel(ctx)
-  if wheelDeltaY ~= 0 and canWheelScroll then
-    local currentScroll = reaper.ImGui_GetScrollY(ctx)
-    local scrollStrength = 50
-    reaper.ImGui_SetScrollY(ctx, currentScroll - wheelDeltaY * scrollStrength)
-  end--]]
   
   --RUN and PRESETS BOX -------------------------------------------------------------------------------------
   
@@ -512,15 +479,10 @@ local function myWindow()
   
   --load preset if combo item changed----------------------
   if current_item_preset~=oldValue then 
-    --reaper.ClearConsole()
-    --reaper.ShowConsoleMsg(current_item_preset..'\n')
     if current_item_preset>0 then
       local presetLoad = presetsList[current_item_preset]
       
       wasRunToGetPresetFromGUI=true
-      
-      --reaper.ShowConsoleMsg(presetLoad..'\n')
-      --dofile(dir..presetsFolder..'\\'..presetLoad)
       
       --check if preset file exist. load  if so
       local checkPresetFile = io.open( dir..presetsFolder..'\\'..presetLoad, "r" )
@@ -533,7 +495,7 @@ local function myWindow()
         
         varsChanged = false
       else
-        reaper.ShowMessageBox('This preset is no longer available: '..dir..presetsFolder..'\\'..presetLoad,'Resample Notes GUI',0)
+        reaper.ShowMessageBox('This preset is no longer available: '..dir..presetsFolder..'\\'..presetLoad,'Resample notes GUI',0)
         getPresets()
         current_item_preset = 0
         varsChanged = true
@@ -607,8 +569,6 @@ local function myWindow()
   --samplerPreset------------------------------------------
   
   if loadToSampler < 1 then LooksDisabled(1) end
-  --hintText_samplerPreset = 'default'
-  --rv, samplerPreset = ImGui.InputTextWithHint(ctx, 'sampler preset', hintText_samplerPreset, samplerPreset)
   
   --combo box----------------------------------------------------------------
   local combo_preview_value = rs5kPresetsNames_T[current_item_sampler_preset] or 'default'
@@ -619,9 +579,7 @@ local function myWindow()
       if ImGui.Selectable(ctx, rs5kPresetsNames_T[i], is_selected) then
         current_item_sampler_preset = i
       end
-      --if ImGui.IsMouseClicked(ctx, 0) then
-      --  oldValue_sampler_preset=nil
-      --end
+
       -- Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
       if is_selected then
         ImGui.SetItemDefaultFocus(ctx)
@@ -857,9 +815,6 @@ local function myWindow()
   
   HelpMarker(settingsDescriptions_T.settingDescript_bypassOrigFx)
   
-  --ImGui.SetNextItemOpen( ctx, false )
-  --if ImGui.CollapsingHeader(ctx, 'pre/post-render actions') then
-  
   ImGui.SetNextItemOpen(ctx, open_prepost_actions, ImGui.Cond_Once)
   open_prepost_actions = ImGui.CollapsingHeader(ctx, 'pre/post-render actions')
   if open_prepost_actions then
@@ -877,7 +832,7 @@ local function myWindow()
       
       --preRenderActionID---------------------------------------
       if preRenderAction == 0 then LooksDisabled(1) end
-
+      
       rv, preRenderActionID = ImGui.InputTextWithHint(ctx, 'pre-render action ID', 'action/script id', preRenderActionID)
       if ImGui.IsItemDeactivatedAfterEdit( ctx ) then varsChanged = true end
       
@@ -885,7 +840,18 @@ local function myWindow()
       ActionNameFromIdToolTip(preRenderAction,preRenderActionID)
       
       if preRenderAction == 0 then LooksDisabled(0) end
-    
+      
+      --right click action preRenderActionID menu----------------------------
+      if ImGui.BeginPopupContextItem(ctx) then
+        
+        if ImGui.Button(ctx, 'paste') then
+          preRenderActionID = ImGui.GetClipboardText(ctx)
+          ImGui.CloseCurrentPopup(ctx)
+        end
+        
+        ImGui.EndPopup(ctx)
+      end
+      
     ImGui.SeparatorText(ctx, 'post-render (before loading to sampler)')
 
       --postRenderAction-----------------------------------------
@@ -907,7 +873,18 @@ local function myWindow()
       ActionNameFromIdToolTip(postRenderAction,postRenderActionID)
       
       if postRenderAction == 0 then LooksDisabled(0) end
-   
+      
+      --right click action postRenderActionID menu----------------------------
+      if ImGui.BeginPopupContextItem(ctx) then
+        
+        if ImGui.Button(ctx, 'paste') then
+          postRenderActionID = ImGui.GetClipboardText(ctx)
+          ImGui.CloseCurrentPopup(ctx)
+        end
+        
+        ImGui.EndPopup(ctx)
+      end
+      
     ImGui.SeparatorText(ctx, 'post process')
     
       --postProcAction-----------------------------------------
@@ -929,6 +906,17 @@ local function myWindow()
       ActionNameFromIdToolTip(postProcAction,postProcActionID)
       
       if postProcAction == 0 then LooksDisabled(0) end
+      
+      --right click action postProcActionID menu----------------------------
+      if ImGui.BeginPopupContextItem(ctx) then
+        
+        if ImGui.Button(ctx, 'paste') then
+          postProcActionID = ImGui.GetClipboardText(ctx)
+          ImGui.CloseCurrentPopup(ctx)
+        end
+        
+        ImGui.EndPopup(ctx)
+      end
       
   end
   
@@ -981,14 +969,13 @@ end
 local function loop()
   
   ImGui.SetNextWindowSize(ctx, 410, 0.0, ImGui.Cond_FirstUseEver)
-  unsaved_document = 1
+  
   local window_flags = ImGui.WindowFlags_None
   --if no_titlebar       then window_flags = window_flags | ImGui.WindowFlags_NoTitleBar            end
   --if not no_menu       then window_flags = window_flags | ImGui.WindowFlags_MenuBar               end
   --if no_collapse       then window_flags = window_flags | ImGui.WindowFlags_NoCollapse            end
   if topmost           then window_flags = window_flags | ImGui.WindowFlags_TopMost               end
   if true              then window_flags = window_flags | ImGui.WindowFlags_NoScrollWithMouse     end
-  --if unsaved_document  then window_flags = window_flags | ImGui.WindowFlags_UnsavedDocument       end
   
   local visible, open = reaper.ImGui_Begin(ctx, 'Resample Notes', true, window_flags)
   if visible then
