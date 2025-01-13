@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="3272dbf8025552435edcd5d5f816e536324c6475" name="ReaTeam Scripts">
+<index version="1" commit="43b828d0ea57f472d7bebdf3779331d4713ee326" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -6117,12 +6117,12 @@ website
     </reapack>
     <reapack name="az_Fade tool (work on context of mouse, razor or time selection).lua" type="script" desc="Fade tool (works on context of mouse, razor or time selection)">
       <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Fade tool\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Options window can be opened by pressing the shortcut assigned the script when mouse placed on transport or mixer panel.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel0 \b \fs36 Fade tool\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel1 \b \fs32 Options window can be opened by pressing the shortcut assigned the script when mouse placed on transport or mixer panel.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Use top/bottom mouse placement on the item to define what fade you need, in or out.\par}
 {\pard \ql \f0 \sa180 \li360 \fi0 There is two ways that you can change in the options.\par}
 {\pard \ql \f0 \sa180 \li360 \fi0 \f1   Default is: top / bottom -> fadein / fadeout\line
@@ -6225,6 +6225,14 @@ website
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/0f02df6591e7af08a23b2c964839d18b051027ac/Items%20Editing/az_Fade%20tool%20(work%20on%20context%20of%20mouse,%20razor%20or%20time%20selection).lua</source>
         <source file="az_Fade tool (work on context of mouse, razor or time selection)/az_Options window for az_Fade tool.lua">https://github.com/ReaTeam/ReaScripts/raw/0f02df6591e7af08a23b2c964839d18b051027ac/Items%20Editing/az_Fade%20tool%20(work%20on%20context%20of%20mouse,%20razor%20or%20time%20selection)/az_Options%20window%20for%20az_Fade%20tool.lua</source>
         <source main="main" file="az_Fade tool (work on context of mouse, razor or time selection)/az_Open options for az_Fade tool.lua">https://github.com/ReaTeam/ReaScripts/raw/0f02df6591e7af08a23b2c964839d18b051027ac/Items%20Editing/az_Fade%20tool%20(work%20on%20context%20of%20mouse,%20razor%20or%20time%20selection)/az_Open%20options%20for%20az_Fade%20tool.lua</source>
+      </version>
+      <version name="2.2.4" author="AZ" time="2025-01-13T19:03:35Z">
+        <changelog><![CDATA[- Improved behavior for batch fades/crossfades options
+- Added option for immediate applying actual batch settings without dialog
+- added workaround for some math inaccuracy related to razor area]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/43b828d0ea57f472d7bebdf3779331d4713ee326/Items%20Editing/az_Fade%20tool%20(work%20on%20context%20of%20mouse,%20razor%20or%20time%20selection).lua</source>
+        <source file="az_Fade tool (work on context of mouse, razor or time selection)/az_Options window for az_Fade tool.lua">https://github.com/ReaTeam/ReaScripts/raw/43b828d0ea57f472d7bebdf3779331d4713ee326/Items%20Editing/az_Fade%20tool%20(work%20on%20context%20of%20mouse,%20razor%20or%20time%20selection)/az_Options%20window%20for%20az_Fade%20tool.lua</source>
+        <source main="main" file="az_Fade tool (work on context of mouse, razor or time selection)/az_Open options for az_Fade tool.lua">https://github.com/ReaTeam/ReaScripts/raw/43b828d0ea57f472d7bebdf3779331d4713ee326/Items%20Editing/az_Fade%20tool%20(work%20on%20context%20of%20mouse,%20razor%20or%20time%20selection)/az_Open%20options%20for%20az_Fade%20tool.lua</source>
       </version>
     </reapack>
     <reapack name="az_Open item copy in primary external editor with handles.lua" type="script" desc="Open item copy in primary external editor with handles">
