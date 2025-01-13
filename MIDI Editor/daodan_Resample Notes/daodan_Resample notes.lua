@@ -1,5 +1,3 @@
--- @noindex
-
 --Resample Notes - render selected MIDI notes, load sample to ReaSamplOmatic5000
 
 --Midi Editor script to automatically copy selected notes to new item, apply fx, 
@@ -8,7 +6,7 @@
 --Basically. There are several options here so you can change the behavior to suit your needs. See [USER SETTINGS] section below.
 
 --This is the main script. Can be launched from a preset/GUI script or by itself.
---Please, keep this script name as "Resample Notes Main.lua" for launching from preset/GUI script.
+--Please, keep this script name as "daodan_Resample notes.lua" for launching from preset/GUI script.
 
 --Have fun!
 
@@ -88,19 +86,6 @@ function runAction(action, actionID)
     elseif action == 2 then --MIDI Editor section
       reaper.MIDIEditor_LastFocused_OnCommand(reaper.NamedCommandLookup(actionID), 0)
   
-  --[[
-    if action == 1 then --native action Main
-      reaper.Main_OnCommand(actionID, 0)
-      
-    elseif action == 2 then --native action MIDI Editor
-      reaper.MIDIEditor_LastFocused_OnCommand(actionID, 0)
-      
-    elseif action == 3 then --custom action, script Main
-      reaper.Main_OnCommand(reaper.NamedCommandLookup(actionID), 0)
-      
-    elseif action == 4 then --custom action, script MIDI Editor
-      reaper.MIDIEditor_LastFocused_OnCommand(reaper.NamedCommandLookup(actionID), 0)
-    --]]
     end
       
   end
@@ -140,7 +125,7 @@ function GetEditableMidiTakes(ME)--ME for Midi Editor
       takeCount = takeCount + 1
       takes_T[takeCount] = take
     end
-    --say (#takes_T)--number of ME editable takes
+    
     return takes_T
   end
 end
@@ -163,7 +148,7 @@ function GetSelectedItemsTakes()
   else
     return
   end
-  --say (#takes_T)--number of selected takes
+  
   return takes_T
 end
 
