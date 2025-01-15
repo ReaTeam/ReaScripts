@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="43b828d0ea57f472d7bebdf3779331d4713ee326" name="ReaTeam Scripts">
+<index version="1" commit="9d95f3961c843543283124952602fc642554cd62" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -22812,18 +22812,26 @@ v1.0
     </reapack>
     <reapack name="az_Simple project reconform.lua" type="script" desc="Simple project reconform">
       <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Simple Project Reconform\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 The script is under development, but you can try to use it. Read more: https://forum.cockos.com/showthread.php?t=288069\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel0 \b \fs36 Simple Project Reconform\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 It can be useful for post-production to automatically adapt your project to the new version of video.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The script is under development, but you can try to use it. Read more: https://forum.cockos.com/showthread.php?p=2803375#post2803375\par}
 }
 ]]></description>
-        <link rel="website" href="https://forum.cockos.com/showthread.php?t=288069">Forum thread</link>
+        <link rel="website" href="https://forum.cockos.com/showthread.php?p=2803375#post2803375">Forum thread</link>
+        <link rel="donation" href="https://www.paypal.me/AZsound">Donate via PayPal</link>
       </metadata>
       <version name="0.5" author="AZ" time="2024-08-14T19:59:23Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a274a7044d05135934ca1ca1415ee1097c9f9880/Various/az_Simple%20project%20reconform.lua</source>
+      </version>
+      <version name="0.6" author="AZ" time="2025-01-15T20:21:06Z">
+        <changelog><![CDATA[- EDL analisation module
+- other improvements and options
+- bug fixies]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/9d95f3961c843543283124952602fc642554cd62/Various/az_Simple%20project%20reconform.lua</source>
       </version>
     </reapack>
     <reapack name="beaunus_Import_clip_splicer_specification_json.py" type="script" desc="Import Clip Splicer JSON file">
