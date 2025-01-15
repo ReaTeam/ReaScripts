@@ -1,3 +1,5 @@
+-- @noindex
+
 if not reaper.ImGui_GetBuiltinPath then
   return reaper.MB('ReaImGui is not installed or too old.', 'Resample notes GUI', 0)
 end

@@ -1,3 +1,5 @@
+-- @noindex
+
 --Resample Notes - render selected MIDI notes, load sample to ReaSamplOmatic5000
 
 --Midi Editor script to automatically copy selected notes to new item, apply fx, 
