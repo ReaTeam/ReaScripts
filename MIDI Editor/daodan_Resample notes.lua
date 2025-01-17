@@ -1,0 +1,22 @@
+-- @description Resample notes
+-- @author daodan
+-- @version 1.0
+-- @metapackage
+-- @provides
+--   [main] daodan_Resample notes/daodan_Resample notes.lua
+--   [main=main,midi_editor] daodan_Resample notes/daodan_Resample notes - GUI.lua
+--   daodan_Resample notes/Presets/*.lua
+-- @link Forum thread https://forum.cockos.com/showthread.php?t=297511
+-- @about
+--   #Resample notes - render selected notes, load to sampler (rs5k)
+--
+--   Midi Editor script to automatically copy selected notes to new item,
+--   apply fx, load sample to sampler, set root note in sampler,
+--   remove new item, mute originally selected notes in original item
+--   and insert root note in the corresponding position.
+--   Basically. There are several options here so you can change the behavior
+--   to suit your needs.
+--   You can change them in [USER SETTINGS] section in code in main script
+--   or preset scripts inside "Resample notes Presets" folder
+--   or via GUI script (Resample notes - GUI.lua).
+
