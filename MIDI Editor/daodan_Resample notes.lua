@@ -5,13 +5,7 @@
 -- @provides
 --   [main] daodan_Resample notes/daodan_Resample notes.lua
 --   [main=main,midi_editor] daodan_Resample notes/daodan_Resample notes - GUI.lua
---   daodan_Resample notes/Resample notes Presets/Dulpicate notes octave up (with fx).lua
---   daodan_Resample notes/Resample notes Presets/Dulpicate notes octave up.lua
---   daodan_Resample notes/Resample notes Presets/Reverse notes and sample +pitch.lua
---   daodan_Resample notes/Resample notes Presets/Reverse notes and sample.lua
---   daodan_Resample notes/Resample notes Presets/Reversed on midi ch 2.lua
---   daodan_Resample notes/Resample notes Presets/Reversed on new track.lua
---   daodan_Resample notes/Resample notes Presets/Swell FX (reverse sample).lua
+--   daodan_Resample notes/Presets/*.lua
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=297511
 -- @about
 --   #Resample notes - render selected notes, load to sampler (rs5k)
