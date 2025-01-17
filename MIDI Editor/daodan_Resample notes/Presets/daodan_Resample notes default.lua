@@ -71,7 +71,7 @@ if wasRunToGetPresetFromGUI then return end --exit after loading user settings i
 
 --RUN MAIN SCRIPT-----------------------
 local dir = ({reaper.get_action_context()})[2]:match("^(.*[/\\])")
-local goback = "..\\"
+local goback = "../"
 local mainScript = "daodan_Resample notes.lua"
 externalRun = 'preset script'
 
