@@ -1,35 +1,38 @@
--- @description Neft Floating Solo Toolbar
+-- @description Floating Solo Toolbar
 -- @author Neftovsky
--- @version 1.0
+-- @version 1.1
 -- @about
---   Neft Floating Solo Toolbar
+--   Floating Solo Toolbar
 --
---   -Creates a floating toolbar
---   -Links each button to a specific track in the project
---   -Toggles the solo state for a track in project when a button is clicked
---   -Allows changing the names of tracks and buttons by right-clicking on the buttons
---   -Enables adding new buttons to the toolbar
---   -aves settings, including button labels and track names
+--   - Creates a floating toolbar
+--   - Links each button to a specific track in the project
+--   - Toggles the solo state for a track in the project when a button is clicked
+--   - Allows changing the names of tracks and buttons by right-clicking on the buttons
+--   - Enables adding new buttons to the toolbar
+--   - Saves settings, including button labels and track names
+-- @provides
+--   ReaImGui API v0.8+
+-- @requires
+--   REAPER 6.0 or later
 
-
-
-local imgui = reaper.ImGui_CreateContext("Neft Toolbar")
+local imgui = reaper.ImGui_CreateContext("Floating Solo Toolbar")
 local window_open = true
 
 local toolbar_pos_x = 100
 local toolbar_pos_y = 100
 local default_button_color = 0x666666FF
 
-local button_order = {"Rythm", "VOC", "INSTR", "FX"}
+local button_order = {"Rhythm", "VOC", "INSTR", "FX"}
 
 local buttons = {
-    Rythm = {track_name = "Rythm Bus", button_label = "RYTHM"},
+    Rhythm = {track_name = "Rhythm Bus", button_label = "RHYTHM"},
     VOC = {track_name = "Vocal Bus", button_label = "VOC"},
     INSTR = {track_name = "Instr Bus", button_label = "INSTR"},
     FX = {track_name = "Send Bus", button_label = "FX"}
 }
 
-local save_file_path = reaper.GetResourcePath() .. "/NeftToolbarSettings.lua"
+local script_path = debug.getinfo(1, 'S').source:match("@(.*[\\/])")
+local save_file_path = script_path .. "NeftToolbarSettings.lua"
 local menu_popup_open = false
 local selected_button_key = nil
 local button_name_buffer = ""
@@ -207,7 +210,7 @@ local window_flags = reaper.ImGui_WindowFlags_NoTitleBar()
 local function Main()
     if window_open then
         reaper.ImGui_SetNextWindowPos(imgui, toolbar_pos_x, toolbar_pos_y, reaper.ImGui_Cond_FirstUseEver())
-        local visible, open = reaper.ImGui_Begin(imgui, "Neft Toolbar", true, window_flags)
+        local visible, open = reaper.ImGui_Begin(imgui, "Floating Solo Toolbar", true, window_flags)
 
         if visible then
             for _, key in ipairs(button_order) do
@@ -236,4 +239,3 @@ end
 
 LoadSettings()
 Main()
-
