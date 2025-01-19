@@ -10,8 +10,8 @@
 --   - Allows changing the names of tracks and buttons by right-clicking on the buttons
 --   - Enables adding new buttons to the toolbar
 --   - Saves settings, including button labels and track names
--- @provides
---   ReaImGui API v0.8+
+-- @requires
+--   ReaImGui: API version 0.8 or later
 -- @requires
 --   REAPER 6.0 or later
 
