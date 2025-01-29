@@ -1,10 +1,7 @@
 -- @description Fade tool (works on context of mouse, razor or time selection)
 -- @author AZ
--- @version 2.2.4
--- @changelog
---   - Improved behavior for batch fades/crossfades options
---   - Added option for immediate applying actual batch settings without dialog
---   - added workaround for some math inaccuracy related to razor area
+-- @version 2.2.5
+-- @changelog - Fixed stupid bug with Hello message, that is trouble for new users
 -- @provides
 --   az_Fade tool (work on context of mouse, razor or time selection)/az_Options window for az_Fade tool.lua
 --   [main] az_Fade tool (work on context of mouse, razor or time selection)/az_Open options for az_Fade tool.lua
@@ -63,7 +60,7 @@ end
 -------------------------
 
 ExtStateName = 'AZ_FadeTool'
-CurVers = 2.24
+CurVers = 2.25
 
 SaveLastBatchPrj = reaper.GetExtState(ExtStateName, 'SaveLastBatchPrj') 
 if SaveLastBatchPrj == 'false' then SaveLastBatchPrj = false
@@ -276,6 +273,18 @@ function GetSetBatchExtStates(DefT, LastPrjT, getset) -- set == true, get == fal
   end --if getset == false
   
 end
+--------------------------
+
+function HelloMessage()
+  local text = 'Hello friend! It seems you have updated script "az_Fade tool".'
+  ..'\n\n'..'The script now has new GUI and more thoughtfull behavior.'
+  ..'\n'..'Explore all possibilities including envelope editing, look here: '
+  ..'\n'..'https://forum.cockos.com/showthread.php?t=293335'
+  ..'\n\n'..'Please, check the options if they were changed.'
+  ..'\n'..'Just press assigned hotkey when mouse placed on the transport or mixer area.'
+  ..'\n'..'Have fun!)'
+  reaper.ShowMessageBox(text,'Fade tool - Hello!',0)
+end
 
 -----------START-----------
 if reaper.APIExists( 'BR_GetMouseCursorContext' ) ~= true then
@@ -305,18 +314,6 @@ Opt = {}
 SetOptGlobals(Opt, OptDefaults)
   
 GetSetBatchExtStates(BDefaults, BPrjDefaults, false)
---------------------------
-
-function HelloMessage()
-  local text = 'Hello friend! It seems you have updated script "az_Fade tool".'
-  ..'\n\n'..'The script now has new GUI and more thoughtfull behavior.'
-  ..'\n'..'Explore all possibilities including envelope editing, look here: '
-  ..'\n'..'https://forum.cockos.com/showthread.php?t=293335'
-  ..'\n\n'..'Please, check the options if they were changed.'
-  ..'\n'..'Just press assigned hotkey when mouse placed on the transport or mixer area.'
-  ..'\n'..'Have fun!)'
-  reaper.ShowMessageBox(text,'Fade tool - Hello!',0)
-end
 
 -------------------------
 --End load file
