@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="8cb5d9b2504b67da5043b04c6b69f1ab84def7f0" name="ReaTeam Scripts">
+<index version="1" commit="eb96667e8863647a7ae02a88016e6152539fa214" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -19301,6 +19301,22 @@ is off-screen. Reaper issue, should be fixed soon.]]></changelog>
       <version name="1.1" author="daodan" time="2025-01-29T12:13:19Z">
         <changelog><![CDATA[Added option to keep rec armed but monitoring only tracks armed. Enabled by default.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/8cb5d9b2504b67da5043b04c6b69f1ab84def7f0/Tracks/daodan_Exclusive%20solo,%20mute,%20rec-arm%20via%20middle%20mouse%20click%20on%20track%20buttons%20(background).lua</source>
+      </version>
+    </reapack>
+    <reapack name="daodan_Solo, mute, rec-arm indicator (global, interactive).lua" type="script" desc="Solo, mute, rec-arm indicator (global, interactive)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 #Interactive solo/mute/rec-arm indicator\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Usage: Run script. Solo button lights up when there is soloed track in project. Click button to unsolo all tracks. Click again to restore previous solo states. Same for mute and rec-arm.\line Rigth click button for additional actions and settings.\par}
+}
+]]></description>
+        <link rel="website" href="https://forum.cockos.com/showthread.php?t=297880">Forum thread</link>
+      </metadata>
+      <version name="1.0" author="daodan" time="2025-01-29T12:42:27Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/eb96667e8863647a7ae02a88016e6152539fa214/Tracks/daodan_Solo,%20mute,%20rec-arm%20indicator%20(global,%20interactive).lua</source>
       </version>
     </reapack>
     <reapack name="edgemeal_Play lanes in time selection.lua" type="script" desc="Play lanes in time selection">
