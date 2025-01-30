@@ -21,11 +21,25 @@ if app_vrs < check_vrs then return reaper.MB('This script require REAPER '..chec
 local ImGui
 
 if not reaper.ImGui_GetBuiltinPath then return reaper.MB('This script require ReaImGui extension','',0) end
-package.path =   reaper.ImGui_GetBuiltinPath() .. '/?.lua'
+package.path = reaper.ImGui_GetBuiltinPath() .. '/?.lua'
 ImGui = require 'imgui' '0.9.3.2'
-local imgui = reaper.ImGui_CreateContext("Floating Solo Toolbar")
-local window_open = true
 
+-- Глобальная переменная для контекста ImGui
+local imgui = nil
+
+-- Функция для создания или восстановления контекста ImGui
+local function EnsureImGuiContext()
+    if not imgui or not reaper.ImGui_ValidatePtr(imgui, 'ImGui_Context*') then
+        imgui = reaper.ImGui_CreateContext("Floating Solo Toolbar")
+        if not imgui then
+            reaper.ShowMessageBox("Failed to create ImGui context!", "Error", 0)
+            return false
+        end
+    end
+    return true
+end
+
+local window_open = true
 local toolbar_pos_x = 100
 local toolbar_pos_y = 100
 local default_button_color = 0x666666FF
@@ -38,6 +52,11 @@ local buttons = {
     INSTR = {track_name = "Instr Bus", button_label = "INSTR"},
     FX = {track_name = "Send Bus", button_label = "FX"}
 }
+
+local menu_popup_open = false
+local selected_button_key = nil
+local button_name_buffer = ""
+local track_name_buffer = ""
 
 local function TableToString(tbl)
     local function serialize(o)
@@ -203,6 +222,11 @@ local window_flags = reaper.ImGui_WindowFlags_NoTitleBar()
                      | reaper.ImGui_WindowFlags_NoDecoration()
 
 local function Main()
+    -- Проверяем и восстанавливаем контекст ImGui
+    if not EnsureImGuiContext() then
+        return
+    end
+
     if window_open then
         reaper.ImGui_SetNextWindowPos(imgui, toolbar_pos_x, toolbar_pos_y, reaper.ImGui_Cond_FirstUseEver())
         local visible, open = reaper.ImGui_Begin(imgui, "Floating Solo Toolbar", true, window_flags)
