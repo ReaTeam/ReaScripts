@@ -15,6 +15,14 @@
 -- @requires
 --   REAPER 6.0 or later
 
+app_vrs = tonumber(reaper.GetAppVersion():match('[%d%.]+'))
+check_vrs = 6.0
+if app_vrs < check_vrs then return reaper.MB('This script require REAPER '..check_vrs..'+','',0) end
+local ImGui
+
+if not reaper.ImGui_GetBuiltinPath then return reaper.MB('This script require ReaImGui extension','',0) end
+package.path =   reaper.ImGui_GetBuiltinPath() .. '/?.lua'
+ImGui = require 'imgui' '0.9.3.2'
 local imgui = reaper.ImGui_CreateContext("Floating Solo Toolbar")
 local window_open = true
 
@@ -30,13 +38,6 @@ local buttons = {
     INSTR = {track_name = "Instr Bus", button_label = "INSTR"},
     FX = {track_name = "Send Bus", button_label = "FX"}
 }
-
-local script_path = debug.getinfo(1, 'S').source:match("@(.*[\\/])")
-local save_file_path = script_path .. "NeftToolbarSettings.lua"
-local menu_popup_open = false
-local selected_button_key = nil
-local button_name_buffer = ""
-local track_name_buffer = ""
 
 local function TableToString(tbl)
     local function serialize(o)
@@ -67,11 +68,9 @@ local function StringToTable(str)
 end
 
 local function LoadSettings()
-    local file = io.open(save_file_path, "r")
-    if file then
-        local content = file:read("*a")
-        file:close()
-        local settings = StringToTable(content)
+    local settings_str = reaper.GetExtState("FloatingSoloToolbar", "Settings")
+    if settings_str and settings_str ~= "" then
+        local settings = StringToTable(settings_str)
         if type(settings) == "table" and settings.buttons and settings.order then
             buttons = settings.buttons
             button_order = settings.order
@@ -80,12 +79,8 @@ local function LoadSettings()
 end
 
 local function SaveSettings()
-    local file = io.open(save_file_path, "w")
-    if file then
-        local settings = {buttons = buttons, order = button_order}
-        file:write(TableToString(settings))
-        file:close()
-    end
+    local settings = {buttons = buttons, order = button_order}
+    reaper.SetExtState("FloatingSoloToolbar", "Settings", TableToString(settings), true)
 end
 
 local function CheckSoloState(track_name)
@@ -225,7 +220,6 @@ local function Main()
             window_open = false
         end
     else
-        reaper.ImGui_DestroyContext(imgui)
         return
     end
 
