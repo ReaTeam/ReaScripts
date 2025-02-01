@@ -10,10 +10,6 @@
 --   - Allows changing the names of tracks and buttons by right-clicking on the buttons
 --   - Enables adding new buttons to the toolbar
 --   - Saves settings, including button labels and track names
--- @requires
---   ReaImGui: API version 0.8 or later
--- @requires
---   REAPER 6.0 or later
 
 app_vrs = tonumber(reaper.GetAppVersion():match('[%d%.]+'))
 check_vrs = 6.0
@@ -23,6 +19,37 @@ local ImGui
 if not reaper.ImGui_GetBuiltinPath then return reaper.MB('This script require ReaImGui extension','',0) end
 package.path = reaper.ImGui_GetBuiltinPath() .. '/?.lua'
 ImGui = require 'imgui' '0.9.3.2'
+
+--------------------------------------------------------------------- 
+  function encBase64(data) -- https://stackoverflow.com/questions/34618946/lua-base64-encode
+    local b='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/' -- You will need this for encoding/decoding
+      return ((data:gsub('.', function(x) 
+          local r,b='',x:byte()
+          for i=8,1,-1 do r=r..(b%2^i-b%2^(i-1)>0 and '1' or '0') end
+          return r;
+      end)..'0000'):gsub('%d%d%d?%d?%d?%d?', function(x)
+          if (#x < 6) then return '' end
+          local c=0
+          for i=1,6 do c=c+(x:sub(i,i)=='1' and 2^(6-i) or 0) end
+          return b:sub(c+1,c+1)
+      end)..({ '', '==', '=' })[#data%3+1])
+  end
+--------------------------------------------------------------------- 
+function decBase64(data) -- https://stackoverflow.com/questions/34618946/lua-base64-encode
+  local b='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/' -- You will need this for encoding/decoding
+    data = string.gsub(data, '[^'..b..'=]', '')
+    return (data:gsub('.', function(x)
+        if (x == '=') then return '' end
+        local r,f='',(b:find(x)-1)
+        for i=6,1,-1 do r=r..(f%2^i-f%2^(i-1)>0 and '1' or '0') end
+        return r;
+    end):gsub('%d%d%d?%d?%d?%d?%d?%d?', function(x)
+        if (#x ~= 8) then return '' end
+        local c=0
+        for i=1,8 do c=c+(x:sub(i,i)=='1' and 2^(8-i) or 0) end
+            return string.char(c)
+    end))
+end  
 
 -- Глобальная переменная для контекста ImGui
 local imgui = nil
@@ -89,7 +116,7 @@ end
 local function LoadSettings()
     local settings_str = reaper.GetExtState("FloatingSoloToolbar", "Settings")
     if settings_str and settings_str ~= "" then
-        local settings = StringToTable(settings_str)
+        local settings = StringToTable(decBase64(settings_str))
         if type(settings) == "table" and settings.buttons and settings.order then
             buttons = settings.buttons
             button_order = settings.order
@@ -99,7 +126,7 @@ end
 
 local function SaveSettings()
     local settings = {buttons = buttons, order = button_order}
-    reaper.SetExtState("FloatingSoloToolbar", "Settings", TableToString(settings), true)
+    reaper.SetExtState("FloatingSoloToolbar", "Settings", encBase64(TableToString(settings)), true)
 end
 
 local function CheckSoloState(track_name)
@@ -181,7 +208,7 @@ local function RenderMenuPopup()
         if changed_track then track_name_buffer = new_track_name end
 
         if reaper.ImGui_Button(imgui, "OK") then
-            if selected_button_key then
+            if selected_button_key and buttons[selected_button_key] then
                 buttons[selected_button_key].button_label = button_name_buffer
                 buttons[selected_button_key].track_name = track_name_buffer
                 SaveSettings()
