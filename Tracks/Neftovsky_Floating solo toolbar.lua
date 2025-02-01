@@ -2,7 +2,7 @@
 -- @author Neftovsky
 -- @version 1.1
 -- @about
---   Floating Solo Toolbar
+--   Floating solo toolbar
 --
 --   - Creates a floating toolbar
 --   - Links each button to a specific track in the project
@@ -57,7 +57,7 @@ local imgui = nil
 -- Функция для создания или восстановления контекста ImGui
 local function EnsureImGuiContext()
     if not imgui or not reaper.ImGui_ValidatePtr(imgui, 'ImGui_Context*') then
-        imgui = reaper.ImGui_CreateContext("Floating Solo Toolbar")
+        imgui = reaper.ImGui_CreateContext("Floating solo toolbar")
         if not imgui then
             reaper.ShowMessageBox("Failed to create ImGui context!", "Error", 0)
             return false
