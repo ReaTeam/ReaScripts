@@ -1,0 +1,56 @@
+// @description MIDI CC Value Inverter
+// @author DeepSeek & Daniel Glikmans
+// @version 1.0
+// @provides [nomain] .
+// @about
+//   Allows to invert the value of each incoming midi CC falling into four user defined ranges.
+//   If both min and max values of a range is set to -1 then the range is inactive.
+//   Ideal, for example, to simulate organ drawbars with hardware faders (when the fader is set to zero the drawbar is set at its maximum).
+
+desc:MIDI CC Value Inverter
+
+slider1:-1<-1,127,1>CC Range 1 Min
+slider2:-1<-1,127,1>CC Range 1 Max
+slider3:-1<-1,127,1>CC Range 2 Min
+slider4:-1<-1,127,1>CC Range 2 Max
+slider5:-1<-1,127,1>CC Range 3 Min
+slider6:-1<-1,127,1>CC Range 3 Max
+slider7:-1<-1,127,1>CC Range 4 Min
+slider8:-1<-1,127,1>CC Range 4 Max
+
+@init
+// Allocate space for arrays
+cc_min = 0;
+cc_max = 4;
+
+@slider
+// Update CC ranges based on slider values
+cc_min[0] = slider1;
+cc_max[0] = slider2;
+cc_min[1] = slider3;
+cc_max[1] = slider4;
+cc_min[2] = slider5;
+cc_max[2] = slider6;
+cc_min[3] = slider7;
+cc_max[3] = slider8;
+
+@block
+while (midirecv(offset, msg1, msg2, msg3)) (
+  status = msg1 & 0xF0; // Extract status byte (ignoring channel)
+  cc_num = msg2;        // CC number
+  cc_val = msg3;        // CC value
+
+  // Check if the CC number falls within any of the defined ranges
+  i = 0;
+  while (i < 4) (
+    (cc_num >= cc_min[i] && cc_num <= cc_max[i]) ? (
+      // Invert the CC value
+      cc_val = 127 - cc_val;
+      break;
+    );
+    i += 1;
+  );
+
+  // Send the modified MIDI message
+  midisend(offset, msg1, cc_num, cc_val);
+);
