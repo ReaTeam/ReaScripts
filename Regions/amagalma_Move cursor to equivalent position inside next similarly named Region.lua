@@ -1,7 +1,12 @@
 -- @description Move cursor to equivalent position inside next similarly named Region
 -- @author amagalma
--- @version 1.00
+-- @version 1.01
+-- @changelog Slightly changed logic for matching
 -- @donation https://www.paypal.me/amagalma
+
+if reaper.GetPlayState() & 4 == 4 then
+  return reaper.defer(function() end)
+end
 
 local cur_pos = reaper.GetCursorPosition()
 local cur_region, _ = {}
@@ -11,9 +16,9 @@ _, _, cur_region.start, _, cur_region.name = reaper.EnumProjectMarkers( cur_regi
 local cur_pos_in_Region = cur_pos - cur_region.start
 
 
-local function KeepWords(str)
+local function KeepLetters(str)
   local t, c = {}, 0
-  for word in str:gmatch("%w+") do
+  for word in str:gmatch("%a+") do
     if not tonumber(word) then
       c = c + 1
       t[c] = word
@@ -33,7 +38,7 @@ local function compareStrings(A, B)
     return numB >= numA
   end
 
-  return KeepWords(A) == KeepWords(B)
+  return KeepLetters(A) == KeepLetters(B)
 end
 
 
@@ -52,3 +57,5 @@ while true do
   end
   i = i + 1
 end
+
+reaper.defer(function() end)
