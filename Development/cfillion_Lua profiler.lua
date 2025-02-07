@@ -1,6 +1,6 @@
 -- @description Lua profiler
 -- @author cfillion
--- @version 1.1.2
+-- @version 1.1.3
 -- @changelog • Improve v1.1.2's detection of nested recursive tables
 -- @provides [nomain] .
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=283461
