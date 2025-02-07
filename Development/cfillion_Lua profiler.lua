@@ -1,7 +1,7 @@
 -- @description Lua profiler
 -- @author cfillion
 -- @version 1.1.2
--- @changelog • Prevent `foo.bar = foo` from displaying foo.bar.bar.bar.bar.bar.bar.baz [p=2844801]
+-- @changelog • Improve v1.1.2's detection of nested recursive tables
 -- @provides [nomain] .
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=283461
 -- @screenshot
@@ -687,11 +687,12 @@ local function attach(is_attach, name, value, opts, depth, in_metatable)
       local original = attachments[value]
       if original then return true, original end
     end
-  elseif t == 'table' and depth < 8 and not in_metatable and
-      (depth == 0 or (opts.recursive and value ~= _G)) then
+  elseif t == 'table' and #depth < 8 and not in_metatable and
+      (#depth == 0 or (opts.recursive and value ~= _G)) then
     -- don't dig into metatables to avoid listing (for example) string.byte
     -- as some_string_value`meta.__index.byte
-    attachToTable(is_attach, name, value, opts, depth + 1)
+    depth[#depth + 1] = value
+    attachToTable(is_attach, name, value, opts, depth)
     return true
   end
 
@@ -705,7 +706,14 @@ attachToTable = function(is_attach, prefix, array, opts, depth, in_metatable)
 
   for name, value in pairs(array) do
     -- prevent `foo.bar = foo` from displaying foo.bar.bar.bar.bar.bar.bar.baz
-    if value ~= array then
+    local is_repeat = false
+    for i, parent in ipairs(depth) do
+      if parent == value then
+        is_repeat = true
+        break
+      end
+    end
+    if not is_repeat then
       local path = name
       if prefix then path = string.format('%s.%s', prefix, name) end
       local ok, wrapper = attach(is_attach, path, value, opts, depth, in_metatable)
@@ -716,15 +724,15 @@ end
 
 local function attachToLocals(is_attach, opts)
   for level, idx, name, value in eachLocals(3, opts.search_above) do
-    local ok, wrapper = attach(is_attach, name, value, opts, 1)
+    local ok, wrapper = attach(is_attach, name, value, opts, {value})
     if wrapper then debug.setlocal(level, idx, wrapper) end
   end
 end
 
 local function attachToVar(is_attach, var, opts)
   local val, level, idx, parent, parent_key = getHostVar(var, 4)
-  -- start at depth=0 to attach to tables by name with opts.recursion=false
-  local ok, wrapper = attach(is_attach, var, val, opts, 0)
+  -- start at #depth==0 to attach to tables by name with opts.recursion=false
+  local ok, wrapper = attach(is_attach, var, val, opts, {})
   if not ok then
     error(string.format('%s is not %s',
       var, is_attach and 'attachable' or 'detachable'), 3)
@@ -754,13 +762,13 @@ end
 function profiler.attachToWorld()
   local opts = makeAttachOpts()
   attachToLocals(true, opts)
-  attachToTable(true, nil, _G, opts, 1)
+  attachToTable(true, nil, _G, opts, {_G})
 end
 
 function profiler.detachFromWorld()
   local opts = makeAttachOpts()
   attachToLocals(false, opts)
-  attachToTable(false, nil, _G, opts, 1)
+  attachToTable(false, nil, _G, opts, {_G})
 end
 
 function profiler.clear()
