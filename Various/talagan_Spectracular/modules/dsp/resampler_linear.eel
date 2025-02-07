@@ -1,0 +1,112 @@
+// @noindex
+// @author Ben 'Talagan' Babut
+// @license MIT
+// @description This file is part of Spectracular
+
+
+MEM_PTR    = 0;
+function malloc(size)
+    local(ptr)
+(
+    ptr = MEM_PTR;
+    MEM_PTR = MEM_PTR + size;
+    ptr;
+);
+
+// Memory space at start of function
+
+// The result of the following calls is equivalent to do nothing
+// Because _SRC_X, _SRC_Y, _DST_X, _DST_Y are external arrays
+// whose addresses are already written by the lua code in the
+// exact same way. But we do this to make the memory map clearly
+// appear in the EEL code.
+
+_SRC_X              = malloc(_SRC_SIZE);
+_SRC_Y              = malloc(_SRC_SIZE);
+_DST_X              = malloc(_DST_SIZE);
+_DST_Y              = malloc(_DST_SIZE);
+
+// If the script is called without any src_x values, build them linearly
+function buildSrcXIfNeeded()
+    local(i)
+(
+    (_NO_SRC == 1)?(
+        i = 0;
+        while(i < _SRC_SIZE) (
+            _SRC_X[i] = i/(_SRC_SIZE - 1);
+            i = i + 1;
+        );
+    );
+);
+
+// If the script is called with the "build even samples" option
+// Generate dst_x values evenly
+function buildDstXIfNeeded()
+    local(i, xmin, xmax)
+(
+    // Note : if _NO_SRC then _BUILD_EVEN_SAMPLES is = 1
+    (_BUILD_EVEN_SAMPLES == 1)?(
+        xmin = _SRC_X[0];
+        xmax = _SRC_X[_SRC_SIZE - 1];
+
+        // Divide into equal intervals
+        mean_dst_distance = (xmax - xmin) / (_DST_SIZE - 1);
+
+        _DST_X[0] = xmin;
+        i = 1;
+        while(i < _DST_SIZE) (
+            _DST_X[i] = _DST_X[i-1] + mean_dst_distance;
+            i = i + 1;
+        );
+    );
+);
+
+function interpolate()
+(
+    i=0;
+    j=0;
+
+    // Iterate on the destination
+    while(j < _DST_SIZE) (
+        xj  = _DST_X[j];
+
+        xi  = _SRC_X[i];
+        xi1 = _SRC_X[i+1];
+
+        (i == 0 && xj < xi)?(
+            // Out of the window on the left
+            _DST_Y[j] = _SRC_Y[0];
+        ):(
+            // Increment i until xi <= xj < xj+1
+            while(xj > xi1 && i < _SRC_SIZE - 2) (
+                i   = i + 1;
+                xi  = _SRC_X[i];
+                xi1 = _SRC_X[i+1]
+            );
+
+            ( (i == _SRC_SIZE - 2) && (xj > xi1))?(
+                // Out of the window on the right
+                _DST_Y[j] = _SRC_Y[_SRC_SIZE - 1];
+            ):(
+                // Ok, last case, our dst_x is in our interpolation window.
+                // Perform akima's interpolation
+                yi          = _SRC_Y[i];
+                yi1         = _SRC_Y[i+1];
+
+                // Perform linear interpolation on the xi -> xi1 interval
+                _DST_Y[j]   = ((xj - xi)/(xi1 - xi)) * (yi1 - yi) + yi;
+            );
+        );
+
+        j = j+1;
+    );
+);
+
+function precalculateFactors() (
+    2;
+);
+
+buildSrcXIfNeeded();
+buildDstXIfNeeded();
+precalculateFactors();
+interpolate();

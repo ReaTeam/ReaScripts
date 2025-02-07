@@ -1,0 +1,102 @@
+// @noindex
+// @author Ben 'Talagan' Babut
+// @license MIT
+// @description This file is part of Spectracular
+
+MEM_PTR    = 0;
+function malloc(size)
+    local(ptr)
+(
+    ptr = MEM_PTR;
+    MEM_PTR = MEM_PTR + size;
+    ptr;
+);
+
+_SAMPLES  = malloc(_SIZE);
+_RMSE     = malloc(_SIZE);
+
+_AVGS     = malloc(_SIZE);
+_DIFFS    = malloc(_SIZE);
+
+function moving_average(samples, avg_buf, sample_count, hsize) (
+    full_size = hsize * 2 + 1;
+
+    (full_size > sample_count)?(hsize = floor( (sample_count - 1) / 2) );
+
+    // First sum
+    sum = 0;
+    i   = 0;
+    idx = 0;
+
+    while(i < hsize) (
+        sum = sum + samples[i];
+        i = i+1;
+    );
+    count   = hsize;
+
+    avg_buf[0] = 1.0 * sum/count;
+    idx        = 1;
+
+    // Now advance
+    while(idx < sample_count) (
+
+        // Window's right element to add
+        to_add = idx + hsize;
+        // Window's left element to remove
+        to_rem = idx - hsize - 1;
+
+        // Add window's right
+        (to_add < sample_count)?(
+            sum = sum + samples[to_add];
+            count = count + 1;
+        );
+
+        // Remove window's left
+        (to_rem >= 0)?(
+            sum = sum - samples[to_rem];
+            count = count - 1;
+        );
+
+        avg_buf[idx] = 1.0 * sum/count;
+
+        idx = idx + 1;
+    )
+);
+
+function square_diff_to_average(samples, averages, diffs, sample_count)
+    local(i, diff) (
+    i=0;
+    while(i < sample_count) (
+        diff      = samples[i] - averages[i];
+        diffs[i]  = diff * diff;
+
+        i = i + 1;
+    );
+);
+
+function arr_sqrt(vals, sample_count)
+    local(i, diff) (
+    i=0;
+    while(i < sample_count) (
+        vals[i]  = sqrt(vals[i]);
+        i = i + 1;
+    );
+);
+
+function dbify(vals, sample_count)
+    local(i, diff) (
+
+    floor_db = -90;
+
+    i = 0;
+    while(i < sample_count) (
+        vals[i] = (vals[i] < 0.0000001)?(floor_db):(10 * log10(0.5 * vals[i]));
+        i = i + 1;
+    );
+);
+
+moving_average(_SAMPLES, _AVGS, _SIZE, _HSIZE);           // Calculate the moving "central" amplitude of the signal (generally it stays at 0)
+square_diff_to_average(_SAMPLES, _AVGS, _DIFFS, _SIZE );   // Get the diff to this central value, but it squared for each sample : |d|²
+moving_average(_DIFFS, _RMSE, _SIZE, _HSIZE);            // Average of the squares on the window around each sample ; 1/n * sum(|d|²)
+arr_sqrt(_RMSE,_SIZE);                                  // Take the sqrt ; √(1/n * sum(|d|²))
+dbify(_RMSE, _SIZE);                                    // DBIfy

@@ -1,0 +1,237 @@
+// @noindex
+// @author Ben 'Talagan' Babut
+// @license MIT
+// @description This file is part of Spectracular
+
+
+// An Akima spline based resampling tool : https://en.wikipedia.org/wiki/Akima_spline
+
+// It seems to me that it's more suitable for FFT curves than other interpolators,
+// Because the curve we want to interpolate can have very violent slope changes.
+
+// - cubic interpolators will tend to create ondulations at these specific sharp turns.
+// - linear interpolators behave poorly around sharp peaks and will cut them (note frequencies generally not fall exactly on a bin freq)
+// - cubic monotonous will not anticipate peaks very well either
+
+MEM_PTR    = 0;
+function malloc(size)
+    local(ptr)
+(
+    ptr = MEM_PTR;
+    MEM_PTR = MEM_PTR + size;
+    ptr;
+);
+
+// Emulate the memory map already passed to the script by the lua wrapper
+
+_SRC_X              = malloc(_SRC_SIZE);
+_SRC_Y              = malloc(_SRC_SIZE);
+_DST_X              = malloc(_DST_SIZE);
+_DST_Y              = malloc(_DST_SIZE);
+
+// Precalculated coefficients.
+// We precalculate everything, but we could have a gliding context, this would be less
+// memory consuming, and we could avoid unuseful pre calculations when sub-sampling
+
+MM = malloc(_SRC_SIZE);
+SS = malloc(_SRC_SIZE);
+CC = malloc(_SRC_SIZE);
+DD = malloc(_SRC_SIZE);
+
+// If the script is called without any src_x values, build them linearly
+function buildSrcXIfNeeded()
+    local(i)
+(
+    (_NO_SRC == 1)?(
+        i = 0;
+        while(i < _SRC_SIZE) (
+            _SRC_X[i] = i/(_SRC_SIZE - 1);
+            i = i + 1;
+        );
+    );
+);
+
+// If the script is called with the "build even samples" option
+// Generate dst_x values evenly
+function buildDstXIfNeeded()
+    local(i, xmin, xmax)
+(
+    // Note : if _NO_SRC then _BUILD_EVEN_SAMPLES is = 1
+    (_BUILD_EVEN_SAMPLES == 1)?(
+        xmin = _SRC_X[0];
+        xmax = _SRC_X[_SRC_SIZE - 1];
+
+        // Divide into equal intervals
+        mean_dst_distance = (xmax - xmin) / (_DST_SIZE - 1);
+
+        _DST_X[0] = xmin;
+        i = 1;
+        while(i < _DST_SIZE) (
+            _DST_X[i] = _DST_X[i-1] + mean_dst_distance;
+            i = i + 1;
+        );
+    );
+);
+
+function locateX(xval)
+    local(ret, l, r, m)
+(
+    l   = 0;
+    r   = _SRC_SIZE - 1;
+
+    (xval < _SRC_X[l])?(
+        l;
+    ):(
+        (xval > _SRC_X[r])?(
+            r;
+        ):(
+            // Dichotomize
+            while( (r - l) > 1) (
+                m = ((l+r) >> 1);
+                (_SRC_X[m] <= xval)?(l = m):(r = m);
+            );
+
+            l;
+        );
+    );
+);
+
+
+function usefulStart()
+    local(ret, xval)
+(
+    xval    = _DST_X[0];
+    ret     = locateX(xval);
+    ret     = ret - 3;
+
+    (ret < 0)?(ret = 0);
+    ret;
+);
+
+function usefulEnd()
+    local(ret, xval)
+(
+    xval    = _DST_X[_DST_SIZE - 1];
+    ret     = locateX(xval);
+    ret     = ret + 3;
+
+    (ret > _SRC_SIZE - 1)?(ret = _SRC_SIZE - 1);
+    ret;
+);
+
+// Pre-calculate all coefficients used by the interpolator (see wikipedia article)
+function precalculateFactors()
+    local(x, y, m, s, c, d, n, diffx, useful_start, useful_end)
+(
+    // Get easier to read pointers
+    x = _SRC_X;
+    y = _SRC_Y;
+
+    n = _SRC_SIZE;
+
+    // Get usful boundaries to avoid pre calculating unuseful coefficients
+    useful_start = usefulStart();
+    useful_end   = usefulEnd();
+
+    // ==== M parameters (slopes)
+
+    i = useful_start;
+    while(i < useful_end) (
+        MM[i]    = (y[i+1] - y[i]) / (x[i+1] - x[i]);
+
+        i        = i+1;
+    );
+
+    // ==== S parameters
+
+    SS[0]           = MM[0];
+    SS[1]           = (MM[0] + MM[1]) / 2;
+
+    i = max(2, useful_start);
+    while(i < min(n-2, useful_end) ) (
+        ni = abs(MM[i+1] - MM[i]);
+        pi = abs(MM[i-1] - MM[i-2]);
+
+        denum =  ni + pi;
+
+        (denum < 0.000000000001)?(
+            SS[i] = 0.5 * (MM[i-1] + MM[i]);
+        ):(
+            SS[i] = (ni * MM[i-1] + pi * MM[i])/denum;
+        );
+
+        i = i + 1;
+    );
+
+    SS[n-2] = 0.5 * (MM[n-3] + MM[n-2]);
+    SS[n-1] = MM[n-2];
+
+    // ==== C and D paramters
+
+    i = useful_start;
+    while(i < useful_end) (
+        diffx  = x[i+1] - x[i];
+
+        CC[i] = (3 * MM[i] - 2 * SS[i] - SS[i+1]) / diffx;
+        DD[i] = (SS[i] + SS[i+1] - 2 * MM[i])/(diffx * diffx);
+
+        i = i + 1;
+    );
+
+    CC[n-1] = 0; // Won't be used
+    DD[n-1] = 0; // Won't be used
+);
+
+// Launch interpolation !
+function interpolate()
+    local(i,j, diffx, ai,bi,ci,di)
+(
+    i=0;
+    j=0;
+
+    // Iterate on the destination
+    while(j < _DST_SIZE) (
+        xj  = _DST_X[j];
+
+        xi  = _SRC_X[i];
+        xi1 = _SRC_X[i+1];
+
+        (i == 0 && xj < xi)?(
+            // Out of the window on the left
+            _DST_Y[j] = _SRC_Y[0];
+        ):(
+            // Increment i until xi <= xj < xi+1
+            while(xj > xi1 && i < _SRC_SIZE - 2) (
+                i   = i + 1;
+                xi  = _SRC_X[i];
+                xi1 = _SRC_X[i+1]
+            );
+
+            ( (i == _SRC_SIZE - 2) && (xj > xi1))?(
+                // Out of the window on the right
+                _DST_Y[j] = _SRC_Y[_SRC_SIZE - 1]
+            ):(
+                // Ok, last case, our dst_x is in our interpolation window.
+                // Perform akima's interpolation
+
+                diffx       = xj - xi;
+
+                ai          = _SRC_Y[i];
+                bi          = SS[i];
+                ci          = CC[i];
+                di          = DD[i];
+
+                _DST_Y[j]   = ai + diffx * (bi + diffx * (ci + diffx * (di)));
+            );
+        );
+
+        // Next wanted index
+        j = j+1;
+    );
+);
+
+
+buildSrcXIfNeeded();
+buildDstXIfNeeded();
+precalculateFactors();
+interpolate();
