@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="d0ec5d826c907b3ca1c8d19232edb0b012cb603c" name="ReaTeam Scripts">
+<index version="1" commit="52d4b25371820adfd2de46259e71b66c79967638" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -847,6 +847,10 @@ forum thread
       <version name="1.1.2" author="cfillion" time="2025-02-07T11:06:11Z">
         <changelog><![CDATA[• Prevent `foo.bar = foo` from displaying foo.bar.bar.bar.bar.bar.bar.baz [p=2844801]]]></changelog>
         <source>https://github.com/ReaTeam/ReaScripts/raw/d0ec5d826c907b3ca1c8d19232edb0b012cb603c/Development/cfillion_Lua%20profiler.lua</source>
+      </version>
+      <version name="1.1.3" author="cfillion" time="2025-02-07T11:30:07Z">
+        <changelog><![CDATA[• Improve v1.1.2's detection of nested recursive tables]]></changelog>
+        <source>https://github.com/ReaTeam/ReaScripts/raw/52d4b25371820adfd2de46259e71b66c79967638/Development/cfillion_Lua%20profiler.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Search action by command ID or name.lua" type="script" desc="Search action by command ID or name">
