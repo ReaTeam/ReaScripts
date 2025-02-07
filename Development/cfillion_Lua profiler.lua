@@ -1,10 +1,7 @@
 -- @description Lua profiler
 -- @author cfillion
--- @version 1.1.1
--- @changelog
---   • Preserve the apparent flame graph zoom level when resizing the window
---   • Increase flame graph mousewheel zoom speed
---   • Fix undesirable horizontal scrolling when the window is very small
+-- @version 1.1.2
+-- @changelog • Prevent `foo.bar = foo` from displaying foo.bar.bar.bar.bar.bar.bar.baz [p=2844801]
 -- @provides [nomain] .
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=283461
 -- @screenshot
@@ -707,10 +704,13 @@ attachToTable = function(is_attach, prefix, array, opts, depth, in_metatable)
   if array == package.loaded then return end
 
   for name, value in pairs(array) do
-    local path = name
-    if prefix then path = string.format('%s.%s', prefix, name) end
-    local ok, wrapper = attach(is_attach, path, value, opts, depth, in_metatable)
-    if wrapper then array[name] = wrapper end
+    -- prevent `foo.bar = foo` from displaying foo.bar.bar.bar.bar.bar.bar.baz
+    if value ~= array then
+      local path = name
+      if prefix then path = string.format('%s.%s', prefix, name) end
+      local ok, wrapper = attach(is_attach, path, value, opts, depth, in_metatable)
+      if wrapper then array[name] = wrapper end
+    end
   end
 end
 
