@@ -1,0 +1,60 @@
+// @noindex
+// @author Ben 'Talagan' Babut
+// @license MIT
+// @description This file is part of Spectracular
+
+CHAN_INTERLEAVE     = 0;
+CHAN_DEINTERLEAVE   = 1;
+
+MEM_PTR    = 0;
+function malloc(size)
+    local(ptr)
+(
+    ptr = MEM_PTR;
+    MEM_PTR = MEM_PTR + size;
+    ptr;
+);
+
+_SRC = malloc(_CHAN_COUNT * _SIZE);
+_DST = malloc(_CHAN_COUNT * _SIZE);
+
+function interleave()
+    local(i, c, pos, src)
+(
+    dst = _DST;
+
+    c = 0;
+    while(c < _CHAN_COUNT) (
+        pos = c;
+        src = _SRC + (c * _SIZE);
+        i = 0;
+        while(i < _SIZE) (
+            dst[pos]    = src[i];
+            pos         = pos + _CHAN_COUNT;
+            i           = i + 1;
+        );
+        c = c + 1;
+    );
+);
+
+function deinterleave()
+    local(i, c, pos, src)
+(
+    src = _SRC;
+
+    c   = 0;
+    while(c < _CHAN_COUNT) (
+        pos = c;
+        dst = _DST + (c * _SIZE);
+        i = 0;
+        while(i < _SIZE) (
+            dst[i]  = src[pos];
+            pos     = pos + _CHAN_COUNT;
+            i       = i + 1;
+        );
+        c = c + 1;
+    );
+);
+
+(_OP == CHAN_INTERLEAVE)?(interleave());
+(_OP == CHAN_DEINTERLEAVE)?(deinterleave());

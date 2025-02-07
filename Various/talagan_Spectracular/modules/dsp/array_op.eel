@@ -1,0 +1,123 @@
+// @noindex
+// @author Ben 'Talagan' Babut
+// @license MIT
+// @description This file is part of Spectracular
+
+OP_ADD  = 0;
+OP_MULT = 1;
+OP_SQRT = 2;
+OP_NORMALIZE = 3;
+OP_CLAMP = 4;
+OP_NORMALIZE_MIN_MAX = 5;
+OP_ADD_XY = 6;
+
+function array_add(arr, size, factor)
+    local(i)
+(
+    i = 0;
+    while(i < size) (
+        arr[i]  = arr[i] + factor;
+        i       = i + 1;
+    );
+);
+
+function array_mult(arr, size, factor)
+    local(i)
+(
+    i = 0;
+    while(i < size) (
+        arr[i]  = arr[i] * factor;
+        i       = i + 1;
+    );
+);
+
+function array_sqrt(arr, size)
+    local(i)
+(
+    i=0;
+    while(i < size) (
+        arr[i]  = sqrt(arr[i]);
+        i = i + 1;
+    );
+);
+
+function array_normalize_min_max(arr, size, min, max)
+    local(i, a)
+(
+    (max < min)?(a = max; max = min; min = a );
+
+    (max == min)?(
+        i=0;
+        while(i < size) (
+            (arr[i] == min)?(
+                arr[i] = 0.5;
+            ):(
+                (arr[i] < min)?(
+                    arr[i] = 0;
+                ):(
+                    arr[i] = 1;
+                );
+            );
+            i = i + 1;
+        );
+    ):(
+        i=0;
+        while(i < size) (
+
+            // Clamp first
+            (arr[i] < min)?(arr[i] = min);
+            (arr[i] > max)?(arr[i] = max);
+
+            arr[i] = 1.0 * (arr[i] - min) / (max - min);
+            i = i + 1;
+        );
+    );
+);
+
+function array_normalize(arr, size)
+    local(i, min, max)
+(
+    // First, find the min and the max
+    min = arr[0];
+    max = arr[0];
+
+    i=0;
+    while(i < size) (
+        (arr[i] > max)?(max = arr[i]);
+        (arr[i] < min)?(min = arr[i]);
+        i = i + 1;
+    );
+
+    array_normalize_min_max(arr, size, min, max)
+);
+
+function array_clamp(arr, size, min, max)
+    local(i)
+(
+    i=0;
+    while(i < size) (
+        (arr[i] < min)?(arr[i] = min);
+        (arr[i] > max)?(arr[i] = max);
+        i = i + 1;
+    );
+);
+
+function array_add_xy(arr, size, xdiff, ydiff)
+    local(i)
+(
+    i = 0;
+    while(i < size) (
+        arr[i]      = arr[i]     + xdiff;
+        arr[i+1]    = arr[i+1]   + ydiff;
+        i           = i + 2;
+    );
+);
+
+
+(_OP == OP_ADD) ?(array_add (_ARRAY, _SIZE, _PARAM1));
+(_OP == OP_MULT)?(array_mult(_ARRAY, _SIZE, _PARAM1));
+(_OP == OP_SQRT)?(array_sqrt(_ARRAY, _SIZE));
+(_OP == OP_NORMALIZE)?(array_normalize(_ARRAY, _SIZE));
+(_OP == OP_CLAMP)?(array_clamp(_ARRAY, _SIZE, _PARAM1, _PARAM2));
+(_OP == OP_NORMALIZE_MIN_MAX)?(array_normalize_min_max(_ARRAY, _SIZE, _PARAM1, _PARAM2));
+(_OP == OP_ADD_XY)?(array_add_xy(_ARRAY, _SIZE, _PARAM1, _PARAM2))
