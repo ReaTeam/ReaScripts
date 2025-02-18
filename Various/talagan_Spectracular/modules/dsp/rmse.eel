@@ -1,0 +1,63 @@
+// @noindex
+// @author Ben 'Talagan' Babut
+// @license MIT
+// @description This file is part of Spectracular
+
+FLOOR_DB = -90;
+
+MEM_PTR    = 0;
+function malloc(size)
+    local(ptr)
+(
+    ptr = MEM_PTR;
+    MEM_PTR = MEM_PTR + size;
+    ptr;
+);
+
+_SAMPLES  = malloc(_SIZE);
+
+function average(samples, sample_count) (
+    // First sum
+    sum = 0;
+    i   = 0;
+
+    while(i < sample_count) (
+        sum = sum + samples[i];
+        i   = i+1;
+    );
+
+    (sample_count == 0)?(sample_count = 1);
+
+    1.0 * sum/sample_count;
+);
+
+function square_diff_to_average(samples, average, sample_count)
+    local(i, diff) (
+
+    i=0;
+    while(i < sample_count) (
+        diff        = samples[i] - average;
+        samples[i]  = diff * diff;
+        i           = i+1;
+    );
+);
+
+function dbify(val)
+(
+    (val < 0.0000000000001)?(FLOOR_DB):(10 * log10(0.5 * val));
+);
+
+// Get average on the window
+avg = average(_SAMPLES, _SIZE);
+
+// Replace samples by their diff * diff to the average
+square_diff_to_average(_SAMPLES, avg, _SIZE);
+
+// Get average of this new data
+sqd_avg = average(_SAMPLES, _SIZE);
+
+// Get the square root
+val = sqrt(sqd_avg);
+
+// Return dbval
+_RMSE = dbify(val);

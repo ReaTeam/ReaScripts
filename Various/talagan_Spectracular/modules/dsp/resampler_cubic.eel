@@ -1,0 +1,242 @@
+// @noindex
+// @author Ben 'Talagan' Babut
+// @license MIT
+// @description This file is part of Spectracular
+
+
+// Magic re-sampling tool.
+
+// This is based on the following article by Scott W Harden : https://swharden.com/blog/2022-06-23-resample-interpolation/
+// But with modifications.
+
+// External variables :
+//
+// Integers :
+// ----------
+// _SRC_SIZE ! size of source arrays
+// _DST_SIZE ! size of destination arrays
+// _BUILD_EVEN_SAMPLES : 0 or 1 : should _DST_X be build with evenly spaced values, or should we used custom values given by the user
+//
+// Arrays :
+// --------
+// _SRC_X, _SRC_Y
+// _DST_X, _DST_Y
+
+MEM_PTR    = 0;
+function malloc(size)
+    local(ptr)
+(
+    ptr = MEM_PTR;
+    MEM_PTR = MEM_PTR + size;
+    ptr;
+);
+
+// Memory space at start of function
+// The following instructions rewrite external variable array addresses
+// But the result is identical to their actual values.
+// The aim is just to make malloc consistent and the memory map clearer
+
+_SRC_X              = malloc(_SRC_SIZE);
+_SRC_Y              = malloc(_SRC_SIZE);
+_DST_X              = malloc(_DST_SIZE);
+_DST_Y              = malloc(_DST_SIZE);
+
+SRC_DISTANCES       = malloc(_SRC_SIZE);
+DST_DISTANCES       = malloc(_DST_SIZE);
+
+// Simplify the sizes
+n = _SRC_SIZE;
+p = _DST_SIZE;
+
+// Memory space allocation for the fftMatrix func
+a  = malloc(n-1);
+b  = malloc(n-1);
+r  = malloc(n);
+k  = malloc(n);
+
+AA = malloc(n);
+BB = malloc(n);
+CC = malloc(n);
+
+CP = malloc(n);
+DP = malloc(n);
+
+// If the script is called without any src_x values, build them linearly
+function buildSrcXIfNeeded()
+    local(i)
+(
+    (_NO_SRC == 1)?(
+        i = 0;
+        while(i < _SRC_SIZE) (
+            _SRC_X[i] = i/(_SRC_SIZE - 1);
+            i = i + 1;
+        );
+    );
+);
+
+// If the script is called with the "build even samples" option
+// Generate dst_x values evenly
+function buildDstXIfNeeded()
+    local(i, xmin, xmax)
+(
+    // Note : if _NO_SRC then _BUILD_EVEN_SAMPLES is = 1
+    (_BUILD_EVEN_SAMPLES == 1)?(
+        xmin = _SRC_X[0];
+        xmax = _SRC_X[_SRC_SIZE - 1];
+
+        // Divide into equal intervals
+        mean_dst_distance = (xmax - xmin) / (_DST_SIZE - 1);
+
+        _DST_X[0] = xmin;
+        i = 1;
+        while(i < _DST_SIZE) (
+            _DST_X[i] = _DST_X[i-1] + mean_dst_distance;
+            i = i + 1;
+        );
+    );
+);
+
+// These distances are built from 0 to (xmax - xmin)
+// It's a translation of the input xs by -xmin (to align on 0)
+function buildSrcDistances()
+    local(i, xmin)
+(
+    xmin = _SRC_X[0];
+    i = 0;
+    while(i < _SRC_SIZE) (
+        SRC_DISTANCES[i] = _SRC_X[i] - xmin;
+        i = i + 1;
+    );
+);
+
+// These distances are built in [0 ; xmax - xmin]
+// SRC_X and DST_X should share the same scale.
+// Hence the translation by -xmin
+
+function buildDstDistances()
+    local(i, xmin, xmax)
+(
+    xmin = _SRC_X[0];
+    i = 0;
+    while(i < _DST_SIZE) (
+        DST_DISTANCES[i] = _DST_X[i] - xmin;
+        i = i + 1;
+    );
+);
+
+
+function fitMatrix(x, y)
+    local(dx1, dx2, dy1, dy2 i)
+(
+    dx1     = x[1] - x[0];
+
+    AA[0]   = 0;
+    CC[0]   = 1 / dx1;
+    BB[0]   = 2 * CC[0];
+    r[0]    = 3 * (y[1] - y[0]) / (dx1 * dx1);
+
+    i = 1;
+    while(i < n - 1) (
+        dx1     = x[i]      - x[i - 1];
+        dx2     = x[i + 1]  - x[i];
+
+        AA[i]   = 1 / dx1;
+        CC[i]   = 1 / dx2;
+        BB[i]   = 2 * (AA[i] + CC[i]);
+
+        dy1     = y[i]      - y[i - 1];
+        dy2     = y[i + 1]  - y[i];
+
+        r[i]    = 3 * (dy1 / (dx1 * dx1) + dy2 / (dx2 * dx2));
+
+        i = i + 1;
+    );
+
+    // Round n-1
+    dx1         = x[n - 1] - x[n - 2];
+    dy1         = y[n - 1] - y[n - 2];
+
+    AA[n - 1]   = 1 / dx1;
+    BB[n - 1]   = 2 * AA[n - 1];
+    r[n - 1]    = 3 * (dy1 / (dx1 * dx1));
+
+    // Synthesis
+    CP[0]       = CC[0] / BB[0];
+
+    i = 1;
+    while(i < n) (
+        CP[i] = CC[i] / (BB[i] - CP[i - 1] * AA[i]);
+        i = i + 1;
+    );
+
+    DP[0]       = r[0] / BB[0];
+
+    i = 1;
+    while(i < n) (
+        DP[i] = (r[i] - DP[i - 1] * AA[i]) / (BB[i] - CP[i - 1] * AA[i]);
+        i = i + 1;
+    );
+
+    k[n - 1]    = DP[n - 1];
+
+    i = n - 2;
+    while(i >= 0) (
+        k[i] = DP[i] - CP[i] * k[i + 1];
+        i = i - 1;
+    );
+
+    i = 1;
+    while(i < n) (
+        dx1         = x[i] - x[i - 1];
+        dy1         = y[i] - y[i - 1];
+
+        a[i - 1]    = k[i - 1] * dx1 - dy1;
+        b[i - 1]    = -k[i] * dx1 + dy1;
+
+        i = i + 1;
+    );
+);
+
+function precalculateFactors() (
+    buildSrcDistances();
+    buildDstDistances();
+    FitMatrix(SRC_DISTANCES, _SRC_Y);
+);
+
+function interpolate(xOrig, yOrig, xInterp, yInterp)
+    local(i, j, stop, dx, t)
+(
+    xOrig   = SRC_DISTANCES;
+    yOrig   = _SRC_Y;
+    xInterp = DST_DISTANCES;
+    yInterp = _DST_Y;
+
+    i  = 0;
+    j  = 0;
+
+    while(i < p) (
+
+        // We assume that xOrig and xInterp are sorted.
+        stop    = 0;
+        while(j < n - 2 && stop == 0) (
+            // Stay in the current interval
+            (xOrig[j+1] >= xInterp[i])?(
+                stop = 1;
+            ):(
+                j = j + 1;
+            );
+        );
+
+        dx = xOrig[j+1] - xOrig[j];
+        t  = (xInterp[i] - xOrig[j]) / dx;
+
+        yInterp[i] = (1 - t) * yOrig[j] + t * yOrig[j + 1] + t * (1 - t) * (a[j] * (1 - t) + b[j] * t);
+
+        i = i + 1;
+    );
+);
+
+buildSrcXIfNeeded();
+buildDstXIfNeeded();
+precalculateFactors();
+interpolate();

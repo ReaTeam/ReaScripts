@@ -1,0 +1,53 @@
+// @noindex
+// @author Ben 'Talagan' Babut
+// @license MIT
+// @description This file is part of Spectracular
+
+
+// Calculates the magnitude of the FFT bins
+
+// The FFT should be of invertleaved : real1, im1, real2, im2, etc
+
+// This doesn't modify the original _FFT_SAMPLES
+// But puts the magnitudes into _EGY_BINS which size is half
+
+// Coefficients are normalized by srt(2/fft_size) so that when summing norms²
+// The original signal and the normalized FFT should give equal energy
+
+_USE_SQRT       = 0;
+_USE_NORMALIZER = 1;
+
+function fft_to_fft_bins(fft_samples, fft_bins, fft_size)
+    local(i, normalizer)
+(
+    sum = 0;
+    i   = 0;
+
+    normalizer = 1.0;
+
+    _USE_NORMALIZER?(
+        normalizer = 1.0/(2 * fft_size);
+    );
+
+    while(i < fft_size) (
+
+        real = fft_samples[i];
+        im   = fft_samples[i+1];
+
+        egy = normalizer * (real*real+im*im);
+
+        _USE_SQRT?(
+            egy = sqrt(egy)
+        );
+
+        fft_bins[i/2]   = egy;
+
+        sum             = sum + egy;
+
+        i = i + 2;
+    );
+
+    _ENERGY = sum;
+);
+
+fft_to_fft_bins(_FFT_SAMPLES, _FFT_BINS, _FFT_SIZE);

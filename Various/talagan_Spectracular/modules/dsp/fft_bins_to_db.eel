@@ -1,0 +1,22 @@
+// @noindex
+// @author Ben 'Talagan' Babut
+// @license MIT
+// @description This file is part of Spectracular
+
+function fft_to_db(fft_bins, bin_count, ref_energy, floor_db)
+    local(mult)
+(
+    mult            = 1.0 / ref_energy;
+    bin_of_floor    = pow(10, 0.1 * floor_db) / mult;
+
+    i = 0;
+    while(i < bin_count) (
+
+        fft_bins[i] = (fft_bins[i] < bin_of_floor)?(floor_db):(10 * log10(fft_bins[i] * mult));
+
+        i = i + 1;
+    );
+
+);
+
+fft_to_db(_FFT_BINS, _FFT_BIN_COUNT, _REF_ENERGY, _FLOOR_DB);
