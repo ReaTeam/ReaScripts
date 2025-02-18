@@ -393,9 +393,7 @@ function SpectrographWidget:handleRightMouse(ctx)
     if self:containsPoint(mx, my) and (not self.mw:prehemptsMouse()) and not self.lr_mix_widget:containsPoint(mx,my) and ImGui.IsMouseReleased(ctx, ImGui.MouseButton_Right) and (dx == 0 and dy == 0) then
         local torem = self:hoveredProfile(ctx)
         if torem then
-
-        if torem then
-            table.remove(self.extracted_profiles, torem) end
+            table.remove(self.extracted_profiles, torem)
         else
             -- Reset view
             self:resetHorizontalZoom()
