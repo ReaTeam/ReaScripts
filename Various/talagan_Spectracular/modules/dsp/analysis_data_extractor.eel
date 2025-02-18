@@ -1,0 +1,62 @@
+// @noindex
+// @author Ben 'Talagan' Babut
+// @license MIT
+// @description This file is part of Spectracular
+
+MEM_PTR    = 0;
+function malloc(size)
+    local(ptr)
+(
+    ptr = MEM_PTR;
+    MEM_PTR = MEM_PTR + size;
+    ptr;
+);
+
+// ------------------
+
+EXTRACT_PROFILE = 0;
+EXTRACT_SLICE   = 1;
+
+// ------------------
+
+slice_size      = _SLICE_SIZE;
+slice_count     = _SLICE_COUNT;
+
+extract_size    = (_OP == EXTRACT_SLICE)?(slice_size):(slice_count);
+
+data_size       = slice_size * slice_count;
+
+// -----------------
+
+_DATA           = malloc(data_size);
+_EXTRACT        = malloc(extract_size);
+
+// -----------------
+
+function extract_profile(profile_num)
+    local(i,j)
+(
+    // Extract the profile from the data
+    i = profile_num;
+    j = 0;
+    while(i < data_size) (
+        _EXTRACT[j] = _DATA[i];
+        i += slice_size;
+        j += 1;
+    );
+);
+
+function extract_slice(slice_num)
+    local(i,j)
+(
+    i = slice_num * slice_size;
+    j = 0;
+    while(j < slice_size) (
+        _EXTRACT[j] = _DATA[i];
+        i += 1;
+        j += 1;
+    );
+);
+
+(_OP == EXTRACT_PROFILE)?(extract_profile(_PARAM1));
+(_OP == EXTRACT_SLICE)?(extract_slice(_PARAM1));
