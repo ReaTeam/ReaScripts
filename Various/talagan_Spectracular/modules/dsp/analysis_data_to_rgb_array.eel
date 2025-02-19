@@ -1,0 +1,112 @@
+// @noindex
+// @author Ben 'Talagan' Babut
+// @license MIT
+// @description This file is part of Spectracular
+
+MEM_PTR    = 0;
+function malloc(size)
+    local(ptr)
+(
+    ptr = MEM_PTR;
+    MEM_PTR = MEM_PTR + size;
+    ptr;
+);
+
+// START of memory map set by lua script.
+
+_PIXELS       = malloc(_SPECTRO_SIZE);
+_DATA         = MEM_PTR;
+
+i = 0;
+while(i < _SPECTRO_COUNT) (
+    _DATA_PTR   = malloc(_SPECTRO_SIZE);
+
+    (i == 0)?(_DATA0 = _DATA_PTR);
+    (i == 1)?(_DATA1 = _DATA_PTR);
+
+    i           = i + 1;
+);
+
+_COEFFS       = malloc(_SPECTRO_COUNT);
+
+// END of memory map set by lua script.
+
+_PALETTE1     = malloc(11);
+
+_PALETTE1[0]  = 0x000000;
+_PALETTE1[1]  = 0x05273f;
+_PALETTE1[2]  = 0x1c3482;
+_PALETTE1[3]  = 0x52399d;
+_PALETTE1[4]  = 0x794b91;
+_PALETTE1[5]  = 0xa05a87;
+_PALETTE1[6]  = 0xc96775;
+_PALETTE1[7]  = 0xed7a55;
+_PALETTE1[8]  = 0xfb9f3d;
+_PALETTE1[9]  = 0xf8cb43;
+_PALETTE1[10] = 0xdbec56;
+
+// ============================
+
+// Interpolates v01 within PALETTE1
+function heatmap1(v01)
+    local(l,li,c1,c2,r1,g1,b1,r2,g2,b2,alpha,r,g,b)
+(
+    (v01 < 0)?(v01 = 0);
+    (v01 > 1)?(v01 = 1);
+
+    l  = v01 * 10;
+    li = floor(l);
+    (li == 10)?(li = 9);
+
+    c1 = _PALETTE1[li];
+    c2 = _PALETTE1[li+1];
+
+    r1 = (c1 & 0xFF0000) >> 16;
+    g1 = (c1 & 0xFF00) >> 8;
+    b1 = (c1 & 0xFF);
+    r2 = (c2 & 0xFF0000) >> 16;
+    g2 = (c2 & 0xFF00) >> 8;
+    b2 = (c2 & 0xFF);
+
+    alpha = l - li;
+
+    r = floor(r1 + alpha * (r2 - r1));
+    g = floor(g1 + alpha * (g2 - g1));
+    b = floor(b1 + alpha * (b2 - b1));
+
+    0xFF000000 | (r << 16) | (g << 8) | b;
+);
+
+function val(i) (
+    (_SPECTRO_COUNT == 1)?(
+        _DATA[i];
+    ):(
+        (_SPECTRO_COUNT == 2)?(
+            // Linear formula ...
+            // _DATA[i] = _COEFFS[0] * _DATA0[i] + _COEFFS[1] * _DATA1[i];
+            // Power formula
+            _DATA[i] = 10 * log10( _COEFFS[0] * pow(10, 0.1 * _DATA0[i]) + _COEFFS[1] * pow(10, 0.1 * _DATA1[i]))
+        ):(
+            0;
+        );
+    );
+);
+
+function go() (
+    i       = 0;
+    while(i < _SPECTRO_SIZE) (
+
+        v = val(i);
+
+        (v <= _DB_MIN)?( v = _DB_MIN );
+        (v >= _DB_MAX)?( v = _DB_MAX );
+
+        v01 = (v - _DB_MIN)/(_DB_MAX - _DB_MIN);
+
+        _PIXELS[i]   = heatmap1(v01) ;
+
+        i = i + 1;
+    );
+);
+
+go();

@@ -1,0 +1,89 @@
+// @noindex
+// @author Ben 'Talagan' Babut
+// @license MIT
+// @description This file is part of Spectracular
+
+FILL_01         = 0;
+FILL_0N         = 1;
+FILL_BIN_FREQS  = 2;
+FILL_EQUALLY    = 3;
+FILL_01_INTERVALS = 4;
+
+function fill_arr_01(arr, size)
+    local(i, iv)
+(
+    iv      = 1/(size-1);
+    arr[0]  = 0;
+
+    i       = 1;
+    while(i < size) (
+        arr[i]  = arr[i-1] + iv;
+        i       = i + 1;
+    );
+);
+
+function fill_arr_01_intervals(arr, size)
+    local(i, iv)
+(
+    iv      = 1.0/size;
+    arr[0]  = iv * 0.5;
+
+    i       = 1;
+    while(i < size) (
+        arr[i]  = arr[i-1] + iv;
+        i       = i + 1;
+    );
+);
+
+function fill_arr_0n(arr, size)
+    local(i, iv)
+(
+    iv      = 1;
+    arr[0]  = 0;
+
+    i       = 1;
+    while(i < size) (
+        arr[i]  = arr[i-1] + iv;
+        i       = i + 1;
+    );
+);
+
+function fill_arr_bin_freqs(arr, size, fwidth)
+    local(i,  freq, lfi, hfi)
+(
+    lfi     = -1;
+    hfi     = -1;
+
+    freq    = 0;
+
+    i       = 0;
+    while(i < size) (
+        arr[i]   = freq;
+
+        // Advance
+        freq     = freq + fwidth;
+        i        = i + 1;
+    );
+);
+
+function fill_equally(arr, size, first_val, last_val)
+    local(i, v, iv)
+(
+    iv = (size < 2)?(0):(1.0 * (last_val - first_val) / (size - 1));
+
+    i = 0;
+    v = first_val;
+    while(i < size) (
+        arr[i] = v;
+
+        v = v + iv;
+        i = i + 1;
+    );
+);
+
+
+(_OP == FILL_01)?(fill_arr_01(_ARRAY, _SIZE));
+(_OP == FILL_0N)?(fill_arr_0n(_ARRAY, _SIZE));
+(_OP == FILL_BIN_FREQS)?(fill_arr_bin_freqs(_ARRAY, _SIZE, _PARAM1));
+(_OP == FILL_EQUALLY)?(fill_equally(_ARRAY, _SIZE, _PARAM1, _PARAM2));
+(_OP == FILL_01_INTERVALS)?(fill_arr_01_intervals(_ARRAY, _SIZE));

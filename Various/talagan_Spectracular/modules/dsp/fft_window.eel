@@ -1,0 +1,98 @@
+// @noindex
+// @author Ben 'Talagan' Babut
+// @license MIT
+// @description This file is part of Spectracular
+
+// Modifies _SAMPLES by applying a window
+
+WINDOW_HANN = 0;
+WINDOW_RECT = 1;
+
+// A start offset and a size should be given :
+// This is useful if the samples are zero-padded and the real start is not 0 and the real window size is not the size of _SAMPLES
+
+MEM_PTR    = 0;
+function malloc(size)
+    local(ptr)
+(
+    ptr = MEM_PTR;
+    MEM_PTR = MEM_PTR + size;
+    ptr;
+);
+
+// Memory map
+_SAMPLES       = malloc(_SIZE);        // Passed by the lua script.
+_HANN_COEFFS   = malloc(_WINDOW_SIZE); // Precalculated hann coeffs, reusable from one round to the other for better performance
+
+function recalculate_hann_coeffs_if_needed()
+    local(i, s, mult)
+(
+    // Since we reuse the same function over and over again
+    // Try to avoid recalculating costy coefficients along the spectrgograph
+    // 99% of the time they will not change (except on the borders of the spectro)
+    (LAST_HANN_COEFF_ADDRESS != _HANN_COEFFS || LAST_HANN_SIZE != _WINDOW_SIZE)?(
+
+        i       = 0;
+        mult    = $pi/(_WINDOW_SIZE - 1);
+
+        while(i < _WINDOW_SIZE) (
+            s                 = sin(i * mult);
+            _HANN_COEFFS[i]   = s * s;
+            i = i+1;
+        );
+
+        LAST_HANN_COEFF_ADDRESS = _HANN_COEFFS;
+        LAST_HANN_SIZE          = _WINDOW_SIZE;
+    );
+);
+
+function hann_window(samples, window_start)
+    local(i, alpha)
+(
+    recalculate_hann_coeffs_if_needed();
+
+    max_egy = 0;
+    sig_egy = 0;
+
+    i = 0;
+    while(i < _WINDOW_SIZE) (
+        alpha   = _HANN_COEFFS[i]; // sin²
+
+        samples[window_start + i]   = alpha * samples[window_start + i];
+
+        // Since we apply windowing, the max energy of a signal on this window
+        // is affected. Perform a calculation to know how it is affected (should be squared to get the magnitude)
+        // Use samples with amplitude 1 as reference.
+
+        max_egy                     = max_egy + _HANN_COEFFS[i];
+        sig_egy                     = sig_egy + (samples[window_start + i] * samples[window_start + i]);
+
+        i = i + 1;
+    );
+
+    _ENERGY     = sig_egy;
+    _MAX_ENERGY = max_egy;
+);
+
+function rect_window(samples, window_start)
+    local(i, s)
+(
+    sig_egy = 0;
+    max_egy = 0;
+
+    i = 0;
+    while(i < _WINDOW_SIZE) (
+        s       = samples[window_start + i];
+
+        sig_egy = sig_egy + (s * s);
+        max_egy = max_egy + (1 * 1);
+
+        i = i + 1;
+    );
+
+    _ENERGY     = sig_egy;
+    _MAX_ENERGY = max_egy;
+);
+
+(_WINDOW_TYPE == WINDOW_HANN)?(hann_window(_SAMPLES, _WINDOW_START));
+(_WINDOW_TYPE == WINDOW_RECT)?(rect_window(_SAMPLES, _WINDOW_START));
