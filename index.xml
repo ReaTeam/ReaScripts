@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="52d4b25371820adfd2de46259e71b66c79967638" name="ReaTeam Scripts">
+<index version="1" commit="4be2d415567ae0e734e1e0d9b82cab7dffac707d" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -27150,6 +27150,72 @@ Fix SWS Startup / Lokasenna Radial Menu bug]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/9e96eea791fd93d8151a7dce11d16995d67f3faa/Various/tagirijus_Save%20project%20and%20move%20backups.lua</source>
       </version>
     </reapack>
+    <reapack name="talagan_Spectracular.lua" type="script" desc="Spectracular ! Spectrogram binocular for REAPER">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Spectracular is a Spectrogram for Reaper. It allows to quiclky render a mix of tracks to mono or stereo and explore the result with a time / frequency graph, where frequencies are represented on a logarithmic scale as notes.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Just create a time selection, a track selection, and launch Spectracular's mono or stereo action.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 It is possible to span / scroll, adapt the color scales, and also extract per-note profiles to visualize the time evolution of a specific frequency, and compare them together.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 All mouse interactions are given in the help window that can be launched from the bottom right (?) button.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Please note that this tool is very young and may contain bugs.\par}
+}
+]]></description>
+        <link rel="website" href="http://forum.cockos.com/">Forum Thread (does not exist yet TODO)</link>
+        <link rel="screenshot">https://stash.reaper.fm/49923/spectracular%200.1.png</link>
+        <link rel="donation">https://www.paypal.com/donate/?business=3YEZMY9D6U8NC&amp;no_recurring=1&amp;currency_code=EUR</link>
+      </metadata>
+      <version name="0.2" author="Ben 'Talagan' Babut" time="2025-02-19T09:39:23Z">
+        <changelog><![CDATA[- Initial version]]></changelog>
+        <source file="talagan_Spectracular/ext/dependencies.lua">https://github.com/ReaTeam/ReaScripts/raw/7567448d09b1ff9f1359df7805a9631368b313ad/Various/talagan_Spectracular/ext/dependencies.lua</source>
+        <source file="talagan_Spectracular/ext/imgui.lua">https://github.com/ReaTeam/ReaScripts/raw/7567448d09b1ff9f1359df7805a9631368b313ad/Various/talagan_Spectracular/ext/imgui.lua</source>
+        <source file="talagan_Spectracular/classes/sample_accessor.lua">https://github.com/ReaTeam/ReaScripts/raw/7567448d09b1ff9f1359df7805a9631368b313ad/Various/talagan_Spectracular/classes/sample_accessor.lua</source>
+        <source file="talagan_Spectracular/classes/spectrogram.lua">https://github.com/ReaTeam/ReaScripts/raw/7567448d09b1ff9f1359df7805a9631368b313ad/Various/talagan_Spectracular/classes/spectrogram.lua</source>
+        <source file="talagan_Spectracular/classes/spectrogram_chunk.lua">https://github.com/ReaTeam/ReaScripts/raw/7567448d09b1ff9f1359df7805a9631368b313ad/Various/talagan_Spectracular/classes/spectrogram_chunk.lua</source>
+        <source file="talagan_Spectracular/classes/spectrum_analysis_context.lua">https://github.com/ReaTeam/ReaScripts/raw/7567448d09b1ff9f1359df7805a9631368b313ad/Various/talagan_Spectracular/classes/spectrum_analysis_context.lua</source>
+        <source file="talagan_Spectracular/images/spectracular.png">https://github.com/ReaTeam/ReaScripts/raw/7567448d09b1ff9f1359df7805a9631368b313ad/Various/talagan_Spectracular/images/spectracular.png</source>
+        <source file="talagan_Spectracular/modules/csv.lua">https://github.com/ReaTeam/ReaScripts/raw/7567448d09b1ff9f1359df7805a9631368b313ad/Various/talagan_Spectracular/modules/csv.lua</source>
+        <source file="talagan_Spectracular/modules/debug.lua">https://github.com/ReaTeam/ReaScripts/raw/7567448d09b1ff9f1359df7805a9631368b313ad/Various/talagan_Spectracular/modules/debug.lua</source>
+        <source file="talagan_Spectracular/modules/dsp.lua">https://github.com/ReaTeam/ReaScripts/raw/7567448d09b1ff9f1359df7805a9631368b313ad/Various/talagan_Spectracular/modules/dsp.lua</source>
+        <source file="talagan_Spectracular/modules/dsp/analysis_data_extractor.eel">https://github.com/ReaTeam/ReaScripts/raw/7567448d09b1ff9f1359df7805a9631368b313ad/Various/talagan_Spectracular/modules/dsp/analysis_data_extractor.eel</source>
+        <source file="talagan_Spectracular/modules/dsp/analysis_data_to_rgb_array.eel">https://github.com/ReaTeam/ReaScripts/raw/7567448d09b1ff9f1359df7805a9631368b313ad/Various/talagan_Spectracular/modules/dsp/analysis_data_to_rgb_array.eel</source>
+        <source file="talagan_Spectracular/modules/dsp/array_fill.eel">https://github.com/ReaTeam/ReaScripts/raw/7567448d09b1ff9f1359df7805a9631368b313ad/Various/talagan_Spectracular/modules/dsp/array_fill.eel</source>
+        <source file="talagan_Spectracular/modules/dsp/array_interleave.eel">https://github.com/ReaTeam/ReaScripts/raw/7567448d09b1ff9f1359df7805a9631368b313ad/Various/talagan_Spectracular/modules/dsp/array_interleave.eel</source>
+        <source file="talagan_Spectracular/modules/dsp/array_op.eel">https://github.com/ReaTeam/ReaScripts/raw/7567448d09b1ff9f1359df7805a9631368b313ad/Various/talagan_Spectracular/modules/dsp/array_op.eel</source>
+        <source file="talagan_Spectracular/modules/dsp/fft_bins_to_db.eel">https://github.com/ReaTeam/ReaScripts/raw/7567448d09b1ff9f1359df7805a9631368b313ad/Various/talagan_Spectracular/modules/dsp/fft_bins_to_db.eel</source>
+        <source file="talagan_Spectracular/modules/dsp/fft_to_fft_bins.eel">https://github.com/ReaTeam/ReaScripts/raw/7567448d09b1ff9f1359df7805a9631368b313ad/Various/talagan_Spectracular/modules/dsp/fft_to_fft_bins.eel</source>
+        <source file="talagan_Spectracular/modules/dsp/fft_window.eel">https://github.com/ReaTeam/ReaScripts/raw/7567448d09b1ff9f1359df7805a9631368b313ad/Various/talagan_Spectracular/modules/dsp/fft_window.eel</source>
+        <source file="talagan_Spectracular/modules/dsp/resampler_akima.eel">https://github.com/ReaTeam/ReaScripts/raw/7567448d09b1ff9f1359df7805a9631368b313ad/Various/talagan_Spectracular/modules/dsp/resampler_akima.eel</source>
+        <source file="talagan_Spectracular/modules/dsp/resampler_cubic.eel">https://github.com/ReaTeam/ReaScripts/raw/7567448d09b1ff9f1359df7805a9631368b313ad/Various/talagan_Spectracular/modules/dsp/resampler_cubic.eel</source>
+        <source file="talagan_Spectracular/modules/dsp/resampler_linear.eel">https://github.com/ReaTeam/ReaScripts/raw/7567448d09b1ff9f1359df7805a9631368b313ad/Various/talagan_Spectracular/modules/dsp/resampler_linear.eel</source>
+        <source file="talagan_Spectracular/modules/dsp/rmse.eel">https://github.com/ReaTeam/ReaScripts/raw/7567448d09b1ff9f1359df7805a9631368b313ad/Various/talagan_Spectracular/modules/dsp/rmse.eel</source>
+        <source file="talagan_Spectracular/modules/log.lua">https://github.com/ReaTeam/ReaScripts/raw/7567448d09b1ff9f1359df7805a9631368b313ad/Various/talagan_Spectracular/modules/log.lua</source>
+        <source file="talagan_Spectracular/modules/midi.lua">https://github.com/ReaTeam/ReaScripts/raw/7567448d09b1ff9f1359df7805a9631368b313ad/Various/talagan_Spectracular/modules/midi.lua</source>
+        <source file="talagan_Spectracular/modules/render.lua">https://github.com/ReaTeam/ReaScripts/raw/7567448d09b1ff9f1359df7805a9631368b313ad/Various/talagan_Spectracular/modules/render.lua</source>
+        <source file="talagan_Spectracular/modules/settings.lua">https://github.com/ReaTeam/ReaScripts/raw/7567448d09b1ff9f1359df7805a9631368b313ad/Various/talagan_Spectracular/modules/settings.lua</source>
+        <source file="talagan_Spectracular/modules/tracks.lua">https://github.com/ReaTeam/ReaScripts/raw/7567448d09b1ff9f1359df7805a9631368b313ad/Various/talagan_Spectracular/modules/tracks.lua</source>
+        <source file="talagan_Spectracular/modules/unit_test.lua">https://github.com/ReaTeam/ReaScripts/raw/7567448d09b1ff9f1359df7805a9631368b313ad/Various/talagan_Spectracular/modules/unit_test.lua</source>
+        <source file="talagan_Spectracular/modules/utils.lua">https://github.com/ReaTeam/ReaScripts/raw/7567448d09b1ff9f1359df7805a9631368b313ad/Various/talagan_Spectracular/modules/utils.lua</source>
+        <source file="talagan_Spectracular/unit_tests/dsp.lua">https://github.com/ReaTeam/ReaScripts/raw/7567448d09b1ff9f1359df7805a9631368b313ad/Various/talagan_Spectracular/unit_tests/dsp.lua</source>
+        <source file="talagan_Spectracular/widgets/help_window.lua">https://github.com/ReaTeam/ReaScripts/raw/7567448d09b1ff9f1359df7805a9631368b313ad/Various/talagan_Spectracular/widgets/help_window.lua</source>
+        <source file="talagan_Spectracular/widgets/lr_mix.lua">https://github.com/ReaTeam/ReaScripts/raw/7567448d09b1ff9f1359df7805a9631368b313ad/Various/talagan_Spectracular/widgets/lr_mix.lua</source>
+        <source file="talagan_Spectracular/widgets/lr_switch.lua">https://github.com/ReaTeam/ReaScripts/raw/7567448d09b1ff9f1359df7805a9631368b313ad/Various/talagan_Spectracular/widgets/lr_switch.lua</source>
+        <source file="talagan_Spectracular/widgets/main.lua">https://github.com/ReaTeam/ReaScripts/raw/7567448d09b1ff9f1359df7805a9631368b313ad/Various/talagan_Spectracular/widgets/main.lua</source>
+        <source file="talagan_Spectracular/widgets/profiles/frequency_slice_profile.lua">https://github.com/ReaTeam/ReaScripts/raw/7567448d09b1ff9f1359df7805a9631368b313ad/Various/talagan_Spectracular/widgets/profiles/frequency_slice_profile.lua</source>
+        <source file="talagan_Spectracular/widgets/profiles/spectrograph_time_profile.lua">https://github.com/ReaTeam/ReaScripts/raw/7567448d09b1ff9f1359df7805a9631368b313ad/Various/talagan_Spectracular/widgets/profiles/spectrograph_time_profile.lua</source>
+        <source file="talagan_Spectracular/widgets/rmse.lua">https://github.com/ReaTeam/ReaScripts/raw/7567448d09b1ff9f1359df7805a9631368b313ad/Various/talagan_Spectracular/widgets/rmse.lua</source>
+        <source file="talagan_Spectracular/widgets/ruler.lua">https://github.com/ReaTeam/ReaScripts/raw/7567448d09b1ff9f1359df7805a9631368b313ad/Various/talagan_Spectracular/widgets/ruler.lua</source>
+        <source file="talagan_Spectracular/widgets/scale_label.lua">https://github.com/ReaTeam/ReaScripts/raw/7567448d09b1ff9f1359df7805a9631368b313ad/Various/talagan_Spectracular/widgets/scale_label.lua</source>
+        <source file="talagan_Spectracular/widgets/spectrograph.lua">https://github.com/ReaTeam/ReaScripts/raw/7567448d09b1ff9f1359df7805a9631368b313ad/Various/talagan_Spectracular/widgets/spectrograph.lua</source>
+        <source file="talagan_Spectracular/widgets/theme.lua">https://github.com/ReaTeam/ReaScripts/raw/7567448d09b1ff9f1359df7805a9631368b313ad/Various/talagan_Spectracular/widgets/theme.lua</source>
+        <source file="talagan_Spectracular/widgets/ticks_overlay.lua">https://github.com/ReaTeam/ReaScripts/raw/7567448d09b1ff9f1359df7805a9631368b313ad/Various/talagan_Spectracular/widgets/ticks_overlay.lua</source>
+        <source file="talagan_Spectracular/app.lua">https://github.com/ReaTeam/ReaScripts/raw/7567448d09b1ff9f1359df7805a9631368b313ad/Various/talagan_Spectracular/app.lua</source>
+        <source main="main" file="talagan_Spectracular mono.lua">https://github.com/ReaTeam/ReaScripts/raw/7567448d09b1ff9f1359df7805a9631368b313ad/Various/talagan_Spectracular/actions/talagan_Spectracular%20generic%20action.lua</source>
+        <source main="main" file="talagan_Spectracular stereo.lua">https://github.com/ReaTeam/ReaScripts/raw/7567448d09b1ff9f1359df7805a9631368b313ad/Various/talagan_Spectracular/actions/talagan_Spectracular%20generic%20action.lua</source>
+      </version>
+    </reapack>
     <reapack name="timtam_IntelliFreeze.lua" type="script" desc="IntelliFreeze">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
@@ -27230,9 +27296,9 @@ https://github.com/Timtam/IntelliFreeze
         <source file="timtam_IntelliFreeze/timtam_IntelliFreeze.lua">https://github.com/ReaTeam/ReaScripts/raw/c6421bcb464a1349d4ab67bde73282f779d26967/Various/timtam_IntelliFreeze/timtam_IntelliFreeze.lua</source>
       </version>
     </reapack>
-    <reapack name="tompad_MusicMath.lua" type="script" desc="MusicMath - bpm/pitch to ms/Hz converter">
+    <reapack name="tompad_MusicMath.lua" type="script" desc="MusicMath - bpm to ms/Hz and pitch to Hz converter">
       <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
@@ -27257,6 +27323,11 @@ Added flashing green when clicking on ms or Hz label]]></changelog>
         <changelog><![CDATA[Added buttons for 2/1, 2/1., 2/1t, 4/1,4/1., 4/1t, 8/1, 8/1., 8/1t and 1/64, 1/64., 1/64t, 1/128, 1/128., 1/128t
 Thanks twarch!]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/da3cd1a53733982e73c0995b10c99df7cd1fb270/Various/tompad_MusicMath.lua</source>
+      </version>
+      <version name="1.3" author="tompad" time="2025-02-19T09:39:49Z">
+        <changelog><![CDATA[Added calculating and label for Hz on mS tab.
+Thanks eeeeveeee!]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4be2d415567ae0e734e1e0d9b82cab7dffac707d/Various/tompad_MusicMath.lua</source>
       </version>
     </reapack>
     <reapack name="tompad_obliques.lua" type="script" desc="obliques - randomly shows text from Oblique Strategies">
