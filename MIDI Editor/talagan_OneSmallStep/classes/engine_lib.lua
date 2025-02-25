@@ -267,7 +267,7 @@ local function listenToEvents()
   -- Update manager with new info from the helper JSFX
   manager:updateActivity(track, oss_state);
 
-  local spmod = MOD.IsStepBackModifierKeyPressed();
+  local spmod = MOD.IsStepBackModifierKeyPressed() or helper_lib.isModifierPedalDown(oss_state, S.getSetting("StepBackModifierPedal"))
   local pedal = manager:pullPedalTriggerForTrack(track);
 
   manager:tryAdvancedCommitForTrack(track,

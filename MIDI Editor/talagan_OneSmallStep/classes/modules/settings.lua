@@ -12,6 +12,8 @@ local TrackSettingDefs = {
 local SettingDefs = {
   StepBackModifierKey                                       = { type = "int",     default = D.IsMacOs and 16 or 16 },
 
+  StepBackModifierPedal                                     = { type = "int",     default = -1 },
+
   WriteModifierKeyCombination                               = { type = "string",  default = "none" },
   InsertModifierKeyCombination                              = { type = "string",  default = D.IsMacos and "17" or "17" },
   NavigateModifierKeyCombination                            = { type = "string",  default = D.IsMacos and "18" or "18" },

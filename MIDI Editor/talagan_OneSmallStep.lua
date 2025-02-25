@@ -1,6 +1,6 @@
 --[[
 @description One Small Step : Alternative Step Input
-@version 0.9.15
+@version 0.9.16
 @author Ben 'Talagan' Babut
 @license MIT
 @metapackage
@@ -57,7 +57,7 @@
 @screenshot
   https://stash.reaper.fm/48269/oss_094.png
 @changelog
-  - [Feature] [Experimental] Markup Articulation Manager
+  - [Feature] Add support for pedals as step back modifiers
 @about
   # Purpose
 
@@ -88,7 +88,7 @@
 
 --]]
 
-VERSION = "0.9.15"
+VERSION = "0.9.16"
 DOC_URL = "https://bentalagan.github.io/onesmallstep-doc/index.html?ver=" .. VERSION
 
 PATH    = debug.getinfo(1,"S").source:match[[^@?(.*[\/])[^\/]-$]]
@@ -129,6 +129,7 @@ if not CheckReapack("CF_ShellExecute",           "SWS",              "SWS/S&M Ex
 -- Inner requirements
 
 local E   = require "engine_lib"
+local H   = require "helper_lib"
 local DBG = require "modules/debugger"
 
 local S   = E.S
@@ -138,6 +139,7 @@ local TGT = E.TGT
 local F   = E.F
 local ED  = E.ED
 local ART = E.ART
+local MOD = E.MOD
 
 -- Get the debugger setting at launch
 local DEBUGGER_IS_ON = S.getSetting("UseDebugger")
@@ -145,7 +147,8 @@ local DEBUGGER_IS_ON = S.getSetting("UseDebugger")
 -------------------------------
 -- ImGui Backward compatibility
 
-dofile(reaper.GetResourcePath() .. '/Scripts/ReaTeam Extensions/API/imgui.lua')('0.8.7')
+package.path    = reaper.ImGui_GetBuiltinPath() .. '/?.lua;' .. package.path
+local ImGui     = require 'imgui' '0.8.7'
 
 -------------------------------
 
@@ -989,8 +992,29 @@ function SettingComboBox(setting, pre_label, tooltip, width)
   TT(tooltip)
 end
 
+local function ResolveStepBackPedalState()
+  local ccnum   = S.getSetting("StepBackModifierPedal")
+
+  if ccnum == -1 then return end
+
+  local track   = nil
+  local take    = TGT.TakeForEdition()
+
+  if take then track = reaper.GetMediaItemTake_Track(take)
+  else         track = TGT.TrackForEditionIfNoItemFound()
+  end
+
+  if not track then return false end
+
+  local oss_state = H.oneSmallStepState(track)
+  return H.isModifierPedalDown(oss_state, ccnum)
+end
+
 function TargetModeInfo()
-  local currentop = ED.ResolveOperationMode()
+  local back_pedal = ResolveStepBackPedalState()
+
+  local currentop     = ED.ResolveOperationMode()
+  local back_modifier = back_pedal or MOD.IsStepBackModifierKeyPressed()
 
   local _TT = function(msg, is_alt, alternative)
     msg = msg .. "\n\n" .. "Click to set/move/remove operation marker\n\n"
@@ -1004,53 +1028,53 @@ function TargetModeInfo()
 
   if currentop.mode == "Insert" then
     if currentop.use_alt then
-      if currentop.back  then
-        reaper.ImGui_Image(ctx, getImage("indicator_compress"),20,20); _TT("Compress notes between marker and edit cursor", true, "Insert"); SL();
+      if back_modifier  then
+        ImGui.Image(ctx, getImage("indicator_compress"),20,20); _TT("Compress notes between marker and edit cursor", true, "Insert"); SL();
       else
-        reaper.ImGui_Image(ctx, getImage("indicator_stretch"),20,20); _TT("Stretch notes between marker and edit cursor", true, "Insert"); SL();
+        ImGui.Image(ctx, getImage("indicator_stretch"),20,20); _TT("Stretch notes between marker and edit cursor", true, "Insert"); SL();
       end
     else
-      if currentop.back  then
-        reaper.ImGui_Image(ctx, getImage("indicator_insert_back"),20,20); _TT("Insert back (delete and shift)", false, "Compress"); SL();
+      if back_modifier  then
+        ImGui.Image(ctx, getImage("indicator_insert_back"),20,20); _TT("Insert back (delete and shift)", false, "Compress"); SL();
       else
-        reaper.ImGui_Image(ctx, getImage("indicator_insert_forward"),20,20); ; _TT("Insert (add notes and shift)", false, "Stretch"); SL();
+        ImGui.Image(ctx, getImage("indicator_insert_forward"),20,20); ; _TT("Insert (add notes and shift)", false, "Stretch"); SL();
       end
     end
   elseif currentop.mode == "Replace" then
     if currentop.use_alt then
-      if currentop.back  then
-        reaper.ImGui_Image(ctx, getImage("indicator_unstuff"),20,20); _TT("Stuff notes at the end of the zone between marker and edit cursor", true, "Replace"); SL();
+      if back_modifier  then
+        ImGui.Image(ctx, getImage("indicator_unstuff"),20,20); _TT("Stuff notes at the end of the zone between marker and edit cursor", true, "Replace"); SL();
       else
-        reaper.ImGui_Image(ctx, getImage("indicator_stuff"),20,20);   _TT("Unstuff notes at the end of the zone between marker and edit cursor", true, "Replace"); SL();
+        ImGui.Image(ctx, getImage("indicator_stuff"),20,20);   _TT("Unstuff notes at the end of the zone between marker and edit cursor", true, "Replace"); SL();
       end
     else
-      if currentop.back then
-        reaper.ImGui_Image(ctx, getImage("indicator_replace_back"),20,20); SL();  _TT("Replace back (delete)", false, "Untuff"); SL();
+      if back_modifier then
+        ImGui.Image(ctx, getImage("indicator_replace_back"),20,20); SL();  _TT("Replace back (delete)", false, "Untuff"); SL();
       else
-        reaper.ImGui_Image(ctx, getImage("indicator_replace_forward"),20,20); SL();  _TT("Replace (add notes and remove/patch existing)", false, "Stuff"); SL();
+        ImGui.Image(ctx, getImage("indicator_replace_forward"),20,20); SL();  _TT("Replace (add notes and remove/patch existing)", false, "Stuff"); SL();
       end
     end
   elseif currentop.mode == "Navigate" then
-    if currentop.back then
-      reaper.ImGui_Image(ctx, getImage("indicator_navigate_back"),20,20); SL();  TT("Navigate backward") SL();
+    if back_modifier then
+      ImGui.Image(ctx, getImage("indicator_navigate_back"),20,20); SL();  TT("Navigate backward") SL();
     else
-      reaper.ImGui_Image(ctx, getImage("indicator_navigate_forward"),20,20); SL(); TT("Navigate forward") SL();
+      ImGui.Image(ctx, getImage("indicator_navigate_forward"),20,20); SL(); TT("Navigate forward") SL();
     end
   elseif currentop.mode == "Repitch" then
-    if currentop.back then
-      reaper.ImGui_Image(ctx, getImage("indicator_repitch_back"),20,20); SL();  TT("Write back (selective delete") SL();
+    if back_modifier then
+      ImGui.Image(ctx, getImage("indicator_repitch_back"),20,20); SL();  TT("Write back (selective delete") SL();
     else
-      reaper.ImGui_Image(ctx, getImage("indicator_repitch_forward"),20,20); SL();  TT("Write (add notes)") SL();
+      ImGui.Image(ctx, getImage("indicator_repitch_forward"),20,20); SL();  TT("Write (add notes)") SL();
     end
   else
-    if currentop.back then
-      reaper.ImGui_Image(ctx, getImage("indicator_write_back"),20,20); SL();  TT("Write back (selective delete") SL();
+    if back_modifier then
+      ImGui.Image(ctx, getImage("indicator_write_back"),20,20); SL();  TT("Write back (selective delete") SL();
     else
-      reaper.ImGui_Image(ctx, getImage("indicator_write_forward"),20,20); SL();  TT("Write (add notes)") SL();
+      ImGui.Image(ctx, getImage("indicator_write_forward"),20,20); SL();  TT("Write (add notes)") SL();
     end
   end
 
-  if reaper.ImGui_IsItemClicked(ctx) then
+  if ImGui.IsItemClicked(ctx) then
     MK.setOperationMarkerAtCurrentPos()
   end
 
@@ -1160,7 +1184,6 @@ function ClearConflictingModifierKeys()
 end
 
 function StepBackModifierKeyComboBox(callback)
-
   local setting     = "StepBackModifierKey"
   local modkey      = D.ModifierKeyLookup[S.getSetting(setting)] or {};
   local combo_items = D.ModifierKeys;
@@ -1196,6 +1219,50 @@ function StepBackModifierKeyComboBox(callback)
   reaper.ImGui_Text(ctx, "performs")
   SL()
   reaper.ImGui_TextColored(ctx, 0xFFA0F0FF, "Back Operation")
+end
+
+function StepBackModifierPedalComboBox()
+  local setting     = "StepBackModifierPedal"
+  local modifier    = D.ModifierPedalLookup[S.getSetting(setting)] or {}
+  local combo_items = D.ModifierPedals
+  local label       = modifier.name
+  local curval      = modifier.ccnum
+
+  ImGui.PushStyleVar(ctx, ImGui.StyleVar_FramePadding, 5, 3.5)
+  ImGui.SetCursorPosY(ctx, ImGui.GetCursorPosY(ctx))
+  ImGui.PushID(ctx, setting)
+
+  ImGui.SetNextItemWidth(ctx, 160);
+  if ImGui.BeginCombo(ctx, '', label) then
+    for i,v in ipairs(combo_items) do
+      local is_selected = (curval == v.ccnum)
+
+      if is_selected then
+        ImGui.SetItemDefaultFocus(ctx)
+      end
+
+      if ImGui.Selectable(ctx, v.name, is_selected) then
+        S.setSetting(setting, v.ccnum)
+        ClearConflictingModifierKeys()
+      end
+    end
+    ImGui.EndCombo(ctx)
+  end
+  ImGui.PopStyleVar(ctx,1);
+  ImGui.PopID(ctx);
+
+  if S.getSetting(setting) == -1 then
+    SL()
+    ImGui.Text(ctx, "defined as pedal modifier for")
+  else
+    SL()
+    ImGui.TextColored(ctx, 0x9090FFFF, "+ sustain pedal")
+    SL()
+    ImGui.Text(ctx, "performs")
+  end
+
+  SL()
+  ImGui.TextColored(ctx, 0xFFA0F0FF, "Back Operation")
 end
 
 
@@ -1266,8 +1333,6 @@ function RepitchModeComboBox()
   reaper.ImGui_PopID(ctx);
   reaper.ImGui_PopStyleVar(ctx,1);
 end
-
-
 
 function SettingsPanel()
   if reaper.ImGui_BeginTabBar(ctx, 'settings_tab_bar', reaper.ImGui_TabBarFlags_None()) then
@@ -1397,6 +1462,7 @@ function SettingsPanel()
     if reaper.ImGui_BeginTabItem(ctx, 'Controls') then
       ImGui_VerticalSpacer(ctx,5);
 
+      ImGui.SeparatorText(ctx, "Key modifiers")
       StepBackModifierKeyComboBox()
       EditModeComboBox("Write")
       EditModeComboBox("Navigate")
@@ -1404,6 +1470,10 @@ function SettingsPanel()
       EditModeComboBox("Replace")
       EditModeComboBox("Repitch")
 
+      ImGui.SeparatorText(ctx, "Pedal Modifiers")
+      StepBackModifierPedalComboBox()
+
+      ImGui.SeparatorText(ctx, "UI options")
       local curval = S.getSetting("HideEditModeMiniBar");
       if reaper.ImGui_Checkbox(ctx, "Hide edit mode mini bar", curval) then
         S.setSetting("HideEditModeMiniBar", not curval);

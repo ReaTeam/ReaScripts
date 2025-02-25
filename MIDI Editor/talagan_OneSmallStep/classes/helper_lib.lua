@@ -12,9 +12,14 @@ local jsfx                      = {}
 jsfx.name                       = "One Small Step Helper"
 
 jsfx.paramIndex_PedalActivity   = 0
-jsfx.paramIndex_NotesInBuffer   = 1
-jsfx.paramIndex_NoteStart       = 2
+jsfx.paramIndex_Pedal65Activity    = 1
+jsfx.paramIndex_Pedal66Activity    = 2
+jsfx.paramIndex_Pedal67Activity    = 3
+jsfx.paramIndex_Pedal68Activity    = 4
+jsfx.paramIndex_Pedal69Activity    = 5
 
+jsfx.paramIndex_NotesInBuffer   = 6
+jsfx.paramIndex_NoteStart       = 7
 
 -- Add the given fx to the given track.
 local function getOrAddInputFx(track, fx)
@@ -89,8 +94,13 @@ local function oneSmallStepState(track)
   -- Security when recording
   if not (recarmed == 1) then
     return {
-      pitches       = {},
-      pedalActivity = 0
+      pitches         = {},
+      pedalActivity   = 0,
+      pedalActivity65 = 0,
+      pedalActivity66 = 0,
+      pedalActivity67 = 0,
+      pedalActivity68 = 0,
+      pedalActivity69 = 0,
     }
   end
 
@@ -100,6 +110,12 @@ local function oneSmallStepState(track)
   local pitches = {}
   local pedalActivity = reaper.TrackFX_GetParam(track, iHelper, jsfx.paramIndex_PedalActivity);
   local heldNoteCount = reaper.TrackFX_GetParam(track, iHelper, jsfx.paramIndex_NotesInBuffer);
+
+  local pedalActivity65 = reaper.TrackFX_GetParam(track, iHelper, jsfx.paramIndex_Pedal65Activity);
+  local pedalActivity66 = reaper.TrackFX_GetParam(track, iHelper, jsfx.paramIndex_Pedal66Activity);
+  local pedalActivity67 = reaper.TrackFX_GetParam(track, iHelper, jsfx.paramIndex_Pedal67Activity);
+  local pedalActivity68 = reaper.TrackFX_GetParam(track, iHelper, jsfx.paramIndex_Pedal68Activity);
+  local pedalActivity69 = reaper.TrackFX_GetParam(track, iHelper, jsfx.paramIndex_Pedal69Activity);
 
   for i = 1, heldNoteCount, 1 do
     -- now the plugin updates its sliders to give us the values for this index.
@@ -114,8 +130,14 @@ local function oneSmallStepState(track)
   end
 
   return {
-    pitches       = pitches,
-    pedalActivity = pedalActivity
+    pitches         = pitches,
+    pedalActivity   = pedalActivity,
+
+    pedalActivity65 = pedalActivity65,
+    pedalActivity66 = pedalActivity66,
+    pedalActivity67 = pedalActivity67,
+    pedalActivity68 = pedalActivity68,
+    pedalActivity69 = pedalActivity69,
   }
 end
 
@@ -137,10 +159,15 @@ local function lastPressedPitch(oss_state)
   return pitch
 end
 
+local function isModifierPedalDown(oss_state, pedal_num)
+  return (oss_state['pedalActivity' .. pedal_num] or 0) > 0
+end
+
 return {
   getOrInstallHelperFx  = getOrInstallHelperFx,
   removeHelperFx        = removeHelperFx,
   cleanupAllTrackFXs    = cleanupAllTrackFXs,
   oneSmallStepState     = oneSmallStepState,
-  lastPressedPitch      = lastPressedPitch
+  lastPressedPitch      = lastPressedPitch,
+  isModifierPedalDown   = isModifierPedalDown
 }

@@ -99,6 +99,15 @@ local OtherOSModifierKeys = {
   { vkey = 18, name = 'Alt' }
 };
 
+local ModifierPedals = {
+  { ccnum = -1, name = 'No pedal' },
+  { ccnum = 65, name = 'Portamento (CC 65)'},
+  { ccnum = 66, name = 'Sostenuto (CC 66)'},
+  { ccnum = 67, name = 'Soft Pedal (CC 67)'},
+  { ccnum = 68, name = 'Legato (CC 68)'},
+  { ccnum = 69, name = 'Hold 2 (CC 69)'},
+};
+
 local ModifierKeys    = IsMacOs and MacOSModifierKeys or OtherOSModifierKeys;
 
 local NoteLenLookup = {};
@@ -109,6 +118,11 @@ end
 local ModifierKeyLookup = {};
 for i,v in ipairs(ModifierKeys) do
   ModifierKeyLookup[v.vkey] = v;
+end
+
+local ModifierPedalLookup = {}
+for i,v in ipairs(ModifierPedals) do
+  ModifierPedalLookup[v.ccnum] = v
 end
 
 local ModifierKeyCombinations = {{ label = "None", id = "none", vkeys = {} }}
@@ -154,6 +168,9 @@ return {
   ModifierKeyLookup             = ModifierKeyLookup,
 
   ModifierKeyCombinations       = ModifierKeyCombinations,
-  ModifierKeyCombinationLookup  = ModifierKeyCombinationLookup
+  ModifierKeyCombinationLookup  = ModifierKeyCombinationLookup,
+
+  ModifierPedals                = ModifierPedals,
+  ModifierPedalLookup           = ModifierPedalLookup
 }
 

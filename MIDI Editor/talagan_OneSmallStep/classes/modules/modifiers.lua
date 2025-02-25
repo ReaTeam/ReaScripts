@@ -3,8 +3,8 @@
 -- @license MIT
 -- @description This is part of One Small Step
 
-local D = require "modules/defines"
-local S = require "modules/settings"
+local D           = require "modules/defines"
+local S           = require "modules/settings"
 
 local launchTime = reaper.time_precise()
 

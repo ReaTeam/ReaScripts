@@ -1,9 +1,9 @@
 noindex: true
 desc: One Small Step Helper
-version: 0.2
+version: 0.3
 author: Ben 'Talagan' Babut
 
-<? 
+<?
   note_buffer_size    = 32; // MAX number of simultaneously held notes
   note_slider_offset  = 10; // Offset for note sliders (start at)
   DBG                 = 0;  // Show / Hide sliders in the JSFX window
@@ -13,11 +13,17 @@ author: Ben 'Talagan' Babut
   dbg = (DBG == 1)?(""):("-");
 
   printf("slider1:0<0,1,0.001>  %sSustain Pedal Activity\n", dbg);
-  printf("slider2:0<0,127,1>    %sHeld note count\n", dbg);
+  printf("slider2:0<0,1,0.001>  %sCC65 Pedal Activity\n", dbg);
+  printf("slider3:0<0,1,0.001>  %sCC66 Pedal Activity\n", dbg);
+  printf("slider4:0<0,1,0.001>  %sCC67 Pedal Activity\n", dbg);
+  printf("slider5:0<0,1,0.001>  %sCC68 Pedal Activity\n", dbg);
+  printf("slider6:0<0,1,0.001>  %sCC69 Pedal Activity\n", dbg);
+
+  printf("slider7:0<0,127,1>    %sHeld note count\n", dbg);
 
   ni = 0;
   while(ni < note_buffer_size) (
-    
+
     // Generate sliders for held notes
     printf("slider%d:<0,127,1>    %sNote %d Pitch\n",     note_slider_offset + 4*ni + 0, dbg, ni);
     printf("slider%d:<0,15,1>     %sNote %d Channel\n",   note_slider_offset + 4*ni + 1, dbg, ni);
@@ -118,10 +124,18 @@ function addRemoveNoteFromBuffer(m1,m2,m3)
   );
 
   // Update note count
-  slider2 = note_cnt;
+  slider7 = note_cnt;
 );
 
 @block
+
+function handlePedal(ccnum, slidernum, msg1, msg2, msg3) (
+    (msg1&$xF0==$xB0 && msg2 == ccnum && msg3 > 0) ?
+      slider(slidernum) = time_precise();
+
+    (msg1&$xF0==$xB0 && msg2 == ccnum && msg3 == 0) ?
+      slider(slidernum) = 0;
+);
 
 function main()
   local(offset,msg1,msg2,msg3)
@@ -134,11 +148,15 @@ function main()
     (msg1&$xF0==$x80) ?
       addRemoveNoteFromBuffer(msg1,msg2,msg3);
 
-    (msg1&$xF0==$xB0 && msg2 == 64 && msg3 > 0) ?
-      slider1 = time_precise();
+    // Support for sustain pedal
+    handlePedal(64, 1, msg1, msg2, msg3);
 
-    (msg1&$xF0==$xB0 && msg2 == 64 && msg3 == 0) ?
-      slider1 = 0;
+    // Added support for other pedals
+    handlePedal(65, 2, msg1, msg2, msg3);
+    handlePedal(66, 3, msg1, msg2, msg3);
+    handlePedal(67, 4, msg1, msg2, msg3);
+    handlePedal(68, 5, msg1, msg2, msg3);
+    handlePedal(69, 6, msg1, msg2, msg3);
 
     midisend(offset,msg1,msg2,msg3);
   )
