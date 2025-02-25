@@ -10,7 +10,6 @@ local AT  = require "modules/action_triggers"
 local MOD = require "modules/modifiers"
 
 local function ResolveOperationMode(look_for_action_triggers)
-  local bk                  = MOD.IsStepBackModifierKeyPressed()
   local mode                = S.getSetting("EditMode")
   local triggered_by_action = false
 
@@ -72,7 +71,6 @@ local function ResolveOperationMode(look_for_action_triggers)
   return {
     mode      = mode,
     alternate = D.ActionTriggers[mode].markerAlternate,
-    back      = bk,
     use_alt   = use_alt
   }
 end
