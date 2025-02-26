@@ -1,0 +1,220 @@
+-- @noindex
+-- @author Ben 'Talagan' Babut
+-- @license MIT
+-- @description This file is part of MaCCLane
+
+local os                            = reaper.GetOS()
+local is_windows                    = os:match('Win')
+
+local PerfContext = {
+    refdate      = reaper.time_precise(),
+    accum = {
+        frames  = 0,
+        time    = 0,
+        skipped = 0,
+        forced_redraws = 0
+    },
+    sec1        = {}
+}
+
+local function perf_accum()
+    return PerfContext.accum
+end
+
+local function perf_ms(func)
+    local t1 = reaper.time_precise()
+    func()
+    local t2 = reaper.time_precise()
+    -- Time diff in ms
+    local delta = 1000 * (t2 - t1)
+
+    PerfContext.accum.time      = PerfContext.accum.time + delta
+    PerfContext.accum.frames    = PerfContext.accum.frames + 1
+
+    if (t2 - PerfContext.refdate) >= 1.0 then
+        -- Save last second stats
+        PerfContext.sec1.total_ms       = PerfContext.accum.time
+        PerfContext.sec1.usage_perc     = PerfContext.sec1.total_ms * 0.1 -- / 1000 (s) * 100 (perc)
+
+        PerfContext.sec1.frames         = PerfContext.accum.frames
+        PerfContext.sec1.frame_avg_ms   = PerfContext.accum.time / PerfContext.accum.frames
+        PerfContext.sec1.skipped        = PerfContext.accum.skipped
+        PerfContext.sec1.forced_redraws = PerfContext.accum.forced_redraws
+
+        -- Reset counters
+        PerfContext.refdate         = t2
+        PerfContext.accum.frames    = 0
+        PerfContext.accum.time      = 0
+        PerfContext.accum.skipped   = 0
+        PerfContext.accum.forced_redraws = 0
+    end
+
+    return PerfContext
+end
+
+local function deepcopy(orig, copies)
+    copies = copies or {}
+    local orig_type = type(orig)
+    local copy
+    if orig_type == 'table' then
+        if copies[orig] then
+            copy = copies[orig]
+        else
+            copy = {}
+            copies[orig] = copy
+            for orig_key, orig_value in next, orig, nil do
+                copy[deepcopy(orig_key, copies)] = deepcopy(orig_value, copies)
+            end
+            setmetatable(copy, deepcopy(getmetatable(orig), copies))
+        end
+    else -- number, string, boolean, etc
+        copy = orig
+    end
+    return copy
+end
+
+local function drawUUID()
+    local template ='xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'
+    return string.gsub(template, '[xy]', function (c)
+        local v = (c == 'x') and  math.random(0, 0xf) or  math.random(8, 0xb)
+        return string.format('%x', v)
+    end)
+end
+
+local function screenCoordinatesToLocal(parentBounds, globalx, globaly)
+    local  localx = globalx - parentBounds.l
+    local  localy = globaly - parentBounds.b
+
+    if is_windows then
+        localy = -localy
+    end
+
+    return localx, localy
+end
+
+local function JS_Window_GetBounds(hwnd, full_window)
+
+    local func = (full_window and reaper.JS_Window_GetRect or reaper.JS_Window_GetClientRect)
+
+    local _, left, top, right, bottom = func( hwnd )
+
+    local h   = top - bottom
+
+    -- Under windows, vertical coordinates are flipped
+    -- Vertical ccordinates start with 0 at the top and the axis is vertical
+    if is_windows then
+        h = bottom - top
+    end
+
+    return {
+        hwnd = hwnd,
+        l = left,
+        t = top,
+        r = right,
+        b = bottom,
+        w = (right-left),
+        h = h
+    }
+end
+
+local function JS_Window_TopParent(hwnd)
+    local top    = hwnd
+    local parent = reaper.JS_Window_GetParent(hwnd)
+
+    while parent do
+        top = parent
+        parent = reaper.JS_Window_GetParent(top)
+    end
+
+    return top
+end
+
+local function JS_FindMidiEditorSysListView32(me)
+    local c, l = reaper.JS_Window_ListAllChild(me)
+
+    -- This one should be working but doesn't
+    -- return reaper.JS_Window_FindEx(me,me,"SysListView32","")
+
+    for token in string.gmatch(l, "[^,]+") do
+        local subhwnd = reaper.JS_Window_HandleFromAddress(token)
+        if not subhwnd then return end
+        local classn = reaper.JS_Window_GetClassName(subhwnd)
+        if classn == "SysListView32" then
+            return subhwnd
+        end
+    end
+
+    return nil
+end
+
+local function utf8sub(str, utf8_start, utf8_len)
+    local s = utf8.offset(str, utf8_start)
+    local e = utf8.offset(str, utf8_start + utf8_len) - 1
+    return string.sub(str, s, e)
+end
+
+
+-- Thanks @amagalma for this implementation !
+-- https://forum.cockos.com/showthread.php?p=2274097
+local function GetMIDIEditorHBounds(me)
+    if not me then return end
+
+    local midiview  = reaper.JS_Window_FindChildByID( me, 0x3E9 )
+    local _, width  = reaper.JS_Window_GetClientSize( midiview )
+    local take      = reaper.MIDIEditor_GetTake( me )
+    local guid      = reaper.BR_GetMediaItemTakeGUID( take )
+    local item      = reaper.GetMediaItemTake_Item( take )
+    local _, chunk  = reaper.GetItemStateChunk( item, "", false )
+
+    local guidfound, editviewfound = false, false
+    local leftmost_tick, hzoom, timebase
+
+    local function setvalue(a)
+        a = tonumber(a)
+        if not leftmost_tick then leftmost_tick = a
+        elseif not hzoom then hzoom = a
+        else timebase = a
+        end
+    end
+
+    -- Look for the good GUID (an item may have multiple takes, we need to find the right one)
+    for line in chunk:gmatch("[^\n]+") do
+        if line == "GUID " .. guid then
+            guidfound = true
+        end
+        if (not editviewfound) and guidfound then
+            if line:find("CFGEDITVIEW ") then
+                line:gsub("([%-%d%.]+)", setvalue, 2)
+                editviewfound = true
+            end
+        end
+        if editviewfound then
+            if line:find("CFGEDIT ") then
+                line:gsub("([%-%d%.]+)", setvalue, 19)
+                break
+            end
+        end
+    end
+
+    local start_time, end_time, HZoom = reaper.MIDI_GetProjTimeFromPPQPos(take, leftmost_tick)
+    if timebase == 0 or timebase == 4 then
+        end_time = reaper.MIDI_GetProjTimeFromPPQPos( take, leftmost_tick + (width-1)/hzoom)
+    else
+        end_time = start_time + (width-1)/hzoom
+    end
+    HZoom = (width)/(end_time - start_time)
+    return start_time, end_time, HZoom
+end
+
+return {
+    perf_ms                         = perf_ms,
+    perf_accum                      = perf_accum,
+    deepcopy                        = deepcopy,
+    drawUUID                        = drawUUID,
+    screenCoordinatesToLocal        = screenCoordinatesToLocal,
+    JS_Window_GetBounds             = JS_Window_GetBounds,
+    JS_Window_TopParent             = JS_Window_TopParent,
+    JS_FindMidiEditorSysListView32  = JS_FindMidiEditorSysListView32,
+    utf8sub                         = utf8sub,
+    GetMIDIEditorHBounds            = GetMIDIEditorHBounds
+}
