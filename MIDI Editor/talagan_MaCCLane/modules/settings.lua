@@ -3,7 +3,11 @@
 -- @license MIT
 -- @description This is part of MaCCLane
 
+local os                            = reaper.GetOS()
+local is_windows                    = os:match('Win')
+
 local SettingDefs = {
+  FontSize                  = { type = "int",     default = is_windows and 12 or 11, min = 8, max = 14 },
   UseDebugger               = { type = "bool",    default = false },
   UseProfiler               = { type = "bool",    default = false },
   TabMargin                 = { type = "int",     default = 10 },

@@ -11,6 +11,7 @@ local VELLANE         = require "modules/vellane"
 local CCLANELIST      = require "modules/cc_lane_list"
 local MIDI            = require "modules/midi"
 
+local ComboSearch     = require "classes/combo_search"
 local Tab             = require "classes/tab"
 
 local ImGui           = MACCLContext.ImGui
@@ -69,15 +70,28 @@ local function PushGreenStyle(ctx)
     ImGui.PushStyleColor(ctx, ImGui.Col_ButtonActive,   0x42FA66FF)
 end
 
-local function PopRedStyle(ctx)    ImGui.PopStyleColor(ctx, 3) end
-local function PopCyanStyle(ctx)   ImGui.PopStyleColor(ctx, 3) end
-local function PopGreenStyle(ctx)  ImGui.PopStyleColor(ctx, 3) end
-
 local function TT(ctx, str)
     if ImGui.IsItemHovered(ctx, ImGui.HoveredFlags_DelayNormal) then
       ImGui.SetTooltip(ctx, str)
     end
 end
+
+local function PopRedStyle(ctx)    ImGui.PopStyleColor(ctx, 3) end
+local function PopCyanStyle(ctx)   ImGui.PopStyleColor(ctx, 3) end
+local function PopGreenStyle(ctx)  ImGui.PopStyleColor(ctx, 3) end
+
+local function ReadButton(ctx, id, callback)
+    PushCyanStyle(ctx)
+    ImGui.PushStyleVar(ctx, ImGui.StyleVar_FramePadding, 0, 0)
+    local img = MACCLContext.GetImage("read")
+    if img and ImGui.ImageButton(ctx, id, img, 18, 18) then
+        callback()
+    end
+    ImGui.PopStyleVar(ctx)
+    PopCyanStyle(ctx)
+    TT(ctx, "Get value(s) from current's MIDI Editor state")
+end
+
 
 local function ClippedSeparatorText(ctx, str, width)
     local cx, cy = ImGui.GetCursorScreenPos(ctx)
@@ -348,12 +362,10 @@ function TabEditor:gfxDockingSection()
         ImGui.SetNextItemWidth(ctx, 64)
         _, params.size = ImGui.InputText(ctx, "##size", params.size) -- May be min, max, number or nothing (bypass)
 
-        ImGui.SameLine(ctx);ImGui.SetCursorPosY(ctx, ImGui.GetCursorPosY(ctx)-3);
-        PushCyanStyle(ctx)
-        if ImGui.Button(ctx, " R ##read_button") then
+        ImGui.SameLine(ctx);ImGui.SetCursorPosY(ctx, ImGui.GetCursorPosY(ctx)-3)
+        ReadButton(ctx, "##read_button", function()
             tab:readDockHeight()
-        end
-        PopCyanStyle(ctx)
+        end)
     end
     ImGui.EndGroup(ctx)
     ImGui.PopID(ctx)
@@ -387,11 +399,9 @@ function TabEditor:gfxDockingSection()
         _, params.coords.h = ImGui.InputText(ctx, "##h", params.coords.h) -- May be empty (bypass)
 
         ImGui.SameLine(ctx);ImGui.SetCursorPosY(ctx, ImGui.GetCursorPosY(ctx)-3);
-        PushCyanStyle(ctx)
-        if ImGui.Button(ctx, " R ##read_button") then
+        ReadButton(ctx, "##read_button", function()
             tab:readWindowBounds()
-        end
-        PopCyanStyle(ctx)
+        end)
     end
 
     ImGui.EndGroup(ctx)
@@ -531,6 +541,78 @@ function TabEditor:readCCLanePopup()
     end
 end
 
+function TabEditor:ccLaneComboBox(ctx, cc_lane_entry)
+
+    local entry_label           = function(e)
+        return e.text .. "##cc_lane_combo_entry_" .. e.num
+    end
+
+    local mec                   = self.mec
+    local v                     = cc_lane_entry
+    local selected_entry        = CCLANELIST.comboEntry(v.num, mec)
+    local selected_lane_txt     = entry_label(selected_entry)
+
+    ImGui.SetNextItemWidth(ctx,230)
+    if ImGui.BeginCombo(ctx, "##cc_lane_combo", selected_lane_txt, ImGui.ComboFlags_HeightLarge) then
+        local cb = CCLANELIST.comboForMec(mec)
+
+        local searchfunc = function(user_input)
+            local match_num = user_input:match("^%d+$")
+
+            if match_num then
+                local ccnum = tonumber(match_num)
+                if ccnum >= -1 and ccnum <= 127 then
+                    for li, lv in ipairs(cb) do
+                        if ccnum == lv.num then return li end
+                    end
+                end
+            end
+
+            for li, lv in ipairs(cb) do
+                if lv.text:lower():match(user_input) then
+                    return li
+                end
+            end
+
+            return nil
+        end
+
+        if not self.cc_lane_search_ctx  then
+            self.cc_lane_search_ctx  = ComboSearch:new(searchfunc)
+        end
+
+        local val = self.cc_lane_search_ctx:apply(ctx)
+        if val then v.num = cb[val].num end
+
+        for cbi, cbv in ipairs(cb) do
+            local is_selected = false
+            if self.cc_lane_search_ctx.num then
+              if self.cc_lane_search_ctx.num == cbi then
+                is_selected = true
+              end
+            else
+              is_selected = (cbv.num == v.num)
+            end
+
+            local label = entry_label(cbv)
+            if ImGui.Selectable(ctx, label, is_selected) then
+                v.num = cbv.num
+            end
+
+            if is_selected then
+                ImGui.SetItemDefaultFocus(ctx)
+                self.cc_lane_search_ctx:scrollUpdate(ctx, cbi)
+            end
+
+            TT(ctx, "REAPER's lane number : " .. cbv.num)
+        end
+
+        ImGui.EndCombo(ctx)
+    else
+        self.cc_lane_search_ctx = nil
+    end
+end
+
 
 function TabEditor:gfxCCLaneSection()
     local mec               = self.mec
@@ -614,34 +696,8 @@ function TabEditor:gfxCCLaneSection()
                 -- This should be done after the first column because we want all first cells to have the same ID for the drag and drop to work.
                 ImGui.PushID(ctx, "cc_lane_entry_" .. n)
                 ImGui.TableNextColumn(ctx);
+                self:ccLaneComboBox(ctx, v)
 
-                local entry_label           = function(e)
-                    return e.text .. "##cc_lane_combo_entry_" .. n .. "_" .. e.num
-                end
-
-                local track                 = meinfo.track
-                local selected_entry        = CCLANELIST.comboEntry(v.num, mec)
-                local selected_lane_txt     = entry_label(selected_entry)
-
-                ImGui.SetNextItemWidth(ctx,230)
-                if ImGui.BeginCombo(ctx, "##cc_lane_combo_" .. n, selected_lane_txt, ImGui.ComboFlags_HeightLarge) then
-                    local cb = CCLANELIST.comboForMec(mec)
-                    for cbi, cbv in ipairs(cb) do
-                        local is_selected =  (cbv.num == v.num)
-                        local label       =  entry_label(cbv)
-                        if ImGui.Selectable(ctx, label, is_selected) then
-                            v.num = cbv.num
-                        end
-
-                        if is_selected then
-                            ImGui.SetItemDefaultFocus(ctx)
-                        end
-
-                        TT(ctx, "REAPER's lane number : " .. cbv.num)
-                    end
-
-                    ImGui.EndCombo(ctx)
-                end
 
                 ImGui.TableNextColumn(ctx)
                 ImGui.SetNextItemWidth(ctx, 50)
@@ -710,20 +766,17 @@ function TabEditor:gfxCCLaneSection()
             end
         end
 
-        local tablew, _ = ImGui.GetItemRectSize(ctx)
-
-        PushCyanStyle(ctx)
-        if ImGui.Button(ctx, "R ...##get") then
-            ImGui.OpenPopup(ctx, "get_cc_lane_popup")
-        end
-        PopCyanStyle(ctx)
-
-        ImGui.SameLine(ctx,  tablew - 25)
         PushCyanStyle(ctx)
         if ImGui.Button(ctx, " + ##cc_lane_add") then
             entries[#entries+1] = VELLANE.newVirginVellane(1)
         end
         PopCyanStyle(ctx)
+
+        ImGui.SameLine(ctx)
+
+        ReadButton(ctx, "##get", function()
+            ImGui.OpenPopup(ctx, "get_cc_lane_popup")
+        end)
 
         self:readCCLanePopup()
     end
@@ -848,15 +901,11 @@ function TabEditor:gfxActionSection()
             end
         end
 
-        local tablew, _ = ImGui.GetItemRectSize(ctx)
-
-        ImGui.Text(ctx, '')
-        ImGui.SameLine(ctx, tablew - 25)
         PushCyanStyle(ctx)
         if ImGui.Button(ctx, " + ##add_new_entry") then
             entries[#entries+1] = {
                 id      = 0,
-                section = 'main',
+                section = 'midi_editor',
                 when    = 'after'
             }
         end
@@ -916,11 +965,9 @@ function TabEditor:gfxPianoRollSection()
 
 
             ImGui.TableNextColumn(ctx)
-            PushCyanStyle(ctx)
-            if ImGui.Button(ctx, " R ##get_high") then
+            ReadButton(ctx, "##get_high", function()
                 tab:readCurrentPianoRollHighNote()
-            end
-            PopCyanStyle(ctx)
+            end)
 
             ImGui.PushTabStop(ctx, false)
             ImGui.TableNextColumn(ctx)
@@ -945,11 +992,9 @@ function TabEditor:gfxPianoRollSection()
             ImGui.Text(ctx, MIDI.noteName(params.low_note))
 
             ImGui.TableNextColumn(ctx)
-            PushCyanStyle(ctx)
-            if ImGui.Button(ctx, " R ##get_low") then
+            ReadButton(ctx, "##get_low", function()
                 tab:readCurrentPianoRollLowNote()
-            end
-            PopCyanStyle(ctx)
+            end)
 
             ImGui.EndTable(ctx)
         end
@@ -1033,11 +1078,9 @@ function TabEditor:gfxMidiChanSection()
             end
 
             ImGui.TableNextColumn(ctx)
-            PushCyanStyle(ctx)
-            if ImGui.Button(ctx, " R ##read_chans") then
+            ReadButton(ctx, "##read_midi_chans_button", function()
                 tab:readMidiChans()
-            end
-            PopCyanStyle(ctx)
+            end)
 
             ImGui.EndTable(ctx)
         end

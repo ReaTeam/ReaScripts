@@ -1,19 +1,22 @@
 --[[
 @description MaCCLane : Tabs for the MIDI Editor
-@version 0.1.0
+@version 0.1.1
 @author Ben 'Talagan' Babut
 @license MIT
 @donation https://www.paypal.com/donate/?business=3YEZMY9D6U8NC&no_recurring=1&currency_code=EUR
 @links
   Forum Thread : https://forum.cockos.com/showthread.php?t=298707
 @changelog
-  - Initial version
+  - Moved '+' buttons in tab editor to the left (thanks @Seventh Sam)
+  - Fixed wrong colors for track and item tabs under windows / native endianess problem (thanks @Seventh Sam)
+  - Added font size configuration (thanks @Seventh Sam)
+  - New action entries will propose "MIDI Editor" by default (thanks @Seventh Sam)
+  - Replaced "Overload" by "Override" in the UI, less confusing (thanks @Seventh Sam)
+  - Added search to CC Lane Combo boxes (thanks @Seventh Sam)
 @provides
   [main=main] .
   [nomain] talagan_MaCCLane/**/*.lua
   [data] talagan_MaCCLane/data/_PUT_YOUR_MACCLANE_TEMPLATES_HERE.md > MaCCLane/
-@changelog
-  - Initial version
 @about
   # Purpose
 
