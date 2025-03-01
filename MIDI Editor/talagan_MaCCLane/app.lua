@@ -3,8 +3,6 @@
 -- @license MIT
 -- @description This file is part of MaCCLane
 
-local Version             = '0.2'
-
 -- Functions and defines
 local UTILS               = require "modules/utils"
 
@@ -75,17 +73,13 @@ local function needsImGuiContext()
   return TabEditor.needsImGuiContext() or TabPopupMenu.needsImGuiContext() or SettingsWindow.needsImGuiContext()
 end
 
-
 local function ImGuiLoop()
   -- It takes like 1% CPU to maintain the ImGui ctx alive without any windows open
   -- So we will create it only if needed and close it only if needed
   if needsImGuiContext() then
-    if not MACCLContext.ImGuiContext then
-      MACCLContext.ImGuiContext = ImGui.CreateContext('MaCCLane', ImGui.ConfigFlags_NavEnableKeyboard)
-    end
+    MACCLContext.EnsureImGuiCtx()
   else
-    -- Because the context will not be used this frame, it will be destroyed.
-    MACCLContext.ImGuiContext = nil
+    MACCLContext.DropImGuiCtx()
   end
 
   -- Show all tab editors
@@ -204,8 +198,7 @@ local function run(args)
 
     -- Define cleanup callbacks
     reaper.atexit(function()
-        reaper.JS_LICE_DestroyFont(MACCLContext.lice_font)
-        reaper.JS_GDI_DeleteObject(MACCLContext.gdi_font)
+        MACCLContext.destroyFont()
         for addr, mec in pairs(MEContext.all()) do
             mec:implode()
         end

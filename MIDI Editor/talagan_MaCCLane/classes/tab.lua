@@ -111,7 +111,7 @@ function Tab:_sanitize()
   self.params.actions.entries       = self.params.actions.entries  or {}
 
   for i,v in pairs(self.params.actions.entries) do
-    v.section = v.section or 'main'
+    v.section = v.section or 'midi_editor'
     v.id      = v.id or 0
     v.when    = v.when or 'after'
   end
@@ -258,7 +258,15 @@ function Tab:height()
 end
 
 function Tab:textHeight()
-  return 15
+  local fs = S.getSetting("FontSize")
+  if fs == 8 then return 10
+  elseif fs == 9 then return 11
+  elseif fs == 10 then return 13
+  elseif fs == 11 then return 13
+  elseif fs == 12 then return 14
+  elseif fs == 13 then return 15
+  elseif fs == 14 then return 17
+  end
 end
 
 function Tab:colors(mec, is_hovered)
@@ -267,19 +275,23 @@ function Tab:colors(mec, is_hovered)
   local tabcol    = 0xFFFFFFFF -- reaper.GetThemeColor("docker_unselface") | 0xFF000000
 
   if self.params.color.mode == 'overload' then
-    tabcol = self.params.color.color | 0xFF00000000
+    tabcol = self.params.color.color | 0xFF000000
   else
     if tab_type == Tab.Types.TRACK then
       local  take = reaper.MIDIEditor_GetTake(mec.me)
       if take then
-        local track = reaper.GetMediaItemTake_Track(take)
-        tabcol = reaper.GetTrackColor(track) | 0xFF000000
+        local track   = reaper.GetMediaItemTake_Track(take)
+        local natcol  = reaper.GetTrackColor(track)
+        local r,g,b   = reaper.ColorFromNative(natcol)
+        tabcol = 0xFF000000 | (r << 16) | (g << 8) | b
       end
     elseif tab_type == Tab.Types.ITEM then
       local  take = reaper.MIDIEditor_GetTake(mec.me)
       if take then
-        local item = reaper.GetMediaItemTake_Item(take)
-        tabcol = reaper.GetMediaItemInfo_Value(item, "I_CUSTOMCOLOR") | 0xFF000000
+        local item    = reaper.GetMediaItemTake_Item(take)
+        local natcol  = reaper.GetMediaItemInfo_Value(item, "I_CUSTOMCOLOR")
+        local r,g,b   = reaper.ColorFromNative(natcol)
+        tabcol = 0xFF000000 | (r << 16) | (g << 8) | b
       end
     elseif tab_type == Tab.Types.PLUS_TAB then
       tabcol = 0xFFFFFFFF
@@ -347,10 +359,10 @@ function Tab:draw(mec, x)
   local fullh   = self.fullh
 
   -- Position for drawing text
-  local tx, ty  = self.last_x + math.floor(0.5 * (fullw - tw)), 3
+  local tx, ty  = self.last_x + math.floor(0.5 * (fullw - tw)), math.floor( (fullh - th) * 0.5 + 0.5)
 
   local tlen    = #text
-  local font    = MACCLContext.lice_font
+  local font    = MACCLContext.LiceFont()
 
   self.last_draw_global_x, self.last_draw_global_y = reaper.JS_Window_ClientToScreen(mec.me, self.last_x + mec.xpos - mec.scrollOffset, self.last_y + mec.ypos)
 

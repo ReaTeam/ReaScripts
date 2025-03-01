@@ -107,6 +107,7 @@ function SettingsWindow:gfx()
 
         ImGui.SameLine(ctx)
 
+        ImGui.BeginGroup(ctx)
         ImGui.SetNextItemWidth(ctx, 80)
         local b, v = ImGui.SliderInt(ctx, "Widget margin", S.getSetting("WidgetMargin"), 0, 20, "%d px")
         if b then
@@ -117,6 +118,20 @@ function SettingsWindow:gfx()
             S.resetSetting("WidgetMargin")
             MACCLContext.notifySettingsChange()
         end
+        ImGui.SetNextItemWidth(ctx, 80)
+        local b, v = ImGui.SliderInt(ctx, "Font Size", S.getSetting("FontSize"), S.getSettingSpec("FontSize").min, S.getSettingSpec("FontSize").max, "%d px")
+        if b then
+            S.setSetting("FontSize", v)
+            MACCLContext.recreateFont(v)
+            MACCLContext.notifySettingsChange()
+        end
+        if ImGui.IsItemClicked(ctx, ImGui.MouseButton_Right) then
+            S.resetSetting("FontSize")
+            MACCLContext.recreateFont(S.getSetting("FontSize"))
+            MACCLContext.notifySettingsChange()
+        end
+
+        ImGui.EndGroup(ctx)
 
         ImGui.SeparatorText(ctx, "Tab order")
 

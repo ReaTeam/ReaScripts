@@ -12,12 +12,12 @@ local generic_mode_def = {
 
 local color_mode_def = {
     { name = 'bypass',      human = "Bypass" },
-    { name = 'overload',    human = "Overload" },
+    { name = 'overload',    human = "Override" },
 }
 
 local margin_mode_def = {
     { name = 'bypass',      human = "Bypass" },
-    { name = 'overload',    human = "Overload" },
+    { name = 'overload',    human = "Override" },
 }
 
 local piano_roll_def = {
