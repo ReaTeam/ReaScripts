@@ -37,11 +37,11 @@ function AddTabTab:isRound()
     return true
 end
 
-function AddTabTab:onLeftClick(mec, x, y)
+function AddTabTab:onLeftClick(mec, click_params)
     mec:openEditorForNewTab(self)
 end
 
-function AddTabTab:onRightClick(mec, x, y)
+function AddTabTab:onRightClick(mec)
     mec:openTabContextMenuOn(self)
 end
 

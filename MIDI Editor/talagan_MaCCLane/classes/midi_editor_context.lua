@@ -72,6 +72,18 @@ function MEContext:hasPendingMouseEvents()
     return false
 end
 
+function MEContext:hasPendingTabAnimations()
+    local now  = nil 
+    local tabs = self:tabs()
+
+    for _, tab in ipairs(tabs) do
+        if tab.highlight_until then
+            return true
+        end
+    end
+    return false
+end
+
 -- Returns the viewport metrics
 -- I.E. the zone where the widget will sit
 function MEContext:getViewportMetrics()
@@ -317,6 +329,13 @@ function MEContext:onScroll()
     pc.handled = true
 end
 
+-- Tests if tabs have some changes that need a complete reload from the project/track/item
+-- This will recalculate the local tab cache for the MEContext and trigger a redraw
+-- This may happen
+-- if the current active take changes (completely different context)
+-- Or when the global settings ask for it (on change - maybe it's a bit overkill, a simple redraw would be enough in most cases)
+-- Or when tabs where never loaded (lastTabLoad date is nil)
+-- Or when there was a tab save / delete
 function MEContext:tabsNeedReload()
     return self.pending_take_change or self.pending_settings_change or not self.lastTabLoad or not (MACCLContext.lastTabSavedAt == self.lastTabLoad)
 end
@@ -433,11 +452,15 @@ function MEContext:update(is_fresh)
 
     local shouldRedraw = shouldRecomposite
 
-    -- Force a redraw when the hover state changes
-    if mec.has_tab_hover_change or mec:hasPendingMouseEvents() or mec.bounds_changed or MACCLContext.force_redraw then
+    -- Force a redraw on all those conditions :
+    if mec.has_tab_hover_change or
+        mec.bounds_changed or
+        MACCLContext.force_redraw or
+        mec:hasPendingMouseEvents() or
+        mec:hasPendingTabAnimations() then
         shouldRedraw = true
     end
-
+    
     if shouldRedraw then
         mec:redraw()
     end

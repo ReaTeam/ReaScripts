@@ -14,7 +14,8 @@ local SettingDefs = {
   TabSpacing                = { type = "int",     default = 2 },
   WidgetMargin              = { type = "int",     default = 15 },
   SortStrategy              = { type = "string",  default = "pti_prio" },
-  DefaultOwnerTypeForNewTab = { type = "string",  default = "track" }
+  DefaultOwnerTypeForNewTab = { type = "string",  default = "track" },
+  QueuedAction              = { type = "string",  default = nil }
 };
 
 local function unsafestr(str)

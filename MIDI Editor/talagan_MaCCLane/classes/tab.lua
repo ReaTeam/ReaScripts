@@ -56,6 +56,7 @@ function Tab:_sanitize()
 
   self.params.title             = self.params.title or "???"
 
+  self.params.role              = self.params.role or ''
   self.params.priority          = self.params.priority or 0
 
   self.params.color             = self.params.color or {}
@@ -118,7 +119,7 @@ function Tab:_sanitize()
 end
 
 -- Mark the record as non dirty
--- and snapshot clean states
+-- Used after save to acknowledge pending states as real states
 function Tab:undirty()
   self.owner_before_save      = self.owner
   self.owner_type_before_save = self.owner_type
@@ -142,7 +143,6 @@ function Tab:setOwner(entity)
     error("Trying to set wrong owner to tab")
   end
 end
-
 
 function Tab:isOwnerStillValid()
   if self.owner_type == Tab.Types.PROJECT then return true end
@@ -259,8 +259,8 @@ end
 
 function Tab:textHeight()
   local fs = S.getSetting("FontSize")
-  if fs == 8 then return 10
-  elseif fs == 9 then return 11
+  if     fs == 8  then return 10
+  elseif fs == 9  then return 11
   elseif fs == 10 then return 13
   elseif fs == 11 then return 13
   elseif fs == 12 then return 14
@@ -270,7 +270,17 @@ function Tab:textHeight()
 end
 
 function Tab:colors(mec, is_hovered)
-  local alpha     = (is_hovered and 1.0 or 0.5)
+
+  local sanim = 0
+  if self.highlight_until then
+    local xanim = (reaper.time_precise() - self.last_clicked_at) / (self.highlight_until - self.last_clicked_at)
+    if xanim > 1 then xanim = 1 end
+    sanim = 0.5 * (1 + math.sin(4 * math.pi * xanim - math.pi / 2))
+  end
+
+  local alpha     = (is_hovered and 1.0 or 0.5) + (sanim * 0.5)
+  if alpha > 1 then alpha = 1 end
+
   local tab_type  = self.owner_type
   local tabcol    = 0xFFFFFFFF -- reaper.GetThemeColor("docker_unselface") | 0xFF000000
 
@@ -344,7 +354,6 @@ function Tab:update(mec, x)
   self.fullw   = self:width()
 end
 
-
 function Tab:draw(mec, x)
 
   self:update(mec, x)
@@ -382,11 +391,15 @@ function Tab:draw(mec, x)
   -- It looks like rawtext needs a bit more latitude than what is given ... empiric values for w/h
   reaper.JS_LICE_DrawText(mec.bitmap, font, text, tlen , tx, ty, tx+tw+5, ty+th*2)
 
+  if self.highlight_until and self.highlight_until < reaper.time_precise() then
+    self.highlight_until = nil
+  end
+
   -- Handle left click
   local pc = mec.pending_left_click
   if pc and self:pointIntab(mec.pending_left_click.x, mec.pending_left_click.y) then
     pc.handled = true
-    self:onLeftClick(mec, mec.pending_left_click.x, mec.pending_left_click.y)
+    self:onLeftClick(mec)
   end
 
   -- Handle right click
@@ -605,7 +618,14 @@ function Tab:_processPianoRoll()
   end
 end
 
-function Tab:_protectedLeftClick(mec, x, y)
+function Tab:_protectedLeftClick(mec, click_params)
+  click_params = click_params or {}
+
+  if click_params.highlight then
+    self.highlight_until = reaper.time_precise() + click_params.highlight
+  end
+  self.last_clicked_at = reaper.time_precise()
+
   -- Start by executing pre-actions
   if self.params.actions.mode == 'custom' then
     self:_executeActions('before')
@@ -623,15 +643,13 @@ function Tab:_protectedLeftClick(mec, x, y)
   end
 end
 
-function Tab:onLeftClick(mec, x, y)
+function Tab:onLeftClick(mec, click_params)
   if not mec.item then return end
 
-  local tab = self
-
-  local b, err = pcall(Tab._protectedLeftClick, self, mec, x, y)
+  local b, err = pcall(Tab._protectedLeftClick, self, mec, click_params)
   if not b then
     -- Unfortunately, pcall is not sufficient if the crash happens inside Main_OnCommand
-    -- The problem is that call subssequent calls to reaper will fail, so afterwards
+    -- The problem is that subssequent calls to reaper.defer will fail, so afterwards
     -- MaCCLane will quit silently and I don't have a solution yet
     reaper.MB("Something nasty happend with this tab. Please check the console for more info", "Ouch !", 0)
     reaper.ShowConsoleMsg(err .. '\n\nTrace :\n\n' .. debug.traceback())
