@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="748c12c6622c37bec9226ea24e9593f21e464c3d" name="ReaTeam Scripts">
+<index version="1" commit="24fbd482e259e18b9906d9c2f874ee2af0fb69c5" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -14714,6 +14714,50 @@ Made by Mordi, Jan 2016]]></changelog>
         <source main="main midi_editor" file="talagan_MaCCLane Launch tab by role FooRole.lua">https://github.com/ReaTeam/ReaScripts/raw/748c12c6622c37bec9226ea24e9593f21e464c3d/MIDI%20Editor/talagan_MaCCLane/actions/generic_action.lua</source>
         <source main="main midi_editor" file="talagan_MaCCLane Launch tab by name BarName.lua">https://github.com/ReaTeam/ReaScripts/raw/748c12c6622c37bec9226ea24e9593f21e464c3d/MIDI%20Editor/talagan_MaCCLane/actions/generic_action.lua</source>
         <source type="data" file="MaCCLane/_PUT_YOUR_MACCLANE_TEMPLATES_HERE.md">https://github.com/ReaTeam/ReaScripts/raw/748c12c6622c37bec9226ea24e9593f21e464c3d/MIDI%20Editor/talagan_MaCCLane/data/_PUT_YOUR_MACCLANE_TEMPLATES_HERE.md</source>
+      </version>
+      <version name="0.1.3" author="Ben 'Talagan' Babut" time="2025-03-02T22:06:24Z">
+        <changelog><![CDATA[- [Bug Fix] CC Lane combobox search was not working if multiple CC lanes are present in the table (thanks @SeventhSam !)
+- [Bug Fix] CC lane combobox search not working with upper case char input
+- [bug Fix] Launch Tab by number actions could trigger the '+' tab (thanks @SeventhSam)]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/24fbd482e259e18b9906d9c2f874ee2af0fb69c5/MIDI%20Editor/talagan_MaCCLane.lua</source>
+        <source file="talagan_MaCCLane/classes/add_tab_tab.lua">https://github.com/ReaTeam/ReaScripts/raw/24fbd482e259e18b9906d9c2f874ee2af0fb69c5/MIDI%20Editor/talagan_MaCCLane/classes/add_tab_tab.lua</source>
+        <source file="talagan_MaCCLane/classes/combo_search.lua">https://github.com/ReaTeam/ReaScripts/raw/24fbd482e259e18b9906d9c2f874ee2af0fb69c5/MIDI%20Editor/talagan_MaCCLane/classes/combo_search.lua</source>
+        <source file="talagan_MaCCLane/classes/enum.lua">https://github.com/ReaTeam/ReaScripts/raw/24fbd482e259e18b9906d9c2f874ee2af0fb69c5/MIDI%20Editor/talagan_MaCCLane/classes/enum.lua</source>
+        <source file="talagan_MaCCLane/classes/midi_editor_context.lua">https://github.com/ReaTeam/ReaScripts/raw/24fbd482e259e18b9906d9c2f874ee2af0fb69c5/MIDI%20Editor/talagan_MaCCLane/classes/midi_editor_context.lua</source>
+        <source file="talagan_MaCCLane/classes/settings_window.lua">https://github.com/ReaTeam/ReaScripts/raw/24fbd482e259e18b9906d9c2f874ee2af0fb69c5/MIDI%20Editor/talagan_MaCCLane/classes/settings_window.lua</source>
+        <source file="talagan_MaCCLane/classes/tab.lua">https://github.com/ReaTeam/ReaScripts/raw/24fbd482e259e18b9906d9c2f874ee2af0fb69c5/MIDI%20Editor/talagan_MaCCLane/classes/tab.lua</source>
+        <source file="talagan_MaCCLane/classes/tab_editor.lua">https://github.com/ReaTeam/ReaScripts/raw/24fbd482e259e18b9906d9c2f874ee2af0fb69c5/MIDI%20Editor/talagan_MaCCLane/classes/tab_editor.lua</source>
+        <source file="talagan_MaCCLane/classes/tab_popup_menu.lua">https://github.com/ReaTeam/ReaScripts/raw/24fbd482e259e18b9906d9c2f874ee2af0fb69c5/MIDI%20Editor/talagan_MaCCLane/classes/tab_popup_menu.lua</source>
+        <source file="talagan_MaCCLane/ext/dependencies.lua">https://github.com/ReaTeam/ReaScripts/raw/24fbd482e259e18b9906d9c2f874ee2af0fb69c5/MIDI%20Editor/talagan_MaCCLane/ext/dependencies.lua</source>
+        <source file="talagan_MaCCLane/images/read.lua">https://github.com/ReaTeam/ReaScripts/raw/24fbd482e259e18b9906d9c2f874ee2af0fb69c5/MIDI%20Editor/talagan_MaCCLane/images/read.lua</source>
+        <source file="talagan_MaCCLane/lib/json.lua">https://github.com/ReaTeam/ReaScripts/raw/24fbd482e259e18b9906d9c2f874ee2af0fb69c5/MIDI%20Editor/talagan_MaCCLane/lib/json.lua</source>
+        <source file="talagan_MaCCLane/modules/action_interface.lua">https://github.com/ReaTeam/ReaScripts/raw/24fbd482e259e18b9906d9c2f874ee2af0fb69c5/MIDI%20Editor/talagan_MaCCLane/modules/action_interface.lua</source>
+        <source file="talagan_MaCCLane/modules/actions.lua">https://github.com/ReaTeam/ReaScripts/raw/24fbd482e259e18b9906d9c2f874ee2af0fb69c5/MIDI%20Editor/talagan_MaCCLane/modules/actions.lua</source>
+        <source file="talagan_MaCCLane/modules/cc_lane_list.lua">https://github.com/ReaTeam/ReaScripts/raw/24fbd482e259e18b9906d9c2f874ee2af0fb69c5/MIDI%20Editor/talagan_MaCCLane/modules/cc_lane_list.lua</source>
+        <source file="talagan_MaCCLane/modules/chunk.lua">https://github.com/ReaTeam/ReaScripts/raw/24fbd482e259e18b9906d9c2f874ee2af0fb69c5/MIDI%20Editor/talagan_MaCCLane/modules/chunk.lua</source>
+        <source file="talagan_MaCCLane/modules/context.lua">https://github.com/ReaTeam/ReaScripts/raw/24fbd482e259e18b9906d9c2f874ee2af0fb69c5/MIDI%20Editor/talagan_MaCCLane/modules/context.lua</source>
+        <source file="talagan_MaCCLane/modules/debug.lua">https://github.com/ReaTeam/ReaScripts/raw/24fbd482e259e18b9906d9c2f874ee2af0fb69c5/MIDI%20Editor/talagan_MaCCLane/modules/debug.lua</source>
+        <source file="talagan_MaCCLane/modules/file.lua">https://github.com/ReaTeam/ReaScripts/raw/24fbd482e259e18b9906d9c2f874ee2af0fb69c5/MIDI%20Editor/talagan_MaCCLane/modules/file.lua</source>
+        <source file="talagan_MaCCLane/modules/log.lua">https://github.com/ReaTeam/ReaScripts/raw/24fbd482e259e18b9906d9c2f874ee2af0fb69c5/MIDI%20Editor/talagan_MaCCLane/modules/log.lua</source>
+        <source file="talagan_MaCCLane/modules/midi.lua">https://github.com/ReaTeam/ReaScripts/raw/24fbd482e259e18b9906d9c2f874ee2af0fb69c5/MIDI%20Editor/talagan_MaCCLane/modules/midi.lua</source>
+        <source file="talagan_MaCCLane/modules/piano_roll.lua">https://github.com/ReaTeam/ReaScripts/raw/24fbd482e259e18b9906d9c2f874ee2af0fb69c5/MIDI%20Editor/talagan_MaCCLane/modules/piano_roll.lua</source>
+        <source file="talagan_MaCCLane/modules/serializing.lua">https://github.com/ReaTeam/ReaScripts/raw/24fbd482e259e18b9906d9c2f874ee2af0fb69c5/MIDI%20Editor/talagan_MaCCLane/modules/serializing.lua</source>
+        <source file="talagan_MaCCLane/modules/settings.lua">https://github.com/ReaTeam/ReaScripts/raw/24fbd482e259e18b9906d9c2f874ee2af0fb69c5/MIDI%20Editor/talagan_MaCCLane/modules/settings.lua</source>
+        <source file="talagan_MaCCLane/modules/tab_params.lua">https://github.com/ReaTeam/ReaScripts/raw/24fbd482e259e18b9906d9c2f874ee2af0fb69c5/MIDI%20Editor/talagan_MaCCLane/modules/tab_params.lua</source>
+        <source file="talagan_MaCCLane/modules/utils.lua">https://github.com/ReaTeam/ReaScripts/raw/24fbd482e259e18b9906d9c2f874ee2af0fb69c5/MIDI%20Editor/talagan_MaCCLane/modules/utils.lua</source>
+        <source file="talagan_MaCCLane/modules/vellane.lua">https://github.com/ReaTeam/ReaScripts/raw/24fbd482e259e18b9906d9c2f874ee2af0fb69c5/MIDI%20Editor/talagan_MaCCLane/modules/vellane.lua</source>
+        <source file="talagan_MaCCLane/app.lua">https://github.com/ReaTeam/ReaScripts/raw/24fbd482e259e18b9906d9c2f874ee2af0fb69c5/MIDI%20Editor/talagan_MaCCLane/app.lua</source>
+        <source main="main midi_editor" file="talagan_MaCCLane Launch tab by number 1.lua">https://github.com/ReaTeam/ReaScripts/raw/24fbd482e259e18b9906d9c2f874ee2af0fb69c5/MIDI%20Editor/talagan_MaCCLane/actions/generic_action.lua</source>
+        <source main="main midi_editor" file="talagan_MaCCLane Launch tab by number 2.lua">https://github.com/ReaTeam/ReaScripts/raw/24fbd482e259e18b9906d9c2f874ee2af0fb69c5/MIDI%20Editor/talagan_MaCCLane/actions/generic_action.lua</source>
+        <source main="main midi_editor" file="talagan_MaCCLane Launch tab by number 3.lua">https://github.com/ReaTeam/ReaScripts/raw/24fbd482e259e18b9906d9c2f874ee2af0fb69c5/MIDI%20Editor/talagan_MaCCLane/actions/generic_action.lua</source>
+        <source main="main midi_editor" file="talagan_MaCCLane Launch tab by number 4.lua">https://github.com/ReaTeam/ReaScripts/raw/24fbd482e259e18b9906d9c2f874ee2af0fb69c5/MIDI%20Editor/talagan_MaCCLane/actions/generic_action.lua</source>
+        <source main="main midi_editor" file="talagan_MaCCLane Launch tab by number 5.lua">https://github.com/ReaTeam/ReaScripts/raw/24fbd482e259e18b9906d9c2f874ee2af0fb69c5/MIDI%20Editor/talagan_MaCCLane/actions/generic_action.lua</source>
+        <source main="main midi_editor" file="talagan_MaCCLane Launch tab by number 6.lua">https://github.com/ReaTeam/ReaScripts/raw/24fbd482e259e18b9906d9c2f874ee2af0fb69c5/MIDI%20Editor/talagan_MaCCLane/actions/generic_action.lua</source>
+        <source main="main midi_editor" file="talagan_MaCCLane Launch tab by number 7.lua">https://github.com/ReaTeam/ReaScripts/raw/24fbd482e259e18b9906d9c2f874ee2af0fb69c5/MIDI%20Editor/talagan_MaCCLane/actions/generic_action.lua</source>
+        <source main="main midi_editor" file="talagan_MaCCLane Launch tab by number 8.lua">https://github.com/ReaTeam/ReaScripts/raw/24fbd482e259e18b9906d9c2f874ee2af0fb69c5/MIDI%20Editor/talagan_MaCCLane/actions/generic_action.lua</source>
+        <source main="main midi_editor" file="talagan_MaCCLane Launch tab by role FooRole.lua">https://github.com/ReaTeam/ReaScripts/raw/24fbd482e259e18b9906d9c2f874ee2af0fb69c5/MIDI%20Editor/talagan_MaCCLane/actions/generic_action.lua</source>
+        <source main="main midi_editor" file="talagan_MaCCLane Launch tab by name BarName.lua">https://github.com/ReaTeam/ReaScripts/raw/24fbd482e259e18b9906d9c2f874ee2af0fb69c5/MIDI%20Editor/talagan_MaCCLane/actions/generic_action.lua</source>
+        <source type="data" file="MaCCLane/_PUT_YOUR_MACCLANE_TEMPLATES_HERE.md">https://github.com/ReaTeam/ReaScripts/raw/24fbd482e259e18b9906d9c2f874ee2af0fb69c5/MIDI%20Editor/talagan_MaCCLane/data/_PUT_YOUR_MACCLANE_TEMPLATES_HERE.md</source>
       </version>
     </reapack>
     <reapack name="talagan_OneSmallStep.lua" type="script" desc="One Small Step : Alternative Step Input">
