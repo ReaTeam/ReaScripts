@@ -5,6 +5,7 @@
 
 -- Functions and defines
 local UTILS               = require "modules/utils"
+local ACTIONS             = require "modules/actions"
 
 -- Core
 local MACCLContext        = require "modules/context"
@@ -14,10 +15,6 @@ local MEContext           = require "classes/midi_editor_context"
 local TabEditor           = require "classes/tab_editor"
 local TabPopupMenu        = require "classes/tab_popup_menu"
 local SettingsWindow      = require "classes/settings_window"
-
--- ImGui
-
-local ImGui               = MACCLContext.ImGui
 
 -- Redefine this global callback to avoid recursive require problems
 MACCLContext.notifySettingsChange = function()
@@ -54,6 +51,13 @@ local function hasPendingMouseEvents()
   return false
 end
 
+local function hasPendingTabAnimations()
+  for addr, mec in pairs(MEContext.all()) do
+    if mec:hasPendingTabAnimations() then return true end
+  end
+  return false
+end
+
 local function tabsNeedReload()
   -- This flag is set on tab operations (save etc)
   for addr, mec in pairs(MEContext.all()) do
@@ -83,9 +87,9 @@ local function ImGuiLoop()
   end
 
   -- Show all tab editors
-  TabEditor.processAll()
-  TabPopupMenu.process()
-  SettingsWindow.process()
+  TabEditor.processAll() -- Does nothing if no tab editor is open
+  TabPopupMenu.process() -- Does nothing if no popu menu is open
+  SettingsWindow.process() -- Does nothing if the settings window is not open
 end
 
 local function inputEventLoop()
@@ -102,6 +106,7 @@ local function inputEventLoop()
 end
 
 local function macclane()
+  -- If first launch, force tab reloading by simulating a tab save
   if not MACCLContext.lastTabSavedAt then
     MACCLContext.lastTabSavedAt = reaper.time_precise()
   end
@@ -118,7 +123,7 @@ local function macclane()
   -- Be less agressive when redraw is not really needed
   local reactivity = 0.3
 
-  if isHoveringAWidget() or hasPendingMouseEvents() or tabsNeedReload() then
+  if isHoveringAWidget() or hasPendingMouseEvents() or hasPendingTabAnimations() or tabsNeedReload() then
     reactivity = -1
   elseif not MACCLContext.mouse_stalled then
     -- We want to be reactive when the mouse approaches the widget
@@ -175,6 +180,8 @@ local function macclane()
   end
 
   ImGuiLoop()
+
+  ACTIONS.ProcessIncomingAction()
 end
 
 local function _macclane()
@@ -204,8 +211,12 @@ local function run(args)
         end
     end)
 
-    -- Pre-clean possible laked bitmaps, probably obsolete now
+    -- Pre-clean possible leaked bitmaps, probably obsolete now
     LastChanceCleanupMaccLaneBitmaps()
+
+    -- Pre-clean possible queued action
+    ACTIONS.ClearQueuedAction()
+
     reaper.defer(_macclane)
 end
 

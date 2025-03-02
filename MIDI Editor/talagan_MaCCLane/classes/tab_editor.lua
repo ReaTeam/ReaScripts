@@ -72,7 +72,7 @@ end
 
 local function TT(ctx, str)
     if ImGui.IsItemHovered(ctx, ImGui.HoveredFlags_DelayNormal) then
-      ImGui.SetTooltip(ctx, str)
+        ImGui.SetTooltip(ctx, str)
     end
 end
 
@@ -587,11 +587,11 @@ function TabEditor:ccLaneComboBox(ctx, cc_lane_entry)
         for cbi, cbv in ipairs(cb) do
             local is_selected = false
             if self.cc_lane_search_ctx.num then
-              if self.cc_lane_search_ctx.num == cbi then
-                is_selected = true
-              end
+                if self.cc_lane_search_ctx.num == cbi then
+                    is_selected = true
+                end
             else
-              is_selected = (cbv.num == v.num)
+                is_selected = (cbv.num == v.num)
             end
 
             local label = entry_label(cbv)
@@ -1094,62 +1094,86 @@ function TabEditor:gfxFirstLine()
     local ctx               = MACCLContext.ImGuiContext
 
     ImGui.PushID(ctx, "generic_tab_params")
-    ImGui.SetCursorPosY(ctx, ImGui.GetCursorPosY(ctx)+3); ImGui.Text(ctx,"Name"); ImGui.SameLine(ctx); ImGui.SetCursorPosY(ctx, ImGui.GetCursorPosY(ctx)-3)
-    ImGui.SetNextItemWidth(ctx, 150)
-    _, self.tab.params.title = ImGui.InputText(ctx, "##te_name", self.tab.params.title)
 
-    if self.draw_count <= 1 then
-        -- On first draw, focus the tab name
-        ImGui.SetItemDefaultFocus(ctx)
-        ImGui.SetKeyboardFocusHere(ctx, -1)
-    end
+    ImGui.BeginGroup(ctx)
+    if true then -- for indentation & readability
+        ImGui.SetCursorPosY(ctx, ImGui.GetCursorPosY(ctx)+3); ImGui.Text(ctx,"Name"); ImGui.SameLine(ctx); ImGui.SetCursorPosY(ctx, ImGui.GetCursorPosY(ctx)-3)
+        ImGui.SetNextItemWidth(ctx, 150)
+        _, self.tab.params.title = ImGui.InputText(ctx, "##te_name", self.tab.params.title)
+        TT(ctx, "This is what appears on the tab. You can also use the name to call this tab with an action 'by name'.")
 
-    if self.draw_count == 2 then
-        ImGui.SetWindowFocus(ctx)
-    end
-
-    if ImGui.IsItemFocused(ctx) then
-        if ImGui.IsKeyPressed(ctx, ImGui.Key_Enter) then
-            ImGui.SetKeyboardFocusHere(ctx, 0)
+        if self.draw_count <= 1 then
+            -- On first draw, focus the tab name
+            ImGui.SetItemDefaultFocus(ctx)
+            ImGui.SetKeyboardFocusHere(ctx, -1)
         end
+
+        if self.draw_count == 2 then
+            ImGui.SetWindowFocus(ctx)
+        end
+
+        if ImGui.IsItemFocused(ctx) then
+            if ImGui.IsKeyPressed(ctx, ImGui.Key_Enter) then
+                ImGui.SetKeyboardFocusHere(ctx, 0)
+            end
+        end
+
+        ImGui.Dummy(ctx, 1, 1)
+
+        ImGui.SetCursorPosY(ctx, ImGui.GetCursorPosY(ctx)-3); ImGui.Text(ctx,"Role"); ImGui.SameLine(ctx); ImGui.SetCursorPosY(ctx, ImGui.GetCursorPosY(ctx)-3)
+        ImGui.SetNextItemWidth(ctx, 150)
+        _, self.tab.params.role = ImGui.InputText(ctx, "##te_role", self.tab.params.role)
+        TT(ctx, "Enter a role here if you want to be able to call this tab with an action 'by role'.\n\nUseful if you want to have a similar behaviour across different tracks\nhaving the same 'role' but differing configs. They will be unified under the same 'role'\nand callable with the same shortcut, but you're still free to use different names.")
     end
+    ImGui.EndGroup(ctx)
 
     ImGui.SameLine(ctx)
-    ImGui.SetCursorPosY(ctx, ImGui.GetCursorPosY(ctx)-3); ImGui.Text(ctx,"Priority"); ImGui.SameLine(ctx); ImGui.SetCursorPosY(ctx, ImGui.GetCursorPosY(ctx)-3)
-    ImGui.SetNextItemWidth(ctx, 50)
-    local b, v = ImGui.InputText(ctx, "##te_prio", "" .. (self.tab.params.priority), ImGui.InputTextFlags_CharsDecimal)
-    if b then
-        self.tab.params.priority = tonumber(v) or 0
+
+    ImGui.BeginGroup(ctx)
+    if true then -- for indentation & readability
+        ImGui.PushID(ctx, "color_mode")
+        ImGui.SetNextItemWidth(ctx, 50)
+        local cparams = self.tab.params.color
+        self:gfxModeCombobox(ctx, "Color ", TabParams.ColorMode, cparams, false)
+        if cparams.mode == 'overload' then
+            ImGui.SameLine(ctx); ImGui.SetCursorPosY(ctx, ImGui.GetCursorPosY(ctx)-3)
+            local b, v = ImGui.ColorEdit3(ctx, '', cparams.color, ImGui.ColorEditFlags_NoInputs)
+            if b then
+                cparams.color = v
+            end
+        end
+        ImGui.PopID(ctx)
+
+        ImGui.Dummy(ctx, 1, 1)
+
+        ImGui.PushID(ctx, "margin_mode")
+        ImGui.SetNextItemWidth(ctx, 50)
+        local mparams = self.tab.params.margin
+        self:gfxModeCombobox(ctx, "Margin", TabParams.MarginMode, mparams, false)
+        if mparams.mode == 'overload' then
+            ImGui.SetNextItemWidth(ctx, 30)
+            ImGui.SameLine(ctx); ImGui.SetCursorPosY(ctx, ImGui.GetCursorPosY(ctx)-3)
+            local b, v = ImGui.InputText(ctx, "##margin", "" .. (mparams.margin), ImGui.InputTextFlags_CharsDecimal)
+            if b then
+                mparams.margin = tonumber(v) or 0
+            end
+        end
+        ImGui.PopID(ctx)
     end
+    ImGui.EndGroup(ctx)
 
     ImGui.SameLine(ctx)
-    ImGui.PushID(ctx, "color_mode")
-    ImGui.SetNextItemWidth(ctx, 50)
-    local cparams = self.tab.params.color
-    self:gfxModeCombobox(ctx, "Color", TabParams.ColorMode, cparams, false)
-    if cparams.mode == 'overload' then
-        ImGui.SameLine(ctx); ImGui.SetCursorPosY(ctx, ImGui.GetCursorPosY(ctx)-3)
-        local b, v = ImGui.ColorEdit3(ctx, '', cparams.color, ImGui.ColorEditFlags_NoInputs)
+
+    ImGui.BeginGroup(ctx)
+    if true then -- for indentation & readability
+        ImGui.SetCursorPosY(ctx, ImGui.GetCursorPosY(ctx)-3); ImGui.Text(ctx,"Priority"); ImGui.SameLine(ctx); ImGui.SetCursorPosY(ctx, ImGui.GetCursorPosY(ctx)-3)
+        ImGui.SetNextItemWidth(ctx, 50)
+        local b, v = ImGui.InputText(ctx, "##te_prio", "" .. (self.tab.params.priority), ImGui.InputTextFlags_CharsDecimal)
         if b then
-            cparams.color = v
+            self.tab.params.priority = tonumber(v) or 0
         end
     end
-    ImGui.PopID(ctx)
-
-    ImGui.SameLine(ctx)
-    ImGui.PushID(ctx, "margin_mode")
-    ImGui.SetNextItemWidth(ctx, 50)
-    local mparams = self.tab.params.margin
-    self:gfxModeCombobox(ctx, "Margin", TabParams.MarginMode, mparams, false)
-    if mparams.mode == 'overload' then
-        ImGui.SetNextItemWidth(ctx, 30)
-        ImGui.SameLine(ctx); ImGui.SetCursorPosY(ctx, ImGui.GetCursorPosY(ctx)-3)
-        local b, v = ImGui.InputText(ctx, "##margin", "" .. (mparams.margin), ImGui.InputTextFlags_CharsDecimal)
-        if b then
-            mparams.margin = tonumber(v) or 0
-        end
-    end
-    ImGui.PopID(ctx)
+    ImGui.EndGroup(ctx)
 
     ImGui.PopID(ctx)
 end

@@ -1,21 +1,31 @@
 --[[
 @description MaCCLane : Tabs for the MIDI Editor
-@version 0.1.1
+@version 0.1.2
 @author Ben 'Talagan' Babut
 @license MIT
 @donation https://www.paypal.com/donate/?business=3YEZMY9D6U8NC&no_recurring=1&currency_code=EUR
 @links
   Forum Thread : https://forum.cockos.com/showthread.php?t=298707
 @changelog
-  - Moved '+' buttons in tab editor to the left (thanks @Seventh Sam)
-  - Fixed wrong colors for track and item tabs under windows / native endianess problem (thanks @Seventh Sam)
-  - Added font size configuration (thanks @Seventh Sam)
-  - New action entries will propose "MIDI Editor" by default (thanks @Seventh Sam)
-  - Replaced "Overload" by "Override" in the UI, less confusing (thanks @Seventh Sam)
-  - Added search to CC Lane Combo boxes (thanks @Seventh Sam)
+  - [Feature] Added ability to trigger tabs by action (by role / name / number)
 @provides
   [main=main] .
-  [nomain] talagan_MaCCLane/**/*.lua
+  [nomain] talagan_MaCCLane/classes/**/*.lua
+  [nomain] talagan_MaCCLane/ext/**/*.lua
+  [nomain] talagan_MaCCLane/images/**/*.lua
+  [nomain] talagan_MaCCLane/lib/**/*.lua
+  [nomain] talagan_MaCCLane/modules/**/*.lua
+  [nomain] talagan_MaCCLane/app.lua
+  [main=main,midi_editor] talagan_MaCCLane/actions/generic_action.lua > talagan_MaCCLane Launch tab by number 1.lua
+  [main=main,midi_editor] talagan_MaCCLane/actions/generic_action.lua > talagan_MaCCLane Launch tab by number 2.lua
+  [main=main,midi_editor] talagan_MaCCLane/actions/generic_action.lua > talagan_MaCCLane Launch tab by number 3.lua
+  [main=main,midi_editor] talagan_MaCCLane/actions/generic_action.lua > talagan_MaCCLane Launch tab by number 4.lua
+  [main=main,midi_editor] talagan_MaCCLane/actions/generic_action.lua > talagan_MaCCLane Launch tab by number 5.lua
+  [main=main,midi_editor] talagan_MaCCLane/actions/generic_action.lua > talagan_MaCCLane Launch tab by number 6.lua
+  [main=main,midi_editor] talagan_MaCCLane/actions/generic_action.lua > talagan_MaCCLane Launch tab by number 7.lua
+  [main=main,midi_editor] talagan_MaCCLane/actions/generic_action.lua > talagan_MaCCLane Launch tab by number 8.lua
+  [main=main,midi_editor] talagan_MaCCLane/actions/generic_action.lua > talagan_MaCCLane Launch tab by role FooRole.lua
+  [main=main,midi_editor] talagan_MaCCLane/actions/generic_action.lua > talagan_MaCCLane Launch tab by name BarName.lua
   [data] talagan_MaCCLane/data/_PUT_YOUR_MACCLANE_TEMPLATES_HERE.md > MaCCLane/
 @about
   # Purpose
