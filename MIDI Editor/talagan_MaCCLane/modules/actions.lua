@@ -17,6 +17,7 @@ local function LaunchTab(finder)
     local tab  = finder(tabs)
 
     if not tab then return end
+    if not tab:callableByAction() then return end
 
     tab:onLeftClick(mec, {highlight=0.4})
 end

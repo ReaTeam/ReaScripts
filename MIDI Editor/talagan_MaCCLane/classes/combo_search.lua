@@ -23,18 +23,22 @@ end
 function ComboSearch:_initialize(cb)
     self.str = ''
     self.num = nil
-    self.callback = cb
     self.frame_count = 0
 end
 
-function ComboSearch:_trySearch(ctx)
-    local newcandidate = self.callback(self.str)
+function ComboSearch:clear()
+    self.str = ''
+    self.num = nil
+end
+
+function ComboSearch:_trySearch(ctx, search_callback)
+    local newcandidate = search_callback(self.str)
     if newcandidate then self.num = newcandidate end
     if utf8.len(self.str) == 0 then self.num = nil end
     self.should_scroll_to = self.num
 end
 
-function ComboSearch:apply(ctx)
+function ComboSearch:apply(ctx, search_callback)
     self.frame_count = self.frame_count + 1
 
     -- Avoid treating enter on first frame
@@ -46,14 +50,14 @@ function ComboSearch:apply(ctx)
         if not b then break end
 
         self.str = self.str .. utf8.char(cuni)
-        self:_trySearch(ctx)
+        self:_trySearch(ctx, search_callback)
 
         ci = ci + 1
     end
 
     if ImGui.IsKeyPressed(ctx, ImGui.Key_Backspace, true) then
         self.str = UTILS.utf8sub(self.str, 1, utf8.len(self.str) - 1)
-        self:_trySearch(ctx)
+        self:_trySearch(ctx, search_callback)
     end
 
     if ImGui.IsKeyPressed(ctx, ImGui.Key_Enter) then

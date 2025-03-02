@@ -541,7 +541,7 @@ function TabEditor:readCCLanePopup()
     end
 end
 
-function TabEditor:ccLaneComboBox(ctx, cc_lane_entry)
+function TabEditor:ccLaneComboBox(ctx, cc_lane_num, cc_lane_entry)
 
     local entry_label           = function(e)
         return e.text .. "##cc_lane_combo_entry_" .. e.num
@@ -552,8 +552,14 @@ function TabEditor:ccLaneComboBox(ctx, cc_lane_entry)
     local selected_entry        = CCLANELIST.comboEntry(v.num, mec)
     local selected_lane_txt     = entry_label(selected_entry)
 
+    if not self.cc_lane_search_ctx then self.cc_lane_search_ctx = {} end
+    if not self.cc_lane_search_ctx[cc_lane_num] then self.cc_lane_search_ctx[cc_lane_num] = ComboSearch:new() end
+
+    local combosearch = self.cc_lane_search_ctx[cc_lane_num]
+
     ImGui.SetNextItemWidth(ctx,230)
     if ImGui.BeginCombo(ctx, "##cc_lane_combo", selected_lane_txt, ImGui.ComboFlags_HeightLarge) then
+
         local cb = CCLANELIST.comboForMec(mec)
 
         local searchfunc = function(user_input)
@@ -569,7 +575,7 @@ function TabEditor:ccLaneComboBox(ctx, cc_lane_entry)
             end
 
             for li, lv in ipairs(cb) do
-                if lv.text:lower():match(user_input) then
+                if lv.text:lower():match(user_input:lower()) then
                     return li
                 end
             end
@@ -577,17 +583,13 @@ function TabEditor:ccLaneComboBox(ctx, cc_lane_entry)
             return nil
         end
 
-        if not self.cc_lane_search_ctx  then
-            self.cc_lane_search_ctx  = ComboSearch:new(searchfunc)
-        end
-
-        local val = self.cc_lane_search_ctx:apply(ctx)
+        local val = combosearch:apply(ctx, searchfunc)
         if val then v.num = cb[val].num end
 
         for cbi, cbv in ipairs(cb) do
             local is_selected = false
-            if self.cc_lane_search_ctx.num then
-                if self.cc_lane_search_ctx.num == cbi then
+            if combosearch.num then
+                if combosearch.num == cbi then
                     is_selected = true
                 end
             else
@@ -601,7 +603,7 @@ function TabEditor:ccLaneComboBox(ctx, cc_lane_entry)
 
             if is_selected then
                 ImGui.SetItemDefaultFocus(ctx)
-                self.cc_lane_search_ctx:scrollUpdate(ctx, cbi)
+                combosearch:scrollUpdate(ctx, cbi)
             end
 
             TT(ctx, "REAPER's lane number : " .. cbv.num)
@@ -609,7 +611,7 @@ function TabEditor:ccLaneComboBox(ctx, cc_lane_entry)
 
         ImGui.EndCombo(ctx)
     else
-        self.cc_lane_search_ctx = nil
+        combosearch:clear()
     end
 end
 
@@ -696,8 +698,7 @@ function TabEditor:gfxCCLaneSection()
                 -- This should be done after the first column because we want all first cells to have the same ID for the drag and drop to work.
                 ImGui.PushID(ctx, "cc_lane_entry_" .. n)
                 ImGui.TableNextColumn(ctx);
-                self:ccLaneComboBox(ctx, v)
-
+                self:ccLaneComboBox(ctx, n, v)
 
                 ImGui.TableNextColumn(ctx)
                 ImGui.SetNextItemWidth(ctx, 50)
