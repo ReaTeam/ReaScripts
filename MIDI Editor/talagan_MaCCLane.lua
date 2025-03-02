@@ -1,13 +1,15 @@
 --[[
 @description MaCCLane : Tabs for the MIDI Editor
-@version 0.1.2
+@version 0.1.3
 @author Ben 'Talagan' Babut
 @license MIT
 @donation https://www.paypal.com/donate/?business=3YEZMY9D6U8NC&no_recurring=1&currency_code=EUR
 @links
   Forum Thread : https://forum.cockos.com/showthread.php?t=298707
 @changelog
-  - [Feature] Added ability to trigger tabs by action (by role / name / number)
+  - [Bug Fix] CC Lane combobox search was not working if multiple CC lanes are present in the table (thanks @SeventhSam !)
+  - [Bug Fix] CC lane combobox search not working with upper case char input
+  - [bug Fix] Launch Tab by number actions could trigger the '+' tab (thanks @SeventhSam)
 @provides
   [main=main] .
   [nomain] talagan_MaCCLane/classes/**/*.lua

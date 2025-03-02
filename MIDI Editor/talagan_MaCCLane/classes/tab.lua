@@ -129,6 +129,10 @@ function Tab:UUID()
   return self.uuid
 end
 
+function Tab:callableByAction()
+  return true
+end
+
 function Tab:setOwner(entity)
   if entity == nil or entity == 0 then
     self.owner      = nil

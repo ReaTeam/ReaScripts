@@ -37,6 +37,9 @@ function AddTabTab:isRound()
     return true
 end
 
+function AddTabTab:callableByAction()
+    return false
+end
 function AddTabTab:onLeftClick(mec, click_params)
     mec:openEditorForNewTab(self)
 end
