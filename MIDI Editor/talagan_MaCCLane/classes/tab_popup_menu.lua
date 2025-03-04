@@ -5,10 +5,10 @@
 
 local MACCLContext           = require "modules/context"
 local FILE                   = require "modules/file"
-local JSON                   = require "lib/json"
 
 local Tab                    = require "classes/tab"
 local SettingsWindow         = require "classes/settings_window"
+local GlobalScopeRepo        = require "classes/global_scope_repo"
 
 local ImGui                  = MACCLContext.ImGui
 
@@ -118,10 +118,14 @@ TabPopupMenu.process = function()
 
                 -- Try to mimic owner from src owner
                 local owner = nil
-                if srctab.owner_type == Tab.Types.TRACK then
+                if srctab.owner_type == Tab.Types.GLOBAL then
+                    owner = GlobalScopeRepo.intance()
+                elseif srctab.owner_type == Tab.Types.TRACK then
                     owner = mec.track
                 elseif srctab.owner_tyep == Tab.Types.ITEM then
                     owner = mec.item
+                else
+                    owner = nil
                 end
 
                 local newtab                = Tab:new(owner, TabPopupMenu.copiedTab.params)
@@ -143,6 +147,13 @@ TabPopupMenu.process = function()
                 tab:destroy()
             end
             ImGui.Separator(ctx)
+
+            local star = "Move to "
+            if tab.owner_type == Tab.Types.GLOBAL then star = "* Set on " end
+            if ImGui.MenuItem(ctx, star .. "Global") then
+                tab:setOwner(GlobalScopeRepo.instance())
+                tab:save()
+            end
 
             local star = "Move to "
             if tab.owner_type == Tab.Types.PROJECT then star = "* Set on " end

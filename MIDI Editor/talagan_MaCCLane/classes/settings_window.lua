@@ -29,6 +29,7 @@ function SettingsWindow:newTabDefaultOwnerComboBox()
     local ctx = MACCLContext.ImGuiContext
 
     local defs = {
+        { name = Tab.Types.GLOBAL, human = "Global" },
         { name = Tab.Types.PROJECT, human = "Project" },
         { name = Tab.Types.TRACK,   human = "Track" },
         { name = Tab.Types.ITEM,    human = "Item" }
@@ -82,56 +83,75 @@ function SettingsWindow:gfx()
         ImGui.SeparatorText(ctx, "Appearance")
 
         ImGui.BeginGroup(ctx)
-        ImGui.SetNextItemWidth(ctx, 80)
-        local b, v = ImGui.SliderInt(ctx, "Tab margin", S.getSetting("TabMargin"), 0, 20, "%d px")
-        if b then
-            S.setSetting("TabMargin", v)
-            MACCLContext.notifySettingsChange()
-        end
-        if ImGui.IsItemClicked(ctx, ImGui.MouseButton_Right) then
-            S.resetSetting("TabMargin")
-            MACCLContext.notifySettingsChange()
-        end
+        if true then
+            ImGui.SetNextItemWidth(ctx, 80)
+            local b, v = ImGui.SliderInt(ctx, "Tab margin", S.getSetting("TabMargin"), 0, 20, "%d px")
+            if b then
+                S.setSetting("TabMargin", v)
+                MACCLContext.notifySettingsChange()
+            end
+            if ImGui.IsItemClicked(ctx, ImGui.MouseButton_Right) then
+                S.resetSetting("TabMargin")
+                MACCLContext.notifySettingsChange()
+            end
 
-        ImGui.SetNextItemWidth(ctx, 80)
-        local b, v = ImGui.SliderInt(ctx, "Tab spacing", S.getSetting("TabSpacing"), 0, 20, "%d px")
-        if b then
-            S.setSetting("TabSpacing", v)
-            MACCLContext.notifySettingsChange()
-        end
-        if ImGui.IsItemClicked(ctx, ImGui.MouseButton_Right) then
-            S.resetSetting("TabSpacing")
-            MACCLContext.notifySettingsChange()
+            ImGui.SetNextItemWidth(ctx, 80)
+            local b, v = ImGui.SliderInt(ctx, "Tab spacing", S.getSetting("TabSpacing"), 0, 20, "%d px")
+            if b then
+                S.setSetting("TabSpacing", v)
+                MACCLContext.notifySettingsChange()
+            end
+            if ImGui.IsItemClicked(ctx, ImGui.MouseButton_Right) then
+                S.resetSetting("TabSpacing")
+                MACCLContext.notifySettingsChange()
+            end
         end
         ImGui.EndGroup(ctx)
 
         ImGui.SameLine(ctx)
 
         ImGui.BeginGroup(ctx)
-        ImGui.SetNextItemWidth(ctx, 80)
-        local b, v = ImGui.SliderInt(ctx, "Widget margin", S.getSetting("WidgetMargin"), 0, 20, "%d px")
-        if b then
-            S.setSetting("WidgetMargin", v)
-            MACCLContext.notifySettingsChange()
+        if true then
+            ImGui.SetNextItemWidth(ctx, 80)
+            local b, v = ImGui.SliderInt(ctx, "Widget margin", S.getSetting("WidgetMargin"), 0, 20, "%d px")
+            if b then
+                S.setSetting("WidgetMargin", v)
+                MACCLContext.notifySettingsChange()
+            end
+            if ImGui.IsItemClicked(ctx, ImGui.MouseButton_Right) then
+                S.resetSetting("WidgetMargin")
+                MACCLContext.notifySettingsChange()
+            end
+            ImGui.SetNextItemWidth(ctx, 80)
+            local b, v = ImGui.SliderInt(ctx, "Font Size", S.getSetting("FontSize"), S.getSettingSpec("FontSize").min, S.getSettingSpec("FontSize").max, "%d px")
+            if b then
+                S.setSetting("FontSize", v)
+                MACCLContext.recreateFont(v)
+                MACCLContext.notifySettingsChange()
+            end
+            if ImGui.IsItemClicked(ctx, ImGui.MouseButton_Right) then
+                S.resetSetting("FontSize")
+                MACCLContext.recreateFont(S.getSetting("FontSize"))
+                MACCLContext.notifySettingsChange()
+            end
         end
-        if ImGui.IsItemClicked(ctx, ImGui.MouseButton_Right) then
-            S.resetSetting("WidgetMargin")
-            MACCLContext.notifySettingsChange()
-        end
-        ImGui.SetNextItemWidth(ctx, 80)
-        local b, v = ImGui.SliderInt(ctx, "Font Size", S.getSetting("FontSize"), S.getSettingSpec("FontSize").min, S.getSettingSpec("FontSize").max, "%d px")
-        if b then
-            S.setSetting("FontSize", v)
-            MACCLContext.recreateFont(v)
-            MACCLContext.notifySettingsChange()
-        end
-        if ImGui.IsItemClicked(ctx, ImGui.MouseButton_Right) then
-            S.resetSetting("FontSize")
-            MACCLContext.recreateFont(S.getSetting("FontSize"))
-            MACCLContext.notifySettingsChange()
-        end
-
         ImGui.EndGroup(ctx)
+
+        ImGui.SameLine(ctx)
+
+        ImGui.BeginGroup(ctx)
+        if true then
+            local b, v = ImGui.ColorEdit3(ctx, 'Global  tabs color', S.getSetting("ColorForGlobalTabs"), ImGui.ColorEditFlags_NoInputs)
+            if b then
+                S.setSetting("ColorForGlobalTabs", v)
+            end
+            local b, v = ImGui.ColorEdit3(ctx, 'Project tabs color', S.getSetting("ColorForProjectTabs"), ImGui.ColorEditFlags_NoInputs)
+            if b then
+                S.setSetting("ColorForProjectTabs", v)
+            end
+        end
+        ImGui.EndGroup(ctx)
+
 
         ImGui.SeparatorText(ctx, "Tab order")
 
@@ -140,7 +160,7 @@ function SettingsWindow:gfx()
         end
 
         local curr_strat = S.getSetting("SortStrategy")
-        ImGui.SetNextItemWidth(ctx, 250)
+        ImGui.SetNextItemWidth(ctx, 300)
         if ImGui.BeginCombo(ctx, "Sort strategy", selectableLabel(curr_strat)) then
             for i,v in ipairs(TabParams.SortStrategy.defs) do
                 local strat_name    = v.name

@@ -13,6 +13,7 @@ local MIDI            = require "modules/midi"
 
 local ComboSearch     = require "classes/combo_search"
 local Tab             = require "classes/tab"
+local GlobalScopeRepo = require "classes/global_scope_repo"
 
 local ImGui           = MACCLContext.ImGui
 
@@ -122,12 +123,14 @@ function TabEditor:_initialize()
 end
 
 function TabEditor.ownerTypeToRadio(ot)
-    if ot == Tab.Types.PROJECT then
+    if ot == Tab.Types.GLOBAL then
         return 0
-    elseif ot == Tab.Types.TRACK then
+    elseif ot == Tab.Types.PROJECT then
         return 1
-    elseif ot == Tab.Types.ITEM then
+    elseif ot == Tab.Types.TRACK then
         return 2
+    elseif ot == Tab.Types.ITEM then
+        return 3
     end
 
     return -1
@@ -316,19 +319,33 @@ function TabEditor:gfxOwnerSection()
     if is_new_record then
         local meinfo    = mec:editorInfo()
         local ot        = TabEditor.ownerTypeToRadio(tab.owner_type)
+        local p, v
 
-        local p, v = ImGui.RadioButtonEx(ctx, 'Project', ot, 0)
-        if p then tab:setOwner(nil) end
+        ImGui.BeginGroup(ctx)
+        if true then -- indent
+            p, v = ImGui.RadioButtonEx(ctx, 'Global', ot, 0)
+            if p then tab:setOwner(GlobalScopeRepo.instance()) end
 
-        if meinfo.track then
-            p, v = ImGui.RadioButtonEx(ctx, 'Track (' .. meinfo.track_name .. ')' ,  ot, 1)
-            if p then tab:setOwner(meinfo.track) end
+            p, v = ImGui.RadioButtonEx(ctx, 'Project', ot, 1)
+            if p then tab:setOwner(nil) end
         end
+        ImGui.EndGroup(ctx)
 
-        if meinfo.item then
-            p, v = ImGui.RadioButtonEx(ctx, 'Item (' .. meinfo.take_name ..')',  ot, 2)
-            if p then tab:setOwner(meinfo.item) end
+        ImGui.SameLine(ctx, 150)
+
+        ImGui.BeginGroup(ctx)
+        if true then
+            if meinfo.track then
+                p, v = ImGui.RadioButtonEx(ctx, 'Track (' .. meinfo.track_name .. ')' ,  ot, 2)
+                if p then tab:setOwner(meinfo.track) end
+            end
+
+            if meinfo.item then
+                p, v = ImGui.RadioButtonEx(ctx, 'Item (' .. meinfo.take_name ..')',  ot, 3)
+                if p then tab:setOwner(meinfo.item) end
+            end
         end
+        ImGui.EndGroup(ctx)
     else
         ImGui.Text(ctx, tab:ownerInfo().desc)
     end

@@ -12,6 +12,7 @@ local Tab             = require "classes/tab"
 local AddTabTab       = require "classes/add_tab_tab"
 local TabEditor       = require "classes/tab_editor"
 local TabPopupMenu    = require "classes/tab_popup_menu"
+local GlobalScopeRepo = require "classes/global_scope_repo"
 
 local S               = require "modules/settings"
 
@@ -73,7 +74,7 @@ function MEContext:hasPendingMouseEvents()
 end
 
 function MEContext:hasPendingTabAnimations()
-    local now  = nil 
+    local now  = nil
     local tabs = self:tabs()
 
     for _, tab in ipairs(tabs) do
@@ -227,12 +228,16 @@ function MEContext:loadTabs()
         track = reaper.GetMediaItemTake_Track(take)
     end
 
-    local ptabs = Serializing.loadTabsFromEntity("project", nil)
-    local ttabs = Serializing.loadTabsFromEntity("track", track)
-    local itabs = Serializing.loadTabsFromEntity("item", item)
+    local gtabs = Serializing.loadTabsFromEntity(Tab.Types.GLOBAL, GlobalScopeRepo.instance())
+    local ptabs = Serializing.loadTabsFromEntity(Tab.Types.PROJECT, nil)
+    local ttabs = Serializing.loadTabsFromEntity(Tab.Types.TRACK, track)
+    local itabs = Serializing.loadTabsFromEntity(Tab.Types.ITEM, item)
 
     -- Build up and array (instead of stored lookups) so that we can apply sorting
     self._tabs = {}
+    for uuid, t in pairs(gtabs) do
+        self._tabs[#self._tabs+1] = t
+    end
     for uuid, t in pairs(ptabs) do
         self._tabs[#self._tabs+1] = t
     end
@@ -460,7 +465,7 @@ function MEContext:update(is_fresh)
         mec:hasPendingTabAnimations() then
         shouldRedraw = true
     end
-    
+
     if shouldRedraw then
         mec:redraw()
     end
@@ -490,7 +495,10 @@ function MEContext:openEditorForNewTab(plus_tab)
 
     -- Initialize owner
     local owner_type = S.getSetting("DefaultOwnerTypeForNewTab")
-    if (owner_type == Tab.Types.TRACK) and meinfo.track then
+
+    if (owner_type == Tab.Types.GLOBAL) then
+        newtab:setOwner(GlobalScopeRepo.instance())
+    elseif (owner_type == Tab.Types.TRACK) and meinfo.track then
         newtab:setOwner(meinfo.track)
     elseif (owner_type == Tab.Types.ITEM) and meinfo.item then
         newtab:setOwner(meinfo.item)
