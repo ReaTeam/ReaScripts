@@ -6,6 +6,7 @@
 local S         = require "modules/settings"
 local JSON      = require "lib/json"
 local MEContext = require "classes/midi_editor_context"
+local Tab       = require "classes/tab"
 
 local function LaunchTab(finder)
     local me = reaper.MIDIEditor_GetActive()
@@ -31,23 +32,27 @@ end
 
 local function LaunchTabNamed(tab_name)
     LaunchTab(function(tabs)
+        local matching_tabs = {}
         for _, tab in ipairs(tabs) do
             if tab.params.title == tab_name then
-                return tab
+                matching_tabs[#matching_tabs+1] = tab
             end
         end
-        return nil
+        table.sort(matching_tabs, function(t1,t2) return Tab.ownerTypePriority(t1.owner_type) > Tab.ownerTypePriority(t2.owner_type) end)
+        return matching_tabs[1]
     end)
 end
 
 local function LaunchTabByRole(role)
     LaunchTab(function(tabs)
+        local matching_tabs = {}
         for _, tab in ipairs(tabs) do
             if tab.params.role == role then
-                return tab
+                matching_tabs[#matching_tabs+1] = tab
             end
         end
-        return nil
+        table.sort(matching_tabs, function(t1,t2) return Tab.ownerTypePriority(t1.owner_type) > Tab.ownerTypePriority(t2.owner_type) end)
+        return matching_tabs[1]
     end)
 end
 

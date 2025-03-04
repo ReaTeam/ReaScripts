@@ -56,8 +56,8 @@ local if_windowed_mode_def = {
 }
 
 local sort_strategy_def = {
-    { name = 'pti_alpha',   human = 'Project|Track|Item - Alphabetical' },
-    { name = 'pti_prio',    human = 'Project|Track|Item - Priority' },
+    { name = 'pti_alpha',   human = 'Global|Project|Track|Item - Alphabetical' },
+    { name = 'pti_prio',    human = 'Global|Project|Track|Item - Priority' },
     { name = 'mixed_alpha', human = 'Mixed Types - Alphabetical' },
     { name = 'mixed_prio', human = 'Mixed Types - Priority' },
 }

@@ -1,15 +1,15 @@
 --[[
 @description MaCCLane : Tabs for the MIDI Editor
-@version 0.1.3
+@version 0.1.4
 @author Ben 'Talagan' Babut
 @license MIT
 @donation https://www.paypal.com/donate/?business=3YEZMY9D6U8NC&no_recurring=1&currency_code=EUR
 @links
   Forum Thread : https://forum.cockos.com/showthread.php?t=298707
 @changelog
-  - [Bug Fix] CC Lane combobox search was not working if multiple CC lanes are present in the table (thanks @SeventhSam !)
-  - [Bug Fix] CC lane combobox search not working with upper case char input
-  - [bug Fix] Launch Tab by number actions could trigger the '+' tab (thanks @SeventhSam)
+  - [Feature] Added global scope (thanks @Hipox !)
+  - [Feature] Added color settings for project/global scope tabs
+  - [Feature] Launch tab by name/role now gives priority to the most precise ownership if multiple tab match
 @provides
   [main=main] .
   [nomain] talagan_MaCCLane/classes/**/*.lua
@@ -50,7 +50,7 @@
 
   # Credits
 
-    Special thanks to Christian Fillion for ReImGui, Julian Sader for the JS API. Thanks to all donators and brain contributors !!
+    Special thanks to Christian Fillion for ReImGui, Julian Sader for the JS API. Thanks to all donators and brain contributors, special thanks to @Seventh Sam, @Hipox, @lolol !
 
 --]]
 

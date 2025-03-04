@@ -15,7 +15,9 @@ local SettingDefs = {
   WidgetMargin              = { type = "int",     default = 15 },
   SortStrategy              = { type = "string",  default = "pti_prio" },
   DefaultOwnerTypeForNewTab = { type = "string",  default = "track" },
-  QueuedAction              = { type = "string",  default = nil }
+  QueuedAction              = { type = "string",  default = nil },
+  ColorForGlobalTabs        = { type = "int",     default = 0xFFFFFF },
+  ColorForProjectTabs       = { type = "int",     default = 0xFFFFFF }
 };
 
 local function unsafestr(str)

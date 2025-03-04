@@ -12,8 +12,10 @@ local EXT             = require "ext/dependencies"
 local DOCKING_LIB     = require (EXT.DOCKING_TOOLS_PATH)
 
 local PIANOROLL       = require "modules/piano_roll"
-
+local TIMELINE        = require "modules/timeline"
 local TabParams       = require "modules/tab_params"
+
+local GlobalScopeRepo = require "classes/global_scope_repo"
 
 local Tab = {}
 Tab.__index = Tab
@@ -22,6 +24,7 @@ Tab.Types = {
   TRACK     = "track",
   ITEM      = "item",
   PROJECT   = "project",
+  GLOBAL    = "global",
   PLUS_TAB  = "__add_tab__"
 }
 
@@ -134,7 +137,7 @@ function Tab:callableByAction()
 end
 
 function Tab:setOwner(entity)
-  if entity == nil or entity == 0 then
+  if (entity == nil) or (entity == 0) then
     self.owner      = nil
     self.owner_type = Tab.Types.PROJECT
   elseif reaper.ValidatePtr(entity, "MediaItem*") then
@@ -143,12 +146,16 @@ function Tab:setOwner(entity)
   elseif reaper.ValidatePtr(entity, 'MediaTrack*') then
     self.owner      = entity
     self.owner_type = Tab.Types.TRACK
+  elseif entity.isGlobalScopeRepo and entity:isGlobalScopeRepo() then
+    self.owner      = entity
+    self.owner_type = Tab.Types.GLOBAL
   else
     error("Trying to set wrong owner to tab")
   end
 end
 
 function Tab:isOwnerStillValid()
+  if self.owner_type == Tab.Types.GLOBAL  then return true end
   if self.owner_type == Tab.Types.PROJECT then return true end
   if self.owner_type == Tab.Types.ITEM    then return reaper.ValidatePtr(self.owner, "MediaItem*") end
   if self.owner_type == Tab.Types.TRACK   then return reaper.ValidatePtr(self.owner, "MediaTrack*") end
@@ -162,6 +169,11 @@ function Tab:ownerInfo()
     return {
       type = self.owner_type,
       desc = "Project"
+    }
+  elseif self.owner_type == Tab.Types.GLOBAL then
+    return {
+      type = self.owner_type,
+      desc = "Global"
     }
   elseif self.owner_type == Tab.Types.ITEM    then
     local track = reaper.GetMediaItemTrack(self.owner)
@@ -307,6 +319,10 @@ function Tab:colors(mec, is_hovered)
         local r,g,b   = reaper.ColorFromNative(natcol)
         tabcol = 0xFF000000 | (r << 16) | (g << 8) | b
       end
+    elseif tab_type == Tab.Types.GLOBAL then
+      tabcol = S.getSetting("ColorForGlobalTabs") | 0xFF000000
+    elseif tab_type == Tab.Types.PROJECT then
+      tabcol = S.getSetting("ColorForProjectTabs") | 0xFF000000
     elseif tab_type == Tab.Types.PLUS_TAB then
       tabcol = 0xFFFFFFFF
     else
@@ -532,7 +548,7 @@ function Tab:_processPianoRoll()
     PIANOROLL.setRange(mec.me, self.params.piano_roll.low_note, self.params.piano_roll.high_note)
   elseif self.params.piano_roll.mode == 'fit' then
 
-    local me_start, me_end, _ = UTILS.GetMIDIEditorHBounds(mec.me)
+    local me_start, me_end, _ = TIMELINE.GetBounds(mec.me)
     local h                   = nil
     local l                   = nil
     local chan_bits           = self:getActiveChanBits()
@@ -722,12 +738,14 @@ end
 ----------------------
 
 function Tab.ownerTypePriority(type)
-  if type == Tab.Types.PROJECT then
+  if type == Tab.Types.GLOBAL then
     return 0
-  elseif type == Tab.Types.TRACK then
+  elseif type == Tab.Types.PROJECT then
     return 1
-  elseif type == Tab.Types.ITEM then
+  elseif type == Tab.Types.TRACK then
     return 2
+  elseif type == Tab.Types.ITEM then
+    return 3
   else
     return 42
   end

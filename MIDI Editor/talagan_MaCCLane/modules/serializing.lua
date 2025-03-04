@@ -3,8 +3,9 @@
 -- @license MIT
 -- @description This file is part of MaCCLane
 
-local Tab       = require "classes/tab"
-local JSON      = require "lib/json"
+local Tab               = require "classes/tab"
+local GlobalScopeRepo   = require "classes/global_scope_repo"
+local JSON              = require "lib/json"
 
 Serializing = {}
 
@@ -12,23 +13,29 @@ Serializing = {}
 Serializing.loadTabsFromEntity = function(etype, entity)
     local succ, v = false, ''
 
-    if not entity and not (etype == 'project') then
+    if not entity and not (etype == Tab.Types.PROJECT) then
         return {}
     end
 
-    if etype == "project" then
+    if etype == Tab.Types.GLOBAL then
+        succ, v = true, GlobalScopeRepo.instance():getContent()
+    elseif etype == Tab.Types.PROJECT then
         -- Allow to pass nil
         local master_track = reaper.GetMasterTrack()
         succ, v = reaper.GetSetMediaTrackInfo_String(master_track, "P_EXT:MACCLANE", '', false)
-    elseif etype == "track" then
+    elseif etype == Tab.Types.TRACK then
         succ, v = reaper.GetSetMediaTrackInfo_String(entity, "P_EXT:MACCLANE", '', false)
-    else
+    elseif etype == Tab.Types.ITEM then
         succ, v = reaper.GetSetMediaItemInfo_String(entity, "P_EXT:MACCLANE", '', false)
+    else
+        succ, v = false, ''
     end
 
     local json_tabs = {}
     if succ then
-        json_tabs = JSON.decode(v)
+        pcall(function()
+            json_tabs = JSON.decode(v)
+        end)
     end
 
     local tabs = {}
@@ -47,7 +54,7 @@ end
 Serializing.saveTabsToEntitity = function(etype, entity, tabs)
     local succ, v = false, ''
 
-    if not entity and not (etype == 'project') then
+    if not entity and not (etype == Tab.Types.PROJECT) then
         return { success=false, errors={ 'No entity given !'} }
     end
 
@@ -58,14 +65,18 @@ Serializing.saveTabsToEntitity = function(etype, entity, tabs)
 
     local json = JSON.encode(tab_params_array)
 
-    if etype == "project" then
+    if etype == Tab.Types.GLOBAL then
+        GlobalScopeRepo.instance():setContent(json)
+    elseif etype == Tab.Types.PROJECT then
         -- Allow to pass nil
         local master_track = reaper.GetMasterTrack()
         succ = reaper.GetSetMediaTrackInfo_String(master_track, "P_EXT:MACCLANE", json, true)
-    elseif etype == "track" then
+    elseif etype == Tab.Types.TRACK then
         succ = reaper.GetSetMediaTrackInfo_String(entity, "P_EXT:MACCLANE", json, true)
-    else
+    elseif etype == Tab.Types.ITEM then
         succ = reaper.GetSetMediaItemInfo_String(entity, "P_EXT:MACCLANE", json, true)
+    else
+        succ = false
     end
 
     return {success=true, errors={}}
@@ -110,7 +121,6 @@ function Serializing.createTabFromTemplate(mec, templatePath)
         return nil
     end
 
-
     -- Set owner dependning on the clue saved in the template
     local owner = nil
     local take  = reaper.MIDIEditor_GetTake(mec.me)
@@ -122,8 +132,10 @@ function Serializing.createTabFromTemplate(mec, templatePath)
         item  = reaper.GetMediaItemTake_Item(take)
     end
 
-    if json.owner_type == nil then
+    if (json.owner_type) == nil or (json.owner_type == Tab.Types.PROJECT) then
         owner = nil
+    elseif json.owner_type == Tab.Types.GLOBAL then
+        owner = GlobalScopeRepo.instance()
     elseif json.owner_type == Tab.Types.TRACK then
         owner = track
     elseif json.owner_type == Tab.Types.ITEM then
