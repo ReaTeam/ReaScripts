@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="09bbdad2f6327255e831c5d3c8424c9ef2c5ba36" name="ReaTeam Scripts">
+<index version="1" commit="3906272a6075bcd7f93d229bf69bb6a0271396aa" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -17927,6 +17927,23 @@ Replace GetLastWord func with quicker solution (Thanks: Mespotine[t=233393]).]]>
 + Tabs: Bugfix for using the mousewheel to scroll through the tabs
 + UI: Improvements in the display of some label texts]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d908e000a0b72ac3a185e9ca9aaa5702ca582de3/Project%20Properties/solger_ReaLauncher.lua</source>
+      </version>
+    </reapack>
+    <reapack name="wikylepedia_Export track names to channel list CSV.lua" type="script" desc="Export track names to channel list CSV">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel0 \b \fs36 wikylepedia's Export Track names to Channel List CSV\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 A simple little script to export the channels you've named in REAPER to a CSV file, to help create pre-production technical documentation such as a rider for immersive live events or spatial audio mix downs.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Created in support of the LISO240 Digital Production Implementation course at dBs Institute\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="wikylepedia" time="2025-03-05T17:28:29Z">
+        <changelog><![CDATA[Initial upload, hope it's useful to others!]]></changelog>
+        <source main="main mediaexplorer">https://github.com/ReaTeam/ReaScripts/raw/3906272a6075bcd7f93d229bf69bb6a0271396aa/Project%20Properties/wikylepedia_Export%20track%20names%20to%20channel%20list%20CSV.lua</source>
       </version>
     </reapack>
   </category>
