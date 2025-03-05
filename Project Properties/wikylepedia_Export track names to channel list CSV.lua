@@ -1,4 +1,4 @@
--- @description Export Track names to Channel List CSV
+-- @description Export track names to channel list CSV
 -- @author wikylepedia
 -- @version 1.0
 -- @changelog Initial upload, hope it's useful to others!
