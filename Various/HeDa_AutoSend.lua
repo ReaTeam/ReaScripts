@@ -2,17 +2,23 @@
    * ReaScript Name: AutoSend MIDI of selected track to a specific track
    * Lua script for Cockos REAPER
    * Author: Hector Corcin (HeDa)
-   * Author URI: http://forum.cockos.com/member.php?u=47822
+   * Author URI: https://reaper.hector-corcin.com
    * Licence: GPL v3
-   * Version: 0.2
+   * Version: 0.4
 ]]
 
 --[[
 Changelog:
 
+v0.4 (2025-03-06)
+  # fix actions detection
+
+v0.3 (2016-03-10)
+  + Only works in track's with a suffix in the name.
+  + If suffix used, option to deactivate sends if no suffix is found in selected track. 
+
 v0.2 (2016-02-21)
   + Auto creates the Receiving Track if it doesn't exist avoiding crash. [mccrabney p=1641272&postcount=23]
-  + Delay to trigger the send change [mccrabney p=1639100&postcount=15]
   + Remove send if no track is selected (it could be just as an option if wanted)
   # fixes and internal improvements
   
@@ -24,6 +30,12 @@ v0.1 (2016-02-18)
 
 -- OPTIONS -------------------------------------------------------------
 
+-- Only works in track's with this suffix in the name. suffix = "" to disable suffix.
+	suffix = ""
+
+-- deactivate send if selecting a track without the suffix if a suffix is used. (true or false)
+	deactivate_sends_if_no_suffix = true
+	
 -- change the name of the track to receive the MIDI send:
 	ho_track_name = "Hardware send"
 
@@ -31,7 +43,7 @@ v0.1 (2016-02-18)
 	seconds_delay = 0.8
 
 -- End of options. Do not modify bellow here unless needed.
-------------------------------------------------------------------------	
+------------------------------------------------------------------------     
 	
 
 	
@@ -48,7 +60,7 @@ function FindTrackWithName(trackname)
 	local tr
 	for i=0, reaper.CountTracks(0)-1 do
 		tr=reaper.GetTrack(0,i)
-		local retval, TrackName1 = reaper.GetSetMediaTrackInfo_String(tr, "P_NAME", "", false)	
+		local retval, TrackName1 = reaper.GetSetMediaTrackInfo_String(tr, "P_NAME", "", false)     
 		if TrackName1 == trackname then 
 			return tr, i
 		end
@@ -124,14 +136,26 @@ function init()
 				CreateSend(selectedtrack)
 			end
 		end
-	end	
+	end     
 end
 
 function on_change(action)
-	if action == "Change Track Selection" or 
-	   action == "Unselect All Tracks" or
-	   action == "Remove Tracks" or
-	   action == "Remove Track Selection"
+	action=action:lower()
+	if action == "change track selection" or 
+	   action == "unselect all tracks" or
+	   action == "adjust track selection (via surface)" or
+	   action == "insert virtual instrument on new track" or
+	   action == "add new track" or
+	   action == "unselect all tracks" or
+	   action == "import tracks" or
+	   action == "duplicate tracks" or
+	   action == "remove tracks" or
+	   action == "remove track selection" or
+	   action == "select track under mouse" or
+	   action == "change midi track list selection" or
+	   action == "change active midi media item" or
+	   action == "tt: insert track template" or
+	   action == "paste tracks"
 	   
 		then 
 		local selectedtrack=reaper.GetSelectedTrack(0,0)
@@ -141,10 +165,17 @@ function on_change(action)
 					reaper.ShowMessageBox("Track with hardware output not found. Stopping AutoSend script.", "Error", 0)
 					return(-1)
 				end
-				sendid=FindSendWithName(selectedtrack, ho_track_name)
-				if not sendid then
-						CreateSend(selectedtrack)
+				local retval, TrackName = reaper.GetSetMediaTrackInfo_String(selectedtrack, "P_NAME", "", false)     
+				if suffix=="" or TrackName:match(".*" .. suffix) then
+					sendid=FindSendWithName(selectedtrack, ho_track_name)
+					if not sendid then
+							CreateSend(selectedtrack)
+							RemoveOtherSends(selectedtrack)
+					end
+				else
+					if deactivate_sends_if_no_suffix == true then 
 						RemoveOtherSends(selectedtrack)
+					end
 				end
 		else
 			RemoveOtherSends("all")
@@ -161,7 +192,7 @@ function loop()
 				action = on_change(last_action) -- call main function
 			end
 			last_proj_change_count = proj_change_count -- store "Project State Change Count" for the next pass
-		end	
+		end     
 		timer=reaper.time_precise()
 	end
 	char = gfx.getchar()
