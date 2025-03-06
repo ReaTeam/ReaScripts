@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="3906272a6075bcd7f93d229bf69bb6a0271396aa" name="ReaTeam Scripts">
+<index version="1" commit="de5c14236a68c76cacb3c53d814d8acb2ab8f205" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -24577,6 +24577,11 @@ fix the toolbar buttons showing 1 frame early, before the filter text box is hid
 # fixes and internal improvements
 ]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/98b6621ede7203532243d9b7045881c4a6b7383b/Various/HeDa_AutoSend.lua</source>
+      </version>
+      <version name="0.4" author="Hector Corcin (HeDa)" time="2025-03-06T13:54:37Z">
+        <changelog><![CDATA[# fix actions detection
+]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/de5c14236a68c76cacb3c53d814d8acb2ab8f205/Various/HeDa_AutoSend.lua</source>
       </version>
     </reapack>
     <reapack name="HeDa_Crop Region to selected item.lua" type="script" desc="Crop selected region to selected item">
