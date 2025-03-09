@@ -15,6 +15,7 @@ local TabPopupMenu    = require "classes/tab_popup_menu"
 local GlobalScopeRepo = require "classes/global_scope_repo"
 
 local S               = require "modules/settings"
+local D               = require "modules/defines"
 
 local MaccLaneContextLookupPerME = {}
 
@@ -193,6 +194,13 @@ function MEContext:inputEventLoop()
         mec.pending_take_change = true
     end
 
+    -- Watch
+    local ks_state = reaper.GetToggleCommandStateEx(D.SECTION_MIDI_EDITOR, D.ACTION_ME_TOGGLE_KEY_SNAP)
+    if not (mec.ks_state == ks_state) then
+        mec.pending_layout_change = true
+        mec.ks_state = ks_state
+    end
+
     -- Every frame handle mouse events
     mec:mouseEventLoop()
 end
@@ -363,6 +371,11 @@ function MEContext:update(is_fresh)
         self.pending_settings_change    = false
     end
 
+    if mec.pending_layout_change then
+        shouldRecomposite = true
+        mec.pending_layout_change = false
+    end
+
     -- Update once mebounds for this frame (it is costy)
     local mebounds   = UTILS.JS_Window_GetBounds(me)
 
@@ -377,14 +390,16 @@ function MEContext:update(is_fresh)
     -- Since the UI may change from a frame to another
     local viewport_x, viewport_w    = mec:getViewportMetrics()
 
-    -- Create a size "key" for the current midi editor size, to compare to the
-    -- current one, and update our drawing conditions (bitmap size/compositing) if it has changed
-    local mekey                     = mebounds.w .. "x" .. mebounds.h
 
     -- Get the viewport wanted size and see if we need a resize
     local wantedx                   = viewport_x
     local wantedw                   = viewport_w
     local wantedh                   = MACCLContext.TABBAR_HEIGHT
+
+    -- Create a size "key" for the current midi editor size, to compare to the
+    -- current one, and update our drawing conditions (bitmap size/compositing) if it has changed
+    local mekey                     = mebounds.w .. "x" .. mebounds.h
+    local mekey2                    = wantedx .. "x" .. wantedw
 
     if wantedw < 0 then
         wantedw = 0
@@ -392,12 +407,12 @@ function MEContext:update(is_fresh)
 
     -- Also, get the content width
     local contentw      = self:getContentWidth()
-    local wnated_bmw    = (contentw < viewport_w) and (viewport_w) or contentw
+    local wanted_bmw    = (contentw < viewport_w) and (viewport_w) or contentw
 
     -- Check that our bitmap size is correct, if not resize
     local bmw = reaper.JS_LICE_GetWidth(mec.bitmap)
-    if not (wnated_bmw == bmw) then
-        reaper.JS_LICE_Resize(mec.bitmap, wnated_bmw, wantedh)
+    if not (wanted_bmw == bmw) then
+        reaper.JS_LICE_Resize(mec.bitmap, wanted_bmw, wantedh)
         shouldRecomposite = true
     end
 
@@ -406,8 +421,8 @@ function MEContext:update(is_fresh)
         shouldRecomposite = true
     end
 
-    -- MIDI Editor has been resized
-    if not(mec.mekey == mekey) then
+    -- MIDI Editor has been resized or Something happened that changed the ME layout
+    if not(mec.mekey == mekey) or not(mec.mekey2 == mekey2)  then
         shouldRecomposite = true
     end
 
@@ -444,6 +459,7 @@ function MEContext:update(is_fresh)
 		end
 
         mec.mekey   = mekey
+        mec.mekey2  = mekey2
 
         mec.xpos    = x
         mec.ypos    = y

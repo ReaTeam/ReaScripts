@@ -10,6 +10,9 @@ local CHUNK           = require "modules/chunk"
 local VELLANE         = require "modules/vellane"
 local CCLANELIST      = require "modules/cc_lane_list"
 local MIDI            = require "modules/midi"
+local TIMELINE        = require "modules/timeline"
+local GRID            = require "modules/grid"
+local PITCHSNAP       = require "modules/pitch_snap"
 
 local ComboSearch     = require "classes/combo_search"
 local Tab             = require "classes/tab"
@@ -71,6 +74,10 @@ local function PushGreenStyle(ctx)
     ImGui.PushStyleColor(ctx, ImGui.Col_ButtonActive,   0x42FA66FF)
 end
 
+local function MoveCursorY(ctx, off)
+    ImGui.SetCursorPosY(ctx, ImGui.GetCursorPosY(ctx) + off)
+end
+
 local function TT(ctx, str)
     if ImGui.IsItemHovered(ctx, ImGui.HoveredFlags_DelayNormal) then
         ImGui.SetTooltip(ctx, str)
@@ -85,7 +92,7 @@ local function ReadButton(ctx, id, callback)
     PushCyanStyle(ctx)
     ImGui.PushStyleVar(ctx, ImGui.StyleVar_FramePadding, 0, 0)
     local img = MACCLContext.GetImage("read")
-    if img and ImGui.ImageButton(ctx, id, img, 18, 18) then
+    if img and ImGui.ImageButton(ctx, id, img, 19, 19) then
         callback()
     end
     ImGui.PopStyleVar(ctx)
@@ -95,11 +102,15 @@ end
 
 
 local function ClippedSeparatorText(ctx, str, width)
-    local cx, cy = ImGui.GetCursorScreenPos(ctx)
-    -- Hack for separator text that whant to use the full window width
-    ImGui.PushClipRect(ctx, cx, cy, cx+width, cy+40, false)
-    ImGui.SeparatorText(ctx, str)
-    ImGui.PopClipRect(ctx)
+    if width < 0 then
+        ImGui.SeparatorText(ctx, str)
+    else
+        local cx, cy = ImGui.GetCursorScreenPos(ctx)
+        -- Hack for separator text that whant to use the full window width
+        ImGui.PushClipRect(ctx, cx, cy, cx+width, cy+40, false)
+        ImGui.SeparatorText(ctx, str)
+        ImGui.PopClipRect(ctx)
+    end
 end
 
 ------------------
@@ -153,19 +164,24 @@ function TabEditor:gfxAutoMove()
     self.last_window_bounds = {x=wx,y=wy,h=wh,w=ww}
 end
 
+function TabEditor:comboLeftLabel(ctx, text, is_first_on_line)
+    -- Buch of corrections for creating left align labels ...
+    ImGui.SetCursorPosX(ctx, ImGui.GetCursorPosX(ctx) + 1)
+    ImGui.SetCursorPosY(ctx, ImGui.GetCursorPosY(ctx) + 3 * (is_first_on_line and 1 or -1))
+    ImGui.Text(ctx,text)
+    ImGui.SameLine(ctx)
+    MoveCursorY(ctx, -3)
+end
+
 function TabEditor:gfxModeCombobox(ctx, text, mode_enum, params, is_first, mode_field_name, width)
+
+    self:comboLeftLabel(ctx, text, is_first)
+
     local selectableLabel = function (mode_name)
         return (mode_enum:humanize(mode_name) or '') .. "##mode_" .. mode_name
     end
 
     local mode = params[mode_field_name or 'mode']
-
-    -- Buch of corrections for creating left align labels ...
-    ImGui.SetCursorPosX(ctx, ImGui.GetCursorPosX(ctx) + 1)
-    ImGui.SetCursorPosY(ctx, ImGui.GetCursorPosY(ctx) + 3 * (is_first and 1 or -1))
-    ImGui.Text(ctx,text)
-    ImGui.SameLine(ctx)
-    ImGui.SetCursorPosY(ctx, ImGui.GetCursorPosY(ctx) - 3)
 
     ImGui.SetNextItemWidth(ctx, width or 100)
     if ImGui.BeginCombo(ctx, "##mode", selectableLabel(mode)) then
@@ -193,12 +209,7 @@ function TabEditor:currentChanComboBox(ctx, params)
         return 'Chan ' .. (chan + 1) .. '##current_chan_' .. (chan + 1)
     end
 
-    -- Buch of corrections for creating left align labels ...
-    ImGui.SetCursorPosX(ctx, ImGui.GetCursorPosX(ctx) + 1)
-    ImGui.SetCursorPosY(ctx, ImGui.GetCursorPosY(ctx) + 3)
-    ImGui.Text(ctx, 'Current')
-    ImGui.SameLine(ctx)
-    ImGui.SetCursorPosY(ctx, ImGui.GetCursorPosY(ctx) - 3)
+    self:comboLeftLabel(ctx, 'Current', true)
 
     ImGui.SetNextItemWidth(ctx, 100)
     local mode = params.current
@@ -229,12 +240,7 @@ function TabEditor:fitChanScopeComboBox(ctx, params)
         return 'Chan ' .. (chan + 1) .. '##chan_' .. (chan + 1)
     end
 
-    -- Buch of corrections for creating left align labels ...
-    ImGui.SetCursorPosX(ctx, ImGui.GetCursorPosX(ctx) + 1)
-    ImGui.SetCursorPosY(ctx, ImGui.GetCursorPosY(ctx) + 3)
-    ImGui.Text(ctx, 'Chan Scope ')
-    ImGui.SameLine(ctx)
-    ImGui.SetCursorPosY(ctx, ImGui.GetCursorPosY(ctx) - 3)
+    self:comboLeftLabel(ctx, 'Chan Scope', true)
 
     ImGui.SetNextItemWidth(ctx, 175)
     local mode = params.fit_chan_scope
@@ -307,6 +313,31 @@ function TabEditor:actionWhenCombo(ctx, entry)
     return entry.when
 end
 
+function TabEditor:genericEnumComboBox(ctx, params, field, enum, local_id, width)
+    local selectableLabel = function (name)
+        return '' .. enum:humanize(name) .. '##' .. local_id .. '_' .. name
+    end
+
+    ImGui.SetNextItemWidth(ctx, width)
+    if ImGui.BeginCombo(ctx, "##" .. local_id, selectableLabel(params[field])) then
+        for i,v in ipairs(enum.defs) do
+            local name          = v.name
+            local is_selected   = (name == params[field])
+
+            if ImGui.Selectable(ctx, selectableLabel(name), is_selected) then
+                params[field] = name
+            end
+
+            if is_selected then
+                ImGui.SetItemDefaultFocus(ctx)
+            end
+        end
+        ImGui.EndCombo(ctx)
+    end
+    return params[field]
+end
+
+
 function TabEditor:gfxOwnerSection()
     local mec           = self.mec
     local tab           = self.tab
@@ -375,11 +406,13 @@ function TabEditor:gfxDockingSection()
     self:gfxModeCombobox(ctx, "Mode", TabParams.IfDockedMode, params, true, nil, nil)
 
     if params.mode == 'custom' then
-        ImGui.SetCursorPosY(ctx, ImGui.GetCursorPosY(ctx)+3); ImGui.Text(ctx, "Size"); ImGui.SameLine(ctx); ImGui.SetCursorPosY(ctx, ImGui.GetCursorPosY(ctx)-3)
+        self:comboLeftLabel(ctx, 'Size', true)
+
         ImGui.SetNextItemWidth(ctx, 64)
         _, params.size = ImGui.InputText(ctx, "##size", params.size) -- May be min, max, number or nothing (bypass)
 
-        ImGui.SameLine(ctx);ImGui.SetCursorPosY(ctx, ImGui.GetCursorPosY(ctx)-3)
+        ImGui.SameLine(ctx)
+        MoveCursorY(ctx, -3)
         ReadButton(ctx, "##read_button", function()
             tab:readDockHeight()
         end)
@@ -396,26 +429,28 @@ function TabEditor:gfxDockingSection()
     self:gfxModeCombobox(ctx, "Mode", TabParams.IfWindowedMode, params, true, nil, nil)
 
     if params.mode == 'custom' then
-        ImGui.SetCursorPosY(ctx, ImGui.GetCursorPosY(ctx)+3); ImGui.Text(ctx, "X"); ImGui.SameLine(ctx); ImGui.SetCursorPosY(ctx, ImGui.GetCursorPosY(ctx)-3)
+
+        self:comboLeftLabel(ctx, "X", true)
+
         ImGui.SetNextItemWidth(ctx, 40)
         _, params.coords.x = ImGui.InputText(ctx, "##x", params.coords.x) -- May be empty (bypass)
         ImGui.SameLine(ctx)
 
-        ImGui.SetCursorPosY(ctx, ImGui.GetCursorPosY(ctx)-3); ImGui.Text(ctx, "Y"); ImGui.SameLine(ctx); ImGui.SetCursorPosY(ctx, ImGui.GetCursorPosY(ctx)-3)
+        self:comboLeftLabel(ctx, "Y", false)
         ImGui.SetNextItemWidth(ctx, 40)
         _, params.coords.y = ImGui.InputText(ctx, "##y", params.coords.y) -- May be empty (bypass)
         ImGui.SameLine(ctx)
 
-        ImGui.SetCursorPosY(ctx, ImGui.GetCursorPosY(ctx)-3); ImGui.Text(ctx, "W"); ImGui.SameLine(ctx); ImGui.SetCursorPosY(ctx, ImGui.GetCursorPosY(ctx)-3)
+        self:comboLeftLabel(ctx, "W", false)
         ImGui.SetNextItemWidth(ctx, 40)
         _, params.coords.w = ImGui.InputText(ctx, "##w", params.coords.w) -- May be empty (bypass)
         ImGui.SameLine(ctx)
 
-        ImGui.SetCursorPosY(ctx, ImGui.GetCursorPosY(ctx)-3); ImGui.Text(ctx, "H"); ImGui.SameLine(ctx); ImGui.SetCursorPosY(ctx, ImGui.GetCursorPosY(ctx)-3)
+        self:comboLeftLabel(ctx, "X", false)
         ImGui.SetNextItemWidth(ctx, 40)
         _, params.coords.h = ImGui.InputText(ctx, "##h", params.coords.h) -- May be empty (bypass)
 
-        ImGui.SameLine(ctx);ImGui.SetCursorPosY(ctx, ImGui.GetCursorPosY(ctx)-3);
+        ImGui.SameLine(ctx); MoveCursorY(ctx, -3)
         ReadButton(ctx, "##read_button", function()
             tab:readWindowBounds()
         end)
@@ -459,6 +494,19 @@ function TabEditor:patchVellaneEntries(dst_table, src_table, mode)
     end
 end
 
+function TabEditor:getVellanes(meinfo)
+    local ichunk    = CHUNK.getItemChunk(meinfo.item)
+    local vellanes  = VELLANE.readVellanesFromChunk(ichunk)
+
+    for _, e in ipairs(vellanes.entries) do
+        if e.num == 128 then
+            local tchunk = CHUNK.getTrackChunk(meinfo.track)
+            e.snap = PITCHSNAP.hasPitchBendSnap(tchunk)
+        end
+    end
+    return vellanes
+end
+
 function TabEditor:readCCLanePopup()
     local mec           = self.mec
     local tab           = self.tab
@@ -473,25 +521,19 @@ function TabEditor:readCCLanePopup()
         ImGui.MenuItem(ctx, "From editor ...", "", false, false)
         if ImGui.MenuItem(ctx, "Displayed CC lanes (Add missing)") then
             if meinfo.item then
-                local chunk     = CHUNK.getItemChunk(meinfo.item)
-                local vellanes  = VELLANE.readVellanesFromChunk(chunk)
-
+                local vellanes = self:getVellanes(meinfo)
                 self:patchVellaneEntries(entries, vellanes.entries, 'add_missing')
             end
         end
         if ImGui.MenuItem(ctx, "Displayed CC lanes (Merge)") then
             if meinfo.item then
-                local chunk     = CHUNK.getItemChunk(meinfo.item)
-                local vellanes  = VELLANE.readVellanesFromChunk(chunk)
-
+                local vellanes = self:getVellanes(meinfo)
                 self:patchVellaneEntries(entries, vellanes.entries, 'merge')
             end
         end
         if ImGui.MenuItem(ctx, "Displayed CC lanes (Replace)") then
             if meinfo.item then
-                local chunk     = CHUNK.getItemChunk(meinfo.item)
-                local vellanes  = VELLANE.readVellanesFromChunk(chunk)
-
+                local vellanes = self:getVellanes(meinfo)
                 self:patchVellaneEntries(entries, vellanes.entries, 'replace')
             end
         end
@@ -653,29 +695,33 @@ function TabEditor:gfxCCLaneSection()
 
     if mode == 'custom' then
         -- TableFlsgs_NoHostExtendX
-        if ImGui.BeginTable(ctx, '##cc_lane_test', 7, ImGui.TableFlags_Borders | ImGui.TableFlags_RowBg | ImGui.TableFlags_NoHostExtendX) then
-            ImGui.TableSetupColumn(ctx, ' - ',      ImGui.TableColumnFlags_WidthFixed,    0, 0) -- Grip for drag/drop
+        if ImGui.BeginTable(ctx, '##cc_lane_test', 8, ImGui.TableFlags_Borders | ImGui.TableFlags_RowBg | ImGui.TableFlags_NoHostExtendX) then
+
+            ImGui.TableSetupColumn(ctx, ' - ',      ImGui.TableColumnFlags_WidthFixed,  0, 0) -- Grip for drag/drop
             ImGui.TableSetupColumn(ctx, 'CC Lane',  ImGui.TableColumnFlags_WidthFixed,  0, 1)
             ImGui.TableSetupColumn(ctx, 'Height',   ImGui.TableColumnFlags_WidthFixed,  0, 2)
             ImGui.TableSetupColumn(ctx, 'IEHeight', ImGui.TableColumnFlags_WidthFixed,  0, 3)
             ImGui.TableSetupColumn(ctx, 'Zoom',     ImGui.TableColumnFlags_WidthFixed,  0, 4)
             ImGui.TableSetupColumn(ctx, 'VOff',     ImGui.TableColumnFlags_WidthFixed,  0, 5)
-            ImGui.TableSetupColumn(ctx, '',         ImGui.TableColumnFlags_WidthFixed,  0, 6) -- Del
+            ImGui.TableSetupColumn(ctx, ' S',        ImGui.TableColumnFlags_WidthFixed,  0, 6)
+            ImGui.TableSetupColumn(ctx, '',         ImGui.TableColumnFlags_WidthFixed,  0, 7) -- Del
 
             -- Using full syntax for table headers to allow tooltiping
             ImGui.PushTabStop(ctx, false)
-            for ci = 0, 6, 1 do
+            for ci = 0, 7, 1 do
                 ImGui.TableNextColumn(ctx);
                 local cname = ImGui.TableGetColumnName(ctx, ci)
                 ImGui.TableHeader(ctx, cname);
                 if ci == 0 then
-                    TT(ctx, "Handle to drag and drop the lane and change the order");
+                    TT(ctx, "Handle to drag and drop the lane and change the order")
                 elseif ci == 3 then
-                    TT(ctx, "Inline Editor CC Lane Height");
+                    TT(ctx, "Inline Editor CC Lane Height")
                 elseif ci == 4 then
                     TT(ctx, "Zoom factor for the CC lane (>1)")
                 elseif ci == 5 then
-                    TT(ctx, "Vertical offset of the lane when zoomed (between 0 - top and 1 - bottom)");-- body
+                    TT(ctx, "Vertical offset of the lane when zoomed (between 0 - top and 1 - bottom)")-- body
+                elseif ci == 6 then
+                    TT(ctx, "Pitch snap (only applies to pitch bend CC)")
                 end
             end
             ImGui.PopTabStop(ctx)
@@ -687,7 +733,8 @@ function TabEditor:gfxCCLaneSection()
 
                 ImGui.TableNextColumn(ctx)
 
-                -- First column is a selectable that spans the whole table width to allow drag and drops.
+                -----
+                -- COLUMN 1 : is a selectable that spans the whole table width to allow drag and drops.
 
                 ImGui.PushTabStop(ctx, false)
                 if ImGui.Selectable(ctx, " " .. utf8.char(0x85) .. "##grip", false, ImGui.SelectableFlags_SpanAllColumns | ImGui.SelectableFlags_AllowOverlap, 0, ROW_HEIGHT) then
@@ -711,12 +758,14 @@ function TabEditor:gfxCCLaneSection()
                 end
 
                 ---------------------------------
-
+                -- Column 2 : CC LANE Num
                 -- This should be done after the first column because we want all first cells to have the same ID for the drag and drop to work.
                 ImGui.PushID(ctx, "cc_lane_entry_" .. n)
                 ImGui.TableNextColumn(ctx);
                 self:ccLaneComboBox(ctx, n, v)
 
+                ---------------------------------
+                -- Column 3 : Height
                 ImGui.TableNextColumn(ctx)
                 ImGui.SetNextItemWidth(ctx, 50)
 
@@ -728,6 +777,8 @@ function TabEditor:gfxCCLaneSection()
                     if v.height < 0 then v.height = 0 end
                 end
 
+                ---------------------------------
+                -- Column 4 : Height
                 ImGui.TableNextColumn(ctx)
                 ImGui.SetNextItemWidth(ctx, 55)
 
@@ -737,8 +788,10 @@ function TabEditor:gfxCCLaneSection()
                     if v.inline_ed_height < 0 then v.inline_ed_height = 0 end
                 end
 
+                ---------------------------------
+                -- Column 5 : Zoom
                 ImGui.TableNextColumn(ctx)
-                ImGui.SetNextItemWidth(ctx, 70)
+                ImGui.SetNextItemWidth(ctx, 55)
 
                 inb, inv = ImGui.InputText(ctx, '##zoom_factor_' .. n, "" .. v.zoom_factor , ImGui.InputTextFlags_CharsDecimal)
                 if inb then
@@ -747,8 +800,10 @@ function TabEditor:gfxCCLaneSection()
                     if v.zoom_factor > 10 then v.zoom_factor = 10 end
                 end
 
+                ---------------------------------
+                -- Column 6 : Zoom off
                 ImGui.TableNextColumn(ctx)
-                ImGui.SetNextItemWidth(ctx, 70)
+                ImGui.SetNextItemWidth(ctx, 55)
 
                 inb, inv = ImGui.InputText(ctx, '##zoom_offset_' .. n, "" .. v.zoom_offset , ImGui.InputTextFlags_CharsDecimal)
                 if inb then
@@ -757,14 +812,25 @@ function TabEditor:gfxCCLaneSection()
                     if v.zoom_offset > 1 then v.zoom_offset = 1 end
                 end
 
+                ---------------------------------
+                -- Column 7 : Snap
                 ImGui.TableNextColumn(ctx);
 
+                if v.num == 128 then
+                    inb, inv = ImGui.Checkbox(ctx, '', (v.snap == true))
+                    if inb then
+                        v.snap = inv
+                    end
+                end
+
+                ---------------------------------
+                -- Column 8 : DEL
+                ImGui.TableNextColumn(ctx);
                 PushRedStyle(ctx)
                 if ImGui.Button(ctx, "Del##del_" .. n) then
                     should_delete_entry = n
                 end
                 PopRedStyle(ctx)
-
 
                 if not (n==#entries) then
                     ImGui.TableNextRow(ctx,ImGui.TableRowFlags_None)
@@ -962,7 +1028,7 @@ function TabEditor:gfxPianoRollSection()
             -- Using full syntax for table headers to allow tooltiping
             ImGui.PushTabStop(ctx, false)
             ImGui.TableNextColumn(ctx)
-            ImGui.SetCursorPosY(ctx, ImGui.GetCursorPosY(ctx) + 3)
+            MoveCursorY(ctx, 3)
             ImGui.TableHeader(ctx, 'High Note')
             TT(ctx, "Value of the highest MIDI Note of the Piano Roll");
             ImGui.PopTabStop(ctx)
@@ -989,7 +1055,7 @@ function TabEditor:gfxPianoRollSection()
 
             ImGui.PushTabStop(ctx, false)
             ImGui.TableNextColumn(ctx)
-            ImGui.SetCursorPosY(ctx, ImGui.GetCursorPosY(ctx) + 3)
+            MoveCursorY(ctx, 3)
             ImGui.TableHeader(ctx, 'Low Note')
             TT(ctx, "Value of the lowest MIDI Note of the Piano Roll");
             ImGui.PopTabStop(ctx)
@@ -1108,6 +1174,88 @@ function TabEditor:gfxMidiChanSection()
     ImGui.PopID(ctx)
 end
 
+function TabEditor:gfxTimeLineSection()
+    local mec       = self.mec
+    local ctx       = MACCLContext.ImGuiContext
+    local tab       = self.tab
+    local sparams   = tab.params.time_window
+    local b,v
+
+    ImGui.PushID(ctx, "timeline_tab_params")
+
+    ImGui.BeginGroup(ctx)
+    ImGui.PushID(ctx, "timeline_position")
+    if true then
+        local params = sparams.positioning
+        ClippedSeparatorText(ctx, "Time position",140)
+
+        self:gfxModeCombobox(ctx, "Mode", TabParams.TimeWindowPosMode, params, true, nil, nil)
+        if params.mode == 'custom' then
+            self:comboLeftLabel(ctx, "Time", true)
+            ImGui.SetNextItemWidth(ctx, 80)
+            b, v = ImGui.InputText(ctx, "", params.position or '')
+            if b then
+                params.position = v
+            end
+            local respos = reaper.parse_timestr_pos(params.position, -1)
+            TT(ctx, "Enter a time position using Reaper's format.\n\z
+                     This may be expressed:\n\n   - in measures :    M.B.fraction\n   - as a time :      [hh:mm]:ss\n\nCurrently resolved as :\n\n   " .. respos .. " seconds" )
+        end
+    end
+    ImGui.PopID(ctx)
+    ImGui.EndGroup(ctx)
+
+    ImGui.SameLine(ctx)
+
+    ImGui.BeginGroup(ctx)
+    ImGui.PushID(ctx, "timeline_window")
+    if true then
+        local params = sparams.sizing
+
+        local hsize = (sparams.positioning.mode == 'bypass' and sparams.sizing.mode == 'bypass') and (-1) or (155)
+        ClippedSeparatorText(ctx, "Time window size", hsize)
+
+        self:gfxModeCombobox(ctx, "Mode", TabParams.TimeWindowSizingMode, params, true, nil, nil)
+        if params.mode == 'custom' then
+            self:comboLeftLabel(ctx, "Duration", true)
+            ImGui.SetNextItemWidth(ctx, 50)
+            b, v = ImGui.InputText(ctx, "", params.size or '')
+            if b then
+                params.size = v
+            end
+
+            local offset = 0.0
+            if sparams.positioning.mode == 'custom' then
+                offset = reaper.parse_timestr_pos(sparams.positioning.position, -1)
+            else
+                local start_time, _ = TIMELINE.GetBounds(mec.me)
+                offset = start_time or 0
+            end
+
+            local respos = reaper.parse_timestr_len(params.size, offset, -1)
+            TT(ctx, "Enter a duration using Reaper's format.\n\z
+            This may be expressed:\n\n   - in measures :    M.B.fraction\n   - as a time :      [hh:mm]:ss\n\nCurrently resolved as :\n\n   " .. respos .. " seconds, using offset : " .. offset .. " seconds" )
+        end
+    end
+    ImGui.PopID(ctx)
+    ImGui.EndGroup(ctx)
+
+    if sparams.positioning.mode == 'custom' or sparams.sizing.mode == 'custom' then
+        ImGui.SameLine(ctx)
+        ImGui.BeginGroup(ctx)
+        ImGui.PushID(ctx, "timeline_anchoring")
+        if true then
+            ImGui.SeparatorText(ctx, "Time ref")
+            self:comboLeftLabel(ctx, "Anchor", true)
+            self:genericEnumComboBox(ctx, sparams.positioning, 'anchoring', TabParams.TimeWindowAnchoring, 'anchoring', 70)
+        end
+        ImGui.PopID(ctx)
+        ImGui.EndGroup(ctx)
+    end
+
+    ImGui.PopID(ctx)
+end
+
 function TabEditor:gfxFirstLine()
     local ctx               = MACCLContext.ImGuiContext
 
@@ -1115,7 +1263,8 @@ function TabEditor:gfxFirstLine()
 
     ImGui.BeginGroup(ctx)
     if true then -- for indentation & readability
-        ImGui.SetCursorPosY(ctx, ImGui.GetCursorPosY(ctx)+3); ImGui.Text(ctx,"Name"); ImGui.SameLine(ctx); ImGui.SetCursorPosY(ctx, ImGui.GetCursorPosY(ctx)-3)
+        self:comboLeftLabel(ctx, "Name", true)
+
         ImGui.SetNextItemWidth(ctx, 150)
         _, self.tab.params.title = ImGui.InputText(ctx, "##te_name", self.tab.params.title)
         TT(ctx, "This is what appears on the tab. You can also use the name to call this tab with an action 'by name'.")
@@ -1138,7 +1287,7 @@ function TabEditor:gfxFirstLine()
 
         ImGui.Dummy(ctx, 1, 1)
 
-        ImGui.SetCursorPosY(ctx, ImGui.GetCursorPosY(ctx)-3); ImGui.Text(ctx,"Role"); ImGui.SameLine(ctx); ImGui.SetCursorPosY(ctx, ImGui.GetCursorPosY(ctx)-3)
+        self:comboLeftLabel(ctx, "Role", false)
         ImGui.SetNextItemWidth(ctx, 150)
         _, self.tab.params.role = ImGui.InputText(ctx, "##te_role", self.tab.params.role)
         TT(ctx, "Enter a role here if you want to be able to call this tab with an action 'by role'.\n\nUseful if you want to have a similar behaviour across different tracks\nhaving the same 'role' but differing configs. They will be unified under the same 'role'\nand callable with the same shortcut, but you're still free to use different names.")
@@ -1154,7 +1303,7 @@ function TabEditor:gfxFirstLine()
         local cparams = self.tab.params.color
         self:gfxModeCombobox(ctx, "Color ", TabParams.ColorMode, cparams, false)
         if cparams.mode == 'overload' then
-            ImGui.SameLine(ctx); ImGui.SetCursorPosY(ctx, ImGui.GetCursorPosY(ctx)-3)
+            ImGui.SameLine(ctx); MoveCursorY(ctx, -3)
             local b, v = ImGui.ColorEdit3(ctx, '', cparams.color, ImGui.ColorEditFlags_NoInputs)
             if b then
                 cparams.color = v
@@ -1170,7 +1319,7 @@ function TabEditor:gfxFirstLine()
         self:gfxModeCombobox(ctx, "Margin", TabParams.MarginMode, mparams, false)
         if mparams.mode == 'overload' then
             ImGui.SetNextItemWidth(ctx, 30)
-            ImGui.SameLine(ctx); ImGui.SetCursorPosY(ctx, ImGui.GetCursorPosY(ctx)-3)
+            ImGui.SameLine(ctx); MoveCursorY(ctx, -3)
             local b, v = ImGui.InputText(ctx, "##margin", "" .. (mparams.margin), ImGui.InputTextFlags_CharsDecimal)
             if b then
                 mparams.margin = tonumber(v) or 0
@@ -1183,13 +1332,110 @@ function TabEditor:gfxFirstLine()
     ImGui.SameLine(ctx)
 
     ImGui.BeginGroup(ctx)
-    if true then -- for indentation & readability
-        ImGui.SetCursorPosY(ctx, ImGui.GetCursorPosY(ctx)-3); ImGui.Text(ctx,"Priority"); ImGui.SameLine(ctx); ImGui.SetCursorPosY(ctx, ImGui.GetCursorPosY(ctx)-3)
+    if true then -- for indentation &
+        self:comboLeftLabel(ctx, "Priority", false)
         ImGui.SetNextItemWidth(ctx, 50)
         local b, v = ImGui.InputText(ctx, "##te_prio", "" .. (self.tab.params.priority), ImGui.InputTextFlags_CharsDecimal)
         if b then
             self.tab.params.priority = tonumber(v) or 0
         end
+    end
+    ImGui.EndGroup(ctx)
+
+    ImGui.PopID(ctx)
+end
+
+function TabEditor:gfxOtherParamsSection()
+    local mec       = self.mec
+    local ctx       = MACCLContext.ImGuiContext
+    local b, v
+
+    ImGui.PushID(ctx, "other_params_section")
+
+    ImGui.BeginGroup(ctx)
+    if true then
+        ImGui.PushID(ctx, "coloring_params")
+
+        local cparams = self.tab.params.coloring
+        ClippedSeparatorText(ctx, "Coloring", cparams.mode == 'custom' and 165 or 140)
+        self:gfxModeCombobox(ctx, 'Mode', TabParams.MEColoringMode, cparams, true, "mode", 100)
+
+        if cparams.mode == 'custom' then
+            self:comboLeftLabel(ctx, 'Type', true)
+            self:genericEnumComboBox(ctx, cparams, "type", TabParams.MEColoringType, "##coloring_type", 100)
+
+            ImGui.SameLine(ctx); MoveCursorY(ctx, -3)
+            ReadButton(ctx, '##R', function()
+                if not mec.take then return end
+
+                cparams.type = GRID.GetColoringType(mec)
+            end)
+        end
+        ImGui.PopID(ctx)
+    end
+    ImGui.EndGroup(ctx)
+
+    ImGui.SameLine(ctx)
+
+    ImGui.BeginGroup(ctx)
+    if true then
+        ImGui.PushID(ctx, "grid_params")
+        local cparams   = self.tab.params.grid
+        ClippedSeparatorText(ctx, "Grid", -1)
+        self:gfxModeCombobox(ctx, 'Mode', TabParams.GridMode, cparams, true, "mode", 100)
+        if cparams.mode == 'custom' then
+            self:comboLeftLabel(ctx, 'Val ', true)
+            ImGui.SetNextItemWidth(ctx, 70)
+            b, v = ImGui.InputText(ctx, '##gridval', cparams.val)
+            if b then
+                cparams.val = v
+            end
+
+            TT(ctx, "Enter a fraction or a floating number.\n\z
+                        This is the fraction of a whole used as the base for the grid.\n\z
+                        \n\z
+                        Currently resolved as : " .. GRID.ToString(GRID.FromString(cparams.val)))
+
+            ----------
+
+            ImGui.SameLine(ctx)
+            self:comboLeftLabel(ctx, 'Type', false)
+            ImGui.SameLine(ctx)
+            MoveCursorY(ctx, -3)
+            self:genericEnumComboBox(ctx, cparams, 'type', TabParams.GridType, '##grid_type', 80)
+
+            -------------
+
+            if cparams.type == "swing" then
+                ImGui.SameLine(ctx); MoveCursorY(ctx, -3)
+                ImGui.SetNextItemWidth(ctx, 70)
+                b, v = ImGui.SliderInt(ctx, '##swingval', cparams.swing, -100, 100)
+                if b then
+                    cparams.swing = v
+                end
+                if ImGui.IsItemClicked(ctx, ImGui.MouseButton_Right) then
+                    cparams.swing = 0
+                end
+
+                TT(ctx, "" .. cparams.swing)
+            end
+
+            ImGui.SameLine(ctx); MoveCursorY(ctx, -3)
+            ReadButton(ctx, '##R', function()
+                if not mec.take then return end
+
+                local val, type, swing = GRID.GetMIDIEditorGrid(mec)
+
+                local p, q, err = GRID.ToFrac(val)
+                local str = "" .. p .. "/" .. q
+                if q == 1 then str = "" .. p end
+
+                cparams.val      = str
+                cparams.type     = type
+                cparams.swing    = math.floor(swing * 100)
+            end)
+        end
+        ImGui.PopID(ctx)
     end
     ImGui.EndGroup(ctx)
 
@@ -1236,15 +1482,16 @@ function TabEditor:gfx()
 
         self:gfxOwnerSection()
         self:gfxDockingSection()
+        self:gfxTimeLineSection()
         self:gfxCCLaneSection()
         self:gfxPianoRollSection()
-
         ImGui.SameLine(ctx, 0)
-
         ImGui.BeginGroup(ctx)
         ImGui.SeparatorText(ctx, "MIDI Channels")
         self:gfxMidiChanSection()
         ImGui.EndGroup(ctx)
+
+        self:gfxOtherParamsSection()
 
         self:gfxActionSection()
 
@@ -1261,7 +1508,6 @@ function TabEditor:gfx()
 
         PushRedStyle(ctx)
         if not is_new_record then
-
             local now = reaper.time_precise()
             if not self.confirm_timeout or self.confirm_timeout < now then
                 ImGui.SameLine(ctx, ImGui.GetWindowWidth(ctx) - 58)
@@ -1275,7 +1521,6 @@ function TabEditor:gfx()
                     self.tab:destroy()
                 end
             end
-
         end
         PopRedStyle(ctx)
 
