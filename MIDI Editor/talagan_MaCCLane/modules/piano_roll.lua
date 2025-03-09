@@ -3,10 +3,8 @@
 -- @license MIT
 -- @description This file is part of MaCCLane
 
-local CHUNK     = require "modules/chunk"
 local UTILS     = require "modules/utils"
 local VELLANE   = require "modules/vellane"
-local MIDI      = require "modules/midi"
 
 ---------------------
 

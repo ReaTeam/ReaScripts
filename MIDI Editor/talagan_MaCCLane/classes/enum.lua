@@ -60,4 +60,10 @@ function Enum:entryByValue(v)
     return self.v_lookup[v]
 end
 
+function Enum:sanitize(name, default_name)
+    if not self.n_lookup[default_name] then error("Developer error ! Entry '" .. default_name .. "' does not exist in enum.") end
+    if not self.n_lookup[name] then return default_name end
+    return name
+end
+
 return Enum

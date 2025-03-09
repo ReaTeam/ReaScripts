@@ -140,7 +140,12 @@ TabPopupMenu.process = function()
             end
         else
             local meinfo = mec:editorInfo()
+            local col, _, _ = tab:colors(mec, true)
+
+            ImGui.ColorButton(ctx, "##col_prev", col, ImGui.ColorEditFlags_NoAlpha | ImGui.ColorEditFlags_NoLabel | ImGui.ColorEditFlags_NoPicker)
+            ImGui.SameLine(ctx); ImGui.SetCursorPosY(ctx, ImGui.GetCursorPosY(ctx) + 2)
             ImGui.MenuItem(ctx, tab.params.title, nil, false, false)
+
             ImGui.Separator(ctx)
 
             if ImGui.MenuItem(ctx, "Delete") then

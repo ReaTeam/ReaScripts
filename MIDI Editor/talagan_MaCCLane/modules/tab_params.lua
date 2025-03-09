@@ -3,6 +3,8 @@
 -- @license MIT
 -- @description This file is part of MaCCLane
 
+local D = require "modules/defines"
+
 local Enum = require "classes/enum"
 
 local generic_mode_def = {
@@ -28,8 +30,8 @@ local piano_roll_def = {
 
 -- Main=0, Main (alt recording)=100, MIDI Editor=32060, MIDI Event List Editor=32061, MIDI Inline Editor=32062, Media Explorer=32063
 local action_section_def = {
-    { name = "main",                human = "Main",         v = 100 },
-    { name = "midi_editor",         human = "Midi Editor",  v = 32060 }
+    { name = "main",                human = "Main",         v = D.SECTION_MAIN },
+    { name = "midi_editor",         human = "Midi Editor",  v = D.SECTION_MIDI_EDITOR }
 }
 
 local action_when_def = {
@@ -73,19 +75,55 @@ local piano_roll_fit_owner_scope = {
     { name = 'takes',  human = "All ME active takes" }
 }
 
+local time_window_anchoring_def = {
+    { name = 'left',        human = 'Left' },
+    { name = 'center',      human = 'Center' },
+    { name = 'right',       human = 'Right' },
+}
+
+local grid_type_def = {
+    { name = 'triplet',     human = 'Triplet' },
+    { name = 'dotted',      human = 'Dotted' },
+    { name = 'straight',    human = 'Straight' },
+    { name = 'swing',       human = 'Swing' },
+}
+local me_coloring_mode_def = {
+    { name = 'velocity',    human = "Velocity"},
+    { name = 'channel',     human = "Channel"},
+    { name = 'pitch',       human = "Pitch"},
+    { name = 'source',      human = "Source"},
+    { name = 'track',       human = "Track"},
+    { name = 'media_item',  human = "Media Item"},
+    { name = 'voice',       human = "Voice"},
+}
+
+local function SanitizeBool(b, v)
+    if b == nil then return v end
+    return b
+end
+
 return {
-    DockingMode     = Enum:new(docking_mode_def),
-    CCLaneMode      = Enum:new(generic_mode_def),
-    PianoRollMode   = Enum:new(piano_roll_def),
-    MidiChanMode    = Enum:new(generic_mode_def),
-    ActionMode      = Enum:new(generic_mode_def),
-    ActionSection   = Enum:new(action_section_def),
-    ActionWhen      = Enum:new(action_when_def),
-    IfDockedMode    = Enum:new(if_docked_mode_def),
-    IfWindowedMode  = Enum:new(if_windowed_mode_def),
-    SortStrategy    = Enum:new(sort_strategy_def),
-    ColorMode       = Enum:new(color_mode_def),
-    MarginMode      = Enum:new(margin_mode_def),
-    PianoRollFitTimeScope = Enum:new(piano_roll_fit_time_scope),
-    PianoRollFitOwnerScope = Enum:new(piano_roll_fit_owner_scope)
+    DockingMode             = Enum:new(docking_mode_def),
+    CCLaneMode              = Enum:new(generic_mode_def),
+    PianoRollMode           = Enum:new(piano_roll_def),
+    MidiChanMode            = Enum:new(generic_mode_def),
+    ActionMode              = Enum:new(generic_mode_def),
+    ActionSection           = Enum:new(action_section_def),
+    ActionWhen              = Enum:new(action_when_def),
+    IfDockedMode            = Enum:new(if_docked_mode_def),
+    IfWindowedMode          = Enum:new(if_windowed_mode_def),
+    SortStrategy            = Enum:new(sort_strategy_def),
+    ColorMode               = Enum:new(color_mode_def),
+    MarginMode              = Enum:new(margin_mode_def),
+    PianoRollFitTimeScope   = Enum:new(piano_roll_fit_time_scope),
+    PianoRollFitOwnerScope  = Enum:new(piano_roll_fit_owner_scope),
+    TimeWindowPosMode       = Enum:new(generic_mode_def),
+    TimeWindowSizingMode    = Enum:new(generic_mode_def),
+    TimeWindowAnchoring     = Enum:new(time_window_anchoring_def),
+    GridMode                = Enum:new(generic_mode_def),
+    GridType                = Enum:new(grid_type_def),
+    MEColoringMode          = Enum:new(generic_mode_def),
+    MEColoringType          = Enum:new(me_coloring_mode_def),
+
+    SanitizeBool            = SanitizeBool
 }

@@ -236,5 +236,6 @@ end
 
 return {
     comboEntry=comboEntry,
-    comboForMec=comboForMec
+    comboForMec=comboForMec,
+    hasPitchBendSnap=hasPitchBendSnap
 }
