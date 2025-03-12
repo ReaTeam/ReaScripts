@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="3ffc97ad1651c207271c98ae54cb1c41a293bf8e" name="ReaTeam Scripts">
+<index version="1" commit="ba3a4af8efb1d1824ae9773e823a744a70971dd3" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -854,7 +854,7 @@ forum thread
       </version>
       <version name="1.1.4" author="cfillion" time="2025-03-12T14:09:16Z">
         <changelog><![CDATA[• Fix v1.1.3 regression not resetting table recursion depth]]></changelog>
-        <source>https://github.com/ReaTeam/ReaScripts/raw/3ffc97ad1651c207271c98ae54cb1c41a293bf8e/Development/cfillion_Lua%20profiler.lua</source>
+        <source>https://github.com/ReaTeam/ReaScripts/raw/ba3a4af8efb1d1824ae9773e823a744a70971dd3/Development/cfillion_Lua%20profiler.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Search action by command ID or name.lua" type="script" desc="Search action by command ID or name">
