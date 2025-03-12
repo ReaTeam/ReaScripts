@@ -1,7 +1,7 @@
 -- @description Lua profiler
 -- @author cfillion
--- @version 1.1.3
--- @changelog • Improve v1.1.2's detection of nested recursive tables
+-- @version 1.1.4
+-- @changelog • Fix v1.1.3 regression not resetting table recursion depth
 -- @provides [nomain] .
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=283461
 -- @screenshot
@@ -692,7 +692,9 @@ local function attach(is_attach, name, value, opts, depth, in_metatable)
     -- don't dig into metatables to avoid listing (for example) string.byte
     -- as some_string_value`meta.__index.byte
     depth[#depth + 1] = value
+    local border = #depth
     attachToTable(is_attach, name, value, opts, depth)
+    for i = #depth, border, -1 do depth[i] = nil end
     return true
   end
 
