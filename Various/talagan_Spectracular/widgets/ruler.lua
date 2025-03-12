@@ -52,10 +52,13 @@ function RulerWidget:draw(ctx)
     local draw_list = ImGui.GetWindowDrawList(ctx)
     local mx, my    = ImGui.GetMousePos(ctx)
 
+    -- Draw Background
     self:startClipping(draw_list)
     ImGui.DrawList_AddRectFilled(draw_list,  self.x, self.y, self.x + self.w, self.y + self.h, T.RULER_BG)
+    -- Draw bottom border
     ImGui.DrawList_AddLine(draw_list,        self.x, self.y + self.h -1 , self.x + self.w, self.y + self.h - 1 , T.RMSE_BORDER)
 
+    -- Draw yellow cursor text
     local time  = self.mw.spectrograph_widget:xToTime(mx)
     local txt   = reaper.format_timestr_pos(time, '', 1)
 
@@ -76,7 +79,6 @@ function RulerWidget:draw(ctx)
     end
     local posx = mx + mgx
     if not self.align_right then posx = mx - mgx - tw end
-
 
     ImGui.DrawList_AddText(draw_list, posx, self.y + 2, T.H_CURSOR, txt)
 
@@ -99,7 +101,11 @@ function RulerWidget:onGridTickDraw(spectrograph, draw_list, t)
     if xp < 0 or xp > self.x + self.w then return end
 
     self:startClipping(draw_list)
-    ImGui.DrawList_AddText(draw_list, xp + 5 , self.y + 3, T.NOTE_GRID_C, "" .. t.measure_num)
+    local txt   = reaper.format_timestr_pos(t.time, '', 1)
+    local p = txt:find("%.")
+    if p then txt = txt:sub(1, p-1) end
+
+    ImGui.DrawList_AddText(draw_list, xp + 5 , self.y + 3, T.NOTE_GRID_C, "" .. txt)
     self:stopClipping(draw_list)
 end
 

@@ -1,16 +1,16 @@
 --[[
 @description Spectracular ! Spectrogram binocular for REAPER
-@version 0.2
+@version 0.2.1
 @author Ben 'Talagan' Babut
 @donation https://www.paypal.com/donate/?business=3YEZMY9D6U8NC&no_recurring=1&currency_code=EUR
 @license MIT
 @screenshot
   https://stash.reaper.fm/49923/spectracular%200.1.png
 @links
-  Forum Thread (does not exist yet TODO) http://forum.cockos.com/
+  Forum Thread https://forum.cockos.com/showthread.php?p=2847937
 @metapackage
 @changelog
-  - Initial version
+  - [Bug Fix] Wrong measure numbers in rulers if first measure has offset
 @provides
   [nomain] talagan_Spectracular/ext/**/*
   [nomain] talagan_Spectracular/classes/**/*

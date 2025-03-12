@@ -201,5 +201,4 @@ function MainWidget:draw(ctx)
     self.canvas_size_changed = false
 end
 
-
 return MainWidget
