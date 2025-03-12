@@ -692,9 +692,8 @@ local function attach(is_attach, name, value, opts, depth, in_metatable)
     -- don't dig into metatables to avoid listing (for example) string.byte
     -- as some_string_value`meta.__index.byte
     depth[#depth + 1] = value
-    local border = #depth
     attachToTable(is_attach, name, value, opts, depth)
-    for i = #depth, border, -1 do depth[i] = nil end
+    depth[#depth] = nil
     return true
   end
 
