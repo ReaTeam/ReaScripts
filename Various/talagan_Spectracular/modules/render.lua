@@ -70,8 +70,8 @@ local function getTrackSourceContext(new_track)
         if not take then
              ret.err = "No take was created on rendered track !"
         else
-            local ts            = reaper.GetMediaItemInfo_Value(item, "D_POSITION");
-            local te            = ts + reaper.GetMediaItemInfo_Value(item, "D_LENGTH");
+            local ts            = reaper.GetMediaItemInfo_Value(item, "D_POSITION")
+            local te            = ts + reaper.GetMediaItemInfo_Value(item, "D_LENGTH")
             local tlen          = te - ts
             local source        = reaper.GetMediaItemTake_Source(take)
             local chan_count    = reaper.GetMediaSourceNumChannels(source)  -- Should be 1 since we render in mono

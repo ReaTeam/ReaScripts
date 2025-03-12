@@ -194,7 +194,6 @@ function RmseWidget:drawTimeProfileCurves(ctx)
     spectrograph.rmse_draw_profile:buildDrawCurves(self.x, self.y+1, self.w, self.h-2, self:chanMode())
     self:drawTimeProfileCurve(ctx, spectrograph.rmse_draw_profile, 1)
 
-
     -- Cursor Note profile ; draw before other ones to avoid glitching when pinning curve
     if spectrograph.want_draw_cursor_profile then
         -- Always refresh the color of the cursor profile (because it may change due to profile pinning / deleting)
