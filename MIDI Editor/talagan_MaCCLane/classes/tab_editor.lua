@@ -496,7 +496,7 @@ end
 
 function TabEditor:getVellanes(meinfo)
     local ichunk    = CHUNK.getItemChunk(meinfo.item)
-    local vellanes  = VELLANE.readVellanesFromChunk(ichunk)
+    local vellanes  = VELLANE.readVellanesFromChunk(ichunk, meinfo.take)
 
     for _, e in ipairs(vellanes.entries) do
         if e.num == 128 then

@@ -42,6 +42,54 @@ end
 
 -----------------
 
+local function updatePianoRollInfo(ctx)
+
+    local info_by_take = {}
+
+    local take      = ctx.take
+    local chunk     = ctx.chunk
+    local li        = 0
+    local curguid   = nil
+    local tag       = nil
+    local stack     = {}
+
+    for line in chunk:gmatch("%s*([^\n\r]*)[\r\n]?") do
+
+        li = li + 1
+
+        tag = line:match("^<([^%s]+)")
+        if tag then
+          stack[#stack+1] = tag
+        end
+
+        if line:match("^>") then
+          stack[#stack] = nil
+        end
+
+        if (#stack == 1) then
+          -- Detect good GUID
+          local guid = line:match("^GUID ([^%s]+)")
+          if guid then
+            curguid = guid
+            info_by_take[curguid] = { piano_roll_top = 127, piano_roll_hbt = 10}
+          end
+        end
+
+        if (#stack == 2) then
+            local s1, s2 = line:match('CFGEDITVIEW [^%s]+ [^%s]+ ([^%s]+) ([^%s]+) [^\n]+')
+            if s1 then
+                info_by_take[curguid].piano_roll_top = 127 - tonumber(s1)
+                info_by_take[curguid].piano_roll_hbt = tonumber(s2)
+            end
+        end
+    end
+
+    local  take_guid = reaper.BR_GetMediaItemTakeGUID(take)
+
+    ctx.piano_roll_top    = info_by_take[take_guid].piano_roll_top or 127
+    ctx.piano_roll_hbt    = info_by_take[take_guid].piano_roll_hbt or 10
+end
+
 -- cached_chunk may be nil, it will be read from the me's active take then
 local function pianoRollHeight(me, ctx)
     if not ctx      then ctx = PRCtx:new(me) end
@@ -50,7 +98,8 @@ local function pianoRollHeight(me, ctx)
     if ctx.height then return ctx.height end
 
     ctx:readChunk()
-    local vellanes  = VELLANE.readVellanesFromChunk(ctx.chunk)
+
+    local vellanes  = VELLANE.readVellanesFromChunk(ctx.chunk, ctx.take)
     local h         = 0
     local hwnd      = UTILS.JS_FindMidiEditorSysListView32(me)
 
@@ -67,7 +116,8 @@ local function pianoRollHeight(me, ctx)
     -- If so, the vellanes are resized, not the PR.
     if h < 10 then h = 10 end
 
-    ctx.height = h
+    ctx.height          = h
+
     return h
 end
 
@@ -79,19 +129,16 @@ local function pianoRollRange(me, ctx)
 
     -- The first call will ensure that there's a chunk
     local totalHeight   = pianoRollHeight(me, ctx)
-    local topnote       = 127 -- Top note
-    local h12           = 10  -- Height of one octava / 12
 
-    -- TODO !!! MAtch the current me's active take !
-    -- This only works atm if the take is the only one in the item !
-    for s1, s2 in ctx.chunk:gmatch 'CFGEDITVIEW [^%s]+ [^%s]+ ([^%s]+) ([^%s]+) [^\n]+\n' do
-        topnote = 127 - tonumber(s1)
-        h12     = tonumber(s2) or 10
-    end
+    -- Be sure that our PR info is up to date (context chunk may have been re-read)
+    updatePianoRollInfo(ctx)
+
+    local topnote       = ctx.piano_roll_top or 127
+    local h12           = ctx.piano_roll_hbt or 10
 
     if topnote > 127 then topnote = 127 end
 
-    local notespan   = totalHeight / h12
+    local notespan   = totalHeight * 1.0 / h12
     local bottomnote = math.floor(topnote - notespan + 1)
 
     if bottomnote < 0   then bottomnote = 0 end
