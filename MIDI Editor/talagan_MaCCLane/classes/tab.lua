@@ -456,7 +456,7 @@ function Tab:draw(mec, x)
 end
 
 -- Use VELLANE.readVellanesFromChunk to get the current context for an item's chunk
-function Tab:patchVellaneEntriesForItem(item_vellane_ctx)
+function Tab:patchVellaneEntriesForItem(item_vellane_ctx, take)
     local existing_entries  = item_vellane_ctx.entries
     local new_entries       = self.params.cc_lanes.entries
 
@@ -528,14 +528,15 @@ end
 function Tab:_processVellanes()
     local mec = self.mec
     if self.params.cc_lanes.mode == 'custom' then
+
         local item_chunk    = CHUNK.getItemChunk(mec.item)
-        local vellane_ctx   = VELLANE.readVellanesFromChunk(item_chunk)
+        local vellane_ctx   = VELLANE.readVellanesFromChunk(item_chunk, mec.take)
 
         -- Data patching
-        self:patchVellaneEntriesForItem(vellane_ctx)
+        self:patchVellaneEntriesForItem(vellane_ctx, mec.take)
 
         -- Data applying to chunk
-        VELLANE.applyNewVellanes(vellane_ctx)
+        VELLANE.applyNewVellanes(vellane_ctx, mec.take)
 
         -- Replace chunk
         reaper.SetItemStateChunk(mec.item, vellane_ctx.chunk, false)
