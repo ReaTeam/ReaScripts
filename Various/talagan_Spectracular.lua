@@ -1,6 +1,6 @@
 --[[
 @description Spectracular ! Spectrogram binocular for REAPER
-@version 0.2.1
+@version 0.2.2
 @author Ben 'Talagan' Babut
 @donation https://www.paypal.com/donate/?business=3YEZMY9D6U8NC&no_recurring=1&currency_code=EUR
 @license MIT
@@ -10,7 +10,7 @@
   Forum Thread https://forum.cockos.com/showthread.php?p=2847937
 @metapackage
 @changelog
-  - [Bug Fix] Wrong measure numbers in rulers if first measure has offset
+  - [Bug Fix] Crash under windows if using DPI scaling != 100%
 @provides
   [nomain] talagan_Spectracular/ext/**/*
   [nomain] talagan_Spectracular/classes/**/*

@@ -216,6 +216,12 @@ local function loop()
         local canvas_p0_x, canvas_p0_y = ImGui.GetCursorScreenPos(ctx)      -- DrawList API uses screen coordinates!
         local canvas_sz_w, canvas_sz_h = ImGui.GetContentRegionAvail(ctx)   -- Resize canvas to what's available
 
+        -- Hotfixes for windows + DPI scaling which may lead to float values
+        canvas_p0_x = math.floor(canvas_p0_x)
+        canvas_p0_y = math.floor(canvas_p0_y)
+        canvas_sz_w = math.floor(canvas_sz_w)
+        canvas_sz_h = math.floor(canvas_sz_h)
+
         -- Keep room for bottom widgets (30 pixels)
         canvas_sz_h = canvas_sz_h - 30
 
