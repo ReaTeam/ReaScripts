@@ -5,6 +5,7 @@
 
 local os                            = reaper.GetOS()
 local is_windows                    = os:match('Win')
+local is_linux                      = os:match('Other')
 
 local PerfContext = {
     refdate      = reaper.time_precise(),
@@ -85,7 +86,7 @@ local function screenCoordinatesToLocal(parentBounds, globalx, globaly)
     local  localx = globalx - parentBounds.l
     local  localy = globaly - parentBounds.b
 
-    if is_windows then
+    if is_windows or is_linux then
         localy = -localy
     end
 
@@ -102,7 +103,7 @@ local function JS_Window_GetBounds(hwnd, full_window)
 
     -- Under windows, vertical coordinates are flipped
     -- Vertical ccordinates start with 0 at the top and the axis is vertical
-    if is_windows then
+    if is_windows or is_linux then
         h = bottom - top
     end
 
