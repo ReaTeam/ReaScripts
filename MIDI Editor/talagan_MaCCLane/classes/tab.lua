@@ -515,7 +515,7 @@ function Tab:_processLayouting()
     if is_windowed then
         local coords = self.params.docking.if_windowed.coords
         if self.params.docking.if_windowed.mode == 'custom' then
-            if MACCLContext.is_windows then
+            if MACCLContext.is_windows or MACCLContext.is_linux then
                 local truey = coords.y - coords.h
                 reaper.JS_Window_SetPosition(self.mec.me, coords.x, truey, coords.w, coords.h)
             else

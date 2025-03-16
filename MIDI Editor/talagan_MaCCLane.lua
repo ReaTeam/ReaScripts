@@ -1,15 +1,13 @@
 --[[
 @description MaCCLane : Tabs for the MIDI Editor
-@version 0.1.6
+@version 0.1.7
 @author Ben 'Talagan' Babut
 @license MIT
 @donation https://www.paypal.com/donate/?business=3YEZMY9D6U8NC&no_recurring=1&currency_code=EUR
 @links
   Forum Thread : https://forum.cockos.com/showthread.php?t=298707
 @changelog
-  - [Bug Fixes] apply Piano Roll may not work for takes from multi-take items
-  - [Bug Fixes] apply CC lanes to multi-take items may destroy takes
-  - [Bug Fixes] apply CC Lanes may not work for takes from multi-take items
+  - [Bug Fix] [Linux] Wrong coordinate system leading to widget not appearing at all
 @provides
   [main=main] .
   [nomain] talagan_MaCCLane/classes/**/*.lua
