@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="f87943779924c50f19bbe6bb11886802b71c793a" name="ReaTeam Scripts">
+<index version="1" commit="2c8c1b39388d3e7e776c4fc9f63b76d920499a42" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -22645,6 +22645,21 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
         <changelog><![CDATA[- Full automatic Latin/Greek/Cyrillic character support!
 - Take markers for every character]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b1fbc09c7a4fe7aff0ab9695578e6bc596ab4043/Various/amagalma_mespotine_Create%20MIDI%20Morse%20Message%20Item%20at%20edit%20cursor%20position,%20grid%20length%20duration,%20first%20selectedlast%20touched%20or%20first%20track.lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Move selected track to dedicated Melodyne subproject.lua" type="script" desc="Move selected track to dedicated Melodyne subproject">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Moves the selected track to a dedicated subproject that has only the track and Melodyne. Suitable only for Melodyne ARA\par}
+}
+]]></description>
+        <link rel="donation">https://www.paypal.me/amagalma</link>
+      </metadata>
+      <version name="1.00" author="amagalma" time="2025-03-18T09:47:14Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/2c8c1b39388d3e7e776c4fc9f63b76d920499a42/Various/amagalma_Move%20selected%20track%20to%20dedicated%20Melodyne%20subproject.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_ReaNoir track-item-take coloring utility.lua" type="script" desc="ReaNoir - Track/Item/Take coloring utility">
