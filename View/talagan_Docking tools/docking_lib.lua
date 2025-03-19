@@ -22,6 +22,11 @@ end
 
 ------------------------
 
+local OS  = reaper.GetOS()
+
+local is_windows                    = OS:match('Win')
+local is_macos                      = OS:match('OSX') or OS:match('macOS')
+local is_linux                      = OS:match('Other')
 
 local DockableComponents = {
   "Mixer",
@@ -58,11 +63,10 @@ end
 local function JS_Window_GetBounds(hwnd)
   local _, left, top, right, bottom = reaper.JS_Window_GetClientRect( hwnd )
 
-  local os  = reaper.GetOS()
   local h   = top - bottom
 
   -- Under windows, vertical coordinates are flipped !
-  if os == "Win32" or os == "Win64" then
+  if is_windows or is_linux then
     h = bottom - top
   end
 
@@ -139,7 +143,7 @@ local function findDirmostDock(wanted_dir)
     if wanted_dir == DOCK_TOP    then coord = bnd.t end
     if wanted_dir == DOCK_LEFT   then coord = bnd.l end
 
-    if (os == "Win32" or os == "Win64") and (wanted_dir == DOCK_TOP or wanted_dir == DOCK_BOTTOM ) then
+    if (is_windows or is_linux) and (wanted_dir == DOCK_TOP or wanted_dir == DOCK_BOTTOM ) then
       -- Under windows we reverse the bottom bound to have the same ordering logic as on MacOS/Linux
       -- (This will be negative but we don't care, we just want to know what's the bottommost dock)
       coord = - coord

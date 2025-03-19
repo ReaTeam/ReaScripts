@@ -1,6 +1,6 @@
 --[[
 @description Docking tools : actions to resize docks
-@version 0.2
+@version 0.3
 @author Ben 'Talagan' Babut
 @donation https://www.paypal.com/donate/?business=3YEZMY9D6U8NC&no_recurring=1&currency_code=EUR
 @license MIT
@@ -8,9 +8,7 @@
   Forum Thread https://forum.cockos.com/showthread.php?t=296531
 @metapackage
 @changelog
-  - Added support for all dock positions (left/top/bottom/right)
-  - New syntax for duplicated action names allow to define conditional heights depending on the dock position
-  - New syntax for duplicated action names allow to target other widgets than the active MIDI Editor
+  - [Bug Fix] Linux coordinates should be treated as under Windows, not MacOS
 @provides
 
   [main=main] talagan_Docking tools/actions/talagan_Generic dock resize action.lua > talagan_Set bottommost dock height (500).lua
