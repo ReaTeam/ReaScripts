@@ -4,10 +4,13 @@
 -- @description This file is part of Legatool
 
 -- Functions and defines
+local S                   = require "modules/settings"
 local UTILS               = require "modules/utils"
 local LTContext           = require "modules/context"
 local ImGui               = require "ext/imgui"
 local ctx                 = nil
+
+LTContext.snap_piano_roll = S.getSetting("PinToMidiEditor")
 
 -----------------------
 
@@ -53,13 +56,25 @@ local function app()
     end
 
     if needsImGuiContext() then
+
         if not ctx then
             ctx = ImGui.CreateContext("Legatool", ImGui.ConfigFlags_NoKeyboard)
         end
-        ImGui.SetNextWindowSizeConstraints(ctx,200,35,2000,35)
-        ImGui.SetNextFrameWantCaptureKeyboard(ctx, false)
 
-        local visible, open = ImGui.Begin(ctx, "Legatool", true, ImGui.WindowFlags_NoDocking | ImGui.WindowFlags_NoTitleBar)
+        ImGui.SetNextWindowSizeConstraints(ctx,200,35,2000,35)
+
+        local flags = ImGui.WindowFlags_NoDocking | ImGui.WindowFlags_NoTitleBar
+
+        if LTContext.snap_piano_roll then
+            local piano_roll_hwnd   = reaper.JS_Window_FindChildByID(me, 1001)
+            local pr_bounds         = UTILS.JS_Window_GetBounds(piano_roll_hwnd, true)
+            local x,y = ImGui.PointConvertNative(ctx, pr_bounds.l, pr_bounds.t)
+            ImGui.SetNextWindowSize(ctx, pr_bounds.w, 35)
+            ImGui.SetNextWindowPos(ctx, x, y-2)
+            flags = flags | ImGui.WindowFlags_NoResize
+        end
+
+        local visible, open = ImGui.Begin(ctx, "Legatool", true, flags)
         if visible then
             if ImGui.IsWindowFocused(ctx) then
                 if not LTContext.focustimer or ImGui.IsAnyMouseDown(ctx) then
@@ -74,6 +89,29 @@ local function app()
                 LTContext.focustimer = nil
             end
 
+            local act_col = LTContext.snap_piano_roll
+
+            if act_col then
+                ImGui.PushStyleColor(ctx, ImGui.Col_Button, 0x0091fbff)
+            end
+
+            if ImGui.Button(ctx, "P") then
+                if (LTContext.snap_piano_roll == true) then
+                    LTContext.snap_piano_roll = false
+                else
+                    LTContext.snap_piano_roll = true
+                end
+                S.setSetting("PinToMidiEditor", LTContext.snap_piano_roll)
+            end
+
+            if act_col then ImGui.PopStyleColor(ctx) end
+
+            if ImGui.IsItemHovered(ctx, ImGui.HoveredFlags_DelayNormal) then
+                ImGui.SetTooltip(ctx, "Pin to the top of the MIDI Editor")
+            end
+
+            ImGui.SameLine(ctx)
+
             local w, _ = ImGui.GetContentRegionAvail(ctx)
             ImGui.SetNextItemWidth(ctx, w - 70)
 
@@ -82,7 +120,11 @@ local function app()
             local s       = reaper.MIDI_GetProjTimeFromPPQPos(take, n1.startppq)
             local e       = reaper.MIDI_GetProjTimeFromPPQPos(take, n2.endppq)
 
-            local b, v = ImGui.SliderDouble(ctx, " Legatool##slider", p, s + 0.00001, e - 0.00001, "%02f")
+            local tstr     = reaper.format_timestr_pos(p, '', 0)
+            local bstr     = reaper.format_timestr_pos(p, '', 2)
+
+
+            local b, v = ImGui.SliderDouble(ctx, " Legatool##slider", p, s + 0.00001, e - 0.00001, "Mid : " .. bstr .. " / " .. tstr)
             if b then
                 --reaper.ShowConsoleMsg("YO " .. v .. "\n")
                 if not LTContext.startState then

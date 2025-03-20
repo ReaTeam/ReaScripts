@@ -6,6 +6,7 @@
 local ExtStateKey = "Legatool"
 
 local SettingDefs = {
+  PinToMidiEditor           = { type = "bool",    default = true },
   UseDebugger               = { type = "bool",    default = false },
   UseProfiler               = { type = "bool",    default = false },
 };

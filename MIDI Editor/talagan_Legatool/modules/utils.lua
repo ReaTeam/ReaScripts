@@ -3,6 +3,10 @@
 -- @license MIT
 -- @description This file is part of Legatool
 
+local OS                            = reaper.GetOS()
+local is_windows                    = OS:match('Win')
+local is_linux                      = OS:match('Other')
+
 local PerfContext = {
     refdate      = reaper.time_precise(),
     accum = {
@@ -76,9 +80,35 @@ local function utf8sub(str, utf8_start, utf8_len)
     return string.sub(str, s, e)
 end
 
+local function JS_Window_GetBounds(hwnd, full_window)
+
+    local func = (full_window and reaper.JS_Window_GetRect or reaper.JS_Window_GetClientRect)
+
+    local _, left, top, right, bottom = func( hwnd )
+
+    local h   = top - bottom
+
+    -- Under windows, vertical coordinates are flipped
+    -- Vertical ccordinates start with 0 at the top and the axis is vertical
+    if is_windows or is_linux then
+        h = bottom - top
+    end
+
+    return {
+        hwnd = hwnd,
+        l = left,
+        t = top,
+        r = right,
+        b = bottom,
+        w = (right-left),
+        h = h
+    }
+end
+
 return {
     perf_ms                         = perf_ms,
     perf_accum                      = perf_accum,
     deepcopy                        = deepcopy,
-    utf8sub                         = utf8sub
+    utf8sub                         = utf8sub,
+    JS_Window_GetBounds             = JS_Window_GetBounds
 }
