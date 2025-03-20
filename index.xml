@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="a780f82458e90a89a2d996fed3160dcf83c5b3b4" name="ReaTeam Scripts">
+<index version="1" commit="dac25babc9226adeb98bfd3500704d95e430fc71" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -14590,6 +14590,36 @@ Made by Mordi, Jan 2016]]></changelog>
         <source main="main midi_editor" file="./talagan_Find overlapping notes in active take and select them.lua">https://github.com/ReaTeam/ReaScripts/raw/bdc7579272df4910256c0f8cc193dec109126859/MIDI%20Editor/talagan_Find%20overlapping%20notes/actions/talagan_Find%20overlapping%20notes%20in%20active%20take%20and%20select%20them.lua</source>
         <source main="main midi_editor" file="./talagan_Find overlapping notes in project and report items.lua">https://github.com/ReaTeam/ReaScripts/raw/bdc7579272df4910256c0f8cc193dec109126859/MIDI%20Editor/talagan_Find%20overlapping%20notes/actions/talagan_Find%20overlapping%20notes%20in%20project%20and%20report%20items.lua</source>
         <source file="talagan_Find overlapping notes/overlapping_lib.lua">https://github.com/ReaTeam/ReaScripts/raw/bdc7579272df4910256c0f8cc193dec109126859/MIDI%20Editor/talagan_Find%20overlapping%20notes/overlapping_lib.lua</source>
+      </version>
+    </reapack>
+    <reapack name="talagan_Legatool.lua" type="script" desc="Legatool : legato tool for the MIDI Editor">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel0 \b \fs36 Purpose\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Legatool is a simple tool for editing "legatos" i.e. two consecutive notes for which you want to keep the relation between the first note's end and the second note's start. Some VSTs build part of their legato logic on this relation ; but sometimes your legato will not sound "in time" and you want to move the transition without breaking its sound. Thatis when Legatool is useful.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel0 \b \fs36 How to use\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Launch it from MIDI Editor > actions. Legatool will start to run in the background and watch for your MIDI Editor selections. If two notes are selected in the active take, the adjusting window will appear. Otherwise, Legatool will remain silent and invisible. The UI is extremly simple, it's just one slider representing the full span (first midi note start - second midi note end). By adjusting the slider, you will move both first note's end and second note's start.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel0 \b \fs36 Toolbar support\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 You can attach Legatool to your MIDI Editor's toolbar, so it can be toggled on/off. In ON state, it runs in the background, and will only be visible if the MIDI note selection is pertinent. In OFF state, it's just not launched at all.\par}
+}
+]]></description>
+        <link rel="website" href="https://forum.cockos.com/">Forum Thread TODO</link>
+        <link rel="donation">https://www.paypal.com/donate/?business=3YEZMY9D6U8NC&amp;no_recurring=1&amp;currency_code=EUR</link>
+      </metadata>
+      <version name="0.1" author="Ben 'Talagan' Babut" time="2025-03-20T03:38:41Z">
+        <changelog><![CDATA[- Initial version]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/dac25babc9226adeb98bfd3500704d95e430fc71/MIDI%20Editor/talagan_Legatool.lua</source>
+        <source file="talagan_Legatool/modules/context.lua">https://github.com/ReaTeam/ReaScripts/raw/dac25babc9226adeb98bfd3500704d95e430fc71/MIDI%20Editor/talagan_Legatool/modules/context.lua</source>
+        <source file="talagan_Legatool/modules/debug.lua">https://github.com/ReaTeam/ReaScripts/raw/dac25babc9226adeb98bfd3500704d95e430fc71/MIDI%20Editor/talagan_Legatool/modules/debug.lua</source>
+        <source file="talagan_Legatool/modules/log.lua">https://github.com/ReaTeam/ReaScripts/raw/dac25babc9226adeb98bfd3500704d95e430fc71/MIDI%20Editor/talagan_Legatool/modules/log.lua</source>
+        <source file="talagan_Legatool/modules/settings.lua">https://github.com/ReaTeam/ReaScripts/raw/dac25babc9226adeb98bfd3500704d95e430fc71/MIDI%20Editor/talagan_Legatool/modules/settings.lua</source>
+        <source file="talagan_Legatool/modules/utils.lua">https://github.com/ReaTeam/ReaScripts/raw/dac25babc9226adeb98bfd3500704d95e430fc71/MIDI%20Editor/talagan_Legatool/modules/utils.lua</source>
+        <source file="talagan_Legatool/ext/dependencies.lua">https://github.com/ReaTeam/ReaScripts/raw/dac25babc9226adeb98bfd3500704d95e430fc71/MIDI%20Editor/talagan_Legatool/ext/dependencies.lua</source>
+        <source file="talagan_Legatool/ext/imgui.lua">https://github.com/ReaTeam/ReaScripts/raw/dac25babc9226adeb98bfd3500704d95e430fc71/MIDI%20Editor/talagan_Legatool/ext/imgui.lua</source>
+        <source file="talagan_Legatool/app.lua">https://github.com/ReaTeam/ReaScripts/raw/dac25babc9226adeb98bfd3500704d95e430fc71/MIDI%20Editor/talagan_Legatool/app.lua</source>
       </version>
     </reapack>
     <reapack name="talagan_MaCCLane.lua" type="script" desc="MaCCLane : Tabs for the MIDI Editor">
