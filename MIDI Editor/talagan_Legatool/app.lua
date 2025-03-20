@@ -11,6 +11,7 @@ local ImGui               = require "ext/imgui"
 local ctx                 = nil
 
 LTContext.snap_piano_roll = S.getSetting("PinToMidiEditor")
+_,_,LTContext.sectionID, LTContext.cmdID,_,_,_ = reaper.get_action_context()
 
 -----------------------
 
@@ -19,11 +20,19 @@ local function needsImGuiContext()
 end
 
 local function app()
+
+    -- Watch tool status
+    local current_state = reaper.GetToggleCommandStateEx(LTContext.sectionID, LTContext.cmdID)
+    if current_state == 0 then
+        LTContext.shouldQuit = true
+        return
+    end
+
     local me = reaper.MIDIEditor_GetActive()
-    if not me then return end
+    if not me then ctx = nil ; return end
 
     local take = reaper.MIDIEditor_GetTake(me)
-    if not take then return end
+    if not take then ctx = nil; return end
 
     local item = reaper.GetMediaItemTake_Item(take)
     local track = reaper.GetMediaItemTake_Track(take)
@@ -171,14 +180,6 @@ local function app()
     else
         ctx = nil
     end
-
-    -- Watch tool status
-    local _,_,sectionID,cmdID,_,_,_ = reaper.get_action_context()
-    local current_state = reaper.GetToggleCommandStateEx(sectionID, cmdID)
-    if current_state == 0 then
-        LTContext.shouldQuit = true
-    end
-
 end
 
 local function _app()
@@ -190,14 +191,14 @@ local function _app()
     --    - frames skipped  : 31/34
     --    - forced redraws  : 1-2 (redraw at low pace or when needed only)
     aaa_perf = UTILS.perf_ms(
-    function()
-        app()
-    end
-)
+        function()
+            app()
+        end
+    )
 
-if not LTContext.shouldQuit then
-    reaper.defer(_app)
-end
+    if not LTContext.shouldQuit then
+        reaper.defer(_app)
+    end
 end
 
 local function run(args)
