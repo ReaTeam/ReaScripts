@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="2c8c1b39388d3e7e776c4fc9f63b76d920499a42" name="ReaTeam Scripts">
+<index version="1" commit="a780f82458e90a89a2d996fed3160dcf83c5b3b4" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -28327,6 +28327,30 @@ Streamable link
         <source main="main midi_editor" file="talagan_Minimize dock containing active MIDI Editor.lua">https://github.com/ReaTeam/ReaScripts/raw/018279a29c20ca7a482b950445decc99931eb3f9/View/talagan_Docking%20tools/actions/talagan_Generic%20dock%20resize%20action.lua</source>
         <source main="main midi_editor" file="talagan_Set dock containing active MIDI Editor size (500).lua">https://github.com/ReaTeam/ReaScripts/raw/018279a29c20ca7a482b950445decc99931eb3f9/View/talagan_Docking%20tools/actions/talagan_Generic%20dock%20resize%20action.lua</source>
         <source file="talagan_Docking tools/docking_lib.lua">https://github.com/ReaTeam/ReaScripts/raw/018279a29c20ca7a482b950445decc99931eb3f9/View/talagan_Docking%20tools/docking_lib.lua</source>
+      </version>
+      <version name="0.3" author="Ben 'Talagan' Babut" time="2025-03-20T03:30:35Z">
+        <changelog><![CDATA[- [Bug Fix] Linux coordinates should be treated as under Windows, not MacOS]]></changelog>
+        <source main="main" file="talagan_Set bottommost dock height (500).lua">https://github.com/ReaTeam/ReaScripts/raw/a780f82458e90a89a2d996fed3160dcf83c5b3b4/View/talagan_Docking%20tools/actions/talagan_Generic%20dock%20resize%20action.lua</source>
+        <source main="main" file="talagan_Set dock containing active MIDI Editor height (500).lua">https://github.com/ReaTeam/ReaScripts/raw/a780f82458e90a89a2d996fed3160dcf83c5b3b4/View/talagan_Docking%20tools/actions/talagan_Generic%20dock%20resize%20action.lua</source>
+        <source main="main" file="talagan_Maximize dock containing project bay.lua">https://github.com/ReaTeam/ReaScripts/raw/a780f82458e90a89a2d996fed3160dcf83c5b3b4/View/talagan_Docking%20tools/actions/talagan_Generic%20dock%20resize%20action.lua</source>
+        <source main="main" file="talagan_Minimize dock containing project bay.lua">https://github.com/ReaTeam/ReaScripts/raw/a780f82458e90a89a2d996fed3160dcf83c5b3b4/View/talagan_Docking%20tools/actions/talagan_Generic%20dock%20resize%20action.lua</source>
+        <source main="main" file="talagan_Set dock containing project bay size (500,700,500,700).lua">https://github.com/ReaTeam/ReaScripts/raw/a780f82458e90a89a2d996fed3160dcf83c5b3b4/View/talagan_Docking%20tools/actions/talagan_Generic%20dock%20resize%20action.lua</source>
+        <source main="main" file="talagan_Maximize bottommost dock.lua">https://github.com/ReaTeam/ReaScripts/raw/a780f82458e90a89a2d996fed3160dcf83c5b3b4/View/talagan_Docking%20tools/actions/talagan_Generic%20dock%20resize%20action.lua</source>
+        <source main="main" file="talagan_Minimize bottommost dock.lua">https://github.com/ReaTeam/ReaScripts/raw/a780f82458e90a89a2d996fed3160dcf83c5b3b4/View/talagan_Docking%20tools/actions/talagan_Generic%20dock%20resize%20action.lua</source>
+        <source main="main" file="talagan_Set bottommost dock size (500).lua">https://github.com/ReaTeam/ReaScripts/raw/a780f82458e90a89a2d996fed3160dcf83c5b3b4/View/talagan_Docking%20tools/actions/talagan_Generic%20dock%20resize%20action.lua</source>
+        <source main="main" file="talagan_Maximize topmost dock.lua">https://github.com/ReaTeam/ReaScripts/raw/a780f82458e90a89a2d996fed3160dcf83c5b3b4/View/talagan_Docking%20tools/actions/talagan_Generic%20dock%20resize%20action.lua</source>
+        <source main="main" file="talagan_Minimize topmost dock.lua">https://github.com/ReaTeam/ReaScripts/raw/a780f82458e90a89a2d996fed3160dcf83c5b3b4/View/talagan_Docking%20tools/actions/talagan_Generic%20dock%20resize%20action.lua</source>
+        <source main="main" file="talagan_Set topmost dock size (500).lua">https://github.com/ReaTeam/ReaScripts/raw/a780f82458e90a89a2d996fed3160dcf83c5b3b4/View/talagan_Docking%20tools/actions/talagan_Generic%20dock%20resize%20action.lua</source>
+        <source main="main" file="talagan_Maximize rightmost dock.lua">https://github.com/ReaTeam/ReaScripts/raw/a780f82458e90a89a2d996fed3160dcf83c5b3b4/View/talagan_Docking%20tools/actions/talagan_Generic%20dock%20resize%20action.lua</source>
+        <source main="main" file="talagan_Minimize rightmost dock.lua">https://github.com/ReaTeam/ReaScripts/raw/a780f82458e90a89a2d996fed3160dcf83c5b3b4/View/talagan_Docking%20tools/actions/talagan_Generic%20dock%20resize%20action.lua</source>
+        <source main="main" file="talagan_Set rightmost dock size (500).lua">https://github.com/ReaTeam/ReaScripts/raw/a780f82458e90a89a2d996fed3160dcf83c5b3b4/View/talagan_Docking%20tools/actions/talagan_Generic%20dock%20resize%20action.lua</source>
+        <source main="main" file="talagan_Maximize leftmost dock.lua">https://github.com/ReaTeam/ReaScripts/raw/a780f82458e90a89a2d996fed3160dcf83c5b3b4/View/talagan_Docking%20tools/actions/talagan_Generic%20dock%20resize%20action.lua</source>
+        <source main="main" file="talagan_Minimize leftmost dock.lua">https://github.com/ReaTeam/ReaScripts/raw/a780f82458e90a89a2d996fed3160dcf83c5b3b4/View/talagan_Docking%20tools/actions/talagan_Generic%20dock%20resize%20action.lua</source>
+        <source main="main" file="talagan_Set leftmost dock size (500).lua">https://github.com/ReaTeam/ReaScripts/raw/a780f82458e90a89a2d996fed3160dcf83c5b3b4/View/talagan_Docking%20tools/actions/talagan_Generic%20dock%20resize%20action.lua</source>
+        <source main="main midi_editor" file="talagan_Maximize dock containing active MIDI Editor.lua">https://github.com/ReaTeam/ReaScripts/raw/a780f82458e90a89a2d996fed3160dcf83c5b3b4/View/talagan_Docking%20tools/actions/talagan_Generic%20dock%20resize%20action.lua</source>
+        <source main="main midi_editor" file="talagan_Minimize dock containing active MIDI Editor.lua">https://github.com/ReaTeam/ReaScripts/raw/a780f82458e90a89a2d996fed3160dcf83c5b3b4/View/talagan_Docking%20tools/actions/talagan_Generic%20dock%20resize%20action.lua</source>
+        <source main="main midi_editor" file="talagan_Set dock containing active MIDI Editor size (500).lua">https://github.com/ReaTeam/ReaScripts/raw/a780f82458e90a89a2d996fed3160dcf83c5b3b4/View/talagan_Docking%20tools/actions/talagan_Generic%20dock%20resize%20action.lua</source>
+        <source file="talagan_Docking tools/docking_lib.lua">https://github.com/ReaTeam/ReaScripts/raw/a780f82458e90a89a2d996fed3160dcf83c5b3b4/View/talagan_Docking%20tools/docking_lib.lua</source>
       </version>
     </reapack>
   </category>
