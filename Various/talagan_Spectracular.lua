@@ -1,6 +1,6 @@
 --[[
 @description Spectracular ! Spectrogram binocular for REAPER
-@version 0.2.3
+@version 0.2.4
 @author Ben 'Talagan' Babut
 @donation https://www.paypal.com/donate/?business=3YEZMY9D6U8NC&no_recurring=1&currency_code=EUR
 @license MIT
@@ -10,8 +10,8 @@
   Forum Thread https://forum.cockos.com/showthread.php?p=2847937
 @metapackage
 @changelog
-  - [Cosmetics] More contextual help in UI
-  - [Feature] Auto-refresh / Editing take watcher
+  - [UX] Better anti-bounce when editing in the MIDI editor + auto refresh
+  - [UX] replaced JS_VKeys_GetState by JS_Mouse_GetState
 @provides
   [nomain] talagan_Spectracular/ext/**/*
   [nomain] talagan_Spectracular/classes/**/*
