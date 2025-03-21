@@ -12,6 +12,7 @@
 @changelog
   - [UX] Better anti-bounce when editing in the MIDI editor + auto refresh
   - [UX] replaced JS_VKeys_GetState by JS_Mouse_GetState
+  - [UX] extended time selection limit to be dynamic depending on the time resolution
 @provides
   [nomain] talagan_Spectracular/ext/**/*
   [nomain] talagan_Spectracular/classes/**/*
