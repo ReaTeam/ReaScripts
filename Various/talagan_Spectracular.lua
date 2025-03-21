@@ -1,6 +1,6 @@
 --[[
 @description Spectracular ! Spectrogram binocular for REAPER
-@version 0.2.2
+@version 0.2.3
 @author Ben 'Talagan' Babut
 @donation https://www.paypal.com/donate/?business=3YEZMY9D6U8NC&no_recurring=1&currency_code=EUR
 @license MIT
@@ -10,7 +10,8 @@
   Forum Thread https://forum.cockos.com/showthread.php?p=2847937
 @metapackage
 @changelog
-  - [Bug Fix] Crash under windows if using DPI scaling != 100%
+  - [Cosmetics] More contextual help in UI
+  - [Feature] Auto-refresh / Editing take watcher
 @provides
   [nomain] talagan_Spectracular/ext/**/*
   [nomain] talagan_Spectracular/classes/**/*
