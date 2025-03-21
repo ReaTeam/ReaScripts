@@ -117,12 +117,16 @@ local function render(params)
             }
         end
 
-        if te - ts > 60 then
+        local limit         = 8182 -- ImGUI texture size limit
+        local max_seconds   = math.floor(limit * params.time_resolution_ms/1000.0)
+        local seconds       = math.ceil(te - ts)
+
+        if seconds > max_seconds then
             -- This is due to the fact the EEL functions are limited to 8M slots
             -- And most of them will explode past this limit ...
             return {
                 success = false,
-                err     = "For technical reasons, Spectracular is currently limited to a selection of 60 seconds."
+                err     = "At the current resolution, the time selection is technically limited to :\n\n" .. max_seconds .. " seconds.\n\nThe current one is :\n\n" .. " " .. seconds .. " seconds.\n\nPlease adjust your time selection."
             }
         end
     end

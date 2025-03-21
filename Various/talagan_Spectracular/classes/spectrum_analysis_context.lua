@@ -54,18 +54,19 @@ end
 function SpectrumAnalysisContext:_buildAndRender()
     local params = self.params
 
+
     -- First, perform the right rendering
     local source_ctx = RENDER.render({
-        channel_mode = S.instance_params.channel_mode,
-        ts           = self.params.ts,
-        te           = self.params.te,
-        tracks       = self.params.tracks
+        channel_mode        = S.instance_params.channel_mode,
+        ts                  = self.params.ts,
+        te                  = self.params.te,
+        time_resolution_ms  = self.params.time_resolution_ms,
+        tracks              = self.params.tracks
     })
 
     if not source_ctx.success then
         self.error              = source_ctx.err
         self.analysis_finished  = true
-
         return
     end
 

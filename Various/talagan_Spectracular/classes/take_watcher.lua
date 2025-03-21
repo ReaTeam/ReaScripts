@@ -62,9 +62,14 @@ function TakeWatcher:hasChanged()
         -- Save new state
         self.last_state = state
 
-        if not identical then self:onChange() end
+        if not identical then
+            self:onChange()
+        end
+
         return not identical
     end
+
+    return false
 end
 
 function TakeWatcher:onChange()

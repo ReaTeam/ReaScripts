@@ -3,7 +3,7 @@
 -- @license MIT
 -- @description This file is part of Spectracular
 
-local Version                   = '0.2.3'
+local Version                   = '0.2.4'
 
 local S                         = require "modules/settings"
 local DSP                       = require "modules/dsp"
@@ -265,8 +265,9 @@ local function loop()
 
     -- Recalculate spectrum context if asked
     if want_refresh then
-        processed_spectrum_context  = build_spectrum_context()
         want_refresh                = false
+        processed_spectrum_context  = build_spectrum_context()
+        last_changed_at             = nil
     end
 
     -- Process existing unfinished context before
@@ -380,9 +381,10 @@ local function loop()
             last_changed_at = now
         end
 
+        local mouse_flags = reaper.JS_Mouse_GetState( (1 << 0) | (1 << 1) | (1 << 6) )
+
         -- Anti bounce
-        if (last_changed_at ~= nil) and (now - last_changed_at > 0.7) then
-            last_changed_at = nil
+        if (last_changed_at ~= nil) and (now - last_changed_at > 0.7) and (mouse_flags == 0) then
             want_refresh = true
         end
     end
