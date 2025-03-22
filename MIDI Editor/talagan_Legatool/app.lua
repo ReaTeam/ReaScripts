@@ -7,6 +7,8 @@
 local S                   = require "modules/settings"
 local UTILS               = require "modules/utils"
 local LTContext           = require "modules/context"
+local SNAP                = require "modules/snap"
+
 local ImGui               = require "ext/imgui"
 local ctx                 = nil
 
@@ -124,41 +126,125 @@ local function app()
             local w, _ = ImGui.GetContentRegionAvail(ctx)
             ImGui.SetNextItemWidth(ctx, w - 70)
 
-            local n1, n2  = LTContext.notes[1], LTContext.notes[2]
-            local p       = reaper.MIDI_GetProjTimeFromPPQPos(take, math.floor(0.5 + 0.5 * (n1.endppq + n2.startppq)))
-            local s       = reaper.MIDI_GetProjTimeFromPPQPos(take, n1.startppq)
-            local e       = reaper.MIDI_GetProjTimeFromPPQPos(take, n2.endppq)
+            local n1, n2            = LTContext.notes[1], LTContext.notes[2]
+            local s                 = reaper.MIDI_GetProjTimeFromPPQPos(take, n1.startppq)
+            local e                 = reaper.MIDI_GetProjTimeFromPPQPos(take, n2.endppq)
+            local vs                = reaper.MIDI_GetProjTimeFromPPQPos(take, n1.endppq)
+            local ve                = reaper.MIDI_GetProjTimeFromPPQPos(take, n2.startppq)
+            local p                 = (vs+ve) * 0.5
+            local lowbound          = s + 0.00001
+            local highbound         = e - 0.00001
+            local lowbound_ppq      = reaper.MIDI_GetPPQPosFromProjTime(take, lowbound)
+            local highbound_ppq     = reaper.MIDI_GetPPQPosFromProjTime(take, highbound)
 
-            local tstr     = reaper.format_timestr_pos(p, '', 0)
-            local bstr     = reaper.format_timestr_pos(p, '', 2)
+            local str     = ''
 
+            local snap_key_down = ((reaper.JS_Mouse_GetState(8)) ~= 0)
 
-            local b, v = ImGui.SliderDouble(ctx, " Legatool##slider", p, s + 0.00001, e - 0.00001, "Mid : " .. bstr .. " / " .. tstr)
+            if snap_key_down and LTContext.snap_info and LTContext.snap_info.best then
+                local sf       = LTContext.snap_info.best
+                local tstr     = reaper.format_timestr_pos(sf.pos, '', 0)
+                local bstr     = reaper.format_timestr_pos(sf.pos, '', 2)
+
+                str = "[SNAP] " .. sf.label .. " : " .. bstr .. " / " .. tstr
+            else
+                local tstr     = reaper.format_timestr_pos(p, '', 0)
+                local bstr     = reaper.format_timestr_pos(p, '', 2)
+
+                str  =  "Mid : " .. bstr .. " / " .. tstr
+            end
+
+            local b, v          = ImGui.SliderDouble(ctx, " Legatool##slider", p, lowbound, highbound, str)
             if b then
-                --reaper.ShowConsoleMsg("YO " .. v .. "\n")
                 if not LTContext.startState then
-                    LTContext.startState = { notes = UTILS.deepcopy(LTContext.notes) }
-
-                    local n1, n2 = LTContext.startState.notes[1], LTContext.startState.notes[2]
+                    -- Start of operation : save current state for referrence
+                    LTContext.startState = { notes = UTILS.deepcopy(LTContext.notes), v = p }
 
                     -- Calculate starting intervals
-                    local m = math.floor(0.5 + 0.5 * (n1.endppq + n2.startppq) )
                     local l = n1.endppq
                     local r = n2.startppq
+                    local m = 0.5 * (l + r)
 
-                    n1.diff = m - l
-                    n2.diff = m - r
+                    LTContext.startState.ldiff_ppq = m - l
+                    LTContext.startState.rdiff_ppq = m - r
+                    LTContext.startState.ppq_span  = r - l
 
                     reaper.MIDI_DisableSort(take)
                 end
 
+                -- Handle drag and drop
                 local n1, n2    = LTContext.notes[1], LTContext.notes[2]
-                local ns1, ns2  = LTContext.startState.notes[1], LTContext.startState.notes[2]
-
                 local vppq      = reaper.MIDI_GetPPQPosFromProjTime(take, v)
+                local lppq      = vppq - LTContext.startState.ldiff_ppq
+                local rppq      = vppq - LTContext.startState.rdiff_ppq
 
-                reaper.MIDI_SetNote(take, n1.ni, nil, nil, nil, math.floor(0.5 + vppq - ns1.diff),  nil, nil, nil, true)
-                reaper.MIDI_SetNote(take, n2.ni, nil, nil, math.floor(0.5 + vppq - ns2.diff), nil, nil, nil, nil, true)
+                if snap_key_down then
+                    local cd        = {}
+                    -- Calculate the direction in which the user is moving the slider
+                    local last_v    = (LTContext.snap_info and LTContext.snap_info.last_v) or LTContext.startState.v
+                    local sign      = 0
+
+                    if ( v - last_v > 0 ) then sign = 1  end -- Moving right
+                    if ( v - last_v < 0 ) then sign = -1 end -- Moving left
+
+                    local function addCandidate(type, val, dir)
+                        local pos  = SNAP.nextSnap(take, dir, val)
+                        local diff = pos.time - val
+
+                        if pos.time < lowbound   then return end
+                        if pos.time > highbound  then return end
+
+                        if sign * diff <= 0 then return end
+
+                        local label = "Mid"
+                        if type == "l" then label = "Left End" end
+                        if type == "r" then label = "Right Start end" end
+
+                        local ll, mm, rr    = pos.ppq, pos.ppq, pos.ppq
+                        local half_span_ppq = 0.5 * LTContext.startState.ppq_span
+
+                        if type == "l" then mm = ll + half_span_ppq; rr = mm + half_span_ppq end
+                        if type == "m" then ll = mm - half_span_ppq; rr = mm + half_span_ppq end
+                        if type == "r" then mm = rr - half_span_ppq; ll = mm - half_span_ppq end
+
+                        if ll < lowbound_ppq  then return end
+                        if rr > highbound_ppq then return end
+
+                        cd[#cd+1] = { type=type, label=label, dir=dir, pos=pos.time, diff=diff, l = ll, m = mm, r = rr }
+                    end
+
+                    local l = reaper.MIDI_GetProjTimeFromPPQPos(take, lppq)
+                    local r = reaper.MIDI_GetProjTimeFromPPQPos(take, rppq)
+
+                    addCandidate("m", v,  1)
+                    addCandidate("l", l,  1)
+                    addCandidate("r", r,  1)
+                    addCandidate("m", v, -1)
+                    addCandidate("l", l, -1)
+                    addCandidate("r", r, -1)
+
+                    table.sort(cd, function(c1,c2) return math.abs(c1.diff) < math.abs(c2.diff) end)
+
+                    LTContext.snap_info             = LTContext.snap_info or {}
+                    LTContext.snap_info.last_v      = v
+                    LTContext.snap_info.last_sign   = sign
+
+                    local best_candidate        = cd[1]
+                    if best_candidate then
+                        -- if sign == 0 we may not have a best_candidate
+                        LTContext.snap_info.best = best_candidate
+                    end
+                else
+                    LTContext.snap_info = nil
+                end
+
+                if LTContext.snap_info and LTContext.snap_info.best then
+                    lppq = LTContext.snap_info.best.l
+                    rppq = LTContext.snap_info.best.r
+                end
+
+                reaper.MIDI_SetNote(take, n1.ni, nil, nil, nil,  lppq, nil, nil, nil, true)
+                reaper.MIDI_SetNote(take, n2.ni, nil, nil, rppq, nil,  nil, nil, nil, true)
             else
                 if LTContext.startState then
                     LTContext.startState = nil
@@ -202,13 +288,16 @@ local function _app()
 end
 
 local function run(args)
-    local _,_,sectionID,cmdID,_,_,_ = reaper.get_action_context()
-    reaper.SetToggleCommandState(sectionID, cmdID, 1)
+
+    local current_state = reaper.GetToggleCommandStateEx(LTContext.sectionID, LTContext.cmdID)
+    current_state = (current_state == 1) and (0) or (1)
+
+    reaper.SetToggleCommandState(LTContext.sectionID, LTContext.cmdID, current_state)
 
     -- Define cleanup callbacks
     reaper.atexit(function()
         -- On exit, always clear the state
-        reaper.SetToggleCommandState(sectionID, cmdID, 0)
+        reaper.SetToggleCommandState(LTContext.sectionID, LTContext.cmdID, 0)
     end)
 
     reaper.defer(_app)
