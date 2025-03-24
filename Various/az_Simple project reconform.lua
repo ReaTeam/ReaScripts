@@ -895,35 +895,14 @@ function OptionsWindow()
       
       if undo then reaper.Main_OnCommandEx(40029,0,0) end
       if redo then reaper.Main_OnCommandEx(40030,0,0) end
-      
+
       if open and not esc then
         SetExtStates()
-        if runReconf == true then
-          --ctxPr = reaper.ImGui_CreateContext('progressSimpleProjectReconform_AZ')
-          --reaper.ImGui_Attach(ctxPr, font)
-          --reconfStarted = true
-          ProcessString = 'test'
-          main()
-          --mainCo = main()
-          --reaper.defer(ShowProgress)
-          --reaper.defer(main)
-          --reaper.ImGui_ProgressBar(ctx, math.sin(reaper.ImGui_GetTime(ctx)) * 0.5 + 0.5, reaper.ImGui_GetFontSize(ctx) * 25, 0.0)
-          
-        end
-        --[[
-        if reconfStarted then
-          ShowProgress()
-          if not UndoBegin then reaper.Undo_BeginBlock2( 0 ) UndoBegin = true end
-          reaper.PreventUIRefresh( 1 )
-          if coroutine.status(mainCo) ~= 'dead' then
-            _, ProcessString = coroutine.resume(mainCo)
-          else UndoBegin = nil
-          end
-        end]]
+        if runReconf == true then main() end
         reaper.defer(loop)
       end
 
-    loopcnt = loopcnt+1
+      loopcnt = loopcnt+1
   end
   -----------------
   local fontName
@@ -1283,24 +1262,23 @@ function AnalyseEDLs(EDLs, timeTreshold) --table of pathes
   
   if EDLcontentFlags & 1<<1 ~= 0 then
     table.move(EdlTable.A1, 1, #EdlTable.A1, #CommonEDL+1, CommonEDL)
-    table.move(EdlTable.A1.Splits, 1, #EdlTable.A1.Splits, #Splits+1, Splits)
+    for i, v in ipairs(EdlTable.A1.Splits) do FieldMatch(Splits, v, true) end
   end
   
   if EDLcontentFlags & 1<<2 ~= 0 then
     table.move(EdlTable.A2, 1, #EdlTable.A2, #CommonEDL+1, CommonEDL)
-    table.move(EdlTable.A2.Splits, 1, #EdlTable.A2.Splits, #Splits+1, Splits)
+    for i, v in ipairs(EdlTable.A2.Splits) do FieldMatch(Splits, v, true) end
   end
   
   if EDLcontentFlags & 1<<3 ~= 0 then
     table.move(EdlTable.A3, 1, #EdlTable.A3, #CommonEDL+1, CommonEDL)
-    table.move(EdlTable.A3.Splits, 1, #EdlTable.A3.Splits, #Splits+1, Splits)
+    for i, v in ipairs(EdlTable.A3.Splits) do FieldMatch(Splits, v, true) end
   end
   
   if EDLcontentFlags & 1<<4 ~= 0 then
     table.move(EdlTable.A4, 1, #EdlTable.A4, #CommonEDL+1, CommonEDL)
-    table.move(EdlTable.A4.Splits, 1, #EdlTable.A4.Splits, #Splits+1, Splits)
-  end
-  
+    for i, v in ipairs(EdlTable.A4.Splits) do FieldMatch(Splits, v, true) end
+  end 
   
   --GO HERE IN FUTURE after parsing project info if the Project Analyse used instead of EDL one.
   CleanUpEDL(CommonEDL, Splits)
