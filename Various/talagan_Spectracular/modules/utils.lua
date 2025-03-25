@@ -46,7 +46,14 @@ local function colLerp(rgba1, rgba2, alpha)
 end
 
 local function modifierKeyIsDown()
-    return (reaper.JS_VKeys_GetState(launchTime):byte(17) == 1)
+    -- return (reaper.JS_VKeys_GetState(launchTime):byte(17) == 1)
+
+    -- Control (Windows) or Command (macOS) key (1 << 2) == 4
+    -- Shift key : (1 << 3) == 8
+    -- Alt (Windows) or Option (macOS) key (1 << 4) == 16
+    -- Windows (Windows) or Control (macOS) key : (1 << 5) == 32
+
+    return (reaper.JS_Mouse_GetState(1<<2) ~= 0)
 end
 
 -----------------
