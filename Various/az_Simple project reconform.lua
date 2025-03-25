@@ -1,17 +1,17 @@
 -- @description Simple project reconform
 -- @author AZ
--- @version 0.6
+-- @version 0.7
 -- @changelog
---   - EDL analisation module
---   - other improvements and options
---   - bug fixies
+--   - Ability to choose tracks from EDL for comparison
+--   - fixed bug when some envelope points were removed unintentionally
 -- @link Forum thread https://forum.cockos.com/showthread.php?p=2803375#post2803375
 -- @donation Donate via PayPal https://www.paypal.me/AZsound
 -- @about
 --   # Simple Project Reconform
 --   It can be useful for post-production to automatically adapt your project to the new version of video.
 --
---   The script is under development, but you can try to use it.
+--   The script is under development, but stable enough to try.
+--   All your feedback is appreciated.
 --   Read more: https://forum.cockos.com/showthread.php?p=2803375#post2803375
 
 -----------------------------
@@ -176,11 +176,11 @@ function OptionsWindow()
   REFoffset = 0
   RefTrIdx = 0
   
-  edlContentAnalyseFlag = reaper.GetExtState(ExtStateName, 'ContentAnalyse')
+  EDLcontentFlags = reaper.GetExtState(ExtStateName, 'ContentAnalyse')
   
-  if edlContentAnalyseFlag ~= "" then
-    edlContentAnalyseFlag = tonumber(edlContentAnalyseFlag)
-  else edlContentAnalyseFlag = 1
+  if EDLcontentFlags ~= "" then
+    EDLcontentFlags = tonumber(EDLcontentFlags)
+  else EDLcontentFlags = 31
   end
   
   
@@ -208,17 +208,13 @@ function OptionsWindow()
   _, new_TrimOnlyEmptyTime = reaper.GetProjExtState(0, ExtStateName, 'new_TrimOnlyEmptyTime')
   _, TrimNewTime = reaper.GetProjExtState(0, ExtStateName, 'TrimNewTime')
   
-  if new_TrimLeadingTime ~= "" then
-    if new_TrimLeadingTime == 'true' then new_TrimLeadingTime = true
-    else new_TrimLeadingTime = false
-    end
+  if new_TrimLeadingTime == "false" then
+    new_TrimLeadingTime = false
   else new_TrimLeadingTime = true
   end
   
-  if new_TrimOnlyEmptyTime ~= "" then
-    if new_TrimOnlyEmptyTime == 'true' then new_TrimOnlyEmptyTime = true
-    else new_TrimOnlyEmptyTime = false
-    end
+  if new_TrimOnlyEmptyTime == "false" then
+    new_TrimOnlyEmptyTime = false
   else new_TrimOnlyEmptyTime = true
   end
   
@@ -227,12 +223,24 @@ function OptionsWindow()
   
   local iniFolder
   
+  local OldPrjAAF
+  local NewPrjAAF
+  local OldPrjPreview
+  local NewPrjPreview
+  
+  _, AnalyseOnlySelTracks = reaper.GetProjExtState(0, ExtStateName, 'AnalyseOnlySelTracks')
+  
+  if AnalyseOnlySelTracks == "true" then
+    AnalyseOnlySelTracks = true
+  else AnalyseOnlySelTracks = false
+  end
+  
   OldPrjStart = 0
   NewPrjStart = nil
   local oldprjOffsetTime = ''
   local newprjOffsetTime = ''
   local SourcePrj
-  local prjselpreview
+  local SrcPrjPreview
   tracksForImportFlag = 1
   
   local gui_colors = {
@@ -319,6 +327,55 @@ function OptionsWindow()
   end
   
   --------------
+  
+  function ProjectSelector(Prj, description, prjselpreview)
+    local retprj = true
+    local path, projfn, extension
+    local Projects = {}
+    local cur_retprj, cur_projfn = reaper.EnumProjects( -1 )
+    local idx = 0
+    while retprj do
+      retprj, projfn = reaper.EnumProjects( idx )
+      if retprj and retprj ~= cur_retprj and projfn ~= '' then
+        path, projfn, extension = SplitFilename(projfn) 
+        table.insert(Projects, {retprj, projfn})
+      end
+      idx = idx+1
+    end
+    
+    if cur_retprj == Prj then Prj = nil end
+    
+    if #Projects > 0 and Prj == nil then
+      Prj =           Projects[#Projects][1]
+      prjselpreview = Projects[#Projects][2]
+    elseif #Projects == 0 then
+      prjselpreview = 'Open a named project in another tab'
+      Prj = nil
+    end
+    
+    reaper.ImGui_PushItemWidth(ctx, fontSize*23 )
+    local choicePrj
+    if reaper.ImGui_BeginCombo(ctx, description, prjselpreview, nil) then 
+      for k,f in ipairs(Projects) do
+        local is_selected = choicePrj == k
+        if reaper.ImGui_Selectable(ctx, Projects[k][2], is_selected) then 
+          prjselpreview = Projects[k][2]
+          Prj = Projects[k][1]
+          choicePrj = k
+        end
+    
+        -- Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+        if is_selected then
+          reaper.ImGui_SetItemDefaultFocus(ctx)
+        end
+      end
+      reaper.ImGui_EndCombo(ctx)
+    end
+    
+    return Prj, prjselpreview
+  end
+  
+  --------------
   function frame()
     --reaper.ImGui_PushFont(ctx, font)
     
@@ -343,22 +400,30 @@ function OptionsWindow()
       "Both video and audio"
       }
       local choiceSrc
-      if reaper.ImGui_BeginCombo(ctx, 'Source for analyse', AnalyseSource[edlContentAnalyseFlag], nil) then 
-        for k,f in ipairs(AnalyseSource) do
-          local is_selected = choiceSrc == k
-          if reaper.ImGui_Selectable(ctx, AnalyseSource[k], is_selected) then 
-            edlContentAnalyseFlag = k
-            choiceSrc = k
-            reaper.SetExtState(ExtStateName, 'ContentAnalyse', k, true)
-          end
+      local change
+      reaper.ImGui_Text(ctx, 'Source for analyse') 
       
-          -- Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
-          if is_selected then
-            reaper.ImGui_SetItemDefaultFocus(ctx)
-          end
-        end
-        reaper.ImGui_EndCombo(ctx)
-      end
+      change, choiceSrc = reaper.ImGui_Checkbox(ctx, 'Video track', EDLcontentFlags & 1)
+      if change then EDLcontentFlags = EDLcontentFlags ~1 end
+      
+      reaper.ImGui_SameLine(ctx)
+      change, choiceSrc = reaper.ImGui_Checkbox(ctx, 'Audio 1', (EDLcontentFlags>>1) & 1)
+      if change then EDLcontentFlags = EDLcontentFlags  ~ (1<<1) end
+      
+      reaper.ImGui_SameLine(ctx)
+      change, choiceSrc = reaper.ImGui_Checkbox(ctx, 'Audio 2', (EDLcontentFlags>>2) & 1)
+      if change then EDLcontentFlags = EDLcontentFlags  ~ (1<<2) end
+      
+      reaper.ImGui_SameLine(ctx)
+      change, choiceSrc = reaper.ImGui_Checkbox(ctx, 'Audio 3', (EDLcontentFlags>>3) & 1)
+      if change then EDLcontentFlags = EDLcontentFlags  ~ (1<<3) end
+      
+      reaper.ImGui_SameLine(ctx)
+      change, choiceSrc = reaper.ImGui_Checkbox(ctx, 'Audio 4', (EDLcontentFlags>>4) & 1)
+      if change then EDLcontentFlags = EDLcontentFlags  ~ (1<<4) end
+      
+      reaper.SetExtState(ExtStateName, 'ContentAnalyse', EDLcontentFlags, true)
+
       
       local function addFileNamesToList(list, string )
         for s in string:gmatch("[^\0]+") do table.insert(list, s) end
@@ -376,7 +441,7 @@ function OptionsWindow()
         if not iniFolder then
           local cur_retprj, cur_projfn = reaper.EnumProjects( -1 )
           local path, projfn, extension = SplitFilename(cur_projfn)
-          iniFolder = path:gsub('[/\\]$','')
+          if path then iniFolder = path:gsub('[/\\]$','') end
         end
         local iniFile = ''
         local extensionList = "EDL file\0*.edl\0Text file\0*.txt\0\0"
@@ -408,7 +473,7 @@ function OptionsWindow()
         if not iniFolder then
           local cur_retprj, cur_projfn = reaper.EnumProjects( -1 )
           local path, projfn, extension = SplitFilename(cur_projfn)
-          iniFolder = path:gsub('[/\\]$','')
+          if path then iniFolder = path:gsub('[/\\]$','') end
         end
         local iniFile = ''
         local extensionList = "EDL file\0*.edl\0Text file\0*.txt\0\0"
@@ -428,7 +493,7 @@ function OptionsWindow()
         if not iniFolder then
           local cur_retprj, cur_projfn = reaper.EnumProjects( -1 )
           local path, projfn, extension = SplitFilename(cur_projfn)
-          iniFolder = path:gsub('[/\\]$','')
+          if path then iniFolder = path:gsub('[/\\]$','') end
         end
         local iniFile = ''
         local extensionList = "Media file\0*.wav;*.mp3;*.flac;*.aif;*.mpa;*.wma;*.mp4;*.mov;*.m4v;*.webm\0\0"
@@ -705,55 +770,13 @@ function OptionsWindow()
     if NewPrjStart and NewPrjStart <= OldPrjStart then
       reaper.ShowMessageBox('Reconformed project must be placed next to the old version.\nLet it be +1 hour after the Old verion.','Warning!', 0)
       NewPrjStart = OldPrjStart + 3600
-      --newprjOffsetTime = ''
     end
     
     --Paste new items for gaps header
     reaper.ImGui_NewLine(ctx)
     if reaper.ImGui_CollapsingHeader(ctx, 'Paste new items for gaps from another project tab') then
-      --Project selector
-      local retprj = true
-      local path, projfn, extension
-      local Projects = {}
-      local cur_retprj, cur_projfn = reaper.EnumProjects( -1 )
-      local idx = 0
-      while retprj ~= nil do
-        retprj, projfn = reaper.EnumProjects( idx )
-        if retprj and retprj ~= cur_retprj and projfn ~= '' then
-          path, projfn, extension = SplitFilename(projfn) 
-          table.insert(Projects, {retprj, projfn})
-        end
-        idx = idx+1
-      end
-      
-      if cur_retprj == SourcePrj then SourcePrj = nil end
-      
-      if #Projects > 0 and SourcePrj == nil then
-        SourcePrj = Projects[#Projects][1]
-        prjselpreview = Projects[#Projects][2]
-      elseif #Projects == 0 then
-        prjselpreview = 'Open a named project in another tab'
-        SourcePrj = nil
-      end
-      
-      reaper.ImGui_PushItemWidth(ctx, fontSize*23 )
-      local choicePrj
-      if reaper.ImGui_BeginCombo(ctx, 'Source project', prjselpreview, nil) then 
-        for k,f in ipairs(Projects) do
-          local is_selected = choicePrj == k
-          if reaper.ImGui_Selectable(ctx, Projects[k][2], is_selected) then 
-            prjselpreview = Projects[k][2]
-            SourcePrj = Projects[k][1]
-            choicePrj = k
-          end
-      
-          -- Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
-          if is_selected then
-            reaper.ImGui_SetItemDefaultFocus(ctx)
-          end
-        end
-        reaper.ImGui_EndCombo(ctx)
-      end
+       
+      SourcePrj, SrcPrjPreview = ProjectSelector(SourcePrj, "Source Project", SrcPrjPreview)
       
       --Source tracks
       local SrcTrks = {
@@ -872,35 +895,14 @@ function OptionsWindow()
       
       if undo then reaper.Main_OnCommandEx(40029,0,0) end
       if redo then reaper.Main_OnCommandEx(40030,0,0) end
-      
+
       if open and not esc then
         SetExtStates()
-        if runReconf == true then
-          --ctxPr = reaper.ImGui_CreateContext('progressSimpleProjectReconform_AZ')
-          --reaper.ImGui_Attach(ctxPr, font)
-          --reconfStarted = true
-          ProcessString = 'test'
-          main()
-          --mainCo = main()
-          --reaper.defer(ShowProgress)
-          --reaper.defer(main)
-          --reaper.ImGui_ProgressBar(ctx, math.sin(reaper.ImGui_GetTime(ctx)) * 0.5 + 0.5, reaper.ImGui_GetFontSize(ctx) * 25, 0.0)
-          
-        end
-        --[[
-        if reconfStarted then
-          ShowProgress()
-          if not UndoBegin then reaper.Undo_BeginBlock2( 0 ) UndoBegin = true end
-          reaper.PreventUIRefresh( 1 )
-          if coroutine.status(mainCo) ~= 'dead' then
-            _, ProcessString = coroutine.resume(mainCo)
-          else UndoBegin = nil
-          end
-        end]]
+        if runReconf == true then main() end
         reaper.defer(loop)
       end
 
-    loopcnt = loopcnt+1
+      loopcnt = loopcnt+1
   end
   -----------------
   local fontName
@@ -992,7 +994,7 @@ function CreateRefTrack(Items, file) --each item = {oldstart, oldend, targetpos}
     reaper.SetMediaItemInfo_Value(newItem, 'D_LENGTH', item[2] - item[1])
     reaper.SetMediaItemTakeInfo_Value(take, 'D_STARTOFFS', item[1] + REFoffset )
     
-    if crossfade then 
+    if crossfade then
       reaper.SetMediaItemInfo_Value(newItem, 'D_FADEINLEN_AUTO', crossfade )
     end
     
@@ -1027,7 +1029,7 @@ end
 function AnalyseEDLs(EDLs, timeTreshold) --table of pathes
   local CommonEDL = {}
   local Splits = {}
-  local EdlTable = { Video={}, Audio={}, VideoSplits={}, AudioSplits={} }
+  local EdlTable = { V={Splits={} }, A1={Splits={} }, A2={Splits={} }, A3={Splits={} }, A4={Splits={} } }
   
   for e, EDLfile in ipairs(EDLs) do
     local EDLtext = ''
@@ -1036,7 +1038,7 @@ function AnalyseEDLs(EDLs, timeTreshold) --table of pathes
     local fadelen
     local clip
     
-    local itemscnt = 0
+    --local itemscnt = 0
     
     for line in io.lines(EDLfile) do
       EDLtext = EDLtext..line..'\n'.." "
@@ -1062,22 +1064,53 @@ function AnalyseEDLs(EDLs, timeTreshold) --table of pathes
         if items ~= nil and #items > 0 then  --Collect items in tables
         --msg('close ' .. #items)
           for i, v in ipairs(items) do
-            itemscnt = itemscnt +1
-            if v.Type == 'Both' then
-              table.insert(EdlTable.Video, copy(v))
-              table.insert(EdlTable.Audio, copy(v))
+            --itemscnt = itemscnt +1
+            if v.Type == 'B' then
+              table.insert(EdlTable.V, copy(v))
+              table.insert(EdlTable.A1, copy(v))
               
-              FieldMatch(EdlTable.VideoSplits,copy(v.DestIn), true)
-              FieldMatch(EdlTable.VideoSplits,copy(v.DestOut), true)
+              FieldMatch(EdlTable.V.Splits,copy(v.DestIn), true)
+              FieldMatch(EdlTable.V.Splits,copy(v.DestOut), true)
               
-              FieldMatch(EdlTable.AudioSplits,copy(v.DestIn), true)
-              FieldMatch(EdlTable.AudioSplits,copy(v.DestOut), true) 
-            else
-              table.insert(EdlTable[v.Type], copy(v))
-              local name = v.Type ..'Splits'
-              FieldMatch(EdlTable[name],copy(v.DestIn), true)
-              FieldMatch(EdlTable[name],copy(v.DestOut), true)
-            end 
+              FieldMatch(EdlTable.A1.Splits,copy(v.DestIn), true)
+              FieldMatch(EdlTable.A1.Splits,copy(v.DestOut), true)
+            elseif v.Type:match('V') then
+              table.insert(EdlTable.V, copy(v))
+              FieldMatch(EdlTable.V.Splits,copy(v.DestIn), true)
+              FieldMatch(EdlTable.V.Splits,copy(v.DestOut), true)
+            end
+            
+            v.Type = v.Type:gsub('/V', '')
+            if v.Type == 'A' then
+              table.insert(EdlTable.A1, copy(v))
+              FieldMatch(EdlTable.A1.Splits,copy(v.DestIn), true)
+              FieldMatch(EdlTable.A1.Splits,copy(v.DestOut), true)
+            elseif v.Type == 'A2' then
+              table.insert(EdlTable.A2, copy(v))
+              FieldMatch(EdlTable.A2.Splits,copy(v.DestIn), true)
+              FieldMatch(EdlTable.A2.Splits,copy(v.DestOut), true)
+            elseif v.Type == 'AA' then
+              table.insert(EdlTable.A1, copy(v))
+              table.insert(EdlTable.A2, copy(v))
+              
+              FieldMatch(EdlTable.A1.Splits,copy(v.DestIn), true)
+              FieldMatch(EdlTable.A1.Splits,copy(v.DestOut), true)
+              
+              FieldMatch(EdlTable.A2.Splits,copy(v.DestIn), true)
+              FieldMatch(EdlTable.A2.Splits,copy(v.DestOut), true)
+            end
+            
+            if v.Type2 and v.Type2:match('3') then
+              table.insert(EdlTable.A3, copy(v))
+              FieldMatch(EdlTable.A3.Splits,copy(v.DestIn), true)
+              FieldMatch(EdlTable.A3.Splits,copy(v.DestOut), true)
+            end
+            
+            if v.Type2 and v.Type2:match('4') then
+              table.insert(EdlTable.A4, copy(v))
+              FieldMatch(EdlTable.A4.Splits,copy(v.DestIn), true)
+              FieldMatch(EdlTable.A4.Splits,copy(v.DestOut), true)
+            end
           end
           items = nil
         end
@@ -1088,17 +1121,10 @@ function AnalyseEDLs(EDLs, timeTreshold) --table of pathes
           --if tonumber(strparts[1]) == 5 then return end -- for debuging
         
           items = {}
-          item = {Type, Clips={}, DestIn, DestOut} 
+          item = {Type, Type2, Clips={}, DestIn, DestOut}
           
-          if ( string.match(strparts[3], 'V') and string.match(strparts[3], 'A') )
-          or strparts[3] == 'B' then
-            item.Type = 'Both'
-          elseif string.match(strparts[3], 'V') then
-            item.Type = 'Video'
-          else
-            item.Type = 'Audio'
-          end
-          
+          item.Type = strparts[3]
+
           item.DestIn = reaper.parse_timestr_pos( strparts[#strparts-1], 5 ) - PrjTimeOffset - timeTreshold
           item.DestOut = reaper.parse_timestr_pos( strparts[#strparts], 5 ) - PrjTimeOffset - timeTreshold
 
@@ -1179,6 +1205,12 @@ function AnalyseEDLs(EDLs, timeTreshold) --table of pathes
             item = nil
           end
           
+        elseif line:match("AUD ") and #strparts <= 3 and items then
+          if #items > 0 then
+            for i,v in ipairs(items) do
+              v.Type2 = line:gsub("AUD", ''):gsub("%s+", '') 
+            end
+          end
         end
         
       end --end of parsing
@@ -1187,21 +1219,27 @@ function AnalyseEDLs(EDLs, timeTreshold) --table of pathes
   end --end of edl files cycle
   
   --Remove Fades in Audio clips
-  for i, item in ipairs(EdlTable.Audio) do
-    local c = #item.Clips
-    while c > 0 do
-      local clip = item.Clips[c]
-      if clip.name and  clip.name:match('CLIP NAME: BL') then
-        table.remove(item.Clips, c)
+  for name, track in pairs(EdlTable) do
+    if name ~= 'V' then
+    
+      for i, item in ipairs(track) do
+        local c = #item.Clips
+        while c > 0 do
+          local clip = item.Clips[c]
+          if clip.name and  clip.name:match('CLIP NAME: BL') then
+            table.remove(item.Clips, c)
+          end
+          c = c-1
+        end
       end
-      c = c-1
+      
     end
   end
   
   --[[
-  msg('\nEDL size is - '..#EdlTable.Audio) msg('')
+  msg('\nEDL size is - '..#EdlTable.A1) msg('')
   ---TEST MESSAGE----
-  for i, item in ipairs(EdlTable.Audio) do
+  for i, item in ipairs(EdlTable.A1) do
     if item.DestIn > 60 then break end
     msg('ITEM '..i) --..' '..item.Type) 
     msg('In/Out '..reaper.format_timestr_pos(item.DestIn,'',5) ..' - '.. reaper.format_timestr_pos(item.DestOut,'',5))
@@ -1216,25 +1254,42 @@ function AnalyseEDLs(EDLs, timeTreshold) --table of pathes
   --
   
   
-  ---Add to the common table content for analyse
-  if edlContentAnalyseFlag == 1 then
-    table.move(EdlTable.Video, 1, #EdlTable.Video, #CommonEDL+1, CommonEDL)
-    table.move(EdlTable.VideoSplits, 1, #EdlTable.VideoSplits, #Splits+1, Splits)
-  elseif edlContentAnalyseFlag == 2 then
-    table.move(EdlTable.Audio, 1, #EdlTable.Audio, #CommonEDL+1, CommonEDL)
-    table.move(EdlTable.AudioSplits, 1, #EdlTable.AudioSplits, #Splits+1, Splits)
-  elseif edlContentAnalyseFlag == 3 then
-    table.move(EdlTable.Video, 1, #EdlTable.Video, #CommonEDL+1, CommonEDL)
-    table.move(EdlTable.Audio, 1, #EdlTable.Audio, #CommonEDL+1, CommonEDL)
-    table.move(EdlTable.VideoSplits, 1, #EdlTable.VideoSplits, #Splits+1, Splits)
-    for i, v in ipairs(EdlTable.AudioSplits) do
-      FieldMatch(Splits, v, true)
-    end
+  ---Add to the common table content for analyse 
+  if EDLcontentFlags & 1 ~= 0 then
+    table.move(EdlTable.V, 1, #EdlTable.V, #CommonEDL+1, CommonEDL)
+    table.move(EdlTable.V.Splits, 1, #EdlTable.V.Splits, #Splits+1, Splits)
   end
   
+  if EDLcontentFlags & 1<<1 ~= 0 then
+    table.move(EdlTable.A1, 1, #EdlTable.A1, #CommonEDL+1, CommonEDL)
+    for i, v in ipairs(EdlTable.A1.Splits) do FieldMatch(Splits, v, true) end
+  end
+  
+  if EDLcontentFlags & 1<<2 ~= 0 then
+    table.move(EdlTable.A2, 1, #EdlTable.A2, #CommonEDL+1, CommonEDL)
+    for i, v in ipairs(EdlTable.A2.Splits) do FieldMatch(Splits, v, true) end
+  end
+  
+  if EDLcontentFlags & 1<<3 ~= 0 then
+    table.move(EdlTable.A3, 1, #EdlTable.A3, #CommonEDL+1, CommonEDL)
+    for i, v in ipairs(EdlTable.A3.Splits) do FieldMatch(Splits, v, true) end
+  end
+  
+  if EDLcontentFlags & 1<<4 ~= 0 then
+    table.move(EdlTable.A4, 1, #EdlTable.A4, #CommonEDL+1, CommonEDL)
+    for i, v in ipairs(EdlTable.A4.Splits) do FieldMatch(Splits, v, true) end
+  end 
   
   --GO HERE IN FUTURE after parsing project info if the Project Analyse used instead of EDL one.
+  CleanUpEDL(CommonEDL, Splits)
   
+  return CommonEDL
+end
+
+-------------------------
+
+function CleanUpEDL(CommonEDL, Splits)
+
   ---Split all items at all split poins
   table.sort(Splits)
   for i=1, #CommonEDL do
@@ -1330,6 +1385,9 @@ function AnalyseEDLs(EDLs, timeTreshold) --table of pathes
   
   table.sort(CommonEDL, function(a,b) return (a.DestIn < b.DestIn) end)
   
+  --ADD ITEMS WITH EMPTY "CLIPS" TABLE FOR GAPS IF ANY
+  
+  
   --[[
   msg('\nEDL size is - '..#CommonEDL) msg('')
   ---TEST MESSAGE----
@@ -1347,8 +1405,9 @@ function AnalyseEDLs(EDLs, timeTreshold) --table of pathes
   end
   -------------------
   ]]
-  return CommonEDL
+
 end
+
 -------------------------
 -------------------------
 
@@ -2463,8 +2522,8 @@ end
 function RemoveExtraPoints(refItems)
   local trCount = reaper.CountTracks(0)
   local transTime = GetPrefs('envtranstime')
-  for i = -1, trCount -1 do
-    if i < 0 or i > LastRefTrID then
+  for i = -1, trCount -1 do 
+    if i < 0 or i > LastRefTrID then 
       local tr
       if i == -1 then
         tr = reaper.GetMasterTrack(0)
@@ -2483,8 +2542,8 @@ function RemoveExtraPoints(refItems)
           for k, g in ipairs(Gaps) do
             if g[1] ~= NewPrjStart then
               local leftTime = g[1]
-              local rightTime = g[2] 
-              local idx = reaper.GetEnvelopePointByTimeEx( env, -1, rightTime )
+              local rightTime = g[2]
+              local idx = reaper.GetEnvelopePointByTimeEx( env, -1, rightTime + 0.0001 )
               local ret, time, value, shape, tension, selected
               time = rightTime
               while time > leftTime do
@@ -2500,16 +2559,20 @@ function RemoveExtraPoints(refItems)
           
           ----Find extra points at areas borders if they have the same value as others
           local allSplits = {} 
-           
+          local prevsplit = 0
           for it, item in ipairs(refItems) do
             local leftTime = item[3]
-            local rightTime = item[3] + item[2] - item[1] 
-            table.insert(allSplits, leftTime)
-            table.insert(allSplits, rightTime)
+            local rightTime = item[3] + item[2] - item[1]
+            if math.abs(leftTime - prevsplit) > MIN_luft_ZERO then
+              FieldMatch(allSplits, leftTime, true)
+            end
+            FieldMatch(allSplits, rightTime, true)
+            prevsplit = rightTime
           end
           
           for s = 2, #allSplits do
-            local split = allSplits[s] 
+            local split = allSplits[s]
+            --msg('split '..split)
             local idx = reaper.GetEnvelopePointByTimeEx( env, -1, split  + 0.0001 ) 
             local time, value
             time = split  + 0.0001
@@ -2643,6 +2706,7 @@ function main()
     local mtvis = reaper.GetToggleCommandState(40075) --View: Toggle master track visible
     local mtrack = reaper.GetMasterTrack(0)
     local envcnt = reaper.CountTrackEnvelopes(mtrack)
+    --msg('envcnt '..envcnt)
     if envcnt > 1 then
       if mtvis == 0 then reaper.Main_OnCommandEx(40075,0,0) end
     else Opt.ReconfMaster = false
