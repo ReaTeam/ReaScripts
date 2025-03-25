@@ -10,7 +10,7 @@ local JSON              = require "lib/json"
 Serializing = {}
 
 -- Load tabs contained in entity
-Serializing.loadTabsFromEntity = function(etype, entity)
+Serializing.loadTabsFromEntity = function(mec, etype, entity)
     local succ, v = false, ''
 
     if not entity and not (etype == Tab.Types.PROJECT) then
@@ -39,8 +39,20 @@ Serializing.loadTabsFromEntity = function(etype, entity)
     end
 
     local tabs = {}
-    for uuid, tab_params in pairs(json_tabs) do
-        local tab   = Tab:new(entity, tab_params)
+    for uuid, json_tab in pairs(json_tabs) do
+
+        local params = {}
+        local state  = nil
+        if json_tab.version == 1 then
+            -- New format. We save the params and the state, so that when reloading the project it works.
+            params = json_tab.params
+            state  = json_tab.state
+        else
+            -- Old format, the full json for this tab was the params (the state was not there at all)
+            params = json_tab
+        end
+
+        local tab   = Tab:new(mec, entity, params, state)
         -- Use saved uuid
         tab.uuid        = uuid
         tab.new_record  = false
@@ -60,7 +72,7 @@ Serializing.saveTabsToEntitity = function(etype, entity, tabs)
 
     local tab_params_array = {}
     for uuid, t in pairs(tabs) do
-        tab_params_array[uuid] = t.params
+        tab_params_array[uuid] = { version=1, params=t.params, state=t.state }
     end
 
     local json = JSON.encode(tab_params_array)
@@ -142,10 +154,9 @@ function Serializing.createTabFromTemplate(mec, templatePath)
         owner = item
     end
 
-    local tab = Tab:new(owner, json.params)
+    local tab = Tab:new(mec, owner, json.params, nil)
 
     return tab
 end
-
 
 return Serializing

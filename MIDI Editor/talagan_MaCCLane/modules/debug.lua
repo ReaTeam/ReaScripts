@@ -38,6 +38,7 @@ local function LaunchDebugStubIfNeeded()
     -- We want the debugger to pause on errors
 
     local rdefer = reaper.defer
+    ---@diagnostic disable-next-line: duplicate-set-field
     reaper.defer = function(c)
         return rdefer(function() xpcall(c,
             function(err)

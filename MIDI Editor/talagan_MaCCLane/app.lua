@@ -51,9 +51,9 @@ local function hasPendingMouseEvents()
   return false
 end
 
-local function hasPendingTabAnimations()
+local function hasPendingDrawOperations()
   for addr, mec in pairs(MEContext.all()) do
-    if mec:hasPendingTabAnimations() then return true end
+    if mec:hasPendingDrawOperations() then return true end
   end
   return false
 end
@@ -123,7 +123,7 @@ local function macclane()
   -- Be less agressive when redraw is not really needed
   local reactivity = 0.3
 
-  if isHoveringAWidget() or hasPendingMouseEvents() or hasPendingTabAnimations() or tabsNeedReload() then
+  if isHoveringAWidget() or hasPendingMouseEvents() or hasPendingDrawOperations() or tabsNeedReload() then
     reactivity = -1
   elseif not MACCLContext.mouse_stalled then
     -- We want to be reactive when the mouse approaches the widget
@@ -193,6 +193,7 @@ local function _macclane()
   --    - frames skipped  : 31/34
   --    - forced redraws  : 1-2 (redraw at low pace or when needed only)
 --
+---@diagnostic disable-next-line: lowercase-global
   aaa_perf = UTILS.perf_ms(
     function()
       macclane()

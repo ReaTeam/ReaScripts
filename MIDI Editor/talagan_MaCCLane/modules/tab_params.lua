@@ -12,6 +12,12 @@ local generic_mode_def = {
     { name = 'custom', human = "Custom" },
 }
 
+local generic_mode_def_with_record = {
+    { name = 'bypass', human = "Bypass" },
+    { name = 'custom', human = "Custom" },
+    { name = 'record', human = 'Record' }
+}
+
 local color_mode_def = {
     { name = 'bypass',      human = "Bypass" },
     { name = 'overload',    human = "Override" },
@@ -25,7 +31,8 @@ local margin_mode_def = {
 local piano_roll_def = {
     { name = 'bypass',    human = "Bypass" },
     { name = 'custom',    human = "Custom" },
-    { name = 'fit',       human = "Fit Notes" }
+    { name = 'fit',       human = "Fit Notes" },
+    { name = 'record',    human = "Record" }
 }
 
 -- Main=0, Main (alt recording)=100, MIDI Editor=32060, MIDI Event List Editor=32061, MIDI Inline Editor=32062, Media Explorer=32063
@@ -43,6 +50,7 @@ local docking_mode_def = {
     { name = 'bypass',   human = 'Bypass' },
     { name = 'windowed', human = 'Windowed' },
     { name = 'docked',   human = 'Docked' },
+    { name = 'record',   human = 'Record'}
 }
 
 local if_docked_mode_def = {
@@ -50,11 +58,13 @@ local if_docked_mode_def = {
     { name = 'maximize', human = 'Maximize' },
     { name = 'minimize', human = 'Minimize' },
     { name = 'custom',   human = 'Custom' },
+    { name = 'record',   human = 'Record' }
 }
 
 local if_windowed_mode_def = {
     { name = 'bypass',   human = 'Bypass' },
     { name = 'custom',   human = 'Custom' },
+    { name = 'record',   human = 'Record' }
 }
 
 local sort_strategy_def = {
@@ -104,9 +114,9 @@ end
 
 return {
     DockingMode             = Enum:new(docking_mode_def),
-    CCLaneMode              = Enum:new(generic_mode_def),
+    CCLaneMode              = Enum:new(generic_mode_def_with_record),
     PianoRollMode           = Enum:new(piano_roll_def),
-    MidiChanMode            = Enum:new(generic_mode_def),
+    MidiChanMode            = Enum:new(generic_mode_def_with_record),
     ActionMode              = Enum:new(generic_mode_def),
     ActionSection           = Enum:new(action_section_def),
     ActionWhen              = Enum:new(action_when_def),
@@ -115,14 +125,16 @@ return {
     SortStrategy            = Enum:new(sort_strategy_def),
     ColorMode               = Enum:new(color_mode_def),
     MarginMode              = Enum:new(margin_mode_def),
+
     PianoRollFitTimeScope   = Enum:new(piano_roll_fit_time_scope),
     PianoRollFitOwnerScope  = Enum:new(piano_roll_fit_owner_scope),
-    TimeWindowPosMode       = Enum:new(generic_mode_def),
-    TimeWindowSizingMode    = Enum:new(generic_mode_def),
+
+    TimeWindowPosMode       = Enum:new(generic_mode_def_with_record),
+    TimeWindowSizingMode    = Enum:new(generic_mode_def_with_record),
     TimeWindowAnchoring     = Enum:new(time_window_anchoring_def),
-    GridMode                = Enum:new(generic_mode_def),
+    GridMode                = Enum:new(generic_mode_def_with_record),
     GridType                = Enum:new(grid_type_def),
-    MEColoringMode          = Enum:new(generic_mode_def),
+    MEColoringMode          = Enum:new(generic_mode_def_with_record),
     MEColoringType          = Enum:new(me_coloring_mode_def),
 
     SanitizeBool            = SanitizeBool

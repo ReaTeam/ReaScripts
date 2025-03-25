@@ -130,24 +130,9 @@ local function JS_Window_TopParent(hwnd)
     return top
 end
 
-local function JS_FindMidiEditorSysListView32(me)
-    local c, l = reaper.JS_Window_ListAllChild(me)
-
-    -- This one should be working but doesn't
-    -- return reaper.JS_Window_FindEx(me,me,"SysListView32","")
-
-    for token in string.gmatch(l, "[^,]+") do
-        local subhwnd = reaper.JS_Window_HandleFromAddress(token)
-        if not subhwnd then return end
-        local classn = reaper.JS_Window_GetClassName(subhwnd)
-        if classn == "SysListView32" then
-            return subhwnd
-        end
-    end
-
-    return nil
+local function JS_FindMidiEditorPianoRollSubWindow(me)
+    return reaper.JS_Window_FindChildByID(me, 1001)
 end
-
 local function utf8sub(str, utf8_start, utf8_len)
     local s = utf8.offset(str, utf8_start)
     local e = utf8.offset(str, utf8_start + utf8_len) - 1
@@ -162,6 +147,6 @@ return {
     screenCoordinatesToLocal        = screenCoordinatesToLocal,
     JS_Window_GetBounds             = JS_Window_GetBounds,
     JS_Window_TopParent             = JS_Window_TopParent,
-    JS_FindMidiEditorSysListView32  = JS_FindMidiEditorSysListView32,
+    JS_FindMidiEditorPianoRollSubWindow  = JS_FindMidiEditorPianoRollSubWindow,
     utf8sub                         = utf8sub
 }

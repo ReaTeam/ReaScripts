@@ -13,14 +13,13 @@ setmetatable(AddTabTab, Tab)
 function AddTabTab:new(mec)
     local instance = {}
     setmetatable(instance, self)
-    instance:_initialize()
-    instance.mec = mec
+    instance:_initialize(mec)
     return instance
 end
 
-function AddTabTab:_initialize()
+function AddTabTab:_initialize(mec)
     -- Super
-    Tab._initialize(self)
+    Tab._initialize(self, mec)
 
     self.owner      = nil
     self.owner_type = Tab.Types.PLUS_TAB

@@ -29,7 +29,7 @@ function SettingsWindow:newTabDefaultOwnerComboBox()
     local ctx = MACCLContext.ImGuiContext
 
     local defs = {
-        { name = Tab.Types.GLOBAL, human = "Global" },
+        { name = Tab.Types.GLOBAL,  human = "Global" },
         { name = Tab.Types.PROJECT, human = "Project" },
         { name = Tab.Types.TRACK,   human = "Track" },
         { name = Tab.Types.ITEM,    human = "Item" }
@@ -45,7 +45,7 @@ function SettingsWindow:newTabDefaultOwnerComboBox()
     local curr = S.getSetting("DefaultOwnerTypeForNewTab")
 
     ImGui.PushID(ctx, "default_owner_combo_box")
-    ImGui.SetNextItemWidth(ctx, 250)
+    ImGui.SetNextItemWidth(ctx, 100)
     if ImGui.BeginCombo(ctx, "Default owner", selectableLabel(curr)) then
         for i,v in ipairs(defs) do
             local name          = v.name
@@ -85,6 +85,7 @@ function SettingsWindow:gfx()
         ImGui.BeginGroup(ctx)
         if true then
             ImGui.SetNextItemWidth(ctx, 80)
+            ---@diagnostic disable-next-line: param-type-mismatch
             local b, v = ImGui.SliderInt(ctx, "Tab margin", S.getSetting("TabMargin"), 0, 20, "%d px")
             if b then
                 S.setSetting("TabMargin", v)
@@ -96,6 +97,7 @@ function SettingsWindow:gfx()
             end
 
             ImGui.SetNextItemWidth(ctx, 80)
+            ---@diagnostic disable-next-line: param-type-mismatch
             local b, v = ImGui.SliderInt(ctx, "Tab spacing", S.getSetting("TabSpacing"), 0, 20, "%d px")
             if b then
                 S.setSetting("TabSpacing", v)
@@ -113,6 +115,7 @@ function SettingsWindow:gfx()
         ImGui.BeginGroup(ctx)
         if true then
             ImGui.SetNextItemWidth(ctx, 80)
+            ---@diagnostic disable-next-line: param-type-mismatch
             local b, v = ImGui.SliderInt(ctx, "Widget margin", S.getSetting("WidgetMargin"), 0, 20, "%d px")
             if b then
                 S.setSetting("WidgetMargin", v)
@@ -123,6 +126,7 @@ function SettingsWindow:gfx()
                 MACCLContext.notifySettingsChange()
             end
             ImGui.SetNextItemWidth(ctx, 80)
+            ---@diagnostic disable-next-line: param-type-mismatch
             local b, v = ImGui.SliderInt(ctx, "Font Size", S.getSetting("FontSize"), S.getSettingSpec("FontSize").min, S.getSettingSpec("FontSize").max, "%d px")
             if b then
                 S.setSetting("FontSize", v)
@@ -137,21 +141,63 @@ function SettingsWindow:gfx()
         end
         ImGui.EndGroup(ctx)
 
+        ImGui.Dummy(ctx, 10, 5)
+
+        ImGui.AlignTextToFramePadding(ctx)
+        ImGui.TextColored(ctx, 0x54c0ffFF, "Tab Colors     ")
+        ImGui.SameLine(ctx)
+        ---@diagnostic disable-next-line: param-type-mismatch
+        local b, v = ImGui.ColorEdit3(ctx, 'Global  ', S.getSetting("ColorForGlobalTabs"), ImGui.ColorEditFlags_NoInputs)
+        if b then
+            S.setSetting("ColorForGlobalTabs", v)
+            MACCLContext.notifySettingsChange()
+        end
+        ImGui.SameLine(ctx)
+        ---@diagnostic disable-next-line: param-type-mismatch
+        local b, v = ImGui.ColorEdit3(ctx, 'Project ', S.getSetting("ColorForProjectTabs"), ImGui.ColorEditFlags_NoInputs)
+        if b then
+            S.setSetting("ColorForProjectTabs", v)
+            MACCLContext.notifySettingsChange()
+        end
+
+        ImGui.AlignTextToFramePadding(ctx)
+        ImGui.TextColored(ctx, 0x54c0ffFF, "State Indicator")
+        ImGui.SameLine(ctx)
+        ---@diagnostic disable-next-line: param-type-mismatch
+        local b, v = ImGui.ColorEdit4(ctx, 'Active  ##rec_indicator_active', S.getSetting("ActiveRecTabIndicatorColor"), ImGui.ColorEditFlags_NoInputs)
+        if b then
+            S.setSetting("ActiveRecTabIndicatorColor", v)
+            MACCLContext.notifySettingsChange()
+        end
+        ImGui.SameLine(ctx)
+        ---@diagnostic disable-next-line: param-type-mismatch
+        local b, v = ImGui.ColorEdit4(ctx, 'Inactive##rec_indicator_inactive', S.getSetting("InactiveRecTabIndicatorColor"), ImGui.ColorEditFlags_NoInputs)
+        if b then
+            S.setSetting("InactiveRecTabIndicatorColor", v)
+            MACCLContext.notifySettingsChange()
+        end
+        ImGui.SameLine(ctx)
+        ImGui.Dummy(ctx, 5, 1)
         ImGui.SameLine(ctx)
 
-        ImGui.BeginGroup(ctx)
-        if true then
-            local b, v = ImGui.ColorEdit3(ctx, 'Global  tabs color', S.getSetting("ColorForGlobalTabs"), ImGui.ColorEditFlags_NoInputs)
-            if b then
-                S.setSetting("ColorForGlobalTabs", v)
-            end
-            local b, v = ImGui.ColorEdit3(ctx, 'Project tabs color', S.getSetting("ColorForProjectTabs"), ImGui.ColorEditFlags_NoInputs)
-            if b then
-                S.setSetting("ColorForProjectTabs", v)
-            end
+        ImGui.SetNextItemWidth(ctx, 50)
+        ---@diagnostic disable-next-line: param-type-mismatch
+        local b, v = ImGui.SliderInt(ctx, 'Size##rec_tab_crop_size', S.getSetting("RecTabIndicatorSize"), 2, 6, "%d px")
+        if b then
+            S.setSetting("RecTabIndicatorSize", v)
+            MACCLContext.notifySettingsChange()
         end
-        ImGui.EndGroup(ctx)
 
+        ImGui.SeparatorText(ctx, "Tab edition")
+        ImGui.AlignTextToFramePadding(ctx)
+        ImGui.TextColored(ctx, 0x54c0ffFF, "Name edit > Enter")
+        ImGui.SameLine(ctx)
+        ImGui.SetNextItemWidth(ctx, 100)
+        ---@diagnostic disable-next-line: param-type-mismatch
+        local b, v = ImGui.Combo(ctx, '##name_enter_pressed', S.getSetting("OnNameEditEnterPressed"), "Saves tab\0Navigates\0")
+        if b then
+            S.setSetting("OnNameEditEnterPressed", v)
+        end
 
         ImGui.SeparatorText(ctx, "Tab order")
 
@@ -180,6 +226,14 @@ function SettingsWindow:gfx()
 
         ImGui.SeparatorText(ctx, "New tab")
         self:newTabDefaultOwnerComboBox()
+
+        ImGui.SeparatorText(ctx, "Other")
+
+        ---@diagnostic disable-next-line: param-type-mismatch
+        local b, v = ImGui.Checkbox(ctx, "enable debug tools", S.getSetting("DebugTools"))
+        if b then
+            S.setSetting("DebugTools", v)
+        end
 
         ImGui.End(ctx)
     end
