@@ -1,13 +1,14 @@
 --[[
 @description Legatool : legato tool for the MIDI Editor
-@version 0.3
+@version 0.4
 @author Ben 'Talagan' Babut
 @license MIT
 @donation https://www.paypal.com/donate/?business=3YEZMY9D6U8NC&no_recurring=1&currency_code=EUR
 @links
   Forum Thread TODO https://forum.cockos.com/
 @changelog
-  - [Buf Fix] Crash when hiding/re-showing MIDI Editor (ImGui ctx was not cleared)
+  - [Feature] Snap by holding SHIFT
+  - [Code cleaning] Better command state handling
 @provides
   [main=midi_editor] .
   [nomain] talagan_Legatool/modules/**/*.lua
