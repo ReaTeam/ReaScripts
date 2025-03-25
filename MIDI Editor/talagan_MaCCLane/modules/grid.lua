@@ -98,12 +98,12 @@ local function SetMIDIEditorGrid(mec, val, grid_type, swing_val)
     reaper.PreventUIRefresh(42)
 
     -- Get full global grid info
-    local _, g_grid, g_swing_on, g_swing  = reaper.GetSetProjectGrid(0, false)
-    local is_me_copying_arrange = reaper.GetToggleCommandState(D.ACTION_MAIN_USE_SAME_GRID_IN_ME_AND_ARRANGE)
+    local _, g_grid, g_swing_on, g_swing    = reaper.GetSetProjectGrid(0, false)
+    local is_me_copying_arrange             = reaper.GetToggleCommandState(D.ACTION_MAIN_USE_SAME_GRID_IN_ME_AND_ARRANGE)
 
-    -- Set the project swing, so that can be copied transferred to the ME
-    reaper.GetSetProjectGrid(0, true, nil, 1, swing_val)
     if is_me_copying_arrange == 1 then
+        -- Set the project swing, so that can be copied transferred to the ME
+        reaper.GetSetProjectGrid(0, true, nil, 1, swing_val)
         -- Be sure that the params are validated
         reaper.Main_OnCommand(D.ACTION_MAIN_USE_SAME_GRID_IN_ME_AND_ARRANGE, 0) -- off
         reaper.Main_OnCommand(D.ACTION_MAIN_USE_SAME_GRID_IN_ME_AND_ARRANGE, 0) -- on : triggers copy
@@ -111,14 +111,11 @@ local function SetMIDIEditorGrid(mec, val, grid_type, swing_val)
         reaper.Main_OnCommand(D.ACTION_MAIN_USE_SAME_GRID_IN_ME_AND_ARRANGE, 0) -- off
         reaper.Main_OnCommand(D.ACTION_MAIN_USE_SAME_GRID_IN_ME_AND_ARRANGE, 0) -- on : triggers copy
     else
-        -- Trigger the copy from Grid > ME
+        -- Force value to "1" to avoid the "Measure" bug (if the arrange view grid is set to "Measure" then SetMIDIEditorGrid does not work)
+        reaper.GetSetProjectGrid(0, true, val, (grid_type == 'swing') and 1 or 0, swing_val)
         reaper.Main_OnCommand(D.ACTION_MAIN_USE_SAME_GRID_IN_ME_AND_ARRANGE, 0)
-        -- Second call : disable copy
         reaper.Main_OnCommand(D.ACTION_MAIN_USE_SAME_GRID_IN_ME_AND_ARRANGE, 0)
-        -- restore project swing
-        reaper.GetSetProjectGrid(0, true, nil, g_swing_on, g_swing)
     end
-
 
     -- Apply modifiers to the base value
     if grid_type == 'dotted'  then val = val * 3/2 end
@@ -134,7 +131,13 @@ local function SetMIDIEditorGrid(mec, val, grid_type, swing_val)
     elseif  grid_type == 'swing'    then reaper.MIDIEditor_OnCommand(me, D.ACTION_ME_SET_GRID_SIZE_TO_SWING)
     end
 
+    if not (is_me_copying_arrange == 1) then
+        -- restore project swing
+        reaper.GetSetProjectGrid(0, true, g_grid, g_swing_on, g_swing)
+    end
+
     reaper.PreventUIRefresh(-42)
+    reaper.UpdateItemInProject(mec.item)
 end
 
 local function GetColoringType(mec)

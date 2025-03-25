@@ -10,6 +10,10 @@ local Tab                    = require "classes/tab"
 local SettingsWindow         = require "classes/settings_window"
 local GlobalScopeRepo        = require "classes/global_scope_repo"
 
+local S                      = require "modules/settings"
+local LOG                    = require "modules/log"
+local INSPECT                = require "lib/inspect"
+
 local ImGui                  = MACCLContext.ImGui
 
 -- Opens a popup menu on a tab
@@ -113,6 +117,12 @@ TabPopupMenu.process = function()
             TabPopupMenu.hiearchySubMenu(ctx, TabPopupMenu.template_hierarchy)
 
             ImGui.Separator(ctx)
+            if ImGui.MenuItem(ctx, "Open template folder") then
+                local spath = reaper.GetResourcePath() .. "/Data/MaCCLane/"
+                reaper.CF_ShellExecute(spath)
+            end
+
+            ImGui.Separator(ctx)
             if ImGui.MenuItem(ctx, "Paste...", '', false, not (TabPopupMenu.copiedTab == nil)) then
                 local srctab = TabPopupMenu.copiedTab
 
@@ -128,10 +138,14 @@ TabPopupMenu.process = function()
                     owner = nil
                 end
 
-                local newtab                = Tab:new(owner, TabPopupMenu.copiedTab.params)
+                local newtab                = Tab:new(mec, owner, TabPopupMenu.copiedTab.params, TabPopupMenu.copiedTab.state)
                 newtab.last_draw_global_x   = tab.last_draw_global_x
                 newtab.last_draw_global_y   = tab.last_draw_global_y
                 newtab:save()
+            end
+            ImGui.Separator(ctx)
+            if ImGui.MenuItem(ctx, "New Full Recording Tab...") then
+                mec:openEditorForNewTab(tab, {full_record=true})
             end
 
             ImGui.Separator(ctx)
@@ -203,6 +217,13 @@ TabPopupMenu.process = function()
             if ImGui.MenuItem(ctx, "Cut") then
                 TabPopupMenu.copiedTab = tab
                 tab:destroy()
+            end
+
+            if S.getSetting("DebugTools") then
+                ImGui.Separator(ctx)
+                if ImGui.MenuItem(ctx, "DEBUG : Print state") then
+                    LOG.critical("" .. INSPECT(tab.state) .. "\n")
+                end
             end
 
             ImGui.Separator(ctx)

@@ -10,6 +10,7 @@ local SettingDefs = {
   FontSize                  = { type = "int",     default = is_windows and 12 or 11, min = 8, max = 14 },
   UseDebugger               = { type = "bool",    default = false },
   UseProfiler               = { type = "bool",    default = false },
+  DebugTools                = { type = "bool",    default = false },
   TabMargin                 = { type = "int",     default = 10 },
   TabSpacing                = { type = "int",     default = 2 },
   WidgetMargin              = { type = "int",     default = 15 },
@@ -17,7 +18,11 @@ local SettingDefs = {
   DefaultOwnerTypeForNewTab = { type = "string",  default = "track" },
   QueuedAction              = { type = "string",  default = nil },
   ColorForGlobalTabs        = { type = "int",     default = 0xFFFFFF },
-  ColorForProjectTabs       = { type = "int",     default = 0xFFFFFF }
+  ColorForProjectTabs       = { type = "int",     default = 0xFFFFFF },
+  RecTabIndicatorSize        = { type = "int",     default = 4 },
+  ActiveRecTabIndicatorColor = { type = "int",    default = 0xFFFFFFFF },
+  InactiveRecTabIndicatorColor = { type = "int",  default = 0x00000000 },
+  OnNameEditEnterPressed    = { type = "int", default = 0 }
 };
 
 local function unsafestr(str)

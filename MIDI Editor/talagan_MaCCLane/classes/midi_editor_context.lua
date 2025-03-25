@@ -14,6 +14,8 @@ local TabEditor       = require "classes/tab_editor"
 local TabPopupMenu    = require "classes/tab_popup_menu"
 local GlobalScopeRepo = require "classes/global_scope_repo"
 
+local TabState        = require "modules/tab_state"
+
 local S               = require "modules/settings"
 local D               = require "modules/defines"
 
@@ -84,6 +86,13 @@ function MEContext:hasPendingTabAnimations()
         end
     end
     return false
+end
+
+function MEContext:hasPendingDrawOperations()
+    if self.has_pending_redraw then
+        return true
+    end
+    return self:hasPendingTabAnimations()
 end
 
 -- Returns the viewport metrics
@@ -194,9 +203,10 @@ function MEContext:inputEventLoop()
         mec.pending_take_change = true
     end
 
-    -- Watch
+    -- Watch layout changes
     local ks_state = reaper.GetToggleCommandStateEx(D.SECTION_MIDI_EDITOR, D.ACTION_ME_TOGGLE_KEY_SNAP)
     if not (mec.ks_state == ks_state) then
+        -- This will force a redraw
         mec.pending_layout_change = true
         mec.ks_state = ks_state
     end
@@ -229,6 +239,8 @@ end
 
 function MEContext:loadTabs()
 
+    local activeTab = self:activeTab()
+
     local item, track = nil, nil
     local take = reaper.MIDIEditor_GetTake(self.me)
     if take then
@@ -236,10 +248,10 @@ function MEContext:loadTabs()
         track = reaper.GetMediaItemTake_Track(take)
     end
 
-    local gtabs = Serializing.loadTabsFromEntity(Tab.Types.GLOBAL, GlobalScopeRepo.instance())
-    local ptabs = Serializing.loadTabsFromEntity(Tab.Types.PROJECT, nil)
-    local ttabs = Serializing.loadTabsFromEntity(Tab.Types.TRACK, track)
-    local itabs = Serializing.loadTabsFromEntity(Tab.Types.ITEM, item)
+    local gtabs = Serializing.loadTabsFromEntity(self, Tab.Types.GLOBAL, GlobalScopeRepo.instance())
+    local ptabs = Serializing.loadTabsFromEntity(self, Tab.Types.PROJECT, nil)
+    local ttabs = Serializing.loadTabsFromEntity(self, Tab.Types.TRACK, track)
+    local itabs = Serializing.loadTabsFromEntity(self, Tab.Types.ITEM, item)
 
     -- Build up and array (instead of stored lookups) so that we can apply sorting
     self._tabs = {}
@@ -258,11 +270,24 @@ function MEContext:loadTabs()
 
     Tab.sort(self._tabs)
 
+    for _, t in ipairs(self._tabs) do
+            -- Restore active state if the tab survives to reload
+        if activeTab then
+            if t.uuid == activeTab.uuid then
+                if t:isStateFull() then -- this may have changed during reload
+                    t:setActive(true)
+                end
+            end
+        end
+    end
+
     self._tabs[#self._tabs + 1] = AddTabTab:new(self)
 end
 
-function MEContext:tabs()
-    if not self._tabs then
+function MEContext:tabs(options)
+    options = options or {}
+
+    if (not self._tabs) or options.force_reload then
         self:loadTabs()
     end
     return self._tabs
@@ -291,7 +316,7 @@ function MEContext:redraw()
     local bgcol   	= reaper.GetThemeColor("col_main_bg")
 	local r,g,b 	= reaper.ColorFromNative(bgcol)
 
-    bgcol 			= 0xFF000000 | (r << 16) | (g << 8) | b
+    self.bgcol 		= 0xFF000000 | (r << 16) | (g << 8) | b
 
     local w = reaper.JS_LICE_GetWidth(mec.bitmap)
     local h = reaper.JS_LICE_GetHeight(mec.bitmap)
@@ -300,7 +325,7 @@ function MEContext:redraw()
     reaper.JS_Window_InvalidateRect(me, mec.xpos, mec.ypos, mec.xpos + mec.w, mec.ypos + mec.h, true)
 
     -- Cleanup full BG
-    reaper.JS_LICE_FillRect(mec.bitmap, 0, 0, w, h, bgcol, 1, "COPY")
+    reaper.JS_LICE_FillRect(mec.bitmap, 0, 0, w, h, self.bgcol, 1, "COPY")
 
     if reaper.MIDIEditor_GetMode(self.me) == 1 then
         -- Don't draw tabs in list view mode
@@ -353,6 +378,16 @@ function MEContext:tabsNeedReload()
     return self.pending_take_change or self.pending_settings_change or not self.lastTabLoad or not (MACCLContext.lastTabSavedAt == self.lastTabLoad)
 end
 
+function MEContext:activeTab()
+    local tabs = self._tabs
+    if not tabs then return end
+
+    for _, t in ipairs(tabs) do
+        if t:isStateFull() and t:isActive() then return t end
+    end
+    return nil
+end
+
 function MEContext:update(is_fresh)
     -- Update is called often, but not nesserarly every frame (the upper layer decides of the pace)
     local mec = self
@@ -389,7 +424,6 @@ function MEContext:update(is_fresh)
     -- This is the most time consuming function but we need it
     -- Since the UI may change from a frame to another
     local viewport_x, viewport_w    = mec:getViewportMetrics()
-
 
     -- Get the viewport wanted size and see if we need a resize
     local wantedx                   = viewport_x
@@ -474,11 +508,8 @@ function MEContext:update(is_fresh)
     local shouldRedraw = shouldRecomposite
 
     -- Force a redraw on all those conditions :
-    if mec.has_tab_hover_change or
-        mec.bounds_changed or
-        MACCLContext.force_redraw or
-        mec:hasPendingMouseEvents() or
-        mec:hasPendingTabAnimations() then
+    if mec.has_tab_hover_change or mec.has_pending_redraw or mec.bounds_changed or MACCLContext.force_redraw or  mec:hasPendingMouseEvents() or mec:hasPendingDrawOperations() then
+        mec.has_pending_redraw = false
         shouldRedraw = true
     end
 
@@ -495,7 +526,27 @@ function MEContext:openTabContextMenuOn(tab)
     TabPopupMenu.openOnTab(self, tab)
 end
 
-function MEContext:openEditorForNewTab(plus_tab)
+function MEContext:onStateFullTabActivation(tab, options)
+    options = options or {}
+    local tabs = self:tabs({force_reload=options.force_reload})
+    for i, t in ipairs(tabs) do
+        if not (t.uuid == tab.uuid) then
+            if t:isStateFull() and t:isActive() then
+                -- The tab is being quit, snapshot state
+                TabState.SnapShotAll(t)
+                t:save({skip_full_tab_reload=true})
+            end
+            t:setActive(false)
+        else
+            t:setActive(true)
+        end
+    end
+    self.has_pending_redraw = true
+end
+
+function MEContext:openEditorForNewTab(plus_tab, options)
+    options = options or {}
+
     local open, editor = TabEditor.hasEditorForNewTabOpen(self)
     if open then
         editor.draw_count = 1 -- This will force focus on the tab editor's window
@@ -504,10 +555,9 @@ function MEContext:openEditorForNewTab(plus_tab)
 
     local meinfo                = self:editorInfo()
 
-    local newtab                = Tab:new()
+    local newtab                = Tab:new(self)
     newtab.last_draw_global_x   = plus_tab.last_draw_global_x
     newtab.last_draw_global_y   = plus_tab.last_draw_global_y
-    newtab.mec                  = self
 
     -- Initialize owner
     local owner_type = S.getSetting("DefaultOwnerTypeForNewTab")
@@ -520,6 +570,10 @@ function MEContext:openEditorForNewTab(plus_tab)
         newtab:setOwner(meinfo.item)
     else
         newtab:setOwner(nil)
+    end
+
+    if options.full_record then
+        newtab:setFullRecord()
     end
 
     self:openTabEditorOn(newtab)

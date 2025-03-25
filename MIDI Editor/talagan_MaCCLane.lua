@@ -1,13 +1,21 @@
 --[[
 @description MaCCLane : Tabs for the MIDI Editor
-@version 0.1.7
+@version 0.2.0
 @author Ben 'Talagan' Babut
 @license MIT
 @donation https://www.paypal.com/donate/?business=3YEZMY9D6U8NC&no_recurring=1&currency_code=EUR
 @links
   Forum Thread : https://forum.cockos.com/showthread.php?t=298707
 @changelog
-  - [Bug Fix] [Linux] Wrong coordinate system leading to widget not appearing at all
+  - [Major Feature] Current tab / tab state
+  - [Major Feature] Record modes for every module
+  - [Feature] Added "Reveal template folder" in (+) menu
+  - [Feature] Added Return / Escape key handling when editing tab name
+  - [Feature] Added "Return key behaviour when editing tab name" customization
+  - [Feature] Added "New Full Recording Tab" entry to menu
+  - [Feature] Added debug tools
+  - [Bug Fix] Setting ME grid does not work if global grid setting is set to "Measure"
+  - [Bug Fix] MaCCLane crash if tab editor grid module is set to custom and closing midi editor (thanks @Seventh Sam)
 @provides
   [main=main] .
   [nomain] talagan_MaCCLane/classes/**/*.lua
@@ -33,6 +41,8 @@
     MaCCLane is a widget that installs itself at the bottom of the MIDI Editor and brings a tab system to quickly call MIDI Editor configurations. This may include CC Lanes, window layout, piano roll, midi chans, and more.
 
     Proposed tabs are contextual to what's being edited, and may be stored in the project, on the track or on the edited item. They can thus be stored in track templates, or may be stored as templates themselves.
+
+    Tabs are complex objects that can be configured partially to apply a custom ME configuration, or record/restore an aspect of a MIDI editor
 
   # Install Notes
 
@@ -73,7 +83,7 @@ local App       = require "talagan_MaCCLane/app"
 
 S.setSetting("UseDebugger", false)
 S.setSetting("UseProfiler", false)
-LOG.setLevel(LOG.LOG_LEVEL_NONE)
+LOG.setLevel(LOG.LOG_LEVEL_CRITICAL)
 
 Debugger.LaunchDebugStubIfNeeded()
 Debugger.LaunchProfilerIfNeeded()

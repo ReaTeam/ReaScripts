@@ -81,17 +81,6 @@ local function readVellanesFromChunk(chunk, take)
     }
 end
 
-local function newVirginVellane(num)
-    return {
-        num = num,
-        height = 30,
-        inline_ed_height = 10,
-        zoom_offset = 0,
-        zoom_factor = 1,
-        lead = ''
-    }
-end
-
 -- Reinsert modified vellanes at the right place.
 local function applyNewVellanes(item_vellane_ctx, take)
 
@@ -175,6 +164,5 @@ end
 return {
     totalHeight            = totalHeight,
     readVellanesFromChunk  = readVellanesFromChunk,
-    applyNewVellanes       = applyNewVellanes,
-    newVirginVellane       = newVirginVellane
+    applyNewVellanes       = applyNewVellanes
 }

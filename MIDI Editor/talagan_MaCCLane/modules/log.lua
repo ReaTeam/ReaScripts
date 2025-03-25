@@ -5,9 +5,10 @@
 
 -- Logger with log levels
 
-local LOG_LEVEL_DEBUG   = 2
-local LOG_LEVEL_INFO    = 1
-local LOG_LEVEL_NONE    = 0
+local LOG_LEVEL_DEBUG       = 3
+local LOG_LEVEL_INFO        = 2
+local LOG_LEVEL_CRITICAL    = 1
+local LOG_LEVEL_NONE        = 0
 
 local log_level         = LOG_LEVEL_NONE
 
@@ -19,6 +20,7 @@ end
 
 local function _dbg(str)    _log(str, LOG_LEVEL_DEBUG)  end
 local function _info(str)   _log(str, LOG_LEVEL_INFO)   end
+local function _crit(str)   _log(str, LOG_LEVEL_CRITICAL) end
 
 local function _set_level(level)
     log_level = level
@@ -34,9 +36,11 @@ return {
     LOG_LEVEL_DEBUG   = LOG_LEVEL_DEBUG,
     LOG_LEVEL_INFO    = LOG_LEVEL_INFO,
     LOG_LEVEL_NONE    = LOG_LEVEL_NONE,
+    LOG_LEVEL_CRITICAL = LOG_LEVEL_CRITICAL,
 
     getLevel = _get_level,
     setLevel = _set_level,
     info  = _info,
     debug = _dbg,
+    critical = _crit
 }

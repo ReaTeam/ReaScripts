@@ -101,16 +101,17 @@ local function pianoRollHeight(me, ctx)
 
     local vellanes  = VELLANE.readVellanesFromChunk(ctx.chunk, ctx.take)
     local h         = 0
-    local hwnd      = UTILS.JS_FindMidiEditorSysListView32(me)
+    local hwnd      = UTILS.JS_FindMidiEditorPianoRollSubWindow(me)
 
     if not hwnd then
         error("Something nasty happened ! No SysListView32 child window in midi editor !")
     end
 
     h = h + UTILS.JS_Window_GetBounds(hwnd).h
-    h = h - 16 -- bottom scrollbar
+--    h = h - 16 -- bottom scrollbar
     h = h - 65 -- Time header
     h = h - VELLANE.totalHeight(vellanes)
+
 
     -- Reaper prevents the piano roll from being resized under 10px.
     -- If so, the vellanes are resized, not the PR.
