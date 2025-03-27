@@ -81,7 +81,6 @@ local function utf8sub(str, utf8_start, utf8_len)
 end
 
 local function JS_Window_GetBounds(hwnd, full_window)
-
     local func = (full_window and reaper.JS_Window_GetRect or reaper.JS_Window_GetClientRect)
 
     local _, left, top, right, bottom = func( hwnd )
@@ -105,10 +104,27 @@ local function JS_Window_GetBounds(hwnd, full_window)
     }
 end
 
+local function GetHwndDock(hwnd)
+    local p     = nil
+    local dock  = nil
+
+    p           = reaper.JS_Window_GetParent(hwnd)
+    while p do
+      if reaper.JS_Window_GetTitle(p) == "REAPER_dock" then
+        dock  = p
+        p     = nil
+      else
+        p = reaper.JS_Window_GetParent(p);
+      end
+    end
+    return dock
+end
+
 return {
     perf_ms                         = perf_ms,
     perf_accum                      = perf_accum,
     deepcopy                        = deepcopy,
     utf8sub                         = utf8sub,
-    JS_Window_GetBounds             = JS_Window_GetBounds
+    JS_Window_GetBounds             = JS_Window_GetBounds,
+    GetHwndDock                     = GetHwndDock
 }

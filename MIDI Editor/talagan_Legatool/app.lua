@@ -75,6 +75,17 @@ local function app()
         ImGui.SetNextWindowSizeConstraints(ctx,200,35,2000,35)
 
         local flags = ImGui.WindowFlags_NoDocking | ImGui.WindowFlags_NoTitleBar
+        local dock  = UTILS.GetHwndDock(me)
+
+        if not dock then
+            -- Hack if windowed. Could not find a better way to ensure that the z-index of legatool is higher than the ME's one... :( :(
+            -- We need to bring the window front by setting it topmost, but not always (we don't want it to be in front of other contextual windows for example)
+            -- ImGui.SetNextWindowFocus is not sufficient, it does not work here
+            local focused = reaper.JS_Window_GetFocus()
+            if me == focused  or reaper.JS_Window_IsChild(me, focused) then
+                flags = flags|ImGui.WindowFlags_TopMost
+            end
+        end
 
         if LTContext.snap_piano_roll then
             local piano_roll_hwnd   = reaper.JS_Window_FindChildByID(me, 1001)
@@ -87,6 +98,8 @@ local function app()
 
         local visible, open = ImGui.Begin(ctx, "Legatool", true, flags)
         if visible then
+            -- There's no need for the next block as we already set the context to ImGui.ConfigFlags_NoKeyboard
+            --[[
             if ImGui.IsWindowFocused(ctx) then
                 if not LTContext.focustimer or ImGui.IsAnyMouseDown(ctx) then
                     -- create or reset the timer when there's activity in the window
@@ -99,6 +112,7 @@ local function app()
             else
                 LTContext.focustimer = nil
             end
+            ]]
 
             local act_col = LTContext.snap_piano_roll
 
