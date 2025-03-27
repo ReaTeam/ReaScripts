@@ -1,13 +1,13 @@
 --[[
 @description Legatool : legato tool for the MIDI Editor
-@version 0.4.1
+@version 0.4.2
 @author Ben 'Talagan' Babut
 @license MIT
 @donation https://www.paypal.com/donate/?business=3YEZMY9D6U8NC&no_recurring=1&currency_code=EUR
 @links
   Forum Thread TODO https://forum.cockos.com/
 @changelog
-  - [Bug Fix] When the ME is windowed, Legatool would appear behind the ME's window
+  - [Bug Fix] Re-activated accidentally commented trick that allows the ME to receive editing shortcuts when using Legatool (Legatool's window should be on the top of the editor AND give back focus to it)
 @provides
   [main=midi_editor] .
   [nomain] talagan_Legatool/modules/**/*.lua
