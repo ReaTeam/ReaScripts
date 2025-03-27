@@ -98,8 +98,10 @@ local function app()
 
         local visible, open = ImGui.Begin(ctx, "Legatool", true, flags)
         if visible then
-            -- There's no need for the next block as we already set the context to ImGui.ConfigFlags_NoKeyboard
-            --[[
+            -- The next part is mandatory when using Legatool and editing stuff
+            -- Because Legatool's window will take focus on mouse click and we want to give
+            -- It back to the ME so that we can press "space"/play or any other editing shortcut
+            -- and be sure it is interpreted by the ME
             if ImGui.IsWindowFocused(ctx) then
                 if not LTContext.focustimer or ImGui.IsAnyMouseDown(ctx) then
                     -- create or reset the timer when there's activity in the window
@@ -107,12 +109,13 @@ local function app()
                 end
 
                 if (reaper.time_precise() - LTContext.focustimer > 0.1) then
+                    -- Give back focus to MIDI editor as soon as we have finished
+                    -- So that the ME can have kb focus
                     reaper.JS_Window_SetFocus(reaper.MIDIEditor_GetActive())
                 end
             else
                 LTContext.focustimer = nil
             end
-            ]]
 
             local act_col = LTContext.snap_piano_roll
 
