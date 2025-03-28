@@ -148,17 +148,18 @@ TabEditor.__index = TabEditor
 
 TabEditor.registry = {}
 
-function TabEditor:new (mec, tab)
+function TabEditor:new (tab)
     local instance = {}
     setmetatable(instance, self)
-    instance:_initialize()
-    -- Make a copy of the tab, that we can edit directly
-    instance.mec = mec
-    instance.tab = UTILS.deepcopy(tab)
+    instance:_initialize(tab)
+
     return instance
 end
 
-function TabEditor:_initialize()
+function TabEditor:_initialize(tab)
+    -- Clone the tab and open the editor on this clone
+    self.tab = tab:clone(true)
+    self.mec = tab.mec
 end
 
 function TabEditor.ownerTypeToRadio(ot)
@@ -1542,6 +1543,7 @@ function TabEditor:gfx()
         PushGreenStyle(ctx)
         if ImGui.Button(ctx, "Save") then
             self.tab:save()
+
             open = false -- Get rid of it, we won't redraw, so it will be garbage collected
         end
         PopGreenStyle(ctx)
@@ -1580,11 +1582,11 @@ end
 
 -- Class functions
 
-function TabEditor.openOnTab(mec, tab)
+function TabEditor.openOnTab(tab)
     local editor = TabEditor.registry[tab:UUID()]
     if editor then return editor end
 
-    editor = TabEditor:new(mec, tab)
+    editor = TabEditor:new(tab)
     TabEditor.registry[tab:UUID()] = editor
 end
 

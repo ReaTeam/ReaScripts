@@ -16,6 +16,8 @@ local GlobalScopeRepo = require "classes/global_scope_repo"
 
 local TabState        = require "modules/tab_state"
 
+local MOD             = require "modules/modifiers"
+
 local S               = require "modules/settings"
 local D               = require "modules/defines"
 
@@ -176,6 +178,19 @@ function MEContext:mouseEventLoop()
         mec.has_hover_change = true
     end
 
+    -- Watch keyboard modifiers
+    local shift_down = MOD.ShiftIsDown()
+    if not (mec.shift_down == shift_down) then
+        mec.has_modifier_change = true
+    end
+    mec.shift_down = shift_down
+
+    local win_ctrl_mac_cmd_down = MOD.WinControlMacCmdIsDown()
+    if not (mec.win_ctrl_mac_cmd_down == win_ctrl_mac_cmd_down) then
+        mec.has_modifier_change = true
+    end
+    mec.win_ctrl_mac_cmd_down = win_ctrl_mac_cmd_down
+
     mec:pollMouseEvent('left_click',  'WM_LBUTTONUP')
     mec:pollMouseEvent('right_click', 'WM_RBUTTONUP')
     mec:pollMouseEvent('mouse_wheel', 'WM_MOUSEWHEEL')
@@ -271,7 +286,7 @@ function MEContext:loadTabs()
     Tab.sort(self._tabs)
 
     for _, t in ipairs(self._tabs) do
-            -- Restore active state if the tab survives to reload
+        -- Restore active state if the tab survives to reload
         if activeTab then
             if t.uuid == activeTab.uuid then
                 if t:isStateFull() then -- this may have changed during reload
@@ -281,7 +296,9 @@ function MEContext:loadTabs()
         end
     end
 
-    self._tabs[#self._tabs + 1] = AddTabTab:new(self)
+    self._tabs[#self._tabs+1] = AddTabTab:new(self)
+
+    self.lastTabLoad          = MACCLContext.lastTabSavedAt
 end
 
 function MEContext:tabs(options)
@@ -290,7 +307,18 @@ function MEContext:tabs(options)
     if (not self._tabs) or options.force_reload then
         self:loadTabs()
     end
+
     return self._tabs
+end
+
+function MEContext:findTabByName(name)
+    local tabs = self:tabs()
+    for _, t in ipairs(tabs) do
+        if name == t.params.title then
+            return t
+        end
+    end
+    return nil
 end
 
 function MEContext:getContentWidth()
@@ -380,6 +408,7 @@ end
 
 function MEContext:activeTab()
     local tabs = self._tabs
+
     if not tabs then return end
 
     for _, t in ipairs(tabs) do
@@ -401,7 +430,6 @@ function MEContext:update(is_fresh)
     if self:tabsNeedReload() then
         self:loadTabs()
         shouldRecomposite               = true
-        self.lastTabLoad                = MACCLContext.lastTabSavedAt
         self.pending_take_change        = false
         self.pending_settings_change    = false
     end
@@ -508,7 +536,7 @@ function MEContext:update(is_fresh)
     local shouldRedraw = shouldRecomposite
 
     -- Force a redraw on all those conditions :
-    if mec.has_tab_hover_change or mec.has_pending_redraw or mec.bounds_changed or MACCLContext.force_redraw or  mec:hasPendingMouseEvents() or mec:hasPendingDrawOperations() then
+    if mec.has_modifier_change or mec.has_tab_hover_change or mec.has_pending_redraw or mec.bounds_changed or MACCLContext.force_redraw or  mec:hasPendingMouseEvents() or mec:hasPendingDrawOperations() then
         mec.has_pending_redraw = false
         shouldRedraw = true
     end
@@ -519,28 +547,32 @@ function MEContext:update(is_fresh)
 end
 
 function MEContext:openTabEditorOn(tab)
-    TabEditor.openOnTab(self, tab)
+    TabEditor.openOnTab(tab)
 end
 
 function MEContext:openTabContextMenuOn(tab)
-    TabPopupMenu.openOnTab(self, tab)
+    TabPopupMenu.openOnTab(tab)
 end
 
 function MEContext:onStateFullTabActivation(tab, options)
     options = options or {}
     local tabs = self:tabs({force_reload=options.force_reload})
-    for i, t in ipairs(tabs) do
-        if not (t.uuid == tab.uuid) then
-            if t:isStateFull() and t:isActive() then
-                -- The tab is being quit, snapshot state
-                TabState.SnapShotAll(t)
-                t:save({skip_full_tab_reload=true})
+
+    if tab:isStateFull() then
+        for i, t in ipairs(tabs) do
+            if not (t.uuid == tab.uuid) then
+                if t:isStateFull() and t:isActive() then
+                    -- The tab is being quit, snapshot state
+                    TabState.SnapShotAll(t)
+                    t:save({skip_full_tab_reload=true})
+                end
+                t:setActive(false)
+            else
+                t:setActive(true)
             end
-            t:setActive(false)
-        else
-            t:setActive(true)
         end
     end
+
     self.has_pending_redraw = true
 end
 
@@ -650,6 +682,17 @@ function MEContext.notifySettingsChange()
     for _, mec in pairs(MaccLaneContextLookupPerME) do
         mec:setPendingSettingsChange(true)
     end
+end
+
+function MEContext.summary()
+    local s = ""
+    for addr, mec in pairs(MaccLaneContextLookupPerME) do
+        s = s .. "" .. addr .. " : " .. (mec._tabs and #mec._tabs or "nil") .. "\n"
+        for _, t in ipairs(mec._tabs) do
+            s = s .. t.uuid .. " " .. (t:isActive() and "active" or "inactive") .. "\n"
+        end
+    end
+    return s
 end
 
 return MEContext

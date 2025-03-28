@@ -6,13 +6,18 @@
 -- Thanks @amagalma for this implementation !
 -- https://forum.cockos.com/showthread.php?p=2274097
 local function GetMIDIEditorHBounds(me)
+
     if not me then return end
+
+    local take      = reaper.MIDIEditor_GetTake( me )
+    if not take then return end
+
+    local item      = reaper.GetMediaItemTake_Item( take )
+    if not item then return end
 
     local midiview  = reaper.JS_Window_FindChildByID( me, 0x3E9 )
     local _, width  = reaper.JS_Window_GetClientSize( midiview )
-    local take      = reaper.MIDIEditor_GetTake( me )
     local guid      = reaper.BR_GetMediaItemTakeGUID( take )
-    local item      = reaper.GetMediaItemTake_Item( take )
     local _, chunk  = reaper.GetItemStateChunk( item, "", false )
 
     local guidfound, editviewfound = false, false

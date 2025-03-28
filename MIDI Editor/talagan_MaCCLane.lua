@@ -1,21 +1,16 @@
 --[[
 @description MaCCLane : Tabs for the MIDI Editor
-@version 0.2.0
+@version 0.2.1
 @author Ben 'Talagan' Babut
 @license MIT
 @donation https://www.paypal.com/donate/?business=3YEZMY9D6U8NC&no_recurring=1&currency_code=EUR
 @links
   Forum Thread : https://forum.cockos.com/showthread.php?t=298707
 @changelog
-  - [Major Feature] Current tab / tab state
-  - [Major Feature] Record modes for every module
-  - [Feature] Added "Reveal template folder" in (+) menu
-  - [Feature] Added Return / Escape key handling when editing tab name
-  - [Feature] Added "Return key behaviour when editing tab name" customization
-  - [Feature] Added "New Full Recording Tab" entry to menu
-  - [Feature] Added debug tools
-  - [Bug Fix] Setting ME grid does not work if global grid setting is set to "Measure"
-  - [Bug Fix] MaCCLane crash if tab editor grid module is set to custom and closing midi editor (thanks @Seventh Sam)
+  - [Feature] Tab duplication
+  - [Feature] Quick key modifier operation : Duplicate (with ctrl/cmd)
+  - [Feature] Quick key modifier operation : Delete (with shift)
+  - [Feature] Tab multi export / multi import
 @provides
   [main=main] .
   [nomain] talagan_MaCCLane/classes/**/*.lua
