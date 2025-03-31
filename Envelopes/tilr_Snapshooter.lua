@@ -1,10 +1,7 @@
 -- @description Snapshooter
 -- @author tilr
--- @version 1.4
--- @changelog
---   Fix nasty bug where snapshots tracks were identified by userdata.
---   This caused failure to find the tracks on reaper restart.
---   Fixed by using tracks GUID instead.
+-- @version 1.5
+-- @changelog Add morphing between snapshots A and B
 -- @provides
 --   tilr_Snapshooter/rtk.lua
 --   [main] tilr_Snapshooter/tilr_Snapshooter apply snap 1.lua
@@ -34,6 +31,7 @@
 --     * Writes only changed params by diffing the current state and selected snapshot
 --     * Transition snapshots using tween and ease functions
 --     * Writes transitions into time selection from current state to snapshot
+--     * Morph between two snapshots A and B
 --
 --   Tips:
 --     * Grab time selections and click write to write transitions into timeline
@@ -655,12 +653,95 @@ function tween_params(start, duration, ease_fn)
 end
 
 --------------------------------------------------------------------------------
+--- PATCH MORPHING
+--------------------------------------------------------------------------------
+existsA = false
+existsB = false
+snapA = nil
+snapB = nil
+hashB = {}
+
+function load_morph_snaps()
+  local hasA, snapAStr = reaper.GetProjExtState(0, 'snapshooter', 'snap_morph_A')
+  local hasB, snapBStr = reaper.GetProjExtState(0, 'snapshooter', 'snap_morph_B')
+  existsA = hasA
+  existsB = hasB
+  snapA = existsA and parse(snapAStr) or nil
+  snapB = existsB and parse(snapBStr) or nil
+  hashB = {}
+
+  if existsA and existsB then
+    -- create snapB hashmap
+    for i, line in pairs(snapB) do
+      if #line == 3 then
+        hashB[line[1]..line[2]] = line
+      elseif #line == 4 then -- fx param
+        hashB[line[1]..line[2]..line[3]] = line
+      elseif #line == 7 then -- sends
+        hashB[line[1]..line[2]..line[3]..line[4]] = line
+      end
+    end
+  end
+end
+
+load_morph_snaps()
+
+function morph_snaps_AB(value)
+  if existsA and existsB then
+    local snapAB = {}
+    for i, lineA in pairs(snapA) do
+      local id = ''
+      if #lineA == 3 then id = lineA[1]..lineA[2] -- volpanmute
+        elseif #lineA == 4 then id = lineA[1]..lineA[2]..lineA[3] -- params
+        elseif #lineA == 7 then id = lineA[1]..lineA[2]..lineA[3]..lineA[4] -- sends
+      end
+      local lineB = hashB[id]
+      if lineB then
+        local newline = {}
+        for key, value in pairs(lineA) do
+            newline[key] = value
+        end
+        if #lineA == 3 and lineA[3] ~= lineB[3] then
+          newline[3] = lineA[3] + (lineB[3] - lineA[3]) * value -- interpolate value
+          table.insert(snapAB, newline)
+        elseif #lineA == 4 and lineA[4] ~= lineB[4] then
+          newline[4] = lineA[4] + (lineB[4] - lineA[4]) * value
+          table.insert(snapAB, newline)
+        elseif #lineA == 7 and (lineA[5] ~= lineB[5] or lineA[6] ~= lineB[6] or lineA[7] ~= lineB[7]) then
+          if lineA[5] == lineB[5] then newline[5] = 'unchanged' else newline[5] = lineA[5] + (lineB[5] - lineA[5]) * value end
+          if lineA[6] == lineB[6] then newline[6] = 'unchanged' else newline[6] = lineA[6] + (lineB[6] - lineA[6]) * value end
+          if lineA[7] == lineB[7] then newline[7] = 'unchanged' else newline[7] = lineA[7] + (lineB[7] - lineA[7]) * value end
+          table.insert(snapAB, newline)
+        end
+      end
+    end
+
+    local seltracks = {}
+    for i = 0, reaper.CountSelectedTracks(0) do
+      table.insert(seltracks, reaper.GetSelectedTrack(0, i))
+    end
+
+    reaper.Undo_BeginBlock()
+    reaper.PreventUIRefresh(1)
+    applydiff(snapAB, false, false)
+    reaper.Main_OnCommand(40297, 0) -- Track: Unselect (clear selection of) all tracks
+    for i, track in ipairs(seltracks) do
+      reaper.SetTrackSelected(track, true) -- restore selected tracks
+    end
+    reaper.PreventUIRefresh(-1)
+    reaper.Undo_EndBlock('snapshot morph', 0)
+  end
+end
+
+--------------------------------------------------------------------------------
 -- UI
 --------------------------------------------------------------------------------
 
 ui_nsnaps = 12
 ui_snaprows = {}
 ui_page_text = nil
+ui_morphA = nil
+ui_morphB = nil
 
 function ui_refresh_buttons()
   for i, row in ipairs(ui_snaprows) do
@@ -681,6 +762,11 @@ function ui_refresh_buttons()
 
     ui_page_text:attr('text', 'Page '..string.format("%02d", globals.ui_page_index))
   end
+
+  hassnapA = reaper.GetProjExtState(0, 'snapshooter', 'snap_morph_A') ~= 0
+  hassnapB = reaper.GetProjExtState(0, 'snapshooter', 'snap_morph_B') ~= 0
+  ui_morphA:attr('color', hassnapA and 0x99BD13 or 0x999999)
+  ui_morphB:attr('color', hassnapB and 0x99BD13 or 0x999999)
 end
 
 function set_page(i)
@@ -693,7 +779,7 @@ function ui_start()
   local sep = package.config:sub(1, 1)
   local script_folder = debug.getinfo(1).source:match("@?(.*[\\|/])")
   local rtk = dofile(script_folder .. 'tilr_Snapshooter' .. sep .. 'rtk.lua')
-  local window = rtk.Window{ w=470, h=553, title='Snapshooter'}
+  local window = rtk.Window{ w=470, h=618, title='Snapshooter'}
   window.onmove = function (self)
     reaper.SetProjExtState(0, 'snapshooter', 'win_x', self.x)
     reaper.SetProjExtState(0, 'snapshooter', 'win_y', self.y)
@@ -923,6 +1009,43 @@ function ui_start()
     duration_entry:attr('visible', self.selected == 'custom')
   end
   tween_menu:select(globals.tween)
+
+  -- Snap morphing controls
+  row = box:add(rtk.HBox{tmargin=10})
+  row:add(rtk.Text{'Snap morphing', color=0x777777})
+  row:add(rtk.Box.FLEXSPACE)
+  local button = row:add(rtk.Button{'Clear', bmargin=-50, tmargin=-5, flat=true, textcolor2='#999999'})
+  button.onclick = function ()
+    reaper.SetProjExtState(0, 'snapshooter', 'snap_morph_A', '')
+    reaper.SetProjExtState(0, 'snapshooter', 'snap_morph_B', '')
+    load_morph_snaps()
+    ui_refresh_buttons()
+  end
+
+  row = box:add(rtk.HBox{tmargin=10})
+  ui_morphA = row:add(rtk.Button{circular=true})
+  row:add(rtk.Text{'A', lmargin=-14, rmargin=14})
+  ui_morph_slider = row:add(rtk.Slider{tmargin=4, lmargin=10, rmargin=15})
+  ui_morphB = row:add(rtk.Button{circular=true})
+  row:add(rtk.Text{'B', lmargin=-14, rmargin=14})
+
+  ui_morphA.onclick = function (self)
+    local snap = makesnap()
+    reaper.SetProjExtState(0, 'snapshooter', 'snap_morph_A', stringify(snap))
+    load_morph_snaps()
+    ui_refresh_buttons()
+  end
+
+  ui_morphB.onclick = function (self)
+    local snap = makesnap()
+    reaper.SetProjExtState(0, 'snapshooter', 'snap_morph_B', stringify(snap))
+    load_morph_snaps()
+    ui_refresh_buttons()
+  end
+
+  ui_morph_slider.onchange = function (self)
+    morph_snaps_AB(self.value / 100)
+  end
 
   ui_refresh_buttons()
 end
