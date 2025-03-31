@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="5b475f449b50bb1fd75f06ed49552f787646cdae" name="ReaTeam Scripts">
+<index version="1" commit="086bdac48f23dcdc36c2a28b342c03c6507550bc" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -3067,11 +3067,11 @@ added support for all track envelopes]]></changelog>
     </reapack>
     <reapack name="tilr_Snapshooter.lua" type="script" desc="Snapshooter">
       <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Snapshooter\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel0 \b \fs36 Snapshooter\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 https://github.com/tiagolr/reaper_scripts\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Snapshooter allows to create param snapshots and recall or write them to the playlist creating patch morphs. Different from SWS snapshots, only the params changed are written to the playlist as automation points.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Features:\par}
@@ -3079,7 +3079,8 @@ added support for all track envelopes]]></changelog>
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Stores and retrieves mixer states for track Volume, Pan, Mute and Sends\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Writes only changed params by diffing the current state and selected snapshot\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Transition snapshots using tween and ease functions\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Writes transitions into time selection from current state to snapshot\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Writes transitions into time selection from current state to snapshot\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Morph between two snapshots A and B\sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Tips:\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Grab time selections and click write to write transitions into timeline\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Set global automation to READ to write snapshot from current state\par}
@@ -3182,6 +3183,23 @@ Fixed by using tracks GUID instead.]]></changelog>
         <source main="main" file="tilr_Snapshooter/tilr_Snapshooter write snap 2.lua">https://github.com/ReaTeam/ReaScripts/raw/cfb453fa5de6332b7ad52495cfd51314782c00bb/Envelopes/tilr_Snapshooter/tilr_Snapshooter%20write%20snap%202.lua</source>
         <source main="main" file="tilr_Snapshooter/tilr_Snapshooter write snap 3.lua">https://github.com/ReaTeam/ReaScripts/raw/cfb453fa5de6332b7ad52495cfd51314782c00bb/Envelopes/tilr_Snapshooter/tilr_Snapshooter%20write%20snap%203.lua</source>
         <source main="main" file="tilr_Snapshooter/tilr_Snapshooter write snap 4.lua">https://github.com/ReaTeam/ReaScripts/raw/cfb453fa5de6332b7ad52495cfd51314782c00bb/Envelopes/tilr_Snapshooter/tilr_Snapshooter%20write%20snap%204.lua</source>
+      </version>
+      <version name="1.5" author="tilr" time="2025-03-31T19:12:06Z">
+        <changelog><![CDATA[Add morphing between snapshots A and B]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/086bdac48f23dcdc36c2a28b342c03c6507550bc/Envelopes/tilr_Snapshooter.lua</source>
+        <source file="tilr_Snapshooter/rtk.lua">https://github.com/ReaTeam/ReaScripts/raw/086bdac48f23dcdc36c2a28b342c03c6507550bc/Envelopes/tilr_Snapshooter/rtk.lua</source>
+        <source main="main" file="tilr_Snapshooter/tilr_Snapshooter apply snap 1.lua">https://github.com/ReaTeam/ReaScripts/raw/086bdac48f23dcdc36c2a28b342c03c6507550bc/Envelopes/tilr_Snapshooter/tilr_Snapshooter%20apply%20snap%201.lua</source>
+        <source main="main" file="tilr_Snapshooter/tilr_Snapshooter apply snap 2.lua">https://github.com/ReaTeam/ReaScripts/raw/086bdac48f23dcdc36c2a28b342c03c6507550bc/Envelopes/tilr_Snapshooter/tilr_Snapshooter%20apply%20snap%202.lua</source>
+        <source main="main" file="tilr_Snapshooter/tilr_Snapshooter apply snap 3.lua">https://github.com/ReaTeam/ReaScripts/raw/086bdac48f23dcdc36c2a28b342c03c6507550bc/Envelopes/tilr_Snapshooter/tilr_Snapshooter%20apply%20snap%203.lua</source>
+        <source main="main" file="tilr_Snapshooter/tilr_Snapshooter apply snap 4.lua">https://github.com/ReaTeam/ReaScripts/raw/086bdac48f23dcdc36c2a28b342c03c6507550bc/Envelopes/tilr_Snapshooter/tilr_Snapshooter%20apply%20snap%204.lua</source>
+        <source main="main" file="tilr_Snapshooter/tilr_Snapshooter save snap 1.lua">https://github.com/ReaTeam/ReaScripts/raw/086bdac48f23dcdc36c2a28b342c03c6507550bc/Envelopes/tilr_Snapshooter/tilr_Snapshooter%20save%20snap%201.lua</source>
+        <source main="main" file="tilr_Snapshooter/tilr_Snapshooter save snap 2.lua">https://github.com/ReaTeam/ReaScripts/raw/086bdac48f23dcdc36c2a28b342c03c6507550bc/Envelopes/tilr_Snapshooter/tilr_Snapshooter%20save%20snap%202.lua</source>
+        <source main="main" file="tilr_Snapshooter/tilr_Snapshooter save snap 3.lua">https://github.com/ReaTeam/ReaScripts/raw/086bdac48f23dcdc36c2a28b342c03c6507550bc/Envelopes/tilr_Snapshooter/tilr_Snapshooter%20save%20snap%203.lua</source>
+        <source main="main" file="tilr_Snapshooter/tilr_Snapshooter save snap 4.lua">https://github.com/ReaTeam/ReaScripts/raw/086bdac48f23dcdc36c2a28b342c03c6507550bc/Envelopes/tilr_Snapshooter/tilr_Snapshooter%20save%20snap%204.lua</source>
+        <source main="main" file="tilr_Snapshooter/tilr_Snapshooter write snap 1.lua">https://github.com/ReaTeam/ReaScripts/raw/086bdac48f23dcdc36c2a28b342c03c6507550bc/Envelopes/tilr_Snapshooter/tilr_Snapshooter%20write%20snap%201.lua</source>
+        <source main="main" file="tilr_Snapshooter/tilr_Snapshooter write snap 2.lua">https://github.com/ReaTeam/ReaScripts/raw/086bdac48f23dcdc36c2a28b342c03c6507550bc/Envelopes/tilr_Snapshooter/tilr_Snapshooter%20write%20snap%202.lua</source>
+        <source main="main" file="tilr_Snapshooter/tilr_Snapshooter write snap 3.lua">https://github.com/ReaTeam/ReaScripts/raw/086bdac48f23dcdc36c2a28b342c03c6507550bc/Envelopes/tilr_Snapshooter/tilr_Snapshooter%20write%20snap%203.lua</source>
+        <source main="main" file="tilr_Snapshooter/tilr_Snapshooter write snap 4.lua">https://github.com/ReaTeam/ReaScripts/raw/086bdac48f23dcdc36c2a28b342c03c6507550bc/Envelopes/tilr_Snapshooter/tilr_Snapshooter%20write%20snap%204.lua</source>
       </version>
     </reapack>
   </category>
