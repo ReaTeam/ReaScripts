@@ -144,6 +144,9 @@ local function ReadTimeWindowPositioning(tab, is_state)
     if not mec.take then return end
 
     local start_time, end_time, zoom = TIMELINE.GetBounds(mec.me)
+
+    if not start_time then return end
+
     local duration = end_time - start_time
 
     _SanitizeTimeWindow(params)
@@ -166,6 +169,9 @@ local function ReadTimeWindowSizing(tab, is_state)
     if not mec.take then return end
 
     local start_time, end_time, zoom = TIMELINE.GetBounds(mec.me)
+
+    if not start_time then return end
+
     local duration = end_time - start_time
 
     _SanitizeTimeWindow(params)

@@ -40,6 +40,14 @@ function AddTabTab:callableByAction()
     return false
 end
 
+function AddTabTab:deletable()
+    return false
+end
+
+function AddTabTab:exportable()
+    return false
+end
+
 function AddTabTab:onLeftClick(mec, click_params)
     mec:openEditorForNewTab(self)
 end

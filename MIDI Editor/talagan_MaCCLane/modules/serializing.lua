@@ -117,46 +117,86 @@ Serializing.loadTabTemplate = function(templatePath)
     return ret
 end
 
-function Serializing.serializeTabForTemplate(tab)
-    return JSON.encode({
+function Serializing.tabToSer(tab)
+    return {
         owner_type = tab.owner_type,
         params     = tab.params
+    }
+end
+
+function Serializing.serializeTabForTemplate(tab)
+    return JSON.encode({
+        version     = "1",
+        tabs        = { Serializing.tabToSer(tab) }
+    })
+end
+
+function Serializing.serializeTabsForTemplate(tabs)
+    local to_exp = {}
+
+    for _, t in ipairs(tabs) do
+        to_exp[#to_exp+1] = Serializing.tabToSer(t)
+    end
+
+    return JSON.encode({
+        version     = "1",
+        tabs        = to_exp
     })
 end
 
 
-function Serializing.createTabFromTemplate(mec, templatePath)
-    local json        = Serializing.loadTabTemplate(templatePath)
+function Serializing.createTabsFromTemplate(mec, templatePath)
+    local json = Serializing.loadTabTemplate(templatePath)
 
-    if not json or not json.params then
+    local valid = true
+    if not json then
+        valid = false
+    else
+        if json.params then
+            -- Old version with one tab
+            json = { version = "0", tabs = { json } }
+        end
+
+        if not json.version or (json.version ~= "0" and json.version ~= "1") or not json.tabs then
+            valid = false
+        end
+    end
+
+    if not valid then
         reaper.MB("Failed to load template. Wrong format ?", "Oops.", 0)
         return nil
     end
 
-    -- Set owner dependning on the clue saved in the template
-    local owner = nil
-    local take  = reaper.MIDIEditor_GetTake(mec.me)
-    local item  = nil
-    local track = nil
+    local tabs        = {}
 
-    if take then
-        track = reaper.GetMediaItemTake_Track(take)
-        item  = reaper.GetMediaItemTake_Item(take)
+    for _, tjson in ipairs(json.tabs) do
+        -- Set owner dependning on the clue saved in the template
+        local owner = nil
+        local take  = reaper.MIDIEditor_GetTake(mec.me)
+        local item  = nil
+        local track = nil
+
+        if take then
+            track = reaper.GetMediaItemTake_Track(take)
+            item  = reaper.GetMediaItemTake_Item(take)
+        end
+
+        if (tjson.owner_type) == nil or (tjson.owner_type == Tab.Types.PROJECT) then
+            owner = nil
+        elseif tjson.owner_type == Tab.Types.GLOBAL then
+            owner = GlobalScopeRepo.instance()
+        elseif tjson.owner_type == Tab.Types.TRACK then
+            owner = track
+        elseif tjson.owner_type == Tab.Types.ITEM then
+            owner = item
+        end
+
+        local tab = Tab:new(mec, owner, tjson.params, nil)
+
+        tabs[#tabs+1] = tab
     end
 
-    if (json.owner_type) == nil or (json.owner_type == Tab.Types.PROJECT) then
-        owner = nil
-    elseif json.owner_type == Tab.Types.GLOBAL then
-        owner = GlobalScopeRepo.instance()
-    elseif json.owner_type == Tab.Types.TRACK then
-        owner = track
-    elseif json.owner_type == Tab.Types.ITEM then
-        owner = item
-    end
-
-    local tab = Tab:new(mec, owner, json.params, nil)
-
-    return tab
+    return tabs
 end
 
 return Serializing

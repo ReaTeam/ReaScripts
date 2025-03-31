@@ -8,6 +8,7 @@ local FILE                   = require "modules/file"
 
 local Tab                    = require "classes/tab"
 local SettingsWindow         = require "classes/settings_window"
+local MultiExportWindow      = require "classes/multi_export_window"
 local GlobalScopeRepo        = require "classes/global_scope_repo"
 
 local S                      = require "modules/settings"
@@ -22,15 +23,13 @@ local TabPopupMenu = {}
 TabPopupMenu.clear = function()
     TabPopupMenu.current_tab    = nil
     TabPopupMenu.last_open_tab  = nil
-    TabPopupMenu.mec            = nil
 end
 
-TabPopupMenu.openOnTab = function(mec, tab)
+TabPopupMenu.openOnTab = function(tab)
     if TabPopupMenu.recently_closed_tab == tab or TabPopupMenu.current_tab == tab then
         -- Avoid reopening menu that was recently closed or that is currently open
         TabPopupMenu.clear()
     else
-        TabPopupMenu.mec            = mec
         TabPopupMenu.current_tab    = tab
     end
 end
@@ -41,9 +40,21 @@ TabPopupMenu.needsImGuiContext = function()
     return has_current_tab
 end
 
+TabPopupMenu.LoadTemplate = function(mec, ref_tab, path)
+    local newtabs = Serializing.createTabsFromTemplate(mec, path)
+    if not newtabs then
+        return
+    end
+    for _, newtab in ipairs(newtabs) do
+        newtab.last_draw_global_x   = ref_tab.last_draw_global_x
+        newtab.last_draw_global_y   = ref_tab.last_draw_global_y
+        newtab:save()
+    end
+end
+
 TabPopupMenu.hiearchySubMenu = function(ctx, node)
     local tab = TabPopupMenu.current_tab
-    local mec = TabPopupMenu.mec
+    local mec = tab.mec
 
     for _, sub in pairs(node.subs) do
         if sub.fweight > 0 then
@@ -56,13 +67,7 @@ TabPopupMenu.hiearchySubMenu = function(ctx, node)
 
     for _, file in pairs(node.files) do
         if ImGui.MenuItem(ctx, file.name) then
-            local newtab = Serializing.createTabFromTemplate(mec, file.full_path)
-            if not newtab then
-                return
-            end
-            newtab.last_draw_global_x   = tab.last_draw_global_x
-            newtab.last_draw_global_y   = tab.last_draw_global_y
-            newtab:save()
+            TabPopupMenu.LoadTemplate(mec, tab, file.full_path)
         end
     end
 end
@@ -78,11 +83,12 @@ TabPopupMenu.process = function()
 
     local ctx = MACCLContext.ImGuiContext
     local tab = TabPopupMenu.current_tab
-    local mec = TabPopupMenu.mec
 
     -- If no context, cannot show menu
     if not ctx then return end
     if not tab then return end
+
+    local mec = tab.mec
     if not mec then return end
 
     if not mec:isStillValid() then
@@ -112,12 +118,26 @@ TabPopupMenu.process = function()
 
             ImGui.Separator(ctx)
 
+            if ImGui.MenuItem(ctx, "Import ...") then
+                local spath = reaper.GetResourcePath() .. "/Data/MaCCLane/"
+                local res, fname = reaper.JS_Dialog_BrowseForOpenFiles("Import ...", spath, "", "*.mcc", false)
+                if res == 1 then
+                    TabPopupMenu.LoadTemplate(mec, tab, fname)
+                end
+            end
+
+            if ImGui.MenuItem(ctx, "Export ...") then
+                MultiExportWindow.open(mec)
+            end
+
+            ImGui.Separator(ctx)
+
             ImGui.MenuItem(ctx, "Templates", nil, false, false)
 
             TabPopupMenu.hiearchySubMenu(ctx, TabPopupMenu.template_hierarchy)
 
             ImGui.Separator(ctx)
-            if ImGui.MenuItem(ctx, "Open template folder") then
+            if ImGui.MenuItem(ctx, "Reveal template folder") then
                 local spath = reaper.GetResourcePath() .. "/Data/MaCCLane/"
                 reaper.CF_ShellExecute(spath)
             end
@@ -144,12 +164,10 @@ TabPopupMenu.process = function()
                 newtab:save()
             end
             ImGui.Separator(ctx)
-            if ImGui.MenuItem(ctx, "New Full Recording Tab...") then
+            if ImGui.MenuItem(ctx, "New Recording Tab ...") then
                 mec:openEditorForNewTab(tab, {full_record=true})
             end
-
-            ImGui.Separator(ctx)
-            if ImGui.MenuItem(ctx, "New Tab...") then
+            if ImGui.MenuItem(ctx, "New Bypass Tab ...") then
                 mec:openEditorForNewTab(tab)
             end
         else
@@ -217,6 +235,9 @@ TabPopupMenu.process = function()
             if ImGui.MenuItem(ctx, "Cut") then
                 TabPopupMenu.copiedTab = tab
                 tab:destroy()
+            end
+            if ImGui.MenuItem(ctx, "Duplicate") then
+                tab:duplicate()
             end
 
             if S.getSetting("DebugTools") then

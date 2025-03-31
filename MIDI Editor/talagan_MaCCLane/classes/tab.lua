@@ -11,6 +11,8 @@ local MACCLContext    = require "modules/context"
 
 local TabState        = require "modules/tab_state"
 
+local MOD             = require "modules/modifiers"
+
 local Tab = {}
 Tab.__index = Tab
 
@@ -37,7 +39,8 @@ function Tab:_initialize(mec, owner, params, state)
     self:setOwner(owner)
 
     -- Ensure that we don't go gardening into someone else's territory
-    params = UTILS.deepcopy(params)
+    params              = UTILS.deepcopy(params)
+    state               = UTILS.deepcopy(state)
 
     self.new_record     = true
     self.uuid           = UTILS.drawUUID()
@@ -47,6 +50,18 @@ function Tab:_initialize(mec, owner, params, state)
     self:_sanitize()
 
     self:undirty()
+end
+
+function Tab:clone(keep_uuid)
+    local t = Tab:new(self.mec, self.owner, self.params, self.state)
+
+    t.last_draw_global_x = self.last_draw_global_x
+    t.last_draw_global_y = self.last_draw_global_y
+
+    if keep_uuid then
+        t.uuid = self.uuid
+    end
+    return t
 end
 
 -- Make sure a tab is initialized correctly
@@ -91,6 +106,14 @@ function Tab:UUID()
 end
 
 function Tab:callableByAction()
+    return true
+end
+
+function Tab:deletable()
+    return true
+end
+
+function Tab:exportable()
     return true
 end
 
@@ -229,6 +252,30 @@ function Tab:destroy()
     self:afterSave()
 
     return { success=true, errors={} }
+end
+
+function Tab:duplicate()
+    local tab = self
+    local newtab    = Tab:new(tab.mec, tab.owner, tab.params, tab.state)
+    local name      = newtab.params.title
+
+    local s,f = name:match("(.*)(%d+)$")
+    if not s then
+        s = name .. " "
+        f = 1
+    else
+        f = tonumber(f)
+    end
+    while true do
+        f = f + 1
+        local t = tab.mec:findTabByName(s .. f)
+        if not t then break end
+    end
+
+    newtab.params.title         = s .. f
+    newtab.last_draw_global_x   = tab.last_draw_global_x
+    newtab.last_draw_global_y   = tab.last_draw_global_y
+    newtab:save()
 end
 
 function Tab:textWidth()
@@ -487,6 +534,20 @@ function Tab:draw(mec, x)
     -- It looks like rawtext needs a bit more latitude than what is given ... empiric values for w/h
     reaper.JS_LICE_DrawText(mec.bitmap, font, text, tlen , tx, ty, tx+tw+5, ty+th*2)
 
+
+    local is_duplicate_candidate    = (is_hovering and self:deletable() and MOD.WinControlMacCmdIsDown())
+    local is_delete_candidate       = (is_hovering and self:deletable() and MOD.ShiftIsDown())
+
+    if is_delete_candidate then
+        self:drawRect(0xFF000000 | 0xFF0000, self.last_x, self.last_y, fullw, fullh)
+        self:drawRect(0xFF000000 | 0xFF0000, self.last_x+1, self.last_y+1, fullw-2, fullh-2)
+        self:drawRect(0xFF000000 | 0x000000, self.last_x+2, self.last_y+2, fullw-4, fullh-4)
+    elseif is_duplicate_candidate then
+        self:drawRect(0xFF000000 | 0x00FF00, self.last_x, self.last_y, fullw, fullh)
+        self:drawRect(0xFF000000 | 0x00FF00, self.last_x+1, self.last_y+1, fullw-2, fullh-2)
+        self:drawRect(0xFF000000 | 0x000000, self.last_x+2, self.last_y+2, fullw-4, fullh-4)
+    end
+
     if self.highlight_until and self.highlight_until < reaper.time_precise() then
         self.highlight_until = nil
     end
@@ -495,7 +556,7 @@ function Tab:draw(mec, x)
     local pc = mec.pending_left_click
     if pc and self:pointIntab(mec.pending_left_click.x, mec.pending_left_click.y) then
         pc.handled = true
-        self:onLeftClick(mec)
+        self:onLeftClick(mec, {delete=is_delete_candidate, duplicate=is_duplicate_candidate})
     end
 
     -- Handle right click
@@ -563,17 +624,23 @@ function Tab:onLeftClick(mec, click_params)
     -- Don't remember why the next line ??
     if not mec.item then return end
 
-    if self:isStateFull() then
-        mec:onStateFullTabActivation(self)
-    end
+    if click_params.delete then
+        self:destroy()
+    elseif click_params.duplicate then
+        self:duplicate()
+    else
+        if self:isStateFull() then
+            mec:onStateFullTabActivation(self)
+        end
 
-    local b, err = pcall(Tab._protectedLeftClick, self, mec, click_params)
-    if not b then
-        -- Unfortunately, pcall is not sufficient if the crash happens inside Main_OnCommand
-        -- The problem is that subssequent calls to reaper.defer will fail, so afterwards
-        -- MaCCLane will quit silently and I don't have a solution yet
-        reaper.MB("Something nasty happend with this tab. Please check the console for more info", "Ouch !", 0)
-        reaper.ShowConsoleMsg(err .. '\n\nTrace :\n\n' .. debug.traceback())
+        local b, err = pcall(Tab._protectedLeftClick, self, mec, click_params)
+        if not b then
+            -- Unfortunately, pcall is not sufficient if the crash happens inside Main_OnCommand
+            -- The problem is that subssequent calls to reaper.defer will fail, so afterwards
+            -- MaCCLane will quit silently and I don't have a solution yet
+            reaper.MB("Something nasty happend with this tab. Please check the console for more info", "Ouch !", 0)
+            reaper.ShowConsoleMsg(err .. '\n\nTrace :\n\n' .. debug.traceback())
+        end
     end
 end
 
@@ -620,12 +687,20 @@ function Tab.ownerTypePriority(type)
     end
 end
 
+function Tab.alphabeticalCompare(t1, t2)
+    -- Alphabetically
+    local n1 = t1.params.title:lower()
+    local n2 = t2.params.title:lower()
+    if n1 == n2 then return t1.uuid < t2.uuid end
+    return n1 < n2
+end
+
 function Tab.sort_pti_prio(tabs)
     return table.sort(tabs, function(t1, t2)
         if t1.owner_type == t2.owner_type then
             if t1.params.priority == t2.params.priority then
                 -- Alphabetically
-                return t1.params.title:lower() < t2.params.title:lower()
+                return Tab.alphabeticalCompare(t1, t2)
             else
                 -- Priority
                 return t1.params.priority < t2.params.priority
@@ -641,9 +716,11 @@ function Tab.sort_pti_alpha(tabs)
     return table.sort(tabs, function(t1, t2)
         if t1.owner_type == t2.owner_type then
             if t1.params.title:lower() == t2.params.title:lower() then
+                -- Priority
                 return t1.params.priority < t2.params.priority
             else
-                return t1.params.title:lower() < t2.params.title:lower()
+                -- Alphabetically
+                return Tab.alphabeticalCompare(t1, t2)
             end
         else
             -- Tab type
@@ -656,7 +733,7 @@ function Tab.sort_mixed_prio(tabs)
     return table.sort(tabs, function(t1, t2)
         if t1.params.priority == t2.params.priority then
             -- Alphabetically
-            return t1.params.title:lower() < t2.params.title:lower()
+            return Tab.alphabeticalCompare(t1, t2)
         else
             -- Priority
             return t1.params.priority < t2.params.priority
@@ -671,7 +748,7 @@ function Tab.sort_mixed_alpha(tabs)
             return t1.params.priority < t2.params.priority
         else
             -- Alphabetically
-            return t1.params.title:lower() < t2.params.title:lower()
+            return Tab.alphabeticalCompare(t1, t2)
         end
     end)
 end
