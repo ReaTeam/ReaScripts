@@ -1,17 +1,17 @@
 --[[
 @description MaCCLane : Tabs for the MIDI Editor
-@version 0.2.2
+@version 0.2.3
 @author Ben 'Talagan' Babut
 @license MIT
 @donation https://www.paypal.com/donate/?business=3YEZMY9D6U8NC&no_recurring=1&currency_code=EUR
 @links
   Forum Thread : https://forum.cockos.com/showthread.php?t=298707
 @changelog
-  - [UX] Changed delete modifier to alt (windows) or option (macos) (thanks, Seventh Sam)
-  - [UX] Reduce flickering under windows
-  - [UX] Always give back focus to the ME after tab execution
-  - [Bug Fix] Time window size was not working if time position module was not enabled (thanks, Seventh Sam)
-  - [Bug Fix] Copy/Paste in global scope would crash MaCCLane (thanks, Seventh Sam)
+  - [Feature] Added "Quick-Fill" buttons (Bypass, Record, Snapshot)
+  - [Feature] Added Read buttons for time pos/window
+  - [UX] Still improving flickering under windows (double buffering)
+  - [Bug Fix] ME's piano roll child window was not correctly focused after tab execution
+  - [Bug Fix] Differentiation new tabs / old tabs was broken in editor
 @provides
   [main=main] .
   [nomain] talagan_MaCCLane/classes/**/*.lua

@@ -33,6 +33,25 @@ function MEContext:new(me)
     return instance
 end
 
+function MEContext:createBitmap(w,h)
+    self.bitmap        = reaper.JS_LICE_CreateBitmap(true, w, h)
+    self.db_bitmap     = reaper.JS_LICE_CreateBitmap(true, w, h)
+end
+
+function MEContext:resizeBitmap(w,h)
+    if not self.bitmap then return end
+
+    reaper.JS_LICE_Resize(self.bitmap, w, h)
+    reaper.JS_LICE_Resize(self.db_bitmap, w, h)
+end
+
+function MEContext:destroyBitmap()
+    if not self.bitmap then return end
+
+    reaper.JS_LICE_DestroyBitmap(self.bitmap)
+    reaper.JS_LICE_DestroyBitmap(self.db_bitmap)
+end
+
 function MEContext:_initialize(me)
     local address     = reaper.JS_Window_AddressFromHandle(me)
     local mec         = self
@@ -51,7 +70,7 @@ function MEContext:_initialize(me)
     mec.cbr           = reaper.JS_Window_FindChildByID(me, 1007)
 
     -- Use a width of 1. The bitmap will be resized before being used
-    mec.bitmap        = reaper.JS_LICE_CreateBitmap(true, 1, MACCLContext.TABBAR_HEIGHT)
+    self:createBitmap(1, MACCLContext.TABBAR_HEIGHT)
 
     mec.mouse_x = -1
     mec.mouse_y = -1
@@ -355,7 +374,6 @@ function MEContext:redraw()
     local w = reaper.JS_LICE_GetWidth(mec.bitmap)
     local h = reaper.JS_LICE_GetHeight(mec.bitmap)
 
-
     -- Cleanup full BG
     reaper.JS_LICE_FillRect(mec.bitmap, 0, 0, w, h, self.bgcol, 1, "COPY")
 
@@ -375,6 +393,9 @@ function MEContext:redraw()
 
     -- Insert MAGIC Pixel
     reaper.JS_LICE_PutPixel(mec.bitmap, w-1, 0, MACCLContext.MACCLANE_MAGIC_PIXEL, 1, "COPY")
+
+    -- Double buffering
+    reaper.JS_LICE_Blit(mec.db_bitmap, 0, 0, mec.bitmap, 0, 0, reaper.JS_LICE_GetWidth(mec.db_bitmap), reaper.JS_LICE_GetHeight(mec.db_bitmap), 1, "COPY")
 
     -- Invalidate the viewport zone
     reaper.JS_Window_InvalidateRect(me, mec.xpos, mec.ypos, mec.xpos + mec.w, mec.ypos + mec.h, true)
@@ -482,7 +503,7 @@ function MEContext:update(is_fresh)
     -- Check that our bitmap size is correct, if not resize
     local bmw = reaper.JS_LICE_GetWidth(mec.bitmap)
     if not (wanted_bmw == bmw) then
-        reaper.JS_LICE_Resize(mec.bitmap, wanted_bmw, wantedh)
+        self:resizeBitmap(wanted_bmw, wantedh)
         shouldRecomposite = true
     end
 
@@ -538,7 +559,7 @@ function MEContext:update(is_fresh)
         mec.last_redraw_me_view_mode = me_view_mode
 
         -- Composite our bitmap with our viewport. Handle scroll offset.
-        reaper.JS_Composite(me, mec.xpos, mec.ypos, mec.w, mec.h, mec.bitmap, mec.scrollOffset, 0, wantedw, wantedh, true)
+        reaper.JS_Composite(me, mec.xpos, mec.ypos, mec.w, mec.h, mec.db_bitmap, mec.scrollOffset, 0, wantedw, wantedh, true)
     end
 
     local shouldRedraw = shouldRecomposite
@@ -631,9 +652,10 @@ function MEContext:openEditorForNewTab(plus_tab, options)
     self:openTabEditorOn(newtab)
 end
 
+
 -- Call this in atexit to do some cleanup on the associated midi editor
 function MEContext:implode()
-    reaper.JS_LICE_DestroyBitmap(self.bitmap)
+    self:destroyBitmap()
 
     -- stop blocking messages because we won't be here to repost !
     -- We don't want to use

@@ -363,6 +363,67 @@ local function SetFullRecord(tab)
     p.cc_lanes.mode                     = 'record'
 end
 
+local function SetFullBypass(tab)
+    local p = tab.params
+
+    p.force_record_flag                 = 0
+
+    p.docking.mode                      = 'bypass'
+    p.docking.if_docked.mode            = 'bypass'
+    p.docking.if_windowed.mode          = 'bypass'
+
+    p.time_window.positioning.mode      = 'bypass'
+    p.time_window.sizing.mode           = 'bypass'
+
+    p.grid.mode                         = 'bypass'
+    p.coloring.mode                     = 'bypass'
+
+    p.midi_chans.current                = 'bypass'
+    p.midi_chans.mode                   = 'bypass'
+
+    p.piano_roll.mode                   = 'bypass'
+
+    p.cc_lanes.mode                     = 'bypass'
+end
+
+local function SetFullCustom(tab)
+    local p = tab.params
+
+    p.force_record_flag                 = 0
+
+    p.docking.mode                      = 'custom'
+    p.docking.if_docked.mode            = 'custom'
+    p.docking.if_windowed.mode          = 'custom'
+
+    p.time_window.positioning.mode      = 'custom'
+    p.time_window.sizing.mode           = 'custom'
+
+    p.grid.mode                         = 'custom'
+    p.coloring.mode                     = 'custom'
+
+    p.midi_chans.current                = 'custom'
+    p.midi_chans.mode                   = 'custom'
+
+    p.piano_roll.mode                   = 'custom'
+
+    p.cc_lanes.mode                     = 'custom'
+
+    local vellanes = ReadVellanes(tab)
+    PatchVellaneEntries(tab.params.cc_lanes.entries, vellanes.entries, 'replace')
+
+    ReadDockingMode(tab, false)
+    ReadTimeWindowPositioning(tab, false)
+    ReadTimeWindowSizing(tab, false)
+    ReadDockHeight(tab,false)
+    ReadWindowBounds(tab,false)
+    ReadCurrentPianoRollHighNote(tab, false)
+    ReadCurrentPianoRollLowNote(tab, false)
+    ReadCurrentMidiChan(tab, false)
+    ReadMidiChans(tab, false)
+    ReadGrid(tab, false)
+    ReadColoring(tab, false)
+end
+
 ----------------------------
 
 -- State saving
@@ -784,6 +845,8 @@ return {
     ReadTimeWindowSizing            = ReadTimeWindowSizing,
 
     SetFullRecord                   = SetFullRecord,
+    SetFullBypass                   = SetFullBypass,
+    SetFullCustom                   = SetFullCustom,
 
     SnapShotAll                     = SnapShotAll,
     SnapShotGrid                    = SnapShotGrid,
