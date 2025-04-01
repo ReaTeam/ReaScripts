@@ -94,12 +94,29 @@ end
 local function PopRecordStyleSelectable(ctx)
     ImGui.PopStyleColor(ctx, 1)
 end
-
+local function PushRecordStyleButton(ctx)
+    ImGui.PushStyleColor(ctx, ImGui.Col_Text, 0xFF0000FF);
+    ImGui.PushStyleColor(ctx, ImGui.Col_Button, 0xFF9999FF)
+    ImGui.PushStyleColor(ctx, ImGui.Col_ButtonHovered, 0xFF6969FF )
+    ImGui.PushStyleColor(ctx, ImGui.Col_ButtonActive, 0xFF4949FF)
+end
+local function PopRecordStyleButton(ctx)
+    ImGui.PopStyleColor(ctx, 4)
+end
 local function PushBypassStyle(ctx)
     ImGui.PushStyleColor(ctx, ImGui.Col_Text, 0xFFFFFF90)
 end
 local function PopBypassStyle(ctx)
     ImGui.PopStyleColor(ctx, 1)
+end
+local function PushBypassStyleButton(ctx)
+    ImGui.PushStyleColor(ctx, ImGui.Col_Button, 0x808080C0)
+    ImGui.PushStyleColor(ctx, ImGui.Col_ButtonHovered, 0x505050C0 )
+    ImGui.PushStyleColor(ctx, ImGui.Col_ButtonActive, 0x404040C0 )
+    ImGui.PushStyleColor(ctx, ImGui.Col_Text, 0xFFFFFFC0)
+end
+local function PopBypassStyleButton(ctx)
+    ImGui.PopStyleColor(ctx, 4)
 end
 
 local function MoveCursorY(ctx, off)
@@ -1219,6 +1236,11 @@ function TabEditor:gfxTimeLineSection()
             local respos = reaper.parse_timestr_pos(params.position, -1)
             TT(ctx, "Enter a time position using Reaper's format.\n\z
                      This may be expressed:\n\n   - in measures :    M.B.fraction\n   - as a time :      [hh:mm]:ss\n\nCurrently resolved as :\n\n   " .. respos .. " seconds" )
+
+            ImGui.SameLine(ctx)
+            ReadButton(ctx, '##R', function()
+                TabState.ReadTimeWindowPositioning(tab, false)
+            end)
         end
     end
     ImGui.PopID(ctx)
@@ -1255,6 +1277,11 @@ function TabEditor:gfxTimeLineSection()
             local respos = reaper.parse_timestr_len(params.size, offset, -1)
             TT(ctx, "Enter a duration using Reaper's format.\n\z
             This may be expressed:\n\n   - in measures :    M.B.fraction\n   - as a time :      [hh:mm]:ss\n\nCurrently resolved as :\n\n   " .. respos .. " seconds, using offset : " .. offset .. " seconds" )
+
+            ImGui.SameLine(ctx)
+            ReadButton(ctx, '##R', function()
+                TabState.ReadTimeWindowSizing(tab, false)
+            end)
         end
     end
     ImGui.PopID(ctx)
@@ -1547,6 +1574,32 @@ function TabEditor:gfx()
             open = false -- Get rid of it, we won't redraw, so it will be garbage collected
         end
         PopGreenStyle(ctx)
+
+        ImGui.SameLine(ctx)
+        ImGui.Dummy(ctx, 30, 1)
+        ImGui.SameLine(ctx)
+
+        PushBypassStyleButton(ctx)
+        if ImGui.Button(ctx, "Bypass") then
+            TabState.SetFullBypass(tab)
+        end
+        PopBypassStyleButton(ctx)
+
+        TT(ctx, "Set all modules to Bypass")
+        ImGui.SameLine(ctx)
+        PushRecordStyleButton(ctx)
+        if ImGui.Button(ctx, "Record") then
+            TabState.SetFullRecord(tab)
+        end
+        PopRecordStyleButton(ctx)
+        TT(ctx, "Set all modules to Record")
+        ImGui.SameLine(ctx)
+        PushCyanStyle(ctx)
+        if ImGui.Button(ctx, "Snapshot") then
+            TabState.SetFullCustom(tab)
+        end
+        PopCyanStyle(ctx)
+        TT(ctx, "Set all modules to Custom, pinning the MIDI Editor's current state")
 
         ImGui.SameLine(ctx)
 

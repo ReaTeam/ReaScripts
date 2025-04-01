@@ -58,6 +58,7 @@ function Tab:clone(keep_uuid)
 
     t.last_draw_global_x = self.last_draw_global_x
     t.last_draw_global_y = self.last_draw_global_y
+    t.new_record         = self.new_record
 
     if keep_uuid then
         t.uuid = self.uuid
@@ -182,7 +183,7 @@ function Tab:afterSave(options)
 
     local was_new = self.new_record
 
-    self.new_record              = false
+    self.new_record = false
     self:undirty()
 
     -- mec should be passed as option since the mec is only set on first draw ...
@@ -600,7 +601,6 @@ function Tab:_protectedLeftClick(mec, click_params)
         self:_executeActions('before')
     end
 
-    reaper.PreventUIRefresh(42)
     -- Order is important
     local t0 = reaper.time_precise()
     TabState.ApplyLayouting(self)
@@ -626,15 +626,14 @@ function Tab:_protectedLeftClick(mec, click_params)
  --  reaper.ShowConsoleMsg("Grid : " .. (t6 - t5) .. "\n")
  --  reaper.ShowConsoleMsg("Coloring" .. (t7 - t6) .. "\n")
 
-    -- Always set focus back to MIDI Editor after tab execution
-    reaper.JS_Window_SetFocus(self.mec.me)
-
-    reaper.PreventUIRefresh(-42)
-
     -- Execute post-actions
     if self.params.actions.mode == 'custom' then
         self:_executeActions('after')
     end
+
+    -- Always set focus back to MIDI Editor after tab execution
+    local prw = UTILS.JS_FindMidiEditorPianoRollSubWindow(self.mec.me)
+    if prw then reaper.JS_Window_SetFocus(prw) end
 end
 
 function Tab:setActive(b)
@@ -657,7 +656,10 @@ function Tab:onLeftClick(mec, click_params)
             mec:onStateFullTabActivation(self)
         end
 
+        reaper.PreventUIRefresh(13)
         local b, err = pcall(Tab._protectedLeftClick, self, mec, click_params)
+        reaper.PreventUIRefresh(-13)
+
         if not b then
             -- Unfortunately, pcall is not sufficient if the crash happens inside Main_OnCommand
             -- The problem is that subssequent calls to reaper.defer will fail, so afterwards
