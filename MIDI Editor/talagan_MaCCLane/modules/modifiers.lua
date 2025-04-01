@@ -23,8 +23,13 @@ local function WinControlMacCmdIsDown()
     return (reaper.JS_Mouse_GetState(1<<2) ~= 0)
 end
 
+local function WinAltMacOptionIsDown()
+    return (reaper.JS_Mouse_GetState(1<<4) ~= 0)
+end
+
 
 return {
     ShiftIsDown             = ShiftIsDown,
-    WinControlMacCmdIsDown  = WinControlMacCmdIsDown
+    WinControlMacCmdIsDown  = WinControlMacCmdIsDown,
+    WinAltMacOptionIsDown   = WinAltMacOptionIsDown
 }

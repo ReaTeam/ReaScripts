@@ -191,6 +191,12 @@ function MEContext:mouseEventLoop()
     end
     mec.win_ctrl_mac_cmd_down = win_ctrl_mac_cmd_down
 
+    local win_alt_mac_option_down = MOD.WinAltMacOptionIsDown()
+    if not (mec.win_alt_mac_option_down == win_alt_mac_option_down) then
+        mec.has_modifier_change = true
+    end
+    mec.win_alt_mac_option_down = win_alt_mac_option_down
+
     mec:pollMouseEvent('left_click',  'WM_LBUTTONUP')
     mec:pollMouseEvent('right_click', 'WM_RBUTTONUP')
     mec:pollMouseEvent('mouse_wheel', 'WM_MOUSEWHEEL')
@@ -349,8 +355,6 @@ function MEContext:redraw()
     local w = reaper.JS_LICE_GetWidth(mec.bitmap)
     local h = reaper.JS_LICE_GetHeight(mec.bitmap)
 
-    -- Invalidate the viewport zone
-    reaper.JS_Window_InvalidateRect(me, mec.xpos, mec.ypos, mec.xpos + mec.w, mec.ypos + mec.h, true)
 
     -- Cleanup full BG
     reaper.JS_LICE_FillRect(mec.bitmap, 0, 0, w, h, self.bgcol, 1, "COPY")
@@ -361,6 +365,7 @@ function MEContext:redraw()
         local spacing = S.getSetting("TabSpacing")
         -- Draw tabs
         local tabs = self:tabs()
+
         local xp = 0
         for i, t in ipairs(tabs) do
             xp = xp + t:draw(self, xp)
@@ -370,6 +375,9 @@ function MEContext:redraw()
 
     -- Insert MAGIC Pixel
     reaper.JS_LICE_PutPixel(mec.bitmap, w-1, 0, MACCLContext.MACCLANE_MAGIC_PIXEL, 1, "COPY")
+
+    -- Invalidate the viewport zone
+    reaper.JS_Window_InvalidateRect(me, mec.xpos, mec.ypos, mec.xpos + mec.w, mec.ypos + mec.h, true)
 end
 
 function MEContext:onScroll()
@@ -543,6 +551,18 @@ function MEContext:update(is_fresh)
 
     if shouldRedraw then
         mec:redraw()
+    end
+
+    -- We stack mouse events during draw operation and handle them after the draw operation
+    -- To make the draw operations as short as possible.
+    if mec.pending_left_click and mec.pending_left_click.handled and mec.pending_left_click.tab then
+        mec.pending_left_click.tab:onLeftClick(mec, mec.pending_left_click.params)
+        mec.pending_left_click.tab = nil
+    end
+
+    if mec.pending_right_click and mec.pending_right_click.handled and mec.pending_right_click.tab then
+        mec.pending_right_click.tab:onRightClick(mec, mec.pending_right_click.params)
+        mec.pending_right_click.tab = nil
     end
 end
 

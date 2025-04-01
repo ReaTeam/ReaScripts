@@ -658,10 +658,11 @@ local function ApplyTimeline(tab)
     local tparams   = tab.params.time_window
     local tparams_s = tab.state.time_window
 
-    local mode    = tparams.positioning.mode
+    local pmode    = tparams.positioning.mode
+    local smode    = tparams.sizing.mode
 
     -- Skip if bypass
-    if (mode == 'bypass' and mode == 'bypass') then return end
+    if (pmode == 'bypass' and smode == 'bypass') then return end
 
     local start_time, end_time  = TIMELINE.GetBounds(mec.me)
     local duration              = end_time - start_time
@@ -669,7 +670,6 @@ local function ApplyTimeline(tab)
     local ref_offset            = start_time or 0
     local anchoring             = tparams.positioning.anchoring
 
-    local pmode = tparams.positioning.mode
     if pmode == 'custom' or pmode == 'record' then
         local position = tparams.positioning.position
         if pmode == 'record' then
@@ -684,10 +684,11 @@ local function ApplyTimeline(tab)
         if anchoring == 'right'  then ref_offset = start_time + duration        end
     end
 
-    local smode = tparams.positioning.mode
     if smode == 'custom' or smode == 'record' then
         local size = tparams.sizing.size
-        if smode == 'record' then size = tparams_s.sizing.size end
+        if smode == 'record' then
+            size = tparams_s.sizing.size
+        end
 
         duration = reaper.parse_timestr_len(size, ref_offset, -1)
     end
