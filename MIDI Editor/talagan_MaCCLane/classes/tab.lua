@@ -13,6 +13,7 @@ local TabState        = require "modules/tab_state"
 
 local MOD             = require "modules/modifiers"
 
+
 local Tab = {}
 Tab.__index = Tab
 
@@ -534,9 +535,8 @@ function Tab:draw(mec, x)
     -- It looks like rawtext needs a bit more latitude than what is given ... empiric values for w/h
     reaper.JS_LICE_DrawText(mec.bitmap, font, text, tlen , tx, ty, tx+tw+5, ty+th*2)
 
-
     local is_duplicate_candidate    = (is_hovering and self:deletable() and MOD.WinControlMacCmdIsDown())
-    local is_delete_candidate       = (is_hovering and self:deletable() and MOD.ShiftIsDown())
+    local is_delete_candidate       = (is_hovering and self:deletable() and MOD.WinAltMacOptionIsDown())
 
     if is_delete_candidate then
         self:drawRect(0xFF000000 | 0xFF0000, self.last_x, self.last_y, fullw, fullh)
@@ -556,14 +556,16 @@ function Tab:draw(mec, x)
     local pc = mec.pending_left_click
     if pc and self:pointIntab(mec.pending_left_click.x, mec.pending_left_click.y) then
         pc.handled = true
-        self:onLeftClick(mec, {delete=is_delete_candidate, duplicate=is_duplicate_candidate})
+        pc.tab     = self
+        pc.params  = {delete=is_delete_candidate, duplicate=is_duplicate_candidate}
     end
 
     -- Handle right click
     local prc = mec.pending_right_click
     if prc and self:pointIntab(mec.pending_right_click.x, mec.pending_right_click.y) then
         prc.handled = true
-        self:onRightClick(mec, mec.pending_right_click.x, mec.pending_right_click.y)
+        prc.tab     = self
+        prc.params  = {}
     end
 
     return fullw
@@ -598,14 +600,36 @@ function Tab:_protectedLeftClick(mec, click_params)
         self:_executeActions('before')
     end
 
+    reaper.PreventUIRefresh(42)
     -- Order is important
+    local t0 = reaper.time_precise()
     TabState.ApplyLayouting(self)
+    local t1 = reaper.time_precise()
     TabState.ApplyTimeline(self)
+    local t2 = reaper.time_precise()
     TabState.ApplyCCLanes(self)
+    local t3 = reaper.time_precise()
     TabState.ApplyMidiChans(self)
+    local t4 = reaper.time_precise()
     TabState.ApplyPianoRoll(self)
+    local t5 = reaper.time_precise()
     TabState.ApplyGrid(self)
+    local t6 = reaper.time_precise()
     TabState.ApplyColoring(self)
+    local t7 = reaper.time_precise()
+
+ --  reaper.ShowConsoleMsg("Layout : " .. (t1 - t0) .. "\n")
+ --  reaper.ShowConsoleMsg("Timeline : " .. (t2 - t1) .. "\n")
+ --  reaper.ShowConsoleMsg("CC Lanes : " .. (t3 - t2) .. "\n")
+ --  reaper.ShowConsoleMsg("MIDI CHans : " .. (t4 - t3) .. "\n")
+ --  reaper.ShowConsoleMsg("Piano Roll : " .. (t5 - t4) .. "\n")
+ --  reaper.ShowConsoleMsg("Grid : " .. (t6 - t5) .. "\n")
+ --  reaper.ShowConsoleMsg("Coloring" .. (t7 - t6) .. "\n")
+
+    -- Always set focus back to MIDI Editor after tab execution
+    reaper.JS_Window_SetFocus(self.mec.me)
+
+    reaper.PreventUIRefresh(-42)
 
     -- Execute post-actions
     if self.params.actions.mode == 'custom' then
@@ -644,7 +668,7 @@ function Tab:onLeftClick(mec, click_params)
     end
 end
 
-function Tab:onRightClick(mec, x, y)
+function Tab:onRightClick(mec, click_params)
     --  mec:openTabEditorOn(self)
     mec:openTabContextMenuOn(self)
 end

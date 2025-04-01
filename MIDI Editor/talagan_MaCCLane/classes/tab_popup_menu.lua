@@ -149,7 +149,7 @@ TabPopupMenu.process = function()
                 -- Try to mimic owner from src owner
                 local owner = nil
                 if srctab.owner_type == Tab.Types.GLOBAL then
-                    owner = GlobalScopeRepo.intance()
+                    owner = GlobalScopeRepo.instance()
                 elseif srctab.owner_type == Tab.Types.TRACK then
                     owner = mec.track
                 elseif srctab.owner_tyep == Tab.Types.ITEM then
