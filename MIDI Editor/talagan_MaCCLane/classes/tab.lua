@@ -191,8 +191,10 @@ function Tab:afterSave(options)
     if was_new then
         self.mec:onStateFullTabActivation(self, {force_reload=true})
     end
+
     -- We need this option to avoid race conditions
     if not options.skip_full_tab_reload then
+        -- Trigger reload of all MECs
         MACCLContext.lastTabSavedAt  = reaper.time_precise()
     end
 end
@@ -200,7 +202,7 @@ end
 function Tab:removeFromOwner(owner_type, owner)
     local all_owner_tabs = Serializing.loadTabsFromEntity(self.mec, owner_type, owner)
     all_owner_tabs[self:UUID()] = nil
-    Serializing.saveTabsToEntitity(owner_type, owner, all_owner_tabs)
+    Serializing.saveTabsToEntitity(owner_type, owner, all_owner_tabs, "Removed tab '" .. self.params.title .. "' from " .. owner_type)
 end
 
 function Tab:isStateFull()
@@ -236,7 +238,11 @@ function Tab:save(options)
     -- Perform read/modify/write on owner
     local all_owner_tabs                = Serializing.loadTabsFromEntity(self.mec, self.owner_type, self.owner)
     all_owner_tabs[self:UUID()]         = { uuid=self:UUID(), params=self.params, state=self.state }
-    Serializing.saveTabsToEntitity(self.owner_type, self.owner, all_owner_tabs)
+
+    local undo = options and options.undo
+    if (options and options.skip_full_tab_reload) then undo = false end
+
+    Serializing.saveTabsToEntitity(self.owner_type, self.owner, all_owner_tabs, undo)
 
     self:afterSave(options)
 
@@ -249,7 +255,7 @@ function Tab:destroy()
 
     local all_owner_tabs = Serializing.loadTabsFromEntity(self.mec, self.owner_type, self.owner)
     all_owner_tabs[self:UUID()] = nil
-    Serializing.saveTabsToEntitity(self.owner_type, self.owner, all_owner_tabs)
+    Serializing.saveTabsToEntitity(self.owner_type, self.owner, all_owner_tabs, "Deleted tab '" .. self.params.title .. "'")
 
     self:afterSave()
 
@@ -277,7 +283,7 @@ function Tab:duplicate()
     newtab.params.title         = s .. f
     newtab.last_draw_global_x   = tab.last_draw_global_x
     newtab.last_draw_global_y   = tab.last_draw_global_y
-    newtab:save()
+    newtab:save({undo="Duplicated tab '" .. tab.params.title .. "'"})
 end
 
 function Tab:textWidth()
@@ -695,6 +701,10 @@ end
 
 function Tab:setFullRecord()
     TabState.SetFullRecord(self)
+end
+
+function Tab:setFullBypass()
+    TabState.SetFullBypass(self)
 end
 
 ----------------------

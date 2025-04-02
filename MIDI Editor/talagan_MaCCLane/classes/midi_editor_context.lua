@@ -229,18 +229,32 @@ function MEContext:inputEventLoop()
     -- Every frame, update current take/item/track for this me
     local metrack = nil
     local meitem  = nil
+    local meproj  = nil
     local metake  = reaper.MIDIEditor_GetTake(mec.me)
 
     if not (mec.take == metake) then
-        if metake then meitem   = reaper.GetMediaItemTake_Item(metake) end
-        if metake then metrack  = reaper.GetMediaItemTake_Track(metake) end
+        if metake then
+            meitem   = reaper.GetMediaItemTake_Item(metake)
+            metrack  = reaper.GetMediaItemTake_Track(metake)
+            meproj   = reaper.GetItemProjectContext(meitem)
+        end
 
         -- Edited target changed (or was not set precedently)
         -- Tabs will change, load them
         mec.take  = metake
         mec.item  = meitem
         mec.track = metrack
+        mec.proj  = meproj
         mec.pending_take_change = true
+    end
+
+    if mec.proj then
+        local master_track = reaper.GetMasterTrack(mec.proj)
+        local b, undo_hash = reaper.GetSetMediaTrackInfo_String(master_track, "P_EXT:MACCLANE_UNDO" , "", false)
+        if not (undo_hash == mec.undo_hash) then
+            mec.undo_hash = undo_hash
+            mec.pending_take_change = true
+        end
     end
 
     -- Watch layout changes
@@ -645,9 +659,31 @@ function MEContext:openEditorForNewTab(plus_tab, options)
         newtab:setOwner(nil)
     end
 
+    if not options.full_bypass and not options.full_record then
+        local p = S.getSetting("DefaultTemplateForPlusButton")
+
+        if p == "*full_bypass" then
+            options.full_bypass = true
+        elseif p == "*full_record" then
+            options.full_record = true
+        else
+            local valid, json = Serializing.loadTabTemplate(p)
+            if not valid then
+                options.full_bypass = true
+            else
+                local template = json.tabs[1]
+                newtab.params = template.params
+            end
+        end
+    end
+
     if options.full_record then
         newtab:setFullRecord()
     end
+    if options.full_bypass then
+        newtab:setFullBypass()
+    end
+
 
     self:openTabEditorOn(newtab)
 end

@@ -1541,10 +1541,11 @@ function TabEditor:gfx()
     local visible, open = ImGui.Begin(ctx, title, true, ImGui.WindowFlags_AlwaysAutoResize | ImGui.WindowFlags_NoSavedSettings | ImGui.WindowFlags_NoDocking)
 
     if visible then
+        local should_save = false
 
         local rm = self:gfxFirstLine()
         if rm == 1 then
-            self.tab:save()
+            should_save = true
         end
         if rm == 1 or rm == 2 then
             open = false
@@ -1569,8 +1570,7 @@ function TabEditor:gfx()
 
         PushGreenStyle(ctx)
         if ImGui.Button(ctx, "Save") then
-            self.tab:save()
-
+            should_save = true
             open = false -- Get rid of it, we won't redraw, so it will be garbage collected
         end
         PopGreenStyle(ctx)
@@ -1624,6 +1624,11 @@ function TabEditor:gfx()
         self:gfxAutoMove()
 
         ImGui.End(ctx)
+
+        if should_save then
+            local undo_string = (is_new_record and "Created tab '" or "Saved tab '") .. self.tab.params.title .. "' "
+            self.tab:save({undo=undo_string})
+        end
     end
     ImGui.PopID(ctx)
 

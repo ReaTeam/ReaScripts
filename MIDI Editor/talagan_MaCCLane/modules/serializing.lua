@@ -63,7 +63,7 @@ Serializing.loadTabsFromEntity = function(mec, etype, entity)
     return tabs
 end
 
-Serializing.saveTabsToEntitity = function(etype, entity, tabs)
+Serializing.saveTabsToEntitity = function(etype, entity, tabs, with_undo)
     local succ, v = false, ''
 
     if not entity and not (etype == Tab.Types.PROJECT) then
@@ -77,11 +77,15 @@ Serializing.saveTabsToEntitity = function(etype, entity, tabs)
 
     local json = JSON.encode(tab_params_array)
 
+    if with_undo then
+        reaper.Undo_BeginBlock()
+    end
+
+    local master_track = reaper.GetMasterTrack()
     if etype == Tab.Types.GLOBAL then
         GlobalScopeRepo.instance():setContent(json)
     elseif etype == Tab.Types.PROJECT then
         -- Allow to pass nil
-        local master_track = reaper.GetMasterTrack()
         succ = reaper.GetSetMediaTrackInfo_String(master_track, "P_EXT:MACCLANE", json, true)
     elseif etype == Tab.Types.TRACK then
         succ = reaper.GetSetMediaTrackInfo_String(entity, "P_EXT:MACCLANE", json, true)
@@ -91,30 +95,48 @@ Serializing.saveTabsToEntitity = function(etype, entity, tabs)
         succ = false
     end
 
+    if with_undo then
+        if with_undo == true then with_undo = "saved tabs" end
+        -- Set UNDO flag on the master track, so we can track undo/redo operaqtions and refresh mecs
+        reaper.GetSetMediaTrackInfo_String(master_track, "P_EXT:MACCLANE_UNDO" , "" .. reaper.time_precise(), true)
+        reaper.Undo_EndBlock("MaCCLane : " .. with_undo, 0xFFFFFFFF)
+    end
+
     return {success=true, errors={}}
 end
 
 Serializing.loadTabTemplate = function(templatePath)
     local file = io.open(templatePath, "rb")
-    local ret  = {}
 
     if not file then
-        return ret
+        return false, {}
     end
 
     local json = file:read("*all")
     file:close()
 
     if not json then
-        return ret
+        return false, {}
     end
 
+    local ret = {}
     local succ, err = pcall(function()
         -- Bypass exceptions. Return nil if failing.
         ret = JSON.decode(json)
     end)
 
-    return ret
+    if not ret then return false, {} end
+
+    if ret.params then
+        -- Old version with one tab
+        ret = { version = "0", tabs = { ret } }
+    end
+
+    if not ret.version or (ret.version ~= "0" and ret.version ~= "1") or not ret.tabs then
+        return false, {}
+    end
+
+    return true, ret
 end
 
 function Serializing.tabToSer(tab)
@@ -146,21 +168,7 @@ end
 
 
 function Serializing.createTabsFromTemplate(mec, templatePath)
-    local json = Serializing.loadTabTemplate(templatePath)
-
-    local valid = true
-    if not json then
-        valid = false
-    else
-        if json.params then
-            -- Old version with one tab
-            json = { version = "0", tabs = { json } }
-        end
-
-        if not json.version or (json.version ~= "0" and json.version ~= "1") or not json.tabs then
-            valid = false
-        end
-    end
+    local valid, json = Serializing.loadTabTemplate(templatePath)
 
     if not valid then
         reaper.MB("Failed to load template. Wrong format ?", "Oops.", 0)
