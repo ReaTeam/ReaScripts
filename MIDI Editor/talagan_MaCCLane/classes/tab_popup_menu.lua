@@ -4,12 +4,12 @@
 -- @description This file is part of MaCCLane
 
 local MACCLContext           = require "modules/context"
-local FILE                   = require "modules/file"
 
 local Tab                    = require "classes/tab"
 local SettingsWindow         = require "classes/settings_window"
 local MultiExportWindow      = require "classes/multi_export_window"
 local GlobalScopeRepo        = require "classes/global_scope_repo"
+local TemplateHierarchy      = require "classes/template_hierarchy"
 
 local S                      = require "modules/settings"
 local LOG                    = require "modules/log"
@@ -48,30 +48,9 @@ TabPopupMenu.LoadTemplate = function(mec, ref_tab, path)
     for _, newtab in ipairs(newtabs) do
         newtab.last_draw_global_x   = ref_tab.last_draw_global_x
         newtab.last_draw_global_y   = ref_tab.last_draw_global_y
-        newtab:save()
+        newtab:save({undo="Loaded tab '" .. newtab.params.title .. "'"})
     end
 end
-
-TabPopupMenu.hiearchySubMenu = function(ctx, node)
-    local tab = TabPopupMenu.current_tab
-    local mec = tab.mec
-
-    for _, sub in pairs(node.subs) do
-        if sub.fweight > 0 then
-            if ImGui.BeginMenu(ctx, sub.name) then
-                TabPopupMenu.hiearchySubMenu(ctx, sub)
-                ImGui.EndMenu(ctx)
-            end
-        end
-    end
-
-    for _, file in pairs(node.files) do
-        if ImGui.MenuItem(ctx, file.name) then
-            TabPopupMenu.LoadTemplate(mec, tab, file.full_path)
-        end
-    end
-end
-
 
 TabPopupMenu.process = function()
 
@@ -104,8 +83,8 @@ TabPopupMenu.process = function()
         ImGui.OpenPopup(ctx, popupid, ImGui.PopupFlags_NoOpenOverExistingPopup)
         TabPopupMenu.last_open_tab = tab
         if tab.owner_type == Tab.Types.PLUS_TAB then
-            local rootdir                   = reaper.GetResourcePath() .. "/Data/MaCCLane"
-            TabPopupMenu.template_hierarchy = FILE.crawlForFiles(rootdir,  "mcc")
+            -- Build cached hierarchy for the menu on popup open
+            TabPopupMenu.template_hierarchy = TemplateHierarchy.buildRootNode()
         end
         ImGui.SetNextWindowFocus(ctx)
     end
@@ -134,7 +113,9 @@ TabPopupMenu.process = function()
 
             ImGui.MenuItem(ctx, "Templates", nil, false, false)
 
-            TabPopupMenu.hiearchySubMenu(ctx, TabPopupMenu.template_hierarchy)
+            TemplateHierarchy.hiearchySubMenu(ctx, TabPopupMenu.template_hierarchy, function(file)
+                TabPopupMenu.LoadTemplate(TabPopupMenu.current_tab.mec, TabPopupMenu.current_tab, file.full_path)
+            end)
 
             ImGui.Separator(ctx)
             if ImGui.MenuItem(ctx, "Reveal template folder") then
@@ -161,14 +142,14 @@ TabPopupMenu.process = function()
                 local newtab                = Tab:new(mec, owner, TabPopupMenu.copiedTab.params, TabPopupMenu.copiedTab.state)
                 newtab.last_draw_global_x   = tab.last_draw_global_x
                 newtab.last_draw_global_y   = tab.last_draw_global_y
-                newtab:save()
+                newtab:save({undo="Pasted tab '" .. newtab.params.title .. "'"})
             end
             ImGui.Separator(ctx)
             if ImGui.MenuItem(ctx, "New Recording Tab ...") then
                 mec:openEditorForNewTab(tab, {full_record=true})
             end
             if ImGui.MenuItem(ctx, "New Bypass Tab ...") then
-                mec:openEditorForNewTab(tab)
+                mec:openEditorForNewTab(tab, {full_bypass=true})
             end
         else
             local meinfo = mec:editorInfo()
@@ -189,28 +170,28 @@ TabPopupMenu.process = function()
             if tab.owner_type == Tab.Types.GLOBAL then star = "* Set on " end
             if ImGui.MenuItem(ctx, star .. "Global") then
                 tab:setOwner(GlobalScopeRepo.instance())
-                tab:save()
+                tab:save({undo="Changed owner for tab '" .. tab.params.title .. "' to global"})
             end
 
             local star = "Move to "
             if tab.owner_type == Tab.Types.PROJECT then star = "* Set on " end
             if ImGui.MenuItem(ctx, star .. "Project") then
                 tab:setOwner(nil)
-                tab:save()
+                tab:save({undo="Changed owner for tab '" .. tab.params.title .. "' to project"})
             end
 
             local star = "Move to "
             if tab.owner_type == Tab.Types.TRACK then star = "* Set on " end
             if meinfo.track and ImGui.MenuItem(ctx, star .. "Track (" .. meinfo.track_name .. ")") then
                 tab:setOwner(meinfo.track)
-                tab:save()
+                tab:save({undo="Changed owner for tab '" .. tab.params.title .. "' to track"})
             end
 
             local star = "Move to "
             if tab.owner_type == Tab.Types.ITEM then star = "* Set on " end
             if meinfo.item and ImGui.MenuItem(ctx, star .. "current take's item (" .. meinfo.take_name .. ")") then
                 tab:setOwner(meinfo.item)
-                tab:save()
+                tab:save({undo="Changed owner for tab '" .. tab.params.title .. "' to take"})
             end
 
             ImGui.Separator(ctx)

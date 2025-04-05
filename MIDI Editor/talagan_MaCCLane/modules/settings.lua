@@ -22,7 +22,8 @@ local SettingDefs = {
   RecTabIndicatorSize        = { type = "int",     default = 4 },
   ActiveRecTabIndicatorColor = { type = "int",    default = 0xFFFFFFFF },
   InactiveRecTabIndicatorColor = { type = "int",  default = 0x00000000 },
-  OnNameEditEnterPressed    = { type = "int", default = 0 }
+  OnNameEditEnterPressed    = { type = "int", default = 0 },
+  DefaultTemplateForPlusButton = { type = "string", default="*full_bypass"}
 };
 
 local function unsafestr(str)

@@ -7,6 +7,7 @@ local MACCLContext    = require "modules/context"
 local S               = require "modules/settings"
 local TabParams       = require "modules/tab_params"
 local Tab             = require "classes/tab"
+local TemplateHierarchy      = require "classes/template_hierarchy"
 
 local ImGui           = MACCLContext.ImGui
 
@@ -24,6 +25,8 @@ end
 
 function SettingsWindow:_initialize()
 end
+
+local LABEL_COLOR = 0x54c0ffFF
 
 function SettingsWindow:newTabDefaultOwnerComboBox()
     local ctx = MACCLContext.ImGuiContext
@@ -62,6 +65,53 @@ function SettingsWindow:newTabDefaultOwnerComboBox()
         ImGui.EndCombo(ctx)
     end
     ImGui.PopID(ctx)
+end
+
+function SettingsWindow:gfxPlusButton()
+    local ctx = MACCLContext.ImGuiContext
+
+    ImGui.AlignTextToFramePadding(ctx)
+    ImGui.TextColored(ctx, LABEL_COLOR, "Left click default")
+    ImGui.SameLine(ctx)
+
+    if ImGui.Button(ctx, '...') then
+        self.template_hierarchy = TemplateHierarchy.buildRootNode()
+        ImGui.OpenPopup(ctx, 'plus_button_left_click')
+    end
+
+    if ImGui.BeginPopup(ctx, 'plus_button_left_click') then
+        TemplateHierarchy.hiearchySubMenu(ctx, self.template_hierarchy, function(file)
+            S.setSetting("DefaultTemplateForPlusButton", file.full_path)
+        end)
+        ImGui.Separator(ctx)
+        if ImGui.Selectable(ctx, "Full Bypass", false) then
+            S.setSetting("DefaultTemplateForPlusButton", "*full_bypass")
+        end
+        if ImGui.Selectable(ctx, "Full Recording", false) then
+            S.setSetting("DefaultTemplateForPlusButton", "*full_record")
+        end
+
+        ImGui.EndPopup(ctx)
+    end
+
+    ImGui.SameLine(ctx)
+
+    local p = tostring(S.getSetting("DefaultTemplateForPlusButton"))
+    if p == "*full_bypass" then
+        p = "Full Bypass"
+    elseif p == "*full_record" then
+        p = "Full Recording"
+    else
+        if not (self.last_checked_template == p) then
+            -- TODO : Check template existence
+            self.last_checked_template = p
+        end
+        local rp = reaper.GetResourcePath() .. "/Data/MaCCLane"
+        local i1, i2 = string.find(p, rp)
+        if i2 then p = string.sub(p, i2 + 1, #p) end
+    end
+
+    ImGui.Text(ctx, p)
 end
 
 function SettingsWindow:gfx()
@@ -144,7 +194,7 @@ function SettingsWindow:gfx()
         ImGui.Dummy(ctx, 10, 5)
 
         ImGui.AlignTextToFramePadding(ctx)
-        ImGui.TextColored(ctx, 0x54c0ffFF, "Tab Colors     ")
+        ImGui.TextColored(ctx, LABEL_COLOR, "Tab Colors     ")
         ImGui.SameLine(ctx)
         ---@diagnostic disable-next-line: param-type-mismatch
         local b, v = ImGui.ColorEdit3(ctx, 'Global  ', S.getSetting("ColorForGlobalTabs"), ImGui.ColorEditFlags_NoInputs)
@@ -161,7 +211,7 @@ function SettingsWindow:gfx()
         end
 
         ImGui.AlignTextToFramePadding(ctx)
-        ImGui.TextColored(ctx, 0x54c0ffFF, "State Indicator")
+        ImGui.TextColored(ctx, LABEL_COLOR, "State Indicator")
         ImGui.SameLine(ctx)
         ---@diagnostic disable-next-line: param-type-mismatch
         local b, v = ImGui.ColorEdit4(ctx, 'Active  ##rec_indicator_active', S.getSetting("ActiveRecTabIndicatorColor"), ImGui.ColorEditFlags_NoInputs)
@@ -226,6 +276,9 @@ function SettingsWindow:gfx()
 
         ImGui.SeparatorText(ctx, "New tab")
         self:newTabDefaultOwnerComboBox()
+
+        ImGui.SeparatorText(ctx, "(+) Button")
+        self:gfxPlusButton()
 
         ImGui.SeparatorText(ctx, "Other")
 
