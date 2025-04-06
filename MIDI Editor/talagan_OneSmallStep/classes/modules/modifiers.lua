@@ -14,6 +14,51 @@ local function validateModifierKeyCombination(id)
   end
 end
 
+--[[
+local OtherOSModifierKeys = {
+{ vkey = 16, name = 'Shift' },
+{ vkey = 17, name = 'Ctrl' },
+{ vkey = 18, name = 'Alt' }
+};
+
+local MacOSModifierKeys = {
+{ vkey = 16, name = 'Shift' },
+{ vkey = 17, name = 'Cmd' },
+{ vkey = 18, name = 'Opt' },
+{ vkey = 91, name = 'Ctrl' }
+};
+]]
+
+-- Shift key : (1 << 3) == 8
+local function IsShiftDown(jss)
+  return ( (jss & (1<<3)) ~= 0)
+end
+
+-- Control (Windows) or Command (macOS) key (1 << 2) == 4
+local function IsWinControlMacCmdDown(jss)
+  return ( (jss & (1<<2)) ~= 0)
+end
+
+-- Alt (Windows) or Option (macOS) key (1 << 4) == 16
+local function IsWinAltMacOptionDown(jss)
+  return ( (jss & (1<<4)) ~= 0)
+end
+
+-- Windows (Windows) or Control (macOS) key : (1 << 5) == 32
+local function IsWinWindowsMacControlDown(jss)
+  return ( (jss & (1<<5)) ~= 0)
+end
+
+local function IsModifierKeyPressed(jss, id)
+
+  if id == 16 then return IsShiftDown(jss) end
+  if id == 17 then return IsWinControlMacCmdDown(jss) end
+  if id == 18 then return IsWinAltMacOptionDown(jss) end
+  if id == 91 then return IsWinWindowsMacControlDown(jss) end
+
+  return false
+end
+
 -- Returns the state of the modifier key linked to the function "function_name"
 local function IsModifierKeyCombinationPressed(id)
   validateModifierKeyCombination(id)
@@ -22,14 +67,14 @@ local function IsModifierKeyCombinationPressed(id)
     return false
   end
 
+  local jss = reaper.JS_Mouse_GetState(0xFF)
+
   -- Avoid inconsistencies and only follow events during the lifetime of the plugin, so use launchTime
   -- This will prevent bugs from a session to another (when for example the plugin crashes)
-  local keys  = reaper.JS_VKeys_GetState(launchTime);
   local combi = D.ModifierKeyCombinationLookup[id]
 
   for k, v in ipairs(combi.vkeys) do
-    local c1    = keys:byte(v);
-    if not (c1 ==1) then
+    if not IsModifierKeyPressed(jss, v) then
       return false
     end
   end
@@ -39,6 +84,7 @@ end
 
 local function IsStepBackModifierKeyPressed()
   local keys  = reaper.JS_VKeys_GetState(launchTime);
+---@diagnostic disable-next-line: param-type-mismatch
   return (keys:byte(S.getSetting("StepBackModifierKey")) == 1)
 end
 

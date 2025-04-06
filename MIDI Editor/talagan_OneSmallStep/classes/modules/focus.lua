@@ -21,12 +21,25 @@ local function IsArrangeViewFocused()
   return (reaper.GetCursorContext() >= 0);
 end
 
+local function ForceLastFocusTo(element)
+  if element then
+    --reaper.ShowConsoleMsg("Storing focus on : " .. element .. "\n")
+  end
+
+  if element == 'MIDIEditor' then
+    lastKnownFocus = { element = 'MIDIEditor' }
+  elseif element == 'ArrangeView' then
+    lastKnownFocus = { element = 'ArrangeView', context = reaper.GetCursorContext() }
+  else
+    -- Simply ignore, we don't want to give back focus to this
+  end
+end
 
 local function TrackFocus()
   if IsActiveMidiEditorFocused() then
-    lastKnownFocus = { element = 'MIDIEditor' }
+    ForceLastFocusTo('MIDIEditor')
   elseif IsArrangeViewFocused() then
-    lastKnownFocus = { element = 'ArrangeView', context = reaper.GetCursorContext() }
+    ForceLastFocusTo('ArrangeView')
   else
     -- Simply ignore, we don't want to give back focus to this
   end
@@ -34,11 +47,19 @@ end
 
 local function RestoreFocus()
 
-  local hwnd = reaper.GetMainHwnd();
-  reaper.JS_Window_SetFocus(hwnd);
+  local hwnd = reaper.GetMainHwnd()
+  reaper.JS_Window_SetFocus(hwnd)
+
+  if lastKnownFocus.element then
+    --reaper.ShowConsoleMsg("Restoring focus to : " .. lastKnownFocus.element .. "\n")
+  end
 
   if lastKnownFocus.element == 'MIDIEditor' then
-    reaper.JS_Window_SetFocus(reaper.MIDIEditor_GetActive());
+    local me = reaper.MIDIEditor_GetActive()
+    if me then
+      local mepr = reaper.JS_Window_FindChildByID(me, 1001)
+      reaper.JS_Window_SetFocus(mepr)
+    end
   elseif lastKnownFocus.element == 'ArrangeView' then
     reaper.SetCursorContext(lastKnownFocus.context)
   else
@@ -54,6 +75,7 @@ return {
   IsActiveMidiEditorFocused = IsActiveMidiEditorFocused,
   IsArrangeViewFocused      = IsArrangeViewFocused,
   TrackFocus                = TrackFocus,
+  ForceLastFocusTo          = ForceLastFocusTo,
   RestoreFocus              = RestoreFocus,
   LastKnownFocus            = LastKnownFocus
 }

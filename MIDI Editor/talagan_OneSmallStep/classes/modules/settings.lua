@@ -63,6 +63,7 @@ local SettingDefs = {
   SnapItemBounds                                            = { type = "bool",    default = true },
 
   AutoScrollArrangeView                                     = { type = "bool",    default = true },
+  AlwaysFocusMEOnLaunch                                     = { type = "bool",    default = false},
 
   AllowKeyEventNavigation                                   = { type = "bool",    default = false },
 
