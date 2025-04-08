@@ -1,7 +1,7 @@
 -- @description Show path from list menu (Resource, Selected Item, Project File, Record, Secondary Record, Render)
 -- @author amagalma
--- @version 1.12
--- @changelog - Fix for Render Path
+-- @version 1.13
+-- @changelog - Added current theme path
 -- @link https://forum.cockos.com/showthread.php?t=239556
 -- @screenshot https://i.ibb.co/vhMDkZn/Show-path-from-list-menu.gif
 -- @donation https://www.paypal.me/amagalma
@@ -14,6 +14,7 @@
 --   - Secondary Record path
 --   - Render path
 --   - First selected script's path in the Actions List
+--   - Current theme path
 --
 --   - Requires JS_ReaScriptAPI and SWS extensions
 
@@ -76,7 +77,8 @@ local t = {
       {"Record path", 40024},
       {"Secondary Record path", 40028},
       {"Render path", false},
-      {"First selected script in Actions List", false}
+      {"First selected script in Actions List", false},
+      {"Current theme path", false}
 }
 
 local menu = ""
@@ -84,15 +86,7 @@ for i = 1, #t do
   menu = menu .. t[i][1] .. "|"
 end
 
-local title = "hidden " .. reaper.genGuid()
-gfx.init( title, 0, 0, 0, 0, 0 )
-local hwnd = reaper.JS_Window_Find( title, true )
-if hwnd then
-  reaper.JS_Window_Show( hwnd, "HIDE" )
-end
-gfx.x, gfx.y = gfx.mouse_x-52, gfx.mouse_y-70
 local selection = gfx.showmenu(menu)
-gfx.quit()
 
 if selection > 0 then
   if selection == 4 and proj_file ~= "" then --------------
@@ -160,6 +154,18 @@ if selection > 0 then
       path .. sep .. name )
     end
     
+  elseif selection == 9 then --------------------
+  
+    local theme = reaper.GetLastColorThemeFile()
+    if theme and theme ~= "" then
+      if not reaper.file_exists( theme ) then
+        theme = theme:match(".+%.") .. "ReaperThemeZip"
+      end
+      if reaper.file_exists( theme ) then
+        reaper.CF_LocateInExplorer( theme )
+      end
+    end
+  
   else ---------------------
   
     reaper.Main_OnCommand(reaper.NamedCommandLookup(t[selection][2]), 0)
