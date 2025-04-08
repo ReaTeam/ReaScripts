@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="ede1d9dcb2e88769837e3654dd30d3c1e8a79463" name="ReaTeam Scripts">
+<index version="1" commit="f6adc08532b2b2bf7b74bbdc80b31750834b1da6" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -23526,7 +23526,7 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
     </reapack>
     <reapack name="amagalma_Show path from list menu (Resource, Selected Item, Project File, Record, Secondary Record, Render).lua" type="script" desc="Show path from list menu (Resource, Selected Item, Project File, Record, Secondary Record, Render)">
       <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
@@ -23538,6 +23538,7 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Secondary Record path\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Render path\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab First selected script's path in the Actions List\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Current theme path\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Requires JS_ReaScriptAPI and SWS extensions\sa180\par}
 }
 ]]></description>
@@ -23559,6 +23560,10 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
       <version name="1.12" author="amagalma" time="2022-01-30T13:46:49Z">
         <changelog><![CDATA[- Fix for Render Path]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e29bbcab7023abb44f168bb8ec7677a23c6ab1a1/Various/amagalma_Show%20path%20from%20list%20menu%20(Resource,%20Selected%20Item,%20Project%20File,%20Record,%20Secondary%20Record,%20Render).lua</source>
+      </version>
+      <version name="1.13" author="amagalma" time="2025-04-08T23:22:53Z">
+        <changelog><![CDATA[- Added current theme path]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f6adc08532b2b2bf7b74bbdc80b31750834b1da6/Various/amagalma_Show%20path%20from%20list%20menu%20(Resource,%20Selected%20Item,%20Project%20File,%20Record,%20Secondary%20Record,%20Render).lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Simulate tempo with playrate.lua" type="script" desc="amagalma_Simulate tempo with playrate">
