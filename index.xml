@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="b0b93b9d40605bb413e9c01e85173fe94020039c" name="ReaTeam Scripts">
+<index version="1" commit="ede1d9dcb2e88769837e3654dd30d3c1e8a79463" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -20820,6 +20820,21 @@ Removed first run warning message.]]></changelog>
       <version name="1.03" author="amagalma" time="2021-11-28T12:41:30Z">
         <changelog><![CDATA[Fix menu placement for OSX (again)]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a2c99b823cf752f2e006ec8297d0827a7758a0e4/Tracks%20Properties/amagalma_Smart%20track%20layout%20picker%20(categories%20with%20sub-menus).lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Toggle fixed item lanes (convert takes to lanes) and keep the same track height.lua" type="script" desc="Toggle fixed item lanes (convert takes to lanes) and keep the same track height">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Like the native action, but keeps the same track height. It can be used as an action of a custom tcp button.\par}
+}
+]]></description>
+        <link rel="donation">https://www.paypal.me/amagalma</link>
+      </metadata>
+      <version name="1.00" author="amagalma" time="2025-04-08T22:35:54Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ede1d9dcb2e88769837e3654dd30d3c1e8a79463/Tracks%20Properties/amagalma_Toggle%20fixed%20item%20lanes%20(convert%20takes%20to%20lanes)%20and%20keep%20the%20same%20track%20height.lua</source>
       </version>
     </reapack>
     <reapack name="Argitoth_Set number of channels for selected tracks.eel" type="script" desc="Set number of channels for selected tracks">
