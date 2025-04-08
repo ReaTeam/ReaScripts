@@ -191,7 +191,16 @@ function MainWindow(OptTable, windowName)
         reaper.ImGui_PopStyleColor(ctx,1)
       end
       
-      reaper.ImGui_Text(ctx, 'The feature is under development')
+      reaper.ImGui_Text(ctx, 'The feature is under development, for a while you can use')
+      reaper.ImGui_SameLine(ctx)
+      if reaper.ImGui_Button(ctx, 'this', nil, nil) then
+        local doc = 'https://forum.cockos.com/showpost.php?p=2827459&postcount=21'
+        if reaper.CF_ShellExecute then
+          reaper.CF_ShellExecute(doc)
+        else
+          reaper.MB(doc, '?forum page', 0)
+        end
+      end
     end
     
     if reaper.ImGui_CollapsingHeader(ctx, 'Create tracks using EDL files', false) then
@@ -212,7 +221,12 @@ function MainWindow(OptTable, windowName)
         reaper.ImGui_Text(ctx, SearchFolder)
         reaper.ImGui_PopStyleColor(ctx,1)
       end
-    
+
+      reaper.ImGui_SameLine(ctx)
+      reaper.ImGui_PushFont(ctx, fontSep)
+      reaper.ImGui_Text(ctx, 'Note: the project have to be set to the known framerate')
+      reaper.ImGui_PopFont(ctx)
+      
       if reaper.ImGui_Button(ctx, ' EDL files ') then --msg(iniFolder)
         if not iniFolder then
           local cur_retprj, cur_projfn = reaper.EnumProjects( -1 )
