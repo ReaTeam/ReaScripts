@@ -224,7 +224,7 @@ function MainWindow(OptTable, windowName)
 
       reaper.ImGui_SameLine(ctx)
       reaper.ImGui_PushFont(ctx, fontSep)
-      reaper.ImGui_Text(ctx, 'Note: the project have to be set to the known framerate')
+      reaper.ImGui_Text(ctx, 'Note: the project has to be set to the known framerate')
       reaper.ImGui_PopFont(ctx)
       
       if reaper.ImGui_Button(ctx, ' EDL files ') then --msg(iniFolder)
