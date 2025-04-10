@@ -1072,7 +1072,7 @@ local function tableView(ctx)
         if not ImGui.TreeNodeEx(ctx, line.key, line.name, tree_node_flags) then
           i = i + line.children
         end
-        tooltip_text = string.format('%s (%d children)',
+        tooltip_text = string.format('%s (%s children)',
           line.name, formatNumber(line.children))
       else
         ImGui.TreeNodeEx(ctx, line.key, line.name, tree_node_leaf_flags)
