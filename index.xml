@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="f6adc08532b2b2bf7b74bbdc80b31750834b1da6" name="ReaTeam Scripts">
+<index version="1" commit="33a1cb775bd2d048a4a2729de23d4f90c924c388" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -6174,6 +6174,26 @@ website
     <reapack name="AtmanActive_Apply track-take FX to selected items and propagate new files to other items with same source.eel" type="script" desc="Apply track-take FX to selected items and propagate new files to other items with same source">
       <version name="1.0" author="AtmanActive" time="2018-11-28T23:26:53Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Items%20Editing/AtmanActive_Apply%20track-take%20FX%20to%20selected%20items%20and%20propagate%20new%20files%20to%20other%20items%20with%20same%20source.eel</source>
+      </version>
+    </reapack>
+    <reapack name="az_Conform project using metadata (post-production tools).lua" type="script" desc="Conform project using metadata (post-production tools)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel0 \b \fs36 Conform project using metadata\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This script has various features for comfortable work when you get a project from video editor\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Link source files\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Expand channels from field recorder poly-wave files\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab and more in the feature\sa180\par}
+}
+]]></description>
+        <link rel="website" href="https://forum.cockos.com/showthread.php?t=288069">Forum thread</link>
+        <link rel="donation" href="https://www.paypal.me/AZsound">Donate via PayPal</link>
+      </metadata>
+      <version name="0.4" author="AZ" time="2025-04-11T19:11:13Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/33a1cb775bd2d048a4a2729de23d4f90c924c388/Items%20Editing/az_Conform%20project%20using%20metadata%20(post-production%20tools).lua</source>
       </version>
     </reapack>
     <reapack name="az_Fade tool (work on context of mouse, razor or time selection).lua" type="script" desc="Fade tool (works on context of mouse, razor or time selection)">
