@@ -1,7 +1,7 @@
 -- @description Lua profiler
 -- @author cfillion
--- @version 1.1.4
--- @changelog • Fix v1.1.3 regression not resetting table recursion depth
+-- @version 1.1.5
+-- @changelog • Fix tree display mode when there are over 999 children
 -- @provides [nomain] .
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=283461
 -- @screenshot
@@ -1072,7 +1072,7 @@ local function tableView(ctx)
         if not ImGui.TreeNodeEx(ctx, line.key, line.name, tree_node_flags) then
           i = i + line.children
         end
-        tooltip_text = string.format('%s (%d children)',
+        tooltip_text = string.format('%s (%s children)',
           line.name, formatNumber(line.children))
       else
         ImGui.TreeNodeEx(ctx, line.key, line.name, tree_node_leaf_flags)
