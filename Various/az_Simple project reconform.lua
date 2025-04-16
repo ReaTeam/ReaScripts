@@ -1,9 +1,9 @@
 -- @description Simple project reconform
 -- @author AZ
--- @version 0.7
+-- @version 0.7.1
 -- @changelog
---   - Ability to choose tracks from EDL for comparison
---   - fixed bug when some envelope points were removed unintentionally
+--   - Fix compatibility with Davinci Resolve track naming
+--   - some visual improvements
 -- @link Forum thread https://forum.cockos.com/showthread.php?p=2803375#post2803375
 -- @donation Donate via PayPal https://www.paypal.me/AZsound
 -- @about
@@ -268,64 +268,21 @@ function OptionsWindow()
       Active = rgbToHex({56,56,42,90}),
     }
   }
+  -------
+  ---Flags---
+  local Flags = {}
+  Flags.childRounding = reaper.ImGui_StyleVar_ChildRounding()
+  Flags.frameRounding = reaper.ImGui_StyleVar_FrameRounding()
+  Flags.childBorder = reaper.ImGui_ChildFlags_Border()
+  Flags.menubar = reaper.ImGui_WindowFlags_MenuBar()
+  Flags.tableResizeflag = reaper.ImGui_TableFlags_Resizable()
+  Flags.childAutoResizeX = reaper.ImGui_ChildFlags_AutoResizeX()
+  Flags.childAutoResizeY = reaper.ImGui_ChildFlags_AutoResizeY()
   
   --------------
   function SplitFilename(strFilename) -- Path, Filename, Extension
     return string.match(strFilename, "(.-)([^\\]-([^\\%.]+))$")
   end
-  --------------
-  
-  function ShowProgress()
-    --[[
-    --msg()
-    reaper.ImGui_PushStyleColor(ctxPr, reaper.ImGui_Col_WindowBg(), gui_colors.Background)
-    reaper.ImGui_PushStyleColor(ctxPr, reaper.ImGui_Col_TitleBgActive(), gui_colors.TitleBg)
-    reaper.ImGui_PushStyleColor(ctxPr, reaper.ImGui_Col_Text(), gui_colors.Text)
-    local window_flags = reaper.ImGui_WindowFlags_None()--reaper.ImGui_WindowFlags_MenuBar()
-    reaper.ImGui_SetNextWindowSize(ctxPr, W, H, reaper.ImGui_Cond_Once()) -- Set the size of the windows.  Use in the 4th argument reaper.ImGui_Cond_FirstUseEver() to just apply at the first user run, so ImGUI remembers user resize s2
-    
-    reaper.ImGui_PushFont(ctxPr, font)
-    
-    --if ProcessString then
-      local visible, open = reaper.ImGui_Begin(ctxPr, 'Processing', true, window_flags)
-       
-      if visible then
-          reaper.ImGui_Text(ctxPr, ProcessString)
-          if reaper.ImGui_Button(ctxPr, 'Cancel', 120, 0) then
-            open = false
-          end 
-          reaper.ImGui_SetWindowSize(ctxPr, 0, 0, nil )
-          reaper.ImGui_End(ctxPr)
-      end
-      
-      reaper.ImGui_PopStyleColor(ctxPr, 3)
-      reaper.ImGui_PopFont(ctxPr)
-      
-      if open then --and ProcessString then
-        reaper.defer(ShowProgress)
-      end
-    --end
-    --reaper.defer(ShowProgress)
-    ]]
-    
-    if ProcessString then
-      reaper.ImGui_OpenPopup(ctx, 'Processing')
-      local center_x, center_y = reaper.ImGui_Viewport_GetCenter(reaper.ImGui_GetWindowViewport(ctx))
-      reaper.ImGui_SetNextWindowPos(ctx, center_x, center_y, reaper.ImGui_Cond_Appearing(), 0.5, 0.5)
-      
-      if reaper.ImGui_BeginPopupModal(ctx, 'Processing', nil, reaper.ImGui_WindowFlags_AlwaysAutoResize()) then
-        reaper.ImGui_Text(ctx, ProcessString)
-        --reaper.ImGui_SetItemDefaultFocus(ctx)
-        if reaper.ImGui_Button(ctx, 'Cancel', 120, 0) then
-          ProcessString = nil
-          reaper.ImGui_CloseCurrentPopup(ctx)
-        end
-        reaper.ImGui_EndPopup(ctx) 
-      end
-    end
-    
-  end
-  
   --------------
   
   function ProjectSelector(Prj, description, prjselpreview)
@@ -873,7 +830,12 @@ function OptionsWindow()
       reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_HeaderActive(), gui_colors.ComboBox.Active)
       
       reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Text(), gui_colors.White) 
-      
+      --
+      reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_WindowRounding(), fontSize/4)
+      reaper.ImGui_PushStyleVar(ctx, Flags.frameRounding, fontSize/4)
+      reaper.ImGui_PushStyleVar(ctx, Flags.childRounding, fontSize/4)
+      reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_FramePadding(), fontSize/2, fontSize/4)
+    
       local window_flags = reaper.ImGui_WindowFlags_None()--reaper.ImGui_WindowFlags_MenuBar()
       reaper.ImGui_SetNextWindowSize(ctx, W, H, reaper.ImGui_Cond_Once()) -- Set the size of the windows.  Use in the 4th argument reaper.ImGui_Cond_FirstUseEver() to just apply at the first user run, so ImGUI remembers user resize s2
       
@@ -889,6 +851,7 @@ function OptionsWindow()
       end
       
       reaper.ImGui_PopStyleColor(ctx, 13)
+      reaper.ImGui_PopStyleVar(ctx, 4)
       reaper.ImGui_PopFont(ctx)
        
       esc = reaper.ImGui_IsKeyReleased(ctx, reaper.ImGui_Key_Escape())
@@ -1098,6 +1061,14 @@ function AnalyseEDLs(EDLs, timeTreshold) --table of pathes
               
               FieldMatch(EdlTable.A2.Splits,copy(v.DestIn), true)
               FieldMatch(EdlTable.A2.Splits,copy(v.DestOut), true)
+            elseif v.Type == 'A3' then                    -- for Davinci Resolve
+              table.insert(EdlTable.A3, copy(v))
+              FieldMatch(EdlTable.A3.Splits,copy(v.DestIn), true)
+              FieldMatch(EdlTable.A3.Splits,copy(v.DestOut), true)
+            elseif v.Type and v.Type:match('A') then      -- for Davinci Resolve
+              table.insert(EdlTable.A4, copy(v))
+              FieldMatch(EdlTable.A4.Splits,copy(v.DestIn), true)
+              FieldMatch(EdlTable.A4.Splits,copy(v.DestOut), true)
             end
             
             if v.Type2 and v.Type2:match('3') then
