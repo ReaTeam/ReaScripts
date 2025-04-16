@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="594ce3a5416b77632b483fbf02a09decb4a8504d" name="ReaTeam Scripts">
+<index version="1" commit="24b0c384fa0ab86b02f8cf3e8f4c9318891c9ee1" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -24081,6 +24081,11 @@ v1.0
         <changelog><![CDATA[- Ability to choose tracks from EDL for comparison
 - fixed bug when some envelope points were removed unintentionally]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/969d93547c66aedb1d97119d69eb51d84da0c1e2/Various/az_Simple%20project%20reconform.lua</source>
+      </version>
+      <version name="0.7.1" author="AZ" time="2025-04-16T09:09:28Z">
+        <changelog><![CDATA[- Fix compatibility with Davinci Resolve track naming
+- some visual improvements]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/24b0c384fa0ab86b02f8cf3e8f4c9318891c9ee1/Various/az_Simple%20project%20reconform.lua</source>
       </version>
     </reapack>
     <reapack name="beaunus_Import_clip_splicer_specification_json.py" type="script" desc="Import Clip Splicer JSON file">
