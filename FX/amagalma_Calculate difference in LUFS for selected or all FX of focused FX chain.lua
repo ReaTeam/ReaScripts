@@ -1,41 +1,32 @@
 -- @description Calculate difference in LUFS for selected or all FX of focused FX chain
 -- @author amagalma
--- @version 1.01
+-- @version 2.00
 -- @changelog
---   - Fix for tracks FX chain
+--   - Complete re-write in order to support containers
 -- @donation https://www.paypal.me/amagalma
 -- @about
---   # Calculates the volume difference that the selected FX (or all FX, if none selected) will bring, using dry runs (no files are created). The opposite value of the level difference is copied to the clipboard.
+--   # Calculates the volume difference that the selected FX (or all the FX, if none is selected) will bring, using dry runs (no files are created). The opposite value of the level difference is copied to the clipboard.
 --
 --   - The correct dry run action will be smartly chosen
 --   - Time Selection is taken into account
 --   - An FX chain must be visible
---   - Show detailed report
---   - JS_ReaScriptAPI is required
+--   - Shows detailed report
+--   - JS_ReaScriptAPI and SWS Extensions are required
 
+local retval, track, item, take, fx, parm = reaper.GetTouchedOrFocusedFX(1)
+if not retval then return end
 
--- Check if JS_ReaScriptAPI is installed
-if not reaper.APIExists("JS_Window_ListFind") then
-  reaper.MB( "Please, right-click and install 'js_ReaScriptAPI: API functions for ReaScripts'. Then restart Reaper and run the script again. Thanks!", "JS_ReaScriptAPI Installation", 0 )
-  local ok, err = reaper.ReaPack_AddSetRepository( "ReaTeam Extensions", "https://github.com/ReaTeam/Extensions/raw/master/index.xml", true, 1 )
-  if ok then
-    reaper.ReaPack_BrowsePackages( "js_ReaScriptAPI" )
-  else
-    reaper.MB( err, "Something went wrong...", 0)
-  end
-  return reaper.defer(function() end)
-end
-
+local track = track ~= -1 and reaper.GetTrack(0, track) or reaper.GetMasterTrack(0)
+local item = item ~= -1 and reaper.GetMediaItem( 0, item )
+local take = (item and take ~= -1) and reaper.GetTake( item, take )
 
 -- FUNCTIONS --------------------------------
 
 local rep, format = string.rep, string.format
 
-
 local function al(str,cnt)
   return rep(" ", cnt-#str )
 end
-
 
 local function round(num, numDecimalPlaces)
   local mult = 10^(numDecimalPlaces or 0)
@@ -43,98 +34,121 @@ local function round(num, numDecimalPlaces)
   else return math.ceil(num * mult - 0.5) / mult end
 end
 
-
-local function GetInfo()
-  local focus, ret_track, ret_item, fxid = reaper.GetFocusedFX2()
-  if focus == 0 then
-    local number, window_list = reaper.JS_Window_ListFind("FX: ", false)
-    if number == 0 then
-      return
-    else
-      -- Hack
-      for address in window_list:gmatch("[^,]+") do
-        local FX_win = reaper.JS_Window_HandleFromAddress(address)
-        local title = reaper.JS_Window_GetTitle(FX_win)
-        if (title:match("FX: Track ") or title == "FX: Master Track" or title:match("FX: Item")) and
-        reaper.JS_Window_GetParent( FX_win ) == reaper.GetMainHwnd() then
-          local x, y = reaper.GetMousePosition()
-          local _, left, top = reaper.JS_Window_GetRect( FX_win )
-          reaper.JS_Mouse_SetPosition( left+5, top+5 )
-          reaper.Main_OnCommand(reaper.NamedCommandLookup('_S&M_MOUSE_L_CLICK'), 0)
-          reaper.JS_Mouse_SetPosition( x, y )
-          focus, ret_track, ret_item, fxid = reaper.GetFocusedFX2()
-          break
+local function get_container_path_from_fx_id( ptr, fxidx ) -- modified Justin's function
+  -- returns a list of 1-based IDs
+  if fxidx & 0x2000000 then
+    local is_take = reaper.ValidatePtr( ptr, "MediaItem_Take*" )
+    local FX_GetCount = is_take and reaper.TakeFX_GetCount or reaper.TrackFX_GetCount
+    local FX_GetNamedConfigParm = is_take and reaper.TakeFX_GetNamedConfigParm or reaper.TrackFX_GetNamedConfigParm
+    local ret, ret_n = { }, 0
+    local n = FX_GetCount(ptr)
+    local curidx = (fxidx - 0x2000000) % (n+1)
+    local remain = math.floor((fxidx - 0x2000000) / (n+1))
+    if curidx < 1 then return nil end -- bad address
+    local addr, addr_sc = curidx + 0x2000000, n + 1
+    while true do
+      local ccok, cc = FX_GetNamedConfigParm(ptr, addr, 'container_count')
+      if not ccok then return nil end -- not a container
+      ret_n = ret_n + 1
+      ret[ret_n] = curidx
+      n = tonumber(cc)
+      if remain <= n then 
+        if remain > 0 then
+          ret_n = ret_n + 1
+          ret[ret_n] = remain
         end
+        ret.depth = ret_n
+        return ret
       end
+      curidx = remain % (n+1)
+      remain = math.floor(remain / (n+1))
+      if curidx < 1 then return nil end -- bad address
+      addr = addr + addr_sc * curidx
+      addr_sc = addr_sc * (n+1)
     end
   end
-  if focus == 0 then return end
+  return { fxid+1 }
+end
+
+local function get_fx_id_from_container_path(ptr, idx1, ...) -- returns a fx-address from a list of 1-based IDs
+  local is_take = reaper.ValidatePtr( ptr, "MediaItem_Take*" )
+  local FX_GetCount = is_take and reaper.TakeFX_GetCount or reaper.TrackFX_GetCount
+  local FX_GetNamedConfigParm = is_take and reaper.TakeFX_GetNamedConfigParm or reaper.TrackFX_GetNamedConfigParm
+  local sc,rv = FX_GetCount(ptr)+1, 0x2000000 + idx1
+  for i,v in ipairs({...}) do
+    local ccok, cc = FX_GetNamedConfigParm(ptr, rv, 'container_count')
+    if ccok ~= true then return nil end
+    rv = rv + sc * v
+    sc = sc * (1+tonumber(cc))
+  end
+  return rv
+end
+
+local function getFXListHWND( FXChain_hwnd, CurrentFXDepth )
+  local hwnd = FXChain_hwnd
+  local d = 1
+  while d < CurrentFXDepth do
+   d = d + 1
+    hwnd = reaper.JS_Window_FindEx( hwnd, hwnd, "#32770", "")
+  end
+  return reaper.JS_Window_FindChildByID(hwnd, 1076)
+end
+
+local function GetSelectedFX( FXList_hwnd ) -- 0-based
   local sel_FX = {}
-  local chain = reaper.CF_GetFocusedFXChain()
-  if chain then
-    reaper.JS_Window_SetFocus( chain )
-    -- Get Selected FX
-    local list = reaper.JS_Window_FindChildByID(chain, 1076)
-    local _, sel_fx = reaper.JS_ListView_ListAllSelItems(list)
-    local a = 0
-    for i in sel_fx:gmatch("%d+") do
-      sel_FX[a+1] = tonumber(i)
-      a = a + 1
+  local _, sel_fx = reaper.JS_ListView_ListAllSelItems( FXList_hwnd )
+  local a = 0
+  for i in sel_fx:gmatch("%d+") do
+    sel_FX[a+1] = tonumber(i)
+    a = a + 1
+  end
+  if #sel_FX == 0 then
+    for i = 0, reaper.JS_ListView_GetItemCount( FXList_hwnd )-1 do
+      sel_FX[i+1] = i
     end
   end
-  local track = reaper.CSurf_TrackFromID( ret_track, false ) 
-  if ret_item ~= -1 then
-    local item = reaper.GetTrackMediaItem( track, ret_item )
-    local take = reaper.GetMediaItemTake( item, fxid >> 16 )
-    if #sel_FX == 0 then
-      for i = 0, reaper.TakeFX_GetCount( take )-1 do
-        sel_FX[i+1] = i
+  return sel_FX
+end
+
+local function ToggleFX( sel_FX, CurrentFXInfo )
+  if take then
+    for fx = 1, #sel_FX do
+      local id = sel_FX[fx]
+      if CurrentFXInfo then 
+        CurrentFXInfo[CurrentFXInfo.depth] = sel_FX[fx] + 1 -- make it 1-based for containers
+        id = get_fx_id_from_container_path(take, table.unpack(CurrentFXInfo) )
       end
+      reaper.TakeFX_SetEnabled( take, id, not reaper.TakeFX_GetEnabled( take, id ) )
     end
-    return "take", {item = item, take = take}, sel_FX
   else
-    if reaper.GetMediaTrackInfo_Value( track, "I_FXEN") ~= 0 then
-      if #sel_FX == 0 then
-        for i = 0, reaper.TrackFX_GetCount( track )-1 do
-          sel_FX[i+1] = i
-        end
+    for fx = 1, #sel_FX do
+      local id = sel_FX[fx]
+      if CurrentFXInfo then 
+        CurrentFXInfo[CurrentFXInfo.depth] = sel_FX[fx] + 1 -- make it 1-based for containers
+        id = get_fx_id_from_container_path(track, table.unpack(CurrentFXInfo) )
       end
-      return ret_track == 0 and "master" or "track", track, sel_FX
+      reaper.TrackFX_SetEnabled( track, id, not reaper.TrackFX_GetEnabled( track, id ) )
     end
   end
 end
 
-
-local function ToggleFX( what, object, sel_FX )
-  if what == "take" then
-    for fx = 1, #sel_FX do
-      reaper.TakeFX_SetEnabled( object.take, sel_FX[fx], not reaper.TakeFX_GetEnabled( object.take, sel_FX[fx] ) )
-    end
-  else
-    for fx = 1, #sel_FX do
-      reaper.TrackFX_SetEnabled( object, sel_FX[fx], not reaper.TrackFX_GetEnabled( object, sel_FX[fx] ) )
-    end
-  end
-end
-
-
-local function GetStats( what, object, sel_FX )
+local function GetStats( sel_FX, CurrentFXInfo )
   -- Get stats with FX
   local DryAction
-  if what == "take" then
+  if take then
     DryAction = 42437 -- Calculate loudness of selected items, including take and track FX and settings
-  elseif what == "master" then
+  elseif track == reaper.GetMasterTrack(0) then
     DryAction = 42441 -- Calculate loudness of master mix within time selection
   else
     DryAction = 42439 -- Calculate loudness of selected tracks within time selection
   end
-   ok1, fx_stats = reaper.GetSetProjectInfo_String(0, "RENDER_STATS", tostring(DryAction), false)
+   local ok1, fx_stats = reaper.GetSetProjectInfo_String(0, "RENDER_STATS", tostring(DryAction), false)
   if ok1 then
 
     -- Get stats without FX
-    ToggleFX( what, object, sel_FX )
+    ToggleFX( sel_FX, CurrentFXInfo )
     local ok2, pre_stats = reaper.GetSetProjectInfo_String(0, "RENDER_STATS", tostring(DryAction), false)
-    ToggleFX( what, object, sel_FX )
+    ToggleFX( sel_FX, CurrentFXInfo )
 
     if ok2 then
       local name
@@ -181,14 +195,14 @@ local function GetStats( what, object, sel_FX )
   end
 end
 
-
 -- MAIN --------------------------------------------------------------------
 
-local what, object, sel_FX = GetInfo()
+local FXChain_hwnd = take and reaper.CF_GetTakeFXChain( take ) or reaper.CF_GetTrackFXChain( track )
+local CurrentFXInfo = get_container_path_from_fx_id(take and take or track, fx)
+local FXList_hwnd = getFXListHWND( FXChain_hwnd, CurrentFXInfo and CurrentFXInfo.depth or 1 )
+local sel_FX = GetSelectedFX( FXList_hwnd )
 
-if not what or fx_cnt == 0 then
-  return reaper.defer(function() end)
-elseif what == "take" then
+if take then
   reaper.PreventUIRefresh( 1 )
   local sel_items, it_cnt = {}, 0
   for i = reaper.CountSelectedMediaItems( 0 )-1, 0, -1 do
@@ -196,12 +210,12 @@ elseif what == "take" then
     sel_items[it_cnt] = reaper.GetSelectedMediaItem( 0, i )
     reaper.SetMediaItemSelected( sel_items[it_cnt], false )
   end
-  reaper.SetMediaItemSelected( object.item, true )
+  reaper.SetMediaItemSelected( item, true )
   reaper.PreventUIRefresh( -1 )
   reaper.UpdateArrange()
-  GetStats( what, object, sel_FX )
+  GetStats( sel_FX, CurrentFXInfo )
   reaper.PreventUIRefresh( 1 )
-  reaper.SetMediaItemSelected( object.item, false )
+  reaper.SetMediaItemSelected( item, false )
   for i = 1, #sel_items do
     reaper.SetMediaItemSelected( sel_items[i], true )
   end
@@ -215,12 +229,12 @@ else
     sel_tracks[tr_cnt] = reaper.GetSelectedTrack( 0, i )
     reaper.SetTrackSelected( sel_tracks[tr_cnt], false )
   end
-  reaper.SetTrackSelected( object, true )
+  reaper.SetTrackSelected( track, true )
   reaper.PreventUIRefresh( -1 )
   reaper.UpdateArrange()
-  GetStats( what, object, sel_FX )
+  GetStats( sel_FX, CurrentFXInfo )
   reaper.PreventUIRefresh( 1 )
-  reaper.SetTrackSelected( object, false )
+  reaper.SetTrackSelected( track, false )
   for i = 1, #sel_tracks do
     reaper.SetTrackSelected( sel_tracks[i], true )
   end
