@@ -1,7 +1,7 @@
 -- @description Fade tool (works on context of mouse, razor or time selection)
 -- @author AZ
--- @version 2.2.5
--- @changelog - Fixed stupid bug with Hello message, that is trouble for new users
+-- @version 2.2.6
+-- @changelog - Fixed bug with edit cursor positioning when move envelope point in stretched items
 -- @provides
 --   az_Fade tool (work on context of mouse, razor or time selection)/az_Options window for az_Fade tool.lua
 --   [main] az_Fade tool (work on context of mouse, razor or time selection)/az_Open options for az_Fade tool.lua
@@ -60,7 +60,7 @@ end
 -------------------------
 
 ExtStateName = 'AZ_FadeTool'
-CurVers = 2.25
+CurVers = 2.26
 
 SaveLastBatchPrj = reaper.GetExtState(ExtStateName, 'SaveLastBatchPrj') 
 if SaveLastBatchPrj == 'false' then SaveLastBatchPrj = false
@@ -2332,7 +2332,7 @@ function MovePoint(env, time, item, pointPos)
       UndoString = 'FadeTool - create point'
   end
   
-  return (timeSnap + itemPos)/takeRate
+  return timeSnap/takeRate + itemPos
 end
 
 -----------------------------------------
