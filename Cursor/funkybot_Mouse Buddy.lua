@@ -3,129 +3,66 @@
 -- @version 3.0.2
 -- @about
 --   Mouse Buddy
---   Description: Displays the current mouse context and shows only the mouse modifier sections
---                from an HTML file that match the current context/details. Supports two modes:
---                "Live Mode" (auto-detect) and "Manual Mode" (user selects the context group and
---                mouse behavior filter). In Live Mode you can now press the F key to freeze/unfreeze
---                the displayed content.
+--Description: Displays the current mouse context and shows only the mouse modifier sections
+--             from an HTML file that match the current context/details. Supports two modes:
+--             "Live Mode" (auto-detect) and "Manual Mode" (user selects the context group and
+--             mouse behavior filter). In Live Mode you can now press the F key to freeze/unfreeze
+--             the displayed content.
 --             
---       How to Use:
---                1. In Reaper’s Action List, run Help: Mouse modifier keys and action shortcuts.
---                2. This will create a file called ReaperKeyboardShortcuts.html.
---                3. Navigate to the folder on your PC where this file is saved and copy/paste the HTML 
---                   to a non-temporary folder on your computer so you won’t have to repeat this process.
---                4. Launch the Mouse Buddy script from the Action List.
---                5. At the top of the window, click Browse and point Mouse Buddy to the ReaperKeyboardShortcuts.html file.
---                6. In Live Mode, the display updates in real time; press the F key to freeze/unfreeze the view.
---                7. In Manual Mode, you can select the context you want to see modifiers for.
+--    How to Use:
+--             1. In Reaper’s Action List, run Help: Mouse modifier keys and action shortcuts.
+--             2. This will create a file called ReaperKeyboardShortcuts.html.
+--             3. Navigate to the folder on your PC where this file is saved and copy/paste the HTML 
+--                to a non-temporary folder on your computer so you won’t have to repeat this process.
+--             4. Launch the Mouse Buddy script from the Action List.
+--             5. At the top of the window, click Browse and point Mouse Buddy to the ReaperKeyboardShortcuts.html file.
+--             6. In Live Mode, the display updates in real time; press the F key to freeze/unfreeze the view.
+--             7. In Manual Mode, you can select the context you want to see modifiers for.
 --
---                This version uses a mapping table to convert the (Window,Segment,Details) values
---                into one or more modifier prefix groups for filtering the HTML file.
+--             This version uses a mapping table to convert the (Window,Segment,Details) values
+--             into one or more modifier prefix groups for filtering the HTML file.
 --
---                The mapping table is defined as follows (all comparisons are done case-insensitively):
+--             The mapping table is defined as follows (all comparisons are done case-insensitively):
 --
---                -------------------------------------------------------------------------------
---                Window       Segment       Details              Modifier Groups
---                -------------------------------------------------------------------------------
---                unknown      (wildcard)    (wildcard)           { [show last valid context] }
---                ruler        (wildcard)    (wildcard)           { "Mouse: Ruler" }
---                marker_lane  (none)        (wildcard)           { "Mouse: Project marker/region lane" }
---                tempo_lane   (none)        (wildcard)           { "Mouse: Project tempo/time signature" }
---                timeline     (none)        (wildcard)           { "Mouse: Ruler" }
---                transport    (none)        (wildcard)           { [show last valid context] }
---                tcp          track         (wildcard)           { "Mouse: Track control panel" }
---                envelope     (none)        (wildcard)           { "Mouse: Envelope lane" }
---                envelope     (none)        env_point            { "Mouse: Envelope point", "Mouse: Envelope segment" }
---                envelope     (none)        env_segment          { "Mouse: Envelope segment", "Mouse: Envelope point" }
---                empty        (none)        (wildcard)           { [show last valid context] }
---                mcp          track         (wildcard)           { "Mouse: Mixer control panel " }
---                arrange      track         empty                { "Mouse: Arrange view" }
---                arrange      track         item                 { "Mouse: Media item" }
---                arrange      track         item_stretch_marker  { "Mouse: Media item stretch marker" }
---                arrange      track         env_point            { "Mouse: Envelope point" }
---                arrange      track         env_segment          { "Mouse: Envelope segment" }
---                -------------------------------------------------------------------------------
---                -- MIDI Editor rows (window = "midi_editor")
---                midi_editor  unknown       piano                { "Mouse: MIDI piano roll" }
---                midi_editor  unknown       ruler                { "Mouse: MIDI ruler" }
---                midi_editor  unknown       notes                { "Mouse: MIDI note", "Mouse: MIDI editor" }
---                midi_editor  cc_lane       cc_lane              { "Mouse: MIDI CC lane", "Mouse: MIDI CC segment" }
---                midi_editor  cc_lane       cc_selector          { "Mouse: MIDI CC lane", "Mouse: MIDI CC segment" }
---                midi_editor  cc_segment    cc_segment           { "Mouse: MIDI CC segment", "Mouse: MIDI CC lane" }
---                midi_editor  cc_event      cc_event             { "Mouse: MIDI CC segment", "Mouse: MIDI CC lane" }
---                midi_editor  unknown       (wildcard)           { "Mouse: MIDI piano roll", "Mouse: MIDI editor" }
---                -------------------------------------------------------------------------------
---                cc_lane      cc_selector   (wildcard)           { "Mouse: MIDI CC lane", "Mouse: MIDI CC segment" }
---                cc_lane      cc_lane       (wildcard)           { "Mouse: MIDI CC lane", "Mouse: MIDI CC segment" }
---                -------------------------------------------------------------------------------
+--             -------------------------------------------------------------------------------
+--             Window       Segment       Details              Modifier Groups
+--             -------------------------------------------------------------------------------
+--             unknown      (wildcard)    (wildcard)           { [show last valid context] }
+--             ruler        (wildcard)    (wildcard)           { "Mouse: Ruler" }
+--             marker_lane  (none)        (wildcard)           { "Mouse: Project marker/region lane" }
+--             tempo_lane   (none)        (wildcard)           { "Mouse: Project tempo/time signature" }
+--             timeline     (none)        (wildcard)           { "Mouse: Ruler" }
+--             transport    (none)        (wildcard)           { [show last valid context] }
+--             tcp          track         (wildcard)           { "Mouse: Track control panel" }
+--             envelope     (none)        (wildcard)           { "Mouse: Envelope lane" }
+--             envelope     (none)        env_point            { "Mouse: Envelope point", "Mouse: Envelope segment" }
+--             envelope     (none)        env_segment          { "Mouse: Envelope segment", "Mouse: Envelope point" }
+--             empty        (none)        (wildcard)           { [show last valid context] }
+--             mcp          track         (wildcard)           { "Mouse: Mixer control panel " }
+--             arrange      track         empty                { "Mouse: Arrange view" }
+--             arrange      track         item                 { "Mouse: Media item" }
+--             arrange      track         item_stretch_marker  { "Mouse: Media item stretch marker" }
+--             arrange      track         env_point            { "Mouse: Envelope point" }
+--             arrange      track         env_segment          { "Mouse: Envelope segment" }
+--             -------------------------------------------------------------------------------
+--             -- MIDI Editor rows (window = "midi_editor")
+--             midi_editor  unknown       piano                { "Mouse: MIDI piano roll" }
+--             midi_editor  unknown       ruler                { "Mouse: MIDI ruler" }
+--             midi_editor  unknown       notes                { "Mouse: MIDI note", "Mouse: MIDI editor" }
+--             midi_editor  cc_lane       cc_lane              { "Mouse: MIDI CC lane", "Mouse: MIDI CC segment" }
+--             midi_editor  cc_lane       cc_selector          { "Mouse: MIDI CC lane", "Mouse: MIDI CC segment" }
+--             midi_editor  cc_segment    cc_segment           { "Mouse: MIDI CC segment", "Mouse: MIDI CC lane" }
+--             midi_editor  cc_event      cc_event             { "Mouse: MIDI CC segment", "Mouse: MIDI CC lane" }
+--             midi_editor  unknown       (wildcard)           { "Mouse: MIDI piano roll", "Mouse: MIDI editor" }
+--             -------------------------------------------------------------------------------
+--             cc_lane      cc_selector   (wildcard)           { "Mouse: MIDI CC lane", "Mouse: MIDI CC segment" }
+--             cc_lane      cc_lane       (wildcard)           { "Mouse: MIDI CC lane", "Mouse: MIDI CC segment" }
+--             -------------------------------------------------------------------------------
 --             
---   Design and Concept: Funkybot (via ChatGPT)
---   Extra Code and Concept: TouristKiller
---
---   Requirements: SWS Extension, ReaImGui (docking branch recommended)
-
---[[ 
-ReaScript Name: Mouse Buddy
-Description: Displays the current mouse context and shows only the mouse modifier sections
-             from an HTML file that match the current context/details. Supports two modes:
-             "Live Mode" (auto-detect) and "Manual Mode" (user selects the context group and
-             mouse behavior filter). In Live Mode you can now press the F key to freeze/unfreeze
-             the displayed content.
-             
-    How to Use:
-             1. In Reaper’s Action List, run Help: Mouse modifier keys and action shortcuts.
-             2. This will create a file called ReaperKeyboardShortcuts.html.
-             3. Navigate to the folder on your PC where this file is saved and copy/paste the HTML 
-                to a non-temporary folder on your computer so you won’t have to repeat this process.
-             4. Launch the Mouse Buddy script from the Action List.
-             5. At the top of the window, click Browse and point Mouse Buddy to the ReaperKeyboardShortcuts.html file.
-             6. In Live Mode, the display updates in real time; press the F key to freeze/unfreeze the view.
-             7. In Manual Mode, you can select the context you want to see modifiers for.
-
-             This version uses a mapping table to convert the (Window,Segment,Details) values
-             into one or more modifier prefix groups for filtering the HTML file.
-
-             The mapping table is defined as follows (all comparisons are done case-insensitively):
-
-             -------------------------------------------------------------------------------
-             Window       Segment       Details              Modifier Groups
-             -------------------------------------------------------------------------------
-             unknown      (wildcard)    (wildcard)           { [show last valid context] }
-             ruler        (wildcard)    (wildcard)           { "Mouse: Ruler" }
-             marker_lane  (none)        (wildcard)           { "Mouse: Project marker/region lane" }
-             tempo_lane   (none)        (wildcard)           { "Mouse: Project tempo/time signature" }
-             timeline     (none)        (wildcard)           { "Mouse: Ruler" }
-             transport    (none)        (wildcard)           { [show last valid context] }
-             tcp          track         (wildcard)           { "Mouse: Track control panel" }
-             envelope     (none)        (wildcard)           { "Mouse: Envelope lane" }
-             envelope     (none)        env_point            { "Mouse: Envelope point", "Mouse: Envelope segment" }
-             envelope     (none)        env_segment          { "Mouse: Envelope segment", "Mouse: Envelope point" }
-             empty        (none)        (wildcard)           { [show last valid context] }
-             mcp          track         (wildcard)           { "Mouse: Mixer control panel " }
-             arrange      track         empty                { "Mouse: Arrange view" }
-             arrange      track         item                 { "Mouse: Media item" }
-             arrange      track         item_stretch_marker  { "Mouse: Media item stretch marker" }
-             arrange      track         env_point            { "Mouse: Envelope point" }
-             arrange      track         env_segment          { "Mouse: Envelope segment" }
-             -------------------------------------------------------------------------------
-             -- MIDI Editor rows (window = "midi_editor")
-             midi_editor  unknown       piano                { "Mouse: MIDI piano roll" }
-             midi_editor  unknown       ruler                { "Mouse: MIDI ruler" }
-             midi_editor  unknown       notes                { "Mouse: MIDI note", "Mouse: MIDI editor" }
-             midi_editor  cc_lane       cc_lane              { "Mouse: MIDI CC lane", "Mouse: MIDI CC segment" }
-             midi_editor  cc_lane       cc_selector          { "Mouse: MIDI CC lane", "Mouse: MIDI CC segment" }
-             midi_editor  cc_segment    cc_segment           { "Mouse: MIDI CC segment", "Mouse: MIDI CC lane" }
-             midi_editor  cc_event      cc_event             { "Mouse: MIDI CC segment", "Mouse: MIDI CC lane" }
-             midi_editor  unknown       (wildcard)           { "Mouse: MIDI piano roll", "Mouse: MIDI editor" }
-             -------------------------------------------------------------------------------
-             cc_lane      cc_selector   (wildcard)           { "Mouse: MIDI CC lane", "Mouse: MIDI CC segment" }
-             cc_lane      cc_lane       (wildcard)           { "Mouse: MIDI CC lane", "Mouse: MIDI CC segment" }
-             -------------------------------------------------------------------------------
-             
-Author: Touristkiller, Funkybot (via ChatGPT)
-Version: 3.0.2
-Requirements: SWS Extension, ReaImGui (docking branch recommended)
-]]
+--Author: Touristkiller, Funkybot (via ChatGPT)
+--Version: 3.0.2
+--Requirements: SWS Extensions, ReaImGui
+--]]
 
 local r = reaper -- Reaper API alias
 
@@ -221,30 +158,39 @@ local validMouseFilters = {
 }
 
 -----------------------------------------------------------
+-- Backward-compatibility shim: require specific ReaImGui version
+-----------------------------------------------------------
+if not r.ImGui_GetBuiltinPath then
+  return reaper.MB("ReaImGui is not installed or too old.", "Mouse Buddy", 0)
+end
+package.path = r.ImGui_GetBuiltinPath() .. "/?.lua"
+local ImGui = require 'imgui' '0.9.3'
+ 
+-----------------------------------------------------------
 -- Create an ImGui context with docking enabled.
 -----------------------------------------------------------
-local ctx = r.ImGui_CreateContext("Mouse Buddy 3.0", r.ImGui_ConfigFlags_DockingEnable())
-if r.ImGui_GetIO then
-  local io = r.ImGui_GetIO(ctx)
-  if io then io.ConfigFlags = io.ConfigFlags | r.ImGui_ConfigFlags_DockingEnable() end
-end
-local font = r.ImGui_CreateFont("Arial", 14)
-r.ImGui_Attach(ctx, font)
+local ctx = ImGui.CreateContext("Mouse Buddy")
+ 
+-----------------------------------------------------------
+-- Font creation & attach
+----------------------------------------------------------- 
+local font = ImGui.CreateFont('Arial', 13)
+ImGui.Attach(ctx, font)
 
 -----------------------------------------------------------
 -- UI Style Helpers
 -----------------------------------------------------------
 local function setStyle()
-  r.ImGui_PushStyleColor(ctx, r.ImGui_Col_WindowBg(), 0x323232FF)
-  r.ImGui_PushStyleColor(ctx, r.ImGui_Col_Text(), 0xC8C8C8FF)
-  r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_WindowRounding(), 12)
-  r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_WindowPadding(), 10, 10)
-  r.ImGui_PushStyleVar(ctx, r.ImGui_StyleVar_ItemSpacing(), 8, 4)
+  ImGui.PushStyleColor(ctx, ImGui.Col_WindowBg, 0x323232FF)
+  ImGui.PushStyleColor(ctx, ImGui.Col_Text,     0xC8C8C8FF)
+  ImGui.PushStyleVar  (ctx, ImGui.StyleVar_WindowRounding, 12)
+  ImGui.PushStyleVar  (ctx, ImGui.StyleVar_WindowPadding, 10, 10)
+  ImGui.PushStyleVar  (ctx, ImGui.StyleVar_ItemSpacing,  8, 4)
 end
 
 local function clearStyle()
-  r.ImGui_PopStyleVar(ctx, 3)
-  r.ImGui_PopStyleColor(ctx, 2)
+  ImGui.PopStyleVar  (ctx, 3)
+  ImGui.PopStyleColor(ctx, 2)
 end
 
 -----------------------------------------------------------
@@ -652,24 +598,24 @@ end
 -----------------------------------------------------------
 local function Main()
   setStyle()
-  r.ImGui_PushFont(ctx, font)
-  
-  r.ImGui_SetNextWindowSize(ctx, 800, 600, r.ImGui_Cond_FirstUseEver())
-  local visible, open = r.ImGui_Begin(ctx, "Mouse Buddy 3.0", true, r.ImGui_WindowFlags_NoCollapse())
+  ImGui.PushFont(ctx, font)
+
+  ImGui.SetNextWindowSize(ctx, 800, 600, ImGui.Cond_FirstUseEver)
+  local visible, open = ImGui.Begin(ctx, "Mouse Buddy 3.0", true, ImGui.WindowFlags_NoCollapse)
   if visible then
-  
-    if r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_F()) then
+
+    if ImGui.IsKeyPressed(ctx, ImGui.Key_F) then
       freezeDisplay = not freezeDisplay
     end
-  
-    if r.ImGui_IsKeyPressed(ctx, r.ImGui_Key_M()) then
-      if mode == "live" then mode = "manual" else mode = "live" end
+
+    if ImGui.IsKeyPressed(ctx, ImGui.Key_M) then
+      mode = (mode == "live") and "manual" or "live"
     end
-  
-    if r.ImGui_BeginChild(ctx, "Path", -1, 20) then
-      local changed, new_path = r.ImGui_InputText(ctx, "Path", pathInput)
-      r.ImGui_SameLine(ctx)
-      if r.ImGui_Button(ctx, "Browse") then
+
+    if ImGui.BeginChild(ctx, "Path", -1, 20) then
+      local changed, new_path = ImGui.InputText(ctx, "Path", pathInput)
+      ImGui.SameLine(ctx)
+      if ImGui.Button(ctx, "Browse") then
         local ok, filename = r.GetUserFileNameForRead("", "Select Mouse Modifiers HTML", ".html")
         if ok then
           pathInput = filename
@@ -682,7 +628,7 @@ local function Main()
         HTML_PATH = pathInput
         r.SetExtState(EXT_SECTION, EXT_KEY, HTML_PATH, true)
       end
-      r.ImGui_EndChild(ctx)
+        ImGui.EndChild(ctx)
     end
   
     r.ImGui_Separator(ctx)
