@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="d0960d054339d99a6f2f89940fde692e52bf7a4c" name="ReaTeam Scripts">
+<index version="1" commit="7b40c23cda1032ec3391b7035b62cc0a7731b279" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -3002,6 +3002,25 @@ Remember the window position, size and dock state]]></changelog>
       <version name="1.0" author="Meo-Ada Mespotine" time="2022-02-09T16:53:20Z">
         <changelog><![CDATA[First version]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c5e96289521dfe5be8b87e894953907d0210acf4/Envelopes/mespotine_Toggle%20height%20of%20selected%20track%20envelope.lua</source>
+      </version>
+    </reapack>
+    <reapack name="saull_Peak envelope generator.lua" type="script" desc="Peak envelope generator">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel0 \b \fs36 Peak envelope generator\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Generates envelope based on audio item peaks. You can think of it as an offline audio source parameter baker.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Requires ReaImGui, but will prompt you to install it and provide ReaPack repo, if you don't already have it.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Contains built-in documentation in UI.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Only works with FX envelopes at the moment\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.01" author="saul-l" time="2025-05-01T19:01:25Z">
+        <changelog><![CDATA[Removed console message, which was accidently left for autogen]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/7b40c23cda1032ec3391b7035b62cc0a7731b279/Envelopes/saull_Peak%20envelope%20generator.lua</source>
       </version>
     </reapack>
     <reapack name="spk77_Adjust volume envelope point at mouse cursor via mousewheel.lua" type="script" desc="spk77_Adjust volume envelope point at mouse cursor via mousewheel.lua">
