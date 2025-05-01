@@ -15,22 +15,6 @@
 --
 --   Only works with FX envelopes at the moment
 
--- @description Peak envelope generator
--- @author saul-l
--- @version 1.01
--- @about
---   # Peak envelope generator
---
---   Generates envelope based on audio item peaks.
---   You can think of it as an offline audio source parameter baker.
---
---   Requires ReaImGui, but will prompt you to install it and provide ReaPack repo,
---   if you don't already have it.
---
---   Contains built-in documentation in UI.
---
---   Only works with FX envelopes at the moment
-
 if not reaper.ImGui_GetBuiltinPath then
   reaper.MB("ReaImGui required. Please install it.", "Install ReaImGui", 0)
   if not pcall(function() reaper.ReaPack_BrowsePackages( "ReaImGui: ReaScript binding for Dear ImGui" ) end) then
