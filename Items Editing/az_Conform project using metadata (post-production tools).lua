@@ -1,7 +1,9 @@
 -- @description Conform project using metadata (post-production tools)
 -- @author AZ
--- @version 0.5
--- @changelog - Added and polished features, a lot of changes in code and UX.
+-- @version 0.5.1
+-- @changelog
+--   - Fixed bug for the case if BWF description has some other constructions except 'key=value'
+--   - Fixed undo point creation for items selection
 -- @provides
 --   az_Conform project using metadata (post-production tools)/az_Conform project_Core.lua
 --   [main] az_Conform project using metadata (post-production tools)/az_Rename takes with last used settings (post-production tools).lua
