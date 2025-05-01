@@ -34,6 +34,35 @@ function rgbToHex(rgba) -- passing a table with percentage like {100, 50, 20, 90
 end
 ------------------------
 
+
+  gui_colors = {
+    White = rgbToHex({90,90,90,100}),
+    Green = rgbToHex({52,85,52,100}),
+    Red = rgbToHex({90,10,10,100}),
+    Blue = rgbToHex({30,60,80,100}),
+    TitleBg = rgbToHex({30,20,30,100}), 
+    Background = rgbToHex({11,14,14,95}),
+    Text = rgbToHex({92,92,81.5,100}),
+    activeText = rgbToHex({50,95,80,100}),
+    ComboBox = {
+      Default = rgbToHex({20,25,30,100}),
+      Hovered = rgbToHex({35,40,45,80}),
+      Active = rgbToHex({42,42,37,100}), 
+    },
+    Button = {
+      Default = rgbToHex({25,30,30,100}),
+      Hovered = rgbToHex({35,40,45,100}),
+      Active = rgbToHex({42,42,37,100}),
+    },
+    MainButton = {
+      Default = rgbToHex({25,50,40,80}),
+      Hovered = rgbToHex({35,60,55,80}),
+      Active = rgbToHex({56,56,42,90}),
+    }
+  }
+  
+
+------------------------
 function addFileNamesToList(list, string )
   for s in string:gmatch("[^\0]+") do table.insert(list, s) end
   if #list > 1 and reaper.GetOS():match("^Win") ~= nil then
@@ -143,32 +172,6 @@ function MainWindow(OptTable, windowName)
   if not savedFontSize then savedFontSize = fontSize end 
   
   
-  local gui_colors = {
-    White = rgbToHex({90,90,90,100}),
-    Green = rgbToHex({52,85,52,100}),
-    Red = rgbToHex({90,10,10,100}),
-    Blue = rgbToHex({30,60,80,100}),
-    TitleBg = rgbToHex({30,20,30,100}), 
-    Background = rgbToHex({11,14,14,95}),
-    Text = rgbToHex({92,92,81.5,100}),
-    activeText = rgbToHex({50,95,80,100}),
-    ComboBox = {
-      Default = rgbToHex({20,25,30,100}),
-      Hovered = rgbToHex({35,40,45,80}),
-      Active = rgbToHex({42,42,37,100}), 
-    },
-    Button = {
-      Default = rgbToHex({25,30,30,100}),
-      Hovered = rgbToHex({35,40,45,100}),
-      Active = rgbToHex({42,42,37,100}),
-    },
-    MainButton = {
-      Default = rgbToHex({25,50,40,80}),
-      Hovered = rgbToHex({35,60,55,80}),
-      Active = rgbToHex({56,56,42,90}),
-    }
-  }
-  ------
   ---Flags---
   local Flags = {}
   Flags.childRounding = reaper.ImGui_StyleVar_ChildRounding()
@@ -256,8 +259,7 @@ function MainWindow(OptTable, windowName)
         end
         
         showEDLsNames(EDL)
-        --reaper.ImGui_NewLine(ctx)
-        
+         
         --Source tracks
         local childflags = Flags.childAutoResizeY | Flags.childBorder
         local childImportSettings = reaper.ImGui_BeginChild(ctx, 'ChildImportSettings', fontSize*33, 0, childflags, Flags.menubar)
@@ -727,6 +729,12 @@ function MainWindow(OptTable, windowName)
           frame()
           reaper.ImGui_SetWindowSize(ctx, 0, 0, nil ) 
           reaper.ImGui_End(ctx)
+          
+          if UndoString then
+            reaper.UpdateArrange()
+            reaper.Undo_EndBlock2(0, UndoString, 1)
+            UndoString = nil
+          end
       end
       
       reaper.ImGui_PopStyleColor(ctx, 13)
@@ -1149,12 +1157,6 @@ function RenameTakes(SelItems, FormatString, NoteFormatString)
     end
   end
   
-  if UndoString then
-    reaper.UpdateArrange()
-    reaper.Undo_EndBlock2(0, UndoString, 1)
-    UndoString = nil
-  end
-  
 end
 
 -------------------------------
@@ -1261,9 +1263,7 @@ function Expand(SelItems, TrackList)
   end
   
   if UndoString then
-    reaper.UpdateArrange()
-    reaper.Undo_EndBlock2(0, UndoString, 1)
-    UndoString = nil
+    --
   elseif #SelItems > 0 then
     reaper.ShowMessageBox('All items are already on their tracks.\nOr there is no valid data - click Analyse again', 'Expand items', 0)
   end
@@ -1284,7 +1284,8 @@ function GetSelItemsPerTrack(addMeta, addActiveChNames)
     local iTrack = reaper.GetMediaItemTrack(item)
     
     local take = reaper.GetActiveTake(item)
-    local src = reaper.GetMediaItemTake_Source(take)
+    local src
+    if take then src = reaper.GetMediaItemTake_Source(take) end
     
     if src then --is item in range
       Item.file = reaper.GetMediaSourceFileName( src )
@@ -1600,13 +1601,7 @@ function LinkFiles(SelItems)
     if reaper.CountTrackMediaItems(track) == 0 then reaper.DeleteTrack(track) end
   end
   
-  if UndoString then
-    reaper.UpdateArrange()
-    reaper.Undo_EndBlock2(0, UndoString, 1)
-    UndoString = nil
-  end
-  
-  return notMatchedItems 
+  return notMatchedItems
 end
 
 -------------------------------
@@ -1799,12 +1794,6 @@ function CreateTracks(EdlsTable)
     end  
   end
 
-  if UndoString then
-    reaper.UpdateArrange()
-    reaper.Undo_EndBlock2(0, UndoString, 1)
-    UndoString = nil
-  end 
-
   return notMatchedItems
 end
 
@@ -1822,8 +1811,8 @@ function save_metadata(source,list_metadata)
     v = v:gsub('+','_')
     v = v:gsub('*','_')
     v = v:gsub('\n','')
-    key, v = v:match("%s*([^=]*)%s*%=%s*(.-)%s*$") --Split construction 'key=value' 
-    dop_list[key] = v
+    key, v = v:match("%s*([^=]*)%s*%=%s*(.-)%s*$") --Split construction 'key=value'
+    if key and v then dop_list[key] = v end
   end
   
   for i, v in ipairs(list_metadata) do
