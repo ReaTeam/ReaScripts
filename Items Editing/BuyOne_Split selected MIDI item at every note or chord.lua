@@ -3,7 +3,7 @@ ReaScript name: Split selected MIDI item at every note or chord
 Author: BuyOne
 Website: https://forum.cockos.com/member.php?u=134058
 Version: 1.2
-Changelog: 1.2 	#Made the script compatible with preference 
+Changelog:	#Made the script compatible with preference 
 		Preferences -> Media -> MIDI -> Allow trim of MIDI items when splitting
 		added in REAPER build 6.74
 		#Prevented unnecessary zooming if MIDI Editor is open
@@ -13,9 +13,6 @@ Changelog: 1.2 	#Made the script compatible with preference
 		#Re-organized the code
 		#Updated GLUE_SLICES setting description
 		#Updated 'About' text to reflect the new functionality
- 	 1.1	#Improved reliability in different situations
-		#Added support for chords
-		#Updated the script name to be more descriptive
 Licence: WTFPL
 REAPER: at least v5.962
 Provides: [main=main,midi_editor] .
