@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="7b40c23cda1032ec3391b7035b62cc0a7731b279" name="ReaTeam Scripts">
+<index version="1" commit="bf1eb848321a38f195a6bcb3c23b7d5f7d28d97f" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -3021,6 +3021,10 @@ Remember the window position, size and dock state]]></changelog>
       <version name="1.01" author="saul-l" time="2025-05-01T19:01:25Z">
         <changelog><![CDATA[Removed console message, which was accidently left for autogen]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/7b40c23cda1032ec3391b7035b62cc0a7731b279/Envelopes/saull_Peak%20envelope%20generator.lua</source>
+      </version>
+      <version name="1.02" author="saul-l" time="2025-05-02T07:46:27Z">
+        <changelog><![CDATA[Fixed Smooth not working properly, unless envelope is manually selected]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/bf1eb848321a38f195a6bcb3c23b7d5f7d28d97f/Envelopes/saull_Peak%20envelope%20generator.lua</source>
       </version>
     </reapack>
     <reapack name="spk77_Adjust volume envelope point at mouse cursor via mousewheel.lua" type="script" desc="spk77_Adjust volume envelope point at mouse cursor via mousewheel.lua">
