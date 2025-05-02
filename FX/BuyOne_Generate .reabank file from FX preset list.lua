@@ -2,8 +2,9 @@
 ReaScript name: Generate .reabank file from FX preset list
 Author: BuyOne
 Website: https://forum.cockos.com/member.php?u=134058
-Version: 1.0
-Changelog: Initial release
+Version: 1.1
+Changelog: #Fixed incompatibility with Lua 5.4 bitwise operation convensions
+	   #Fixed REAPER version evaluation
 Licence: WTFPL
 REAPER: at least v5.962
 About: 	The script allows creating .reabank files for individual plugins
@@ -340,7 +341,7 @@ end
 local retval, tr_num, tr, itm_num, item, take_num, take, fx_num, mon_fx, fx_name = GetFocusedFX()
 
 local fx_chain = retval > 0 or mon_fx
-local supported_build = tonumber(r.GetAppVersion():match('(.+)/')) > 6.11 -- inserting from FX browser is only supported since build 6.12c
+local supported_build = tonumber(r.GetAppVersion():match('[%d%.]+')) > 6.11 -- inserting from FX browser is only supported since build 6.12c
 local fx_brows_open = get_tog_state(0, 40271) == 1 -- View: Show FX browser window
 
 -- Generate prompts
@@ -360,7 +361,8 @@ local err = not err and fx_brows_open and fx_chain and 'Both FX chain and FX bro
 
 -- Thanks to mespotine for figuring out config variables
 -- https://github.com/mespotine/ultraschall-and-reaper-docs/blob/master/Docs/Reaper-ConfigVariables-Documentation.txt
-local one_chain = fx_chain and Check_reaper_ini('fxfloat_focus')&2 == 2 -- 'Only allow one FX chain window at a time' is enabled in Preferences -> Plug-ins	
+local bitfield = Check_reaper_ini('fxfloat_focus')
+local one_chain = fx_chain and tonumber(bitfield) and tonumber(bitfield)&2 == 2 -- 'Only allow one FX chain window at a time' is enabled in Preferences -> Plug-ins
 	
 local chain_fx_list, valid_fx_cnt_chain, _129_chain = table.unpack(fx_chain and {Check_Selected_FX(take, tr, fx_num, one_chain)} or {''})
 local brows_fx_list, valid_fx_cnt_brows, _129_brows = table.unpack(fx_brows_open and {Check_Selected_FX()} or {''})
