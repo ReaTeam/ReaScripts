@@ -1,7 +1,7 @@
 -- @description Peak envelope generator
 -- @author saul-l
--- @version 1.01
--- @changelog Removed console message, which was accidently left for autogen
+-- @version 1.02
+-- @changelog Fixed Smooth not working properly, unless envelope is manually selected
 -- @about
 --   # Peak envelope generator
 --
@@ -14,6 +14,7 @@
 --   Contains built-in documentation in UI.
 --
 --   Only works with FX envelopes at the moment
+
 
 if not reaper.ImGui_GetBuiltinPath then
   reaper.MB("ReaImGui required. Please install it.", "Install ReaImGui", 0)
@@ -131,7 +132,10 @@ function CalculateEnvelope()
            reaper.InsertEnvelopePoint(env, starttime + (k-1)*ticklen*.5, scaleFunc(peak), 0,  0, true) 
         end
         
-        if smooth then reaper.Main_OnCommand(42208,0) end
+        if smooth then
+          if reaper.GetSelectedEnvelope(0) ~= env then reaper.SetCursorContext(2,env) end
+          reaper.Main_OnCommand(42208,0)
+        end
     end
  end
   
