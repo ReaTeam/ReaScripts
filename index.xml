@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="bf1eb848321a38f195a6bcb3c23b7d5f7d28d97f" name="ReaTeam Scripts">
+<index version="1" commit="5226a1009296468d10ef1178f4ab33a8c28cb056" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -4121,7 +4121,7 @@ Fix a potential infinite loop]]></changelog>
     </reapack>
     <reapack name="BuyOne_Generate .reabank file from FX preset list.lua" type="script" desc="Generate .reabank file from FX preset list">
       <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
@@ -4141,6 +4141,11 @@ Fix a potential infinite loop]]></changelog>
       <version name="1.0" author="BuyOne" time="2023-03-30T17:20:55Z">
         <changelog><![CDATA[Initial release]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/7a7b2deefb945ddf8c7799b3e1031f924eeacb8a/FX/BuyOne_Generate%20.reabank%20file%20from%20FX%20preset%20list.lua</source>
+      </version>
+      <version name="1.1" author="BuyOne" time="2025-05-02T08:24:59Z">
+        <changelog><![CDATA[#Fixed incompatibility with Lua 5.4 bitwise operation convensions
+#Fixed REAPER version evaluation]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/5226a1009296468d10ef1178f4ab33a8c28cb056/FX/BuyOne_Generate%20.reabank%20file%20from%20FX%20preset%20list.lua</source>
       </version>
     </reapack>
     <reapack name="BuyOne_Insert selected FX or FX chain presets in OR copy focused FX to selected objects.lua" type="script" desc="Insert selected FX or FX chain preset in OR copy focused FX to selected objects">
