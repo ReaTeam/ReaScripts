@@ -1,7 +1,7 @@
--- @description Smart Tempo Ripple
+-- @description Smart tempo and time signature changes
 -- @author muorsic
--- @version 1.5
--- @changelog Prevent UI refresh
+-- @version 1.6
+-- @changelog fixed bug with creating first envelope point at timepos 0
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=300105
 -- @about
 --   Features
@@ -14,11 +14,12 @@
 --   - Supports removal of time signatures as well.
 --   - When timebase for markers is "Time" it will bypass the script.
 
--- muorsic_Insert tempo\time signature ("ripple" time signatures)
--- Version 1.5 April 29th 2025
+-- muorsic_Smart tempo and time signature changes
+-- Version 1.6 May 2nd 2025
 -- Known Bugs: 
 -- Reaper Bug where linear tempo on previous point changes from true to false while next point has only meter change.
 -- Some overlapping linear tempo marks can cause misbehaviour.. better adjust by mouse but mostly works
+
 
 flux = 1e9
 
@@ -289,7 +290,7 @@ function script_end()
 	reaper.UpdateTimeline()
 	reaper.UpdateArrange()
 	reaper.PreventUIRefresh(-1)
-	reaper.Undo_EndBlock("Smart tempo changes", -1)
+	reaper.Undo_EndBlock("Smart tempo and time signature changes", -1)
 	return
 end
 
@@ -341,6 +342,8 @@ if orig.point then
 		point_modified = true
 	elseif new.idxcount < orig.idxcount then
 		point_removed = true
+	elseif orig.idxcount == 0 then -- condition where this is the first point in the session
+		point_created = true
 	end
 else
 	if orig.idxcount == new.idxcount then
@@ -400,7 +403,7 @@ if (meter_changed or bpm_changed or linear_changed) then
 	elseif point_modified then -- restore original values
 		reaper.SetTempoTimeSigMarker(0, new.idx, -1, orig.measurepos, orig.beatpos, orig.bpm, orig.num, orig.denom, orig.linear)
 	elseif point_created then -- restore previous bpm
-		reaper.SetTempoTimeSigMarker(0, new.idx, -1, orig.measurepos, orig.beatpos, orig.bpm, -1, -1, orig.linear)
+		reaper.SetTempoTimeSigMarker(0, new.idx, -1, new.measurepos, new.beatpos, orig.bpm, -1, -1, orig.linear)
 	end
 else
 	Msg("\n✅ Action: No changes detected")
@@ -417,14 +420,14 @@ if meter_changed then
 	Msg("\n✅ Action: Meter changed")
 	reaper.SNM_SetIntConfigVar("tempoenvtimelock", 0)
 	if point_created or point_modified then
-		reaper.SetTempoTimeSigMarker(0, new.idx, -1, orig.measurepos, orig.beatpos, orig.bpm, new.num, new.denom, orig.linear)
+		reaper.SetTempoTimeSigMarker(0, new.idx, -1, new.measurepos, new.beatpos, orig.bpm, new.num, new.denom, orig.linear)
 		new.point = true
 		new.idx = reaper.FindTempoTimeSigMarker(0, new.pos)
 	elseif point_removed and not bpm_changed then
 		reaper.DeleteTempoTimeSigMarker(0, orig.idx)
 		Msg("meter change - no bpm changed, point removed")
 	else
-		reaper.SetTempoTimeSigMarker(0, orig.idx, -1, orig.measurepos, orig.beatpos, orig.bpm, new.num, new.denom, orig.linear)
+		reaper.SetTempoTimeSigMarker(0, orig.idx, -1, new.measurepos, new.beatpos, orig.bpm, new.num, new.denom, orig.linear)
 	end
 	Msg("\nPartial Measure detection: "..tostring(PartialMeasureDetaction(new.pos+1/flux)))
 end
@@ -435,7 +438,7 @@ if bpm_changed or linear_changed then
 	Msg("\n✅ Action: Bpm changed")
 	reaper.SNM_SetIntConfigVar("tempoenvtimelock", 1)
 	if point_created or point_modified then
-		reaper.SetTempoTimeSigMarker(0, new.idx, -1, orig.measurepos, orig.beatpos, new.bpm, new.num, new.denom, new.linear)
+		reaper.SetTempoTimeSigMarker(0, new.idx, -1, new.measurepos, new.beatpos, new.bpm, new.num, new.denom, new.linear)
 	elseif point_removed then
 		reaper.DeleteTempoTimeSigMarker(0, orig.idx)
 		Msg("bpm change - point removed")
@@ -452,11 +455,13 @@ if ((orig.prevbpm == new.bpm) or new.bpm == -1) and new.point and not linear_han
 		reaper.DeleteTempoTimeSigMarker(0, new.idx)
 	else
 		Msg("\n✅ Action: Cleaned Point")
-		reaper.SetTempoTimeSigMarker(0, new.idx, -1, orig.measurepos, orig.beatpos, -1, new.num, new.denom, false)
+		reaper.SetTempoTimeSigMarker(0, new.idx, -1, new.measurepos, new.beatpos, -1, new.num, new.denom, false)
 	end
 end
 
 
 script_end()
+
+
 
 
