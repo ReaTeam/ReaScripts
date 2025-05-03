@@ -1,9 +1,7 @@
 -- @description Smart Tempo Ripple
 -- @author muorsic
 -- @version 1.5
--- @changelog
---   Version 1.5 April 29th 2025
---   -- Prevent UI refresh
+-- @changelog Prevent UI refresh
 -- @about
 --   Features
 --   Captures original values and sets timebase to "time" before opening Reaper’s dialog (so no beats are added/subtracted when changing signatures).
@@ -14,14 +12,12 @@
 --   Supports removal of time signatures as well.
 --   When timebase for markers is "Time" it will bypass the script.
 
-
 -- muorsic_Insert tempo\time signature ("ripple" time signatures)
 -- Reaper thread : https://forum.cockos.com/showthread.php?t=300105
 -- Version 1.5 April 29th 2025
 -- Known Bugs: 
 -- Reaper Bug where linear tempo on previous point changes from true to false while next point has only meter change.
 -- Some overlapping linear tempo marks can cause misbehaviour.. better adjust by mouse but mostly works
-
 
 flux = 1e9
 
