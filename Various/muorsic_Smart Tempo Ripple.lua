@@ -4,13 +4,14 @@
 -- @changelog Prevent UI refresh
 -- @about
 --   Features
---   Captures original values and sets timebase to "time" before opening Reaper’s dialog (so no beats are added/subtracted when changing signatures).
---   Compares new values to old ones.
---   Handles tempo changes before time signatures.
---   Fixes partial measures by inserting the correct time signature.
---   Ripples time signatures: if your new signature spans more beats than the existing one and the next measure has a different signature, it adjusts all following signatures.
---   Supports removal of time signatures as well.
---   When timebase for markers is "Time" it will bypass the script.
+--
+--   - Captures original values and sets timebase to "time" before opening Reaper’s dialog (so no beats are added/subtracted when changing signatures).
+--   - Compares new values to old ones.
+--   - Handles tempo changes before time signatures.
+--   - Fixes partial measures by inserting the correct time signature.
+--   - Ripples time signatures: if your new signature spans more beats than the existing one and the next measure has a different signature, it adjusts all following signatures.
+--   - Supports removal of time signatures as well.
+--   - When timebase for markers is "Time" it will bypass the script.
 
 -- muorsic_Insert tempo\time signature ("ripple" time signatures)
 -- Reaper thread : https://forum.cockos.com/showthread.php?t=300105
