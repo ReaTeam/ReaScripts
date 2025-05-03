@@ -2,6 +2,7 @@
 -- @author muorsic
 -- @version 1.5
 -- @changelog Prevent UI refresh
+-- @link Forum thread https://forum.cockos.com/showthread.php?t=300105
 -- @about
 --   Features
 --
@@ -14,7 +15,6 @@
 --   - When timebase for markers is "Time" it will bypass the script.
 
 -- muorsic_Insert tempo\time signature ("ripple" time signatures)
--- Reaper thread : https://forum.cockos.com/showthread.php?t=300105
 -- Version 1.5 April 29th 2025
 -- Known Bugs: 
 -- Reaper Bug where linear tempo on previous point changes from true to false while next point has only meter change.
