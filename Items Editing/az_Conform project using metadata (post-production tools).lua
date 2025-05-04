@@ -1,9 +1,11 @@
 -- @description Conform project using metadata (post-production tools)
 -- @author AZ
--- @version 0.5.1
+-- @version 0.6
 -- @changelog
---   - Fixed bug for the case if BWF description has some other constructions except 'key=value'
---   - Fixed undo point creation for items selection
+--   - 2nd and 3rd pass for better linking the sources
+--   - New feature to link audio sources to video timecode in EDL files
+--   - GUI improvements
+--   - better Davinci Resolve support (more than 4 audio tracks)
 -- @provides
 --   az_Conform project using metadata (post-production tools)/az_Conform project_Core.lua
 --   [main] az_Conform project using metadata (post-production tools)/az_Rename takes with last used settings (post-production tools).lua
