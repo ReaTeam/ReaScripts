@@ -1,9 +1,7 @@
 -- @description Simple project reconform
 -- @author AZ
--- @version 0.7.1
--- @changelog
---   - Fix compatibility with Davinci Resolve track naming
---   - some visual improvements
+-- @version 0.7.2
+-- @changelog - fixed up to 1 ms inaccuracy when creating reference track
 -- @link Forum thread https://forum.cockos.com/showthread.php?p=2803375#post2803375
 -- @donation Donate via PayPal https://www.paypal.me/AZsound
 -- @about
@@ -1812,14 +1810,13 @@ function CompareEDLs(OLD, NEW)
       --]]
       
       local item = {} -- areaStart, areaEnd, targetPosition
-      item[1] = round(diffItem.offset, 3)
-      item[2] = round(diffItem.offset, 3) + round(diffItem.length, 3)
-      item[3] = round(diffItem.pos, 3)
+      item[1] = round(diffItem.offset, 6)
+      item[2] = round(diffItem.offset, 6) + round(diffItem.length, 6)
+      item[3] = round(diffItem.pos, 6)
       table.insert(DiffT, item)
     end
   end
   
-  --table.sort(DiffT, function(a,b) return (a[3]<b[3]) end)
   table.sort(DiffT, function(a,b) return ( a[3] + (a[2]-a[1]) < b[3] + (b[2]-b[1]) ) end) 
   Opt = {}
   Opt.HealGaps = false Opt.HealSplits = true
