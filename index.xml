@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="d6d0b3f50ad764b0000903aef9ba5cac5ca2221e" name="ReaTeam Scripts">
+<index version="1" commit="ba8ff2f6d8460ec7b1f2a01fcaad1df07aa2d3e6" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -27174,6 +27174,29 @@ bug fixes]]></changelog>
         <changelog><![CDATA[Initial release]]></changelog>
         <source main="main" file="mschnell_Mute track X (MIDI CC only).eel">https://github.com/ReaTeam/ReaScripts/raw/ffa67087c1b585fb15138cda03827261a9a9577a/Various/mschnell_Mute%20Track%20X.eel</source>
         <source main="main" file="mschnell_Unmute track X (MIDI CC only).eel">https://github.com/ReaTeam/ReaScripts/raw/ffa67087c1b585fb15138cda03827261a9a9577a/Various/mschnell_Mute%20Track%20X.eel</source>
+      </version>
+    </reapack>
+    <reapack name="muorsic_Smart tempo and time signature changes.lua" type="script" desc="Smart tempo and time signature changes">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Features\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Captures original values and sets timebase to "time" before opening Reaper\u8217's dialog (so no beats are added/subtracted when changing signatures).\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Compares new values to old ones.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Handles tempo changes before time signatures.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Fixes partial measures by inserting the correct time signature.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Ripples time signatures: if your new signature spans more beats than the existing one and the next measure has a different signature, it adjusts all following signatures.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Supports removal of time signatures as well.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab When timebase for markers is "Time" it will bypass the script.\sa180\par}
+}
+]]></description>
+        <link rel="website" href="https://forum.cockos.com/showthread.php?t=300105">Forum thread</link>
+      </metadata>
+      <version name="1.6" author="muorsic" time="2025-05-10T21:56:38Z">
+        <changelog><![CDATA[fixed bug with creating first envelope point at timepos 0]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ba8ff2f6d8460ec7b1f2a01fcaad1df07aa2d3e6/Various/muorsic_Smart%20tempo%20and%20time%20signature%20changes.lua</source>
       </version>
     </reapack>
     <reapack name="pandabot_ChordGun.lua" type="script" desc="ChordGun">
