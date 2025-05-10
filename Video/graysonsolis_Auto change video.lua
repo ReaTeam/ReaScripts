@@ -1,4 +1,4 @@
--- @description Auto Change Video
+-- @description Auto change video
 -- @author Grayson Solis
 -- @version 1.0
 -- @about
