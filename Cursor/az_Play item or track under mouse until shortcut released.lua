@@ -1,6 +1,10 @@
 -- @description Play item or track under mouse until shortcut released
 -- @author AZ
--- @version 1.0
+-- @version 1.1
+-- @changelog
+--   - Release shortcut on error
+--   - Toggle master/parent send if there is no active sends or hardware outputs
+--   - Toggle fixed lanes solo state
 -- @provides az_Play item or track under mouse until shortcut released/speaker.cur
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=288069
 -- @donation Donate via PayPal https://www.paypal.me/AZsound
@@ -17,6 +21,8 @@ function msg(value)
   reaper.ShowConsoleMsg(tostring(value)..'\n')
 end
 
+-----------------------------
+
 ---Getting pressed key---
 local start_time = reaper.time_precise()
 local key_state = reaper.JS_VKeys_GetState(start_time - 2)
@@ -28,6 +34,8 @@ end
 
 local path = debug.getinfo(1, "S").source:match [[^@?(.*[\/])[^\/]-$]]
 local folder = "az_Play item or track under mouse until shortcut released"
+
+local mainHWND = reaper.GetMainHwnd()
 
 ----------
 function Key_held()
@@ -50,6 +58,13 @@ end
 function Release()
   reaper.PreventUIRefresh(1)
   
+  reaper.JS_WindowMessage_Release(mainHWND, 'WM_SETCURSOR')  
+  reaper.JS_Mouse_SetCursor(InitCur)
+  
+  for i, v in ipairs(KEY) do
+    reaper.JS_VKeys_Intercept(v, -1)
+  end
+  
   if playState ~= 5 then reaper.OnStopButtonEx(0) end
   
   local startReleaseTime = reaper.time_precise()
@@ -68,11 +83,6 @@ function Release()
   
   RestoreSoloMute()
   RestorePlayState()
-  
-  
-  for i, v in ipairs(KEY) do
-    reaper.JS_VKeys_Intercept(v, -1)
-  end
 
   reaper.PreventUIRefresh(-1)
 end
@@ -154,17 +164,26 @@ function UnmuteRecursive(track)
     
     if hwo <= 0 then -- check sends
       local sndcnt = reaper.GetTrackNumSends( track, 0 )
+      local snd = sndcnt
       for i = 1, sndcnt do --check hardware outputs
         local sndmute = reaper.GetTrackSendInfo_Value( track, 0, i-1 , 'B_MUTE' )
         if sndmute == 0 then
           local sndtr = reaper.GetTrackSendInfo_Value( track, 0, i-1 , 'P_DESTTRACK' )
           UnmuteRecursive(sndtr)
+        else snd = snd -1
         end
-      end 
+      end
+      
+      if snd <= 0 then
+        reaper.SetMediaTrackInfo_Value( track, 'B_MAINSEND', 1)
+        local parentTrack = reaper.GetParentTrack(track)
+        if parentTrack then UnmuteRecursive(parentTrack) end
+      end
+      
     end
   else
     local parentTrack = reaper.GetParentTrack(track)
-    if parentTrack then UnmuteRecursive(parentTrack) end 
+    if parentTrack then UnmuteRecursive(parentTrack) end
   end
 end
 
@@ -172,16 +191,31 @@ end
 
 function ToggleSoloMute()
   local item, half = GetTopBottomItemHalf()
+  local lanesN = 0
+  if reaper.GetMediaTrackInfo_Value( track_mouse, 'I_FREEMODE' ) == 2 then
+    lanesN = reaper.GetMediaTrackInfo_Value( track_mouse, 'I_NUMFIXEDLANES' ) -1
+  end
+  
+  for i = 0, lanesN do 
+    local state = reaper.GetMediaTrackInfo_Value( track_mouse, 'C_LANEPLAYS:'..i ) 
+    table.insert(LanesStates, state)
+  end
+  
+  if lanesN ~= 0 then
+    reaper.SetMediaTrackInfo_Value( track_mouse, 'C_LANEPLAYS:'.. Lane, 1 )
+  end
   
   local alltrcnt = reaper.CountTracks(0)
   for i = 0, alltrcnt -1 do
     local track = reaper.GetTrack(0, i) 
     local solostate = reaper.GetMediaTrackInfo_Value( track, 'I_SOLO' )
     local mutestate = reaper.GetMediaTrackInfo_Value( track, 'B_MUTE' )
+    local parsendstate = reaper.GetMediaTrackInfo_Value( track, 'B_MAINSEND' )
     TracksStates[tostring(track)] = {}
     local trdata = TracksStates[tostring(track)]
     trdata.solo = solostate
     trdata.mute = mutestate
+    trdata.prsend = parsendstate
     trdata.tr = track
     
     if track ~= track_mouse and solostate ~= 5 then
@@ -197,7 +231,7 @@ function ToggleSoloMute()
    
   UnmuteRecursive(track_mouse)
   
-  if item and half ~= 'header' then 
+  if item and half ~= 'header' then
     for i = 0, reaper.CountTrackMediaItems(track_mouse) -1 do
       local item = reaper.GetTrackMediaItem(track_mouse, i)
       reaper.SetMediaItemInfo_Value(item, 'C_MUTE_SOLO', 1)
@@ -210,19 +244,23 @@ end
 ------------------
 
 function RestoreSoloMute()
-  for i, item in ipairs(MutedItems) do 
+  for i, state in ipairs(LanesStates) do
+    reaper.SetMediaTrackInfo_Value( track_mouse, 'C_LANEPLAYS:'..tostring(i-1), state )
+  end
+  for i, item in ipairs(MutedItems) do
     reaper.SetMediaItemInfo_Value(item, 'C_MUTE_SOLO', 0)
-  end 
+  end
   for i, v in pairs(TracksStates) do
     reaper.SetMediaTrackInfo_Value( v.tr, 'I_SOLO', v.solo )
     reaper.SetMediaTrackInfo_Value( v.tr, 'B_MUTE', v.mute )
+    reaper.SetMediaTrackInfo_Value( v.tr, 'B_MAINSEND', v.prsend )
   end
 end
 
 ------------------
 
 function Main()
-  
+
   reaper.JS_Mouse_SetCursor(cursor)
   
   if Key_held() then
@@ -231,14 +269,17 @@ function Main()
       SavePlayState()
       if playState ~= 5 then reaper.OnStopButtonEx(0) end
       if track_mouse then
-        --local status, err = xpcall(ToggleSoloMute, debug.traceback)
-        ToggleSoloMute()
+        local status, err = xpcall(ToggleSoloMute, debug.traceback)
+        if not status then
+          msg(err)
+          Release()
+        end
       end
       if playState ~= 5 then
         reaper.SetEditCurPos(reaper.BR_PositionAtMouseCursor(true), false, false)
         reaper.OnPlayButtonEx(0)
         reaper.SetEditCurPos(curPos, false, false)
-      end 
+      end
       reaper.PreventUIRefresh(-1)
       init = true
     end
@@ -261,10 +302,12 @@ if reaper.APIExists( 'JS_Mouse_LoadCursorFromFile' ) ~= true then
   return
 end
 
+InitCur = reaper.JS_Mouse_GetCursor()
 cursor = reaper.JS_Mouse_LoadCursorFromFile(path..folder..'/speaker.cur')
 
 local x, y = reaper.GetMousePosition()
-track_mouse, info = reaper.GetThingFromPoint( x, y )
+track_mouse, info = reaper.GetTrackFromPoint( x, y )
+Lane = info >> 8
 
 local window, segment, details = reaper.BR_GetMouseCursorContext()
 
@@ -276,8 +319,12 @@ if window == 'arrange' or window == 'ruler' then
   
   if #KEY == 0 then return end
   
+  reaper.JS_WindowMessage_Intercept(mainHWND, 'WM_SETCURSOR', false)
+   
   MutedItems = {}
   TracksStates = {}
+  LanesStates = {}
   Main()
 
+else reaper.defer(function() end)
 end
