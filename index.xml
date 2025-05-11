@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="ba8ff2f6d8460ec7b1f2a01fcaad1df07aa2d3e6" name="ReaTeam Scripts">
+<index version="1" commit="76d39cf6512eb4c77dd49e5802725774aa9c2e5c" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -20566,7 +20566,10 @@ Allow user to move window with mouse]]></changelog>
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 Temporarily groups sends (not hardware outputs) along the selected tracks. I recommend activating "allow snap/grid/routing windows to stay open" on the Advanced UI/System Tweaks\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Temporarily groups sends (not hardware outputs) along the selected tracks.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 I recommend setting it up as a startup action using SWS/S&M Extension.\par}
+{\pard \qc \f0 \sa180 \li0 \fi0 \emdash\emdash\emdash\emdash\emdash\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Try activating "allow snap/grid/routing windows to stay open" on the Advanced UI/System Tweaks. This gives you the option of having a permanent window to create alternate mixes using the receives on the routing window of your "Aux", "FX", or "Output tracks".\par}
 }
 ]]></description>
       </metadata>
@@ -20576,6 +20579,10 @@ Allow user to move window with mouse]]></changelog>
 - Improved behavior on the way grouped tracks write the send parameter info
 - Script updates it's state on toolbar]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d6d0b3f50ad764b0000903aef9ba5cac5ca2221e/Tracks/JWM_Group%20selected%20track%20sends.lua</source>
+      </version>
+      <version name="0.9.2" author="José M Muñoz (J-WalkMan)" time="2025-05-11T06:22:43Z">
+        <changelog><![CDATA[- Fix Mono and Mute buttons behavior]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/76d39cf6512eb4c77dd49e5802725774aa9c2e5c/Tracks/JWM_Group%20selected%20track%20sends.lua</source>
       </version>
     </reapack>
     <reapack name="kaddaok_Import UVR separations into comping lane structure.lua" type="script" desc="Import UVR or X-Minus separations into comping lane structure">
