@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="76d39cf6512eb4c77dd49e5802725774aa9c2e5c" name="ReaTeam Scripts">
+<index version="1" commit="0580da8c9bc6191c269e2199e1013a09bf9bed28" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -220,7 +220,7 @@
     </reapack>
     <reapack name="az_Play item or track under mouse until shortcut released.lua" type="script" desc="Play item or track under mouse until shortcut released">
       <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
@@ -235,6 +235,13 @@
       <version name="1.0" author="AZ" time="2024-11-19T09:13:02Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/37602e97eac770ded39bb7aa985d8907f171e736/Cursor/az_Play%20item%20or%20track%20under%20mouse%20until%20shortcut%20released.lua</source>
         <source file="az_Play item or track under mouse until shortcut released/speaker.cur">https://github.com/ReaTeam/ReaScripts/raw/37602e97eac770ded39bb7aa985d8907f171e736/Cursor/az_Play%20item%20or%20track%20under%20mouse%20until%20shortcut%20released/speaker.cur</source>
+      </version>
+      <version name="1.1" author="AZ" time="2025-05-11T15:40:13Z">
+        <changelog><![CDATA[- Release shortcut on error
+- Toggle master/parent send if there is no active sends or hardware outputs
+- Toggle fixed lanes solo state]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/0580da8c9bc6191c269e2199e1013a09bf9bed28/Cursor/az_Play%20item%20or%20track%20under%20mouse%20until%20shortcut%20released.lua</source>
+        <source file="az_Play item or track under mouse until shortcut released/speaker.cur">https://github.com/ReaTeam/ReaScripts/raw/0580da8c9bc6191c269e2199e1013a09bf9bed28/Cursor/az_Play%20item%20or%20track%20under%20mouse%20until%20shortcut%20released/speaker.cur</source>
       </version>
     </reapack>
     <reapack name="BuyOne_Move edit cursor to snap offset cursor;  fades;  take, stretch markers; media cues; razor edit area edges.lua" type="script" desc="Move edit cursor to snap offset cursor / fades / take|stretch markers / media cues / Razor Edit area edges (16 scripts)">
