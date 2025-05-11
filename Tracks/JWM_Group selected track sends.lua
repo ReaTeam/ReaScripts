@@ -1,14 +1,16 @@
 -- @description Group selected tracks sends
 -- @author José M Muñoz (J-WalkMan)
--- @version 0.9.1
--- @changelog
---   - Works on track send and routing windows
---   - Group also send mono button and send mode state (post-fader, pre-fader, pre-fx)
---   - Improved behavior on the way grouped tracks write the send parameter info
---   - Script updates it's state on toolbar
+-- @version 0.9.2
+-- @changelog - Fix Mono and Mute buttons behavior
 -- @about
 --   Temporarily groups sends (not hardware outputs) along the selected tracks.
---   I recommend activating "allow snap/grid/routing windows to stay open" on the Advanced UI/System Tweaks
+--
+--   I recommend setting it up as a startup action using SWS/S&M Extension.
+--
+--   ---
+--
+--   Try activating "allow snap/grid/routing windows to stay open" on the Advanced UI/System Tweaks. This gives you the option of having a permanent window to create alternate mixes using the receives on the routing window of your "Aux", "FX", or "Output tracks".
+
 
 -- Check REAPER version
 local version = tonumber(reaper.GetAppVersion():match('[%d.]+'))
@@ -17,6 +19,20 @@ if version >= 7.03 then reaper.set_action_options(1) end
 local _, _, sec, cmd = reaper.get_action_context()
 
 -- ========================= FUNCTIONS ==============================
+
+function tobool(val)
+  if val == 1 then return true
+  elseif val == 0 then return false
+  else return nil end
+end
+
+function toint(val)
+  if val then
+    return 1 
+  else 
+    return 0 
+  end
+end 
 
 function todB(Amp)
   if Amp < 6.3095734448019e-008 then
@@ -130,7 +146,7 @@ function GetSelectedTrackSends(num)
     -- reaper.ShowConsoleMsg('sel track id: '..tostring(tr_idx)..' track: '..tostring(track)..'\n content: '..tostring(table[track]))
     
     for snd_idx = 1, n_sends do
-      local ret, send_name = reaper.GetTrackSendName(track, snd_idx-1)
+      local __, send_name = reaper.GetTrackSendName(track, snd_idx-1)
       -- reaper.ShowConsoleMsg(' >'..tostring(snd_idx)..' '..tostring(send_name)..'\n')
       
       table[track][snd_idx] = {
@@ -180,7 +196,7 @@ function sendClassFormat(new, ref, prev, param)
     end
 
   elseif param == 'B_MUTE' or param == 'B_MONO' then
-    value_to_write = ~new
+    value_to_write = toint( not tobool(new) )
     
   elseif param == 'I_SENDMODE' then
     value_to_write = ref
@@ -202,8 +218,7 @@ sends_table = {}
 prev_sends_table = {}
 
 function Main()
-  reaper.ClearConsole()  
-  local retval, tracknumber, fxnumber, sendnumber, paramnumber
+  reaper.ClearConsole()
 
   local sel_tracks_num = reaper.CountSelectedTracks(0)
   -- local mod_keys, mod_has_alt = ModifiersPressed()
