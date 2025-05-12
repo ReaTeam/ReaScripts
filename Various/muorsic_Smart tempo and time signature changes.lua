@@ -1,7 +1,9 @@
 -- @description Smart tempo and time signature changes
 -- @author muorsic
--- @version 1.6
--- @changelog fixed bug with creating first envelope point at timepos 0
+-- @version 1.8
+-- @changelog
+--   fixed new point not found 
+--   fixed empty points with no bpm
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=300105
 -- @about
 --   Features
@@ -15,13 +17,15 @@
 --   - When timebase for markers is "Time" it will bypass the script.
 
 -- muorsic_Smart tempo and time signature changes
--- Version 1.6 May 2nd 2025
+-- Version 1.8 May 11th 2025
+-- fixed new point not found
+-- fixed empty points with no bpm
 -- Known Bugs: 
 -- Reaper Bug where linear tempo on previous point changes from true to false while next point has only meter change.
 -- Some overlapping linear tempo marks can cause misbehaviour.. better adjust by mouse but mostly works
 
 
-flux = 1e9
+flux = 1e8
 
 function Msg(str) -- for debug
     -- reaper.ShowConsoleMsg(str .. "\n")
@@ -117,6 +121,7 @@ function info(point)
 	Msg("  idx: " .. tostring(point.idx))
 	Msg("  Prev idx: " .. tostring(point.previdx))
 	Msg("  idx Count: ".. tostring(point.idxcount))
+	Msg("  pattern: ".. tostring(point.pattern))
 end
 
 function PartialMeasureDetaction(pos)
@@ -173,7 +178,7 @@ function PartialMeasureDetaction(pos)
 		adjustedpoint = GetTempoTimeSigAtPos(nextTime)
 		Msg("\n🔵 adjustedpoint Values:")
 		info(adjustedpoint)
-		if adjustedpoint.prevbpm == adjustedpoint.bpm and not adjustedpoint.prevlinear and not adjustedpoint.linear then
+		if adjustedpoint.bpm == -1 then
 			reaper.DeleteTempoTimeSigMarker(0, adjustedpoint.idx)
 		else
 			SetTempoTimeSig(nextTime, adjustedpoint.bpm, -1, -1, adjustedpoint.linear, false, adjustedpoint.idx, adjustedpoint.point)
@@ -192,78 +197,95 @@ end
 -- Get values safely, with robust fallbacks
 function GetTempoTimeSigAtPos(pos)
 	local idxcount = reaper.CountTempoTimeSigMarkers(0)
-    local idx = reaper.FindTempoTimeSigMarker(0, pos+1/flux)
-    local previdx = idx-1
-    local retval, timepos, measurepos, beatpos, bpm, num, denom, linear = reaper.GetTempoTimeSigMarker(0, idx)
-    local _, prevtimepos, _, _, prevbpm, _, _, prevlinear = reaper.GetTempoTimeSigMarker(0, idx-1)
-    local retval, _, _, _, nextbpm, _, _, _ = reaper.GetTempoTimeSigMarker(0, idx+1)
-    
-    if retval then
-    	if nextbpm > 0 then
-    		nextlinear = true
-    	else
-    		nextlinear = false
-    	end
-    else
-    	nextlinear = false
-    end
+  local idx = reaper.FindTempoTimeSigMarker(0, pos+1/flux)
+  local previdx = idx-1
+  local retval, timepos, measurepos, beatpos, bpm, num, denom, linear = reaper.GetTempoTimeSigMarker(0, idx)
+  local _, prevtimepos, _, _, prevbpm, _, _, prevlinear = reaper.GetTempoTimeSigMarker(0, idx-1)
+  local retval, _, _, _, nextbpm, _, _, _ = reaper.GetTempoTimeSigMarker(0, idx+1)
+  local flags = reaper.GetSetTempoTimeSigMarkerFlag(0, idx, 31, false)
+
+  -- bit 2 = “do not set tempo”; if that bit is 0, then tempo *is* being changed
+  local tempoChangeMarked = (flags & 2) == 0
+
+  if not tempoChangeMarked then
+    bpm = -1
+  end
+
+  -- bit 8 = “apply new metronome pattern”; fetch pattern only if set
+  local pattern = false
+  if (flags & 8) ~= 0 then
+    _, pattern = reaper.TimeMap_GetMetronomePattern(0, pos + 1/flux, "EXTENDED")
+  end
+
+  
+  if retval then
+  	if nextbpm > 0 then
+  		nextlinear = true
+  	else
+  		nextlinear = false
+  	end
+  else
+  	nextlinear = false
+  end
 
 
-    local _, _, posbpm = reaper.TimeMap_GetTimeSigAtTime(0, pos)
-    local _, _, prevposbpm = reaper.TimeMap_GetTimeSigAtTime(0, prevtimepos)
-    local _, posmeasure, _, posfullbeats, _ = reaper.TimeMap2_timeToBeats(0, pos)
-    _, pos_measure_qn_start, _, _, _, _ = reaper.TimeMap_GetMeasureInfo(0, posmeasure)
-    posmeasurebeats =  posfullbeats - pos_measure_qn_start
+  local _, _, posbpm = reaper.TimeMap_GetTimeSigAtTime(0, pos)
+  local _, _, prevposbpm = reaper.TimeMap_GetTimeSigAtTime(0, prevtimepos)
+  local _, posmeasure, _, posfullbeats, _ = reaper.TimeMap2_timeToBeats(0, pos)
+  _, pos_measure_qn_start, _, _, _, _ = reaper.TimeMap_GetMeasureInfo(0, posmeasure)
+  posmeasurebeats =  posfullbeats - pos_measure_qn_start
 
-    local raw = pos - timepos
+  local raw = pos - timepos
 	local floored = math.floor(raw * flux) / flux
 	-- clamp at zero:
 	local diff = math.max(floored, 0)
 
-    if diff == 0 then
-    	point = true 
-    else 
-    	point = false
-    	prevbpm = bpm
-    	num = -1
-    	denom = -1
-    	if nextlinear and linear then
-    		linear = true
-    		bpm = posbpm
-	    else
-    		linear = false
-    		bpm = -1
-	    end
-    	measurepos = posmeasure
-    	beatpos = posmeasurebeats
-    	timepos = pos
-    	previdx = idx
-    	idx = false
-    end
-
-    if beatpos < 0 then
-    	beatpos = 0
+  if diff == 0 then
+  	point = true
+  else 
+  	point = false
+  	pattern = false
+  	prevbpm = bpm
+  	num = -1
+  	denom = -1
+  	if nextlinear and linear then
+  		linear = true
+  		bpm = posbpm
     else
-    	beatpos = math.floor(beatpos * 10000 + 0.5) / 10000
+  		linear = false
+  		bpm = -1
     end
+  	measurepos = posmeasure
+  	beatpos = posmeasurebeats
+  	timepos = pos
+  	previdx = idx
+  	idx = false
+  end
 
-    return {
-        pos = timepos,
-        idx = idx,
-        previdx = previdx,
-        bpm = bpm,
-        num = num,
-        denom = denom,
-        linear = linear,
-        point = point,
-        prevlinear = prevlinear,
-        prevbpm = prevbpm,
-        posbpm = posbpm,
-        idxcount = idxcount,
-        nextlinear = nextlinear,
-        measurepos = measurepos,
-        beatpos = beatpos
-    }
+  if beatpos < 0 then
+  	beatpos = 0
+  else
+  	beatpos = math.floor(beatpos * 10000 + 0.5) / 10000
+  end
+
+  return {
+      pos = timepos,
+      idx = idx,
+      previdx = previdx,
+      bpm = bpm,
+      num = num,
+      denom = denom,
+      linear = linear,
+      point = point,
+      prevlinear = prevlinear,
+      prevbpm = prevbpm,
+      posbpm = posbpm,
+      idxcount = idxcount,
+      nextlinear = nextlinear,
+      measurepos = measurepos,
+      beatpos = beatpos,
+      pattern = pattern
+  }
 end
 
 -- Helper: Set marker values safely
@@ -423,6 +445,12 @@ if meter_changed then
 		reaper.SetTempoTimeSigMarker(0, new.idx, -1, new.measurepos, new.beatpos, orig.bpm, new.num, new.denom, orig.linear)
 		new.point = true
 		new.idx = reaper.FindTempoTimeSigMarker(0, new.pos)
+		if new.pattern then
+			reaper.GetSetTempoTimeSigMarkerFlag(0, new.idx, 8, true)
+			denom, pattern = reaper.TimeMap_GetMetronomePattern(0, new.pos, "SET:"..new.pattern)
+			Msg("denom: "..tostring(denom))
+			Msg("pattern: "..tostring(pattern))
+		end
 	elseif point_removed and not bpm_changed then
 		reaper.DeleteTempoTimeSigMarker(0, orig.idx)
 		Msg("meter change - no bpm changed, point removed")
@@ -430,6 +458,7 @@ if meter_changed then
 		reaper.SetTempoTimeSigMarker(0, orig.idx, -1, new.measurepos, new.beatpos, orig.bpm, new.num, new.denom, orig.linear)
 	end
 	Msg("\nPartial Measure detection: "..tostring(PartialMeasureDetaction(new.pos+1/flux)))
+
 end
 
 
@@ -449,7 +478,7 @@ end
 
 -- Clean Point
 
-if ((orig.prevbpm == new.bpm) or new.bpm == -1) and new.point and not linear_handling and not new.linear and not point_removed then
+if ((orig.prevbpm == new.bpm) or new.bpm == -1) and new.point and not linear_handling and not new.linear and not point_removed and not new.pattern then
 	if new.num == -1 then 
 		Msg("\n✅ Action: Deleted Point")
 		reaper.DeleteTempoTimeSigMarker(0, new.idx)
@@ -461,7 +490,5 @@ end
 
 
 script_end()
-
-
 
 
