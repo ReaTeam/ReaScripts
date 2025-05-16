@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="3b73fb52c604cbd958da95ba86826eeba6977aad" name="ReaTeam Scripts">
+<index version="1" commit="449c7a1ca8c0a6417bf52a0d0d4b863160ec0a89" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -27223,6 +27223,10 @@ bug fixes]]></changelog>
         <changelog><![CDATA[fixed new point not found 
 fixed empty points with no bpm]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/55ab023813bdf2bc6da52833650c0c10e989d9ff/Various/muorsic_Smart%20tempo%20and%20time%20signature%20changes.lua</source>
+      </version>
+      <version name="1.9" author="muorsic" time="2025-05-16T21:45:23Z">
+        <changelog><![CDATA[fixed ripple function to preserve next time signature change. (thanks @smandrap)]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/449c7a1ca8c0a6417bf52a0d0d4b863160ec0a89/Various/muorsic_Smart%20tempo%20and%20time%20signature%20changes.lua</source>
       </version>
     </reapack>
     <reapack name="pandabot_ChordGun.lua" type="script" desc="ChordGun">
