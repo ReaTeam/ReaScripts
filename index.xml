@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="55ab023813bdf2bc6da52833650c0c10e989d9ff" name="ReaTeam Scripts">
+<index version="1" commit="3b73fb52c604cbd958da95ba86826eeba6977aad" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -19553,6 +19553,13 @@ Add support for tail length]]></changelog>
 Accept REAPER v7.29's new batch converter settings [p=2835830]]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3cf955672c8c867ca60e48344689206e5d4db0a1/Rendering/cfillion_Apply%20render%20preset.lua</source>
         <source main="main" file="cfillion_Apply render preset (create action).lua">https://github.com/ReaTeam/ReaScripts/raw/3cf955672c8c867ca60e48344689206e5d4db0a1/Rendering/cfillion_Apply%20render%20preset.lua</source>
+      </version>
+      <version name="2.1.7" author="cfillion" time="2025-05-16T09:19:51Z">
+        <changelog><![CDATA[Add support for trim/pad leading/trailing silence
+Harden reaper-render.ini parsing against empty lines
+Update post-processing display to match REAPER v7.39]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3b73fb52c604cbd958da95ba86826eeba6977aad/Rendering/cfillion_Apply%20render%20preset.lua</source>
+        <source main="main" file="cfillion_Apply render preset (create action).lua">https://github.com/ReaTeam/ReaScripts/raw/3b73fb52c604cbd958da95ba86826eeba6977aad/Rendering/cfillion_Apply%20render%20preset.lua</source>
       </version>
     </reapack>
     <reapack name="DSG_Render time selection to new track.lua" type="script" desc="Render time selection to new track">
