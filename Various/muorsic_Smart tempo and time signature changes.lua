@@ -1,9 +1,7 @@
 -- @description Smart tempo and time signature changes
 -- @author muorsic
--- @version 1.8
--- @changelog
---   fixed new point not found 
---   fixed empty points with no bpm
+-- @version 1.9
+-- @changelog fixed ripple function to preserve next time signature change. (thanks @smandrap)
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=300105
 -- @about
 --   Features
@@ -17,9 +15,8 @@
 --   - When timebase for markers is "Time" it will bypass the script.
 
 -- muorsic_Smart tempo and time signature changes
--- Version 1.8 May 11th 2025
--- fixed new point not found
--- fixed empty points with no bpm
+-- Version 1.9 May 16th 2025
+-- fixed ripple function to preserve next time signature change. (thanks @smandrap)
 -- Known Bugs: 
 -- Reaper Bug where linear tempo on previous point changes from true to false while next point has only meter change.
 -- Some overlapping linear tempo marks can cause misbehaviour.. better adjust by mouse but mostly works
@@ -176,8 +173,36 @@ function PartialMeasureDetaction(pos)
 		SetTempoTimeSig(prev_StartTime, adjustedpoint.bpm, num, denom, adjustedpoint.linear, false, adjustedpoint.idx, adjustedpoint.point)
 	elseif qt_count ~= (prev_ts_num*4)/prev_ts_den then -- Ripple action
 		adjustedpoint = GetTempoTimeSigAtPos(nextTime)
-		Msg("\n🔵 adjustedpoint Values:")
+		Msg("\n🔵 adjustedpoint Values (Rippled):")
 		info(adjustedpoint)
+
+		-- get the measure info for the bar *after* this change:
+		local nextIndexAdjusted = nextMeasureIndex+1
+
+		nextAdjusted_StartTime, _, _, _, _, _ = reaper.TimeMap_GetMeasureInfo(proj, nextIndexAdjusted)
+		Msg("nextAdjusted_StartTime: "..nextAdjusted_StartTime)
+		nextadjustedpoint = GetTempoTimeSigAtPos(nextAdjusted_StartTime)
+		Msg("\n🔵 nextadjustedpoint Values:")
+		info(nextadjustedpoint)
+		-- insert previous timesignature
+		if nextadjustedpoint.num == -1 then
+			if nextadjustedpoint.point then
+				reaper.SetTempoTimeSigMarker(0, nextadjustedpoint.idx, nextAdjusted_StartTime, -1, -1, nextadjustedpoint.bpm, adjustedpoint.num, adjustedpoint.denom, nextadjustedpoint.linear)
+			else
+				reaper.AddTempoTimeSigMarker(0, nextAdjusted_StartTime, -1, adjustedpoint.num, adjustedpoint.denom, nextadjustedpoint.linear)
+			end
+			--restore pattern
+				if adjustedpoint.pattern then
+					reaper.GetSetTempoTimeSigMarkerFlag(0, nextadjustedpoint.previdx+1, 8, true)
+					denom, pattern = reaper.TimeMap_GetMetronomePattern(0, nextAdjusted_StartTime, "SET:"..adjustedpoint.pattern)
+				end
+			--unflag tempo
+			if nextadjustedpoint.bpm == -1 then
+				Msg("removing bpm flag from nextadjustedpoint "..nextadjustedpoint.previdx+1)
+				reaper.GetSetTempoTimeSigMarkerFlag(0, nextadjustedpoint.previdx+1, 2, false)
+			end
+		end
+
 		if adjustedpoint.bpm == -1 then
 			reaper.DeleteTempoTimeSigMarker(0, adjustedpoint.idx)
 		else
@@ -187,7 +212,6 @@ function PartialMeasureDetaction(pos)
 	else
 		Msg("No partial measure detected!")
 	end
-
 
 	return ((prev_ts_num/prev_ts_den)*4) - qt_count > 0
 end
@@ -298,10 +322,10 @@ function SetTempoTimeSig(pos, bpm, num, denom, linear, prevlinear, idx, point)
     if point then
 	    reaper.SetTempoTimeSigMarker(0, idx, pos, -1, -1, bpm, num, denom, linear)
 	    Msg("Point Modified at "..Round(pos))
-	else
-		reaper.AddTempoTimeSigMarker(0, pos, bpm, num, denom, linear)
-		Msg("Point created at "..Round(pos))
-	end
+		else
+			reaper.AddTempoTimeSigMarker(0, pos, bpm, num, denom, linear)
+			Msg("Point created at "..Round(pos))
+		end
 
 
 end
@@ -490,5 +514,3 @@ end
 
 
 script_end()
-
-
