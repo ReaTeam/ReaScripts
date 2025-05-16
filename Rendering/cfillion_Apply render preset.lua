@@ -1,9 +1,10 @@
 -- @description Apply render preset
 -- @author cfillion
--- @version 2.1.6
+-- @version 2.1.7
 -- @changelog
---   Display REAPER v7.23's new "Adjust mono media an additional -3 dB" normalize option
---   Accept REAPER v7.29's new batch converter settings [p=2835830]
+--   Add support for trim/pad leading/trailing silence
+--   Harden reaper-render.ini parsing against empty lines
+--   Update post-processing display to match REAPER v7.39
 -- @provides
 --   .
 --   [main] . > cfillion_Apply render preset (create action).lua
@@ -293,7 +294,9 @@ function parseDefault(presets, file, line)
   local tokens = tokenize(line)
 
   -- reaper-render.ini
-  if tokens[1] == '<RENDERPRESET' then
+  if tokens[1] == nil then
+    return parseDefault
+  elseif tokens[1] == '<RENDERPRESET' then
     return parseFormatPreset(presets, file, tokens)
   elseif tokens[1] == '<RENDERPRESET2' then
     return parseFormatPreset2(presets, file, tokens)
@@ -408,21 +411,15 @@ function parsePostprocessPreset(presets, file, tokens)
   local preset = insertPreset(presets, tokens[2])
   preset.RENDER_NORMALIZE        = tonumber(tokens[3])
   preset.RENDER_NORMALIZE_TARGET = tonumber(tokens[4])
-  if tokens[5] ~= nil then -- v6.37
-    preset.RENDER_BRICKWALL = tonumber(tokens[5])
-  end
-  if tokens[6] ~= nil then
-    preset.RENDER_FADEIN       = tonumber(tokens[6])
-    preset.RENDER_FADEOUT      = tonumber(tokens[7])
-    preset.RENDER_FADEINSHAPE  = tonumber(tokens[8])
-    preset.RENDER_FADEOUTSHAPE = tonumber(tokens[9])
-  end
-  if tokens[10] ~= nil then -- v7.29 (batch converter only)
-    preset._BATCH_TRIMSTART = tokens[10]
-    preset._BATCH_TRIMEND   = tokens[11]
-    preset._BATCH_PADSTART  = tokens[12]
-    preset._BATCH_PADSEND   = tokens[13]
-  end
+  preset.RENDER_BRICKWALL = tonumber(tokens[5]) -- v6.37
+  preset.RENDER_FADEIN       = tonumber(tokens[6])
+  preset.RENDER_FADEOUT      = tonumber(tokens[7])
+  preset.RENDER_FADEINSHAPE  = tonumber(tokens[8])
+  preset.RENDER_FADEOUTSHAPE = tonumber(tokens[9])
+  preset.RENDER_TRIMSTART = tonumber(tokens[10])
+  preset.RENDER_TRIMEND   = tonumber(tokens[11])
+  preset.RENDER_PADSTART  = tonumber(tokens[12])
+  preset.RENDER_PADEND    = tonumber(tokens[13])
 
   return parseDefault
 end
@@ -673,7 +670,7 @@ end
 local function VAL2DB(x)
   -- ported from WDL's val2db.h
   local TWENTY_OVER_LN10 = 8.6858896380650365530225783783321
-  if x < 0.0000000298023223876953125 then return -150.0 end
+  if not x or x < 0.0000000298023223876953125 then return -math.huge end
   local v = math.log(x) * TWENTY_OVER_LN10
   return math.max(v, -150.0)
 end
@@ -683,9 +680,13 @@ local function postprocessCell(ctx, preset)
   local NORMALIZE_TOO_LOUD  = 1<<8
   local NORMALIZE_TOO_QUIET = 1<<11
   local NORMALIZE_MODE_BITS = {5, 12}
-  local NORMALIZE_MONO3DB   = 1<<13
+  local NORMALIZE_MONO      = 1<<4
+  local NORMALIZE_MONOPLUS  = 1<<19
   local BRICKWALL_ENABLE    = 1<<6
-  -- local BRICKWALL_TPEAK  = 1<<7
+  local TRIMSTART_ENABLE    = 1<<14
+  local TRIMEND_ENABLE      = 1<<15
+  local PADSTART_ENABLE     = 1<<16
+  local PADEND_ENABLE       = 1<<17
   local FADEIN_ENABLE       = 1<<9
   local FADEOUT_ENABLE      = 1<<10
 
@@ -697,7 +698,7 @@ local function postprocessCell(ctx, preset)
       ImGui.TableNextColumn(ctx)
       ImGui.CheckboxFlags(ctx, 'Normalize to:', postprocess, NORMALIZE_ENABLE)
       ImGui.TableNextColumn(ctx)
-      enumCell(ctx, { 'LUFS-I', 'RMS', 'Peak', 'True peak' }, (postprocess & 14) >> 1)
+      enumCell(ctx, {'LUFS-I', 'RMS', 'Peak', 'True peak', 'LUFS-M max', 'LUFS-S max'}, (postprocess & 14) >> 1)
       ImGui.TableNextColumn(ctx)
       ImGui.Text(ctx, ('%g dB'):format(VAL2DB(preset.RENDER_NORMALIZE_TARGET)))
 
@@ -705,25 +706,59 @@ local function postprocessCell(ctx, preset)
       ImGui.TableNextColumn(ctx)
       ImGui.CheckboxFlags(ctx, 'Brickwall limit:', postprocess, BRICKWALL_ENABLE)
       ImGui.TableNextColumn(ctx)
-      enumCell(ctx, { 'Peak', 'True peak' }, (postprocess >> 7) & 1)
+      enumCell(ctx, {'Peak', 'True peak'}, (postprocess >> 7) & 1)
       ImGui.TableNextColumn(ctx)
       ImGui.Text(ctx, ('%g dB'):format(VAL2DB(preset.RENDER_BRICKWALL or 1)))
 
-      ImGui.TableNextRow(ctx)
-      ImGui.TableNextColumn(ctx)
-      ImGui.CheckboxFlags(ctx, 'Fade-in:', postprocess, FADEIN_ENABLE)
-      ImGui.TableNextColumn(ctx)
-      ImGui.Text(ctx, ('%g ms'):format(preset.RENDER_FADEIN * 1e4))
-      ImGui.TableNextColumn(ctx)
-      ImGui.Text(ctx, ('Shape %d'):format(preset.RENDER_FADEINSHAPE))
+      if preset.RENDER_TRIMEND then
+        ImGui.TableNextRow(ctx)
+        ImGui.TableNextColumn(ctx)
+        ImGui.CheckboxFlags(ctx, 'Trim leading silence:', postprocess, TRIMSTART_ENABLE)
+        ImGui.TableNextColumn(ctx)
+        ImGui.Text(ctx, 'Peak')
+        ImGui.TableNextColumn(ctx)
+        ImGui.Text(ctx, ('%g dB'):format(VAL2DB(preset.RENDER_TRIMSTART)))
 
-      ImGui.TableNextRow(ctx)
-      ImGui.TableNextColumn(ctx)
-      ImGui.CheckboxFlags(ctx, 'Fade-out:', postprocess, FADEOUT_ENABLE)
-      ImGui.TableNextColumn(ctx)
-      ImGui.Text(ctx, ('%g ms'):format(preset.RENDER_FADEOUT * 1e4))
-      ImGui.TableNextColumn(ctx)
-      ImGui.Text(ctx, ('Shape %d'):format(preset.RENDER_FADEOUTSHAPE))
+        ImGui.TableNextRow(ctx)
+        ImGui.TableNextColumn(ctx)
+        ImGui.CheckboxFlags(ctx, 'Trim trailing silence:', postprocess, TRIMEND_ENABLE)
+        ImGui.TableNextColumn(ctx)
+        ImGui.Text(ctx, 'Peak')
+        ImGui.TableNextColumn(ctx)
+        ImGui.Text(ctx, ('%g dB'):format(VAL2DB(preset.RENDER_TRIMEND)))
+      end
+
+      if preset.RENDER_PADEND then
+        ImGui.TableNextRow(ctx)
+        ImGui.TableNextColumn(ctx)
+        ImGui.CheckboxFlags(ctx, 'Pad start with silence:', postprocess, PADSTART_ENABLE)
+        ImGui.TableSetColumnIndex(ctx, 2)
+        ImGui.Text(ctx, ('%g ms'):format(preset.RENDER_PADSTART * 1e3))
+
+        ImGui.TableNextRow(ctx)
+        ImGui.TableNextColumn(ctx)
+        ImGui.CheckboxFlags(ctx, 'Pad end with silence:', postprocess, PADEND_ENABLE)
+        ImGui.TableSetColumnIndex(ctx, 2)
+        ImGui.Text(ctx, ('%g ms'):format(preset.RENDER_PADEND * 1e3))
+      end
+
+      if preset.RENDER_FADEOUT then
+        ImGui.TableNextRow(ctx)
+        ImGui.TableNextColumn(ctx)
+        ImGui.CheckboxFlags(ctx, 'Fade-in:', postprocess, FADEIN_ENABLE)
+        ImGui.TableNextColumn(ctx)
+        ImGui.Text(ctx, ('Shape %d'):format(preset.RENDER_FADEINSHAPE))
+        ImGui.TableNextColumn(ctx)
+        ImGui.Text(ctx, ('%g ms'):format(preset.RENDER_FADEIN * 1e3))
+
+        ImGui.TableNextRow(ctx)
+        ImGui.TableNextColumn(ctx)
+        ImGui.CheckboxFlags(ctx, 'Fade-out:', postprocess, FADEOUT_ENABLE)
+        ImGui.TableNextColumn(ctx)
+        ImGui.Text(ctx, ('Shape %d'):format(preset.RENDER_FADEOUTSHAPE))
+        ImGui.TableNextColumn(ctx)
+        ImGui.Text(ctx, ('%g ms'):format(preset.RENDER_FADEOUT * 1e3))
+      end
 
       ImGui.EndTable(ctx)
     end
@@ -736,25 +771,43 @@ local function postprocessCell(ctx, preset)
     ImGui.SameLine(ctx)
     ImGui.CheckboxFlags(ctx, 'too quiet', postprocess, NORMALIZE_TOO_QUIET)
 
-    ImGui.CheckboxFlags(ctx, 'Adjust mono media an additional -3 dB', postprocess, NORMALIZE_MONO3DB)
+    ImGui.CheckboxFlags(ctx, 'Adjust mono media an additional', postprocess, NORMALIZE_MONO)
+    ImGui.BeginDisabled(ctx, postprocess & NORMALIZE_MONO == 0)
+    ImGui.SameLine(ctx)
+    ImGui.RadioButton(ctx, '-3dB', postprocess & NORMALIZE_MONOPLUS == 0)
+    ImGui.SameLine(ctx)
+    ImGui.RadioButton(ctx, '+3dB', postprocess & NORMALIZE_MONOPLUS ~= 0)
+    ImGui.EndDisabled(ctx)
 
     local mode = 0
     for i, bit in ipairs(NORMALIZE_MODE_BITS) do
       mode = mode | ((postprocess >> bit & 1) << (i - 1))
     end
+    -- TODO: 7.39+dev0514 - May 14 2025
+    -- + Render: restore option to normalize to master mix
+    -- Normalize all files to master mix\0\z
     local modes =
       'Normalize each file separately\0\z
-       Normalize all files to master mix\0\z
+       Normalize as if files play together\0\z
        Normalize to loudest file\0\z
-       Normalize as if one long file\0'
+       Normalize as if files play together (common gain)\0'
     ImGui.SetNextItemWidth(ctx, -FLT_MIN)
     ImGui.Combo(ctx, '##mode', mode, modes)
+
+    modes =
+      'Limit each file separately\0\z
+       Limit as if files play together\0'
+    ImGui.SetNextItemWidth(ctx, -FLT_MIN)
+    ImGui.Combo(ctx, '##mode', (postprocess >> 21) & 1, modes)
 
     ImGui.EndTooltip(ctx)
   end
 
   local enable_mask =
-    NORMALIZE_ENABLE | BRICKWALL_ENABLE | FADEIN_ENABLE | FADEOUT_ENABLE
+    NORMALIZE_ENABLE | BRICKWALL_ENABLE |
+    TRIMSTART_ENABLE | TRIMEND_ENABLE   |
+    PADSTART_ENABLE  | PADEND_ENABLE    |
+    FADEIN_ENABLE    | FADEOUT_ENABLE
   boolText(ctx, (postprocess & enable_mask) ~= 0)
 end
 
