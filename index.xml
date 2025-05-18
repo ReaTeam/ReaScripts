@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="449c7a1ca8c0a6417bf52a0d0d4b863160ec0a89" name="ReaTeam Scripts">
+<index version="1" commit="4d2bc7f20fa189fdb0dc68ccb0972f847befd86e" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -20883,7 +20883,7 @@ Removed first run warning message.]]></changelog>
     </reapack>
     <reapack name="amagalma_Normalize selected tracks - calculate only for the time selection, if present (peakRMSLUFS)....lua" type="script" desc="Normalize selected tracks - calculate only for the time selection, if present (peak/RMS/LUFS)...">
       <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
@@ -20903,6 +20903,10 @@ Removed first run warning message.]]></changelog>
       <version name="1.02" author="amagalma" time="2022-12-13T11:21:35Z">
         <changelog><![CDATA[- Request a specific version of ReaImGui's API]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/42768ac1281682e50d767d3522283d1f81684135/Tracks%20Properties/amagalma_Normalize%20selected%20tracks%20-%20calculate%20only%20for%20the%20time%20selection,%20if%20present%20(peakRMSLUFS)....lua</source>
+      </version>
+      <version name="1.03" author="amagalma" time="2025-05-18T13:06:02Z">
+        <changelog><![CDATA[- Fixed: v1.02 had stopped working]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4d2bc7f20fa189fdb0dc68ccb0972f847befd86e/Tracks%20Properties/amagalma_Normalize%20selected%20tracks%20-%20calculate%20only%20for%20the%20time%20selection,%20if%20present%20(peakRMSLUFS)....lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Route selected tracks to new Channel Selector track above them.lua" type="script" desc="Route selected tracks to new Channel Selector track above them">
