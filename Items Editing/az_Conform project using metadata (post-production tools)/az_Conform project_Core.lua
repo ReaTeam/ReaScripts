@@ -1626,6 +1626,7 @@ function LinkFiles(SelItems)
               local srcLen, isQN = reaper.GetMediaSourceLength(newSrc)
               local splRate = reaper.GetMediaSourceSampleRate(newSrc)
               local takemark = ''
+              local notes = ''
               
               if isQN == false then
                 local fileTC = 0
@@ -1669,7 +1670,8 @@ function LinkFiles(SelItems)
                                 offset = offset,
                                 src = newSrc,
                                 name = fName..'.'..fExt,
-                                takemark = takemark
+                                takemark = takemark,
+                                notes = notes
                                 }
                     
                     if chCnt == 1 and trName ~= ''
