@@ -1,7 +1,7 @@
 -- @description Normalize selected tracks - calculate only for the time selection, if present (peak/RMS/LUFS)...
 -- @author amagalma
--- @version 1.02
--- @changelog - Request a specific version of ReaImGui's API
+-- @version 1.03
+-- @changelog - Fixed: v1.02 had stopped working
 -- @donation https://www.paypal.me/amagalma
 -- @about
 --   Normalizes the selected tracks' volume to hit the desired value with the desired method.
@@ -88,7 +88,7 @@ local function Normalize()
     if name == "FILE" then
       cnt = cnt + 1
       local id_from_field = math.tointeger(reaper.GetMediaTrackInfo_Value( tracks[cnt].ptr, "IP_TRACKNUMBER" ))
-      local name_from_field = value:match(".+[\\/](.*)")
+      local name_from_field = value:match(".+[\\/](.*)") or value
       local current_track = reaper.GetSelectedTrack( 0, cnt-1 )
       -- comparison needed to make sure that the results are NOT from a previous run
       if ({reaper.GetSetMediaTrackInfo_String( current_track, "P_NAME", "", false )})[2] ~= name_from_field or
