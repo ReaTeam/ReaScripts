@@ -1,29 +1,34 @@
 --[[
 @description One Small Step : Alternative Step Input
-@version 0.9.18
+@version 0.9.19
 @author Ben 'Talagan' Babut
 @license MIT
 @metapackage
 @changelog
-  - [Optim] Note highlighter was using too much CPU
+  - [Feature] Added configuration actions reacting to MIDI Shortcuts
 @provides
   [main=main,midi_editor] .
+  [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Change input mode - (MIDI).lua
   [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Change input mode.lua             > talagan_OneSmallStep/actions/talagan_OneSmallStep Change input mode - KeyboardPress.lua
   [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Change input mode.lua             > talagan_OneSmallStep/actions/talagan_OneSmallStep Change input mode - KeyboardRelease.lua
   [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Change input mode.lua             > talagan_OneSmallStep/actions/talagan_OneSmallStep Change input mode - Punch.lua
+  [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Change edit mode - (MIDI).lua
   [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Change edit mode.lua              > talagan_OneSmallStep/actions/talagan_OneSmallStep Change edit mode - Write.lua
   [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Change edit mode.lua              > talagan_OneSmallStep/actions/talagan_OneSmallStep Change edit mode - Navigate.lua
   [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Change edit mode.lua              > talagan_OneSmallStep/actions/talagan_OneSmallStep Change edit mode - Replace.lua
   [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Change edit mode.lua              > talagan_OneSmallStep/actions/talagan_OneSmallStep Change edit mode - Insert.lua
   [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Change edit mode.lua              > talagan_OneSmallStep/actions/talagan_OneSmallStep Change edit mode - Repitch.lua
+  [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Change note len param source - (MIDI).lua
   [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Change note len param source.lua  > talagan_OneSmallStep/actions/talagan_OneSmallStep Change note len param source - OSS.lua
   [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Change note len param source.lua  > talagan_OneSmallStep/actions/talagan_OneSmallStep Change note len param source - ItemConf.lua
   [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Change note len param source.lua  > talagan_OneSmallStep/actions/talagan_OneSmallStep Change note len param source - ProjectGrid.lua
+  [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Change note len modifier - (MIDI).lua
   [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Change note len modifier.lua      > talagan_OneSmallStep/actions/talagan_OneSmallStep Change note len modifier - Straight.lua
   [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Change note len modifier.lua      > talagan_OneSmallStep/actions/talagan_OneSmallStep Change note len modifier - Triplet.lua
   [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Change note len modifier.lua      > talagan_OneSmallStep/actions/talagan_OneSmallStep Change note len modifier - Dotted.lua
   [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Change note len modifier.lua      > talagan_OneSmallStep/actions/talagan_OneSmallStep Change note len modifier - Modified.lua
   [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Change note len modifier.lua      > talagan_OneSmallStep/actions/talagan_OneSmallStep Change note len modifier - Tuplet.lua
+  [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Change note len - (MIDI).lua
   [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Change note len.lua               > talagan_OneSmallStep/actions/talagan_OneSmallStep Change note len - 1_64.lua
   [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Change note len.lua               > talagan_OneSmallStep/actions/talagan_OneSmallStep Change note len - 1_32.lua
   [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Change note len.lua               > talagan_OneSmallStep/actions/talagan_OneSmallStep Change note len - 1_16.lua
