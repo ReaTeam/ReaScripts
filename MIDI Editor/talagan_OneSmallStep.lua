@@ -1,13 +1,11 @@
 --[[
 @description One Small Step : Alternative Step Input
-@version 0.9.17
+@version 0.9.18
 @author Ben 'Talagan' Babut
 @license MIT
 @metapackage
 @changelog
-  - [Feature] Added setting to always focus ME on launch
-  - [Rework] Converted to ImGui 0.9.3
-  - [Rework] Ditched JS_VKeys_GetState in profit of JS_Mouse_GetState for key modifier detection
+  - [Optim] Note highlighter was using too much CPU
 @provides
   [main=main,midi_editor] .
   [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Change input mode.lua             > talagan_OneSmallStep/actions/talagan_OneSmallStep Change input mode - KeyboardPress.lua
@@ -1843,6 +1841,9 @@ local function start()
   reaper.defer(_start)
 end
 
+S.setSetting("UseProfiler", false)
+
 DBG.LaunchDebugStubIfNeeded()
+DBG.LaunchProfilerIfNeeded()
 
 start()

@@ -46,6 +46,30 @@ local function LaunchDebugStubIfNeeded()
   end
 end
 
+-- Profiler launcher
+local function LaunchProfilerIfNeeded()
+    if S.getSetting("UseProfiler") then
+
+        -- Functions need to be preloaded for profiling to be able to instrument them
+        -- So, force preload DSP functions before "attach to world"
+
+        -- Require here all files containing things to be profiled.
+
+        local E                     = require "engine_lib"
+        local H                     = require "helper_lib"
+        local AT                    = require "modules/action_triggers"
+        local ART                   = require "modules/articulations"
+        local S                     = require "modules/settings"
+
+
+        local profiler = dofile(reaper.GetResourcePath() .. '/Scripts/ReaTeam Scripts/Development/cfillion_Lua profiler.lua')
+        reaper.defer = profiler.defer
+        profiler.attachToWorld() -- after all functions have been defined
+        profiler.run()
+    end
+end
+
 return {
-  LaunchDebugStubIfNeeded = LaunchDebugStubIfNeeded
+  LaunchDebugStubIfNeeded = LaunchDebugStubIfNeeded,
+  LaunchProfilerIfNeeded  = LaunchProfilerIfNeeded
 }
