@@ -351,7 +351,7 @@ function MainWindow(OptTable, windowName)
               reaper.ShowMessageBox('There is no valid data in EDL files', 'Warning!',0) 
             else
               local notMatchedItems, message = CreateTracks(EdlsTable)
-              if message then reaper.ShowMessageBox( message, 'Caution!', 0) end
+              if message then reaper.ShowMessageBox( message, 'Cauton!', 0) end
               if #notMatchedItems > 0 then
                 msg(#notMatchedItems..' CLIPS FROM EDL HAVE NO MATCH!\n')
                 for i, item in ipairs(notMatchedItems) do
@@ -1288,14 +1288,15 @@ function Expand(SelItems, TrackList)
     end
     
     for i, Item in ipairs(TData.Titems) do
+      local matchedNames = {}
     --msg('\n'..Item.name)
     --match channel names with names in TrackList and
       for n, name in ipairs(Item.chnNames) do
-        if FieldMatch(TrackList, name) == true and name:upper() ~= TData.Tname:upper() then
+        if FieldMatch(TrackList, name) == true and name:upper() ~= TData.Tname:upper() then 
           local ch = n +2
           local track
-          if name ~= 'No name' then track = Tracks[name]
-          elseif not Tracks['ch_'..n] and TrackList['No name'] == true then
+          
+          if name == 'No name' and not Tracks['ch_'..n] and TrackList['No name'] == true then
             reaper.InsertTrackAtIndex(tIdx, true)
             track = reaper.GetTrack(0, tIdx)
             tIdx = tIdx +1
@@ -1305,10 +1306,48 @@ function Expand(SelItems, TrackList)
             
             --green for named mono tracks
             reaper.SetMediaTrackInfo_Value(track, 'I_CUSTOMCOLOR', TrClrs.green | 0x1000000)
-          elseif Tracks['ch_'..n] then
+          elseif name == 'No name' and Tracks['ch_'..n] then
             track = Tracks['ch_'..n]
+          elseif name == 'DISARMED'
+          and not Tracks['DISARMED ch_'..n] and TrackList['DISARMED'] == true then
+            reaper.InsertTrackAtIndex(tIdx, true)
+            track = reaper.GetTrack(0, tIdx)
+            tIdx = tIdx +1
+            local _,_ = reaper.GetSetMediaTrackInfo_String(track, 'P_NAME', 'DISARMED ch_'..n, true)
+            Tracks['DISARMED ch_'..n] = track
+            table.insert(NewTracks, track)
+            
+            --green for named mono tracks
+            reaper.SetMediaTrackInfo_Value(track, 'I_CUSTOMCOLOR', TrClrs.green | 0x1000000)
+          elseif name == 'DISARMED' and Tracks['DISARMED ch_'..n] then
+            track = Tracks['DISARMED ch_'..n]
+          elseif name ~= 'No name' and name ~= 'DISARMED' then
+            local prevTrackIdx
+            local matchCnt = 0
+            for _, m in ipairs(matchedNames) do
+              if m == name then
+                matchCnt = matchCnt + 1
+                local prevTrack = Tracks[name]
+                prevTrackIdx = reaper.GetMediaTrackInfo_Value( prevTrack, 'IP_TRACKNUMBER' )
+              end
+            end
+            
+            if matchCnt > 0 then
+              reaper.InsertTrackAtIndex(prevTrackIdx+1, true)
+              track = reaper.GetTrack(0, prevTrackIdx+1)
+              tIdx = tIdx +1 --increase common new tracks count
+              name = name..'_'.. matchCnt+1
+              local _,_ = reaper.GetSetMediaTrackInfo_String(track, 'P_NAME', name, true)
+              Tracks[name] = track
+              table.insert(NewTracks, track)
+              
+              --green for named mono tracks
+              reaper.SetMediaTrackInfo_Value(track, 'I_CUSTOMCOLOR', TrClrs.green | 0x1000000)
+            else track = Tracks[name]
+            end
           end
           
+          table.insert(matchedNames, name )
           local validSrc = reaper.ValidatePtr2(0, Item.src, 'PCM_source*')
           
           if track and validSrc then
@@ -1396,6 +1435,34 @@ function GetSelItemsPerTrack(addMeta, addActiveChNames)
       --msg('\n'..Item.name)
       if addMeta then Item.metaList = save_metadata(src, TagsList) end
       
+      local disarmed = {}
+      for ch = 1, Item.chnNumb do
+        local cantarTag = "IXML:AATON_CANTAR:ALL_TRK_NAME:DATA:ACTIVE"
+        if ch ~= 1 then cantarTag = cantarTag..':'..ch end
+        local ret, str = reaper.GetMediaFileMetadata(src, cantarTag)
+        if str == "DISARMED" then table.insert(disarmed, ch) end
+        
+        if str ~= "DISARMED" then
+          local chanTag = "IXML:TRACK_LIST:TRACK:NAME"
+          local chanTag2 = "IXML:TRACK_LIST_TRACK_NAME"
+          if ch ~= 1 then
+            chanTag = chanTag..':'.. ch - #disarmed
+            chanTag2 = chanTag2..'_'.. ch - #disarmed
+          end 
+          ret, str = reaper.GetMediaFileMetadata(src, chanTag)
+          if str == '' then ret, str = reaper.GetMediaFileMetadata(src, chanTag2) end
+          str = str:upper()
+        end
+        --msg(chanTag..' - '..str)
+        local use = true
+        if str == '' then
+          str = 'No name'
+          use = ExpandNoNamedCh
+        end
+        table.insert(Item.chnNames, str)
+        if FieldMatch(TrackList, str, true) == false then TrackList[str] = use end
+      end
+      
       if addActiveChNames then
         local chmode = reaper.GetMediaItemTakeInfo_Value( take, "I_CHANMODE" )
         local actChNumb
@@ -1416,30 +1483,33 @@ function GetSelItemsPerTrack(addMeta, addActiveChNames)
         end
         
         for ch = 1, actChNumb do
-          local chanTag = "IXML:TRACK_LIST:TRACK:NAME"
-          if chmode ~= 1 then chanTag = chanTag..':'..string.format("%.0f", chmode) end 
-          local ret, str = reaper.GetMediaFileMetadata(src, chanTag)
-          if str == '' then str = 'ch '..string.format("%.0f", chmode) end
+          local disarmCnt = 0
+          local ret, str
+          
+          for d, v in ipairs(disarmed) do
+            if v < chmode then disarmCnt = disarmCnt +1 end
+            if v == chmode then
+              str = 'DISARMED ch '..string.format("%.0f", chmode)
+              break
+            end
+          end
+          
+          if not str then
+            local chanTag = "IXML:TRACK_LIST:TRACK:NAME"
+            local chanTag2 = "IXML:TRACK_LIST_TRACK_NAME"
+            if chmode ~= 1 then
+              chanTag = chanTag..':'..string.format("%.0f", chmode - disarmCnt)
+              chanTag2 = chanTag2..'_'..string.format("%.0f", chmode - disarmCnt)
+            end 
+            ret, str = reaper.GetMediaFileMetadata(src, chanTag)
+            if str == '' then ret, str = reaper.GetMediaFileMetadata(src, chanTag2) end
+            if str == '' then str = 'ch '..string.format("%.0f", chmode) end
+          end
+          
           table.insert(Item.actChnNames, str)
           chmode = chmode + 1*order
         end
         
-      end
-      
-      
-      for ch = 1, Item.chnNumb do
-        local chanTag = "IXML:TRACK_LIST:TRACK:NAME"
-        if ch ~= 1 then chanTag = chanTag..':'..ch end
-        local ret, str = reaper.GetMediaFileMetadata(src, chanTag)
-        str = str:upper()
-        --msg(chanTag..' - '..str)
-        local use = true
-        if str == '' then
-          str = 'No name'
-          use = ExpandNoNamedCh
-        end
-        table.insert(Item.chnNames, str)
-        if FieldMatch(TrackList, str, true) == false then TrackList[str] = use end
       end
       
     end
@@ -1626,7 +1696,6 @@ function LinkFiles(SelItems)
               local srcLen, isQN = reaper.GetMediaSourceLength(newSrc)
               local splRate = reaper.GetMediaSourceSampleRate(newSrc)
               local takemark = ''
-              local notes = ''
               
               if isQN == false then
                 local fileTC = 0
@@ -1670,8 +1739,7 @@ function LinkFiles(SelItems)
                                 offset = offset,
                                 src = newSrc,
                                 name = fName..'.'..fExt,
-                                takemark = takemark,
-                                notes = notes
+                                takemark = takemark
                                 }
                     
                     if chCnt == 1 and trName ~= ''
