@@ -351,7 +351,7 @@ function MainWindow(OptTable, windowName)
               reaper.ShowMessageBox('There is no valid data in EDL files', 'Warning!',0) 
             else
               local notMatchedItems, message = CreateTracks(EdlsTable)
-              if message then reaper.ShowMessageBox( message, 'Cauton!', 0) end
+              if message then reaper.ShowMessageBox( message, 'Caution!', 0) end
               if #notMatchedItems > 0 then
                 msg(#notMatchedItems..' CLIPS FROM EDL HAVE NO MATCH!\n')
                 for i, item in ipairs(notMatchedItems) do
@@ -470,7 +470,7 @@ function MainWindow(OptTable, windowName)
             if itemsCnt > 0 and SearchFolder and SearchFolder ~= '' then
               notMatchedItems, message = LinkFiles(selItems)
             end
-            if message then reaper.ShowMessageBox( message, 'Cauton!', 0) end
+            if message then reaper.ShowMessageBox( message, 'Caution!', 0) end
             if #notMatchedItems > 0 then
               msg(#notMatchedItems..' ITEMS HAVE NO MATCH!\nThey are selected\n')
               for i, item in ipairs(notMatchedItems) do
