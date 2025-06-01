@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="e9abe4ee9cae506e3eac0282179f6a3d3944ed30" name="ReaTeam Scripts">
+<index version="1" commit="3571089b190d0163a94d4253404d2e0d80e6a1c7" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -6227,6 +6227,7 @@ website
 
 {\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel0 \b \fs36 Conform project using metadata\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 This script has various features for comfortable work when you get a project from video editor\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Conform project using EDL CMX 3600 files\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Link source files\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Expand channels from field recorder poly-wave files\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab and more in the feature\sa180\par}
@@ -6265,6 +6266,14 @@ website
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/251ca0dbbe040dd971df0399d5c5872ea9060a9b/Items%20Editing/az_Conform%20project%20using%20metadata%20(post-production%20tools).lua</source>
         <source file="az_Conform project using metadata (post-production tools)/az_Conform project_Core.lua">https://github.com/ReaTeam/ReaScripts/raw/251ca0dbbe040dd971df0399d5c5872ea9060a9b/Items%20Editing/az_Conform%20project%20using%20metadata%20(post-production%20tools)/az_Conform%20project_Core.lua</source>
         <source main="main" file="az_Conform project using metadata (post-production tools)/az_Rename takes with last used settings (post-production tools).lua">https://github.com/ReaTeam/ReaScripts/raw/251ca0dbbe040dd971df0399d5c5872ea9060a9b/Items%20Editing/az_Conform%20project%20using%20metadata%20(post-production%20tools)/az_Rename%20takes%20with%20last%20used%20settings%20(post-production%20tools).lua</source>
+      </version>
+      <version name="0.6.5" author="AZ" time="2025-06-01T15:33:07Z">
+        <changelog><![CDATA[- Support for Aaton Cantar DISARMED tracks
+- Support creating several tracks for same named fieldrecorder channels
+- small fixies]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3571089b190d0163a94d4253404d2e0d80e6a1c7/Items%20Editing/az_Conform%20project%20using%20metadata%20(post-production%20tools).lua</source>
+        <source file="az_Conform project using metadata (post-production tools)/az_Conform project_Core.lua">https://github.com/ReaTeam/ReaScripts/raw/3571089b190d0163a94d4253404d2e0d80e6a1c7/Items%20Editing/az_Conform%20project%20using%20metadata%20(post-production%20tools)/az_Conform%20project_Core.lua</source>
+        <source main="main" file="az_Conform project using metadata (post-production tools)/az_Rename takes with last used settings (post-production tools).lua">https://github.com/ReaTeam/ReaScripts/raw/3571089b190d0163a94d4253404d2e0d80e6a1c7/Items%20Editing/az_Conform%20project%20using%20metadata%20(post-production%20tools)/az_Rename%20takes%20with%20last%20used%20settings%20(post-production%20tools).lua</source>
       </version>
     </reapack>
     <reapack name="az_Fade tool (work on context of mouse, razor or time selection).lua" type="script" desc="Fade tool (works on context of mouse, razor or time selection)">
