@@ -1,7 +1,10 @@
 -- @description Conform project using metadata (post-production tools)
 -- @author AZ
--- @version 0.6.1
--- @changelog - Fixed linking sources, notes depending error
+-- @version 0.6.5
+-- @changelog
+--   - Support for Aaton Cantar DISARMED tracks
+--   - Support creating several tracks for same named fieldrecorder channels
+--   - small fixies
 -- @provides
 --   az_Conform project using metadata (post-production tools)/az_Conform project_Core.lua
 --   [main] az_Conform project using metadata (post-production tools)/az_Rename takes with last used settings (post-production tools).lua
@@ -12,6 +15,7 @@
 --
 --   This script has various features for comfortable work when you get a project from video editor
 --
+--   - Conform project using EDL CMX 3600 files
 --   - Link source files
 --   - Expand channels from field recorder poly-wave files
 --   - and more in the feature
