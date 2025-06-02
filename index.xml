@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="3571089b190d0163a94d4253404d2e0d80e6a1c7" name="ReaTeam Scripts">
+<index version="1" commit="70ee846d5f8c9ad2cae87d7e2e26a3c72a41b771" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -18659,6 +18659,32 @@ Replace GetLastWord func with quicker solution (Thanks: Mespotine[t=233393]).]]>
       <version name="1.06-1" author="Edgemeal" time="2021-11-12T22:40:09Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/96e78e374b1da53707e3704ac42341eb89c2cd64/Project%20Properties/edgemeal_Save%20project%20plugin%20info%20to%20text%20file.lua</source>
         <source main="main" file="edgemeal_Save project plugin info to text file/edgemeal_Save project plugin info to text file (Don't open notepad on Windows).lua">https://github.com/ReaTeam/ReaScripts/raw/96e78e374b1da53707e3704ac42341eb89c2cd64/Project%20Properties/edgemeal_Save%20project%20plugin%20info%20to%20text%20file/edgemeal_Save%20project%20plugin%20info%20to%20text%20file%20(Don't%20open%20notepad%20on%20Windows).lua</source>
+      </version>
+    </reapack>
+    <reapack name="jd_Kanban.lua" type="script" desc="Kanban">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel0 \b \fs36 Kanban\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Graphical interface for managing project tasks in REAPER as a Kanban board.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel1 \b \fs32 Features:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Three columns: "Backlog", "To Do", "Done"\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Create tasks by right-clicking in a column\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Edit tasks by right-clicking on an existing task\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Drag tasks between columns and reorder within columns\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Delete tasks with the X button\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Automatic saving to tasks.ini file\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Support for multi-line text and word wrapping\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Visual task status indicators\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Scroll content with mouse wheel\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Donations (crypto): USDT (TRC20) - TTYgm2v1PV6hXYnqNu6hZb9ddu6TSqzZkU USDT (ERC20) - 0x481728FD856603ECaB8b222DFC2428E67Fd92E4E Bitcoin (BTC) - 18viyeLPCSYosz1bVw3aavC189Y2jE3SFm Toncoin (TON) - UQAqtnyzZxDpGB6Os0HbSG1LZdq57MxDXIGoNFyGDvHHZPB8 Etherium (ETH) - 00x481728FD856603ECaB8b222DFC2428E67Fd92E4E TRON (TRX) - TVXuH9mJgDsRkb1CzBSHCdMKC7eRKxcqei\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0.0" author="Julyday" time="2025-06-02T18:51:04Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/70ee846d5f8c9ad2cae87d7e2e26a3c72a41b771/Project%20Properties/jd_Kanban.lua</source>
       </version>
     </reapack>
     <reapack name="JerContact_Open project based on file in clipboard.lua" type="script" desc="Open project based on file in clipboard">
