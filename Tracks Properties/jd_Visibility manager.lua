@@ -1,4 +1,4 @@
--- @description jd_VisibilityManager
+-- @description Visibility manager
 -- @author Julyday
 -- @version 1.0.0
 -- @about
