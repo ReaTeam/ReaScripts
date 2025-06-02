@@ -1,4 +1,4 @@
--- @description jd_Kanban
+-- @description Kanban
 -- @author Julyday
 -- @version 1.0.0
 -- @about
