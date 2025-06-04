@@ -1,6 +1,23 @@
 -- @description Kanban
 -- @author Julyday
--- @version 1.0.0
+-- @version 1.0.1
+-- @changelog
+--   ### Added
+--   - Project change detection and automatic task reloading when switching between projects
+--   - Graceful handling of unsaved projects with user prompt to save before proceeding
+--   - Support for storing tasks directly in project files using REAPER's extended state system
+--   - Automatic project dirty marking when tasks are modified
+--
+--   ### Changed
+--   - **BREAKING**: Replaced INI file storage with REAPER's `SetProjExtState`/`GetProjExtState` system
+--   - Tasks are now stored inside the project file instead of adjacent INI files
+--   - Improved project path handling using `EnumProjects(-1)` instead of `GetProjectPath()`
+--   - Enhanced project state monitoring with `GetProjectStateChangeCount()`
+--
+--   ### Fixed
+--   - Resolved issues with `GetProjectPath()` referring to global media directory instead of per-project paths
+--   - Fixed script behavior when active project changes while script is running
+--   - Improved handling of project tab switching and "Open..." dialog interactions
 -- @about
 --   # Kanban
 --   Graphical interface for managing project tasks in REAPER as a Kanban board.
@@ -23,9 +40,25 @@
 --   Etherium (ETH) - 00x481728FD856603ECaB8b222DFC2428E67Fd92E4E
 --   TRON     (TRX) - TVXuH9mJgDsRkb1CzBSHCdMKC7eRKxcqei
 
+
 reaper.set_action_options(1)
-local project_path = reaper.GetProjectPath()
-local ini_file = project_path .. "/tasks.ini"
+
+-- Get current project and handle unsaved projects
+local proj, project_path = reaper.EnumProjects(-1)
+if #project_path == 0 then
+    if reaper.MB('      The project must be saved\n\n      before the script can work.\n\n\t     Save now?', 'Kanban', 4) == 6 then
+        reaper.Main_SaveProject(0, false) -- forceSaveAsIn false, but for unsaved project doesn't matter
+        proj, project_path = reaper.EnumProjects(-1)
+        if #project_path == 0 then -- user closed Save dialogue without saving
+            return reaper.defer(function() do return end end)
+        end
+    else -- user declined the prompt
+        return reaper.defer(function() do return end end)
+    end
+end
+
+local current_project = proj
+local ext_name = "Kanban"
 local window_w, window_h = 1280, 900
 local column_w = window_w / 3
 local task_height = 40
@@ -48,6 +81,7 @@ local click_count = 0
 local last_click_x, last_click_y, last_click_col = 0, 0, 0
 local last_mouse_state = 0
 local click_timer = 0
+local project_state_change_count = 0
 local colors = {
     background = {0.15, 0.16, 0.21, 1.0},
     foreground = {0.67, 0.70, 0.75, 1.0},
@@ -199,33 +233,62 @@ function Task:contains_x_button(x, y)
            y >= x_y and y <= x_y + x_size
 end
 function load_tasks()
-    local file = io.open(ini_file, "r")
-    if not file then return end
     columns = {{}, {}, {}}
-    for line in file:lines() do
-        local column, text = line:match("(%d):(.+)")
-        if column and text then
-            column = tonumber(column)
-            if column >= 1 and column <= 3 then
-                table.insert(columns[column], Task.new(text, column))
+
+    -- Load tasks from project extended state
+    for col = 1, 3 do
+        local retval, task_data = reaper.GetProjExtState(current_project, ext_name, "column_" .. col)
+        if retval == 1 and task_data ~= "" then
+            -- Parse tasks from stored data
+            for task_text in task_data:gmatch("[^\n]+") do
+                if task_text ~= "" then
+                    table.insert(columns[col], Task.new(task_text, col))
+                end
             end
         end
     end
-    file:close()
+
     update_task_positions()
 end
 function save_tasks()
-    local file = io.open(ini_file, "w")
-    if not file then
-        reaper.ShowMessageBox("Failed to open file for saving tasks", "Error", 0)
-        return
-    end
+    -- Save tasks to project extended state
     for col = 1, 3 do
-        for _, task in ipairs(columns[col]) do
-            file:write(tostring(col) .. ":" .. task.text .. "\n")
+        local task_data = ""
+        for i, task in ipairs(columns[col]) do
+            if i > 1 then
+                task_data = task_data .. "\n"
+            end
+            task_data = task_data .. task.text
         end
+        reaper.SetProjExtState(current_project, ext_name, "column_" .. col, task_data)
     end
-    file:close()
+
+    -- Mark project as dirty to indicate changes
+    reaper.MarkProjectDirty(current_project)
+end
+function check_project_changes()
+    local new_proj, new_path = reaper.EnumProjects(-1)
+    local new_state_count = reaper.GetProjectStateChangeCount(new_proj)
+
+    -- Check if project changed
+    if new_proj ~= current_project then
+        current_project = new_proj
+        if #new_path == 0 then
+            -- Project is not saved, close the script
+            reaper.ShowMessageBox("Project changed to unsaved project. Closing Kanban.", "Info", 0)
+            gfx.quit()
+            return false
+        end
+        load_tasks() -- Reload tasks from new project
+        return true
+    end
+
+    -- Update state change count
+    if new_state_count ~= project_state_change_count then
+        project_state_change_count = new_state_count
+    end
+
+    return false
 end
 function update_task_positions()
     local max_content_height = 0
@@ -387,6 +450,7 @@ function init()
     gfx.setfont(1, "Arial", font_size)
     gfx.setfont(2, "Arial", font_size + 4, "b")
     gfx.clear = 0
+    project_state_change_count = reaper.GetProjectStateChangeCount(current_project)
     load_tasks()
 end
 function debug_message(message)
@@ -512,6 +576,21 @@ function handle_scrolling()
     end
 end
 function main()
+    -- Check if project changed
+    if check_project_changes() then
+        -- Project changed, tasks were reloaded
+        draw()
+        local char = gfx.getchar()
+        if char == -1 then
+            gfx.quit()
+            return
+        end
+        if char ~= 27 and char >= 0 then
+            reaper.defer(main)
+        end
+        return
+    end
+
     handle_scrolling()
     handle_mouse_click()
     if reaper.time_precise() - click_timer > 0.5 then
@@ -530,5 +609,3 @@ function main()
 end
 init()
 main()
-
-
