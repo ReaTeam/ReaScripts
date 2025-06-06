@@ -1,10 +1,9 @@
 -- @description Conform project using metadata (post-production tools)
 -- @author AZ
--- @version 0.6.5
+-- @version 0.6.7
 -- @changelog
---   - Support for Aaton Cantar DISARMED tracks
---   - Support creating several tracks for same named fieldrecorder channels
---   - small fixies
+--   - Added project frame rate selector
+--   - Fixed some fades related bugs
 -- @provides
 --   az_Conform project using metadata (post-production tools)/az_Conform project_Core.lua
 --   [main] az_Conform project using metadata (post-production tools)/az_Rename takes with last used settings (post-production tools).lua

@@ -97,7 +97,12 @@ end
 ------------------------
 
 function MainWindow(OptTable, windowName)
-   
+  
+  if not reaper.APIExists( 'SNM_GetIntConfigVar' ) then
+    reaper.ShowMessageBox('Please, install SWS extension!', 'No SWS extension', 0)
+    return
+  end
+  
   local imgui_path = reaper.GetResourcePath() .. '/Scripts/ReaTeam Extensions/API/imgui.lua'
   if not reaper.file_exists(imgui_path) then
     reaper.ShowMessageBox('Please, install ReaImGui from Reapack!', 'No Imgui library', 0)
@@ -240,10 +245,41 @@ function MainWindow(OptTable, windowName)
           SearchFolder = iniFolder
         end
         
+        reaper.ImGui_SameLine(ctx, nil, fontSize*1.5)
+        reaper.ImGui_Text(ctx, 'Set known project framerate')
         reaper.ImGui_SameLine(ctx)
-        reaper.ImGui_PushFont(ctx, fontSep)
-        reaper.ImGui_Text(ctx, 'Note: the project has to be set to the known framerate') 
-        reaper.ImGui_PopFont(ctx)
+        --reaper.ImGui_PushItemWidth(ctx, fontSize*10.3 )
+        local comboflags = reaper.ImGui_ComboFlags_WidthFitPreview() --| reaper.ImGui_ComboFlags_PopupAlignLeft()
+        
+        if reaper.ImGui_BeginCombo(ctx, '##-1', PrFrRate, comboflags ) then
+          local frameRates = {'23.976', '24', '25', '29.97DF', '29.97ND', '30', '48', '50', '60', '75'}
+          local choice
+          for k,f in ipairs(frameRates) do
+            local is_selected = choice == k
+            if reaper.ImGui_Selectable(ctx, frameRates[k], is_selected) then
+              choice = k
+              --Set Prj Frame Rate
+              PrFrRate = frameRates[k]
+              
+              if PrFrRate == '29.97DF' then PrFrRate = 30 PrDropFrame = 1
+              elseif PrFrRate == '29.97ND' then PrFrRate = 30 PrDropFrame = 2
+              elseif PrFrRate == '23.976' then PrFrRate = 24 PrDropFrame = 2
+              else PrFrRate = tonumber(PrFrRate) PrDropFrame = 0
+              end
+              
+              reaper.SNM_SetIntConfigVar( 'projfrbase', PrFrRate )
+              reaper.SNM_SetIntConfigVar( 'projfrdrop', PrDropFrame )
+              
+            end
+        
+            -- Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+            if is_selected then
+              reaper.ImGui_SetItemDefaultFocus(ctx)
+            end
+          end
+          reaper.ImGui_EndCombo(ctx)
+        end
+        
         
         if SearchFolder and SearchFolder ~= '' then
           reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Text(), gui_colors.Green)
@@ -284,27 +320,29 @@ function MainWindow(OptTable, windowName)
            
           reaper.ImGui_PushFont(ctx, fontSep)
           
-          local choiceSrc, change
+          local choiceSrc, change, changeSrc
           change, choiceSrc = reaper.ImGui_Checkbox(ctx, 'Video track', EDLcontentFlags & 1)
-          if change then EDLcontentFlags = EDLcontentFlags ~1 end
+          if change then EDLcontentFlags = EDLcontentFlags ~1 changeSrc = true end
           
           reaper.ImGui_SameLine(ctx, nil, fontSize)
           change, choiceSrc = reaper.ImGui_Checkbox(ctx, 'Audio 1', (EDLcontentFlags>>1) & 1)
-          if change then EDLcontentFlags = EDLcontentFlags  ~ (1<<1) end
+          if change then EDLcontentFlags = EDLcontentFlags  ~ (1<<1) changeSrc = true end
           
           reaper.ImGui_SameLine(ctx, nil, fontSize)
           change, choiceSrc = reaper.ImGui_Checkbox(ctx, 'Audio 2', (EDLcontentFlags>>2) & 1)
-          if change then EDLcontentFlags = EDLcontentFlags  ~ (1<<2) end
+          if change then EDLcontentFlags = EDLcontentFlags  ~ (1<<2) changeSrc = true end
           
           reaper.ImGui_SameLine(ctx, nil, fontSize)
           change, choiceSrc = reaper.ImGui_Checkbox(ctx, 'Audio 3', (EDLcontentFlags>>3) & 1)
-          if change then EDLcontentFlags = EDLcontentFlags  ~ (1<<3) end
+          if change then EDLcontentFlags = EDLcontentFlags  ~ (1<<3) changeSrc = true end
           
           reaper.ImGui_SameLine(ctx, nil, fontSize)
           change, choiceSrc = reaper.ImGui_Checkbox(ctx, 'Audio 4 + others', (EDLcontentFlags>>4) & 1)
-          if change then EDLcontentFlags = EDLcontentFlags  ~ (1<<4) end
+          if change then EDLcontentFlags = EDLcontentFlags  ~ (1<<4) changeSrc = true end
           
-          reaper.SetExtState(ExtStateName, 'ContentAnalyse', EDLcontentFlags, true)
+          if changeSrc == true then
+            reaper.SetExtState(ExtStateName, 'ContentAnalyse', EDLcontentFlags, true)
+          end
            
           ret, AudToVid = reaper.ImGui_Checkbox(ctx, 'Create Audio track linked to Video timecode', AudToVid)
           if ret then reaper.SetExtState(ExtStateName, 'AudToVid', tostring(AudToVid), true) end
@@ -454,7 +492,7 @@ function MainWindow(OptTable, windowName)
           
           reaper.ImGui_PopFont(ctx)
           
-          --reaper.ImGui_NewLine(ctx)
+          
           local itemsCnt = reaper.CountSelectedMediaItems(0)
           if itemsCnt > 0 and SearchFolder and SearchFolder ~= '' then
             reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Button(), gui_colors.MainButton.Default)
@@ -635,6 +673,33 @@ function MainWindow(OptTable, windowName)
       reaper.ImGui_Text(ctx, 'The feature is under development')
     end
     
+    if reaper.ImGui_CollapsingHeader(ctx, 'Export selected tracks/items as EDL files', false) then
+      reaper.ImGui_NewLine(ctx)
+      reaper.ImGui_SameLine(ctx, fontSize)
+      local childflags = Flags.childAutoResizeY | Flags.childAutoResizeX
+      local childExportEDL = reaper.ImGui_BeginChild(ctx, 'childExportEDL', 0, 0, childflags)
+      
+      if childExportEDL then
+        if reaper.ImGui_Button(ctx, ' Export EDLs ') then --msg(iniFolder)
+          if not iniFolder then
+            local cur_retprj, cur_projfn = reaper.EnumProjects( -1 )
+            local path, projfn, extension = SplitFilename(cur_projfn)
+            if path then iniFolder = path:gsub('[/\\]$','') end
+          end 
+          local iniFile = ''
+          local extensionList = "EDL file\0*.edl\0Text file\0*.txt\0\0"
+          local ret, fileName = reaper.JS_Dialog_BrowseForSaveFile
+          ( 'Save EDL files', iniFolder, iniFile, extensionList )
+          
+          if fileName ~= '' then
+            --ExportEDL(fileName)
+          end
+        end
+        
+        reaper.ImGui_EndChild(ctx)
+      end
+    end
+    
     for i, v in ipairs(OptTable) do
       local option = v
       
@@ -675,7 +740,7 @@ function MainWindow(OptTable, windowName)
             end
           end
           reaper.ImGui_EndCombo(ctx)
-        end 
+        end
         
         option[3] = option[4][choice]
       end
@@ -706,8 +771,17 @@ function MainWindow(OptTable, windowName)
   function loop()
     PrjTimeOffset = -reaper.GetProjectTimeOffset( 0, false )
     
+    PrFrRate = reaper.SNM_GetIntConfigVar( 'projfrbase', -1 )
+    PrDropFrame = reaper.SNM_GetIntConfigVar( 'projfrdrop', -1 )
+    
+    if PrFrRate == 30 and PrDropFrame == 1 then PrFrRate = '29.97DF'
+    elseif PrFrRate == 30 and PrDropFrame == 2 then PrFrRate = '29.97ND'
+    elseif PrFrRate == 24 and PrDropFrame == 2 then PrFrRate = '23.976'
+    end
+    
     if not font or savedFontSize ~= fontSize then
       if savedFontSize < 7 then savedFontSize = 7 end
+      if savedFontSize > 60 then savedFontSize = 60 end
       reaper.SetExtState(ExtStateName, 'FontSize', savedFontSize, true)
       fontSize = savedFontSize
       if font then reaper.ImGui_Detach(ctx, font) end
@@ -849,7 +923,7 @@ function AnalyseEDLs(EDLs, timeTreshold) --table of pathes
         if items ~= nil and #items > 0 then  --Collect items in tables
         --msg('close ' .. #items)
           for i, v in ipairs(items) do
-            --itemscnt = itemscnt +1
+            
             if v.Type == 'B' then
               table.insert(EdlTable.V, copy(v))
               table.insert(EdlTable.A1, copy(v))
@@ -996,9 +1070,10 @@ function AnalyseEDLs(EDLs, timeTreshold) --table of pathes
           if item then
             if clip then
               table.insert(item.Clips, copy(clip))
+              --msg('clip added')
               clip = nil --clip without name
             end 
-            table.insert(items, copy(item)) 
+            table.insert(items, copy(item))
             --msg('item added')
             item = nil
           end
@@ -1015,6 +1090,29 @@ function AnalyseEDLs(EDLs, timeTreshold) --table of pathes
       --msg(line)
     end -- end line cycle
     
+    --Remove Fades in Audio clips
+    for name, track in pairs(EdlTable) do
+      for i, item in ipairs(track) do
+        local c = #item.Clips
+        
+        while c > 0 do
+          local clip = item.Clips[c]
+          if ( clip.name and  clip.name:match('CLIP NAME: BL') )
+          or not clip.name then
+          --and #item.Clips > 1 -- for the future
+            table.remove(item.Clips, c)
+            --[[if name == 'V' then clip.name = 'BLACK'
+            else table.remove(item.Clips, c)
+            end]]
+          end
+          
+          c = c-1
+        end
+        
+      end
+    end
+    
+    
     for key, v in pairs(EdlTable) do
       if v[1] then
         local keyNumb = tonumber(key:match('%d+'))
@@ -1030,53 +1128,17 @@ function AnalyseEDLs(EDLs, timeTreshold) --table of pathes
           CommonEDL.A[key..suffix] = EdlTable[key]
           CommonEDL.A[keyNumb] = key..suffix
         end
-        --[[
-        if EDLcontentFlags & 1<<1 ~= 0 then
-          CommonEDL.A['A1'..suffix] = EdlTable.A1
-          table.insert(CommonEDL.A, 'A1'..suffix)
-        end
-        if EDLcontentFlags & 1<<2 ~= 0 then
-          CommonEDL.A['A2'..suffix] = EdlTable.A2
-          table.insert(CommonEDL.A, 'A2'..suffix)
-        end
-        if EDLcontentFlags & 1<<3 ~= 0 then
-          CommonEDL.A['A3'..suffix] = EdlTable.A3
-          table.insert(CommonEDL.A, 'A3'..suffix)
-        end
-        if EDLcontentFlags & 1<<4 ~= 0 then
-          CommonEDL.A['A4'..suffix] = EdlTable.A4
-          table.insert(CommonEDL.A, 'A4'..suffix)
-        end
-        ]]
       end
     end
-  end --end of edl files cycle
-  
-  --Remove Fades in Audio clips
-  --[[
-  for name, track in pairs(EdlTable) do
-    if name ~= 'V' then
     
-      for i, item in ipairs(track) do
-        local c = #item.Clips
-        while c > 0 do
-          local clip = item.Clips[c]
-          if clip.name and  clip.name:match('CLIP NAME: BL') then
-            table.remove(item.Clips, c)
-          end
-          c = c-1
-        end
-      end
-      
-    end
-  end
-  ]]
+  end --end of edl files cycle
   
   return CommonEDL
 end
 
 -------------------------------
 function SplitFilename(strFilename) -- Path, Filename, Extension
+  if type(strFilename) ~= 'string' then return nil end
   return string.match(strFilename, "(.-)([^\\]-([^\\%.]+))$")
 end
 -------------------------------
@@ -1092,17 +1154,28 @@ function CleanUpEDLs(EdlsTable)
       
       for i, item in ipairs(trackT) do
         if #item.Clips == 2 then
+          local clipName1 = item.Clips[1]['name']
+          local clipName2 = item.Clips[2]['name']
           
-          if item.Clips[1]['name'] then
-            if trackT[i-1]['Clips'][#trackT[i-1]['Clips']]['name'] == item.Clips[1]['name'] then
+          if clipName1 then
+            if clipName1:match('CLIP NAME: BL')then --for the future
+              --item.fIn = item.DestOut - item.DestIn
+            elseif i > 1
+            and trackT[i-1]['Clips'] [#trackT[i-1]['Clips']] ['name'] == clipName1
+            and item.DestIn == trackT[i-1]['DestOut']
+            and trackT[i-1]['Clips'] [#trackT[i-1]['Clips']] ['SrcOut'] == item.Clips[1]['SrcIn'] then
               trackT[i-1]['DestOut'] = item.DestOut
               trackT[i-1]['Clips'][#trackT[i-1]['Clips']]['SrcOut'] = item.Clips[1]['SrcOut']
               table.insert(itemsForDel, i)
             end
           end
           
-          if item.Clips[2]['name'] then
-            if trackT[i+1]['Clips'][1]['name'] == item.Clips[2]['name'] then
+          if clipName2 then
+            if clipName2:match('CLIP NAME: BL')then
+              --item.fOut = item.DestOut - item.DestIn
+            elseif i < #trackT and trackT[i+1]['Clips'][1]['name'] == clipName2
+            and item.DestOut == trackT[i+1]['DestIn']
+            and trackT[i+1]['Clips'][1]['SrcIn'] == item.Clips[2]['SrcOut'] then
               trackT[i+1]['DestIn'] = item.DestIn
               trackT[i+1]['Clips'][1]['SrcIn'] = item.Clips[2]['SrcIn']
               FieldMatch(itemsForDel, i, true)
@@ -1157,11 +1230,18 @@ function CleanUpEDLs(EdlsTable)
       local itemsForDel = {}
       local prevItem = { DestIn = 0, DestOut = 0 }
       
+      table.sort(trackT, function(a,b) return a.DestIn < b.DestIn end)
+      
       for i, item in ipairs(trackT) do
         local move, moveIdx
         local trackMoveTo
+        local nextItemDestIn = item.DestOut
         
-        if item.DestIn >= prevItem.DestIn and item.DestOut <= prevItem.DestOut then
+        if i < #trackT then nextItemDestIn = trackT[i+1]['DestIn'] end
+        
+        if ( item.DestIn >= prevItem.DestIn and item.DestOut <= prevItem.DestOut )
+        or ( item.DestIn <= prevItem.DestIn and item.DestOut >= prevItem.DestOut )
+        or ( math.abs(prevItem.DestOut - nextItemDestIn) < MIN_luft_ZERO ) then
           
           for ed, edlTrName in ipairs(EdlsTable[trType]) do
             if edlTrName ~= edlTname then
@@ -1813,11 +1893,35 @@ function CreateTracks(EdlsTable)
   reaper.PreventUIRefresh(1)
   reaper.Undo_BeginBlock2(0)
   
+  
+  --[[
+  ---TEST MESSAGE----
+  local trackType = {'V','A'}
+  
+  for k, trType in ipairs(trackType) do
+    for e, edlTname in ipairs(EdlsTable[trType]) do
+      local trackT = EdlsTable[trType][edlTname]
+      msg('\n'..trType..' size is - '..#trackT) msg('')
+      for i, item in ipairs(trackT) do
+        msg('ITEM '..i) --..' '..item.Type)
+        msg('In/Out '..reaper.format_timestr_pos(item.DestIn,'',5) ..' - '.. reaper.format_timestr_pos(item.DestOut,'',5))
+        for j, clip in ipairs(item.Clips) do
+          local srcIn = reaper.format_timestr_pos(clip.SrcIn,'',5)
+          local srcOut = reaper.format_timestr_pos(clip.SrcOut,'',5)
+          msg(srcIn..' - '..srcOut..'  '..tostring(clip.name))
+        end
+      end
+      
+    end
+  end
+  -------------------
+  ]]
   CleanUpEDLs(EdlsTable)
+  
   --------------------
   --Now create tracks and items
   local list_files, list_file_metadata = GetAllFiles({SearchFolder})
-  LastTrIdx = reaper.CountTracks(0)
+  LastTrIdx = 0 --reaper.CountTracks(0)
   --msg(#list_files)
   --for f, file in ipairs(list_files) do msg(file) end
   
@@ -1827,7 +1931,7 @@ function CreateTracks(EdlsTable)
     for e, edlTname in ipairs(EdlsTable[trType]) do
       local trackT = EdlsTable[trType][edlTname]
       local dopTRACKS = { Named = {}, Common = {} }
-      
+      --msg(edlTname)
       --Create track
       local track
       local trackAtoV
@@ -1858,23 +1962,31 @@ function CreateTracks(EdlsTable)
       local crossfade
       local maxidx = #trackT
       for i, item in ipairs(trackT) do
-        --Create item
-        local newItem = reaper.AddMediaItemToTrack(track)
+        local newItem
         local newAtVitem
         local fadeInAuto
         local fadeOutAuto
+        --msg(item.DestIn ..' '.. #item.Clips)
+        local clipStart
+        local clipName
+        local path, clipFileName, ext
         
-        local clipStart = item.Clips[1]['SrcIn']
-        --local clipEnd = item.Clips[1]['SrcOut']
-        local clipName = item.Clips[1]['name']
-        local path, clipFileName, ext = SplitFilename(clipName)
+        if #item.Clips > 0 then
+          clipStart = item.Clips[1]['SrcIn']
+          clipName = item.Clips[1]['name']
+          path, clipFileName, ext = SplitFilename(clipName)
+        end
         
-        reaper.SetMediaItemInfo_Value(newItem, 'D_POSITION', item.DestIn)
-        reaper.SetMediaItemInfo_Value(newItem, 'D_LENGTH', item.DestOut - item.DestIn)
-        reaper.SetMediaItemInfo_Value(newItem, 'D_FADEINLEN', 0 )
-        reaper.SetMediaItemInfo_Value(newItem, 'D_FADEOUTLEN', 0 )
+        --Create item
+        if clipStart or edlTname:match('V') then
+          newItem = reaper.AddMediaItemToTrack(track)
+          reaper.SetMediaItemInfo_Value(newItem, 'D_POSITION', item.DestIn)
+          reaper.SetMediaItemInfo_Value(newItem, 'D_LENGTH', item.DestOut - item.DestIn)
+          reaper.SetMediaItemInfo_Value(newItem, 'D_FADEINLEN', 0 )
+          reaper.SetMediaItemInfo_Value(newItem, 'D_FADEOUTLEN', 0 )
+        end
         
-        if trackAtoV then
+        if trackAtoV and clipStart then
           newAtVitem = reaper.AddMediaItemToTrack(trackAtoV)
           reaper.SetMediaItemInfo_Value(newAtVitem, 'D_POSITION', item.DestIn)
           reaper.SetMediaItemInfo_Value(newAtVitem, 'D_LENGTH', item.DestOut - item.DestIn)
@@ -1882,7 +1994,7 @@ function CreateTracks(EdlsTable)
           reaper.SetMediaItemInfo_Value(newAtVitem, 'D_FADEOUTLEN', 0 )
         end
         
-        if crossfade then
+        if crossfade and newItem then
           fadeInAuto = crossfade
           reaper.SetMediaItemInfo_Value(newItem, 'D_FADEINLEN_AUTO', crossfade )
           if newAtVitem then reaper.SetMediaItemInfo_Value(newAtVitem, 'D_FADEINLEN_AUTO', crossfade ) end
@@ -1893,13 +2005,13 @@ function CreateTracks(EdlsTable)
           if crossfade <= MIN_luft_ZERO then crossfade = nil end
         end
         
-        if crossfade then
+        if crossfade and newItem then
           fadeOutAuto = crossfade
           reaper.SetMediaItemInfo_Value(newItem, 'D_FADEOUTLEN_AUTO', crossfade )
           if newAtVitem then reaper.SetMediaItemInfo_Value(newAtVitem, 'D_FADEOUTLEN_AUTO', crossfade ) end
         end
         
-        if not edlTname:match('V') then
+        if not edlTname:match('V') and newItem then
           local match
           local matchCount = 1
           local recTrackNames = {}
@@ -1955,7 +2067,7 @@ function CreateTracks(EdlsTable)
                       local newName = clipFileName
                       if a > 1 then newName = fileName end
                        
-                      local trName =  metadataList.TRACKNAME
+                      local trName = metadataList.TRACKNAME
                       local itemData = {
                                   pos = item.DestIn,
                                   length = item.DestOut - item.DestIn,
@@ -1968,7 +2080,7 @@ function CreateTracks(EdlsTable)
                                   notes = notes
                                   }
                        
-                      if reaper.GetMediaSourceNumChannels(newSrc) == 1 and trName ~= ''
+                      if reaper.GetMediaSourceNumChannels(newSrc) == 1 and trName and trName ~= ''
                       and AddNewTrks == true then 
                         if not recTrackNames[trName] then recTrackNames[trName] = {} end
                         local adress = trName
@@ -1984,8 +2096,7 @@ function CreateTracks(EdlsTable)
                         dopTRACKS.Common[matchCount-1]['name'] = edlTname..'_'..matchCount
                         table.insert(dopTRACKS.Common[matchCount-1], itemData)
                         matchCount = matchCount +1
-                      else
-                        --if clipName == 'A004C018_25041030.mxf' then msg(match) end
+                      else 
                         FieldMatch(SuccessItems, newItem, true)
                         local take = reaper.AddTakeToMediaItem(newItem) 
                         reaper.SetMediaItemTake_Source( take, newSrc )
@@ -2031,7 +2142,7 @@ function CreateTracks(EdlsTable)
         else --if track is Video one
           local _,_ = reaper.GetSetMediaItemInfo_String(newItem, 'P_NOTES', item.Clips[1]['name'], true)
           
-          if AudToVid then
+          if AudToVid and newItem then
             local match
             local matchCount = 1
             local recTrackNames = {}
@@ -2056,7 +2167,7 @@ function CreateTracks(EdlsTable)
                     if offset >= 0 and offset + (item.DestOut - item.DestIn) < srcLen then
                       match, filematch = true, true 
                       local _, fileName, _ = SplitFilename(file)
-                      local trName =  metadataList.TRACKNAME
+                      local trName = metadataList.TRACKNAME 
                       local itemData = {
                                   pos = item.DestIn,
                                   length = item.DestOut - item.DestIn,
@@ -2068,7 +2179,7 @@ function CreateTracks(EdlsTable)
                                   takemark = ''
                                   }
                       
-                      if reaper.GetMediaSourceNumChannels(newSrc) == 1 and trName ~= ''
+                      if reaper.GetMediaSourceNumChannels(newSrc) == 1 and trName and trName ~= ''
                       and AddNewTrks == true then
                         if not recTrackNames['AtoV - '..trName] then recTrackNames['AtoV - '..trName] = {} end
                         local adress = 'AtoV - '..trName
@@ -2142,9 +2253,9 @@ function save_metadata(source,list_metadata)
   end
   
   for i, v in ipairs(list_metadata) do
-    for t, tag in ipairs(v[4]) do
+    for t, tag in ipairs(v[4]) do 
       if tag ~= '' then
-        local retval,value = reaper.GetMediaFileMetadata(source,tag) 
+        local retval,value = reaper.GetMediaFileMetadata(source,tag)
         if dop_list[v[2]] and value == '' then -- this value has priority higer than the dop_list
           value_list[v[2]] = dop_list[v[2]]
         elseif value ~= '' then
@@ -2178,10 +2289,10 @@ TagsList = {}
   table.insert(TagsList, {text, 'TAKE', true, {"IXML:TAKE", ''} })
   
   local text = ''
-  table.insert(TagsList, {text, 'TRACKCOUNT', false, {"IXML:TRACK_LIST:TRACK_COUNT", ''} })
+  table.insert(TagsList, {text, 'TRACKCOUNT', false, {"IXML:TRACK_LIST:TRACK_COUNT"} })
    
   local text = ''
-  table.insert(TagsList, {text, 'TRACKNAME', false, {"IXML:TRACK_LIST:TRACK:NAME", ''} })
+  table.insert(TagsList, {text, 'TRACKNAME', false, {"IXML:TRACK_LIST:TRACK:NAME"} })
 
 function GetAllFiles(folderlist,filelist,metadatalist)
   if type(folderlist)   ~= 'table' then return            end
