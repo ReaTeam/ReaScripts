@@ -94,14 +94,19 @@ local function split_into_words_and_spaces(str)
             i = i + 1
         else
             local word = ""
-            while i <= len and not is_white_space(str:sub(i, i)) do
-                word = word .. str:sub(i, i)
+
+            while i <= len and not is_white_space(char) do
+                word = word .. char
                 i = i + 1
+                char = str:sub(i, i)
             end
-            if i <= len and str:sub(i, i) == " " then
-                local next_i = i + 1
-                if next_i <= len and punctuations[str:sub(next_i, next_i)] then
-                    word = word .. " " .. str:sub(next_i, next_i)
+
+            if i <= len and char == " " then
+                local next_i    = i + 1
+                local next_char = str:sub(next_i, next_i)
+
+                if next_i <= len and punctuations[next_char] then
+                    word = word .. " " .. next_char
                     i = next_i + 1
                 end
             end
