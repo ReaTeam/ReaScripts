@@ -7,7 +7,9 @@
 
 package.path    = reaper.ImGui_GetBuiltinPath() .. '/?.lua'
 
-local IS_DEV = reaper.GetExtState("talagan_markdown_demo", "is_dev")
+--reaper.DeleteExtState("talagan_markdown_demo", "is_dev", true)
+
+local IS_DEV = (reaper.GetExtState("talagan_markdown_demo", "is_dev") == "true")
 if IS_DEV then
     package.path    = package.path .. ";" .. (reaper.GetResourcePath() .. "/Scripts/Talagan Dev/talagan_ReaImGui Markdown") .. '/?.lua'
 
