@@ -244,10 +244,8 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
         --   ImGui.AlignTextToFramePadding(ctx)
         end
 
-        push_font()
         local color = base_txt_color
         ImGui.TextColored(ctx, color, word)
-        pop_font()
 
         if in_link then
             if ImGui.IsItemHovered(ctx) then
@@ -269,7 +267,7 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
     end
 
     local function wrap_text(node)
-
+        push_font()
         if not node.words then
             local words = split_into_words_and_spaces(node.value)
             -- Memoize the split to avoid recalculating each frame
@@ -279,36 +277,79 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
             end
         end
 
-        for i, word_entry in ipairs(node.words) do
-            local word      = word_entry.word
+        local buffer    = ""
+        local bufwid    = 0
+        local aw        = nil
 
-            if not word_entry.size then
+        local function newline()
+            ImGui.NewLine(ctx)
+            num_line    = num_line + 1
+            num_on_line = 0
+
+            buffer      = ""
+            bufwid      = 0
+        end
+
+        for i, word_entry in ipairs(node.words) do
+
+            if word_entry.size == nil then
                 -- The word size is also memoized
-                word_entry.size, _      = ImGui.CalcTextSize(ctx, word)
+                word_entry.size, _  = ImGui.CalcTextSize(ctx, word_entry.word)
             end
 
-            local aw, ah    = ImGui.GetContentRegionAvail(ctx)
+            local word      = word_entry.word
+            local wsize     = word_entry.size
 
-            if word_entry.size <= aw then
-                -- The word fits, add it at the end
-                draw_word(word)
+            if aw == nil then
+                aw, _ = ImGui.GetContentRegionAvail(ctx)
+            end
 
-                num_on_line = num_on_line + 1
+            if num_on_line == 0 and bufwid == 0 and is_white_space(word) then
+                -- Just ignore white spaces on line starts
             else
-                if not is_white_space(word) then
-                    -- Ignore wspaces when wrapping
-                    if num_on_line ~= 0 then
-                        -- wrap
-                        ImGui.NewLine(ctx)
+                if (bufwid + wsize) < aw then
+                    -- We can accumulate the word
+                    buffer = buffer .. word
+                    bufwid = bufwid + wsize
+                else
+                    if #buffer > 0 then
+                        -- There's something in the buffer, dump it
+                        draw_word(buffer)
+                        newline()
+
+                        if not is_white_space(word) then
+                            buffer      = word
+                            bufwid      = wsize
+                            num_on_line = num_on_line + 1
+                        end
+                    else
+                        if num_on_line > 0 then
+                            -- We've reached the end of the line (the buffer was empty but it's possible, if this is the first word of a new sequence)
+                            newline()
+                            if not is_white_space(word) then
+                                draw_word(word)
+                                num_on_line = num_on_line + 1
+                            end
+                        else
+                            -- There's nothing in the buffer, but the word alone does not fit.
+                            -- Just draw the word, and go to the next line
+                            draw_word(word)
+                            newline()
+                        end
                     end
 
-                    draw_word(word)
-
-                    num_on_line = 1
-                    num_line = num_line + 1
+                    aw, _ = ImGui.GetContentRegionAvail(ctx)
                 end
             end
         end
+
+        if bufwid > 0 then
+            -- There's something in the buffer, dump it
+            draw_word(buffer)
+            num_on_line = num_on_line + 1
+        end
+
+        pop_font()
     end
 
     -- Define render_node
@@ -478,12 +519,12 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
                 ImGui.PushFont(ctx, nil)
                 ImGui.Text(ctx, "· ")
                 ImGui.PopFont(ctx)
-                num_on_line = 1
+                num_on_line = 0
             else
                 push_font()
                 ImGui.Text(ctx, node.attributes.number .. ". ")
                 pop_font()
-                num_on_line = 1
+                num_on_line = 0
             end
 
             push_font()
