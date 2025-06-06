@@ -672,34 +672,7 @@ function MainWindow(OptTable, windowName)
     if reaper.ImGui_CollapsingHeader(ctx, 'Split items and choose the most valuable mics', false) then
       reaper.ImGui_Text(ctx, 'The feature is under development')
     end
-    
-    if reaper.ImGui_CollapsingHeader(ctx, 'Export selected tracks/items as EDL files', false) then
-      reaper.ImGui_NewLine(ctx)
-      reaper.ImGui_SameLine(ctx, fontSize)
-      local childflags = Flags.childAutoResizeY | Flags.childAutoResizeX
-      local childExportEDL = reaper.ImGui_BeginChild(ctx, 'childExportEDL', 0, 0, childflags)
-      
-      if childExportEDL then
-        if reaper.ImGui_Button(ctx, ' Export EDLs ') then --msg(iniFolder)
-          if not iniFolder then
-            local cur_retprj, cur_projfn = reaper.EnumProjects( -1 )
-            local path, projfn, extension = SplitFilename(cur_projfn)
-            if path then iniFolder = path:gsub('[/\\]$','') end
-          end 
-          local iniFile = ''
-          local extensionList = "EDL file\0*.edl\0Text file\0*.txt\0\0"
-          local ret, fileName = reaper.JS_Dialog_BrowseForSaveFile
-          ( 'Save EDL files', iniFolder, iniFile, extensionList )
-          
-          if fileName ~= '' then
-            --ExportEDL(fileName)
-          end
-        end
         
-        reaper.ImGui_EndChild(ctx)
-      end
-    end
-    
     for i, v in ipairs(OptTable) do
       local option = v
       
