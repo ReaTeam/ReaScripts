@@ -5,27 +5,29 @@
 
 -- Unit Tests
 
-local ParseMarkdown     = require "reaimgui_markdown/markdown"
+local ParseMarkdown     = require "reaimgui_markdown/markdown-ast"
 local ASTToHtml         = require "reaimgui_markdown/markdown-html"
 
 local function dotest(entry, wanted_html)
-    local ast   = ParseMarkdown(entry)
-    local html  = ASTToHtml(ast)
-    local cond  = (html == wanted_html)
+  local ast   = ParseMarkdown(entry)
+  local html  = ASTToHtml(ast)
+  local cond  = (html == wanted_html)
 
-    if not cond then
-      reaper.ShowConsoleMsg("=====OBTAINED====\n")
-      reaper.ShowConsoleMsg(html)
-      reaper.ShowConsoleMsg("\n")
-      error("Test failed\n")
-    end
+  if not cond then
+    reaper.ShowConsoleMsg("=====OBTAINED====\n")
+    reaper.ShowConsoleMsg(html)
+    reaper.ShowConsoleMsg("=================\n")
+    reaper.ShowConsoleMsg("\n")
 
-    return ast, html
+    error("Test failed\n")
+  end
+
+  return ast, html
 end
 
 local function test_bold_italic()
   dotest( "Bla bla **bli** blo _blu_ `inline code` toto ",
-          "<p>Bla bla <strong>bli</strong> blo <em>blu</em> <code>inline code</code> toto </p>\n")
+  "<p>Bla bla <strong>bli</strong> blo <em>blu</em> <code>inline code</code> toto </p>\n")
 end
 
 local function test_blockquotes()
@@ -143,7 +145,7 @@ This is pure code **and this** should not try to do |clever|things|
 end
 
 local function test_lists_2()
-local entry = [[
+  local entry = [[
 ## Lists
 
 ### Unordered
@@ -164,7 +166,7 @@ local entry = [[
     2. Item 3b
 ]]
 
-local wanted = [[
+  local wanted = [[
 <h2>Lists</h2>
 <h3>Unordered</h3>
 <ul>
@@ -178,20 +180,22 @@ local wanted = [[
 </li>
 </ul>
 <h3>Ordered</h3>
-<ol>
+<ol type="1">
 <li>Item 1</li>
 <li>Item 2</li>
-<li>Item 3<ol>
+<li>Item 3<ol type="A">
 <li>Item 3a</li>
 <li>Item 3b</li>
 </ol>
 </li>
 </ol>
 ]]
+
+  dotest(entry, wanted)
 end
 
 local function test_tables_2()
-local entry = [[
+  local entry = [[
 ## Blockquotes
 
 ## Tables
@@ -206,7 +210,53 @@ local entry = [[
 
 ]]
 
-local wanted = [[
+  local wanted = [[
+<h2>Blockquotes</h2>
+<h2>Tables</h2>
+<table>
+<thead>
+<tr>
+<th>Left columns</th>
+<th>Right columns</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>left foo</td>
+<td>right foo</td>
+</tr>
+<tr>
+<td>left bar</td>
+<td>right bar</td>
+</tr>
+<tr>
+<td>left baz</td>
+<td>right baz</td>
+</tr>
+</tbody>
+</table>
+<h2>Blocks of code</h2>
+]]
+  dotest(entry, wanted)
+end
+
+
+local function test_tables_no_header()
+  local entry = [[
+## Blockquotes
+
+## Tables
+
+| Left columns  | Right columns |
+| ------------- |:-------------:|
+| left foo      | right foo     |
+| left bar      | right bar     |
+| left baz      | right baz     |
+
+## Blocks of code
+
+]]
+  local wanted = [[
 <h2>Blockquotes</h2>
 <h2>Tables</h2>
 <table>
@@ -238,7 +288,7 @@ end
 
 
 local function gros_test()
-local entry = [[
+  local entry = [[
 # Markdown syntax guide
 
 ## Headers
@@ -314,20 +364,22 @@ end
 
 local function perform_tests()
 
-    test_bold_italic()
-    test_blockquotes()
+  test_bold_italic()
+  test_blockquotes()
 
-    test_lists()
-    test_lists_2()
-    test_headers()
+  test_lists()
+  test_lists_2()
+  test_headers()
 
-    test_tables()
-    test_code()
-    test_tables_2()
+  test_code()
 
---gros_test()
+  test_tables()
+  test_tables_2()
+  test_tables_no_header()
 
-    reaper.ShowConsoleMsg("ALL TESTS PASSED\n")
+  --gros_test()
+
+  reaper.ShowConsoleMsg("ALL TESTS PASSED\n")
 end
 
 return perform_tests

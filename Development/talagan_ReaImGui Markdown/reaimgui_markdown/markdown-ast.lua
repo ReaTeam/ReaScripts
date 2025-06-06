@@ -6,6 +6,15 @@
 -- A mega dirty AST Markdown Parser in Lua
 -- Not optimized and needs review but does the job
 
+local RX_ORDERED_LIST     = "^%s*%d+%.%s+"
+local RX_UNORDERED_LIST   = "^%s*[-*+]%s+"
+local RX_LINEITEM_CONTENT = "^%s*[-*+%d]+%.?%s+(.-)$"
+local RX_HEADER           = "^#+ "
+local RX_HEADER_CONTENT   = "^#+%s+(.-)$"
+local RX_TABLE_LINE       = "^%s*|.*|%s*$"
+local RX_CODEBLOCK        = "^```"
+local RX_BLOCKQUOTE       = "^>%s*"
+
 local function new_node(type, value, children, attributes)
   return { type = type, value = value or "", children = children or {}, attributes = attributes or {} }
 end
@@ -17,6 +26,17 @@ end
 local function magiclines(s)
   if s:sub(-1)~="\n" then s=s.."\n" end
   return s:gmatch("(.-)\n")
+end
+
+local function eatcolor(content, attributes)
+  -- Check for :color: at the start
+  local color = content:match("^:([^:]+):")
+  if color then
+    attributes.color = color
+    content = content:sub(#color + 3) -- Remove :color:
+  end
+
+  return content
 end
 
 -- Parse inline formatting (bold, italic, code)
@@ -46,12 +66,10 @@ local function parse_inline(text)
       local found_closing = false
       while j <= len do
         if text:sub(j, j) == "`" and text:sub(j - 1, j - 1) ~= "\\" then
-          -- Check for :color: at the start
-          local color = content:match("^:([^:]+):")
-          if color then
-            attributes.color = color
-            content = content:sub(#color + 3) -- Remove :color:
-          end
+
+          -- Read color if present
+          content = eatcolor(content, attributes)
+
           table.insert(nodes, new_node("Code", nil, { new_node("Text", content) }, attributes))
           i = j + 1
           found_closing = true
@@ -72,6 +90,7 @@ local function parse_inline(text)
         table.insert(nodes, new_node("Text", buffer))
         buffer = ""
       end
+
       local marker = char .. next_char
       local j = i + 2
       local content = ""
@@ -79,12 +98,9 @@ local function parse_inline(text)
       local found_closing = false
       while j <= len do
         if text:sub(j, j + 1) == marker then
-          -- Check for :color: at the start
-          local color = content:match("^:([^:]+):")
-          if color then
-            attributes.color = color
-            content = content:sub(#color + 3)
-          end
+          -- Read color if present
+          content = eatcolor(content, attributes)
+
           table.insert(nodes, new_node("Bold", nil, parse_inline(content), attributes))
           i = j + 2
           found_closing = true
@@ -93,10 +109,12 @@ local function parse_inline(text)
         content = content .. text:sub(j, j)
         j = j + 1
       end
+
       if not found_closing then
         buffer = buffer .. marker .. content
         i = j
       end
+
     elseif (char == "*" or char == "_") and text:sub(i - 1, i - 1) ~= "\\" then
       -- Italic, * or _
       if buffer ~= "" then
@@ -111,12 +129,9 @@ local function parse_inline(text)
       local found_closing = false
       while j <= len do
         if text:sub(j, j) == marker and text:sub(j - 1, j - 1) ~= "\\" then
-          -- Check for :color: at the start
-          local color = content:match("^:([^:]+):")
-          if color then
-            attributes.color = color
-            content = content:sub(#color + 3)
-          end
+          -- Read color if present
+          content = eatcolor(content, attributes)
+
           table.insert(nodes, new_node("Italic", nil, parse_inline(content), attributes))
           i = j + 1
           found_closing = true
@@ -314,13 +329,13 @@ local function parse_list(lines, start_idx, max_lines, base_indent)
     local blkm = line:match("^%s*")
     local indent = blkm and #blkm or 0
 
-    if indent < base_indent or not (line:match("^%s*[-*+]%s+") or line:match("^%s*%d+%.%s+")) then
+    if indent < base_indent or not (line:match(RX_UNORDERED_LIST) or line:match(RX_ORDERED_LIST)) then
       break
     end
 
-    local is_ordered = line:match("^%s*%d+%.%s+") ~= nil
+    local is_ordered = line:match(RX_ORDERED_LIST) ~= nil
     local list_type = is_ordered and "OrderedList" or "UnorderedList"
-    local content = line:match("^%s*[-*+%d]+%.?%s+(.-)$")
+    local content = line:match(RX_LINEITEM_CONTENT)
     local current_list = new_node(list_type, nil, {})
     local current_indent = indent
     local item_number = 1
@@ -337,7 +352,7 @@ local function parse_list(lines, start_idx, max_lines, base_indent)
       local next_blkm = next_line:match("^%s*")
       local next_indent = next_blkm and #next_blkm or 0
 
-      local is_list_item = next_line:match("^%s*[-*+]%s+") or next_line:match("^%s*%d+%.%s+")
+      local is_list_item = next_line:match(RX_UNORDERED_LIST) or next_line:match(RX_ORDERED_LIST)
 
       if next_indent >= current_indent + 2 and next_indent <= current_indent + 4 and is_list_item then
         -- Nested list
@@ -349,7 +364,7 @@ local function parse_list(lines, start_idx, max_lines, base_indent)
       elseif next_indent == current_indent and is_list_item then
         -- Same level list item
         item_number = item_number + 1
-        local next_content = next_line:match("^%s*[-*+%d]+%.?%s+(.-)$")
+        local next_content = next_line:match(RX_LINEITEM_CONTENT)
         current_item = new_node("ListItem", nil, parse_links_and_images(next_content), { number = item_number })
         table.insert(current_list.children, current_item)
         current_item.parent_list = current_list
@@ -419,7 +434,7 @@ local function ParseMarkdown(markdown)
     local trimmed_line = trim(line)
 
     -- Code block
-    if trimmed_line:match("^```") then
+    if trimmed_line:match(RX_CODEBLOCK) then
       finalize_table()
       if in_code_block then
         in_code_block = false
@@ -432,16 +447,16 @@ local function ParseMarkdown(markdown)
       ast.children[#ast.children].value = ast.children[#ast.children].value .. line .. "\n"
       i = i + 1
       -- Headers
-    elseif trimmed_line:match("^#+ ") then
+    elseif trimmed_line:match(RX_HEADER) then
       finalize_table()
       local level = #trimmed_line:match("^#+")
       if level <= 6 then
-        local content = trimmed_line:match("^#+%s+(.-)$")
+        local content = trimmed_line:match(RX_HEADER_CONTENT)
         table.insert(ast.children, new_node("Header", nil, parse_inline(content), { level = level }))
       end
       i = i + 1
       -- Blockquote
-    elseif trimmed_line:match("^>%s*") then
+    elseif trimmed_line:match(RX_BLOCKQUOTE) then
       finalize_table()
       local blockquotes, new_i = parse_blockquote(lines, i, #lines)
       for _, blockquote in ipairs(blockquotes) do
@@ -449,7 +464,7 @@ local function ParseMarkdown(markdown)
       end
       i = new_i
       -- Lists
-    elseif trimmed_line:match("^%s*[-*+]%s+") or trimmed_line:match("^%s*%d+%.%s+") then
+    elseif trimmed_line:match(RX_UNORDERED_LIST) or trimmed_line:match(RX_ORDERED_LIST) then
       finalize_table()
       local lists, new_i = parse_list(lines, i, #lines, 0)
       for _, list in ipairs(lists) do
@@ -457,7 +472,7 @@ local function ParseMarkdown(markdown)
       end
       i = new_i
       -- Table
-    elseif trimmed_line:match("^%s*|.*|%s*$") then
+    elseif trimmed_line:match(RX_TABLE_LINE) then
 
       local cells = {}
       for cell in line:gmatch("[^|]+") do
@@ -501,7 +516,7 @@ local function ParseMarkdown(markdown)
       -- Collect all consecutive lines (non-empty or with spaces/tabs) for a single paragraph
       local paragraph_nodes = {}
       local j = i
-      while j <= #lines and not (lines[j] == "" or lines[j]:match("^```") or lines[j]:match("^#+ ") or lines[j]:match("^>%s*") or lines[j]:match("^%s*[-*+]%s+") or lines[j]:match("^%s*%d+%.%s+") or lines[j]:match("^%s*|.*|%s*$")) do
+      while j <= #lines and not (lines[j] == "" or lines[j]:match(RX_CODEBLOCK) or lines[j]:match(RX_HEADER) or lines[j]:match(RX_BLOCKQUOTE) or lines[j]:match(RX_UNORDERED_LIST) or lines[j]:match(RX_ORDERED_LIST) or lines[j]:match(RX_TABLE_LINE)) do
         if j > i then
           table.insert(paragraph_nodes, new_node("LineBreak"))
         end

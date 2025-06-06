@@ -6,10 +6,30 @@
 -- This file is the Demo that comes with ReaImGui:Markdown
 
 package.path    = reaper.ImGui_GetBuiltinPath() .. '/?.lua'
-package.path    = package.path .. ";" .. (reaper.GetResourcePath() .. "/Scripts/ReaTeam Scripts/Development/talagan_ReaImGui Markdown") .. '/?.lua'
 
-local ImGui     = require 'imgui' '0.9.3'
+local IS_DEV = reaper.GetExtState("talagan_markdown_demo", "is_dev")
+if IS_DEV then
+    package.path    = package.path .. ";" .. (reaper.GetResourcePath() .. "/Scripts/Talagan Dev/talagan_ReaImGui Markdown") .. '/?.lua'
+
+    -- Reqiore stuff for the profiler to work.
+    local UnitTest       = require "reaimgui_markdown/markdown-test"
+    local ParseMarkdown  = require "reaimgui_markdown/markdown-ast"
+    local ImGuiMdCore    = require "reaimgui_markdown/markdown-imgui"
+
+    UnitTest()
+else
+    package.path    = package.path .. ";" .. (reaper.GetResourcePath() .. "/Scripts/ReaTeam Scripts/Development/talagan_ReaImGui Markdown") .. '/?.lua'
+end
+
+local ImGui     = require "reaimgui_markdown/ext/imgui"
 local ImGuiMd   = require "reaimgui_markdown"
+
+if IS_DEV then
+    local profiler = dofile(reaper.GetResourcePath() .. '/Scripts/ReaTeam Scripts/Development/cfillion_Lua profiler.lua')
+    reaper.defer = profiler.defer
+    profiler.attachToWorld() -- after all functions have been defined
+    profiler.run()
+end
 
 local entry = [[
 # This is a header level 1

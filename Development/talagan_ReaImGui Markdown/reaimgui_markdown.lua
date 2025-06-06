@@ -45,6 +45,7 @@ function ReaImGuiMd:_initialize(ctx, id, options, style)
     self.text       = ""
     self.ast        = {}
     self:setStyle(style)
+    self:setOptions(options)
     self:_createFontsIfNeeded(ctx)
 end
 
