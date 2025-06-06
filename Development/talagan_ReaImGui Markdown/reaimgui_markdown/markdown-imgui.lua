@@ -270,14 +270,26 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
 
     local function wrap_text(node)
 
-        -- Memoize the split to avoid recalculating each frame
-        node.words = node.words or split_into_words_and_spaces(node.value)
+        if not node.words then
+            local words = split_into_words_and_spaces(node.value)
+            -- Memoize the split to avoid recalculating each frame
+            node.words = {}
+            for i, word in ipairs(words) do
+                node.words[#node.words+1] = { word = word }
+            end
+        end
 
-        for i, word in ipairs(node.words) do
+        for i, word_entry in ipairs(node.words) do
+            local word      = word_entry.word
+
+            if not word_entry.size then
+                -- The word size is also memoized
+                word_entry.size, _      = ImGui.CalcTextSize(ctx, word)
+            end
+
             local aw, ah    = ImGui.GetContentRegionAvail(ctx)
-            local w, h      = ImGui.CalcTextSize(ctx, word)
 
-            if w <= aw then
+            if word_entry.size <= aw then
                 -- The word fits, add it at the end
                 draw_word(word)
 
