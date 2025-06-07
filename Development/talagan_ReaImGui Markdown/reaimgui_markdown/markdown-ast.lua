@@ -14,6 +14,7 @@ local RX_HEADER_CONTENT   = "^#+%s+(.-)$"
 local RX_TABLE_LINE       = "^%s*|.*|%s*$"
 local RX_CODEBLOCK        = "^```"
 local RX_BLOCKQUOTE       = "^>%s*"
+local RX_SEPARATOR        = "^%-%-%-+"
 
 local function new_node(type, value, children, attributes)
   return { type = type, value = value or "", children = children or {}, attributes = attributes or {} }
@@ -508,6 +509,10 @@ local function ParseMarkdown(markdown)
         end
       end
       i = i + 1
+    elseif trimmed_line:match(RX_SEPARATOR) then
+      finalize_table()
+      table.insert(ast.children, new_node("Separator"))
+      i = i + 1
     elseif line == "" then
       i = i + 1
     else
@@ -516,7 +521,7 @@ local function ParseMarkdown(markdown)
       -- Collect all consecutive lines (non-empty or with spaces/tabs) for a single paragraph
       local paragraph_nodes = {}
       local j = i
-      while j <= #lines and not (lines[j] == "" or lines[j]:match(RX_CODEBLOCK) or lines[j]:match(RX_HEADER) or lines[j]:match(RX_BLOCKQUOTE) or lines[j]:match(RX_UNORDERED_LIST) or lines[j]:match(RX_ORDERED_LIST) or lines[j]:match(RX_TABLE_LINE)) do
+      while j <= #lines and not (lines[j] == "" or lines[j]:match(RX_SEPARATOR) or lines[j]:match(RX_CODEBLOCK) or lines[j]:match(RX_HEADER) or lines[j]:match(RX_BLOCKQUOTE) or lines[j]:match(RX_UNORDERED_LIST) or lines[j]:match(RX_ORDERED_LIST) or lines[j]:match(RX_TABLE_LINE)) do
         if j > i then
           table.insert(paragraph_nodes, new_node("LineBreak"))
         end

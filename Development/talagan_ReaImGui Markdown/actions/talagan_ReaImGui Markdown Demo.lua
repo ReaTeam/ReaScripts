@@ -130,6 +130,10 @@ local message = "Hello, reapers !"
 publish(message)
 ```
 
+## Separator
+
+---
+
 ## Inline code
 
 This library is **`:orange:powered`** by [ReaImGui](https://forum.cockos.com/showthread.php?t=250419).

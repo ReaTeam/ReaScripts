@@ -73,7 +73,9 @@ local DEFAULT_STYLE = {
 
     blockquote  = {                                             padding_left = 0,  padding_top = 5, padding_bottom = 10, line_spacing = 3, padding_indent = 10 },
     list        = {                                             padding_left = 40, padding_top = 5, padding_bottom = 7,  line_spacing = 3, padding_indent = 5 },
-    link        = { font_family = "sans-serif", font_size = 13, base_color = "orange", bold_color = "tomato"}
+    link        = { font_family = "sans-serif", font_size = 13, base_color = "orange", bold_color = "tomato"},
+
+    separator   = { padding_top = 3, padding_bottom = 7 }
 }
 
 local function is_white_space(char)
@@ -310,14 +312,6 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
             return  "h" ..font_level
         elseif node.type == "Paragraph" then
             return "paragraph"
-        elseif node.type == "Bold" then
-            return nil
-        elseif node.type == "Italic" then
-            return nil
-        elseif node.type == "Code" then
-            return nil
-        elseif node.type == "Text" then
-            return nil
         elseif node.type == "Link" then
             return "link"
         elseif node.type == "LineBreak" then
@@ -335,6 +329,7 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
         elseif node.type == "Table" then
             return "paragraph"
         end
+        return nil
     end
 
     -- Propagate fonts, colors and pre calculate metrics
@@ -490,6 +485,10 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
             render_children(node.children, level)
         elseif node.type == "Code" then
             render_children(node.children, level)
+        elseif node.type == "Separator" then
+            ImGuiVDummy(ctx, style.separator.padding_top)
+            ImGui.Separator(ctx)
+            ImGuiVDummy(ctx, style.separator.padding_bottom)
         elseif node.type == "Text" then
 
             if should_wrap then
