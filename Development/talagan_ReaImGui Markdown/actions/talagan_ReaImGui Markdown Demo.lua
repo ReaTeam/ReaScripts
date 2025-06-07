@@ -7,27 +7,33 @@
 
 package.path    = reaper.ImGui_GetBuiltinPath() .. '/?.lua'
 
---reaper.DeleteExtState("talagan_markdown_demo", "is_dev", true)
+local use_dev_folder = false
+local use_profiler   = false
+local do_unit_tests  = false
 
-local IS_DEV = (reaper.GetExtState("talagan_markdown_demo", "is_dev") == "true")
-if IS_DEV then
-    package.path    = package.path .. ";" .. (reaper.GetResourcePath() .. "/Scripts/Talagan Dev/talagan_ReaImGui Markdown") .. '/?.lua'
+-----------------
 
-    -- Reqiore stuff for the profiler to work.
-    local UnitTest       = require "reaimgui_markdown/markdown-test"
-    local ParseMarkdown  = require "reaimgui_markdown/markdown-ast"
-    local ImGuiMdCore    = require "reaimgui_markdown/markdown-imgui"
-
-    UnitTest()
-else
+if not use_dev_folder then
     package.path    = package.path .. ";" .. (reaper.GetResourcePath() .. "/Scripts/ReaTeam Scripts/Development/talagan_ReaImGui Markdown") .. '/?.lua'
+else
+    package.path    = package.path .. ";" .. (reaper.GetResourcePath() .. "/Scripts/Talagan Dev/talagan_ReaImGui Markdown") .. '/?.lua'
 end
 
 local ImGui     = require "reaimgui_markdown/ext/imgui"
 local ImGuiMd   = require "reaimgui_markdown"
 
-if IS_DEV then
-    local profiler = dofile(reaper.GetResourcePath() .. '/Scripts/ReaTeam Scripts/Development/cfillion_Lua profiler.lua')
+if do_unit_tests then
+    -- Reqiore stuff for the profiler to work.
+    local UnitTest       = require "reaimgui_markdown/markdown-test"
+    UnitTest()
+end
+
+if use_profiler then
+    local profiler       = dofile(reaper.GetResourcePath() .. '/Scripts/ReaTeam Scripts/Development/cfillion_Lua profiler.lua')
+
+    ParseMarkdown  = require "reaimgui_markdown/markdown-ast"
+    ImGuiMdCore    = require "reaimgui_markdown/markdown-imgui"
+
     reaper.defer = profiler.defer
     profiler.attachToWorld() -- after all functions have been defined
     profiler.run()

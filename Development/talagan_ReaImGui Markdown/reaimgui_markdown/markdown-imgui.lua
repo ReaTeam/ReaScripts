@@ -122,11 +122,32 @@ end
 
 local function ImGuiVDummy(ctx, vpad)
     ImGui.PushStyleVar(ctx, ImGui.StyleVar_ItemSpacing, 0, 0)
-    ImGui.PushStyleVar(ctx, ImGui.StyleVar_FramePadding, 0, 0)
-    ImGui.PushStyleVar(ctx, ImGui.StyleVar_FrameBorderSize, 0)
+    --ImGui.PushStyleVar(ctx, ImGui.StyleVar_FramePadding, 0, 0)
+    --ImGui.PushStyleVar(ctx, ImGui.StyleVar_FrameBorderSize, 0)
     ImGui.Dummy(ctx, 1, vpad)
-    ImGui.PopStyleVar(ctx, 3)
+    ImGui.PopStyleVar(ctx, 1)
 end
+
+
+local function resolve_color(color_name)
+    local trans_color = Colors[color_name]
+    trans_color       = trans_color or color_name
+
+    if not trans_color then return DEFAULT_COLOR end
+
+    if trans_color:match("^#") then
+        trans_color = trans_color:sub(2,-1)
+    end
+
+    if not trans_color then return DEFAULT_COLOR end
+
+    local numcol = tonumber(trans_color, 16)
+
+    if not numcol then return DEFAULT_COLOR end
+
+    return (numcol << 8) | 0xFF
+end
+
 
 -- HTML generation from AST
 local function ASTToImgui(ctx, ast, fonts, style, options)
@@ -147,25 +168,6 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
     -- Placeholder for render_children with proper argument
     local render_children = function(children, level) return nil end
 
-    local function resolve_color(color_name)
-        local trans_color = Colors[color_name]
-        trans_color       = trans_color or color_name
-
-        if not trans_color then return DEFAULT_COLOR end
-
-        if trans_color:match("^#") then
-            trans_color = trans_color:sub(2,-1)
-        end
-
-        if not trans_color then return DEFAULT_COLOR end
-
-        local numcol = tonumber(trans_color, 16)
-
-        if not numcol then return DEFAULT_COLOR end
-
-        return (numcol << 8) | 0xFF
-    end
-
     local function push_style(node)
         local style_name = node.style.name
         local group      = fonts[style_name]
@@ -176,7 +178,6 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
         ImGui.PushFont(ctx, f)
     end
 
-
     local function pop_style()
         base_txt_color = DEFAULT_COLOR
         ImGui.PopFont(ctx)
@@ -186,7 +187,7 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
         local x, y      = ImGui.GetCursorScreenPos(ctx)
 
         if num_on_line == 0 then
-        --   ImGui.AlignTextToFramePadding(ctx)
+            --   ImGui.AlignTextToFramePadding(ctx)
         end
 
         local color = base_txt_color
