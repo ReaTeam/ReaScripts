@@ -70,7 +70,7 @@ function ReaImGuiMd:_createFontsIfNeeded(ctx)
     local fonts = {}
     local style = self.style
 
-    for i, v in ipairs({"h1", "h2", "h3", "h4", "h5", "paragraph", "code"}) do
+    for i, v in ipairs({"h1", "h2", "h3", "h4", "h5", "paragraph", "code", "link"}) do
         -- 0 is for normal text, 1 for h1, 2 for h2, etc
         local size      = style[v].font_size
         local fontfam   = style[v].font_family

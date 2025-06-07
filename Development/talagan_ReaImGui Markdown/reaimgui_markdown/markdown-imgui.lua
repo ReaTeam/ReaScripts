@@ -58,19 +58,22 @@ local Colors = {
 local DEFAULT_COLOR = 0xCCCCCCFF
 
 local DEFAULT_STYLE = {
-    h1          = { font_family = "sans-serif", font_size = 23, padding_left = 0,  padding_top = 3, padding_bottom = 5, line_spacing = 5, color = "#288efa", bold_color = "#288efa" },
-    h2          = { font_family = "sans-serif", font_size = 21, padding_left = 5,  padding_top = 3, padding_bottom = 5, line_spacing = 5, color = "#4da3ff", bold_color = "#4da3ff" },
-    h3          = { font_family = "sans-serif", font_size = 19, padding_left = 10, padding_top = 3, padding_bottom = 4, line_spacing = 5, color = "#65acf7", bold_color = "#65acf7" },
-    h4          = { font_family = "sans-serif", font_size = 17, padding_left = 15, padding_top = 3, padding_bottom = 3, line_spacing = 5, color = "#85c0ff", bold_color = "#85c0ff" },
-    h5          = { font_family = "sans-serif", font_size = 15, padding_left = 20, padding_top = 3, padding_bottom = 3, line_spacing = 5, color = "#9ecdff", bold_color = "#9ecdff" },
+    default     = { font_family = "sans-serif", font_size = 13, base_color = "#CCCCCC", bold_color = "white" },
 
-    paragraph   = { font_family = "sans-serif", font_size = 13, padding_left = 30, padding_top = 3, padding_bottom = 7, line_spacing = 3, color = "#CCCCCC", bold_color = "white", padding_in_blockquote = 6 },
-    code        = { font_family = "monospace",  font_size = 13, padding_left = 30, padding_top = 3, padding_bottom = 7, line_spacing = 3, color = "#CCCCCC", bold_color = "white", padding_in_blockquote = 6 },
-    table       = { font_family = "sans-serif", font_size = 13, padding_left = 30, padding_top = 3, padding_bottom = 7 },
+    h1          = { font_family = "sans-serif", font_size = 23, padding_left = 0,  padding_top = 3, padding_bottom = 5, line_spacing = 5, base_color = "#288efa", bold_color = "#288efa" },
+    h2          = { font_family = "sans-serif", font_size = 21, padding_left = 5,  padding_top = 3, padding_bottom = 5, line_spacing = 5, base_color = "#4da3ff", bold_color = "#4da3ff" },
+    h3          = { font_family = "sans-serif", font_size = 19, padding_left = 10, padding_top = 3, padding_bottom = 4, line_spacing = 5, base_color = "#65acf7", bold_color = "#65acf7" },
+    h4          = { font_family = "sans-serif", font_size = 17, padding_left = 15, padding_top = 3, padding_bottom = 3, line_spacing = 5, base_color = "#85c0ff", bold_color = "#85c0ff" },
+    h5          = { font_family = "sans-serif", font_size = 15, padding_left = 20, padding_top = 3, padding_bottom = 3, line_spacing = 5, base_color = "#9ecdff", bold_color = "#9ecdff" },
 
-    blockquote  = {                                             padding_left = 0,  padding_top = 5, padding_bottom = 10, line_spacing = 3, color = "#CCCCCC", bold_color = "white", padding_indent = 10 },
-    list        = {                                             padding_left = 40, padding_top = 5, padding_bottom = 7,  line_spacing = 3, color = "#CCCCCC", bold_color = "white", padding_indent = 5 },
-    link        = { color = "orange", hover_color = "tomato"}
+    paragraph   = { font_family = "sans-serif", font_size = 13, padding_left = 30, padding_top = 3, padding_bottom = 7, line_spacing = 3, padding_in_blockquote = 6 },
+    table       = { font_family = "sans-serif", font_size = 13, padding_left = 30, padding_top = 3, padding_bottom = 7, line_spacing = 3 },
+
+    code        = { font_family = "monospace", font_size = 13,   padding_left = 30, padding_top = 3, padding_bottom = 7,  line_spacing = 3, padding_in_blockquote = 6 },
+
+    blockquote  = {                                             padding_left = 0,  padding_top = 5, padding_bottom = 10, line_spacing = 3, padding_indent = 10 },
+    list        = {                                             padding_left = 40, padding_top = 5, padding_bottom = 7,  line_spacing = 3, padding_indent = 5 },
+    link        = { font_family = "sans-serif", font_size = 13, base_color = "orange", bold_color = "tomato"}
 }
 
 local function is_white_space(char)
@@ -122,9 +125,7 @@ local function ImGuiVDummy(ctx, vpad)
     ImGui.PushStyleVar(ctx, ImGui.StyleVar_FramePadding, 0, 0)
     ImGui.PushStyleVar(ctx, ImGui.StyleVar_FrameBorderSize, 0)
     ImGui.Dummy(ctx, 1, vpad)
-    ImGui.PopStyleVar(ctx)
-    ImGui.PopStyleVar(ctx)
-    ImGui.PopStyleVar(ctx)
+    ImGui.PopStyleVar(ctx, 3)
 end
 
 -- HTML generation from AST
@@ -136,8 +137,6 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
 
     local num_line       = 0
     local num_on_line    = 0
-    local font_name      = "paragraph"
-    local fs_stack       = {}
     local in_link        = false
     local indentation    = 0
     local base_txt_color = DEFAULT_COLOR
@@ -167,77 +166,23 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
         return (numcol << 8) | 0xFF
     end
 
-    local function push_fs(font_style, font_color)
-        fs_stack[#fs_stack+1] = { style=font_style, color=font_color }
-    end
+    local function push_style(node)
+        local style_name = node.style.name
+        local group      = fonts[style_name]
+        local f          = group[node.style.font_style]
 
-    local function clear_fs()
-        fs_stack = {}
-    end
-
-    local function pop_fs()
-        table.remove(fs_stack, #fs_stack)
-    end
-
-    local function in_style(style)
-        for _, v in ipairs(fs_stack) do
-            if v.style == style then return true end
-        end
-        return false
-    end
-
-    local function in_italic()
-        return in_style('italic')
-    end
-
-    local function in_bold()
-        return in_style('bold')
-    end
-
-    local function overriden_color()
-        for i=#fs_stack, 1, -1 do
-            if fs_stack[i].color then return fs_stack[i].color end
-        end
-        return nil
-    end
-
-    local function push_font()
-        local group = fonts[font_name]
-        local f     = group.normal
-
-        if in_bold() then
-            base_txt_color = resolve_color(style[font_name].bold_color)
-
-            if in_italic() then
-                f = group.bolditalic
-            else
-                f = group.bold
-            end
-        else
-            base_txt_color = resolve_color(style[font_name].color)
-
-            if in_italic() then
-                f = group.italic
-            end
-        end
-
-        if in_link then
-            base_txt_color = resolve_color(style["link"].color)
-        end
-
-        local ocol = overriden_color()
-        if ocol then base_txt_color = ocol end
+        base_txt_color = node.style.color
 
         ImGui.PushFont(ctx, f)
     end
 
 
-    local function pop_font()
+    local function pop_style()
         base_txt_color = DEFAULT_COLOR
         ImGui.PopFont(ctx)
     end
 
-    local function draw_word (word)
+    local function draw_word (node, word)
         local x, y      = ImGui.GetCursorScreenPos(ctx)
 
         if num_on_line == 0 then
@@ -261,13 +206,13 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
         if in_link then
             local x2, y2      = ImGui.GetCursorScreenPos(ctx)
             local draw_list   = ImGui.GetWindowDrawList(ctx)
-            local fsize       = style[font_name].font_size
+            local fsize       = node.style.font_size
             ImGui.DrawList_AddLine(draw_list, x, y+fsize, x2, y2+fsize, color, 1)
         end
     end
 
     local function wrap_text(node)
-        push_font()
+        push_style(node)
         if not node.words then
             local words = split_into_words_and_spaces(node.value)
             -- Memoize the split to avoid recalculating each frame
@@ -314,7 +259,7 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
                 else
                     if #buffer > 0 then
                         -- There's something in the buffer, dump it
-                        draw_word(buffer)
+                        draw_word(node, buffer)
                         newline()
 
                         if not is_white_space(word) then
@@ -327,13 +272,13 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
                             -- We've reached the end of the line (the buffer was empty but it's possible, if this is the first word of a new sequence)
                             newline()
                             if not is_white_space(word) then
-                                draw_word(word)
+                                draw_word(node, word)
                                 num_on_line = num_on_line + 1
                             end
                         else
                             -- There's nothing in the buffer, but the word alone does not fit.
                             -- Just draw the word, and go to the next line
-                            draw_word(word)
+                            draw_word(node, word)
                             newline()
                         end
                     end
@@ -345,11 +290,139 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
 
         if bufwid > 0 then
             -- There's something in the buffer, dump it
-            draw_word(buffer)
+            draw_word(node, buffer)
             num_on_line = num_on_line + 1
         end
 
-        pop_font()
+        pop_style()
+    end
+
+    local function local_style_name(node)
+        if node.type == "Document" then
+            return nil
+        elseif node.type == "Header" then
+            local font_level = node.attributes.level
+
+            if font_level < 1 then font_level = 1 end
+            if font_level > 5 then font_level = 5 end
+
+            return  "h" ..font_level
+        elseif node.type == "Paragraph" then
+            return "paragraph"
+        elseif node.type == "Bold" then
+            return nil
+        elseif node.type == "Italic" then
+            return nil
+        elseif node.type == "Code" then
+            return nil
+        elseif node.type == "Text" then
+            return nil
+        elseif node.type == "Link" then
+            return "link"
+        elseif node.type == "LineBreak" then
+            return "paragraph"
+        elseif (node.type == "UnorderedList") or (node.type == "OrderedList") then
+            return "paragraph"
+        elseif node.type == "ListItem" then
+            return "paragraph"
+        elseif node.type == "Blockquote" then
+            return "paragraph"
+        elseif node.type == "CodeBlock" then
+            return "code"
+        elseif node.type == "Image" then
+            return "paragraph"
+        elseif node.type == "Table" then
+            return "paragraph"
+        end
+    end
+
+    -- Propagate fonts, colors and pre calculate metrics
+    local function precalculate_style(parent_node, node)
+
+        if not parent_node then
+            node.style = {
+                name        = "default",
+                font_style  = "normal",
+                base_color  = resolve_color(style["default"].base_color) or DEFAULT_COLOR,
+                bold_color  = resolve_color(style["default"].bold_color) or DEFAULT_COLOR,
+                font_size   = style["default"].font_size,
+                font_family = style["default"].font_family
+            }
+        else
+            node.style = {
+                name        = parent_node.style.name,
+                base_color  = parent_node.style.base_color,
+                bold_color  = parent_node.style.bold_color,
+                font_style  = parent_node.style.font_style,
+                font_size   = parent_node.style.font_size,
+                font_family = parent_node.style.font_family
+            }
+
+            if node.type == "Bold" then
+                if node.style.font_style == "normal" then node.style.font_style = "bold" end
+                if node.style.font_style == "italic" then node.style.font_style = "bolditalic" end
+            elseif node.type == "Italic" then
+                if node.style.font_style == "normal" then node.style.font_style = "italic" end
+                if node.style.font_style == "bold"   then node.style.font_style = "bolditalic" end
+            end
+
+            -- Check if we have a local style
+            local style_name = local_style_name(node)
+            local local_style = style[style_name]
+            local overriden_color = nil
+
+            if local_style then
+                node.style.name = style_name
+
+                if local_style.font_size then
+                    node.style.font_size = local_style.font_size
+                end
+
+                if local_style.font_family then
+                    node.style.font_family = local_style.font_family
+                end
+
+                if local_style.base_color then
+                    local res = resolve_color(local_style.base_color)
+                    if res then node.style.base_color = res end
+                end
+
+                if local_style.bold_color then
+                    local res = resolve_color(local_style.bold_color)
+                    if res then node.style.bold_color = res end
+                end
+            end
+
+            if node.style.font_style == "normal" or node.style.font_style == "italic"   then node.style.color = node.style.base_color end
+            if node.style.font_style == "bold" or node.style.font_style == "bolditalic" then node.style.color = node.style.bold_color end
+
+            if node.attributes.color then
+                overriden_color = node.attributes.color
+            end
+
+            if overriden_color then
+                local res = resolve_color(overriden_color)
+                if res then
+                    node.style.base_color   = res
+                    node.style.bold_color   = res
+                    node.style.color        = res
+                end
+            end
+        end
+
+        if node.type ~= "Table" then
+            for _, child in ipairs(node.children) do
+                precalculate_style(node, child)
+            end
+        else
+            for _, row in ipairs(node.children.rows) do
+                for _, cell in ipairs(row) do
+                    for _, child in ipairs(cell) do
+                        precalculate_style(node, child)
+                    end
+                end
+            end
+        end
     end
 
     -- Define render_node
@@ -357,6 +430,9 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
 
         level = level or 1 -- Default to level 1 if not provided
         if node.type == "Document" then
+            if not node.style then
+                precalculate_style(nil, node)
+            end
             for _, child in ipairs(node.children) do
                 render_node(child, level)
             end
@@ -364,16 +440,8 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
             num_line    = num_line + 1
             num_on_line = 0
             indentation = 0
-            clear_fs()
 
-            local font_level = node.attributes.level
-
-            if font_level < 1 then font_level = 1 end
-            if font_level > 5 then font_level = 5 end
-
-            font_name   = "h" ..font_level
-
-            local hstyle = style[font_name]
+            local hstyle = style[node.style.name]
 
             -- Add some vertical padding before
             ImGuiVDummy(ctx, hstyle.padding_top)
@@ -382,21 +450,18 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
 
             ImGui.BeginGroup(ctx)
             ImGui.PushStyleVar(ctx, ImGui.StyleVar_ItemSpacing, 0, hstyle.line_spacing)
-            push_font()
+            push_style(node)
             render_children(node.children, level)
-            pop_font()
+            pop_style()
             ImGui.PopStyleVar(ctx)
             ImGui.EndGroup(ctx)
 
             -- Add some vertical padding after
             ImGuiVDummy(ctx, hstyle.padding_bottom)
 
-
         elseif node.type == "Paragraph" then
             num_line    = num_line + 1
             num_on_line = 0
-            font_name   = "paragraph"
-            clear_fs()
             indentation = 1
 
             -- Add some vertical padding before
@@ -408,9 +473,9 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
             -- Use a group to lock the x indentation
             ImGui.BeginGroup(ctx)
             ImGui.PushStyleVar(ctx, ImGui.StyleVar_ItemSpacing, 0, style.paragraph.line_spacing)
-            push_font()
+            push_style(node)
             render_children(node.children, level)
-            pop_font()
+            pop_style()
             ImGui.PopStyleVar(ctx)
             ImGui.EndGroup(ctx)
 
@@ -419,31 +484,11 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
             ImGuiVDummy(ctx, ((node.parent_blockquote) and (style.paragraph.padding_in_blockquote) or (style.paragraph.padding_bottom)))
 
         elseif node.type == "Bold" then
-            local col = nil
-            if node.attributes.color then col = resolve_color(node.attributes.color) end
-
-            push_fs('bold', col)
             render_children(node.children, level)
-            pop_fs()
-
-
         elseif node.type == "Italic" then
-            local col = nil
-            if node.attributes.color then col = resolve_color(node.attributes.color) end
-
-            push_fs('italic', col)
             render_children(node.children, level)
-            pop_fs()
-
-
         elseif node.type == "Code" then
-            local col = nil
-            if node.attributes.color then col = resolve_color(node.attributes.color) end
-
-            push_fs(nil, col)
             render_children(node.children, level)
-            pop_fs()
-
         elseif node.type == "Text" then
 
             if should_wrap then
@@ -451,9 +496,9 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
             else
                 if num_on_line ~= 0 then ImGui.SameLine(ctx) end
 
-                push_font()
+                push_style(node)
                 ImGui.TextColored(ctx, base_txt_color, node.value)
-                pop_font()
+                pop_style()
 
                 ImGui.SameLine(ctx)
                 num_on_line = num_on_line + 1
@@ -461,15 +506,13 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
 
         elseif node.type == "Link" then
             in_link = node.attributes.url
-            push_font()
+            push_style(node)
             render_children(node.children, level)
-            pop_font()
+            pop_style()
             in_link = false
 
         elseif node.type == "LineBreak" then
 
-            font_name       = "paragraph"
-            clear_fs()
             indentation     = 1
             num_on_line     = 0
             num_line        = num_line + 1
@@ -488,9 +531,7 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
 
             num_line        = num_line + 1
             num_on_line     = 0
-            font_name       = "paragraph"
-            clear_fs()
-            indentation = indentation + 1
+            indentation     = indentation + 1
 
             -- Advance cursor. We assume that the precedent block used NewLine.
             ImGui.SetCursorPosX(ctx, ImGui.GetCursorPosX(ctx) + ((level == 1) and (style.list.padding_left) or (style.list.padding_indent)) )
@@ -511,8 +552,6 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
         elseif node.type == "ListItem" then
             num_line        = num_line + 1
             num_on_line     = 0
-            font_name       = "paragraph"
-            clear_fs()
 
             if node.parent_list.type == "UnorderedList" then
                 -- Render a bullet with the default font
@@ -521,13 +560,13 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
                 ImGui.PopFont(ctx)
                 num_on_line = 0
             else
-                push_font()
+                push_style(node)
                 ImGui.Text(ctx, node.attributes.number .. ". ")
-                pop_font()
+                pop_style()
                 num_on_line = 0
             end
 
-            push_font()
+            push_style(node)
             ImGui.PushStyleVar(ctx, ImGui.StyleVar_ItemSpacing, 0, style.list.line_spacing)
             -- Since we've added bullet / numbering, go back to current line
             ImGui.SameLine(ctx)
@@ -537,13 +576,11 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
             end
             ImGui.EndGroup(ctx)
             ImGui.PopStyleVar(ctx)
-            pop_font()
+            pop_style()
 
         elseif node.type == "Blockquote" then
             num_line        = num_line + 1
             num_on_line     = 0
-            font_name       = "paragraph"
-            clear_fs()
 
             local bstyle = style.blockquote
 
@@ -562,9 +599,9 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
             -- Use a group to lock the x indentation
             ImGui.BeginGroup(ctx)
             ImGui.PushStyleVar(ctx, ImGui.StyleVar_ItemSpacing, 0, 0)
-            push_font()
+            push_style(node)
             render_children(node.children, level + 1)
-            pop_font()
+            pop_style()
             ImGui.PopStyleVar(ctx)
             ImGui.EndGroup(ctx)
 
@@ -584,8 +621,6 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
 
             num_line        = num_line + 1
             num_on_line     = 0
-            font_name       = "code"
-            clear_fs()
 
             ImGuiVDummy(ctx, style.code.padding_top)
 
@@ -593,28 +628,24 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
 
             ImGui.BeginGroup(ctx)
             ImGui.PushStyleVar(ctx, ImGui.StyleVar_ItemSpacing, 0, 0)
-            push_font()
+            push_style(node)
             ImGui.TextColored(ctx, resolve_color(style.code.color), node.value)
-            pop_font()
+            pop_style()
             ImGui.PopStyleVar(ctx)
             ImGui.EndGroup(ctx)
 
             ImGuiVDummy(ctx, style.code.padding_bottom)
 
         elseif node.type == "Image" then
-            font_name       = "paragraph"
-            clear_fs()
             indentation     = 1
             num_on_line     = 0
             num_line        = num_line + 1
 
-            push_font()
+            push_style(node)
             ImGui.Text(ctx, "Images are not supported yet.")
-            pop_font()
+            pop_style()
 
         elseif node.type == "Table" then
-            font_name       = "paragraph"
-            clear_fs()
             indentation     = 1
             num_on_line     = 0
             num_line        = num_line + 1
@@ -631,7 +662,7 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
             ImGui.SetCursorPosX(ctx, ImGui.GetCursorPosX(ctx) + style.table.padding_left)
 
             ImGui.BeginGroup(ctx)
-            push_font()
+            push_style(node)
             if ImGui.BeginTable(ctx, "##table", column_count) then
                 if node.children.headers and not node.attributes.headers_are_empty then
                     for _, header in ipairs(node.children.headers) do
@@ -652,7 +683,7 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
                 ImGui.EndTable(ctx)
             end
             ImGui.EndGroup(ctx)
-            pop_font()
+            pop_style()
             ImGuiVDummy(ctx, style.table.padding_bottom)
         end
         return nodes
