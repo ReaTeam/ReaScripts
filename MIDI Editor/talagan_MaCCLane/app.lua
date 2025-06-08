@@ -204,10 +204,19 @@ local function _macclane()
 reaper.defer(_macclane)
 end
 
+local function UpdateToolbarButtonState(v)
+  local _,_,sectionID,cmdID,_,_,_ = reaper.get_action_context()
+  reaper.SetToggleCommandState(sectionID,cmdID,v)
+  reaper.RefreshToolbar2(sectionID, cmdID)
+end
+
+
 local function run(args)
+  UpdateToolbarButtonState(1)
 
   -- Define cleanup callbacks
   reaper.atexit(function()
+    UpdateToolbarButtonState(0)
     MACCLContext.destroyFont()
     for addr, mec in pairs(MEContext.all()) do
       mec:implode()

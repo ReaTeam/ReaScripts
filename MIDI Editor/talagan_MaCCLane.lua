@@ -1,16 +1,16 @@
 --[[
 @description MaCCLane : Tabs for the MIDI Editor
-@version 0.2.4
+@version 0.2.5
 @author Ben 'Talagan' Babut
 @license MIT
 @donation https://www.paypal.com/donate/?business=3YEZMY9D6U8NC&no_recurring=1&currency_code=EUR
 @links
   Forum Thread : https://forum.cockos.com/showthread.php?t=298707
 @changelog
-  - [Enhancement] Better undo management
-  - [Feature] (+) button configuration (full bypass/recording or custom template)
+  - [Feature] Embeddable in toolbar button
+  - [Feature] Launchable from MIDI Editor section
 @provides
-  [main=main] .
+  [main=main,midi_editor] .
   [nomain] talagan_MaCCLane/classes/**/*.lua
   [nomain] talagan_MaCCLane/ext/**/*.lua
   [nomain] talagan_MaCCLane/images/**/*.lua
@@ -28,6 +28,7 @@
   [main=main,midi_editor] talagan_MaCCLane/actions/generic_action.lua > talagan_MaCCLane Launch tab by role FooRole.lua
   [main=main,midi_editor] talagan_MaCCLane/actions/generic_action.lua > talagan_MaCCLane Launch tab by name BarName.lua
   [data] talagan_MaCCLane/data/_PUT_YOUR_MACCLANE_TEMPLATES_HERE.md > MaCCLane/
+  [data] talagan_MaCCLane/data/toolbar_icons/toolbar_macclane.png > toolbar_icons/toolbar_macclane.png
 @about
   # Purpose
 
