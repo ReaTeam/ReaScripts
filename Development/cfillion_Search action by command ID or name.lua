@@ -1,7 +1,10 @@
 -- @description Search action by command ID or name
 -- @author cfillion
--- @version 2.0.3
--- @changelog Internal code cleanup
+-- @version 2.1
+-- @changelog
+--   - Add v7.40's new crossfade editor section
+--   - Remove the "alt recording" mirror of the main section
+--   - Preserve the ID instead of the name when switching to another section without a match
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=226107
 -- @screenshot https://i.imgur.com/yqkvZvf.gif
 -- @donation https://reapack.com/donate
@@ -9,11 +12,11 @@
 local SCRIPT_NAME = select(2, reaper.get_action_context()):match("([^/\\_]+)%.lua$")
 local AL_SECTIONS = {
   { id=0,     name='Main'                   },
-  { id=100,   name='Main (alt recording)'   },
+  { id=32063, name='Media Explorer'         },
   { id=32060, name='MIDI Editor'            },
   { id=32061, name='MIDI Event List Editor' },
   { id=32062, name='MIDI Inline Editor'     },
-  { id=32063, name='Media Explorer'         },
+  { id=32065, name='Crossfade Editor'       },
 }
 
 package.path = reaper.ImGui_GetBuiltinPath() .. '/?.lua'
@@ -70,11 +73,12 @@ local function form()
     for _, s in ipairs(AL_SECTIONS) do
       if ImGui.Selectable(ctx, s.name, s.id == section.id) then
         section = s
-        local oldName = actionName
+        local oldId, oldName = commandId, actionName
         findById()
         if #actionName < 1 then
           actionName = oldName
           findByName()
+          if #commandId < 1 and #oldId > 0 then commandId, actionName = oldId, '' end
         end
       end
     end
