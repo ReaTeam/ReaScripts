@@ -78,7 +78,7 @@ local function form()
         if #actionName < 1 then
           actionName = oldName
           findByName()
-          if #commandId < 1 then commandId, actionName = oldId, '' end
+          if #commandId < 1 and #oldId > 0 then commandId, actionName = oldId, '' end
         end
       end
     end
