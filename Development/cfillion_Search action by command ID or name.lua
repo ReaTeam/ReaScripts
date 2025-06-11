@@ -14,7 +14,7 @@ local AL_SECTIONS = {
   { id=32060, name='MIDI Editor'            },
   { id=32061, name='MIDI Event List Editor' },
   { id=32062, name='MIDI Inline Editor'     },
-  { id=32065, name='Crossfade editor'       },
+  { id=32065, name='Crossfade Editor'       },
 }
 
 package.path = reaper.ImGui_GetBuiltinPath() .. '/?.lua'
