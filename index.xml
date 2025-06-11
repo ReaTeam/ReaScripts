@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="2713e6a10b8a84c9dfd481ea8475e4f7e8656448" name="ReaTeam Scripts">
+<index version="1" commit="50c2aefc69f6637df833b314af28123e12fd1dc6" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -897,6 +897,12 @@ fix crash when no matching action is found (hotfix for a last-minute change)]]><
       <version name="2.0.3" author="cfillion" time="2024-05-12T22:28:58Z">
         <changelog><![CDATA[Internal code cleanup]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/1a804fc3b6c3f61f432469fdab048ae176e2671e/Development/cfillion_Search%20action%20by%20command%20ID%20or%20name.lua</source>
+      </version>
+      <version name="2.1" author="cfillion" time="2025-06-11T22:11:53Z">
+        <changelog><![CDATA[- Add v7.40's new crossfade editor section
+- Remove the "alt recording" mirror of the main section
+- Preserve the ID instead of the name when switching to another section without a match]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/50c2aefc69f6637df833b314af28123e12fd1dc6/Development/cfillion_Search%20action%20by%20command%20ID%20or%20name.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_SWS CF_Preview API demo.lua" type="script" desc="SWS CF_Preview API demo">
