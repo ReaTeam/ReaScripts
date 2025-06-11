@@ -73,7 +73,7 @@ local function form()
     for _, s in ipairs(AL_SECTIONS) do
       if ImGui.Selectable(ctx, s.name, s.id == section.id) then
         section = s
-        local oldId, oldName = actionId, actionName
+        local oldId, oldName = commandId, actionName
         findById()
         if #actionName < 1 then
           actionName = oldName
