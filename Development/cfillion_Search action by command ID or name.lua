@@ -1,7 +1,7 @@
 -- @description Search action by command ID or name
 -- @author cfillion
--- @version 2.0.3
--- @changelog Internal code cleanup
+-- @version 2.1
+-- @changelog Add v7.40's new crossfade editor section
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=226107
 -- @screenshot https://i.imgur.com/yqkvZvf.gif
 -- @donation https://reapack.com/donate
@@ -10,10 +10,11 @@ local SCRIPT_NAME = select(2, reaper.get_action_context()):match("([^/\\_]+)%.lu
 local AL_SECTIONS = {
   { id=0,     name='Main'                   },
   { id=100,   name='Main (alt recording)'   },
+  { id=32063, name='Media Explorer'         },
   { id=32060, name='MIDI Editor'            },
   { id=32061, name='MIDI Event List Editor' },
   { id=32062, name='MIDI Inline Editor'     },
-  { id=32063, name='Media Explorer'         },
+  { id=32065, name='Crossfade editor'       },
 }
 
 package.path = reaper.ImGui_GetBuiltinPath() .. '/?.lua'
