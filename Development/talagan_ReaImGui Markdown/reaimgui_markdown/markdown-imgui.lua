@@ -69,10 +69,10 @@ local DEFAULT_STYLE = {
     paragraph   = { font_family = "sans-serif", font_size = 13, padding_left = 30, padding_top = 3, padding_bottom = 7, line_spacing = 3, padding_in_blockquote = 6 },
     table       = { font_family = "sans-serif", font_size = 13, padding_left = 30, padding_top = 3, padding_bottom = 7, line_spacing = 3 },
 
-    code        = { font_family = "monospace", font_size = 13,   padding_left = 30, padding_top = 3, padding_bottom = 7,  line_spacing = 3, padding_in_blockquote = 6 },
+    code        = { font_family = "monospace",  font_size = 13, padding_left = 30, padding_top = 3, padding_bottom = 7,  line_spacing = 3, padding_in_blockquote = 6 },
 
-    blockquote  = {                                             padding_left = 0,  padding_top = 5, padding_bottom = 10, line_spacing = 3, padding_indent = 10 },
-    list        = {                                             padding_left = 40, padding_top = 5, padding_bottom = 7,  line_spacing = 3, padding_indent = 5 },
+    blockquote  = { font_family = "sans-serif", font_size = 13, padding_left = 0,  padding_top = 5, padding_bottom = 10, line_spacing = 3, padding_indent = 10 },
+    list        = { font_family = "sans-serif", font_size = 13, padding_left = 40, padding_top = 5, padding_bottom = 7,  line_spacing = 3, padding_indent = 5 },
     link        = { font_family = "sans-serif", font_size = 13, base_color = "orange", bold_color = "tomato"},
 
     separator   = { padding_top = 3, padding_bottom = 7 }
@@ -171,8 +171,8 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
     local render_children = function(children, level) return nil end
 
     local function push_style(node)
-        local style_name = node.style.name
-        local group      = fonts[style_name]
+        local class_name = node.style.name
+        local group      = fonts[class_name]
         local f          = group[node.style.font_style]
 
         base_txt_color = node.style.color
@@ -209,7 +209,7 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
         if in_link then
             local x2, y2      = ImGui.GetCursorScreenPos(ctx)
             local draw_list   = ImGui.GetWindowDrawList(ctx)
-            local fsize       = node.style.font_size
+            local fsize       = style[node.style.name].font_size
             ImGui.DrawList_AddLine(draw_list, x, y+fsize, x2, y2+fsize, color, 1)
         end
     end
@@ -311,23 +311,24 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
 
             return  "h" ..font_level
         elseif node.type == "Paragraph" then
+            if node.parent_blockquote then return "blockquote" end
             return "paragraph"
         elseif node.type == "Link" then
             return "link"
         elseif node.type == "LineBreak" then
             return "paragraph"
         elseif (node.type == "UnorderedList") or (node.type == "OrderedList") then
-            return "paragraph"
+            return "list"
         elseif node.type == "ListItem" then
-            return "paragraph"
+            return "list"
         elseif node.type == "Blockquote" then
-            return "paragraph"
+            return "blockquote"
         elseif node.type == "CodeBlock" then
             return "code"
         elseif node.type == "Image" then
             return "paragraph"
         elseif node.type == "Table" then
-            return "paragraph"
+            return "table"
         end
         return nil
     end
@@ -340,9 +341,7 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
                 name        = "default",
                 font_style  = "normal",
                 base_color  = resolve_color(style["default"].base_color) or DEFAULT_COLOR,
-                bold_color  = resolve_color(style["default"].bold_color) or DEFAULT_COLOR,
-                font_size   = style["default"].font_size,
-                font_family = style["default"].font_family
+                bold_color  = resolve_color(style["default"].bold_color) or DEFAULT_COLOR
             }
         else
             node.style = {
@@ -350,8 +349,6 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
                 base_color  = parent_node.style.base_color,
                 bold_color  = parent_node.style.bold_color,
                 font_style  = parent_node.style.font_style,
-                font_size   = parent_node.style.font_size,
-                font_family = parent_node.style.font_family
             }
 
             if node.type == "Bold" then
@@ -363,20 +360,12 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
             end
 
             -- Check if we have a local style
-            local style_name = local_style_name(node)
+            local style_name  = local_style_name(node)
             local local_style = style[style_name]
             local overriden_color = nil
 
             if local_style then
                 node.style.name = style_name
-
-                if local_style.font_size then
-                    node.style.font_size = local_style.font_size
-                end
-
-                if local_style.font_family then
-                    node.style.font_family = local_style.font_family
-                end
 
                 if local_style.base_color then
                     local res = resolve_color(local_style.base_color)
