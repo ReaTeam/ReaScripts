@@ -38,19 +38,24 @@ function ReaImGuiMd:new(ctx, id, options, style)
     return instance
 end
 
-function ReaImGuiMd:_initialize(ctx, id, options, style)
+function ReaImGuiMd:_initialize(ctx, id, options, partial_style)
     self.id         = id
     self.options    = { wrap = true, horizontal_scrollbar = true , width = 0, height = 0 }
     self.style      = deepCopy(ImGuiMdCore.DEFAULT_STYLE)
     self.text       = ""
     self.ast        = {}
-    self:setStyle(style)
+
+    self:setPartialStyle(partial_style)
     self:setOptions(options)
     self:_createFontsIfNeeded(ctx)
 end
 
-function ReaImGuiMd:setStyle(style)
+function ReaImGuiMd:setPartialStyle(style)
     deepMerge(self.style, style)
+end
+
+function ReaImGuiMd:setStyle(style)
+    deepCopy(self.style, style)
 end
 
 function ReaImGuiMd:setOptions(options)
@@ -70,24 +75,26 @@ function ReaImGuiMd:_createFontsIfNeeded(ctx)
     local fonts = {}
     local style = self.style
 
-    for i, v in ipairs({"h1", "h2", "h3", "h4", "h5", "paragraph", "code", "link"}) do
+    for class_name, _ in pairs(ImGuiMdCore.DEFAULT_STYLE) do
         -- 0 is for normal text, 1 for h1, 2 for h2, etc
-        local size      = style[v].font_size
-        local fontfam   = style[v].font_family
+        local size      = style[class_name].font_size
+        local fontfam   = style[class_name].font_family
 
-        local font = {
-            normal      = ImGui.CreateFont(fontfam, size),
-            bold        = ImGui.CreateFont(fontfam, size, ImGui.FontFlags_Bold),
-            italic      = ImGui.CreateFont(fontfam, size, ImGui.FontFlags_Italic),
-            bolditalic  = ImGui.CreateFont(fontfam, size, ImGui.FontFlags_Italic | ImGui.FontFlags_Bold),
-        }
+        if size and fontfam then
+            local font = {
+                normal      = ImGui.CreateFont(fontfam, size),
+                bold        = ImGui.CreateFont(fontfam, size, ImGui.FontFlags_Bold),
+                italic      = ImGui.CreateFont(fontfam, size, ImGui.FontFlags_Italic),
+                bolditalic  = ImGui.CreateFont(fontfam, size, ImGui.FontFlags_Italic | ImGui.FontFlags_Bold),
+            }
 
-        ImGui.Attach(ctx, font.normal)
-        ImGui.Attach(ctx, font.bold)
-        ImGui.Attach(ctx, font.italic)
-        ImGui.Attach(ctx, font.bolditalic)
+            ImGui.Attach(ctx, font.normal)
+            ImGui.Attach(ctx, font.bold)
+            ImGui.Attach(ctx, font.italic)
+            ImGui.Attach(ctx, font.bolditalic)
 
-        fonts[v] = font
+            fonts[class_name] = font
+        end
     end
 
     self.fonts    = fonts
