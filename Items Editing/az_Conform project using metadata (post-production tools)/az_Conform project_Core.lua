@@ -672,7 +672,7 @@ function MainWindow(OptTable, windowName)
     if reaper.ImGui_CollapsingHeader(ctx, 'Split items and choose the most valuable mics', false) then
       reaper.ImGui_Text(ctx, 'The feature is under development')
     end
-        
+    
     for i, v in ipairs(OptTable) do
       local option = v
       
@@ -867,221 +867,318 @@ function AnalyseEDLs(EDLs, timeTreshold) --table of pathes
     local suffix = ''
     if edlsCnt > 1 then suffix = '_'..e end
     local EdlTable = { V={Splits={} }, A1={Splits={} }, A2={Splits={} }, A3={Splits={} }, A4={Splits={} } }
-    local EDLtext = ''
-    local items
-    local item
-    local fadelen
-    local clip
+    local EDLtext = {}
+    local EDLblocks = {}
+    local prevBlockNumber, curBlockNumber = 0, 0
+    local itemsList = {}
+    local block
+    --local fadelen
+    --local clip
     
     for line in io.lines(EDLfile) do
-      EDLtext = EDLtext..line..'\n'.." "
+      line = line:gsub('^%s*(.-)%s*$', '%1') --remove spaces at edges
+      table.insert(EDLtext, line )
     end
-    EDLtext = EDLtext..'\n'
-    
-    for line in EDLtext:gmatch('[^\n]+') do
+     
+    for l, line in ipairs(EDLtext) do
       --msg('\n  LINE:   '..line)
-      local strparts = {}
-      for s in line:gmatch('%S+') do
-        table.insert(strparts, s)
+      local lineData = {blockN, strParts={}, Time={}, fadeLen, transition, track, strRest}
+      local pattern = '%d%d:%d%d:%d%d:%d%d' 
+      
+      for time in line:gmatch(pattern) do
+        table.insert(lineData.Time, time)
+      end 
+      
+      for t, time in ipairs(lineData.Time) do
+        line = line:gsub(time, '')
       end
       
-      if #strparts == 0 then
+      for s in line:gmatch('%S+') do
+        table.insert(lineData.strParts, s)
+      end
       
-        if item then
-          if clip then table.insert(item.Clips, copy(clip))   clip = nil end --clip without name 
-          table.insert(items, copy(item))
-          item = nil
-        end
+      if #lineData.strParts >= 3 and lineData.strParts[1]:match('%d+') then
+        lineData.blockN = lineData.strParts[1]
+      end
       
-        if items ~= nil and #items > 0 then  --Collect items in tables
-        --msg('close ' .. #items)
-          for i, v in ipairs(items) do
-            
-            if v.Type == 'B' then
-              table.insert(EdlTable.V, copy(v))
-              table.insert(EdlTable.A1, copy(v))
-              
-              FieldMatch(EdlTable.V.Splits,copy(v.DestIn), true)
-              FieldMatch(EdlTable.V.Splits,copy(v.DestOut), true)
-              
-              FieldMatch(EdlTable.A1.Splits,copy(v.DestIn), true)
-              FieldMatch(EdlTable.A1.Splits,copy(v.DestOut), true)
-            elseif v.Type:match('V') then
-              table.insert(EdlTable.V, copy(v))
-              FieldMatch(EdlTable.V.Splits,copy(v.DestIn), true)
-              FieldMatch(EdlTable.V.Splits,copy(v.DestOut), true)
-            end
-            
-            v.Type = v.Type:gsub('/V', '')
-            if v.Type == 'A' then
-              table.insert(EdlTable.A1, copy(v))
-              FieldMatch(EdlTable.A1.Splits,copy(v.DestIn), true)
-              FieldMatch(EdlTable.A1.Splits,copy(v.DestOut), true)
-            elseif v.Type == 'A2' then
-              table.insert(EdlTable.A2, copy(v))
-              FieldMatch(EdlTable.A2.Splits,copy(v.DestIn), true)
-              FieldMatch(EdlTable.A2.Splits,copy(v.DestOut), true)
-            elseif v.Type == 'AA' then
-              table.insert(EdlTable.A1, copy(v))
-              table.insert(EdlTable.A2, copy(v))
-              
-              FieldMatch(EdlTable.A1.Splits,copy(v.DestIn), true)
-              FieldMatch(EdlTable.A1.Splits,copy(v.DestOut), true)
-              
-              FieldMatch(EdlTable.A2.Splits,copy(v.DestIn), true)
-              FieldMatch(EdlTable.A2.Splits,copy(v.DestOut), true) 
-            elseif v.Type == 'A3' then                    -- for Davinci Resolve
-              table.insert(EdlTable.A3, copy(v))
-              FieldMatch(EdlTable.A3.Splits,copy(v.DestIn), true)
-              FieldMatch(EdlTable.A3.Splits,copy(v.DestOut), true)
-            elseif v.Type == 'A4' then                    -- for Davinci Resolve
-              table.insert(EdlTable.A4, copy(v))
-              FieldMatch(EdlTable.A4.Splits,copy(v.DestIn), true)
-              FieldMatch(EdlTable.A4.Splits,copy(v.DestOut), true) 
-            elseif v.Type and v.Type:match('A') then      -- for Davinci Resolve
-              if not EdlTable[v.Type] then EdlTable[v.Type] = { Splits = {} } end
-              table.insert(EdlTable[v.Type], copy(v))
-              FieldMatch(EdlTable[v.Type]['Splits'],copy(v.DestIn), true)
-              FieldMatch(EdlTable[v.Type]['Splits'],copy(v.DestOut), true)
-            end
-            
-            if v.Type2 and v.Type2:match('3') then
-              table.insert(EdlTable.A3, copy(v))
-              FieldMatch(EdlTable.A3.Splits,copy(v.DestIn), true)
-              FieldMatch(EdlTable.A3.Splits,copy(v.DestOut), true)
-            end
-            
-            if v.Type2 and v.Type2:match('4') then
-              table.insert(EdlTable.A4, copy(v))
-              FieldMatch(EdlTable.A4.Splits,copy(v.DestIn), true)
-              FieldMatch(EdlTable.A4.Splits,copy(v.DestOut), true)
-            end
-          end
-          items = nil
-        end
-        clip = nil
-      else --PARSING EDL starts from here -- Create items from text
-        
-        if string.match(strparts[1], '%d+') and #strparts >= 8 then --msg('open')
-          --if tonumber(strparts[1]) == 5 then return end -- for debuging
-        
-          items = {}
-          item = {Type, Type2, Clips={}, DestIn, DestOut}
-          
-          item.Type = strparts[3]
-
-          item.DestIn = reaper.parse_timestr_pos( strparts[#strparts-1], 5 ) - PrjTimeOffset - timeTreshold
-          item.DestOut = reaper.parse_timestr_pos( strparts[#strparts], 5 ) - PrjTimeOffset - timeTreshold
-
-          if not clip then --msg('get clip')
-            clip = { name, SrcIn, SrcOut }
-            clip.SrcIn = reaper.parse_timestr_pos( strparts[#strparts-3], 5 ) - PrjTimeOffset
-            clip.SrcOut = reaper.parse_timestr_pos( strparts[#strparts-2], 5 ) - PrjTimeOffset
-          end
-          
-          if clip.SrcIn >= clip.SrcOut or item.DestIn >= item.DestOut then
-            clip.SrcOut = clip.SrcIn + 1 --to be just more then srcIn in next iteration
-            item = nil
-            --msg('destroy item')
-          elseif #strparts >= 9 and string.match(strparts[#strparts-4], '%d+') then
-            fadelen = tonumber(strparts[#strparts-4])
-            fadelen = reaper.parse_timestr_pos( '00:00:00:'..fadelen, 5 ) - PrjTimeOffset
-            
-            --if clip then msg('1st clip src in  '..clip.SrcIn) end
-            
-            clip.SrcOut = clip.SrcIn + fadelen
-            table.insert(item.Clips, copy(clip)) --1st clip without name
-            
-            clip.SrcIn = reaper.parse_timestr_pos( strparts[#strparts-3], 5 ) - PrjTimeOffset
-            clip.SrcOut = clip.SrcIn + fadelen
-            table.insert(item.Clips, copy(clip)) --2nd clip without name
-            
-            item.DestOut = item.DestIn + fadelen
-            if item then
-              table.insert(items, copy(item))
-              --msg('item added')
-            end
-            item.Clips = {}
-            
-            item.DestIn = item.DestOut
-            item.DestOut = reaper.parse_timestr_pos( strparts[#strparts], 5 ) - timeTreshold - PrjTimeOffset
-            clip.SrcIn = clip.SrcOut
-            clip.SrcOut = reaper.parse_timestr_pos( strparts[#strparts-2], 5 ) - PrjTimeOffset
-          end
+      if #lineData.Time == 4 and #lineData.strParts >= 4 then
+      
+        if lineData.strParts[#lineData.strParts]:match('%d+') then
+          lineData.fadeLen = tonumber(lineData.strParts[#lineData.strParts])
+          table.remove(lineData.strParts, #lineData.strParts)
         end
         
+        local shift = 1
+        if lineData.strParts[#lineData.strParts]:match('F') then
+          shift = 3
+          lineData.transition = 'KBF'
+        elseif lineData.strParts[#lineData.strParts] == 'O'
+        or lineData.strParts[#lineData.strParts] == 'B' then
+          shift = 2
+          lineData.transition = lineData.strParts[#lineData.strParts -1] .. lineData.strParts[#lineData.strParts]
+        else
+          lineData.transition = lineData.strParts[#lineData.strParts]
+        end
+         
+        lineData.track = lineData.strParts[#lineData.strParts - shift]
         
-        if line:match("CLIP NAME:") and items then
-          
-          local nameT = {}
-          for s in string.gmatch(line, '[^:]+') do
-            s = s:gsub('^%s*(.-)%s*$', '%1') --remove spaces at edges
-            table.insert(nameT, s)
+        if lineData.strParts[1]:match('%d+') then
+          curBlockNumber = tonumber( lineData.strParts[1]:match('%d+') )
+          lineData.blockN = curBlockNumber
+        end
+        
+      end
+      
+      lineData.strRest = line
+      
+      if curBlockNumber ~= prevBlockNumber then
+        prevBlockNumber = curBlockNumber
+        if block and #block.main > 0 then
+          table.insert(EDLblocks, copy(block) )
+          block = nil
+        end
+        if not block then block = { numb, main={}, motion={}, notes={} } end
+      end
+       
+       
+      if block then
+        block.numb = curBlockNumber
+        if #lineData.Time == 4 then table.insert(block.main, lineData)
+        elseif #lineData.Time == 1 and lineData.blockN == 'M2' then
+          table.insert(block.motion, lineData)
+        elseif #lineData.Time == 4 then table.insert(block.main, lineData)
+        elseif line:match("CLIP NAME:") or line:match("AUD ") then table.insert(block.notes, line)
+        end
+      end
+      
+      if l == #EDLtext and #block.main > 0 then
+        table.insert(EDLblocks, copy(block) )
+      end
+    end
+    
+    
+    for b, block in ipairs(EDLblocks) do
+      local item = {Type, Type2, fadeIn, fadeOut, Clips={}, DestIn, DestOut} 
+      local clip = { name, SrcIn, SrcOut, PlayRate, RateTC }
+      
+      if #block.main == 1 then
+        for n, noteline in ipairs(block.notes) do
+          if noteline:match("CLIP NAME:") then
+            local nameT = {}
+            for s in noteline:gmatch('[^:]+') do
+              s = s:gsub('^%s*(.-)%s*$', '%1') --remove spaces at edges
+              table.insert(nameT, s)
+            end 
+            clip.name = nameT[2]
+          elseif noteline:match("AUD ") then
+            item.Type2 = noteline:gsub("AUD", ''):gsub("%s+", '')
           end
-           
-          if #items > 0 then
-            for i,v in ipairs(items) do
-              local clips = v.Clips
-              for j, c in ipairs(clips) do
-              --msg('clip '..j)
-                
-                if c.name == nil then
-                  if #nameT == 2 and nameT[2] == 'BL' then
-                    c.name = line
-                  elseif #nameT == 2 then
-                    c.name = nameT[2]
-                  end 
-                  break
-                end
-                
+        end
+        if not clip.name or clip.name == 'BL' or clip.name == '' then
+          clip.name = '::BLACK::'
+        end
+        clip.SrcIn = block.main[1]['Time'][1]
+        clip.SrcOut = block.main[1]['Time'][2] 
+        item.DestIn = block.main[1]['Time'][3]
+        item.DestOut = block.main[1]['Time'][4]
+        
+        clip.SrcIn = reaper.parse_timestr_pos( clip.SrcIn, 5 ) - PrjTimeOffset
+        clip.SrcOut = reaper.parse_timestr_pos( clip.SrcOut, 5 ) - PrjTimeOffset
+        item.DestIn = reaper.parse_timestr_pos( item.DestIn, 5 ) - PrjTimeOffset - timeTreshold
+        item.DestOut = reaper.parse_timestr_pos( item.DestOut, 5 ) - PrjTimeOffset - timeTreshold
+        
+        item.Type = block.main[1]['track']
+        table.insert(item.Clips, copy(clip) )
+        table.insert(itemsList, copy(item) )
+        item.Clips = {}
+      else
+        local itemsCnt = #block.main
+        local fadelen
+        local transition
+        if itemsCnt > 0 then
+          fadelen = block.main[itemsCnt]['fadeLen']
+          transition = block.main[itemsCnt]['transition']
+        end
+        
+        if fadelen then
+          fadelen = reaper.parse_timestr_pos( '00:00:00:'..fadelen, 5 ) - PrjTimeOffset
+        end
+        
+        for i = 1, itemsCnt do
+        
+          if i == itemsCnt then --Get last name and AUD numbers 
+            for n, noteline in ipairs(block.notes) do
+              if noteline:match("CLIP NAME:") then
+                local nameT = {}
+                for s in noteline:gmatch('[^:]+') do
+                  s = s:gsub('^%s*(.-)%s*$', '%1') --remove spaces at edges
+                  table.insert(nameT, s)
+                end 
+                clip.name = nameT[2] 
+              elseif noteline:match("AUD ") then
+                item.Type2 = noteline:gsub("AUD", ''):gsub("%s+", '')
               end
             end
-          elseif #nameT == 2 then
-            clip.name = nameT[2]
+            if not clip.name or clip.name == 'BL' or clip.name == '' or #block.notes == 0 then
+              clip.name = '::BLACK::'
+            end
+          else --Get first name and AUD numbers 
+            local n = #block.notes
+            while n > 0 do
+              local noteline = block.notes[n]
+              if noteline:match("CLIP NAME:") then
+                local nameT = {}
+                for s in noteline:gmatch('[^:]+') do
+                  s = s:gsub('^%s*(.-)%s*$', '%1') --remove spaces at edges
+                  table.insert(nameT, s)
+                end
+                clip.name = nameT[2] 
+              elseif noteline:match("AUD ") then
+                item.Type2 = noteline:gsub("AUD", ''):gsub("%s+", '')
+              end 
+              n=n-1
+            end
+            if not clip.name or clip.name == 'BL' or clip.name == '' or #block.notes == 0 then
+              clip.name = '::BLACK::'
+            end
+            
           end
           
-          if item then
-            if clip then
-              table.insert(item.Clips, copy(clip))
-              --msg('clip added')
-              clip = nil --clip without name
-            end 
-            table.insert(items, copy(item))
-            --msg('item added')
-            item = nil
+          clip.SrcIn = block.main[i]['Time'][1]
+          clip.SrcOut = block.main[i]['Time'][2]
+          item.DestIn = block.main[i]['Time'][3]
+          item.DestOut = block.main[i]['Time'][4]
+          
+          clip.SrcIn = reaper.parse_timestr_pos( clip.SrcIn, 5 ) - PrjTimeOffset
+          clip.SrcOut = reaper.parse_timestr_pos( clip.SrcOut, 5 ) - PrjTimeOffset
+          item.DestIn = reaper.parse_timestr_pos( item.DestIn, 5 ) - PrjTimeOffset - timeTreshold
+          item.DestOut = reaper.parse_timestr_pos( item.DestOut, 5 ) - PrjTimeOffset - timeTreshold
+          
+          item.Type = block.main[i]['track']
+           
+          if ( transition:match('D') or transition:match('W') )
+          and fadelen and i ~= itemsCnt then
+            clip.SrcOut = clip.SrcOut + fadelen
+            item.DestOut = item.DestOut + fadelen
           end
           
-        elseif line:match("AUD ") and #strparts <= 3 and items then
-          if #items > 0 then
-            for i,v in ipairs(items) do
-              v.Type2 = line:gsub("AUD", ''):gsub("%s+", '') 
+          if transition:match('K') and fadelen and i == itemsCnt then
+            if item.DestIn == item.DestOut then 
+              item.DestOut = itemsList[#itemsList]['DestOut']
+              clip.SrcOut = clip.SrcIn + (item.DestOut - item.DestIn)
+            else
+              item.DestOut = item.DestOut + fadelen
+              clip.SrcOut = clip.SrcOut + fadelen
             end
           end
+          
+          if transition:match('K') and transition:match('O')
+          and fadelen and i == itemsCnt
+          and block.main[i]['Time'][3] == block.main[i]['Time'][4] then
+            item.DestOut = item.DestIn + fadelen
+            clip.SrcOut = clip.SrcIn + fadelen
+          end
+          
+          table.insert(item.Clips, copy(clip) )
+          table.insert(itemsList, copy(item) )
+          item.Clips = {}
+          
         end
-        
-      end --end of parsing
-      --msg(line)
-    end -- end line cycle
+      end
     
-    --Remove Fades in Audio clips
+    end
+    
+    for i, v in ipairs(itemsList) do
+      if v.Type == 'B' then
+        table.insert(EdlTable.V, copy(v))
+        table.insert(EdlTable.A1, copy(v))
+        
+        FieldMatch(EdlTable.V.Splits,copy(v.DestIn), true)
+        FieldMatch(EdlTable.V.Splits,copy(v.DestOut), true)
+        
+        FieldMatch(EdlTable.A1.Splits,copy(v.DestIn), true)
+        FieldMatch(EdlTable.A1.Splits,copy(v.DestOut), true)
+      elseif v.Type:match('V') then
+        table.insert(EdlTable.V, copy(v))
+        FieldMatch(EdlTable.V.Splits,copy(v.DestIn), true)
+        FieldMatch(EdlTable.V.Splits,copy(v.DestOut), true)
+      end
+      
+      v.Type = v.Type:gsub('/V', '')
+      if v.Type == 'A' then
+        table.insert(EdlTable.A1, copy(v))
+        FieldMatch(EdlTable.A1.Splits,copy(v.DestIn), true)
+        FieldMatch(EdlTable.A1.Splits,copy(v.DestOut), true)
+      elseif v.Type == 'A2' then
+        table.insert(EdlTable.A2, copy(v))
+        FieldMatch(EdlTable.A2.Splits,copy(v.DestIn), true)
+        FieldMatch(EdlTable.A2.Splits,copy(v.DestOut), true)
+      elseif v.Type == 'AA' then
+        table.insert(EdlTable.A1, copy(v))
+        table.insert(EdlTable.A2, copy(v))
+        
+        FieldMatch(EdlTable.A1.Splits,copy(v.DestIn), true)
+        FieldMatch(EdlTable.A1.Splits,copy(v.DestOut), true)
+        
+        FieldMatch(EdlTable.A2.Splits,copy(v.DestIn), true)
+        FieldMatch(EdlTable.A2.Splits,copy(v.DestOut), true) 
+      elseif v.Type == 'A3' then                    -- for Davinci Resolve
+        table.insert(EdlTable.A3, copy(v))
+        FieldMatch(EdlTable.A3.Splits,copy(v.DestIn), true)
+        FieldMatch(EdlTable.A3.Splits,copy(v.DestOut), true)
+      elseif v.Type == 'A4' then                    -- for Davinci Resolve
+        table.insert(EdlTable.A4, copy(v))
+        FieldMatch(EdlTable.A4.Splits,copy(v.DestIn), true)
+        FieldMatch(EdlTable.A4.Splits,copy(v.DestOut), true) 
+      elseif v.Type and v.Type:match('A') then      -- for Davinci Resolve
+        if not EdlTable[v.Type] then EdlTable[v.Type] = { Splits = {} } end
+        table.insert(EdlTable[v.Type], copy(v))
+        FieldMatch(EdlTable[v.Type]['Splits'],copy(v.DestIn), true)
+        FieldMatch(EdlTable[v.Type]['Splits'],copy(v.DestOut), true)
+      end
+      
+      if v.Type2 and v.Type2:match('3') then
+        table.insert(EdlTable.A3, copy(v))
+        FieldMatch(EdlTable.A3.Splits,copy(v.DestIn), true)
+        FieldMatch(EdlTable.A3.Splits,copy(v.DestOut), true)
+      end
+      
+      if v.Type2 and v.Type2:match('4') then
+        table.insert(EdlTable.A4, copy(v))
+        FieldMatch(EdlTable.A4.Splits,copy(v.DestIn), true)
+        FieldMatch(EdlTable.A4.Splits,copy(v.DestOut), true)
+      end
+    end
+    ------------
+    
+    --Remove Fades in All items
     for name, track in pairs(EdlTable) do
       for i, item in ipairs(track) do
-        local c = #item.Clips
-        
+        local c = #item.Clips 
         while c > 0 do
-          local clip = item.Clips[c]
-          if ( clip.name and  clip.name:match('CLIP NAME: BL') )
-          or not clip.name then
-          --and #item.Clips > 1 -- for the future
+          local clip = item.Clips[c] 
+          if not clip.name or clip.name:match('::BLACK::') then
+            if clip.name and clip.name:match('::BLACK::') and c == 1 then
+              item.fIn = item.DestOut - item.DestIn
+            elseif clip.name and clip.name:match('::BLACK::') and c == 2 then
+              item.fOut = item.DestOut - item.DestIn
+            end
             table.remove(item.Clips, c)
-            --[[if name == 'V' then clip.name = 'BLACK'
-            else table.remove(item.Clips, c)
-            end]]
           end
           
           c = c-1
         end
         
+      end
+    end
+    
+    --Remove items with no Clips
+    for name, track in pairs(EdlTable) do
+      local i = #track
+      while i > 0 do
+        local item = track[i]
+        if #item.Clips == 0 then table.remove(track, i) end
+        i = i-1 
       end
     end
     
@@ -1119,52 +1216,6 @@ end
 function CleanUpEDLs(EdlsTable)
   
   local trackType = {'V','A'}
-  --First cleanup all track tables and combine fades and crossfades items with neighbour items
-  for k, trType in ipairs(trackType) do
-    for e, edlTname in ipairs(EdlsTable[trType]) do
-      local trackT = EdlsTable[trType][edlTname]
-      local itemsForDel = {}
-      
-      for i, item in ipairs(trackT) do
-        if #item.Clips == 2 then
-          local clipName1 = item.Clips[1]['name']
-          local clipName2 = item.Clips[2]['name']
-          
-          if clipName1 then
-            if clipName1:match('CLIP NAME: BL')then --for the future
-              --item.fIn = item.DestOut - item.DestIn
-            elseif i > 1
-            and trackT[i-1]['Clips'] [#trackT[i-1]['Clips']] ['name'] == clipName1
-            and item.DestIn == trackT[i-1]['DestOut']
-            and trackT[i-1]['Clips'] [#trackT[i-1]['Clips']] ['SrcOut'] == item.Clips[1]['SrcIn'] then
-              trackT[i-1]['DestOut'] = item.DestOut
-              trackT[i-1]['Clips'][#trackT[i-1]['Clips']]['SrcOut'] = item.Clips[1]['SrcOut']
-              table.insert(itemsForDel, i)
-            end
-          end
-          
-          if clipName2 then
-            if clipName2:match('CLIP NAME: BL')then
-              --item.fOut = item.DestOut - item.DestIn
-            elseif i < #trackT and trackT[i+1]['Clips'][1]['name'] == clipName2
-            and item.DestOut == trackT[i+1]['DestIn']
-            and trackT[i+1]['Clips'][1]['SrcIn'] == item.Clips[2]['SrcOut'] then
-              trackT[i+1]['DestIn'] = item.DestIn
-              trackT[i+1]['Clips'][1]['SrcIn'] = item.Clips[2]['SrcIn']
-              FieldMatch(itemsForDel, i, true)
-            end
-          end
-          
-        end
-      end
-      
-      table.sort(itemsForDel, function(a,b) return (a>b) end)
-      for i, idx in ipairs(itemsForDel) do
-        table.remove(trackT, idx)
-      end
-      
-    end
-  end
   
   ---Remove duplicates--- 
   for k, trType in ipairs(trackType) do
@@ -1195,13 +1246,38 @@ function CleanUpEDLs(EdlsTable)
     end
   end
   
-  ---Move overlapped items on a free track 
+  --Finally remove excess splits in items
+  for k, trType in ipairs(trackType) do
+    for e, edlTname in ipairs(EdlsTable[trType]) do
+      local trackT = EdlsTable[trType][edlTname]
+      
+      i = #trackT
+      while i > 1 do
+        local item = trackT[i]
+        local clipName = item.Clips[1]['name']
+        
+        if trackT[i-1]['Clips'] [#trackT[i-1]['Clips']] ['name'] == clipName
+        and math.abs(item.DestIn - trackT[i-1]['DestOut']) < MIN_luft_ZERO
+        and math.abs( trackT[i-1]['Clips'] [#trackT[i-1]['Clips']] ['SrcOut'] - item.Clips[1]['SrcIn'] ) < MIN_luft_ZERO then
+          trackT[i-1]['DestOut'] = item.DestOut
+          trackT[i-1]['Clips'][#trackT[i-1]['Clips']]['SrcOut'] = item.Clips[1]['SrcOut']
+          table.remove(trackT, i)
+        end
+        i = i-1
+      end
+      
+    end
+  end
+  
+  ---Move overlapped items on a free track
+  local function moveOverlappedItems()
+    local result
   for k, trType in ipairs(trackType) do
     
     for e, edlTname in ipairs(EdlsTable[trType]) do
       local trackT = EdlsTable[trType][edlTname]
       local itemsForDel = {}
-      local prevItem = { DestIn = 0, DestOut = 0 }
+      local prevItem = { DestIn = -1, DestOut = 0 }
       
       table.sort(trackT, function(a,b) return a.DestIn < b.DestIn end)
       
@@ -1247,11 +1323,20 @@ function CleanUpEDLs(EdlsTable)
       table.sort(itemsForDel, function(a,b) return (a>b) end)
       for i, idx in ipairs(itemsForDel) do
         table.remove(trackT, idx)
+        result = true
       end
       
       
     end
   end
+  return result
+  end --function
+  
+  local done = true
+  while done do
+    done = moveOverlappedItems()
+  end
+  
   
 end
 
@@ -1869,7 +1954,7 @@ function CreateTracks(EdlsTable)
   
   --[[
   ---TEST MESSAGE----
-  local trackType = {'V','A'}
+  local trackType = {'V', 'A'}
   
   for k, trType in ipairs(trackType) do
     for e, edlTname in ipairs(EdlsTable[trType]) do
@@ -1886,9 +1971,9 @@ function CreateTracks(EdlsTable)
       end
       
     end
-  end
+  end]]
   -------------------
-  ]]
+  
   CleanUpEDLs(EdlsTable)
   
   --------------------
@@ -1951,7 +2036,7 @@ function CreateTracks(EdlsTable)
         end
         
         --Create item
-        if clipStart or edlTname:match('V') then
+        if (clipStart and clipFileName ) or edlTname:match('V') then
           newItem = reaper.AddMediaItemToTrack(track)
           reaper.SetMediaItemInfo_Value(newItem, 'D_POSITION', item.DestIn)
           reaper.SetMediaItemInfo_Value(newItem, 'D_LENGTH', item.DestOut - item.DestIn)
@@ -2113,9 +2198,12 @@ function CreateTracks(EdlsTable)
           end
           
         else --if track is Video one
-          local _,_ = reaper.GetSetMediaItemInfo_String(newItem, 'P_NOTES', item.Clips[1]['name'], true)
+          if newItem then
+            --if not clipName then clipName = 'BLACK' end 
+            local _,_ = reaper.GetSetMediaItemInfo_String(newItem, 'P_NOTES', clipName, true)
+          end
           
-          if AudToVid and newItem then
+          if AudToVid and newItem and clipStart then
             local match
             local matchCount = 1
             local recTrackNames = {}
