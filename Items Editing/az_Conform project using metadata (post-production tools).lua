@@ -1,10 +1,9 @@
 -- @description Conform project using metadata (post-production tools)
 -- @author AZ
--- @version 0.6.7
+-- @version 0.7
 -- @changelog
---   - Added project frame rate selector
---   - Fixed some fades related bugs
---   - Create tracks at the top of project
+--   - New improved EDL parser that can cover different EDL text formatting more wider.
+--   - Better handling overlapped items.
 -- @provides
 --   az_Conform project using metadata (post-production tools)/az_Conform project_Core.lua
 --   [main] az_Conform project using metadata (post-production tools)/az_Rename takes with last used settings (post-production tools).lua
