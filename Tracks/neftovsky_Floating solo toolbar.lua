@@ -1,4 +1,4 @@
--- @description Floating Solo Toolbar
+-- @description Floating solo toolbar
 -- @author Neftovsky
 -- @version 1.2
 -- @about
