@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="500b77225549a0419a358fe1a4e01e7d298c8d47" name="ReaTeam Scripts">
+<index version="1" commit="c42851900ad20ef0ae3647b78005bf38ba0f4e63" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -21077,6 +21077,52 @@ Allow user to move window with mouse]]></changelog>
       </metadata>
       <version name="1.1" author="Neftovsky" time="2025-02-01T16:44:37Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c3b8cbd16b5ef4716eec404a01dd2700a6430e24/Tracks/Neftovsky_Floating%20solo%20toolbar.lua</source>
+      </version>
+    </reapack>
+    <reapack name="neftovsky_Floating solo toolbar.lua" type="script" desc="Floating solo toolbar">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Floating Solo Toolbar \u8211- Advanced Track Control Panel\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This script creates a floating toolbar with customizable buttons to control SOLO and MUTE states of tracks. It includes support for partial name matching, visual customization, and exclusive soloing.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \f1  FEATURES:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \u8226 ? Button-to-track mapping: Each button can be assigned to one or multiple tracks (comma-separated).\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \u8226 ? Solo Toggle: Left-click toggles SOLO on assigned tracks.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \u8226 ? Alt + Left-Click \u8594 ? Exclusive Solo: Solos only the clicked button\u8217's tracks and unsolos all others.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \u8226 ? Ctrl + Left-Click \u8594 ? Toggle MUTE: Mutes or unmutes assigned tracks (optional; can be disabled in settings).\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \u8226 ? Partial Name Matching (optional): If enabled in Settings, tracks will match even if only part of the name is typed (e.g., "kick" matches "kick2").\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \u8226 ? Button-to-track mapping: Each button can be assigned to one or multiple tracks (comma-separated, e.g. "kick, bass"). __________________________________________\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \f1 Floating Solo Toolbar \u8211- \u1056 ?\u1072 ?\u1089 ?\u1096 ?\u1080 ?\u1088 ?\u1077 ?\u1085 ?\u1085 ?\u1072 ?\u1103 ? \u1087 ?\u1072 ?\u1085 ?\u1077 ?\u1083 ?\u1100 ? \u1091 ?\u1087 ?\u1088 ?\u1072 ?\u1074 ?\u1083 ?\u1077 ?\u1085 ?\u1080 ?\u1103 ? \u1090 ?\u1088 ?\u1077 ?\u1082 ?\u1072 ?\u1084 ?\u1080 ?\line
+\line
+  \u1069 ?\u1090 ?\u1086 ?\u1090 ? \u1089 ?\u1082 ?\u1088 ?\u1080 ?\u1087 ?\u1090 ? \u1089 ?\u1086 ?\u1079 ?\u1076 ?\u1072 ?\u1105 ?\u1090 ? \u1087 ?\u1083 ?\u1072 ?\u1074 ?\u1072 ?\u1102 ?\u1097 ?\u1091 ?\u1102 ? \u1087 ?\u1072 ?\u1085 ?\u1077 ?\u1083 ?\u1100 ? \u1089 ? \u1085 ?\u1072 ?\u1089 ?\u1090 ?\u1088 ?\u1072 ?\u1080 ?\u1074 ?\u1072 ?\u1077 ?\u1084 ?\u1099 ?\u1084 ?\u1080 ? \u1082 ?\u1085 ?\u1086 ?\u1087 ?\u1082 ?\u1072 ?\u1084 ?\u1080 ? \u1076 ?\u1083 ?\u1103 ? \u1091 ?\u1087 ?\u1088 ?\u1072 ?\u1074 ?\u1083 ?\u1077 ?\u1085 ?\u1080 ?\u1103 ? \u1088 ?\u1077 ?\u1078 ?\u1080 ?\u1084 ?\u1072 ?\u1084 ?\u1080 ? SOLO \u1080 ? MUTE \u1090 ?\u1088 ?\u1077 ?\u1082 ?\u1086 ?\u1074 ?.\line
+  \u1055 ?\u1086 ?\u1076 ?\u1076 ?\u1077 ?\u1088 ?\u1078 ?\u1080 ?\u1074 ?\u1072 ?\u1077 ?\u1090 ? \u1095 ?\u1072 ?\u1089 ?\u1090 ?\u1080 ?\u1095 ?\u1085 ?\u1086 ?\u1077 ? \u1089 ?\u1086 ?\u1074 ?\u1087 ?\u1072 ?\u1076 ?\u1077 ?\u1085 ?\u1080 ?\u1077 ? \u1080 ?\u1084 ?\u1105 ?\u1085 ?, \u1085 ?\u1072 ?\u1089 ?\u1090 ?\u1088 ?\u1086 ?\u1081 ?\u1082 ?\u1091 ? \u1074 ?\u1085 ?\u1077 ?\u1096 ?\u1085 ?\u1077 ?\u1075 ?\u1086 ? \u1074 ?\u1080 ?\u1076 ?\u1072 ? \u1080 ? \u1101 ?\u1082 ?\u1089 ?\u1082 ?\u1083 ?\u1102 ?\u1079 ?\u1080 ?\u1074 ?\u1085 ?\u1086 ?\u1077 ? \u1089 ?\u1086 ?\u1083 ?\u1080 ?\u1088 ?\u1086 ?\u1074 ?\u1072 ?\u1085 ?\u1080 ?\u1077 ?.\line
+\line
+    \u1060 ?\u1059 ?\u1053 ?\u1050 ?\u1062 ?\u1048 ?\u1048 ?:\line
+\line
+\u8226 ?   \u1055 ?\u1088 ?\u1080 ?\u1074 ?\u1103 ?\u1079 ?\u1082 ?\u1072 ? \u1082 ?\u1085 ?\u1086 ?\u1087 ?\u1086 ?\u1082 ? \u1082 ? \u1090 ?\u1088 ?\u1077 ?\u1082 ?\u1072 ?\u1084 ?:\line
+    \u1050 ?\u1072 ?\u1078 ?\u1076 ?\u1086 ?\u1081 ? \u1082 ?\u1085 ?\u1086 ?\u1087 ?\u1082 ?\u1077 ? \u1084 ?\u1086 ?\u1078 ?\u1085 ?\u1086 ? \u1085 ?\u1072 ?\u1079 ?\u1085 ?\u1072 ?\u1095 ?\u1080 ?\u1090 ?\u1100 ? \u1086 ?\u1076 ?\u1080 ?\u1085 ? \u1080 ?\u1083 ?\u1080 ? \u1085 ?\u1077 ?\u1089 ?\u1082 ?\u1086 ?\u1083 ?\u1100 ?\u1082 ?\u1086 ? \u1090 ?\u1088 ?\u1077 ?\u1082 ?\u1086 ?\u1074 ? (\u1095 ?\u1077 ?\u1088 ?\u1077 ?\u1079 ? \u1079 ?\u1072 ?\u1087 ?\u1103 ?\u1090 ?\u1091 ?\u1102 ?, \u1085 ?\u1072 ?\u1087 ?\u1088 ?\u1080 ?\u1084 ?\u1077 ?\u1088 ?: "kick, bass").\line
+\line
+\u8226 ?   \u1055 ?\u1077 ?\u1088 ?\u1077 ?\u1082 ?\u1083 ?\u1102 ?\u1095 ?\u1077 ?\u1085 ?\u1080 ?\u1077 ? SOLO:\line
+    \u1051 ?\u1077 ?\u1074 ?\u1099 ?\u1081 ? \u1082 ?\u1083 ?\u1080 ?\u1082 ? \u1074 ?\u1082 ?\u1083 ?\u1102 ?\u1095 ?\u1072 ?\u1077 ?\u1090 ?/\u1086 ?\u1090 ?\u1082 ?\u1083 ?\u1102 ?\u1095 ?\u1072 ?\u1077 ?\u1090 ? SOLO \u1091 ? \u1085 ?\u1072 ?\u1079 ?\u1085 ?\u1072 ?\u1095 ?\u1077 ?\u1085 ?\u1085 ?\u1099 ?\u1093 ? \u1090 ?\u1088 ?\u1077 ?\u1082 ?\u1086 ?\u1074 ?.\line
+\line
+\u8226 ?   Alt + \u1051 ?\u1050 ?\u1052 ? \u8594 ? \u1069 ?\u1082 ?\u1089 ?\u1082 ?\u1083 ?\u1102 ?\u1079 ?\u1080 ?\u1074 ?\u1085 ?\u1099 ?\u1081 ? SOLO:\line
+    \u1057 ?\u1086 ?\u1083 ?\u1080 ?\u1088 ?\u1091 ?\u1077 ?\u1090 ? \u1090 ?\u1086 ?\u1083 ?\u1100 ?\u1082 ?\u1086 ? \u1090 ?\u1088 ?\u1077 ?\u1082 ?\u1080 ? \u1101 ?\u1090 ?\u1086 ?\u1081 ? \u1082 ?\u1085 ?\u1086 ?\u1087 ?\u1082 ?\u1080 ?, \u1091 ?\u1073 ?\u1080 ?\u1088 ?\u1072 ?\u1103 ? SOLO \u1089 ?\u1086 ? \u1074 ?\u1089 ?\u1077 ?\u1093 ? \u1086 ?\u1089 ?\u1090 ?\u1072 ?\u1083 ?\u1100 ?\u1085 ?\u1099 ?\u1093 ?.\line
+\line
+\u8226 ?   Ctrl + \u1051 ?\u1050 ?\u1052 ? \u8594 ? \u1055 ?\u1077 ?\u1088 ?\u1077 ?\u1082 ?\u1083 ?\u1102 ?\u1095 ?\u1077 ?\u1085 ?\u1080 ?\u1077 ? MUTE:\line
+    \u1042 ?\u1082 ?\u1083 ?\u1102 ?\u1095 ?\u1072 ?\u1077 ?\u1090 ? \u1080 ?\u1083 ?\u1080 ? \u1074 ?\u1099 ?\u1082 ?\u1083 ?\u1102 ?\u1095 ?\u1072 ?\u1077 ?\u1090 ? MUTE \u1091 ? \u1085 ?\u1072 ?\u1079 ?\u1085 ?\u1072 ?\u1095 ?\u1077 ?\u1085 ?\u1085 ?\u1099 ?\u1093 ? \u1090 ?\u1088 ?\u1077 ?\u1082 ?\u1086 ?\u1074 ? (\u1084 ?\u1086 ?\u1078 ?\u1085 ?\u1086 ? \u1086 ?\u1090 ?\u1082 ?\u1083 ?\u1102 ?\u1095 ?\u1080 ?\u1090 ?\u1100 ? \u1074 ? \u1085 ?\u1072 ?\u1089 ?\u1090 ?\u1088 ?\u1086 ?\u1081 ?\u1082 ?\u1072 ?\u1093 ?).\line
+\line
+\u8226 ?   \u1063 ?\u1072 ?\u1089 ?\u1090 ?\u1080 ?\u1095 ?\u1085 ?\u1086 ?\u1077 ? \u1089 ?\u1086 ?\u1074 ?\u1087 ?\u1072 ?\u1076 ?\u1077 ?\u1085 ?\u1080 ?\u1077 ? \u1080 ?\u1084 ?\u1105 ?\u1085 ? (\u1086 ?\u1087 ?\u1094 ?\u1080 ?\u1086 ?\u1085 ?\u1072 ?\u1083 ?\u1100 ?\u1085 ?\u1086 ?):\line
+    \u1055 ?\u1088 ?\u1080 ? \u1074 ?\u1082 ?\u1083 ?\u1102 ?\u1095 ?\u1077 ?\u1085 ?\u1080 ?\u1080 ? \u1074 ? \u1085 ?\u1072 ?\u1089 ?\u1090 ?\u1088 ?\u1086 ?\u1081 ?\u1082 ?\u1072 ?\u1093 ?, \u1084 ?\u1086 ?\u1078 ?\u1085 ?\u1086 ? \u1091 ?\u1082 ?\u1072 ?\u1079 ?\u1099 ?\u1074 ?\u1072 ?\u1090 ?\u1100 ? \u1095 ?\u1072 ?\u1089 ?\u1090 ?\u1100 ? \u1080 ?\u1084 ?\u1077 ?\u1085 ?\u1080 ? \u1090 ?\u1088 ?\u1077 ?\u1082 ?\u1072 ? (\u1085 ?\u1072 ?\u1087 ?\u1088 ?\u1080 ?\u1084 ?\u1077 ?\u1088 ?, "kick" \u1085 ?\u1072 ?\u1081 ?\u1076 ?\u1105 ?\u1090 ? "kick2").\line
+\line
+\u8226 ?   \u1044 ?\u1086 ?\u1073 ?\u1072 ?\u1074 ?\u1083 ?\u1077 ?\u1085 ?\u1080 ?\u1077 ?/\u1091 ?\u1076 ?\u1072 ?\u1083 ?\u1077 ?\u1085 ?\u1080 ?\u1077 ? \u1082 ?\u1085 ?\u1086 ?\u1087 ?\u1086 ?\u1082 ?:\line
+    \u1059 ?\u1087 ?\u1088 ?\u1072 ?\u1074 ?\u1083 ?\u1103 ?\u1081 ? \u1082 ?\u1085 ?\u1086 ?\u1087 ?\u1082 ?\u1072 ?\u1084 ?\u1080 ? \u1087 ?\u1088 ?\u1103 ?\u1084 ?\u1086 ? \u1080 ?\u1079 ? \u1080 ?\u1085 ?\u1090 ?\u1077 ?\u1088 ?\u1092 ?\u1077 ?\u1081 ?\u1089 ?\u1072 ?.\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.2" author="Neftovsky" time="2025-06-18T15:56:30Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c42851900ad20ef0ae3647b78005bf38ba0f4e63/Tracks/neftovsky_Floating%20solo%20toolbar.lua</source>
       </version>
     </reapack>
     <reapack name="reapertips_Track icon selector.lua" type="script" desc="Track icon selector">
