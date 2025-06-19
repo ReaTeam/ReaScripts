@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="c42851900ad20ef0ae3647b78005bf38ba0f4e63" name="ReaTeam Scripts">
+<index version="1" commit="30461dcc1e4fba4bcb861d980f4a6444a088b6b5" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -21057,26 +21057,6 @@ Allow user to move window with mouse]]></changelog>
 - Item name parsing now compatible with stems downloaded from X-Minus
 - Friendly item name for Mel-Roformer model from May 2024 UVR patch]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/9a9e73d39709e6dd0fcff89840e03ffb54734edd/Tracks/kaddaok_Import%20UVR%20separations%20into%20comping%20lane%20structure.lua</source>
-      </version>
-    </reapack>
-    <reapack name="Neftovsky_Floating solo toolbar.lua" type="script" desc="Floating Solo Toolbar">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 Floating solo toolbar\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Creates a floating toolbar\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Links each button to a specific track in the project\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Toggles the solo state for a track in the project when a button is clicked\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Allows changing the names of tracks and buttons by right-clicking on the buttons\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Enables adding new buttons to the toolbar\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Saves settings, including button labels and track names\sa180\par}
-}
-]]></description>
-      </metadata>
-      <version name="1.1" author="Neftovsky" time="2025-02-01T16:44:37Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c3b8cbd16b5ef4716eec404a01dd2700a6430e24/Tracks/Neftovsky_Floating%20solo%20toolbar.lua</source>
       </version>
     </reapack>
     <reapack name="neftovsky_Floating solo toolbar.lua" type="script" desc="Floating solo toolbar">
