@@ -1,16 +1,22 @@
 -- @description Simple project reconform
 -- @author AZ
--- @version 0.7.2
--- @changelog - fixed up to 1 ms inaccuracy when creating reference track
--- @link Forum thread https://forum.cockos.com/showthread.php?p=2803375#post2803375
+-- @version 0.8
+-- @changelog
+--   - New EDL parser that can cover more variants of EDL format
+--   - New feature for comparison two project tabs that are created from AAF
+--   - GUI improvements
+--   - fix: respect project time offset properly
+-- @link Forum thread https://forum.cockos.com/showthread.php?t=293746
 -- @donation Donate via PayPal https://www.paypal.me/AZsound
 -- @about
 --   # Simple Project Reconform
 --   It can be useful for post-production to automatically adapt your project to the new version of video.
 --
+--   You can compare EDL (cmx 3600) files or two project tabs that are created from AAF in another application.
+--
 --   The script is under development, but stable enough to try.
 --   All your feedback is appreciated.
---   Read more: https://forum.cockos.com/showthread.php?p=2803375#post2803375
+--   Read more: https://forum.cockos.com/showthread.php?t=293746
 
 -----------------------------
 function msg(value)
@@ -19,7 +25,6 @@ end
 -----------------------------
 BugTIME = -1
 
-MIN_luft_ZERO = reaper.parse_timestr_pos('00:00:00:01', 5) / 4
 --------------------------
 function rgbToHex(rgba) -- passing a table with percentage like {100, 50, 20, 90}
   local hexadecimal = '0X'
@@ -92,6 +97,9 @@ function OptionsDefaults()
   text = 'Reconform visible tracks only'
   table.insert(OptDefaults, {text, 'ReconfOnlyVis', false })
   
+  text = 'Reconform selected tracks only'
+  table.insert(OptDefaults, {text, 'ReconfOnlySel', false })
+  
   text = 'Master track envelopes'
   table.insert(OptDefaults, {text, 'ReconfMaster', true })
   
@@ -127,7 +135,7 @@ function OptionsDefaults()
                                                               "don't fill" 
                                                               } })
   
-  text = 'Ignore crossfades, prefer content from the'
+  text = 'Ignore X-fades, prefer content from the'
   table.insert(OptDefaults, {text, 'IgnoreCrossfades', "don't ignore", {
                                                                         'left region',
                                                                         'right region',
@@ -152,6 +160,11 @@ end
 ------------------------
 
 function OptionsWindow()
+  if not reaper.APIExists('SNM_SetIntConfigVar') then
+    reaper.ShowMessageBox('Please, install SWS extension!', 'No SWS extention', 0)
+    return
+  end
+  
   local imgui_path = reaper.GetResourcePath() .. '/Scripts/ReaTeam Extensions/API/imgui.lua'
   if not reaper.file_exists(imgui_path) then
     reaper.ShowMessageBox('Please, install ReaImGui from Reapack!', 'No Imgui library', 0)
@@ -167,12 +180,13 @@ function OptionsWindow()
   local loopcnt = 0
   local esc
   local runReconf
+  local reconfOpt = true
   
   local OldEDL
   local NewEDL
   local ReferenceFile 
   REFoffset = 0
-  RefTrIdx = 0
+  RefTrIdx = 0 
   
   EDLcontentFlags = reaper.GetExtState(ExtStateName, 'ContentAnalyse')
   
@@ -241,6 +255,10 @@ function OptionsWindow()
   local SrcPrjPreview
   tracksForImportFlag = 1
   
+  local savedFontSize = tonumber(reaper.GetExtState(ExtStateName, 'FontSize'))
+  if type(savedFontSize) == 'number' then fontSize = savedFontSize end
+  if not savedFontSize then savedFontSize = fontSize end
+  
   local gui_colors = {
     White = rgbToHex({90,90,90,100}),
     Green = rgbToHex({52,85,52,100}),
@@ -266,7 +284,7 @@ function OptionsWindow()
       Active = rgbToHex({56,56,42,90}),
     }
   }
-  -------
+  ---------
   ---Flags---
   local Flags = {}
   Flags.childRounding = reaper.ImGui_StyleVar_ChildRounding()
@@ -330,286 +348,89 @@ function OptionsWindow()
     return Prj, prjselpreview
   end
   
+  -------------
+  function showEDLsNames(list)
+    if list then 
+      for i, line in ipairs(list) do
+        local path, fn, ext = SplitFilename(line)
+        iniFolder = path:gsub('[/\\]$','')
+        reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Text(), gui_colors.Green)
+        reaper.ImGui_Text(ctx, fn)
+        reaper.ImGui_PopStyleColor(ctx,1)
+      end
+    end
+  end
+  
   --------------
+  function addFileNamesToList(list, string )
+    for s in string:gmatch("[^\0]+") do table.insert(list, s) end
+    if #list > 1 and reaper.GetOS():match("^Win") ~= nil then
+      local path = list[1]
+      for i= 2, #list do
+        list[i] = path..list[i]
+      end
+      table.remove(list, 1)
+      --parselistOnce = true
+    end
+  end
+  
+  --------------
+  
   function frame()
-    --reaper.ImGui_PushFont(ctx, font)
     
-    --About button
-    reaper.ImGui_SameLine(ctx, fontSize*25, nil)
-    if reaper.ImGui_Button(ctx, 'About - forum page', nil, nil) then
-      local doc = 'https://forum.cockos.com/showthread.php?p=2803375#post2803375'
-      if reaper.CF_ShellExecute then
-        reaper.CF_ShellExecute(doc)
-      else
-        reaper.MB(doc, 'Simple Project Reconform forum page', 0)
-      end
-    end
+    local childALLflags = Flags.childAutoResizeY | Flags.childAutoResizeX
+    local ChildALL = reaper.ImGui_BeginChild(ctx, 'ChildALL', 0, 0, childALLflags)
     
-    -----EDL section
-    if reaper.ImGui_CollapsingHeader(ctx, 'Create reference track using EDL files') then
-      reaper.ImGui_NewLine(ctx)
-      --Source tracks
-      local AnalyseSource = {
-      'Video only',
-      'Audio only',
-      "Both video and audio"
-      }
-      local choiceSrc
-      local change
-      reaper.ImGui_Text(ctx, 'Source for analyse') 
+    if ChildALL then
       
-      change, choiceSrc = reaper.ImGui_Checkbox(ctx, 'Video track', EDLcontentFlags & 1)
-      if change then EDLcontentFlags = EDLcontentFlags ~1 end
+      reaper.ImGui_PushFont(ctx, font)
       
-      reaper.ImGui_SameLine(ctx)
-      change, choiceSrc = reaper.ImGui_Checkbox(ctx, 'Audio 1', (EDLcontentFlags>>1) & 1)
-      if change then EDLcontentFlags = EDLcontentFlags  ~ (1<<1) end
-      
-      reaper.ImGui_SameLine(ctx)
-      change, choiceSrc = reaper.ImGui_Checkbox(ctx, 'Audio 2', (EDLcontentFlags>>2) & 1)
-      if change then EDLcontentFlags = EDLcontentFlags  ~ (1<<2) end
-      
-      reaper.ImGui_SameLine(ctx)
-      change, choiceSrc = reaper.ImGui_Checkbox(ctx, 'Audio 3', (EDLcontentFlags>>3) & 1)
-      if change then EDLcontentFlags = EDLcontentFlags  ~ (1<<3) end
-      
-      reaper.ImGui_SameLine(ctx)
-      change, choiceSrc = reaper.ImGui_Checkbox(ctx, 'Audio 4', (EDLcontentFlags>>4) & 1)
-      if change then EDLcontentFlags = EDLcontentFlags  ~ (1<<4) end
-      
-      reaper.SetExtState(ExtStateName, 'ContentAnalyse', EDLcontentFlags, true)
-
-      
-      local function addFileNamesToList(list, string )
-        for s in string:gmatch("[^\0]+") do table.insert(list, s) end
-        if #list > 1 and reaper.GetOS():match("^Win") ~= nil then
-          local path = list[1]
-          for i= 2, #list do
-            list[i] = path..list[i]
-          end
-          table.remove(list, 1)
-          parselistOnce = true
+      --About button
+      reaper.ImGui_SameLine(ctx, fontSize*25, nil)
+      if reaper.ImGui_Button(ctx, 'About - forum page', nil, nil) then
+        local doc = 'https://forum.cockos.com/showthread.php?t=293746'
+        if reaper.CF_ShellExecute then
+          reaper.CF_ShellExecute(doc)
+        else
+          reaper.MB(doc, 'Simple Project Reconform forum page', 0)
         end
       end
       
-      if reaper.ImGui_Button(ctx, ' old EDLs ') then --msg(iniFolder)
-        if not iniFolder then
-          local cur_retprj, cur_projfn = reaper.EnumProjects( -1 )
-          local path, projfn, extension = SplitFilename(cur_projfn)
-          if path then iniFolder = path:gsub('[/\\]$','') end
-        end
-        local iniFile = ''
-        local extensionList = "EDL file\0*.edl\0Text file\0*.txt\0\0"
-        local allowMultiple = true
-        local ret, fileNames = reaper.JS_Dialog_BrowseForOpenFiles
-        ( 'Choose EDL files', iniFolder, iniFile, extensionList, allowMultiple )
-        
-        if fileNames ~= '' then
-          OldEDL ={} 
-          addFileNamesToList(OldEDL, fileNames) 
-        end
-      end
-      
-      local function showEDLsNames(list)
-        if list then 
-          for i, line in ipairs(list) do
-            local path, fn, ext = SplitFilename(line)
-            iniFolder = path:gsub('[/\\]$','')
-            reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Text(), gui_colors.Green)
-            reaper.ImGui_Text(ctx, fn)
-            reaper.ImGui_PopStyleColor(ctx,1)
-          end
-        end
-      end
-      
-      showEDLsNames(OldEDL)
-      
-      if reaper.ImGui_Button(ctx, 'new EDLs') then
-        if not iniFolder then
-          local cur_retprj, cur_projfn = reaper.EnumProjects( -1 )
-          local path, projfn, extension = SplitFilename(cur_projfn)
-          if path then iniFolder = path:gsub('[/\\]$','') end
-        end
-        local iniFile = ''
-        local extensionList = "EDL file\0*.edl\0Text file\0*.txt\0\0"
-        local allowMultiple = true
-        local ret, fileNames = reaper.JS_Dialog_BrowseForOpenFiles
-        ( 'Choose EDL files', iniFolder, iniFile, extensionList, allowMultiple ) 
-        
-        if fileNames ~= '' then
-          NewEDL ={}
-          addFileNamesToList(NewEDL, fileNames) 
-        end
-      end
-      
-      showEDLsNames(NewEDL)
-      
-      if reaper.ImGui_Button(ctx, 'old prj reference file') then
-        if not iniFolder then
-          local cur_retprj, cur_projfn = reaper.EnumProjects( -1 )
-          local path, projfn, extension = SplitFilename(cur_projfn)
-          if path then iniFolder = path:gsub('[/\\]$','') end
-        end
-        local iniFile = ''
-        local extensionList = "Media file\0*.wav;*.mp3;*.flac;*.aif;*.mpa;*.wma;*.mp4;*.mov;*.m4v;*.webm\0\0"
-        local allowMultiple = false
-        local ret, fileNames = reaper.JS_Dialog_BrowseForOpenFiles
-        ( 'Choose media file', iniFolder, iniFile, extensionList, allowMultiple ) 
-        
-        if fileNames ~= '' then
-          ReferenceFile = {}
-          addFileNamesToList(ReferenceFile, fileNames)
-        end
-      end
-      
-      reaper.ImGui_SameLine(ctx)
-      
-      if reaper.ImGui_Button(ctx, 'get from selected item') then
-        local file
-        
-        local selitem = reaper.GetSelectedMediaItem(0,0)
-        if selitem then
-          local reftake = reaper.GetActiveTake(selitem)
-          local src = reaper.GetMediaItemTake_Source(reftake)
-          if reaper.GetMediaSourceType( src ) ~= 'MIDI' then
-            file = reaper.GetMediaSourceFileName(src)
-            REFoffset = reaper.GetMediaItemTakeInfo_Value(reftake, 'D_STARTOFFS')
-          end
-        end
-        
-        if file then
-          reaper.SetOnlyTrackSelected(reaper.GetMediaItem_Track(selitem))
-          ReferenceFile = {}
-          addFileNamesToList(ReferenceFile, file)
-        end
-      end
-      
-      showEDLsNames(ReferenceFile)
-      
-      reaper.ImGui_NewLine(ctx)
-      
-      if OldEDL and NewEDL and ReferenceFile then
-        reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Button(), gui_colors.MainButton.Default)
-        reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_ButtonHovered(), gui_colors.MainButton.Hovered)
-        reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_ButtonActive(), gui_colors.MainButton.Active)
-      end
-      if reaper.ImGui_Button(ctx, 'Analyse and create reference track') then
-        local abort
-         
-        if OldEDL and NewEDL and ReferenceFile then
-          local timeTreshold = 0
-
-          if old_TrimLeadingTime == true and old_TrimOnlyEmptyTime == false then
-            timeTreshold = reaper.parse_timestr_pos( TrimOldTime, 5 ) - PrjTimeOffset
-          end 
-          OldEdlTable = AnalyseEDLs(OldEDL, timeTreshold)
-          
-          if new_TrimLeadingTime == true and new_TrimOnlyEmptyTime == false then
-            timeTreshold = reaper.parse_timestr_pos( TrimNewTime, 5 ) - PrjTimeOffset
-          else timeTreshold = 0
-          end
-          NewEdlTable = AnalyseEDLs(NewEDL, timeTreshold)
-          
-          if #OldEdlTable == 0 and #NewEdlTable == 0 then
-            reaper.ShowMessageBox('There is no valid data in all EDL files', 'Warning!',0)
-            abort = true
-          elseif #OldEdlTable == 0 then
-            reaper.ShowMessageBox('There is no valid data in OLD project EDL files', 'Warning!',0)
-            abort = true
-          elseif #NewEdlTable == 0 then
-            reaper.ShowMessageBox('There is no valid data in NEW project EDL files', 'Warning!',0)
-            abort = true
-          end
-          
-          if abort ~= true then
-            CompResult = CompareEDLs(OldEdlTable, NewEdlTable) 
-            if #CompResult == 0 then
-              reaper.ShowMessageBox('There ara no matched areas', 'Warning!',0)
-              abort = true
-            end 
-          end
-          
-          if abort ~= true then CreateRefTrack(CompResult, ReferenceFile) end
-        end
-      end
-      if OldEDL and NewEDL and ReferenceFile then reaper.ImGui_PopStyleColor(ctx, 3) end
-      reaper.ImGui_NewLine(ctx)
-      reaper.ImGui_NewLine(ctx)
-      
-      reaper.ImGui_SameLine(ctx, fontSize*3)
-      reaper.ImGui_PushFont(ctx, fontSep)
-      if reaper.ImGui_CollapsingHeader(ctx, 'Advanced timing options') then
-        
-        local ret
-        reaper.ImGui_NewLine(ctx)
-        reaper.ImGui_SameLine(ctx, fontSize*3)
-        ret, old_TrimLeadingTime = reaper.ImGui_Checkbox(ctx,'Ignore leading time in OLD EDLs',old_TrimLeadingTime)
-        if ret == true then reaper.SetProjExtState(0,ExtStateName,'old_TrimLeadingTime', tostring(old_TrimLeadingTime), true) end 
+      -----EDL section
+      if reaper.ImGui_CollapsingHeader(ctx, 'Create reference track by analyzing EDL files') then
         
         reaper.ImGui_NewLine(ctx)
-        reaper.ImGui_SameLine(ctx, fontSize*3)
-        reaper.ImGui_PushItemWidth(ctx, fontSize*5.5 )
-        ret, TrimOldTime = reaper.ImGui_InputText(ctx, '##1', TrimOldTime, nil, nil)
-        if ret == true then reaper.SetProjExtState(0, ExtStateName,'TrimOldTime', TrimOldTime, true) end
-        reaper.ImGui_SameLine(ctx, nil, fontSize)
-        ret, old_TrimOnlyEmptyTime = reaper.ImGui_Checkbox(ctx,'Only empty time if multiplied##1',old_TrimOnlyEmptyTime)
-        if ret == true then reaper.SetProjExtState(0,ExtStateName,'old_TrimOnlyEmptyTime', tostring(old_TrimOnlyEmptyTime), true) end
+        reaper.ImGui_SameLine(ctx, fontSize)
+        local childflags = Flags.childAutoResizeY --| Flags.childAutoResizeX
+        local ChildCreateRefEdl = reaper.ImGui_BeginChild(ctx, 'ChildCreateRefEdl', -fontSize, 0, childflags)
         
-        ---
-        
-        reaper.ImGui_NewLine(ctx)
-        reaper.ImGui_SameLine(ctx, fontSize*3)
-        ret, new_TrimLeadingTime = reaper.ImGui_Checkbox(ctx,'Ignore leading time in NEW EDLs',new_TrimLeadingTime)
-        if ret == true then reaper.SetProjExtState(0,ExtStateName,'new_TrimLeadingTime', tostring(new_TrimLeadingTime), true) end 
-        
-        reaper.ImGui_NewLine(ctx)
-        reaper.ImGui_SameLine(ctx, fontSize*3)
-        reaper.ImGui_PushItemWidth(ctx, fontSize*5.5 )
-        ret, TrimNewTime = reaper.ImGui_InputText(ctx, '##2', TrimNewTime, nil, nil)
-        if ret == true then reaper.SetProjExtState(0, ExtStateName,'TrimNewTime', TrimNewTime, true) end
-        reaper.ImGui_SameLine(ctx, nil, fontSize)
-        ret, new_TrimOnlyEmptyTime = reaper.ImGui_Checkbox(ctx,'Only empty time if multiplied##2',new_TrimOnlyEmptyTime)
-        if ret == true then reaper.SetProjExtState(0,ExtStateName,'new_TrimOnlyEmptyTime', tostring(new_TrimOnlyEmptyTime), true) end
-      end
-      reaper.ImGui_PopFont(ctx)
-      reaper.ImGui_NewLine(ctx)
-      
-      reaper.ImGui_SetWindowSize(ctx, 0, 0, nil )
-    end
-    --------end of EDL section
-    
-    if reaper.ImGui_CollapsingHeader(ctx, 'Reconform options') then
-      for i, v in ipairs(OptDefaults) do
-        local option = v
-        
-        if type(option[3]) == 'boolean' then
-          local _, newval = reaper.ImGui_Checkbox(ctx, option[1], option[3])
-          option[3] = newval
-        end
-        
-        if type(option[3]) == 'number' then 
-          reaper.ImGui_PushItemWidth(ctx, fontSize*3 )
-          local _, newval =
-          reaper.ImGui_InputDouble(ctx, option[1], option[3], nil, nil, option[4]) 
+        if ChildCreateRefEdl then
           
-          option[3] = newval
-        end
-        
-        if type(option[3]) == 'string' then
-          local choice 
-          for k = 1, #option[4] do 
-            if option[4][k] == option[3] then choice = k end 
-          end
+          reaper.ImGui_NewLine(ctx)
+          reaper.ImGui_SameLine(ctx, nil, fontSize*7)
+          reaper.ImGui_Text(ctx, 'Set known project framerate')
+          reaper.ImGui_SameLine(ctx) 
+          local comboflags = reaper.ImGui_ComboFlags_WidthFitPreview() --| reaper.ImGui_ComboFlags_PopupAlignLeft()
           
-          reaper.ImGui_Text(ctx, option[1])
-          reaper.ImGui_SameLine(ctx, nil, nil)
-          
-          reaper.ImGui_PushItemWidth(ctx, fontSize*10.3 ) 
-          if reaper.ImGui_BeginCombo(ctx, '##'..i, option[3], nil) then
-            for k,f in ipairs(option[4]) do
+          if reaper.ImGui_BeginCombo(ctx, '##-1', PrFrRate, comboflags ) then
+            local frameRates = {'23.976', '24', '25', '29.97DF', '29.97ND', '30', '48', '50', '60', '75'}
+            local choice
+            for k,f in ipairs(frameRates) do
               local is_selected = choice == k
-              if reaper.ImGui_Selectable(ctx, option[4][k], is_selected) then
+              if reaper.ImGui_Selectable(ctx, frameRates[k], is_selected) then
                 choice = k
+                --Set Prj Frame Rate
+                PrFrRate = frameRates[k]
+                
+                if PrFrRate == '29.97DF' then PrFrRate = 30 PrDropFrame = 1
+                elseif PrFrRate == '29.97ND' then PrFrRate = 30 PrDropFrame = 2
+                elseif PrFrRate == '23.976' then PrFrRate = 24 PrDropFrame = 2
+                else PrFrRate = tonumber(PrFrRate) PrDropFrame = 0
+                end
+                
+                reaper.SNM_SetIntConfigVar( 'projfrbase', PrFrRate )
+                reaper.SNM_SetIntConfigVar( 'projfrdrop', PrDropFrame )
+                
               end
           
               -- Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
@@ -618,197 +439,600 @@ function OptionsWindow()
               end
             end
             reaper.ImGui_EndCombo(ctx)
-          end 
+          end
+           
+          --Source tracks
+          local childflags = Flags.childBorder | Flags.childAutoResizeY --| Flags.childAutoResizeX
+          local srcTracks = reaper.ImGui_BeginChild(ctx, 'srcTracks', 0, 0, childflags, Flags.menubar)
+          if srcTracks then
+            if reaper.ImGui_BeginMenuBar(ctx) then
+              reaper.ImGui_Text(ctx, ' Source for analyse: ')
+              reaper.ImGui_EndMenuBar(ctx)
+            end
+            
+            local choiceSrc
+            local change, changeContent
+             
+            change, choiceSrc = reaper.ImGui_Checkbox(ctx, 'Video track', EDLcontentFlags & 1)
+            if change then EDLcontentFlags = EDLcontentFlags ~1 changeContent = true end
+            
+            reaper.ImGui_SameLine(ctx)
+            change, choiceSrc = reaper.ImGui_Checkbox(ctx, 'Audio 1', (EDLcontentFlags>>1) & 1)
+            if change then EDLcontentFlags = EDLcontentFlags  ~ (1<<1) changeContent = true end
+            
+            reaper.ImGui_SameLine(ctx)
+            change, choiceSrc = reaper.ImGui_Checkbox(ctx, 'Audio 2', (EDLcontentFlags>>2) & 1)
+            if change then EDLcontentFlags = EDLcontentFlags  ~ (1<<2) changeContent = true end
+            
+            reaper.ImGui_SameLine(ctx)
+            change, choiceSrc = reaper.ImGui_Checkbox(ctx, 'Audio 3', (EDLcontentFlags>>3) & 1)
+            if change then EDLcontentFlags = EDLcontentFlags  ~ (1<<3) changeContent = true end
+            
+            reaper.ImGui_SameLine(ctx)
+            change, choiceSrc = reaper.ImGui_Checkbox(ctx, 'Audio 4', (EDLcontentFlags>>4) & 1)
+            if change then EDLcontentFlags = EDLcontentFlags  ~ (1<<4) changeContent = true end
+            
+            if changeContent == true then
+              reaper.SetExtState(ExtStateName, 'ContentAnalyse', EDLcontentFlags, true)
+            end
+            
+            reaper.ImGui_EndChild(ctx) 
+          end
           
-          option[3] = option[4][choice]
-        end
-        
-        if type(option[3]) == 'nil' then
+          if reaper.ImGui_Button(ctx, ' old EDLs ') then --msg(iniFolder)
+            if not iniFolder then
+              local cur_retprj, cur_projfn = reaper.EnumProjects( -1 )
+              local path, projfn, extension = SplitFilename(cur_projfn)
+              if path then iniFolder = path:gsub('[/\\]$','') end
+            end
+            local iniFile = ''
+            local extensionList = "EDL file\0*.edl\0Text file\0*.txt\0\0"
+            local allowMultiple = true
+            local ret, fileNames = reaper.JS_Dialog_BrowseForOpenFiles
+            ( 'Choose EDL files', iniFolder, iniFile, extensionList, allowMultiple )
+            
+            if fileNames ~= '' then
+              OldEDL = {}
+              addFileNamesToList(OldEDL, fileNames) 
+            end
+          end
+          
+          reaper.ImGui_SameLine(ctx)
           reaper.ImGui_PushFont(ctx, fontSep)
-          reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Text(), gui_colors.White)
+          reaper.ImGui_Text(ctx, 'Note: EDL must be CMX 3600')
+          reaper.ImGui_PopFont(ctx)
+          
+          showEDLsNames(OldEDL)
+          
+          if reaper.ImGui_Button(ctx, 'new EDLs') then
+            if not iniFolder then
+              local cur_retprj, cur_projfn = reaper.EnumProjects( -1 )
+              local path, projfn, extension = SplitFilename(cur_projfn)
+              if path then iniFolder = path:gsub('[/\\]$','') end
+            end
+            local iniFile = ''
+            local extensionList = "EDL file\0*.edl\0Text file\0*.txt\0\0"
+            local allowMultiple = true
+            local ret, fileNames = reaper.JS_Dialog_BrowseForOpenFiles
+            ( 'Choose EDL files', iniFolder, iniFile, extensionList, allowMultiple ) 
+            
+            if fileNames ~= '' then
+              NewEDL ={}
+              addFileNamesToList(NewEDL, fileNames) 
+            end
+          end
+          
+          showEDLsNames(NewEDL)
+          
+          if reaper.ImGui_Button(ctx, 'old prj reference file') then
+            if not iniFolder then
+              local cur_retprj, cur_projfn = reaper.EnumProjects( -1 )
+              local path, projfn, extension = SplitFilename(cur_projfn)
+              if path then iniFolder = path:gsub('[/\\]$','') end
+            end
+            local iniFile = ''
+            local extensionList = "Media file\0*.wav;*.mp3;*.flac;*.aif;*.mpa;*.wma;*.mp4;*.mov;*.m4v;*.webm\0\0"
+            local allowMultiple = false
+            local ret, fileNames = reaper.JS_Dialog_BrowseForOpenFiles
+            ( 'Choose media file', iniFolder, iniFile, extensionList, allowMultiple ) 
+            
+            if fileNames ~= '' then
+              ReferenceFile = {}
+              addFileNamesToList(ReferenceFile, fileNames)
+            end
+          end
+          
+          reaper.ImGui_SameLine(ctx)
+          
+          if reaper.ImGui_Button(ctx, 'get from selected item') then
+            local file
+            
+            local selitem = reaper.GetSelectedMediaItem(0,0)
+            if selitem then
+              local reftake = reaper.GetActiveTake(selitem)
+              local src = reaper.GetMediaItemTake_Source(reftake)
+              if reaper.GetMediaSourceType( src ) ~= 'MIDI' then
+                file = reaper.GetMediaSourceFileName(src)
+                REFoffset = reaper.GetMediaItemTakeInfo_Value(reftake, 'D_STARTOFFS')
+              end
+            end
+            
+            if file then
+              reaper.SetOnlyTrackSelected(reaper.GetMediaItem_Track(selitem))
+              ReferenceFile = {}
+              addFileNamesToList(ReferenceFile, file)
+            end
+          end
+          
+          showEDLsNames(ReferenceFile)
           
           reaper.ImGui_NewLine(ctx)
-          reaper.ImGui_SeparatorText( ctx, option[1] )
           
-          reaper.ImGui_PopStyleColor(ctx, 1)
+          if OldEDL and NewEDL and ReferenceFile then
+            reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Button(), gui_colors.MainButton.Default)
+            reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_ButtonHovered(), gui_colors.MainButton.Hovered)
+            reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_ButtonActive(), gui_colors.MainButton.Active)
+          end
+          if reaper.ImGui_Button(ctx, 'Create reference track') then
+            local abort
+             
+            if OldEDL and NewEDL and ReferenceFile then
+              local timeTreshold = 0
+          
+              if old_TrimLeadingTime == true and old_TrimOnlyEmptyTime == false then
+                timeTreshold = reaper.parse_timestr_pos( TrimOldTime, 5 ) - PrjTimeOffset
+              end 
+              OldEdlTable = AnalyseEDLs(OldEDL, timeTreshold)
+              
+              if new_TrimLeadingTime == true and new_TrimOnlyEmptyTime == false then
+                timeTreshold = reaper.parse_timestr_pos( TrimNewTime, 5 ) - PrjTimeOffset
+              else timeTreshold = 0
+              end
+              NewEdlTable = AnalyseEDLs(NewEDL, timeTreshold)
+              
+              if #OldEdlTable == 0 and #NewEdlTable == 0 then
+                reaper.ShowMessageBox('There is no valid data in all EDL files', 'Warning!',0)
+                abort = true
+              elseif #OldEdlTable == 0 then
+                reaper.ShowMessageBox('There is no valid data in OLD project EDL files', 'Warning!',0)
+                abort = true
+              elseif #NewEdlTable == 0 then
+                reaper.ShowMessageBox('There is no valid data in NEW project EDL files', 'Warning!',0)
+                abort = true
+              end
+              
+              if abort ~= true then
+                CompResult = CompareEDLs(OldEdlTable, NewEdlTable) 
+                if #CompResult == 0 then
+                  reaper.ShowMessageBox('There ara no matched areas', 'Warning!',0)
+                  abort = true
+                end 
+              end
+              
+              if abort ~= true then CreateRefTrack(CompResult, ReferenceFile) end
+            end
+          end
+          if OldEDL and NewEDL and ReferenceFile then reaper.ImGui_PopStyleColor(ctx, 3) end
+          --reaper.ImGui_NewLine(ctx)
+          --reaper.ImGui_NewLine(ctx)
+          
+          reaper.ImGui_SameLine(ctx, fontSize*10.5, nil)
+          reaper.ImGui_PushFont(ctx, fontSep)
+          if reaper.ImGui_CollapsingHeader(ctx, 'Advanced timing options') then
+            reaper.ImGui_NewLine(ctx)
+            reaper.ImGui_SameLine(ctx, fontSize*10.5, nil)
+            local childAdvflags = Flags.childBorder | Flags.childAutoResizeY --| Flags.childAutoResizeX
+            local advOpt = reaper.ImGui_BeginChild(ctx, 'advOpt', 0, 0, childAdvflags, nil)
+            if advOpt then
+              local ret 
+              ret, old_TrimLeadingTime = reaper.ImGui_Checkbox(ctx,'Ignore leading time in OLD EDLs',old_TrimLeadingTime)
+              if ret == true then reaper.SetProjExtState(0,ExtStateName,'old_TrimLeadingTime', tostring(old_TrimLeadingTime), true) end 
+              
+              reaper.ImGui_PushItemWidth(ctx, fontSize*5.3 )
+              ret, TrimOldTime = reaper.ImGui_InputText(ctx, '##1', TrimOldTime, nil, nil)
+              if ret == true then reaper.SetProjExtState(0, ExtStateName,'TrimOldTime', TrimOldTime, true) end
+              reaper.ImGui_SameLine(ctx, nil, fontSize)
+              ret, old_TrimOnlyEmptyTime = reaper.ImGui_Checkbox(ctx,'Only empty time if multiplied##1',old_TrimOnlyEmptyTime)
+              if ret == true then reaper.SetProjExtState(0,ExtStateName,'old_TrimOnlyEmptyTime', tostring(old_TrimOnlyEmptyTime), true) end
+              
+              ---
+              
+              ret, new_TrimLeadingTime = reaper.ImGui_Checkbox(ctx,'Ignore leading time in NEW EDLs',new_TrimLeadingTime)
+              if ret == true then reaper.SetProjExtState(0,ExtStateName,'new_TrimLeadingTime', tostring(new_TrimLeadingTime), true) end 
+              
+              reaper.ImGui_PushItemWidth(ctx, fontSize*5.3 )
+              ret, TrimNewTime = reaper.ImGui_InputText(ctx, '##2', TrimNewTime, nil, nil)
+              if ret == true then reaper.SetProjExtState(0, ExtStateName,'TrimNewTime', TrimNewTime, true) end
+              reaper.ImGui_SameLine(ctx, nil, fontSize)
+              ret, new_TrimOnlyEmptyTime = reaper.ImGui_Checkbox(ctx,'Only empty time if multiplied##2',new_TrimOnlyEmptyTime)
+              if ret == true then reaper.SetProjExtState(0,ExtStateName,'new_TrimOnlyEmptyTime', tostring(new_TrimOnlyEmptyTime), true) end
+               
+              reaper.ImGui_EndChild(ctx)
+            end
+            
+            
+          end
           reaper.ImGui_PopFont(ctx)
+          reaper.ImGui_NewLine(ctx)
+          
+          reaper.ImGui_EndChild(ctx)
         end
         
-        OptDefaults[i] = option
-      end -- for
-      reaper.ImGui_SetWindowSize(ctx, 0, 0, nil )
-    end -- end of collapsing header
-     
-    reaper.ImGui_NewLine(ctx)
-    
-    --Reference track processing
-    --reaper.ImGui_PushFont(ctx, fontSep)
-    reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Text(), gui_colors.White)
-    reaper.ImGui_SeparatorText( ctx, 'Reconform project using reference track' ) 
-    reaper.ImGui_NewLine(ctx)
-    reaper.ImGui_PopStyleColor(ctx, 1)
-    --reaper.ImGui_PopFont(ctx)
-    
-    if NewPrjStart then
-      reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Button(), gui_colors.MainButton.Default)
-      reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_ButtonHovered(), gui_colors.MainButton.Hovered)
-      reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_ButtonActive(), gui_colors.MainButton.Active)
-    end
-    if reaper.ImGui_Button(ctx, 'Create report markers for gaps, crossfades, splits', nil, nil ) then
-      reaper.Undo_BeginBlock2( 0 )
-      reaper.PreventUIRefresh( 1 )
-      CreateReportMarkers()
-      reaper.Undo_EndBlock2( 0, 'Create report markers - Simple reconform', -1 ) 
-      reaper.UpdateArrange()
-    end
-    if NewPrjStart then reaper.ImGui_PopStyleColor(ctx, 3) end
-    
-    reaper.ImGui_NewLine(ctx)
-    reaper.ImGui_Text(ctx, 'To get much faster results') 
-    if reaper.ImGui_Button(ctx, 'Set FX on selected items OFFLINE') then
-      reaper.Main_OnCommandEx(42353,0,0) --Items: Set all take FX offline for selected media items
-    end
-    reaper.ImGui_SameLine(ctx)
-    if reaper.ImGui_Button(ctx, 'Revert FX on selected items ONLINE') then
-      reaper.Main_OnCommandEx(42354,0,0) --Items: Set all take FX online for selected media items
-    end
-    reaper.ImGui_NewLine(ctx)
-    
-    --Input box + button
-    reaper.ImGui_PushItemWidth(ctx, fontSize*7 )
-    
-    local fieldState, retOldPrjOffsetTime =
-    reaper.ImGui_InputText(ctx, 'Old project position ', reaper.format_timestr_pos( OldPrjStart, '', 5 ), nil, nil) 
-    if fieldState == true then
-      OldPrjStart = reaper.parse_timestr_pos( retOldPrjOffsetTime, 5 )
-    end
-    reaper.ImGui_SameLine(ctx, nil, fontSize*0.7)
-    reaper.ImGui_PushID(ctx, 1)
-    if reaper.ImGui_Button(ctx, 'Get edit cursor', nil, nil ) then
-      OldPrjStart = reaper.GetCursorPosition() 
-    end
-    reaper.ImGui_PopID(ctx)
-    
-    --Save button
-    reaper.ImGui_SameLine(ctx, nil, fontSize*1.25)
-    reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Button(), gui_colors.MainButton.Default)
-    reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_ButtonHovered(), gui_colors.MainButton.Hovered)
-    reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_ButtonActive(), gui_colors.MainButton.Active)
-
-    runReconf = reaper.ImGui_Button(ctx, 'Reconform', fontSize*8, nil)
-    
-    reaper.ImGui_PopStyleColor(ctx, 3)
-    
-    --Input box + button 
-    if NewPrjStart then
-      newprjOffsetTime = reaper.format_timestr_pos( NewPrjStart, '', 5 )
-    end
-    local fieldState, retNewPrjOffsetTime =
-    reaper.ImGui_InputText(ctx, 'New project position', newprjOffsetTime, nil, nil)
-    
-    if fieldState == true then
-      if retNewPrjOffsetTime ~= '' then
-        NewPrjStart = reaper.parse_timestr_pos( retNewPrjOffsetTime, 5 )
-      else
-        NewPrjStart = nil
-        newprjOffsetTime = ''
+        reaper.ImGui_SetWindowSize(ctx, 0, 0, nil )
       end
-    end
-    
-    reaper.ImGui_SameLine(ctx, nil, nil)
-    reaper.ImGui_PushID(ctx, 2)
-    if reaper.ImGui_Button(ctx, 'Get edit cursor', nil, nil ) then
-      NewPrjStart = reaper.GetCursorPosition()
-    end
-    reaper.ImGui_PopID(ctx)
-    
-    if NewPrjStart and NewPrjStart <= OldPrjStart then
-      reaper.ShowMessageBox('Reconformed project must be placed next to the old version.\nLet it be +1 hour after the Old verion.','Warning!', 0)
-      NewPrjStart = OldPrjStart + 3600
-    end
-    
-    --Paste new items for gaps header
-    reaper.ImGui_NewLine(ctx)
-    if reaper.ImGui_CollapsingHeader(ctx, 'Paste new items for gaps from another project tab') then
-       
-      SourcePrj, SrcPrjPreview = ProjectSelector(SourcePrj, "Source Project", SrcPrjPreview)
+      --------end of EDL section
       
-      --Source tracks
-      local SrcTrks = {
-      'All tracks',
-      'Selected tracks',
-      "Don't import from muted tracks"
-      }
-      local choiceTrks
-      if reaper.ImGui_BeginCombo(ctx, 'Source tracks', SrcTrks[tracksForImportFlag], nil) then 
-        for k,f in ipairs(SrcTrks) do
-          local is_selected = choiceTrks == k
-          if reaper.ImGui_Selectable(ctx, SrcTrks[k], is_selected) then 
-            tracksForImportFlag = k
-            choiceTrks = k
+      if reaper.ImGui_CollapsingHeader(ctx, 'Create reference track by comparing two projects tabs') then
+        reaper.ImGui_NewLine(ctx)
+        OldPrjAAF, OldPrjPreview = ProjectSelector(OldPrjAAF, "Old Project", OldPrjPreview)
+        NewPrjAAF, NewPrjPreview = ProjectSelector(NewPrjAAF, "New Project", NewPrjPreview)
+        local ret
+        ret, AnalyseOnlySelTracks = reaper.ImGui_Checkbox(ctx, 'Analyse only selected tracks', AnalyseOnlySelTracks)
+        if ret == true then reaper.SetProjExtState(0,ExtStateName,'AnalyseOnlySelTracks', tostring(AnalyseOnlySelTracks), true) end
+         
+        if reaper.ImGui_Button(ctx, 'old prj reference file') then
+          if not iniFolder then
+            local cur_retprj, cur_projfn = reaper.EnumProjects( -1 )
+            local path, projfn, extension = SplitFilename(cur_projfn)
+            if path then iniFolder = path:gsub('[/\\]$','') end
           end
-      
-          -- Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
-          if is_selected then
-            reaper.ImGui_SetItemDefaultFocus(ctx)
+          local iniFile = ''
+          local extensionList = "Media file\0*.wav;*.mp3;*.flac;*.aif;*.mpa;*.wma;*.mp4;*.mov;*.m4v;*.webm\0\0"
+          local allowMultiple = false
+          local ret, fileNames = reaper.JS_Dialog_BrowseForOpenFiles
+          ( 'Choose media file', iniFolder, iniFile, extensionList, allowMultiple ) 
+          
+          if fileNames ~= '' then
+            ReferenceFile = {}
+            addFileNamesToList(ReferenceFile, fileNames)
           end
         end
-        reaper.ImGui_EndCombo(ctx)
-      end
+        
+        reaper.ImGui_SameLine(ctx)
+        
+        if reaper.ImGui_Button(ctx, 'get from selected item') then
+          local file
+          
+          local selitem = reaper.GetSelectedMediaItem(0,0)
+          if selitem then
+            local reftake = reaper.GetActiveTake(selitem)
+            local src = reaper.GetMediaItemTake_Source(reftake)
+            if reaper.GetMediaSourceType( src ) ~= 'MIDI' then
+              file = reaper.GetMediaSourceFileName(src)
+              REFoffset = reaper.GetMediaItemTakeInfo_Value(reftake, 'D_STARTOFFS')
+            end
+          end
+          
+          if file then
+            reaper.SetOnlyTrackSelected(reaper.GetMediaItem_Track(selitem))
+            ReferenceFile = {}
+            addFileNamesToList(ReferenceFile, file)
+          end
+        end
+        
+        showEDLsNames(ReferenceFile)
+        
+        reaper.ImGui_NewLine(ctx)
+        
+        if OldPrjAAF and NewPrjAAF and ReferenceFile then
+          reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Button(), gui_colors.MainButton.Default)
+          reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_ButtonHovered(), gui_colors.MainButton.Hovered)
+          reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_ButtonActive(), gui_colors.MainButton.Active)
+        end
+        
+        if reaper.ImGui_Button(ctx, 'Create reference track'..'##2') then
+          local abort
+           
+          if OldPrjAAF and NewPrjAAF and ReferenceFile then
+          
+            OldEdlTable = GetItemsPerTrack(OldPrjAAF, nil, nil, AnalyseOnlySelTracks, false, true)
+            
+            NewEdlTable = GetItemsPerTrack(NewPrjAAF, nil, nil, AnalyseOnlySelTracks, false, true)
+            
+            if #OldEdlTable == 0 and #NewEdlTable == 0 then
+              reaper.ShowMessageBox('There is no valid data in all projects', 'Warning!',0)
+              abort = true
+            elseif #OldEdlTable == 0 then
+              reaper.ShowMessageBox('There is no valid data in OLD project', 'Warning!',0)
+              abort = true
+            elseif #NewEdlTable == 0 then
+              reaper.ShowMessageBox('There is no valid data in NEW project', 'Warning!',0)
+              abort = true
+            end
+            
+            if abort ~= true then
+              CompResult = CompareEDLs(OldEdlTable, NewEdlTable) 
+              if #CompResult == 0 then
+                reaper.ShowMessageBox('There ara no matched areas', 'Warning!',0)
+                abort = true
+              end
+            end
+            
+            if abort ~= true then CreateRefTrack(CompResult, ReferenceFile) end
+          end
+        end
+        
+        if OldPrjAAF and NewPrjAAF and ReferenceFile then reaper.ImGui_PopStyleColor(ctx, 3) end
+        
+        reaper.ImGui_SetWindowSize(ctx, 0, 0, nil )
+      end 
+      --------end of Prj analysys section
       
-      --Button for paste items
-      reaper.ImGui_Text(ctx, '' ) --space before buttons
-      reaper.ImGui_SameLine(ctx, nil, fontSize*24.25)
+       
+      reaper.ImGui_NewLine(ctx)
+      
+      --Reference track processing 
+      reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Text(), gui_colors.White)
+      reaper.ImGui_SeparatorText( ctx, 'Reconform project using reference track' ) 
+      reaper.ImGui_NewLine(ctx)
+      reaper.ImGui_PopStyleColor(ctx, 1)
+       
       if NewPrjStart then
         reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Button(), gui_colors.MainButton.Default)
         reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_ButtonHovered(), gui_colors.MainButton.Hovered)
         reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_ButtonActive(), gui_colors.MainButton.Active)
       end
-      if reaper.ImGui_Button(ctx, 'Paste Items', fontSize*8, nil ) then
+      if reaper.ImGui_Button(ctx, 'Create report markers for gaps, crossfades, splits', nil, nil ) then
         reaper.Undo_BeginBlock2( 0 )
         reaper.PreventUIRefresh( 1 )
-        
-        PasteItemsFromPrj(cur_retprj, SourcePrj)
-        
-        reaper.Undo_EndBlock2( 0, 'Paste new items - Simple reconform', -1 ) 
+        CreateReportMarkers()
+        reaper.Undo_EndBlock2( 0, 'Create report markers - Simple reconform', -1 ) 
         reaper.UpdateArrange()
       end
       if NewPrjStart then reaper.ImGui_PopStyleColor(ctx, 3) end
       
-      reaper.ImGui_SetWindowSize(ctx, 0, 0, nil )
-    end -- end of collapsing header
+      reaper.ImGui_NewLine(ctx)
+      reaper.ImGui_Text(ctx, 'To get much faster results') 
+      if reaper.ImGui_Button(ctx, 'Set FX on selected items OFFLINE') then
+        reaper.Main_OnCommandEx(42353,0,0) --Items: Set all take FX offline for selected media items
+      end
+      reaper.ImGui_SameLine(ctx, fontSize*15.5)
+      if reaper.ImGui_Button(ctx, 'Revert FX on selected items ONLINE') then
+        reaper.Main_OnCommandEx(42354,0,0) --Items: Set all take FX online for selected media items
+      end
+      reaper.ImGui_NewLine(ctx)
+      
+      --Input box + button
+      reaper.ImGui_PushItemWidth(ctx, fontSize*6 )
+      
+      local fieldState, retOldPrjOffsetTime =
+      reaper.ImGui_InputText(ctx, 'Old project position', reaper.format_timestr_pos( OldPrjStart, '', 5 ), nil, nil) 
+      if fieldState == true then
+        OldPrjStart = reaper.parse_timestr_pos( retOldPrjOffsetTime, 5 )
+      end
+      reaper.ImGui_SameLine(ctx, fontSize*15.5, nil)
+      reaper.ImGui_PushID(ctx, 1)
+      if reaper.ImGui_Button(ctx, 'Get edit cursor', nil, nil ) then
+        OldPrjStart = reaper.GetCursorPosition() 
+      end
+      reaper.ImGui_PopID(ctx)
+      
+      --Renonform button
+      reaper.ImGui_SameLine(ctx, nil, fontSize*2.2)
+      reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Button(), gui_colors.MainButton.Default)
+      reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_ButtonHovered(), gui_colors.MainButton.Hovered)
+      reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_ButtonActive(), gui_colors.MainButton.Active)
+      
+      runReconf = reaper.ImGui_Button(ctx, 'Reconform', fontSize*8, nil)
+      
+      reaper.ImGui_PopStyleColor(ctx, 3)
+      
+      --Input box + button 
+      if NewPrjStart then
+        newprjOffsetTime = reaper.format_timestr_pos( NewPrjStart, '', 5 )
+      end
+      local fieldState, retNewPrjOffsetTime =
+      reaper.ImGui_InputText(ctx, 'New project position', newprjOffsetTime, nil, nil)
+      
+      if fieldState == true then
+        if retNewPrjOffsetTime ~= '' then
+          NewPrjStart = reaper.parse_timestr_pos( retNewPrjOffsetTime, 5 )
+        else
+          NewPrjStart = nil
+          newprjOffsetTime = ''
+        end
+      end
+      
+      reaper.ImGui_SameLine(ctx, fontSize*15.5, nil)
+      reaper.ImGui_PushID(ctx, 2)
+      if reaper.ImGui_Button(ctx, 'Get edit cursor', nil, nil ) then
+        NewPrjStart = reaper.GetCursorPosition()
+      end
+      reaper.ImGui_PopID(ctx)
+      
+      if NewPrjStart and NewPrjStart <= OldPrjStart then
+        reaper.ShowMessageBox('Reconformed project must be placed next to the old version.\nLet it be +1 hour after the Old verion.','Warning!', 0)
+        NewPrjStart = OldPrjStart + 3600
+      end
+      
+      --Options button
+      reaper.ImGui_SameLine(ctx, nil, fontSize*2.2)
+      tglReconfOpt = reaper.ImGui_Button(ctx, 'Options >', fontSize*8, nil)
+      if tglReconfOpt then reconfOpt = not reconfOpt end
+      
+      --Paste new items for gaps header
+      reaper.ImGui_NewLine(ctx)
+      if reaper.ImGui_CollapsingHeader(ctx, 'Paste new items for gaps from another project tab') then
+         
+        SourcePrj, SrcPrjPreview = ProjectSelector(SourcePrj, "Source Project", SrcPrjPreview)
+        
+        --Source tracks
+        local SrcTrks = {
+        'All tracks',
+        'Selected tracks',
+        "Don't import from muted tracks"
+        }
+        local choiceTrks
+        if reaper.ImGui_BeginCombo(ctx, 'Source tracks', SrcTrks[tracksForImportFlag], nil) then 
+          for k,f in ipairs(SrcTrks) do
+            local is_selected = choiceTrks == k
+            if reaper.ImGui_Selectable(ctx, SrcTrks[k], is_selected) then 
+              tracksForImportFlag = k
+              choiceTrks = k
+            end
+        
+            -- Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+            if is_selected then
+              reaper.ImGui_SetItemDefaultFocus(ctx)
+            end
+          end
+          reaper.ImGui_EndCombo(ctx)
+        end
+        
+        --Button for paste items
+        reaper.ImGui_Text(ctx, '' ) --space before buttons
+        reaper.ImGui_SameLine(ctx, nil, fontSize*24.5)
+        if NewPrjStart then
+          reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Button(), gui_colors.MainButton.Default)
+          reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_ButtonHovered(), gui_colors.MainButton.Hovered)
+          reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_ButtonActive(), gui_colors.MainButton.Active)
+        end
+        if reaper.ImGui_Button(ctx, 'Paste Items', fontSize*8, nil ) then
+          reaper.Undo_BeginBlock2( 0 )
+          reaper.PreventUIRefresh( 1 )
+          
+          PasteItemsFromPrj(cur_retprj, SourcePrj)
+          
+          reaper.Undo_EndBlock2( 0, 'Paste new items - Simple reconform', -1 ) 
+          reaper.UpdateArrange()
+        end
+        if NewPrjStart then reaper.ImGui_PopStyleColor(ctx, 3) end
+        
+        reaper.ImGui_SetWindowSize(ctx, 0, 0, nil )
+      end -- end of collapsing header
+      
+      reaper.ImGui_NewLine(ctx)
+      reaper.ImGui_PushItemWidth(ctx, savedFontSize*5.5)
+      _, savedFontSize = reaper.ImGui_InputInt
+      (ctx, 'Font size for the window (default is 17)', savedFontSize)
+      
+      reaper.ImGui_PopFont(ctx)
+      
+      reaper.ImGui_EndChild(ctx)
+    end
     
-    reaper.ImGui_NewLine(ctx)
+    reaper.ImGui_SameLine(ctx)
     
-    --reaper.ImGui_PopFont(ctx)
+    if reconfOpt == true then
+      local childOPTflags = Flags.childBorder | Flags.childAutoResizeY | Flags.childAutoResizeX
+      local ChildOPT = reaper.ImGui_BeginChild(ctx, 'ChildOPT', 0, 0, childOPTflags)
+      
+      if ChildOPT then
+        IsOptTgl = false
+        for i, v in ipairs(OptDefaults) do
+          local option = v
+          
+          if type(option[3]) == 'boolean' then
+            local ret, newval = reaper.ImGui_Checkbox(ctx, option[1], option[3])
+            if ret then
+              IsOptTgl = true
+              option[3] = newval
+            end
+          end
+          
+          if type(option[3]) == 'number' then 
+            reaper.ImGui_PushItemWidth(ctx, fontSize*3 )
+            local ret, newval =
+            reaper.ImGui_InputDouble(ctx, option[1], option[3], nil, nil, option[4]) 
+            if ret then
+              IsOptTgl = true
+              option[3] = newval
+            end
+          end
+          
+          if type(option[3]) == 'string' then
+            local choice 
+            for k = 1, #option[4] do 
+              if option[4][k] == option[3] then choice = k end 
+            end
+            
+            reaper.ImGui_Text(ctx, option[1])
+            reaper.ImGui_SameLine(ctx, nil, nil)
+            
+            local comboflags = reaper.ImGui_ComboFlags_WidthFitPreview() 
+            --reaper.ImGui_PushItemWidth(ctx, fontSize*10.3 ) 
+            if reaper.ImGui_BeginCombo(ctx, '##'..i, option[3], comboflags) then
+              for k,f in ipairs(option[4]) do
+                local is_selected = choice == k
+                if reaper.ImGui_Selectable(ctx, option[4][k], is_selected) then
+                  choice = k
+                  IsOptTgl = true
+                end
+            
+                -- Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+                if is_selected then
+                  reaper.ImGui_SetItemDefaultFocus(ctx)
+                end
+              end
+              reaper.ImGui_EndCombo(ctx)
+            end 
+            
+            option[3] = option[4][choice]
+          end
+          
+          if type(option[3]) == 'nil' then
+            reaper.ImGui_PushFont(ctx, fontSep)
+            reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Text(), gui_colors.White)
+            
+            if i ~= 1 then reaper.ImGui_NewLine(ctx) end
+            reaper.ImGui_SeparatorText( ctx, option[1] )
+            
+            reaper.ImGui_PopStyleColor(ctx, 1)
+            reaper.ImGui_PopFont(ctx)
+          end
+          
+          OptDefaults[i] = option
+        end -- for
+        
+        reaper.ImGui_EndChild(ctx)
+      end
+      
+    end
+    
   end
   
   --------------
   function loop()
     PrjTimeOffset = -reaper.GetProjectTimeOffset( 0, false )
+    
+    MIN_luft_ZERO = ( reaper.parse_timestr_pos('00:00:00:01', 5) - PrjTimeOffset ) / 4
+    
+    PrFrRate = reaper.SNM_GetIntConfigVar( 'projfrbase', -1 )
+    PrDropFrame = reaper.SNM_GetIntConfigVar( 'projfrdrop', -1 )
+    
+    if PrFrRate == 30 and PrDropFrame == 1 then PrFrRate = '29.97DF'
+    elseif PrFrRate == 30 and PrDropFrame == 2 then PrFrRate = '29.97ND'
+    elseif PrFrRate == 24 and PrDropFrame == 2 then PrFrRate = '23.976'
+    end
+    
     if reaper.CountSelectedTracks(0) ~= 0 then
       RefTrIdx = reaper.GetMediaTrackInfo_Value( reaper.GetSelectedTrack(0,0), 'IP_TRACKNUMBER' )
+    end
+    SelTracks = {}
+    
+    if not font or savedFontSize ~= fontSize then
+      if savedFontSize < 7 then savedFontSize = 7 end
+      if savedFontSize > 60 then savedFontSize = 60 end
+      reaper.SetExtState(ExtStateName, 'FontSize', savedFontSize, true)
+      fontSize = savedFontSize
+      if font then reaper.ImGui_Detach(ctx, font) end
+      if fontSep then reaper.ImGui_Detach(ctx, fontSep) end
+      font = reaper.ImGui_CreateFont(fontName, fontSize, reaper.ImGui_FontFlags_None()) -- Create the fonts you need
+      fontSep = reaper.ImGui_CreateFont(fontName, fontSize-2, reaper.ImGui_FontFlags_Italic())
+      fontBig = reaper.ImGui_CreateFont(fontName, fontSize+4, reaper.ImGui_FontFlags_None())
+      reaper.ImGui_Attach(ctx, font)
+      reaper.ImGui_Attach(ctx, fontSep)
+      reaper.ImGui_Attach(ctx, fontBig)
     end
     
     esc = reaper.ImGui_IsKeyPressed(ctx, reaper.ImGui_Key_Escape())
     
-    undo = ( reaper.ImGui_IsKeyPressed(ctx, reaper.ImGui_Key_RightCtrl())
-           or
-           reaper.ImGui_IsKeyPressed(ctx, reaper.ImGui_Key_LeftCtrl()) )
-           and
-           reaper.ImGui_IsKeyPressed(ctx, reaper.ImGui_Key_Z())
-           
-    redo = ( reaper.ImGui_IsKeyPressed(ctx, reaper.ImGui_Key_RightCtrl())
-           or
-           reaper.ImGui_IsKeyPressed(ctx, reaper.ImGui_Key_LeftCtrl()) )
-           and
-           reaper.ImGui_IsKeyPressed(ctx, reaper.ImGui_Key_Z())
-           and(
-           reaper.ImGui_IsKeyPressed(ctx, reaper.ImGui_Key_RightShift())
-           or
-           reaper.ImGui_IsKeyPressed(ctx, reaper.ImGui_Key_LeftShift())
-           )
+    undo = reaper.ImGui_Shortcut(ctx, reaper.ImGui_Mod_Ctrl() | reaper.ImGui_Key_Z(), reaper.ImGui_InputFlags_RouteGlobal())
     
+    redo = reaper.ImGui_Shortcut(ctx, reaper.ImGui_Mod_Ctrl() | reaper.ImGui_Mod_Shift() | reaper.ImGui_Key_Z(), reaper.ImGui_InputFlags_RouteGlobal())
+      
+      reaper.ImGui_PushFont(ctx, font)
+      
       reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_WindowBg(), gui_colors.Background)
       reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_TitleBgActive(), gui_colors.TitleBg)
       reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Text(), gui_colors.Text)
@@ -827,24 +1051,22 @@ function OptionsWindow()
       reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_HeaderHovered(), gui_colors.ComboBox.Hovered)
       reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_HeaderActive(), gui_colors.ComboBox.Active)
       
-      reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Text(), gui_colors.White) 
+      reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Text(), gui_colors.White)
       --
       reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_WindowRounding(), fontSize/4)
       reaper.ImGui_PushStyleVar(ctx, Flags.frameRounding, fontSize/4)
       reaper.ImGui_PushStyleVar(ctx, Flags.childRounding, fontSize/4)
       reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_FramePadding(), fontSize/2, fontSize/4)
-    
+      
       local window_flags = reaper.ImGui_WindowFlags_None()--reaper.ImGui_WindowFlags_MenuBar()
       reaper.ImGui_SetNextWindowSize(ctx, W, H, reaper.ImGui_Cond_Once()) -- Set the size of the windows.  Use in the 4th argument reaper.ImGui_Cond_FirstUseEver() to just apply at the first user run, so ImGUI remembers user resize s2
-      
-      reaper.ImGui_PushFont(ctx, font)
       
       local visible, open = reaper.ImGui_Begin(ctx, 'Simple Project Reconform', true, window_flags)
       reaper.ImGui_PopStyleColor(ctx, 1)
       
       if visible then
           frame()
-          if loopcnt == 0 then reaper.ImGui_SetWindowSize(ctx, 0, 0, nil ) end
+          reaper.ImGui_SetWindowSize(ctx, 0, 0, nil )
           reaper.ImGui_End(ctx)
       end
       
@@ -856,31 +1078,23 @@ function OptionsWindow()
       
       if undo then reaper.Main_OnCommandEx(40029,0,0) end
       if redo then reaper.Main_OnCommandEx(40030,0,0) end
-
+      
       if open and not esc then
-        SetExtStates()
+        if IsOptTgl == true then SetExtStates() end
         if runReconf == true then main() end
         reaper.defer(loop)
       end
 
-      loopcnt = loopcnt+1
+    loopcnt = loopcnt+1
   end
   -----------------
   local fontName
   ctx = reaper.ImGui_CreateContext('SimpleProjectReconform_AZ')
-  ctxPr = reaper.ImGui_CreateContext('progressSPR_AZ')
   if reaper.GetOS():match("^Win") == nil then
     reaper.ImGui_SetConfigVar(ctx, reaper.ImGui_ConfigVar_ViewportsNoDecoration(), 0)
     fontName = 'sans-serif'
   else fontName = 'Calibri'
   end
-  font = reaper.ImGui_CreateFont(fontName, fontSize, reaper.ImGui_FontFlags_None()) -- Create the fonts you need
-  fontSep = reaper.ImGui_CreateFont(fontName, fontSize-2, reaper.ImGui_FontFlags_Italic())
-  fontBig = reaper.ImGui_CreateFont(fontName, fontSize+4, reaper.ImGui_FontFlags_None())
-  reaper.ImGui_Attach(ctx, font)
-  reaper.ImGui_Attach(ctxPr, font)
-  reaper.ImGui_Attach(ctx, fontSep)
-  reaper.ImGui_Attach(ctx, fontBig)
   
   loop()
   --reaper.defer(ShowProgress)
@@ -917,6 +1131,151 @@ function FieldMatch(Table,value, AddRemoveFlag) -- can remove only first finded 
     return false, Table
   else return false
   end
+end
+
+-------------------------
+
+function GetItemsPerTrack(project, timeStart, timeEnd, selTrOnly, selItemsOnly, addMeta)
+  SetTagList()
+  local CommonEDL = {}
+  local Splits = {}
+  
+  for t=0, reaper.CountTracks(project) -1 do 
+    local track = reaper.GetTrack(project,t)
+    if selTrOnly and not reaper.IsTrackSelected(track) then track = nil end
+    
+    if track then
+      for i=0, reaper.CountTrackMediaItems(track) -1 do
+        local item = reaper.GetTrackMediaItem(track, i)
+        if selItemsOnly and not reaper.IsMediaItemSelected(item) then item = nil end
+        
+        if item then
+          local Item = {Type, Clips={}, DestIn, DestOut}
+          local take = reaper.GetActiveTake(item)
+          local src
+          if take then src = reaper.GetMediaItemTake_Source(take) end
+          
+          if src then
+            local clip = { name, SrcIn, SrcOut }
+            local srctype = reaper.GetMediaSourceType(src)
+            
+            Item.DestIn = reaper.GetMediaItemInfo_Value( item, "D_POSITION" )
+            local length = reaper.GetMediaItemInfo_Value( item, "D_LENGTH" )
+            Item.DestOut = Item.DestIn + length
+            
+            if timeStart and timeEnd
+            and timeStart > Item.DestIn and timeEnd < Item.DestOut then
+              srctype = nil
+            end
+            
+            if srctype and srctype ~= 'EMPTY' and srctype ~= 'MIDI' then
+              --[[
+              local chunk = ""
+              local retval,chunk = reaper.GetItemStateChunk(item,chunk,false)
+              if srctype == 'VIDEO'
+              and chunk:match("<SOURCE VIDEO\nAUDIO 0\nFILE ") then Item.Type = 'V'
+              elseif srctype == 'VIDEO' then Item.Type = 'AA/V'
+              else Item.Type = 'A'
+              end
+              ]]
+              Item.file = reaper.GetMediaSourceFileName( src )
+              Item.vol = reaper.GetMediaItemInfo_Value( item, "D_VOL" )
+              Item.fIn = reaper.GetMediaItemInfo_Value( item, "D_FADEINLEN" )
+              Item.fOut = reaper.GetMediaItemInfo_Value( item, "D_FADEOUTLEN" )
+              clip.SrcIn = reaper.GetMediaItemTakeInfo_Value( take, "D_STARTOFFS" )
+              clip.SrcOut = clip.SrcIn + length
+              local splRate = reaper.GetMediaSourceSampleRate(src)
+              
+              _, clip.name = reaper.GetSetMediaItemTakeInfo_String( take, 'P_NAME', '', false )
+              local _, fn, ext = SplitFilename(Item.file)
+              local _, takeFn, takeExt = SplitFilename(clip.name)
+              if takeFn == takeExt then clip.name = clip.name..'.'..ext end
+              
+              local metadata
+              if addMeta then metadata = save_metadata(src, TagsList) end
+              if metadata.SCENE and metadata.TAKE then
+                clip.name = metadata.SCENE..'_'..metadata.TAKE ..'.'..ext
+              end
+              if metadata.TC then
+                metadata.TC = tonumber(metadata.TC) / splRate
+                clip.SrcIn = clip.SrcIn + metadata.TC
+                clip.SrcOut = clip.SrcOut + metadata.TC
+              end
+              
+              table.insert(Item.Clips, clip)
+              
+              table.insert(CommonEDL, Item)
+              FieldMatch(Splits, Item.DestIn, true)
+              FieldMatch(Splits, Item.DestOut, true) 
+            end
+          end
+        end
+        
+      end --items cycle
+    end --if track
+    
+  end -- tracks cycle
+  
+  CleanUpEDL(CommonEDL, Splits)
+  
+  return CommonEDL
+end
+
+-------------------------
+function SetTagList()
+  TagsList = {}
+  
+  ---THE LAST TAG (if several tags applied) has the higer priority!---
+  local text = ''
+  table.insert(TagsList, {text, 'TC', true, {"VORBIS:TIME_REFERENCE", "BWF:TimeReference"} })
+  text = 'Project'
+  table.insert(TagsList, {text, 'PROJECT', false, {"IXML:PROJECT", ''} })
+  text = 'Date'
+  table.insert(TagsList, {text, 'DATE', false, {"IXML:BEXT:BWF_ORIGINATION_DATE", "BWF:OriginationDate"} })
+  text = 'Tape'
+  table.insert(TagsList, {text, 'TAPE', true, {"IXML:TAPE", ''} })
+  text = 'Scene'
+  table.insert(TagsList, {text, 'SCENE', true, {"IXML:SCENE", ''} })
+  text = 'Take'
+  table.insert(TagsList, {text, 'TAKE', true, {"IXML:TAKE", ''} })
+  
+  text = ''
+  table.insert(TagsList, {text, 'TRACKCOUNT', false, {"IXML:TRACK_LIST:TRACK_COUNT", ''} })
+end
+
+-------------------------
+
+function save_metadata(source,list_metadata)
+  local value_list = {}
+  local dop_list = {}
+  local _, descBwf = reaper.GetMediaFileMetadata(source,"BWF:Description")
+  
+  for v in descBwf:gmatch('[^\n]+') do
+    local key
+    v = v:sub(2) -- removes first lower case letter that differs from file to file and seems to mean nothing
+    v = v:gsub('-','_')
+    v = v:gsub('+','_')
+    v = v:gsub('*','_')
+    v = v:gsub('\n','')
+    key, v = v:match("%s*([^=]*)%s*%=%s*(.-)%s*$") --Split construction 'key=value'
+    if key and v then dop_list[key] = v end
+  end
+  
+  for i, v in ipairs(list_metadata) do
+    for t, tag in ipairs(v[4]) do
+      if tag ~= '' then
+        local retval,value = reaper.GetMediaFileMetadata(source,tag) 
+        if dop_list[v[2]] and value == '' then -- this value has priority higer than the dop_list
+          value_list[v[2]] = dop_list[v[2]]
+        elseif value ~= '' then
+          value = value:gsub('-','_'):gsub('+','_'):gsub('*','_')
+          value_list[v[2]] = value
+        end
+      end
+    end
+  end
+  
+  return value_list
 end
 
 -------------------------
@@ -988,6 +1347,377 @@ end
 -------------------------
 
 function AnalyseEDLs(EDLs, timeTreshold) --table of pathes
+  local CommonEDL = { V = {}, A = {}}
+  local Splits = {}
+  local edlsCnt = #EDLs
+  
+  for e, EDLfile in ipairs(EDLs) do
+    local suffix = ''
+    if edlsCnt > 1 then suffix = '_'..e end
+    local EdlTable = { V={Splits={} }, A1={Splits={} }, A2={Splits={} }, A3={Splits={} }, A4={Splits={} } }
+    local EDLtext = {}
+    local EDLblocks = {}
+    local prevBlockNumber, curBlockNumber = 0, 0
+    local itemsList = {}
+    local block
+    --local fadelen
+    --local clip
+    
+    for line in io.lines(EDLfile) do
+      line = line:gsub('^%s*(.-)%s*$', '%1') --remove spaces at edges
+      table.insert(EDLtext, line )
+    end
+     
+    for l, line in ipairs(EDLtext) do
+      --msg('\n  LINE:   '..line)
+      local lineData = {blockN, strParts={}, Time={}, fadeLen, transition, track, strRest}
+      local pattern = '%d%d:%d%d:%d%d:%d%d' 
+      
+      for time in line:gmatch(pattern) do
+        table.insert(lineData.Time, time)
+      end 
+      
+      for t, time in ipairs(lineData.Time) do
+        line = line:gsub(time, '')
+      end
+      
+      for s in line:gmatch('%S+') do
+        table.insert(lineData.strParts, s)
+      end
+      
+      if #lineData.strParts >= 3 and lineData.strParts[1]:match('%d+') then
+        lineData.blockN = lineData.strParts[1]
+      end
+      
+      if #lineData.Time == 4 and #lineData.strParts >= 4 then
+      
+        if lineData.strParts[#lineData.strParts]:match('%d+') then
+          lineData.fadeLen = tonumber(lineData.strParts[#lineData.strParts])
+          table.remove(lineData.strParts, #lineData.strParts)
+        end
+        
+        local shift = 1
+        if lineData.strParts[#lineData.strParts]:match('F') then
+          shift = 3
+          lineData.transition = 'KBF'
+        elseif lineData.strParts[#lineData.strParts] == 'O'
+        or lineData.strParts[#lineData.strParts] == 'B' then
+          shift = 2
+          lineData.transition = lineData.strParts[#lineData.strParts -1] .. lineData.strParts[#lineData.strParts]
+        else
+          lineData.transition = lineData.strParts[#lineData.strParts]
+        end
+         
+        lineData.track = lineData.strParts[#lineData.strParts - shift]
+        
+        if lineData.strParts[1]:match('%d+') then
+          curBlockNumber = tonumber( lineData.strParts[1]:match('%d+') )
+          lineData.blockN = curBlockNumber
+        end
+        
+      end
+      
+      lineData.strRest = line
+      
+      if curBlockNumber ~= prevBlockNumber then
+        prevBlockNumber = curBlockNumber
+        if block and #block.main > 0 then
+          table.insert(EDLblocks, copy(block) )
+          block = nil
+        end
+        if not block then block = { numb, main={}, motion={}, notes={} } end
+      end
+       
+       
+      if block then
+        block.numb = curBlockNumber
+        if #lineData.Time == 4 then table.insert(block.main, lineData)
+        elseif #lineData.Time == 1 and lineData.blockN == 'M2' then
+          table.insert(block.motion, lineData)
+        elseif #lineData.Time == 4 then table.insert(block.main, lineData)
+        elseif line:match("CLIP NAME:") or line:match("AUD ") then table.insert(block.notes, line)
+        end
+      end
+      
+      if l == #EDLtext and #block.main > 0 then
+        table.insert(EDLblocks, copy(block) )
+      end
+    end
+    
+    
+    for b, block in ipairs(EDLblocks) do
+      local item = {Type, Type2, fadeIn, fadeOut, Clips={}, DestIn, DestOut} 
+      local clip = { name, SrcIn, SrcOut, PlayRate, RateTC }
+      
+      if #block.main == 1 then
+        for n, noteline in ipairs(block.notes) do
+          if noteline:match("CLIP NAME:") then
+            local nameT = {}
+            for s in noteline:gmatch('[^:]+') do
+              s = s:gsub('^%s*(.-)%s*$', '%1') --remove spaces at edges
+              table.insert(nameT, s)
+            end 
+            clip.name = nameT[2]
+          elseif noteline:match("AUD ") then
+            item.Type2 = noteline:gsub("AUD", ''):gsub("%s+", '')
+          end
+        end
+        if not clip.name or clip.name == 'BL' or clip.name == '' then
+          clip.name = '::BLACK::'
+        end
+        clip.SrcIn = block.main[1]['Time'][1]
+        clip.SrcOut = block.main[1]['Time'][2] 
+        item.DestIn = block.main[1]['Time'][3]
+        item.DestOut = block.main[1]['Time'][4]
+        
+        clip.SrcIn = reaper.parse_timestr_pos( clip.SrcIn, 5 ) - PrjTimeOffset
+        clip.SrcOut = reaper.parse_timestr_pos( clip.SrcOut, 5 ) - PrjTimeOffset
+        item.DestIn = reaper.parse_timestr_pos( item.DestIn, 5 ) - PrjTimeOffset - timeTreshold
+        item.DestOut = reaper.parse_timestr_pos( item.DestOut, 5 ) - PrjTimeOffset - timeTreshold
+        
+        item.Type = block.main[1]['track']
+        table.insert(item.Clips, copy(clip) )
+        table.insert(itemsList, copy(item) )
+        item.Clips = {}
+      else
+        local itemsCnt = #block.main
+        local fadelen
+        local transition
+        if itemsCnt > 0 then
+          fadelen = block.main[itemsCnt]['fadeLen']
+          transition = block.main[itemsCnt]['transition']
+        end
+        
+        if fadelen then
+          fadelen = reaper.parse_timestr_pos( '00:00:00:'..fadelen, 5 ) - PrjTimeOffset
+        end
+        
+        for i = 1, itemsCnt do
+        
+          if i == itemsCnt then --Get last name and AUD numbers 
+            for n, noteline in ipairs(block.notes) do
+              if noteline:match("CLIP NAME:") then
+                local nameT = {}
+                for s in noteline:gmatch('[^:]+') do
+                  s = s:gsub('^%s*(.-)%s*$', '%1') --remove spaces at edges
+                  table.insert(nameT, s)
+                end 
+                clip.name = nameT[2] 
+              elseif noteline:match("AUD ") then
+                item.Type2 = noteline:gsub("AUD", ''):gsub("%s+", '')
+              end
+            end
+            if not clip.name or clip.name == 'BL' or clip.name == '' or #block.notes == 0 then
+              clip.name = '::BLACK::'
+            end
+          else --Get first name and AUD numbers 
+            local n = #block.notes
+            while n > 0 do
+              local noteline = block.notes[n]
+              if noteline:match("CLIP NAME:") then
+                local nameT = {}
+                for s in noteline:gmatch('[^:]+') do
+                  s = s:gsub('^%s*(.-)%s*$', '%1') --remove spaces at edges
+                  table.insert(nameT, s)
+                end
+                clip.name = nameT[2] 
+              elseif noteline:match("AUD ") then
+                item.Type2 = noteline:gsub("AUD", ''):gsub("%s+", '')
+              end 
+              n=n-1
+            end
+            if not clip.name or clip.name == 'BL' or clip.name == '' or #block.notes == 0 then
+              clip.name = '::BLACK::'
+            end
+            
+          end
+          
+          clip.SrcIn = block.main[i]['Time'][1]
+          clip.SrcOut = block.main[i]['Time'][2]
+          item.DestIn = block.main[i]['Time'][3]
+          item.DestOut = block.main[i]['Time'][4]
+          
+          clip.SrcIn = reaper.parse_timestr_pos( clip.SrcIn, 5 ) - PrjTimeOffset
+          clip.SrcOut = reaper.parse_timestr_pos( clip.SrcOut, 5 ) - PrjTimeOffset
+          item.DestIn = reaper.parse_timestr_pos( item.DestIn, 5 ) - PrjTimeOffset - timeTreshold
+          item.DestOut = reaper.parse_timestr_pos( item.DestOut, 5 ) - PrjTimeOffset - timeTreshold
+          
+          item.Type = block.main[i]['track']
+           
+          if ( transition:match('D') or transition:match('W') )
+          and fadelen and i ~= itemsCnt then
+            clip.SrcOut = clip.SrcOut + fadelen
+            item.DestOut = item.DestOut + fadelen
+          end
+          
+          if transition:match('K') and fadelen and i == itemsCnt then
+            if item.DestIn == item.DestOut then 
+              item.DestOut = itemsList[#itemsList]['DestOut']
+              clip.SrcOut = clip.SrcIn + (item.DestOut - item.DestIn)
+            else
+              item.DestOut = item.DestOut + fadelen
+              clip.SrcOut = clip.SrcOut + fadelen
+            end
+          end
+          
+          if transition:match('K') and transition:match('O')
+          and fadelen and i == itemsCnt
+          and block.main[i]['Time'][3] == block.main[i]['Time'][4] then
+            item.DestOut = item.DestIn + fadelen
+            clip.SrcOut = clip.SrcIn + fadelen
+          end
+          
+          table.insert(item.Clips, copy(clip) )
+          table.insert(itemsList, copy(item) )
+          item.Clips = {}
+          
+        end
+      end
+    
+    end
+    
+    for i, v in ipairs(itemsList) do
+      if v.Type == 'B' then
+        table.insert(EdlTable.V, copy(v))
+        table.insert(EdlTable.A1, copy(v))
+        
+        FieldMatch(EdlTable.V.Splits,copy(v.DestIn), true)
+        FieldMatch(EdlTable.V.Splits,copy(v.DestOut), true)
+        
+        FieldMatch(EdlTable.A1.Splits,copy(v.DestIn), true)
+        FieldMatch(EdlTable.A1.Splits,copy(v.DestOut), true)
+      elseif v.Type:match('V') then
+        table.insert(EdlTable.V, copy(v))
+        FieldMatch(EdlTable.V.Splits,copy(v.DestIn), true)
+        FieldMatch(EdlTable.V.Splits,copy(v.DestOut), true)
+      end
+      
+      v.Type = v.Type:gsub('/V', '')
+      if v.Type == 'A' then
+        table.insert(EdlTable.A1, copy(v))
+        FieldMatch(EdlTable.A1.Splits,copy(v.DestIn), true)
+        FieldMatch(EdlTable.A1.Splits,copy(v.DestOut), true)
+      elseif v.Type == 'A2' then
+        table.insert(EdlTable.A2, copy(v))
+        FieldMatch(EdlTable.A2.Splits,copy(v.DestIn), true)
+        FieldMatch(EdlTable.A2.Splits,copy(v.DestOut), true)
+      elseif v.Type == 'AA' then
+        table.insert(EdlTable.A1, copy(v))
+        table.insert(EdlTable.A2, copy(v))
+        
+        FieldMatch(EdlTable.A1.Splits,copy(v.DestIn), true)
+        FieldMatch(EdlTable.A1.Splits,copy(v.DestOut), true)
+        
+        FieldMatch(EdlTable.A2.Splits,copy(v.DestIn), true)
+        FieldMatch(EdlTable.A2.Splits,copy(v.DestOut), true) 
+      elseif v.Type == 'A3' then                    -- for Davinci Resolve
+        table.insert(EdlTable.A3, copy(v))
+        FieldMatch(EdlTable.A3.Splits,copy(v.DestIn), true)
+        FieldMatch(EdlTable.A3.Splits,copy(v.DestOut), true)
+      elseif v.Type and v.Type:match('A') then      -- for Davinci Resolve
+        table.insert(EdlTable.A4, copy(v))
+        FieldMatch(EdlTable.A4.Splits,copy(v.DestIn), true)
+        FieldMatch(EdlTable.A4.Splits,copy(v.DestOut), true)
+      end
+      
+      if v.Type2 and v.Type2:match('3') then
+        table.insert(EdlTable.A3, copy(v))
+        FieldMatch(EdlTable.A3.Splits,copy(v.DestIn), true)
+        FieldMatch(EdlTable.A3.Splits,copy(v.DestOut), true)
+      end
+      
+      if v.Type2 and v.Type2:match('4') then
+        table.insert(EdlTable.A4, copy(v))
+        FieldMatch(EdlTable.A4.Splits,copy(v.DestIn), true)
+        FieldMatch(EdlTable.A4.Splits,copy(v.DestOut), true)
+      end
+    end
+    ------------
+    
+    --Remove Fades in Audio items
+    for name, track in pairs(EdlTable) do
+      if name ~= 'V' then
+      
+        for i, item in ipairs(track) do
+          local c = #item.Clips 
+          while c > 0 do
+            local clip = item.Clips[c] 
+            if not clip.name or clip.name:match('::BLACK::') then
+              table.remove(item.Clips, c)
+            end 
+            c = c-1
+          end 
+        end
+        
+      end
+    end
+    
+    --Remove items with no Clips
+    --[[
+    for name, track in pairs(EdlTable) do
+      local i = #track
+      while i > 0 do
+        local item = track[i]
+        if #item.Clips == 0 then table.remove(track, i) end
+        i = i-1 
+      end
+    end]]
+    
+    --[[
+    msg('\nEDL size is - '..#EdlTable.A1) msg('')
+    ---TEST MESSAGE----
+    for i, item in ipairs(EdlTable.A1) do
+      if item.DestIn > 60 then break end
+      msg('ITEM '..i) --..' '..item.Type) 
+      msg('In/Out '..reaper.format_timestr_pos(item.DestIn,'',5) ..' - '.. reaper.format_timestr_pos(item.DestOut,'',5))
+      for j, clip in ipairs(item.Clips) do
+        local srcIn = reaper.format_timestr_pos(clip.SrcIn,'',5)
+        local srcOut = reaper.format_timestr_pos(clip.SrcOut,'',5)
+        msg(srcIn..' - '..srcOut..'  '..tostring(clip.name))
+      end 
+    end
+    -------------------
+    ]]
+    --
+    
+    
+    ---Add to the common table content for analyse
+    if EDLcontentFlags & 1 ~= 0 then
+      table.move(EdlTable.V, 1, #EdlTable.V, #CommonEDL+1, CommonEDL)
+      table.move(EdlTable.V.Splits, 1, #EdlTable.V.Splits, #Splits+1, Splits)
+    end
+    
+    if EDLcontentFlags & 1<<1 ~= 0 then
+      table.move(EdlTable.A1, 1, #EdlTable.A1, #CommonEDL+1, CommonEDL) 
+      for i, v in ipairs(EdlTable.A1.Splits) do FieldMatch(Splits, v, true) end
+    end
+    
+    if EDLcontentFlags & 1<<2 ~= 0 then
+      table.move(EdlTable.A2, 1, #EdlTable.A2, #CommonEDL+1, CommonEDL) 
+      for i, v in ipairs(EdlTable.A2.Splits) do FieldMatch(Splits, v, true) end
+    end
+    
+    if EDLcontentFlags & 1<<3 ~= 0 then
+      table.move(EdlTable.A3, 1, #EdlTable.A3, #CommonEDL+1, CommonEDL) 
+      for i, v in ipairs(EdlTable.A3.Splits) do FieldMatch(Splits, v, true) end
+    end
+    
+    if EDLcontentFlags & 1<<4 ~= 0 then
+      table.move(EdlTable.A4, 1, #EdlTable.A4, #CommonEDL+1, CommonEDL) 
+      for i, v in ipairs(EdlTable.A4.Splits) do FieldMatch(Splits, v, true) end
+    end
+    
+  end --end of edl files cycle
+    
+  --GO HERE IN FUTURE after parsing project info if the Project Analyse used instead of EDL one.
+  CleanUpEDL(CommonEDL, Splits)
+    
+  return CommonEDL
+end
+
+-------------------------------
+
+function AnalyseEDLsOld(EDLs, timeTreshold) --table of pathes
   local CommonEDL = {}
   local Splits = {}
   local EdlTable = { V={Splits={} }, A1={Splits={} }, A2={Splits={} }, A3={Splits={} }, A4={Splits={} } }
@@ -1093,7 +1823,6 @@ function AnalyseEDLs(EDLs, timeTreshold) --table of pathes
           item = {Type, Type2, Clips={}, DestIn, DestOut}
           
           item.Type = strparts[3]
-
           item.DestIn = reaper.parse_timestr_pos( strparts[#strparts-1], 5 ) - PrjTimeOffset - timeTreshold
           item.DestOut = reaper.parse_timestr_pos( strparts[#strparts], 5 ) - PrjTimeOffset - timeTreshold
 
@@ -1223,29 +1952,29 @@ function AnalyseEDLs(EDLs, timeTreshold) --table of pathes
   --
   
   
-  ---Add to the common table content for analyse 
+  ---Add to the common table content for analyse
   if EDLcontentFlags & 1 ~= 0 then
     table.move(EdlTable.V, 1, #EdlTable.V, #CommonEDL+1, CommonEDL)
     table.move(EdlTable.V.Splits, 1, #EdlTable.V.Splits, #Splits+1, Splits)
   end
   
   if EDLcontentFlags & 1<<1 ~= 0 then
-    table.move(EdlTable.A1, 1, #EdlTable.A1, #CommonEDL+1, CommonEDL)
+    table.move(EdlTable.A1, 1, #EdlTable.A1, #CommonEDL+1, CommonEDL) 
     for i, v in ipairs(EdlTable.A1.Splits) do FieldMatch(Splits, v, true) end
   end
   
   if EDLcontentFlags & 1<<2 ~= 0 then
-    table.move(EdlTable.A2, 1, #EdlTable.A2, #CommonEDL+1, CommonEDL)
+    table.move(EdlTable.A2, 1, #EdlTable.A2, #CommonEDL+1, CommonEDL) 
     for i, v in ipairs(EdlTable.A2.Splits) do FieldMatch(Splits, v, true) end
   end
   
   if EDLcontentFlags & 1<<3 ~= 0 then
-    table.move(EdlTable.A3, 1, #EdlTable.A3, #CommonEDL+1, CommonEDL)
+    table.move(EdlTable.A3, 1, #EdlTable.A3, #CommonEDL+1, CommonEDL) 
     for i, v in ipairs(EdlTable.A3.Splits) do FieldMatch(Splits, v, true) end
   end
   
   if EDLcontentFlags & 1<<4 ~= 0 then
-    table.move(EdlTable.A4, 1, #EdlTable.A4, #CommonEDL+1, CommonEDL)
+    table.move(EdlTable.A4, 1, #EdlTable.A4, #CommonEDL+1, CommonEDL) 
     for i, v in ipairs(EdlTable.A4.Splits) do FieldMatch(Splits, v, true) end
   end 
   
@@ -1293,12 +2022,13 @@ function CleanUpEDL(CommonEDL, Splits)
   for i=1, #CommonEDL do
     local item = CommonEDL[i] 
     --if item.DestIn == BugTIME then
-    if item.DestIn > 60 then break end
+    --if item.DestIn > 60 then break end
     msg('\nitem  '..i ..'  '..item.Type)
     msg('In/Out '..reaper.format_timestr_pos(item.DestIn,'',5) ..' - '.. reaper.format_timestr_pos(item.DestOut,'',5))
       for j, clip in ipairs(item.Clips) do
         local srcIn = reaper.format_timestr_pos(clip.SrcIn,'',5)
         local srcOut = reaper.format_timestr_pos(clip.SrcOut,'',5)
+        msg(tostring(clip.SrcIn)..' - '..tostring(clip.SrcOut)..'  '..tostring(clip.name))
         msg(srcIn..' - '..srcOut..'  '..tostring(clip.name))
       end
     --end
@@ -1342,26 +2072,50 @@ function CleanUpEDL(CommonEDL, Splits)
     end
   end
   
-  --Remove clips with nil name
-  for i, item in ipairs(CommonEDL) do
-    local c = #item.Clips
-    while c > 0 do
-      local clip = item.Clips[c]
-      if clip.name == nil then table.remove(item.Clips, c) end
-      c = c-1
+  --Remove items with practical zero length and clips with nil name
+  local i = #CommonEDL
+  while i > 0 do
+    local item = CommonEDL[i]
+    if item.DestOut - item.DestIn < MIN_luft_ZERO then
+      table.remove(CommonEDL, i)
+    else
+      local c = #item.Clips
+      while c > 0 do
+        local clip = item.Clips[c]
+        if clip.name == nil then table.remove(item.Clips, c) end
+        c = c-1
+      end
     end
+    i= i-1
+  end
+  
+  --Sort clips by time
+  for i, item in ipairs(CommonEDL) do
+    table.sort(item.Clips, function(a,b) return (a.SrcIn < b.SrcIn) end)
   end
   
   table.sort(CommonEDL, function(a,b) return (a.DestIn < b.DestIn) end)
   
-  --ADD ITEMS WITH EMPTY "CLIPS" TABLE FOR GAPS IF ANY
+  --ADD ITEMS WITH EMPTY "CLIPS" TABLE FOR GAPS
+  local prevEnd
+  local i = #CommonEDL
+  while i > 0 do
+    local item = CommonEDL[i]
+    if i > 1 then prevEnd = CommonEDL[i-1]['DestOut']
+    else prevEnd = 0
+    end
+    if item.DestIn - prevEnd > MIN_luft_ZERO then
+      table.insert(CommonEDL, i, { DestIn = prevEnd, DestOut = item.DestIn, Clips={} } ) 
+    end
+    i = i - 1 
+  end
   
   
   --[[
   msg('\nEDL size is - '..#CommonEDL) msg('')
   ---TEST MESSAGE----
   for i, item in ipairs(CommonEDL) do
-    if item.DestIn > 95 then break end
+    --if item.DestIn > 95 then break end
     --if item.DestIn == BugTIME then
     msg('ITEM '..i) --..' '..item.Type) 
     msg('In/Out '..reaper.format_timestr_pos(item.DestIn,'',5) ..' - '.. reaper.format_timestr_pos(item.DestOut,'',5))
@@ -1389,11 +2143,15 @@ function CompareEDLs(OLD, NEW)
   TrimOldEmpty = 0
   TrimNewEmpty = 0
   
-  if #OLD[1]['Clips'] == 0 then oldLeadEmpty = OLD[1]['DestOut']
+  if #OLD[1]['Clips'] == 0
+  or (#OLD[1]['Clips'] == 1 and #OLD[1]['Clips'][1]['name'] == '::BLACK::') then
+    oldLeadEmpty = OLD[1]['DestOut']
   else oldLeadEmpty = OLD[1]['DestIn']
   end
   
-  if #NEW[1]['Clips'] == 0 then newLeadEmpty = NEW[1]['DestOut']
+  if #NEW[1]['Clips'] == 0
+  or (#NEW[1]['Clips'] == 1 and #NEW[1]['Clips'][1]['name'] == '::BLACK::') then
+    newLeadEmpty = NEW[1]['DestOut']
   else newLeadEmpty = NEW[1]['DestIn']
   end
   
@@ -1405,7 +2163,7 @@ function CompareEDLs(OLD, NEW)
   
   if newLeadEmpty
   and new_TrimLeadingTime == true and new_TrimOnlyEmptyTime == true
-  and newLeadEmpty >= reaper.parse_timestr_pos( TrimNewTime, 5 ) then
+  and newLeadEmpty >= reaper.parse_timestr_pos( TrimNewTime, 5 ) - PrjTimeOffset then
     TrimNewEmpty = newLeadEmpty - math.fmod(newLeadEmpty / (reaper.parse_timestr_pos(TrimNewTime, 5)-PrjTimeOffset) )
   end
   
@@ -1467,13 +2225,13 @@ function CompareEDLs(OLD, NEW)
           local diff, len
           --msg(type(path)..path) msg(type(file)..file) msg(type(ext)..ext) msg('')
           if file == ext then --or not oldClip.name
-          --
+          --message
             if newitem.DestIn == BugTIME then
               msg('file == ext')
               msg('NI  '..newitem.DestOut.." - "..newitem.DestIn)
               msg('OI  '..olditem.DestOut.." - "..olditem.DestIn)
             end
-            
+          --]]
             --Old clip is in/out black or graphic/effect - there is no sense to compare src timings
             --Consider them as matched if they lengthes are equal
             if math.abs((newitem.DestOut - newitem.DestIn) - (olditem.DestOut - olditem.DestIn)) < MIN_luft_ZERO then
@@ -1493,9 +2251,9 @@ function CompareEDLs(OLD, NEW)
                 end
                 if not isMatched then table.insert(difCount, {diff}) end
               end
-            --else return
+            
             end
-            --break
+            
           else
           --
             if newitem.DestIn == BugTIME then
@@ -1503,7 +2261,7 @@ function CompareEDLs(OLD, NEW)
             end
             if oldClip.SrcIn < newClip.SrcOut and oldClip.SrcOut > newClip.SrcIn then 
               diff = newClip.SrcIn - oldClip.SrcIn
-              --Round diff to frames is there is any inaccuracy
+              --Round diff to frames if there is any inaccuracy
               diff = reaper.parse_timestr_pos( reaper.format_timestr_pos(diff,'',5) , 5)
               
               --if newitem.DestIn == BugTIME then msg('diff found  '..diff) end
@@ -1817,7 +2575,8 @@ function CompareEDLs(OLD, NEW)
     end
   end
   
-  table.sort(DiffT, function(a,b) return ( a[3] + (a[2]-a[1]) < b[3] + (b[2]-b[1]) ) end) 
+  table.sort(DiffT, function(a,b) return ( a[3] + (a[2]-a[1]) < b[3] + (b[2]-b[1]) ) end)
+  --^^Sort by end edge of item for case if there are overlappings
   Opt = {}
   Opt.HealGaps = false Opt.HealSplits = true
   --[[
@@ -1870,8 +2629,7 @@ function CreateReportMarkers()
   
   local track = reaper.GetTrack(0, LastRefTrID)
   local fl = reaper.SetMediaTrackInfo_Value(track, 'I_FREEMODE', 2 )
-  local lanesN = reaper.GetMediaTrackInfo_Value(track, 'I_NUMFIXEDLANES')
-  --reaper.UpdateTimeline()
+  local lanesN = reaper.GetMediaTrackInfo_Value(track, 'I_NUMFIXEDLANES') 
   local splits
   local gaps
   local xfades
@@ -2075,13 +2833,14 @@ function CollectSelectedItems(TableToAdd,areaStart,areaEnd)
 end
 
 -----------------------------
-function round(value, digitsAfterDot) 
+function round(value, digitsAfterDot)
   return tonumber(string.format("%."..digitsAfterDot.."f", tostring(value)))
 end
 
 -----------------------------
 function CleanUpRefItems(Items)
   local i = #Items
+  
   while i>1 do
   --
     local areaStart = round(Items[i][1], 4)
@@ -2091,21 +2850,13 @@ function CleanUpRefItems(Items)
     local prevAstart = round(Items[i-1][1], 4)
     local prevAend = round(Items[i-1][2], 4)
     local prevTpos = round(Items[i-1][3], 4)
-    --[[
-    local areaStart = Items[i][1]
-    local areaEnd = Items[i][2]
-    local targetPos = Items[i][3]
     
-    local prevAstart = Items[i-1][1]
-    local prevAend = Items[i-1][2]
-    local prevTpos = Items[i-1][3]
-    ]]
     if Opt.HealGaps == true then
       if  math.abs( (areaStart - (targetPos - prevTpos)) - prevAstart ) < MIN_luft_ZERO then
         Items[i-1][2] = areaEnd
         table.remove(Items,i)
       end
-    elseif Opt.HealSplits == true then 
+    elseif Opt.HealSplits == true then
       if math.abs( targetPos - (prevTpos + (prevAend - prevAstart)) ) < MIN_luft_ZERO
       and areaStart == prevAend then
         Items[i-1][2] = areaEnd
@@ -2192,11 +2943,26 @@ end
 -----------------------------
 
 function SetREarea(areaStart, areaEnd)
-  local trcnt = reaper.CountTracks(0)
+  local trcnt
+  local minID
   local timeString = tostring(areaStart) ..' '.. tostring(areaEnd) ..' '
   
-  for i = LastRefTrID +1, trcnt -1 do
-    local track = reaper.GetTrack(0,i)
+  if Opt.ReconfOnlySel then
+    trcnt = reaper.CountSelectedTracks(0)
+    minID = 0
+  else
+    trcnt = reaper.CountTracks(0)
+    minID = LastRefTrID +1
+  end
+  
+  for i = minID, trcnt -1 do
+    local track
+    if Opt.ReconfOnlySel then
+      track = reaper.GetSelectedTrack(0,i)
+    else
+      track = reaper.GetTrack(0,i)
+    end
+    
     local envcnt = reaper.CountTrackEnvelopes(track)
     --msg(envcnt)
     local string = timeString..'""'
@@ -2219,7 +2985,7 @@ function CopyTempo(areaStart, areaEnd, pasteTarget)
   while timeMarkToDel > pasteTarget do
    local markToDel = reaper.FindTempoTimeSigMarker( 0, timeMarkToDel - 0.002 )
     _, timeMarkToDel, _, _, _, _, _, _ = reaper.GetTempoTimeSigMarker(0, markToDel )
-    if timeMarkToDel > pasteTarget then  reaper.DeleteTempoTimeSigMarker( 0, markToDel ) end
+    if timeMarkToDel > pasteTarget then reaper.DeleteTempoTimeSigMarker( 0, markToDel ) end
   end
   
   -- Now we can copy from source
@@ -2269,6 +3035,7 @@ function CopyTempo(areaStart, areaEnd, pasteTarget)
   end
   
   --for i, v in pairs(PointsTable) do msg(v.Time) end
+  table.sort(PointsTable, function(a,b) return a.Time < b.Time end)
 
   local pNumb = #PointsTable
   
@@ -2453,9 +3220,24 @@ function ToggleDisableLanes(disable) --boolean
   if disable == false then
     DisLanesTrTable = {}
     CollapsedTrTable = {}
-    local trcnt = reaper.CountTracks(0)
-    for i = LastRefTrID +1, trcnt -1 do
-      local track = reaper.GetTrack(0,i)
+    local trcnt
+    local minID
+    
+    if Opt.ReconfOnlySel then
+      trcnt = reaper.CountSelectedTracks(0)
+      minID = 0
+    else
+      trcnt = reaper.CountTracks(0)
+      minID = LastRefTrID +1
+    end
+    
+    for i = minID, trcnt -1 do
+      local track
+      if Opt.ReconfOnlySel then
+        track = reaper.GetSelectedTrack(0,i)
+      else
+        track = reaper.GetTrack(0,i)
+      end
       local lanesState = reaper.GetMediaTrackInfo_Value(track, 'C_LANESCOLLAPSED')
       
       if lanesState == 2 then
@@ -2488,15 +3270,29 @@ end
 -----------------------------
 
 function RemoveExtraPoints(refItems)
-  local trCount = reaper.CountTracks(0)
+  local trcnt
+  local minID
   local transTime = GetPrefs('envtranstime')
-  for i = -1, trCount -1 do 
-    if i < 0 or i > LastRefTrID then 
+  
+  if Opt.ReconfOnlySel then
+    trcnt = reaper.CountSelectedTracks(0)
+    minID = 0
+  else
+    trcnt = reaper.CountTracks(0)
+    minID = LastRefTrID
+  end
+  
+  for i = -1, trcnt -1 do 
+    if i < 0 or i > minID then
       local tr
       if i == -1 then
         tr = reaper.GetMasterTrack(0)
-      else
-        tr = reaper.GetTrack(0, i)
+      else 
+        if Opt.ReconfOnlySel then
+          tr = reaper.GetSelectedTrack(0,i)
+        else
+          tr = reaper.GetTrack(0,i)
+        end
       end
       local envCount = reaper.CountTrackEnvelopes(tr)
       --msg('\nTrack '..(i+1))
@@ -2643,10 +3439,7 @@ end
 -----------------------------
 
 function main()
---return coroutine.create(function()
-  ProcessString = 'Initialization'
-  --ShowProgress()
-  --coroutine.yield(ProcessString)
+  
   SetOptGlobals()
   local editCurPos = reaper.GetCursorPosition()
   Regions = {}
@@ -2663,12 +3456,17 @@ function main()
     reaper.ShowMessageBox('Please select reference items on a track','Simple Project Reconform', 0)
     return
   end
+  
+  if Opt.ReconfOnlySel then
+    for t = 0, reaper.CountSelectedTracks(0) - 1 do
+      local tr = reaper.GetSelectedTrack(0,t)
+      table.insert(SelTracks, tr)
+    end
+  end
+  
   reaper.Undo_BeginBlock2( 0 )
   reaper.PreventUIRefresh( 1 )
   
-  ProcessString = 'Preparing'
-  --ShowProgress()
-  --coroutine.yield(ProcessString)
   
   if Opt.ReconfMaster == true then
     local mtvis = reaper.GetToggleCommandState(40075) --View: Toggle master track visible
@@ -2733,10 +3531,7 @@ function main()
   end
   
    
-  for i, item in ipairs(refItems) do --Start reconform cycle 
-    ProcessString = "Copying area # " ..i
-    --ShowProgress()
-    --coroutine.yield(ProcessString)
+  for i, item in ipairs(refItems) do --Start reconform cycle
     local areaStart = item[1]
     local areaEnd = item[2]
     local refPos = item[3]
@@ -2754,7 +3549,20 @@ function main()
       reaper.Main_OnCommandEx(42398,0,0) --Item: Paste items/tracks 
     end
     
-    reaper.SetOnlyTrackSelected(reaper.GetTrack(0,LastRefTrID +1))
+    if not Opt.ReconfOnlySel then
+      reaper.SetOnlyTrackSelected(reaper.GetTrack(0,LastRefTrID +1))
+    else
+      for t, track in ipairs(SelTracks) do 
+        local id = reaper.GetMediaTrackInfo_Value( track, 'IP_TRACKNUMBER' ) -1
+        if id <= LastRefTrID then
+          reaper.ShowMessageBox('Selected target tracks have to be under the reference track!','Reconform Error',0)
+          return
+        end
+        if t == 1 then reaper.SetOnlyTrackSelected(track)
+        else reaper.SetTrackSelected(track, true)
+        end
+      end
+    end
     reaper.Main_OnCommandEx(42406,0,0) --Razor edit: Clear all areas
     SetREarea(areaStart, areaEnd)
     reaper.Main_OnCommandEx(40057,0,0)
@@ -2768,7 +3576,6 @@ function main()
     
   end --End reconform cycle
   
-  ProcessString = 'Finishing'
   RemoveExtraPoints(refItems)
   RestoreEnvVis()
   if Opt.ReconfLockedItems == true then RestoreLockedItems() end
@@ -2790,17 +3597,21 @@ function main()
     reaper.Main_OnCommandEx(42406,0,0) --Razor edit: Clear all areas
     reaper.Undo_EndBlock2( 0, UndoString, -1 ) 
     reaper.UpdateArrange()
-    ProcessString = 'Reconform finished'
-    --ShowProgress()
-    --coroutine.yield(ProcessString)
     UndoString = nil
   else reaper.defer(function()end) 
   end
-  --end) --end of coroutine
+  
 end
 
 -----------------------------
 -------START-------------------
+--[[
+local profiler = dofile(reaper.GetResourcePath() ..
+  '/Scripts/ReaTeam Scripts/Development/cfillion_Lua profiler.lua')
+reaper.defer = profiler.defer
+profiler.attachToWorld() -- after all functions have been defined
+profiler.run()
+]]
 
 OptionsWindow()
 
