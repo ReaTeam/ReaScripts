@@ -1,9 +1,7 @@
 -- @description Conform project using metadata (post-production tools)
 -- @author AZ
--- @version 0.7
--- @changelog
---   - New improved EDL parser that can cover different EDL text formatting more wider.
---   - Better handling overlapped items.
+-- @version 0.7.1
+-- @changelog - Respect project time offset
 -- @provides
 --   az_Conform project using metadata (post-production tools)/az_Conform project_Core.lua
 --   [main] az_Conform project using metadata (post-production tools)/az_Rename takes with last used settings (post-production tools).lua

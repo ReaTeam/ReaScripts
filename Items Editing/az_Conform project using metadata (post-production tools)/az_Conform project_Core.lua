@@ -211,9 +211,7 @@ function MainWindow(OptTable, windowName)
   
   
   -------------- 
-  function frame()
-    MIN_luft_ZERO = reaper.parse_timestr_pos('00:00:00:01', 5) / 4
-    
+  function frame() 
     reaper.ImGui_PushFont(ctx, font)
     
     --About button
@@ -304,6 +302,11 @@ function MainWindow(OptTable, windowName)
             addFileNamesToList(EDL, fileNames)
           end
         end
+        
+        reaper.ImGui_SameLine(ctx)
+        reaper.ImGui_PushFont(ctx, fontSep)
+        reaper.ImGui_Text(ctx, 'Note: EDL must be CMX 3600')
+        reaper.ImGui_PopFont(ctx)
         
         showEDLsNames(EDL)
          
@@ -744,6 +747,8 @@ function MainWindow(OptTable, windowName)
   function loop()
     PrjTimeOffset = -reaper.GetProjectTimeOffset( 0, false )
     
+    MIN_luft_ZERO = ( reaper.parse_timestr_pos('00:00:00:01', 5) - PrjTimeOffset ) / 4
+    
     PrFrRate = reaper.SNM_GetIntConfigVar( 'projfrbase', -1 )
     PrDropFrame = reaper.SNM_GetIntConfigVar( 'projfrdrop', -1 )
     
@@ -872,8 +877,6 @@ function AnalyseEDLs(EDLs, timeTreshold) --table of pathes
     local prevBlockNumber, curBlockNumber = 0, 0
     local itemsList = {}
     local block
-    --local fadelen
-    --local clip
     
     for line in io.lines(EDLfile) do
       line = line:gsub('^%s*(.-)%s*$', '%1') --remove spaces at edges
@@ -984,8 +987,8 @@ function AnalyseEDLs(EDLs, timeTreshold) --table of pathes
         
         clip.SrcIn = reaper.parse_timestr_pos( clip.SrcIn, 5 ) - PrjTimeOffset
         clip.SrcOut = reaper.parse_timestr_pos( clip.SrcOut, 5 ) - PrjTimeOffset
-        item.DestIn = reaper.parse_timestr_pos( item.DestIn, 5 ) - PrjTimeOffset - timeTreshold
-        item.DestOut = reaper.parse_timestr_pos( item.DestOut, 5 ) - PrjTimeOffset - timeTreshold
+        item.DestIn = reaper.parse_timestr_pos( item.DestIn, 5 ) - timeTreshold -- - PrjTimeOffset
+        item.DestOut = reaper.parse_timestr_pos( item.DestOut, 5 ) - timeTreshold -- - PrjTimeOffset
         
         item.Type = block.main[1]['track']
         table.insert(item.Clips, copy(clip) )
@@ -1051,8 +1054,8 @@ function AnalyseEDLs(EDLs, timeTreshold) --table of pathes
           
           clip.SrcIn = reaper.parse_timestr_pos( clip.SrcIn, 5 ) - PrjTimeOffset
           clip.SrcOut = reaper.parse_timestr_pos( clip.SrcOut, 5 ) - PrjTimeOffset
-          item.DestIn = reaper.parse_timestr_pos( item.DestIn, 5 ) - PrjTimeOffset - timeTreshold
-          item.DestOut = reaper.parse_timestr_pos( item.DestOut, 5 ) - PrjTimeOffset - timeTreshold
+          item.DestIn = reaper.parse_timestr_pos( item.DestIn, 5 ) - timeTreshold --  - PrjTimeOffset
+          item.DestOut = reaper.parse_timestr_pos( item.DestOut, 5 ) - timeTreshold -- - PrjTimeOffset
           
           item.Type = block.main[i]['track']
            
