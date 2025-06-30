@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="30461dcc1e4fba4bcb861d980f4a6444a088b6b5" name="ReaTeam Scripts">
+<index version="1" commit="f9153b7f3ce74e52e522a1cd87050a393a678f5c" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -6334,6 +6334,12 @@ website
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/500b77225549a0419a358fe1a4e01e7d298c8d47/Items%20Editing/az_Conform%20project%20using%20metadata%20(post-production%20tools).lua</source>
         <source file="az_Conform project using metadata (post-production tools)/az_Conform project_Core.lua">https://github.com/ReaTeam/ReaScripts/raw/500b77225549a0419a358fe1a4e01e7d298c8d47/Items%20Editing/az_Conform%20project%20using%20metadata%20(post-production%20tools)/az_Conform%20project_Core.lua</source>
         <source main="main" file="az_Conform project using metadata (post-production tools)/az_Rename takes with last used settings (post-production tools).lua">https://github.com/ReaTeam/ReaScripts/raw/500b77225549a0419a358fe1a4e01e7d298c8d47/Items%20Editing/az_Conform%20project%20using%20metadata%20(post-production%20tools)/az_Rename%20takes%20with%20last%20used%20settings%20(post-production%20tools).lua</source>
+      </version>
+      <version name="0.7.1" author="AZ" time="2025-06-30T16:25:29Z">
+        <changelog><![CDATA[- Respect project time offset]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f3718723eb85c0ef328b9ba6cc8ef16a335237ee/Items%20Editing/az_Conform%20project%20using%20metadata%20(post-production%20tools).lua</source>
+        <source file="az_Conform project using metadata (post-production tools)/az_Conform project_Core.lua">https://github.com/ReaTeam/ReaScripts/raw/f3718723eb85c0ef328b9ba6cc8ef16a335237ee/Items%20Editing/az_Conform%20project%20using%20metadata%20(post-production%20tools)/az_Conform%20project_Core.lua</source>
+        <source main="main" file="az_Conform project using metadata (post-production tools)/az_Rename takes with last used settings (post-production tools).lua">https://github.com/ReaTeam/ReaScripts/raw/f3718723eb85c0ef328b9ba6cc8ef16a335237ee/Items%20Editing/az_Conform%20project%20using%20metadata%20(post-production%20tools)/az_Rename%20takes%20with%20last%20used%20settings%20(post-production%20tools).lua</source>
       </version>
     </reapack>
     <reapack name="az_Fade tool (work on context of mouse, razor or time selection).lua" type="script" desc="Fade tool (works on context of mouse, razor or time selection)">
@@ -24635,10 +24641,11 @@ v1.0
 
 {\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel0 \b \fs36 Simple Project Reconform\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 It can be useful for post-production to automatically adapt your project to the new version of video.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 The script is under development, but stable enough to try. All your feedback is appreciated. Read more: https://forum.cockos.com/showthread.php?p=2803375#post2803375\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 You can compare EDL (cmx 3600) files or two project tabs that are created from AAF in another application.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The script is under development, but stable enough to try. All your feedback is appreciated. Read more: https://forum.cockos.com/showthread.php?t=293746\par}
 }
 ]]></description>
-        <link rel="website" href="https://forum.cockos.com/showthread.php?p=2803375#post2803375">Forum thread</link>
+        <link rel="website" href="https://forum.cockos.com/showthread.php?t=293746">Forum thread</link>
         <link rel="donation" href="https://www.paypal.me/AZsound">Donate via PayPal</link>
       </metadata>
       <version name="0.5" author="AZ" time="2024-08-14T19:59:23Z">
@@ -24663,6 +24670,13 @@ v1.0
       <version name="0.7.2" author="AZ" time="2025-05-09T18:25:13Z">
         <changelog><![CDATA[- fixed up to 1 ms inaccuracy when creating reference track]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/03706738676d83dbf8f6f7d17a8b1a2d3ffaa5b5/Various/az_Simple%20project%20reconform.lua</source>
+      </version>
+      <version name="0.8" author="AZ" time="2025-06-30T16:25:50Z">
+        <changelog><![CDATA[- New EDL parser that can cover more variants of EDL format
+- New feature for comparison two project tabs that are created from AAF
+- GUI improvements
+- fix: respect project time offset properly]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f9153b7f3ce74e52e522a1cd87050a393a678f5c/Various/az_Simple%20project%20reconform.lua</source>
       </version>
     </reapack>
     <reapack name="beaunus_Import_clip_splicer_specification_json.py" type="script" desc="Import Clip Splicer JSON file">
