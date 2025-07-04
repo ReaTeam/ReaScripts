@@ -1,4 +1,4 @@
--- @description Auto Change Video
+-- @description Auto change video
 -- @author Grayson Solis
 -- @version 1.0
 -- @about
@@ -7,22 +7,8 @@
 --   - If selected track has video, unmute track’s video items and mute all others
 --   - If selected track has no video, finds nearest track above it with video and unmutes that video item instead
 --   - Ignores muted or collapsed tracks
-
---[[
-@name Auto Change Video
-@version 1.0
-@author Grayson Solis
-@description 
-
-- Auto selects nearest video track
-
-- If selected track has video, unmute track’s video items and mute all others
-- If selected track has no video, finds nearest track above it with video and unmutes that video item instead
-- Ignores muted or collapsed tracks
-
-@website https://graysonsolis.com
-@donations https://paypal.me/GrayTunes?country.x=US&locale.x=en_US
-]]
+-- @website https://graysonsolis.com
+-- @donations https://paypal.me/GrayTunes?country.x=US&locale.x=en_US
 
 -- Caching for performance
 
