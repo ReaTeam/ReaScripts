@@ -66,7 +66,7 @@ if not env then
   reaper.PreventUIRefresh(0)
   return
 end
--+
+
 local ok, chunk = reaper.GetEnvelopeStateChunk(env, "", false)
 if not ok then
   reaper.ShowMessageBox("Failed to read envelope.", "Error", 0)
