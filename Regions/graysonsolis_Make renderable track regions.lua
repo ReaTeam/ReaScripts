@@ -1,4 +1,4 @@
--- @description Make Renderable Track Regions
+-- @description Make renderable track regions
 -- @author Grayson Solis
 -- @version 1.0
 -- @about
