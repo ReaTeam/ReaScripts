@@ -1,0 +1,11 @@
+-- @description List FX Parameter Indexes
+-- @author Grayson Solis
+-- @version 1.0
+-- @metapackage
+-- @provides graysonsolis_List FX Parameter Indexes/graysonsolis_List FX Parameter Indexes.lua
+-- @about
+--   Directions:
+--     1) Select a track in REAPER.
+--     2) Run this script.
+--     3) Open the ReaScript Console (View → Show Console) to see the output.
+
