@@ -1,4 +1,4 @@
--- @description Toggle Group
+-- @description Toggle grouping
 -- @author Grayson Solis
 -- @version 1.0
 -- @screenshot Example: https://imgur.com/flmEK6P
@@ -57,4 +57,4 @@ else
     end
 end
 reaper.UpdateArrange()
-reaper.Undo_EndBlock("Toggle Grouping", -1)
+reaper.Undo_EndBlock("Toggle grouping", -1)
