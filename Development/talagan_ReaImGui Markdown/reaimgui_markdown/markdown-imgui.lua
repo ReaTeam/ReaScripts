@@ -58,7 +58,7 @@ local Colors = {
 local DEFAULT_COLOR = 0xCCCCCCFF
 
 local DEFAULT_STYLE = {
-    default     = { font_family = "sans-serif", font_size = 13, base_color = "#CCCCCC", bold_color = "white" },
+    default     = { font_family = "sans-serif", font_size = 13, base_color = "#CCCCCC", bold_color = "white", autopad = 5 },
 
     h1          = { font_family = "sans-serif", font_size = 23, padding_left = 0,  padding_top = 3, padding_bottom = 5, line_spacing = 5, base_color = "#288efa", bold_color = "#288efa" },
     h2          = { font_family = "sans-serif", font_size = 21, padding_left = 5,  padding_top = 3, padding_bottom = 5, line_spacing = 5, base_color = "#4da3ff", bold_color = "#4da3ff" },
@@ -161,9 +161,9 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
     local num_line       = 0
     local num_on_line    = 0
     local in_link        = false
-    local indentation    = 0
     local base_txt_color = DEFAULT_COLOR
     local should_wrap    = options.wrap
+    local h_stack        = {} -- Used by autopad
 
     local nodes          = {}
 
@@ -300,6 +300,7 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
         pop_style()
     end
 
+    -- This is used as a basic "cascading" stylesheet, to override the current style (colors, font etc)
     local function local_style_name(node)
         if node.type == "Document" then
             return nil
@@ -309,10 +310,21 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
             if font_level < 1 then font_level = 1 end
             if font_level > 5 then font_level = 5 end
 
+            -- Dirty hack, we store the level here
+            node.hlevel = font_level
+
             return  "h" ..font_level
         elseif node.type == "Paragraph" then
             if node.parent_blockquote then return "blockquote" end
             return "paragraph"
+        elseif node.type == "Bold" then
+            return nil
+        elseif node.type == "Italic" then
+            return nil
+        elseif node.type == "Code" then
+            return nil
+        elseif node.type == "Text" then
+            return nil
         elseif node.type == "Link" then
             return "link"
         elseif node.type == "LineBreak" then
@@ -360,9 +372,9 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
             end
 
             -- Check if we have a local style
-            local style_name  = local_style_name(node)
-            local local_style = style[style_name]
-            local overriden_color = nil
+            local style_name        = local_style_name(node)
+            local local_style       = style[style_name]
+            local overriden_color   = nil
 
             if local_style then
                 node.style.name = style_name
@@ -410,6 +422,32 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
         end
     end
 
+    local function left_indent(node_style, level)
+        local pad = node_style.padding_left
+
+        if options.autopad then
+            pad = #h_stack * style.default.autopad
+        end
+
+        -- This is a sub-indented block (like sublist...)
+        -- The parent is already padded in a group, so we just need to sub-pad
+        if node_style.padding_indent then
+            if level ~= 1 then
+                pad = node_style.padding_indent
+            else
+                if options.autopad then
+                    pad = pad + node_style.padding_indent
+                end
+            end
+        end
+
+        return pad
+    end
+
+    local function IndentLeft(node_style, level)
+        ImGui.SetCursorPosX(ctx, ImGui.GetCursorPosX(ctx) + left_indent(node_style, level))
+    end
+
     -- Define render_node
     local function render_node(node, level)
 
@@ -422,19 +460,23 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
                 render_node(child, level)
             end
         elseif node.type == "Header" then
+
             num_line    = num_line + 1
             num_on_line = 0
-            indentation = 0
 
-            local hstyle = style[node.style.name]
+            local nstyle        = style[node.style.name]
+
+            while (#h_stack > 0) and (h_stack[#h_stack] >= node.hlevel) do
+                -- Remove all superfluous levels from the stack
+                h_stack[#h_stack] = nil
+            end
 
             -- Add some vertical padding before
-            ImGuiVDummy(ctx, hstyle.padding_top)
-
-            ImGui.SetCursorPosX(ctx, ImGui.GetCursorPosX(ctx) + hstyle.padding_left)
+            ImGuiVDummy(ctx, nstyle.padding_top)
+            IndentLeft(nstyle, level)
 
             ImGui.BeginGroup(ctx)
-            ImGui.PushStyleVar(ctx, ImGui.StyleVar_ItemSpacing, 0, hstyle.line_spacing)
+            ImGui.PushStyleVar(ctx, ImGui.StyleVar_ItemSpacing, 0, nstyle.line_spacing)
             push_style(node)
             render_children(node.children, level)
             pop_style()
@@ -442,22 +484,25 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
             ImGui.EndGroup(ctx)
 
             -- Add some vertical padding after
-            ImGuiVDummy(ctx, hstyle.padding_bottom)
+            ImGuiVDummy(ctx, nstyle.padding_bottom)
+
+            h_stack[#h_stack+1] = node.hlevel -- Add current level
 
         elseif node.type == "Paragraph" then
             num_line    = num_line + 1
             num_on_line = 0
-            indentation = 1
+
+            local nstyle = style.paragraph
 
             -- Add some vertical padding before
-            ImGuiVDummy(ctx, ((node.parent_blockquote) and (style.paragraph.padding_in_blockquote) or (style.paragraph.padding_top)))
+            ImGuiVDummy(ctx, ((node.parent_blockquote) and (nstyle.padding_in_blockquote) or (nstyle.padding_top)))
 
             -- Indent left, using cursor
-            ImGui.SetCursorPosX(ctx, ImGui.GetCursorPosX(ctx) + style.paragraph.padding_left)
+            IndentLeft(nstyle, level)
 
             -- Use a group to lock the x indentation
             ImGui.BeginGroup(ctx)
-            ImGui.PushStyleVar(ctx, ImGui.StyleVar_ItemSpacing, 0, style.paragraph.line_spacing)
+            ImGui.PushStyleVar(ctx, ImGui.StyleVar_ItemSpacing, 0, nstyle.line_spacing)
             push_style(node)
             render_children(node.children, level)
             pop_style()
@@ -466,7 +511,7 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
 
             -- Add some vertical padding after
             -- If we're in a blockquote, force symmetry
-            ImGuiVDummy(ctx, ((node.parent_blockquote) and (style.paragraph.padding_in_blockquote) or (style.paragraph.padding_bottom)))
+            ImGuiVDummy(ctx, ((node.parent_blockquote) and (nstyle.padding_in_blockquote) or (nstyle.padding_bottom)))
 
         elseif node.type == "Bold" then
             render_children(node.children, level)
@@ -502,28 +547,26 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
 
         elseif node.type == "LineBreak" then
 
-            indentation     = 1
             num_on_line     = 0
             num_line        = num_line + 1
 
             ImGui.NewLine(ctx)
 
         elseif (node.type == "UnorderedList") or (node.type == "OrderedList") then
+            local nstyle = style.list
 
             if level > 1 then
                 -- Special case for sub lists. They are added directly behind inlined elements
                 -- So this is the only criteria that helps us to decide
                 ImGui.NewLine(ctx)
             else
-                ImGuiVDummy(ctx, style.list.padding_top)
+                ImGuiVDummy(ctx, nstyle.padding_top)
             end
 
             num_line        = num_line + 1
             num_on_line     = 0
-            indentation     = indentation + 1
 
-            -- Advance cursor. We assume that the precedent block used NewLine.
-            ImGui.SetCursorPosX(ctx, ImGui.GetCursorPosX(ctx) + ((level == 1) and (style.list.padding_left) or (style.list.padding_indent)) )
+            IndentLeft(nstyle, level)
 
             ImGui.BeginGroup(ctx)
             render_children(node.children, level)
@@ -533,12 +576,13 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
             if level > 1 then
                 ImGui.SameLine(ctx)
             else
-                ImGuiVDummy(ctx, style.list.padding_bottom)
+                ImGuiVDummy(ctx, nstyle.padding_bottom)
             end
 
-            indentation = indentation - 1
 
         elseif node.type == "ListItem" then
+            local nstyle = style.list
+
             num_line        = num_line + 1
             num_on_line     = 0
 
@@ -556,7 +600,7 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
             end
 
             push_style(node)
-            ImGui.PushStyleVar(ctx, ImGui.StyleVar_ItemSpacing, 0, style.list.line_spacing)
+            ImGui.PushStyleVar(ctx, ImGui.StyleVar_ItemSpacing, 0, nstyle.line_spacing)
             -- Since we've added bullet / numbering, go back to current line
             ImGui.SameLine(ctx)
             ImGui.BeginGroup(ctx)
@@ -568,20 +612,20 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
             pop_style()
 
         elseif node.type == "Blockquote" then
+            local nstyle = style.blockquote
+
             num_line        = num_line + 1
             num_on_line     = 0
 
-            local bstyle = style.blockquote
-
             if level == 1 then
                 -- Add some vertical padding before
-                ImGuiVDummy(ctx, bstyle.padding_top)
+                ImGuiVDummy(ctx, nstyle.padding_top)
             else
                 ImGuiVDummy(ctx, style.paragraph.padding_in_blockquote)
             end
 
             -- Indent left, using cursor
-            ImGui.SetCursorPosX(ctx, ImGui.GetCursorPosX(ctx) + ((level == 1) and (bstyle.padding_left) or (bstyle.padding_indent)))
+            IndentLeft(nstyle, level)
 
             local x, y = ImGui.GetCursorScreenPos(ctx)
 
@@ -596,37 +640,38 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
 
             local x2, y2 = ImGui.GetCursorScreenPos(ctx)
             local draw_list = ImGui.GetWindowDrawList(ctx)
-            x = x + style.paragraph.padding_left - 10
+            x = x + left_indent(style.paragraph, 1) - 10
             ImGui.DrawList_AddRectFilled(draw_list, x, y, x + 4 , y2, 0x288efaFF)
 
             if level == 1 then
-                -- Add some vertical padding before
-                ImGuiVDummy(ctx, bstyle.padding_bottom)
+                -- Add some vertical padding after
+                ImGuiVDummy(ctx, nstyle.padding_bottom)
             else
                 ImGuiVDummy(ctx, style.paragraph.padding_in_blockquote)
             end
 
         elseif node.type == "CodeBlock" then
+            local nstyle = style.code
 
             num_line        = num_line + 1
             num_on_line     = 0
 
-            ImGuiVDummy(ctx, style.code.padding_top)
+            ImGuiVDummy(ctx, nstyle.padding_top)
 
-            ImGui.SetCursorPosX(ctx, ImGui.GetCursorPosX(ctx) + style.code.padding_left)
+            IndentLeft(nstyle, level)
 
             ImGui.BeginGroup(ctx)
             ImGui.PushStyleVar(ctx, ImGui.StyleVar_ItemSpacing, 0, 0)
             push_style(node)
-            ImGui.TextColored(ctx, resolve_color(style.code.color), node.value)
+            ImGui.TextColored(ctx, resolve_color(nstyle.color), node.value)
             pop_style()
             ImGui.PopStyleVar(ctx)
             ImGui.EndGroup(ctx)
 
-            ImGuiVDummy(ctx, style.code.padding_bottom)
+            ImGuiVDummy(ctx, nstyle.padding_bottom)
 
         elseif node.type == "Image" then
-            indentation     = 1
+
             num_on_line     = 0
             num_line        = num_line + 1
 
@@ -635,7 +680,8 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
             pop_style()
 
         elseif node.type == "Table" then
-            indentation     = 1
+            local nstyle = style.table
+
             num_on_line     = 0
             num_line        = num_line + 1
 
@@ -646,9 +692,9 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
                 if #row > column_count then column_count = #row end
             end
 
-            ImGuiVDummy(ctx, style.table.padding_top)
+            ImGuiVDummy(ctx, nstyle.padding_top)
 
-            ImGui.SetCursorPosX(ctx, ImGui.GetCursorPosX(ctx) + style.table.padding_left)
+            IndentLeft(nstyle, level)
 
             ImGui.BeginGroup(ctx)
             push_style(node)
@@ -673,7 +719,7 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
             end
             ImGui.EndGroup(ctx)
             pop_style()
-            ImGuiVDummy(ctx, style.table.padding_bottom)
+            ImGuiVDummy(ctx, nstyle.padding_bottom)
         end
         return nodes
     end

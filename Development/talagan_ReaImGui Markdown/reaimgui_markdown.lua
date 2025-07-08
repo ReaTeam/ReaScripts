@@ -55,7 +55,7 @@ function ReaImGuiMd:setPartialStyle(style)
 end
 
 function ReaImGuiMd:setStyle(style)
-    deepCopy(self.style, style)
+    self.style = deepCopy(style)
 end
 
 function ReaImGuiMd:setOptions(options)
