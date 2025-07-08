@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="7da037e4fb778d0259affd34617c51e5aec63292" name="ReaTeam Scripts">
+<index version="1" commit="75f960c923015d2f6b9a91fc31579e8e9b04bd27" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -2844,6 +2844,20 @@ Remember the window position, size and dock state]]></changelog>
     <reapack name="edgemeal_Toggle visible envelopes inlane for selected track.lua" type="script" desc="Toggle visible envelopes inlane for selected track">
       <version name="1.0" author="Edgemeal" time="2019-02-23T10:04:41Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/95ebdcb04713797ab507fdc76ffb64146bb3bd22/Envelopes/edgemeal_Toggle%20visible%20envelopes%20inlane%20for%20selected%20track.lua</source>
+      </version>
+    </reapack>
+    <reapack name="graysonsolis_Toggle ReaPitch shift (cents) envelope.lua" type="script" desc="Toggle ReaPitch shift (cents) envelope">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Toggles Shift (cents) envelope lane for ReaPitch on selected track. Adds ReaPitch if missing. Similar to the "volume" or "pan" default track envelopes. The parameter used can be toggled by editing the lines below!\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="Grayson Solis" time="2025-07-08T06:05:00Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/75f960c923015d2f6b9a91fc31579e8e9b04bd27/Envelopes/graysonsolis_Toggle%20ReaPitch%20shift%20(cents)%20envelope.lua</source>
       </version>
     </reapack>
     <reapack name="jreverb_Snap selected tcpfx envelope points to semitones.lua" type="script" desc="Snap selected tcpfx envelope points to semitones">
