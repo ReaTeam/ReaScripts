@@ -1,7 +1,9 @@
 -- @description Perfect Timing! - Audio Quantizer
 -- @author 80icio
--- @version 0.28
--- @changelog - Fixed warp quantize not working randomly
+-- @version 0.29
+-- @changelog
+--   - Fixed trackgroup editing behaviour from edit group 32 to 128
+--   - Updated to 128 edit groups (128 groups??!?! really?!?)
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=288964
 -- @about
 --   # PERFECT TIMING! 
@@ -17,12 +19,6 @@
 --   * Multisized GUI
 --   * Works with fixed lanes
 
---- This script is a re adaptation and re writing of  @Cool Mk Slicer 2 (80icio Mod)
---- Thanks to Cool for Mk Slicer, I mainly learnt coding LUA from his script
---- Thanks to amagalma 'Toggle show editing guide line on item under mouse cursor in Main Window' for letting me seee how to draw lines on the screen
---- Thanks to Nickstomp for export track group names
---- Thanks to _Stevie_ for testing at very early stages
---- Thanks to drummerboy, mtierney, MykRobinson for testing
 
 -----------------------------vars vars vars!-----------------------------------
 -------------------------------------------------------------------------------
@@ -463,7 +459,7 @@ end
 
 function GetGroupNames(table)
     local group_names = {}
-    for i = 1, 64 do
+    for i = 1, 128 do
         group_names[i] = GetGroupName(i)
     end
     return group_names
@@ -2728,6 +2724,12 @@ if visible then
       local selgrp
       
       for i = 1, #group_names_lst do
+      
+      local commid=40803
+      
+      if i>32 and i<=64 then commid=42204 end
+      if i>64 then commid=43149 end
+
         ImGui.TableNextRow( ctx )
         ImGui.TableSetColumnIndex(ctx, 0)
         editcheck, editgroup[i] = ImGui.Selectable( ctx, tostring('Grp '.. i ..' ' .. group_names_lst[i]), editgroup[i] )
@@ -2744,7 +2746,7 @@ if visible then
         end
         
         if editgroup[i] and check_itm then
-          r.Main_OnCommandEx( 40803+i, 0, 0 ) --Group: Select all tracks in group 'i'
+          r.Main_OnCommandEx( commid+i, 0, 0 ) --Group: Select all tracks in group 'i'
         end
 
       end
