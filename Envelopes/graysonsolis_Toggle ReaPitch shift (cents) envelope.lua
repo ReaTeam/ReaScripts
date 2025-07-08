@@ -1,4 +1,4 @@
--- @description Toggle Track Pitch Envelope
+-- @description Toggle ReaPitch shift (cents) envelope
 -- @author Grayson Solis
 -- @version 1.0
 -- @about
@@ -92,6 +92,5 @@ chunk = chunk
 reaper.SetEnvelopeStateChunk(env, chunk, false)
 reaper.TrackList_AdjustWindows(false)
 reaper.UpdateArrange()
-reaper.Undo_EndBlock("Toggle ReaPitch Shift (cents) Envelope (default height)", 0)
+reaper.Undo_EndBlock("Toggle ReaPitch shift (cents) envelope (default height)", 0)
 reaper.PreventUIRefresh(0)
-
