@@ -150,7 +150,6 @@ local function resolve_color(color_name)
     return (numcol << 8) | 0xFF
 end
 
-
 -- HTML generation from AST
 local function ASTToImgui(ctx, ast, fonts, style, options)
 
@@ -158,14 +157,15 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
 
     options = options or {}
 
-    local num_line       = 0
-    local num_on_line    = 0
-    local in_link        = false
-    local base_txt_color = DEFAULT_COLOR
-    local should_wrap    = options.wrap
-    local h_stack        = {} -- Used by autopad
-
-    local nodes          = {}
+    local precalc_last_node         = nil
+    local rendered_last             = false
+    local num_line                  = 0
+    local num_on_line               = 0
+    local in_link                   = false
+    local base_txt_color            = DEFAULT_COLOR
+    local should_wrap               = options.wrap
+    local skip_last_whitespace      = options.skip_last_whitespace
+    local h_stack                   = {} -- Used by autopad
 
     -- Placeholder for render_children with proper argument
     local render_children = function(children, level) return nil end
@@ -347,7 +347,7 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
 
     -- Propagate fonts, colors and pre calculate metrics
     local function precalculate_style(parent_node, node)
-
+        precalc_last_node = node
         if not parent_node then
             node.style = {
                 name        = "default",
@@ -449,13 +449,17 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
     end
 
     -- Define render_node
+    local last_node = nil
     local function render_node(node, level)
-
         level = level or 1 -- Default to level 1 if not provided
         if node.type == "Document" then
             if not node.style then
+                -- This is done only once, we instrument the ast and store everyting inside
                 precalculate_style(nil, node)
+                node.last_node = precalc_last_node
             end
+            last_node = node.last_node
+
             for _, child in ipairs(node.children) do
                 render_node(child, level)
             end
@@ -484,7 +488,9 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
             ImGui.EndGroup(ctx)
 
             -- Add some vertical padding after
-            ImGuiVDummy(ctx, nstyle.padding_bottom)
+            if not (rendered_last and skip_last_whitespace) then
+                ImGuiVDummy(ctx, nstyle.padding_bottom)
+            end
 
             h_stack[#h_stack+1] = node.hlevel -- Add current level
 
@@ -511,8 +517,9 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
 
             -- Add some vertical padding after
             -- If we're in a blockquote, force symmetry
-            ImGuiVDummy(ctx, ((node.parent_blockquote) and (nstyle.padding_in_blockquote) or (nstyle.padding_bottom)))
-
+            if not (rendered_last and skip_last_whitespace) then
+                ImGuiVDummy(ctx, ((node.parent_blockquote) and (nstyle.padding_in_blockquote) or (nstyle.padding_bottom)))
+            end
         elseif node.type == "Bold" then
             render_children(node.children, level)
         elseif node.type == "Italic" then
@@ -522,7 +529,10 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
         elseif node.type == "Separator" then
             ImGuiVDummy(ctx, style.separator.padding_top)
             ImGui.Separator(ctx)
-            ImGuiVDummy(ctx, style.separator.padding_bottom)
+
+            if not (rendered_last and skip_last_whitespace) then
+                ImGuiVDummy(ctx, style.separator.padding_bottom)
+            end
         elseif node.type == "Text" then
 
             if should_wrap then
@@ -576,9 +586,10 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
             if level > 1 then
                 ImGui.SameLine(ctx)
             else
-                ImGuiVDummy(ctx, nstyle.padding_bottom)
+                if not (rendered_last and skip_last_whitespace) then
+                    ImGuiVDummy(ctx, nstyle.padding_bottom)
+                end
             end
-
 
         elseif node.type == "ListItem" then
             local nstyle = style.list
@@ -645,7 +656,9 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
 
             if level == 1 then
                 -- Add some vertical padding after
-                ImGuiVDummy(ctx, nstyle.padding_bottom)
+                if not (rendered_last and skip_last_whitespace) then
+                    ImGuiVDummy(ctx, nstyle.padding_bottom)
+                end
             else
                 ImGuiVDummy(ctx, style.paragraph.padding_in_blockquote)
             end
@@ -668,8 +681,9 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
             ImGui.PopStyleVar(ctx)
             ImGui.EndGroup(ctx)
 
-            ImGuiVDummy(ctx, nstyle.padding_bottom)
-
+            if not (rendered_last and skip_last_whitespace) then
+                ImGuiVDummy(ctx, nstyle.padding_bottom)
+            end
         elseif node.type == "Image" then
 
             num_on_line     = 0
@@ -719,9 +733,15 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
             end
             ImGui.EndGroup(ctx)
             pop_style()
-            ImGuiVDummy(ctx, nstyle.padding_bottom)
+
+            if not (rendered_last and skip_last_whitespace) then
+                ImGuiVDummy(ctx, nstyle.padding_bottom)
+            end
         end
-        return nodes
+
+        if last_node == node then
+            rendered_last = true
+        end
     end
 
     -- Redefine render_children with proper implementation

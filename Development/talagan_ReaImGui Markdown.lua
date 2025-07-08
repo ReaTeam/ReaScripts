@@ -1,13 +1,13 @@
 --[[
 @description ReaImGui Markdown : A Markdown rendering library for ReaImGui
-@version 0.1.2
+@version 0.1.3
 @author Ben 'Talagan' Babut
 @license MIT
 @donation https://www.paypal.com/donate/?business=3YEZMY9D6U8NC&no_recurring=1&currency_code=EUR
 @links
   Forum Thread https://forum.cockos.com/showthread.php?t=301055
 @changelog
-  - [Feature] Added autopad
+  - [Feature] Added skip last whitespace
 @metapackage
 @provides
   [nomain] talagan_ReaImGui Markdown/reaimgui_markdown/**/*.lua
