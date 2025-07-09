@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="69a143814d07fe21636a05c5329dd5fc52e08dc2" name="ReaTeam Scripts">
+<index version="1" commit="53b368b67d4dfb4e5c5647f59c7e87dcfc4f7e6b" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -2414,6 +2414,10 @@ Refactored/reorganized the code for readability]]></changelog>
       <version name="2.0" author="mrlimbic, X-Raym, acendan" time="2021-02-22T23:59:11Z">
         <changelog><![CDATA[+ Initial Release]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/aaff2332dae3006cb66d150ea60392369feb9e44/Development/RPP-Parser/Reateam_RPP-Parser.lua</source>
+      </version>
+      <version name="2.0.1" author="mrlimbic, X-Raym, acendan" time="2025-07-09T08:38:57Z">
+        <changelog><![CDATA[# Fix removeNode (thx @3L1)]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/53b368b67d4dfb4e5c5647f59c7e87dcfc4f7e6b/Development/RPP-Parser/Reateam_RPP-Parser.lua</source>
       </version>
     </reapack>
     <reapack name="Reateam_RPP-Parser_test.lua" type="script" desc="RPP Parser Test">
