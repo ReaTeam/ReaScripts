@@ -4,11 +4,13 @@
  * Link: ReaTeam/ReaScripts https://github.com/ReaTeam/ReaScripts
  * Licence: GPL v3
  * REAPER: 5.0
- * Version: 2.0
+ * Version: 2.0.1
 --]]
 
 --[[
  * Changelog:
+ * v2.0.1 (2025-07-09)
+  # Fix removeNode (thx @3L1)
  * v2.0 (2020-02-22)
   + Initial Release
 --]]
@@ -354,7 +356,7 @@ end
 function RChunk:removeNode(node)
   for i, v in pairs(self.children) do
     if node == v then
-      table.remove(self.children, node)
+      table.remove(self.children, i)
       node.parent = nil
       return true
     end
