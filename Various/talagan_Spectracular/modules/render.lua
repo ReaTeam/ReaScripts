@@ -116,11 +116,11 @@ local function render(params)
                 err      = "No time selection !"
             }
         end
-
         local limit         = 8182 -- ImGUI texture size limit
         local max_seconds   = math.floor(limit * params.time_resolution_ms/1000.0)
         local seconds       = math.ceil(te - ts)
 
+--[[
         if seconds > max_seconds then
             -- This is due to the fact the EEL functions are limited to 8M slots
             -- And most of them will explode past this limit ...
@@ -129,10 +129,19 @@ local function render(params)
                 err     = "At the current resolution, the time selection is technically limited to :\n\n" .. max_seconds .. " seconds.\n\nThe current one is :\n\n" .. " " .. seconds .. " seconds.\n\nPlease adjust your time selection."
             }
         end
+        ]]
     end
 
     -- Backup current tracks
     local selectedTracks            = TRACKS.GetSelectedTracks(0)
+
+    if #selectedTracks == 0 then
+        return {
+            success = false,
+            err     = "Please select one or more tracks !"
+        }
+    end
+
     -- Backup this flag
     local scroll_follows_playback   = ScrollFollowsPlaybackState()
 

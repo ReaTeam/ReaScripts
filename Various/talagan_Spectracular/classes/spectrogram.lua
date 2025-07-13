@@ -11,6 +11,8 @@ local MAX_CHUNK_POINT_SIZE = 524288
 local Spectrogram = {}
 Spectrogram.__index = Spectrogram
 
+-- A spectrogram is mono-channel, so we pass the chan_num as reference
+
 -- sample_rate is the sample rate of the signal to anayse
 function Spectrogram:new(spectrum_analysis_context, chan_num)
     local instance = {}

@@ -54,7 +54,6 @@ end
 function SpectrumAnalysisContext:_buildAndRender()
     local params = self.params
 
-
     -- First, perform the right rendering
     local source_ctx = RENDER.render({
         channel_mode        = S.instance_params.channel_mode,
@@ -212,12 +211,16 @@ function SpectrumAnalysisContext:resumeAnalysis()
         local frame_offset = math.floor( (0.5 + self.progress.si) * self.slice_step )
 
         for ci=1, self.chan_count do
+
             -- Read samples, put in buffer, apply hann window
             self:_prepareFFT(ci, frame_offset)
             -- Do the fft, energy processing, and store data
             self:_performFFT()
+            -- Normalize the result
+            self:_normalizeFFT()
             -- Interpolate for notes instead of frequencies
             DSP.resample_curve(self.fft_params.bin_freq_buf, self.fft_params.fft_bin_buf, self.note_freq_buf, self.note_freq_energy_buf, false, "akima")
+
             -- Copy into slices the content of the new energies for this slice, at the offset of the slice
             self.spectrograms[ci]:saveSlice(self.note_freq_energy_buf, self.progress.si)
             -- Calculate the RMSE for this slice
@@ -375,9 +378,10 @@ function SpectrumAnalysisContext:_performFFT()
     else
         self.energy_conservation_test_success = self.energy_conservation_test_success + 1;
     end
+end
 
-    -- Convert FFT bins to decibels
-    -- TODO : if zero padding, should renormalize !!!
+function SpectrumAnalysisContext:_normalizeFFT()
+    -- Convert FFT bins to decibels and apply normalization
 
     -- fft_size                         : size of the window / total number of samples in time window
     -- applied_window_sample_count      : number of effective samples in time window (zero-padding /boundaries applied)
@@ -387,8 +391,9 @@ function SpectrumAnalysisContext:_performFFT()
     --                 _________
     -- |           |__/         \__|          |
 
-    -- Normalize the results by applying various corrections.
+    local fft_params = self.fft_params
 
+    -- Normalize the results by applying various corrections.
     local db_correction_6         = 0.25
     -- Size of the fft window
     local standard_normalisation  = fft_params.full_window_sample_count
@@ -403,6 +408,7 @@ function SpectrumAnalysisContext:_performFFT()
 
     DSP.fft_bins_to_db(fft_params.fft_bin_buf, full_normalisation, -90)
 end
+
 
 function SpectrumAnalysisContext:fftHalfWindowDurationForOctava(octava)
     local samples = self.fft_params.effective_window_sample_count * 0.5

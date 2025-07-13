@@ -3,6 +3,6 @@
 -- @license MIT
 -- @description This file is part of Spectracular
 
-local ImGui     = require 'imgui' '0.9.3'
+local ImGui     = require 'imgui' '0.10'
 
 return ImGui

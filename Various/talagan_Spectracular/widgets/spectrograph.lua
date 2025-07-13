@@ -3,15 +3,16 @@
 -- @license MIT
 -- @description This file is part of Spectracular
 
-local ImGui = require "ext/imgui"
-local DSP   = require "modules/dsp"
-local MIDI  = require "modules/midi"
-local T     = require "widgets/theme"
-local UTILS = require "modules/utils"
-local LRMix = require "widgets/lr_mix"
+local ImGui                     = require "ext/imgui"
+local DSP                       = require "modules/dsp"
+local MIDI                      = require "modules/midi"
+local T                         = require "widgets/theme"
+local UTILS                     = require "modules/utils"
+local LRMix                     = require "widgets/lr_mix"
+local SpectrographImageStrip    = require "widgets/spectrograph_image_strip"
 
-local SpectrographTimeProfile = require "widgets/profiles/spectrograph_time_profile"
-local FrequencySliceProfile   = require "widgets/profiles/frequency_slice_profile"
+local SpectrographTimeProfile   = require "widgets/profiles/spectrograph_time_profile"
+local FrequencySliceProfile     = require "widgets/profiles/frequency_slice_profile"
 
 -------------------------
 
@@ -29,8 +30,8 @@ end
 
 function SpectrographWidget:_initialize(mw)
     self.mw             = mw
-    self.lice_bitmap    = nil
-    self.imgui_bitmap   = nil
+--    self.imgui_bitmap   = nil
+    self.image_strip    = nil
 
     self:setCanvas(0,0,0,0)
     self:setDbBounds(-90, 6)
@@ -38,12 +39,12 @@ function SpectrographWidget:_initialize(mw)
     self:setDrawerWidth(150)
 
     -- Vertical viewport
-    self.vob = 0
-    self.vot = 1
+    self.vp_v_t = 1
+    self.vp_v_b = 0
 
     -- Horizontal viewport
-    self.hol = 0
-    self.hor = 1
+    self.vp_u_l = 0
+    self.vp_u_r = 1
 
     -- Kept profiles
     self.rmse_draw_profile   = SpectrographTimeProfile:new(self, -1, SpectrographTimeProfile.Types.RMSE)
@@ -121,67 +122,16 @@ function SpectrographWidget:setLRBalance(bal)
     self.need_refresh_rgb = true
 end
 
-function SpectrographWidget:createOrResizeLiceBitmap(w, h)
-    if self.lice_bitmap then
-        reaper.JS_LICE_Resize(self.lice_bitmap, w, h)
-    else
-        self.lice_bitmap  = reaper.JS_LICE_CreateBitmap(false, w, h)
+function SpectrographWidget:createOrUpdateImageStrip(ctx)
+    if not self.image_strip then
+        self.image_strip = SpectrographImageStrip:new(ctx)
     end
+
+    self.image_strip:update(ctx, self.sc, self.lr_balance, self.dbmin, self.dbmax)
 end
 
-function SpectrographWidget:recreateImguiBitmapFromLice(ctx)
-    if self.imgui_bitmap then
-        ImGui.Detach(ctx, self.imgui_bitmap)
-    end
-
-    self.imgui_bitmap = nil
-
-    if self.lice_bitmap then
-        self.imgui_bitmap = ImGui.CreateImageFromLICE(self.lice_bitmap)
-        ImGui.Attach(ctx, self.imgui_bitmap)
-    end
-end
-
-function SpectrographWidget:recalculateBitmap(ctx)
-    local sac = self:spectrumContext()
-
-    self:createOrResizeLiceBitmap(sac.slice_count, sac.slice_size)
-
-    -- Chan coeffs for the mix
-    local coeffs = reaper.new_array(sac.chan_count)
-    if sac.chan_count >= 2 then
-        coeffs[1] = self.lr_balance
-        coeffs[2] = 1 - self.lr_balance
-    else
-        coeffs[1] = 1
-    end
-
-    local spectrograms = sac.spectrograms
-    local ref_spectro  = spectrograms[1]
-    for i=1, ref_spectro.chunk_count do
-        local ref_chunk = ref_spectro.chunks[i]
-
-        self.rgb_buf = DSP.ensure_array_size(self.rgb_buf, ref_chunk.data_size)
-
-        local spectro_chunk_datas = {}
-        for ci = 1, sac.chan_count do
-            spectro_chunk_datas[ci] = spectrograms[ci].chunks[i].data
-        end
-
-        DSP.analysis_data_to_rgb_array(spectro_chunk_datas, coeffs, self.rgb_buf, self.dbmin, self.dbmax)
-
-        local pixi = 0
-        for si=0, ref_chunk.slice_count - 1 do
-            for j=0, sac.slice_size -1 do
-                local p = self.rgb_buf[pixi+1]
-                reaper.JS_LICE_PutPixel(self.lice_bitmap, ref_chunk.first_slice_offset + si, sac.slice_size - 1 - j, math.floor(p), 1, "COPY")
-                pixi = pixi + 1
-            end
-        end
-    end
-
-    self:recreateImguiBitmapFromLice(ctx)
-
+function SpectrographWidget:recalculateTextures(ctx)
+    self:createOrUpdateImageStrip(ctx)
     self.need_refresh_rgb = false
 end
 
@@ -194,13 +144,13 @@ end
 function SpectrographWidget:xyToUV(mx, my)
     local diffx             = mx - self.x
     local alphax            = 1.0 * diffx/self.w
-    local rangeu            = self.hor - self.hol
-    local u                 = self.hol + alphax * rangeu
+    local rangeu            = self.vp_u_r - self.vp_u_l
+    local u                 = self.vp_u_l + alphax * rangeu
 
     local diffy             = (self.y + self.h - my)
     local alphay            = 1 - diffy * 1.0/(self.h)
-    local rangev            = self.vot - self.vob
-    local v                 = self.vob + alphay * rangev
+    local rangev            = self.vp_v_t - self.vp_v_b
+    local v                 = self.vp_v_b + alphay * rangev
 
     return {
         u=u,             v=v,
@@ -217,7 +167,7 @@ function SpectrographWidget:yToNoteNum(y)
     local sac           = self:spectrumContext()
     local nr            = sac:noteRange()
 
-    local v             = (y - self.y - self.h) * (self.vot - self.vob)/self.h + self.vot
+    local v             = (y - self.y - self.h) * (self.vp_v_t - self.vp_v_b)/self.h + self.vp_v_t
     local pixoffset     = (1 - v) * sac.slice_size
 
     return (pixoffset - 0.5) / sac.semi_tone_slices + nr.low_note
@@ -228,18 +178,18 @@ function SpectrographWidget:noteNumToY(note_num)
     local nr            = sac:noteRange()
 
     local pixcount                  = sac.slice_size -- number of pixels for the full texture
-    local vspan                     = self.vot - self.vob
+    local vspan                     = self.vp_v_t - self.vp_v_b
     local pix_offset                = (note_num - nr.low_note) * sac.semi_tone_slices + 0.5
     local v                         = 1 - (1.0 * pix_offset) / pixcount
 
-    local y = self.y + self.h - self.h * (self.vot - v) / vspan
+    local y = self.y + self.h - self.h * (self.vp_v_t - v) / vspan
     return y
 end
 
 function SpectrographWidget:xToTime(mx)
     local sac               = self:spectrumContext()
     local prop              = (mx - self.x)/self.w -- Proportion of the viewport
-    local u                 = self.hol + prop * (self.hor -self.hol)
+    local u                 = self.vp_u_l + prop * (self.vp_u_r -self.vp_u_l)
 
     return sac.signal.start + u * (sac.signal.stop - sac.signal.start)
 end
@@ -247,7 +197,7 @@ end
 function SpectrographWidget:timeToX(t)
     local sac           = self:spectrumContext()
     local u             = (t - sac.signal.start)/(sac.signal.stop - sac.signal.start)
-    local prop          = (u - self.hol)/(self.hor - self.hol)
+    local prop          = (u - self.vp_u_l)/(self.vp_u_r - self.vp_u_l)
     local diffx         = prop * self.w
     return self.x + diffx
 end
@@ -260,24 +210,25 @@ function SpectrographWidget:viewBounds()
 end
 
 function SpectrographWidget:resetVerticalZoom()
-    self.vot = 1
-    self.vob = 0
+    self.vp_v_t = 1
+    self.vp_v_b = 0
 end
 
 function SpectrographWidget:resetHorizontalZoom()
-    self.hor = 1
-    self.hol = 0
+    self.vp_u_l = 0
+    self.vp_u_r = 1
 end
 
 function SpectrographWidget:handleMouseWheel(ctx)
     local mx, my        = ImGui.GetMousePos(ctx)
+    local sac           = self:spectrumContext()
 
     -- In this widget, the mouse wheel is used for zooming.
     if self.mw:containsPoint(mx,my) then
         local mw, _ = ImGui.GetMouseWheel(ctx)
         if not (mw == 0)  then
             -- Get the UV pos of the mouse, this is the center of the zoom, which should stay invariant
-            local uvinfo         = self:xyToUV(mx,my)
+            local mouse_uv       = self:xyToUV(mx,my)
             local wpower         = math.ceil( math.log( math.abs(mw)/0.1 * math.exp(0)))
             local zoompower      = ((mw > 0) and (0.9) or (1.1)) ^ wpower
 
@@ -285,24 +236,29 @@ function SpectrographWidget:handleMouseWheel(ctx)
                 if self:containsPoint(mx, my) then
                     -- Verical ZOOM. Accept vertical zoom only if the spectrograph has focus
                     -- New zoom range, apply zoom/unzoom factor
-                    local newrange  = uvinfo.rangev * zoompower
+                    local newrange  = mouse_uv.rangev * zoompower
                     -- Max zoom
                     if newrange < 0.05 then newrange = 0.05 end
                     -- Apply zoom and handle boundaries (this will take care of min zoom too)
-                    self.vob = uvinfo.v - uvinfo.alphay * newrange
-                    if self.vob < 0 then self.vob = 0 end
-                    self.vot = self.vob + newrange
-                    if self.vot > 1 then self.vot = 1 end
+                    self.vp_v_b = mouse_uv.v - mouse_uv.alphay * newrange
+                    if self.vp_v_b < 0 then self.vp_v_b = 0 end
+                    self.vp_v_t = self.vp_v_b + newrange
+                    if self.vp_v_t > 1 then self.vp_v_t = 1 end
                 end
             else
                 -- Horizontal zoom. Accept horizontal zooming everywhere on the full main widget
-                local newrange = uvinfo.rangeu * zoompower
-                if newrange < 0.05 then newrange = 0.05 end
+                local newrange  = mouse_uv.rangeu * zoompower
+                local fulldur   = sac.signal.duration
+                local nrs = fulldur * newrange
+                if nrs < 0.01 then
+                    nrs = 0.01
+                    newrange = nrs / fulldur
+                end
                 -- Apply zoom and handle boundaries (this will take care of min zoom too)
-                self.hol = uvinfo.u - uvinfo.alphax * newrange
-                if self.hol < 0 then self.hol = 0 end
-                self.hor = self.hol + newrange
-                if self.hor > 1 then self.hor = 1 end
+                self.vp_u_l = mouse_uv.u - mouse_uv.alphax * newrange
+                if self.vp_u_l < 0 then self.vp_u_l = 0 end
+                self.vp_u_r = self.vp_u_l + newrange
+                if self.vp_u_r > 1 then self.vp_u_r = 1 end
             end
         end
     end
@@ -323,17 +279,17 @@ function SpectrographWidget:handleLeftMouse(ctx)
     -- Strat of click : memorize click info
     if ImGui.IsMouseClicked(ctx, ImGui.MouseButton_Left) and not UTILS.modifierKeyIsDown() and (not self.mw:prehemptsMouse()) and not self.lr_mix_widget:containsPoint(mx, my) then
         if self.mw:containsPoint(mx,my) then
-            local uvinfo = self:xyToUV(mx,my)
+            local mouse_uv = self:xyToUV(mx,my)
 
             self.click = {
                 x  = mx,
                 y  = my,
-                u  = uvinfo.u,
-                v  = uvinfo.v,
-                vb = self.vob,
-                vt = self.vot,
-                hl = self.hol,
-                hr = self.hor,
+                u  = mouse_uv.u,
+                v  = mouse_uv.v,
+                vb = self.vp_v_b,
+                vt = self.vp_v_t,
+                hl = self.vp_u_l,
+                hr = self.vp_u_r,
                 lock_vertical = not self:containsPoint(mx, my)
             }
         end
@@ -345,21 +301,21 @@ function SpectrographWidget:handleLeftMouse(ctx)
     if (not self.mw:prehemptsMouse()) and not self.mw.rmse_widget.dragged and ImGui.IsMouseDragging(ctx, ImGui.MouseButton_Left) then
         if self.click then
             local ddx = dx * 1.0 / self.w
-            local uvrange = (self.hor - self.hol)
-            self.hol = self.click.hl - ddx * uvrange
-            if self.hol < 0 then self.hol = 0 end
-            self.hor = self.hol + uvrange
-            if self.hor > 1 then self.hor = 1 end
-            self.hol = self.hor - uvrange
+            local uvrange = (self.vp_u_r - self.vp_u_l)
+            self.vp_u_l = self.click.hl - ddx * uvrange
+            if self.vp_u_l < 0 then self.vp_u_l = 0 end
+            self.vp_u_r = self.vp_u_l + uvrange
+            if self.vp_u_r > 1 then self.vp_u_r = 1 end
+            self.vp_u_l = self.vp_u_r - uvrange
 
             if not self.click.lock_vertical then
                 local ddy = dy * 1.0 / self.h
-                local uvrange = (self.vot - self.vob)
-                self.vob = self.click.vb - ddy * uvrange
-                if self.vob < 0 then self.vob = 0 end
-                self.vot = self.vob + uvrange
-                if self.vot > 1 then self.vot = 1 end
-                self.vob = self.vot - uvrange
+                local uvrange = (self.vp_v_t - self.vp_v_b)
+                self.vp_v_b = self.click.vb - ddy * uvrange
+                if self.vp_v_b < 0 then self.vp_v_b = 0 end
+                self.vp_v_t = self.vp_v_b + uvrange
+                if self.vp_v_t > 1 then self.vp_v_t = 1 end
+                self.vp_v_b = self.vp_v_t - uvrange
             end
         end
     end
@@ -425,7 +381,7 @@ function SpectrographWidget:drawHorizontalNoteTicks(ctx, draw_list)
     local sac                   = self:spectrumContext()
     local nr                    = sac:noteRange()
     local pixcount              = sac.slice_size -- number of pixels for the full texture
-    local vspan                 = self.vot - self.vob
+    local vspan                 = self.vp_v_t - self.vp_v_b
     local onepixsspan           = (1.0/pixcount)  -- Span of a pixel in uv coordinates
     local ispan                 = onepixsspan * sac.semi_tone_slices -- Span of a semi tone in uv coordinates
     local ipixspan              = ispan * self.h / vspan -- span of a semin tone in screen pixels
@@ -437,8 +393,8 @@ function SpectrographWidget:drawHorizontalNoteTicks(ctx, draw_list)
         local v                     = 1 - 1.0 * note_bound_pix_offset / pixcount
         local is_c                  = (ni % 12 == 0)
 
-        if (v >= self.vob - ispan) and (v <= self.vot + ispan) then
-            local y = self.y + self.h - self.h * (self.vot - v) / vspan
+        if (v >= self.vp_v_b - ispan) and (v <= self.vp_v_t + ispan) then
+            local y = self.y + self.h - self.h * (self.vp_v_t - v) / vspan
 
             local col = (is_c and T.NOTE_GRID_C or T.NOTE_GRID_OTHER)
 
@@ -455,6 +411,7 @@ function SpectrographWidget:drawHorizontalNoteTicks(ctx, draw_list)
         end
     end
 
+    -- Debug feature : show grid for each PIXEL to check if the display is correct.
     local SHOW_PIX_GRID = false
     if SHOW_PIX_GRID then
         -- Show pix grid
@@ -462,7 +419,7 @@ function SpectrographWidget:drawHorizontalNoteTicks(ctx, draw_list)
             for nj=0, self.sc.semi_tone_slices do
                 local note_bound_pix_offset     = (ni - nr.low_note) * sac.semi_tone_slices + nj
                 local v                         = 1 - 1.0 * note_bound_pix_offset / pixcount
-                local y = self.y + self.h - self.h * (self.vot - v) / vspan
+                local y = self.y + self.h - self.h * (self.vp_v_t - v) / vspan
 
                 ImGui.DrawList_AddLine(draw_list, self.x, y, self.x + self.w, y, 0x80FF80FF)
             end
@@ -474,8 +431,8 @@ function SpectrographWidget:draw(ctx)
     local sac = self:spectrumContext()
     if not sac then return end
 
-    if not self.imgui_bitmap or self.need_refresh_rgb then
-        self:recalculateBitmap(ctx)
+    if not self.image_strip or self.need_refresh_rgb then
+        self:recalculateTextures(ctx)
     end
 
     local draw_list     = ImGui.GetWindowDrawList(ctx)
@@ -486,20 +443,29 @@ function SpectrographWidget:draw(ctx)
     -- Handle scroll / zoom / pan
     self:handleMouse(ctx)
 
+    -- Set clipping on
     self:startClipping(draw_list)
-    -- Draw main texture
-    ImGui.DrawList_AddImage(draw_list, self.imgui_bitmap,
-    self.x + l,  self.y,
-    self.x + r,  self.y + self.h,
-    self.hol, self.vob,
-    self.hor, self.vot)
 
-    ImGui.DrawList_AddRectFilled(draw_list, self.x,   self.y, self.x + l, self.y + self.h, T.SPECTROGRAPH_BORDER_BG)
-    ImGui.DrawList_AddRectFilled(draw_list, self.x+r, self.y, self.x + self.w, self.y + self.h, T.SPECTROGRAPH_BORDER_BG)
+    -- Draw our images from our image strip
+    for ii, img in ipairs(self.image_strip.images) do
 
-    -- Draw borders left and right, to show where the fft
-    --ImGui.DrawList_AddLine(draw_list,        self.x + l, self.y,        self.x + l, self.y + self.h,        T.SPECTROGRAPH_BORDER)
-    --ImGui.DrawList_AddLine(draw_list,        self.x + r, self.y,        self.x + r, self.y + self.h,        T.SPECTROGRAPH_BORDER)
+        -- Test if the image overlaps the viewport
+        local img_overlaps = (img.ul <= self.vp_u_l and img.ur >= self.vp_u_l) or (img.ul >= self.vp_u_l and img.ul <= self.vp_u_r)
+        if img_overlaps then
+            -- The image overlaps, map it to the viewport
+            local local_ul = (img.ul >= self.vp_u_l) and (0) or ( (self.vp_u_l - img.ul) / (img.ur - img.ul) )
+            local local_ur = (img.ur <= self.vp_u_r) and (1) or ( (self.vp_u_r - img.ul) / (img.ur - img.ul) )
+
+            local vp_xl = self.x + ((img.ul <= self.vp_u_l) and (0)         or ( self.w * ((img.ul - self.vp_u_l) / (self.vp_u_r - self.vp_u_l))) )
+            local vp_xr = self.x + ((img.ur >= self.vp_u_r) and (self.w)    or ( self.w * ((img.ur - self.vp_u_l) / (self.vp_u_r - self.vp_u_l))) )
+
+            ImGui.DrawList_AddImage(draw_list, img.image,
+                    vp_xl,   self.y,                -- Top left
+                    vp_xr,   self.y + self.h,       -- Bottom right
+                    local_ul, self.vp_v_b,           -- Top left (U,V) (in image_strip)
+                    local_ur, self.vp_v_t)           -- Bottom right (U,V) in image strip)
+        end
+    end
 
     local mx, my    = ImGui.GetMousePos(ctx)
     local time      = self:xToTime(mx)
@@ -550,7 +516,10 @@ function SpectrographWidget:draw(ctx)
         end
     end
 
+    -- Show grid lines for notes
     self:drawHorizontalNoteTicks(ctx, draw_list)
+
+    -- Show note cursor line (mouse hover)
     self:drawHorizontalCursor(ctx, draw_list)
 
     if UTILS.modifierKeyIsDown() then

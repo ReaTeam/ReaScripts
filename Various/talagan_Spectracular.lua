@@ -1,6 +1,6 @@
 --[[
 @description Spectracular ! Spectrogram binocular for REAPER
-@version 0.2.4
+@version 0.3.0
 @author Ben 'Talagan' Babut
 @donation https://www.paypal.com/donate/?business=3YEZMY9D6U8NC&no_recurring=1&currency_code=EUR
 @license MIT
@@ -10,9 +10,11 @@
   Forum Thread https://forum.cockos.com/showthread.php?p=2847937
 @metapackage
 @changelog
-  - [UX] Better anti-bounce when editing in the MIDI editor + auto refresh
-  - [UX] replaced JS_VKeys_GetState by JS_Mouse_GetState
-  - [UX] extended time selection limit to be dynamic depending on the time resolution
+  - [Rework] Removed time limit by using a Texture Strip
+  - [Optimization] Using new ImGui Image API for texture generation
+  - [Rework] If measures / beats are too narrow, skip some vertical ticks during drawing
+  - [Cosmetics] Synthwavest logo ever
+  - [Cosmetics] Adapted to ImGui 0.10.0
 @provides
   [nomain] talagan_Spectracular/ext/**/*
   [nomain] talagan_Spectracular/classes/**/*

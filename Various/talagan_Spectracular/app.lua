@@ -3,7 +3,7 @@
 -- @license MIT
 -- @description This file is part of Spectracular
 
-local Version                   = '0.2.4'
+local Version                   = '0.3.0'
 
 local S                         = require "modules/settings"
 local DSP                       = require "modules/dsp"
@@ -18,6 +18,7 @@ local HelpWindow                = require "widgets/help_window"
 
 local ImGui                     = require "ext/imgui"
 local ctx                       = ImGui.CreateContext(S.AppName)
+local Arial                     = ImGui.CreateFont("Arial", ImGui.FontFlags_None)
 
 -- The DSP module needs ImGui compiled EEL function features
 DSP.setImGuiContext(ctx)
@@ -203,6 +204,7 @@ end
 
 local function drawBottomSettings(ctx)
 
+    ImGui.PushStyleVar(ctx, ImGui.StyleVar_FramePadding, 2, 2)
     ImGui.BeginGroup(ctx)
 
     ImGui.AlignTextToFramePadding(ctx)
@@ -250,6 +252,7 @@ local function drawBottomSettings(ctx)
         ImGui.SetTooltip(ctx, "Click to open help")
     end
     ImGui.EndGroup(ctx)
+    ImGui.PopStyleVar(ctx)
 end
 
 local BOTTOM_PARAM_HEIGHT = 50
@@ -291,6 +294,7 @@ local function loop()
         end
     end
 
+    ImGui.PushFont(ctx, Arial, 12)
     ImGui.SetNextWindowSizeConstraints(ctx, 900, 600, math.huge, math.huge)
     local visible, open = ImGui.Begin(ctx, S.AppName .. ' v' .. Version .. " (" .. S.instance_params.channel_mode .. ")##Spectracular_main", true)
     if visible then
@@ -306,7 +310,7 @@ local function loop()
         canvas_sz_h = math.floor(canvas_sz_h)
 
         -- Keep room for bottom widgets (30 pixels per row)
-        canvas_sz_h = canvas_sz_h - BOTTOM_PARAM_HEIGHT
+        canvas_sz_h = canvas_sz_h - ImGui.GetFrameHeightWithSpacing(ctx) * 2 - 8
 
         main_widget:setCanvas(canvas_p0_x, canvas_p0_y, canvas_sz_w, canvas_sz_h)
 
@@ -392,6 +396,7 @@ local function loop()
     if open then
         reaper.defer(loop)
     end
+    ImGui.PopFont(ctx)
 end
 
 local function run(args)

@@ -59,10 +59,10 @@ function FrequencySliceProfile:buildDrawCurves(x, y, w, h, drawer_w)
 
     local point_count   = h
 
-    local vot           = sp.vot
-    local vob           = sp.vob
+    local vp_v_t           = sp.vp_v_t
+    local vp_v_b           = sp.vp_v_b
 
-    local zoom_has_changed            = not (vot == self.last_vot)  or not (vob == self.last_vob)
+    local zoom_has_changed            = not (vp_v_t == self.last_vp_v_t)  or not (vp_v_b == self.last_vp_v_b)
     local position_has_changed        = not (x == self.last_x)      or not (y == self.last_y)
     local size_has_changed            = not (w == self.last_w)      or not (h == self.last_h)
     local data_has_changed            = not (self.last_data == self.data_calc)
@@ -98,7 +98,7 @@ function FrequencySliceProfile:buildDrawCurves(x, y, w, h, drawer_w)
             self.draw_curves[chan] = DSP.ensure_array_size(self.draw_curves[chan], point_count * 2)
 
             -- Resample and normalize values
-            DSP.array_fill_equally(self.slice_buf_dst_x, 1 - vot, 1 - vob)
+            DSP.array_fill_equally(self.slice_buf_dst_x, 1 - vp_v_t, 1 - vp_v_b)
             DSP.resample_curve(self.slice_buf_src_x, data_line, self.slice_buf_dst_x, self.slice_buf, false, "akima")
             DSP.array_op_normalize_min_max(self.slice_buf, sp.dbmin, sp.dbmax)
 
@@ -121,8 +121,8 @@ function FrequencySliceProfile:buildDrawCurves(x, y, w, h, drawer_w)
     self.last_h     = h
     self.last_dbmin = sp.dbmin
     self.last_dbmax = sp.dbmax
-    self.last_vot   = vot
-    self.last_vob   = vob
+    self.last_vp_v_t   = vp_v_t
+    self.last_vp_v_b   = vp_v_b
     self.last_data  = self.data_calc
 end
 

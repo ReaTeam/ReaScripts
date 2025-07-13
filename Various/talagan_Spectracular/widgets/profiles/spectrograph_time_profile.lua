@@ -102,12 +102,11 @@ function SpectrographTimeProfile:buildDrawCurves(x, y, w, h, chan_mode)
 
     local point_count   = w
 
-    local hol = sp.hol
-    local hor = sp.hor
-
+    local vp_u_l = sp.vp_u_l
+    local vp_u_r = sp.vp_u_r
 
     local mode_changeed               = not (chan_mode == self.last_chan_mode)
-    local horizontal_zoom_has_changed = not (hol == self.last_hol)  or not (hor == self.last_hor)
+    local horizontal_zoom_has_changed = not (vp_u_l == self.last_vp_u_l)  or not (vp_u_r == self.last_vp_u_r)
     local position_has_changed        = not (x == self.last_x)      or not (y == self.last_y)
     local size_has_changed            = not (w == self.last_w)      or not (h == self.last_h)
     local data_has_changed            = not (self.last_data == self.data_calc)
@@ -116,7 +115,6 @@ function SpectrographTimeProfile:buildDrawCurves(x, y, w, h, chan_mode)
     local rms_db_bounds_have_changed  = not (self.last_rms_dbmin == sp.rms_dbmin) or not (self.last_rms_dbmax == sp.rms_dbmax)
     local db_bounds_have_changed      = frq_db_bounds_have_changed
     if self.type == SpectrographTimeProfile.Types.RMSE then db_bounds_have_changed = rms_db_bounds_have_changed end
-
 
     -- Avoid rebuilding draw points if stalled
     if  not position_has_changed and not mode_changeed and not horizontal_zoom_has_changed and not size_has_changed and not data_has_changed and not db_bounds_have_changed then
@@ -154,8 +152,8 @@ function SpectrographTimeProfile:buildDrawCurves(x, y, w, h, chan_mode)
             -- DST X
             self.draw_curves[chan] = DSP.ensure_array_size(self.draw_curves[chan],     point_count * 2)
 
-            local ustart = sp.hol
-            local uend   = sp.hor
+            local ustart = sp.vp_u_l
+            local uend   = sp.vp_u_r
 
             -- Build the time proportion for X axis (from ustart to uend)
             DSP.array_fill_01(self.draw_points_x)
@@ -201,8 +199,8 @@ function SpectrographTimeProfile:buildDrawCurves(x, y, w, h, chan_mode)
     self.last_dbmax = sp.dbmax
     self.last_rms_dbmin = sp.rms_dbmin
     self.last_rms_dbmax = sp.rms_dbmax
-    self.last_hol   = hol
-    self.last_hor   = hor
+    self.last_vp_u_l   = vp_u_l
+    self.last_vp_u_r   = vp_u_r
     self.last_data  = self.data_calc
 end
 
