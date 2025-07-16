@@ -1,7 +1,10 @@
 -- @description Fade tool (works on context of mouse, razor or time selection)
 -- @author AZ
--- @version 2.2.6
--- @changelog - Fixed bug with edit cursor positioning when move envelope point in stretched items
+-- @version 2.2.7
+-- @changelog
+--   - Fixed bug when Batch window appears undesired way in parallel of other actions
+--   - New: option to allow batch fades for selected items without razor or time selection
+--   - UI improvements, options reordering
 -- @provides
 --   az_Fade tool (work on context of mouse, razor or time selection)/az_Options window for az_Fade tool.lua
 --   [main] az_Fade tool (work on context of mouse, razor or time selection)/az_Open options for az_Fade tool.lua
@@ -28,7 +31,8 @@
 --
 --   - Also you can set both fades for item by selection it's middle part.
 --
---   - Create batch fades / crossfades if there is at least one whole item in the area .
+--   - Create batch fades / crossfades if there is at least one whole item in the area
+--   (optionally for simple selected items)
 --   --------------------------
 --
 --   - Use razor edit to create envelope transitions
@@ -60,7 +64,7 @@ end
 -------------------------
 
 ExtStateName = 'AZ_FadeTool'
-CurVers = 2.26
+CurVers = 2.27
 
 SaveLastBatchPrj = reaper.GetExtState(ExtStateName, 'SaveLastBatchPrj') 
 if SaveLastBatchPrj == 'false' then SaveLastBatchPrj = false
@@ -147,26 +151,35 @@ function OptionsDefaults(NamedTable)
   text = 'Ignore locking for mouse editing'
   table.insert(NamedTable, {text, 'IgnoreLockingMouse', false })
   
+  text = 'Extend item edge to fill razor or time selection'
+  table.insert(NamedTable, {text, 'MoveItemEdgeRazor', false })
+  
+  text = 'Use default shape instead of linear when cutting envelopes'
+  table.insert(NamedTable, {text, 'CutShapeUseDef', false })
+  
+  text = 'Cursor options'
+  table.insert(NamedTable, {text, 'Separator', nil })
+  
   text = 'Move edit cursor after setting a fade/crossfade'
   table.insert(NamedTable, {text, 'moveEditCursor', true })
   
+  --text = 'Seek playing if move edit cursor'
+  --table.insert(NamedTable, {text, 'SeekOnMove', false })
+  
   text = 'Offset between fade and edit cursor in seconds'
   table.insert(NamedTable, {text, 'curOffset', 1, "%.2f"})
-  
-  text = 'Extend item edge to fill razor or time selection'
-  table.insert(NamedTable, {text, 'MoveItemEdgeRazor', false })
   
   text = 'Mouse top / bottom placement on item is used for'
   table.insert(NamedTable, {text, 'LRdefine', 'Left/Right fade', {
                                                       'Left/Right fade',
                                                       'Closest/Farthest fade' } })
   
-  text = 'Use default shape instead of linear when cutting envelopes'
-  table.insert(NamedTable, {text, 'CutShapeUseDef', false })
-  
   
   text = 'Batch fades/crossfades defaults'
   table.insert(NamedTable, {text, 'Separator', nil})
+  
+  text = 'Allow batch process without time or razor selection'
+  table.insert(NamedTable, {text, 'AllowNoTimeRazorBatch', false})
   
   text = "Don't ask values for batch process"
   table.insert(NamedTable, {text, 'SilentProcessBatch', false})
@@ -273,6 +286,7 @@ function GetSetBatchExtStates(DefT, LastPrjT, getset) -- set == true, get == fal
   end --if getset == false
   
 end
+
 --------------------------
 
 function HelloMessage()
@@ -914,10 +928,10 @@ function BatchFades()
   if BOpt.RespectLockingBatch == false then
     RespectLockingBatch = false
     reaper.Main_OnCommandEx(40596,0,0) --Locking: Clear item edges locking mode
-    if start_TS ~= end_TS then
+    if RazorEditSelectionExists() then
+      RazorEditsBatch = GetRazorEdits()
+    elseif start_TS ~= end_TS then
       RazorEditsBatch = GetTSandItems(start_TS, end_TS)
-    else 
-      RazorEditsBatch = GetRazorEdits() 
     end
   end
   
@@ -1001,7 +1015,7 @@ function BatchFades()
     reaper.defer(function()end)
   else
     reaper.Main_OnCommandEx(42406, 0, 0)  --Clear RE area
-    if start_TS ~= end_TS then
+    if start_TS ~= end_TS and DONTremoveTS ~= true then
       reaper.Main_OnCommandEx(40020, 0, 0)
       --Time selection: Remove (unselect) time selection and loop points
     end
@@ -1548,38 +1562,56 @@ function SaveSelItemsByTracks(startTime, endTime) --- time optional
   local SI = {}
   local oldTrack
   local needBatch
+  local prevStart, prevEnd = 0,0
   
-  for i=0, reaper.CountSelectedMediaItems(0) -1 do
-    local TData = {Tname, Titems={} }
-    local item = reaper.GetSelectedMediaItem(0,i)
-    local iTrack = reaper.GetMediaItemTrack(item)
-    
-    if startTime and endTime then --is item in range
-      local iPos = reaper.GetMediaItemInfo_Value( item, "D_POSITION" )
-      local iEnd = iPos + reaper.GetMediaItemInfo_Value( item, "D_LENGTH" )
-      local iLock = reaper.GetMediaItemInfo_Value(item, "C_LOCK")
+  for try = 1, 2 do
+    if try == 1 or ( #SI == 0 and Opt.AllowNoTimeRazorBatch) then
       
-      if iPos < endTime and iEnd > startTime
-      and (iLock==0 or RespectLockingBatch == false) then
-        if iPos >= startTime and iEnd <= endTime then needBatch = true end
-      else
-        item = nil
+      for i=0, reaper.CountSelectedMediaItems(0) -1 do
+        local TData = {Tname, Titems={} }
+        local item = reaper.GetSelectedMediaItem(0,i)
+        local iTrack = reaper.GetMediaItemTrack(item)
+        local iPos = reaper.GetMediaItemInfo_Value( item, "D_POSITION" )
+        local iEnd = iPos + reaper.GetMediaItemInfo_Value( item, "D_LENGTH" )
+        
+        if startTime and endTime and try == 1 then --is item in range
+          local iLock = reaper.GetMediaItemInfo_Value(item, "C_LOCK")
+          
+          if iPos < endTime and iEnd > startTime
+          and (iLock==0 or RespectLockingBatch == false) then
+            if iPos >= startTime and iEnd <= endTime then needBatch = true end
+          else
+            item = nil
+          end
+        end
+        
+        if item then
+          if iTrack ~= oldTrack then
+            oldTrack = iTrack
+            TData.Tname = iTrack
+            table.insert(TData.Titems, item)
+            table.insert(SI, TData)
+          else
+            table.insert(SI[#SI].Titems, item )
+          end
+          
+          if try == 2 then
+            prevStart = math.min(prevStart, iPos)
+            prevEnd = math.max(prevEnd, iEnd)
+            needBatch = true
+            DONTremoveTS = true
+          else
+            prevStart = startTime
+            prevEnd = endTime
+          end 
+        end
+        
       end
-    end
-    
-    if item then
-      if iTrack ~= oldTrack then
-        oldTrack = iTrack
-        TData.Tname = iTrack
-        table.insert(TData.Titems, item)
-        table.insert(SI, TData)
-      else
-        table.insert(SI[#SI].Titems, item )
-      end
+      
     end
   end
 
-  return SI, needBatch
+  return SI, needBatch, prevStart, prevEnd
 end
 
 --------------------------------
@@ -1623,25 +1655,11 @@ function GetTSandItems(start_TS, end_TS) --returns areaMap and needBatch
       }
       
       table.insert(areaMap, areaData)
-    else
-      SI, needBatch = SaveSelItemsByTracks(start_TS, end_TS)
-      for t=1, #SI do
-        local TData = SI[t]
-
-        local areaData = {
-            areaStart = start_TS,
-            areaEnd = end_TS,
-            
-            track = TData.Tname,
-            items = TData.Titems,
-        }
-        
-        table.insert(areaMap, areaData)
-      end
-
     end
-  else --if not 2 items selected
-    SI, needBatch = SaveSelItemsByTracks(start_TS, end_TS)
+  end
+  
+  if #items ~= 2 then --if not 2 items selected or there is no paired edges
+    SI, needBatch, start_TS, end_TS = SaveSelItemsByTracks(start_TS, end_TS)
     
     for t=1, #SI do
       local TData = SI[t]
@@ -2474,18 +2492,7 @@ else
   start_TS, end_TS = reaper.GetSet_LoopTimeRange2( 0, false, false, 0, 0, 0 )
   local startArrange, endArrange = reaper.GetSet_ArrangeView2( 0, false, 0, 0, 0, 0 )
   
-  if item_mouse and (start_TS <= startArrange or end_TS >= endArrange) then start_TS = end_TS end
-  
-  if start_TS ~= end_TS and reaper.CountSelectedMediaItems(0)> 0 and UndoString == nil then
-    reaper.Undo_BeginBlock2( 0 )
-    reaper.PreventUIRefresh( 1 )
-    sTime = FadeRazorEdits(GetTSandItems(start_TS, end_TS))
-    if not RunBatch then RestoreLockedItems() end
-    if UndoString ~= 'FadeTool - Batch fades/crossfades' and #sTime > 0 then
-      UndoString = "FadeTool - time selection"
-      return UndoString
-    end 
-  end
+  if item_mouse and (start_TS < startArrange or end_TS > endArrange) then start_TS = end_TS end
   
   if UndoString == nil then
     
@@ -2506,10 +2513,22 @@ else
         reaper.PreventUIRefresh( 1 )
         sTime = PointToMouse(env)
         if UndoString then return UndoString end
-      end -- if match envelope
-      
+      end -- if match envelope 
     end --if item_mouse
+    
   end -- if not UndoString
+  
+  
+  if reaper.CountSelectedMediaItems(0)> 0 and UndoString == nil then
+    reaper.Undo_BeginBlock2( 0 )
+    reaper.PreventUIRefresh( 1 )
+    sTime = FadeRazorEdits(GetTSandItems(start_TS, end_TS))
+    if not RunBatch then RestoreLockedItems() end
+    if UndoString ~= 'FadeTool - Batch fades/crossfades' and #sTime > 0 then
+      UndoString = "FadeTool - time selection"
+      return UndoString
+    end 
+  end
   
 end
 

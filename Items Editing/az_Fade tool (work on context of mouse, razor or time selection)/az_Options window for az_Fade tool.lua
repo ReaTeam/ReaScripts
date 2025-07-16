@@ -34,7 +34,7 @@ function OptionsWindow(MainTable, windowName, BatchTable, BatchPrjTable)
     reaper.ShowMessageBox('Please, install ReaImGui from Reapack!', 'No Imgui library', 0)
     return
   end
-  dofile(imgui_path) '0.8.7.6'
+  dofile(imgui_path) '0.9.3'
   
   local fontSize = 17
   local ctx, font, fontSep
@@ -89,10 +89,20 @@ function OptionsWindow(MainTable, windowName, BatchTable, BatchPrjTable)
       Active = rgbToHex({42,42,37,100}), 
     }
   }
+  
+  ---Flags--- 
+  local Flags = {}
+  Flags.childRounding = reaper.ImGui_StyleVar_ChildRounding()
+  Flags.frameRounding = reaper.ImGui_StyleVar_FrameRounding()
+  Flags.childBorder = reaper.ImGui_ChildFlags_Border()
+  Flags.menubar = reaper.ImGui_WindowFlags_MenuBar()
+  Flags.tableResizeflag = reaper.ImGui_TableFlags_Resizable()
+  Flags.childAutoResizeX = reaper.ImGui_ChildFlags_AutoResizeX()
+  Flags.childAutoResizeY = reaper.ImGui_ChildFlags_AutoResizeY() 
   ------
   
   local fontName
-  ctx = reaper.ImGui_CreateContext(windowName) -- Add VERSION TODO
+  ctx = reaper.ImGui_CreateContext(windowName)
   if reaper.GetOS():match("^Win") == nil then
     reaper.ImGui_SetConfigVar(ctx, reaper.ImGui_ConfigVar_ViewportsNoDecoration(), 0)
     fontName = 'sans-serif'
@@ -165,6 +175,48 @@ function OptionsWindow(MainTable, windowName, BatchTable, BatchPrjTable)
   --------------
   function frame()
     reaper.ImGui_PushFont(ctx, font)
+    --
+    reaper.ImGui_Text(ctx, '' ) --space before buttons
+    
+    --Esc button
+    reaper.ImGui_SameLine(ctx, fontSize*7, fontSize)
+    if esc == true then
+      reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Button(), gui_colors.Button.Active)
+    end
+    escMouse = reaper.ImGui_Button(ctx, 'Esc', nil, nil )
+    if esc == true then reaper.ImGui_PopStyleColor(ctx, 1) end 
+    
+    --Save button
+    reaper.ImGui_SameLine(ctx, nil, fontSize*1.5)
+    if enter == true then
+      reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Button(), gui_colors.Button.Active)
+    end
+    local enterName = 'Save & Quit - Enter'
+    if RunBatch ~= nil then enterName = 'Run - Enter' end
+    enterMouse = reaper.ImGui_Button(ctx, enterName, nil, nil)
+    if enter == true then reaper.ImGui_PopStyleColor(ctx, 1) end 
+    
+    --Apply button
+    if ExternalOpen == true then
+      reaper.ImGui_SameLine(ctx, nil, fontSize)
+      if space == true then
+        reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Button(), gui_colors.Button.Active)
+      end
+      spaceMouse = reaper.ImGui_Button(ctx, 'Apply - Space', nil, nil)
+      if space == true then reaper.ImGui_PopStyleColor(ctx, 1) end
+    end
+    
+    --About button
+    reaper.ImGui_SameLine(ctx, fontSize*24, nil)
+    if reaper.ImGui_Button(ctx, 'About - forum page', nil, nil) then
+      local doc = 'https://forum.cockos.com/showthread.php?t=293335'
+      if reaper.CF_ShellExecute then
+        reaper.CF_ShellExecute(doc)
+      else
+        reaper.MB(doc, 'Fade Tool forum page', 0)
+      end
+    end
+    
     
     if MainTable then
       populateOptions(MainTable)
@@ -195,7 +247,7 @@ function OptionsWindow(MainTable, windowName, BatchTable, BatchPrjTable)
     
     if RunBatch == nil then
       reaper.ImGui_Text(ctx, '' ) --space
-      reaper.ImGui_PushItemWidth(ctx, fontSize*5 )
+      reaper.ImGui_PushItemWidth(ctx, fontSize*5.5 )
       _, tcpActIDstr = reaper.ImGui_InputText
       (ctx,'TCP context action (paste command ID):\n'..tcpActName, tcpActIDstr)
     
@@ -203,47 +255,7 @@ function OptionsWindow(MainTable, windowName, BatchTable, BatchPrjTable)
       (ctx, 'Font size for the window (default is 17)', savedFontSize)
     end
     
-    reaper.ImGui_Text(ctx, '' ) --space before buttons
-    reaper.ImGui_Text(ctx, '' ) --space before buttons
-    
-    --Esc button
-    reaper.ImGui_SameLine(ctx, fontSize*2, fontSize)
-    if esc == true then
-      reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Button(), gui_colors.Button.Active)
-    end
-    escMouse = reaper.ImGui_Button(ctx, 'Esc', nil, nil )
-    if esc == true then reaper.ImGui_PopStyleColor(ctx, 1) end 
-    
-    --Save button
-    reaper.ImGui_SameLine(ctx, nil, fontSize)
-    if enter == true then
-      reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Button(), gui_colors.Button.Active)
-    end
-    local enterName = 'Save & Quit - Enter'
-    if RunBatch ~= nil then enterName = 'Run - Enter' end
-    enterMouse = reaper.ImGui_Button(ctx, enterName, nil, nil)
-    if enter == true then reaper.ImGui_PopStyleColor(ctx, 1) end 
-    
-    --Apply button
-    if ExternalOpen == true then
-      reaper.ImGui_SameLine(ctx, nil, fontSize)
-      if space == true then
-        reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Button(), gui_colors.Button.Active)
-      end
-      spaceMouse = reaper.ImGui_Button(ctx, 'Apply - Space', nil, nil)
-      if space == true then reaper.ImGui_PopStyleColor(ctx, 1) end
-    end
-    
-    --About button
-    reaper.ImGui_SameLine(ctx, fontSize*25, nil)
-    if reaper.ImGui_Button(ctx, 'About - forum page', nil, nil) then
-      local doc = 'https://forum.cockos.com/showthread.php?t=293335'
-      if reaper.CF_ShellExecute then
-        reaper.CF_ShellExecute(doc)
-      else
-        reaper.MB(doc, 'Fade Tool forum page', 0)
-      end
-    end
+    --reaper.ImGui_Text(ctx, '' ) --space before buttons
     
     reaper.ImGui_PopFont(ctx)
   end
@@ -251,6 +263,8 @@ function OptionsWindow(MainTable, windowName, BatchTable, BatchPrjTable)
   --------------
   function loop()
     if not font or savedFontSize ~= fontSize then
+      if savedFontSize < 7 then savedFontSize = 7 end
+      if savedFontSize > 60 then savedFontSize = 60 end
       reaper.SetExtState(ExtStateName, 'FontSize', savedFontSize, true)
       fontSize = savedFontSize
       if font then reaper.ImGui_Detach(ctx, font) end
@@ -285,10 +299,16 @@ function OptionsWindow(MainTable, windowName, BatchTable, BatchPrjTable)
       reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_HeaderHovered(), gui_colors.ComboBox.Hovered)
       reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_HeaderActive(), gui_colors.ComboBox.Active)
       
-      local window_flags = reaper.ImGui_WindowFlags_MenuBar()
+      local window_flags = reaper.ImGui_WindowFlags_None()
       reaper.ImGui_SetNextWindowSize(ctx, W, H, reaper.ImGui_Cond_Once()) -- Set the size of the windows.  Use in the 4th argument reaper.ImGui_Cond_FirstUseEver() to just apply at the first user run, so ImGUI remembers user resize s2
       
       reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Text(), gui_colors.White)
+      --
+      reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_WindowRounding(), fontSize/4)
+      reaper.ImGui_PushStyleVar(ctx, Flags.frameRounding, fontSize/4)
+      reaper.ImGui_PushStyleVar(ctx, Flags.childRounding, fontSize/4)
+      reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_FramePadding(), fontSize/2, fontSize/4)
+      
       local visible, open = reaper.ImGui_Begin(ctx, windowName, true, window_flags)
       reaper.ImGui_PopStyleColor(ctx, 1)
       
@@ -299,6 +319,7 @@ function OptionsWindow(MainTable, windowName, BatchTable, BatchPrjTable)
       end
       
       reaper.ImGui_PopStyleColor(ctx, 13)
+      reaper.ImGui_PopStyleVar(ctx, 4)
       reaper.ImGui_PopFont(ctx)
        
       esc = escMouse or reaper.ImGui_IsKeyReleased(ctx, reaper.ImGui_Key_Escape())
@@ -317,19 +338,19 @@ function OptionsWindow(MainTable, windowName, BatchTable, BatchPrjTable)
       if open and esc ~= true and enter ~= true then
         reaper.defer(loop) 
       elseif enter == true then
-          reaper.SetExtState(ExtStateName, 'SaveLastBatchPrj', tostring(SaveLastBatchPrj), true)
-          if RunBatch == true then 
-            reaper.ImGui_DestroyContext(ctx)
-            BatchFades()
-          else
-            SetExtStates(MainTable)
-            GetSetBatchExtStates(BatchTable, BatchPrjTable, true)
-            reaper.SetExtState(ExtStateName, 'TCPaction', tcpActIDstr, true) 
-            reaper.ImGui_DestroyContext(ctx)
-          end
+        reaper.SetExtState(ExtStateName, 'SaveLastBatchPrj', tostring(SaveLastBatchPrj), true)
+        if RunBatch == true then 
+          --reaper.ImGui_DestroyContext(ctx)
+          BatchFades()
+        else
+          SetExtStates(MainTable)
+          GetSetBatchExtStates(BatchTable, BatchPrjTable, true)
+          reaper.SetExtState(ExtStateName, 'TCPaction', tcpActIDstr, true) 
+          --reaper.ImGui_DestroyContext(ctx)
+        end
       else
-          if RunBatch == true then TheRestAfterBatch() end
-          reaper.ImGui_DestroyContext(ctx) 
+        if RunBatch == true then TheRestAfterBatch() end
+        --reaper.ImGui_DestroyContext(ctx)
       end
       
     loopcnt = loopcnt+1
