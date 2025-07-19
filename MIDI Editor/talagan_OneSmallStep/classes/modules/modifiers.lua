@@ -69,8 +69,6 @@ local function IsModifierKeyCombinationPressed(id)
 
   local jss = reaper.JS_Mouse_GetState(0xFF)
 
-  -- Avoid inconsistencies and only follow events during the lifetime of the plugin, so use launchTime
-  -- This will prevent bugs from a session to another (when for example the plugin crashes)
   local combi = D.ModifierKeyCombinationLookup[id]
 
   for k, v in ipairs(combi.vkeys) do
@@ -83,9 +81,10 @@ local function IsModifierKeyCombinationPressed(id)
 end
 
 local function IsStepBackModifierKeyPressed()
-  local keys  = reaper.JS_VKeys_GetState(launchTime);
----@diagnostic disable-next-line: param-type-mismatch
-  return (keys:byte(S.getSetting("StepBackModifierKey")) == 1)
+  local jss = reaper.JS_Mouse_GetState(0xFF)
+  local key = tonumber(S.getSetting("StepBackModifierKey"))
+
+  return IsModifierKeyPressed(jss, key)
 end
 
 return {

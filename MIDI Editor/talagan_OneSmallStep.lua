@@ -1,11 +1,12 @@
 --[[
 @description One Small Step : Alternative Step Input
-@version 0.9.19
+@version 0.9.20
 @author Ben 'Talagan' Babut
 @license MIT
 @metapackage
 @changelog
-  - [Feature] Added configuration actions reacting to MIDI Shortcuts
+  - [Hotfix] Updated version number in title bar
+  - [Hotfix] Ported step back modifier to JS_Mouse_GetState
 @provides
   [main=main,midi_editor] .
   [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Change input mode - (MIDI).lua
@@ -92,7 +93,7 @@
     @stevie, @hipox, @MartinTL, @henu, @Thonex, @smandrap, @SoaSchas, @daodan, @inthevoid, @dahya, @User41, @Spookye, @R.Cato, @samlletas
 --]]
 
-VERSION = "0.9.17"
+VERSION = "0.9.20"
 DOC_URL = "https://bentalagan.github.io/onesmallstep-doc/index.html?ver=" .. VERSION
 
 PATH    = debug.getinfo(1,"S").source:match[[^@?(.*[\/])[^\/]-$]]
