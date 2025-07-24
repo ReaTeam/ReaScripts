@@ -1,7 +1,8 @@
 -- @description Group selected tracks sends
 -- @author José M Muñoz (J-WalkMan)
--- @version 0.9.2
--- @changelog - Fix Mono and Mute buttons behavior
+-- @version 0.9.3
+-- @changelog
+--   - Fix script crashing when creating or removing sends while having more than one track selected
 -- @about
 --   Temporarily groups sends (not hardware outputs) along the selected tracks.
 --
@@ -19,6 +20,11 @@ if version >= 7.03 then reaper.set_action_options(1) end
 local _, _, sec, cmd = reaper.get_action_context()
 
 -- ========================= FUNCTIONS ==============================
+
+function Msg(msg)
+  reaper.ClearConsole()
+  reaper.ShowConsoleMsg(msg)
+end
 
 function tobool(val)
   if val == 1 then return true
@@ -113,26 +119,6 @@ function track2name(track)
   return tostring(track_name)
 end
 
--- function ModifiersPressed()
---   local vkeys = reaper.JS_VKeys_GetState(0)
---   local modifiers_pressed = {}
---   local has_alt = false
-
---   if vkeys then
---     if vkeys:byte(16) ~= 0 then
---       table.insert(modifiers_pressed, 'Shift')
---     end
---     if vkeys:byte(17) ~= 0 then
---       table.insert(modifiers_pressed, 'Ctrl')
---     end
---     if vkeys:byte(18) ~= 0 then
---       table.insert(modifiers_pressed, 'Alt')
---       has_alt = true
---     end
---   end
---   return modifiers_pressed, has_alt
--- end
-
 function GetSelectedTrackSends(num)
   local updated_track, updated_send, updated_param, value_diff
   local table = {}
@@ -218,7 +204,7 @@ sends_table = {}
 prev_sends_table = {}
 
 function Main()
-  reaper.ClearConsole()
+  --reaper.ClearConsole()
 
   local sel_tracks_num = reaper.CountSelectedTracks(0)
   -- local mod_keys, mod_has_alt = ModifiersPressed()
@@ -232,8 +218,8 @@ function Main()
     local are_tables_equal, moved_tr, moved_snd_idx, moved_param = areTablesEqual(sends_table, prev_sends_table)
     -- reaper.ShowConsoleMsg(dump(sends_table))
 
-    if not are_tables_equal and moved_param~=nil then
-      -- reaper.ShowConsoleMsg('Moving: '..track2name(moved_tr)..', '..track2name(sends_table[moved_tr][moved_snd_idx]['P_DESTTRACK'])..', '..moved_param..'\n')
+    if not are_tables_equal and moved_param~=nil and moved_param~='P_DESTTRACK' then
+      --reaper.ShowConsoleMsg('Moving: '..track2name(moved_tr)..', '..track2name(sends_table[moved_tr][moved_snd_idx]['P_DESTTRACK'])..', '..moved_param..'\n')
 
       for tr, snd_list in pairs(sends_table) do
         -- reaper.ShowConsoleMsg('track: '..track2name(tr)..', '..#snd_list..' sends \n')
@@ -248,7 +234,9 @@ function Main()
 
             if is_send_equal and tr~=moved_tr then
               local new_value = sendClassFormat(send_to_write[moved_param], moved_send[moved_param], prev_moved_send[moved_param], moved_param)
-              -- reaper.ShowConsoleMsg('  - Send to move: '..track2name(send_to_write['P_DESTTRACK'])..'\n')
+              -- reaper.ShowConsoleMsg('  Track: '..track2name(tr)..'\n')
+              -- reaper.ShowConsoleMsg('  - Send moved: '..track2name(moved_send['P_DESTTRACK'])..'\n')
+              -- reaper.ShowConsoleMsg('  - Send to update: '..track2name(send_to_write['P_DESTTRACK'])..'\n')
               -- reaper.ShowConsoleMsg('    - Moved parameter is: '..moved_param..'\n')
               -- reaper.ShowConsoleMsg('    -> Old Value is: '..send_to_write[moved_param]..'\n')
               -- reaper.ShowConsoleMsg('    -> New Value is: '..new_value..'\n')
