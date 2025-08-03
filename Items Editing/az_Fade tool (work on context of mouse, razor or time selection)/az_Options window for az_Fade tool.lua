@@ -112,60 +112,69 @@ function OptionsWindow(MainTable, windowName, BatchTable, BatchPrjTable)
 
   --------------
   function populateOptions(OptTable)
+    local Headers = {}
     for i, v in ipairs(OptTable) do
       local option = v
       
-      if type(option[3]) == 'boolean' then
-        local _, newval = reaper.ImGui_Checkbox(ctx, option[1], option[3])
-        option[3] = newval
-      end
-      
-      if type(option[3]) == 'number' then 
-        reaper.ImGui_PushItemWidth(ctx, fontSize*3 )
-        local _, newval =
-        reaper.ImGui_InputDouble(ctx, option[1], option[3], nil, nil, option[4]) 
-        
-        option[3] = newval
-      end
-      
-      if type(option[3]) == 'string' then
-        local choice 
-        for k = 1, #option[4] do 
-          if option[4][k] == option[3] then choice = k end 
+      if type(option[3]) == 'nil' then
+        --reaper.ImGui_PushFont(ctx, fontSep)
+        reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Text(), gui_colors.White)
+         
+        if i ~= 1 then reaper.ImGui_NewLine(ctx) end
+        if option[4] == 'sep' then
+          reaper.ImGui_SeparatorText( ctx, option[1] )
+          table.insert(Headers, true)
+        else
+          local ret = reaper.ImGui_CollapsingHeader(ctx, option[1])
+          table.insert(Headers, ret)
         end
         
-        reaper.ImGui_Text(ctx, option[1])
-        reaper.ImGui_SameLine(ctx, nil, nil)
-        
-        reaper.ImGui_PushItemWidth(ctx, fontSize*10.3 )
-        
-        if reaper.ImGui_BeginCombo(ctx, '##'..i, option[3], nil) then
-          for k,f in ipairs(option[4]) do
-            local is_selected = choice == k
-            if reaper.ImGui_Selectable(ctx, option[4][k], is_selected) then
-              choice = k
-            end
-        
-            -- Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
-            if is_selected then
-              reaper.ImGui_SetItemDefaultFocus(ctx)
-            end
-          end
-          reaper.ImGui_EndCombo(ctx)
-        end 
-        
-        option[3] = option[4][choice]
+        reaper.ImGui_PopStyleColor(ctx, 1)
+        --reaper.ImGui_PopFont(ctx) 
       end
       
-      if type(option[3]) == 'nil' then
-        reaper.ImGui_PushFont(ctx, fontSep)
-        reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Text(), gui_colors.White)
+      if Headers[#Headers] == true or #Headers == 0 then
+        if type(option[3]) == 'boolean' then
+          local _, newval = reaper.ImGui_Checkbox(ctx, option[1], option[3])
+          option[3] = newval
+        end
         
-        if i ~= 1 then reaper.ImGui_Text(ctx, '' ) end
-        reaper.ImGui_SeparatorText( ctx, option[1] )
+        if type(option[3]) == 'number' then 
+          reaper.ImGui_PushItemWidth(ctx, fontSize*3 )
+          local _, newval =
+          reaper.ImGui_InputDouble(ctx, option[1], option[3], nil, nil, option[4]) 
+          
+          option[3] = newval
+        end
         
-        reaper.ImGui_PopStyleColor(ctx, 1)
-        reaper.ImGui_PopFont(ctx)
+        if type(option[3]) == 'string' then
+          local choice 
+          for k = 1, #option[4] do 
+            if option[4][k] == option[3] then choice = k end 
+          end
+          
+          reaper.ImGui_Text(ctx, option[1])
+          reaper.ImGui_SameLine(ctx, nil, nil)
+          
+          reaper.ImGui_PushItemWidth(ctx, fontSize*10.3 )
+          
+          if reaper.ImGui_BeginCombo(ctx, '##'..i, option[3], nil) then
+            for k,f in ipairs(option[4]) do
+              local is_selected = choice == k
+              if reaper.ImGui_Selectable(ctx, option[4][k], is_selected) then
+                choice = k
+              end
+          
+              -- Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+              if is_selected then
+                reaper.ImGui_SetItemDefaultFocus(ctx)
+              end
+            end
+            reaper.ImGui_EndCombo(ctx)
+          end 
+          
+          option[3] = option[4][choice]
+        end
       end
       
       OptTable[i] = option
@@ -176,6 +185,7 @@ function OptionsWindow(MainTable, windowName, BatchTable, BatchPrjTable)
   function frame()
     reaper.ImGui_PushFont(ctx, font)
     --
+    --reaper.ImGui_PushFont(ctx, fontSep)
     reaper.ImGui_Text(ctx, '' ) --space before buttons
     
     --Esc button
@@ -217,6 +227,7 @@ function OptionsWindow(MainTable, windowName, BatchTable, BatchPrjTable)
       end
     end
     
+    --reaper.ImGui_PopFont(ctx)
     
     if MainTable then
       populateOptions(MainTable)

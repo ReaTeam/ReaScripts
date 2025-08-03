@@ -1,12 +1,10 @@
 -- @description Fade tool (works on context of mouse, razor or time selection)
 -- @author AZ
--- @version 2.2.9
+-- @version 2.3
 -- @changelog
---   - Support track media editing groups for unselected items (up to 64 for a while)
---   - Improved performance a bit more for some cases with lots of items
---   - Properly ignore crossfades with non-audio items if set
---   - Fix the case when unselected item fade affects selected items.
---   - Improve logic: don't set fades on the rests if there are single fades or crossfades in razor area
+--   - Fixed suddenly broken time selection stuff in 2.2.9 version
+--   - New option to use time selection only if mouse is close enough
+--   - UI improvements: collapsed menu blocks
 -- @provides
 --   az_Fade tool (work on context of mouse, razor or time selection)/az_Options window for az_Fade tool.lua
 --   [main] az_Fade tool (work on context of mouse, razor or time selection)/az_Open options for az_Fade tool.lua
@@ -66,7 +64,7 @@ end
 -------------------------
 
 ExtStateName = 'AZ_FadeTool'
-CurVers = 2.29
+CurVers = 2.3
 
 SaveLastBatchPrj = reaper.GetExtState(ExtStateName, 'SaveLastBatchPrj')
 if SaveLastBatchPrj == 'false' then SaveLastBatchPrj = false
@@ -175,6 +173,12 @@ function OptionsDefaults(NamedTable)
   text = 'Extend item edge to fill razor or time selection'
   table.insert(NamedTable, {text, 'MoveItemEdgeRazor', false })
    
+  text = "Use time selection only if mouse is close enough to TS edge"
+  table.insert(NamedTable, {text, 'UseTSdistance', true })
+   
+  text = 'Pixel distance from mouse to time selection edge'
+  table.insert(NamedTable, {text, 'PixToTS', 20, "%.0f"})
+   
   text = 'Ignore non-audio items'
   table.insert(NamedTable, {text, 'IgnoreNoAudio', false })
   
@@ -200,7 +204,7 @@ function OptionsDefaults(NamedTable)
   
   
   text = 'Batch fades/crossfades defaults'
-  table.insert(NamedTable, {text, 'Separator', nil})
+  table.insert(NamedTable, {text, 'Separator', nil, 'sep'})
   
   text = 'Allow batch process without time or razor selection'
   table.insert(NamedTable, {text, 'AllowNoTimeRazorBatch', false})
@@ -1764,6 +1768,8 @@ function GetTSandItems(start_TS, end_TS) --returns areaMap and needBatch
           areaEnd = end_TS,
           
           items = items,
+          Litem = items[1],
+          Ritem = items[2]
       }
       
       table.insert(areaMap, areaData)
@@ -1775,13 +1781,49 @@ function GetTSandItems(start_TS, end_TS) --returns areaMap and needBatch
     
     for t=1, #SI do
       local TData = SI[t]
-    
+      local Litem, Ritem
+      
+      ---------Define L/R items--------
+      if #TData.Titems == 2 then
+        local item_1 = TData.Titems[1]
+        local item_2 = TData.Titems[2]
+        local iPos_1 = reaper.GetMediaItemInfo_Value(item_1, "D_POSITION")
+        local itemEndPos_1 = iPos_1+reaper.GetMediaItemInfo_Value(item_1, "D_LENGTH")
+        local iPos_2 = reaper.GetMediaItemInfo_Value(item_2, "D_POSITION")
+        local itemEndPos_2 = iPos_2+reaper.GetMediaItemInfo_Value(item_2, "D_LENGTH")
+        
+        if iPos_1 <= start_TS and itemEndPos_1 > start_TS and iPos_1 <= iPos_2
+        and iPos_2 < end_TS and itemEndPos_2 >= end_TS
+        and itemEndPos_1 <= itemEndPos_2
+        then
+          Litem = item_1
+          Ritem = item_2
+        end
+        
+      elseif #TData.Titems == 1 then
+      
+        item_1 = TData.Titems[1]
+        local iPos_1 = reaper.GetMediaItemInfo_Value(item_1, "D_POSITION")
+        local itemEndPos_1 = iPos_1+reaper.GetMediaItemInfo_Value(item_1, "D_LENGTH")
+        if (iPos_1 <= start_TS and itemEndPos_1 < end_TS) or
+        (iPos_1 < start_TS and itemEndPos_1 - 0.0002 <= end_TS)then
+          Litem = item_1
+        elseif (iPos_1 + 0.0002 >= start_TS and itemEndPos_1 > end_TS) or
+        (iPos_1 > start_TS and itemEndPos_1 >= end_TS)then
+          Ritem = item_1
+        end
+      end
+      
+      if Litem or Ritem then PreventFadesOnRests = true end
+      
       local areaData = {
           areaStart = start_TS,
           areaEnd = end_TS,
           
           track = TData.Tname,
           items = TData.Titems,
+          Litem = Litem,
+          Ritem = Ritem
       }
       
       table.insert(areaMap, areaData)
@@ -2802,17 +2844,23 @@ end
 
 ----------------------------------------
 
-function GetPrefs(key) -- key need to be string as in Reaper ini file
-  local iniPath = reaper.get_ini_file()
-  local value
-  
-  for line in io.lines(iniPath) do 
-    if line:match(key) then 
-      value = tonumber(line:gsub(key..'=',''):format("%.5f"))
+function PixelDistance(Point)
+  local distance = Opt.PixToTS
+   
+  if start_TS ~= end_TS then
+    local zoom = reaper.GetHZoomLevel()
+    if Point ~= nil then
+      
+      if math.abs(Point - start_TS)*zoom <= distance
+      or math.abs(Point - end_TS)*zoom <= distance then
+         return 'close' 
+      end
+      
     end
-    
-    if value then return value end
   end
+  
+  return 'far'
+  
 end
 
 ----------------------------------------
@@ -2858,18 +2906,23 @@ else
   
   local item_mouse, itemHalf = GetTopBottomItemHalf()
   start_TS, end_TS = reaper.GetSet_LoopTimeRange2( 0, false, false, 0, 0, 0 )
-  local startArrange, endArrange = reaper.GetSet_ArrangeView2( 0, false, 0, 0, 0, 0 )
+   
+  local pixDist = 'close'
+  if Opt.UseTSdistance == true then
+    pixDist = PixelDistance(reaper.BR_PositionAtMouseCursor(true))
+  end
   
-  if item_mouse and (start_TS < startArrange or end_TS > endArrange) then start_TS = end_TS end
+  local startArrange, endArrange = reaper.GetSet_ArrangeView2( 0, false, 0, 0, 0, 0 ) 
+  if item_mouse and (start_TS < startArrange or end_TS > endArrange) then pixDist = 'far' end
   
   if UndoString == nil then
     
-    if item_mouse then
+    if item_mouse
+    and not ( reaper.IsMediaItemSelected(item_mouse) and pixDist == 'close' ) then
       reaper.Undo_BeginBlock2( 0 )
       reaper.PreventUIRefresh( 1 )
       sTime = FadeToMouse(item_mouse, itemHalf)
-      RestoreSelItems()
-      --if Grouping == 1 then RestoreSelItems() end
+      RestoreSelItems() 
       RestoreLockedItems()
       if UndoString then return UndoString end
     else
@@ -2888,7 +2941,7 @@ else
   end -- if not UndoString
   
   
-  if reaper.CountSelectedMediaItems(0)> 0 and UndoString == nil then
+  if reaper.CountSelectedMediaItems(0)> 0 and pixDist == 'close' and UndoString == nil then
     reaper.Undo_BeginBlock2( 0 )
     reaper.PreventUIRefresh( 1 )
     sTime = FadeRazorEdits(GetTSandItems(start_TS, end_TS))
