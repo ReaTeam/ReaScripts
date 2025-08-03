@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="ddd2b2a5c31d1617a29ba4b3c290d34b46d2dbbf" name="ReaTeam Scripts">
+<index version="1" commit="baedcf50f11484f6c0a7df29b48728c4884434c4" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -6604,6 +6604,14 @@ website
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ddd2b2a5c31d1617a29ba4b3c290d34b46d2dbbf/Items%20Editing/az_Fade%20tool%20(work%20on%20context%20of%20mouse,%20razor%20or%20time%20selection).lua</source>
         <source file="az_Fade tool (work on context of mouse, razor or time selection)/az_Options window for az_Fade tool.lua">https://github.com/ReaTeam/ReaScripts/raw/ddd2b2a5c31d1617a29ba4b3c290d34b46d2dbbf/Items%20Editing/az_Fade%20tool%20(work%20on%20context%20of%20mouse,%20razor%20or%20time%20selection)/az_Options%20window%20for%20az_Fade%20tool.lua</source>
         <source main="main" file="az_Fade tool (work on context of mouse, razor or time selection)/az_Open options for az_Fade tool.lua">https://github.com/ReaTeam/ReaScripts/raw/ddd2b2a5c31d1617a29ba4b3c290d34b46d2dbbf/Items%20Editing/az_Fade%20tool%20(work%20on%20context%20of%20mouse,%20razor%20or%20time%20selection)/az_Open%20options%20for%20az_Fade%20tool.lua</source>
+      </version>
+      <version name="2.3" author="AZ" time="2025-08-03T23:32:01Z">
+        <changelog><![CDATA[- Fixed suddenly broken time selection stuff in 2.2.9 version
+- New option to use time selection only if mouse is close enough
+- UI improvements: collapsed menu blocks]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/baedcf50f11484f6c0a7df29b48728c4884434c4/Items%20Editing/az_Fade%20tool%20(work%20on%20context%20of%20mouse,%20razor%20or%20time%20selection).lua</source>
+        <source file="az_Fade tool (work on context of mouse, razor or time selection)/az_Options window for az_Fade tool.lua">https://github.com/ReaTeam/ReaScripts/raw/baedcf50f11484f6c0a7df29b48728c4884434c4/Items%20Editing/az_Fade%20tool%20(work%20on%20context%20of%20mouse,%20razor%20or%20time%20selection)/az_Options%20window%20for%20az_Fade%20tool.lua</source>
+        <source main="main" file="az_Fade tool (work on context of mouse, razor or time selection)/az_Open options for az_Fade tool.lua">https://github.com/ReaTeam/ReaScripts/raw/baedcf50f11484f6c0a7df29b48728c4884434c4/Items%20Editing/az_Fade%20tool%20(work%20on%20context%20of%20mouse,%20razor%20or%20time%20selection)/az_Open%20options%20for%20az_Fade%20tool.lua</source>
       </version>
     </reapack>
     <reapack name="az_Open item copy in primary external editor with handles.lua" type="script" desc="Open item copy in primary external editor with handles">
