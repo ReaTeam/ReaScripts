@@ -1,10 +1,12 @@
 -- @description Fade tool (works on context of mouse, razor or time selection)
 -- @author AZ
--- @version 2.2.8
+-- @version 2.2.9
 -- @changelog
---   - Fixed bug with empty razor area on fixed lane tracks
---   - Improved performance a bit for some cases with lots of items
---   - New option to ignore non-audio items
+--   - Support track media editing groups for unselected items (up to 64 for a while)
+--   - Improved performance a bit more for some cases with lots of items
+--   - Properly ignore crossfades with non-audio items if set
+--   - Fix the case when unselected item fade affects selected items.
+--   - Improve logic: don't set fades on the rests if there are single fades or crossfades in razor area
 -- @provides
 --   az_Fade tool (work on context of mouse, razor or time selection)/az_Options window for az_Fade tool.lua
 --   [main] az_Fade tool (work on context of mouse, razor or time selection)/az_Open options for az_Fade tool.lua
@@ -64,9 +66,9 @@ end
 -------------------------
 
 ExtStateName = 'AZ_FadeTool'
-CurVers = 2.28
+CurVers = 2.29
 
-SaveLastBatchPrj = reaper.GetExtState(ExtStateName, 'SaveLastBatchPrj') 
+SaveLastBatchPrj = reaper.GetExtState(ExtStateName, 'SaveLastBatchPrj')
 if SaveLastBatchPrj == 'false' then SaveLastBatchPrj = false
 else SaveLastBatchPrj = true
 end
@@ -82,6 +84,25 @@ function copy(tbl)
     result[k] = copy(v)
   end
   return result
+end
+
+------------------------------
+
+function FieldMatch(Table,value, AddRemoveFlag) -- can remove only first finded value
+  for i=1, #Table do
+    if value == Table[i] then
+      if AddRemoveFlag == false then table.remove(Table,i) end
+      if AddRemoveFlag ~= nil then
+        return true, Table
+      else return true
+      end
+    end
+  end
+  if AddRemoveFlag == true then table.insert(Table, value) end
+  if AddRemoveFlag ~= nil then
+    return false, Table
+  else return false
+  end
 end
 
 ------------------------------
@@ -406,10 +427,24 @@ end
 
 function GetItemsInRange(track, areaStart, areaEnd, areaTop, areaBottom) --returns items, needBatch
     local items = {}
-    local itemCount = reaper.CountTrackMediaItems(track)
+    local itemCount = reaper.CountTrackMediaItems(track) - 1
     local needBatch
+    local Litem, Ritem
+    local idx = itemCount
+    local testEnd = areaEnd --just more than areaStart
     
-    for k = 0, itemCount - 1 do
+    while testEnd >= areaStart and idx > 0 do
+      local item = reaper.GetTrackMediaItem(track, idx)
+      local pos = reaper.GetMediaItemInfo_Value(item, "D_POSITION")
+      local length = reaper.GetMediaItemInfo_Value(item, "D_LENGTH")
+      testEnd = pos+length
+      
+      if testEnd >= areaStart then --optimize start idx to avoid check extra items
+        idx = math.floor(idx - itemCount/6)
+      end
+    end
+    
+    for k = idx, itemCount do
       local item = reaper.GetTrackMediaItem(track, k)
       local pos = reaper.GetMediaItemInfo_Value(item, "D_POSITION")
       local length = reaper.GetMediaItemInfo_Value(item, "D_LENGTH")
@@ -449,8 +484,41 @@ function GetItemsInRange(track, areaStart, areaEnd, areaTop, areaBottom) --retur
         
       end
     end --end for cycle
-
-    return items, needBatch
+    
+    ---------Define L/R items--------
+    if #items == 2 then
+      local item_1 = items[1]
+      local item_2 = items[2]
+      local iPos_1 = reaper.GetMediaItemInfo_Value(item_1, "D_POSITION")
+      local itemEndPos_1 = iPos_1+reaper.GetMediaItemInfo_Value(item_1, "D_LENGTH")
+      local iPos_2 = reaper.GetMediaItemInfo_Value(item_2, "D_POSITION")
+      local itemEndPos_2 = iPos_2+reaper.GetMediaItemInfo_Value(item_2, "D_LENGTH")
+      
+      if iPos_1 <= areaStart and itemEndPos_1 > areaStart and iPos_1 <= iPos_2
+      and iPos_2 < areaEnd and itemEndPos_2 >= areaEnd
+      and itemEndPos_1 <= itemEndPos_2
+      then
+        Litem = item_1
+        Ritem = item_2
+      end
+      
+    elseif #items == 1 then
+    
+      item_1 = items[1]
+      local iPos_1 = reaper.GetMediaItemInfo_Value(item_1, "D_POSITION")
+      local itemEndPos_1 = iPos_1+reaper.GetMediaItemInfo_Value(item_1, "D_LENGTH")
+      if (iPos_1 <= areaStart and itemEndPos_1 < areaEnd) or
+      (iPos_1 < areaStart and itemEndPos_1 - 0.0002 <= areaEnd)then
+        Litem = item_1
+      elseif (iPos_1 + 0.0002 >= areaStart and itemEndPos_1 > areaEnd) or
+      (iPos_1 > areaStart and itemEndPos_1 >= areaEnd)then
+        Ritem = item_1
+      end
+    end
+    
+    if Litem or Ritem then preventFadesOnRests = true end
+    
+    return items, Litem, Ritem, needBatch, preventFadesOnRests
 end
 
 -----------------------
@@ -526,6 +594,7 @@ function GetRazorEdits() --returns areaMap, needBatch
     ONLYenvelopes = true
     RAZORenvelopes = false
     MouseDistDiff = nil
+    PreventFadesOnRests = nil
     local mouseTime =  reaper.BR_PositionAtMouseCursor( false )
     local NeedPerLane = true
     local trackCount = reaper.CountTracks(0)
@@ -566,7 +635,7 @@ function GetRazorEdits() --returns areaMap, needBatch
           end
           
           local testItem = reaper.GetTrackMediaItem(track,0)
-          if not testItem then goto skiptrack end
+          if not testItem then goto skiptrack end -- empty track
           local testItemH = reaper.GetMediaItemInfo_Value(testItem, "F_FREEMODE_H")
           
           local AreaParsed = ParseAreaPerLane(TRstr, testItemH)
@@ -587,6 +656,7 @@ function GetRazorEdits() --returns areaMap, needBatch
             
             --get item/envelope data
             local items = {}
+            local Litem, Ritem
             local envelopeName, envelope
             local envelopePoints
             
@@ -595,8 +665,9 @@ function GetRazorEdits() --returns areaMap, needBatch
             if not isEnvelope then
               ONLYenvelopes = false
               local TOneedBatch
-                items, TOneedBatch = GetItemsInRange(track, areaStart, areaEnd, areaTop, areaBottom)
+                items, Litem, Ritem, TOneedBatch, preventFadesOnRests = GetItemsInRange(track, areaStart, areaEnd, areaTop, areaBottom)
                 if needBatch ~= true then needBatch = TOneedBatch end
+                if not PreventFadesOnRests then PreventFadesOnRests = preventFadesOnRests end
             else
                 envelope = reaper.GetTrackEnvelopeByChunkName(track, GUID:sub(2, -2))
                 local ret, envName = reaper.GetEnvelopeName(envelope)
@@ -625,6 +696,8 @@ function GetRazorEdits() --returns areaMap, needBatch
                 
                 track = track,
                 items = items,
+                Litem = Litem,
+                Ritem = Ritem,
                 
                 --envelope data
                 isEnvelope = isEnvelope,
@@ -663,6 +736,7 @@ function GetRazorEdits() --returns areaMap, needBatch
             
             --get item/envelope data
             local items = {}
+            local Litem, Ritem
             local envelopeName, envelope
             local envelopePoints
             
@@ -671,8 +745,9 @@ function GetRazorEdits() --returns areaMap, needBatch
             if not isEnvelope then 
               ONLYenvelopes = false
               local TOneedBatch
-              items, TOneedBatch = GetItemsInRange(track, areaStart, areaEnd)
+              items, Litem, Ritem, TOneedBatch, preventFadesOnRests = GetItemsInRange(track, areaStart, areaEnd)
               if needBatch ~= true then needBatch = TOneedBatch end
+              if not PreventFadesOnRests then PreventFadesOnRests = preventFadesOnRests end
             else
               envelope = reaper.GetTrackEnvelopeByChunkName(track, GUID:sub(2, -2))
               local ret, envName = reaper.GetEnvelopeName(envelope)
@@ -699,6 +774,8 @@ function GetRazorEdits() --returns areaMap, needBatch
                 
                 track = track,
                 items = items,
+                Litem = Litem,
+                Ritem = Ritem,
                 
                 --envelope data
                 isEnvelope = isEnvelope,
@@ -724,22 +801,42 @@ end
 
 function SetCrossfade(Litem,Ritem,areaData)
   if not Litem and not Ritem then return end
-  local Ltake
-  local Rtake
+  local Ltake, Rtake
   if Litem then Ltake = reaper.GetActiveTake(Litem) end
   if Ritem then Rtake = reaper.GetActiveTake(Ritem) end
   
-  local LiPos
-  local LiLock
-  local RiPos
-  local RiEnd
-  local RiLock
+  local LiPos, LiLock
+  local RiPos, RiEnd, RiLock
+  local LiNewEnd, RiNewStart
   
-  local LiNewEnd
-  local RiNewStart
+  local leftISmidi, rightISmidi
   
-  local leftISmidi
-  local rightISmidi
+  ---Check for srctype---
+  if Opt.IgnoreNoAudio == true and not RunBatch then
+  
+    if Litem then
+      local iSrc, iType
+      if Ltake then
+        iSrc = reaper.GetMediaItemTake_Source( Ltake )
+        iType = reaper.GetMediaSourceType( iSrc )
+      end
+      if not iType or iType == 'MIDI' or iType == 'VIDEO' then
+        return
+      end
+    end
+    
+    if Ritem then
+      local iSrc, iType
+      if Ltake then
+        iSrc = reaper.GetMediaItemTake_Source( Rtake )
+        iType = reaper.GetMediaSourceType( iSrc )
+      end
+      if not iType or iType == 'MIDI' or iType == 'VIDEO' then
+        return
+      end
+    end
+    
+  end
   
   -----------Left item edges---------------
   if Litem then
@@ -754,7 +851,7 @@ function SetCrossfade(Litem,Ritem,areaData)
     end
     
     if ((edgesLock == 1 and globalLock == 1) or LiLock == 1)
-    and Opt.IgnoreLockingMouse == false
+    and Opt.IgnoreLockingMouse == false and not RunBatch
     then
       areaData.areaEnd = LiEnd
     end
@@ -789,7 +886,7 @@ function SetCrossfade(Litem,Ritem,areaData)
     end
     
     if ((edgesLock == 1 and globalLock == 1) or RiLock == 1)
-    and Opt.IgnoreLockingMouse == false
+    and Opt.IgnoreLockingMouse == false and not RunBatch
     then
       areaData.areaStart = RiPos
     end
@@ -965,7 +1062,7 @@ function BatchFades()
       local PrevEnd
       local PrevFout 
       
-      for i, item in pairs(items) do
+      for i, item in ipairs(items) do
         local iPos = reaper.GetMediaItemInfo_Value( item, "D_POSITION" )
         local iEnd = iPos + reaper.GetMediaItemInfo_Value( item, "D_LENGTH" )
         local iFin = reaper.GetMediaItemInfo_Value( item, "D_FADEINLEN" )
@@ -1447,45 +1544,13 @@ function FadeRazorEdits(razorEdits, needBatch) --get areaMap table and batch fla
         or (window == 'arrange' and (segment == 'track' or segment == 'empty')))
         then
           local items = areaData.items
-          local Litem
-          local Ritem
-          
+          local Litem = areaData.Litem
+          local Ritem = areaData.Ritem 
       
           if #items == 0 or #items > 2 then
             reaper.defer(function()end)
           end
-      
-          ---------Define L/R items--------
-          if #items == 2 then
-            local item_1 = items[1]
-            local item_2 = items[2]
-            local iPos_1 = reaper.GetMediaItemInfo_Value(item_1, "D_POSITION")
-            local itemEndPos_1 = iPos_1+reaper.GetMediaItemInfo_Value(item_1, "D_LENGTH")
-            local iPos_2 = reaper.GetMediaItemInfo_Value(item_2, "D_POSITION")
-            local itemEndPos_2 = iPos_2+reaper.GetMediaItemInfo_Value(item_2, "D_LENGTH")
-            
-            if iPos_1 <= areaData.areaStart and itemEndPos_1 > areaData.areaStart and iPos_1 <= iPos_2
-            and iPos_2 < areaData.areaEnd and itemEndPos_2 >= areaData.areaEnd
-            and itemEndPos_1 <= itemEndPos_2
-            then
-              Litem = item_1
-              Ritem = item_2
-            end
-            
-          elseif #items == 1 then
-          
-            item_1 = items[1]
-            local iPos_1 = reaper.GetMediaItemInfo_Value(item_1, "D_POSITION")
-            local itemEndPos_1 = iPos_1+reaper.GetMediaItemInfo_Value(item_1, "D_LENGTH")
-            if (iPos_1 <= areaData.areaStart and itemEndPos_1 < areaData.areaEnd) or
-            (iPos_1 < areaData.areaStart and itemEndPos_1 - 0.0002 <= areaData.areaEnd)then
-              Litem = item_1
-            elseif (iPos_1 + 0.0002 >= areaData.areaStart and itemEndPos_1 > areaData.areaEnd) or
-            (iPos_1 > areaData.areaStart and itemEndPos_1 >= areaData.areaEnd)then
-              Ritem = item_1
-            end
-          end
-      
+
           -------------1st case-------------
           if #items == 2 and Litem and Ritem
           and (fulliLock == 0 and edgesLock == 0) then
@@ -1526,7 +1591,8 @@ function FadeRazorEdits(razorEdits, needBatch) --get areaMap table and batch fla
                 if fadeStartEdge ~= nil then table.insert(fadeStartT, fadeStartEdge) end
               end
               
-            elseif Litem == nil and Ritem == nil then -- fades on the rests
+            elseif Litem == nil and Ritem == nil
+            and not PreventFadesOnRests then -- fades on the rests
               local item = items[1]
               local iPos = reaper.GetMediaItemInfo_Value( item, "D_POSITION" )
               local iEnd = iPos + reaper.GetMediaItemInfo_Value( item, "D_LENGTH" )
@@ -1770,6 +1836,17 @@ end
 
 function SetFade(item, f_type, f_size, shape ) -- returns fadeStartEdge
   if not item then return end
+  if Opt.IgnoreNoAudio == true then
+    local iTake = reaper.GetActiveTake(item)
+    local iSrc, iType
+    if iTake then
+      iSrc = reaper.GetMediaItemTake_Source( iTake )
+      iType = reaper.GetMediaSourceType( iSrc )
+    end
+    if not iType or iType == 'MIDI' or iType == 'VIDEO' then
+      return
+    end
+  end
 
   if f_type == "in" then
     
@@ -1836,12 +1913,12 @@ end
 ----------------------------
 
 function SaveSelItems()
-  Sitems = {}
+  local T = {}
   for i = 0, reaper.CountSelectedMediaItems(0) -1 do
     local item = reaper.GetSelectedMediaItem(0,i)
-    table.insert(Sitems, item)
+    table.insert(T, item)
   end
-  
+  return T
 end
 
 ----------------------------
@@ -1978,14 +2055,31 @@ function SortSelItems(Items, ref_item, ref_leftItem, ref_rightItem, reverseFlag)
       ItemData.leftItem = leftItem
       ItemData.rightItem = rightItem
       
-      ---Sort items--- 
+      ---Sort items---
+      --[[
+      local itTime, refTime
+      if not reverseFlag then
+        itTime = i_pos
+        refTime = ref_i_pos
+      else
+        itTime = fLeftpos
+        refTime = ref_fLeftpos
+      end]]
       if math.abs(i_pos - ref_i_pos) < 0.0002 and math.abs(fLeftpos - ref_fLeftpos) < 0.0002
       and leftItem and ref_leftItem then
         if reverseFlag == true then table.insert(Items.Vert.R, ItemData) ret = true
         else table.insert(Items.Vert.L, ItemData) ret = true
         end
       end
-      
+      --[[
+      if not reverseFlag then
+        itTime = i_end
+        refTime = ref_i_end
+      else
+        itTime = fRightpos
+        refTime = ref_fRightpos
+      end
+      ]]
       if math.abs(i_end - ref_i_end) < 0.0002 and math.abs(fRightpos - ref_fRightpos) < 0.0002
       and rightItem and ref_rightItem then
         if reverseFlag == true then table.insert(Items.Vert.L, ItemData) ret = true
@@ -2008,21 +2102,150 @@ end
 
 ----------------------------
 
+function AddTrMediaEditingGroup(Items, timeT, edge)
+  local GrSelTrs = reaper.GetToggleCommandState(42581) --Track: Automatically group selected tracks for media/razor editing
+  local GrAllTrs = reaper.GetToggleCommandState(42580) --Track: Automatically group all tracks for media/razor editing
+  
+  for t, time in ipairs(timeT) do
+    local Tracks = {}
+    local ItemsH = {}
+    local GrTracks = {}
+    local GrIDsLow = 0
+    local GrIDsHigh = 0
+    local SelState = 0
+    local itemTime
+    
+    for i, item in ipairs(Items) do
+      local ipos = reaper.GetMediaItemInfo_Value(item, 'D_POSITION')
+      local iend = ipos + reaper.GetMediaItemInfo_Value(item, 'D_LENGTH')
+      local tr = reaper.GetMediaItemTrack(item) 
+      
+      if edge == 'l' then itemTime = ipos
+      elseif edge == 'r' then itemTime = iend
+      end
+      
+      if math.abs(time - itemTime) < 0.0002 then
+        FieldMatch(Tracks, tr, true)
+        local mode = reaper.GetMediaTrackInfo_Value(tr, 'I_FREEMODE')
+        local iY = reaper.GetMediaItemInfo_Value(item, 'F_FREEMODE_Y')
+        local iH = reaper.GetMediaItemInfo_Value(item, 'F_FREEMODE_H')
+        local iL = reaper.GetMediaItemInfo_Value(item, 'I_FIXEDLANE')
+        ItemsH[tostring(item)] = {iY, iH, iL, mode}
+      end
+    end
+    
+    for i, tr in ipairs(Tracks) do -- collect gr info for tracks with initially captured items
+      local intlow = reaper.GetSetTrackGroupMembership( tr, "MEDIA_EDIT_LEAD", 0, 0 )
+      local inthigh = reaper.GetSetTrackGroupMembershipHigh( tr, "MEDIA_EDIT_LEAD", 0, 0 )
+      local intSel = reaper.GetMediaTrackInfo_Value(tr, 'I_SELECTED')
+      GrIDsLow = GrIDsLow | intlow
+      GrIDsHigh = GrIDsHigh | inthigh
+      SelState = SelState | intSel
+    end
+     
+    for i = 1, reaper.CountTracks(0) do -- collect all matching group mappings
+      local tr = reaper.GetTrack(0, i-1)
+      local intlow = reaper.GetSetTrackGroupMembership( tr, "MEDIA_EDIT_LEAD", 0, 0 )
+      local inthigh = reaper.GetSetTrackGroupMembershipHigh( tr, "MEDIA_EDIT_LEAD", 0, 0 )
+      local intlowF = reaper.GetSetTrackGroupMembership( tr, "MEDIA_EDIT_FOLLOW", 0, 0 )
+      local inthighF = reaper.GetSetTrackGroupMembershipHigh( tr, "MEDIA_EDIT_FOLLOW", 0, 0 )
+      
+      local intSel = reaper.GetMediaTrackInfo_Value(tr, 'I_SELECTED')
+      
+      if GrIDsLow & intlow ~= 0 or GrIDsLow & intlowF ~= 0 or SelState & intSel ~= 0 then
+        GrIDsLow = GrIDsLow | intlow
+      end
+      
+      if GrIDsHigh & inthigh ~= 0 or GrIDsHigh & inthighF ~= 0 or SelState & intSel ~= 0 then
+        GrIDsHigh = GrIDsHigh | inthigh
+      end
+
+    end
+    
+    for i = 1, reaper.CountTracks(0) do -- add corresponding tracks to the table
+      local tr = reaper.GetTrack(0, i-1)
+      if GrAllTrs == 1 then
+        FieldMatch(GrTracks, tr, true)
+      else
+        local intlow = reaper.GetSetTrackGroupMembership( tr, "MEDIA_EDIT_LEAD", 0, 0 )
+        local inthigh = reaper.GetSetTrackGroupMembershipHigh( tr, "MEDIA_EDIT_LEAD", 0, 0 )
+        local intlowF = reaper.GetSetTrackGroupMembership( tr, "MEDIA_EDIT_FOLLOW", 0, 0 )
+        local inthighF = reaper.GetSetTrackGroupMembershipHigh( tr, "MEDIA_EDIT_FOLLOW", 0, 0 )
+        
+        local intSel = reaper.GetMediaTrackInfo_Value(tr, 'I_SELECTED')
+        
+        if GrIDsLow & intlow ~= 0 or GrIDsLow & intlowF ~= 0 or SelState & intSel ~= 0 then
+          table.insert(GrTracks, tr)
+        end
+        
+        if GrIDsHigh & inthigh ~= 0 or GrIDsHigh & inthighF ~= 0 or SelState & intSel ~= 0 then
+          FieldMatch(GrTracks, tr, true)
+        end
+
+      end
+    end
+    
+    for i, tr in ipairs(GrTracks) do
+      local mode = reaper.GetMediaTrackInfo_Value(tr, 'I_FREEMODE')
+      local itemCount = reaper.CountTrackMediaItems(tr) - 1
+      local idx = itemCount
+      local testTime = time + 1 --just more than time
+      
+      while testTime >= time - 0.0002 and idx > 0 do
+        local item = reaper.GetTrackMediaItem(tr, idx)
+        local tpos = reaper.GetMediaItemInfo_Value(item, "D_POSITION")
+        local tend = tpos + reaper.GetMediaItemInfo_Value(item, 'D_LENGTH')
+        if edge == 'l' then testTime = tpos
+        elseif edge == 'r' then testTime = tend
+        end
+        
+        if testTime >= time - 0.0002 then --optimize start idx to avoid check extra items
+          idx = math.floor(idx - itemCount/6)
+        end
+      end
+      
+      for k = idx, itemCount do
+        local item = reaper.GetTrackMediaItem(tr, k)
+        local ipos = reaper.GetMediaItemInfo_Value(item, 'D_POSITION')
+        local iend = ipos + reaper.GetMediaItemInfo_Value(item, 'D_LENGTH')
+        --local itemTime
+        if edge == 'l' then itemTime = ipos
+        elseif edge == 'r' then itemTime = iend
+        end
+        
+        if itemTime > time + 0.0002 then break end
+        
+        if math.abs(time - itemTime) < 0.0002 then
+          local iY = reaper.GetMediaItemInfo_Value(item, 'F_FREEMODE_Y')
+          local iH = reaper.GetMediaItemInfo_Value(item, 'F_FREEMODE_H')
+          local iL = reaper.GetMediaItemInfo_Value(item, 'I_FIXEDLANE')
+          
+          for h, refItem in pairs(ItemsH) do
+            if mode == 2 and refItem[4] == mode then
+              if refItem[3] == iL then FieldMatch(Items, item, true)
+              end
+            else 
+              if math.abs(refItem[1] - iY) < math.min(refItem[2], iH)/5
+              and math.max(refItem[2], iH) / math.min(refItem[2], iH) <= 1.5
+              then
+                FieldMatch(Items, item, true)
+              end
+            end
+          end 
+        end --if time > ipos and time < iend
+        
+      end --all items on the track cycle
+    end --cycle through grouped tracks
+    
+  end -- timeT cycle
+end
+
+-------------------------------
+
 function FadeToMouse(item, itemHalf) --returns table of fades start position
   local ilock = reaper.GetMediaItemInfo_Value( item, "C_LOCK" )
   if ilock == 1 and Opt.IgnoreLockingMouse == false then return end
   
-  local iTake = reaper.GetActiveTake(item)
-  local iSrc, iType
-  if iTake then 
-    iSrc = reaper.GetMediaItemTake_Source( iTake )
-    iType = reaper.GetMediaSourceType( iSrc )
-  end
-  if Opt.IgnoreNoAudio == true 
-  and (not iType or iType == 'MIDI' or iType == 'VIDEO') then
-    return
-  end
-
   local mPos = reaper.BR_PositionAtMouseCursor(false)
   local mPosSnapped
   
@@ -2086,16 +2309,60 @@ function FadeToMouse(item, itemHalf) --returns table of fades start position
       reverse = true
     end
   else
-    f_type = WhatFade(itemHalf, fLeftpos, fRightpos, mPos)
+    f_type = WhatFade(itemHalf, fLeftpos, fRightpos, mPos) 
   end
   
+  Sitems = SaveSelItems() --for restore after all
+  
   if Grouping == 1 then
-    SaveSelItems()
-    local group = reaper.GetMediaItemInfo_Value( item, "I_GROUPID" )
-    if reaper.IsMediaItemSelected(item) == false and group ~= 0 then
+    --local group = reaper.GetMediaItemInfo_Value( item, "I_GROUPID" )
+    if reaper.IsMediaItemSelected(item) == false then
+      reaper.SelectAllMediaItems(0, false)
       reaper.SetMediaItemSelected(item, true)
     end
-    reaper.Main_OnCommandEx(40034,0,0) --Item grouping: Select all items in groups
+    --reaper.Main_OnCommandEx(40034,0,0) --Item grouping: Select all items in groups
+    
+    ---Here find items with equal edges on grouped tracks and select them---
+    local SelItems = SaveSelItems() --initial selected items
+    local time, edge
+    
+    if f_type == 'in' then
+      time = i_pos
+      if reverse then
+        time = reaper.GetMediaItemInfo_Value(item, "D_POSITION")
+      end
+      edge = 'l'
+    elseif f_type == 'out' then
+      time = i_end
+      if reverse then
+        time = reaper.GetMediaItemInfo_Value(item, "D_POSITION") + reaper.GetMediaItemInfo_Value(item, "D_LENGTH")
+      end
+      edge = 'r'
+    elseif f_type == nil then
+      if leftItem and rightItem then
+        if mPos - fLeftpos < fRightpos - mPos then -- left xfade
+          time = i_pos
+          edge = 'l'
+        else -- right xfade
+          time = i_end
+          edge = 'r'
+        end
+      elseif leftItem then --left xfade
+        time = i_pos
+        edge = 'l'
+      elseif rightItem then -- right xfade
+        time = i_end
+        edge = 'r'
+      end
+    end
+    
+    FieldMatch(SelItems, item, true) --for the case item is not in item group 
+    AddTrMediaEditingGroup(SelItems, {time}, edge)
+    --add grouped items by item grouping
+    SelItems = AddGroupedItems(SelItems, false, time, edge)
+    for i, item in ipairs(SelItems) do
+      reaper.SetMediaItemSelected(item, true)
+    end
   end
   
   local LeftSelFlag, RightSelFlag
@@ -2311,6 +2578,48 @@ function FadeToMouse(item, itemHalf) --returns table of fades start position
   end
   
   return fadeStartT
+end
+
+------------------------------------------
+
+function AddGroupedItems(itemsTable, retWithoutInputs, matchTime, matchEdge) --table, boolean
+  local grItems = {}
+  local grIDs = {}
+  local allCnt = reaper.CountMediaItems(0)
+  local inpCnt = #itemsTable
+  
+  for i = 1, inpCnt do
+    local item = itemsTable[i]
+    local groupID = reaper.GetMediaItemInfo_Value(item, 'I_GROUPID') 
+    if groupID ~= 0 and FieldMatch(grIDs, groupID) == false then
+      table.insert(grIDs, groupID)
+    end
+  end
+  
+  if #grIDs > 0 then
+    for i = 0, allCnt-1 do
+      local item = reaper.GetMediaItem(0,i)
+      local groupID = reaper.GetMediaItemInfo_Value(item, 'I_GROUPID')
+      if groupID ~= 0 and FieldMatch(grIDs, groupID) == true then
+        local itemTime
+        if matchEdge == 'l' then
+          itemTime = reaper.GetMediaItemInfo_Value(item, 'D_POSITION')
+        elseif matchEdge == 'r' then
+          itemTime = reaper.GetMediaItemInfo_Value(item, 'D_POSITION') + reaper.GetMediaItemInfo_Value(item, 'D_LENGTH')
+        end
+        if matchTime and math.abs(matchTime - itemTime) < 0.0002 then
+          table.insert(grItems, item)
+        elseif not matchTime then table.insert(grItems, item)
+        end
+      end
+    end
+  end
+  
+  if retWithoutInputs == false then
+    table.move(itemsTable, 1, #itemsTable, #grItems+1, grItems)
+  end
+  --msg(#grItems)
+  return grItems
 end
 
 ------------------------------------------
@@ -2555,11 +2864,12 @@ else
   
   if UndoString == nil then
     
-    if item_mouse then --and (Opt.IgnoreLockingMouse == true or fadesLock == 0) then
+    if item_mouse then
       reaper.Undo_BeginBlock2( 0 )
       reaper.PreventUIRefresh( 1 )
       sTime = FadeToMouse(item_mouse, itemHalf)
-      if Grouping == 1 then RestoreSelItems() end
+      RestoreSelItems()
+      --if Grouping == 1 then RestoreSelItems() end
       RestoreLockedItems()
       if UndoString then return UndoString end
     else
@@ -2627,7 +2937,7 @@ end
   else
     UndoString = Main()
     
-    if globalLock == 1 and not RunBatch then 
+    if globalLock == 1 and not RunBatch then
       reaper.Main_OnCommandEx(40569,0,0) --Locking: Enable locking
     end
     if trimContBehItems == 1 and not RunBatch then
@@ -2635,7 +2945,7 @@ end
     end
     
     if UndoString ~= nil then --msg(UndoString)
-      if sTime then MoveEditCursor(sTime) end 
+      if sTime then MoveEditCursor(sTime) end
       reaper.Undo_EndBlock2( 0, UndoString, -1 )
       reaper.UpdateArrange()
     else
