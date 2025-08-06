@@ -1,10 +1,7 @@
 -- @description Apply render preset
 -- @author cfillion
--- @version 2.1.7
--- @changelog
---   Add support for trim/pad leading/trailing silence
---   Harden reaper-render.ini parsing against empty lines
---   Update post-processing display to match REAPER v7.39
+-- @version 2.1.8
+-- @changelog Fix compatibility with ReaImGui v0.10
 -- @provides
 --   .
 --   [main] . > cfillion_Apply render preset (create action).lua
@@ -45,7 +42,7 @@
 local ImGui
 if reaper.ImGui_GetBuiltinPath then
   package.path = reaper.ImGui_GetBuiltinPath() .. '/?.lua'
-  ImGui = require 'imgui' '0.9'
+  ImGui = require 'imgui' '0.10'
 end
 
 local FLT_MIN, FLT_MAX = ImGui.NumericLimits_Float()
@@ -1115,9 +1112,6 @@ end
 
 local ctx = ImGui.CreateContext(scriptInfo.name, ImGui.ConfigFlags_NavEnableKeyboard)
 local clipper = ImGui.CreateListClipper(ctx)
-local size = reaper.GetAppVersion():match('OSX') and 12 or 14
-local font = ImGui.CreateFont('sans-serif', size)
-ImGui.Attach(ctx, font)
 
 local function popup()
   if #names == 0 then
@@ -1194,16 +1188,14 @@ local function loop()
     -- Tables inherit the NoSavedSettings flag from the parent top-level window.
     -- Creating the window first prevents BeginPopup from setting that flag.
     local WindowFlags_Popup = 1 << 26
-    if ImGui.Begin(ctx, '##Popup_b362686d', false,
+    if ImGui.Begin(ctx, '##Popup_18838e98', false,
         windowFlags | WindowFlags_Popup) then
       ImGui.End(ctx)
     end
   end
 
   if ImGui.BeginPopup(ctx, scriptInfo.name, windowFlags) then
-    ImGui.PushFont(ctx, font)
     popup()
-    ImGui.PopFont(ctx)
     ImGui.EndPopup(ctx)
     reaper.defer(loop)
   end
