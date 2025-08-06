@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="baedcf50f11484f6c0a7df29b48728c4884434c4" name="ReaTeam Scripts">
+<index version="1" commit="355ae23e670a6d59091c404c48975390f0841daf" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -20308,6 +20308,11 @@ Harden reaper-render.ini parsing against empty lines
 Update post-processing display to match REAPER v7.39]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3b73fb52c604cbd958da95ba86826eeba6977aad/Rendering/cfillion_Apply%20render%20preset.lua</source>
         <source main="main" file="cfillion_Apply render preset (create action).lua">https://github.com/ReaTeam/ReaScripts/raw/3b73fb52c604cbd958da95ba86826eeba6977aad/Rendering/cfillion_Apply%20render%20preset.lua</source>
+      </version>
+      <version name="2.1.8" author="cfillion" time="2025-08-06T14:51:34Z">
+        <changelog><![CDATA[Fix compatibility with ReaImGui v0.10]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/355ae23e670a6d59091c404c48975390f0841daf/Rendering/cfillion_Apply%20render%20preset.lua</source>
+        <source main="main" file="cfillion_Apply render preset (create action).lua">https://github.com/ReaTeam/ReaScripts/raw/355ae23e670a6d59091c404c48975390f0841daf/Rendering/cfillion_Apply%20render%20preset.lua</source>
       </version>
     </reapack>
     <reapack name="DSG_Render time selection to new track.lua" type="script" desc="Render time selection to new track">
