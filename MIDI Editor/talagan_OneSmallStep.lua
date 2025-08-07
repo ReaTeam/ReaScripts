@@ -1,12 +1,11 @@
 --[[
 @description One Small Step : Alternative Step Input
-@version 0.9.20
+@version 0.9.21
 @author Ben 'Talagan' Babut
 @license MIT
 @metapackage
 @changelog
-  - [Hotfix] Updated version number in title bar
-  - [Hotfix] Ported step back modifier to JS_Mouse_GetState
+  - [Cosmetics] Adapted to ImGui 0.10
 @provides
   [main=main,midi_editor] .
   [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Change input mode - (MIDI).lua
@@ -93,7 +92,7 @@
     @stevie, @hipox, @MartinTL, @henu, @Thonex, @smandrap, @SoaSchas, @daodan, @inthevoid, @dahya, @User41, @Spookye, @R.Cato, @samlletas
 --]]
 
-VERSION = "0.9.20"
+VERSION = "0.9.21"
 DOC_URL = "https://bentalagan.github.io/onesmallstep-doc/index.html?ver=" .. VERSION
 
 PATH    = debug.getinfo(1,"S").source:match[[^@?(.*[\/])[^\/]-$]]
@@ -153,11 +152,12 @@ local DEBUGGER_IS_ON = S.getSetting("UseDebugger")
 -- ImGui Backward compatibility
 
 package.path  = reaper.ImGui_GetBuiltinPath() .. '/?.lua' .. ";" .. package.path
-local ImGui   = require 'imgui' '0.9.3'
+local ImGui   = require 'imgui' '0.10.0'
 
 -------------------------------
 
 local ctx                   = ImGui.CreateContext('One Small Step')
+local arial                 = ImGui.CreateFont("Arial", ImGui.FontFlags_None)
 
 -------------------------------
 
@@ -653,7 +653,7 @@ function NTupletComboBox()
   local combo_items = { '2', '3','4', '5', '6', '7', '8', '9', '10', '11', '12' }
 
   ImGui.AlignTextToFramePadding(ctx)
-  ImGui.PushStyleVar(ctx, ImGui.StyleVar_FramePadding, 5, 3.5)
+  ImGui.PushStyleVar(ctx, ImGui.StyleVar_FramePadding, 5, 3)
   ImGui.PushID(ctx, "nlet_combo")
 
   local tuplet = '' .. S.getTupletDivision()
@@ -687,7 +687,7 @@ function NoteLenFactorComboBox(role) -- Numerator/Denominator
   end
 
   ImGui.AlignTextToFramePadding(ctx)
-  ImGui.PushStyleVar(ctx, ImGui.StyleVar_FramePadding, 5, 3.5)
+  ImGui.PushStyleVar(ctx, ImGui.StyleVar_FramePadding, 5, 3)
   ImGui.PushID(ctx, "NoteLenFactor" .. role)
 
   ImGui.SetNextItemWidth(ctx, 45)
@@ -719,7 +719,7 @@ function AugmentedDiminishedMiniBars(with_x)
   end
   NoteLenFactorComboBox("Numerator")
   SL()
-  ImGui.Text(ctx, "/")
+  ImGui.Text(ctx, " / ")
   SL()
   NoteLenFactorComboBox("Denominator")
 end
@@ -736,14 +736,14 @@ function PlayBackMeasureCountComboBox()
   ImGui.PushStyleColor(ctx, ImGui.Col_Header,         0x00C000FF)
   ImGui.PushStyleColor(ctx, ImGui.Col_HeaderHovered,  0x00C000FF)
 
-  ImGui.PushStyleVar(ctx, ImGui.StyleVar_FramePadding, 5, 3.5)
+  ImGui.PushStyleVar(ctx, ImGui.StyleVar_FramePadding, 5, 3)
   local curm = S.getPlaybackMeasureCount()
 
   local label = function(mnum)
     return ((mnum == -1) and "Mk" or mnum)
   end
 
-  ImGui.SetNextItemWidth(ctx,42)
+  ImGui.SetNextItemWidth(ctx,46)
   if ImGui.BeginCombo(ctx, '', label(curm)) then
     for i=-1,16,1 do
       local is_selected = (curm == i)
@@ -971,7 +971,7 @@ function SettingComboBox(setting, pre_label, tooltip, width)
   local curval      = S.getSetting(setting)
 
   ImGui.AlignTextToFramePadding(ctx)
-  ImGui.PushStyleVar(ctx, ImGui.StyleVar_FramePadding, 5, 3.5)
+  ImGui.PushStyleVar(ctx, ImGui.StyleVar_FramePadding, 5, 3)
 
   if pre_label ~= "" then
     ImGui.Text(ctx, pre_label)
@@ -1136,7 +1136,7 @@ function MarkerPolicySettingComboBox(marker_name, policy_setting_name)
   local curval      = S.getSetting(policy_setting_name)
 
   ImGui.AlignTextToFramePadding(ctx)
-  ImGui.PushStyleVar(ctx, ImGui.StyleVar_FramePadding, 5, 3.5)
+  ImGui.PushStyleVar(ctx, ImGui.StyleVar_FramePadding, 5, 3)
   ImGui.PushID(ctx, "playback_marker_policy_" .. policy_setting_name)
 
   ImGui.SetNextItemWidth(ctx, 120)
@@ -1200,7 +1200,7 @@ function StepBackModifierKeyComboBox(callback)
   local curval      = modkey.vkey
 
   ImGui.AlignTextToFramePadding(ctx)
-  ImGui.PushStyleVar(ctx, ImGui.StyleVar_FramePadding, 5, 3.5)
+  ImGui.PushStyleVar(ctx, ImGui.StyleVar_FramePadding, 5, 3)
   ImGui.PushID(ctx, setting)
 
   ImGui.SetNextItemWidth(ctx, 100)
@@ -1238,7 +1238,7 @@ function StepBackModifierPedalComboBox()
   local curval      = modifier.ccnum
 
   ImGui.AlignTextToFramePadding(ctx)
-  ImGui.PushStyleVar(ctx, ImGui.StyleVar_FramePadding, 5, 3.5)
+  ImGui.PushStyleVar(ctx, ImGui.StyleVar_FramePadding, 5, 3)
   ImGui.PushID(ctx, setting)
 
   ImGui.SetNextItemWidth(ctx, 160)
@@ -1283,7 +1283,7 @@ function EditModeComboBox(editModeName, callback)
   local current_combi = D.ModifierKeyCombinationLookup[current_id]
 
   ImGui.AlignTextToFramePadding(ctx)
-  ImGui.PushStyleVar(ctx,  ImGui.StyleVar_FramePadding, 5, 3.5)
+  ImGui.PushStyleVar(ctx,  ImGui.StyleVar_FramePadding, 5, 3)
   ImGui.PushID(ctx,        setting)
 
   ImGui.SetNextItemWidth(ctx, 100)
@@ -1319,7 +1319,7 @@ function RepitchModeComboBox()
   local curval      = S.getSetting("RepitchModeAffects")
 
   ImGui.AlignTextToFramePadding(ctx)
-  ImGui.PushStyleVar(ctx, ImGui.StyleVar_FramePadding, 5, 3.5)
+  ImGui.PushStyleVar(ctx, ImGui.StyleVar_FramePadding, 5, 3)
 
   ImGui.Text(ctx, "Repitch mode affects")
   SL()
@@ -1665,6 +1665,7 @@ local draw_count = 0
 
 local function UiLoop()
 
+  ImGui.PushFont(ctx, arial, 12)
   ImGui.PushStyleVar(ctx,ImGui.StyleVar_WindowPadding,10,10)
 
   local flags   = ImGui.WindowFlags_NoDocking |
@@ -1763,6 +1764,7 @@ local function UiLoop()
   end
 
   ImGui.PopStyleVar(ctx)
+  ImGui.PopFont(ctx)
 
   return open
 end
