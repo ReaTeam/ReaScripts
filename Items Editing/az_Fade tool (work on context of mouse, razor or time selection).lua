@@ -1,10 +1,7 @@
 -- @description Fade tool (works on context of mouse, razor or time selection)
 -- @author AZ
--- @version 2.3
--- @changelog
---   - Fixed suddenly broken time selection stuff in 2.2.9 version
---   - New option to use time selection only if mouse is close enough
---   - UI improvements: collapsed menu blocks
+-- @version 2.3.1
+-- @changelog - Fixed bug with razor edits for some specific amounts of items in the track
 -- @provides
 --   az_Fade tool (work on context of mouse, razor or time selection)/az_Options window for az_Fade tool.lua
 --   [main] az_Fade tool (work on context of mouse, razor or time selection)/az_Open options for az_Fade tool.lua
@@ -448,6 +445,8 @@ function GetItemsInRange(track, areaStart, areaEnd, areaTop, areaBottom) --retur
       end
     end
     
+    if idx < 0 then idx = 0 end
+
     for k = idx, itemCount do
       local item = reaper.GetTrackMediaItem(track, k)
       local pos = reaper.GetMediaItemInfo_Value(item, "D_POSITION")
@@ -2246,6 +2245,8 @@ function AddTrMediaEditingGroup(Items, timeT, edge)
         end
       end
       
+      if idx < 0 then idx = 0 end
+
       for k = idx, itemCount do
         local item = reaper.GetTrackMediaItem(tr, k)
         local ipos = reaper.GetMediaItemInfo_Value(item, 'D_POSITION')
