@@ -189,7 +189,9 @@ local function sig_window(window_type, samples_array, window_start, window_size)
     ImGui.Function_SetValue(func, "_WINDOW_SIZE",      window_size)
     ImGui.Function_SetValue(func, "_SIZE",             #samples_array)
 
-    Function_SetValue_ArrayAt(func, "_SAMPLES",        samples_array, 0)
+    -- Hann coeffs are mapped first, then the samples,
+    -- so put all samples after the coeffs.
+    Function_SetValue_ArrayAt(func, "_SAMPLES",        samples_array, window_size)
 
     ImGui.Function_Execute(func)
     ImGui.Function_GetValue_Array(func, "_SAMPLES",    samples_array)
@@ -479,14 +481,14 @@ local function analysis_data_extract_profile(data_buf, profile_buf, slice_count,
     analysis_data_extract(EXTRACT_PROFILE, data_buf, profile_buf, slice_count, slice_size, profile_num)
 end
 
-local function analysis_data_to_rgb_array(spectrograms, coeffs, rgb_result, db_min, db_max)
+local function analysis_data_to_rgb_array(spectrograms, coeffs, rgb_result, db_min, db_max, slice_size, format)
     local func = getOrCompileFunction("analysis_data_to_rgb_array")
 
     local spectro_count = #spectrograms
     local spectro_size  = #rgb_result
 
-    for i, spectro in pairs(spectrograms) do
-        assert(#spectro == spectro_size, "RGB result size is not not of the size of the spectrograms")
+    for i, spectro_data in pairs(spectrograms) do
+        assert(#spectro_data == spectro_size, "Pixel buffer size is not not of the size of the spectrograms")
     end
     assert(#coeffs == #spectrograms, "There should be one coeff per spectrogram")
 
@@ -496,14 +498,17 @@ local function analysis_data_to_rgb_array(spectrograms, coeffs, rgb_result, db_m
     ImGui.Function_SetValue(func, "_DB_MIN",  db_min)
     ImGui.Function_SetValue(func, "_DB_MAX",  db_max)
 
+    ImGui.Function_SetValue(func, "_SLICE_SIZE",    slice_size)
+    ImGui.Function_SetValue(func, "_FORMAT",        format)
+
     local m = Malloc:new()
 
     ImGui.Function_SetValue  (func, "_PIXELS",              m:alloc(#rgb_result))
     ImGui.Function_SetValue  (func, "_DATA",                m.ptr)
 
     -- Write all spectrograph data consecutively
-    for i, spectro in pairs(spectrograms) do
-        Function_SetValue_ArrayAt(func, "_DATA_PTR", spectro, m:alloc(spectro_size))
+    for i, spectro_data in pairs(spectrograms) do
+        Function_SetValue_ArrayAt(func, "_DATA_PTR", spectro_data, m:alloc(spectro_size))
     end
 
     Function_SetValue_ArrayAt(func, "_COEFFS", coeffs,      m:alloc(#coeffs))

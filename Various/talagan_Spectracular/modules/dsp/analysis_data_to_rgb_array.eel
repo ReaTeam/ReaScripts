@@ -17,6 +17,8 @@ function malloc(size)
 _PIXELS       = malloc(_SPECTRO_SIZE);
 _DATA         = MEM_PTR;
 
+// _SPECTRO_COUNT is the number of spectrograms (audio channels)
+
 i = 0;
 while(i < _SPECTRO_COUNT) (
     _DATA_PTR   = malloc(_SPECTRO_SIZE);
@@ -74,7 +76,13 @@ function heatmap1(v01)
     g = floor(g1 + alpha * (g2 - g1));
     b = floor(b1 + alpha * (b2 - b1));
 
-    0xFF000000 | (r << 16) | (g << 8) | b;
+    (_FORMAT == 0)?(
+        // ARGB (putpixel)
+        0xFF000000 | (r << 16) | (g << 8) | b;
+    ):(
+        // RGBA (imgui)
+        (r << 24) | (g << 16) | (b << 8) | 0xFF;
+    );
 );
 
 function val(i) (
@@ -92,20 +100,45 @@ function val(i) (
     );
 );
 
-function go() (
-    i       = 0;
-    while(i < _SPECTRO_SIZE) (
+function go()
+    local(v, s, t, i, j)
+(
+    slice_count         = _SPECTRO_SIZE / _SLICE_SIZE;
 
-        v = val(i);
+    s                   = 0;
+    t                   = 0;
+    i                   = (_SLICE_SIZE-1) * slice_count;
+    j                   = 0;
+
+    while(s < _SPECTRO_SIZE) (
+
+        v = val(s);
 
         (v <= _DB_MIN)?( v = _DB_MIN );
         (v >= _DB_MAX)?( v = _DB_MAX );
 
         v01 = (v - _DB_MIN)/(_DB_MAX - _DB_MIN);
 
-        _PIXELS[i]   = heatmap1(v01) ;
+        _PIXELS[t]   = heatmap1(v01) ;
 
-        i = i + 1;
+        s = s + 1;
+
+        (_FORMAT == 1)?(
+            // For imgui we need to perform pixel interleaving
+            // because currently slices are layouted horizontally in the buffer
+            // but are displayed vertically in the image
+
+            i = i - slice_count;
+
+            (i < 0)?(
+                i       = (_SLICE_SIZE-1) * slice_count;
+                j       = j + 1;
+            );
+
+            t = i + j;
+        ):(
+            t = s;
+        );
     );
 );
 

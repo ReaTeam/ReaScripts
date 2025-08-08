@@ -44,6 +44,8 @@ function SpectrogramChunk:extractSlice(slice_buf, slice_sub_num)
     slice_buf.copy(self.data, slice_sub_num * self.sac.slice_size + 1, self.sac.slice_size, 1)
 end
 
+-- Data is saved with consecutive slices, but a profile is a temporal "cut" so it takes one sample from each slice
+-- To de-interleave a profile, we use an EEL function
 function SpectrogramChunk:extractNoteProfileSegment(profile_buf, profile_num)
     self.note_extract_buf = DSP.ensure_array_size(self.note_extract_buf, self.slice_count)
     DSP.analysis_data_extract_profile(self.data, self.note_extract_buf, self.slice_count, self.sac.slice_size, profile_num)

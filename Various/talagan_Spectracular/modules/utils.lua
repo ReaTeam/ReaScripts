@@ -19,6 +19,16 @@ local function assembleRGBA(r,g,b,a)
     return ((math.floor(r * 255) & 0xFF) << 24) | ((math.floor(g * 255) & 0xFF) << 16) | ((math.floor(b * 255) & 0xFF) << 8) | a
 end
 
+local function benchmark(cb, should_print)
+    local t1 = reaper.time_precise()
+    cb()
+    local t2 = reaper.time_precise();
+    if should_print then
+        reaper.ShowConsoleMsg("Ellapsed : " .. (t2 - t1) .. " seconds\n")
+    end
+    return t2 - t1
+end
+
 local function colToBgCol(rgba, lumfac, alpha)
     local bg_col     = rgba
     local r,g,b,a    = splitRGBA(rgba)
@@ -84,5 +94,7 @@ return {
     isMouseStalled = isMouseStalled,
 
     colToBgCol = colToBgCol,
-    colLerp = colLerp
+    colLerp = colLerp,
+
+    benchmark = benchmark
 }

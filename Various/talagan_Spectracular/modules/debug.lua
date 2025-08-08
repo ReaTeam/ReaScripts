@@ -60,6 +60,7 @@ local function LaunchProfilerIfNeeded()
         local DSP                       = require "modules/dsp"
         local RENDER                    = require "modules/render"
         local UTILS                     = require "modules/utils"
+        local ImGui                     = require "ext/imgui"
 
         local profiler = dofile(reaper.GetResourcePath() .. '/Scripts/ReaTeam Scripts/Development/cfillion_Lua profiler.lua')
         reaper.defer = profiler.defer
