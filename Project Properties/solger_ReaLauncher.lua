@@ -6828,7 +6828,7 @@ end
 function RL_Init_Colors_Highlight()
   local checklistElements = {
     GUI.elms.main_checklistWindowPin, GUI.elms.main_checklistPaths, GUI.elms.options_checklistOpenPropertiesOnNewProject,
-    GUI.elms.options_checklistShowPathsInStatusbar,GUI.elms.layout_checklistShowSubfolderPanel
+    GUI.elms.options_checklistShowPathsInStatusbar, GUI.elms.options_checklistShowConfirmDialog, GUI.elms.layout_checklistShowSubfolderPanel
   }
 
   if SWSinstalled then
@@ -6846,7 +6846,7 @@ function RL_Init_Colors_TextElements()
     GUI.elms.tab_recentProjects_btnFilterClear, GUI.elms.tab_projectTemplates_btnFilterClear, GUI.elms.tab_trackTemplates_btnFilterClear, GUI.elms.tab_customProjects_btnFilterClear,
     GUI.elms.tab_projectLists_btnFilterClear, GUI.elms.tab_backups_btnFilterClear, GUI.elms.tab_docs_btnFilterClear,GUI.elms.tab_favorites_btnFilterClear,
     GUI.elms.main_statusbar, GUI.elms.main_lblPaths, GUI.elms.colors_lbl_elmFill, GUI.elms.colors_lbl_txt, GUI.elms.colors_lbl_elmBg, GUI.elms.colors_lbl_wndBg, GUI.elms.colors_lbl_infotext,
-    GUI.elms.layout_lblStartTab, GUI.elms.layout_lblDoubleClick, GUI.elms.layout_lblShowPathsInStatusbar,
+    GUI.elms.layout_lblStartTab, GUI.elms.layout_lblDoubleClick, GUI.elms.layout_lblShowPathsInStatusbar, GUI.elms.options_lblShowConfirmDialog,
     GUI.elms.layout_lblTabSelectorStyle, GUI.elms.layout_lblButtonPanelStyle, GUI.elms.layout_lblShowSubfolderPanel,
     GUI.elms.scansettings_lblExcludedFolders, GUI.elms.actions_lblActionsHeader, GUI.elms.paths_lblInfo,
     GUI.elms.main_btnHelp, GUI.elms.main_btnOptions, GUI.elms.main_scaleFontDown, GUI.elms.main_scaleFontUp,
