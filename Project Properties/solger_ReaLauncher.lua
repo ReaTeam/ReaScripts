@@ -6292,7 +6292,7 @@ local function RL_Draw_TabOptions()
   GUI.elms.options_checklistShowConfirmDialog:init()
   function GUI.elms.options_checklistShowConfirmDialog:onmouseup()
     GUI.Checklist.onmouseup(self)
-    RL.showConfirmDialog = self.retval
+    RL.showConfirmDialog = GUI.Val("options_checklistShowConfirmDialog")
     reaper.SetExtState(appname, "window_showconfirmdialog", tostring(GUI.Val("options_checklistShowConfirmDialog")), 1)
   end
 
