@@ -1,11 +1,17 @@
 -- @description ReaLauncher
 -- @author solger
--- @version 2.5.4
+-- @version 2.6
 -- @changelog
---   + General: Changed the default double click behavior setting for new installs from 'Show prompt' to 'Load'
---   + Project Lists: Bugfix to consider file extensions in both upper and lower case when accessing files (.rpl and .RPL) 
---   + Tabs: Bugfix for using the mousewheel to scroll through the tabs
---   + UI: Improvements in the display of some label texts
+--   + General: Fixes for font compatibility and tooltip positioning in macOS arm version
+--   + General: Bugfix to prevent a crash when using the 'Autoswitch on new project/tab to' function in 32-bit Windows version
+--   + General: Added [Load All] function (and 'Ctrl/Cmd + Enter' shortcut) to load all listed entries
+--   + General: Changed shortcut to clear the filter field from 'Backspace' to 'Shift + Backspace'
+--   + General: Default folder paths for Project Templates and Track Templates are now optional and can be set in the Paths page
+--   + Options - General: Added 'Load All' as additional Double Click behavior option
+--   + Options - General: Added a 'Show Confirmation Dialog' setting to toggle confirmation dialogs on/off
+--   + Options - Paths: The [+] button now shows a menu with add/remove options (previously it only opened the file browse dialog) 
+--   + Recent Projects: Removing entries is now also possible via the 'Delete' or 'Backspace' key (in addition to using the context menu)
+--   + Recent Projects: Added context menu option to 'Remove invalid entries' of files that don't exist in the stored path
 -- @screenshot https://forum.cockos.com/showthread.php?t=208697
 -- @about
 --   # ReaLauncher
@@ -1190,22 +1196,9 @@ end
 -------------------------------
 -- Subdirectory paths and names
 -------------------------------
-local function GetSubFolderEntries(defaultPath, customPath, folderExclusionIndex, extensionFilter)
-  local subDirPaths, subDirFiles = {}, {}
-  local tempFolders, tempFiles
-
-  if defaultPath == "All" then subDirPaths, subDirFiles = {"< All >"}, {"< All >"}
-  elseif IsNotNullOrEmpty(defaultPath) then
-    subDirPaths, subDirFiles = {"< All >"}, {"< All >"}
-
-    subDirPaths[2] = defaultPath
-    subDirFiles[2] = "< " .. GetFolderName(defaultPath) .. " >"
-
-    local tempFolders, tempFiles = GetSubFolders(defaultPath, folderExclusionIndex, extensionFilter)
-    JoinTables(subDirPaths, tempFolders)
-    JoinTables(subDirFiles, tempFiles)
-  end
-
+local function GetSubFolderEntries(customPath, folderExclusionIndex, extensionFilter)
+  local subDirPaths, subDirFiles = {"< All >"}, {"< All >"}
+  
   if IsNotNullOrEmpty(customPath) then
     local multiPaths = SplitMultiPaths(customPath)
     for m = 1, #multiPaths do
@@ -1268,7 +1261,7 @@ local function FillProjectTemplateListBoxBase(tempTemplates)
 end
 
 function GetProjectTemplateFiles()
-  local tempTemplates = GetFiles(projectTemplatePath, TabID.ProjectTemplates, FileTypes.rpp)
+  local tempTemplates = {}
   if #CustomPaths.ProjectTemplates > 1 then
     local multiPaths = SplitMultiPaths(CustomPaths.ProjectTemplates)
     for m = 1, #multiPaths do JoinTables(tempTemplates, GetFiles(multiPaths[m], TabID.ProjectTemplates, FileTypes.rpp)) end
@@ -1320,13 +1313,13 @@ local function FillTrackTemplateListboxBase(tempTemplates)
 end
 
 function GetTrackTemplateFiles()
-  local tempTemplates = GetFiles(trackTemplatePath, TabID.TrackTemplates, FileTypes.tracktemplate)
+  local tempTemplates = {}
   if #CustomPaths.TrackTemplates > 1 then
     local multiPaths = SplitMultiPaths(CustomPaths.TrackTemplates)
     for m = 1, #multiPaths do JoinTables(tempTemplates, GetFiles(multiPaths[m], TabID.TrackTemplates, FileTypes.tracktemplate)) end
   end
   if #tempTemplates == 0 then
-    return false, _
+    return false, nil
   else
     return true, tempTemplates
   end
@@ -1664,23 +1657,104 @@ local function Global_ProjectTemplateLoad(template, templateCount)
   Global_ProjectTemplateLoadBase(template)
 end
 
+---------------------
+-- Load all functions
+---------------------
+local function Global_LoadAll()
+  if GetMainListSize() > 0 then
+    -- recent projects
+    if GUI.elms.main_tabs.state == TabID.RecentProjects then
+        for p = 1, #GUI.elms.tab_recentProjects_listbox.list do
+          if FilterActive.RecentProjects then Global_Load(false, RecentProjects.filteredItems[p].path, p)
+          else Global_Load(false, RecentProjects.items[p].path, p) end
+        end
+        GUI.Val("tab_recentProjects_listbox",{})
+    -- project templates
+      elseif GUI.elms.main_tabs.state == TabID.ProjectTemplates then
+        for p = 1, #GUI.elms.tab_projectTemplates_listbox.list do
+          if FilterActive.ProjectTemplates then Global_ProjectTemplateLoadBase(ProjectTemplates.filteredItems[p].path) 
+          else Global_ProjectTemplateLoadBase(ProjectTemplates.items[p].path) end
+        end
+        GUI.Val("tab_projectTemplates_listbox",{})
+        Global_TriggerFollowAction("actions_txtFollowAction_LoadProjectTemplate")
+    -- track templates
+      elseif GUI.elms.main_tabs.state == TabID.TrackTemplates then
+        for p = 1, #GUI.elms.tab_trackTemplates_listbox.list do
+          if FilterActive.TrackTemplates then selectedTrackTemplate = TrackTemplates.filteredItems[p].path
+          else selectedTrackTemplate = TrackTemplates.items[p].path end
+          if selectedTrackTemplate ~= nil then reaper.Main_openProject(selectedTrackTemplate) end
+        end
+        Global_TriggerFollowAction("actions_txtFollowAction_InsertTrackTemplate")
+    -- custom projects
+      elseif GUI.elms.main_tabs.state == TabID.CustomProjects then
+        for p = 1, #GUI.elms.tab_customProjects_listbox.list do
+          if FilterActive.CustomProjects then Global_Load(false, CustomProjects.filteredItems[p].path, p)
+          else Global_Load(false, CustomProjects.items[p].path, p) end
+        end
+    -- project lists
+      elseif GUI.elms.main_tabs.state == TabID.ProjectLists then
+        for p = 1, #GUI.elms.tab_projectLists_listboxProjects.list do
+            if FilterActive.ProjectLists then Global_Load(false, RemoveWhiteSpaces(ProjectLists.filteredProjectItems[p].path), p)
+            else Global_Load(false, RemoveWhiteSpaces(ProjectLists.projectItems[p].path), p) end
+          end
+          GUI.Val("tab_customProjects_listbox",{})
+    -- backups
+      elseif GUI.elms.main_tabs.state == TabID.Backups then
+        for p = 1, #GUI.elms.tab_backups_listbox.list do
+          if FilterActive.Backups then Global_Load(false, RemoveWhiteSpaces(Backups.filteredItems[p].path), p) 
+          else Global_Load(false, RemoveWhiteSpaces(Backups.items[p].path), p) end
+        end
+        GUI.Val("tab_backups_listbox",{})
+    -- docs
+      elseif GUI.elms.main_tabs.state == TabID.Docs then
+        for p = 1, #GUI.elms.tab_docs_listbox.list do
+          if FilterActive.Docs then selectedDocFile = RemoveWhiteSpaces(Docs.filteredItems[p].path)
+          else selectedDocFile = RemoveWhiteSpaces(Docs.items[p].path) end
+          if selectedDocFile ~= nil then reaper.CF_ShellExecute(selectedDocFile) end
+        end
+      -- favorites
+      elseif GUI.elms.main_tabs.state == TabID.Favorites then
+        local category = TabParentSelectionIndex[TabID.Favorites]
+        local selectedEntry
+        for p = 1, #GUI.elms.tab_favorites_listbox.list do
+          if FilterActive.Favorites then selectedEntry = RemoveWhiteSpaces(Favorites.filteredItems[p].path)
+          else selectedEntry = RemoveWhiteSpaces(Favorites.items[p].path) end
+          if selectedEntry ~= nil then
+            if category == TabID.TrackTemplates then reaper.Main_openProject(selectedEntry)
+            elseif category == TabID.ProjectTemplates then Global_ProjectTemplateLoad(selectedEntry, p)
+            elseif category == TabID.Docs then reaper.CF_ShellExecute(selectedEntry)
+            elseif category == TabID.RecentProjects or category == TabID.CustomProjects or category == TabID.ProjectLists or category == TabID.Backups then
+              Global_Load(false, selectedEntry, p)
+            end
+          end
+        end 
+    end
+    Global_CheckWindowPinState()
+  end
+end
+
+--------------------
+-- Load context menu
+--------------------
 function RL_Mouse_DoubleClick(currentTab)
   gfx.x, gfx.y = gfx.mouse_x, gfx.mouse_y
   local dcOption = GUI.Val("options_menuDoubleClick")
   -- show prompt
   if dcOption == 1 then
-    local doubleClickMenuEntries = "1 - Load|2 - Load in Tab"
-    if currentTab == TabID.TrackTemplates then doubleClickMenuEntries = "1 - Insert|2 - Insert in Tab" end
-    if JSAPIinstalled then doubleClickMenuEntries = doubleClickMenuEntries .. "|#|3 - Audio Preview" end
+    local doubleClickMenuEntries = "1 - Load|2 - Load in Tab|3 - Load All"
+    if currentTab == TabID.TrackTemplates then doubleClickMenuEntries = "1 - Insert|2 - Insert in Tab|3 - Insert All" end
+    if JSAPIinstalled then doubleClickMenuEntries = doubleClickMenuEntries .. "|#|4 - Audio Preview" end
     local DoubleClickMenu = gfx.showmenu(doubleClickMenuEntries)
     if DoubleClickMenu == 1 then RL_Func_LoadElement[currentTab].call()
       elseif DoubleClickMenu == 2 then RL_Func_LoadElementInTab[currentTab].call()
-      elseif DoubleClickMenu == 3 then AudioPreviewToggleState()
+      elseif DoubleClickMenu == 3 then Global_LoadAll()
+      elseif DoubleClickMenu == 4 then AudioPreviewToggleState()
     end
   -- perform action directly
   elseif dcOption == 2 then RL_Func_LoadElement[currentTab].call()
   elseif dcOption == 3 then RL_Func_LoadElementInTab[currentTab].call()
-  elseif dcOption == 4 then AudioPreviewToggleState() end
+  elseif dcOption == 4 then Global_LoadAll()
+  elseif dcOption == 5 then AudioPreviewToggleState() end
 end
 
 ----------------------------------
@@ -1792,9 +1866,7 @@ local function Load_CustomProject_Base(tabmode)
     for p = 1, #vals do
       if FilterActive.CustomProjects then Global_Load(tabmode, CustomProjects.filteredItems[vals[p]].path, p)
       else Global_Load(tabmode, CustomProjects.items[vals[p]].path, p) end
-      
     end
-
     GUI.Val("tab_customProjects_listbox",{})
     Global_CheckWindowPinState()
   end
@@ -2411,13 +2483,13 @@ local function RefreshProjectTemplates()
           if foundMatchingFolderName or c == 1 then SubfolderNames.projectTemplates[#SubfolderNames.projectTemplates + 1] = "< " .. GetFolderName(cacheTable[c]) .. " >"
           else SubfolderNames.projectTemplates[#SubfolderNames.projectTemplates + 1] = RL.subfolderIndent .. GetFolderName(cacheTable[c]) end
         else
-          SubfolderPaths.projectTemplates, SubfolderNames.projectTemplates = GetSubFolderEntries(projectTemplatePath, CustomPaths.ProjectTemplates, TabID.ProjectTemplates, FileTypes.rpp)
+          SubfolderPaths.projectTemplates, SubfolderNames.projectTemplates = GetSubFolderEntries(CustomPaths.ProjectTemplates, TabID.ProjectTemplates, FileTypes.rpp)
           if not RL.showSubFolderPaths then GUI.elms.tab_projectTemplates_subfolders.list = SubfolderNames.projectTemplates
           else GUI.elms.tab_projectTemplates_subfolders.list = SubfolderPaths.projectTemplates end
         end
       end
     else
-      SubfolderPaths.projectTemplates, SubfolderNames.projectTemplates = GetSubFolderEntries(projectTemplatePath, CustomPaths.ProjectTemplates, TabID.ProjectTemplates, FileTypes.rpp)
+      SubfolderPaths.projectTemplates, SubfolderNames.projectTemplates = GetSubFolderEntries(CustomPaths.ProjectTemplates, TabID.ProjectTemplates, FileTypes.rpp)
       if not RL.showSubFolderPaths then GUI.elms.tab_projectTemplates_subfolders.list = SubfolderNames.projectTemplates
       else GUI.elms.tab_projectTemplates_subfolders.list = SubfolderPaths.projectTemplates end
       RL_WriteToSubfolderCache(SubpanelFile.ProjectTemplates, SubpanelFile.MainSection, SubfolderPaths.projectTemplates)
@@ -2447,13 +2519,13 @@ local function RefreshTrackTemplates()
           if foundMatchingFolderName or c == 1 then SubfolderNames.trackTemplates[#SubfolderNames.trackTemplates + 1] = "< " .. GetFolderName(cacheTable[c]) .. " >"
           else SubfolderNames.trackTemplates[#SubfolderNames.trackTemplates + 1] = RL.subfolderIndent .. GetFolderName(cacheTable[c]) end
         else
-          SubfolderPaths.trackTemplates, SubfolderNames.trackTemplates = GetSubFolderEntries(trackTemplatePath, CustomPaths.TrackTemplates, TabID.TrackTemplates, FileTypes.tracktemplate)
+          SubfolderPaths.trackTemplates, SubfolderNames.trackTemplates = GetSubFolderEntries(CustomPaths.TrackTemplates, TabID.TrackTemplates, FileTypes.tracktemplate)
           if not RL.showSubFolderPaths then GUI.elms.tab_trackTemplates_subfolders.list = SubfolderNames.trackTemplates
           else GUI.elms.tab_trackTemplates_subfolders.list = SubfolderPaths.trackTemplates end
         end
       end
     else
-      SubfolderPaths.trackTemplates, SubfolderNames.trackTemplates = GetSubFolderEntries(trackTemplatePath, CustomPaths.TrackTemplates, TabID.TrackTemplates, FileTypes.tracktemplate)
+      SubfolderPaths.trackTemplates, SubfolderNames.trackTemplates = GetSubFolderEntries(CustomPaths.TrackTemplates, TabID.TrackTemplates, FileTypes.tracktemplate)
       if not RL.showSubFolderPaths then GUI.elms.tab_trackTemplates_subfolders.list = SubfolderNames.trackTemplates
       else GUI.elms.tab_trackTemplates_subfolders.list = SubfolderPaths.trackTemplates end
       RL_WriteToSubfolderCache(SubpanelFile.TrackTemplates, SubpanelFile.MainSection, SubfolderPaths.trackTemplates)
@@ -2484,7 +2556,7 @@ local function RefreshCustomProjects()
           else SubfolderNames.customProjects[#SubfolderNames.customProjects + 1] = RL.subfolderIndent .. GetFolderName(cacheTable[c]) end
         end
       else
-        SubfolderPaths.customProjects, SubfolderNames.customProjects = GetSubFolderEntries("All", CustomPaths.Projects, TabID.CustomProjects, FileTypes.rpp)
+        SubfolderPaths.customProjects, SubfolderNames.customProjects = GetSubFolderEntries(CustomPaths.Projects, TabID.CustomProjects, FileTypes.rpp)
         if not RL.showSubFolderPaths then GUI.elms.tab_customProjects_subfolders.list = SubfolderNames.customProjects 
         else GUI.elms.tab_customProjects_subfolders.list = SubfolderPaths.customProjects end
         RL_WriteToSubfolderCache(SubpanelFile.CustomProjects, SubpanelFile.MainSection, SubfolderPaths.customProjects)
@@ -2565,7 +2637,7 @@ local function RefreshBackups()
           else SubfolderNames.backups[#SubfolderNames.backups + 1] = RL.subfolderIndent .. GetFolderName(cacheTable[c]) end
         end
       else
-        SubfolderPaths.backups, SubfolderNames.backups = GetSubFolderEntries("All", CustomPaths.Backups, TabID.Backups, FileTypes.backup)
+        SubfolderPaths.backups, SubfolderNames.backups = GetSubFolderEntries(CustomPaths.Backups, TabID.Backups, FileTypes.backup)
         if not RL.showSubFolderPaths then GUI.elms.tab_backups_subfolders.list = SubfolderNames.backups
         else GUI.elms.tab_backups_subfolders.list = SubfolderPaths.backups end
         RL_WriteToSubfolderCache(SubpanelFile.Backups, SubpanelFile.MainSection, SubfolderPaths.backups)
@@ -2600,7 +2672,7 @@ local function RefreshDocs()
             else SubfolderNames.docs[#SubfolderNames.docs + 1] = RL.subfolderIndent .. GetFolderName(cacheTable[c]) end
           end
         else
-          SubfolderPaths.docs, SubfolderNames.docs = GetSubFolderEntries("All", CustomPaths.Docs, TabID.Docs, FileTypes.docs)
+          SubfolderPaths.docs, SubfolderNames.docs = GetSubFolderEntries(CustomPaths.Docs, TabID.Docs, FileTypes.docs)
           if not RL.showSubFolderPaths then GUI.elms.tab_docs_subfolders.list = SubfolderNames.docs
           else GUI.elms.tab_docs_subfolders.list = SubfolderPaths.docs end
           RL_WriteToSubfolderCache(SubpanelFile.Docs, SubpanelFile.MainSection, SubfolderPaths.docs)
@@ -2631,7 +2703,6 @@ local function Path_Set_ProjectTemplateFolder()
     ProjectTemplates.filteredItems, ProjectTemplates.filteredDisplay = {}, {}
     GUI.Val("paths_txtProjectTemplatesPath", "")
     GUI.elms.tab_projectTemplates_listbox.list = {}
-    GUI.elms.paths_txtProjectTemplatesPath.tooltip = ".RPP Project Templates\n\nEnter one or multiple paths separated by a semicolon\nExample: path1;path2;path3"
     reaper.DeleteExtState(appname, "custompath_projecttemplates", 1)
     RL_ClearFile(CacheFile.ProjectTemplates)
     RL_ClearFile(SubpanelFile.ProjectTemplates)
@@ -2639,7 +2710,6 @@ local function Path_Set_ProjectTemplateFolder()
   else
     reaper.SetExtState(appname, "custompath_projecttemplates", GUI.Val("paths_txtProjectTemplatesPath"), 1)
     CustomPaths.ProjectTemplates = GUI.Val("paths_txtProjectTemplatesPath")
-    GUI.elms.paths_txtProjectTemplatesPath.tooltip = ".RPP Project Templates\n\nEnter one or multiple paths separated by a semicolon\nExample: path1;path2;path3\n\nCurrent: " .. GUI.Val("paths_txtProjectTemplatesPath")
     MsgStatusBar("Project Template paths set / scanned")
   end
   
@@ -2655,7 +2725,6 @@ local function Path_Set_TrackTemplateFolder()
     TrackTemplates.filteredItems, TrackTemplates.filteredDisplay = {}, {}
     GUI.Val("paths_txtTrackTemplatesPath", "")
     GUI.elms.tab_trackTemplates_listbox.list = {}
-    GUI.elms.paths_txtTrackTemplatesPath.tooltip = ".RTrackTemplate Track Templates\n\nEnter one or multiple paths separated by a semicolon\nExample: path1;path2;path3"
     reaper.DeleteExtState(appname, "custompath_tracktemplates", 1)
     RL_ClearFile(CacheFile.TrackTemplates)
     RL_ClearFile(SubpanelFile.TrackTemplates)
@@ -2663,7 +2732,6 @@ local function Path_Set_TrackTemplateFolder()
   else
     reaper.SetExtState(appname, "custompath_tracktemplates", GUI.Val("paths_txtTrackTemplatesPath"), 1)
     CustomPaths.TrackTemplates = GUI.Val("paths_txtTrackTemplatesPath")
-    GUI.elms.paths_txtTrackTemplatesPath.tooltip = ".RTrackTemplate Track Templates\n\nEnter one or multiple paths separated by a semicolon\nExample: path1;path2;path3\n\nCurrent: " .. GUI.Val("paths_txtTrackTemplatesPath")
     MsgStatusBar("Track Templates paths set / scanned")
   end
   
@@ -2679,7 +2747,6 @@ local function Path_Set_CustomProjectFolder()
     CustomProjects.filteredItems, CustomProjects.filteredDisplay = {}, {}
     GUI.Val("paths_txtCustomProjectsPath", "")
     GUI.elms.tab_customProjects_listbox.list = {}
-    GUI.elms.paths_txtCustomProjectsPath.tooltip = ".RPP Projects\n\nEnter one or multiple paths separated by a semicolon\nExample: path1;path2;path3"
     reaper.DeleteExtState(appname, "custompath_projects", 1)
     RL_ClearFile(CacheFile.CustomProjects)
     RL_ClearFile(SubpanelFile.CustomProjects)
@@ -2687,7 +2754,6 @@ local function Path_Set_CustomProjectFolder()
   else
     reaper.SetExtState(appname, "custompath_projects", GUI.Val("paths_txtCustomProjectsPath"), 1)
     CustomPaths.Projects = GUI.Val("paths_txtCustomProjectsPath")
-    GUI.elms.paths_txtCustomProjectsPath.tooltip = ".RPP Projects\n\nEnter one or multiple paths separated by a semicolon\nExample: path1;path2;path3\n\nCurrent: " .. GUI.Val("paths_txtCustomProjectsPath")
     if ConfigFlags.enableFileCaching then RL_ScanCustomProjectFiles() end
     MsgStatusBar("Projects paths set / scanned")
   end
@@ -2704,7 +2770,6 @@ local function Path_Set_ProjectListFolder()
     GUI.Val("paths_txtProjectsListsPath", "")
     if GUI.elms.tab_projectLists_listboxRPL ~= nil then GUI.elms.tab_projectLists_listboxRPL.list = {} end
     GUI.elms.tab_projectLists_listboxProjects.list = {}
-    GUI.elms.paths_txtProjectsListsPath.tooltip = ".RPL Project Lists\n\nEnter one or multiple paths separated by a semicolon\nExample: path1;path2;path3"
     reaper.DeleteExtState(appname, "custompath_projectlists", 1)
     RL_ClearFile(CacheFile.ProjectLists)
     RL_ClearFile(SubpanelFile.ProjectLists)
@@ -2712,7 +2777,6 @@ local function Path_Set_ProjectListFolder()
   else
     reaper.SetExtState(appname, "custompath_projectlists", GUI.Val("paths_txtProjectsListsPath"), 1)
     CustomPaths.ProjectLists = GUI.Val("paths_txtProjectsListsPath")
-    GUI.elms.paths_txtProjectsListsPath.tooltip = ".RPL Project Lists\n\nEnter one or multiple paths separated by a semicolon\nExample: path1;path2;path3\n\nCurrent: " .. GUI.Val("paths_txtProjectsListsPath")
     if ConfigFlags.enableFileCaching then RL_ScanProjectListFiles() end
     MsgStatusBar("Project Lists paths set / scanned")
   end
@@ -2728,7 +2792,6 @@ local function Path_Set_BackupsFolder()
     Backups.filteredItems, Backups.filteredDisplay = {}, {}
     GUI.Val("paths_txtBackupsPath", "")
     GUI.elms.tab_backups_listbox.list = {}
-    GUI.elms.paths_txtBackupsPath.tooltip = ".RPP-BAK Backups\n\nEnter one or multiple paths separated by a semicolon\nExample: path1;path2;path3"
     reaper.DeleteExtState(appname, "custompath_backups", 1)
     RL_ClearFile(CacheFile.Backups)
     RL_ClearFile(SubpanelFile.Backups)
@@ -2736,7 +2799,6 @@ local function Path_Set_BackupsFolder()
   else
     reaper.SetExtState(appname, "custompath_backups", GUI.Val("paths_txtBackupsPath"), 1)
     CustomPaths.Backups = GUI.Val("paths_txtBackupsPath")
-    GUI.elms.paths_txtBackupsPath.tooltip = ".RPP-BAK Backups\n\nEnter one or multiple paths separated by a semicolon\nExample: path1;path2;path3\n\nCurrent: " .. GUI.Val("paths_txtBackupsPath")
     if ConfigFlags.enableFileCaching then RL_ScanBackupsFiles() end
     MsgStatusBar("Backups paths set / scanned")
   end
@@ -2752,7 +2814,6 @@ local function Path_Set_DocsFolder()
     Docs.filteredItems, Docs.filteredDisplay = {}, {}
     GUI.Val("paths_txtDocsPath", "")
     GUI.elms.tab_docs_listbox.list = {}
-    GUI.elms.paths_txtDocsPath.tooltip = ".PDF Docs\n\nEnter one or multiple paths separated by a semicolon\nExample: path1;path2;path3"
     reaper.DeleteExtState(appname, "custompath_docs", 1)
     RL_ClearFile(CacheFile.Docs)
     RL_ClearFile(SubpanelFile.Docs)
@@ -2760,7 +2821,6 @@ local function Path_Set_DocsFolder()
   else
     reaper.SetExtState(appname, "custompath_docs", GUI.Val("paths_txtDocsPath"), 1)
     CustomPaths.Docs = GUI.Val("paths_txtDocsPath")
-    GUI.elms.paths_txtDocsPath.tooltip = ".PDF Docs\n\nEnter one or multiple paths separated by a semicolon\nExample: path1;path2;path3\n\nCurrent: " .. GUI.Val("paths_txtDocsPath")
     if ConfigFlags.enableFileCaching then RL_ScanDocsFiles() end
     MsgStatusBar("Docs paths set / scanned")
   end
@@ -2817,6 +2877,7 @@ RL = {
   scaleMax = 5.0,
   scaleStepSize = 0.2,
   showButtonPanel = true, 
+  showConfirmDialog = true,
   showDate = false,
   showFullPaths = false,
   showLastActiveProjects = false,
@@ -2926,7 +2987,7 @@ end
 
     function RL_Draw_ThemeSlotOptions()
       themeslotOffset = 0
-      if osversion:find("OSX") then themeslotOffset = 10 end
+      if osversion:find("OSX") or osversion:find("macOS") then themeslotOffset = 10 end
       
       GUI.New("layout_frame_2", "Frame", LayerIndex.Layout, 94 * RL.scaleFactor, tabSelectorPadding + themeslotOffset + 230 * RL.scaleFactor, GUI.w, 2 * RL.scaleFactor, false, true)
       GUI.New("layout_themeslot_Setup", "Button", LayerIndex.Layout, 1.6 * optionspad_left, tabSelectorPadding + themeslotOffset + 236 * RL.scaleFactor, 65 * RL.scaleFactor, 15 * RL.scaleFactor, "Theme Slots", ThemeSlot_Setup)
@@ -3011,6 +3072,20 @@ end
       RefreshRecentProjects(false)
       Filter_RecentProject_Clear()
     end
+
+    function RecentProjects_RemoveInvalidEntries()
+      for k = 1, RecentProjects.maxIndex do
+        local recentPathTag = "recent" .. string.format("%02d", k)
+        local _, keyValue = reaper.BR_Win32_GetPrivateProfileString("recent", recentPathTag, "noEntry", reaperIniPath)
+        if keyValue == "noEntry" then break end
+        if IsNotNullOrEmpty(keyValue) and not reaper.file_exists(keyValue) then reaper.BR_Win32_WritePrivateProfileString("Recent", recentPathTag, " ", reaperIniPath) end
+      end
+      MsgDebug("Recent Projects | invalid entries removed")
+      RecentProjects.items, RecentProjects.filteredItems, RecentProjects.display, RecentProjects.filteredDisplay = {}, {}, {}, {}
+      RefreshRecentProjects(false)
+      Filter_RecentProject_Clear()
+    end
+
   end
 -- SWS block end
 
@@ -3030,11 +3105,41 @@ GUI.Draw_Version = function()
   GUI.color("txt")
 
   if not GUI.version then return 0 end
-  str = "RL 2.5.4 | Lokasenna_GUI " .. GUI.version
+  str = "RL 2.6 | Lokasenna_GUI " .. GUI.version
   str_w, str_h = gfx.measurestr(str)
-  if osversion:find("OSX") then gfx.x = GUI.w - (255 * RL.scaleFactor) else gfx.x = GUI.w - (260 * RL.scaleFactor) end
+  if osversion:find("OSX") or osversion:find("macOS") then gfx.x = GUI.w - (255 * RL.scaleFactor) else gfx.x = GUI.w - (260 * RL.scaleFactor) end
   gfx.y = GUI.h - (15.5 * RL.scaleFactor)
   gfx.drawstr(str)
+end
+
+------------------------------------------------------------
+-- Override which font table is used (for arm compatibility)
+------------------------------------------------------------
+GUI.OS_fonts = {
+    Windows = {
+        sans = "Calibri",
+        mono = "Lucida Console"
+    },
+    OSX = {
+        sans = "Helvetica Neue",
+        mono = "Andale Mono"
+    },
+    Linux = {
+        sans = "Arial",
+        mono = "DejaVuSansMono"
+    }
+}
+
+-- GetOS() returns "Win32", "Win64", "OSX32", "OSX64", "macOS-arm64", or "Other"
+GUI.get_OS_fonts = function()
+    local os = reaper.GetOS() 
+    if os:match("Win") then
+        return GUI.OS_fonts.Windows
+    elseif os:match("OSX") or os:match("macOS") then
+        return GUI.OS_fonts.OSX
+    else
+        return GUI.OS_fonts.Linux
+    end
 end
 
 -----------------------------------------------------------------------------
@@ -3044,7 +3149,8 @@ GUI.settooltip = function(str)
   if RL.showTooltips then
     if not str or str == "" then return end
     local x, y = gfx.clienttoscreen(0, 0)
-    if osversion:find("OSX") then
+    local os = reaper.GetOS()
+    if os:match("OSX") or os:match("macOS")  then
       local mouseX, mouseY = reaper.GetMousePosition()
       reaper.TrackCtl_SetToolTip(str, mouseX + 16, mouseY + 16, true)
     else
@@ -3320,7 +3426,7 @@ end
 local function RL_Context_Main_GetBaseEntries(isLocked, menuEntries)
   local firstEntry = "1 - Add to Favorites" 
   if GUI.elms.main_tabs.state == TabID.Favorites then firstEntry = "1 - Remove from Favorites" end
-  if SWSinstalled then menuEntries = menuEntries .. "|#|>0 - Reaper Theme|" .. string.gsub(ThemeSlot_GetNames(), ",", "|") end
+  if SWSinstalled then menuEntries = menuEntries .. "|#|>Reaper Theme|" .. string.gsub(ThemeSlot_GetNames(), ",", "|") end
   return isLocked .. firstEntry .. "|#|" .. isLocked .. "2 - Locate in Explorer/Finder|3 - Open Project|#|4 - New Project|#|5 - New Tab|6 - New Tab Ignore Template|#" .. menuEntries
 end
 
@@ -3333,13 +3439,14 @@ local function RL_Context_Main_Default(isLocked, menuEntries)
     elseif RMBmenu == 4 then Global_NewProject()
     elseif RMBmenu == 5 then Global_NewTab()
     elseif RMBmenu == 6 then Global_NewTabIgnoreDefaultTemplate()
-    elseif RMBmenu == 7 then RL_Func_LoadElementInTab[GUI.elms.main_tabs.state].call()
+    elseif RMBmenu == 7 then Global_LoadAll()
     elseif RMBmenu == 8 then RL_Func_LoadElement[GUI.elms.main_tabs.state].call()
-    elseif RMBmenu == 9 then LoadThemeSlotFromContextMenu(9, RMBmenu)
-    elseif RMBmenu == 10 then LoadThemeSlotFromContextMenu(9, RMBmenu)
-    elseif RMBmenu == 11 then LoadThemeSlotFromContextMenu(9, RMBmenu)
-    elseif RMBmenu == 12 then LoadThemeSlotFromContextMenu(9, RMBmenu)
-    elseif RMBmenu == 13 then LoadThemeSlotFromContextMenu(9, RMBmenu)
+    elseif RMBmenu == 9 then RL_Func_LoadElementInTab[GUI.elms.main_tabs.state].call()
+    elseif RMBmenu == 10 then LoadThemeSlotFromContextMenu(10, RMBmenu)
+    elseif RMBmenu == 11 then LoadThemeSlotFromContextMenu(10, RMBmenu)
+    elseif RMBmenu == 12 then LoadThemeSlotFromContextMenu(10, RMBmenu)
+    elseif RMBmenu == 13 then LoadThemeSlotFromContextMenu(10, RMBmenu)
+    elseif RMBmenu == 14 then LoadThemeSlotFromContextMenu(10, RMBmenu)
   end
 end
 
@@ -3352,14 +3459,15 @@ local function RL_Context_Main_SpecialToggle(isLocked, menuEntries)
     elseif RMBmenu == 4 then Global_NewProject()
     elseif RMBmenu == 5 then Global_NewTab()
     elseif RMBmenu == 6 then Global_NewTabIgnoreDefaultTemplate()
-    elseif RMBmenu == 7 then RL_Func_LoadElementInTab[GUI.elms.main_tabs.state].call()
+    elseif RMBmenu == 7 then Global_LoadAll()
     elseif RMBmenu == 8 then RL_Func_LoadElement[GUI.elms.main_tabs.state].call()
-    elseif RMBmenu == 9 then ToggleSpecialOptionsFromContextMenu(RMBmenu)
-    elseif RMBmenu == 10 then LoadThemeSlotFromContextMenu(10, RMBmenu)
-    elseif RMBmenu == 11 then LoadThemeSlotFromContextMenu(10, RMBmenu)
-    elseif RMBmenu == 12 then LoadThemeSlotFromContextMenu(10, RMBmenu)
-    elseif RMBmenu == 13 then LoadThemeSlotFromContextMenu(10, RMBmenu)
-    elseif RMBmenu == 14 then LoadThemeSlotFromContextMenu(10, RMBmenu)
+    elseif RMBmenu == 9 then RL_Func_LoadElementInTab[GUI.elms.main_tabs.state].call()
+    elseif RMBmenu == 10 then ToggleSpecialOptionsFromContextMenu(RMBmenu)
+    elseif RMBmenu == 11 then LoadThemeSlotFromContextMenu(11, RMBmenu)
+    elseif RMBmenu == 12 then LoadThemeSlotFromContextMenu(11, RMBmenu)
+    elseif RMBmenu == 13 then LoadThemeSlotFromContextMenu(11, RMBmenu)
+    elseif RMBmenu == 14 then LoadThemeSlotFromContextMenu(11, RMBmenu)
+    elseif RMBmenu == 15 then LoadThemeSlotFromContextMenu(11, RMBmenu)
   end
 end
 
@@ -3367,9 +3475,9 @@ local function RL_Context_Main_RecentProjects()
   if not RL.showButtonPanel then
     local isLocked = RL_Context_Main_GetLockState()
 
-    local menuEntries = "|" .. isLocked .. "7 - Load in Tab|" .. isLocked .. "8 - Load|#|"
-    if RL.saveAsNewVersionMode == 1 then menuEntries = menuEntries .. isLocked .. "!9 - [ Save as New Version ] ON"
-    else menuEntries = menuEntries .. isLocked .. "9 - [ Save as New Version ] OFF" end
+    local menuEntries = "|" .. isLocked .. "7 - Load All|" .. isLocked .. "8 - Load|" .. isLocked .. "9 - Load in Tab|#|"
+    if RL.saveAsNewVersionMode == 1 then menuEntries = menuEntries .. isLocked .. "!0 - [ Save as New Version ] ON"
+    else menuEntries = menuEntries .. isLocked .. "0 - [ Save as New Version ] OFF" end
 
     RL_Context_Main_SpecialToggle(isLocked, menuEntries)
   end
@@ -3379,9 +3487,9 @@ local function RL_Context_Main_ProjectTemplates()
   if not RL.showButtonPanel then
     local isLocked = RL_Context_Main_GetLockState()
     
-    local menuEntries = "|" .. isLocked .. "7 - Load in Tab|" .. isLocked .. "8 - Load|#|"
-    if RL.projectTemplateLoadMode == 0 then menuEntries = menuEntries .. isLocked .. "!9 - [ Edit Template Mode ] ON"
-    else menuEntries = menuEntries .. isLocked .. "9 - [ Edit Template Mode ] OFF" end
+    local menuEntries = "|" .. isLocked .. "7 - Load All|" .. isLocked .. "8 - Load|" .. isLocked .. "9 - Load in Tab|#|"
+    if RL.projectTemplateLoadMode == 0 then menuEntries = menuEntries .. isLocked .. "!0 - [ Edit Template Mode ] ON"
+    else menuEntries = menuEntries .. isLocked .. "0 - [ Edit Template Mode ] OFF" end
     
     RL_Context_Main_SpecialToggle(isLocked, menuEntries)
   end
@@ -3390,7 +3498,7 @@ end
 local function RL_Context_Main_TrackTemplates()
   if not RL.showButtonPanel then
     local isLocked = RL_Context_Main_GetLockState()
-    local menuEntries = "|" .. isLocked .. "7 - Insert in Tab|" .. isLocked .. "8 - Insert"
+    local menuEntries = "|" .. isLocked .. "7 - Insert All|" .. isLocked .. "8 - Insert|" .. isLocked .. "9 - Insert in Tab"
     RL_Context_Main_Default(isLocked, menuEntries)
   end
 end
@@ -3399,9 +3507,9 @@ local function RL_Context_Main_CustomProjects()
   if not RL.showButtonPanel then
     local isLocked = RL_Context_Main_GetLockState()
     
-    local menuEntries = "|" .. isLocked .. "7 - Load in Tab|" .. isLocked .. "8 - Load|#|"
-    if RL.saveAsNewVersionMode == 1 then menuEntries = menuEntries .. isLocked .. "!9 - [ Save as New Version ] ON"
-    else menuEntries = menuEntries .. isLocked .. "9 - [ Save as New Version ] OFF" end
+    local menuEntries = "|" .. isLocked .. "7 - Load All|" .. isLocked .. "8 - Load|" .. isLocked .. "9 - Load in Tab|#|"
+    if RL.saveAsNewVersionMode == 1 then menuEntries = menuEntries .. isLocked .. "!0 - [ Save as New Version ] ON"
+    else menuEntries = menuEntries .. isLocked .. "0 - [ Save as New Version ] OFF" end
     
     RL_Context_Main_SpecialToggle(isLocked, menuEntries)
   end
@@ -3411,9 +3519,9 @@ local function RL_Context_Main_ProjectLists()
   if not RL.showButtonPanel then
     local isLocked = RL_Context_Main_GetLockState()
     
-    local menuEntries = "|" .. isLocked .. "7 - Load in Tab|" .. isLocked .. "8 - Load|#|"
-    if RL.saveAsNewVersionMode == 1 then menuEntries = menuEntries .. isLocked .. "!9 - [ Save as New Version ] ON"
-    else menuEntries = menuEntries .. isLocked .. "9 - [ Save as New Version ] OFF" end
+    local menuEntries = "|" .. isLocked .. "7 - Load All|" .. isLocked .. "8 - Load|" .. isLocked .. "9 - Load in Tab|#|"
+    if RL.saveAsNewVersionMode == 1 then menuEntries = menuEntries .. isLocked .. "!0 - [ Save as New Version ] ON"
+    else menuEntries = menuEntries .. isLocked .. "0 - [ Save as New Version ] OFF" end
     
     RL_Context_Main_SpecialToggle(isLocked, menuEntries)
   end
@@ -3422,7 +3530,7 @@ end
 local function RL_Context_Main_Backups()
   if not RL.showButtonPanel then
     local isLocked = RL_Context_Main_GetLockState()
-    local menuEntries = "|" .. isLocked .. "7 - Load in Tab|" .. isLocked .. "8 - Load"
+    local menuEntries = "|" .. isLocked .. "7 - Load All|" .. isLocked .. "8 - Load|" .. isLocked .. "9 - Load in Tab"
     RL_Context_Main_Default(isLocked, menuEntries)
   end
 end
@@ -3430,7 +3538,7 @@ end
 local function RL_Context_Main_Docs()
   if not RL.showButtonPanel then
     local isLocked = RL_Context_Main_GetLockState()
-    local menuEntries = "|" .. isLocked .. "7 - Open"
+    local menuEntries = "|" .. isLocked .. "7 - Open All|".. isLocked .. "8 - Open"
     
     gfx.x, gfx.y = gfx.mouse_x, gfx.mouse_y
     local RMBmenu = gfx.showmenu(RL_Context_Main_GetBaseEntries(isLocked, menuEntries))
@@ -3440,12 +3548,13 @@ local function RL_Context_Main_Docs()
       elseif RMBmenu == 4 then Global_NewProject()
       elseif RMBmenu == 5 then Global_NewTab()
       elseif RMBmenu == 6 then Global_NewTabIgnoreDefaultTemplate()
-      elseif RMBmenu == 7 then RL_Func_LoadElementInTab[GUI.elms.main_tabs.state].call()
-      elseif RMBmenu == 8 then LoadThemeSlotFromContextMenu(8, RMBmenu)
-      elseif RMBmenu == 9 then LoadThemeSlotFromContextMenu(8, RMBmenu)
-      elseif RMBmenu == 10 then LoadThemeSlotFromContextMenu(8, RMBmenu)
-      elseif RMBmenu == 11 then LoadThemeSlotFromContextMenu(8, RMBmenu)
-      elseif RMBmenu == 12 then LoadThemeSlotFromContextMenu(8, RMBmenu)
+      elseif RMBmenu == 7 then Global_LoadAll()
+      elseif RMBmenu == 8 then RL_Func_LoadElementInTab[GUI.elms.main_tabs.state].call()
+      elseif RMBmenu == 9 then LoadThemeSlotFromContextMenu(9, RMBmenu)
+      elseif RMBmenu == 10 then LoadThemeSlotFromContextMenu(9, RMBmenu)
+      elseif RMBmenu == 11 then LoadThemeSlotFromContextMenu(9, RMBmenu)
+      elseif RMBmenu == 12 then LoadThemeSlotFromContextMenu(9, RMBmenu)
+      elseif RMBmenu == 13 then LoadThemeSlotFromContextMenu(9, RMBmenu)
     end
   end
 end
@@ -3454,18 +3563,18 @@ local function RL_Context_Main_Favorites()
   if not RL.showButtonPanel then
     local isLocked = RL_Context_Main_GetLockState()
     
-    local menuEntries = "|" .. isLocked .. "7 - Load in Tab|" .. isLocked .. "8 - Load|#|"
-    if RL.saveAsNewVersionMode == 1 then menuEntries = menuEntries .. isLocked .. "!9 - [ Save as New Version ] ON"
-    else menuEntries = menuEntries .. isLocked .. "9 - [ Save as New Version ] OFF" end
+    local menuEntries = "|" .. isLocked .. "7 - Load All|" .. isLocked .. "8 - Load|" .. isLocked .. "9 - Load in Tab|#|"
+    if RL.saveAsNewVersionMode == 1 then menuEntries = menuEntries .. isLocked .. "!0 - [ Save as New Version ] ON"
+    else menuEntries = menuEntries .. isLocked .. "0 - [ Save as New Version ] OFF" end
     
     local selectedFavCategory = TabParentSelectionIndex[TabID.Favorites]
     if selectedFavCategory == 2 then
-      menuEntries = "|" .. isLocked .. "7 - Load in Tab|" .. isLocked .. "8 - Load|#|"
-      if RL.projectTemplateLoadMode == 0 then menuEntries = menuEntries .. isLocked .. "!9 - [ Edit Template Mode ] ON"
-      else menuEntries = menuEntries .. isLocked .. "9 - [ Edit Template Mode ] OFF" end
-    elseif selectedFavCategory == 3 then menuEntries = "|" .. isLocked .. "7 - Insert in Tab|" .. isLocked .. "8 - Insert"
-    elseif selectedFavCategory == 6 then menuEntries = "|" .. isLocked .. "7 - Load in Tab|" .. isLocked .. "8 - Load"
-    elseif selectedFavCategory == 7 then menuEntries = "|" .. isLocked .. "7 - Open" end
+      menuEntries = "|" .. isLocked .. "7 - Load All|" .. isLocked .. "8 - Load|" .. isLocked .. "9 - Load in Tab|#|"
+      if RL.projectTemplateLoadMode == 0 then menuEntries = menuEntries .. isLocked .. "!0 - [ Edit Template Mode ] ON"
+      else menuEntries = menuEntries .. isLocked .. "0 - [ Edit Template Mode ] OFF" end
+    elseif selectedFavCategory == 3 then menuEntries = "|" .. isLocked .. "7 - Insert All|" .. isLocked .. "8 - Insert|" .. isLocked .. "9 - Insert in Tab"
+    elseif selectedFavCategory == 6 then menuEntries = "|" .. isLocked .. "7 - Load All|" .. isLocked .. "8 - Load|" .. isLocked .. "9 - Load in Tab"
+    elseif selectedFavCategory == 7 then menuEntries = "|" .. isLocked .. "7 - Open All|" .. isLocked .. "8 - Open" end
     
     gfx.x, gfx.y = gfx.mouse_x, gfx.mouse_y
     local RMBmenu = gfx.showmenu(RL_Context_Main_GetBaseEntries(isLocked, menuEntries))
@@ -3475,30 +3584,31 @@ local function RL_Context_Main_Favorites()
       elseif RMBmenu == 4 then Global_NewProject()
       elseif RMBmenu == 5 then Global_NewTab()
       elseif RMBmenu == 6 then Global_NewTabIgnoreDefaultTemplate()
-      elseif RMBmenu == 7 then RL_Func_LoadElementInTab[GUI.elms.main_tabs.state].call()
-      elseif RMBmenu == 8 then
-        if selectedFavCategory == 7 then LoadThemeSlotFromContextMenu(8, RMBmenu) else RL_Func_LoadElement[GUI.elms.main_tabs.state].call() end
+      elseif RMBmenu == 7 then Global_LoadAll()
+      elseif RMBmenu == 8 then RL_Func_LoadElementInTab[GUI.elms.main_tabs.state].call()
       elseif RMBmenu == 9 then
-        if selectedFavCategory ~= TabID.TrackTemplates or selectedFavCategory ~= TabID.Backups then ToggleSpecialOptionsFromContextMenu(RMBmenu) end
-        if selectedFavCategory == TabID.Docs then LoadThemeSlotFromContextMenu(8, RMBmenu)
-        elseif selectedFavCategory == TabID.TrackTemplates or selectedFavCategory == TabID.Backups then LoadThemeSlotFromContextMenu(9, RMBmenu) end
+        if selectedFavCategory == 7 then LoadThemeSlotFromContextMenu(9, RMBmenu) else RL_Func_LoadElement[GUI.elms.main_tabs.state].call() end
       elseif RMBmenu == 10 then
-        if selectedFavCategory == TabID.Docs then LoadThemeSlotFromContextMenu(8, RMBmenu)
-        elseif selectedFavCategory == TabID.TrackTemplates or selectedFavCategory == TabID.Backups then LoadThemeSlotFromContextMenu(9, RMBmenu)
-        else LoadThemeSlotFromContextMenu(10, RMBmenu) end
+        if selectedFavCategory ~= TabID.TrackTemplates or selectedFavCategory ~= TabID.Backups then ToggleSpecialOptionsFromContextMenu(RMBmenu) end
+        if selectedFavCategory == TabID.Docs then LoadThemeSlotFromContextMenu(9, RMBmenu)
+        elseif selectedFavCategory == TabID.TrackTemplates or selectedFavCategory == TabID.Backups then LoadThemeSlotFromContextMenu(10, RMBmenu) end
       elseif RMBmenu == 11 then
-        if selectedFavCategory == TabID.Docs then LoadThemeSlotFromContextMenu(8, RMBmenu)
-        elseif selectedFavCategory == TabID.TrackTemplates or selectedFavCategory == TabID.Backups then LoadThemeSlotFromContextMenu(9, RMBmenu)
-        else LoadThemeSlotFromContextMenu(10, RMBmenu) end
+        if selectedFavCategory == TabID.Docs then LoadThemeSlotFromContextMenu(9, RMBmenu)
+        elseif selectedFavCategory == TabID.TrackTemplates or selectedFavCategory == TabID.Backups then LoadThemeSlotFromContextMenu(10, RMBmenu)
+        else LoadThemeSlotFromContextMenu(11, RMBmenu) end
       elseif RMBmenu == 12 then
-        if selectedFavCategory== TabID.Docs then LoadThemeSlotFromContextMenu(8, RMBmenu)
-        elseif selectedFavCategory == TabID.TrackTemplates or selectedFavCategory == TabID.Backups then LoadThemeSlotFromContextMenu(9, RMBmenu)
-        else LoadThemeSlotFromContextMenu(10, RMBmenu) end
+        if selectedFavCategory == TabID.Docs then LoadThemeSlotFromContextMenu(9, RMBmenu)
+        elseif selectedFavCategory == TabID.TrackTemplates or selectedFavCategory == TabID.Backups then LoadThemeSlotFromContextMenu(10, RMBmenu)
+        else LoadThemeSlotFromContextMenu(11, RMBmenu) end
       elseif RMBmenu == 13 then
-        if selectedFavCategory == TabID.TrackTemplates or selectedFavCategory == TabID.Backups then LoadThemeSlotFromContextMenu(9, RMBmenu)
-        else LoadThemeSlotFromContextMenu(10, RMBmenu) end
+        if selectedFavCategory== TabID.Docs then LoadThemeSlotFromContextMenu(9, RMBmenu)
+        elseif selectedFavCategory == TabID.TrackTemplates or selectedFavCategory == TabID.Backups then LoadThemeSlotFromContextMenu(10, RMBmenu)
+        else LoadThemeSlotFromContextMenu(11, RMBmenu) end
       elseif RMBmenu == 14 then
-        if selectedFavCategory ~= TabID.TrackTemplates or selectedFavCategory ~= TabID.Backups or selectedFavCategory ~= TabID.Docs then LoadThemeSlotFromContextMenu(10, RMBmenu) end
+        if selectedFavCategory == TabID.TrackTemplates or selectedFavCategory == TabID.Backups then LoadThemeSlotFromContextMenu(10, RMBmenu)
+        else LoadThemeSlotFromContextMenu(11, RMBmenu) end
+      elseif RMBmenu == 15 then
+        if selectedFavCategory ~= TabID.TrackTemplates or selectedFavCategory ~= TabID.Backups or selectedFavCategory ~= TabID.Docs then LoadThemeSlotFromContextMenu(11, RMBmenu) end
     end
   end
 end
@@ -3859,6 +3969,7 @@ local function RL_Dialog_OK()
     -- recent projects
     if Dialog.id == "RemoveRecentEntry" then RecentProjects_RemoveEntry() end
     if Dialog.id == "ClearRecentList" then RecentProjects_ClearList() end
+    if Dialog.id == "RemoveInvalidRecentEntry" then RecentProjects_RemoveInvalidEntries() end
     -- favorites
     if Dialog.id == "RemoveFavoritesEntry" then Favorites_RemoveEntry() end
     if Dialog.id == "ClearFavoritesList" then Favorites_ClearList() end
@@ -3866,36 +3977,63 @@ local function RL_Dialog_OK()
   RL_Dialog_Close()
 end
 
-local function RL_ConfirmDialog_RemoveRecentEntry()
-  Dialog.mode = "Confirm"
-  Dialog.id = "RemoveRecentEntry"
-  Dialog.caption = "Remove selected entries?"
-  RL_Dialog_Open()
+function RL_ConfirmDialog_RemoveRecentEntry()
+  if RL.showConfirmDialog then
+    Dialog.mode = "Confirm"
+    Dialog.id = "RemoveRecentEntry"
+    Dialog.caption = "Remove selected entries?"
+    RL_Dialog_Open()
+  else
+    RecentProjects_RemoveEntry()
+  end
 end
 
-local function RL_ConfirmDialog_ClearRecentList()
-  Dialog.mode = "Confirm"
-  Dialog.id = "ClearRecentList"
-  Dialog.caption = "Clear Recent Projects list?"
-  RL_Dialog_Open()
+function RL_ConfirmDialog_ClearRecentList()
+  if RL.showConfirmDialog then
+    Dialog.mode = "Confirm"
+    Dialog.id = "ClearRecentList"
+    Dialog.caption = "Clear Recent Projects list?"
+    RL_Dialog_Open()
+  else
+    RecentProjects_ClearList()
+  end
+end
+
+function RL_ConfirmDialog_RemoveInvalidRecentEntry()
+  if RL.showConfirmDialog then
+    Dialog.mode = "Confirm"
+    Dialog.id = "RemoveInvalidRecentEntry"
+    Dialog.caption = "Remove invalid Recent Project entries?"
+    RL_Dialog_Open()
+  else
+    RecentProjects_RemoveInvalidEntries()
+  end
 end
 
 function RL_ConfirmDialog_RemoveFavoritesEntry()
   local vals = GetSelectionTable(GUI.Val("tab_favorites_listbox"))
   if #vals == 0 then MsgStatusBar("No files selected in list")
   else
-    Dialog.mode = "Confirm"
-    Dialog.id = "RemoveFavoritesEntry"
-    Dialog.caption = "Remove selected entries?"
-    RL_Dialog_Open()
+    if RL.showConfirmDialog then
+      Dialog.mode = "Confirm"
+      Dialog.id = "RemoveFavoritesEntry"
+      Dialog.caption = "Remove selected entries?"
+      RL_Dialog_Open()
+    else
+    Favorites_RemoveEntry()
+    end
   end
 end
 
-local function RL_ConfirmDialog_ClearFavoritesList()
-  Dialog.mode = "Confirm"
-  Dialog.id = "ClearFavoritesList"
-  Dialog.caption = "Clear this Favorites list?"
-  RL_Dialog_Open()
+function RL_ConfirmDialog_ClearFavoritesList()
+  if RL.showConfirmDialog then
+    Dialog.mode = "Confirm"
+    Dialog.id = "ClearFavoritesList"
+    Dialog.caption = "Clear this Favorites list?"
+    RL_Dialog_Open()
+  else
+    Favorites_ClearList()
+  end
 end
 
 function RL_InitConfirmDialog(dialogType)
@@ -3942,8 +4080,9 @@ local function RL_Draw_TabRecentProjects()
   GUI.Val("tab_recentProjects_listbox", {1})
 
   if RL.showButtonPanel then
-    GUI.New("tab_recentProjects_btnLoadInTab", "Button", LayerIndex.RecentProjects, btn_pad_left, btn_tab_top, btn_w, btn_h, "Load in Tab", LoadInTab_RecentProject)
-    GUI.New("tab_recentProjects_btnLoad", "Button", LayerIndex.RecentProjects, btn_pad_left, btn_tab_top + btn_pad_add, btn_w, btn_h, "Load", Load_RecentProject)
+    GUI.New("tab_recentProjects_btnLoadAll", "Button", LayerIndex.RecentProjects, btn_pad_left, btn_tab_top, btn_w, btn_h, "Load All", Global_LoadAll)
+    GUI.New("tab_recentProjects_btnLoad", "Button", LayerIndex.RecentProjects, btn_pad_left, btn_tab_top + btn_pad_add, (btn_w * 0.5) - 5, btn_h, "Load", Load_RecentProject)
+    GUI.New("tab_recentProjects_btnLoadInTab", "Button", LayerIndex.RecentProjects, btn_pad_left + (btn_w * 0.5) + 5, btn_tab_top + btn_pad_add, (btn_w * 0.5) - 5, btn_h, "Load in Tab", LoadInTab_RecentProject)
   else
     if GUI.elms.tab_recentProjects_btnLoadInTab ~= nil then GUI.elms.tab_recentProjects_btnLoadInTab:delete() end
     if GUI.elms.tab_recentProjects_btnLoad ~= nil then GUI.elms.tab_recentProjects_btnLoad:delete() end
@@ -3979,11 +4118,15 @@ local function RL_Draw_TabRecentProjects()
       gfx.x, gfx.y = gfx.mouse_x, gfx.mouse_y
       local vals = GetSelectionTable(GUI.Val("tab_recentProjects_listbox"))
       if #vals == 0 then
-        if gfx.showmenu("1 - Clear entire list") == 1 then RL_ConfirmDialog_ClearRecentList() end
+        local RMBmenu = gfx.showmenu("1 - Clear entire list|2 - Remove invalid entries")
+        if RMBmenu == 1 then RL_ConfirmDialog_ClearRecentList()
+          elseif RMBmenu == 2 then RL_ConfirmDialog_RemoveInvalidRecentEntry()
+        end
       else
-        local RMBmenu = gfx.showmenu("1 - Remove selected entries|#|2 - Clear entire list")
+        local RMBmenu = gfx.showmenu("1 - Remove selected entries|2 - Clear entire list|3 - Remove invalid entries")
         if RMBmenu == 1 then RL_ConfirmDialog_RemoveRecentEntry()
           elseif RMBmenu == 2 then RL_ConfirmDialog_ClearRecentList()
+          elseif RMBmenu == 3 then RL_ConfirmDialog_RemoveInvalidRecentEntry()
         end
       end
     end
@@ -4027,8 +4170,9 @@ local function RL_Draw_TabProjectTemplates()
   GUI.Val("tab_projectTemplates_listbox", {1})
   
   if RL.showButtonPanel then
-    GUI.New("tab_projectTemplates_btnLoadInTab", "Button", LayerIndex.ProjectTemplates, btn_pad_left, btn_tab_top, btn_w, btn_h, "Load in Tab", LoadInTab_ProjectTemplate)
-    GUI.New("tab_projectTemplates_btnLoad", "Button", LayerIndex.ProjectTemplates, btn_pad_left, btn_tab_top + btn_pad_add, btn_w, btn_h, "Load", Load_ProjectTemplate)
+    GUI.New("tab_projectTemplates_btnLoadAll", "Button", LayerIndex.ProjectTemplates, btn_pad_left, btn_tab_top, btn_w, btn_h, "Load All", Global_LoadAll)
+    GUI.New("tab_projectTemplates_btnLoad", "Button", LayerIndex.ProjectTemplates, btn_pad_left, btn_tab_top + btn_pad_add, (btn_w * 0.5) - 5, btn_h, "Load", Load_ProjectTemplate)
+    GUI.New("tab_projectTemplates_btnLoadInTab", "Button", LayerIndex.ProjectTemplates, btn_pad_left + (btn_w * 0.5) + 5, btn_tab_top + btn_pad_add, (btn_w * 0.5) - 5, btn_h, "Load in Tab", LoadInTab_ProjectTemplate)
 
     GUI.New("tab_projectTemplates_lblEditMode", "Label", LayerIndex.ProjectTemplates, GUI.w - (140 * RL.scaleFactor) + (RL.scaleFactor * 10), (255 + btn_main_pad) * RL.scaleFactor, "Edit Template Mode", false, 3)
     GUI.New("tab_projectTemplates_checklistEditMode", "Checklist", LayerIndex.ProjectTemplates, GUI.w - (38 * RL.scaleFactor) + (RL.scaleFactor * 10), (252 + btn_main_pad) * RL.scaleFactor + (RL.scaleFactor * 2), 15 * RL.scaleFactor, 15 * RL.scaleFactor, "", "", "h", 0)
@@ -4133,8 +4277,9 @@ local function RL_Draw_TabTrackTemplates()
   GUI.Val("tab_trackTemplates_listbox", {1})
 
   if RL.showButtonPanel then 
-    GUI.New("tab_trackTemplates_btnInsertInTab", "Button", LayerIndex.TrackTemplates, btn_pad_left, btn_tab_top, btn_w, btn_h, "Insert in Tab", Load_TrackTemplateInTab)
-    GUI.New("tab_trackTemplates_btnInsert", "Button", LayerIndex.TrackTemplates, btn_pad_left, btn_tab_top + btn_pad_add, btn_w, btn_h, "Insert", Load_TrackTemplate)
+    GUI.New("tab_trackTemplates_btnInsertAll", "Button", LayerIndex.TrackTemplates, btn_pad_left, btn_tab_top, btn_w, btn_h, "Insert All", Global_LoadAll)
+    GUI.New("tab_trackTemplates_btnInsert", "Button", LayerIndex.TrackTemplates, btn_pad_left, btn_tab_top + btn_pad_add, (btn_w * 0.5) - 5, btn_h, "Insert", Load_TrackTemplate)
+    GUI.New("tab_trackTemplates_btnInsertInTab", "Button", LayerIndex.TrackTemplates, btn_pad_left + (btn_w * 0.5) + 5, btn_tab_top + btn_pad_add, (btn_w * 0.5) - 5, btn_h, "Insert in Tab", Load_TrackTemplateInTab)
   else
     if GUI.elms.tab_trackTemplates_btnInsertInTab ~= nil then GUI.elms.tab_trackTemplates_btnInsertInTab:delete() end
     if GUI.elms.tab_trackTemplates_btnInsert ~= nil then GUI.elms.tab_trackTemplates_btnInsert:delete() end
@@ -4226,8 +4371,9 @@ local function RL_Draw_TabCustomProjects()
   GUI.Val("tab_customProjects_listbox", {1})
 
   if RL.showButtonPanel then
-    GUI.New("tab_customProjects_btnLoadInTab", "Button", LayerIndex.CustomProjects, btn_pad_left, btn_tab_top, btn_w, btn_h, "Load in Tab", LoadInTab_CustomProject)
-    GUI.New("tab_customProjects_btnLoad", "Button", LayerIndex.CustomProjects, btn_pad_left, btn_tab_top + btn_pad_add, btn_w, btn_h, "Load", Load_CustomProject)
+    GUI.New("tab_customProjects_btnLoadAll", "Button", LayerIndex.CustomProjects, btn_pad_left, btn_tab_top, btn_w, btn_h, "Load All", Global_LoadAll)
+    GUI.New("tab_customProjects_btnLoad", "Button", LayerIndex.CustomProjects, btn_pad_left, btn_tab_top + btn_pad_add, (btn_w * 0.5) - 5, btn_h, "Load", Load_CustomProject)
+    GUI.New("tab_customProjects_btnLoadInTab", "Button", LayerIndex.CustomProjects, btn_pad_left + (btn_w * 0.5) + 5, btn_tab_top + btn_pad_add, (btn_w * 0.5) - 5, btn_h, "Load in Tab", LoadInTab_CustomProject)
   else
     if GUI.elms.tab_customProjects_btnLoadInTab ~= nil then GUI.elms.tab_customProjects_btnLoadInTab:delete() end
     if GUI.elms.tab_customProjects_btnLoad ~= nil then GUI.elms.tab_customProjects_btnLoad:delete() end
@@ -4348,8 +4494,9 @@ local function RL_Draw_TabProjectLists()
   end
  
   if RL.showButtonPanel then
-    GUI.New("tab_projectLists_btnLoadInTab", "Button", LayerIndex.ProjectLists, btn_pad_left, btn_tab_top, btn_w, btn_h, "Load in Tab", LoadInTab_ProjectListProject)
-    GUI.New("tab_projectLists_btnLoad", "Button", LayerIndex.ProjectLists, btn_pad_left, btn_tab_top + btn_pad_add, btn_w, btn_h, "Load", Load_ProjectListProject)
+    GUI.New("tab_projectLists_btnLoadAll", "Button", LayerIndex.ProjectLists, btn_pad_left, btn_tab_top, btn_w, btn_h, "Load All", Global_LoadAll)
+    GUI.New("tab_projectLists_btnLoad", "Button", LayerIndex.ProjectLists, btn_pad_left, btn_tab_top + btn_pad_add, (btn_w * 0.5) - 5, btn_h, "Load", Load_ProjectListProject)
+    GUI.New("tab_projectLists_btnLoadInTab", "Button", LayerIndex.ProjectLists, btn_pad_left + (btn_w * 0.5) + 5, btn_tab_top + btn_pad_add, (btn_w * 0.5) - 5, btn_h, "Load in Tab", LoadInTab_ProjectListProject)
   else
     if GUI.elms.tab_projectLists_btnLoadInTab ~= nil then GUI.elms.tab_projectLists_btnLoadInTab:delete() end
     if GUI.elms.tab_projectLists_btnLoad ~= nil then GUI.elms.tab_projectLists_btnLoad:delete() end
@@ -4441,8 +4588,9 @@ local function RL_Draw_TabBackups()
   GUI.Val("tab_backups_listbox", {1})
 
   if RL.showButtonPanel then
-    GUI.New("tab_backups_btnLoadInTab", "Button", LayerIndex.Backups, btn_pad_left, btn_tab_top, btn_w, btn_h, "Load in Tab", LoadInTab_BackupFile)
-    GUI.New("tab_backups_btnLoad", "Button", LayerIndex.Backups, btn_pad_left, btn_tab_top + btn_pad_add, btn_w, btn_h, "Load", Load_BackupFile)
+    GUI.New("tab_backups_btnLoadAll", "Button", LayerIndex.Backups, btn_pad_left, btn_tab_top, btn_w, btn_h, "Load All", Global_LoadAll)
+    GUI.New("tab_backups_btnLoad", "Button", LayerIndex.Backups, btn_pad_left, btn_tab_top + btn_pad_add, (btn_w * 0.5) - 5, btn_h, "Load", Load_BackupFile)
+    GUI.New("tab_backups_btnLoadInTab", "Button", LayerIndex.Backups, btn_pad_left + (btn_w * 0.5) + 5, btn_tab_top + btn_pad_add, (btn_w * 0.5) - 5, btn_h, "Load in Tab", LoadInTab_BackupFile)
   else
     if GUI.elms.tab_backups_btnLoadInTab ~= nil then GUI.elms.tab_backups_btnLoadInTab:delete() end
     if GUI.elms.tab_backups_btnLoad ~= nil then GUI.elms.tab_backups_btnLoad:delete() end
@@ -4559,7 +4707,8 @@ local function RL_Draw_TabDocs()
   GUI.Val("tab_docs_listbox", {1})
 
   if RL.showButtonPanel then
-    GUI.New("tab_docs_btnOpen", "Button", LayerIndex.Docs, btn_pad_left, btn_tab_top + (20 * RL.scaleFactor) - (5 * RL.scaleFactor), btn_w, btn_h, "Open", Load_DocFile)
+    GUI.New("tab_docs_btnOpenAll", "Button", LayerIndex.Docs, btn_pad_left, btn_tab_top, btn_w, btn_h, "Open All", Global_LoadAll)
+    GUI.New("tab_docs_btnOpen", "Button", LayerIndex.Docs, btn_pad_left, btn_tab_top + btn_pad_add, btn_w, btn_h, "Open", Load_DocFile)
   else
     if GUI.elms.tab_docs_btnOpen ~= nil then GUI.elms.tab_docs_btnOpen:delete() end
   end
@@ -4698,14 +4847,22 @@ function RL_Draw_FavoritesButtons()
   -- draw buttons
   if selection == TabID.RecentProjects or selection == TabID.ProjectTemplates or selection == TabID.CustomProjects or selection == TabID.ProjectLists or selection == TabID.Backups then
     if GUI.elms.tab_favorites_btnOpen ~= nil then GUI.elms.tab_favorites_btnOpen:delete() end
-    if GUI.elms.tab_favorites_btnInsertInTab ~= nil then GUI.elms.tab_favorites_btnInsertInTab:delete() end
+    if GUI.elms.tab_favorites_btnOpenAll ~= nil then GUI.elms.tab_favorites_btnOpenAll:delete() end
+    if GUI.elms.tab_favorites_btnInsertAll ~= nil then GUI.elms.tab_favorites_btnInsertAll:delete() end
     if GUI.elms.tab_favorites_btnInsert ~= nil then GUI.elms.tab_favorites_btnInsert:delete() end
+    if GUI.elms.tab_favorites_btnInsertInTab ~= nil then GUI.elms.tab_favorites_btnInsertInTab:delete() end
     if RL.showButtonPanel then
-      GUI.New("tab_favorites_btnLoadInTab", "Button", LayerIndex.Favorites, btn_pad_left, btn_tab_top, btn_w, btn_h, "Load in Tab", LoadInTab_FavoritesFile)
-      GUI.New("tab_favorites_btnLoad", "Button", LayerIndex.Favorites, btn_pad_left, btn_tab_top + btn_pad_add, btn_w, btn_h, "Load", Load_FavoritesFile)
+      GUI.New("tab_favorites_btnLoadAll", "Button", LayerIndex.Favorites, btn_pad_left, btn_tab_top, btn_w, btn_h, "Load All", Global_LoadAll)
+      GUI.New("tab_favorites_btnLoad", "Button", LayerIndex.Favorites, btn_pad_left, btn_tab_top + btn_pad_add, (btn_w * 0.5) - 5, btn_h, "Load", Load_FavoritesFile)
+      GUI.New("tab_favorites_btnLoadInTab", "Button", LayerIndex.Favorites, btn_pad_left + (btn_w * 0.5) + 5, btn_tab_top + btn_pad_add, (btn_w * 0.5) - 5, btn_h, "Load in Tab", LoadInTab_FavoritesFile)
     else
-      if GUI.elms.tab_favorites_btnLoadInTab ~= nil then GUI.elms.tab_favorites_btnLoadInTab:delete() end
+      if GUI.elms.tab_favorites_btnLoadAll ~= nil then GUI.elms.tab_favorites_btnLoadAll:delete() end      
       if GUI.elms.tab_favorites_btnLoad ~= nil then GUI.elms.tab_favorites_btnLoad:delete() end
+      if GUI.elms.tab_favorites_btnLoadInTab ~= nil then GUI.elms.tab_favorites_btnLoadInTab:delete() end
+    end
+    if GUI.elms.tab_favorites_btnLoadAll ~= nil then
+      GUI.elms.tab_favorites_btnLoadAll.col_fill = "wnd_bg"
+      GUI.elms.tab_favorites_btnLoadAll:init()
     end
     if GUI.elms.tab_favorites_btnLoadInTab ~= nil then
       GUI.elms.tab_favorites_btnLoadInTab.col_fill = "wnd_bg"
@@ -4716,11 +4873,17 @@ function RL_Draw_FavoritesButtons()
       GUI.elms.tab_favorites_btnLoad:init()
     end
   elseif selection == TabID.TrackTemplates then
-    if GUI.elms.tab_favorites_btnLoadInTab ~= nil then GUI.elms.tab_favorites_btnLoadInTab:delete() end
+    if GUI.elms.tab_favorites_btnLoadAll ~= nil then GUI.elms.tab_favorites_btnLoadAll:delete() end
     if GUI.elms.tab_favorites_btnLoad ~= nil then GUI.elms.tab_favorites_btnLoad:delete() end
+    if GUI.elms.tab_favorites_btnLoadInTab ~= nil then GUI.elms.tab_favorites_btnLoadInTab:delete() end
     if GUI.elms.tab_favorites_btnOpen ~= nil then GUI.elms.tab_favorites_btnOpen:delete() end
-    GUI.New("tab_favorites_btnInsertInTab", "Button", LayerIndex.Favorites, btn_pad_left, btn_tab_top , btn_w, btn_h, "Insert in Tab", LoadInTab_FavoritesFile)
-    GUI.New("tab_favorites_btnInsert", "Button", LayerIndex.Favorites, btn_pad_left, btn_tab_top + btn_pad_add, btn_w, btn_h, "Insert", Load_FavoritesFile)
+    GUI.New("tab_favorites_btnInsertAll", "Button", LayerIndex.Favorites, btn_pad_left, btn_tab_top, btn_w, btn_h, "Insert All", Global_LoadAll)
+    GUI.New("tab_favorites_btnInsert", "Button", LayerIndex.Favorites, btn_pad_left, btn_tab_top + btn_pad_add, (btn_w * 0.5) - 5, btn_h, "Insert", Load_FavoritesFile)
+    GUI.New("tab_favorites_btnInsertInTab", "Button", LayerIndex.Favorites, btn_pad_left + (btn_w * 0.5) + 5, btn_tab_top + btn_pad_add, (btn_w * 0.5) - 5, btn_h, "Insert in Tab", LoadInTab_FavoritesFile)
+    if GUI.elms.tab_favorites_btnInsertAll ~= nil then
+      GUI.elms.tab_favorites_btnInsertAll.col_fill = "wnd_bg"
+      GUI.elms.tab_favorites_btnInsertAll:init()
+    end
     if GUI.elms.tab_favorites_btnInsertInTab ~= nil then
       GUI.elms.tab_favorites_btnInsertInTab.col_fill = "wnd_bg"
       GUI.elms.tab_favorites_btnInsertInTab:init()
@@ -4730,11 +4893,18 @@ function RL_Draw_FavoritesButtons()
       GUI.elms.tab_favorites_btnInsert:init()
     end
   elseif selection == TabID.Docs then
-    if GUI.elms.tab_favorites_btnLoadInTab ~= nil then GUI.elms.tab_favorites_btnLoadInTab:delete() end
+    if GUI.elms.tab_favorites_btnLoadAll ~= nil then GUI.elms.tab_favorites_btnLoadAll:delete() end
     if GUI.elms.tab_favorites_btnLoad ~= nil then GUI.elms.tab_favorites_btnLoad:delete() end
-    if GUI.elms.tab_favorites_btnInsertInTab ~= nil then GUI.elms.tab_favorites_btnInsertInTab:delete() end
+    if GUI.elms.tab_favorites_btnLoadInTab ~= nil then GUI.elms.tab_favorites_btnLoadInTab:delete() end
+    if GUI.elms.tab_favorites_btnInsertAll ~= nil then GUI.elms.tab_favorites_btnInsertAll:delete() end
     if GUI.elms.tab_favorites_btnInsert ~= nil then GUI.elms.tab_favorites_btnInsert:delete() end
-    GUI.New("tab_favorites_btnOpen", "Button", LayerIndex.Favorites, btn_pad_left, btn_tab_top + (20 * RL.scaleFactor) - (5 * RL.scaleFactor), btn_w, btn_h, "Open", Load_FavoritesFile)
+    if GUI.elms.tab_favorites_btnInsertInTab ~= nil then GUI.elms.tab_favorites_btnInsertInTab:delete() end
+    GUI.New("tab_favorites_btnOpenAll", "Button", LayerIndex.Favorites, btn_pad_left, btn_tab_top, btn_w, btn_h, "Open All", Global_LoadAll)
+    GUI.New("tab_favorites_btnOpen", "Button", LayerIndex.Favorites, btn_pad_left, btn_tab_top + btn_pad_add, btn_w, btn_h, "Open", Load_FavoritesFile)
+    if GUI.elms.tab_favorites_btnOpenAll ~= nil then
+      GUI.elms.tab_favorites_btnOpenAll.col_fill = "wnd_bg"
+      GUI.elms.tab_favorites_btnOpenAll:init()
+    end
     if GUI.elms.tab_favorites_btnOpen ~= nil then
       GUI.elms.tab_favorites_btnOpen.col_fill = "wnd_bg"
       GUI.elms.tab_favorites_btnOpen:init()
@@ -5254,31 +5424,110 @@ local function OpenJSBrowseDialog(textBoxID, caption)
       if IsNotNullOrEmpty(oldPath) then GUI.Val(textBoxID, oldPath .. ";" .. selectedFolder)
       else GUI.Val(textBoxID, selectedFolder) end
     end
+  else
+    reaper.MB("This function requires the 'js_ReaScriptAPI package'.\nPlease install it via ReaPack", "Missing Package", 0)
+    MsgStatusBar("")
   end
 end
 
-function Path_Browse_ProjectTemplateFolder()
-  OpenJSBrowseDialog("paths_txtProjectTemplatesPath", "Containing (.RPP) Project Templates")
+function RL_Context_ManagePaths_ProjectTemplates()
+  gfx.x, gfx.y = gfx.mouse_x, gfx.mouse_y
+  local menuEntries = "#Project Templates (.rpp)||Add path|Add default Project Template path|"
+  if #CustomPaths.ProjectTemplates > 0 then menuEntries = menuEntries .. "|#Remove:|" .. string.gsub(CustomPaths.ProjectTemplates, ";", "|") end
+  local RMBmenu, val = gfx.showmenu(menuEntries)
+  if RMBmenu == 2 then OpenJSBrowseDialog("paths_txtProjectTemplatesPath", "Containing (.RPP) Project Templates")
+    elseif RMBmenu == 3 then
+      local currentPaths = {}
+      if #CustomPaths.ProjectTemplates > 0 then currentPaths = SplitMultiPaths(CustomPaths.ProjectTemplates) end
+      if not CheckForDuplicates(currentPaths, projectTemplatePath) then
+        currentPaths[#currentPaths + 1] = projectTemplatePath
+        CustomPaths.ProjectTemplates = table.concat(currentPaths, ";")
+        GUI.Val("paths_txtProjectTemplatesPath", CustomPaths.ProjectTemplates)
+      end
+    elseif RMBmenu > 4 then
+      local currentPaths = SplitMultiPaths(CustomPaths.ProjectTemplates)
+      table.remove(currentPaths, RMBmenu - 4)
+      CustomPaths.ProjectTemplates = table.concat(currentPaths, ";")
+      GUI.Val("paths_txtProjectTemplatesPath", CustomPaths.ProjectTemplates)
+  end
 end
 
-function Path_Browse_TrackTemplateFolder()
-  OpenJSBrowseDialog("paths_txtTrackTemplatesPath", "Containing (.RTrackTemplate) Track Templates")
+function RL_Context_ManagePaths_TrackTemplates()
+  gfx.x, gfx.y = gfx.mouse_x, gfx.mouse_y
+  local menuEntries = "#Track Templates (.rtracktemplate)||Add path|Add default Track Template path|";
+  if #CustomPaths.TrackTemplates > 0 then menuEntries = menuEntries .. "|#Remove:|" .. string.gsub(CustomPaths.TrackTemplates, ";", "|") end
+  local RMBmenu = gfx.showmenu(menuEntries)
+  if RMBmenu == 2 then OpenJSBrowseDialog("paths_txtTrackTemplatesPath", "Containing (.RTrackTemplate) Track Templates")
+    elseif RMBmenu == 3 then
+      local currentPaths = {}
+      if #CustomPaths.TrackTemplates > 0 then currentPaths = SplitMultiPaths(CustomPaths.TrackTemplates) end
+      if not CheckForDuplicates(currentPaths, trackTemplatePath) then
+        currentPaths[#currentPaths + 1] = trackTemplatePath
+        CustomPaths.TrackTemplates = table.concat(currentPaths, ";")
+        GUI.Val("paths_txtTrackTemplatesPath", CustomPaths.TrackTemplates)
+      end
+    elseif #CustomPaths.TrackTemplates > 0 and RMBmenu > 4 then
+      local currentPaths = SplitMultiPaths(CustomPaths.TrackTemplates)
+      table.remove(currentPaths, RMBmenu - 4)
+      CustomPaths.TrackTemplates = table.concat(currentPaths, ";")
+      GUI.Val("paths_txtTrackTemplatesPath", CustomPaths.TrackTemplates)
+  end
 end
 
-function Path_Browse_CustomProjectFolder()
-  OpenJSBrowseDialog("paths_txtCustomProjectsPath", "Containing (.RPP) Projects")
+function RL_Context_ManagePaths_CustomProjects()
+  gfx.x, gfx.y = gfx.mouse_x, gfx.mouse_y
+  local menuEntries = "#Projects (.rpp)||Add path|"
+  if #CustomPaths.Projects > 0 then menuEntries = menuEntries .. "|#Remove:|" .. string.gsub(CustomPaths.Projects, ";", "|") end
+  local RMBmenu = gfx.showmenu(menuEntries)
+  if RMBmenu == 2 then OpenJSBrowseDialog("paths_txtCustomProjectsPath", "Containing (.RPP) Projects")
+    elseif #CustomPaths.Projects > 0 and RMBmenu > 3 then
+      local currentPaths = SplitMultiPaths(CustomPaths.Projects)
+      table.remove(currentPaths, RMBmenu - 3)
+      CustomPaths.Projects = table.concat(currentPaths, ";")
+      GUI.Val("paths_txtCustomProjectsPath", CustomPaths.Projects)
+    end
 end
 
-function Path_Browse_ProjectListFolder()
-  OpenJSBrowseDialog("paths_txtProjectsListsPath", "Containing (.RPL) Project Lists")
+function RL_Context_ManagePaths_ProjectLists()
+  gfx.x, gfx.y = gfx.mouse_x, gfx.mouse_y
+  local menuEntries = "#Project Lists (.rpl)||Add path|"
+  if #CustomPaths.ProjectLists > 0 then menuEntries = menuEntries .. "|#Remove:|" .. string.gsub(CustomPaths.ProjectLists, ";", "|") end
+  local RMBmenu = gfx.showmenu(menuEntries)
+  if RMBmenu == 2 then OpenJSBrowseDialog("paths_txtProjectsListsPath", "Containing (.RPL) Project Lists")
+    elseif #CustomPaths.ProjectLists > 0 and RMBmenu > 3 then
+      local currentPaths = SplitMultiPaths(CustomPaths.ProjectLists)
+      table.remove(currentPaths, RMBmenu - 3)
+      CustomPaths.ProjectLists = table.concat(currentPaths, ";")
+      GUI.Val("paths_txtProjectsListsPath", CustomPaths.ProjectLists)
+    end
 end
 
-function Path_Browse_BackupsFolder()
-  OpenJSBrowseDialog("paths_txtBackupsPath", "Containing (.RPP-BAK) Backups")
+function RL_Context_ManagePaths_Backups()
+  gfx.x, gfx.y = gfx.mouse_x, gfx.mouse_y
+  local menuEntries = "#Backups (.rpp-bak)||Add path|"
+  if #CustomPaths.Backups > 0 then menuEntries = menuEntries .. "|#Remove:|" .. string.gsub(CustomPaths.Backups, ";", "|") end
+  local RMBmenu = gfx.showmenu(menuEntries)
+  if RMBmenu == 2 then OpenJSBrowseDialog("paths_txtBackupsPath", "Containing (.RPP-BAK) Backups")
+    elseif #CustomPaths.Backups > 0 and RMBmenu > 3 then
+      local currentPaths = SplitMultiPaths(CustomPaths.Backups)
+      table.remove(currentPaths, RMBmenu - 3)
+      CustomPaths.Backups = table.concat(currentPaths, ";")
+      GUI.Val("paths_txtBackupsPath", CustomPaths.Backups)
+    end
 end
 
-function Path_Browse_DocsFolder()
-  OpenJSBrowseDialog("paths_txtDocsPath", "Containing (.PDF) Docs")
+function RL_Context_ManagePaths_Docs()
+  gfx.x, gfx.y = gfx.mouse_x, gfx.mouse_y
+  local menuEntries = "#Docs (.pdf)||Add path|"
+  if #CustomPaths.Docs > 0 then menuEntries = menuEntries .. "|#Remove:|" .. string.gsub(CustomPaths.Docs, ";", "|") end
+  local RMBmenu = gfx.showmenu(menuEntries)
+  if RMBmenu == 2 then OpenJSBrowseDialog("paths_txtDocsPath", "Containing (.PDF) Docs")
+    elseif #CustomPaths.Docs > 0 and RMBmenu > 3 then
+      local currentPaths = SplitMultiPaths(CustomPaths.Docs)
+      table.remove(currentPaths, RMBmenu - 3)
+      CustomPaths.Docs = table.concat(currentPaths, ";")
+      GUI.Val("paths_txtDocsPath", CustomPaths.Docs)
+    end
 end
 
 function RL_ShowProgressIndicator(elementIndex, isActive)
@@ -5397,7 +5646,7 @@ end
 function RL_ScanProjectTemplateSubfolders()
   if ShowSubfolderPanel(TabID.ProjectTemplates) then
     SubfolderPaths.projectTemplates, SubfolderNames.projectTemplates = {}, {}
-    SubfolderPaths.projectTemplates, SubfolderNames.projectTemplates = GetSubFolderEntries(projectTemplatePath, CustomPaths.ProjectTemplates, TabID.ProjectTemplates, FileTypes.rpp)
+    SubfolderPaths.projectTemplates, SubfolderNames.projectTemplates = GetSubFolderEntries(CustomPaths.ProjectTemplates, TabID.ProjectTemplates, FileTypes.rpp)
     RL_WriteToSubfolderCache(SubpanelFile.ProjectTemplates, SubpanelFile.MainSection, SubfolderPaths.projectTemplates)
   end
 end
@@ -5405,7 +5654,7 @@ end
 function RL_ScanTrackTemplateSubfolders()
   if ShowSubfolderPanel(TabID.TrackTemplates) then 
     SubfolderPaths.trackTemplates, SubfolderNames.trackTemplates = {}, {}
-    SubfolderPaths.trackTemplates, SubfolderNames.trackTemplates = GetSubFolderEntries(trackTemplatePath, CustomPaths.TrackTemplates, TabID.TrackTemplates, FileTypes.tracktemplate)
+    SubfolderPaths.trackTemplates, SubfolderNames.trackTemplates = GetSubFolderEntries(CustomPaths.TrackTemplates, TabID.TrackTemplates, FileTypes.tracktemplate)
     RL_WriteToSubfolderCache(SubpanelFile.TrackTemplates, SubpanelFile.MainSection, SubfolderPaths.trackTemplates)
   end
 end
@@ -5413,7 +5662,7 @@ end
 function RL_ScanCustomProjectSubfolders()
   if ShowSubfolderPanel(TabID.CustomProjects) then 
     SubfolderPaths.customProjects, SubfolderNames.customProjects = {}, {}
-    SubfolderPaths.customProjects, SubfolderNames.customProjects = GetSubFolderEntries("All", CustomPaths.Projects, TabID.CustomProjects, FileTypes.rpp)
+    SubfolderPaths.customProjects, SubfolderNames.customProjects = GetSubFolderEntries(CustomPaths.Projects, TabID.CustomProjects, FileTypes.rpp)
     RL_WriteToSubfolderCache(SubpanelFile.CustomProjects, SubpanelFile.MainSection, SubfolderPaths.customProjects)
   end
 end
@@ -5433,7 +5682,7 @@ end
 function RL_ScanBackupsSubfolders()
   if ShowSubfolderPanel(TabID.Backups) then 
     SubfolderPaths.backups, SubfolderNames.backups = {}, {}
-    SubfolderPaths.backups, SubfolderNames.backups = GetSubFolderEntries("All", CustomPaths.Backups, TabID.Backups, FileTypes.backup)
+    SubfolderPaths.backups, SubfolderNames.backups = GetSubFolderEntries(CustomPaths.Backups, TabID.Backups, FileTypes.backup)
     RL_WriteToSubfolderCache(SubpanelFile.Backups, SubpanelFile.MainSection, SubfolderPaths.backups)
   end
 end
@@ -5441,7 +5690,7 @@ end
 function RL_ScanDocsSubfolders()
   if ShowSubfolderPanel(TabID.Docs) then
     SubfolderPaths.docs, SubfolderNames.docs = {}, {}
-    SubfolderPaths.docs, SubfolderNames.docs = GetSubFolderEntries("All", CustomPaths.Docs, TabID.Docs, FileTypes.docs)
+    SubfolderPaths.docs, SubfolderNames.docs = GetSubFolderEntries(CustomPaths.Docs, TabID.Docs, FileTypes.docs)
     RL_WriteToSubfolderCache(SubpanelFile.Docs, SubpanelFile.MainSection, SubfolderPaths.docs)
   end
 end
@@ -5481,18 +5730,15 @@ local function RL_RescanAllPaths()
 end
 
 local function RL_Draw_TabPaths()
-  local paths_textBoxWidth = 265
+  local paths_textBoxWidth = 284
   local paths_buttonText = "Set"
 
-  if JSAPIinstalled then
-    GUI.New("paths_btnProjectTemplatesBrowse", "Button", LayerIndex.Paths, GUI.w - 84 * RL.scaleFactor, tabSelectorPadding + 1.25 * (30 * RL.scaleFactor), 15 * RL.scaleFactor, 15 * RL.scaleFactor, "+", Path_Browse_ProjectTemplateFolder)
-    GUI.New("paths_btnTrackTemplatesBrowse", "Button", LayerIndex.Paths, GUI.w - 84 * RL.scaleFactor, tabSelectorPadding + 2.05 * (30 * RL.scaleFactor), 15 * RL.scaleFactor, 15 * RL.scaleFactor, "+", Path_Browse_TrackTemplateFolder)
-    GUI.New("paths_btnCustomProjectsBrowse", "Button", LayerIndex.Paths, GUI.w - 84 * RL.scaleFactor, tabSelectorPadding + 2.85 * (30 * RL.scaleFactor), 15 * RL.scaleFactor, 15 * RL.scaleFactor, "+", Path_Browse_CustomProjectFolder)
-    GUI.New("paths_btnProjectListsBrowse", "Button", LayerIndex.Paths, GUI.w - 84 * RL.scaleFactor, tabSelectorPadding + 3.65 * (30 * RL.scaleFactor), 15 * RL.scaleFactor, 15 * RL.scaleFactor, "+", Path_Browse_ProjectListFolder)
-    GUI.New("paths_btnBackupsBrowse", "Button", LayerIndex.Paths, GUI.w - 84 * RL.scaleFactor, tabSelectorPadding + 4.45 * (30 * RL.scaleFactor), 15 * RL.scaleFactor, 15 * RL.scaleFactor, "+", Path_Browse_BackupsFolder)
-    GUI.New("paths_btnDocsBrowse", "Button", LayerIndex.Paths, GUI.w - 84 * RL.scaleFactor, tabSelectorPadding + 5.25 * (30 * RL.scaleFactor), 15 * RL.scaleFactor, 15 * RL.scaleFactor, "+", Path_Browse_DocsFolder)
-    paths_textBoxWidth = 284
-  end
+  GUI.New("paths_btnProjectTemplatesBrowse", "Button", LayerIndex.Paths, GUI.w - 84 * RL.scaleFactor, tabSelectorPadding + 1.25 * (30 * RL.scaleFactor), 15 * RL.scaleFactor, 15 * RL.scaleFactor, "+", RL_Context_ManagePaths_ProjectTemplates)
+  GUI.New("paths_btnTrackTemplatesBrowse", "Button", LayerIndex.Paths, GUI.w - 84 * RL.scaleFactor, tabSelectorPadding + 2.05 * (30 * RL.scaleFactor), 15 * RL.scaleFactor, 15 * RL.scaleFactor, "+", RL_Context_ManagePaths_TrackTemplates)
+  GUI.New("paths_btnCustomProjectsBrowse", "Button", LayerIndex.Paths, GUI.w - 84 * RL.scaleFactor, tabSelectorPadding + 2.85 * (30 * RL.scaleFactor), 15 * RL.scaleFactor, 15 * RL.scaleFactor, "+", RL_Context_ManagePaths_CustomProjects)
+  GUI.New("paths_btnProjectListsBrowse", "Button", LayerIndex.Paths, GUI.w - 84 * RL.scaleFactor, tabSelectorPadding + 3.65 * (30 * RL.scaleFactor), 15 * RL.scaleFactor, 15 * RL.scaleFactor, "+", RL_Context_ManagePaths_ProjectLists)
+  GUI.New("paths_btnBackupsBrowse", "Button", LayerIndex.Paths, GUI.w - 84 * RL.scaleFactor, tabSelectorPadding + 4.45 * (30 * RL.scaleFactor), 15 * RL.scaleFactor, 15 * RL.scaleFactor, "+", RL_Context_ManagePaths_Backups)
+  GUI.New("paths_btnDocsBrowse", "Button", LayerIndex.Paths, GUI.w - 84 * RL.scaleFactor, tabSelectorPadding + 5.25 * (30 * RL.scaleFactor), 15 * RL.scaleFactor, 15 * RL.scaleFactor, "+", RL_Context_ManagePaths_Docs)
 
   if ConfigFlags.enableFileCaching or ConfigFlags.enableSubfolderCaching then
     GUI.New("paths_lblInfo", "Label", LayerIndex.Paths, 196 * RL.scaleFactor, tabSelectorPadding + 6.15 * (30 * RL.scaleFactor), "Path changes are applied with the [Set] buttons", false, 4)
@@ -5933,7 +6179,7 @@ end
 -- Tab - Options
 ----------------
 function RL_Draw_SavePromptOption()
-  GUI.New("options_checklistPromptToSave", "Checklist", LayerIndex.Options, 1.6 * optionspad_left, tabSelectorPadding + 10 + (2.40 * 50 - 18) * RL.scaleFactor, 15 * RL.scaleFactor, 15 * RL.scaleFactor, "", "Prompt to save on new project", "v", 0)
+  GUI.New("options_checklistPromptToSave", "Checklist", LayerIndex.Options, 1.6 * optionspad_left, tabSelectorPadding + 10 + (2.85 * 50 - 18) * RL.scaleFactor, 15 * RL.scaleFactor, 15 * RL.scaleFactor, "", "Prompt to save on new project", "v", 0)
   GUI.elms.options_checklistPromptToSave.shadow = false
   GUI.elms.options_checklistPromptToSave.opt_size = 15 * RL.scaleFactor
   GUI.elms.options_checklistPromptToSave:init()
@@ -5973,11 +6219,10 @@ local function RL_Draw_TabOptions()
   if RL.tabSelectorStyle == 2 then GUI.New("options_frame_top", "Frame", LayerIndex.Options, 0, listbox_top, GUI.w, 2 * RL.scaleFactor, false, true) end
 
   GUI.New("options_frame_2", "Frame", LayerIndex.Options, 94 * RL.scaleFactor, tabSelectorPadding + 10 + 69 * RL.scaleFactor, GUI.w - 90 * RL.scaleFactor, 2 * RL.scaleFactor, false, true)
-  GUI.New("options_frame_3", "Frame", LayerIndex.Options, 94 * RL.scaleFactor, tabSelectorPadding + 10 + 96 * RL.scaleFactor, GUI.w - 90 * RL.scaleFactor, 2 * RL.scaleFactor, false, true)
-  GUI.New("options_frame_4", "Frame", LayerIndex.Options, 94 * RL.scaleFactor, tabSelectorPadding + 10 + 142 * RL.scaleFactor, GUI.w - 90 * RL.scaleFactor, 2 * RL.scaleFactor, false, true)
-
-  local doubleClickEntries = "Show Prompt,Load,Load in Tab"
-  if JSAPIinstalled then doubleClickEntries = "Show Prompt,Load,Load in Tab,Audio Preview" end
+  GUI.New("options_frame_3", "Frame", LayerIndex.Options, 94 * RL.scaleFactor, tabSelectorPadding + 10 + 118 * RL.scaleFactor, GUI.w - 90 * RL.scaleFactor, 2 * RL.scaleFactor, false, true)
+  GUI.New("options_frame_4", "Frame", LayerIndex.Options, 94 * RL.scaleFactor, tabSelectorPadding + 10 + 165 * RL.scaleFactor, GUI.w - 90 * RL.scaleFactor, 2 * RL.scaleFactor, false, true)
+  local doubleClickEntries = "Show Prompt,Load,Load in Tab,Load All"
+  if JSAPIinstalled then doubleClickEntries = doubleClickEntries .. ",Audio Preview" end
 
   GUI.New("layout_lblStartTab", "Label", LayerIndex.Options, 1.95 * optionspad_left, tabSelectorPadding + 10 + (0.95 * 50 - 18) * RL.scaleFactor, "Start Tab", false, 3)
   if osversion:find("Win") then
@@ -6021,12 +6266,13 @@ local function RL_Draw_TabOptions()
   GUI.elms.options_checklistShowPathsInStatusbar.shadow = false
   GUI.elms.options_checklistShowPathsInStatusbar.opt_size = 15 * RL.scaleFactor
   GUI.elms.options_checklistShowPathsInStatusbar:init()
-
-  if osversion:find("Win") then
-    GUI.New("options_menuShowPathsInStatusbar", "Menubox", LayerIndex.Options, 3.85 * optionspad_left, tabSelectorPadding + 10 + (1.9 * 50 - 18) * RL.scaleFactor, 110 * RL.scaleFactor, 15 * RL.scaleFactor, "", "Path and File,Path only", 8)
-  else
-    GUI.New("options_menuShowPathsInStatusbar", "Menubox", LayerIndex.Options, 3.95 * optionspad_left, tabSelectorPadding + 10 + (1.9 * 50 - 18) * RL.scaleFactor, 125 * RL.scaleFactor, 15 * RL.scaleFactor, "", "Path and File,Path only", 8) 
+  function GUI.elms.options_checklistShowPathsInStatusbar:onmouseup()
+    GUI.Checklist.onmouseup(self)
+    reaper.SetExtState(appname, "window_showpathsinstatusbar", tostring(GUI.Val("options_checklistShowPathsInStatusbar")), 1)
   end
+
+  if osversion:find("Win") then GUI.New("options_menuShowPathsInStatusbar", "Menubox", LayerIndex.Options, 3.85 * optionspad_left, tabSelectorPadding + 10 + (1.9 * 50 - 18) * RL.scaleFactor, 110 * RL.scaleFactor, 15 * RL.scaleFactor, "", "Path and File,Path only", 8)
+  else GUI.New("options_menuShowPathsInStatusbar", "Menubox", LayerIndex.Options, 3.95 * optionspad_left, tabSelectorPadding + 10 + (1.9 * 50 - 18) * RL.scaleFactor, 125 * RL.scaleFactor, 15 * RL.scaleFactor, "", "Path and File,Path only", 8)  end
   GUI.elms.options_menuShowPathsInStatusbar.align = 1
 
   function GUI.elms.options_menuShowPathsInStatusbar:onmousedown()
@@ -6039,30 +6285,42 @@ local function RL_Draw_TabOptions()
     reaper.SetExtState(appname, "window_showpathsinstatusbarmode", GUI.Val("options_menuShowPathsInStatusbar"), 1)
   end
 
-  GUI.New("options_checklistOpenPropertiesOnNewProject", "Checklist", LayerIndex.Options, 1.6 * optionspad_left, tabSelectorPadding + 10 + (2.80 * 50 - 18) * RL.scaleFactor, 15 * RL.scaleFactor, 15 * RL.scaleFactor, "", "Open properties on new project", "v", 0)
+  GUI.New("options_lblShowConfirmDialog", "Label", LayerIndex.Options, 1.95 * optionspad_left, tabSelectorPadding + 10 + (2.30 * 50 - 18) * RL.scaleFactor, "Show confirmation dialogs", false, 3)
+  GUI.New("options_checklistShowConfirmDialog", "Checklist", LayerIndex.Options, 1.6 * optionspad_left, tabSelectorPadding + 10 + (2.30 * 50 - 18) * RL.scaleFactor, 15 * RL.scaleFactor, 15 * RL.scaleFactor, "", "", "v", 0)
+  GUI.elms.options_checklistShowConfirmDialog.shadow = false
+  GUI.elms.options_checklistShowConfirmDialog.opt_size = 15 * RL.scaleFactor
+  GUI.elms.options_checklistShowConfirmDialog:init()
+  function GUI.elms.options_checklistShowConfirmDialog:onmouseup()
+    GUI.Checklist.onmouseup(self)
+    RL.showConfirmDialog = GUI.Val("options_checklistShowConfirmDialog")
+    reaper.SetExtState(appname, "window_showconfirmdialog", tostring(GUI.Val("options_checklistShowConfirmDialog")), 1)
+  end
+
+  if SWSinstalled then RL_Draw_SavePromptOption() end
+
+  GUI.New("options_checklistOpenPropertiesOnNewProject", "Checklist", LayerIndex.Options, 1.6 * optionspad_left, tabSelectorPadding + 10 + (3.25* 50 - 18) * RL.scaleFactor, 15 * RL.scaleFactor, 15 * RL.scaleFactor, "", "Open properties on new project", "v", 0)
   GUI.elms.options_checklistOpenPropertiesOnNewProject.shadow = false
   GUI.elms.options_checklistOpenPropertiesOnNewProject.opt_size = 15 * RL.scaleFactor
   GUI.elms.options_checklistOpenPropertiesOnNewProject:init()
+  function GUI.elms.options_checklistOpenPropertiesOnNewProject:onmouseup()
+    GUI.Checklist.onmouseup(self)
+    reaper.SetExtState(appname, "project_showproperties", tostring(GUI.Val("options_checklistOpenPropertiesOnNewProject")), 1)
+  end
 
-  GUI.New("options_checklistWindowToggle", "Checklist", LayerIndex.Options, 1.6 * optionspad_left, tabSelectorPadding + 10 + (3.35 * 50 - 18) * RL.scaleFactor, 15 * RL.scaleFactor, 15 * RL.scaleFactor, "", "Enable window toggle key", "v", 0)
+  -- window key toggle
+  GUI.New("options_checklistWindowToggle", "Checklist", LayerIndex.Options, 1.6 * optionspad_left, tabSelectorPadding + 10 + (3.85 * 50 - 18) * RL.scaleFactor, 15 * RL.scaleFactor, 15 * RL.scaleFactor, "", "Enable window toggle key", "v", 0)
   GUI.elms.options_checklistWindowToggle.shadow = false
   GUI.elms.options_checklistWindowToggle.opt_size = 15 * RL.scaleFactor
   GUI.elms.options_checklistWindowToggle:init()
-
-  GUI.New("options_txtWindowToggleShortcut", "Textbox", LayerIndex.Options, 4 * optionspad_left, tabSelectorPadding + 10 + (3.35 * 50 - 20) * RL.scaleFactor, 30 * RL.scaleFactor, 20 * RL.scaleFactor, "", 8)
-  function GUI.elms.options_txtWindowToggleShortcut:onmousedown()
-    GUI.Textbox.onmousedown(self)
-    RL.keyInputActive = false
+  function GUI.elms.options_checklistWindowToggle:onmouseup()
+    GUI.Checklist.onmouseup(self)
+    reaper.SetExtState(appname, "window_togglemode", tostring(GUI.Val("options_checklistWindowToggle")), 1)
   end
 
-  function GUI.elms.options_txtWindowToggleShortcut:lostfocus()
-    RL.keyInputActive = true
-    GUI.Textbox.lostfocus(self)
-  end
-
-  GUI.New("options_btnSetWindowToggleShortcut", "Button", LayerIndex.Options, 4.6 * optionspad_left, tabSelectorPadding + 10 + (3.35 * 50 - 18) * RL.scaleFactor, 30 * RL.scaleFactor, 16 * RL.scaleFactor, "Set", SetWindowToggleShortcut)
-
-  if SWSinstalled then RL_Draw_SavePromptOption() end
+  GUI.New("options_txtWindowToggleShortcut", "Textbox", LayerIndex.Options, 4 * optionspad_left, tabSelectorPadding + 10 + (3.85 * 50 - 20) * RL.scaleFactor, 30 * RL.scaleFactor, 20 * RL.scaleFactor, "", 8)
+  function GUI.elms.options_txtWindowToggleShortcut:onmousedown() GUI.Textbox.onmousedown(self) RL.keyInputActive = false end
+  function GUI.elms.options_txtWindowToggleShortcut:lostfocus() RL.keyInputActive = true GUI.Textbox.lostfocus(self) end
+  GUI.New("options_btnSetWindowToggleShortcut", "Button", LayerIndex.Options, 4.6 * optionspad_left, tabSelectorPadding + 10 + (3.85 * 50 - 18) * RL.scaleFactor, 30 * RL.scaleFactor, 16 * RL.scaleFactor, "Set", SetWindowToggleShortcut)
 end
 
 ----------------------
@@ -6107,6 +6365,7 @@ local helpContentLeft = {
   New Tab
   New Tab Ignore Template
   
+  Load All
   Load in Tab
   Load]]
   ,
@@ -6116,6 +6375,7 @@ local helpContentLeft = {
   
   Last active projects
   Add | remove Favorites
+  Remove Recent Projects
   Toggle Audio Preview
   
   Prev | next project tab
@@ -6255,7 +6515,7 @@ local helpContentRight = {
   ,
   [[
   TAB | TAB or ENTER
-  BACKSPACE
+  SHIFT + BACKSPACE
   
   SHIFT + UP | DOWN
   SHIFT + HOME | END
@@ -6271,6 +6531,7 @@ local helpContentRight = {
   T or + 
   SHIFT + T or /
   
+  CTRL/CMD + ENTER
   SHIFT + ENTER
   ENTER]]
   ,
@@ -6279,7 +6540,8 @@ local helpContentRight = {
   SHIFT + F5
   
   A
-  F  
+  F
+  DELETE or BACKSPACE  
   SPACE or *
   
   X | V
@@ -6456,6 +6718,13 @@ local function RL_Draw_Tooltips()
 
   GUI.elms.main_checklistWindowPin.tooltip = "Window Pin\n\nKeep the window open after load/insert operations"
 
+  GUI.elms.paths_btnProjectTemplatesBrowse.tooltip = "Edit Project Templates paths"
+  GUI.elms.paths_btnTrackTemplatesBrowse.tooltip = "Edit Track Templates paths"
+  GUI.elms.paths_btnCustomProjectsBrowse.tooltip = "Edit Projects paths"
+  GUI.elms.paths_btnProjectListsBrowse.tooltip = "Edit Project Lists paths" 
+  GUI.elms.paths_btnBackupsBrowse.tooltip = "Edit Backups paths"
+  GUI.elms.paths_btnDocsBrowse.tooltip = "Edit Docs paths"
+
   if RL.showButtonPanel then
     GUI.elms.main_lblWindowpin.tooltip = "Window Pin\n\nKeep the window open after load/insert operations"
     GUI.elms.main_btnNewProjectTab.tooltip = "Add new project tab"
@@ -6465,31 +6734,28 @@ local function RL_Draw_Tooltips()
     local ttLoadFXoffline = "Load with FX offline:\n  - Hold CTRL + SHIFT (Windows & Linux)\n  - Hold CMD + SHIFT (macOS)\n  - Via the option in the [Open Project] window"
     GUI.elms.tab_recentProjects_btnLoadInTab.tooltip = "Load selected recent project(s) in tab(s)\n\n" .. ttLoadFXoffline
     GUI.elms.tab_recentProjects_btnLoad.tooltip = "Load selected recent project(s)\n\n" .. ttLoadFXoffline
+    GUI.elms.tab_recentProjects_btnLoadAll.tooltip = "Load all listed project(s)\n\n" .. ttLoadFXoffline
     GUI.elms.tab_customProjects_btnLoadInTab.tooltip = "Load the selected project(s) in tab(s)\n\n" .. ttLoadFXoffline
     GUI.elms.tab_customProjects_btnLoad.tooltip = "Load the selected project(s)\n\n" .. ttLoadFXoffline
+    GUI.elms.tab_customProjects_btnLoadAll.tooltip = "Load all listed project(s)\n\n" .. ttLoadFXoffline
     GUI.elms.tab_projectTemplates_btnLoadInTab.tooltip = "Load selected project template(s) in tab(s)\n\n" .. ttLoadFXoffline
     GUI.elms.tab_projectTemplates_btnLoad.tooltip = "Load selected project templates(s)\n\n" .. ttLoadFXoffline
+    GUI.elms.tab_projectTemplates_btnLoadAll.tooltip = "Load all listed project templates(s)\n\n" .. ttLoadFXoffline
     GUI.elms.tab_projectLists_btnLoadInTab.tooltip = "Load the selected project(s) in tab(s)\n\n" .. ttLoadFXoffline
     GUI.elms.tab_projectLists_btnLoad.tooltip = "Load the selected project(s)\n\n" .. ttLoadFXoffline
+    GUI.elms.tab_projectLists_btnLoadAll.tooltip = "Load all listed project(s)\n\n" .. ttLoadFXoffline
     GUI.elms.tab_backups_btnLoadInTab.tooltip = "Load the selected backup(s) in tab(s)\n\n" .. ttLoadFXoffline
     GUI.elms.tab_backups_btnLoad.tooltip = "Load the selected backup(s)\n\n" .. ttLoadFXoffline
+    GUI.elms.tab_backups_btnLoadAll.tooltip = "Load all listed backup(s)\n\n" .. ttLoadFXoffline
     GUI.elms.tab_trackTemplates_btnInsertInTab.tooltip = "Insert selected track template(s) in a new tab"
     GUI.elms.tab_trackTemplates_btnInsert.tooltip = "Insert selected track template(s)"
+    GUI.elms.tab_trackTemplates_btnInsertAll.tooltip = "Insert all listed track template(s)"
 
     GUI.elms.main_lblSaveNewVersion.tooltip = "Save the loaded project(s) with an\nincremented version number: _1, _2, ..."
     GUI.elms.main_checklistSaveAsNewVersion.tooltip = "Save the loaded project(s) with an\nincremented version number: _1, _2, ..."
 
     GUI.elms.tab_projectTemplates_lblEditMode.tooltip = "Check to open project template in edit mode"
     GUI.elms.tab_projectTemplates_checklistEditMode.tooltip = "Check to open project template in edit mode"
-  end
-
-  if JSAPIinstalled then
-    GUI.elms.paths_btnProjectTemplatesBrowse.tooltip = "Browse for Project Templates folders"
-    GUI.elms.paths_btnTrackTemplatesBrowse.tooltip = "Browse for Track Templates folders"
-    GUI.elms.paths_btnCustomProjectsBrowse.tooltip = "Browse for Projects folders"
-    GUI.elms.paths_btnProjectListsBrowse.tooltip = "Browse for Project Lists folders" 
-    GUI.elms.paths_btnBackupsBrowse.tooltip = "Browse for Backups folders"
-    GUI.elms.paths_btnDocsBrowse.tooltip = "Browse for Docs folders"
   end
 
   if SWSinstalled and RL.showButtonPanel then
@@ -6510,8 +6776,9 @@ function RL_Init_Colors_Button()
     GUI.elms.scansettings_btnProjectLists, GUI.elms.scansettings_btnBackups, GUI.elms.scansettings_btnDocs,
     GUI.elms.actions_btnFollowAction_NewProject, GUI.elms.actions_btnFollowAction_NewTab,
     GUI.elms.actions_btnFollowAction_LoadProject, GUI.elms.actions_btnFollowAction_LoadProjectInTab,
-    GUI.elms.actions_btnFollowAction_LoadProjectTemplate, GUI.elms.actions_btnFollowAction_InsertTrackTemplate, GUI.elms.paths_btnRescanAllPaths,
-    GUI.elms.options_btnSetWindowToggleShortcut
+    GUI.elms.actions_btnFollowAction_LoadProjectTemplate, GUI.elms.actions_btnFollowAction_InsertTrackTemplate, GUI.elms.paths_btnRescanAllPaths, GUI.elms.options_btnSetWindowToggleShortcut, 
+    GUI.elms.paths_btnProjectTemplatesBrowse, GUI.elms.paths_btnTrackTemplatesBrowse, GUI.elms.paths_btnCustomProjectsBrowse,
+    GUI.elms.paths_btnProjectListsBrowse, GUI.elms.paths_btnBackupsBrowse, GUI.elms.paths_btnDocsBrowse
   }
 
   if RL.showButtonPanel then
@@ -6522,30 +6789,28 @@ function RL_Init_Colors_Button()
     buttonElements[#buttonElements + 1] = GUI.elms.main_btnAddToFavorites
     buttonElements[#buttonElements + 1] = GUI.elms.tab_recentProjects_btnLoadInTab
     buttonElements[#buttonElements + 1] = GUI.elms.tab_recentProjects_btnLoad
+    buttonElements[#buttonElements + 1] = GUI.elms.tab_recentProjects_btnLoadAll
     buttonElements[#buttonElements + 1] = GUI.elms.tab_projectTemplates_btnLoadInTab
     buttonElements[#buttonElements + 1] = GUI.elms.tab_projectTemplates_btnLoad
+    buttonElements[#buttonElements + 1] = GUI.elms.tab_projectTemplates_btnLoadAll
     buttonElements[#buttonElements + 1] = GUI.elms.tab_trackTemplates_btnInsertInTab
     buttonElements[#buttonElements + 1] = GUI.elms.tab_trackTemplates_btnInsert
+    buttonElements[#buttonElements + 1] = GUI.elms.tab_trackTemplates_btnInsertAll
     buttonElements[#buttonElements + 1] = GUI.elms.tab_customProjects_btnLoadInTab
     buttonElements[#buttonElements + 1] = GUI.elms.tab_customProjects_btnLoad
+    buttonElements[#buttonElements + 1] = GUI.elms.tab_customProjects_btnLoadAll
     buttonElements[#buttonElements + 1] = GUI.elms.tab_projectLists_btnLoadInTab
     buttonElements[#buttonElements + 1] = GUI.elms.tab_projectLists_btnLoad
+    buttonElements[#buttonElements + 1] = GUI.elms.tab_projectLists_btnLoadAll
     buttonElements[#buttonElements + 1] = GUI.elms.tab_backups_btnLoadInTab
     buttonElements[#buttonElements + 1] = GUI.elms.tab_backups_btnLoad
+    buttonElements[#buttonElements + 1] = GUI.elms.tab_backups_btnLoadAll
     buttonElements[#buttonElements + 1] = GUI.elms.tab_docs_btnOpen
+    buttonElements[#buttonElements + 1] = GUI.elms.tab_docs_btnOpenAll
     buttonElements[#buttonElements + 1] = GUI.elms.tab_favorites_btnRemoveFromFavorites
   end
 
   if ConfigFlags.enableCustomColorOptions then buttonElements[#buttonElements + 1] = GUI.elms.colors_btnResetColors end
-
-  if JSAPIinstalled then
-    buttonElements[#buttonElements + 1] = GUI.elms.paths_btnProjectTemplatesBrowse
-    buttonElements[#buttonElements + 1] = GUI.elms.paths_btnTrackTemplatesBrowse
-    buttonElements[#buttonElements + 1] = GUI.elms.paths_btnCustomProjectsBrowse
-    buttonElements[#buttonElements + 1] = GUI.elms.paths_btnProjectListsBrowse
-    buttonElements[#buttonElements + 1] = GUI.elms.paths_btnBackupsBrowse
-    buttonElements[#buttonElements + 1] = GUI.elms.paths_btnDocsBrowse
-  end
 
   if SWSinstalled then 
     if RL.showButtonPanel then buttonElements[#buttonElements + 1] = GUI.elms.main_btnOpenInExplorer end
@@ -6563,7 +6828,7 @@ end
 function RL_Init_Colors_Highlight()
   local checklistElements = {
     GUI.elms.main_checklistWindowPin, GUI.elms.main_checklistPaths, GUI.elms.options_checklistOpenPropertiesOnNewProject,
-    GUI.elms.options_checklistShowPathsInStatusbar,GUI.elms.layout_checklistShowSubfolderPanel
+    GUI.elms.options_checklistShowPathsInStatusbar, GUI.elms.options_checklistShowConfirmDialog, GUI.elms.layout_checklistShowSubfolderPanel
   }
 
   if SWSinstalled then
@@ -6581,7 +6846,7 @@ function RL_Init_Colors_TextElements()
     GUI.elms.tab_recentProjects_btnFilterClear, GUI.elms.tab_projectTemplates_btnFilterClear, GUI.elms.tab_trackTemplates_btnFilterClear, GUI.elms.tab_customProjects_btnFilterClear,
     GUI.elms.tab_projectLists_btnFilterClear, GUI.elms.tab_backups_btnFilterClear, GUI.elms.tab_docs_btnFilterClear,GUI.elms.tab_favorites_btnFilterClear,
     GUI.elms.main_statusbar, GUI.elms.main_lblPaths, GUI.elms.colors_lbl_elmFill, GUI.elms.colors_lbl_txt, GUI.elms.colors_lbl_elmBg, GUI.elms.colors_lbl_wndBg, GUI.elms.colors_lbl_infotext,
-    GUI.elms.layout_lblStartTab, GUI.elms.layout_lblDoubleClick, GUI.elms.layout_lblShowPathsInStatusbar,
+    GUI.elms.layout_lblStartTab, GUI.elms.layout_lblDoubleClick, GUI.elms.layout_lblShowPathsInStatusbar, GUI.elms.options_lblShowConfirmDialog,
     GUI.elms.layout_lblTabSelectorStyle, GUI.elms.layout_lblButtonPanelStyle, GUI.elms.layout_lblShowSubfolderPanel,
     GUI.elms.scansettings_lblExcludedFolders, GUI.elms.actions_lblActionsHeader, GUI.elms.paths_lblInfo,
     GUI.elms.main_btnHelp, GUI.elms.main_btnOptions, GUI.elms.main_scaleFontDown, GUI.elms.main_scaleFontUp,
@@ -6754,8 +7019,11 @@ function RL_SetStartTab(operationMode)
       elseif selectedTabOption >= 3 and selectedTabOption <= 11 and operationMode == "onStart" then RL_SetFocusedTab(selectedTabOption - 2)
       elseif selectedTabOption >= 12 and selectedTabOption <= 19 then
       -- either load a specific tab (on new project or new tab) or the last focused tab
-          if IsNotNullOrEmpty(reaper.GetProjectName(-1)) then RL_SetFocusedTab(tonumber(reaper.GetExtState(appname, "window_tabfocus")))
-          else RL_SetFocusedTab(selectedTabOption - 11) end
+        if osversion:find("Win32") then
+          if IsNotNullOrEmpty(reaper.GetProjectName(-1, "")) then RL_SetFocusedTab(tonumber(reaper.GetExtState(appname, "window_tabfocus"))) else RL_SetFocusedTab(selectedTabOption - 11) end
+        else
+          if IsNotNullOrEmpty(reaper.GetProjectName(-1)) then RL_SetFocusedTab(tonumber(reaper.GetExtState(appname, "window_tabfocus"))) else RL_SetFocusedTab(selectedTabOption - 11) end
+        end
       end
     end
   end
@@ -6794,7 +7062,7 @@ local function RL_ExtStates_Load(operationMode)
   
   local mouseDoubleClick = reaper.GetExtState(appname, "mouse_doubleclick")
   if mouseDoubleClick == "" then mouseDoubleClick = 2 end
-  if mouseDoubleClick == "4" and not JSAPIinstalled then mouseDoubleClick = 2 end
+  if mouseDoubleClick == "5" and not JSAPIinstalled then mouseDoubleClick = 2 end
   GUI.Val("options_menuDoubleClick", mouseDoubleClick)
 
   GUI.Val("options_checklistOpenPropertiesOnNewProject", {(reaper.GetExtState(appname, "project_showproperties") == "true" and true or false)}) 
@@ -6807,8 +7075,12 @@ local function RL_ExtStates_Load(operationMode)
   local pathInStatusBarMode = reaper.GetExtState(appname, "window_showpathsinstatusbarmode")
   if pathInStatusBarMode == "" then pathInStatusBarMode = 1 end
   GUI.Val("options_menuShowPathsInStatusbar", pathInStatusBarMode)
-  
-  if not ConfigFlags.resetListDisplayAtLaunch then 
+
+  local showDialog = reaper.GetExtState(appname, "window_showconfirmdialog")
+  if showDialog == "" then GUI.Val("options_checklistShowConfirmDialog", true) else GUI.Val("options_checklistShowConfirmDialog", {showDialog == "true" and true or false}) end
+  RL.showConfirmDialog = GUI.Val("options_checklistShowConfirmDialog")
+
+  if not ConfigFlags.resetListDisplayAtLaunch then
     GUI.Val("main_checklistPaths", {(reaper.GetExtState(appname, "window_showpaths") == "true" and true or false)})
     Global_UpdateListDisplay()
   end
@@ -6845,13 +7117,6 @@ local function RL_ExtStates_Load(operationMode)
   GUI.elms.paths_txtBackupsPath:val(reaper.GetExtState(appname, "custompath_backups"))
   GUI.elms.paths_txtDocsPath:val(reaper.GetExtState(appname, "custompath_docs"))
   
-  GUI.elms.paths_txtProjectTemplatesPath.tooltip = ".RPP Project Templates\n\nEnter one or multiple paths separated by a semicolon\nExample: path1;path2;path3\n\nCurrent: ".. GUI.Val("paths_txtProjectTemplatesPath")
-  GUI.elms.paths_txtTrackTemplatesPath.tooltip = ".RTrackTemplate Track Templates\n\nEnter one or multiple paths separated by a semicolon\nExample: path1;path2;path3\n\nCurrent: ".. GUI.Val("paths_txtTrackTemplatesPath")
-  GUI.elms.paths_txtCustomProjectsPath.tooltip = ".RPP Projects\n\nEnter one or multiple paths separated by a semicolon\nExample: path1;path2;path3\n\nCurrent: ".. GUI.Val("paths_txtCustomProjectsPath")
-  GUI.elms.paths_txtProjectsListsPath.tooltip = ".RPL Project Lists\n\nEnter one or multiple paths separated by a semicolon\nExample: path1;path2;path3\n\nCurrent: ".. GUI.Val("paths_txtProjectsListsPath")
-  GUI.elms.paths_txtBackupsPath.tooltip = ".RPP-BAK Backups\n\nEnter one or multiple paths separated by a semicolon\nExample: path1;path2;path3\n\nCurrent: ".. GUI.Val("paths_txtBackupsPath")
-  GUI.elms.paths_txtDocsPath.tooltip = ".PDF Docs\n\nEnter one or multiple paths separated by a semicolon\nExample: path1;path2;path3\n\nCurrent: " .. GUI.Val("paths_txtDocsPath")
-
   GUI.elms.actions_txtFollowAction_NewProject:val(reaper.GetExtState(appname, "followaction_newproject"))
   GUI.elms.actions_txtFollowAction_NewTab:val(reaper.GetExtState(appname, "followaction_newtab"))
   GUI.elms.actions_txtFollowAction_LoadProject:val(reaper.GetExtState(appname, "followaction_loadproject"))
@@ -6971,9 +7236,6 @@ function RL_ExtStates_Save()
   reaper.SetExtState(appname, "window_tabfocus", GUI.elms.main_tabs.state, 1)
   reaper.SetExtState(appname, "window_subselection", table.concat(TabParentSelectionIndex, ","), 1)
   reaper.SetExtState(appname, "window_showpaths", tostring(GUI.Val("main_checklistPaths")), 1)
-  reaper.SetExtState(appname, "window_showpathsinstatusbar", tostring(GUI.Val("options_checklistShowPathsInStatusbar")), 1)
-  reaper.SetExtState(appname, "window_togglemode", tostring(GUI.Val("options_checklistWindowToggle")), 1)
-  reaper.SetExtState(appname, "project_showproperties", tostring(GUI.Val("options_checklistOpenPropertiesOnNewProject")), 1)
 
   local activePanels = {}
   local panelTable = GUI.Val("layout_checklistShowSubfolderPanel")
@@ -7502,7 +7764,7 @@ local function RL_Keys_CheckInput()
             TabFilter[GUI.elms.main_tabs.state].focus = true
           end
       -- clear filter
-      elseif inputChar == GUI.chars.BACKSPACE then RL_Keys_ClearFilter()
+      elseif modifier == GUI.modifier.SHIFT and inputChar == GUI.chars.BACKSPACE then RL_Keys_ClearFilter()
       -- keep window open
       elseif inputChar == GUI.chars.W then 
           if GUI.Val("main_checklistWindowPin") then GUI.Val("main_checklistWindowPin", {false}) else GUI.Val("main_checklistWindowPin", {true}) end
@@ -7531,6 +7793,7 @@ local function RL_Keys_CheckInput()
           Global_CheckWindowPinState()
       -- load (in tab)
       elseif modifier == GUI.modifier.SHIFT and inputChar == GUI.chars.RETURN and GUI.elms.main_tabs.state <= TabID.Favorites then RL_Func_LoadElementInTab[GUI.elms.main_tabs.state].call()
+      elseif modifier == GUI.modifier.CTRL and inputChar == GUI.chars.RETURN and GUI.elms.main_tabs.state <= TabID.Favorites then Global_LoadAll()
       elseif modifier == GUI.modifier.NONE and inputChar == GUI.chars.RETURN and GUI.elms.main_tabs.state <= TabID.Favorites then RL_Func_LoadElement[GUI.elms.main_tabs.state].call()
       -- scaling functions
       elseif inputChar == GUI.chars.F8 then RL_ScaleListboxFontSizeDown()
@@ -7551,6 +7814,9 @@ local function RL_Keys_CheckInput()
       elseif inputChar == GUI.chars.F1 then RL_SetFocusedTab(TabID.Help)
       elseif inputChar == GUI.chars.F2 then GUI.Val("tab_options_listbox", {[1] = true}) TabSelectionIndex[TabID.Options] = 1 RL_SetFocusedTab(TabID.Options)
       elseif inputChar == GUI.chars.F3 then RL_SetFocusedTab(TabID.Favorites)
+      -- recent projects
+      elseif inputChar == GUI.chars.DELETE and GUI.elms.main_tabs.state == TabID.RecentProjects and GetMainListSize() > 0 then RL_ConfirmDialog_RemoveRecentEntry()
+      elseif modifier == GUI.modifier.NONE and inputChar == GUI.chars.BACKSPACE and GUI.elms.main_tabs.state == TabID.RecentProjects and GetMainListSize() > 0 then RL_ConfirmDialog_RemoveRecentEntry()
       -- favorites
       elseif inputChar == GUI.chars.F then if GUI.elms.main_tabs.state == TabID.Favorites then RL_ConfirmDialog_RemoveFavoritesEntry() else Favorites_Add() end
       -- tooltips
