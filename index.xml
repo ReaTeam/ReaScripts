@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="93f9bf61f1df555608aab2d6d33f1eb1bbce21e0" name="ReaTeam Scripts">
+<index version="1" commit="e0950b8691212e76c96c6a1cb2f4287d083086ca" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -19292,14 +19292,14 @@ Replace GetLastWord func with quicker solution (Thanks: Mespotine[t=233393]).]]>
     </reapack>
     <reapack name="solger_ReaLauncher.lua" type="script" desc="ReaLauncher">
       <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 ReaLauncher\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel0 \b \fs36 ReaLauncher\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 A custom version of the startup prompt window for loading (recent) projects, project/track templates and more. With a bunch of additional features.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Uses 'Lokasenna's GUI library v2 for Lua' as base: https://forum.cockos.com/showthread.php?t=177772. Big thanks to Lokasenna for his work!!\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Main features\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel1 \b \fs32 Main features\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Separate tabs for [Recent Projects], (.rpp) [Project Templates], (.rtracktemplate) [Track Templates], (.rpp) [Projects], (.rpl) [Project Lists], (.rpp-bak) [Backups] and (.pdf) [Docs]\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Option to set custom folder paths for [Project Templates] and [Track Templates] - which are scanned in addition to the default template folder locations\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Option to set custom folder paths for the [Projects], [Project Lists], [Backups] and [Docs] tabs\par}
@@ -19314,17 +19314,17 @@ Replace GetLastWord func with quicker solution (Thanks: Mespotine[t=233393]).]]>
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Different tab selector styles (Tabstrip or Dropdown)\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Scalable and resizeable window\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Customizable colors\sa180\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Features that require SWS Extensions (2.9.8 or higher):\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel1 \b \fs32 Features that require SWS Extensions (2.9.8 or higher):\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab [Recent Projects] tab for listing and managing recent project entries (with functions to remove selected entries and to clear the entire list)\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab 'Last Active' project functions to check for and load last active project tabs\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab [Locate in Explorer/Finder] button to navigate to the location(s) of selected files in Explorer or Finder\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab [Docs] tab for listing .pdf files\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Setup of predefined Reaper Theme Slots and the possibility to switch between them (uses SWS Resources)\sa180\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Features that require js_ReaScriptAPI (0.991 or higher):\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel1 \b \fs32 Features that require js_ReaScriptAPI (0.991 or higher):\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Function to preview attached 'demo' audio files (supported file extensions: .wav, .flac, .mp3 and .ogg)\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Option for adding folder paths in the [Options] tab via a 'Browse' dialog (besides copy & pasting paths manually)\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Additional sorting options by date\sa180\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Discussion thread\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel1 \b \fs32 Discussion thread\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 https://forum.cockos.com/showthread.php?t=208697\par}
 }
 ]]></description>
@@ -19580,6 +19580,19 @@ Replace GetLastWord func with quicker solution (Thanks: Mespotine[t=233393]).]]>
 + Tabs: Bugfix for using the mousewheel to scroll through the tabs
 + UI: Improvements in the display of some label texts]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d908e000a0b72ac3a185e9ca9aaa5702ca582de3/Project%20Properties/solger_ReaLauncher.lua</source>
+      </version>
+      <version name="2.6" author="solger" time="2025-08-11T06:44:00Z">
+        <changelog><![CDATA[+ General: Fixes for font compatibility and tooltip positioning in macOS arm version
++ General: Bugfix to prevent a crash when using the 'Autoswitch on new project/tab to' function in 32-bit Windows version
++ General: Added [Load All] function (and 'Ctrl/Cmd + Enter' shortcut) to load all listed entries
++ General: Changed shortcut to clear the filter field from 'Backspace' to 'Shift + Backspace'
++ General: Default folder paths for Project Templates and Track Templates are now optional and can be set in the Paths page
++ Options - General: Added 'Load All' as additional Double Click behavior option
++ Options - General: Added a 'Show Confirmation Dialog' setting to toggle confirmation dialogs on/off
++ Options - Paths: The [+] button now shows a menu with add/remove options (previously it only opened the file browse dialog) 
++ Recent Projects: Removing entries is now also possible via the 'Delete' or 'Backspace' key (in addition to using the context menu)
++ Recent Projects: Added context menu option to 'Remove invalid entries' of files that don't exist in the stored path]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e0950b8691212e76c96c6a1cb2f4287d083086ca/Project%20Properties/solger_ReaLauncher.lua</source>
       </version>
     </reapack>
     <reapack name="wikylepedia_Export track names to channel list CSV.lua" type="script" desc="Export track names to channel list CSV">
