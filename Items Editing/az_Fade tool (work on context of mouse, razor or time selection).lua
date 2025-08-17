@@ -1,7 +1,7 @@
 -- @description Fade tool (works on context of mouse, razor or time selection)
 -- @author AZ
--- @version 2.3.1
--- @changelog - Fixed bug with razor edits for some specific amounts of items in the track
+-- @version 2.3.2
+-- @changelog - Fixed bug with old batch settings saved in projects.
 -- @provides
 --   az_Fade tool (work on context of mouse, razor or time selection)/az_Options window for az_Fade tool.lua
 --   [main] az_Fade tool (work on context of mouse, razor or time selection)/az_Open options for az_Fade tool.lua
@@ -61,7 +61,7 @@ end
 -------------------------
 
 ExtStateName = 'AZ_FadeTool'
-CurVers = 2.3
+CurVers = 2.32
 
 SaveLastBatchPrj = reaper.GetExtState(ExtStateName, 'SaveLastBatchPrj')
 if SaveLastBatchPrj == 'false' then SaveLastBatchPrj = false
@@ -75,7 +75,7 @@ function copy(tbl)
     return tbl
   end
   local result = {}
-  for k, v in pairs(tbl) do 
+  for k, v in pairs(tbl) do
     result[k] = copy(v)
   end
   return result
@@ -115,16 +115,8 @@ function GetExtStates(OptionsTable)
           if state == 'true' then state = true else state = false end
         end
         if stateType == 'string' then
-          wrong = true
-          
-          for i = 1, #option[4] do
-            local var = option[4][i]
-            if state == var then
-              wrong = false
-              break 
-            end
-          end
-          
+          wrong = true 
+          if FieldMatch(option[4], state) then wrong = false end 
         end
         
         if wrong == true then
@@ -256,11 +248,11 @@ end
 
 -----------------------
 
-function GetSetBatchExtStates(DefT, LastPrjT, getset) -- set == true, get == false
+function GetSetBatchExtStates(DefT, LastPrjT, set) -- set == true, get == false
   local Mtrack = reaper.GetMasterTrack(0)
   local parname = "P_EXT:"..'AZ_Ftool_Batch '
   
-  if getset == true then -- set
+  if set == true then -- set
   
     local GlobOrPrjTable
     if SaveLastBatchPrj == true then GlobOrPrjTable = LastPrjT
@@ -271,7 +263,7 @@ function GetSetBatchExtStates(DefT, LastPrjT, getset) -- set == true, get == fal
       for i, option in pairs(GlobOrPrjTable) do
         if option[3] ~= nil then
           local ret, str = reaper.GetSetMediaTrackInfo_String
-          ( Mtrack, parname..option[2], tostring(option[3]), getset )
+          ( Mtrack, parname..option[2], tostring(option[3]), set )
         end
       end
     end
@@ -284,7 +276,7 @@ function GetSetBatchExtStates(DefT, LastPrjT, getset) -- set == true, get == fal
       end
     end
     
-  elseif getset == false then -- get
+  elseif set == false then -- get
     
     GetExtStates(DefT)
      
@@ -292,7 +284,7 @@ function GetSetBatchExtStates(DefT, LastPrjT, getset) -- set == true, get == fal
       if option[3] ~= nil then
         local state
         local ret, str = reaper.GetSetMediaTrackInfo_String
-        ( Mtrack, parname..option[2], '', getset )
+        ( Mtrack, parname..option[2], '', set )
         if str ~= "" and ret ~= false then
           state = str
           local stateType = type(option[3])
@@ -300,7 +292,13 @@ function GetSetBatchExtStates(DefT, LastPrjT, getset) -- set == true, get == fal
           if stateType == 'boolean' then
             if str == 'true' then state = true else state = false end
           end
-          option[3] = state 
+          if stateType == type(state) then
+            if stateType == 'string' and type(option[4]) == 'table' then
+              if FieldMatch(option[4], state) then option[3] = state end
+            else
+              option[3] = state
+            end
+          end
         else
           Opt.SilentProcessBatch = false
           option[3] = DefT[i][3]
@@ -446,7 +444,7 @@ function GetItemsInRange(track, areaStart, areaEnd, areaTop, areaBottom) --retur
     end
     
     if idx < 0 then idx = 0 end
-
+    
     for k = idx, itemCount do
       local item = reaper.GetTrackMediaItem(track, k)
       local pos = reaper.GetMediaItemInfo_Value(item, "D_POSITION")
@@ -2246,12 +2244,12 @@ function AddTrMediaEditingGroup(Items, timeT, edge)
       end
       
       if idx < 0 then idx = 0 end
-
+      
       for k = idx, itemCount do
         local item = reaper.GetTrackMediaItem(tr, k)
         local ipos = reaper.GetMediaItemInfo_Value(item, 'D_POSITION')
         local iend = ipos + reaper.GetMediaItemInfo_Value(item, 'D_LENGTH')
-        --local itemTime
+        
         if edge == 'l' then itemTime = ipos
         elseif edge == 'r' then itemTime = iend
         end
