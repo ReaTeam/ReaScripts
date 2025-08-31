@@ -1,7 +1,7 @@
 -- @description Snapshooter
 -- @author tilr
--- @version 1.5
--- @changelog Add morphing between snapshots A and B
+-- @version 1.5.1
+-- @changelog Support DPI scaling
 -- @provides
 --   tilr_Snapshooter/rtk.lua
 --   [main] tilr_Snapshooter/tilr_Snapshooter apply snap 1.lua
@@ -779,7 +779,8 @@ function ui_start()
   local sep = package.config:sub(1, 1)
   local script_folder = debug.getinfo(1).source:match("@?(.*[\\|/])")
   local rtk = dofile(script_folder .. 'tilr_Snapshooter' .. sep .. 'rtk.lua')
-  local window = rtk.Window{ w=470, h=618, title='Snapshooter'}
+  local scale = rtk.scale.value
+  local window = rtk.Window{ w=470*scale, h=618*scale, title='Snapshooter'}
   window.onmove = function (self)
     reaper.SetProjExtState(0, 'snapshooter', 'win_x', self.x)
     reaper.SetProjExtState(0, 'snapshooter', 'win_y', self.y)
