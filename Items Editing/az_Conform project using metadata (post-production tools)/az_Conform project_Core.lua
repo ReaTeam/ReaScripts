@@ -96,6 +96,38 @@ function ValToBool(val)
 end
 ------------------------
 
+function ShowProcess(xBmin, yBmin, xBmax, yBmax)
+--[[
+  bitmap = reaper.JS_LICE_CreateBitmap( true, 300, 200 )
+  local blue = (255 << 24) | (0 << 16) | (0 << 8) | 255
+  -- Clear bitmap to transparent
+  reaper.JS_LICE_Clear(bitmap, 0)
+  --msg(xBmin..' '..yBmin..' '..xBmax..' '..yBmax)
+  -- Draw a blue rounded rectangle
+  local w = math.floor(math.abs(xBmax - xBmin))
+  local h = math.floor(math.abs(yBmax - yBmin))
+  local line = 5
+  reaper.JS_LICE_RoundRect (bitmap, 0, 0, w - line, h - line, 10, blue, 1.0, 0, true)
+  local currentWindow = reaper.JS_Window_GetForeground()
+  --msg(reaper.JS_Window_GetClassName( currentWindow ))
+  -- Composite bitmap onto Arrange view
+  --msg(yBmax)
+  reaper.JS_Composite(currentWindow,xBmin, yBmin, xBmax, yBmax, bitmap, 0, 0, w, h)
+  
+  -- Cleanup bitmap
+  reaper.defer(function()
+    reaper.JS_LICE_DestroyBitmap(bitmap)
+  end)
+  
+  reaper.defer(function()
+    ShowProcess(xBmin, yBmin, xBmax, yBmax)
+  end)
+  ]]
+  
+  
+end
+------------------------
+
 function MainWindow(OptTable, windowName)
   
   if not reaper.APIExists( 'SNM_GetIntConfigVar' ) then
@@ -119,6 +151,12 @@ function MainWindow(OptTable, windowName)
   local esc
   local EDL
   
+  local startTrks
+  local processingTrks
+  local startLink
+  local processingLink
+  
+  local itemsCnt
   local SelItems, TrackList = {}, {}
   SuccessItems = {}
   
@@ -212,7 +250,7 @@ function MainWindow(OptTable, windowName)
   
   -------------- 
   function frame() 
-    reaper.ImGui_PushFont(ctx, font)
+    reaper.ImGui_PushFont(ctx, font) 
     
     --About button
     reaper.ImGui_SameLine(ctx, fontSize*25, nil)
@@ -369,48 +407,30 @@ function MainWindow(OptTable, windowName)
           reaper.ImGui_PopFont(ctx)
           reaper.ImGui_EndChild(ctx)
         end
-        
-        local processing
+         
         if EDL then
           reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Button(), gui_colors.MainButton.Default)
           reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_ButtonHovered(), gui_colors.MainButton.Hovered)
           reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_ButtonActive(), gui_colors.MainButton.Active)
         end
         
-        if reaper.ImGui_Button(ctx, 'Create tracks and items') then
-          processing = true
-          if EDL then
-            local timeTreshold = 0
-        
-            if TrimLeadingTime == true and TrimOnlyEmptyTime == false then
-              timeTreshold = reaper.parse_timestr_pos( TrimTime, 5 ) - PrjTimeOffset
-            end 
-        
-            local EdlsTable = AnalyseEDLs(EDL, timeTreshold)
-            
-            if #EdlsTable.V == 0 and #EdlsTable.A == 0 then
-              reaper.ShowMessageBox('There is no valid data in EDL files', 'Warning!',0) 
-            else
-              local notMatchedItems, message = CreateTracks(EdlsTable)
-              if message then reaper.ShowMessageBox( message, 'Caution!', 0) end
-              if #notMatchedItems > 0 then
-                msg(#notMatchedItems..' CLIPS FROM EDL HAVE NO MATCH!\n')
-                for i, item in ipairs(notMatchedItems) do
-                  msg('Track '..item[3]..'  '..reaper.format_timestr_pos(item[1],'',5)..'  '..item[2])
-                end
-              else
-                for i, item in ipairs(SuccessItems) do reaper.SetMediaItemSelected(item, true) end
-                SuccessItems = {}
-              end
-            end
-             
-          end
-        end
-        if EDL then reaper.ImGui_PopStyleColor(ctx, 3) end
-        if processing then reaper.ImGui_SameLine(ctx, nil, fontSize)
-          reaper.ImGui_Text(ctx, 'processing...')
+        local actionBtnName = 'Create tracks and items'
+         
+        if EDL and processingTrks then
+          reaper.ImGui_PopStyleColor(ctx, 3)
+          actionBtnName = 'Process takes some time...' 
+          reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Button(), gui_colors.MainButton.Active)
+          reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_ButtonHovered(), gui_colors.MainButton.Active)
+          reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_ButtonActive(), gui_colors.MainButton.Active) 
         end
         
+        if reaper.ImGui_Button(ctx, actionBtnName) then
+          startTrks = true
+        else startTrks = false
+        end
+        if EDL or processingTrks then reaper.ImGui_PopStyleColor(ctx, 3) end
+        
+         
         reaper.ImGui_SameLine(ctx, nil, fontSize)
         local ret
         ret, AddNewTrks = reaper.ImGui_Checkbox(ctx, 'Add new tracks instead of takes', AddNewTrks)
@@ -496,35 +516,30 @@ function MainWindow(OptTable, windowName)
           reaper.ImGui_PopFont(ctx)
           
           
-          local itemsCnt = reaper.CountSelectedMediaItems(0)
+          itemsCnt = reaper.CountSelectedMediaItems(0)
           if itemsCnt > 0 and SearchFolder and SearchFolder ~= '' then
             reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Button(), gui_colors.MainButton.Default)
             reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_ButtonHovered(), gui_colors.MainButton.Hovered)
             reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_ButtonActive(), gui_colors.MainButton.Active)
           end
           
-          if reaper.ImGui_Button(ctx, '    Link files    ') then
-            local selItems, _ = GetSelItemsPerTrack(true, false) 
-            local notMatchedItems = {}
-            local message
-            
-            if itemsCnt > 0 and SearchFolder and SearchFolder ~= '' then
-              notMatchedItems, message = LinkFiles(selItems)
-            end
-            if message then reaper.ShowMessageBox( message, 'Caution!', 0) end
-            if #notMatchedItems > 0 then
-              msg(#notMatchedItems..' ITEMS HAVE NO MATCH!\nThey are selected\n')
-              for i, item in ipairs(notMatchedItems) do
-                msg('Track '..item[3]..'  '..reaper.format_timestr_pos(item[1],'',5)..'  '..item[2])
-                reaper.SetMediaItemSelected(item[4], true)
-              end
-            else
-              for i, item in ipairs(SuccessItems) do reaper.SetMediaItemSelected(item, true) end
-              SuccessItems = {}
-            end
+          local actionBtnName = '    Link files    '
+           
+          if processingLink then
+            reaper.ImGui_PopStyleColor(ctx, 3)
+            actionBtnName = 'Process takes some time...' 
+            reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Button(), gui_colors.MainButton.Active)
+            reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_ButtonHovered(), gui_colors.MainButton.Active)
+            reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_ButtonActive(), gui_colors.MainButton.Active) 
           end
           
-          if itemsCnt > 0 and SearchFolder and SearchFolder ~= '' then
+          if reaper.ImGui_Button(ctx, actionBtnName) then
+            startLink = true
+          else startLink = false
+          end
+          
+          if (itemsCnt > 0 and SearchFolder and SearchFolder ~= '')
+          or processingLink then
             reaper.ImGui_PopStyleColor(ctx,3)
           end
           
@@ -676,6 +691,33 @@ function MainWindow(OptTable, windowName)
       reaper.ImGui_Text(ctx, 'The feature is under development')
     end
     
+    if reaper.ImGui_CollapsingHeader(ctx, 'Export selected tracks/items as EDL files', false) then
+      reaper.ImGui_NewLine(ctx)
+      reaper.ImGui_SameLine(ctx, fontSize)
+      local childflags = Flags.childAutoResizeY | Flags.childAutoResizeX
+      local childExportEDL = reaper.ImGui_BeginChild(ctx, 'childExportEDL', 0, 0, childflags)
+      
+      if childExportEDL then
+        if reaper.ImGui_Button(ctx, ' Export EDLs ') then --msg(iniFolder)
+          if not iniFolder then
+            local cur_retprj, cur_projfn = reaper.EnumProjects( -1 )
+            local path, projfn, extension = SplitFilename(cur_projfn)
+            if path then iniFolder = path:gsub('[/\\]$','') end
+          end 
+          local iniFile = ''
+          local extensionList = "EDL file\0*.edl\0Text file\0*.txt\0\0"
+          local ret, fileName = reaper.JS_Dialog_BrowseForSaveFile
+          ( 'Save EDL files', iniFolder, iniFile, extensionList )
+          
+          if fileName ~= '' then
+            --ExportEDL(fileName)
+          end
+        end
+        
+        reaper.ImGui_EndChild(ctx)
+      end
+    end
+    
     for i, v in ipairs(OptTable) do
       local option = v
       
@@ -776,6 +818,63 @@ function MainWindow(OptTable, windowName)
     
     redo = reaper.ImGui_Shortcut(ctx, reaper.ImGui_Mod_Ctrl() | reaper.ImGui_Mod_Shift() | reaper.ImGui_Key_Z(), reaper.ImGui_InputFlags_RouteGlobal())
     
+    if EDL and processingTrks then
+      processingTrks = false
+      local timeTreshold = 0
+    
+      if TrimLeadingTime == true and TrimOnlyEmptyTime == false then
+        timeTreshold = reaper.parse_timestr_pos( TrimTime, 5 ) - PrjTimeOffset
+      end
+      
+      local EdlsTable = AnalyseEDLs(EDL, timeTreshold)
+      --
+      if #EdlsTable.V == 0 and #EdlsTable.A == 0 then
+        reaper.ShowMessageBox('There is no valid data in EDL files', 'Warning!',0) 
+      else
+        local notMatchedItems, message = CreateTracks(EdlsTable)
+        if message then reaper.ShowMessageBox( message, 'Caution!', 0) end
+        if #notMatchedItems > 0 then
+          msg(#notMatchedItems..' CLIPS FROM EDL HAVE NO MATCH!\n')
+          for i, item in ipairs(notMatchedItems) do
+            msg('Track '..item[3]..'  '..reaper.format_timestr_pos(item[1],'',5)..'  '..item[2])
+          end
+        else
+          for i, item in ipairs(SuccessItems) do reaper.SetMediaItemSelected(item, true) end
+          SuccessItems = {}
+        end
+      end
+      
+    end
+    
+    if startTrks then processingTrks = true end
+    
+    if processingLink then
+      processingLink = false
+      
+      local selItems, _ = GetSelItemsPerTrack(true, false) 
+      local notMatchedItems = {}
+      local message
+      
+      if itemsCnt > 0 and SearchFolder and SearchFolder ~= '' then
+        notMatchedItems, message = LinkFiles(selItems)
+      end
+      if message then reaper.ShowMessageBox( message, 'Caution!', 0) end
+      if #notMatchedItems > 0 then
+        msg(#notMatchedItems..' ITEMS HAVE NO MATCH!\nThey are selected\n')
+        for i, item in ipairs(notMatchedItems) do
+          msg('Track '..item[3]..'  '..reaper.format_timestr_pos(item[1],'',5)..'  '..item[2])
+          reaper.SetMediaItemSelected(item[4], true)
+        end
+      else
+        for i, item in ipairs(SuccessItems) do reaper.SetMediaItemSelected(item, true) end
+        SuccessItems = {}
+      end
+      
+    end
+    
+    if startLink then processingLink = true end
+    
+    
       reaper.ImGui_PushFont(ctx, font)
       
       reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_WindowBg(), gui_colors.Background)
@@ -807,7 +906,7 @@ function MainWindow(OptTable, windowName)
       
       local visible, open = reaper.ImGui_Begin(ctx, windowName, true, window_flags)
       reaper.ImGui_PopStyleColor(ctx, 1)
-      
+       
       if visible then
           maxWinW = reaper.ImGui_GetWindowWidth(ctx)
           frame()
@@ -1725,11 +1824,11 @@ function AddDopTracks(dopTRACKS)
         reaper.SetMediaItemTakeInfo_Value(take, 'D_STARTOFFS', itemData.offset )
         reaper.GetSetMediaItemTakeInfo_String( take, 'P_NAME', itemData.name, true )
         
-        if itemData.takemark ~= '' then
+        if itemData.takemark and itemData.takemark ~= '' then
           reaper.SetTakeMarker( take, -1, itemData.takemark, itemData.offset + itemData.length/4 )
         end
         
-        if itemData.notes ~= '' then
+        if itemData.notes and itemData.notes ~= '' then
           reaper.GetSetMediaItemInfo_String(newItem, 'P_NOTES', itemData.notes, true)
         end
         
@@ -1982,7 +2081,7 @@ function CreateTracks(EdlsTable)
   --------------------
   --Now create tracks and items
   local list_files, list_file_metadata = GetAllFiles({SearchFolder})
-  LastTrIdx = 0 --reaper.CountTracks(0)
+  LastTrIdx = 0 --Top track
   --msg(#list_files)
   --for f, file in ipairs(list_files) do msg(file) end
   
@@ -1992,7 +2091,6 @@ function CreateTracks(EdlsTable)
     for e, edlTname in ipairs(EdlsTable[trType]) do
       local trackT = EdlsTable[trType][edlTname]
       local dopTRACKS = { Named = {}, Common = {} }
-      --msg(edlTname)
       --Create track
       local track
       local trackAtoV
