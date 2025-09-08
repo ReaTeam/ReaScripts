@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="9c19e785d73f6b106f7a20e70fa55bf8e696448f" name="ReaTeam Scripts">
+<index version="1" commit="cb76af09b57ce2c21c2defc2736018bd266f17d6" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -21859,7 +21859,7 @@ Removed first run warning message.]]></changelog>
 \widowctrl\hyphauto
 
 {\pard \ql \f0 \sa180 \li0 \fi0 Normalizes the selected tracks' volume to hit the desired value with the desired method. If a time selection is present, then the calculations will be based only on the part of the tracks that is inside the time selection. Upon completion, a CSV file containing all new track statistics is copied to the clipboard. You can paste it to a spreadsheet editor to view it.\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Requires ReaImGui\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Requires ReaImGui and SWS\sa180\par}
 }
 ]]></description>
         <link rel="donation">https://www.paypal.me/amagalma</link>
@@ -21878,6 +21878,10 @@ Removed first run warning message.]]></changelog>
       <version name="1.03" author="amagalma" time="2025-05-18T13:06:02Z">
         <changelog><![CDATA[- Fixed: v1.02 had stopped working]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4d2bc7f20fa189fdb0dc68ccb0972f847befd86e/Tracks%20Properties/amagalma_Normalize%20selected%20tracks%20-%20calculate%20only%20for%20the%20time%20selection,%20if%20present%20(peakRMSLUFS)....lua</source>
+      </version>
+      <version name="1.04" author="amagalma" time="2025-09-08T11:17:29Z">
+        <changelog><![CDATA[- Fixed RMS-I]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/cb76af09b57ce2c21c2defc2736018bd266f17d6/Tracks%20Properties/amagalma_Normalize%20selected%20tracks%20-%20calculate%20only%20for%20the%20time%20selection,%20if%20present%20(peakRMSLUFS)....lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Route selected tracks to new Channel Selector track above them.lua" type="script" desc="Route selected tracks to new Channel Selector track above them">
