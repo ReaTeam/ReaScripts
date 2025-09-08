@@ -1,14 +1,14 @@
 -- @description Normalize selected tracks - calculate only for the time selection, if present (peak/RMS/LUFS)...
 -- @author amagalma
--- @version 1.03
--- @changelog - Fixed: v1.02 had stopped working
+-- @version 1.04
+-- @changelog - Fixed RMS-I
 -- @donation https://www.paypal.me/amagalma
 -- @about
 --   Normalizes the selected tracks' volume to hit the desired value with the desired method.
 --   If a time selection is present, then the calculations will be based only on the part of the tracks that is inside the time selection.
 --   Upon completion, a CSV file containing all new track statistics is copied to the clipboard. You can paste it to a spreadsheet editor to view it.
 --
---   - Requires ReaImGui
+--   - Requires ReaImGui and SWS
 
 
 dofile(reaper.GetResourcePath() ..
@@ -27,6 +27,9 @@ if ext_state ~= "" then
 end
 
 local reaper_ini = reaper.get_ini_file()
+
+local render_settings = reaper.SNM_GetIntConfigVar( "renderclosewhendone", -666 )
+local currently_calculating_RMS = render_settings & 1536 == 1536
 
 -------------------------------------------------------------------------------------
 
@@ -55,9 +58,24 @@ local function Normalize()
     tracks[i+1] = {ptr = track, prev_vol = vol}
     reaper.SetMediaTrackInfo_Value( track, "D_VOL", 1 )
   end
+  
+  if selected_method == 2 and (not currently_calculating_RMS) then
+    reaper.SNM_SetIntConfigVar( "renderclosewhendone", render_settings | 1536 )
+    restore_RMS_LUFS = 2
+  elseif selected_method ~= 3 and currently_calculating_RMS then
+    reaper.SNM_SetIntConfigVar( "renderclosewhendone", render_settings & ~1536 )
+    restore_RMS_LUFS = 1
+  end
 
   local ok, result = reaper.GetSetProjectInfo_String(0, "RENDER_STATS", "42439", false)
 
+  if restore_RMS_LUFS then
+    if restore_RMS_LUFS == 2 then -- Restore LUFS
+      reaper.SNM_SetIntConfigVar( "renderclosewhendone", render_settings & ~1536 )
+    else -- Restore RMS
+      reaper.SNM_SetIntConfigVar( "renderclosewhendone", render_settings | 1536 )
+    end
+  end
 
   local function Restore_volumes()
     for i = 1, track_cnt do
@@ -156,10 +174,12 @@ end
 
 -- GUI --------------------------------------------------------------------------------
 
-local _, true_peak = reaper.BR_Win32_GetPrivateProfileString( "reaper", "renderclosewhendone", "", reaper_ini )
-if true_peak ~= "" and tonumber(true_peak) & 256 == 256 then
-  tp_en = true
+if render_settings ~= -666 then
+  if render_settings & 256 == 256 then -- True Peak
+    tp_en = true
+  end
 end
+
 local Methods = {{"LUFS-I", "LU", "LUFSI"}, {"RMS-I", "dB", "RMSI"}, {(tp_en and "True " or "") .."Peak", "dB", 
             (tp_en and "TRUE" or "") .."PEAK"}, {"LUFS-M max", "LU", "LUFSMMAX"}, {"LUFS-S max", "LU", "LUFSSMAX"}}
 wanted_method = Methods[selected_method][3]
