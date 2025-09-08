@@ -1,7 +1,7 @@
 -- @description Apply render preset
 -- @author cfillion
--- @version 2.1.8
--- @changelog Fix compatibility with ReaImGui v0.10
+-- @version 2.1.9
+-- @changelog Support REAPER 7.44+'s RENDER_EXTRAFILEDIR (read-only for now)
 -- @provides
 --   .
 --   [main] . > cfillion_Apply render preset (create action).lua
@@ -372,7 +372,7 @@ function parseFormatPreset2(presets, file, tokens)
 end
 
 function parseOutputPreset(presets, file, tokens)
-  local ok, err = checkTokenCount(file, tokens, 9, 12)
+  local ok, err = checkTokenCount(file, tokens, 9, 13)
   if not ok then return nil, err end
 
   local settingsMask = SETTINGS_SOURCE_MASK
@@ -397,6 +397,7 @@ function parseOutputPreset(presets, file, tokens)
     preset.RENDER_TAILMS = tonumber(tokens[11]) -- v6.62
   end
   -- preset._BATCH_OUTFLAGS = tokens[12] -- v7.29
+  preset.RENDER_EXTRAFILEDIR = tokens[13] -- v7.44 (not available in API yet)
 
   return parseDefault
 end
