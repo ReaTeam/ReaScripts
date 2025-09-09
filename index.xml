@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="265054ab08ac86a08daba2da2787588659d758be" name="ReaTeam Scripts">
+<index version="1" commit="f009af5aabe82059c643a1bde07dbb2f06662acd" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -21863,7 +21863,7 @@ Removed first run warning message.]]></changelog>
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 Normalizes the selected tracks' volume to hit the desired value with the desired method. If a time selection is present, then the calculations will be based only on the part of the tracks that is inside the time selection. Upon completion, a CSV file containing all new track statistics is copied to the clipboard. You can paste it to a spreadsheet editor to view it.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Normalizes the selected tracks' volume to hit the desired value with the desired method. If a time selection is present, then the calculations will be based only on the part of the tracks that is inside the time selection.\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Requires ReaImGui and SWS\sa180\par}
 }
 ]]></description>
@@ -21887,6 +21887,12 @@ Removed first run warning message.]]></changelog>
       <version name="1.04" author="amagalma" time="2025-09-08T11:17:29Z">
         <changelog><![CDATA[- Fixed RMS-I]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/cb76af09b57ce2c21c2defc2736018bd266f17d6/Tracks%20Properties/amagalma_Normalize%20selected%20tracks%20-%20calculate%20only%20for%20the%20time%20selection,%20if%20present%20(peakRMSLUFS)....lua</source>
+      </version>
+      <version name="1.07" author="amagalma" time="2025-09-09T11:04:26Z">
+        <changelog><![CDATA[- Added True Peak
+- Removed CSV export
+- Improve ReaConsole output]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f009af5aabe82059c643a1bde07dbb2f06662acd/Tracks%20Properties/amagalma_Normalize%20selected%20tracks%20-%20calculate%20only%20for%20the%20time%20selection,%20if%20present%20(peakRMSLUFS)....lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Route selected tracks to new Channel Selector track above them.lua" type="script" desc="Route selected tracks to new Channel Selector track above them">
