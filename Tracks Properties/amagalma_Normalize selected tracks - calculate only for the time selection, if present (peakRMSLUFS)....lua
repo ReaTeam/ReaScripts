@@ -1,12 +1,14 @@
 -- @description Normalize selected tracks - calculate only for the time selection, if present (peak/RMS/LUFS)...
 -- @author amagalma
--- @version 1.04
--- @changelog - Fixed RMS-I
+-- @version 1.07
+-- @changelog
+--    - Added True Peak
+--    - Removed CSV export
+--    - Improve ReaConsole output
 -- @donation https://www.paypal.me/amagalma
 -- @about
 --   Normalizes the selected tracks' volume to hit the desired value with the desired method.
 --   If a time selection is present, then the calculations will be based only on the part of the tracks that is inside the time selection.
---   Upon completion, a CSV file containing all new track statistics is copied to the clipboard. You can paste it to a spreadsheet editor to view it.
 --
 --   - Requires ReaImGui and SWS
 
@@ -26,22 +28,19 @@ if ext_state ~= "" then
   selected_method = tonumber(selected_method)
 end
 
-local reaper_ini = reaper.get_ini_file()
-
-local render_settings = reaper.SNM_GetIntConfigVar( "renderclosewhendone", -666 )
-local currently_calculating_RMS = render_settings & 1536 == 1536
 
 -------------------------------------------------------------------------------------
 
 
 local function Normalize()
+  reaper.PreventUIRefresh( 1 )
   local _, project_filename = reaper.EnumProjects( -1 )
   local sep = package.config:sub(1,1)
   local _, render_path = reaper.GetSetProjectInfo_String( 0, "RENDER_FILE", "", false )
 
   if project_filename == "" or render_path == "" then -- unsaved
     render_path = reaper.GetProjectPath() .. sep ..
-    ({reaper.BR_Win32_GetPrivateProfileString("reaper", "defrenderpath", "", reaper_ini)})[2] .. sep
+    ({reaper.BR_Win32_GetPrivateProfileString("reaper", "defrenderpath", "", reaper.get_ini_file())})[2] .. sep
   end
 
 
@@ -59,23 +58,31 @@ local function Normalize()
     reaper.SetMediaTrackInfo_Value( track, "D_VOL", 1 )
   end
   
-  if selected_method == 2 and (not currently_calculating_RMS) then
-    reaper.SNM_SetIntConfigVar( "renderclosewhendone", render_settings | 1536 )
-    restore_RMS_LUFS = 2
-  elseif selected_method ~= 3 and currently_calculating_RMS then
-    reaper.SNM_SetIntConfigVar( "renderclosewhendone", render_settings & ~1536 )
-    restore_RMS_LUFS = 1
+  local render_settings = reaper.SNM_GetIntConfigVar( "renderclosewhendone", -5555 )
+  local new_render_settings = render_settings
+  local currently_calculating_RMS = render_settings & 1536 == 1536
+  local currently_calculating_TruePeak = render_settings & 256 == 256
+  
+  if currently_calculating_RMS and (selected_method == 1 or selected_method == 4 or selected_method == 5) then
+    new_render_settings = new_render_settings & ~1536
+  elseif (not currently_calculating_RMS) and selected_method == 2 then
+    new_render_settings = new_render_settings | 1536
   end
+  
+  if currently_calculating_TruePeak and selected_method ~= 6 then
+    new_render_settings = new_render_settings & ~256
+  elseif selected_method == 6 and (not currently_calculating_TruePeak) then
+    new_render_settings = new_render_settings | 256
+  end
+    
+  -- Set new render settings
+  reaper.SNM_SetIntConfigVar( "renderclosewhendone", new_render_settings )
 
   local ok, result = reaper.GetSetProjectInfo_String(0, "RENDER_STATS", "42439", false)
 
-  if restore_RMS_LUFS then
-    if restore_RMS_LUFS == 2 then -- Restore LUFS
-      reaper.SNM_SetIntConfigVar( "renderclosewhendone", render_settings & ~1536 )
-    else -- Restore RMS
-      reaper.SNM_SetIntConfigVar( "renderclosewhendone", render_settings | 1536 )
-    end
-  end
+  -- Restore previous render settings
+  reaper.SNM_SetIntConfigVar( "renderclosewhendone", render_settings )
+
 
   local function Restore_volumes()
     for i = 1, track_cnt do
@@ -145,48 +152,62 @@ local function Normalize()
   fields = nil
 
 
-  -- Export CSV
-  local csv = {[1] = "Track Nr,Name," .. table.concat(Fields, ",")}
+  -- Show info
+  local max_name = 0
   for i = 1, cnt do
-    local t = {[1] = tracks[i].id, [2] = tracks[i].name}
+    local char_num = #tracks[i].name
+    if char_num > max_name then max_name = char_num end
+  end
+  max_name = max_name + 3
+  
+  local function Sp( str ) -- add spaces
+    if type(str) ~= "string" then str = tostring(str) end
+    return ( str .. string.rep(" ", max_name - #str ) )
+  end
+  
+  local fields_with_space = {}
+  for i = 1, #Fields do
+    fields_with_space[i] = Sp(Fields[i])
+  end
+  
+  local info = {[1] = Sp("Track") .. Sp("Name") .. table.concat(fields_with_space)}
+  for i = 1, cnt do
+    local t = {[1] = Sp(tracks[i].id), [2] = Sp(tracks[i].name)}
     for f = 1, Fields_cnt do
       if Fields[f] == "LRA" then
-        t[#t+1] = tracks[i].LRA
+        t[#t+1] = Sp(tracks[i].LRA)
       elseif tracks[i][Fields[f]] and tracks[i].change then
-        t[#t+1] = round(tracks[i][Fields[f]] + tracks[i].change)
+        t[#t+1] = Sp(round(tracks[i][Fields[f]] + tracks[i].change))
       else
-        t[#t+1] = "-"
+        t[#t+1] = Sp("-")
       end
     end
-    csv[i+1] = table.concat(t, ",")
+    info[i+1] = table.concat(t)
   end
 
-  if #csv ~= 1 then
+  if #info ~= 1 then
+    reaper.Main_OnCommand(42663, 0) -- Show ReaScript console
     reaper.ClearConsole()
-    csv = table.concat(csv, "\n")
-    reaper.CF_SetClipboard( csv )
-    reaper.ShowConsoleMsg("CSV: (copied to clipboard, paste in spreadsheet to see)\n\n" .. csv .. "\n\n")
+    info = table.concat(info, "\n")
+    reaper.ShowConsoleMsg( info )
   end
 
+  reaper.PreventUIRefresh( -1 )
   reaper.Undo_EndBlock( "Set selected tracks to " .. wanted_value .. "dB " .. wanted_method, 1)
 end
 
 
 -- GUI --------------------------------------------------------------------------------
 
-if render_settings ~= -666 then
-  if render_settings & 256 == 256 then -- True Peak
-    tp_en = true
-  end
-end
-
-local Methods = {{"LUFS-I", "LU", "LUFSI"}, {"RMS-I", "dB", "RMSI"}, {(tp_en and "True " or "") .."Peak", "dB", 
-            (tp_en and "TRUE" or "") .."PEAK"}, {"LUFS-M max", "LU", "LUFSMMAX"}, {"LUFS-S max", "LU", "LUFSSMAX"}}
+local Methods = {{"LUFS-I", "LU", "LUFSI"}, {"RMS-I", "dB", "RMSI"}, {"Peak", "dB", "PEAK"},
+                {"LUFS-M max", "LU", "LUFSMMAX"}, {"LUFS-S max", "LU", "LUFSSMAX"}, {"True Peak", "dB", "TRUEPEAK"}}
 wanted_method = Methods[selected_method][3]
 
 local ctx = reaper.ImGui_CreateContext('amagalma_NormalizeSelectedTracks')
-local font_size = reaper.GetAppVersion():match('OSX') and math.floor( 16 *0.8+0.5 ) or 16
+local font_size = reaper.GetAppVersion():match('OSX') and math.floor( 16 * 0.8+0.5 ) or 16
 local font = reaper.ImGui_CreateFont('sans-serif', font_size)
+local font_size2 = reaper.GetAppVersion():match('OSX') and math.floor( 14 * 0.8+0.5 ) or 14
+local font2 = reaper.ImGui_CreateFont('sans-serif', font_size2)
 reaper.ImGui_AttachFont(ctx, font)
 
 local WhatToDo_flags =  reaper.ImGui_WindowFlags_NoCollapse() |
@@ -222,7 +243,7 @@ local function loop()
 
     reaper.ImGui_PushItemWidth(ctx, 100)
     if reaper.ImGui_BeginCombo(ctx, '##Methods', Methods[selected_method][1], NoArrowButton) then
-      for i = 1, 5 do
+      for i = 1, 6 do
         local is_selected = selected_method == i
         if reaper.ImGui_Selectable(ctx, Methods[i][1], is_selected) then
           selected_method = i
@@ -241,7 +262,7 @@ local function loop()
         if selected_method < 1 then selected_method = 1 end
       elseif wheel < 0 then
         selected_method = selected_method + 1
-        if selected_method > 5 then selected_method = 5 end
+        if selected_method > 6 then selected_method = 6 end
       end
     end
 
@@ -259,11 +280,12 @@ local function loop()
     reaper.ImGui_Spacing( ctx )
 
 
-    reaper.ImGui_PushTextWrapPos(ctx, 292)
-    reaper.ImGui_Text(ctx, 'If a time selection is present, the calculation will take into account \z
-    only the portion of the tracks that is inside the time selection.')
+    reaper.ImGui_PushFont(ctx, font2)
+    reaper.ImGui_PushTextWrapPos(ctx, 300)
+    reaper.ImGui_Text(ctx, 'If a time selection is present, the calculation will only consider \z
+                      the portion of the tracks that falls within the time selection.')
+    reaper.ImGui_PopFont(ctx)
     reaper.ImGui_PopTextWrapPos(ctx)
-
 
     reaper.ImGui_Spacing( ctx ) ; reaper.ImGui_Spacing( ctx )
 
