@@ -2,7 +2,6 @@
 -- @author RolandMaj7
 -- @version 1.0
 -- @changelog Went through practical testing. Added user information and logging. Code cleanup for production.
--- @provides . > Set unity tempo from tempo map (Pro Tools Conductor off)
 -- @about
 --   # Set Unity Tempo from Tempo Map (Pro Tools "Conductor Off")
 --
