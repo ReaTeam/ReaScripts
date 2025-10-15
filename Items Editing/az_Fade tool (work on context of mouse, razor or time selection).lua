@@ -1,7 +1,9 @@
 -- @description Fade tool (works on context of mouse, razor or time selection)
 -- @author AZ
--- @version 2.3.2
--- @changelog - Fixed bug with old batch settings saved in projects.
+-- @version 2.4
+-- @changelog
+--   - Support for editing take envelopes via razor
+--   - New option to prefer edit single take envelope rather double fades creation.
 -- @provides
 --   az_Fade tool (work on context of mouse, razor or time selection)/az_Options window for az_Fade tool.lua
 --   [main] az_Fade tool (work on context of mouse, razor or time selection)/az_Open options for az_Fade tool.lua
@@ -61,7 +63,7 @@ end
 -------------------------
 
 ExtStateName = 'AZ_FadeTool'
-CurVers = 2.32
+CurVers = 2.4
 
 SaveLastBatchPrj = reaper.GetExtState(ExtStateName, 'SaveLastBatchPrj')
 if SaveLastBatchPrj == 'false' then SaveLastBatchPrj = false
@@ -167,6 +169,9 @@ function OptionsDefaults(NamedTable)
    
   text = 'Pixel distance from mouse to time selection edge'
   table.insert(NamedTable, {text, 'PixToTS', 20, "%.0f"})
+  
+  text = 'Edit single envelope by razor and mouse instead of double-fades'
+  table.insert(NamedTable, {text, 'EditSingleTakeEnv', true })
    
   text = 'Ignore non-audio items'
   table.insert(NamedTable, {text, 'IgnoreNoAudio', false })
@@ -1240,7 +1245,7 @@ function CutEnv(env,pointsTable,areaEdge1,areaEdge2)
   local outBordRet, outBordVal, _,_,_ = reaper.Envelope_Evaluate( env, areaEnd, 192000, 1 )
 
   local PrevPindex = pointsTable[1]["id"] -1
-  local InnerPindex = pointsTable[pointsNumber]["id"] 
+  local InnerPindex = pointsTable[pointsNumber]["id"]
   local _, prevPtime, prevPvalue, prevPshape, prevPtension, _ =
   reaper.GetEnvelopePointEx(env, -1, PrevPindex)
   local _, inPtime, _, inPshape, inPtension, _ =
@@ -1370,16 +1375,16 @@ end
 -----------------------
 -----------------------
 
-function FadeEnvelope(areaData)
+function FadeEnvelope(areaData) 
   local areaStart = areaData.areaStart
   local areaEnd = areaData.areaEnd
   
   local fadestart = areaStart
 
   local env = areaData.envelope
-  local envName = areaData.envelopeName
+  --local envName = areaData.envelopeName
   local envPoints = areaData.envelopePoints
-  local GUID = areaData.GUID
+  --local GUID = areaData.GUID
   local pointsNumber = #envPoints
   --msg(pointsNumber)
   local inBordRet, inBordVal, _,_,_ = reaper.Envelope_Evaluate( env, areaStart, 192000, 1 )
@@ -1536,7 +1541,7 @@ function FadeRazorEdits(razorEdits, needBatch) --get areaMap table and batch fla
       end
     else
       
-      local i = #razorEdits
+      local i = #razorEdits 
       while i > 0 do
         local areaData = razorEdits[i]
         
@@ -1566,8 +1571,7 @@ function FadeRazorEdits(razorEdits, needBatch) --get areaMap table and batch fla
           -------Other 3 cases-----------
           if fulliLock == 1 then return end
           
-          if #items == 1 then
-            UndoString = "FadeTool - razor area"
+          if #items == 1 then 
             MoveItemEdgeRazor = Opt.MoveItemEdgeRazor
             
             if Ritem and Litem == nil then  --fade IN
@@ -1580,6 +1584,7 @@ function FadeRazorEdits(razorEdits, needBatch) --get areaMap table and batch fla
                 fadeStartEdge = SetFade(item, "in", areaData.areaEnd - iPos)
                 if fadeStartEdge ~= nil then table.insert(fadeStartT, fadeStartEdge) end
               end
+              UndoString = "FadeTool - razor area"
             elseif Litem and Ritem == nil then -- fade OUT
               local item = items[1]
               local iPos = reaper.GetMediaItemInfo_Value( item, "D_POSITION" )
@@ -1591,15 +1596,92 @@ function FadeRazorEdits(razorEdits, needBatch) --get areaMap table and batch fla
                 fadeStartEdge = SetFade(item, "out", iEnd - areaData.areaStart)
                 if fadeStartEdge ~= nil then table.insert(fadeStartT, fadeStartEdge) end
               end
-              
+              UndoString = "FadeTool - razor area"
             elseif Litem == nil and Ritem == nil
             and not PreventFadesOnRests then -- fades on the rests
               local item = items[1]
-              local iPos = reaper.GetMediaItemInfo_Value( item, "D_POSITION" )
-              local iEnd = iPos + reaper.GetMediaItemInfo_Value( item, "D_LENGTH" )
-              fadeStartEdge = SetFade(item, "in", areaData.areaStart - iPos)
-                              SetFade(item, "out", iEnd - areaData.areaEnd)
-              if fadeStartEdge ~= nil then table.insert(fadeStartT, fadeStartEdge) end
+              
+              local mouseEnv, isTake = reaper.BR_GetMouseCursorContext_Envelope()
+              local envTake, index, index2
+              local envcnt = 0
+              local itemTake = reaper.GetActiveTake(item)
+              local envTake, index, index2
+              
+              if mouseEnv then
+                envTake, index, index2 = reaper.Envelope_GetParentTake( mouseEnv )
+              end
+              
+              if itemTake then 
+                for e = 0, reaper.CountTakeEnvelopes(itemTake) -1 do
+                  local env = reaper.GetTakeEnvelope(itemTake, e) 
+                  local br_env = reaper.BR_EnvAlloc( env, false )
+                  local active, visible, armed, inLane, laneH, defShape, minValue, maxValue, centerValue, envtype, fScaling, aiOpt = reaper.BR_EnvGetProperties(br_env)
+                  reaper.BR_EnvFree( br_env, false )
+                  if active and visible then
+                    envcnt = envcnt+1
+                    mouseEnv = env
+                  end
+                end
+              end
+              
+              if (mouseEnv and isTake)
+              or ( Opt.EditSingleTakeEnv and envcnt == 1 ) then
+                if not envTake then envTake = itemTake end
+                local envItem = reaper.GetMediaItemTake_Item(envTake)
+                
+                if item == envItem then
+                
+                  local timeShift, takeRate = 0, 1
+                  if envTake then 
+                    timeShift = reaper.GetMediaItemInfo_Value(item, 'D_POSITION')
+                    takeRate = reaper.GetMediaItemTakeInfo_Value(envTake, 'D_PLAYRATE')
+                  end
+                  
+                  local takeAreaStart = (areaData.areaStart - timeShift) * takeRate
+                  local takeAreaEnd = (areaData.areaEnd - timeShift) * takeRate
+                  
+                  local envAreaData = {
+                      areaStart = takeAreaStart,
+                      areaEnd = takeAreaEnd,
+                      
+                      --track = track,
+                      --items = items,
+                      --Litem = Litem,
+                      --Ritem = Ritem,
+                      
+                      --envelope data
+                      --isEnvelope = isEnvelope,
+                      envelope = mouseEnv,
+                      --envelopeName = envelopeName,
+                      envelopePoints = GetEnvelopePointsInRange(mouseEnv, takeAreaStart, takeAreaEnd),
+                      --GUID = GUID:sub(2, -2)
+                      }
+                      --msg('here')
+                  if not MouseCUR then MouseCUR = MouseOverWhat(razorEdits)end
+                  
+                  local mouseTime =  reaper.BR_PositionAtMouseCursor( false )
+                  if mouseTime > 0 then
+                    local distDiff
+                    if math.abs(mouseTime - areaData.areaStart) < math.abs(mouseTime - areaData.areaEnd) then
+                      distDiff = mouseTime - areaData.areaStart
+                    else
+                      distDiff = areaData.areaEnd - mouseTime
+                    end
+                    if MouseDistDiff == nil or math.abs(distDiff) < math.abs(MouseDistDiff) then
+                      MouseDistDiff = distDiff
+                    end
+                  end
+                   
+                  table.insert(fadeStartT, FadeEnvelope(envAreaData)/takeRate + timeShift)
+                end
+              else 
+                local iPos = reaper.GetMediaItemInfo_Value( item, "D_POSITION" )
+                local iEnd = iPos + reaper.GetMediaItemInfo_Value( item, "D_LENGTH" )
+                fadeStartEdge = SetFade(item, "in", areaData.areaStart - iPos)
+                                SetFade(item, "out", iEnd - areaData.areaEnd)
+                if fadeStartEdge ~= nil then table.insert(fadeStartT, fadeStartEdge) end
+                UndoString = "FadeTool - razor double fades"
+              end
               
             end
           end --other 3 cases
