@@ -82,7 +82,7 @@ function SetTSvalue(env, start_time, end_time, value, timeShift, takeRate)
     -- 3) end of selection (still 0.5)
     reaper.InsertEnvelopePoint(env, end_time - trans, value, 0, 0, false, true)
     -- 4) after selection (restore original)
-    if testTimeOut - end_time > trans or testTimeIn == testTimeOut then
+    if testTimeOut - end_time > trans or testTimeIn >= testTimeOut then
       reaper.InsertEnvelopePoint(env, end_time, val_end, 0, 0, false, true)
     end
     
