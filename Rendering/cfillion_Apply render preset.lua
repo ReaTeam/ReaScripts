@@ -1,7 +1,7 @@
 -- @description Apply render preset
 -- @author cfillion
--- @version 2.1.9
--- @changelog Support REAPER 7.44+'s RENDER_EXTRAFILEDIR (read-only for now)
+-- @version 2.1.10
+-- @changelog Support REAPER 7.48's empty output directory [p=2898001]
 -- @provides
 --   .
 --   [main] . > cfillion_Apply render preset (create action).lua
@@ -372,7 +372,7 @@ function parseFormatPreset2(presets, file, tokens)
 end
 
 function parseOutputPreset(presets, file, tokens)
-  local ok, err = checkTokenCount(file, tokens, 9, 13)
+  local ok, err = checkTokenCount(file, tokens, 9, 14)
   if not ok then return nil, err end
 
   local settingsMask = SETTINGS_SOURCE_MASK
@@ -390,7 +390,8 @@ function parseOutputPreset(presets, file, tokens)
   preset._unknown          = tokens[7]           -- what is this (always 0)?
   preset.RENDER_PATTERN    = tostring(tokens[8]) -- file name
   preset.RENDER_TAILFLAG   = tonumber(tokens[9]) == 0 and 0 or 0xFF
-  if tokens[10] ~= nil then
+  local has_dir = (tonumber(tokens[14]) or 0) > 0 -- v7.48
+  if tokens[10] and (has_dir or tokens[10]:len() > 0) then
     preset.RENDER_FILE = tokens[10] -- v6.43, not accessible via API
   end
   if tokens[11] ~= nil then
