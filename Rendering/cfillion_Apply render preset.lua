@@ -390,7 +390,7 @@ function parseOutputPreset(presets, file, tokens)
   preset._unknown          = tokens[7]           -- what is this (always 0)?
   preset.RENDER_PATTERN    = tostring(tokens[8]) -- file name
   preset.RENDER_TAILFLAG   = tonumber(tokens[9]) == 0 and 0 or 0xFF
-  local has_dir = (tonumber(tokens[14]) or 0) > 0
+  local has_dir = (tonumber(tokens[14]) or 0) > 0 -- v7.48
   if tokens[10] and (has_dir or tokens[10]:len() > 0) then
     preset.RENDER_FILE = tokens[10] -- v6.43, not accessible via API
   end
