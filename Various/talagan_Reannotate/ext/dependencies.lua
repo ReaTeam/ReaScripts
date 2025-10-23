@@ -32,7 +32,7 @@ local function checkDependencies()
     if not CheckReapack("API",    "JS_ReaScriptAPI_Version",    "JS_ReaScriptAPI",   "js_ReaScriptAPI")      then return false end
     if not CheckReapack("API",    "ImGui_CreateContext",        "ReaImGUI",          "ReaImGui:")            then return false end
     if not CheckReapack("API",    "CF_ShellExecute",            "SWS",               "SWS/S&M Extension")    then return false end
-    if not CheckReapack("script", reaper.GetResourcePath() .. "/Scripts/ReaTeam Scripts/Development/talagan_ReaImGui Markdown/reaimgui_markdown", "ReaImGui Markdown", "ReaImGui Markdown") then return false end
+    if not CheckReapack("script", "reaimgui_markdown",          "ReaImGui Markdown", "ReaImGui Markdown")    then return false end
 
     return true
 end
