@@ -1,7 +1,7 @@
 -- @noindex
 -- @author Ben 'Talagan' Babut
 -- @license MIT
--- @description This is part of MaCCLane
+-- @description This file is part of Reannotate
 
 local os                            = reaper.GetOS()
 local is_windows                    = os:match('Win')

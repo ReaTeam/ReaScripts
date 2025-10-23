@@ -1,7 +1,7 @@
 -- @noindex
 -- @author Ben 'Talagan' Babut
 -- @license MIT
--- @description This file is part of MaCCLane
+-- @description This file is part of Reannotate
 
 local S = require "modules/settings"
 

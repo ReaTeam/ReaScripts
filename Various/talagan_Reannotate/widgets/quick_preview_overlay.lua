@@ -181,6 +181,10 @@ function QuickPreviewOverlay:updateVisibleThings()
         local track = (i==-1) and reaper.GetMasterTrack(0) or reaper.GetTrack(0, i)
 
         local _, tname      = reaper.GetTrackName(track)
+        local track_height  = reaper.GetMediaTrackInfo_Value(track, "I_TCPH")
+        local track_top     = reaper.GetMediaTrackInfo_Value(track, "I_TCPY")
+        local track_bottom  = track_top + track_height
+        local tcp_entry     = nil
 
         -- Loop on track envelopes
         local ei = 0
@@ -190,7 +194,7 @@ function QuickPreviewOverlay:updateVisibleThings()
 
             local env_vis     = reaper.GetSetEnvelopeInfo_String(envelope, "VISIBLE", "", false)
             if env_vis then
-                local env_top     = reaper.GetEnvelopeInfo_Value(envelope, "I_TCPY")
+                local env_top     = reaper.GetEnvelopeInfo_Value(envelope, "I_TCPY") + track_top
                 local env_height  = reaper.GetEnvelopeInfo_Value(envelope, "I_TCPH")
                 local env_bottom  = env_top + env_height
                 local tcp_entry     = nil
@@ -212,12 +216,6 @@ function QuickPreviewOverlay:updateVisibleThings()
 
             ei = ei + 1
         end
-
-
-        local track_height  = reaper.GetMediaTrackInfo_Value(track, "I_TCPH")
-        local track_top     = reaper.GetMediaTrackInfo_Value(track, "I_TCPY")
-        local track_bottom  = track_top + track_height
-        local tcp_entry     = nil
 
         local track_is_visible_in_tcp = false
         if (i==-1) then track_is_visible_in_tcp = (reaper.GetMasterTrackVisibility() & 1 ~= 0) else track_is_visible_in_tcp = (reaper.IsTrackVisible(track, false)) end
