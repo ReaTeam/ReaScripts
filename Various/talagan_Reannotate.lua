@@ -1,16 +1,17 @@
 --[[
 @description Reannotate - Annotation tool for REAPER
-@version 0.3.0
+@version 0.3.1
 @author Ben 'Talagan' Babut
 @donation https://www.paypal.com/donate/?business=3YEZMY9D6U8NC&no_recurring=1&currency_code=EUR
 @license MIT
 @screenshot
   https://stash.reaper.fm/50870/reannotate_screenshot_reapack.png
 @links
-  Forum Thread https://forum.cockos.com/showthread.php?t= TODO
+  Forum Thread https://forum.cockos.com/showthread.php?t=304147
 @metapackage
 @changelog
-  - First release
+  - [DOC] Updated forum thread link
+  - [Bug Fix] Envelope notes vertical position was wrong (forgot to add track's position)
 @provides
   [nomain] talagan_Reannotate/ext/**/*
   [nomain] talagan_Reannotate/classes/**/*
