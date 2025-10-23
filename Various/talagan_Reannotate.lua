@@ -1,6 +1,6 @@
 --[[
 @description Reannotate - Annotation tool for REAPER
-@version 0.3.2
+@version 0.3.3
 @author Ben 'Talagan' Babut
 @donation https://www.paypal.com/donate/?business=3YEZMY9D6U8NC&no_recurring=1&currency_code=EUR
 @license MIT
@@ -10,7 +10,8 @@
   Forum Thread https://forum.cockos.com/showthread.php?t=304147
 @metapackage
 @changelog
-  - [Bug Fix] Check dependency on Markdown Library not working under windows
+  - [Bug Fix] Pinned track zone overlaps with the rest of the arrange view (thanks @smandrap !)
+  - [Bug Fixes] Fixed various bug linked to envelope visibility
 @provides
   [nomain] talagan_Reannotate/ext/**/*
   [nomain] talagan_Reannotate/classes/**/*
@@ -31,4 +32,6 @@
   You can consult the forum thread for more info.
 
   Please note that this tool is very young and may contain bugs.
+
+  Special thanks to Christian Fillion for the infallible support on ReaImGui, and Arkadata for the continuous and precious feedback and comments during the dev !
 --]]
