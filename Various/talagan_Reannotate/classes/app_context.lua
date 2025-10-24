@@ -6,8 +6,10 @@
 local LaunchContext         = require "classes/launch_context"
 local ArrangeViewWatcher    = require "classes/arrange_view_watcher"
 local ImGui                 = require "ext/imgui"
-
 local Notes                 = require "classes/notes"
+
+local reaper_ext            = require "modules/reaper_ext"
+
 
 local AppContext = {}
 AppContext.__index = AppContext
@@ -104,6 +106,51 @@ function AppContext:retrieveCoordinates(sub, scrollbar_w, scrollbar_h)
 
 end
 
+function AppContext:retrievePinnedTcpHeight()
+  -- Loop on all tracks
+  local track_count = reaper.CountTracks(0)
+
+  local bypos   = nil
+  local btrack  = nil
+
+  -- Among the visible pinned tracks, find the bottomost
+  for i = -1, track_count - 1 do
+    local track = (i==-1) and reaper.GetMasterTrack(0) or reaper.GetTrack(0, i)
+
+    if reaper_ext.IsTrackPinned(track) and reaper_ext.IsTrackVisibleInTcp(track, i == -1) then
+      local typos = reaper.GetMediaTrackInfo_Value(track, "I_TCPY")
+      if bypos == nil or typos > bypos then
+        bypos   = typos
+        btrack  = track
+      end
+    end
+  end
+
+  if not btrack then return 0 end
+
+  local ph  = bypos + reaper.GetMediaTrackInfo_Value(btrack, "I_TCPH")
+
+  local ei = 0
+  while true do
+    local envelope = reaper.GetTrackEnvelope(btrack, ei)
+    if not envelope then break end
+
+    if reaper_ext.IsEnvelopeVisible(envelope) then
+      local env_height  = reaper.GetEnvelopeInfo_Value(envelope, "I_TCPH")
+      ph = ph + env_height
+    end
+
+    ei = ei + 1
+  end
+
+  if ph > 0 then
+    -- Add extra space for resizing grip
+    ph = ph + 10
+  end
+
+  return ph
+end
+
 function AppContext:updateWindowLayouts()
 
   self:retrieveCoordinates(self.av, 16, 16)
@@ -113,6 +160,8 @@ function AppContext:updateWindowLayouts()
   self:retrieveCoordinates(self.mcp_other)
   self:retrieveCoordinates(self.main_toolbar)
   self:retrieveCoordinates(self.time_ruler)
+
+  self.av.pinned_height = self:retrievePinnedTcpHeight()
 
   self.av.start_time, self.av.end_time  = reaper.GetSet_ArrangeView2(0, false, 0, 0)
 end

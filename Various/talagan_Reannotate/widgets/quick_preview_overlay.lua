@@ -9,8 +9,10 @@ local ImGuiMd           = require "reaimgui_markdown"
 local Notes             = require "classes/notes"
 local NoteEditor        = require "widgets/note_editor"
 local SettingsEditor    = require "widgets/settings_editor"
+local S                 = require "modules/settings"
 
-local S = require "modules/settings"
+local reaper_ext        = require "modules/reaper_ext"
+
 
 local OS                            = reaper.GetOS()
 local is_windows                    = OS:match('Win')
@@ -152,7 +154,7 @@ function QuickPreviewOverlay:updateVisibleThings()
     -- Get total number of tracks
     local track_count = reaper.CountTracks(0)
 
-    local function block_clamp(minx,miny,w,h, limitx, limity)
+    local function block_clamp(minx, miny, w, h, limitx, limity, low_limit_y)
         local maxx = minx + w
         local maxy = miny + h
 
@@ -167,8 +169,10 @@ function QuickPreviewOverlay:updateVisibleThings()
             clamped_right = true
         end
 
-        if miny < 0 then miny = 0 end
-        if maxy > limity then maxy = limity end
+        low_limit_y = low_limit_y or 0
+
+        if miny < low_limit_y   then miny = low_limit_y end
+        if maxy > limity        then maxy = limity      end
 
         w = maxx - minx
         h = maxy - miny
@@ -178,57 +182,58 @@ function QuickPreviewOverlay:updateVisibleThings()
 
     -- Iterate through tracks
     for i = -1, track_count - 1 do
-        local track = (i==-1) and reaper.GetMasterTrack(0) or reaper.GetTrack(0, i)
+        local is_master         = (i==-1)
+        local track             = is_master and reaper.GetMasterTrack(0) or reaper.GetTrack(0, i)
+        local _, tname          = reaper.GetTrackName(track)
+        local track_height      = reaper.GetMediaTrackInfo_Value(track, "I_TCPH")
+        local track_top         = reaper.GetMediaTrackInfo_Value(track, "I_TCPY")
+        local track_bottom      = track_top + track_height
+        local track_is_pinned   = reaper_ext.IsTrackPinned(track)
+        local hlimit            = track_is_pinned and 0 or avi.pinned_height
+        local tcp_entry         = nil
 
-        local _, tname      = reaper.GetTrackName(track)
-        local track_height  = reaper.GetMediaTrackInfo_Value(track, "I_TCPH")
-        local track_top     = reaper.GetMediaTrackInfo_Value(track, "I_TCPY")
-        local track_bottom  = track_top + track_height
-        local tcp_entry     = nil
+        local track_is_visible_in_tcp = reaper_ext.IsTrackVisibleInTcp(track, is_master)
 
         -- Loop on track envelopes
-        local ei = 0
-        while true do
-            local envelope = reaper.GetTrackEnvelope(track, ei)
-            if not envelope then break end
+        if track_is_visible_in_tcp then
+            local ei = 0
+            while true do
+                local envelope = reaper.GetTrackEnvelope(track, ei)
+                if not envelope then break end
 
-            local env_vis     = reaper.GetSetEnvelopeInfo_String(envelope, "VISIBLE", "", false)
-            if env_vis then
-                local env_top     = reaper.GetEnvelopeInfo_Value(envelope, "I_TCPY") + track_top
-                local env_height  = reaper.GetEnvelopeInfo_Value(envelope, "I_TCPH")
-                local env_bottom  = env_top + env_height
-                local tcp_entry     = nil
+                if reaper_ext.IsEnvelopeVisible(envelope) then
+                    local env_top     = reaper.GetEnvelopeInfo_Value(envelope, "I_TCPY") + track_top
+                    local env_height  = reaper.GetEnvelopeInfo_Value(envelope, "I_TCPH")
+                    local env_bottom  = env_top + env_height
 
-                if env_height > 0 and ((env_top >= 0 and env_top <= avi.h) or (env_bottom >= 0 and env_bottom <= avi.h)) then
+                    if env_height > 0 and ((env_top >= hlimit and env_top <= avi.h) or (env_bottom >= hlimit and env_bottom <= avi.h)) then
 
-                    local pos_x_pixels = 0
-                    local len_x_pixels = tcp.w
-                    local pos_y_pixels, len_y_pixels = env_top, env_height
-                    local clamped_left, clamped_right = false, false
+                        local pos_x_pixels = 0
+                        local len_x_pixels = tcp.w
+                        local pos_y_pixels, len_y_pixels = env_top, env_height
+                        local clamped_left, clamped_right = false, false
 
-                    pos_x_pixels, pos_y_pixels, len_x_pixels, len_y_pixels, clamped_left, clamped_right = block_clamp(pos_x_pixels, pos_y_pixels, len_x_pixels, len_y_pixels, tcp.w, tcp.h)
+                        pos_x_pixels, pos_y_pixels, len_x_pixels, len_y_pixels, clamped_left, clamped_right = block_clamp(pos_x_pixels, pos_y_pixels, len_x_pixels, len_y_pixels, tcp.w, tcp.h, hlimit)
 
-                    local env_entry = self:buildEditContextForThing(envelope, "env", i, "tcp", pos_x_pixels, pos_y_pixels, len_x_pixels, len_y_pixels, clamped_left, clamped_right)
+                        local env_entry = self:buildEditContextForThing(envelope, "env", i, "tcp", pos_x_pixels, pos_y_pixels, len_x_pixels, len_y_pixels, clamped_left, clamped_right)
 
-                    table.insert(self.visible_things, env_entry)
+                        table.insert(self.visible_things, env_entry)
+                    end
                 end
-            end
 
-            ei = ei + 1
+                ei = ei + 1
+            end
         end
 
-        local track_is_visible_in_tcp = false
-        if (i==-1) then track_is_visible_in_tcp = (reaper.GetMasterTrackVisibility() & 1 ~= 0) else track_is_visible_in_tcp = (reaper.IsTrackVisible(track, false)) end
-
         -- Loop on items. Process item only if visible.
-        if track_height > 0 and ((track_top >= 0 and track_top <= avi.h) or (track_bottom >= 0 and track_bottom <= avi.h)) and track_is_visible_in_tcp then
+        if track_is_visible_in_tcp and track_height > 0 and ((track_top >= hlimit and track_top <= avi.h) or (track_bottom >= hlimit and track_bottom <= avi.h)) then
 
             local pos_x_pixels = 0
             local len_x_pixels = tcp.w
             local pos_y_pixels, len_y_pixels = track_top, track_height
             local clamped_left, clamped_right = false, false
 
-            pos_x_pixels, pos_y_pixels, len_x_pixels, len_y_pixels, clamped_left, clamped_right = block_clamp(pos_x_pixels, pos_y_pixels, len_x_pixels, len_y_pixels, tcp.w, tcp.h)
+            pos_x_pixels, pos_y_pixels, len_x_pixels, len_y_pixels, clamped_left, clamped_right = block_clamp(pos_x_pixels, pos_y_pixels, len_x_pixels, len_y_pixels, tcp.w, tcp.h, hlimit)
 
             tcp_entry = self:buildEditContextForThing(track, "track", i, "tcp", pos_x_pixels, pos_y_pixels, len_x_pixels, len_y_pixels, clamped_left, clamped_right)
 
@@ -256,19 +261,18 @@ function QuickPreviewOverlay:updateVisibleThings()
                     local pos_y_pixels, len_y_pixels = self:getItemYBounds(track, item)
                     local clamped_left, clamped_right = false, false
 
-                    pos_x_pixels, pos_y_pixels, len_x_pixels, len_y_pixels, clamped_left, clamped_right = block_clamp(pos_x_pixels, pos_y_pixels, len_x_pixels, len_y_pixels, avi.w, avi.h)
+                    pos_x_pixels, pos_y_pixels, len_x_pixels, len_y_pixels, clamped_left, clamped_right = block_clamp(pos_x_pixels, pos_y_pixels, len_x_pixels, len_y_pixels, avi.w, avi.h, hlimit)
 
                     table.insert(self.visible_things, self:buildEditContextForThing(item, "item", i, "arrange", pos_x_pixels, pos_y_pixels, len_x_pixels, len_y_pixels, clamped_left, clamped_right))
                 end
             end
         end
 
-        local track_is_visible_in_mcp = false
-        if (i==-1) then track_is_visible_in_mcp = (reaper.GetMasterTrackVisibility() & 2 == 0) else track_is_visible_in_mcp = (reaper.IsTrackVisible(track, true)) end
+        local track_is_visible_in_mcp = reaper_ext.IsTrackVisibleInMcp(track, is_master)
 
         -- Handle track in mcp
         local mcp = (i==-1) and app_ctx.mcp_master or app_ctx.mcp_other
-        if mcp.hwnd and reaper.JS_Window_IsVisible(mcp.hwnd)  and track_is_visible_in_mcp then
+        if track_is_visible_in_mcp and mcp.hwnd and reaper.JS_Window_IsVisible(mcp.hwnd) then
 
             local mcp_track_left                = reaper.GetMediaTrackInfo_Value(track, "I_MCPX")
             local mcp_track_width               = reaper.GetMediaTrackInfo_Value(track, "I_MCPW")
