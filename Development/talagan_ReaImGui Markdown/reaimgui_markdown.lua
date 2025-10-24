@@ -122,7 +122,7 @@ function ReaImGuiMd:render(ctx)
     end
 
     if ImGui.BeginChild(ctx, "##" .. self.id, self.options.width, self.options.height, child_flags, window_flags) then
-        ImGuiMdCore.ASTToImgui(ctx, self.ast, self.fonts, self.style, self.options)
+        self.max_x, self.max_y = ImGuiMdCore.ASTToImgui(ctx, self.ast, self.fonts, self.style, self.options)
         ImGui.EndChild(ctx)
     end
 end
