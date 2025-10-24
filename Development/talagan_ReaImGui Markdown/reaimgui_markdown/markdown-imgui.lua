@@ -181,7 +181,7 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
 
         base_txt_color = node.style.color
 
-        ImGui.PushFont(ctx, f)
+        ImGui.PushFont(ctx, f, node.style.font_size)
     end
 
     local function pop_style()
@@ -368,6 +368,7 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
             node.style = {
                 name        = "default",
                 font_style  = "normal",
+                size        = style["default"].font_size,
                 base_color  = resolve_color(style["default"].base_color) or DEFAULT_COLOR,
                 bold_color  = resolve_color(style["default"].bold_color) or DEFAULT_COLOR
             }
@@ -377,6 +378,7 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
                 base_color  = parent_node.style.base_color,
                 bold_color  = parent_node.style.bold_color,
                 font_style  = parent_node.style.font_style,
+                font_size   = parent_node.style.font_size,
             }
 
             if node.type == "Bold" then
@@ -393,7 +395,8 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
             local overriden_color   = nil
 
             if local_style then
-                node.style.name = style_name
+                node.style.name         = style_name
+                node.style.font_size    = local_style.font_size
 
                 if local_style.base_color then
                     local res = resolve_color(local_style.base_color)
@@ -621,8 +624,8 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
 
             if node.parent_list.type == "UnorderedList" then
                 -- Render a bullet with the default font
-                ImGui.PushFont(ctx, nil)
-                ImGui.Text(ctx, "· ")
+                ImGui.PushFont(ctx, nil, style.default.font_size)
+                ImGui.Text(ctx, "• ")
                 ImGui.PopFont(ctx)
                 num_on_line = 0
             else
