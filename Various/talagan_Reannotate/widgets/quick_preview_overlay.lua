@@ -243,27 +243,30 @@ function QuickPreviewOverlay:updateVisibleThings()
             local item_count = reaper.CountTrackMediaItems(track)
 
             for j = 0, item_count - 1 do
-                local item          = reaper.GetTrackMediaItem(track, j)
-                local item_pos      = reaper.GetMediaItemInfo_Value(item, "D_POSITION")
-                local item_len      = reaper.GetMediaItemInfo_Value(item, "D_LENGTH")
-                local item_end      = item_pos + item_len
+                local item                  = reaper.GetTrackMediaItem(track, j)
+                local item_is_visible       = not reaper_ext.IsItemInHiddenFixedLane(item)
+                if item_is_visible then
+                    local item_pos              = reaper.GetMediaItemInfo_Value(item, "D_POSITION")
+                    local item_len              = reaper.GetMediaItemInfo_Value(item, "D_LENGTH")
+                    local item_end              = item_pos + item_len
 
-                -- Get Arrange view time range
-                local start_time, end_time = avi.start_time, avi.end_time
-                if start_time == end_time then
-                    start_time, end_time = reaper.GetPlayPosition(), reaper.GetProjectLength(0)
-                end
+                    -- Get Arrange view time range
+                    local start_time, end_time = avi.start_time, avi.end_time
+                    if start_time == end_time then
+                        start_time, end_time = reaper.GetPlayPosition(), reaper.GetProjectLength(0)
+                    end
 
-                -- Check if item is visible
-                if item_end >= start_time and item_pos <= end_time then
-                    local pos_x_pixels = self:timeToPixels(app_ctx, item_pos)
-                    local len_x_pixels = math.floor(item_len * reaper.GetHZoomLevel()+0.5)
-                    local pos_y_pixels, len_y_pixels = self:getItemYBounds(track, item)
-                    local clamped_left, clamped_right = false, false
+                    -- Check if item is visible
+                    if item_end >= start_time and item_pos <= end_time then
+                        local pos_x_pixels = self:timeToPixels(app_ctx, item_pos)
+                        local len_x_pixels = math.floor(item_len * reaper.GetHZoomLevel()+0.5)
+                        local pos_y_pixels, len_y_pixels = self:getItemYBounds(track, item)
+                        local clamped_left, clamped_right = false, false
 
-                    pos_x_pixels, pos_y_pixels, len_x_pixels, len_y_pixels, clamped_left, clamped_right = block_clamp(pos_x_pixels, pos_y_pixels, len_x_pixels, len_y_pixels, avi.w, avi.h, hlimit)
+                        pos_x_pixels, pos_y_pixels, len_x_pixels, len_y_pixels, clamped_left, clamped_right = block_clamp(pos_x_pixels, pos_y_pixels, len_x_pixels, len_y_pixels, avi.w, avi.h, hlimit)
 
-                    table.insert(self.visible_things, self:buildEditContextForThing(item, "item", i, "arrange", pos_x_pixels, pos_y_pixels, len_x_pixels, len_y_pixels, clamped_left, clamped_right))
+                        table.insert(self.visible_things, self:buildEditContextForThing(item, "item", i, "arrange", pos_x_pixels, pos_y_pixels, len_x_pixels, len_y_pixels, clamped_left, clamped_right))
+                    end
                 end
             end
         end
@@ -437,6 +440,10 @@ function QuickPreviewOverlay:garbageCollectNoteEditor()
 end
 
 function QuickPreviewOverlay:currentTooltipSizeForThing(thing)
+    if self.note_editor then
+        return thing.notes:tooltipSize(self.note_editor.edited_slot or 0)
+    end
+
     if thing.hovered_slot == -1 then
         return Notes.defaultTooltipSize()
     end
@@ -926,9 +933,19 @@ function QuickPreviewOverlay:drawTooltip(hovered_thing)
                 ImGui.DrawList_AddTriangleFilled(draw_list, cur_x + cur_w, cur_y + cur_h, cur_x + cur_w, cur_y + cur_h - triangle_size, cur_x + cur_w - triangle_size, cur_y + cur_h, Notes.SlotColor(slot_to_tooltip) << 8 | 0xFF)
             end
 
-            -- Save new sizes to items/tracks
+            if self.note_editor and ImGui.IsMouseDoubleClicked(ctx, ImGui.MouseButton_Left) and ImGui.IsWindowHovered(ctx, ImGui.HoveredFlags_RootAndChildWindows) and self.mdwidget.max_x and self.mdwidget.max_y then
+                local target_h = self.mdwidget.max_y + 20
+                local target_w = self.mdwidget.max_x + 20
+                cur_h = target_h -- frame
+                if target_w < ttw then
+                    cur_w = target_w
+                end
 
-            if ((cur_w ~= ttw) or (cur_h ~= tth)) and self.note_editor then
+                self.tt_draw_count = -1
+            end
+
+            -- Save new sizes to items/tracks when resized
+            if self.note_editor and ((cur_w ~= ttw) or (cur_h ~= tth)) then
                 thing_to_tooltip.notes:setTooltipSize(self.note_editor.edited_slot, cur_w, cur_h)
                 thing_to_tooltip.notes:commit()
 
@@ -1059,10 +1076,10 @@ function QuickPreviewOverlay:draw()
 
         self.note_editor = NoteEditor:new()
         self.note_editor:setEditContext(hovered_thing)
+        self.note_editor:setEditedSlot(hovered_thing.hovered_slot == -1 and 1 or hovered_thing.hovered_slot)
         local ne_metrics = self:editorAdvisedPositionAndSizeForThing(hovered_thing, mx, my)
         self.note_editor:setPosition(ne_metrics.x, ne_metrics.y)
         self.note_editor:setSize(ne_metrics.w, ne_metrics.h)
-        self.note_editor:setEditedSlot(hovered_thing.hovered_slot == -1 and 1 or hovered_thing.hovered_slot)
 
         self.note_editor.slot_edit_change_callback = function()
             -- We may need to reposition the tooltip since it's changed

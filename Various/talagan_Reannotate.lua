@@ -1,6 +1,6 @@
 --[[
 @description Reannotate - Annotation tool for REAPER
-@version 0.3.3
+@version 0.3.4
 @author Ben 'Talagan' Babut
 @donation https://www.paypal.com/donate/?business=3YEZMY9D6U8NC&no_recurring=1&currency_code=EUR
 @license MIT
@@ -10,8 +10,8 @@
   Forum Thread https://forum.cockos.com/showthread.php?t=304147
 @metapackage
 @changelog
-  - [Bug Fix] Pinned track zone overlaps with the rest of the arrange view (thanks @smandrap !)
-  - [Bug Fixes] Fixed various bug linked to envelope visibility
+  - [Feature] Double-click tooltip for auto resize
+  - [Bug Fix] Items contained in hidden fixed lanes should not be shown in overlay (thanks @smandrap !)
 @provides
   [nomain] talagan_Reannotate/ext/**/*
   [nomain] talagan_Reannotate/classes/**/*
