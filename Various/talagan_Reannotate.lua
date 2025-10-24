@@ -1,6 +1,6 @@
 --[[
 @description Reannotate - Annotation tool for REAPER
-@version 0.3.4
+@version 0.3.5
 @author Ben 'Talagan' Babut
 @donation https://www.paypal.com/donate/?business=3YEZMY9D6U8NC&no_recurring=1&currency_code=EUR
 @license MIT
@@ -10,8 +10,7 @@
   Forum Thread https://forum.cockos.com/showthread.php?t=304147
 @metapackage
 @changelog
-  - [Feature] Double-click tooltip for auto resize
-  - [Bug Fix] Items contained in hidden fixed lanes should not be shown in overlay (thanks @smandrap !)
+  - [Bug Fix] [Win32] Scroll wheel events not forwarded to Reaper (thanks @Zzibbubby !)
 @provides
   [nomain] talagan_Reannotate/ext/**/*
   [nomain] talagan_Reannotate/classes/**/*
