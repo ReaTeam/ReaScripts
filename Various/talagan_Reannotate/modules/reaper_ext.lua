@@ -26,9 +26,14 @@ local function IsTrackPinned(track)
   return reaper.GetMediaTrackInfo_Value(track, "B_TCPPIN") == 1
 end
 
+local function IsItemInHiddenFixedLane(item)
+  return reaper.GetMediaItemInfo_Value(item, "B_FIXEDLANE_HIDDEN") == 1
+end
+
 return {
     IsEnvelopeVisible       = IsEnvelopeVisible,
     IsTrackPinned           = IsTrackPinned,
     IsTrackVisibleInTcp     = IsTrackVisibleInTcp,
-    IsTrackVisibleInMcp     = IsTrackVisibleInMcp
+    IsTrackVisibleInMcp     = IsTrackVisibleInMcp,
+    IsItemInHiddenFixedLane = IsItemInHiddenFixedLane
 }

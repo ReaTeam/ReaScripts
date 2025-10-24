@@ -8,6 +8,7 @@ local ACTION_DIR  = (ACTION:match[[^@?(.*[\/])[^\/]-$]]):gsub("talagan_Reannotat
 
 package.path      = package.path .. ";" .. ACTION_DIR .. "talagan_Reannotate/?.lua"
 package.path      = package.path .. ";" .. reaper.ImGui_GetBuiltinPath() .. '/?.lua'
+package.path      = package.path .. ";" .. (reaper.GetResourcePath() .. "/Scripts/Talagan Dev/talagan_ReaImGui Markdown") .. '/?.lua'
 package.path      = package.path .. ";" .. (reaper.GetResourcePath() .. "/Scripts/ReaTeam Scripts/Development/talagan_ReaImGui Markdown") .. '/?.lua'
 
 local Dependencies        = require "ext/dependencies"
