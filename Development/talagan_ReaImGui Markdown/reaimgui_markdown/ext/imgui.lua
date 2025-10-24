@@ -4,4 +4,4 @@
 -- This is a part of ReaImGui:Markdown
 
 -- Centralize the requirement of ImGui
-return require 'imgui' '0.9.3'
+return require 'imgui' '0.10'

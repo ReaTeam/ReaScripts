@@ -8,51 +8,51 @@
 local ImGui     = require "reaimgui_markdown/ext/imgui"
 
 local Colors = {
-    aqua = "#00ffff",
-    azure = "#f0ffff",
-    beige = "#f5f5dc",
-    bisque = "#ffe4c4",
-    blue = "#0000ff",
-    brown = "#a52a2a",
-    coral = "#ff7f50",
-    crimson = "#dc143c",
-    cyan = "#00ffff",
-    darkred = "#8b0000",
-    dimgray = "#696969",
-    dimgrey = "#696969",
-    gold = "#ffd700",
-    gray = "#808080",
-    green = "#008000",
-    grey = "#808080",
-    hotpink = "#ff69b4",
-    indigo = "#4b0082",
-    ivory = "#fffff0",
-    khaki = "#f0e68c",
-    lime = "#00ff00",
-    linen = "#faf0e6",
-    maroon = "#800000",
-    navy = "#000080",
-    oldlace = "#fdf5e6",
-    olive = "#808000",
-    orange = "#ffa500",
-    orchid = "#da70d6",
-    peru = "#cd853f",
-    pink = "#ffc0cb",
-    plum = "#dda0dd",
-    purple = "#800080",
-    red = "#ff0000",
-    salmon = "#fa8072",
-    sienna = "#a0522d",
-    silver = "#c0c0c0",
-    skyblue = "#87ceeb",
-    snow = "#fffafa",
-    tan = "#d2b48c",
-    teal = "#008080",
-    thistle = "#d8bfd8",
-    tomato = "#ff6347",
-    violet = "#ee82ee",
-    wheat = "#f5deb3",
-    white = "#ffffff"
+    aqua        = "#00ffff",
+    azure       = "#f0ffff",
+    beige       = "#f5f5dc",
+    bisque      = "#ffe4c4",
+    blue        = "#0000ff",
+    brown       = "#a52a2a",
+    coral       = "#ff7f50",
+    crimson     = "#dc143c",
+    cyan        = "#00ffff",
+    darkred     = "#8b0000",
+    dimgray     = "#696969",
+    dimgrey     = "#696969",
+    gold        = "#ffd700",
+    gray        = "#808080",
+    green       = "#008000",
+    grey        = "#808080",
+    hotpink     = "#ff69b4",
+    indigo      = "#4b0082",
+    ivory       = "#fffff0",
+    khaki       = "#f0e68c",
+    lime        = "#00ff00",
+    linen       = "#faf0e6",
+    maroon      = "#800000",
+    navy        = "#000080",
+    oldlace     = "#fdf5e6",
+    olive       = "#808000",
+    orange      = "#ffa500",
+    orchid      = "#da70d6",
+    peru        = "#cd853f",
+    pink        = "#ffc0cb",
+    plum        = "#dda0dd",
+    purple      = "#800080",
+    red         = "#ff0000",
+    salmon      = "#fa8072",
+    sienna      = "#a0522d",
+    silver      = "#c0c0c0",
+    skyblue     = "#87ceeb",
+    snow        = "#fffafa",
+    tan         = "#d2b48c",
+    teal        = "#008080",
+    thistle     = "#d8bfd8",
+    tomato      = "#ff6347",
+    violet      = "#ee82ee",
+    wheat       = "#f5deb3",
+    white       = "#ffffff"
 }
 
 local DEFAULT_COLOR = 0xCCCCCCFF
@@ -82,6 +82,7 @@ local function is_white_space(char)
     return char == " " or char == "\t" -- or char == "\n" or char == "\r" or char == "\f" or char == "\v"
 end
 
+-- This splits a complete string into a sequence of "tokens" which are words
 local function split_into_words_and_spaces(str)
     if not str or str == "" then
         return {}
@@ -100,12 +101,16 @@ local function split_into_words_and_spaces(str)
         else
             local word = ""
 
+            -- Aggregate characters (letters or anything)
             while i <= len and not is_white_space(char) do
                 word = word .. char
                 i = i + 1
                 char = str:sub(i, i)
             end
 
+            -- Non-splittable spaces : for example "he says : yahoo"
+            -- We keep "says :" as one word. Same for end of sentences : "He jumped !"
+            -- where "jumped !" is one word
             if i <= len and char == " " then
                 local next_i    = i + 1
                 local next_char = str:sub(next_i, next_i)
@@ -122,15 +127,14 @@ local function split_into_words_and_spaces(str)
     return result
 end
 
+-- Handy Shortcut to add vertical padding
 local function ImGuiVDummy(ctx, vpad)
     ImGui.PushStyleVar(ctx, ImGui.StyleVar_ItemSpacing, 0, 0)
-    --ImGui.PushStyleVar(ctx, ImGui.StyleVar_FramePadding, 0, 0)
-    --ImGui.PushStyleVar(ctx, ImGui.StyleVar_FrameBorderSize, 0)
     ImGui.Dummy(ctx, 1, vpad)
     ImGui.PopStyleVar(ctx, 1)
 end
 
-
+-- Finds color from lookup and if not foound converts from string to 0xRRGGBBAA
 local function resolve_color(color_name)
     local trans_color = Colors[color_name]
     trans_color       = trans_color or color_name
@@ -167,7 +171,7 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
     local skip_last_whitespace      = options.skip_last_whitespace
     local h_stack                   = {} -- Used by autopad
 
-    -- Placeholder for render_children with proper argument
+    -- Placeholder for render_children
     local render_children = function(children, level) return nil end
 
     local function push_style(node)
@@ -186,7 +190,7 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
     end
 
     local function draw_word (node, word)
-        local x, y      = ImGui.GetCursorScreenPos(ctx)
+        local x, y = ImGui.GetCursorScreenPos(ctx)
 
         if num_on_line == 0 then
             --   ImGui.AlignTextToFramePadding(ctx)
@@ -204,8 +208,10 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
             end
         end
 
+        -- Stay ready for pushing another word behind this one
         ImGui.SameLine(ctx)
 
+        -- Add underline if in link
         if in_link then
             local x2, y2      = ImGui.GetCursorScreenPos(ctx)
             local draw_list   = ImGui.GetWindowDrawList(ctx)
@@ -214,16 +220,24 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
         end
     end
 
-    local function wrap_text(node)
-        push_style(node)
+    local function ensureNodeWordSplit(node)
         if not node.words then
+            -- Each node contains a sequence of "tokens", which are words, and spaces, with special treatement :
+            -- Punctuation signs are attached to words when they are separated by a space (non-splittable space)
+            -- We want to calculate this sequence once for all and memoize it to avoid recalculation.
             local words = split_into_words_and_spaces(node.value)
-            -- Memoize the split to avoid recalculating each frame
             node.words = {}
             for i, word in ipairs(words) do
                 node.words[#node.words+1] = { word = word }
             end
         end
+    end
+
+    local function wrap_text(node)
+        push_style(node)
+
+        -- Make sure nodes are word-tokenized correctly
+        ensureNodeWordSplit(node)
 
         local buffer    = ""
         local bufwid    = 0
@@ -241,7 +255,9 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
         for i, word_entry in ipairs(node.words) do
 
             if word_entry.size == nil then
-                -- The word size is also memoized
+                -- The word size is also memoized.
+                -- This is done using the current font, so can be only be done
+                -- During rendering
                 word_entry.size, _  = ImGui.CalcTextSize(ctx, word_entry.word)
             end
 
@@ -448,12 +464,18 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
         ImGui.SetCursorPosX(ctx, ImGui.GetCursorPosX(ctx) + left_indent(node_style, level))
     end
 
-    -- Define render_node
+    -- Pointer to the last node encountered
     local last_node = nil
+    local max_x     = nil
+    local max_y     = nil
+    local win_x, win_y     = ImGui.GetWindowPos(ctx)
+    local start_x, start_y = win_x, win_y
+
     local function render_node(node, level)
         level = level or 1 -- Default to level 1 if not provided
         if node.type == "Document" then
             if not node.style then
+                -- We need to calculate the node style for fast rendering later
                 -- This is done only once, we instrument the ast and store everyting inside
                 precalculate_style(nil, node)
                 node.last_node = precalc_last_node
@@ -739,6 +761,12 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
             end
         end
 
+        local imax_x, imax_y = ImGui.GetItemRectMax(ctx)
+        imax_x = imax_x - start_x
+        imax_y = imax_y - start_y
+        if not max_x or imax_x > max_x then max_x = imax_x end
+        if not max_y or imax_y > max_y then max_y = imax_y end
+
         if last_node == node then
             rendered_last = true
         end
@@ -752,6 +780,8 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
     end
 
     render_node(ast, 1)
+
+    return max_x, max_y
 end
 
 return {
