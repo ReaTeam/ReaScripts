@@ -82,10 +82,10 @@ function ReaImGuiMd:_createFontsIfNeeded(ctx)
 
         if size and fontfam then
             local font = {
-                normal      = ImGui.CreateFont(fontfam, size),
-                bold        = ImGui.CreateFont(fontfam, size, ImGui.FontFlags_Bold),
-                italic      = ImGui.CreateFont(fontfam, size, ImGui.FontFlags_Italic),
-                bolditalic  = ImGui.CreateFont(fontfam, size, ImGui.FontFlags_Italic | ImGui.FontFlags_Bold),
+                normal      = ImGui.CreateFont(fontfam),
+                bold        = ImGui.CreateFont(fontfam, ImGui.FontFlags_Bold),
+                italic      = ImGui.CreateFont(fontfam, ImGui.FontFlags_Italic),
+                bolditalic  = ImGui.CreateFont(fontfam, ImGui.FontFlags_Italic | ImGui.FontFlags_Bold),
             }
 
             ImGui.Attach(ctx, font.normal)
