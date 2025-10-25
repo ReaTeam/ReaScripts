@@ -5,6 +5,7 @@
 -- @provides
 --   [data] rodilab_Color palette/color_palette_arm.cur
 --   [data] rodilab_Color palette/color_palette_arm_insert.cur
+--   rodilab_Color palette/New file 1.lua
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=252219
 -- @screenshot Screenshot https://www.rodrigodiaz.fr/prive/color_palette/Color_Palette_v2.jpg
 -- @donation Donate via PayPal https://www.paypal.com/donate?hosted_button_id=N5DUAELFWX4DC
