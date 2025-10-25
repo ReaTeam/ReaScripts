@@ -40,7 +40,7 @@ function AppContext:findMCPHwnds()
     end
   end
 
-  return master_mcp_hwnd, other_mcp_hwnd
+  return master_mcp_hwnd, other_mcp_hwnd, mixerHwnd
 end
 
 function AppContext:getImage(image_name)
@@ -66,10 +66,11 @@ function AppContext:_initialize()
   self.main_toolbar               = { hwnd=reaper.JS_Window_Find('Main toolbar', true)}
   self.time_ruler                 = { hwnd=reaper.JS_Window_FindChildByID(self.mv.hwnd, 1005) }
 
-  local master_mcp_hwnd, other_mcp_hwnd = self:findMCPHwnds()
+  local master_mcp_hwnd, other_mcp_hwnd, mcp_window = self:findMCPHwnds()
 
   self.mcp_master                 = { hwnd=master_mcp_hwnd }
   self.mcp_other                  = { hwnd=other_mcp_hwnd }
+  self.mcp_window                 = { hwnd=mcp_window, is_top = (reaper.JS_Window_FindTop("Mixer", true) ~= nil) }
 
   self.imgui_ctx                  = ImGui.CreateContext("Reannotate")
 
@@ -103,7 +104,6 @@ function AppContext:retrieveCoordinates(sub, scrollbar_w, scrollbar_h)
 
   if scrollbar_w then sub.w = sub.w - scrollbar_w end
   if scrollbar_h then sub.h = sub.h - scrollbar_h end
-
 end
 
 function AppContext:retrievePinnedTcpHeight()
@@ -160,6 +160,7 @@ function AppContext:updateWindowLayouts()
   self:retrieveCoordinates(self.mcp_other)
   self:retrieveCoordinates(self.main_toolbar)
   self:retrieveCoordinates(self.time_ruler)
+  self:retrieveCoordinates(self.mcp_window)
 
   self.av.pinned_height = self:retrievePinnedTcpHeight()
 
