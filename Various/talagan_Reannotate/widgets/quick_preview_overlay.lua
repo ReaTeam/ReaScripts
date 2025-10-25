@@ -7,8 +7,11 @@ local AppContext        = require "classes/app_context"
 local ImGui             = require "ext/imgui"
 local ImGuiMd           = require "reaimgui_markdown"
 local Notes             = require "classes/notes"
+
 local NoteEditor        = require "widgets/note_editor"
 local SettingsEditor    = require "widgets/settings_editor"
+local OverlayCanvas     = require "widgets/overlay_canvas"
+
 local S                 = require "modules/settings"
 
 local reaper_ext        = require "modules/reaper_ext"
@@ -62,6 +65,7 @@ end
 
 function QuickPreviewOverlay:_initialize()
     self.visible_things  = {}
+    self.filter_str = ''
 end
 
 function QuickPreviewOverlay:timeToPixels(app_ctx, time)
@@ -78,12 +82,17 @@ function QuickPreviewOverlay:getItemYBounds(track, item)
 end
 
 function QuickPreviewOverlay:IsInReaper()
+    local app_ctx = AppContext.instance()
     local fg = reaper.JS_Window_GetForeground()
     if is_macos then
         return fg ~= nil
     else
-        local mainhwnd = reaper.GetMainHwnd()
-        return fg == mainhwnd or reaper.JS_Window_IsChild(mainhwnd, fg) or (self.note_editor and fg == self.note_editor.hwnd) or (self.settings_editor and fg == self.settings_editor.hwnd) or (self.hwnd == fg)
+        if fg == app_ctx.mv.hwnd then return true end
+        if reaper.JS_Window_IsChild(app_ctx.mv.hwnd, fg) then return true end
+        if self.note_editor and fg == self.note_editor.hwnd then return true end
+        if self.settings_editor and fg == self.settings_editor.hwnd then return true end
+
+        return false
     end
 end
 
@@ -320,67 +329,43 @@ function QuickPreviewOverlay:title()
     return "Reannotate Quick Preview"
 end
 
-function QuickPreviewOverlay:ensureHwnd()
-    if not self.hwnd then
-        -- Retrieve hwn on instanciation
-        self.hwnd = reaper.JS_Window_Find(self:title(), true)
-        self.parent_hwnd = reaper.JS_Window_GetParent(self.hwnd)
-        reaper.JS_WindowMessage_Intercept(self.hwnd, "WM_MOUSEWHEEL", false)
-        reaper.JS_WindowMessage_Intercept(self.hwnd, "WM_MOUSEHWHEEL", false)
-    end
-end
 
-function QuickPreviewOverlay:forwardEvent(event)
-    local app_ctx = AppContext:instance()
+function QuickPreviewOverlay:applySearchToThing(thing)
+    thing.search_results    = {}
 
-    self.last_peeked_message_times = self.last_peeked_message_times or {}
+    for i=0, Notes.MAX_SLOTS - 1 do
+        local slot      = i
+        local slotNotes = thing.notes:slot(slot)
 
-    local message_is_new = true
-
-    while message_is_new do
-        local b, pt, time, wpl, wph, lpl, lph = reaper.JS_WindowMessage_Peek(self.hwnd, event)
-
-        message_is_new = not (time == self.last_peeked_message_times[event]) and not(time == 0) and not(reaper.time_precise() - time > 3.0) -- Avoid peeking old messages when relaunching in debug
-        if message_is_new then
-            local mx, my = reaper.GetMousePosition()
-            mx, my = ImGui.PointConvertNative(app_ctx.imgui_ctx, mx, my)
-            local target = reaper.GetMainHwnd()
-
-            -- TODO : ATM mcp layout changes are not detected so this will scroll the MCP but tracks will be at the wrong place
-            if reaper.JS_Window_IsVisible(app_ctx.mcp_other.hwnd) and
-            (app_ctx.mcp_other.x <= mx and mx <= app_ctx.mcp_other.x + app_ctx.mcp_other.w) and
-            (app_ctx.mcp_other.y <= my and my <= app_ctx.mcp_other.y + app_ctx.mcp_other.h) then
-                target = app_ctx.mcp_other.hwnd
-            end
-
-            reaper.JS_WindowMessage_Send(target, event, wpl, wph, lpl, lph)
-            self.last_peeked_message_times[event] = time
+        if self.filter_str == '' then
+            thing.search_results[slot+1] = true
+        else
+            thing.search_results[slot+1] = slotNotes:match(self.filter_str)
         end
     end
-end
-
-function QuickPreviewOverlay:forwardMouseWheelEvents()
-    self:forwardEvent("WM_MOUSEWHEEL")
-    self:forwardEvent("WM_MOUSEHWHEEL")
 end
 
 function QuickPreviewOverlay:minimizeTopWindowsAtLaunch()
     local app_ctx = AppContext.instance()
 
     self.minimized_windows = {}
-    local c, l = reaper.JS_Window_ListAllTop()
-    for token in string.gmatch(l, "[^,]+") do
-        local subhwnd = reaper.JS_Window_HandleFromAddress(token)
-        if not subhwnd then return end
+    if false then
+        local c, l = reaper.JS_Window_ListAllTop()
+        for token in string.gmatch(l, "[^,]+") do
+            local subhwnd = reaper.JS_Window_HandleFromAddress(token)
+            if not subhwnd then return end
 
-        if subhwnd ~= app_ctx.mv.hwnd and subhwnd ~= self.hwnd and reaper.JS_Window_IsVisible(subhwnd) then
+            if subhwnd ~= app_ctx.mv.hwnd and subhwnd ~= self.hwnd and reaper.JS_Window_IsVisible(subhwnd) then
 
-            local owner = reaper.JS_Window_GetRelated(subhwnd, "OWNER")
+                local owner = reaper.JS_Window_GetRelated(subhwnd, "OWNER")
 
-            local is_minimized = (reaper.JS_Window_GetLong(subhwnd, "STYLE") & 0x20000000 ~= 0)
-            if not is_minimized and reaper.JS_Window_GetTitle(owner) == reaper.JS_Window_GetTitle(app_ctx.mv.hwnd) then
-                reaper.JS_Window_Show(subhwnd, "SHOWMINIMIZED")
-                self.minimized_windows[#self.minimized_windows+1] = subhwnd
+                local is_minimized = (reaper.JS_Window_GetLong(subhwnd, "STYLE") & 0x20000000 ~= 0)
+                local is_mixer     = (reaper.JS_Window_GetTitle(subhwnd) == "Mixer")
+
+                if not is_minimized and reaper.JS_Window_GetTitle(owner) == reaper.JS_Window_GetTitle(app_ctx.mv.hwnd) and not is_mixer then
+                    reaper.JS_Window_Show(subhwnd, "SHOWMINIMIZED")
+                    self.minimized_windows[#self.minimized_windows+1] = subhwnd
+                end
             end
         end
     end
@@ -389,6 +374,23 @@ end
 function QuickPreviewOverlay:restoreMinimizedWindowsAtExit()
     for _, win in ipairs(self.minimized_windows) do
         reaper.JS_Window_Show(win, "SHOWNOACTIVATE")
+    end
+end
+
+function QuickPreviewOverlay:ZOrderSwap()
+    local app_ctx = AppContext.instance()
+    if self.canvases then
+        for _, canvas in ipairs(self.canvases) do
+            local parent_hwnd = canvas:parentWindowInfo().hwnd
+
+            -- Using the swap those guys technique
+            reaper.JS_Window_SetZOrder(canvas.hwnd, "INSERTAFTER", parent_hwnd)
+            reaper.JS_Window_SetZOrder(parent_hwnd, "INSERTAFTER", canvas.hwnd)
+
+            if is_windows then
+                reaper.JS_Window_SetForeground(canvas.hwnd)
+            end
+        end
     end
 end
 
@@ -410,32 +412,32 @@ function QuickPreviewOverlay:ensureZOrder()
         -- Set main window as foreground.
         reaper.JS_Window_SetForeground(app_ctx.mv.hwnd)
 
-        -- Set our overlay as foreground
-        reaper.JS_Window_SetForeground(self.hwnd)
+        self:ZOrderSwap()
 
         if self.note_editor then
             app_ctx:flog("Foregrounding note editor ...")
             reaper.JS_Window_SetForeground(self.note_editor.hwnd)
             self.note_editor:GrabFocus()
         end
-
     else
-        if not self.note_editor and not self.settings_window then
-            -- If we don't have a note editor, then the overlay should always have focus in the imgui context
-            if self:IsInReaper() and not ImGui.IsWindowFocused(ctx) then
-                ImGui.SetWindowFocus(ctx)
-                reaper.JS_Window_SetFocus(self.hwnd)
-                app_ctx:flog("Overlay grabs focus")
+        if self:IsInReaper() then
+            if is_windows and self.note_editor and self.note_editor.draw_count == 0 then
+                -- This is necessary under windows. The editor focus scrambles the
+                -- Floating mixer's z order.
+                self:ZOrderSwap()
+            end
+            if (not self.note_editor) and (not self.settings_window) and (self.canvases) then
+                local fhwnd = reaper.JS_Window_GetFocus()
+
+                -- If we don't have a note editor, then the overlay should always have focus in the imgui context
+                -- local one_canvas_has_focus = (reaper.JS_Window_GetClassName(fhwnd) == "reaper_imgui_context")
+
+                if fhwnd == reaper.GetMainHwnd() then
+                    reaper.JS_Window_SetForeground(self.canvases[1].hwnd)
+                    self.canvases[1]:GrabFocus()
+                end
             end
         end
-    end
-end
-
-function QuickPreviewOverlay:garbageCollectNoteEditor()
-    -- Ensure note editor is deleted if not used anymore
-    if self.note_editor and not self.note_editor.show_editor then
-        self.note_editor = nil
-        AppContext:instance():flog("Garbage collected note editor")
     end
 end
 
@@ -444,11 +446,13 @@ function QuickPreviewOverlay:currentTooltipSizeForThing(thing)
         return thing.notes:tooltipSize(self.note_editor.edited_slot or 0)
     end
 
-    if thing.hovered_slot == -1 then
+    local slot = (thing == self.pinned_thing) and (thing.capture_slot) or (thing.hovered_slot)
+
+    if slot == -1 then
         return Notes.defaultTooltipSize()
     end
 
-    return thing.notes:tooltipSize(thing.hovered_slot or 0)
+    return thing.notes:tooltipSize(slot or 0)
 end
 
 
@@ -529,359 +533,15 @@ function QuickPreviewOverlay:tooltipAdvisedPositionForEditedThingAndSlot(thing, 
     return { x = x, y = y }
 end
 
-function QuickPreviewOverlay:applySearchToThing(thing)
-    thing.search_results    = {}
-    self.filter_str         = self.filter_str or ''
-
-    for i=0, Notes.MAX_SLOTS - 1 do
-        local slot      = i
-        local slotNotes = thing.notes:slot(slot)
-
-        if self.filter_str == '' then
-            thing.search_results[slot+1] = true
-        else
-            thing.search_results[slot+1] = slotNotes:match(self.filter_str)
-        end
-    end
-end
-
-function QuickPreviewOverlay:drawQuickSettings()
-    local app_ctx           = AppContext.instance()
-    local ctx               = app_ctx.imgui_ctx
-    local draw_list         = ImGui.GetWindowDrawList(ctx)
-    local mx, my            = ImGui.GetMousePos(ctx)
-    local is_clicked        = ImGui.IsMouseClicked(ctx, ImGui.MouseButton_Left)
-    local margin_t          = 8
-    local margin_l          = 8
-    local spacing           = 4
-    local mid_spacing       = spacing*0.5
-    local r                 = 9.5
-    local d                 = 2 * r
-    local header_l          = 60
-    local wpos_x, wpos_y    = ImGui.GetWindowPos(ctx)
-
-    local sinalpha          = (0xFF - 0x40 + math.floor(0x40 * math.sin(reaper.time_precise()*10)))
-
-    ImGui.DrawList_AddRectFilled(draw_list, app_ctx.main_toolbar.x, app_ctx.main_toolbar.y, app_ctx.main_toolbar.x + app_ctx.main_toolbar.w, app_ctx.main_toolbar.y + app_ctx.main_toolbar.h, 0x202020E0, 5)
-    ImGui.DrawList_AddRect      (draw_list, app_ctx.main_toolbar.x, app_ctx.main_toolbar.y, app_ctx.main_toolbar.x + app_ctx.main_toolbar.w, app_ctx.main_toolbar.y + app_ctx.main_toolbar.h, 0xA0A0A0FF, 5)
-
-    for i=0, Notes.MAX_SLOTS - 1 do
-        local slot          = (i == Notes.MAX_SLOTS - 1) and (0) or (i+1)
-        local color         = (Notes.SlotColor(slot) << 8) | 0xFF
-        local l             = app_ctx.main_toolbar.x + (i * (2 * r + spacing)) + header_l + margin_l
-        local t             = app_ctx.main_toolbar.y + margin_t
-        local hovered       = (l - mid_spacing <= mx) and (mx <= l + mid_spacing + d) and (t - mid_spacing <= my) and (my <= t + mid_spacing + d)
-
-
-        if app_ctx.enabled_category_filters[slot+1] then
-            local fcol = color & 0xFFFFFF00 | 0x80
-            if hovered then
-                fcol = (color & 0xFFFFFF00) | sinalpha
-            end
-            ImGui.DrawList_AddRectFilled(draw_list, l, t, l + d, t + d, fcol, 1, 0)
-        end
-        ImGui.DrawList_AddRect(draw_list, l, t, l + d, t + d, color, 1, 0, 1)
-
-        if hovered then
-            ImGui.SetMouseCursor(ctx, ImGui.MouseCursor_Hand)
-            ImGui.PushStyleVar(ctx, ImGui.StyleVar_WindowPadding, 3, 1)
-            ImGui.PushStyleColor(ctx, ImGui.Col_PopupBg, color )
-            ImGui.PushStyleColor(ctx, ImGui.Col_Text, 0x000000FF)
-            ImGui.SetTooltip(ctx, Notes.SlotLabel(slot))
-            ImGui.PopStyleColor(ctx, 2)
-            ImGui.PopStyleVar(ctx)
-        end
-
-        if is_clicked and hovered then
-            app_ctx.enabled_category_filters[slot+1] = not app_ctx.enabled_category_filters[slot+1]
-        end
-    end
-
-    ImGui.PushFont(ctx, app_ctx.arial_font, 12)
-    ImGui.DrawList_AddText(draw_list, app_ctx.main_toolbar.x + margin_l, app_ctx.main_toolbar.y + margin_t + 3, 0xA0A0A0FF, "Filter")
-    ImGui.PopFont(ctx)
-
-    local px, py = ImGui.GetWindowPos(ctx)
-    ImGui.SetCursorPos(ctx, app_ctx.main_toolbar.x - px + 260, app_ctx.main_toolbar.y - py + margin_t )
-    ImGui.PushStyleVar(ctx, ImGui.StyleVar_FramePadding, 4, 2)
-    ImGui.PushStyleVar(ctx, ImGui.StyleVar_FrameRounding, 2)
-    if ImGui.Button(ctx, "All") then
-        for i=0, Notes.MAX_SLOTS - 1 do
-            local slot          = (i == Notes.MAX_SLOTS - 1) and (0) or (i+1)
-            app_ctx.enabled_category_filters[slot+1] = true
-        end
-    end
-    ImGui.PushStyleVar(ctx, ImGui.StyleVar_ItemSpacing, 3, 3)
-    ImGui.SameLine(ctx)
-    if ImGui.Button(ctx, "None") then
-        for i=0, Notes.MAX_SLOTS - 1 do
-            local slot          = (i == Notes.MAX_SLOTS - 1) and (0) or (i+1)
-            app_ctx.enabled_category_filters[slot+1] = false
-        end
-    end
-    ImGui.PopStyleVar(ctx, 3)
-
-    -- Search label
-    ImGui.PushFont(ctx, app_ctx.arial_font, 12)
-    ImGui.DrawList_AddText(draw_list, app_ctx.main_toolbar.x + margin_l, app_ctx.main_toolbar.y + margin_t + 27, 0xA0A0A0FF, "Search")
-    ImGui.PopFont(ctx)
-
-
-    ImGui.SetCursorPos(ctx, app_ctx.main_toolbar.x - wpos_x + margin_l + header_l, ImGui.GetCursorPosY(ctx) + 3)
-    self.filter_str = self.filter_str or ""
-    ImGui.SetNextItemWidth(ctx, 218) --math.min(220, app_ctx.main_toolbar.w - margin_l * 2 - header_l))
-    local b, v      = ImGui.InputText(ctx, "##search_input", self.filter_str, ImGui.InputTextFlags_NoHorizontalScroll | ImGui.InputTextFlags_AutoSelectAll | ImGui.InputTextFlags_ParseEmptyRefVal )
-    if b then
-        self.filter_str = v
-        for ti, thing in ipairs(self.visible_things) do
-            self:applySearchToThing(thing)
-        end
-    end
-    if self.filter_str == "" then
-        local sx, sy    = ImGui.GetItemRectMin(ctx)
-        ImGui.DrawList_AddText(draw_list, sx + 5, sy + 1, 0xA0A0A0FF, "Terms ...")
-    end
-
-    ImGui.SameLine(ctx)
-    ImGui.SetCursorPosX(ctx, ImGui.GetCursorPosX(ctx) + 4)
-
-    ImGui.PushStyleVar(ctx, ImGui.StyleVar_FramePadding, 1, 1)
-    ImGui.PushStyleVar(ctx, ImGui.StyleVar_FrameRounding, 2)
-    if ImGui.ImageButton(ctx, "##settings_button", app_ctx:getImage("settings"), 17, 17) then
-        ImGui.SameLine(ctx)
-        if self.settings_window then
-            self.settings_window = nil
-        else
-            self.settings_window = SettingsEditor:new()
-            self.settings_window:setPosition(wpos_x + ImGui.GetCursorPosX(ctx) + 5, wpos_y + ImGui.GetCursorPosY(ctx) )
-        end
-    end
-    if ImGui.IsItemHovered(ctx) then
-        ImGui.SetTooltip(ctx, "Settings")
-    end
-    ImGui.PopStyleVar(ctx, 2)
-
-    local align             = 320
-    local remaining_space   = app_ctx.main_toolbar.w - align
-
-    local font_size = math.floor(remaining_space * 26/180.0 + 0.5)
-    if font_size > 26 then font_size = 26 end
-    if font_size < 16 then font_size = 16 end
-
-    ImGui.PushFont(ctx, app_ctx.arial_font_italic, font_size)
-    local rw, rh = ImGui.CalcTextSize(ctx, "Reannotate")
-
-    if rw + font_size < remaining_space then
-        -- Enough room to draw logo
-        local spacing = 0.5 * (remaining_space - rw)
-        local xpos = align + spacing
-        if spacing > font_size then
-            -- If space is big, align right, else center
-            xpos = app_ctx.main_toolbar.w - font_size - rw
-        end
-        ImGui.DrawList_AddText(draw_list, app_ctx.main_toolbar.x + xpos, app_ctx.main_toolbar.y + (app_ctx.main_toolbar.h - rh) * 0.5, 0xA0A0A0FF, "Reannotate")
-    end
-    ImGui.PopFont(ctx)
-end
-
-function QuickPreviewOverlay:drawVisibleThing(thing, hovered_thing)
-    local app_ctx   = AppContext.instance()
-    local ctx       = app_ctx.imgui_ctx
-    local sinalpha  = (0x50 + math.floor(0x40 * math.sin((reaper.time_precise() - (self.blink_start_time or 0))*10)))
-    local sin2alpha  = (0x50 + math.floor(0x40 * math.sin((reaper.time_precise() - (self.blink_start_time or 0))*20)))
-    local draw_list = ImGui.GetWindowDrawList(ctx)
-
-    -- The following method allows to work on an entry which is present in the MCP and TCP at the same time
-    local hovered   = hovered_thing and hovered_thing.object == thing.object
-    local edited    = self.note_editor and self.note_editor.edit_context.object == thing.object
-
-    if not hovered then
-        -- reset hovered slot
-        thing.hovered_slot = nil
-    end
-
-    -- Calculate the number of divisions
-    local divisions             = 0
-    local has_notes_to_show     = false
-    local no_notes_message      = ""
-    for i=0, Notes.MAX_SLOTS do
-        local slot_notes        = thing.notes:slot(i)
-        local is_slot_enabled   = app_ctx.enabled_category_filters[i + 1]
-        local the_slot_matches_the_search  = (thing.search_results[i + 1])
-        if slot_notes and slot_notes ~= "" and is_slot_enabled and the_slot_matches_the_search then
-            divisions         = divisions + 1
-            has_notes_to_show = true
-        end
-    end
-
-    -- We should always show one division, even no note is shown
-    if divisions == 0 then
-        divisions = 1
-        if thing.notes:isBlank() then
-            no_notes_message = "`:grey:No " .. thing.type .. " notes`"
-        else
-            no_notes_message = "`:grey:All notes hidden`"
-        end
-    end
-
-    local mx, my    = ImGui.GetMousePos(ctx)
-    local xs        = thing.pos_x + thing.parent.x
-    local ys        = thing.pos_y + thing.parent.y
-    local ww        = thing.width
-    local hh        = thing.height
-
-    local hdivide   = (thing.widget == "arrange") or (thing.widget == "tcp") or (thing.widget == "time_ruler")
-    local step      = (hdivide) and (ww * 1.0 / divisions) or (hh * 1.0 / divisions)
-
-    local div = -1
-    for i=0, Notes.MAX_SLOTS-1 do
-        -- We change the slot span order (1,2,3... and then 0)
-        local is_no_note_slot   = (i==0 and not has_notes_to_show)
-
-        local slot              = (i==Notes.MAX_SLOTS - 1) and (0) or (i+1)
-        local is_slot_enabled   = (is_no_note_slot or app_ctx.enabled_category_filters[slot + 1])
-
-        local slot_notes        = (is_no_note_slot and no_notes_message or thing.notes:slot(slot))
-        local the_slot_matches_the_search  = (thing.search_results[slot+1])
-
-        -- The empty slot is always visible
-        local is_slot_visible   = (is_no_note_slot) or (slot_notes and slot_notes ~= "" and is_slot_enabled and the_slot_matches_the_search)
-
-        if is_slot_visible then
-            div = div + 1
-            -- Calculate this the first time we need it this frame
-            -- It should be calculated after the hover, we need the right date
-
-            local base_color_no_note    = 0x00000000 --0x90909000
-            local border_width          = 1
-            local triangle_size         = math.min(10, hdivide and step or ww, hdivide and hh or step)
-            local bg_color              = base_color_no_note | 0x30
-            local border_color          = base_color_no_note | 0xF0
-
-            if not is_no_note_slot then
-                border_width = 2
-
-                local base_color_with_note  = Notes.SlotColor(slot) << 8 --0xFF007000
-                bg_color     = base_color_with_note | 0x30
-                border_color = base_color_with_note | 0xF0
-            end
-
-            local x1 = (hdivide) and (xs + (div) * step) or (xs)
-            local y1 = (hdivide) and (ys) or (ys + (div) * step)
-            local x2 = ((hdivide) and (x1 + step) or (x1 + ww))
-            local y2 = ((hdivide) and (y1 + hh) or (y1 + step))
-
-            if hovered then
-                -- Hovering this slot
-                if (x1 <= mx and mx <= x2 and y1 <= my and my <= y2) then
-                    if not is_no_note_slot then
-                        thing.hovered_slot = slot
-                        if thing.mcp_entry then
-                            thing.mcp_entry.hovered_slot = thing.hovered_slot
-                        elseif thing.tcp_entry then
-                            thing.tcp_entry.hovered_slot = thing.hovered_slot
-                        end
-                    else
-                        -- This is dangerous, but don't really have the choice with the current model :/
-                        thing.hovered_slot = -1
-                        thing.no_notes_message = no_notes_message
-                    end
-                end
-            end
-
-            local it_s_the_edited_slot                              = (edited and self.note_editor.edited_slot == slot)
-            local there_s_no_editor_open_but_the_slot_is_hovered    = (not self.note_editor and hovered and thing.hovered_slot == slot)
-            local hovering_something_that_cant_have_notes           = (hovered and is_no_note_slot)
-
-            if it_s_the_edited_slot or there_s_no_editor_open_but_the_slot_is_hovered or hovering_something_that_cant_have_notes then
-                bg_color        = (bg_color & 0xFFFFFF00) | sinalpha
-                border_color    = (border_color & 0xFFFFFF00) | (sinalpha + 0x60)
-            end
-
-            -- Background color.
-            ImGui.DrawList_AddRectFilled(draw_list, x1, y1, x2, y2, bg_color, 0, 0)
-
-            if hdivide then
-                -- Left border
-                if div == 0 and not thing.clamped_left then
-                    ImGui.DrawList_AddRectFilled(draw_list, x1, y1, x1 + border_width, y2, border_color, 0, 0)
-                end
-                -- Right border
-                if div == divisions - 1 and not thing.clamped_right then
-                    ImGui.DrawList_AddRectFilled(draw_list, x2 - border_width, y1, x2, y2, border_color, 0, 0)
-                end
-                -- Top and bottom borders
-                ImGui.DrawList_AddRectFilled(draw_list, x1, y1, x2, y1 + border_width, border_color, 0, 0)
-                ImGui.DrawList_AddRectFilled(draw_list, x1, y2 - border_width, x2, y2, border_color, 0, 0)
-            else
-                if div == 0 then
-                    ImGui.DrawList_AddRectFilled(draw_list, x1, y1, x2, y1 + border_width, border_color, 0, 0)
-                end
-                if div == divisions - 1 then
-                    ImGui.DrawList_AddRectFilled(draw_list, x1, y2 - border_width, x2, y2, border_color, 0, 0)
-                end
-                ImGui.DrawList_AddRectFilled(draw_list, x1, y1, x1 + border_width, y2, border_color, 0, 0)
-                ImGui.DrawList_AddRectFilled(draw_list, x2 - border_width, y1, x2, y2, border_color, 0, 0)
-            end
-
-            if not is_no_note_slot then
-                -- Label part
-                ImGui.PushFont(ctx, app_ctx.arial_font, 10)
-                local label     = Notes.SlotLabel(slot)
-                local lw, lh    = ImGui.CalcTextSize(ctx, label)
-                local padding_h   = 4
-                local padding_v   = 3
-                local margin    = 5
-                local available_width   = x2 - x1 - 2 * margin - 2 * padding_h
-
-                if lh + 2 * padding_v + 2 * margin < y2 - y1 then
-                    local text_w = nil
-                    local text   = nil
-                    if available_width > lw then
-                        text = label
-                        text_w = lw
-                    else
-                        local initial = label:sub(1,1)
-                        local llw, llh  = ImGui.CalcTextSize(ctx, initial)
-                        if available_width > llw then
-                            text = initial
-                            text_w = llw
-                        end
-                    end
-                    if text then
-                        local rx    = x2 - margin - 2 * padding_h - text_w
-                        local ry    = y1 + margin
-                        local rx_r  = x2 - margin
-                        local rx_b  = y1 + margin + lh + 2 * padding_v
-                        ImGui.DrawList_AddRectFilled(draw_list, rx, ry, rx_r, rx_b, bg_color | 0xFF, 2)
-                        ImGui.DrawList_AddRect(draw_list,       rx, ry, rx_r, rx_b, 0x000000FF, 2)
-                        ImGui.DrawList_AddText(draw_list, x2 - margin - padding_h - text_w, y1 + margin + padding_v, 0x000000FF, text)
-                    end
-                end
-                ImGui.PopFont(ctx)
-
-                -- Post-it triangles
-                if not (div == 0 and thing.clamped_left) then
-                    ImGui.DrawList_AddTriangleFilled(draw_list, x1, y1, x1 + triangle_size, y1, x1, y1 + triangle_size, border_color)
-                    ImGui.DrawList_AddTriangleFilled(draw_list, x1, y2, x1, y2 - triangle_size, x1 + triangle_size, y2, border_color)
-                end
-
-                if not (div == divisions -1 and thing.clamped_right) then
-                    ImGui.DrawList_AddTriangleFilled(draw_list, x2 - triangle_size, y1, x2, y1, x2, y1 + triangle_size, border_color)
-                    ImGui.DrawList_AddTriangleFilled(draw_list, x2, y2, x2 - triangle_size, y2, x2, y2 - triangle_size, border_color)
-                end
-            end
-        end
-    end
-end
-
-function QuickPreviewOverlay:drawTooltip(hovered_thing)
+function QuickPreviewOverlay:drawTooltip()
     local app_ctx   = AppContext.instance()
     local ctx       = app_ctx.imgui_ctx
     local mx, my    = ImGui.GetMousePos(ctx)
     local tt_pos    = {x = mx + 20, y = my + 20}
+    local hovered_thing = self.hovered_thing
+    local pinned_thing  = self.pinned_thing
 
-    local thing_to_tooltip = (self.note_editor and self.note_editor.edit_context) or (hovered_thing)
+    local thing_to_tooltip = (self.note_editor and self.note_editor.edited_thing) or (pinned_thing) or (hovered_thing)
 
     if thing_to_tooltip then
         if not self.mdwidget then
@@ -889,7 +549,7 @@ function QuickPreviewOverlay:drawTooltip(hovered_thing)
             self.mdwidget  = ImGuiMd:new(ctx, "markdown_widget_1", { wrap = true, autopad = true, skip_last_whitespace = true }, QuickPreviewOverlay.markdownStyle )
         end
 
-        local slot_to_tooltip   = ((self.note_editor) and (self.note_editor.edited_slot)) or (thing_to_tooltip.hovered_slot)
+        local slot_to_tooltip   = ((self.note_editor) and (self.note_editor.edited_slot)) or (pinned_thing and pinned_thing.capture_slot) or (thing_to_tooltip.hovered_slot)
         local tttext            = (slot_to_tooltip == -1) and (thing_to_tooltip.no_notes_message) or (thing_to_tooltip.notes:slot(slot_to_tooltip))
         if tttext == "" or tttext == nil then
             tttext = "`:grey:No " .. thing_to_tooltip.type .. " notes for the `_:grey:" .. Notes.SlotLabel(slot_to_tooltip):lower() .. "_ `:grey:category`"
@@ -899,7 +559,7 @@ function QuickPreviewOverlay:drawTooltip(hovered_thing)
 
         ImGui.SetNextWindowBgAlpha(ctx, 1)
 
-        if self.note_editor then
+        if self.note_editor or pinned_thing then
             -- If there's a note editor, fix the position
             tt_pos = thing_to_tooltip.capture_xy
         else
@@ -971,119 +631,71 @@ function QuickPreviewOverlay:drawTooltip(hovered_thing)
 end
 
 function QuickPreviewOverlay:draw()
-    local app_ctx = AppContext.instance()
+    local app_ctx  = AppContext.instance()
+    local ctx      = app_ctx.imgui_ctx
+    local mx, my   = reaper.GetMousePosition()
+    mx, my = ImGui.PointConvertNative(ctx, mx, my)
 
-    local ctx = app_ctx.imgui_ctx
-    local mvi = app_ctx.mv
-
-    -- Set ImGui window size and position to match Main view ... maybe we should remove the top bar on macos
-    ImGui.SetNextWindowSize(ctx, mvi.w, mvi.h)
-    ImGui.SetNextWindowPos(ctx, mvi.x, mvi.y)
-
-    ImGui.PushStyleVar(ctx, ImGui.StyleVar_WindowBorderSize, 0)
-    ImGui.SetNextWindowBgAlpha(ctx, 0.4 * math.sin(math.pi * 0.5 * math.min(reaper.time_precise() - app_ctx.launch_context.launch_time,  0.3)/0.3))
-
-    -- Begin ImGui frame with visible background for debugging
-    local succ, is_open = ImGui.Begin(ctx, self:title() , nil,
-        ImGui.WindowFlags_NoTitleBar |
-        ImGui.WindowFlags_NoScrollWithMouse |
-        ImGui.WindowFlags_NoScrollbar |
-        ImGui.WindowFlags_NoResize |
-        ImGui.WindowFlags_NoNav |
-        ImGui.WindowFlags_NoNavInputs |
-        ImGui.WindowFlags_NoMove |
-        ImGui.WindowFlags_NoDocking |
-        ImGui.WindowFlags_NoDecoration)
-
-    ImGui.PopStyleVar(ctx)
-
-    local hovered_thing     = nil
-    local captured_click    = false
-    local mx, my            = ImGui.GetMousePos(ctx)
-
-    self.draw_count         = self.draw_count or 0
+    self.draw_count = self.draw_count or 0
 
     if self.draw_count == 0 then
         self:minimizeTopWindowsAtLaunch()
+        self.canvases = {}
+        if app_ctx.mcp_window.is_top then
+            -- Undocked MCP, create two canvases
+            self.canvases[#self.canvases+1] = OverlayCanvas:new(self, OverlayCanvas.TYPES.REAPER_MAIN_ALONE)
+            self.canvases[#self.canvases+1] = OverlayCanvas:new(self, OverlayCanvas.TYPES.REAPER_MIXER_ALONE)
+        else
+            -- Docked MCP, create only one canvas
+            self.canvases[#self.canvases+1] = OverlayCanvas:new(self, OverlayCanvas.TYPES.REAPER_MAIN_AND_MIXER)
+        end
     end
 
-    if succ then
+    -- Reset frame status variables
+    self.hovered_thing_this_frame   = nil
+    self.captured_click             = false
+    self.captured_right_click       = false
 
-        self:ensureHwnd()
-        self:garbageCollectNoteEditor()
-        self:ensureZOrder()
-        self:forwardMouseWheelEvents()
-
-        -- Handle overlay events. This should be done first, because escape will quit any item
-        if ImGui.IsWindowHovered(ctx, ImGui.HoveredFlags_RootWindow) and ImGui.IsWindowFocused(ctx) and not(ImGui.IsAnyItemActive(ctx)) then
-            if ImGui.IsKeyPressed(ctx, ImGui.Key_Escape, false) or (app_ctx.shortcut_was_released_once and app_ctx.launch_context:isShortcutStillPressed()) then
-                app_ctx.want_quit = true
-            end
-        end
-
-        -- Black background, for alpha see above
-        ImGui.PushStyleColor(ctx, ImGui.Col_WindowBg, 0x000000FF)
-
-        self:drawQuickSettings()
-
-        -- Set draw list to Arrange view
-        local draw_list = ImGui.GetWindowDrawList(ctx)
-
-        -- First pass to detect hovered thing
-        for _, thing in ipairs(self.visible_things) do
-            local x1        = thing.pos_x + thing.parent.x
-            local y1        = thing.pos_y + thing.parent.y
-            local x2        = x1 + thing.width
-            local y2        = y1 + thing.height
-            local hovered   = x1 <= mx and mx <= x2 and y1 <= my and my <= y2
-            if hovered and ImGui.IsWindowHovered(ctx) then
-                hovered_thing = thing
-                self.blink_start_time = self.blink_start_time or reaper.time_precise()
-            end
-        end
-
-        -- Draw border + bg
-        for _, thing in ipairs(self.visible_things) do
-            self:drawVisibleThing(thing, hovered_thing)
-        end
-
-        if hovered_thing and (hovered_thing ~= self.last_hovered_thing or hovered_thing.hovered_slot ~= self.last_hovered_slot) then
-            --self.blink_start_time = nil
-        end
-
-        self:drawTooltip(hovered_thing)
-
-        if ImGui.IsWindowHovered(ctx, ImGui.HoveredFlags_RootWindow) and ImGui.IsMouseClicked(ctx,0,false) then
-            captured_click = true
-        end
-
-        ImGui.PopStyleColor(ctx)
-        ImGui.End(ctx)
-
-        self.last_hovered_thing = hovered_thing
-        self.last_hovered_slot  = hovered_thing and hovered_thing.hovered_slot
-    else
-        -- Emergency exit
-        app_ctx.want_quit = true
+    for _, canvas in ipairs(self.canvases) do
+        -- This may capture hover and click
+        canvas:draw(self)
     end
 
-    if hovered_thing and captured_click then
+    if not self.hovered_thing_this_frame then
+        self.hovered_thing = nil
+    end
+
+    if self.pinned_thing then
+        if self.note_editor then
+            self.pinned_thing = nil
+        else
+            local ppos   = self.pinned_thing.capture_xy
+            local pw, ph = self:currentTooltipSizeForThing(self.pinned_thing)
+            if (mx < ppos.x - 30) or (mx > ppos.x + pw) or (my < ppos.y - 30) or (my > ppos.y + ph) then
+                self.pinned_thing = nil
+            end
+        end
+    end
+
+    self:drawTooltip()
+
+    if self.hovered_thing and self.captured_click then
         -- Save the click point for fixing the position
-        hovered_thing.capture_xy    = self:tooltipAdvisedPositionForThing(hovered_thing, mx, my)
-        hovered_thing.capture_slot  = hovered_thing.hovered_slot
+        self.hovered_thing.capture_xy    = self:tooltipAdvisedPositionForThing(self.hovered_thing, mx, my)
+        self.hovered_thing.capture_slot  = self.hovered_thing.hovered_slot
 
         self.tt_draw_count = 0
 
         self.note_editor = NoteEditor:new()
-        self.note_editor:setEditContext(hovered_thing)
-        self.note_editor:setEditedSlot(hovered_thing.hovered_slot == -1 and 1 or hovered_thing.hovered_slot)
-        local ne_metrics = self:editorAdvisedPositionAndSizeForThing(hovered_thing, mx, my)
+        self.note_editor:setEditedThing(self.hovered_thing)
+        self.note_editor:setEditedSlot(self.hovered_thing.hovered_slot == -1 and 1 or self.hovered_thing.hovered_slot)
+        local ne_metrics = self:editorAdvisedPositionAndSizeForThing(self.hovered_thing, mx, my)
         self.note_editor:setPosition(ne_metrics.x, ne_metrics.y)
         self.note_editor:setSize(ne_metrics.w, ne_metrics.h)
 
         self.note_editor.slot_edit_change_callback = function()
             -- We may need to reposition the tooltip since it's changed
-            hovered_thing.capture_xy = self:tooltipAdvisedPositionForEditedThingAndSlot(hovered_thing, self.note_editor.edited_slot, self.note_editor, mx, my)
+            self.note_editor.edited_thing.capture_xy = self:tooltipAdvisedPositionForEditedThingAndSlot(self.note_editor.edited_thing, self.note_editor.edited_slot, self.note_editor, mx, my)
             -- Reset draw counter for tooltip to take position change into account
             self.tt_draw_count = 0
         end
@@ -1095,18 +707,28 @@ function QuickPreviewOverlay:draw()
         end
     end
 
-    if hovered_thing and not self.note_editor then
+    if self.hovered_thing and self.captured_right_click then
+        self.note_editor                 = nil
+        self.hovered_thing.capture_xy    = self:tooltipAdvisedPositionForThing(self.hovered_thing, mx, my)
+        self.hovered_thing.capture_slot  = self.hovered_thing.hovered_slot
+        self.pinned_thing                = self.hovered_thing
+        self.tt_draw_count = 0
+    end
+
+    if self.hovered_thing and not self.note_editor then
         -- Reset tooltip draw count so that the tooltip is not fixed
         self.tt_draw_count = 0
     end
 
-    if not hovered_thing and captured_click then
+    if not self.hovered_thing and self.captured_click then
         -- Clicked on something which is not overable : remove editor
         self.note_editor = nil
     end
 
-    if self.note_editor and self.note_editor.show_editor then
+    if self.note_editor and self.note_editor.open then
         self.note_editor:draw()
+    else
+        self.note_editor = nil
     end
 
     if self.settings_window and self.settings_window.open then
@@ -1114,6 +736,8 @@ function QuickPreviewOverlay:draw()
     else
         self.settings_window = nil
     end
+
+    self:ensureZOrder()
 
     if self.draw_count > 0 then
         -- Update "in reaper" state

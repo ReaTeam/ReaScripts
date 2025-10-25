@@ -15,11 +15,11 @@ function SettingsEditor:new()
   local instance = {}
   setmetatable(instance, self)
   instance:_initialize()
-  self.draw_count = 0
   return instance
 end
 
 function SettingsEditor:_initialize()
+    self.draw_count = 0
     self.open = true
 end
 
@@ -30,7 +30,6 @@ end
 function SettingsEditor:draw()
     local app_ctx   = AppContext:instance()
     local ctx       = app_ctx.imgui_ctx
-
 
     local b, open = ImGui.Begin(ctx, "Reannotate Settings##reannotate_settings_editor", true,
         ImGui.WindowFlags_AlwaysAutoResize |
