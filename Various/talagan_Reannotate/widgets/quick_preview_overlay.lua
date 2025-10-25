@@ -353,7 +353,7 @@ function QuickPreviewOverlay:forwardEvent(event)
                 target = app_ctx.mcp_other.hwnd
             end
 
-            reaper.JS_WindowMessage_Post(target, event, wpl, wph, lpl, lph)
+            reaper.JS_WindowMessage_Send(target, event, wpl, wph, lpl, lph)
             self.last_peeked_message_times[event] = time
         end
     end
