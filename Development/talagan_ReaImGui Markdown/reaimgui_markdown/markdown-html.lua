@@ -31,12 +31,17 @@ local function ASTToHtml(ast)
       return "<code" .. style .. ">" .. render_children(node.children, level) .. "</code>"
     elseif node.type == "Text" then
       return node.value
+    elseif node.type == "Span" then
+      local style = node.attributes.color and ' style="color: ' .. node.attributes.color .. '"' or ""
+      return "<span" .. style .. ">" .. render_children(node.children, level) .. "</span>"
     elseif node.type == "Link" then
       return '<a href="' .. node.attributes.url .. '">' .. render_children(node.children, level) .. '</a>'
     elseif node.type == "Image" then
       return '<img src="' .. node.attributes.url .. '" alt="' .. node.attributes.alt .. '">'
     elseif node.type == "LineBreak" then
       return "<br>\n"
+    elseif node.type == "Separator" then
+      return "<hr>\n"
     elseif node.type == "UnorderedList" then
       local html = "<ul>\n"
       for _, child in ipairs(node.children) do
@@ -74,11 +79,15 @@ local function ASTToHtml(ast)
     elseif node.type == "CodeBlock" then
       return "<pre><code>" .. node.value .. "</code></pre>\n"
     elseif node.type == "Table" then
-      local html = "<table>\n<thead>\n<tr>\n"
-      for _, header in ipairs(node.children.headers) do
-        html = html .. "<th>" .. (header or "") .. "</th>\n"
+      local html = "<table>\n"
+      if node.children.headers and not node.attributes.headers_are_empty then
+        html = html .. "<thead>\n<tr>\n"
+        for _, header in ipairs(node.children.headers) do
+          html = html .. "<th>" .. (header or "") .. "</th>\n"
+        end
+        html = html .. "</tr>\n</thead>\n"
       end
-      html = html .. "</tr>\n</thead>\n<tbody>\n"
+      html = html .. "<tbody>\n"
       for _, row in ipairs(node.children.rows) do
         html = html .. "<tr>\n"
         for _, cell in ipairs(row) do
@@ -87,6 +96,19 @@ local function ASTToHtml(ast)
         html = html .. "</tr>\n"
       end
       return html .. "</tbody>\n</table>\n"
+    elseif node.type == "Checkbox" then
+      local html = ''
+      html = html .. "<input type=\"checkbox\""
+      if node.attributes.checked then
+        html = html .. " checked"
+      elseif node.attributes.partial then
+        html = html .. " indeterminate"
+      end
+
+      html = html .. ">"
+      return html
+    else
+      error("Unhandle type " .. node.type)
     end
     return ""
   end

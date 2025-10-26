@@ -38,6 +38,14 @@ function ReaImGuiMd:new(ctx, id, options, style)
     return instance
 end
 
+-- Possible options
+-------------------
+--  wrap (true | false)
+--  autopad (true | false)
+--  horizontal_scrollbar (true | false)
+--  skip_last_whitespace (true | false)
+--  width (0 == auto, use remaining)
+--  height (0 == auto, use remaining)
 function ReaImGuiMd:_initialize(ctx, id, options, partial_style)
     self.id         = id
     self.options    = { wrap = true, horizontal_scrollbar = true , width = 0, height = 0 }
@@ -122,9 +130,11 @@ function ReaImGuiMd:render(ctx)
     end
 
     if ImGui.BeginChild(ctx, "##" .. self.id, self.options.width, self.options.height, child_flags, window_flags) then
-        self.max_x, self.max_y = ImGuiMdCore.ASTToImgui(ctx, self.ast, self.fonts, self.style, self.options)
+        self.max_x, self.max_y, self.interaction = ImGuiMdCore.ASTToImgui(ctx, self.ast, self.fonts, self.style, self.options)
         ImGui.EndChild(ctx)
     end
+
+    return self.max_x, self.max_y, self.interaction
 end
 
 return ReaImGuiMd

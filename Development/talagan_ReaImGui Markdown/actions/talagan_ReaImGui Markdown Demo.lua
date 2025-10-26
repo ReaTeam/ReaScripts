@@ -5,29 +5,20 @@
 
 -- This file is the Demo that comes with ReaImGui:Markdown
 
-package.path    = reaper.ImGui_GetBuiltinPath() .. '/?.lua'
-
-local use_dev_folder = false
 local use_profiler   = false
 local use_debugger   = false
 local do_unit_tests  = false
 
 -----------------
 
-if not use_dev_folder then
-    package.path    = package.path .. ";" .. (reaper.GetResourcePath() .. "/Scripts/ReaTeam Scripts/Development/talagan_ReaImGui Markdown") .. '/?.lua'
-else
-    package.path    = package.path .. ";" .. (reaper.GetResourcePath() .. "/Scripts/Talagan Dev/talagan_ReaImGui Markdown") .. '/?.lua'
-end
+local ACTION        = debug.getinfo(1,"S").source
+local ACTION_DIR    = (ACTION:match[[^@?(.*[\/])[^\/]-$]]):gsub("talagan_ReaImGui Markdown/actions/$","/") -- Works both in dev and prod
 
-local ImGui     = require "reaimgui_markdown/ext/imgui"
-local ImGuiMd   = require "reaimgui_markdown"
+package.path        = package.path .. ";" .. reaper.ImGui_GetBuiltinPath() .. '/?.lua'
+package.path        = package.path .. ";" .. ACTION_DIR .. "talagan_ReaImGui Markdown/?.lua"
 
-if do_unit_tests then
-    -- Reqiore stuff for the profiler to work.
-    local UnitTest       = require "reaimgui_markdown/markdown-test"
-    UnitTest()
-end
+local ImGui         = require "reaimgui_markdown/ext/imgui"
+local ImGuiMd       = require "reaimgui_markdown"
 
 if use_profiler then
     local profiler       = dofile(reaper.GetResourcePath() .. '/Scripts/ReaTeam Scripts/Development/cfillion_Lua profiler.lua')
@@ -63,6 +54,13 @@ if use_debugger then
     end
 end
 
+
+if do_unit_tests then
+    -- Reqiore stuff for the profiler to work.
+    local UnitTest       = require "reaimgui_markdown/markdown-test"
+    UnitTest()
+end
+
 -- We override Reaper's defer method for two reasons :
 -- We want the full trace on errors
 -- We want the debugger to pause on errors
@@ -76,10 +74,6 @@ reaper.defer = function(c)
         end)
     end)
 end
-
-
-
-
 
 local entry = [[
 # This is a header level 1
@@ -183,24 +177,47 @@ This library is **`:orange:powered`** by [ReaImGui](https://forum.cockos.com/sho
 ]]
 
 local ctx       = ImGui.CreateContext('ReaImGui:Markdown Demo')
-local imgui_md  = ImGuiMd:new(ctx, "markdown_widget_1", { wrap = true, autopad = false }, {} )
+local imgui_md  = ImGuiMd:new(ctx, "markdown_widget_1", { wrap = true, autopad = false, skip_last_whitespace = false, horizontal_scrollbar = true }, {} )
 
 imgui_md:setText(entry)
 
 local function loop()
     ImGui.SetNextWindowSize(ctx, 600, 800, ImGui.Cond_FirstUseEver)
     local ret, open = ImGui.Begin(ctx, "ReaImGui:Markdown Demo", true)
-
     if ret then
 
-        local b
+        local b,v
+
+        -- Option header
+        ImGui.BeginGroup(ctx)
+            b, v = ImGui.Checkbox(ctx, "Line wrap", imgui_md.options.wrap)
+            if b then imgui_md.options.wrap = v end
+            ImGui.SameLine(ctx)
+            b, v = ImGui.Checkbox(ctx, "Auto-Pad", imgui_md.options.autopad)
+            if b then imgui_md.options.autopad = v end
+            ImGui.SameLine(ctx)
+            b, v = ImGui.Checkbox(ctx, "Horizontal Scrollbar", imgui_md.options.horizontal_scrollbar)
+            if b then imgui_md.options.horizontal_scrollbar = v end
+            ImGui.SameLine(ctx)
+            b, v = ImGui.Checkbox(ctx, "Skip last whitespace", imgui_md.options.skip_last_whitespace)
+            if b then imgui_md.options.skip_last_whitespace = v end
+        ImGui.EndGroup(ctx)
 
         b, entry = ImGui.InputTextMultiline(ctx, "##mardown_input_1", entry,  ImGui.GetContentRegionAvail(ctx) , 200)
         if b then
             imgui_md:setText(entry)
         end
 
-        imgui_md:render(ctx)
+        -- The rendering returns some metrics info (max_x, max_y) in case you want to resize the container
+        -- It may also return an interaction object, when the markdown triggers auto-edit events
+        -- So that you can patch your original string and handle the event (currently only checkboxes are handled)
+        local max_x, maxy, interaction = imgui_md:render(ctx)
+
+        if interaction then
+            local before    = entry.sub(entry, 1, interaction.start_offset - 1)
+            local after     = entry.sub(entry, interaction.start_offset + interaction.length)
+            entry = before .. interaction.replacement_string .. after
+        end
 
         ImGui.End(ctx)
     end

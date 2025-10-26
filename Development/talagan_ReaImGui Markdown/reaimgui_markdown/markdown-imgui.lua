@@ -161,15 +161,22 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
 
     options = options or {}
 
+    -- Possible options
+    --   options.wrap
+    --   options.skip_last_whitespace
+    --   options.autopad
+
     local precalc_last_node         = nil
     local rendered_last             = false
     local num_line                  = 0
     local num_on_line               = 0
     local in_link                   = false
     local base_txt_color            = DEFAULT_COLOR
+    local should_autopad            = options.autopad
     local should_wrap               = options.wrap
     local skip_last_whitespace      = options.skip_last_whitespace
     local h_stack                   = {} -- Used by autopad
+    local interaction               = nil
 
     -- Placeholder for render_children
     local render_children = function(children, level) return nil end
@@ -444,7 +451,7 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
     local function left_indent(node_style, level)
         local pad = node_style.padding_left
 
-        if options.autopad then
+        if should_autopad then
             pad = #h_stack * style.default.autopad
         end
 
@@ -454,7 +461,7 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
             if level ~= 1 then
                 pad = node_style.padding_indent
             else
-                if options.autopad then
+                if should_autopad then
                     pad = pad + node_style.padding_indent
                 end
             end
@@ -550,6 +557,8 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
         elseif node.type == "Italic" then
             render_children(node.children, level)
         elseif node.type == "Code" then
+            render_children(node.children, level)
+        elseif node.type == "Span" then
             render_children(node.children, level)
         elseif node.type == "Separator" then
             ImGuiVDummy(ctx, style.separator.padding_top)
@@ -762,6 +771,30 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
             if not (rendered_last and skip_last_whitespace) then
                 ImGuiVDummy(ctx, nstyle.padding_bottom)
             end
+        elseif node.type == "Checkbox" then
+            node.rand = node.rand or math.random()
+            ImGui.PushStyleVar(ctx, ImGui.StyleVar_FramePadding, 0, 0)
+            local b,v = ImGui.Checkbox(ctx, "##checkbox_" .. node.rand, node.attributes.checked)
+            ImGui.PopStyleVar(ctx)
+            if b then
+                local old_value = node.attributes.checked
+                local new_value = not node.attributes.checked
+
+                node.attributes.checked = new_value
+
+                interaction = {
+                    type                = "checkbox_clicked",
+                    start_offset        = node.attributes.source_offset.start,
+                    length              = node.attributes.source_offset.end_pos - node.attributes.source_offset.start + 1,
+                    old_value           = old_value,
+                    new_value           = node.attributes.checked,
+                    replacement_string  = (node.attributes.checked) and ("[x]") or ("[ ]")
+                }
+            end
+            ImGui.SameLine(ctx)
+            num_on_line = num_on_line + 1
+        else
+            error("Unhandle node type " .. node.type)
         end
 
         local imax_x, imax_y = ImGui.GetItemRectMax(ctx)
@@ -784,7 +817,7 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
 
     render_node(ast, 1)
 
-    return max_x, max_y
+    return max_x, max_y, interaction
 end
 
 return {
