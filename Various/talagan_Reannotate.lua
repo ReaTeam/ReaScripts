@@ -10,6 +10,7 @@
   Forum Thread https://forum.cockos.com/showthread.php?t=304147
 @metapackage
 @changelog
+  - [Feature] Checkbox support (imgui markdown integration)
   - [Feature] Right click to pin
   - [Rework] Multiple overlays and floating MCP support
   - [Rework] No more use for top windows minimization

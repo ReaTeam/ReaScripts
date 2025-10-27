@@ -581,6 +581,16 @@ function QuickPreviewOverlay:drawTooltip()
 
             self.mdwidget:render(ctx)
 
+            -- If there was an interaction this frame, we need to patch the content of nte
+            local interaction = self.mdwidget.interaction
+            if interaction then
+                local before    = tttext.sub(tttext, 1, interaction.start_offset - 1)
+                local after     = tttext.sub(tttext, interaction.start_offset + interaction.length)
+                tttext          = before .. interaction.replacement_string .. after
+
+                thing_to_tooltip.notes:setSlot(slot_to_tooltip, tttext)
+            end
+
             -- Border. Tooltip is shown when edited or hoevered
             if (self.note_editor) or (not thing_to_tooltip.notes:isBlank() and ( thing_to_tooltip.hovered_slot ~= -1)) then
                 ImGui.DrawList_AddRect(draw_list, cur_x + 1, cur_y + 1, cur_x + cur_w - 1, cur_y + cur_h - 1, Notes.SlotColor(slot_to_tooltip) << 8 | 0xFF, 0, 0, 2)
