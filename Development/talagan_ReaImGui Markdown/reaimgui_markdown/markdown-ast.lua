@@ -142,9 +142,9 @@ local function parse_inline(text, base_offset)
       end
 
       if not found then
-        buffer = buffer .. "`" .. content
-        buffer_start = base_offset + i
-        i = j
+        buffer = buffer .. "`"
+        -- Don't update buffer_start, keep accumulating
+        i = i + 1
       end
 
     -- ========================================================================
@@ -369,9 +369,8 @@ local function parse_inline(text, base_offset)
         end
 
         if not found then
-          buffer = buffer .. marker .. content
-          buffer_start = base_offset + i
-          i = j
+          buffer = buffer .. marker
+          i = i + 3  -- *** = 3 characters
         end
       else
         -- Handle ** or __
@@ -384,28 +383,39 @@ local function parse_inline(text, base_offset)
           if text:sub(j, j + 1) == marker and not is_escaped(text, j) then
             -- Make sure it's not part of *** (check the char after **)
             local next_char = text:sub(j + 2, j + 2)
-            if next_char ~= char then
-              local color, clean_content = extract_color(content)
-              table.insert(nodes, new_node("Bold", nil,
-                parse_inline(clean_content, base_offset + i + 2),
-                {
-                  color = color,
-                  source_offset = { start = base_offset + i, end_pos = base_offset + j + 1 }
-                }
-              ))
-              i = j + 2
-              found = true
-              break
+            -- If followed by the same char, check if it's *** (reject) or **** (accept first **)
+            if next_char == char then
+              local after_next = text:sub(j + 3, j + 3)
+              -- If it's *** (exactly 3), reject. If it's **** (4+), accept.
+              if after_next ~= char then
+                -- It's exactly ***, reject this match
+                content = content .. text:sub(j, j)
+                j = j + 1
+                goto continue_bold_search
+              end
+              -- It's ****, accept the first **
             end
+
+            local color, clean_content = extract_color(content)
+            table.insert(nodes, new_node("Bold", nil,
+              parse_inline(clean_content, base_offset + i + 2),
+              {
+                color = color,
+                source_offset = { start = base_offset + i, end_pos = base_offset + j + 1 }
+              }
+            ))
+            i = j + 2
+            found = true
+            break
           end
           content = content .. text:sub(j, j)
           j = j + 1
+          ::continue_bold_search::
         end
 
         if not found then
-          buffer = buffer .. marker .. content
-          buffer_start = base_offset + i
-          i = j
+          buffer = buffer .. marker
+          i = i + 2  -- ** = 2 characters
         end
       end
 
@@ -439,9 +449,8 @@ local function parse_inline(text, base_offset)
       end
 
       if not found then
-        buffer = buffer .. marker .. content
-        buffer_start = base_offset + i
-        i = j
+        buffer = buffer .. marker
+        i = i + 1
       end
 
     -- ========================================================================
@@ -473,9 +482,8 @@ local function parse_inline(text, base_offset)
       end
 
       if not found then
-        buffer = buffer .. "$" .. content
-        buffer_start = base_offset + i
-        i = j
+        buffer = buffer .. "$"
+        i = i + 1
       end
 
     -- ========================================================================
