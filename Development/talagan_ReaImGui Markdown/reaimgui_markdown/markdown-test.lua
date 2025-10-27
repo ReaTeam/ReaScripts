@@ -814,14 +814,19 @@ This is $not closed
 <p><a href="url">x</a> is link, <input type="checkbox" checked> is checkbox</p>
 ]]
   },
---[==[ Those tests are ambiguous, especially for the **** sequence
   {
     name = "Empty stuff case",
     input = "****  ____ `` $$ [ ]",
-    expected_html = [[<p>****  ____ `` $$ <input type="checkbox"></p>
-    ]]
+    expected_html = [[<p>****  ____ <code></code> <span></span> <input type="checkbox"></p>
+]]
   },
---]==]
+  {
+    name = "Forum beurk",
+    input = "__*a*____*b*__",
+    expected_html = "<p><strong><em>a</em></strong><strong><em>b</em></strong></p>\n"
+  },
+
+
   -- ==========================================================================
   -- 15. COMPLEX COMBINATIONS
   -- ==========================================================================
