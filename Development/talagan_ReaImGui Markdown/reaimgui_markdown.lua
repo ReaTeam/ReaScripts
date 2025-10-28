@@ -85,10 +85,9 @@ function ReaImGuiMd:_createFontsIfNeeded(ctx)
 
     for class_name, _ in pairs(ImGuiMdCore.DEFAULT_STYLE) do
         -- 0 is for normal text, 1 for h1, 2 for h2, etc
-        local size      = style[class_name].font_size
         local fontfam   = style[class_name].font_family
 
-        if size and fontfam then
+        if fontfam and not fonts[fontfam] then
             local font = {
                 normal      = ImGui.CreateFont(fontfam),
                 bold        = ImGui.CreateFont(fontfam, ImGui.FontFlags_Bold),
@@ -101,7 +100,7 @@ function ReaImGuiMd:_createFontsIfNeeded(ctx)
             ImGui.Attach(ctx, font.italic)
             ImGui.Attach(ctx, font.bolditalic)
 
-            fonts[class_name] = font
+            fonts[fontfam] = font
         end
     end
 

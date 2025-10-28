@@ -6,6 +6,7 @@
 -- ImGui generation from AST
 
 local ImGui     = require "reaimgui_markdown/ext/imgui"
+local AstToText = require "reaimgui_markdown/markdown-text"
 
 local Colors = {
     aqua        = "#00ffff",
@@ -58,22 +59,23 @@ local Colors = {
 local DEFAULT_COLOR = 0xCCCCCCFF
 
 local DEFAULT_STYLE = {
-    default     = { font_family = "sans-serif", font_size = 13, base_color = "#CCCCCC", bold_color = "white", autopad = 5 },
+    default     = { font_family = "Arial", font_size = 13, base_color = "#CCCCCC", bold_color = "white", autopad = 5 },
 
-    h1          = { font_family = "sans-serif", font_size = 23, padding_left = 0,  padding_top = 3, padding_bottom = 5, line_spacing = 5, base_color = "#288efa", bold_color = "#288efa" },
-    h2          = { font_family = "sans-serif", font_size = 21, padding_left = 5,  padding_top = 3, padding_bottom = 5, line_spacing = 5, base_color = "#4da3ff", bold_color = "#4da3ff" },
-    h3          = { font_family = "sans-serif", font_size = 19, padding_left = 10, padding_top = 3, padding_bottom = 4, line_spacing = 5, base_color = "#65acf7", bold_color = "#65acf7" },
-    h4          = { font_family = "sans-serif", font_size = 17, padding_left = 15, padding_top = 3, padding_bottom = 3, line_spacing = 5, base_color = "#85c0ff", bold_color = "#85c0ff" },
-    h5          = { font_family = "sans-serif", font_size = 15, padding_left = 20, padding_top = 3, padding_bottom = 3, line_spacing = 5, base_color = "#9ecdff", bold_color = "#9ecdff" },
+    h1          = { font_family = "Arial", font_size = 23, padding_left = 0,  padding_top = 3, padding_bottom = 5, line_spacing = 0, base_color = "#288efa", bold_color = "#288efa" },
+    h2          = { font_family = "Arial", font_size = 21, padding_left = 5,  padding_top = 3, padding_bottom = 5, line_spacing = 0, base_color = "#4da3ff", bold_color = "#4da3ff" },
+    h3          = { font_family = "Arial", font_size = 19, padding_left = 10, padding_top = 3, padding_bottom = 4, line_spacing = 0, base_color = "#65acf7", bold_color = "#65acf7" },
+    h4          = { font_family = "Arial", font_size = 17, padding_left = 15, padding_top = 3, padding_bottom = 3, line_spacing = 0, base_color = "#85c0ff", bold_color = "#85c0ff" },
+    h5          = { font_family = "Arial", font_size = 15, padding_left = 20, padding_top = 3, padding_bottom = 3, line_spacing = 0, base_color = "#9ecdff", bold_color = "#9ecdff" },
 
-    paragraph   = { font_family = "sans-serif", font_size = 13, padding_left = 30, padding_top = 3, padding_bottom = 7, line_spacing = 3, padding_in_blockquote = 6 },
-    table       = { font_family = "sans-serif", font_size = 13, padding_left = 30, padding_top = 3, padding_bottom = 7, line_spacing = 3 },
+    paragraph   = { font_family = "Arial", font_size = 13, padding_left = 30, padding_top = 3, padding_bottom = 7, line_spacing = 0, padding_in_blockquote = 6 },
+    list        = { font_family = "Arial", font_size = 13, padding_left = 40, padding_top = 5, padding_bottom = 7, line_spacing = 0, padding_indent = 5 },
 
-    code        = { font_family = "monospace",  font_size = 13, padding_left = 30, padding_top = 3, padding_bottom = 7,  line_spacing = 3, padding_in_blockquote = 6 },
+    table       = { font_family = "Arial", font_size = 13, padding_left = 30, padding_top = 3, padding_bottom = 7, line_spacing = 0 },
 
-    blockquote  = { font_family = "sans-serif", font_size = 13, padding_left = 0,  padding_top = 5, padding_bottom = 10, line_spacing = 3, padding_indent = 10 },
-    list        = { font_family = "sans-serif", font_size = 13, padding_left = 40, padding_top = 5, padding_bottom = 7,  line_spacing = 3, padding_indent = 5 },
-    link        = { font_family = "sans-serif", font_size = 13, base_color = "orange", bold_color = "tomato"},
+    code        = { font_family = "monospace",  font_size = 13, padding_left = 30, padding_top = 3, padding_bottom = 7,  line_spacing = 4, padding_in_blockquote = 6 },
+    blockquote  = { font_family = "Arial", font_size = 13, padding_left = 0,  padding_top = 5, padding_bottom = 10, line_spacing = 2, padding_indent = 10 },
+
+    link        = { base_color = "orange", bold_color = "tomato"},
 
     separator   = { padding_top = 3, padding_bottom = 7 }
 }
@@ -170,7 +172,7 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
     local rendered_last             = false
     local num_line                  = 0
     local num_on_line               = 0
-    local in_link                   = false
+    local in_link                   = nil
     local base_txt_color            = DEFAULT_COLOR
     local should_autopad            = options.autopad
     local should_wrap               = options.wrap
@@ -182,11 +184,9 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
     local render_children = function(children, level) return nil end
 
     local function push_style(node)
-        local class_name = node.style.name
-        local group      = fonts[class_name]
-        local f          = group[node.style.font_style]
-
-        base_txt_color = node.style.color
+        local group         = fonts[node.style.font_family]
+        local f             = group[node.style.font_style]
+        base_txt_color      = node.style.color
 
         ImGui.PushFont(ctx, f, node.style.font_size)
     end
@@ -196,11 +196,22 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
         ImGui.PopFont(ctx)
     end
 
+    local function LaunchLink(link)
+        if link.scheme == 'action' then
+            reaper.Main_OnCommandEx(link.target, 0, 0)
+        elseif link.scheme == 'time' then
+            local respos = reaper.parse_timestr_pos(link.target, -1)
+            reaper.SetEditCurPos(respos, true, true)
+        else
+            reaper.CF_ShellExecute(link.url)
+        end
+    end
+
     local function draw_word (node, word)
         local x, y = ImGui.GetCursorScreenPos(ctx)
 
         if num_on_line == 0 then
-            --   ImGui.AlignTextToFramePadding(ctx)
+            ImGui.AlignTextToFramePadding(ctx)
         end
 
         local color = base_txt_color
@@ -211,7 +222,7 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
                 ImGui.SetMouseCursor(ctx, ImGui.MouseCursor_Hand)
             end
             if ImGui.IsItemClicked(ctx) then
-                reaper.CF_ShellExecute(in_link)
+                LaunchLink(in_link)
             end
         end
 
@@ -222,8 +233,8 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
         if in_link then
             local x2, y2      = ImGui.GetCursorScreenPos(ctx)
             local draw_list   = ImGui.GetWindowDrawList(ctx)
-            local fsize       = style[node.style.name].font_size
-            ImGui.DrawList_AddLine(draw_list, x, y+fsize, x2, y2+fsize, color, 1)
+            local fsize       = node.style.font_size
+            ImGui.DrawList_AddLine(draw_list, x, y+fsize*1.2, x2, y2+fsize*1.2, color, 1)
         end
     end
 
@@ -252,6 +263,8 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
 
         local function newline()
             ImGui.NewLine(ctx)
+            ImGui.AlignTextToFramePadding(ctx)
+
             num_line    = num_line + 1
             num_on_line = 0
 
@@ -372,20 +385,23 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
     local function precalculate_style(parent_node, node)
         precalc_last_node = node
         if not parent_node then
+            local default_style = style["default"]
             node.style = {
-                name        = "default",
-                font_style  = "normal",
-                size        = style["default"].font_size,
-                base_color  = resolve_color(style["default"].base_color) or DEFAULT_COLOR,
-                bold_color  = resolve_color(style["default"].bold_color) or DEFAULT_COLOR
+                name        = default_style.name,
+                font_family = default_style.font_family,
+                font_style  = default_style.font_style or "normal",
+                font_size   = default_style.font_size or 12,
+                base_color  = resolve_color(default_style.base_color) or DEFAULT_COLOR,
+                bold_color  = resolve_color(default_style.bold_color) or DEFAULT_COLOR
             }
         else
             node.style = {
                 name        = parent_node.style.name,
-                base_color  = parent_node.style.base_color,
-                bold_color  = parent_node.style.bold_color,
+                font_family = parent_node.style.font_family,
                 font_style  = parent_node.style.font_style,
                 font_size   = parent_node.style.font_size,
+                base_color  = parent_node.style.base_color,
+                bold_color  = parent_node.style.bold_color,
             }
 
             if node.type == "Bold" then
@@ -403,7 +419,8 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
 
             if local_style then
                 node.style.name         = style_name
-                node.style.font_size    = local_style.font_size
+                node.style.font_family  = local_style.font_family or parent_node.style.font_family
+                node.style.font_size    = local_style.font_size or parent_node.style.font_size
 
                 if local_style.base_color then
                     local res = resolve_color(local_style.base_color)
@@ -511,6 +528,8 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
             ImGuiVDummy(ctx, nstyle.padding_top)
             IndentLeft(nstyle, level)
 
+            ImGui.AlignTextToFramePadding(ctx)
+
             ImGui.BeginGroup(ctx)
             ImGui.PushStyleVar(ctx, ImGui.StyleVar_ItemSpacing, 0, nstyle.line_spacing)
             push_style(node)
@@ -537,6 +556,8 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
 
             -- Indent left, using cursor
             IndentLeft(nstyle, level)
+
+            ImGui.AlignTextToFramePadding(ctx)
 
             -- Use a group to lock the x indentation
             ImGui.BeginGroup(ctx)
@@ -583,11 +604,35 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
             end
 
         elseif node.type == "Link" then
-            in_link = node.attributes.url
-            push_style(node)
-            render_children(node.children, level)
-            pop_style()
-            in_link = false
+            in_link = { url = node.attributes.url }
+            in_link.scheme, in_link.target = node.attributes.url:match("^(.*)://(.*)")
+
+            if in_link.scheme == 'action' then
+                node.rand = node.rand or math.random()
+                ImGui.BeginGroup(ctx)
+                ImGui.Text(ctx, " ")
+                ImGui.SameLine(ctx)
+
+                -- Convert to integer
+                in_link.target = tonumber(in_link.target) or reaper.NamedCommandLookup(in_link.target)
+                in_link.state = (reaper.GetToggleCommandState(in_link.target) == 1)
+
+                if in_link.state then ImGui.PushStyleColor(ctx, ImGui.Col_Button, 0x2088FFFF) end
+                if ImGui.Button(ctx, AstToText.ASTToPlainText(node.children) .. "##" .. node.rand) then
+                    LaunchLink(in_link)
+                end
+                if in_link.state then ImGui.PopStyleColor(ctx) end
+
+                ImGui.SameLine(ctx)
+                ImGui.Text(ctx, " ")
+                ImGui.EndGroup(ctx)
+                ImGui.SameLine(ctx)
+            else
+                push_style(node)
+                render_children(node.children, level)
+                pop_style()
+            end
+            in_link = nil
 
         elseif node.type == "LineBreak" then
 
@@ -595,9 +640,13 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
             num_line        = num_line + 1
 
             ImGui.NewLine(ctx)
+            ImGui.AlignTextToFramePadding(ctx)
 
         elseif (node.type == "UnorderedList") or (node.type == "OrderedList") then
             local nstyle = style.list
+
+            num_on_line     = 0
+            num_line        = num_line + 1
 
             if level > 1 then
                 -- Special case for sub lists. They are added directly behind inlined elements
@@ -607,10 +656,8 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
                 ImGuiVDummy(ctx, nstyle.padding_top)
             end
 
-            num_line        = num_line + 1
-            num_on_line     = 0
-
             IndentLeft(nstyle, level)
+            ImGui.AlignTextToFramePadding(ctx)
 
             ImGui.BeginGroup(ctx)
             render_children(node.children, level)
@@ -630,6 +677,8 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
 
             num_line        = num_line + 1
             num_on_line     = 0
+
+            ImGui.AlignTextToFramePadding(ctx)
 
             if node.parent_list.type == "UnorderedList" then
                 -- Render a bullet with the default font
@@ -671,6 +720,7 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
 
             -- Indent left, using cursor
             IndentLeft(nstyle, level)
+            ImGui.AlignTextToFramePadding(ctx)
 
             local x, y = ImGui.GetCursorScreenPos(ctx)
 
@@ -704,13 +754,15 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
             num_on_line     = 0
 
             ImGuiVDummy(ctx, nstyle.padding_top)
-
             IndentLeft(nstyle, level)
+            ImGui.AlignTextToFramePadding(ctx)
 
             ImGui.BeginGroup(ctx)
-            ImGui.PushStyleVar(ctx, ImGui.StyleVar_ItemSpacing, 0, 0)
+            ImGui.PushStyleVar(ctx, ImGui.StyleVar_ItemSpacing, 0, nstyle.line_spacing)
             push_style(node)
-            ImGui.TextColored(ctx, resolve_color(nstyle.color), node.value)
+            for line in string.gmatch(node.value .. "\n", "(.-)\n") do
+                ImGui.TextColored(ctx, resolve_color(nstyle.color), line)
+            end
             pop_style()
             ImGui.PopStyleVar(ctx)
             ImGui.EndGroup(ctx)
@@ -741,8 +793,8 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
             end
 
             ImGuiVDummy(ctx, nstyle.padding_top)
-
             IndentLeft(nstyle, level)
+            ImGui.AlignTextToFramePadding(ctx)
 
             ImGui.BeginGroup(ctx)
             push_style(node)
@@ -773,9 +825,23 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
             end
         elseif node.type == "Checkbox" then
             node.rand = node.rand or math.random()
-            ImGui.PushStyleVar(ctx, ImGui.StyleVar_FramePadding, 0, 0)
+
+            if num_on_line == 0 then
+                ImGui.AlignTextToFramePadding(ctx)
+            end
+
+            -- A bit of cooking to resize the checkbox
+            ImGui.BeginGroup(ctx)
+            local frameheight = ImGui.GetFrameHeight(ctx)
+            push_style(node)
+            ImGui.PushFont(ctx, node.style.font, node.style.font_size * 0.6)
+            local frameheight2 = ImGui.GetFrameHeight(ctx) - 3
+            ImGui.SetCursorPosY(ctx, ImGui.GetCursorPosY(ctx) + (frameheight - frameheight2) * 0.5)
             local b,v = ImGui.Checkbox(ctx, "##checkbox_" .. node.rand, node.attributes.checked)
-            ImGui.PopStyleVar(ctx)
+            ImGui.PopFont(ctx)
+            pop_style()
+            ImGui.EndGroup(ctx)
+
             if b then
                 local old_value = node.attributes.checked
                 local new_value = not node.attributes.checked

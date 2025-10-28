@@ -107,7 +107,7 @@ _This will also be italic_
 **This text will be bold**
 __This will also be bold__
 
-This `:#FFFF00:text` **:green:uses** _:cyan:colors_.
+This $:#FFFF00:text$ **:green:uses** _:cyan:colors_.
 
 _You **:#FF00FF:can** combine them_
 
@@ -140,12 +140,23 @@ _You **:#FF00FF:can** combine them_
 
 You are currently using [Reaper](https://reaper.fm/).
 
+## Action Links
+
+You can create special links to perform **time seek** in reaper.
+
+  For example [Go to Measure 2](time://2.1) or [Go to position 45s for example](time://0:0:45)
+
+You can also create reaper **action buttons**, here is a mini transport :
+
+  [Stop](action://1016) [Pause](action://1008) [Play](action://1007) [Play/Stop](action://40044)
+
+Or, maybe you want to [Launch another action](action://40605) ?
+
 ## Blockquotes
 
 > Markdown is a **:red:lightweight markup language** with plain-text-formatting syntax, created in 2004 by John Gruber with Aaron Swartz.
 >> Markdown is often used to format readme files, for writing messages in online discussion forums, and to create rich text using a plain text editor.
 >>> Markdown is often used to format readme files, for writing messages in online discussion forums, and to create rich text using a plain text editor.
-
 
 ## Tables
 
@@ -154,6 +165,19 @@ You are currently using [Reaper](https://reaper.fm/).
 | left foo      | right **:green:foo**     |
 | left bar      | right bar     |
 | left baz      | right baz     |
+
+## Checkboxes
+
+Checkboxes can be put in
+
+- [ ] List items
+- [ ] And other list items
+
+Or just [ ] almost [ ] any [x] where ! [ ] [x] [ ] [ ] [x]
+
+| Crazy  | Check | Boxes |
+| ------------- |-------------|-|
+| See [x] ? | [ ]  Here you go | [x] |
 
 ## Blocks of code
 
