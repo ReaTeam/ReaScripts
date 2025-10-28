@@ -238,6 +238,14 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
         end
     end
 
+    local function nodeHasChild(node, candidate_node)
+        for _, child in ipairs(node.children) do
+            if child == candidate_node then return true end
+            if nodeHasChild(child, candidate_node) then return true end
+        end
+        return false
+    end
+
     local function ensureNodeWordSplit(node)
         if not node.words then
             -- Each node contains a sequence of "tokens", which are words, and spaces, with special treatement :
@@ -383,6 +391,7 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
 
     -- Propagate fonts, colors and pre calculate metrics
     local function precalculate_style(parent_node, node)
+        -- Advance the precalc_last_node pointer each time we explore a node, in the end it will be our last node
         precalc_last_node = node
         if not parent_node then
             local default_style = style["default"]
@@ -492,11 +501,11 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
     end
 
     -- Pointer to the last node encountered
-    local last_node = nil
-    local max_x     = nil
-    local max_y     = nil
-    local win_x, win_y     = ImGui.GetWindowPos(ctx)
-    local start_x, start_y = win_x, win_y
+    local last_node         = nil
+    local max_x             = nil
+    local max_y             = nil
+    local win_x, win_y      = ImGui.GetWindowPos(ctx)
+    local start_x, start_y  = win_x, win_y
 
     local function render_node(node, level)
         level = level or 1 -- Default to level 1 if not provided
@@ -628,6 +637,12 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
                 ImGui.SameLine(ctx)
                 ImGui.EndGroup(ctx)
                 ImGui.SameLine(ctx)
+
+                -- Since we used AstToPlainText, last_node detection is affected
+                if nodeHasChild(node, last_node) then
+                    rendered_last = true
+                end
+                num_on_line = num_on_line + 1
             else
                 push_style(node)
                 render_children(node.children, level)
@@ -870,7 +885,7 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
         if not max_x or imax_x > max_x then max_x = imax_x end
         if not max_y or imax_y > max_y then max_y = imax_y end
 
-        if last_node == node then
+        if (not rendered_last) and (last_node == node) then
             rendered_last = true
         end
     end
