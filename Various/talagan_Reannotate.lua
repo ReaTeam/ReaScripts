@@ -1,6 +1,6 @@
 --[[
 @description Reannotate - Annotation tool for REAPER
-@version 0.3.6
+@version 0.3.7
 @author Ben 'Talagan' Babut
 @donation https://www.paypal.com/donate/?business=3YEZMY9D6U8NC&no_recurring=1&currency_code=EUR
 @license MIT
@@ -10,11 +10,7 @@
   Forum Thread https://forum.cockos.com/showthread.php?t=304147
 @metapackage
 @changelog
-  - [Feature] Checkbox support (imgui markdown integration)
-  - [Feature] Right click to pin
-  - [Rework] Multiple overlays and floating MCP support
-  - [Rework] No more use for top windows minimization
-  - [Rework] Better z-ordering logic
+  - [Rework] Adapted style to new ImGui's metrics behaviour
 @provides
   [nomain] talagan_Reannotate/ext/**/*
   [nomain] talagan_Reannotate/classes/**/*
