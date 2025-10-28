@@ -625,6 +625,7 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
 
                 ImGui.SameLine(ctx)
                 ImGui.Text(ctx, " ")
+                ImGui.SameLine(ctx)
                 ImGui.EndGroup(ctx)
                 ImGui.SameLine(ctx)
             else
