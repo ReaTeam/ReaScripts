@@ -326,7 +326,7 @@ local function parse_inline(text, base_offset)
             i = j + 1
           end
         else
-          buffer = buffer .. text:sub(i, j)
+           buffer = buffer .. text:sub(i, j)
           buffer_start = base_offset + i
           i = j + 1
         end

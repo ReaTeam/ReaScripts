@@ -5,7 +5,7 @@
 
 -- Text generation from AST, this is for inspecting and debugging
 
-local function ASTToText(obj, indent, visited, lines)
+local function render_node_inpect(obj, indent, visited, lines)
   indent = indent or 0
   visited = visited or {}
   lines = lines or {}
@@ -33,7 +33,6 @@ local function ASTToText(obj, indent, visited, lines)
     end
     visited[obj] = true
 
-    -- Vérifier si la table est vide
     if next(obj) == nil then
       add_line("{}")
       return lines
@@ -41,7 +40,7 @@ local function ASTToText(obj, indent, visited, lines)
 
     add_line("{")
 
-    -- Collecter et trier les clés
+    -- Inspect by key / value, gather numeric and str keys separately
     local num_keys = {}
     local str_keys = {}
     for k, _ in pairs(obj) do
@@ -57,7 +56,6 @@ local function ASTToText(obj, indent, visited, lines)
     local non_tables = {}
     local sub_tables = {}
 
-    -- Traiter les clés numériques
     for _, k in ipairs(num_keys) do
       if type(obj[k]) == "table" then
         table.insert(sub_tables, { key = k, is_number = true })
@@ -66,7 +64,6 @@ local function ASTToText(obj, indent, visited, lines)
       end
     end
 
-    -- Traiter les clés chaînes
     for _, k in ipairs(str_keys) do
       if type(obj[k]) == "table" then
         table.insert(sub_tables, { key = k, is_number = false })
@@ -75,7 +72,6 @@ local function ASTToText(obj, indent, visited, lines)
       end
     end
 
-    -- Afficher les non-tables
     for _, item in ipairs(non_tables) do
       local key_str = item.is_number and tostring(item.key) or item.key
       local formatted = format_value(obj[item.key])
@@ -84,11 +80,10 @@ local function ASTToText(obj, indent, visited, lines)
       end
     end
 
-    -- Afficher les sous-tables
     for _, item in ipairs(sub_tables) do
       local key_str = item.is_number and tostring(item.key) or item.key
       add_line(key_str .. " = ")
-      ASTToText(obj[item.key], indent + 1, visited, lines)
+      render_node_inpect(obj[item.key], indent + 1, visited, lines)
     end
 
     add_line("}")
@@ -102,4 +97,55 @@ local function ASTToText(obj, indent, visited, lines)
   return table.concat(lines, "\n")
 end
 
-return ASTToText
+local function ASTInspect(obj, indent)
+  return render_node_inpect(obj,indent,{},{})
+end
+
+
+local function ASTToPlainText(nodes)
+  if not nodes then
+    return ""
+  end
+
+  -- Single node
+  if nodes.type then
+    nodes = {nodes}
+  end
+
+  local result = {}
+
+  local function traverse(node)
+    if node.type == "Text" then
+      table.insert(result, node.value)
+
+    elseif node.type == "Image" then
+      table.insert(result, node.attributes.alt or "")
+
+    elseif node.type == "Checkbox" then
+      if node.attributes.checked then
+        table.insert(result, "[x]")
+      elseif node.attributes.partial then
+        table.insert(result, "[-]")
+      else
+        table.insert(result, "[ ]")
+      end
+
+    elseif node.children then
+      for _, child in ipairs(node.children) do
+        traverse(child)
+      end
+    end
+  end
+
+  for _, node in ipairs(nodes) do
+    traverse(node)
+  end
+
+  return table.concat(result, "")
+end
+
+
+return {
+  ASTInspect      = ASTInspect,
+  ASTToPlainText  = ASTToPlainText
+}
