@@ -129,9 +129,24 @@ local function Font(ctx, font_name)
     return info.loaded_fonts[ctx]
 end
 
+local function CharInfo(font_name, char_id)
+    local spec = FontSpec(font_name)
+    local icon = spec.icon_dict[char_id]
+    if not icon then return nil end
+
+    return {
+        id          = icon.x,
+        label       = icon.l,
+        codepoint   = icon.p,
+        utf8        = icon.utf8,
+        font_name   = icon.current_font_name
+    }
+end
+
 return {
     Path        = Path,
     SetPath     = SetPath,
     FontSpec    = FontSpec,
     Font        = Font,
+    CharInfo    = CharInfo
 }

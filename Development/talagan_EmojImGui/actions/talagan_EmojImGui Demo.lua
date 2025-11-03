@@ -13,6 +13,16 @@ package.path = package.path .. ";" .. ACTION_DIR .. "talagan_EmojImgui/?.lua"
 local ImGui         = require "emojimgui/ext/imgui"
 local EmojImGui     = require "emojimgui"
 
+local use_profiler  = false
+
+if use_profiler then
+    local profiler       = dofile(reaper.GetResourcePath() .. '/Scripts/ReaTeam Scripts/Development/cfillion_Lua profiler.lua')
+
+    reaper.defer = profiler.defer
+    profiler.attachToWorld() -- after all functions have been defined
+    profiler.run()
+end
+
 -- Set the path to EmojImGui assets. Here it is done because the demo needs to work in dev directly from the git repo
 -- But for any dev using the library, the path should already be set internally by the lib and this call is not needed.
 EmojImGui.Asset.SetPath(ACTION_DIR .. "talagan_EmojImgui/assets/build")
