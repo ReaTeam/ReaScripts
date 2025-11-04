@@ -222,9 +222,15 @@ function IconPicker:drawIcon(ctx, icon, prefix, avail_w)
     local btn_id = "##" .. prefix .. "_" .. icon.x
     local clicked = false
 
+    -- Style and color must be pushed every time because of the tooltip
+    ImGui.PushStyleVar(ctx, ImGui.StyleVar_FramePadding, 0, 0)
+    ImGui.PushStyleVar(ctx, ImGui.StyleVar_FrameRounding, 2)
+    ImGui.PushFont(ctx, Asset.Font(ctx, self.current_font_name), self.icon_size)
     if ImGui.Button(ctx, icon.utf8 .. btn_id) then
         clicked = true
     end
+    ImGui.PopFont(ctx)
+    ImGui.PopStyleVar(ctx, 2)
 
     if ImGui.IsItemHovered(ctx) then
         ImGui.SetTooltip(ctx, self:capitalize(icon.l))
@@ -367,9 +373,6 @@ function IconPicker:draw(ctx)
                 ImGui.PopStyleColor(ctx)
 
                 ImGui.PushStyleColor(ctx, ImGui.Col_Button, self.button_color)
-                ImGui.PushStyleVar(ctx, ImGui.StyleVar_FramePadding, 0, 0)
-                ImGui.PushStyleVar(ctx, ImGui.StyleVar_FrameRounding, 2)
-                ImGui.PushFont(ctx, Asset.Font(ctx, self.current_font_name), self.icon_size)
                 for _, icon_id in ipairs(recent) do
                     local icon = font_spec.icon_dict[icon_id]
                     if icon then
@@ -378,8 +381,6 @@ function IconPicker:draw(ctx)
                         end
                     end
                 end
-                ImGui.PopFont(ctx)
-                ImGui.PopStyleVar(ctx, 2)
                 ImGui.PopStyleColor(ctx)
 
                 ImGui.Dummy(ctx,1,10)
@@ -404,9 +405,7 @@ function IconPicker:draw(ctx)
                         -- Subgroup header
                         ImGui.Text(ctx, self:labelize(subgroup.n))
 
-                        ImGui.PushStyleVar(ctx, ImGui.StyleVar_FramePadding, 0, 0)
-                        ImGui.PushStyleVar(ctx, ImGui.StyleVar_FrameRounding, 2)
-                        ImGui.PushFont(ctx, Asset.Font(ctx, self.current_font_name), self.icon_size)
+                        ImGui.PushStyleColor(ctx, ImGui.Col_Button, self.button_color)
                         for _, icon in ipairs(subgroup.c or {}) do
                             if not self.filtered_icons[icon.x] then
                                 if self:drawIcon(ctx, icon, "icon", avail_w) then
@@ -424,8 +423,7 @@ function IconPicker:draw(ctx)
                                 end
                             end
                         end
-                        ImGui.PopFont(ctx)
-                        ImGui.PopStyleVar(ctx, 2)
+                        ImGui.PopStyleColor(ctx)
 
                         ImGui.Spacing(ctx)
                     end
