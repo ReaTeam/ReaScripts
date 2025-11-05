@@ -39,7 +39,10 @@ The TweMoji svg files have naming problems, they use hexcodes, but sometimes the
 
 - build_html_test_file : build test files in HTML to visually check that everything's ok
 
+- build_lua_indexes.lua : this converts the json indexes into lua files to be loaded directly. It speeds up loading time and is way faster than parsing json.
+
 - build.sh contains the list of all commands that are used by the build flow (and can be launched to perform la totale)
+
 
 # Running the python script
 

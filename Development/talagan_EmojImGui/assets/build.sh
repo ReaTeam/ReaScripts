@@ -11,3 +11,7 @@ echo "\n\nGenerating index files\n"
 echo "\n\nGenerating html test files\n"
 ./build_html_test_file.rb "OpenMoji" "OpenMoji-color-glyf_colr_0-patched.ttf" "build/openmoji-spec.json" "build/openmoji.html"
 ./build_html_test_file.rb "TweMoji" "TweMoji-color-glyf_colr_0-patched.ttf" "build/twemoji-spec.json" "build/twemoji.html"
+
+echo "\n\Generating lua index files\n"
+./build_lua_indexes.lua
+
