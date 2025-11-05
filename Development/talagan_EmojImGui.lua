@@ -12,8 +12,10 @@
 @provides
   [nomain] talagan_EmojImGui/assets/build/OpenMoji-color-glyf_colr_0-patched.ttf
   [nomain] talagan_EmojImGui/assets/build/openmoji-spec.json
+  [nomain] talagan_EmojImGui/assets/build/openmoji-spec.lua
   [nomain] talagan_EmojImGui/assets/build/TweMoji-color-glyf_colr_0-patched.ttf
   [nomain] talagan_EmojImGui/assets/build/twemoji-spec.json
+  [nomain] talagan_EmojImGui/assets/build/twemoji-spec.lua
   [nomain] talagan_EmojImGui/emojimgui/**/*.lua
   [nomain] talagan_EmojImGui/emojimgui.lua
   [main]   talagan_EmojImGui/actions/talagan_EmojImGui Demo.lua > .

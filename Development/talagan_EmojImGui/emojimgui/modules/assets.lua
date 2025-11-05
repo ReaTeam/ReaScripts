@@ -7,17 +7,19 @@
 local JSON          = require "emojimgui/ext/json"
 local ImGui         = require "emojimgui/ext/imgui"
 
-local asset_path    = reaper.GetResourcePath() .. "/Scripts/ReaTeam Scripts/Development/talagan_EmojImGui/assets/build"
+local asset_path    = (debug.getinfo(1,"S").source:match[[^@?(.*[\/])[^\/]-$]]):gsub("/emojimgui/modules/?$","") .. "/assets/build/"
 
 -- Font registry with relative paths
 local FONT_REGISTRY = {
     OpenMoji = {
         json = "/openmoji-spec.json",
+        lua  = "/openmoji-spec.lua",
         ttf  = "/OpenMoji-color-glyf_colr_0-patched.ttf",
         advised_background_color = 0x9EB8FFFF
     },
     TweMoji = {
         json = "/twemoji-spec.json",
+        lua  = "/twemoji-spec.lua",
         ttf  = "/TweMoji-color-glyf_colr_0-patched.ttf",
         advised_background_color = 0x00000000
     }
@@ -43,24 +45,36 @@ local function FontSpec(font_name)
     local info = FontInfo(font_name)
 
     if not info.loaded_spec then
-        local path = Path() .. info.json
-        local file = io.open(path, "r")
 
-        if not file then
-            error("Error: cannot open '" .. path .. "'\n")
-            return
-        end
+        local success, result = false, nil
+        if false then
+            local path = Path() .. info.json
+            local file = io.open(path, "r")
 
-        local content = file:read("*all")
-        file:close()
+            if not file then
+                error("Error: cannot open '" .. path .. "'\n")
+                return
+            end
 
-        local success, result = pcall(function()
-            return JSON.decode(content) or nil
-        end)
+            local content = file:read("*all")
+            file:close()
 
-        if not success or not result then
-            reaper.ShowConsoleMsg("Error: cannot parse JSON for " .. font_name .. "\n")
-            return
+            success, result = pcall(function()
+                return JSON.decode(content) or nil
+            end)
+
+            if not success or not result then
+                reaper.ShowConsoleMsg("Error: cannot parse JSON spec for font " .. font_name .. "\n")
+                return
+            end
+        else
+            -- Fast lua loading
+            local path = Path() .. info.lua
+            result = dofile(path)
+            if not result then
+                reaper.ShowConsoleMsg("Error: cannot parse LUA spec for font " .. font_name .. "\n")
+                return
+            end
         end
 
         info.loaded_spec = {}

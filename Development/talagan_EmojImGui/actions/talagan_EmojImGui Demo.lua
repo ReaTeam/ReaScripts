@@ -67,6 +67,7 @@ local function loop()
 
         if not picker and ImGui.IsWindowHovered(ctx) and ImGui.IsMouseClicked(ctx, ImGui.MouseButton_Left) then
             picker = EmojImGui.Picker:new()
+            --EmojImGui.Asset.CharInfo("TweMoji", "1F3F4-E0067-E0062-E0077-E006C-E0073-E007F")
         end
 
         if picker and not picker.open then
