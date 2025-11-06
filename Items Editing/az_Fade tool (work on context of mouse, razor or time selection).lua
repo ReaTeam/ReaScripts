@@ -1,9 +1,7 @@
 -- @description Fade tool (works on context of mouse, razor or time selection)
 -- @author AZ
--- @version 2.4
--- @changelog
---   - Support for editing take envelopes via razor
---   - New option to prefer edit single take envelope rather double fades creation.
+-- @version 2.4.1
+-- @changelog - fixed wrong asymmetric envelope smoothing in some cases
 -- @provides
 --   az_Fade tool (work on context of mouse, razor or time selection)/az_Options window for az_Fade tool.lua
 --   [main] az_Fade tool (work on context of mouse, razor or time selection)/az_Open options for az_Fade tool.lua
@@ -63,7 +61,7 @@ end
 -------------------------
 
 ExtStateName = 'AZ_FadeTool'
-CurVers = 2.4
+CurVers = 2.41
 
 SaveLastBatchPrj = reaper.GetExtState(ExtStateName, 'SaveLastBatchPrj')
 if SaveLastBatchPrj == 'false' then SaveLastBatchPrj = false
@@ -397,10 +395,11 @@ function GetEnvelopePointsInRange(envelope, time1, time2)
         
         if oldtime == time and oldvalue == value then
            reaper.DeleteEnvelopePointEx( envelope, -1, i-1)
+           --msg('Delete excess point '.. (i-1) )
            increase = 0
         end
-        
-        if time >= areaStart and time <= areaEnd then --point is in range
+        --msg(time..' - '..areaStart..' - '..areaEnd)
+        if round(time,6) >= round(areaStart,6) and round(time,6) <= round(areaEnd,6) then --point is in range
           envelopePoints[#envelopePoints + increase] = {
                 id = i-1 ,
                 time = time,
@@ -1472,6 +1471,7 @@ function FadeEnvelope(areaData)
         reaper.Envelope_SortPointsEx( env, -1 )
         
         envPoints = GetEnvelopePointsInRange(env, areaStart, newStart)
+        --msg(#envPoints..' '..#envPoints.Start..' '..#envPoints.End)
         local ret2 = CutEnv(env,envPoints,areaStart,newStart)
         
         if ret == true or ret2 == true then
@@ -3038,6 +3038,12 @@ end
 end --end of Main()
 
 ---------------------------
+
+function round(value, digitsAfterDot)
+  return tonumber(string.format("%."..digitsAfterDot.."f", tostring(value)))
+end
+
+-----------------------------
 
 function get_script_path()
   local info = debug.getinfo(1,'S');
