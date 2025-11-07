@@ -153,7 +153,7 @@ local function CharInfo(font_name, char_id)
         label       = icon.l,
         codepoint   = icon.p,
         utf8        = icon.utf8,
-        font_name   = icon.current_font_name
+        font_name   = font_name
     }
 end
 
