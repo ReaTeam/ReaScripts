@@ -261,7 +261,7 @@ function IconPicker:draw(ctx)
 
     ImGui.SetNextWindowSize(ctx, self.window_width, self.window_height, ImGui.Cond_FirstUseEver)
 
-    local visible, open = ImGui.Begin(ctx, self.window_title, true, ImGui.WindowFlags_None | ImGui.WindowFlags_NoDocking)
+    local visible, open = ImGui.Begin(ctx, self.window_title, true, ImGui.WindowFlags_None | ImGui.WindowFlags_NoDocking | ImGui.WindowFlags_TopMost)
     self.open = open
 
     if visible then
