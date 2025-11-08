@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="46d8ee4fc44e7b0100c5eb042b5d18c81c2551a6" name="ReaTeam Scripts">
+<index version="1" commit="4cedc8f27d0be616fdc8e7e17dd4c5b996bde6e1" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -24723,6 +24723,21 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
       </metadata>
       <version name="1.0" author="amagalma" time="2021-02-10T00:32:31Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a6a8d070a96f8c167d295ac7fbf4c585fe704509/Various/amagalma_Set%20size%20of%20Vertical%20Zoom%20presets.lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Set Solo in Front dimming and state.lua" type="script" desc="Set Solo in Front dimming and state">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Button and slider to set the value and state of Solo in Front.\par}
+}
+]]></description>
+        <link rel="donation">https://www.paypal.me/amagalma</link>
+      </metadata>
+      <version name="1.00" author="amagalma" time="2025-11-08T22:02:24Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4cedc8f27d0be616fdc8e7e17dd4c5b996bde6e1/Various/amagalma_Set%20Solo%20in%20Front%20dimming%20and%20state.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Show menu for dry run (calculate loudness) actions.lua" type="script" desc="Show menu for dry run (calculate loudness) actions">
