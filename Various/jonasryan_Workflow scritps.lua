@@ -1,0 +1,44 @@
+-- @description Workflow scritps
+-- @author Jonas Ryan
+-- @version 1.0
+-- @changelog
+--   Version 1.0.
+--   First package I have submitted.
+--   Going to make a youtube-guide and upload link later.
+-- @provides
+--   [main] jonasryan_Workflow scritps/New file 4.lua > jonasryan_Workflow scritps/JRA_CascadeItems.lua
+--   [main] jonasryan_Workflow scritps/JRA_AddRegionForEachTrackContent.lua
+--   jonasryan_Workflow scritps/New file 6.lua > jonasryan_Workflow scritps/JRA_AddMarkersAtStartOfSelectedItemsInEveryRegion.lua
+-- @about
+--   # Items and regions organization tool
+--
+--   Package I made for organizing and preparing field recording sessions for rendering into SFX-libraries.
+--
+--   ## Contains the scripts:
+--   - JRA_CascadeItems
+--   - JRA_AddRegionForEachTrackContent
+--   - JRA_AddMarkersAtStartOfSelectedItemsInEveryRegion
+--
+--
+--   ### JRA_CascadeItems:
+--   - Organize media items with even space between items: from end-to-start of form start-to-start.
+--   - Toggle selected items or all items in project
+--   - Options to have the next track's first item start after the previous track's last item: cascading.
+--   - Or have it organize the files on each track separately from other tracks
+--   - Choose space between each item
+--
+--   ### JRA_AddRegionForEachTrackContent
+--   - for each track: adds a region encapsulating all media items
+--   - can choose to add to region render matrix
+--   - can choose if render should be through track or through master
+--
+--   ### JRA_AddMarkersAtStartOfSelectedItemsInEveryRegion
+--     - For every region: Add a marker at the start of each media item EXCEPT THE FIRST ITEM
+--     - Markers are named #1, #2, #3 etc for rendering metadata use
+--     - To mark variations in rendered sausage files
+--
+--
+--
+--   created by: Jonas Ryan (Jonas Ryan Audio), www.jonasryan.dk
+
+
