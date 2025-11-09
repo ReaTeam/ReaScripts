@@ -57,14 +57,38 @@ function AppContext:getImage(image_name)
   return images[image_name]
 end
 
+function AppContext:findMainToolbarHwnd(main_hwnd, time_ruler_hwnd, tcp_hwnd)
+  -- Some people don't use the main toolbar as main toolbar
+  local hwnd = reaper.JS_Window_Find('Main toolbar',true)
+  if not hwnd then
+    -- Use dirty heuristic : find the window that aligns with the time ruler and the TCP
+    local _, tr_l,  tr_t,   tr_r,   tr_b    = reaper.JS_Window_GetRect(time_ruler_hwnd)
+    local _, tcp_l, tcp_t,  tcp_r,  tcp_b   = reaper.JS_Window_GetRect(tcp_hwnd)
+    local _, l = reaper.JS_Window_ListAllChild(main_hwnd)
+    for token in string.gmatch(l, "[^,]+") do
+      local subhwnd = reaper.JS_Window_HandleFromAddress(token)
+      if subhwnd then
+        local _, a_l, a_t, a_r, a_b = reaper.JS_Window_GetRect(subhwnd)
+
+        if a_l == tcp_l and a_r == tcp_r and math.abs(a_t - tr_t) <= 2 and math.abs(a_b - tr_b) <= 10 then
+          hwnd = subhwnd
+          break
+        end
+      end
+    end
+  end
+  return hwnd
+end
+
+
 function AppContext:_initialize()
   self.launch_context             = LaunchContext:new()
   self.arrange_view_watcher       = ArrangeViewWatcher:new()
   self.mv                         = { hwnd=reaper.GetMainHwnd() }
   self.av                         = { hwnd=reaper.JS_Window_FindChildByID(self.mv.hwnd, 1000) }
   self.tcp                        = { hwnd=reaper.JS_Window_FindEx(reaper.GetMainHwnd(), reaper.GetMainHwnd(), "REAPERTCPDisplay", "") }
-  self.main_toolbar               = { hwnd=reaper.JS_Window_Find('Main toolbar', true)}
   self.time_ruler                 = { hwnd=reaper.JS_Window_FindChildByID(self.mv.hwnd, 1005) }
+  self.main_toolbar               = { hwnd=self:findMainToolbarHwnd(self.mv.hwnd, self.time_ruler.hwnd, self.tcp.hwnd)}
 
   local master_mcp_hwnd, other_mcp_hwnd, mcp_window = self:findMCPHwnds()
 
