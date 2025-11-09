@@ -1,9 +1,9 @@
 -- @description Perfect Timing! - Audio Quantizer
 -- @author 80icio
--- @version 0.29
+-- @version 0.30
 -- @changelog
---   - Fixed trackgroup editing behaviour from edit group 32 to 128
---   - Updated to 128 edit groups (128 groups??!?! really?!?)
+--   - Fixed incorrect edit window trigger line positions when pinned tracks are present
+--   - Improved quantizing behavior
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=288964
 -- @about
 --   # PERFECT TIMING! 
@@ -1311,8 +1311,8 @@ r.Main_OnCommandEx(r.NamedCommandLookup('_FNG_CLEAN_OVERLAP'),0,0) --- clean ove
       
        local sel_item = r.GetSelectedMediaItem(0,i-1)
        local pos = r.GetMediaItemInfo_Value(sel_item, "D_POSITION")
-       local Q_pos = Arc_GetClosestGridDivision(pos)
        local snapoff = r.GetMediaItemInfo_Value(sel_item, "D_SNAPOFFSET")
+       local Q_pos = Arc_GetClosestGridDivision(pos+snapoff)
        local Q_diff = (Q_pos - pos + snapoff )*(Qstrength_v/100)
        local New_pos =  pos - (snapoff*(Qstrength_v/100)*2) + Q_diff
        
@@ -1759,6 +1759,46 @@ end
 local MainHwnd = r.GetMainHwnd()
 local trackview = r.JS_Window_FindChildByID(MainHwnd, 0x3E8)
 
+function checkpinnedtracks_H()
+  local Only_pinnedMaster = false
+  local pinned_rv = r.GetToggleCommandState(43573)
+  local pinnedtracks_H = 0
+  
+  if pinned_rv == 0 then
+    local tracks_n = r.CountTracks(0)
+    local master = r.GetMasterTrack(0)
+    local pinned_master = r.GetMediaTrackInfo_Value(master, 'B_TCPPIN')
+    local track_H_master = 0
+    local track_H = 0
+    if pinned_master == 1 then
+      Only_pinnedMaster = true
+      r.GetMediaTrackInfo_Value(master, 'B_TCPPIN')
+      track_H_master = r.GetMediaTrackInfo_Value(master, "I_TCPH")
+    end
+  
+    for i=0, tracks_n-1 do
+      local track = r.GetTrack(0,i)
+      pinned_track = r.GetMediaTrackInfo_Value(track, 'B_TCPPIN')
+      if pinned_track == 1 then
+      Only_pinnedMaster = false
+      track_H = track_H + r.GetMediaTrackInfo_Value(track, "I_TCPH")
+      end
+    end
+    pinnedtracks_H = track_H_master + track_H
+    
+    
+    if pinnedtracks_H > 0 then
+      if Only_pinnedMaster then
+        pinnedtracks_H = pinnedtracks_H + 10
+      else
+        pinnedtracks_H = pinnedtracks_H + 15
+      end
+    end
+  end
+  return pinnedtracks_H
+end
+
+
 function CreateBitmap()
   local c = 1
   
@@ -1824,7 +1864,7 @@ function MW_drawlines()
             local  _, width = r.JS_Window_GetClientSize( trackview )
             local track_y = r.GetMediaTrackInfo_Value(sel_tr, "I_TCPY") 
             local track_H = r.GetMediaTrackInfo_Value(sel_tr, "I_TCPH")
-      
+
             --local track_FL_n = r.GetMediaTrackInfo_Value(sel_tr, "I_NUMFIXEDLANES")
             
             if r.GetToggleCommandState(43194) then
@@ -1842,8 +1882,10 @@ function MW_drawlines()
                media_H = r.GetMediaItemInfo_Value(item, "I_LASTH" )
             end
             
+            
             local media_Y = r.GetMediaItemInfo_Value(item, "I_LASTY" )
-         
+            
+            
             --local media_FL_y = r.GetMediaItemInfo_Value(item, "F_FREEMODE_Y")
            -- local media_FL_h = r.GetMediaItemInfo_Value(item, "F_FREEMODE_H")
 
@@ -1851,7 +1893,18 @@ function MW_drawlines()
             
             if MW_lines_ON and (Gtolerance_slider or r.GetPlayState() ~= 0 or mouse_vert_line_on_arrange_window or visualizer_rv or Offset or Detect_rv2 or Detect_rv or Visualizer_mode_rv or
             color_button or Sensitivity_slider or Change_grid or movescreen[trck] ~= movescreen_prev[trck]) then --or set_grid_from_script or get_grid_from_proj
-  
+            
+            local pinnedtrack_H = checkpinnedtracks_H()
+
+            if track_y + media_Y >= pinnedtrack_H  then 
+              track_y = track_y + media_Y
+            else
+              media_H = media_H + media_Y + (track_y - pinnedtrack_H)
+              if media_H<0 then media_H=0 end
+              track_y = pinnedtrack_H 
+            end
+            
+            
               if visualizer then
                 ---------------------------------------------- visualizer ZOOM AREA reference on MW
                 local bounds_start_pos = floor((startT+(zoom_bounds_L/first_srate)) * MWzoom)
@@ -1859,10 +1912,20 @@ function MW_drawlines()
                 --local composite_Y_start = track_y + (track_H*media_FL_y+0.5)//1
                 --local composite_Y_end = media_Y - (track_H*media_FL_y+0.5)//1
                 local thickness = 3 -- media_H//8
-                r.JS_Composite(trackview, bounds_start_pos - scrollpos, track_y + media_Y , bounds_width, thickness ,visualizer_bounds[trck], 0, 0, 1, 1, true)
-                r.JS_Composite(trackview, bounds_start_pos - scrollpos, track_y + media_Y + media_H - thickness , bounds_width, thickness ,visualizer_bounds[trck+#items_to_analyze], 0, 0, 1, 1, true)
-                r.JS_Composite(trackview, bounds_start_pos - scrollpos, track_y + media_Y + thickness , thickness,  media_H - thickness*2,visualizer_bounds[trck+#items_to_analyze*2], 0, 0, 1, 1, true)
-                r.JS_Composite(trackview, bounds_start_pos - scrollpos + bounds_width - thickness, track_y + media_Y + thickness , thickness , media_H - thickness*2 ,visualizer_bounds[trck+#items_to_analyze*3], 0, 0, 1, 1, true)
+                if track_y>pinnedtrack_H then
+                  r.JS_Composite(trackview, bounds_start_pos - scrollpos, track_y , bounds_width, thickness ,visualizer_bounds[trck], 0, 0, 1, 1, true)
+                  
+                else
+                  r.JS_Composite(trackview, 0, 0 , 0, 0 ,visualizer_bounds[trck], 0, 0, 0, 0, true)
+                end
+                
+                if track_y + media_H>pinnedtrack_H then
+                  r.JS_Composite(trackview, bounds_start_pos - scrollpos, track_y + media_H - thickness , bounds_width, thickness ,visualizer_bounds[trck+#items_to_analyze], 0, 0, 1, 1, true)
+                else
+                  r.JS_Composite(trackview,0, 0 , 0, 0 ,visualizer_bounds[trck+#items_to_analyze], 0, 0, 0, 0, true)
+                end
+                r.JS_Composite(trackview, bounds_start_pos - scrollpos, track_y  + thickness , thickness,  media_H - thickness*2,visualizer_bounds[trck+#items_to_analyze*2], 0, 0, 1, 1, true)
+                r.JS_Composite(trackview, bounds_start_pos - scrollpos + bounds_width - thickness, track_y + thickness , thickness , media_H - thickness*2 ,visualizer_bounds[trck+#items_to_analyze*3], 0, 0, 1, 1, true)
                 
                 ----------------------------------------------
               end
@@ -1872,14 +1935,14 @@ function MW_drawlines()
               scrollpos = scrollpos*pagesizecheck
               local Reduce_P_v = ((100-Sensitivity_v)/sens_def)
               local c = 1
-              
               for i = 1, #Gate_Gl.grid_Points, 2 do
                 local trig_line_pos = (Gate_Gl.grid_Points[i]/first_srate) + (Offset_v/1000)
                 local item_screen_pos = floor((startT+trig_line_pos) * MWzoom)
                   if pagesizecheck <=4 and  Gate_Gl.grid_Points[i+1][Detect+1] >= Reduce_P_v then --track_y + tr_label_h
-                    r.JS_Composite(trackview, item_screen_pos - scrollpos, track_y + media_Y, QN_lineTHICK[i], media_H, lines[c+((#Gate_Gl.grid_Points/2)*(trck-1))], 0, 0, 1, 1, true)
+                    r.JS_Composite(trackview, item_screen_pos - scrollpos, track_y , QN_lineTHICK[i], media_H, lines[c+((#Gate_Gl.grid_Points/2)*(trck-1))], 0, 0, 1, 1, true)
+                  
                   else 
-                    r.JS_Composite(trackview, item_screen_pos - scrollpos, track_y + media_Y,  0, media_H, lines[c+((#Gate_Gl.grid_Points/2)*(trck-1))], 0, 0, 1, 1, true)
+                    r.JS_Composite(trackview, item_screen_pos - scrollpos, track_y ,  0, media_H, lines[c+((#Gate_Gl.grid_Points/2)*(trck-1))], 0, 0, 1, 1, true)
                   end
                 c = c + 1
               end
@@ -2853,7 +2916,7 @@ if visible then
       Gtolerance_slider, Gtolerance_v = ImGui.SliderInt(ctx, '##Gtolerance_v', Gtolerance_v, 10, 200, "GrdScan: %d ms", NoIP)
      else
       ImGui.PushStyleColor(ctx,  ImGui.Col_Text, 0xFFFFFF30)
-      Gtolerance_slider, Gtolerance_v = ImGui.SliderInt(ctx, '##Gtolerance_v', Gtolerance_v, 50, 200, "Grid Scan: %d ms", NoIP)
+      Gtolerance_slider, Gtolerance_v = ImGui.SliderInt(ctx, '##Gtolerance_v', Gtolerance_v, 10, 200, "GrdScan: %d ms", NoIP)
       ImGui.PopStyleColor(ctx, 1)
      end
      store_single_settings(Gtolerance_v, 'Gtolerance_v', ' ms' )
