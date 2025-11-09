@@ -1,10 +1,9 @@
 -- @description Smart split items using mouse cursor context (also edit cursor, razor area and time selection)
 -- @author AZ
--- @version 3.41
+-- @version 3.42
 -- @changelog
---   - New option to preserve razor area selection
---   - New options to preserve or clear item selection after splitting
---   - Fixed bug when single grouped item was stayed in the same group with other it's parts
+--   - Improved track media grouping logic
+--   - Support for enable state of track groups
 -- @provides [main] az_Smart split items by mouse cursor/az_Open options for az_Smart split items by mouse cursor.lua
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=259751
 -- @donation Donate via PayPal https://www.paypal.me/AZsound
@@ -144,7 +143,8 @@ function OptionsDefaults()
   table.insert(OptDefaults, {text, 'ItemPostSelecton', 'select new items', {
                                                             'select new items',
                                                             'preserve initial selection',
-                                                            'clear all selections'} })
+                                                            'clear all selections',
+                                                            'preserve both parts selected'} })
   
   text = 'Respect locked items'
   table.insert(OptDefaults, {text, 'RespLock', true})
@@ -393,6 +393,8 @@ function OptionsWindow()
   --------------
   function loop() 
     if not font or savedFontSize ~= fontSize then
+      if savedFontSize < 7 then savedFontSize = 7 end
+      if savedFontSize > 60 then savedFontSize = 60 end
       reaper.SetExtState(ExtStateName, 'FontSize', savedFontSize, true)
       fontSize = savedFontSize
       if font then reaper.ImGui_Detach(ctx, font) end
@@ -491,7 +493,7 @@ function MoveEditCursor(timeTable, EditCurPos)
     local playState = reaper.GetPlayStateEx(0)
     
     if Opt.MoveEditCursor == true
-    and (timepos - EditCurPos > Opt.eCurDistance or timepos -0.2 <= EditCurPos)
+    and (timepos - EditCurPos > Opt.eCurDistance or timepos -0.02 <= EditCurPos)
     --^^here small coeff to avoid extra small distance
     and playState ~= 5 then
       reaper.SetEditCurPos2(0, timepos - Opt.eCurOffset, false, false) 
@@ -700,7 +702,10 @@ function GetRazorEdits()
               
             end
             
-            local testItemH = reaper.GetMediaItemInfo_Value(reaper.GetTrackMediaItem(track,0), "F_FREEMODE_H")
+            local testItem = reaper.GetTrackMediaItem(track,0)
+            local testItemH = 1
+            
+            if testItem then testItemH = reaper.GetMediaItemInfo_Value(testItem, "F_FREEMODE_H") end
             
             local TRareaTable
             if NeedPerLane == true then
@@ -1365,12 +1370,75 @@ function AddTrMediaEditingGroup(Items, timeT)
   local GrSelTrs = reaper.GetToggleCommandState(42581) --Track: Automatically group selected tracks for media/razor editing
   local GrAllTrs = reaper.GetToggleCommandState(42580) --Track: Automatically group all tracks for media/razor editing
   
+  local GrIDsEn = {} --enabled
+  local TrGrData = {}
+  local offsets = {0,32,64,96} --each 32bit for 128 groups
+  
+  local reapVers = reaper.GetAppVersion()
+  
+  local trCnt = reaper.CountTracks(0)
+  
+  for i = 1, trCnt do
+    local tr = reaper.GetTrack(0, i-1)
+    local sel = reaper.GetMediaTrackInfo_Value(tr, 'I_SELECTED')
+    local trData = {track = tr, selected = sel}
+    for o,v in ipairs(offsets) do
+      local gr32map = reaper.GetSetTrackGroupMembershipEx( tr, "MEDIA_EDIT_LEAD", v, 0, 0 )
+      local gr32Fmap = reaper.GetSetTrackGroupMembershipEx( tr, "MEDIA_EDIT_FOLLOW", v, 0, 0 )
+      if not trData[o] then trData[o] = {} end
+      trData[o]['lead'] = gr32map
+      trData[o]['follow'] = gr32Fmap
+    end
+    table.insert(TrGrData, trData)
+  end
+  
+  local function extract_version(s)
+    if not s then return nil end
+  
+    -- trim spaces at edges
+    s = s:match("^%s*(.-)%s*$")
+  
+    -- remove prefixes "v" или "version "
+    s = s:gsub("^[Vv]%s*", "")
+    s = s:gsub("^[Vv]ersion%s+", "")
+  
+    -- patterns
+    local patterns = {
+      "(%d+%.%d+%.%d+)",  -- example: 1.2.3
+      "(%d+%.%d+)",       -- example: 1.2
+      "(%d+)"             -- example: 1
+    }
+  
+    for _, pat in ipairs(patterns) do
+      local ver = s:match(pat)
+      if ver then return ver end
+    end
+  
+    return nil
+  end
+  --
+  if reapVers >= extract_version(reapVers) then
+    for o,v in ipairs(offsets) do
+      local actionID = 42511
+      if o >= 3 then actionID = 43278 end
+      
+      local shift = 0
+      if math.fmod(o,2) == 0 then shift = 32 end
+      
+      local map = 0
+      for i = 0, 31 do
+        map = map | (reaper.GetToggleCommandStateEx(0, actionID + (i+shift)) << i)
+        
+      end
+      GrIDsEn[o] = map
+    end 
+  end
+  
   for t, time in ipairs(timeT) do
     local Tracks = {}
     local ItemsH = {}
     local GrTracks = {}
-    local GrIDsLow = 0
-    local GrIDsHigh = 0
+    local GrIDs = {0,0,0,0}
     local SelState = 0
     
     for i, item in ipairs(Items) do
@@ -1388,65 +1456,70 @@ function AddTrMediaEditingGroup(Items, timeT)
     end
     
     for i, tr in ipairs(Tracks) do -- collect gr info for tracks with initially captured items
-      local intlow = reaper.GetSetTrackGroupMembership( tr, "MEDIA_EDIT_LEAD", 0, 0 )
-      local inthigh = reaper.GetSetTrackGroupMembershipHigh( tr, "MEDIA_EDIT_LEAD", 0, 0 )
-      local intSel = reaper.GetMediaTrackInfo_Value(tr, 'I_SELECTED')
-      GrIDsLow = GrIDsLow | intlow
-      GrIDsHigh = GrIDsHigh | inthigh
-      SelState = SelState | intSel
+      local sel = reaper.GetMediaTrackInfo_Value(tr, 'I_SELECTED')
+      SelState = SelState | sel
+      for o,v in ipairs(offsets) do
+        local gr32map = reaper.GetSetTrackGroupMembershipEx( tr, "MEDIA_EDIT_LEAD", v, 0, 0 )
+        GrIDs[o] = GrIDs[o] | gr32map
+      end
+    end
+    
+    for o, enMap in ipairs(GrIDsEn) do --separated block for the case of older Reaper version
+      GrIDs[o] = GrIDs[o] & enMap
     end
     
     
-    for i = 1, reaper.CountTracks(0) do -- collect all matching group mappings
-      local tr = reaper.GetTrack(0, i-1)
-      local intlow = reaper.GetSetTrackGroupMembership( tr, "MEDIA_EDIT_LEAD", 0, 0 )
-      local inthigh = reaper.GetSetTrackGroupMembershipHigh( tr, "MEDIA_EDIT_LEAD", 0, 0 )
-      local intlowF = reaper.GetSetTrackGroupMembership( tr, "MEDIA_EDIT_FOLLOW", 0, 0 )
-      local inthighF = reaper.GetSetTrackGroupMembershipHigh( tr, "MEDIA_EDIT_FOLLOW", 0, 0 )
+    local coeff = {-1,1}
+    for c, swap in ipairs(coeff) do  --go through tracks up and down
+      local tridx, i = 1, 0
+      if swap == -1 then tridx = trCnt end
       
-      local intSel = reaper.GetMediaTrackInfo_Value(tr, 'I_SELECTED')
-      
-      if GrIDsLow & intlow ~= 0 or GrIDsLow & intlowF ~= 0 or SelState & intSel ~= 0 then
-        GrIDsLow = GrIDsLow | intlow 
+      while i < trCnt do -- collect all matching group mappings
+        local trGrIDs = {}
+        local match
+        local tr = TrGrData[tridx]['track']
+        local sel = TrGrData[tridx]['selected']
+        
+        for o, grMap in ipairs(TrGrData[tridx]) do
+          if #GrIDsEn ~= 0 then
+            trGrIDs[o] = grMap.lead & GrIDsEn[o]
+          else
+            trGrIDs[o] = grMap.lead
+          end
+          
+          if GrIDs[o] & grMap.lead ~= 0 or GrIDs[o] & grMap.follow ~= 0
+          or ( SelState & sel ~= 0 and GrSelTrs == 1 ) then 
+            match = true
+          end
+          
+        end
+        
+        if match then
+          for o, map in ipairs(trGrIDs) do
+            GrIDs[o] = GrIDs[o] | map
+          end
+        end
+        
+        i = i + 1
+        tridx = tridx + 1*swap
       end
-      
-      if GrIDsHigh & inthigh ~= 0 or GrIDsHigh & inthighF ~= 0 or SelState & intSel ~= 0 then
-        GrIDsHigh = GrIDsHigh | inthigh 
-      end
-      --[[ 
-      if reaper.IsTrackSelected(tr) == true and GrSelTrs == 1 then
-      --and FieldMatch(Tracks, tr) == true then
-        GrIDsLow = GrIDsLow | intlow
-        GrIDsHigh = GrIDsHigh | inthigh
-        msg('addSel')
-      end
-      ]]
     end
+    
     
     for i = 1, reaper.CountTracks(0) do -- add corresponding tracks to the table
-      local tr = reaper.GetTrack(0, i-1)
+      local tr = TrGrData[i]['track']
       if GrAllTrs == 1 then
         FieldMatch(GrTracks, tr, true)
       else
-        local intlow = reaper.GetSetTrackGroupMembership( tr, "MEDIA_EDIT_LEAD", 0, 0 )
-        local inthigh = reaper.GetSetTrackGroupMembershipHigh( tr, "MEDIA_EDIT_LEAD", 0, 0 )
-        local intlowF = reaper.GetSetTrackGroupMembership( tr, "MEDIA_EDIT_FOLLOW", 0, 0 )
-        local inthighF = reaper.GetSetTrackGroupMembershipHigh( tr, "MEDIA_EDIT_FOLLOW", 0, 0 )
+        local sel = TrGrData[i]['selected']
+        if SelState & sel ~= 0 and GrSelTrs == 1 then FieldMatch(GrTracks, tr, true) end
         
-        local intSel = reaper.GetMediaTrackInfo_Value(tr, 'I_SELECTED')
-        
-        if GrIDsLow & intlow ~= 0 or GrIDsLow & intlowF ~= 0 or SelState & intSel ~= 0 then
-          table.insert(GrTracks, tr)
+        for o,grMap in ipairs(TrGrData[i]) do
+          if GrIDs[o] & grMap.lead ~= 0 or GrIDs[o] & grMap.follow ~= 0 then
+            FieldMatch(GrTracks, tr, true)
+            break
+          end
         end
-        
-        if GrIDsHigh & inthigh ~= 0 or GrIDsHigh & inthighF ~= 0 or SelState & intSel ~= 0 then
-          FieldMatch(GrTracks, tr, true)
-        end
-        --[[ 
-        if reaper.IsTrackSelected(tr) == true and GrSelTrs == 1 then
-        --and FieldMatch(Tracks, tr) == true then
-          FieldMatch(GrTracks, tr, true)
-        end]]
       end
     end
     
@@ -1934,7 +2007,10 @@ function Main()
           SelectItems(SelectedBeforeSplit, true, true)
         elseif Opt.ItemPostSelecton == 'clear all selections' then
           SelectAllMediaItems(0,false)
-        else
+        elseif Opt.ItemPostSelecton == 'preserve both parts selected' then msg('here')
+          SelectItems(SelectedBeforeSplit, true, false)
+          SelectItems(SelItems, true, false)
+        elseif Opt.ItemPostSelecton == 'select new items' then
           SelectItems(SelItems, true, true)
         end
         
@@ -1964,7 +2040,7 @@ end
 
 ------------------
 -------START------
-CurVers = 3.41
+CurVers = 3.43
 version = tonumber( reaper.GetExtState(ExtStateName, "version") )
 if version ~= CurVers then
   if not version or version < 3 then
