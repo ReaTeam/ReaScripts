@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="4cedc8f27d0be616fdc8e7e17dd4c5b996bde6e1" name="ReaTeam Scripts">
+<index version="1" commit="99a569437bdbc2daa1846b07990668e74663fdad" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -5516,6 +5516,11 @@ BugFix
 - Updated to 128 edit groups (128 groups??!?! really?!?)]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/69a143814d07fe21636a05c5329dd5fc52e08dc2/Items%20Editing/80icio_Perfect%20Timing!%20-%20Audio%20Quantizer.lua</source>
       </version>
+      <version name="0.30" author="80icio" time="2025-11-09T21:27:51Z">
+        <changelog><![CDATA[- Fixed incorrect edit window trigger line positions when pinned tracks are present
+- Improved quantizing behavior]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/5445bbba2c517b5bff040e134bc8163b40c55d7e/Items%20Editing/80icio_Perfect%20Timing!%20-%20Audio%20Quantizer.lua</source>
+      </version>
     </reapack>
     <reapack name="Add project markers as cue points to selected items and replace source files.lua" type="script" desc="amagalma_Add project markers as cue points to selected items and replace source files">
       <metadata>
@@ -6761,6 +6766,13 @@ website
         <source file="az_Fade tool (work on context of mouse, razor or time selection)/az_Options window for az_Fade tool.lua">https://github.com/ReaTeam/ReaScripts/raw/cb82a45939945d983b1b00d4518ce7b28565bedb/Items%20Editing/az_Fade%20tool%20(work%20on%20context%20of%20mouse,%20razor%20or%20time%20selection)/az_Options%20window%20for%20az_Fade%20tool.lua</source>
         <source main="main" file="az_Fade tool (work on context of mouse, razor or time selection)/az_Open options for az_Fade tool.lua">https://github.com/ReaTeam/ReaScripts/raw/cb82a45939945d983b1b00d4518ce7b28565bedb/Items%20Editing/az_Fade%20tool%20(work%20on%20context%20of%20mouse,%20razor%20or%20time%20selection)/az_Open%20options%20for%20az_Fade%20tool.lua</source>
       </version>
+      <version name="2.4.2" author="AZ" time="2025-11-09T21:29:03Z">
+        <changelog><![CDATA[- Improved track media grouping logic
+- Support track group enable states]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/99a569437bdbc2daa1846b07990668e74663fdad/Items%20Editing/az_Fade%20tool%20(work%20on%20context%20of%20mouse,%20razor%20or%20time%20selection).lua</source>
+        <source file="az_Fade tool (work on context of mouse, razor or time selection)/az_Options window for az_Fade tool.lua">https://github.com/ReaTeam/ReaScripts/raw/99a569437bdbc2daa1846b07990668e74663fdad/Items%20Editing/az_Fade%20tool%20(work%20on%20context%20of%20mouse,%20razor%20or%20time%20selection)/az_Options%20window%20for%20az_Fade%20tool.lua</source>
+        <source main="main" file="az_Fade tool (work on context of mouse, razor or time selection)/az_Open options for az_Fade tool.lua">https://github.com/ReaTeam/ReaScripts/raw/99a569437bdbc2daa1846b07990668e74663fdad/Items%20Editing/az_Fade%20tool%20(work%20on%20context%20of%20mouse,%20razor%20or%20time%20selection)/az_Open%20options%20for%20az_Fade%20tool.lua</source>
+      </version>
     </reapack>
     <reapack name="az_Open item copy in primary external editor with handles.lua" type="script" desc="Open item copy in primary external editor with handles">
       <metadata>
@@ -6878,14 +6890,20 @@ Added experimental fixed lanes support]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6bdceb6fbd136a8f4400cc0d1ed83a13f387e59f/Items%20Editing/az_Smart%20split%20items%20by%20mouse%20cursor.lua</source>
         <source main="main" file="az_Smart split items by mouse cursor/az_Open options for az_Smart split items by mouse cursor.lua">https://github.com/ReaTeam/ReaScripts/raw/6bdceb6fbd136a8f4400cc0d1ed83a13f387e59f/Items%20Editing/az_Smart%20split%20items%20by%20mouse%20cursor/az_Open%20options%20for%20az_Smart%20split%20items%20by%20mouse%20cursor.lua</source>
       </version>
+      <version name="3.42" author="AZ" time="2025-11-09T21:28:53Z">
+        <changelog><![CDATA[- Improved track media grouping logic
+- Support for enable state of track groups]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6bc1502a9716eecd491d905d24839016283dffc5/Items%20Editing/az_Smart%20split%20items%20by%20mouse%20cursor.lua</source>
+        <source main="main" file="az_Smart split items by mouse cursor/az_Open options for az_Smart split items by mouse cursor.lua">https://github.com/ReaTeam/ReaScripts/raw/6bc1502a9716eecd491d905d24839016283dffc5/Items%20Editing/az_Smart%20split%20items%20by%20mouse%20cursor/az_Open%20options%20for%20az_Smart%20split%20items%20by%20mouse%20cursor.lua</source>
+      </version>
     </reapack>
     <reapack name="az_Trim left, right or both item edges via mouse and razor.lua" type="script" desc="Trim left, right or both item edges via mouse and razor">
       <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Trim left, right or both item edges via mouse and razor\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel0 \b \fs36 Trim left, right or both item edges via mouse and razor\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Use vertical mouse position to trim left or right edge (top/bottom item half) or closest/farthest edge. Use razor to trim items at both sides.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 To open options window place mouse on transport or mixer panel and press assigned shortcut. Or use a dedicated script from the package.\par}
 }
@@ -6928,6 +6946,12 @@ Added experimental fixed lanes support]]></changelog>
 - added font scaling for options window]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/39d0fbff1f1a8d5a6b3551de8f8a15246e4901f4/Items%20Editing/az_Trim%20left,%20right%20or%20both%20item%20edges%20via%20mouse%20and%20razor.lua</source>
         <source main="main" file="az_Trim left, right or both item edges via mouse and razor/az_Open options for az_Trim left, right or both item edges via mouse and razor.lua">https://github.com/ReaTeam/ReaScripts/raw/39d0fbff1f1a8d5a6b3551de8f8a15246e4901f4/Items%20Editing/az_Trim%20left,%20right%20or%20both%20item%20edges%20via%20mouse%20and%20razor/az_Open%20options%20for%20az_Trim%20left,%20right%20or%20both%20item%20edges%20via%20mouse%20and%20razor.lua</source>
+      </version>
+      <version name="1.6" author="AZ" time="2025-11-09T21:28:13Z">
+        <changelog><![CDATA[- Support track media grouping
+- New option for trim tails of selected items using edit cursor if mouse is not over items]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/bd9cfe4dbc9892e8b06b86b34ac2ba23bfd1d11c/Items%20Editing/az_Trim%20left,%20right%20or%20both%20item%20edges%20via%20mouse%20and%20razor.lua</source>
+        <source main="main" file="az_Trim left, right or both item edges via mouse and razor/az_Open options for az_Trim left, right or both item edges via mouse and razor.lua">https://github.com/ReaTeam/ReaScripts/raw/bd9cfe4dbc9892e8b06b86b34ac2ba23bfd1d11c/Items%20Editing/az_Trim%20left,%20right%20or%20both%20item%20edges%20via%20mouse%20and%20razor/az_Open%20options%20for%20az_Trim%20left,%20right%20or%20both%20item%20edges%20via%20mouse%20and%20razor.lua</source>
       </version>
     </reapack>
     <reapack name="beaunus_Name item takes by last marker to cut item.lua" type="script" desc="Name item takes by last marker to cut item">
@@ -29762,6 +29786,28 @@ Fix SWS Startup / Lokasenna Radial Menu bug]]></changelog>
         <source file="talagan_Reannotate/widgets/quick_preview_overlay.lua">https://github.com/ReaTeam/ReaScripts/raw/0a6fa07fc93110cdc4c40b153a6f5ad2f82be594/Various/talagan_Reannotate/widgets/quick_preview_overlay.lua</source>
         <source file="talagan_Reannotate/widgets/settings_editor.lua">https://github.com/ReaTeam/ReaScripts/raw/0a6fa07fc93110cdc4c40b153a6f5ad2f82be594/Various/talagan_Reannotate/widgets/settings_editor.lua</source>
         <source main="main" file="talagan_Reannotate Quick Preview.lua">https://github.com/ReaTeam/ReaScripts/raw/0a6fa07fc93110cdc4c40b153a6f5ad2f82be594/Various/talagan_Reannotate/actions/talagan_Reannotate%20Quick%20Preview.lua</source>
+      </version>
+      <version name="0.3.8" author="Ben 'Talagan' Babut" time="2025-11-09T21:28:29Z">
+        <changelog><![CDATA[- [Bug Fix] Fixing case where the user does not use "Main Toolbar" as main toolbar (thanks Denys!)]]></changelog>
+        <source file="talagan_Reannotate/ext/dependencies.lua">https://github.com/ReaTeam/ReaScripts/raw/044efa9057e51a1b54751e29563e4c8bbc48f416/Various/talagan_Reannotate/ext/dependencies.lua</source>
+        <source file="talagan_Reannotate/ext/imgui.lua">https://github.com/ReaTeam/ReaScripts/raw/044efa9057e51a1b54751e29563e4c8bbc48f416/Various/talagan_Reannotate/ext/imgui.lua</source>
+        <source file="talagan_Reannotate/ext/json.lua">https://github.com/ReaTeam/ReaScripts/raw/044efa9057e51a1b54751e29563e4c8bbc48f416/Various/talagan_Reannotate/ext/json.lua</source>
+        <source file="talagan_Reannotate/classes/app_context.lua">https://github.com/ReaTeam/ReaScripts/raw/044efa9057e51a1b54751e29563e4c8bbc48f416/Various/talagan_Reannotate/classes/app_context.lua</source>
+        <source file="talagan_Reannotate/classes/arrange_view_watcher.lua">https://github.com/ReaTeam/ReaScripts/raw/044efa9057e51a1b54751e29563e4c8bbc48f416/Various/talagan_Reannotate/classes/arrange_view_watcher.lua</source>
+        <source file="talagan_Reannotate/classes/color.lua">https://github.com/ReaTeam/ReaScripts/raw/044efa9057e51a1b54751e29563e4c8bbc48f416/Various/talagan_Reannotate/classes/color.lua</source>
+        <source file="talagan_Reannotate/classes/launch_context.lua">https://github.com/ReaTeam/ReaScripts/raw/044efa9057e51a1b54751e29563e4c8bbc48f416/Various/talagan_Reannotate/classes/launch_context.lua</source>
+        <source file="talagan_Reannotate/classes/mouse_observer.lua">https://github.com/ReaTeam/ReaScripts/raw/044efa9057e51a1b54751e29563e4c8bbc48f416/Various/talagan_Reannotate/classes/mouse_observer.lua</source>
+        <source file="talagan_Reannotate/classes/notes.lua">https://github.com/ReaTeam/ReaScripts/raw/044efa9057e51a1b54751e29563e4c8bbc48f416/Various/talagan_Reannotate/classes/notes.lua</source>
+        <source file="talagan_Reannotate/images/settings.lua">https://github.com/ReaTeam/ReaScripts/raw/044efa9057e51a1b54751e29563e4c8bbc48f416/Various/talagan_Reannotate/images/settings.lua</source>
+        <source file="talagan_Reannotate/modules/debug.lua">https://github.com/ReaTeam/ReaScripts/raw/044efa9057e51a1b54751e29563e4c8bbc48f416/Various/talagan_Reannotate/modules/debug.lua</source>
+        <source file="talagan_Reannotate/modules/reaper_ext.lua">https://github.com/ReaTeam/ReaScripts/raw/044efa9057e51a1b54751e29563e4c8bbc48f416/Various/talagan_Reannotate/modules/reaper_ext.lua</source>
+        <source file="talagan_Reannotate/modules/settings.lua">https://github.com/ReaTeam/ReaScripts/raw/044efa9057e51a1b54751e29563e4c8bbc48f416/Various/talagan_Reannotate/modules/settings.lua</source>
+        <source file="talagan_Reannotate/modules/unit_tests.lua">https://github.com/ReaTeam/ReaScripts/raw/044efa9057e51a1b54751e29563e4c8bbc48f416/Various/talagan_Reannotate/modules/unit_tests.lua</source>
+        <source file="talagan_Reannotate/widgets/note_editor.lua">https://github.com/ReaTeam/ReaScripts/raw/044efa9057e51a1b54751e29563e4c8bbc48f416/Various/talagan_Reannotate/widgets/note_editor.lua</source>
+        <source file="talagan_Reannotate/widgets/overlay_canvas.lua">https://github.com/ReaTeam/ReaScripts/raw/044efa9057e51a1b54751e29563e4c8bbc48f416/Various/talagan_Reannotate/widgets/overlay_canvas.lua</source>
+        <source file="talagan_Reannotate/widgets/quick_preview_overlay.lua">https://github.com/ReaTeam/ReaScripts/raw/044efa9057e51a1b54751e29563e4c8bbc48f416/Various/talagan_Reannotate/widgets/quick_preview_overlay.lua</source>
+        <source file="talagan_Reannotate/widgets/settings_editor.lua">https://github.com/ReaTeam/ReaScripts/raw/044efa9057e51a1b54751e29563e4c8bbc48f416/Various/talagan_Reannotate/widgets/settings_editor.lua</source>
+        <source main="main" file="talagan_Reannotate Quick Preview.lua">https://github.com/ReaTeam/ReaScripts/raw/044efa9057e51a1b54751e29563e4c8bbc48f416/Various/talagan_Reannotate/actions/talagan_Reannotate%20Quick%20Preview.lua</source>
       </version>
     </reapack>
     <reapack name="talagan_Spectracular.lua" type="script" desc="Spectracular ! Spectrogram binocular for REAPER">
