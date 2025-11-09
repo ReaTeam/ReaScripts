@@ -1,7 +1,9 @@
 -- @description Fade tool (works on context of mouse, razor or time selection)
 -- @author AZ
--- @version 2.4.1
--- @changelog - fixed wrong asymmetric envelope smoothing in some cases
+-- @version 2.4.2
+-- @changelog
+--   - Improved track media grouping logic
+--   - Support track group enable states
 -- @provides
 --   az_Fade tool (work on context of mouse, razor or time selection)/az_Options window for az_Fade tool.lua
 --   [main] az_Fade tool (work on context of mouse, razor or time selection)/az_Open options for az_Fade tool.lua
@@ -53,15 +55,17 @@ OPEN THE OPTIONS WINDOW BY RUNNING THE SCRIPT WITH MOUSE ON TRANSPORT OR MIXER P
 ---------------------------------
 
 --Start load file
-
+DEBUG = false
 function msg(value)
-  reaper.ShowConsoleMsg(tostring(value)..'\n')
+  if DEBUG == true then
+    reaper.ShowConsoleMsg(tostring(value)..'\n')
+  end
 end
 
 -------------------------
 
 ExtStateName = 'AZ_FadeTool'
-CurVers = 2.41
+CurVers = 2.42
 
 SaveLastBatchPrj = reaper.GetExtState(ExtStateName, 'SaveLastBatchPrj')
 if SaveLastBatchPrj == 'false' then SaveLastBatchPrj = false
@@ -2227,12 +2231,75 @@ function AddTrMediaEditingGroup(Items, timeT, edge)
   local GrSelTrs = reaper.GetToggleCommandState(42581) --Track: Automatically group selected tracks for media/razor editing
   local GrAllTrs = reaper.GetToggleCommandState(42580) --Track: Automatically group all tracks for media/razor editing
   
+  local GrIDsEn = {} --enabled
+  local TrGrData = {}
+  local offsets = {0,32,64,96} --each 32bit for 128 groups
+  
+  local reapVers = reaper.GetAppVersion()
+  
+  local trCnt = reaper.CountTracks(0)
+  
+  for i = 1, trCnt do
+    local tr = reaper.GetTrack(0, i-1)
+    local sel = reaper.GetMediaTrackInfo_Value(tr, 'I_SELECTED')
+    local trData = {track = tr, selected = sel}
+    for o,v in ipairs(offsets) do
+      local gr32map = reaper.GetSetTrackGroupMembershipEx( tr, "MEDIA_EDIT_LEAD", v, 0, 0 )
+      local gr32Fmap = reaper.GetSetTrackGroupMembershipEx( tr, "MEDIA_EDIT_FOLLOW", v, 0, 0 )
+      if not trData[o] then trData[o] = {} end
+      trData[o]['lead'] = gr32map
+      trData[o]['follow'] = gr32Fmap
+    end
+    table.insert(TrGrData, trData)
+  end
+  
+  local function extract_version(s)
+    if not s then return nil end
+  
+    -- trim spaces at edges
+    s = s:match("^%s*(.-)%s*$")
+  
+    -- remove prefixes "v" или "version "
+    s = s:gsub("^[Vv]%s*", "")
+    s = s:gsub("^[Vv]ersion%s+", "")
+  
+    -- patterns
+    local patterns = {
+      "(%d+%.%d+%.%d+)",  -- example: 1.2.3
+      "(%d+%.%d+)",       -- example: 1.2
+      "(%d+)"             -- example: 1
+    }
+  
+    for _, pat in ipairs(patterns) do
+      local ver = s:match(pat)
+      if ver then return ver end
+    end
+  
+    return nil
+  end
+  --
+  if reapVers >= extract_version(reapVers) then
+    for o,v in ipairs(offsets) do
+      local actionID = 42511
+      if o >= 3 then actionID = 43278 end
+      
+      local shift = 0
+      if math.fmod(o,2) == 0 then shift = 32 end
+      
+      local map = 0
+      for i = 0, 31 do
+        map = map | (reaper.GetToggleCommandStateEx(0, actionID + (i+shift)) << i)
+        
+      end
+      GrIDsEn[o] = map
+    end 
+  end
+  
   for t, time in ipairs(timeT) do
     local Tracks = {}
     local ItemsH = {}
     local GrTracks = {}
-    local GrIDsLow = 0
-    local GrIDsHigh = 0
+    local GrIDs = {0,0,0,0}
     local SelState = 0
     local itemTime
     
@@ -2256,53 +2323,68 @@ function AddTrMediaEditingGroup(Items, timeT, edge)
     end
     
     for i, tr in ipairs(Tracks) do -- collect gr info for tracks with initially captured items
-      local intlow = reaper.GetSetTrackGroupMembership( tr, "MEDIA_EDIT_LEAD", 0, 0 )
-      local inthigh = reaper.GetSetTrackGroupMembershipHigh( tr, "MEDIA_EDIT_LEAD", 0, 0 )
-      local intSel = reaper.GetMediaTrackInfo_Value(tr, 'I_SELECTED')
-      GrIDsLow = GrIDsLow | intlow
-      GrIDsHigh = GrIDsHigh | inthigh
-      SelState = SelState | intSel
-    end
-     
-    for i = 1, reaper.CountTracks(0) do -- collect all matching group mappings
-      local tr = reaper.GetTrack(0, i-1)
-      local intlow = reaper.GetSetTrackGroupMembership( tr, "MEDIA_EDIT_LEAD", 0, 0 )
-      local inthigh = reaper.GetSetTrackGroupMembershipHigh( tr, "MEDIA_EDIT_LEAD", 0, 0 )
-      local intlowF = reaper.GetSetTrackGroupMembership( tr, "MEDIA_EDIT_FOLLOW", 0, 0 )
-      local inthighF = reaper.GetSetTrackGroupMembershipHigh( tr, "MEDIA_EDIT_FOLLOW", 0, 0 )
-      
-      local intSel = reaper.GetMediaTrackInfo_Value(tr, 'I_SELECTED')
-      
-      if GrIDsLow & intlow ~= 0 or GrIDsLow & intlowF ~= 0 or SelState & intSel ~= 0 then
-        GrIDsLow = GrIDsLow | intlow
+      local sel = reaper.GetMediaTrackInfo_Value(tr, 'I_SELECTED')
+      SelState = SelState | sel
+      for o,v in ipairs(offsets) do
+        local gr32map = reaper.GetSetTrackGroupMembershipEx( tr, "MEDIA_EDIT_LEAD", v, 0, 0 )
+        GrIDs[o] = GrIDs[o] | gr32map
       end
-      
-      if GrIDsHigh & inthigh ~= 0 or GrIDsHigh & inthighF ~= 0 or SelState & intSel ~= 0 then
-        GrIDsHigh = GrIDsHigh | inthigh
-      end
-
     end
     
-    for i = 1, reaper.CountTracks(0) do -- add corresponding tracks to the table
-      local tr = reaper.GetTrack(0, i-1)
+    for o, enMap in ipairs(GrIDsEn) do --separated block for the case of older Reaper version
+      GrIDs[o] = GrIDs[o] & enMap
+    end
+    
+    local coeff = {-1,1}
+    for c, swap in ipairs(coeff) do  --go through tracks up and down
+      local tridx, i = 1, 0
+      if swap == -1 then tridx = trCnt end
+      
+      while i < trCnt do -- collect all matching group mappings
+        local trGrIDs = {}
+        local match
+        local tr = TrGrData[tridx]['track']
+        local sel = TrGrData[tridx]['selected']
+        
+        for o, grMap in ipairs(TrGrData[tridx]) do
+          if #GrIDsEn ~= 0 then
+            trGrIDs[o] = grMap.lead & GrIDsEn[o]
+          else
+            trGrIDs[o] = grMap.lead
+          end
+          
+          if GrIDs[o] & grMap.lead ~= 0 or GrIDs[o] & grMap.follow ~= 0
+          or ( SelState & sel ~= 0 and GrSelTrs == 1 ) then 
+            match = true
+          end
+          
+        end
+        
+        if match then
+          for o, map in ipairs(trGrIDs) do
+            GrIDs[o] = GrIDs[o] | map
+          end
+        end
+        
+        i = i + 1
+        tridx = tridx + 1*swap
+      end
+    end
+    
+    for i = 1, trCnt do -- add corresponding tracks to the table
+      local tr = TrGrData[i]['track']
       if GrAllTrs == 1 then
         FieldMatch(GrTracks, tr, true)
-      else
-        local intlow = reaper.GetSetTrackGroupMembership( tr, "MEDIA_EDIT_LEAD", 0, 0 )
-        local inthigh = reaper.GetSetTrackGroupMembershipHigh( tr, "MEDIA_EDIT_LEAD", 0, 0 )
-        local intlowF = reaper.GetSetTrackGroupMembership( tr, "MEDIA_EDIT_FOLLOW", 0, 0 )
-        local inthighF = reaper.GetSetTrackGroupMembershipHigh( tr, "MEDIA_EDIT_FOLLOW", 0, 0 )
+      else 
+        local sel = TrGrData[i]['selected']
+        if SelState & sel ~= 0 and GrSelTrs == 1 then FieldMatch(GrTracks, tr, true) end
         
-        local intSel = reaper.GetMediaTrackInfo_Value(tr, 'I_SELECTED')
-        
-        if GrIDsLow & intlow ~= 0 or GrIDsLow & intlowF ~= 0 or SelState & intSel ~= 0 then
-          table.insert(GrTracks, tr)
+        for o,grMap in ipairs(TrGrData[i]) do
+          if GrIDs[o] & grMap.lead ~= 0 or GrIDs[o] & grMap.follow ~= 0 then
+            FieldMatch(GrTracks, tr, true)
+            break
+          end
         end
-        
-        if GrIDsHigh & inthigh ~= 0 or GrIDsHigh & inthighF ~= 0 or SelState & intSel ~= 0 then
-          FieldMatch(GrTracks, tr, true)
-        end
-
       end
     end
     
