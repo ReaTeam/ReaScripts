@@ -1,10 +1,9 @@
 -- @description Trim left, right or both item edges via mouse and razor
 -- @author AZ
--- @version 1.5
+-- @version 1.6
 -- @changelog
---   - added option for trimming nearest/farthest edge of item as in the Fade tool script
---   - added TCP user action
---   - added font scaling for options window
+--   - Support track media grouping
+--   - New option for trim tails of selected items using edit cursor if mouse is not over items
 -- @provides [main] az_Trim left, right or both item edges via mouse and razor/az_Open options for az_Trim left, right or both item edges via mouse and razor.lua
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=288069
 -- @donation Donate via PayPal https://www.paypal.me/AZsound
@@ -75,6 +74,9 @@ function OptionsDefaults()
   table.insert(OptDefaults, {text, 'LRdefine', 'Left/Right edge trim', {
                                                       'Left/Right edge trim',
                                                       'Closest/Farthest edge trim' } })
+  
+  text = 'Trim the rest of selected items at edit cursor'
+  table.insert(OptDefaults, {text, 'EnableEcurTrim', false })
   
 end
 
@@ -414,6 +416,248 @@ function updateMSG()
   "Or run dedicated script from the package."..'\n\n'..
   "Take a look and have fun!"
   reaper.ShowMessageBox(msg, "Trim script was updated", 0)
+end
+
+------------------------------
+
+function FieldMatch(Table,value, AddRemoveFlag) -- can remove only first finded value
+  for i=1, #Table do
+    if value == Table[i] then
+      if AddRemoveFlag == false then table.remove(Table,i) end
+      if AddRemoveFlag ~= nil then
+        return true, Table
+      else return true
+      end
+    end
+  end
+  if AddRemoveFlag == true then table.insert(Table, value) end
+  if AddRemoveFlag ~= nil then
+    return false, Table
+  else return false
+  end
+end
+
+------------------------------
+
+function AddGroupedItems(itemsTable, retWithoutInputs) --table, boolean
+  local grItems = {}
+  local grIDs = {}
+  local allCnt = reaper.CountMediaItems(0)
+  local inpCnt = #itemsTable
+  
+  for i = 1, inpCnt do
+    local item = itemsTable[i]
+    local groupID = reaper.GetMediaItemInfo_Value(item, 'I_GROUPID')
+    if groupID ~= 0 and FieldMatch(grIDs, groupID) == false then
+      table.insert(grIDs, groupID)
+    end
+  end
+  
+  if #grIDs > 0 then
+    for i = 0, allCnt-1 do
+      local item = reaper.GetMediaItem(0,i)
+      local groupID = reaper.GetMediaItemInfo_Value(item, 'I_GROUPID')
+      if groupID ~= 0 and FieldMatch(grIDs, groupID) == true then
+        table.insert(grItems, item)
+      end
+    end
+  end
+  
+  if retWithoutInputs == false then
+    table.move(itemsTable, 1, #itemsTable, #grItems+1, grItems)
+  end
+  --msg(#grItems)
+  return grItems
+end
+-------------------------------
+
+function AddTrMediaEditingGroup(Items, timeT)
+  local GrSelTrs = reaper.GetToggleCommandState(42581) --Track: Automatically group selected tracks for media/razor editing
+  local GrAllTrs = reaper.GetToggleCommandState(42580) --Track: Automatically group all tracks for media/razor editing
+  
+  local GrIDsEn = {} --enabled
+  local TrGrData = {}
+  local offsets = {0,32,64,96} --each 32bit for 128 groups
+  
+  local reapVers = reaper.GetAppVersion()
+  
+  local trCnt = reaper.CountTracks(0)
+  
+  for i = 1, trCnt do
+    local tr = reaper.GetTrack(0, i-1)
+    local sel = reaper.GetMediaTrackInfo_Value(tr, 'I_SELECTED')
+    local trData = {track = tr, selected = sel}
+    for o,v in ipairs(offsets) do
+      local gr32map = reaper.GetSetTrackGroupMembershipEx( tr, "MEDIA_EDIT_LEAD", v, 0, 0 )
+      local gr32Fmap = reaper.GetSetTrackGroupMembershipEx( tr, "MEDIA_EDIT_FOLLOW", v, 0, 0 )
+      if not trData[o] then trData[o] = {} end
+      trData[o]['lead'] = gr32map
+      trData[o]['follow'] = gr32Fmap
+    end
+    table.insert(TrGrData, trData)
+  end
+  
+  local function extract_version(s)
+    if not s then return nil end
+  
+    -- trim spaces at edges
+    s = s:match("^%s*(.-)%s*$")
+  
+    -- remove prefixes "v" или "version "
+    s = s:gsub("^[Vv]%s*", "")
+    s = s:gsub("^[Vv]ersion%s+", "")
+  
+    -- patterns
+    local patterns = {
+      "(%d+%.%d+%.%d+)",  -- example: 1.2.3
+      "(%d+%.%d+)",       -- example: 1.2
+      "(%d+)"             -- example: 1
+    }
+  
+    for _, pat in ipairs(patterns) do
+      local ver = s:match(pat)
+      if ver then return ver end
+    end
+  
+    return nil
+  end
+  --
+  if reapVers >= extract_version(reapVers) then
+    for o,v in ipairs(offsets) do
+      local actionID = 42511
+      if o >= 3 then actionID = 43278 end
+      
+      local shift = 0
+      if math.fmod(o,2) == 0 then shift = 32 end
+      
+      local map = 0
+      for i = 0, 31 do
+        map = map | (reaper.GetToggleCommandStateEx(0, actionID + (i+shift)) << i)
+        
+      end
+      GrIDsEn[o] = map
+    end 
+  end
+  
+  for t, time in ipairs(timeT) do
+    local Tracks = {}
+    local ItemsH = {}
+    local GrTracks = {}
+    local GrIDs = {0,0,0,0}
+    local SelState = 0
+    
+    for i, item in ipairs(Items) do
+      local ipos = reaper.GetMediaItemInfo_Value(item, 'D_POSITION')
+      local iend = ipos + reaper.GetMediaItemInfo_Value(item, 'D_LENGTH')
+      local tr = reaper.GetMediaItemTrack(item)
+      if time > ipos and time < iend then
+        FieldMatch(Tracks, tr, true)
+        local mode = reaper.GetMediaTrackInfo_Value(tr, 'I_FREEMODE')
+        local iY = reaper.GetMediaItemInfo_Value(item, 'F_FREEMODE_Y')
+        local iH = reaper.GetMediaItemInfo_Value(item, 'F_FREEMODE_H')
+        local iL = reaper.GetMediaItemInfo_Value(item, 'I_FIXEDLANE')
+        ItemsH[tostring(item)] = {iY, iH, iL, mode}
+      end
+    end
+    
+    for i, tr in ipairs(Tracks) do -- collect gr info for tracks with initially captured items
+      local sel = reaper.GetMediaTrackInfo_Value(tr, 'I_SELECTED')
+      SelState = SelState | sel
+      for o,v in ipairs(offsets) do
+        local gr32map = reaper.GetSetTrackGroupMembershipEx( tr, "MEDIA_EDIT_LEAD", v, 0, 0 )
+        GrIDs[o] = GrIDs[o] | gr32map
+      end
+    end
+    
+    for o, enMap in ipairs(GrIDsEn) do --separated block for the case of older Reaper version
+      GrIDs[o] = GrIDs[o] & enMap
+    end
+    
+    
+    local coeff = {-1,1}
+    for c, swap in ipairs(coeff) do  --go through tracks up and down
+      local tridx, i = 1, 0
+      if swap == -1 then tridx = trCnt end
+      
+      while i < trCnt do -- collect all matching group mappings
+        local trGrIDs = {}
+        local match
+        local tr = TrGrData[tridx]['track']
+        local sel = TrGrData[tridx]['selected']
+        
+        for o, grMap in ipairs(TrGrData[tridx]) do
+          if #GrIDsEn ~= 0 then
+            trGrIDs[o] = grMap.lead & GrIDsEn[o]
+          else
+            trGrIDs[o] = grMap.lead
+          end
+          
+          if GrIDs[o] & grMap.lead ~= 0 or GrIDs[o] & grMap.follow ~= 0
+          or ( SelState & sel ~= 0 and GrSelTrs == 1 ) then 
+            match = true
+          end
+          
+        end
+        
+        if match then
+          for o, map in ipairs(trGrIDs) do
+            GrIDs[o] = GrIDs[o] | map
+          end
+        end
+        
+        i = i + 1
+        tridx = tridx + 1*swap
+      end
+    end
+    
+    
+    for i = 1, reaper.CountTracks(0) do -- add corresponding tracks to the table
+      local tr = TrGrData[i]['track']
+      if GrAllTrs == 1 then
+        FieldMatch(GrTracks, tr, true)
+      else
+        local sel = TrGrData[i]['selected']
+        if SelState & sel ~= 0 and GrSelTrs == 1 then FieldMatch(GrTracks, tr, true) end
+        
+        for o,grMap in ipairs(TrGrData[i]) do
+          if GrIDs[o] & grMap.lead ~= 0 or GrIDs[o] & grMap.follow ~= 0 then
+            FieldMatch(GrTracks, tr, true)
+            break
+          end
+        end
+      end
+    end
+    
+    for i, tr in ipairs(GrTracks) do
+      local mode = reaper.GetMediaTrackInfo_Value(tr, 'I_FREEMODE')
+      for k = 0, reaper.CountTrackMediaItems(tr) -1 do
+        local item = reaper.GetTrackMediaItem(tr, k)
+        local ipos = reaper.GetMediaItemInfo_Value(item, 'D_POSITION')
+        local iend = ipos + reaper.GetMediaItemInfo_Value(item, 'D_LENGTH')
+
+        if time > ipos and time < iend then
+          local iY = reaper.GetMediaItemInfo_Value(item, 'F_FREEMODE_Y')
+          local iH = reaper.GetMediaItemInfo_Value(item, 'F_FREEMODE_H')
+          local iL = reaper.GetMediaItemInfo_Value(item, 'I_FIXEDLANE')
+          
+          for h, refItem in pairs(ItemsH) do
+            if mode == 2 and refItem[4] == mode then
+              if refItem[3] == iL then FieldMatch(Items, item, true)
+              end
+            else 
+              if math.abs(refItem[1] - iY) < math.min(refItem[2], iH)/5
+              and math.max(refItem[2], iH) / math.min(refItem[2], iH) <= 1.5
+              then
+                FieldMatch(Items, item, true)
+              end
+            end
+          end 
+        end --if time > ipos and time < iend
+        
+      end --all items on the track cycle
+    end --cycle through grouped tracks
+    
+  end -- timeT cycle
 end
 
 -------------------------------
@@ -787,22 +1031,16 @@ function TrimRazorEdits(razorEdits)
         local areaData = razorEdits[i]
         if not areaData.isEnvelope then
             local items = areaData.items
-            
-            for j = 1, #items do
-              local item = items[j]
-              reaper.SetMediaItemSelected(item, true)
-            end
+            local itemsForTrim = items
             
             if Opt.razorRespGrouping == true and GrState == 1 then
-              reaper.Main_OnCommandEx(40034,0,0) --Item grouping: Select all items in groups
+              itemsForTrim = AddGroupedItems(items, false)
             end
             
-            trim_sel_items('right', areaData.areaEnd)
-            trim_sel_items('left', areaData.areaStart)
+            trim_sel_items(itemsForTrim, 'right', areaData.areaEnd)
+            trim_sel_items(itemsForTrim, 'left', areaData.areaStart)
             
-            for i=1, reaper.CountSelectedMediaItems(0) do
-              table.insert(areaItems, reaper.GetSelectedMediaItem(0, i-1))
-            end
+            table.move(itemsForTrim, 1, #areaItems+1, #areaItems+#itemsForTrim, areaItems )
             table.insert(SplitsT, areaData.areaStart)
          end
       end
@@ -811,13 +1049,13 @@ function TrimRazorEdits(razorEdits)
     reaper.PreventUIRefresh(-1)
   end --if AnythingForSplit
     
-    return areaItems, SplitsT
+  return areaItems, SplitsT
 end
 
 -----------------------------------
 
 function trim_byRE_andSel()
-  SaveSelItems()
+  local SelectedItems = SaveSelItems()
   local selections = GetRazorEdits()
   local items, SplitsT = TrimRazorEdits(selections)
   
@@ -831,7 +1069,7 @@ function trim_byRE_andSel()
       end
     else
       reaper.Main_OnCommandEx(42406, 0, 0) --clear RE area
-      RestoreSelItems()
+      RestoreSelItems(SelectedItems)
     end
     
     reaper.PreventUIRefresh( -1 )
@@ -888,17 +1126,20 @@ end
 ------------------------------
 
 function SaveSelItems()
-  Sitems = {}
+  local Sitems = {}
   for i = 0, reaper.CountSelectedMediaItems(0) -1 do
     local item = reaper.GetSelectedMediaItem(0,i)
-    table.insert(Sitems, item)
+    local itemLocked = reaper.GetMediaItemInfo_Value(item, 'C_LOCK')
+    if item and itemLocked ~= 1 then
+      table.insert(Sitems, item)
+    end
   end
-  
+  return Sitems
 end
 
 ----------------------------
 
-function RestoreSelItems()
+function RestoreSelItems(Sitems)
   reaper.SelectAllMediaItems(0, false)
   for i = 1, #Sitems do
     local item = Sitems[i]
@@ -917,16 +1158,13 @@ end
 --------------------------------------------
 
 
-function trim_sel_items(side, trimTime) --side is 'left' or 'right'
+function trim_sel_items(items, side, trimTime) --side - string 'left' or 'right'
 local undoDesc
-local iCount = reaper.CountSelectedMediaItems(0)
 
 local defFlen = GetPrefs('deffadelen')
 local defFshape = GetPrefs('deffadeshape')
 
-for i=0, iCount-1 do
-  local item = reaper.GetSelectedMediaItem(0,i)
-  
+for i, item in ipairs(items) do
   local iPos = reaper.GetMediaItemInfo_Value(item,'D_POSITION')
   local iEnd = iPos + reaper.GetMediaItemInfo_Value(item,'D_LENGTH')
   local fIn = reaper.GetMediaItemInfo_Value(item,'D_FADEINLEN')
@@ -997,7 +1235,7 @@ function WhatTrim(half, leftF, rightF, mPos)
   if Opt.LRdefine == 'Closest/Farthest edge trim' then --cross define
     if half == "top" then
       if (rightF - mPos) <= (mPos - leftF) then
-        f_type = "right"
+        f_type = "right" 
       else
         f_type = "left"
       end
@@ -1020,38 +1258,85 @@ function WhatTrim(half, leftF, rightF, mPos)
 end
 
 -----------------------------------------
+
+function EditCurTrim(items)
+
+  reaper.Undo_BeginBlock2( 0 )
+  reaper.PreventUIRefresh( 1 )
+  
+  local trimTime = reaper.GetCursorPosition()
+  local half = 'top'
+  Opt.LRdefine = 'Closest/Farthest edge trim'
+  
+  for i, item in ipairs(items) do
+    local iPos = reaper.GetMediaItemInfo_Value(item,'D_POSITION')
+    local iEnd = iPos + reaper.GetMediaItemInfo_Value(item,'D_LENGTH')
+    
+    local side = WhatTrim(half, iPos, iEnd, trimTime)
+    
+    local inisel = {item}
+    local allItemsForTrim = {}
+    
+    if Opt.RespGrouping == true and GroupEnabled == 1 then
+      allItemsForTrim = AddGroupedItems(inisel, false)
+    end
+    
+    if GroupEnabled == 1 then
+      AddTrMediaEditingGroup(allItemsForTrim, {trimTime})
+    end
+    
+    undoType = trim_sel_items(allItemsForTrim, side, trimTime)
+  end
+  
+  return undoType
+end
 -----------------------------------------
 
 function MouseTrim()
- 
+  GroupEnabled = reaper.GetToggleCommandState(1156) --Options: Toggle item grouping override
+  local SelectedItems = SaveSelItems()
   local item, half = GetTopBottomItemHalf()
   
   if half == "header" or not item then  --if mouse cursor not on the item
-    reaper.defer(function() end)
+    if Opt.EnableEcurTrim == true then
+      if EditCurTrim(SelectedItems) then
+        --RestoreSelItems(SelectedItems)
+        reaper.PreventUIRefresh( -1 )
+        reaper.Undo_EndBlock2( 0, "Trim the rest of selected items at edit cursor", -1 )
+        reaper.UpdateArrange()
+      else reaper.defer(function()end)
+      end
+    else reaper.defer(function() end)
+    end
   end
   
   if item and half ~= "header" then
     reaper.Undo_BeginBlock2( 0 )
     reaper.PreventUIRefresh( 1 )
     
-    local mPos = reaper.BR_PositionAtMouseCursor(false) 
+    local mPos = reaper.BR_PositionAtMouseCursor(false)
     local trimTime
     if Opt.RespSnapItems == true then
       trimTime = reaper.SnapToGrid(0,mPos)
     else trimTime = mPos
     end
     
-    GroupEnabled = reaper.GetToggleCommandState(1156) --Options: Toggle item grouping override
-    
-    SaveSelItems()
+    local inisel= {}
+    local allItemsForTrim = {}
+    local timeT = {trimTime}
     
     if reaper.IsMediaItemSelected(item) == false then
-      reaper.SelectAllMediaItems( 0, false )
-      reaper.SetMediaItemSelected(item, true)
+      inisel = {item}
+    else
+      inisel = SelectedItems
     end
     
     if Opt.RespGrouping == true and GroupEnabled == 1 then
-      reaper.Main_OnCommandEx(40034,0,0) --Item grouping: Select all items in groups
+      allItemsForTrim = AddGroupedItems(inisel, false)
+    end
+    
+    if GroupEnabled == 1 then
+      AddTrMediaEditingGroup(allItemsForTrim, timeT)
     end
     
     local iPos = reaper.GetMediaItemInfo_Value(item,'D_POSITION')
@@ -1059,23 +1344,22 @@ function MouseTrim()
     
     local side = WhatTrim(half, iPos, iEnd, mPos)
     
-    undoType = trim_sel_items(side, trimTime)
+    undoType = trim_sel_items(allItemsForTrim, side, trimTime)
     
-    RestoreSelItems()
+    RestoreSelItems(SelectedItems)
     reaper.PreventUIRefresh( -1 )
     if undoType then
       reaper.Undo_EndBlock2( 0, "Trim "..undoType.." edge of items under mouse", -1 )
       reaper.UpdateArrange()
-    else reaper.defer(function()end) end
+    else reaper.defer(function()end)
+    end
     
-    
- 
   end
 end
 --------------------------
 
 -------START------
-CurVers = 1.5
+CurVers = 1.6
 version = tonumber( reaper.GetExtState(ExtStateName, "version") )
 
 if version ~= CurVers then
