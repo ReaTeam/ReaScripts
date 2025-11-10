@@ -1,6 +1,7 @@
 -- @description Set Solo in Front dimming and state
 -- @author amagalma
--- @version 1.00
+-- @version 1.01
+-- @changelog Automatically enable Solo in Front when opening and disable it when closing script
 -- @donation https://www.paypal.me/amagalma
 -- @about Button and slider to set the value and state of Solo in Front.
 
@@ -19,6 +20,12 @@ if solodimdb10 == 666 then return end
 solodimdb10 = solodimdb10 / 10
 
 local solo_in_front = reaper.GetToggleCommandState(40745)
+
+if solo_in_front == 0 then
+  solo_in_front = 1
+  reaper.Main_OnCommand(40745, 0)
+end
+
 local prev_state = solo_in_front
 local btn_color, btn_txt
 local btn_w = (slider_size*0.6)//1
@@ -41,6 +48,9 @@ reaper.RefreshToolbar2( section, cmdID )
 reaper.atexit(function()
   reaper.SetToggleCommandState( section, cmdID, 0 )
   reaper.RefreshToolbar2( section, cmdID )
+  if reaper.GetToggleCommandState( 40745 ) == 1 then
+    reaper.Main_OnCommand(40745, 0)
+  end
 end)
 
 local function SetSoloInFront( val )
