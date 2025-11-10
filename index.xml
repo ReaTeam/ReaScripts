@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="99a569437bdbc2daa1846b07990668e74663fdad" name="ReaTeam Scripts">
+<index version="1" commit="8a3e97f4af05ff60cf2046c7d42e5a2450e8aa10" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -2301,6 +2301,40 @@ Refactored/reorganized the code for readability]]></changelog>
       </metadata>
       <version name="1.0" author="pandabot" time="2018-11-08T01:50:42Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Development/pandabot_Convert%20image%20to%20Lua%20function.lua</source>
+      </version>
+    </reapack>
+    <reapack name="talagan_EmojImGui.lua" type="script" desc="EmojImGui : An Emoji / Icon library for ReaImGui">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel0 \b \fs36 Purpose\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This library targets developers who want to add emoji/icon support to their Reaper applications in lua.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 It offers two emoji fonts (OpenMoji and TweMoji) that have been patched to work with ReaImGui / Freetype, as well specification files describing their structure.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The library comes as an API that allows to load these fonts, as well as a ready-to-use icon picker.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 OpenMoji is an open source font released under the CC BY-SA 4.0 license, and written by many teachers and students from the HfG Schw\u228 ?bisch Gm\u252 ?nd university (https://openmoji.org). Thanks to their hard work !\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 TweMoji is an open source font released under the CC-BY 4.0 license, originally written by twitter and maintained here (https://github.com/jdecked/twemoji).\par}
+}
+]]></description>
+        <link rel="website" href="https://forum.cockos.com/showthread.php?t=TODO">Forum Thread</link>
+        <link rel="donation">https://www.paypal.com/donate/?business=3YEZMY9D6U8NC&amp;no_recurring=1&amp;currency_code=EUR</link>
+      </metadata>
+      <version name="0.3.0" author="Ben 'Talagan' Babut" time="2025-11-10T10:52:10Z">
+        <changelog><![CDATA[- Initial version]]></changelog>
+        <source file="talagan_EmojImGui/assets/build/OpenMoji-color-glyf_colr_0-patched.ttf">https://github.com/ReaTeam/ReaScripts/raw/8a3e97f4af05ff60cf2046c7d42e5a2450e8aa10/Development/talagan_EmojImGui/assets/build/OpenMoji-color-glyf_colr_0-patched.ttf</source>
+        <source file="talagan_EmojImGui/assets/build/openmoji-spec.json">https://github.com/ReaTeam/ReaScripts/raw/8a3e97f4af05ff60cf2046c7d42e5a2450e8aa10/Development/talagan_EmojImGui/assets/build/openmoji-spec.json</source>
+        <source file="talagan_EmojImGui/assets/build/openmoji-spec.lua">https://github.com/ReaTeam/ReaScripts/raw/8a3e97f4af05ff60cf2046c7d42e5a2450e8aa10/Development/talagan_EmojImGui/assets/build/openmoji-spec.lua</source>
+        <source file="talagan_EmojImGui/assets/build/TweMoji-color-glyf_colr_0-patched.ttf">https://github.com/ReaTeam/ReaScripts/raw/8a3e97f4af05ff60cf2046c7d42e5a2450e8aa10/Development/talagan_EmojImGui/assets/build/TweMoji-color-glyf_colr_0-patched.ttf</source>
+        <source file="talagan_EmojImGui/assets/build/twemoji-spec.json">https://github.com/ReaTeam/ReaScripts/raw/8a3e97f4af05ff60cf2046c7d42e5a2450e8aa10/Development/talagan_EmojImGui/assets/build/twemoji-spec.json</source>
+        <source file="talagan_EmojImGui/assets/build/twemoji-spec.lua">https://github.com/ReaTeam/ReaScripts/raw/8a3e97f4af05ff60cf2046c7d42e5a2450e8aa10/Development/talagan_EmojImGui/assets/build/twemoji-spec.lua</source>
+        <source file="talagan_EmojImGui/emojimgui/ext/imgui.lua">https://github.com/ReaTeam/ReaScripts/raw/8a3e97f4af05ff60cf2046c7d42e5a2450e8aa10/Development/talagan_EmojImGui/emojimgui/ext/imgui.lua</source>
+        <source file="talagan_EmojImGui/emojimgui/ext/json.lua">https://github.com/ReaTeam/ReaScripts/raw/8a3e97f4af05ff60cf2046c7d42e5a2450e8aa10/Development/talagan_EmojImGui/emojimgui/ext/json.lua</source>
+        <source file="talagan_EmojImGui/emojimgui/ext/serpent.lua">https://github.com/ReaTeam/ReaScripts/raw/8a3e97f4af05ff60cf2046c7d42e5a2450e8aa10/Development/talagan_EmojImGui/emojimgui/ext/serpent.lua</source>
+        <source file="talagan_EmojImGui/emojimgui/modules/assets.lua">https://github.com/ReaTeam/ReaScripts/raw/8a3e97f4af05ff60cf2046c7d42e5a2450e8aa10/Development/talagan_EmojImGui/emojimgui/modules/assets.lua</source>
+        <source file="talagan_EmojImGui/emojimgui/widgets/picker.lua">https://github.com/ReaTeam/ReaScripts/raw/8a3e97f4af05ff60cf2046c7d42e5a2450e8aa10/Development/talagan_EmojImGui/emojimgui/widgets/picker.lua</source>
+        <source file="talagan_EmojImGui/emojimgui.lua">https://github.com/ReaTeam/ReaScripts/raw/8a3e97f4af05ff60cf2046c7d42e5a2450e8aa10/Development/talagan_EmojImGui/emojimgui.lua</source>
+        <source main="main" file="./talagan_EmojImGui Demo.lua">https://github.com/ReaTeam/ReaScripts/raw/8a3e97f4af05ff60cf2046c7d42e5a2450e8aa10/Development/talagan_EmojImGui/actions/talagan_EmojImGui%20Demo.lua</source>
       </version>
     </reapack>
     <reapack name="talagan_Mouse cursor library.lua" type="script" desc="Mouse cursor library for Reaper">
