@@ -10,7 +10,6 @@ local Notes                 = require "classes/notes"
 
 local reaper_ext            = require "modules/reaper_ext"
 
-
 local AppContext = {}
 AppContext.__index = AppContext
 
@@ -84,19 +83,29 @@ end
 function AppContext:_initialize()
   self.launch_context             = LaunchContext:new()
   self.arrange_view_watcher       = ArrangeViewWatcher:new()
+
+  -- Main view
   self.mv                         = { hwnd=reaper.GetMainHwnd() }
+  -- Arrange view
   self.av                         = { hwnd=reaper.JS_Window_FindChildByID(self.mv.hwnd, 1000) }
+  -- TCP view
   self.tcp                        = { hwnd=reaper.JS_Window_FindEx(reaper.GetMainHwnd(), reaper.GetMainHwnd(), "REAPERTCPDisplay", "") }
+  -- Time Ruler
   self.time_ruler                 = { hwnd=reaper.JS_Window_FindChildByID(self.mv.hwnd, 1005) }
+  -- Main toolbar
   self.main_toolbar               = { hwnd=self:findMainToolbarHwnd(self.mv.hwnd, self.time_ruler.hwnd, self.tcp.hwnd)}
 
   local master_mcp_hwnd, other_mcp_hwnd, mcp_window = self:findMCPHwnds()
 
+  -- MCP, master part
   self.mcp_master                 = { hwnd=master_mcp_hwnd }
+  -- MCP, other part
   self.mcp_other                  = { hwnd=other_mcp_hwnd }
+  -- MCP, wrapper window
   self.mcp_window                 = { hwnd=mcp_window, is_top = (reaper.JS_Window_FindTop("Mixer", true) ~= nil) }
 
   self.imgui_ctx                  = ImGui.CreateContext("Reannotate")
+  self.dpi_scale                  = ImGui.GetWindowDpiScale(self.imgui_ctx)
 
   self.cursor_func                = ImGui.CreateFunctionFromEEL([[
       (WANTED_CURSOR >= 0)?(
@@ -108,26 +117,42 @@ function AppContext:_initialize()
   self.arial_font         = ImGui.CreateFont("Arial", ImGui.FontFlags_None)
   self.arial_font_italic  = ImGui.CreateFont("Arial", ImGui.FontFlags_Italic | ImGui.FontFlags_Bold)
 
+  ImGui.Attach(self.imgui_ctx, self.cursor_func)
+  ImGui.Attach(self.imgui_ctx, self.arial_font)
+  ImGui.Attach(self.imgui_ctx, self.arial_font_italic)
+
   self.enabled_category_filters = {}
   for i=1, Notes.MAX_SLOTS do
     self.enabled_category_filters[i] = true
   end
-
-  ImGui.Attach(self.imgui_ctx, self.cursor_func)
-  ImGui.Attach(self.imgui_ctx, self.arial_font)
 
   AppContext.__singleton = self
 end
 
 function AppContext:retrieveCoordinates(sub, scrollbar_w, scrollbar_h)
   if not sub.hwnd then return end
-  local _, x, y, r, b         = reaper.JS_Window_GetRect(sub.hwnd)
+  local _, x, y, x2, y2       = reaper.JS_Window_GetRect(sub.hwnd)
 
-  sub.x, sub.w, sub.h         = x, r - x, math.abs(b - y)
-  sub.x, sub.y                = ImGui.PointConvertNative(self.imgui_ctx, x, y, true )
+  sub.x, sub.y                = ImGui.PointConvertNative(self.imgui_ctx, x,  y, false)
+  local xx2, yy2              = ImGui.PointConvertNative(self.imgui_ctx, x2, y2, false)
 
-  if scrollbar_w then sub.w = sub.w - scrollbar_w end
-  if scrollbar_h then sub.h = sub.h - scrollbar_h end
+  sub.w = math.abs(xx2 - sub.x)
+  sub.h = math.abs(yy2 - sub.y)
+
+  sub.dpi = sub.w / (x2 - x)
+
+  if scrollbar_w then
+    local w  = math.abs(x2 - x)
+    local hr = (w - scrollbar_w) / w
+    sub.w = math.floor(sub.w * hr + 0.5)
+  end
+
+  if scrollbar_h then
+    local h = math.abs(y2 - y)
+    local hr = (h - scrollbar_h) / h
+    sub.h = math.floor(sub.h * hr + 0.5)
+  end
+
 end
 
 function AppContext:retrievePinnedTcpHeight()

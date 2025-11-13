@@ -1,6 +1,6 @@
 --[[
 @description Reannotate - Annotation tool for REAPER
-@version 0.3.8
+@version 0.4.0
 @author Ben 'Talagan' Babut
 @donation https://www.paypal.com/donate/?business=3YEZMY9D6U8NC&no_recurring=1&currency_code=EUR
 @license MIT
@@ -10,14 +10,17 @@
   Forum Thread https://forum.cockos.com/showthread.php?t=304147
 @metapackage
 @changelog
-  - [Bug Fix] Fixing case where the user does not use "Main Toolbar" as main toolbar (thanks Denys!)
+  - [Feature] Introducing stickers using EmojImGui
+  - [Enhance] Clamped top/bottom elements will not show colored border at the clamping place
+  - [Bug Fix] If launched from a button, any pressed key would close Reannotate (Thanks Smandrap !)
+  - [Bug Fix] Filtering is now case insensitive
+  - [Bug Fix] Reannotate was not DPI aware under windows (Thanks X-Raym !)
 @provides
   [nomain] talagan_Reannotate/ext/**/*
   [nomain] talagan_Reannotate/classes/**/*
   [nomain] talagan_Reannotate/images/**/*
   [nomain] talagan_Reannotate/modules/**/*
   [nomain] talagan_Reannotate/widgets/**/*
-
   [main=main] talagan_Reannotate/actions/talagan_Reannotate Quick Preview.lua > talagan_Reannotate Quick Preview.lua
 @about
   Reannotate is a visual annotation tool for Reaper.

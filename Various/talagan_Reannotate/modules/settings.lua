@@ -70,7 +70,7 @@ local function getSetting(setting)
     error("Trying to get unknown setting " .. setting);
   end
 
-  local str = reaper.GetExtState("MaCCLane", setting)
+  local str = reaper.GetExtState("Reannotate", setting)
 
   return serializedStringToValue(str, spec)
 end
@@ -83,10 +83,10 @@ local function setSetting(setting, val)
   end
 
   if val == nil then
-    reaper.DeleteExtState("MaCCLane", setting, true);
+    reaper.DeleteExtState("Reannotate", setting, true);
   else
     local str = valueToSerializedString(val, spec);
-    reaper.SetExtState("MaCCLane", setting, str, true);
+    reaper.SetExtState("Reannotate", setting, str, true);
   end
 end
 

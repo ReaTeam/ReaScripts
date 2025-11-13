@@ -33,6 +33,7 @@ local function checkDependencies()
     if not CheckReapack("API",    "ImGui_CreateContext",        "ReaImGUI",          "ReaImGui:")            then return false end
     if not CheckReapack("API",    "CF_ShellExecute",            "SWS",               "SWS/S&M Extension")    then return false end
     if not CheckReapack("script", "reaimgui_markdown",          "ReaImGui Markdown", "ReaImGui Markdown")    then return false end
+    if not CheckReapack("script", "emojimgui",                  "EmojImGui",         "EmojImGui")            then return false end
 
     return true
 end

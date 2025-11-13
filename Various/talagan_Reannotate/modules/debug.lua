@@ -58,6 +58,7 @@ local function LaunchProfilerIfNeeded()
         -- Require here all files containing things to be profiled.
         local ImGui = require "ext/imgui"
         local QuickPreviewOverlay = require "widgets/quick_preview_overlay"
+        local EmojImGui           = require "emojimgui"
 
         local profiler = dofile(reaper.GetResourcePath() .. '/Scripts/ReaTeam Scripts/Development/cfillion_Lua profiler.lua')
         reaper.defer = profiler.defer
