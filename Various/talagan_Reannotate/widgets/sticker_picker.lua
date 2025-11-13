@@ -236,8 +236,8 @@ function StickerPicker:draw()
       if res and not res:isEmpty() then
         if self.sticker_editor.new_record then
           self.sticker_library[#self.sticker_library+1] = res
-          self:commit()
         end
+        self:commit()
       end
     end
 

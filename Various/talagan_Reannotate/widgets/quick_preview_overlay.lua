@@ -614,6 +614,7 @@ function QuickPreviewOverlay:drawTooltip()
                 tttext          = before .. interaction.replacement_string .. after
 
                 thing_to_tooltip.notes:setSlotText(slot_to_tooltip, tttext)
+                thing_to_tooltip.notes:commit()
             end
 
             -- Border. Tooltip is shown when edited or hoevered

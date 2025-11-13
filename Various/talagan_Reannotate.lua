@@ -1,6 +1,6 @@
 --[[
 @description Reannotate - Annotation tool for REAPER
-@version 0.4.0
+@version 0.4.1
 @author Ben 'Talagan' Babut
 @donation https://www.paypal.com/donate/?business=3YEZMY9D6U8NC&no_recurring=1&currency_code=EUR
 @license MIT
@@ -10,11 +10,8 @@
   Forum Thread https://forum.cockos.com/showthread.php?t=304147
 @metapackage
 @changelog
-  - [Feature] Introducing stickers using EmojImGui
-  - [Enhance] Clamped top/bottom elements will not show colored border at the clamping place
-  - [Bug Fix] If launched from a button, any pressed key would close Reannotate (Thanks Smandrap !)
-  - [Bug Fix] Filtering is now case insensitive
-  - [Bug Fix] Reannotate was not DPI aware under windows (Thanks X-Raym !)
+  - [Bug Fix] Sticker edit does not save the sticker in library (thanks, Smandrap !)
+  - [Bug Fix] Notes are not saved if only checking checkboxes
 @provides
   [nomain] talagan_Reannotate/ext/**/*
   [nomain] talagan_Reannotate/classes/**/*
