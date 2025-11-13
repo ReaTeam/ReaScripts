@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="86b99d74bc084dceee510c6dea98b18a1640b051" name="ReaTeam Scripts">
+<index version="1" commit="f79c7567dcc367b838eae56af048d35d87e732f6" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -29861,6 +29861,36 @@ Fix SWS Startup / Lokasenna Radial Menu bug]]></changelog>
         <source file="talagan_Reannotate/widgets/quick_preview_overlay.lua">https://github.com/ReaTeam/ReaScripts/raw/044efa9057e51a1b54751e29563e4c8bbc48f416/Various/talagan_Reannotate/widgets/quick_preview_overlay.lua</source>
         <source file="talagan_Reannotate/widgets/settings_editor.lua">https://github.com/ReaTeam/ReaScripts/raw/044efa9057e51a1b54751e29563e4c8bbc48f416/Various/talagan_Reannotate/widgets/settings_editor.lua</source>
         <source main="main" file="talagan_Reannotate Quick Preview.lua">https://github.com/ReaTeam/ReaScripts/raw/044efa9057e51a1b54751e29563e4c8bbc48f416/Various/talagan_Reannotate/actions/talagan_Reannotate%20Quick%20Preview.lua</source>
+      </version>
+      <version name="0.4.0" author="Ben 'Talagan' Babut" time="2025-11-13T16:34:21Z">
+        <changelog><![CDATA[- [Feature] Introducing stickers using EmojImGui
+- [Enhance] Clamped top/bottom elements will not show colored border at the clamping place
+- [Bug Fix] If launched from a button, any pressed key would close Reannotate (Thanks Smandrap !)
+- [Bug Fix] Filtering is now case insensitive
+- [Bug Fix] Reannotate was not DPI aware under windows (Thanks X-Raym !)]]></changelog>
+        <source file="talagan_Reannotate/ext/dependencies.lua">https://github.com/ReaTeam/ReaScripts/raw/f79c7567dcc367b838eae56af048d35d87e732f6/Various/talagan_Reannotate/ext/dependencies.lua</source>
+        <source file="talagan_Reannotate/ext/imgui.lua">https://github.com/ReaTeam/ReaScripts/raw/f79c7567dcc367b838eae56af048d35d87e732f6/Various/talagan_Reannotate/ext/imgui.lua</source>
+        <source file="talagan_Reannotate/ext/json.lua">https://github.com/ReaTeam/ReaScripts/raw/f79c7567dcc367b838eae56af048d35d87e732f6/Various/talagan_Reannotate/ext/json.lua</source>
+        <source file="talagan_Reannotate/classes/app_context.lua">https://github.com/ReaTeam/ReaScripts/raw/f79c7567dcc367b838eae56af048d35d87e732f6/Various/talagan_Reannotate/classes/app_context.lua</source>
+        <source file="talagan_Reannotate/classes/arrange_view_watcher.lua">https://github.com/ReaTeam/ReaScripts/raw/f79c7567dcc367b838eae56af048d35d87e732f6/Various/talagan_Reannotate/classes/arrange_view_watcher.lua</source>
+        <source file="talagan_Reannotate/classes/color.lua">https://github.com/ReaTeam/ReaScripts/raw/f79c7567dcc367b838eae56af048d35d87e732f6/Various/talagan_Reannotate/classes/color.lua</source>
+        <source file="talagan_Reannotate/classes/launch_context.lua">https://github.com/ReaTeam/ReaScripts/raw/f79c7567dcc367b838eae56af048d35d87e732f6/Various/talagan_Reannotate/classes/launch_context.lua</source>
+        <source file="talagan_Reannotate/classes/mouse_observer.lua">https://github.com/ReaTeam/ReaScripts/raw/f79c7567dcc367b838eae56af048d35d87e732f6/Various/talagan_Reannotate/classes/mouse_observer.lua</source>
+        <source file="talagan_Reannotate/classes/notes.lua">https://github.com/ReaTeam/ReaScripts/raw/f79c7567dcc367b838eae56af048d35d87e732f6/Various/talagan_Reannotate/classes/notes.lua</source>
+        <source file="talagan_Reannotate/classes/sticker.lua">https://github.com/ReaTeam/ReaScripts/raw/f79c7567dcc367b838eae56af048d35d87e732f6/Various/talagan_Reannotate/classes/sticker.lua</source>
+        <source file="talagan_Reannotate/images/settings.lua">https://github.com/ReaTeam/ReaScripts/raw/f79c7567dcc367b838eae56af048d35d87e732f6/Various/talagan_Reannotate/images/settings.lua</source>
+        <source file="talagan_Reannotate/modules/checkbox_helper.lua">https://github.com/ReaTeam/ReaScripts/raw/f79c7567dcc367b838eae56af048d35d87e732f6/Various/talagan_Reannotate/modules/checkbox_helper.lua</source>
+        <source file="talagan_Reannotate/modules/debug.lua">https://github.com/ReaTeam/ReaScripts/raw/f79c7567dcc367b838eae56af048d35d87e732f6/Various/talagan_Reannotate/modules/debug.lua</source>
+        <source file="talagan_Reannotate/modules/reaper_ext.lua">https://github.com/ReaTeam/ReaScripts/raw/f79c7567dcc367b838eae56af048d35d87e732f6/Various/talagan_Reannotate/modules/reaper_ext.lua</source>
+        <source file="talagan_Reannotate/modules/settings.lua">https://github.com/ReaTeam/ReaScripts/raw/f79c7567dcc367b838eae56af048d35d87e732f6/Various/talagan_Reannotate/modules/settings.lua</source>
+        <source file="talagan_Reannotate/modules/unit_tests.lua">https://github.com/ReaTeam/ReaScripts/raw/f79c7567dcc367b838eae56af048d35d87e732f6/Various/talagan_Reannotate/modules/unit_tests.lua</source>
+        <source file="talagan_Reannotate/widgets/note_editor.lua">https://github.com/ReaTeam/ReaScripts/raw/f79c7567dcc367b838eae56af048d35d87e732f6/Various/talagan_Reannotate/widgets/note_editor.lua</source>
+        <source file="talagan_Reannotate/widgets/overlay_canvas.lua">https://github.com/ReaTeam/ReaScripts/raw/f79c7567dcc367b838eae56af048d35d87e732f6/Various/talagan_Reannotate/widgets/overlay_canvas.lua</source>
+        <source file="talagan_Reannotate/widgets/quick_preview_overlay.lua">https://github.com/ReaTeam/ReaScripts/raw/f79c7567dcc367b838eae56af048d35d87e732f6/Various/talagan_Reannotate/widgets/quick_preview_overlay.lua</source>
+        <source file="talagan_Reannotate/widgets/settings_editor.lua">https://github.com/ReaTeam/ReaScripts/raw/f79c7567dcc367b838eae56af048d35d87e732f6/Various/talagan_Reannotate/widgets/settings_editor.lua</source>
+        <source file="talagan_Reannotate/widgets/sticker_editor.lua">https://github.com/ReaTeam/ReaScripts/raw/f79c7567dcc367b838eae56af048d35d87e732f6/Various/talagan_Reannotate/widgets/sticker_editor.lua</source>
+        <source file="talagan_Reannotate/widgets/sticker_picker.lua">https://github.com/ReaTeam/ReaScripts/raw/f79c7567dcc367b838eae56af048d35d87e732f6/Various/talagan_Reannotate/widgets/sticker_picker.lua</source>
+        <source main="main" file="talagan_Reannotate Quick Preview.lua">https://github.com/ReaTeam/ReaScripts/raw/f79c7567dcc367b838eae56af048d35d87e732f6/Various/talagan_Reannotate/actions/talagan_Reannotate%20Quick%20Preview.lua</source>
       </version>
     </reapack>
     <reapack name="talagan_Spectracular.lua" type="script" desc="Spectracular ! Spectrogram binocular for REAPER">
