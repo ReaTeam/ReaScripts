@@ -45,10 +45,8 @@ function SettingsEditor:draw()
     end
 
     -- Close window on escape
-    if ImGui.IsWindowFocused(ctx) then
-        if ImGui.IsKeyChordPressed(ctx, ImGui.Key_Escape) then
-            open = false
-        end
+    if ImGui.IsWindowFocused(ctx) and ImGui.IsKeyChordPressed(ctx, ImGui.Key_Escape) then
+        open = false
     end
 
     if b then

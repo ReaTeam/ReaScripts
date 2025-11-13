@@ -3,8 +3,9 @@
 -- @license MIT
 -- @description This file is part of Reannotate
 
-local JSON = require "ext/json"
-local S    = require "modules/settings"
+local JSON              = require "ext/json"
+local S                 = require "modules/settings"
+local CheckboxHelper    = require "modules/checkbox_helper"
 
 local TT_DEFAULT_W = 300
 local TT_DEFAULT_H = 100
@@ -21,20 +22,27 @@ end
 
 local function normalizeReannotateData(data)
 
-    if not data.tt_sizes    then data.tt_sizes   = {} end
-    if not data.slots       then data.slots   = {} end
+    if not data.tt_sizes    then data.tt_sizes      = {} end
+    if not data.slots       then data.slots         = {} end
+    if not data.stickers    then data.stickers      = {} end
+    if not data.cb          then data.cb            = {} end
 
     for i=1, MAX_SLOTS-1 do
+        data.slots[i]       = data.slots[i] or "" -- Stored text
         data.tt_sizes[i]    = data.tt_sizes[i] or {}
         data.tt_sizes[i].w  = normalizeCoordinate(data.tt_sizes[i].w, TT_DEFAULT_W)
         data.tt_sizes[i].h  = normalizeCoordinate(data.tt_sizes[i].h, TT_DEFAULT_H)
-        data.slots[i]       = data.slots[i] or ""
+        data.stickers[i]    = data.stickers[i] or {} -- List or empty list of packed stickers
+        data.cb[i]          = data.cb[i] or {} -- Checkbox cache
     end
 
     -- Special treatment for slot 0
-    data.sws_reaper_tt_size = data.sws_reaper_tt_size or {}
-    data.sws_reaper_tt_size.w = normalizeCoordinate(data.sws_reaper_tt_size.w, TT_DEFAULT_W)
-    data.sws_reaper_tt_size.h = normalizeCoordinate(data.sws_reaper_tt_size.h, TT_DEFAULT_H)
+    data.sws_reaper_tt_size     = data.sws_reaper_tt_size or {}
+    data.sws_reaper_tt_size.w   = normalizeCoordinate(data.sws_reaper_tt_size.w, TT_DEFAULT_W)
+    data.sws_reaper_tt_size.h   = normalizeCoordinate(data.sws_reaper_tt_size.h, TT_DEFAULT_H)
+    data.sws_reaper_stickers    = data.sws_reaper_stickers or {}
+    data.sr_cb                  = data.sr_cb or {}
+    -- data.sws_reaper_text <-- stored in reaper / SWS
 
     return data
 end
@@ -98,7 +106,6 @@ local function SetObjectNotes_Reannotate(object, data)
 
     data                = normalizeReannotateData(data)
     local data_str      = JSON.encode(data)
-
     return setter(store_object, store_key, data_str, true)
 end
 
@@ -206,7 +213,6 @@ Notes.POST_IT_COLORS = {
     0xff4040, -- RED        Slot 7
 }
 
-
 function Notes:new(object, should_pull)
   local instance = {}
   setmetatable(instance, self)
@@ -234,6 +240,15 @@ function Notes:commit()
     SetObjectNotes_SWS_Reaper(self._object, self.sws_reaper_notes)
 end
 
+function Notes:isBlank()
+    local ret = true
+    if self.sws_reaper_notes and self.sws_reaper_notes ~= "" then return false end
+    for k,v in pairs(self.reannotate_notes.slots) do
+        if v and v~= "" then return false end
+    end
+    return ret
+end
+
 function Notes:tooltipSize(slot)
     if slot == 0 then
         return self.reannotate_notes.sws_reaper_tt_size.w, self.reannotate_notes.sws_reaper_tt_size.h
@@ -241,8 +256,6 @@ function Notes:tooltipSize(slot)
         return self.reannotate_notes.tt_sizes[slot].w, self.reannotate_notes.tt_sizes[slot].h
     end
 end
-
-
 function Notes:setTooltipSize(slot, w, h)
     w = normalizeCoordinate(w, TT_DEFAULT_W)
     h = normalizeCoordinate(h, TT_DEFAULT_H)
@@ -254,30 +267,60 @@ function Notes:setTooltipSize(slot, w, h)
     end
 end
 
-function Notes:isBlank()
-    local ret = true
-    if self.sws_reaper_notes and self.sws_reaper_notes ~= "" then return false end
-    for k,v in pairs(self.reannotate_notes.slots) do
-        if v and v~= "" then return false end
-    end
-    return ret
-end
-
-function Notes:slot(slot)
+function Notes:slotText(slot)
     if slot == 0 then
         return self.sws_reaper_notes or ""
     else
         return self.reannotate_notes.slots[slot] or ""
     end
 end
-
-function Notes:setSlot(slot, str)
+function Notes:setSlotText(slot, str)
     if slot == 0 then
         self.sws_reaper_notes = str or ""
     else
         self.reannotate_notes.slots[slot] = str or ""
     end
+
+    -- Cache checkbox counts
+    local counts = CheckboxHelper.CountCheckboxes(str)
+    if slot == 0 then
+        self.reannotate_notes.sr_cb = counts
+    else
+        self.reannotate_notes.cb[slot] = counts
+    end
 end
+
+-- Return stickers in the packed format.
+-- Stickers should be unpacked.
+function Notes:slotStickers(slot)
+    if slot == 0 then
+        return self.reannotate_notes.sws_reaper_stickers or {}
+    else
+        return self.reannotate_notes.stickers[slot] or {}
+    end
+end
+function Notes:setSlotStickers(slot, packed_stickers)
+    if slot == 0 then
+        self.reannotate_notes.sws_reaper_stickers = packed_stickers
+    else
+        self.reannotate_notes.stickers[slot] = packed_stickers
+    end
+end
+
+function Notes:slotCheckboxCache(slot)
+    local ret = {}
+    if slot == 0 then
+        ret = self.reannotate_notes.sr_cb or {}
+    else
+        ret = self.reannotate_notes.cb[slot] or {}
+    end
+
+    ret.t = ret.t or 0
+    ret.c = ret.c or 0
+    return ret
+end
+
+------------------------------------
 
 function Notes.RetrieveProjectSlotLabels()
     local _, str = reaper.GetSetMediaTrackInfo_String(reaper.GetMasterTrack(activeProject()), "P_EXT:Reannotate_ProjectSlotLabels", "", false)
@@ -304,7 +347,6 @@ function Notes.CommitProjectSlotLabels()
     Notes.slot_labels_dirty = false
 end
 
-
 function Notes.SlotColor(slot)
     return Notes.POST_IT_COLORS[slot+1]
 end
@@ -324,5 +366,7 @@ end
 function Notes.defaultTooltipSize()
     return TT_DEFAULT_W, TT_DEFAULT_H
 end
+
+-------------------------------------
 
 return Notes

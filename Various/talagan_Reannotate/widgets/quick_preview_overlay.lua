@@ -70,14 +70,15 @@ function QuickPreviewOverlay:_initialize()
 end
 
 function QuickPreviewOverlay:timeToPixels(app_ctx, time)
-    return math.floor((time - app_ctx.av.start_time) * reaper.GetHZoomLevel())
+    return math.floor((time - app_ctx.av.start_time) * reaper.GetHZoomLevel() * app_ctx.av.dpi)
 end
 
 function QuickPreviewOverlay:getItemYBounds(track, item)
     -- Get the item's Y position in pixels within the Arrange view
-    local track_y       = reaper.GetMediaTrackInfo_Value(track, "I_TCPY")
-    local item_y_offset = reaper.GetMediaItemInfo_Value(item, "I_LASTY")
-    local item_h        = reaper.GetMediaItemInfo_Value(item, "I_LASTH")
+    local app_ctx       = AppContext.instance()
+    local track_y       = reaper.GetMediaTrackInfo_Value(track, "I_TCPY") * app_ctx.av.dpi
+    local item_y_offset = reaper.GetMediaItemInfo_Value(item, "I_LASTY")  * app_ctx.av.dpi
+    local item_h        = reaper.GetMediaItemInfo_Value(item, "I_LASTH")  * app_ctx.av.dpi
 
     return math.floor(track_y + item_y_offset + 0.5), math.floor(item_h + 0.5)
 end
@@ -97,7 +98,7 @@ function QuickPreviewOverlay:IsInReaper()
     end
 end
 
-function QuickPreviewOverlay:buildEditContextForThing(object, type, track_num, parent_widget_name, pos_x_pixels, pos_y_pixels, len_x_pixels, len_y_pixels, clamped_left, clamped_right)
+function QuickPreviewOverlay:buildEditContextForThing(object, type, track_num, parent_widget_name, pos_x_pixels, pos_y_pixels, len_x_pixels, len_y_pixels, clamped_left, clamped_right, clamped_top, clamped_bottom)
 
     local app_ctx   = AppContext.instance()
 
@@ -144,8 +145,10 @@ function QuickPreviewOverlay:buildEditContextForThing(object, type, track_num, p
         pos_y       = pos_y_pixels,
         width       = len_x_pixels,
         height      = len_y_pixels,
-        clamped_left = clamped_left,
-        clamped_right = clamped_right,
+        clamped_left    = clamped_left,
+        clamped_right   = clamped_right,
+        clamped_top     = clamped_top,
+        clamped_bottom  = clamped_bottom,
         -- Annotation info
         notes       = notes,
         -- Track num
@@ -164,30 +167,40 @@ function QuickPreviewOverlay:updateVisibleThings()
     -- Get total number of tracks
     local track_count = reaper.CountTracks(0)
 
-    local function block_clamp(minx, miny, w, h, limitx, limity, low_limit_y)
+    local function block_clamp(minx, miny, w, h, limitx, limity, low_limit_x, low_limit_y)
         local maxx = minx + w
         local maxy = miny + h
 
-        local clamped_left = false
-        local clamped_right = false
-        if minx < 0 then
-            minx = 0
-            clamped_left = true
-        end
-        if maxx > limitx then
-            maxx = limitx
-            clamped_right = true
-        end
+        local clamped_left      = false
+        local clamped_right     = false
+        local clamped_top       = false
+        local clamped_bottom    = false
 
+        low_limit_x = low_limit_x or 0
         low_limit_y = low_limit_y or 0
 
-        if miny < low_limit_y   then miny = low_limit_y end
-        if maxy > limity        then maxy = limity      end
+        if minx < low_limit_x then
+            minx           = low_limit_x
+            clamped_left   = true
+        end
+        if miny < low_limit_y   then
+            miny            = low_limit_y
+            clamped_top     = true
+        end
+
+        if maxx > limitx then
+            maxx           = limitx
+            clamped_right  = true
+        end
+        if maxy > limity then
+            maxy            = limity
+            clamped_bottom  = true
+        end
 
         w = maxx - minx
         h = maxy - miny
 
-        return minx, miny, w, h, clamped_left, clamped_right
+        return minx, miny, w, h, clamped_left, clamped_right, clamped_top, clamped_bottom
     end
 
     -- Iterate through tracks
@@ -195,8 +208,8 @@ function QuickPreviewOverlay:updateVisibleThings()
         local is_master         = (i==-1)
         local track             = is_master and reaper.GetMasterTrack(0) or reaper.GetTrack(0, i)
         local _, tname          = reaper.GetTrackName(track)
-        local track_height      = reaper.GetMediaTrackInfo_Value(track, "I_TCPH")
-        local track_top         = reaper.GetMediaTrackInfo_Value(track, "I_TCPY")
+        local track_height      = reaper.GetMediaTrackInfo_Value(track, "I_TCPH") * app_ctx.av.dpi
+        local track_top         = reaper.GetMediaTrackInfo_Value(track, "I_TCPY") * app_ctx.av.dpi
         local track_bottom      = track_top + track_height
         local track_is_pinned   = reaper_ext.IsTrackPinned(track)
         local hlimit            = track_is_pinned and 0 or avi.pinned_height
@@ -212,8 +225,8 @@ function QuickPreviewOverlay:updateVisibleThings()
                 if not envelope then break end
 
                 if reaper_ext.IsEnvelopeVisible(envelope) then
-                    local env_top     = reaper.GetEnvelopeInfo_Value(envelope, "I_TCPY") + track_top
-                    local env_height  = reaper.GetEnvelopeInfo_Value(envelope, "I_TCPH")
+                    local env_top     = reaper.GetEnvelopeInfo_Value(envelope, "I_TCPY") * app_ctx.av.dpi + track_top
+                    local env_height  = reaper.GetEnvelopeInfo_Value(envelope, "I_TCPH") * app_ctx.av.dpi
                     local env_bottom  = env_top + env_height
 
                     if env_height > 0 and ((env_top >= hlimit and env_top <= avi.h) or (env_bottom >= hlimit and env_bottom <= avi.h)) then
@@ -221,11 +234,11 @@ function QuickPreviewOverlay:updateVisibleThings()
                         local pos_x_pixels = 0
                         local len_x_pixels = tcp.w
                         local pos_y_pixels, len_y_pixels = env_top, env_height
-                        local clamped_left, clamped_right = false, false
+                        local clamped_left, clamped_right, clamped_top, clamped_bottom = false, false, false, false
 
-                        pos_x_pixels, pos_y_pixels, len_x_pixels, len_y_pixels, clamped_left, clamped_right = block_clamp(pos_x_pixels, pos_y_pixels, len_x_pixels, len_y_pixels, tcp.w, tcp.h, hlimit)
+                        pos_x_pixels, pos_y_pixels, len_x_pixels, len_y_pixels, clamped_left, clamped_right, clamped_top, clamped_bottom = block_clamp(pos_x_pixels, pos_y_pixels, len_x_pixels, len_y_pixels, tcp.w, tcp.h, 0, hlimit)
 
-                        local env_entry = self:buildEditContextForThing(envelope, "env", i, "tcp", pos_x_pixels, pos_y_pixels, len_x_pixels, len_y_pixels, clamped_left, clamped_right)
+                        local env_entry = self:buildEditContextForThing(envelope, "env", i, "tcp", pos_x_pixels, pos_y_pixels, len_x_pixels, len_y_pixels, clamped_left, clamped_right, clamped_top, clamped_bottom)
 
                         table.insert(self.visible_things, env_entry)
                     end
@@ -241,11 +254,11 @@ function QuickPreviewOverlay:updateVisibleThings()
             local pos_x_pixels = 0
             local len_x_pixels = tcp.w
             local pos_y_pixels, len_y_pixels = track_top, track_height
-            local clamped_left, clamped_right = false, false
+            local clamped_left, clamped_right, clamped_top, clamped_bottom = false, false, false, false
 
-            pos_x_pixels, pos_y_pixels, len_x_pixels, len_y_pixels, clamped_left, clamped_right = block_clamp(pos_x_pixels, pos_y_pixels, len_x_pixels, len_y_pixels, tcp.w, tcp.h, hlimit)
+            pos_x_pixels, pos_y_pixels, len_x_pixels, len_y_pixels, clamped_left, clamped_right, clamped_top, clamped_bottom = block_clamp(pos_x_pixels, pos_y_pixels, len_x_pixels, len_y_pixels, tcp.w, tcp.h, 0, hlimit)
 
-            tcp_entry = self:buildEditContextForThing(track, "track", i, "tcp", pos_x_pixels, pos_y_pixels, len_x_pixels, len_y_pixels, clamped_left, clamped_right)
+            tcp_entry = self:buildEditContextForThing(track, "track", i, "tcp", pos_x_pixels, pos_y_pixels, len_x_pixels, len_y_pixels, clamped_left, clamped_right, clamped_top, clamped_bottom)
 
             table.insert(self.visible_things, tcp_entry)
 
@@ -269,13 +282,13 @@ function QuickPreviewOverlay:updateVisibleThings()
                     -- Check if item is visible
                     if item_end >= start_time and item_pos <= end_time then
                         local pos_x_pixels = self:timeToPixels(app_ctx, item_pos)
-                        local len_x_pixels = math.floor(item_len * reaper.GetHZoomLevel()+0.5)
+                        local len_x_pixels = math.floor(item_len * reaper.GetHZoomLevel() * app_ctx.av.dpi + 0.5)
                         local pos_y_pixels, len_y_pixels = self:getItemYBounds(track, item)
-                        local clamped_left, clamped_right = false, false
+                        local clamped_left, clamped_right, clamped_top, clamped_bottom = false, false, false, false
 
-                        pos_x_pixels, pos_y_pixels, len_x_pixels, len_y_pixels, clamped_left, clamped_right = block_clamp(pos_x_pixels, pos_y_pixels, len_x_pixels, len_y_pixels, avi.w, avi.h, hlimit)
+                        pos_x_pixels, pos_y_pixels, len_x_pixels, len_y_pixels, clamped_left, clamped_right, clamped_top, clamped_bottom = block_clamp(pos_x_pixels, pos_y_pixels, len_x_pixels, len_y_pixels, avi.w, avi.h, 0, hlimit)
 
-                        table.insert(self.visible_things, self:buildEditContextForThing(item, "item", i, "arrange", pos_x_pixels, pos_y_pixels, len_x_pixels, len_y_pixels, clamped_left, clamped_right))
+                        table.insert(self.visible_things, self:buildEditContextForThing(item, "item", i, "arrange", pos_x_pixels, pos_y_pixels, len_x_pixels, len_y_pixels, clamped_left, clamped_right, clamped_top, clamped_bottom))
                     end
                 end
             end
@@ -287,21 +300,21 @@ function QuickPreviewOverlay:updateVisibleThings()
         local mcp = (i==-1) and app_ctx.mcp_master or app_ctx.mcp_other
         if track_is_visible_in_mcp and mcp.hwnd and reaper.JS_Window_IsVisible(mcp.hwnd) then
 
-            local mcp_track_left                = reaper.GetMediaTrackInfo_Value(track, "I_MCPX")
-            local mcp_track_width               = reaper.GetMediaTrackInfo_Value(track, "I_MCPW")
-            local mcp_full_track_top            = reaper.GetMediaTrackInfo_Value(track, "I_MCPY")
-            local mcp_full_track_height         = reaper.GetMediaTrackInfo_Value(track, "I_MCPH")
+            local mcp_track_left                = reaper.GetMediaTrackInfo_Value(track, "I_MCPX") * mcp.dpi
+            local mcp_track_width               = reaper.GetMediaTrackInfo_Value(track, "I_MCPW") * mcp.dpi
+            local mcp_full_track_top            = reaper.GetMediaTrackInfo_Value(track, "I_MCPY") * mcp.dpi
+            local mcp_full_track_height         = reaper.GetMediaTrackInfo_Value(track, "I_MCPH") * mcp.dpi
             local mcp_track_height              = mcp_full_track_height -- - space_for_fx_and_send
             local mcp_track_top                 = mcp_full_track_top -- + space_for_fx_and_send
             local pos_x_pixels                  = mcp_track_left
             local len_x_pixels                  = mcp_track_width
             local pos_y_pixels, len_y_pixels    = mcp_track_top, mcp_track_height
-            local clamped_left, clamped_right   = false, false
+            local clamped_left, clamped_right, clamped_top, clamped_bottom = false, false, false, false
 
-            pos_x_pixels, pos_y_pixels, len_x_pixels, len_y_pixels, clamped_left, clamped_right = block_clamp(pos_x_pixels, pos_y_pixels, len_x_pixels, len_y_pixels, mcp.w, mcp.h)
+            pos_x_pixels, pos_y_pixels, len_x_pixels, len_y_pixels, clamped_left, clamped_right, clamped_top, clamped_bottom = block_clamp(pos_x_pixels, pos_y_pixels, len_x_pixels, len_y_pixels, mcp.w, mcp.h, 0, 0)
 
             if pos_x_pixels >= 0 and len_x_pixels > 2 and pos_x_pixels + len_x_pixels <= mcp.w then
-                local mcp_entry = self:buildEditContextForThing(track, "track", i, "mcp", pos_x_pixels, pos_y_pixels, len_x_pixels, len_y_pixels, clamped_left, clamped_right)
+                local mcp_entry = self:buildEditContextForThing(track, "track", i, "mcp", pos_x_pixels, pos_y_pixels, len_x_pixels, len_y_pixels, clamped_left, clamped_right, clamped_top, clamped_bottom)
                 table.insert(self.visible_things, mcp_entry)
                 if tcp_entry then
                     mcp_entry.tcp_entry = tcp_entry
@@ -317,7 +330,7 @@ function QuickPreviewOverlay:updateVisibleThings()
         local len_x_pixels = app_ctx.time_ruler.w
         local len_y_pixels = app_ctx.time_ruler.h
         local proj         = reaper.EnumProjects(-1)
-        local proj_entry, _ = self:buildEditContextForThing(proj, "project", -1, "time_ruler", 0, 0, len_x_pixels, len_y_pixels, false, false)
+        local proj_entry, _ = self:buildEditContextForThing(proj, "project", -1, "time_ruler", 0, 0, len_x_pixels, len_y_pixels, false, false, false, false)
         table.insert(self.visible_things, proj_entry)
     end
 
@@ -334,14 +347,25 @@ end
 function QuickPreviewOverlay:applySearchToThing(thing)
     thing.search_results    = {}
 
+    local case_sensitive = false
+    local search_str     = self.filter_str
+
+    if not case_sensitive then
+        search_str = search_str:lower()
+    end
+
     for i=0, Notes.MAX_SLOTS - 1 do
         local slot      = i
-        local slotNotes = thing.notes:slot(slot)
+        local slotNotes = thing.notes:slotText(slot)
+
+        if not case_sensitive then
+            slotNotes = slotNotes:lower()
+        end
 
         if self.filter_str == '' then
             thing.search_results[slot+1] = true
         else
-            thing.search_results[slot+1] = slotNotes:match(self.filter_str)
+            thing.search_results[slot+1] = slotNotes:match(search_str)
         end
     end
 end
@@ -551,7 +575,7 @@ function QuickPreviewOverlay:drawTooltip()
         end
 
         local slot_to_tooltip   = ((self.note_editor) and (self.note_editor.edited_slot)) or (pinned_thing and pinned_thing.capture_slot) or (thing_to_tooltip.hovered_slot)
-        local tttext            = (slot_to_tooltip == -1) and (thing_to_tooltip.no_notes_message) or (thing_to_tooltip.notes:slot(slot_to_tooltip))
+        local tttext            = (slot_to_tooltip == -1) and (thing_to_tooltip.no_notes_message) or (thing_to_tooltip.notes:slotText(slot_to_tooltip))
         if tttext == "" or tttext == nil then
             tttext = "`:grey:No " .. thing_to_tooltip.type .. " notes for the `_:grey:" .. Notes.SlotLabel(slot_to_tooltip):lower() .. "_ `:grey:category`"
         end
@@ -589,7 +613,7 @@ function QuickPreviewOverlay:drawTooltip()
                 local after     = tttext.sub(tttext, interaction.start_offset + interaction.length)
                 tttext          = before .. interaction.replacement_string .. after
 
-                thing_to_tooltip.notes:setSlot(slot_to_tooltip, tttext)
+                thing_to_tooltip.notes:setSlotText(slot_to_tooltip, tttext)
             end
 
             -- Border. Tooltip is shown when edited or hoevered
@@ -647,6 +671,8 @@ function QuickPreviewOverlay:draw()
     local mx, my   = reaper.GetMousePosition()
     mx, my = ImGui.PointConvertNative(ctx, mx, my)
 
+    ImGui.PushFont(ctx, app_ctx.arial_font, 12)
+
     self.draw_count = self.draw_count or 0
 
     if self.draw_count == 0 then
@@ -703,6 +729,7 @@ function QuickPreviewOverlay:draw()
         local ne_metrics = self:editorAdvisedPositionAndSizeForThing(self.hovered_thing, mx, my)
         self.note_editor:setPosition(ne_metrics.x, ne_metrics.y)
         self.note_editor:setSize(ne_metrics.w, ne_metrics.h)
+        self.note_editor:GrabFocus()
 
         self.note_editor.slot_edit_change_callback = function()
             -- We may need to reposition the tooltip since it's changed
@@ -763,7 +790,10 @@ function QuickPreviewOverlay:draw()
         self:restoreMinimizedWindowsAtExit()
         reaper.JS_Window_SetFocus(app_ctx.mv.hwnd)
         reaper.JS_Window_SetForeground(app_ctx.mv.hwnd)
+       -- reaper.ShowConsoleMsg("BOOM")
     end
+
+    ImGui.PopFont(ctx)
 end
 
 return QuickPreviewOverlay

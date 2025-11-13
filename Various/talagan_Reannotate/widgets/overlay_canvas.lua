@@ -7,6 +7,7 @@ local ImGui             = require "ext/imgui"
 local AppContext        = require "classes/app_context"
 local Notes             = require "classes/notes"
 local SettingsEditor    = require "widgets/settings_editor"
+local Sticker           = require "classes/sticker"
 
 local OverlayCanvas = {}
 OverlayCanvas.__index = OverlayCanvas
@@ -115,6 +116,8 @@ function OverlayCanvas:drawQuickSettings()
 
     local sinalpha          = (0xFF - 0x40 + math.floor(0x40 * math.sin(reaper.time_precise()*10)))
 
+    ImGui.PushFont(ctx, app_ctx.arial_font, 12)
+
     ImGui.DrawList_AddRectFilled(draw_list, app_ctx.main_toolbar.x, app_ctx.main_toolbar.y, app_ctx.main_toolbar.x + app_ctx.main_toolbar.w, app_ctx.main_toolbar.y + app_ctx.main_toolbar.h, 0x202020E0, 5)
     ImGui.DrawList_AddRect      (draw_list, app_ctx.main_toolbar.x, app_ctx.main_toolbar.y, app_ctx.main_toolbar.x + app_ctx.main_toolbar.w, app_ctx.main_toolbar.y + app_ctx.main_toolbar.h, 0xA0A0A0FF, 5)
 
@@ -123,7 +126,7 @@ function OverlayCanvas:drawQuickSettings()
         local color         = (Notes.SlotColor(slot) << 8) | 0xFF
         local l             = app_ctx.main_toolbar.x + (i * (2 * r + spacing)) + header_l + margin_l
         local t             = app_ctx.main_toolbar.y + margin_t
-        local hovered       = (l - mid_spacing <= mx) and (mx <= l + mid_spacing + d) and (t - mid_spacing <= my) and (my <= t + mid_spacing + d)
+        local hovered       = (l - mid_spacing <= mx) and (mx <= l + mid_spacing + d) and (t - mid_spacing <= my) and (my <= t + mid_spacing + d) and ImGui.IsWindowHovered(ctx)
 
         if app_ctx.enabled_category_filters[slot+1] then
             local fcol = color & 0xFFFFFF00 | 0x80
@@ -149,13 +152,11 @@ function OverlayCanvas:drawQuickSettings()
         end
     end
 
-    ImGui.PushFont(ctx, app_ctx.arial_font, 12)
     ImGui.DrawList_AddText(draw_list, app_ctx.main_toolbar.x + margin_l, app_ctx.main_toolbar.y + margin_t + 3, 0xA0A0A0FF, "Filter")
-    ImGui.PopFont(ctx)
 
     local px, py = ImGui.GetWindowPos(ctx)
-    ImGui.SetCursorPos(ctx, app_ctx.main_toolbar.x - px + 260, app_ctx.main_toolbar.y - py + margin_t )
-    ImGui.PushStyleVar(ctx, ImGui.StyleVar_FramePadding, 4, 2)
+    ImGui.SetCursorPos(ctx, app_ctx.main_toolbar.x - px + 260, app_ctx.main_toolbar.y - py + margin_t)
+    ImGui.PushStyleVar(ctx, ImGui.StyleVar_FramePadding, 4, 3)
     ImGui.PushStyleVar(ctx, ImGui.StyleVar_FrameRounding, 2)
     if ImGui.Button(ctx, "All") then
         for i=0, Notes.MAX_SLOTS - 1 do
@@ -174,31 +175,28 @@ function OverlayCanvas:drawQuickSettings()
     ImGui.PopStyleVar(ctx, 3)
 
     -- Search label
-    ImGui.PushFont(ctx, app_ctx.arial_font, 12)
     ImGui.DrawList_AddText(draw_list, app_ctx.main_toolbar.x + margin_l, app_ctx.main_toolbar.y + margin_t + 27, 0xA0A0A0FF, "Search")
-    ImGui.PopFont(ctx)
 
+    -- Search input
     ImGui.SetCursorPos(ctx, app_ctx.main_toolbar.x - wpos_x + margin_l + header_l, ImGui.GetCursorPosY(ctx) + 3)
-
-    ImGui.SetNextItemWidth(ctx, 218) --math.min(220, app_ctx.main_toolbar.w - margin_l * 2 - header_l))
-    local b, v      = ImGui.InputText(ctx, "##search_input", self.parent_overlay.filter_str, ImGui.InputTextFlags_NoHorizontalScroll | ImGui.InputTextFlags_AutoSelectAll | ImGui.InputTextFlags_ParseEmptyRefVal )
+    ImGui.SetNextItemWidth(ctx, 227) --math.min(220, app_ctx.main_toolbar.w - margin_l * 2 - header_l))
+    ImGui.PushStyleVar(ctx, ImGui.StyleVar_FramePadding, 4, 2)
+    local b, v = ImGui.InputTextWithHint(ctx, "##search_input", "Terms...", self.parent_overlay.filter_str,  ImGui.InputTextFlags_NoHorizontalScroll | ImGui.InputTextFlags_AutoSelectAll | ImGui.InputTextFlags_ParseEmptyRefVal )
     if b then
         self.parent_overlay.filter_str = v
         for ti, thing in ipairs(visible_things) do
             self.parent_overlay:applySearchToThing(thing)
         end
     end
-    if self.parent_overlay.filter_str == "" then
-        local sx, sy    = ImGui.GetItemRectMin(ctx)
-        ImGui.DrawList_AddText(draw_list, sx + 5, sy + 1, 0xA0A0A0FF, "Terms ...")
-    end
+    ImGui.PopStyleVar(ctx)
 
     ImGui.SameLine(ctx)
-    ImGui.SetCursorPosX(ctx, ImGui.GetCursorPosX(ctx) + 4)
+    ImGui.SetCursorPosX(ctx, ImGui.GetCursorPosX(ctx) + 2)
 
+    -- Settings button
     ImGui.PushStyleVar(ctx, ImGui.StyleVar_FramePadding, 1, 1)
     ImGui.PushStyleVar(ctx, ImGui.StyleVar_FrameRounding, 2)
-    if ImGui.ImageButton(ctx, "##settings_button", app_ctx:getImage("settings"), 17, 17) then
+    if ImGui.ImageButton(ctx, "##settings_button", app_ctx:getImage("settings"), 16, 16) then
         ImGui.SameLine(ctx)
         if app_ctx.settings_window then
             self.parent_overlay.settings_window = nil
@@ -213,7 +211,10 @@ function OverlayCanvas:drawQuickSettings()
     end
 
     ImGui.PopStyleVar(ctx, 2)
+    ImGui.PopFont(ctx)
 
+
+    -- LOGO LOGIC
     local align             = 320
     local remaining_space   = app_ctx.main_toolbar.w - align
 
@@ -269,7 +270,7 @@ function OverlayCanvas:drawVisibleThing(thing)
     local has_notes_to_show     = false
     local no_notes_message      = ""
     for i=0, Notes.MAX_SLOTS do
-        local slot_notes        = thing.notes:slot(i)
+        local slot_notes        = thing.notes:slotText(i)
         local is_slot_enabled   = app_ctx.enabled_category_filters[i + 1]
         local the_slot_matches_the_search  = (thing.search_results[i + 1])
         if slot_notes and slot_notes ~= "" and is_slot_enabled and the_slot_matches_the_search then
@@ -305,7 +306,7 @@ function OverlayCanvas:drawVisibleThing(thing)
         local slot              = (i==Notes.MAX_SLOTS - 1) and (0) or (i+1)
         local is_slot_enabled   = (is_no_note_slot or app_ctx.enabled_category_filters[slot + 1])
 
-        local slot_notes        = (is_no_note_slot and no_notes_message or thing.notes:slot(slot))
+        local slot_notes        = (is_no_note_slot and no_notes_message or thing.notes:slotText(slot))
         local the_slot_matches_the_search  = (thing.search_results[slot+1])
 
         -- The empty slot is always visible
@@ -375,13 +376,17 @@ function OverlayCanvas:drawVisibleThing(thing)
                     ImGui.DrawList_AddRectFilled(draw_list, x2 - border_width, y1, x2, y2, border_color, 0, 0)
                 end
                 -- Top and bottom borders
-                ImGui.DrawList_AddRectFilled(draw_list, x1, y1, x2, y1 + border_width, border_color, 0, 0)
-                ImGui.DrawList_AddRectFilled(draw_list, x1, y2 - border_width, x2, y2, border_color, 0, 0)
-            else
-                if div == 0 then
+                if not thing.clamped_top then
                     ImGui.DrawList_AddRectFilled(draw_list, x1, y1, x2, y1 + border_width, border_color, 0, 0)
                 end
-                if div == divisions - 1 then
+                if not thing.clamped_bottom then
+                    ImGui.DrawList_AddRectFilled(draw_list, x1, y2 - border_width, x2, y2, border_color, 0, 0)
+                end
+            else
+                if div == 0 and not thing.clamped_top then
+                    ImGui.DrawList_AddRectFilled(draw_list, x1, y1, x2, y1 + border_width, border_color, 0, 0)
+                end
+                if div == divisions - 1 and not thing.clamped_bottom then
                     ImGui.DrawList_AddRectFilled(draw_list, x1, y2 - border_width, x2, y2, border_color, 0, 0)
                 end
                 ImGui.DrawList_AddRectFilled(draw_list, x1, y1, x1 + border_width, y2, border_color, 0, 0)
@@ -389,50 +394,57 @@ function OverlayCanvas:drawVisibleThing(thing)
             end
 
             if not is_no_note_slot then
-                -- Label part
-                ImGui.PushFont(ctx, app_ctx.arial_font, 10)
-                local label     = Notes.SlotLabel(slot)
-                local lw, lh    = ImGui.CalcTextSize(ctx, label)
-                local padding_h   = 4
-                local padding_v   = 3
-                local margin    = 5
-                local available_width   = x2 - x1 - 2 * margin - 2 * padding_h
+                -- RENDER STICKERS
+                local hmargin       = 5
+                local vmargin       = 5
+                local vpad          = 4
+                local hpad          = 3
 
-                if lh + 2 * padding_v + 2 * margin < y2 - y1 then
-                    local text_w = nil
-                    local text   = nil
-                    if available_width > lw then
-                        text = label
-                        text_w = lw
-                    else
-                        local initial = label:sub(1,1)
-                        local llw, llh  = ImGui.CalcTextSize(ctx, initial)
-                        if available_width > llw then
-                            text = initial
-                            text_w = llw
-                        end
-                    end
-                    if text then
-                        local rx    = x2 - margin - 2 * padding_h - text_w
-                        local ry    = y1 + margin
-                        local rx_r  = x2 - margin
-                        local rx_b  = y1 + margin + lh + 2 * padding_v
-                        ImGui.DrawList_AddRectFilled(draw_list, rx, ry, rx_r, rx_b, bg_color | 0xFF, 2)
-                        ImGui.DrawList_AddRect(draw_list,       rx, ry, rx_r, rx_b, 0x000000FF, 2)
-                        ImGui.DrawList_AddText(draw_list, x2 - margin - padding_h - text_w, y1 + margin + padding_v, 0x000000FF, text)
+                local font_size = Sticker.DEFAULT_SIZE
+
+                -- Reduce margins and the font size if not enough vertical space
+                if y2 - y1 < font_size + 10 + 2 * vmargin then
+                    vmargin = 0.5 * ((y2 - y1) - font_size - 10)
+                    if vmargin < 0 then
+                        vmargin = 0
+                        font_size = font_size - 2
                     end
                 end
-                ImGui.PopFont(ctx)
+
+                local cursor_x, cursor_y = x2 - hmargin, y1 + vmargin -- Align top right
+
+                local slot_stickers = Sticker.UnpackCollection(thing.notes:slotStickers(slot), thing, slot)
+                local num_on_line = 0
+                ImGui.DrawList_PushClipRect(draw_list, x1 + 3, y1 + 3, x2 + 3, y2 - 3)
+                for _, sticker in ipairs(slot_stickers) do
+                    local metrics = sticker:PreRender(ctx, font_size)
+
+                    local available_width = cursor_x - (x1 + hmargin)
+                    if num_on_line ~= 0 and (available_width < metrics.width) then
+                        cursor_x = x2 - hmargin
+                        cursor_y = cursor_y + metrics.height + vpad
+                        num_on_line = 0
+                    end
+
+                    sticker:Render(ctx, metrics, cursor_x - metrics.width, cursor_y)
+                    cursor_x = cursor_x - metrics.width - hpad
+                    num_on_line = num_on_line + 1
+                end
+                -- Force ImGui to extend bounds
+                ImGui.DrawList_PopClipRect(draw_list)
+                ImGui.Dummy(ctx,0,0)
 
                 -- Post-it triangles
                 if not (div == 0 and thing.clamped_left) then
-                    ImGui.DrawList_AddTriangleFilled(draw_list, x1, y1, x1 + triangle_size, y1, x1, y1 + triangle_size, border_color)
-                    ImGui.DrawList_AddTriangleFilled(draw_list, x1, y2, x1, y2 - triangle_size, x1 + triangle_size, y2, border_color)
+                    local ts = triangle_size * ((div == 0) and 1 or 0.7)
+                    ImGui.DrawList_AddTriangleFilled(draw_list, x1, y1, x1 + ts, y1, x1, y1 + ts, border_color)
+                    ImGui.DrawList_AddTriangleFilled(draw_list, x1, y2, x1, y2 - ts, x1 + ts, y2, border_color)
                 end
 
-                if not (div == divisions -1 and thing.clamped_right) then
-                    ImGui.DrawList_AddTriangleFilled(draw_list, x2 - triangle_size, y1, x2, y1, x2, y1 + triangle_size, border_color)
-                    ImGui.DrawList_AddTriangleFilled(draw_list, x2, y2, x2 - triangle_size, y2, x2, y2 - triangle_size, border_color)
+                if not (div == divisions - 1 and thing.clamped_right) then
+                    local ts = triangle_size * ((div == divisions - 1) and 1 or 0.7)
+                    ImGui.DrawList_AddTriangleFilled(draw_list, x2 - ts, y1, x2, y1, x2, y1 + ts, border_color)
+                    ImGui.DrawList_AddTriangleFilled(draw_list, x2, y2, x2 - ts, y2, x2, y2 - ts, border_color)
                 end
             end
         end
