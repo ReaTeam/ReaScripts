@@ -269,11 +269,11 @@ function OverlayCanvas:drawVisibleThing(thing)
     local divisions             = 0
     local has_notes_to_show     = false
     local no_notes_message      = ""
-    for i=0, Notes.MAX_SLOTS do
-        local slot_notes        = thing.notes:slotText(i)
-        local is_slot_enabled   = app_ctx.enabled_category_filters[i + 1]
-        local the_slot_matches_the_search  = (thing.search_results[i + 1])
-        if slot_notes and slot_notes ~= "" and is_slot_enabled and the_slot_matches_the_search then
+    for i=0, Notes.MAX_SLOTS - 1 do
+        local is_slot_blank                 = thing.notes:isSlotBlank(i)
+        local is_slot_enabled               = app_ctx.enabled_category_filters[i + 1]
+        local the_slot_matches_the_search   = (thing.search_results[i + 1])
+        if (not is_slot_blank) and is_slot_enabled and the_slot_matches_the_search then
             divisions         = divisions + 1
             has_notes_to_show = true
         end
@@ -306,11 +306,10 @@ function OverlayCanvas:drawVisibleThing(thing)
         local slot              = (i==Notes.MAX_SLOTS - 1) and (0) or (i+1)
         local is_slot_enabled   = (is_no_note_slot or app_ctx.enabled_category_filters[slot + 1])
 
-        local slot_notes        = (is_no_note_slot and no_notes_message or thing.notes:slotText(slot))
         local the_slot_matches_the_search  = (thing.search_results[slot+1])
 
         -- The empty slot is always visible
-        local is_slot_visible   = (is_no_note_slot) or (slot_notes and slot_notes ~= "" and is_slot_enabled and the_slot_matches_the_search)
+        local is_slot_visible   = (is_no_note_slot) or (not thing.notes:isSlotBlank(slot) and is_slot_enabled and the_slot_matches_the_search)
 
         if is_slot_visible then
             div = div + 1
