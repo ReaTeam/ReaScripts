@@ -240,13 +240,22 @@ function Notes:commit()
     SetObjectNotes_SWS_Reaper(self._object, self.sws_reaper_notes)
 end
 
-function Notes:isBlank()
-    local ret = true
-    if self.sws_reaper_notes and self.sws_reaper_notes ~= "" then return false end
-    for k,v in pairs(self.reannotate_notes.slots) do
-        if v and v~= "" then return false end
+function Notes:isSlotBlank(slot)
+    if slot == 0 then
+        if self.sws_reaper_notes and self.sws_reaper_notes ~= "" then return false end
+        if #self.reannotate_notes.sws_reaper_stickers > 0 then return false end
+    else
+        if self.reannotate_notes.slots[slot] and self.reannotate_notes.slots[slot] ~= '' then return false end
+        if #self.reannotate_notes.stickers[slot] > 0 then return false end
     end
-    return ret
+    return true
+end
+
+function Notes:isBlank()
+    for slot=0, MAX_SLOTS -1 do
+        if not self:isSlotBlank(slot) then return false end
+    end
+    return true
 end
 
 function Notes:tooltipSize(slot)
