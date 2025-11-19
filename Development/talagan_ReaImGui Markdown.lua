@@ -1,19 +1,14 @@
 --[[
 @description ReaImGui Markdown : A Markdown rendering library for ReaImGui
-@version 0.1.8
+@version 0.1.9
 @author Ben 'Talagan' Babut
 @license MIT
 @donation https://www.paypal.com/donate/?business=3YEZMY9D6U8NC&no_recurring=1&currency_code=EUR
 @links
   Forum Thread https://forum.cockos.com/showthread.php?t=301055
 @changelog
-  - [Feature] Added support for "action" links
-  - [Feature] Added support for "time seek" links
-  - [Bug Fix] Align all elements to frame padding
-  - [Bug Fix] Adapt checkbox size to context
-  - [Bug Fix] Adapt font size hierarchically
-  - [Bug Fix] Fixing line spacings for various elements
-  - [Rework] Reworked cascading style system
+  - [Cosmetics] Realigned checkboxes vertically
+  - [Hotfix] ImGui context switching not handled properly
 @metapackage
 @provides
   [nomain] talagan_ReaImGui Markdown/reaimgui_markdown/**/*.lua

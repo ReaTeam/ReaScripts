@@ -76,10 +76,10 @@ end
 
 function ReaImGuiMd:_createFontsIfNeeded(ctx)
 
-    self.font_ctx  = nil
+    -- If already initialized in the same context, be happy
+    if self.fonts and ctx == self.font_ctx then return end
 
-    if self.fonts and self.ctx == self.font_ctx then return end
-
+    -- Else recreate all fonts in the new context
     local fonts = {}
     local style = self.style
 
