@@ -851,7 +851,7 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
             local frameheight = ImGui.GetFrameHeight(ctx)
             push_style(node)
             ImGui.PushFont(ctx, node.style.font, node.style.font_size * 0.6)
-            local frameheight2 = ImGui.GetFrameHeight(ctx) - 3
+            local frameheight2 = ImGui.GetFrameHeight(ctx)
             ImGui.SetCursorPosY(ctx, ImGui.GetCursorPosY(ctx) + (frameheight - frameheight2) * 0.5)
             local b,v = ImGui.Checkbox(ctx, "##checkbox_" .. node.rand, node.attributes.checked)
             ImGui.PopFont(ctx)
