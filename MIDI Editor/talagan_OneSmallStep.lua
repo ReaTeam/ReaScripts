@@ -1,11 +1,11 @@
 --[[
 @description One Small Step : Alternative Step Input
-@version 0.9.21
+@version 0.9.22
 @author Ben 'Talagan' Babut
 @license MIT
 @metapackage
 @changelog
-  - [Cosmetics] Adapted to ImGui 0.10
+  - [Feature] Note length "auto" mode (thanks, smandrap !)
 @provides
   [main=main,midi_editor] .
   [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Change input mode - (MIDI).lua
@@ -22,6 +22,7 @@
   [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Change note len param source.lua  > talagan_OneSmallStep/actions/talagan_OneSmallStep Change note len param source - OSS.lua
   [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Change note len param source.lua  > talagan_OneSmallStep/actions/talagan_OneSmallStep Change note len param source - ItemConf.lua
   [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Change note len param source.lua  > talagan_OneSmallStep/actions/talagan_OneSmallStep Change note len param source - ProjectGrid.lua
+  [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Change note len param source.lua  > talagan_OneSmallStep/actions/talagan_OneSmallStep Change note len param source - Auto.lua
   [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Change note len modifier - (MIDI).lua
   [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Change note len modifier.lua      > talagan_OneSmallStep/actions/talagan_OneSmallStep Change note len modifier - Straight.lua
   [main=main,midi_editor] talagan_OneSmallStep/actions/talagan_OneSmallStep Change note len modifier.lua      > talagan_OneSmallStep/actions/talagan_OneSmallStep Change note len modifier - Triplet.lua
@@ -92,7 +93,7 @@
     @stevie, @hipox, @MartinTL, @henu, @Thonex, @smandrap, @SoaSchas, @daodan, @inthevoid, @dahya, @User41, @Spookye, @R.Cato, @samlletas
 --]]
 
-VERSION = "0.9.21"
+VERSION = "0.9.22"
 DOC_URL = "https://bentalagan.github.io/onesmallstep-doc/index.html?ver=" .. VERSION
 
 PATH    = debug.getinfo(1,"S").source:match[[^@?(.*[\/])[^\/]-$]]
@@ -577,16 +578,48 @@ function ConfSourceMiniBar()
   TT('Note Length conf : One Small Step\n\nUse the params aside.')
   SL()
 
+  local is_midi_editor_focused = false
+  if nlm == D.NoteLenParamSource.Auto then
+    local behaviour = S.getSetting("AutoNoteLengthModeTargetsMidiEditorWhen")
+    if behaviour == D.AutoNoteLengthModeTargetsMidiEditorWhen.Focused then
+      is_midi_editor_focused = F.IsActiveMidiEditorFocused()
+    else
+      is_midi_editor_focused = (reaper.MIDIEditor_GetActive() ~= nil)
+    end
+  end
+
   if ButtonGroupImageButton('note_len_mode_pgrid', nlm == D.NoteLenParamSource.ProjectGrid) then
     S.setNoteLenParamSource(D.NoteLenParamSource.ProjectGrid)
   end
+
+  if nlm == D.NoteLenParamSource.Auto and not is_midi_editor_focused then
+    local draw_list = ImGui.GetWindowDrawList(ctx)
+    local px, py    = ImGui.GetItemRectMin(ctx)
+    local px2, py2  = ImGui.GetItemRectMax(ctx)
+    ImGui.DrawList_AddRect(draw_list, px-1,py-1,px2+1,py2+1, ColorSets.Blue.on)
+  end
+
   TT( "Note Length conf : Project\n\nUse the project's grid conf.")
   SL()
 
   if ButtonGroupImageButton('note_len_mode_inote', nlm == D.NoteLenParamSource.ItemConf) then
     S.setNoteLenParamSource(D.NoteLenParamSource.ItemConf)
   end
+
+  if nlm == D.NoteLenParamSource.Auto and is_midi_editor_focused then
+    local draw_list = ImGui.GetWindowDrawList(ctx)
+    local px, py    = ImGui.GetItemRectMin(ctx)
+    local px2, py2  = ImGui.GetItemRectMax(ctx)
+    ImGui.DrawList_AddRect(draw_list, px-1,py-1,px2+1,py2+1, ColorSets.Blue.on)
+  end
+
   TT( "Note Length conf : MIDI Item\n\nUse the MIDI item's own conf.\n\n('Notes' at the bottom of the MIDI editor)")
+  SL()
+
+  if ButtonGroupImageButton('note_len_mode_auto', nlm == D.NoteLenParamSource.Auto) then
+    S.setNoteLenParamSource(D.NoteLenParamSource.Auto)
+  end
+  TT( "Note Length conf : Auto\n\nUse the project's grid or the current item's conf, depending on what's focused.")
 end
 
 -- MINIBAR : Note length
@@ -1381,6 +1414,16 @@ function SettingsPanel()
         S.setSetting("SelectInputNotes", not curval)
       end
 
+      ImGui.AlignTextToFramePadding(ctx)
+      ImGui.TextColored(ctx, 0xFFA0F0FF, "Auto")
+      SL()
+      ImGui.Text(ctx, "note length mode uses the Item's configuration when the ME is")
+      SL()
+      SettingComboBox("AutoNoteLengthModeTargetsMidiEditorWhen", "", "", 100)
+      SL()
+      ImGui.Text(ctx, "else it uses the Project's grid")
+
+
       curval = S.getSetting("AlwaysFocusMEOnLaunch")
 ---@diagnostic disable-next-line: param-type-mismatch
       if ImGui.Checkbox(ctx, "Always focus the MIDI Editor on launch", curval) then
@@ -1734,6 +1777,10 @@ local function UiLoop()
       XSeparator(); SL()
       NoteLenOptions(true)
     elseif nlm == D.NoteLenParamSource.ItemConf then
+      ItemGridLabel(ctx,take); SL()
+      XSeparator(); SL()
+      NoteLenOptions(true)
+    elseif nlm == D.NoteLenParamSource.Auto then
       ItemGridLabel(ctx,take); SL()
       XSeparator(); SL()
       NoteLenOptions(true)

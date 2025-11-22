@@ -5,6 +5,7 @@
 
 local D = require "modules/defines"
 local S = require "modules/settings"
+local F = require "modules/focus"
 
 local function bool2sign(b)
   return ((b == true) and (1) or (-1))
@@ -127,9 +128,19 @@ local function ResolveNoteLenQN(take)
     _, measureStartQN, measureEndQN = reaper.TimeMap_GetMeasureInfo(0, cursorMes - 1)
   end
 
+  local is_midi_editor_focused = false
+  if nlm == D.NoteLenParamSource.Auto then
+    local behaviour = S.getSetting("AutoNoteLengthModeTargetsMidiEditorWhen")
+    if behaviour == D.AutoNoteLengthModeTargetsMidiEditorWhen.Focused then
+      is_midi_editor_focused = F.IsActiveMidiEditorFocused()
+    else
+      is_midi_editor_focused = (reaper.MIDIEditor_GetActive() ~= nil)
+    end
+  end
+
   if nlm == D.NoteLenParamSource.OSS then
     return S.getNoteLenQN() * S.getNoteLenModifierFactor()
-  elseif nlm == D.NoteLenParamSource.ProjectGrid then
+  elseif nlm == D.NoteLenParamSource.ProjectGrid or (nlm == D.NoteLenParamSource.Auto and not is_midi_editor_focused) then
 
     local _, division, swingmode, swing   = reaper.GetSetProjectGrid(0, false)
     local noteLenQN                       = division * 4
@@ -153,7 +164,7 @@ local function ResolveNoteLenQN(take)
 
     return baselen * S.getNoteLenQN() * S.getNoteLenModifierFactor()
 
-  else
+  elseif nlm == D.NoteLenParamSource.ItemConf or (nlm == D.NoteLenParamSource.Auto and is_midi_editor_focused) then
     local gridLenQN, swing, noteLenQN = reaper.MIDI_GetGrid(take);
     local multFactor = S.getNoteLenQN()
 

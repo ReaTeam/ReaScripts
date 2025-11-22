@@ -23,7 +23,8 @@ local NoteLenDefs = {
 local NoteLenParamSource = {
   OSS           = 0,
   ProjectGrid   = 1,
-  ItemConf      = 2
+  ItemConf      = 2,
+  Auto          = 3
 }
 
 local InputMode = {
@@ -50,6 +51,11 @@ local EditMode = {
   Replace           = "Replace",
   Stretch           = "Stretch",
   Stuff             = "Stuff"
+}
+
+local AutoNoteLengthModeTargetsMidiEditorWhen = {
+  Focused = "Focused",
+  Open    = "Open"
 }
 
 local ActionTriggers = {
@@ -169,6 +175,8 @@ return {
 
   ModifierKeyCombinations       = ModifierKeyCombinations,
   ModifierKeyCombinationLookup  = ModifierKeyCombinationLookup,
+
+  AutoNoteLengthModeTargetsMidiEditorWhen = AutoNoteLengthModeTargetsMidiEditorWhen,
 
   ModifierPedals                = ModifierPedals,
   ModifierPedalLookup           = ModifierPedalLookup
