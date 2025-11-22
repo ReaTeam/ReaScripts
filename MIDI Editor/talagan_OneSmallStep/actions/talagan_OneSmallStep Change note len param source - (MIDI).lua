@@ -12,12 +12,13 @@ local _,fname,_,_,_,_,v,ctxs = reaper.get_action_context()
 local param                  = fname:match("%- %(([^%s]*)%)%.lua$");
 
 if (param == "MIDI") and (ctxs:match("^midi:")) then
-    local vcount = 3
+    local vcount = 4
     local mn = math.floor(0.5 + (v / 127.0) * (vcount-1)) + 1
 
     if(mn == 1)     then param = "OSS"
     elseif(mn == 2) then param = "ProjectGrid"
-    else                 param = "ItemConf"
+    elseif(mn == 3) then param = "ItemConf"
+    else param = "Auto"
     end
 
     S.setNoteLenParamSource(D.NoteLenParamSource[param])

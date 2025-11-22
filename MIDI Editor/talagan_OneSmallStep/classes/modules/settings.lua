@@ -65,6 +65,8 @@ local SettingDefs = {
   AutoScrollArrangeView                                     = { type = "bool",    default = true },
   AlwaysFocusMEOnLaunch                                     = { type = "bool",    default = false},
 
+  AutoNoteLengthModeTargetsMidiEditorWhen                   = { type = "string",  default = D.AutoNoteLengthModeTargetsMidiEditorWhen.Focused, inclusion = { D.AutoNoteLengthModeTargetsMidiEditorWhen.Focused, D.AutoNoteLengthModeTargetsMidiEditorWhen.Open } },
+
   AllowKeyEventNavigation                                   = { type = "bool",    default = false },
 
   Disarmed                                                  = { type = "bool",    default = false },
