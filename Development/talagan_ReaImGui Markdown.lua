@@ -1,14 +1,13 @@
 --[[
 @description ReaImGui Markdown : A Markdown rendering library for ReaImGui
-@version 0.1.9
+@version 0.1.10
 @author Ben 'Talagan' Babut
 @license MIT
 @donation https://www.paypal.com/donate/?business=3YEZMY9D6U8NC&no_recurring=1&currency_code=EUR
 @links
   Forum Thread https://forum.cockos.com/showthread.php?t=301055
 @changelog
-  - [Cosmetics] Realigned checkboxes vertically
-  - [Hotfix] ImGui context switching not handled properly
+  - [Optimization] Reduce split function cost (thanks @Arkadata!)
 @metapackage
 @provides
   [nomain] talagan_ReaImGui Markdown/reaimgui_markdown/**/*.lua
