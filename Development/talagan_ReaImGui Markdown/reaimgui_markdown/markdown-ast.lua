@@ -313,7 +313,7 @@ local function parse_inline(text, base_offset)
           if k <= len then
             local url = text:sub(j + 2, k - 1)
             table.insert(nodes, new_node("Link", nil,
-              parse_inline(link_text, base_offset + i),
+              parse_inline(link_text, base_offset + i - 1),
               {
                 url = url,
                 source_offset = { start = base_offset + i, end_pos = base_offset + k }
@@ -326,7 +326,7 @@ local function parse_inline(text, base_offset)
             i = j + 1
           end
         else
-           buffer = buffer .. text:sub(i, j)
+          buffer = buffer .. text:sub(i, j)
           buffer_start = base_offset + i
           i = j + 1
         end
@@ -354,7 +354,7 @@ local function parse_inline(text, base_offset)
             local color, clean_content = extract_color(content)
             -- Create Bold containing Italic
             table.insert(nodes, new_node("Bold", nil, {
-              new_node("Italic", nil, parse_inline(clean_content, base_offset + i + 3), {
+              new_node("Italic", nil, parse_inline(clean_content, base_offset + i + 3 - 1), {
                 color = color,
               })
             }, {
@@ -398,7 +398,7 @@ local function parse_inline(text, base_offset)
 
             local color, clean_content = extract_color(content)
             table.insert(nodes, new_node("Bold", nil,
-              parse_inline(clean_content, base_offset + i + 2),
+              parse_inline(clean_content, base_offset + i + 2 - 1),
               {
                 color = color,
                 source_offset = { start = base_offset + i, end_pos = base_offset + j + 1 }
@@ -434,7 +434,7 @@ local function parse_inline(text, base_offset)
         if text:sub(j, j) == marker and not is_escaped(text, j) then
           local color, clean_content = extract_color(content)
           table.insert(nodes, new_node("Italic", nil,
-            parse_inline(clean_content, base_offset + i + 1),
+            parse_inline(clean_content, base_offset + i + 1 - 1),
             {
               color = color,
               source_offset = { start = base_offset + i, end_pos = base_offset + j }
@@ -467,7 +467,7 @@ local function parse_inline(text, base_offset)
         if text:sub(j, j) == "$" and not is_escaped(text, j) then
           local color, clean_content = extract_color(content)
           table.insert(nodes, new_node("Span", nil,
-            parse_inline(clean_content, base_offset + i + 1),
+            parse_inline(clean_content, base_offset + i + 1 - 1),
             {
               color = color,
               source_offset = { start = base_offset + i, end_pos = base_offset + j }
