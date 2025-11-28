@@ -722,10 +722,15 @@ local function ParseMarkdown(markdown)
         table.insert(ast.children, new_node("Header", nil, parse_inline(content, offset), { level = level }))
       end
       i = i + 1
-    -- Blockquote
+    -- Blockquote - use trimmed_line for detection but pass original lines
     elseif trimmed_line:match(RX_BLOCKQUOTE) then
       finalize_table()
-      local blockquotes, new_i = parse_blockquote(lines, i, #lines, markdown)
+      -- Store original lines but with leading spaces trimmed for blockquote parsing
+      local trimmed_lines = {}
+      for idx, l in ipairs(lines) do
+        trimmed_lines[idx] = trim(l)
+      end
+      local blockquotes, new_i = parse_blockquote(trimmed_lines, i, #trimmed_lines, markdown)
       for _, blockquote in ipairs(blockquotes) do
         table.insert(ast.children, blockquote)
       end
