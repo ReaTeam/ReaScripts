@@ -1,13 +1,13 @@
 --[[
 @description ReaImGui Markdown : A Markdown rendering library for ReaImGui
-@version 0.1.12
+@version 0.1.13
 @author Ben 'Talagan' Babut
 @license MIT
 @donation https://www.paypal.com/donate/?business=3YEZMY9D6U8NC&no_recurring=1&currency_code=EUR
 @links
   Forum Thread https://forum.cockos.com/showthread.php?t=301055
 @changelog
-  - [Bug Fix] Potential while(true) if using a space before a quote block
+  - [Bug Fix] Fix potential style parameter gardening for dynamic styles (wrong deepCopy implementation)
 @metapackage
 @provides
   [nomain] talagan_ReaImGui Markdown/reaimgui_markdown/**/*.lua
