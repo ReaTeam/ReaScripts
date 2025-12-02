@@ -55,12 +55,6 @@ if use_debugger then
 end
 
 
-if do_unit_tests then
-    -- Reqiore stuff for the profiler to work.
-    local UnitTest       = require "reaimgui_markdown/markdown-test"
-    UnitTest()
-end
-
 -- We override Reaper's defer method for two reasons :
 -- We want the full trace on errors
 -- We want the debugger to pause on errors
@@ -74,6 +68,13 @@ reaper.defer = function(c)
         end)
     end)
 end
+
+if do_unit_tests then
+    -- Reqiore stuff for the profiler to work.
+    local UnitTest       = require "reaimgui_markdown/markdown-test"
+    UnitTest()
+end
+
 
 local entry = [[
 # This is a header level 1
