@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="083b857eb397284d09ffd7b75a25fb5da36148aa" name="ReaTeam Scripts">
+<index version="1" commit="6e224790e86a9d3b6b9ca466b23bb7ecf97ad649" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -2537,6 +2537,20 @@ Refactored/reorganized the code for readability]]></changelog>
         <source file="talagan_ReaImGui Markdown/reaimgui_markdown/markdown-text.lua">https://github.com/ReaTeam/ReaScripts/raw/083b857eb397284d09ffd7b75a25fb5da36148aa/Development/talagan_ReaImGui%20Markdown/reaimgui_markdown/markdown-text.lua</source>
         <source file="talagan_ReaImGui Markdown/reaimgui_markdown.lua">https://github.com/ReaTeam/ReaScripts/raw/083b857eb397284d09ffd7b75a25fb5da36148aa/Development/talagan_ReaImGui%20Markdown/reaimgui_markdown.lua</source>
         <source main="main" file="./talagan_ReaImGui Markdown Demo.lua">https://github.com/ReaTeam/ReaScripts/raw/083b857eb397284d09ffd7b75a25fb5da36148aa/Development/talagan_ReaImGui%20Markdown/actions/talagan_ReaImGui%20Markdown%20Demo.lua</source>
+      </version>
+      <version name="0.1.14" author="Ben 'Talagan' Babut" time="2025-12-02T22:22:58Z">
+        <changelog><![CDATA[- [Feature] Better handling of consecutive empty lines
+- [Rework] Reworked default style
+- [Bug Fix] List bullet not sized accordingly to list entry
+- [Bug Fix] Code block would always add empty line at the end]]></changelog>
+        <source file="talagan_ReaImGui Markdown/reaimgui_markdown/ext/imgui.lua">https://github.com/ReaTeam/ReaScripts/raw/6e224790e86a9d3b6b9ca466b23bb7ecf97ad649/Development/talagan_ReaImGui%20Markdown/reaimgui_markdown/ext/imgui.lua</source>
+        <source file="talagan_ReaImGui Markdown/reaimgui_markdown/markdown-ast.lua">https://github.com/ReaTeam/ReaScripts/raw/6e224790e86a9d3b6b9ca466b23bb7ecf97ad649/Development/talagan_ReaImGui%20Markdown/reaimgui_markdown/markdown-ast.lua</source>
+        <source file="talagan_ReaImGui Markdown/reaimgui_markdown/markdown-html.lua">https://github.com/ReaTeam/ReaScripts/raw/6e224790e86a9d3b6b9ca466b23bb7ecf97ad649/Development/talagan_ReaImGui%20Markdown/reaimgui_markdown/markdown-html.lua</source>
+        <source file="talagan_ReaImGui Markdown/reaimgui_markdown/markdown-imgui.lua">https://github.com/ReaTeam/ReaScripts/raw/6e224790e86a9d3b6b9ca466b23bb7ecf97ad649/Development/talagan_ReaImGui%20Markdown/reaimgui_markdown/markdown-imgui.lua</source>
+        <source file="talagan_ReaImGui Markdown/reaimgui_markdown/markdown-test.lua">https://github.com/ReaTeam/ReaScripts/raw/6e224790e86a9d3b6b9ca466b23bb7ecf97ad649/Development/talagan_ReaImGui%20Markdown/reaimgui_markdown/markdown-test.lua</source>
+        <source file="talagan_ReaImGui Markdown/reaimgui_markdown/markdown-text.lua">https://github.com/ReaTeam/ReaScripts/raw/6e224790e86a9d3b6b9ca466b23bb7ecf97ad649/Development/talagan_ReaImGui%20Markdown/reaimgui_markdown/markdown-text.lua</source>
+        <source file="talagan_ReaImGui Markdown/reaimgui_markdown.lua">https://github.com/ReaTeam/ReaScripts/raw/6e224790e86a9d3b6b9ca466b23bb7ecf97ad649/Development/talagan_ReaImGui%20Markdown/reaimgui_markdown.lua</source>
+        <source main="main" file="./talagan_ReaImGui Markdown Demo.lua">https://github.com/ReaTeam/ReaScripts/raw/6e224790e86a9d3b6b9ca466b23bb7ecf97ad649/Development/talagan_ReaImGui%20Markdown/actions/talagan_ReaImGui%20Markdown%20Demo.lua</source>
       </version>
     </reapack>
     <reapack name="willdevelop_Read tags (for plugin tag system).lua" type="script" desc="Read tags (for plugin tag system)">
