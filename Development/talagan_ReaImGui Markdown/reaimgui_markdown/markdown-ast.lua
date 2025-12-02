@@ -658,6 +658,7 @@ local function ParseMarkdown(markdown)
   local table_headers = {}
   local expected_columns = 0
   local raw_rows = {}
+  local consecutive_empty_lines = 0
 
   local function finalize_table()
     if in_table and (#raw_rows > 0 or #table_headers > 0) then
@@ -702,7 +703,13 @@ local function ParseMarkdown(markdown)
     -- Code block
     if trimmed_line:match(RX_CODEBLOCK) then
       finalize_table()
+      consecutive_empty_lines = 0
       if in_code_block then
+        -- Remove trailing newline when closing code block
+        local code_node = ast.children[#ast.children]
+        if code_node.value:sub(-1) == "\n" then
+          code_node.value = code_node.value:sub(1, -2)
+        end
         in_code_block = false
       else
         in_code_block = true
@@ -711,10 +718,12 @@ local function ParseMarkdown(markdown)
       i = i + 1
     elseif in_code_block then
       ast.children[#ast.children].value = ast.children[#ast.children].value .. line .. "\n"
+      consecutive_empty_lines = 0
       i = i + 1
     -- Headers
     elseif trimmed_line:match(RX_HEADER) then
       finalize_table()
+      consecutive_empty_lines = 0
       local level = #trimmed_line:match("^#+")
       if level <= 6 then
         local content = trimmed_line:match(RX_HEADER_CONTENT)
@@ -725,6 +734,7 @@ local function ParseMarkdown(markdown)
     -- Blockquote - use trimmed_line for detection but pass original lines
     elseif trimmed_line:match(RX_BLOCKQUOTE) then
       finalize_table()
+      consecutive_empty_lines = 0
       -- Store original lines but with leading spaces trimmed for blockquote parsing
       local trimmed_lines = {}
       for idx, l in ipairs(lines) do
@@ -738,6 +748,7 @@ local function ParseMarkdown(markdown)
     -- Lists
     elseif trimmed_line:match(RX_UNORDERED_LIST) or trimmed_line:match(RX_ORDERED_LIST) then
       finalize_table()
+      consecutive_empty_lines = 0
       local lists, new_i = parse_list(lines, i, #lines, 0, markdown)
       for _, list in ipairs(lists) do
         table.insert(ast.children, list)
@@ -750,6 +761,7 @@ local function ParseMarkdown(markdown)
       end
     -- Table
     elseif trimmed_line:match(RX_TABLE_LINE) then
+      consecutive_empty_lines = 0
       local cells = {}
       for cell in line:gmatch("[^|]+") do
         table.insert(cells, trim(cell))
@@ -786,14 +798,21 @@ local function ParseMarkdown(markdown)
       i = i + 1
     elseif trimmed_line:match(RX_SEPARATOR) then
       finalize_table()
+      consecutive_empty_lines = 0
       table.insert(ast.children, new_node("Separator"))
       i = i + 1
-    elseif line == "" then
+    elseif trimmed_line == "" then
       finalize_table()
+      consecutive_empty_lines = consecutive_empty_lines + 1
+      -- Only create VerticalSpace from the 2nd consecutive empty line onwards
+      if consecutive_empty_lines >= 2 then
+        table.insert(ast.children, new_node("VerticalSpace"))
+      end
       i = i + 1
     else
       -- Paragraph
       finalize_table()
+      consecutive_empty_lines = 0
       local paragraph_lines = {}
       local j = i
 

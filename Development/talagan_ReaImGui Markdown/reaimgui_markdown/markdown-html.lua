@@ -40,6 +40,8 @@ local function ASTToHtml(ast)
       return '<img src="' .. node.attributes.url .. '" alt="' .. node.attributes.alt .. '">'
     elseif node.type == "LineBreak" then
       return "<br>\n"
+    elseif node.type == "VerticalSpace" then
+      return "<br>\n"
     elseif node.type == "Separator" then
       return "<hr>\n"
     elseif node.type == "UnorderedList" then

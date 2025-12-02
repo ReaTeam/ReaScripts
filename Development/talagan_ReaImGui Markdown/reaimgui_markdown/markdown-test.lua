@@ -140,8 +140,7 @@ This is pure code **and this** should not try to do |clever|things|
 
   local wanted =
 [[
-<pre><code>This is pure code **and this** should not try to do |clever|things|
-</code></pre>
+<pre><code>This is pure code **and this** should not try to do |clever|things|</code></pre>
 ]]
 
   dotest(entry, wanted)
@@ -656,11 +655,9 @@ code line 2
 [x] not checkbox
 ```]],
     expected_html = [[<pre><code>code line 1
-code line 2
-</code></pre>
+code line 2</code></pre>
 <pre><code>**not bold**
-[x] not checkbox
-</code></pre>
+[x] not checkbox</code></pre>
 ]]
   },
 

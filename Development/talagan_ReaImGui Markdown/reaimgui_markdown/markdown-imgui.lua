@@ -61,19 +61,19 @@ local DEFAULT_COLOR = 0xCCCCCCFF
 local DEFAULT_STYLE = {
     default     = { font_family = "Arial", font_size = 13, base_color = "#CCCCCC", bold_color = "white", autopad = 5 },
 
-    h1          = { font_family = "Arial", font_size = 23, padding_left = 0,  padding_top = 3, padding_bottom = 5, line_spacing = 0, base_color = "#288efa", bold_color = "#288efa" },
-    h2          = { font_family = "Arial", font_size = 21, padding_left = 5,  padding_top = 3, padding_bottom = 5, line_spacing = 0, base_color = "#4da3ff", bold_color = "#4da3ff" },
-    h3          = { font_family = "Arial", font_size = 19, padding_left = 10, padding_top = 3, padding_bottom = 4, line_spacing = 0, base_color = "#65acf7", bold_color = "#65acf7" },
-    h4          = { font_family = "Arial", font_size = 17, padding_left = 15, padding_top = 3, padding_bottom = 3, line_spacing = 0, base_color = "#85c0ff", bold_color = "#85c0ff" },
-    h5          = { font_family = "Arial", font_size = 15, padding_left = 20, padding_top = 3, padding_bottom = 3, line_spacing = 0, base_color = "#9ecdff", bold_color = "#9ecdff" },
+    h1          = { font_family = "Arial", font_size = 23, padding_left = 0,  padding_top = 0, padding_bottom = 0, line_spacing = 0, base_color = "#288efa", bold_color = "#288efa" },
+    h2          = { font_family = "Arial", font_size = 21, padding_left = 5,  padding_top = 0, padding_bottom = 0, line_spacing = 0, base_color = "#4da3ff", bold_color = "#4da3ff" },
+    h3          = { font_family = "Arial", font_size = 19, padding_left = 10, padding_top = 0, padding_bottom = 0, line_spacing = 0, base_color = "#65acf7", bold_color = "#65acf7" },
+    h4          = { font_family = "Arial", font_size = 17, padding_left = 15, padding_top = 0, padding_bottom = 0, line_spacing = 0, base_color = "#85c0ff", bold_color = "#85c0ff" },
+    h5          = { font_family = "Arial", font_size = 15, padding_left = 20, padding_top = 0, padding_bottom = 0, line_spacing = 0, base_color = "#9ecdff", bold_color = "#9ecdff" },
 
-    paragraph   = { font_family = "Arial", font_size = 13, padding_left = 30, padding_top = 3, padding_bottom = 7, line_spacing = 0, padding_in_blockquote = 6 },
-    list        = { font_family = "Arial", font_size = 13, padding_left = 40, padding_top = 5, padding_bottom = 7, line_spacing = 0, padding_indent = 5 },
+    paragraph   = { font_family = "Arial", font_size = 13, padding_left = 30, padding_top = 3, padding_bottom = 3, line_spacing = 0, padding_in_blockquote = 6 },
+    list        = { font_family = "Arial", font_size = 13, padding_left = 40, padding_top = 3, padding_bottom = 3, line_spacing = 0, padding_indent = 5 },
 
-    table       = { font_family = "Arial", font_size = 13, padding_left = 30, padding_top = 3, padding_bottom = 7, line_spacing = 0 },
+    table       = { font_family = "Arial", font_size = 13, padding_left = 30, padding_top = 3, padding_bottom = 3, line_spacing = 0 },
 
-    code        = { font_family = "monospace",  font_size = 13, padding_left = 30, padding_top = 3, padding_bottom = 7,  line_spacing = 4, padding_in_blockquote = 6 },
-    blockquote  = { font_family = "Arial", font_size = 13, padding_left = 0,  padding_top = 5, padding_bottom = 10, line_spacing = 2, padding_indent = 10 },
+    code        = { font_family = "monospace",  font_size = 13, padding_left = 30,  padding_top = 3, padding_bottom = 3,  line_spacing = 4, padding_in_blockquote = 6 },
+    blockquote  = { font_family = "Arial", font_size = 13, padding_left = 0,        padding_top = 5, padding_bottom = 5, line_spacing = 2, padding_indent = 10 },
 
     link        = { base_color = "orange", bold_color = "tomato"},
 
@@ -374,6 +374,8 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
             return "link"
         elseif node.type == "LineBreak" then
             return "paragraph"
+        elseif node.type == "VerticalSpace" then
+            return "paragraph"
         elseif (node.type == "UnorderedList") or (node.type == "OrderedList") then
             return "list"
         elseif node.type == "ListItem" then
@@ -658,7 +660,14 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
 
             ImGui.NewLine(ctx)
             ImGui.AlignTextToFramePadding(ctx)
+        elseif node.type == "VerticalSpace" then
+            ImGui.PushStyleVar(ctx, ImGui.StyleVar_ItemSpacing, 0, 0)
+            ImGui.Dummy(ctx, 0, 0)
+            ImGui.PopStyleVar(ctx)
 
+            num_on_line     = 0
+            num_line        = num_line + 1
+            ImGui.AlignTextToFramePadding(ctx)
         elseif (node.type == "UnorderedList") or (node.type == "OrderedList") then
             local nstyle = style.list
 
@@ -699,7 +708,7 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
 
             if node.parent_list.type == "UnorderedList" then
                 -- Render a bullet with the default font
-                ImGui.PushFont(ctx, nil, style.default.font_size)
+                ImGui.PushFont(ctx, nil, style.list.font_size)
                 ImGui.Text(ctx, "• ")
                 ImGui.PopFont(ctx)
                 num_on_line = 0
