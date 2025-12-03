@@ -1,6 +1,7 @@
 -- @description Scroll the arrange view to center the middle of the track lane or envelope under the mouse cursor
 -- @author amagalma
--- @version 1.00
+-- @version 1.01
+-- @changelog Fix for when only one lane is visible and has the maximum size
 -- @donation https://www.paypal.me/amagalma
 
 if not reaper.CF_SetTcpScroll then
@@ -35,7 +36,8 @@ if info == 1 then
 else
   local lane = info >> 8
   if Info("C_LANESCOLLAPSED") == 0 then
-    local lane_height = ( Info("I_TCPH") - 18  ) / Info("I_NUMFIXEDLANES")
+    local num_lanes = Info("I_NUMFIXEDLANES")
+    local lane_height = ( Info("I_TCPH") - (num_lanes == 1 and 0 or 18)  ) / num_lanes
     position = lane_height * lane - 1
     half = lane_height // 2
   else
