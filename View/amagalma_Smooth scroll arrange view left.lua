@@ -1,8 +1,10 @@
 -- @description Smooth scroll arrange view left
 -- @author amagalma
--- @version 1.00
+-- @version 1.01
+-- @changelog Auto-terminate and re-run script if shortcut key is held down
 -- @donation https://www.paypal.me/amagalma
 
+reaper.set_action_options( 1|2 )
 
 local ret = tonumber(reaper.GetExtState("amagalma_Smooth Scroll", "scroll"))
 local scroll = ret and ret or 49
