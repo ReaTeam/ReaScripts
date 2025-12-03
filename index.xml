@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="a4639c7fd67cd4c7c163981649b21bc2defba461" name="ReaTeam Scripts">
+<index version="1" commit="5b31e87b5944510344243cebd0306bfe03ebd497" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -30834,6 +30834,14 @@ Streamable link
     </reapack>
   </category>
   <category name="View">
+    <reapack name="amagalma_Scroll the arrange view to center the middle of the track lane or envelope under the mouse cursor.lua" type="script" desc="Scroll the arrange view to center the middle of the track lane or envelope under the mouse cursor">
+      <metadata>
+        <link rel="donation">https://www.paypal.me/amagalma</link>
+      </metadata>
+      <version name="1.00" author="amagalma" time="2025-12-03T10:08:28Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/5b31e87b5944510344243cebd0306bfe03ebd497/View/amagalma_Scroll%20the%20arrange%20view%20to%20center%20the%20middle%20of%20the%20track%20lane%20or%20envelope%20under%20the%20mouse%20cursor.lua</source>
+      </version>
+    </reapack>
     <reapack name="amagalma_Scroll the arrange view to the top of the track lane or envelope under the mouse cursor.lua" type="script" desc="Scroll the arrange view to the top of the track lane or envelope under the mouse cursor">
       <metadata>
         <link rel="donation">https://www.paypal.me/amagalma</link>
