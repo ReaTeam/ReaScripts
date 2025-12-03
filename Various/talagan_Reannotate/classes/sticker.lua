@@ -7,26 +7,30 @@ local ImGui         = require "ext/imgui"
 local JSON          = require "ext/json"
 local AppContext    = require "classes/app_context"
 local EmojImGui     = require "emojimgui"
-local Notes         = require "classes/notes"
 local Color         = require "classes/color"
+local D             = require "modules/defines"
 
 local Sticker = {}
 Sticker.Types = {
     SPECIAL   = 0,
     STANDARD  = 1
 }
-Sticker.DEFAULT_SIZE = 12
+
+-- String format: "type:detail"
+-- type == 0, detail = category|checkboxes
+-- type == 1, detail = icon_string:text
+--            icon_string = font:char (font = nothing|0|1)
 
 Sticker.__index = Sticker
 
-function Sticker:new(packed_code, thing, slot)
+function Sticker:new(packed_code, notes, slot)
     local instance = {}
     setmetatable(instance, self)
-    instance:_initialize(packed_code, thing, slot)
+    instance:_initialize(packed_code, notes, slot)
     return instance
 end
 
-function Sticker:_initialize(packed_code, thing, slot)
+function Sticker:_initialize(packed_code, notes, slot)
     local ret       = self:_parseHelper(packed_code)
 
     local fname = "OpenMoji"
@@ -36,14 +40,14 @@ function Sticker:_initialize(packed_code, thing, slot)
     self.icon       = EmojImGui.Asset.CharInfo(fname, ret.icon) -- May be nil
     self.text       = ret.text
 
-    self:attachToThingAndSlot(thing, slot)
+    self:attachToNotesAndSlot(notes, slot)
 end
 
-function Sticker:attachToThingAndSlot(thing, slot)
-    self.thing      = thing
+function Sticker:attachToNotesAndSlot(notes, slot)
+    self.notes      = notes
     self.slot       = slot
 
-    self.color      = slot and (Notes.SlotColor(slot) << 8 | 0xFF) or 0xA0A000FF
+    self.color      = slot and (D.SlotColor(slot) << 8 | 0xFF) or 0xA0A000FF
     self.text_color = 0x000000FF
 end
 
@@ -93,12 +97,12 @@ function Sticker:textToRender()
     local text = self.text
     if self.type == Sticker.Types.SPECIAL then
         if text == 'category' then
-            text = (self.slot) and (Notes.SlotLabel(self.slot)) or ("???")
+            text = (self.slot) and (D.SlotLabel(self.slot)) or ("???")
         elseif text == "checkboxes" then
-            if not self.thing then
+            if not self.notes then
                 text = "? / ?"
             else
-                local counts = self.thing.notes:slotCheckboxCache(self.slot)
+                local counts = self.notes:slotCheckboxCache(self.slot)
                 counts.c = counts.c or 0
                 counts.t = counts.t or 0
                 text = "" .. counts.c .. " / " .. counts.t
@@ -113,7 +117,7 @@ function Sticker:iconToRender()
     if not self.icon then return nil end
 
     if self.type == Sticker.Types.SPECIAL and self.text == 'checkboxes' then
-        local counts = self.thing.notes:slotCheckboxCache(self.slot)
+        local counts = self.notes:slotCheckboxCache(self.slot)
         counts.c = counts.c or 0
         counts.t = counts.t or 0
         return EmojImGui.Asset.CharInfo(self.icon.font_name, (counts.c == counts.t) and ("2705") or ((counts.c == 0) and "2714" or "2611") ).utf8
@@ -139,6 +143,21 @@ function Sticker:isEmpty()
     return (not self:hasIcon()) and (not self:hasText())
 end
 
+function Sticker:computeIconBackgroundColor(base_color_rgba, alpha)
+    local c         = Color:new(base_color_rgba >> 8)
+    local h,s,l     = c:hsl()
+    c:setHsl(h, s * 0.6, 0.15 + 0.15 * alpha)
+    return (c:to_irgba() & 0xFFFFFFFF)
+end
+
+function Sticker:computeTextBackgroundColor(base_color_rgba, alpha)
+    local c     = Color:new(base_color_rgba >> 8)
+    local h,s,l = c:hsl()
+    l = math.min(1, l * 1.1 + alpha * 0.2 * l)
+    c:setHsl(h,s, l)
+    return (c:to_irgba() & 0xFFFFFFFF)
+end
+
 function Sticker:renderBackground(draw_list, render_params)
     local istop     = render_params.metrics.icon_stop
     local min_x     = render_params.metrics.min_x
@@ -148,22 +167,28 @@ function Sticker:renderBackground(draw_list, render_params)
     local v_pad     = render_params.metrics.v_pad
     local has_text  = self:hasText()
 
-    local alpha_d = 0
-    local alpha   = 0
+    local alpha         = 0
+    local icon_bg_color = 0
+    local text_bg_color = 0
+
     if render_params.metrics.hovered then
         alpha   = math.sin(reaper.time_precise()*10)
-        alpha_d = (math.floor(0x40 * alpha))
+        icon_bg_color = self:computeIconBackgroundColor(render_params.color, alpha)
+        text_bg_color = self:computeTextBackgroundColor(render_params.color, alpha)
+    else
+        -- USe a cache because this will be recomputed a lot and it costs a lot
+        Sticker.icon_bg_color_cache = Sticker.icon_bg_color_cache or {}
+        Sticker.icon_bg_color_cache[render_params.color] = Sticker.icon_bg_color_cache[render_params.color] or self:computeIconBackgroundColor(render_params.color, 0)
+        icon_bg_color = Sticker.icon_bg_color_cache[render_params.color]
+
+        Sticker.text_bg_color_cache = Sticker.text_bg_color_cache or {}
+        Sticker.text_bg_color_cache[render_params.color] = Sticker.text_bg_color_cache[render_params.color] or self:computeTextBackgroundColor(render_params.color, 0)
+        text_bg_color = Sticker.text_bg_color_cache[render_params.color]
     end
 
     if self.icon then
         -- Icon Background
-        local c     = Color:new(render_params.color >> 8)
-        local h,s,l = c:hsl()
-        l = 0.15 + 0.15 * alpha
-
-        c:setHsl(h,s*0.6, l)
-
-        ImGui.DrawList_AddRectFilled(draw_list, min_x, min_y - v_pad, max_x, max_y + v_pad, (c:to_irgba() & 0xFFFFFFFF), 2)
+        ImGui.DrawList_AddRectFilled(draw_list, min_x, min_y - v_pad, max_x, max_y + v_pad, icon_bg_color, 2)
 
         if has_text then
             -- Use istop - 1 it's a dirty centering correction
@@ -173,12 +198,7 @@ function Sticker:renderBackground(draw_list, render_params)
 
     -- Flashing background
     if has_text then
-        -- Text background
-        local c     = Color:new(render_params.color >> 8)
-        local h,s,l = c:hsl()
-        l = math.min(1, l * 1.1 + alpha * 0.2 * l)
-        c:setHsl(h,s, l)
-        ImGui.DrawList_AddRectFilled  (draw_list, min_x, min_y - v_pad, max_x, max_y + v_pad, (c:to_irgba() & 0xFFFFFFFF), 2)
+        ImGui.DrawList_AddRectFilled  (draw_list, min_x, min_y - v_pad, max_x, max_y + v_pad, text_bg_color, 2)
     end
 
     if self.icon then
@@ -230,6 +250,7 @@ function Sticker:_renderPass(ctx, font_size, should_render, render_params)
     local v_pad             = font_size/20.0
     local sticker_spacing   = 1 * font_size - 2
 
+---@diagnostic disable-next-line: redundant-parameter
     ImGui.PushFont(ctx, app_ctx.arial_font, font_size)
     local base_text_height  = ImGui.GetTextLineHeightWithSpacing(ctx)
     local widget_height     = base_text_height + 2 * v_pad
@@ -261,6 +282,7 @@ function Sticker:_renderPass(ctx, font_size, should_render, render_params)
 
     -- Rendering of icons or texts helper
     local  _textPass = function(_font, _font_size, _txt)
+---@diagnostic disable-next-line: redundant-parameter
         ImGui.PushFont(ctx, _font, _font_size)
         local www, hhh    = ImGui.CalcTextSize(ctx, _txt)
         local diff_height = (hhh - base_text_height)
@@ -310,6 +332,7 @@ function Sticker:_renderPass(ctx, font_size, should_render, render_params)
     end
 
     if should_render then
+---@diagnostic disable-next-line: need-check-nil
         return metrics.hovered
     else
         -- Return metrics
@@ -401,11 +424,10 @@ function Sticker.NormalizeLibrary(lib)
     return Sticker.NormalizeCollection(lib, true)
 end
 
--- Unpacks the stickers of a thing for a slot
-function Sticker.UnpackCollection(collection, thing, slot)
+function Sticker.UnpackCollection(collection, notes, slot)
     local slot_stickers_unpacked = {}
     for _, stick in ipairs(collection) do
-        slot_stickers_unpacked[#slot_stickers_unpacked+1] = Sticker:new(stick, thing, slot)
+        slot_stickers_unpacked[#slot_stickers_unpacked+1] = Sticker:new(stick, notes, slot)
     end
     slot_stickers_unpacked = Sticker.NormalizeCollection(slot_stickers_unpacked, false)
     return slot_stickers_unpacked
@@ -419,7 +441,7 @@ function Sticker.PackCollection(collection)
     return packed
 end
 
-function Sticker.Library(thing, slot)
+function Sticker.Library(notes, slot)
     local lib_str = reaper.GetExtState("Reannotate", "StickerLibrary")
     local ret = nil
 
@@ -432,7 +454,7 @@ function Sticker.Library(thing, slot)
     for _, sl in ipairs(ret) do
         local s = nil
         -- Safe unserialize...
-        pcall(function() s = Sticker:new(sl, thing, slot) end)
+        pcall(function() s = Sticker:new(sl, notes, slot) end)
         if s then
             stickers[#stickers+1] = s
         end

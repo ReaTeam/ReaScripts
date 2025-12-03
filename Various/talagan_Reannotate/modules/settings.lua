@@ -3,8 +3,29 @@
 -- @license MIT
 -- @description This file is part of Reannotate
 
-local os                            = reaper.GetOS()
-local is_windows                    = os:match('Win')
+local JSON = require "ext/json"
+
+local DefaultMarkdownStyle = {
+    default     = { font_family = "Arial", base_color = "#CCCCCC", bold_color = "white", autopad = 5 --[[font_size = 13, ]] },
+
+    h1          = { font_family = "Arial", font_size = 23, padding_left = 0,        padding_top = 0, padding_bottom = 0,      line_spacing = 0, base_color = "#288efa", bold_color = "#288efa" },
+    h2          = { font_family = "Arial", font_size = 21, padding_left = 5,        padding_top = 0, padding_bottom = 0,      line_spacing = 0, base_color = "#4da3ff", bold_color = "#4da3ff" },
+    h3          = { font_family = "Arial", font_size = 19, padding_left = 10,       padding_top = 0, padding_bottom = 0,      line_spacing = 0, base_color = "#65acf7", bold_color = "#65acf7" },
+    h4          = { font_family = "Arial", font_size = 17, padding_left = 15,       padding_top = 0, padding_bottom = 0,      line_spacing = 0, base_color = "#85c0ff", bold_color = "#85c0ff" },
+    h5          = { font_family = "Arial", font_size = 15, padding_left = 20,       padding_top = 0, padding_bottom = 0,      line_spacing = 0, base_color = "#9ecdff", bold_color = "#9ecdff" },
+
+    paragraph   = { font_family = "Arial", font_size = 13, padding_left = 30,       padding_top = 2, padding_bottom = 2,      line_spacing = 0, padding_in_blockquote = 6 },
+    list        = { font_family = "Arial", font_size = 13, padding_left = 40,       padding_top = 2, padding_bottom = 2,      line_spacing = 0, padding_indent = 5 },
+
+    table       = { font_family = "Arial", font_size = 13, padding_left = 30,       padding_top = 2, padding_bottom = 2,      line_spacing = 0 },
+
+    code        = { font_family = "monospace", font_size = 13, padding_left = 30,   padding_top = 2, padding_bottom = 2,      line_spacing = 4, padding_in_blockquote = 6 },
+    blockquote  = { font_family = "Arial", font_size = 13, padding_left = 0,        padding_top = 2, padding_bottom = 2,      line_spacing = 2, padding_indent = 10 },
+
+    link        = { base_color = "orange", bold_color = "tomato"},
+
+    separator   = { padding_top = 3, padding_bottom = 7 }
+}
 
 local SettingDefs = {
   UseDebugger               = { type = "bool",    default = false },
@@ -18,6 +39,11 @@ local SettingDefs = {
   SlotLabel_5               = { type = "string", default = "Completed"},
   SlotLabel_6               = { type = "string", default = "Warnings"},
   SlotLabel_7               = { type = "string", default = "Problems"},
+
+  -- Styling
+  UIFontSize                = { type = "int",  default = 12 },
+  NewProjectMarkdown        = { type = "json", default = DefaultMarkdownStyle },
+  NewProjectStickerSize     = { type = "int",  default = 12 }
 };
 
 local function unsafestr(str)
@@ -42,6 +68,12 @@ local function serializedStringToValue(str, spec)
       val = tonumber(val);
     elseif spec.type == 'string' then
       -- No conversion needed
+    elseif spec.type == 'json' then
+      local succ, _ ,_ = pcall(function()
+        val = JSON.decode(val)
+      end)
+      -- Fallback on the default if decoding explodes
+      if not succ then val = spec.default end
     end
   end
 
@@ -59,6 +91,8 @@ local function valueToSerializedString(val, spec)
   elseif spec.type == "string" then
     -- No conversion needed
     str = val
+  elseif spec.type == 'json' then
+    str = JSON.encode(val)
   end
   return str
 end

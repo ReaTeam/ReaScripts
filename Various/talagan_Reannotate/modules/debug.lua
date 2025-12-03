@@ -56,9 +56,18 @@ local function LaunchProfilerIfNeeded()
         -- So, force preload DSP functions before "attach to world"
 
         -- Require here all files containing things to be profiled.
-        local ImGui = require "ext/imgui"
-        local QuickPreviewOverlay = require "widgets/quick_preview_overlay"
-        local EmojImGui           = require "emojimgui"
+        local EmojImGui             = require "emojimgui"
+
+        local ImGui                 = require "ext/imgui"
+
+        local QuickPreviewOverlay   = require "widgets/quick_preview_overlay"
+        local OverlayCanvas         = require "widgets/overlay_canvas"
+
+        local Notes                 = require "classes/notes"
+        local Sticker               = require "classes/sticker"
+        local Color                 = require "classes/color"
+        local AppContext            = require "classes/app_context"
+        local ArrangeViewWatcher    = require "classes/arrange_view_watcher"
 
         local profiler = dofile(reaper.GetResourcePath() .. '/Scripts/ReaTeam Scripts/Development/cfillion_Lua profiler.lua')
         reaper.defer = profiler.defer

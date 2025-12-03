@@ -6,21 +6,17 @@
 local AppContext        = require "classes/app_context"
 local ImGui             = require "ext/imgui"
 local ImGuiMd           = require "reaimgui_markdown"
-local Notes             = require "classes/notes"
 
+local OverlayCanvas     = require "widgets/overlay_canvas"
 local NoteEditor        = require "widgets/note_editor"
 local SettingsEditor    = require "widgets/settings_editor"
-local OverlayCanvas     = require "widgets/overlay_canvas"
 
 local S                 = require "modules/settings"
+local D                 = require "modules/defines"
 
 local reaper_ext        = require "modules/reaper_ext"
+local MemCache          = require "classes/mem_cache"
 
-
-local OS                            = reaper.GetOS()
-local is_windows                    = OS:match('Win')
-local is_macos                      = OS:match('OSX') or OS:match('macOS')
-local is_linux                      = OS:match('Other')
 
 local function GetScreen(x, y)
     local scr = {}
@@ -33,29 +29,6 @@ end
 local QuickPreviewOverlay = {}
 QuickPreviewOverlay.__index = QuickPreviewOverlay
 
--- Force fonts to arial
-QuickPreviewOverlay.markdownStyle = {
-    default     = { font_family = "Arial", font_size = 13, base_color = "#CCCCCC", bold_color = "white", autopad = 5 },
-
-    h1          = { font_family = "Arial", font_size = 23, padding_left = 0,  padding_top = 3, padding_bottom = 5, line_spacing = 0, base_color = "#288efa", bold_color = "#288efa" },
-    h2          = { font_family = "Arial", font_size = 21, padding_left = 5,  padding_top = 3, padding_bottom = 5, line_spacing = 0, base_color = "#4da3ff", bold_color = "#4da3ff" },
-    h3          = { font_family = "Arial", font_size = 19, padding_left = 10, padding_top = 3, padding_bottom = 4, line_spacing = 0, base_color = "#65acf7", bold_color = "#65acf7" },
-    h4          = { font_family = "Arial", font_size = 17, padding_left = 15, padding_top = 3, padding_bottom = 3, line_spacing = 0, base_color = "#85c0ff", bold_color = "#85c0ff" },
-    h5          = { font_family = "Arial", font_size = 15, padding_left = 20, padding_top = 3, padding_bottom = 3, line_spacing = 0, base_color = "#9ecdff", bold_color = "#9ecdff" },
-
-    paragraph   = { font_family = "Arial", font_size = 13, padding_left = 30, padding_top = 3, padding_bottom = 7, line_spacing = 0, padding_in_blockquote = 6 },
-    list        = { font_family = "Arial", font_size = 13, padding_left = 40, padding_top = 5, padding_bottom = 7, line_spacing = 0, padding_indent = 5 },
-
-    table       = { font_family = "Arial", font_size = 13, padding_left = 30, padding_top = 3, padding_bottom = 7, line_spacing = 0 },
-
-    code        = { font_family = "monospace",  font_size = 13, padding_left = 30, padding_top = 3, padding_bottom = 7,  line_spacing = 4, padding_in_blockquote = 6 },
-    blockquote  = { font_family = "Arial", font_size = 13, padding_left = 0,  padding_top = 5, padding_bottom = 10, line_spacing = 2, padding_indent = 10 },
-
-    link        = { base_color = "orange", bold_color = "tomato"},
-
-    separator   = { padding_top = 3, padding_bottom = 7 }
-}
-
 function QuickPreviewOverlay:new()
     local instance = {}
     setmetatable(instance, self)
@@ -65,8 +38,10 @@ function QuickPreviewOverlay:new()
 end
 
 function QuickPreviewOverlay:_initialize()
-    self.visible_things  = {}
-    self.filter_str = ''
+    self.visible_things         = {}
+    self.filter_str             = ''
+    self.new_project_markdown   = S.getSetting("NewProjectMarkdown")
+    self.rand                   = math.random()
 end
 
 function QuickPreviewOverlay:timeToPixels(app_ctx, time)
@@ -86,19 +61,19 @@ end
 function QuickPreviewOverlay:IsInReaper()
     local app_ctx = AppContext.instance()
     local fg = reaper.JS_Window_GetForeground()
-    if is_macos then
+    if D.is_macos then
         return fg ~= nil
     else
         if fg == app_ctx.mv.hwnd then return true end
         if reaper.JS_Window_IsChild(app_ctx.mv.hwnd, fg) then return true end
         if self.note_editor and fg == self.note_editor.hwnd then return true end
-        if self.settings_editor and fg == self.settings_editor.hwnd then return true end
+        if self.settings_window and fg == self.settings_window.hwnd then return true end
 
         return false
     end
 end
 
-function QuickPreviewOverlay:buildEditContextForThing(object, type, track_num, parent_widget_name, pos_x_pixels, pos_y_pixels, len_x_pixels, len_y_pixels, clamped_left, clamped_right, clamped_top, clamped_bottom)
+function QuickPreviewOverlay:buildEditContextForThing(object, track_num, parent_widget_name, pos_x_pixels, pos_y_pixels, len_x_pixels, len_y_pixels, clamped_left, clamped_right, clamped_top, clamped_bottom)
 
     local app_ctx   = AppContext.instance()
 
@@ -110,33 +85,21 @@ function QuickPreviewOverlay:buildEditContextForThing(object, type, track_num, p
         parent = app_ctx.tcp
     elseif parent_widget_name == 'mcp' then
         parent = (track_num == -1) and app_ctx.mcp_master or app_ctx.mcp_other
+    elseif parent_widget_name == 'transport' then
+        parent = app_ctx.transport
     elseif parent_widget_name == 'time_ruler' then
         parent = app_ctx.time_ruler
     end
 
-    local name = ""
-    if type == 'track' then
-        local _, tname = reaper.GetTrackName(object)
-        name = tname
-    elseif type == 'item' then
-        local take = reaper.GetActiveTake(object)
-        if take then
-            name = reaper.GetTakeName(take)
-        end
-    elseif type == "env" then
-        local _, ename = reaper.GetEnvelopeName(object)
-        name = ename
-    elseif type == "project" then
-        name = "Project"
-    end
-
-    local notes                 = Notes:new(object)
+    -- Use a cache for various purposes. First one is to mutualize the notes pointer
+    -- As the MCP and TCP, for tracks, may point to the same entries (committing in one commits in the other one, its the same pointer)
+    -- Also, it avoids serializing and unserializing notes which may take time.
+    local cache = MemCache.instance():getObjectCache(object)
 
     return {
         -- Basic info
         object      = object,
         type        = type,
-        name        = name,
         -- Parent info
         parent      = parent,
         widget      = parent_widget_name,
@@ -149,11 +112,87 @@ function QuickPreviewOverlay:buildEditContextForThing(object, type, track_num, p
         clamped_right   = clamped_right,
         clamped_top     = clamped_top,
         clamped_bottom  = clamped_bottom,
-        -- Annotation info
-        notes       = notes,
+        -- Note info
+        cache       = cache,
+        notes       = cache.notes,
         -- Track num
         track_num   = track_num + 1
     }
+end
+
+function QuickPreviewOverlay:applyFullSearch()
+    -- Search project
+    -- Search tracks
+    -- Search items
+    -- Search enveloppes
+
+    -- Iterate over all objets, create object cache fore each one if needed, and finally apply search to each object
+    -- Caching accelerates drastically the process.
+
+    local app_context = AppContext.instance()
+    local mc          = MemCache.instance()
+    local t1          = reaper.time_precise()
+
+    app_context.search_result = {
+        matching_entries = {},
+        counts = {
+            projects    = 0,
+            tracks      = 0,
+            envelopes   = 0,
+            items       = 0
+        },
+        last_search = self.filter_str
+    }
+
+    if self.filter_str == '' or self.filter_str == nil then
+        -- Filtering of visible things is already made, don't spend time
+        -- To keep everyone
+        return
+    end
+
+    local matching_entries = app_context.search_result.matching_entries
+    local counts           = app_context.search_result.counts
+
+    local _search_object    = function(object, count_type)
+        local cache             = mc:getObjectCache(object)
+        local match_count       = self:applySearchToCache(cache)
+        if match_count > 0 then
+            matching_entries[#matching_entries+1] = cache
+            counts[count_type] = counts[count_type] + 1
+        end
+    end
+
+    -- Project
+    local proj              = reaper.EnumProjects(-1)
+    _search_object(proj, "projects")
+
+    -- Get total number of tracks
+    local track_count = reaper.CountTracks(0)
+
+    -- Iterate through tracks
+    for i = -1, track_count - 1 do
+        local track             =  (i==-1) and reaper.GetMasterTrack(0) or reaper.GetTrack(0, i)
+
+        -- Track
+        _search_object(track, "tracks")
+
+        -- Items
+        local item_count = reaper.CountTrackMediaItems(track)
+        for j = 0, item_count - 1 do
+            local item  = reaper.GetTrackMediaItem(track, j)
+            _search_object(item, "items")
+        end
+
+        -- Envelopes
+        local ei = 0
+        while true do
+            local envelope = reaper.GetTrackEnvelope(track, ei)
+            if not envelope then break end
+
+            _search_object(envelope, "envelopes")
+            ei = ei + 1
+        end
+    end
 end
 
 function QuickPreviewOverlay:updateVisibleThings()
@@ -238,7 +277,7 @@ function QuickPreviewOverlay:updateVisibleThings()
 
                         pos_x_pixels, pos_y_pixels, len_x_pixels, len_y_pixels, clamped_left, clamped_right, clamped_top, clamped_bottom = block_clamp(pos_x_pixels, pos_y_pixels, len_x_pixels, len_y_pixels, tcp.w, tcp.h, 0, hlimit)
 
-                        local env_entry = self:buildEditContextForThing(envelope, "env", i, "tcp", pos_x_pixels, pos_y_pixels, len_x_pixels, len_y_pixels, clamped_left, clamped_right, clamped_top, clamped_bottom)
+                        local env_entry = self:buildEditContextForThing(envelope, i, "tcp", pos_x_pixels, pos_y_pixels, len_x_pixels, len_y_pixels, clamped_left, clamped_right, clamped_top, clamped_bottom)
 
                         table.insert(self.visible_things, env_entry)
                     end
@@ -258,7 +297,7 @@ function QuickPreviewOverlay:updateVisibleThings()
 
             pos_x_pixels, pos_y_pixels, len_x_pixels, len_y_pixels, clamped_left, clamped_right, clamped_top, clamped_bottom = block_clamp(pos_x_pixels, pos_y_pixels, len_x_pixels, len_y_pixels, tcp.w, tcp.h, 0, hlimit)
 
-            tcp_entry = self:buildEditContextForThing(track, "track", i, "tcp", pos_x_pixels, pos_y_pixels, len_x_pixels, len_y_pixels, clamped_left, clamped_right, clamped_top, clamped_bottom)
+            tcp_entry = self:buildEditContextForThing(track, i, "tcp", pos_x_pixels, pos_y_pixels, len_x_pixels, len_y_pixels, clamped_left, clamped_right, clamped_top, clamped_bottom)
 
             table.insert(self.visible_things, tcp_entry)
 
@@ -288,7 +327,7 @@ function QuickPreviewOverlay:updateVisibleThings()
 
                         pos_x_pixels, pos_y_pixels, len_x_pixels, len_y_pixels, clamped_left, clamped_right, clamped_top, clamped_bottom = block_clamp(pos_x_pixels, pos_y_pixels, len_x_pixels, len_y_pixels, avi.w, avi.h, 0, hlimit)
 
-                        table.insert(self.visible_things, self:buildEditContextForThing(item, "item", i, "arrange", pos_x_pixels, pos_y_pixels, len_x_pixels, len_y_pixels, clamped_left, clamped_right, clamped_top, clamped_bottom))
+                        table.insert(self.visible_things, self:buildEditContextForThing(item, i, "arrange", pos_x_pixels, pos_y_pixels, len_x_pixels, len_y_pixels, clamped_left, clamped_right, clamped_top, clamped_bottom))
                     end
                 end
             end
@@ -314,7 +353,7 @@ function QuickPreviewOverlay:updateVisibleThings()
             pos_x_pixels, pos_y_pixels, len_x_pixels, len_y_pixels, clamped_left, clamped_right, clamped_top, clamped_bottom = block_clamp(pos_x_pixels, pos_y_pixels, len_x_pixels, len_y_pixels, mcp.w, mcp.h, 0, 0)
 
             if pos_x_pixels >= 0 and len_x_pixels > 2 and pos_x_pixels + len_x_pixels <= mcp.w then
-                local mcp_entry = self:buildEditContextForThing(track, "track", i, "mcp", pos_x_pixels, pos_y_pixels, len_x_pixels, len_y_pixels, clamped_left, clamped_right, clamped_top, clamped_bottom)
+                local mcp_entry = self:buildEditContextForThing(track, i, "mcp", pos_x_pixels, pos_y_pixels, len_x_pixels, len_y_pixels, clamped_left, clamped_right, clamped_top, clamped_bottom)
                 table.insert(self.visible_things, mcp_entry)
                 if tcp_entry then
                     mcp_entry.tcp_entry = tcp_entry
@@ -324,28 +363,37 @@ function QuickPreviewOverlay:updateVisibleThings()
         end
     end
 
-    if app_ctx.time_ruler.hwnd and reaper.JS_Window_IsVisible(app_ctx.time_ruler.hwnd) then
-        local pos_x_pixels = app_ctx.time_ruler.x
-        local pos_y_pixels = app_ctx.time_ruler.y
-        local len_x_pixels = app_ctx.time_ruler.w
-        local len_y_pixels = app_ctx.time_ruler.h
+    if app_ctx.transport.hwnd and reaper.JS_Window_IsVisible(app_ctx.transport.hwnd) then
+        local pos_x_pixels = app_ctx.transport.x
+        local pos_y_pixels = app_ctx.transport.y
+        local len_x_pixels = app_ctx.transport.w
+        local len_y_pixels = app_ctx.transport.h
         local proj         = reaper.EnumProjects(-1)
-        local proj_entry, _ = self:buildEditContextForThing(proj, "project", -1, "time_ruler", 0, 0, len_x_pixels, len_y_pixels, false, false, false, false)
+        local proj_entry, _ = self:buildEditContextForThing(proj, -1, "transport", 0, 0, len_x_pixels, len_y_pixels, false, false, false, false)
         table.insert(self.visible_things, proj_entry)
     end
 
-    for _, thing in ipairs(self.visible_things) do
-        self:applySearchToThing(thing)
-    end
+    -- Visibility has changed, reapply the search
+    self:applySearch()
 end
 
 function QuickPreviewOverlay:title()
     return "Reannotate Quick Preview"
 end
 
+function QuickPreviewOverlay:applySearch(do_full_search)
+    for _, thing in ipairs(self.visible_things) do
+        self:applySearchToThing(thing)
+    end
 
-function QuickPreviewOverlay:applySearchToThing(thing)
-    thing.search_results    = {}
+    if do_full_search then
+        self:applyFullSearch()
+    end
+end
+
+
+function QuickPreviewOverlay:applySearchToCache(cache)
+    cache.search_results    = {}
 
     local case_sensitive = false
     local search_str     = self.filter_str
@@ -354,20 +402,32 @@ function QuickPreviewOverlay:applySearchToThing(thing)
         search_str = search_str:lower()
     end
 
-    for i=0, Notes.MAX_SLOTS - 1 do
+    local match_count = 0
+    for i=0, D.MAX_SLOTS - 1 do
         local slot      = i
-        local slotNotes = thing.notes:slotText(slot)
+        local slotNotes = cache.notes:slotText(slot)
 
         if not case_sensitive then
             slotNotes = slotNotes:lower()
         end
 
+        local slot_matches = false
         if self.filter_str == '' then
-            thing.search_results[slot+1] = true
+            slot_matches = true
         else
-            thing.search_results[slot+1] = slotNotes:match(search_str)
+            slot_matches = slotNotes:match(search_str)
         end
+        cache.search_results[slot+1] = slot_matches
+        if slot_matches then match_count = match_count + 1 end
     end
+
+    cache.search_match_count = match_count
+
+    return match_count
+end
+
+function QuickPreviewOverlay:applySearchToThing(thing)
+    return self:applySearchToCache(thing.cache)
 end
 
 function QuickPreviewOverlay:minimizeTopWindowsAtLaunch()
@@ -377,6 +437,8 @@ function QuickPreviewOverlay:minimizeTopWindowsAtLaunch()
     if false then
         local c, l = reaper.JS_Window_ListAllTop()
         for token in string.gmatch(l, "[^,]+") do
+
+---@diagnostic disable-next-line: param-type-mismatch
             local subhwnd = reaper.JS_Window_HandleFromAddress(token)
             if not subhwnd then return end
 
@@ -412,9 +474,29 @@ function QuickPreviewOverlay:ZOrderSwap()
             reaper.JS_Window_SetZOrder(canvas.hwnd, "INSERTAFTER", parent_hwnd)
             reaper.JS_Window_SetZOrder(parent_hwnd, "INSERTAFTER", canvas.hwnd)
 
-            if is_windows then
+            if D.is_windows then
                 reaper.JS_Window_SetForeground(canvas.hwnd)
             end
+        end
+    end
+end
+
+function QuickPreviewOverlay:toggleSettingsWindow(wpos_x, wpos_y)
+    local app_ctx = AppContext.instance()
+    local ctx = app_ctx.imgui_ctx
+
+    if self.settings_window then
+        self.settings_window = nil
+    else
+        self.settings_window = SettingsEditor:new()
+        self.settings_window:setPosition(wpos_x + ImGui.GetCursorPosX(ctx) + 5, wpos_y + ImGui.GetCursorPosY(ctx) )
+        self.settings_window.on_commit_current_project_style_callback = function(new_style)
+            if not self.mdwidget then return end
+            self.mdwidget:setStyle(new_style)
+            self.mdwidget:setText("")
+        end
+        self.settings_window.on_commit_new_project_style_callback = function(new_style)
+            --
         end
     end
 end
@@ -446,7 +528,7 @@ function QuickPreviewOverlay:ensureZOrder()
         end
     else
         if self:IsInReaper() then
-            if is_windows and self.note_editor and self.note_editor.draw_count == 0 then
+            if D.is_windows and self.note_editor and self.note_editor.draw_count == 0 then
                 -- This is necessary under windows. The editor focus scrambles the
                 -- Floating mixer's z order.
                 self:ZOrderSwap()
@@ -474,7 +556,7 @@ function QuickPreviewOverlay:currentTooltipSizeForThing(thing)
     local slot = (thing == self.pinned_thing) and (thing.capture_slot) or (thing.hovered_slot)
 
     if slot == -1 then
-        return Notes.defaultTooltipSize()
+        return D.defaultTooltipSize()
     end
 
     return thing.notes:tooltipSize(slot or 0)
@@ -504,12 +586,9 @@ function QuickPreviewOverlay:editorAdvisedPositionAndSizeForThing(thing, mouse_x
     local ttpos     = self:tooltipAdvisedPositionForThing(thing, mouse_x, mouse_y)
     local ttw, tth  = self:currentTooltipSizeForThing(thing)
 
-    local w = ttw
-    local h = tth
-
-    if w < 550 then
-        w = 550
-    end
+    -- If no width none assume something big
+    local w = NoteEditor.known_width or 1000
+    local h = tth -- Try to use the tooltip height
 
     if h < 200 then
         h = 200
@@ -525,7 +604,7 @@ function QuickPreviewOverlay:editorAdvisedPositionAndSizeForThing(thing, mouse_x
         y = screen.h - h
     end
 
-    return { x = x, y = y, w = w, h = h}
+    return { x = x, y = y, h = h}
 end
 
 function QuickPreviewOverlay:tooltipAdvisedPositionForEditedThingAndSlot(thing, slot, editor, mx, my)
@@ -571,18 +650,18 @@ function QuickPreviewOverlay:drawTooltip()
     if thing_to_tooltip then
         if not self.mdwidget then
             -- This will lag a bit. Do it on first capture.
-            self.mdwidget  = ImGuiMd:new(ctx, "markdown_widget_1", { wrap = true, autopad = true, skip_last_whitespace = true }, QuickPreviewOverlay.markdownStyle )
+            self.mdwidget  = ImGuiMd:new(ctx, "markdown_widget_1", { wrap = true, autopad = true, skip_last_whitespace = true }, D.RetrieveProjectMarkdownStyle() )
         end
 
         local slot_to_tooltip   = ((self.note_editor) and (self.note_editor.edited_slot)) or (pinned_thing and pinned_thing.capture_slot) or (thing_to_tooltip.hovered_slot)
         local tttext            = (slot_to_tooltip == -1) and (thing_to_tooltip.no_notes_message) or (thing_to_tooltip.notes:slotText(slot_to_tooltip))
+        local tooltip_is_empty  = (slot_to_tooltip == -1)
         if tttext == "" or tttext == nil then
-            tttext = "`:grey:No " .. thing_to_tooltip.type .. " notes for the `_:grey:" .. Notes.SlotLabel(slot_to_tooltip):lower() .. "_ `:grey:category`"
+            tttext = "`:grey:No " .. thing_to_tooltip.cache.type .. " notes for the `_:grey:" .. D.SlotLabel(slot_to_tooltip):lower() .. "_ `:grey:category`"
+            tooltip_is_empty = true
         end
 
-        self.mdwidget:setText(tttext)
-
-        ImGui.SetNextWindowBgAlpha(ctx, 1)
+        local ttw, tth          = self:currentTooltipSizeForThing(thing_to_tooltip)
 
         if self.note_editor or pinned_thing then
             -- If there's a note editor, fix the position
@@ -591,15 +670,33 @@ function QuickPreviewOverlay:drawTooltip()
             tt_pos = self:tooltipAdvisedPositionForThing(thing_to_tooltip, mx, my)
         end
 
-        local ttw, tth     = self:currentTooltipSizeForThing(thing_to_tooltip)
+        if thing_to_tooltip ~= self.last_tooltiped_thing or slot_to_tooltip ~= self.last_tooltiped_slot or tttext ~= self.last_tooltiped_text then
+            -- Reset the draw count if we need to show something else
+            self.tt_draw_count = 0
+        end
 
         -- First draw, force coordinates and size
         if self.tt_draw_count == 0 then
-            ImGui.SetNextWindowPos(ctx,     tt_pos.x, tt_pos.y)
-            ImGui.SetNextWindowSize(ctx,    ttw, tth)
+            ImGui.SetNextWindowSize(ctx, ttw, tth)
+            -- This will force the tooltip window re-creation to avoid keeping precedent state .. and have scrollbar bugs
+            self.rand = math.random()
         end
 
-        if ImGui.Begin(ctx, "Reannotate Notes (Tooltip)", true, ImGui.WindowFlags_NoFocusOnAppearing | ImGui.WindowFlags_NoTitleBar | ImGui.WindowFlags_TopMost | ImGui.WindowFlags_NoSavedSettings) then
+        if self.tt_draw_count == 1 and tooltip_is_empty then
+            -- Auto resize "empty" tooltips. This glitches during 1 frame...
+            local target_h = self.mdwidget.max_y + 18
+            local target_w = self.mdwidget.max_x + 18
+           -- ImGui.SetNextWindowSize(ctx, target_w, target_h)
+        end
+
+        self.mdwidget:setText(tttext)
+
+        ImGui.SetNextWindowBgAlpha(ctx, 1)
+        ImGui.SetNextWindowPos(ctx, tt_pos.x, tt_pos.y)
+
+        local tooltip_flags = ImGui.WindowFlags_NoFocusOnAppearing | ImGui.WindowFlags_NoTitleBar | ImGui.WindowFlags_TopMost | ImGui.WindowFlags_NoSavedSettings | ImGui.WindowFlags_NoScrollbar
+
+        if ImGui.Begin(ctx, "Reannotate Notes (Tooltip)##" .. self.rand, true, tooltip_flags) then
             local cur_x, cur_y  = ImGui.GetWindowPos(ctx)
             local cur_w, cur_h  = ImGui.GetWindowSize(ctx)
             local draw_list     = ImGui.GetWindowDrawList(ctx)
@@ -619,19 +716,19 @@ function QuickPreviewOverlay:drawTooltip()
 
             -- Border. Tooltip is shown when edited or hoevered
             if (self.note_editor) or (not thing_to_tooltip.notes:isBlank() and ( thing_to_tooltip.hovered_slot ~= -1)) then
-                ImGui.DrawList_AddRect(draw_list, cur_x + 1, cur_y + 1, cur_x + cur_w - 1, cur_y + cur_h - 1, Notes.SlotColor(slot_to_tooltip) << 8 | 0xFF, 0, 0, 2)
+                ImGui.DrawList_AddRect(draw_list, cur_x + 1, cur_y + 1, cur_x + cur_w - 1, cur_y + cur_h - 1, D.SlotColor(slot_to_tooltip) << 8 | 0xFF, 0, 0, 2)
             end
 
             -- Resiszers
             if self.note_editor then
                 local triangle_size = 13
-                ImGui.DrawList_AddTriangleFilled(draw_list, cur_x, cur_y + cur_h, cur_x + triangle_size, cur_y + cur_h, cur_x, cur_y + cur_h - triangle_size, Notes.SlotColor(slot_to_tooltip) << 8 | 0xFF)
-                ImGui.DrawList_AddTriangleFilled(draw_list, cur_x + cur_w, cur_y + cur_h, cur_x + cur_w, cur_y + cur_h - triangle_size, cur_x + cur_w - triangle_size, cur_y + cur_h, Notes.SlotColor(slot_to_tooltip) << 8 | 0xFF)
+                ImGui.DrawList_AddTriangleFilled(draw_list, cur_x, cur_y + cur_h, cur_x + triangle_size, cur_y + cur_h, cur_x, cur_y + cur_h - triangle_size, D.SlotColor(slot_to_tooltip) << 8 | 0xFF)
+                ImGui.DrawList_AddTriangleFilled(draw_list, cur_x + cur_w, cur_y + cur_h, cur_x + cur_w, cur_y + cur_h - triangle_size, cur_x + cur_w - triangle_size, cur_y + cur_h, D.SlotColor(slot_to_tooltip) << 8 | 0xFF)
             end
 
             if self.note_editor and ImGui.IsMouseDoubleClicked(ctx, ImGui.MouseButton_Left) and ImGui.IsWindowHovered(ctx, ImGui.HoveredFlags_RootAndChildWindows) and self.mdwidget.max_x and self.mdwidget.max_y then
-                local target_h = self.mdwidget.max_y + 20
-                local target_w = self.mdwidget.max_x + 20
+                local target_h = self.mdwidget.max_y + 18 -- 4 * 4 + 2
+                local target_w = self.mdwidget.max_x + 18 -- 4 * 4 + 2
                 cur_h = target_h -- frame
                 if target_w < ttw then
                     cur_w = target_w
@@ -640,16 +737,10 @@ function QuickPreviewOverlay:drawTooltip()
                 self.tt_draw_count = -1
             end
 
-            -- Save new sizes to items/tracks when resized
             if self.note_editor and ((cur_w ~= ttw) or (cur_h ~= tth)) then
+                -- Save new sizes to items/tracks when resized
                 thing_to_tooltip.notes:setTooltipSize(self.note_editor.edited_slot, cur_w, cur_h)
                 thing_to_tooltip.notes:commit()
-
-                -- Alternate entry (tcp/mcp clone) should be refreshed
-                local alternate_entry = thing_to_tooltip.mcp_entry or thing_to_tooltip.tcp_entry
-                if alternate_entry then
-                    alternate_entry.notes:pull()
-                end
             end
 
             if ImGui.IsWindowFocused(ctx) and self.note_editor and not ImGui.IsMouseDown(ctx, ImGui.MouseButton_Left) then
@@ -658,6 +749,10 @@ function QuickPreviewOverlay:drawTooltip()
             end
 
             ImGui.End(ctx)
+
+            self.last_tooltiped_thing = thing_to_tooltip
+            self.last_tooltiped_slot  = slot_to_tooltip
+            self.last_tooltiped_text  = tttext
 
             self.tt_draw_count = (self.tt_draw_count or 0) + 1
         end
@@ -672,6 +767,7 @@ function QuickPreviewOverlay:draw()
     local mx, my   = reaper.GetMousePosition()
     mx, my = ImGui.PointConvertNative(ctx, mx, my)
 
+---@diagnostic disable-next-line: redundant-parameter
     ImGui.PushFont(ctx, app_ctx.arial_font, 12)
 
     self.draw_count = self.draw_count or 0
@@ -722,41 +818,31 @@ function QuickPreviewOverlay:draw()
         self.hovered_thing.capture_xy    = self:tooltipAdvisedPositionForThing(self.hovered_thing, mx, my)
         self.hovered_thing.capture_slot  = self.hovered_thing.hovered_slot
 
-        self.tt_draw_count = 0
-
         self.note_editor = NoteEditor:new()
         self.note_editor:setEditedThing(self.hovered_thing)
         self.note_editor:setEditedSlot(self.hovered_thing.hovered_slot == -1 and 1 or self.hovered_thing.hovered_slot)
         local ne_metrics = self:editorAdvisedPositionAndSizeForThing(self.hovered_thing, mx, my)
         self.note_editor:setPosition(ne_metrics.x, ne_metrics.y)
-        self.note_editor:setSize(ne_metrics.w, ne_metrics.h)
+        self.note_editor:setHeight(ne_metrics.h)
         self.note_editor:GrabFocus()
 
         self.note_editor.slot_edit_change_callback = function()
             -- We may need to reposition the tooltip since it's changed
             self.note_editor.edited_thing.capture_xy = self:tooltipAdvisedPositionForEditedThingAndSlot(self.note_editor.edited_thing, self.note_editor.edited_slot, self.note_editor, mx, my)
-            -- Reset draw counter for tooltip to take position change into account
-            self.tt_draw_count = 0
         end
 
         self.note_editor.slot_commit_callback = function()
-            for _, thing in ipairs(self.visible_things) do
-                self:applySearchToThing(thing)
-            end
+            -- Content has changed, need to update the current search
+            self:applySearch(true)
         end
     end
 
     if self.hovered_thing and self.captured_right_click then
+        -- Pin position
         self.note_editor                 = nil
         self.hovered_thing.capture_xy    = self:tooltipAdvisedPositionForThing(self.hovered_thing, mx, my)
         self.hovered_thing.capture_slot  = self.hovered_thing.hovered_slot
         self.pinned_thing                = self.hovered_thing
-        self.tt_draw_count = 0
-    end
-
-    if self.hovered_thing and not self.note_editor then
-        -- Reset tooltip draw count so that the tooltip is not fixed
-        self.tt_draw_count = 0
     end
 
     if not self.hovered_thing and self.captured_click then
@@ -766,13 +852,13 @@ function QuickPreviewOverlay:draw()
 
     if self.note_editor and self.note_editor.open then
         self.note_editor:draw()
-    else
+    elseif self.note_editor then
         self.note_editor = nil
     end
 
     if self.settings_window and self.settings_window.open then
         self.settings_window:draw()
-    else
+    elseif self.settings_window then
         self.settings_window = nil
     end
 
@@ -791,7 +877,6 @@ function QuickPreviewOverlay:draw()
         self:restoreMinimizedWindowsAtExit()
         reaper.JS_Window_SetFocus(app_ctx.mv.hwnd)
         reaper.JS_Window_SetForeground(app_ctx.mv.hwnd)
-       -- reaper.ShowConsoleMsg("BOOM")
     end
 
     ImGui.PopFont(ctx)
