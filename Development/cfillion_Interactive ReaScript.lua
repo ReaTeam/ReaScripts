@@ -1,9 +1,7 @@
 -- @description Interactive ReaScript (iReaScript)
 -- @author cfillion
--- @version 0.8.4
--- @changelog
---   Fix autocompletion after an opening parenthesis
---   Fix display glitch when pasting tab characters
+-- @version 0.8.5
+-- @changelog Fix monospaced font selection on macOS ARM
 -- @link
 --   cfillion.ca https://cfillion.ca
 --   Forum Thread https://forum.cockos.com/showthread.php?t=177324
@@ -1637,14 +1635,6 @@ function ireascript.selectAll()
   ireascript.redraw = true
 end
 
-function ireascript.iswindows()
-  return reaper.GetOS():find('Win') ~= nil
-end
-
-function ireascript.ismacos()
-  return reaper.GetOS():find('OSX') ~= nil
-end
-
 function ireascript.dup(table)
   local copy = {}
   for k,v in pairs(table) do copy[k] = v end
@@ -1775,10 +1765,11 @@ function ireascript.initgfx()
   gfx.setcursor(ireascript.IDC_IBEAM)
   gfx.clear = -1
 
-  if ireascript.iswindows() then
+  local os = reaper.GetOS()
+  if os:find('Win') then
     gfx.setfont(ireascript.FONT_NORMAL, 'Consolas', 16)
     gfx.setfont(ireascript.FONT_BOLD, 'Consolas', 16, string.byte('b'))
-  elseif ireascript.ismacos() then
+  elseif os:find('OSX') ~= nil or os:find('macOS') then
     gfx.setfont(ireascript.FONT_NORMAL, 'Menlo', 14)
     gfx.setfont(ireascript.FONT_BOLD, 'Menlo', 14, string.byte('b'))
   else
