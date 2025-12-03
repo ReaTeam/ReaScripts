@@ -93,7 +93,7 @@ local ireascript = {
   -- settings
   TITLE = 'Interactive ReaScript (iReaScript)',
   NAME = 'Interactive ReaScript',
-  VERSION = '0.8.3',
+  VERSION = '0.8.5',
 
   MARGIN = 3,
   MAXLINES = 2048,
