@@ -6,9 +6,8 @@
 local LaunchContext         = require "classes/launch_context"
 local ArrangeViewWatcher    = require "classes/arrange_view_watcher"
 local ImGui                 = require "ext/imgui"
-local Notes                 = require "classes/notes"
-
 local reaper_ext            = require "modules/reaper_ext"
+local D                     = require "modules/defines"
 
 local AppContext = {}
 AppContext.__index = AppContext
@@ -65,6 +64,7 @@ function AppContext:findMainToolbarHwnd(main_hwnd, time_ruler_hwnd, tcp_hwnd)
     local _, tcp_l, tcp_t,  tcp_r,  tcp_b   = reaper.JS_Window_GetRect(tcp_hwnd)
     local _, l = reaper.JS_Window_ListAllChild(main_hwnd)
     for token in string.gmatch(l, "[^,]+") do
+---@diagnostic disable-next-line: param-type-mismatch
       local subhwnd = reaper.JS_Window_HandleFromAddress(token)
       if subhwnd then
         local _, a_l, a_t, a_r, a_b = reaper.JS_Window_GetRect(subhwnd)
@@ -88,6 +88,8 @@ function AppContext:_initialize()
   self.mv                         = { hwnd=reaper.GetMainHwnd() }
   -- Arrange view
   self.av                         = { hwnd=reaper.JS_Window_FindChildByID(self.mv.hwnd, 1000) }
+
+  self.transport                  = { hwnd=reaper.JS_Window_FindChild(reaper.GetMainHwnd(), "Transport", true) }
   -- TCP view
   self.tcp                        = { hwnd=reaper.JS_Window_FindEx(reaper.GetMainHwnd(), reaper.GetMainHwnd(), "REAPERTCPDisplay", "") }
   -- Time Ruler
@@ -122,7 +124,7 @@ function AppContext:_initialize()
   ImGui.Attach(self.imgui_ctx, self.arial_font_italic)
 
   self.enabled_category_filters = {}
-  for i=1, Notes.MAX_SLOTS do
+  for i=1, D.MAX_SLOTS do
     self.enabled_category_filters[i] = true
   end
 
@@ -210,6 +212,7 @@ function AppContext:updateWindowLayouts()
   self:retrieveCoordinates(self.main_toolbar)
   self:retrieveCoordinates(self.time_ruler)
   self:retrieveCoordinates(self.mcp_window)
+  self:retrieveCoordinates(self.transport)
 
   self.av.pinned_height = self:retrievePinnedTcpHeight()
 

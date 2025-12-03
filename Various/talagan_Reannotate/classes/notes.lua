@@ -4,12 +4,9 @@
 -- @description This file is part of Reannotate
 
 local JSON              = require "ext/json"
-local S                 = require "modules/settings"
 local CheckboxHelper    = require "modules/checkbox_helper"
-
-local TT_DEFAULT_W = 300
-local TT_DEFAULT_H = 100
-local MAX_SLOTS    = 8 -- Slot 0 is counted
+local Sticker           = require "classes/sticker"
+local D                 = require "modules/defines"
 
 local function normalizeNotes(str)
     return str:gsub("\r","")
@@ -27,29 +24,24 @@ local function normalizeReannotateData(data)
     if not data.stickers    then data.stickers      = {} end
     if not data.cb          then data.cb            = {} end
 
-    for i=1, MAX_SLOTS-1 do
+    for i=1, D.MAX_SLOTS-1 do
         data.slots[i]       = data.slots[i] or "" -- Stored text
         data.tt_sizes[i]    = data.tt_sizes[i] or {}
-        data.tt_sizes[i].w  = normalizeCoordinate(data.tt_sizes[i].w, TT_DEFAULT_W)
-        data.tt_sizes[i].h  = normalizeCoordinate(data.tt_sizes[i].h, TT_DEFAULT_H)
+        data.tt_sizes[i].w  = normalizeCoordinate(data.tt_sizes[i].w, D.TT_DEFAULT_W)
+        data.tt_sizes[i].h  = normalizeCoordinate(data.tt_sizes[i].h, D.TT_DEFAULT_H)
         data.stickers[i]    = data.stickers[i] or {} -- List or empty list of packed stickers
         data.cb[i]          = data.cb[i] or {} -- Checkbox cache
     end
 
     -- Special treatment for slot 0
     data.sws_reaper_tt_size     = data.sws_reaper_tt_size or {}
-    data.sws_reaper_tt_size.w   = normalizeCoordinate(data.sws_reaper_tt_size.w, TT_DEFAULT_W)
-    data.sws_reaper_tt_size.h   = normalizeCoordinate(data.sws_reaper_tt_size.h, TT_DEFAULT_H)
+    data.sws_reaper_tt_size.w   = normalizeCoordinate(data.sws_reaper_tt_size.w, D.TT_DEFAULT_W)
+    data.sws_reaper_tt_size.h   = normalizeCoordinate(data.sws_reaper_tt_size.h, D.TT_DEFAULT_H)
     data.sws_reaper_stickers    = data.sws_reaper_stickers or {}
     data.sr_cb                  = data.sr_cb or {}
     -- data.sws_reaper_text <-- stored in reaper / SWS
 
     return data
-end
-
-local function activeProject()
-    local p, _ = reaper.EnumProjects(-1)
-    return p
 end
 
 local function AttributeGetterSetter(object)
@@ -79,13 +71,14 @@ end
 
 local function StoreObject(object)
     if reaper.ValidatePtr(object, "ReaProject*") then
-        return reaper.GetMasterTrack(activeProject())
+        return reaper.GetMasterTrack(D.ActiveProject())
     else
         return object
     end
 end
 
-local function GetObjectNotes_Reannotate(object)
+local function GetObjectNotes_Reannotate(notes)
+    local object        = notes._object
     local getter        = AttributeGetterSetter(object)
     local store_object  = StoreObject(object)
     local store_key     = StoreKey(object)
@@ -96,6 +89,13 @@ local function GetObjectNotes_Reannotate(object)
         ret = JSON.decode(v)
     end
     ret = normalizeReannotateData(ret)
+
+    -- Deserialize sitckers
+    for slot, packed_stickers in ipairs(ret.stickers) do
+        ret.stickers[slot] = Sticker.UnpackCollection(packed_stickers, notes, slot)
+    end
+    ret.sws_reaper_stickers = Sticker.UnpackCollection(ret.sws_reaper_stickers, notes, 0)
+
     return b, ret
 end
 
@@ -104,8 +104,28 @@ local function SetObjectNotes_Reannotate(object, data)
     local store_object  = StoreObject(object)
     local store_key     = StoreKey(object)
 
-    data                = normalizeReannotateData(data)
-    local data_str      = JSON.encode(data)
+    -- Clone the data before storing, because there are objects here (stickers)
+    local new_data          = {
+        -- SWS/Reaper additional
+        sws_reaper_tt_size  = data.sws_reaper_tt_size,
+        sr_cb               = data.sr_cb,
+        -- Reannotate structures
+        tt_sizes            = data.tt_sizes,
+        slots               = data.slots,
+        cb                  = data.cb,
+        stickers            = {},
+        sws_reaper_stickers = {}
+    }
+
+    -- Serialize stickers
+    for slot, unpacked_stickers in ipairs(data.stickers) do
+        new_data.stickers[slot] = Sticker.PackCollection(unpacked_stickers)
+    end
+    new_data.sws_reaper_stickers = Sticker.PackCollection(data.sws_reaper_stickers)
+
+    new_data  = normalizeReannotateData(new_data)
+
+    local data_str      = JSON.encode(new_data)
     return setter(store_object, store_key, data_str, true)
 end
 
@@ -154,20 +174,21 @@ end
 -------------
 
 local function GetActiveProjectNotes_SWS_Reaper()
-    local v = reaper.GetSetProjectNotes(activeProject(), false, "")
+    local v = reaper.GetSetProjectNotes(D.ActiveProject(), false, "")
     --reaper.JB_GetSWSExtraProjectNotes(activeProject())
     v = normalizeNotes(v)
     local b = (v ~= "")
     return b, v
 end
 local function SetActiveProjectNotes_SWS_Reaper(str)
-    local project = activeProject()
+    local project = D.ActiveProject()
     local notes   = normalizeNotes(str)
     -- reaper.JB_SetSWSExtraProjectNotes(project, notes)
     return reaper.GetSetProjectNotes(project, true, notes)
 end
 
-local function GetObjectNotes_SWS_Reaper(object)
+local function GetObjectNotes_SWS_Reaper(notes)
+    local object = notes._object
     if reaper.ValidatePtr(object, "MediaTrack*") then
         return GetTrackNotes_SWS_Reaper(object)
     elseif reaper.ValidatePtr(object, "TrackEnvelope*") then
@@ -200,19 +221,6 @@ end
 local Notes = {}
 Notes.__index = Notes
 
-Notes.MAX_SLOTS = MAX_SLOTS
-
-Notes.POST_IT_COLORS = {
-    0xFFFFFF, -- WHITE      Slot 0
-    0x40acff, -- BLUE
-    0x753ffc, -- VIOLET
-    0xff40e5, -- PINK
-    0xffe240, -- YELLOW
-    0x3cf048, -- GREEN
-    0xff9640, -- ORANGE
-    0xff4040, -- RED        Slot 7
-}
-
 function Notes:new(object, should_pull)
   local instance = {}
   setmetatable(instance, self)
@@ -229,9 +237,9 @@ function Notes:_initialize(object, should_pull)
 end
 
 function Notes:pull()
-    local b, v  = GetObjectNotes_Reannotate(self._object)
+    local b, v  = GetObjectNotes_Reannotate(self)
     self.reannotate_notes = v
-    b, v        = GetObjectNotes_SWS_Reaper(self._object)
+    b, v        = GetObjectNotes_SWS_Reaper(self)
     self.sws_reaper_notes = v
 end
 
@@ -252,7 +260,7 @@ function Notes:isSlotBlank(slot)
 end
 
 function Notes:isBlank()
-    for slot=0, MAX_SLOTS -1 do
+    for slot=0, D.MAX_SLOTS -1 do
         if not self:isSlotBlank(slot) then return false end
     end
     return true
@@ -266,8 +274,8 @@ function Notes:tooltipSize(slot)
     end
 end
 function Notes:setTooltipSize(slot, w, h)
-    w = normalizeCoordinate(w, TT_DEFAULT_W)
-    h = normalizeCoordinate(h, TT_DEFAULT_H)
+    w = normalizeCoordinate(w, D.TT_DEFAULT_W)
+    h = normalizeCoordinate(h, D.TT_DEFAULT_H)
 
     if slot == 0 then
         self.reannotate_notes.sws_reaper_tt_size = { w = w, h = h }
@@ -299,8 +307,6 @@ function Notes:setSlotText(slot, str)
     end
 end
 
--- Return stickers in the packed format.
--- Stickers should be unpacked.
 function Notes:slotStickers(slot)
     if slot == 0 then
         return self.reannotate_notes.sws_reaper_stickers or {}
@@ -308,11 +314,11 @@ function Notes:slotStickers(slot)
         return self.reannotate_notes.stickers[slot] or {}
     end
 end
-function Notes:setSlotStickers(slot, packed_stickers)
+function Notes:setSlotStickers(slot, stickers)
     if slot == 0 then
-        self.reannotate_notes.sws_reaper_stickers = packed_stickers
+        self.reannotate_notes.sws_reaper_stickers = stickers
     else
-        self.reannotate_notes.stickers[slot] = packed_stickers
+        self.reannotate_notes.stickers[slot] = stickers
     end
 end
 
@@ -330,52 +336,5 @@ function Notes:slotCheckboxCache(slot)
 end
 
 ------------------------------------
-
-function Notes.RetrieveProjectSlotLabels()
-    local _, str = reaper.GetSetMediaTrackInfo_String(reaper.GetMasterTrack(activeProject()), "P_EXT:Reannotate_ProjectSlotLabels", "", false)
-    local slot_labels = {}
-    if str == "" or str == nil then
-    else
-        slot_labels = JSON.decode(str)
-    end
-
-    -- Ensure labels have names by defaulting to global setting
-    for i = 0, Notes.MAX_SLOTS -1 do
-        slot_labels[i+1] = slot_labels[i+1] or S.getSetting("SlotLabel_" .. i)
-    end
-
-    Notes.slot_labels = slot_labels
-end
-
-function Notes.CommitProjectSlotLabels()
-    if not Notes.slot_labels_dirty  then return end
-    if not Notes.slot_labels        then Notes.RetrieveProjectSlotLabels() end
-
-    local str = JSON.encode(Notes.slot_labels)
-    reaper.GetSetMediaTrackInfo_String(reaper.GetMasterTrack(activeProject()), "P_EXT:Reannotate_ProjectSlotLabels", str, true)
-    Notes.slot_labels_dirty = false
-end
-
-function Notes.SlotColor(slot)
-    return Notes.POST_IT_COLORS[slot+1]
-end
-
-function Notes.SlotLabel(slot)
-    if not Notes.slot_labels then Notes.RetrieveProjectSlotLabels() end
-    return Notes.slot_labels[slot+1]
-end
-
-function Notes.SetSlotLabel(slot, label)
-    if not Notes.slot_labels then Notes.RetrieveProjectSlotLabels() end
-    Notes.slot_labels[slot+1] = label
-    Notes.slot_labels_dirty = true
-    Notes.CommitProjectSlotLabels()
-end
-
-function Notes.defaultTooltipSize()
-    return TT_DEFAULT_W, TT_DEFAULT_H
-end
-
--------------------------------------
 
 return Notes

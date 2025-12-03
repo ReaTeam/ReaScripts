@@ -7,7 +7,7 @@ local ImGui         = require "ext/imgui"
 local AppContext    = require "classes/app_context"
 local Sticker       = require "classes/sticker"
 local StickerEditor = require "widgets/sticker_editor"
-local Notes         = require "classes/notes"
+local D             = require "modules/defines"
 
 local StickerPicker = {}
 StickerPicker.__index = StickerPicker
@@ -23,14 +23,13 @@ function StickerPicker:_initialize(thing, slot)
   self.draw_count         = 0
   self.rand               = math.random()
   self.open               = true
-  self.sticker_base_size  = Sticker.DEFAULT_SIZE
 
   self.thing              = thing
   self.slot               = slot
 
-  self.color              = (Notes.SlotColor(slot) << 8) | 0xFF
+  self.color              = (D.SlotColor(slot) << 8) | 0xFF
 
-  self:pull()
+  self:pullLibrary()
 end
 
 function StickerPicker:setPosition(x,y)
@@ -49,7 +48,7 @@ function StickerPicker:title()
   return "Sticker Library"
 end
 
-function StickerPicker:pull()
+function StickerPicker:pullLibrary()
   self.sticker_library = Sticker.Library(self.thing, self.slot)
 end
 
@@ -58,14 +57,19 @@ function StickerPicker:commit()
   self.sticker_library = Sticker.StoreLibrary(self.sticker_library)
 end
 
+function StickerPicker:stickerSize()
+  return D.RetrieveProjectStickerSize()
+end
+
 function StickerPicker:renderStickerZone(ctx, stickers, should_go_to_line)
   local num_on_line     = 0
   local xc, yc          = ImGui.GetCursorScreenPos(ctx)
   local last_vspacing   = nil
   local clicked         = nil
+  local sticker_size    = self:stickerSize()
 
   for _, sticker in ipairs(stickers) do
-    local metrics           = sticker:PreRender(ctx, self.sticker_base_size)
+    local metrics           = sticker:PreRender(ctx, sticker_size)
     local estimated_width   = metrics.width
     local estimated_spacing = metrics.spacing
 
@@ -95,11 +99,19 @@ function StickerPicker:renderStickerZone(ctx, stickers, should_go_to_line)
         clicked = sticker
       end
       if ImGui.BeginTooltip(ctx) then
+        if sticker:isSpecial() then
+          if sticker.text == 'checkboxes' then
+            ImGui.Text(ctx, "Special sticker that shows the number of checked\nchecbkoxes and the total of checbkoxes in this note")
+          end
+          if sticker.text == 'category' then
+            ImGui.Text(ctx, "Special sticker that shows the note's category\n(will change if the categories are edited)")
+          end
+        end
         ImGui.TextColored(ctx, 0xCC96FFFF, "Click"); ImGui.SameLine(ctx,0,5); ImGui.Text(ctx, "to pick")
         if not sticker:isSpecial() then
           ImGui.TextColored(ctx, 0xCC96FFFF, "Right click"); ImGui.SameLine(ctx,0,5); ImGui.Text(ctx, "to edit")
+          ImGui.TextColored(ctx, 0xCC96FFFF, "Ctrl+click "); ImGui.SameLine(ctx,0,5); ImGui.Text(ctx, "to remove from library")
         end
-        ImGui.TextColored(ctx, 0xCC96FFFF, "Ctrl+click "); ImGui.SameLine(ctx,0,5); ImGui.Text(ctx, "to remove from library")
         ImGui.EndTooltip(ctx)
       end
     end
@@ -175,8 +187,12 @@ function StickerPicker:draw()
     local list = self.sticker_library
 
     ImGui.SeparatorText(ctx, "Special Stickers")
-    picked = picked or self:renderStickerZone(ctx, { Sticker:new("0:category", self.thing, self.slot), Sticker:new("0:checkboxes", self.thing, self.slot) }, true)
+    picked = picked or self:renderStickerZone(ctx, {
+      Sticker:new("0:category",   self.thing.notes, self.slot),
+      Sticker:new("0:checkboxes", self.thing.notes, self.slot)
+    }, true)
 
+---@diagnostic disable-next-line: redundant-parameter
     ImGui.PushFont(ctx, app_ctx.arial_font, 12)
     ImGui.SeparatorText(ctx, "Custom Stickers        ")
     ImGui.SameLine(ctx,0,5)

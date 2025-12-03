@@ -8,6 +8,8 @@ local AppContext    = require "classes/app_context"
 local EmojImGui     = require "emojimgui"
 local Sticker       = require "classes/sticker"
 
+local D             = require "modules/defines"
+
 local StickerEditor = {}
 StickerEditor.__index = StickerEditor
 
@@ -23,7 +25,7 @@ function StickerEditor:_initialize(sticker, thing, slot)
   self.rand        = math.random()
   self.open        = true
   if not sticker then
-    sticker = Sticker:new("1:1::", thing, slot)
+    sticker = Sticker:new("1:1::", thing.notes, slot)
     self.new_record       = true
     self.packed_code_was  = nil
   else
@@ -51,6 +53,10 @@ function StickerEditor:title()
   else
     return "Sticker edit"
   end
+end
+
+function StickerEditor:stickerSize()
+  return D.RetrieveProjectStickerSize()
 end
 
 function StickerEditor:draw(color)
@@ -103,9 +109,13 @@ function StickerEditor:draw(color)
       ImGui.PushStyleColor(ctx, ImGui.Col_ChildBg, (self.sticker.icon.font_name == 'OpenMoji') and (0x9EB8FFFF) or (0))
     end
 
+
+---@diagnostic disable-next-line: undefined-field
     if ImGui.BeginChild(ctx, "Smiley prev", 50, 50, ImGui.ChildFlags_Borders, ImGui.WindowFlags_NoScrollbar) then
       if self.sticker and self.sticker.icon then
         local font = EmojImGui.Asset.Font(ctx, self.sticker.icon.font_name)
+
+---@diagnostic disable-next-line: redundant-parameter
         ImGui.PushFont(ctx, font, 28)
         local iw, ih = ImGui.CalcTextSize(ctx, self.sticker.icon.utf8)
         local cw, ch = ImGui.GetContentRegionAvail(ctx)
@@ -160,7 +170,7 @@ function StickerEditor:draw(color)
     else
       ImGui.Text(ctx, "Sticker preview")
       ImGui.SameLine(ctx)
-      local metrics = self.sticker:PreRender(ctx, Sticker.DEFAULT_SIZE)
+      local metrics = self.sticker:PreRender(ctx, self:stickerSize())
       local xs, ys = ImGui.GetCursorScreenPos(ctx)
       self.sticker:Render(ctx, metrics, xs, ys, color, 0x000000FF)
       ImGui.Dummy(ctx,0,0)

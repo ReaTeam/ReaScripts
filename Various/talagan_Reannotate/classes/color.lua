@@ -162,6 +162,14 @@ function Color:new(r_or_string_or_rgb_int,g,b,a)
     return instance
 end
 
+function Color:new_from_iargb(argb)
+  return Color:new( (argb & 0x00FF0000) >> 16, (argb & 0x0000FF00) >> 8, (argb & 0x000000FF), (argb & 0xFF000000) >> 24)
+end
+
+function Color:new_from_irgba(rgba)
+  return Color:new((rgba & 0xFF000000) >> 24, (rgba & 0x00FF0000) >> 16, (rgba & 0x0000FF00) >> 8, (rgba & 0x000000FF))
+end
+
 function Color:validateComponent(name, presence)
   local val = self[name]
 
@@ -220,6 +228,14 @@ function Color:setHsv(h,s,l)
     self.r, self.g, self.b = math.floor(r * 255 + 0.5), math.floor(g * 255 + 0.5), math.floor(b * 255 + 0.5)
 end
 
+function Color:css_rgb()
+  return string.format("#%02X%02X%02X", self.r, self.g, self.b)
+end
+
+function Color:css_argb()
+  return string.format("#%%02X02X%02X%02X", self.a, self.r, self.g, self.b)
+end
+
 function Color:to_irgb()
   return (self.r << 16) | (self.g << 8) | (self.b << 0)
 end
@@ -231,7 +247,6 @@ end
 function Color:to_irgba()
   return (self:to_irgb() << 8) | ((self.a or 255) << 0)
 end
-
 
 function Color.irgba(str)
   return Color.parse(str):to_irgba()
