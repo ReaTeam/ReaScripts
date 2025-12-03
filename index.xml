@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="0503eb587ff55031a3c1bffea3ba550038dfaf40" name="ReaTeam Scripts">
+<index version="1" commit="8886e98a7209debd968b7a0d9ca138c3f9321eea" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -619,18 +619,18 @@
     </reapack>
     <reapack name="cfillion_Interactive ReaScript.lua" type="script" desc="Interactive ReaScript (iReaScript)">
       <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Interactive ReaScript (iReaScript)\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel0 \b \fs36 Interactive ReaScript (iReaScript)\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 This script simulates a {\field{\*\fldinst{HYPERLINK "https://en.wikipedia.org/wiki/Read%E2%80%93eval%E2%80%93print_loop"}}{\fldrslt{\ul
 REPL
 }}}
  shell for Lua ReaScript inside of REAPER, for quickly experimenting code and API functions.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Screenshot\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel1 \b \fs32 Screenshot\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 https://i.imgur.com/RrGfulR.gif\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Main Features\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel1 \b \fs32 Main Features\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Autocompletion\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Code history\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Colored output\par}
@@ -642,10 +642,10 @@ REPL
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Scrolling\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Text selection\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Text wrapping for long lines\sa180\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Known Issues/Limitations\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel1 \b \fs32 Known Issues/Limitations\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Some errors cannot be caught (see https://forum.cockos.com/showthread.php?t=177319)\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab This tool cannot be used to open a new GFX window\sa180\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Contributing\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel1 \b \fs32 Contributing\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Send patches at {\field{\*\fldinst{HYPERLINK "https://github.com/cfillion/reascripts"}}{\fldrslt{\ul
 https://github.com/cfillion/reascripts
 }}}
@@ -803,6 +803,10 @@ Print the command name when running actions (SWS v2.10+ only)]]></changelog>
         <changelog><![CDATA[Fix autocompletion after an opening parenthesis
 Fix display glitch when pasting tab characters]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/9d7b03cfa766987b637b781a4c3b6b63d1799ca3/Development/cfillion_Interactive%20ReaScript.lua</source>
+      </version>
+      <version name="0.8.5" author="cfillion" time="2025-12-03T20:15:30Z">
+        <changelog><![CDATA[Fix monospaced font selection on macOS ARM]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/8886e98a7209debd968b7a0d9ca138c3f9321eea/Development/cfillion_Interactive%20ReaScript.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Joystick inspector.lua" type="script" desc="Joystick inspector">
