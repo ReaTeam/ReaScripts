@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="02ecc36ae9c5b90acc27ab7c121da8def5d7ec6c" name="ReaTeam Scripts">
+<index version="1" commit="e1c95458f0b03d5440933548186cf924eed6d658" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -30832,6 +30832,14 @@ Streamable link
       </metadata>
       <version name="1.00" author="amagalma" time="2025-12-03T11:51:39Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/02ecc36ae9c5b90acc27ab7c121da8def5d7ec6c/View/amagalma_Smooth%20scroll%20arrange%20view%20left.lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Smooth scroll arrange view right.lua" type="script" desc="Smooth scroll arrange view right">
+      <metadata>
+        <link rel="donation">https://www.paypal.me/amagalma</link>
+      </metadata>
+      <version name="1.00" author="amagalma" time="2025-12-03T12:07:24Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e1c95458f0b03d5440933548186cf924eed6d658/View/amagalma_Smooth%20scroll%20arrange%20view%20right.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Zoom to current region (where edit cursor is).lua" type="script" desc="Zoom to current region (where edit cursor is)">
