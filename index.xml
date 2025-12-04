@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="0b67dbfe81d97f7d4988bf583142ab7cb33781e4" name="ReaTeam Scripts">
+<index version="1" commit="6d3defc583f2d83d9df8a5c81bc106730e45a92d" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -30873,6 +30873,10 @@ Streamable link
       <version name="1.01" author="amagalma" time="2025-12-03T12:32:08Z">
         <changelog><![CDATA[Auto-terminate and re-run script if shortcut key is held down]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ea7260ebd1742c787b1b7bfbf5cf1075a7015b90/View/amagalma_Smooth%20scroll%20arrange%20view%20left.lua</source>
+      </version>
+      <version name="1.02" author="amagalma" time="2025-12-04T07:47:29Z">
+        <changelog><![CDATA[No undo point creation when the view is already at the start of the project]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6d3defc583f2d83d9df8a5c81bc106730e45a92d/View/amagalma_Smooth%20scroll%20arrange%20view%20left.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Smooth scroll arrange view right.lua" type="script" desc="Smooth scroll arrange view right">
