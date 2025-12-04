@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="6d3defc583f2d83d9df8a5c81bc106730e45a92d" name="ReaTeam Scripts">
+<index version="1" commit="658da5dfc9dabd79b3de4486bd21281b263a188d" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -30861,6 +30861,28 @@ Streamable link
       </metadata>
       <version name="1.00" author="amagalma" time="2025-12-03T09:38:40Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a4639c7fd67cd4c7c163981649b21bc2defba461/View/amagalma_Scroll%20the%20arrange%20view%20to%20the%20top%20of%20the%20track%20lane%20or%20envelope%20under%20the%20mouse%20cursor.lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Smooth scroll arrange view 1 measure left.lua" type="script" desc="Smooth scroll arrange view 1 measure left">
+      <metadata>
+        <link rel="donation">https://www.paypal.me/amagalma</link>
+      </metadata>
+      <version name="1.00" author="amagalma" time="2025-12-04T21:38:11Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/56854caacdb218cc69a91d1bc6ca0ca39ecfeb8c/View/amagalma_Smooth%20scroll%20arrange%20view%201%20measure%20left.lua</source>
+        <source main="main" file="amagalma_Smooth scroll arrange view 2 measures left.lua">https://github.com/ReaTeam/ReaScripts/raw/56854caacdb218cc69a91d1bc6ca0ca39ecfeb8c/View/amagalma_Smooth%20scroll%20arrange%20view%201%20measure%20left.lua</source>
+        <source main="main" file="amagalma_Smooth scroll arrange view 4 measures left.lua">https://github.com/ReaTeam/ReaScripts/raw/56854caacdb218cc69a91d1bc6ca0ca39ecfeb8c/View/amagalma_Smooth%20scroll%20arrange%20view%201%20measure%20left.lua</source>
+        <source main="main" file="amagalma_Smooth scroll arrange view 8 measures left.lua">https://github.com/ReaTeam/ReaScripts/raw/56854caacdb218cc69a91d1bc6ca0ca39ecfeb8c/View/amagalma_Smooth%20scroll%20arrange%20view%201%20measure%20left.lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Smooth scroll arrange view 1 measure right.lua" type="script" desc="Smooth scroll arrange view 1 measure right">
+      <metadata>
+        <link rel="donation">https://www.paypal.me/amagalma</link>
+      </metadata>
+      <version name="1.00" author="amagalma" time="2025-12-04T21:39:12Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/658da5dfc9dabd79b3de4486bd21281b263a188d/View/amagalma_Smooth%20scroll%20arrange%20view%201%20measure%20right.lua</source>
+        <source main="main" file="amagalma_Smooth scroll arrange view 2 measures right.lua">https://github.com/ReaTeam/ReaScripts/raw/658da5dfc9dabd79b3de4486bd21281b263a188d/View/amagalma_Smooth%20scroll%20arrange%20view%201%20measure%20right.lua</source>
+        <source main="main" file="amagalma_Smooth scroll arrange view 4 measures right.lua">https://github.com/ReaTeam/ReaScripts/raw/658da5dfc9dabd79b3de4486bd21281b263a188d/View/amagalma_Smooth%20scroll%20arrange%20view%201%20measure%20right.lua</source>
+        <source main="main" file="amagalma_Smooth scroll arrange view 8 measures right.lua">https://github.com/ReaTeam/ReaScripts/raw/658da5dfc9dabd79b3de4486bd21281b263a188d/View/amagalma_Smooth%20scroll%20arrange%20view%201%20measure%20right.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Smooth scroll arrange view left.lua" type="script" desc="Smooth scroll arrange view left">
