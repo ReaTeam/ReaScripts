@@ -59,7 +59,7 @@ end
 --  height (0 == auto, use remaining)
 function ReaImGuiMd:_initialize(ctx, id, options, partial_style)
     self.id         = id
-    self.options    = { wrap = true, horizontal_scrollbar = true , width = 0, height = 0 }
+    self.options    = { wrap = true, horizontal_scrollbar = true , width = 0, height = 0, additional_window_flags = 0 }
     self.style      = deepCopy(ImGuiMdCore.DEFAULT_STYLE)
     self.text       = ""
     self.ast        = {}
@@ -85,20 +85,23 @@ function ReaImGuiMd:updateCtx(ctx)
     self:_createFontsIfNeeded(ctx)
 end
 
+local font_repository = {} -- ctx -> font_name -> font
 function ReaImGuiMd:_createFontsIfNeeded(ctx)
 
-    -- If already initialized in the same context, be happy
-    if self.fonts and ctx == self.font_ctx then return end
+    if not font_repository[ctx] then
+        font_repository[ctx] = {}
+    end
+
+    local fr = font_repository[ctx]
 
     -- Else recreate all fonts in the new context
-    local fonts = {}
     local style = self.style
 
     for class_name, _ in pairs(ImGuiMdCore.DEFAULT_STYLE) do
         -- 0 is for normal text, 1 for h1, 2 for h2, etc
         local fontfam   = style[class_name].font_family
 
-        if fontfam and not fonts[fontfam] then
+        if fontfam and not fr[fontfam] then
             local font = {
                 normal      = ImGui.CreateFont(fontfam),
                 bold        = ImGui.CreateFont(fontfam, ImGui.FontFlags_Bold),
@@ -111,11 +114,11 @@ function ReaImGuiMd:_createFontsIfNeeded(ctx)
             ImGui.Attach(ctx, font.italic)
             ImGui.Attach(ctx, font.bolditalic)
 
-            fonts[fontfam] = font
+            fr[fontfam] = font
         end
     end
 
-    self.fonts    = fonts
+    -- Remember font ctx
     self.font_ctx = ctx
 end
 
@@ -132,7 +135,7 @@ function ReaImGuiMd:render(ctx)
         error("Developer error : ImGui's context has changed but you forgot to update ReaImGuiMd fonts !")
     end
 
-    local window_flags = 0
+    local window_flags = 0 | self.options.additional_window_flags
     local child_flags  = 0
 
     if self.options.horizontal_scrollbar then
@@ -140,7 +143,7 @@ function ReaImGuiMd:render(ctx)
     end
 
     if ImGui.BeginChild(ctx, "##" .. self.id, self.options.width, self.options.height, child_flags, window_flags) then
-        self.max_x, self.max_y, self.interaction = ImGuiMdCore.ASTToImgui(ctx, self.ast, self.fonts, self.style, self.options)
+        self.max_x, self.max_y, self.interaction = ImGuiMdCore.ASTToImgui(ctx, self.ast, font_repository[ctx], self.style, self.options)
         ImGui.EndChild(ctx)
     end
 
