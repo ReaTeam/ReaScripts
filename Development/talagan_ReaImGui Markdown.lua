@@ -1,16 +1,14 @@
 --[[
 @description ReaImGui Markdown : A Markdown rendering library for ReaImGui
-@version 0.1.14
+@version 0.1.15
 @author Ben 'Talagan' Babut
 @license MIT
 @donation https://www.paypal.com/donate/?business=3YEZMY9D6U8NC&no_recurring=1&currency_code=EUR
 @links
   Forum Thread https://forum.cockos.com/showthread.php?t=301055
 @changelog
-  - [Feature] Better handling of consecutive empty lines
-  - [Rework] Reworked default style
-  - [Bug Fix] List bullet not sized accordingly to list entry
-  - [Bug Fix] Code block would always add empty line at the end
+  - [Feature] Text renderer can output with line feeds
+  - [Optim] Factorize fonts with context scope instead of widget scope
 @metapackage
 @provides
   [nomain] talagan_ReaImGui Markdown/reaimgui_markdown/**/*.lua

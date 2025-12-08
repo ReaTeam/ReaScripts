@@ -4,7 +4,6 @@
 -- @about This is a part of ReaImGui:Markdown
 
 -- Text generation from AST, this is for inspecting and debugging
-
 local function render_node_inpect(obj, indent, visited, lines)
   indent = indent or 0
   visited = visited or {}
@@ -101,8 +100,10 @@ local function ASTInspect(obj, indent)
   return render_node_inpect(obj,indent,{},{})
 end
 
+local function ASTToPlainText(nodes, options)
+  options = options or {}
+  local add_newlines = options.newlines or false
 
-local function ASTToPlainText(nodes)
   if not nodes then
     return ""
   end
@@ -112,7 +113,28 @@ local function ASTToPlainText(nodes)
     nodes = {nodes}
   end
 
+  -- If we receive a Document node, use its children instead
+  if #nodes == 1 and nodes[1].type == "Document" then
+    nodes = nodes[1].children
+  end
+
   local result = {}
+
+  -- Block-level elements that add newlines after
+  local block_types = {
+    Paragraph = true,
+    Header = true,
+    ListItem = true,
+    CodeBlock = true,
+    Blockquote = true
+  }
+
+  -- Elements that become newlines
+  local newline_types = {
+    LineBreak = true,
+    VerticalSpace = true,
+    Separator = true
+  }
 
   local function traverse(node)
     if node.type == "Text" then
@@ -130,15 +152,32 @@ local function ASTToPlainText(nodes)
         table.insert(result, "[ ]")
       end
 
+    elseif node.type == "CodeBlock" then
+      table.insert(result, node.value)
+      if add_newlines then
+        table.insert(result, "\n")
+      end
+
+    elseif add_newlines and newline_types[node.type] then
+      table.insert(result, "\n")
+
     elseif node.children then
       for _, child in ipairs(node.children) do
         traverse(child)
       end
+      -- Add newline after block-level elements
+      if add_newlines and block_types[node.type] then
+        table.insert(result, "\n")
+      end
     end
   end
 
-  for _, node in ipairs(nodes) do
+  for i, node in ipairs(nodes) do
     traverse(node)
+    -- Add extra newline between blocks to separate them (double \n total)
+    if add_newlines and i < #nodes and block_types[node.type] then
+      table.insert(result, "\n")
+    end
   end
 
   return table.concat(result, "")
