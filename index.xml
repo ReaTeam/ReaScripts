@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="614bd6912db20a74ed3af4c8403b619e8a102150" name="ReaTeam Scripts">
+<index version="1" commit="ad55dd75b352e40545f68f1950c7c557e9ac03b4" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -19192,7 +19192,7 @@ enter or a = Exit and apply changes\par}
     </reapack>
     <reapack name="amagalma_Set project length limit to edit cursor position.lua" type="script" desc="Set project length limit to edit cursor position">
       <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
@@ -19206,6 +19206,10 @@ enter or a = Exit and apply changes\par}
       <version name="1.01" author="amagalma" time="2024-10-25T07:44:38Z">
         <changelog><![CDATA[- enable project limit, if not already enabled]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/03c262234ffd86f427ef508323558c975175db4d/Project%20Properties/amagalma_Set%20project%20length%20limit%20to%20edit%20cursor%20position.lua</source>
+      </version>
+      <version name="1.02" author="amagalma" time="2025-12-09T11:36:45Z">
+        <changelog><![CDATA[- if mouse cursor hovers above timeline/ruler then set that position (snapped to grid)]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ad55dd75b352e40545f68f1950c7c557e9ac03b4/Project%20Properties/amagalma_Set%20project%20length%20limit%20to%20edit%20cursor%20position.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Set project samplerate to that of the first selected item (if different).lua" type="script" desc="amagalma_Set project samplerate to that of the first selected item (if different)">
