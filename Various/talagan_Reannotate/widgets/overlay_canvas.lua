@@ -5,8 +5,11 @@
 
 local ImGui             = require "ext/imgui"
 local AppContext        = require "classes/app_context"
-local Sticker           = require "classes/sticker"
 local D                 = require "modules/defines"
+local PS                = require "modules/project_settings"
+local ImGuiMd           = require "reaimgui_markdown"
+local ImGuiMdAst        = require "reaimgui_markdown/markdown-ast"
+local ImGuiMdText       = require "reaimgui_markdown/markdown-text"
 
 local OverlayCanvas = {}
 OverlayCanvas.__index = OverlayCanvas
@@ -79,12 +82,12 @@ function OverlayCanvas:forwardEvent(event)
 
             -- TODO : ATM mcp layout changes are not detected so this will scroll the MCP but tracks will be at the wrong place
             if reaper.JS_Window_IsVisible(app_ctx.mcp_other.hwnd) and
-                (app_ctx.mcp_other.x <= mx and mx <= app_ctx.mcp_other.x + app_ctx.mcp_other.w) and
-                (app_ctx.mcp_other.y <= my and my <= app_ctx.mcp_other.y + app_ctx.mcp_other.h) then
-                    target = app_ctx.mcp_other.hwnd
+            (app_ctx.mcp_other.x <= mx and mx <= app_ctx.mcp_other.x + app_ctx.mcp_other.w) and
+            (app_ctx.mcp_other.y <= my and my <= app_ctx.mcp_other.y + app_ctx.mcp_other.h) then
+                target = app_ctx.mcp_other.hwnd
             end
 
----@diagnostic disable-next-line: param-type-mismatch
+            ---@diagnostic disable-next-line: param-type-mismatch
             reaper.JS_WindowMessage_Send(target, event, wpl, wph, lpl, lph)
             self.last_peeked_message_times[event] = time
         end
@@ -103,7 +106,6 @@ function OverlayCanvas:drawQuickSettings()
     local draw_list         = ImGui.GetWindowDrawList(ctx)
     local mx, my            = ImGui.GetMousePos(ctx)
     local is_clicked        = ImGui.IsMouseClicked(ctx, ImGui.MouseButton_Left)
-    local visible_things    = self.parent_overlay.visible_things
 
     local margin_t          = 8
     local margin_l          = 8
@@ -116,7 +118,7 @@ function OverlayCanvas:drawQuickSettings()
 
     local sinalpha          = (0xFF - 0x40 + math.floor(0x40 * math.sin(reaper.time_precise()*10)))
 
----@diagnostic disable-next-line: redundant-parameter
+    ---@diagnostic disable-next-line: redundant-parameter
     ImGui.PushFont(ctx, app_ctx.arial_font, 12)
 
     ImGui.DrawList_AddRectFilled(draw_list, app_ctx.main_toolbar.x, app_ctx.main_toolbar.y, app_ctx.main_toolbar.x + app_ctx.main_toolbar.w, app_ctx.main_toolbar.y + app_ctx.main_toolbar.h, 0x202020E0, 5)
@@ -143,7 +145,7 @@ function OverlayCanvas:drawQuickSettings()
             ImGui.PushStyleVar(ctx, ImGui.StyleVar_WindowPadding, 3, 1)
             ImGui.PushStyleColor(ctx, ImGui.Col_PopupBg, color )
             ImGui.PushStyleColor(ctx, ImGui.Col_Text, 0x000000FF)
-            ImGui.SetTooltip(ctx, D.SlotLabel(slot))
+            ImGui.SetTooltip(ctx, PS.SlotLabel(slot))
             ImGui.PopStyleColor(ctx, 2)
             ImGui.PopStyleVar(ctx)
         end
@@ -215,7 +217,7 @@ function OverlayCanvas:drawQuickSettings()
     if font_size > 26 then font_size = 26 end
     if font_size < 16 then font_size = 16 end
 
----@diagnostic disable-next-line: redundant-parameter
+    ---@diagnostic disable-next-line: redundant-parameter
     ImGui.PushFont(ctx, app_ctx.arial_font_italic, font_size)
     local rw, rh = ImGui.CalcTextSize(ctx, "Reannotate")
 
@@ -243,7 +245,128 @@ function OverlayCanvas:thingBelongsToThisCanvas(thing)
 end
 
 function OverlayCanvas:stickerSize()
-  return D.RetrieveProjectStickerSize()
+    return PS.RetrieveProjectStickerSize()
+end
+
+function OverlayCanvas:renderThingSlotPoster(thing, slot, ctx, draw_list, x1, x2, y1, y2)
+    if slot == -1 then return end
+
+    local type = thing.notes:resolvedSlotPosterType(slot)
+
+    if type == D.POSTER_TYPES.NO_POSTER then return end
+
+    local h    = y2 - y1
+    local vpad = (h > 40) and 5 or math.floor( math.max(h - 20) / 4.0)
+    local hpad = 5
+    local poster_w = x2-x1-2*hpad
+    local poster_h = y2-y1-2*vpad
+
+    if poster_w <= 0 or poster_h <= 0 then return end
+
+    local window_flags = ImGui.WindowFlags_NoBackground |
+        ImGui.WindowFlags_NoScrollbar |
+        ImGui.WindowFlags_NoDecoration |
+        ImGui.WindowFlags_NoDocking |
+        ImGui.WindowFlags_NoFocusOnAppearing |
+        ImGui.WindowFlags_NoInputs |
+        ImGui.WindowFlags_NoSavedSettings |
+        ImGui.WindowFlags_NoMove
+
+    ImGui.SetCursorScreenPos(ctx, x1 + hpad, y1 + vpad)
+    if ImGui.BeginChild(ctx, "thing_poster_wrapper_" .. thing.rand .. "_" .. slot, poster_w, poster_h, ImGui.ChildFlags_None, window_flags) then
+        ImGui.SetCursorPos(ctx, 0, 0)
+
+        if not thing.cache.posters then
+            thing.cache.posters = {}
+        end
+
+        -- Create cache or reset it if needed
+        if not thing.cache.posters[slot] or thing.cache.posters[slot].last_type ~= type then
+            thing.cache.posters[slot] = { plain = nil, mdwidget = nil, last_type = type }
+        end
+
+        local cache         = thing.cache.posters[slot]
+        local is_plain_text = (type == D.POSTER_TYPES.CUSTOM_PLAIN_POSTER or type == D.POSTER_TYPES.NOTE_RENDERERED_AS_PLAIN_POSTER)
+        local use_note_text = (type == D.POSTER_TYPES.NOTE_RENDERERED_AS_PLAIN_POSTER or type == D.POSTER_TYPES.NOTE_RENDERERED_AS_MARKDOWN_POSTER)
+
+        if is_plain_text  then
+            if not cache.plain then
+                local tttext    = (use_note_text and thing.notes:slotText(slot) or thing.notes:slotCustomPoster(slot)) or ''
+                cache.plain = ImGuiMdText.ASTToPlainText( ImGuiMdAst(tttext), {newlines=true})
+            end
+            ImGui.Text(ctx, cache.plain)
+        else
+            if not cache.mdwidget then
+                local tttext    = (use_note_text and thing.notes:slotText(slot) or thing.notes:slotCustomPoster(slot)) or ''
+                cache.mdwidget = ImGuiMd:new(ctx, "thing_md_widget_" .. thing.rand .. "_" .. slot, {wrap = false, skip_last_whitespace = true, autopad = true, additional_window_flags = ImGui.WindowFlags_NoSavedSettings | ImGui.WindowFlags_NoFocusOnAppearing | ImGui.WindowFlags_NoInputs | ImGui.WindowFlags_NoScrollbar }, PS.RetrieveProjectMarkdownStyle() )
+                cache.mdwidget:setText(tttext)
+            end
+            cache.mdwidget:render(ctx)
+        end
+        ImGui.EndChild(ctx)
+    end
+end
+
+function OverlayCanvas:renderThingSlotStickers(thing, slot, ctx, x1, x2, y1, y2)
+    local slot_stickers = thing.notes:slotStickers(slot)
+
+    if #slot_stickers > 0 then
+
+        -- RENDER STICKERS
+        local hmargin       = 5
+        local vmargin       = 5
+        local vpad          = 4
+        local hpad          = 3
+        local font_size     = self.sticker_size
+
+        -- Reduce margins and the font size if not enough vertical space
+        if y2 - y1 < font_size + 10 + 2 * vmargin then
+            vmargin = 0.5 * ((y2 - y1) - font_size - 10)
+            if vmargin < 0 then
+                vmargin = 0
+                font_size = font_size - 2
+            end
+        end
+
+        local num_on_line = 0
+        local cursor_x, cursor_y = x2 - hmargin, y1 + vmargin -- Align top right
+
+        ImGui.SetCursorScreenPos(ctx, x1, y1)
+        local window_flags =  ImGui.WindowFlags_NoBackground |
+            ImGui.WindowFlags_NoScrollbar |
+            ImGui.WindowFlags_NoDecoration |
+            ImGui.WindowFlags_NoDocking |
+            ImGui.WindowFlags_NoFocusOnAppearing |
+            ImGui.WindowFlags_NoInputs |
+            ImGui.WindowFlags_NoSavedSettings |
+            ImGui.WindowFlags_NoMove
+
+        -- Use a child for receiving all stickers, this will allow clipping and using standard ImGui directives
+        if ImGui.BeginChild(ctx, "stickers_for_thing_" .. thing.rand .. "_" .. slot, x2-x1, y2-y1, ImGui.ChildFlags_None, window_flags) then
+            ImGui.SetCursorPos(ctx, 0, 0)
+            local draw_list = ImGui.GetWindowDrawList(ctx)
+            ImGui.DrawList_PushClipRect(draw_list, x1 + 3, y1 + 3, x2 + 3, y2 - 3)
+            for _, sticker in ipairs(slot_stickers) do
+                local metrics = sticker:PreRender(ctx, font_size)
+
+                local available_width = cursor_x - (x1 + hmargin)
+                if num_on_line ~= 0 and (available_width < metrics.width) then
+                    cursor_x = x2 - hmargin
+                    cursor_y = cursor_y + metrics.height + vpad
+                    num_on_line = 0
+                end
+
+                sticker:Render(ctx, metrics, cursor_x - metrics.width, cursor_y)
+                cursor_x = cursor_x - metrics.width - hpad
+                num_on_line = num_on_line + 1
+            end
+            -- Force ImGui to extend bounds
+            ImGui.DrawList_PopClipRect(draw_list)
+            ImGui.Dummy(ctx,0,0)
+
+            ImGui.EndChild(ctx)
+        end
+    end
 end
 
 function OverlayCanvas:drawVisibleThing(thing)
@@ -257,8 +380,6 @@ function OverlayCanvas:drawVisibleThing(thing)
     -- The following method allows to work on an entry which is present in the MCP and TCP at the same time
     local hovered           = parent_overlay.hovered_thing and parent_overlay.hovered_thing.object == thing.object
     local edited            = note_editor and note_editor.edited_thing.object == thing.object
-
-    local sticker_size      = self.sticker_size
 
     if not hovered then
         -- reset hovered slot
@@ -295,12 +416,12 @@ function OverlayCanvas:drawVisibleThing(thing)
     local div = -1
     for i=0, D.MAX_SLOTS-1 do
         -- We change the slot span order (1,2,3... and then 0)
-        local is_no_note_slot   = (i==0 and not has_notes_to_show)
+        local is_no_note_slot               = (i==0 and not has_notes_to_show)
 
-        local slot              = (i==D.MAX_SLOTS - 1) and (0) or (i+1)
-        local is_slot_enabled   = (is_no_note_slot or app_ctx.enabled_category_filters[slot + 1])
+        local slot                          = (i==D.MAX_SLOTS - 1) and (0) or (i+1)
+        local is_slot_enabled               = (is_no_note_slot or app_ctx.enabled_category_filters[slot + 1])
 
-        local the_slot_matches_the_search  = (thing.cache.search_results[slot+1])
+        local the_slot_matches_the_search   = (thing.cache.search_results[slot+1])
 
         -- The empty slot is always visible
         local is_slot_visible   = (is_no_note_slot) or (not thing.notes:isSlotBlank(slot) and is_slot_enabled and the_slot_matches_the_search)
@@ -367,6 +488,11 @@ function OverlayCanvas:drawVisibleThing(thing)
             -- Background color.
             ImGui.DrawList_AddRectFilled(draw_list, x1, y1, x2, y2, bg_color, 0, 0)
 
+            if not is_no_note_slot then
+                self:renderThingSlotPoster(thing, slot, ctx, draw_list, x1, x2, y1, y2)
+            end
+
+            -- Borders and triangles
             if hdivide then
                 -- Left border
                 if div == 0 and not thing.clamped_left then
@@ -395,45 +521,7 @@ function OverlayCanvas:drawVisibleThing(thing)
             end
 
             if not is_no_note_slot then
-                -- RENDER STICKERS
-                local hmargin       = 5
-                local vmargin       = 5
-                local vpad          = 4
-                local hpad          = 3
-
-                local font_size     = sticker_size
-
-                -- Reduce margins and the font size if not enough vertical space
-                if y2 - y1 < font_size + 10 + 2 * vmargin then
-                    vmargin = 0.5 * ((y2 - y1) - font_size - 10)
-                    if vmargin < 0 then
-                        vmargin = 0
-                        font_size = font_size - 2
-                    end
-                end
-
-                local cursor_x, cursor_y = x2 - hmargin, y1 + vmargin -- Align top right
-
-                local slot_stickers = thing.notes:slotStickers(slot)
-                local num_on_line = 0
-                ImGui.DrawList_PushClipRect(draw_list, x1 + 3, y1 + 3, x2 + 3, y2 - 3)
-                for _, sticker in ipairs(slot_stickers) do
-                    local metrics = sticker:PreRender(ctx, font_size)
-
-                    local available_width = cursor_x - (x1 + hmargin)
-                    if num_on_line ~= 0 and (available_width < metrics.width) then
-                        cursor_x = x2 - hmargin
-                        cursor_y = cursor_y + metrics.height + vpad
-                        num_on_line = 0
-                    end
-
-                    sticker:Render(ctx, metrics, cursor_x - metrics.width, cursor_y)
-                    cursor_x = cursor_x - metrics.width - hpad
-                    num_on_line = num_on_line + 1
-                end
-                -- Force ImGui to extend bounds
-                ImGui.DrawList_PopClipRect(draw_list)
-                ImGui.Dummy(ctx,0,0)
+                self:renderThingSlotStickers(thing, slot, ctx, x1, x2, y1, y2)
 
                 -- Post-it triangles
                 if not (div == 0 and thing.clamped_left) then
@@ -455,7 +543,6 @@ end
 function OverlayCanvas:GrabFocus()
     self.grab_focus = true
 end
-
 
 function OverlayCanvas:draw()
     local parent_overlay = self.parent_overlay
@@ -480,20 +567,22 @@ function OverlayCanvas:draw()
 
     -- Begin ImGui frame with visible background for debugging
     local succ, is_open = ImGui.Begin(ctx, self:title() , nil,
-        ImGui.WindowFlags_NoTitleBar |
-        ImGui.WindowFlags_NoScrollWithMouse |
-        ImGui.WindowFlags_NoScrollbar |
-        ImGui.WindowFlags_NoResize |
-        ImGui.WindowFlags_NoNav |
-        ImGui.WindowFlags_NoNavInputs |
-        ImGui.WindowFlags_NoMove |
-        ImGui.WindowFlags_NoDocking |
-        ImGui.WindowFlags_NoDecoration
-    )
+    ImGui.WindowFlags_NoTitleBar |
+    ImGui.WindowFlags_NoScrollWithMouse |
+    ImGui.WindowFlags_NoScrollbar |
+    ImGui.WindowFlags_NoResize |
+    ImGui.WindowFlags_NoNav |
+    ImGui.WindowFlags_NoNavInputs |
+    ImGui.WindowFlags_NoMove |
+    ImGui.WindowFlags_NoDocking |
+    ImGui.WindowFlags_NoDecoration |
+    ImGui.WindowFlags_NoSavedSettings)
 
     ImGui.PopStyleVar(ctx)
 
     if succ then
+
+        local draw_list      = ImGui.GetWindowDrawList(ctx)
 
         if self.grab_focus then
             ImGui.SetWindowFocus(ctx)

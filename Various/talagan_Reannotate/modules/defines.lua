@@ -3,9 +3,6 @@
 -- @license MIT
 -- @description This file is part of Reannotate
 
-local S       = require "modules/settings"
-local JSON    = require "ext/json"
-
 local Defines = {}
 
 Defines.TT_DEFAULT_W = 300
@@ -33,8 +30,16 @@ Defines.POST_IT_COLORS = {
     0xff4040, -- RED        Slot 7
 }
 
-Defines.slot_labels = nil
-Defines.slot_labels_dirty = nil
+Defines.POSTER_TYPES = {
+    PROJECT_DEFAULT                     = 0,
+    NO_POSTER                           = 1,
+    CUSTOM_PLAIN_POSTER                 = 2,
+    CUSTOM_MARKDOWN_POSTER              = 3,
+    NOTE_RENDERERED_AS_PLAIN_POSTER     = 4,
+    NOTE_RENDERERED_AS_MARKDOWN_POSTER  = 5,
+
+    POSTER_TYPE_COUNT                   = 6
+}
 
 function Defines.deepCopy(orig)
     local orig_type = type(orig)
@@ -102,106 +107,38 @@ function Defines.SlotColor(slot)
     return Defines.POST_IT_COLORS[slot+1]
 end
 
------ Project Labels
-
-function Defines.RetrieveProjectSlotLabels()
-    local _, str = reaper.GetSetMediaTrackInfo_String(Defines.ActiveProjectMasterTrack(), "P_EXT:Reannotate_ProjectSlotLabels", "", false)
-    local slot_labels = {}
-    if str == "" or str == nil then
-    else
-        slot_labels = JSON.decode(str)
-    end
-
-    -- Ensure labels have names by defaulting to global setting
-    for i = 0, Defines.MAX_SLOTS -1 do
-        slot_labels[i+1] = slot_labels[i+1] or S.getSetting("SlotLabel_" .. i)
-    end
-
-    Defines.slot_labels = slot_labels
-end
-
-function Defines.CommitProjectSlotLabels()
-    if not Defines.slot_labels_dirty  then return end
-    if not Defines.slot_labels        then Defines.RetrieveProjectSlotLabels() end
-
-    local str = JSON.encode(Defines.slot_labels)
-    reaper.GetSetMediaTrackInfo_String(Defines.ActiveProjectMasterTrack(), "P_EXT:Reannotate_ProjectSlotLabels", str, true)
-    Defines.slot_labels_dirty = false
-end
-
-function Defines.SlotLabel(slot)
-    if not Defines.slot_labels then Defines.RetrieveProjectSlotLabels() end
-    return Defines.slot_labels[slot+1]
-end
-
-function Defines.SetSlotLabel(slot, label)
-    if not Defines.slot_labels then Defines.RetrieveProjectSlotLabels() end
-    Defines.slot_labels[slot+1] = label
-    Defines.slot_labels_dirty = true
-    Defines.CommitProjectSlotLabels()
-end
-
-------- Project Markdown
-
--- Not edited directly because we want preview / save features.
-function Defines.RetrieveProjectMarkdownStyle()
-    local _, str            = reaper.GetSetMediaTrackInfo_String(Defines.ActiveProjectMasterTrack(), "P_EXT:Reannotate_ProjectMarkdownStyle", "", false)
-
-    local markdown_style = nil
-    local fallback       = false
-
-    if str == "" or str == nil then
-        fallback = true
-    else
-        pcall(function()
-            markdown_style = JSON.decode(str)
-        end)
-
-        if not markdown_style then
-            fallback = true
+function Defines.PosterTypeToName(type, default_type)
+    if type == Defines.POSTER_TYPES.PROJECT_DEFAULT then
+        local defname = ''
+        if default_type then
+            if default_type == Defines.POSTER_TYPES_PROECT_DEFAULT then
+                error("Developer error : circular poster type for project pointing to itself")
+            end
+            defname = " (" .. Defines.PosterTypeToName(default_type, default_type) .. ")"
         end
+
+        return "Project Default" .. defname
     end
+    if type == Defines.POSTER_TYPES.NO_POSTER                           then return "None" end
+    if type == Defines.POSTER_TYPES.CUSTOM_PLAIN_POSTER                 then return "Custom plain" end
+    if type == Defines.POSTER_TYPES.CUSTOM_MARKDOWN_POSTER              then return "Custom markdown" end
+    if type == Defines.POSTER_TYPES.NOTE_RENDERERED_AS_PLAIN_POSTER     then return "Note as plain" end
+    if type == Defines.POSTER_TYPES.NOTE_RENDERERED_AS_MARKDOWN_POSTER  then return "Note as markdown" end
 
-    if fallback then
-        -- Use new project markdown style
-        markdown_style = Defines.deepCopy(S.getSetting("NewProjectMarkdown"))
-        -- Commit it in project
-        Defines.CommitProjectMarkdownStyle(markdown_style)
-    end
-
-    -- TODO : Normalize markdown_style after checkout for backward comp
-
-    return markdown_style
+    error("DEVELOPER ERROR : Unknown post type" .. type)
 end
 
-function Defines.CommitProjectMarkdownStyle(markdown_style)
-    -- TODO : Normalize markdown_style before commit for backward comp
-
-    local str = JSON.encode(markdown_style)
-
-    reaper.GetSetMediaTrackInfo_String(Defines.ActiveProjectMasterTrack(),"P_EXT:Reannotate_ProjectMarkdownStyle", str, true)
-end
-
-function Defines.RetrieveProjectStickerSize()
-    local _, str =  reaper.GetSetMediaTrackInfo_String(Defines.ActiveProjectMasterTrack(), "P_EXT:Reannotate_ProjectStickerSize", "", false)
-    local fallback = false
-    local size = nil
-    if str == "" or str == nil then
-        fallback = true
-    else
-        size = tonumber(str)
+function Defines.PosterTypeComboInfo(default_type)
+    local start = 0
+    if default_type == nil then start = 1 end
+    local ret = { list = {} , reverse_lookup = {} }
+    for i=start, Defines.POSTER_TYPES.POSTER_TYPE_COUNT-1 do
+        local s = Defines.PosterTypeToName(i, default_type)
+        ret.list[#ret.list+1] = s
+        ret.reverse_lookup[s] = i
     end
-
-    if fallback then
-        size = S.getSetting("NewProjectStickerSize")
-        Defines.CommitProjectStickerSize(size)
-    end
-
-    return size
+    return ret
 end
 
-function Defines.CommitProjectStickerSize(size)
-    reaper.GetSetMediaTrackInfo_String(Defines.ActiveProjectMasterTrack(),"P_EXT:Reannotate_ProjectStickerSize", "" .. size, true)
-end
 
 return Defines

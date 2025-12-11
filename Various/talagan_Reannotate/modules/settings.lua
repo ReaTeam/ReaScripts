@@ -4,6 +4,7 @@
 -- @description This file is part of Reannotate
 
 local JSON = require "ext/json"
+local D    = require "modules/defines"
 
 local DefaultMarkdownStyle = {
     default     = { font_family = "Arial", base_color = "#CCCCCC", bold_color = "white", autopad = 5 --[[font_size = 13, ]] },
@@ -27,6 +28,8 @@ local DefaultMarkdownStyle = {
     separator   = { padding_top = 3, padding_bottom = 7 }
 }
 
+local DefaultPosterType = D.POSTER_TYPES.NOTE_RENDERERED_AS_PLAIN_POSTER
+
 local SettingDefs = {
   UseDebugger               = { type = "bool",    default = false },
   UseProfiler               = { type = "bool",    default = false },
@@ -41,9 +44,10 @@ local SettingDefs = {
   SlotLabel_7               = { type = "string", default = "Problems"},
 
   -- Styling
-  UIFontSize                = { type = "int",  default = 12 },
-  NewProjectMarkdown        = { type = "json", default = DefaultMarkdownStyle },
-  NewProjectStickerSize     = { type = "int",  default = 12 }
+  UIFontSize                  = { type = "int",  default = 12 },
+  NewProjectMarkdown          = { type = "json", default = DefaultMarkdownStyle },
+  NewProjectStickerSize       = { type = "int",  default = 12 },
+  NewProjectPosterDefaultType = { type = "int",  default = DefaultPosterType }
 };
 
 local function unsafestr(str)

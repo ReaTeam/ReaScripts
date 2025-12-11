@@ -8,6 +8,7 @@ local AppContext    = require "classes/app_context"
 local EmojImGui     = require "emojimgui"
 local Sticker       = require "classes/sticker"
 
+local PS            = require "modules/project_settings"
 local D             = require "modules/defines"
 
 local StickerEditor = {}
@@ -56,7 +57,7 @@ function StickerEditor:title()
 end
 
 function StickerEditor:stickerSize()
-  return D.RetrieveProjectStickerSize()
+  return PS.RetrieveProjectStickerSize()
 end
 
 function StickerEditor:draw(color)

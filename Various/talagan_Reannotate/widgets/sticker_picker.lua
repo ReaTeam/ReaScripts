@@ -8,6 +8,7 @@ local AppContext    = require "classes/app_context"
 local Sticker       = require "classes/sticker"
 local StickerEditor = require "widgets/sticker_editor"
 local D             = require "modules/defines"
+local PS            = require "modules/project_settings"
 
 local StickerPicker = {}
 StickerPicker.__index = StickerPicker
@@ -58,7 +59,7 @@ function StickerPicker:commit()
 end
 
 function StickerPicker:stickerSize()
-  return D.RetrieveProjectStickerSize()
+  return PS.RetrieveProjectStickerSize()
 end
 
 function StickerPicker:renderStickerZone(ctx, stickers, should_go_to_line)
@@ -102,6 +103,9 @@ function StickerPicker:renderStickerZone(ctx, stickers, should_go_to_line)
         if sticker:isSpecial() then
           if sticker.text == 'checkboxes' then
             ImGui.Text(ctx, "Special sticker that shows the number of checked\nchecbkoxes and the total of checbkoxes in this note")
+          end
+          if sticker.text == 'progressbar' then
+            ImGui.Text(ctx, "Special sticker that shows the proportion of checked\ncheckboxes in this note as a progressbar in %")
           end
           if sticker.text == 'category' then
             ImGui.Text(ctx, "Special sticker that shows the note's category\n(will change if the categories are edited)")
@@ -189,7 +193,8 @@ function StickerPicker:draw()
     ImGui.SeparatorText(ctx, "Special Stickers")
     picked = picked or self:renderStickerZone(ctx, {
       Sticker:new("0:category",   self.thing.notes, self.slot),
-      Sticker:new("0:checkboxes", self.thing.notes, self.slot)
+      Sticker:new("0:checkboxes", self.thing.notes, self.slot),
+      Sticker:new("0:progressbar", self.thing.notes, self.slot)
     }, true)
 
 ---@diagnostic disable-next-line: redundant-parameter

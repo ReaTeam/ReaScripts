@@ -131,6 +131,10 @@ function AppContext:_initialize()
   AppContext.__singleton = self
 end
 
+-- Return absolute coordinates, normalized by ImGui PointConvertNative.
+-- These coordinates are meant to be used with drawlists essentially.
+-- Scrollbar corrections may be passed.
+-- DPI is applied if there's scaling under windows
 function AppContext:retrieveCoordinates(sub, scrollbar_w, scrollbar_h)
   if not sub.hwnd then return end
   local _, x, y, x2, y2       = reaper.JS_Window_GetRect(sub.hwnd)

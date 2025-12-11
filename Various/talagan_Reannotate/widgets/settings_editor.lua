@@ -9,6 +9,7 @@ local Color         = require "classes/color"
 local Sticker       = require "classes/sticker"
 local Notes         = require "classes/notes"
 local S             = require "modules/settings"
+local PS            = require "modules/project_settings"
 local D             = require "modules/defines"
 
 local ImGuiMd       = require "reaimgui_markdown"
@@ -30,9 +31,6 @@ function SettingsEditor:_initialize()
     self.new_project_markdown_style   = self:retrieveNewProjectMarkdownStyle()
     self.cur_project_markdown_style   = self:retrieveCurProjectMarkdownStyle()
 
-    self.new_project_sticker_size     = S.getSetting("NewProjectStickerSize")
-    self.cur_project_sticker_size     = D.RetrieveProjectStickerSize()
-
     self.mdwidget_new_proj  = ImGuiMd:new(AppContext:instance().imgui_ctx, "markdown_widget_new_proj", { wrap = true, autopad = true, skip_last_whitespace = true }, self.new_project_markdown_style )
     self.mdwidget_cur_proj  = ImGuiMd:new(AppContext:instance().imgui_ctx, "markdown_widget_cur_proj", { wrap = true, autopad = true, skip_last_whitespace = true }, self.cur_project_markdown_style )
 end
@@ -42,7 +40,7 @@ function SettingsEditor:retrieveNewProjectMarkdownStyle()
 end
 
 function SettingsEditor:retrieveCurProjectMarkdownStyle()
-    return D.deepCopy(D.RetrieveProjectMarkdownStyle())
+    return D.deepCopy(PS.RetrieveProjectMarkdownStyle())
 end
 
 function SettingsEditor:setPosition(pos_x, pos_y)
@@ -79,17 +77,17 @@ function SettingsEditor:categoryNamesTable()
                     S.setSetting("SlotLabel_" .. slot, v)
                 end
             else
-                ImGui.Text(ctx, " " .. D.SlotLabel(slot))
+                ImGui.Text(ctx, " " .. PS.SlotLabel(slot))
             end
             ImGui.TableNextColumn(ctx)
             ImGui.SetNextItemWidth(ctx, 150)
             if slot ~= 0 then
-                local b, v = ImGui.InputText(ctx, "##cur_proj_edit_slot_" .. i, D.SlotLabel(slot))
+                local b, v = ImGui.InputText(ctx, "##cur_proj_edit_slot_" .. i, PS.SlotLabel(slot))
                 if b then
-                    D.SetSlotLabel(slot, v)
+                    PS.SetSlotLabel(slot, v)
                 end
             else
-                ImGui.Text(ctx, " " .. D.SlotLabel(slot))
+                ImGui.Text(ctx, " " .. PS.SlotLabel(slot))
             end
         end
         ImGui.TableNextRow(ctx)
@@ -103,7 +101,7 @@ function SettingsEditor:categoryNamesTable()
         ImGui.TableNextColumn(ctx)
         if ImGui.Button(ctx, "Reset to defaults##reset_project_labels_to_defaults_button") then
             for i = 0, D.MAX_SLOTS-1 do
-                D.SetSlotLabel(i, S.getSettingSpec("SlotLabel_"..i).default )
+                PS.SetSlotLabel(i, S.getSettingSpec("SlotLabel_"..i).default )
             end
         end
 
@@ -202,34 +200,6 @@ function SettingsEditor:markdownRow(widget, style, entry_name)
     ImGui.PopID(ctx)
 end
 
-function SettingsEditor:stickersStyleRow(sticker_size_get_callback, sticker_size_update_callback)
-    local app_ctx   = AppContext:instance()
-    local ctx       = app_ctx.imgui_ctx
-    local b, v      = false, ''
-
-    ImGui.PushID(ctx, "style_sticker")
-    ImGui.TableNextRow(ctx)
-    ImGui.TableNextRow(ctx)
-
-    ImGui.TableNextColumn(ctx)
-    ImGui.AlignTextToFramePadding(ctx)
-    ImGui.Text(ctx, "stickers")
-
-    ImGui.TableNextColumn(ctx) -- Color normal
-    ImGui.TableNextColumn(ctx) -- Color bold
-    ImGui.TableNextColumn(ctx) -- Font Size
-    ImGui.SetNextItemWidth(ctx, 50)
-
-    b, v = ImGui.SliderInt(ctx, "##font_size", sticker_size_get_callback(), 8, 20)
-    if b then
-        sticker_size_update_callback(v)
-    end
-
-    ImGui.TableNextColumn(ctx) -- padding top
-    ImGui.TableNextColumn(ctx) -- padding bottom
-    ImGui.PopID(ctx)
-end
-
 function SettingsEditor:markdownStyles(widget, style_container)
     self:markdownRow(widget, style_container, "default")
     self:markdownRow(widget, style_container, "link")
@@ -281,26 +251,23 @@ function SettingsEditor:markdownTable()
     local ctx       = app_ctx.imgui_ctx
 
     ImGui.BeginGroup(ctx)
-    ImGui.Selectable(ctx, "Stylesheet for new projects", true, 0, WIDGET_WIDTH + (self.preview_new_proj_markdown and PREVIEW_WIDTH + 4 or 0))
+    ImGui.Selectable(ctx, "New Project", true, 0, WIDGET_WIDTH + (self.preview_new_proj_markdown and PREVIEW_WIDTH + 4 or 0))
 
     if ImGui.BeginChild(ctx, "aaaa##table_markdown_new", WIDGET_WIDTH, MD_EDITOR_HEIGHT) then
         ImGui.PushID(ctx, "table_markdown_new_proj")
         if ImGui.BeginTable(ctx, "", 6, 0, WIDGET_WIDTH) then
             self:markdownTableHeaders()
             self:markdownStyles(self.mdwidget_new_proj, self.new_project_markdown_style)
-            ImGui.TableNextRow(ctx)
-
-            self:stickersStyleRow(function() return self.new_project_sticker_size end, function(v) self.new_project_sticker_size = v end)
             ImGui.EndTable(ctx)
         end
 
+
         -- BUTTONS
         ImGui.Dummy(ctx,1,10)
-        local d = not (D.deepCompare(self:retrieveNewProjectMarkdownStyle(), self.new_project_markdown_style) and (S.getSetting("NewProjectStickerSize") == self.new_project_sticker_size))
+        local d = not (D.deepCompare(self:retrieveNewProjectMarkdownStyle(), self.new_project_markdown_style))
         if d then ImGui.PushStyleColor(ctx, ImGui.Col_Button, 0xFF0000FF) end
         if ImGui.Button(ctx, "Save and apply !") then
             S.setSetting("NewProjectMarkdown", self.new_project_markdown_style)
-            S.setSetting("NewProjectStickerSize", self.new_project_sticker_size)
             if self.on_commit_new_project_style_callback then
                 self.on_commit_new_project_style_callback(D.deepCopy(self.new_project_markdown_style))
             end
@@ -314,7 +281,6 @@ function SettingsEditor:markdownTable()
         ImGui.SameLine(ctx)
         if ImGui.Button(ctx, "Copy ->") then
             self.cur_project_markdown_style = D.deepCopy(self.new_project_markdown_style)
-            self.cur_project_sticker_size = self.new_project_sticker_size
             self.mdwidget_cur_proj:setStyle(self.cur_project_markdown_style)
             self.mdwidget_cur_proj:setText("")
         end
@@ -328,20 +294,11 @@ function SettingsEditor:markdownTable()
     if self.preview_new_proj_markdown then
         ImGui.SameLine(ctx)
         ImGui.BeginGroup(ctx)
-        if ImGui.BeginChild(ctx, "##preview_left", PREVIEW_WIDTH, MD_EDITOR_HEIGHT) then
+        if ImGui.BeginChild(ctx, "##preview_left", PREVIEW_WIDTH, MD_EDITOR_HEIGHT, ImGui.ChildFlags_None, ImGui.WindowFlags_None) then
             self.mdwidget_new_proj:setText(markdown_example)
             self.mdwidget_new_proj:render(ctx)
             ImGui.EndChild(ctx)
         end
-
-        ImGui.Dummy(ctx,0,0)
-        local x, y    = ImGui.GetCursorScreenPos(ctx)
-        local sticker = Sticker:new("1:1:1F60D:Sticker Test", Notes:new(nil, false), 1)
-        local pr_res  = sticker:PreRender(ctx, self.new_project_sticker_size)
-        sticker:Render(ctx, pr_res, x, y)
-        ImGui.SetCursorScreenPos(ctx, x, y + pr_res.height)
-        ImGui.Dummy(ctx, 0, 0)
-
         ImGui.EndGroup(ctx)
     end
 
@@ -355,7 +312,7 @@ function SettingsEditor:markdownTable()
     ImGui.SameLine(ctx)
 
     ImGui.BeginGroup(ctx)
-    ImGui.Selectable(ctx, "Stylesheet for current project", true, 0, WIDGET_WIDTH + (self.preview_cur_proj_markdown and PREVIEW_WIDTH + 4 or 0))
+    ImGui.Selectable(ctx, "Current Project", true, 0, WIDGET_WIDTH + (self.preview_cur_proj_markdown and PREVIEW_WIDTH + 4 or 0))
 
     if self.preview_cur_proj_markdown then
         ImGui.BeginGroup(ctx)
@@ -364,15 +321,6 @@ function SettingsEditor:markdownTable()
             self.mdwidget_cur_proj:render(ctx)
             ImGui.EndChild(ctx)
         end
-
-        ImGui.Dummy(ctx,0,0)
-        local x, y    = ImGui.GetCursorScreenPos(ctx)
-        local sticker = Sticker:new("1:1:1F60D:Sticker Test", Notes:new(nil, false), 1)
-        local pr_res  = sticker:PreRender(ctx, self.cur_project_sticker_size)
-        sticker:Render(ctx, pr_res, x, y)
-        ImGui.SetCursorScreenPos(ctx, x, y + pr_res.height)
-        ImGui.Dummy(ctx, 0, 0)
-
         ImGui.EndGroup(ctx)
         ImGui.SameLine(ctx)
     end
@@ -382,10 +330,6 @@ function SettingsEditor:markdownTable()
         if ImGui.BeginTable(ctx, "", 6, 0, WIDGET_WIDTH) then
             self:markdownTableHeaders()
             self:markdownStyles(self.mdwidget_cur_proj, self.cur_project_markdown_style)
-
-            ImGui.TableNextRow(ctx)
-            self:stickersStyleRow(function() return self.cur_project_sticker_size end, function(v) self.cur_project_sticker_size = v end)
-
             ImGui.EndTable(ctx)
         end
 
@@ -393,7 +337,6 @@ function SettingsEditor:markdownTable()
         ImGui.Dummy(ctx,1,10)
         if ImGui.Button(ctx, "<- Copy") then
             self.new_project_markdown_style = D.deepCopy(self.cur_project_markdown_style)
-            self.new_project_sticker_size   = self.cur_project_sticker_size
             self.mdwidget_new_proj:setStyle(self.new_project_markdown_style)
             self.mdwidget_new_proj:setText("")
         end
@@ -406,11 +349,10 @@ function SettingsEditor:markdownTable()
             self.preview_cur_proj_markdown = not b
         end
         ImGui.SameLine(ctx)
-        local d = not ((D.deepCompare(self:retrieveCurProjectMarkdownStyle(), self.cur_project_markdown_style)) and (D.RetrieveProjectStickerSize() == self.cur_project_sticker_size))
+        local d = not ((D.deepCompare(self:retrieveCurProjectMarkdownStyle(), self.cur_project_markdown_style)))
         if d then ImGui.PushStyleColor(ctx, ImGui.Col_Button, 0xFF0000FF) end
         if ImGui.Button(ctx, "Save and apply !") then
-            D.CommitProjectMarkdownStyle(self.cur_project_markdown_style)
-            D.CommitProjectStickerSize(self.cur_project_sticker_size)
+            PS.CommitProjectMarkdownStyle(self.cur_project_markdown_style)
             if self.on_commit_current_project_style_callback then
                 self.on_commit_current_project_style_callback(D.deepCopy(self.cur_project_markdown_style))
             end
@@ -423,6 +365,143 @@ function SettingsEditor:markdownTable()
     ImGui.EndGroup(ctx)
 end
 
+function SettingsEditor:stickersTable()
+    local app_ctx   = AppContext:instance()
+    local ctx       = app_ctx.imgui_ctx
+
+    ImGui.PushID(ctx, "###new_proj_sticker_settings")
+
+    ImGui.BeginGroup(ctx)
+    ImGui.Selectable(ctx, "New Project", true, 0, WIDGET_WIDTH + (self.preview_new_proj_markdown and PREVIEW_WIDTH + 4 or 0))
+
+    ImGui.AlignTextToFramePadding(ctx)
+    ImGui.Text(ctx,"Size")
+    ImGui.SameLine(ctx)
+
+    local sticker_size =  S.getSetting("NewProjectStickerSize")
+
+    local b, v = ImGui.SliderInt(ctx, "##font_size", sticker_size, 8, 20)
+    if b then
+        S.setSetting("NewProjectStickerSize", v)
+    end
+
+    if self.preview_new_proj_markdown then
+        ImGui.SameLine(ctx)
+        ImGui.BeginGroup(ctx)
+        ImGui.Dummy(ctx,0,0)
+        local x, y    = ImGui.GetCursorScreenPos(ctx)
+        local sticker = Sticker:new("1:1:1F60D:Sticker Test", Notes:new(nil, false), 1)
+        local pr_res  = sticker:PreRender(ctx, sticker_size)
+        sticker:Render(ctx, pr_res, x, y)
+        ImGui.Dummy(ctx, 0, 0)
+        ImGui.EndGroup(ctx)
+    end
+
+    ImGui.EndGroup(ctx)
+    ImGui.PopID(ctx)
+
+    ImGui.SameLine(ctx)
+    local cx, cy = ImGui.GetCursorScreenPos(ctx)
+    ImGui.DrawList_AddLine(ImGui.GetWindowDrawList(ctx), cx + 1, cy, cx + 1, cy + 20, 0x606060FF)
+    ImGui.Dummy(ctx,3,20)
+    ImGui.SameLine(ctx)
+
+    ImGui.PushID(ctx, "###cur_proj_sticker_settings")
+
+    ImGui.BeginGroup(ctx)
+    local xalign = ImGui.GetCursorPosX(ctx)
+    ImGui.Selectable(ctx, "Current Project", true, 0, WIDGET_WIDTH + (self.preview_cur_proj_markdown and PREVIEW_WIDTH + 4 or 0))
+
+    ImGui.AlignTextToFramePadding(ctx)
+
+    local sticker_size = PS.RetrieveProjectStickerSize()
+
+    if self.preview_cur_proj_markdown then
+        ImGui.BeginGroup(ctx)
+        ImGui.Dummy(ctx,0,0)
+        local x, y    = ImGui.GetCursorScreenPos(ctx)
+        local sticker = Sticker:new("1:1:1F60D:Sticker Test", Notes:new(nil, false), 1)
+        local pr_res  = sticker:PreRender(ctx, sticker_size)
+        sticker:Render(ctx, pr_res, x, y)
+        ImGui.Dummy(ctx, 0, 0)
+        ImGui.EndGroup(ctx)
+        ImGui.SameLine(ctx)
+    end
+
+    ImGui.SetCursorPosX(ctx, xalign + (self.preview_cur_proj_markdown and PREVIEW_WIDTH + 4 or 0))
+    ImGui.Text(ctx,"Size")
+    ImGui.SameLine(ctx)
+    local b, v = ImGui.SliderInt(ctx, "##font_size", sticker_size, 8, 20)
+    if b then
+       PS.CommitProjectStickerSize(v)
+    end
+
+    ImGui.EndGroup(ctx)
+    ImGui.PopID(ctx)
+end
+
+function SettingsEditor:postersTable()
+    local app_ctx   = AppContext:instance()
+    local ctx       = app_ctx.imgui_ctx
+
+    ImGui.PushID(ctx, "###new_proj_posters_settings")
+
+    ImGui.BeginGroup(ctx)
+    ImGui.Selectable(ctx, "New Project", true, 0, WIDGET_WIDTH + (self.preview_new_proj_markdown and PREVIEW_WIDTH + 4 or 0))
+
+    ImGui.AlignTextToFramePadding(ctx)
+    ImGui.Text(ctx,"Default type")
+    ImGui.SameLine(ctx)
+
+    local cur_val           = S.getSetting("NewProjectPosterDefaultType")
+    local poster_combo_info = D.PosterTypeComboInfo(nil)
+    if ImGui.BeginCombo(ctx, "##poster_type_combo", D.PosterTypeToName(cur_val, nil) , ImGui.ComboFlags_None | ImGui.ComboFlags_WidthFitPreview) then
+      for _, v in ipairs(poster_combo_info.list) do
+        local real_val = poster_combo_info.reverse_lookup[v]
+        if ImGui.Selectable(ctx, v, cur_val == real_val) then
+            S.setSetting("NewProjectPosterDefaultType", real_val)
+        end
+      end
+      ImGui.EndCombo(ctx)
+    end
+
+    ImGui.EndGroup(ctx)
+    ImGui.PopID(ctx)
+
+    ImGui.SameLine(ctx)
+    local cx, cy = ImGui.GetCursorScreenPos(ctx)
+    ImGui.DrawList_AddLine(ImGui.GetWindowDrawList(ctx), cx + 1, cy, cx + 1, cy + 20, 0x606060FF)
+    ImGui.Dummy(ctx,3,20)
+    ImGui.SameLine(ctx)
+
+    ImGui.PushID(ctx, "###cur_proj_poster_settings")
+
+    ImGui.BeginGroup(ctx)
+    local xalign = ImGui.GetCursorPosX(ctx)
+    ImGui.Selectable(ctx, "Current Project", true, 0, WIDGET_WIDTH + (self.preview_cur_proj_markdown and PREVIEW_WIDTH + 4 or 0))
+
+    ImGui.AlignTextToFramePadding(ctx)
+
+    ImGui.SetCursorPosX(ctx, xalign + (self.preview_cur_proj_markdown and PREVIEW_WIDTH + 4 or 0))
+    ImGui.Text(ctx,"Default type")
+    ImGui.SameLine(ctx)
+
+    local cur_val           = PS.ProjectPosterDefaultType()
+    local poster_combo_info = D.PosterTypeComboInfo(nil)
+    if ImGui.BeginCombo(ctx, "##poster_type_combo", D.PosterTypeToName(cur_val, nil) , ImGui.ComboFlags_None | ImGui.ComboFlags_WidthFitPreview) then
+      for _, v in ipairs(poster_combo_info.list) do
+        local real_val = poster_combo_info.reverse_lookup[v]
+        if ImGui.Selectable(ctx, v, cur_val == real_val) then
+            PS.SetProjectPosterDefaultType(real_val)
+        end
+      end
+      ImGui.EndCombo(ctx)
+    end
+
+    ImGui.EndGroup(ctx)
+    ImGui.PopID(ctx)
+end
+
 function SettingsEditor:draw()
     local app_ctx   = AppContext:instance()
     local ctx       = app_ctx.imgui_ctx
@@ -430,11 +509,11 @@ function SettingsEditor:draw()
     ImGui.PushFont(ctx, app_ctx.arial_font, S.getSetting("UIFontSize"))
 
     local b, open = ImGui.Begin(ctx, "Reannotate Settings##reannotate_settings_editor", true,
-    ImGui.WindowFlags_AlwaysAutoResize |
-    ImGui.WindowFlags_NoDocking |
-    ImGui.WindowFlags_NoResize |
-    ImGui.WindowFlags_TopMost |
-    ImGui.WindowFlags_NoCollapse)
+        ImGui.WindowFlags_AlwaysAutoResize |
+        ImGui.WindowFlags_NoDocking |
+        ImGui.WindowFlags_NoResize |
+        ImGui.WindowFlags_TopMost |
+        ImGui.WindowFlags_NoCollapse)
 
     -- Set initiial position
     if ImGui.IsWindowAppearing(ctx) and self.pos then
@@ -468,8 +547,13 @@ function SettingsEditor:draw()
                     self.tmp_values["UIFontSize"] = nil
                 end
 
-                ImGui.SeparatorText(ctx, "Markdown")
+                ImGui.SeparatorText(ctx, "Posters")
+                self:postersTable()
 
+                ImGui.SeparatorText(ctx, "Stickers")
+                self:stickersTable()
+
+                ImGui.SeparatorText(ctx, "Markdown")
                 self:markdownTable()
 
                 ImGui.EndTabItem(ctx)

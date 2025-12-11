@@ -9,6 +9,7 @@ local AppContext    = require "classes/app_context"
 local EmojImGui     = require "emojimgui"
 local Color         = require "classes/color"
 local D             = require "modules/defines"
+local PS            = require "modules/project_settings"
 
 local Sticker = {}
 Sticker.Types = {
@@ -17,7 +18,7 @@ Sticker.Types = {
 }
 
 -- String format: "type:detail"
--- type == 0, detail = category|checkboxes
+-- type == 0, detail = category|checkboxes|progressbar
 -- type == 1, detail = icon_string:text
 --            icon_string = font:char (font = nothing|0|1)
 
@@ -93,11 +94,15 @@ function Sticker:_parseHelper(str)
     end
 end
 
+function Sticker:isProgressbar()
+    return self:isSpecial() and self.text == 'progressbar'
+end
+
 function Sticker:textToRender()
     local text = self.text
     if self.type == Sticker.Types.SPECIAL then
         if text == 'category' then
-            text = (self.slot) and (D.SlotLabel(self.slot)) or ("???")
+            text = (self.slot) and (PS.SlotLabel(self.slot)) or ("???")
         elseif text == "checkboxes" then
             if not self.notes then
                 text = "? / ?"
@@ -106,6 +111,17 @@ function Sticker:textToRender()
                 counts.c = counts.c or 0
                 counts.t = counts.t or 0
                 text = "" .. counts.c .. " / " .. counts.t
+            end
+        elseif text == 'progressbar' then
+            if not self.notes then
+                text = "?"
+            else
+                local counts = self.notes:slotCheckboxCache(self.slot)
+                counts.c = counts.c or 0
+                counts.t = counts.t or 0
+                local p = 0
+                if counts.t > 0 then p = (100.0 * counts.c / counts.t) end
+                text = math.floor(p) -- Gasp, we return a number ...
             end
         end
     end
@@ -158,6 +174,18 @@ function Sticker:computeTextBackgroundColor(base_color_rgba, alpha)
     return (c:to_irgba() & 0xFFFFFFFF)
 end
 
+function Sticker:iconBGColor(color)
+    Sticker.icon_bg_color_cache = Sticker.icon_bg_color_cache or {}
+    Sticker.icon_bg_color_cache[color] = Sticker.icon_bg_color_cache[color] or self:computeIconBackgroundColor(color, 0)
+    return Sticker.icon_bg_color_cache[color]
+end
+
+function Sticker:textBGColor(color)
+    Sticker.text_bg_color_cache = Sticker.text_bg_color_cache or {}
+    Sticker.text_bg_color_cache[color] = Sticker.text_bg_color_cache[color] or self:computeTextBackgroundColor(color, 0)
+    return Sticker.text_bg_color_cache[color]
+end
+
 function Sticker:renderBackground(draw_list, render_params)
     local istop     = render_params.metrics.icon_stop
     local min_x     = render_params.metrics.min_x
@@ -177,13 +205,8 @@ function Sticker:renderBackground(draw_list, render_params)
         text_bg_color = self:computeTextBackgroundColor(render_params.color, alpha)
     else
         -- USe a cache because this will be recomputed a lot and it costs a lot
-        Sticker.icon_bg_color_cache = Sticker.icon_bg_color_cache or {}
-        Sticker.icon_bg_color_cache[render_params.color] = Sticker.icon_bg_color_cache[render_params.color] or self:computeIconBackgroundColor(render_params.color, 0)
-        icon_bg_color = Sticker.icon_bg_color_cache[render_params.color]
-
-        Sticker.text_bg_color_cache = Sticker.text_bg_color_cache or {}
-        Sticker.text_bg_color_cache[render_params.color] = Sticker.text_bg_color_cache[render_params.color] or self:computeTextBackgroundColor(render_params.color, 0)
-        text_bg_color = Sticker.text_bg_color_cache[render_params.color]
+        icon_bg_color = self:iconBGColor(render_params.color)
+        text_bg_color = self:textBGColor(render_params.color)
     end
 
     if self.icon then
@@ -282,16 +305,42 @@ function Sticker:_renderPass(ctx, font_size, should_render, render_params)
 
     -- Rendering of icons or texts helper
     local  _textPass = function(_font, _font_size, _txt)
----@diagnostic disable-next-line: redundant-parameter
         ImGui.PushFont(ctx, _font, _font_size)
-        local www, hhh    = ImGui.CalcTextSize(ctx, _txt)
-        local diff_height = (hhh - base_text_height)
+        if self:isProgressbar() then
+            local pwidth        = _font_size * 5
+            local pheight       = widget_height - 2 * v_pad - 4
+            if should_render then
+                local px            = min_x + xcursor
+                local py            = min_y + v_pad + 2
+                local ptxt          = "" .. _txt .. " %"
+                local www, hhh      = ImGui.CalcTextSize(ctx, ptxt)
+                local diff_height   = (hhh - base_text_height)
+                local diff_width    = (pwidth - www)
 
-        if should_render then
-            ImGui.DrawList_AddText(draw_list, min_x + xcursor, min_y + v_pad - diff_height * 0.5, render_params.text_color, _txt)
+                -- Background
+                ImGui.DrawList_AddRectFilled(draw_list, px, py, px + pwidth, py + pheight, self:iconBGColor(render_params.color), 1)
+                ImGui.DrawList_AddText(draw_list, min_x + h_pad + diff_width * 0.5, min_y + v_pad - math.floor(diff_height * 0.5) + 1 , 0xFFFFFFFF, ptxt)
+
+                -- Fill
+                if(_txt > 0) then
+                    ImGui.DrawList_AddRectFilled(draw_list, px+1, py+1, px + (pwidth * _txt/100.0) -1, py + pheight - 1, render_params.color, 1)
+                end
+                ImGui.DrawList_PushClipRect(draw_list, px, py, px + (pwidth * _txt/100.0), py + _font_size, true)
+                ImGui.DrawList_AddText(draw_list, min_x + h_pad + diff_width * 0.5, min_y + v_pad - math.floor(diff_height * 0.5) + 1 , render_params.text_color, ptxt)
+                ImGui.DrawList_PopClipRect(draw_list)
+            end
+            xcursor = xcursor + pwidth
+        else
+    ---@diagnostic disable-next-line: redundant-parameter
+            local www, hhh    = ImGui.CalcTextSize(ctx, _txt)
+            local diff_height = (hhh - base_text_height)
+
+            if should_render then
+                ImGui.DrawList_AddText(draw_list, min_x + xcursor, min_y + v_pad - diff_height * 0.5, render_params.text_color, _txt)
+            end
+
+            xcursor = xcursor + www
         end
-
-        xcursor = xcursor + www
         ImGui.PopFont(ctx)
     end
 
