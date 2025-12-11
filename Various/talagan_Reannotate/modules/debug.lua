@@ -59,6 +59,8 @@ local function LaunchProfilerIfNeeded()
         local EmojImGui             = require "emojimgui"
 
         local ImGui                 = require "ext/imgui"
+        local ImGuiMd               = require "reaimgui_markdown"
+        local ImGuiMdCore           = require "reaimgui_markdown/markdown-imgui"
 
         local QuickPreviewOverlay   = require "widgets/quick_preview_overlay"
         local OverlayCanvas         = require "widgets/overlay_canvas"

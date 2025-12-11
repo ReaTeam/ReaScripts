@@ -10,6 +10,7 @@ local StickerPicker = require "widgets/sticker_picker"
 local Sticker       = require "classes/sticker"
 local D             = require "modules/defines"
 local S             = require "modules/settings"
+local PS            = require "modules/project_settings"
 
 local NoteEditor    = {}
 NoteEditor.__index  = NoteEditor
@@ -67,6 +68,8 @@ function NoteEditor:title()
     t = t .. "Item"
   elseif type == "project" then
     t = t .. "Project"
+  elseif type == "region" then
+    t = t .. "Region"
   else
     error("Unimplemented")
   end
@@ -85,13 +88,15 @@ function NoteEditor:onSlotEditChange()
 end
 
 function NoteEditor:onSlotCommit()
+  -- Clear poster cache and let Reannotate recalculate it on next draw
+  self.edited_thing.cache.posters = nil
   if self.slot_commit_callback then
     self.slot_commit_callback()
   end
 end
 
 function NoteEditor:stickerSize()
-  return D.RetrieveProjectStickerSize()
+  return PS.RetrieveProjectStickerSize()
 end
 
 function NoteEditor:renderStickerZone(ctx, stickers, should_go_to_line)
@@ -116,9 +121,10 @@ function NoteEditor:renderStickerZone(ctx, stickers, should_go_to_line)
     local rw, _ = ImGui.GetContentRegionAvail(ctx)
     if estimated_width > rw and num_on_line ~= 0 then
       -- Go to line if no more room
-      ImGui.NewLine(ctx)
       xc, yc  = ImGui.GetCursorScreenPos(ctx)
-      yc      = yc + 5
+      yc      = yc + metrics.height + estimated_spacing
+      ImGui.NewLine(ctx)
+      xc, _   = ImGui.GetCursorScreenPos(ctx)
       ImGui.SetCursorScreenPos(ctx, xc, yc)
       num_on_line = 0
     elseif num_on_line ~= 0 then
@@ -220,9 +226,9 @@ function NoteEditor:draw()
       ImGui.Function_SetValue(app_ctx.cursor_func, "WANTED_CURSOR", string.len(entry))
     end
 
+    -- Tab bar
     local sel_col = Color:new(D.SlotColor(self.edited_slot))
     ImGui.PushStyleColor(ctx, ImGui.Col_TabSelected, sel_col:to_irgba())
-
     if ImGui.BeginTabBar(ctx, "Test##note_editor_tab", ImGui.TabBarFlags_NoCloseWithMiddleMouseButton | ImGui.TabBarFlags_NoTabListScrollingButtons) then
 
       local selection_has_changed = (self.last_selected_tab ~= self.edited_slot)
@@ -250,7 +256,7 @@ function NoteEditor:draw()
             flags = flags | ImGui.TabItemFlags_SetSelected
           end
 
-          local e_vis, e_sel = ImGui.BeginTabItem(ctx, D.SlotLabel(slot), false, flags)
+          local e_vis, e_sel = ImGui.BeginTabItem(ctx, PS.SlotLabel(slot), false, flags)
 
           if e_vis then
             -- The tab api is awfull and needs to track things to avoid race conditions
@@ -274,16 +280,12 @@ function NoteEditor:draw()
 
       ImGui.EndTabBar(ctx)
     end
-
     ImGui.PopStyleColor(ctx)
 
     -- Sticker zone
+    ImGui.SeparatorText(ctx, "Stickers")
 
-    ImGui.Dummy(ctx,0,2)
-    ImGui.Text(ctx, "Stickers")
-    ImGui.SameLine(ctx)
-    ImGui.SetCursorPosY(ctx, ImGui.GetCursorPosY(ctx) - 2)
-
+    ImGui.AlignTextToFramePadding(ctx)
     local slot_stickers = self.edited_thing.notes:slotStickers(self.edited_slot)
     if #slot_stickers > 0 then
       slot_stickers = slot_stickers
@@ -303,24 +305,62 @@ function NoteEditor:draw()
       end
     end
 
+    -- '+' sticker button
     local xc, yc = ImGui.GetCursorScreenPos(ctx)
-    ImGui.SetCursorScreenPos(ctx, xc + 6, yc + 1)
+    ImGui.SetCursorScreenPos(ctx, xc + 6, yc)
     ImGui.PushStyleVar(ctx, ImGui.StyleVar_FrameRounding, 2)
     local px, py = ImGui.GetCursorScreenPos(ctx)
-    if ImGui.Button(ctx, "+") then
+    ImGui.PushFont(ctx, app_ctx.arial_font, PS.RetrieveProjectStickerSize() + 2)
+    if ImGui.Button(ctx, '+') then
       self.sticker_picker = StickerPicker:new(self.edited_thing, self.edited_slot)
       self.sticker_picker:setPosition(px + 20, py)
     end
+    ImGui.PopFont(ctx)
     ImGui.PopStyleVar(ctx)
 
-    ImGui.Dummy(ctx,0,2)
+    ImGui.SeparatorText(ctx, "Poster")
 
+    -- Poster type selection
+    ImGui.AlignTextToFramePadding(ctx)
+    ImGui.Text(ctx, "Type")
+    ImGui.SameLine(ctx)
+    local poster_combo_info = D.PosterTypeComboInfo(PS.ProjectPosterDefaultType())
+    local cur_val           = self.edited_thing.notes:slotPosterType(self.edited_slot)
+    if ImGui.BeginCombo(ctx, "##poster_type_combo", D.PosterTypeToName(cur_val, PS.ProjectPosterDefaultType()) , ImGui.ComboFlags_None | ImGui.ComboFlags_WidthFitPreview) then
+      for _, v in ipairs(poster_combo_info.list) do
+        local real_val = poster_combo_info.reverse_lookup[v]
+        if ImGui.Selectable(ctx, v, cur_val == real_val) then
+          self.edited_thing.notes:setSlotPosterType(self.edited_slot, real_val)
+          self.edited_thing.notes:commit()
+          self:onSlotCommit()
+        end
+      end
+      ImGui.EndCombo(ctx)
+    end
+
+    local resolved_type = self.edited_thing.notes:resolvedSlotPosterType(self.edited_slot)
+    if resolved_type == D.POSTER_TYPES.CUSTOM_MARKDOWN_POSTER or resolved_type == D.POSTER_TYPES.CUSTOM_PLAIN_POSTER then
+      local ct      = self.edited_thing.notes:slotCustomPoster(self.edited_slot)
+      local ax, ay  = ImGui.GetContentRegionAvail(ctx)
+      b, ct = ImGui.InputTextMultiline(ctx, "##reannotate_note_poster_edit_multiline_" .. self.rand, ct,  ax , 100, ImGui.InputTextFlags_CallbackAlways, cursor_func)
+      if b and is_open then
+        -- Commit on every text change
+        self.edited_thing.notes:setSlotCustomPoster(self.edited_slot, ct)
+        self.edited_thing.notes:commit()
+        self:onSlotCommit()
+      end
+    end
+
+    ImGui.SeparatorText(ctx, "Note content")
+
+    -- Multi line
     local ax, ay  = ImGui.GetContentRegionAvail(ctx)
     if self.grab_focus then
       ImGui.SetKeyboardFocusHere(ctx)
     end
-
     b, entry = ImGui.InputTextMultiline(ctx, "##reannotate_note_edit_multiline_" .. self.rand, entry,  ax , ay, ImGui.InputTextFlags_CallbackAlways, cursor_func)
+
+    ---------
 
     -- Because we're in auto commit, close on shift enter or escape
     if ImGui.IsWindowFocused(ctx) and (ImGui.IsKeyChordPressed(ctx, ImGui.Key_Enter | ImGui.Mod_Shift) or ImGui.IsKeyPressed(ctx, ImGui.Key_Escape, false))  then

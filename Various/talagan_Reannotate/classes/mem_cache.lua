@@ -23,7 +23,13 @@ end
 
 function MemCache.GetObjectGUID(object)
   local guid = ''
-  if reaper.ValidatePtr(object, "MediaTrack*") then
+  if type(object) == "table" then
+    if object.t == 'region' then
+      return object.guid
+    else
+      error("Unhandled custom type " .. object.t .. " for object")
+    end
+  elseif reaper.ValidatePtr(object, "MediaTrack*") then
     local tguid = reaper.GetTrackGUID(object)
     guid = tguid
   elseif reaper.ValidatePtr(object,"MediaItem*") then
@@ -49,24 +55,31 @@ function MemCache:getObjectCache(object)
     -- Build object cache
 
     local name = ''
-    local type = ''
-    if reaper.ValidatePtr(object, "MediaTrack*") then
+    local kind = ''
+    if type(object) == "table" then
+      if object.t == 'region' then
+        name = object.n or ''
+        kind = object.t
+      else
+        error("Unhandled custom type " .. object.t .. " for object")
+      end
+    elseif reaper.ValidatePtr(object, "MediaTrack*") then
       local _, tname = reaper.GetTrackName(object)
       name = tname
-      type = 'track'
+      kind = 'track'
     elseif reaper.ValidatePtr(object,"MediaItem*") then
       local take = reaper.GetActiveTake(object)
       if take then
         name = reaper.GetTakeName(take)
       end
-      type = 'item'
+      kind = 'item'
     elseif reaper.ValidatePtr(object, "TrackEnvelope*") then
       local _, ename = reaper.GetEnvelopeName(object)
       name = ename
-      type = 'env'
+      kind = 'env'
     elseif reaper.ValidatePtr(object, "ReaProject*") then
       name = "Project"
-      type = 'project'
+      kind = 'project'
     else
       error("Unhandled type for object")
     end
@@ -76,7 +89,7 @@ function MemCache:getObjectCache(object)
       guid    = guid,
       object  = object,
       name    = name,
-      type    = type,
+      type    = kind,
       -- Notes cache
       notes   = Notes:new(object)
     }

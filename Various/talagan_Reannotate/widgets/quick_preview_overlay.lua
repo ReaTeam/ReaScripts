@@ -13,6 +13,7 @@ local SettingsEditor    = require "widgets/settings_editor"
 
 local S                 = require "modules/settings"
 local D                 = require "modules/defines"
+local PS                = require "modules/project_settings"
 
 local reaper_ext        = require "modules/reaper_ext"
 local MemCache          = require "classes/mem_cache"
@@ -115,6 +116,7 @@ function QuickPreviewOverlay:buildEditContextForThing(object, track_num, parent_
         -- Note info
         cache       = cache,
         notes       = cache.notes,
+        rand        = math.random(),
         -- Track num
         track_num   = track_num + 1
     }
@@ -242,6 +244,12 @@ function QuickPreviewOverlay:updateVisibleThings()
         return minx, miny, w, h, clamped_left, clamped_right, clamped_top, clamped_bottom
     end
 
+    -- Get Arrange view time range
+    local start_time, end_time = avi.start_time, avi.end_time
+    if start_time == end_time then
+        start_time, end_time = reaper.GetPlayPosition(), reaper.GetProjectLength(0)
+    end
+
     -- Iterate through tracks
     for i = -1, track_count - 1 do
         local is_master         = (i==-1)
@@ -312,12 +320,6 @@ function QuickPreviewOverlay:updateVisibleThings()
                     local item_len              = reaper.GetMediaItemInfo_Value(item, "D_LENGTH")
                     local item_end              = item_pos + item_len
 
-                    -- Get Arrange view time range
-                    local start_time, end_time = avi.start_time, avi.end_time
-                    if start_time == end_time then
-                        start_time, end_time = reaper.GetPlayPosition(), reaper.GetProjectLength(0)
-                    end
-
                     -- Check if item is visible
                     if item_end >= start_time and item_pos <= end_time then
                         local pos_x_pixels = self:timeToPixels(app_ctx, item_pos)
@@ -371,6 +373,30 @@ function QuickPreviewOverlay:updateVisibleThings()
         local proj         = reaper.EnumProjects(-1)
         local proj_entry, _ = self:buildEditContextForThing(proj, -1, "transport", 0, 0, len_x_pixels, len_y_pixels, false, false, false, false)
         table.insert(self.visible_things, proj_entry)
+    end
+
+    if app_ctx.time_ruler.hwnd and reaper.JS_Window_IsVisible(app_ctx.time_ruler.hwnd) then
+        local idx = 0
+        while true do
+            local retval, isrgn, pos, rgnend, name, markrgnindexnumber, color = reaper.EnumProjectMarkers3(0, idx)
+            if retval == 0 then break end
+
+            if isrgn and rgnend >= start_time and pos <= end_time then
+                local pos_x_pixels = self:timeToPixels(app_ctx, pos)
+                local pos_y_pixels = 0
+                local len_y_pixels = app_ctx.time_ruler.h
+                local len_x_pixels = self:timeToPixels(app_ctx, rgnend) - pos_x_pixels
+
+                local clamped_left, clamped_right, clamped_top, clamped_bottom = false, false, false, false
+                pos_x_pixels, pos_y_pixels, len_x_pixels, len_y_pixels, clamped_left, clamped_right, clamped_top, clamped_bottom = block_clamp(pos_x_pixels, pos_y_pixels, len_x_pixels, len_y_pixels, app_ctx.time_ruler.w, app_ctx.time_ruler.h, 0, 0)
+
+                local _, region_guid = reaper.GetSetProjectInfo_String( 0, "MARKER_GUID:" .. markrgnindexnumber, "", false )
+
+                local region_entry = self:buildEditContextForThing({t="region", n = 'name', guid=region_guid}, -1, "time_ruler", pos_x_pixels, pos_y_pixels, len_x_pixels, len_y_pixels, clamped_left, clamped_right, clamped_top, clamped_bottom)
+                table.insert(self.visible_things, region_entry)
+            end
+            idx = idx + 1
+        end
     end
 
     -- Visibility has changed, reapply the search
@@ -438,7 +464,7 @@ function QuickPreviewOverlay:minimizeTopWindowsAtLaunch()
         local c, l = reaper.JS_Window_ListAllTop()
         for token in string.gmatch(l, "[^,]+") do
 
----@diagnostic disable-next-line: param-type-mismatch
+            ---@diagnostic disable-next-line: param-type-mismatch
             local subhwnd = reaper.JS_Window_HandleFromAddress(token)
             if not subhwnd then return end
 
@@ -588,10 +614,10 @@ function QuickPreviewOverlay:editorAdvisedPositionAndSizeForThing(thing, mouse_x
 
     -- If no width none assume something big
     local w = NoteEditor.known_width or 1000
-    local h = tth -- Try to use the tooltip height
+    local h = tth + 200 -- Try to use the tooltip height
 
-    if h < 200 then
-        h = 200
+    if h < 400 then
+        h = 400
     end
 
     local x = ttpos.x - w
@@ -650,14 +676,14 @@ function QuickPreviewOverlay:drawTooltip()
     if thing_to_tooltip then
         if not self.mdwidget then
             -- This will lag a bit. Do it on first capture.
-            self.mdwidget  = ImGuiMd:new(ctx, "markdown_widget_1", { wrap = true, autopad = true, skip_last_whitespace = true }, D.RetrieveProjectMarkdownStyle() )
+            self.mdwidget  = ImGuiMd:new(ctx, "markdown_widget_1", { wrap = true, autopad = true, skip_last_whitespace = true }, PS.RetrieveProjectMarkdownStyle() )
         end
 
         local slot_to_tooltip   = ((self.note_editor) and (self.note_editor.edited_slot)) or (pinned_thing and pinned_thing.capture_slot) or (thing_to_tooltip.hovered_slot)
         local tttext            = (slot_to_tooltip == -1) and (thing_to_tooltip.no_notes_message) or (thing_to_tooltip.notes:slotText(slot_to_tooltip))
         local tooltip_is_empty  = (slot_to_tooltip == -1)
         if tttext == "" or tttext == nil then
-            tttext = "`:grey:No " .. thing_to_tooltip.cache.type .. " notes for the `_:grey:" .. D.SlotLabel(slot_to_tooltip):lower() .. "_ `:grey:category`"
+            tttext = "`:grey:No " .. thing_to_tooltip.cache.type .. " notes for the `_:grey:" .. PS.SlotLabel(slot_to_tooltip):lower() .. "_ `:grey:category`"
             tooltip_is_empty = true
         end
 
@@ -677,29 +703,37 @@ function QuickPreviewOverlay:drawTooltip()
 
         -- First draw, force coordinates and size
         if self.tt_draw_count == 0 then
-            ImGui.SetNextWindowSize(ctx, ttw, tth)
             -- This will force the tooltip window re-creation to avoid keeping precedent state .. and have scrollbar bugs
             self.rand = math.random()
+            ImGui.SetNextWindowSize(ctx, ttw, tth)
+            ImGui.SetNextWindowPos(ctx, tt_pos.x, tt_pos.y)
         end
 
         if self.tt_draw_count == 1 and tooltip_is_empty then
             -- Auto resize "empty" tooltips. This glitches during 1 frame...
             local target_h = self.mdwidget.max_y + 18
             local target_w = self.mdwidget.max_x + 18
-           -- ImGui.SetNextWindowSize(ctx, target_w, target_h)
+            -- ImGui.SetNextWindowSize(ctx, target_w, target_h)
         end
 
         self.mdwidget:setText(tttext)
+        if not self.note_editor then
+            -- Avoid setting every frame if note editor is open cause it will prevent resizing from the left
+            ImGui.SetNextWindowPos(ctx, tt_pos.x, tt_pos.y)
+        end
 
         ImGui.SetNextWindowBgAlpha(ctx, 1)
-        ImGui.SetNextWindowPos(ctx, tt_pos.x, tt_pos.y)
 
-        local tooltip_flags = ImGui.WindowFlags_NoFocusOnAppearing | ImGui.WindowFlags_NoTitleBar | ImGui.WindowFlags_TopMost | ImGui.WindowFlags_NoSavedSettings | ImGui.WindowFlags_NoScrollbar
+        local tooltip_flags = ImGui.WindowFlags_NoFocusOnAppearing |
+            ImGui.WindowFlags_NoTitleBar |
+            ImGui.WindowFlags_TopMost |
+            ImGui.WindowFlags_NoSavedSettings |
+            ImGui.WindowFlags_NoScrollbar
 
         if ImGui.Begin(ctx, "Reannotate Notes (Tooltip)##" .. self.rand, true, tooltip_flags) then
             local cur_x, cur_y  = ImGui.GetWindowPos(ctx)
-            local cur_w, cur_h  = ImGui.GetWindowSize(ctx)
             local draw_list     = ImGui.GetWindowDrawList(ctx)
+            local cur_w, cur_h  = ImGui.GetWindowSize(ctx)
 
             self.mdwidget:render(ctx)
 
@@ -712,6 +746,7 @@ function QuickPreviewOverlay:drawTooltip()
 
                 thing_to_tooltip.notes:setSlotText(slot_to_tooltip, tttext)
                 thing_to_tooltip.notes:commit()
+                thing_to_tooltip.cache.posters = nil
             end
 
             -- Border. Tooltip is shown when edited or hoevered
@@ -767,7 +802,7 @@ function QuickPreviewOverlay:draw()
     local mx, my   = reaper.GetMousePosition()
     mx, my = ImGui.PointConvertNative(ctx, mx, my)
 
----@diagnostic disable-next-line: redundant-parameter
+    ---@diagnostic disable-next-line: redundant-parameter
     ImGui.PushFont(ctx, app_ctx.arial_font, 12)
 
     self.draw_count = self.draw_count or 0

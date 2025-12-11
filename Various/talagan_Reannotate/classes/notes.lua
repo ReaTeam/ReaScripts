@@ -7,6 +7,7 @@ local JSON              = require "ext/json"
 local CheckboxHelper    = require "modules/checkbox_helper"
 local Sticker           = require "classes/sticker"
 local D                 = require "modules/defines"
+local PS                = require "modules/project_settings"
 
 local function normalizeNotes(str)
     return str:gsub("\r","")
@@ -23,6 +24,7 @@ local function normalizeReannotateData(data)
     if not data.slots       then data.slots         = {} end
     if not data.stickers    then data.stickers      = {} end
     if not data.cb          then data.cb            = {} end
+    if not data.posters     then data.posters       = {} end
 
     for i=1, D.MAX_SLOTS-1 do
         data.slots[i]       = data.slots[i] or "" -- Stored text
@@ -31,6 +33,9 @@ local function normalizeReannotateData(data)
         data.tt_sizes[i].h  = normalizeCoordinate(data.tt_sizes[i].h, D.TT_DEFAULT_H)
         data.stickers[i]    = data.stickers[i] or {} -- List or empty list of packed stickers
         data.cb[i]          = data.cb[i] or {} -- Checkbox cache
+        data.posters[i]     = data.posters[i] or {}
+        data.posters[i].t   = data.posters[i].t or D.POSTER_TYPES.PROJECT_DEFAULT
+        data.posters[i].s   = data.posters[i].s or ""
     end
 
     -- Special treatment for slot 0
@@ -39,14 +44,23 @@ local function normalizeReannotateData(data)
     data.sws_reaper_tt_size.h   = normalizeCoordinate(data.sws_reaper_tt_size.h, D.TT_DEFAULT_H)
     data.sws_reaper_stickers    = data.sws_reaper_stickers or {}
     data.sr_cb                  = data.sr_cb or {}
+    data.sws_reaper_poster      = data.sws_reaper_poster or {}
+    data.sws_reaper_poster.t    = data.sws_reaper_poster.t or D.POSTER_TYPES.PROJECT_DEFAULT
+    data.sws_reaper_poster.s    = data.sws_reaper_poster.s or ""
     -- data.sws_reaper_text <-- stored in reaper / SWS
-
     return data
 end
 
 local function AttributeGetterSetter(object)
     local getter = nil
-    if reaper.ValidatePtr(object, "MediaTrack*") then
+    if type(object) == 'table' then
+        if object.t == 'region' then
+            -- We'll store on the master track with a different ke
+            getter = reaper.GetSetMediaTrackInfo_String
+        else
+            error("Unhandled custom type " .. object.t .. " for object ")
+        end
+    elseif reaper.ValidatePtr(object, "MediaTrack*") then
         getter = reaper.GetSetMediaTrackInfo_String
     elseif reaper.ValidatePtr(object, "TrackEnvelope*") then
         getter = reaper.GetSetEnvelopeInfo_String
@@ -62,7 +76,13 @@ local function AttributeGetterSetter(object)
 end
 
 local function StoreKey(object)
-    if reaper.ValidatePtr(object, "ReaProject*") then
+    if type(object) == 'table' then
+        if object.t == 'region' then
+            return "P_EXT:Reannotate_RegionNotes:" .. object.guid
+        else
+            error("Unhandled custom type " .. object.t .. " for object ")
+        end
+    elseif reaper.ValidatePtr(object, "ReaProject*") then
         return "P_EXT:Reannotate_ProjectNotes"
     else
         return "P_EXT:Reannotate_Notes"
@@ -70,7 +90,13 @@ local function StoreKey(object)
 end
 
 local function StoreObject(object)
-    if reaper.ValidatePtr(object, "ReaProject*") then
+    if type(object) == 'table' then
+        if object.t == 'region' then
+            return reaper.GetMasterTrack(D.ActiveProject())
+        else
+            error("Unhandled custom type " .. object.t .. " for object ")
+        end
+    elseif reaper.ValidatePtr(object, "ReaProject*") then
         return reaper.GetMasterTrack(D.ActiveProject())
     else
         return object
@@ -109,12 +135,14 @@ local function SetObjectNotes_Reannotate(object, data)
         -- SWS/Reaper additional
         sws_reaper_tt_size  = data.sws_reaper_tt_size,
         sr_cb               = data.sr_cb,
+        sws_reaper_stickers = {},
+        sws_reaper_poster   = D.deepCopy(data.sws_reaper_poster),
         -- Reannotate structures
         tt_sizes            = data.tt_sizes,
         slots               = data.slots,
         cb                  = data.cb,
         stickers            = {},
-        sws_reaper_stickers = {}
+        posters             = D.deepCopy(data.posters)
     }
 
     -- Serialize stickers
@@ -123,6 +151,7 @@ local function SetObjectNotes_Reannotate(object, data)
     end
     new_data.sws_reaper_stickers = Sticker.PackCollection(data.sws_reaper_stickers)
 
+    -- Normalize before packing
     new_data  = normalizeReannotateData(new_data)
 
     local data_str      = JSON.encode(new_data)
@@ -187,9 +216,28 @@ local function SetActiveProjectNotes_SWS_Reaper(str)
     return reaper.GetSetProjectNotes(project, true, notes)
 end
 
+-------------
+-- REGION --
+-------------
+
+local function GetRegionNotes_SWS_Reaper(object)
+    -- Not handled by SWS
+    return true, ""
+end
+local function SetRegionNotes_SWS_Reaper(object, str)
+    -- Not handled by SWS
+    return true, ""
+end
+
 local function GetObjectNotes_SWS_Reaper(notes)
     local object = notes._object
-    if reaper.ValidatePtr(object, "MediaTrack*") then
+    if type(object) == 'table' then
+        if object.t == 'region' then
+            return GetRegionNotes_SWS_Reaper(object)
+        else
+            error("Unhandled custom type " .. object.t .. " for object ")
+        end
+    elseif reaper.ValidatePtr(object, "MediaTrack*") then
         return GetTrackNotes_SWS_Reaper(object)
     elseif reaper.ValidatePtr(object, "TrackEnvelope*") then
         return GetEnvelopeNotes_SWS_Reaper(object)
@@ -203,7 +251,13 @@ local function GetObjectNotes_SWS_Reaper(notes)
 end
 
 local function SetObjectNotes_SWS_Reaper(object, str)
-    if reaper.ValidatePtr(object, "MediaTrack*") then
+    if type(object) == 'table' then
+        if object.t == 'region' then
+            return SetRegionNotes_SWS_Reaper(object, str)
+        else
+            error("Unhandled custom type " .. object.t .. " for object ")
+        end
+    elseif reaper.ValidatePtr(object, "MediaTrack*") then
         return SetTrackNotes_SWS_Reaper(object, str)
     elseif reaper.ValidatePtr(object,"TrackEnvelope*") then
         return SetEnvelopeNotes_SWS_Reaper(object, str)
@@ -248,14 +302,47 @@ function Notes:commit()
     SetObjectNotes_SWS_Reaper(self._object, self.sws_reaper_notes)
 end
 
-function Notes:isSlotBlank(slot)
+function Notes:isSlotNoteBlank(slot)
     if slot == 0 then
         if self.sws_reaper_notes and self.sws_reaper_notes ~= "" then return false end
-        if #self.reannotate_notes.sws_reaper_stickers > 0 then return false end
     else
         if self.reannotate_notes.slots[slot] and self.reannotate_notes.slots[slot] ~= '' then return false end
+    end
+    return true
+end
+
+function Notes:isSlotStickersBlank(slot)
+    if slot == 0 then
+        if #self.reannotate_notes.sws_reaper_stickers > 0 then return false end
+    else
         if #self.reannotate_notes.stickers[slot] > 0 then return false end
     end
+    return true
+end
+
+function Notes:isSlotPosterBlank(slot)
+    local type = self:resolvedSlotPosterType(slot)
+    if type == D.POSTER_TYPES.NO_POSTER then
+        return true
+    elseif type == D.POSTER_TYPES.CUSTOM_PLAIN_POSTER or type == D.POSTER_TYPES.CUSTOM_MARKDOWN_POSTER then
+        -- If in custom mode, check custom poster
+        if slot == 0 then
+            if self.reannotate_notes.sws_reaper_poster and self.reannotate_notes.sws_reaper_poster.s ~= "" then return false end
+        else
+            if self.reannotate_notes.posters[slot] and self.reannotate_notes.posters[slot].s ~= '' then return false end
+        end
+        return true
+    else
+        -- If not in custom mode, check note
+        return self:isSlotNoteBlank(slot)
+    end
+end
+
+function Notes:isSlotBlank(slot)
+    if not self:isSlotNoteBlank(slot) then return false end
+    if not self:isSlotStickersBlank(slot) then return false end
+    if not self:isSlotPosterBlank(slot) then return false end
+
     return true
 end
 
@@ -306,6 +393,54 @@ function Notes:setSlotText(slot, str)
         self.reannotate_notes.cb[slot] = counts
     end
 end
+
+function Notes:resolvedSlotPosterType(slot)
+    local type = self:slotPosterType(slot)
+    if type == D.POSTER_TYPES.PROJECT_DEFAULT then
+        return PS.ProjectPosterDefaultType()
+    end
+    return type
+end
+
+function Notes:slotCustomPoster(slot)
+    if slot == 0 then
+        self.reannotate_notes.sws_reaper_poster      = self.reannotate_notes.sws_reaper_poster or { t = D.POSTER_TYPES.PROJECT_DEFAULT, s = '' }
+        return self.reannotate_notes.sws_reaper_poster.s
+    else
+        self.reannotate_notes.posters[slot]     = self.reannotate_notes.posters[slot] or { t = D.POSTER_TYPES.PROJECT_DEFAULT, s = '' }
+        return self.reannotate_notes.posters[slot].s
+    end
+end
+function Notes:setSlotCustomPoster(slot, str)
+    if slot == 0 then
+        self.reannotate_notes.sws_reaper_poster      = self.reannotate_notes.sws_reaper_poster or { t = D.POSTER_TYPES.PROJECT_DEFAULT, s = '' }
+        self.reannotate_notes.sws_reaper_poster.s    = str
+    else
+        self.reannotate_notes.posters[slot]     = self.reannotate_notes.posters[slot] or { t = D.POSTER_TYPES.PROJECT_DEFAULT, s = '' }
+        self.reannotate_notes.posters[slot].s   = str
+    end
+end
+
+
+function Notes:slotPosterType(slot)
+    if slot == 0 then
+        self.reannotate_notes.sws_reaper_poster      = self.reannotate_notes.sws_reaper_poster or { t = D.POSTER_TYPES.PROJECT_DEFAULT, s = '' }
+        return self.reannotate_notes.sws_reaper_poster.t
+    else
+        self.reannotate_notes.posters[slot]     = self.reannotate_notes.posters[slot] or { t = D.POSTER_TYPES.PROJECT_DEFAULT, s = '' }
+        return self.reannotate_notes.posters[slot].t
+    end
+end
+function Notes:setSlotPosterType(slot, type)
+    if slot == 0 then
+        self.reannotate_notes.sws_reaper_poster      = self.reannotate_notes.sws_reaper_poster or { t = D.POSTER_TYPES.PROJECT_DEFAULT, s = '' }
+        self.reannotate_notes.sws_reaper_poster.t    = type
+    else
+        self.reannotate_notes.posters[slot]     = self.reannotate_notes.posters[slot] or { t = D.POSTER_TYPES.PROJECT_DEFAULT, s = '' }
+        self.reannotate_notes.posters[slot].t   = type
+    end
+end
+
 
 function Notes:slotStickers(slot)
     if slot == 0 then
