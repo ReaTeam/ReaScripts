@@ -61,8 +61,7 @@ function ReaImGuiMd:_initialize(ctx, id, options, partial_style)
     self.id         = id
     self.options    = { wrap = true, horizontal_scrollbar = true , width = 0, height = 0, additional_window_flags = 0 }
     self.style      = deepCopy(ImGuiMdCore.DEFAULT_STYLE)
-    self.text       = ""
-    self.ast        = {}
+    self:setText("")
 
     self:setPartialStyle(partial_style)
     self:setOptions(options)
