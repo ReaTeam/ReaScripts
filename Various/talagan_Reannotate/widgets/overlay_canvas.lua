@@ -294,11 +294,12 @@ function OverlayCanvas:renderThingSlotPoster(thing, slot, ctx, draw_list, x1, x2
                 local tttext    = (use_note_text and thing.notes:slotText(slot) or thing.notes:slotCustomPoster(slot)) or ''
                 cache.plain = ImGuiMdText.ASTToPlainText( ImGuiMdAst(tttext), {newlines=true})
             end
-            ImGui.Text(ctx, cache.plain)
+            ImGui.TextWrapped(ctx, cache.plain)
+            --ImGui.Text(ctx, cache.plain)
         else
             if not cache.mdwidget then
                 local tttext    = (use_note_text and thing.notes:slotText(slot) or thing.notes:slotCustomPoster(slot)) or ''
-                cache.mdwidget = ImGuiMd:new(ctx, "thing_md_widget_" .. thing.rand .. "_" .. slot, {wrap = false, skip_last_whitespace = true, autopad = true, additional_window_flags = ImGui.WindowFlags_NoSavedSettings | ImGui.WindowFlags_NoFocusOnAppearing | ImGui.WindowFlags_NoInputs | ImGui.WindowFlags_NoScrollbar }, PS.RetrieveProjectMarkdownStyle() )
+                cache.mdwidget = ImGuiMd:new(ctx, "thing_md_widget_" .. thing.rand .. "_" .. slot, {wrap = true, skip_last_whitespace = true, autopad = true, additional_window_flags = ImGui.WindowFlags_NoSavedSettings | ImGui.WindowFlags_NoFocusOnAppearing | ImGui.WindowFlags_NoInputs | ImGui.WindowFlags_NoScrollbar }, PS.RetrieveProjectMarkdownStyle() )
                 cache.mdwidget:setText(tttext)
             end
             cache.mdwidget:render(ctx)
@@ -328,10 +329,6 @@ function OverlayCanvas:renderThingSlotStickers(thing, slot, ctx, x1, x2, y1, y2)
             end
         end
 
-        local num_on_line = 0
-        local cursor_x, cursor_y = x2 - hmargin, y1 + vmargin -- Align top right
-
-        ImGui.SetCursorScreenPos(ctx, x1, y1)
         local window_flags =  ImGui.WindowFlags_NoBackground |
             ImGui.WindowFlags_NoScrollbar |
             ImGui.WindowFlags_NoDecoration |
@@ -342,28 +339,37 @@ function OverlayCanvas:renderThingSlotStickers(thing, slot, ctx, x1, x2, y1, y2)
             ImGui.WindowFlags_NoMove
 
         -- Use a child for receiving all stickers, this will allow clipping and using standard ImGui directives
+        -- Make the child overlap the thing
+        ImGui.SetCursorScreenPos(ctx, x1, y1)
         if ImGui.BeginChild(ctx, "stickers_for_thing_" .. thing.rand .. "_" .. slot, x2-x1, y2-y1, ImGui.ChildFlags_None, window_flags) then
+            -- Initialize the cursor
             ImGui.SetCursorPos(ctx, 0, 0)
+            -- Clip the subzone
             local draw_list = ImGui.GetWindowDrawList(ctx)
             ImGui.DrawList_PushClipRect(draw_list, x1 + 3, y1 + 3, x2 + 3, y2 - 3)
+
+            local bottom_to_top_mode = PS.ProjectStickerPositioning() == D.STICKER_POSITIONINGS.BOTTOM_RIGHT
+            local num_on_line        = 0
+            local cursor_x, cursor_y = x2 - hmargin, (bottom_to_top_mode) and (y2 - vmargin) or (y1 + vmargin)  -- Align bottom right
+
             for _, sticker in ipairs(slot_stickers) do
                 local metrics = sticker:PreRender(ctx, font_size)
 
                 local available_width = cursor_x - (x1 + hmargin)
                 if num_on_line ~= 0 and (available_width < metrics.width) then
                     cursor_x = x2 - hmargin
-                    cursor_y = cursor_y + metrics.height + vpad
+                    cursor_y = (bottom_to_top_mode) and (cursor_y - metrics.height - vpad) or (cursor_y + metrics.height + vpad)
                     num_on_line = 0
                 end
 
-                sticker:Render(ctx, metrics, cursor_x - metrics.width, cursor_y)
+                sticker:Render(ctx, metrics, cursor_x - metrics.width, (bottom_to_top_mode) and (cursor_y - metrics.height) or (cursor_y))
                 cursor_x = cursor_x - metrics.width - hpad
                 num_on_line = num_on_line + 1
             end
-            -- Force ImGui to extend bounds
-            ImGui.DrawList_PopClipRect(draw_list)
-            ImGui.Dummy(ctx,0,0)
 
+            ImGui.DrawList_PopClipRect(draw_list)
+            -- Force ImGui to extend bounds
+            ImGui.Dummy(ctx,0,0)
             ImGui.EndChild(ctx)
         end
     end
@@ -582,8 +588,6 @@ function OverlayCanvas:draw()
 
     if succ then
 
-        local draw_list      = ImGui.GetWindowDrawList(ctx)
-
         if self.grab_focus then
             ImGui.SetWindowFocus(ctx)
             self.grab_focus = false
@@ -605,6 +609,7 @@ function OverlayCanvas:draw()
             self:drawQuickSettings()
         end
 
+        -- Check for hovered thing
         for _, thing in ipairs(visible_things) do
             if self:thingBelongsToThisCanvas(thing) then
                 local x1        = thing.pos_x + thing.parent.x

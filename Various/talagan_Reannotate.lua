@@ -1,6 +1,6 @@
 --[[
 @description Reannotate - Annotation tool for REAPER
-@version 0.4.4
+@version 0.4.6
 @author Ben 'Talagan' Babut
 @donation https://www.paypal.com/donate/?business=3YEZMY9D6U8NC&no_recurring=1&currency_code=EUR
 @license MIT
@@ -10,10 +10,9 @@
   Forum Thread https://forum.cockos.com/showthread.php?t=304147
 @metapackage
 @changelog
-  - [Feature] Posters
-  - [Feature] Can now add annotations to regions
-  - [Feature] Progress bar sticker
-  - [Bug fixes] Various bug fixes
+  - [Feature] Stickers can be positioned top or bottom
+  - [Bug Fix] Markdown is now wrapped in posters
+  - [Bug Fix] Plain text is now wrapped in posters
 @provides
   [nomain] talagan_Reannotate/ext/**/*
   [nomain] talagan_Reannotate/classes/**/*
