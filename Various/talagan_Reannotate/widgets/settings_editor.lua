@@ -374,16 +374,32 @@ function SettingsEditor:stickersTable()
     ImGui.BeginGroup(ctx)
     ImGui.Selectable(ctx, "New Project", true, 0, WIDGET_WIDTH + (self.preview_new_proj_markdown and PREVIEW_WIDTH + 4 or 0))
 
+    ImGui.BeginGroup(ctx)
     ImGui.AlignTextToFramePadding(ctx)
     ImGui.Text(ctx,"Size")
     ImGui.SameLine(ctx)
 
     local sticker_size =  S.getSetting("NewProjectStickerSize")
-
-    local b, v = ImGui.SliderInt(ctx, "##font_size", sticker_size, 8, 20)
+    local b, v = ImGui.SliderInt(ctx, "##sticker_size", sticker_size, 8, 20)
     if b then
         S.setSetting("NewProjectStickerSize", v)
     end
+
+    ImGui.AlignTextToFramePadding(ctx)
+    ImGui.Text(ctx,"Positioning")
+    ImGui.SameLine(ctx)
+    local cur_val     = S.getSetting("NewProjectStickerPositioning")
+    local combo_info  = D.StickerPositiongComboInfo()
+    if ImGui.BeginCombo(ctx, "##sticker_positioning_combo", D.StickerPositioningToName(cur_val) , ImGui.ComboFlags_None | ImGui.ComboFlags_WidthFitPreview) then
+      for _, v in ipairs(combo_info.list) do
+        local real_val = combo_info.reverse_lookup[v]
+        if ImGui.Selectable(ctx, v, cur_val == real_val) then
+            S.setSetting("NewProjectStickerPositioning", real_val)
+        end
+      end
+      ImGui.EndCombo(ctx)
+    end
+    ImGui.EndGroup(ctx)
 
     if self.preview_new_proj_markdown then
         ImGui.SameLine(ctx)
@@ -429,12 +445,31 @@ function SettingsEditor:stickersTable()
     end
 
     ImGui.SetCursorPosX(ctx, xalign + (self.preview_cur_proj_markdown and PREVIEW_WIDTH + 4 or 0))
+
+    ImGui.BeginGroup(ctx)
     ImGui.Text(ctx,"Size")
     ImGui.SameLine(ctx)
-    local b, v = ImGui.SliderInt(ctx, "##font_size", sticker_size, 8, 20)
+    local b, v = ImGui.SliderInt(ctx, "##sticker_size", sticker_size, 8, 20)
     if b then
        PS.CommitProjectStickerSize(v)
     end
+
+    ImGui.AlignTextToFramePadding(ctx)
+    ImGui.Text(ctx,"Positioning")
+    ImGui.SameLine(ctx)
+    local cur_val     = PS.RetrieveProjectStickerPositioning()
+    local combo_info  = D.StickerPositiongComboInfo()
+    if ImGui.BeginCombo(ctx, "##sticker_positioning_combo", D.StickerPositioningToName(cur_val) , ImGui.ComboFlags_None | ImGui.ComboFlags_WidthFitPreview) then
+      for _, v in ipairs(combo_info.list) do
+        local real_val = combo_info.reverse_lookup[v]
+        if ImGui.Selectable(ctx, v, cur_val == real_val) then
+            PS.SetProjectStickerPositioning(real_val)
+        end
+      end
+      ImGui.EndCombo(ctx)
+    end
+
+    ImGui.EndGroup(ctx)
 
     ImGui.EndGroup(ctx)
     ImGui.PopID(ctx)

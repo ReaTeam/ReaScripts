@@ -28,7 +28,8 @@ local DefaultMarkdownStyle = {
     separator   = { padding_top = 3, padding_bottom = 7 }
 }
 
-local DefaultPosterType = D.POSTER_TYPES.NOTE_RENDERERED_AS_PLAIN_POSTER
+local DefaultPosterType         = D.POSTER_TYPES.NOTE_RENDERERED_AS_PLAIN_POSTER
+local DefaultStickerPositioning = D.STICKER_POSITIONINGS.BOTTOM_RIGHT
 
 local SettingDefs = {
   UseDebugger               = { type = "bool",    default = false },
@@ -47,7 +48,8 @@ local SettingDefs = {
   UIFontSize                  = { type = "int",  default = 12 },
   NewProjectMarkdown          = { type = "json", default = DefaultMarkdownStyle },
   NewProjectStickerSize       = { type = "int",  default = 12 },
-  NewProjectPosterDefaultType = { type = "int",  default = DefaultPosterType }
+  NewProjectPosterDefaultType = { type = "int",  default = DefaultPosterType },
+  NewProjectStickerPositioning = { type = "int", default = DefaultStickerPositioning }
 };
 
 local function unsafestr(str)

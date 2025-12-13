@@ -16,6 +16,8 @@ PS.slot_labels_dirty = nil
 
 PS.poster_default_type = nil
 
+-- ====== STYLES ======
+
 -- Not edited directly because we want preview / save features.
 function PS.RetrieveProjectMarkdownStyle()
     local _, str            = reaper.GetSetMediaTrackInfo_String(D.ActiveProjectMasterTrack(), "P_EXT:Reannotate_ProjectMarkdownStyle", "", false)
@@ -55,66 +57,7 @@ function PS.CommitProjectMarkdownStyle(markdown_style)
     reaper.GetSetMediaTrackInfo_String(D.ActiveProjectMasterTrack(),"P_EXT:Reannotate_ProjectMarkdownStyle", str, true)
 end
 
-
-
-function PS.RetrieveProjectStickerSize()
-    local _, str =  reaper.GetSetMediaTrackInfo_String(D.ActiveProjectMasterTrack(), "P_EXT:Reannotate_ProjectStickerSize", "", false)
-    local fallback = false
-    local size = nil
-    if str == "" or str == nil then
-        fallback = true
-    else
-        size = tonumber(str)
-    end
-
-    if fallback then
-        size = S.getSetting("NewProjectStickerSize")
-        PS.CommitProjectStickerSize(size)
-    end
-
-    return size
-end
-
-function PS.CommitProjectStickerSize(size)
-    reaper.GetSetMediaTrackInfo_String(D.ActiveProjectMasterTrack(),"P_EXT:Reannotate_ProjectStickerSize", "" .. size, true)
-end
-
-
-function PS.RetrieveProjectPosterDefaultType()
-    local _, str =  reaper.GetSetMediaTrackInfo_String(D.ActiveProjectMasterTrack(), "P_EXT:Reannotate_PosterDefaultType", "", false)
-    local fallback = false
-    local type = nil
-    if str == "" or str == nil then
-        fallback = true
-    else
-        type = tonumber(str)
-    end
-
-    if fallback then
-        type = S.getSetting("NewProjectPosterDefaultType")
-        PS.CommitProjectPosterDefaultType(type)
-    end
-
-    return type
-end
-
-function PS.CommitProjectPosterDefaultType(type)
-    reaper.GetSetMediaTrackInfo_String(D.ActiveProjectMasterTrack(),"P_EXT:Reannotate_PosterDefaultType", "" .. type, true)
-end
-
-function PS.ProjectPosterDefaultType()
-    if not PS.poster_default_type then
-        PS.poster_default_type = PS.RetrieveProjectPosterDefaultType()
-    end
-    return PS.poster_default_type
-end
-
-function PS.SetProjectPosterDefaultType(type)
-    PS.poster_default_type = type
-    PS.CommitProjectPosterDefaultType(type)
-end
-
-
+-- ====== LABELS ======
 
 function PS.RetrieveProjectSlotLabels()
     local _, str = reaper.GetSetMediaTrackInfo_String(D.ActiveProjectMasterTrack(), "P_EXT:Reannotate_ProjectSlotLabels", "", false)
@@ -140,19 +83,84 @@ function PS.CommitProjectSlotLabels()
     reaper.GetSetMediaTrackInfo_String(D.ActiveProjectMasterTrack(), "P_EXT:Reannotate_ProjectSlotLabels", str, true)
     PS.slot_labels_dirty = false
 end
-
-
-
 function PS.SlotLabel(slot)
     if not PS.slot_labels then PS.RetrieveProjectSlotLabels() end
     return PS.slot_labels[slot+1]
 end
-
 function PS.SetSlotLabel(slot, label)
     if not PS.slot_labels then PS.RetrieveProjectSlotLabels() end
     PS.slot_labels[slot+1] = label
     PS.slot_labels_dirty = true
     PS.CommitProjectSlotLabels()
 end
+
+
+
+function PS.CommitProjectSetting(project_key, value)
+    reaper.GetSetMediaTrackInfo_String(D.ActiveProjectMasterTrack(),"P_EXT:" .. project_key, "" .. value, true)
+end
+function PS.RetrieveProjectSettingWithFallback(project_key, global_setting_key)
+    local _, str    =  reaper.GetSetMediaTrackInfo_String(D.ActiveProjectMasterTrack(), "P_EXT:" .. project_key, "", false)
+    local fallback  = false
+    local value     = nil
+    if str == "" or str == nil then
+        fallback = true
+    else
+        value = tonumber(str)
+    end
+
+    if fallback then
+        value = S.getSetting(global_setting_key)
+        PS.CommitProjectSetting(project_key, value)
+    end
+
+    return value
+end
+
+
+function PS.RetrieveProjectStickerSize()
+    return PS.RetrieveProjectSettingWithFallback("Reannotate_ProjectStickerSize","NewProjectStickerSize")
+end
+function PS.CommitProjectStickerSize(size)
+    PS.CommitProjectSetting("Reannotate_ProjectStickerSize", size)
+end
+
+
+function PS.RetrieveProjectPosterDefaultType()
+    return PS.RetrieveProjectSettingWithFallback("Reannotate_PosterDefaultType", "NewProjectPosterDefaultType")
+end
+function PS.CommitProjectPosterDefaultType(type)
+    PS.CommitProjectSetting("Reannotate_PosterDefaultType", type)
+end
+function PS.ProjectPosterDefaultType()
+    if not PS.poster_default_type then
+        PS.poster_default_type = PS.RetrieveProjectPosterDefaultType()
+    end
+    return PS.poster_default_type
+end
+function PS.SetProjectPosterDefaultType(type)
+    PS.poster_default_type = type
+    PS.CommitProjectPosterDefaultType(type)
+end
+
+
+function PS.RetrieveProjectStickerPositioning()
+    return PS.RetrieveProjectSettingWithFallback("Reannotate_StickerPositioning", "NewProjectStickerPositioning")
+end
+function PS.CommitProjectStickerPositioning(val)
+    PS.CommitProjectSetting("Reannotate_StickerPositioning", val)
+end
+function PS.ProjectStickerPositioning()
+    if not PS.sticker_positioning then
+        PS.sticker_positioning = PS.RetrieveProjectStickerPositioning()
+    end
+    return PS.sticker_positioning
+end
+function PS.SetProjectStickerPositioning(val)
+    PS.sticker_positioning = val
+    PS.CommitProjectStickerPositioning(val)
+end
+
+
 
 return PS

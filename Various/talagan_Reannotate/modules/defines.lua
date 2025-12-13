@@ -41,6 +41,13 @@ Defines.POSTER_TYPES = {
     POSTER_TYPE_COUNT                   = 6
 }
 
+Defines.STICKER_POSITIONINGS = {
+    TOP_RIGHT = 0,
+    BOTTOM_RIGHT = 1,
+
+    POSITIONING_COUNT = 2
+}
+
 function Defines.deepCopy(orig)
     local orig_type = type(orig)
     local copy
@@ -125,7 +132,7 @@ function Defines.PosterTypeToName(type, default_type)
     if type == Defines.POSTER_TYPES.NOTE_RENDERERED_AS_PLAIN_POSTER     then return "Note as plain" end
     if type == Defines.POSTER_TYPES.NOTE_RENDERERED_AS_MARKDOWN_POSTER  then return "Note as markdown" end
 
-    error("DEVELOPER ERROR : Unknown post type" .. type)
+    error("DEVELOPER ERROR : Unknown poster type " .. type)
 end
 
 function Defines.PosterTypeComboInfo(default_type)
@@ -134,6 +141,24 @@ function Defines.PosterTypeComboInfo(default_type)
     local ret = { list = {} , reverse_lookup = {} }
     for i=start, Defines.POSTER_TYPES.POSTER_TYPE_COUNT-1 do
         local s = Defines.PosterTypeToName(i, default_type)
+        ret.list[#ret.list+1] = s
+        ret.reverse_lookup[s] = i
+    end
+    return ret
+end
+
+
+
+function Defines.StickerPositioningToName(val)
+    if val == Defines.STICKER_POSITIONINGS.TOP_RIGHT then return "Top Right" end
+    if val == Defines.STICKER_POSITIONINGS.BOTTOM_RIGHT then return "Bottom Right" end
+    error("DEVELOPER ERROR : Unknown positioning type" .. val)
+end
+function Defines.StickerPositiongComboInfo()
+    local start = 0
+    local ret = { list = {} , reverse_lookup = {} }
+    for i=start, Defines.STICKER_POSITIONINGS.POSITIONING_COUNT-1 do
+        local s = Defines.StickerPositioningToName(i)
         ret.list[#ret.list+1] = s
         ret.reverse_lookup[s] = i
     end
