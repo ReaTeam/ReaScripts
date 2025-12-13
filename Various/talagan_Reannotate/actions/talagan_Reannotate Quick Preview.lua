@@ -27,7 +27,7 @@ local QuickPreviewOverlay = require "widgets/quick_preview_overlay"
 local S                   = require "modules/settings"
 local D                   = require "modules/debug"
 
-S.setSetting("UseDebugger", true)
+S.setSetting("UseDebugger", false)
 S.setSetting("UseProfiler", false)
 D.LaunchDebugStubIfNeeded()
 D.LaunchProfilerIfNeeded()
