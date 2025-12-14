@@ -11,6 +11,7 @@
 @metapackage
 @changelog
   - [Feature] Stickers can be positioned top or bottom
+  - [Bug Fix] Last Region interfering with project notes
   - [Bug Fix] Markdown is now wrapped in posters
   - [Bug Fix] Plain text is now wrapped in posters
 @provides

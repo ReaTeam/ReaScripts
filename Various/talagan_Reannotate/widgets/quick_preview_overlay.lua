@@ -100,7 +100,6 @@ function QuickPreviewOverlay:buildEditContextForThing(object, track_num, parent_
     return {
         -- Basic info
         object      = object,
-        type        = type,
         -- Parent info
         parent      = parent,
         widget      = parent_widget_name,
@@ -390,7 +389,7 @@ function QuickPreviewOverlay:updateVisibleThings()
                 local clamped_left, clamped_right, clamped_top, clamped_bottom = false, false, false, false
                 pos_x_pixels, pos_y_pixels, len_x_pixels, len_y_pixels, clamped_left, clamped_right, clamped_top, clamped_bottom = block_clamp(pos_x_pixels, pos_y_pixels, len_x_pixels, len_y_pixels, app_ctx.time_ruler.w, app_ctx.time_ruler.h, 0, 0)
 
-                local _, region_guid = reaper.GetSetProjectInfo_String( 0, "MARKER_GUID:" .. markrgnindexnumber, "", false )
+                local _, region_guid = reaper.GetSetProjectInfo_String( 0, "MARKER_GUID:" .. idx, "", false )
 
                 local region_entry = self:buildEditContextForThing({t="region", n = 'name', guid=region_guid}, -1, "time_ruler", pos_x_pixels, pos_y_pixels, len_x_pixels, len_y_pixels, clamped_left, clamped_right, clamped_top, clamped_bottom)
                 table.insert(self.visible_things, region_entry)
