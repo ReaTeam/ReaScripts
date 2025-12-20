@@ -25,7 +25,7 @@ function MemCache.GetObjectGUID(object)
   local guid = ''
   if type(object) == "table" then
     if object.t == 'region' then
-      return object.guid
+      guid = object.guid
     else
       error("Unhandled custom type " .. object.t .. " for object")
     end
