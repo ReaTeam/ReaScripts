@@ -208,6 +208,22 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
         end
     end
 
+    -- Pointer to the last node encountered
+    local last_node         = nil
+    local max_x             = nil
+    local max_y             = nil
+    local win_x, win_y      = ImGui.GetWindowPos(ctx)
+    local start_x, start_y  = win_x, win_y
+
+    -- Helper function to track max dimensions
+    local function track_max_dimensions()
+        local imax_x, imax_y = ImGui.GetItemRectMax(ctx)
+        imax_x = imax_x - start_x
+        imax_y = imax_y - start_y
+        if not max_x or imax_x > max_x then max_x = imax_x end
+        if not max_y or imax_y > max_y then max_y = imax_y end
+    end
+
     local function draw_word (node, word)
         local x, y = ImGui.GetCursorScreenPos(ctx)
 
@@ -217,6 +233,9 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
 
         local color = base_txt_color
         ImGui.TextColored(ctx, color, word)
+
+        -- Track max dimensions after each word
+        track_max_dimensions()
 
         if in_link then
             if ImGui.IsItemHovered(ctx) then
@@ -503,13 +522,6 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
         ImGui.SetCursorPosX(ctx, ImGui.GetCursorPosX(ctx) + left_indent(node_style, level))
     end
 
-    -- Pointer to the last node encountered
-    local last_node         = nil
-    local max_x             = nil
-    local max_y             = nil
-    local win_x, win_y      = ImGui.GetWindowPos(ctx)
-    local start_x, start_y  = win_x, win_y
-
     local function render_node(node, level)
         level = level or 1 -- Default to level 1 if not provided
         if node.type == "Document" then
@@ -550,6 +562,9 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
             ImGui.PopStyleVar(ctx)
             ImGui.EndGroup(ctx)
 
+            -- Track after group
+            track_max_dimensions()
+
             -- Add some vertical padding after
             if not (rendered_last and skip_last_whitespace) then
                 ImGuiVDummy(ctx, nstyle.padding_bottom)
@@ -580,6 +595,9 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
             ImGui.PopStyleVar(ctx)
             ImGui.EndGroup(ctx)
 
+            -- Track after group
+            track_max_dimensions()
+
             -- Add some vertical padding after
             -- If we're in a blockquote, force symmetry
             if not (rendered_last and skip_last_whitespace) then
@@ -596,6 +614,7 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
         elseif node.type == "Separator" then
             ImGuiVDummy(ctx, style.separator.padding_top)
             ImGui.Separator(ctx)
+            track_max_dimensions()
 
             if not (rendered_last and skip_last_whitespace) then
                 ImGuiVDummy(ctx, style.separator.padding_bottom)
@@ -609,6 +628,7 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
 
                 push_style(node)
                 ImGui.TextColored(ctx, base_txt_color, node.value)
+                track_max_dimensions()
                 pop_style()
 
                 ImGui.SameLine(ctx)
@@ -639,6 +659,7 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
                 ImGui.Text(ctx, " ")
                 ImGui.SameLine(ctx)
                 ImGui.EndGroup(ctx)
+                track_max_dimensions()
                 ImGui.SameLine(ctx)
 
                 -- Since we used AstToPlainText, last_node detection is affected
@@ -688,6 +709,7 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
             ImGui.BeginGroup(ctx)
             render_children(node.children, level)
             ImGui.EndGroup(ctx)
+            track_max_dimensions()
 
             -- Avoid line return, the next list item will perform new line
             if level > 1 then
@@ -728,6 +750,7 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
                 render_node(child, level + 1)
             end
             ImGui.EndGroup(ctx)
+            track_max_dimensions()
             ImGui.PopStyleVar(ctx)
             pop_style()
 
@@ -758,6 +781,7 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
             pop_style()
             ImGui.PopStyleVar(ctx)
             ImGui.EndGroup(ctx)
+            track_max_dimensions()
 
             local x2, y2 = ImGui.GetCursorScreenPos(ctx)
             local draw_list = ImGui.GetWindowDrawList(ctx)
@@ -792,6 +816,7 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
             pop_style()
             ImGui.PopStyleVar(ctx)
             ImGui.EndGroup(ctx)
+            track_max_dimensions()
 
             if not (rendered_last and skip_last_whitespace) then
                 ImGuiVDummy(ctx, nstyle.padding_bottom)
@@ -803,6 +828,7 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
 
             push_style(node)
             ImGui.Text(ctx, "Images are not supported yet.")
+            track_max_dimensions()
             pop_style()
 
         elseif node.type == "Table" then
@@ -844,6 +870,7 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
                 ImGui.EndTable(ctx)
             end
             ImGui.EndGroup(ctx)
+            track_max_dimensions()
             pop_style()
 
             if not (rendered_last and skip_last_whitespace) then
@@ -867,6 +894,7 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
             ImGui.PopFont(ctx)
             pop_style()
             ImGui.EndGroup(ctx)
+            track_max_dimensions()
 
             if b then
                 local old_value = node.attributes.checked
@@ -888,12 +916,6 @@ local function ASTToImgui(ctx, ast, fonts, style, options)
         else
             error("Unhandle node type " .. node.type)
         end
-
-        local imax_x, imax_y = ImGui.GetItemRectMax(ctx)
-        imax_x = imax_x - start_x
-        imax_y = imax_y - start_y
-        if not max_x or imax_x > max_x then max_x = imax_x end
-        if not max_y or imax_y > max_y then max_y = imax_y end
 
         if (not rendered_last) and (last_node == node) then
             rendered_last = true
