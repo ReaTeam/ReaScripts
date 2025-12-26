@@ -1,9 +1,7 @@
 -- @description Perfect Timing! - Audio Quantizer
 -- @author 80icio
--- @version 0.30
--- @changelog
---   - Fixed incorrect edit window trigger line positions when pinned tracks are present
---   - Improved quantizing behavior
+-- @version 0.31
+-- @changelog - FIxed detection with 1 bar and 1/2 bar grid settings when analyzed items start is not on the grid
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=288964
 -- @about
 --   # PERFECT TIMING! 
@@ -1479,7 +1477,7 @@ end
 function Create_Grid_table()
     grid_dist = (srate*(Gtolerance_v/1000))
     
-    local blockline =first_sel_item_start
+    local blockline = first_sel_item_start
     _, storediv, storeswing, storeswingamt = r.GetSetProjectGrid(0, 0)
     local sr_sw_shift = storeswingamt*(1-abs(storediv-1))*(srate/2)
     
@@ -1488,14 +1486,25 @@ function Create_Grid_table()
     
     local h = 0
     local checkgridstart = r.TimeMap2_timeToQN( 0, first_sel_item_start )
-    
-    
-    if checkgridstart - floor(checkgridstart) == 0 then
-      blockline = first_sel_item_start 
-    else 
-      blockline =  r.TimeMap_QNToTime(floor(checkgridstart))
+
+    blockline =  r.TimeMap_QNToTime(floor(checkgridstart))
+
+    if Grid_mode == 0 then
+    local _, qnMeasureStart, _ = r.TimeMap_QNToMeasures( 0, checkgridstart )
+      blockline = r.TimeMap_QNToTime(qnMeasureStart)
     end
     
+    if Grid_mode == 1 then
+      local _, qnMeasureStart, qnMeasureEnd = r.TimeMap_QNToMeasures( 0, checkgridstart )
+      local checkhalfbar = checkgridstart >= ((qnMeasureEnd-qnMeasureStart)/2)+qnMeasureStart
+      if checkhalfbar then
+        blockline = r.TimeMap_QNToTime(((qnMeasureEnd-qnMeasureStart)/2)+qnMeasureStart)
+      else
+        blockline = r.TimeMap_QNToTime(qnMeasureStart)
+      end
+    end
+    
+
        while (blockline <= first_sel_item_end) do
     
             function beatc(beatpos)
@@ -1510,7 +1519,6 @@ function Create_Grid_table()
             h = h + 1
             
             Grid_blocks_Ruler[h] = floor(((blockline - first_sel_item_start)*srate))
-            ---msg(blockline)
             if fmod(blockline,0.5) == 0 then
             Grid_blocks_Ruler_thickness[h] = 2
             else
