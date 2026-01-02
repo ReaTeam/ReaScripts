@@ -1,7 +1,9 @@
 -- @description Perfect Timing! - Audio Quantizer
 -- @author 80icio
--- @version 0.31
--- @changelog - FIxed detection with 1 bar and 1/2 bar grid settings when analyzed items start is not on the grid
+-- @version 0.32
+-- @changelog
+--   - Improved grid drawing when using the internal Visualizer.
+--   - Fixed trigger line thickness to correctly correspond to quarter notes in the Edit window and the Visualizer.
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=288964
 -- @about
 --   # PERFECT TIMING! 
@@ -17,8 +19,7 @@
 --   * Multisized GUI
 --   * Works with fixed lanes
 
-
------------------------------vars vars vars!-----------------------------------
+------vars vars vars!-----------------------------------
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 local r = reaper
@@ -1475,6 +1476,14 @@ end
 ---------------------------------reduce by grid ----------------------
 
 function Create_Grid_table()
+
+    local function beatc(beatpos)
+       local retval, measures, cml, fullbeats, cdenom = r.TimeMap2_timeToBeats(0, beatpos)
+       local _, division, _, _ = r.GetSetProjectGrid(0,false)
+       beatpos = r.TimeMap2_beatsToTime(0, fullbeats +(division*2*(cdenom/4)))
+       return beatpos
+    end
+    
     grid_dist = (srate*(Gtolerance_v/1000))
     
     local blockline = first_sel_item_start
@@ -1504,22 +1513,15 @@ function Create_Grid_table()
       end
     end
     
-
        while (blockline <= first_sel_item_end) do
     
-            function beatc(beatpos)
-               local retval, measures, cml, fullbeats, cdenom = r.TimeMap2_timeToBeats(0, beatpos)
-               local _, division, _, _ = r.GetSetProjectGrid(0,false)
-               beatpos = r.TimeMap2_beatsToTime(0, fullbeats +(division*2*(cdenom/4)))
-               return beatpos
-            end
-            
             blockline = beatc(blockline)
-            
+            local blocklineQN = r.TimeMap2_timeToQN( 0, blockline )
             h = h + 1
             
             Grid_blocks_Ruler[h] = floor(((blockline - first_sel_item_start)*srate))
-            if fmod(blockline,0.5) == 0 then
+            
+            if abs(floor(blocklineQN)- blocklineQN)<1e-13 then
             Grid_blocks_Ruler_thickness[h] = 2
             else
             Grid_blocks_Ruler_thickness[h] = 1
@@ -1583,10 +1585,11 @@ end
 ----------------------------------------------------------------------------------
 function Trig_line_thickness(input)
 QN_lineTHICK = {}
-
       for i=1, #input, 2 do
-        local gridcheck =  fmod(r.TimeMap2_timeToQN(0,(input[i]/first_srate)+ first_sel_item_start),1)
-        if gridcheck <= (divis*2) then
+        local gridcheck =  r.TimeMap2_timeToQN(0,(input[i]/first_srate)+ first_sel_item_start)
+        gridcheck = abs(floor(gridcheck)-gridcheck)
+         
+        if (gridcheck <= (divis*2) or gridcheck >= 1-(divis*2)) and GridScan then
           QN_lineTHICK[i] = 2
         else
           QN_lineTHICK[i] = 1
