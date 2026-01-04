@@ -1,6 +1,6 @@
 -- @description Perfect Timing! - Audio Quantizer
 -- @author 80icio
--- @version 0.4
+-- @version 0.40
 -- @changelog
 --   - Improved transient detection with more accurate peak and RMS measurements, 
 --     DC offset correction, and smarter retrigger behavior
