@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="c93620b6e1ca93efb02df491bd417a90b4096f81" name="ReaTeam Scripts">
+<index version="1" commit="2d74482b4fb07810f62430ced73031414bd33196" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -5671,6 +5671,14 @@ BugFix
         <changelog><![CDATA[- Improved grid drawing when using the internal Visualizer.
 - Fixed trigger line thickness to correctly correspond to quarter notes in the Edit window and the Visualizer.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c93620b6e1ca93efb02df491bd417a90b4096f81/Items%20Editing/80icio_Perfect%20Timing!%20-%20Audio%20Quantizer.lua</source>
+      </version>
+      <version name="0.4" author="80icio" time="2026-01-04T10:55:45Z">
+        <changelog><![CDATA[- Improved transient detection with more accurate peak and RMS measurements, 
+  DC offset correction, and smarter retrigger behavior
+- Major speed improvements for filters (lowcut, hicut, transient, gain) - 
+  up to 2x faster processing
+- Fixed incorrect grid drawing in the internal visualizer]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/2d74482b4fb07810f62430ced73031414bd33196/Items%20Editing/80icio_Perfect%20Timing!%20-%20Audio%20Quantizer.lua</source>
       </version>
     </reapack>
     <reapack name="Add project markers as cue points to selected items and replace source files.lua" type="script" desc="amagalma_Add project markers as cue points to selected items and replace source files">
