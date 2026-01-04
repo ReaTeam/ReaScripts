@@ -1,9 +1,12 @@
 -- @description Perfect Timing! - Audio Quantizer
 -- @author 80icio
--- @version 0.32
+-- @version 0.4
 -- @changelog
---   - Improved grid drawing when using the internal Visualizer.
---   - Fixed trigger line thickness to correctly correspond to quarter notes in the Edit window and the Visualizer.
+--   - Improved transient detection with more accurate peak and RMS measurements, 
+--     DC offset correction, and smarter retrigger behavior
+--   - Major speed improvements for filters (lowcut, hicut, transient, gain) - 
+--     up to 2x faster processing
+--   - Fixed incorrect grid drawing in the internal visualizer
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=288964
 -- @about
 --   # PERFECT TIMING! 
@@ -18,6 +21,7 @@
 --   * Low CPU consumption
 --   * Multisized GUI
 --   * Works with fixed lanes
+
 
 ------vars vars vars!-----------------------------------
 -------------------------------------------------------------------------------
@@ -468,10 +472,6 @@ end
 
 function get_grid_from_proj()
    Dotted = (r.GetToggleCommandState(reaper.NamedCommandLookup('_SWS_AWTOGGLEDOTTED')))
-   --if divis == 4 then Grid_mode = 0; r.GetSetProjectGrid(0, true, 1/4, Swing_on, Swing_Slider) ; Triplets = false  end 
-   --if divis == 2 then Grid_mode = 0; r.GetSetProjectGrid(0, true, 1/4, Swing_on, Swing_Slider) ; Triplets = false  end
-   --if divis == 1 then Grid_mode = 0; r.GetSetProjectGrid(0, true, 1/4, Swing_on, Swing_Slider) ; Triplets = false  end
-   --if divis == 1/2 then Grid_mode = 0 ; r.GetSetProjectGrid(0, true, 1/4, Swing_on, Swing_Slider) ; Triplets = false  end
    if divis > 1 then Grid_mode = 0 ; r.GetSetProjectGrid(0, true, 1, Swing_on, Swing_Slider) ; Triplets = false  end
    if divis == 1 then Grid_mode = 0 ; Triplets = false end
    if divis == 2/3 then Grid_mode = 0 ; Triplets = true end
@@ -694,115 +694,122 @@ end
 ---  FILTERS  ------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-
-function eugeen_lp_filter(freq)
-
-  
-  local sqr2 = 1.414213562
-  local c = 1 / tan((pi/first_srate) * freq )
-  local c2 = c * c
-  local csqr2 = sqr2 * c
-  local d = (c2 + csqr2 + 1)
-  local ampIn0 = 1 / d;
-  local ampIn1 = ampIn0 + ampIn0
-  local ampIn2 = ampIn0
-  local ampOut1 = (2 * (1 - c2)) / d
-  local ampOut2 = (c2 - csqr2 + 1) / d  
-  
-  if freq>=300 then fraction = 8
-  else
-    fraction = 8 * (300/freq)^0.3
-  end
-  
-  
-  local group_delay_samples = floor(((1 / freq) * first_srate) / fraction + 0.5) ----- ICIO filter delay compensation
-
-  local dlyIn1, dlyIn2, dlyOut1, dlyOut2 = 0,0,0,0
-  for i = 1, #Wave.out_buf - group_delay_samples do
+function transient_hp_lp_combined(attack_trans, sustain_trans, hp_freq, lp_freq)
+    -- attack_trans: 0 = bypass transient, 2-4 = enhance transients
+    -- sustain_trans: typically -1 to -2 (reduce sustain) or 0.5-1 (boost sustain)
+    -- hp_freq: high-pass cutoff (20 = bypass)
+    -- lp_freq: low-pass cutoff (20000 = bypass)
     
-    local input = Wave.out_buf[i + group_delay_samples]
-    local output = (ampIn0 * input) + (ampIn1 * dlyIn1) + (ampIn2 * dlyIn2) - (ampOut1 * dlyOut1) - (ampOut2 * dlyOut2)
-    dlyOut2 = dlyOut1
-    dlyOut1 = output
-    dlyIn2 = dlyIn1
-    dlyIn1 = input
-
-    Wave.out_buf[i] = output
-  end
-
-end
-
-function simple_hp_filter(freq) -----Simple 1-Pole Filter modded to 5 poles
-  
-  
-  local lp_cut = 2*pi*freq
-  local lp_n = 1/(lp_cut+ 3*first_srate)
-  local lp_b1 = (3*first_srate - lp_cut)*lp_n
-  local lp_a0 = lp_cut*lp_n
-  local lp_outl = 0
-  local lp_out2 = 0
-  local lp_out3 = 0
-  local lp_out4 = 0
-  local lp_out5 = 0
-  
-  for i = 1, #Wave.out_buf do
-  
-    local input = Wave.out_buf[i]
+    -- Determine which processes to apply
+    local apply_transient = attack_trans and attack_trans > 0
+    local apply_hp = hp_freq and hp_freq > 20
+    local apply_lp = lp_freq and lp_freq < 20000
+    local apply_gain = gain_v and gain_v > 0
     
-    lp_outl = 2*input*lp_a0 + lp_outl*lp_b1
-    input = input-lp_outl
-    lp_out2 = 2*input*lp_a0 + lp_out2*lp_b1
-    input = input-lp_out2
-    lp_out3 = 2*input*lp_a0 + lp_out3*lp_b1
-    input = input-lp_out3
-    lp_out4 = 2*input*lp_a0 + lp_out4*lp_b1
-    input = input-lp_out4
-    lp_out5 = 2*input*lp_a0 + lp_out5*lp_b1
-    Wave.out_buf[i] = input-lp_out5
-  end
-end
-
-
-
-function Wave:apply_filters_gain()
-  if filter_on then
-    if  hicut < 20000 then eugeen_lp_filter(hicut) end -- simple_lp_filter(hicut) end
-    if  lowcut > 20 then simple_hp_filter(lowcut) end
-
-    
-    if attack_trans>0 then Enhanced_transient(attack_trans) end
-    if gain_v ~= 0 then
-      for i = 1, #self.out_buf do 
-        self.out_buf[i] = self.out_buf[i] * (10^((gain_v)/20))
-        if self.out_buf[i]>1 then self.out_buf[i] = 1 end
-        if self.out_buf[i]<-1 then self.out_buf[i] = -1 end
-      end
+    -- If nothing to do, return immediately
+    if not apply_transient and not apply_hp and not apply_lp and not apply_gain then
+        return
     end
-  end
+    
+    -- Transient enhancer state variables
+    local tmpEnv1, tmpEnv2, tmpEnv3 = 0, 0, 0
+    local b1Env1, a0Env1, b1Env2, a0Env2, b1Env3, a0Env3
+    local epsilon = 1e-10
+    sustain_trans = sustain_trans or -1
+    
+    if apply_transient then
+        b1Env1 = -exp(-30 / first_srate)
+        a0Env1 = 1.0 + b1Env1
+        b1Env2 = -exp(-1250 / first_srate)
+        a0Env2 = 1.0 + b1Env2
+        b1Env3 = -exp(-3 / first_srate)
+        a0Env3 = 1.0 + b1Env3
+    end
+    
+    -- HP filter state variables
+    local hs1, hs2, hs3, hs4, hs5 = 0, 0, 0, 0, 0
+    local hp_b1, hp_a0_2
+    
+    if apply_hp then
+        local hp_cut = 2 * pi * hp_freq
+        local hp_n = 1 / (hp_cut + 3 * first_srate)
+        hp_b1 = (3 * first_srate - hp_cut) * hp_n
+        hp_a0_2 = 2 * hp_cut * hp_n
+    end
+    
+    -- LP filter state variables
+    local ls1, ls2, ls3, ls4, ls5 = 0, 0, 0, 0, 0
+    local lp_b1, lp_a0_2
+    
+    if apply_lp then
+        local lp_cut = 2 * pi * lp_freq
+        local lp_n = 1 / (lp_cut + 3 * first_srate)
+        lp_b1 = (3 * first_srate - lp_cut) * lp_n
+        lp_a0_2 = 2 * lp_cut * lp_n
+    end
+    
+    -- Single loop - process everything
+    for i = 1, #Wave.out_buf do
+        local sample = Wave.out_buf[i]
+        
+        ---------------------------------------------
+        -- Step 1: Transient Enhancement (if enabled)
+        ---------------------------------------------
+        if apply_transient then
+            local rectified = sample < 0 and -sample or sample
+            
+            -- Update envelopes
+            tmpEnv1 = a0Env1 * rectified - b1Env1 * tmpEnv1
+            tmpEnv2 = a0Env2 * rectified - b1Env2 * tmpEnv2
+            tmpEnv3 = a0Env3 * rectified - b1Env3 * tmpEnv3
+            
+            local env1 = sqrt(tmpEnv1)
+            local env2 = sqrt(tmpEnv2)
+            local env3 = sqrt(tmpEnv3)
+            
+            local ratio_attack = max(env2 / (env1 + epsilon), 1)
+            local ratio_sustain = max(env3 / (env1 + epsilon), 1)
+            
+            local gain = (ratio_attack ^ attack_trans) * (ratio_sustain ^ sustain_trans)
+            sample = sample * gain
+        end
+        
+        ---------------------------------------------
+        -- Step 2: High-Pass Filter (if enabled)
+        ---------------------------------------------
+        if apply_hp then
+            hs1 = hp_a0_2 * sample + hp_b1 * hs1; sample = sample - hs1
+            hs2 = hp_a0_2 * sample + hp_b1 * hs2; sample = sample - hs2
+            hs3 = hp_a0_2 * sample + hp_b1 * hs3; sample = sample - hs3
+            hs4 = hp_a0_2 * sample + hp_b1 * hs4; sample = sample - hs4
+            hs5 = hp_a0_2 * sample + hp_b1 * hs5; sample = sample - hs5
+        end
+        
+        ---------------------------------------------
+        -- Step 3: Low-Pass Filter (if enabled)
+        ---------------------------------------------
+        if apply_lp then
+            ls1 = lp_a0_2 * sample + lp_b1 * ls1; sample = ls1
+            ls2 = lp_a0_2 * sample + lp_b1 * ls2; sample = ls2
+            ls3 = lp_a0_2 * sample + lp_b1 * ls3; sample = ls3
+            ls4 = lp_a0_2 * sample + lp_b1 * ls4; sample = ls4
+            ls5 = lp_a0_2 * sample + lp_b1 * ls5; sample = ls5
+        end
+        
+        if apply_gain then
+            sample = sample * (10^((gain_v)/20))
+        end
+        
+        if sample > 1 then sample = 1 end
+        if sample < -1 then sample = -1 end
+        
+        Wave.out_buf[i] = sample
+    end
 end
 
-function Enhanced_transient(attack)
-  local b1Env1 = -exp(-30 / first_srate )
-  local a0Env1 = 1.0 + b1Env1
-  local b1Env2 = -exp(-1250 / first_srate )
-  local a0Env2 = 1.0 + b1Env2
-  local b1Env3 = -exp(-3 / first_srate )
-  local a0Env3 = 1.0 + b1Env3
-  local sustain= -1
-  local tmpEnv1 = 0
-  local tmpEnv2 = 0
-  local tmpEnv3 = 0
-
-  for i = 1, #Wave.out_buf do 
-    local maxSpls = abs(Wave.out_buf[i])
-    tmpEnv1 = a0Env1*maxSpls - b1Env1*tmpEnv1
-    tmpEnv2 = a0Env2*maxSpls - b1Env2*tmpEnv2
-    tmpEnv3 = a0Env3*maxSpls - b1Env3*tmpEnv3
-    local env1 = sqrt(tmpEnv1)
-    local env2 = sqrt(tmpEnv2)
-    local env3 = sqrt(tmpEnv3)
-    local gain = exp(logx(max(env2/env1,1))*attack)*exp( logx( max(env3/env1,1))*sustain)
-    Wave.out_buf[i] = Wave.out_buf[i] * gain
+function Wave:apply_filters()
+  if filter_on then
+    transient_hp_lp_combined(attack_trans, -10, lowcut, hicut)
   end
 end
 
@@ -961,7 +968,7 @@ function Wave:Multi_Item_Sample_Sum()
   ------------------store the data on a  table -------------
   store_wavesum = transfer_table(self.out_buf)
 
-  self:apply_filters_gain()
+  self:apply_filters()
   
   self:create_threshold_histogram()
 
@@ -1043,7 +1050,6 @@ for i = 1, tracksN do
     r.SetTrackSelected(r.GetTrack( 0, i-1 ), true)
     --r.GetSet_LoopTimeRange( true, false, first_sel_item_start+first_sel_item_fade_in+10/first_srate, first_sel_item_end-first_sel_item_fade_out-10/first_srate, false )
     --r.GetSet_LoopTimeRange( true, false, first_sel_item_start, first_sel_item_end, false )
-    
     --r.Main_OnCommand(40718,0,0) ----select items in selected tracks in time selection
     local edit_cursor_middle_pos = first_sel_item_start + first_sel_item_length/2
     r.SetEditCurPos( edit_cursor_middle_pos, false, false )
@@ -1512,7 +1518,7 @@ function Create_Grid_table()
         blockline = r.TimeMap_QNToTime(qnMeasureStart)
       end
     end
-    
+
        while (blockline <= first_sel_item_end) do
     
             blockline = beatc(blockline)
@@ -1521,10 +1527,12 @@ function Create_Grid_table()
             
             Grid_blocks_Ruler[h] = floor(((blockline - first_sel_item_start)*srate))
             
-            if abs(floor(blocklineQN)- blocklineQN)<1e-13 then
-            Grid_blocks_Ruler_thickness[h] = 2
+            local blocklineQN_check = abs(blocklineQN - floor(blocklineQN))
+            
+            if blocklineQN_check <1e-13 or blocklineQN_check > 1-1e-13 then
+              Grid_blocks_Ruler_thickness[h] = 2
             else
-            Grid_blocks_Ruler_thickness[h] = 1
+              Grid_blocks_Ruler_thickness[h] = 1
             end
             
        end
@@ -1616,7 +1624,7 @@ end
 ---   Gate  --------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-
+--[[
 function Gate_Gl:Transient_Detective()
 
       -------------------------------------------------
@@ -1641,11 +1649,20 @@ function Gate_Gl:Transient_Detective()
       -----------------------------------
       -- Init counters etc --------------
       ----------------------------------- 
-      local retrig_smpls   = floor((Rtrig_v/1000)*srate)  -- Retrig slider to samples
+      -- Improved detection window parameters
+      local det_velo_smpls = floor(25/1000*srate) -- Increased to 25ms for better accuracy
+      local peak_holdoff = floor(3/1000*srate)    -- Wait 3ms before peak detection (let attack develop)
+      local rms_window_start = floor(2/1000*srate) -- Start RMS after 2ms (skip initial noise)
       
-      local retrig         = retrig_smpls+1                          -- Retrig counter start value!
-           
-      local det_velo_smpls = floor(15/1000*srate) -- DetVelo slider to samples
+      -- Adaptive retrigger: ensure minimum spacing between detections
+      local retrig_base = floor((Rtrig_v/1000)*srate)  -- Base retrig from slider
+      local retrig_smpls = max(
+         retrig_base,
+         det_velo_smpls + floor(10/1000*srate) -- At least measurement window + 10ms buffer
+      )
+      
+      local retrig = retrig_smpls + 1  -- Retrig counter start value (ready to trigger)
+      
       -----------------------------------
       local rms_sum, peak_smpl  = 0, 0       -- init rms_sum,   maxRMS
       local maxRMS,  maxPeak    = 0, 0                 -- init max-s
@@ -1653,6 +1670,18 @@ function Gate_Gl:Transient_Detective()
       -------------------
       local smpl_cnt  = 0                   -- Gate sample(for get velo) counter
       local st_cnt    = 1                   -- Gate State counter for State tables
+      
+      -- DC offset tracking variables
+      local dc_sum = 0
+      local dc_count = 0
+      
+      -- Peak tracking
+      local peak_position = 0
+      local rms_sample_count = 0
+      
+      -- State tracking
+      local in_measurement = false
+      
       -----------------------------------
       local envOut1 = Wave.out_buf[1]    -- Peak envelope1 follower start value
       local envOut2 = envOut1            -- Peak envelope2 follower start value
@@ -1687,48 +1716,93 @@ function Gate_Gl:Transient_Detective()
            end
            
            --------------------------------------------
-           -- Trigger ---------------------------------  
-           if retrig>retrig_smpls then
-              if envOut1>Thresh and (envOut1/envOut2) > Sensitivity then
+           -- Improved Trigger with better retrigger --
+           --------------------------------------------
+           if retrig > retrig_smpls then
+              -- Only trigger if not currently measuring and conditions are met
+              if not in_measurement and envOut1 > Thresh and (envOut1/envOut2) > Sensitivity then
               
-                 Trig = true; smpl_cnt = 0; retrig = 0; rms_sum, peak_smpl = 0, 0 -- set start-values(for capture velo)
+                 Trig = true
+                 in_measurement = true
+                 smpl_cnt = 0
+                 rms_sum, peak_smpl = 0, 0 -- reset values
+                 dc_sum, dc_count = 0, 0 -- reset DC tracking
+                 peak_position = 0
+                 rms_sample_count = 0
               end
-           else envOut2 = envOut1; retrig = retrig+1 
+           else 
+              -- Keep envelopes independent during retrigger period
+              -- (removed: envOut2 = envOut1)
+              retrig = retrig + 1 
            end
            -------------------------------------------------------------
-           -- Get samples(for velocity) --------------------------------
+           -- Get samples(for velocity) - IMPROVED VERSION -------------
            -------------------------------------------------------------
 
            if Trig then
-              if smpl_cnt<=det_velo_smpls then
-                 rms_sum   = rms_sum + input*input  -- get  rms_sum   for note-velo
+              if smpl_cnt <= det_velo_smpls then
                  
-                 peak_smpl = max(peak_smpl, input)  -- find peak_smpl for note-velo
+                 -- Track DC offset (accumulate for all samples)
+                 dc_sum = dc_sum + input
+                 dc_count = dc_count + 1
+                 
+                 -- Calculate current DC offset
+                 local dc_offset = dc_sum / dc_count
+                 
+                 -- RMS calculation with DC removal and windowing
+                 if smpl_cnt >= rms_window_start then
+                    -- Remove DC bias for more accurate RMS
+                    local centered = input - dc_offset
+                    
+                    -- Optional: Apply Hann window for better transient focus
+                    -- Uncomment next two lines for windowed RMS (slightly slower but more accurate)
+                    -- local window = 0.5 * (1 - cos(2*pi*(smpl_cnt-rms_window_start)/(det_velo_smpls-rms_window_start)))
+                    -- rms_sum = rms_sum + (centered*centered) * window
+                    
+                    -- Standard RMS (faster)
+                    rms_sum = rms_sum + centered*centered
+                    rms_sample_count = rms_sample_count + 1
+                 end
+                 
+                 -- Peak detection with holdoff (let the attack develop first)
+                 if smpl_cnt >= peak_holdoff then
+                    if input > peak_smpl then
+                       peak_smpl = input
+                       peak_position = smpl_cnt
+                    end
+                 end
                  
                  if peak_smpl > 1 then peak_smpl = 1 end
-                 smpl_cnt  = smpl_cnt+1 
+                 smpl_cnt = smpl_cnt + 1
                  ----------------------------    
                  
               else 
                  
-                  Trig = false -- reset Trig state !!!
+                  Trig = false -- reset Trig state
+                  in_measurement = false -- measurement complete
+                  retrig = 0 -- reset retrigger counter (start counting from now)
                   -----------------------
-                  local RMS  = sqrt(rms_sum/det_velo_smpls)  -- calculate RMS
-                  if RMS >1 then RMS = 1 end
+                  -- Calculate RMS with actual sample count
+                  local RMS = 0
+                  if rms_sample_count > 0 then
+                     RMS = sqrt(rms_sum/rms_sample_count)
+                  end
+                  
+                  if RMS > 1 then RMS = 1 end
                   
                   --- Trigg point -------
                   self.State_Points[st_cnt]   = i - det_velo_smpls  -- Time point(in Samples!) 
                   self.State_Points[st_cnt+1] = {RMS, peak_smpl}    -- RMS, Peak values
                 
-                  ----------------------------------------gridblocks selection icio
-
+                  ----------------------------------------
+                  -- Update min/max for scaling
                   minRMS  = min(minRMS, RMS)         -- save minRMS for scaling
                   minPeak = min(minPeak, peak_smpl)  -- save minPeak for scaling 
                   maxRMS  = max(maxRMS, RMS)         -- save maxRMS for scaling
                   maxPeak = max(maxPeak, peak_smpl)  -- save maxPeak for scaling 
                   
                   --------
-                  st_cnt = st_cnt+2
+                  st_cnt = st_cnt + 2
           
                   -----------------------
               end
@@ -1762,7 +1836,245 @@ function Gate_Gl:Transient_Detective()
     
   -------------------------------
 end
+]]--
 
+
+
+function Gate_Gl:Transient_Detective()
+
+local Use_DC_Filter = false
+
+      -------------------------------------------------
+      self.State_Points = {}  -- State_Points table 
+      self.grid_Points = {} -- Grid_Points table
+      
+      -------------------------------------------------
+      -- GetSet parameters ----------------------------
+      -------------------------------------------------
+      -- Threshold, Sensitivity ----------
+      -- Gain from Fltr_Gain slider(need for scaling gate Thresh!) 1=0db
+      
+      
+      local Thresh     = 10^((Thresh_v)/20) -- Threshold
+  
+      local Sensitivity  = 10^(sens_v/20) -- Gate "Sensitivity", diff between - fast and slow envelopes(in dB)
+      -- Attack, Release Time -----------
+      local attTime1  = 0.001                          -- Env1 attack(sec)
+      local attTime2  = 0.007                            -- Env2 attack(sec)
+      local relTime1  = 0.010                            -- Env1 release(sec)
+      local relTime2  = 0.015                            -- Env2 release(sec)
+      -----------------------------------
+      -- Init counters etc --------------
+      ----------------------------------- 
+      -- Improved detection window parameters
+      local det_velo_smpls = floor(25/1000*srate) -- Increased to 25ms for better accuracy
+      local peak_holdoff = floor(3/1000*srate)    -- Wait 3ms before peak detection (let attack develop)
+      local rms_window_start = floor(2/1000*srate) -- Start RMS after 2ms (skip initial noise)
+      
+      -- Adaptive retrigger: ensure minimum spacing between detections
+      local retrig_base = floor((Rtrig_v/1000)*srate)  -- Base retrig from slider
+      local retrig_smpls = max(
+         retrig_base,
+         det_velo_smpls + floor(10/1000*srate) -- At least measurement window + 10ms buffer
+      )
+      
+      local retrig = retrig_smpls + 1  -- Retrig counter start value (ready to trigger)
+      
+      -- DC Blocker parameters
+      local prev_sample = 0
+      local hp_coeff = 0.95  -- 0.90=aggressive, 0.95=standard, 0.99=gentle
+      
+      -----------------------------------
+      local rms_sum, peak_smpl  = 0, 0       -- init rms_sum,   maxRMS
+      local maxRMS,  maxPeak    = 0, 0                 -- init max-s
+      local minRMS,  minPeak    = huge, huge -- init min-s
+      -------------------
+      local smpl_cnt  = 0                   -- Gate sample(for get velo) counter
+      local st_cnt    = 1                   -- Gate State counter for State tables
+      
+      -- DC offset tracking variables
+      local dc_sum = 0
+      local dc_count = 0
+      
+      -- Peak tracking
+      local peak_position = 0
+      local rms_sample_count = 0
+      
+      -- State tracking
+      local in_measurement = false
+      
+      -----------------------------------
+      local envOut1 = Wave.out_buf[1]    -- Peak envelope1 follower start value
+      local envOut2 = envOut1            -- Peak envelope2 follower start value
+      local Trig = false                 -- Trigger, Trig init state 
+      ------------------------------------------------------------------
+      -- Compute sample frequency related coeffs ----------------------- 
+      local ga1 = exp(-1/(srate*attTime1))   -- attack1 coeff
+      local gr1 = exp(-1/(srate*relTime1))   -- release1 coeff
+      local ga2 = exp(-1/(srate*attTime2))   -- attack2 coeff
+      local gr2 = exp(-1/(srate*relTime2))   -- release2 coeff
+      
+       -----------------------------------------------------------------
+       -- Gate main for ------------------------------------------------
+       -----------------------------------------------------------------
+       
+       
+       for i = 1, Wave.selSamples do
+       
+         local input = Wave.out_buf[i]
+         local hp_input  -- Signal for envelope detection
+         
+         --------------------------------------------
+         -- Optional DC Blocker (for detection) -----
+         --------------------------------------------
+         if Use_DC_Filter then
+            -- High-pass filter to emphasize transients
+            hp_input = input - (prev_sample * hp_coeff)
+            prev_sample = input
+            if hp_input < 0 then hp_input = hp_input * -1 end
+         else
+            -- No filtering
+            if input < 0 then input = input * -1 end
+            hp_input = input
+         end
+         
+           --------------------------------------------
+           -- Envelope1(fast) -------------------------
+           if envOut1 < hp_input then envOut1 = hp_input + ga1 * (envOut1 - hp_input)
+              else envOut1 = hp_input + gr1 * (envOut1 - hp_input)
+           end
+           
+           
+           --------------------------------------------
+           -- Envelope2(slow) -------------------------
+           if envOut2 < hp_input then envOut2 = hp_input + ga2 * (envOut2 - hp_input)
+              else envOut2 = hp_input + gr2 * (envOut2 - hp_input)
+           end
+           
+           --------------------------------------------
+           -- Improved Trigger with better retrigger --
+           --------------------------------------------
+           if retrig > retrig_smpls then
+              -- Only trigger if not currently measuring and conditions are met
+              if not in_measurement and envOut1 > Thresh and (envOut1/envOut2) > Sensitivity then
+              
+                 Trig = true
+                 in_measurement = true
+                 smpl_cnt = 0
+                 rms_sum, peak_smpl = 0, 0 -- reset values
+                 dc_sum, dc_count = 0, 0 -- reset DC tracking
+                 peak_position = 0
+                 rms_sample_count = 0
+              end
+           else 
+              -- Keep envelopes independent during retrigger period
+              retrig = retrig + 1 
+           end
+           -------------------------------------------------------------
+           -- Get samples(for velocity) - IMPROVED VERSION -------------
+           -------------------------------------------------------------
+
+           if Trig then
+              if smpl_cnt <= det_velo_smpls then
+                 
+                 -- Use ORIGINAL signal for measurement (not filtered)
+                 local measurement_input = Wave.out_buf[i]
+                 if measurement_input < 0 then measurement_input = measurement_input * -1 end
+                 
+                 -- Track DC offset (accumulate for all samples)
+                 dc_sum = dc_sum + measurement_input
+                 dc_count = dc_count + 1
+                 
+                 -- Calculate current DC offset
+                 local dc_offset = dc_sum / dc_count
+                 
+                 -- RMS calculation with DC removal and windowing
+                 if smpl_cnt >= rms_window_start then
+                    -- Remove DC bias for more accurate RMS
+                    local centered = measurement_input - dc_offset
+                    
+                    -- Optional: Apply Hann window for better transient focus
+                    -- Uncomment next two lines for windowed RMS (slightly slower but more accurate)
+                    -- local window = 0.5 * (1 - cos(2*pi*(smpl_cnt-rms_window_start)/(det_velo_smpls-rms_window_start)))
+                    -- rms_sum = rms_sum + (centered*centered) * window
+                    
+                    -- Standard RMS (faster)
+                    rms_sum = rms_sum + centered*centered
+                    rms_sample_count = rms_sample_count + 1
+                 end
+                 
+                 -- Peak detection with holdoff (let the attack develop first)
+                 if smpl_cnt >= peak_holdoff then
+                    if measurement_input > peak_smpl then
+                       peak_smpl = measurement_input
+                       peak_position = smpl_cnt
+                    end
+                 end
+                 
+                 if peak_smpl > 1 then peak_smpl = 1 end
+                 smpl_cnt = smpl_cnt + 1
+                 ----------------------------    
+                 
+              else 
+                 
+                  Trig = false -- reset Trig state
+                  in_measurement = false -- measurement complete
+                  retrig = 0 -- reset retrigger counter (start counting from now)
+                  -----------------------
+                  -- Calculate RMS with actual sample count
+                  local RMS = 0
+                  if rms_sample_count > 0 then
+                     RMS = sqrt(rms_sum/rms_sample_count)
+                  end
+                  
+                  if RMS > 1 then RMS = 1 end
+                  
+                  --- Trigg point -------
+                  self.State_Points[st_cnt]   = i - det_velo_smpls  -- Time point(in Samples!) 
+                  self.State_Points[st_cnt+1] = {RMS, peak_smpl}    -- RMS, Peak values
+                
+                  ----------------------------------------
+                  -- Update min/max for scaling
+                  minRMS  = min(minRMS, RMS)         -- save minRMS for scaling
+                  minPeak = min(minPeak, peak_smpl)  -- save minPeak for scaling 
+                  maxRMS  = max(maxRMS, RMS)         -- save maxRMS for scaling
+                  maxPeak = max(maxPeak, peak_smpl)  -- save maxPeak for scaling 
+                  
+                  --------
+                  st_cnt = st_cnt + 2
+          
+                  -----------------------
+              end
+           end       
+           ----------------------------------   
+
+       end
+    
+    -----------------------------
+    if minRMS == maxRMS then minRMS = 0 end 
+    if minPeak == maxPeak then minPeak = 0 end 
+    
+    
+    if normalize_sens_scale then
+      self.maxRMS, self.maxPeak = maxRMS, maxPeak   -- maxRMS, maxPeak for scaling MIDI velo
+      self.minRMS, self.minPeak = minRMS, minPeak   -- minRMS, minPeak for scaling MIDI velo
+    else
+      self.maxRMS, self.maxPeak = 1, 1
+      self.minRMS, self.minPeak = 0, 0 
+    end
+    -----------------------------
+
+    self.State_Points = Gate_Gl:normalizeState_TB2(self.State_Points)
+    self.grid_Points = Gate_Gl:Reduce_Points_by_Grid2(self.State_Points)
+    Gate_Gl:sens_histogram(self.grid_Points)
+    Trig_line_thickness(self.grid_Points)
+    self.State_Points = Gate_Gl:Reduce_Points_by_Power2(self.grid_Points)
+    processing = false
+    -----------------------------
+    collectgarbage() -- collectgarbage
+    
+  -------------------------------
+end
 -----------------------------------MAIN WINDOW TRIG LINES!!!!---------------------------------------------------
 ----------------------------------------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------------------------------------
@@ -2042,7 +2354,7 @@ function processing_audio()
   movescreen_prev = {}
   processing = true
   Wave.out_buf = transfer_table(store_wavesum)
-  Wave:apply_filters_gain()
+  Wave:apply_filters()
   Wave:create_threshold_histogram()
   Gate_Gl:Transient_Detective()
   Triglinesdraw()
@@ -3112,6 +3424,7 @@ if visible then
     if filter_preset ~= ADDpreset-1 then 
       store_filter_preset = filter_preset
       filter_get_preset(filter_preset)
+      preset_edit=true
     end
   end
   
@@ -3394,10 +3707,11 @@ if analyze_bttn then --or check_itm and ( sensitivity_slider or Thresh_slider) t
   givemetime()
 
 end
-if (((hicut_edit or lowcut_edit or transient_rv or gain_edit) and filter_on) or filter_button or Rtrig_edit or
+if (((hicut_edit or lowcut_edit or transient_rv or gain_edit or preset_edit) and filter_on) or filter_button or Rtrig_edit or
 Thresh_edit or GridScan_rv  or sens_v_rv or normalize_sens_scale_rv ) and check_itm then
   time_gap = r.time_precise()+0.1
   givemetime2()
+  preset_edit = false
 end
 
 if Visualizer_mode == 0 then
