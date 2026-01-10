@@ -1,12 +1,10 @@
 -- @description Simple project reconform
 -- @author AZ
--- @version 0.8.1
+-- @version 0.9
 -- @changelog
---   - fixed crash related to empty leading time in compared EDLs or projects
---   - fixed reconform option to not copy locked items if set
---   - fixed possible crash related to reference track creation with wrong index
---   - UI: move Advanced timing options
---   - Notifications: added notification for Create reference track buttons if there is lack of conditions.
+--   - Redesign logic and UI of time adjustments in cases when EDLs don't start from zero.
+--   - New option to analyze time selection (in project tabs) and align reference item to it.
+--   - Fix Report markers track settings related to fixed lanes visibility.
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=293746
 -- @donation Donate via PayPal https://www.paypal.me/AZsound
 -- @about
@@ -24,7 +22,7 @@ function msg(value)
   reaper.ShowConsoleMsg(tostring(value)..'\n')
 end
 -----------------------------
-BugTIME = -1
+BugTIME = -1 --reaper.parse_timestr_pos('10:16:17:04', 5)
 
 --------------------------
 function rgbToHex(rgba) -- passing a table with percentage like {100, 50, 20, 90}
@@ -49,7 +47,7 @@ function rgbToHex(rgba) -- passing a table with percentage like {100, 50, 20, 90
 
     hexadecimal = hexadecimal .. hex
   end
-
+  
   return hexadecimal
 end
 -----------------------
@@ -194,44 +192,41 @@ function OptionsWindow()
   if EDLcontentFlags ~= "" then
     EDLcontentFlags = tonumber(EDLcontentFlags)
   else EDLcontentFlags = 31
+  end 
+  
+  _, old_TakeRegion = reaper.GetProjExtState(0, ExtStateName, 'old_TakeRegion')
+  _, old_UseAlignPoint = reaper.GetProjExtState(0,ExtStateName, 'old_UseAlignPoint')
+  _, TrimOldTimeStart = reaper.GetProjExtState(0, ExtStateName, 'TrimOldTimeStart')
+  _, TrimOldTimeEnd = reaper.GetProjExtState(0, ExtStateName, 'TrimOldTimeEnd')
+  
+  if old_TakeRegion == 'true' then old_TakeRegion = true
+  else old_TakeRegion = false -- default
   end
   
-  
-  _, old_TrimLeadingTime = reaper.GetProjExtState(0, ExtStateName, 'old_TrimLeadingTime')
-  _, old_TrimOnlyEmptyTime = reaper.GetProjExtState(0,ExtStateName, 'old_TrimOnlyEmptyTime')
-  _, TrimOldTime = reaper.GetProjExtState(0, ExtStateName, 'TrimOldTime')
-  
-  if old_TrimLeadingTime ~= "" then
-    if old_TrimLeadingTime == 'true' then old_TrimLeadingTime = true
-    else old_TrimLeadingTime = false
-    end
-  else old_TrimLeadingTime = true
+  if old_UseAlignPoint == 'false' then old_UseAlignPoint = false
+  else old_UseAlignPoint = true --default
   end
   
-  if old_TrimOnlyEmptyTime ~= "" then
-    if old_TrimOnlyEmptyTime == 'true' then old_TrimOnlyEmptyTime = true
-    else old_TrimOnlyEmptyTime = false
-    end
-  else old_TrimOnlyEmptyTime = true
+  if TrimOldTimeStart == '' then TrimOldTimeStart = '01:00:00:00' end
+  if TrimOldTimeEnd == '' then TrimOldTimeEnd = '02:00:00:00' end
+  AlignOldTime = nil
+  AlignNewTime = nil
+  
+  _, new_TakeRegion = reaper.GetProjExtState(0, ExtStateName, 'new_TakeRegion')
+  _, new_TrimTime = reaper.GetProjExtState(0, ExtStateName, 'new_TrimTime')
+  _, TrimNewTimeStart = reaper.GetProjExtState(0, ExtStateName, 'TrimNewTimeStart')
+  _, TrimNewTimeEnd = reaper.GetProjExtState(0, ExtStateName, 'TrimNewTimeEnd')
+  
+  if new_TakeRegion == "true" then new_TakeRegion = true
+  else new_TakeRegion = false --default
   end
   
-  if TrimOldTime == '' then TrimOldTime = '01:00:00:00' end
-  
-  _, new_TrimLeadingTime = reaper.GetProjExtState(0, ExtStateName, 'new_TrimLeadingTime')
-  _, new_TrimOnlyEmptyTime = reaper.GetProjExtState(0, ExtStateName, 'new_TrimOnlyEmptyTime')
-  _, TrimNewTime = reaper.GetProjExtState(0, ExtStateName, 'TrimNewTime')
-  
-  if new_TrimLeadingTime == "false" then
-    new_TrimLeadingTime = false
-  else new_TrimLeadingTime = true
+  if new_TrimTime == "false" then new_TrimTime = false
+  else new_TrimTime = true --default
   end
   
-  if new_TrimOnlyEmptyTime == "false" then
-    new_TrimOnlyEmptyTime = false
-  else new_TrimOnlyEmptyTime = true
-  end
-  
-  if TrimNewTime == '' then TrimNewTime = '01:00:00:00' end
+  if TrimNewTimeStart == '' then TrimNewTimeStart = '01:00:00:00' end
+  if TrimNewTimeEnd == '' then TrimNewTimeEnd = '02:00:00:00' end
   
   
   local iniFolder
@@ -243,9 +238,14 @@ function OptionsWindow()
   
   _, AnalyseOnlySelTracks = reaper.GetProjExtState(0, ExtStateName, 'AnalyseOnlySelTracks')
   
-  if AnalyseOnlySelTracks == "true" then
-    AnalyseOnlySelTracks = true
+  if AnalyseOnlySelTracks == "true" then AnalyseOnlySelTracks = true
   else AnalyseOnlySelTracks = false
+  end
+  
+  _, AnalyseTS = reaper.GetProjExtState(0, ExtStateName, 'AnalyseTS')
+  
+  if AnalyseTS == "false" then AnalyseTS = false
+  else AnalyseTS = true
   end
   
   OldPrjStart = 0
@@ -371,7 +371,6 @@ function OptionsWindow()
         list[i] = path..list[i]
       end
       table.remove(list, 1)
-      --parselistOnce = true
     end
   end
   
@@ -398,7 +397,7 @@ function OptionsWindow()
       end
       
       -----EDL section
-      if reaper.ImGui_CollapsingHeader(ctx, 'Create reference track by analyzing EDL files') then
+      if reaper.ImGui_CollapsingHeader(ctx, 'Create reference track by analysing EDL files') then
         
         reaper.ImGui_NewLine(ctx)
         reaper.ImGui_SameLine(ctx, fontSize)
@@ -477,7 +476,19 @@ function OptionsWindow()
               reaper.SetExtState(ExtStateName, 'ContentAnalyse', EDLcontentFlags, true)
             end
             
-            reaper.ImGui_EndChild(ctx) 
+            reaper.ImGui_EndChild(ctx)
+          end
+          
+          local timeOldRegionStart, timeOldRegionEnd = 0, 0
+          
+          if old_TakeRegion == true then
+            timeOldRegionStart = reaper.parse_timestr_pos( TrimOldTimeStart, 5 ) - PrjTimeOffset
+            timeOldRegionEnd = reaper.parse_timestr_pos( TrimOldTimeEnd, 5 ) - PrjTimeOffset
+          end
+          
+          if new_TakeRegion == true then
+            timeNewRegionStart = reaper.parse_timestr_pos( TrimNewTimeStart, 5 ) - PrjTimeOffset
+            timeNewRegionEnd = reaper.parse_timestr_pos( TrimNewTimeEnd, 5 ) - PrjTimeOffset 
           end
           
           if reaper.ImGui_Button(ctx, ' old EDLs ') then --msg(iniFolder)
@@ -494,7 +505,13 @@ function OptionsWindow()
             
             if fileNames ~= '' then
               OldEDL = {}
-              addFileNamesToList(OldEDL, fileNames) 
+              addFileNamesToList(OldEDL, fileNames)
+              OldEdlTable = AnalyseEDLs(OldEDL, timeOldRegionStart, timeOldRegionEnd)
+              
+              if OldEdlTable and OldEdlTable.firstItemTime then
+                AlignOldTime = OldEdlTable.firstItemTime
+              else AlignOldTime = nil
+              end
             end
           end
           
@@ -515,11 +532,17 @@ function OptionsWindow()
             local extensionList = "EDL file\0*.edl\0Text file\0*.txt\0\0"
             local allowMultiple = true
             local ret, fileNames = reaper.JS_Dialog_BrowseForOpenFiles
-            ( 'Choose EDL files', iniFolder, iniFile, extensionList, allowMultiple ) 
+            ( 'Choose EDL files', iniFolder, iniFile, extensionList, allowMultiple )
             
             if fileNames ~= '' then
               NewEDL ={}
-              addFileNamesToList(NewEDL, fileNames) 
+              addFileNamesToList(NewEDL, fileNames)
+              NewEdlTable = AnalyseEDLs(NewEDL, timeNewRegionStart, timeNewRegionEnd)
+              
+              if NewEdlTable and NewEdlTable.firstItemTime then
+                AlignNewTime = NewEdlTable.firstItemTime
+              else AlignNewTime = nil
+              end
             end
           end
           
@@ -567,7 +590,29 @@ function OptionsWindow()
           
           showEDLsNames(ReferenceFile)
           
-          reaper.ImGui_NewLine(ctx)
+          local ret
+           
+          reaper.ImGui_PushItemWidth(ctx, fontSize*6 )
+          if type(AlignOldTime) == 'number' then
+            AlignOldTime = reaper.format_timestr_pos(AlignOldTime,'',5)
+          end
+          ret, AlignOldTime = reaper.ImGui_InputText(ctx, 'Old EDLs begin time  ', AlignOldTime, nil, nil) 
+          if ret then AlignOldTime = reaper.parse_timestr_pos( AlignOldTime, 5 ) end 
+          
+          reaper.ImGui_SameLine(ctx, fontSize*16)
+          ret, old_UseAlignPoint = reaper.ImGui_Checkbox(ctx,'Set align point for reference item',old_UseAlignPoint)
+          if ret then reaper.SetProjExtState(0,ExtStateName,'old_UseAlignPoint', tostring(old_UseAlignPoint), true) end
+           
+          reaper.ImGui_PushItemWidth(ctx, fontSize*6 )
+          if type(AlignNewTime) == 'number' then
+            AlignNewTime = reaper.format_timestr_pos(AlignNewTime,'',5)
+          end
+          ret, AlignNewTime = reaper.ImGui_InputText(ctx, 'New EDLs begin time', AlignNewTime, nil, nil)
+          if ret then AlignNewTime = reaper.parse_timestr_pos( AlignNewTime, 5 ) end
+          
+          reaper.ImGui_SameLine(ctx, fontSize*16)
+          ret, new_TrimTime = reaper.ImGui_Checkbox(ctx,'Trim new EDL to this value',new_TrimTime)
+          if ret then reaper.SetProjExtState(0,ExtStateName,'new_TrimTime', tostring(new_TrimTime), true) end
           
           if OldEDL and NewEDL and ReferenceFile then
             reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Button(), gui_colors.MainButton.Default)
@@ -578,19 +623,17 @@ function OptionsWindow()
             local abort
              
             if OldEDL and NewEDL and ReferenceFile then
-              local timeTreshold = 0
-          
-              if old_TrimLeadingTime == true and old_TrimOnlyEmptyTime == false then
-                timeTreshold = reaper.parse_timestr_pos( TrimOldTime, 5 ) - PrjTimeOffset
-              end 
-              OldEdlTable = AnalyseEDLs(OldEDL, timeTreshold)
               
-              if new_TrimLeadingTime == true and new_TrimOnlyEmptyTime == false then
-                timeTreshold = reaper.parse_timestr_pos( TrimNewTime, 5 ) - PrjTimeOffset
-              else timeTreshold = 0
+              if type(AlignOldTime) == 'string' then
+                AlignOldTime = reaper.parse_timestr_pos( AlignOldTime, 5 )
               end
-              NewEdlTable = AnalyseEDLs(NewEDL, timeTreshold)
+              if type(AlignNewTime) == 'string' then
+                AlignNewTime = reaper.parse_timestr_pos( AlignNewTime, 5 )
+              end
               
+              OldEdlTable = AnalyseEDLs(OldEDL, timeOldRegionStart, timeOldRegionEnd, AlignOldTime)
+              NewEdlTable = AnalyseEDLs(NewEDL, timeNewRegionStart, timeNewRegionEnd, AlignNewTime)
+               
               if #OldEdlTable == 0 and #NewEdlTable == 0 then
                 reaper.ShowMessageBox('There is no valid data in all EDL files', 'Warning!',0)
                 abort = true
@@ -603,80 +646,100 @@ function OptionsWindow()
               end
               
               if abort ~= true then
-                CompResult = CompareEDLs(OldEdlTable, NewEdlTable) 
+                CompResult = CompareEDLs(OldEdlTable, NewEdlTable)
                 if #CompResult == 0 then
-                  reaper.ShowMessageBox('There ara no matched areas', 'Warning!',0)
+                  reaper.ShowMessageBox('There are no matched areas', 'Warning!',0)
                   abort = true
                 end 
               end
               
-              if abort ~= true then CreateRefTrack(CompResult, ReferenceFile) end
+              if abort ~= true then CreateRefTrack(CompResult, ReferenceFile, true) end
             else
               reaper.ShowMessageBox('Choose both EDLs and a reference file first.', 'Simple Rroject Reconform', 0)
             end
           end
           if OldEDL and NewEDL and ReferenceFile then reaper.ImGui_PopStyleColor(ctx, 3) end
-          --reaper.ImGui_NewLine(ctx)
-          --reaper.ImGui_NewLine(ctx)
           
+          --------Adv timing options
+          reaper.ImGui_SameLine(ctx, fontSize*20, nil)
+          reaper.ImGui_PushFont(ctx, fontSep)
+          if reaper.ImGui_CollapsingHeader(ctx, 'Advanced timing options') then
+            reaper.ImGui_NewLine(ctx)
+            reaper.ImGui_SameLine(ctx, fontSize*7, nil)
+            local childAdvflags = Flags.childBorder | Flags.childAutoResizeY --| Flags.childAutoResizeX
+            local advOpt = reaper.ImGui_BeginChild(ctx, 'advOpt', 0, 0, childAdvflags, nil)
+            if advOpt then
+              local ret
+              ret, old_TakeRegion = reaper.ImGui_Checkbox(ctx,'Take region from OLD EDLs',old_TakeRegion)
+              if ret == true then reaper.SetProjExtState(0,ExtStateName,'old_TakeRegion', tostring(old_TakeRegion), true) end 
+              
+              reaper.ImGui_SameLine(ctx, fontSize*14)
+              reaper.ImGui_PushItemWidth(ctx, fontSize*5.3 )
+              ret, TrimOldTimeStart = reaper.ImGui_InputText(ctx, '##1', TrimOldTimeStart, nil, nil)
+              if ret == true then
+                TrimOldTimeStart = reaper.parse_timestr_pos( TrimOldTimeStart, 5 )
+                TrimOldTimeStart = reaper.format_timestr_pos(TrimOldTimeStart,'',5)
+                reaper.SetProjExtState(0, ExtStateName,'TrimOldTimeStart', TrimOldTimeStart, true) 
+              end
+              
+              reaper.ImGui_SameLine(ctx)
+              reaper.ImGui_PushItemWidth(ctx, fontSize*5.3 )
+              ret, TrimOldTimeEnd = reaper.ImGui_InputText(ctx, '##2', TrimOldTimeEnd, nil, nil)
+              if ret == true then
+                TrimOldTimeEnd = reaper.parse_timestr_pos( TrimOldTimeEnd, 5 )
+                TrimOldTimeEnd = reaper.format_timestr_pos(TrimOldTimeEnd,'',5)
+                reaper.SetProjExtState(0, ExtStateName,'TrimOldTimeEnd', TrimOldTimeEnd, true) 
+              end
+              
+              ---
+              
+              ret, new_TakeRegion = reaper.ImGui_Checkbox(ctx,'Take region from NEW EDLs',new_TakeRegion)
+              if ret == true then reaper.SetProjExtState(0,ExtStateName,'new_TakeRegion', tostring(new_TakeRegion), true) end 
+              
+              reaper.ImGui_SameLine(ctx, fontSize*14)
+              reaper.ImGui_PushItemWidth(ctx, fontSize*5.3 ) 
+              ret, TrimNewTimeStart = reaper.ImGui_InputText(ctx, '##3', TrimNewTimeStart, nil, nil)
+              if ret == true then
+                TrimNewTimeStart = reaper.parse_timestr_pos( TrimNewTimeStart, 5 )
+                TrimNewTimeStart = reaper.format_timestr_pos(TrimNewTimeStart,'',5)
+                reaper.SetProjExtState(0, ExtStateName,'TrimNewTimeStart', TrimNewTimeStart, true) 
+              end
+              
+              reaper.ImGui_SameLine(ctx)
+              reaper.ImGui_PushItemWidth(ctx, fontSize*5.3 )
+              ret, TrimNewTimeEnd = reaper.ImGui_InputText(ctx, '##4', TrimNewTimeEnd, nil, nil)
+              if ret == true then
+                TrimNewTimeEnd = reaper.parse_timestr_pos( TrimNewTimeEnd, 5 )
+                TrimNewTimeEnd = reaper.format_timestr_pos(TrimNewTimeEnd,'',5)
+                reaper.SetProjExtState(0, ExtStateName,'TrimNewTimeEnd', TrimNewTimeEnd, true) 
+              end
+              
+              reaper.ImGui_EndChild(ctx)
+            end
+          end
+          reaper.ImGui_PopFont(ctx)
           
           reaper.ImGui_EndChild(ctx)
         end
         
+        reaper.ImGui_NewLine(ctx)
         reaper.ImGui_SetWindowSize(ctx, 0, 0, nil )
       end
       --------end of EDL section
       
-      --------Adv timing options 
-      reaper.ImGui_NewLine(ctx)
-      reaper.ImGui_SameLine(ctx, fontSize*22, nil)
-      reaper.ImGui_PushFont(ctx, fontSep)
-      if reaper.ImGui_CollapsingHeader(ctx, 'Advanced timing options') then
-        reaper.ImGui_NewLine(ctx)
-        reaper.ImGui_SameLine(ctx, fontSize*10.5, nil)
-        local childAdvflags = Flags.childBorder | Flags.childAutoResizeY --| Flags.childAutoResizeX
-        local advOpt = reaper.ImGui_BeginChild(ctx, 'advOpt', 0, 0, childAdvflags, nil)
-        if advOpt then
-          local ret 
-          ret, old_TrimLeadingTime = reaper.ImGui_Checkbox(ctx,'Ignore leading time in OLD EDLs or project tab',old_TrimLeadingTime)
-          if ret == true then reaper.SetProjExtState(0,ExtStateName,'old_TrimLeadingTime', tostring(old_TrimLeadingTime), true) end 
-          
-          reaper.ImGui_PushItemWidth(ctx, fontSize*5.3 )
-          ret, TrimOldTime = reaper.ImGui_InputText(ctx, '##1', TrimOldTime, nil, nil)
-          if ret == true then reaper.SetProjExtState(0, ExtStateName,'TrimOldTime', TrimOldTime, true) end
-          reaper.ImGui_SameLine(ctx, nil, fontSize)
-          ret, old_TrimOnlyEmptyTime = reaper.ImGui_Checkbox(ctx,'Only empty time if multiplied##1',old_TrimOnlyEmptyTime)
-          if ret == true then reaper.SetProjExtState(0,ExtStateName,'old_TrimOnlyEmptyTime', tostring(old_TrimOnlyEmptyTime), true) end
-          
-          ---
-          
-          ret, new_TrimLeadingTime = reaper.ImGui_Checkbox(ctx,'Ignore leading time in NEW EDLs or project tab',new_TrimLeadingTime)
-          if ret == true then reaper.SetProjExtState(0,ExtStateName,'new_TrimLeadingTime', tostring(new_TrimLeadingTime), true) end 
-          
-          reaper.ImGui_PushItemWidth(ctx, fontSize*5.3 )
-          ret, TrimNewTime = reaper.ImGui_InputText(ctx, '##2', TrimNewTime, nil, nil)
-          if ret == true then reaper.SetProjExtState(0, ExtStateName,'TrimNewTime', TrimNewTime, true) end
-          reaper.ImGui_SameLine(ctx, nil, fontSize)
-          ret, new_TrimOnlyEmptyTime = reaper.ImGui_Checkbox(ctx,'Only empty time if multiplied##2',new_TrimOnlyEmptyTime)
-          if ret == true then reaper.SetProjExtState(0,ExtStateName,'new_TrimOnlyEmptyTime', tostring(new_TrimOnlyEmptyTime), true) end
-           
-          reaper.ImGui_EndChild(ctx)
-        end
-        
-        
-      end
-      reaper.ImGui_PopFont(ctx) 
       
-      
-      -------Preject section
-      if reaper.ImGui_CollapsingHeader(ctx, 'Create reference track by comparing two projects tabs') then
+      -------Project section
+      if reaper.ImGui_CollapsingHeader(ctx, 'Create reference track by comparing two project tabs') then
         reaper.ImGui_NewLine(ctx)
         OldPrjAAF, OldPrjPreview = ProjectSelector(OldPrjAAF, "Old Project", OldPrjPreview)
         NewPrjAAF, NewPrjPreview = ProjectSelector(NewPrjAAF, "New Project", NewPrjPreview)
         local ret
         ret, AnalyseOnlySelTracks = reaper.ImGui_Checkbox(ctx, 'Analyse only selected tracks', AnalyseOnlySelTracks)
         if ret == true then reaper.SetProjExtState(0,ExtStateName,'AnalyseOnlySelTracks', tostring(AnalyseOnlySelTracks), true) end
-         
+        
+        ret, AnalyseTS = reaper.ImGui_Checkbox(ctx, 'Analyse time selection, if exists, and align the reference to it.', AnalyseTS)
+        if ret == true then reaper.SetProjExtState(0,ExtStateName,'AnalyseTS', tostring(AnalyseTS), true) end
+        
         if reaper.ImGui_Button(ctx, 'old prj reference file') then
           if not iniFolder then
             local cur_retprj, cur_projfn = reaper.EnumProjects( -1 )
@@ -687,7 +750,7 @@ function OptionsWindow()
           local extensionList = "Media file\0*.wav;*.mp3;*.flac;*.aif;*.mpa;*.wma;*.mp4;*.mov;*.m4v;*.webm\0\0"
           local allowMultiple = false
           local ret, fileNames = reaper.JS_Dialog_BrowseForOpenFiles
-          ( 'Choose media file', iniFolder, iniFile, extensionList, allowMultiple ) 
+          ( 'Choose media file', iniFolder, iniFile, extensionList, allowMultiple )
           
           if fileNames ~= '' then
             ReferenceFile = {}
@@ -729,9 +792,9 @@ function OptionsWindow()
         
         if reaper.ImGui_Button(ctx, 'Create reference track'..'##2') then
           local abort
-           
-          if OldPrjAAF and NewPrjAAF and ReferenceFile then
           
+          if OldPrjAAF and NewPrjAAF and ReferenceFile then
+            
             OldEdlTable = GetItemsPerTrack(OldPrjAAF, nil, nil, AnalyseOnlySelTracks, false, true)
             
             NewEdlTable = GetItemsPerTrack(NewPrjAAF, nil, nil, AnalyseOnlySelTracks, false, true)
@@ -755,7 +818,7 @@ function OptionsWindow()
               end
             end
             
-            if abort ~= true then CreateRefTrack(CompResult, ReferenceFile) end
+            if abort ~= true then CreateRefTrack(CompResult, ReferenceFile, false) end
           else
             reaper.ShowMessageBox('Choose both projects and a reference file first.', 'Simple Rroject Reconform', 0)
           end
@@ -1172,6 +1235,12 @@ function GetItemsPerTrack(project, timeStart, timeEnd, selTrOnly, selItemsOnly, 
             local length = reaper.GetMediaItemInfo_Value( item, "D_LENGTH" )
             Item.DestOut = Item.DestIn + length
             
+            local tsIn, tsOut = reaper.GetSet_LoopTimeRange2(project, false, false, 0, 0, false)
+            if AnalyseTS and tsIn ~= tsOut then
+              timeStart = tsIn
+              timeEnd = tsOut
+            end
+            
             if timeStart and timeEnd
             and timeStart > Item.DestIn and timeEnd < Item.DestOut then
               srctype = nil
@@ -1187,6 +1256,10 @@ function GetItemsPerTrack(project, timeStart, timeEnd, selTrOnly, selItemsOnly, 
               else Item.Type = 'A'
               end
               ]]
+              if timeStart and timeEnd then
+                Item.DestIn = Item.DestIn - timeStart
+                Item.DestOut = Item.DestOut - timeStart
+              end
               Item.file = reaper.GetMediaSourceFileName( src )
               Item.vol = reaper.GetMediaItemInfo_Value( item, "D_VOL" )
               Item.fIn = reaper.GetMediaItemInfo_Value( item, "D_FADEINLEN" )
@@ -1289,7 +1362,7 @@ end
 
 -------------------------
 
-function CreateRefTrack(Items, file) --each item = {oldstart, oldend, targetpos}
+function CreateRefTrack(Items, file, isEDL) --each item = {oldstart, oldend, targetpos}
   
   if #Items == 0 then
     local msg = 'There is no matches between EDLs'
@@ -1297,9 +1370,15 @@ function CreateRefTrack(Items, file) --each item = {oldstart, oldend, targetpos}
     return
   end
   
+  local aOldT, aNewT = 0, 0
+  if isEDL then
+    if old_UseAlignPoint == true and AlignOldTime then aOldT = AlignOldTime - PrjTimeOffset end
+    if new_TrimTime == true and AlignNewTime then aNewT = AlignNewTime - PrjTimeOffset end
+  end
+  
   file = file[1]
-  local startPoint = OldPrjStart
-  if NewPrjStart then startPoint = NewPrjStart end
+  local startPoint = OldPrjStart - aNewT
+  if NewPrjStart then startPoint = NewPrjStart - aNewT end
   reaper.Undo_BeginBlock2(0)
   local allTrcnt = reaper.CountTracks(0)
   if RefTrIdx > allTrcnt then RefTrIdx = allTrcnt end
@@ -1323,7 +1402,7 @@ function CreateRefTrack(Items, file) --each item = {oldstart, oldend, targetpos}
     reaper.SetMediaItemTake_Source( take, newSrc )
     reaper.SetMediaItemInfo_Value(newItem, 'D_POSITION', item[3] + startPoint)
     reaper.SetMediaItemInfo_Value(newItem, 'D_LENGTH', item[2] - item[1])
-    reaper.SetMediaItemTakeInfo_Value(take, 'D_STARTOFFS', item[1] + REFoffset )
+    reaper.SetMediaItemTakeInfo_Value(take, 'D_STARTOFFS', item[1] + REFoffset - aOldT )
     
     if crossfade then
       reaper.SetMediaItemInfo_Value(newItem, 'D_FADEINLEN_AUTO', crossfade )
@@ -1357,7 +1436,7 @@ function CreateRefTrack(Items, file) --each item = {oldstart, oldend, targetpos}
 end
 -------------------------
 
-function AnalyseEDLs(EDLs, timeTreshold) --table of pathes
+function AnalyseEDLs(EDLs, timeRegionStart, timeRegionEnd, userStartPoint) --table of pathes
   local CommonEDL = { V = {}, A = {}}
   local Splits = {}
   local edlsCnt = #EDLs
@@ -1481,14 +1560,28 @@ function AnalyseEDLs(EDLs, timeTreshold) --table of pathes
         item.DestIn = block.main[1]['Time'][3]
         item.DestOut = block.main[1]['Time'][4]
         
+        if not userStartPoint then
+          if not CommonEDL.firstItemTime then
+            CommonEDL.firstItemTime = reaper.parse_timestr_pos( item.DestIn, 5 )
+          end 
+          CommonEDL.firstItemTime = math.min(CommonEDL.firstItemTime, reaper.parse_timestr_pos( item.DestIn, 5 ) ) 
+        end
+        
         clip.SrcIn = reaper.parse_timestr_pos( clip.SrcIn, 5 ) - PrjTimeOffset
         clip.SrcOut = reaper.parse_timestr_pos( clip.SrcOut, 5 ) - PrjTimeOffset
-        item.DestIn = reaper.parse_timestr_pos( item.DestIn, 5 ) - PrjTimeOffset - timeTreshold
-        item.DestOut = reaper.parse_timestr_pos( item.DestOut, 5 ) - PrjTimeOffset - timeTreshold
+        item.DestIn = reaper.parse_timestr_pos( item.DestIn, 5 ) - PrjTimeOffset
+        item.DestOut = reaper.parse_timestr_pos( item.DestOut, 5 ) - PrjTimeOffset
         
         item.Type = block.main[1]['track']
         table.insert(item.Clips, copy(clip) )
-        table.insert(itemsList, copy(item) )
+        
+        if timeRegionStart ~= timeRegionEnd then
+          if item.DestIn >= timeRegionStart - PrjTimeOffset and item.DestOut <= timeRegionEnd - PrjTimeOffset then
+            table.insert(itemsList, copy(item) )
+          end
+        else table.insert(itemsList, copy(item) )
+        end
+        
         item.Clips = {}
       else
         local itemsCnt = #block.main
@@ -1548,10 +1641,17 @@ function AnalyseEDLs(EDLs, timeTreshold) --table of pathes
           item.DestIn = block.main[i]['Time'][3]
           item.DestOut = block.main[i]['Time'][4]
           
+          if not userStartPoint then
+            if not CommonEDL.firstItemTime then
+              CommonEDL.firstItemTime = reaper.parse_timestr_pos( item.DestIn, 5 )
+            end 
+            CommonEDL.firstItemTime = math.min(CommonEDL.firstItemTime, reaper.parse_timestr_pos( item.DestIn, 5 ) ) 
+          end
+          
           clip.SrcIn = reaper.parse_timestr_pos( clip.SrcIn, 5 ) - PrjTimeOffset
           clip.SrcOut = reaper.parse_timestr_pos( clip.SrcOut, 5 ) - PrjTimeOffset
-          item.DestIn = reaper.parse_timestr_pos( item.DestIn, 5 ) - PrjTimeOffset - timeTreshold
-          item.DestOut = reaper.parse_timestr_pos( item.DestOut, 5 ) - PrjTimeOffset - timeTreshold
+          item.DestIn = reaper.parse_timestr_pos( item.DestIn, 5 ) - PrjTimeOffset
+          item.DestOut = reaper.parse_timestr_pos( item.DestOut, 5 ) - PrjTimeOffset
           
           item.Type = block.main[i]['track']
            
@@ -1579,9 +1679,15 @@ function AnalyseEDLs(EDLs, timeTreshold) --table of pathes
           end
           
           table.insert(item.Clips, copy(clip) )
-          table.insert(itemsList, copy(item) )
-          item.Clips = {}
           
+          if timeRegionStart ~= timeRegionEnd then
+            if item.DestIn >= timeRegionStart - PrjTimeOffset and item.DestOut <= timeRegionEnd - PrjTimeOffset then
+              table.insert(itemsList, copy(item) )
+            end
+          else table.insert(itemsList, copy(item) )
+          end
+          
+          item.Clips = {} 
         end
       end
     
@@ -1720,282 +1826,14 @@ function AnalyseEDLs(EDLs, timeTreshold) --table of pathes
     
   end --end of edl files cycle
   
+  if userStartPoint then CommonEDL.firstItemTime = userStartPoint end
   
-  CleanUpEDL(CommonEDL, Splits)
-    
-  return CommonEDL
-end
-
--------------------------------
-
-function AnalyseEDLsOld(EDLs, timeTreshold) --table of pathes
-  local CommonEDL = {}
-  local Splits = {}
-  local EdlTable = { V={Splits={} }, A1={Splits={} }, A2={Splits={} }, A3={Splits={} }, A4={Splits={} } }
-  
-  for e, EDLfile in ipairs(EDLs) do
-    local EDLtext = ''
-    local items
-    local item
-    local fadelen
-    local clip
-    
-    --local itemscnt = 0
-    
-    for line in io.lines(EDLfile) do
-      EDLtext = EDLtext..line..'\n'.." "
-    end
-    EDLtext = EDLtext..'\n'
-    
-    for line in EDLtext:gmatch('[^\n]+') do
-      --msg('\n  LINE:   '..line)
-      local strparts = {}
-      for s in line:gmatch('%S+') do
-        table.insert(strparts, s)
-      end
-      
-      if #strparts == 0 then
-      --or ( line:match("FCM:") and line:match("FRAME") ) then
-      
-        if item then
-          if clip then table.insert(item.Clips, copy(clip))   clip = nil end --clip without name 
-          table.insert(items, copy(item))
-          item = nil
-        end
-      
-        if items ~= nil and #items > 0 then  --Collect items in tables
-        --msg('close ' .. #items)
-          for i, v in ipairs(items) do
-            --itemscnt = itemscnt +1
-            if v.Type == 'B' then
-              table.insert(EdlTable.V, copy(v))
-              table.insert(EdlTable.A1, copy(v))
-              
-              FieldMatch(EdlTable.V.Splits,copy(v.DestIn), true)
-              FieldMatch(EdlTable.V.Splits,copy(v.DestOut), true)
-              
-              FieldMatch(EdlTable.A1.Splits,copy(v.DestIn), true)
-              FieldMatch(EdlTable.A1.Splits,copy(v.DestOut), true)
-            elseif v.Type:match('V') then
-              table.insert(EdlTable.V, copy(v))
-              FieldMatch(EdlTable.V.Splits,copy(v.DestIn), true)
-              FieldMatch(EdlTable.V.Splits,copy(v.DestOut), true)
-            end
-            
-            v.Type = v.Type:gsub('/V', '')
-            if v.Type == 'A' then
-              table.insert(EdlTable.A1, copy(v))
-              FieldMatch(EdlTable.A1.Splits,copy(v.DestIn), true)
-              FieldMatch(EdlTable.A1.Splits,copy(v.DestOut), true)
-            elseif v.Type == 'A2' then
-              table.insert(EdlTable.A2, copy(v))
-              FieldMatch(EdlTable.A2.Splits,copy(v.DestIn), true)
-              FieldMatch(EdlTable.A2.Splits,copy(v.DestOut), true)
-            elseif v.Type == 'AA' then
-              table.insert(EdlTable.A1, copy(v))
-              table.insert(EdlTable.A2, copy(v))
-              
-              FieldMatch(EdlTable.A1.Splits,copy(v.DestIn), true)
-              FieldMatch(EdlTable.A1.Splits,copy(v.DestOut), true)
-              
-              FieldMatch(EdlTable.A2.Splits,copy(v.DestIn), true)
-              FieldMatch(EdlTable.A2.Splits,copy(v.DestOut), true)
-            elseif v.Type == 'A3' then                    -- for Davinci Resolve
-              table.insert(EdlTable.A3, copy(v))
-              FieldMatch(EdlTable.A3.Splits,copy(v.DestIn), true)
-              FieldMatch(EdlTable.A3.Splits,copy(v.DestOut), true)
-            elseif v.Type and v.Type:match('A') then      -- for Davinci Resolve
-              table.insert(EdlTable.A4, copy(v))
-              FieldMatch(EdlTable.A4.Splits,copy(v.DestIn), true)
-              FieldMatch(EdlTable.A4.Splits,copy(v.DestOut), true)
-            end
-            
-            if v.Type2 and v.Type2:match('3') then
-              table.insert(EdlTable.A3, copy(v))
-              FieldMatch(EdlTable.A3.Splits,copy(v.DestIn), true)
-              FieldMatch(EdlTable.A3.Splits,copy(v.DestOut), true)
-            end
-            
-            if v.Type2 and v.Type2:match('4') then
-              table.insert(EdlTable.A4, copy(v))
-              FieldMatch(EdlTable.A4.Splits,copy(v.DestIn), true)
-              FieldMatch(EdlTable.A4.Splits,copy(v.DestOut), true)
-            end
-          end
-          items = nil
-        end
-        clip = nil
-      else --PARSING EDL starts from here -- Create items from text
-        
-        if string.match(strparts[1], '%d+') and #strparts >= 8 then --msg('open')
-          --if tonumber(strparts[1]) == 5 then return end -- for debuging
-        
-          items = {}
-          item = {Type, Type2, Clips={}, DestIn, DestOut}
-          
-          item.Type = strparts[3]
-          item.DestIn = reaper.parse_timestr_pos( strparts[#strparts-1], 5 ) - PrjTimeOffset - timeTreshold
-          item.DestOut = reaper.parse_timestr_pos( strparts[#strparts], 5 ) - PrjTimeOffset - timeTreshold
-
-          if not clip then --msg('get clip')
-            clip = { name, SrcIn, SrcOut }
-            clip.SrcIn = reaper.parse_timestr_pos( strparts[#strparts-3], 5 ) - PrjTimeOffset
-            clip.SrcOut = reaper.parse_timestr_pos( strparts[#strparts-2], 5 ) - PrjTimeOffset
-          end
-          
-          if clip.SrcIn >= clip.SrcOut or item.DestIn >= item.DestOut then
-            clip.SrcOut = clip.SrcIn + 1 --to be just more then srcIn in next iteration
-            item = nil
-            --msg('destroy item')
-          elseif #strparts >= 9 and string.match(strparts[#strparts-4], '%d+') then
-            fadelen = tonumber(strparts[#strparts-4])
-            fadelen = reaper.parse_timestr_pos( '00:00:00:'..fadelen, 5 ) - PrjTimeOffset
-            
-            --if clip then msg('1st clip src in  '..clip.SrcIn) end
-            
-            clip.SrcOut = clip.SrcIn + fadelen
-            table.insert(item.Clips, copy(clip)) --1st clip without name
-            
-            clip.SrcIn = reaper.parse_timestr_pos( strparts[#strparts-3], 5 ) - PrjTimeOffset
-            clip.SrcOut = clip.SrcIn + fadelen
-            table.insert(item.Clips, copy(clip)) --2nd clip without name
-            
-            item.DestOut = item.DestIn + fadelen
-            if item then
-              table.insert(items, copy(item))
-              --msg('item added')
-            end
-            item.Clips = {}
-            
-            item.DestIn = item.DestOut
-            item.DestOut = reaper.parse_timestr_pos( strparts[#strparts], 5 ) - timeTreshold - PrjTimeOffset
-            clip.SrcIn = clip.SrcOut
-            clip.SrcOut = reaper.parse_timestr_pos( strparts[#strparts-2], 5 ) - PrjTimeOffset
-          end
-        end
-        
-        
-        if line:match("CLIP NAME:") and items then
-          
-          local nameT = {}
-          for s in string.gmatch(line, '[^:]+') do
-            s = s:gsub('^%s*(.-)%s*$', '%1') --remove spaces at edges
-            table.insert(nameT, s)
-          end
-           
-          if #items > 0 then
-            for i,v in ipairs(items) do
-              local clips = v.Clips
-              for j, c in ipairs(clips) do
-              --msg('clip '..j)
-                
-                if c.name == nil then
-                  if #nameT == 2 and nameT[2] == 'BL' then
-                    c.name = line
-                  elseif #nameT == 2 then
-                    c.name = nameT[2]
-                  end 
-                  break
-                end
-                
-              end
-            end
-          elseif #nameT == 2 then
-            clip.name = nameT[2]
-          end
-          
-          if item then
-            if clip then
-              table.insert(item.Clips, copy(clip))
-              clip = nil --clip without name
-            end 
-            table.insert(items, copy(item)) 
-            --msg('item added')
-            item = nil
-          end
-          
-        elseif line:match("AUD ") and #strparts <= 3 and items then
-          if #items > 0 then
-            for i,v in ipairs(items) do
-              v.Type2 = line:gsub("AUD", ''):gsub("%s+", '') 
-            end
-          end
-        end
-        
-      end --end of parsing
-      --msg(line)
-    end -- end line cycle
-  end --end of edl files cycle
-  
-  --Remove Fades in Audio clips
-  for name, track in pairs(EdlTable) do
-    if name ~= 'V' then
-    
-      for i, item in ipairs(track) do
-        local c = #item.Clips
-        while c > 0 do
-          local clip = item.Clips[c]
-          if clip.name and  clip.name:match('CLIP NAME: BL') then
-            table.remove(item.Clips, c)
-          end
-          c = c-1
-        end
-      end
-      
-    end
-  end
-  
-  --[[
-  msg('\nEDL size is - '..#EdlTable.A1) msg('')
-  ---TEST MESSAGE----
-  for i, item in ipairs(EdlTable.A1) do
-    if item.DestIn > 60 then break end
-    msg('ITEM '..i) --..' '..item.Type) 
-    msg('In/Out '..reaper.format_timestr_pos(item.DestIn,'',5) ..' - '.. reaper.format_timestr_pos(item.DestOut,'',5))
-    for j, clip in ipairs(item.Clips) do
-      local srcIn = reaper.format_timestr_pos(clip.SrcIn,'',5)
-      local srcOut = reaper.format_timestr_pos(clip.SrcOut,'',5)
-      msg(srcIn..' - '..srcOut..'  '..tostring(clip.name))
-    end 
-  end
-  -------------------
-  ]]
-  --
-  
-  
-  ---Add to the common table content for analyse
-  if EDLcontentFlags & 1 ~= 0 then
-    table.move(EdlTable.V, 1, #EdlTable.V, #CommonEDL+1, CommonEDL)
-    table.move(EdlTable.V.Splits, 1, #EdlTable.V.Splits, #Splits+1, Splits)
-  end
-  
-  if EDLcontentFlags & 1<<1 ~= 0 then
-    table.move(EdlTable.A1, 1, #EdlTable.A1, #CommonEDL+1, CommonEDL) 
-    for i, v in ipairs(EdlTable.A1.Splits) do FieldMatch(Splits, v, true) end
-  end
-  
-  if EDLcontentFlags & 1<<2 ~= 0 then
-    table.move(EdlTable.A2, 1, #EdlTable.A2, #CommonEDL+1, CommonEDL) 
-    for i, v in ipairs(EdlTable.A2.Splits) do FieldMatch(Splits, v, true) end
-  end
-  
-  if EDLcontentFlags & 1<<3 ~= 0 then
-    table.move(EdlTable.A3, 1, #EdlTable.A3, #CommonEDL+1, CommonEDL) 
-    for i, v in ipairs(EdlTable.A3.Splits) do FieldMatch(Splits, v, true) end
-  end
-  
-  if EDLcontentFlags & 1<<4 ~= 0 then
-    table.move(EdlTable.A4, 1, #EdlTable.A4, #CommonEDL+1, CommonEDL) 
-    for i, v in ipairs(EdlTable.A4.Splits) do FieldMatch(Splits, v, true) end
-  end 
-  
-  --GO HERE IN FUTURE after parsing project info if the Project Analyse used instead of EDL one.
   CleanUpEDL(CommonEDL, Splits)
   
   return CommonEDL
 end
 
--------------------------
+-------------------------------
 
 function CleanUpEDL(CommonEDL, Splits)
 
@@ -2113,7 +1951,11 @@ function CleanUpEDL(CommonEDL, Splits)
   while i > 0 do
     local item = CommonEDL[i]
     if i > 1 then prevEnd = CommonEDL[i-1]['DestOut']
-    else prevEnd = 0
+    else
+      if CommonEDL.firstItemTime then
+        prevEnd = CommonEDL.firstItemTime - PrjTimeOffset
+      else prevEnd = 0
+      end
     end
     if item.DestIn - prevEnd > MIN_luft_ZERO then
       table.insert(CommonEDL, i, { DestIn = prevEnd, DestOut = item.DestIn, Clips={} } ) 
@@ -2149,40 +1991,21 @@ function CompareEDLs(OLD, NEW)
   local DiffT = {}
   local CandidatesGroups ={}
   
-  local oldLeadEmpty
-  local newLeadEmpty
-  TrimOldEmpty = 0
-  TrimNewEmpty = 0
-  
-  if #OLD[1]['Clips'] == 0
-  or (#OLD[1]['Clips'] == 1 and #OLD[1]['Clips'][1]['name'] == '::BLACK::') then
-    oldLeadEmpty = OLD[1]['DestOut']
-  else oldLeadEmpty = OLD[1]['DestIn']
+  if old_UseAlignPoint == true and OLD.firstItemTime then
+    TrimOldEmpty = OLD.firstItemTime - PrjTimeOffset
+  else TrimOldEmpty = 0
   end
   
-  if #NEW[1]['Clips'] == 0
-  or (#NEW[1]['Clips'] == 1 and #NEW[1]['Clips'][1]['name'] == '::BLACK::') then
-    newLeadEmpty = NEW[1]['DestOut']
-  else newLeadEmpty = NEW[1]['DestIn']
-  end
-  
-  if oldLeadEmpty
-  and old_TrimLeadingTime == true and old_TrimOnlyEmptyTime == true
-  and oldLeadEmpty >= reaper.parse_timestr_pos( TrimOldTime, 5 ) - PrjTimeOffset then 
-    TrimOldEmpty = oldLeadEmpty - math.fmod(oldLeadEmpty, (reaper.parse_timestr_pos(TrimOldTime, 5)-PrjTimeOffset) )
-  end
-  
-  if newLeadEmpty
-  and new_TrimLeadingTime == true and new_TrimOnlyEmptyTime == true
-  and newLeadEmpty >= reaper.parse_timestr_pos( TrimNewTime, 5 ) - PrjTimeOffset then
-    TrimNewEmpty = newLeadEmpty - math.fmod(newLeadEmpty, (reaper.parse_timestr_pos(TrimNewTime, 5)-PrjTimeOffset) )
+  if new_TrimTime == true and NEW.firstItemTime then
+    TrimNewEmpty = NEW.firstItemTime - PrjTimeOffset
+  else TrimNewEmpty = 0
   end
   
   ------
   local function compare_items(newitem, olditem, oi, ni)
     local diffItem = {idxnew, idxold, rate, pos, length, offset, side}
     
-    if TrimOldEmpty > olditem.DestIn then return end
+    if TrimOldEmpty >= olditem.DestOut then return end
     if TrimNewEmpty > newitem.DestIn then return end
     --[[
     if newitem.DestIn == BugTIME then
@@ -2195,9 +2018,9 @@ function CompareEDLs(OLD, NEW)
         diffItem.idxnew = ni
         diffItem.idxold = oi
         diffItem.rate = 1
-        diffItem.pos = newitem.DestIn - TrimNewEmpty
+        diffItem.pos = newitem.DestIn -- - TrimNewEmpty
         diffItem.length = newitem.DestOut - newitem.DestIn
-        diffItem.offset = olditem.DestIn - TrimOldEmpty
+        diffItem.offset = olditem.DestIn -- - TrimOldEmpty
         return diffItem
       else return
       end
@@ -2213,36 +2036,36 @@ function CompareEDLs(OLD, NEW)
     local difCount = {}
     local clipVariants = {}
     --
-    if newitem.DestIn == BugTIME then
-      msg('\n     ITEM CLIPS   '..#newitem.Clips.. '  '.. #olditem.Clips)
+    if oi and newitem.DestIn == BugTIME then
+      --msg('     ITEM CLIPS   '..#olditem.Clips.. '  '.. #newitem.Clips)
     end
     
     for oc, oldClip in ipairs(olditem.Clips) do
-    --
-      if newitem.DestIn == BugTIME then
-        msg('\nOldClip   '..oldClip.name)
-        msg(tostring(oldClip.SrcIn)..' - '.. tostring(oldClip.SrcOut))
+    
+      if oi and newitem.DestIn == BugTIME then
+        --msg('OldClip   '..tostring(oldClip.SrcIn)..' - '.. tostring(oldClip.SrcOut)..'  '..oldClip.name)
       end
       for nc, newClip in ipairs(newitem.Clips) do
         local path, file, ext
         if oldClip.name then path, file, ext = SplitFilename(oldClip.name) end
-        --
-        if newitem.DestIn == BugTIME then
-          msg('NewClip   '..newClip.name)
-          msg(tostring(newClip.SrcIn)..' - '.. tostring(newClip.SrcOut))
+        
+        if oi and newitem.DestIn == BugTIME then 
+          --msg('NewClip   '..tostring(newClip.SrcIn)..' - '.. tostring(newClip.SrcOut)..'  '..newClip.name)
         end
         
-        if oldClip.name == newClip.name then 
+        if oldClip.name == newClip.name then
           local diff, len
           --msg(type(path)..path) msg(type(file)..file) msg(type(ext)..ext) msg('')
           if file == ext then --or not oldClip.name
           --message
-            if newitem.DestIn == BugTIME then
+          --[[
+            if oi and newitem.DestIn == BugTIME then
               msg('file == ext')
               msg('NI  '..newitem.DestOut.." - "..newitem.DestIn)
               msg('OI  '..olditem.DestOut.." - "..olditem.DestIn)
             end
           --]]
+          
             --Old clip is in/out black or graphic/effect - there is no sense to compare src timings
             --Consider them as matched if they lengthes are equal
             if math.abs((newitem.DestOut - newitem.DestIn) - (olditem.DestOut - olditem.DestIn)) < MIN_luft_ZERO then
@@ -2267,8 +2090,8 @@ function CompareEDLs(OLD, NEW)
             
           else
           --
-            if newitem.DestIn == BugTIME then
-              msg(tostring(oldClip.SrcIn < newClip.SrcOut)..'  '..tostring(oldClip.SrcOut > newClip.SrcIn))
+            if oi and newitem.DestIn == BugTIME then
+              --msg('clips time crossing '.. tostring(oldClip.SrcIn < newClip.SrcOut)..'  '..tostring(oldClip.SrcOut > newClip.SrcIn))
             end
             if oldClip.SrcIn < newClip.SrcOut and oldClip.SrcOut > newClip.SrcIn then 
               diff = newClip.SrcIn - oldClip.SrcIn
@@ -2297,10 +2120,10 @@ function CompareEDLs(OLD, NEW)
                
             end
           end
-          --
-          if newitem.DestIn == BugTIME then
-            msg(diff)
-            msg(len)
+          
+          if oi and newitem.DestIn == BugTIME then
+            --msg('diff '..tostring(diff))
+            --msg('len '..tostring(len))
           end
         else
           --PASTE HERE ASSUMPTION OF VFX if new name include the old one.
@@ -2350,8 +2173,8 @@ function CompareEDLs(OLD, NEW)
     if diff1 then
       diffItem.rate = len1 / (newitem.DestOut - newitem.DestIn)
       diffItem.length = len1
-      diffItem.pos = newitem.DestIn - math.min(diff1, 0) - TrimNewEmpty
-      diffItem.offset = olditem.DestIn + math.max(diff1, 0) - TrimOldEmpty
+      diffItem.pos = newitem.DestIn - math.min(diff1, 0) -- - TrimNewEmpty
+      diffItem.offset = olditem.DestIn + math.max(diff1, 0) -- - TrimOldEmpty
       if diff1 and diff2 then diffItem.side = diff1 < diff2 end
       ret1 = copy(diffItem)
     end
@@ -2359,17 +2182,17 @@ function CompareEDLs(OLD, NEW)
     if diff2 then
       diffItem.rate = len2 / (newitem.DestOut - newitem.DestIn)
       diffItem.length = len2
-      diffItem.pos = newitem.DestIn - math.min(diff2, 0) - TrimNewEmpty
-      diffItem.offset = olditem.DestIn + math.max(diff2, 0) - TrimOldEmpty
+      diffItem.pos = newitem.DestIn - math.min(diff2, 0) -- - TrimNewEmpty
+      diffItem.offset = olditem.DestIn + math.max(diff2, 0) -- - TrimOldEmpty
       diffItem.side = diff1 > diff2
       ret2 = copy(diffItem)
     end
     
     --message--
     if ret1 then
-      if newitem.DestIn == BugTIME then
-        msg('oldIDX  ' ..oi)
-        msg('newIDX  ' ..ni)
+      if oi and newitem.DestIn == BugTIME then
+        --msg('oldIDX  ' ..tostring(oi))
+        --msg('newIDX  ' ..tostring(ni))
       end
     end
     ---
@@ -2384,6 +2207,18 @@ function CompareEDLs(OLD, NEW)
     
     for oi, olditem in ipairs(OLD) do
       local ret, ret2 = compare_items(newitem, olditem, oi, ni)
+      if ret and newitem.DestIn == BugTIME then
+        msg('Matched ret')
+        for name, val in pairs(ret) do
+          msg(tostring(name)..' = '.. tostring(val))
+        end
+      end
+      if ret2 and newitem.DestIn == BugTIME then
+        msg('Matched ret2')
+        for name, val in pairs(ret2) do
+          msg(tostring(name)..' = '.. tostring(val))
+        end
+      end
       if ret then table.insert(CandGroup, ret) end
       if ret2 then table.insert(CandGroup, ret2) end
     end
@@ -2538,8 +2373,8 @@ function CompareEDLs(OLD, NEW)
     for c, diffItem in ipairs(CandGroup) do
       --[[
       --MESSAGE--
-      --diffItem = {idxnew, idxold, rate, pos, length, offset, side}
-      --if diffItem.DestIn == BugTIME then
+      --diffItem = {idxnew, idxold, rate, pos, length, offset, side} 
+      if diffItem.pos == BugTIME then
         msg('\n   diffItem  '..g ..' '..c ..'   '..diffItem.pos..' - ' .. diffItem.pos + diffItem.length)
         msg('New Time  '..NEW[diffItem.idxnew]['DestIn']..' - '..NEW[diffItem.idxnew]['DestOut'])
         msg('Old Time  '..OLD[diffItem.idxold]['DestIn']..' - '..OLD[diffItem.idxold]['DestOut'])
@@ -2567,10 +2402,10 @@ function CompareEDLs(OLD, NEW)
           end
         end
         
-      --end
+      end
       ---------------
-      ]]
-      --[[
+      --]]
+      --
       local olditem = OLD[diffItem.idxold]
       local newitem = NEW[diffItem.idxnew]
       if newitem.DestIn == BugTIME then
@@ -2593,17 +2428,19 @@ function CompareEDLs(OLD, NEW)
   --[[
   msg('\n DiffT')
   for i, v in ipairs(DiffT) do
-    msg('\n'.. v[3])
-    msg( v[1]..' - '..  v[2] )
-    --msg( v[3]..' - '.. v[3] + v[2] - v[1] )
-  end]]
+    --msg('\n'.. v[3])
+    --msg( v[1]..' - '..  v[2] )
+    msg( v[3]..' - '.. v[3] + v[2] - v[1] )
+  end
+  --]]
   
   CleanUpRefItems(DiffT)
   --[[
   msg('\n cleaned DiffT')
   for i, v in ipairs(DiffT) do
     msg( v[3]..' - '.. v[3] + v[2] - v[1] )
-  end]]
+  end
+  --]]
   
   return DiffT
 end
@@ -2639,13 +2476,15 @@ function CreateReportMarkers()
   table.sort(Gaps, function (a,b) return (a[1] < b[1]) end )
   
   local track = reaper.GetTrack(0, LastRefTrID)
-  local fl = reaper.SetMediaTrackInfo_Value(track, 'I_FREEMODE', 2 )
-  local lanesN = reaper.GetMediaTrackInfo_Value(track, 'I_NUMFIXEDLANES') 
+  local fl = reaper.SetMediaTrackInfo_Value(track, 'I_FREEMODE', 2 ) 
+  if fl then reaper.SetMediaTrackInfo_Value(track, 'C_LANESCOLLAPSED', 0 ) end
   local splits
   local gaps
   local xfades
   
   reaper.SetOnlyTrackSelected(track)
+  reaper.Main_OnCommandEx(42689, 0,0) --Track lanes: Delete empty lanes with no media items
+  local lanesN = reaper.GetMediaTrackInfo_Value(track, 'I_NUMFIXEDLANES') 
   local splitsTake
   local splcnt = 1
   local xfadecnt = 1
@@ -2710,6 +2549,8 @@ function CreateReportMarkers()
     reaper.SetTakeMarker(gapTake, -1, 'gap '..gapcnt..tag, 0)
     gapcnt = gapcnt +1
   end
+  
+  reaper.SetMediaTrackInfo_Value(track, 'C_ALLLANESPLAY', 1 )
 end
 
 -------------------------
