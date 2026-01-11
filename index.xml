@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="35362e826ba0dbaa61310c8ba0c44e8b2fde392a" name="ReaTeam Scripts">
+<index version="1" commit="f0b15b43385b47b98a06d12a43935b7b57a04e17" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -25670,6 +25670,12 @@ v1.0
 - UI: move Advanced timing options
 - Notifications: added notification for Create reference track buttons if there is lack of conditions.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/46d8ee4fc44e7b0100c5eb042b5d18c81c2551a6/Various/az_Simple%20project%20reconform.lua</source>
+      </version>
+      <version name="0.9" author="AZ" time="2026-01-11T05:41:07Z">
+        <changelog><![CDATA[- Redesign logic and UI of time adjustments in cases when EDLs don't start from zero.
+- New option to analyze time selection (in project tabs) and align reference item to it.
+- Fix Report markers track settings related to fixed lanes visibility.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f0b15b43385b47b98a06d12a43935b7b57a04e17/Various/az_Simple%20project%20reconform.lua</source>
       </version>
     </reapack>
     <reapack name="beaunus_Import_clip_splicer_specification_json.py" type="script" desc="Import Clip Splicer JSON file">
