@@ -1,12 +1,10 @@
 -- @description Perfect Timing! - Audio Quantizer
 -- @author 80icio
--- @version 0.40
+-- @version 0.41
 -- @changelog
---   - Improved transient detection with more accurate peak and RMS measurements, 
---     DC offset correction, and smarter retrigger behavior
---   - Major speed improvements for filters (lowcut, hicut, transient, gain) - 
---     up to 2x faster processing
---   - Fixed incorrect grid drawing in the internal visualizer
+--   - Improved Visualizer performance when zoomed out on long waveforms
+--   - Fixed additional cases of incorrect grid drawing in the Visualizer
+--   - Simplified gridscan logic from "choose closest and most powerful transient" to "choose closest transient"
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=288964
 -- @about
 --   # PERFECT TIMING! 
@@ -1453,7 +1451,7 @@ local output ={}
 
     for i=1, h do
     self.grid_diff_temp ={}
-    self.rms_battle = {}
+    --self.rms_battle = {}
     local idtotal ={}
       if IsEven(i)==false then
           for c = 1, #input, 2 do
@@ -1462,14 +1460,15 @@ local output ={}
                
                if diff <= grid_dist then
                  self.grid_diff_temp[#self.grid_diff_temp+1] = diff
-                 self.rms_battle[#self.rms_battle+1] = input[c+1][1]
+                 --self.rms_battle[#self.rms_battle+1] = input[c+1][1]
                  idtotal[#idtotal+1] = c
                end
             end
           end
           
-            id = getHighest(self.rms_battle)
-   
+            --id = getHighest(self.rms_battle)
+            id = getLowest(self.grid_diff_temp)
+            
           if idtotal[id] then
             output[#output+1] = input[idtotal[id]]
             output[#output+1] = input[(idtotal[id])+1]
@@ -1529,7 +1528,7 @@ function Create_Grid_table()
             
             local blocklineQN_check = abs(blocklineQN - floor(blocklineQN))
             
-            if blocklineQN_check <1e-13 or blocklineQN_check > 1-1e-13 then
+            if blocklineQN_check < 1e-10 or blocklineQN_check > 1-1e-10 then
               Grid_blocks_Ruler_thickness[h] = 2
             else
               Grid_blocks_Ruler_thickness[h] = 1
@@ -2664,11 +2663,12 @@ function thresh_histogram() ---------- draw Threshold PEAK Histogram
 end
 local LRarrow = 0
 function waveform_visualizer()
-      
+
+         local total_samples = #Wave.out_buf
          local w = m_window_width - ImGui.StyleVar_CellPadding-2
          local y_pos = 0
          local y_neg = 0
-         local max_zoom_h = floor(#Wave.out_buf/(m_window_width*2))
+         local max_zoom_h = floor(total_samples/(m_window_width*2))
 
          local i_array = 1
          
@@ -2702,105 +2702,124 @@ function waveform_visualizer()
          
          local mouse_wheel_v, mouse_wheel_h = ImGui.GetMouseWheel( ctx )
          
-           if ImGui.IsMouseClicked( ctx, 0 ) or mouse_wheel_v~=0 or mouse_wheel_h~=0 then -------- zoom when click left
-           new_zoom_pos_range = (1/waveform_zoom_h)
-           new_zoom_pos_start = (startsample/#Wave.out_buf)
-             local x_mouse, _ = r.GetMousePosition(ctx)
-             x_mouse = x_mouse-histo_x
-             x_mouse = x_mouse/histo_w
-             if x_mouse>1 then x_mouse=1 end
-             if x_mouse<0 then x_mouse=0 end
-             local x_mouse_rel = (x_mouse * new_zoom_pos_range) + new_zoom_pos_start 
-             h_zoom_center = x_mouse_rel
-             h_zoom_absolute_center = x_mouse
-             samplesdifference = h_zoom_center-h_zoom_absolute_center
-           end
+            if ImGui.IsMouseClicked(ctx, 0) or mouse_wheel_v~=0 or mouse_wheel_h~=0 then -------- zoom when click left and drag down
+              new_zoom_pos_range = 1 / waveform_zoom_h
+              new_zoom_pos_start = startsample / total_samples
+              
+              local x_mouse = r.GetMousePosition(ctx) - histo_x
+              x_mouse = x_mouse / histo_w
+              
+              if x_mouse > 1 then x_mouse = 1 end
+              if x_mouse < 0 then x_mouse = 0 end
+              
+              local x_mouse_rel = (x_mouse * new_zoom_pos_range) + new_zoom_pos_start 
+              h_zoom_center = x_mouse_rel
+              h_zoom_absolute_center = x_mouse
+              samplesdifference = x_mouse_rel - x_mouse
+            end
            
            
-           if ImGui.IsMouseDragging( ctx, 1 ) then ------right click dragging 
-           -- ImGui.SetMouseCursor( ctx, ImGui.MouseCursor_Hand )
-            local x_delta_rc, _ = ImGui.GetMouseDelta( ctx )
-            h_zoom_center = h_zoom_center - x_delta_rc/w/waveform_zoom_h
-            
-            right_click_dragging = true
-           else
-            right_click_dragging = false
-           end
-           
-           if h_zoom_center>1 then h_zoom_center = 1 end
-           if h_zoom_center<0 then h_zoom_center = 0 end
-           
-           
-           if ImGui.IsMouseDragging( ctx, 0 ) or mouse_wheel_v~=0 or mouse_wheel_h~=0 then -------------------get horizontal zoom value
-             h_zoom_dragging = true
-             local x_delta, y_delta = ImGui.GetMouseDelta( ctx )
-             mouse_wheel_h = (mouse_wheel_h^3)*-1
-             mouse_wheel_h=min(mouse_wheel_h,600)
-             mouse_wheel_h=max(mouse_wheel_h,-600)
-             
-             local zoom_factor_y = (y_delta/10) / histo_h
-             local zoom_factor_wheel = mouse_wheel_v / histo_h
-             waveform_zoom_h = waveform_zoom_h + (zoom_factor_y + zoom_factor_wheel) * (max_zoom_h / 2)
-             --waveform_zoom_h = waveform_zoom_h^2/2
-             --waveform_zoom_h = waveform_zoom_h + (y_delta/histo_h)*(max_zoom_h/2) + (mouse_wheel_v/histo_h)*(max_zoom_h/2) 
-             moving_h = floor(((x_delta^3)/waveform_zoom_h) + (mouse_wheel_h*100/waveform_zoom_h)) + moving_h
-             
-               if waveform_zoom_h>max_zoom_h then waveform_zoom_h=max_zoom_h end
-               if waveform_zoom_h<min_visualzer_rangeview then waveform_zoom_h=min_visualzer_rangeview end
-           else
-             h_zoom_dragging = false
-             moving_h = 0
-           end
+            if ImGui.IsMouseDragging(ctx, 0) or mouse_wheel_v~=0 or mouse_wheel_h~=0 then
+              h_zoom_dragging = true
+              local x_delta, y_delta = ImGui.GetMouseDelta(ctx)
+              
+              -- Process horizontal wheel (cube, negate, clamp)
+              mouse_wheel_h = mouse_wheel_h * mouse_wheel_h * mouse_wheel_h * -1
+              if mouse_wheel_h > 600 then mouse_wheel_h = 600 end
+              if mouse_wheel_h < -600 then mouse_wheel_h = -600 end
+              
+              -- Cache inverse values
+              local inv_histo_h = 1 / histo_h
+              local inv_zoom_h = 1 / waveform_zoom_h
+              
+              
+              local delta_scaling = 0.01 * (total_samples/zoomedsamples)^0.5
+              
+              -- Calculate zoom
+              local zoom_factor_y = (y_delta * delta_scaling) * inv_histo_h
+              local zoom_factor_wheel = mouse_wheel_v * delta_scaling * inv_histo_h
+              waveform_zoom_h = waveform_zoom_h + (zoom_factor_y + zoom_factor_wheel) * (max_zoom_h * 0.5)
+              
+              -- Calculate movement
+              local x_cubed = x_delta * x_delta * x_delta 
+              moving_h = floor((x_cubed * inv_zoom_h) + (mouse_wheel_h * 100 * inv_zoom_h)) + moving_h
+              
+              -- Clamp zoom
+              if waveform_zoom_h > max_zoom_h then waveform_zoom_h = max_zoom_h end
+              if waveform_zoom_h < min_visualzer_rangeview then waveform_zoom_h = min_visualzer_rangeview end
+            else
+              h_zoom_dragging = false
+              moving_h = 0
+            end
            
            
          else
            ImGui.SetMouseCursor( ctx, ImGui.MouseCursor_Arrow )
          end
-
+           
            if w_check ~= w or cyclecount==1 or h_zoom_dragging or LRarrow~=0 or right_click_dragging then ---or v_zoom_dragging then
              line_array_pos = {}
              line_array_neg = {}
              
-             zoomedsamples = floor(#Wave.out_buf/waveform_zoom_h)
+             zoomedsamples = floor(total_samples/waveform_zoom_h)
              
-             startsample = floor(#Wave.out_buf*((1-(1/waveform_zoom_h))*h_zoom_center+(samplesdifference/waveform_zoom_h)))
+             startsample = floor(total_samples*((1-(1/waveform_zoom_h))*h_zoom_center+(samplesdifference/waveform_zoom_h)))
              startsample = startsample+moving_h
              
              if startsample<0 then startsample = 0 end
               
              local endsample = zoomedsamples+startsample
              
-             if endsample>#Wave.out_buf then 
-              endsample=#Wave.out_buf ; startsample = #Wave.out_buf-zoomedsamples
+             if endsample>total_samples then 
+              endsample=total_samples ; startsample = total_samples-zoomedsamples
              end
 
              local w_zoom = (w)/(zoomedsamples)
+    
+             local sample_count = endsample - startsample
+             local threshold = 5000000  -- adjust this based on testing
              
-             for i = 1+startsample, endsample do 
-               local x_poly = floor(i*w_zoom)
-               local x_poly_next = floor((i+1)*w_zoom)
-               
-               if x_poly == x_poly_next then
-
-                  if Wave.out_buf[i]>=(y_pos) then
-                   y_pos = Wave.out_buf[i]
-                  end 
-                  if Wave.out_buf[i]<=(y_neg) then
-                   y_neg = Wave.out_buf[i]
-                  end 
-                  
-               else
-               
-                 line_array_pos[i_array] = y_pos
-
-                 line_array_neg[i_array] = y_neg
-
-                 y_pos = 0
-                 y_neg = 0
-                 i_array = i_array+1
+             if sample_count < threshold then
+               -- DETAILED MODE: Your current precise function
+               local x_poly = floor(startsample * w_zoom)
+               for i = 1+startsample, endsample do 
+                 local x_poly_next = floor((i+1)*w_zoom)
+                 local val = Wave.out_buf[i]
                  
+                 if x_poly == x_poly_next then
+                   if val > y_pos then y_pos = val end
+                   if val < y_neg then y_neg = val end
+                 else
+                   line_array_pos[i_array] = y_pos
+                   line_array_neg[i_array] = y_neg
+                   i_array = i_array + 1
+                   y_pos, y_neg = 0, 0
+                   x_poly = x_poly_next
+                 end
                end
-             end
+               
+                else
+                  -- FAST MODE: Same logic as detailed mode but with stride
+                  local stride = max(10, floor(sample_count / 100000))  -- adjust divisor for speed vs quality
+                  
+                  local x_poly = floor(startsample * w_zoom)
+                  for i = 1+startsample, endsample, stride do 
+                    local x_poly_next = floor((i+1)*w_zoom)
+                    local val = Wave.out_buf[i]
+                    
+                    if x_poly == x_poly_next then
+                      if val > y_pos then y_pos = val end
+                      if val < y_neg then y_neg = val end
+                    else
+                      line_array_pos[i_array] = y_pos
+                      line_array_neg[i_array] = y_neg
+                      i_array = i_array + 1
+                      y_pos, y_neg = 0, 0
+                      x_poly = x_poly_next
+                    end
+                  end
+                end
+             
            end
         
     w_check = w 
