@@ -1,10 +1,15 @@
 -- @description Simple project reconform
 -- @author AZ
--- @version 0.9
+-- @version 1.0
 -- @changelog
---   - Redesign logic and UI of time adjustments in cases when EDLs don't start from zero.
---   - New option to analyze time selection (in project tabs) and align reference item to it.
---   - Fix Report markers track settings related to fixed lanes visibility.
+--   - Improve advanced time options for EDL
+--   - Update EDL start time according to advanced time options change
+--   - New feature: Comparison assistant
+--   - Indicate that reconform process is going
+--   - Fix UI inconsistences and font size
+-- @provides
+--   az_Simple project reconform/az_Common reconform functions.lua
+--   [main] az_Simple project reconform/az_Comparison assistant for az_Simple project reconform.lua
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=293746
 -- @donation Donate via PayPal https://www.paypal.me/AZsound
 -- @about
@@ -24,35 +29,7 @@ end
 -----------------------------
 BugTIME = -1 --reaper.parse_timestr_pos('10:16:17:04', 5)
 
---------------------------
-function rgbToHex(rgba) -- passing a table with percentage like {100, 50, 20, 90}
-  local hexadecimal = '0X'
-
-  for key, value in pairs(rgba) do
-    local hex = ''
-    if value > 100 or value < 0 then return error('Color must be a percantage value\n between 0 and 100') end
-    value = (255/100)*value
-    while (value > 0) do
-      local index = math.floor(math.fmod(value, 16) + 1)
-      value = math.floor(value / 16)
-      hex = string.sub('0123456789ABCDEF', index, index) .. hex
-    end
-
-    if (string.len(hex) == 0) then
-      hex = '00'
-
-    elseif (string.len(hex) == 1) then
-      hex = '0' .. hex
-    end
-
-    hexadecimal = hexadecimal .. hex
-  end
-  
-  return hexadecimal
-end
 -----------------------
-
-ExtStateName = "SimpleReconform_AZ"
 
 function GetExtStates()
   for i, option in ipairs(OptDefaults) do
@@ -85,6 +62,22 @@ function SetExtStates()
 end
 
 ---------------------
+
+function get_script_path()
+  local info = debug.getinfo(1,'S');
+  local script_path = info.source:match[[^@?(.*[\/])[^\/]-$]]
+  --script_path = script_path:gsub('[^/\\]*[/\\]*$','') --one level up
+  return script_path
+end
+
+---------------------------
+
+local script_path = get_script_path()
+local commonFile = script_path .. 'az_Simple project reconform/'
+..'az_Common reconform functions.lua'
+dofile(commonFile)
+
+------------------------
 
 function OptionsDefaults()
   OptDefaults = {}
@@ -169,16 +162,17 @@ function OptionsWindow()
     reaper.ShowMessageBox('Please, install ReaImGui from Reapack!', 'No Imgui library', 0)
     return
   end
-  dofile(imgui_path) '0.9.3'
+  dofile(imgui_path) '0.10'
   OptionsDefaults()
   GetExtStates()
-  local fontSize = 17
+  local fontSize = 16
   local ctx, ctxPr, font, fontSep, fontBig
   local H = fontSize
   local W = fontSize
   local loopcnt = 0
   local esc
-  local runReconf
+  local refItems
+  local runReconf, processingReconf
   local reconfOpt = true
   
   local OldEDL
@@ -248,7 +242,7 @@ function OptionsWindow()
   else AnalyseTS = true
   end
   
-  OldPrjStart = 0
+  OldPrjStart = nil
   NewPrjStart = nil
   local oldprjOffsetTime = ''
   local newprjOffsetTime = ''
@@ -260,41 +254,8 @@ function OptionsWindow()
   if type(savedFontSize) == 'number' then fontSize = savedFontSize end
   if not savedFontSize then savedFontSize = fontSize end
   
-  local gui_colors = {
-    White = rgbToHex({90,90,90,100}),
-    Green = rgbToHex({52,85,52,100}),
-    Red = rgbToHex({90,10,10,100}),
-    Blue = rgbToHex({30,60,80,100}),
-    TitleBg = rgbToHex({30,20,30,100}), 
-    Background = rgbToHex({11,14,14,95}),
-    Text = rgbToHex({92,92,81.5,100}),
-    activeText = rgbToHex({50,95,80,100}),
-    ComboBox = {
-      Default = rgbToHex({20,25,30,100}),
-      Hovered = rgbToHex({35,40,45,80}),
-      Active = rgbToHex({42,42,37,100}), 
-    },
-    Button = {
-      Default = rgbToHex({25,30,30,100}),
-      Hovered = rgbToHex({35,40,45,100}),
-      Active = rgbToHex({42,42,37,100}),
-    },
-    MainButton = {
-      Default = rgbToHex({25,50,40,80}),
-      Hovered = rgbToHex({35,60,55,80}),
-      Active = rgbToHex({56,56,42,90}),
-    }
-  }
-  ---------
-  ---Flags---
-  local Flags = {}
-  Flags.childRounding = reaper.ImGui_StyleVar_ChildRounding()
-  Flags.frameRounding = reaper.ImGui_StyleVar_FrameRounding()
-  Flags.childBorder = reaper.ImGui_ChildFlags_Border()
-  Flags.menubar = reaper.ImGui_WindowFlags_MenuBar()
-  Flags.tableResizeflag = reaper.ImGui_TableFlags_Resizable()
-  Flags.childAutoResizeX = reaper.ImGui_ChildFlags_AutoResizeX()
-  Flags.childAutoResizeY = reaper.ImGui_ChildFlags_AutoResizeY()
+  local gui_colors = SetGUIcolors() 
+  local Flags = SetGUIflags()
   
   --------------
   function SplitFilename(strFilename) -- Path, Filename, Extension
@@ -375,15 +336,23 @@ function OptionsWindow()
   end
   
   --------------
+  local fontName, OScoeff
+  ctx = reaper.ImGui_CreateContext('SimpleProjectReconform_AZ')
+  if reaper.GetOS():match("^Win") == nil then
+    reaper.ImGui_SetConfigVar(ctx, reaper.ImGui_ConfigVar_ViewportsNoDecoration(), 0)
+    fontName, OScoeff = 'sans-serif', 1.08
+  else fontName, OScoeff = 'Calibri', 1
+  end
+  -----------
   
-  function frame()
+  local function frame()
     
     local childALLflags = Flags.childAutoResizeY | Flags.childAutoResizeX
     local ChildALL = reaper.ImGui_BeginChild(ctx, 'ChildALL', 0, 0, childALLflags)
     
     if ChildALL then
       
-      reaper.ImGui_PushFont(ctx, font)
+      reaper.ImGui_PushFont(ctx, font, fontSize)
       
       --About button
       reaper.ImGui_SameLine(ctx, fontSize*25, nil)
@@ -480,15 +449,16 @@ function OptionsWindow()
           end
           
           local timeOldRegionStart, timeOldRegionEnd = 0, 0
+          local timeNewRegionStart, timeNewRegionEnd = 0, 0
           
           if old_TakeRegion == true then
-            timeOldRegionStart = reaper.parse_timestr_pos( TrimOldTimeStart, 5 ) - PrjTimeOffset
-            timeOldRegionEnd = reaper.parse_timestr_pos( TrimOldTimeEnd, 5 ) - PrjTimeOffset
+            timeOldRegionStart = reaper.parse_timestr_pos( TrimOldTimeStart, 5 ) -- - PrjTimeOffset
+            timeOldRegionEnd = reaper.parse_timestr_pos( TrimOldTimeEnd, 5 ) -- - PrjTimeOffset
           end
           
           if new_TakeRegion == true then
-            timeNewRegionStart = reaper.parse_timestr_pos( TrimNewTimeStart, 5 ) - PrjTimeOffset
-            timeNewRegionEnd = reaper.parse_timestr_pos( TrimNewTimeEnd, 5 ) - PrjTimeOffset 
+            timeNewRegionStart = reaper.parse_timestr_pos( TrimNewTimeStart, 5 ) -- - PrjTimeOffset
+            timeNewRegionEnd = reaper.parse_timestr_pos( TrimNewTimeEnd, 5 ) -- - PrjTimeOffset 
           end
           
           if reaper.ImGui_Button(ctx, ' old EDLs ') then --msg(iniFolder)
@@ -505,18 +475,13 @@ function OptionsWindow()
             
             if fileNames ~= '' then
               OldEDL = {}
-              addFileNamesToList(OldEDL, fileNames)
+              addFileNamesToList(OldEDL, fileNames) 
               OldEdlTable = AnalyseEDLs(OldEDL, timeOldRegionStart, timeOldRegionEnd)
-              
-              if OldEdlTable and OldEdlTable.firstItemTime then
-                AlignOldTime = OldEdlTable.firstItemTime
-              else AlignOldTime = nil
-              end
             end
           end
           
           reaper.ImGui_SameLine(ctx)
-          reaper.ImGui_PushFont(ctx, fontSep)
+          reaper.ImGui_PushFont(ctx, fontSep, fontSize-2)
           reaper.ImGui_Text(ctx, 'Note: EDL must be CMX 3600')
           reaper.ImGui_PopFont(ctx)
           
@@ -538,11 +503,6 @@ function OptionsWindow()
               NewEDL ={}
               addFileNamesToList(NewEDL, fileNames)
               NewEdlTable = AnalyseEDLs(NewEDL, timeNewRegionStart, timeNewRegionEnd)
-              
-              if NewEdlTable and NewEdlTable.firstItemTime then
-                AlignNewTime = NewEdlTable.firstItemTime
-              else AlignNewTime = nil
-              end
             end
           end
           
@@ -558,7 +518,7 @@ function OptionsWindow()
             local extensionList = "Media file\0*.wav;*.mp3;*.flac;*.aif;*.mpa;*.wma;*.mp4;*.mov;*.m4v;*.webm\0\0"
             local allowMultiple = false
             local ret, fileNames = reaper.JS_Dialog_BrowseForOpenFiles
-            ( 'Choose media file', iniFolder, iniFile, extensionList, allowMultiple ) 
+            ( 'Choose media file', iniFolder, iniFile, extensionList, allowMultiple )
             
             if fileNames ~= '' then
               ReferenceFile = {}
@@ -591,8 +551,18 @@ function OptionsWindow()
           showEDLsNames(ReferenceFile)
           
           local ret
-           
-          reaper.ImGui_PushItemWidth(ctx, fontSize*6 )
+          
+          if OldEdlTable and OldEdlTable.firstItemTime then
+            AlignOldTime = OldEdlTable.firstItemTime
+          else AlignOldTime = nil
+          end
+          
+          if NewEdlTable and NewEdlTable.firstItemTime then
+            AlignNewTime = NewEdlTable.firstItemTime
+          else AlignNewTime = nil
+          end
+          
+          reaper.ImGui_PushItemWidth(ctx, fontSize*6*OScoeff )
           if type(AlignOldTime) == 'number' then
             AlignOldTime = reaper.format_timestr_pos(AlignOldTime,'',5)
           end
@@ -603,7 +573,7 @@ function OptionsWindow()
           ret, old_UseAlignPoint = reaper.ImGui_Checkbox(ctx,'Set align point for reference item',old_UseAlignPoint)
           if ret then reaper.SetProjExtState(0,ExtStateName,'old_UseAlignPoint', tostring(old_UseAlignPoint), true) end
            
-          reaper.ImGui_PushItemWidth(ctx, fontSize*6 )
+          reaper.ImGui_PushItemWidth(ctx, fontSize*6*OScoeff )
           if type(AlignNewTime) == 'number' then
             AlignNewTime = reaper.format_timestr_pos(AlignNewTime,'',5)
           end
@@ -653,7 +623,21 @@ function OptionsWindow()
                 end 
               end
               
-              if abort ~= true then CreateRefTrack(CompResult, ReferenceFile, true) end
+              if abort ~= true then
+                if AlignOldTime < timeOldRegionStart
+                and old_UseAlignPoint then
+                  AlignOldTime = timeOldRegionStart + PrjTimeOffset
+                end
+                if AlignNewTime < timeNewRegionStart
+                and new_TrimTime then
+                  AlignNewTime = timeNewRegionStart + PrjTimeOffset
+                end
+                CreateRefTrack(CompResult, ReferenceFile, true)
+              end
+              
+              AlignOldTime = OldEdlTable.firstItemTime
+              AlignNewTime = NewEdlTable.firstItemTime
+              
             else
               reaper.ShowMessageBox('Choose both EDLs and a reference file first.', 'Simple Rroject Reconform', 0)
             end
@@ -662,56 +646,77 @@ function OptionsWindow()
           
           --------Adv timing options
           reaper.ImGui_SameLine(ctx, fontSize*20, nil)
-          reaper.ImGui_PushFont(ctx, fontSep)
+          reaper.ImGui_PushFont(ctx, fontSep, fontSize-2)
           if reaper.ImGui_CollapsingHeader(ctx, 'Advanced timing options') then
             reaper.ImGui_NewLine(ctx)
             reaper.ImGui_SameLine(ctx, fontSize*7, nil)
             local childAdvflags = Flags.childBorder | Flags.childAutoResizeY --| Flags.childAutoResizeX
             local advOpt = reaper.ImGui_BeginChild(ctx, 'advOpt', 0, 0, childAdvflags, nil)
             if advOpt then
-              local ret
-              ret, old_TakeRegion = reaper.ImGui_Checkbox(ctx,'Take region from OLD EDLs',old_TakeRegion)
-              if ret == true then reaper.SetProjExtState(0,ExtStateName,'old_TakeRegion', tostring(old_TakeRegion), true) end 
+              local retChk, retOst, retOend, retNst, retNend
+              retChk, old_TakeRegion = reaper.ImGui_Checkbox(ctx,'Take region from OLD EDLs',old_TakeRegion)
+              if retChk == true then reaper.SetProjExtState(0,ExtStateName,'old_TakeRegion', tostring(old_TakeRegion), true) end 
               
               reaper.ImGui_SameLine(ctx, fontSize*14)
-              reaper.ImGui_PushItemWidth(ctx, fontSize*5.3 )
-              ret, TrimOldTimeStart = reaper.ImGui_InputText(ctx, '##1', TrimOldTimeStart, nil, nil)
-              if ret == true then
+              reaper.ImGui_PushItemWidth(ctx, fontSize * 5.3 * OScoeff )
+              retOst, TrimOldTimeStart = reaper.ImGui_InputText(ctx, '##1', TrimOldTimeStart, nil, nil)
+              if retOst == true then
                 TrimOldTimeStart = reaper.parse_timestr_pos( TrimOldTimeStart, 5 )
                 TrimOldTimeStart = reaper.format_timestr_pos(TrimOldTimeStart,'',5)
                 reaper.SetProjExtState(0, ExtStateName,'TrimOldTimeStart', TrimOldTimeStart, true) 
               end
               
               reaper.ImGui_SameLine(ctx)
-              reaper.ImGui_PushItemWidth(ctx, fontSize*5.3 )
-              ret, TrimOldTimeEnd = reaper.ImGui_InputText(ctx, '##2', TrimOldTimeEnd, nil, nil)
-              if ret == true then
+              reaper.ImGui_PushItemWidth(ctx, fontSize * 5.3 * OScoeff )
+              retOend, TrimOldTimeEnd = reaper.ImGui_InputText(ctx, '##2', TrimOldTimeEnd, nil, nil)
+              if retOend == true then
                 TrimOldTimeEnd = reaper.parse_timestr_pos( TrimOldTimeEnd, 5 )
                 TrimOldTimeEnd = reaper.format_timestr_pos(TrimOldTimeEnd,'',5)
                 reaper.SetProjExtState(0, ExtStateName,'TrimOldTimeEnd', TrimOldTimeEnd, true) 
               end
               
-              ---
+              if retChk or retOst or retOend then
+                if old_TakeRegion then
+                  timeOldRegionStart = reaper.parse_timestr_pos( TrimOldTimeStart, 5 ) -- PrjTimeOffset
+                  timeOldRegionEnd = reaper.parse_timestr_pos( TrimOldTimeEnd, 5 ) -- PrjTimeOffset
+                else
+                  timeOldRegionStart, timeOldRegionEnd = 0, 0
+                end
+                --msg(timeOldRegionStart) msg(timeOldRegionEnd)
+                OldEdlTable = AnalyseEDLs(OldEDL, timeOldRegionStart, timeOldRegionEnd)
+              end
               
-              ret, new_TakeRegion = reaper.ImGui_Checkbox(ctx,'Take region from NEW EDLs',new_TakeRegion)
-              if ret == true then reaper.SetProjExtState(0,ExtStateName,'new_TakeRegion', tostring(new_TakeRegion), true) end 
+              ---
+               
+              retChk, new_TakeRegion = reaper.ImGui_Checkbox(ctx,'Take region from NEW EDLs',new_TakeRegion)
+              if retChk == true then reaper.SetProjExtState(0,ExtStateName,'new_TakeRegion', tostring(new_TakeRegion), true) end 
               
               reaper.ImGui_SameLine(ctx, fontSize*14)
-              reaper.ImGui_PushItemWidth(ctx, fontSize*5.3 ) 
-              ret, TrimNewTimeStart = reaper.ImGui_InputText(ctx, '##3', TrimNewTimeStart, nil, nil)
-              if ret == true then
+              reaper.ImGui_PushItemWidth(ctx, fontSize * 5.3 * OScoeff ) 
+              retNst, TrimNewTimeStart = reaper.ImGui_InputText(ctx, '##3', TrimNewTimeStart, nil, nil)
+              if retNst == true then
                 TrimNewTimeStart = reaper.parse_timestr_pos( TrimNewTimeStart, 5 )
                 TrimNewTimeStart = reaper.format_timestr_pos(TrimNewTimeStart,'',5)
                 reaper.SetProjExtState(0, ExtStateName,'TrimNewTimeStart', TrimNewTimeStart, true) 
               end
               
               reaper.ImGui_SameLine(ctx)
-              reaper.ImGui_PushItemWidth(ctx, fontSize*5.3 )
-              ret, TrimNewTimeEnd = reaper.ImGui_InputText(ctx, '##4', TrimNewTimeEnd, nil, nil)
-              if ret == true then
+              reaper.ImGui_PushItemWidth(ctx, fontSize * 5.3 * OScoeff )
+              retNend, TrimNewTimeEnd = reaper.ImGui_InputText(ctx, '##4', TrimNewTimeEnd, nil, nil)
+              if retNend == true then
                 TrimNewTimeEnd = reaper.parse_timestr_pos( TrimNewTimeEnd, 5 )
                 TrimNewTimeEnd = reaper.format_timestr_pos(TrimNewTimeEnd,'',5)
                 reaper.SetProjExtState(0, ExtStateName,'TrimNewTimeEnd', TrimNewTimeEnd, true) 
+              end
+              
+              if retChk or retNst or retNend then
+                if new_TakeRegion then
+                  timeNewRegionStart = reaper.parse_timestr_pos( TrimNewTimeStart, 5 )
+                  timeNewRegionEnd = reaper.parse_timestr_pos( TrimNewTimeEnd, 5 )
+                else
+                  timeNewRegionStart, timeNewRegionEnd = 0, 0
+                end
+                NewEdlTable = AnalyseEDLs(NewEDL, timeNewRegionStart, timeNewRegionEnd)
               end
               
               reaper.ImGui_EndChild(ctx)
@@ -828,7 +833,7 @@ function OptionsWindow()
         
         reaper.ImGui_SetWindowSize(ctx, 0, 0, nil )
       end 
-      --------end of Prj analysys section
+      --------end of Prj analysis section
       
        
       reaper.ImGui_NewLine(ctx)
@@ -853,39 +858,63 @@ function OptionsWindow()
       end
       if NewPrjStart then reaper.ImGui_PopStyleColor(ctx, 3) end
       
-      reaper.ImGui_NewLine(ctx)
-      reaper.ImGui_Text(ctx, 'To get much faster results') 
+      reaper.ImGui_SameLine(ctx, fontSize*25)
+      if reaper.ImGui_Button(ctx, 'Comparison\n   assistant', fontSize*8) then 
+        local file = script_path .. 'az_Simple project reconform/'
+        ..'az_Comparison assistant for az_Simple project reconform.lua'
+        dofile(file)
+      end
+      
+      --reaper.ImGui_NewLine(ctx)
+      reaper.ImGui_Text(ctx, 'To get much faster results:') 
       if reaper.ImGui_Button(ctx, 'Set FX on selected items OFFLINE') then
         reaper.Main_OnCommandEx(42353,0,0) --Items: Set all take FX offline for selected media items
       end
-      reaper.ImGui_SameLine(ctx, fontSize*15.5)
+      reaper.ImGui_SameLine(ctx, nil, fontSize * 1.8)
       if reaper.ImGui_Button(ctx, 'Revert FX on selected items ONLINE') then
         reaper.Main_OnCommandEx(42354,0,0) --Items: Set all take FX online for selected media items
       end
       reaper.ImGui_NewLine(ctx)
       
       --Input box + button
-      reaper.ImGui_PushItemWidth(ctx, fontSize*6 )
+      reaper.ImGui_PushItemWidth(ctx, fontSize * 6 * OScoeff )
       
       local fieldState, retOldPrjOffsetTime =
       reaper.ImGui_InputText(ctx, 'Old project position', reaper.format_timestr_pos( OldPrjStart, '', 5 ), nil, nil) 
       if fieldState == true then
         OldPrjStart = reaper.parse_timestr_pos( retOldPrjOffsetTime, 5 )
       end
-      reaper.ImGui_SameLine(ctx, fontSize*15.5, nil)
+      reaper.ImGui_SameLine(ctx, fontSize*16, nil)
       reaper.ImGui_PushID(ctx, 1)
-      if reaper.ImGui_Button(ctx, 'Get edit cursor', nil, nil ) then
-        OldPrjStart = reaper.GetCursorPosition() 
+      local btnState = reaper.ImGui_Button(ctx, 'Get edit cursor', nil, nil )
+       
+      if btnState then OldPrjStart = reaper.GetCursorPosition() end
+      
+      if fieldState or btnState then 
+        reaper.SetProjExtState(0,ExtStateName, 'OldPrjStart', OldPrjStart )
       end
       reaper.ImGui_PopID(ctx)
       
       --Renonform button
-      reaper.ImGui_SameLine(ctx, nil, fontSize*2.2)
+      reaper.ImGui_SameLine(ctx, nil, fontSize*1.8)
       reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Button(), gui_colors.MainButton.Default)
       reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_ButtonHovered(), gui_colors.MainButton.Hovered)
       reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_ButtonActive(), gui_colors.MainButton.Active)
       
-      runReconf = reaper.ImGui_Button(ctx, 'Reconform', fontSize*8, nil)
+      local actionBtnName = 'Reconform'
+      
+      if processingReconf then
+        reaper.ImGui_PopStyleColor(ctx, 3)
+        actionBtnName = 'Need some time...'
+        reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Button(), gui_colors.MainButton.Active)
+        reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_ButtonHovered(), gui_colors.MainButton.Active)
+        reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_ButtonActive(), gui_colors.MainButton.Active) 
+      end
+      
+      if reaper.ImGui_Button(ctx, actionBtnName, fontSize*8, nil) then
+        runReconf = true
+      else runReconf = false
+      end
       
       reaper.ImGui_PopStyleColor(ctx, 3)
       
@@ -905,20 +934,25 @@ function OptionsWindow()
         end
       end
       
-      reaper.ImGui_SameLine(ctx, fontSize*15.5, nil)
+      reaper.ImGui_SameLine(ctx, fontSize*16, nil)
       reaper.ImGui_PushID(ctx, 2)
-      if reaper.ImGui_Button(ctx, 'Get edit cursor', nil, nil ) then
-        NewPrjStart = reaper.GetCursorPosition()
-      end
+      local btnState = reaper.ImGui_Button(ctx, 'Get edit cursor', nil, nil )
+       
       reaper.ImGui_PopID(ctx)
+       
+      if btnState then NewPrjStart = reaper.GetCursorPosition() end
       
       if NewPrjStart and NewPrjStart <= OldPrjStart then
-        reaper.ShowMessageBox('Reconformed project must be placed next to the old version.\nLet it be +1 hour after the Old verion.','Warning!', 0)
+        reaper.ShowMessageBox('Reconformed project must be placed next to the old version.\nLet it be +1 hour after the old verion.','Warning!', 0)
         NewPrjStart = OldPrjStart + 3600
       end
       
+      if NewPrjStart and (fieldState or btnState) then 
+        reaper.SetProjExtState(0,ExtStateName, 'NewPrjStart', NewPrjStart )
+      end
+      
       --Options button
-      reaper.ImGui_SameLine(ctx, nil, fontSize*2.2)
+      reaper.ImGui_SameLine(ctx, nil, fontSize*1.8)
       tglReconfOpt = reaper.ImGui_Button(ctx, 'Options >', fontSize*8, nil)
       if tglReconfOpt then reconfOpt = not reconfOpt end
       
@@ -965,7 +999,7 @@ function OptionsWindow()
           
           PasteItemsFromPrj(cur_retprj, SourcePrj)
           
-          reaper.Undo_EndBlock2( 0, 'Paste new items - Simple reconform', -1 ) 
+          reaper.Undo_EndBlock2( 0, 'Paste new items - Simple reconform', -1 )
           reaper.UpdateArrange()
         end
         if NewPrjStart then reaper.ImGui_PopStyleColor(ctx, 3) end
@@ -974,9 +1008,9 @@ function OptionsWindow()
       end -- end of collapsing header
       
       reaper.ImGui_NewLine(ctx)
-      reaper.ImGui_PushItemWidth(ctx, savedFontSize*5.5)
+      reaper.ImGui_PushItemWidth(ctx, savedFontSize * 5.5 * OScoeff )
       _, savedFontSize = reaper.ImGui_InputInt
-      (ctx, 'Font size for the window (default is 17)', savedFontSize)
+      (ctx, 'Font size for the window (default is 16)', savedFontSize)
       
       reaper.ImGui_PopFont(ctx)
       
@@ -1043,7 +1077,7 @@ function OptionsWindow()
           end
           
           if type(option[3]) == 'nil' then
-            reaper.ImGui_PushFont(ctx, fontSep)
+            reaper.ImGui_PushFont(ctx, fontSep, fontSize-2)
             reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Text(), gui_colors.White)
             
             if i ~= 1 then reaper.ImGui_NewLine(ctx) end
@@ -1064,10 +1098,11 @@ function OptionsWindow()
   end
   
   --------------
-  function loop()
+  local function loop()
+    local curProj, projfn = reaper.EnumProjects( -1 )
     PrjTimeOffset = -reaper.GetProjectTimeOffset( 0, false )
     
-    MIN_luft_ZERO = ( reaper.parse_timestr_pos('00:00:00:01', 5) - PrjTimeOffset ) / 4
+    MIN_luft_ZERO = GetMinLuftZero(PrjTimeOffset)
     
     PrFrRate = reaper.SNM_GetIntConfigVar( 'projfrbase', -1 )
     PrDropFrame = reaper.SNM_GetIntConfigVar( 'projfrdrop', -1 )
@@ -1076,6 +1111,23 @@ function OptionsWindow()
     elseif PrFrRate == 30 and PrDropFrame == 2 then PrFrRate = '29.97ND'
     elseif PrFrRate == 24 and PrDropFrame == 2 then PrFrRate = '23.976'
     end
+    
+    if not OldPrjStart or curProj ~= prevProj then
+      _, OldPrjStart = reaper.GetProjExtState(0, ExtStateName, 'OldPrjStart')
+      if OldPrjStart == '' then OldPrjStart = 0
+      else OldPrjStart = tonumber(OldPrjStart)
+      end
+      if not OldPrjStart then OldPrjStart = 0 end
+    end
+    
+    if not NewPrjStart or curProj ~= prevProj then
+      local _, savedNewPrjStart = reaper.GetProjExtState(0, ExtStateName, 'NewPrjStart')
+    
+      if tonumber(savedNewPrjStart) then NewPrjStart = tonumber(savedNewPrjStart) end
+      --if not NewPrjStart then NewPrjStart = 3600 end
+    end
+    
+    prevProj = curProj
     
     if reaper.CountSelectedTracks(0) ~= 0 then
       RefTrIdx = reaper.GetMediaTrackInfo_Value( reaper.GetSelectedTrack(0,0), 'IP_TRACKNUMBER' )
@@ -1088,13 +1140,12 @@ function OptionsWindow()
       reaper.SetExtState(ExtStateName, 'FontSize', savedFontSize, true)
       fontSize = savedFontSize
       if font then reaper.ImGui_Detach(ctx, font) end
-      if fontSep then reaper.ImGui_Detach(ctx, fontSep) end
-      font = reaper.ImGui_CreateFont(fontName, fontSize, reaper.ImGui_FontFlags_None()) -- Create the fonts you need
-      fontSep = reaper.ImGui_CreateFont(fontName, fontSize-2, reaper.ImGui_FontFlags_Italic())
-      fontBig = reaper.ImGui_CreateFont(fontName, fontSize+4, reaper.ImGui_FontFlags_None())
+      if fontSep then reaper.ImGui_Detach(ctx, fontSep) end 
+      font = reaper.ImGui_CreateFont(fontName, reaper.ImGui_FontFlags_None()) -- Create the fonts you need
+      fontSep = reaper.ImGui_CreateFont(fontName, reaper.ImGui_FontFlags_Italic())
+      --fontBig = reaper.ImGui_CreateFont(fontName, reaper.ImGui_FontFlags_None())
       reaper.ImGui_Attach(ctx, font)
       reaper.ImGui_Attach(ctx, fontSep)
-      reaper.ImGui_Attach(ctx, fontBig)
     end
     
     esc = reaper.ImGui_IsKeyPressed(ctx, reaper.ImGui_Key_Escape())
@@ -1102,71 +1153,54 @@ function OptionsWindow()
     undo = reaper.ImGui_Shortcut(ctx, reaper.ImGui_Mod_Ctrl() | reaper.ImGui_Key_Z(), reaper.ImGui_InputFlags_RouteGlobal())
     
     redo = reaper.ImGui_Shortcut(ctx, reaper.ImGui_Mod_Ctrl() | reaper.ImGui_Mod_Shift() | reaper.ImGui_Key_Z(), reaper.ImGui_InputFlags_RouteGlobal())
-      
-      reaper.ImGui_PushFont(ctx, font)
-      
-      reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_WindowBg(), gui_colors.Background)
-      reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_TitleBgActive(), gui_colors.TitleBg)
-      reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Text(), gui_colors.Text)
-      
-      reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Button(), gui_colors.Button.Default)
-      reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_ButtonHovered(), gui_colors.Button.Hovered)
-      reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_ButtonActive(), gui_colors.Button.Active)
-      reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_CheckMark(), gui_colors.Green)
-      
-      --Combo box and check box background
-      reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_FrameBg(), gui_colors.ComboBox.Default)
-      reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_FrameBgHovered(), gui_colors.ComboBox.Hovered)
-      reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_FrameBgActive(), gui_colors.ComboBox.Active)
-      --Combo box drop down list
-      reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Header(), gui_colors.ComboBox.Default)
-      reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_HeaderHovered(), gui_colors.ComboBox.Hovered)
-      reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_HeaderActive(), gui_colors.ComboBox.Active)
-      
-      reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Text(), gui_colors.White)
-      --
-      reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_WindowRounding(), fontSize/4)
-      reaper.ImGui_PushStyleVar(ctx, Flags.frameRounding, fontSize/4)
-      reaper.ImGui_PushStyleVar(ctx, Flags.childRounding, fontSize/4)
-      reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_FramePadding(), fontSize/2, fontSize/4)
-      
-      local window_flags = reaper.ImGui_WindowFlags_None()--reaper.ImGui_WindowFlags_MenuBar()
-      reaper.ImGui_SetNextWindowSize(ctx, W, H, reaper.ImGui_Cond_Once()) -- Set the size of the windows.  Use in the 4th argument reaper.ImGui_Cond_FirstUseEver() to just apply at the first user run, so ImGUI remembers user resize s2
-      
-      local visible, open = reaper.ImGui_Begin(ctx, 'Simple Project Reconform', true, window_flags)
-      reaper.ImGui_PopStyleColor(ctx, 1)
-      
-      if visible then
-          frame()
-          reaper.ImGui_SetWindowSize(ctx, 0, 0, nil )
-          reaper.ImGui_End(ctx)
+    
+    reaper.ImGui_PushFont(ctx, font, fontSize)
+    
+    local colorCnt, styleCnt = PUSHstyle(ctx, gui_colors, Flags, fontSize)
+    
+    local window_flags = reaper.ImGui_WindowFlags_None()--reaper.ImGui_WindowFlags_MenuBar()
+    reaper.ImGui_SetNextWindowSize(ctx, W, H, reaper.ImGui_Cond_Once()) -- Set the size of the windows.  Use in the 4th argument reaper.ImGui_Cond_FirstUseEver() to just apply at the first user run, so ImGUI remembers user resize s2
+    
+    local visible, open = reaper.ImGui_Begin(ctx, 'Simple Project Reconform', true, window_flags)
+    reaper.ImGui_PopStyleColor(ctx, 1)
+    
+    if processingReconf then
+      processingReconf = false
+      main(refItems)
+    end
+    
+    if runReconf then
+      refItems = CollectSelectedItems()
+      if #refItems == 0 then
+        reaper.ShowMessageBox('Please select reference items on a track','Simple Project Reconform', 0) 
+      else
+        processingReconf = true
       end
-      
-      reaper.ImGui_PopStyleColor(ctx, 13)
-      reaper.ImGui_PopStyleVar(ctx, 4)
-      reaper.ImGui_PopFont(ctx)
-       
-      esc = reaper.ImGui_IsKeyReleased(ctx, reaper.ImGui_Key_Escape())
-      
-      if undo then reaper.Main_OnCommandEx(40029,0,0) end
-      if redo then reaper.Main_OnCommandEx(40030,0,0) end
-      
-      if open and not esc then
-        if IsOptTgl == true then SetExtStates() end
-        if runReconf == true then main() end
-        reaper.defer(loop)
-      end
+    end
+    
+    if visible then
+      frame()
+      reaper.ImGui_SetWindowSize(ctx, 0, 0, nil )
+      reaper.ImGui_End(ctx)
+    end
+    
+    reaper.ImGui_PopStyleColor(ctx, colorCnt)
+    reaper.ImGui_PopStyleVar(ctx, styleCnt)
+    reaper.ImGui_PopFont(ctx)
+     
+    esc = reaper.ImGui_IsKeyReleased(ctx, reaper.ImGui_Key_Escape())
+    
+    if undo then reaper.Main_OnCommandEx(40029,0,0) end
+    if redo then reaper.Main_OnCommandEx(40030,0,0) end
+    
+    if open and not esc then
+      if IsOptTgl == true then SetExtStates() end
+      reaper.defer(loop)
+    end
 
     loopcnt = loopcnt+1
   end
   -----------------
-  local fontName
-  ctx = reaper.ImGui_CreateContext('SimpleProjectReconform_AZ')
-  if reaper.GetOS():match("^Win") == nil then
-    reaper.ImGui_SetConfigVar(ctx, reaper.ImGui_ConfigVar_ViewportsNoDecoration(), 0)
-    fontName = 'sans-serif'
-  else fontName = 'Calibri'
-  end
   
   loop()
   --reaper.defer(ShowProgress)
@@ -1183,26 +1217,6 @@ function copy(tbl)
     result[k] = copy(v)
   end
   return result
-end
-
--------------------------
--------------------------
-
-function FieldMatch(Table,value, AddRemoveFlag) -- can remove only first finded value
-  for i=1, #Table do
-    if value == Table[i] then
-      if AddRemoveFlag == false then table.remove(Table,i) end
-      if AddRemoveFlag ~= nil then
-        return true, Table
-      else return true
-      end
-    end
-  end
-  if AddRemoveFlag == true then table.insert(Table, value) end
-  if AddRemoveFlag ~= nil then
-    return false, Table
-  else return false
-  end
 end
 
 -------------------------
@@ -1375,7 +1389,7 @@ function CreateRefTrack(Items, file, isEDL) --each item = {oldstart, oldend, tar
     if old_UseAlignPoint == true and AlignOldTime then aOldT = AlignOldTime - PrjTimeOffset end
     if new_TrimTime == true and AlignNewTime then aNewT = AlignNewTime - PrjTimeOffset end
   end
-  
+  --msg(reaper.format_timestr_pos(AlignOldTime,'',5)..' '..reaper.format_timestr_pos(AlignNewTime,'',5))
   file = file[1]
   local startPoint = OldPrjStart - aNewT
   if NewPrjStart then startPoint = NewPrjStart - aNewT end
@@ -1560,13 +1574,6 @@ function AnalyseEDLs(EDLs, timeRegionStart, timeRegionEnd, userStartPoint) --tab
         item.DestIn = block.main[1]['Time'][3]
         item.DestOut = block.main[1]['Time'][4]
         
-        if not userStartPoint then
-          if not CommonEDL.firstItemTime then
-            CommonEDL.firstItemTime = reaper.parse_timestr_pos( item.DestIn, 5 )
-          end 
-          CommonEDL.firstItemTime = math.min(CommonEDL.firstItemTime, reaper.parse_timestr_pos( item.DestIn, 5 ) ) 
-        end
-        
         clip.SrcIn = reaper.parse_timestr_pos( clip.SrcIn, 5 ) - PrjTimeOffset
         clip.SrcOut = reaper.parse_timestr_pos( clip.SrcOut, 5 ) - PrjTimeOffset
         item.DestIn = reaper.parse_timestr_pos( item.DestIn, 5 ) - PrjTimeOffset
@@ -1578,8 +1585,20 @@ function AnalyseEDLs(EDLs, timeRegionStart, timeRegionEnd, userStartPoint) --tab
         if timeRegionStart ~= timeRegionEnd then
           if item.DestIn >= timeRegionStart - PrjTimeOffset and item.DestOut <= timeRegionEnd - PrjTimeOffset then
             table.insert(itemsList, copy(item) )
+            
+            if not CommonEDL.firstItemTime then
+              CommonEDL.firstItemTime = item.DestIn
+            end
+            CommonEDL.firstItemTime = math.min(CommonEDL.firstItemTime, item.DestIn )
+            
           end
-        else table.insert(itemsList, copy(item) )
+        else
+          table.insert(itemsList, copy(item) )
+          
+          if not CommonEDL.firstItemTime then
+            CommonEDL.firstItemTime = item.DestIn
+          end
+          CommonEDL.firstItemTime = math.min(CommonEDL.firstItemTime, item.DestIn )
         end
         
         item.Clips = {}
@@ -1641,13 +1660,6 @@ function AnalyseEDLs(EDLs, timeRegionStart, timeRegionEnd, userStartPoint) --tab
           item.DestIn = block.main[i]['Time'][3]
           item.DestOut = block.main[i]['Time'][4]
           
-          if not userStartPoint then
-            if not CommonEDL.firstItemTime then
-              CommonEDL.firstItemTime = reaper.parse_timestr_pos( item.DestIn, 5 )
-            end 
-            CommonEDL.firstItemTime = math.min(CommonEDL.firstItemTime, reaper.parse_timestr_pos( item.DestIn, 5 ) ) 
-          end
-          
           clip.SrcIn = reaper.parse_timestr_pos( clip.SrcIn, 5 ) - PrjTimeOffset
           clip.SrcOut = reaper.parse_timestr_pos( clip.SrcOut, 5 ) - PrjTimeOffset
           item.DestIn = reaper.parse_timestr_pos( item.DestIn, 5 ) - PrjTimeOffset
@@ -1683,8 +1695,19 @@ function AnalyseEDLs(EDLs, timeRegionStart, timeRegionEnd, userStartPoint) --tab
           if timeRegionStart ~= timeRegionEnd then
             if item.DestIn >= timeRegionStart - PrjTimeOffset and item.DestOut <= timeRegionEnd - PrjTimeOffset then
               table.insert(itemsList, copy(item) )
+              
+              if not CommonEDL.firstItemTime then
+                CommonEDL.firstItemTime = item.DestIn
+              end
+              CommonEDL.firstItemTime = math.min(CommonEDL.firstItemTime, item.DestIn )
             end
-          else table.insert(itemsList, copy(item) )
+          else
+            table.insert(itemsList, copy(item) )
+            
+            if not CommonEDL.firstItemTime then
+              CommonEDL.firstItemTime = item.DestIn
+            end
+            CommonEDL.firstItemTime = math.min(CommonEDL.firstItemTime, item.DestIn )
           end
           
           item.Clips = {} 
@@ -1826,7 +1849,17 @@ function AnalyseEDLs(EDLs, timeRegionStart, timeRegionEnd, userStartPoint) --tab
     
   end --end of edl files cycle
   
-  if userStartPoint then CommonEDL.firstItemTime = userStartPoint end
+  if CommonEDL.firstItemTime then --compencate offset to return to EDL time scale
+    CommonEDL.firstItemTime = CommonEDL.firstItemTime + PrjTimeOffset
+  end
+  
+  if userStartPoint then
+    if timeRegionStart ~= timeRegionEnd
+    and userStartPoint < timeRegionStart then
+      --CommonEDL.firstItemTime stays as is
+    else CommonEDL.firstItemTime = userStartPoint
+    end
+  end
   
   CleanUpEDL(CommonEDL, Splits)
   
@@ -2508,7 +2541,7 @@ function CreateReportMarkers()
         reaper.SetMediaItemInfo_Value(splitsItem, 'I_FIXEDLANE', splits)
       end
       
-      local timetxt = reaper.format_timestr_pos(item[1],'', 5) ..' - '.. reaper.format_timestr_pos(item[2],'', 5)
+      local timetxt = reaper.format_timestr_pos(item[1]+OldPrjStart,'', 5) ..' - '.. reaper.format_timestr_pos(item[2]+OldPrjStart,'', 5)
       reaper.SetTakeMarker(splitsTake, -1, splcnt..' src '..timetxt..tag, itemPos - NewPrjStart)
       splcnt = splcnt +1
     end
@@ -2633,63 +2666,8 @@ function PasteItemsFromPrj(CurPrj, SrcPrj)
 end
 
 ----------------------------
--------------------------
-
-function CollectSelectedItems(TableToAdd,areaStart,areaEnd)
-  local ItemsTable = {}
-  Gaps = {}
-  LastRefTrID = 0
-  
-  if type(TableToAdd) == 'table' then
-    ItemsTable = TableToAdd
-  end
-  
-  if not OldPrjStart then OldPrjStart = 0 end
-  
-  local prevEnd = NewPrjStart
-  local selItNumb = reaper.CountSelectedMediaItems(0)
-  for i = 0, selItNumb - 1 do
-    local item = reaper.GetSelectedMediaItem(0,i) 
-    local take = reaper.GetActiveTake(item)
-    local refPos = reaper.GetMediaItemInfo_Value(item, 'D_POSITION')
-    local refLength = reaper.GetMediaItemInfo_Value(item, 'D_LENGTH')
-    
-    if areaStart and areaEnd then
-      if refPos > areaEnd or refPos + refLength < areaStart then take = nil end
-    end
-    
-    if take then
-      local src =  reaper.GetMediaItemTake_Source( take )
-      local srctype = reaper.GetMediaSourceType( src )
-      if srctype ~= 'EMPTY' and srctype ~= 'MIDI' then
-        local offset = reaper.GetMediaItemTakeInfo_Value(take, 'D_STARTOFFS') + OldPrjStart
-        table.insert(ItemsTable, {offset, offset + refLength, refPos})
-        
-        local tr = reaper.GetMediaItem_Track(item)
-        local trID = reaper.GetMediaTrackInfo_Value( tr, 'IP_TRACKNUMBER' ) -1
-        
-        if LastRefTrID < trID then LastRefTrID = trID end
-        
-        if prevEnd then
-          if refPos - prevEnd > MIN_luft_ZERO then
-            table.insert(Gaps, {prevEnd, refPos})
-          end
-        end
-        
-        prevEnd = refPos + refLength
-      end
-    end
-    
-  end
-  return ItemsTable
-end
-
 -----------------------------
-function round(value, digitsAfterDot)
-  return tonumber(string.format("%."..digitsAfterDot.."f", tostring(value)))
-end
 
------------------------------
 function CleanUpRefItems(Items)
   local i = #Items
   
@@ -3305,23 +3283,18 @@ end
 
 -----------------------------
 
-function main()
+function main(refItems)
   
   SetOptGlobals()
   local editCurPos = reaper.GetCursorPosition()
   Regions = {}
-  local refItems = CollectSelectedItems()
+  
   if Opt.HealGaps == true or Opt.HealSplits == true then
     CleanUpRefItems(refItems)
   end
   
   if Opt.IgnoreCrossfades ~= "don't ignore" or Opt.FillGaps ~= "don't fill" then
     AdjustRefItems(refItems)
-  end
-  
-  if #refItems == 0 then
-    reaper.ShowMessageBox('Please select reference items on a track','Simple Project Reconform', 0)
-    return
   end
   
   if Opt.ReconfOnlySel then
@@ -3399,8 +3372,8 @@ function main()
   
    
   for i, item in ipairs(refItems) do --Start reconform cycle
-    local areaStart = item[1]
-    local areaEnd = item[2]
+    local areaStart = item[1] + OldPrjStart
+    local areaEnd = item[2] + OldPrjStart
     local refPos = item[3]
      
     if TimeSigCount > 1 then
