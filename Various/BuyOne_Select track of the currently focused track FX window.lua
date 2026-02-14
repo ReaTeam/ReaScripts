@@ -2,18 +2,18 @@
 ReaScript name: Select track of the currently focused track FX window
 Author: BuyOne
 Website: https://forum.cockos.com/member.php?u=134058
-Version: 1.0
-Changelog: Initial release
+Version: 1.1
+Changelog: Fixed js_ReaScriptAPI extension accesibility test
 Licence: WTFPL
 REAPER: at least v5.962
 Extensions: js_ReaScriptAPI
 About: 	Makes track of the focused track FX window selected.
-	Works in either manual or auto modes, see USER SETTINGS.   
-
-	Bridged FX floating windows don't work unless they only display 
-	controls without the UI, which is a REAPER native object.  
-
-	See also BuyOne_Select source object of a focused FX chain or FX window.lua
+		Works in either manual or auto modes, see USER SETTINGS.   
+	
+		Bridged FX floating windows don't work unless they only display 
+		controls without the UI, which is a REAPER native object.  
+	
+		See also BuyOne_Select source object of a focused FX chain or FX window.lua
 		
 ]]
 
@@ -106,7 +106,7 @@ SCROLL_2TRACK = #SCROLL_2TRACK:gsub(' ','') > 0
 
 	if Script_Not_Enabled(ENABLE_SCRIPT) then
 	return r.defer(function() do return end end)
-	elseif r.APIExists('JS_Window_GetForeground') then
+	elseif not r.JS_Window_GetForeground then
 	r.MB('   The script requires js_ReaScriptAPI\n\n        which isn\'t currently installed.\n\nAfter clicking OK the link will be provided.','ERROR',0)
 	Msg('https://github.com/juliansader/ReaExtensions/tree/master/js_ReaScriptAPI', r.ClearConsole())
 	return r.defer(function() do return end end)
