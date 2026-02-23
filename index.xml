@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="66c98c7a88e456f16531a069127c85278ccb1196" name="ReaTeam Scripts">
+<index version="1" commit="ab380cbedaab1858786607511017afc31373ca63" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -20346,6 +20346,43 @@ Replace GetLastWord func with quicker solution (Thanks: Mespotine[t=233393]).]]>
         <source main="main" file="ausbaxter_Save region render matrix (slot 2).lua">https://github.com/ReaTeam/ReaScripts/raw/af423a7b88decb7586131edda25e22e2ac908ec6/Regions/ausbaxter_Save%20and%20Load%20region%20render%20matrix.lua</source>
         <source main="main" file="ausbaxter_Save region render matrix (slot 3).lua">https://github.com/ReaTeam/ReaScripts/raw/af423a7b88decb7586131edda25e22e2ac908ec6/Regions/ausbaxter_Save%20and%20Load%20region%20render%20matrix.lua</source>
         <source main="main" file="ausbaxter_Save region render matrix (slot 4).lua">https://github.com/ReaTeam/ReaScripts/raw/af423a7b88decb7586131edda25e22e2ac908ec6/Regions/ausbaxter_Save%20and%20Load%20region%20render%20matrix.lua</source>
+      </version>
+    </reapack>
+    <reapack name="bertrandc_Quad Cortex MIDI control.lua" type="script" desc="Quad Cortex MIDI control">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel0 \b \fs36 Quad Cortex MIDI Control\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Real-time MIDI control for Neural DSP Quad Cortex via Reaper Regions.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Automates Presets using "#BankLetter" (e.g., #1A).\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Automates Scenes using "!Sx" (e.g., !S1 or !SA).\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Auto-activates Gig View on Play and Tuner on Stop (both can be toggled).\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel1 \b \fs32 USAGE INSTRUCTIONS\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 1.\tx360\tab REAPER CONFIGURATION\par}
+{\pard \ql \f0 \sa0 \li720 \fi-360 \endash \tx360\tab Create a track (e.g., "MIDI QC CTRL").\par}
+{\pard \ql \f0 \sa0 \li720 \fi-360 \endash \tx360\tab Set Track Input to "MIDI > Virtual MIDI Keyboard > All Channels".\par}
+{\pard \ql \f0 \sa0 \li720 \fi-360 \endash \tx360\tab Add a "MIDI Hardware Output" on this track to your MIDI device (WIDI / Interface).\par}
+{\pard \ql \f0 \sa0 \li720 \fi-360 \endash \tx360\tab Record Arm and Input Monitoring must be ENABLED for the script to reach the QC.\sa180\sa180\par}
+{\pard \qc \f0 \sa180 \li0 \fi0 \emdash\emdash\emdash\emdash\emdash\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 2.\tx360\tab SYNC YOUR PRESETS AND SCENES\par}
+{\pard \ql \f0 \sa0 \li720 \fi-360 \endash \tx360\tab Create Regions in Reaper named with the following tags:\par}
+{\pard \ql \f0 \sa0 \li720 \fi-360 \endash \tx360\tab PRESETS: Use "#BankLetter" format (e.g., "#1A", "#12C").\par}
+{\pard \ql \f0 \sa0 \li720 \fi-360 \endash \tx360\tab SCENES: Use "!Sx" where x is 1-8 or A-H (e.g., "!S1", "!SA"). Note: Small "Scene" regions inside larger "Preset" regions are supported (Inheritance).\sa180\sa180\par}
+{\pard \qc \f0 \sa180 \li0 \fi0 \emdash\emdash\emdash\emdash\emdash\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 3.\tx360\tab TOOLBAR INTEGRATION\par}
+{\pard \ql \f0 \sa0 \li720 \fi-360 \endash \tx360\tab Assign this script to a toolbar button. The button will light up when active. To stop, click again and select "Terminate Instance".\sa180\sa180\par}
+{\pard \qc \f0 \sa180 \li0 \fi0 \emdash\emdash\emdash\emdash\emdash\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 4.\tx360\tab ADDITIONAL FEATURES\par}
+{\pard \ql \f0 \sa0 \li720 \fi-360 \endash \tx360\tab PLAY: Automatically switches QC to "Gig View" and hides the Tuner. Set AUTO_GIGVIEW to false to disable this behavior.\par}
+{\pard \ql \f0 \sa0 \li720 \fi-360 \endash \tx360\tab STOP: Automatically activates the "Tuner" on the QC for silent breaks. Set AUTO_TUNER to false to disable this behavior.\sa180\sa180\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="Bertrand C" time="2026-02-23T21:20:44Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ab380cbedaab1858786607511017afc31373ca63/Regions/bertrandc_Quad%20Cortex%20MIDI%20control.lua</source>
       </version>
     </reapack>
     <reapack name="BuyOne_Set region at play or edit cursor to a predefined color.lua" type="script" desc="Set region at play or edit cursor to a predefined color">
