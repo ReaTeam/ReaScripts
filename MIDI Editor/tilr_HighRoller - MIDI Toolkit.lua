@@ -10,7 +10,7 @@
 --   [main=midi_editor,midi_inlineeditor] tilr_HighRoller - MIDI Toolkit/tilr_HighRoller - Split.lua
 --   [main=midi_editor,midi_inlineeditor] tilr_HighRoller - MIDI Toolkit/tilr_HighRoller - Splitx2.lua
 --   [main=midi_editor,midi_inlineeditor] tilr_HighRoller - MIDI Toolkit/tilr_HighRoller - RotateL.lua
---   [main=midi_editor,midi_inlineeditor] tilr_HighRoller - MIDI Toolkit/Htilr_ighRoller - RotateR.lua
+--   [main=midi_editor,midi_inlineeditor] tilr_HighRoller - MIDI Toolkit/tilr_HighRoller - RotateR.lua
 -- @about
 --   # HighRoller - Midi Toolkit
 --
