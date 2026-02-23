@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="ab380cbedaab1858786607511017afc31373ca63" name="ReaTeam Scripts">
+<index version="1" commit="68cd79a186b959738a811e0456a4066d35d2bab4" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -18683,6 +18683,44 @@ Made by Mordi, Jan 2016]]></changelog>
       <version name="0.5.0" author="Ben 'Talagan' Babut" time="2024-11-08T11:15:46Z">
         <changelog><![CDATA[Initial release.]]></changelog>
         <source main="main midi_editor">https://github.com/ReaTeam/ReaScripts/raw/7ed3b25e9daad0756fc7e443e73d264974af7162/MIDI%20Editor/talagan_Scroll%20TCP%20to%20track%20currently%20edited%20in%20active%20MIDI%20editor.lua</source>
+      </version>
+    </reapack>
+    <reapack name="tilr_HighRoller - MIDI Toolkit.lua" type="script" desc="HighRoller - MIDI Toolkit">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel0 \b \fs36 HighRoller - Midi Toolkit\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 A set of tools to manipulate midi notes. Useful to create snare or hat rolls for risers or trap beats or manipulate midi in general.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Comes with scripts to execute the MIDI tools using shortcuts, also works in the inline MIDI editor.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Requires ReaImGui installed.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel3 \b \fs24 Tools:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Flip Horizontal - flips selected notes horizontally\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Flip Vertical - flips selected notes vertically\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Rotate Left - Rotates selected notes left by grid division\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Rotate Right - Rotates selected notes right by grid division\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Split - Adds a subdivision to notes and spaces splits equally\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Glue - Removes a subdivision from consecutive notes\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Split x2 - Adds two subdivisions to each note\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Glue :2 - Removes two subdivisions from consecutive notes\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Gate - Increase or decrease notes length proportionally to their original length\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Gate Ramp - Progressively increment or decrement notes length\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Warp - Bend notes start time towards the first or last note\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Vel Ramp - Progressively increment or decrement notes velocity\sa180\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0.0" author="tilr" time="2026-02-23T23:12:29Z">
+        <source main="main midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/68cd79a186b959738a811e0456a4066d35d2bab4/MIDI%20Editor/tilr_HighRoller%20-%20MIDI%20Toolkit.lua</source>
+        <source main="midi_inlineeditor midi_editor" file="tilr_HighRoller - MIDI Toolkit/tilr_HighRoller - FlipH.lua">https://github.com/ReaTeam/ReaScripts/raw/68cd79a186b959738a811e0456a4066d35d2bab4/MIDI%20Editor/tilr_HighRoller%20-%20MIDI%20Toolkit/tilr_HighRoller%20-%20FlipH.lua</source>
+        <source main="midi_inlineeditor midi_editor" file="tilr_HighRoller - MIDI Toolkit/tilr_HighRoller - FlipV.lua">https://github.com/ReaTeam/ReaScripts/raw/68cd79a186b959738a811e0456a4066d35d2bab4/MIDI%20Editor/tilr_HighRoller%20-%20MIDI%20Toolkit/tilr_HighRoller%20-%20FlipV.lua</source>
+        <source main="midi_inlineeditor midi_editor" file="tilr_HighRoller - MIDI Toolkit/tilr_HighRoller - Glue.lua">https://github.com/ReaTeam/ReaScripts/raw/68cd79a186b959738a811e0456a4066d35d2bab4/MIDI%20Editor/tilr_HighRoller%20-%20MIDI%20Toolkit/tilr_HighRoller%20-%20Glue.lua</source>
+        <source main="midi_inlineeditor midi_editor" file="tilr_HighRoller - MIDI Toolkit/tilr_HighRoller - Gluex2.lua">https://github.com/ReaTeam/ReaScripts/raw/68cd79a186b959738a811e0456a4066d35d2bab4/MIDI%20Editor/tilr_HighRoller%20-%20MIDI%20Toolkit/tilr_HighRoller%20-%20Gluex2.lua</source>
+        <source main="midi_inlineeditor midi_editor" file="tilr_HighRoller - MIDI Toolkit/tilr_HighRoller - Split.lua">https://github.com/ReaTeam/ReaScripts/raw/68cd79a186b959738a811e0456a4066d35d2bab4/MIDI%20Editor/tilr_HighRoller%20-%20MIDI%20Toolkit/tilr_HighRoller%20-%20Split.lua</source>
+        <source main="midi_inlineeditor midi_editor" file="tilr_HighRoller - MIDI Toolkit/tilr_HighRoller - Splitx2.lua">https://github.com/ReaTeam/ReaScripts/raw/68cd79a186b959738a811e0456a4066d35d2bab4/MIDI%20Editor/tilr_HighRoller%20-%20MIDI%20Toolkit/tilr_HighRoller%20-%20Splitx2.lua</source>
+        <source main="midi_inlineeditor midi_editor" file="tilr_HighRoller - MIDI Toolkit/tilr_HighRoller - RotateL.lua">https://github.com/ReaTeam/ReaScripts/raw/68cd79a186b959738a811e0456a4066d35d2bab4/MIDI%20Editor/tilr_HighRoller%20-%20MIDI%20Toolkit/tilr_HighRoller%20-%20RotateL.lua</source>
+        <source main="midi_inlineeditor midi_editor" file="tilr_HighRoller - MIDI Toolkit/tilr_HighRoller - RotateR.lua">https://github.com/ReaTeam/ReaScripts/raw/68cd79a186b959738a811e0456a4066d35d2bab4/MIDI%20Editor/tilr_HighRoller%20-%20MIDI%20Toolkit/tilr_HighRoller%20-%20RotateR.lua</source>
       </version>
     </reapack>
     <reapack name="timtam_AccessiChords.lua" type="script" desc="AccessiChords">
