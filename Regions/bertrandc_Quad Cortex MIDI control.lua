@@ -1,10 +1,9 @@
--- @description Quad Cortex MIDI Control
+-- @description Quad Cortex MIDI control
 -- @author Bertrand C
 -- @version 1.0
 -- @changelog Initial release
--- @provides . > QuadCortexMIDIControl.lua
 -- @about
---   # Quad Cortex Midi Control 1.0
+--   # Quad Cortex MIDI Control
 --   Real-time MIDI control for Neural DSP Quad Cortex via Reaper Regions.
 --   - Automates Presets using "#BankLetter" (e.g., #1A).
 --   - Automates Scenes using "!Sx" (e.g., !S1 or !SA).
