@@ -3,14 +3,14 @@
 -- @version 1.0.0
 -- @provides
 --   [main=main,midi_editor,midi_inlineeditor] .
---   [main=midi_editor,midi_inlineeditor] tilr_HighRoller - MIDI Toolkit/HighRoller - FlipH.lua
---   [main=midi_editor,midi_inlineeditor] tilr_HighRoller - MIDI Toolkit/HighRoller - FlipV.lua
---   [main=midi_editor,midi_inlineeditor] tilr_HighRoller - MIDI Toolkit/HighRoller - Glue.lua
---   [main=midi_editor,midi_inlineeditor] tilr_HighRoller - MIDI Toolkit/HighRoller - Gluex2.lua
---   [main=midi_editor,midi_inlineeditor] tilr_HighRoller - MIDI Toolkit/HighRoller - Split.lua
---   [main=midi_editor,midi_inlineeditor] tilr_HighRoller - MIDI Toolkit/HighRoller - Splitx2.lua
---   [main=midi_editor,midi_inlineeditor] tilr_HighRoller - MIDI Toolkit/HighRoller - RotateL.lua
---   [main=midi_editor,midi_inlineeditor] tilr_HighRoller - MIDI Toolkit/HighRoller - RotateR.lua
+--   [main=midi_editor,midi_inlineeditor] tilr_HighRoller - MIDI Toolkit/tilr_HighRoller - FlipH.lua
+--   [main=midi_editor,midi_inlineeditor] tilr_HighRoller - MIDI Toolkit/tilr_HighRoller - FlipV.lua
+--   [main=midi_editor,midi_inlineeditor] tilr_HighRoller - MIDI Toolkit/tilr_HighRoller - Glue.lua
+--   [main=midi_editor,midi_inlineeditor] tilr_HighRoller - MIDI Toolkit/tilr_HighRoller - Gluex2.lua
+--   [main=midi_editor,midi_inlineeditor] tilr_HighRoller - MIDI Toolkit/tilr_HighRoller - Split.lua
+--   [main=midi_editor,midi_inlineeditor] tilr_HighRoller - MIDI Toolkit/tilr_HighRoller - Splitx2.lua
+--   [main=midi_editor,midi_inlineeditor] tilr_HighRoller - MIDI Toolkit/tilr_HighRoller - RotateL.lua
+--   [main=midi_editor,midi_inlineeditor] tilr_HighRoller - MIDI Toolkit/Htilr_ighRoller - RotateR.lua
 -- @about
 --   # HighRoller - Midi Toolkit
 --
