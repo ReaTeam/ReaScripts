@@ -15,8 +15,8 @@
 --   - Improved logging and error handling.
 --   - Automatically creates the MIDI output track if it doesn't exist.
 -- @provides
---   Quad Cortex MIDI control/Quad_Cortex_MIDI_control_setup.lua
---   Quad Cortex MIDI control/lib.lua
+--   Quad_Cortex_MIDI_control_setup.lua
+--   lib.lua
 -- @about
 --   # Quad Cortex MIDI control
 --   Real-time MIDI control for Neural DSP Quad Cortex via Reaper Regions.
