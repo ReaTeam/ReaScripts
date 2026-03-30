@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="68cd79a186b959738a811e0456a4066d35d2bab4" name="ReaTeam Scripts">
+<index version="1" commit="9b95556a7b29976566c5e54537d5737b729b2524" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -8230,17 +8230,27 @@ Override Reaper option "Toggle enable/disable default fadein/fadeout" (on/off)]]
     </reapack>
     <reapack name="ilovemedia_Replace with an empty item.lua" type="script" desc="Replace with an empty item">
       <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Replace with an empty item\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Replace the selected item with an empty one with the same name, duration and position.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel0 \b \fs36 Replace with an empty item\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Replace selected items with empty MIDI items (Keep names, position, length, fades, mute, color)\par}
 }
 ]]></description>
       </metadata>
       <version name="1.0" author="ilovemedia" time="2023-07-24T06:12:57Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f50bf0dc8b1920b1633bd7c1a3db9353440d8a45/Items%20Editing/ilovemedia_Replace%20with%20an%20empty%20item.lua</source>
+      </version>
+      <version name="2.0" author="ilovemedia" time="2026-03-30T15:13:55Z">
+        <changelog><![CDATA[Added support for replacing multiple selected items simultaneously.
+Generate MIDI items via API (CreateNewMIDIItemInProj) instead of action commands.
+Prevent alteration of the user's loop/time selection.
+Preserve item Mute state.
+Preserve all fade properties (fade in/out lengths, shapes, and curves).
+Added proper Undo/Redo block support.
+Enhanced stability by buffering item data before modifying the project.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/9b95556a7b29976566c5e54537d5737b729b2524/Items%20Editing/ilovemedia_Replace%20with%20an%20empty%20item.lua</source>
       </version>
     </reapack>
     <reapack name="JerContact_Zero crossing loop maker for items.lua" type="script" desc="Zero crossing loop maker for items">
