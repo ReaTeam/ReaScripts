@@ -2,16 +2,16 @@
 -- @author Rek's Effeks
 -- @version 0.alpha2
 -- @provides
---   [main] rxfx_TuringCompleteWebInterface/rxfx_CustomFancy_CycleTrackRecordArm.lua
---   [main] rxfx_TuringCompleteWebInterface/rxfx_CustomFancy_SetTimeSelFromMarkers.lua
---   [main] rxfx_TuringCompleteWebInterface/rxfx_CustomFancy_NewProject.lua
---   [main] rxfx_TuringCompleteWebInterface/rxfx_CustomFancy_OpenSelectedProject.lua
---   [main] rxfx_TuringCompleteWebInterface/rxfx_CustomFancy_ReadCurrentProject.lua
---   [main] rxfx_TuringCompleteWebInterface/rxfx_CustomFancy_RenameTrackFromExtState.lua
---   [main] rxfx_TuringCompleteWebInterface/rxfx_CustomFancy_SaveProjectAs.lua
---   [main] rxfx_TuringCompleteWebInterface/rxfx_CustomFancy_SendProjectList.lua
---   [main] rxfx_TuringCompleteWebInterface/rxfx_CustomFancy_SendTempo.lua
---   [main] rxfx_TuringCompleteWebInterface/rxfx_CustomFancy_SetTimeSig.lua
+--   [main] rxfx_CustomFancy_CycleTrackRecordArm.lua
+--   [main] rxfx_CustomFancy_SetTimeSelFromMarkers.lua
+--   [main] rxfx_CustomFancy_NewProject.lua
+--   [main] rxfx_CustomFancy_OpenSelectedProject.lua
+--   [main] rxfx_CustomFancy_ReadCurrentProject.lua
+--   [main] rxfx_CustomFancy_RenameTrackFromExtState.lua
+--   [main] rxfx_CustomFancy_SaveProjectAs.lua
+--   [main] rxfx_CustomFancy_SendProjectList.lua
+--   [main] rxfx_CustomFancy_SendTempo.lua
+--   [main] rxfx_CustomFancy_SetTimeSig.lua
 -- @about
 --   A web interface (adapted from Fancier.html) that can fully* control Reaper. Includes project save/load, basic track management, time selection controls and various bugfixes over the original.
 --
@@ -43,7 +43,7 @@
 <script src="main.js"></script>
 
 <style type="text/css">
-    
+
     body {
         background-color:#333333;
         color:#A9ABAB;
@@ -53,7 +53,7 @@
         user-select: none;
         cursor: default;
         }
-    
+
     #colWrap {
         display:flex;
         flex-direction: column;
@@ -64,13 +64,13 @@
     #tracks {
             flex-basis:100%;
             }
-    @media only screen 
-      and (min-device-width: 768px) 
-      and (orientation: landscape) 
+    @media only screen
+      and (min-device-width: 768px)
+      and (orientation: landscape)
       and (-webkit-min-device-pixel-ratio: 1) {
         #colWrap {
             flex-direction: row;
-            }  
+            }
         #col1 {
             flex-basis:50%;
             }
@@ -80,19 +80,19 @@
             border-left-color: #1A1A1A;
             }
         }
-    
+
     #optionsBar {}
-    
+
     .trackRow1{
         will-change: transform;
         }
     .trackRow2{
         will-change: transform;
         }
-    
+
     .optionsBar {
         height : 0px;
-        
+
         }
     .button:hover .mouseover {
         visibility:visible;
@@ -114,7 +114,7 @@
 </style>
 
 <script type="text/javascript">
-            
+
 var markerDeletePending = {};
 
 wwr_req_recur("TRANSPORT;BEATPOS",10);
@@ -128,13 +128,13 @@ var last_transport_state = -1, mouseDown = 0, last_time_str = "",
     startX = 0, joggerAgg = 0, recarmCountAr = [], recarmCount = 0, newPos = -1, lastMrMapStr = "", newMrMapLength = -1,
     trackHeightsAr = [], trackColoursAr = [], trackNumbersAr = [], trackNamesAr = [],  trackVolumeAr = [], trackPanAr = [],
     trackFlagsAr = [], trackSendCntAr = [], trackRcvCntAr = [], trackHwOutCntAr = [], trackSendHwCntAr = [], trackPeakAr = [], trackMeterAr = [], faderConAr = [], trackArmBtnAr = [], trackArmChannelAr = [],
-    hereCss = document.styleSheets[1], wwr_listeners = [], timesel_points = [], transitions = 1;    
-    
-function setTextForObject(obj, text) { 
+    hereCss = document.styleSheets[1], wwr_listeners = [], timesel_points = [], transitions = 1;
+
+function setTextForObject(obj, text) {
   if (obj.lastChild) obj.lastChild.nodeValue = text;
   else obj.appendChild(document.createTextNode(text));
-  } 
-    
+  }
+
 function lumaOffset(c){
     var c = c.substring(1);
     var rgb = parseInt(c, 16);
@@ -151,7 +151,7 @@ function lumaOffset(c){
     if(r<0){r=0}; if(g<0){g=0}; if(b<0){b=0}
     if(r>255){r=255}; if(g>255){g=255}; if(b>255){b=255}
     return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
-}    
+}
 
 function mouseDownEventHandler(msg) {
   return function(e) {
@@ -161,7 +161,7 @@ function mouseDownEventHandler(msg) {
     return false;
   }
 }
-    
+
 function mouseUpHandler(event){mouseDown = 0;}
 function mouseDownHandler(event, target){mouseDown = 1;}
 function mouseLeaveHandler(event){mouseDown = 0;}
@@ -191,9 +191,9 @@ function mouseMoveHandler(event){
         wwr_req("SET/TRACK/" + this.id + "/VOL/" + volOutputdB)
         }
     }
- 
+
 var thisSendTrackId=0, sendOutputdB=0;
-    
+
 function sendMouseMoveHandler(event){
     if (mouseDown != 1){ return; }
     else {
@@ -221,7 +221,7 @@ function sendMouseMoveHandler(event){
         wwr_req("SET/TRACK/" + thisSendTrackId + "/SEND/" + this.id + "/VOL/" + sendOutputdB)
         }
     }
-    
+
 function volFaderConect(content, thumb){
     content.addEventListener("mousemove", mouseMoveHandler, false);
     content.addEventListener("touchmove", mouseMoveHandler, false);
@@ -232,13 +232,13 @@ function volFaderConect(content, thumb){
     thumb.addEventListener('touchstart', function(event){
         if (event.touches.length > 0) mouseDownHandler(event, event.srcElement);
         event.preventDefault(); }, false);
-    }    
-    
+    }
+
 function sendMouseUpHandler(event){
     wwr_req("SET/TRACK/" + thisSendTrackId + "/SEND/" + this.id + "/VOL/" + sendOutputdB + "e");
     mouseDown = 0;
-    } 
-    
+    }
+
 function elAttribute(id,attribute,value){
     if(document.getElementById(id)){
         document.getElementById(id).setAttributeNS(null, attribute, value);
@@ -263,7 +263,7 @@ function updateTimeSelDisplay(args) {
     bar.setAttributeNS(null, "width", width);
     bar.setAttributeNS(null, "visibility", "visible");
 }
-    
+
 function wwr_onreply(results) {
    /*var resultsDisplay = document.getElementById("_results");
     if(resultsDisplay!=null){
@@ -271,7 +271,7 @@ function wwr_onreply(results) {
         _backLoaded.style.display = "block";
         resultsDisplay.innerHTML = results;
         } */
-    
+
   var ar = results.split("\n");
   for (var x=0;x<ar.length;x++) {
     var tok = ar[x].split("\t");
@@ -282,9 +282,9 @@ function wwr_onreply(results) {
             if(backLoaded!=null){
                 if (tok[1] != last_transport_state) {
                 last_transport_state=tok[1];
-                document.getElementById("playButtonOff").style.visibility = (last_transport_state&1) ? "hidden" : "visible"; 
-                document.getElementById("playButtonOn").style.visibility = (last_transport_state&1) ? "visible" : "hidden"; 
-                document.getElementById("pauseButtonOff").style.visibility = (last_transport_state&2) ? "hidden" : "visible"; 
+                document.getElementById("playButtonOff").style.visibility = (last_transport_state&1) ? "hidden" : "visible";
+                document.getElementById("playButtonOn").style.visibility = (last_transport_state&1) ? "visible" : "hidden";
+                document.getElementById("pauseButtonOff").style.visibility = (last_transport_state&2) ? "hidden" : "visible";
                 document.getElementById("pauseButtonOn").style.visibility = (last_transport_state&2) ? "visible" : "hidden";
                 document.getElementById("record_off").style.visibility = (last_transport_state&4) ? "hidden" : "";
                 document.getElementById("record_on").style.visibility = (last_transport_state&4) ? "visible" : "";
@@ -299,7 +299,7 @@ function wwr_onreply(results) {
                 document.getElementById("repeat_on").style.visibility = (last_repeat>0) ? "visible" : "";
                 }
             var statusDisplay = document.getElementById("status");
-                
+
             //make an array of the current position and its unit
             statusPosition[0] = tok[4];
             statusPositionAr = tok[4].split(".");
@@ -319,15 +319,15 @@ function wwr_onreply(results) {
                       }
                   }
                 }
-            document.getElementById("timeUnits").textContent = statusPosition[1];    
-            
+            document.getElementById("timeUnits").textContent = statusPosition[1];
+
             joggerAggSign = Math.sign(joggerAgg);
             if(joggerAgg!=0){
                 var joggerAggExp = Math.exp(Math.abs(joggerAgg)) * Math.sign(joggerAgg);
                 if(statusPosition[1]=="Measures.Beats"){
                     statusJogging = BtoMB(Math.floor(Math.exp(Math.abs(joggerAgg)))) * Math.sign(joggerAgg) + ".00";
                     }
-                else{statusJogging = joggerAggExp.toPrecision(4) + " s";} 
+                else{statusJogging = joggerAggExp.toPrecision(4) + " s";}
                 statusDisplay.textContent = statusJogging;
                 statusDisplay.style.fill = (joggerAggSign<0) ? "#FE003B" : "#00FE95";
                 }
@@ -335,7 +335,7 @@ function wwr_onreply(results) {
                 statusDisplay.textContent = statusPosition[0];
                 statusDisplay.style.fill = "#a8a8a8";
                 }
-            if (tok[2] != playPosSeconds) {playPosSeconds=tok[2];}    
+            if (tok[2] != playPosSeconds) {playPosSeconds=tok[2];}
         }
             if (tok[4]<1) {
                 last_time_str = tok[4]-1;
@@ -345,7 +345,7 @@ function wwr_onreply(results) {
         }
       break;
       case "CMDSTATE":
-        var buttonMetro = document.getElementById("buttonMetro");     
+        var buttonMetro = document.getElementById("buttonMetro");
         if (tok[1] == 40364 && buttonMetro) {
             if(last_metronome==1){
                     buttonMetro.childNodes[3].setAttributeNS(null, "visibility", "visible");
@@ -357,14 +357,14 @@ function wwr_onreply(results) {
                     }
                 last_metronome = tok[2];
             }
-            
+
         var buttonPreroll = document.getElementById("prerollBg");
         if (tok[1] == 41819 && buttonPreroll) {
             document.getElementById("prerollBg").setAttributeNS(null, "opacity", tok[2]>0 ? "1" : "0.2");
             document.getElementById("prerollBg").setAttributeNS(null, "fill", tok[2]>0 ? "#8a9999" : "#262626");
         }
-            
-        var buttonSnap = document.getElementById("buttonSnap");    
+
+        var buttonSnap = document.getElementById("buttonSnap");
         if (tok[1] == 1157 && buttonSnap) {
             if (tok[2] != snapState) {
                 if(snapState==0){
@@ -380,7 +380,7 @@ function wwr_onreply(results) {
             }
       break;
       case "BEATPOS":
-        var playLine = document.querySelector('#playLine');    
+        var playLine = document.querySelector('#playLine');
         if (tok.length > 5 && playLine) {
             var playLineCirc = 301.1;
             var playLineArc = playLineCirc - (playLineCirc / tok[6]);
@@ -388,7 +388,7 @@ function wwr_onreply(results) {
             thisBeat=Math.round(tok[5]);
             var playLineRotate = (360 / tok[6]) * thisBeat;
             thisSig=tok[6];
-                if (drawnSig!=thisSig || drawnBeat!=thisBeat && playLine){ 
+                if (drawnSig!=thisSig || drawnBeat!=thisBeat && playLine){
                     playLine.setAttributeNS(null, "stroke-dasharray", playLineCirc);
                     playLine.setAttributeNS(null, "stroke-dashoffset", playLineArc);
                     playLine.setAttribute("transform","rotate(" + playLineRotate + ",151.8,52.4)");
@@ -398,16 +398,16 @@ function wwr_onreply(results) {
             document.getElementById("tsNum").textContent = ts_numerator;
             document.getElementById("tsDen").textContent = ts_denominator;
               }
-      break; 
-            
+      break;
+
       case "REGION_LIST":
-            g_regions = []; 
+            g_regions = [];
             break;
       case "REGION":
             g_regions.push(tok);
             break;
       case "MARKER_LIST":
-            g_markers = []; 
+            g_markers = [];
             break;
       case "MARKER":
             g_markers.push(tok);
@@ -415,10 +415,10 @@ function wwr_onreply(results) {
       case "MARKER_LIST_END":
             var pos = parseFloat(playPosSeconds);
             var previ=-1, thisi=-1, nexti=-1;
-        break; 
-            
+        break;
+
         case "REGION_LIST_END":
-            
+
             //assemble mrMap array : time, marker number, region start number, region end number.
             for (var i=0; i<g_regions.length; i++) {
                 if(g_regions[i][5]==0){g_regions[i][5]=25198720;} // Give uncoloured regions a colour.
@@ -443,22 +443,22 @@ function wwr_onreply(results) {
                 mrMapAr[i+(g_regions.length*2)][0] = g_markers[i][3];
                 mrMapAr[i+(g_regions.length*2)][1] = g_markers[i][2];
                 }
-            
+
             for (var i=0; i<mrMapAr.length; i++) {                  //prep times for sorting
                 posToSix = parseFloat(mrMapAr[i][0]).toFixed(6);
                 mrMapAr[i][0] = parseFloat(posToSix);
                 }
-            
+
             mrMapAr.sort(function(a, b) {                           //sort into time order
                 return (a[0] === b[0] ? 0 : (a[0] < b[0] ? -1 : 1));
                 });
-            
+
             function mergeAt(idx){
                 if(mrMapAr[i-1][idx]){a=mrMapAr[i-1][idx]}else{a=0};
                 if(mrMapAr[i][idx]){b=mrMapAr[i][idx]}else{b=0};
-                mrMapAr[i-1][idx] = parseFloat(a)+parseFloat(b); 
+                mrMapAr[i-1][idx] = parseFloat(a)+parseFloat(b);
                 }
-            
+
             var mergeDone=0;
             if (mrMapAr.length === 1) {
                 mergeDone=1;
@@ -471,7 +471,7 @@ function wwr_onreply(results) {
                     if(i==(mrMapAr.length-1)){mergeDone=1}
                     }
             }
-            
+
             var prevl=-1, thisl=-1, nextl=-1;
             var mrMapStr = JSON.stringify(mrMapAr);
             if(mrMapAr.length===0){mergeDone=1;}
@@ -487,14 +487,14 @@ function wwr_onreply(results) {
                         }
                     }
                 }
-            
+
             function getValuesFromId(array,id,colourIdx) {
                 for (var i=0, len=array.length; i<len; i++) {
                     if(array[i][2]==id){return [id,(array[i][1]),(array[i][colourIdx])]}
                     }
                 return [0,0,0];
                 }
-             
+
             var nextPrevSvg = document.getElementById("nextPrev");
             if((pos!=newPos || mrMapAr.length!=newMrMapLength || mrMapStr!=lastMrMapStr) && mergeDone==1 && nextPrevSvg){
                 var rIdxAsg = [];
@@ -524,17 +524,17 @@ function wwr_onreply(results) {
                             if(rIdxAsg.indexOf(q)==-1){rIdxAsg[i] = q;}
                         }
                     }
-                
+
                 function getValFromAr(array,id,idLoc,valLoc) {
                     for (var i=0, len=array.length; i<len; i++) {
                         if(array[i][idLoc]==id){return array[i][valLoc];}
                         }
                     return;
                     }
-                
+
                 for(i=1;i<5;i++){
                     select_points = [];
-                    this['r'+i+'StalkLx'] = 45.6; 
+                    this['r'+i+'StalkLx'] = 45.6;
                     this['r'+i+'StalkRx'] = 273.1;
                     if(rIdxAsg[i-1] && rIdxAsg[i-1]>=0){
                         this['r'+i+'Idx'] = rIdxAsg[i-1];
@@ -564,7 +564,7 @@ function wwr_onreply(results) {
                         }
                     else{document.getElementById('region'+i).setAttributeNS(null, "visibility", "hidden");}
                     }
-                    
+
                 if(mrMapAr[prevl] && mrMapAr[prevl][1]>=1){
                     var mPrevIdx = mrMapAr[prevl][1];
                     //~ if (!timesel_points.includes(null)) {
@@ -601,7 +601,7 @@ function wwr_onreply(results) {
                     }
                 }
                 else{document.getElementById("marker2").setAttributeNS(null, "visibility", "hidden");}
-                
+
                 if(mrMapAr[nextl] && mrMapAr[nextl][1]>=1){
                     var mNextIdx = mrMapAr[nextl][1];
                     //~ if (!timesel_points.includes(null)) {
@@ -619,7 +619,7 @@ function wwr_onreply(results) {
                     }
                 }
                 else{document.getElementById("marker3").setAttributeNS(null, "visibility", "hidden");}
-                
+
                 if (prevl>=0){homeIconVis = "hidden"; prevIconVis = "visible";}
                     else {
                         homeIconVis = "visible"; prevIconVis = "hidden";
@@ -647,9 +647,9 @@ function wwr_onreply(results) {
                 if (thisl<0 && pos!=0){elAttribute("dropMarker","visibility","visible")}
                 else{elAttribute("dropMarker","visibility","hidden")}
                 if (nextl>=0){
-                    endIconVis = "hidden"; nextIconVis = "visible"; 
+                    endIconVis = "hidden"; nextIconVis = "visible";
                     }
-                else { 
+                else {
                     document.getElementById("marker3").setAttributeNS(null, "visibility", "visible");
                     document.getElementById("nextMarkerName").textContent = "END";
                     if (!timesel_points.includes(null)) {
@@ -658,14 +658,14 @@ function wwr_onreply(results) {
                     document.getElementById("marker3Number").textContent = "E";
                     document.getElementById("marker3Bg").setAttributeNS(null, "fill", "#1a1a1a");
                     document.getElementById("marker3Number").setAttributeNS(null, "fill", "#A8A8A8");
-                    endIconVis = "visible"; nextIconVis = "hidden"; 
+                    endIconVis = "visible"; nextIconVis = "hidden";
                     }
                 elAttribute("iconPrev","visibility",prevIconVis);
                 elAttribute("iconHome","visibility",homeIconVis);
                 elAttribute("iconNext","visibility",nextIconVis);
                 elAttribute("iconEnd","visibility",endIconVis);
 
-                
+
                 if (!timesel_points.includes(null) && select_points.length < 2) {
                     if (timesel_points.includes("end") && mrMapAr.length > 0 && pos < mrMapAr[mrMapAr.length-1][0]) {
                         select_points.push("rightEdge");
@@ -699,11 +699,11 @@ function wwr_onreply(results) {
                 updateTimeSelDisplay(select_points);
                 }
         break;
-    
+
         case "NTRACK":
             if (tok.length > 1) {nTrack = tok[1];}
         break;
-            
+
      case "TRACK":
         idx = parseInt(tok[1]);
         if (tok.length > 5) {
@@ -715,9 +715,9 @@ function wwr_onreply(results) {
                 var trackDiv = document.createElement("div");
                     trackDiv.id = ("track" + tok[1]);
                     trackDiv.className = ("trackDiv");
-                
+
                 trackHeightsAr[tok[1]] = 0;
-                
+
                 var trackRow1Div = document.createElement("div");
                     trackRow1Div.className = ("trackRow1");
                 var trackRow2Div = document.createElement("div");
@@ -725,16 +725,16 @@ function wwr_onreply(results) {
                     trackRow2Div.id = tok[1];
                 var trackSendsDiv = document.createElement("div");
                     trackSendsDiv.id = ("sendsTrack" + idx);
-                                
+
                 if(trackDiv && allTracksDiv){allTracksDiv.appendChild(trackDiv);}
                     trackDiv.appendChild(trackRow1Div) ;
                     trackDiv.appendChild(trackRow2Div) ;
                     trackDiv.appendChild(trackSendsDiv);
             }
-            
+
             else {
                 if(backLoaded!=null && backLoaded.nextSibling!=null){
-                    var cloneTrackRow1 = document.getElementById("trackRow1Svg").cloneNode(true);                
+                    var cloneTrackRow1 = document.getElementById("trackRow1Svg").cloneNode(true);
                     var cloneTrackRow2 = document.getElementById("trackRow2Svg").cloneNode(true);
                     var cloneTrackSend = document.getElementById("trackSendSvg").cloneNode(true);
 
@@ -758,7 +758,7 @@ function wwr_onreply(results) {
                                 masterTrackRow2Content.appendChild(cloneTrackRow2);
                                 var trackSendsDiv = document.createElement("div");
                                 trackSendsDiv.id = ("sendsTrack0");
-                                masterTrackContent.appendChild(trackSendsDiv);    
+                                masterTrackContent.appendChild(trackSendsDiv);
                                 }
 
                             var volThumb = masterTrackRow2Content.getElementsByClassName("fader")[0];
@@ -769,7 +769,7 @@ function wwr_onreply(results) {
                             volThumb.volSetting = (Math.pow(tok[4], 1/4) * 194.68);
                             var vteMove = "translate(" + volThumb.volSetting + " 0)";
                             if(mouseDown != 1){volThumb.setAttributeNS(null, "transform", vteMove);}
-                            
+
                             var masterSends = tok[12];
                             if(masterSends!=trackSendCntAr[0]){
                                 trackSendCntAr[0] = masterSends;
@@ -777,7 +777,7 @@ function wwr_onreply(results) {
                             }
 
                     if(idx>0){ //normal track stuff
-                        
+
                         var trackRow1Content = document.getElementById("track" + idx).childNodes[0];
                         if (!trackRow1Content.innerHTML){
                             trackRow1Content.appendChild(cloneTrackRow1);
@@ -835,7 +835,7 @@ function wwr_onreply(results) {
                         if (!trackRow2Content.innerHTML){
                             trackRow2Content.appendChild(cloneTrackRow2);
                             }
-                        
+
                         trackBg = trackRow1Content.firstChild.getElementsByClassName("trackrow1bg")[0];
                         if(tok[13]>0 && tok[13]!=trackColoursAr[idx]){
                             var customTrackColour = ("#" + (tok[13]|0x1000000).toString(16).substr(-6));
@@ -858,8 +858,8 @@ function wwr_onreply(results) {
 
                         var recCycleInProgress = false;
 
-                        
-                        
+
+
                         trackRow1Content.firstChild.getElementsByClassName("mute")[0].onmousedown = mouseDownEventHandler("SET/TRACK/" + tok[1] + "/MUTE/-1;TRACK/" + tok[1]);
                         trackRow1Content.firstChild.getElementsByClassName("solo")[0].onmousedown = mouseDownEventHandler("SET/TRACK/" +idx+ "/SOLO/-1;TRACK/" +idx);
                         trackRow1Content.firstChild.getElementsByClassName("monitor")[0].onmousedown = mouseDownEventHandler("SET/TRACK/" + idx + "/RECMON/-1;TRACK/" + idx);
@@ -899,10 +899,10 @@ function wwr_onreply(results) {
                                     }
                                 }
                             else{monitorOffButton.style.visibility = "hidden"; monitorOnButton.style.visibility = "hidden"; monitorAutoButton.style.visibility = "hidden";}
-                            
+
                         if(tok[3]&512){ //track hidden in TCP
                             document.getElementById("track" + idx).style.display="none";}
-                        else{document.getElementById("track" + idx).style.display = "block";}   
+                        else{document.getElementById("track" + idx).style.display = "block";}
 
                         folderIcon = trackRow1Content.firstChild.getElementsByClassName("folder_icon")[0];
                         if(tok[3]&1){folderIcon.style.visibility = "visible";}
@@ -923,7 +923,7 @@ function wwr_onreply(results) {
                             else{rcvIndicator.style.visibility = "hidden";}
                             trackRcvCntAr[idx] = tok[11];
                             }
-                        
+
                         if(tok[12]!=trackHwOutCntAr[idx]){
                             sendIndicator = trackRow1Content.firstChild.getElementsByClassName("s_on")[0];
                             if(tok[12]>0){sendIndicator.style.visibility = "visible";}
@@ -952,7 +952,7 @@ function wwr_onreply(results) {
                                 //~ //console.log((peak/600+1) * 33);
                                 //~ vuBar.setAttributeNS(null, "width", barWidth);
                             //~ }
-                            
+
                             trackPeakAr[idx] = tok[6];
                             }
 
@@ -967,7 +967,7 @@ function wwr_onreply(results) {
                             armedCount.textContent = recarmCount;
                             armedCount.setAttributeNS(null, "fill", ((recarmCount==0)?"#5D3729":"#545454"));
                             armedText.setAttributeNS(null, "fill", ((recarmCount==0)?"#5D3729":"#545454"));
-                        
+
                         var volThumb = trackRow2Content.firstChild.getElementsByClassName("fader")[0];
                         if(faderConAr[idx]!=1){
                             volFaderConect(trackRow2Content,volThumb);
@@ -1006,7 +1006,7 @@ function wwr_onreply(results) {
                         volThumb.volSetting = (Math.pow(tok[4], 1/4) * (194.68-40-14)) + 40; //40 = pan knob width
                         var vteMove = "translate(" + volThumb.volSetting + " 0)";
                         if(mouseDown != 1){volThumb.setAttributeNS(null, "transform", vteMove);}
-                        
+
                         // --- pan knob update ---
                         var panVal = parseFloat(tok[5]); // tok[5] is pan, -1 to +1
                         if(!isNaN(panVal) && trackPanAr[idx] != panVal) {
@@ -1036,7 +1036,7 @@ function wwr_onreply(results) {
                             }
                 }
             }
-            
+
             var tracksDiv = document.getElementById('tracks');
             if (tracksDiv!=null){
                 var tracksDrawnIncMaster = tracksDiv.childNodes;
@@ -1044,11 +1044,11 @@ function wwr_onreply(results) {
                 }
             if (tracksDrawn > nTrack) {
                 tracks.removeChild(tracks.lastChild);
-                }            
+                }
       }
     break;
-            
-    case "SEND":       
+
+    case "SEND":
         function sendConect(content, thumb){
             content.addEventListener("mousemove", sendMouseMoveHandler, false);
             content.addEventListener("touchmove", sendMouseMoveHandler, false);
@@ -1060,14 +1060,14 @@ function wwr_onreply(results) {
                 if (event.touches.length > 0) mouseDownHandler(event, event.srcElement);
                 event.preventDefault(); }, false);
             }
-    
+
         if (tok.length > 3) {
-            var targetName; 
+            var targetName;
                 if(tok[6]>0) targetName = trackNamesAr[tok[6]];
                 else targetName = "Hardware";
             var sendMuted = ", not muted";
             if(tok[3]&8) sendMuted = ", MUTED";
-            
+
             var trackSendsContent = document.getElementById("sendsTrack" + tok[1]);
             if(trackSendsContent.childNodes.length>0){
                 var thisSendDiv = trackSendsContent.childNodes[tok[2]];
@@ -1078,7 +1078,7 @@ function wwr_onreply(results) {
                     sDbText = thisSendDiv.firstChild.getElementsByClassName("sDbText")[0];
                     sDbValue = mkvolstr(tok[4])
                     if(sDbText.Content!=sDbValue)sDbText.textContent = sDbValue;
-                    
+
                     var sendLine = thisSendDiv.firstChild.getElementsByClassName("sendLine")[0];
                     sLineSetting = (Math.pow(tok[4], 1/4) * 154) + 27;
                     if(mouseDown != 1){sendLine.setAttributeNS(null, "x2", sLineSetting);}
@@ -1102,10 +1102,10 @@ function wwr_onreply(results) {
                                 sendThumb.setAttributeNS(null, "opacity", "0.5");
                                 }
                         }
-                    
+
                     sThumbSetting = (Math.pow(tok[4], 1/4) * 154) + 27;
                     if(mouseDown != 1){sendThumb.setAttributeNS(null, "cx", sThumbSetting);}
-                    
+
                     var sendMuteButton = thisSendDiv.firstChild.getElementsByClassName("send_mute")[0];
                     sendMuteButton.onmousedown = mouseDownEventHandler("SET/TRACK/" + tok[1] + "/SEND/" + tok[2] + "/MUTE/-1");
                     var sendMuteOff = thisSendDiv.firstChild.getElementsByClassName("send_mute_off")[0];
@@ -1120,7 +1120,7 @@ function wwr_onreply(results) {
                         }
                     }
                 }
-            }            
+            }
     }
   }
     if(trackSendHwCntAr.length>0){
@@ -1177,7 +1177,7 @@ function updateProjectName() {
                         var bg    = row1.getElementsByClassName("recarmBg")[0];
                         var label = row1.getElementsByClassName("recarmLabel")[0];
                         var result = armStates[t];
-                        
+
                         if (result == "off") {
                             bg.setAttribute("fill", "#5D3729");
                             label.textContent = "";
@@ -1222,11 +1222,11 @@ function updateTempo() {
         wwr_req("GET/EXTSTATE/Fanciest/CurrentTempo");
     }, 300);
 }
-    
+
 function on_record_button(e) {
   if (recarmCount > 0 || confirm("no tracks are armed, start record?")) wwr_req(1013);
   return false;
-}     
+}
 
 function prompt_abort() {
   if (!(last_transport_state&4)) {
@@ -1234,8 +1234,8 @@ function prompt_abort() {
   } else {
     if (confirm("abort recording? contents will be lost!")) wwr_req(40668);
   }
-} 
-    
+}
+
 function prompt_seek() {
   if (!(last_transport_state&4)) {
     var seekto = prompt("Seek to position:",last_time_str);
@@ -1243,16 +1243,16 @@ function prompt_seek() {
       wwr_req("SET/POS_STR/" + encodeURIComponent(seekto));
     }
   }
-}    
-    
+}
+
 var scaleFactor = 1, optionsOpen =0;
-        
+
 function calculateScale(event) {
     var a = document.getElementById("transport_r2");
     if(a){var drawnWidth = a.clientWidth;}
     else{drawnWidth = 303.6}
     scaleFactor = drawnWidth/303.6;
-    
+
     if(optionsOpen==1){
             for (var i=0; i<hereCss.cssRules.length; i++){
                 if(hereCss.cssRules[i].selectorText==".optionsBar"){
@@ -1261,7 +1261,7 @@ function calculateScale(event) {
                     }
             }
         }
-    
+
     document.getElementById("options").onclick = function(){
         if(optionsOpen!=1){
             for (var i=0; i<hereCss.cssRules.length; i++){
@@ -1281,22 +1281,22 @@ function calculateScale(event) {
                 }
             optionsOpen=0;
             }
-        }    
+        }
     }
-    
-window.addEventListener('resize', calculateScale, false); 
 
-trackHeightsAr[0] = 0;    
+window.addEventListener('resize', calculateScale, false);
+
+trackHeightsAr[0] = 0;
 function hitbox(id) {
     var thisTrackRow2 = document.getElementsByClassName("trackRow2")[id];
     var thisTrackRow2Svg = thisTrackRow2.firstChild.firstElementChild;
     var easingValue = 0;
     transitionTime = 10;
-    
+
    if(trackHeightsAr[id]==0){
        iteration = 0;
        requestAnimationFrame(resizerDown);
-       function resizerDown() { 
+       function resizerDown() {
             if(iteration<transitionTime){
                 easingValue = easeInOutCubic(iteration, 0, 1, transitionTime);
                 if(easingValue<=0.1){easingValue=0.01;}
@@ -1318,7 +1318,7 @@ function hitbox(id) {
    else{
        iteration = 0;
        requestAnimationFrame(resizerUp);
-       function resizerUp() { 
+       function resizerUp() {
             if(iteration<transitionTime){
                 easingValue = easeInOutCubic(iteration, 1, -1, transitionTime);
                 if(transitions==0){var row2scaleU = 0.01;}
@@ -1337,8 +1337,8 @@ function hitbox(id) {
                 }
         }
     trackHeightsAr[id] ^= 1;
-    }  
-    
+    }
+
 function init(){
   if (/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream) {
     for (let l = 0; l < document.styleSheets.length; l ++) {
@@ -1431,9 +1431,9 @@ function init(){
 		<rect class="iconBg" x="92.4" y="1.6" fill="#262626" width="43.9" height="43.9"/>
 		<rect class="active" visibility="hidden" x="92.4" y="1.6" fill="#8a9999" width="43.9" height="43.9"/>
 		<g id="iconMetro">
-			<polygon fill="#FFFFFF" points="117.5,9.4 112.8,9.4 110,17.8 110.9,21.3 114.2,11.4 114.4,12.5 115.9,12.5 116.1,11.4 
+			<polygon fill="#FFFFFF" points="117.5,9.4 112.8,9.4 110,17.8 110.9,21.3 114.2,11.4 114.4,12.5 115.9,12.5 116.1,11.4
 				123.8,34.5 115.9,34.5 114.4,34.5 106.5,34.5 108.3,29.1 106.9,27 103.4,37.6 126.9,37.6 			"/>
-			<polygon fill="#57FF86" points="115.5,34.5 108.4,23.5 109.7,22.7 108.4,17.9 105.8,19.6 100.6,11.5 99.2,12.3 104.5,20.4 
+			<polygon fill="#57FF86" points="115.5,34.5 108.4,23.5 109.7,22.7 108.4,17.9 105.8,19.6 100.6,11.5 99.2,12.3 104.5,20.4
 				101.8,22.2 105.7,25.2 107.1,24.4 113.7,34.5 			"/>
 		</g>
 		<g class="gloss">
@@ -1516,7 +1516,7 @@ function init(){
             <polygon opacity="0.66" fill="#FF5757" points="248.1,13.1 244.8,15.3 258,15.3 254.7,13.1 "/>
             <polygon opacity="0.33" fill="#FF5757" points="248.1,16 244.8,18.2 258,18.2 254.7,16 "/>
             <polygon opacity="0.15" fill="#FF5757" points="248.1,19 244.8,21.1 258,21.1 254.7,19 "/>
-            <polygon fill="#ffffff" opacity="0.25" points="255.6,8 257.8,9.4 266.4,9.4 266.4,23.3 236.4,23.3 236.4,9.4 245.1,9.4 247.2,8 235,8 235,8 
+            <polygon fill="#ffffff" opacity="0.25" points="255.6,8 257.8,9.4 266.4,9.4 266.4,23.3 236.4,23.3 236.4,9.4 245.1,9.4 247.2,8 235,8 235,8
 			235,9.4 235,23.3 235,24.8 235,24.8 267.9,24.8 267.9,24.8 267.9,23.3 267.9,9.4 267.9,8 267.9,8 "/>
 		</g>
 		<g class="gloss">
@@ -1594,13 +1594,13 @@ function init(){
 </svg>
 </div>
 
-<div id="transport" style="display: flex; flex-direction: column;"> 
-   
-   
+<div id="transport" style="display: flex; flex-direction: column;">
+
+
 <div>
     <svg id="nextPrev" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="100%"
          height="100%" viewBox="0 0 318.9 87.8" xml:space="preserve">
-    <polygon id="markerSecBg" fill="#262626" points="164.3,12.5 159,17.8 153.8,12.5 70.4,12.5 70.4,79.2 153.8,79.2 159,74 
+    <polygon id="markerSecBg" fill="#262626" points="164.3,12.5 159,17.8 153.8,12.5 70.4,12.5 70.4,79.2 153.8,79.2 159,74
         164.3,79.2 248.3,79.2 248.3,12.5 "/>
     <rect id="markerStrip" x="70.4" y="50.4" fill="#2D2D2D" width="177.9" height="15"/>
     <rect id="regionStrip" x="70.4" y="20.2" fill="#2D2D2D" width="177.9" height="15"/>
@@ -1635,11 +1635,11 @@ function init(){
         <rect id="r4Rect" x="45.6" y="20.2" rx="3" ry="3" stroke="#808080" width="56.9" height="15.1"/>
         <text id="r4Name" transform="matrix(1 0 0 1 74.5 31)" class="st3 st4"></text>
     </g>
-    
-    
+
+
     <g id="marker1" visibility="hidden">
         <line id="markerStalk" fill="none" stroke="#808080" stroke-miterlimit="10" x1="102.5" y1="59.7" x2="102.5" y2="73.6"/>
-        <rect id="marker1Bg" x="95" y="50.4" rx="3" ry="3" stroke="#808080" stroke-miterlimit="10" width="15" height="15"/>    
+        <rect id="marker1Bg" x="95" y="50.4" rx="3" ry="3" stroke="#808080" stroke-miterlimit="10" width="15" height="15"/>
         <text id="marker1Number" transform="matrix(1 0 0 1 102.5 61.5)" fill="#A8A8A8" font-family="'Open Sans'" text-anchor="middle" font-size="10px"></text>
         <g><defs>
                 <rect id="npClip1" x="74.1" y="35.8" width="56.8" height="14.6"/>
@@ -1654,7 +1654,7 @@ function init(){
     </g>
     <g id="marker2" visibility="hidden">
         <line id="markerStalk_1_" fill="none" stroke="#808080" stroke-miterlimit="10" x1="159.3" y1="59.7" x2="159.3" y2="73.6"/>
-       <rect id="marker2Bg" x="151.8" y="50.4" rx="3" ry="3" stroke="#808080" stroke-miterlimit="10" width="15" height="15"/>     
+       <rect id="marker2Bg" x="151.8" y="50.4" rx="3" ry="3" stroke="#808080" stroke-miterlimit="10" width="15" height="15"/>
             <text id="marker2Number" transform="matrix(1 0 0 1 159.5 61.5)" fill="#A8A8A8" font-family="'Open Sans'" text-anchor="middle" font-size="10px"></text>
         <g><defs>
                 <rect id="npClip3" x="130.9" y="35.8" width="56.8" height="14.6"/>
@@ -1722,7 +1722,7 @@ function init(){
         <path class="mouseover" visibility="hidden" opacity="0.05" fill="#FFFFFF" d="M40.7,77.9c-17.7,0-32-14.3-32-32s14.3-32,32-32h29.7
             c1.2,0,2.3,1.1,2.3,2.3v59.4c0,1.4-1.1,2.3-2.3,2.3H40.7z"/>
     </g>
-    <g id="dropMarker" class="button" visibility="hidden" onClick="wwr_req('40157;40898')"> 
+    <g id="dropMarker" class="button" visibility="hidden" onClick="wwr_req('40157;40898')">
         <rect x="145.2" y="40.7" fill-opacity="0.25" stroke="#808080" stroke-dasharray="2, 4" stroke-miterlimit="10" rx="3" ry="3" width="28.4" height="28.4"/>
         <path id="+" fill="none" stroke="#808080" stroke-width="3" stroke-miterlimit="10" d="M159.4,63.3V46.5 M151.1,54.9h16.7"/>
         <rect id="dropMarkerHitbox" x="131.2" y="35.2" fill="none" width="56.6" height="44"/>
@@ -1731,13 +1731,13 @@ function init(){
     </svg>
 
 </div>
-         
+
 <div id="transport_r2">
 <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="100%"
  height="100%" viewBox="0 0 303.6 107.6" xml:space="preserve">
     <circle id="playLineBg" fill="#222625" cx="151.8" cy="52.4" r="52.3"/>
     <circle id="playLine" fill="none" stroke-dasharray="50" stroke-dashoffset="10" stroke="#00FE95" stroke-width="6" stroke-miterlimit="10" cx="151.8" cy="52.4" r="48"/>
-    
+
     <g id="play" class="button" onClick="wwr_req(1007)">
         <g id=playButtonOn visibility="hidden">
             <path fill="#00FF99" d="M151.8,97c-24.6,0-44.6-20-44.6-44.6s20-44.6,44.6-44.6s44.6,20,44.6,44.6S176.4,97,151.8,97z"/>
@@ -1847,15 +1847,15 @@ function init(){
         </g>
     </g>
 </svg>
-    </div> 
-    
+    </div>
+
     <div id="transport_r3" style="display:flex; margin: 1.5%;">
-    
+
     <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="33%" height="100%" viewBox="0 0 101.5 108" xml:space="preserve"><g onClick="wwr_req(1068)">	 <g id="repeat_on" class="button"  visibility="hidden">	<g>	<path fill="#7DBBBB" d="M47.9,96.7c-26,0-47.2-21.2-47.2-47.2S21.9,2.3,47.9,2.3s47.2,21.2,47.2,47.2S73.9,96.7,47.9,96.7z"/>	<path fill="#1A1A1A" d="M47.9,3c25.7,0,46.5,20.8,46.5,46.5v0C94.4,75.2,73.6,96,47.9,96h0C22.2,96,1.4,75.2,1.4,49.5v0 C1.4,23.8,22.2,3,47.9,3L47.9,3 M47.9,1.7C21.5,1.7,0.1,23.1,0.1,49.5c0,26.4,21.5,47.8,47.8,47.8s47.8-21.5,47.8-47.8	C95.7,23.1,74.3,1.7,47.9,1.7L47.9,1.7z"/></g><path fill="#FFFFFF" d="M63.4,66.8l2,5.1l-17.5-2.5l10.9-13.9l1.8,4.5c2.4-2.9,3.8-6.6,3.8-10.5c0-7.7-5.5-14.5-13-16.2 c-1.8-0.4-3-2.2-2.6-4c0.4-1.8,2.2-3,4-2.6c10.6,2.3,18.3,11.9,18.3,22.7C71.2,56.2,68.3,62.4,63.4,66.8z M37,43.5l10.9-13.9 l-17.5-2.5l2,5.1c-4.9,4.4-7.8,10.6-7.8,17.3c0,10.9,7.4,20.2,18,22.7c0.3,0.1,0.5,0.1,0.8,0.1c1.5,0,2.9-1.1,3.3-2.6 c0.4-1.8-0.7-3.6-2.5-4c-7.5-1.7-12.8-8.4-12.8-16.1c0-3.9,1.3-7.6,3.8-10.5L37,43.5z"/>	<path class="mouseover" visibility="hidden" opacity="0.15" fill="#FFFFFF" d="M47.9,96L47.9,96C22.2,96,1.4,75.2,1.4,49.5v0C1.4,23.8,22.2,3,47.9,3h0 c25.7,0,46.5,20.8,46.5,46.5v0C94.4,75.2,73.6,96,47.9,96z"/></g><g id="repeat_off" class="button"> <path class="shadow" display="inline" opacity="0.2" d="M47.9,104L47.9,104C22.2,104,1.4,83.2,1.4,57.5 v-8h93v8C94.4,83.2,73.6,104,47.9,104z"/>	<g display="inline"> <linearGradient id="rptGrad" gradientUnits="userSpaceOnUse" x1="-45.1001" y1="89.3403" x2="-45.1001" y2="183.6602" gradientTransform="matrix(1 0 0 1 93 -87)">	<stop  offset="0" style="stop-color:#404040"/>	<stop  offset="1" style="stop-color:#262626"/>	</linearGradient> <path fill="url(#rptGrad)" d="M47.9,96.7c-26,0-47.2-21.2-47.2-47.2S21.9,2.3,47.9,2.3s47.2,21.2,47.2,47.2S73.9,96.7,47.9,96.7z	"/>	<path fill="#1A1A1A" d="M47.9,3c25.7,0,46.5,20.8,46.5,46.5v0C94.4,75.2,73.6,96,47.9,96h0C22.2,96,1.4,75.2,1.4,49.5v0 C1.4,23.8,22.2,3,47.9,3L47.9,3 M47.9,1.7C21.5,1.7,0.1,23.1,0.1,49.5c0,26.4,21.5,47.8,47.8,47.8s47.8-21.5,47.8-47.8	C95.7,23.1,74.3,1.7,47.9,1.7L47.9,1.7z"/></g><path fill="#808080" d="M63.4,66.8l2,5.1l-17.5-2.5l10.9-13.9l1.8,4.5c2.4-2.9,3.8-6.6,3.8-10.5	c0-7.7-5.5-14.5-13-16.2c-1.8-0.4-3-2.2-2.6-4c0.4-1.8,2.2-3,4-2.6c10.6,2.3,18.3,11.9,18.3,22.7C71.2,56.2,68.3,62.4,63.4,66.8z M37,43.5l10.9-13.9l-17.5-2.5l2,5.1c-4.9,4.4-7.8,10.6-7.8,17.3c0,10.9,7.4,20.2,18,22.7c0.3,0.1,0.5,0.1,0.8,0.1	c1.5,0,2.9-1.1,3.3-2.6c0.4-1.8-0.7-3.6-2.5-4c-7.5-1.7-12.8-8.4-12.8-16.1c0-3.9,1.3-7.6,3.8-10.5L37,43.5z"/>	<path class="mouseover" visibility="hidden" opacity="0.05" fill="#FFFFFF" d="M47.9,96L47.9,96C22.2,96,1.4,75.2,1.4,49.5v0 C1.4,23.8,22.2,3,47.9,3h0c25.7,0,46.5,20.8,46.5,46.5v0C94.4,75.2,73.6,96,47.9,96z"/></g></g></svg>
-    
-    
+
+
     <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="66%" height="100%" viewBox="0 0 201.4 108" xml:space="preserve"><path id="bg" fill="#262626" d="M151.7,99.5H48.6V0l103.1,0c27.5,0,49.7,22.3,49.7,49.7v0C201.4,77.2,179.2,99.5,151.7,99.5z"/><circle fill="#333333" cx="151.5" cy="49.4" r="26.4"/><g id="armed" class="button" ><text id="armed_count" text-anchor="middle" transform="matrix(1 0 0 1 152 67)" fill="#788282" font-family="'Open Sans'" font-weight="700" font-size="49px"></text>	<path id="armed_text" fill="#5D3729" d="M110.7,63.7l2-1.1l-1-3.7l-2.3,0l-0.9-3.3l12.3,0.6l1.1,4.1L111.7,67L110.7,63.7z M115,61.3l1.7-1c0.4-0.2,0.9-0.5,1.5-0.8c0.6-0.3,1-0.6,1.3-0.7c-0.3,0-0.7,0.1-1.4,0.1c-0.6,0-1.9,0-3.8,0.1L115,61.3z M119.4,71.7l-3.5,2.5l-1.8-2.6l9.5-6.8l2.2,3.1c1.8,2.6,1.8,4.5,0,5.9c-1.1,0.8-2.3,0.9-3.7,0.2l-2.2,5.7l-2.1-2.9l2-4.5	L119.4,71.7z M121.4,70.3l0.3,0.5c0.6,0.9,1.4,1.1,2.1,0.5c0.7-0.5,0.7-1.1,0-2l-0.4-0.5L121.4,70.3z M129.1,87l-5.6-4.1l7-9.4 l5.6,4.1l-1.5,2l-3-2.3l-1.1,1.5l2.8,2.1l-1.5,2l-2.8-2.1l-1.3,1.8l3,2.3L129.1,87z M147.5,93.2l-0.2-2.3l-3.7-0.6l-0.9,2.1 l-3.4-0.6l5.6-11l4.2,0.7l1.9,12.2L147.5,93.2z M147,88.3l-0.2-2c0-0.4-0.1-1-0.2-1.7c-0.1-0.7-0.1-1.2-0.1-1.5 c-0.1,0.3-0.3,0.7-0.5,1.3c-0.2,0.6-0.7,1.8-1.5,3.5L147,88.3z M158.4,88.6l0.8,4.2l-3.1,0.6l-2.2-11.5l3.8-0.7 c3.1-0.6,4.9,0.2,5.3,2.5c0.3,1.3-0.2,2.5-1.4,3.5l4.3,4.4l-3.5,0.7l-3.2-3.7L158.4,88.6z M157.9,86.3l0.6-0.1 c1.1-0.2,1.5-0.8,1.3-1.7c-0.2-0.8-0.8-1.1-1.8-0.9l-0.6,0.1L157.9,86.3z M175.3,86.7l-6.7-5.6l-0.1,0c0.9,1.1,1.6,2,2,2.7l2.9,4.2 l-2.3,1.6l-6.6-9.6l3.5-2.4l6.7,5.5l0.1,0l-2.7-8.2l3.5-2.4L182,82l-2.4,1.6l-2.9-4.2c-0.2-0.2-0.3-0.5-0.5-0.7 c-0.2-0.3-0.6-1-1.3-2l-0.1,0l2.8,8.3L175.3,86.7z M190.2,71.1l-3.9,5.7l-9.7-6.5l3.9-5.7l2.1,1.4l-2.1,3.1l1.5,1l2-2.9l2.1,1.4 l-2,2.9l1.8,1.2l2.1-3.1L190.2,71.1z M189.5,54.8c1.9,0.5,3.2,1.4,3.9,2.7c0.7,1.3,0.8,2.9,0.3,4.8l-1,3.6l-11.3-3.1l1.1-3.9 c0.5-1.8,1.3-3.1,2.5-3.8C186.2,54.4,187.7,54.3,189.5,54.8z M188.7,58c-1-0.3-1.9-0.3-2.5,0c-0.6,0.3-1,0.8-1.3,1.7l-0.2,0.9	l6.3,1.7l0.2-0.7c0.3-0.9,0.2-1.7-0.2-2.3C190.6,58.7,189.8,58.3,188.7,58z M128.1,27.2l-2.1,2.4l-6.9-5.9l-1.9,2.2l-2-1.7l5.8-6.7 l2,1.7l-1.8,2.2L128.1,27.2z M132.1,18.5l2.2,3.7l-2.7,1.6l-5.9-10.1l3.3-1.9c2.7-1.6,4.7-1.4,5.9,0.6c0.7,1.2,0.6,2.4-0.1,3.7 l5.5,2.7l-3.1,1.8l-4.3-2.4L132.1,18.5z M130.9,16.5l0.5-0.3c0.9-0.6,1.2-1.3,0.7-2.1c-0.4-0.7-1.1-0.8-2-0.2l-0.5,0.3L130.9,16.5z M148.6,17.2l-0.9-2.1l-3.7,0.6l-0.2,2.3l-3.4,0.6l1.8-12.2l4.2-0.7l5.8,10.9L148.6,17.2z M146.6,12.7l-0.8-1.8	c-0.2-0.4-0.4-0.9-0.7-1.6c-0.3-0.6-0.5-1.1-0.6-1.4c0,0.3,0,0.7-0.1,1.4s-0.1,1.9-0.3,3.8L146.6,12.7z M160.4,8.9 c-0.7-0.1-1.4,0.1-1.9,0.6c-0.5,0.5-0.9,1.3-1.1,2.4c-0.4,2.2,0.2,3.5,1.9,3.8c0.5,0.1,1,0.1,1.5,0.1s1-0.1,1.5-0.2l-0.5,2.6	c-1,0.2-2.2,0.2-3.4,0c-1.7-0.3-3-1.1-3.7-2.3c-0.7-1.2-0.9-2.7-0.6-4.6c0.2-1.2,0.6-2.2,1.3-3c0.6-0.8,1.4-1.4,2.3-1.7	s2-0.4,3.1-0.2c1.2,0.2,2.4,0.7,3.4,1.5l-1.4,2.3c-0.4-0.3-0.8-0.5-1.2-0.7C161.3,9.1,160.9,9,160.4,8.9z M172.8,24.6l-3.1-1.8 l0.3-5l-1.1,0l-2,3.4l-2.7-1.6l6-10l2.7,1.6l-2.6,4.4c0.3-0.2,0.8-0.5,1.6-0.8l3.9-1.8l3,1.8l-5.8,2.6L172.8,24.6z M181.5,29.4 c-0.6,0.5-1.2,0.7-1.8,0.8c-0.7,0.1-1.3,0-2-0.4c-0.7-0.3-1.3-0.8-1.9-1.6c-0.5-0.6-0.9-1.1-1.1-1.6c-0.3-0.5-0.5-1-0.6-1.6 l2.1-1.8c0.2,0.7,0.4,1.3,0.7,1.9c0.3,0.6,0.6,1.1,1,1.5c0.3,0.4,0.6,0.6,0.9,0.6s0.5,0,0.7-0.2c0.1-0.1,0.2-0.2,0.2-0.4 c0-0.1,0-0.3,0-0.6c0-0.2-0.2-0.8-0.4-1.7c-0.2-0.8-0.3-1.5-0.3-2c0-0.5,0.1-1,0.3-1.4c0.2-0.4,0.5-0.8,1-1.2 c0.8-0.7,1.7-0.9,2.7-0.7c1,0.2,1.9,0.8,2.8,1.9c0.8,0.9,1.4,2,1.8,3.4l-2.5,0.8c-0.3-1.2-0.7-2-1.3-2.6c-0.3-0.3-0.5-0.5-0.7-0.5	s-0.4,0-0.6,0.1c-0.2,0.1-0.3,0.4-0.2,0.7c0,0.3,0.2,1,0.5,2.1c0.3,1.1,0.4,1.9,0.2,2.5C182.4,28.3,182.1,28.9,181.5,29.4z"/></g><g id="abort" class="button" style="visibility:hidden" onClick="prompt_abort()"> <path id="abort_text" fill="#FF2200" d="M113.5,57.4l-4.1,0.9l-0.7-3.1l11.4-2.6l0.8,3.7c0.7,3.1-0.1,4.9-2.3,5.4 c-1.3,0.3-2.5-0.1-3.5-1.2l-4.2,4.4l-0.8-3.5l3.6-3.4L113.5,57.4z M115.9,56.9l0.1,0.6c0.2,1.1,0.8,1.5,1.8,1.3 c0.8-0.2,1.1-0.8,0.8-1.8l-0.1-0.6L115.9,56.9z M116.6,75.3l-3.5-6l10-6l3.5,6l-2.2,1.3l-1.9-3.2l-1.6,0.9l1.8,3l-2.2,1.3l-1.8-3 l-1.9,1.1l1.9,3.2L116.6,75.3z M130.1,76.2c-0.6-0.5-1.2-0.7-1.9-0.5c-0.7,0.2-1.4,0.7-2.2,1.5c-1.5,1.7-1.6,3.1-0.3,4.2 c0.4,0.3,0.8,0.6,1.3,0.8c0.5,0.2,0.9,0.4,1.4,0.6l-1.8,2c-1-0.3-2-0.9-2.9-1.7c-1.3-1.2-2-2.5-2-3.8c0-1.4,0.6-2.8,1.9-4.2 c0.8-0.9,1.7-1.5,2.6-1.9c0.9-0.4,1.9-0.5,2.9-0.3c1,0.2,1.9,0.7,2.7,1.5c0.9,0.8,1.7,1.8,2.2,3l-2.4,1.2c-0.2-0.4-0.4-0.9-0.6-1.2 C130.8,76.9,130.5,76.5,130.1,76.2z M143.9,87c-0.7,1.8-1.7,3.1-3,3.7c-1.3,0.6-2.8,0.6-4.5-0.1c-1.7-0.7-2.8-1.6-3.4-2.9	c-0.5-1.3-0.5-2.9,0.2-4.7c0.7-1.8,1.7-3,3-3.6c1.3-0.6,2.8-0.6,4.5,0.1c1.7,0.7,2.9,1.6,3.4,2.9C144.7,83.6,144.6,85.2,143.9,87z M136.4,84.1c-0.8,2.1-0.5,3.4,1,4c0.7,0.3,1.4,0.2,2-0.1c0.6-0.4,1-1.1,1.5-2.2c0.4-1.1,0.5-2,0.4-2.6c-0.2-0.7-0.6-1.1-1.3-1.4 C138.3,81.2,137.2,82,136.4,84.1z M151.1,89.1l0.1,4.2l-3.2,0.1l-0.2-11.7l3.8-0.1c3.2-0.1,4.8,1.1,4.8,3.4c0,1.4-0.6,2.4-1.9,3.2	l3.5,5l-3.6,0.1l-2.5-4.2L151.1,89.1z M151.1,86.7l0.6,0c1.1,0,1.6-0.5,1.6-1.5c0-0.8-0.6-1.2-1.6-1.2l-0.6,0L151.1,86.7z M170,83.1c0.7,1.8,0.7,3.4,0.1,4.8c-0.6,1.4-1.9,2.4-3.7,3.1l-3.5,1.3l-4.1-10.9l3.8-1.4c1.8-0.7,3.3-0.7,4.6-0.2	C168.4,80.3,169.4,81.4,170,83.1z M167,84.3c-0.4-1-0.9-1.7-1.4-2c-0.6-0.3-1.3-0.4-2.1,0l-0.9,0.3l2.3,6.1l0.7-0.2	c0.9-0.3,1.5-0.8,1.7-1.5C167.5,86.3,167.4,85.4,167,84.3z M176.7,85.7l-7-9.4l2.5-1.9l7,9.4L176.7,85.7z M190.5,71l-2.4,3.3 l-9.2-1.4l0,0.1c1.1,0.7,1.9,1.2,2.5,1.6l4.3,3.1l-1.6,2.3l-9.4-6.9l2.4-3.3l9.1,1.3l0,0c-1-0.6-1.8-1.2-2.4-1.6l-4.3-3.1l1.7-2.3	L190.5,71z M187.6,58.6l1.2-4.9l6.1,1.5c0.1,1.4,0,3-0.4,4.6c-0.4,1.7-1.3,3-2.5,3.7c-1.2,0.7-2.8,0.8-4.7,0.4	c-1.8-0.4-3.1-1.3-3.9-2.6c-0.8-1.3-0.9-2.9-0.5-4.8c0.2-0.7,0.4-1.4,0.7-2c0.3-0.6,0.6-1.1,0.9-1.5l2.2,1.6 c-0.6,0.7-1,1.6-1.3,2.5c-0.2,0.9-0.1,1.7,0.4,2.3c0.5,0.6,1.2,1.1,2.3,1.3c1.1,0.3,1.9,0.2,2.6-0.1c0.7-0.3,1.1-0.9,1.3-1.7 c0.1-0.5,0.2-0.9,0.2-1.3l-1.8-0.4l-0.5,2L187.6,58.6z M132.4,23.3l-1.9-1.3l-2.9,2.5l1,2l-2.6,2.3l-4.8-11.4l3.2-2.7l10.6,6.4 L132.4,23.3z M128.4,20.5l-1.6-1.1c-0.4-0.2-0.8-0.6-1.4-1c-0.6-0.4-1-0.7-1.2-0.9c0.1,0.2,0.4,0.6,0.7,1.2 c0.3,0.6,0.9,1.7,1.7,3.4L128.4,20.5z M132.6,9.6l3.8-1.4c1.5-0.5,2.7-0.7,3.6-0.5c0.9,0.2,1.5,0.7,1.8,1.7 c0.2,0.6,0.3,1.2,0.1,1.7c-0.2,0.5-0.5,1-0.9,1.3l0,0.1c0.7-0.1,1.3,0.1,1.8,0.4s0.8,0.8,1.1,1.5c0.4,1,0.3,1.9-0.3,2.8 c-0.5,0.8-1.5,1.5-2.7,2l-4.3,1.5L132.6,9.6z M137.1,12.7l0.9-0.3c0.4-0.2,0.7-0.4,0.9-0.6c0.2-0.3,0.2-0.6,0.1-0.9 c-0.2-0.6-0.8-0.8-1.7-0.4l-0.8,0.3L137.1,12.7z M137.9,14.9l0.8,2.3l1-0.4c0.9-0.3,1.2-0.9,1-1.7c-0.1-0.4-0.4-0.6-0.7-0.7 c-0.3-0.1-0.7-0.1-1.2,0.1L137.9,14.9z M158.4,11.5c-0.1,2-0.6,3.4-1.6,4.4c-1,1-2.4,1.5-4.3,1.4c-1.8-0.1-3.2-0.6-4.2-1.7	c-0.9-1.1-1.4-2.6-1.3-4.5c0.1-1.9,0.6-3.4,1.6-4.4c1-1,2.4-1.5,4.3-1.4c1.9,0.1,3.3,0.6,4.2,1.7C158,8,158.4,9.5,158.4,11.5z M150.3,11.3c-0.1,2.3,0.7,3.4,2.3,3.5c0.8,0,1.4-0.2,1.8-0.8c0.4-0.5,0.6-1.4,0.7-2.5c0-1.2-0.1-2-0.5-2.6 c-0.4-0.6-0.9-0.9-1.7-0.9C151.2,7.9,150.4,9,150.3,11.3z M165,15.5l-1.7,3.9l-2.9-1.3l4.7-10.7l3.5,1.5c2.9,1.3,3.9,3,3,5.1 c-0.5,1.2-1.6,1.9-3.1,2.1l1.1,6l-3.3-1.4l-0.6-4.9L165,15.5z M166,13.3l0.5,0.2c1,0.4,1.7,0.2,2.1-0.7c0.3-0.7,0-1.3-1-1.8 l-0.6-0.2L166,13.3z M174.4,26.7l-2.3-2.1l6.1-6.7l-2.1-1.9l1.7-1.9l6.5,6l-1.7,1.9l-2.1-1.9L174.4,26.7z"/> <polygon id="abort_cross" visibility ="hidden" fill="#FF2200" points="171.9,37.8 163.6,29.5 151.7,41.4 139.8,29.5 131.5,37.8 143.4,49.7 131.5,61.6 139.8,69.9 151.7,58 163.6,69.9 171.9,61.6 160,49.7"/>	<circle class="mouseover" visibility ="hidden" opacity="0.05" fill="#FFFFFF" cx="151.4" cy="49.7" r="49.7"/></g><g id="button-record" onClick="on_record_button()"> <g id="record_off" class="button" >  <circle class="shadow" opacity="0.15" cx="50.4" cy="58.3" r="49.7"/> <path fill="#5D3729" d="M49.7,98.8c-27.1,0-49-21.9-49-49s21.9-49,49-49s49,21.9,49,49S76.9,98.8,49.7,98.8z"/> <path fill="#1A1A1A" d="M49.7,1.4c26.7,0,48.3,21.7,48.3,48.3S76.5,98.1,49.7,98.1S1.4,76.5,1.4,49.7S23,1.4,49.7,1.4 M49.7,0           C22.3,0,0,22.3,0,49.7s22.3,49.7,49.7,49.7s49.7-22.3,49.7-49.7S77.2,0,49.7,0L49.7,0z"/> <linearGradient id="rec_off1" gradientUnits="userSpaceOnUse" x1="49.7368" y1="-879.7368" x2="49.7368" y2="-831.4211" gradientTransform="matrix(1 0 0 -1 0 -830)"> <stop  offset="0" style="stop-color:#FFFFFF;stop-opacity:0.25"/> <stop  offset="1" style="stop-color:#FFFFFF"/> </linearGradient> <path opacity="0.15" fill="url(#rec_off1)" d="M98.1,49.7H1.4l0,0C1.4,23,23,1.4,49.7,1.4l0,0 C76.6,1.4,98.1,23,98.1,49.7L98.1,49.7z"/> <circle opacity="0.5" fill="none" stroke="#FFFFFF" stroke-width="11.0527" stroke-miterlimit="10" cx="49.7" cy="49.7" r="23.3"/> <path class="mouseover" visibility="hidden" opacity="0.1" fill="#FFFFFF" d="M49.7,98.8c-27.1,0-49-21.9-49-49s21.9-49,49-49s49,21.9,49,49 S76.9,98.8,49.7,98.8z"/> </g> <g id="record_on" class="button" visibility="hidden" > <path fill="#FF2200" d="M49.7,98.8c-27.1,0-49-21.9-49-49s21.9-49,49-49s49,21.9,49,49S76.9,98.8,49.7,98.8z"/> <path fill="#1A1A1A" d="M49.7,1.4c26.7,0,48.3,21.7,48.3,48.3S76.5,98.1,49.7,98.1S1.4,76.5,1.4,49.7S23,1.4,49.7,1.4 M49.7,0 C22.3,0,0,22.3,0,49.7s22.3,49.7,49.7,49.7s49.7-22.3,49.7-49.7S77.2,0,49.7,0L49.7,0z"/><circle opacity="0.5" fill="none" stroke="#FFFFFF" stroke-width="11.0527" stroke-miterlimit="10" cx="49.7" cy="49.7" r="23.3"/><path class="mouseover" visibility="hidden" opacity="0.2" fill="#FFFFFF" d="M49.7,98.8c-27.1,0-49-21.9-49-49s21.9-49,49-49s49,21.9,49,49 S76.9,98.8,49.7,98.8z"/> </g> </g> </svg>
-    </div> 
+    </div>
 
 <div id="track0">
     <div>
@@ -1920,12 +1920,12 @@ function init(){
             </g>
         </g>
         <text id="masterDb" text-anchor="end" transform="matrix(1 0 0 1 226 46)" fill="#FFFFFF" opacity="0.5" font-family="'Open Sans'" font-size="12px">xxdB</text>
-        <rect class="hitbox" x="49" y="1" opacity="0" width="173" height="53.9" onClick="hitbox(0)"/> 
+        <rect class="hitbox" x="49" y="1" opacity="0" width="173" height="53.9" onClick="hitbox(0)"/>
         </svg>
     </div>
-  
-  <div class="trackRow2"></div> 
-    </div> 
+
+  <div class="trackRow2"></div>
+    </div>
 </div>
 </div>
 
@@ -1955,10 +1955,10 @@ function init(){
 </div>
 
 <div id="backLoad" style= display:none>
-  
+
 <!-- TRACK ROW 1 -->
- 
-<element id=trackRow1Svg>       
+
+<element id=trackRow1Svg>
 <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="100%" height="100%"
 	 viewBox="0 1 320 53" xml:space="preserve">
 <rect class="trackrow1bg" y="1" width="320" height="54"/>
@@ -1984,14 +1984,14 @@ function init(){
 	<path fill="#5D3729" d="M26.8,50c-12.2,0-22-9.8-22-22s9.8-22,22-22s22,9.8,22,22S39,50,26.8,50z"/>
 	<path fill="#1A1A1A" d="M26.8,6.3c12,0,21.7,9.8,21.7,21.7s-9.7,21.7-21.7,21.7S5.1,40,5.1,28S14.8,6.3,26.8,6.3 M26.8,5.7
 		C14.5,5.7,4.5,15.7,4.5,28s10,22.3,22.3,22.3s22.3-10,22.3-22.3S39.2,5.7,26.8,5.7L26.8,5.7z"/>
-	
+
 		<linearGradient id="SVGID_1_" gradientUnits="userSpaceOnUse" x1="26.8404" y1="-960.0018" x2="26.8404" y2="-938.2996" gradientTransform="matrix(1 0 0 -1 0 -932)">
 		<stop  offset="0" style="stop-color:#FFFFFF;stop-opacity:0.25"/>
 		<stop  offset="1" style="stop-color:#FFFFFF"/>
 	</linearGradient>
 	<path opacity="0.15" fill="url(#SVGID_1_)" d="M48.5,28H5.1l0,0c0-12,9.7-21.7,21.7-21.7l0,0
 		C38.9,6.3,48.5,16,48.5,28L48.5,28z"/>
-	
+
 		<circle opacity="0.5" fill="none" stroke="#FFFFFF" stroke-width="4.9646" stroke-miterlimit="10" cx="26.8" cy="28" r="10.5"/>
 		<circle class="mouseover" visibility="hidden" opacity="0.15" fill="#FFFFFF" cx="26.8" cy="28" r="22.3"/>
 </g>
@@ -1999,7 +1999,7 @@ function init(){
 	<path fill="#FF6600" d="M26.8,50.2C14.6,50.2,4.7,40.3,4.7,28S14.6,5.8,26.8,5.8S49,15.7,49,28S39.1,50.2,26.8,50.2z"/>
 	<path fill="#1A1A1A" d="M26.8,6.1C38.9,6.1,48.7,16,48.7,28s-9.8,21.9-21.9,21.9S5,40.1,5,28S14.8,6.1,26.8,6.1 M26.8,5.5
 		C14.4,5.5,4.3,15.6,4.3,28s10.1,22.5,22.5,22.5S49.3,40.4,49.3,28S39.2,5.5,26.8,5.5L26.8,5.5z"/>
-	
+
 		<circle opacity="0.5" fill="none" stroke="#FFFFFF" stroke-width="5" stroke-miterlimit="10" cx="26.8" cy="28" r="10.5"/>
         <text x="26.8" y="32" text-anchor="middle" fill="#FFFFFF" font-family="'Open Sans'" font-size="17px" font-weight="700">1</text>
 		<circle class="mouseover" visibility="hidden" opacity="0.15" fill="#FFFFFF" cx="26.8" cy="28" r="22.3"/>
@@ -2054,7 +2054,7 @@ function init(){
 	<g class="mute-off">
 		<path class="shadow" opacity="0.15" d="M265.4,51.2c0,1-0.8,1.8-1.8,1.8h-39c-1,0-1.8-0.8-1.8-1.8
 			v-4.6h42.7V51.2z"/>
-		
+
 			<linearGradient id="muteOffGrad" gradientUnits="userSpaceOnUse" x1="1671.0585" y1="184.6258" x2="1671.0585" y2="141.3522" gradientTransform="matrix(1 0 0 -1 -1427 191)">
 			<stop  offset="0" style="stop-color:#FFFFFF"/>
 			<stop  offset="1" style="stop-color:#D9D9D9"/>
@@ -2080,7 +2080,7 @@ function init(){
 		<path class="mouseover" opacity="0.15" fill="#FFFFFF" d="M224.6,49.6c-1.2,0-2.1-1-2.1-2.1v-39c0-1.2,1-2.1,2.1-2.1h39
 			c1.2,0,2.1,1,2.1,2.1v39c0,1.2-1,2.1-2.1,2.1H224.6z"/>
 	</g>
-	
+
 </g>
 <g class="monitor button">
 	<g class="monitor-auto">
@@ -2162,16 +2162,16 @@ function init(){
 			c1.3,0.3,2.8,0.8,2.8,2.4c0,1.2-0.8,2.4-3,2.4c-1.4,0-2.4-0.5-3.1-1.3L204.9,44z"/>
 	</g>
     <text class="meterReadout" text-anchor="end" transform="matrix(1 0 0 1 147 46)" fill="#FFFFFF" opacity="0.75" font-family="'Open Sans'" font-size="11px">dB</text>
-    <rect class="hitbox" x="49" y="1" opacity="0" width="173" height="53.9" onClick="hitbox(event.target.id)"/> 
+    <rect class="hitbox" x="49" y="1" opacity="0" width="173" height="53.9" onClick="hitbox(event.target.id)"/>
     <rect class="nameHitbox" x="57" y="1" width="160" height="28" fill="transparent" pointer-events="all" style="cursor:text"/>
     <rect class="trackNumHitbox" x="55" y="30" width="25" height="20" fill="transparent" pointer-events="all" style="cursor:text"/>
-</svg></element>  
+</svg></element>
 
-  <!-- TRACK ROW 2 -->  
-  
-<!-- TRACK ROW 2 -->  
-  
-<element id=trackRow2Svg>  
+  <!-- TRACK ROW 2 -->
+
+<!-- TRACK ROW 2 -->
+
+<element id=trackRow2Svg>
 <svg version="1.1" class="faderSvg" display="block" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="100%" height="100%" viewBox="0 1 320 0.0001" xml:space="preserve">
 <rect x="0" fill="#333333" width="320" height="36"/>
 
@@ -2193,19 +2193,19 @@ function init(){
 			<stop  offset="1" style="stop-color:#949494"/>
 		</linearGradient>
 		<rect x="38" y="0.5" fill="url(#fGrad1)" width="8" height="35"/>
-		
+
 			<linearGradient id="fGrad2" gradientUnits="userSpaceOnUse" x1="245.0833" y1="-106.0833" x2="245.0833" y2="-92.0833" gradientTransform="matrix(6.123234e-17 -1 -1 -6.123234e-17 -68.0833 263.0833)">
 			<stop  offset="0" style="stop-color:#FFFFFF"/>
 			<stop  offset="0.9991" style="stop-color:#7A7A7A"/>
 		</linearGradient>
 		<path fill="url(#fGrad2)" d="M26,0.5h12v35H26c-1.1,0-2-0.9-2-2v-31C24,1.4,24.9,0.5,26,0.5z"/>
-		
+
 			<linearGradient id="fGrad3" gradientUnits="userSpaceOnUse" x1="245.0833" y1="-91.0833" x2="245.0833" y2="-77.0833" gradientTransform="matrix(6.123234e-17 -1 -1 -6.123234e-17 -68.0833 263.0833)">
 			<stop  offset="0" style="stop-color:#9C9C9C"/>
 			<stop  offset="1" style="stop-color:#4D4D4D"/>
 		</linearGradient>
 		<path fill="url(#fGrad3)" d="M21,35.5c1.1,0,2-0.9,2-2v-31c0-1.1-0.9-2-2-2H9v35H21z"/>
-		
+
 			<linearGradient id="fGrad4" gradientUnits="userSpaceOnUse" x1="245.0833" y1="-77.0833" x2="245.0833" y2="-69.0833" gradientTransform="matrix(6.123234e-17 -1 -1 -6.123234e-17 -68.0833 263.0833)">
 			<stop  offset="0" style="stop-color:#FFFFFF"/>
 			<stop  offset="0.1231" style="stop-color:#F2F2F2"/>
@@ -2246,12 +2246,12 @@ function init(){
   <rect x="285" y="2" width="32" height="32" rx="3" fill="transparent" pointer-events="all"/>
 </g>
 
-</svg>  
+</svg>
 </element>
-  
+
 <!-- SEND -->
 
-<element id=trackSendSvg>    
+<element id=trackSendSvg>
     <svg version="1.1"  display="block" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="100%"
          height="100%" viewBox="0 0 320 0.0001" xml:space="preserve">
     <rect class="sendPanelBg" fill="#333333" width="320" height="49"/>
@@ -2261,7 +2261,7 @@ function init(){
     <text class="sendTitleText" style="pointer-events:none" transform="matrix(1 0 0 1 25 29)" fill="#A3A3A3" font-family="'Open Sans'" font-size="19px">Target Name</text>
     <text class="sDbText" style="pointer-events:none" text-anchor="end" transform="matrix(1 0 0 1 250 27)" fill="#A3A3A3" font-family="'Open Sans'" font-size="12px">xx dB</text>
 	<circle class="sendThumb" opacity="0.5" fill="#808080" stroke="#262626" stroke-width="2" stroke-miterlimit="10" cx="26" cy="22" r="19"/>
-       
+
         <g class="send_mute button">
             <g class="send_mute_off" visibility="visible">
                 <path class="shadow" opacity="0.15" d="M314.4,45.2c0,1-0.8,1.8-1.8,1.8h-39c-1,0-1.8-0.8-1.8-1.8
@@ -2291,11 +2291,11 @@ function init(){
                 c0-1,0.8-1.8,1.8-1.8H312.6 M312.6,0.1h-39c-1.3,0-2.4,1.1-2.4,2.4v39c0,1.3,1.1,2.4,2.4,2.4h39c1.3,0,2.4-1.1,2.4-2.4v-39
                 C315,1.2,313.9,0.1,312.6,0.1L312.6,0.1z"/>
         </g>
-    </svg>            
-</element>     
-   
+    </svg>
+</element>
+
    results : <span id="_results" style="font-size : 0.7em">Here</span><br><br>
-   
+
 </div>
 
 <div id="tempoModal" style="
@@ -2308,7 +2308,7 @@ function init(){
     align-items:center;
 ">
     <div style="position:absolute;top:0;left:0;right:0;bottom:0;" id="tempoModalBackdrop"></div>
-    
+
     <div style="
         position:relative;
         background:#262626;
@@ -2395,7 +2395,7 @@ function init(){
 ">
     <!-- backdrop click closes -->
     <div style="position:absolute;top:0;left:0;right:0;bottom:0;" id="projectModalBackdrop"></div>
-    
+
     <!-- modal panel -->
     <div style="
         position:relative;
@@ -2495,16 +2495,16 @@ function init(){
         </div>
     </div>
 </div>
-    
+
 <script type="text/javascript">
-    
+
 
 function BtoMB(beats){
         var mbM = Math.floor(beats/ts_numerator);
         var mbB = beats - (mbM*ts_numerator);
         return (mbM + "." + mbB)
         }
-    
+
 var transitionsButton = document.getElementById("transitionsButton");
 if(transitionsButton){
     doTransitionButton();
@@ -2513,7 +2513,7 @@ if(transitionsButton){
         doTransitionButton();
         }
     }
-    
+
 function doTransitionButton(){
     if(transitions==1){
         transitionsButton.childNodes[3].setAttributeNS(null, "visibility", "visible");
@@ -2536,30 +2536,30 @@ function doTransitionButton(){
             }
         }
     }
-    
+
 var jogger = document.getElementById("jogger");
 var joggerWidth = jogger.getBoundingClientRect()["width"];
 jogger.addEventListener("mousedown", joggerHandler, false);
 jogger.addEventListener('touchstart', function(event){
     if (event.touches.length > 0) joggerHandler(event);
-    event.preventDefault(); 
-    }, false);    
-    
+    event.preventDefault();
+    }, false);
+
 function joggerHandler(){
     var jOffsetX = 0;
     var mouseOnJogger = true;
     var jTimer = setInterval(joggerCounter, 100)
-    
+
     if (event.targetTouches != undefined) {startX = event.targetTouches[0].pageX}
         else {startX = event.pageX}
-    
+
     jogger.addEventListener('touchend', function(event){joggerUp();event.preventDefault();}, false);
     jogger.addEventListener("mouseup", joggerUp, false);
-    
+
     function joggerUp(){
         mouseOnJogger = false;
         var joggerAggExp = Math.exp(Math.abs(joggerAgg)) * Math.sign(joggerAgg);
-        
+
         if(statusPosition[1]=="Measures.Beats"){
             var joggerAggExpB = (Math.floor(Math.exp(Math.abs(joggerAgg)))) * Math.sign(joggerAgg);
             var sPs = statusPosition[0].split(".")
@@ -2578,22 +2578,22 @@ function joggerHandler(){
         joggerRotate(0);
         setTimeout(function(){ joggerAgg = "0"; }, 500);
         }
-    
+
     jogger.addEventListener("mouseleave", joggerLeave, false);
-                          
+
     function joggerLeave(){
         mouseOnJogger = false;
         clearInterval(jTimer);
         joggerRotate(0);
         joggerAgg = "0";
         }
-    
+
     jogger.addEventListener("touchmove", function(event){joggerMove();event.preventDefault();}, false);
     jogger.addEventListener("mousemove", joggerMove, false);
-    
+
     function joggerMove(){
         if(mouseOnJogger == true){
-            
+
             if (event.changedTouches != undefined) { //we're doing touch stuff
                 jOffsetX = (event.changedTouches[0].pageX - startX) / joggerWidth;
                 }
@@ -2605,16 +2605,16 @@ function joggerHandler(){
             }
         else{
             joggerRotate(0);
-            }  
+            }
         }
-    
+
     function joggerCounter(){
         if(mouseOnJogger == true){
         joggerAgg = parseFloat(joggerAgg) + jMOffsetX;
             }
         }
     }
-    
+
 function joggerRotate(angle){
     var wheel = document.getElementById("wheel");
     var wheelClipRect = document.getElementById("clip_rect");
@@ -2622,11 +2622,11 @@ function joggerRotate(angle){
     var clipAngle = "rotate(" + (-1 * angle) + " 159 181)";
     wheel.setAttributeNS(null, "transform", wheelAngle);
     wheelClipRect.setAttributeNS(null, "transform", clipAngle);
-    }    
-    
-var requestAnimationFrame = window.requestAnimationFrame || 
-                window.mozRequestAnimationFrame || 
-                window.webkitRequestAnimationFrame || 
+    }
+
+var requestAnimationFrame = window.requestAnimationFrame ||
+                window.mozRequestAnimationFrame ||
+                window.webkitRequestAnimationFrame ||
                 window.msRequestAnimationFrame;
 
 function easeInOutCubic(t, b, c, d) {
@@ -2634,8 +2634,8 @@ function easeInOutCubic(t, b, c, d) {
     return c/2*t*t*t + b;}
     else{return c/2*((t-=2)*t*t + 2) + b;}
     };
-  
-  
+
+
 // --- Marker delete on double-tap ---
 
 
@@ -2821,7 +2821,7 @@ function removeAllTracks() {
     recarmCountAr = [];
     recCycleInProgress = [];
 }
-  
+
 function wwr_req_then_poll(maxAttempts) {
     return new Promise(function(resolve, reject) {
         maxAttempts = maxAttempts || 20;
@@ -3206,6 +3206,6 @@ document.getElementById("timeSelConfirm").addEventListener("click", function(e) 
 });
 
 
-</script>    
+</script>
 </body>
 </html>
