@@ -1,0 +1,26 @@
+@description Turing Complete Web Interface
+@author Rek's Effeks
+@version 0.alpha2
+@provides
+  [main script] rxfx_Turing-complete/rxfx_Turing-complete - Cycle track record arm.lua
+  [main script] rxfx_Turing-complete/rxfx_Turing-complete - Set time selection from markers.lua
+  [main script] rxfx_Turing-complete/rxfx_Turing-complete - New project.lua
+  [main script] rxfx_Turing-complete/rxfx_Turing-complete - Open selected project.lua
+  [main script] rxfx_Turing-complete/rxfx_Turing-complete - Read current project.lua
+  [main script] rxfx_Turing-complete/rxfx_Turing-complete - Rename track from ExtState.lua
+  [main script] rxfx_Turing-complete/rxfx_Turing-complete - Save project as.lua
+  [main script] rxfx_Turing-complete/rxfx_Turing-complete - Send project list.lua
+  [main script] rxfx_Turing-complete/rxfx_Turing-complete - Send tempo.lua
+  [main script] rxfx_Turing-complete/rxfx_Turing-complete - Set time signature.lua
+  rxfx_Turing-complete/rxfx_turing_complete.html > rxfx_turing_complete.html
+  rxfx_Turing-complete/OpenSans-VariableFont_wdth,wght.ttf > rxfx_turing_complete/
+@about
+  A web interface (adapted from fancier.html) that can fully* control Reaper. Includes project save/load, basic track management, time selection controls and various bugfixes over the original.
+
+  NOTE: This is almost certainly not compatible with your existing workflow. It's designed to be the ONLY input method for a HEADLESS install of Reaper, specialized towards multitracking audio, and tested primarily on Raspberry Pi (Linux). This means significant caveats, including the need for a fairly specific project file structure. I have no intention of supporting midi in any form and I think it's unlikely the interface will work on Windows.
+
+  INSTALL INSTRUCTIONS: You need to set your default project path in reaper-extstate.ini, in the form:
+  [Fanciest]
+  ProjectFolder=/path/to/folder/
+
+  Include the slash at the end.

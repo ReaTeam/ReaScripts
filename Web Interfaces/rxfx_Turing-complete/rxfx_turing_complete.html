@@ -1,30 +1,3 @@
--- @description Turing Complete Web Interface
--- @author Rek's Effeks
--- @version 0.alpha2
--- @provides
---   [main] rxfx_CustomFancy_CycleTrackRecordArm.lua
---   [main] rxfx_CustomFancy_SetTimeSelFromMarkers.lua
---   [main] rxfx_CustomFancy_NewProject.lua
---   [main] rxfx_CustomFancy_OpenSelectedProject.lua
---   [main] rxfx_CustomFancy_ReadCurrentProject.lua
---   [main] rxfx_CustomFancy_RenameTrackFromExtState.lua
---   [main] rxfx_CustomFancy_SaveProjectAs.lua
---   [main] rxfx_CustomFancy_SendProjectList.lua
---   [main] rxfx_CustomFancy_SendTempo.lua
---   [main] rxfx_CustomFancy_SetTimeSig.lua
--- @about
---   A web interface (adapted from Fancier.html) that can fully* control Reaper. Includes project save/load, basic track management, time selection controls and various bugfixes over the original.
---
---   NOTE: This is almost certainly not compatible with your existing workflow. It's designed to be the ONLY input method for a HEADLESS install of Reaper, specialized towards multitracking audio, and tested primarily on Raspberry Pi (Linux). This means significant caveats, including the need for a fairly specific project file structure. I have no intention of supporting midi in any form and I think it's unlikely the interface will work on Windows.
---
---   INSTALL INSTRUCTIONS: I don't know how web interfaces will be set up in ReaPack, but wherever the HTML file ends up, you should put the .ttf file for the OpenSans font beside it: https://fonts.google.com/specimen/Open+Sans
---
---   You also need to set your default project path in reaper-extstate.ini, in the form:
---   [Fanciest]
---   ProjectFolder=/path/to/folder/
---
---   Include the slash at the end.
-
 <!doctype html>
 <html><head>
 <meta charset="utf-8"/>
@@ -37,7 +10,7 @@
 <style>
     @font-face {
     font-family: 'Open Sans';
-    src: url('OpenSans-VariableFont_wdth,wght.ttf') format('truetype');
+    src: url('rxfx_turing_complete/OpenSans-VariableFont_wdth,wght.ttf') format('truetype');
 }
 </style>
 <script src="main.js"></script>
@@ -797,7 +770,7 @@ function wwr_onreply(results) {
                                             wwr_req(40297);
                                             wwr_req("SET/TRACK/" + capturedIdx + "/SEL/1");
                                             wwr_req("SET/EXTSTATE/Fanciest/TrackRename/" + newName);
-                                            wwr_req("_RSee5f76504d47c5481f6b7b49fb19603bfdd9c4e3");// rename track from extstate lua command
+                                            wwr_req("_RSfa7d3f28d660d3f6a94ffc66e7b274e5794d14be");// rename track from extstate lua command
                                             wwr_req("_SWSAUTOCOLOR_APPLY");
                                         }
                                     }
@@ -1194,7 +1167,7 @@ function updateProjectName() {
         }
     };
     wwr_listeners.push(listener);
-    wwr_req("_RS4c27663790d92e7417a89841eba29e9edff7d90d"); // get current project name
+    wwr_req("_RSe6f7f64d341520fb0ec902a7c0580f1b423e7fc7"); // get current project name
     setTimeout(function() {
         wwr_req("GET/EXTSTATE/Fanciest/CurrentProject");
         wwr_req("GET/EXTSTATE/Fanciest/SelectDisplay");
@@ -1217,7 +1190,7 @@ function updateTempo() {
         }
     };
     wwr_listeners.push(listener);
-    wwr_req("_RSeb2bd4bbe2ec2d617ffb189cc03dfc62120c7f86"); // get current project tempo
+    wwr_req("_RSfee01d3e4ca569bed48f2466c1453be35ab1d27e"); // get current project tempo
     setTimeout(function() {
         wwr_req("GET/EXTSTATE/Fanciest/CurrentTempo");
     }, 300);
@@ -2844,7 +2817,7 @@ function wwr_req_then_poll(maxAttempts) {
         };
 
         wwr_listeners.push(listener);
-        wwr_req("_RS8cadb1ca78c92dde23e1cfb80251615246076640");
+        wwr_req("_RS99f117755ebbf002528fae80ba7693ec86ae8bca");
 
         var interval = setInterval(function() {
             if (done) { clearInterval(interval); return; }
@@ -2906,7 +2879,7 @@ document.getElementById("projectModalBackdrop").addEventListener("click", closeP
 document.getElementById("btnNewProject").addEventListener("click", function() {
     removeAllTracks();
     closeProjectModal();
-    wwr_req("_RS1957801e5ef25efacf651d6ae726903c4d7db3ea"); // new project action
+    wwr_req("_RS8b2dd17a682ccf3b4993e8389461f5179fe404be"); // new project action
 });
 
 document.getElementById("btnConfirmLoad").addEventListener("click", function(e) {
@@ -2914,7 +2887,7 @@ document.getElementById("btnConfirmLoad").addEventListener("click", function(e) 
     //console.log("selectedProject:", JSON.stringify(selectedProject));
     if (!selectedProject) return;
     removeAllTracks();
-    wwr_req("SET/EXTSTATE/Fanciest/ProjectLoad/" + selectedProject + ";_RSdd85326a069bbb93f19234630cc46ee78740de5f");// load project
+    wwr_req("SET/EXTSTATE/Fanciest/ProjectLoad/" + selectedProject + ";_RS7e65fcacd857afe17c2197047ff28a1bb3e08dfc");// load project
     console.log("load", selectedProject);
     closeProjectModal();
 });
@@ -2941,7 +2914,7 @@ document.getElementById("btnSave").addEventListener("click", function(e) {
     }
     saveName = prompt("Save project with title:",promptName);
     if (!saveName) return;
-    wwr_req("SET/EXTSTATE/Fanciest/ProjectSave/" + saveName + ';_RS93e9c007de60cfbaa87114d130a0b719ee8bdea2');// save project
+    wwr_req("SET/EXTSTATE/Fanciest/ProjectSave/" + saveName + ';_RS12aef7ab8f1d95c0c23b1c1f4a6d0fd80322cc6b');// save project
     //wwr_req("");//
     console.log("save", saveName);
     updateProjectName();
@@ -3043,7 +3016,7 @@ document.getElementById("tempoDisplay").addEventListener("click", function() {
     var val = Math.min(960, Math.max(20, parseFloat(result)));
     if (isNaN(val)) return;
     currentTempo = val;
-    wwr_req("SET/EXTSTATE/Fanciest/TempoSet/" + val + ";_RS64f1ac6929d9b4a3c9a2f04bec48dc96cc3c2467");
+    wwr_req("SET/EXTSTATE/Fanciest/TempoSet/" + val + ";_RS04a53de5bc2c673c0e85af304fa734dbd9e61107");
     document.getElementById("tempoDisplay").textContent = val.toFixed(3);
 });
 //~ document.getElementById("timeSigDisplay").addEventListener("click", function(e) {
@@ -3062,7 +3035,7 @@ document.getElementById("timeSigDisplay").addEventListener("click", function(e) 
     var num = Math.min(32, Math.max(1, parseInt(parts[0])));
     var den = Math.min(32, Math.max(1, parseInt(parts[1])));
     if (isNaN(num) || isNaN(den)) return;
-    wwr_req("SET/EXTSTATE/Fanciest/TimeSigSet/" + num + ":" + den + ";_RS64f1ac6929d9b4a3c9a2f04bec48dc96cc3c2467");
+    wwr_req("SET/EXTSTATE/Fanciest/TimeSigSet/" + num + ":" + den + ";_RS04a53de5bc2c673c0e85af304fa734dbd9e61107");
     document.getElementById("timeSigNum").textContent = num;
     document.getElementById("timeSigDen").textContent = den;
 });
@@ -3097,7 +3070,7 @@ function requestRecCycle(idx, maxAttempts) {
         }
 
         wwr_listeners.push(listener);
-        wwr_req("SET/EXTSTATE/Fanciest/TrackRecordCycle/" + idx + ";_RSc3da218412ee1db98a7e4b76deaf8677bcdc4d05");
+        wwr_req("SET/EXTSTATE/Fanciest/TrackRecordCycle/" + idx + ";_RScd5597358210b71abd69f704cac43cd6dd57a09b");
 
         var interval = setInterval(function() {
             if (done) { clearInterval(interval); return; }
@@ -3201,7 +3174,7 @@ document.getElementById("timeSelConfirm").addEventListener("click", function(e) 
     e.stopPropagation();
     if (timeSelFrom === null || timeSelTo === null) return;
     wwr_req("SET/EXTSTATE/Fanciest/MarkerLoop/" + timeSelFrom + ":" + timeSelTo);
-    wwr_req("_RS254ca0027c86edd7b7e9541466a2cc48906f6079");
+    wwr_req("_RSb590c207cee01c37c106625980a66ff261bde8e5");
     closeTimeSelModal();
 });
 
