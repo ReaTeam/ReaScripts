@@ -10,16 +10,15 @@ function NewProject()
     if reaper.CountMediaItems(0) ~= 0 then
       reaper.SetExtState("Fanciest","ProjectSave","autosave_"..os.date(),false)
       local scriptFolder = ({ reaper.get_action_context() })[2]:match('^.+[\\//]')
-      dofile(scriptFolder.."rxfx_CustomFancy_SaveProjectAs.lua")
+      dofile(scriptFolder.."rxfx_Turing-complete - Save project as.lua")
     end
   end
-  
+
   -- open selected project
   local folder = reaper.GetExtState("Fanciest", "ProjectFolder")
   local projectFile = reaper.GetExtState("Fanciest", "ProjectLoad")
   reaper.Main_openProject("noprompt:/")
-  
+
 end
 
 NewProject()
-

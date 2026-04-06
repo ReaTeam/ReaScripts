@@ -1,18 +1,11 @@
 -- @noindex
 
-
-function GetProjectFolder()
-  reaper.SetExtState("Fanciest","ProjectFolder","/home/flynn/Music/",true)
-end
-  
--- GetProjectFolder()
-
 function SendProjectList()
   local folder = reaper.GetExtState("Fanciest","ProjectFolder")
   local ext = "rpp"
   local files = {}
   project_list = {}
-  
+
   local i = 0
   repeat
       local file = reaper.EnumerateFiles(folder, i)
@@ -21,7 +14,7 @@ function SendProjectList()
       end
       i = i + 1
   until not file
-  
+
   -- files now contains all .rpp filenames in that folder
   for _, f in ipairs(files) do
       --reaper.ShowConsoleMsg(f .. "\n")
@@ -33,4 +26,3 @@ function SendProjectList()
 end
 
 SendProjectList()
-

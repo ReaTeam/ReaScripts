@@ -1,11 +1,11 @@
 -- @noindex
 
 
-function SendProjectList()
+function ReadCurrentProject()
   -- send project name
   ProjectName=reaper.GetProjectName(0)
   reaper.SetExtState("Fanciest","CurrentProject",ProjectName,false)
-  
+
   -- send loop points (by marker index)
   local first, second = reaper.GetSet_LoopTimeRange(0, 0, 0, 0, 0)
   count = reaper.GetNumRegionsOrMarkers(0)
@@ -22,7 +22,7 @@ function SendProjectList()
   n[#n+1] = "end"
   m[#m+1] = 0
   n[#n+1] = "home"
-  
+
   for idx, val in ipairs(m) do
     if math.abs(first-val)<0.02 then
       finalfirst = n[idx]
@@ -31,7 +31,7 @@ function SendProjectList()
   if finalfirst == nil then
     reaper.GetSet_LoopTimeRange(1, 0, 0, 0, 0)
   end
-  
+
   for idx, val in ipairs(m) do
     if math.abs(second-val)<0.02 then
       finalsecond = n[idx]
@@ -40,13 +40,13 @@ function SendProjectList()
   if finalsecond == nil then
     reaper.GetSet_LoopTimeRange(1, 0, 0, 0, 0)
   end
-  
-  if finalfirst ~= finalsecond and finalfirst ~= nil and finalsecond ~= nil then 
+
+  if finalfirst ~= finalsecond and finalfirst ~= nil and finalsecond ~= nil then
     reaper.SetExtState("Fanciest","SelectDisplay",finalfirst..':'..finalsecond,false)
   else
     reaper.SetExtState("Fanciest","SelectDisplay","none",false)
   end
-  
+
   -- send track arm states
   count = reaper.CountTracks(0)
   local arms = {}
@@ -67,4 +67,4 @@ function SendProjectList()
   reaper.SetExtState("Fanciest","ArmDisplay",armstring,false)
 end
 
-SendProjectList()
+ReadCurrentProject()

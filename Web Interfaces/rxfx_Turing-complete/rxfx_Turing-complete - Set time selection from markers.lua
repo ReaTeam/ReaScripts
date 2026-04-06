@@ -1,7 +1,7 @@
 -- @noindex
 
 
-function OpenSelectedProject()
+function SetTimeSelection()
   values = reaper.GetExtState("Fanciest","MarkerLoop")
   local t = {}
   for str in string.gmatch(values, "([^:]+)") do
@@ -11,8 +11,8 @@ function OpenSelectedProject()
   for i=1, reaper.GetNumRegionsOrMarkers(0) do
     table.insert(ms, reaper.GetRegionOrMarkerInfo_Value(0, reaper.GetRegionOrMarker(0, i-1,""), "I_NUMBER"))
   end
-  
-  
+
+
   if t[1] == "home" then
     first = 0
   elseif t[1] == "end" then
@@ -40,8 +40,7 @@ function OpenSelectedProject()
     second = reaper.GetRegionOrMarkerInfo_Value(0, wip, "D_STARTPOS")
   end
   reaper.GetSet_LoopTimeRange(1, 0, first, second, true)
-  
+
 end
 
-OpenSelectedProject()
-
+SetTimeSelection()
