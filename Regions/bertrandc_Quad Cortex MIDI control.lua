@@ -49,7 +49,7 @@
 -- Main synchronization engine
 
 local base_path = debug.getinfo(1).source:match("@?(.*[\\/])")
-local lib = dofile(base_path .. "lib.lua")
+local lib = dofile(base_path .. "bertrandc_Quad Cortex MIDI control/lib.lua")
 
 -- --- INITIALIZATION ---
 reaper.ClearConsole()
