@@ -15,8 +15,8 @@
 --   - Improved logging and error handling.
 --   - Automatically creates the MIDI output track if it doesn't exist.
 -- @provides
---   [main] bertrandc_Quad_Cortex_MIDI_control_setup.lua
---   [nomain] lib.lua
+--   [main] bertrandc_Quad Cortex MIDI control/bertrandc_Quad Cortex MIDI control (setup).lua
+--   [nomain] bertrandc_Quad Cortex MIDI control/lib.lua
 -- @about
 --   # Quad Cortex MIDI control
 --   Real-time MIDI control for Neural DSP Quad Cortex via Reaper Regions.
@@ -56,7 +56,7 @@ reaper.ClearConsole()
 
 if not lib.LoadSettings() then
     lib.Log("First run or missing config. Launching Setup Wizard...", 1)
-    local setup_success = dofile(base_path .. "bertrandc_Quad_Cortex_MIDI_Control_Setup.lua")
+    local setup_success = dofile(base_path .. "bertrandc_Quad Cortex MIDI control/bertrandc_Quad Cortex MIDI control (setup).lua")
     if not setup_success then
         lib.SetToolbarButtonState(0)
         return
