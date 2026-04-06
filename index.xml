@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="0596c0c87258a0cb10d07c9157af6e6153fbd9ec" name="ReaTeam Scripts">
+<index version="1" commit="f3005e2f39cb1ae1627ba1c32018a35f0ab08b08" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -20402,35 +20402,53 @@ Replace GetLastWord func with quicker solution (Thanks: Mespotine[t=233393]).]]>
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel0 \b \fs36 Quad Cortex MIDI Control\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel0 \b \fs36 Quad Cortex MIDI control\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Real-time MIDI control for Neural DSP Quad Cortex via Reaper Regions.\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Automates Presets using "#BankLetter" (e.g., #1A).\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Automates Scenes using "!Sx" (e.g., !S1 or !SA).\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Auto-activates Gig View on Play and Tuner on Stop (both can be toggled).\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Auto-activates Gig View on Play and Tuner on Stop (both can be toggled).\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b MIDI Clock Support}: Reaper will send tempo/clock to the Quad Cortex if "Send clock" is enabled for your MIDI output in Reaper's Preferences.\sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel1 \b \fs32 USAGE INSTRUCTIONS\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 1.\tx360\tab REAPER CONFIGURATION\par}
-{\pard \ql \f0 \sa0 \li720 \fi-360 \endash \tx360\tab Create a track (e.g., "MIDI QC CTRL").\par}
-{\pard \ql \f0 \sa0 \li720 \fi-360 \endash \tx360\tab Set Track Input to "MIDI > Virtual MIDI Keyboard > All Channels".\par}
-{\pard \ql \f0 \sa0 \li720 \fi-360 \endash \tx360\tab Add a "MIDI Hardware Output" on this track to your MIDI device (WIDI / Interface).\par}
-{\pard \ql \f0 \sa0 \li720 \fi-360 \endash \tx360\tab Record Arm and Input Monitoring must be ENABLED for the script to reach the QC.\sa180\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 1.\tx360\tab AUTOMATIC INSTALLATION & SETUP\par}
+{\pard \ql \f0 \sa0 \li720 \fi-360 \endash \tx360\tab Run this script. If it's the first time, the SETUP WIZARD will open.\par}
+{\pard \ql \f0 \sa0 \li720 \fi-360 \endash \tx360\tab The script AUTOMATICALLY creates a dedicated MIDI track (Default: "Quad Cortex MIDI control").\par}
+{\pard \ql \f0 \sa0 \li720 \fi-360 \endash \tx360\tab This track is pre-configured: Armed, Monitoring ON, and Record DISABLED (Mode 2).\par}
+{\pard \ql \f0 \sa0 \li720 \fi-360 \endash \tx360\tab In the Wizard, select the correct MIDI Hardware Output ID for your QC.\sa180\sa180\par}
 {\pard \qc \f0 \sa180 \li0 \fi0 \emdash\emdash\emdash\emdash\emdash\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 2.\tx360\tab SYNC YOUR PRESETS AND SCENES\par}
-{\pard \ql \f0 \sa0 \li720 \fi-360 \endash \tx360\tab Create Regions in Reaper named with the following tags:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 2.\tx360\tab TEMPO & MIDI CLOCK SYNC\par}
+{\pard \ql \f0 \sa0 \li720 \fi-360 \endash \tx360\tab To sync Tempo (BPM) to your QC:\par}
+{\pard \ql \f0 \sa0 \li720 \fi-360 \endash \tx360\tab Preferences > MIDI Devices > Double-click Output > Check "Send clock to this device".\sa180\sa180\par}
+{\pard \qc \f0 \sa180 \li0 \fi0 \emdash\emdash\emdash\emdash\emdash\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 3.\tx360\tab SYNC YOUR PRESETS AND SCENES\par}
 {\pard \ql \f0 \sa0 \li720 \fi-360 \endash \tx360\tab PRESETS: Use "#BankLetter" format (e.g., "#1A", "#12C").\par}
-{\pard \ql \f0 \sa0 \li720 \fi-360 \endash \tx360\tab SCENES: Use "!Sx" where x is 1-8 or A-H (e.g., "!S1", "!SA"). Note: Small "Scene" regions inside larger "Preset" regions are supported (Inheritance).\sa180\sa180\par}
+{\pard \ql \f0 \sa0 \li720 \fi-360 \endash \tx360\tab SCENES: Use "!SA" to "!SH" (Matches QC Footswitches A to H).\sa180\sa180\par}
 {\pard \qc \f0 \sa180 \li0 \fi0 \emdash\emdash\emdash\emdash\emdash\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 3.\tx360\tab TOOLBAR INTEGRATION\par}
-{\pard \ql \f0 \sa0 \li720 \fi-360 \endash \tx360\tab Assign this script to a toolbar button. The button will light up when active. To stop, click again and select "Terminate Instance".\sa180\sa180\par}
-{\pard \qc \f0 \sa180 \li0 \fi0 \emdash\emdash\emdash\emdash\emdash\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 4.\tx360\tab ADDITIONAL FEATURES\par}
-{\pard \ql \f0 \sa0 \li720 \fi-360 \endash \tx360\tab PLAY: Automatically switches QC to "Gig View" and hides the Tuner. Set AUTO_GIGVIEW to false to disable this behavior.\par}
-{\pard \ql \f0 \sa0 \li720 \fi-360 \endash \tx360\tab STOP: Automatically activates the "Tuner" on the QC for silent breaks. Set AUTO_TUNER to false to disable this behavior.\sa180\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 4.\tx360\tab LOG LEVELS\par}
+{\pard \ql \f0 \sa0 \li720 \fi-360 \endash \tx360\tab Log Level 1 [INFO]: Preset/Scene changes and Transport status.\par}
+{\pard \ql \f0 \sa0 \li720 \fi-360 \endash \tx360\tab Log Level 2 [DEBUG]: Full configuration details and file operations.\sa180\sa180\par}
 }
 ]]></description>
       </metadata>
       <version name="1.0" author="Bertrand C" time="2026-02-23T21:20:44Z">
         <changelog><![CDATA[Initial release]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ab380cbedaab1858786607511017afc31373ca63/Regions/bertrandc_Quad%20Cortex%20MIDI%20control.lua</source>
+      </version>
+      <version name="2.3.2" author="Bertrand C" time="2026-04-06T20:05:26Z">
+        <changelog><![CDATA[- Fix reapack-index linked to wrong git commit
+- README update with region combination name examples
+- Add info after setup on how to add a toolbar button for easy access, or re-execute the setup wizard if needed.
+- Add MIDI output ID validation in the setup wizard to prevent invalid entries.
+- README update with clearer setup instructions and troubleshooting tips.
+- Add info after first config on how to add a toolbar button for easy access, or re-execute the setup wizard if needed.
+- Add setup to list action list (for easier access and reconfiguration)
+- Fix folders to fix category detection with reapack-index
+- Split from original Quad Cortex MIDI Control script to create a more modular and maintainable codebase.
+- Added a setup wizard for first-time configuration.
+- Improved logging and error handling.
+- Automatically creates the MIDI output track if it doesn't exist.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a19b79f23bdc3931e13389327b9b5746a01eb0ba/Regions/bertrandc_Quad%20Cortex%20MIDI%20control.lua</source>
+        <source main="main" file="bertrandc_Quad Cortex MIDI control/bertrandc_Quad Cortex MIDI control (setup).lua">https://github.com/ReaTeam/ReaScripts/raw/a19b79f23bdc3931e13389327b9b5746a01eb0ba/Regions/bertrandc_Quad%20Cortex%20MIDI%20control/bertrandc_Quad%20Cortex%20MIDI%20control%20(setup).lua</source>
+        <source file="bertrandc_Quad Cortex MIDI control/lib.lua">https://github.com/ReaTeam/ReaScripts/raw/a19b79f23bdc3931e13389327b9b5746a01eb0ba/Regions/bertrandc_Quad%20Cortex%20MIDI%20control/lib.lua</source>
       </version>
     </reapack>
     <reapack name="BuyOne_Set region at play or edit cursor to a predefined color.lua" type="script" desc="Set region at play or edit cursor to a predefined color">
@@ -31206,6 +31224,38 @@ Streamable link
         <source main="main midi_editor" file="talagan_Minimize dock containing active MIDI Editor.lua">https://github.com/ReaTeam/ReaScripts/raw/a780f82458e90a89a2d996fed3160dcf83c5b3b4/View/talagan_Docking%20tools/actions/talagan_Generic%20dock%20resize%20action.lua</source>
         <source main="main midi_editor" file="talagan_Set dock containing active MIDI Editor size (500).lua">https://github.com/ReaTeam/ReaScripts/raw/a780f82458e90a89a2d996fed3160dcf83c5b3b4/View/talagan_Docking%20tools/actions/talagan_Generic%20dock%20resize%20action.lua</source>
         <source file="talagan_Docking tools/docking_lib.lua">https://github.com/ReaTeam/ReaScripts/raw/a780f82458e90a89a2d996fed3160dcf83c5b3b4/View/talagan_Docking%20tools/docking_lib.lua</source>
+      </version>
+    </reapack>
+  </category>
+  <category name="Web Interfaces">
+    <reapack name="rxfx_Turing-complete.www" type="webinterface" desc="Turing-complete controller">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 A web interface (adapted from fancier.html) that can fully* control Reaper. Includes project save/load, basic track management, time selection controls and various bugfixes over the original.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 NOTE: This is almost certainly not compatible with your existing workflow. It's designed to be the ONLY input method for a HEADLESS install of Reaper, specialized towards multitracking audio, and tested primarily on Raspberry Pi (Linux). This means significant caveats, including the need for a fairly specific project file structure. I have no intention of supporting midi in any form and I think it's unlikely the interface will work on Windows.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 INSTALL INSTRUCTIONS: You need to set your default project path in reaper-extstate.ini, in the form:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \f1 [Fanciest]\line
+ProjectFolder=/path/to/folder/\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Include the slash at the end.\par}
+}
+]]></description>
+      </metadata>
+      <version name="0.alpha2" author="Rek's Effeks" time="2026-04-06T20:05:43Z">
+        <source main="main" type="script" file="rxfx_Turing-complete/rxfx_Turing-complete - Cycle track record arm.lua">https://github.com/ReaTeam/ReaScripts/raw/f3005e2f39cb1ae1627ba1c32018a35f0ab08b08/Web%20Interfaces/rxfx_Turing-complete/rxfx_Turing-complete%20-%20Cycle%20track%20record%20arm.lua</source>
+        <source main="main" type="script" file="rxfx_Turing-complete/rxfx_Turing-complete - Set time selection from markers.lua">https://github.com/ReaTeam/ReaScripts/raw/f3005e2f39cb1ae1627ba1c32018a35f0ab08b08/Web%20Interfaces/rxfx_Turing-complete/rxfx_Turing-complete%20-%20Set%20time%20selection%20from%20markers.lua</source>
+        <source main="main" type="script" file="rxfx_Turing-complete/rxfx_Turing-complete - New project.lua">https://github.com/ReaTeam/ReaScripts/raw/f3005e2f39cb1ae1627ba1c32018a35f0ab08b08/Web%20Interfaces/rxfx_Turing-complete/rxfx_Turing-complete%20-%20New%20project.lua</source>
+        <source main="main" type="script" file="rxfx_Turing-complete/rxfx_Turing-complete - Open selected project.lua">https://github.com/ReaTeam/ReaScripts/raw/f3005e2f39cb1ae1627ba1c32018a35f0ab08b08/Web%20Interfaces/rxfx_Turing-complete/rxfx_Turing-complete%20-%20Open%20selected%20project.lua</source>
+        <source main="main" type="script" file="rxfx_Turing-complete/rxfx_Turing-complete - Read current project.lua">https://github.com/ReaTeam/ReaScripts/raw/f3005e2f39cb1ae1627ba1c32018a35f0ab08b08/Web%20Interfaces/rxfx_Turing-complete/rxfx_Turing-complete%20-%20Read%20current%20project.lua</source>
+        <source main="main" type="script" file="rxfx_Turing-complete/rxfx_Turing-complete - Rename track from ExtState.lua">https://github.com/ReaTeam/ReaScripts/raw/f3005e2f39cb1ae1627ba1c32018a35f0ab08b08/Web%20Interfaces/rxfx_Turing-complete/rxfx_Turing-complete%20-%20Rename%20track%20from%20ExtState.lua</source>
+        <source main="main" type="script" file="rxfx_Turing-complete/rxfx_Turing-complete - Save project as.lua">https://github.com/ReaTeam/ReaScripts/raw/f3005e2f39cb1ae1627ba1c32018a35f0ab08b08/Web%20Interfaces/rxfx_Turing-complete/rxfx_Turing-complete%20-%20Save%20project%20as.lua</source>
+        <source main="main" type="script" file="rxfx_Turing-complete/rxfx_Turing-complete - Send project list.lua">https://github.com/ReaTeam/ReaScripts/raw/f3005e2f39cb1ae1627ba1c32018a35f0ab08b08/Web%20Interfaces/rxfx_Turing-complete/rxfx_Turing-complete%20-%20Send%20project%20list.lua</source>
+        <source main="main" type="script" file="rxfx_Turing-complete/rxfx_Turing-complete - Send tempo.lua">https://github.com/ReaTeam/ReaScripts/raw/f3005e2f39cb1ae1627ba1c32018a35f0ab08b08/Web%20Interfaces/rxfx_Turing-complete/rxfx_Turing-complete%20-%20Send%20tempo.lua</source>
+        <source main="main" type="script" file="rxfx_Turing-complete/rxfx_Turing-complete - Set time signature.lua">https://github.com/ReaTeam/ReaScripts/raw/f3005e2f39cb1ae1627ba1c32018a35f0ab08b08/Web%20Interfaces/rxfx_Turing-complete/rxfx_Turing-complete%20-%20Set%20time%20signature.lua</source>
+        <source file="rxfx_turing_complete.html">https://github.com/ReaTeam/ReaScripts/raw/f3005e2f39cb1ae1627ba1c32018a35f0ab08b08/Web%20Interfaces/rxfx_Turing-complete/rxfx_turing_complete.html</source>
+        <source file="rxfx_turing_complete/OpenSans-VariableFont_wdth,wght.ttf">https://github.com/ReaTeam/ReaScripts/raw/f3005e2f39cb1ae1627ba1c32018a35f0ab08b08/Web%20Interfaces/rxfx_Turing-complete/OpenSans-VariableFont_wdth,wght.ttf</source>
       </version>
     </reapack>
   </category>
