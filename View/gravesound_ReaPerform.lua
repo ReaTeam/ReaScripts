@@ -1,7 +1,6 @@
--- @description ReaPeform - Performance Meter with Freezing/Unfreezing
+-- @description ReaPeform - Performance meter with freezing/unfreezing
 -- @author GraveSound
 -- @version 1.0
--- @provides gravesound_ReaPerform/gravesound_ReaPerform.lua
 -- @link Website https://gravesoundaudio.store/
 -- @screenshot Screenshot https://stash.reaper.fm/52117/reaper_poMAbgQ2Jv.png
 -- @about
