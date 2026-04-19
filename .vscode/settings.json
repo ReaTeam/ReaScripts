@@ -1,0 +1,9 @@
+{
+    "Lua.workspace.preloadFileSize": 1024,
+    "lua_analyzer.codeLinting.enable": false,
+    "Lua.workspace.library": [
+        "/home/spyndling/.vscode/extensions/antoinebalaine.reascript-docs-0.1.16/resources/Sexan_reaper_defs.lua",
+        "/home/spyndling/.vscode/extensions/antoinebalaine.reascript-docs-0.1.16/resources/imgui_defs_0.10.lua",
+        "/home/spyndling/.vscode/extensions/antoinebalaine.reascript-docs-0.1.16/resources/reawwise_defs.lua"
+    ]
+}
