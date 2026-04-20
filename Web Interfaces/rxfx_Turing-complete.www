@@ -1,6 +1,6 @@
 @description Turing-complete controller
 @author Rek's Effeks
-@version 0.alpha2
+@version 0.1beta
 @provides
   [main script] rxfx_Turing-complete/rxfx_Turing-complete - Cycle track record arm.lua
   [main script] rxfx_Turing-complete/rxfx_Turing-complete - Set time selection from markers.lua

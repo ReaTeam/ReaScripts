@@ -90,9 +90,12 @@
 
 var markerDeletePending = {};
 
-wwr_req_recur("TRANSPORT;BEATPOS",10);
-wwr_req_recur("NTRACK;TRACK;GET/40364;GET/1157;GET/41819",10);
-wwr_req_recur("MARKER;REGION",500);
+wwr_req_recur("TRANSPORT;BEATPOS",10); // where am i
+wwr_req_recur("NTRACK;TRACK;GET/40364;GET/1157;GET/41819",100); // tracks, metronome, snap, preroll
+var tracksRendered = false; // don't update arm display until tracks are there to edit
+wwr_req_recur("_RSfee01d3e4ca569bed48f2466c1453be35ab1d27e;GET/EXTSTATE/Fanciest/CurrentTempo",200); // tempo
+wwr_req_recur("MARKER;REGION;_RSe6f7f64d341520fb0ec902a7c0580f1b423e7fc7;GET/EXTSTATE/Fanciest/ArmDisplay;GET/EXTSTATE/Fanciest/SelectDisplay;GET/EXTSTATE/CurrentProject",500); // markers, regions, arm states, time select, project name
+wwr_req_recur("_RS99f117755ebbf002528fae80ba7693ec86ae8bca;GET/EXTSTATE/Fanciest/ProjectList",1000); // list of projects
 wwr_start();
 
 var last_transport_state = -1, mouseDown = 0, last_time_str = "",
@@ -101,7 +104,8 @@ var last_transport_state = -1, mouseDown = 0, last_time_str = "",
     startX = 0, joggerAgg = 0, recarmCountAr = [], recarmCount = 0, newPos = -1, lastMrMapStr = "", newMrMapLength = -1,
     trackHeightsAr = [], trackColoursAr = [], trackNumbersAr = [], trackNamesAr = [],  trackVolumeAr = [], trackPanAr = [],
     trackFlagsAr = [], trackSendCntAr = [], trackRcvCntAr = [], trackHwOutCntAr = [], trackSendHwCntAr = [], trackPeakAr = [], trackMeterAr = [], faderConAr = [], trackArmBtnAr = [], trackArmChannelAr = [],
-    hereCss = document.styleSheets[1], wwr_listeners = [], timesel_points = [], transitions = 1;
+    hereCss = document.styleSheets[1], wwr_listeners = [], timesel_points = [], transitions = 1,
+    projectList = '';
 
 function setTextForObject(obj, text) {
   if (obj.lastChild) obj.lastChild.nodeValue = text;
@@ -249,149 +253,161 @@ function wwr_onreply(results) {
   for (var x=0;x<ar.length;x++) {
     var tok = ar[x].split("\t");
     if (tok.length > 0) switch (tok[0]) {
-      case "TRANSPORT":
-        if (tok.length > 4) {
-            var backLoaded = document.getElementById("backLoad");
-            if(backLoaded!=null){
-                if (tok[1] != last_transport_state) {
-                last_transport_state=tok[1];
-                document.getElementById("playButtonOff").style.visibility = (last_transport_state&1) ? "hidden" : "visible";
-                document.getElementById("playButtonOn").style.visibility = (last_transport_state&1) ? "visible" : "hidden";
-                document.getElementById("pauseButtonOff").style.visibility = (last_transport_state&2) ? "hidden" : "visible";
-                document.getElementById("pauseButtonOn").style.visibility = (last_transport_state&2) ? "visible" : "hidden";
-                document.getElementById("record_off").style.visibility = (last_transport_state&4) ? "hidden" : "";
-                document.getElementById("record_on").style.visibility = (last_transport_state&4) ? "visible" : "";
-                document.getElementById("armed_text").style.visibility = (last_transport_state&4) ? "hidden" : "";
-                document.getElementById("armed_count").style.visibility = (last_transport_state&4) ? "hidden" : "";
-                document.getElementById("abort_text").style.visibility = (last_transport_state&4) ? "visible" : "";
-                document.getElementById("abort_cross").style.visibility = (last_transport_state&4) ? "visible" : "";
-                }
-            if (tok[3] != last_repeat) {
-                last_repeat = tok[3];
-                document.getElementById("repeat_off").style.visibility = (last_repeat>0) ? "hidden" : "";
-                document.getElementById("repeat_on").style.visibility = (last_repeat>0) ? "visible" : "";
-                }
-            var statusDisplay = document.getElementById("status");
-
-            //make an array of the current position and its unit
-            statusPosition[0] = tok[4];
-            statusPositionAr = tok[4].split(".");
-            if(statusPositionAr[1]==undefined){
-                if(statusPositionAr[0].match(":")){statusPosition[1] = "Hours:Minutes:Seconds:Frames";}
-                else{statusPosition[1] = "samples / frames";}
-                }
-            else{if(statusPositionAr[1].length==3){
-                    if(statusPositionAr[0].match(":")){statusPosition[1] = "Minutes:Seconds";}
-                    else{statusPosition[1] = "Seconds";}
+        case "TRANSPORT":
+            if (tok.length > 4) {
+                var backLoaded = document.getElementById("backLoad");
+                if(backLoaded!=null){
+                    if (tok[1] != last_transport_state) {
+                    last_transport_state=tok[1];
+                    document.getElementById("playButtonOff").style.visibility = (last_transport_state&1) ? "hidden" : "visible";
+                    document.getElementById("playButtonOn").style.visibility = (last_transport_state&1) ? "visible" : "hidden";
+                    document.getElementById("pauseButtonOff").style.visibility = (last_transport_state&2) ? "hidden" : "visible";
+                    document.getElementById("pauseButtonOn").style.visibility = (last_transport_state&2) ? "visible" : "hidden";
+                    document.getElementById("record_off").style.visibility = (last_transport_state&4) ? "hidden" : "";
+                    document.getElementById("record_on").style.visibility = (last_transport_state&4) ? "visible" : "";
+                    document.getElementById("armed_text").style.visibility = (last_transport_state&4) ? "hidden" : "";
+                    document.getElementById("armed_count").style.visibility = (last_transport_state&4) ? "hidden" : "";
+                    document.getElementById("abort_text").style.visibility = (last_transport_state&4) ? "visible" : "";
+                    document.getElementById("abort_cross").style.visibility = (last_transport_state&4) ? "visible" : "";
                     }
-                  else{
-                      statusPosition[1] = "Measures.Beats";
-                      if(Number(statusPositionAr[0])<1) {
-                          statusPositionAr[0] = (Number(statusPositionAr[0])-1).toString();
-                          statusPosition[0] = statusPositionAr.join(".");
-                      }
-                  }
-                }
-            document.getElementById("timeUnits").textContent = statusPosition[1];
-
-            joggerAggSign = Math.sign(joggerAgg);
-            if(joggerAgg!=0){
-                var joggerAggExp = Math.exp(Math.abs(joggerAgg)) * Math.sign(joggerAgg);
-                if(statusPosition[1]=="Measures.Beats"){
-                    statusJogging = BtoMB(Math.floor(Math.exp(Math.abs(joggerAgg)))) * Math.sign(joggerAgg) + ".00";
+                if (tok[3] != last_repeat) {
+                    last_repeat = tok[3];
+                    document.getElementById("repeat_off").style.visibility = (last_repeat>0) ? "hidden" : "";
+                    document.getElementById("repeat_on").style.visibility = (last_repeat>0) ? "visible" : "";
                     }
-                else{statusJogging = joggerAggExp.toPrecision(4) + " s";}
-                statusDisplay.textContent = statusJogging;
-                statusDisplay.style.fill = (joggerAggSign<0) ? "#FE003B" : "#00FE95";
-                }
-            else {
-                statusDisplay.textContent = statusPosition[0];
-                statusDisplay.style.fill = "#a8a8a8";
-                }
-            if (tok[2] != playPosSeconds) {playPosSeconds=tok[2];}
-        }
-            if (tok[4]<1) {
-                last_time_str = tok[4]-1;
-            } else {
-                last_time_str = tok[4];
+                var statusDisplay = document.getElementById("status");
+
+                //make an array of the current position and its unit
+                statusPosition[0] = tok[4];
+                statusPositionAr = tok[4].split(".");
+                if(statusPositionAr[1]==undefined){
+                    if(statusPositionAr[0].match(":")){statusPosition[1] = "Hours:Minutes:Seconds:Frames";}
+                    else{statusPosition[1] = "samples / frames";}
+                    }
+                else{if(statusPositionAr[1].length==3){
+                        if(statusPositionAr[0].match(":")){statusPosition[1] = "Minutes:Seconds";}
+                        else{statusPosition[1] = "Seconds";}
+                        }
+                    else{
+                        statusPosition[1] = "Measures.Beats";
+                        if(Number(statusPositionAr[0])<1) {
+                            statusPositionAr[0] = (Number(statusPositionAr[0])-1).toString();
+                            statusPosition[0] = statusPositionAr.join(".");
+                        }
+                    }
+                    }
+                document.getElementById("timeUnits").textContent = statusPosition[1];
+
+                joggerAggSign = Math.sign(joggerAgg);
+                if(joggerAgg!=0){
+                    var joggerAggExp = Math.exp(Math.abs(joggerAgg)) * Math.sign(joggerAgg);
+                    if(statusPosition[1]=="Measures.Beats"){
+                        statusJogging = BtoMB(Math.floor(Math.exp(Math.abs(joggerAgg)))) * Math.sign(joggerAgg) + ".00";
+                        }
+                    else{statusJogging = joggerAggExp.toPrecision(4) + " s";}
+                    statusDisplay.textContent = statusJogging;
+                    statusDisplay.style.fill = (joggerAggSign<0) ? "#FE003B" : "#00FE95";
+                    }
+                else {
+                    statusDisplay.textContent = statusPosition[0];
+                    statusDisplay.style.fill = "#a8a8a8";
+                    }
+                if (tok[2] != playPosSeconds) {playPosSeconds=tok[2];}
             }
-        }
-      break;
-      case "CMDSTATE":
-        var buttonMetro = document.getElementById("buttonMetro");
-        if (tok[1] == 40364 && buttonMetro) {
-            if(last_metronome==1){
-                    buttonMetro.childNodes[3].setAttributeNS(null, "visibility", "visible");
-                    buttonMetro.childNodes[7].setAttributeNS(null, "visibility", "hidden");
-                    }
-                else{
-                    buttonMetro.childNodes[3].setAttributeNS(null, "visibility", "hidden");
-                    buttonMetro.childNodes[7].setAttributeNS(null, "visibility", "visible");
-                    }
-                last_metronome = tok[2];
-            }
-
-        var buttonPreroll = document.getElementById("prerollBg");
-        if (tok[1] == 41819 && buttonPreroll) {
-            document.getElementById("prerollBg").setAttributeNS(null, "opacity", tok[2]>0 ? "1" : "0.2");
-            document.getElementById("prerollBg").setAttributeNS(null, "fill", tok[2]>0 ? "#8a9999" : "#262626");
-        }
-
-        var buttonSnap = document.getElementById("buttonSnap");
-        if (tok[1] == 1157 && buttonSnap) {
-            if (tok[2] != snapState) {
-                if(snapState==0){
-                    buttonSnap.childNodes[3].setAttributeNS(null, "visibility", "visible");
-                    buttonSnap.childNodes[7].setAttributeNS(null, "visibility", "hidden");
-                    }
-                else{
-                    buttonSnap.childNodes[3].setAttributeNS(null, "visibility", "hidden");
-                    buttonSnap.childNodes[7].setAttributeNS(null, "visibility", "visible");
-                    }
-                snapState = tok[2];
+                if (tok[4]<1) {
+                    last_time_str = tok[4]-1;
+                } else {
+                    last_time_str = tok[4];
                 }
             }
-      break;
-      case "BEATPOS":
-        var playLine = document.querySelector('#playLine');
-        if (tok.length > 5 && playLine) {
-            var playLineCirc = 301.1;
-            var playLineArc = playLineCirc - (playLineCirc / tok[6]);
-            //var playLineRotate = (360 / tok[6]) * tok[5]; //freewheeling play line
-            thisBeat=Math.round(tok[5]);
-            var playLineRotate = (360 / tok[6]) * thisBeat;
-            thisSig=tok[6];
-                if (drawnSig!=thisSig || drawnBeat!=thisBeat && playLine){
-                    playLine.setAttributeNS(null, "stroke-dasharray", playLineCirc);
-                    playLine.setAttributeNS(null, "stroke-dashoffset", playLineArc);
-                    playLine.setAttribute("transform","rotate(" + playLineRotate + ",151.8,52.4)");
-                    }
-            ts_numerator = tok[6];
-            ts_denominator = tok[7];
-            document.getElementById("tsNum").textContent = ts_numerator;
-            document.getElementById("tsDen").textContent = ts_denominator;
-              }
-      break;
+            break;
 
-      case "REGION_LIST":
+        case "CMDSTATE":
+            var buttonMetro = document.getElementById("buttonMetro");
+            if (tok[1] == 40364 && buttonMetro) {
+                if(last_metronome==1){
+                        buttonMetro.childNodes[3].setAttributeNS(null, "visibility", "visible");
+                        buttonMetro.childNodes[7].setAttributeNS(null, "visibility", "hidden");
+                        }
+                    else{
+                        buttonMetro.childNodes[3].setAttributeNS(null, "visibility", "hidden");
+                        buttonMetro.childNodes[7].setAttributeNS(null, "visibility", "visible");
+                        }
+                    last_metronome = tok[2];
+            }
+
+            var prerollActive = document.getElementById("prerollActive");
+            var prerollGloss = document.getElementById("prerollGloss");
+            if (tok[1] == 41819 && prerollActive) { // second condition only means the element exists
+                if (tok[2] == 1) {
+                    document.getElementById("prerollActive").setAttributeNS(null, "visibility", "visible");
+                    document.getElementById("prerollGloss").setAttributeNS(null, "visibility", "hidden");
+                }
+                else {
+                    document.getElementById("prerollActive").setAttributeNS(null, "visibility", "hidden");
+                    document.getElementById("prerollGloss").setAttributeNS(null, "visibility", "visible");
+                }
+            }
+
+            var buttonSnap = document.getElementById("buttonSnap");
+            if (tok[1] == 1157 && buttonSnap) {
+                if (tok[2] != snapState) {
+                    if(snapState==0){
+                        buttonSnap.childNodes[3].setAttributeNS(null, "visibility", "visible");
+                        buttonSnap.childNodes[7].setAttributeNS(null, "visibility", "hidden");
+                        }
+                    else{
+                        buttonSnap.childNodes[3].setAttributeNS(null, "visibility", "hidden");
+                        buttonSnap.childNodes[7].setAttributeNS(null, "visibility", "visible");
+                        }
+                    snapState = tok[2];
+                }
+            }
+            break;
+
+        case "BEATPOS":
+            var playLine = document.querySelector('#playLine');
+            if (tok.length > 5 && playLine) {
+                var playLineCirc = 301.1;
+                var playLineArc = playLineCirc - (playLineCirc / tok[6]);
+                //var playLineRotate = (360 / tok[6]) * tok[5]; //freewheeling play line
+                thisBeat=Math.round(tok[5]);
+                var playLineRotate = (360 / tok[6]) * thisBeat;
+                thisSig=tok[6];
+                    if (drawnSig!=thisSig || drawnBeat!=thisBeat && playLine){
+                        playLine.setAttributeNS(null, "stroke-dasharray", playLineCirc);
+                        playLine.setAttributeNS(null, "stroke-dashoffset", playLineArc);
+                        playLine.setAttribute("transform","rotate(" + playLineRotate + ",151.8,52.4)");
+                        }
+                ts_numerator = tok[6];
+                ts_denominator = tok[7];
+                document.getElementById("tsNum").textContent = ts_numerator;
+                document.getElementById("tsDen").textContent = ts_denominator;
+            }
+            break;
+
+        case "REGION_LIST":
             g_regions = [];
             break;
-      case "REGION":
+
+        case "REGION":
             g_regions.push(tok);
             break;
-      case "MARKER_LIST":
+
+        case "MARKER_LIST":
             g_markers = [];
             break;
-      case "MARKER":
+
+        case "MARKER":
             g_markers.push(tok);
             break;
-      case "MARKER_LIST_END":
+
+        case "MARKER_LIST_END":
             var pos = parseFloat(playPosSeconds);
             var previ=-1, thisi=-1, nexti=-1;
-        break;
+            break;
 
         case "REGION_LIST_END":
-
             //assemble mrMap array : time, marker number, region start number, region end number.
             for (var i=0; i<g_regions.length; i++) {
                 if(g_regions[i][5]==0){g_regions[i][5]=25198720;} // Give uncoloured regions a colour.
@@ -573,7 +589,12 @@ function wwr_onreply(results) {
                         document.getElementById("atMarkerName").textContent = (!mThisName) ?("unnamed"):(mThisName);
                     }
                 }
-                else{document.getElementById("marker2").setAttributeNS(null, "visibility", "hidden");}
+                else{
+                    var m2 = document.getElementById("marker2");
+                    if (m2) {
+                        m2.setAttributeNS(null, "visibility", "hidden");
+                    }
+                }
 
                 if(mrMapAr[nextl] && mrMapAr[nextl][1]>=1){
                     var mNextIdx = mrMapAr[nextl][1];
@@ -591,7 +612,12 @@ function wwr_onreply(results) {
                         document.getElementById("nextMarkerName").textContent = (!mNextName) ?("unnamed"):(mNextName);
                     }
                 }
-                else{document.getElementById("marker3").setAttributeNS(null, "visibility", "hidden");}
+                else{
+                    var m3 = document.getElementById("marker3");
+                    if (m3) {
+                        m3.setAttributeNS(null, "visibility", "hidden");
+                    }
+                }
 
                 if (prevl>=0){homeIconVis = "hidden"; prevIconVis = "visible";}
                     else {
@@ -671,459 +697,442 @@ function wwr_onreply(results) {
                 lastMrMapStr = mrMapStr;
                 updateTimeSelDisplay(select_points);
                 }
-        break;
+            break;
 
         case "NTRACK":
             if (tok.length > 1) {nTrack = tok[1];}
-        break;
+            break;
 
-     case "TRACK":
-        idx = parseInt(tok[1]);
-        if (tok.length > 5) {
-            var backLoaded = document.getElementById("backLoad");
-            var allTracksDiv = document.getElementById("tracks");
-            var trackFound = document.getElementById("track" + tok[1]);
+        case "TRACK":
+            idx = parseInt(tok[1]);
+            if (tok.length > 5) {
+                var backLoaded = document.getElementById("backLoad");
+                var allTracksDiv = document.getElementById("tracks");
+                var trackFound = document.getElementById("track" + tok[1]);
 
-            if (!trackFound) {
-                var trackDiv = document.createElement("div");
-                    trackDiv.id = ("track" + tok[1]);
-                    trackDiv.className = ("trackDiv");
+                if (!trackFound) {
+                    var trackDiv = document.createElement("div");
+                        trackDiv.id = ("track" + tok[1]);
+                        trackDiv.className = ("trackDiv");
 
-                trackHeightsAr[tok[1]] = 0;
+                    trackHeightsAr[tok[1]] = 0;
 
-                var trackRow1Div = document.createElement("div");
-                    trackRow1Div.className = ("trackRow1");
-                var trackRow2Div = document.createElement("div");
-                    trackRow2Div.className = ("trackRow2");
-                    trackRow2Div.id = tok[1];
-                var trackSendsDiv = document.createElement("div");
-                    trackSendsDiv.id = ("sendsTrack" + idx);
+                    var trackRow1Div = document.createElement("div");
+                        trackRow1Div.className = ("trackRow1");
+                    var trackRow2Div = document.createElement("div");
+                        trackRow2Div.className = ("trackRow2");
+                        trackRow2Div.id = tok[1];
+                    var trackSendsDiv = document.createElement("div");
+                        trackSendsDiv.id = ("sendsTrack" + idx);
 
-                if(trackDiv && allTracksDiv){allTracksDiv.appendChild(trackDiv);}
-                    trackDiv.appendChild(trackRow1Div) ;
-                    trackDiv.appendChild(trackRow2Div) ;
-                    trackDiv.appendChild(trackSendsDiv);
-            }
+                    if(trackDiv && allTracksDiv){allTracksDiv.appendChild(trackDiv);}
+                        trackDiv.appendChild(trackRow1Div) ;
+                        trackDiv.appendChild(trackRow2Div) ;
+                        trackDiv.appendChild(trackSendsDiv);
+                }
 
-            else {
-                if(backLoaded!=null && backLoaded.nextSibling!=null){
-                    var cloneTrackRow1 = document.getElementById("trackRow1Svg").cloneNode(true);
-                    var cloneTrackRow2 = document.getElementById("trackRow2Svg").cloneNode(true);
-                    var cloneTrackSend = document.getElementById("trackSendSvg").cloneNode(true);
+                else {
+                    if(backLoaded!=null && backLoaded.nextSibling!=null){
+                        var cloneTrackRow1 = document.getElementById("trackRow1Svg").cloneNode(true);
+                        var cloneTrackRow2 = document.getElementById("trackRow2Svg").cloneNode(true);
+                        var cloneTrackSend = document.getElementById("trackSendSvg").cloneNode(true);
 
-                    if(idx==0){ //master track stuff
+                        if(idx==0){ //master track stuff
 
-                            masterMuteOffButton = document.getElementById("master-mute-off");
-                            masterMuteOnButton = document.getElementById("master-mute-on");
-                                if(tok[3]&8){masterMuteOffButton.style.visibility = "hidden"; masterMuteOnButton.style.visibility = "visible";}
-                                else{masterMuteOffButton.style.visibility = "visible"; masterMuteOnButton.style.visibility = "hidden";}
-                            masterMuteOffButton.onmousedown = mouseDownEventHandler("SET/TRACK/" + 0 + "/MUTE/-1;TRACK/" + 0);
-                            masterMuteOnButton.onmousedown = mouseDownEventHandler("SET/TRACK/" + 0 + "/MUTE/-1;TRACK/" + 0);
-                            masterClipIndicator = document.getElementById("master-clip_on");
-                                if(tok[6]>0){masterClipIndicator.style.visibility = "visible";}
-                                else{masterClipIndicator.style.visibility = "hidden";}
-                            masterMeterReadout = document.getElementById("masterDb");
-                            masterMeterReadout.textContent = (mkvolstr(tok[4]));
+                                masterMuteOffButton = document.getElementById("master-mute-off");
+                                masterMuteOnButton = document.getElementById("master-mute-on");
+                                    if(tok[3]&8){masterMuteOffButton.style.visibility = "hidden"; masterMuteOnButton.style.visibility = "visible";}
+                                    else{masterMuteOffButton.style.visibility = "visible"; masterMuteOnButton.style.visibility = "hidden";}
+                                masterMuteOffButton.onmousedown = mouseDownEventHandler("SET/TRACK/" + 0 + "/MUTE/-1;TRACK/" + 0);
+                                masterMuteOnButton.onmousedown = mouseDownEventHandler("SET/TRACK/" + 0 + "/MUTE/-1;TRACK/" + 0);
+                                masterClipIndicator = document.getElementById("master-clip_on");
+                                    if(tok[6]>0){masterClipIndicator.style.visibility = "visible";}
+                                    else{masterClipIndicator.style.visibility = "hidden";}
+                                masterMeterReadout = document.getElementById("masterDb");
+                                masterMeterReadout.textContent = (mkvolstr(tok[4]));
 
-                            var masterTrackContent = document.getElementById("track0");
-                            var masterTrackRow2Content = masterTrackContent.childNodes[3];
-                            if (!masterTrackRow2Content.innerHTML){
-                                masterTrackRow2Content.appendChild(cloneTrackRow2);
-                                var trackSendsDiv = document.createElement("div");
-                                trackSendsDiv.id = ("sendsTrack0");
-                                masterTrackContent.appendChild(trackSendsDiv);
+                                var masterTrackContent = document.getElementById("track0");
+                                var masterTrackRow2Content = masterTrackContent.childNodes[3];
+                                if (!masterTrackRow2Content.innerHTML){
+                                    masterTrackRow2Content.appendChild(cloneTrackRow2);
+                                    var trackSendsDiv = document.createElement("div");
+                                    trackSendsDiv.id = ("sendsTrack0");
+                                    masterTrackContent.appendChild(trackSendsDiv);
+                                    }
+
+                                var volThumb = masterTrackRow2Content.getElementsByClassName("fader")[0];
+                                if(faderConAr[0]!=1){
+                                    volFaderConect(masterTrackRow2Content,volThumb);
+                                    faderConAr[0]=1;
+                                    }
+                                volThumb.volSetting = (Math.pow(tok[4], 1/4) * 194.68);
+                                var vteMove = "translate(" + volThumb.volSetting + " 0)";
+                                if(mouseDown != 1){volThumb.setAttributeNS(null, "transform", vteMove);}
+
+                                var masterSends = tok[12];
+                                if(masterSends!=trackSendCntAr[0]){
+                                    trackSendCntAr[0] = masterSends;
+                                    }
                                 }
 
-                            var volThumb = masterTrackRow2Content.getElementsByClassName("fader")[0];
-                            if(faderConAr[0]!=1){
-                                volFaderConect(masterTrackRow2Content,volThumb);
-                                faderConAr[0]=1;
+                        if(idx>0){ //normal track stuff
+
+                            var trackRow1Content = document.getElementById("track" + idx).childNodes[0];
+                            if (!trackRow1Content.innerHTML){
+                                trackRow1Content.appendChild(cloneTrackRow1);
+                                trackRow1Content.firstChild.getElementsByClassName("hitbox")[0].id = idx;
+                                var nameHitbox = trackRow1Content.firstChild.getElementsByClassName("nameHitbox")[0];
+                                (function(capturedIdx) {
+                                    var nameHitbox = trackRow1Content.firstChild.getElementsByClassName("nameHitbox")[0];
+                                    var trackNumHitbox = trackRow1Content.firstChild.getElementsByClassName("trackNumHitbox")[0];
+                                    nameHitbox.addEventListener("click", function(e) {
+                                        e.stopPropagation();
+                                        var trackNameEl = trackRow1Content.firstChild.getElementsByClassName("trackName")[0];
+                                        var currentName = trackNamesAr[capturedIdx] || "";
+
+                                        function commit() {
+                                            var newName = prompt("Rename track",currentName);
+                                            if (newName !== null && newName !== currentName) {
+                                                wwr_req(40297);
+                                                wwr_req("SET/TRACK/" + capturedIdx + "/SEL/1");
+                                                wwr_req("SET/EXTSTATE/Fanciest/TrackRename/" + newName);
+                                                wwr_req("_RSfa7d3f28d660d3f6a94ffc66e7b274e5794d14be");// rename track from extstate lua command
+                                                wwr_req("_SWSAUTOCOLOR_APPLY");
+                                            }
+                                        }
+                                        commit();
+                                    });
+                                    trackNumHitbox.addEventListener("click", function(e) {
+                                        e.stopPropagation();
+
+                                        function commit() {
+                                            var newOrder = Math.min(100, Math.max(1, parseInt(prompt("Reorder track",capturedIdx), idx)));
+                                            if (newOrder !== capturedIdx && typeof(newOrder) !== "string") {
+                                                wwr_req(40297);
+                                                wwr_req("SET/TRACK/" + capturedIdx + "/SEL/1");
+                                                var command = "";
+                                                if ((newOrder - capturedIdx) < 0) {
+                                                    for (let i = 0; i < (capturedIdx - newOrder - 1); i++) {
+                                                        command += "43647;";
+                                                    }
+                                                    command += "43647"
+                                                } else if ((capturedIdx - newOrder) < 0) {
+                                                    for (let i = 0; i < (newOrder - capturedIdx - 1); i++) {
+                                                        command += "43648;";
+                                                    }
+                                                    command += "43648"
+                                                }
+                                                wwr_req(command);
+                                            }
+                                        }
+                                        commit();
+                                    });
+                                })(idx);
                                 }
-                            volThumb.volSetting = (Math.pow(tok[4], 1/4) * 194.68);
+
+                            var trackRow2Content = document.getElementById("track" + idx).childNodes[1];
+                            if (!trackRow2Content.innerHTML){
+                                trackRow2Content.appendChild(cloneTrackRow2);
+                                }
+
+                            trackBg = trackRow1Content.firstChild.getElementsByClassName("trackrow1bg")[0];
+                            if(tok[13]>0 && tok[13]!=trackColoursAr[idx]){
+                                var customTrackColour = ("#" + (tok[13]|0x1000000).toString(16).substr(-6));
+                                trackBg.style.fill= customTrackColour;
+                                trackColoursAr[idx] = tok[1];
+                                }
+                                else{trackBg.style.fill= "#9DA5A5";}
+
+                            if(tok[1]!=trackNumbersAr[idx]){
+                                trackNumber = trackRow1Content.firstChild.getElementsByClassName("trackNumber")[0];
+                                trackNumber.textContent = tok[1];
+                                trackNumbersAr[idx] = tok[1];
+                                }
+
+                            if(tok[2]!=trackNamesAr[idx]){
+                                trackText = trackRow1Content.firstChild.getElementsByClassName("trackName")[0];
+                                trackText.textContent = tok[2];
+                                trackNamesAr[idx] = tok[2];
+                                }
+
+                            var recCycleInProgress = false;
+
+
+
+                            trackRow1Content.firstChild.getElementsByClassName("mute")[0].onmousedown = mouseDownEventHandler("SET/TRACK/" + tok[1] + "/MUTE/-1;TRACK/" + tok[1]);
+                            trackRow1Content.firstChild.getElementsByClassName("solo")[0].onmousedown = mouseDownEventHandler("SET/TRACK/" +idx+ "/SOLO/-1;TRACK/" +idx);
+                            trackRow1Content.firstChild.getElementsByClassName("monitor")[0].onmousedown = mouseDownEventHandler("SET/TRACK/" + idx + "/RECMON/-1;TRACK/" + idx);
+                            if(tok[3]!=trackFlagsAr[idx]){
+
+                                //~ recarmOffButton = trackRow1Content.firstChild.getElementsByClassName("recarm-off")[0];
+                                //~ recarmOnButton = trackRow1Content.firstChild.getElementsByClassName("recarm-on")[0];
+                                //~ if(tok[3]&64){recarmOffButton.style.visibility = "hidden"; recarmOnButton.style.visibility = "visible";}
+                                //~ else{recarmOffButton.style.visibility = "visible"; recarmOnButton.style.visibility = "hidden";}
+                                //~ recarmOffButton  = trackRow1Content.firstChild.getElementsByClassName("recarm-off")[0];
+                                //~ recarmOnButton   = trackRow1Content.firstChild.getElementsByClassName("recarm-on")[0];
+                                //~ recarmOn2Button  = trackRow1Content.firstChild.getElementsByClassName("recarm-on2")[0];
+                                //~ var isArmed      = tok[3]&64;
+                                //~ var isCh2        = isArmed && (trackArmChannelAr[idx] == 2);
+                                //~ recarmOffButton.style.visibility  = isArmed ? "hidden"  : "visible";
+                                //~ recarmOnButton.style.visibility   = (isArmed && !isCh2) ? "visible" : "hidden";
+                                //~ recarmOn2Button.style.visibility  = isCh2 ? "visible" : "hidden";
+
+                                soloOffButton = trackRow1Content.firstChild.getElementsByClassName("solo-off")[0];
+                                soloOnButton = trackRow1Content.firstChild.getElementsByClassName("solo-on")[0];
+                                if(tok[3]&16){soloOffButton.style.visibility = "hidden"; soloOnButton.style.visibility = "visible";}
+                                else{soloOffButton.style.visibility = "visible"; soloOnButton.style.visibility = "hidden";}
+
+                                muteOffButton = trackRow1Content.firstChild.getElementsByClassName("mute-off")[0];
+                                muteOnButton = trackRow1Content.firstChild.getElementsByClassName("mute-on")[0];
+                                if(tok[3]&64){muteOffButton.style.visibility = "hidden"; muteOnButton.style.visibility = "hidden";}
+                                else{ if(tok[3]&8){muteOffButton.style.visibility = "hidden"; muteOnButton.style.visibility = "visible";}
+                                    else{muteOffButton.style.visibility = "visible"; muteOnButton.style.visibility = "hidden";}}
+
+                                monitorOffButton = trackRow1Content.firstChild.getElementsByClassName("monitor-off")[0];
+                                monitorOnButton = trackRow1Content.firstChild.getElementsByClassName("monitor-on")[0];
+                                monitorAutoButton = trackRow1Content.firstChild.getElementsByClassName("monitor-auto")[0];
+                                if(tok[3]&64){
+                                    if(tok[3]&128){monitorOffButton.style.visibility = "hidden"; monitorOnButton.style.visibility = "visible"; monitorAutoButton.style.visibility = "hidden";}
+                                    else{   if(tok[3]&256){monitorOffButton.style.visibility = "hidden"; monitorOnButton.style.visibility = "hidden"; monitorAutoButton.style.visibility = "visible";}
+                                            else{monitorOffButton.style.visibility = "visible"; monitorOnButton.style.visibility = "hidden"; monitorAutoButton.style.visibility = "hidden";}
+                                        }
+                                    }
+                                else{monitorOffButton.style.visibility = "hidden"; monitorOnButton.style.visibility = "hidden"; monitorAutoButton.style.visibility = "hidden";}
+
+                            if(tok[3]&512){ //track hidden in TCP
+                                document.getElementById("track" + idx).style.display="none";}
+                            else{document.getElementById("track" + idx).style.display = "block";}
+
+                            folderIcon = trackRow1Content.firstChild.getElementsByClassName("folder_icon")[0];
+                            if(tok[3]&1){folderIcon.style.visibility = "visible";}
+                                else{folderIcon.style.visibility = "hidden";}
+                                trackFlagsAr[idx] = tok[3];
+                                }
+
+                            if(tok[10]!=trackSendCntAr[idx]){
+                                sendIndicator = trackRow1Content.firstChild.getElementsByClassName("s_on")[0];
+                                if(tok[10]>0){sendIndicator.style.visibility = "visible";}
+                                else{sendIndicator.style.visibility = "hidden";}
+                                trackSendCntAr[idx] = tok[10];
+                                }
+
+                            if(tok[11]!=trackRcvCntAr[idx]){
+                                rcvIndicator = trackRow1Content.firstChild.getElementsByClassName("r_on")[0];
+                                if(tok[11]>0){rcvIndicator.style.visibility = "visible";}
+                                else{rcvIndicator.style.visibility = "hidden";}
+                                trackRcvCntAr[idx] = tok[11];
+                                }
+
+                            if(tok[12]!=trackHwOutCntAr[idx]){
+                                sendIndicator = trackRow1Content.firstChild.getElementsByClassName("s_on")[0];
+                                if(tok[12]>0){sendIndicator.style.visibility = "visible";}
+                                trackHwOutCntAr[idx] = tok[12];
+                                }
+
+                            if(tok[6]!=trackPeakAr[idx]){
+                                clipIndicator = trackRow1Content.firstChild.getElementsByClassName("clip_on")[0];
+                                if(tok[6]>=0){clipIndicator.style.visibility = "visible";}
+                                else{clipIndicator.style.visibility = "hidden";}
+
+                                // cool idea but way too jittery to be tolerable
+                                //~ var vuBar = trackRow1Content.firstChild.getElementsByClassName("vuBar")[0];
+                                //~ if(vuBar) {
+                                    //~ // convert linear to dB, map -60dB..0dB to 0..33px
+                                    //~ var peak = tok[6];
+                                    //~ var barWidth = 0;
+                                    //~ if (typeof(time) !== "undefined") {
+                                        //~ console.log(Date.now()-time);
+                                        //~ time = Date.now();
+                                    //~ } else {
+                                        //~ time = Date.now();
+                                    //~ }
+                                    //~ barWidth = Math.max(0, Math.min(33, (peak/600+1) * 33));
+                                    //~ barWidth = Math.round( barWidth );
+                                    //~ //console.log((peak/600+1) * 33);
+                                    //~ vuBar.setAttributeNS(null, "width", barWidth);
+                                //~ }
+
+                                trackPeakAr[idx] = tok[6];
+                                }
+
+                            meterReadout = trackRow1Content.firstChild.getElementsByClassName("meterReadout")[0];
+                            meterReadout.textContent = (mkvolstr(tok[4]));
+
+                            if (tok[3]&64) {recarmCountAr[idx]=1} else{recarmCountAr[idx]=0}
+                                function getSum(total, num) {return total + num;}
+                                var armedCount = document.getElementById("armed_count");
+                                var armedText = document.getElementById("armed_text");
+                                recarmCount = recarmCountAr.reduce(getSum);
+                                armedCount.textContent = recarmCount;
+                                armedCount.setAttributeNS(null, "fill", ((recarmCount==0)?"#5D3729":"#545454"));
+                                armedText.setAttributeNS(null, "fill", ((recarmCount==0)?"#5D3729":"#545454"));
+
+                            var volThumb = trackRow2Content.firstChild.getElementsByClassName("fader")[0];
+                            if(faderConAr[idx]!=1){
+                                volFaderConect(trackRow2Content,volThumb);
+                                panKnobConnect(trackRow2Content, idx);
+                                trackDeleteConnect(trackRow2Content, idx);
+                                (function(capturedIdx) {
+                                    trackRow1Content.firstChild.getElementsByClassName("recarm")[0].addEventListener("click", async function(e) {
+                                        if (recCycleInProgress[capturedIdx]) return;
+                                        recCycleInProgress[capturedIdx] = true;
+                                        try {
+                                            var result = await requestRecCycle(capturedIdx);
+                                            // just let armDisplay handle it every half a second
+                                            var row1 = document.getElementById("track" + capturedIdx).childNodes[0];
+                                            var bg    = row1.getElementsByClassName("recarmBg")[0];
+                                            var label = row1.getElementsByClassName("recarmLabel")[0];
+
+                                            if (result == "off") {
+                                                bg.setAttribute("fill", "#5D3729");
+                                                label.textContent = "";
+                                            } else if (result == "chan1") {
+                                                bg.setAttribute("fill", "#FF2200");
+                                                label.textContent = "1";
+                                            } else if (result == "chan2") {
+                                                bg.setAttribute("fill", "#FF6600");
+                                                label.textContent = "2";
+                                            }
+                                            //console.log("record arm cycled:", result);
+                                        } catch(e) {
+                                            console.log("failed:", e);
+                                        } finally {
+                                            recCycleInProgress[capturedIdx] = false;
+                                        }
+                                    });
+                                })(idx);
+                                faderConAr[idx]=1;
+                                }
+                            volThumb.volSetting = (Math.pow(tok[4], 1/4) * (194.68-40-14)) + 40; //40 = pan knob width
                             var vteMove = "translate(" + volThumb.volSetting + " 0)";
                             if(mouseDown != 1){volThumb.setAttributeNS(null, "transform", vteMove);}
 
-                            var masterSends = tok[12];
-                            if(masterSends!=trackSendCntAr[0]){
-                                trackSendCntAr[0] = masterSends;
+                            // --- pan knob update ---
+                            var panVal = parseFloat(tok[5]); // tok[5] is pan, -1 to +1
+                            if(!isNaN(panVal) && trackPanAr[idx] != panVal) {
+                                trackPanAr[idx] = panVal;
+                                var panLine = trackRow2Content.firstChild.getElementsByClassName("panLine")[0];
+                                if(panLine) {
+                                    var panAngle = panVal * 135; // -135 to +135 degrees
+                                    panLine.setAttribute("transform", "rotate(" + panAngle + " 20 18)");
                                 }
                             }
-
-                    if(idx>0){ //normal track stuff
-
-                        var trackRow1Content = document.getElementById("track" + idx).childNodes[0];
-                        if (!trackRow1Content.innerHTML){
-                            trackRow1Content.appendChild(cloneTrackRow1);
-                            trackRow1Content.firstChild.getElementsByClassName("hitbox")[0].id = idx;
-                            var nameHitbox = trackRow1Content.firstChild.getElementsByClassName("nameHitbox")[0];
-                            (function(capturedIdx) {
-                                var nameHitbox = trackRow1Content.firstChild.getElementsByClassName("nameHitbox")[0];
-                                var trackNumHitbox = trackRow1Content.firstChild.getElementsByClassName("trackNumHitbox")[0];
-                                nameHitbox.addEventListener("click", function(e) {
-                                    e.stopPropagation();
-                                    var trackNameEl = trackRow1Content.firstChild.getElementsByClassName("trackName")[0];
-                                    var currentName = trackNamesAr[capturedIdx] || "";
-
-                                    function commit() {
-                                        var newName = prompt("Rename track",currentName);
-                                        if (newName !== null && newName !== currentName) {
-                                            wwr_req(40297);
-                                            wwr_req("SET/TRACK/" + capturedIdx + "/SEL/1");
-                                            wwr_req("SET/EXTSTATE/Fanciest/TrackRename/" + newName);
-                                            wwr_req("_RSfa7d3f28d660d3f6a94ffc66e7b274e5794d14be");// rename track from extstate lua command
-                                            wwr_req("_SWSAUTOCOLOR_APPLY");
-                                        }
+                        }
+                        var trackSendsContent = document.getElementById("sendsTrack" + idx);
+                        trackSendHwCntAr[idx] = (parseInt(trackSendCntAr[idx]) || 0) + (parseInt(trackHwOutCntAr[idx]) || 0);
+                            if(trackSendsContent!=null && trackSendHwCntAr[idx]!=null){
+                                if(trackSendsContent.childNodes.length < trackSendHwCntAr[idx]){
+                                        var sendDiv = document.createElement("div");
+                                        sendDiv.className = ("sendDiv");
+                                        trackSendsContent.appendChild(sendDiv);
+                                            sendDiv.appendChild(cloneTrackSend);
+                                        var thisSendThumb = sendDiv.getElementsByClassName("sendThumb")[0];
+                                        sendConect(sendDiv,thisSendThumb);
+                                        //bug - adding a send doesn't update the height of that send. So it'll be zero even if the panel is expanded.
                                     }
-                                    commit();
-                                });
-                                trackNumHitbox.addEventListener("click", function(e) {
-                                    e.stopPropagation();
-
-                                    function commit() {
-                                        var newOrder = Math.min(100, Math.max(1, parseInt(prompt("Reorder track",capturedIdx), idx)));
-                                        if (newOrder !== capturedIdx && typeof(newOrder) !== "string") {
-                                            wwr_req(40297);
-                                            wwr_req("SET/TRACK/" + capturedIdx + "/SEL/1");
-                                            var command = "";
-                                            if ((newOrder - capturedIdx) < 0) {
-                                                for (let i = 0; i < (capturedIdx - newOrder - 1); i++) {
-                                                    command += "43647;";
-                                                }
-                                                command += "43647"
-                                            } else if ((capturedIdx - newOrder) < 0) {
-                                                for (let i = 0; i < (newOrder - capturedIdx - 1); i++) {
-                                                    command += "43648;";
-                                                }
-                                                command += "43648"
-                                            }
-                                            wwr_req(command);
-                                        }
-                                    }
-                                    commit();
-                                });
-                            })(idx);
-                            }
-
-                        var trackRow2Content = document.getElementById("track" + idx).childNodes[1];
-                        if (!trackRow2Content.innerHTML){
-                            trackRow2Content.appendChild(cloneTrackRow2);
-                            }
-
-                        trackBg = trackRow1Content.firstChild.getElementsByClassName("trackrow1bg")[0];
-                        if(tok[13]>0 && tok[13]!=trackColoursAr[idx]){
-                            var customTrackColour = ("#" + (tok[13]|0x1000000).toString(16).substr(-6));
-                            trackBg.style.fill= customTrackColour;
-                            trackColoursAr[idx] = tok[1];
-                            }
-                            else{trackBg.style.fill= "#9DA5A5";}
-
-                        if(tok[1]!=trackNumbersAr[idx]){
-                            trackNumber = trackRow1Content.firstChild.getElementsByClassName("trackNumber")[0];
-                            trackNumber.textContent = tok[1];
-                            trackNumbersAr[idx] = tok[1];
-                            }
-
-                        if(tok[2]!=trackNamesAr[idx]){
-                            trackText = trackRow1Content.firstChild.getElementsByClassName("trackName")[0];
-                            trackText.textContent = tok[2];
-                            trackNamesAr[idx] = tok[2];
-                            }
-
-                        var recCycleInProgress = false;
-
-
-
-                        trackRow1Content.firstChild.getElementsByClassName("mute")[0].onmousedown = mouseDownEventHandler("SET/TRACK/" + tok[1] + "/MUTE/-1;TRACK/" + tok[1]);
-                        trackRow1Content.firstChild.getElementsByClassName("solo")[0].onmousedown = mouseDownEventHandler("SET/TRACK/" +idx+ "/SOLO/-1;TRACK/" +idx);
-                        trackRow1Content.firstChild.getElementsByClassName("monitor")[0].onmousedown = mouseDownEventHandler("SET/TRACK/" + idx + "/RECMON/-1;TRACK/" + idx);
-                        if(tok[3]!=trackFlagsAr[idx]){
-
-                            //~ recarmOffButton = trackRow1Content.firstChild.getElementsByClassName("recarm-off")[0];
-                            //~ recarmOnButton = trackRow1Content.firstChild.getElementsByClassName("recarm-on")[0];
-                            //~ if(tok[3]&64){recarmOffButton.style.visibility = "hidden"; recarmOnButton.style.visibility = "visible";}
-                            //~ else{recarmOffButton.style.visibility = "visible"; recarmOnButton.style.visibility = "hidden";}
-                            //~ recarmOffButton  = trackRow1Content.firstChild.getElementsByClassName("recarm-off")[0];
-                            //~ recarmOnButton   = trackRow1Content.firstChild.getElementsByClassName("recarm-on")[0];
-                            //~ recarmOn2Button  = trackRow1Content.firstChild.getElementsByClassName("recarm-on2")[0];
-                            //~ var isArmed      = tok[3]&64;
-                            //~ var isCh2        = isArmed && (trackArmChannelAr[idx] == 2);
-                            //~ recarmOffButton.style.visibility  = isArmed ? "hidden"  : "visible";
-                            //~ recarmOnButton.style.visibility   = (isArmed && !isCh2) ? "visible" : "hidden";
-                            //~ recarmOn2Button.style.visibility  = isCh2 ? "visible" : "hidden";
-
-                            soloOffButton = trackRow1Content.firstChild.getElementsByClassName("solo-off")[0];
-                            soloOnButton = trackRow1Content.firstChild.getElementsByClassName("solo-on")[0];
-                            if(tok[3]&16){soloOffButton.style.visibility = "hidden"; soloOnButton.style.visibility = "visible";}
-                            else{soloOffButton.style.visibility = "visible"; soloOnButton.style.visibility = "hidden";}
-
-                            muteOffButton = trackRow1Content.firstChild.getElementsByClassName("mute-off")[0];
-                            muteOnButton = trackRow1Content.firstChild.getElementsByClassName("mute-on")[0];
-                            if(tok[3]&64){muteOffButton.style.visibility = "hidden"; muteOnButton.style.visibility = "hidden";}
-                            else{ if(tok[3]&8){muteOffButton.style.visibility = "hidden"; muteOnButton.style.visibility = "visible";}
-                                else{muteOffButton.style.visibility = "visible"; muteOnButton.style.visibility = "hidden";}}
-
-                            monitorOffButton = trackRow1Content.firstChild.getElementsByClassName("monitor-off")[0];
-                            monitorOnButton = trackRow1Content.firstChild.getElementsByClassName("monitor-on")[0];
-                            monitorAutoButton = trackRow1Content.firstChild.getElementsByClassName("monitor-auto")[0];
-                            if(tok[3]&64){
-                                if(tok[3]&128){monitorOffButton.style.visibility = "hidden"; monitorOnButton.style.visibility = "visible"; monitorAutoButton.style.visibility = "hidden";}
-                                else{   if(tok[3]&256){monitorOffButton.style.visibility = "hidden"; monitorOnButton.style.visibility = "hidden"; monitorAutoButton.style.visibility = "visible";}
-                                        else{monitorOffButton.style.visibility = "visible"; monitorOnButton.style.visibility = "hidden"; monitorAutoButton.style.visibility = "hidden";}
+                                if(trackSendsContent.childNodes.length >trackSendHwCntAr[idx]){
+                                    trackSendsContent.removeChild(trackSendsContent.firstChild);
                                     }
                                 }
-                            else{monitorOffButton.style.visibility = "hidden"; monitorOnButton.style.visibility = "hidden"; monitorAutoButton.style.visibility = "hidden";}
+                    }
+                }
 
-                        if(tok[3]&512){ //track hidden in TCP
-                            document.getElementById("track" + idx).style.display="none";}
-                        else{document.getElementById("track" + idx).style.display = "block";}
+                var tracksDiv = document.getElementById('tracks');
+                if (tracksDiv!=null){
+                    var tracksDrawnIncMaster = tracksDiv.childNodes;
+                    var tracksDrawn = (tracksDrawnIncMaster.length - 1);
+                    if (tracksDrawn == nTrack-1) {
+                        tracksRendered = true;
+                    }
+                    }
+                if (tracksDrawn > nTrack) {
+                    tracks.removeChild(tracks.lastChild);
+                    }
+            }
+            break;
 
-                        folderIcon = trackRow1Content.firstChild.getElementsByClassName("folder_icon")[0];
-                        if(tok[3]&1){folderIcon.style.visibility = "visible";}
-                            else{folderIcon.style.visibility = "hidden";}
-                            trackFlagsAr[idx] = tok[3];
-                            }
+        case "SEND":
+            function sendConect(content, thumb){
+                content.addEventListener("mousemove", sendMouseMoveHandler, false);
+                content.addEventListener("touchmove", sendMouseMoveHandler, false);
+                content.addEventListener("mouseleave", mouseLeaveHandler, false);
+                content.addEventListener("mouseup", sendMouseUpHandler, false);
+                content.addEventListener("touchend", sendMouseUpHandler, false);
+                thumb.addEventListener("mousedown", function (event) {mouseDownHandler(event, event.srcElement)}, false);
+                thumb.addEventListener('touchstart', function(event){
+                    if (event.touches.length > 0) mouseDownHandler(event, event.srcElement);
+                    event.preventDefault(); }, false);
+                }
 
-                        if(tok[10]!=trackSendCntAr[idx]){
-                            sendIndicator = trackRow1Content.firstChild.getElementsByClassName("s_on")[0];
-                            if(tok[10]>0){sendIndicator.style.visibility = "visible";}
-                            else{sendIndicator.style.visibility = "hidden";}
-                            trackSendCntAr[idx] = tok[10];
-                            }
+            if (tok.length > 3) {
+                var targetName;
+                    if(tok[6]>0) targetName = trackNamesAr[tok[6]];
+                    else targetName = "Hardware";
+                var sendMuted = ", not muted";
+                if(tok[3]&8) sendMuted = ", MUTED";
 
-                        if(tok[11]!=trackRcvCntAr[idx]){
-                            rcvIndicator = trackRow1Content.firstChild.getElementsByClassName("r_on")[0];
-                            if(tok[11]>0){rcvIndicator.style.visibility = "visible";}
-                            else{rcvIndicator.style.visibility = "hidden";}
-                            trackRcvCntAr[idx] = tok[11];
-                            }
+                var trackSendsContent = document.getElementById("sendsTrack" + tok[1]);
+                if(trackSendsContent.childNodes.length>0){
+                    var thisSendDiv = trackSendsContent.childNodes[tok[2]];
+                    if(thisSendDiv!=null){
+                        thisSendDiv.id=[tok[2]];
+                        sendTitleText = thisSendDiv.firstChild.getElementsByClassName("sendTitleText")[0];
+                        if(sendTitleText.textContent!=targetName)sendTitleText.textContent = targetName;
+                        sDbText = thisSendDiv.firstChild.getElementsByClassName("sDbText")[0];
+                        sDbValue = mkvolstr(tok[4])
+                        if(sDbText.Content!=sDbValue)sDbText.textContent = sDbValue;
 
-                        if(tok[12]!=trackHwOutCntAr[idx]){
-                            sendIndicator = trackRow1Content.firstChild.getElementsByClassName("s_on")[0];
-                            if(tok[12]>0){sendIndicator.style.visibility = "visible";}
-                            trackHwOutCntAr[idx] = tok[12];
-                            }
+                        var sendLine = thisSendDiv.firstChild.getElementsByClassName("sendLine")[0];
+                        sLineSetting = (Math.pow(tok[4], 1/4) * 154) + 27;
+                        if(mouseDown != 1){sendLine.setAttributeNS(null, "x2", sLineSetting);}
 
-                        if(tok[6]!=trackPeakAr[idx]){
-                            clipIndicator = trackRow1Content.firstChild.getElementsByClassName("clip_on")[0];
-                            if(tok[6]>=0){clipIndicator.style.visibility = "visible";}
-                            else{clipIndicator.style.visibility = "hidden";}
-
-                            // cool idea but way too jittery to be tolerable
-                            //~ var vuBar = trackRow1Content.firstChild.getElementsByClassName("vuBar")[0];
-                            //~ if(vuBar) {
-                                //~ // convert linear to dB, map -60dB..0dB to 0..33px
-                                //~ var peak = tok[6];
-                                //~ var barWidth = 0;
-                                //~ if (typeof(time) !== "undefined") {
-                                    //~ console.log(Date.now()-time);
-                                    //~ time = Date.now();
-                                //~ } else {
-                                    //~ time = Date.now();
-                                //~ }
-                                //~ barWidth = Math.max(0, Math.min(33, (peak/600+1) * 33));
-                                //~ barWidth = Math.round( barWidth );
-                                //~ //console.log((peak/600+1) * 33);
-                                //~ vuBar.setAttributeNS(null, "width", barWidth);
-                            //~ }
-
-                            trackPeakAr[idx] = tok[6];
-                            }
-
-                        meterReadout = trackRow1Content.firstChild.getElementsByClassName("meterReadout")[0];
-                        meterReadout.textContent = (mkvolstr(tok[4]));
-
-                        if (tok[3]&64) {recarmCountAr[idx]=1} else{recarmCountAr[idx]=0}
-                            function getSum(total, num) {return total + num;}
-                            var armedCount = document.getElementById("armed_count");
-                            var armedText = document.getElementById("armed_text");
-                            recarmCount = recarmCountAr.reduce(getSum);
-                            armedCount.textContent = recarmCount;
-                            armedCount.setAttributeNS(null, "fill", ((recarmCount==0)?"#5D3729":"#545454"));
-                            armedText.setAttributeNS(null, "fill", ((recarmCount==0)?"#5D3729":"#545454"));
-
-                        var volThumb = trackRow2Content.firstChild.getElementsByClassName("fader")[0];
-                        if(faderConAr[idx]!=1){
-                            volFaderConect(trackRow2Content,volThumb);
-                            panKnobConnect(trackRow2Content, idx);
-                            trackDeleteConnect(trackRow2Content, idx);
-                            (function(capturedIdx) {
-                                trackRow1Content.firstChild.getElementsByClassName("recarm")[0].addEventListener("click", async function(e) {
-                                    if (recCycleInProgress[capturedIdx]) return;
-                                    recCycleInProgress[capturedIdx] = true;
-                                    try {
-                                        var result = await requestRecCycle(capturedIdx);
-                                        var row1 = document.getElementById("track" + capturedIdx).childNodes[0];
-                                        var bg    = row1.getElementsByClassName("recarmBg")[0];
-                                        var label = row1.getElementsByClassName("recarmLabel")[0];
-
-                                        if (result == "off") {
-                                            bg.setAttribute("fill", "#5D3729");
-                                            label.textContent = "";
-                                        } else if (result == "chan1") {
-                                            bg.setAttribute("fill", "#FF2200");
-                                            label.textContent = "1";
-                                        } else if (result == "chan2") {
-                                            bg.setAttribute("fill", "#FF6600");
-                                            label.textContent = "2";
-                                        }
-                                        //console.log("record arm cycled:", result);
-                                    } catch(e) {
-                                        console.log("failed:", e);
-                                    } finally {
-                                        recCycleInProgress[capturedIdx] = false;
+                        var sendThumb = thisSendDiv.firstChild.getElementsByClassName("sendThumb")[0];
+                        if(tok[6]>0){
+                            var sendTargetBg = document.getElementsByClassName("trackrow1bg")[(tok[6]-1)]
+                            if(sendTargetBg!=undefined){var sendTargetBgColour = (sendTargetBg.getAttribute("style"))}
+                            var sendThumbColour = sendThumb.getAttribute("style")
+                            var defaultColour = "fill: rgb(157, 165, 165);";
+                            if(sendTargetBgColour!=defaultColour){
+                                if(sendThumbColour!=sendTargetBgColour){
+                                    sendThumb.setAttributeNS(null, "style", sendTargetBgColour);
+                                    sendTitleText.setAttributeNS(null, "style", sendTargetBgColour);
+                                    sendThumb.setAttributeNS(null, "opacity", "0.5");
                                     }
-                                });
-                            })(idx);
-                            faderConAr[idx]=1;
+                                }
+                                else{
+                                    sendThumb.setAttributeNS(null, "style", "none");
+                                    sendTitleText.setAttributeNS(null, "style", "none");
+                                    sendThumb.setAttributeNS(null, "opacity", "0.5");
+                                    }
                             }
-                        volThumb.volSetting = (Math.pow(tok[4], 1/4) * (194.68-40-14)) + 40; //40 = pan knob width
-                        var vteMove = "translate(" + volThumb.volSetting + " 0)";
-                        if(mouseDown != 1){volThumb.setAttributeNS(null, "transform", vteMove);}
 
-                        // --- pan knob update ---
-                        var panVal = parseFloat(tok[5]); // tok[5] is pan, -1 to +1
-                        if(!isNaN(panVal) && trackPanAr[idx] != panVal) {
-                            trackPanAr[idx] = panVal;
-                            var panLine = trackRow2Content.firstChild.getElementsByClassName("panLine")[0];
-                            if(panLine) {
-                                var panAngle = panVal * 135; // -135 to +135 degrees
-                                panLine.setAttribute("transform", "rotate(" + panAngle + " 20 18)");
+                        sThumbSetting = (Math.pow(tok[4], 1/4) * 154) + 27;
+                        if(mouseDown != 1){sendThumb.setAttributeNS(null, "cx", sThumbSetting);}
+
+                        var sendMuteButton = thisSendDiv.firstChild.getElementsByClassName("send_mute")[0];
+                        sendMuteButton.onmousedown = mouseDownEventHandler("SET/TRACK/" + tok[1] + "/SEND/" + tok[2] + "/MUTE/-1");
+                        var sendMuteOff = thisSendDiv.firstChild.getElementsByClassName("send_mute_off")[0];
+                        var sendMuteOn = thisSendDiv.firstChild.getElementsByClassName("send_mute_on")[0];
+                        if(tok[3]&8){
+                            sendMuteOff.style.visibility = "hidden";
+                            sendMuteOn.style.visibility = "visible";
+                            }
+                        else{
+                            sendMuteOff.style.visibility = "visible";
+                            sendMuteOn.style.visibility = "hidden";
                             }
                         }
                     }
-                    var trackSendsContent = document.getElementById("sendsTrack" + idx);
-                    trackSendHwCntAr[idx] = (parseInt(trackSendCntAr[idx]) || 0) + (parseInt(trackHwOutCntAr[idx]) || 0);
-                        if(trackSendsContent!=null && trackSendHwCntAr[idx]!=null){
-                            if(trackSendsContent.childNodes.length < trackSendHwCntAr[idx]){
-                                    var sendDiv = document.createElement("div");
-                                    sendDiv.className = ("sendDiv");
-                                    trackSendsContent.appendChild(sendDiv);
-                                        sendDiv.appendChild(cloneTrackSend);
-                                    var thisSendThumb = sendDiv.getElementsByClassName("sendThumb")[0];
-                                    sendConect(sendDiv,thisSendThumb);
-                                    //bug - adding a send doesn't update the height of that send. So it'll be zero even if the panel is expanded.
-                                }
-                            if(trackSendsContent.childNodes.length >trackSendHwCntAr[idx]){
-                                trackSendsContent.removeChild(trackSendsContent.firstChild);
-                                }
-                            }
                 }
-            }
+            break;
 
-            var tracksDiv = document.getElementById('tracks');
-            if (tracksDiv!=null){
-                var tracksDrawnIncMaster = tracksDiv.childNodes;
-                var tracksDrawn = (tracksDrawnIncMaster.length - 1);
-                }
-            if (tracksDrawn > nTrack) {
-                tracks.removeChild(tracks.lastChild);
-                }
-      }
-    break;
-
-    case "SEND":
-        function sendConect(content, thumb){
-            content.addEventListener("mousemove", sendMouseMoveHandler, false);
-            content.addEventListener("touchmove", sendMouseMoveHandler, false);
-            content.addEventListener("mouseleave", mouseLeaveHandler, false);
-            content.addEventListener("mouseup", sendMouseUpHandler, false);
-            content.addEventListener("touchend", sendMouseUpHandler, false);
-            thumb.addEventListener("mousedown", function (event) {mouseDownHandler(event, event.srcElement)}, false);
-            thumb.addEventListener('touchstart', function(event){
-                if (event.touches.length > 0) mouseDownHandler(event, event.srcElement);
-                event.preventDefault(); }, false);
-            }
-
-        if (tok.length > 3) {
-            var targetName;
-                if(tok[6]>0) targetName = trackNamesAr[tok[6]];
-                else targetName = "Hardware";
-            var sendMuted = ", not muted";
-            if(tok[3]&8) sendMuted = ", MUTED";
-
-            var trackSendsContent = document.getElementById("sendsTrack" + tok[1]);
-            if(trackSendsContent.childNodes.length>0){
-                var thisSendDiv = trackSendsContent.childNodes[tok[2]];
-                if(thisSendDiv!=null){
-                    thisSendDiv.id=[tok[2]];
-                    sendTitleText = thisSendDiv.firstChild.getElementsByClassName("sendTitleText")[0];
-                    if(sendTitleText.textContent!=targetName)sendTitleText.textContent = targetName;
-                    sDbText = thisSendDiv.firstChild.getElementsByClassName("sDbText")[0];
-                    sDbValue = mkvolstr(tok[4])
-                    if(sDbText.Content!=sDbValue)sDbText.textContent = sDbValue;
-
-                    var sendLine = thisSendDiv.firstChild.getElementsByClassName("sendLine")[0];
-                    sLineSetting = (Math.pow(tok[4], 1/4) * 154) + 27;
-                    if(mouseDown != 1){sendLine.setAttributeNS(null, "x2", sLineSetting);}
-
-                    var sendThumb = thisSendDiv.firstChild.getElementsByClassName("sendThumb")[0];
-                    if(tok[6]>0){
-                        var sendTargetBg = document.getElementsByClassName("trackrow1bg")[(tok[6]-1)]
-                        if(sendTargetBg!=undefined){var sendTargetBgColour = (sendTargetBg.getAttribute("style"))}
-                        var sendThumbColour = sendThumb.getAttribute("style")
-                        var defaultColour = "fill: rgb(157, 165, 165);";
-                        if(sendTargetBgColour!=defaultColour){
-                            if(sendThumbColour!=sendTargetBgColour){
-                                sendThumb.setAttributeNS(null, "style", sendTargetBgColour);
-                                sendTitleText.setAttributeNS(null, "style", sendTargetBgColour);
-                                sendThumb.setAttributeNS(null, "opacity", "0.5");
-                                }
-                            }
-                            else{
-                                sendThumb.setAttributeNS(null, "style", "none");
-                                sendTitleText.setAttributeNS(null, "style", "none");
-                                sendThumb.setAttributeNS(null, "opacity", "0.5");
-                                }
-                        }
-
-                    sThumbSetting = (Math.pow(tok[4], 1/4) * 154) + 27;
-                    if(mouseDown != 1){sendThumb.setAttributeNS(null, "cx", sThumbSetting);}
-
-                    var sendMuteButton = thisSendDiv.firstChild.getElementsByClassName("send_mute")[0];
-                    sendMuteButton.onmousedown = mouseDownEventHandler("SET/TRACK/" + tok[1] + "/SEND/" + tok[2] + "/MUTE/-1");
-                    var sendMuteOff = thisSendDiv.firstChild.getElementsByClassName("send_mute_off")[0];
-                    var sendMuteOn = thisSendDiv.firstChild.getElementsByClassName("send_mute_on")[0];
-                    if(tok[3]&8){
-                        sendMuteOff.style.visibility = "hidden";
-                        sendMuteOn.style.visibility = "visible";
-                        }
-                    else{
-                        sendMuteOff.style.visibility = "visible";
-                        sendMuteOn.style.visibility = "hidden";
-                        }
-                    }
-                }
-            }
-    }
-  }
-    if(trackSendHwCntAr.length>0){
-        for(x=0;x<trackSendHwCntAr.length;x++){
-            if(trackSendHwCntAr[x]>0){
-                for(y=0;y<trackSendHwCntAr[x];y++){
-                wwr_req("GET/TRACK/" + x + "/SEND/" + y);
-                    }
-                }
-            }
-        }
-    wwr_listeners.forEach(function(fn) {fn(results); });
-}
-
-function updateProjectName() {
-    var done = [false, false, false];
-    function listener(results) {
-        if (done[0] && done [1] && done[2]) return;
-        var ar = results.split("\n");
-        for (var i = 0; i < ar.length; i++) {
-            var tok = ar[i].split("\t");
+        case "EXTSTATE":
             if (tok[0] == "EXTSTATE" && tok[1] == "Fanciest" && tok[2] == "CurrentProject") {
-                done[0] = true;
-                wwr_listeners = wwr_listeners.filter(function(f) { return f !== listener; });
                 var el = document.getElementById("projectNameDisplay");
                 if (tok[3]) name = tok[3];
                 else name = "unsaved";
                 if (el) el.textContent = name;
             } else if (tok[0] == "EXTSTATE" && tok[1] == "Fanciest" && tok[2] == "SelectDisplay") {
-                done[1] = true;
                 timesel_points = [];
                 if ( tok[3]=="none" ) {
                     timesel_points.push(null);
@@ -1142,14 +1151,14 @@ function updateProjectName() {
                     wwr_req("REGION");
                 }
             } else if (tok[0] == "EXTSTATE" && tok[1] == "Fanciest" && tok[2] == "ArmDisplay") {
-                done[2] = true;
-                if (tok[3] != '') {
+                if (tok[3] != '' && tracksRendered) {
                     armStates = tok[3].split(":");
                     for (var t = 0; t<armStates.length; t++) {
                         var row1 = document.getElementById("track" + (t+1)).childNodes[0];
                         var bg    = row1.getElementsByClassName("recarmBg")[0];
                         var label = row1.getElementsByClassName("recarmLabel")[0];
                         var result = armStates[t];
+                        if (!bg) break;
 
                         if (result == "off") {
                             bg.setAttribute("fill", "#5D3729");
@@ -1163,37 +1172,24 @@ function updateProjectName() {
                         }
                     }
                 }
-            }
-        }
-    };
-    wwr_listeners.push(listener);
-    wwr_req("_RSe6f7f64d341520fb0ec902a7c0580f1b423e7fc7"); // get current project name
-    setTimeout(function() {
-        wwr_req("GET/EXTSTATE/Fanciest/CurrentProject");
-        wwr_req("GET/EXTSTATE/Fanciest/SelectDisplay");
-        wwr_req("GET/EXTSTATE/Fanciest/ArmDisplay");
-    }, 300);
-}
-
-function updateTempo() {
-    var done = false;
-    function listener(results) {
-        if (done) return;
-        var ar = results.split("\n");
-        for (var i = 0; i < ar.length; i++) {
-            var tok = ar[i].split("\t");
-            if (tok[0] == "EXTSTATE" && tok[1] == "Fanciest" && tok[2] == "CurrentTempo") {
-                done = true;
-                wwr_listeners = wwr_listeners.filter(function(f) { return f !== listener; });
+            } else if (tok[0] == "EXTSTATE" && tok[1] == "Fanciest" && tok[2] == "CurrentTempo") {
                 if (tok[3]) currentTempo = Number(tok[3]);
+            } else if (tok[0] == "EXTSTATE" && tok[1] == "Fanciest" && tok[2] == "ProjectList" && tok[3] && tok[3] != "") {
+                projectList = tok[3];
+            }
+            break;
+    }
+  }
+    if(trackSendHwCntAr.length>0){
+        for(x=0;x<trackSendHwCntAr.length;x++){
+            if(trackSendHwCntAr[x]>0){
+                for(y=0;y<trackSendHwCntAr[x];y++){
+                wwr_req("GET/TRACK/" + x + "/SEND/" + y);
+                    }
+                }
             }
         }
-    };
-    wwr_listeners.push(listener);
-    wwr_req("_RSfee01d3e4ca569bed48f2466c1453be35ab1d27e"); // get current project tempo
-    setTimeout(function() {
-        wwr_req("GET/EXTSTATE/Fanciest/CurrentTempo");
-    }, 300);
+    wwr_listeners.forEach(function(fn) {fn(results); });
 }
 
 function on_record_button(e) {
@@ -1324,8 +1320,8 @@ function init(){
       }
     }
   }
-  updateProjectName();
-  updateTempo();
+//   updateProjectName();
+//   updateTempo();
 }
 </script>
 </head>
@@ -1439,8 +1435,8 @@ function init(){
 	</g>-->
     <g id="buttonPreroll" class="button" onClick="wwr_req(41819)">
         <rect class="iconBg" x="183.3" y="1.6" fill="#262626" width="43.9" height="43.9"/>
-        <rect id="prerollBg" x="183.3" y="1.6" opacity="0.2" fill="#262626" width="43.9" height="43.9"/>
-        <rect class="active" visibility="hidden" x="183.3" y="1.6" fill="#8a9999" width="43.9" height="43.9"/>
+        <!-- <rect id="prerollBg" x="183.3" y="1.6" opacity="0.2" fill="#262626" width="43.9" height="43.9"/> -->
+        <rect id="prerollActive" class="active" visibility="hidden" x="183.3" y="1.6" fill="#8a9999" width="43.9" height="43.9"/>
         <!-- single teal icon always visible -->
         <line x1="205.3" y1="10" x2="205.3" y2="37" stroke="#57FF86" stroke-width="1.5" stroke-dasharray="3,2"/>
         <polygon fill="#57FF86" points="191,19 191,27 197,23"/>
@@ -1449,7 +1445,7 @@ function init(){
         <line x1="195" y1="23" x2="198" y2="23" stroke="#57FF86" stroke-width="2"/>
         <polygon fill="#57FF86" points="209,19 209,27 215,23"/>
         <line x1="206" y1="23" x2="209" y2="23" stroke="#57FF86" stroke-width="2"/>
-        <g class="gloss">
+        <g id="prerollGloss" class="gloss">
             <rect x="183.3" y="1.6" opacity="0.2" fill="#262626" width="43.9" height="43.9"/>
             <rect x="183.3" y="1.6" opacity="5.000000e-02" fill="#FFFFFF" width="43.9" height="21.9"/>
         </g>
@@ -2793,47 +2789,9 @@ function removeAllTracks() {
     trackSendHwCntAr = [];
     recarmCountAr = [];
     recCycleInProgress = [];
+    tracksRendered = false;
 }
 
-function wwr_req_then_poll(maxAttempts) {
-    return new Promise(function(resolve, reject) {
-        maxAttempts = maxAttempts || 20;
-        var attempts = 0;
-        var done = false;
-
-        function listener(results) {
-            if (done) return;
-            var ar = results.split("\n");
-            for (var i = 0; i < ar.length; i++) {
-                var tok = ar[i].split("\t");
-                if (tok[0] == "EXTSTATE" && tok[1] == "Fanciest" && tok[2] == "ProjectList" && tok[3] && tok[3] != "") {
-                    done = true;
-                    clearInterval(interval);
-                    wwr_listeners = wwr_listeners.filter(function(f) { return f !== listener; });
-                    resolve(tok[3]);
-                    return;
-                }
-            }
-        };
-
-        wwr_listeners.push(listener);
-        wwr_req("_RS99f117755ebbf002528fae80ba7693ec86ae8bca");
-
-        var interval = setInterval(function() {
-            if (done) { clearInterval(interval); return; }
-            attempts++;
-            wwr_req("GET/EXTSTATE/Fanciest/ProjectList");
-            if (attempts >= maxAttempts) {
-                clearInterval(interval);
-                if (!done) {
-                    done = true;
-                    wwr_listeners = wwr_listeners.filter(function(f) { return f !== listener; });
-                    reject("timed out");
-                }
-            }
-        }, 200);
-    });
-}
 
 var selectedProject = null;
 
@@ -2870,8 +2828,8 @@ function openProjectModal(projects) {
 function closeProjectModal() {
     document.getElementById("projectModal").style.display = "none";
     selectedProject = null;
-    updateProjectName();
-    updateTempo();
+    // updateProjectName();
+    // updateTempo();
 }
 
 document.getElementById("projectModalBackdrop").addEventListener("click", closeProjectModal);
@@ -2896,8 +2854,7 @@ document.getElementById("btnConfirmLoad").addEventListener("click", function(e) 
 document.getElementById("btnOpen").addEventListener("click", async function(e) {
     e.stopPropagation();
     try {
-        var result = await wwr_req_then_poll();
-        openProjectModal(result.split("\\n"));
+        openProjectModal(projectList.split("\\n"));
     } catch(e) {
         console.log("failed:", e);
     }
@@ -2917,16 +2874,16 @@ document.getElementById("btnSave").addEventListener("click", function(e) {
     wwr_req("SET/EXTSTATE/Fanciest/ProjectSave/" + saveName + ';_RS12aef7ab8f1d95c0c23b1c1f4a6d0fd80322cc6b');// save project
     //wwr_req("");//
     console.log("save", saveName);
-    updateProjectName();
+    // updateProjectName();
 });
 
 
 var tempoEditMode = null; // "bpm", "num", or "den"
 var currentTempo = 120;
-updateTempo();
+// updateTempo();
 
 function openTempoModal() {
-    updateTempo();
+    // updateTempo();
     document.getElementById("tempoDisplay").textContent = Number(currentTempo).toFixed(3);
     document.getElementById("timeSigNum").textContent = ts_numerator;
     document.getElementById("timeSigDen").textContent = ts_denominator;
@@ -2941,59 +2898,7 @@ function closeTempoModal() {
     tempoEditMode = null;
 }
 
-//~ function openTempoEdit(mode) {
-    //~ tempoEditMode = mode;
-    //~ var input = document.getElementById("tempoEditInput");
-    //~ var label = document.getElementById("tempoEditLabel");
-    //~ var area  = document.getElementById("tempoEditArea");
-
-    //~ if (mode === "bpm") {
-        //~ label.textContent = "BPM";
-        //~ input.type = "number";
-        //~ input.min = "20";
-        //~ input.max = "960";
-        //~ input.step = "0.001";
-        //~ input.value = currentTempo.toFixed(3);
-    //~ } else if (mode === "num") {
-        //~ label.textContent = "BEATS PER BAR";
-        //~ input.type = "number";
-        //~ input.min = "1";
-        //~ input.max = "32";
-        //~ input.step = "1";
-        //~ input.value = ts_numerator;
-    //~ } else if (mode === "den") {
-        //~ label.textContent = "BEAT VALUE";
-        //~ input.type = "number";
-        //~ input.min = "1";
-        //~ input.max = "32";
-        //~ input.step = "1";
-        //~ input.value = ts_denominator;
-    //~ }
-
-    //~ area.style.display = "block";
-    //~ setTimeout(function() { input.focus(); input.select(); }, 50);
-//~ }
-
 function confirmTempoEdit() {
-    //~ var input = document.getElementById("tempoEditInput");
-    //~ var val = parseFloat(input.value);
-    //~ if (isNaN(val)) { closeTempoEdit(); return; }
-
-    //~ if (tempoEditMode === "bpm") {
-        //~ val = Math.min(960, Math.max(20, val));
-        //~ currentTempo = val;
-        //~ wwr_req("SET/TEMPO/" + val);
-        //~ document.getElementById("tempoDisplay").textContent = val.toFixed(3);
-    //~ } else if (tempoEditMode === "num") {
-        //~ val = Math.min(32, Math.max(1, Math.round(val)));
-        //~ wwr_req("SET/TIMESIG/" + val + "/" + ts_denominator);
-        //~ document.getElementById("timeSigNum").textContent = val;
-    //~ } else if (tempoEditMode === "den") {
-        //~ val = Math.min(32, Math.max(1, Math.round(val)));
-        //~ wwr_req("SET/TIMESIG/" + ts_numerator + "/" + val);
-        //~ document.getElementById("timeSigDen").textContent = val;
-    //~ }
-
     closeTempoEdit();
 }
 
@@ -3165,7 +3070,7 @@ function closeTimeSelModal() {
     document.getElementById("timeSelModal").style.display = "none";
     timeSelFrom = null;
     timeSelTo   = null;
-    updateProjectName();
+    // updateProjectName();
 }
 
 document.getElementById("timeSelBackdrop").addEventListener("click", closeTimeSelModal);
