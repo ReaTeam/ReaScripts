@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="f3005e2f39cb1ae1627ba1c32018a35f0ab08b08" name="ReaTeam Scripts">
+<index version="1" commit="ded47fb3f746f54a7d74f265c2ce17bd1d6bbe06" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -31256,6 +31256,20 @@ ProjectFolder=/path/to/folder/\par}
         <source main="main" type="script" file="rxfx_Turing-complete/rxfx_Turing-complete - Set time signature.lua">https://github.com/ReaTeam/ReaScripts/raw/f3005e2f39cb1ae1627ba1c32018a35f0ab08b08/Web%20Interfaces/rxfx_Turing-complete/rxfx_Turing-complete%20-%20Set%20time%20signature.lua</source>
         <source file="rxfx_turing_complete.html">https://github.com/ReaTeam/ReaScripts/raw/f3005e2f39cb1ae1627ba1c32018a35f0ab08b08/Web%20Interfaces/rxfx_Turing-complete/rxfx_turing_complete.html</source>
         <source file="rxfx_turing_complete/OpenSans-VariableFont_wdth,wght.ttf">https://github.com/ReaTeam/ReaScripts/raw/f3005e2f39cb1ae1627ba1c32018a35f0ab08b08/Web%20Interfaces/rxfx_Turing-complete/OpenSans-VariableFont_wdth,wght.ttf</source>
+      </version>
+      <version name="0.1beta" author="Rek's Effeks" time="2026-04-20T06:19:02Z">
+        <source main="main" type="script" file="rxfx_Turing-complete/rxfx_Turing-complete - Cycle track record arm.lua">https://github.com/ReaTeam/ReaScripts/raw/ded47fb3f746f54a7d74f265c2ce17bd1d6bbe06/Web%20Interfaces/rxfx_Turing-complete/rxfx_Turing-complete%20-%20Cycle%20track%20record%20arm.lua</source>
+        <source main="main" type="script" file="rxfx_Turing-complete/rxfx_Turing-complete - Set time selection from markers.lua">https://github.com/ReaTeam/ReaScripts/raw/ded47fb3f746f54a7d74f265c2ce17bd1d6bbe06/Web%20Interfaces/rxfx_Turing-complete/rxfx_Turing-complete%20-%20Set%20time%20selection%20from%20markers.lua</source>
+        <source main="main" type="script" file="rxfx_Turing-complete/rxfx_Turing-complete - New project.lua">https://github.com/ReaTeam/ReaScripts/raw/ded47fb3f746f54a7d74f265c2ce17bd1d6bbe06/Web%20Interfaces/rxfx_Turing-complete/rxfx_Turing-complete%20-%20New%20project.lua</source>
+        <source main="main" type="script" file="rxfx_Turing-complete/rxfx_Turing-complete - Open selected project.lua">https://github.com/ReaTeam/ReaScripts/raw/ded47fb3f746f54a7d74f265c2ce17bd1d6bbe06/Web%20Interfaces/rxfx_Turing-complete/rxfx_Turing-complete%20-%20Open%20selected%20project.lua</source>
+        <source main="main" type="script" file="rxfx_Turing-complete/rxfx_Turing-complete - Read current project.lua">https://github.com/ReaTeam/ReaScripts/raw/ded47fb3f746f54a7d74f265c2ce17bd1d6bbe06/Web%20Interfaces/rxfx_Turing-complete/rxfx_Turing-complete%20-%20Read%20current%20project.lua</source>
+        <source main="main" type="script" file="rxfx_Turing-complete/rxfx_Turing-complete - Rename track from ExtState.lua">https://github.com/ReaTeam/ReaScripts/raw/ded47fb3f746f54a7d74f265c2ce17bd1d6bbe06/Web%20Interfaces/rxfx_Turing-complete/rxfx_Turing-complete%20-%20Rename%20track%20from%20ExtState.lua</source>
+        <source main="main" type="script" file="rxfx_Turing-complete/rxfx_Turing-complete - Save project as.lua">https://github.com/ReaTeam/ReaScripts/raw/ded47fb3f746f54a7d74f265c2ce17bd1d6bbe06/Web%20Interfaces/rxfx_Turing-complete/rxfx_Turing-complete%20-%20Save%20project%20as.lua</source>
+        <source main="main" type="script" file="rxfx_Turing-complete/rxfx_Turing-complete - Send project list.lua">https://github.com/ReaTeam/ReaScripts/raw/ded47fb3f746f54a7d74f265c2ce17bd1d6bbe06/Web%20Interfaces/rxfx_Turing-complete/rxfx_Turing-complete%20-%20Send%20project%20list.lua</source>
+        <source main="main" type="script" file="rxfx_Turing-complete/rxfx_Turing-complete - Send tempo.lua">https://github.com/ReaTeam/ReaScripts/raw/ded47fb3f746f54a7d74f265c2ce17bd1d6bbe06/Web%20Interfaces/rxfx_Turing-complete/rxfx_Turing-complete%20-%20Send%20tempo.lua</source>
+        <source main="main" type="script" file="rxfx_Turing-complete/rxfx_Turing-complete - Set time signature.lua">https://github.com/ReaTeam/ReaScripts/raw/ded47fb3f746f54a7d74f265c2ce17bd1d6bbe06/Web%20Interfaces/rxfx_Turing-complete/rxfx_Turing-complete%20-%20Set%20time%20signature.lua</source>
+        <source file="rxfx_turing_complete.html">https://github.com/ReaTeam/ReaScripts/raw/ded47fb3f746f54a7d74f265c2ce17bd1d6bbe06/Web%20Interfaces/rxfx_Turing-complete/rxfx_turing_complete.html</source>
+        <source file="rxfx_turing_complete/OpenSans-VariableFont_wdth,wght.ttf">https://github.com/ReaTeam/ReaScripts/raw/ded47fb3f746f54a7d74f265c2ce17bd1d6bbe06/Web%20Interfaces/rxfx_Turing-complete/OpenSans-VariableFont_wdth,wght.ttf</source>
       </version>
     </reapack>
   </category>
