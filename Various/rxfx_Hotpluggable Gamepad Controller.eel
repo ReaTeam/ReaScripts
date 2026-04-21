@@ -1,0 +1,412 @@
+// @description Gamepad Controller for Reaper
+// @author Rek's Effeks
+// @version 1.0
+// @changelog Initial upload
+// @about
+//   Hotplug-enabled gamepad controller script for Reaper. Requires SWS extension. Simply run the script, plug in your controller and let it do its thing. DISCLAIMER: developed on Linux, so all the button codes and stuff MIGHT be different.
+//
+//   Controls:
+//
+//   - A - redo
+//   - B - undo
+//   - X - record
+//   - Y - play/stop
+//   - Bumpers - skip the cursor between markers
+//   - Main/guide button - all notes off + reset midi controllers
+//   - D-pad - select track (left-right moves by 1, up-down skips to top or bottom of the tracklist)
+//
+//   SELECT button plus:
+//   - A - new track
+//   - B - delete selected track
+//   - X - record-arm mode
+//   - Y - nothing
+//   - Right bumper - tap tempo
+//
+//   When in record-arm mode, press X or Y to arm input 1 or 2; B to disarm the selected track; the main/guide button to disarm all tracks; or A to cancel.
+//
+//   START button plus:
+//   - A - new marker at playhead (snapped to grid)
+//   - B - delete closest marker
+//   - X - time-select mode
+//   - Y - toggle repeat
+//   - Bumpers - skip to start or end of project
+//   - D-pad horizontal - enable/disable metronome (right means on)
+//   - D-pad vertical - enable/disable pre-roll before record (up means on)
+//
+//   When entering time-select mode, you're moved to the start of the project. From there you can marker-skip to one of your loop points using the bumpers, then press X to confirm it. Use the same controls to select and confirm your second point (it won't send you to the start of the project the second time), or press A to cancel anytime. Your previous edit position will restore.
+//
+//   START AND SELECT plus:
+//   - Right bumper - graft in selection time (extend project)
+//   - Left bumper - chop out selection time (shorten project)
+//
+//   Adapted from Ole Kirkeby's Xbox One joystick script from January 2019.
+
+
+// Button codes, constants given by the system. Do not change
+BUTTON_A = 1;
+BUTTON_B = 2;
+BUTTON_X = 4;
+BUTTON_Y = 8;
+BUTTON_LB = 16;
+BUTTON_RB = 32;
+BUTTON_SELECT =   64;
+BUTTON_START  =  128;
+BUTTON_MAIN   =  256;
+BUTTON_JOY_L  =  512;
+BUTTON_JOY_R  = 1024;
+
+// Axis bindings. Given by the system
+// Joystick L x = axis(0), -1 <= out <= 1
+// Joystick L y = axis(1), -1 <= out <= 1 positive downwards
+// Joystick R x = axis(3), -1 <= out <= 1
+// Joystick R y = axis(4), -1 <= out <= 1 positive downwards
+// Trigger L = axis(2) positive,  0 <= out <= 1
+// Trigger R = axis(2) negative, -1 <= out <= 0
+
+// Control change messages. Change as desired
+// CC 20-31 are unallocated
+TRIGGER_CC = 20;
+
+
+guid       =  1;
+oldaxis    =  100;  // strings/array addresses
+
+
+
+function axis(ax)
+(
+  0[ax];
+);
+
+function str(n)
+(
+  x = #;
+  sprintf(x,"%f", n);
+  x;
+);
+
+function r(command)
+(
+  Main_OnCommand(command, 0);
+);
+
+function n(command)
+(
+  Main_OnCommand( NamedCommandLookup(command), 0);
+);
+
+function setup()
+(
+  // Joystick setup
+  joystick_enum(guid, 0);
+  joystick_index = 0;
+
+  // Personal setup preference
+  match("*0000*", guid) ? (
+    joystick_enum(guid, 1);
+    joystick_index = 1;
+  );
+
+  (strlen(guid)==0) ? (
+    defer("setup()");
+  ):(
+    xbox = joystick_create(guid);
+    joystick_getinfo(xbox, numaxis);
+    i = 0;
+    loop(numaxis,
+        axis(i)    = joystick_getaxis(xbox, i);
+        oldaxis[i] = axis(i);
+        i += 1;
+    );
+    oldbuttons = joystick_getbuttonmask(xbox);
+
+    defer("main_loop()");
+  );
+);
+
+function main_loop()
+(
+  // really weird method to check if controller still plugged in
+  // far as i know this is The Only way to do so
+  i=0;
+  loop(5,
+    numbr = #numbr;
+    joystick_enum(#numbr, i);
+    i == joystick_index ? (
+      strlen(#numbr) > 0 ? (
+        working = 1;
+      ):(
+        working = 0;
+      );
+    );
+    i += 1;
+  );
+
+  // if it's still plugged in
+  working ? (
+    // refresh info
+    joystick_update(xbox);
+    buttons = joystick_getbuttonmask(xbox);
+    i = 0;
+    loop(numaxis,
+      0[i] = joystick_getaxis(xbox, i);
+      i+=1;
+    );
+
+    // deal with buttons
+    oldbuttons != buttons ? (
+
+      // a
+      // redo, new track, create marker
+      (buttons & BUTTON_A) != (oldbuttons & BUTTON_A) ? (
+        (buttons & BUTTON_A) ? ( // only run when pressed not released
+          (buttons & BUTTON_SELECT) ? (
+            r(40702); // new track at end of tcp
+          ):(
+            (buttons & BUTTON_START) ? (
+              Undo_BeginBlock();
+              r(40157); // marker @ playhead
+              n("_BR_CLOSEST_PROJ_MARKER_PLAY_SNAP"); // snap it in place
+              r(40898); // renumber markers etc
+              Undo_EndBlock("Make new snapped marker", 0);
+            ):(
+              RecCycleActive ? (
+                RecCycleActive = 0; // cancel
+              ):(
+                MarkerSelActive ? (
+                  n("_BR_RESTORE_CURSOR_POS_SLOT_2");
+                  MarkerSelActive = 0; // cancel
+                ):(
+                  r(40030); // redo
+                );
+              );
+            );
+          );
+        );
+      );
+
+      // b
+      // undo, delete track, delete marker
+      (buttons & BUTTON_B) != (oldbuttons & BUTTON_B) ? (
+        (buttons & BUTTON_B) ? (
+          (buttons & BUTTON_SELECT) ? (
+            r(40005); // delete track
+          ):(
+            (buttons & BUTTON_START) ? (
+              Undo_BeginBlock();
+              n("_BR_SAVE_CURSOR_POS_SLOT_1"); // save edit cursor pos
+              r(40434); // move edit cursor 2 playhead
+              r(40613); // dlete marker near cursor
+              n("_BR_RESTORE_CURSOR_POS_SLOT_1");
+              r(40898); // renumber markers etc
+              Undo_EndBlock("Delete closest marker", 0);
+            ):(
+              RecCycleActive ? (
+                tr = GetSelectedTrack(0,0);
+                SetMediaTrackInfo_Value(tr, "I_RECARM", 0); // set selected track to disarmed
+                RecCycleActive = 0;
+              ):(
+                r(40029); // undo
+              );
+            );
+          );
+        );
+      );
+
+      // x
+      // record, start record cycle, set loop edit
+      (buttons & BUTTON_X) != (oldbuttons & BUTTON_X) ? (
+        (buttons & BUTTON_X) ? (
+          (buttons & BUTTON_SELECT) ? (
+            RecCycleActive = 1;
+          ):(
+            (buttons & BUTTON_START) ? (
+              MarkerSelActive = 1;
+              FirstTime = 0;
+              SecondTime = 0;
+              MSelStage = 0;
+              n("_BR_SAVE_CURSOR_POS_SLOT_2");
+              r(40042); // go to project start
+            ):(
+              RecCycleActive ? (
+                tr = GetSelectedTrack(0,0);
+                SetMediaTrackInfo_Value(tr, "I_RECINPUT", 0); // set selected track to record arm channel 1
+                SetMediaTrackInfo_Value(tr, "I_RECARM", 1);
+                RecCycleActive = 0;
+              ):(
+                MarkerSelActive ? ( // if currently in marker select mode,
+                  MSelStage == 0 ? (
+                    FirstTime = GetCursorPosition(); // lock in the first position (edit cursor)
+                    MSelStage = 1;                   // and move to stage 2
+                  ):(
+                    SecondTime = GetCursorPosition();
+                    GetSet_LoopTimeRange(1, 0, FirstTime, SecondTime, 1); // set time selection and return to normal
+                    n("_BR_RESTORE_CURSOR_POS_SLOT_2");
+                    MarkerSelActive = 0;
+                  );
+                ):(
+                  r(1013); // record
+                );
+              );
+            );
+          );
+        );
+      );
+
+      // y button
+      // play/stop, nothing, toggle repeat
+      (buttons & BUTTON_Y) != (oldbuttons & BUTTON_Y) ? (
+        (buttons & BUTTON_Y) ? (
+          (buttons & BUTTON_SELECT) ? (
+            //buttonCC(BUTTON_Y, CC_Y1);
+            0; // nothing yet
+          ):(
+            (buttons & BUTTON_START) ? (
+              r(1068); // toggle repeat
+            ):(
+              RecCycleActive ? (
+                tr = GetSelectedTrack(0,0);
+                SetMediaTrackInfo_Value(tr, "I_RECINPUT", 1); // set selected track to record arm channel 2
+                SetMediaTrackInfo_Value(tr, "I_RECARM", 1);
+                RecCycleActive = 0;
+              ):(
+                r(40044); // play/stop
+              );
+            );
+          );
+        );
+      );
+
+      // bumpers - skip markers, tap tempo, go to start/end, insert/remove selection time (start + select)
+      (buttons & BUTTON_LB) != (oldbuttons & BUTTON_LB) ? (
+        (buttons & BUTTON_LB) ? (
+          (buttons & BUTTON_START) ? (
+            (buttons & BUTTON_SELECT) ? (
+              r(40201); // chop out selection
+            ):(
+              r(40042); // go to start
+            );
+          ):(
+            r(40172); // prev marker or start
+          );
+        );
+      );
+      (buttons & BUTTON_RB) != (oldbuttons & BUTTON_RB) ? (
+        (buttons & BUTTON_RB) ? (
+          (buttons & BUTTON_START) ? (
+            (buttons & BUTTON_SELECT) ? (
+              r(40200); // graft in selection
+            ):(
+              r(40043); // go to end (start only)
+            );
+          ):(
+            (buttons & BUTTON_SELECT) ? (
+              r(1134); // tap tempo (select only)
+            ):(
+              r(40173); // next marker or end (no modifier)
+            );
+          );
+        );
+      );
+
+      // main button - reset controllers, all notes off, disarm all tracks
+      (buttons & BUTTON_MAIN) != (oldbuttons & BUTTON_MAIN) ? (
+        (buttons & BUTTON_MAIN) ? (
+          RecCycleActive ? (
+            r(40491); // disarm all tracks
+            RecCycleActive = 0;
+          ):(
+            r(40345); // all notes off to everything
+            r(41175); // reset all midi devices
+          );
+        );
+      );
+    );
+
+    // dpad - various movement controls
+    oldaxis[6] != axis(6) ? ( // horizontal
+      value = 127 * axis(6);
+      value < 0 ? (
+        (buttons & BUTTON_START) ? (
+          r(41746); // disable metronome
+        ):(
+          r(40286); // go to prev track
+        );
+      );
+      value > 0 ? (
+        (buttons & BUTTON_START) ? (
+          r(41745); // enable metronome
+        ):(
+          r(40285); // go to next track
+        );
+      );
+    );
+
+    oldaxis[7] != axis(7) ? ( // vertical
+      value = 127 * axis(7);
+      value > 0 ? (
+        (buttons & BUTTON_START) ? (
+          GetToggleCommandState(41819) ? (
+            r(41819); // disable pre-roll if it's enabled
+          );
+        ):(
+          MarkerSelActive ? (
+            r(40043); // go to project end
+          ):(
+            r(40296); // select last track
+            n("_XENAKIOS_SELLASTOFSELTRAX");
+          );
+        );
+      );
+      value < 0 ? (
+        (buttons & BUTTON_START) ? (
+          !GetToggleCommandState(41819) ? (
+            r(41819); // enable pre-roll if it's disabled
+          );
+        ):(
+          MarkerSelActive ? (
+            r(40042); // go to project start
+          ):(
+            r(40296); // select first track
+            n("_XENAKIOS_SELFIRSTOFSELTRAX");
+          );
+        );
+      );
+    );
+    // deprecated midi stuff
+    /*oldaxis[0] != axis(0) ? (
+      value = (axis(0) + 1) * 8192;
+      value < 0 ? value = 0 : value > 16383 ? value = 16383;
+      //event(MIDI_CONTROL_CHANGE * 16 + CHAN, CC_JOY_L_WE,     (value / 128) | 0); // MSB
+      //event(MIDI_CONTROL_CHANGE * 16 + CHAN, CC_JOY_L_WE + 32, value & 127);      // LSB
+    );
+
+    oldaxis[1] != axis(1) ? (
+      value = (axis(1) + 1) * 8192;
+      value < 0 ? value = 0 : value > 16383 ? value = 16383;
+      //event(MIDI_CONTROL_CHANGE * 16 + CHAN, CC_JOY_L_NS,     (value / 128) | 0); // MSB
+      //event(MIDI_CONTROL_CHANGE * 16 + CHAN, CC_JOY_L_NS + 32, value & 127);      // LSB
+    );
+
+    (oldaxis[2] != axis(2)) || (oldaxis[5] != axis(5)) ? (
+      value = 64 * (axis(5)-axis(2)) + 64;
+      //event(MIDI_CONTROL_CHANGE * 16 + CHAN, TRIGGER_CC, value);
+    );*/
+
+
+    // log the frame & rerun
+    oldbuttons = buttons;
+    i=0;
+    loop(numaxis,
+      oldaxis[i] = axis(i);
+      i+=1;
+    );
+    defer("main_loop()");
+  ):(
+    // if controller no longer in guid list
+    joystick_destroy(xbox);
+    defer("setup()");
+  );
+);
+
+setup();
