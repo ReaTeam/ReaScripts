@@ -1,9 +1,9 @@
 // @description Gamepad controller for REAPER
 // @author Rek's Effeks
-// @version 1.1
-// @changelog Added Windows support and trigger scrubbing
+// @version 1.1.01
+// @changelog Added Windows support and (now fixed) trigger scrubbing
 // @about
-//   Hotplug-enabled gamepad controller script for Reaper. Requires SWS extension. Simply run the script, plug in your controller and let it do its thing. DISCLAIMER: developed on Linux, so all the button codes and stuff MIGHT be different.
+//   Hotplug-enabled gamepad controller script for Reaper. Requires SWS extension. Simply run the script, plug in your controller and let it do its thing.
 //
 //   Controls:
 //
@@ -453,8 +453,9 @@ function main_loop()
       //event(MIDI_CONTROL_CHANGE * 16 + CHAN, CC_JOY_L_NS,     (value / 128) | 0); // MSB
       //event(MIDI_CONTROL_CHANGE * 16 + CHAN, CC_JOY_L_NS + 32, value & 127);      // LSB
     );*/
-
-    CSurf_ScrubAmt(-4*TRIGGERS());
+    TRIGGERS() ? (
+      CSurf_ScrubAmt(-4*TRIGGERS());
+    );
 
 
     // log the frame & rerun
