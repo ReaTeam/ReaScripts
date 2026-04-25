@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="65c9f06bd7b5549ad3c4ebfcf0cd81b1cae91b7f" name="ReaTeam Scripts">
+<index version="1" commit="98e6de5a975a9b5be8e2c43ca4d899e391a5e341" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -29548,6 +29548,50 @@ Fix SWS Startup / Lokasenna Radial Menu bug]]></changelog>
       </metadata>
       <version name="1.0" author="Rodilab" time="2021-03-06T02:07:06Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d6adaa5ef60369701c7f3d399b228645ed9577a7/Various/rodilab_Smart%20select%20all%20(depending%20on%20focus,%20tracks%20selected%20and%20time%20selection).lua</source>
+      </version>
+    </reapack>
+    <reapack name="rxfx_Gamepad controller for REAPER.eel" type="script" desc="Gamepad controller for REAPER">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Hotplug-enabled gamepad controller script for Reaper. Requires SWS extension. Simply run the script, plug in your controller and let it do its thing. DISCLAIMER: developed on Linux, so all the button codes and stuff MIGHT be different.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Controls:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab A - redo\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab B - undo\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab X - record\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Y - play/stop\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Bumpers - skip the cursor between markers\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Triggers - scrub the playhead\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Main/guide button - all notes off + reset midi controllers\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab D-pad - select track (left-right moves by 1, up-down skips to top or bottom of the tracklist)\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 SELECT button plus:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab A - new track\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab B - delete selected track\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab X - record-arm mode\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Y - nothing\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Right bumper - tap tempo\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 When in record-arm mode, press X or Y to arm input 1 or 2; B to disarm the selected track; the main/guide button to disarm all tracks; or A to cancel.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 START button plus:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab A - new marker at playhead (snapped to grid)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab B - delete closest marker\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab X - time-select mode\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Y - toggle repeat\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Bumpers - skip to start or end of project\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab D-pad horizontal - enable/disable metronome (right means on)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab D-pad vertical - enable/disable pre-roll before record (up means on)\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 When entering time-select mode, you're moved to the start of the project. From there you can marker-skip to one of your loop points using the bumpers, then press X to confirm it. Use the same controls to select and confirm your second point (it won't send you to the start of the project the second time), or press A to cancel anytime. Your previous edit position will restore.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 START AND SELECT plus:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Right bumper - graft in selection time (extend project)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Left bumper - chop out selection time (shorten project)\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Adapted from Ole Kirkeby's Xbox One joystick script from January 2019.\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.1" author="Rek's Effeks" time="2026-04-25T01:13:02Z">
+        <changelog><![CDATA[Added Windows support and trigger scrubbing]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/98e6de5a975a9b5be8e2c43ca4d899e391a5e341/Various/rxfx_Gamepad%20controller%20for%20REAPER.eel</source>
       </version>
     </reapack>
     <reapack name="SampleSamurai.lua" type="script" desc="SampleSamurai">
