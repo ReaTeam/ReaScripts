@@ -1,9 +1,9 @@
 // @description Gamepad controller for REAPER
 // @author Rek's Effeks
-// @version 1.1hotfix
+// @version 1.1.01
 // @changelog Added Windows support and (now fixed) trigger scrubbing
 // @about
-//   Hotplug-enabled gamepad controller script for Reaper. Requires SWS extension. Simply run the script, plug in your controller and let it do its thing. DISCLAIMER: developed on Linux, so all the button codes and stuff MIGHT be different.
+//   Hotplug-enabled gamepad controller script for Reaper. Requires SWS extension. Simply run the script, plug in your controller and let it do its thing.
 //
 //   Controls:
 //
