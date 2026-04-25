@@ -1,7 +1,7 @@
 // @description Gamepad Controller for Reaper
 // @author Rek's Effeks
-// @version 1.0
-// @changelog Initial upload
+// @version 1.1
+// @changelog Added Windows support and trigger scrubbing
 // @about
 //   Hotplug-enabled gamepad controller script for Reaper. Requires SWS extension. Simply run the script, plug in your controller and let it do its thing. DISCLAIMER: developed on Linux, so all the button codes and stuff MIGHT be different.
 //
@@ -12,6 +12,7 @@
 //   - X - record
 //   - Y - play/stop
 //   - Bumpers - skip the cursor between markers
+//   - Triggers - scrub the playhead
 //   - Main/guide button - all notes off + reset midi controllers
 //   - D-pad - select track (left-right moves by 1, up-down skips to top or bottom of the tracklist)
 //
@@ -42,40 +43,119 @@
 //   Adapted from Ole Kirkeby's Xbox One joystick script from January 2019.
 
 
-// Button codes, constants given by the system. Do not change
-BUTTON_A = 1;
-BUTTON_B = 2;
-BUTTON_X = 4;
-BUTTON_Y = 8;
-BUTTON_LB = 16;
-BUTTON_RB = 32;
-BUTTON_SELECT =   64;
-BUTTON_START  =  128;
-BUTTON_MAIN   =  256;
-BUTTON_JOY_L  =  512;
-BUTTON_JOY_R  = 1024;
 
-// Axis bindings. Given by the system
-// Joystick L x = axis(0), -1 <= out <= 1
-// Joystick L y = axis(1), -1 <= out <= 1 positive downwards
-// Joystick R x = axis(3), -1 <= out <= 1
-// Joystick R y = axis(4), -1 <= out <= 1 positive downwards
-// Trigger L = axis(2) positive,  0 <= out <= 1
-// Trigger R = axis(2) negative, -1 <= out <= 0
-
-// Control change messages. Change as desired
-// CC 20-31 are unallocated
-TRIGGER_CC = 20;
-
-
-guid       =  1;
-oldaxis    =  100;  // strings/array addresses
-
+guid       =  #guid;  // strings/array addresses
+os         =  #os;
+newaxis    =  0;
+oldaxis    =  50;
+newpov     =  100;
+oldpov     =  150;
+oldfunc    =  200;  // last frame's triggers & dpads
+GetOS(#os);
 
 
 function axis(ax)
 (
-  0[ax];
+  newaxis[ax];
+);
+
+function TRIGGERS() // triggers & d-pad behave differently on win vs linux
+(
+  match("Win*",#os) ? (
+    newaxis[2]; // they're one axis on Win
+  ):(
+    ( newaxis[2]-newaxis[5] ) /2; // two separate axes on Linux
+  );
+);
+
+function DPAD_H()
+(
+  match("Win*",#os) ? (
+    newpov[0] == 655.35 ? 0 : sin( newpov[0] * $pi/180 );
+  ):(
+    newaxis[6];
+  );
+);
+
+function DPAD_V()
+(
+  match("Win*",#os) ? (
+    newpov[0] == 655.35 ? 0 : -cos( newpov[0] * $pi/180 );
+  ):(
+    newaxis[7];
+  );
+);
+
+function refresh_funcs()
+(
+  oldfunc[0] = TRIGGERS();
+  oldfunc[1] = DPAD_H();
+  oldfunc[2] = DPAD_V();
+);
+
+function reload(xbox, fromscratch)
+(
+  joystick_update(xbox);
+  i = 0;
+  loop(numaxis,
+    newaxis[i]   = joystick_getaxis(xbox, i);
+    fromscratch ? oldaxis[i] = newaxis[i];
+    i += 1;
+  );
+  i = 0;
+  loop(numpov,
+    newpov[i]    = joystick_getpov(xbox, i);
+    fromscratch ? oldpov[i] = newpov[i];
+    i += 1;
+  );
+  buttons = joystick_getbuttonmask(xbox);
+  fromscratch ? oldbuttons = buttons;
+  fromscratch ? refresh_funcs();
+);
+
+match("Win*",#os) ? (
+  // Windows bindings
+  BUTTON_A = 1;
+  BUTTON_B = 2;
+  BUTTON_X = 4;
+  BUTTON_Y = 8;
+  BUTTON_LB = 16;
+  BUTTON_RB = 32;
+  BUTTON_SELECT =   64;
+  BUTTON_START  =  128;
+  BUTTON_JOY_L  =  256;
+  BUTTON_JOY_R  =  512;
+  BUTTON_MAIN   = 1024;
+
+  JOY_L_H  = 0;
+  JOY_L_V  = 1;
+  // triggers;
+  JOY_R_H  = 3;
+  JOY_R_V  = 4;
+
+  // dpad is on a POV for windows
+):(
+  // Linux bindings
+  BUTTON_A = 1;
+  BUTTON_B = 2;
+  BUTTON_X = 4;
+  BUTTON_Y = 8;
+  BUTTON_LB = 16;
+  BUTTON_RB = 32;
+  BUTTON_SELECT =   64;
+  BUTTON_START  =  128;
+  BUTTON_MAIN   =  256; // last 3 are different
+  BUTTON_JOY_L  =  512;
+  BUTTON_JOY_R  = 1024;
+
+  JOY_L_H  = 0;
+  JOY_L_V  = 1;
+  // left trigger;
+  JOY_R_H  = 3;
+  JOY_R_V  = 4;
+  // right trigger;
+  // dpad horiz;
+  // dpad vert;
 );
 
 function str(n)
@@ -98,28 +178,21 @@ function n(command)
 function setup()
 (
   // Joystick setup
-  joystick_enum(guid, 0);
+  joystick_enum(#guid, 0);
   joystick_index = 0;
 
   // Personal setup preference
-  match("*0000*", guid) ? (
-    joystick_enum(guid, 1);
+  /*match("*0000*", #guid) ? (
+    joystick_enum(#guid, 1);
     joystick_index = 1;
-  );
+  );*/
 
-  (strlen(guid)==0) ? (
+  (strlen(#guid)==0) ? (
     defer("setup()");
   ):(
-    xbox = joystick_create(guid);
-    joystick_getinfo(xbox, numaxis);
-    i = 0;
-    loop(numaxis,
-        axis(i)    = joystick_getaxis(xbox, i);
-        oldaxis[i] = axis(i);
-        i += 1;
-    );
-    oldbuttons = joystick_getbuttonmask(xbox);
-
+    xbox = joystick_create(#guid);
+    joystick_getinfo(xbox, numaxis, numpov);
+    reload(xbox, 1);
     defer("main_loop()");
   );
 );
@@ -144,14 +217,7 @@ function main_loop()
 
   // if it's still plugged in
   working ? (
-    // refresh info
-    joystick_update(xbox);
-    buttons = joystick_getbuttonmask(xbox);
-    i = 0;
-    loop(numaxis,
-      0[i] = joystick_getaxis(xbox, i);
-      i+=1;
-    );
+    reload(xbox, 0);
 
     // deal with buttons
     oldbuttons != buttons ? (
@@ -324,8 +390,8 @@ function main_loop()
     );
 
     // dpad - various movement controls
-    oldaxis[6] != axis(6) ? ( // horizontal
-      value = 127 * axis(6);
+    oldfunc[1] != DPAD_H() ? ( // horizontal
+      value = 127 * DPAD_H();
       value < 0 ? (
         (buttons & BUTTON_START) ? (
           r(41746); // disable metronome
@@ -342,8 +408,8 @@ function main_loop()
       );
     );
 
-    oldaxis[7] != axis(7) ? ( // vertical
-      value = 127 * axis(7);
+    oldfunc[2] != DPAD_V() ? ( // vertical
+      value = 127 * DPAD_V();
       value > 0 ? (
         (buttons & BUTTON_START) ? (
           GetToggleCommandState(41819) ? (
@@ -386,25 +452,29 @@ function main_loop()
       value < 0 ? value = 0 : value > 16383 ? value = 16383;
       //event(MIDI_CONTROL_CHANGE * 16 + CHAN, CC_JOY_L_NS,     (value / 128) | 0); // MSB
       //event(MIDI_CONTROL_CHANGE * 16 + CHAN, CC_JOY_L_NS + 32, value & 127);      // LSB
-    );
-
-    (oldaxis[2] != axis(2)) || (oldaxis[5] != axis(5)) ? (
-      value = 64 * (axis(5)-axis(2)) + 64;
-      //event(MIDI_CONTROL_CHANGE * 16 + CHAN, TRIGGER_CC, value);
     );*/
+
+    CSurf_ScrubAmt(-4*TRIGGERS());
 
 
     // log the frame & rerun
     oldbuttons = buttons;
     i=0;
     loop(numaxis,
-      oldaxis[i] = axis(i);
+      oldaxis[i] = newaxis[i];
       i+=1;
     );
+    i=0;
+    loop(numpov,
+      oldpov[i] = newpov[i];
+      i+=1;
+    );
+    refresh_funcs();
     defer("main_loop()");
   ):(
     // if controller no longer in guid list
     joystick_destroy(xbox);
+    xbox = 0;
     defer("setup()");
   );
 );
