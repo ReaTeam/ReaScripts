@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="98e6de5a975a9b5be8e2c43ca4d899e391a5e341" name="ReaTeam Scripts">
+<index version="1" commit="7a9074c41a577ba05caa54f9f9f71ae2c6c4f15e" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -29556,7 +29556,7 @@ Fix SWS Startup / Lokasenna Radial Menu bug]]></changelog>
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 Hotplug-enabled gamepad controller script for Reaper. Requires SWS extension. Simply run the script, plug in your controller and let it do its thing. DISCLAIMER: developed on Linux, so all the button codes and stuff MIGHT be different.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Hotplug-enabled gamepad controller script for Reaper. Requires SWS extension. Simply run the script, plug in your controller and let it do its thing.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Controls:\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab A - redo\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab B - undo\par}
@@ -29592,6 +29592,10 @@ Fix SWS Startup / Lokasenna Radial Menu bug]]></changelog>
       <version name="1.1" author="Rek's Effeks" time="2026-04-25T01:13:02Z">
         <changelog><![CDATA[Added Windows support and trigger scrubbing]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/98e6de5a975a9b5be8e2c43ca4d899e391a5e341/Various/rxfx_Gamepad%20controller%20for%20REAPER.eel</source>
+      </version>
+      <version name="1.1.01" author="Rek's Effeks" time="2026-04-25T03:27:08Z">
+        <changelog><![CDATA[Added Windows support and (now fixed) trigger scrubbing]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/7a9074c41a577ba05caa54f9f9f71ae2c6c4f15e/Various/rxfx_Gamepad%20controller%20for%20REAPER.eel</source>
       </version>
     </reapack>
     <reapack name="SampleSamurai.lua" type="script" desc="SampleSamurai">
