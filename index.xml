@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="7a9074c41a577ba05caa54f9f9f71ae2c6c4f15e" name="ReaTeam Scripts">
+<index version="1" commit="d3532b52965c8467473bc3e690d935e783917656" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -29556,7 +29556,7 @@ Fix SWS Startup / Lokasenna Radial Menu bug]]></changelog>
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 Hotplug-enabled gamepad controller script for Reaper. Requires SWS extension. Simply run the script, plug in your controller and let it do its thing.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Hotplug-enabled gamepad controller script for Reaper. Requires SWS extension.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Controls:\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab A - redo\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab B - undo\par}
@@ -29565,27 +29565,29 @@ Fix SWS Startup / Lokasenna Radial Menu bug]]></changelog>
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Bumpers - skip the cursor between markers\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Triggers - scrub the playhead\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Main/guide button - all notes off + reset midi controllers\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab D-pad - select track (left-right moves by 1, up-down skips to top or bottom of the tracklist)\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab D-pad horizontal - switch track between mute/normal/solo (hold Main to pull all tracks)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab D-pad vertical - select track (hold Main to skip to top or bottom)\sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 SELECT button plus:\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab A - new track\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab B - delete selected track\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab X - record-arm mode\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Y - nothing\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Right bumper - tap tempo\sa180\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 When in record-arm mode, press X or Y to arm input 1 or 2; B to disarm the selected track; the main/guide button to disarm all tracks; or A to cancel.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Y (or RB) - tap tempo\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 When in record-arm mode, press A or X to arm input 1 or 2; Y to disarm the selected track; the main/guide button to disarm all tracks; or B to cancel.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 START button plus:\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab A - new marker at playhead (snapped to grid)\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab B - delete closest marker\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab X - time-select mode\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Y - toggle repeat\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Bumpers - skip to start or end of project\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab D-pad horizontal - enable/disable metronome (right means on)\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab D-pad vertical - enable/disable pre-roll before record (up means on)\sa180\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 When entering time-select mode, you're moved to the start of the project. From there you can marker-skip to one of your loop points using the bumpers, then press X to confirm it. Use the same controls to select and confirm your second point (it won't send you to the start of the project the second time), or press A to cancel anytime. Your previous edit position will restore.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 START AND SELECT plus:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab D-pad horizontal - enable/disable pre-roll before record (left means on - "start playback earlier")\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab D-pad vertical - enable/disable metronome (up means on)\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 When in time-select mode, you can marker-skip or scrub to one of your endpoints using the bumpers and triggers, then press A to confirm it. Use the same controls to select and confirm your second point, or press B to cancel anytime. Your previous edit position will restore.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 MAIN button plus:\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Right bumper - graft in selection time (extend project)\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Left bumper - chop out selection time (shorten project)\sa180\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Adapted from Ole Kirkeby's Xbox One joystick script from January 2019.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Left bumper - chop out selection time (shorten project)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab X - begin quick edit\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab A - do last quick edit again (on newly selected track)\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Quick edit is the main editing control you get here. It allows you to move a section of the project from its original point (the point in the project at which you pressed quick edit) to any other point in time (the one at which you press A to confirm the edit). The project contents will then move either earlier or later to match the new "corrected" point, and the space in between the points will either be chopped (fully removed) or grafted (filled with emptiness) to match. Works the same as MAIN + bumpers. Modify the confirmation with START (that is, MAIN + X, then START + A) to affect only markers (regions not supported), or SELECT to affect only items on selected tracks.\par}
 }
 ]]></description>
       </metadata>
@@ -29596,6 +29598,10 @@ Fix SWS Startup / Lokasenna Radial Menu bug]]></changelog>
       <version name="1.1.01" author="Rek's Effeks" time="2026-04-25T03:27:08Z">
         <changelog><![CDATA[Added Windows support and (now fixed) trigger scrubbing]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/7a9074c41a577ba05caa54f9f9f71ae2c6c4f15e/Various/rxfx_Gamepad%20controller%20for%20REAPER.eel</source>
+      </version>
+      <version name="1.3" author="Rek's Effeks" time="2026-04-28T16:53:32Z">
+        <changelog><![CDATA[Added chop/graft and quick-edit controls, implemented track solo/mute, rebound track switching & modal editing controls, reworked backend. I forgot to publish 1.2 sorry]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d3532b52965c8467473bc3e690d935e783917656/Various/rxfx_Gamepad%20controller%20for%20REAPER.eel</source>
       </version>
     </reapack>
     <reapack name="SampleSamurai.lua" type="script" desc="SampleSamurai">
