@@ -1,9 +1,9 @@
 // @description Gamepad controller for REAPER
 // @author Rek's Effeks
-// @version 1.1.01
-// @changelog Added Windows support and (now fixed) trigger scrubbing
+// @version 1.3
+// @changelog Added chop/graft and quick-edit controls, implemented track solo/mute, rebound track switching & modal editing controls, reworked backend. I forgot to publish 1.2 sorry
 // @about
-//   Hotplug-enabled gamepad controller script for Reaper. Requires SWS extension. Simply run the script, plug in your controller and let it do its thing.
+//   Hotplug-enabled gamepad controller script for Reaper. Requires SWS extension.
 //
 //   Controls:
 //
@@ -14,16 +14,16 @@
 //   - Bumpers - skip the cursor between markers
 //   - Triggers - scrub the playhead
 //   - Main/guide button - all notes off + reset midi controllers
-//   - D-pad - select track (left-right moves by 1, up-down skips to top or bottom of the tracklist)
+//   - D-pad horizontal - switch track between mute/normal/solo (hold Main to pull all tracks)
+//   - D-pad vertical - select track (hold Main to skip to top or bottom)
 //
 //   SELECT button plus:
 //   - A - new track
 //   - B - delete selected track
 //   - X - record-arm mode
-//   - Y - nothing
-//   - Right bumper - tap tempo
+//   - Y (or RB) - tap tempo
 //
-//   When in record-arm mode, press X or Y to arm input 1 or 2; B to disarm the selected track; the main/guide button to disarm all tracks; or A to cancel.
+//   When in record-arm mode, press A or X to arm input 1 or 2; Y to disarm the selected track; the main/guide button to disarm all tracks; or B to cancel.
 //
 //   START button plus:
 //   - A - new marker at playhead (snapped to grid)
@@ -31,16 +31,22 @@
 //   - X - time-select mode
 //   - Y - toggle repeat
 //   - Bumpers - skip to start or end of project
-//   - D-pad horizontal - enable/disable metronome (right means on)
-//   - D-pad vertical - enable/disable pre-roll before record (up means on)
+//   - D-pad horizontal - enable/disable pre-roll before record (left means on - "start playback earlier")
+//   - D-pad vertical - enable/disable metronome (up means on)
 //
-//   When entering time-select mode, you're moved to the start of the project. From there you can marker-skip to one of your loop points using the bumpers, then press X to confirm it. Use the same controls to select and confirm your second point (it won't send you to the start of the project the second time), or press A to cancel anytime. Your previous edit position will restore.
+//   When in time-select mode, you can marker-skip or scrub to one of your endpoints using the bumpers and triggers, then press A to confirm it. Use the same controls to select and confirm your second point, or press B to cancel anytime. Your previous edit position will restore.
 //
-//   START AND SELECT plus:
+//   MAIN button plus:
 //   - Right bumper - graft in selection time (extend project)
 //   - Left bumper - chop out selection time (shorten project)
+//   - X - begin quick edit
+//   - A - do last quick edit again (on newly selected track)
 //
-//   Adapted from Ole Kirkeby's Xbox One joystick script from January 2019.
+//   Quick edit is the main editing control you get here. It allows you to move a section of the project from its original point (the point in the project at which
+//   you pressed quick edit) to any other point in time (the one at which you press A to confirm the edit). The project contents will then move either earlier or
+//   later to match the new "corrected" point, and the space in between the points will either be chopped (fully removed) or grafted (filled with emptiness) to match.
+//   Works the same as MAIN + bumpers. Modify the confirmation with START (that is, MAIN + X, then START + A) to affect only markers (regions not supported), or SELECT
+//   to affect only items on selected tracks.
 
 
 
@@ -51,13 +57,12 @@ oldaxis    =  50;
 newpov     =  100;
 oldpov     =  150;
 oldfunc    =  200;  // last frame's triggers & dpads
+Li         =  250;  // last input tracker (used for distinguishing action from modifier)
+// Li[] = mask of which buttons changed most recently
+// Li[1] = mask of were they pressed or released?
+lastqedit  =  300;
 GetOS(#os);
 
-
-function axis(ax)
-(
-  newaxis[ax];
-);
 
 function TRIGGERS() // triggers & d-pad behave differently on win vs linux
 (
@@ -127,13 +132,15 @@ match("Win*",#os) ? (
   BUTTON_JOY_R  =  512;
   BUTTON_MAIN   = 1024;
 
+  BUTTON_DPADANY = 2048;
+  // dpad is on a POV for windows
+  // button entry is only for input tracking
+
   JOY_L_H  = 0;
   JOY_L_V  = 1;
   // triggers;
   JOY_R_H  = 3;
   JOY_R_V  = 4;
-
-  // dpad is on a POV for windows
 ):(
   // Linux bindings
   BUTTON_A = 1;
@@ -147,6 +154,9 @@ match("Win*",#os) ? (
   BUTTON_MAIN   =  256; // last 3 are different
   BUTTON_JOY_L  =  512;
   BUTTON_JOY_R  = 1024;
+
+  BUTTON_DPADANY = 2048;
+  // only used for input tracking
 
   JOY_L_H  = 0;
   JOY_L_V  = 1;
@@ -173,6 +183,193 @@ function r(command)
 function n(command)
 (
   Main_OnCommand( NamedCommandLookup(command), 0);
+);
+
+function nw(button) // button was just pressed?
+(
+  (buttons & button) && !(oldbuttons & button);
+);
+
+function b(button) // button is down?
+(
+  (buttons & button);
+);
+
+function off(button) // button was pressed then released on its own?
+(
+  (Li[] & button) && (Li[1] & button) && !(buttons & button);
+  // button is pressed in recent frame's changes and it's not pressed anymore
+);
+
+function reev() // reevaluate last input
+(
+  buttons ~ oldbuttons ? ( // if there were changes,
+    Li[] = buttons ~ oldbuttons; // record only the changes
+    Li[1] = Li[] & buttons; // are they pressed now or released?
+  );
+);
+
+function track_audio_level(direction) // mute <-> normal <-> solo
+(
+  direction > 0 ? (
+    !GetToggleCommandState(6) ? (
+      !GetToggleCommandState(7) ? (
+        r(7);
+      );
+    ):(
+      r(6);
+    );
+  ):(
+    !GetToggleCommandState(7) ? (
+      !GetToggleCommandState(6) ? (
+        r(6);
+      );
+    ):(
+      r(7);
+    );
+  );
+);
+
+
+function chop_graft_markers(graft, FirstTime, SecondTime)
+( // chop out (shorten) or graft in (extend) markers by time selection
+  Undo_BeginBlock();
+  ( FirstTime == SecondTime && SecondTime == 0 ) ? (
+    GetSet_LoopTimeRange(0, 0, time1, time2, 1);
+  ):(
+    time1 = min(FirstTime,SecondTime);
+    time2 = max(FirstTime,SecondTime);
+  );
+  section_length = time2 - time1;
+  CountProjectMarkers(0, num_markers);
+  graft ? ( // are we ADDING time or subtracting it?
+    i = num_markers; // if adding time,
+    loop(num_markers,
+      marker = GetRegionOrMarker(0, i,"");
+      orig_time = GetRegionOrMarkerInfo_Value(0, marker, "D_STARTPOS");
+      orig_time >= time1 ? ( // move all markers after the start of time selection
+        SetRegionOrMarkerInfo_Value(0, marker, "D_STARTPOS", orig_time + section_length);
+      );
+      i -= 1;
+    );
+  ):( // if subtracting time,
+    i = num_markers;
+    loop(num_markers, // start by deleting all markers INSIDE the time selection
+      marker = GetRegionOrMarker(0, i,"");
+      orig_time = GetRegionOrMarkerInfo_Value(0, marker, "D_STARTPOS");
+      ( time2 >= orig_time && orig_time > time1 ) ? (
+        DeleteProjectMarkerByIndex(0, i);
+      );
+      i -= 1;
+    );
+    CountProjectMarkers(0, num_markers);
+    i = 0;
+    loop(num_markers, // then move all markers beyond it
+      marker = GetRegionOrMarker(0, i,"");
+      orig_time = GetRegionOrMarkerInfo_Value(0, marker, "D_STARTPOS");
+      orig_time > time1 ? (
+        SetRegionOrMarkerInfo_Value(0, marker, "D_STARTPOS", orig_time - section_length);
+      );
+      i += 1;
+    );
+  );
+  r(40898); // renumber markers etc
+  graft ? (
+    Undo_EndBlock("Graft time selection (markers)", 0);
+  ):(
+    Undo_EndBlock("Chop time selection (markers)", 0);
+  );
+);
+
+
+function chop_graft_trackitems(graft, FirstTime, SecondTime)
+( // for all selected tracks, chop out or graft in time selection
+  Undo_BeginBlock();
+  ( FirstTime == SecondTime && SecondTime == 0 ) ? (
+    GetSet_LoopTimeRange(0, 0, time1, time2, 1);
+  ):(
+    time1 = min(FirstTime,SecondTime);
+    time2 = max(FirstTime,SecondTime);
+  );
+  section_length = time2 - time1;
+  num_items = CountMediaItems(0);
+  tracks_seld = CountSelectedTracks(0);
+  graft ? ( // are we ADDING time or subtracting it?
+    i = num_items-1; // if adding time, start by splitting all relevant items at time1
+    loop(num_items,
+      item = GetMediaItem(0, i);
+      t = tracks_seld-1;
+      loop(tracks_seld,
+        GetSelectedTrack(0, t) == GetMediaItem_Track(item) ? (
+          SplitMediaItem(GetMediaItem(0, i), time1);
+        );
+        t -=1;
+      );
+      i -= 1;
+    );
+    num_items = CountMediaItems(0);
+    i = num_items-1; // then move em all over by section_length
+    loop(num_items,
+      item = GetMediaItem(0, i);
+      t = tracks_seld-1;
+      loop(tracks_seld,
+        pos = GetMediaItemInfo_Value(item, "D_POSITION");
+        ( GetSelectedTrack(0, t) == GetMediaItem_Track(item) && pos >= time1 ) ? (
+          SetMediaItemInfo_Value(item, "D_POSITION", pos + section_length);
+        );
+        t -=1;
+      );
+      i -= 1;
+    );
+  ):( // if subtracting time,
+    i = num_items-1; // start by splitting all relevant items at BOTH time1 and time2
+    loop(num_items,
+      item = GetMediaItem(0, i);
+      t = tracks_seld-1;
+      loop(tracks_seld,
+        GetSelectedTrack(0, t) == GetMediaItem_Track(item) ? (
+          SplitMediaItem(GetMediaItem(0, i), time2);
+          SplitMediaItem(GetMediaItem(0, i), time1);
+        );
+        t -=1;
+      );
+      i -= 1;
+    );
+    num_items = CountMediaItems(0);
+    i = num_items-1; // then delete all of em within time selection
+    loop(num_items,
+      item = GetMediaItem(0, i);
+      t = tracks_seld-1;
+      loop(tracks_seld,
+        pos = GetMediaItemInfo_Value(item, "D_POSITION");
+        ( GetSelectedTrack(0, t) == GetMediaItem_Track(item) && pos >= time1 && pos < time2) ? (
+          DeleteTrackMediaItem( GetSelectedTrack(0, t), item );
+        );
+        t -=1;
+      );
+      i -= 1;
+    );
+    num_items = CountMediaItems(0);
+    i = 0; // then move the rest all over by section_length
+    loop(num_items,
+      item = GetMediaItem(0, i);
+      t = tracks_seld-1;
+      loop(tracks_seld,
+        pos = GetMediaItemInfo_Value(item, "D_POSITION");
+        ( GetSelectedTrack(0, t) == GetMediaItem_Track(item) && pos >= time2 ) ? (
+          SetMediaItemInfo_Value(item, "D_POSITION", pos - section_length);
+        );
+        t -=1;
+      );
+      i += 1;
+    );
+  );
+  UpdateArrange();
+  graft ? (
+    Undo_EndBlock("Graft time selection (items on track)", 0);
+  ):(
+    Undo_EndBlock("Chop time selection (items on track)", 0);
+  );
 );
 
 function setup()
@@ -223,27 +420,89 @@ function main_loop()
     oldbuttons != buttons ? (
 
       // a
-      // redo, new track, create marker
-      (buttons & BUTTON_A) != (oldbuttons & BUTTON_A) ? (
-        (buttons & BUTTON_A) ? ( // only run when pressed not released
-          (buttons & BUTTON_SELECT) ? (
+      // redo, new track, create marker, confirm quick edit
+      nw(BUTTON_A) ? ( // only run when pressed not released
+        QuickEditActive ? ( // finish quick edit
+          QuickEditActive = 0;
+          SecondTime = GetPlayPosition();
+          lastqedit[1] = SecondTime;
+          graft = (SecondTime-FirstTime) > 0;
+          b(BUTTON_SELECT) ? ( // edit selected tracks
+            lastqedit[2] = 1;
+            chop_graft_trackitems( graft, FirstTime, SecondTime );
+          ):(
+            b(BUTTON_START) ? ( // edit markers
+              lastqedit[2] = 2;
+              chop_graft_markers( graft, FirstTime, SecondTime );
+            ):(
+              lastqedit[2] = 0; // edit everything
+              n("_SWS_SAVELOOP1");
+              n("_SWS_SAVETIME1");
+              GetSet_LoopTimeRange(1, 0, FirstTime, SecondTime, 1);
+              graft ? (
+                r(40200);
+              ):(
+                r(40201);
+              );
+              n("_SWS_RESTLOOP1");
+              n("_SWS_RESTTIME1");
+            );
+          );
+        ):(
+          b(BUTTON_SELECT) ? (
             r(40702); // new track at end of tcp
           ):(
-            (buttons & BUTTON_START) ? (
+            b(BUTTON_START) ? (
               Undo_BeginBlock();
               r(40157); // marker @ playhead
               n("_BR_CLOSEST_PROJ_MARKER_PLAY_SNAP"); // snap it in place
               r(40898); // renumber markers etc
               Undo_EndBlock("Make new snapped marker", 0);
             ):(
-              RecCycleActive ? (
-                RecCycleActive = 0; // cancel
+              b(BUTTON_MAIN) ? ( // redo last quick edit (e.g. if you switched tracks)
+                FirstTime = lastqedit[];
+                SecondTime = lastqedit[1];
+                !( FirstTime == SecondTime && SecondTime == 0 ) ? (
+                  graft = (SecondTime-FirstTime) > 0;
+                  ( lastqedit[2] == 1 ) ? (
+                    chop_graft_trackitems( graft, FirstTime, SecondTime );
+                  ):(
+                    ( lastqedit[2] == 2 ) ? (
+                      chop_graft_markers( graft, FirstTime, SecondTime );
+                    ):(
+                      n("_SWS_SAVELOOP1");
+                      n("_SWS_SAVETIME1");
+                      GetSet_LoopTimeRange(1, 0, FirstTime, SecondTime, 1);
+                      graft ? (
+                        r(40200); // graft in selection (everything)
+                      ):(
+                        r(40201); // chop out selection (everything)
+                      );
+                      n("_SWS_RESTLOOP1");
+                      n("_SWS_RESTTIME1");
+                    );
+                  );
+                );
               ):(
-                MarkerSelActive ? (
-                  n("_BR_RESTORE_CURSOR_POS_SLOT_2");
-                  MarkerSelActive = 0; // cancel
+                RecCycleActive ? (
+                  tr = GetSelectedTrack(0,0);
+                  SetMediaTrackInfo_Value(tr, "I_RECINPUT", 0); // set selected track to record arm channel 1
+                  SetMediaTrackInfo_Value(tr, "I_RECARM", 1);
+                  RecCycleActive = 0;
                 ):(
-                  r(40030); // redo
+                  MarkerSelActive ? ( // if currently in marker select mode,
+                    MSelStage == 0 ? (
+                      FirstTime = GetCursorPosition(); // lock in the first position (edit cursor)
+                      MSelStage = 1;                   // and move to stage 2
+                    ):(
+                      SecondTime = GetCursorPosition();
+                      GetSet_LoopTimeRange(1, 0, FirstTime, SecondTime, 1); // set time selection and return to normal
+                      n("_BR_RESTORE_CURSOR_POS_SLOT_2");
+                      MarkerSelActive = 0;
+                    );
+                  ):(
+                    r(40030); // redo
+                  );
                 );
               );
             );
@@ -253,26 +512,33 @@ function main_loop()
 
       // b
       // undo, delete track, delete marker
-      (buttons & BUTTON_B) != (oldbuttons & BUTTON_B) ? (
-        (buttons & BUTTON_B) ? (
-          (buttons & BUTTON_SELECT) ? (
-            r(40005); // delete track
+      nw(BUTTON_B) ? (
+        b(BUTTON_SELECT) ? (
+          r(40005); // delete track
+        ):(
+          b(BUTTON_START) ? (
+            Undo_BeginBlock();
+            n("_BR_SAVE_CURSOR_POS_SLOT_1"); // save edit cursor pos
+            r(40434); // move edit cursor 2 playhead
+            r(40613); // dlete marker near cursor
+            n("_BR_RESTORE_CURSOR_POS_SLOT_1");
+            r(40898); // renumber markers etc
+            Undo_EndBlock("Delete closest marker", 0);
           ):(
-            (buttons & BUTTON_START) ? (
-              Undo_BeginBlock();
-              n("_BR_SAVE_CURSOR_POS_SLOT_1"); // save edit cursor pos
-              r(40434); // move edit cursor 2 playhead
-              r(40613); // dlete marker near cursor
-              n("_BR_RESTORE_CURSOR_POS_SLOT_1");
-              r(40898); // renumber markers etc
-              Undo_EndBlock("Delete closest marker", 0);
+            RecCycleActive ? (
+              RecCycleActive = 0; // cancel
             ):(
-              RecCycleActive ? (
-                tr = GetSelectedTrack(0,0);
-                SetMediaTrackInfo_Value(tr, "I_RECARM", 0); // set selected track to disarmed
-                RecCycleActive = 0;
+              MarkerSelActive ? (
+                n("_BR_RESTORE_CURSOR_POS_SLOT_2");
+                n("_SWS_RESTLOOP1");
+                n("_SWS_RESTTIME1");
+                MarkerSelActive = 0; // cancel
               ):(
-                r(40029); // undo
+                QuickEditActive ? (
+                  QuickEditActive = 0; // cancel
+                ):(
+                  r(40029); // undo
+                );
               );
             );
           );
@@ -280,36 +546,34 @@ function main_loop()
       );
 
       // x
-      // record, start record cycle, set loop edit
-      (buttons & BUTTON_X) != (oldbuttons & BUTTON_X) ? (
-        (buttons & BUTTON_X) ? (
-          (buttons & BUTTON_SELECT) ? (
+      // record, start record cycle, time selection edit, quick edit
+      nw(BUTTON_X) ? (
+        b(BUTTON_MAIN) ? ( // start quick edit
+          QuickEditActive = 1;
+          FirstTime = GetPlayPosition();
+          lastqedit[] = FirstTime;
+        ):(
+          b(BUTTON_SELECT) ? ( // start record-cycle
             RecCycleActive = 1;
           ):(
-            (buttons & BUTTON_START) ? (
+            b(BUTTON_START) ? ( // start time selection edit
               MarkerSelActive = 1;
               FirstTime = 0;
               SecondTime = 0;
               MSelStage = 0;
               n("_BR_SAVE_CURSOR_POS_SLOT_2");
-              r(40042); // go to project start
+              n("_SWS_SAVELOOP1");
+              n("_SWS_SAVETIME1");
+              r(40020); // deselect current loop/time points (useful on headless build)
             ):(
               RecCycleActive ? (
                 tr = GetSelectedTrack(0,0);
-                SetMediaTrackInfo_Value(tr, "I_RECINPUT", 0); // set selected track to record arm channel 1
+                SetMediaTrackInfo_Value(tr, "I_RECINPUT", 1); // set selected track to record arm channel 2
                 SetMediaTrackInfo_Value(tr, "I_RECARM", 1);
                 RecCycleActive = 0;
               ):(
-                MarkerSelActive ? ( // if currently in marker select mode,
-                  MSelStage == 0 ? (
-                    FirstTime = GetCursorPosition(); // lock in the first position (edit cursor)
-                    MSelStage = 1;                   // and move to stage 2
-                  ):(
-                    SecondTime = GetCursorPosition();
-                    GetSet_LoopTimeRange(1, 0, FirstTime, SecondTime, 1); // set time selection and return to normal
-                    n("_BR_RESTORE_CURSOR_POS_SLOT_2");
-                    MarkerSelActive = 0;
-                  );
+                MarkerSelActive ? (
+                  n("_BR_RESTORE_CURSOR_POS_SLOT_2");
                 ):(
                   r(1013); // record
                 );
@@ -321,53 +585,66 @@ function main_loop()
 
       // y button
       // play/stop, nothing, toggle repeat
-      (buttons & BUTTON_Y) != (oldbuttons & BUTTON_Y) ? (
-        (buttons & BUTTON_Y) ? (
-          (buttons & BUTTON_SELECT) ? (
-            //buttonCC(BUTTON_Y, CC_Y1);
-            0; // nothing yet
+      nw(BUTTON_Y) ? (
+        b(BUTTON_SELECT) ? (
+          //buttonCC(BUTTON_Y, CC_Y1);
+          r(1134); // tap tempo
+        ):(
+          b(BUTTON_START) ? (
+            r(1068); // toggle repeat
           ):(
-            (buttons & BUTTON_START) ? (
-              r(1068); // toggle repeat
+            RecCycleActive ? (
+              tr = GetSelectedTrack(0,0);
+              SetMediaTrackInfo_Value(tr, "I_RECARM", 0); // set selected track to disarmed
+              RecCycleActive = 0;
             ):(
-              RecCycleActive ? (
-                tr = GetSelectedTrack(0,0);
-                SetMediaTrackInfo_Value(tr, "I_RECINPUT", 1); // set selected track to record arm channel 2
-                SetMediaTrackInfo_Value(tr, "I_RECARM", 1);
-                RecCycleActive = 0;
-              ):(
-                r(40044); // play/stop
-              );
+              r(40044); // play/stop
             );
           );
         );
       );
 
-      // bumpers - skip markers, tap tempo, go to start/end, insert/remove selection time (start + select)
-      (buttons & BUTTON_LB) != (oldbuttons & BUTTON_LB) ? (
-        (buttons & BUTTON_LB) ? (
-          (buttons & BUTTON_START) ? (
-            (buttons & BUTTON_SELECT) ? (
-              r(40201); // chop out selection
-            ):(
-              r(40042); // go to start
-            );
+      // bumpers - skip markers, tap tempo, go to start/end, chop/graft selection time
+      nw(BUTTON_LB) ? (
+        b(BUTTON_MAIN) ? ( // LB + MAIN BUTTON (chop time selection)
+          b(BUTTON_START) ? ( // chop out selection (markers only)
+            chop_graft_markers(0, 0, 0);
           ):(
-            r(40172); // prev marker or start
+            b(BUTTON_SELECT) ? ( // chop out selection (items on selected track only)
+              chop_graft_trackitems(0, 0, 0);
+            ):(
+              r(40201); // chop out selection (everything)
+            );
+          );
+        ):(
+          b(BUTTON_SELECT) ? (
+            0; // nothing bound to select + LB
+          ):(
+            b(BUTTON_START) ? (
+              r(40042); // go to start (start only)
+            ):(
+              r(40172); // prev marker or start (no modifier)
+            );
           );
         );
       );
-      (buttons & BUTTON_RB) != (oldbuttons & BUTTON_RB) ? (
-        (buttons & BUTTON_RB) ? (
-          (buttons & BUTTON_START) ? (
-            (buttons & BUTTON_SELECT) ? (
-              r(40200); // graft in selection
-            ):(
-              r(40043); // go to end (start only)
-            );
+      nw(BUTTON_RB) ? (
+        b(BUTTON_MAIN) ? ( // RB + MAIN BUTTON (graft time selection)
+          b(BUTTON_START) ? ( // graft in selection (markers only)
+            chop_graft_markers(1, 0, 0);
           ):(
-            (buttons & BUTTON_SELECT) ? (
-              r(1134); // tap tempo (select only)
+            b(BUTTON_SELECT) ? ( // graft in selection (items on selected track only)
+              chop_graft_trackitems(1, 0, 0);
+            ):(
+              r(40200); // graft in selection (everything)
+            );
+          );
+        ):(
+          b(BUTTON_SELECT) ? (
+            r(1134); // tap tempo (select only)
+          ):(
+            b(BUTTON_START) ? (
+              r(40043); // go to end (start only)
             ):(
               r(40173); // next marker or end (no modifier)
             );
@@ -376,89 +653,85 @@ function main_loop()
       );
 
       // main button - reset controllers, all notes off, disarm all tracks
-      (buttons & BUTTON_MAIN) != (oldbuttons & BUTTON_MAIN) ? (
-        (buttons & BUTTON_MAIN) ? (
-          RecCycleActive ? (
-            r(40491); // disarm all tracks
-            RecCycleActive = 0;
-          ):(
-            r(40345); // all notes off to everything
-            r(41175); // reset all midi devices
-          );
+      off(BUTTON_MAIN) ? (
+        RecCycleActive ? (
+          r(40491); // disarm all tracks
+          RecCycleActive = 0;
+        ):(
+          r(40345); // all notes off to everything
+          r(41175); // reset all midi devices
         );
       );
-    );
+    ); // end of buttons
 
     // dpad - various movement controls
     oldfunc[1] != DPAD_H() ? ( // horizontal
-      value = 127 * DPAD_H();
+      buttons = buttons | BUTTON_DPADANY; // input tracking
+      value = DPAD_H();
       value < 0 ? (
-        (buttons & BUTTON_START) ? (
-          r(41746); // disable metronome
+        b(BUTTON_START) ? (
+          !GetToggleCommandState(41819) ? (
+            r(41819); // enable pre-roll if it's disabled ("start from earlier")
+          );
         ):(
-          r(40286); // go to prev track
+          b(BUTTON_MAIN) ? (
+            r(40340); // unsolo all tracks
+          ):(
+            track_audio_level(-1); // decrease audibility level (mute <- normal <- solo)
+          );
         );
       );
       value > 0 ? (
-        (buttons & BUTTON_START) ? (
-          r(41745); // enable metronome
+        b(BUTTON_START) ? (
+          GetToggleCommandState(41819) ? (
+            r(41819); // disable pre-roll if it's enabled ("start from later")
+          );
         ):(
-          r(40285); // go to next track
+          b(BUTTON_MAIN) ? (
+            r(40339); // unmute all tracks
+          ):(
+            track_audio_level(1); // increase audibility level (mute -> normal -> solo)
+          );
         );
       );
     );
 
     oldfunc[2] != DPAD_V() ? ( // vertical
-      value = 127 * DPAD_V();
+      buttons = buttons | BUTTON_DPADANY; // input tracking
+      value = DPAD_V();
       value > 0 ? (
-        (buttons & BUTTON_START) ? (
-          GetToggleCommandState(41819) ? (
-            r(41819); // disable pre-roll if it's enabled
-          );
+        b(BUTTON_START) ? (
+          r(41746); // disable metronome
         ):(
-          MarkerSelActive ? (
-            r(40043); // go to project end
-          ):(
-            r(40296); // select last track
+          b(BUTTON_MAIN) ? (
+            r(40296); // go to last track
             n("_XENAKIOS_SELLASTOFSELTRAX");
+          ):(
+            r(40285); // go to next track
           );
         );
       );
       value < 0 ? (
-        (buttons & BUTTON_START) ? (
-          !GetToggleCommandState(41819) ? (
-            r(41819); // enable pre-roll if it's disabled
-          );
+        b(BUTTON_START) ? (
+          r(41745); // enable metronome
         ):(
-          MarkerSelActive ? (
-            r(40042); // go to project start
-          ):(
-            r(40296); // select first track
+          b(BUTTON_MAIN) ? (
+            r(40296); // go to first track
             n("_XENAKIOS_SELFIRSTOFSELTRAX");
+          ):(
+            r(40286); // go to prev track
           );
         );
       );
     );
-    // deprecated midi stuff
-    /*oldaxis[0] != axis(0) ? (
-      value = (axis(0) + 1) * 8192;
-      value < 0 ? value = 0 : value > 16383 ? value = 16383;
-      //event(MIDI_CONTROL_CHANGE * 16 + CHAN, CC_JOY_L_WE,     (value / 128) | 0); // MSB
-      //event(MIDI_CONTROL_CHANGE * 16 + CHAN, CC_JOY_L_WE + 32, value & 127);      // LSB
-    );
 
-    oldaxis[1] != axis(1) ? (
-      value = (axis(1) + 1) * 8192;
-      value < 0 ? value = 0 : value > 16383 ? value = 16383;
-      //event(MIDI_CONTROL_CHANGE * 16 + CHAN, CC_JOY_L_NS,     (value / 128) | 0); // MSB
-      //event(MIDI_CONTROL_CHANGE * 16 + CHAN, CC_JOY_L_NS + 32, value & 127);      // LSB
-    );*/
     TRIGGERS() ? (
       CSurf_ScrubAmt(-4*TRIGGERS());
     );
 
 
     // log the frame & rerun
+    reev();
     oldbuttons = buttons;
     i=0;
     loop(numaxis,
@@ -476,6 +749,8 @@ function main_loop()
     // if controller no longer in guid list
     joystick_destroy(xbox);
     xbox = 0;
+    Li[] = 0;
+    Li[1] = 0;
     defer("setup()");
   );
 );
