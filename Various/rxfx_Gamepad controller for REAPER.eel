@@ -1,7 +1,7 @@
 // @description Gamepad controller for REAPER
 // @author Rek's Effeks
-// @version 1.3
-// @changelog Added chop/graft and quick-edit controls, implemented track solo/mute, rebound track switching & modal editing controls, reworked backend. I forgot to publish 1.2 sorry
+// @version 1.3.5
+// @changelog Added track volume & pan control + invert-quickedit bind + minor rebinding
 // @about
 //   Hotplug-enabled gamepad controller script for Reaper. Requires SWS extension.
 //
@@ -14,8 +14,11 @@
 //   - Bumpers - skip the cursor between markers
 //   - Triggers - scrub the playhead
 //   - Main/guide button - all notes off + reset midi controllers
-//   - D-pad horizontal - switch track between mute/normal/solo (hold Main to pull all tracks)
-//   - D-pad vertical - select track (hold Main to skip to top or bottom)
+//   - D-pad vertical - switch track between mute/normal/solo (hold Main to pull all tracks)
+//   - D-pad horizontal - select track (hold Main to skip to first or last)
+//   - Right stick - edit track volume and pan
+//
+//   To reset a track's pan or volume, click the right stick button and press the axis you want to reset on the d-pad - vertical for volume, horizontal for pan.
 //
 //   SELECT button plus:
 //   - A - new track
@@ -41,12 +44,15 @@
 //   - Left bumper - chop out selection time (shorten project)
 //   - X - begin quick edit
 //   - A - do last quick edit again (on newly selected track)
+//   - B - invert last quick edit
 //
 //   Quick edit is the main editing control you get here. It allows you to move a section of the project from its original point (the point in the project at which
 //   you pressed quick edit) to any other point in time (the one at which you press A to confirm the edit). The project contents will then move either earlier or
 //   later to match the new "corrected" point, and the space in between the points will either be chopped (fully removed) or grafted (filled with emptiness) to match.
 //   Works the same as MAIN + bumpers. Modify the confirmation with START (that is, MAIN + X, then START + A) to affect only markers (regions not supported), or SELECT
 //   to affect only items on selected tracks.
+//   But what if you only needed to nudge one transient? Well, you've already moved everything once, so just scrub to the other side and press MAIN + B
+//   to "invert" the edit you just made - which will pull everything after it, back to where it was before.
 
 
 
@@ -62,6 +68,22 @@ Li         =  250;  // last input tracker (used for distinguishing action from m
 // Li[1] = mask of were they pressed or released?
 lastqedit  =  300;
 GetOS(#os);
+
+HasExtState("ReaPad", "RightStickDeadzone") ? (
+  GetExtState(#RDeadzone,"ReaPad","RightStickDeadzone");
+  RDz =  parse_timestr_len(#RDeadzone, 0, 3); // only str -> float conversion i can think of
+):(
+  SetExtState("ReaPad", "RightStickDeadzone", "0.1", 1);
+  RDz = 0.1;
+);
+HasExtState("ReaPad", "LeftStickDeadzone") ? (
+  GetExtState(#LDeadzone,"ReaPad","LeftStickDeadzone");
+  LDz =  parse_timestr_len(#LDeadzone, 0, 3); // only str -> float conversion i can think of
+):(
+  SetExtState("ReaPad", "LeftStickDeadzone", "0.1", 1);
+  LDz = 0.1;
+);
+
 
 
 function TRIGGERS() // triggers & d-pad behave differently on win vs linux
@@ -230,6 +252,14 @@ function track_audio_level(direction) // mute <-> normal <-> solo
   );
 );
 
+function time_now()
+(
+  GetPlayState() & 1 ? (
+    GetPlayPosition();
+  ):(
+    GetCursorPosition();
+  );
+);
 
 function chop_graft_markers(graft, FirstTime, SecondTime)
 ( // chop out (shorten) or graft in (extend) markers by time selection
@@ -372,6 +402,45 @@ function chop_graft_trackitems(graft, FirstTime, SecondTime)
   );
 );
 
+function correct_dz(amt, deadzone) // scale input val to full range
+(
+  ( abs(amt) - deadzone ) / ( 1 - deadzone ) * sign(amt);
+);
+
+function nudge_pan(amt)
+(
+  tracks_seld = CountSelectedTracks(0);
+  i = 0;
+  loop(tracks_seld,
+    track = GetSelectedTrack(0, i);
+    GetTrackUIVolPan(track, volume, pan);
+    pan += 0.1*amt;
+    pan = max(-1, min(1, pan));
+    CSurf_OnPanChange(track, pan, 0);
+    i += 1;
+  );
+);
+
+function nudge_vol(amt)
+(
+  tracks_seld = CountSelectedTracks(0);
+  i = 0;
+  loop(tracks_seld,
+    track = GetSelectedTrack(0, i);
+    GetTrackUIVolPan(track, vol, pan);
+    vol > 1 ? ( // adaptively nudge depending on the current value
+      CSurf_OnVolumeChange(track, 0.5*amt, 1);
+    ):(
+      vol < 0.5 ? (
+        CSurf_OnVolumeChange(track, 3*amt, 1);
+      ):(
+        CSurf_OnVolumeChange(track, amt, 1);
+      );
+    );
+    i += 1;
+  );
+);
+
 function setup()
 (
   // Joystick setup
@@ -424,7 +493,7 @@ function main_loop()
       nw(BUTTON_A) ? ( // only run when pressed not released
         QuickEditActive ? ( // finish quick edit
           QuickEditActive = 0;
-          SecondTime = GetPlayPosition();
+          SecondTime = time_now();
           lastqedit[1] = SecondTime;
           graft = (SecondTime-FirstTime) > 0;
           b(BUTTON_SELECT) ? ( // edit selected tracks
@@ -492,10 +561,10 @@ function main_loop()
                 ):(
                   MarkerSelActive ? ( // if currently in marker select mode,
                     MSelStage == 0 ? (
-                      FirstTime = GetCursorPosition(); // lock in the first position (edit cursor)
+                      FirstTime = time_now(); // lock in the first position (edit cursor)
                       MSelStage = 1;                   // and move to stage 2
                     ):(
-                      SecondTime = GetCursorPosition();
+                      SecondTime = time_now();
                       GetSet_LoopTimeRange(1, 0, FirstTime, SecondTime, 1); // set time selection and return to normal
                       n("_BR_RESTORE_CURSOR_POS_SLOT_2");
                       MarkerSelActive = 0;
@@ -513,31 +582,60 @@ function main_loop()
       // b
       // undo, delete track, delete marker
       nw(BUTTON_B) ? (
-        b(BUTTON_SELECT) ? (
-          r(40005); // delete track
+        QuickEditActive ? (
+          QuickEditActive = 0; // cancel quick edit
         ):(
-          b(BUTTON_START) ? (
-            Undo_BeginBlock();
-            n("_BR_SAVE_CURSOR_POS_SLOT_1"); // save edit cursor pos
-            r(40434); // move edit cursor 2 playhead
-            r(40613); // dlete marker near cursor
-            n("_BR_RESTORE_CURSOR_POS_SLOT_1");
-            r(40898); // renumber markers etc
-            Undo_EndBlock("Delete closest marker", 0);
-          ):(
-            RecCycleActive ? (
-              RecCycleActive = 0; // cancel
-            ):(
-              MarkerSelActive ? (
-                n("_BR_RESTORE_CURSOR_POS_SLOT_2");
-                n("_SWS_RESTLOOP1");
-                n("_SWS_RESTTIME1");
-                MarkerSelActive = 0; // cancel
+          b(BUTTON_MAIN) ? ( // invert previous quick edit
+            FirstTime = lastqedit[];
+            SecondTime = lastqedit[1];
+            !( FirstTime == SecondTime && SecondTime == 0 ) ? ( // if there's a quick edit in the history
+              graft = (SecondTime-FirstTime) < 0; // inverted
+              time_difference = SecondTime - FirstTime;
+              FirstTime = time_now();
+              SecondTime = FirstTime+abs(time_difference);
+              ( lastqedit[2] == 1 ) ? (
+                chop_graft_trackitems( graft, FirstTime, SecondTime );
               ):(
-                QuickEditActive ? (
-                  QuickEditActive = 0; // cancel
+                ( lastqedit[2] == 2 ) ? (
+                  chop_graft_markers( graft, FirstTime, SecondTime );
                 ):(
-                  r(40029); // undo
+                  n("_SWS_SAVELOOP1");
+                  n("_SWS_SAVETIME1");
+                  GetSet_LoopTimeRange(1, 0, FirstTime, SecondTime, 1);
+                  graft ? (
+                    r(40200); // graft in selection (everything)
+                  ):(
+                    r(40201); // chop out selection (everything)
+                  );
+                  n("_SWS_RESTLOOP1");
+                  n("_SWS_RESTTIME1");
+                );
+              );
+            );
+          ):(
+            b(BUTTON_SELECT) ? (
+              r(40005); // delete track
+            ):(
+              b(BUTTON_START) ? (
+                Undo_BeginBlock();
+                n("_BR_SAVE_CURSOR_POS_SLOT_1"); // save edit cursor pos
+                r(40434); // move edit cursor 2 playhead
+                r(40613); // dlete marker near cursor
+                n("_BR_RESTORE_CURSOR_POS_SLOT_1");
+                r(40898); // renumber markers etc
+                Undo_EndBlock("Delete closest marker", 0);
+              ):(
+                RecCycleActive ? (
+                  RecCycleActive = 0; // cancel
+                ):(
+                  MarkerSelActive ? (
+                    n("_BR_RESTORE_CURSOR_POS_SLOT_2");
+                    n("_SWS_RESTLOOP1");
+                    n("_SWS_RESTTIME1");
+                    MarkerSelActive = 0; // cancel
+                  ):(
+                    r(40029); // undo
+                  );
                 );
               );
             );
@@ -550,7 +648,7 @@ function main_loop()
       nw(BUTTON_X) ? (
         b(BUTTON_MAIN) ? ( // start quick edit
           QuickEditActive = 1;
-          FirstTime = GetPlayPosition();
+          FirstTime = time_now();
           lastqedit[] = FirstTime;
         ):(
           b(BUTTON_SELECT) ? ( // start record-cycle
@@ -587,7 +685,6 @@ function main_loop()
       // play/stop, nothing, toggle repeat
       nw(BUTTON_Y) ? (
         b(BUTTON_SELECT) ? (
-          //buttonCC(BUTTON_Y, CC_Y1);
           r(1134); // tap tempo
         ):(
           b(BUTTON_START) ? (
@@ -664,62 +761,89 @@ function main_loop()
       );
     ); // end of buttons
 
-    // dpad - various movement controls
+    // dpad horizontal
+    // track select, pre-roll, reset track pan
     oldfunc[1] != DPAD_H() ? ( // horizontal
       buttons = buttons | BUTTON_DPADANY; // input tracking
       value = DPAD_H();
-      value < 0 ? (
-        b(BUTTON_START) ? (
-          !GetToggleCommandState(41819) ? (
-            r(41819); // enable pre-roll if it's disabled ("start from earlier")
-          );
-        ):(
-          b(BUTTON_MAIN) ? (
-            r(40340); // unsolo all tracks
+      value && b(BUTTON_JOY_R) ? ( // reset pan to center
+        Undo_BeginBlock();
+        tracks_seld = CountSelectedTracks(0);
+        i = 0;
+        loop(tracks_seld,
+          track = GetSelectedTrack(0, i);
+          SetTrackUIPan(track, 0, 0, 1, 1);
+          i += 1;
+        );
+        Undo_EndBlock("Reset pan on selected tracks", 0);
+      ):(
+        value < 0 ? ( // left
+          b(BUTTON_START) ? (
+            !GetToggleCommandState(41819) ? (
+              r(41819); // enable pre-roll if it's disabled ("start from earlier")
+            );
           ):(
-            track_audio_level(-1); // decrease audibility level (mute <- normal <- solo)
+            b(BUTTON_MAIN) ? (
+              r(40296); // go to first track
+              n("_XENAKIOS_SELFIRSTOFSELTRAX");
+            ):(
+              r(40286); // go to prev track
+            );
           );
         );
-      );
-      value > 0 ? (
-        b(BUTTON_START) ? (
-          GetToggleCommandState(41819) ? (
-            r(41819); // disable pre-roll if it's enabled ("start from later")
-          );
-        ):(
-          b(BUTTON_MAIN) ? (
-            r(40339); // unmute all tracks
+        value > 0 ? ( // right
+          b(BUTTON_START) ? (
+            GetToggleCommandState(41819) ? (
+              r(41819); // disable pre-roll if it's enabled ("start from later")
+            );
           ):(
-            track_audio_level(1); // increase audibility level (mute -> normal -> solo)
+            b(BUTTON_MAIN) ? (
+              r(40296); // go to last track
+              n("_XENAKIOS_SELLASTOFSELTRAX");
+            ):(
+              r(40285); // go to next track
+            );
           );
         );
       );
     );
 
+    // dpad vertical
+    // mute-normal-solo, metronome, reset track volume
     oldfunc[2] != DPAD_V() ? ( // vertical
       buttons = buttons | BUTTON_DPADANY; // input tracking
       value = DPAD_V();
-      value > 0 ? (
-        b(BUTTON_START) ? (
-          r(41746); // disable metronome
-        ):(
-          b(BUTTON_MAIN) ? (
-            r(40296); // go to last track
-            n("_XENAKIOS_SELLASTOFSELTRAX");
+      value && b(BUTTON_JOY_R) ? ( // reset volume to unity
+        Undo_BeginBlock();
+        tracks_seld = CountSelectedTracks(0);
+        i = 0;
+        loop(tracks_seld,
+          track = GetSelectedTrack(0, i);
+          SetTrackUIVolume(track, 1, 0, 1, 1);
+          i += 1;
+        );
+        Undo_EndBlock("Reset volume on selected tracks", 0);
+      ):(
+        value > 0 ? ( // down
+          b(BUTTON_START) ? (
+            r(41746); // disable metronome (time + less audible)
           ):(
-            r(40285); // go to next track
+            b(BUTTON_MAIN) ? (
+              r(40340); // unsolo all tracks
+            ):(
+              track_audio_level(-1); // decrease audibility level (mute <- normal <- solo)
+            );
           );
         );
-      );
-      value < 0 ? (
-        b(BUTTON_START) ? (
-          r(41745); // enable metronome
-        ):(
-          b(BUTTON_MAIN) ? (
-            r(40296); // go to first track
-            n("_XENAKIOS_SELFIRSTOFSELTRAX");
+        value < 0 ? ( // up
+          b(BUTTON_START) ? (
+            r(41745); // enable metronome (time + more audible)
           ):(
-            r(40286); // go to prev track
+            b(BUTTON_MAIN) ? (
+              r(40339); // unmute all tracks
+            ):(
+              track_audio_level(1); // increase audibility level (mute -> normal -> solo)
+            );
           );
         );
       );
@@ -728,6 +852,22 @@ function main_loop()
     TRIGGERS() ? (
       CSurf_ScrubAmt(-4*TRIGGERS());
     );
+
+    abs(correct_dz( newaxis[JOY_R_H], RDz )) > abs(correct_dz( newaxis[JOY_R_V], RDz )) ? (
+      abs(newaxis[JOY_R_H]) > RDz ? ( // right stick horizontal to nudge track pan
+        pan = correct_dz( newaxis[JOY_R_H], RDz );
+        nudge_pan(pan);
+        CSurf_FlushUndo(0);
+      );
+    ):(
+      abs(newaxis[JOY_R_V]) > RDz ? ( // right stick vertical to nudge track volume
+        vol = correct_dz( -newaxis[JOY_R_V], RDz );
+        nudge_vol(vol);
+        CSurf_FlushUndo(0);
+      );
+    );
+
+
 
 
     // log the frame & rerun
