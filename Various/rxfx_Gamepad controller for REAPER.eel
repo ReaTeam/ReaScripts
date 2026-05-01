@@ -1,7 +1,7 @@
 // @description Gamepad controller for REAPER
 // @author Rek's Effeks
 // @version 1.4
-// @changelog Added FX controls. Minor edits elsewhere.
+// @changelog 1.4: Added FX controls. Minor edits elsewhere. 1.3.5: Added track volume & pan control, invert quickedit bind, and minor rebinding.
 // @about
 //   Hotplug-enabled gamepad controller script for Reaper. Requires SWS extension.
 //
