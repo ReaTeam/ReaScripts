@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="6a3c8ef919b5b93e29642c27f5ea69cb92ac146a" name="ReaTeam Scripts">
+<index version="1" commit="c0c111126a498bc307888adb4e5ee2043e050e5e" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -29560,7 +29560,7 @@ Fix SWS Startup / Lokasenna Radial Menu bug]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d6adaa5ef60369701c7f3d399b228645ed9577a7/Various/rodilab_Smart%20select%20all%20(depending%20on%20focus,%20tracks%20selected%20and%20time%20selection).lua</source>
       </version>
     </reapack>
-    <reapack name="rxfx_Gamepad controller for REAPER.eel" type="script" desc="Gamepad controller for REAPER">
+    <reapack name="rxfx_ReaPad.eel" type="script" desc="ReaPad">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
@@ -29575,8 +29575,11 @@ Fix SWS Startup / Lokasenna Radial Menu bug]]></changelog>
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Bumpers - skip the cursor between markers\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Triggers - scrub the playhead\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Main/guide button - all notes off + reset midi controllers\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab D-pad horizontal - switch track between mute/normal/solo (hold Main to pull all tracks)\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab D-pad vertical - select track (hold Main to skip to top or bottom)\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab D-pad vertical - switch track between mute/normal/solo (hold Main to pull all tracks)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab D-pad horizontal - select track (hold Main to skip to first or last)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Right stick - edit track volume and pan\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Left stick - edit FX wet and designated parameters\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 To reset a track's pan or volume, hold down the right stick button and press the axis you want to reset on the d-pad - vertical for volume, horizontal for pan.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 SELECT button plus:\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab A - new track\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab B - delete selected track\par}
@@ -29592,26 +29595,23 @@ Fix SWS Startup / Lokasenna Radial Menu bug]]></changelog>
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab D-pad horizontal - enable/disable pre-roll before record (left means on - "start playback earlier")\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab D-pad vertical - enable/disable metronome (up means on)\sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 When in time-select mode, you can marker-skip or scrub to one of your endpoints using the bumpers and triggers, then press A to confirm it. Use the same controls to select and confirm your second point, or press B to cancel anytime. Your previous edit position will restore.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 MAIN button plus:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 MAIN (aka GUIDE or MODE) button plus:\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Right bumper - graft in selection time (extend project)\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Left bumper - chop out selection time (shorten project)\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab X - begin quick edit\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab A - do last quick edit again (on newly selected track)\sa180\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Quick edit is the main editing control you get here. It allows you to move a section of the project from its original point (the point in the project at which you pressed quick edit) to any other point in time (the one at which you press A to confirm the edit). The project contents will then move either earlier or later to match the new "corrected" point, and the space in between the points will either be chopped (fully removed) or grafted (filled with emptiness) to match. Works the same as MAIN + bumpers. Modify the confirmation with START (that is, MAIN + X, then START + A) to affect only markers (regions not supported), or SELECT to affect only items on selected tracks.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab A - do last quick edit again (on newly selected track)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab B - invert last quick edit\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Quick edit is the main editing control you get here. It allows you to move a section of the project from its original point (the point in the project at which you pressed quick edit) to any other point in time (the one at which you press A to confirm the edit). The project contents will then move either earlier or later to match the new "corrected" point, and the space in between the points will either be chopped (fully removed) or grafted (filled with emptiness) to match. Works the same as MAIN + bumpers. Modify the confirmation with START (that is, MAIN + X, then START + A) to affect only markers (regions not supported), or SELECT to affect only items on selected tracks. But what if you only needed to nudge one transient? Well, you've already moved everything once, so just scrub to the other side and press MAIN + B to "invert" the edit you just made - which will pull everything after it, back to where it was before.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 LEFT STICK button plus:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Bumpers - cycle between configured FX on selected tracks\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab B - delete current effect on selected tracks\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 ReaPad version 1.4 introduces FX control, which allows you to switch between a favored few effects and have two-axis control of each using the left analog stick - the horizontal axis controls a single parameter of your choice, and the vertical axis controls the wet mix. It comes preconfigured with a few stock effects, stored in the ExtState configuration file (reaper-extstate.ini, at least on my computer), and it's encouraged you edit the list with your favorites. You must restart Reaper to save any manual changes. The format is EffectName|parameter,Effect2|parameter, etc. Hold down the MAIN button while moving the stick for finer control over the two axes.\par}
 }
 ]]></description>
       </metadata>
-      <version name="1.1" author="Rek's Effeks" time="2026-04-25T01:13:02Z">
-        <changelog><![CDATA[Added Windows support and trigger scrubbing]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/98e6de5a975a9b5be8e2c43ca4d899e391a5e341/Various/rxfx_Gamepad%20controller%20for%20REAPER.eel</source>
-      </version>
-      <version name="1.1.01" author="Rek's Effeks" time="2026-04-25T03:27:08Z">
-        <changelog><![CDATA[Added Windows support and (now fixed) trigger scrubbing]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/7a9074c41a577ba05caa54f9f9f71ae2c6c4f15e/Various/rxfx_Gamepad%20controller%20for%20REAPER.eel</source>
-      </version>
-      <version name="1.3" author="Rek's Effeks" time="2026-04-28T16:53:32Z">
-        <changelog><![CDATA[Added chop/graft and quick-edit controls, implemented track solo/mute, rebound track switching & modal editing controls, reworked backend. I forgot to publish 1.2 sorry]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d3532b52965c8467473bc3e690d935e783917656/Various/rxfx_Gamepad%20controller%20for%20REAPER.eel</source>
+      <version name="1.4" author="Rek's Effeks" time="2026-05-02T22:49:03Z">
+        <changelog><![CDATA[Added FX controls. Minor edits elsewhere.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c0c111126a498bc307888adb4e5ee2043e050e5e/Various/rxfx_ReaPad.eel</source>
       </version>
     </reapack>
     <reapack name="SampleSamurai.lua" type="script" desc="SampleSamurai">
