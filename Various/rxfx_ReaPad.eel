@@ -1,7 +1,7 @@
 // @description ReaPad
 // @author Rek's Effeks
-// @version 1.4
-// @changelog Added FX controls. Minor edits elsewhere.
+// @version 1.5
+// @changelog Added smooth-copy and smooth-delete.
 // @about
 //   Hotplug-enabled gamepad controller script for Reaper. Requires SWS extension.
 //
@@ -26,8 +26,25 @@
 //   - B - delete selected track
 //   - X - record-arm mode
 //   - Y (or RB) - tap tempo
+//   - D-pad down - smooth delete
+//   - D-pad up - smooth copy
 //
-//   When in record-arm mode, press A or X to arm input 1 or 2; Y to disarm the selected track; the main/guide button to disarm all tracks; or B to cancel.
+//   When in record-arm mode:
+//   - A - arm selected track on input 1
+//   - X - arm selected track on input 2
+//   - Y - disarm track
+//   - B - cancel
+//   - MAIN - disarm all tracks
+//   - D-pad up - arm smooth copy
+//   - D-pad down - arm smooth delete
+//
+//   Smooth edits are your way of copying and deleting sections of the project. Smooth delete is simple: with a track selected, hold SELECT + DOWN on the D-pad while the project is playing.
+//   Everything that tries to play on the selected track while the button is down will be deleted. You can also arm smooth-delete by pressing down on the D-pad while in record-arm mode. Then,
+//   when you press play, smooth delete will begin immediately. To stop it, you can stop the playback, or you can hold AND THEN RELEASE select + down again. (This may take a bit of getting
+//   used to - remember that smooth edits normally happen only with the buttons held down, so pressing them here is simply picking up the slack.)
+//   Smooth copy is much the same as smooth delete, except that you must first select a focus point (a place to copy from - a specific time on a specific track) before you begin. You can set the focus
+//   point with MAIN + Y. Smooth copy copies elements relatively, from the focus point to your start point. This means you can set the focus point at the beginning of a chorus, then play from
+//   the start of the next chorus and just copy the whole thing down. (Unfortunately, due to technical limitations, previewing smooth copy edits is probably impossible.)
 //
 //   START button plus:
 //   - A - new marker at playhead (snapped to grid)
@@ -46,6 +63,7 @@
 //   - X - begin quick edit
 //   - A - do last quick edit again (on newly selected track)
 //   - B - invert last quick edit
+//   - START - snap edit cursor to grid
 //
 //   Quick edit is the main editing control you get here. It allows you to move a section of the project from its original point (the point in the project at which
 //   you pressed quick edit) to any other point in time (the one at which you press A to confirm the edit). The project contents will then move either earlier or
@@ -73,6 +91,8 @@ fx_options =  #fx;
 backup     =  #fxtwo;
 effect     =  #effect;
 param      =  #param;
+razordel   =  #delete;
+razorcpy   =  #copy;
 newaxis    =  0;
 oldaxis    =  50;
 newpov     =  100;
@@ -84,7 +104,9 @@ Li         =  250;  // last input tracker (used for distinguishing action from m
 lastqedit  =  300;
 fxcycle    =  400;
 GetOS(#os);
+FocusTrack =  -1;
 
+// dealing with ExtStates
 HasExtState("ReaPad", "RightStickDeadzone") ? (
   GetExtState(#RDeadzone,"ReaPad","RightStickDeadzone");
   RDz =  parse_timestr_len(#RDeadzone, 0, 3); // only str -> float conversion i can think of
@@ -106,6 +128,7 @@ HasExtState("ReaPad", "FXCycle") ? (
   GetExtState(#fx,"ReaPad","FXCycle");
 );
 
+// parse fx configuration string
 x = fxcycle-3;
 y = fxcycle-2;
 n = 0;
@@ -201,7 +224,7 @@ match("Win*",#os) ? (
   BUTTON_JOY_R  =  512;
   BUTTON_MAIN   = 1024;
 
-  BUTTON_DPADANY = 2048;
+  MODIFIER_BLOCK = 2048;
   // dpad is on a POV for windows
   // button entry is only for input tracking
 
@@ -224,7 +247,7 @@ match("Win*",#os) ? (
   BUTTON_JOY_L  =  512;
   BUTTON_JOY_R  = 1024;
 
-  BUTTON_DPADANY = 2048;
+  MODIFIER_BLOCK = 2048;
   // only used for input tracking
 
   JOY_L_H  = 0;
@@ -240,7 +263,7 @@ match("Win*",#os) ? (
 function str(n)
 (
   x = #;
-  sprintf(x,"%f", n);
+  sprintf(x,"%g", n);
   x;
 );
 
@@ -308,8 +331,8 @@ function time_now()
   );
 );
 
-function chop_graft_markers(graft, FirstTime, SecondTime)
-( // chop out (shorten) or graft in (extend) markers by time selection
+function chop_graft_markers(graft, FirstTime, SecondTime) // chop out (shorten) or graft in (extend) markers by time selection
+(
   Undo_BeginBlock();
   ( FirstTime == SecondTime && SecondTime == 0 ) ? (
     GetSet_LoopTimeRange(0, 0, time1, time2, 1);
@@ -622,6 +645,116 @@ function fx_val_nudge(axis, amt) // nudge wet or designated fx value using left 
   );
 );
 
+function finish_delete(StartTime, override)
+(
+  Undo_BeginBlock();
+  SetCursorContext(2, 0);
+  override ? (
+    EndTime = last_time;
+  ):(
+    EndTime = time_now();
+  );
+  tracks_seld = CountSelectedTracks(0);
+  i = 0;
+  loop(tracks_seld,
+    track = GetSelectedTrack(0, i);
+    strcpy(#delete, str(StartTime));
+    strcat(#delete, " ");
+    strcat(#delete, str(EndTime));
+    strcat(#delete, " \"\"");
+    //ShowConsoleMsg(#delete);
+    GetSetMediaTrackInfo_String(track, "P_RAZOREDITS", #delete, 1);
+    i += 1;
+  );
+  n("_SWS_SAVESEL"); // save track selection
+  r(40297); // deselect all tracks
+  n("_SWS_SMARTREMOVE"); // delete contents of razor edits
+  UpdateArrange();
+  r(42406); // razor edit clear all areas
+  n("_SWS_RESTORESEL"); // restore track selection
+  Undo_EndBlock("Smooth delete", 0);
+);
+
+function finish_copy(StartTime, override)
+(
+  FocusTrack != -1 ? (
+    Undo_BeginBlock();
+    SetCursorContext(2, 0);
+    override ? (
+    EndTime = last_time;
+    ):(
+      EndTime = time_now();
+    );
+    track = FocusTrack; // track to copy from
+    finalStartTime = StartTime - CopyRelTime + FocusTime; // start time as it relates to the focus time
+    finalEndTime   = EndTime   - CopyRelTime + FocusTime;
+
+    strcpy(#copy, str(finalStartTime)); // make the razor edit string
+    strcat(#copy, " ");
+    strcat(#copy, str(finalEndTime));
+    strcat(#copy, " \"\"");
+    GetSetMediaTrackInfo_String(track, "P_RAZOREDITS", #copy, 1);
+
+    n("_SWS_SAVESEL"); // save track selection
+    r(40297); // deselect all tracks (changes focus)
+    n("_SWS_SMARTCOPY"); // copy contents of razor edits
+    MoveEditCursor(StartTime - CopyRelTime, 0); // edit cursor to correct time to paste
+    n("_SWS_RESTORESEL"); // restore track selection
+    r(42398); // paste
+    MoveEditCursor(CopyRelTime - StartTime, 0); // edit cursor back to where it was
+    r(42406); // razor edit clear all areas
+    Undo_EndBlock("Smooth copy", 0);
+  );
+);
+
+function mute_all_on_track(mute)
+(
+  Undo_BeginBlock();
+  num_items = CountMediaItems(0);
+  tracks_seld = CountSelectedTracks(0);
+  i = num_items-1;
+  loop(num_items,
+    item = GetMediaItem(0, i);
+    t = tracks_seld-1;
+    loop(tracks_seld,
+      GetSelectedTrack(0, t) == GetMediaItem_Track(item) ? (
+        SetMediaItemInfo_Value(item, "B_MUTE", mute);
+      );
+      t -=1;
+    );
+    i -= 1;
+  );
+  UpdateArrange();
+  Undo_EndBlock("Temporary muting for smooth deletion", 0);
+);
+
+function idx_from_track(track)
+(
+  numtracks = CountTracks(0);
+  i = -1;
+  stop = 0;
+  while(
+    i += 1;
+    track == GetTrack(0, i) ? (
+      stop = 1;
+    );
+    !(stop || i==numtracks);
+  );
+  i;
+);
+
+function snap_cursor()
+(
+  pos = GetCursorPosition();
+  newpos = SnapToGrid(0, pos);
+  MoveEditCursor(newpos - pos, 0);
+);
+
+function justlooped()
+( // if we're earlier than last frame without having stopped, or in a very different place
+  (abs(time_now()-last_time)>0.5 || time_now() < last_time) && playing && (GetPlayState() & 1);
+);
+
 function setup()
 (
   // Joystick setup
@@ -660,6 +793,18 @@ function main_loop()
       );
     );
     i += 1;
+  );
+
+  justlooped() ? (
+    deleting ? (
+      deleting = 0;
+      mute_all_on_track(0);
+      finish_delete(DeleteStart,1);
+    );
+    copying ? (
+      copying = 0;
+      finish_copy(CopyStart,1);
+    );
   );
 
   // if it's still plugged in
@@ -795,6 +940,16 @@ function main_loop()
             );
           ):(
             b(BUTTON_SELECT) ? (
+              // disallow smooth copy if focus track deleted
+              tracks_seld = CountSelectedTracks(0);
+              i = 0;
+              loop(tracks_seld,
+                track = GetSelectedTrack(0, i);
+                track == FocusTrack ? (
+                  FocusTrack = -1;
+                );
+                i += 1;
+              );
               r(40005); // delete track
             ):(
               b(BUTTON_START) ? (
@@ -875,18 +1030,49 @@ function main_loop()
       // y button
       // play/stop, tap tempo, toggle repeat
       nw(BUTTON_Y) ? (
-        b(BUTTON_SELECT) ? (
-          r(1134); // tap tempo
+        b(BUTTON_MAIN) ? (
+          CountSelectedTracks(0) ? (
+            FocusTime = time_now();
+            FocusTrack = GetSelectedTrack(0, 0);
+          );
         ):(
-          b(BUTTON_START) ? (
-            r(1068); // toggle repeat
+          b(BUTTON_SELECT) ? (
+            r(1134); // tap tempo
           ):(
-            RecCycleActive ? (
-              tr = GetSelectedTrack(0,0);
-              SetMediaTrackInfo_Value(tr, "I_RECARM", 0); // set selected track to disarmed
-              RecCycleActive = 0;
+            b(BUTTON_START) ? (
+              r(1068); // toggle repeat
             ):(
-              r(40044); // play/stop
+              RecCycleActive ? (
+                tr = GetSelectedTrack(0,0);
+                SetMediaTrackInfo_Value(tr, "I_RECARM", 0); // set selected track to disarmed
+                RecCycleActive = 0;
+              ):(
+                !(GetPlayState() & 1) ? ( // deal with smooth copy/smooth delete
+                  CopyRelTime = time_now();
+                  DeleteArmed ? (
+                    deleting = 1;
+                    mute_all_on_track(1);
+                    DeleteStart = time_now();
+                  );
+                  CopyArmed ? (
+                    copying = 1;
+                    CopyStart = time_now();
+                  );
+                ):(
+                  deleting ? (
+                    deleting = 0;
+                    mute_all_on_track(0);
+                    finish_delete(DeleteStart,0);
+                    DeleteArmed = 0;
+                  );
+                  copying ? (
+                    copying = 0;
+                    finish_copy(CopyStart,0);
+                    CopyArmed = 0;
+                  );
+                );
+                r(40044); // play/stop
+              );
             );
           );
         );
@@ -952,6 +1138,17 @@ function main_loop()
 
       // main button
       // reset controllers + all notes off, disarm all tracks
+      nw(BUTTON_MAIN) ? (
+        b(BUTTON_START) ? (
+          buttons = buttons | MODIFIER_BLOCK;
+          b(BUTTON_SELECT) ? (
+            //save()
+            0;
+          ):(
+            snap_cursor();
+          );
+        );
+      );
       off(BUTTON_MAIN) ? (
         RecCycleActive ? (
           r(40491); // disarm all tracks
@@ -966,7 +1163,7 @@ function main_loop()
     // dpad horizontal
     // track select, pre-roll, reset track pan
     oldfunc[1] != DPAD_H() ? ( // horizontal
-      buttons = buttons | BUTTON_DPADANY; // input tracking
+      buttons = buttons | MODIFIER_BLOCK; // input tracking
       value = DPAD_H();
       value && b(BUTTON_JOY_R) ? ( // reset pan to center
         Undo_BeginBlock();
@@ -985,6 +1182,19 @@ function main_loop()
               r(41819); // enable pre-roll if it's disabled ("start from earlier")
             );
           ):(
+            (GetPlayState() & 1) ? ( // stop smooth edits when switching track
+              deleting ? (
+                deleting = 0;
+                mute_all_on_track(0);
+                finish_delete(DeleteStart,0);
+                DeleteArmed = 0;
+              );
+              copying ? (
+                copying = 0;
+                finish_copy(CopyStart,0);
+                CopyArmed = 0;
+              );
+            );
             b(BUTTON_MAIN) ? (
               r(40296); // go to first track
               n("_XENAKIOS_SELFIRSTOFSELTRAX");
@@ -999,6 +1209,17 @@ function main_loop()
               r(41819); // disable pre-roll if it's enabled ("start from later")
             );
           ):(
+            (!(CopyArmed || DeleteArmed) && (GetPlayState() & 1)) ? ( // stop smooth edits when switching track
+              deleting ? (
+                deleting = 0;
+                mute_all_on_track(0);
+                finish_delete(DeleteStart,0);
+              );
+              copying ? (
+                copying = 0;
+                finish_copy(CopyStart,0);
+              );
+            );
             b(BUTTON_MAIN) ? (
               r(40296); // go to last track
               n("_XENAKIOS_SELLASTOFSELTRAX");
@@ -1013,7 +1234,7 @@ function main_loop()
     // dpad vertical
     // mute-normal-solo, metronome, reset track volume
     oldfunc[2] != DPAD_V() ? ( // vertical
-      buttons = buttons | BUTTON_DPADANY; // input tracking
+      buttons = buttons | MODIFIER_BLOCK; // input tracking
       value = DPAD_V();
       value && b(BUTTON_JOY_R) ? ( // reset volume to unity
         Undo_BeginBlock();
@@ -1027,25 +1248,65 @@ function main_loop()
         Undo_EndBlock("Reset volume on selected tracks", 0);
       ):(
         value > 0 ? ( // down
-          b(BUTTON_START) ? (
-            r(41746); // disable metronome (time + less audible)
+          b(BUTTON_SELECT) ? ( // smooth delete
+            deleting = 1;
+            mute_all_on_track(1);
+            !DeleteArmed ? (
+              DeleteStart = time_now();
+            );
+            DeleteArmed = 0;
           ):(
-            b(BUTTON_MAIN) ? (
-              r(40340); // unsolo all tracks
+            b(BUTTON_START) ? (
+              r(41746); // disable metronome (time + less audible)
             ):(
-              track_audio_level(-1); // decrease audibility level (mute <- normal <- solo)
+              b(BUTTON_MAIN) ? (
+                r(40340); // unsolo all tracks
+              ):(
+                RecCycleActive ? (
+                  DeleteArmed = 1;
+                  CopyArmed = 0;
+                  RecCycleActive = 0;
+                ):(
+                  track_audio_level(-1); // decrease audibility level (mute <- normal <- solo)
+                );
+              );
             );
           );
         );
         value < 0 ? ( // up
-          b(BUTTON_START) ? (
-            r(41745); // enable metronome (time + more audible)
-          ):(
-            b(BUTTON_MAIN) ? (
-              r(40339); // unmute all tracks
-            ):(
-              track_audio_level(1); // increase audibility level (mute -> normal -> solo)
+          b(BUTTON_SELECT) ? ( // smooth copy
+            copying = 1;
+            !CopyArmed ? (
+              CopyStart = time_now();
             );
+            CopyArmed = 0;
+          ):(
+            b(BUTTON_START) ? (
+              r(41745); // enable metronome (time + more audible)
+            ):(
+              b(BUTTON_MAIN) ? (
+                r(40339); // unmute all tracks
+              ):(
+                RecCycleActive ? (
+                  CopyArmed = 1;
+                  DeleteArmed = 0;
+                  RecCycleActive = 0;
+                ):(
+                  track_audio_level(1); // increase audibility level (mute -> normal -> solo)
+                );
+              );
+            );
+          );
+        );
+        (value == 0 && !(CopyArmed || DeleteArmed) && (GetPlayState() & 1) && b(BUTTON_SELECT)) ? (
+          deleting ? (
+            deleting = 0;
+            mute_all_on_track(0);
+            finish_delete(DeleteStart,0);
+          );
+          copying ? (
+            copying = 0;
+            finish_copy(CopyStart,0);
           );
         );
       );
@@ -1074,7 +1335,7 @@ function main_loop()
     // left stick
     // fx parameter, fx wet
     abs(correct_dz( newaxis[JOY_L_H], LDz )) > abs(correct_dz( newaxis[JOY_L_V], LDz )) ? (
-      buttons = buttons | BUTTON_DPADANY; // input tracking (value doesnt matter for our purposes)
+      buttons = buttons | MODIFIER_BLOCK; // input tracking (value doesnt matter for our purposes)
       abs(newaxis[JOY_L_H]) > LDz ? ( // left stick horizontal to nudge designated fx parameter
         nudge = correct_dz( newaxis[JOY_L_H], LDz );
         b(BUTTON_MAIN) ? ( nudge *= 0.1 );
@@ -1082,7 +1343,7 @@ function main_loop()
       );
     ):(
       abs(newaxis[JOY_L_V]) > LDz ? ( // left stick vertical to nudge fx wet value
-        buttons = buttons | BUTTON_DPADANY; // input tracking (val doesnt matter)
+        buttons = buttons | MODIFIER_BLOCK; // input tracking (val doesnt matter)
         nudge = correct_dz( -newaxis[JOY_L_V], LDz );
         b(BUTTON_MAIN) ? ( nudge *= 0.1 );
         fx_val_nudge(0, nudge);
@@ -1090,9 +1351,35 @@ function main_loop()
     );
 
 
-
-
+    // display visuals for smooth copy/smooth delete
+    (copying || deleting) ? (
+      !timelogged ? (
+        n("_SWS_SAVETIME4");
+        timelogged = 1;
+        linkloops = GetToggleCommandState(40621);
+        linkloops ? ( // do not link loop points & time selections
+          r(40621); // (necessary to display it without fucking with loop)
+        );
+      );
+      deleting ? (
+        GetSet_LoopTimeRange(1, 0, DeleteStart, time_now(), 0);
+      ):(
+        GetSet_LoopTimeRange(1, 0, DeleteStart, time_now(), 0);
+      );
+    ):(
+      timelogged ? (
+        n("_SWS_RESTTIME4");
+        timelogged = 0;
+        !GetToggleCommandState(40621) ? (
+          linkloops ? (
+            r(40621);
+          );
+        );
+      );
+    );
     // log the frame & rerun
+    playing = GetPlayState() & 1;
+    last_time = time_now();
     reev();
     oldbuttons = buttons;
     i=0;
