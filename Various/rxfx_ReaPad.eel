@@ -1,6 +1,6 @@
 // @description ReaPad
 // @author Rek's Effeks
-// @version 1.5.5
+// @version 1.5.51
 // @changelog Added more powerful FX controls.
 // @about
 //   Hotplug-enabled gamepad controller script for Reaper. Requires SWS extension.
@@ -1002,14 +1002,16 @@ function main_loop()
                 Undo_EndBlock("Delete closest marker", 0);
               ):(
                 b(BUTTON_JOY_L) ? ( // delete last effect from selected tracks
+                  Undo_BeginBlock();
                   tracks_seld = CountSelectedTracks(0);
                   i = 0;
                   loop(tracks_seld,
                     track = GetSelectedTrack(0, i);
-                    TrackFX_Delete(track, TrackFX_GetCount(track)-1);
+                    TrackFX_Delete(track, TrackFX_GetCount(track)-1-FXOffset);
                     i += 1;
                   );
                   fx_show();
+                  Undo_EndBlock("Remove selected FX", 0);
                 ):(
                   RecCycleActive ? (
                     RecCycleActive = 0; // cancel
