@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="f38e7684e01b0641a2682a407c2fca153d1a2fc6" name="ReaTeam Scripts">
+<index version="1" commit="a14afd43d381ec8af0411e6622155d4a87050020" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -29627,6 +29627,10 @@ Fix SWS Startup / Lokasenna Radial Menu bug]]></changelog>
       <version name="1.5" author="Rek's Effeks" time="2026-05-03T04:17:24Z">
         <changelog><![CDATA[Added smooth-copy and smooth-delete.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f38e7684e01b0641a2682a407c2fca153d1a2fc6/Various/rxfx_ReaPad.eel</source>
+      </version>
+      <version name="1.5.01" author="Rek's Effeks" time="2026-05-03T07:54:36Z">
+        <changelog><![CDATA[Added smooth-copy and smooth-delete.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a14afd43d381ec8af0411e6622155d4a87050020/Various/rxfx_ReaPad.eel</source>
       </version>
     </reapack>
     <reapack name="SampleSamurai.lua" type="script" desc="SampleSamurai">
