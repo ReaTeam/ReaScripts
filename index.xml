@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="c0c111126a498bc307888adb4e5ee2043e050e5e" name="ReaTeam Scripts">
+<index version="1" commit="f38e7684e01b0641a2682a407c2fca153d1a2fc6" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -29584,8 +29584,18 @@ Fix SWS Startup / Lokasenna Radial Menu bug]]></changelog>
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab A - new track\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab B - delete selected track\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab X - record-arm mode\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Y (or RB) - tap tempo\sa180\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 When in record-arm mode, press A or X to arm input 1 or 2; Y to disarm the selected track; the main/guide button to disarm all tracks; or B to cancel.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Y (or RB) - tap tempo\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab D-pad down - smooth delete\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab D-pad up - smooth copy\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 When in record-arm mode:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab A - arm selected track on input 1\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab X - arm selected track on input 2\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Y - disarm track\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab B - cancel\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab MAIN - disarm all tracks\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab D-pad up - arm smooth copy\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab D-pad down - arm smooth delete\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Smooth edits are your way of copying and deleting sections of the project. Smooth delete is simple: with a track selected, hold SELECT + DOWN on the D-pad while the project is playing. Everything that tries to play on the selected track while the button is down will be deleted. You can also arm smooth-delete by pressing down on the D-pad while in record-arm mode. Then, when you press play, smooth delete will begin immediately. To stop it, you can stop the playback, or you can hold AND THEN RELEASE select + down again. (This may take a bit of getting used to - remember that smooth edits normally happen only with the buttons held down, so pressing them here is simply picking up the slack.) Smooth copy is much the same as smooth delete, except that you must first select a focus point (a place to copy from - a specific time on a specific track) before you begin. You can set the focus point with MAIN + Y. Smooth copy copies elements relatively, from the focus point to your start point. This means you can set the focus point at the beginning of a chorus, then play from the start of the next chorus and just copy the whole thing down. (Unfortunately, due to technical limitations, previewing smooth copy edits is probably impossible.)\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 START button plus:\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab A - new marker at playhead (snapped to grid)\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab B - delete closest marker\par}
@@ -29600,7 +29610,8 @@ Fix SWS Startup / Lokasenna Radial Menu bug]]></changelog>
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Left bumper - chop out selection time (shorten project)\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab X - begin quick edit\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab A - do last quick edit again (on newly selected track)\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab B - invert last quick edit\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab B - invert last quick edit\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab START - snap edit cursor to grid\sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Quick edit is the main editing control you get here. It allows you to move a section of the project from its original point (the point in the project at which you pressed quick edit) to any other point in time (the one at which you press A to confirm the edit). The project contents will then move either earlier or later to match the new "corrected" point, and the space in between the points will either be chopped (fully removed) or grafted (filled with emptiness) to match. Works the same as MAIN + bumpers. Modify the confirmation with START (that is, MAIN + X, then START + A) to affect only markers (regions not supported), or SELECT to affect only items on selected tracks. But what if you only needed to nudge one transient? Well, you've already moved everything once, so just scrub to the other side and press MAIN + B to "invert" the edit you just made - which will pull everything after it, back to where it was before.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 LEFT STICK button plus:\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Bumpers - cycle between configured FX on selected tracks\par}
@@ -29612,6 +29623,10 @@ Fix SWS Startup / Lokasenna Radial Menu bug]]></changelog>
       <version name="1.4" author="Rek's Effeks" time="2026-05-02T22:49:03Z">
         <changelog><![CDATA[Added FX controls. Minor edits elsewhere.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c0c111126a498bc307888adb4e5ee2043e050e5e/Various/rxfx_ReaPad.eel</source>
+      </version>
+      <version name="1.5" author="Rek's Effeks" time="2026-05-03T04:17:24Z">
+        <changelog><![CDATA[Added smooth-copy and smooth-delete.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f38e7684e01b0641a2682a407c2fca153d1a2fc6/Various/rxfx_ReaPad.eel</source>
       </version>
     </reapack>
     <reapack name="SampleSamurai.lua" type="script" desc="SampleSamurai">
