@@ -1,6 +1,6 @@
 // @description ReaPad
 // @author Rek's Effeks
-// @version 1.5
+// @version 1.5.01
 // @changelog Added smooth-copy and smooth-delete.
 // @about
 //   Hotplug-enabled gamepad controller script for Reaper. Requires SWS extension.
@@ -1364,7 +1364,7 @@ function main_loop()
       deleting ? (
         GetSet_LoopTimeRange(1, 0, DeleteStart, time_now(), 0);
       ):(
-        GetSet_LoopTimeRange(1, 0, DeleteStart, time_now(), 0);
+        GetSet_LoopTimeRange(1, 0, CopyStart, time_now(), 0);
       );
     ):(
       timelogged ? (
