@@ -46,16 +46,7 @@ function SaveProjectAs()
         --reaper.ShowConsoleMsg(currentShort .. '\n')
       end
     end
-    reaper.Main_SaveProject()
-
-    --delete old project - not ideal but a missing files warning is currently unrecoverable
-    if oldProject ~= projectStorage then
-      if not os.remove(folder..oldProject) then
-        os.rename(folder..oldProject,folder.."orphans_"..oldProject)
-      end
-      os.remove(folder..oldProject..'.RPP')
-      os.remove(folder..oldProject..'.rpp')
-    end
+    reaper.Main_SaveProject(0, false)
   end
 
   --reaper.ShowConsoleMsg(reaper.GetProjectPath())
