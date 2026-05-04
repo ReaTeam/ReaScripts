@@ -1,7 +1,7 @@
 // @description ReaPad
 // @author Rek's Effeks
-// @version 1.5.51
-// @changelog Added more powerful FX controls.
+// @version 1.5.6
+// @changelog Time selection copy and empty controls, save button, remove "reset midi controllers"
 // @about
 //   Hotplug-enabled gamepad controller script for Reaper. Requires SWS extension.
 //
@@ -86,6 +86,14 @@
 //   ExtState configuration file (reaper-extstate.ini, at least on my computer), and it's encouraged you edit the list with your favorites. You must restart Reaper to save
 //   any manual changes. The format is EffectName|parameter,Effect2|parameter, etc.
 //   Hold down the MAIN button while moving the stick for finer control over the two axes.
+//
+//   More:
+//   - Start + Select + Main - save
+//   - Main + Start + B - empty out time selection
+//   - Main + Start + Y - duplicate time selection at edit cursor
+//
+//   ReaPad can normally only save the project if it's already been saved (i.e. has a known filename). However, if you also use my Turing-Complete web interface, ReaPad
+//   will auto-name a new project and save it the way TC expects.
 
 
 
@@ -946,35 +954,46 @@ function main_loop()
       );
 
       // b
-      // undo, cancel, delete track, delete marker, invert quick edit, delete effect
+      // undo, cancel, delete track, delete marker, invert quick edit, delete effect, empty time selection
       nw(BUTTON_B) ? (
         QuickEditActive ? (
           QuickEditActive = 0; // cancel quick edit
         ):(
-          b(BUTTON_MAIN) ? ( // invert previous quick edit
-            FirstTime = lastqedit[];
-            SecondTime = lastqedit[1];
-            !( FirstTime == SecondTime && SecondTime == 0 ) ? ( // if there's a quick edit in the history
-              graft = (SecondTime-FirstTime) < 0; // inverted
-              time_difference = SecondTime - FirstTime;
-              FirstTime = time_now();
-              SecondTime = FirstTime+abs(time_difference);
-              ( lastqedit[2] == 1 ) ? (
-                chop_graft_trackitems( graft, FirstTime, SecondTime );
-              ):(
-                ( lastqedit[2] == 2 ) ? (
-                  chop_graft_markers( graft, FirstTime, SecondTime );
+          b(BUTTON_MAIN) ? (
+            b(BUTTON_START) ? ( // delete contents of time selection
+              GetSet_LoopTimeRange(0, 0, first, second, 1);
+              first != second ? (
+                Undo_BeginBlock();
+                r(40201); // chop out selection
+                GetSet_LoopTimeRange(1, 0, first, second, 1);
+                r(40200); // graft in selection
+                Undo_EndBlock("Delete contents of time selection", 0);
+              );
+            ):( // invert previous quick edit
+              FirstTime = lastqedit[];
+              SecondTime = lastqedit[1];
+              !( FirstTime == SecondTime && SecondTime == 0 ) ? ( // if there's a quick edit in the history
+                graft = (SecondTime-FirstTime) < 0; // inverted
+                time_difference = SecondTime - FirstTime;
+                FirstTime = time_now();
+                SecondTime = FirstTime+abs(time_difference);
+                ( lastqedit[2] == 1 ) ? (
+                  chop_graft_trackitems( graft, FirstTime, SecondTime );
                 ):(
-                  n("_SWS_SAVELOOP1");
-                  n("_SWS_SAVETIME1");
-                  GetSet_LoopTimeRange(1, 0, FirstTime, SecondTime, 1);
-                  graft ? (
-                    r(40200); // graft in selection (everything)
+                  ( lastqedit[2] == 2 ) ? (
+                    chop_graft_markers( graft, FirstTime, SecondTime );
                   ):(
-                    r(40201); // chop out selection (everything)
+                    n("_SWS_SAVELOOP1");
+                    n("_SWS_SAVETIME1");
+                    GetSet_LoopTimeRange(1, 0, FirstTime, SecondTime, 1);
+                    graft ? (
+                      r(40200); // graft in selection (everything)
+                    ):(
+                      r(40201); // chop out selection (everything)
+                    );
+                    n("_SWS_RESTLOOP1");
+                    n("_SWS_RESTTIME1");
                   );
-                  n("_SWS_RESTLOOP1");
-                  n("_SWS_RESTTIME1");
                 );
               );
             );
@@ -999,7 +1018,7 @@ function main_loop()
                 r(40613); // dlete marker near cursor
                 n("_BR_RESTORE_CURSOR_POS_SLOT_1");
                 r(40898); // renumber markers etc
-                Undo_EndBlock("Delete closest marker", 0);
+                Undo_EndBlock("Delete marker", 0);
               ):(
                 b(BUTTON_JOY_L) ? ( // delete last effect from selected tracks
                   Undo_BeginBlock();
@@ -1036,16 +1055,9 @@ function main_loop()
       // record, start record cycle, time selection edit, quick edit, copy fx chain
       nw(BUTTON_X) ? (
         b(BUTTON_MAIN) ? ( // start quick edit
-          b(BUTTON_START) ? (
-            /*GetSet_LoopTimeRange(0, 0, first, second, 0);
-            first != second ? r(40396); // move (cut) contents of time selection to edit cursor
-            */
-            0;
-          ):(
-            QuickEditActive = 1;
-            FirstTime = time_now();
-            lastqedit[] = FirstTime;
-          );
+          QuickEditActive = 1;
+          FirstTime = time_now();
+          lastqedit[] = FirstTime;
         ):(
           b(BUTTON_SELECT) ? ( // start record-cycle
             RecCycleActive = 1;
@@ -1082,21 +1094,23 @@ function main_loop()
       );
 
       // y button
-      // play/stop, tap tempo, toggle repeat, paste fx chain
+      // play/stop, tap tempo, toggle repeat, paste fx chain, paste project section
       nw(BUTTON_Y) ? (
         b(BUTTON_MAIN) ? (
           b(BUTTON_START) ? (
-            /*GetSet_LoopTimeRange(0, 0, first, second, 0);
+            GetSet_LoopTimeRange(0, 0, first, second, 0);
             first != second ? (
               Undo_BeginBlock();
+              cursor_time = GetCursorPosition();
               n("_SWS_SAVETIME1");
-              GetSet_LoopTimeRange(0, 0, GetCursorPosition(), second-first + GetCursorPosition(), 0);
-              r(40201); // chop out time selection
+              r(40397); // duplicate contents of time selection to edit cursor
+              GetSet_LoopTimeRange(1, 0, cursor_time + (second-first), cursor_time + 2*(second-first), 0);
+              r(40201); // chop out what used to be there
               n("_SWS_RESTTIME1");
-              r(40397); // copy contents of time selection to edit cursor
+              SetEditCurPos(cursor_time, 1, 0);
+              r(40898); // renumber markers
               Undo_EndBlock("Copy contents of time selection to edit cursor",0);
-            );*/ //not ready yet
-            0;
+            );
           ):(
             CountSelectedTracks(0) ? (
               FocusTime = time_now();
@@ -1214,8 +1228,13 @@ function main_loop()
         b(BUTTON_START) ? (
           buttons = buttons | MODIFIER_BLOCK;
           b(BUTTON_SELECT) ? (
-            //save()
-            0;
+            GetProjectName(0, #temp);
+            strlen(#temp) ? (
+              Main_SaveProject(0, 0);
+            ):(
+              n("_RSf8293cd03fbff547a101d0d639cb82c16fd2bee5"); // save or autosave
+              // i'll bundle this with the turing complete interface
+            );
           ):(
             snap_cursor();
           );
@@ -1227,7 +1246,6 @@ function main_loop()
           RecCycleActive = 0;
         ):(
           r(40345); // all notes off to everything
-          r(41175); // reset all midi devices
         );
       );
     ); // end of buttons
