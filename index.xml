@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="a14afd43d381ec8af0411e6622155d4a87050020" name="ReaTeam Scripts">
+<index version="1" commit="521d0e4cba41dc85c07cb6dbb0d8958350c97e9f" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -29601,6 +29601,7 @@ Fix SWS Startup / Lokasenna Radial Menu bug]]></changelog>
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab B - delete closest marker\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab X - time-select mode\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Y - toggle repeat\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab MAIN - snap cursor to grid\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Bumpers - skip to start or end of project\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab D-pad horizontal - enable/disable pre-roll before record (left means on - "start playback earlier")\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab D-pad vertical - enable/disable metronome (up means on)\sa180\par}
@@ -29610,13 +29611,21 @@ Fix SWS Startup / Lokasenna Radial Menu bug]]></changelog>
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Left bumper - chop out selection time (shorten project)\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab X - begin quick edit\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab A - do last quick edit again (on newly selected track)\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab B - invert last quick edit\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab START - snap edit cursor to grid\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab B - invert last quick edit\sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Quick edit is the main editing control you get here. It allows you to move a section of the project from its original point (the point in the project at which you pressed quick edit) to any other point in time (the one at which you press A to confirm the edit). The project contents will then move either earlier or later to match the new "corrected" point, and the space in between the points will either be chopped (fully removed) or grafted (filled with emptiness) to match. Works the same as MAIN + bumpers. Modify the confirmation with START (that is, MAIN + X, then START + A) to affect only markers (regions not supported), or SELECT to affect only items on selected tracks. But what if you only needed to nudge one transient? Well, you've already moved everything once, so just scrub to the other side and press MAIN + B to "invert" the edit you just made - which will pull everything after it, back to where it was before.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 LEFT STICK button plus:\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Bumpers - cycle between configured FX on selected tracks\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab B - delete current effect on selected tracks\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab A - add new effect layer to selected tracks\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab B - delete current effect on selected tracks\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab X - copy FX chain from selected track\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Y - paste FX chain\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab D-pad vertical - switch between controlling FX layers\sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 ReaPad version 1.4 introduces FX control, which allows you to switch between a favored few effects and have two-axis control of each using the left analog stick - the horizontal axis controls a single parameter of your choice, and the vertical axis controls the wet mix. It comes preconfigured with a few stock effects, stored in the ExtState configuration file (reaper-extstate.ini, at least on my computer), and it's encouraged you edit the list with your favorites. You must restart Reaper to save any manual changes. The format is EffectName|parameter,Effect2|parameter, etc. Hold down the MAIN button while moving the stick for finer control over the two axes.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 More:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Start + Select + Main - save\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Main + Start + B - empty out time selection\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Main + Start + Y - duplicate time selection at edit cursor\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 ReaPad can normally only save the project if it's already been saved (i.e. has a known filename). However, if you also use my Turing-Complete web interface, ReaPad will auto-name a new project and save it the way TC expects.\par}
 }
 ]]></description>
       </metadata>
@@ -29631,6 +29640,10 @@ Fix SWS Startup / Lokasenna Radial Menu bug]]></changelog>
       <version name="1.5.01" author="Rek's Effeks" time="2026-05-03T07:54:36Z">
         <changelog><![CDATA[Added smooth-copy and smooth-delete.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a14afd43d381ec8af0411e6622155d4a87050020/Various/rxfx_ReaPad.eel</source>
+      </version>
+      <version name="1.5.6" author="Rek's Effeks" time="2026-05-05T06:27:23Z">
+        <changelog><![CDATA[Time selection copy and empty controls, save button, remove "reset midi controllers"]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/521d0e4cba41dc85c07cb6dbb0d8958350c97e9f/Various/rxfx_ReaPad.eel</source>
       </version>
     </reapack>
     <reapack name="SampleSamurai.lua" type="script" desc="SampleSamurai">
@@ -31367,6 +31380,22 @@ ProjectFolder=/path/to/folder/\par}
         <source main="main" type="script" file="rxfx_Turing-complete/rxfx_Turing-complete - Set time signature.lua">https://github.com/ReaTeam/ReaScripts/raw/65c9f06bd7b5549ad3c4ebfcf0cd81b1cae91b7f/Web%20Interfaces/rxfx_Turing-complete/rxfx_Turing-complete%20-%20Set%20time%20signature.lua</source>
         <source file="rxfx_turing_complete.html">https://github.com/ReaTeam/ReaScripts/raw/65c9f06bd7b5549ad3c4ebfcf0cd81b1cae91b7f/Web%20Interfaces/rxfx_Turing-complete/rxfx_turing_complete.html</source>
         <source file="rxfx_turing_complete/OpenSans-VariableFont_wdth,wght.ttf">https://github.com/ReaTeam/ReaScripts/raw/65c9f06bd7b5549ad3c4ebfcf0cd81b1cae91b7f/Web%20Interfaces/rxfx_Turing-complete/OpenSans-VariableFont_wdth,wght.ttf</source>
+      </version>
+      <version name="0.1beta.2" author="Rek's Effeks" time="2026-05-05T06:27:23Z">
+        <changelog><![CDATA[Added project save script for ReaPad integration]]></changelog>
+        <source main="main" type="script" file="rxfx_Turing-complete/rxfx_Turing-complete - Cycle track record arm.lua">https://github.com/ReaTeam/ReaScripts/raw/521d0e4cba41dc85c07cb6dbb0d8958350c97e9f/Web%20Interfaces/rxfx_Turing-complete/rxfx_Turing-complete%20-%20Cycle%20track%20record%20arm.lua</source>
+        <source main="main" type="script" file="rxfx_Turing-complete/rxfx_Turing-complete - Set time selection from markers.lua">https://github.com/ReaTeam/ReaScripts/raw/521d0e4cba41dc85c07cb6dbb0d8958350c97e9f/Web%20Interfaces/rxfx_Turing-complete/rxfx_Turing-complete%20-%20Set%20time%20selection%20from%20markers.lua</source>
+        <source main="main" type="script" file="rxfx_Turing-complete/rxfx_Turing-complete - New project.lua">https://github.com/ReaTeam/ReaScripts/raw/521d0e4cba41dc85c07cb6dbb0d8958350c97e9f/Web%20Interfaces/rxfx_Turing-complete/rxfx_Turing-complete%20-%20New%20project.lua</source>
+        <source main="main" type="script" file="rxfx_Turing-complete/rxfx_Turing-complete - Open selected project.lua">https://github.com/ReaTeam/ReaScripts/raw/521d0e4cba41dc85c07cb6dbb0d8958350c97e9f/Web%20Interfaces/rxfx_Turing-complete/rxfx_Turing-complete%20-%20Open%20selected%20project.lua</source>
+        <source main="main" type="script" file="rxfx_Turing-complete/rxfx_Turing-complete - Read current project.lua">https://github.com/ReaTeam/ReaScripts/raw/521d0e4cba41dc85c07cb6dbb0d8958350c97e9f/Web%20Interfaces/rxfx_Turing-complete/rxfx_Turing-complete%20-%20Read%20current%20project.lua</source>
+        <source main="main" type="script" file="rxfx_Turing-complete/rxfx_Turing-complete - Rename track from ExtState.lua">https://github.com/ReaTeam/ReaScripts/raw/521d0e4cba41dc85c07cb6dbb0d8958350c97e9f/Web%20Interfaces/rxfx_Turing-complete/rxfx_Turing-complete%20-%20Rename%20track%20from%20ExtState.lua</source>
+        <source main="main" type="script" file="rxfx_Turing-complete/rxfx_Turing-complete - Save project.lua">https://github.com/ReaTeam/ReaScripts/raw/521d0e4cba41dc85c07cb6dbb0d8958350c97e9f/Web%20Interfaces/rxfx_Turing-complete/rxfx_Turing-complete%20-%20Save%20project.lua</source>
+        <source main="main" type="script" file="rxfx_Turing-complete/rxfx_Turing-complete - Save project as.lua">https://github.com/ReaTeam/ReaScripts/raw/521d0e4cba41dc85c07cb6dbb0d8958350c97e9f/Web%20Interfaces/rxfx_Turing-complete/rxfx_Turing-complete%20-%20Save%20project%20as.lua</source>
+        <source main="main" type="script" file="rxfx_Turing-complete/rxfx_Turing-complete - Send project list.lua">https://github.com/ReaTeam/ReaScripts/raw/521d0e4cba41dc85c07cb6dbb0d8958350c97e9f/Web%20Interfaces/rxfx_Turing-complete/rxfx_Turing-complete%20-%20Send%20project%20list.lua</source>
+        <source main="main" type="script" file="rxfx_Turing-complete/rxfx_Turing-complete - Send tempo.lua">https://github.com/ReaTeam/ReaScripts/raw/521d0e4cba41dc85c07cb6dbb0d8958350c97e9f/Web%20Interfaces/rxfx_Turing-complete/rxfx_Turing-complete%20-%20Send%20tempo.lua</source>
+        <source main="main" type="script" file="rxfx_Turing-complete/rxfx_Turing-complete - Set time signature.lua">https://github.com/ReaTeam/ReaScripts/raw/521d0e4cba41dc85c07cb6dbb0d8958350c97e9f/Web%20Interfaces/rxfx_Turing-complete/rxfx_Turing-complete%20-%20Set%20time%20signature.lua</source>
+        <source file="rxfx_turing_complete.html">https://github.com/ReaTeam/ReaScripts/raw/521d0e4cba41dc85c07cb6dbb0d8958350c97e9f/Web%20Interfaces/rxfx_Turing-complete/rxfx_turing_complete.html</source>
+        <source file="rxfx_turing_complete/OpenSans-VariableFont_wdth,wght.ttf">https://github.com/ReaTeam/ReaScripts/raw/521d0e4cba41dc85c07cb6dbb0d8958350c97e9f/Web%20Interfaces/rxfx_Turing-complete/OpenSans-VariableFont_wdth,wght.ttf</source>
       </version>
     </reapack>
   </category>
