@@ -700,7 +700,9 @@ function wwr_onreply(results) {
             break;
 
         case "NTRACK":
-            if (tok.length > 1) {nTrack = tok[1];}
+            if (tok.length > 1) {
+                nTrack = tok[1];
+            }
             break;
 
         case "TRACK":
@@ -1045,7 +1047,7 @@ function wwr_onreply(results) {
                         tracksRendered = true;
                     }
                     }
-                if (tracksDrawn > nTrack) {
+                if (tracksDrawn > nTrack-1) {
                     tracks.removeChild(tracks.lastChild);
                     }
             }
@@ -1177,6 +1179,10 @@ function wwr_onreply(results) {
             } else if (tok[0] == "EXTSTATE" && tok[1] == "Fanciest" && tok[2] == "ProjectList" && tok[3] && tok[3] != "") {
                 projectList = tok[3];
             }
+            // } else if (tok[0] == "EXTSTATE" && tok[1] == "Fanciest" && tok[2] == "ReloadTracks") {
+            //     if (tok[3]) {removeAllTracks();removeAllTracks();}
+            //     wwr_req("SET/EXTSTATE/Fanciest/ReloadTracks/");
+            // }
             break;
     }
   }
