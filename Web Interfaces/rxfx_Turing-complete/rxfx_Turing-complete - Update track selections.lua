@@ -23,7 +23,6 @@ function UpdateSelectedTracks()
         finalstring = finalstring .. tostring(i) .. ","
       end
     end
-    reaper.ShowConsoleMsg(finalstring)
     reaper.SetExtState("Fanciest","TrackSelections",finalstring,false)
   else
     reaper.SetExtState("Fanciest","TrackSelections","",false)
