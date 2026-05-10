@@ -1,7 +1,7 @@
 // @description ReaPad
 // @author Rek's Effeks
-// @version 1.5.6
-// @changelog Time selection copy and empty controls, save button, remove "reset midi controllers"
+// @version 1.5.7
+// @changelog Turing-Complete integration for track selection & FX
 // @about
 //   Hotplug-enabled gamepad controller script for Reaper. Requires SWS extension.
 //
@@ -105,6 +105,7 @@ effect     =  #effect;
 param      =  #param;
 razordel   =  #delete;
 razorcpy   =  #copy;
+turingfx   =  #turingfx;
 newaxis    =  0;
 oldaxis    =  50;
 newpov     =  100;
@@ -523,6 +524,39 @@ function nudge_vol(amt)
   );
 );
 
+function tcsl()
+( // turing-complete - update track selection
+  n("_RS9f79e20ed4fb38201ca57ed8cbec8d2176d4288b");
+);
+
+function tcfx()
+( // turing-complete - update track FX
+  count = CountTracks(0);
+  strcpy(#turingfx,"");
+  temp = #temp;
+  temp2 = #temp2;
+  i = 0;
+  loop(count,
+    track = GetTrack(0, i);
+    fxn = TrackFX_GetCount(track) - FXOffset;
+    fxc = TrackFX_GetCount(track);
+    fxc ? (
+      TrackFX_GetFXName(track, fxn-1, #temp);
+      match("+?: %{temp2}S (*",#temp);
+      #turingfx += str(fxn);
+      #turingfx += "/";
+      #turingfx += str(fxc);
+      #turingfx += ": ";
+      #turingfx += #temp2;
+      #turingfx += ",";
+    ):(
+      #turingfx += "No FX,";
+    );
+    i += 1;
+  );
+  SetExtState("Fanciest","TrackFX",#turingfx,0);
+);
+
 function reverse_fx_lookup(fxname)
 (
   i = 0;
@@ -591,6 +625,7 @@ function fx_show()
     fxn = TrackFX_GetCount(track)-1-FXOffset;
     TrackFX_Show(track, fxn, 1);
   );
+  tcfx();
 );
 
 function fx_cycle(direction) // swap out fx on selected tracks
@@ -817,6 +852,7 @@ function setup()
     xbox = joystick_create(#guid);
     joystick_getinfo(xbox, numaxis, numpov);
     reload(xbox, 1);
+    tcfx();
     defer("main_loop()");
   );
 );
@@ -890,6 +926,7 @@ function main_loop()
         ):(
           b(BUTTON_SELECT) ? (
             r(40702); // new track at end of tcp
+            tcsl(); // turing update track sel display
           ):(
             b(BUTTON_START) ? (
               Undo_BeginBlock();
@@ -944,6 +981,7 @@ function main_loop()
                       );
                     ):(
                       r(40030); // redo
+                      tcsl(); // turing update track sel display
                     );
                   );
                 );
@@ -1010,6 +1048,7 @@ function main_loop()
                 i += 1;
               );
               r(40005); // delete track
+              tcsl(); // turing update track sel display
             ):(
               b(BUTTON_START) ? (
                 Undo_BeginBlock();
@@ -1042,6 +1081,7 @@ function main_loop()
                       MarkerSelActive = 0; // cancel
                     ):(
                       r(40029); // undo
+                      tcsl(); // turing update track sel display
                     );
                   );
                 );
@@ -1292,6 +1332,7 @@ function main_loop()
             ):(
               r(40286); // go to prev track
             );
+            tcsl(); // turing update track sel display
           );
         );
         value > 0 ? ( // right
@@ -1318,6 +1359,7 @@ function main_loop()
             ):(
               r(40285); // go to next track
             );
+            tcsl(); // turing update track sel display
           );
         );
       );

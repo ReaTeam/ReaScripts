@@ -95,7 +95,7 @@ wwr_req_recur("NTRACK;TRACK;GET/40364;GET/1157;GET/41819",100); // tracks, metro
 var tracksRendered = false; // don't update arm display until tracks are there to edit
 wwr_req_recur("_RSfee01d3e4ca569bed48f2466c1453be35ab1d27e;GET/EXTSTATE/Fanciest/CurrentTempo",200); // tempo
 wwr_req_recur("MARKER;REGION;_RSe6f7f64d341520fb0ec902a7c0580f1b423e7fc7;GET/EXTSTATE/Fanciest/ArmDisplay;GET/EXTSTATE/Fanciest/SelectDisplay;GET/EXTSTATE/Fanciest/CurrentProject",500); // markers, regions, arm states, time select, project name
-wwr_req_recur("_RS9f79e20ed4fb38201ca57ed8cbec8d2176d4288b;GET/EXTSTATE/Fanciest/TrackSelections",397); // which tracks are selected?
+wwr_req_recur("GET/EXTSTATE/Fanciest/TrackSelections;GET/EXTSTATE/Fanciest/TrackFX",397); // which tracks are selected/have fx? (ReaPad required or else this is pointless anyway)
 wwr_req_recur("_RS99f117755ebbf002528fae80ba7693ec86ae8bca;GET/EXTSTATE/Fanciest/ProjectList",1000); // list of projects
 wwr_start();
 
@@ -245,11 +245,14 @@ function updateTimeSelDisplay(args) {
 function setTrackSelected(idx, selected) {
     var row1 = document.getElementById("track" + idx);
     if (!row1) return;
-    var row1Content = row1.childNodes[0];
+    var row1Content = row1.children[0];
     if (!row1Content || !row1Content.innerHTML) return;
     var indicator = row1Content.getElementsByClassName("trackSelectIndicator")[0];
     if (!indicator) return;
     indicator.setAttribute("opacity", selected ? "1" : "0");
+
+    var infoDiv = row1.children[1];
+    if (infoDiv) infoDiv.style.display = selected ? "block" : "none";
 }
 
 function updateSelections(inputString) {
@@ -265,6 +268,28 @@ function updateSelections(inputString) {
         }
     });
     //console.log(sel_ints);
+}
+
+function setTrackInfo(idx, text) {
+    var row = document.getElementById("track" + idx);
+    if (!row) return;
+    var infoDiv = row.children[1];
+    if (!infoDiv) return;
+    var el = infoDiv.getElementsByClassName("trackInfoText")[0];
+    if (!el) return;
+    var inner = el.parentElement;
+    inner.style.display = text ? "block" : "none";
+    el.textContent = text || "";
+}
+
+function updateFX(inputString) {
+    var fxLines = inputString.split(",");
+    fxLines.pop();
+    var i = 1;
+    fxLines.forEach(element => {
+        setTrackInfo(i,element);
+        i ++;
+    });
 }
 
 function wwr_onreply(results) {
@@ -675,15 +700,19 @@ function wwr_onreply(results) {
                     endIconVis = "hidden"; nextIconVis = "visible";
                     }
                 else {
-                    document.getElementById("marker3").setAttributeNS(null, "visibility", "visible");
-                    document.getElementById("nextMarkerName").textContent = "END";
-                    if (!timesel_points.includes(null)) {
-                        if (timesel_points.includes("end")) { select_points.push("next") }
+                    var m3 = document.getElementById("marker3");
+                    if (m3) {
+                        document.getElementById("marker3").setAttributeNS(null, "visibility", "visible");
+                        var nextMarkerNameEl = document.getElementById("nextMarkerName");
+                        if (nextMarkerNameEl) nextMarkerNameEl.textContent = "END";
+                        if (!timesel_points.includes(null)) {
+                            if (timesel_points.includes("end")) { select_points.push("next") }
+                        }
+                        document.getElementById("marker3Number").textContent = "E";
+                        document.getElementById("marker3Bg").setAttributeNS(null, "fill", "#1a1a1a");
+                        document.getElementById("marker3Number").setAttributeNS(null, "fill", "#A8A8A8");
+                        endIconVis = "visible"; nextIconVis = "hidden";
                     }
-                    document.getElementById("marker3Number").textContent = "E";
-                    document.getElementById("marker3Bg").setAttributeNS(null, "fill", "#1a1a1a");
-                    document.getElementById("marker3Number").setAttributeNS(null, "fill", "#A8A8A8");
-                    endIconVis = "visible"; nextIconVis = "hidden";
                     }
                 elAttribute("iconPrev","visibility",prevIconVis);
                 elAttribute("iconHome","visibility",homeIconVis);
@@ -747,6 +776,9 @@ function wwr_onreply(results) {
 
                     var trackRow1Div = document.createElement("div");
                         trackRow1Div.className = ("trackRow1");
+                    var trackInfoDiv = document.createElement("div");
+                        trackInfoDiv.className = ("trackInfo");
+                        trackInfoDiv.style.display = "none";
                     var trackRow2Div = document.createElement("div");
                         trackRow2Div.className = ("trackRow2");
                         trackRow2Div.id = tok[1];
@@ -755,6 +787,7 @@ function wwr_onreply(results) {
 
                     if(trackDiv && allTracksDiv){allTracksDiv.appendChild(trackDiv);}
                         trackDiv.appendChild(trackRow1Div) ;
+                        trackDiv.appendChild(trackInfoDiv) ;
                         trackDiv.appendChild(trackRow2Div) ;
                         trackDiv.appendChild(trackSendsDiv);
                 }
@@ -762,6 +795,7 @@ function wwr_onreply(results) {
                 else {
                     if(backLoaded!=null && backLoaded.nextSibling!=null){
                         var cloneTrackRow1 = document.getElementById("trackRow1Svg").cloneNode(true);
+                        var cloneTrackInfo = document.getElementById("trackInfoTemplate").cloneNode(true);
                         var cloneTrackRow2 = document.getElementById("trackRow2Svg").cloneNode(true);
                         var cloneTrackSend = document.getElementById("trackSendSvg").cloneNode(true);
 
@@ -780,7 +814,7 @@ function wwr_onreply(results) {
                                 masterMeterReadout.textContent = (mkvolstr(tok[4]));
 
                                 var masterTrackContent = document.getElementById("track0");
-                                var masterTrackRow2Content = masterTrackContent.childNodes[3];
+                                var masterTrackRow2Content = masterTrackContent.children[1];
                                 if (!masterTrackRow2Content.innerHTML){
                                     masterTrackRow2Content.appendChild(cloneTrackRow2);
                                     var trackSendsDiv = document.createElement("div");
@@ -805,7 +839,7 @@ function wwr_onreply(results) {
 
                         if(idx>0){ //normal track stuff
 
-                            var trackRow1Content = document.getElementById("track" + idx).childNodes[0];
+                            var trackRow1Content = document.getElementById("track" + idx).children[0];
                             if (!trackRow1Content.innerHTML){
                                 trackRow1Content.appendChild(cloneTrackRow1);
                                 trackRow1Content.firstChild.getElementsByClassName("hitbox")[0].id = idx;
@@ -856,9 +890,13 @@ function wwr_onreply(results) {
                                         commit();
                                     });
                                 })(idx);
+                                var trackInfoContent = document.getElementById("track" + idx).children[1];
+                                if (!trackInfoContent.innerHTML) {
+                                    trackInfoContent.appendChild(cloneTrackInfo);
                                 }
+                            }
 
-                            var trackRow2Content = document.getElementById("track" + idx).childNodes[1];
+                            var trackRow2Content = document.getElementById("track" + idx).children[2];
                             if (!trackRow2Content.innerHTML){
                                 trackRow2Content.appendChild(cloneTrackRow2);
                                 }
@@ -1007,7 +1045,7 @@ function wwr_onreply(results) {
                                         try {
                                             var result = await requestRecCycle(capturedIdx);
                                             // just let armDisplay handle it every half a second
-                                            var row1 = document.getElementById("track" + capturedIdx).childNodes[0];
+                                            var row1 = document.getElementById("track" + capturedIdx).children[0];
                                             var bg    = row1.getElementsByClassName("recarmBg")[0];
                                             var label = row1.getElementsByClassName("recarmLabel")[0];
 
@@ -1102,7 +1140,7 @@ function wwr_onreply(results) {
 
                 var trackSendsContent = document.getElementById("sendsTrack" + tok[1]);
                 if(trackSendsContent.childNodes.length>0){
-                    var thisSendDiv = trackSendsContent.childNodes[tok[2]];
+                    var thisSendDiv = trackSendsContent.children[tok[2]];
                     if(thisSendDiv!=null){
                         thisSendDiv.id=[tok[2]];
                         sendTitleText = thisSendDiv.firstChild.getElementsByClassName("sendTitleText")[0];
@@ -1183,7 +1221,7 @@ function wwr_onreply(results) {
                 if (tok[3] != '' && tracksRendered) {
                     armStates = tok[3].split(":");
                     for (var t = 0; t<armStates.length; t++) {
-                        var row1 = document.getElementById("track" + (t+1)).childNodes[0];
+                        var row1 = document.getElementById("track" + (t+1)).children[0];
                         var bg    = row1.getElementsByClassName("recarmBg")[0];
                         var label = row1.getElementsByClassName("recarmLabel")[0];
                         var result = armStates[t];
@@ -1207,6 +1245,8 @@ function wwr_onreply(results) {
                 projectList = tok[3];
             } else if (tok[0] == "EXTSTATE" && tok[1] == "Fanciest" && tok[2] == "TrackSelections") {
                 updateSelections(tok[3]);
+            } else if (tok[0] == "EXTSTATE" && tok[1] == "Fanciest" && tok[2] == "TrackFX") {
+                if (tok[3]) {updateFX(tok[3]);}
             }
             break;
     }
@@ -1307,7 +1347,7 @@ function hitbox(id) {
                     if(transitions==0){var sendscaleD = 50;}
                     else{sendscaleD = easingValue * 50;}
                     for(x=0;x<trackSendHwCntAr[id];x++){
-                        thisSendSvg = document.getElementById("sendsTrack"+[id]).childNodes[x].firstElementChild.firstElementChild;
+                        thisSendSvg = document.getElementById("sendsTrack"+[id]).children[x].firstElementChild.firstElementChild;
                         thisSendSvg.setAttributeNS(null, "viewBox", "0 0 320 " + sendscaleD)
                         }
                     }
@@ -1328,7 +1368,7 @@ function hitbox(id) {
                     if(transitions==0){var sendscaleU = 0.01;}
                     else{sendscaleU = easingValue * 50;}
                     for(x=0;x<trackSendHwCntAr[id];x++){
-                        thisSendSvg = document.getElementById("sendsTrack"+[id]).childNodes[x].firstElementChild.firstElementChild;
+                        thisSendSvg = document.getElementById("sendsTrack"+[id]).children[x].firstElementChild.firstElementChild;
                         thisSendSvg.setAttributeNS(null, "viewBox", "0 0 320 " + sendscaleU)
                         }
                     }
@@ -2169,6 +2209,30 @@ function init(){
     <rect class="nameHitbox" x="57" y="1" width="160" height="28" fill="transparent" pointer-events="all" style="cursor:text"/>
     <rect class="trackNumHitbox" x="55" y="30" width="25" height="20" fill="transparent" pointer-events="all" style="cursor:text"/>
 </svg></element>
+
+<element id=trackInfoTemplate>
+<div style="
+    background:transparent;
+    margin-top:-6px;
+    padding:0 50% 6px 0px;
+    display: none;
+">
+    <div class="trackInfoText" style="
+        color:#9DA5A5;
+        font-family:'Open Sans',sans-serif;
+        font-size:1.7vw;
+        line-height:1.4;
+        padding:3px 12px;
+        margin-left:0px;
+        white-space:nowrap;
+        overflow:hidden;
+        text-overflow:ellipsis;
+        background:#2a2a2a;
+        border-left:2px solid #57FF86;
+        border-radius:0 0 20px 6px;
+    "></div>
+</div>
+</element>
 
   <!-- TRACK ROW 2 -->
 
