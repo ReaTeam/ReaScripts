@@ -542,7 +542,7 @@ function tcfx()
     fxc = TrackFX_GetCount(track);
     fxc ? (
       TrackFX_GetFXName(track, fxn-1, #temp);
-      match("+?: %{temp2}S (*",#temp);
+      match("+?: %{temp2}S",#temp);
       #turingfx += str(fxn);
       #turingfx += "/";
       #turingfx += str(fxc);
