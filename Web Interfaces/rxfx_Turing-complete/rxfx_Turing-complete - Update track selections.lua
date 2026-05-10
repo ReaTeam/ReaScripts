@@ -19,7 +19,7 @@ function UpdateSelectedTracks()
     end
     local count2 = reaper.CountTracks(0)
     for i=1, count2 do
-      if has_value(trax, reaper.GetTrack(0,i)) then
+      if has_value(trax, reaper.GetTrack(0,i-1)) then
         finalstring = finalstring .. tostring(i) .. ","
       end
     end
