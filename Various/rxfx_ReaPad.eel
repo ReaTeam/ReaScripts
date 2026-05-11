@@ -1,7 +1,7 @@
 // @description ReaPad
 // @author Rek's Effeks
-// @version 1.5.7
-// @changelog Turing-Complete integration for track selection & FX
+// @version 1.5.71
+// @changelog fix Turing-Complete FX display after project load
 // @about
 //   Hotplug-enabled gamepad controller script for Reaper. Requires SWS extension.
 //
@@ -524,11 +524,6 @@ function nudge_vol(amt)
   );
 );
 
-function tcsl()
-( // turing-complete - update track selection
-  n("_RS9f79e20ed4fb38201ca57ed8cbec8d2176d4288b");
-);
-
 function tcfx()
 ( // turing-complete - update track FX
   count = CountTracks(0);
@@ -555,6 +550,17 @@ function tcfx()
     i += 1;
   );
   SetExtState("Fanciest","TrackFX",#turingfx,0);
+);
+
+function tcsl()
+( // turing-complete - update track selection
+  n("_RS9f79e20ed4fb38201ca57ed8cbec8d2176d4288b");
+  CountTracks(0) ? (
+    GetExtState(#temp, "Fanciest", "TrackFX");
+    match("rerun",#temp) ? (
+      tcfx();
+    );
+  );
 );
 
 function reverse_fx_lookup(fxname)
