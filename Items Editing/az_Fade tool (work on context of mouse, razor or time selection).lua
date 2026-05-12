@@ -1,12 +1,10 @@
 -- @description Fade tool (works on context of mouse, razor or time selection)
 -- @author AZ
--- @version 2.4.3
+-- @version 2.4.4
 -- @changelog
---   - Fix behavior with combinations of item selection, track media grouping and item grouping
---   - Fix bugs with option to ignore locked items and other corner cases with locking
---   - Fix bug to run butch process properly for option allows it without time or razor selection
---   - New option to ignore project locking
---   - New option to seek playback on fade change
+--   - Support for new folder/child track grouping for media editing
+--   - Fix behavior on hidden tracks
+--   - Fix Apply button position if Options open via dedicated action
 -- @provides
 --   az_Fade tool (work on context of mouse, razor or time selection)/az_Options window for az_Fade tool.lua
 --   [main] az_Fade tool (work on context of mouse, razor or time selection)/az_Open options for az_Fade tool.lua
@@ -68,7 +66,7 @@ end
 -------------------------
 
 ExtStateName = 'AZ_FadeTool'
-CurVers = 2.43
+CurVers = 2.44
 
 SaveLastBatchPrj = reaper.GetExtState(ExtStateName, 'SaveLastBatchPrj')
 if SaveLastBatchPrj == 'false' then SaveLastBatchPrj = false
@@ -816,6 +814,56 @@ function GetRazorEdits() --returns areaMap, needBatch
     return areaMap, needBatch
 end
 
+-------------------------------
+
+function SetItemEdges(item, startTime, endTime)
+  local pos = reaper.GetMediaItemInfo_Value(item, 'D_POSITION')
+  local isloop = reaper.GetMediaItemInfo_Value(item, 'B_LOOPSRC')
+  reaper.SetMediaItemInfo_Value(item, 'D_POSITION', startTime)
+  reaper.SetMediaItemInfo_Value(item, 'D_LENGTH', endTime - startTime)
+  local takesN = reaper.CountTakes(item)
+  for i = 0, takesN-1 do
+    local take = reaper.GetTake(item,i)
+    if take then
+      local offs = reaper.GetMediaItemTakeInfo_Value(take, 'D_STARTOFFS')
+      local rate = reaper.GetMediaItemTakeInfo_Value(take, 'D_PLAYRATE')
+      offs = offs + (startTime-pos)*rate
+      if isloop == 1 then
+        local src = reaper.GetMediaItemTake_Source( take )
+        local length, isQN = reaper.GetMediaSourceLength( src )
+        if offs < 0 then offs = length - math.fmod(-offs, length)
+        elseif offs > length then offs = math.fmod(offs, length)
+        end
+      end
+      
+      local strmarksnum = reaper.GetTakeNumStretchMarkers( take )
+      if strmarksnum > 0 then
+        reaper.SetMediaItemTakeInfo_Value(take, 'D_STARTOFFS', offs)
+        for s = 0, strmarksnum -1 do
+          local retval, strpos, srcpos = reaper.GetTakeStretchMarker( take, s   )
+          reaper.SetTakeStretchMarker( take, s, strpos - (startTime-pos)*rate, srcpos )
+        end
+      else
+        reaper.SetMediaItemTakeInfo_Value(take, 'D_STARTOFFS', offs)
+      end
+      
+      local takeenvs = reaper.CountTakeEnvelopes(take)
+      for e = 0, takeenvs -1 do
+        local env = reaper.GetTakeEnvelope( take, e )
+        for p = 0, reaper.CountEnvelopePoints( env ) -1 do
+          local ret, time, value, shape, tens, sel = reaper.GetEnvelopePoint( env, p )
+          if ret then
+            time = time - (startTime-pos)*rate
+            reaper.SetEnvelopePoint( env, p, time, value, shape, tens, sel, true )
+          end
+        end
+        reaper.Envelope_SortPoints( env )
+      end
+      
+    end
+  end
+end
+
 --------------------------------
 
 function SetCrossfade(Litem,Ritem,areaData)
@@ -878,10 +926,10 @@ function SetCrossfade(Litem,Ritem,areaData)
         leftISmidi = true
       end
       LiNewEnd = math.min(srcEnd,areaData.areaEnd)
-      reaper.BR_SetItemEdges(Litem, LiPos, LiNewEnd)
+      SetItemEdges(Litem, LiPos, LiNewEnd)
     else
       LiNewEnd = areaData.areaEnd
-      reaper.BR_SetItemEdges(Litem, LiPos, LiNewEnd)
+      SetItemEdges(Litem, LiPos, LiNewEnd)
     end
     
   end
@@ -907,10 +955,10 @@ function SetCrossfade(Litem,Ritem,areaData)
         rightISmidi = true
       end
       RiNewStart = math.max(srcStart, areaData.areaStart)
-      reaper.BR_SetItemEdges(Ritem, RiNewStart, RiEnd)
+      SetItemEdges(Ritem, RiNewStart, RiEnd)
     else
       RiNewStart = areaData.areaStart
-      reaper.BR_SetItemEdges(Ritem, RiNewStart, RiEnd)
+      SetItemEdges(Ritem, RiNewStart, RiEnd)
     end
   end
   ---------------------------------------
@@ -942,8 +990,8 @@ function SetCrossfade(Litem,Ritem,areaData)
         reaper.SetMediaItemInfo_Value( Ritem, "B_LOOPSRC", 1 )
         local limLiEdge = math.min(areaData.areaEnd, RiEnd - 0.0001 )
         local limRiEdge = math.max(areaData.areaStart, LiPos + 0.0001 )
-        reaper.BR_SetItemEdges(Litem, LiPos, limLiEdge)
-        reaper.BR_SetItemEdges(Ritem, limRiEdge, RiEnd)
+        SetItemEdges(Litem, LiPos, limLiEdge)
+        SetItemEdges(Ritem, limRiEdge, RiEnd)
       end
     end
   end
@@ -2169,7 +2217,7 @@ end
 
 ----------------------------
 
-function SortSelItems(Items, ref_item, ref_leftItem, ref_rightItem, reverseFlag)
+function SortSelItems(Items, SelItems, ref_item, ref_leftItem, ref_rightItem, reverseFlag)
   local ret
   local ref_i_pos, ref_i_end, ref_fLeftpos, ref_fRightpos
   ref_i_pos = reaper.GetMediaItemInfo_Value(ref_item, "D_POSITION")
@@ -2188,8 +2236,9 @@ function SortSelItems(Items, ref_item, ref_leftItem, ref_rightItem, reverseFlag)
   else ref_fRightpos = ref_i_end - ref_i_Fout
   end
   
-  for i=0, reaper.CountSelectedMediaItems(0) - 1 do
-    local item = reaper.GetSelectedMediaItem(0,i)
+  --for i=0, reaper.CountSelectedMediaItems(0) - 1 do
+  for i, item in ipairs(SelItems) do
+    --local item = reaper.GetSelectedMediaItem(0,i)
     local itemLock = reaper.GetMediaItemInfo_Value( item, "C_LOCK" )
     
     local i_pos = reaper.GetMediaItemInfo_Value(item, "D_POSITION")
@@ -2264,8 +2313,13 @@ end
 function AddTrMediaEditingGroup(Items, timeT, edge)
   local GrSelTrs = reaper.GetToggleCommandState(42581) --Track: Automatically group selected tracks for media/razor editing
   local GrAllTrs = reaper.GetToggleCommandState(42580) --Track: Automatically group all tracks for media/razor editing
+  local GrChild = reaper.GetToggleCommandState(43725) --Track: Automatically group folder/child tracks for media/razor editing
+  local GrSibling = reaper.GetToggleCommandState(43734) --Track: Automatically group folder sibling tracks for media/razor editing
+  
+  if GrSelTrs < 0 and GrAllTrs < 0 then return end
   
   local GrIDsEn = {} --enabled
+  local TrFolders = {}
   local TrGrData = {}
   local offsets = {0,32,64,96} --each 32bit for 128 groups
   
@@ -2357,6 +2411,29 @@ function AddTrMediaEditingGroup(Items, timeT, edge)
     end
     
     for i, tr in ipairs(Tracks) do -- collect gr info for tracks with initially captured items
+      local parent = reaper.GetParentTrack( tr )
+      if parent and GrSibling == 1 then FieldMatch(TrFolders, parent, true) end
+      
+      local foldDepth = reaper.GetMediaTrackInfo_Value( tr, "I_FOLDERDEPTH" )
+      if GrChild == 1 and foldDepth == 1 then
+        FieldMatch(TrFolders, tr, true)
+        local tridx = reaper.GetMediaTrackInfo_Value( tr, "IP_TRACKNUMBER" ) -1
+        
+        if tridx >= 0 then
+          local testParent = 0 --any value except track or nil
+          while testParent ~= parent and tridx < trCnt do
+            tridx = tridx +1
+            local testTr = reaper.GetTrack(0, tridx)
+            if testTr then testParent = reaper.GetParentTrack( testTr ) end
+            if testTr and testParent ~= parent
+            and reaper.GetMediaTrackInfo_Value( testTr, "I_FOLDERDEPTH" ) == 1 then
+              FieldMatch(TrFolders, testTr, true)
+            end
+          end
+          
+        end
+      end
+      
       local sel = reaper.GetMediaTrackInfo_Value(tr, 'I_SELECTED')
       SelState = SelState | sel 
       for o,v in ipairs(offsets) do
@@ -2411,9 +2488,12 @@ function AddTrMediaEditingGroup(Items, timeT, edge)
       
       if GrAllTrs == 1 then
         FieldMatch(GrTracks, tr, true) 
-      else 
+      else
         local sel = TrGrData[i]['selected'] 
         if SelState & sel ~= 0 and GrSelTrs == 1 then FieldMatch(GrTracks, tr, true) end
+        
+        local parent = reaper.GetParentTrack( tr )
+        if FieldMatch(TrFolders, parent) then FieldMatch(GrTracks, tr, true) end
         
         for o,grMap in ipairs(TrGrData[i]) do
           if GrIDs[o] & grMap.lead ~= 0 or GrIDs[o] & grMap.follow ~= 0 then
@@ -2558,6 +2638,7 @@ function FadeToMouse(item, itemHalf) --returns table of fades start position
     f_type = WhatFade(itemHalf, fLeftpos, fRightpos, mPos) 
   end
   
+  local SelItems = {}--already selected items or items grouped to non selected one
   Sitems = SaveSelItems() --for restore after all
    
   --
@@ -2595,9 +2676,7 @@ function FadeToMouse(item, itemHalf) --returns table of fades start position
         edge = 'r'
       end
     end
-    
-    local SelItems = {}--already selected items or items grouped to non selected one
-    
+     
     if edge == 'l' then neighItem = leftItem
     else neighItem = rightItem
     end
@@ -2631,27 +2710,26 @@ function FadeToMouse(item, itemHalf) --returns table of fades start position
     AddTrMediaEditingGroup(SelItems, {time}, edge)
     SelItems = AddGroupedItems(SelItems, false, time, edge)
     
-    reaper.SelectAllMediaItems(0, false)
-    for i, item in ipairs(SelItems) do
-      reaper.SetMediaItemSelected(item, true)
-    end
+  else
+    table.move(Sitems, 1, #Sitems, #SelItems+1, SelItems)
   end
   
   
   local LeftSelFlag, RightSelFlag
   local sortSuccess
-  if reaper.IsMediaItemSelected(item) == true then
-    sortSuccess = SortSelItems(Items, item, leftItem, rightItem, false)
+  
+  if FieldMatch(SelItems, item) == true then
+    sortSuccess = SortSelItems(Items, SelItems, item, leftItem, rightItem, false)
   else
-    if leftItem and reaper.IsMediaItemSelected(leftItem) == true
+    if leftItem and FieldMatch(SelItems, leftItem) == true
     and (f_type == 'in' or itemHalf == 'header') then
       LeftSelFlag = true
-      sortSuccess = SortSelItems(Items, leftItem, nil, item, true)
-    end
-    if rightItem and reaper.IsMediaItemSelected(rightItem) == true and reverse ~= false
+      sortSuccess = SortSelItems(Items, SelItems, leftItem, nil, item, true)
+    end 
+    if rightItem and FieldMatch(SelItems, rightItem) == true and reverse ~= false
     and (f_type == 'out' or itemHalf == 'header') then
       RightSelFlag = true
-      sortSuccess = SortSelItems(Items, rightItem, item, nil, true)
+      sortSuccess = SortSelItems(Items, SelItems, rightItem, item, nil, true)
     end
     if sortSuccess ~= true then
       local ItemData = {}

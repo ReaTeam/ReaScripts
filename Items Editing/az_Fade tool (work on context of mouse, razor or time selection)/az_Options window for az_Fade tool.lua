@@ -189,7 +189,11 @@ function OptionsWindow(MainTable, windowName, BatchTable, BatchPrjTable)
     reaper.ImGui_Text(ctx, '' ) --space before buttons
     
     --Esc button
-    reaper.ImGui_SameLine(ctx, fontSize*7, fontSize)
+    if ExternalOpen == true then
+      reaper.ImGui_SameLine(ctx, fontSize, fontSize)
+    else reaper.ImGui_SameLine(ctx, fontSize*7, fontSize)
+    end
+    
     if esc == true then
       reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Button(), gui_colors.Button.Active)
     end
