@@ -1,7 +1,7 @@
 @description Turing-complete controller
 @author Rek's Effeks
-@version 0.1beta.3
-@changelog Fixed tempo/time sig editing to be compatible with tap tempo.
+@version 0.2.2
+@changelog ReaPad integration and bug fixes.
 @provides
   [main script] rxfx_Turing-complete/rxfx_Turing-complete - Cycle track record arm.lua
   [main script] rxfx_Turing-complete/rxfx_Turing-complete - Set time selection from markers.lua
@@ -14,6 +14,7 @@
   [main script] rxfx_Turing-complete/rxfx_Turing-complete - Send project list.lua
   [main script] rxfx_Turing-complete/rxfx_Turing-complete - Send tempo.lua
   [main script] rxfx_Turing-complete/rxfx_Turing-complete - Set time signature.lua
+  [main script] rxfx_Turing-complete/rxfx_Turing-complete - Update track selections.lua
   rxfx_Turing-complete/rxfx_turing_complete.html > rxfx_turing_complete.html
   rxfx_Turing-complete/OpenSans-VariableFont_wdth,wght.ttf > rxfx_turing_complete/
 @about
