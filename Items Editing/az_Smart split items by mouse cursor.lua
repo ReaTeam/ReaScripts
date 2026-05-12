@@ -1,9 +1,11 @@
 -- @description Smart split items using mouse cursor context (also edit cursor, razor area and time selection)
 -- @author AZ
--- @version 3.42
+-- @version 3.43
 -- @changelog
---   - Improved track media grouping logic
---   - Support for enable state of track groups
+--   - Support for track folder/child media edits grouping
+--   - Add option to use mouse for split or not
+--   - Respect full items lock
+--   - Minor improvements
 -- @provides [main] az_Smart split items by mouse cursor/az_Open options for az_Smart split items by mouse cursor.lua
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=259751
 -- @donation Donate via PayPal https://www.paypal.me/AZsound
@@ -88,6 +90,9 @@ function OptionsDefaults()
   
   text = 'Mouse context options'
   table.insert(OptDefaults, {text, 'Separator', nil})
+   
+  text = 'Use mouse cursor for split'
+  table.insert(OptDefaults, {text, 'UseMouse', true})
                                                       
   text = 'Mouse top / bottom placement on item is used for'
   table.insert(OptDefaults, {text, 'MouseT/B', 'fade/crossfade', {
@@ -568,15 +573,32 @@ end
 -----------------------
 function GetItemsInRange(track, areaStart, areaEnd, areaTop, areaBottom)
     local items = {}
-    local itemCount = reaper.CountTrackMediaItems(track)
-    local itemTop, itemBottom
+    local itemCount = reaper.CountTrackMediaItems(track) -1
+    local idx = itemCount
+    local testEnd = areaEnd --just more than areaStart
     
-    for k = 0, itemCount - 1 do
+    while testEnd >= areaStart and idx > 0 do
+      local item = reaper.GetTrackMediaItem(track, idx)
+      local pos = reaper.GetMediaItemInfo_Value(item, "D_POSITION")
+      local length = reaper.GetMediaItemInfo_Value(item, "D_LENGTH")
+      testEnd = pos+length
+      
+      if testEnd >= areaStart then --optimize start idx to avoid check extra items
+        idx = math.floor(idx - itemCount/6)
+      end
+    end
+    
+    if idx < 0 then idx = 0 end
+    
+    for k = idx, itemCount do
         local item = reaper.GetTrackMediaItem(track, k)
         local lock = reaper.GetMediaItemInfo_Value(item, "C_LOCK")
+        local pos = reaper.GetMediaItemInfo_Value(item, "D_POSITION")
+        local itemTop, itemBottom
         
-        if Opt.RespLock ~= true or lock ~= 1 then
-          local pos = reaper.GetMediaItemInfo_Value(item, "D_POSITION")
+        if pos > areaEnd then break end
+        
+        if Opt.RespLock ~= true or lock ~= 1 then 
           local length = reaper.GetMediaItemInfo_Value(item, "D_LENGTH")
           local itemEndPos = pos+length
           
@@ -1369,8 +1391,13 @@ end
 function AddTrMediaEditingGroup(Items, timeT)
   local GrSelTrs = reaper.GetToggleCommandState(42581) --Track: Automatically group selected tracks for media/razor editing
   local GrAllTrs = reaper.GetToggleCommandState(42580) --Track: Automatically group all tracks for media/razor editing
+  local GrChild = reaper.GetToggleCommandState(43725) --Track: Automatically group folder/child tracks for media/razor editing
+  local GrSibling = reaper.GetToggleCommandState(43734) --Track: Automatically group folder sibling tracks for media/razor editing
+  
+  if GrSelTrs < 0 and GrAllTrs < 0 then return end
   
   local GrIDsEn = {} --enabled
+  local TrFolders = {}
   local TrGrData = {}
   local offsets = {0,32,64,96} --each 32bit for 128 groups
   
@@ -1456,8 +1483,31 @@ function AddTrMediaEditingGroup(Items, timeT)
     end
     
     for i, tr in ipairs(Tracks) do -- collect gr info for tracks with initially captured items
+      local parent = reaper.GetParentTrack( tr )
+      if parent and GrSibling == 1 then FieldMatch(TrFolders, parent, true) end
+      
+      local foldDepth = reaper.GetMediaTrackInfo_Value( tr, "I_FOLDERDEPTH" )
+      if GrChild == 1 and foldDepth == 1 then
+        FieldMatch(TrFolders, tr, true)
+        local tridx = reaper.GetMediaTrackInfo_Value( tr, "IP_TRACKNUMBER" ) -1
+        
+        if tridx >= 0 then
+          local testParent = 0 --any value except track or nil
+          while testParent ~= parent and tridx < trCnt do
+            tridx = tridx +1
+            local testTr = reaper.GetTrack(0, tridx)
+            if testTr then testParent = reaper.GetParentTrack( testTr ) end
+            if testTr and testParent ~= parent
+            and reaper.GetMediaTrackInfo_Value( testTr, "I_FOLDERDEPTH" ) == 1 then
+              FieldMatch(TrFolders, testTr, true)
+            end
+          end
+          
+        end
+      end
+      
       local sel = reaper.GetMediaTrackInfo_Value(tr, 'I_SELECTED')
-      SelState = SelState | sel
+      SelState = SelState | sel 
       for o,v in ipairs(offsets) do
         local gr32map = reaper.GetSetTrackGroupMembershipEx( tr, "MEDIA_EDIT_LEAD", v, 0, 0 )
         GrIDs[o] = GrIDs[o] | gr32map
@@ -1488,7 +1538,8 @@ function AddTrMediaEditingGroup(Items, timeT)
           end
           
           if GrIDs[o] & grMap.lead ~= 0 or GrIDs[o] & grMap.follow ~= 0
-          or ( SelState & sel ~= 0 and GrSelTrs == 1 ) then 
+          or ( SelState & sel ~= 0 and GrSelTrs == 1 ) then
+            if sel == 1 then SelState = 1 end
             match = true
           end
           
@@ -1506,17 +1557,21 @@ function AddTrMediaEditingGroup(Items, timeT)
     end
     
     
-    for i = 1, reaper.CountTracks(0) do -- add corresponding tracks to the table
+    for i = 1, trCnt do -- add corresponding tracks to the table
       local tr = TrGrData[i]['track']
+      
       if GrAllTrs == 1 then
-        FieldMatch(GrTracks, tr, true)
+        FieldMatch(GrTracks, tr, true) 
       else
-        local sel = TrGrData[i]['selected']
+        local sel = TrGrData[i]['selected'] 
         if SelState & sel ~= 0 and GrSelTrs == 1 then FieldMatch(GrTracks, tr, true) end
+        
+        local parent = reaper.GetParentTrack( tr )
+        if FieldMatch(TrFolders, parent) then FieldMatch(GrTracks, tr, true) end
         
         for o,grMap in ipairs(TrGrData[i]) do
           if GrIDs[o] & grMap.lead ~= 0 or GrIDs[o] & grMap.follow ~= 0 then
-            FieldMatch(GrTracks, tr, true)
+            FieldMatch(GrTracks, tr, true) 
             break
           end
         end
@@ -1525,11 +1580,32 @@ function AddTrMediaEditingGroup(Items, timeT)
     
     for i, tr in ipairs(GrTracks) do
       local mode = reaper.GetMediaTrackInfo_Value(tr, 'I_FREEMODE')
-      for k = 0, reaper.CountTrackMediaItems(tr) -1 do
+      local itemCount = reaper.CountTrackMediaItems(tr) - 1
+      local idx = itemCount
+      local testTime = time + 1 --just more than time
+      
+      while testTime >= time - 0.0002 and idx > 0 do
+        local item = reaper.GetTrackMediaItem(tr, idx)
+        local tpos = reaper.GetMediaItemInfo_Value(item, "D_POSITION")
+        local tend = tpos + reaper.GetMediaItemInfo_Value(item, 'D_LENGTH')
+        if edge == 'l' then testTime = tpos
+        elseif edge == 'r' then testTime = tend
+        end
+        
+        if testTime >= time - 0.0002 then --optimize start idx to avoid check extra items
+          idx = math.floor(idx - itemCount/6)
+        end
+      end
+      
+      if idx < 0 then idx = 0 end
+      
+      for k = idx, itemCount do
         local item = reaper.GetTrackMediaItem(tr, k)
         local ipos = reaper.GetMediaItemInfo_Value(item, 'D_POSITION')
         local iend = ipos + reaper.GetMediaItemInfo_Value(item, 'D_LENGTH')
-
+        
+        if ipos > time + 0.0002 then break end
+        
         if time > ipos and time < iend then
           local iY = reaper.GetMediaItemInfo_Value(item, 'F_FREEMODE_Y')
           local iH = reaper.GetMediaItemInfo_Value(item, 'F_FREEMODE_H')
@@ -1799,17 +1875,21 @@ function Main()
   Mcur_pos = reaper.BR_PositionAtMouseCursor( true )
   
   TogItemGrouping = reaper.GetToggleCommandState(1156) --Options: Toggle item grouping and track media/razor edit grouping
+  local fulliLock = reaper.GetToggleCommandState(40576) --Locking: Toggle full item locking mode
   TogAutoXfadesEditing = reaper.GetToggleCommandState(40041) --Options: Auto-crossfade media items when editing
   local splautoXConfVar = GetPrefs('splitautoxfade')
   RespTogAutoXfades = (splautoXConfVar&512)/512 --Prefs: Respect toolbar auto-crossfade button
+  
+  if fulliLock == 1 then return end
   
   if RazorEditSelectionExists()==true then
     split_byRE_andSel()
   else
     
     Item_mouse, Half = GetTopBottomItemHalf() --what is context item or not
-    if Item_mouse and Half ~= 'header' then
-      MouseOnItem = true else MouseOnItem = false
+    if Item_mouse and Half ~= 'header' and Opt.UseMouse then
+      MouseOnItem = true
+    else MouseOnItem = false
     end
     
     if Opt.defSelSide then SelSide = Opt.defSelSide end
@@ -1871,7 +1951,7 @@ function Main()
         and reaper.GetMediaItemInfo_Value(Item_mouse, 'C_LOCK') ~= 0 then
           return --no undo
         end
-         
+        
         if Opt.SnapMouseEcur ~= 0 then
           local zoom = reaper.GetHZoomLevel()
           local distance = Opt.SnapMouseEcur / zoom
@@ -1947,6 +2027,7 @@ function Main()
       if #SelectedItems > 0 and Opt.UseTSselItems == false then TSexist = false end
       
       if UndoString ~= nil then
+        --[[
         if GlobalSplit ~= true then
           if reaper.CountSelectedMediaItems(0) == 0 then SelectItems(inisel, true, true) end
           reaper.Main_OnCommandEx(40034, 0,0) -- Item grouping: Select all items in groups
@@ -1955,10 +2036,15 @@ function Main()
         else
           allItemsForSplit = AddGroupedItems(inisel, false)
         end
+        ]]
+        
+        allItemsForSplit = AddGroupedItems(inisel, false)
         
         if TogItemGrouping == 1 then
           AddTrMediaEditingGroup(allItemsForSplit, timeT)
         end
+        
+        allItemsForSplit = AddGroupedItems(allItemsForSplit, false)
         
         local togAutoXfade = reaper.GetToggleCommandState(40912) --Options: Toggle auto-crossfade on split
         local togDefFades = reaper.GetToggleCommandState(41194) --Item: Toggle enable/disable default fadein/fadeout
