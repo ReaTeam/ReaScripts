@@ -3,6 +3,7 @@
 -- @version 2.4.4
 -- @changelog
 --   - Support for new folder/child track grouping for media editing
+--   - Fix behavior on hidden tracks
 --   - Fix Apply button position if Options open via dedicated action
 -- @provides
 --   az_Fade tool (work on context of mouse, razor or time selection)/az_Options window for az_Fade tool.lua
