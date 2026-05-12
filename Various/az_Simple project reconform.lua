@@ -1,12 +1,7 @@
 -- @description Simple project reconform
 -- @author AZ
--- @version 1.0
--- @changelog
---   - Improve advanced time options for EDL
---   - Update EDL start time according to advanced time options change
---   - New feature: Comparison assistant
---   - Indicate that reconform process is going
---   - Fix UI inconsistences and font size
+-- @version 1.1
+-- @changelog - Support for marker/region lanes
 -- @provides
 --   az_Simple project reconform/az_Common reconform functions.lua
 --   [main] az_Simple project reconform/az_Comparison assistant for az_Simple project reconform.lua
@@ -340,7 +335,7 @@ function OptionsWindow()
   ctx = reaper.ImGui_CreateContext('SimpleProjectReconform_AZ')
   if reaper.GetOS():match("^Win") == nil then
     reaper.ImGui_SetConfigVar(ctx, reaper.ImGui_ConfigVar_ViewportsNoDecoration(), 0)
-    fontName, OScoeff = 'sans-serif', 1.08
+    fontName, OScoeff = 'sans-serif', 1.1
   else fontName, OScoeff = 'Calibri', 1
   end
   -----------
@@ -870,7 +865,7 @@ function OptionsWindow()
       if reaper.ImGui_Button(ctx, 'Set FX on selected items OFFLINE') then
         reaper.Main_OnCommandEx(42353,0,0) --Items: Set all take FX offline for selected media items
       end
-      reaper.ImGui_SameLine(ctx, nil, fontSize * 1.8)
+      reaper.ImGui_SameLine(ctx, nil, fontSize * (1.8/OScoeff))
       if reaper.ImGui_Button(ctx, 'Revert FX on selected items ONLINE') then
         reaper.Main_OnCommandEx(42354,0,0) --Items: Set all take FX online for selected media items
       end
@@ -884,7 +879,7 @@ function OptionsWindow()
       if fieldState == true then
         OldPrjStart = reaper.parse_timestr_pos( retOldPrjOffsetTime, 5 )
       end
-      reaper.ImGui_SameLine(ctx, fontSize*16, nil)
+      reaper.ImGui_SameLine(ctx, fontSize*16*math.max(OScoeff*0.95, 1), nil)
       reaper.ImGui_PushID(ctx, 1)
       local btnState = reaper.ImGui_Button(ctx, 'Get edit cursor', nil, nil )
        
@@ -934,7 +929,7 @@ function OptionsWindow()
         end
       end
       
-      reaper.ImGui_SameLine(ctx, fontSize*16, nil)
+      reaper.ImGui_SameLine(ctx, fontSize*16*math.max(OScoeff*0.95, 1), nil)
       reaper.ImGui_PushID(ctx, 2)
       local btnState = reaper.ImGui_Button(ctx, 'Get edit cursor', nil, nil )
        
@@ -2890,21 +2885,34 @@ end
 function CopyMarkers(areaStart, areaEnd, pasteTarget)
   local destAreaEnd = pasteTarget + areaEnd - areaStart
   local ret, mcnt, rcnt = reaper.CountProjectMarkers(0)
+  
   local i = ret -1
   while i >= 0 do
     local retval, isrgn, pos, rgnend, name, markrgnindexnumber, color = reaper.EnumProjectMarkers3(0, i)
-
+    local regOrMark, lane, selected, hidden
+    if reaper.APIExists('AddRegionOrMarker') then
+      regOrMark = reaper.GetRegionOrMarker( 0, i, '' )
+      lane = reaper.GetRegionOrMarkerInfo_Value( 0, regOrMark, "I_LANENUMBER" )
+      selected = reaper.GetRegionOrMarkerInfo_Value( 0, regOrMark, "B_UISEL" )
+      hidden = reaper.GetRegionOrMarkerInfo_Value( 0, regOrMark, "B_HIDDEN" )
+    end
+    
     if Opt.ReconfMarkers == true and isrgn == false then
       if pos > areaStart and pos < areaEnd then
-        local newplace = pasteTarget + pos - areaStart 
-        reaper.AddProjectMarker2( 0, isrgn, newplace, rgnend, name, -1, color )
+        local newplace = pasteTarget + pos - areaStart
+        if reaper.APIExists('AddRegionOrMarker') then
+          local mark = reaper.AddRegionOrMarker( 0, isrgn, newplace, rgnend, name, -1, color )
+          reaper.SetRegionOrMarkerInfo_Value( 0, mark, "I_LANENUMBER", lane )
+          reaper.SetRegionOrMarkerInfo_Value( 0, mark, "B_UISEL", selected )
+          reaper.SetRegionOrMarkerInfo_Value( 0, mark, "B_HIDDEN", hidden )
+        else
+          reaper.AddProjectMarker2( 0, isrgn, newplace, rgnend, name, -1, color )
+        end
       elseif pos > pasteTarget and pos < destAreaEnd then
         reaper.DeleteProjectMarkerByIndex(0, i)
       end
     end
-    
-    i = i-1
-    
+     
     if Opt.ReconfRegions == true and isrgn == true then
       if pos < areaEnd and rgnend > areaStart then 
         local newplace = math.max(pasteTarget + pos - areaStart, pasteTarget)
@@ -2912,26 +2920,39 @@ function CopyMarkers(areaStart, areaEnd, pasteTarget)
         if not Regions[tostring(markrgnindexnumber)] then
           Regions[tostring(markrgnindexnumber)] = {}
         end
-        table.insert(Regions[tostring(markrgnindexnumber)], {newplace, newrgnend, name, color})
+        table.insert(Regions[tostring(markrgnindexnumber)], {newplace, newrgnend, name, color, lane, selected, hidden})
       end
       --Here needs to clean place if it's not empty.
       if pos <= destAreaEnd and rgnend > pasteTarget then
+        local reg = reaper.GetRegionOrMarker( 0, i, '' )
         if rgnend > destAreaEnd and pos >= pasteTarget then
          reaper.SetProjectMarker2(0, markrgnindexnumber, true, destAreaEnd, rgnend, name)
+         --reaper.SetRegionOrMarkerInfo_Value( 0, reg, "D_STARTPOS", destAreaEnd )
         end
         if rgnend <= destAreaEnd and pos < pasteTarget then
          reaper.SetProjectMarker2(0, markrgnindexnumber, true, pos, pasteTarget, name)
+         --reaper.SetRegionOrMarkerInfo_Value( 0, reg, "D_ENDPOS", pasteTarget )
         end
         if rgnend <= destAreaEnd and pos >= pasteTarget then
           reaper.DeleteProjectMarker( 0, markrgnindexnumber, true )
         end
         if rgnend > destAreaEnd and pos < pasteTarget then
-         reaper.SetProjectMarker2(0, markrgnindexnumber, true, pos, pasteTarget, name)
-         reaper.AddProjectMarker2( 0, true, destAreaEnd, rgnend, name, -1, color )
+          if reaper.APIExists('AddRegionOrMarker') then
+            reaper.SetRegionOrMarkerInfo_Value( 0, reg, "D_ENDPOS", pasteTarget )
+            local mark = reaper.AddRegionOrMarker( 0, true, destAreaEnd, rgnend, name, -1, color )
+            reaper.SetRegionOrMarkerInfo_Value( 0, mark, "I_LANENUMBER", lane )
+            reaper.SetRegionOrMarkerInfo_Value( 0, mark, "B_UISEL", selected )
+            reaper.SetRegionOrMarkerInfo_Value( 0, mark, "B_HIDDEN", hidden )
+          else
+            reaper.SetProjectMarker2(0, markrgnindexnumber, true, pos, pasteTarget, name)
+            reaper.AddProjectMarker2( 0, true, destAreaEnd, rgnend, name, -1, color )
+          end
         end
+        
       end 
     end
     
+    i = i-1
   end
 end
 -----------------------------
@@ -2958,19 +2979,33 @@ function CreateRegions(refItemsT)
   end
   
   --Create regions
+  local ret, mcnt, rcnt = reaper.CountProjectMarkers(0)
+  ret = ret -1
   for i, v in pairs(Regions) do
     for k, r in ipairs(v) do
-      local idx = reaper.AddProjectMarker2( 0, true, r[1], r[2], r[3], -1, r[4] )
-      Regions[i][k][5] = idx
+      local idx
+      if reaper.APIExists('AddRegionOrMarker') then
+        local reg = reaper.AddRegionOrMarker( 0, true, r[1], r[2], r[3], -1, r[4] )
+        local lane = r[5]
+        local selected = r[6]
+        local hidden = r[7]
+        reaper.SetRegionOrMarkerInfo_Value( 0, reg, "I_LANENUMBER", lane )
+        reaper.SetRegionOrMarkerInfo_Value( 0, reg, "B_UISEL", selected )
+        reaper.SetRegionOrMarkerInfo_Value( 0, reg, "B_HIDDEN", hidden )
+        idx = reaper.GetRegionOrMarkerInfo_Value( 0, reg, "I_INDEX" )
+      else
+        idx = reaper.AddProjectMarker2( 0, true, r[1], r[2], r[3], -1, r[4] ) 
+      end
+      Regions[i][k][0] = idx
     end
   end
   
   --Heal splits between simillary named regions
   local areaStart = refItemsT[1][3]
   local areaEnd = refItemsT[#refItemsT][3] + refItemsT[#refItemsT][2] - refItemsT[#refItemsT][1]
-  local ret, mcnt, rcnt = reaper.CountProjectMarkers(0)
+  ret, mcnt, rcnt = reaper.CountProjectMarkers(0)
 
-  local m = 0 
+  local m = 0
   while m < ret do
     local retval, isrgn, pos, rgnend, name, markrgnindexnumber, color = reaper.EnumProjectMarkers3(0, m) 
     if math.abs(pos - areaEnd) < 0.0002 or math.abs(rgnend - areaStart) < 0.0002
@@ -2987,14 +3022,13 @@ function CreateRegions(refItemsT)
             if math.abs(pos - areaEnd) < 0.0002 and math.abs(rgnEnd - areaEnd) < 0.0002 then
             --msg('R '..m ..' '.. retval ..' '.. v[r][5])
               reaper.SetProjectMarker2(0, markrgnindexnumber, true, rgnPos, rgnend, name)
-              if reaper.DeleteProjectMarker( 0, v[r][5], true ) then
-
+              if reaper.DeleteProjectMarker( 0, v[r][0], true ) then
                 m = m-1
               end
             elseif math.abs(rgnend - areaStart) < 0.0002 and math.abs(rgnPos - areaStart) < 0.0002 then
             --msg('L '..m ..' '.. retval ..' '.. v[r][5])
               reaper.SetProjectMarker2(0, markrgnindexnumber, true, pos, rgnEnd, name)
-              if reaper.DeleteProjectMarker( 0, v[r][5], true ) then
+              if reaper.DeleteProjectMarker( 0, v[r][0], true ) then
                 table.remove(Regions[i],r)
                 Regions[tostring(markrgnindexnumber)] = {}
                 table.insert(Regions[tostring(markrgnindexnumber)],
