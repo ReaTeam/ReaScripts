@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="543152a08af3a7c11e8d257baf8984a8c6f9c3c6" name="ReaTeam Scripts">
+<index version="1" commit="60762d76b53a1f2bb2ef5ded3c5a0bdf2a1aee48" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -29667,6 +29667,10 @@ Fix SWS Startup / Lokasenna Radial Menu bug]]></changelog>
         <changelog><![CDATA[Time selection copy and empty controls, save button, remove "reset midi controllers"]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/521d0e4cba41dc85c07cb6dbb0d8958350c97e9f/Various/rxfx_ReaPad.eel</source>
       </version>
+      <version name="1.5.71" author="Rek's Effeks" time="2026-05-12T15:19:16Z">
+        <changelog><![CDATA[fix Turing-Complete FX display after project load]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/60762d76b53a1f2bb2ef5ded3c5a0bdf2a1aee48/Various/rxfx_ReaPad.eel</source>
+      </version>
     </reapack>
     <reapack name="SampleSamurai.lua" type="script" desc="SampleSamurai">
       <metadata>
@@ -31434,6 +31438,23 @@ ProjectFolder=/path/to/folder/\par}
         <source main="main" type="script" file="rxfx_Turing-complete/rxfx_Turing-complete - Set time signature.lua">https://github.com/ReaTeam/ReaScripts/raw/e83b103b4f00855d572dec1823e1bcc556624284/Web%20Interfaces/rxfx_Turing-complete/rxfx_Turing-complete%20-%20Set%20time%20signature.lua</source>
         <source file="rxfx_turing_complete.html">https://github.com/ReaTeam/ReaScripts/raw/e83b103b4f00855d572dec1823e1bcc556624284/Web%20Interfaces/rxfx_Turing-complete/rxfx_turing_complete.html</source>
         <source file="rxfx_turing_complete/OpenSans-VariableFont_wdth,wght.ttf">https://github.com/ReaTeam/ReaScripts/raw/e83b103b4f00855d572dec1823e1bcc556624284/Web%20Interfaces/rxfx_Turing-complete/OpenSans-VariableFont_wdth,wght.ttf</source>
+      </version>
+      <version name="0.2.2" author="Rek's Effeks" time="2026-05-12T15:19:16Z">
+        <changelog><![CDATA[ReaPad integration and bug fixes.]]></changelog>
+        <source main="main" type="script" file="rxfx_Turing-complete/rxfx_Turing-complete - Cycle track record arm.lua">https://github.com/ReaTeam/ReaScripts/raw/60762d76b53a1f2bb2ef5ded3c5a0bdf2a1aee48/Web%20Interfaces/rxfx_Turing-complete/rxfx_Turing-complete%20-%20Cycle%20track%20record%20arm.lua</source>
+        <source main="main" type="script" file="rxfx_Turing-complete/rxfx_Turing-complete - Set time selection from markers.lua">https://github.com/ReaTeam/ReaScripts/raw/60762d76b53a1f2bb2ef5ded3c5a0bdf2a1aee48/Web%20Interfaces/rxfx_Turing-complete/rxfx_Turing-complete%20-%20Set%20time%20selection%20from%20markers.lua</source>
+        <source main="main" type="script" file="rxfx_Turing-complete/rxfx_Turing-complete - New project.lua">https://github.com/ReaTeam/ReaScripts/raw/60762d76b53a1f2bb2ef5ded3c5a0bdf2a1aee48/Web%20Interfaces/rxfx_Turing-complete/rxfx_Turing-complete%20-%20New%20project.lua</source>
+        <source main="main" type="script" file="rxfx_Turing-complete/rxfx_Turing-complete - Open selected project.lua">https://github.com/ReaTeam/ReaScripts/raw/60762d76b53a1f2bb2ef5ded3c5a0bdf2a1aee48/Web%20Interfaces/rxfx_Turing-complete/rxfx_Turing-complete%20-%20Open%20selected%20project.lua</source>
+        <source main="main" type="script" file="rxfx_Turing-complete/rxfx_Turing-complete - Read current project.lua">https://github.com/ReaTeam/ReaScripts/raw/60762d76b53a1f2bb2ef5ded3c5a0bdf2a1aee48/Web%20Interfaces/rxfx_Turing-complete/rxfx_Turing-complete%20-%20Read%20current%20project.lua</source>
+        <source main="main" type="script" file="rxfx_Turing-complete/rxfx_Turing-complete - Rename track from ExtState.lua">https://github.com/ReaTeam/ReaScripts/raw/60762d76b53a1f2bb2ef5ded3c5a0bdf2a1aee48/Web%20Interfaces/rxfx_Turing-complete/rxfx_Turing-complete%20-%20Rename%20track%20from%20ExtState.lua</source>
+        <source main="main" type="script" file="rxfx_Turing-complete/rxfx_Turing-complete - Save project.lua">https://github.com/ReaTeam/ReaScripts/raw/60762d76b53a1f2bb2ef5ded3c5a0bdf2a1aee48/Web%20Interfaces/rxfx_Turing-complete/rxfx_Turing-complete%20-%20Save%20project.lua</source>
+        <source main="main" type="script" file="rxfx_Turing-complete/rxfx_Turing-complete - Save project as.lua">https://github.com/ReaTeam/ReaScripts/raw/60762d76b53a1f2bb2ef5ded3c5a0bdf2a1aee48/Web%20Interfaces/rxfx_Turing-complete/rxfx_Turing-complete%20-%20Save%20project%20as.lua</source>
+        <source main="main" type="script" file="rxfx_Turing-complete/rxfx_Turing-complete - Send project list.lua">https://github.com/ReaTeam/ReaScripts/raw/60762d76b53a1f2bb2ef5ded3c5a0bdf2a1aee48/Web%20Interfaces/rxfx_Turing-complete/rxfx_Turing-complete%20-%20Send%20project%20list.lua</source>
+        <source main="main" type="script" file="rxfx_Turing-complete/rxfx_Turing-complete - Send tempo.lua">https://github.com/ReaTeam/ReaScripts/raw/60762d76b53a1f2bb2ef5ded3c5a0bdf2a1aee48/Web%20Interfaces/rxfx_Turing-complete/rxfx_Turing-complete%20-%20Send%20tempo.lua</source>
+        <source main="main" type="script" file="rxfx_Turing-complete/rxfx_Turing-complete - Set time signature.lua">https://github.com/ReaTeam/ReaScripts/raw/60762d76b53a1f2bb2ef5ded3c5a0bdf2a1aee48/Web%20Interfaces/rxfx_Turing-complete/rxfx_Turing-complete%20-%20Set%20time%20signature.lua</source>
+        <source main="main" type="script" file="rxfx_Turing-complete/rxfx_Turing-complete - Update track selections.lua">https://github.com/ReaTeam/ReaScripts/raw/60762d76b53a1f2bb2ef5ded3c5a0bdf2a1aee48/Web%20Interfaces/rxfx_Turing-complete/rxfx_Turing-complete%20-%20Update%20track%20selections.lua</source>
+        <source file="rxfx_turing_complete.html">https://github.com/ReaTeam/ReaScripts/raw/60762d76b53a1f2bb2ef5ded3c5a0bdf2a1aee48/Web%20Interfaces/rxfx_Turing-complete/rxfx_turing_complete.html</source>
+        <source file="rxfx_turing_complete/OpenSans-VariableFont_wdth,wght.ttf">https://github.com/ReaTeam/ReaScripts/raw/60762d76b53a1f2bb2ef5ded3c5a0bdf2a1aee48/Web%20Interfaces/rxfx_Turing-complete/OpenSans-VariableFont_wdth,wght.ttf</source>
       </version>
     </reapack>
   </category>
