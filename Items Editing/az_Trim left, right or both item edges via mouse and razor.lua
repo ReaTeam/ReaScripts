@@ -1,9 +1,11 @@
 -- @description Trim left, right or both item edges via mouse and razor
 -- @author AZ
--- @version 1.6
+-- @version 1.7
 -- @changelog
---   - Support track media grouping
---   - New option for trim tails of selected items using edit cursor if mouse is not over items
+--   - Fix behavior with locked items
+--   - Prevent editing if items fully locked in project
+--   - Fix trim at edit cursor when grouping is off
+--   - Add support for new parent/child grouping
 -- @provides [main] az_Trim left, right or both item edges via mouse and razor/az_Open options for az_Trim left, right or both item edges via mouse and razor.lua
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=288069
 -- @donation Donate via PayPal https://www.paypal.me/AZsound
@@ -474,8 +476,13 @@ end
 function AddTrMediaEditingGroup(Items, timeT)
   local GrSelTrs = reaper.GetToggleCommandState(42581) --Track: Automatically group selected tracks for media/razor editing
   local GrAllTrs = reaper.GetToggleCommandState(42580) --Track: Automatically group all tracks for media/razor editing
+  local GrChild = reaper.GetToggleCommandState(43725) --Track: Automatically group folder/child tracks for media/razor editing
+  local GrSibling = reaper.GetToggleCommandState(43734) --Track: Automatically group folder sibling tracks for media/razor editing
+  
+  if GrSelTrs < 0 and GrAllTrs < 0 then return end
   
   local GrIDsEn = {} --enabled
+  local TrFolders = {}
   local TrGrData = {}
   local offsets = {0,32,64,96} --each 32bit for 128 groups
   
@@ -561,8 +568,31 @@ function AddTrMediaEditingGroup(Items, timeT)
     end
     
     for i, tr in ipairs(Tracks) do -- collect gr info for tracks with initially captured items
+      local parent = reaper.GetParentTrack( tr )
+      if parent and GrSibling == 1 then FieldMatch(TrFolders, parent, true) end
+      
+      local foldDepth = reaper.GetMediaTrackInfo_Value( tr, "I_FOLDERDEPTH" )
+      if GrChild == 1 and foldDepth == 1 then
+        FieldMatch(TrFolders, tr, true)
+        local tridx = reaper.GetMediaTrackInfo_Value( tr, "IP_TRACKNUMBER" ) -1
+        
+        if tridx >= 0 then
+          local testParent = 0 --any value except track or nil
+          while testParent ~= parent and tridx < trCnt do
+            tridx = tridx +1
+            local testTr = reaper.GetTrack(0, tridx)
+            if testTr then testParent = reaper.GetParentTrack( testTr ) end
+            if testTr and testParent ~= parent
+            and reaper.GetMediaTrackInfo_Value( testTr, "I_FOLDERDEPTH" ) == 1 then
+              FieldMatch(TrFolders, testTr, true)
+            end
+          end
+          
+        end
+      end
+      
       local sel = reaper.GetMediaTrackInfo_Value(tr, 'I_SELECTED')
-      SelState = SelState | sel
+      SelState = SelState | sel 
       for o,v in ipairs(offsets) do
         local gr32map = reaper.GetSetTrackGroupMembershipEx( tr, "MEDIA_EDIT_LEAD", v, 0, 0 )
         GrIDs[o] = GrIDs[o] | gr32map
@@ -593,7 +623,8 @@ function AddTrMediaEditingGroup(Items, timeT)
           end
           
           if GrIDs[o] & grMap.lead ~= 0 or GrIDs[o] & grMap.follow ~= 0
-          or ( SelState & sel ~= 0 and GrSelTrs == 1 ) then 
+          or ( SelState & sel ~= 0 and GrSelTrs == 1 ) then
+            if sel == 1 then SelState = 1 end
             match = true
           end
           
@@ -611,17 +642,21 @@ function AddTrMediaEditingGroup(Items, timeT)
     end
     
     
-    for i = 1, reaper.CountTracks(0) do -- add corresponding tracks to the table
+    for i = 1, trCnt do -- add corresponding tracks to the table
       local tr = TrGrData[i]['track']
+      
       if GrAllTrs == 1 then
-        FieldMatch(GrTracks, tr, true)
+        FieldMatch(GrTracks, tr, true) 
       else
-        local sel = TrGrData[i]['selected']
+        local sel = TrGrData[i]['selected'] 
         if SelState & sel ~= 0 and GrSelTrs == 1 then FieldMatch(GrTracks, tr, true) end
+        
+        local parent = reaper.GetParentTrack( tr )
+        if FieldMatch(TrFolders, parent) then FieldMatch(GrTracks, tr, true) end
         
         for o,grMap in ipairs(TrGrData[i]) do
           if GrIDs[o] & grMap.lead ~= 0 or GrIDs[o] & grMap.follow ~= 0 then
-            FieldMatch(GrTracks, tr, true)
+            FieldMatch(GrTracks, tr, true) 
             break
           end
         end
@@ -630,11 +665,32 @@ function AddTrMediaEditingGroup(Items, timeT)
     
     for i, tr in ipairs(GrTracks) do
       local mode = reaper.GetMediaTrackInfo_Value(tr, 'I_FREEMODE')
-      for k = 0, reaper.CountTrackMediaItems(tr) -1 do
+      local itemCount = reaper.CountTrackMediaItems(tr) - 1
+      local idx = itemCount
+      local testTime = time + 1 --just more than time
+      
+      while testTime >= time - 0.0002 and idx > 0 do
+        local item = reaper.GetTrackMediaItem(tr, idx)
+        local tpos = reaper.GetMediaItemInfo_Value(item, "D_POSITION")
+        local tend = tpos + reaper.GetMediaItemInfo_Value(item, 'D_LENGTH')
+        if edge == 'l' then testTime = tpos
+        elseif edge == 'r' then testTime = tend
+        end
+        
+        if testTime >= time - 0.0002 then --optimize start idx to avoid check extra items
+          idx = math.floor(idx - itemCount/6)
+        end
+      end
+      
+      if idx < 0 then idx = 0 end
+      
+      for k = idx, itemCount do
         local item = reaper.GetTrackMediaItem(tr, k)
         local ipos = reaper.GetMediaItemInfo_Value(item, 'D_POSITION')
         local iend = ipos + reaper.GetMediaItemInfo_Value(item, 'D_LENGTH')
-
+        
+        if ipos > time + 0.0002 then break end
+        
         if time > ipos and time < iend then
           local iY = reaper.GetMediaItemInfo_Value(item, 'F_FREEMODE_Y')
           local iH = reaper.GetMediaItemInfo_Value(item, 'F_FREEMODE_H')
@@ -1070,12 +1126,9 @@ function trim_byRE_andSel()
     else
       reaper.Main_OnCommandEx(42406, 0, 0) --clear RE area
       RestoreSelItems(SelectedItems)
-    end
+    end 
     
-    reaper.PreventUIRefresh( -1 )
-    reaper.Undo_EndBlock2( 0, "Trim at razor area", -1 )
-  else
-    reaper.defer(function()end)
+    UndoString = "Trim at razor area"
   end
 
 end
@@ -1177,10 +1230,12 @@ for i, item in ipairs(items) do
   local fInCurv = reaper.GetMediaItemInfo_Value(item,'D_FADEINDIR')
   local fOutCurv = reaper.GetMediaItemInfo_Value(item,'D_FADEOUTDIR')
   
+  local itemLocked = reaper.GetMediaItemInfo_Value(item, 'C_LOCK')
+  
   if fInA ~= 0 then fIn = fInA end
   if fOutA~= 0 then fOut = fOutA end
   
-  if iPos < trimTime and trimTime < iEnd then
+  if iPos < trimTime and trimTime < iEnd and itemLocked ~= 1 then
   
     if side == 'left' then
       SetItemEdges(item, trimTime, iEnd)
@@ -1279,10 +1334,15 @@ function EditCurTrim(items)
     
     if Opt.RespGrouping == true and GroupEnabled == 1 then
       allItemsForTrim = AddGroupedItems(inisel, false)
+    else allItemsForTrim = {item}
     end
     
     if GroupEnabled == 1 then
       AddTrMediaEditingGroup(allItemsForTrim, {trimTime})
+    end
+    
+    if Opt.RespGrouping == true and GroupEnabled == 1 then
+      allItemsForTrim = AddGroupedItems(allItemsForTrim, false)
     end
     
     undoType = trim_sel_items(allItemsForTrim, side, trimTime)
@@ -1300,17 +1360,15 @@ function MouseTrim()
   if half == "header" or not item then  --if mouse cursor not on the item
     if Opt.EnableEcurTrim == true then
       if EditCurTrim(SelectedItems) then
-        --RestoreSelItems(SelectedItems)
-        reaper.PreventUIRefresh( -1 )
-        reaper.Undo_EndBlock2( 0, "Trim the rest of selected items at edit cursor", -1 )
-        reaper.UpdateArrange()
-      else reaper.defer(function()end)
+        UndoString = "Trim the rest of selected items at edit cursor"
       end
-    else reaper.defer(function() end)
     end
   end
   
   if item and half ~= "header" then
+    local itemLocked = reaper.GetMediaItemInfo_Value(item, 'C_LOCK')
+    if itemLocked == 1 then return end
+    
     reaper.Undo_BeginBlock2( 0 )
     reaper.PreventUIRefresh( 1 )
     
@@ -1333,11 +1391,13 @@ function MouseTrim()
     
     if Opt.RespGrouping == true and GroupEnabled == 1 then
       allItemsForTrim = AddGroupedItems(inisel, false)
-    end
-    
-    if GroupEnabled == 1 then
       AddTrMediaEditingGroup(allItemsForTrim, timeT)
-    end
+      allItemsForTrim = AddGroupedItems(allItemsForTrim, false)
+    elseif GroupEnabled == 1 then
+      AddTrMediaEditingGroup(allItemsForTrim, timeT)
+    else
+      allItemsForTrim = inisel
+    end 
     
     local iPos = reaper.GetMediaItemInfo_Value(item,'D_POSITION')
     local iEnd = iPos + reaper.GetMediaItemInfo_Value(item,'D_LENGTH')
@@ -1347,11 +1407,9 @@ function MouseTrim()
     undoType = trim_sel_items(allItemsForTrim, side, trimTime)
     
     RestoreSelItems(SelectedItems)
-    reaper.PreventUIRefresh( -1 )
+    
     if undoType then
-      reaper.Undo_EndBlock2( 0, "Trim "..undoType.." edge of items under mouse", -1 )
-      reaper.UpdateArrange()
-    else reaper.defer(function()end)
+      UndoString = "Trim "..undoType.." edge of items under mouse"
     end
     
   end
@@ -1359,7 +1417,7 @@ end
 --------------------------
 
 -------START------
-CurVers = 1.6
+CurVers = 1.7
 version = tonumber( reaper.GetExtState(ExtStateName, "version") )
 
 if version ~= CurVers then
@@ -1381,10 +1439,21 @@ else
     OptionsDefaults()
     GetExtStates()
     SetOptGlobals()
+    
+    local fulliLock = reaper.GetToggleCommandState(40576) --Locking: Toggle full item locking mode
+    if fulliLock == 1 then return end
+    
     if RazorEditSelectionExists() == true then
       trim_byRE_andSel()
     else
       MouseTrim()
+    end
+    
+    reaper.PreventUIRefresh( -1 )
+    if UndoString then
+      reaper.Undo_EndBlock2( 0, UndoString, -1 )
+      reaper.UpdateArrange()
+    else reaper.defer(function()end)
     end
   end
 end
