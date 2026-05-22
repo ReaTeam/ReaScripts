@@ -1,7 +1,7 @@
 -- @description Show path from list menu (Resource, Selected Item, Project File, Record, Secondary Record, Render)
 -- @author amagalma
--- @version 1.13
--- @changelog - Added current theme path
+-- @version 1.14
+-- @changelog - "Added touched or focused FX"
 -- @link https://forum.cockos.com/showthread.php?t=239556
 -- @screenshot https://i.ibb.co/vhMDkZn/Show-path-from-list-menu.gif
 -- @donation https://www.paypal.me/amagalma
@@ -15,6 +15,7 @@
 --   - Render path
 --   - First selected script's path in the Actions List
 --   - Current theme path
+--   - Touched or Focused FX
 --
 --   - Requires JS_ReaScriptAPI and SWS extensions
 
@@ -69,6 +70,24 @@ local function OpenRenderPath()
   end
 end
 
+local function OpenFXLocation()
+  local retval, track, item, take, fx, parm = reaper.GetTouchedOrFocusedFX( 1 )
+  if not retval then return end
+  
+  local ok, buf
+  if item == -1 then
+    ok, buf = reaper.TrackFX_GetNamedConfigParm( reaper.GetTrack( 0, track ), fx, "fx_ident" )
+  elseif take ~= -1 then
+    ok, buf = reaper.TakeFX_GetNamedConfigParm( reaper.GetTake( reaper.GetMediaItem( 0, item ), take ), fx, "fx_ident" )
+  end
+  
+  if ok and buf ~= "" then
+    buf = buf:match(":") and buf:match("[^<]+") or string.gsub(reaper.GetResourcePath() .. 
+          "\\Effects\\" .. buf, "[/\\]", reaper.GetOS():match("Win") and "\\" or "/")
+    reaper.CF_LocateInExplorer( buf )
+  end
+end
+
 local t = {
       {"#Show path in explorer/finder|"},
       {"Reaper Resources path", 40027},
@@ -78,7 +97,8 @@ local t = {
       {"Secondary Record path", 40028},
       {"Render path", false},
       {"First selected script in Actions List", false},
-      {"Current theme path", false}
+      {"Current theme path", false},
+      {"Touched or Focused FX", false}
 }
 
 local menu = ""
@@ -165,6 +185,10 @@ if selection > 0 then
         reaper.CF_LocateInExplorer( theme )
       end
     end
+    
+  elseif selection == 10 then --------------------
+  
+    OpenFXLocation()
   
   else ---------------------
   
