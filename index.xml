@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="e31b72bd6ccb360b7504ccec3cc9b6db46464d52" name="ReaTeam Scripts">
+<index version="1" commit="138e3988803282933fc5f36760a5c523645e2fa5" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -21235,6 +21235,14 @@ Updated to only list stretch markers within item time and format time as standar
       </metadata>
       <version name="1.00" author="amagalma" time="2026-06-12T11:44:01Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e31b72bd6ccb360b7504ccec3cc9b6db46464d52/Takes%20Properties/amagalma_Normalize%20all%20takes%20in%20selected%20items%20to%20match%20the%20volume%20of%20the%20active%20take.lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Normalize all takes volume in selected items to LUFSI value set by user.lua" type="script" desc="Normalize all takes volume in selected items to LUFSI value set by user">
+      <metadata>
+        <link rel="donation">https://www.paypal.me/amagalma</link>
+      </metadata>
+      <version name="1.00" author="amagalma" time="2026-06-12T12:39:33Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/138e3988803282933fc5f36760a5c523645e2fa5/Takes%20Properties/amagalma_Normalize%20all%20takes%20volume%20in%20selected%20items%20to%20LUFSI%20value%20set%20by%20user.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Set all take markers' color for selected items in time selection.lua" type="script" desc="Set all take markers' color for selected items in time selection">
