@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="f186a33426f65226515f2ac878a01c3e445c7bf8" name="ReaTeam Scripts">
+<index version="1" commit="e31b72bd6ccb360b7504ccec3cc9b6db46464d52" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -21222,6 +21222,21 @@ Updated to only list stretch markers within item time and format time as standar
     </reapack>
   </category>
   <category name="Takes Properties">
+    <reapack name="amagalma_Normalize all takes in selected items to match the volume of the active take.lua" type="script" desc="Normalize all takes in selected items to match the volume of the active take">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Useful for bringing the rest of the takes to the same volume as the current take, when comping\par}
+}
+]]></description>
+        <link rel="donation">https://www.paypal.me/amagalma</link>
+      </metadata>
+      <version name="1.00" author="amagalma" time="2026-06-12T11:44:01Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e31b72bd6ccb360b7504ccec3cc9b6db46464d52/Takes%20Properties/amagalma_Normalize%20all%20takes%20in%20selected%20items%20to%20match%20the%20volume%20of%20the%20active%20take.lua</source>
+      </version>
+    </reapack>
     <reapack name="amagalma_Set all take markers' color for selected items in time selection.lua" type="script" desc="Set all take markers' color for selected items in time selection">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
