@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="1363297f9d5f879b1f5d3ffd23d027bc2b7bb5eb" name="ReaTeam Scripts">
+<index version="1" commit="b80c4e76c30f85323185cb562819ec6d94457cf6" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -21248,6 +21248,21 @@ Updated to only list stretch markers within item time and format time as standar
       </metadata>
       <version name="1.00" author="amagalma" time="2026-06-12T12:39:33Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/138e3988803282933fc5f36760a5c523645e2fa5/Takes%20Properties/amagalma_Normalize%20all%20takes%20volume%20in%20selected%20items%20to%20LUFSI%20value%20set%20by%20user.lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Phase align two selected items by moving right item's contents (using CFE).lua" type="script" desc="Phase align two selected items by moving right item's contents (using CFE)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Requires JS_ReaScriptAPI\sa180\par}
+}
+]]></description>
+        <link rel="donation">https://www.paypal.me/amagalma</link>
+      </metadata>
+      <version name="1.00" author="amagalma" time="2026-06-18T11:02:42Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b80c4e76c30f85323185cb562819ec6d94457cf6/Takes%20Properties/amagalma_Phase%20align%20two%20selected%20items%20by%20moving%20right%20item's%20contents%20(using%20CFE).lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Set all take markers' color for selected items in time selection.lua" type="script" desc="Set all take markers' color for selected items in time selection">
