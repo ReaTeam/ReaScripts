@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="f0534f3958fdbdf6fc08485e20e0f3df56f400ac" name="ReaTeam Scripts">
+<index version="1" commit="926727e89b5a4e66527dec1b73c2bac2e96a3a2c" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -163,6 +163,14 @@
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/080bd03c5b579f913231ca02e7dee9dfd326d0eb/Cursor/amagalma_Move%20edit%20cursor%20to%20previous%20visible%20grid%20line.lua</source>
       </version>
     </reapack>
+    <reapack name="amagalma_Select and move to next similarly named item on the same track.lua" type="script" desc="Select and move to next similarly named item on the same track">
+      <metadata>
+        <link rel="donation">https://www.paypal.me/amagalma</link>
+      </metadata>
+      <version name="1.00" author="amagalma" time="2026-06-18T13:45:12Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c889823f78ef56500c1289527805c902c03a7935/Cursor/amagalma_Select%20and%20move%20to%20next%20similarly%20named%20item%20on%20the%20same%20track.lua</source>
+      </version>
+    </reapack>
     <reapack name="amagalma_Transport Play from start of arrange view - Stop at play cursor (editing).lua" type="script" desc="Transport Play from start of arrange view / Stop at play cursor (editing)">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
@@ -316,6 +324,14 @@
       <version name="1.0.2" author="cfillion" time="2017-10-04T06:47:01Z">
         <changelog><![CDATA[update to use my new cross-platform clipboard API function (SWS v2.9.5+)]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ef2c8a5b96cd6c7f26212c670836514f39c0fe76/Cursor/cfillion_Copy%20current%20position%20to%20clipboard.lua</source>
+      </version>
+    </reapack>
+    <reapack name="Create amagalma_Select and move to previous similarly named item on the same track.lua" type="script" desc="Select and move to previous similarly named item on the same track">
+      <metadata>
+        <link rel="donation">https://www.paypal.me/amagalma</link>
+      </metadata>
+      <version name="1.00" author="amagalma" time="2026-06-18T13:46:26Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/926727e89b5a4e66527dec1b73c2bac2e96a3a2c/Cursor/Create%20amagalma_Select%20and%20move%20to%20previous%20similarly%20named%20item%20on%20the%20same%20track.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Move edit cursor ahead five seconds.lua" type="script" desc="Move edit cursor ahead five seconds">
