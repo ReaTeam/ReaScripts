@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="f44a2dcf79fb0481f90a84615342d83ae70426b9" name="ReaTeam Scripts">
+<index version="1" commit="f91f66890c00d94a6e9b73e9aeb4d2628d55907f" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -22203,6 +22203,25 @@ Allow user to move window with mouse]]></changelog>
 - Item name parsing now compatible with stems downloaded from X-Minus
 - Friendly item name for Mel-Roformer model from May 2024 UVR patch]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/9a9e73d39709e6dd0fcff89840e03ffb54734edd/Tracks/kaddaok_Import%20UVR%20separations%20into%20comping%20lane%20structure.lua</source>
+      </version>
+    </reapack>
+    <reapack name="marcosteinebach_AutoDuck.lua" type="script" desc="AutoDuck">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 This Script is especially useful to make voice Overs, like Podcasts, Trailers, etc. You Need at least two tracks in your current Project. One Music track and one speech track. Split the speech track into separate items. Every time an item on the speech track beginns, the Music track will be ducked, its volume is faded down, as Long as the item Plays. After the item is finished, the Music track's volume is restored to its original volume.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Internally, a volume envelope is created, with Automation Points arround each item.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 You can specify\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab how much (in DB) the Music track should be ducked,\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab the outer fade down and fade up time\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab the inner fade down and fade up time.\line This is the time the track is still ducked, though the item has began to Play.\line This gives a more natural Fading effect.\sa180\par}
+}
+]]></description>
+      </metadata>
+      <version name="26.01" author="Marco Steinebach" time="2026-06-29T15:50:55Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f91f66890c00d94a6e9b73e9aeb4d2628d55907f/Tracks/marcosteinebach_AutoDuck.lua</source>
       </version>
     </reapack>
     <reapack name="neftovsky_Floating solo toolbar.lua" type="script" desc="Floating solo toolbar">
