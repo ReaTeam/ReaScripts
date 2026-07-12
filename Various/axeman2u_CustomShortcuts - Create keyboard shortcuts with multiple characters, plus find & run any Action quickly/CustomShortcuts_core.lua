@@ -1,5 +1,3 @@
--- @noindex
-
 --[[
  * @noindex
 
@@ -14,6 +12,13 @@
 --]]
 
 local M = {}
+
+-- Needed for MODIFIER_LABELS (platform-correct "Opt" vs "Alt", etc.) in
+-- TryParseSingleCharShortcut below. Safe to require here: capture.lua
+-- doesn't require core.lua, so there's no cycle, and package.path is
+-- already set up by whichever entry-point script (Activate/Create)
+-- required this file first.
+local capture = require("CustomShortcuts_capture")
 
 -- ---------------------------------------------------------------------
 -- Sections
@@ -286,6 +291,104 @@ function M.EnsureSection(data, sectionId)
     data[sectionId].shortcuts = {}
   end
   return data[sectionId]
+end
+
+-- ---------------------------------------------------------------------
+-- Auto-seeding from REAPER's own native shortcuts
+--
+-- Moved here from Create.lua (build 8) so Activate can use the exact
+-- same logic instead of a second, drifting copy -- both entry points
+-- need it now: Activate so the data file stays current on every normal
+-- launch without depending on Create ever having run, and Create for
+-- the two sections (Media Explorer, MIDI Event List Editor) that
+-- Activate's own SnapshotActiveSection() can never select on its own,
+-- so it structurally can't seed them.
+-- ---------------------------------------------------------------------
+
+-- Splits REAPER's own shortcut description (e.g. "Cmd+M", "Ctrl+Shift+M",
+-- "Cmd+Opt+Z") into modifier tokens + a trailing single character.
+-- Returns a phrase in OUR OWN modifier-label format (e.g. "Cmd+m",
+-- "Cmd+Opt+z" -> "Cmd+Opt+z" on Mac, "Alt+Cmd+z" on Windows -- see
+-- capture.MODIFIER_LABELS), or nil if the native shortcut isn't a simple
+-- modifier(s)+single-char combo, or if a modifier token isn't recognized
+-- (better to skip auto-seeding than guess wrong).
+function M.TryParseSingleCharShortcut(desc)
+  local parts = {}
+  for tok in desc:gmatch("[^%+]+") do parts[#parts + 1] = tok end
+  local last = parts[#parts]
+  if not last or #last ~= 1 then return nil end
+
+  if #parts == 1 then
+    return last:lower() -- bare single-char native shortcut, no modifiers
+  end
+
+  local labels = {}
+  for i = 1, #parts - 1 do
+    local tok = parts[i]:lower()
+    local label = nil
+    if tok:find("cmd") or tok:find("command") then label = "Cmd"
+    elseif tok:find("ctrl") or tok:find("control") then label = "Ctrl"
+    elseif tok:find("shift") then label = "Shift"
+    elseif tok:find("alt") or tok:find("option") or tok:find("opt") then label = capture.MODIFIER_LABELS[capture.VK_MENU]
+    elseif tok:find("win") then label = "Win"
+    end
+    if label then labels[label] = true end
+  end
+
+  local sorted = {}
+  for l in pairs(labels) do sorted[#sorted + 1] = l end
+  table.sort(sorted)
+
+  if #sorted ~= (#parts - 1) then
+    -- At least one modifier token wasn't recognized -- don't guess;
+    -- skip auto-seeding this one rather than risk an incomplete phrase.
+    return nil
+  end
+
+  return table.concat(sorted, "+") .. "+" .. last:lower()
+end
+
+-- Auto-seeds any of this section's actions that have a simple native
+-- REAPER shortcut but no saved custom one yet, merging directly into
+-- `data`. Does NOT write to disk -- Activate and Create each call this
+-- at different points and only want one SaveData() per pass, so the
+-- caller decides when to actually persist. Returns the count of newly
+-- seeded phrases (0 if nothing changed, so callers can skip the write
+-- entirely when there's nothing new).
+function M.AutoSeedSection(data, sectionId)
+  local sec = M.EnsureSection(data, sectionId)
+  local byPersistentId = {}
+  for phrase, entry in pairs(sec.shortcuts) do
+    byPersistentId[entry.id] = phrase
+  end
+
+  local actions = M.EnumerateSectionActions(sectionId)
+  -- Collected separately from sec.shortcuts and merged in afterward, so
+  -- two actions that happen to native-seed the same phrase in this same
+  -- pass don't silently overwrite each other -- the first one to claim
+  -- a phrase keeps it, same as the manual-edit path's conflict handling
+  -- (auto-seed just has no interactive resolution to offer, so leaving
+  -- the second one unseeded is the safer default).
+  local newlySeeded = {}
+  for _, a in ipairs(actions) do
+    local persistentId = M.GetPersistentId(a.cmdId)
+    if not byPersistentId[persistentId] then
+      local native = M.GetNativeShortcuts(sectionId, a.cmdId)
+      if native[1] then
+        local parsed = M.TryParseSingleCharShortcut(native[1])
+        if parsed and not sec.shortcuts[parsed] and not newlySeeded[parsed] then
+          newlySeeded[parsed] = { id = persistentId, name = a.name }
+        end
+      end
+    end
+  end
+
+  local count = 0
+  for phrase, entry in pairs(newlySeeded) do
+    sec.shortcuts[phrase] = entry
+    count = count + 1
+  end
+  return count
 end
 
 -- ---------------------------------------------------------------------
