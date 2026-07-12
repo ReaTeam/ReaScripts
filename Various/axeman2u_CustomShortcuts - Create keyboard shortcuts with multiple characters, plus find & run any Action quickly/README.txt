@@ -1,122 +1,145 @@
-@noindex
+# CustomShortcuts
 
-CustomShortcuts -- install & first run
-=======================================
+A fast, searchable custom-shortcut system for REAPER that lives outside REAPER's
+own keyboard shortcut list. Only one REAPER shortcut is ever needed, bound to
+`CustomShortcuts_Activate.lua`.
 
-WHAT'S HERE
-  CustomShortcuts_core.lua       shared library (don't run directly)
-  CustomShortcuts_capture.lua    shared library (don't run directly)
-  CustomShortcuts_Activate.lua   the only entry point you'll bind a shortcut to
-  CustomShortcuts_Create.lua     shortcut editor -- reached FROM Activate, no shortcut needed
+## Requirements
 
-These four files must stay together in the same folder. The data file
-(CustomShortcuts_data.lua) is created automatically next to them the
-first time you click Save in Create mode -- don't create it by hand.
+- **ReaImGui** and **js_ReaScriptAPI**, both installable via ReaPack
+  (Extensions > ReaPack > Browse packages).
+- REAPER on Windows or macOS. (Linux uses the same SWELL-based keyboard layer
+  as macOS internally, so it should behave like macOS below, but hasn't been
+  tested.)
 
-WHAT THIS DOES
-  Activate mode opens a small always-on-top window bound to a REAPER
-  shortcut of your choice -- the only shortcut you need to set up for
-  this whole tool. While it's focused, it bypasses REAPER's own
-  shortcuts: tap a modifier key (press and release, don't hold it while
-  typing) to search by your own custom shortcut phrase, or just start
-  typing to search by action name (like REAPER's Action List, including
-  multi-word matching -- "track show" matches "Track: Show FX chain").
-  Enter runs the top result and closes the window; double-clicking any
-  row runs that one; Escape closes without running anything; pressing
-  the same launch shortcut again closes the window. The first 10 results
-  are always numbered 0-9 -- press Tab, then type that digit to run the
-  corresponding row, no mouse needed. Click "Clear" to reset the search
-  box with one click.
+## Files
 
-  Create mode is the shortcut editor: a table listing every action in a
-  section you choose, showing REAPER's own native shortcut for reference
-  and an editable custom shortcut column. You get to it by clicking
-  "Edit Shortcuts..." inside Activate mode -- there's no separate REAPER
-  shortcut to bind for it. Click a cell, tap one or more modifiers, then
-  type a word, then press Enter to commit -- it'll automatically move on
-  to the next row so you can work down the list quickly. Press Enter
-  with nothing typed to clear a shortcut. If the phrase you typed is
-  already used elsewhere in that section, a popup lets you steal it
-  (with a follow-up offer to reassign the action that lost it) or go
-  back and pick something else. Nothing is written to disk until you
-  click Save. However you close this window (Save, Discard, or just
-  closing it), Activate mode reopens automatically right after, so
-  you're immediately ready to search for and run whatever you just
-  assigned.
+| File | Purpose |
+|---|---|
+| `CustomShortcuts_Activate.lua` | The everyday entry point. Bind your one REAPER shortcut to this. |
+| `CustomShortcuts_Create.lua` | The shortcut editor. Opened via the "Edit Shortcuts..." button in Activate -- never needs its own bound shortcut. |
+| `CustomShortcuts_core.lua` | Shared data/logic (sections, persistence, auto-seeding, action dispatch). |
+| `CustomShortcuts_capture.lua` | Shared keyboard-capture engine (modifier-tap detection, text entry, platform-specific key handling). |
+| `CustomShortcuts_data.lua` | Auto-generated. Holds your saved custom-shortcut phrases. Created/updated automatically -- see below. |
 
-1. INSTALL THE DEPENDENCIES
-   This tool needs two REAPER extensions, both installed the same way:
+## Setup
 
-   a) Get ReaPack (REAPER's package manager), if you don't have it
-      already:
-        - Go to https://reapack.com and download the installer for your
-          platform.
-        - Quit REAPER first.
-        - Run the installer (it drops a file into REAPER's resource
-          folder) and follow its instructions.
-        - Relaunch REAPER.
+1. Install ReaImGui and js_ReaScriptAPI via ReaPack if you haven't already.
+2. Actions List > find "Script: CustomShortcuts_Activate.lua" > assign it a
+   keyboard shortcut. This is the only REAPER shortcut you need.
+3. Run it. A small search window opens.
 
-   b) With ReaPack installed, in REAPER's menu go to:
-        Extensions > ReaPack > Browse packages...
-      Then:
-        - Search for "ReaImGui", select it, right-click > Install, OK.
-        - Search for "js_ReaScriptAPI", select it, right-click > Install,
-          OK.
-        - Click "Apply" / OK to commit the installs.
-        - Restart REAPER (required for extensions to load -- this step
-          doesn't apply to ordinary scripts, but these are compiled
-          extensions).
+## Using Activate mode
 
-2. COPY THE FILES INTO PLACE
-   - In REAPER: Options > Show REAPER resource path in explorer/finder.
-   - Open the "Scripts" subfolder.
-   - Copy this whole folder in there, e.g.:
-       .../Scripts/CustomShortcuts/
+- **Tap a modifier** (Cmd/Ctrl/Shift/Opt, or a combination -- tap each one and
+  release before typing) to search by your own custom shortcut phrase.
+- **Type a letter first** to search action names instead, the same
+  multi-word matching REAPER's own Action List uses.
+- **Enter** runs the top result and closes the window. **Double-click** runs
+  whichever row you clicked. **Escape** closes without running anything.
+- The first 10 results are numbered -- **Tab** then a digit runs one without
+  touching the mouse.
+- Pressing your bound shortcut again while the window is open closes it
+  (toggle).
 
-3. LOAD ACTIVATE AS AN ACTION
-   - In REAPER: Actions > Show action list.
-   - Click "New action..." > "Load ReaScript...".
-   - Select CustomShortcuts_Activate.lua.
-   - It now appears in the action list (search "CustomShortcuts" to find
-     it quickly). Do NOT try to load core.lua or capture.lua as actions
-     -- they're shared libraries, not standalone scripts. You also don't
-     need to manually load Create.lua -- clicking "Edit Shortcuts..."
-     inside Activate registers it automatically the first time.
+## Using Create mode
 
-4. BIND ONE SHORTCUT
-   - With the Activate action selected in the action list, click "Add"
-     under Keyboard Shortcuts, press whatever key combo you want, OK.
-   - That's the only shortcut this whole tool ever needs through
-     REAPER's own system -- everything else lives inside it.
+Opened via "Edit Shortcuts..." in Activate. Lists every action in a section;
+click a row's custom-shortcut cell and type a phrase the same way you would
+in Activate (tap modifiers, then type a word). Press Enter to confirm a row
+and move to the next, Escape to cancel editing that row.
 
-5. FIRST RUN
-   - Trigger your new shortcut to open Activate.
-   - Click "Edit Shortcuts..." to open the editor. It opens with the
-     "Main" section tab selected and a (probably long) list of actions.
-   - Click into an action's "Custom shortcut" cell, tap a modifier key
-     (Cmd/Ctrl/Shift/Alt) and release it, then type a word, then press
-     Enter to commit. Enter with nothing typed clears that row's
-     shortcut instead.
-   - Click Save when you're done -- nothing is written to disk before
-     that. Closing this window (however you do it) reopens Activate.
-   - Try it out: tap a modifier to search by shortcut, or just start
-     typing to search by action name, then Enter or double-click to run.
+**Auto-seeding:** if an action already has a simple native REAPER shortcut
+(one or more modifiers plus a single character, e.g. `Cmd+M`) and no custom
+phrase yet, Create (and Activate -- see below) fills it in automatically using
+that same combination, translated into this system's phrase format.
 
-IF SOMETHING DOESN'T WORK
-  - Nothing happens at all when you run Activate: open REAPER's
-    ReaScript console (View > ReaScript console output, or it opens
-    automatically on an error) for error output -- most likely
-    ReaImGui or js_ReaScriptAPI isn't actually installed, or REAPER
-    hasn't been restarted since installing them. Re-check step 1.
-  - Typing does nothing in the window: check the ReaScript console for
-    JS_VKeys errors -- js_ReaScriptAPI may not have loaded (needs the
-    REAPER restart from step 1b).
-  - A Create-mode row shows "(none)" in Custom shortcut even though
-    REAPER has a native shortcut for that action: auto-seed only fills
-    in simple modifier(s)+single-character shortcuts (like Cmd+M). More
-    complex native shortcuts (function keys, multi-character sequences,
-    etc.) aren't auto-seeded -- just enter one yourself the normal way.
-  - Keys stop responding system-wide, in other apps too: restart REAPER.
-    Both scripts release their keyboard hook the instant they close,
-    including on an unexpected error, so this shouldn't happen -- but
-    restarting REAPER is the only way to clear it if it ever does.
+**Saving:** typed edits are explicit -- nothing is written to disk until you
+click Save (or close the window, which prompts if there are unsaved changes).
+Auto-seeded values are the exception: since you never typed or confirmed
+those yourself, they're written to disk immediately at the moment they're
+seeded, with nothing for you to save.
+
+## The data file
+
+`CustomShortcuts_data.lua`, saved next to the scripts, is plain Lua (not
+JSON) so it's readable/editable by hand in a pinch -- back it up first if you
+do. Activate loads it fresh every launch; Create loads it once per session
+and writes back explicit edits plus any auto-seeding it does itself.
+
+**Activate creates and updates this file too, not just Create.** Every time
+Activate runs, it auto-seeds and saves any missing custom shortcuts for the
+current section (Main, plus whatever context is active, e.g. an open MIDI
+editor) from REAPER's own native bindings -- so newly added REAPER shortcuts
+become available here without ever needing to open Create. Two sections
+(Media Explorer, MIDI Event List Editor) are only ever reachable by browsing
+to them in Create, since Activate has no way to detect that context on its
+own -- those two are seeded/saved by Create instead.
+
+## Known REAPER interaction: Enter/Return sometimes needs two presses
+
+If pressing Enter in Activate doesn't run the top result the first time, but
+does on a second press, this is very likely **not a bug in this script** --
+it's a collision with a native REAPER keyboard shortcut.
+
+**What's happening:** REAPER's Main section, out of the box, often has
+something bound to the bare Enter/Return key, and depending on how that
+binding is scoped, REAPER can dispatch it as a **Global** shortcut -- meaning
+it fires system-wide, regardless of which window has OS focus, through a
+higher-priority path than normal keyboard input. js_ReaScriptAPI's key
+interception (`JS_VKeys_Intercept`), which this script relies on to capture
+keystrokes while its window is focused, cannot block a Global shortcut --
+confirmed directly by the extension's author:
+
+> "Global keystrokes override all other plugins, and AFAIK cannot temporarily
+> be deactivated... Global keystrokes can be intercepted without getting
+> passed through as long as they are not Global+text fields."
+
+In practice this means the first Enter press gets consumed by REAPER's native
+binding -- invisibly, since it happens before this script (or even ReaImGui
+itself) ever sees the keystroke -- and only the second press reaches this
+script normally.
+
+**How to check/fix it:**
+
+1. Open REAPER's Actions List, make sure the section is set to **Main**.
+2. Look through the Key Shortcuts for whatever is bound to plain Enter/Return
+   (no modifiers). Sorting or searching the shortcut column may help find it.
+3. Check whether that binding is scoped as **Global**.
+4. Either remove/rebind that native shortcut, or change its scope, depending
+   on which behavior you'd rather keep. This is a REAPER keymap setting, not
+   something this script can override or work around from ReaScript -- by
+   design, Global shortcuts are meant to be unblockable.
+
+## REAPER Preferences that affect ReaImGui window behavior
+
+A couple of settings under **Options > Preferences > General > Advanced
+UI/system tweaks** are worth knowing about if this script's window ever
+behaves oddly:
+
+- **Allow keyboard commands when mouse-editing** -- ReaImGui's own changelog
+  documents a fix for "Alt key input while holding down a mouse button when
+  'Allow keyboard commands when mouse-editing' is disabled" (Windows). If
+  Alt/Opt-tap detection in this script ever seems to misbehave specifically
+  while a mouse button is also held, check this setting.
+- **HiDPI mode** -- affects how ReaImGui (and REAPER generally) scales on
+  high-resolution displays. Shouldn't affect keyboard behavior, but can affect
+  whether the window's size/position looks right.
+- **Modal window positioning** -- affects where floating/utility windows like
+  this one open on screen.
+
+More generally: any REAPER preference that changes how keyboard shortcuts are
+scoped or dispatched (Main vs. Global, per the Enter issue above) is the more
+likely culprit for keyboard-specific oddities than anything under Advanced
+UI/system tweaks, since those are mostly rendering/positioning related.
+
+## Platform notes
+
+- **Modifier labels** differ by OS to match what's actually printed on the
+  key: Option shows as "Opt" on Mac, "Alt" on Windows. Phrases are stored
+  using these labels, so a shortcut saved on one OS won't automatically match
+  on the other if it uses this key -- re-save it on each machine you use.
+- **Punctuation** in typed phrases/searches is handled differently per
+  platform under the hood (Windows uses real hardware VK codes; Mac uses
+  SWELL's ASCII-fallback behavior for punctuation keys) but should produce
+  the same visible characters either way.
