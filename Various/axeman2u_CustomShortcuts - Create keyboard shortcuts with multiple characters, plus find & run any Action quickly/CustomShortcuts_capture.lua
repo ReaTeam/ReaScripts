@@ -1,5 +1,3 @@
--- @noindex
-
 --[[
  * @noindex
 
@@ -48,13 +46,100 @@ local VK_RWIN    = 0x5C
 
 M.MODIFIER_VKEYS = { VK_SHIFT, VK_CONTROL, VK_MENU, VK_LWIN, VK_RWIN }
 
-local isMac = reaper.GetOS():match("OSX") or reaper.GetOS():match("macOS")
+-- Exposed so callers outside this module (e.g. Create.lua's own direct
+-- key-to-text loop) can check shift state the same way capture.Update()
+-- does internally, without duplicating the raw VK code.
+M.VK_SHIFT = VK_SHIFT
+-- Exposed so callers can look up this key's correct platform label (e.g.
+-- "Opt" on Mac, "Alt" on Windows) via M.MODIFIER_LABELS[M.VK_MENU]
+-- instead of hardcoding either name themselves.
+M.VK_MENU = VK_MENU
+
+local osStr = reaper.GetOS()
+local isMac = osStr:match("OSX") or osStr:match("macOS")
+-- Deliberately "is it Windows" rather than "is it Mac", so an
+-- unanticipated third platform (Linux) defaults to the SWELL/ASCII-
+-- fallback behavior below, which is the SWELL-based one of the two.
+local isWindows = osStr:match("Win") ~= nil
+
+-- ---------------------------------------------------------------------
+-- Punctuation vkeys -- genuinely platform-different, not a layout guess.
+--
+-- On WINDOWS, JS_VKeys_GetState reads real hardware VK codes directly,
+-- and Windows has proper named constants for punctuation (the VK_OEM_*
+-- range, 0xBA-0xDE) -- documented by Microsoft, confirmed correct. One
+-- physical key = one fixed code regardless of Shift, same model as
+-- letters/digits; Shift is tracked separately and picks which of the
+-- two characters that key means.
+--
+-- On MAC (and presumably Linux), js_ReaScriptAPI rides on SWELL, whose
+-- own header documents SWELL_MacKeyToWindowsKey() as returning "a
+-- windows VK_ keycode (OR ASCII)" -- i.e. for punctuation keys SWELL
+-- hasn't given a dedicated VK_OEM_* slot to, it just reports the literal
+-- ASCII code of whatever character the OS says that keystroke produced,
+-- ALREADY reflecting Shift. That's not a per-key guess, it's the
+-- documented fallback mechanism, and it explains the period/Delete bug
+-- directly: ASCII "." is 46 (0x2E) -- the exact number this file had
+-- already claimed for VK_DELETE. So on Mac, punctuation vkeys are read
+-- as themselves (no separate shift lookup needed -- the OS already did
+-- that part), and VK_DELETE is retired there entirely rather than risk
+-- it colliding with whatever else lands on 0x2E (Backspace already
+-- covers "delete text," and the on-screen Clear button still works).
+-- ---------------------------------------------------------------------
+
+-- Windows-only: real VK_OEM_* constants, { unshifted, shifted } per key.
+local OEM_CHARS = {
+  [0xBA] = { ";",  ":" },  -- VK_OEM_1
+  [0xBB] = { "=",  "+" },  -- VK_OEM_PLUS
+  [0xBC] = { ",",  "<" },  -- VK_OEM_COMMA
+  [0xBD] = { "-",  "_" },  -- VK_OEM_MINUS
+  [0xBE] = { ".",  ">" },  -- VK_OEM_PERIOD
+  [0xBF] = { "/",  "?" },  -- VK_OEM_2
+  [0xC0] = { "`",  "~" },  -- VK_OEM_3
+  [0xDB] = { "[",  "{" },  -- VK_OEM_4
+  [0xDC] = { "\\", "|" },  -- VK_OEM_5
+  [0xDD] = { "]",  "}" },  -- VK_OEM_6
+  [0xDE] = { "'",  "\"" }, -- VK_OEM_7
+}
+local OEM_VKEYS = {}
+for vk in pairs(OEM_CHARS) do OEM_VKEYS[#OEM_VKEYS + 1] = vk end
+
+-- Mac/Linux-only: every printable-ASCII punctuation code (everything in
+-- 0x21-0x7E that isn't a letter, digit, or modifier -- which are handled
+-- separately). Built programmatically rather than hand-listed since
+-- these ARE just their own ASCII values here -- e.g. vk 44 IS "," already.
+-- IMPORTANT: the modifier exclusion is not optional -- VK_LWIN (0x5B)
+-- and VK_RWIN (0x5C), which is where physical Ctrl reports on Mac (see
+-- MODIFIER_LABELS above), fall inside this same numeric range as ASCII
+-- "[" and "\". Without excluding them, tapping Ctrl also got read as
+-- typing "[", which kicked capture straight into "search" mode instead
+-- of registering as a modifier tap -- exactly what broke shortcut entry.
+local MODIFIER_VKEY_SET = {}
+for _, vk in ipairs(M.MODIFIER_VKEYS) do MODIFIER_VKEY_SET[vk] = true end
+
+local MAC_ASCII_PUNCT_VKEYS = {}
+for vk = 0x21, 0x7E do
+  local isLetter = vk >= 0x41 and vk <= 0x5A
+  local isDigit = vk >= 0x30 and vk <= 0x39
+  if not isLetter and not isDigit and not MODIFIER_VKEY_SET[vk] then
+    MAC_ASCII_PUNCT_VKEYS[#MAC_ASCII_PUNCT_VKEYS + 1] = vk
+  end
+end
+
+-- Shifted symbols on the digit row (US layout), e.g. Shift+1 -> "!").
+-- WINDOWS ONLY -- on Mac, shifted digit-row symbols come through the
+-- ASCII-fallback path above instead (their own distinct ASCII codes),
+-- same reasoning as the rest of punctuation.
+local SHIFT_DIGIT_CHARS = {
+  [0x30] = ")", [0x31] = "!", [0x32] = "@", [0x33] = "#", [0x34] = "$",
+  [0x35] = "%", [0x36] = "^", [0x37] = "&", [0x38] = "*", [0x39] = "(",
+}
 
 if isMac then
   M.MODIFIER_LABELS = {
     [VK_SHIFT]   = "Shift",
     [VK_CONTROL] = "Cmd",  -- confirmed: physical Cmd reports here on macOS
-    [VK_MENU]    = "Alt",  -- Option
+    [VK_MENU]    = "Opt",  -- Option key -- "Alt" is the Windows name for this slot
     [VK_LWIN]    = "Ctrl", -- confirmed: physical Ctrl reports here on macOS
     [VK_RWIN]    = "Ctrl",
   }
@@ -79,26 +164,55 @@ M.VK_BACK   = 0x08
 M.VK_TAB    = 0x09
 M.VK_RETURN = 0x0D
 M.VK_ESCAPE = 0x1B
-M.VK_DELETE = 0x2E
+-- Real, reliable Forward-Delete code on Windows. On Mac, this same
+-- number (0x2E) is where ASCII "." also lands (see above) -- rather
+-- than have period silently clear the search field, Delete-as-Clear is
+-- retired on Mac. -1 is a safe "never matches" sentinel: isDown() below
+-- explicitly treats any vk < 1 as always-up.
+M.VK_DELETE = isWindows and 0x2E or -1
 M.CONTROL_VKEYS = { M.VK_BACK, M.VK_TAB, M.VK_RETURN, M.VK_ESCAPE, M.VK_DELETE }
 
--- Printable character vkeys we care about capturing into the text buffer:
--- letters, digits, space. (Punctuation deliberately excluded to keep
--- shortcuts to clean words -- add more here if you want it.)
+-- Printable character vkeys we care about capturing into the text
+-- buffer: letters, digits, space, plus punctuation via whichever of the
+-- two platform-specific lists above actually applies.
 local function buildTextVkeys()
   local t = {}
   for vk = 0x41, 0x5A do t[#t + 1] = vk end -- A-Z
   for vk = 0x30, 0x39 do t[#t + 1] = vk end -- 0-9
   t[#t + 1] = 0x20 -- space
+  local punctSource = isWindows and OEM_VKEYS or MAC_ASCII_PUNCT_VKEYS
+  for _, vk in ipairs(punctSource) do t[#t + 1] = vk end
   return t
 end
 M.TEXT_VKEYS = buildTextVkeys()
 
-local function vkeyToChar(vk)
+-- isShift picks the shifted variant where the key produces a different
+-- symbol under Shift. For letters and (on Windows) digits/punctuation,
+-- one physical key reports one fixed code and Shift is read fresh off
+-- keys.down every time, REGARDLESS of capture mode or how much text is
+-- already typed -- unlike the other modifiers (which only matter for
+-- the tap-to-build-a-shortcut-prefix system and stop mattering once
+-- text has started), Shift's normal keyboard job never turns off. On
+-- Mac, punctuation is the exception: the vk itself already reflects
+-- Shift (see MAC_ASCII_PUNCT_VKEYS above), so isShift is simply ignored
+-- for that branch -- passing it again would double-apply it.
+local function vkeyToChar(vk, isShift)
   if vk == 0x20 then return " " end
-  if vk >= 0x41 and vk <= 0x5A then return string.char(vk) end -- 'A'-'Z' -> upper; caller lowercases if desired
-  if vk >= 0x30 and vk <= 0x39 then return string.char(vk) end
-  return nil
+  if vk >= 0x41 and vk <= 0x5A then -- A-Z
+    return isShift and string.char(vk) or string.char(vk + 32)
+  end
+  if vk >= 0x30 and vk <= 0x39 then -- 0-9
+    if isWindows and isShift then return SHIFT_DIGIT_CHARS[vk] end
+    return string.char(vk)
+  end
+  if isWindows then
+    local oem = OEM_CHARS[vk]
+    if oem then return isShift and oem[2] or oem[1] end
+    return nil
+  else
+    if vk >= 0x21 and vk <= 0x7E then return string.char(vk) end
+    return nil
+  end
 end
 M.VkeyToChar = vkeyToChar
 
@@ -318,10 +432,9 @@ function M.Update(state, keys)
         state.mode = "search"
       end
       if #state.text < MAX_SHORTCUT_LEN or state.mode == "search" then
-        local ch = vkeyToChar(vk)
+        local isShift = keys.down[VK_SHIFT]
+        local ch = vkeyToChar(vk, isShift)
         if ch then
-          local isShift = keys.down[VK_SHIFT]
-          if not isShift then ch = ch:lower() end
           state.text = state.text .. ch
           changed = true
         end
