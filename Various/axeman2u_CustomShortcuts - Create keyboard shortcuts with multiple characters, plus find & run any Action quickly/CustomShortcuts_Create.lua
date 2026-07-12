@@ -1,5 +1,3 @@
--- @noindex
-
 --[[
  * @noindex
 
@@ -73,47 +71,13 @@ local sectionRows = {}
 local sectionReverseIdx = {}
 local dirtyCount = 0
 
--- Splits REAPER's own shortcut description (e.g. "Cmd+M", "Ctrl+Shift+M",
--- "Cmd+Opt+Z") into modifier tokens + a trailing single character.
--- Returns a phrase in OUR OWN modifier-label format (e.g. "Cmd+m",
--- "Cmd+Opt+z" -> "Alt+Cmd+z"), or nil if the native shortcut isn't a
--- simple modifier(s)+single-char combo, or if a modifier token isn't
--- recognized (better to skip auto-seeding than guess wrong).
-local function tryParseSingleCharShortcut(desc)
-  local parts = {}
-  for tok in desc:gmatch("[^%+]+") do parts[#parts + 1] = tok end
-  local last = parts[#parts]
-  if not last or #last ~= 1 then return nil end
-
-  if #parts == 1 then
-    return last:lower() -- bare single-char native shortcut, no modifiers
-  end
-
-  local labels = {}
-  for i = 1, #parts - 1 do
-    local tok = parts[i]:lower()
-    local label = nil
-    if tok:find("cmd") or tok:find("command") then label = "Cmd"
-    elseif tok:find("ctrl") or tok:find("control") then label = "Ctrl"
-    elseif tok:find("shift") then label = "Shift"
-    elseif tok:find("alt") or tok:find("option") or tok:find("opt") then label = "Alt"
-    elseif tok:find("win") then label = "Win"
-    end
-    if label then labels[label] = true end
-  end
-
-  local sorted = {}
-  for l in pairs(labels) do sorted[#sorted + 1] = l end
-  table.sort(sorted)
-
-  if #sorted ~= (#parts - 1) then
-    -- At least one modifier token wasn't recognized -- don't guess;
-    -- skip auto-seeding this one rather than risk an incomplete phrase.
-    return nil
-  end
-
-  return table.concat(sorted, "+") .. "+" .. last:lower()
-end
+-- NOTE: single-char native-shortcut parsing and per-section auto-seeding
+-- now live in core.lua (core.TryParseSingleCharShortcut / AutoSeedSection)
+-- so Activate can use the exact same logic instead of a second, drifting
+-- copy. Kept here only for the two sections Activate's own
+-- SnapshotActiveSection() can never select on its own -- Media Explorer
+-- and MIDI Event List Editor -- so it structurally can't seed them; this
+-- file still owns persisting those.
 
 local function buildReverseIndex(sectionId)
   local idx = {}
@@ -125,6 +89,15 @@ end
 
 local function buildRowsForSection(sectionId)
   if sectionRows[sectionId] then return end
+
+  local seededCount = core.AutoSeedSection(data, sectionId)
+  if seededCount > 0 then
+    local ok, err = core.SaveData(data)
+    if not ok then
+      reaper.ShowConsoleMsg("CustomShortcuts: failed to auto-save seeded shortcuts: " .. tostring(err) .. "\n")
+    end
+  end
+
   local sec = core.EnsureSection(data, sectionId)
   local byPersistentId = {}
   for phrase, entry in pairs(sec.shortcuts) do
@@ -136,17 +109,9 @@ local function buildRowsForSection(sectionId)
   for _, a in ipairs(actions) do
     local persistentId = core.GetPersistentId(a.cmdId)
     local native = core.GetNativeShortcuts(sectionId, a.cmdId)
-    local customText = byPersistentId[persistentId]
-    if customText == nil then
-      customText = ""
-      if native[1] then
-        local parsed = tryParseSingleCharShortcut(native[1])
-        if parsed then customText = parsed end
-      end
-    end
     rows[#rows + 1] = {
       cmdId = a.cmdId, name = a.name, persistentId = persistentId,
-      native = native, customText = customText, dirty = false,
+      native = native, customText = byPersistentId[persistentId] or "", dirty = false,
     }
   end
   table.sort(rows, function(x, y) return x.name < y.name end)
@@ -579,8 +544,9 @@ local function frame()
       end
       for _, vk in ipairs(capture.TEXT_VKEYS) do
         if keys.pressed[vk] then
-          local ch = capture.VkeyToChar(vk)
-          if ch then searchText = searchText .. ch:lower() end
+          local isShift = keys.down[capture.VK_SHIFT]
+          local ch = capture.VkeyToChar(vk, isShift)
+          if ch then searchText = searchText .. ch end
         end
       end
       if keys.pressed[capture.VK_ESCAPE] then
