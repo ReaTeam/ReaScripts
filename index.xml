@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="f91f66890c00d94a6e9b73e9aeb4d2628d55907f" name="ReaTeam Scripts">
+<index version="1" commit="6bed75eabc3b3f14088f0276d465a3a65c70591a" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -6698,6 +6698,17 @@ website
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/9c19e785d73f6b106f7a20e70fa55bf8e696448f/Items%20Editing/az_Conform%20project%20using%20metadata%20(post-production%20tools).lua</source>
         <source file="az_Conform project using metadata (post-production tools)/az_Conform project_Core.lua">https://github.com/ReaTeam/ReaScripts/raw/9c19e785d73f6b106f7a20e70fa55bf8e696448f/Items%20Editing/az_Conform%20project%20using%20metadata%20(post-production%20tools)/az_Conform%20project_Core.lua</source>
         <source main="main" file="az_Conform project using metadata (post-production tools)/az_Rename takes with last used settings (post-production tools).lua">https://github.com/ReaTeam/ReaScripts/raw/9c19e785d73f6b106f7a20e70fa55bf8e696448f/Items%20Editing/az_Conform%20project%20using%20metadata%20(post-production%20tools)/az_Rename%20takes%20with%20last%20used%20settings%20(post-production%20tools).lua</source>
+      </version>
+      <version name="0.8" author="AZ" time="2026-07-16T08:25:47Z">
+        <changelog><![CDATA[- Fix some crush bugs
+- Simplify UI and UX for linking section
+- New option to group linked tracks above
+- New option to ignore duplicated items
+- Improve performance for linking process
+- Add export EDl feature]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6bed75eabc3b3f14088f0276d465a3a65c70591a/Items%20Editing/az_Conform%20project%20using%20metadata%20(post-production%20tools).lua</source>
+        <source file="az_Conform project using metadata (post-production tools)/az_Conform project_Core.lua">https://github.com/ReaTeam/ReaScripts/raw/6bed75eabc3b3f14088f0276d465a3a65c70591a/Items%20Editing/az_Conform%20project%20using%20metadata%20(post-production%20tools)/az_Conform%20project_Core.lua</source>
+        <source main="main" file="az_Conform project using metadata (post-production tools)/az_Rename takes with last used settings (post-production tools).lua">https://github.com/ReaTeam/ReaScripts/raw/6bed75eabc3b3f14088f0276d465a3a65c70591a/Items%20Editing/az_Conform%20project%20using%20metadata%20(post-production%20tools)/az_Rename%20takes%20with%20last%20used%20settings%20(post-production%20tools).lua</source>
       </version>
     </reapack>
     <reapack name="az_Crop items on selected tracks by reference selected items (useful for ambiences).lua" type="script" desc="Crop items on selected tracks by reference selected items (useful for ambiences)">
@@ -21055,6 +21066,11 @@ Update post-processing display to match REAPER v7.39]]></changelog>
         <changelog><![CDATA[Support REAPER 7.48's empty output directory [p=2898001]]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/93d09cae4a363fd297723729d83c16134ff87688/Rendering/cfillion_Apply%20render%20preset.lua</source>
         <source main="main" file="cfillion_Apply render preset (create action).lua">https://github.com/ReaTeam/ReaScripts/raw/93d09cae4a363fd297723729d83c16134ff87688/Rendering/cfillion_Apply%20render%20preset.lua</source>
+      </version>
+      <version name="2.1.11" author="cfillion" time="2026-07-16T08:25:08Z">
+        <changelog><![CDATA[Repair gfx fallback path when ReaImGui is not present]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/2f3dfd01d2c2d20827a2b55f3f1cf732e8229f87/Rendering/cfillion_Apply%20render%20preset.lua</source>
+        <source main="main" file="cfillion_Apply render preset (create action).lua">https://github.com/ReaTeam/ReaScripts/raw/2f3dfd01d2c2d20827a2b55f3f1cf732e8229f87/Rendering/cfillion_Apply%20render%20preset.lua</source>
       </version>
     </reapack>
     <reapack name="DSG_Render time selection to new track.lua" type="script" desc="Render time selection to new track">
