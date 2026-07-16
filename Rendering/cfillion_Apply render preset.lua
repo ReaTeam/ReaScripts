@@ -1,7 +1,7 @@
 -- @description Apply render preset
 -- @author cfillion
 -- @version 2.1.11
--- @changelog Fix gfx fallback path when ReaImGui is not present
+-- @changelog Repair gfx fallback path when ReaImGui is not present
 -- @provides
 --   .
 --   [main] . > cfillion_Apply render preset (create action).lua
