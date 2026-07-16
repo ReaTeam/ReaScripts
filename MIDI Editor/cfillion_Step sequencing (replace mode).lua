@@ -1,7 +1,7 @@
 -- @description Step sequencing (replace mode)
 -- @author cfillion
--- @version 1.1.4
--- @changelog Fix toggling "Skip unselected notes" in the fallback (non-ReaImGui) options menu [p=2823664]
+-- @version 1.1.5
+-- @changelog Fix incorrect font size with ReaImGui 0.10+ and improve gfx fallback on ARM macOS
 -- @provides
 --   .
 --   [main] . > cfillion_Step sequencing (options).lua
@@ -22,7 +22,7 @@
 local ImGui
 if reaper.ImGui_GetBuiltinPath then
   package.path = reaper.ImGui_GetBuiltinPath() .. '/?.lua'
-  ImGui = require 'imgui' '0.9'
+  ImGui = require 'imgui' '0.10'
 end
 
 local MB_OK = 0
@@ -363,7 +363,7 @@ end
 
 local function gfxdo(callback)
   local app = reaper.GetAppVersion()
-  if app:match('OSX') or app:match('linux') then
+  if app:match('OSX') or app:match('macOS') or app:match('linux') then
     return callback()
   end
 
@@ -388,10 +388,6 @@ local function optionsMenu(mode, items)
   local ctx = ImGui.CreateContext(scriptName,
     ImGui.ConfigFlags_NavEnableKeyboard | ImGui.ConfigFlags_NoSavedSettings)
 
-  local size = reaper.GetAppVersion():match('OSX') and 12 or 14
-  local font = ImGui.CreateFont('sans-serif', size)
-  ImGui.Attach(ctx, font)
-
   local function loop()
     if ImGui.IsWindowAppearing(ctx) then
       ImGui.SetNextWindowPos(ctx,
@@ -400,8 +396,6 @@ local function optionsMenu(mode, items)
     end
 
     if ImGui.BeginPopup(ctx, scriptName, ImGui.WindowFlags_TopMost) then
-      ImGui.PushFont(ctx, font)
-
       for id, item in ipairs(items) do
         if type(item) == 'table' then
           if ImGui.MenuItem(ctx, item[2], nil, mode & item[1]) then
@@ -412,7 +406,6 @@ local function optionsMenu(mode, items)
           ImGui.Separator(ctx)
         end
       end
-      ImGui.PopFont(ctx)
       ImGui.EndPopup(ctx)
       reaper.defer(loop)
     end
