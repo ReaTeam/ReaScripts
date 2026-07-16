@@ -39,13 +39,13 @@
 --   - Resample mode
 --   - Use project sample rate for mixing and FX/synth processing
 
-local ImGui
+local ImGui, FLT_MIN, FLT_MAX
 if reaper.ImGui_GetBuiltinPath then
   package.path = reaper.ImGui_GetBuiltinPath() .. '/?.lua'
   ImGui = require 'imgui' '0.10'
+  FLT_MIN, FLT_MAX = ImGui.NumericLimits_Float()
 end
 
-local FLT_MIN, FLT_MAX = ImGui and ImGui.NumericLimits_Float()
 local REAPER_BEFORE_V6 = tonumber(reaper.GetAppVersion():match('^%d+')) < 6
 local SETTINGS_SOURCE_MASK  = 0x10EB
 local SETTINGS_OPTIONS_MASK = 0x6F14
