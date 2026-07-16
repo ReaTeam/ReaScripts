@@ -1,7 +1,7 @@
 -- @description Apply render preset
 -- @author cfillion
--- @version 2.1.10
--- @changelog Support REAPER 7.48's empty output directory [p=2898001]
+-- @version 2.1.11
+-- @changelog Repair gfx fallback path when ReaImGui is not present
 -- @provides
 --   .
 --   [main] . > cfillion_Apply render preset (create action).lua
@@ -39,13 +39,13 @@
 --   - Resample mode
 --   - Use project sample rate for mixing and FX/synth processing
 
-local ImGui
+local ImGui, FLT_MIN, FLT_MAX
 if reaper.ImGui_GetBuiltinPath then
   package.path = reaper.ImGui_GetBuiltinPath() .. '/?.lua'
   ImGui = require 'imgui' '0.10'
+  FLT_MIN, FLT_MAX = ImGui.NumericLimits_Float()
 end
 
-local FLT_MIN, FLT_MAX = ImGui.NumericLimits_Float()
 local REAPER_BEFORE_V6 = tonumber(reaper.GetAppVersion():match('^%d+')) < 6
 local SETTINGS_SOURCE_MASK  = 0x10EB
 local SETTINGS_OPTIONS_MASK = 0x6F14
@@ -582,7 +582,7 @@ end
 
 local function gfxdo(callback)
   local app = reaper.GetAppVersion()
-  if app:match('OSX') or app:match('linux') then
+  if app:match('OSX') or app:match('macOS') or app:match('linux') then
     return callback()
   end
 
@@ -594,7 +594,7 @@ local function gfxdo(callback)
     local winx, winy = reaper.JS_Window_ClientToScreen(window, 0, 0)
     gfx.x = gfx.x - (winx - curx)
     gfx.y = gfx.y - (winy - cury)
-    reaper.JS_Window_SetStyle(window, "POPUP")
+    reaper.JS_Window_SetStyle(window, 'POPUP')
     reaper.JS_Window_SetOpacity(window, 'ALPHA', 0)
   end
 
