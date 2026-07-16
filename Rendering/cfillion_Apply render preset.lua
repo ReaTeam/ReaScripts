@@ -582,7 +582,7 @@ end
 
 local function gfxdo(callback)
   local app = reaper.GetAppVersion()
-  if app:match('OSX') or app:match('linux') then
+  if app:match('OSX') or app:match('macOS') or app:match('linux') then
     return callback()
   end
 
