@@ -79,10 +79,53 @@ function addFileNamesToList(list, string )
     parselistOnce = true
   end
 end
------------------------
-function SplitFilename(strFilename)
-  -- Returns the Path, Filename, and Extension as 3 values
-  return string.match(strFilename, "(.-)([^\\]-([^\\%.]+))$")
+
+-----------------
+
+function SplitFilename(path) -- Returns the Path, Filename, and Extension as 3 values
+  if type(path) ~= 'string' then return nil end
+  
+  local slash, pos = nil, 1
+  
+  while true do
+    local p = string.find(path, "\\", pos, true)
+    if not p then break end
+    slash = p
+    pos = p + 1
+  end
+  
+  pos = 1
+  while true do
+    local p = string.find(path, "/", pos, true)
+    if not p then break end
+    if not slash or p > slash then
+      slash = p
+    end
+    pos = p + 1
+  end
+  
+  --local slash = path:match("^.*()"..separ)
+  local dir, file
+  
+  if slash then
+      dir = path:sub(1, slash)
+      file = path:sub(slash + 1)
+  else
+      dir = nil
+      file = path
+  end
+  
+  local dot = file:match("^.*()%.")
+  
+  if dot then
+    local name = file:sub(1, dot - 1)
+    local ext = file:sub(dot + 1)
+    return dir, name, ext
+    
+  else
+    return dir, file, nil
+  end
+  
 end
 
 ------------------------
@@ -94,38 +137,7 @@ function ValToBool(val)
   if val == '' then return nil end
   return false
 end
-------------------------
 
-function ShowProcess(xBmin, yBmin, xBmax, yBmax)
---[[
-  bitmap = reaper.JS_LICE_CreateBitmap( true, 300, 200 )
-  local blue = (255 << 24) | (0 << 16) | (0 << 8) | 255
-  -- Clear bitmap to transparent
-  reaper.JS_LICE_Clear(bitmap, 0)
-  --msg(xBmin..' '..yBmin..' '..xBmax..' '..yBmax)
-  -- Draw a blue rounded rectangle
-  local w = math.floor(math.abs(xBmax - xBmin))
-  local h = math.floor(math.abs(yBmax - yBmin))
-  local line = 5
-  reaper.JS_LICE_RoundRect (bitmap, 0, 0, w - line, h - line, 10, blue, 1.0, 0, true)
-  local currentWindow = reaper.JS_Window_GetForeground()
-  --msg(reaper.JS_Window_GetClassName( currentWindow ))
-  -- Composite bitmap onto Arrange view
-  --msg(yBmax)
-  reaper.JS_Composite(currentWindow,xBmin, yBmin, xBmax, yBmax, bitmap, 0, 0, w, h)
-  
-  -- Cleanup bitmap
-  reaper.defer(function()
-    reaper.JS_LICE_DestroyBitmap(bitmap)
-  end)
-  
-  reaper.defer(function()
-    ShowProcess(xBmin, yBmin, xBmax, yBmax)
-  end)
-  ]]
-  
-  
-end
 ------------------------
 
 function MainWindow(OptTable, windowName)
@@ -140,7 +152,7 @@ function MainWindow(OptTable, windowName)
     reaper.ShowMessageBox('Please, install ReaImGui from Reapack!', 'No Imgui library', 0)
     return
   end
-  dofile(imgui_path) '0.9.3'
+  dofile(imgui_path) '0.10'
   
   local maxWinW = 100 --doesn't matter if all collased header are closed at start
   local fontSize = 17
@@ -184,20 +196,23 @@ function MainWindow(OptTable, windowName)
   AudToVid = ValToBool( reaper.GetExtState(ExtStateName, 'AudToVid') )
   if AudToVid == nil then AudToVid = false end
   
-  MatchTakeFileName = ValToBool( reaper.GetExtState(ExtStateName, 'MatchTakeFileName') )
-  if MatchTakeFileName == nil then MatchTakeFileName = true end
-  
   FlexLink = ValToBool( reaper.GetExtState(ExtStateName, 'FlexLink') )
   if FlexLink == nil then FlexLink = true end
   
-  LinkOnlyByTC = ValToBool( reaper.GetExtState(ExtStateName, 'LinkOnlyByTC') )
-  if LinkOnlyByTC == nil then LinkOnlyByTC = false end
+  FlexLink2 = ValToBool( reaper.GetExtState(ExtStateName, 'FlexLink2') )
+  if FlexLink2 == nil then FlexLink2 = true end
   
   SincByTC = ValToBool( reaper.GetExtState(ExtStateName, 'SincByTC') )
   if SincByTC == nil then SincByTC = true end
   
   AddNewTrks = ValToBool( reaper.GetExtState(ExtStateName, 'AddNewTrks') )
   if AddNewTrks == nil then AddNewTrks = true end
+  
+  IgnoreDuplicates = ValToBool( reaper.GetExtState(ExtStateName, 'IgnoreDuplicates') )
+  if IgnoreDuplicates == nil then IgnoreDuplicates = true end
+  
+  GroupTracks = ValToBool( reaper.GetExtState(ExtStateName, 'GroupTracks') )
+  if GroupTracks == nil then GroupTracks = true end
   
   ExpandNoNamedCh = ValToBool( reaper.GetExtState(ExtStateName, 'ExpNoName') )
   if ExpandNoNamedCh == nil then ExpandNoNamedCh = true end
@@ -212,7 +227,7 @@ function MainWindow(OptTable, windowName)
   if TrimTime == '' then TrimTime = '01:00:00:00' end
   
   local renameStr = reaper.GetExtState(ExtStateName, 'RenameStr')
-  if renameStr == '' then renameStr = '@SCENE-T@TAKE_@fieldRecTRACK' end
+  if renameStr == '' then renameStr = '@SCENE_T@TAKE_@fieldRecTRACK' end
   
   local noteStr = reaper.GetExtState(ExtStateName, 'NoteStr')
   if noteStr == '' then noteStr = '@NOTE' end
@@ -230,7 +245,7 @@ function MainWindow(OptTable, windowName)
   local Flags = {}
   Flags.childRounding = reaper.ImGui_StyleVar_ChildRounding()
   Flags.frameRounding = reaper.ImGui_StyleVar_FrameRounding()
-  Flags.childBorder = reaper.ImGui_ChildFlags_Border()
+  Flags.childBorder = reaper.ImGui_ChildFlags_Borders()
   Flags.menubar = reaper.ImGui_WindowFlags_MenuBar()
   Flags.tableResizeflag = reaper.ImGui_TableFlags_Resizable()
   Flags.childAutoResizeX = reaper.ImGui_ChildFlags_AutoResizeX()
@@ -250,7 +265,7 @@ function MainWindow(OptTable, windowName)
   
   -------------- 
   function frame() 
-    reaper.ImGui_PushFont(ctx, font) 
+    reaper.ImGui_PushFont(ctx, font, fontSize) 
     
     --About button
     reaper.ImGui_SameLine(ctx, fontSize*25, nil)
@@ -284,7 +299,7 @@ function MainWindow(OptTable, windowName)
         reaper.ImGui_SameLine(ctx, nil, fontSize*1.5)
         reaper.ImGui_Text(ctx, 'Set known project framerate')
         reaper.ImGui_SameLine(ctx)
-        --reaper.ImGui_PushItemWidth(ctx, fontSize*10.3 )
+        
         local comboflags = reaper.ImGui_ComboFlags_WidthFitPreview() --| reaper.ImGui_ComboFlags_PopupAlignLeft()
         
         if reaper.ImGui_BeginCombo(ctx, '##-1', PrFrRate, comboflags ) then
@@ -342,7 +357,7 @@ function MainWindow(OptTable, windowName)
         end
         
         reaper.ImGui_SameLine(ctx)
-        reaper.ImGui_PushFont(ctx, fontSep)
+        reaper.ImGui_PushFont(ctx, fontSep, fontSize-2)
         reaper.ImGui_Text(ctx, 'Note: EDL must be CMX 3600')
         reaper.ImGui_PopFont(ctx)
         
@@ -359,7 +374,7 @@ function MainWindow(OptTable, windowName)
             reaper.ImGui_EndMenuBar(ctx)
           end
            
-          reaper.ImGui_PushFont(ctx, fontSep)
+          reaper.ImGui_PushFont(ctx, fontSep, fontSize-2)
           
           local choiceSrc, change, changeSrc
           change, choiceSrc = reaper.ImGui_Checkbox(ctx, 'Video track', EDLcontentFlags & 1)
@@ -390,8 +405,13 @@ function MainWindow(OptTable, windowName)
           
           reaper.ImGui_NewLine(ctx)
           
-          ret, FlexLink = reaper.ImGui_Checkbox(ctx, '2nd attempt to link source by name, 3rd by timecode only', FlexLink)
+          ret, FlexLink = reaper.ImGui_Checkbox(ctx, '2nd attempt to link source by name', FlexLink)
           if ret then reaper.SetExtState(ExtStateName, 'FlexLink', tostring(FlexLink), true) end
+          
+          reaper.ImGui_SameLine(ctx,nil, fontSize)
+          
+          ret, FlexLink2 = reaper.ImGui_Checkbox(ctx, '3rd by timecode only', FlexLink2)
+          if ret then reaper.SetExtState(ExtStateName, 'FlexLink2', tostring(FlexLink2), true) end
           
           local ret
           ret, TrimLeadingTime = reaper.ImGui_Checkbox(ctx,'Ignore leading time in EDLs',TrimLeadingTime)
@@ -492,24 +512,31 @@ function MainWindow(OptTable, windowName)
         local childDop = reaper.ImGui_BeginChild(ctx, 'ChildDop', 0, 0, childflags) --, Flags.menubar)
         if childDop then
           local ret
-          ret, MatchTakeFileName = reaper.ImGui_Checkbox(ctx, 'Match take and file names', MatchTakeFileName)
-          if ret then reaper.SetExtState(ExtStateName, 'MatchTakeFileName', tostring(MatchTakeFileName), true) end
-          
-          reaper.ImGui_PushFont(ctx, fontSep)
-          reaper.ImGui_NewLine(ctx)
-          
-          ret, FlexLink = reaper.ImGui_Checkbox(ctx, '2nd attempt to link by name, 3rd by timecode only', FlexLink)
+          reaper.ImGui_PushFont(ctx, fontSep, fontSize-2)
+           
+          ret, FlexLink = reaper.ImGui_Checkbox(ctx, '2nd attempt to link by name', FlexLink)
           if ret then reaper.SetExtState(ExtStateName, 'FlexLink', tostring(FlexLink), true) end
           
-          if LinkOnlyByTC == true then SincByTC = true end 
+          reaper.ImGui_SameLine(ctx,nil, fontSize)
+          
+          ret, FlexLink2 = reaper.ImGui_Checkbox(ctx, '3rd by timecode only', FlexLink2)
+          if ret then reaper.SetExtState(ExtStateName, 'FlexLink2', tostring(FlexLink2), true) end
+           
           ret, SincByTC = reaper.ImGui_Checkbox(ctx, 'Sync source by timecode', SincByTC)
           if ret then reaper.SetExtState(ExtStateName, 'SincByTC', tostring(SincByTC), true) end
            
+          reaper.ImGui_NewLine(ctx)
+          
+          ret, IgnoreDuplicates = reaper.ImGui_Checkbox(ctx, 'Ignore duplicated items', IgnoreDuplicates)
+          if ret then reaper.SetExtState(ExtStateName, 'IgnoreDuplicates', tostring(IgnoreDuplicates), true) end
+           
+          ret, AddNewTrks = reaper.ImGui_Checkbox(ctx, 'Add new tracks instead of takes', AddNewTrks)
+          if ret then reaper.SetExtState(ExtStateName, 'AddNewTrks', tostring(AddNewTrks), true) end
+          
           reaper.ImGui_NewLine(ctx) reaper.ImGui_SameLine(ctx, fontSize*1.5)
           
-          if SincByTC == false then LinkOnlyByTC = false end
-          ret, LinkOnlyByTC = reaper.ImGui_Checkbox(ctx, 'Link each file by timecode only if metadata is empty', LinkOnlyByTC)
-          if ret then reaper.SetExtState(ExtStateName, 'LinkOnlyByTC', tostring(LinkOnlyByTC), true) end
+          ret, GroupTracks = reaper.ImGui_Checkbox(ctx, 'Group new tracks above', GroupTracks)
+          if ret then reaper.SetExtState(ExtStateName, 'GroupTracks', tostring(GroupTracks), true) end
           
           reaper.ImGui_NewLine(ctx)
           
@@ -533,7 +560,8 @@ function MainWindow(OptTable, windowName)
             reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_ButtonActive(), gui_colors.MainButton.Active) 
           end
           
-          if reaper.ImGui_Button(ctx, actionBtnName) then
+          if reaper.ImGui_Button(ctx, actionBtnName)
+          and SearchFolder and SearchFolder ~= '' and itemsCnt > 0 then
             startLink = true
           else startLink = false
           end
@@ -543,10 +571,6 @@ function MainWindow(OptTable, windowName)
             reaper.ImGui_PopStyleColor(ctx,3)
           end
           
-          reaper.ImGui_SameLine(ctx, nil, fontSize)
-           
-          ret, AddNewTrks = reaper.ImGui_Checkbox(ctx, 'Add new tracks instead of takes', AddNewTrks)
-          if ret then reaper.SetExtState(ExtStateName, 'AddNewTrks', tostring(AddNewTrks), true) end
           
           reaper.ImGui_EndChild(ctx)
         end
@@ -640,7 +664,7 @@ function MainWindow(OptTable, windowName)
         reaper.ImGui_PushItemWidth(ctx, fontSize*23 )
         _, noteStr = reaper.ImGui_InputText(ctx, '    Note or Take marker', noteStr)
         
-        reaper.ImGui_PushFont(ctx, fontSep)
+        reaper.ImGui_PushFont(ctx, fontSep, fontSize-2)
         local ret
         ret, UseTakeMarkerNote = reaper.ImGui_Checkbox(ctx, 'Use take markers in addition to item notes', UseTakeMarkerNote)
         if ret then reaper.SetExtState(ExtStateName, 'TakeMarkNote', UseTakeMarkerNote) end
@@ -661,7 +685,7 @@ function MainWindow(OptTable, windowName)
             reaper.ImGui_EndMenuBar(ctx)
           end
           
-          reaper.ImGui_PushFont(ctx, fontSep)
+          reaper.ImGui_PushFont(ctx, fontSep, fontSize-2)
            
           local width = 0
           
@@ -710,72 +734,16 @@ function MainWindow(OptTable, windowName)
           ( 'Save EDL files', iniFolder, iniFile, extensionList )
           
           if fileName ~= '' then
-            --ExportEDL(fileName)
+            ExportEDL(fileName)
           end
         end
+        
+        reaper.ImGui_Text(ctx, 'EDL can be correctly imported only in Premier Pro.\nDavinci Resolve can import only video without crossfades.')
         
         reaper.ImGui_EndChild(ctx)
       end
     end
     
-    for i, v in ipairs(OptTable) do
-      local option = v
-      
-      if type(option[3]) == 'boolean' then
-        local _, newval = reaper.ImGui_Checkbox(ctx, option[1], option[3])
-        option[3] = newval
-      end
-      
-      if type(option[3]) == 'number' then 
-        reaper.ImGui_PushItemWidth(ctx, fontSize*3 )
-        local _, newval =
-        reaper.ImGui_InputDouble(ctx, option[1], option[3], nil, nil, option[4]) 
-        
-        option[3] = newval
-      end
-      
-      if type(option[3]) == 'string' then
-        local choice 
-        for k = 1, #option[4] do 
-          if option[4][k] == option[3] then choice = k end 
-        end
-        
-        reaper.ImGui_Text(ctx, option[1])
-        reaper.ImGui_SameLine(ctx, nil, nil)
-        
-        reaper.ImGui_PushItemWidth(ctx, fontSize*10.3 )
-        
-        if reaper.ImGui_BeginCombo(ctx, '##'..i, option[3], nil) then
-          for k,f in ipairs(option[4]) do
-            local is_selected = choice == k
-            if reaper.ImGui_Selectable(ctx, option[4][k], is_selected) then
-              choice = k
-            end
-        
-            -- Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
-            if is_selected then
-              reaper.ImGui_SetItemDefaultFocus(ctx)
-            end
-          end
-          reaper.ImGui_EndCombo(ctx)
-        end
-        
-        option[3] = option[4][choice]
-      end
-      
-      if type(option[3]) == 'nil' then
-        reaper.ImGui_PushFont(ctx, fontSep)
-        reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Text(), gui_colors.White)
-        
-        if i ~= 1 then reaper.ImGui_Text(ctx, '' ) end
-        reaper.ImGui_SeparatorText( ctx, option[1] )
-        
-        reaper.ImGui_PopStyleColor(ctx, 1)
-        reaper.ImGui_PopFont(ctx)
-      end
-      
-      OptTable[i] = option
-    end -- for
     
     reaper.ImGui_NewLine(ctx)
     reaper.ImGui_PushItemWidth(ctx, fontSize*5.5)
@@ -806,8 +774,8 @@ function MainWindow(OptTable, windowName)
       fontSize = savedFontSize
       if font then reaper.ImGui_Detach(ctx, font) end
       if fontSep then reaper.ImGui_Detach(ctx, fontSep) end
-      font = reaper.ImGui_CreateFont(fontName, fontSize, reaper.ImGui_FontFlags_None()) -- Create the fonts you need
-      fontSep = reaper.ImGui_CreateFont(fontName, fontSize-2, reaper.ImGui_FontFlags_Italic())
+      font = reaper.ImGui_CreateFont(fontName, reaper.ImGui_FontFlags_None()) -- Create the fonts you need
+      fontSep = reaper.ImGui_CreateFont(fontName, reaper.ImGui_FontFlags_Italic())
       reaper.ImGui_Attach(ctx, font)
       reaper.ImGui_Attach(ctx, fontSep)
     end
@@ -826,7 +794,7 @@ function MainWindow(OptTable, windowName)
         timeTreshold = reaper.parse_timestr_pos( TrimTime, 5 ) - PrjTimeOffset
       end
       
-      local EdlsTable = AnalyseEDLs(EDL, timeTreshold)
+      local EdlsTable = AnalyseEDLs(EDL, timeTreshold) 
       --
       if #EdlsTable.V == 0 and #EdlsTable.A == 0 then
         reaper.ShowMessageBox('There is no valid data in EDL files', 'Warning!',0) 
@@ -850,8 +818,9 @@ function MainWindow(OptTable, windowName)
     
     if processingLink then
       processingLink = false
-      
-      local selItems, _ = GetSelItemsPerTrack(true, false) 
+      local timeBeforeGetSelItems = reaper.time_precise()
+      local selItems, _ = GetSelItemsPerTrack(true, false)
+      --msg('GetSelItems time '.. reaper.time_precise() - timeBeforeGetSelItems )
       local notMatchedItems = {}
       local message
       
@@ -875,7 +844,7 @@ function MainWindow(OptTable, windowName)
     if startLink then processingLink = true end
     
     
-      reaper.ImGui_PushFont(ctx, font)
+      reaper.ImGui_PushFont(ctx, font, fontSize)
       
       reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_WindowBg(), gui_colors.Background)
       reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_TitleBgActive(), gui_colors.TitleBg)
@@ -922,7 +891,7 @@ function MainWindow(OptTable, windowName)
       
       reaper.ImGui_PopStyleColor(ctx, 13)
       reaper.ImGui_PopStyleVar(ctx, 4)
-      reaper.ImGui_PopFont(ctx) 
+      reaper.ImGui_PopFont(ctx)
       
       if undo then reaper.Main_OnCommandEx(40029,0,0) end
       if redo then reaper.Main_OnCommandEx(40030,0,0) end
@@ -947,7 +916,7 @@ function MainWindow(OptTable, windowName)
         if path then
           iniFolder = path:gsub('[/\\]$','')
           reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Text(), gui_colors.Green)
-          reaper.ImGui_Text(ctx, fn)
+          reaper.ImGui_Text(ctx, fn..'.'..ext)
           reaper.ImGui_PopStyleColor(ctx,1)
         end
       end
@@ -1086,8 +1055,8 @@ function AnalyseEDLs(EDLs, timeTreshold) --table of pathes
         
         clip.SrcIn = reaper.parse_timestr_pos( clip.SrcIn, 5 ) - PrjTimeOffset
         clip.SrcOut = reaper.parse_timestr_pos( clip.SrcOut, 5 ) - PrjTimeOffset
-        item.DestIn = reaper.parse_timestr_pos( item.DestIn, 5 ) - timeTreshold -- - PrjTimeOffset
-        item.DestOut = reaper.parse_timestr_pos( item.DestOut, 5 ) - timeTreshold -- - PrjTimeOffset
+        item.DestIn = reaper.parse_timestr_pos( item.DestIn, 5 ) - timeTreshold
+        item.DestOut = reaper.parse_timestr_pos( item.DestOut, 5 ) - timeTreshold
         
         item.Type = block.main[1]['track']
         table.insert(item.Clips, copy(clip) )
@@ -1153,8 +1122,8 @@ function AnalyseEDLs(EDLs, timeTreshold) --table of pathes
           
           clip.SrcIn = reaper.parse_timestr_pos( clip.SrcIn, 5 ) - PrjTimeOffset
           clip.SrcOut = reaper.parse_timestr_pos( clip.SrcOut, 5 ) - PrjTimeOffset
-          item.DestIn = reaper.parse_timestr_pos( item.DestIn, 5 ) - timeTreshold --  - PrjTimeOffset
-          item.DestOut = reaper.parse_timestr_pos( item.DestOut, 5 ) - timeTreshold -- - PrjTimeOffset
+          item.DestIn = reaper.parse_timestr_pos( item.DestIn, 5 ) - timeTreshold
+          item.DestOut = reaper.parse_timestr_pos( item.DestOut, 5 ) - timeTreshold
           
           item.Type = block.main[i]['track']
            
@@ -1287,16 +1256,16 @@ function AnalyseEDLs(EDLs, timeTreshold) --table of pathes
     
     for key, v in pairs(EdlTable) do
       if v[1] then
-        local keyNumb = tonumber(key:match('%d+'))
+        local keyNumb = tonumber(key:match('%d+')) 
         if key == 'V' and EDLcontentFlags & 1 ~= 0 then
           CommonEDL.V['V'..suffix] = EdlTable.V
           table.insert(CommonEDL.V, 'V'..suffix)
-        elseif keyNumb < 4 then
+        elseif keyNumb and keyNumb < 4 then
           if EDLcontentFlags & 1 << keyNumb ~= 0 then
             CommonEDL.A[key..suffix] = EdlTable[key]
             CommonEDL.A[keyNumb] = key..suffix
           end
-        elseif EDLcontentFlags & 1<<4 ~= 0 then
+        elseif keyNumb and EDLcontentFlags & 1<<4 ~= 0 then
           CommonEDL.A[key..suffix] = EdlTable[key]
           CommonEDL.A[keyNumb] = key..suffix
         end
@@ -1309,41 +1278,44 @@ function AnalyseEDLs(EDLs, timeTreshold) --table of pathes
 end
 
 -------------------------------
-function SplitFilename(strFilename) -- Path, Filename, Extension
-  if type(strFilename) ~= 'string' then return nil end
-  return string.match(strFilename, "(.-)([^\\]-([^\\%.]+))$")
-end
--------------------------------
 
 function CleanUpEDLs(EdlsTable)
   
   local trackType = {'V','A'}
+  local earliestItemPos
   
   ---Remove duplicates--- 
   for k, trType in ipairs(trackType) do
     local refItems = {}
-    
+
     for e, edlTname in ipairs(EdlsTable[trType]) do
       local trackT = EdlsTable[trType][edlTname] 
       local itemsForDel = {}
       
       for i, item in ipairs(trackT) do
+        local doDelete
+        if not earliestItemPos then
+          earliestItemPos = item.DestIn
+        end
+        earliestItemPos = math.min(earliestItemPos, item.DestIn)
+
         for ri, refItem in ipairs(refItems) do
           if item.DestIn == refItem.DestIn and item.DestOut == refItem.DestOut
           and item.Clips[1]['name'] == refItem.Clips[1]['name']
           and item.Clips[1]['SrcIn'] == refItem.Clips[1]['SrcIn']
           and item.Clips[1]['SrcOut'] == refItem.Clips[1]['SrcOut'] then
             FieldMatch(itemsForDel, i, true)
+            doDelete = true
           end
         end
+        
+        if not doDelete then FieldMatch(refItems, item, true) end
       end
       
       table.sort(itemsForDel, function(a,b) return (a>b) end)
       for i, idx in ipairs(itemsForDel) do
         table.remove(trackT, idx)
       end
-      
-      table.move(trackT, 1, #trackT, #refItems+1, refItems)
       
     end
   end
@@ -1410,6 +1382,13 @@ function CleanUpEDLs(EdlsTable)
             end
           end
           
+          if not move then --add track if there is no space in existed tracks
+            EdlsTable[trType][edlTname..'_1'] = {}
+            table.insert(EdlsTable[trType], edlTname..'_1')
+            trackMoveTo = EdlsTable[trType][edlTname..'_1']
+            moveIdx = 1
+          end
+          
         end
         
         if not move then
@@ -1417,7 +1396,7 @@ function CleanUpEDLs(EdlsTable)
           prevItem.DestOut = item.DestOut
         else
           table.insert(trackMoveTo, moveIdx, item)
-          FieldMatch(itemsForDel, i, true) 
+          FieldMatch(itemsForDel, i, true)
         end
         
       end
@@ -1439,6 +1418,323 @@ function CleanUpEDLs(EdlsTable)
     done = moveOverlappedItems()
   end
   
+  return earliestItemPos
+  
+end
+
+-------------------------------
+
+function GetExportTracks()
+  local trackList = {}
+  local selIcnt = reaper.CountSelectedMediaItems(0)
+  if selIcnt > 0 then
+    ExportSelItems = true
+    for i = 0, selIcnt -1 do
+      local item = reaper.GetSelectedMediaItem(0,i)
+      local track = reaper.GetMediaItemTrack(item)
+      FieldMatch(trackList, track, true)
+    end
+  else
+    for i = 0, reaper.CountSelectedTracks(0) -1 do
+      local track = reaper.GetSelectedTrack(0, i)
+      table.insert(trackList, track)
+    end
+  end
+  
+  return trackList
+end
+
+-------------------------------
+
+function ExportEDL(fileName)
+  local trList = GetExportTracks()
+  local edlTableExport = GetEDLexportTable(trList)
+  local path, edlName, ext = SplitFilename(fileName)
+  if ext and ext:upper() == 'EDL' then
+    --edlName = edlName:gsub('.'..ext, '')
+  end
+  
+  local EDLs = { {} }
+  
+  local trackTypes = {'V', 'A'}
+  
+  for _, trType in ipairs(trackTypes) do
+    local edlIdx = 1
+    local maxCnt = 1
+    local currCnt = 0
+    if trType == 'A' then maxCnt = 4 end
+    
+    for t, track in ipairs(edlTableExport[trType]) do
+      local trackData = edlTableExport[trType][tostring(track)]
+      if currCnt == maxCnt then
+        if not EDLs[edlIdx+1] then EDLs[edlIdx+1] = {} end
+        currCnt = 0
+        edlIdx = edlIdx+1
+      end
+      
+      local targetEDL = EDLs[edlIdx]
+      currCnt = currCnt + 1
+      
+      for _, item in ipairs(trackData) do
+        local newItem = copy(item)
+        newItem.TrType = trType
+        if currCnt > 1 then newItem.TrType = newItem.TrType .. t end 
+        table.insert(targetEDL, newItem)
+      end
+      
+    end
+  end
+  
+  
+  for i, edl in ipairs(EDLs) do
+    table.sort(edl, function(a,b)
+                      if a.DestIn == b.DestIn then
+                        if a.TrType:match('V') or b.TrType:match('V') then
+                          return (a.TrType > b.TrType)
+                        else return (a.DestIn < b.DestIn)
+                        end
+                      else return (a.DestIn < b.DestIn)
+                      end
+                    end ) --return V item before A item
+  end
+  
+  
+  --Create text files
+  
+  local rate, dropFrame = reaper.TimeMap_curFrameRate( proj )
+  local drop = "NON DROP FRAME"
+  if dropFrame then
+    drop = "DROP FRAME"
+  end
+  
+  for e, edl in ipairs(EDLs) do
+    local lines = {
+      "TITLE: " ..edlName, 
+      "FCM: " .. drop,
+      "* Frame Rate: " .. rate
+      }
+    
+    for i, itemT in ipairs(edl) do
+      local edit = string.format('%06d', i)
+      table.insert(lines, '\n')
+      local noneFlag
+      
+      for c, clip in ipairs(itemT.Clips) do
+        local line = ''
+        local reel
+        local cut
+        local trType = string.format('%-4s', itemT.TrType)
+        local trans = math.floor(itemT.trans*rate)
+        
+        if clip.name then reel = "AX" else reel = "BL" end
+        
+        local destIn = reaper.format_timestr_pos(itemT.DestIn, '', 5)
+        local destOut = reaper.format_timestr_pos(itemT.DestOut, '', 5)
+        local srcIn = reaper.format_timestr_pos(clip.SrcIn, '', 5)
+        local srcOut = reaper.format_timestr_pos(clip.SrcOut, '', 5)
+         
+        if c == 1 then
+          cut = 'C'
+        elseif trType:match('V') then cut = 'D'
+        elseif trType:match('A') then cut = 'W001'
+        end
+         
+        if trType:match('A') then
+          local numb = trType:match('%d+')
+          --msg(numb)
+          if numb then
+            numb = tonumber(numb)
+            if numb > 2 then
+              trType = 'NONE'
+              noneFlag = true
+            end
+          end
+        end
+        
+        if trans == 0 or cut == 'C' then trans = ' ' end
+        trans = string.format('%4s', trans)
+        
+        cut = string.format('%-4s', cut)
+        
+        if #itemT.Clips == 2 and c == 1 then destOut = destIn end
+        
+        line = edit ..' '..reel..' '..trType..' '..cut..' '..trans
+        line = line..' '..srcIn..' '..srcOut..' '..destIn..' '..destOut
+        table.insert(lines, line)
+      end
+      
+      for c, clip in ipairs(itemT.Clips) do
+        local line = '* FROM CLIP NAME: '
+        if c == 2 then line = '* TO CLIP NAME: ' end
+        local name = clip.name
+        if not name then name = 'BL' end
+        line = line..name
+        table.insert(lines, line)
+      end
+      
+      if noneFlag then table.insert(lines, 'AUD   3  4') end
+      
+    end
+    
+    local suffix = ''
+    if #EDLs > 1 then suffix = '_'..e end
+    
+    local edl_name = edlName..suffix.. ".EDL"
+    local faddress = path .. "/" .. edl_name
+    
+    local file = io.open(faddress, "w" )
+    for key, value in pairs(lines) do
+      file:write(value)
+      if value ~= '\n' then
+        file:write("\n")
+      end
+    end
+    file:close()
+    
+  end
+  
+end
+
+-------------------------------
+
+function GetEDLexportTable(trList)
+  local commonTbl = { V = {}, A = {} }
+  local trackType
+  
+  for t, track in ipairs(trList) do
+    --local ret, trName =  reaper.GetSetMediaTrackInfo_String(track, 'P_NAME', '', false)
+    --msg(trName)
+    
+    for i = 0, reaper.CountTrackMediaItems(track) -1 do
+      local item = reaper.GetTrackMediaItem(track, i)
+      local take = reaper.GetActiveTake(item)
+      if take and reaper.IsMediaItemSelected(item) or not ExportSelItems then
+        local source = reaper.GetMediaItemTake_Source(take)
+        local splRate = reaper.GetMediaSourceSampleRate(source)
+        local itype = reaper.GetMediaSourceType(source)
+        local itemT = { fadeIn, fadeOut, trans = 0, Clips={}, DestIn, DestOut }
+        local clip = { name, SrcIn, SrcOut, PlayRate, RateTC }
+        
+        local iPos = reaper.GetMediaItemInfo_Value(item, 'D_POSITION')
+        local iLen = reaper.GetMediaItemInfo_Value(item, 'D_LENGTH')
+        itemT.DestIn = iPos
+        itemT.DestOut = iPos + iLen
+        
+        local fileTC = 0
+        local ret, vorbTime = reaper.GetMediaFileMetadata(source,"VORBIS:TIME_REFERENCE")
+        if ret then vorbTime = tonumber(vorbTime) end
+        if vorbTime then fileTC = vorbTime/splRate end
+        
+        local ret, bwfTime = reaper.GetMediaFileMetadata(source,"BWF:TimeReference")
+        if ret then bwfTime = tonumber(bwfTime) end
+        if bwfTime then fileTC = bwfTime/splRate end
+        
+        clip.SrcIn = fileTC + reaper.GetMediaItemTakeInfo_Value(take, 'D_STARTOFFS')
+        clip.SrcOut = clip.SrcIn + iLen
+        
+        itemT.fadeIn = reaper.GetMediaItemInfo_Value(item, 'D_FADEINLEN')
+        itemT.fadeOut = reaper.GetMediaItemInfo_Value(item, 'D_FADEOUTLEN')
+        
+        if itemT.fadeIn == 0 then itemT.fadeIn = reaper.GetMediaItemInfo_Value(item, 'D_FADEINLEN_AUTO') end
+        if itemT.fadeOut == 0 then itemT.fadeOut = reaper.GetMediaItemInfo_Value(item, 'D_FADEOUTLEN_AUTO') end
+        
+        clip.PlayRate = reaper.GetMediaItemTakeInfo_Value(take, 'D_PLAYRATE')
+        clip.RateTC = clip.SrcIn  --for a while
+        
+        local src = reaper.GetMediaItemTake_Source(take)
+        local numCh = reaper.GetMediaSourceNumChannels(src)
+        if not ExportClipsForEachChannell then numCh = 1 end
+        --local chMode = reaper.GetMediaItemTakeInfo_Value(take, 'I_CHANMODE')
+        local filename = reaper.GetMediaSourceFileName( src )
+        local _, fname, ext = SplitFilename(filename)
+        clip.name = fname..'.'..ext
+        
+        table.insert(itemT.Clips, clip)
+        --msg(itype)
+        if itype == 'VIDEO' then trackType = 'V'
+        elseif itype ~= 'MIDI' and itype ~= 'EMPTY' then trackType = 'A'
+        end
+        
+        if trackType then
+          local channels = numCh
+          if trackType == 'V' then channels = 1 end
+          
+          for ch = 1, channels do
+            if not FieldMatch(commonTbl[trackType], tostring(track)..'_'..ch, true) then
+              commonTbl[trackType][tostring(track)..'_'..ch] = {}
+            end
+          end
+          
+          for ch = 1, channels do
+            table.insert(commonTbl[trackType][tostring(track)..'_'..ch], copy(itemT) )
+            --msg(tostring(track)..'_'..ch..'  add')
+          end
+        end
+        
+        if trackType == 'V' then
+          local addAudio = true
+          local chunk = ""
+          local ret, chunk = reaper.GetItemStateChunk(item, chunk, false)
+          if ret then
+            local ignoreAudioSetting = "AUDIO 0\n"
+            if chunk:match("<SOURCE VIDEO\n"..ignoreAudioSetting.."FILE ") then addAudio = false end
+          end
+          
+          if addAudio == true then
+          
+            for ch = 1, numCh do
+              if not FieldMatch(commonTbl['A'], tostring(track)..'_'..ch, true) then
+                commonTbl['A'][tostring(track)..'_'..ch] = {}
+              end
+            end
+            
+            for ch = 1, numCh do
+              table.insert(commonTbl['A'][tostring(track)..'_'..ch], copy(itemT) )
+            end
+          end
+        end
+        
+      end
+    end -- for items cycle
+    
+    
+  end --for track cycle
+  
+  --Create new items for crossfades
+  --
+  local trackTypes = { 'A', 'V'}
+  --msg('FIND CROSSFADES')
+  for _, trType in ipairs (trackTypes) do
+     for t, track in ipairs(commonTbl[trType]) do
+       local trackData = commonTbl[trType][tostring(track)]
+       for i, itemT in ipairs(trackData) do
+         if i ~= #trackData then
+           local nextItem = trackData[i+1]
+           if itemT.DestOut > nextItem.DestIn and itemT.DestIn < nextItem.DestIn then
+             local newClip = { name, SrcIn, SrcOut, PlayRate, RateTC }
+             local diff = itemT.DestOut - nextItem.DestIn
+             nextItem.trans = diff
+             
+             itemT.DestOut = nextItem.DestIn
+             
+             newClip = copy(itemT.Clips[#itemT.Clips])
+             newClip.SrcIn = newClip.SrcIn + (nextItem.DestIn - itemT.DestIn)*newClip.PlayRate --if RateTC always equal SrcIn
+             newClip.SrcOut = newClip.SrcIn
+             newClip.RateTC = newClip.SrcIn
+             table.insert(nextItem.Clips, 1, newClip)
+             itemT.Clips[1]['SrcOut'] = newClip.SrcIn
+           end
+         end
+       end
+       
+       table.sort(trackData, function(a,b) return (a.DestIn < b.DestIn) end )
+       
+     end
+  end
+  
+  if #commonTbl.V > 0 or #commonTbl.A > 0 then
+    return commonTbl
+  end
   
 end
 
@@ -1449,19 +1745,19 @@ function RenameTakes(SelItems, FormatString, NoteFormatString)
   reaper.Undo_BeginBlock2(0)
   
   for t, TData in ipairs(SelItems) do
-    for i, Item in ipairs(TData.Titems) do 
-      local take = reaper.GetActiveTake(Item.item) 
+    for i, Item in ipairs(TData.Titems) do
+      local take = reaper.GetActiveTake(Item.item)
       local patch, fn, ext = SplitFilename(Item.file)
       
       local activeChNames = ''
       for c, name in ipairs(Item.actChnNames) do
         local sep = ', '
         if c == #Item.actChnNames then sep = '' end
-        activeChNames = activeChNames ..name..sep 
+        activeChNames = activeChNames ..name..sep
       end
       
       local function SubTags(str)
-        str = str:gsub('@FILE', fn)
+        str = str:gsub('@FILE', fn..'.'..ext)
         str = str:gsub('@file.EXT', '.'..ext )
         str = str:gsub('@SCENE', Item.metaList.SCENE or '')
         str = str:gsub('@TAKE', Item.metaList.TAKE or '')
@@ -1658,7 +1954,7 @@ function GetSelItemsPerTrack(addMeta, addActiveChNames)
     local src
     if take then src = reaper.GetMediaItemTake_Source(take) end
     
-    if src then --is item in range
+    if src then
       Item.file = reaper.GetMediaSourceFileName( src )
       Item.src = src
       Item.item = item
@@ -1673,6 +1969,20 @@ function GetSelItemsPerTrack(addMeta, addActiveChNames)
       Item.chnNames = {}
       Item.actChnNames = {}
       --msg('\n'..Item.name)
+      
+      local sep = {'.', '_', ' '}
+      local chan = {'L', 'R', 'Л', 'П', 'C', 'LFE', 'Ls', 'Rs', 'Lss', 'Rss'}
+      local _, mainName, extTail = SplitFilename(Item.name)
+      if extTail then
+        for _, s in ipairs (sep)  do
+          for _, ch in ipairs (chan) do
+            if extTail:match(s..ch) then
+              Item.name = mainName..'.'.. extTail:gsub(s..ch, '') 
+            end
+          end
+        end
+      end
+      
       if addMeta then Item.metaList = save_metadata(src, TagsList) end
       
       local disarmed = {}
@@ -1740,7 +2050,7 @@ function GetSelItemsPerTrack(addMeta, addActiveChNames)
             if chmode ~= 1 then
               chanTag = chanTag..':'..string.format("%.0f", chmode - disarmCnt)
               chanTag2 = chanTag2..'_'..string.format("%.0f", chmode - disarmCnt)
-            end 
+            end
             ret, str = reaper.GetMediaFileMetadata(src, chanTag)
             if str == '' then ret, str = reaper.GetMediaFileMetadata(src, chanTag2) end
             if str == '' then str = 'ch '..string.format("%.0f", chmode) end
@@ -1781,6 +2091,8 @@ end
 -------------------------------
 
 function AddDopTracks(dopTRACKS)
+  if not AddDopTracksTime then AddDopTracksTime = 0 end
+  local AddDopTracksStart = reaper.time_precise()
   for i=1,2 do
     local trackT
     if i == 1 then trackT = dopTRACKS.Common else trackT = dopTRACKS.Named end
@@ -1811,6 +2123,7 @@ function AddDopTracks(dopTRACKS)
         reaper.SetMediaItemInfo_Value(newItem, 'D_LENGTH', itemData.length)
         reaper.SetMediaItemInfo_Value(newItem, 'D_FADEINLEN', 0 )
         reaper.SetMediaItemInfo_Value(newItem, 'D_FADEOUTLEN', 0 )
+        reaper.SetMediaItemInfo_Value(newItem, 'B_LOOPSRC', 0 )
         
         if itemData.fadeIn then
           reaper.SetMediaItemInfo_Value(newItem, 'D_FADEINLEN_AUTO', itemData.fadeIn )
@@ -1837,21 +2150,33 @@ function AddDopTracks(dopTRACKS)
     end
     
   end
+  
+  AddDopTracksTime = AddDopTracksTime + (reaper.time_precise() - AddDopTracksStart)
 end
 
 -------------------------------
 
 function LinkFiles(SelItems)
   local notMatchedItems = {}
+  local linkedItems = {}
   local message
   local NewTracks = {}
   reaper.PreventUIRefresh(1)
   reaper.Undo_BeginBlock2(0)
-  local list_files, list_file_metadata = GetAllFiles({SearchFolder})
+  
+  local timeBeforeGetAllFiles = reaper.time_precise()
+  local list_files, list_file_metadata, list_file_src = GetAllFiles({SearchFolder})
+  --msg(#list_files)
+  --msg('GetAllFiles time '.. reaper.time_precise() - timeBeforeGetAllFiles )
+  local timeBeforeLink = reaper.time_precise()
   
   for t, TData in ipairs(SelItems) do
     local tIdx = reaper.GetMediaTrackInfo_Value( TData.Track, 'IP_TRACKNUMBER' )
-    LastTrIdx = tIdx
+    if not GroupTracks then
+      LastTrIdx = tIdx
+    elseif GroupTracks and t == 1 then
+      LastTrIdx = tIdx -1
+    end
     local Tracks = {}
     local dopTRACKS = { Named = {}, Common = {} }
     
@@ -1861,42 +2186,47 @@ function LinkFiles(SelItems)
       local itemMatch
       local matchCount = 1
       local recTrackNames = {}
-       
+      --[[
+      for k,v in pairs(Item.metaList) do
+        msg(k..'  '..v)
+      end
+      ]]
       local _, tFname, tFext = SplitFilename(Item.file)
-      if tFext then tFname = tFname:gsub('.'..tFext, '') end
-      local takeFileNameMod = tFname:gsub('-','_'):gsub('+','__'):gsub('*','_ _'):upper()
-      
-      local takeNameMod = Item.name:gsub('-','_'):gsub('+','__'):gsub('*','_ _'):upper()
+      local takeFileNameMod = tFname:upper() 
+      local takeNameMod = Item.name:upper()
       
       local refPos = 0
       local refSplRate = reaper.GetMediaSourceSampleRate(Item.src)
       if Item.metaList.TC and SincByTC then refPos = tonumber(Item.metaList.TC)/refSplRate end
       
-      local attempt
-      if FlexLink then attempt = 3 else attempt = 1 end
+      local attempt = {1}
+      if FlexLink then table.insert(attempt, 2) end
+      if FlexLink2 then table.insert(attempt, 3) end
        
-      for a = 1, attempt do
+      for _, a in ipairs(attempt) do
         if itemMatch then break end
         
         for f, file in ipairs(list_files) do
-          local match 
-          local _, fName, fExt = SplitFilename(file)
-          --msg(fName)
-          if fExt then fName = fName:gsub('.'..fExt, '') end
-          local fNameMod = fName:gsub('-','_'):gsub('+','__'):gsub('*','_ _'):upper()
+          --if file == Item.file then goto skipFile end
           
+          local match 
+          local _, fName, fExt = SplitFilename(file) 
+          local fNameMod = fName:upper()
+          --msg(fName..'.'..fExt)
           local fileMetaList = list_file_metadata[file]
           
           if a == 1 then
             for i, v in ipairs(TagsList) do
             
-              if v[1] ~= '' and v[2] ~= 'TC' and v[3] == true then
+              if v[1] ~= '' and v[2] ~= 'TC' and v[3] == true then --v[3] - use flag
                 if Item.metaList and fileMetaList and Item.metaList[v[2]] and fileMetaList[v[2]] then
                   
-                  if fileMetaList[v[2]]:match(Item.metaList[v[2]])
-                  --Item metadata can be shorter than in original file if exists only in BWF desription,
-                  --but not vice verca to avoid extra match in cases like S_02 - S_02A
-                  then match = true
+                  if Item.metaList.incompleteScene and v[2] == 'SCENE'
+                  and fileMetaList[v[2]]:upper():match( escape_pattern(Item.metaList[v[2]]:upper()) ) then
+                    --Item metadata probably shorter than in original file if exists only in BWF desription 
+                    match = true
+                  elseif fileMetaList[v[2]] == Item.metaList[v[2]] then
+                    match = true
                   else
                     match = false
                     break
@@ -1908,29 +2238,33 @@ function LinkFiles(SelItems)
             end
           end --if a == 1
           --msg(match)
-          if ( match ~= false and MatchTakeFileName == true ) or a == 2 then
-            if string.upper(fExt) == 'WAV'
-            or string.upper(fExt) == 'AIF'
-            or string.upper(fExt) == 'FLAC'
-            or string.upper(fExt) == 'MP3'
-            or string.upper(fExt) == 'OGG'
-            or string.upper(fExt) == 'MPA'
-            or string.upper(fExt) == 'WMA'
-            or string.upper(fExt) == 'MP4'
-            or string.upper(fExt) == 'MOV' then
+          
+          if a == 2 then
+            local fExtUp = string.upper(fExt)
             
-              if fNameMod:match(takeFileNameMod) -- src file no ext mod / ref file no ext mod
-              or takeFileNameMod:match(fNameMod) -- vice verca
-              or fNameMod:match(takeNameMod)       -- src file no ext mod / ref take mod
-              or takeNameMod:match(fNameMod) then  -- vice verca
+            if fExtUp == 'WAV'
+            or fExtUp == 'AIF'
+            or fExtUp == 'FLAC'
+            or fExtUp == 'MP3'
+            or fExtUp == 'OGG'
+            or fExtUp == 'MPA'
+            or fExtUp == 'WMA'
+            or fExtUp == 'MP4'
+            or fExtUp == 'MOV' then
+            
+              if fNameMod:match( escape_pattern(takeFileNameMod) )  -- src file no ext mod / ref file no ext mod
+              or takeFileNameMod:match( escape_pattern(fNameMod) )  -- vice verca
+              or fNameMod:match( escape_pattern(takeNameMod) )      -- src file no ext mod / ref take mod
+              or takeNameMod:match( escape_pattern(fNameMod) ) then -- vice verca
                 match = true
+              else match = false
               end
               
-            end 
+            end
           end
+           
           
-          
-          if (match or (match == nil and LinkOnlyByTC)) or a == 3 then
+          if match or a == 3 then
             local newSrc = reaper.PCM_Source_CreateFromFile( file )
             if newSrc then
               local srcLen, isQN = reaper.GetMediaSourceLength(newSrc)
@@ -1951,10 +2285,24 @@ function LinkFiles(SelItems)
                   offset = 0
                   takemark = 'Timecode is wrong! - conform'
                 end
-                 
+                
+                local function isDuplicate()
+                  for li, refItem in ipairs(linkedItems) do 
+                    if refItem.pos == Item.pos and refItem.length == Item.len
+                    and refItem.itemTC == refPos + Item.offs
+                    and refItem.scene == Item.metaList.SCENE
+                    and refItem.take == Item.metaList.TAKE
+                    and refItem.tkName == takeNameMod
+                    then
+                      return true
+                    end
+                  end
+                end
+                
+                
                 if ( offset < srcLen and fileTC < refPos + Item.offs + Item.len )
                 or SincByTC ~= true then
-                  match, itemMatch = true, true
+                  match, itemMatch = true, true 
                   if not UndoString then
                     reaper.SelectAllMediaItems(0, false)
                     UndoString = 'Link files to selected items'
@@ -1966,10 +2314,15 @@ function LinkFiles(SelItems)
                     message = "Some items can't be linked properly!"
                     ..'\nBut they was linked with an assumption.'
                     ..'\nLook at the description in the take markers.'
-                  end
+                  end 
                   
-                  if AddNewTrks == true then
-                    local trName = fileMetaList.TRACKNAME
+                  if AddNewTrks == true
+                  and (not isDuplicate() or IgnoreDuplicates ~= true) then
+                    --msg(a)
+                    local trName = 'no_name'
+                    if fileMetaList and fileMetaList.TRACKNAME then
+                      trName = fileMetaList.TRACKNAME
+                    end
                     local chCnt = reaper.GetMediaSourceNumChannels(newSrc)
                     local itemData = {
                                 pos = Item.pos,
@@ -2002,7 +2355,8 @@ function LinkFiles(SelItems)
                       matchCount = matchCount +1
                     end
                     
-                  elseif Item.file ~= file then
+                  elseif Item.file ~= file
+                  and (not isDuplicate() or IgnoreDuplicates ~= true) then
                     FieldMatch(SuccessItems, Item.item, true)
                     local take = reaper.AddTakeToMediaItem(Item.item)
                     reaper.SetActiveTake(take)
@@ -2013,6 +2367,7 @@ function LinkFiles(SelItems)
                       reaper.SetTakeMarker( take, -1, takemark, offset + Item.len/4 )
                     end
                   end
+                  
                 else match = false
                 end
               end
@@ -2022,26 +2377,34 @@ function LinkFiles(SelItems)
               end
             end
           end --if match or LinkOnlyByTC
-          
+           
+          --::skipFile::
         end --for file cycle
       end
       
       if itemMatch ~= true then
         table.insert(notMatchedItems, {Item.pos, Item.name, TData.Tname, Item.item} )
+      else
+        FieldMatch(linkedItems, {pos = Item.pos,
+                                 length = Item.len,
+                                 itemTC = refPos + Item.offs,
+                                 scene = Item.metaList.SCENE,
+                                 take = Item.metaList.TAKE,
+                                 tkName = takeNameMod
+                                 }, true)
       end
     end --Per sel Item cycle
-    --[[
-    for i, item in ipairs(ItemsToRemove) do
-      if reaper.ValidatePtr2( 0, item, 'MediaItem*' ) then reaper.DeleteTrackMediaItem(TData.Track, item) end 
-    end]]
+    
     
     AddDopTracks(dopTRACKS)
-  end --Per track with sel items cycle
+  end --Per track with sel items cycle 
+  
+  --msg('AddDopTracksTimeSum '..AddDopTracksTime)
   
   for t, track in ipairs(NewTracks) do
     if reaper.CountTrackMediaItems(track) == 0 then reaper.DeleteTrack(track) end
   end
-  
+  --msg('LinkFiles time '.. reaper.time_precise() - timeBeforeLink )
   return notMatchedItems, message
 end
 
@@ -2075,12 +2438,17 @@ function CreateTracks(EdlsTable)
     end
   end]]
   -------------------
+  local EDLStart = CleanUpEDLs(EdlsTable)
   
-  CleanUpEDLs(EdlsTable)
+  local timeShift = 0
   
+  if TrimLeadingTime == true and TrimOnlyEmptyTime == true
+  and EDLStart >= reaper.parse_timestr_pos( TrimTime, 5 ) - PrjTimeOffset then
+    timeShift = EDLStart - math.fmod(EDLStart, (reaper.parse_timestr_pos(TrimTime, 5)-PrjTimeOffset) )
+  end
   --------------------
   --Now create tracks and items
-  local list_files, list_file_metadata = GetAllFiles({SearchFolder})
+  local list_files, list_file_metadata, list_file_src = GetAllFiles({SearchFolder})
   LastTrIdx = 0 --Top track
   --msg(#list_files)
   --for f, file in ipairs(list_files) do msg(file) end
@@ -2121,6 +2489,8 @@ function CreateTracks(EdlsTable)
       local crossfade
       local maxidx = #trackT
       for i, item in ipairs(trackT) do
+        if item.DestIn < 0 then goto skipItemCreation end
+        
         local newItem
         local newAtVitem
         local fadeInAuto
@@ -2139,18 +2509,20 @@ function CreateTracks(EdlsTable)
         --Create item
         if (clipStart and clipFileName ) or edlTname:match('V') then
           newItem = reaper.AddMediaItemToTrack(track)
-          reaper.SetMediaItemInfo_Value(newItem, 'D_POSITION', item.DestIn)
+          reaper.SetMediaItemInfo_Value(newItem, 'D_POSITION', item.DestIn - timeShift)
           reaper.SetMediaItemInfo_Value(newItem, 'D_LENGTH', item.DestOut - item.DestIn)
           reaper.SetMediaItemInfo_Value(newItem, 'D_FADEINLEN', 0 )
           reaper.SetMediaItemInfo_Value(newItem, 'D_FADEOUTLEN', 0 )
+          reaper.SetMediaItemInfo_Value(newItem, 'B_LOOPSRC', 0 )
         end
         
         if trackAtoV and clipStart then
           newAtVitem = reaper.AddMediaItemToTrack(trackAtoV)
-          reaper.SetMediaItemInfo_Value(newAtVitem, 'D_POSITION', item.DestIn)
+          reaper.SetMediaItemInfo_Value(newAtVitem, 'D_POSITION', item.DestIn - timeShift)
           reaper.SetMediaItemInfo_Value(newAtVitem, 'D_LENGTH', item.DestOut - item.DestIn)
           reaper.SetMediaItemInfo_Value(newAtVitem, 'D_FADEINLEN', 0 )
           reaper.SetMediaItemInfo_Value(newAtVitem, 'D_FADEOUTLEN', 0 )
+          reaper.SetMediaItemInfo_Value(newItem, 'B_LOOPSRC', 0 )
         end
         
         if crossfade and newItem then
@@ -2175,24 +2547,26 @@ function CreateTracks(EdlsTable)
           local matchCount = 1
           local recTrackNames = {}
           
-          local attempt
-          if FlexLink then attempt = 4 else attempt = 1 end
+          local attempt = {1}
+          if FlexLink then table.insert(attempt, 2) table.insert(attempt, 2.1) end
+          if FlexLink2 then table.insert(attempt, 3) end          
           
-          for a = 1, attempt do
+          for _, a in ipairs(attempt) do
             if match then break end
             for f, file in ipairs(list_files) do
               local metadataList = list_file_metadata[file]
               local _, fileName, fileExt = SplitFilename(file)
-              local fileMod = file:gsub('-','_'):gsub('+','_'):gsub('*','_')
-              local clipNameMod = clipName:gsub('-','_'):gsub('+','_'):gsub('*','_')
-              local clipFileNameMod = clipFileName:gsub('.'..ext, ''):gsub('-','_'):gsub('+','_'):gsub('*','_')
+              local fileNameMod = (fileName..'.'..fileExt):upper()
+              local clipNameMod = clipName:upper()
+              local clipFileNameMod = clipFileName:upper()
               
               if( ( metadataList and metadataList.TAKE and metadataList.SCENE )
-              and clipNameMod:match(metadataList.TAKE) and clipNameMod:match(metadataList.SCENE)
+              and clipNameMod:match( escape_pattern(metadataList.TAKE):upper())
+              and clipNameMod:match( escape_pattern(metadataList.SCENE):upper())
               )
-              or ( a == 2 and fileMod:match(clipNameMod) )
-              or ( a == 3 and fileMod:match(clipFileNameMod) )
-              or a == 4 then
+              or ( a == 2 and fileNameMod == clipNameMod )
+              or ( a == 2.1 and fileName:upper() == clipFileNameMod )
+              or a == 3 then
                 local newSrc = reaper.PCM_Source_CreateFromFile( file )
                 if newSrc then
                   local filematch
@@ -2209,8 +2583,9 @@ function CreateTracks(EdlsTable)
                     
                     local offset = clipStart - fileTC
                     
-                    if ( a == 2 or a == 3 )
+                    if ( a == 2 or a == 2.1 )
                     and ( offset < 0 or offset + (item.DestOut - item.DestIn) >= srcLen ) then
+                      --msg(a..' '..fileName )
                       offset = 0
                       takemark = 'Timecode is wrong! '
                     end
@@ -2218,17 +2593,21 @@ function CreateTracks(EdlsTable)
                     if offset >= 0 and offset + (item.DestOut - item.DestIn) < srcLen then
                       match, filematch = true, true
                       
-                      if a == 3 then takemark = takemark ..'File format can be vary! - conform' end
-                      if a == 4 then takemark = 'Src linked only by timecode! - conform' end
-                      if a == 4 then notes = clipName end
-                      if a == 2 then takemark = takemark .. '- conform' end
+                      if a == 2.1 then takemark = takemark ..'File format can be vary! - conform' end
+                      if a == 3 then takemark = 'Src linked only by timecode! - conform' end
+                      if a == 3 then notes = clipName end
+                      if a == 2 and takemark ~= '' then
+                        takemark = takemark .. '- conform'
+                      end
                       
-                      local newName = clipFileName
-                      if a > 1 then newName = fileName end
+                      local newName = clipFileName..'.'..ext
+                      if a > 1 then newName = fileName..'.'..fileExt end
                        
-                      local trName = metadataList.TRACKNAME
+                      local trName
+                      if metadataList then trName = metadataList.TRACKNAME end
+                      
                       local itemData = {
-                                  pos = item.DestIn,
+                                  pos = item.DestIn - timeShift,
                                   length = item.DestOut - item.DestIn,
                                   fadeIn = fadeInAuto,
                                   fadeOut = fadeOutAuto,
@@ -2295,7 +2674,7 @@ function CreateTracks(EdlsTable)
           
           if match ~= true then
             local _,_ = reaper.GetSetMediaItemInfo_String(newItem, 'P_NOTES', clipName, true)
-            table.insert(notMatchedItems, {item.DestIn, clipName, edlTname} )
+            table.insert(notMatchedItems, {item.DestIn - timeShift, clipName, edlTname} )
           end
           
         else --if track is Video one
@@ -2308,8 +2687,6 @@ function CreateTracks(EdlsTable)
             local match
             local matchCount = 1
             local recTrackNames = {}
-            
-            --local clipStart = item.Clips[1]['SrcIn']
             
             for f, file in ipairs(list_files) do
               local metadataList = list_file_metadata[file]
@@ -2328,16 +2705,16 @@ function CreateTracks(EdlsTable)
                      
                     if offset >= 0 and offset + (item.DestOut - item.DestIn) < srcLen then
                       match, filematch = true, true 
-                      local _, fileName, _ = SplitFilename(file)
+                      local _, fileName, ext = SplitFilename(file)
                       local trName = metadataList.TRACKNAME 
                       local itemData = {
-                                  pos = item.DestIn,
+                                  pos = item.DestIn - timeShift,
                                   length = item.DestOut - item.DestIn,
                                   fadeIn = fadeInAuto,
                                   fadeOut = fadeOutAuto,
                                   offset = offset,
                                   src = newSrc,
-                                  name = fileName,
+                                  name = fileName..'.'..ext,
                                   takemark = ''
                                   }
                       
@@ -2357,12 +2734,11 @@ function CreateTracks(EdlsTable)
                         dopTRACKS.Common[matchCount-1]['name'] = edlTname..'_'..matchCount
                         table.insert(dopTRACKS.Common[matchCount-1], itemData)
                         matchCount = matchCount +1
-                      else
-                        --FieldMatch(SuccessItems, newItem, true)
+                      else 
                         local take = reaper.AddTakeToMediaItem(newAtVitem) 
                         reaper.SetMediaItemTake_Source( take, newSrc )
                         reaper.SetMediaItemTakeInfo_Value(take, 'D_STARTOFFS', offset )
-                        local _, _ = reaper.GetSetMediaItemTakeInfo_String( take, 'P_NAME', fileName, true )
+                        local _, _ = reaper.GetSetMediaItemTakeInfo_String( take, 'P_NAME', fileName..'.'..ext, true )
                       end
                       
                     else match = false
@@ -2385,7 +2761,7 @@ function CreateTracks(EdlsTable)
           end
           
         end
-        
+        ::skipItemCreation::
       end -- for item/clip cycle
       
       AddDopTracks(dopTRACKS)
@@ -2406,23 +2782,24 @@ function save_metadata(source,list_metadata)
   for v in descBwf:gmatch('[^\n]+') do
     local key
     v = v:sub(2) -- removes first lower case letter that differs from file to file and seems to mean nothing
-    v = v:gsub('-','_')
-    v = v:gsub('+','_')
-    v = v:gsub('*','_')
-    v = v:gsub('\n','')
     key, v = v:match("%s*([^=]*)%s*%=%s*(.-)%s*$") --Split construction 'key=value'
-    if key and v then dop_list[key] = v end
+    if key and v then
+      key = key:gsub('^%s*(.-)%s*$', '%1'):upper() --remove spaces at edges and capitalize
+      v = v:gsub('^%s*(.-)%s*$', '%1') --remove spaces at edges
+      dop_list[key] = v
+    end
+    if key == 'SCENE' and string.len(v) == 10 then value_list.incompleteScene = true end
   end
   
   for i, v in ipairs(list_metadata) do
-    for t, tag in ipairs(v[4]) do 
+    for t, tag in ipairs(v[4]) do
       if tag ~= '' then
         local retval,value = reaper.GetMediaFileMetadata(source,tag)
         if dop_list[v[2]] and value == '' then -- this value has priority higer than the dop_list
           value_list[v[2]] = dop_list[v[2]]
         elseif value ~= '' then
-          value = value:gsub('-','_'):gsub('+','_'):gsub('*','_')
           value_list[v[2]] = value
+          if v[2] == 'SCENE' then value_list.incompleteScene = false end
         end
       end
     end
@@ -2442,7 +2819,9 @@ TagsList = {}
   local text = 'Project'
   table.insert(TagsList, {text, 'PROJECT', false, {"IXML:PROJECT", ''} })
   local text = 'Date'
-  table.insert(TagsList, {text, 'DATE', false, {"IXML:BEXT:BWF_ORIGINATION_DATE", "BWF:OriginationDate"} })
+  table.insert(TagsList, {text, 'DATE', false, {"IXML:BEXT:BWF_ORIGINATION_DATE", "BWF:OriginationDate"} }) 
+  local text = 'UBITS'
+  table.insert(TagsList, {text, 'UBITS', false, {"IXML:UBITS", ''} })
   local text = 'Tape'
   table.insert(TagsList, {text, 'TAPE', true, {"IXML:TAPE", ''} })
   local text = 'Scene'
@@ -2456,28 +2835,37 @@ TagsList = {}
   local text = ''
   table.insert(TagsList, {text, 'TRACKNAME', false, {"IXML:TRACK_LIST:TRACK:NAME"} })
 
-function GetAllFiles(folderlist,filelist,metadatalist)
+function GetAllFiles(folderlist,filelist,metadatalist, srclist)
   if type(folderlist)   ~= 'table' then return            end
   if type(filelist)     ~= 'table' then filelist     = {} end
-  if type(metadatalist) ~= 'table' then metadatalist = {} end 
+  if type(metadatalist) ~= 'table' then metadatalist = {} end
+  if type(srclist) ~= 'table' then srclist = {} end
+  
   local childs = {}
   for i, folder in ipairs(folderlist) do
     reaper.EnumerateFiles(folder,-1) -- Rescan
     local i = 0
     while reaper.EnumerateFiles(folder,i) do
       local filename = reaper.EnumerateFiles(folder,i)
-      local file = folder..separ..filename 
+      local file = folder..separ..filename
+      --msg(filename)
       local path, fn, ext = SplitFilename(filename)
-      if string.upper(ext) == 'WAV' or string.upper(ext) == 'FLAC'
-      or string.upper(ext) == 'MP3' or string.upper(ext) == 'OGG' then
+      
+      if ext and
+      ( string.upper(ext) == 'WAV' or string.upper(ext) == 'FLAC'
+      or string.upper(ext) == 'MP3' or string.upper(ext) == 'OGG') then
+        
         table.insert(filelist,file)
+        --srclist[file] = tmp_source
+        
+        if string.upper(ext) == 'WAV' or string.upper(ext) == 'FLAC' then
+          local tmp_source = reaper.PCM_Source_CreateFromFile(file)
+          metadatalist[file] = save_metadata(tmp_source,TagsList)
+          reaper.PCM_Source_Destroy(tmp_source)
+        end
+        
       end
       
-      if string.upper(ext) == 'WAV' or string.upper(ext) == 'FLAC' then
-        local tmp_source = reaper.PCM_Source_CreateFromFile(file)
-        metadatalist[file] = save_metadata(tmp_source,TagsList)
-        reaper.PCM_Source_Destroy(tmp_source)
-      end
       i = i + 1
     end
     reaper.EnumerateSubdirectories(folder,-1) -- Rescan
@@ -2488,9 +2876,9 @@ function GetAllFiles(folderlist,filelist,metadatalist)
     end
   end
   if #childs == 0 then
-    return filelist, metadatalist
+    return filelist, metadatalist, srclist
   else
-    return GetAllFiles(childs,filelist,metadatalist)
+    return GetAllFiles(childs,filelist,metadatalist,srclist)
   end
 end
 
@@ -2528,3 +2916,7 @@ function FieldMatch(Table,value, AddRemoveFlag) -- can remove only first finded 
 end
 
 -----------------------------------
+function escape_pattern(s)
+    return (s:gsub("([%(%)%.%%%+%-%*%?%[%]%^%$])", "%%%1"))
+end
+-----------------------------

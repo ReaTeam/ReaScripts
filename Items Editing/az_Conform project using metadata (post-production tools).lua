@@ -1,10 +1,13 @@
 -- @description Conform project using metadata (post-production tools)
 -- @author AZ
--- @version 0.7.3
+-- @version 0.8
 -- @changelog
---   - Fixed damaged part in 0.7.2 version
---   - Fixed bug breaks linking process
---   - UI improvement, process notification
+--   - Fix some crush bugs
+--   - Simplify UI and UX for linking section
+--   - New option to group linked tracks above
+--   - New option to ignore duplicated items
+--   - Improve performance for linking process
+--   - Add export EDl feature
 -- @provides
 --   az_Conform project using metadata (post-production tools)/az_Conform project_Core.lua
 --   [main] az_Conform project using metadata (post-production tools)/az_Rename takes with last used settings (post-production tools).lua

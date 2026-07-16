@@ -16,7 +16,7 @@ dofile(file)
 --------------START----------------
 
   local renameStr = reaper.GetExtState(ExtStateName, 'RenameStr')
-  if renameStr == '' then renameStr = '@SCENE-T@TAKE_@fieldRecTRACK' end
+  if renameStr == '' then renameStr = '@SCENE_T@TAKE_@fieldRecTRACK' end
   
   local noteStr = reaper.GetExtState(ExtStateName, 'NoteStr')
   if noteStr == '' then noteStr = '@NOTE' end
