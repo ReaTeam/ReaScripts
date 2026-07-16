@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="6bed75eabc3b3f14088f0276d465a3a65c70591a" name="ReaTeam Scripts">
+<index version="1" commit="fb619210c6dcf2370b8839afa47712cfd6ffa0b9" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -11072,11 +11072,11 @@ Renumber markers and regions when pasting]]></changelog>
     </reapack>
     <reapack name="cfillion_Step sequencing (replace mode).lua" type="script" desc="Step sequencing (replace mode)">
       <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Step sequencing (replace mode)\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel1 \b \fs32 Step sequencing (replace mode)\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 This script is an alternative to the native step recording feature. Existing notes under the edit cursor are replaced (lowest first). The MIDI editor's active note row is updated as new notes are played.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 An options action is provided to individually toggle replacing channel/pitch/velocity and skipping unselected notes.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Note that this script automatically inserts and removes an helper JSFX in the active track's input FX chain in order to receive live MIDI input.\par}
@@ -11141,6 +11141,12 @@ Use ReaImGui for displaying the options menu (if installed)]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/9a18d6e0740cd6b54d5f80585f4db23f86ce0e64/MIDI%20Editor/cfillion_Step%20sequencing%20(replace%20mode).lua</source>
         <source main="midi_editor" file="cfillion_Step sequencing (options).lua">https://github.com/ReaTeam/ReaScripts/raw/9a18d6e0740cd6b54d5f80585f4db23f86ce0e64/MIDI%20Editor/cfillion_Step%20sequencing%20(replace%20mode).lua</source>
         <source type="effect" file="cfillion_Step sequencing (replace mode).jsfx">https://github.com/ReaTeam/ReaScripts/raw/9a18d6e0740cd6b54d5f80585f4db23f86ce0e64/MIDI%20Editor/cfillion_Step%20sequencing%20(replace%20mode).jsfx</source>
+      </version>
+      <version name="1.1.5" author="cfillion" time="2026-07-16T08:31:52Z">
+        <changelog><![CDATA[Fix incorrect font size with ReaImGui 0.10+ and improve gfx fallback on ARM macOS]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/fb619210c6dcf2370b8839afa47712cfd6ffa0b9/MIDI%20Editor/cfillion_Step%20sequencing%20(replace%20mode).lua</source>
+        <source main="midi_editor" file="cfillion_Step sequencing (options).lua">https://github.com/ReaTeam/ReaScripts/raw/fb619210c6dcf2370b8839afa47712cfd6ffa0b9/MIDI%20Editor/cfillion_Step%20sequencing%20(replace%20mode).lua</source>
+        <source type="effect" file="cfillion_Step sequencing (replace mode).jsfx">https://github.com/ReaTeam/ReaScripts/raw/fb619210c6dcf2370b8839afa47712cfd6ffa0b9/MIDI%20Editor/cfillion_Step%20sequencing%20(replace%20mode).jsfx</source>
       </version>
     </reapack>
     <reapack name="cfillion_Toggle MIDI preview on transport change.lua" type="script" desc="Toggle MIDI preview on transport change">
