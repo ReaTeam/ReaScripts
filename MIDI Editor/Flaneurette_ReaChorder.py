@@ -1,6 +1,6 @@
 # @description ReaChorder
 # @author Flaneurette
-# @version 2.0
+# @version 2.1
 # @provides
 #   [linux main] .
 #   [windows main] .
