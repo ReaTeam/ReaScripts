@@ -534,7 +534,28 @@ class DrumSection(RSStateManager):
         return item
 
     def _drumpatterns_path(self):
-        return os.path.join(sys.path[0], 'drumpatterns.json')
+        import os
+        from reaper_python import RPR_GetResourcePath
+
+        # Define possible locations in order of preference
+        possible_paths = [
+            # 1. Relative to this module
+            os.path.join(os.path.dirname(__file__), 'drumpatterns.json'),
+            # 2. One level up (package root)
+            os.path.join(os.path.dirname(os.path.dirname(__file__)), 'drumpatterns.json'),
+            # 3. REAPER's resource path
+            os.path.join(RPR_GetResourcePath(), 'Scripts', 'ReaChorder', 'drumpatterns.json'),
+            # 4. Fallback to sys.path[0]
+            os.path.join(sys.path[0], 'drumpatterns.json')
+        ]
+
+        for path in possible_paths:
+            if os.path.exists(path):
+                return path
+
+        RPR_ShowConsoleMsg("ERROR: drumpatterns.json not found in any location!\n")
+        RPR_ShowConsoleMsg(f"Checked paths:\n  - {possible_paths[0]}\n  - {possible_paths[1]}\n  - {possible_paths[2]}\n  - {possible_paths[3]}\n")
+        return None
 
     def getPattern(self):
         uri = self._drumpatterns_path()
@@ -585,7 +606,7 @@ class DrumSection(RSStateManager):
     def savePattern(self):
 
         self.sortBank()
-        uri = sys.path[0] + '\\drumpatterns.json'
+        uri = self._drumpatterns_path()
         data = list(self.midiBank)
         prompter = simpledialog.askstring("Save pattern", "Pattern name:")
 
