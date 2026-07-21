@@ -1,0 +1,30 @@
+TODO:
+=====
+* Guitar Chords Tab integration
+* Better control over the 1st and 2nd chord inversions (Less random, less jumping)
+* Chord left-hand patterns (ballad etc)
+* (even) better melody generation: Markov chain prediction.
+* Melody phrasing option. 
+* Syllable count option.
+
+21-07-2026
+==========
+
++ Fixed the listing of drum patterns
++ Fixed the freezing on Linux (only drew upon closure)
++ By default the chord section is now always checked, unless manually unchecked.
+- removed one copyrighted drum pattern (was from a unknown? song)
+- no longer supporting the windows binary .exe installer.
+
+12-12-2017
+==========
++ New tab: Guitar
++ Import error handling, useful for working with PyScripter.
+- Code cleanup
+
+30-11-2017
+==========
++ Layout adjustment
++ Draw MIDI Button is now visible on all tabs
++ Somewhat better melody generation, not complete yet.
+- Code cleanup.

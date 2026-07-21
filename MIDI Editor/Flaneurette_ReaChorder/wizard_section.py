@@ -1,5 +1,3 @@
-# @noindex
-
 try:
     import tkinter
     from tkinter import ttk, font, RAISED

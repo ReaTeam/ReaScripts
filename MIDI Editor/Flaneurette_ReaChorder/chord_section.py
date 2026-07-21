@@ -1,5 +1,3 @@
-# @noindex
-
 try:
     from reaper_python import *
 except ImportError:
@@ -134,6 +132,7 @@ class ChordSection(RSStateManager):
         
         self.drawOrNot = self.newControlIntVar("draw", 1)
         self.cDrawOrNot = tkinter.Checkbutton(self.parent, variable=self.drawOrNot)
+        self.drawOrNot.set(1)
         self.highlight = self.newControlIntVar("highlight", 1)
         self.cHighlight = tkinter.Checkbutton(self.parent, variable=self.highlight)
         self.channel = self.newControlIntVar("channel", 1)
