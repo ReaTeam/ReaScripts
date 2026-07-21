@@ -1,5 +1,3 @@
-# @noindex
-
 try:
     from reaper_python import *
 except ImportError:
@@ -35,6 +33,10 @@ except ImportError:
     pass
 try:
     import json
+except ImportError:
+    pass
+try:
+    import os
 except ImportError:
     pass
 
@@ -529,47 +531,53 @@ class DrumSection(RSStateManager):
             item = c.find_below(item)
         return item
 
-    def getPattern(self):
+    def _drumpatterns_path(self):
+        return os.path.join(sys.path[0], 'drumpatterns.json')
 
-        uri = sys.path[0] + '\\drumpatterns.json'
+    def getPattern(self):
+        uri = self._drumpatterns_path()
         pat = ['Select pattern or draw below...']
+        if not os.path.isfile(uri):
+            self.msg('drumpatterns.json not found at ' + uri)
+            return pat
         with open(uri, 'r') as f:
-             data = json.load(f)
-        for i in range(0,len(data)):
+            data = json.load(f)
+        for i in range(0, len(data)):
             try:
-               pat.append(data[i][0][0])
-            except:
-                pass
+                pat.append(data[i][0][0])
+            except Exception as e:
+                self.msg('getPattern entry error: ' + str(e))
         return pat
 
-    def getJSONPattern(self,id):
-        uri = sys.path[0] + '\\drumpatterns.json'
-        pat = []
+    def getJSONPattern(self, id):
+        uri = self._drumpatterns_path()
         with open(uri, 'r') as f:
-             data = json.load(f)
-             pat = list(data[id][0][1])
+            data = json.load(f)
+            pat = list(data[id][0][1])
         return pat
 
     def getList(self):
-        uri = sys.path[0] + '\\drumpatterns.json'
-        pat = []
+        uri = self._drumpatterns_path()
+        self.rc.DrumPatterns = []   # clear first — see note below
+        if not os.path.isfile(uri):
+            return []
         with open(uri, 'r') as f:
-             data = json.load(f)
-        for i in range(0,len(data)):
+            data = json.load(f)
+        for i in range(0, len(data)):
             try:
-               self.rc.DrumPatterns.append(data[i][0][1])
-            except:
-                pass
-        return pat
-
+                self.rc.DrumPatterns.append(data[i][0][1])
+            except Exception as e:
+                self.msg('getList entry error: ' + str(e))
+        return []
+    
     def updateMenu(self):
-         self.cachebust('\\drumpatterns.json')
+         self.cachebust('drumpatterns.json')
          try:
-            loadlists = self.getList()
+            self.getList()
             patterns = self.getPattern()
             self.drummer['values'] = patterns
-         except:
-             pass
+         except Exception as e:
+             RPR_ShowConsoleMsg('ReaChorder: pattern load failed - ' + str(e) + '\n')
          return
 
     def savePattern(self):

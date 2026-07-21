@@ -1,5 +1,3 @@
-# @noindex
-
 try:
     import sys
 except ImportError:

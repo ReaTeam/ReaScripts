@@ -1,5 +1,3 @@
-# @noindex
-
 class Scales(object):
     '''
     Lots and lots of scales, thanks to Zappadave from

@@ -1,5 +1,3 @@
-# @noindex
-
 try:
     from reaper_python import *
 except ImportError:
