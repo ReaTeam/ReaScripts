@@ -1,5 +1,3 @@
-# @noindex
-
 try:
     import tkinter
     from tkinter import ttk, font, RAISED
@@ -199,28 +197,26 @@ class Wizard:
         inKey = (int(inKey) + 3) % 12
         rand = randint(0, 2)
         structure = int(structure)
-
+    
         if scale == 'Major':
             chartselect = self.rc.KeyChartMajor[int(inKey)-1]
-            useCircle = self.rc.circleFifthsOuter[int(inKey)-1][int(rand)]
         else: #minor
             chartselect = self.rc.KeyChartMinor[int(inKey)-1]
-            useCircle = self.rc.circleFifthsInner[int(inKey)-1][int(rand)]
-
+    
         verse = '\n--------------------------------------------------\n'
         verse += 'Verse:  '
-
+    
         #here we put an empty list in the "V" key in the dictionary, ready
         #for the chord names...
         self.song["V"]=[]
-
+    
         if mList != '':
             newList = [int(x) for x in mList.split(',')]
             self.msg(newList)
             moodArr = newList
         else:
             moodArr = self.rc.progressions[int(mood)-1]
-
+    
         for i, val in enumerate(moodArr):
             if isinstance(val, str): break
             x = int(chartselect[int(val)])
@@ -228,15 +224,21 @@ class Wizard:
             #... and we add them
             self.song["V"].append(chord_name)
             verse += chord_name + '  '
-
+    
         chorus = '\n--------------------------------------------------\n'
         chorus += 'Chorus: '
-
+    
+        # Pick a different progression than the verse for genuine contrast,
+        # while staying in the same key (chartselect) so it's always diatonic.
+        numProgs = len(self.rc.progressions)
+        chorusProgIndex = (int(mood) - 1 + randint(1, numProgs - 1)) % numProgs
+        chorusArr = self.rc.progressions[chorusProgIndex]
+    
         #init "C"horus list...
         self.song["C"]=[]
-        for i, val in enumerate(moodArr):
+        for i, val in enumerate(chorusArr):
             if isinstance(val, str): break
-            x = int(useCircle[int(val)])
+            x = int(chartselect[int(val)])
             chord_name = str(self.rc.Chords[x][self.rc.pChordName])
             self.song["C"].append(chord_name)
             chorus += chord_name + '  '
@@ -257,6 +259,6 @@ class Wizard:
                     else:
                         data+=chorus
         return 'Proposed chord progression for a song' + data
-
+    
     def msg(self,m):
         reaChord_data.msg(m)

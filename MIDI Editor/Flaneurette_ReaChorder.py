@@ -286,7 +286,14 @@ class ReaChord(RSStateManager):
         msg(m)
 
 
+def guiLoop():
+    try:
+        root.update()
+    except tkinter.TclError:
+        return  # window was closed
+    RPR_defer("guiLoop()")
+
 if __name__ == '__main__':
     root = tkinter.Tk()
-    ReaChord(root)
-    root.mainloop()
+    app = ReaChord(root)
+    guiLoop()
