@@ -1,7 +1,7 @@
 -- @description Show path from list menu (Resource, Selected Item, Project File, Record, Secondary Record, Render)
 -- @author amagalma
--- @version 1.14
--- @changelog - "Added touched or focused FX"
+-- @version 1.15
+-- @changelog - Fixed navigating to the path of the selected script in the Actions list, for versions of Reaper that show the path as "(scripts)"
 -- @link https://forum.cockos.com/showthread.php?t=239556
 -- @screenshot https://i.ibb.co/vhMDkZn/Show-path-from-list-menu.gif
 -- @donation https://www.paypal.me/amagalma
@@ -170,8 +170,9 @@ if selection > 0 then
       else -- unix
         absolute = path:match("^/")
       end
-      reaper.CF_LocateInExplorer( (absolute and "" or reaper.GetResourcePath() .. sep .. "Scripts" .. sep) ..
-      path .. sep .. name )
+      local navigate = (absolute and "" or reaper.GetResourcePath() .. sep .. "Scripts" .. sep) ..
+      (path ~= "(scripts)" and (path .. sep) or "").. name
+      reaper.CF_LocateInExplorer( navigate )
     end
     
   elseif selection == 9 then --------------------
