@@ -1,10 +1,12 @@
 # @description GuitarChorder
 # @author Flaneurette
-# @version 2.0
-# @changelog update
+# @version 2.1 (refactored)
+# @changelog de-duplicated per-letter GUI/logic code
 # @provides
 #   [main=midi_editor,midi_inlineeditor windows] .
 #   [main=midi_editor,midi_inlineeditor linux] .
+# @about
+#   GuitarChorder gives you access to all guitarchords. With it, you can draw MIDI guitar chords, with many attack style from finger picking to strumming. 
 
 try:
     from reaper_python import *
@@ -17,8 +19,8 @@ except:
     RPR_ShowConsoleMsg('Could not load sws_python!')
 try:
     import sys
-    sys.argv=["Main"]
-    if  sys.hexversion >= 0x03000000:
+    sys.argv = ["Main"]
+    if sys.hexversion >= 0x03000000:
         import tkinter
         from tkinter import ttk, Tk, StringVar, TclError, Button, Spinbox, Label
         from tkinter import *
@@ -30,25 +32,25 @@ try:
         from ttk import Button as ttkButton
 except:
     RPR_ShowConsoleMsg('Could not import SYS!')
-    
+
 
 # Fingerpick patterns
 
 fingerPick = [
     [2,2,5,4,3,2,5],
-    [2,2,3,4,5,4,3],   
-    [2,2,2,4,2,4,5],                         
+    [2,2,3,4,5,4,3],
+    [2,2,2,4,2,4,5],
     [2,4,2,4,2,5,4],
     [2,2,4,5,4,3,5],
     [2,2,5,4,3,2,4],
     [2,2,5,2,4,2,4],
-    [2,2,4,5,3,4,5],                       
+    [2,2,4,5,3,4,5],
     [2,2,5,4,3,5,4],
     [2,2,4,2,4,3,2],
-    [2,2,4,5,4,5,4],                       
+    [2,2,4,5,4,5,4],
     [2,2,5,3,4,5,4]
-] 
-   
+]
+
 GuitarChordsA = [
     ['Am',45,52,57,60,64],
     ['Amaj',45,52,57,61,64],
@@ -174,7 +176,6 @@ GuitarChordsB = [
     ['Bmaj9',47,51,58,61,66],
     ['Bsus2',49,54,59,66],
     ['Bsus4',54,59,64,66]
-    
 ]
 
 GuitarChordsC = [
@@ -485,55 +486,61 @@ GuitarChordsG = [
 ]
 
 strumPat = ('Even','DOWN Slow','DOWN Fast','UP Slow','UP Fast','Fingerpick 1','Fingerpick 2','Fingerpick 3','Fingerpick 4','Fingerpick 5','Fingerpick 6','Fingerpick 7','Fingerpick 8','Fingerpick 9','Fingerpick 10','Fingerpick 11','Fingerpick 12')
-humanizePat = ('None','Attack','Velocity')
 
-entriesStructuresA = ('A:',)
-entriesStructuresB = ('B:',)
-entriesStructuresC = ('C:',)
-entriesStructuresD = ('D:',)
-entriesStructuresE = ('E:',)
-entriesStructuresF = ('F:',)
-entriesStructuresG = ('G:',)
-pStructureNameA = 0  
-pStructureNameB = 0  
-pStructureNameC = 0 
-pStructureNameD = 0 
-pStructureNameE = 0 
-pStructureNameF = 0 
-pStructureNameG = 0 
+# --- Consolidated per-letter data (replaces 7x near-identical blocks) ---
+LETTERS = ('A', 'B', 'C', 'D', 'E', 'F', 'G')
+CHORD_LISTS = (GuitarChordsA, GuitarChordsB, GuitarChordsC, GuitarChordsD,
+               GuitarChordsE, GuitarChordsF, GuitarChordsG)
+ENTRY_STRUCTURES = [
+    (letter + ':',) + tuple(entry[0] for entry in chords)
+    for letter, chords in zip(LETTERS, CHORD_LISTS)
+]
 
-for i, val in enumerate(GuitarChordsA):                 
-    entriesStructuresA+=(val[pStructureNameA],)
 
-for i, val in enumerate(GuitarChordsB):                 
-    entriesStructuresB+=(val[pStructureNameB],)
-    
-for i, val in enumerate(GuitarChordsC):                 
-    entriesStructuresC+=(val[pStructureNameC],)   
-    
-for i, val in enumerate(GuitarChordsD):                 
-    entriesStructuresD+=(val[pStructureNameD],)
-    
-for i, val in enumerate(GuitarChordsE):                 
-    entriesStructuresE+=(val[pStructureNameE],)
+def pattern_step(pat_index):
+    """Return (step, direction, fingerpick_indices) for a strum-pattern index."""
+    if pat_index == 1:
+        return 240, 0, None      # DOWN Slow
+    if pat_index == 2:
+        return 120, 0, None      # DOWN Fast
+    if pat_index == 3:
+        return 240, 1, None      # UP Slow
+    if pat_index == 4:
+        return 120, 1, None      # UP Fast
+    if 5 <= pat_index <= 16:
+        return 240, 2, fingerPick[pat_index - 5]   # Fingerpick 1-12
+    return 0, 0, None            # Even / unrecognized
 
-for i, val in enumerate(GuitarChordsF):                 
-    entriesStructuresF+=(val[pStructureNameF],)
-    
-for i, val in enumerate(GuitarChordsG):                 
-    entriesStructuresG+=(val[pStructureNameG],)
-    
+
+def build_chord_array(chord_entry, direction, arr_idx):
+    """Return (notes, range_start, range_end) for a chord entry + strum direction."""
+    if direction == 0:                     # forward (skip index 0 = chord name)
+        return chord_entry, 1, 0
+    if direction == 2:                     # fingerpicked reorder
+        return [chord_entry[idx - 1] for idx in arr_idx], 1, 0
+    return chord_entry[::-1], 0, 1         # reversed (name ends up last)
+
+
+def write_chord_notes(midi_take, channel, velocity, position, length, selected,
+                       chord_array, range_start, range_end, step):
+    for i in range(range_start, len(chord_array) - range_end):
+        if i == range_start:
+            addNote(midi_take, channel, velocity, position, int(chord_array[i]), length, selected)
+        else:
+            addNote(midi_take, channel, velocity,
+                    int(position + step * i), int(chord_array[i]),
+                    int(length - step * i), selected)
+
 
 class G(object):
-    
-    
+
     def __init__(self, root):
 
         self.root = root
         self.root.title('Guitar Chorder')
         self.root.wait_visibility(self.root)
         self.root.wm_attributes("-topmost", 1)
-        
+
         if sys.platform == 'win32' or sys.platform.startswith('win') or sys.platform == 'cygwin':
             paddOS = 30
             h = 300
@@ -545,1082 +552,149 @@ class G(object):
                 h = 310
                 w = 275
                 pass
-                
+
         elif sys.platform == "mac" or sys.platform == "darwin" or sys.platform.startswith('mac'):
             paddOS = 44
             h = 390
-            w = 340 
+            w = 340
             self.root.resizable(width=FALSE, height=FALSE)
             try:
                 style = ttk.Style()
                 style.theme_use('alt')
             except:
                 style = ttk.Style()
-                style.theme_use('default') 
-        else:            
+                style.theme_use('default')
+        else:
             paddOS = 30
-            h = 300
-            w = 270
+            h = 330
+            w = 295
             try:
                 style = ttk.Style()
                 style.theme_use('default')
             except:
                 style = ttk.Style()
-                style.theme_use('alt') 
-                
-            
+                style.theme_use('alt')
+
         # center the window
         sw = self.root.winfo_screenwidth()
-        sh = self.root.winfo_screenheight() 
-        x = (sw - w)/2
-        y = (sh - h)/2
+        sh = self.root.winfo_screenheight()
+        x = (sw - w) / 2
+        y = (sh - h) / 2
         self.root.geometry('%dx%d+%d+%d' % (w, h, x, y))
 
         # Widget Initialization
-        
         root.configure(background='#c9cfcf')
-        
-        
+
         self.fram = tkinter.LabelFrame(root)
-        
-        self._label_2 = tkinter.Label(self.fram,
-            text = "Pos",
-        )
-        self._label_3 = tkinter.Label(self.fram,
-            text = "Chord",
-        )
-        
-        self._label_4 = tkinter.Label(self.fram,
-            text = "Attack",
-        ) 
-        
+
+        self._label_2 = tkinter.Label(self.fram, text="Pos")
+        self._label_3 = tkinter.Label(self.fram, text="Chord")
+        self._label_4 = tkinter.Label(self.fram, text="Attack")
+
         s = ttk.Style()
         s.configure('TCombobox', fieldbackground='#ffffff')
         self._label_2.configure(background='#dee4e4')
         self._label_3.configure(background='#dee4e4')
         self._label_4.configure(background='#dee4e4')
         self.fram.configure(background='#dee4e4')
-        
-        self.ChordA1 = ttk.Combobox(root, width=8,  height=8, values=entriesStructuresA
-        )
-        self.ChordB1 = ttk.Combobox(root, width=8, height=8,  values=entriesStructuresB
-        )
-        self.ChordC1 = ttk.Combobox(root, width=8, height=8,  values=entriesStructuresC
-        )
-        self.ChordD1 = ttk.Combobox(root, width=8, height=8,  values=entriesStructuresD
-        )
-        self.ChordE1 = ttk.Combobox(root, width=8, height=8,  values=entriesStructuresE
-        )
-        self.ChordF1 = ttk.Combobox(root, width=8, height=8,  values=entriesStructuresF
-        )
-        self.ChordG1 = ttk.Combobox(root, width=8, height=8,  values=entriesStructuresG
-        )
 
-        self.ChordA1.current(0)
-        self.ChordB1.current(0)
-        self.ChordC1.current(0)
-        self.ChordD1.current(0)
-        self.ChordE1.current(0)
-        self.ChordF1.current(0)
-        self.ChordG1.current(0)
-        
+        self._label_2.grid(in_=self.fram, column=1, row=2, padx=0, pady=7, sticky="")
+        self._label_3.grid(in_=self.fram, column=2, row=2, padx=0, pady=7, sticky="")
+        self._label_4.grid(in_=self.fram, column=3, row=2, padx=0, pady=7, sticky="")
 
-        
-        self._button_1 = ttk.Button(root, text = "Draw chords", command=self._draw_midi
-        )
-        self.PosA1 = tkinter.Spinbox(root,from_=0,to=7,width=2,
-        )
-        self.PosB1 = tkinter.Spinbox(root,from_=0,to=7,width=2,
-        )
-        self.PosC1 = tkinter.Spinbox(root,from_=0,to=7,width=2,
-        )
-        self.PosD1 = tkinter.Spinbox(root,from_=0,to=7,width=2,
-        )
-        self.PosE1 = tkinter.Spinbox(root,from_=0,to=7,width=2,
-        )
-        self.PosF1 = tkinter.Spinbox(root,from_=0,to=7,width=2,
-        )
-        self.PosG1 = tkinter.Spinbox(root,from_=0,to=7,width=2,
-        )
-        
-        self.Pat1 = ttk.Combobox(root, width=12, height=8, values=strumPat
-        )
-        self.Pat2 = ttk.Combobox(root, width=12, height=8,  values=strumPat
-        )
-        self.Pat3 = ttk.Combobox(root, width=12, height=8,  values=strumPat
-        )
-        self.Pat4 = ttk.Combobox(root, width=12, height=8,  values=strumPat
-        )
-        self.Pat5 = ttk.Combobox(root, width=12, height=8,  values=strumPat
-        )
-        self.Pat6 = ttk.Combobox(root, width=12, height=8,  values=strumPat
-        )
-        self.Pat7 = ttk.Combobox(root, width=12, height=8,  values=strumPat
-        )
-        
-        self.Pat1.current(0)
-        self.Pat2.current(0)
-        self.Pat3.current(0)
-        self.Pat4.current(0)
-        self.Pat5.current(0)
-        self.Pat6.current(0)
-        self.Pat7.current(0)
+        # One row of widgets per letter (A-G), built in a loop instead of
+        # being declared and gridded seven times over.
+        self.pos_spins = []
+        self.chord_combos = []
+        self.pat_combos = []
 
-        
+        for i, entry_values in enumerate(ENTRY_STRUCTURES):
+            row = 3 + i
+
+            pos_spin = tkinter.Spinbox(root, from_=0, to=7, width=2)
+            chord_combo = ttk.Combobox(root, width=8, height=8, values=entry_values)
+            chord_combo.current(0)
+            pat_combo = ttk.Combobox(root, width=12, height=8, values=strumPat)
+            pat_combo.current(0)
+
+            pos_spin.grid(in_=self.fram, column=1, row=row, padx=10, pady=5, sticky="")
+            chord_combo.grid(in_=self.fram, column=2, row=row, padx=10, pady=5, sticky="w")
+            pat_combo.grid(in_=self.fram, column=3, row=row, padx=10, pady=5, sticky="")
+
+            self.pos_spins.append(pos_spin)
+            self.chord_combos.append(chord_combo)
+            self.pat_combos.append(pat_combo)
+
+        self._button_1 = ttk.Button(root, text="Draw chords", command=self._draw_midi)
+
         # Geometry Management
-        self.fram.grid(
-            in_    = root,
-            column = 1,
-            row    = 1,
-            columnspan = 4,
-            ipadx = 0,
-            ipady = 0,
-            padx = 10,
-            pady = 10,
-            rowspan = 9,
-            sticky = "news"
-        )
-        
-        self._label_2.grid(
-            in_    = self.fram,
-            column = 1,
-            row    = 2,
-            columnspan = 1,
-            ipadx = 0,
-            ipady = 0,
-            padx = 0,
-            pady = 7,
-            rowspan = 1,
-            sticky = ""
-        )
-        self._label_3.grid(
-            in_    = self.fram,
-            column = 2,
-            row    = 2,
-            columnspan = 1,
-            ipadx = 0,
-            ipady = 0,
-            padx = 0,
-            pady = 7,
-            rowspan = 1,
-            sticky = ""
-        )
-        self._label_4.grid(
-            in_    = self.fram,
-            column = 3,
-            row    = 2,
-            columnspan = 1,
-            ipadx = 0,
-            ipady = 0,
-            padx = 0,
-            pady = 7,
-            rowspan = 1,
-            sticky = ""
-        )
-    
-        self.Pat1.grid(
-            in_    = self.fram,
-            column = 3,
-            row    = 3,
-            columnspan = 1,
-            ipadx = 0,
-            ipady = 0,
-            padx = 10,
-            pady = 5,
-            rowspan = 1,
-            sticky = ""
-        )
-        
-        self.Pat2.grid(
-            in_    = self.fram,
-            column = 3,
-            row    = 4,
-            columnspan = 1,
-            ipadx = 0,
-            ipady = 0,
-            padx = 10,
-            pady = 5,
-            rowspan = 1,
-            sticky = ""
-        )
+        self.fram.grid(in_=root, column=1, row=1, columnspan=4, padx=10, pady=10, rowspan=9, sticky="news")
 
-        self.Pat3.grid(
-            in_    = self.fram,
-            column = 3,
-            row    = 5,
-            columnspan = 1,
-            ipadx = 0,
-            ipady = 0,
-            padx = 10,
-            pady = 5,
-            rowspan = 1,
-            sticky = ""
-        )
-        self.Pat4.grid(
-            in_    = self.fram,
-            column = 3,
-            row    = 6,
-            columnspan = 1,
-            ipadx = 0,
-            ipady = 0,
-            padx = 10,
-            pady = 5,
-            rowspan = 1,
-            sticky = ""
-        )
-        self.Pat5.grid(
-            in_    = self.fram,
-            column = 3,
-            row    = 7,
-            columnspan = 1,
-            ipadx = 0,
-            ipady = 0,
-            padx = 10,
-            pady = 5,
-            rowspan = 1,
-            sticky = ""
-        )
-        self.Pat6.grid(
-            in_    = self.fram,
-            column = 3,
-            row    = 8,
-            columnspan = 1,
-            ipadx = 0,
-            ipady = 0,
-            padx = 10,
-            pady = 5,
-            rowspan = 1,
-            sticky = ""
-        )
-        self.Pat7.grid(
-            in_    = self.fram,
-            column = 3,
-            row    = 9,
-            columnspan = 1,
-            ipadx = 0,
-            ipady = 0,
-            padx = 10,
-            pady = 5,
-            rowspan = 1,
-            sticky = ""
-        )    
-        
-        self.ChordA1.grid(
-            in_    = self.fram,
-            column = 2,
-            row    = 3,
-            columnspan = 1,
-            ipadx = 0,
-            ipady = 0,
-            padx = 10,
-            pady = 5,
-            rowspan = 1,
-            sticky = "w"
-        )
-        self.ChordB1.grid(
-            in_    = self.fram,
-            column = 2,
-            row    = 4,
-            columnspan = 1,
-            ipadx = 0,
-            ipady = 0,
-            padx = 10,
-            pady = 5,
-            rowspan = 1,
-            sticky = "w"
-        )
-        self.ChordC1.grid(
-            in_    = self.fram,
-            column = 2,
-            row    = 5,
-            columnspan = 1,
-            ipadx = 0,
-            ipady = 0,
-            padx = 10,
-            pady = 5,
-            rowspan = 1,
-            sticky = "w"
-        )
-        self.ChordD1.grid(
-            in_    = self.fram,
-            column = 2,
-            row    = 6,
-            columnspan = 1,
-            ipadx = 0,
-            ipady = 0,
-            padx = 10,
-            pady = 5,
-            rowspan = 1,
-            sticky = "w"
-        )
-        self.ChordE1.grid(
-            in_    = self.fram,
-            column = 2,
-            row    = 7,
-            columnspan = 1,
-            ipadx = 0,
-            ipady = 0,
-            padx = 10,
-            pady = 5,
-            rowspan = 1,
-            sticky = "w"
-        )
-        self.ChordF1.grid(
-            in_    = self.fram,
-            column = 2,
-            row    = 8,
-            columnspan = 1,
-            ipadx = 0,
-            ipady = 0,
-            padx = 10,
-            pady = 5,
-            rowspan = 1,
-            sticky = "w"
-        )
-        self.ChordG1.grid(
-            in_    = self.fram,
-            column = 2,
-            row    = 9,
-            columnspan = 1,
-            ipadx = 0,
-            ipady = 0,
-            padx = 10,
-            pady = 5,
-            rowspan = 1,
-            sticky = "w"
-        )
+        self._button_1.grid(in_=self.fram, column=1, row=10, columnspan=3, padx=10, pady=5, sticky="")
 
-        self.PosA1.grid(
-            in_    = self.fram,
-            column = 1,
-            row    = 3,
-            columnspan = 1,
-            ipadx = 0,
-            ipady = 0,
-            padx = 10,
-            pady = 5,
-            rowspan = 1,
-            sticky = ""
-        )
-        self.PosB1.grid(
-            in_    = self.fram,
-            column = 1,
-            row    = 4,
-            columnspan = 1,
-            ipadx = 0,
-            ipady = 0,
-            padx = 10,
-            pady = 5,
-            rowspan = 1,
-            sticky = ""
-        )
-        self.PosC1.grid(
-            in_    = self.fram,
-            column = 1,
-            row    = 5,
-            columnspan = 1,
-            ipadx = 0,
-            ipady = 0,
-            padx = 10,
-            pady = 5,
-            rowspan = 1,
-            sticky = ""
-        )
-        self.PosD1.grid(
-            in_    = self.fram,
-            column = 1,
-            row    = 6,
-            columnspan = 1,
-            ipadx = 0,
-            ipady = 0,
-            padx = 10,
-            pady = 5,
-            rowspan = 1,
-            sticky = ""
-        )
-        self.PosE1.grid(
-            in_    = self.fram,
-            column = 1,
-            row    = 7,
-            columnspan = 1,
-            ipadx = 0,
-            ipady = 0,
-            padx = 10,
-            pady = 5,
-            rowspan = 1,
-            sticky = ""
-        )
-        self.PosF1.grid(
-            in_    = self.fram,
-            column = 1,
-            row    = 8,
-            columnspan = 1,
-            ipadx = 0,
-            ipady = 0,
-            padx = 10,
-            pady = 5,
-            rowspan = 1,
-            sticky = ""
-        )
-        self.PosG1.grid(
-            in_    = self.fram,
-            column = 1,
-            row    = 9,
-            columnspan = 1,
-            ipadx = 0,
-            ipady = 0,
-            padx = 10,
-            pady = 5,
-            rowspan = 1,
-            sticky = ""
-        )
-        
-        self._button_1.grid(
-            in_    = self.fram,
-            column = 1,
-            row    = 10,
-            columnspan = 3,
-            ipadx = 0,
-            ipady = 0,
-            padx = 10,
-            pady = 5,
-            rowspan = 1,
-            sticky = ""
-        )
-        
         # Resize Behavior
-        root.grid_rowconfigure(1, weight = 0, minsize = 5, pad = 0)
-        root.grid_rowconfigure(2, weight = 0, minsize = 24, pad = 0)
-        root.grid_rowconfigure(3, weight = 0, minsize = paddOS, pad = 0)
-        root.grid_rowconfigure(4, weight = 0, minsize = paddOS, pad = 0)
-        root.grid_rowconfigure(5, weight = 0, minsize = paddOS, pad = 0)
-        root.grid_rowconfigure(6, weight = 0, minsize = paddOS, pad = 0)
-        root.grid_rowconfigure(7, weight = 0, minsize = paddOS, pad = 0)
-        root.grid_rowconfigure(8, weight = 0, minsize = paddOS, pad = 0)
-        root.grid_rowconfigure(9, weight = 0, minsize = paddOS, pad = 0)
-        root.grid_rowconfigure(10, weight = 0, minsize = paddOS, pad = 0)
-        root.grid_columnconfigure(1, weight = 0, minsize = 50, pad = 0)
-        root.grid_columnconfigure(2, weight = 0, minsize = 80, pad = 0)
-        root.grid_columnconfigure(3, weight = 0, minsize = 80, pad = 0)
-        
+        root.grid_rowconfigure(1, weight=0, minsize=5, pad=0)
+        root.grid_rowconfigure(2, weight=0, minsize=24, pad=0)
+        for r in range(3, 11):
+            root.grid_rowconfigure(r, weight=0, minsize=paddOS, pad=0)
+        root.grid_columnconfigure(1, weight=0, minsize=50, pad=0)
+        root.grid_columnconfigure(2, weight=0, minsize=80, pad=0)
+        root.grid_columnconfigure(3, weight=0, minsize=80, pad=0)
+
     def _draw_midi(self):
-        
+
         channel = 1
         velocity = 96
         length = 1920
         steps = 1920
         selected = 1
         position = 0
-        barlen = 1
-        
-        try:
-            selAllNotesTselection()
-            deleteSelectedNotes()
-        except:
-            self.selAllNotesTselection()
-            self.deleteSelectedNotes()       
-        
-        try:
-            take = getActTakeInEditor()
-            midiTake = allocateMIDITake(take)
-        except:
-            take = self.getActTakeInEditor()
-            midiTake = self.allocateMIDITake(take)        
-        
-        try:
-            patAtt1 = int(self.Pat1.current())
-        except TypeError:
-            patAtt1 = 0      
-        try:
-            patAtt2 = int(self.Pat2.current())
-        except TypeError:
-            patAtt2 = 0  
-        try:
-            patAtt3 = int(self.Pat3.current())
-        except TypeError:
-            patAtt3 = 0  
-        try:
-            patAtt4 = int(self.Pat4.current())
-        except TypeError:
-            patAtt4 = 0  
-        try:
-            patAtt5 = int(self.Pat5.current())
-        except TypeError:
-            patAtt5 = 0  
-        try:
-            patAtt6 = int(self.Pat6.current())
-        except TypeError:
-            patAtt6 = 0  
-        try:
-            patAtt7 = int(self.Pat7.current())
-        except TypeError:
-            patAtt7 = 0  
-            
- 
-        try:
-            chordA = int(self.ChordA1.current())
-        except TypeError:
-            chordA = 0 
-        try:
-            chordB = int(self.ChordB1.current())
-        except TypeError:
-            chordB = 0 
-        try:
-            chordC = int(self.ChordC1.current())
-        except TypeError:
-            chordC = 0 
-        try:
-            chordD = int(self.ChordD1.current())
-        except TypeError:
-            chordD = 0            
-        try:
-            chordE = int(self.ChordE1.current())
-        except TypeError:
-            chordE = 0            
-        try:
-            chordF = int(self.ChordF1.current())
-        except TypeError:
-            chordF = 0 
-        try:
-            chordG = int(self.ChordG1.current())
-        except TypeError:
-            chordG = 0 
-            
-            
-        try:
-            posA = int(self.PosA1.get())
-        except TypeError:
-            posA = 0
-        try:
-            posB = int(self.PosB1.get())
-        except TypeError:
-            posB = 0
-        try:
-            posC = int(self.PosC1.get())
-        except TypeError:
-            posC = 0
-        try:
-            posD = int(self.PosD1.get())
-        except TypeError:
-            posD = 0            
-        try:
-            posE = int(self.PosE1.get())
-        except TypeError:
-            posE = 0
-        try:
-            posF = int(self.PosF1.get())
-        except TypeError:
-            posF = 0            
-        try:
-            posG = int(self.PosG1.get())
-        except TypeError:
-            posG = 0             
-            
 
-        if chordA > 0 and chordA is not None:
-            barlen+=1
-        if chordB > 0 and chordB is not None:
-            barlen+=1
-        if chordC > 0 and chordC is not None:
-            barlen+=1
-        if chordD > 0 and chordD is not None:
-            barlen+=1
-        if chordE > 0 and chordE is not None:
-            barlen+=1
-        if chordF > 0 and chordF is not None:
-            barlen+=1
-        if chordG > 0 and chordG is not None:
-            barlen+=1
-            
-        for j in range(1,barlen):
-                     
-        
-            if j == posA :
-                if chordA > 0:
-                
-                    if patAtt1 == 1: 
-                       step = 240 # slow down
-                       direction = 0
-                    elif patAtt1 == 2: 
-                       step = 120 # fast down
-                       direction = 0
-                    elif patAtt1 == 3: 
-                       step = 240 # strum UP slow 
-                       direction = 1
-                    elif patAtt1 == 4: 
-                       step = 120 # strum UP fast 
-                       direction = 1
-                    elif patAtt1 == 5: 
-                       ArrIdx = fingerPick[0]
-                    elif patAtt1 == 6: 
-                       ArrIdx = fingerPick[1]  
-                    elif patAtt1 == 7: 
-                       ArrIdx = fingerPick[2]                       
-                    elif patAtt1 == 8: 
-                       ArrIdx = fingerPick[3]
-                    elif patAtt1 == 9: 
-                       ArrIdx = fingerPick[4]
-                    elif patAtt1 == 10: 
-                       ArrIdx = fingerPick[5]
-                    elif patAtt1 == 11: 
-                       ArrIdx = fingerPick[6]
-                    elif patAtt1 == 12: 
-                       ArrIdx = fingerPick[7]                      
-                    elif patAtt1 == 13: 
-                       ArrIdx = fingerPick[8]
-                    elif patAtt1 == 14: 
-                       ArrIdx = fingerPick[9]
-                    elif patAtt1 == 15: 
-                       ArrIdx = fingerPick[10]                       
-                    elif patAtt1 == 16: 
-                       ArrIdx = fingerPick[11]                   
-                       
-                    else:
-                       step = 0 #normal 
-                       direction = 0  
-                       
-                    if patAtt1 >= 5:
-                       step = 240
-                       direction = 2 
-                
-                    if direction == 0:
-                        chordArray = GuitarChordsA[chordA-1]
-                        rangeStart = 1
-                        rangeEnd = 0
-                    elif direction == 2:
-                        rangeStart = 1
-                        rangeEnd = 0
-                        chordArray1 = GuitarChordsA[chordA-1]   
-                        chordArray = [chordArray1[idx-1] for idx in ArrIdx ]
-                    else:
-                        tmp = GuitarChordsA[chordA-1]
-                        chordArray = tmp[::-1]
-                        rangeStart = 0
-                        rangeEnd = 1
-                    for i in range(rangeStart,len(chordArray)-rangeEnd):
-                        if i == rangeStart:
-                            note = addNote(midiTake,channel,velocity,position,int(chordArray[i]),length,selected)
-                        else:
-                            note = addNote(midiTake,channel,velocity, int(position + (step * i)),int(chordArray[i]), int(length -(step * i)),selected)
-                            
+        selAllNotesTselection()
+        deleteSelectedNotes()
+
+        take = getActTakeInEditor()
+        midiTake = allocateMIDITake(take)
+
+        # Read the state of all seven letter-rows up front.
+        slots = []
+        for chords, chord_combo, pos_spin, pat_combo in zip(
+                CHORD_LISTS, self.chord_combos, self.pos_spins, self.pat_combos):
+            try:
+                chord_index = int(chord_combo.current())
+            except TypeError:
+                chord_index = 0
+            try:
+                pos = int(pos_spin.get())
+            except TypeError:
+                pos = 0
+            try:
+                pat_index = int(pat_combo.current())
+            except TypeError:
+                pat_index = 0
+            slots.append({
+                'chords': chords,
+                'chord_index': chord_index,
+                'pos': pos,
+                'pat_index': pat_index,
+            })
+
+        barlen = 1 + sum(1 for s in slots if s['chord_index'] > 0)
+
+        for j in range(1, barlen):
+            for s in slots:
+                if j != s['pos']:
+                    continue
+                if s['chord_index'] > 0:
+                    step, direction, arr_idx = pattern_step(s['pat_index'])
+                    chord_entry = s['chords'][s['chord_index'] - 1]
+                    chord_array, range_start, range_end = build_chord_array(chord_entry, direction, arr_idx)
+                    write_chord_notes(midiTake, channel, velocity, position, length, selected,
+                                       chord_array, range_start, range_end, step)
                 position = position + steps
-        
-            if j == posB :
-                if chordB > 0:
-                
-                    if patAtt2 == 1: 
-                       step = 240 # slow down
-                       direction = 0
-                    elif patAtt2 == 2: 
-                       step = 120 # fast down
-                       direction = 0
-                    elif patAtt2 == 3: 
-                       step = 240 # strum UP slow 
-                       direction = 1
-                    elif patAtt2 == 4: 
-                       step = 120 # strum UP fast 
-                       direction = 1
-                    elif patAtt2 == 5: 
-                       ArrIdx = fingerPick[0]
-                    elif patAtt2 == 6: 
-                       ArrIdx = fingerPick[1]  
-                    elif patAtt2 == 7: 
-                       ArrIdx = fingerPick[2]                       
-                    elif patAtt2 == 8: 
-                       ArrIdx = fingerPick[3]
-                    elif patAtt2 == 9: 
-                       ArrIdx = fingerPick[4]
-                    elif patAtt2 == 10: 
-                       ArrIdx = fingerPick[5]
-                    elif patAtt2 == 11: 
-                       ArrIdx = fingerPick[6]
-                    elif patAtt2 == 12: 
-                       ArrIdx = fingerPick[7]                      
-                    elif patAtt2 == 13: 
-                       ArrIdx = fingerPick[8]
-                    elif patAtt2 == 14: 
-                       ArrIdx = fingerPick[9]
-                    elif patAtt2 == 15: 
-                       ArrIdx = fingerPick[10]                       
-                    elif patAtt2 == 16: 
-                       ArrIdx = fingerPick[11]                   
-                       
-                    else:
-                       step = 0 #normal 
-                       direction = 0  
-                       
-                    if patAtt2 >= 5:
-                       step = 240
-                       direction = 2 
-                       
-                    if direction == 0:
-                        chordArray = GuitarChordsB[chordB-1]
-                        rangeStart = 1
-                        rangeEnd = 0
-                    elif direction == 2:
-                        rangeStart = 1
-                        rangeEnd = 0
-                        chordArray1 = GuitarChordsB[chordB-1]   
-                        chordArray = [chordArray1[idx-1] for idx in ArrIdx ]
-                    else:
-                        tmp = GuitarChordsB[chordB-1]
-                        chordArray = tmp[::-1]
-                        rangeStart = 0
-                        rangeEnd = 1
-                    for i in range(rangeStart,len(chordArray)-rangeEnd):
-                        if i == rangeStart:
-                            note = addNote(midiTake,channel,velocity,position,int(chordArray[i]),length,selected)
-                        else:
-                            note = addNote(midiTake,channel,velocity, int(position + (step * i)),int(chordArray[i]), int(length -(step * i)),selected)
-                position = position + steps 
-            
-            if j == posC :
-                if chordC > 0:
-                
-                    if patAtt3 == 1: 
-                       step = 240 # slow down
-                       direction = 0
-                    elif patAtt3 == 2: 
-                       step = 120 # fast down
-                       direction = 0
-                    elif patAtt3 == 3: 
-                       step = 240 # strum UP slow 
-                       direction = 1
-                    elif patAtt3 == 4: 
-                       step = 120 # strum UP fast 
-                       direction = 1
-                    elif patAtt3 == 5: 
-                       ArrIdx = fingerPick[0]
-                    elif patAtt3 == 6: 
-                       ArrIdx = fingerPick[1]  
-                    elif patAtt3 == 7: 
-                       ArrIdx = fingerPick[2]                       
-                    elif patAtt3 == 8: 
-                       ArrIdx = fingerPick[3]
-                    elif patAtt3 == 9: 
-                       ArrIdx = fingerPick[4]
-                    elif patAtt3 == 10: 
-                       ArrIdx = fingerPick[5]
-                    elif patAtt3 == 11: 
-                       ArrIdx = fingerPick[6]
-                    elif patAtt3 == 12: 
-                       ArrIdx = fingerPick[7]                      
-                    elif patAtt3 == 13: 
-                       ArrIdx = fingerPick[8]
-                    elif patAtt3 == 14: 
-                       ArrIdx = fingerPick[9]
-                    elif patAtt3 == 15: 
-                       ArrIdx = fingerPick[10]                       
-                    elif patAtt3 == 16: 
-                       ArrIdx = fingerPick[11]                   
-                       
-                    else:
-                       step = 0 #normal 
-                       direction = 0  
-                       
-                    if patAtt3 >= 5:
-                       step = 240
-                       direction = 2 
-                       
-                    if direction == 0:
-                        chordArray = GuitarChordsC[chordC-1]
-                        rangeStart = 1
-                        rangeEnd = 0
-                    elif direction == 2:
-                        rangeStart = 1
-                        rangeEnd = 0
-                        chordArray1 = GuitarChordsC[chordC-1]   
-                        chordArray = [chordArray1[idx-1] for idx in ArrIdx ]                       
-                    else:
-                        tmp = GuitarChordsC[chordC-1]
-                        chordArray = tmp[::-1]
-                        rangeStart = 0
-                        rangeEnd = 1
-                    for i in range(rangeStart,len(chordArray)-rangeEnd):
-                        if i == rangeStart:
-                            note = addNote(midiTake,channel,velocity,position,int(chordArray[i]),length,selected)
-                        else:
-                            note = addNote(midiTake,channel,velocity, int(position + (step * i)),int(chordArray[i]), int(length -(step * i)),selected)
-                position = position + steps
-            
-            if j == posD :
-                if chordD > 0:
-                
-                    if patAtt4 == 1: 
-                       step = 240 # slow down
-                       direction = 0
-                    elif patAtt4 == 2: 
-                       step = 120 # fast down
-                       direction = 0
-                    elif patAtt4 == 3: 
-                       step = 240 # strum UP slow 
-                       direction = 1
-                    elif patAtt4 == 4: 
-                       step = 120 # strum UP fast 
-                       direction = 1
-                    elif patAtt4 == 5: 
-                       ArrIdx = fingerPick[0]
-                    elif patAtt4 == 6: 
-                       ArrIdx = fingerPick[1]  
-                    elif patAtt4 == 7: 
-                       ArrIdx = fingerPick[2]                       
-                    elif patAtt4 == 8: 
-                       ArrIdx = fingerPick[3]
-                    elif patAtt4 == 9: 
-                       ArrIdx = fingerPick[4]
-                    elif patAtt4 == 10: 
-                       ArrIdx = fingerPick[5]
-                    elif patAtt4 == 11: 
-                       ArrIdx = fingerPick[6]
-                    elif patAtt4 == 12: 
-                       ArrIdx = fingerPick[7]                      
-                    elif patAtt4 == 13: 
-                       ArrIdx = fingerPick[8]
-                    elif patAtt4 == 14: 
-                       ArrIdx = fingerPick[9]
-                    elif patAtt4 == 15: 
-                       ArrIdx = fingerPick[10]                       
-                    elif patAtt4 == 16: 
-                       ArrIdx = fingerPick[11]                   
-                       
-                    else:
-                       step = 0 #normal 
-                       direction = 0  
-                       
-                    if patAtt4 >= 5:
-                       step = 240
-                       direction = 2 
-                       
-                    if direction == 0:
-                        chordArray = GuitarChordsD[chordD-1]
-                        rangeStart = 1
-                        rangeEnd = 0
-                    elif direction == 2:
-                        rangeStart = 1
-                        rangeEnd = 0
-                        chordArray1 = GuitarChordsD[chordD-1]   
-                        chordArray = [chordArray1[idx-1] for idx in ArrIdx ]                        
-                    else:
-                        tmp = GuitarChordsD[chordD-1]
-                        chordArray = tmp[::-1]
-                        rangeStart = 0
-                        rangeEnd = 1
-                    for i in range(rangeStart,len(chordArray)-rangeEnd):
-                        if i == rangeStart:
-                            note = addNote(midiTake,channel,velocity,position,int(chordArray[i]),length,selected)
-                        else:
-                            note = addNote(midiTake,channel,velocity, int(position + (step * i)),int(chordArray[i]), int(length -(step * i)),selected)
-                position = position + steps  
-            
-            if j == posE :
-                if chordE > 0:
-                
-                    if patAtt5 == 1: 
-                       step = 240 # slow down
-                       direction = 0
-                    elif patAtt5 == 2: 
-                       step = 120 # fast down
-                       direction = 0
-                    elif patAtt5 == 3: 
-                       step = 240 # strum UP slow 
-                       direction = 1
-                    elif patAtt5 == 4: 
-                       step = 120 # strum UP fast 
-                       direction = 1
-                    elif patAtt5 == 5: 
-                       ArrIdx = fingerPick[0]
-                    elif patAtt5 == 6: 
-                       ArrIdx = fingerPick[1]  
-                    elif patAtt5 == 7: 
-                       ArrIdx = fingerPick[2]                       
-                    elif patAtt5 == 8: 
-                       ArrIdx = fingerPick[3]
-                    elif patAtt5 == 9: 
-                       ArrIdx = fingerPick[4]
-                    elif patAtt5 == 10: 
-                       ArrIdx = fingerPick[5]
-                    elif patAtt5 == 11: 
-                       ArrIdx = fingerPick[6]
-                    elif patAtt5 == 12: 
-                       ArrIdx = fingerPick[7]                      
-                    elif patAtt5 == 13: 
-                       ArrIdx = fingerPick[8]
-                    elif patAtt5 == 14: 
-                       ArrIdx = fingerPick[9]
-                    elif patAtt5 == 15: 
-                       ArrIdx = fingerPick[10]                       
-                    elif patAtt5 == 16: 
-                       ArrIdx = fingerPick[11]                   
-                       
-                    else:
-                       step = 0 #normal 
-                       direction = 0  
-                       
-                    if patAtt5 >= 5:
-                       step = 240
-                       direction = 2 
-                       
-                    if direction == 0:
-                        chordArray = GuitarChordsE[chordE-1]
-                        rangeStart = 1
-                        rangeEnd = 0
-                    elif direction == 2:
-                        rangeStart = 1
-                        rangeEnd = 0
-                        chordArray1 = GuitarChordsE[chordE-1]   
-                        chordArray = [chordArray1[idx-1] for idx in ArrIdx ]
-                    else:
-                        tmp = GuitarChordsE[chordE-1]
-                        chordArray = tmp[::-1]
-                        rangeStart = 0
-                        rangeEnd = 1
-                    for i in range(rangeStart,len(chordArray)-rangeEnd):
-                        if i == rangeStart:
-                            note = addNote(midiTake,channel,velocity,position,int(chordArray[i]),length,selected)
-                        else:
-                            note = addNote(midiTake,channel,velocity, int(position + (step * i)),int(chordArray[i]), int(length -(step * i)),selected)
-                position = position + steps 
-            
-            if j == posF :
-                if chordF > 0:
-                
-                    if patAtt6 == 1: 
-                       step = 240 # slow down
-                       direction = 0
-                    elif patAtt6 == 2: 
-                       step = 120 # fast down
-                       direction = 0
-                    elif patAtt6 == 3: 
-                       step = 240 # strum UP slow 
-                       direction = 1
-                    elif patAtt6 == 4: 
-                       step = 120 # strum UP fast 
-                       direction = 1
-                    elif patAtt6 == 5: 
-                       ArrIdx = fingerPick[0]
-                    elif patAtt6 == 6: 
-                       ArrIdx = fingerPick[1]  
-                    elif patAtt6 == 7: 
-                       ArrIdx = fingerPick[2]                       
-                    elif patAtt6 == 8: 
-                       ArrIdx = fingerPick[3]
-                    elif patAtt6 == 9: 
-                       ArrIdx = fingerPick[4]
-                    elif patAtt6 == 10: 
-                       ArrIdx = fingerPick[5]
-                    elif patAtt6 == 11: 
-                       ArrIdx = fingerPick[6]
-                    elif patAtt6 == 12: 
-                       ArrIdx = fingerPick[7]                      
-                    elif patAtt6 == 13: 
-                       ArrIdx = fingerPick[8]
-                    elif patAtt6 == 14: 
-                       ArrIdx = fingerPick[9]
-                    elif patAtt6 == 15: 
-                       ArrIdx = fingerPick[10]                       
-                    elif patAtt6 == 16: 
-                       ArrIdx = fingerPick[11]                   
-                       
-                    else:
-                       step = 0 #normal 
-                       direction = 0  
-                       
-                    if patAtt6 >= 5:
-                       step = 240
-                       direction = 2 
-                       
-                    if direction == 0:
-                        chordArray = GuitarChordsF[chordF-1]
-                        rangeStart = 1
-                        rangeEnd = 0
-                    elif direction == 2:
-                        rangeStart = 1
-                        rangeEnd = 0
-                        chordArray1 = GuitarChordsF[chordF-1]   
-                        chordArray = [chordArray1[idx-1] for idx in ArrIdx ]
-                    else:
-                        tmp = GuitarChordsF[chordF-1]
-                        chordArray = tmp[::-1]
-                        rangeStart = 0
-                        rangeEnd = 1
-                    for i in range(rangeStart,len(chordArray)-rangeEnd):
-                        if i == rangeStart:
-                            note = addNote(midiTake,channel,velocity,position,int(chordArray[i]),length,selected)
-                        else:
-                            note = addNote(midiTake,channel,velocity, int(position + (step * i)),int(chordArray[i]), int(length -(step * i)),selected)
-                position = position + steps 
-            
-            if j == posG :
-                if chordG > 0:
-                
-                    if patAtt7 == 1: 
-                       step = 240 # slow down
-                       direction = 0
-                    elif patAtt7 == 2: 
-                       step = 120 # fast down
-                       direction = 0
-                    elif patAtt7 == 3: 
-                       step = 240 # strum UP slow 
-                       direction = 1
-                    elif patAtt7 == 4: 
-                       step = 120 # strum UP fast 
-                       direction = 1
-                    elif patAtt7 == 5: 
-                       ArrIdx = fingerPick[0]
-                    elif patAtt7 == 6: 
-                       ArrIdx = fingerPick[1]  
-                    elif patAtt7 == 7: 
-                       ArrIdx = fingerPick[2]                       
-                    elif patAtt7 == 8: 
-                       ArrIdx = fingerPick[3]
-                    elif patAtt7 == 9: 
-                       ArrIdx = fingerPick[4]
-                    elif patAtt7 == 10: 
-                       ArrIdx = fingerPick[5]
-                    elif patAtt7 == 11: 
-                       ArrIdx = fingerPick[6]
-                    elif patAtt7 == 12: 
-                       ArrIdx = fingerPick[7]                      
-                    elif patAtt7 == 13: 
-                       ArrIdx = fingerPick[8]
-                    elif patAtt7 == 14: 
-                       ArrIdx = fingerPick[9]
-                    elif patAtt7 == 15: 
-                       ArrIdx = fingerPick[10]                       
-                    elif patAtt7 == 16: 
-                       ArrIdx = fingerPick[11]                   
-                       
-                    else:
-                       step = 0 #normal 
-                       direction = 0  
-                       
-                    if patAtt7 >= 5:
-                       step = 240
-                       direction = 2 
-                       
-                    if direction == 0:
-                        chordArray = GuitarChordsG[chordG-1]
-                        rangeStart = 1
-                        rangeEnd = 0
-                    elif direction == 2:
-                        rangeStart = 1
-                        rangeEnd = 0
-                        chordArray1 = GuitarChordsG[chordG-1]   
-                        chordArray = [chordArray1[idx-1] for idx in ArrIdx ]
-                    else:
-                        tmp = GuitarChordsG[chordG-1]
-                        chordArray = tmp[::-1]
-                        rangeStart = 0
-                        rangeEnd = 1
-                    for i in range(rangeStart,len(chordArray)-rangeEnd):
-                        if i == rangeStart:
-                            note = addNote(midiTake,channel,velocity,position,int(chordArray[i]),length,selected)
-                        else:
-                            note = addNote(midiTake,channel,velocity, int(position + (step * i)),int(chordArray[i]), int(length -(step * i)),selected)
-                position = position + steps
-          
+
         freeMIDITake(midiTake)
-        
+
 
 def getActTakeInEditor():
     return RPR_MIDIEditor_GetTake(RPR_MIDIEditor_GetActive())
@@ -1642,16 +716,16 @@ def getMidiNoteIntProperty(midiNote, prop):
 
 def setMidiNoteIntProperty(midiNote, prop, value):
     FNG_SetMidiNoteIntProperty(midiNote, prop, value)
-    
+
 def selAllNotesTselection(command_id=40746, islistviewcommand=0):
     RPR_MIDIEditor_LastFocused_OnCommand(command_id, islistviewcommand)
 
 def deleteSelectedNotes(command_id=40002, islistviewcommand=0):
     RPR_MIDIEditor_LastFocused_OnCommand(command_id, islistviewcommand)
-    
+
 def selAllNotes(command_id=40003, islistviewcommand=0):
     RPR_MIDIEditor_LastFocused_OnCommand(command_id, islistviewcommand)
-        
+
 def addNote(midiTake, ch, vel, pos, pitch, length, sel):
     try:
         midiNote = FNG_AddMidiNote(midiTake)
@@ -1664,11 +738,16 @@ def addNote(midiTake, ch, vel, pos, pitch, length, sel):
         return midiNote
     except:
         RPR_ShowConsoleMsg('Could not draw notes!')
-        return    
-    
-def main():
+        return
+
+def guiLoop():
+    try:
+        root.update()
+    except tkinter.TclError:
+        return  # window was closed
+    RPR_defer("guiLoop()")
+
+if __name__ == '__main__':
     root = tkinter.Tk()
     demo = G(root)
-    root.mainloop()
-
-if __name__ == '__main__': main()
+    guiLoop()
