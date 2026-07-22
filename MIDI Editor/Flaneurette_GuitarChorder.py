@@ -1,6 +1,6 @@
 # @description GuitarChorder
 # @author Flaneurette
-# @version 2.1 (refactored)
+# @version 2.1
 # @changelog de-duplicated per-letter GUI/logic code
 # @provides
 #   [main=midi_editor,midi_inlineeditor windows] .
