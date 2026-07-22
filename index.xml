@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="dac5619ddee9d643729aa74a33660c2eb681e5ec" name="ReaTeam Scripts">
+<index version="1" commit="d080000962fd6025dd18c20befe10600581e24dc" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -25484,6 +25484,10 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
       <version name="1.14" author="amagalma" time="2026-05-22T17:59:49Z">
         <changelog><![CDATA[- "Added touched or focused FX"]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d1cafa4ff94b1d31ef94c305c984b35c6a922522/Various/amagalma_Show%20path%20from%20list%20menu%20(Resource,%20Selected%20Item,%20Project%20File,%20Record,%20Secondary%20Record,%20Render).lua</source>
+      </version>
+      <version name="1.15" author="amagalma" time="2026-07-22T12:23:19Z">
+        <changelog><![CDATA[- Fixed navigating to the path of the selected script in the Actions list, for versions of Reaper that show the path as "(scripts)"]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d080000962fd6025dd18c20befe10600581e24dc/Various/amagalma_Show%20path%20from%20list%20menu%20(Resource,%20Selected%20Item,%20Project%20File,%20Record,%20Secondary%20Record,%20Render).lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Simulate tempo with playrate.lua" type="script" desc="amagalma_Simulate tempo with playrate">
