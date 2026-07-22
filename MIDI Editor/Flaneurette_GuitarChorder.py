@@ -6,7 +6,7 @@
 #   [main=midi_editor,midi_inlineeditor windows] .
 #   [main=midi_editor,midi_inlineeditor linux] .
 # @about
-#   GuitarChorder gives you access to all guitarchords. With it, you can draw MIDI guitar chords, with many attack style from finger picking to strumming. 
+#   GuitarChorder gives you access to all guitarchords. With it, you can draw MIDI guitar chords, with many attack styles from fingerpicking to strumming. 
 
 try:
     from reaper_python import *
