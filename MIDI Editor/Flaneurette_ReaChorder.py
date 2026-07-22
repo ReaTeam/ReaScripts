@@ -1,6 +1,6 @@
 # @description ReaChorder
 # @author Flaneurette
-# @version 2.2
+# @version 2.3
 # @provides
 #   [linux main] .
 #   [windows main] .
@@ -51,7 +51,7 @@
 # @link Reachorder Forum Thread: https://forum.cockos.com/showthread.php?t=200185
 # @donation Donate via PayPal: https://www.paypal.com/donate?hosted_button_id=4JKH8U43WYZL4
 # @changelog
-#   + Fixed the listing of drum patterns paths discoveries...
+#   + New chord progressions, 60 in total.
 # @about
 #   ReaChorder is a Python extension/plugin that enables you to generate songs in MIDI format. It does this by applying music theory. You can choose song formula, the key and whether it needs to be Major or Minor. It then uses the circle of fifths to propose chord progression and randomly chooses and combines different chord inversions, melodies and bass lines. It also has a drum sequencer with many drum pattern presets.
 #
