@@ -1,7 +1,7 @@
 -- @description Show path from list menu (Resource, Selected Item, Project File, Record, Secondary Record, Render)
 -- @author amagalma
--- @version 1.15
--- @changelog - Fixed navigating to the path of the selected script in the Actions list, for versions of Reaper that show the path as "(scripts)"
+-- @version 1.16
+-- @changelog - Added Browse Loaded IR in focused ReaVerb
 -- @link https://forum.cockos.com/showthread.php?t=239556
 -- @screenshot https://i.ibb.co/vhMDkZn/Show-path-from-list-menu.gif
 -- @donation https://www.paypal.me/amagalma
@@ -88,6 +88,27 @@ local function OpenFXLocation()
   end
 end
 
+local function OpenReaVerbIR()
+  local ok, trackidx, itemidx, takeidx, fxidx, parm = reaper.GetTouchedOrFocusedFX( 1 )
+  if not ok then return end
+  local track = reaper.GetTrack( 0, trackidx )
+  local original_name = "VST: ReaVerb (Cockos)"
+  local GetNamedConfigParm = itemidx == -1 and reaper.TrackFX_GetNamedConfigParm or reaper.TakeFX_GetNamedConfigParm
+  local obj = itemidx == -1 and track or reaper.GetTake( reaper.GetTrackMediaItem( track, itemidx ), takeidx )
+  if not obj then return end
+  
+  local retval, name = GetNamedConfigParm( obj, fxidx, "fx_name" )
+  if retval and name == original_name then
+    local retval2, config_line = GetNamedConfigParm( obj, fxidx, "ITEM" )
+    if retval2 then
+      local path = config_line:match('%b""')
+      if path ~= "" then
+        reaper.CF_LocateInExplorer( path )
+      end
+    end
+  end
+end
+
 local t = {
       {"#Show path in explorer/finder|"},
       {"Reaper Resources path", 40027},
@@ -98,7 +119,8 @@ local t = {
       {"Render path", false},
       {"First selected script in Actions List", false},
       {"Current theme path", false},
-      {"Touched or Focused FX", false}
+      {"Touched or Focused FX", false},
+      {"Loaded IR in focused ReaVerb", false}
 }
 
 local menu = ""
@@ -190,6 +212,10 @@ if selection > 0 then
   elseif selection == 10 then --------------------
   
     OpenFXLocation()
+  
+  elseif selection == 11 then
+  
+    OpenReaVerbIR()
   
   else ---------------------
   
