@@ -1,7 +1,7 @@
 -- @description Lua profiler
 -- @author cfillion
--- @version 1.1.5
--- @changelog • Fix tree display mode when there are over 999 children
+-- @version 1.1.6
+-- @changelog • Fix infinite recursion when a table contains its own metatable
 -- @provides [nomain] .
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=283461
 -- @screenshot
@@ -404,6 +404,15 @@ local function eachDeep(tbl)
   end
 end
 
+local function inArray(haystack, needle)
+  for i, value in ipairs(haystack) do
+    if needle == value then
+      return true
+    end
+  end
+  return false
+end
+
 local function updateTime()
   if not isAnyActive() then return end
 
@@ -674,7 +683,7 @@ local function attach(is_attach, name, value, opts, depth, in_metatable)
 
   if opts.metatable then
     local metatable = getmetatable(value)
-    if metatable then
+    if metatable and not inArray(depth, metatable) then
       attachToTable(is_attach, name .. '`meta', metatable, opts, depth, true)
     end
   end
@@ -691,9 +700,7 @@ local function attach(is_attach, name, value, opts, depth, in_metatable)
       (#depth == 0 or (opts.recursive and value ~= _G)) then
     -- don't dig into metatables to avoid listing (for example) string.byte
     -- as some_string_value`meta.__index.byte
-    depth[#depth + 1] = value
     attachToTable(is_attach, name, value, opts, depth)
-    depth[#depth] = nil
     return true
   end
 
@@ -705,22 +712,19 @@ attachToTable = function(is_attach, prefix, array, opts, depth, in_metatable)
 
   if array == package.loaded then return end
 
+  depth[#depth + 1] = array
+
   for name, value in pairs(array) do
     -- prevent `foo.bar = foo` from displaying foo.bar.bar.bar.bar.bar.bar.baz
-    local is_repeat = false
-    for i, parent in ipairs(depth) do
-      if parent == value then
-        is_repeat = true
-        break
-      end
-    end
-    if not is_repeat then
+    if not inArray(depth, value) then
       local path = name
       if prefix then path = string.format('%s.%s', prefix, name) end
       local ok, wrapper = attach(is_attach, path, value, opts, depth, in_metatable)
       if wrapper then array[name] = wrapper end
     end
   end
+
+  depth[#depth] = nil
 end
 
 local function attachToLocals(is_attach, opts)
@@ -763,13 +767,13 @@ end
 function profiler.attachToWorld()
   local opts = makeAttachOpts()
   attachToLocals(true, opts)
-  attachToTable(true, nil, _G, opts, {_G})
+  attachToTable(true, nil, _G, opts, {})
 end
 
 function profiler.detachFromWorld()
   local opts = makeAttachOpts()
   attachToLocals(false, opts)
-  attachToTable(false, nil, _G, opts, {_G})
+  attachToTable(false, nil, _G, opts, {})
 end
 
 function profiler.clear()
