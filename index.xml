@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="88619bb17bea8b02b5f256267728825199209181" name="ReaTeam Scripts">
+<index version="1" commit="54df70f3481fc603296011684a1ee9db86b2f0d4" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -24615,6 +24615,14 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
         <changelog><![CDATA[- Show detailed report if no FX to apply.
 - Fix corner cases that would cause a crash while showing report.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/bc89ace078c76c3d10ef88b7aeb274f726fddf30/Various/amagalma_Calculate%20difference%20in%20LUFS%20when%20take%20and%20track%20FX%20are%20applied%20to%20selected%20item%20via%20dry%20run.lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Calculate Peak to Loudness Ratio (PLR - new Crest Factor) of selected items, including take and track FX and settings.lua" type="script" desc="Calculate Peak to Loudness Ratio (PLR - new Crest Factor) of selected items, including take and track FX and settings">
+      <metadata>
+        <link rel="donation">https://www.paypal.me/amagalma</link>
+      </metadata>
+      <version name="1.00" author="amagalma" time="2026-07-29T10:10:08Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/54df70f3481fc603296011684a1ee9db86b2f0d4/Various/amagalma_Calculate%20Peak%20to%20Loudness%20Ratio%20(PLR%20-%20new%20Crest%20Factor)%20of%20selected%20items,%20including%20take%20and%20track%20FX%20and%20settings.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Chunk ViewerEditor.lua" type="script" desc="Chunk Viewer/Editor">
