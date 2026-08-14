@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="ff379a73cbebde6e03e5962d9b0086c245705d8a" name="ReaTeam Scripts">
+<index version="1" commit="f02d4550b3fefba2cbc8dde78c6837d56cba05af" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -4201,6 +4201,10 @@ Fix a potential infinite loop]]></changelog>
       <version name="2.00" author="amagalma" time="2025-04-16T18:06:04Z">
         <changelog><![CDATA[- Complete re-write in order to support containers]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/803411bb0f81f242363104a62324d201136b9ea8/FX/amagalma_Calculate%20difference%20in%20LUFS%20for%20selected%20or%20all%20FX%20of%20focused%20FX%20chain.lua</source>
+      </version>
+      <version name="2.01" author="amagalma" time="2026-08-14T12:08:28Z">
+        <changelog><![CDATA[- Added stereo-only or multichannel calculation]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f02d4550b3fefba2cbc8dde78c6837d56cba05af/FX/amagalma_Calculate%20difference%20in%20LUFS%20for%20selected%20or%20all%20FX%20of%20focused%20FX%20chain.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Center in screen the floating FX or FX Chain.lua" type="script" desc="Center in screen the floating FX or FX Chain">
