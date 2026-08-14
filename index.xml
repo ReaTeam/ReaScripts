@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="ae96600662e29918adde074a05a256dce233f061" name="ReaTeam Scripts">
+<index version="1" commit="ced78cf4bd3cd9ef7e8d8b8d46736f591bceab13" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -24648,6 +24648,9 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
       </metadata>
       <version name="1.00" author="amagalma" time="2026-07-31T14:02:22Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/32570b3629e3eb48a6027708270ba73a1db098eb/Various/amagalma_Calculate%20Peak%20to%20Loudness%20Ratio%20(PLR%20-%20new%20Crest%20Factor)%20of%20selected%20tracks%20(within%20time%20selection%20,%20if%20it%20exists).lua</source>
+      </version>
+      <version name="1.03" author="amagalma" time="2026-08-14T15:51:12Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ced78cf4bd3cd9ef7e8d8b8d46736f591bceab13/Various/amagalma_Calculate%20Peak%20to%20Loudness%20Ratio%20(PLR%20-%20new%20Crest%20Factor)%20of%20selected%20tracks%20(within%20time%20selection%20,%20if%20it%20exists).lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Chunk ViewerEditor.lua" type="script" desc="Chunk Viewer/Editor">
