@@ -1,8 +1,8 @@
 -- @description Calculate difference in LUFS for selected or all FX of focused FX chain
 -- @author amagalma
--- @version 2.00
+-- @version 2.01
 -- @changelog
---   - Complete re-write in order to support containers
+--   - Added stereo-only or multichannel calculation
 -- @donation https://www.paypal.me/amagalma
 -- @about
 --   # Calculates the volume difference that the selected FX (or all the FX, if none is selected) will bring, using dry runs (no files are created). The opposite value of the level difference is copied to the clipboard.
@@ -134,20 +134,30 @@ end
 
 local function GetStats( sel_FX, CurrentFXInfo )
   -- Get stats with FX
-  local DryAction
+  --local DryAction
   if take then
     DryAction = 42437 -- Calculate loudness of selected items, including take and track FX and settings
   elseif track == reaper.GetMasterTrack(0) then
     DryAction = 42441 -- Calculate loudness of master mix within time selection
   else
-    DryAction = 42439 -- Calculate loudness of selected tracks within time selection
+    local t = {
+      { "#How many track channels to use?|" },
+      { "Stereo only (use when sidechaining)", 43811 },
+      { "All channels (stereo/multichannel)", 42439 }
+    }
+    local menu = ""
+    for i = 1, #t do
+      menu = menu .. t[i][1] .. "|"
+    end
+    local selection = gfx.showmenu(menu)
+    DryAction = t[selection] and t[selection][2] or 42439 -- Calculate loudness of selected tracks within time selection
   end
    local ok1, fx_stats = reaper.GetSetProjectInfo_String(0, "RENDER_STATS", tostring(DryAction), false)
   if ok1 then
 
     -- Get stats without FX
     ToggleFX( sel_FX, CurrentFXInfo )
-    local ok2, pre_stats = reaper.GetSetProjectInfo_String(0, "RENDER_STATS", tostring(DryAction), false)
+     ok2, pre_stats = reaper.GetSetProjectInfo_String(0, "RENDER_STATS", tostring(DryAction), false)
     ToggleFX( sel_FX, CurrentFXInfo )
 
     if ok2 then
