@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="32570b3629e3eb48a6027708270ba73a1db098eb" name="ReaTeam Scripts">
+<index version="1" commit="ff379a73cbebde6e03e5962d9b0086c245705d8a" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -25511,6 +25511,10 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
       <version name="1.03" author="amagalma" time="2025-01-13T12:01:39Z">
         <changelog><![CDATA[No JS_ReaScriptAPI dependency]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3272dbf8025552435edcd5d5f816e536324c6475/Various/amagalma_Show%20menu%20for%20dry%20run%20(calculate%20loudness)%20actions.lua</source>
+      </version>
+      <version name="1.04" author="amagalma" time="2026-08-14T11:53:02Z">
+        <changelog><![CDATA[Added new v7.79 stereo actions]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ff379a73cbebde6e03e5962d9b0086c245705d8a/Various/amagalma_Show%20menu%20for%20dry%20run%20(calculate%20loudness)%20actions.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Show offscreen item selection as a tooltip.lua" type="script" desc="Show offscreen item selection as a tooltip">
