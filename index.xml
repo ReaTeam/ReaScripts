@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="ced78cf4bd3cd9ef7e8d8b8d46736f591bceab13" name="ReaTeam Scripts">
+<index version="1" commit="c472785746b759dd969b974e36024206ed321d99" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -21467,6 +21467,21 @@ Updated to only list stretch markers within item time and format time as standar
       </metadata>
       <version name="1.00" author="amagalma" time="2026-06-12T12:39:33Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/138e3988803282933fc5f36760a5c523645e2fa5/Takes%20Properties/amagalma_Normalize%20all%20takes%20volume%20in%20selected%20items%20to%20LUFSI%20value%20set%20by%20user.lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Phase align two selected items by moving item's contents (using CFE), depending on mouse position.lua" type="script" desc="Phase align two selected items by moving item's contents (using CFE), depending on mouse position">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Requires JS_ReaScriptAPI\sa180\par}
+}
+]]></description>
+        <link rel="donation">https://www.paypal.me/amagalma</link>
+      </metadata>
+      <version name="1.00" author="amagalma" time="2026-08-15T23:28:10Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c472785746b759dd969b974e36024206ed321d99/Takes%20Properties/amagalma_Phase%20align%20two%20selected%20items%20by%20moving%20item's%20contents%20(using%20CFE),%20depending%20on%20mouse%20position.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Phase align two selected items by moving left item's contents (using CFE).lua" type="script" desc="Phase align two selected items by moving left item's contents (using CFE)">
