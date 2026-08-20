@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="c472785746b759dd969b974e36024206ed321d99" name="ReaTeam Scripts">
+<index version="1" commit="3b7a061f3cf325df564a490c4d41df9d34181aa7" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -17,15 +17,17 @@
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/5923bba3d5e8fda76b59f6c799a1f8609e47b386/Cursor/amagalma_Move%20edit%20cursor%20to%20closest%20item%20edge%20in%20project.lua</source>
       </version>
     </reapack>
-    <reapack name="amagalma_Move edit cursor to next possible bad or missing items crossfade on selected tracks.lua" type="script" desc="Move edit cursor to next possible bad or missing items crossfade on selected tracks">
+    <reapack name="amagalma_Move edit cursor to next possible bad or missing items crossfade on selected tracks.lua" type="script" desc="Move edit cursor to next dubious or missing items crossfade on selected tracks">
       <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Moves the edit cursor to the next possible bad or missing crossfade between two items on the selected tracks.\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab A possible bad crossfade is considered one whose duration is not the same as the overlap between the two items.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Moves the edit cursor to the next dubious or missing crossfade between two items on the selected tracks.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Dubious crossfade is considered one whose duration is not the same as the overlap between the two items.\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab A crossfade is considered missing if two items are adjacent or there is a very small gap between them and they do not crossfade.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab All playing fixed item lanes are taken into consideration\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab The two items are automatically selected\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab You can set inside the script the maximum gap duration between two "adjacent" items for them to be considered as requiring a crossfade. Default value is 100ms.\sa180\par}
 }
 ]]></description>
@@ -46,6 +48,10 @@
       <version name="1.06" author="amagalma" time="2020-08-11T13:23:55Z">
         <changelog><![CDATA[Automatic crossfades should get priority over manual ones]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d103c6907cf0c87314864c3b9ebdc65a3e03b16b/Cursor/amagalma_Move%20edit%20cursor%20to%20next%20possible%20bad%20or%20missing%20items%20crossfade%20on%20selected%20tracks.lua</source>
+      </version>
+      <version name="2.00" author="amagalma" time="2026-08-20T08:59:48Z">
+        <changelog><![CDATA[Complete re-write for better speed and fixed lanes support]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/af9417919ad27fbe6fd5d2ea9ac81794d7547476/Cursor/amagalma_Move%20edit%20cursor%20to%20next%20possible%20bad%20or%20missing%20items%20crossfade%20on%20selected%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="Move edit cursor to next visible grid line">
@@ -86,15 +92,17 @@
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/fd9eaacc6d60584480cf08d3350264509e56d809/Cursor/amagalma_Move%20edit%20cursor%20to%20next%20visible%20grid%20line.lua</source>
       </version>
     </reapack>
-    <reapack name="amagalma_Move edit cursor to previous possible bad or missing items crossfade on selected tracks.lua" type="script" desc="Move edit cursor to previous possible bad or missing items crossfade on selected tracks">
+    <reapack name="amagalma_Move edit cursor to previous possible bad or missing items crossfade on selected tracks.lua" type="script" desc="Move edit cursor to previous dubious or missing items crossfade on selected tracks">
       <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Moves the edit cursor to the previous possible bad or missing crossfade between two items on the selected tracks.\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab A possible bad crossfade is considered one whose duration is not the same as the overlap between the two items.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Moves the edit cursor to the previous dubious or missing crossfade between two items on the selected tracks.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Dubious crossfade is considered one whose duration is not the same as the overlap between the two items.\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab A crossfade is considered missing if two items are adjacent or there is a very small gap between them and they do not crossfade.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab All playing fixed item lanes are taken into consideration\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab The two items are automatically selected\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab You can set inside the script the maximum gap duration between two "adjacent" items for them to be considered as requiring a crossfade. Default value is 100ms.\sa180\par}
 }
 ]]></description>
@@ -115,6 +123,10 @@
       <version name="1.06" author="amagalma" time="2020-08-11T13:50:43Z">
         <changelog><![CDATA[Automatic crossfades should get priority over manual ones]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/1423e0007c25bf597ff849409ab5cec61c4c964f/Cursor/amagalma_Move%20edit%20cursor%20to%20previous%20possible%20bad%20or%20missing%20items%20crossfade%20on%20selected%20tracks.lua</source>
+      </version>
+      <version name="2.00" author="amagalma" time="2026-08-20T09:00:51Z">
+        <changelog><![CDATA[Complete re-write for better speed and fixed item lanes support]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3b7a061f3cf325df564a490c4d41df9d34181aa7/Cursor/amagalma_Move%20edit%20cursor%20to%20previous%20possible%20bad%20or%20missing%20items%20crossfade%20on%20selected%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Move edit cursor to previous visible grid line.lua" type="script" desc="Move edit cursor to previous visible grid line">
