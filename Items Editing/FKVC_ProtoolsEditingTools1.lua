@@ -1,0 +1,30 @@
+-- @description Protools rudimentary editing tools
+-- @author Frederic Kukovicic
+-- @version 1.0
+-- @provides
+--   [main] FKVC_ProtoolsEditingTools1/CutLeft.lua
+--   [main] FKVC_ProtoolsEditingTools1/CutRight.lua
+--   [main] FKVC_ProtoolsEditingTools1/MoveEditCursorToNextCut.lua
+--   [main] FKVC_ProtoolsEditingTools1/MoveEditCursorToPreviousCut.lua
+--   [main] FKVC_ProtoolsEditingTools1/NudgeCursorOnTheLeft.lua
+--   [main] FKVC_ProtoolsEditingTools1/NudgeCursorOnTheRight.lua
+-- @about
+--   # Protools rudimentary editing tools
+--
+--   As a long-time Pro Tools user, I relied heavily on certain daily tools for audio editing. To replicate those tools and workflows in Reaper, I decided to script similar actions so I could use them in Reaper as well. Here are the actions I recreated:
+--
+--   - CutLeft: Removes the left part of the selected media item from the playback position.
+--
+--   - CutRight: Removes the right part of the selected media item from the playback position.
+--
+--   - MoveEditCursorToNextCut: Moves the edit cursor to the next cut in any media item and selects it.
+--
+--   - MoveEditCursorToPreviousCut: Moves the edit cursor to the previous cut in any media item and selects it.
+--
+--   Note: The "move edit cursor" actions work on the currently selected track, or only on the first track if multiple tracks are selected.
+--
+--   - NudgeCursorToTheLeft: Moves the playback cursor 1 frame to the left and plays the audio.
+--
+--   - NudgeCursorToTheRight: Moves the playback cursor 1 frame to the right and plays the audio.
+
+reaper.ShowMessageBox("Thank you for using this tool. Have fun!", "Message", 0)
