@@ -1,6 +1,7 @@
 -- @description AutoDuck
 -- @author Marco Steinebach
--- @version 26.01
+-- @version 26.02
+-- @changelog added an audio demo. The script takes care of track volumes <> 0.
 -- @about
 --   This Script is especially useful to make voice Overs, like Podcasts, Trailers, etc.
 --   You Need at least two tracks in your current Project.
@@ -23,7 +24,7 @@
 
 --[[
   AutoDuck for Reaper - Copyright 2026 by Marco Steinebach <studio@windyradio.de
-  Version: 26.01
+  Version: 26.02
   
   the script needs a music track and a speech track directly underneath it.
   The ducking occures arround every item on the speech track, by setting envelope points.
@@ -89,6 +90,8 @@ function main()
   if not trackNamesOk(musicTrack, speechTrack) then
     return
   end--if
+  -- get the volume of the music track
+  local musicTrackVolume = getTrackVolumeInDB (musicTrack)
   --get all values needed for the auto duck from the user.
   params = {} --global table of all parameters the user can specify
   loadParams() --loads the values from current project, fills params with standard values if there are no values
@@ -107,7 +110,7 @@ function main()
     reaper.Undo_EndBlock (scriptName, -1)
     return
   end--if
-  local totalPoints = createEnvelopePoints (speechTrack, envelope)
+  local totalPoints = createEnvelopePoints (musicTrackVolume, speechTrack, envelope)
   if volumeEnvelopeActivated then
     --The volume envelope has been activated during the script run, deactivate it.
     reaper.Main_OnCommand (40406, 0) --Track: Toggle track volume envelope visible
@@ -116,6 +119,19 @@ function main()
   saveParams() --saves the values for autoducking entered by the user in current project
   reaper.ShowMessageBox (string.format (txt.iTotalPoints, totalPoints), txt.info, 0)
 end--main
+
+function getTrackVolumeInDB(track)
+  if not track then 
+    return nil 
+  end--if
+  local vol_linear = reaper.GetMediaTrackInfo_Value(track, "D_VOL")
+  -- Abfangbedingung für absolute Stille (-inf dB)
+  if vol_linear <= 0 then
+    return -math.huge -- Entspricht minus unendlich (-inf)
+  end--if
+  -- Korrekte dB-Umrechnung
+  return 20 * math.log(vol_linear, 10)
+end--getTrackVolumeInDB
 
 function checkTrackCount()
 --checks if at least two tracks are in the project, returns true
@@ -279,11 +295,11 @@ function checkVolumeEnvelope(track)
   return nil
 end--checkVolumeEnvelope
 
-function createEnvelopePoints (track, envelope)
+function createEnvelopePoints (volume, track, envelope)
 --creates all the necessary points on the volume envelope.
 --returns the number of created envelope points.
-  local zeroDB = reaper.DB2SLIDER(0)
-  local reduceDB = reaper.DB2SLIDER(params.reduceDB)
+  local startDB = reaper.DB2SLIDER(volume)
+  local reduceDB = reaper.DB2SLIDER(volume + params.reduceDB)
   local curItem = nil
   local itemsOnTrack = reaper.CountTrackMediaItems(track)
   local totalPoints = 0
@@ -291,10 +307,10 @@ function createEnvelopePoints (track, envelope)
     curItem = reaper.GetTrackMediaItem (track, i)
     local startPosition = reaper.GetMediaItemInfo_Value(curItem, "D_POSITION")
     local endPosition = startPosition + reaper.GetMediaItemInfo_Value(curItem, "D_LENGTH")
-    reaper.InsertEnvelopePoint (envelope, startPosition-params.outerFadeDown, zeroDB, params.shape, 0, false, true)
+    reaper.InsertEnvelopePoint (envelope, startPosition-params.outerFadeDown, startDB, params.shape, 0, false, true)
     reaper.InsertEnvelopePoint (envelope, startPosition+params.innerFadeDown, reduceDB, params.shape, 0, false, true)
     reaper.InsertEnvelopePoint (envelope, endPosition-params.innerFadeUp, reduceDB, params.shape, 0, false, true)
-    reaper.InsertEnvelopePoint (envelope, endPosition+params.outerFadeUp, zeroDB, params.shape, 0, false, true)
+    reaper.InsertEnvelopePoint (envelope, endPosition+params.outerFadeUp, startDB, params.shape, 0, false, true)
     totalPoints = totalPoints + 4
   end--for
   reaper.Envelope_SortPoints (envelope)
