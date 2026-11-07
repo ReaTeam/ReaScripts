@@ -184,8 +184,7 @@ function OptionsWindow(MainTable, windowName, BatchTable, BatchPrjTable)
   --------------
   function frame()
     reaper.ImGui_PushFont(ctx, font)
-    --
-    --reaper.ImGui_PushFont(ctx, fontSep)
+    
     reaper.ImGui_Text(ctx, '' ) --space before buttons
     
     --Esc button
@@ -230,8 +229,7 @@ function OptionsWindow(MainTable, windowName, BatchTable, BatchPrjTable)
         reaper.MB(doc, 'Fade Tool forum page', 0)
       end
     end
-    
-    --reaper.ImGui_PopFont(ctx)
+     
     
     if MainTable then
       populateOptions(MainTable)
@@ -269,9 +267,7 @@ function OptionsWindow(MainTable, windowName, BatchTable, BatchPrjTable)
       _, savedFontSize = reaper.ImGui_InputInt
       (ctx, 'Font size for the window (default is 17)', savedFontSize)
     end
-    
-    --reaper.ImGui_Text(ctx, '' ) --space before buttons
-    
+     
     reaper.ImGui_PopFont(ctx)
   end
   
@@ -355,17 +351,14 @@ function OptionsWindow(MainTable, windowName, BatchTable, BatchPrjTable)
       elseif enter == true then
         reaper.SetExtState(ExtStateName, 'SaveLastBatchPrj', tostring(SaveLastBatchPrj), true)
         if RunBatch == true then 
-          --reaper.ImGui_DestroyContext(ctx)
           BatchFades()
         else
           SetExtStates(MainTable)
           GetSetBatchExtStates(BatchTable, BatchPrjTable, true)
-          reaper.SetExtState(ExtStateName, 'TCPaction', tcpActIDstr, true) 
-          --reaper.ImGui_DestroyContext(ctx)
+          reaper.SetExtState(ExtStateName, 'TCPaction', tcpActIDstr, true)
         end
       else
-        if RunBatch == true then TheRestAfterBatch() end
-        --reaper.ImGui_DestroyContext(ctx)
+        if RunBatch == true then TheRestAfterBatch() end 
       end
       
     loopcnt = loopcnt+1
