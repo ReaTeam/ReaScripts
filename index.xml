@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="d150aeacd614ba21f8cb90ed18029b2ae449743a" name="ReaTeam Scripts">
+<index version="1" commit="0344af42de43077b9e46f55e1f0896e77fc5781b" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -7077,6 +7077,13 @@ Added experimental fixed lanes support]]></changelog>
 - Minor improvements]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/543152a08af3a7c11e8d257baf8984a8c6f9c3c6/Items%20Editing/az_Smart%20split%20items%20by%20mouse%20cursor.lua</source>
         <source main="main" file="az_Smart split items by mouse cursor/az_Open options for az_Smart split items by mouse cursor.lua">https://github.com/ReaTeam/ReaScripts/raw/543152a08af3a7c11e8d257baf8984a8c6f9c3c6/Items%20Editing/az_Smart%20split%20items%20by%20mouse%20cursor/az_Open%20options%20for%20az_Smart%20split%20items%20by%20mouse%20cursor.lua</source>
+      </version>
+      <version name="3.50" author="AZ" time="2026-11-07T11:57:53Z">
+        <changelog><![CDATA[- Fix track grouping when fixed lanes count mismatches
+- New options to get mouse gesture for L/R item selection
+- UI improvements]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/0344af42de43077b9e46f55e1f0896e77fc5781b/Items%20Editing/az_Smart%20split%20items%20by%20mouse%20cursor.lua</source>
+        <source main="main" file="az_Smart split items by mouse cursor/az_Open options for az_Smart split items by mouse cursor.lua">https://github.com/ReaTeam/ReaScripts/raw/0344af42de43077b9e46f55e1f0896e77fc5781b/Items%20Editing/az_Smart%20split%20items%20by%20mouse%20cursor/az_Open%20options%20for%20az_Smart%20split%20items%20by%20mouse%20cursor.lua</source>
       </version>
     </reapack>
     <reapack name="az_Trim left, right or both item edges via mouse and razor.lua" type="script" desc="Trim left, right or both item edges via mouse and razor">
