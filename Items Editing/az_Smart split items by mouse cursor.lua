@@ -1,6 +1,6 @@
 -- @description Smart split items using mouse cursor context (also edit cursor, razor area and time selection)
 -- @author AZ
--- @version 3.5
+-- @version 3.50
 -- @changelog
 --   - Fix track grouping when fixed lanes count mismatches
 --   - New options to get mouse gesture for L/R item selection
