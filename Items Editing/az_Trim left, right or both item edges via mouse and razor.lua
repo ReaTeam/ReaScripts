@@ -1,11 +1,11 @@
 -- @description Trim left, right or both item edges via mouse and razor
 -- @author AZ
--- @version 1.7
+-- @version 1.8
 -- @changelog
---   - Fix behavior with locked items
---   - Prevent editing if items fully locked in project
---   - Fix trim at edit cursor when grouping is off
---   - Add support for new parent/child grouping
+--   - Fix track grouping when fixed lanes count mismatches
+--   - Fix TCP context action executing
+--   - New options to get mouse gesture for L/R trim
+--   - UI improvements
 -- @provides [main] az_Trim left, right or both item edges via mouse and razor/az_Open options for az_Trim left, right or both item edges via mouse and razor.lua
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=288069
 -- @donation Donate via PayPal https://www.paypal.me/AZsound
@@ -31,12 +31,22 @@ function GetExtStates()
       local state = reaper.GetExtState(ExtStateName, option[2])
       
       if state ~= "" then
+        local wrong
         local stateType = type(option[3])
         if stateType == 'number' then state = tonumber(state) end
         if stateType == 'boolean' then
-          if state == 'true' then state = true else state = false end 
+          if state == 'true' then state = true else state = false end
         end
-        OptDefaults[i][3] = state
+        if stateType == 'string' then
+          wrong = true
+          if FieldMatch(option[4], state) then wrong = false end
+        end
+        
+        if wrong == true then
+          reaper.SetExtState(ExtStateName, option[2], tostring(option[3]), true)
+        else
+          option[3] = state
+        end
       else
         reaper.SetExtState(ExtStateName, option[2], tostring(option[3]), true)
       end
@@ -72,13 +82,25 @@ function OptionsDefaults()
   text = 'Select items after trimming by razor'
   table.insert(OptDefaults, {text, 'SelectItemsAfterRazorTrim', false })
   
-  text = 'Mouse top / bottom placement on item is used for'
+  text = 'Use mouse gesture to define L/R trim'
+  table.insert(OptDefaults, {text, 'gesture', "don't use", {
+                                                      "don't use",
+                                                      'Point to side',
+                                                      'Drag the side' } })
+                                                      
+  text = 'Gesture time awaiting in seconds'
+  table.insert(OptDefaults, {text, 'timeGesture', 0.5, "%.1f"})
+  
+  text = 'Else use mouse top / bottom placement on item for'
   table.insert(OptDefaults, {text, 'LRdefine', 'Left/Right edge trim', {
                                                       'Left/Right edge trim',
                                                       'Closest/Farthest edge trim' } })
   
   text = 'Trim the rest of selected items at edit cursor'
   table.insert(OptDefaults, {text, 'EnableEcurTrim', false })
+  
+  text = 'Use mouse gesture also for trim at edit cursor'
+  table.insert(OptDefaults, {text, 'GestureEcurTrim', false })
   
 end
 
@@ -123,7 +145,7 @@ function OptionsWindow()
     reaper.ShowMessageBox('Please, install ReaImGui from Reapack!', 'No Imgui library', 0)
     return
   end
-  dofile(imgui_path) '0.7'
+  dofile(imgui_path) '0.9.3'
   OptionsDefaults()
   GetExtStates()
   local fontSize = 17
@@ -166,24 +188,39 @@ function OptionsWindow()
     Background = rgbToHex({11,14,14,95}),
     Text = rgbToHex({92,92,81.5,100}),
     activeText = rgbToHex({50,95,80,100}),
+    
     ComboBox = {
       Default = rgbToHex({20,25,30,100}),
       Hovered = rgbToHex({35,40,45,80}),
       Active = rgbToHex({42,42,37,100}), 
     },
-    --[[
-    Input = {
-      Background = rgbToHex({50,50,50,100}),
-      Hover = rgbToHex({10,10,90,100}),
-      Text = rgbToHex({90,90,80,100}),
-      Label = rgbToHex({90,80,90,100}),
-    },]]
+    
     Button = {
       Default = rgbToHex({25,30,30,100}),
       Hovered = rgbToHex({35,40,45,100}),
       Active = rgbToHex({42,42,37,100}), 
     }
   }
+  
+  ---Flags--- 
+  local Flags = {}
+  Flags.childRounding = reaper.ImGui_StyleVar_ChildRounding()
+  Flags.frameRounding = reaper.ImGui_StyleVar_FrameRounding()
+  Flags.childBorder = reaper.ImGui_ChildFlags_Border()
+  Flags.menubar = reaper.ImGui_WindowFlags_MenuBar()
+  Flags.tableResizeflag = reaper.ImGui_TableFlags_Resizable()
+  Flags.childAutoResizeX = reaper.ImGui_ChildFlags_AutoResizeX()
+  Flags.childAutoResizeY = reaper.ImGui_ChildFlags_AutoResizeY() 
+  ------
+  
+  local fontName
+  ctx = reaper.ImGui_CreateContext('Options for Trim left or right item edges')
+  if reaper.GetOS():match("^Win") == nil then
+    reaper.ImGui_SetConfigVar(ctx, reaper.ImGui_ConfigVar_ViewportsNoDecoration(), 0)
+    fontName = 'sans-serif'
+  else fontName = 'Calibri'
+  end
+  
   --------------
   function frame()
     reaper.ImGui_PushFont(ctx, font) 
@@ -307,6 +344,8 @@ function OptionsWindow()
   --------------
   function loop()
     if not font or savedFontSize ~= fontSize then
+      if savedFontSize < 7 then savedFontSize = 7 end
+      if savedFontSize > 60 then savedFontSize = 60 end
       reaper.SetExtState(ExtStateName, 'FontSize', savedFontSize, true)
       fontSize = savedFontSize
       if font then reaper.ImGui_Detach(ctx, font) end
@@ -344,18 +383,24 @@ function OptionsWindow()
       local window_flags = reaper.ImGui_WindowFlags_MenuBar()
       reaper.ImGui_SetNextWindowSize(ctx, W, H, reaper.ImGui_Cond_Once()) -- Set the size of the windows.  Use in the 4th argument reaper.ImGui_Cond_FirstUseEver() to just apply at the first user run, so ImGUI remembers user resize s2
       
-      reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Text(), gui_colors.White) 
+      reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Text(), gui_colors.White)
+      --
+      reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_WindowRounding(), fontSize/4)
+      reaper.ImGui_PushStyleVar(ctx, Flags.frameRounding, fontSize/4)
+      reaper.ImGui_PushStyleVar(ctx, Flags.childRounding, fontSize/4)
+      reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_FramePadding(), fontSize/2, fontSize/4)
+      
       local visible, open = reaper.ImGui_Begin(ctx, 'Options for Trim left or right item edges', true, window_flags)
       reaper.ImGui_PopStyleColor(ctx, 1)
       
       if visible then
           frame()
-          reaper.ImGui_SetWindowSize(ctx, 0, 0, nil )
-          --if loopcnt == 0 then reaper.ImGui_SetWindowSize(ctx, 0, 0, nil ) end
+          reaper.ImGui_SetWindowSize(ctx, 0, 0, nil ) 
           reaper.ImGui_End(ctx)
       end
       
       reaper.ImGui_PopStyleColor(ctx, 13)
+      reaper.ImGui_PopStyleVar(ctx, 4)
       reaper.ImGui_PopFont(ctx)
        
       esc = escMouse or reaper.ImGui_IsKeyReleased(ctx, reaper.ImGui_Key_Escape())
@@ -363,27 +408,21 @@ function OptionsWindow()
       
       if ExternalOpen == true then
         space = spaceMouse or reaper.ImGui_IsKeyReleased(ctx, reaper.ImGui_Key_Space()) 
-        if space == true then SetExtStates() end
+        if space == true then
+          SetExtStates()
+          reaper.SetExtState(ExtStateName, 'TCPaction', tcpActIDstr, true)
+        end
       end
       
       if open and esc ~= true and enter ~= true then
-          reaper.defer(loop)
+        reaper.defer(loop)
       elseif enter == true then
-          SetExtStates()
-          reaper.ImGui_DestroyContext(ctx)
-      else
-          reaper.ImGui_DestroyContext(ctx)
+        SetExtStates()
+        reaper.SetExtState(ExtStateName, 'TCPaction', tcpActIDstr, true)
       end
     loopcnt = loopcnt+1
   end
   -----------------
-  local fontName
-  ctx = reaper.ImGui_CreateContext('Options for Trim left or right item edges') -- Add VERSION TODO
-  if reaper.GetOS():match("^Win") == nil then
-    reaper.ImGui_SetConfigVar(ctx, reaper.ImGui_ConfigVar_ViewportsNoDecoration(), 0)
-    fontName = 'sans-serif'
-  else fontName = 'Calibri'
-  end
   font = reaper.ImGui_CreateFont(fontName, fontSize, reaper.ImGui_FontFlags_None()) -- Create the fonts you need
   fontSep = reaper.ImGui_CreateFont(fontName, fontSize-2, reaper.ImGui_FontFlags_Italic())
   if imgui_version_num >= 18910 then
@@ -560,9 +599,15 @@ function AddTrMediaEditingGroup(Items, timeT)
       if time > ipos and time < iend then
         FieldMatch(Tracks, tr, true)
         local mode = reaper.GetMediaTrackInfo_Value(tr, 'I_FREEMODE')
+        local lanecolstate = reaper.GetMediaTrackInfo_Value(tr, 'C_LANESCOLLAPSED')
         local iY = reaper.GetMediaItemInfo_Value(item, 'F_FREEMODE_Y')
         local iH = reaper.GetMediaItemInfo_Value(item, 'F_FREEMODE_H')
         local iL = reaper.GetMediaItemInfo_Value(item, 'I_FIXEDLANE')
+        if mode == 0 or ( mode == 2 and lanecolstate > 0 ) then
+          iY = 0
+          iH = 1
+          iL = 0
+        end
         ItemsH[tostring(item)] = {iY, iH, iL, mode}
       end
     end
@@ -665,6 +710,8 @@ function AddTrMediaEditingGroup(Items, timeT)
     
     for i, tr in ipairs(GrTracks) do
       local mode = reaper.GetMediaTrackInfo_Value(tr, 'I_FREEMODE')
+      local lanecolstate = reaper.GetMediaTrackInfo_Value(tr, 'C_LANESCOLLAPSED')
+      
       local itemCount = reaper.CountTrackMediaItems(tr) - 1
       local idx = itemCount
       local testTime = time + 1 --just more than time
@@ -695,15 +742,28 @@ function AddTrMediaEditingGroup(Items, timeT)
           local iY = reaper.GetMediaItemInfo_Value(item, 'F_FREEMODE_Y')
           local iH = reaper.GetMediaItemInfo_Value(item, 'F_FREEMODE_H')
           local iL = reaper.GetMediaItemInfo_Value(item, 'I_FIXEDLANE')
+          local iHid = reaper.GetMediaItemInfo_Value(item, 'B_FIXEDLANE_HIDDEN')
+          
+          if mode == 0 or ( mode == 2 and lanecolstate > 0 ) then
+            iY = 0
+            iH = 1
+            iL = 0
+          end
           
           for h, refItem in pairs(ItemsH) do
-            if mode == 2 and refItem[4] == mode then
+            if mode == 2 and lanecolstate > 0 then
+              if iHid == 0 then FieldMatch(Items, item, true) end
+            elseif mode == 2 and refItem[4] == mode then
               if refItem[3] == iL then FieldMatch(Items, item, true)
               end
-            else 
-              if math.abs(refItem[1] - iY) < math.min(refItem[2], iH)/5
-              and math.max(refItem[2], iH) / math.min(refItem[2], iH) <= 1.5
-              then
+            elseif mode == 2 and refItem[4] == 0 then
+              if iL == 0 then FieldMatch(Items, item, true)
+              end
+            elseif mode == 0 and refItem[4] == 2 then
+              if refItem[3] == 0 then FieldMatch(Items, item, true)
+              end
+            else
+              if math.abs(refItem[1] - iY) < math.min(refItem[2], iH)/5 then 
                 FieldMatch(Items, item, true)
               end
             end
@@ -1142,18 +1202,13 @@ end
 
 function GetTopBottomItemHalf()
 local itempart
-local x, y = reaper.GetMousePosition()
+local x, y = MouseXstart, MouseYstart
 
 local item_under_mouse = reaper.GetItemFromPoint(x,y,true)
 
 if item_under_mouse then
 
   local item_h = reaper.GetMediaItemInfo_Value( item_under_mouse, "I_LASTH" )
-  
-  local OScoeff = 1
-  if reaper.GetOS():match("^Win") == nil then
-    OScoeff = -1
-  end
   
   local test_point = math.floor( y + (item_h-1) *OScoeff)
   local test_item, take = reaper.GetItemFromPoint( x, test_point, true )
@@ -1285,6 +1340,13 @@ end
 --------------------------------------------
 
 function WhatTrim(half, leftF, rightF, mPos)
+  if Gesture then
+    if Gesture:match('L') and Opt.gesture == 'Point to side' then return "left" end
+    if Gesture:match('L') and Opt.gesture == 'Drag the side' then return "right" end
+    if Gesture:match('R') and Opt.gesture == 'Point to side' then return "right" end
+    if Gesture:match('R') and Opt.gesture == 'Drag the side' then return "left" end
+  end
+  
   local f_type
   
   if Opt.LRdefine == 'Closest/Farthest edge trim' then --cross define
@@ -1322,6 +1384,7 @@ function EditCurTrim(items)
   local trimTime = reaper.GetCursorPosition()
   local half = 'top'
   Opt.LRdefine = 'Closest/Farthest edge trim'
+  if not Opt.GestureEcurTrim then Gesture = nil end
   
   for i, item in ipairs(items) do
     local iPos = reaper.GetMediaItemInfo_Value(item,'D_POSITION')
@@ -1353,30 +1416,42 @@ end
 -----------------------------------------
 
 function MouseTrim()
+  local timeBreak = Opt.timeGesture
+  local pxThreshold = 4
+  if Opt.gesture and Opt.gesture ~= "don't use" and Opt.GestureEcurTrim then
+    Gesture = GetGesture(timeBreak, MouseXstart, MouseYstart, pxThreshold)
+  end
+  
   GroupEnabled = reaper.GetToggleCommandState(1156) --Options: Toggle item grouping override
   local SelectedItems = SaveSelItems()
   local item, half = GetTopBottomItemHalf()
   
   if half == "header" or not item then  --if mouse cursor not on the item
-    if Opt.EnableEcurTrim == true then
+    if Opt.EnableEcurTrim == true and #SelectedItems > 0 then
       if EditCurTrim(SelectedItems) then
         UndoString = "Trim the rest of selected items at edit cursor"
+      else reaper.defer(function() end)
       end
     end
   end
   
   if item and half ~= "header" then
+    if not Gesture
+    and Opt.gesture and Opt.gesture ~= "don't use" then
+      Gesture = GetGesture(timeBreak, MouseXstart, MouseYstart, pxThreshold)
+    end
+    
     local itemLocked = reaper.GetMediaItemInfo_Value(item, 'C_LOCK')
     if itemLocked == 1 then return end
     
     reaper.Undo_BeginBlock2( 0 )
     reaper.PreventUIRefresh( 1 )
     
-    local mPos = reaper.BR_PositionAtMouseCursor(false)
+    --local mPos = reaper.BR_PositionAtMouseCursor(false)
     local trimTime
     if Opt.RespSnapItems == true then
-      trimTime = reaper.SnapToGrid(0,mPos)
-    else trimTime = mPos
+      trimTime = reaper.SnapToGrid(0, Mcur_pos)
+    else trimTime = Mcur_pos
     end
     
     local inisel= {}
@@ -1402,7 +1477,7 @@ function MouseTrim()
     local iPos = reaper.GetMediaItemInfo_Value(item,'D_POSITION')
     local iEnd = iPos + reaper.GetMediaItemInfo_Value(item,'D_LENGTH')
     
-    local side = WhatTrim(half, iPos, iEnd, mPos)
+    local side = WhatTrim(half, iPos, iEnd, Mcur_pos)
     
     undoType = trim_sel_items(allItemsForTrim, side, trimTime)
     
@@ -1414,10 +1489,40 @@ function MouseTrim()
     
   end
 end
+
+----------------------------
+
+function GetGesture(timeBreak, mouseXstart, mouseYstart, pxThreshold)
+  local timeStart = reaper.time_precise()
+  local delta = 0
+  local result = ''
+  while delta < timeBreak do
+    local curtime = reaper.time_precise()
+    delta = curtime - timeStart
+    local mouseX, mouseY = reaper.GetMousePosition()
+    local xdelta, ydelta = mouseX - mouseXstart, mouseY - mouseYstart
+    if math.abs(xdelta) >= pxThreshold then
+      if xdelta > 0 then result = 'R'
+      else result = 'L'
+      end
+    end
+    
+    if math.abs(ydelta) >= pxThreshold then
+      if ydelta*OScoeff > 0 then result = result.. 'dn'
+      else result = result.. 'up'
+      end
+    end 
+    
+    if result ~= '' and delta > 0.1 then return result end
+    
+  end
+  
+end
+
 --------------------------
 
 -------START------
-CurVers = 1.7
+CurVers = 1.8
 version = tonumber( reaper.GetExtState(ExtStateName, "version") )
 
 if version ~= CurVers then
@@ -1432,13 +1537,32 @@ else
     reaper.ShowMessageBox('Please, install SWS extension!', 'No SWS extension', 0)
     return
   end
+  
   Window, Segment, Details = reaper.BR_GetMouseCursorContext()
+  local tcpActIDstr = reaper.GetExtState(ExtStateName, 'TCPaction')
+  local tcpActID
+  
   if Window == 'transport' or Window == 'mcp' then
     OptionsWindow()
+  elseif Window == 'tcp' and tcpActIDstr ~= '' then
+    if tcpActIDstr:gsub('%d+', '') == '' then
+      tcpActID = tonumber(tcpActIDstr)
+    elseif tcpActIDstr ~= '' then
+      tcpActID = tonumber(reaper.NamedCommandLookup(tcpActIDstr))
+    end
+    reaper.Main_OnCommandEx(tcpActID,0,0)
   else
     OptionsDefaults()
     GetExtStates()
     SetOptGlobals()
+    
+    Mcur_pos = reaper.BR_PositionAtMouseCursor( true )
+    MouseXstart, MouseYstart = reaper.GetMousePosition()
+    
+    OScoeff = 1
+    if reaper.GetOS():match("^Win") == nil then
+      OScoeff = -1
+    end
     
     local fulliLock = reaper.GetToggleCommandState(40576) --Locking: Toggle full item locking mode
     if fulliLock == 1 then return end
