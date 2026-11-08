@@ -1,10 +1,11 @@
 -- @description Smart split items using mouse cursor context (also edit cursor, razor area and time selection)
 -- @author AZ
--- @version 3.50
+-- @version 3.51
 -- @changelog
 --   - Fix track grouping when fixed lanes count mismatches
 --   - New options to get mouse gesture for L/R item selection
 --   - UI improvements
+--   - Fix gesture awaiting if not set
 -- @provides [main] az_Smart split items by mouse cursor/az_Open options for az_Smart split items by mouse cursor.lua
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=259751
 -- @donation Donate via PayPal https://www.paypal.me/AZsound
@@ -1235,21 +1236,16 @@ end
 -----------------------------------
 -----------------------------------
 
-function GetTopBottomItemHalf()
+function GetTopBottomItemHalf(x,y)
 local itempart
-local x, y = reaper.GetMousePosition()
+if not x or not y then x, y = reaper.GetMousePosition() end
 
 local item_under_mouse = reaper.GetItemFromPoint(x,y,true)
 
 if item_under_mouse then
 
   local item_h = reaper.GetMediaItemInfo_Value( item_under_mouse, "I_LASTH" )
-  --[[
-  local OScoeff = 1
-  if reaper.GetOS():match("^Win") == nil then
-    OScoeff = -1
-  end
-  ]]
+
   local test_point = math.floor( y + (item_h-1) *OScoeff)
   local test_item, take = reaper.GetItemFromPoint( x, test_point, true )
   
@@ -1953,8 +1949,14 @@ function Main()
   if RazorEditSelectionExists()==true then
     split_byRE_andSel()
   else
+    if Opt.ItemPostSelecton == 'selection follows mouse movement' then
+      local timeStart = reaper.time_precise()
+      local timeBreak = Opt.timeGesture
+      local pxThreshold = 4
+      Gesture = GetGesture(timeStart, timeBreak, MouseXstart, MouseYstart, pxThreshold)
+    end
     
-    Item_mouse, Half = GetTopBottomItemHalf() --what is context item or not
+    Item_mouse, Half = GetTopBottomItemHalf(MouseXstart, MouseYstart) --what is context item or not
     if Item_mouse and Half ~= 'header' and Opt.UseMouse then
       MouseOnItem = true
     else MouseOnItem = false
@@ -2259,7 +2261,7 @@ end
 
 ------------------
 -------START------
-CurVers = 3.5
+CurVers = 3.51
 version = tonumber( reaper.GetExtState(ExtStateName, "version") )
 if version ~= CurVers then
   if not version or version < 3 then
@@ -2299,13 +2301,8 @@ else
     OptionsDefaults()
     GetExtStates()
     SetOptGlobals()
-    
-    local mouseXstart, mouseYstart = reaper.GetMousePosition() 
-    local timeStart = reaper.time_precise()
-    local timeBreak = Opt.timeGesture
-    local pxThreshold = 4
-    
-    Gesture = GetGesture(timeStart, timeBreak, mouseXstart, mouseYstart, pxThreshold)
+     
+    MouseXstart, MouseYstart = reaper.GetMousePosition() 
     
     local ret = Main()
     if ret ~= nil then --msg(UndoString)
