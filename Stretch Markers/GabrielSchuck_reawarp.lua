@@ -3,6 +3,9 @@
 -- @version 1.0.5
 -- @license GPL-3.0-or-later
 -- @changelog
+--   Visual progress and results: with OSARA and the setting on, the result of each
+--   action is also shown in a tooltip near the mouse for a few seconds (to show
+--   reawarp to people who watch, in a video or a class).
 --   Also distributed through ReaTeam/ReaScripts: the actions and the Beat This!
 --   backend are found next to the script or in a folder named after it.
 -- @links
@@ -1300,7 +1303,7 @@ STRINGS.en = {
   set_follow = "Item follows tempo changes (1/0)",
   set_fix_sig = "Change project time sig (0=no 1=ask 2=always)",
   set_sync = "Sync other items (0=no 1=grouped 2=all audio 3=all with MIDI)",
-  set_progress = "Visual progress (auto=without OSARA, on, off)",
+  set_progress = "Visual progress and results (auto=without OSARA, on, off)",
   set_lang = "Language (auto en pt-BR es)",
 
   set_detector = "Beat detector (auto=Beat This! or builtin)",
@@ -1486,7 +1489,7 @@ STRINGS["pt-BR"] = {
   set_follow = "Item segue mudanças de tempo (1/0)",
   set_fix_sig = "Ajustar compasso do projeto (0=não 1=perguntar 2=sempre)",
   set_sync = "Sincronizar outros itens (0=não 1=agrupados 2=todo áudio 3=todos com MIDI)",
-  set_progress = "Progresso visual (auto=sem OSARA, on, off)",
+  set_progress = "Progresso e resultados visuais (auto=sem OSARA, on, off)",
   set_lang = "Idioma (auto en pt-BR es)",
 
   set_detector = "Detector de batidas (auto=Beat This! ou builtin)",
@@ -1672,7 +1675,7 @@ STRINGS.es = {
   set_follow = "El ítem sigue los cambios de tempo (1/0)",
   set_fix_sig = "Cambiar compás del proyecto (0=no 1=preguntar 2=siempre)",
   set_sync = "Sincronizar otros ítems (0=no 1=agrupados 2=todo audio 3=todos con MIDI)",
-  set_progress = "Progreso visual (auto=sin OSARA, on, off)",
+  set_progress = "Progreso y resultados visuales (auto=sin OSARA, on, off)",
   set_lang = "Idioma (auto en pt-BR es)",
 
   set_detector = "Detector de pulsos (auto=Beat This! o builtin)",
@@ -4710,20 +4713,28 @@ end
 -- Without OSARA, a short note near the mouse that goes away by itself: for
 -- actions repeated in a row (moving between beat markers), where a dialog to
 -- close after every key press would get in the way.
-local function flash(text)
-  if r.osara_outputMessage then r.osara_outputMessage(text); return end
-  if not (r.TrackCtl_SetToolTip and r.GetMousePosition and r.defer) then msg(text); return end
+-- A note near the mouse that goes away by itself (longer texts stay longer);
+-- false when tooltips are not available.
+local function note(text)
+  if not (r.TrackCtl_SetToolTip and r.GetMousePosition and r.defer) then return false end
   local x, y = r.GetMousePosition()
   r.TrackCtl_SetToolTip(text, x + 16, y + 24, true)
   local clock = r.time_precise or os.clock
   local t0 = clock()
+  local keep = math.min(12, 4 + #text / 25)
   r.SetExtState("reawarp", "flash", tostring(t0), false)
   local function wait()
     if r.GetExtState("reawarp", "flash") ~= tostring(t0) then return end -- a newer note
-    if clock() - t0 < 4 then r.defer(wait); return end
+    if clock() - t0 < keep then r.defer(wait); return end
     r.TrackCtl_SetToolTip("", 0, 0, true)
   end
   r.defer(wait)
+  return true
+end
+
+local function flash(text)
+  if r.osara_outputMessage then r.osara_outputMessage(text); return end
+  if not note(text) then msg(text) end
 end
 
 function core.run(action)
@@ -4844,12 +4855,21 @@ function core.run(action)
     r.PreventUIRefresh(-1)
     if coroutine.status(co) ~= "dead" then update_tip(); return false end
     close()
-    if not ok then report(txt("err_unexpected", tostring(result)))
+    -- with OSARA and "Visual progress" on (e.g. to show reawarp to people who
+    -- watch), the result is also shown in a note near the mouse
+    local visual = r.osara_outputMessage and pmode == "on"
+    if not ok then
+      local m = txt("err_unexpected", tostring(result))
+      report(m)
+      if visual then note(m) end
     elseif result ~= nil then
       -- the analysis report is read in a dialog (it explains what to check next)
       if action == "analyze" then msg(result)
-      elseif action == "next_beat" or action == "prev_beat" then flash(spoken or result)
-      else report(result, spoken) end
+      else
+        if action == "next_beat" or action == "prev_beat" then flash(spoken or result)
+        else report(result, spoken) end
+        if visual then note(result) end
+      end
     end -- nil: cancelled in a dialog
     return true
   end
