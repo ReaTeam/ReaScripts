@@ -1,3 +1,4 @@
+# @noindex
 """reawarp beat detector backend, using Beat This! (CPJKU, ISMIR 2024).
 
 Usage:
