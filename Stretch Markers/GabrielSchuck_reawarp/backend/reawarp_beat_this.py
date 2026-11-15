@@ -67,25 +67,68 @@ def cached_checkpoint(name):
     return os.path.join(os.environ["TORCH_HOME"], "hub", "checkpoints", f"beat_this-{name}.ckpt")
 
 
+# A copy of the model on reawarp's GitHub, used when the authors' server
+# fails (it has refused downloads at times), with its SHA-256
+MIRRORS = {
+    "final0": ("https://github.com/gabrielschuck/reawarp/releases/download/beat-this-model/beat_this-final0.ckpt",
+               "8c328b45f59d8dd3dff219253ff6a8d6482be57d0133a29140e2febbf8eb8331"),
+}
+
+
+def download_mirror(name):
+    """Download the model from the mirror into torch.hub's cache, checking its
+    SHA-256. Returns False when there is no mirror for this model."""
+    import hashlib
+    import urllib.request
+
+    if name not in MIRRORS:
+        return False
+    url, sha = MIRRORS[name]
+    path = cached_checkpoint(name)
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    print(f"The authors' server did not answer; downloading the model from reawarp's copy:\n{url}")
+    tmp = path + ".part"
+    h = hashlib.sha256()
+    with urllib.request.urlopen(url, timeout=60) as r, open(tmp, "wb") as f:
+        while True:
+            block = r.read(1 << 20)
+            if not block:
+                break
+            h.update(block)
+            f.write(block)
+    if h.hexdigest() != sha:
+        os.remove(tmp)
+        raise RuntimeError("the copy of the model did not match its SHA-256")
+    os.replace(tmp, path)
+    return True
+
+
 def download(name):
     """Download the model and check that it loads.
 
     torch.hub reuses a file already in the cache, so a download that arrived
     damaged (connection dropped, proxy, antivirus) would fail on every run:
     when the cached file does not load, it is deleted and downloaded again.
+    When the authors' server fails, the copy on reawarp's GitHub is used.
     """
     from beat_this.inference import load_checkpoint
 
+    mirrored = False
     for attempt in (1, 2, 3):
         try:
             load_checkpoint(name)
             return
         except Exception as e:
             path = cached_checkpoint(name)
-            if attempt == 3 or not os.path.exists(path):
+            if os.path.exists(path):
+                if attempt == 3:
+                    raise
+                print(f"The downloaded model is damaged ({type(e).__name__}); downloading it again...")
+                os.remove(path)
+            elif not mirrored and download_mirror(name):
+                mirrored = True
+            else:
                 raise
-            print(f"The downloaded model is damaged ({type(e).__name__}); downloading it again...")
-            os.remove(path)
 
 
 def devices(torch):
