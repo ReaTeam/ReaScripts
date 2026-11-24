@@ -1,7 +1,9 @@
 -- @description Apply render preset
 -- @author cfillion
--- @version 2.1.11
--- @changelog Repair gfx fallback path when ReaImGui is not present
+-- @version 2.1.12
+-- @changelog
+--   - Compatibility with recent REAPER versions
+--   - Don't error out when encountering unknown preset tokens by default
 -- @provides
 --   .
 --   [main] . > cfillion_Apply render preset (create action).lua
@@ -38,6 +40,9 @@
 --   - Render speed
 --   - Resample mode
 --   - Use project sample rate for mixing and FX/synth processing
+
+-- enable to error out on unexpected tokens in reaper-render*.ini
+local STRICT = false
 
 local ImGui, FLT_MIN, FLT_MAX
 if reaper.ImGui_GetBuiltinPath then
@@ -341,7 +346,7 @@ local function addPresetSettings(preset, mask, value)
 end
 
 function parseFormatPreset(presets, file, tokens)
-  local ok, err = checkTokenCount(file, tokens, 8, 9)
+  local ok, err = checkTokenCount(file, tokens, 8, 10)
   if not ok then return nil, err end
 
   local preset = insertPreset(presets, tokens[2])
@@ -351,6 +356,8 @@ function parseFormatPreset(presets, file, tokens)
   preset.projrenderrateinternal = tonumber(tokens[6]) -- use proj splrate
   preset.projrenderresample     = tonumber(tokens[7])
   preset.RENDER_DITHER          = tonumber(tokens[8])
+  preset._preserve_flags        = tonumber(tokens[9])
+  preset._unknown10             = tonumber(tokens[10])
   preset.RENDER_FORMAT          = '' -- handle duplicate <RENDERPRESET
   preset.RENDER_FORMAT2         = '' -- reset when no <RENDERPRESET2 node exists
 
@@ -490,7 +497,12 @@ local function readRenderPresets(presets, filename)
   local parser = parseDefault
   for line in file:lines() do
     line = line:match('^(.-)\r*$')
-    parser = assert(parser(presets, filename, line))
+    local new_parser, err = parser(presets, filename, line)
+    if STRICT then
+      parser = assert(new_parser, err)
+    elseif new_parser then
+      parser = new_parser
+    end
   end
 
   file:close()
