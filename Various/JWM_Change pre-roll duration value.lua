@@ -1,0 +1,15 @@
+-- @description Change Pre-roll duration value
+-- @author José M Muñoz (J-WalkMan)
+-- @version 1.0
+-- @metapackage
+-- @provides
+--   [main] JWM_Change pre-roll duration value/JWM_Set pre-roll duration to 1 bar.lua
+--   [main] JWM_Change pre-roll duration value/JWM_Set pre-roll duration to 2 bars.lua
+--   [main] JWM_Change pre-roll duration value/JWM_Set pre-roll duration to 4 bars.lua
+--   [main] JWM_Change pre-roll duration value/JWM_Set pre-roll duration to 8 bars.lua
+--   [main] JWM_Change pre-roll duration value/JWM_Set pre-roll duration to double the current value.lua
+--   [main] JWM_Change pre-roll duration value/JWM_Set pre-roll duration to half of the current value.lua
+-- @about
+--   Minimum value is 1 measure
+--   Maximum value is 16 measures
+
