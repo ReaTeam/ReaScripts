@@ -1,17 +1,16 @@
 -- @description reawarp: audio warping (beat detection, warp, tempo map, groove match, quantize)
 -- @author Gabriel Schuck
--- @version 1.0.7
+-- @version 1.0.8
 -- @license GPL-3.0-or-later
 -- @changelog
---   Bug fix: audio quantize via MIDI from swing to straight (for example a swung
---   song quantized to straight eighths) had no effect: the audio was assumed to be
---   straight. reawarp now measures where the audio plays each part of the beat, so
---   the quantize works in both directions.
---   Bug fix: the attacks read for the quantize could change from one run to the next
---   (REAPER can report an MP3 as 1 channel, and a 1-channel read gives only the left
---   channel; an MP3 can also report a length of 0). Both channels are now always read,
---   with the item at its real length.
---   A loose swing (off-beats that vary from beat to beat) is now measured too.
+--   Audio quantize via MIDI with multitrack follower sync: with one audio item
+--   selected, the other items follow it as "Sync other items" says (for stems:
+--   quantize the instrumental, and the vocal grouped with it follows). With several
+--   audio items selected, each one is quantized on its own, as before.
+--   An item in a group is followed by its group only, also with "Sync other items"
+--   at 2 or 3 (warp, tempo map, change song tempo and quantize).
+--   Bug fix: Double/Halve BPM with several items selected also changed the items
+--   overlapping them (a loop on another track) when "Sync other items" was on.
 -- @links
 --   GitHub https://github.com/gabrielschuck/reawarp
 -- @about
@@ -1438,6 +1437,7 @@ STRINGS.en = {
   undo_quantize = "reawarp: quantize to MIDI item",
   q_no_midi = "Select a MIDI item (the reference, on the upper track) and the audio items to quantize.",
   q_no_notes = "The MIDI item %s has no notes inside it.",
+  q_follow = "%d other items followed it (multitrack follower sync).",
   q_none = "%s: no attack was found near the notes; nothing was changed. Raise the Sensitivity in the Quantize settings to accept softer attacks.",
   q_done = "%s: %d of %d notes quantized.",
   q_done_all = "Quantized to %s: %s",
@@ -1624,6 +1624,7 @@ STRINGS["pt-BR"] = {
   undo_quantize = "reawarp: quantizar pelo item MIDI",
   q_no_midi = "Selecione um item MIDI (a referência, na faixa de cima) e os itens de áudio a quantizar.",
   q_no_notes = "O item MIDI %s não tem notas dentro dele.",
+  q_follow = "%d outros itens o seguiram (multitrack follower sync).",
   q_none = "%s: nenhum ataque foi encontrado perto das notas; nada foi mudado. Aumente a Sensibilidade nas Configurações do quantize para aceitar ataques mais fracos.",
   q_done = "%s: %d de %d notas quantizadas.",
   q_done_all = "Quantizado por %s: %s",
@@ -1810,6 +1811,7 @@ STRINGS.es = {
   undo_quantize = "reawarp: cuantizar según el ítem MIDI",
   q_no_midi = "Seleccione un ítem MIDI (la referencia, en la pista de arriba) y los ítems de audio que quiere cuantizar.",
   q_no_notes = "El ítem MIDI %s no tiene notas dentro.",
+  q_follow = "%d ítems más lo siguieron (multitrack follower sync).",
   q_none = "%s: no se encontró ningún ataque cerca de las notas; no se cambió nada. Suba la Sensibilidad en los Ajustes de la cuantización para aceptar ataques más suaves.",
   q_done = "%s: %d de %d notas cuantizadas.",
   q_done_all = "Cuantizado según %s: %s",
@@ -2175,6 +2177,8 @@ end
 -- Collect unlocked follower items overlapping [min_t, max_t] according to s.sync
 -- (0 = off, 1 = same item group as guide_item, 2 = all overlapping), neutralize
 -- them, and freeze their timebase to Time (0) while the guide item is processed.
+-- A guide in an item group is followed by its group only, whatever the mode
+-- (grouping says which items go together).
 local function collect_followers(guide_item, s, min_t, max_t, keep_pos)
   local mode = s and s.sync or 0
   if mode ~= 1 and mode ~= 2 and mode ~= 3 then return {} end
@@ -2193,7 +2197,7 @@ local function collect_followers(guide_item, s, min_t, max_t, keep_pos)
       -- already on the project grid (a part, or the reference of a quantize);
       -- 3 = all, MIDI included; 1 = grouped items, MIDI included
       local midi_out = mode == 2 and otake and r.TakeIsMIDI(otake)
-      if (math.floor(lock) & 1) == 0 and (mode >= 2 or ogid == gid) and not midi_out then
+      if (math.floor(lock) & 1) == 0 and ((mode >= 2 and gid == 0) or ogid == gid) and not midi_out then
         local take = otake
         local pos = keep_pos and r.GetMediaItemInfo_Value(other, "D_POSITION") or unwarped_pos(other)
         local len = unwarped_len(other, take)
@@ -3635,8 +3639,9 @@ function A.retempo(items, s)
     end
   end
   -- other items follow the change only as "Sync other items" says (0 = none,
-  -- 1 = items grouped with the selected one, 2 or 3 = all overlapping: a
-  -- MIDI item on the grid follows a tempo change anyway)
+  -- 1 = items grouped with the selected one, 2 or 3 = all overlapping, or its
+  -- group only when it is in one: a MIDI item on the grid follows a tempo
+  -- change anyway)
   local sync = tonumber(s.sync) or 0
   local gid = it and r.GetMediaItemInfo_Value(it.item, "I_GROUPID") or 0
   if s.follow ~= 0 and r.CountMediaItems and (sync >= 2 or (sync == 1 and gid ~= 0)) then
@@ -3645,7 +3650,7 @@ function A.retempo(items, s)
       if other and (not it or other ~= it.item) then
         local lock = r.GetMediaItemInfo_Value(other, "C_LOCK") or 0
         local ogid = r.GetMediaItemInfo_Value(other, "I_GROUPID") or 0
-        if (math.floor(lock) & 1) == 0 and (sync >= 2 or ogid == gid) then
+        if (math.floor(lock) & 1) == 0 and ((sync >= 2 and gid == 0) or (gid ~= 0 and ogid == gid)) then
           local pos = r.GetMediaItemInfo_Value(other, "D_POSITION")
           local len = r.GetMediaItemInfo_Value(other, "D_LENGTH")
           if pos < t1 - 1e-6 and pos + len > t0 + 1e-6 then
@@ -3710,6 +3715,11 @@ end
 --         song play twice as fast: the grid is halved instead (and vice versa)
 local function regrid(items, s, double)
   local done = {}
+  -- several items: each is warped again on its own, and none of them carries
+  -- the others (the same as a warp of several items, which syncs no
+  -- followers): a loop or another song overlapping them must stay as it is
+  local s_one = s
+  if #items > 1 then s_one = setmetatable({ sync = 0 }, { __index = s }) end
   for n, it in ipairs(items) do
     local take = it.take
     local list = rw_markers(take)
@@ -3776,7 +3786,7 @@ local function regrid(items, s, double)
       A.bpm({ it }, s)
       done[#done + 1] = txt("regrid_applied", it.name, avg(old), avg(new), txt("mode_bpm"))
     elseif mode == "warp" then
-      A.warp({ it }, s)
+      A.warp({ it }, s_one)
       local pos = r.GetMediaItemInfo_Value(it.item, "D_POSITION")
       local pq = r.TimeMap2_timeToQN(0, pos)
       local pbpm = 60 * (r.TimeMap2_timeToQN(0, pos + 30) - pq) / 30
@@ -4726,6 +4736,155 @@ local function quantize_one(it, targets, note_end, s)
   return notes
 end
 
+-- Before a quantize: the item as it was before an earlier quantize (its
+-- stretch markers then are kept in EXT_PREQ), or saved as it is now.
+local function prequantize_state(take)
+  local _, mode = r.GetSetMediaItemTakeInfo_String(take, EXT_MODE, "", false)
+  local _, saved = r.GetSetMediaItemTakeInfo_String(take, EXT_PREQ, "", false)
+  if mode == "quantize" and saved ~= "" then
+    local n = r.GetTakeNumStretchMarkers(take)
+    if n > 0 then r.DeleteTakeStretchMarkers(take, 0, n) end
+    for ps, ss in saved:gmatch("([^ :]+):([^ ]+)") do
+      r.SetTakeStretchMarker(take, -1, tonumber(ps), tonumber(ss))
+    end
+  else
+    local parts = {}
+    for _, m in ipairs(stretch_markers(take)) do parts[#parts + 1] = string.format("%.9f:%.9f", m.pos, m.src) end
+    r.GetSetMediaItemTakeInfo_String(take, EXT_PREQ, #parts > 0 and table.concat(parts, " ") or "-", true)
+  end
+end
+
+-- The audio of an item (source seconds from the item start) at project
+-- times: its value at the item edges and at its stretch markers, between
+-- which it is linear.
+local function audio_points(item, take)
+  local pos = r.GetMediaItemInfo_Value(item, "D_POSITION")
+  local len = r.GetMediaItemInfo_Value(item, "D_LENGTH")
+  local ts = { 0, len }
+  for _, m in ipairs(stretch_markers(take)) do
+    if m.pos > 0 and m.pos < len then ts[#ts + 1] = m.pos end
+  end
+  table.sort(ts)
+  local out = {}
+  for _, t in ipairs(ts) do out[#out + 1] = { T = pos + t, a = item_to_rel_src(take, t) } end
+  return out
+end
+
+-- the project time where a list of audio points plays audio a
+local function time_of_audio(pts, a)
+  for i = 1, #pts - 1 do
+    local p, q = pts[i], pts[i + 1]
+    if a <= q.a or i == #pts - 1 then
+      if q.a - p.a < 1e-9 then return p.T end
+      return p.T + (a - p.a) * (q.T - p.T) / (q.a - p.a)
+    end
+  end
+  return pts[1] and pts[1].T or 0
+end
+
+-- The items that follow a quantized item, per "Multitrack follower sync":
+-- off: none; item group: the unlocked audio items of its group; all
+-- overlapping: the unlocked audio items it overlaps, or only its group when
+-- it is in one (MIDI never follows: the reference must stay where it is).
+local function quantize_followers(guide, s)
+  local mode = s.sync or 0
+  if mode ~= 1 and mode ~= 2 and mode ~= 3 then return {} end
+  local gid = r.GetMediaItemInfo_Value(guide.item, "I_GROUPID") or 0
+  if mode == 1 and gid == 0 then return {} end
+  local g0 = r.GetMediaItemInfo_Value(guide.item, "D_POSITION")
+  local g1 = g0 + r.GetMediaItemInfo_Value(guide.item, "D_LENGTH")
+  local list = {}
+  for i = 0, r.CountMediaItems(0) - 1 do
+    local other = r.GetMediaItem(0, i)
+    local take = other and other ~= guide.item and r.GetActiveTake(other)
+    if take and not r.TakeIsMIDI(take) and (math.floor(r.GetMediaItemInfo_Value(other, "C_LOCK") or 0) & 1) == 0 then
+      local ogid = r.GetMediaItemInfo_Value(other, "I_GROUPID") or 0
+      local p0 = r.GetMediaItemInfo_Value(other, "D_POSITION")
+      local p1 = p0 + r.GetMediaItemInfo_Value(other, "D_LENGTH")
+      if (gid ~= 0 and ogid == gid) or (gid == 0 and mode >= 2 and p0 < g1 - 1e-6 and p1 > g0 + 1e-6) then
+        list[#list + 1] = { item = other, take = take, name = r.GetTakeName(take) }
+      end
+    end
+  end
+  return list
+end
+
+-- A follower plays each moment of its audio where the quantize moved the
+-- same moment of the guide: the guide's change of time (where its audio
+-- played -> where it plays now) is applied to the follower.
+local function follow_quantize(f, before, after, guide_guid)
+  local item, take = f.item, f.take
+  remember_original(item)
+  r.GetSetMediaItemInfo_String(item, EXT_SYNC, guide_guid, true)
+  local tb = r.GetMediaItemInfo_Value(item, "C_BEATATTACHMODE")
+  r.SetMediaItemInfo_Value(item, "C_BEATATTACHMODE", 0)
+  prequantize_state(take)
+  local pos = r.GetMediaItemInfo_Value(item, "D_POSITION")
+  local len = r.GetMediaItemInfo_Value(item, "D_LENGTH")
+  local rate = r.GetMediaItemTakeInfo_Value(take, "D_PLAYRATE")
+  local sm = stretch_markers(take)
+  local base
+  if #sm > 0 then
+    base = sm[1].src - sm[1].pos * rate
+  else
+    local idx = r.SetTakeStretchMarker(take, -1, 0)
+    local _, _, s0 = r.GetTakeStretchMarker(take, idx)
+    r.DeleteTakeStretchMarkers(take, idx)
+    base = s0
+  end
+  -- the time map: for each point of the guide now, where that audio was;
+  -- the edges of the follower too, where they are inside the guide (so that
+  -- the follower keeps following up to its own start and end)
+  local pts = {}
+  local g0, g1 = after[1].T, after[#after].T
+  local function guide_audio(T)
+    for i = 1, #after - 1 do
+      local p, q = after[i], after[i + 1]
+      if T <= q.T then return p.a + (T - p.T) * (q.a - p.a) / math.max(1e-9, q.T - p.T) end
+    end
+    return after[#after].a
+  end
+  if pos > g0 + 1e-3 and pos < g1 - 1e-3 then pts[#pts + 1] = { T = pos, a = guide_audio(pos) } end
+  for _, p in ipairs(after) do
+    if p.T > pos + 1e-3 and p.T < pos + len - 1e-3 then pts[#pts + 1] = p end
+  end
+  if pos + len > g0 + 1e-3 and pos + len < g1 - 1e-3 then pts[#pts + 1] = { T = pos + len, a = guide_audio(pos + len) } end
+  local map = {}
+  for _, p in ipairs(pts) do
+    local was = time_of_audio(before, p.a)
+    map[#map + 1] = { pos = p.T - pos, src = item_to_rel_src(take, was - pos) + base }
+  end
+  if #map == 0 then
+    r.SetMediaItemInfo_Value(item, "C_BEATATTACHMODE", tb)
+    return false
+  end
+  local list = {}
+  local first, last = map[1], map[#map]
+  local head, tail = false, false
+  for _, m in ipairs(sm) do
+    if m.pos < first.pos - 1e-3 and m.src < first.src - 1e-4 then list[#list + 1] = m; head = true end
+  end
+  if not head and first.pos > 1e-3 then list[#list + 1] = { pos = 0, src = base } end
+  for _, m in ipairs(map) do list[#list + 1] = m end
+  for _, m in ipairs(sm) do
+    if m.pos > last.pos + 1e-3 and m.src > last.src + 1e-4 then list[#list + 1] = m; tail = true end
+  end
+  if not tail and last.pos < len - 1e-3 then list[#list + 1] = { pos = len, src = item_to_rel_src(take, len) + base } end
+  local n = r.GetTakeNumStretchMarkers(take)
+  if n > 0 then r.DeleteTakeStretchMarkers(take, 0, n) end
+  local lp, ls = -math.huge, -math.huge
+  for _, m in ipairs(list) do
+    if m.pos > lp + 1e-4 and m.src > ls + 1e-5 then
+      r.SetTakeStretchMarker(take, -1, m.pos, m.src)
+      lp, ls = m.pos, m.src
+    end
+  end
+  r.GetSetMediaItemTakeInfo_String(take, EXT_MODE, "quantize", true)
+  r.SetMediaItemInfo_Value(item, "C_BEATATTACHMODE", tb)
+  r.UpdateItemInProject(item)
+  return true
+end
+
 function A.quantize(items, s)
   -- the reference: the first selected MIDI item in track order
   local ref
@@ -4749,13 +4908,30 @@ function A.quantize(items, s)
   for i, t in ipairs(starts) do targets[i] = t end
   if last_end then targets[#targets + 1] = last_end end
   local out = {}
+  -- one audio item: the others follow it per "Multitrack follower sync" (a
+  -- vocal that follows its band); several: each one is quantized on its own
+  local followers = #items == 1 and quantize_followers(items[1], s) or {}
   for _, it in ipairs(items) do
     remember_original(it.item)
     local timebase = r.GetMediaItemInfo_Value(it.item, "C_BEATATTACHMODE")
     r.SetMediaItemInfo_Value(it.item, "C_BEATATTACHMODE", 0)
+    local before
+    if #followers > 0 then
+      prequantize_state(it.take)
+      before = audio_points(it.item, it.take)
+    end
     local np = quantize_one(it, targets, last_end or math.huge, s)
     r.SetMediaItemInfo_Value(it.item, "C_BEATATTACHMODE", timebase)
     out[#out + 1] = np and txt("q_done", it.name, np, #starts) or txt("q_none", it.name)
+    if np and before then
+      local after = audio_points(it.item, it.take)
+      local gguid = item_guid(it.item) or "1"
+      local nf = 0
+      for _, f in ipairs(followers) do
+        if follow_quantize(f, before, after, gguid) then nf = nf + 1 end
+      end
+      if nf > 0 then out[#out + 1] = txt("q_follow", nf) end
+    end
   end
   return txt("q_done_all", ref.name, table.concat(out, " "))
 end
