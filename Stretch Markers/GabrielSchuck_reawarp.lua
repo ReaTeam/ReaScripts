@@ -1,14 +1,17 @@
 -- @description reawarp: audio warping (beat detection, warp, tempo map, groove match, quantize)
 -- @author Gabriel Schuck
--- @version 1.0.6
+-- @version 1.0.7
 -- @license GPL-3.0-or-later
 -- @changelog
---   Bug fix: the Beat This! installer for Windows could not show its error message
---   ("The system cannot find the batch label specified"): it is now downloaded with
---   Windows line endings.
---   Beat This! installer: when the authors' server does not give the model (it has
---   refused downloads at times), it is downloaded from a copy on reawarp's GitHub,
---   checked by its SHA-256.
+--   Bug fix: audio quantize via MIDI from swing to straight (for example a swung
+--   song quantized to straight eighths) had no effect: the audio was assumed to be
+--   straight. reawarp now measures where the audio plays each part of the beat, so
+--   the quantize works in both directions.
+--   Bug fix: the attacks read for the quantize could change from one run to the next
+--   (REAPER can report an MP3 as 1 channel, and a 1-channel read gives only the left
+--   channel; an MP3 can also report a length of 0). Both channels are now always read,
+--   with the item at its real length.
+--   A loose swing (off-beats that vary from beat to beat) is now measured too.
 -- @links
 --   GitHub https://github.com/gabrielschuck/reawarp
 -- @about
@@ -2282,13 +2285,18 @@ end
 -- nothing, the buffer stays silent) when called from a coroutine, so inside
 -- the action's coroutine the read is handed to core.run, which does it in the
 -- main state and resumes with the result.
-local function direct_read(acc, sr, nch, t, n, buf)
-  if r.AudioAccessorStateChanged and r.AudioAccessorStateChanged(acc) then r.AudioAccessorUpdate(acc) end
-  return r.GetAudioAccessorSamples(acc, sr, nch, t, n, buf)
+-- With fixed = true the accessor is never updated (the take does not change
+-- during that read): an update in the middle can start the read again a few
+-- ms off. Returns the result of GetAudioAccessorSamples, and whether REAPER
+-- reported a change.
+local function direct_read(acc, sr, nch, t, n, buf, fixed)
+  local changed = r.AudioAccessorStateChanged and r.AudioAccessorStateChanged(acc) or false
+  if changed and not fixed then r.AudioAccessorUpdate(acc) end
+  return r.GetAudioAccessorSamples(acc, sr, nch, t, n, buf), changed
 end
-local function read_samples(acc, sr, nch, t, n, buf)
-  if coroutine.isyieldable() then return coroutine.yield({ read = { acc, sr, nch, t, n, buf } }) end
-  return direct_read(acc, sr, nch, t, n, buf)
+local function read_samples(acc, sr, nch, t, n, buf, fixed)
+  if coroutine.isyieldable() then return coroutine.yield({ read = { acc, sr, nch, t, n, buf, fixed } }) end
+  return direct_read(acc, sr, nch, t, n, buf, fixed)
 end
 
 local function backend_python()
@@ -4353,8 +4361,10 @@ local function take_attacks(it)
   local item, take = it.item, it.take
   local src = r.GetMediaItemTake_Source(take)
   local fn = r.GetMediaSourceFileName(src, "") or ""
-  local slen = r.GetMediaSourceLength(src)
-  local key = string.format("5|%s|%.6f", fn, slen)
+  -- (GetMediaSourceLength can say 0, e.g. for some MP3 files: the length of
+  -- the whole source then comes from the item, see below)
+  local slen = r.GetMediaSourceLength(src) or 0
+  local key = string.format("8|%s", fn)
   local ok, v = r.GetSetMediaItemTakeInfo_String(take, EXT_ATT, "", false)
   if ok and v ~= "" then
     local head, l1, l2 = v:match("^(.-)\n(.-)\n(.*)$")
@@ -4376,16 +4386,57 @@ local function take_attacks(it)
     tb = r.GetMediaItemInfo_Value(item, "C_BEATATTACHMODE"),
   }
   neutralize(item, take, true)
+  -- the whole file: from its start, as long as the source (never 0: an item
+  -- of length 0 is changed by REAPER between the steps of the reading, and
+  -- the audio read then comes out shifted)
+  local full = r.GetMediaItemInfo_Value(item, "D_LENGTH") + saved.offs
+  if slen > full then full = slen end
   r.SetMediaItemTakeInfo_Value(take, "D_STARTOFFS", 0)
-  r.SetMediaItemInfo_Value(item, "D_LENGTH", slen)
+  r.SetMediaItemInfo_Value(item, "D_LENGTH", full)
   local acc = r.CreateTakeAudioAccessor(take)
   local t0 = r.GetAudioAccessorStartTime(acc)
   local t1 = r.GetAudioAccessorEndTime(acc)
   local ipos = r.GetMediaItemInfo_Value(item, "D_POSITION")
   local item_off = (ipos > 1e-6 and math.abs(t0 - ipos) < 1e-6) and 0 or t0
   local nsamp = math.floor((t1 - t0) * SR)
-  local read = take_reader(acc, t0, source_channels(src), nsamp)
-  local okr, o, _, env, envrate, fps = pcall(dsp.onset_envelope, read, nsamp, SR, 128)
+  -- all the audio is read in one go, with no pause for REAPER in between
+  -- (no breath()): REAPER must not see, let alone change, the item in this
+  -- temporary state; the slow part (the onset curve) comes after, from memory
+  -- both channels at least: REAPER may report 1 channel for a stereo MP3, and a
+  -- read of 1 channel is the left one only
+  local nch = math.max(2, source_channels(src))
+  local BLK = math.max(1024, math.floor(65536 / nch))
+  local buf = r.new_array(BLK * nch)
+  local mono = {}
+  local scale = nch == 2 and 0.5 or (1 / math.sqrt(nch))
+  local failed, retried, silent = 0, 0, 0
+  for p0 = 0, nsamp - 1, BLK do
+    local m = math.min(BLK, nsamp - p0)
+    -- a block REAPER could not read (it answers 0 or less) is read again
+    local ret
+    for attempt = 1, 4 do
+      buf.clear()
+      ret = read_samples(acc, SR, nch, t0 + p0 / SR, m, buf, true)
+      if ret == 1 then break end
+      retried = retried + 1
+    end
+    if ret ~= 1 then failed = failed + 1 end
+    local t = buf.table(1, m * nch)
+    local any = false
+    for i = 1, m * nch, 97 do if t[i] ~= 0 then any = true; break end end
+    if not any then silent = silent + 1 end
+    if nch == 1 then
+      for i = 1, m do mono[p0 + i] = t[i] end
+    else
+      local base = 0
+      for i = 1, m do
+        local sum = 0
+        for c = 1, nch do sum = sum + t[base + c] end
+        base = base + nch
+        mono[p0 + i] = sum * scale
+      end
+    end
+  end
   r.DestroyAudioAccessor(acc)
   local n = r.GetTakeNumStretchMarkers(take)
   if n > 0 then r.DeleteTakeStretchMarkers(take, 0, n) end
@@ -4395,6 +4446,14 @@ local function take_attacks(it)
   r.SetMediaItemInfo_Value(item, "D_LENGTH", saved.len)
   for _, m in ipairs(saved.sm) do r.SetTakeStretchMarker(take, -1, m.pos, m.src) end
   r.SetMediaItemInfo_Value(item, "C_BEATATTACHMODE", saved.tb)
+  local function read(pos, cnt)
+    set_stage("st_analyze", pos / math.max(1, nsamp))
+    local out = {}
+    for i = 1, cnt do out[i] = mono[pos + i] or 0 end
+    return out
+  end
+  local okr, o, _, env, envrate, fps = pcall(dsp.onset_envelope, read, nsamp, SR, 128)
+  mono = nil
   if not okr then error(o) end
   local a = dsp.attacks(o, fps, env, envrate, 0.05)
   local w, ws = dsp.attacks(o, fps, env, envrate, 0.02, true)
@@ -4441,7 +4500,12 @@ end
 -- such as 1.667 + 0.333 takes the audio of the second beat for its short
 -- note). Notes outside such spans use the most common number of notes per
 -- beat. The order is kept (a position already taken leaves the note out).
-local function grid_targets(tg)
+-- Where the audio really plays each part of such a span is measured on its
+-- attacks (aq: positions in quarter notes, as = strengths): a swung audio
+-- plays its second eighth near 2/3 of the beat, so that is the audio a note
+-- on the half beat takes (swing to straight), and a straight audio gives 1/2
+-- (straight to swing).
+local function grid_targets(tg, aq, as)
   local qn, count = {}, {}
   for k, t in ipairs(tg) do
     qn[k] = r.TimeMap2_timeToQN(0, t)
@@ -4461,13 +4525,70 @@ local function grid_targets(tg)
   for k = 1, #tg do
     if math.abs(qn[k] - math.floor(qn[k] + 0.5)) < 0.06 then on[#on + 1] = k end
   end
+  -- the spans, grouped by kind (beats, notes), with the audio's own phase of
+  -- each part: a histogram of the attacks over all the spans of a kind
+  local spans, kinds = {}, {}
   for i = 1, #on - 1 do
     local a, b = on[i], on[i + 1]
     local qa, qb = math.floor(qn[a] + 0.5), math.floor(qn[b] + 0.5)
     local m = b - a
     if qb > qa and m <= 8 * (qb - qa) then
-      for j = 0, m - 1 do g[a + j] = qa + j * (qb - qa) / m end
+      local key = (qb - qa) .. ":" .. m
+      spans[#spans + 1] = { a = a, qa = qa, qb = qb, m = m, key = key }
+      kinds[key] = kinds[key] or { L = qb - qa, m = m, list = {} }
+      local list = kinds[key].list
+      list[#list + 1] = #spans
     end
+  end
+  local BINS = 96
+  for _, kind in pairs(kinds) do
+    local h = {}
+    for i = 0, BINS - 1 do h[i] = 0 end
+    local j0 = 1
+    for _, si in ipairs(kind.list) do
+      local sp = spans[si]
+      while j0 <= #aq and aq[j0] < sp.qa do j0 = j0 + 1 end
+      for j = j0, #aq do
+        if aq[j] >= sp.qb then break end
+        local u = (aq[j] - sp.qa) / kind.L
+        local bi = math.min(BINS - 1, math.floor(u * BINS))
+        h[bi] = h[bi] + as[j]
+      end
+    end
+    -- smoothed over about a tenth of the span (a loose swing spreads its
+    -- attacks over a range), then for each part the strongest range within half a
+    -- part of where it would be straight, slightly favouring the straight one
+    local sm = {}
+    for i = 0, BINS - 1 do
+      local v = 0
+      for d = -5, 5 do v = v + (h[i + d] or 0) * (6 - math.abs(d)) end
+      sm[i] = v
+    end
+    local total = 0
+    for i = 0, BINS - 1 do total = total + sm[i] end
+    kind.phase = { [0] = 0 }
+    for j = 1, kind.m - 1 do
+      local c = j / kind.m
+      local half = 0.5 / kind.m
+      local best, bu, wsum, wn = 0, c, 0, 0
+      for i = 0, BINS - 1 do
+        local u = (i + 0.5) / BINS
+        if u > c - half and u < c + half and u > kind.phase[j - 1] + 0.5 / BINS then
+          local v = sm[i] * (1 - 0.2 * math.abs(u - c) / half)
+          if v > best then best, bu = v, u end
+          wsum, wn = wsum + sm[i], wn + 1
+        end
+      end
+      -- a clear peak only (else straight): well above the average of the range
+      -- searched (not of the whole span, where the strong attacks on the beat
+      -- would hide a loose swing)
+      if total <= 0 or wn == 0 or best < 1.4 * wsum / wn then bu = c end
+      kind.phase[j] = bu
+    end
+  end
+  for _, sp in ipairs(spans) do
+    local kind = kinds[sp.key]
+    for j = 0, sp.m - 1 do g[sp.a + j] = sp.qa + kind.phase[j] * (sp.qb - sp.qa) end
   end
   if on[1] then g[on[#on]] = math.floor(qn[on[#on]] + 0.5) end
   local out, last = {}, -math.huge
@@ -4530,7 +4651,22 @@ local function quantize_one(it, targets, note_end, s)
   local sens = math.max(0, math.min(100, s.q_sens or 50)) / 100
   local floor_s = 0.01 * sens + 0.2 * (1 - sens)
   local st = math.max(0, math.min(1, (s.q_strength or 75) / 100))
-  local straight = grid_targets(tg)
+  -- the attacks of the audio in quarter notes (where they play now), for the
+  -- phases of the parts of the beat
+  local aq, as = {}, {}
+  if #tg > 0 then
+    local t_lo, t_hi = tg[1] - 2, tg[#tg] + 2
+    for j, w in ipairs(weak) do
+      if wstr[j] >= floor_s then
+        local T = pos + rel_src_to_item(take, w - offs)
+        if T >= t_lo and T <= t_hi then
+          aq[#aq + 1] = r.TimeMap2_timeToQN(0, T)
+          as[#as + 1] = wstr[j]
+        end
+      end
+    end
+  end
+  local straight = grid_targets(tg, aq, as)
   local pins, notes, last_s, last_t = {}, 0, -math.huge, -math.huge
   local j0 = 1
   for k, t in ipairs(tg) do
